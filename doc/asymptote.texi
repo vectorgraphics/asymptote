@@ -7,7 +7,7 @@
 @copying
 This file documents ASYMPTOTE, version @value{VERSION}.
 
-http://www/asymptote.sourceforge.net
+http://asymptote.sourceforge.net
      
 Copyright @copyright{} 2004 Andy Hammerlindl, John Bowman, and Tom Prince.
      
