@@ -347,10 +347,20 @@ void|bool|int|real|string|pair|transform|guide|path|pen|frame {
   makesymbol();
   return PRIM; }
 
-[0-9]+             {
-  adjust(); yylval.e= new intExp(here(), lexical_cast<int>(yytext)); return LIT; }
-([0-9]*\.[0-9]+)|([0-9]+\.[0-9]*)|([0-9]*\.*[0-9]+e[-+]*[0-9]+)|([0-9]+\.[0-9]*e[-+]*[0-9]+) {
-  adjust(); yylval.e= new realExp(here(), lexical_cast<double>(yytext)); return LIT; }
+[0-9]+             try {
+  adjust(); yylval.e= new intExp(here(), lexical_cast<int>(yytext)); 
+  } catch (boost::bad_lexical_cast&) {
+    error();
+    *em << "integer not valid";
+    yylval.e= new intExp(here(), 0); 
+  } return LIT;
+([0-9]*\.[0-9]+)|([0-9]+\.[0-9]*)|([0-9]*\.*[0-9]+e[-+]*[0-9]+)|([0-9]+\.[0-9]*e[-+]*[0-9]+)  try {
+  adjust(); yylval.e= new realExp(here(), lexical_cast<double>(yytext));
+  } catch (boost::bad_lexical_cast&) {
+    error();
+    *em << "real not valid";
+    yylval.e= new realExp(here(), 0); 
+  } return LIT;
 true               {
   adjust(); yylval.e= new booleanExp(here(), true); return LIT; }
 false              {
