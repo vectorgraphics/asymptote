@@ -20,6 +20,10 @@
 
 #include "fileio.h"
 
+namespace trans {
+  std::string symbolToFile(symbol *id);
+}
+
 namespace interact {
 
 using namespace std;  

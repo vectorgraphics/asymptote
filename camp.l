@@ -53,7 +53,7 @@ bool setlexer(std::string filename)
 {
   yywrap();
   
-  if(filename.string() == "-") {
+  if(filename == "-") {
     yy_streambuf = std::cin.rdbuf();
     my_streambuf=false;
     interactive = interact::interactive;
