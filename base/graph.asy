@@ -1,6 +1,6 @@
 public real ticksize=1mm;
 public real Ticksize=2*ticksize;
-public real ylabelwidth=1.5;
+public real ylabelwidth=2.0;
 public real axislabelmargin=2;
 public real axiscoverage=0.6;
 public int ngraph=100;

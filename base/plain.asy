@@ -82,7 +82,7 @@ pen lavender=brown+darkgreen+blue;
 pen pink=red+darkgreen+blue;
 
 // Global parameters:
-public real labelmargin=0.4;
+public real labelmargin=0.2;
 public real arrowlength=0.75cm;
 public real arrowsize=7.5;
 public real arrowangle=15;
@@ -1240,10 +1240,9 @@ void arrow(picture pic=currentpicture, string s="", real angle=0,
   if(s == "") {
     a=0; c=length*unit(align);
   } else {
-    real halfem=labelmargin(p);
-    c=halfem*align;
+    c=0.4*fontsize(p)*align;
     a=length*align+c;
-    label(pic,s,angle,b,(a+c)/halfem,p,adjust);
+    label(pic,s,angle,b,a/labelmargin(p)+align,p,adjust);
   }
   addabout(pic,arrow(a--c,p,size,Angle,arrowhead),b);
 }
@@ -1254,10 +1253,9 @@ void outarrow(picture pic=currentpicture, string s, real angle=0,
 	      real size=arrowsize, real Angle=arrowangle,
 	      arrowhead arrowhead=Fill)
 {
-  real halfem=labelmargin(p);
-  pair c=halfem*align;
+  pair c=0.4*fontsize(p)*align;
   pair a=length*align+c;
-  label(pic,s,angle,b,(a+c)/halfem,p,adjust);
+  label(pic,s,angle,b,a/labelmargin(p)+align,p,adjust);
   addabout(pic,arrow((0,0)--(a-b),p,size,Angle,arrowhead),b);
 }
 
