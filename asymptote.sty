@@ -65,6 +65,7 @@
   \stepcounter{asy}%
   \def\@optarg{#1}%
    \immediate\write\AsyStream{\@charlb}%
+   \immediate\write\AsyStream{reset();}%
    \immediate\write\AsyStream{currentpicture.erase();}%
    \immediate\write\AsyStream{currentpen=defaultpen();}%
    \immediate\write\AsyStream{defaultfilename="\jobname.\arabic{asy}.eps";}%

@@ -25,21 +25,22 @@ namespace settings {
   extern int view;
   extern int safe;
   extern int autoplain;
-
   extern int parseonly;
   extern int translate;
   extern int trap;
   extern double deconstruct;
   extern int clearGUI;
   extern int ignoreGUI;
-  extern int ShipoutNumber;
+  extern camp::pair printerOffset;
+  
   extern double defaultlinewidth;
   extern double defaultfontsize;
   extern bool suppressOutput;
   extern bool upToDate;
-  extern camp::pair printerOffset;
   extern int overwrite;
 
+  extern int ShipoutNumber;
+  
   extern std::string suffix;
   const char *getAsyDir(); // Returns the environment asymptote directory.
 
@@ -53,5 +54,7 @@ namespace settings {
   // Access the arguments once options have been parsed.
   int numArgs();
   char *getArg(int n);
+  
+  void reset(); // Reset to startup defaults
 }
 #endif

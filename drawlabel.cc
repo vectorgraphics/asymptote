@@ -16,6 +16,12 @@ using settings::verbose;
   
 namespace camp {
 
+void drawLabel::labelwarning(const char *action) 
+{
+  cerr << "warning: label \"" << label 
+	       << "\" " << action << " to avoid overwriting" << endl;
+}
+  
 void drawLabel::bounds(bbox& b, iopipestream& tex,
 		       std::vector<box>& labelbounds)
 {
@@ -75,8 +81,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
       if(labelbounds[i].intersect(Box)) {
 	if(settings::overwrite == 0) {
 	  suppress=true; 
-	  cerr << "warning: label \"" << label 
-	       << "\" suppressed to avoid overwriting" << endl;
+	  labelwarning("suppressed");
 	  return;
 	}
 
@@ -98,8 +103,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
 	C += offset;
 	D += offset;
 	Box=box(A,B,C,D);
-	cerr << "warning: label \"" << label 
-	     << "\" moved to avoid overwriting" << endl;
+	labelwarning("moved");
 	i=0;
       }
     }

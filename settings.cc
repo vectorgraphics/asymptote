@@ -32,21 +32,21 @@ int verbose=0;
 int view=0;
 int safe=1;
 int autoplain=1;
-int clearGUI=0;
-int ignoreGUI=0;
-
 int parseonly=0;
 int translate=0;
 int trap=1;
 double deconstruct=0;
-int ShipoutNumber=0;
-double defaultlinewidth=0.5;  
-double defaultfontsize=12.0;
-bool suppressOutput=false;
-bool upToDate=true;
+int clearGUI=0;
+int ignoreGUI=0;
 camp::pair printerOffset=camp::pair(0,0);
-int overwrite=1;
+  
+double defaultlinewidth=0.0;  
+double defaultfontsize=0.0;
+bool suppressOutput=false;
+bool upToDate=false;
+int overwrite=0;
 
+int ShipoutNumber=0;
 char localdir[]=".";
 
 std::string suffix="asy";
@@ -92,8 +92,8 @@ void options()
   cerr << "-V, -View\t view output file" << endl;
   cerr << "-m\t\t mask fpu exceptions (on supported architectures)" << endl;
   cerr << "-nomask\t\t don't mask fpu exceptions (default)" << endl;
-  cerr << "-S, -safe\t disable system call (default)" << endl;
-  cerr << "-U, -unsafe\t enable system call" << endl;
+  cerr << "-safe\t\t disable system call (default)" << endl;
+  cerr << "-unsafe\t\t enable system call" << endl;
   cerr << "-noplain\t disable automatic importing of plain" << endl;
 }
 
@@ -126,7 +126,7 @@ void setOptions(int argc, char *argv[])
   errno=0;
   for(;;) {
     int c = getopt_long_only(argc,argv,
-			     "cf:hikLmo:pPsvVx:O:SU",
+			     "cf:hikLmo:pPsvVx:O:",
 			     long_options,&option_index);
     if (c == -1) break;
 
@@ -188,12 +188,6 @@ void setOptions(int argc, char *argv[])
         syntax=1;
       }
       break;
-    case 'S':
-      safe=1;
-      break;
-    case 'U':
-      safe=0;
-      break;
     default:
       syntax=1;
     }
@@ -212,6 +206,16 @@ void setOptions(int argc, char *argv[])
 	 << " -h' for a descriptions of options." << endl;
     exit(1);
   }
+}
+
+// Reset to startup defaults
+void reset() 
+{
+  defaultfontsize=12.0;
+  defaultlinewidth=0.5;  
+  suppressOutput=false;
+  upToDate=true;
+  overwrite=1;
 }
 
 }

@@ -356,6 +356,8 @@ void base_venv(venv &ve)
   addFunc(ve,run::shipout,primVoid(),"shipout",primString(),
 	  primPicture(),primString(),primBoolean());
   
+  addFunc(ve,run::reset,primVoid(),"reset");
+  
   addFunc(ve,run::overwrite,primVoid(),"overwrite",primInt());
   
   addFunc(ve,run::abort,primVoid(),"abort",primString());

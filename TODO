@@ -22,9 +22,6 @@ Tom: extend syntax to allow for explict array casts like (int[]) on real[].
 
 3d graphs
 
-In final code: Replace any asserts that can actually occur with if statements
-(Partly done, perhaps completely.)
-
 Tom: Optimized tail call recursion incompatible with call instruction?
 
 allow users to examine the structure of guides (to allow user functions that

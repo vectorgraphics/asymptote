@@ -48,6 +48,8 @@ public:
   }
 
   drawElement *transformed(const transform& t);
+  
+  void labelwarning(const char *action); 
 };
 
 }

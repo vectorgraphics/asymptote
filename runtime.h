@@ -220,8 +220,9 @@ void stringFilePrefix(vm::stack *s);
 void suppressOutput(vm::stack *s);
 void upToDate(vm::stack *s);
 
-// Execute a shell command  
+// System commands
 void system(vm::stack *s);
+void reset(vm::stack *s);
 void abort(vm::stack *s);
 void exit(vm::stack *s);
   

@@ -61,6 +61,7 @@ int main(int argc, char *argv[])
   
   for(int ind=0; ind < settings::numArgs() || (interactive && virtualEOF);
       ind++) {
+    settings::reset();
     virtualEOF=false;
     ShipoutNumber=0;
     

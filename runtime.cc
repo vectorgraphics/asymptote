@@ -1491,6 +1491,11 @@ void stringFilePrefix(stack *s)
   s->push((std::string) outname);
 }
 
+void reset(stack *s)
+{
+  settings::reset();
+}
+
 // Interactive mode
 
 void suppressOutput(stack *s)
@@ -1505,7 +1510,7 @@ void upToDate(stack *s)
   settings::upToDate=val;
 }
 
-// Execute a shell command  
+// System commands
 
 void system(stack *s)
 {
