@@ -25,10 +25,9 @@ label("$A$",z1);
 label("$B$",z2);
 
 pair z=(0,-2);
-real e=0.85;
-draw("$A\cap B$",subpath(conj(z)--z0,0,e),0,Arrow);
-draw("$A\cup B$",subpath(z--z0,0,e),0,Arrow);
-draw(subpath(z--z1,0,e),Arrow);
-draw(subpath(z--z2,0,e),Arrow);
+draw("$A\cap B$",conj(z)--z0,0,Arrow,Margin);
+draw("$A\cup B$",z--z0,0,Arrow,Margin);
+draw(z--z1,Arrow,Margin(0,3));
+draw(z--z2,Arrow,Margin(0,3));
 
 shipout(bbox(0.25cm));
