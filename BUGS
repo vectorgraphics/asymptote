@@ -1,21 +1,5 @@
 	 Known bugs in Asymptote (relative to latest CVS version)
 -------------------------------------------------------------------------------
-2004-17-11: Import scoping problem. 
-Suppose blah0.asy contains the single line
-real f(real x) {return x;}
-and blah.asy contains the single line
-void f() {}
-Then the following code generates the error
-bug1.asy: 4.2: cannot call type 'void ()' with parameter '(real)'
 
-import blah0;
-{
-import blah;
-f(1.0);
-}
-
-A workaround is to explicitly qualify the function with the import name:
-blah0.f(1.0);
--------------------------------------------------------------------------------
 
 
