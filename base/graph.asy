@@ -724,7 +724,7 @@ public axis
 void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
 	     bool crop=Crop)
 {
-  if(!finite(pic.userMin) || !finite(pic.userMax)) return;
+  if(!(finite(pic.userMin.x) && finite(pic.userMax.x))) return;
   
   pic.scale.x.automin=Min <= -infinity;
   pic.scale.x.automax=Max >= infinity;
@@ -756,7 +756,7 @@ void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
 void ylimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
 	     bool crop=Crop)
 {
-  if(!finite(pic.userMin) || !finite(pic.userMax)) return;
+  if(!(finite(pic.userMin.y) && finite(pic.userMax.y))) return;
   
   pic.scale.y.automin=Min <= -infinity;
   pic.scale.y.automax=Max >= infinity;
@@ -789,7 +789,8 @@ void crop(picture pic=currentpicture)
 {
   xlimits(pic,false);
   ylimits(pic,false);
-  clip(pic,box(pic.userMin,pic.userMax));
+  if(finite(pic.userMin) && finite(pic.userMax))
+    clip(pic,box(pic.userMin,pic.userMax));
 }
 
 void limits(picture pic=currentpicture, pair min, pair max)

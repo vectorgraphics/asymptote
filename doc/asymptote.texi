@@ -137,7 +137,7 @@ around. To make @code{Asymptote} accessible to the average user, this
 @acronym{GUI} is currently being developed into a full-fledged interface
 that can generate objects directly. However, the script portion of the language
 is now ready for general use by users who are willing to learn a few
-simple @code{Asymptote} graphics commands @ref{Drawing commands}.
+simple @code{Asymptote} graphics commands (@pxref{Drawing commands}).
 
 @code{Asymptote} is mathematically oriented (e.g. one can
 use complex multiplication to rotate a vector) and uses
@@ -3385,7 +3385,7 @@ The labeling command @code{label} can be used to add text
 labels and external @acronym{EPS} images, which will appear on top of the
 @code{PostScript} objects (since this is normally what one wants), but
 again in the relative order in which they were executed. After drawing
-objects on a picture, the picture needs to be output with the
+objects on a picture, the picture can be output with the
 @code{shipout} function (@pxref{shipout}).
 
 @cindex @code{layer}
