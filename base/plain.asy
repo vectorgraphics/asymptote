@@ -9,10 +9,12 @@
 // Define a.. tension x ..b to be equivalent to
 //        a.. tension x and x ..b
 // and likewise with controls.
-guide operator tension(real x, bool atl) {
+guide operator tension(real x, bool atl)
+{
   return operator tension(x,x,atl);
 }
-guide operator controls(pair z) {
+guide operator controls(pair z)
+{
   return operator controls(z,z);
 }
 

@@ -74,6 +74,10 @@ void picture::prepend(picture &pic)
 
 bbox picture::bounds()
 {
+  size_t n=number();
+  if(lastnumber == n) return b;
+  lastnumber=n;
+  
   b=bbox();
   
   list<drawElement*>::iterator p;

@@ -22,14 +22,15 @@ extern iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
 
 class picture : public memory::managed<picture> {
 private:
+  bool labels;
+  size_t lastnumber;
   bbox b;
   pair bboxshift;
   std::list<drawElement*> nodes;
-  bool labels;
   bool epsformat,pdfformat,tgifformat;
 
 public:
-  picture() : labels(false) {}
+  picture() : labels(false), lastnumber(0) {}
   
   // Destroy all of the owned picture objects.
   ~picture();
