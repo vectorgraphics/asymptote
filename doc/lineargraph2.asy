@@ -1,3 +1,4 @@
+
 import graph;
 
 real Sin(real t) {return sin(2pi*t);}

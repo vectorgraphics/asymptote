@@ -1,3 +1,4 @@
+
 size(9cm,10cm,IgnoreAspect);
 
 pair d=(1,0.25);

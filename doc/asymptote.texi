@@ -884,7 +884,6 @@ endpoint curvatures) from the final point of the left-hand path to the
 initial point of the right-hand path, may be used to group several
 @code{Asymptote} paths into a @code{path[]} array (equivalent to a
 @code{PostScript path}):
-
 @verbatiminclude superpath.asy
 @image{superpath}
 
@@ -901,7 +900,6 @@ filldraw(unitcircle^^reverse(g),yellow,black);
 The @code{^^} operator is used by the @code{box3d} function in
 @code{graph3d.asy} to construct a 2D projection of the edges of a 3D
 cube, without retracing steps:
-
 @verbatiminclude cube.asy
 @image{cube}
 
@@ -2812,7 +2810,6 @@ Here are some simple examples of two-dimensional graphs:
 
 
 @item The next example draws a scientific-style graph with a legend.
-
 @cindex scientific graph
 @cindex @code{LeftTicks}
 @cindex @code{RightTicks}
@@ -2854,7 +2851,6 @@ Here, the positive and negative extents of the error are given by the
 absolute values of the elements of the pair array @code{dp} and the
 optional pair array @code{dm}. If @code{dm} is not specified, the
 positive and negative extents of the error are assumed to be equal.
-
 @anchor{datagraph}
 @verbatiminclude datagraph.asy
 @page
@@ -2885,7 +2881,6 @@ within the given limits unless @code{crop}=@code{NoCrop}. For example, if
 existing objects in @code{currentpicture} will be cropped to the current
 graph limits. The function @code{crop(picture pic)} is equivalent
 to calling both @code{xlimits()} and @code{ylimits()}.
-
 @verbatiminclude parametricgraph.asy
 @image{parametricgraph}
 
@@ -3552,7 +3547,6 @@ If @code{ra} != 0 or @code{rb} != 0, fill with a color gradient varying
 smoothly from @code{pena} on the circle with center @code{a} and radius
 @code{ra} to @code{penb} on the circle with center @code{b} and radius
 @code{rb}: 
-
 @verbatiminclude shade.asy
 
 @image{shade}
@@ -3666,7 +3660,6 @@ example.
 The @code{string minipage(string s, width=100pt)} function can be used
 to format string @code{s} into a paragraph of width @code{width}, as
 illustrated in the following example:
-
 @verbatiminclude mosquito.asy
 
 @image{mosquito}
@@ -4020,7 +4013,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  yequals Nobre Barbarosie Schwaiger nearearth conicurv Wiebusch
 @c  LocalWords:  unfill PAPERTYPE posterSize ngraph interpolatetype ctrl dt
 @c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei putmark
-@c  LocalWords:  westnile minipage infectiousM ra penb paletteticks
+@c  LocalWords:  westnile minipage infectiousM ra penb paletteticks drawline
 @c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis
 @c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx XEquals YEquals
 @c  LocalWords:  treetest eetomumu fermi backend pstoedit drawtree metapost xFF
@@ -4034,4 +4027,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  PenMargin PenMargins TrueMargin labelmargin errorbars errorbar
 @c  LocalWords:  dpx dpy dmx dmy barsize arrowheadsize BeginDotMargin DotMargin
 @c  LocalWords:  EndDotMargin DotMargins NColors BWRainbow colorspace labelled
-@c  LocalWords:  PaletteTicks defaultformat
+@c  LocalWords:  PaletteTicks defaultformat leastsquares

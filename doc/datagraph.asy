@@ -1,3 +1,4 @@
+
 import graph;
 
 picture pic=new picture;
