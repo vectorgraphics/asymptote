@@ -605,3 +605,18 @@ diff -ru gv-3.5.8/source/Ghostview.c gv-3.5.8J/source/Ghostview.c
     Arg args[5];
     Cardinal n;
     static Boolean s_scratch_dir = False;
+diff -ru gv-3.5.8/source/signal.c gv-3.5.8J/source/signal.c
+--- gv-3.5.8/source/signal.c	1997-04-25 16:00:00.000000000 -0600
++++ gv-3.5.8J/source/signal.c	2005-03-14 20:08:38.148139064 -0700
+@@ -202,10 +202,10 @@
+     sid_updateFile = sid_terminate = 0;
+   }
+   signal(SIGHUP,  shu);
+-  signal(SIGINT,  sht);
+   signal(SIGQUIT, sht);
+   signal(SIGTERM, sht);
+ #if 0
++  signal(SIGINT,  sht);
+   signal(SIGILL,  sht);
+   signal(SIGBUS,  sht);
+   signal(SIGFPE,  sht);
