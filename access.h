@@ -84,21 +84,6 @@ class identAccess : public access
   virtual void encodeCall(position, coder&);
 };
 
-// This access represents functions that are implemented by instructions
-// in the virtual machine.
-class instAccess : public access {
-  inst i;
-
-public:
-  instAccess(inst i)
-    : i(i) {}
-
-  instAccess(inst::opcode o)
-    { i.op = o; }
-
-  void encodeCall(position pos, coder &e);
-};
-
 // Represents a function that is implemented by a built-in C++ function.
 class bltinAccess : public access {
   bltin f;

@@ -77,16 +77,6 @@ inline void addFunc(venv &ve, bltin f, ty *result, const char *name,
   access *a = new bltinAccess(f);
   addFunc(ve, a, result, name, t1, t2, t3, t4, t5, t6, t7, t8);
 }
-
-inline void addFunc(venv &ve, inst::opcode o, ty *result, const char *name, 
-		    ty *t1 = 0, ty *t2 = 0, ty *t3 = 0, ty* t4 = 0,
-		    ty *t5 = 0, ty *t6 = 0, ty *t7 = 0, ty *t8 = 0)
-{
-
-  access *a = new instAccess(o);
-  addFunc(ve, a, result, name, t1, t2, t3, t4, t5, t6, t7, t8);
-}
-  
   
 void addRealFunc0(venv &ve, bltin fcn, const char *name)
 {
@@ -116,10 +106,6 @@ void addSimpleOperator(venv &ve, access *a, ty *t, const char *name)
 {
   addFunc(ve, a, t, name, t, t);
 }
-void addSimpleOperator(venv &ve, inst::opcode o, ty *t, const char *name)
-{
-  addFunc(ve, o, t, name, t, t);
-}
 void addSimpleOperator(venv &ve, bltin f, ty *t, const char *name)
 {
   addFunc(ve, f, t, name, t, t);
@@ -127,10 +113,6 @@ void addSimpleOperator(venv &ve, bltin f, ty *t, const char *name)
 void addBooleanOperator(venv &ve, access *a, ty *t, const char *name)
 {
   addFunc(ve, a, primBoolean(), name, t, t);
-}
-void addBooleanOperator(venv &ve, inst::opcode o, ty *t, const char *name)
-{
-  addFunc(ve, o, primBoolean(), name, t, t);
 }
 void addBooleanOperator(venv &ve, bltin f, ty *t, const char *name)
 {

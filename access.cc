@@ -20,14 +20,6 @@ access::~access()
 void identAccess::encodeCall(position, coder&)
 {}
 
-
-/* instAccess */
-void instAccess::encodeCall(position, coder &e)
-{
-  e.encode(i);
-}
-
-
 /* bltinAccess */
 static void bltinError(position pos)
 {
