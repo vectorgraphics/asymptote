@@ -1417,8 +1417,8 @@ void texpreamble(string s);
 @code{Asymptote} can read and write text files (including comma-separated
 value) files and portable XDR (External Data Representation) binary files.
 
-An input file must first be opened with @code{input(string)}; reading is then
-done by assignment: 
+An input file must first be opened with @code{input(string, bool check=true)};
+reading is then done by assignment:
 @cindex open
 @cindex @code{input}
 @cindex reading
@@ -1426,6 +1426,11 @@ done by assignment:
 file fin=input("test.txt");
 real a=fin;
 @end verbatim
+
+@cindex @code{error}
+If the optional boolean argument @code{check} is false, no check will
+be made that the file exists. If the file does not exist or is not
+readable, the function  @code{bool error(file)} will return @code{true}.
 
 @cindex @code{getc}
 When reading pairs, the enclosing parenthesis are optional.

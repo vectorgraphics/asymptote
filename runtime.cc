@@ -1718,23 +1718,28 @@ void nullFile(stack *s)
 
 void fileOpenIn(stack *s)
 {
-  file *f=new ifile(s->pop<string>());
+  bool check=s->pop<bool>();
+  string filename=s->pop<string>();
+  file *f=new ifile(filename,check);
   f->open();
   s->push(f);
 }
 
 void fileOpenOut(stack *s)
 {
-  file *f=new ofile(s->pop<string>());
+  bool check=s->pop<bool>();
+  string filename=s->pop<string>();
+  file *f=new ofile(filename,check);
   f->open();
   s->push(f);
 }
 
 void fileOpenXIn(stack *s)
 {
-  string filename = s->pop<string>();
+  bool check=s->pop<bool>();
+  string filename=s->pop<string>();
 #ifdef HAVE_RPC_RPC_H
-  file *f=new ixfile(filename);
+  file *f=new ixfile(filename,check);
   s->push(f);
 #else  
   error(s,"XDR support not enabled");
@@ -1743,9 +1748,10 @@ void fileOpenXIn(stack *s)
 
 void fileOpenXOut(stack *s)
 {
-  string filename = s->pop<string>();
+  bool check=s->pop<bool>();
+  string filename=s->pop<string>();
 #ifdef HAVE_RPC_RPC_H
-  file *f=new oxfile(filename);
+  file *f=new oxfile(filename,check);
   s->push(f);
 #else  
   error(s,"XDR support not enabled");

@@ -535,10 +535,11 @@ void base_venv(venv &ve)
   
   // I/O functions
 
-  addFunc(ve,run::fileOpenOut,primFile(),"output",primString());
-  addFunc(ve,run::fileOpenIn,primFile(),"input",primString());
-  addFunc(ve,run::fileOpenXOut,primFile(),"xoutput",primString());
-  addFunc(ve,run::fileOpenXIn,primFile(),"xinput",primString());
+  addFunc(ve,run::fileOpenOut,primFile(),"output",primString(),primBoolean());
+  addFunc(ve,run::fileOpenIn,primFile(),"input",primString(),primBoolean());
+  addFunc(ve,run::fileOpenXOut,primFile(),"xoutput",primString(),
+	  primBoolean());
+  addFunc(ve,run::fileOpenXIn,primFile(),"xinput",primString(),primBoolean());
 
   addFunc(ve,run::fileEol,primBoolean(),"eol",primFile());
   addFunc(ve,run::fileEof,primBoolean(),"eof",primFile());

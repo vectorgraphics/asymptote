@@ -38,20 +38,22 @@ protected:
   int nx,ny,nz;  // Array dimensions
   bool linemode; // If true, array reads will stop at eol instead of eof.
   bool csvmode;  // If true, read comma-separated values.
-  bool closed;
+  bool closed;   // If true, file has been closed.
+  bool check;    // If true, check for errors after attempting to open file.
 public: 
 
   bool standard() {return name == "";}
   
   void dimension(int Nx=-1, int Ny=-1, int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
   
-  file(std::string name) : name(name), linemode(false), csvmode(false),
-			   closed(false) {dimension();}
+  file(std::string name, bool check=true) : 
+    name(name), linemode(false), csvmode(false), closed(false),
+    check(check) {dimension();}
   
   virtual void open() {};
   
-  void check() {
-    if(error()) {
+  void Check() {
+    if(error() && check) {
       std::ostringstream buf;
       buf << "Cannot open file \"" << name << "\".";
       reportError(buf.str().c_str());
@@ -125,7 +127,7 @@ class ifile : public file {
   std::ifstream fstream;
   
 public:
-  ifile(std::string name) : file(name) {
+  ifile(std::string name, bool check=true) : file(name,check) {
       stream=&std::cin;
   }
   
@@ -135,7 +137,7 @@ public:
     } else {
       fstream.open(name.c_str());
       stream=&fstream;
-      check();
+      Check();
     }
   }
   
@@ -197,7 +199,7 @@ class ofile : public file {
   std::ostream *stream;
   std::ofstream fstream;
 public:
-  ofile(std::string name) : file(name) {
+  ofile(std::string name, bool check=true) : file(name,check) {
       stream=&std::cout;
   }
   
@@ -207,7 +209,7 @@ public:
     } else {
       fstream.open(name.c_str());
       stream=&fstream;
-      check();
+      Check();
     }
   }
   
@@ -240,7 +242,8 @@ public:
 class ixfile : public file {
   xdr::ixstream stream;
 public:
-  ixfile(std::string name) : file(name), stream(name.c_str()) {check();}  
+  ixfile(std::string name, bool check=true) : 
+    file(name,check), stream(name.c_str()) {Check();}
 
   const char* Mode() {return "xinput";}
   
@@ -257,7 +260,8 @@ public:
 class oxfile : public file {
   xdr::oxstream stream;
 public:
-  oxfile(std::string name) : file(name), stream(name.c_str()) {check();}  
+  oxfile(std::string name, bool check=true) : 
+    file(name,check), stream(name.c_str()) {Check();}
 
   const char* Mode() {return "xoutput";}
   

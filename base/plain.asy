@@ -119,13 +119,18 @@ bool finite(pair z)
   return finite(z.x) && finite(z.y);
 }
 
-// To cut down two parentheses.
+// Cut two parentheses.
 transform shift(real x, real y)
 {
   return shift((x,y));
 }
 
 // I/O operations
+
+file input(string name) {return input(name,true);}
+file output(string name) {return output(name,true);}
+file xinput(string name) {return xinput(name,true);}
+file xoutput(string name) {return xoutput(name,true);}
 
 file stdin=input("");
 file stdout;
