@@ -912,8 +912,7 @@ void layer(picture pic=currentpicture)
     });
 }
 
-void includegraphics(picture pic=currentpicture, string name,
-		     string options="") 
+void include(picture pic=currentpicture, string name, string options="") 
 {
   if(options != "") options="["+options+"]";
   string include="\includegraphics"+options+"{"+name+"}";
