@@ -297,17 +297,22 @@ real[] partialsum(real[] A, real[] dx={})
   return B;
 }
 
-real[][] zero(int n)
+real[] zero(int n)
 {
-  real[][] m=new real[0][n];
+  return sequence(new real(int x){return 0;},n);
+}
+
+real[][] zero(int n, int m)
+{
+  real[][] M=new real[n][m];
   for(int i=0; i < n; ++i)
-    m[i]=sequence(new real(int x){return 0;},n);
-  return m;
+    M[i]=sequence(new real(int x){return 0;},m);
+  return M;
 }
 
 real[][] identity(int n)
 {
-  real[][] m=new real[0][n];
+  real[][] m=new real[n][n];
   for(int i=0; i < n; ++i)
     m[i]=sequence(new real(int x){return x == i ? 1 : 0;},n);
   return m;
@@ -352,14 +357,14 @@ real[][] operator * (real[][] a, real[][] b)
   return m;
 }
 
-real[][] operator * (real[][] a, real[] b)
+real[] operator * (real[][] a, real[] b)
 {
-  return a*transpose(new real[][] {b});
+  return transpose(a*transpose(new real[][] {b}))[0];
 }
 
-real[][] operator * (real[] b, real[][] a)
+real[] operator * (real[] b, real[][] a)
 {
-  return new real[][] {b}*a;
+  return (new real[][] {b}*a)[0];
 }
 
 real[][] operator * (real[][] a, real b)
@@ -381,20 +386,126 @@ real[][] operator / (real[][] a, real b)
   return a*(1/b);
 }
 
+bool square2(real[][] m)
+{
+  return m[0].length == m.length && m[1].length == m.length;
+}
+
+bool square(real[][] m)
+{
+  int n=m.length;
+  for(int i=0; i < n; ++i)
+    if(m[i].length != n) return false;
+  return true;
+}
+
 real determinant(real[][] m)
 {
-  if(m.length != 2)
-    abort("determinant of general matrix not yet implemented");
-  if(m[0].length != m.length || m[1].length != m.length)
-    abort("matrix not square");
-  return m[0][0]*m[1][1]-m[0][1]*m[1][0];
+  int n=m.length;
+  if(n == 2 && square2(m)) return m[0][0]*m[1][1]-m[0][1]*m[1][0];
+  
+  if(!square(m)) 
+    abort("attempted to take the determinant of a nonsquare matrix");
+  
+  if(n != 3) abort("determinant of a general matrix is not yet implemented");
+  
+  return
+     m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])
+    -m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])
+    +m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+}
+
+// Solve the linear equation ax=b by Gauss-Jordan elimination, returning
+// the solution x, where a is an n x n matrix and b is an n x m matrix.
+// If overwrite=true, b is replaced by x.
+
+real[][] solve(real[][] a, real[][] b, bool overwrite=false)
+{
+  a=copy(a);
+  if(!overwrite) b=copy(b);
+  int n=a.length;
+  int m=b[0].length;
+  
+  if(n != a[0].length) abort("First matrix is not square");
+  if(n != b.length) abort("Cannot solve incommensurate matrices");
+	
+  int[] pivot=sequence(new int(int){return 0;},n);
+  
+  int col=0, row=0;
+  for(int i=0; i < n; ++i) {
+    real big=0.0;
+    for(int j=0; j < n; ++j) {
+      real[] aj=abs(a[j]);
+      // Search for a pivot element.
+      if(find(pivot > 1) >= 0) abort("Singular matrix");
+      if(pivot[j] != 1) {
+	real M=max(pivot == 0 ? aj : null);
+	if(M >= big) {
+	  big=M;
+	  row=j;
+	  col=find(aj == M);
+	}
+      }
+    }
+    ++(pivot[col]);
+    // Interchange rows, if needed, to put the pivot element on the diagonal.
+    if(row != col) {
+      real[] temp;
+      temp=a[row]; a[row]=a[col]; a[col]=temp;
+      temp=b[row]; b[row]=b[col]; b[col]=temp;
+    }
+    // Divide the pivot row by the pivot element.
+    real denom=a[col][col];
+    if(denom == 0.0) abort("Singular matrix");
+    
+    real pivinv=1.0/denom;
+    a[col] *= pivinv;
+    b[col] *= pivinv;
+    for(int i=0; i < n; ++i) {
+      // Reduce all rows except for the pivoted one.
+      if(i != col) {
+	real dum=a[i][col];
+	a[i][col]=0.0;
+	a[i] -= a[col]*dum;
+	b[i] -= b[col]*dum;
+      }
+    }
+  }
+  
+  return b;
+}
+
+// Solve the linear equation ax=b, returning the solution x, where a is
+// an n x n matrix and b is an array of length n. 
+
+real[] solve(real[][] a, real[] b)
+{
+  return transpose(solve(a,transpose(new real[][]{b}),true))[0];
 }
 
 real[][] inverse(real[][] m)
 {
-  if(m.length != 2)
-    abort("inverse of general matrix not yet implemented");
-  return new real[][] {{m[1][1],-m[0][1]},{-m[1][0],m[0][0]}}/determinant(m);
+  int n=m.length;
+  
+  if(n == 2 && square2(m))
+    return new real[][] {{m[1][1],-m[0][1]},{-m[1][0],m[0][0]}}/determinant(m);
+  if(!square(m)) abort("attempted to invert a non-square matrix");
+  
+  if(n == 3) {
+    return new real[][] {
+      {    m[1][1]*m[2][2]-m[1][2]*m[2][1],
+	  -m[0][1]*m[2][2]+m[0][2]*m[2][1],
+	   m[0][1]*m[1][2]-m[0][2]*m[1][1]},	
+      {   -m[1][0]*m[2][2]+m[1][2]*m[2][0],
+	   m[0][0]*m[2][2]-m[0][2]*m[2][0],
+	  -m[0][0]*m[1][2]+m[0][2]*m[1][0]},
+      {    m[1][0]*m[2][1]-m[1][1]*m[2][0],
+	  -m[0][0]*m[2][1]+m[0][1]*m[2][0],
+	   m[0][0]*m[1][1]-m[0][1]*m[1][0]}
+    }/determinant(m);
+  }
+  
+  return solve(m,identity(n),true);
 }
 
 // draw the (infinite) line going through P and Q, without altering the
