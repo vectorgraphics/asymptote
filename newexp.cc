@@ -9,6 +9,7 @@
 #include "newexp.h"
 #include "stm.h"
 #include "runtime.h"
+#include "coenv.h"
 
 using namespace types;
 using trans::import;

@@ -14,7 +14,7 @@
 
 // Forward declaration for markPos.
 namespace trans {
-  class coder;
+  class coenv;
 }
 
 namespace as {
@@ -23,7 +23,7 @@ class absyn : public mempool::pooled<absyn> {
 protected:
   const position pos;
 
-  void markPos(trans::coder& c);
+  void markPos(trans::coenv& c);
 
 public:
   absyn(position pos)

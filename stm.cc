@@ -11,7 +11,7 @@
 #include <fstream>
 #include "errormsg.h"
 #include "settings.h"
-
+#include "coenv.h"
 #include "stm.h"
 
 namespace as {

@@ -11,6 +11,7 @@
 #include "name.h"
 #include "frame.h"
 #include "record.h"
+#include "coenv.h"
 
 namespace as {
 

@@ -14,10 +14,13 @@
 
 #include "types.h"
 #include "symbol.h"
-#include "coenv.h"
 #include "absyn.h"
 #include "name.h"
 #include "guideflags.h"
+
+namespace trans {
+class coenv;
+}
 
 namespace as {
 
@@ -116,10 +119,7 @@ public:
     *em << "expression cannot be used as an address";
   }
 
-  virtual void transCall(coenv &e, types::ty *target) {
-    trans(e, target);
-    e.c.encode(inst::popcall);
-  }
+  virtual void transCall(coenv &e, types::ty *target);
 };
 
 class nameExp : public exp {
@@ -581,7 +581,7 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  trans::ty *trans(coenv &e);
+  types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primGuide(); }
 };
 

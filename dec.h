@@ -23,6 +23,7 @@ class access;
 namespace types
 {
 class ty;
+class signature;
 class function;
 }
 
@@ -104,7 +105,7 @@ public:
   
   virtual void markTrans(coenv &e)
   {
-    markPos(e.c);
+    markPos(e);
     trans(e);
   }
   
@@ -113,7 +114,7 @@ public:
 
   virtual void markTransAsField(coenv &e, record *r)
   {
-    markPos(e.c);
+    markPos(e);
     transAsField(e,r);
   }
 
@@ -403,9 +404,9 @@ public:
   // Returns the types of each parameter as a signature.
   // encodeDefVal means that it will also encode information regarding
   // the default values into the signature
-  signature *getSignature(coenv &e,
-                          bool encodeDefVal = false,
-			  bool tacit = false);
+  types::signature *getSignature(coenv &e,
+                                 bool encodeDefVal = false,
+                                 bool tacit = false);
 
   // Returns the corresponding function type, assuming it has a return
   // value of "result."

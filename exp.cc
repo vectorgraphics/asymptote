@@ -10,7 +10,7 @@
 #include "exp.h"
 #include "errormsg.h"
 #include "runtime.h"
-
+#include "coenv.h"
 #include "dec.h"
 #include "stm.h"
 #include "camp.tab.h"  // For the binary operator names
@@ -22,6 +22,11 @@ using namespace trans;
 
 vector<varinit *> defaultExp;
 
+void exp::transCall(coenv &e, types::ty *target)
+{
+    trans(e, target);
+    e.c.encode(inst::popcall);
+}
 
 void arrayinit::prettyprint(ostream &out, int indent)
 {

@@ -14,11 +14,17 @@
 #include "absyn.h"
 #include "types.h"
 #include "cast.h"
-#include "coenv.h"
+
+namespace trans {
+class coenv;
+class import;
+}
+namespace types {
+class record;
+}
 
 namespace as {
 
-using trans::coenv;
 using trans::coenv;
 using types::record;
 using std::ostream;
@@ -53,7 +59,7 @@ public:
 
   // Pushes the highest level frame possible onto the stack.  Returning
   // the frame pushed.  If no frame can be pushed, returns 0.
-  virtual frame *frameTrans(coenv &e) = 0;
+  virtual trans::frame *frameTrans(coenv &e) = 0;
 
   virtual void prettyprint(ostream &out, int indent) = 0;
   virtual void print(ostream& out) const {
@@ -87,7 +93,7 @@ public:
   types::ty *typeTrans(coenv &e, bool tacit = false);
   trans::import *typeGetImport(coenv &e);
 
-  frame *frameTrans(coenv &e);
+  virtual trans::frame *frameTrans(coenv &e);
   
   void prettyprint(ostream &out, int indent);
   void print(ostream& out) const {
@@ -124,7 +130,7 @@ public:
   types::ty *typeTrans(coenv &e, bool tacit = false);
   trans::import *typeGetImport(coenv &e);
 
-  frame *frameTrans(coenv &e);
+  virtual trans::frame *frameTrans(coenv &e);
   
   void prettyprint(ostream &out, int indent);
   void print(ostream& out) const {

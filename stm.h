@@ -13,9 +13,11 @@
 
 #include "types.h"
 #include "symbol.h"
-#include "coenv.h"
-
 #include "dec.h"
+
+namespace trans {
+class coenv;
+}
 
 namespace as {
 
