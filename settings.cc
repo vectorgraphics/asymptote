@@ -213,8 +213,6 @@ void reset()
 {
   defaultfontsize=12.0;
   defaultlinewidth=0.5;  
-  suppressOutput=false;
-  upToDate=true;
   overwrite=1;
 }
 
