@@ -437,6 +437,7 @@ void arrayIntArray(stack *s)
   array *r=new array(bsize);
   for(size_t i=0; i < bsize; i++) {
     int index=read<int>(b,i);
+    if(index < 0) index += (int) asize;
     if(index < 0 || index >= (int) asize)
       error(s,"reading out-of-bounds index from array");
     (*r)[i]=(*a)[index];
