@@ -17,7 +17,7 @@ MANFILES = {asy.1,xasy.1x}
 
 CXX = @CXX@ -Wall -ansi
 MAKEDEPEND = $(CXX) $(OPTS) -M -DDEPEND
-YACC = @YACC@
+BISON = @BISON@
 LEX = @LEX@
 
 DEFS = @DEFS@
@@ -53,7 +53,7 @@ parser: camp.tab.cc camp.tab.h lex.yy.cc
 camp.tab.h: camp.tab.cc
 
 camp.tab.cc: camp.y
-	$(YACC) -dvt -b camp camp.y
+	$(BISON) -dvt -b camp camp.y
 	mv camp.tab.c camp.tab.cc
 
 lex.yy.cc: camp.l

@@ -27,7 +27,8 @@ AC_CONFIG_SRCDIR([absyn.cc])
 AC_LANG([C++])
 
 # Checks for programs.
-AC_PROG_YACC
+BISON=bison
+AC_CHECK_PROG(BISON,bison)
 AC_PROG_LEX
 AC_PROG_CXX
 AC_PROG_INSTALL
