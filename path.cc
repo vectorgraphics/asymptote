@@ -30,6 +30,11 @@ inline quad solveQuadratic(double a, double b, double c)
       ret.roots = quad::SINGLE;
       ret.t1 = ret.t2 = -c/b;
     }
+  } else if (b == 0) {
+    if (c/a <= 0) {
+      ret.roots = quad::SINGLE;
+      ret.t1 = ret.t2 = sqrt(-c/a);
+    }
   } else {
     // NOTE: If -epsilon < det < 0 we should probably detect a root
     // there, but that would mean FUZZ.
@@ -37,20 +42,17 @@ inline quad solveQuadratic(double a, double b, double c)
     if (det >= 0) {
       ret.roots = quad::DOUBLE;
       det = sqrt(det);
-      if (fabs(a) > DBL_EPSILON) { // FUZZ
-        ret.t1=-0.5*(b+det)/a;
-        ret.t2=-0.5*(b-det)/a;
-      } else if (det == fabs(b)) {
+      if ( (fabs(det) - fabs(b))/(fabs(det)+fabs(b)) < sqrt(DBL_EPSILON)) { // FUZZ
         ret.roots = quad::SINGLE;
         ret.t1 = ret.t2 = -c/b;
       } else {
-        ret.t1=-2*c/(b+det);
-        ret.t2=-2*c/(b-det);
-      }
-      if (ret.t1>ret.t2) {
-        double temp = ret.t1;
-        ret.t1 = ret.t2;
-        ret.t2 = temp;
+        ret.t1=-0.5*(b+det)/a;
+        ret.t2=-0.5*(b-det)/a;
+        if (ret.t1>ret.t2) {
+          double temp = ret.t1;
+          ret.t1 = ret.t2;
+          ret.t2 = temp;
+        }
       }
     }
   }
