@@ -1,10 +1,12 @@
 import graph;
 
-size(400,200,IgnoreAspect);
+size(250,200,IgnoreAspect);
 
-real f(real t) {return cos(2pi*t);}
+real Sin(real t) {return sin(2pi*t);}
+real Cos(real t) {return cos(2pi*t);}
 
-draw(graph(f,0.01,1));
+draw(graph(Sin,0.01,1),red,"$\sin(2\pi x)$");
+draw(graph(Cos,0.01,1),blue,"$\cos(2\pi x)$");
 
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);

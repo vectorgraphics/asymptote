@@ -900,22 +900,22 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
   },g,0,0,n,interpolate);
 }
 
+guide graph(guide g=nullpath, real f(real), real a, real b, int n=ngraph,
+	    real T(real), interpolate interpolatetype=LinearInterp)
+{
+  return interpolatetype(new pair (real x) {return (T(x),f(T(x)));},
+			 g,a,b,n,interpolate);
+}
+
 pair polar(real r, real theta)
 {
   return r*expi(theta);
 }
 
 guide polargraph(guide g=nullpath, real f(real), real a, real b, int n=ngraph,
-	    interpolate interpolatetype=LinearInterp)
+		 interpolate interpolatetype=LinearInterp)
 {
   return interpolatetype(new pair (real theta) {return f(theta)*expi(theta);},
-			 g,a,b,n,interpolate);
-}
-
-guide graph(guide g=nullpath, real f(real), real a, real b, int n=ngraph,
-	    real T(real), interpolate interpolatetype=LinearInterp)
-{
-  return interpolatetype(new pair (real x) {return (T(x),f(T(x)));},
 			 g,a,b,n,interpolate);
 }
 

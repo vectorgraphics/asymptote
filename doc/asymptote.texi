@@ -91,9 +91,12 @@ Import
 * simplex::                     Linear programming: simplex method
 * graph::                       2D linear & logarithmic graphs
 * graph3d::                     Preliminary 3D projection routines
+* featpost3D::                  Preliminary port of @code{featpost3d}
 * math::                        Extend @code{Asymptote}'s math capabilities
-* stats::                       Statistic routines and histograms
+* stats::                       Statistics routines and histograms
 * tree::                        Dynamic binary search tree
+* feynman::                     Feynman diagrams
+* metapost::                    @code{MetaPost} compatibility routines
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
 
@@ -2049,9 +2052,12 @@ void execute(string file);
 * simplex::                     Linear programming: simplex method
 * graph::                       2D linear & logarithmic graphs
 * graph3d::                     Preliminary 3D projection routines
+* featpost3D::                  Preliminary port of @code{featpost3d}
 * math::                        Extend @code{Asymptote}'s math capabilities
-* stats::                       Statistic routines and histograms
+* stats::                       Statistics routines and histograms
 * tree::                        Dynamic binary search tree
+* feynman::                     Feynman diagrams
+* metapost::                    @code{MetaPost} compatibility routines
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
 @end menu
@@ -2083,59 +2089,154 @@ simplex method. It is used by @code{plain} for automatic sizing of pictures.
 @cindex 2D graphs
 This package implements two-dimensional linear and logarithmic graphs,
 including automatic scale and tick selection (with the ability to
-manually override).
+manually override). A graph is a @code{guide} (that can be drawn with
+the draw command, with an optional legend) constructed with one of
+the following routines: 
 
-Here are some simple examples of two-dimensional graphs:
-
-@enumerate
-
-@cindex textbook graph
-@item This example draws a textbook-style graph of y=exp(x), with the yaxis
-starting at 0:
+@itemize
+@item
 @verbatim
-import graph;
-size(150,0);
-
-real f(real x) {return exp(x);}
-
-xaxis("$x$");
-yaxis(0,"$y$");
-
-draw(graph(f,-4,2,Spline));
-
-labely(1,E);
-label("$e^x$",(1,exp(1)),SE);
-
-shipout();
+guide graph(picture pic=currentpicture, guide g=nullpath,
+	    real f(real), real a, real b, int n=ngraph,
+	    interpolate interpolatetype=LinearInterp);
 @end verbatim
-@image{exp}
 
+Returns a graph using the scaling information for picture @code{pic}
+(@pxref{automatic scaling}) of the function @code{f} on the interval
+[@code{a},@code{b}], sampling at @code{n} evenly spaced points, with
+one of the interpolation types:
+@itemize @bullet 
 
-@item The next example draws a scientific-style graph of y=cos(2pi*x).
-@cindex scientific graph
-@cindex @code{LeftTicks}
-@cindex @code{RightTicks}
+@cindex @code{LinearInterp}
+@item @code{LinearInterp} (linear interpolation)
+
+@cindex @code{Spline} 
+@item @code{Spline} (piecewise Bezier cubic spline interpolation)
+
+@end itemize
+
+@item
 @verbatim
-import graph;
-
-size(400,200,IgnoreAspect);
-
-real f(real t) {return cos(2pi*t);}
-
-draw(graph(f,0.01,1));
-
-xaxis("$x$",BottomTop,LeftTicks);
-yaxis("$y$",LeftRight,RightTicks);
-
-shipout();
+guide graph(picture pic=currentpicture, guide g=nullpath,
+	    real x(real), real y(real), real a, real b,
+	    int n=ngraph, interpolate interpolatetype=LinearInterp)
 @end verbatim
-@image{lineargraph}
+
+Returns a graph using the scaling information for picture @code{pic}
+of the parameterized function
+(@code{x}(@math{t}),@code{y}(@math{t})) for @math{t} in
+[@code{a},@code{b}], sampling at @code{n} evenly spaced points, with
+the given interpolation type.
+
+@item
+@verbatim
+guide graph(picture pic=currentpicture, guide g=nullpath,
+	    pair z(real), real a, real b,
+	    int n=ngraph, interpolate interpolatetype=LinearInterp)
+@end verbatim
+
+Returns a graph using the scaling information for picture @code{pic}
+of the parameterized function
+@code{z}(@math{t}) for @math{t} in [@code{a},@code{b}], sampling at
+@code{n} evenly spaced points, with the given interpolation type.
+
+@item
+@verbatim
+guide graph(picture pic=currentpicture, guide g=nullpath,
+	    pair z[], bool cond[]={},
+            interpolate interpolatetype=LinearInterp)
+@end verbatim
+
+Returns a graph using the scaling information for picture @code{pic}
+of those elements of the array
+@code{z} for which the corresponding elements of the boolean array
+@code{cond} are true, with the given interpolation type.
+
+@item
+@verbatim
+guide graph(picture pic=currentpicture, guide g=nullpath,
+	    real x[], real y[], bool cond[]={},
+	    interpolate interpolatetype=LinearInterp)
+@end verbatim
+
+Returns a graph using the scaling information for picture @code{pic}
+of those elements of the arrays
+(@code{x},@code{y}) for which the corresponding elements of the boolean array
+@code{cond} are true, with the given interpolation type.
+
+@item
+@verbatim
+guide graph(guide g=nullpath, real f(real), real a, real b, int n=ngraph,
+	    real T(real), interpolate interpolatetype=LinearInterp)
+@end verbatim
+
+Returns a graph using the scaling information for picture @code{pic}
+of the function @code{f} on the interval
+[@code{T}(@code{a}),@code{T}(@code{b})], sampling at @code{n} points evenly
+spaced in [@code{a},@code{b}], with the given interpolation type.
+
+@item
+@verbatim
+guide polargraph(guide g=nullpath, real f(real), real a, real b,
+                 int n=ngraph, interpolate interpolatetype=LinearInterp)
+@end verbatim
+
+Returns a polar-coordinate graph using the scaling information for
+picture @code{pic} of the function @code{f} on the interval 
+[@code{a},@code{b}], sampling at @code{n} evenly spaced points, with
+the given interpolation type.
+
+@end itemize
+
+@verbatim
+
+
+@end verbatim
+
+An axis can be drawn on a picture with one of the following commands:
+
+@itemize
+
+@item
+@verbatim
+void xaxis(picture pic=currentpicture, real xmin=-infinity,
+           real xmax=infinity, pen p=currentpen, string s="",
+           real position=infinity, real angle=0, pair align=0,
+           pair side=0, pen plabel=currentpen, axis axis=YZero,
+	   ticks ticks=NoTicks)
+@end verbatim
+
+Draw an @math{x} axis on picture @code{pic} from @math{x}=@code{xmin} to
+@math{x}=@code{xmax} using pen @code{p}, optionally labelling it with
+string @code{s} at relative location @code{position} (a real number from
+[0,1]) using angle @code{angle} and alignment @code{align} and pen
+@code{plabel}. An infinite value of @code{xmin} or @code{xmax} specifies
+that the corresponding axis limit will be automatically determined from the
+picture limits. The axis placement is determined by one of the
+following @code{axis} types:
+
+@itemize @bullet 
+
+@cindex @code{YZero}
+@item @code{YZero} (draw the axis at y=0)
+
+@cindex @code{Bottom}
+@item @code{Bottom} (draw a bottom axis)
+
+@cindex @code{Top}
+@item @code{Top} (draw a top axis)
+
+@cindex @code{BottomTop}
+@item @code{BottomTop} (draw a bottom and top axis)
+
+@end itemize
 
 @cindex @code{ticks}
 @cindex @code{NoTicks}
-Here @code{LeftTicks} (@code{RightTicks}) means draw ticks on the left (right),
-relative to the direction in which the path is drawn. The default is
-@code{NoTicks}. These tick routines accept a number of optional arguments:
+The default tick option is @code{NoTicks}. 
+The option @code{LeftTicks} (@code{RightTicks}) can be used to draw
+ticks on the left (right) of the path, relative to the direction in which
+the path is drawn. The tick routines accept a number of optional arguments:
 @verbatim
 ticks LeftTicks(bool begin=true, int N=0, int n=0, real Step=0,
   real step=0, real Size=Ticksize, real size=ticksize, string F,
@@ -2165,8 +2266,144 @@ is a string used for formatting the tick values (@pxref{format});
 requests a big tick at the end of the axis.
 @end table
 
+@item
+@verbatim
+void yaxis(picture pic=currentpicture, real ymin=-infinity,
+           real ymax=infinity, pen p=currentpen, string s="",
+           real position=infinity, real angle=infinity, pair align=0,
+           pair side=0, pen plabel=currentpen, axis axis=XZero,
+           ticks ticks=NoTicks)
+@end verbatim
 
-@item This example draws a graph of an array of coordinate pairs.
+Draw a @math{y} axis on picture @code{pic} from @math{y}=@code{ymin} to
+@math{y}=@code{ymax} using pen @code{p}, optionally labelling it with
+string @code{s} at relative location @code{position} (a real number from
+[0,1]) using angle @code{angle} and alignment @code{align} and pen
+@code{plabel}. The tick type is specified by @code{ticks} and the axis
+placement is determined by one of the following @code{axis} types:
+
+@itemize @bullet 
+
+@cindex @code{XZero}
+@item @code{XZero} (draw the axis at x=0)
+
+@cindex @code{Left}
+@item @code{Left} (draw a left axis)
+
+@cindex @code{Right}
+@item @code{Right} (draw a right axis)
+
+@cindex @code{LeftRight}
+@item @code{LeftRight} (draw a left and right axis)
+
+@end itemize
+
+@item
+@verbatim
+void xequals(picture pic=currentpicture, real x,
+	     real ymin=-infinity, real ymax=infinity, 
+	     real tickmin=-infinity, real tickmax=infinity,
+             pen p=currentpen, string s="", real position=1,
+             real angle=0, pair align=W, pair side=right,
+             pen plabel=currentpen, ticks ticks=NoTicks,
+	     int[] divisor=new int[], bool opposite=false)
+@end verbatim
+
+Draw the line @math{x}=@code{x} on picture @code{pic} from
+@math{y}=@code{ymin} to @math{y}=@code{ymax}, with optional tick minimum
+and maximum values @code{tickmin} and @code{tickmax}, using pen
+@code{p}, optionally labelling it with string @code{s} at relative
+location @code{position} (a real number from [0,1]) using angle
+@code{angle} and alignment @code{align} on side @code{side} of the axis
+and pen @code{plabel}. The tick type is specified by @code{ticks} and
+the integer array @code{divisor} specifies what tick divisors to try for
+producing uncrowded tick labels. A true value for the flag @code{opposite}
+identifies an unlabelled secondary axis (typically drawn opposite to a
+primary axis).
+
+@item
+@verbatim
+void yequals(picture pic=currentpicture, real y,
+	     real xmin=-infinity, real xmax=infinity,
+	     real tickmin=-infinity, real tickmax=infinity,
+             pen p=currentpen, string s="", real position=1,
+             real angle=0, pair align=S, pair side=left,
+             pen plabel=currentpen, ticks ticks=NoTicks,
+	     int[] divisor=new int[], bool opposite=false)
+@end verbatim
+
+Like @code{xequals}, but draw the line @math{y}=@code{y} on picture
+@code{pic} from @math{x}=@code{xmin} to @math{x}=@code{xmax}.
+
+@item
+@verbatim
+void axis(picture pic=currentpicture, guide g, real tickmin=-infinity,
+          real tickmax=infinity, pen p=currentpen, string s="",
+          real position=1, real angle=0, pair align=S, pair side=right,
+          pen plabel=currentpen, ticks ticks=NoTicks,
+          int[] divisor=new int[], bool logarithmic=false,
+          scaleT scale=Linear, part part, bool opposite=false) 
+@end verbatim
+
+This routine can be used to draw a general axis on picture @code{pic}
+based on an arbitrary path @code{g}.
+
+@end itemize
+
+Here are some simple examples of two-dimensional graphs:
+
+@enumerate
+
+@cindex textbook graph
+@item This example draws a textbook-style graph of y=exp(x), with the yaxis
+starting at 0:
+@verbatim
+import graph;
+size(150,0);
+
+real f(real x) {return exp(x);}
+
+xaxis("$x$");
+yaxis(0,"$y$");
+
+draw(graph(f,-4,2,Spline));
+
+labely(1,E);
+label("$e^x$",(1,exp(1)),SE);
+
+shipout();
+@end verbatim
+@image{exp}
+
+
+@item The next example draws a scientific-style graph with a legend.
+
+@cindex scientific graph
+@cindex @code{LeftTicks}
+@cindex @code{RightTicks}
+@verbatim
+import graph;
+
+size(300,200,IgnoreAspect);
+
+real Sin(real t) {return sin(2pi*t);}
+real Cos(real t) {return cos(2pi*t);}
+
+draw(graph(Sin,0.01,1),red,"$\sin(2\pi x)$");
+draw(graph(Cos,0.01,1),blue,"$\cos(2\pi x)$");
+
+xaxis("$x$",BottomTop,LeftTicks);
+yaxis("$y$",LeftRight,RightTicks);
+
+shipout();
+
+@end verbatim
+@image{lineargraph}
+
+
+@cindex @code{dot}
+@item This example draws a graph of an array of coordinate pairs,
+using the routine @code{dot} to place a dot at each node of the resulting path.
 @verbatim
 import graph;
 
@@ -2174,7 +2411,9 @@ size(400,200,IgnoreAspect);
 
 pair f[]={(1,1),(50,20),(100,100)};
 
-draw(graph(f));
+guide g=graph(f);
+draw(g);
+dot(g);
 
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
@@ -2245,7 +2484,6 @@ minimum and maximum values. @code{Linear} can also take as an optional
 final argument a multiplicative scaling factor (e.g. for a depth axis,
 @code{Linear(-1)} requests axis reversal). 
 
-
 @cindex logarithmic graph
 @cindex log-log graph
 For example, to draw a log graph of a function, use @code{scale(Log,Log)}:
@@ -2303,7 +2541,17 @@ This module will be developed into a full three-dimensional graphics package
 in a future release. The file @code{planes.asy} in the examples
 directory illustrates how clipping can be used to implement hidden
 surface removal in 3d vector graphics. Perspective has not yet been
-added (but can be easily implemented using similar triangles).
+added (but can be easily implemented using similar triangles). 
+@xref{featpost3D}.
+
+@node featpost3D
+@subsection @code{featpost3D}
+@cindex @code{featpost3D}
+Until a complete 3d graphics package (@pxref{graph3d}) is written, a
+preliminary port of the the @code{MetaPost} 3d package @code{featpost3D} 
+of L. Nobre G., C. Barbarosie and J. Schwaiger to @code{Asymptote}
+makes some 3d functionality already available, as illustrated by the
+examples @code{nearearth} and @code{conicurv}.
 
 @node math
 @subsection @code{math}
@@ -2361,6 +2609,18 @@ and a collection of statistics routines, including @code{histogram}.
 @subsection @code{tree}
 @cindex @code{tree}
 This package implements a dynamic binary search tree.
+
+@node feynman
+@subsection @code{feynman}
+@cindex @code{feynman}
+This package, contributed by Martin Wiebusch, is useful for drawing
+Feynman diagrams, as illustrated by the example @code{gluon}.
+
+@node metapost
+@subsection @code{metapost}
+@cindex @code{metapost}
+This package provides some useful routines to help @code{MetaPost} users
+migrate old @code{MetaPost} code to @code{Asymptote}.
 
 @node unicode
 @subsection @code{unicode}
@@ -2571,6 +2831,7 @@ default values (for example, the picture argument defaults to
 currentpicture):
 
 @enumerate
+@cindex legend
 @cindex @code{draw}
 @item
 @verbatim 
