@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ(2)
-AC_INIT([Asymptote],[0.50])
+AC_INIT([Asymptote],[0.51cvs])
 test "$prefix" = NONE && prefix=/usr/local
 test "$datadir" = '${prefix}/share' && datadir=$prefix/share
 asydir=$datadir/asymptote

@@ -2,7 +2,7 @@
 @setfilename asymptote.info
 @settitle asymptote
 
-@set VERSION 0.50
+@set VERSION 0.51cvs
 
 @copying
 This file documents ASYMPTOTE, version @value{VERSION}.
