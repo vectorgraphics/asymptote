@@ -156,7 +156,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     }
 
     hoffset += printerOffset.getx();
-    width += printerOffset.gety();
+    width += printerOffset.getx();
     height += printerOffset.gety();
     
     dcmd << "dvips -O " << hoffset << "bp," << voffset << "bp -T "
@@ -269,8 +269,9 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
       bscaled *= deconstruct;
       bboxout << bscaled << endl;
   } else {
-  // Avoid negative bounding box coordinates
-    bboxshift=pair(-min(b.left,0.0),-min(b.bottom,0.0));
+  // Avoid negative bounding box coordinates; adjust for printer Offset
+    bboxshift=pair(-min(b.left,-printerOffset.getx()),
+		   -min(b.bottom,-printerOffset.gety()));
     bpos.shift(bboxshift);
   }
   
