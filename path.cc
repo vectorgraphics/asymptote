@@ -20,8 +20,14 @@ struct quad
   double t1,t2;
 };
 
+inline double quadratic(double a, double b, double c, double x)
+{
+  return a*x*x+b*x+c;
+}
+  
 // Accurate computation of sqrt(1+x)-1.
-inline double sqrt1pxm1(double x) {
+inline double sqrt1pxm1(double x)
+{
   return x/(sqrt(1.0+x)+1.0);
 }
   
@@ -309,27 +315,23 @@ bbox path::bounds() const
   }
 
   bbox box;
-  pair a,b,c;
-  quad ret;
   for (int i = 0; i < length(); i++) {
     box += point(i);
     if(straight(i)) continue;
     
+    pair a,b,c;
     derivative(a,b,c,point(i),postcontrol(i),precontrol(i+1),point(i+1));
-
+    quad ret;
+    
     // Check x coordinate
-    ret = solveQuadratic(a.getx(),b.getx(),c.getx());
-    if (ret.roots != quad::NONE) {
-      box += point(i+ret.t1);
-      box += point(i+ret.t2);
-    }
+    ret=solveQuadratic(a.getx(),b.getx(),c.getx());
+    if(ret.roots != quad::NONE) box += point(i+ret.t1);
+    if(ret.roots == quad::DOUBLE) box += point(i+ret.t2);
     
     // Check y coordinate
-    ret = solveQuadratic(a.gety(),b.gety(),c.gety());
-    if (ret.roots != quad::NONE) {
-      box += point(i+ret.t1);
-      box += point(i+ret.t2);
-    }
+    ret=solveQuadratic(a.gety(),b.gety(),c.gety());
+    if(ret.roots != quad::NONE) box += point(i+ret.t1);
+    if(ret.roots == quad::DOUBLE) box += point(i+ret.t2);
   }
   box += point(length());
   return box;
@@ -341,8 +343,8 @@ static pair a,b,c;
 
 double ds(double t)
 {
-  double dx=a.getx()*t*t+b.getx()*t+c.getx();
-  double dy=a.gety()*t*t+b.gety()*t+c.gety();
+  double dx=quadratic(a.getx(),b.getx(),c.getx(),t);
+  double dy=quadratic(a.gety(),b.gety(),c.gety(),t);
   return sqrt(dx*dx+dy*dy);
 }
 
@@ -434,7 +436,7 @@ double path::arctime (double goal) const {
 
 inline bool goodroot(double a, double b, double c, double t)
 {
-  return 0.0 <= t && t <= 1.0 && a*t*t+b*t+c >= 0.0;
+  return 0.0 <= t && t <= 1.0 && quadratic(a,b,c,t) >= 0.0;
 }
 
 // {{{ Direction Time Calulation
