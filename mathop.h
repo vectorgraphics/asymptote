@@ -6,6 +6,9 @@
  *
  *****/
 
+#ifndef MATHOP_H
+#define MATHOP_H
+
 #include <sstream>
 
 #include "stack.h"
@@ -156,3 +159,5 @@ void binaryOp(vm::stack *s)
 }
 
 } // namespace run
+
+#endif MATHOP_H

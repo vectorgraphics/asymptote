@@ -6,6 +6,9 @@
  *
  *****/
 
+#ifndef CASTOP_H
+#define CASTOP_H
+
 #include <boost/lexical_cast.hpp>
 #include <cfloat>
 
@@ -139,3 +142,5 @@ void readArray(vm::stack *s)
 }
 
 } // namespace run
+
+#endif // CASTOP_H
