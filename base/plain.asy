@@ -459,7 +459,7 @@ struct Legend {
   public string label;
   public pen p;
   public frame mark;
-  public bool topmark;
+  public bool putmark;
 }
 
 pair minbound(pair z, pair w) 
@@ -1390,8 +1390,10 @@ void newpage()
   layer();
 }
 
-bool Aspect=true;
-bool IgnoreAspect=false;
+static bool Aspect=true;
+static bool IgnoreAspect=false;
+static bool Above=true;
+static bool Below=false;
 
 private struct waitT {};
 public waitT wait=null;
@@ -1598,14 +1600,14 @@ void mark(picture pic=currentpicture, guide g, frame mark)
     add(point(g,i),pic,mark);
 }
 
-frame marker(path g, pen p=currentpen, filltype filltype=Fill)
+frame marker(path g, pen p=currentpen, filltype filltype=NoFill)
 {
   frame f;
   filltype(f,g,p,filltype);
   return f;
 }
 
-frame marker(path[] g, pen p=currentpen, filltype filltype=Fill)
+frame marker(path[] g, pen p=currentpen, filltype filltype=NoFill)
 {
   frame f;
   if(filltype == Fill) fill(f,g,p);
@@ -1622,10 +1624,10 @@ void legend(frame f, Legend[] legend, bool placement=true)
       pen p=L.p;
       pair z1=-i*I*legendskip*fontsize(p);
       pair z2=z1+legendlinelength;
-      if(!L.topmark && !empty(L.mark)) mark(inset,interp(z1,z2,0.5),L.mark);
+      if(!L.putmark && !empty(L.mark)) mark(inset,interp(z1,z2,0.5),L.mark);
       Draw(inset,z1--z2,p);
       label(inset,L.label,z2,E,p);
-      if(L.topmark && !empty(L.mark)) mark(inset,interp(z1,z2,0.5),L.mark);
+      if(L.putmark && !empty(L.mark)) mark(inset,interp(z1,z2,0.5),L.mark);
     }
     frame d;
     // Place legend with top left corner at legendlocation;
@@ -1991,19 +1993,20 @@ void draw(picture pic=currentpicture, string s="", real angle=0,
 	  side side=RightSide, pen p=currentpen,
 	  arrowbar arrow=None, arrowbar bar=None,
 	  margin margin=NoMargin, string legend="", frame mark=nullframe,
-	  bool topmark=true)
+	  bool putmark=Above)
 {
-  if(!topmark && !empty(mark)) mark(pic,g,mark);
+  if(!putmark && !empty(mark)) mark(pic,g,mark);
   arrowbarT arrowbar=new arrowbarT;
   if(s != "") label(pic,s,angle,g,position,align,shift,side,p);
   bar(pic,g,p,margin,arrowbar);
   arrow(pic,g,p,margin,arrowbar);
   if(arrowbar.drawpath) _draw(pic,g,p,margin);
   if(legend != "") {
-    Legend L=new Legend; L.label=legend; L.p=p; L.mark=mark; L.topmark=topmark;
+    Legend L=new Legend; L.label=legend; L.p=p; L.mark=mark;
+    L.putmark=putmark;
     pic.legend.push(L);
   }
-  if(topmark && !empty(mark)) mark(pic,g,mark);
+  if(putmark && !empty(mark)) mark(pic,g,mark);
 }
 
 // Draw a fixed-size object about the user-coordinate 'origin'.
@@ -2011,11 +2014,11 @@ void draw(pair origin, picture pic=currentpicture, string s="",
 	       real angle=0, path g, real position=infinity, pair align=0,
 	       pair shift=0, side side=RightSide, pen p=currentpen,
 	       arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
-	       string legend="", frame mark=nullframe, bool topmark=true)
+	       string legend="", frame mark=nullframe, bool putmark=Above)
 {
   picture opic=new picture;
   draw(opic,s,angle,g,position,align,shift,side,p,arrow,bar,margin,legend,
-       mark,topmark);
+       mark,putmark);
   add(origin,pic,opic);
 }
 

@@ -686,7 +686,7 @@ substring of @code{s};
 @cindex @code{rfind}
 @item int rfind(string s, string t, int pos=-1)
 returns the position of the last occurrence of string @code{t} in string
-@code{s} at or before position @code{pos} (if @code{pos=-1}, at the end
+@code{s} at or before position @code{pos} (if @code{pos}=-1, at the end
 of the string @code{s}), or -1 if @code{t} is not a substring of @code{s};
 
 @cindex @code{insert}
@@ -697,13 +697,13 @@ return the string formed by inserting string @code{t} at position
 @cindex @code{erase}
 @item string erase(string s, int pos, int n)
 returns the string formed by erasing the string of length @code{n} 
-(if @code{n=-1}, to the end of the string @code{s}) at
+(if @code{n}=-1, to the end of the string @code{s}) at
 position @code{pos} in @code{s};
 
 @cindex @code{substr}
 @item string substr(string s, int pos, int n=-1)
 returns the substring of @code{s} starting at position @code{pos}
-and of length @code{n} (if @code{n=-1}, until the end of the
+and of length @code{n} (if @code{n}=-1, until the end of the
 string @code{s});
 
 @cindex @code{reverse}
@@ -2586,7 +2586,7 @@ An axis can be drawn on a picture with one of the following commands:
 
 @item
 @verbatim
-void xaxis(bool ontop=false, picture pic=currentpicture,
+void xaxis(bool put=Below, picture pic=currentpicture,
            real xmin=-infinity, real xmax=infinity, pen p=currentpen,
            string s="", real position=infinity, real angle=0,
            pair align=0, pair shift=0, pair side=0,
@@ -2629,7 +2629,7 @@ Request a bottom and top axis.
 
 @end table
 
-If both @code{ontop} and the @code{extend} flag for @code{axis} are
+If @code{put}=@code{Below} and the @code{extend} flag for @code{axis} is
 @code{false}, the axis is drawn before any existing objects in the
 current layer.
 
@@ -2659,10 +2659,10 @@ divide each arclength interval into this many subintervals, separated by
 small ticks;
 @item Step
 represents the spacing (in user arclength coordinates) between big ticks
-(if @code{N==0});
+(if @code{N}=@code{0});
 @item step
 represents the spacing  (in user arclength coordinates) between small
-ticks (if @code{n==0});
+ticks (if @code{n}=@code{0});
 @item F
 is a string used for formatting the tick values (@pxref{format});
 @item end
@@ -2671,7 +2671,7 @@ requests a big tick at the end of the axis.
 
 @item
 @verbatim
-void yaxis(bool ontop=false, picture pic=currentpicture,
+void yaxis(bool put=Below, picture pic=currentpicture,
            real ymin=-infinity, real ymax=infinity, pen p=currentpen,
            string s="", real position=infinity, real angle=infinity,
            pair align=0, pair shift=0, pair side=0,
@@ -2712,7 +2712,7 @@ Request a left and right axis.
 
 @end table
 
-If both @code{ontop} and the @code{extend} flag for @code{axis} are
+If @code{put}=@code{Below} and the @code{extend} flag for @code{axis} is
 @code{false}, the axis is drawn before any existing objects in the
 current layer.
 
@@ -2723,7 +2723,7 @@ The @code{XEquals(real X, bool extend=true)} and
 method for drawing axes at arbitrary locations. Nevertheless,
 for completeness, we also document the following internal routines:
 @verbatim
-void xequals(bool ontop=false, picture pic=currentpicture, real X,
+void xequals(bool put=Above, picture pic=currentpicture, real X,
              real ymin=-infinity, real ymax=infinity, 
              real tickmin=-infinity, real tickmax=infinity,
              pen p=currentpen, string s="", real position=1,
@@ -2739,16 +2739,17 @@ optional tick minimum and maximum values @code{tickmin} and
 string @code{s} at relative location @code{position} (a real number
 from [0,1]) using angle @code{angle}, alignment @code{align}, true
 shift @code{shift} on side @code{side} of the axis, and pen
-@code{plabel}. If @code{ontop} is @code{false}, draw the axis before
-any existing objects in the current layer. The tick type is specified
+@code{plabel}. The tick type is specified
 by @code{ticks} and the integer array @code{divisor} specifies what
 tick divisors to try for producing uncrowded tick labels.
 A @code{true} value for the flag @code{opposite} identifies an
 unlabelled secondary axis (typically drawn opposite to a primary axis). 
+Draw the axis on top of any existing objects in the current layer
+only if @code{put} is @code{Above}. 
 
 @item
 @verbatim
-void yequals(bool ontop=false, picture pic=currentpicture, real Y,
+void yequals(bool put=Above, picture pic=currentpicture, real Y,
              real xmin=-infinity, real xmax=infinity,
              real tickmin=-infinity, real tickmax=infinity,
              pen p=currentpen, string s="", real position=1,
@@ -2763,9 +2764,10 @@ This internal routine is @code{xequals}, but draws the line
 
 @item
 @verbatim
-void axis(picture pic=currentpicture, guide g, real tickmin=-infinity,
-          real tickmax=infinity, pen p=currentpen, string s="",
-          real position=1, real angle=0, pair align=S, pair side=right,
+void axis(bool put=Above, picture pic=currentpicture, guide g,
+          real tickmin=-infinity, real tickmax=infinity,
+          pen p=currentpen, string s="", real position=1,
+          real angle=0, pair align=S, pair side=right,
           pen plabel=currentpen, ticks ticks=NoTicks,
           int[] divisor=new int[], bool logarithmic=false,
           scaleT scale=Linear, part part, bool opposite=false);
@@ -2815,7 +2817,7 @@ Here are some simple examples of two-dimensional graphs:
 @item The next example draws two graphs of an array of coordinate pairs,
 using frame alignment and data markers. In the left-hand graph, the
 marker is constructed with the function @code{frame marker(path g,
-pen p=currentpen, filltype filltype=Fill}) using the path @code{unitcircle}.
+pen p=currentpen, filltype filltype=NoFill}) using the path @code{unitcircle}.
 In the right-hand graph, the unit @math{n}-sided regular polygon 
 @code{polygon(int n)} and the unit @math{n}-point cross 
 @code{cross(int n)}) are used to build a custom marker frame.
@@ -2850,14 +2852,14 @@ positive and negative extents of the error are assumed to be equal.
 
 The calls to 
 @code{xlimits(picture pic=currentpicture, real min=-infinity,
-real max=infinity, bool crop=true)} 
+real max=infinity, bool crop=Crop)} 
 and the analogous function @code{ylimits} can be uncommented
 to restrict the respective axes limits for picture @code{pic} to the
 specified @code{min} and @code{max} values (alternatively, the function
 @code{limits(pair, pair)} can be used to limit the axes to the
-box having opposite vertices at the given pairs).  The optional
-boolean argument @code{crop} signals whether to crop the existing data
-in picture @code{pic} to lie within the graph. For example, if
+box having opposite vertices at the given pairs).
+Any existing objects in picture @code{pic} will be cropped to lie
+within the graph unless @code{crop}=@code{NoCrop}. For example, if
 @code{xlimits} or @code{ylimits} are called with no arguments, any
 existing objects in @code{currentpicture} will be cropped to the graph
 boundaries.
@@ -3349,7 +3351,7 @@ void draw(picture pic=currentpicture, string s="", real angle=0,
           path g, real position=0.5*length(g), pair align=0,
           pair shift=0, side side=RightSide, pen p=currentpen,
           arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
-          string legend="", frame mark=nullframe, bool topmark=true);
+          string legend="", frame mark=nullframe, bool putmark=Above);
 @end verbatim
 
 Draw the path @code{g} on the picture @code{pic}, optionally labeled by
@@ -3361,7 +3363,8 @@ legend). Only one parameter, the path, is required. For convenience,
 the arguments @code{arrow} and @code{bar} may be specified in either order. 
 The argument @code{legend} is a string to use in constructing
 an optional legend entry. An optional frame @code{mark} may be drawn
-at every node, on top of the path unless @code{topmark=false}.
+at every node, on on top of (underneath) the path if
+@code{putmark}=@code{Above} (@code{putmark}=@code{Below}).
 
 @cindex @code{LeftSide}
 @cindex @code{Center}
@@ -3481,7 +3484,7 @@ void draw(pair origin, picture pic=currentpicture, string s="", real angle=0,
           path g, real position=0.5*length(g), pair align=0,
           pair shift=0, side side=RightSide, pen p=currentpen,
           arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
-          string legend="", frame mark=nullframe, bool topmark=true);
+          string legend="", frame mark=nullframe, bool putmark=Above);
 @end verbatim
 
 @page
@@ -3991,4 +3994,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  PenMargin PenMargins TrueMargin labelmargin errorbars errorbar
 @c  LocalWords:  dpx dpy dmx dmy barsize arrowheadsize BeginDotMargin DotMargin
 @c  LocalWords:  EndDotMargin DotMargins NColors BWRainbow colorspace labelled
-@c  LocalWords:  topmark PaletteTicks defaultformat
+@c  LocalWords:  PaletteTicks defaultformat

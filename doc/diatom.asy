@@ -53,10 +53,10 @@ for(int taxon=0; taxon < n; ++taxon) {
   scale(pic,Linear(x),Linear(false,-1));
   filldraw(pic,(0,depthmin)--graph(pic,P,depth)--(0,depthmax)--cycle,
 	   gray(0.9));
-  xaxis(true,pic,Bottom,LeftTicks(false,0,2,"%.0f"));
-  xaxis(true,pic,TeXify(taxa[taxon]),0.5,45,Top,NoTicks);
-  if(taxon == 0) yaxis(true,pic,depthlabel,Left,RightTicks(0,10));
-  if(taxon == final) yaxis(true,pic,Right,LeftTicks(0,10,""));
+  xaxis(Above,pic,Bottom,LeftTicks(false,0,2,"%.0f"));
+  xaxis(Above,pic,TeXify(taxa[taxon]),0.5,45,Top,NoTicks);
+  if(taxon == 0) yaxis(Above,pic,depthlabel,Left,RightTicks(0,10));
+  if(taxon == final) yaxis(Above,pic,Right,LeftTicks(0,10,""));
   
   add(shift(location,0)*pic);
   location += pic.userMax.x;
