@@ -603,8 +603,8 @@ struct picture {
       return scaling.build(1,0);
     }
     else {
-      write("warning: picture cannot fit in requested size");
-      return scaling.build(1,0);
+      write("warning: cannot fit picture to requested size...enlarging...");
+      return calculateScaling(coords,sqrt(2)*max);
     }
   }
 

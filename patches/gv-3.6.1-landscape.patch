@@ -1,0 +1,11 @@
+diff -ru gv-3.6.1/src/Ghostview.c gv-3.6.1J/src/Ghostview.c
+--- gv-3.6.1/src/Ghostview.c	2004-12-07 16:21:30.000000000 -0700
++++ gv-3.6.1J/src/Ghostview.c	2005-02-23 22:29:42.011240760 -0700
+@@ -1424,6 +1424,7 @@
+ 	 while (isspace(*dptr)) dptr++;
+     }
+     argv[argc++] = "-dNOPAUSE";
++    argv[argc++] = "-g2x2"; // Avoid unwanted rotation of landscape pdf files
+     if (gvw->ghostview.quiet) argv[argc++] = "-dQUIET";
+     if (gvw->ghostview.safer) 
+       {

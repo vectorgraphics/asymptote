@@ -52,7 +52,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
 	p += scaled.length();
 	scale=atof(font.substr(p,string::npos).c_str())/1000.0;
       }
-      tex <<  font << "%\n";
+      tex <<  font << "\n";
       tex.wait("\n*","! ");
     }
     

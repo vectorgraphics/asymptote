@@ -1,6 +1,6 @@
-diff -ru --new-file pstoedit-3.40/src/Makefile.am pstoedit-3.40J/src/Makefile.am
+diff --new-file -ru pstoedit-3.40/src/Makefile.am pstoedit-3.40J/src/Makefile.am
 --- pstoedit-3.40/src/Makefile.am	2004-11-03 14:05:16.000000000 -0700
-+++ pstoedit-3.40J/src/Makefile.am	2005-02-16 15:53:02.446071016 -0700
++++ pstoedit-3.40J/src/Makefile.am	2005-02-16 22:48:26.000000000 -0700
 @@ -50,6 +50,7 @@
  	drvtext.cpp 	drvtext.h		\
  	drvsk.cpp 	drvsk.h			\
@@ -9,10 +9,10 @@ diff -ru --new-file pstoedit-3.40/src/Makefile.am pstoedit-3.40J/src/Makefile.am
  	drvmma.cpp 	drvmma.h		\
  	drvlatex2e.cpp 	drvlatex2e.h		\
  	drvpic.cpp 	drvpic.h		\
-diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
+diff --new-file -ru pstoedit-3.40/src/Makefile.in pstoedit-3.40J/src/Makefile.in
 --- pstoedit-3.40/src/drvasy.cpp	1969-12-31 17:00:00.000000000 -0700
-+++ pstoedit-3.40J/src/drvasy.cpp	2005-02-16 22:44:15.305470992 -0700
-@@ -0,0 +1,514 @@
++++ pstoedit-3.40J/src/drvasy.cpp	2005-02-26 16:48:18.701676008 -0700
+@@ -0,0 +1,513 @@
 +/*
 +  drvASY.cpp : This file is part of pstoedit
 +  Backend for Asymptote files
@@ -76,7 +76,7 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +{
 +  // Output copyright information
 +  outf << "// Converted from PostScript(TM) to Asymptote by pstoedit\n"
-+       << "// Asymptote backend contributed by John Bowman\n"
++       << "// Asymptote 0.66 (or later) backend contributed by John Bowman\n"
 +       << "// pstoedit is Copyright (C) 1993 - 2005 Wolfgang Glunz"
 +       << " <wglunz34_AT_pstoedit.net>\n\n";
 +	
@@ -88,7 +88,6 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +// Destructor -- Tell Asymptote to end the file
 +drvASY::~drvASY()
 +{
-+  outf << "shipout();" << endl;
 +}
 +
 +// Output a path
@@ -527,9 +526,9 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +      DriverDescription::normalopen, true, // supports multiple pages
 +      true  /*clipping */ 
 +      );
-diff -ru --new-file pstoedit-3.40/src/drvasy.h pstoedit-3.40J/src/drvasy.h
+diff --new-file -ru pstoedit-3.40/src/drvasy.h pstoedit-3.40J/src/drvasy.h
 --- pstoedit-3.40/src/drvasy.h	1969-12-31 17:00:00.000000000 -0700
-+++ pstoedit-3.40J/src/drvasy.h	2005-02-16 22:41:49.591622864 -0700
++++ pstoedit-3.40J/src/drvasy.h	2005-02-16 22:48:26.000000000 -0700
 @@ -0,0 +1,84 @@
 +#ifndef __drvASY_h
 +#define __drvASY_h
