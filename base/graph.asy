@@ -414,7 +414,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	}
       }
       
-      if(n == 0) n=10;
+      if(N <= 2 && n == 0) n=10;
       
       if(!deconstruct || !GUIDelete()) {
 	frame d;
