@@ -139,8 +139,8 @@ that can generate objects directly. However, the script portion of the language
 is now ready for general use by users who are willing to learn a few
 simple @code{Asymptote} graphics commands @ref{Drawing commands}.
 
-@code{Asymptote} is mathematically oriented (e.g. at the lowest levels, one can
-use multiplication by complex numbers to rotate a vector) and uses
+@code{Asymptote} is mathematically oriented (e.g. one can
+use complex multiplication to rotate a vector) and uses
 @code{LaTeX} to do the 
 typesetting of labels. This is an important feature for scientific
 applications. It was inspired by an earlier drawing program (with a weaker
@@ -151,45 +151,42 @@ Many of the features of @code{Asymptote} are written in the
 @code{Asymptote} is designed for mathematics typesetting needs, one can
 write @code{Asymptote} modules that tailor it to specific
 applications. A scientific graphing module has already been written
-(@pxref{graph}).
-
-Examples of @code{Asymptote} code and output are available at
+(@pxref{graph}). Examples of @code{Asymptote} code and output are available at
 @verbatim
-http://asymptote.sourceforge.net/gallery/
+        http://asymptote.sourceforge.net/gallery/
 @end verbatim
 
-Features of the @code{Asymptote} graphics language include:
+The @code{Asymptote} vector graphics language provides:
 
 @itemize @bullet
-@item provides a natural coordinate-based framework for technical drawings,
+@item a natural coordinate-based framework for technical drawings,
 inspired by @code{MetaPost}, with a much cleaner, powerful C++-like programming
 syntax;
 
-@item @code{LaTeX} typesetting of labels, for overall document consistency
+@item @code{LaTeX} typesetting of labels, for overall document consistency;
 
-@item compiles figures into pseudo-machine code for speed without
+@item compilation of figures into pseudo-machine code for speed, without
 sacrificing portability;
 
 @item the power of a script-based language coupled to the convenience of
 a @acronym{GUI};
 
-@item can be customized using its own C++-like graphics programming language 
+@item customization using its own C++-like graphics programming language; 
 
-@item sensible defaults for graphical features, with the ability to override
+@item sensible defaults for graphical features, with the ability to override;
 
-@item provides a high-level mathematically oriented interface to the
-@code{PostScript} language for vector graphics, complete with affine transforms
-and complex variables
+@item a high-level mathematically oriented interface to the
+@code{PostScript} language for vector graphics, including affine transforms
+and complex variables;
 
-@item functions can create new (anonymous) functions
+@item functions that can create new (anonymous) functions;
 
-@item uses simplex method and deferred drawing to solve overall size
+@item deferred drawing that uses the simplex method to solve overall size
 constraint issues between fixed-sized objects (labels and arrowheads) and
 objects that should scale with figure size;
 
-@item designed to become the de-facto standard for typesetting mathematical
-figures, just as @TeX{}/@code{LaTeX} has become the standard for typesetting
-equations;
+@item a standard for typesetting mathematical figures, just
+as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
 
 @end itemize
 
@@ -231,7 +228,8 @@ done as root.
 
 In order to compile @code{Asymptote} you will need version 1.32.0 or
 later of the @code{boost} library from @code{http://boost.org}.
-It is sufficient to make a link in the top-level directory of the
+If your system lacks a working version of the @code{boost} library,
+it is sufficient to make a link in the top-level directory of the
 @code{Asymptote} source code to the @code{boost} subdirectory of the
 @code{boost_1_32_0} source distribution:
 @verbatim
@@ -4048,4 +4046,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  PenMargin PenMargins TrueMargin labelmargin errorbars errorbar
 @c  LocalWords:  dpx dpy dmx dmy barsize arrowheadsize BeginDotMargin DotMargin
 @c  LocalWords:  EndDotMargin DotMargins NColors BWRainbow colorspace labelled
-@c  LocalWords:  PaletteTicks defaultformat leastsquares
+@c  LocalWords:  PaletteTicks defaultformat leastsquares bjam fprintf
