@@ -367,6 +367,12 @@ pair maxbound(pair z, pair w)
   return (max(z.x,w.x),max(z.y,w.y));
 }
 
+void clippingwarning(bool deconstruct)
+{
+  if(deconstruct && deconstruct())
+    write("warning: deconstructed pictures cannot be clipped");
+}
+  
 struct picture {
   // The functions to do the deferred drawing.
   drawerBound[] nodes;
@@ -452,8 +458,7 @@ struct picture {
   void beginclip(drawer d) {
     uptodate(false);
     bool deconstruct=this.deconstruct;
-    if(deconstruct && deconstruct())
-      write("warning: deconstructed pictures cannot be clipped");
+    clippingwarning(deconstruct);
     for(int i=0; i < xcoords.length; ++i) {
       xcoords[i].clip(userMin.x,userMax.x);
       ycoords[i].clip(userMin.y,userMax.y);
@@ -770,6 +775,22 @@ path[] operator * (transform t, path[] p)
   return P;
 }
 
+pair min(path[] g)
+{
+  pair ming=(infinity,infinity);
+  for(int i=0; i < g.length; ++i)
+    ming=minbound(ming,min(g[i]));
+  return ming;
+}
+
+pair max(path[] g)
+{
+  pair maxg=(-infinity,-infinity);
+  for(int i=0; i < g.length; ++i)
+    maxg=maxbound(maxg,max(g[i]));
+  return maxg;
+}
+
 // Add frame f about origin to currentpicture
 void addabout(pair origin, picture pic, frame src)
 {
@@ -934,29 +955,10 @@ void clip(frame f, path[] g)
   clip(f,g,currentpen);
 }
 
-private void clippicture(picture pic, path g)
+void clip(picture pic=currentpicture, path g, pen p=currentpen)
 {
   pic.userMin=maxbound(pic.userMin,min(g));
   pic.userMax=minbound(pic.userMax,max(g));
-}
-
-private void clippicture(picture pic, path[] g)
-{
-  pair ming=(infinity,infinity);
-  pair maxg=-ming;
-  for(int i=0; i < g.length; ++i) {
-    ming=minbound(ming,min(g[i]));
-    maxg=maxbound(maxg,max(g[i]));
-  }
-  for(int i=0; i < g.length; ++i) {
-    pic.userMin=maxbound(pic.userMin,ming);
-    pic.userMax=minbound(pic.userMax,maxg);
-  }
-}
-
-void clip(picture pic=currentpicture, path g, pen p=currentpen)
-{
-  clippicture(pic,g);
   pic.beginclip(new void (frame f, transform t) {
     beginclip(f,t*g,p,true);
   });
@@ -967,7 +969,8 @@ void clip(picture pic=currentpicture, path g, pen p=currentpen)
 
 void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
 {
-  clippicture(pic,g);
+  pic.userMin=maxbound(pic.userMin,min(g));
+  pic.userMax=minbound(pic.userMax,max(g));
   pic.beginclip(new void (frame f, transform t) {
     beginclip(f,t*g,p,true);
   });
@@ -976,9 +979,11 @@ void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
   });
 }
 
+// beginclip and endclip are compatibility routines for the pstoedit backend.
+// They do not clip picture size data (pstoedit doesn't use automatic sizing).
 void beginclip(picture pic=currentpicture, path g, pen p=currentpen)
 {
-  clippicture(pic,g);
+  clippingwarning(pic.deconstruct);
   pic.add(new void (frame f, transform t) {
     beginclip(f,t*g,p,false);
   });
@@ -986,7 +991,7 @@ void beginclip(picture pic=currentpicture, path g, pen p=currentpen)
 
 void beginclip(picture pic=currentpicture, path[] g, pen p=currentpen)
 {
-  clippicture(pic,g);
+  clippingwarning(pic.deconstruct);
   pic.add(new void (frame f, transform t) {
     beginclip(f,t*g,p,false);
   });
