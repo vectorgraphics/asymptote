@@ -356,10 +356,10 @@ void base_venv(venv &ve)
   addFunc(ve,run::clipArray,primVoid(),"clip",primPicture(),pathArray(),
 	  primPen());
   addFunc(ve,run::beginclip,primVoid(),"beginclip",primPicture(),primPath(),
-	  primPen(),primBoolean());
+	  primPen());
   addFunc(ve,run::beginclipArray,primVoid(),"beginclip",primPicture(),
-	  pathArray(),primPen(),primBoolean());
-  addFunc(ve,run::endclip,primVoid(),"endclip",primPicture(),primBoolean());
+	  pathArray(),primPen());
+  addFunc(ve,run::endclip,primVoid(),"endclip",primPicture());
   addFunc(ve,run::gsave,primVoid(),"gsave",primPicture());
   addFunc(ve,run::grestore,primVoid(),"grestore",primPicture());
   addFunc(ve,run::add,primVoid(),"add",primPicture(),primPicture());

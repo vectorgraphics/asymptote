@@ -1632,30 +1632,25 @@ void clipArray(stack *s)
   
 void beginclip(stack *s)
 {
-  bool gsave = s->pop<bool>();
   pen *n = s->pop<pen*>();
   path p = s->pop<path>();
   picture *pic = s->pop<picture*>();
-  if(gsave) pic->prepend(new drawClipBegin(p,*n));
-  else pic->append(new drawClipBegin(p,*n,false));
+  pic->append(new drawClipBegin(p,*n,false));
 }
   
 void beginclipArray(stack *s)
 {
-  bool gsave = s->pop<bool>();
   pen *n = s->pop<pen*>();
   array *p=s->pop<array *>();
   picture *pic = s->pop<picture*>();
   checkArray(s,p);
-  if(gsave) pic->prepend(new drawClipBegin(p,*n));
-  else pic->append(new drawClipBegin(p,*n,false));
+  pic->append(new drawClipBegin(p,*n,false));
 }
   
 void endclip(stack *s)
 {
-  bool grestore = s->pop<bool>();
   picture *pic = s->pop<picture*>();
-  pic->append(new drawClipEnd(grestore));
+  pic->append(new drawClipEnd(false));
 }
   
 void gsave(stack *s)

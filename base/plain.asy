@@ -377,9 +377,6 @@ struct picture {
   // The functions to do the deferred drawing.
   drawerBound[] nodes;
   
-  // Index of initial node in this layer.
-  public int initial;
-  
   // The coordinates in flex space to be used in sizing the picture.
   coord[] xcoords,ycoords;
 
@@ -402,7 +399,6 @@ struct picture {
     userMin=(infinity,infinity);
     userMax=-userMin;
     scale=new ScaleT;
-    initial=0;
   }
   init();
   
@@ -425,16 +421,6 @@ struct picture {
     nodes.push(d);
   }
 
-  void prepend(drawerBound d) {
-    int n=nodes.length;
-    if(n > initial) {
-      nodes.push(nodes[n-1]);
-      for(int i=n-1; i > initial; --i)
-	nodes[i]=nodes[i-1];
-      nodes[initial]=d;
-    } else nodes.push(d);
-  }
-
   void build(frame f, drawer d, transform t, bool deconstruct) {
       if(deconstruct) {
 	if(GUIDelete()) return;
@@ -455,7 +441,7 @@ struct picture {
     });
   }
 
-  void beginclip(drawer d) {
+  void clip(drawer d) {
     uptodate(false);
     bool deconstruct=this.deconstruct;
     clippingwarning(deconstruct);
@@ -463,10 +449,8 @@ struct picture {
       xcoords[i].clip(userMin.x,userMax.x);
       ycoords[i].clip(userMin.y,userMax.y);
     }
-    prepend(new void (frame f, transform t, transform T, pair, pair) {
-      frame F;
-      build(F,d,t*T,deconstruct);
-      add(f,F);
+    add(new void (frame f, transform t, transform T, pair, pair) {
+      d(f,t*T);
     });
   }
 
@@ -959,11 +943,8 @@ void clip(picture pic=currentpicture, path g, pen p=currentpen)
 {
   pic.userMin=maxbound(pic.userMin,min(g));
   pic.userMax=minbound(pic.userMax,max(g));
-  pic.beginclip(new void (frame f, transform t) {
-    beginclip(f,t*g,p,true);
-  });
-  pic.add(new void (frame f, transform) {
-    endclip(f,true);
+  pic.clip(new void (frame f, transform t) {
+    clip(f,t*g,p);
   });
 }
 
@@ -971,50 +952,8 @@ void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
 {
   pic.userMin=maxbound(pic.userMin,min(g));
   pic.userMax=minbound(pic.userMax,max(g));
-  pic.beginclip(new void (frame f, transform t) {
-    beginclip(f,t*g,p,true);
-  });
-  pic.add(new void (frame f, transform) {
-    endclip(f,true);
-  });
-}
-
-// beginclip and endclip are compatibility routines for the pstoedit backend.
-// They do not clip picture size data (pstoedit doesn't use automatic sizing).
-void beginclip(picture pic=currentpicture, path g, pen p=currentpen)
-{
-  clippingwarning(pic.deconstruct);
-  pic.add(new void (frame f, transform t) {
-    beginclip(f,t*g,p,false);
-  });
-}
-
-void beginclip(picture pic=currentpicture, path[] g, pen p=currentpen)
-{
-  clippingwarning(pic.deconstruct);
-  pic.add(new void (frame f, transform t) {
-    beginclip(f,t*g,p,false);
-  });
-}
-
-void endclip(picture pic=currentpicture)
-{
-  pic.add(new void (frame f, transform) {
-    endclip(f,false);
-  });
-}
-
-void gsave(picture pic=currentpicture)
-{
-  pic.add(new void (frame f, transform) {
-    gsave(f);
-  });
-}
-
-void grestore(picture pic=currentpicture)
-{
-  pic.add(new void (frame f, transform) {
-    grestore(f);
+  pic.clip(new void (frame f, transform t) {
+    clip(f,t*g,p);
   });
 }
 
@@ -1030,12 +969,16 @@ void unfill(frame f, path[] g)
 
 void unfill(picture pic=currentpicture, path g)
 {
-  clip(pic,box(pic.userMin,pic.userMax)^^g,evenodd);
+  pic.clip(new void (frame f, transform t) {
+    unfill(f,t*g);
+  });
 }
 
 void unfill(picture pic=currentpicture, path[] g)
 {
-  clip(pic,box(pic.userMin,pic.userMax)^^g,evenodd);
+  pic.clip(new void (frame f, transform t) {
+    unfill(f,t*g);
+  });
 }
 
 real labelmargin(pen p=currentpen)
@@ -1204,7 +1147,6 @@ void layer(picture pic=currentpicture)
   pic.add(new void (frame f, transform) {
     layer(f);
     });
-  pic.initial=pic.nodes.length;
 }
 
 void newpage() 

@@ -1,6 +1,6 @@
 diff -ru --new-file pstoedit-3.40/src/Makefile.am pstoedit-3.40J/src/Makefile.am
 --- pstoedit-3.40/src/Makefile.am	2004-11-03 14:05:16.000000000 -0700
-+++ pstoedit-3.40J/src/Makefile.am	2005-02-05 11:32:36.000000000 -0700
++++ pstoedit-3.40J/src/Makefile.am	2005-02-14 17:20:54.469454304 -0700
 @@ -50,6 +50,7 @@
  	drvtext.cpp 	drvtext.h		\
  	drvsk.cpp 	drvsk.h			\
@@ -11,8 +11,8 @@ diff -ru --new-file pstoedit-3.40/src/Makefile.am pstoedit-3.40J/src/Makefile.am
  	drvpic.cpp 	drvpic.h		\
 diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 --- pstoedit-3.40/src/drvasy.cpp	1969-12-31 17:00:00.000000000 -0700
-+++ pstoedit-3.40J/src/drvasy.cpp	2005-02-14 16:43:26.018270840 -0700
-@@ -0,0 +1,489 @@
++++ pstoedit-3.40J/src/drvasy.cpp	2005-02-15 15:54:42.528631752 -0700
+@@ -0,0 +1,479 @@
 +/*
 +  drvASY.cpp : This file is part of pstoedit
 +  Backend for Asymptote files
@@ -70,9 +70,7 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +  prevDashPattern(""),		// Solid lines
 +  fillmode(false),
 +  evenoddmode(false),
-+  clipmode(false),
-+  savemode(0),
-+  restoremode(0)
++  clipmode(false)
 +{
 +  // Output copyright information
 +  outf << "// Converted from PostScript(TM) to Asymptote by pstoedit\n"
@@ -80,8 +78,7 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +       << "// pstoedit is Copyright (C) 1993 - 2005 Wolfgang Glunz"
 +       << " <wglunz34_AT_pstoedit.net>\n\n";
 +	
-+  outf << "pen textpen;" << endl;
-+  outf << "pair align=1e-10*NE;" << endl;
++  outf << "import pstoedit;" << endl;
 +  firstpage=true;
 +}
 +
@@ -100,6 +97,12 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +  bool havecycle=false;
 +  bool firstpoint=false;
 +
++  while(gsavestack.size() && gsavestack.front()) {
++    gsavestack.pop_front();
++    outf << "gsave();" << endl;
++    clipstack.push_back(false);
++  }
++  
 +  if (fillmode || clipmode) {
 +    for (unsigned int n = 0; n < numberOfElementsInPath(); n++) {
 +      const basedrawingelement & elem = pathElement(n);
@@ -118,10 +121,10 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +	  firstpoint=true;
 +	  if(clipmode) {
 +	    outf << "beginclip(";
-+	    bool pop=clipmodestack.size() > 0;
++	    bool pop=clipstack.size() > 0;
 +	    if(pop) {
-+	      clipmodestack.pop_back();
-+	      clipmodestack.push_back(true);
++	      clipstack.pop_back();
++	      clipstack.push_back(true);
 +	    }
 +	  } else
 +	    outf << "fill(";
@@ -258,29 +261,16 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +    }
 +  }
 +  
-+  // Prune spurious gsave/grestore pairs
-+  while(savemode && restoremode) {
-+    savemode--;
-+    restoremode--;
-+  }
-+  
-+  while(savemode) {
-+    outf << "gsave();" << endl;
-+    clipmodestack.push_back(false);
-+    savemode--;
-+  }
-+  
-+  while(restoremode) {
-+    bool pop=clipmodestack.size() > 0;
-+    if(pop) {
-+      if(clipmodestack.back()) outf << "endclip();" << endl;
-+      clipmodestack.pop_back();
++  while(gsavestack.size() && !gsavestack.front()) {
++    gsavestack.pop_front();
++    if(clipstack.size() > 0) {
++      if(clipstack.back())
++	outf << "endclip();" << endl;
++      clipstack.pop_back();
 +    }
 +    outf << "grestore();" << endl;
-+    restoremode--;
 +  }
 +}
-+
 +
 +// Each page will produce a different figure
 +void drvASY::open_page()
@@ -484,12 +474,12 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +
 +void drvASY::Save()
 +{
-+  savemode++;
++  gsavestack.push_back(true);
 +}
 +
 +void drvASY::Restore()
 +{
-+  restoremode++;
++  gsavestack.push_back(false);
 +}
 +				       
 +static DriverDescriptionT < drvASY > 
@@ -504,8 +494,8 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +      );
 diff -ru --new-file pstoedit-3.40/src/drvasy.h pstoedit-3.40J/src/drvasy.h
 --- pstoedit-3.40/src/drvasy.h	1969-12-31 17:00:00.000000000 -0700
-+++ pstoedit-3.40J/src/drvasy.h	2005-02-14 17:17:56.515507416 -0700
-@@ -0,0 +1,85 @@
++++ pstoedit-3.40J/src/drvasy.h	2005-02-15 15:34:11.466781600 -0700
+@@ -0,0 +1,82 @@
 +#ifndef __drvASY_h
 +#define __drvASY_h
 +
@@ -581,12 +571,9 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.h pstoedit-3.40J/src/drvasy.h
 +  bool evenoddmode;
 +  // Set to true for clip or eoclip, false otherwise
 +  bool clipmode;
-+  // Number of pending gsave instructions
-+  unsigned int savemode;
-+  // Number of pending grestore instructions
-+  unsigned int restoremode;
 +  
-+  std::list<bool> clipmodestack;
++  std::list<bool> clipstack;
++  std::list<bool> gsavestack;
 +
 +};
 +
