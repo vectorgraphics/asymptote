@@ -842,13 +842,20 @@ This is the number of nodes in the path.
 If the path is cyclic, this is the same as the path length.
 
 @cindex @code{point}
-@item pair point(path, int n)
-This returns the coordinates of node @code{n}.
+@item pair point(path p, int n)
+If @code{p} is cyclic, return the coordinates of node @code{n} mod
+@code{length(p)}. Otherwise, return the coordinates of node @code{n},
+unless @code{n} < 0 (in which case @code{point(0)} is returned) or
+@code{n} > @code{length(p)} (in which case @code{point(length(p))}
+is returned).
 
-@item pair point(path, real x)
+@item pair point(path p, real x)
 This returns the coordinates of the point between node @code{floor(x)}
 and @code{floor(x)+1} corresponding to the cubic spline parameter
-t=@code{x-floor(x)} (@pxref{Bezier}).
+t=@code{x-floor(x)} (@pxref{Bezier}). If @code{x} lies outside the range
+[0,@code{length(p)}], it is first reduced modulo @code{length(p)}
+in the case where @code{p} is cyclic or else converted to the corresponding
+endpoint of @code{p}.
 
 @cindex @code{direction}
 @item pair direction(path, int n)
@@ -885,14 +892,6 @@ the path in the sense of @code{point(path, real)}, at which the tangent
 to the path has direction @code{z}, or -1 if the path never achieves
 direction @code{z}.
 
-@cindex @code{intersect}
-@item pair intersect(path p, path g)
-If @code{p} and @code{q} have at least one intersection point, return a
-pair of times (s,t) representing the respective path times along
-@code{p} and @code{q}, in the sense of @code{point(path, real)}, for
-one such intersection point. If the paths do not intersect, return the
-pair (-1,-1).
-
 @cindex @code{reverse}
 @item path reverse(path p)
 returns a path running backwards along p.
@@ -906,6 +905,36 @@ If @code{n} < @code{m}, the direction of the subpath is reversed.
 returns the subpath running from path time @code{a} to path time @code{b},
 in the sense of @code{point(path, real)}. If @code{a} < @code{b}, the
 direction of the subpath is reversed.
+
+@cindex @code{intersect}
+@item pair intersect(path p, path q)
+If @code{p} and @code{q} have at least one intersection point, return a
+pair of times (s,t) representing the respective path times along
+@code{p} and @code{q}, in the sense of @code{point(path, real)}, for
+one such intersection point. If the paths do not intersect, return the
+pair (-1,-1).
+
+@cindex @code{before}
+@item pair before(path p, path q)
+Return the portion of @code{p} before its first intersection with
+@code{q}; if no such intersection exists, return @code{p}.
+
+@cindex @code{after}
+@item pair after(path p, path q)
+Return the portion of @code{p} after its last intersection with
+@code{q}; if no such intersection exists, return @code{p}.
+
+@cindex @code{cutbefore}
+@item pair cutbefore(path p, path q)
+Return a new path with the portion of @code{p} before its first
+intersection with @code{q} removed; if no such intersection exists,
+return @code{p}.
+
+@cindex @code{cutafter}
+@item pair cutafter(path p, path q)
+Return a new path with the portion of @code{p} after its last
+intersection with @code{q} removed; if no such intersection exists,
+return @code{p}.
 
 @cindex @code{max}
 @item pair max(path)
@@ -2819,7 +2848,7 @@ draw(G(x)--c+(0,g(x)),dashed+red);
 arrow("$y=\sqrt{x}$",F(0.7),N);
 
 transform T=xscale(0.5);
-drawabout(T*arc(0,0.30cm,20,340),(2.86,0),ArcArrow);
+drawabout(T*arc(0,0.30cm,20,340),(2.875,0),ArcArrow);
 
 labeldot((1,1));
 

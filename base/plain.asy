@@ -1515,15 +1515,25 @@ void overwrite(Overwrite Overwrite=Allow)
 
 path cutbefore(path p, path knife)
 {
-  pair z=intersect(p,knife);
-  real t=xpart(z);
+  return subpath(p,min(intersect(p,knife).x,intersect(p,reverse(knife)).x),
+		 length(p));
+}
+
+path before(path p, path knife)
+{
+  real t=intersect(p,knife).x;
   if (t < 0) return p;
-  else return subpath(p,t,length(p));
+  return subpath(p,0,min(t,intersect(p,reverse(knife)).x));
 }
 
 path cutafter(path p, path knife) 
 {
   return reverse(cutbefore(reverse(p),knife));
+}
+
+path after(path p, path knife) 
+{
+  return reverse(keepbefore(reverse(p),knife));
 }
 
 void unfill(picture pic=currentpicture, path g) 
