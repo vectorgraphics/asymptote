@@ -23,16 +23,16 @@ namespace vm {
 
 namespace {
 const program::label nulllabel;
-
 }
 
-inline stack::vars_t stack::make_frame(size_t size)
+inline stack::vars_t stack::make_frame(size_t size, vars_t closure)
 {
-  return frame(new item[size]);
+  vars_t vars(new item[size]);
+  vars[0] = closure;
+  return vars;
 }
 
 stack::stack()
-  : vars()
 {
   ip = nulllabel;
 }
@@ -48,10 +48,15 @@ void stack::run(lambda *l)
   run(&f);
 }
 
+void stack::marshall(int args, vars_t vars)
+{
+  for (int i = args; i > 0; --i)
+    vars[i] = pop();
+}
+
 #define UNALIAS                                 \
   {                                             \
     this->ip = ip;                              \
-    this->vars = vars;                          \
     this->body = body;                          \
   }
 
@@ -70,11 +75,8 @@ void stack::run(func *f)
   /* start the new function */
   program::label ip = body->code.begin();
   /* make new activation record */
-  vars_t vars = vars = make_frame(body->vars);
-
-  vars[0] = f->closure;
-  for (int i = body->params; i > 0; --i)
-    vars[i] = pop();
+  vars_t vars = make_frame(body->vars, f->closure);
+  marshall(body->params, vars);
 
   /* for binops */
   vars_t u, v;
@@ -190,7 +192,7 @@ void stack::run(func *f)
 
 #ifdef DEBUG_STACK
       UNALIAS;
-      draw(cerr);
+      draw(cerr,vars);
       cerr << "\n";
 #endif
             
@@ -229,7 +231,7 @@ std::string demangle(const char* s)
 }
 #endif 
 
-void stack::draw(ostream& out)
+void stack::draw(ostream& out, vars_t vars)
 {
 //  out.setf(out.hex);
 

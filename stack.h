@@ -30,12 +30,14 @@ private:
 
   lambda *body;
 
-  vars_t vars;
-  vars_t make_frame(size_t);
+  vars_t make_frame(size_t, vars_t closure);
 
   program::label ip;
 
   void draw(ostream& out);
+
+  // Move arguments from stack to frame.
+  void marshall(int args, vars_t vars);
 public:
   stack();
   ~stack();
