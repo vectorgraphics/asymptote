@@ -143,5 +143,5 @@ void readArray(vm::stack *s)
 
 } // namespace run
 
-#endif
+#endif // CASTOP_H
 
