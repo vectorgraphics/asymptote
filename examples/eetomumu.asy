@@ -1,9 +1,5 @@
 import feynman;
 
-
-// set default line width to 0.8bp
-currentpen = linewidth(0.8);
-
 // scale all other defaults of the feynman module appropriately
 fmdefaults();
 
