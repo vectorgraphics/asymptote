@@ -96,7 +96,7 @@ endif
 syntax match	asyCommentError	display "\*/"
 syntax match	asyCommentStartError display "/\*"me=e-1 contained
 
-syn keyword	asyType		void boolean int real string
+syn keyword	asyType		void bool int real string
 syn keyword	asyType		pair transform guide path pen picture
 
 syn keyword	asyStructure	struct typedef

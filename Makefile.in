@@ -64,7 +64,7 @@ install: asy
 	${INSTALL} -d $(bindir) $(asydir) $(asydir)/examples
 	${INSTALL} -s $(NAME) $(bindir)
 	${INSTALL} $(XNAME) $(bindir)
-	${INSTALL} base/*.asy $(asydir)
+	${INSTALL} base/* $(asydir)
 	${INSTALL} examples/*.asy $(asydir)/examples
 
 install-man:
@@ -74,7 +74,7 @@ install-man:
 uninstall: 
 	-cd $(asydir)/examples; rm -f *.asy
 	-rmdir $(asydir)/examples
-	-cd $(asydir); rm -f *.asy
+	-cd $(asydir); rm -f *
 	-rmdir $(asydir)
 	-rm -f $(bindir)/$(NAME) $(bindir)/$(XNAME) 
 	-install-info --delete doc/asymptote.info $(prefix)/info/dir

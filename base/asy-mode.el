@@ -1,7 +1,8 @@
 ;; Emacs mode file for editing Asymptote source files
 ;;
-;; To enable, copy the next line to the .emacs initialization file:
-(setq auto-mode-alist (cons (cons "\\.asy$" 'asy-mode) auto-mode-alist))
+;; Uncomment and copy these two lines to your .emacs initialization file:
+;;(autoload 'asy-mode "/usr/local/share/asymptote/asy-mode.el" "Asymptote major mode." t)
+;;(setq auto-mode-alist (cons (cons "\\.asy$" 'asy-mode) auto-mode-alist))
 
 (load "cc-mode")
 (load "font-lock")

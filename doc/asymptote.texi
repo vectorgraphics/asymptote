@@ -194,12 +194,89 @@ done as root. To build and install the man pages as well, type:
 @verbatim
 make man
 make install-man
+
+@end verbatim
+
+@cindex{emacs}
+@cindex{asy-mode}
+User of @code{emacs} can edit @code{Asymptote} code with the mode
+@code{asy-mode}, after enabling it by putting these two lines in the
+@code{~/.emacs} initialization file, replacing ASYDIR with the location
+of the Asymptote base files
+(by default, @code{/usr/local/share/asymptote}):
+@verbatim
+(autoload 'asy-mode "ASYDIR/asy-mode.el" "Asymptote major mode." t)
+(setq auto-mode-alist (cons (cons "\\.asy$" 'asy-mode) auto-mode-alist))
+
+@end verbatim
+
+@cindex{vim}
+@cindex{asy.vim}
+Fans of @code{vim} can
+@verbatim 
+cp /usr/local/share/asymptote/asy.vim ~/.vim/syntax/asy.vim
+@end verbatim 
+
+and add the following to their @code{~/.vimrc} file: 
+
+@verbatim
+augroup filetypedetect
+au BufNewFile,BufRead *.asy     setf asy
+augroup END
+filetype plugin on
+@end verbatim
+
+If any of these directories or files don't exist, just create them.
+To set @code{vim} up to run the current asymptote script using @code{:make}
+just add to @code{.vim/ftplugin/asy.vim}:
+
+@verbatim
+setlocal makeprg=asy\ %
+setlocal errorformat=%f:\ %l.%c:\ %m
+
 @end verbatim
 
 To uninstall all @code{Asymptote} files, type:
 @verbatim
 make uninstall
 @end verbatim
+
+In order to compile @code{Asymptote} you will need the boost library from
+@code{http://boost.org} (included in recent Linux distributions). Installation
+of the boost library may require the following (or later):
+
+@verbatim
+http://dl.sourceforge.net/sourceforge/boost/boost-jam-3.1.10-1.i386.rpm
+http://dl.sourceforge.net/sourceforge/boost/boost_1_31_0.tar.bz2
+@end verbatim
+
+On machines running Debian Linux, the boost library can be installed with
+
+@verbatim
+apt-get install libboost-graph1.31.0 libboost-dev libboost-graph-dev
+
+@end verbatim
+
+The FFTW library is only required if you want @code{Asymptote} to be able to
+take Fourier transforms of data (say to compute an audio power spectrum).
+
+If you don't want to install @code{Asymptote}, just make sure the compiled
+binary @code{asy} and GUI script @code{xasy} are in your path and set the
+environment variable @code{ASYMPTOTE_DIR} to point to the directory
+@code{base} (in the top level directory of the @code{Asymptote}
+source code). In looking for @code{Asymptote} system files, @code{asy} will
+search the following paths, in the order listed:
+
+@anchor{search paths}
+@enumerate
+@item
+current directory
+@item
+@cindex @code{ASYMPTOTE_DIR}
+@code{$ASYMPTOTE_DIR}
+@item
+system-wide directory (default: @code{/usr/local/share/asymptote})
+@end enumerate
 
 The following commands are needed to install the latest development version of
 @code{Asymptote} from cvs (when prompted for the CVS password, type enter): 
@@ -216,42 +293,6 @@ make man
 make install
 make install-man
 @end verbatim
-
-In order to compile @code{Asymptote} you will need the boost library from
-@code{http://boost.org} (included in recent Linux distributions). Installation
-of the boost library may require the following (or later):
-
-@verbatim
-http://dl.sourceforge.net/sourceforge/boost/boost-jam-3.1.10-1.i386.rpm
-http://dl.sourceforge.net/sourceforge/boost/boost_1_31_0.tar.bz2
-@end verbatim
-
-On machines running Debian Linux, the boost library can be installed with
-
-@verbatim
-apt-get install libboost-graph1.31.0 libboost-dev libboost-graph-dev
-@end verbatim
-
-The FFTW library is only required if you want @code{Asymptote} to be able to
-take Fourier transforms of data (say to compute an audio power spectrum).
-
-If you don't want to install @code{Asymptote}, just make sure the compiled
-binary @code{asy} and GUI script @code{xasy} are in your path and set the
-environment variable @code{ASYMPTOTE_DIR} to point to the directory
-@code{base} (in the top level directory of the @code{Asymptote}
-source code). In looking for @code{Asymptote} system files, @code{asy} will
-search these following paths (in the listed order):
-
-@anchor{search paths}
-@enumerate
-@item
-current directory
-@item
-@cindex @code{ASYMPTOTE_DIR}
-@code{$ASYMPTOTE_DIR}
-@item
-system-wide directory (default: @code{/usr/local/share/asymptote})
-@end enumerate
 
 @node Example
 @chapter Example
@@ -889,8 +930,16 @@ This special pen writes in invisible ink! It is analogous to the
 
 @end table
 
-The default color is @code{black}. A number of named rgb and cmyk colors
-are given at the top of the default base file @code{plain.asy}.
+The default color is @code{black}. A number of named rgb colors
+are defined near the top of the default base file @code{plain.asy}:
+@verbatim
+black,gray,white,red,green,blue,yellow,magenta,cyan,brown,darkgreen,
+darkblue,orange,purple,chartreuse,fuchsia,salmon,lightblue,lavender,pink,
+@end verbatim
+along with the primitive cmyk colors:
+@verbatim
+Cyan,Magenta,Yellow,Black.
+@end verbatim
 
 @item Line types are specified with the function @code{pen linetype(string s)},
 @cindex @code{solid}
