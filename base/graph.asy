@@ -814,12 +814,15 @@ picture secondaryX(picture primary=currentpicture, void f(picture))
   picture pic=new picture;
   f(pic);
   bounds b=autoscale(pic.userMin.x,pic.userMax.x);
-  real m=(primary.userMax.x-primary.userMin.x)/(b.max-b.min);
-  pic.erase();
-  scale(pic,Linear(m,b.min),primary.scale.y.scale);
-  pic.userMin=primary.userMin;
-  pic.userMax=primary.userMax;
-  f(pic);
+  real denom=b.max-b.min;
+  if(denom != 0.0) {
+    real m=(primary.userMax.x-primary.userMin.x)/denom;
+    pic.erase();
+    scale(pic,Linear(m,b.min),primary.scale.y.scale);
+    pic.userMin=primary.userMin;
+    pic.userMax=primary.userMax;
+    f(pic);
+  }
   return pic;
 }
 
@@ -829,12 +832,15 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
   picture pic=new picture;
   f(pic);
   bounds b=autoscale(pic.userMin.y,pic.userMax.y);
-  real m=(primary.userMax.y-primary.userMin.y)/(b.max-b.min);
-  pic.erase();
-  scale(pic,primary.scale.x.scale,Linear(m,b.min));
-  pic.userMin=primary.userMin;
-  pic.userMax=primary.userMax;
-  f(pic);
+  real denom=b.max-b.min;
+  if(denom != 0.0) {
+    real m=(primary.userMax.y-primary.userMin.y)/denom;
+    pic.erase();
+    scale(pic,primary.scale.x.scale,Linear(m,b.min));
+    pic.userMin=primary.userMin;
+    pic.userMax=primary.userMax;
+    f(pic);
+  }
   return pic;
 }
 

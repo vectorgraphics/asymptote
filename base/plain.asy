@@ -674,7 +674,7 @@ pair realmult(pair z, pair w)
   return (z.x*w.x,z.y*w.y);
 }
 
-pair point(picture pic, pair dir)
+pair point(picture pic=currentpicture, pair dir)
 {
   real scale=max(abs(dir.x),abs(dir.y));
   if(scale != 0) dir *= 0.5/scale;
@@ -1567,6 +1567,16 @@ slice lastcut(path p, path knife)
   s.after=reverse(s.before);
   s.before=before;
   return s;
+}
+
+real interp(int a, int b, real c)
+{
+  return a+c*(b-a);
+}
+
+real interp(real a, real b, real c)
+{
+  return a+c*(b-a);
 }
 
 pair interp(pair a, pair b, real c)
