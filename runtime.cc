@@ -1789,7 +1789,7 @@ void exitFunction(stack *s)
   if(camp::TeXcontaminated) {
     camp::TeXpreamble.clear();
     camp::tex.pipeclose();
-    TeXinitialized=false;
+    TeXinitialized=camp::TeXcontaminated=false;
   }
 }
   

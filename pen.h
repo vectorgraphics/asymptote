@@ -559,7 +559,7 @@ public:
     if(p.linejoin != DEFJOIN)
       out << ", linejoin=" << Join[p.linejoin];
     if(p.font != "")
-      out << ", font=" << p.font;
+      out << ", font=\"" << p.font << "\"";
     if(p.fontsize)
       out << ", fontsize=" << p.fontsize;
     if(p.lineskip)
