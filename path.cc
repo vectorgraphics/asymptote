@@ -402,11 +402,13 @@ inline double cubicDir(const solvedKnot& left, const solvedKnot& right,
     c = left.post-left.point;
   a *= rot; b *= rot; c *= rot;
   double det = b.gety()*b.gety()-4*a.gety()*c.gety();
-  if (a.gety() == 0) {
+  double ay=a.gety();
+  double epsilon=10.0*DBL_EPSILON;
+  if (ay*ay <= epsilon*a.abs2()) {
     if (b.gety() != 0) {
       double t = -c.gety()/b.gety();
-      if (0 <= t && t <=1 &&
-          a.getx()*t*t+b.getx()*t+c.getx()>=0)
+      if (0 <= t && t <= 1 &&
+          a.getx()*t*t+b.getx()*t+c.getx() >= 0)
         return t;
     }
   } else if (det >= 0) {
@@ -420,11 +422,11 @@ inline double cubicDir(const solvedKnot& left, const solvedKnot& right,
       t2 = t1;
       t1 = temp;
     }
-    if (0 <= t1 && t1 <=1 &&
-        a.getx()*t1*t1+b.getx()*t1+c.getx()>=0)
+    if (0 <= t1 && t1 <= 1 &&
+        a.getx()*t1*t1+b.getx()*t1+c.getx() >= 0)
       return t1;
-    if (0 <= t2 && t2 <=1 &&
-        a.getx()*t2*t2+b.getx()*t2+c.getx()>=0)
+    if (0 <= t2 && t2 <= 1 &&
+        a.getx()*t2*t2+b.getx()*t2+c.getx() >= 0)
       return t2;
   }
   return -1;

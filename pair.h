@@ -130,9 +130,14 @@ public:
     return z.x != w.x || z.y != w.y;
   }
 
+  double abs2() const
+  {
+    return x*x + y*y;
+  }
+  
   double length() const
   {
-    return sqrt(x*x + y*y);
+    return sqrt(abs2());
   }
   
   friend double length(const pair& z)
@@ -211,11 +216,9 @@ inline pair expi(const double theta)
 // Complex exponentiation
 inline pair pow(const pair& z, const pair& w)
 {
-  double x=z.getx();
-  double y=z.gety();
   double u=w.getx();
   double v=w.gety();
-  double logr=0.5*log(x*x+y*y);
+  double logr=0.5*log(z.abs2());
   double th=z.angle();
   return exp(logr*u-th*v)*expi(logr*v+th*u);
 }
