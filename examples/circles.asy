@@ -1,5 +1,4 @@
 size(6cm,0);
-
 import math;
 
 currentpen=magenta;
