@@ -281,17 +281,29 @@ void append (coord[] x, coord[] y, transform T, coord[] srcx, coord[] srcy)
 public struct scaleT {
   typedef real scalefcn(real x);
   public scalefcn T,Tinv,Label;
-  public bool automin,automax;
   T=Tinv=Label=identity;
-  automin=automax=true;
+  public bool automin=true, automax=true;
 };
 
+public struct autoscaleT {
+  public scaleT scale=new scaleT;
+  public bool automin=true, automax=true;
+  void update() {
+    if(automin) automin=scale.automin;
+    if(automax) automax=scale.automax;
+  }
+}
+
 public struct ScaleT {
-  private static scaleT Linear=new scaleT;
   public bool set=false;
-  public scaleT x=Linear;
-  public scaleT y=Linear;
-  public scaleT z=Linear;
+  public autoscaleT x=new autoscaleT;
+  public autoscaleT y=new autoscaleT;
+  public autoscaleT z=new autoscaleT;
+  void update() {
+    x.update();
+    y.update();
+    z.update();
+  }
 };
 
 

@@ -1820,7 +1820,7 @@ In any case, no error message will be issued if one tries to explicitly
 @cindex @code{simplex}
 
 This package solves the two-variable linear programming problem using the
-simplex method. It is used by @code{plain}, for automatic sizing of pictures.
+simplex method. It is used by @code{plain} for automatic sizing of pictures.
 
 @node graph
 @subsection @code{graph}
@@ -1893,11 +1893,11 @@ be chosen:
 @item begin
 requests a big tick at the beginning of the axis;
 @item N
-divide the arclength evenly into this many intervals, separated by
-big ticks;
+when automatic scaling is enabled (the default; see @pxref{automatic scaling}),
+divide the arclength evenly into this many intervals, separated by big ticks;
 @item n
-divide each big tick arclength interval into this many subintervals,
-separated by small ticks;
+divide each arclength interval into this many subintervals, separated by
+small ticks;
 @item Step
 represents the spacing (in user arclength coordinates) between big ticks
 (if @code{N==0});
@@ -1955,6 +1955,7 @@ shipout();
 @end verbatim
 @image{parametricgraph}
 
+@anchor{automatic scaling}
 @cindex @code{scale}
 @cindex @code{Linear}
 @cindex @code{Log}

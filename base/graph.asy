@@ -8,6 +8,8 @@ public real axislabelmargin=2;
 public real axiscoverage=0.6;
 public int ngraph=100;
 
+private real epsilon=100*realEpsilon();
+
 static scaleT Linear=new scaleT;
 Linear.T=identity;
 Linear.Tinv=identity;
@@ -46,8 +48,8 @@ bool logarithmic(scaleT S)
 
 void scale(picture pic=currentpicture, scaleT x, scaleT y)
 {
-  pic.scale.x=x;
-  pic.scale.y=y;
+  pic.scale.x.scale=x;
+  pic.scale.y.scale=y;
 }
 
 struct scientific 
@@ -209,7 +211,7 @@ private struct locateT {
 
 pair labeltick(frame d, transform T, guide g, real pos, pair side,
 	       int sign, real Size, ticklabel ticklabel, pen plabel, part part,
-	       bool zero=false, bool deconstruct=false) 
+	       real norm=0.0, bool deconstruct=false) 
 {
   locateT locate=new locateT;
   locate.calc(T,g,pos);
@@ -218,7 +220,9 @@ pair labeltick(frame d, transform T, guide g, real pos, pair side,
     0.5*align*labelmargin(plabel);
   pair Z=locate.Z+shift;
   if(deconstruct) Z=GUI()*Z;
-  label(d,ticklabel(zero ? 0 : part(locate.z)),Z,align,plabel);
+  real v=part(locate.z);
+  if(abs(v) < epsilon*norm) v=0.0;
+  label(d,ticklabel(v),Z,align,plabel);
   return locate.dir;
 }  
 
@@ -241,7 +245,6 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
     
     bool labels=false;
     guide g=inverse(T)*G;
-    real epsilon=100*realEpsilon();
     
     if(!logarithmic(S)) {
       real a=part(point(g,0));
@@ -250,21 +253,18 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
       if(!finite(tickmax)) tickmax=S.T(arclength(g));
       real len=tickmax-tickmin;
       real offset=tickmin-S.T(a);
-      real fraction;
-      if(a*b <= 0 && len != 0) fraction=-tickmin/len;
-      int izero=-1;
+      real norm=max(abs(a),abs(b));
       if(Step == 0 && N == 0) {
 	if(divisor.length > 0) {
 	  real limit=axiscoverage*arclength(G);
 	  for(int d=divisor.length-1; d >= 0; --d) {
 	    N=divisor[d];
 	    Step=len/N;
-	    if(a*b <= 0) izero=N > 1 ? round(fraction*N) : -1;
 	    real coverage=0;
 	    for(int i=0; i <= N; ++i) {
 	      frame d;
 	      pair dir=labeltick(d,T,g,i*Step,side,sign,Size,ticklabel,plabel,
-				 part,i == izero);
+				 part,norm);
 	      coverage += abs(dotproduct(max(d)-min(d),dir));
 	      if(coverage > limit) break;
 	    }
@@ -279,7 +279,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	    }
 	  }
 	} else N=1;
-      } else if(a*b <= 0) izero=N > 1 ? round(fraction*N) : -1;
+      }
       
       if(N == 0) N=(int) (len/Step);
       else {
@@ -329,7 +329,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	    real pos=i*Step+offset;
 	    if(cyclic(g) || (pos >= firstpos && pos <= lastpos)) {
 	    labeltick(d,T,g,pos,side,sign,Size,ticklabel,plabel,part,
-		      i == izero,deconstruct);
+		      norm,deconstruct);
 	    }
 	      if(deconstruct) deconstruct(d);
 	      add(f,d);
@@ -373,7 +373,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	  labels=true;
 	  frame d;
 	  labeltick(d,T,g,(i-initial)*factor,side,sign,Size,LogFormat,plabel,
-		part,false,deconstruct);
+		part,deconstruct);
 	  if(deconstruct) deconstruct(d);
 	  add(f,d);
 	}
@@ -461,8 +461,8 @@ void xequals(picture pic=currentpicture, real x,
     pair a=captransform(t,(x,ymin),lb,rt,p);
     pair b=captransform(t,(x,ymax),lb,rt,p);
     frame d;
-    ticks(d,t,s,position,angle,align,side,plabel,a--b,p,pic.scale.y,
-	  new real(pair z) {return pic.scale.y.Label(z.y);},
+    ticks(d,t,s,position,angle,align,side,plabel,a--b,p,pic.scale.y.scale,
+	  new real(pair z) {return pic.scale.y.scale.Label(z.y);},
 	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
     add(f,t*T*inverse(t)*d);
   });
@@ -491,8 +491,8 @@ void yequals(picture pic=currentpicture, real y,
     pair a=captransform(t,(xmin,y),lb,rt,p);
     pair b=captransform(t,(xmax,y),lb,rt,p);
     frame d;
-    ticks(d,t,s,position,angle,align,side,plabel,a--b,p,pic.scale.x,
-	  new real(pair z) {return pic.scale.x.Label(z.x);},
+    ticks(d,t,s,position,angle,align,side,plabel,a--b,p,pic.scale.x.scale,
+	  new real(pair z) {return pic.scale.x.scale.Label(z.x);},
 	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
     add(f,t*T*inverse(t)*d);
   });
@@ -608,15 +608,55 @@ public axis
     axis.tickMax=max;
   };
 
+void limits0(picture pic=currentpicture, pair lb, pair rt)
+{
+  pic.clip(new void (frame f, transform t) {
+    clip(f, box(t*lb,t*rt));
+  });
+  pic.userMin=lb;
+  pic.userMax=rt;
+}
+
+void limits(picture pic=currentpicture, pair lb, pair rt)
+{
+  limits0(pic,lb,rt);
+  pic.scale.x.automin=pic.scale.x.automax=false;
+  pic.scale.y.automin=pic.scale.y.automax=false;
+}
+
+  
+void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity)
+{
+  bounds mx=autoscale(pic.userMin.x,pic.userMax.x,logarithmic(pic.scale.x.scale));
+  if(Min == -infinity) Min=mx.min;
+  else pic.scale.x.automin=false;
+  if(Max == infinity) Max=mx.max;
+  else pic.scale.x.automax=false;
+  if(finite(pic.userMin.y) && finite(pic.userMax.y))
+    limits0(pic,(Min,pic.userMin.y),(Max,pic.userMax.y));
+}
+
+void ylimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity)
+{
+  bounds my=autoscale(pic.userMin.y,pic.userMax.y,logarithmic(pic.scale.y.scale));
+  if(Min == -infinity) Min=my.min;
+  else pic.scale.y.automin=false;
+  if(Max == infinity) Max=my.max;
+  else pic.scale.y.automax=false;
+  if(finite(pic.userMin.x) && finite(pic.userMax.x))
+    limits0(pic,(pic.userMin.x,Min),(pic.userMax.x,Max));
+}
+
+
 void autoscale(picture pic=currentpicture, axis axis) 
 {
   if(!pic.scale.set) {
     bounds mx,my;
     if(finite(pic.userMin.x) && finite(pic.userMax.x))
-      mx=autoscale(pic.userMin.x,pic.userMax.x,logarithmic(pic.scale.x));
+      mx=autoscale(pic.userMin.x,pic.userMax.x,logarithmic(pic.scale.x.scale));
     else {mx=new bounds; mx.min=-infinity; mx.max=infinity;}
     if(finite(pic.userMin.y) && finite(pic.userMax.y))
-      my=autoscale(pic.userMin.y,pic.userMax.y,logarithmic(pic.scale.y));
+      my=autoscale(pic.userMin.y,pic.userMax.y,logarithmic(pic.scale.y.scale));
     else {my=new bounds; my.min=-infinity; my.max=infinity;}
     axis.tickMin=(mx.min,my.min);
     axis.tickMax=(mx.max,my.max);
@@ -633,6 +673,10 @@ void xaxis(picture pic=currentpicture, real xmin=-infinity, real xmax=infinity,
 	   pair align=0, pair side=0, pen plabel=currentpen, axis axis=YZero,
 	   ticks ticks=NoTicks)
 {
+  if(xmin == -infinity && !pic.scale.x.automin) xmin=pic.userMin.x;
+  if(xmax == -infinity && !pic.scale.x.automax) xmax=pic.userMax.x;
+  pic.scale.update();
+  
   autoscale(pic,axis);
   axis(pic,(xmin,0),(xmax,0),axis);
   if(xmin == -infinity) 
@@ -662,11 +706,16 @@ void yaxis(picture pic=currentpicture, real ymin=-infinity, real ymax=infinity,
     angle=(length(max(f)-min(f)) > ylabelwidth*fontsize(plabel)) ? 90 : 0;
   }
   
+  if(ymin == -infinity && !pic.scale.y.automin) ymin=pic.userMin.y;
+  if(ymax == infinity && !pic.scale.y.automax) ymax=pic.userMax.y;
+  pic.scale.update();
+  
   autoscale(pic,axis);
+
   axis(pic,(0,ymin),(0,ymax),axis);
   if(ymin == -infinity)
     ymin=pic.scale.y.automin ? axis.tickMin.y : axis.userMin.y;
-  if(ymax == infinity) 
+  if(ymax == infinity)
     ymax=pic.scale.y.automax ? axis.tickMax.y : axis.userMax.y;
   
   if(position == infinity) position=axis.position;
@@ -776,8 +825,8 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
 	    interpolate interpolatetype=LinearInterp)
 {
   return interpolatetype(new pair (real x) {
-    return (x,pic.scale.y.T(f(pic.scale.x.Tinv(x))));
-  },g,pic.scale.x.T(a),pic.scale.x.T(b),n,interpolate);
+    return (x,pic.scale.y.scale.T(f(pic.scale.x.scale.Tinv(x))));
+  },g,pic.scale.x.scale.T(a),pic.scale.x.scale.T(b),n,interpolate);
 }
 
 guide graph(picture pic=currentpicture, guide g=nullpath,
@@ -785,7 +834,7 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
 	    int n=ngraph, interpolate interpolatetype=LinearInterp)
 {
   return interpolatetype(new pair (real t) {
-    return (pic.scale.x.T(x(t)),pic.scale.y.T(y(t)));
+    return (pic.scale.x.scale.T(x(t)),pic.scale.y.scale.T(y(t)));
   },g,a,b,n,interpolate);
 }
 
@@ -796,7 +845,7 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
   return interpolatetype(new pair (real) {
     pair w=z[i];
     ++i;
-    return (pic.scale.x.T(w.x),pic.scale.y.T(w.y));
+    return (pic.scale.x.scale.T(w.x),pic.scale.y.scale.T(w.y));
   },g,0,0,z.length-1,interpolate);
 }
 
@@ -807,7 +856,7 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
     abort("attempt to graph arrays of different lengths");
   int i=0;
   return interpolatetype(new pair (real) {
-    return (pic.scale.x.T(x[i]),pic.scale.y.T(y[++i-1]));
+    return (pic.scale.x.scale.T(x[i]),pic.scale.y.scale.T(y[++i-1]));
   },g,0,0,x.length-1,interpolate);
 }
 
@@ -829,32 +878,6 @@ guide graph(guide g=nullpath, real f(real), real a, real b, int n=ngraph,
   return interpolatetype(new pair (real x) {return (T(x),f(T(x)));},
 			 g,a,b,n,interpolate);
 }
-
-void limits(picture pic=currentpicture, pair lb, pair rt)
-{
-  pic.clip(new void (frame f, transform t) {
-    clip(f, box(t*lb,t*rt));
-  });
-  pic.userMin=lb;
-  pic.userMax=rt;
-}
-
-void xlimits(picture pic=currentpicture, real Min=infinity, real Max=infinity)
-{
-  bounds mx=autoscale(pic.userMin.x,pic.userMax.x,logarithmic(pic.scale.x));
-  if(Min == infinity) Min=mx.min;
-  if(Max == infinity) Max=mx.max;
-  limits(pic,(Min,pic.userMin.y),(Max,pic.userMax.y));
-}
-
-void ylimits(picture pic=currentpicture, real Min=infinity, real Max=infinity)
-{
-  bounds my=autoscale(pic.userMin.y,pic.userMax.y,logarithmic(pic.scale.y));
-  if(Min == infinity) Min=my.min;
-  if(Max == infinity) Max=my.max;
-  limits(pic,(pic.userMin.x,Min),(pic.userMax.x,Max));
-}
-
 
 // True arc
 guide Arc(pair c, real r, real angle1, real angle2)
