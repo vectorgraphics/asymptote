@@ -24,7 +24,7 @@ venv::venv()
 
 varEntry *venv::lookExact(symbol *name, signature *key)
 {
-  // Find first applicable functions.
+  // Find first applicable function.
   name_t &list = names[name];
   for(name_iterator p = list.begin();
       p != list.end();

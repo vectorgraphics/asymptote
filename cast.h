@@ -28,12 +28,6 @@ void initializeInitializers();
 // NOTE: There may be a better place for this than with the casts.
 trans::access *initializer(ty *t);
 
-// Checks if two types are equal in the sense of the language.
-// That is primitive types are equal if they are the same kind.
-// Structures are equal if they come from the same struct definition.
-// Arrays are equal if their cell types are equal.
-bool equivalent(ty *t1, ty *t2);
-
 // Checks if one type can be casted into another.  Works much like the
 // env::implicitCast() function but only checks for the possibility, and
 // does not implement the cast.

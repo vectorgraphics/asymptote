@@ -340,4 +340,18 @@ ty *overloaded::resolve(signature *key)
   return new overloaded(set);
 }
 
+bool equivalent(ty *t1, ty *t2)
+{
+  // The same pointer must point to the same type.
+  if (t1 == t2)
+    return true; 
+
+  // Ensure if an overloaded type is compared to a non-overloaded one, that the
+  // overloaded type's method is called.
+  if (t1->kind == ty_overloaded || t2->kind != ty_overloaded)
+    return t1->equiv(t2);
+  else
+    return t2->equiv(t1);
+}
+
 } // namespace types

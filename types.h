@@ -57,8 +57,15 @@ enum ty_kind {
   ty_array
 };
 
-// Forward declaration beacuse of ty::getSignature.
+// Forward declarations.
+struct ty;
 struct signature;
+
+// Checks if two types are equal in the sense of the language.
+// That is primitive types are equal if they are the same kind.
+// Structures are equal if they come from the same struct definition.
+// Arrays are equal if their cell types are equal.
+bool equivalent(ty *t1, ty *t2);
 
 class ty : public mempool::pooled<ty> {
 public:
@@ -103,6 +110,14 @@ public:
   {
     return this;
   }
+
+  // Returns true if the other type is equivalent to this one.
+  // The general function equivalent should be preferably used, as it properly
+  // handles overloaded type comparisons.
+  virtual bool equiv(ty *other)
+  {
+    return this==other;
+  }
 };
 
 class primitiveTy : public ty 
@@ -117,6 +132,11 @@ public:
 
   virtual bool isReference() {
     return kind==ty_null;
+  }
+  
+  bool equiv(ty *other)
+  {
+    return this->kind==other->kind;
   }
 };
 
@@ -133,6 +153,11 @@ struct array : public ty {
 
   virtual bool isReference() {
     return true;
+  }
+
+  bool equiv(ty *other) {
+    return other->kind==ty_array &&
+           equivalent(this->celltype,((array *)other)->celltype);
   }
 
   void print(ostream& out) const
@@ -240,6 +265,16 @@ struct function : public ty {
     return true;
   }
 
+  bool equiv(ty *other)
+  {
+    if (other->kind==ty_function) {
+      function *that=(function *)other;
+      return equivalent(this->result,that->result) &&
+             equivalent(&this->sig,&that->sig);
+    }
+    else return false;
+  }
+
   void print(ostream& out) const
     { out << *result << ' ' << sig; }
 
@@ -254,11 +289,21 @@ struct function : public ty {
 // varible being  accessed.
 class overloaded : public ty {
 public:
-  std::vector<ty *> sub;
+  typedef std::vector<ty *> ty_vector;
+  typedef ty_vector::iterator ty_iter;
+  ty_vector sub;
 public:
   overloaded()
    : ty(ty_overloaded) {}
   virtual ~overloaded() {}
+
+  bool equiv(ty *other)
+  {
+    for(ty_iter i=sub.begin();i!=sub.end();++i)
+      if (equivalent(*i,other))
+        return true;
+    return false;
+  }
 
   void add(ty *t) {
     if (t->kind == ty_overloaded) {

@@ -77,8 +77,8 @@ inline B table<B>::look(symbol *key)
 template <class B>
 inline B table<B>::lookInTopScope(symbol *key)
 {
-  // Due to the structure of the hash, this hash to be done by a linear
-  // search.  However, the top scope is usually fairly empty, so it not a
+  // Due to the structure of the hash, this lookup has to be done by a linear
+  // search.  However, the top scope is usually fairly empty, so it is not a
   // problem.
   scope_iterator p = scopes.front().find(key);
   if (p!=scopes.front().end())
