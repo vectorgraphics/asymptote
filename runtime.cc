@@ -1888,7 +1888,7 @@ void execute(stack *s)
     if (m) {
       lambda *l = ge.bootupModule(m);
       assert(l);
-      stack s(0);
+      stack s;
       s.run(l);
     }
   }

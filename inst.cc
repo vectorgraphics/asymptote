@@ -18,7 +18,7 @@ namespace vm {
 
 static const char* opnames[] = {
   "pop", "intpush", "constpush", 
-  "varpush", "varsave", "globalpush", "globalsave","fieldpush", "fieldsave",
+  "varpush", "varsave", "fieldpush", "fieldsave",
   "builtin", "jmp", "cjmp", "njmp", "popcall",
   "pushclosure", "makefunc", "ret", "alloc"
 };
@@ -41,8 +41,6 @@ program::label printInst(ostream& out, program::label code,
     case inst::intpush:
     case inst::varpush:
     case inst::varsave:
-    case inst::globalpush:
-    case inst::globalsave:
     case inst::fieldpush:
     case inst::fieldsave:
     {

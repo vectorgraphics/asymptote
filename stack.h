@@ -28,10 +28,6 @@ private:
   typedef std::deque<item> stack_t;
   stack_t theStack;
 
-  // array for global variables */
-  int numGlobals;
-  vars_t globals;
-
   lambda *body;
 
   vars_t vars;
@@ -41,7 +37,7 @@ private:
 
   void draw(ostream& out);
 public:
-  stack(int numGlobals);
+  stack();
   ~stack();
 
   // Executes a function on top of the stack.

@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
               cout << "\n";
               print(cout, m->getInit()->code);
             } else {
-              vm::stack s(0);
+              vm::stack s;
 	      setPath(startPath());
               s.run(l);
             }

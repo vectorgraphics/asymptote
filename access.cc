@@ -52,24 +52,6 @@ void bltinAccess::encodeCall(position, coder &e)
   e.encode(inst::builtin, f);
 }
 
-
-/* globalAccess */
-void globalAccess::encodeRead(position, coder &e)
-{
-  e.encode(inst::globalpush,offset);
-}
-
-void globalAccess::encodeWrite(position, coder &e)
-{
-  e.encode(inst::globalsave,offset);
-}
-
-void globalAccess::encodeCall(position pos, coder &e)
-{
-  encodeRead(pos, e);
-  e.encode(inst::popcall);
-}
-
 /* frameAccess */
 void frameAccess::encodeRead(position pos, coder &e)
 {

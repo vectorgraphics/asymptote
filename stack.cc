@@ -31,11 +31,10 @@ inline stack::vars_t stack::make_frame(size_t size)
   return frame(new item[size]);
 }
 
-stack::stack(int numGlobals)
-  : numGlobals(numGlobals), vars()
+stack::stack()
+  : vars()
 {
   ip = nulllabel;
-  globals = make_frame(numGlobals);
 }
 
 stack::~stack()
@@ -111,14 +110,6 @@ void stack::run(func *f)
         
           case inst::varsave:
             vars[ip->val] = top();
-            break;
-        
-          case inst::globalpush:
-            push(globals[ip->val]);
-            break;
-        
-          case inst::globalsave:
-            globals[ip->val] = top();
             break;
         
           case inst::fieldpush: {
@@ -283,15 +274,6 @@ void stack::draw(ostream& out)
   }
   else
     out << "\n";
-
-  out << "globals: ";
-  vars_t g = globals;
-  for (int i = 0; i < 10 && i < numGlobals; i++)
-    out << " " << demangle(g[i].type().name());
-  if (numGlobals > 10)
-    out << " ...\n";
-  else
-    out << " \n";
 }
 #endif // DEBUG_STACK
 

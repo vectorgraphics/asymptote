@@ -99,23 +99,6 @@ public:
   void encodeCall(position pos, coder &e);
 };
 
-// Represents the access of a global variable.
-// Not used, as global variables are now represented as a record.
-class globalAccess : public access {
-  int offset;
-
-public:
-  globalAccess(int offset)
-    : offset(offset) {}
-
-  void encodeRead(position pos, coder &e);
-  //void encodeRead(position pos, coder &e, frame *top);
-  void encodeWrite(position pos, coder &e);
-  //void encodeWrite(position pos, coder &e, frame *top);
-  void encodeCall(position pos, coder &e);
-  //void encodeCall(position pos, coder &e, frame *top);
-};
-
 // An access that puts a frame on the top of the stack.
 class frameAccess : public access {
   frame *f;

@@ -162,7 +162,7 @@ private:
 struct inst {
   enum opcode {
     pop, intpush, constpush,
-    varpush, varsave, globalpush, globalsave, fieldpush, fieldsave,
+    varpush, varsave, fieldpush, fieldsave,
     builtin, jmp, cjmp, njmp, popcall,
     pushclosure, makefunc, ret, 
     alloc
