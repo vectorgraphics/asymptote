@@ -2,14 +2,14 @@
  * simplex.asy
  * Andy Hammerlindl 2004/07/27
  *
- * Solves the two-variable linear programming problem in flex.
- * This problem is specialized in that the second variable, "b," does not have a
- * non-negativity condition, and the first variable "a," is the quantity being
- * maximized.
+ * Solves the two-variable linear programming problem using the simplex method.
+ * This problem is specialized in that the second variable, "b," does not have
+ * a non-negativity condition, and the first variable, "a," is the quantity
+ * being maximized.
  * Correct execution of the algorithm also assumes that the "b" term will be +1
  * or -1 in every added restriction, and that the problem can be initialized to
- * a valid state by pivoting b with one of the slack variables.  This assumption
- * may in fact be incorrect.
+ * a valid state by pivoting b with one of the slack variables.  This
+ * assumption may in fact be incorrect.
  *****/
 
 struct problem {
@@ -125,10 +125,10 @@ struct problem {
   {
     // We assume that the first two vars (a and b) once swapped out, won't be
     // swapped back in.  This find the variable which gives the tightest
-    // non-negativity condition restricting our optimization.  This turns out to
-    // be the max of c/t[col].  Note that as c is positive, and t[col] is
-    // negative, all c/t[col] will be negative, so we are finding the smallest
-    // in magnitude.
+    // non-negativity condition restricting our optimization.  This turns
+    // out to be the max of c/t[col].  Note that as c is positive, and
+    // t[col] is negative, all c/t[col] will be negative, so we are finding
+    // the smallest in magnitude.
     var vp = UNBOUNDED;
     row rvp = null;
     for (var i = 2; i < rows.length; ++i) {
@@ -155,7 +155,8 @@ struct problem {
     }
 
     // Check a variable to see if its row is simple.
-    // NOTE: Simple rows could be optimized out, since they are not really used.
+    // NOTE: Simple rows could be optimized out, since they are not really
+    // used. 
     bool validVar(int col) {
       var vc = v[col];
       row rvc = rows[vc];
