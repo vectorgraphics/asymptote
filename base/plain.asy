@@ -127,11 +127,11 @@ static public real arcarrowangle=2*arrowangle;
 static public real barfactor=arrowfactor;
 static public real dotfactor=6;
 
-static public pair legendlocation=(1.0,0.8);
 static public real legendlinelength=50;
 static public real legendskip=1.5;
 static public pen legendboxpen=black;
 static public real legendmargin=10;
+static public real legendshift=legendmargin;
 
 static public string defaultfilename;
 
@@ -928,13 +928,19 @@ pair max(path[] g)
   return maxg;
 }
 
-// Add frame f about origin to picture pic
-void add(pair origin=(0,0), picture pic=currentpicture, frame src)
+// Add frame dest about origin to frame src
+void add(pair origin, frame dest, frame src)
 {
-  pic.add(new void (frame dest, transform t) {
-    add(dest,shift(t*origin)*src);
+  add(dest,shift(origin)*src);
+}
+
+// Add frame src about origin to picture dest
+void add(pair origin=(0,0), picture dest=currentpicture, frame src)
+{
+  dest.add(new void (frame f, transform t) {
+    add(f,shift(t*origin)*src);
   });
-  pic.addBox(origin,origin,min(src),max(src));
+  dest.addBox(origin,origin,min(src),max(src));
 }
 
 // Add a picture to another such that user coordinates in both will be scaled
@@ -1625,38 +1631,10 @@ frame marker(path[] g, pen p=currentpen, filltype filltype=NoFill)
   return f;
 }
 
-void legend(frame f, Legend[] legend, bool placement=true)
-{
-  if(legend.length > 0 && !GUIDelete()) {
-    picture inset=new picture;
-    for(int i=0; i < legend.length; ++i) {
-      Legend L=legend[i];
-      pen p=L.p;
-      pair z1=-i*I*legendskip*fontsize(p);
-      pair z2=z1+legendlinelength;
-      if(!L.putmark && !empty(L.mark)) mark(inset,interp(z1,z2,0.5),L.mark);
-      Draw(inset,z1--z2,p);
-      label(inset,L.label,z2,E,p);
-      if(L.putmark && !empty(L.mark)) mark(inset,interp(z1,z2,0.5),L.mark);
-    }
-    frame d;
-    // Place legend with top left corner at legendlocation;
-    add(d,bbox(inset,legendmargin,legendmargin,0,0,IgnoreAspect,legendboxpen));
-    if(placement) {
-      pair topleft=min(f)+realmult(legendlocation,max(f)-min(f))+legendmargin;
-      d=GUI()*shift(topleft-(min(d).x,max(d).y))*d;
-      deconstruct(d);
-    }
-    add(f,d);
-  }
-}
-  
 void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
-	     Legend[] legend={}, string format="", wait wait=NoWait)
+	     string format="", wait wait=NoWait)
 {
   GUIPrefix=prefix;
-  add(f,gui(GUIFilenum).fit(identity()));
-  legend(f,legend);
   shipout(prefix,f,preamble,format,wait(wait));
   ++GUIFilenum;
   GUIObject=0;
@@ -1664,13 +1642,31 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
   uptodate=true;
 }
 
-// Useful for compensating for space taken up by legend. For example:
-// shipout(currentpicture.xsize-legendsize().x);
-pair legendsize(picture pic=currentpicture)
+picture legend(Legend[] legend)
 {
-  frame f;
-  legend(f,pic.legend,false);
-  return legendmargin+max(f)-min(f);
+  picture inset=new picture;
+  if(legend.length > 0 && !GUIDelete()) {
+    for(int i=0; i < legend.length; ++i) {
+      Legend L=legend[i];
+      pen p=L.p;
+      pair z1=legendmargin-i*I*legendskip*fontsize(p);
+      pair z2=z1+legendlinelength;
+      if(!L.putmark && !empty(L.mark)) mark(inset,interp(z1,z2,0.5),L.mark);
+      Draw(inset,z1--z2,p);
+      label(inset,L.label,z2,E,p);
+      if(L.putmark && !empty(L.mark)) mark(inset,interp(z1,z2,0.5),L.mark);
+    }
+  }
+  return inset;
+}
+  
+frame legend(picture pic=currentpicture, pair dir=0) 
+{
+  frame F;
+  if(pic.legend.length == 0) return F;
+  F=bbox(legend(pic.legend),legendmargin,legendmargin,0,0,IgnoreAspect,
+	       legendboxpen);
+  return shift(dir-point(F,-dir))*F;
 }
 
 private struct orientationT {};
@@ -1690,8 +1686,8 @@ void shipout(string prefix=defaultfilename, picture pic,
   if(ysize == infinity) ysize=pic.ysize;
   GUIPrefix=prefix;
   pic.deconstruct=true;
-  frame f=pic.fit(xsize,ysize,keepAspect);
-  shipout(prefix,orientation(f,orientation),preamble,pic.legend,format,wait);
+  shipout(prefix,orientation(pic.fit(xsize,ysize,keepAspect),orientation),
+	  preamble,format,wait);
 }
 
 void shipout(string prefix=defaultfilename,
@@ -2021,10 +2017,10 @@ void draw(picture pic=currentpicture, string s="", real angle=0,
 
 // Draw a fixed-size object about the user-coordinate 'origin'.
 void draw(pair origin, picture pic=currentpicture, string s="",
-	       real angle=0, path g, real position=infinity, pair align=0,
-	       pair shift=0, side side=RightSide, pen p=currentpen,
-	       arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
-	       string legend="", frame mark=nullframe, bool putmark=Above)
+	  real angle=0, path g, real position=infinity, pair align=0,
+	  pair shift=0, side side=RightSide, pen p=currentpen,
+	  arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
+	  string legend="", frame mark=nullframe, bool putmark=Above)
 {
   picture opic=new picture;
   draw(opic,s,angle,g,position,align,shift,side,p,arrow,bar,margin,legend,

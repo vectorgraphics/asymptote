@@ -12,10 +12,9 @@ for(int i=0; i < n; ++i)
 pen[] Palette=BWRainbow();
 
 picture plot=new picture;
-picture bar=new picture;
 
 image(plot,v,Palette,(0,0),(1,1));
-palette(bar,v,5mm,Palette,"$A$",PaletteTicks("%+#.1f"));
+picture bar=palette(v,5mm,Palette,"$A$",PaletteTicks("%+#.1f"));
 
 add(plot.fit(250,250,W));
 add((1cm,0),bar.fit(0,250,E));

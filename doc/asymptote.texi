@@ -1536,7 +1536,8 @@ in postscript coordinates to another picture about the user coordinate
 @verbatim
 void add(pair origin, picture dest, picture src);
 void add(pair origin, picture src);
-void add(pair origin=(0,0), picture pic=currentpicture, frame src)
+void add(pair origin=(0,0), picture dest=currentpicture,
+         frame src);
 @end verbatim
 
 
@@ -2977,8 +2978,8 @@ paletteticks PaletteTicks(bool begin=true, int N=0, real Step=0,
 @end verbatim
 
 The image and palette bar can be fit (and optionally aligned) to a frame 
-and added to the graph at the location @code{origin} using
-@code{add(pair origin=(0,0),frame)}:
+and added to picture @code{dest} at the location @code{origin} using
+@code{add(pair origin=(0,0), picture dest=currentpicture, frame)}:
 
 @anchor{image}
 @verbatiminclude image.asy
@@ -2992,7 +2993,6 @@ data in @code{diatom.csv} and @code{westnile.csv}.
 
 @image{diatom}
 @image{westnile,,7.5cm}
-
 @end enumerate
 
 @node graph3d
@@ -3456,6 +3456,18 @@ The use of arrows, bars, and margins is illustrated by the examples
 @code{Pythagoras.asy}, @code{sqrtx01.asy}, and @code{triads.asy} 
 (installed in @code{/usr/local/share/doc/asymptote} by default).
 
+The legend for a picture @code{pic} can be fit and aligned to a frame
+with the routine
+@verbatim
+frame legend(picture pic=currentpicture, pair dir=0);
+@end verbatim
+@noindent
+this legend frame can then be added about the point @code{origin} to a
+picture @code{dest}:
+@verbatim
+add(pair origin=(0,0), picture dest=currentpicture, frame);
+@end verbatim
+
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.
 The @code{dot} command defined in @code{plain.asy} draws a dot with a
@@ -3487,7 +3499,6 @@ void draw(pair origin, picture pic=currentpicture, string s="", real angle=0,
           string legend="", frame mark=nullframe, bool putmark=Above);
 @end verbatim
 
-@page
 @cindex @code{fill}
 @anchor{gradient shading}
 @cindex gradient
@@ -3979,7 +3990,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  ymin ymax XZero xequals tickmin tickmax unlabelled se pq pena
 @c  LocalWords:  yequals Nobre Barbarosie Schwaiger nearearth conicurv Wiebusch
 @c  LocalWords:  unfill PAPERTYPE posterSize ngraph interpolatetype ctrl dt
-@c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei
+@c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei putmark
 @c  LocalWords:  westnile minipage infectiousM ra penb paletteticks
 @c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis
 @c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx XEquals YEquals

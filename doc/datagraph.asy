@@ -33,4 +33,3 @@ add(pic.fit(W));
 
 // Fit pic2 to E of (5mm,0):
 add((5mm,0),pic2.fit(E));
-

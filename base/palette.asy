@@ -4,7 +4,7 @@ void image(picture pic=currentpicture, real[][] data, pen[] palette,
 	   pair initial, pair final)
 {
   pic.add(new void (frame f, transform t) {
-	    image(f,data,palette,t*initial,t*final);
+    image(f,data,palette,t*initial,t*final);
     });
   pic.addBox(initial,final);
 }
@@ -21,12 +21,13 @@ paletteticks PaletteTicks(bool begin=true, int N=0, real Step=0,
 
 public paletteticks PaletteTicks=PaletteTicks();
 
-void palette(picture pic=currentpicture, real[][] data, real width=Ticksize,
+picture palette(real[][] data, real width=Ticksize,
 	     pen[] palette, pen p=currentpen, string s="", real position=0.5,
 	     real angle=infinity, pair align=E, pair shift=0,
 	     pair side=right, pen plabel=currentpen,
 	     paletteticks ticks=PaletteTicks)
 {
+  picture pic=new picture;
   real initialy=min(data);
   real finaly=max(data);
   pair z0=(0,initialy);
@@ -42,8 +43,9 @@ void palette(picture pic=currentpicture, real[][] data, real width=Ticksize,
   });
   
   pic.addBox(z0,z1,(-width,0),(0,0));
-  yaxis(true,pic,initialy,finaly,p,s,position,angle,align,shift,side,plabel,
+  yaxis(Above,pic,initialy,finaly,p,s,position,angle,align,shift,side,plabel,
 	ticks(width));
+  return pic;
 }
 
 // A grayscale palette
