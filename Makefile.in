@@ -39,7 +39,7 @@ ASYMPTOTE_DIR = ../base
 export ASYMPTOTE_DIR
 
 # $(MAGIC) is here for when we reimport from Compile
-asy$(MAGIC): 	 depend
+asy$(MAGIC): depend
 	$(MAKE) -f Compile asy 
 
 all:  	asy man
@@ -47,7 +47,9 @@ all:  	asy man
 man:	asy
 	cd doc; $(MAKE) man
 
-depend: $(FILES:=.d)
+depend: parser $(FILES:=.d)
+
+parser: camp.tab.cc camp.tab.h lex.yy.cc
 
 camp.tab.h: camp.tab.cc
 

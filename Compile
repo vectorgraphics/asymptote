@@ -4,4 +4,10 @@ include Makefile
 asy: $(FILES:=.o)
 	$(CXX) $(OPT) -o $(NAME) $(FILES:=.o) $(LIBS)
 
+	; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+depend: $(FILES:=.d)
+
 include $(FILES:=.d)
