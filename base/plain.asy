@@ -882,6 +882,21 @@ margin PenMargin(real begin, real end)
     return trim(g,margin.begin,margin.end);
   };
 }
+					      
+private real margindot(real x)
+{
+  return x > 0 ? dotfactor*x : x;
+}
+
+margin DotMargin(real begin, real end)
+{ 
+  return new path(path g, pen p, marginT margin) {
+    real factor=linewidth(p);
+    margin.begin=(margindot(begin)+0.5)*factor;
+    margin.end=(margindot(end)+0.5)*factor;
+    return trim(g,margin.begin,margin.end);
+  };
+}
 						      
 margin TrueMargin(real begin, real end)
 { 
@@ -901,7 +916,11 @@ public margin
   BeginPenMargin=PenMargin(0.5,-0.5),
   PenMargin=PenMargin(-0.5,0.5),
   EndPenMargin=PenMargin,
-  PenMargins=PenMargin(0.5,0.5);
+  PenMargins=PenMargin(0.5,0.5),
+  BeginDotMargin=DotMargin(0.5,-0.5),
+  DotMargin=DotMargin(-0.5,0.5),
+  EndDotMargin=DotMargin,
+  DotMargins=DotMargin(0.5,0.5);
 
 void draw(frame f, path g)
 {

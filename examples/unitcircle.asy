@@ -11,7 +11,7 @@ dot(z0);
 labeldot(z1);
 labeldot("$(x,y)=(\cos\theta,\sin\theta)$",z);
 arrow("area $\frac{\theta}{2}$",dir(0.5*theta),2*E);
-draw("$\theta$",arc(z0,0.7,0,theta),LeftSide,Arrow);
+draw("$\theta$",arc(z0,0.7,0,theta),LeftSide,Arrow,PenMargin);
 shipout();
 
 

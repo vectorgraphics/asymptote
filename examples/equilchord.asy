@@ -14,7 +14,7 @@ guide g=zm--zp--zh--cycle;
 xaxis("$x$");
 yaxis(-infinity,1.3,"$y$");
 
-draw("1",(0,0)--dir(135),Arrow);
+draw("1",(0,0)--dir(135),Arrow,PenMargin);
 
 draw(circle((0,0),1));
 filldraw(g,red+white);

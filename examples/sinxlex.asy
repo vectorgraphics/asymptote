@@ -12,7 +12,7 @@ filldraw(A--C{N}..B--cycle,lightgrey);
 draw(B--C--D--cycle);
 draw(B--E);
 
-draw("$x$",arc(C,A,B,0.7),RightSide,Arrow);
+draw("$x$",arc(C,A,B,0.7),RightSide,Arrow,PenMargin);
 
 labeldot("$A$",A,W);
 labeldot("$B$",B,NW);

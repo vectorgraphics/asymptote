@@ -2706,19 +2706,23 @@ Here are some simple examples of two-dimensional graphs:
 @cindex @code{errorbars}
 @item The next example draws a graph of an array of coordinate pairs,
 using the routine @code{dot} to place a dot at each node of the resulting path.
-It also illustrates the use of the error bar routines, where the pair array
-@code{dp} contains the positive extent of the error and the absolute
-values of the elements of the optional array @code{dm} specify
-the negative extent of the error:
+It also illustrates the use of the @code{errorbar} routines:
 
 @verbatim
 void errorbars(picture pic=currentpicture, pair[] z, pair[] dp,
-               pair[] dm={}, bool[] cond={}, pen p=currentpen);
+               pair[] dm={}, bool[] cond={}, pen p=currentpen,
+               real size=0);
 
 void errorbars(picture pic=currentpicture, real[] x, real[] y,
 	       real[] dpx, real[] dpy, real[] dmx={}, real[] dmy={},
-	       bool[] cond={}, pen p=currentpen);
+	       bool[] cond={}, pen p=currentpen, real size=0);
 @end verbatim
+
+@noindent
+Here, the pair array @code{dp} contains the positive extent of the
+error and the absolute values of the elements of the optional array
+@code{dm} specify the negative extent of the error.
+
 
 @verbatiminclude datagraph.asy
 @image{datagraph}
@@ -3217,10 +3221,15 @@ arrows: @code{BeginArcArrow}, @code{EndArcArrow} (or equivalently
 @cindex @code{EndPenMargin}
 @cindex @code{PenMargin}
 @cindex @code{PenMargins}
+@cindex @code{BeginDotMargin}
+@cindex @code{EndDotMargin}
+@cindex @code{DotMargin}
+@cindex @code{DotMargins}
 @cindex @code{Margin}
 @cindex @code{TrueMargin}
-Margins can be used to shrink a path by @code{labelmargin(p)} to avoid
-overlap with other drawn objects. The possible values of @code{margin}
+Margins can be used to shrink the visible part of a path by
+@code{labelmargin(p)} to avoid overlap with other drawn objects.
+Typical values of @code{margin} 
 are @code{NoMargin}, @code{BeginMargin}, @code{EndMargin} (or
 equivalently @code{Margin}), and @code{Margins} (which leaves a margin
 at both ends of the path). One may use @code{Margin(real begin, real end)}
@@ -3230,15 +3239,18 @@ Alternatively, @code{BeginPenMargin}, @code{EndPenMargin}
 (or equivalently @code{Margin}), @code{Margins},
 @code{PenMargin(real begin, real end)} specify a margin in units of
 the pen linewidth, taking account of the pen linewidth when drawing
-the path or arrow. For example, use @code{PenMargin(-0.5,0.5*dotfactor)}
+the path or arrow. For example, use @code{DotMargin}, an
+abbreviation for @code{PenMargin(-0.5,0.5*dotfactor)},
 to draw from the usual beginning point just up to the boundary of an
-end dot of width @code{dotfactor*linewidth(p)}. The qualifier
-@code{TrueMargin(real begin, real end)} allows one to specify a margin
-directly in @code{PostScript} units, independent of the pen linewidth.
+end dot of width @code{dotfactor*linewidth(p)}.  The qualifiers
+@code{BeginDotMargin}, @code{EndDotMargin}, and @code{DotMargins} work
+similarly. The qualifier @code{TrueMargin(real begin, real end)} allows one to
+specify a margin directly in @code{PostScript} units, independent of
+the pen linewidth.
 
-Examples illustrating the use of arrows, bars, and margins are
+The use of arrows, bars, and margins is illustrated by the examples
 @code{Pythagoras.asy}, @code{sqrtx01.asy}, and @code{triads.asy} 
-(in the examples directory, by default @code{/usr/local/share/doc/asymptote}).
+(installed in @code{/usr/local/share/doc/asymptote} by default).
 
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.

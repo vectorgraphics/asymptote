@@ -56,7 +56,7 @@ draw(rp(vector(0,0,0))--rp(pO));
 pB = vector(Cos(aux)*radius*Sin(lambda),
             Sin(aux)*radius*Sin(lambda),
             Cos(lambda)*radius);
-draw(rp(vector(0,0,0))--rp(pB),Arrow);
+draw(rp(vector(0,0,0))--rp(pB),Arrow,PenMargin);
  
 real sirk_rad;
 sirk_rad = sqrt(pB.x^2+pB.y^2);

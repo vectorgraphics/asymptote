@@ -1060,16 +1060,17 @@ guide polargraph(guide g=nullpath, real f(real), real a, real b, int n=ngraph,
 			 g,a,b,n,interpolate);
 }
 
-void errorbar(picture pic, pair z, pair dp, pair dm, pen p=currentpen)
+void errorbar(picture pic, pair z, pair dp, pair dm, pen p=currentpen,
+	      real size=0)
 {
   real dmx=-abs(dm.x);
   real dmy=-abs(dm.y);
-  if(dmx != dp.x) draw(pic,z+(dmx,0)--z+(dp.x,0),p,Bars);
-  if(dmy != dp.y) draw(pic,z+(0,dmy)--z+(0,dp.y),p,Bars);
+  if(dmx != dp.x) draw(pic,z+(dmx,0)--z+(dp.x,0),p,Bars(size));
+  if(dmy != dp.y) draw(pic,z+(0,dmy)--z+(0,dp.y),p,Bars(size));
 }
   
 void errorbars(picture pic=currentpicture, pair[] z, pair[] dp, pair[] dm={},
-	       bool[] cond={}, pen p=currentpen)
+	       bool[] cond={}, pen p=currentpen, real size=0)
 {
   if(dm.length == 0) dm=dp;
   if(z.length != dm.length || z.length != dp.length) abort(differentlengths);
@@ -1077,13 +1078,13 @@ void errorbars(picture pic=currentpicture, pair[] z, pair[] dp, pair[] dm={},
   int i=-1;
   for(int I=0; I <= n; ++I) {
     i=next(i,cond);
-    errorbar(pic,z[i],dp[i],dm[i],p);
+    errorbar(pic,z[i],dp[i],dm[i],p,size);
   }
 }
 
 void errorbars(picture pic=currentpicture, real[] x, real[] y,
 	       real[] dpx, real[] dpy, real[] dmx={}, real[] dmy={},
-	       bool[] cond={}, pen p=currentpen)
+	       bool[] cond={}, pen p=currentpen, real size=0)
 {
   if(dmx.length == 0) dmx=dpx;
   if(dmy.length == 0) dmy=dpy;
@@ -1094,7 +1095,7 @@ void errorbars(picture pic=currentpicture, real[] x, real[] y,
   int i=-1;
   for(int I=0; I <= n; ++I) {
     i=next(i,cond);
-    errorbar(pic,(x[i],y[i]),(dpx[i],dpy[i]),(dmx[i],dmy[i]),p);
+    errorbar(pic,(x[i],y[i]),(dpx[i],dpy[i]),(dmx[i],dmy[i]),p,size);
   }
 }
 

@@ -12,6 +12,10 @@ pair Ap=extension(A,O,B,C);
 pair Bp=extension(B,O,C,A);
 pair Cp=extension(C,O,A,B);
 
+perpendicular(Ap,Ap--O,blue);
+perpendicular(Bp,Bp--C,blue);
+perpendicular(Cp,Cp--O,blue);
+
 draw(A--B--C--cycle);
 
 currentpen=black;
@@ -32,9 +36,5 @@ labeldot("$B'$",Bp,dir(B--Bp),red);
 labeldot("$C'$",Cp,dir(C--Cp),red);
 
 label(include("sflogo.eps","width=4cm"),Ap,6*NE,red);
-
-perpendicular(Ap,Ap--O,blue);
-perpendicular(Bp,Bp--C,blue);
-perpendicular(Cp,Cp--O,blue);
 
 shipout();
