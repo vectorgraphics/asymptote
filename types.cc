@@ -7,6 +7,7 @@
  *****/
 
 #include <cstdio>
+#include <algorithm>
 
 #include "entry.h"
 #include "types.h"
@@ -209,15 +210,11 @@ bool equivalent(signature *s1, signature *s2)
   else if (s2 == 0)
     return false;
 
-  unsigned int n = (unsigned int)s1->formals.size();
-  if (n != s2->formals.size())
+  if (s1->formals.size() != s2->formals.size())
     return false;
 
-  for (unsigned int i = 0; i < n; i++)
-    if (!equivalent(s1->formals[i], s2->formals[i]))
-      return false;
-
-  return true;
+  return std::equal(s1->formals.begin(),s1->formals.end(),s2->formals.begin(),
+                    (bool (*)(ty*,ty*)) equivalent);
 }
 
 bool castable(signature *target, signature *source)
