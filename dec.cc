@@ -559,10 +559,8 @@ signature *formals::getSignature(coenv &e, bool encodeDefVal, bool tacit)
 
   if (encodeDefVal) {
     for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
-    {
-      varinit *defval=(*p)->getDefaultValue();
-      sig->add((*p)->getType(e, tacit),defval);
-    }
+      sig->add((*p)->getType(e, tacit),(*p)->getDefaultValue(),
+	       (*p)->getExplicit());
   }
   else {
     for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
@@ -583,10 +581,8 @@ function *formals::getType(types::ty *result, coenv &e,
 
   if (encodeDefVal) {
     for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
-    {
-      varinit *defval=(*p)->getDefaultValue();
-      ft->add((*p)->getType(e, tacit),defval);
-    }
+      ft->add((*p)->getType(e, tacit),(*p)->getDefaultValue(),
+	      (*p)->getExplicit());
   }
   else {
     for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
