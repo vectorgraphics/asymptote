@@ -176,8 +176,8 @@ void labelaxis(frame f, string s, real position, real angle, pair align,
     z=dir != 0 ? (z*dir).x/dir : 0;
     if(a != 0) z += (offset*a).x/a;
   }
-  if(position == 0) align += 0.5*dir;
-  if(position == length(g)) align -= 0.5*dir;
+  if(position == 0) align += 0.6*dir;
+  if(position == length(g)) align -= 0.6*dir;
   if(deconstruct) {
     if(GUIDelete()) return;
     z=GUI()*z;

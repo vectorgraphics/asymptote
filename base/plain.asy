@@ -82,7 +82,7 @@ pen lavender=brown+darkgreen+blue;
 pen pink=red+darkgreen+blue;
 
 // Global parameters:
-public real labelmargin=0.2;
+public real labelmargin=0.25;
 public real arrowlength=0.75cm;
 public real arrowsize=7.5;
 public real arrowangle=15;
@@ -697,7 +697,7 @@ picture gui(int index) {
 }
 
 // Add frame f about origin to currentpicture
-void addabout(picture pic, frame src, pair origin)
+void addabout(pair origin, picture pic, frame src)
 {
   pic.add(new void (frame dest, transform t) {
       add(dest,shift(t*origin)*src);
@@ -705,9 +705,9 @@ void addabout(picture pic, frame src, pair origin)
   pic.addBox(origin,origin,min(src),max(src));
 }
 
-void addabout(frame src, pair origin)
+void addabout(pair origin, frame src)
 {
-  addabout(currentpicture,src,origin);
+  addabout(origin,currentpicture,src);
 }
 
 // Add a picture to another such that user coordinates in both will be scaled
@@ -725,14 +725,14 @@ void add(picture src)
 // Fit the picture src using the identity transformation (so user
 // coordinates and truesize coordinates agree) and add it about the point
 // origin to picture dest.
-void addabout(picture dest, picture src, pair origin)
+void addabout(pair origin, picture dest, picture src)
 {
-  addabout(dest,src.fit(identity()),origin);
+  addabout(origin,dest,src.fit(identity()));
 }
 
-void addabout(picture src, pair origin)
+void addabout(pair origin, picture src)
 {
-  addabout(currentpicture,src,origin);
+  addabout(origin,currentpicture,src);
 }
 
 transform rotate(real a) 
@@ -749,7 +749,7 @@ void _draw(picture pic=currentpicture, path g, pen p=currentpen)
 }
 
 // truesize draw about origin
-void _drawabout(picture pic=currentpicture, path g, pair origin,
+void _drawabout(pair origin, picture pic=currentpicture, path g,
 		pen p=currentpen)
 {
   pic.add(new void (frame f, transform t) {
@@ -766,7 +766,7 @@ void fill(picture pic=currentpicture, path g, pen p=currentpen)
   pic.addPath(g);
 }
 
-void fillabout(picture pic=currentpicture, path g, pair origin,
+void fillabout(pair origin, picture pic=currentpicture, path g,
 	       pen p=currentpen)
 {
   pic.add(new void (frame f, transform t) {
@@ -786,7 +786,7 @@ void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
   pic.addPath(g,drawpen);
 }
 
-void filldrawabout(picture pic=currentpicture, path g, pair origin,
+void filldrawabout(pair origin, picture pic=currentpicture, path g,
 		   pen fillpen=currentpen, pen drawpen=currentpen)
 {
   pic.add(new void (frame f, transform t) {
@@ -1183,12 +1183,17 @@ public side
   RightSide=new pair(pair align, sideT) {return align;};
 
 void label(picture pic=currentpicture, string s, real angle=0,
-	   path g, pair align=0, side side=RightSide, pen p=currentpen,
-	   adjust adjust=NoAdjust)
+	   path g, real position=infinity, pair align=0, side side=RightSide,
+	   pen p=currentpen, adjust adjust=NoAdjust)
 {
-  int L=length(g);
-  if(align == 0) align=side(-direction(g,0.5L)*I,side);
-  label(pic,s,angle,point(g,0.5*L),align,p,adjust);
+  real L=length(g);
+  if(position == infinity) position=0.5*L;
+  if(align == 0) {
+    if(position <= 0) align=-direction(g,0);
+    else if(position >= L) align=direction(g,L);
+    else align=side(-direction(g,position)*I,side);
+  }
+  label(pic,s,angle,point(g,position),align,p,adjust);
 }
 
 void dot(picture pic=currentpicture, pair c)
@@ -1244,7 +1249,7 @@ void arrow(picture pic=currentpicture, string s="", real angle=0,
     a=length*align+c;
     label(pic,s,angle,b,a/labelmargin(p)+align,p,adjust);
   }
-  addabout(pic,arrow(a--c,p,size,Angle,arrowhead),b);
+  addabout(b,pic,arrow(a--c,p,size,Angle,arrowhead));
 }
 
 void outarrow(picture pic=currentpicture, string s, real angle=0,
@@ -1256,7 +1261,7 @@ void outarrow(picture pic=currentpicture, string s, real angle=0,
   pair c=0.4*fontsize(p)*align;
   pair a=length*align+c;
   label(pic,s,angle,b,a/labelmargin(p)+align,p,adjust);
-  addabout(pic,arrow((0,0)--(a-b),p,size,Angle,arrowhead),b);
+  addabout(b,pic,arrow((0,0)--(a-b),p,size,Angle,arrowhead));
 }
 
 guide square(pair z1, pair z2)
@@ -1289,7 +1294,7 @@ guide arc(pair c, real r, real angle1, real angle2)
 picture bar(pair a, pair d, pen p=currentpen)
 {
   picture pic=new picture;
-  _drawabout(pic,-0.5d--0.5d,a,p+solid);
+  _drawabout(a,pic,-0.5d--0.5d,p+solid);
   return pic;
 }
 
@@ -1414,12 +1419,12 @@ public arrowbar
   Bars=Bars();
 
 void draw(picture pic=currentpicture, string s="", real angle=0,
-	  path g, pair align=0, side side=RightSide, pen p=currentpen,
-	  adjust adjust=NoAdjust, arrowbar arrow=None, arrowbar bar=None,
-	  string legend="")
+	  path g, real position=infinity, pair align=0,
+	  side side=RightSide, pen p=currentpen, adjust adjust=NoAdjust,
+	  arrowbar arrow=None, arrowbar bar=None, string legend="")
 {
   arrowbarT arrowbar=new arrowbarT;
-  if(s != "") label(pic,s,angle,g,align,side,p,adjust);
+  if(s != "") label(pic,s,angle,g,position,align,side,p,adjust);
   bar(pic,g,p,arrowbar);
   arrow(pic,g,p,arrowbar);
   if(arrowbar.drawpath) _draw(pic,g,p);
@@ -1429,14 +1434,14 @@ void draw(picture pic=currentpicture, string s="", real angle=0,
   }
 }
 
-void drawabout(picture pic=currentpicture, string s="", real angle=0,
-	       path g, pair origin, pair align=0, side side=RightSide,
-	       pen p=currentpen, adjust adjust=NoAdjust,
+void drawabout(pair origin, picture pic=currentpicture, string s="",
+	       real angle=0, path g, real position=infinity, pair align=0,
+	       side side=RightSide, pen p=currentpen, adjust adjust=NoAdjust,
 	       arrowbar arrow=None, arrowbar bar=None)
 {
   picture opic=new picture;
-  draw(opic,s,angle,g,align,side,p,adjust,arrow,bar);
-  addabout(pic,opic,origin);  
+  draw(opic,s,angle,g,position,align,side,p,adjust,arrow,bar);
+  addabout(origin,pic,opic);  
 }
 
 string substr(string s, int pos)

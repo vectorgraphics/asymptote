@@ -22,6 +22,7 @@ private:
   pair align;
   pen *pentype;
   pair Align;
+  pair adjustment;
   double width,height,depth;
   bool suppress;
   
@@ -43,7 +44,7 @@ public:
   bool write(texfile *out) {
     if(suppress || pentype->transparent()) return true;
     out->setpen(*pentype);
-    out->put(label,angle,position+Align);
+    out->put(label,angle,position+adjustment);
     return true;
   }
 

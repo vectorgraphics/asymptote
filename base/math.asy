@@ -37,7 +37,7 @@ void perpendicular(picture pic=currentpicture, pair z1, pair z2,
   pair v=perpsize*unit(z2-z1);
   picture apic=new picture;
   _draw(apic,v--v+I*v--I*v,p);
-  addabout(pic,apic,z1);
+  addabout(z1,pic,apic);
 }
 
 bool straight(path p)

@@ -23,7 +23,7 @@ draw(G(x)--c+(0,g(x)),dashed+red);
 arrow("$y=\sqrt{x}$",F(0.7),N);
 
 transform T=xscale(0.5);
-drawabout(T*arc(0,0.30cm,20,340),(2.795,0),ArcArrow);
+drawabout((2.75,0),T*arc(0,0.30cm,20,340),ArcArrow);
 
 labeldot((1,1));
 
