@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 
   fpu_trap(trap);
   setsignal(signalHandler);
-  signal(SIGCHLD, SIG_IGN); // Flush exited child processes (avoid zombies)
+//  signal(SIGCHLD, SIG_IGN); // Flush exited child processes (avoid zombies)
 
   if(numArgs() == 0) {
     interactive=true;
