@@ -235,6 +235,15 @@ path path::subpath(double start, double end) const
   return p;
 }
 
+// Calculate coefficients of Bezier derivative.
+static inline void derivative(pair& a, pair& b, pair& c,
+			      pair z0, pair z0p, pair z1m, pair z1)
+{
+  a=z1-z0+3.0*(z0p-z1m);
+  b=2.0*(z0+z1m)-4.0*z0p;
+  c=z0p-z0;
+}
+
 bbox path::bounds() const
 {
   if (empty()) {
@@ -248,10 +257,9 @@ bbox path::bounds() const
   for (int i = 0; i < length(); i++) {
     box += point(i);
     if(straight(i)) continue;
-    // Calculate coefficients of Bezier derivative.
-    a = point(i)-point(i+1)+3*(precontrol(i+1)-postcontrol(i));
-    b = 4*postcontrol(i)-2*(point(i)+precontrol(i+1));
-    c = point(i)-postcontrol(i);
+    
+    derivative(a,b,c,point(i),postcontrol(i),precontrol(i+1),point(i+1));
+    
     // Check x coordinate
     if (a.getx() == 0.0) {
       if (b.getx() != 0.0) {
@@ -302,9 +310,7 @@ double ds(double t)
 double cubiclength(pair z0, pair z0p, pair z1m, pair z1, double goal=-1)
 {
   double L,integral;
-  a=z1-z0+3.0*(z0p-z1m);
-  b=2.0*(z0+z1m)-4.0*z0p;
-  c=z0p-z0;
+  derivative(a,b,c,z0,z0p,z1m,z1);
   
   if(!simpson(integral,ds,0.0,1.0,DBL_EPSILON,1.0))
     reportError("nesting capacity exceeded in computing arclength");
