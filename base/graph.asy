@@ -2,7 +2,7 @@ static public real ticksize=1mm;
 static public real Ticksize=2*ticksize;
 static public real ylabelwidth=2.0;
 static public real axislabelmargin=2;
-static public real axiscoverage=0.6;
+static public real axiscoverage=0.9;
 static public int ngraph=100;
 
 static public real epsilon=1000*realEpsilon();
@@ -91,7 +91,7 @@ int[] divisors(int a, int b)
   int n=b-a;
   dlist[0]=1;
   if(n == 1) {dlist[1]=10; dlist[2]=100; return dlist;}
-  if(n == 2) {dlist[1]=2; dlist[2]=10; return dlist;}
+  if(n == 2) {dlist[1]=2; return dlist;}
   int sqrtn=floor(sqrt(n));
   int i=0;
   for(int d=2; d <= sqrtn; ++d)
@@ -247,13 +247,30 @@ real axiscoverage(int N, transform T, path g, real Step, pair side, int sign,
 {
   real coverage=0;
   if(Size > 0) for(int i=0; i <= N; ++i) {
-    real pos=i*Step+offset;
+    real iStep=i*Step;
+    real pos=iStep+offset;
     if(cyclic(g) || (pos >= firstpos && pos <= lastpos)) {
       frame d;
-      pair dir=labeltick(d,T,g,i*Step,side,sign,Size,ticklabel,plabel,part,
+      pair dir=labeltick(d,T,g,iStep,side,sign,Size,ticklabel,plabel,part,
 			 norm);
       coverage += abs(Dot(max(d)-min(d),dir));
     }
+    if(coverage > limit) return coverage;
+  }
+  return coverage;
+}
+
+real logaxiscoverage(int N, transform T, path g, real initial, real factor, 
+		     pair side, int sign, real Size, ticklabel ticklabel,
+		     pen plabel, part part, real limit, int first,
+		     int last)
+{
+  real coverage=0;
+  for(int i=first; i <= last; i += N) {
+    frame d;
+    pair dir=labeltick(d,T,g,(i-initial)*factor,side,sign,Size,ticklabel,
+		       plabel,part);
+    coverage += abs(Dot(max(d)-min(d),dir));
     if(coverage > limit) return coverage;
   }
   return coverage;
@@ -360,9 +377,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
       }
     
       if(Size > 0 && !opposite) {
-	for(int i=0; i <= N; ++i) {
-	  if(i == 0 && !begin) continue;
-	  if(i == N && !end) continue;
+	for(int i=(begin ? 0 : 1); i <= (end ? N : N-1); ++i) {
 	  if(!deconstruct || !GUIDelete()) {
 	    labels=true;
 	    frame d;
@@ -378,8 +393,6 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
       }
 
     } else { // Logarithmic
-      if(N == 0) {N=1; n=10;}
-      else if(N > 1) n=0;
       real initial=part(point(g,0));
       real final=part(point(g,length(g)));
       int first=ceil(initial-epsilon);
@@ -388,12 +401,26 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
       real denom=final-initial;
       real factor=denom != 0 ? len/denom : len;
     
+      if(N == 0) {
+	real limit=axiscoverage*arclength(G);
+	N=1;
+	n=10;
+	while(N <= last-first) {
+	  if(logaxiscoverage(N,T,g,initial,factor,side,sign,Size,LogFormat,
+			     plabel,part,limit,first,last) <= limit) break;
+	  ++N;
+	}
+      }
+      
+      if(N > 1) n=0;
+
       if(!deconstruct || !GUIDelete()) {
 	frame d;
 	draw(d,G,p);
-	if(N > 0) for(int i=first; i <= last; i += N) {
+	if(N > 0) for(int i=first; i <= last; ++i) {
 	  locate.calc(T,g,(i-initial)*factor);
-	  draw(d,locate.Z--locate.Z-Size*I*sign*locate.dir,p);
+	  real Size0=((i-first) % N == 0) ? Size : size;
+	  draw(d,locate.Z--locate.Z-Size0*I*sign*locate.dir,p);
 	  if(n > 0) {
 	    for(int j=2; j < n; ++j) {
 	      real pos=(i-initial+1+log10((real) j/n))*factor;
@@ -407,18 +434,18 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	add(f,d);
       }
     
-      if(!opposite && N > 0) for(int i=first; i <= last; i += N) {
-	if(i == first && !begin) continue;
-	if(i == last && !end) continue;
-	if(!deconstruct || !GUIDelete()) {
-	  labels=true;
-	  frame d;
-	  labeltick(d,T,g,(i-initial)*factor,side,sign,Size,LogFormat,plabel,
-		part,deconstruct);
-	  if(deconstruct) deconstruct(d);
-	  add(f,d);
+      if(!opposite && N > 0)
+	for(int i=(begin ? first : first+1); i <= (end ? last : last-1);
+	    i += N) {
+	  if(!deconstruct || !GUIDelete()) {
+	    labels=true;
+	    frame d;
+	    labeltick(d,T,g,(i-initial)*factor,side,sign,Size,LogFormat,plabel,
+		      part,deconstruct);
+	    if(deconstruct) deconstruct(d);
+	    add(f,d);
+	  }
 	}
-      }
     }
     
     if(s != "" && !opposite) 
