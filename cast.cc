@@ -153,6 +153,8 @@ void initializeCasts()
   addPromotion(primGuide(), primPath(), run::pathToGuide);
   addCast(primPath(), primGuide(), run::guideToPath);
 
+  addCast(primPen(), primReal(), run::lineWidth);
+  
   addCast(primBoolean(), primFile(), run::read<bool>);
   addCast(primInt(), primFile(), run::read<int>);
   addCast(primReal(), primFile(), run::read<double>);
