@@ -74,14 +74,14 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
   pair C=p+pair(width,height)*rotation;
   pair D=p+pair(width,-depth)*rotation;
   
-  if(settings::overwrite != 1) {
+  if(settings::overwrite != 0) {
     size_t n=labelbounds.size();
     box Box=box(A,B,C,D);
     for(size_t i=0; i < n; i++) {
       if(labelbounds[i].intersect(Box)) {
-	if(settings::overwrite == 0) {
+	if(abs(settings::overwrite) == 1) {
 	  suppress=true; 
-	  labelwarning("suppressed");
+	  if(settings::overwrite > 0) labelwarning("suppressed");
 	  return;
 	}
 
@@ -103,7 +103,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
 	C += offset;
 	D += offset;
 	Box=box(A,B,C,D);
-	labelwarning("moved");
+	if(settings::overwrite > 0) labelwarning("moved");
 	i=0;
       }
     }

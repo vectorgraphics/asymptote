@@ -29,11 +29,20 @@ bindir = @bindir@
 asydir = @asydir@
 INSTALL = @INSTALL@
 
-all:  	asy
+ASYMPTOTE_DIR = /u/bowman/camp/base
+export ASYMPTOTE_DIR
 
 asy: 	parser depend
 	$(MAKE) -f Compile files
 
+all:  	asy man
+
+man:	asy
+	cd doc; latex latexusage && ../asy *.asy && latex latexusage && \
+	texi2dvi asymptote.texi && convert latexusage.eps latexusage.jpg && \
+	../asy -f jpg *.asy && makeinfo asymptote && \
+		makeinfo --html asymptote && mv *.jpg asymptote
+	
 depend: $(FILES:=.d)
 
 parser: camp.tab.cc camp.tab.h lex.yy.cc
@@ -49,12 +58,16 @@ lex.yy.cc: camp.l
 
 lex.yy.d: lex.yy.cc camp.tab.h
 
-install: all
+install: asy
 	${INSTALL} -d $(bindir) $(asydir) $(asydir)/examples
 	${INSTALL} -s $(NAME) $(bindir)
 	${INSTALL} $(XNAME) $(bindir)
 	${INSTALL} base/*.asy $(asydir)
 	${INSTALL} examples/*.asy $(asydir)/examples
+
+install-man: man
+	${INSTALL} doc/asymptote.info $(prefix)/info
+	install-info doc/asymptote.info $(prefix)/info/dir
 
 uninstall: 
 	-cd $(asydir)/examples; rm -f *.asy
@@ -62,6 +75,9 @@ uninstall:
 	-cd $(asydir); rm -f *.asy
 	-rmdir $(asydir)
 	-rm -f $(bindir)/$(NAME) $(bindir)/$(XNAME) 
+	-install-info --delete doc/asymptote.info $(prefix)/info/dir
+	-rm $(prefix)/info/asymptote.info
+
 
 clean:  FORCE
 	rm -f asy *.o *.d *mon.out $(CLEAN)

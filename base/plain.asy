@@ -1394,9 +1394,11 @@ private struct OverwriteT {};
 public OverwriteT Overwrite=null;
 typedef int Overwrite(OverwriteT);
 public Overwrite
-  Suppress=new int(OverwriteT) {return 0;},
-  Allow=new int(OverwriteT) {return 1;},
-  Move=new int(OverwriteT) {return 2;};
+  Allow=new int(OverwriteT) {return 0;},
+  Suppress=new int(OverwriteT) {return 1;},
+  SuppressQuiet=new int(OverwriteT) {return -1;},
+  Move=new int(OverwriteT) {return 2;},
+  MoveQuiet=new int(OverwriteT) {return -2;};
     
 void overwrite(Overwrite Overwrite=Allow) 
 {
