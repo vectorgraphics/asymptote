@@ -1724,6 +1724,33 @@ void erase(picture pic=currentpicture)
   pic.erase();
 }
 
+// A restore thunk is a function, that when called, restores the graphics state
+// to what it was when the restore thunk was created.
+typedef void restoreThunk();
+
+// When save is called, this will be redefined to do the corresponding restore.
+void restore() {
+  write("warning: restore called with no matching save");
+}
+
+restoreThunk buildRestoreThunk() {
+  pen p=currentpen;
+  picture pic=currentpicture.copy();
+  restoreThunk r=restore;
+  return new void () {
+      currentpen=p;
+      currentpicture=pic;
+      restore=r;
+      uptodate=false;
+    };
+}
+
+// Save the current state, so that restore will put things back in that state.
+restoreThunk save() {
+  return restore=buildRestoreThunk();
+}
+
+
 real cap(real x, real m, real M, real bottom, real top)
 {
   return x+top > M ? M-top : x+bottom < m ? m-bottom : x;
