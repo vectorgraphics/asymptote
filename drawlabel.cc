@@ -17,6 +17,8 @@ using std::list;
 extern const char *texready;
 
 namespace camp {
+  
+pen drawElement::lastpen;
 
 void drawLabel::labelwarning(const char *action) 
 {
@@ -31,25 +33,23 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
   string texbuf;
   pair rotation=expi(radians(angle));
   pen Pentype=*pentype;
-  static pen Lastpen;
-
   static const double fuzz=1.75;
   
   if(!(width || height || depth)) {
     
-    if(Pentype.size() != Lastpen.size() ||
-       Pentype.Lineskip() != Lastpen.Lineskip()) {
+    if(Pentype.size() != lastpen.size() ||
+       Pentype.Lineskip() != lastpen.Lineskip()) {
       tex <<  "\\fontsize{" << Pentype.size() << "}{" << Pentype.Lineskip()
 	  << "}\\selectfont\n";
       tex.wait("\n*","! ");
     }
     
-    if(Pentype.Font() != Lastpen.Font()) {
+    if(Pentype.Font() != lastpen.Font()) {
       tex <<  Pentype.Font() << "%\n";
       tex.wait("\n*","! ");
     }
     
-    Lastpen=Pentype;
+    lastpen=Pentype;
     
     tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(label) << "}\n\n";
     tex.wait(texready,"! ");

@@ -26,6 +26,8 @@ const char *texready="(Please type a command or say `\\end')\n*";
 
 namespace camp {
 
+std::list<bbox> bboxstack;
+  
 picture::~picture()
 {
 }
@@ -83,6 +85,7 @@ void picture::texinit() {
   texdocumentclass(tex);
   
   texpreamble(tex);
+  drawElement::lastpen=pen(initialpen);
 
   tex << "\n";
   tex.wait(texready,"! ");

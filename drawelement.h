@@ -99,6 +99,8 @@ public:
 class drawElement : public mempool::pooled<drawElement>
 {
 public:
+  static pen lastpen;  
+  
   // Adjust the bbox of the picture based on the addition of this
   // element. The iopipestream is needed for determining label sizes.
   virtual void bounds(bbox&, iopipestream&, std::vector<box>&) {}

@@ -15,7 +15,7 @@ NAME = asy
 XNAME = x$(NAME)
 
 CXX = @CXX@ -Wall -ansi
-MAKEDEPEND = $(OPTS) -M -DDEPEND
+MAKEDEPEND = $(OPTS) -O0 -M -DDEPEND
 BISON = @BISON@
 LEX = @LEX@
 

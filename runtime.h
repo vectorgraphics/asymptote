@@ -226,6 +226,9 @@ void fill(vm::stack *s);
 void fillArray(vm::stack *s);
 void clip(vm::stack *s);
 void clipArray(vm::stack *s);
+void beginclip(vm::stack *s);
+void beginclipArray(vm::stack *s);
+void endclip(vm::stack *s);
 void add(vm::stack *s);
 
 void postscript(vm::stack *s);

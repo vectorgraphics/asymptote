@@ -1607,12 +1607,29 @@ void fillArray(stack *s)
   pic->append(d);
 }
  
+// Clip a picture to a path using the given fill rule.
+// Subsequent additions to the picture will not be affected by the path.
 void clip(stack *s)
 {
   pen *n = s->pop<pen*>();
   path p = s->pop<path>();
   picture *pic = s->pop<picture*>();
-  clip(*pic,p,*n);
+  pic->prepend(new drawClipBegin(p,*n));
+  pic->append(new drawClipEnd());
+}
+  
+void beginclip(stack *s)
+{
+  pen *n = s->pop<pen*>();
+  path p = s->pop<path>();
+  picture *pic = s->pop<picture*>();
+  pic->prepend(new drawClipBegin(p,*n));
+}
+  
+void endclip(stack *s)
+{
+  picture *pic = s->pop<picture*>();
+  pic->append(new drawClipEnd());
 }
   
 void clipArray(stack *s)
@@ -1621,7 +1638,17 @@ void clipArray(stack *s)
   array *p=s->pop<array *>();
   picture *pic = s->pop<picture*>();
   checkArray(s,p);
-  clip(*pic,p,*n);
+  pic->prepend(new drawClipBegin(p,*n));
+  pic->append(new drawClipEnd());
+}
+  
+void beginclipArray(stack *s)
+{
+  pen *n = s->pop<pen*>();
+  array *p=s->pop<array *>();
+  picture *pic = s->pop<picture*>();
+  checkArray(s,p);
+  pic->prepend(new drawClipBegin(p,*n));
 }
   
 void add(stack *s)

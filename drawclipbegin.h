@@ -11,27 +11,24 @@
 #include "drawelement.h"
 #include "path.h"
 #include "drawpath.h"
-#include "drawclipend.h"
 
 namespace camp {
 
+extern std::list<bbox> bboxstack;
+  
 class drawClipBegin : public drawPathPenBase {
-public:
-  // The bounding box before the clipping.
-  drawClipEnd &partner;
-
 public:
   void noncyclic() {
       reportError("cannot clip to non-cyclic path");
   }
   
-  drawClipBegin(path src, const pen& pentype, drawClipEnd& partner) 
-    : drawPathPenBase(src,pentype), partner(partner) {
+  drawClipBegin(path src, const pen& pentype)
+    : drawPathPenBase(src,pentype) {
     if(!cyclic()) noncyclic();
   }
 
-  drawClipBegin(vm::array *src, const pen& pentype, drawClipEnd& partner) 
-    : drawPathPenBase(src,pentype), partner(partner) {
+  drawClipBegin(vm::array *src, const pen& pentype)
+    : drawPathPenBase(src,pentype) {
     for(size_t i=0; i < size; i++)
       if(!cyclic()) noncyclic();
   }
@@ -39,47 +36,30 @@ public:
   virtual ~drawClipBegin() {}
 
   void bounds(bbox& b, iopipestream& iopipe, std::vector<box>& vbox) {
-    partner.preclip=b;
-    drawPathPenBase::bounds(partner.Bounds,iopipe,vbox);
+    bboxstack.push_back(b);
+    bbox bpath;
+    drawPathPenBase::bounds(bpath,iopipe,vbox);
+    bboxstack.push_back(bpath);
   }
 
   bool draw(psfile *out) {
     out->gsave();
-    
     if (empty()) return true;
+    
     writepath(out);
     out->clip(pentype.Fillrule());
-
     return true;
   }
 
   drawElement *transformed(const transform& t)
   {
     if(P)
-      return new drawClipBegin(transPath(t),transpen(t),partner);
+      return new drawClipBegin(transPath(t),transpen(t));
     else
-      return new drawClipBegin(transpath(t),transpen(t),partner);
+      return new drawClipBegin(transpath(t),transpen(t));
   }
 
 };
-
-// Adds the drawElements to clip a picture to a path.
-// Subsequent additions to the picture will not be affected by the path.
-inline void clip(picture &pic, path p, const pen &pentype)
-{
-  drawClipEnd *e = new drawClipEnd();
-  drawClipBegin *b = new drawClipBegin(p,pentype,*e);
-  pic.prepend(b);
-  pic.append(e);
-}
-
-inline void clip(picture &pic, vm::array *P, const pen &pentype)
-{
-  drawClipEnd *e = new drawClipEnd();
-  drawClipBegin *b = new drawClipBegin(P,pentype,*e);
-  pic.prepend(b);
-  pic.append(e);
-}
 
 }
 

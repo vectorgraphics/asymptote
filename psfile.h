@@ -128,6 +128,10 @@ public:
   }
   
   void grestore() {
+    if(pens.size() < 1) {
+      reportError("grestore without matching gsave");
+      return;
+    }
     lastpen = pens.top();
     pens.pop();
     *out << " grestore" << newl;

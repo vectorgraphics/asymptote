@@ -371,6 +371,9 @@ struct picture {
   // The functions to do the deferred drawing.
   drawerBound[] nodes;
   
+  // Index of initial node in this layer.
+  public int initial;
+  
   // The coordinates in flex space to be used in sizing the picture.
   coord[] xcoords,ycoords;
 
@@ -393,6 +396,7 @@ struct picture {
     userMin=(infinity,infinity);
     userMax=-userMin;
     scale=new ScaleT;
+    initial=0;
   }
   init();
   
@@ -415,6 +419,16 @@ struct picture {
     nodes.push(d);
   }
 
+  void prepend(drawerBound d) {
+    int n=nodes.length;
+    if(n > initial) {
+      nodes.push(nodes[n-1]);
+      for(int i=n-1; i > initial; --i)
+	nodes[i]=nodes[i-1];
+      nodes[initial]=d;
+    } else nodes.push(d);
+  }
+
   void build(frame f, drawer d, transform t, bool deconstruct) {
       if(deconstruct) {
 	if(GUIDelete()) return;
@@ -435,14 +449,17 @@ struct picture {
     });
   }
 
-  void clip(drawer d) {
+  void beginclip(drawer d) {
     uptodate(false);
+    bool deconstruct=this.deconstruct;
     for(int i=0; i < xcoords.length; ++i) {
       xcoords[i].clip(userMin.x,userMax.x);
       ycoords[i].clip(userMin.y,userMax.y);
     }
-    add(new void (frame f, transform t, transform, pair, pair) {
-      d(f,t);
+    prepend(new void (frame f, transform t, transform T, pair, pair) {
+      frame F;
+      build(F,d,t*T,deconstruct);
+      add(f,F);
     });
   }
 
@@ -677,7 +694,6 @@ struct picture {
 	T=GUI(T);
       }
      frame d=src_copy.fit(t,T*src_copy.T,m,M);
-//      frame d=T*src_copy.fit(t,src_copy.T,m,M);
      if(deconstruct && !src.deconstruct) deconstruct(d);
      add(f,d);
      for(int i=0; i < src.legend.length; ++i)
@@ -906,30 +922,6 @@ void filldrawabout(pair origin, picture pic=currentpicture, path g,
   addabout(origin,pic,opic);
 }
   
-void unfill(frame f, path g)
-{
-  clip(f,box(min(f),max(f))^^g,evenodd);
-}
-
-void unfill(frame f, path[] g)
-{
-  clip(f,box(min(f),max(f))^^g,evenodd);
-}
-
-void unfill(picture pic=currentpicture, path g)
-{
-  pic.clip(new void (frame f, transform t) {
-    unfill(f,t*g);
-  });
-}
-
-void unfill(picture pic=currentpicture, path[] g)
-{
-  pic.clip(new void (frame f, transform t) {
-    unfill(f,t*g);
-  });
-}
-
 void clip(frame f, path g)
 {
   clip(f,g,currentpen);
@@ -944,8 +936,11 @@ void clip(picture pic=currentpicture, path g, pen p=currentpen)
 {
   pic.userMin=maxbound(pic.userMin,min(g));
   pic.userMax=minbound(pic.userMax,max(g));
-  pic.clip(new void (frame f, transform t) {
-     clip(f,t*g,p);
+  pic.beginclip(new void (frame f, transform t) {
+    beginclip(f,t*g,p);
+  });
+  pic.add(new void (frame f, transform t) {
+    endclip(f);
   });
 }
 
@@ -961,9 +956,32 @@ void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
     pic.userMin=maxbound(pic.userMin,ming);
     pic.userMax=minbound(pic.userMax,maxg);
   }
-  pic.clip(new void (frame f, transform t) {
-     clip(f,t*g,p);
+  pic.beginclip(new void (frame f, transform t) {
+    beginclip(f,t*g,p);
   });
+  pic.add(new void (frame f, transform t) {
+    endclip(f);
+  });
+}
+
+void unfill(frame f, path g)
+{
+  clip(f,box(min(f),max(f))^^g,evenodd);
+}
+
+void unfill(frame f, path[] g)
+{
+  clip(f,box(min(f),max(f))^^g,evenodd);
+}
+
+void unfill(picture pic=currentpicture, path g)
+{
+  clip(pic,box(pic.userMin,pic.userMax)^^g,evenodd);
+}
+
+void unfill(picture pic=currentpicture, path[] g)
+{
+  clip(pic,box(pic.userMin,pic.userMax)^^g,evenodd);
 }
 
 real labelmargin(pen p=currentpen)
@@ -1132,6 +1150,7 @@ void layer(picture pic=currentpicture)
   pic.add(new void (frame f, transform) {
     layer(f);
     });
+  pic.initial=pic.nodes.length;
 }
 
 void newpage() 
@@ -1398,9 +1417,9 @@ pair cap(transform t, pair z, pair lb, pair rt, pen p=currentpen)
             cap(t,z.y,lb.y,rt.y,min(p).y,max(p).y,ytrans));
 }
   
-void clip(picture pic=currentpicture, pair lb, pair tr, pen p=currentpen)
+void clip(picture pic=currentpicture, pair lb, pair tr)
 {
-  clip(pic,box(lb,tr),p);
+  clip(pic,box(lb,tr));
 }
 
 void label(picture pic=currentpicture, real angle=0, pair position,

@@ -14,16 +14,20 @@
 namespace camp {
 
 class drawClipEnd : public drawElement {
-bbox preclip;
-bbox Bounds;
 public:
   drawClipEnd() {}
 
   virtual ~drawClipEnd() {}
 
   void bounds(bbox& b, iopipestream&, std::vector<box>&) {
-    b.clip(Bounds);
-    b += preclip;
+    if(bboxstack.size() < 2) {
+      reportError("endclip without matching beginclip");
+      return;
+    }
+    b.clip(bboxstack.back());
+    bboxstack.pop_back();
+    b += bboxstack.back();
+    bboxstack.pop_back();
   }
 
   bool draw(psfile *out) {

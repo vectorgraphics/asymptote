@@ -672,9 +672,7 @@ public axis
 
 void crop(picture pic=currentpicture) 
 {
-  pic.clip(new void (frame f, transform t) {
-    clip(f, box(t*pic.userMin,t*pic.userMax));
-  });
+  clip(pic,pic.userMin,pic.userMax);
 }
 
 void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity)

@@ -1159,6 +1159,7 @@ The default join style, @code{roundjoin}, may be changed with
 @cindex @code{fillrule}
 @cindex @code{zerowinding}
 @cindex @code{evenodd}
+@anchor{fillrule}
 @item A pen with a specific @code{PostScript} fill rule is returned on
 calling @code{fillrule} with an integer argument:
 @verbatim
@@ -3203,10 +3204,11 @@ void unfill(picture pic=currentpicture, path[] g);
 @item
 @cindex @code{clip}
 @verbatim 
-void clip(picture pic=currentpicture, path g);
+void clip(picture pic=currentpicture, path g, pen p=currentpen)
 @end verbatim
 
-Clip picture @code{pic} to the region bounded by the path @code{g}.
+Clip the current contents of picture @code{pic} to the region bounded
+by the path @code{g}, using fillrule @code{p} (@pxref{fillrule}).
 For an illustration of picture clipping, see the first example in
 @ref{LaTeX usage}.
 
@@ -3451,9 +3453,10 @@ command @code{asy -xN}, where @code{N} denotes the magnification (say 2).
 The command @code{asy -VxN} automatically invokes @code{xasy} once
 deconstruction is complete.
 
-A good example of how deconstruction of compound objects (e.g. arrows) can
-be prevented is in the example @code{yingyang.asy}. By default, only
-currentpicture does automatic deconstruction of its objects.
+A good example of how deconstruction of compound objects (e.g. arrows)
+or unfilled regions can be prevented is in the example
+@code{yingyang.asy}. By default, only currentpicture does automatic
+deconstruction of its objects.
 
 @node Help
 @chapter Help
