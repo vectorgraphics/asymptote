@@ -144,7 +144,8 @@ public:
 
   bool straight(int i) const
   {
-    return nodes[i].straight;
+    if (cycles) return nodes[mod(i,n)].straight;
+    return (i < n) ? nodes[i].straight : false;
   }
   
   pair point(double t) const;
