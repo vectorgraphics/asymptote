@@ -67,8 +67,6 @@ using vm::stack;
 using camp::pair;
 using camp::transform;
 
-file *stdout=camp::file::open("",camp::file::out);
-  
 // Math
   
 void intZero(stack *s)

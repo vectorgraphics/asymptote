@@ -169,13 +169,12 @@ void write(vm::stack *s)
   f->write(val);
 }
 
-extern camp::file *stdout;
-
 template<class T>
 void writen(vm::stack *s)
 {
   T val = s->pop<T>();
   if(settings::suppressOutput) return;
+  camp::file *stdout=camp::file::open("",camp::file::out);
   stdout->write(val);
   stdout->write(newline);
 }
@@ -186,6 +185,7 @@ void write2(vm::stack *s)
   T val2 = s->pop<T>();
   T val1 = s->pop<T>();
   if(settings::suppressOutput) return;
+  camp::file *stdout=camp::file::open("",camp::file::out);
   stdout->write(val1);
   stdout->write(tab);
   stdout->write(val2);
@@ -199,6 +199,7 @@ void write3(vm::stack *s)
   T val2 = s->pop<T>();
   T val1 = s->pop<T>();
   if(settings::suppressOutput) return;
+  camp::file *stdout=camp::file::open("",camp::file::out);
   stdout->write(val1);
   stdout->write(tab);
   stdout->write(val2);
@@ -270,6 +271,7 @@ template<class T>
 void showArray2(vm::stack *s)
 {
   array *a=pop<array *>(s);
+  camp::file *stdout=camp::file::open("",camp::file::out);
   outArray2<T>(s,stdout,a);
 }
 
