@@ -43,6 +43,11 @@ pair SSW=unit(S+SW);
 pair SSE=unit(S+SE);
 pair ESE=unit(E+SE);
   
+pen linetype(string s) 
+{
+  return linetype(s,true);
+}
+
 pen solid=linetype("");
 pen dotted=linetype("0 4");
 pen dashed=linetype("8 8");
@@ -399,7 +404,7 @@ struct picture {
     nodes.push(d);
   }
 
-  void build(frame f, drawer d, transform t) {
+  void build(frame f, drawer d, transform t, bool deconstruct) {
       if(deconstruct) {
 	if(GUIDelete()) return;
 	t=GUI(t);
@@ -411,9 +416,10 @@ struct picture {
   
   void add(drawer d) {
     uptodate(false);
+    bool deconstruct=this.deconstruct;
     add(new void (frame f, transform t, transform T, pair, pair) {
       frame F;
-      build(F,d,t*T);
+      build(F,d,t*T,deconstruct);
       add(f,F);
     });
   }
@@ -763,6 +769,11 @@ void _drawabout(pair origin, picture pic=currentpicture, path g,
   pic.addBox(origin,origin,min(g)+min(p),max(g)+max(p));
 }
   
+void fill(frame f, path g, pen p)
+{
+  fill(f,g,p,0,0,p,0,0);
+}
+
 void fill(picture pic=currentpicture, path g,
 	  pen pena=currentpen, pair a=0, real ra=0,
 	  pen penb=currentpen, pair b=0, real rb=0)
@@ -892,7 +903,7 @@ typedef void arrowhead(frame, path, pen, arrowheadT);
 public arrowhead
   Fill=new void(frame f, path g, pen p, arrowheadT) {
     p += solid;
-    fill(f,g,p,0,0,p,0,0);
+    fill(f,g,p);
     draw(f,g,p);
   },
   NoFill=new void(frame f, path g, pen p, arrowheadT) {
@@ -1000,9 +1011,35 @@ void size(picture pic=currentpicture,
   pic.size(xsize,ysize,keepAspect(keepAspect));
 }
 
+private struct bboxT {};
+public bboxT bbox=null;
+typedef bool bbox(bboxT);
+public bbox
+  Background=new bool(bboxT) {return true;},
+  Boundary=new bool(bboxT) {return false;};
+
+frame _bbox(frame f, real xmargin=0, real ymargin=infinity, pen p=currentpen,
+	   bbox bbox=Boundary)
+{
+  if(ymargin == infinity) ymargin=xmargin;
+  pair z=(xmargin,ymargin);
+  frame d;
+  if(bbox(bbox)) fill(d,box(min(f)-0.5*min(p)-z,max(f)-0.5*max(p)+z),p);
+  else draw(d,box(min(f)+0.5*min(p)-z,max(f)+0.5*max(p)+z),p);
+  return d;
+}
+
+frame bbox(frame f, real xmargin=0, real ymargin=infinity, pen p=currentpen,
+	   bbox bbox=Boundary)
+{
+  frame d=_bbox(f,xmargin,ymargin,p,bbox);
+  add(d,f);
+  return d;
+}
+
 frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
 	   real xsize=infinity, real ysize=infinity, keepAspect keepAspect,
-	   pen p=currentpen)
+	   pen p=currentpen, bbox bbox=Boundary)
 {
   if(ymargin == infinity) ymargin=xmargin;
   if(xsize == infinity) xsize=pic.xsize;
@@ -1010,22 +1047,21 @@ frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
   frame f=pic.fit(max(xsize-2*xmargin,0),max(ysize-2*ymargin,0),
 		  keepAspect(keepAspect));
   if(pic.deconstruct && GUIDelete()) return f;
-  pair z=(xmargin,ymargin);
-  frame d;
-  draw(d,box(min(f)+0.5*min(p)-z,max(f)+0.5*max(p)+z),p);
+  frame d=_bbox(f,xmargin,ymargin,p,bbox);
   if(pic.deconstruct) {
     d=GUI()*d;
     deconstruct(d);
   }
-  add(f,d);
-  return f;
+  add(d,f);
+  return d;
 }
 
 frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
-	   real xsize=infinity, real ysize=infinity, pen p=currentpen)
+	   real xsize=infinity, real ysize=infinity, pen p=currentpen,
+	   bbox bbox=Boundary)
 {
   return bbox(pic,xmargin,ymargin,xsize,ysize,
-	      pic.keepAspect ? Aspect : IgnoreAspect,p);
+	      pic.keepAspect ? Aspect : IgnoreAspect,p,bbox);
 }
 
 void labelbox(picture pic=currentpicture, real xmargin=0,
@@ -1260,7 +1296,7 @@ void arrow(picture pic=currentpicture, string s, real angle=0, pair shift=0,
   label(pic,s,angle,a,unit(a-b),shift,p);
 }
 
-guide unitsquare=(0,0)--(1,0)--(1,1)--(0,1)--cycle;
+guide unitsquare=box((0,0),(1,1));
 
 guide square(pair z1, pair z2)
 {
@@ -1687,31 +1723,6 @@ pen interp(pen a, pen b, real c)
 
 string format(real x) {
   return format("%.9g",x);
-}
-
-frame tiling(string name, picture pic, pair lb=0, pair rt=0)
-{
-  frame tiling;
-  frame f=pic.fit(identity());
-  pair pmin=min(f)-lb;
-  pair pmax=max(f)-rt;
-  postscript(tiling,"<< /PaintType 1 /PatternType 1 /TilingType 1 
-/BBox ["+format(pmin.x)+" "+format(pmin.y)+" "+format(pmax.x)+" "
-	     +format(pmax.y)+"]
-/XStep "+format(pmax.x-pmin.x)+"
-/YStep "+format(pmax.y-pmin.y)+"
-/PaintProc {pop");
-  add(tiling,f);
-  postscript(tiling,"} >>
- matrix makepattern
-/"+name+" exch def");
-  return tiling;
-}
-
-void add(frame preamble=patterns, string name, picture pic, pair lb=0,
-	 pair rt=0)
-{
-  add(preamble,tiling(name,pic,lb,rt));
 }
 
 pair dir(path g)

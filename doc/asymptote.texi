@@ -680,7 +680,8 @@ return the string formed by inserting string @code{t} at position
 
 @cindex @code{erase}
 @item string erase(string s, int pos, int n)
-returns the string formed by erasing the string of length @code{n} at
+returns the string formed by erasing the string of length @code{n} 
+(if @code{n=-1}, to the end of the string @code{s}) at
 position @code{pos} in @code{s};
 
 @cindex @code{substr}
@@ -1046,7 +1047,8 @@ Cyan,Magenta,Yellow,Black.
 @cindex @code{colors}
 The function @code{real[] colors(pen)} returns the color components of a pen.
 
-@item Line types are specified with the function @code{pen linetype(string s)},
+@item Line types are specified with the function 
+@code{pen linetype(string s, bool scale=true)},
 @cindex @code{solid}
 @cindex @code{dashed}
 @cindex @code{dotted}
@@ -1054,7 +1056,8 @@ The function @code{real[] colors(pen)} returns the color components of a pen.
 @cindex @code{dashdotted}
 @cindex @code{longdashdotted}
 where @code{s} is a string of integer or real numbers separated by spaces.
-The first number specifies how far (in @code{PostScript} coordinates) to draw
+The first number specifies how far (if @code{scale} is @code{true}, in
+units of the pen linewidth; otherwise in @code{PostScript} units) to draw 
 with the pen on, the second number specifies how far to draw with the pen off,
 and so on (these spacings are automatically adjusted by @code{Asymptote}
 to fit the arclength of the path). Here are the predefined line types:
@@ -1121,34 +1124,58 @@ void add(frame preamble=patterns, string name, picture pic, pair lb=0,
 @end verbatim
 
 To @code{fill} or @code{draw} using pattern @code{name}, use
-the pen @code{pattern("name")}. For example, a hatch pattern can be produced
-as follows:
+the pen @code{pattern("name")}. For example, a rectangular tiling
+can be produced from the @code{picture tile(real Hx=5mm, real Hy=0)}
+defined in @code{patterns.asy} as follows:
+
+@cindex grid
+@cindex tile
+@verbatim
+size(0,100);
+import patterns;
+add("tile",tile(1cm,0.5cm));
+filldraw(unitcircle,pattern("tile"));
+shipout();
+@end verbatim
+@image{tile}
+
+@cindex hatch
+@cindex crosshatch
+Hatch patterns can be generated with the routines
+@code{picture hatch(real H=5mm, pair dir=NE)}
+and @code{picture crosshatch(real H=5mm)}:
 
 @verbatim
-size(100,0);
+size(0,100);
+import patterns;
 
-picture tiling=new picture;
-draw(tiling,scale(5mm)*unitsquare,linecap(Square)+linejoin(Miter));
-add("hatch",tiling,min(currentpen),max(currentpen));
+add("hatch",hatch());
+add("hatchback",hatch(NW));
+add("crosshatch",crosshatch(3mm));
 
-fill(unitcircle,pattern("hatch"));
+filldraw(unitsquare,pattern("hatch"));
+filldraw(shift(1,0)*unitsquare,pattern("hatchback"));
+filldraw(shift(2,0)*unitsquare,pattern("crosshatch"));
 shipout();
 @end verbatim
 @image{hatch}
 
-The tiled pattern can even incorporate shading (@pxref{gradient shading}):
+Custom patterns can easily be constructed, following the examples in
+@code{pattern.asy}. The tiled pattern can even incorporate shading
+(@pxref{gradient shading}):
 
 @verbatim
 size(0,100);
-real d=4mm;
+import patterns;
 
+real d=4mm;
 picture tiling=new picture;
 guide square=scale(d)*unitsquare;
 fill(tiling,square,white,(0,0),black,(d,d));
 fill(tiling,shift(d,d)*square,blue);
 add("checked",tiling);
 
-fill(unitcircle,pattern("checked"));
+filldraw(unitcircle,pattern("checked"));
 shipout();
 @end verbatim
 @image{shadedtiling}

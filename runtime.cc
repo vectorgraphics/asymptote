@@ -914,8 +914,7 @@ void stringErase(stack *s)
   size_t n=s->pop<int>();
   size_t pos=s->pop<int>();
   string a = s->pop<string>();
-  size_t len=a.length();
-  if(pos < len) s->push(a.erase(pos,n));
+  if(pos < a.length()) s->push(a.erase(pos,n));
   else s->push(a);
 }
 
@@ -1330,8 +1329,8 @@ void defaultPen(stack *)
 void setDefaultPen(stack *s)
 {
   pen *p=s->pop<pen*>();
-  defaultpen=pen(p->stroke(),p->width(),p->size(),p->colorspace(),
-		 p->red(),p->green(),p->blue(),p->gray(),"",
+  defaultpen=pen(p->stroke(),p->scalestroke(),p->width(),p->size(),
+		 p->colorspace(),p->red(),p->green(),p->blue(),p->gray(),"",
 		 p->cap(),p->join(),p->Overwrite(),0);
 }
 
@@ -1401,8 +1400,9 @@ void pattern(stack *s)
 
 void lineType(stack *s)
 {
+  bool scale = s->pop<bool>();
   string t = s->pop<string>();
-  s->push(new pen(t));  
+  s->push(new pen(t,scale)); 
 }
 
 void lineCap(stack *s)

@@ -1,7 +1,7 @@
 .\"                                      Hey, EMACS: -*- nroff -*-
 .TH ASY 1 "1 Dec 2004"
 .SH NAME
-asy \- script-based vector graphics language
+asy \- Asymptote: a script-based vector graphics language
 .SH SYNOPSIS
 .B asy
 .RI [ options ] " files" ...
@@ -48,6 +48,9 @@ Align to bottom-left corner of page.
 .B -T
 Align to top-left corner of page.
 .TP
+.B -Z
+Position origin at (0,0) (implies -L).
+.TP
 .B -v, -verbose
 Increase verbosity level.
 .TP
@@ -68,6 +71,12 @@ Mask fpu exceptions (on supported architectures).
 .TP
 .B -nomask
 Don't mask fpu exceptions. (default)
+.TP
+.B -cmyk
+Convert rgb colors to cmyk
+.TP
+.B -rgb
+Convert cmyk colors to rgb
 .TP
 .B -safe
 Disable system call. (default)

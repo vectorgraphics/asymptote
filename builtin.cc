@@ -497,7 +497,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::frameMax,primPair(),"max",primPicture());
   addFunc(ve,run::frameMin,primPair(),"min",primPicture());
   
-  addFunc(ve,run::lineType,primPen(),"linetype",primString());
+  addFunc(ve,run::lineType,primPen(),"linetype",primString(),primBoolean());
   addFunc(ve,run::rgb,primPen(),"rgb",primReal(),primReal(),primReal());
   addFunc(ve,run::cmyk,primPen(),"cmyk",primReal(),primReal(),primReal(),
 	  primReal());

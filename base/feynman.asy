@@ -10,7 +10,7 @@
 // direction relative to the direction of the path. The functions
 // midLabelPoint, endLabelPoint and startLabelPoint use a positiontype
 // parameter to select one of the two methods.
-public bool Absolute = false, Relative = true;
+bool Absolute = false, Relative = true;
 
 /* default parameters ********************************************************/
 

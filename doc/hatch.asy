@@ -1,8 +1,11 @@
-size(100,0);
+size(0,100);
+import patterns;
 
-picture tiling=new picture;
-draw(tiling,scale(5mm)*unitsquare,linecap(Square)+linejoin(Miter));
-add("hatch",tiling,min(currentpen),max(currentpen));
+add("hatch",hatch());
+add("hatchback",hatch(NW));
+add("crosshatch",crosshatch());
 
-fill(unitcircle,pattern("hatch"));
+filldraw(unitsquare,pattern("hatch"));
+filldraw(shift(1,0)*unitsquare,pattern("hatchback"));
+filldraw(shift(2,0)*unitsquare,pattern("crosshatch"));
 shipout();

@@ -58,6 +58,7 @@ class pen : public mempool::pooled<pen>
 { 
   // The string for the PostScript style line pattern.
   std::string line;
+  bool scale; // Scale the line type values by the pen width?
 
   // Width of line, in PS units.
   double linewidth;
@@ -104,87 +105,94 @@ public:
   }
   
   pen() :
-    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
+    line(DEFLINE), scale(true), linewidth(DEFWIDTH), fontsize(0.0),
     color(DEFCOLOR), r(defaultpen.r), g(defaultpen.g), b(defaultpen.b),
     grey(defaultpen.grey), pattern(DEFPAT),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
 
-  pen(const std::string& line, double linewidth, double fontsize,
+  pen(const std::string& line, bool scale, double linewidth, double fontsize,
       ColorSpace color, double r, double g, double b,  double grey,
       const std::string& pattern, int linecap, int linejoin,
       overwrite_t overwrite, const transform *t) :
-    line(line), linewidth(linewidth), fontsize(fontsize),
+    line(line), scale(scale), linewidth(linewidth), fontsize(fontsize),
     color(color), r(r), g(g), b(b), grey(grey), pattern(pattern),
     linecap(linecap), linejoin(linejoin), overwrite(overwrite), t(t) {}
       
   pen(transparentpen_t) : 
-    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
+    line(DEFLINE), scale(true), linewidth(DEFWIDTH), fontsize(0.0),
     color(TRANSPARENT), r(defaultpen.r), g(defaultpen.g), b(defaultpen.b),
     grey(defaultpen.grey), pattern(DEFPAT),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
   
   pen(setlinewidth_t, double linewidth) : 
-    line(DEFLINE), linewidth(linewidth), fontsize(0.0), color(DEFCOLOR),
+    line(DEFLINE), scale(true), linewidth(linewidth), fontsize(0.0),
+    color(DEFCOLOR),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
     pattern(DEFPAT), linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE),
     t(0) {}
   
-  explicit pen(const std::string& line) :
-    line(line), linewidth(DEFWIDTH), fontsize(0.0), color(DEFCOLOR),
+  explicit pen(const std::string& line, bool scale) :
+    line(line), scale(scale), linewidth(DEFWIDTH), fontsize(0.0),
+    color(DEFCOLOR),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
     pattern(DEFPAT), linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE),
     t(0) {}
   
   pen(setfontsize_t, double fontsize) :
-    line(DEFLINE), linewidth(DEFWIDTH), fontsize(fontsize), color(DEFCOLOR), 
+    line(DEFLINE), scale(true), linewidth(DEFWIDTH), fontsize(fontsize),
+    color(DEFCOLOR), 
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
     pattern(DEFPAT), linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE),
     t(0) {}
   
   pen(initialpen_t) : 
-    line(DEFLINE), linewidth(-2), fontsize(-1), color(GRAYSCALE),
+    line(DEFLINE), scale(true), linewidth(-2), fontsize(-1), color(GRAYSCALE),
     r(0.0), g(0.0), b(0.0), grey(0.0),
     pattern(DEFPAT), linecap(-2), linejoin(-2), overwrite(DEFWRITE),
     t(0) {}
   
   pen(setpattern_t, const std::string& pattern) :
-    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0), color(PATTERN),
+    line(DEFLINE), scale(true), linewidth(DEFWIDTH), fontsize(0.0),
+    color(PATTERN),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
     pattern(pattern), linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE),
     t(0) {}
   
   pen(setlinecap_t, int linecap) :
-    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0), color(DEFCOLOR),
+    line(DEFLINE), scale(true), linewidth(DEFWIDTH), fontsize(0.0),
+    color(DEFCOLOR),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
     pattern(DEFPAT), linecap(linecap), linejoin(DEFJOIN), overwrite(DEFWRITE),
     t(0) {}
   
   pen(setlinejoin_t, int linejoin) :
-    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0), color(DEFCOLOR),
+    line(DEFLINE), scale(true), linewidth(DEFWIDTH), fontsize(0.0),
+    color(DEFCOLOR),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
     pattern(DEFPAT), linecap(DEFCAP), linejoin(linejoin), overwrite(DEFWRITE),
     t(0) {}
   
   pen(setoverwrite_t, overwrite_t overwrite) :
-    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0), color(DEFCOLOR),
+    line(DEFLINE), scale(true), linewidth(DEFWIDTH), fontsize(0.0),
+    color(DEFCOLOR),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
     pattern(DEFPAT), linecap(DEFCAP), linejoin(DEFJOIN), overwrite(overwrite),
     t(0) {}
   
   explicit pen(double grey) :
-    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
+    line(DEFLINE), scale(true), linewidth(DEFWIDTH), fontsize(0.0),
     color(GRAYSCALE), r(0.0), g(0.0), b(0.0), grey(pos0(grey)),
     pattern(DEFPAT), linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE),
     t(0) {greyrange();}
   
   pen(double r, double g, double b) : 
-    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
+    line(DEFLINE), scale(true), linewidth(DEFWIDTH), fontsize(0.0),
     color(RGB), r(pos0(r)), g(pos0(g)), b(pos0(b)),  grey(0.0), 
     pattern(DEFPAT), linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE),
     t(0) {rgbrange();}
   
   pen(double c, double m, double y, double k) :
-    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
+    line(DEFLINE), scale(true), linewidth(DEFWIDTH), fontsize(0.0),
     color(CMYK), r(pos0(c)), g(pos0(m)), b(pos0(y)), grey(pos0(k)),
     pattern(DEFPAT), linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE),
     t(0) {cmykrange();}
@@ -199,6 +207,10 @@ public:
   
   std::string stroke() const {
     return line == DEFLINE ? defaultpen.line : line;
+  }
+  
+  bool scalestroke() const {
+    return scale;
   }
   
   void setstroke(const std::string& s) {line=s;}
@@ -398,6 +410,7 @@ public:
     }
     
     return pen(q.line == DEFLINE ? p.line : q.line,
+	       q.line == DEFLINE ? p.scale : q.scale,
 	       q.linewidth == DEFWIDTH ? p.linewidth : q.linewidth,
 	       q.fontsize == 0.0 ? p.fontsize : q.fontsize,
 	       colorspace,R,G,B,greyval,
@@ -410,6 +423,7 @@ public:
 
   friend bool operator == (const pen& p, const pen& q) {
     return p.stroke() == q.stroke() 
+      && p.scalestroke() == q.scalestroke() 
       && p.width() == q.width() 
       && p.colorspace() == q.colorspace()
       && p.size() == q.size()
@@ -426,6 +440,8 @@ public:
   
   friend ostream& operator << (ostream& out, const pen& p) {
     out << "([" << p.line << "]";
+    if(!p.scale)
+      out << " bp";
     if(p.linewidth != DEFWIDTH)
       out << ", linewidth=" << p.linewidth;
     if(p.linecap != DEFCAP)

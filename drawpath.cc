@@ -39,17 +39,19 @@ void drawPath::adjustdash(pen& pen0)
       
       size_t n=pat.size();
       double sum=0.0;
-      double penwidth=pen0.width();
+      double penwidth=pen0.scalestroke() ? pen0.width() : 1.0;
       for(unsigned int i=0; i < n; i ++) {
 	pat[i] *= penwidth;
 	sum += pat[i];
       }
+      if(sum == 0.0) return; // Otherwise, we know n > 0.
       
       // Fix bounding box resolution problem. Example:
-      // asy -f pdf examples/testlinetype; gv -scale -2 testlinetype.pdf
+      // asy -f pdf testlinetype; gv -scale -2 testlinetype.pdf
       if(!p.cyclic() && pat[0] == 0) sum += 1.0e-3*penwidth;
       
       int ncycle=max((int)(arclength/sum+0.5),1);
+
       double factor=arclength/(ncycle*sum+(p.cyclic() ? 0.0 : pat[0]));
       ostringstream buf;
       for(unsigned int i=0; i < n; i++) buf << pat[i]*factor << " ";
