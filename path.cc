@@ -554,7 +554,7 @@ ostream& operator<< (ostream& out, const path p)
   int n = p.n;
   switch(n) {
   case 0:
-    out << "<nullpath>" << newl;
+    out << "<nullpath>";
     return out;
   case 1:
     out << p.point(0);
