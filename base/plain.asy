@@ -905,6 +905,24 @@ void tex(picture pic=currentpicture, string s)
     });
 }
 
+void layer(picture pic=currentpicture)
+{
+  pic.add(new void (frame f, transform) {
+    layer(f);
+    });
+}
+
+void includegraphics(picture pic=currentpicture, string name,
+		     string options="") 
+{
+  if(options != "") options="["+options+"]";
+  string include="\includegraphics"+options+"{"+name+"}";
+  tex(pic,"\kern-\wd\ASYpsbox%
+\setbox\ASYpsbox=\hbox{"+include+"}%
+"+include+"%");
+  layer(pic);
+}
+
 private struct keepAspectT {};
 public keepAspectT keepAspect=null;
 typedef bool keepAspect(keepAspectT);

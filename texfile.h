@@ -42,18 +42,18 @@ void texpreamble(T& out) {
       << "\\newdimen\\ASYdimen" << newl
       << "\\def\\baseline#1{\\setbox\\ASYbox=\\hbox{M}\\ASYdimen=\\ht\\ASYbox%"
       << newl
-      << "\\setbox\\ASYbox=\\hbox{#1}\\lower\\ASYdimen\\box\\ASYbox}" << newl;
+      << "\\setbox\\ASYbox=\\hbox{#1}\\lower\\ASYdimen\\box\\ASYbox}" << newl
+      << "\\newbox\\ASYpsbox" << newl;
 }
   
 class texfile {
   ostream *out;
-  string psname;
   pair offset;
   bbox box;
   pen lastpen;
 
 public:
-  texfile(const string& texname, const string& psname, const bbox& box);
+  texfile(const std::string& texname, const bbox& box);
   ~texfile();
 
   void prologue();
@@ -64,8 +64,11 @@ public:
   
   // Draws the label rotated by angle (relative to the horizontal).
   // Align identifies the point of the label bbox to be aligned at position z.
-  void put(const string& label, double angle, pair z, pair align);
+  void put(const std::string& label, double angle, pair z, pair align);
 
+  void beginlayer(const std::string& psname);
+  void endlayer();
+  
   void verbatim(const std::string& s) {
     *out << s << newl;
   }

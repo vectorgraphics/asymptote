@@ -19,8 +19,7 @@ using std::setprecision;
 bool TeXcontaminated=false;
 std::list<std::string> TeXpreamble;
   
-texfile::texfile(const string& texname, const string& psname,
-		 const bbox& box) : psname(psname), box(box)
+texfile::texfile(const string& texname, const bbox& box) : box(box)
 {
   out=new ofstream(texname.c_str());
   if(!out || !*out) {
@@ -39,7 +38,7 @@ texfile::~texfile()
 void texfile::prologue()
 {
   texpreamble(*out);
-  *out << "\\usepackage{graphics}" << newl
+  *out << "\\usepackage{graphicx}" << newl
        << "\\usepackage{pstricks}" << newl
        << "\\psset{unit=1pt}" << newl
        << "\\pagestyle{empty}" << newl
@@ -48,12 +47,22 @@ void texfile::prologue()
        << "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{\\setbox\\ASYbox=\\hbox{#6}%"
        << newl
        << "\\rput[lB]{#5}(#1,#2){\\kern#3pt\\raise#4pt\\box\\ASYbox}}" << newl
-       << "\\begin{document}" << newl
-       << "\\includegraphics{" << psname << "}%"
-       << newl;
-  
+       << "\\begin{document}" << newl;
   lastpen.defaultsize();
 }
+    
+void texfile::beginlayer(const string& psname)
+{
+  *out << "\\setbox\\ASYpsbox=\\hbox{\\includegraphics{" << psname << "}}%"
+       << newl
+       << "\\includegraphics{" << psname << "}%" << newl;
+}
+
+void texfile::endlayer()
+{
+  *out << "\\kern-\\wd\\ASYpsbox%" << newl;
+}
+  
 
 void texfile::setpen(pen& p)
 {

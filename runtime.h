@@ -210,6 +210,7 @@ void add(vm::stack *s);
 void postscript(vm::stack *s);
 void tex(vm::stack *s);
 void texPreamble(vm::stack *s);
+void layer(vm::stack *s);
 void label(vm::stack *s);
 void overwrite(vm::stack *s);
 

@@ -47,9 +47,6 @@ public:
 
   void texinit();
 
-  bool texoutput(const string& inclname, const string& epsname,
-		 const string& prefix); 
-  
   bool texprocess(const string& texname, const string& tempname,
 		  const string& prefix);
     

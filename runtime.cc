@@ -48,6 +48,7 @@ using std::ostringstream;
 #include "drawclipend.h"
 #include "drawlabel.h"
 #include "drawverbatim.h"
+#include "drawlayer.h"
 #include "fileio.h"
 #include "genv.h"
 #include "builtin.h"
@@ -1396,13 +1397,13 @@ void nullFrame(stack *s)
 
 void frameMax(stack *s)
 {
-  picture * pic = s->pop<picture *>();
+  picture *pic = s->pop<picture *>();
   s->push(pic->bounds().Max());
 }
 
 void frameMin(stack *s)
 {
-  picture * pic = s->pop<picture *>();
+  picture *pic = s->pop<picture *>();
   s->push(pic->bounds().Min());
 }
 
@@ -1411,7 +1412,7 @@ void draw(stack *s)
 {
   pen *n = s->pop<pen*>();
   path p = s->pop<path>();
-  picture* pic = s->pop<picture*>();
+  picture *pic = s->pop<picture*>();
 
   drawPath *d = new drawPath(p,*n);
   pic->append(d);
@@ -1421,7 +1422,7 @@ void fill(stack *s)
 {
   pen *n = s->pop<pen*>();
   path p = s->pop<path>();
-  picture* pic = s->pop<picture*>();
+  picture *pic = s->pop<picture*>();
   drawFill *d = new drawFill(p,*n);
   pic->append(d);
 }
@@ -1429,21 +1430,21 @@ void fill(stack *s)
 void clip(stack *s)
 {
   path p = s->pop<path>();
-  picture* pic = s->pop<picture*>();
+  picture *pic = s->pop<picture*>();
   clip(*pic, p);
 }
   
 void add(stack *s)
 {
-  picture* from = s->pop<picture*>();
-  picture* to = s->pop<picture*>();
+  picture *from = s->pop<picture*>();
+  picture *to = s->pop<picture*>();
   to->add(*from);
 }
 
 void postscript(stack *s)
 {
   string t = s->pop<std::string>();
-  picture* pic = s->pop<picture*>();
+  picture *pic = s->pop<picture*>();
   drawVerbatim *d = new drawVerbatim(PostScript,t);
   pic->append(d);
 }
@@ -1451,7 +1452,7 @@ void postscript(stack *s)
 void tex(stack *s)
 {
   string t = s->pop<std::string>();
-  picture* pic = s->pop<picture*>();
+  picture *pic = s->pop<picture*>();
   drawVerbatim *d = new drawVerbatim(TeX,t);
   pic->append(d);
 }
@@ -1461,6 +1462,13 @@ void texPreamble(stack *s)
   camp::TeXpreamble.push_back(s->pop<std::string>());
 }
   
+void layer(stack *s)
+{
+  picture *pic = s->pop<picture*>();
+  drawLayer *d = new drawLayer();
+  pic->append(d);
+}
+  
 void label(stack *s)
 {
   pen *p = s->pop<pen*>();
@@ -1468,7 +1476,7 @@ void label(stack *s)
   pair z = s->pop<pair>();
   double r = s->pop<double>();
   string t = s->pop<std::string>();
-  picture* pic = s->pop<picture*>();
+  picture *pic = s->pop<picture*>();
   drawLabel *d = new drawLabel(t,r,z,a,p);
   pic->append(d);
 }
@@ -1482,7 +1490,7 @@ void shipout(stack *s)
 {
   bool wait = s->pop<bool>();
   string format = s->pop<std::string>();
-  picture* pic = s->pop<picture*>();
+  picture *pic = s->pop<picture*>();
   string prefix = s->pop<std::string>();
   pic->shipout(prefix == "" ? outname : prefix,format,wait);
 }

@@ -106,6 +106,10 @@ public:
     return false;
   }
 
+  virtual bool islayer() {
+    return false;
+  }
+
   // Do any initial set up
   virtual bool setup(texfile *) {
     return true;

@@ -85,7 +85,7 @@ void options()
   cerr << "-k\t\t keep intermediate files" << endl;
   cerr << "-L\t\t disable LaTeX label postprocessing" << endl;
   cerr << "-p\t\t parse test" << endl;
-  cerr << "-O value\t real or pair printer offset (postscript pt)" << endl;
+  cerr << "-O value\t real or pair printer offset (PostScript pt)" << endl;
   cerr << "-o name\t\t (first) output file name" << endl;
   cerr << "-s\t\t translate test" << endl;
   cerr << "-v, -verbose\t increase verbosity level" << endl;

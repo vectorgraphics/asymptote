@@ -9,7 +9,6 @@
 #define DRAWVERBATIM_H
 
 #include "drawelement.h"
-#include "path.h"
 
 namespace camp {
 

@@ -90,38 +90,6 @@ void picture::texinit() {
   TeXinitialized=true;
 }
   
-bool picture::texoutput(const string& psname, const string& epsname,
-			const string& prefix) 
-{
-  bool status = true;
-  string texname=auxname(prefix,"tex");
-  
-  texfile texfile(texname,psname,b);
-    
-  list<drawElement*>::iterator p;
-  for (p = nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    if (!(*p)->setup(&texfile))
-      status = false;
-  }
-  
-  texfile.prologue();
-    
-  for (p = nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    if (!(*p)->write(&texfile))
-      status = false;
-  }
-  texfile.epilogue();
-    
-  if(status)
-    status=texprocess(texname,epsname,prefix);
-  
-  if(!keep) unlink(psname.c_str());
-    
-  return status;
-}
-
 bool picture::texprocess(const string& texname, const string& outname,
 			 const string& prefix)
 {
@@ -257,7 +225,6 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
   
   bounds();
   
-  string psname=labels ? auxname(prefix,"ps") : epsname;
   bbox bpos=b;
   
   if(deconstruct) {
@@ -285,24 +252,72 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
     bpos.top += pdfoffset;
   }
   
-  psfile out(psname,bpos,bboxshift);
-  out.prologue();
+  string texname=auxname(prefix,"tex");
+  texfile *tex=NULL;
   bool status = true;
   
-  list<drawElement*>::iterator p;
-  for(p = nodes.begin(); p != nodes.end(); ++p) {
-    assert(*p);
-    if(!(*p)->draw(&out))
-      status = false;
+  if(labels) {
+    tex=new texfile(texname,b);
+    list<drawElement*>::iterator p;
+    for (p = nodes.begin(); p != nodes.end(); ++p) {
+      assert(*p);
+      if (!(*p)->setup(tex))
+	status = false;
+    }
+  
+    tex->prologue();
   }
-
-  out.epilogue();
   
-  if(status && labels)
-    status=texoutput(psname,epsname,prefix);
+  list<drawElement*>::iterator layerp=nodes.begin();
+  list<drawElement*>::iterator p=layerp;
+  unsigned int layer=0;
+  list<string> psnameStack;
   
-  if(status)
+  while(p != nodes.end()) {
+    ostringstream buf;
+    buf << prefix << layer;
+    string psname=labels ? auxname(buf.str(),"ps") : epsname;
+    psnameStack.push_back(psname);
+    psfile out(psname,bpos,bboxshift);
+    out.prologue();
+  
+    if(labels) tex->beginlayer(psname);
+  
+    for(; p != nodes.end(); ++p) {
+      assert(*p);
+      if(labels && (*p)->islayer()) break;
+      if(!(*p)->draw(&out))
+	status = false;
+    }
+    out.epilogue();
+  
+    if(status && labels) {
+      for (p=layerp; p != nodes.end(); ++p) {
+	if((*p)->islayer()) {
+	  tex->endlayer();
+	  layerp=++p;
+	  layer++;
+	  break;
+	}
+	assert(*p);
+	if (!(*p)->write(tex))
+	  status = false;
+      }
+    }    
+  }
+  
+  if(status) {
+    if(labels) {
+      tex->epilogue();
+      status=texprocess(texname,epsname,prefix);
+      if(!keep) {
+	list<string>::iterator p;
+	for(p=psnameStack.begin(); p != psnameStack.end(); ++p)
+	  unlink(p->c_str());
+      }
+    }
     status=postprocess(epsname,outname,wait);
+  }
   
   if(!tgifformat) outnameStack->push_back(outname);
   

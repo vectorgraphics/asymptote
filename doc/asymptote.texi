@@ -107,9 +107,9 @@ Import
 provides a natural coordinate-based framework for technical drawings.
 Labels and equations are typeset with @code{LaTeX}, for overall document
 consistency, yielding the same high-quality level of typesetting that
-@code{LaTeX} provides for scientific text. By default it produces postscript
-output, but it can also generate any format that the ImageMagick package
-can produce.
+@code{LaTeX} provides for scientific text. By default it produces
+@code{PostScript} output, but it can also generate any format that the
+@code{ImageMagick} package can produce.
      
 A major advantage of @code{Asymptote} over other graphics packages is
 that it is a high-level programming language, as opposed to just a graphics
@@ -161,7 +161,7 @@ sacrificing portability;
 @item sensible defaults for graphical features, with the ability to override
 
 @item provides a high-level mathematically oriented interface to the
-postscript language for vector graphics, complete with affine transforms
+@code{PostScript} language for vector graphics, complete with affine transforms
 and complex variables
 
 @item functions can create new (anonymous) functions
@@ -307,7 +307,7 @@ draw((0,0)--(100,100));
 @image{diagonal}
 
 @cindex @code{bp}
-The units here are postscript "big points" (1 bp = 1/72 in).
+The units here are @code{PostScript} "big points" (1 bp = 1/72 in).
 The @code{--} here means join with a linear segment.
 
 At this point you can type in further draw commands, which will be added
@@ -331,10 +331,10 @@ into a file, say test.asy. Then execute this file by typing
 @verbatim
 asy -V test
 @end verbatim
-The shipout command converts the current picture into postscript. A
+The shipout command converts the current picture into @code{PostScript}. A
 shipout command is added implicitly in interactive mode, but is
 explicitly required in batch mode. The -V option here opens up a gv
-window so you can immediately view the encapsulated postscript output.
+window so you can immediately view the encapsulated @code{PostScript} output.
 By default this output will be written to the file @code{test.eps};
 the prefix of the output file may be changed with the @code{-o} command
 line option. 
@@ -348,7 +348,7 @@ shipout();
 @end verbatim
 @image{square}
 
-It is often inconvenient to work directly with postscript coordinates.
+It is often inconvenient to work directly with @code{PostScript} coordinates.
 The next example draws a unit square scaled to width 100bp and height 100bp.
 The output is identical to that of the previous example. (If you are using
 interactive mode ignore the two messages "warning: scaling in picture
@@ -415,12 +415,12 @@ for(int i=0; i < 10; ++i) {
 @cindex @code{merge}
 @cindex @code{convert}
 @cindex animation
-@cindex ImageMagick
+@cindex @code{ImageMagick}
 Another example of a loop, together with user-defined functions, is
 provided in the file @code{wheelanimation.asy} in the @code{examples}
 directory of the @code{Asymptote} source. This example uses the
 @code{gifmerge} command to @code{merge} multiple images
-into a gif animation, using the ImageMagick @code{convert} program. 
+into a gif animation, using the @code{ImageMagick} @code{convert} program. 
 
 @cindex @code{while}
 @cindex @code{do}
@@ -907,7 +907,7 @@ Cyan,Magenta,Yellow,Black.
 @cindex @code{dashdotted}
 @cindex @code{longdashdotted}
 where @code{s} is a string of integer or real numbers separated by spaces.
-The first number specifies how far (in postscript coordinates) to draw
+The first number specifies how far (in @code{PostScript} coordinates) to draw
 with the pen on, the second number specifies how far to draw with the pen off,
 and so on. Here are the predefined line types:
 @verbatim
@@ -924,7 +924,7 @@ The default linetype is @code{solid}.
 
 @cindex @code{linewidth}
 @cindex @code{defaultlinewidth}
-@item The pen line width is specified in postscript units with
+@item The pen line width is specified in @code{PostScript} units with
 @code{pen linewidth(real)}. The default line width is 0.5bp
 (this global default value may be changed with the
 @code{defaultlinewidth(real)} command or reset to the startup default
@@ -998,7 +998,7 @@ The implicit initializer for transforms is @code{identity()}.
 
 @item frame
 @cindex @code{frame}
-Frames are canvases for drawing in postscript coordinates. While working
+Frames are canvases for drawing in @code{PostScript} coordinates. While working
 with frames directly is occasionally necessary when constructing deferred
 drawing routines, pictures are usually more convenient to work with. The
 default frame is called @code{currentframe}.
@@ -1040,7 +1040,7 @@ void size(picture pic=currentpicture,
 @end verbatim
 
 If @code{xsize} and @code{ysize} are both 0, user coordinates will be
-interpreted as postscript coordinates. In this case, the transform
+interpreted as @code{PostScript} coordinates. In this case, the transform
 mapping @code{pic} to the final output frame is @code{identity}.
 
 If exactly one of @code{xsize} or @code{ysize} is 0, no size restriction
@@ -1083,17 +1083,37 @@ the base file @code{plain.asy}.
 
 @cindex verbatim
 @cindex @code{postscript}
-It is possible to insert verbatim postscript commands in a picture with
+It is possible to insert verbatim @code{PostScript} commands in a picture with
 the routine
 @verbatim
 void postscript(picture pic=currentpicture, string s);
 @end verbatim
 
+@anchor{tex}
 @cindex @code{tex}
 Verbatim @TeX{} commands can be inserted in the output with the function
 @verbatim
 void tex(picture pic=currentpicture, string s);
 @end verbatim
+
+@cindex @code{includegraphics}
+@cindex EPS
+For example, the @code{tex} function is used in the default base file
+@code{plain.asy} to implement an @code{includegraphics} command, which
+allows one to include an encapsulated @code{PostScript} (EPS) file into
+a picture @code{pic}:
+@verbatim
+void includegraphics(picture pic=currentpicture, string name,
+string options="") 
+@end verbatim
+
+Here, @code{name} is the name of the file to include and
+@code{options} is a string containing a comma-separated list of
+optional bounding box (@code{llx lly urx ury}), width (@code{width=value}), 
+height (@code{height=value}), rotation (@code{angle=value}),
+scaling (@code{scale=factor}), clipping (@code{clip=bool}),
+and draft mode (@code{draft=bool}) parameters. Note that @code{includegraphics}
+does not change a picture's bounding box.
 
 To issue a global @TeX{} command in the preamble (valid for the entire
 file) use:
@@ -2270,15 +2290,30 @@ distinct from the @code{x} imported in @code{tester.asy}.
 @node Drawing commands
 @chapter Drawing commands
 @cindex drawing commands
-All of @code{Asymptote}'s graphical capabilities are based on four primitive
-commands. The three drawing commands @code{draw}, @code{fill}, and @code{clip}
-add objects to a picture in the order in which they are executed,
-with the most recently drawn object appearing on top.
-The labeling command @code{label} adds text labels, which will
-appear on top of the other drawn objects, but again in the relative
-order in which they were executed.
+@cindex @code{layer}
 
-While some of these commands take many options, they all have sensible
+All of @code{Asymptote}'s graphical capabilities are based on four primitive
+commands. The three @code{PostScript} drawing commands @code{draw},
+@code{fill}, and @code{clip} add objects to a picture in the order in
+which they are executed, with the most recently drawn object appearing on top.
+The @code{LaTeX} labeling command @code{label} adds text labels, which will
+appear on top of the @code{PostScript} objects (since this is normally what one
+wants), but again in the relative order in which they were executed.
+
+If you wish to draw @code{PostScript} objects on top of labels (or verbatim
+@code{tex} commands; see @pxref{tex}), the @code{layer} command may be
+used to start a
+new @code{PostScript/LaTeX} layer:
+@verbatim
+void layer(picture pic=currentpicture);
+@end verbatim
+
+The @code{layer} function gives one full control over the order in which
+objects are drawn. Layers are drawn sequentially, with the most recent
+layer appearing on top. Within each layer, labels and verbatim @code{tex}
+commands are always drawn after the @code{PostScript} objects in that layer.
+
+While some of these drawing commands take many options, they all have sensible
 default values (for example, the picture argument defaults to
 currentpicture):
 
@@ -2320,7 +2355,7 @@ The possible values of @code{bar} are @code{None}, @code{BeginBar},
 @code{EndBar} (or equivalently @code{Bar}), and @code{Bars} 
 (which draws a bar at both ends of the path). These are useful for
 indicating dimensions. Each of these bar specifiers take a single
-optional real argument that denotes the length of the bar in postscript
+optional real argument that denotes the length of the bar in @code{PostScript}
 coordinates. 
 
 @cindex @code{None}
@@ -2338,7 +2373,7 @@ The possible values of @code{arrow} are @code{None}, @code{BeginArrow},
 @code{EndArrow} (or equivalently @code{Arrow}), and @code{Arrows} 
 (which draws an arrow at both ends of the path).
 Each of these arrow specifiers may be given the optional arguments real
-@code{size} (in postscript coordinates), real @code{angle} (in degrees),
+@code{size} (in @code{PostScript} coordinates), real @code{angle} (in degrees),
 @code{Fill} or @code{NoFill}, and a relative real position along the
 path from 0 to 1 where the tip of the arrow should be placed. There are
 also arrow versions with slightly modified default values of @code{size} and
@@ -2424,13 +2459,13 @@ Suppress, without warning, each label that would overwrite another label.
 @cindex @code{Move}
 @item Move
 Move a label that would overwrite another out of the way and issue a warning.
-As this adjustment is during the final output phase (in postscript
+As this adjustment is during the final output phase (in @code{PostScript}
 coordinates) it could result in a larger figure than requested.
 
 @cindex @code{MoveQuiet}
 @item MoveQuiet
 Move a label that would overwrite another out of the way, without warning.
-As this adjustment is during the final output phase (in postscript
+As this adjustment is during the final output phase (in @code{PostScript}
 coordinates) it could result in a larger figure than requested.
 
 @end table
@@ -2592,7 +2627,7 @@ Options:
 -k               keep intermediate files
 -L               disable LaTeX label postprocessing
 -p               parse test
--O value         real or pair printer offset (postscript pt)
+-O value         real or pair printer offset (PostScript pt)
 -o name          (first) output file name
 -s               translate test
 -v, -verbose     increase verbosity level
@@ -2618,7 +2653,7 @@ to execute arbitrary shell commands.
 The default mode, @code{-safe}, disables this call.
 
 An alternative output format may be produced by using the @code{-f format}
-option. This supports any format supported by the ImageMagick
+option. This supports any format supported by the @code{ImageMagick}
 @code{convert} program (a relatively recent version of which must be
 installed).
 
@@ -2632,7 +2667,7 @@ Reset @code{defaultfontsize}, @code{defaultlinewidth}, and @code{overwrite}
 to their startup defaults.
 @end table
 
-A postscript printer offset (for printers that do not print to the edge
+A @code{PostScript} printer offset (for printers that do not print to the edge
 of the page) may be specified with either of these two equivalent shell
 commands:
 @verbatim

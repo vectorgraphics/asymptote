@@ -371,6 +371,7 @@ void base_venv(venv &ve)
 	  primString());
   addFunc(ve,run::tex,primVoid(),"tex",primPicture(),primString());
   addFunc(ve,run::texPreamble,primVoid(),"texpreamble",primString());
+  addFunc(ve,run::layer,primVoid(),"layer",primPicture());
   
   addFunc(ve,run::intIntMax,primInt(),"intMax");
   addRealFunc0(ve,run::realPi,"pi");
