@@ -21,9 +21,8 @@ LEX = @LEX@
 
 DEFS = @DEFS@
 OPT = -O3 -DNDEBUG
-ACFLAGS = @ACFLAGS@
-OPTS = -g $(OPT) $(DEFS) $(ACFLAGS) $(CFLAGS) 
-INCL = 
+OPTS = -g $(OPT) $(DEFS) $(CFLAGS) 
+INCL = -I- -I .
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -46,7 +45,7 @@ man:	asy
 	convert latexusage.eps latexusage.png && \
 	makeinfo asymptote && makeinfo --html asymptote && \
 	cp *.png asymptote && texi2dvi asymptote.texi 
-	
+
 depend: $(FILES:=.d)
 
 parser: camp.tab.cc camp.tab.h lex.yy.cc

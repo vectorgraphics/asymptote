@@ -29,13 +29,11 @@ AC_SEARCH_LIBS([getopt_long_only],[gnugetopt])
 AC_CHECK_HEADER(fftw3.h,
    AC_CHECK_LIB([fftw3], fftw_execute,,
            AC_MSG_WARN([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
-     AC_MSG_WARN([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***])
-     , dnl Don't use standard includes.
-     )
+     AC_MSG_WARN([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
 
 # Currently only the boost headers are used
 AC_CHECK_HEADER([boost/shared_ptr.hpp],,
-    AC_CHECK_FILE(["boost/shared_ptr.hpp"],AC_SUBST(ACFLAGS,"-I- -I boost -I ."),
+    AC_CHECK_FILE(["boost/shared_ptr.hpp"],,
     AC_MSG_ERROR([*** could not find the boost headers ***
 *** Please install boost_1_32_0 or later from http://www.boost.org ***
 *** (it is sufficient to move or link the boost_1_32_0/boost directory into .) ***])))

@@ -17,6 +17,7 @@
 #if HAVE_GNU_GETOPT_H
 #include <getopt.h>
 #else
+// Work around conflicts with non-GNU versions of getopt.h:
 struct option {
   const char *name;
   int has_arg, *flag, val;
