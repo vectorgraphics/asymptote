@@ -25,6 +25,7 @@ asymptote.ps: asymptote.dvi
 	dvips -o asymptote.ps asymptote
 
 html:	figures
+	mkdir -p asymptote
 	cp *.png asymptote
 	makeinfo --html asymptote
 
