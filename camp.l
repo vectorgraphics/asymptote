@@ -163,6 +163,7 @@ void getstring(void)
 
 %x lexcomment
 %x texstring
+%x cstring
 %x lexformat
 %x opname
 
@@ -227,6 +228,51 @@ ESC \\
                     append(x);
                     continue;
                    } 
+.                  {adjust(); append(*yytext); }
+}
+
+<cstring>{
+\'/[ \t\r\n]*[\"\'] {adjust(); BEGIN INITIAL;}
+\'                 {adjust(); 
+                    BEGIN INITIAL;
+                    getstring(); 
+                    return STRING; }
+<<EOF>>            {adjust();
+                    error();
+                    *em << "string not terminated";
+                    BEGIN INITIAL;
+                    yyterminate();
+                   }
+\r\n|\n|\r         {adjust(); newline(); append('\n'); continue; }
+{ESC}b        {adjust(); append('\b'); continue; }
+{ESC}t        {adjust(); append('\t'); continue; }
+{ESC}n        {adjust(); append('\n'); continue; }
+{ESC}f        {adjust(); append('\f'); continue; }
+{ESC}r        {adjust(); append('\r'); continue; }
+{ESC}\\       {adjust(); append('\\'); append('\\'); continue; }
+{ESC}(\"|\')       {adjust(); append(yytext[1]); continue; }
+{ESC}[0-7]         {adjust();
+                    char x=(char)(yytext[1]-'0');
+                    append(x);
+                    continue;
+                   } 
+{ESC}[0-7][0-7]    {adjust();
+                    char x=(char)((yytext[1]-'0')*8+yytext[2]-'0');
+                    append(x);
+                    continue;
+                   } 
+{ESC}[0-3][0-7][0-7] {adjust();
+                    char x=(char)((yytext[1]-'0')*64+(yytext[2]-'0')*8
+                            +yytext[3]-'0');
+                    append(x);
+                    continue;
+                   } 
+{ESC}0[0-3][0-7][0-7] {adjust();
+                    char x=(char)((yytext[2]-'0')*64+(yytext[3]-'0')*8
+                            +yytext[4]-'0');
+                    append(x);
+                    continue;
+                   }
 .                  {adjust(); append(*yytext); }
 }
 
@@ -339,6 +385,7 @@ operator           {adjust(); BEGIN opname; }
 
 \/\*               {adjust(); /*commentDepth = 1;*/ BEGIN lexcomment; }
 \"                 {adjust(); BEGIN texstring; }
+\'                 {adjust(); BEGIN cstring; }
 
 .                  {
   adjust(); error(); *em <<"invalid token '" << yytext << "'"; }
