@@ -23,7 +23,7 @@ LEX = @LEX@
 DEFS = @DEFS@
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) $(CFLAGS) 
-INCL = -I- -I .
+INCL = -I .
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
