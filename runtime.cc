@@ -484,7 +484,7 @@ void arraySequence(stack *s)
   s->push(a);
 }
 
-// Return the array {0,1,...n}
+// Return the array {0,1,...n-1}
 void intSequence(stack *s)
 {
   int n=pop<int>(s);
@@ -503,12 +503,13 @@ void arrayFunction(stack *s)
   callable* f = pop<callable*>(s);
   checkArray(s,a);
   size_t size=(size_t) a->size();
+  array *b=new array(size);
   for(size_t i=0; i < size; ++i) {
     s->push((*a)[i]);
     f->call(s);
-    (*a)[i]=s->pop();
+    (*b)[i]=s->pop();
   }
-  s->push(a);
+  s->push(b);
 }
 
 // In a boolean array, find the index of the nth true value or -1 if not found
