@@ -20,7 +20,7 @@ using std::setw;
 using std::setprecision;
   
 psfile::psfile(const string& filename, const bbox& box, const pair& shift)
-  : filename(filename), box(box), shift(shift)
+  : filename(filename), box(box), shift(shift), lastpen(setlinewidth,0.0)
 {
   if(filename != "") out=new ofstream(filename.c_str());
   else out=&std::cout;
@@ -60,10 +60,6 @@ void psfile::prologue()
   *out << "%%EndProlog" << newl;
   *out << "%%Page: 1 1" << newl;
 
-  pen defaultpen;
-  defaultpen.defaultwidth();
-  setpen(defaultpen);
-  
   *out << " 1 setlinecap 1 setlinejoin 10 setmiterlimit" << newl;
   
 }

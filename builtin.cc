@@ -503,18 +503,19 @@ void base_venv(venv &ve)
   addFunc(ve,run::frameMax,primPair(),"max",primPicture());
   addFunc(ve,run::frameMin,primPair(),"min",primPicture());
   
-  addFunc(ve,run::linetype,primPen(),"linetype",primString());
+  addFunc(ve,run::lineType,primPen(),"linetype",primString());
   addFunc(ve,run::rgb,primPen(),"rgb",primReal(),primReal(),primReal());
   addFunc(ve,run::cmyk,primPen(),"cmyk",primReal(),primReal(),primReal(),
 	  primReal());
   addFunc(ve,run::gray,primPen(),"gray",primReal());
   addFunc(ve,run::defaultpen,primPen(),"defaultpen");
   addFunc(ve,run::invisiblepen,primPen(),"invisible");
-  addFunc(ve,run::linewidth,primPen(),"linewidth",primReal());
+  addFunc(ve,run::lineWidth,primPen(),"linewidth",primReal());
+  addFunc(ve,run::penLineWidth,primReal(),"linewidth",primPen());
   addFunc(ve,run::defaultLineWidth,primVoid(),"defaultlinewidth",primReal());
-  addFunc(ve,run::fontsize,primPen(),"fontsize",primReal());
+  addFunc(ve,run::fontSize,primPen(),"fontsize",primReal());
+  addFunc(ve,run::penFontSize,primReal(),"fontsize",primPen());
   addFunc(ve,run::defaultFontSize,primVoid(),"defaultfontsize",primReal());
-  addFunc(ve,run::penFontsize,primReal(),"fontsize",primPen());
   addFunc(ve,run::penMax,primPair(),"max",primPen());
   addFunc(ve,run::penMin,primPair(),"min",primPen());
   

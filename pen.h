@@ -18,9 +18,10 @@ using settings::defaultfontsize;
 
 namespace camp {
 
-static const string DEFLINE="<default>";
+static const string DEFLINE="default";
 static const double DEFWIDTH=-1;
 static const struct transparentpen_t {} transparentpen={};
+static const struct setlinewidth_t {} setlinewidth={};
 static const struct setfontsize_t {} setfontsize={};
   
 enum Colorspace {TRANSPARENT,DEFCOLOR,GRAYSCALE,RGB,CMYK};
@@ -39,7 +40,7 @@ class pen : public mempool::pooled<pen>
   double grey; // grayscale or K value
 
   // The transformation applied to the pen nib for calligraphic effects.
-  // Null for no transformation.
+  // Null means the identity transformation.
   const transform *t;
   
 public:
@@ -57,9 +58,9 @@ public:
       color(color), r(r), g(g), b(b), grey(grey), t(t) {}
       
   
-  pen(const string& line, double linewidth) : 
-    line(line), linewidth(linewidth), fontsize(0.0),
-    color(DEFCOLOR), r(0.0), g(0.0), b(0.0), grey(0.0), t(0) {}
+  explicit pen(setlinewidth_t, double linewidth) : 
+    line(DEFLINE), linewidth(linewidth), fontsize(0.0), color(DEFCOLOR),
+    r(0.0), g(0.0), b(0.0), grey(0.0), t(0) {}
   
   explicit pen(const string& line) : line(line), linewidth(DEFWIDTH),
 			    fontsize(0.0), color(DEFCOLOR),
@@ -116,32 +117,15 @@ public:
     return (linewidth == DEFWIDTH) ? defaultlinewidth : linewidth;
   }
   
-  double rawwidth() const {return linewidth;}
-  
-  void defaultwidth() {linewidth=width();}
-  
   double size() const {return (fontsize == 0.0) ? defaultfontsize : fontsize;}
   
-  double rawsize() const {return fontsize;}
-  
-  void defaultsize() {fontsize=size();} 
-  
-  void defaultcolor() {
-    if(color == DEFCOLOR) {
-      color=GRAYSCALE;
-      grey=0.0;
-    }
-  }
-  
   string stroke() {return (line == DEFLINE) ? "" : line;}
-  
-  string rawstroke() const {return line;}
-  
-  void defaultstroke() {line=stroke();}
   
   void setstroke(const string& s) {line=s;}
   
   bool transparent() const {return color == TRANSPARENT;}
+  
+  bool mono() const {return color == GRAYSCALE || color == DEFCOLOR;}
   
   bool grayscale() const {return color == GRAYSCALE;}
   
@@ -315,7 +299,7 @@ public:
   }
   
   friend ostream& operator << (ostream& out, const pen& p) {
-    out << "([" << (p.line == DEFLINE ? "default" : p.line) << "]";
+    out << "([" << p.line << "]";
     if(p.linewidth >= 0) out << ", linewidth " << p.linewidth;
     if(p.fontsize) out << ", fontsize=" << p.fontsize;
     if(p.grayscale()) out << ", gray=" << p.grey;

@@ -32,7 +32,6 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
   pen Pentype=*pentype;
     
   if(!(width || height || depth)) {
-    Pentype.defaultsize();
     tex <<  "\\fontsize{" << Pentype.size() << "}{" << Pentype.size()*1.2
 	<< "}\\selectfont" << "\n";
     tex.wait("\n*","! ");

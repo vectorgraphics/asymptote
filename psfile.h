@@ -24,8 +24,8 @@ class psfile {
   string filename;
   bbox box;
   pair shift;
-  ostream *out;
   pen lastpen;
+  ostream *out;
   std::stack<pen> pens;
 
   void write(pair z) {
@@ -54,7 +54,6 @@ public:
   void setpen(pen p) {
     if(p == lastpen) return;
     
-    p.defaultcolor();
     if(p.cmyk() && (!lastpen.cmyk() || 
 		    (p.cyan() != lastpen.cyan() || 
 		     p.magenta() != lastpen.magenta() || 
@@ -72,18 +71,16 @@ public:
 	   << " setrgbcolor" << newl;
     }
     
-    if(p.grayscale() && (!lastpen.grayscale() || p.gray() != lastpen.gray())) {
+    if(p.mono() && (!lastpen.mono() || p.gray() != lastpen.gray())) {
       *out << p.gray() << " setgray" << newl;
     }
     
-    p.defaultwidth();
-    if(p.rawwidth() != lastpen.rawwidth()) {
+    if(p.width() != lastpen.width()) {
       *out << " 0 " << p.width() << 
 	" dtransform truncate idtransform setlinewidth pop" << newl;
     }
     
-    p.defaultstroke();
-    if(p.rawstroke() != lastpen.rawstroke()) {
+    if(p.stroke() != lastpen.stroke()) {
       *out << "[" << p.stroke() << "] 0 setdash" << newl;
     }
     

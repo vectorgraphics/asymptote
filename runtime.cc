@@ -1334,16 +1334,10 @@ void gray(stack *s)
   s->push(new pen(x));  
 }
 
-void linetype(stack *s)
+void lineType(stack *s)
 {
   string t = s->pop<std::string>();
   s->push(new pen(t));  
-}
-
-void linewidth(stack *s)
-{
-  double x = s->pop<double>();
-  s->push(new pen(DEFLINE,x));  
 }
 
 void defaultLineWidth(stack *s)
@@ -1351,21 +1345,32 @@ void defaultLineWidth(stack *s)
   defaultlinewidth = s->pop<double>();
 }
 
+void lineWidth(stack *s)
+{
+  double x = s->pop<double>();
+  s->push(new pen(setlinewidth,x >= 0.0 ? x : DEFWIDTH));  
+}
+
+void penLineWidth(stack *s)
+{
+  pen p(*s->pop<pen*>());
+  s->push(p.width());  
+}
+
 void defaultFontSize(stack *s)
 {
   defaultfontsize = s->pop<double>();
 }
 
-void fontsize(stack *s)
+void fontSize(stack *s)
 {
   double x = s->pop<double>();
-  s->push(new pen(setfontsize,x));  
+  s->push(new pen(setfontsize,x > 0.0 ? x : 0.0));
 }
 
-void penFontsize(stack *s)
+void penFontSize(stack *s)
 {
   pen p(*s->pop<pen*>());
-  p.defaultsize();
   s->push(p.size());  
 }
 

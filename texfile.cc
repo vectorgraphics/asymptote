@@ -48,7 +48,6 @@ void texfile::prologue()
        << newl
        << "\\rput[lB]{#5}(#1,#2){\\kern#3pt\\raise#4pt\\box\\ASYbox}}" << newl
        << "\\begin{document}" << newl;
-  lastpen.defaultsize();
 }
     
 void texfile::beginlayer(const string& psname)
@@ -66,8 +65,6 @@ void texfile::endlayer()
 
 void texfile::setpen(pen& p)
 {
-  p.defaultcolor();
-  
   if(p.cmyk() && (!lastpen.cmyk() || 
 		  (p.cyan() != lastpen.cyan() || 
 		   p.magenta() != lastpen.magenta() || 
@@ -87,14 +84,13 @@ void texfile::setpen(pen& p)
 	 << "}\\ASYcolor" << newl;
   }
   
-  if(p.grayscale() && (!lastpen.grayscale() || p.gray() != lastpen.gray())) {
+  if(p.mono() && (!lastpen.mono() || p.gray() != lastpen.gray())) {
     *out << "\\newgray{ASYcolor}{" 
 	 << p.gray()
 	 << "}\\ASYcolor" << newl;
   }
   
-  p.defaultsize();
-  if(p.rawsize() != lastpen.rawsize()) {
+  if(p.size() != lastpen.size()) {
     *out << "\\fontsize{" << p.size() << "}{" << p.size()*1.2
 	 << "}\\selectfont" << newl;
   }
