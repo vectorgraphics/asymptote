@@ -10,8 +10,8 @@ pair z2=(a,0);
 pair z3=(a+b,0);
 draw(square((0,0),z3));
 draw(square(z1,z2));
-perpendicular(z1,z2,blue);
-perpendicular(z3,z3+I*z3,blue);
+perpendicular(z1,z1--z2,blue);
+perpendicular(z3,N,blue);
 
 real d=0.3;
 pair v=unit(z2-z1);

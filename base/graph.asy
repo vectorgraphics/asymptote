@@ -173,13 +173,13 @@ void labelaxis(frame f, string s, real position, real angle, pair align,
   pair z=point(g,position);
   pair dir=dir(g,position);
   if(labels) {
-    pair a=unit(align);
-    pair offset=a.x <= 0 && a.y <= 0 ? min(f) : max(f);
-    z=dir != 0 ? (z*dir).x/dir : 0;
-    if(a != 0) z += (offset*a).x/a;
+    pair minf=min(f);
+    pair maxf=max(f);
+    pair offset=(align.x > 0 ? maxf.x : (align.x < 0 ? minf.x : 0),
+		 align.y > 0 ? maxf.y : (align.y < 0 ? minf.y : 0))-z;
+    pair Idir=I*dir;
+    z += Dot(offset,Idir)*Idir;
   }
-  if(position == 0) align += 0.6*dir;
-  if(position == length(g)) align -= 0.6*dir;
   if(deconstruct) {
     if(GUIDelete()) return;
     z=GUI()*z;
@@ -187,6 +187,9 @@ void labelaxis(frame f, string s, real position, real angle, pair align,
   frame d;
   label(d,s,angle,z,labels ? axislabelmargin*align : align,p);
   if(deconstruct) deconstruct(d);
+  pair width=0.5*Dot(max(d)-min(d),dir)*dir;
+  if(position == 0) d=shift(width)*d;
+  if(position == length(g)) d=shift(-width)*d;
   add(f,d);
 }
 
@@ -309,8 +312,9 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	    draw(d,locate.Z--locate.Z-Size*I*sign*locate.dir,p);
 	  }
 	  if(size > 0 && step > 0) {
-	    real iStep=i*Step+offset;
+	    real iStep=i*Step;
 	    real jstop=(len-iStep)/step;
+	    iStep += offset;
 	    for(int j=1; j < n && j <= jstop; ++j) {
 	      real pos=iStep+j*step;
 	      if(cyclic(g) || (pos >= firstpos && pos <= lastpos)) {
@@ -350,7 +354,8 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
       int first=ceil(initial-epsilon);
       int last=floor(final+epsilon);
       real len=arclength(g);
-      real factor=len/(final-initial);
+      real denom=final-initial;
+      real factor=denom != 0 ? len/denom : len;
     
       if(!deconstruct || !GUIDelete()) {
 	frame d;
@@ -532,101 +537,138 @@ void yequals(picture pic=currentpicture, real y,
 
 private struct axisT {
   public pair value;
-  public pair min;
-  public pair max;
   public real position;
   public pair side;
   public pair align;
   public pair value2;
   
-  // Used to return values to caller
   public pair userMin;
   public pair userMax;
   public int[] xdivisor;
   public int[] ydivisor;
-  public pair tickMin;
-  public pair tickMax;
+  public bool extend;
 };
 
 public axisT axis=new axisT;
-typedef void axis(picture, pair, pair, axisT);
-public axis
-  Bottom=new void(picture pic, pair min, pair max, axisT axis) {
-    axis.value=pic.scale.y.automin ? axis.tickMin : axis.userMin;
-    axis.min=axis.userMin;
-    axis.max=axis.userMax;
+typedef void axis(picture, axisT);
+
+axis Bottom(bool extend=false) {
+  return new void(picture pic, axisT axis) {
+    axis.value=pic.scale.y.automin ?
+      (pic.scale.x.tickMin,pic.scale.y.tickMin) : axis.userMin;
     axis.position=0.5;
     axis.side=right;
     axis.align=S;
     axis.value2=infinity;
-  },
-  Top=new void(picture pic, pair min, pair max, axisT axis) {
-    axis.value=pic.scale.y.automax ? axis.tickMax : axis.userMax;
-    axis.min=axis.userMin;
-    axis.max=axis.userMax;
+    axis.extend=extend;
+  };
+}
+
+axis Top(bool extend=false) {
+  return new void(picture pic, axisT axis) {
+    axis.value=pic.scale.y.automax ?
+    (pic.scale.x.tickMax,pic.scale.y.tickMax) : axis.userMax;
     axis.position=0.5;
     axis.side=left;
     axis.align=N;
     axis.value2=infinity;
-  },
-  BottomTop=new void(picture pic, pair min, pair max, axisT axis) {
-    axis.value=pic.scale.y.automin ? axis.tickMin : axis.userMin;
-    axis.min=axis.userMin;
-    axis.max=axis.userMax;
+    axis.extend=extend;
+  };
+}
+
+axis BottomTop(bool extend=false) {
+  return new void(picture pic, axisT axis) {
+    axis.value=pic.scale.y.automin ?
+    (pic.scale.x.tickMin,pic.scale.y.tickMin) : axis.userMin;
     axis.position=0.5;
     axis.side=right;
     axis.align=S;
-    axis.value2=pic.scale.y.automax ? axis.tickMax : axis.userMax;
-  },
-  Left=new void(picture pic, pair min, pair max, axisT axis) {
-    axis.value=pic.scale.x.automin ? axis.tickMin : axis.userMin;
-    axis.min=axis.userMin;
-    axis.max=axis.userMax;
+    axis.value2=pic.scale.y.automax ?
+    (pic.scale.x.tickMax,pic.scale.y.tickMax) : axis.userMax;
+    axis.extend=extend;
+  };
+}
+
+axis Left(bool extend=false) {
+  return new void(picture pic, axisT axis) {
+    axis.value=pic.scale.x.automin ? 
+    (pic.scale.x.tickMin,pic.scale.y.tickMin) : axis.userMin;
     axis.position=0.5;
     axis.side=left;
     axis.align=W;
     axis.value2=infinity;
-  },
-  Right=new void(picture pic, pair min, pair max, axisT axis) {
-    axis.value=pic.scale.x.automax ? axis.tickMax : axis.userMax;
-    axis.min=axis.userMin;
-    axis.max=axis.userMax;
+    axis.extend=extend;
+  };
+}
+
+axis Right(bool extend=false) {
+  return new void(picture pic, axisT axis) {
+    axis.value=pic.scale.x.automax ?
+    (pic.scale.x.tickMax,pic.scale.y.tickMax) : axis.userMax;
     axis.position=0.5;
     axis.side=right;
     axis.align=E;
     axis.value2=infinity;
-  },
-  LeftRight=new void(picture pic, pair min, pair max, axisT axis) {
-    axis.value=pic.scale.x.automin ? axis.tickMin : axis.userMin;
-    axis.min=axis.userMin;
-    axis.max=axis.userMax;
+    axis.extend=extend;
+  };
+}
+
+axis LeftRight(bool extend=false) {
+  return new void(picture pic, axisT axis) {
+    axis.value=pic.scale.x.automin ?
+      (pic.scale.x.tickMin,pic.scale.y.tickMin) : axis.userMin;
     axis.position=0.5;
     axis.side=left;
     axis.align=W;
-    axis.value2=pic.scale.x.automax ? axis.tickMax : axis.userMax;
-  },
-  XZero=new void(picture, pair min, pair max, axisT axis) {
-    axis.value=0;
-    axis.min=min;
-    axis.max=max;
+    axis.value2=pic.scale.x.automax ?
+      (pic.scale.x.tickMax,pic.scale.y.tickMax) : axis.userMax;
+    axis.extend=extend;
+  };
+}
+
+axis XEquals(real x, bool extend=true)
+{
+  return new void(picture pic, axisT axis) {
+    axis.value=x;
     axis.position=1;
     axis.side=left;
     axis.align=W;
     axis.value2=infinity;
-    axis.tickMin=min;
-    axis.tickMax=max;
-  },
-  YZero=new void(picture, pair min, pair max, axisT axis) {
-    axis.value=0;
-    axis.min=min;
-    axis.max=max;
+    axis.extend=extend;
+  };
+}
+
+axis YEquals(real y, bool extend=true)
+{
+    return new void(picture pic, axisT axis) {
+    axis.value=I*y;
     axis.position=1;
     axis.side=right;
     axis.align=S;
     axis.value2=infinity;
-    axis.tickMin=min;
-    axis.tickMax=max;
+    axis.extend=extend;
   };
+}
+
+axis XZero(bool extend=true)
+{
+  return XEquals(0,extend);
+}
+
+axis YZero(bool extend=true)
+{
+  return YEquals(0,extend);
+}
+
+public axis
+  Bottom=Bottom(),
+  Top=Top(),
+  BottomTop=BottomTop(),
+  Left=Left(),
+  Right=Right(),
+  LeftRight=LeftRight(),
+  XZero=XZero(),
+  YZero=YZero();
 
 void crop(picture pic=currentpicture) 
 {
@@ -666,23 +708,27 @@ void limits(picture pic=currentpicture, pair min, pair max)
 }
   
 
-void autoscale(picture pic=currentpicture, axis axis) 
+void autoscale(picture pic=currentpicture, axis axis)
 {
   if(!pic.scale.set) {
     bounds mx,my;
+    pic.scale.set=true;
     if(finite(pic.userMin.x) && finite(pic.userMax.x))
       mx=autoscale(pic.userMin.x,pic.userMax.x,logarithmic(pic.scale.x.scale));
-    else {mx=new bounds; mx.min=-infinity; mx.max=infinity;}
+    else {mx=new bounds; mx.min=mx.max=0; pic.scale.set=false;}
     if(finite(pic.userMin.y) && finite(pic.userMax.y))
       my=autoscale(pic.userMin.y,pic.userMax.y,logarithmic(pic.scale.y.scale));
-    else {my=new bounds; my.min=-infinity; my.max=infinity;}
-    axis.tickMin=(mx.min,my.min);
-    axis.tickMax=(mx.max,my.max);
-    axis.userMin=pic.userMin;
-    axis.userMax=pic.userMax;
+    else {my=new bounds; my.min=my.max=0; pic.scale.set=false;}
+    pic.scale.x.tickMin=mx.min;
+    pic.scale.y.tickMin=my.min;
+    pic.scale.x.tickMax=mx.max;
+    pic.scale.y.tickMax=my.max;
     axis.xdivisor=mx.divisor;
     axis.ydivisor=my.divisor;
-    pic.scale.set=true;
+    axis.userMin=(pic.scale.x.automin ? mx.min : pic.userMin.x,
+		  pic.scale.y.automin ? my.min : pic.userMin.y);
+    axis.userMax=(pic.scale.x.automax ? mx.max : pic.userMax.x,
+		  pic.scale.y.automax ? my.max : pic.userMax.y);
   }
 }
 
@@ -691,25 +737,48 @@ void xaxis(picture pic=currentpicture, real xmin=-infinity, real xmax=infinity,
 	   pair align=0, pair shift=0, pair side=0, pen plabel=currentpen,
 	   axis axis=YZero, ticks ticks=NoTicks)
 {
-  if(xmin == -infinity && !pic.scale.x.automin) xmin=pic.userMin.x;
-  if(xmax == -infinity && !pic.scale.x.automax) xmax=pic.userMax.x;
   pic.scale.update();
   
-  autoscale(pic,axis);
-  axis(pic,(xmin,0),(xmax,0),axis);
-  if(xmin == -infinity) 
-    xmin=pic.scale.x.automin ? axis.tickMin.x : axis.userMin.x;
-  if(xmax == infinity)
-    xmax=pic.scale.x.automax ? axis.tickMax.x : axis.userMax.x;
+  bool newticks=false;
+  if(xmin != -infinity) {
+    pic.userMin=(xmin,pic.userMin.y);
+    newticks=true;
+  }
+  if(xmax != infinity) {
+    pic.userMax=(xmax,pic.userMax.y);
+    newticks=true;
+  }
+  
+  if(pic.scale.set && newticks) {
+    bounds mx=autoscale(xmin,xmax,logarithmic(pic.scale.x.scale));
+    pic.scale.x.tickMin=mx.min;
+    pic.scale.x.tickMax=mx.max;
+    axis.xdivisor=mx.divisor;
+  } else autoscale(pic,axis);
+  
+  axis(pic,axis);
+  
+  if(xmin == -infinity) {
+    if(pic.scale.x.automin) {
+      if(!axis.extend) xmin=pic.scale.x.tickMin;
+    } else xmin=pic.userMin.x;
+  }
+  
+  if(xmax == infinity) {
+    if(pic.scale.x.automax) {
+      if(!axis.extend) xmax=pic.scale.x.tickMax;
+    } else xmax=pic.userMax.x;
+  }
   
   if(position == infinity) position=axis.position;
   if(align == 0) align=axis.align;
   if(side == 0) side=axis.side;
   
-  yequals(pic,axis.value.y,xmin,xmax,axis.tickMin.x,axis.tickMax.x,p,s,
-	  position,angle,align,shift,side,plabel,ticks,axis.xdivisor);
+  yequals(pic,axis.value.y,xmin,xmax,pic.scale.x.tickMin,pic.scale.x.tickMax,
+	  p,s,position,angle,align,shift,side,plabel,ticks,axis.xdivisor);
   if(axis.value2 != infinity)
-    yequals(pic,axis.value2.y,xmin,xmax,axis.tickMin.x,axis.tickMax.x,p,s,
+    yequals(pic,axis.value2.y,xmin,xmax,pic.scale.x.tickMin,
+	    pic.scale.x.tickMax,p,s,
 	    position,angle,align,shift,side,plabel,ticks,axis.xdivisor,true);
 }
 
@@ -718,32 +787,54 @@ void yaxis(picture pic=currentpicture, real ymin=-infinity, real ymax=infinity,
 	   real angle=infinity, pair align=0, pair shift=0, pair side=0,
 	   pen plabel=currentpen, axis axis=XZero, ticks ticks=NoTicks)
 {
+  pic.scale.update();
+  
+  bool newticks=false;
+  if(ymin != -infinity) {
+    pic.userMin=(pic.userMin.x,ymin);
+    newticks=true;
+  }
+  if(ymax != infinity) {
+    pic.userMax=(pic.userMax.x,ymax);
+    newticks=true;
+  }
+  
+  if(pic.scale.set && newticks) {
+    bounds my=autoscale(ymin,ymax,logarithmic(pic.scale.y.scale));
+    pic.scale.y.tickMin=my.min;
+    pic.scale.y.tickMax=my.max;
+    axis.ydivisor=my.divisor;
+  } else autoscale(pic,axis);
+  
+  axis(pic,axis);
+  
+  if(ymin == -infinity) {
+    if(pic.scale.y.automin) {
+      if(!axis.extend) ymin=pic.scale.y.tickMin;
+    } else ymin=pic.userMin.y;
+  }
+  
+  if(ymax == infinity) {
+    if(pic.scale.y.automax) {
+      if(!axis.extend) ymax=pic.scale.y.tickMax;
+    } else ymax=pic.userMax.y;
+  }
+  
+  if(position == infinity) position=axis.position;
+  if(align == 0) align=axis.align;
+  if(side == 0) side=axis.side;
+  
   if(angle == infinity) {
     frame f;
     label(f,s,0,(0,0),0,plabel);
     angle=length(max(f)-min(f)) > ylabelwidth*fontsize(plabel) ? 90 : 0;
   }
   
-  if(ymin == -infinity && !pic.scale.y.automin) ymin=pic.userMin.y;
-  if(ymax == infinity && !pic.scale.y.automax) ymax=pic.userMax.y;
-  pic.scale.update();
-  
-  autoscale(pic,axis);
-
-  axis(pic,(0,ymin),(0,ymax),axis);
-  if(ymin == -infinity)
-    ymin=pic.scale.y.automin ? axis.tickMin.y : axis.userMin.y;
-  if(ymax == infinity)
-    ymax=pic.scale.y.automax ? axis.tickMax.y : axis.userMax.y;
-  
-  if(position == infinity) position=axis.position;
-  if(align == 0) align=axis.align;
-  if(side == 0) side=axis.side;
-  
-  xequals(pic,axis.value.x,ymin,ymax,axis.tickMin.y,axis.tickMax.y,p,s,
-	  position,angle,align,shift,side,plabel,ticks,axis.ydivisor);
+  xequals(pic,axis.value.x,ymin,ymax,pic.scale.y.tickMin,pic.scale.y.tickMax,
+	  p,s,position,angle,align,shift,side,plabel,ticks,axis.ydivisor);
   if(axis.value2 != infinity)
-    xequals(pic,axis.value2.x,ymin,ymax,axis.tickMin.y,axis.tickMax.y,p,s,
+    xequals(pic,axis.value2.x,ymin,ymax,pic.scale.y.tickMin,
+	    pic.scale.y.tickMax,p,s,
 	    position,angle,align,shift,side,plabel,ticks,axis.ydivisor,true);
 }
 

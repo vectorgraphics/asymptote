@@ -2330,21 +2330,31 @@ that the corresponding axis limit will be automatically determined from the
 picture limits. The axis placement is determined by one of the
 following @code{axis} types:
 
-@itemize @bullet 
+@table @code
 
 @cindex @code{YZero}
-@item @code{YZero} (draw the axis at y=0)
+@item YZero(bool extend=true)
+Request an @math{x} axis at @math{y}=0 extending to the full dimensions
+of the picture, unless @code{extend}=false.
+
+@cindex @code{YEquals}
+@item YEquals(real Y, bool extend=true)
+Request an @math{x} axis at @math{Y}=@code{Y} extending to the full
+dimensions of the picture, unless @code{extend}=false.
 
 @cindex @code{Bottom}
-@item @code{Bottom} (draw a bottom axis)
+@item Bottom(bool extend=false)
+Request a bottom axis.
 
 @cindex @code{Top}
-@item @code{Top} (draw a top axis)
+@item Top(bool extend=false)
+Request a top axis.
 
 @cindex @code{BottomTop}
-@item @code{BottomTop} (draw a bottom and top axis)
+@item BottomTop(bool extend=false)
+Request a bottom and top axis.
 
-@end itemize
+@end table
 
 @cindex @code{ticks}
 @cindex @code{NoTicks}
@@ -2398,25 +2408,35 @@ string @code{s} at relative location @code{position} (a real number from
 The tick type is specified by @code{ticks} and the axis
 placement is determined by one of the following @code{axis} types:
 
-@itemize @bullet 
+@table @code
 
 @cindex @code{XZero}
-@item @code{XZero} (draw the axis at x=0)
+@item XZero(bool extend=true)
+Request a @math{y} axis at @math{x}=0 extending to the full dimensions
+of the picture, unless @code{extend}=false.
+
+@cindex @code{XEquals}
+@item XEquals(real X, bool extend=true)
+Request a @math{y} axis at @math{x}=@code{X} extending to the full
+dimensions of the picture, unless @code{extend}=false.
 
 @cindex @code{Left}
-@item @code{Left} (draw a left axis)
+@item Left(bool extend=false)
+Request a left axis.
 
 @cindex @code{Right}
-@item @code{Right} (draw a right axis)
+@item Right(bool extend=false) 
+Request a right axis.
 
 @cindex @code{LeftRight}
-@item @code{LeftRight} (draw a left and right axis)
+@item LeftRight(bool extend=false) 
+Request a left and right axis.
 
-@end itemize
+@end table
 
 @item
 @verbatim
-void xequals(picture pic=currentpicture, real x,
+void xequals(picture pic=currentpicture, real X,
              real ymin=-infinity, real ymax=infinity, 
              real tickmin=-infinity, real tickmax=infinity,
              pen p=currentpen, string s="", real position=1,
@@ -2425,7 +2445,7 @@ void xequals(picture pic=currentpicture, real x,
              int[] divisor=new int[], bool opposite=false);
 @end verbatim
 
-Draw the line @math{x}=@code{x} on picture @code{pic} from
+Draw the line @math{x}=@code{X} on picture @code{pic} from
 @math{y}=@code{ymin} to @math{y}=@code{ymax}, with optional tick minimum
 and maximum values @code{tickmin} and @code{tickmax}, using pen
 @code{p}, optionally labelling it with string @code{s} at relative
@@ -2439,7 +2459,7 @@ secondary axis (typically drawn opposite to a primary axis).
 
 @item
 @verbatim
-void yequals(picture pic=currentpicture, real y,
+void yequals(picture pic=currentpicture, real Y,
              real xmin=-infinity, real xmax=infinity,
              real tickmin=-infinity, real tickmax=infinity,
              pen p=currentpen, string s="", real position=1,
@@ -2448,7 +2468,7 @@ void yequals(picture pic=currentpicture, real y,
              int[] divisor=new int[], bool opposite=false);
 @end verbatim
 
-Like @code{xequals}, but draw the line @math{y}=@code{y} on picture
+Like @code{xequals}, but draw the line @math{y}=@code{Y} on picture
 @code{pic} from @math{x}=@code{xmin} to @math{x}=@code{xmax}.
 
 @item
@@ -2483,8 +2503,8 @@ Here are some simple examples of two-dimensional graphs:
 @enumerate
 
 @cindex textbook graph
-@item This example draws a textbook-style graph of y=exp(x), with the yaxis
-starting at 0:
+@item This example draws a textbook-style graph of
+@math{y=} exp@math{(x)}, with the @math{y} axis starting at @math{y=0}:
 @verbatim
 import graph;
 size(150,0);
@@ -2545,6 +2565,9 @@ dot(g);
 
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
+
+xaxis(Dotted,YEquals(20.0,false));
+yaxis(Dotted,XEquals(50.0,false));
 
 shipout();
 @end verbatim
@@ -3305,7 +3328,7 @@ the @code{Asymptote} source):
 // Global definitions can be put here.
 \end{asydef}
 
-Here is a figure produced with \Asymptote, drawn to width 5cm:
+Here is a figure produced with Asymptote, drawn to width 5cm:
 
 \begin{center}
 \begin{asy}

@@ -11,5 +11,8 @@ dot(g);
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
 
+xaxis(Dotted,YEquals(20.0,false));
+yaxis(Dotted,XEquals(50.0,false));
+
 shipout();
 

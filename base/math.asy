@@ -31,13 +31,22 @@ real sec(real x) {return 1/cos(x);}
 real cot(real x) {return tan(pi/2-x);}
 real frac(real x) {return x-(int)x;}
 
-void perpendicular(picture pic=currentpicture, pair z1, pair z2,
-		   real size=perpsize, pen p=currentpen)
+// Draw a perpendicular symbol at z going from w to I*w.
+void perpendicular(picture pic=currentpicture, pair z, pair w,
+		   real size=perpsize, pen p=currentpen) 
 {
-  pair v=perpsize*unit(z2-z1);
   picture apic=new picture;
-  _draw(apic,v--v+I*v--I*v,p);
-  addabout(z1,pic,apic);
+  pair d1=size*w;
+  pair d2=I*d1;
+  _draw(apic,d1--d1+d2--d2,p);
+  addabout(z,pic,apic);
+}
+  
+// Draw a perpendicular symbol at z going from dir(g,0) to dir(g,0)+90
+void perpendicular(picture pic=currentpicture, pair z, path g,
+		   real size=perpsize, pen p=currentpen) 
+{
+  perpendicular(pic,z,dir(g,0),size,p);
 }
 
 bool straight(path p)
@@ -99,13 +108,35 @@ bool intersect(pair a, pair b, path p)
 // PQ and pq.
 pair extension(pair P, pair Q, pair p, pair q) 
 {
-  real M=(Q.y-P.y)/(Q.x-P.x);
-  real m=(q.y-p.y)/(q.x-p.x);
+  real Dx=(Q.x-P.x);
+  real Dy=(Q.y-P.y);
+  real dx=(q.x-p.x);
+  real dy=(q.y-p.y);
+  if(Dx == 0 || dx == 0) {
+    if(Dx == 0 && dy == 0) return (P.x,p.y);
+    if(Dy == 0 && dx == 0) return (p.x,P.y);
+    if((Dx == 0 && Dy == 0) || (dx == 0 && dy == 0))
+      return (infinity,infinity);
+    real M=Dx/Dy;
+    real m=dx/dy;
+    if(m == M) return (infinity,infinity);
+    real B=P.x-M*P.y;
+    real b=p.x-m*p.y;
+    real y=(B-b)/(m-M);
+    return (m*y+b,y);
+  }
+  real M=Dy/Dx;
+  real m=dy/dx;
   if(m == M) return (infinity,infinity);
   real B=P.y-M*P.x;
   real b=p.y-m*p.x;
   real x=(B-b)/(m-M);
   return (x,m*x+b);
+}
+
+pair intersectionpoint(path a, path b)
+{
+  return point(a,intersect(a,b).x);
 }
 
 struct vector {

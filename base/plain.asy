@@ -47,6 +47,8 @@ pen longdashed=linetype("24 8");
 pen dashdotted=linetype("8 8 0 8");
 pen longdashdotted=linetype("24 8 0 8");
 
+pen Dotted=linetype("0 4")+linewidth(1.0);
+
 pen invisible=invisible();
 pen black=gray(0);
 pen gray=gray(0.9);
@@ -307,6 +309,7 @@ public struct scaleT {
 public struct autoscaleT {
   public scaleT scale=new scaleT;
   public bool automin=true, automax=true;
+  public real tickMin=infinity, tickMax=-infinity;
   void update() {
     if(automin) automin=scale.automin;
     if(automax) automax=scale.automax;
@@ -1676,3 +1679,9 @@ pair dir(path g)
 {
   return dir(g,1);
 }
+
+pair dir(path g, path h)
+{
+  return 0.5*(dir(g)+dir(h));
+}
+
