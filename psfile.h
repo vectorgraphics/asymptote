@@ -39,7 +39,7 @@ class psfile {
 
   void write(transform t) {
     *out << "[" << " " << t.getxx() << " " << t.getyx()
-                << " " << t.getyx() << " " << t.getyy()
+                << " " << t.getxy() << " " << t.getyy()
 	        << " " << t.getx()  << " " << t.gety() << "]";
   }
 
