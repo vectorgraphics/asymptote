@@ -1,0 +1,204 @@
+\input texinfo   @c -*-texinfo-*-
+@setfilename asymptote.info
+@settitle asymptote
+     
+@set VERSION 0.99
+
+@copying
+This file documents ASYMPTOTE, version @value{VERSION}.
+     
+Copyright @copyright{} 2004 Andy Hammerlindl, John Bowman, and Tom Prince.
+     
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the @acronym{GNU} Free Documentation License,
+Version 1.1, or any later version published by the Free Software
+Foundation.
+@end quotation
+@end copying
+     
+@dircategory Languages
+@direntry
+* asymptote: (asymptote).		Vector graphics language.
+@end direntry
+
+@titlepage
+@title Asymptote
+@subtitle For version @value{VERSION}
+     
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+     
+@end titlepage
+     
+@c So the toc is printed at the start.
+@contents
+     
+@ifnottex
+@node Top
+@top Asymptote
+     
+@insertcopying
+@end ifnottex
+
+@menu
+* Description::                 What is Asymptote?
+* Example::                     A simple example
+* Drawing commands::            
+* Interactive mode::            Typing Asymptote commands interactively
+* Credits::                     Contributions and acknowledgements
+* Index::                       General index
+
+@end menu
+
+@node Description
+@chapter Description
+Asymptote is powerful script-based vector graphics language that
+provides a natural coordinate-based framework for technical drawings,
+inspired by MetaPost. Labels and equations are typeset with LaTeX, for
+overall document consistency, yielding the same high-quality level of
+typesetting that LaTeX provides for scientific text.
+     
+@cindex description
+
+@node Example
+@chapter Example
+To draw a line from (0,0) to (100,100) using interactive mode, type:
+
+@example
+asy -V
+draw((0,0)--(100,100));
+@end example
+
+The units here are postscript "big points" (1 bp = 1/72 in).
+The @code{--} here means join with a linear segment.
+
+At this point you can type in further draw commands, which will be added
+to the displayed figure, or type @code{quit} to exit interactive mode.
+Further commands specific to interactive mode are described in
+@ref{Interactive mode}.
+
+You can use the arrow keys in interactive mode to edit previous lines
+(assuming that you have the GNU readline library installed on your
+system).  Because of the current limitations described in @ref{Interactive
+mode}, interactive mode is currently intended only for short 
+demonstration files. For more complicated graphs we recommend typing in the
+commands into a separate file, say test.asy, and executing them by typing
+
+@example
+asy -V test
+@end example
+
+The -V option here opens up a gv window so you can immediately view the
+postscript output.
+
+One can draw a line with more than two points and create a cyclic path
+like this square:
+
+@example
+draw((0,0)--(100,0)--(100,100)--(0,100)--cycle);
+@end example
+
+It is often inconvenient to work directly with postscript coordinates.
+This example draws a unit square, scaled to size (100,100). The output
+is identical to the previous example. (If you are using interactive mode
+ignore the two messages "warning: scaling in picture unbounded"; see
+@ref{Interactive mode}, for details).
+
+@example
+size(100,100);
+draw((0,0)--(1,0)--(1,1)--(0,1)--cycle);
+@end example
+
+@node Drawing commands
+@chapter Drawing commands
+All of Asymptote's graphical capabilities are based on four primitive
+drawing commands. While some of these commands take many options, they
+all have sensible default values.
+
+@itemize
+@item
+@example
+void draw(picture pic=currentpicture, string s="", real angle=0,
+  path g, pair align=0, side side=RightSide, pen p=currentpen,
+  adjust adjust=NoAdjust, arrowbar arrow=None, arrowbar bar=None,
+  string legend="");
+@end example
+
+Draw the path g on the picture pic, optionally labeled by
+string s, using pen p, and other optional drawing attributes (italic
+adjustment, arrows, bars, legend). Only one parameter, the path, is required.
+
+@item
+@example
+void fill(picture pic=currentpicture, path g, pen p=currentpen);
+@end example
+
+Fill the interior region bounded by the path g on the picture pic,
+using the pen p.
+
+@item
+@example
+void clip(picture pic=currentpicture, path g);
+@end example
+
+Clip picture pic to the region bounded by the path g.
+
+@item
+@example
+void label(picture pic=currentpicture, string s, real angle=0,
+  pair position, pair align=0, pen p=currentpen,
+  adjust adjust=NoAdjust);
+@end example
+
+Draw label s on pic, writing at the specified angle, at coordinate position,
+aligned in the direction align, with pen p (and optional italic adjustment).
+@end itemize
+
+@node Interactive mode
+@chapter Interactive mode
+Because Asymptote as currently designed does not natively support
+an interactive mode, interactive mode is currently simulated by
+rerunning all previous commands in a new module as each line is typed.
+This emulation will eventually become unneccessary, once Asymptote's module
+handling is redesigned to support a line-at-a-time mode.
+
+In interactive mode, it is not necessary to type @code{shipout();}
+at the end of your commands; a @code{shipout();} command is
+automatically appended as each line is entered. This means that you will
+get two innocuous warning messages "warning: scaling in picture unbounded"
+if you type in a command like @code{size(100,100);} on the first line
+(since the current picture, being still empty, cannot be scaled to achieve the
+requested size).
+
+The following special commands are supported only in interactive mode:
+
+@itemize
+@item @code{quit} exits interactive mode
+@item @code{redraw} refeshes the screen
+@item @code{reset} resets asymptote to its initial state on entry,
+before any commands were typed.
+@item @code{Import FILE;} imports the existing file FILE, after first
+doing a reset. 
+@end itemize
+
+Except for the last item, no semicolon should be typed after these
+interactive commands.
+
+@node Credits
+@chapter Acknowledgements
+Financial support for the developement of Asymptote was generously
+provided by the Natural Sciences and Engineering Research Council of
+Canada, the Pacific Institute for Mathematical Sciences, and the Faculty of
+Science, University of Alberta.
+     
+@cindex acknowledgments
+
+@node Index
+@unnumbered Index
+     
+@printindex cp
+     
+@bye
+
