@@ -13,6 +13,16 @@ struct tree
   public int value = 0;
 }
 
+bool operator == (tree a, tree b)
+{
+  return alias(a,b);
+}
+
+bool operator != (tree a, tree b)
+{
+  return !alias(a,b);
+}
+
 tree newtree()
 {
   return null;
