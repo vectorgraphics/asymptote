@@ -121,7 +121,7 @@ void addBooleanOperator(venv &ve, bltin f, ty *t, const char *name)
 }
 
 template<class T, template <class S> class op>
-inline void addArrayOps(venv &ve, ty *t1, const char *name, ty *t2)
+inline void addOps(venv &ve, ty *t1, const char *name, ty *t2)
 {
   addFunc(ve,run::arrayOp<T,op>,t1,name,t1,t2);
   addFunc(ve,run::opArray<T,op>,t1,name,t2,t1);
@@ -130,7 +130,7 @@ inline void addArrayOps(venv &ve, ty *t1, const char *name, ty *t2)
 }
 
 template<class T, template <class S> class op>
-inline void addArrayBooleanOps(venv &ve, ty *t1, const char *name, ty *t2)
+inline void addBooleanOps(venv &ve, ty *t1, const char *name, ty *t2)
 {
   addFunc(ve,run::arrayOp<T,op>,boolArray(),name,t1,t2);
   addFunc(ve,run::opArray<T,op>,boolArray(),name,t2,t1);
@@ -139,10 +139,10 @@ inline void addArrayBooleanOps(venv &ve, ty *t1, const char *name, ty *t2)
 }
 
 template<class T>
-inline void addUnorderedArrayOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
+inline void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
 {
-  addArrayBooleanOps<T,run::equals>(ve,t1,"==",t2);
-  addArrayBooleanOps<T,run::notequals>(ve,t1,"!=",t2);
+  addBooleanOps<T,run::equals>(ve,t1,"==",t2);
+  addBooleanOps<T,run::notequals>(ve,t1,"!=",t2);
   
   addFunc(ve,run::writen<T>,primVoid(),"write",t2);
   addFunc(ve,run::write2<T>,primVoid(),"write",t2,t2);
@@ -158,30 +158,30 @@ inline void addUnorderedArrayOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
 }
 
 template<class T>
-inline void addOrderedArrayOps(venv &ve, ty *t1, ty *t2, ty *t3)
+inline void addOrderedOps(venv &ve, ty *t1, ty *t2, ty *t3)
 {
-  addArrayBooleanOps<T,run::less>(ve,t1,"<",t2);
-  addArrayBooleanOps<T,run::lessequals>(ve,t1,"<=",t2);
-  addArrayBooleanOps<T,run::greaterequals>(ve,t1,">=",t2);
-  addArrayBooleanOps<T,run::greater>(ve,t1,">",t2);
+  addBooleanOps<T,run::less>(ve,t1,"<",t2);
+  addBooleanOps<T,run::lessequals>(ve,t1,"<=",t2);
+  addBooleanOps<T,run::greaterequals>(ve,t1,">=",t2);
+  addBooleanOps<T,run::greater>(ve,t1,">",t2);
   
   addFunc(ve,run::minArray<T>,t2,"min",t1);
   addFunc(ve,run::maxArray<T>,t2,"max",t1);
   addFunc(ve,run::sortArray<T>,t1,"sort",t1);
   addFunc(ve,run::sortArray2<T>,t3,"sort",t3);
   
-  addArrayOps<T,run::min>(ve,t1,"min",t2);
-  addArrayOps<T,run::max>(ve,t1,"max",t2);
+  addOps<T,run::min>(ve,t1,"min",t2);
+  addOps<T,run::max>(ve,t1,"max",t2);
 }
 
 template<class T>
-inline void addArrayOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
+inline void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
 {
-  addArrayOps<T,run::plus>(ve,t1,"+",t2);
-  addArrayOps<T,run::minus>(ve,t1,"-",t2);
-  addArrayOps<T,run::times>(ve,t1,"*",t2);
-  addArrayOps<T,run::divide>(ve,t1,"/",t2);
-  addArrayOps<T,run::power>(ve,t1,"^",t2);
+  addOps<T,run::plus>(ve,t1,"+",t2);
+  addOps<T,run::minus>(ve,t1,"-",t2);
+  addOps<T,run::times>(ve,t1,"*",t2);
+  addOps<T,run::divide>(ve,t1,"/",t2);
+  addOps<T,run::power>(ve,t1,"^",t2);
   
   addFunc(ve,&id,t1,"+",t1);
   addFunc(ve,&id,t2,"+",t2);
@@ -190,7 +190,7 @@ inline void addArrayOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   
   addFunc(ve,run::sumArray<T>,t2,"sum",t1);
   
-  addUnorderedArrayOps<T>(ve,t1,t2,t3,t4);
+  addUnorderedOps<T>(ve,t1,t2,t3,t4);
 }
 
 function *voidFunction()
@@ -246,24 +246,24 @@ void addOperators(venv &ve)
   addBooleanOperator(ve,run::boolPenEq,primPen(),"==");
 
   addFunc(ve,run::arrayBoolNegate,boolArray(),"!",boolArray());
-  addArrayBooleanOps<bool,run::And>(ve,boolArray(),"&&",primBoolean());
-  addArrayBooleanOps<bool,run::Or>(ve,boolArray(),"||",primBoolean());
-  addArrayBooleanOps<bool,run::Xor>(ve,boolArray(),"^",primBoolean());
+  addBooleanOps<bool,run::And>(ve,boolArray(),"&&",primBoolean());
+  addBooleanOps<bool,run::Or>(ve,boolArray(),"||",primBoolean());
+  addBooleanOps<bool,run::Xor>(ve,boolArray(),"^",primBoolean());
   
-  addUnorderedArrayOps<bool>(ve,boolArray(),primBoolean(),
+  addUnorderedOps<bool>(ve,boolArray(),primBoolean(),
 			     boolArray2(),boolArray3());
-  addArrayOps<int>(ve,intArray(),primInt(),intArray2(),intArray3());
-  addArrayOps<double>(ve,realArray(),primReal(),realArray2(),realArray3());
-  addArrayOps<pair>(ve,pairArray(),primPair(),pairArray2(),pairArray3());
-  addUnorderedArrayOps<string>(ve,stringArray(),primString(),
+  addOps<int>(ve,intArray(),primInt(),intArray2(),intArray3());
+  addOps<double>(ve,realArray(),primReal(),realArray2(),realArray3());
+  addOps<pair>(ve,pairArray(),primPair(),pairArray2(),pairArray3());
+  addUnorderedOps<string>(ve,stringArray(),primString(),
 			       stringArray2(),stringArray3());
   
-  addOrderedArrayOps<int>(ve,intArray(),primInt(),intArray2());
-  addOrderedArrayOps<double>(ve,realArray(),primReal(),realArray2());
-  addOrderedArrayOps<string>(ve,stringArray(),primString(),stringArray2());
+  addOrderedOps<int>(ve,intArray(),primInt(),intArray2());
+  addOrderedOps<double>(ve,realArray(),primReal(),realArray2());
+  addOrderedOps<string>(ve,stringArray(),primString(),stringArray2());
   
-  addArrayOps<int,run::mod>(ve,intArray(),"%",primInt());
-  addArrayOps<double,run::mod>(ve,realArray(),"%",primReal());
+  addOps<int,run::mod>(ve,intArray(),"%",primInt());
+  addOps<double,run::mod>(ve,realArray(),"%",primReal());
 }
 
 double identity(double x) {return x;}
