@@ -77,7 +77,7 @@ Programming
 * Arrays::                      Dynamic vector class
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} packages
-* Static & dynamic::            When to allocate your variable?
+* Static & dynamic::            Where to allocate your variable?
 
 Functions
 
@@ -445,7 +445,7 @@ many features beyond the ones found in those languages.
 * Arrays::                      Dynamic vector class
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} packages
-* Static & dynamic::            When to allocate your variable?
+* Static & dynamic::            Where to allocate your variable?
 @end menu
 
 @node Data types
@@ -1884,7 +1884,7 @@ use the @code{-noplain} command-line option to disable this feature.
 In any case, no error message will be issued if one tries to explicitly
 @code{import plain} (if other imported packages depend implicitly
 on the presence of @code{plain}, it may be necessary to allocate it in a higher
-enclosing frame by declaring the import @code{static}; @pxref{Static &
+enclosing scope by declaring the import @code{static}; @pxref{Static &
 dynamic}).
 
 @node simplex
@@ -2163,10 +2163,10 @@ template for providing support for other ISO 8859 alphabets.
 @cindex dynamic
 
 Static qualifiers allocate the memory address of a variable in a higher 
-enclosing frame. 
+enclosing scope.
 
-For a function body, the variable is stored by the function's enclosing
-frame, so for
+For a function body, the variable is allocated in the block where the
+function is defined; so in the code
 @verbatim
 struct s {
   int count() {
@@ -2178,7 +2178,7 @@ struct s {
 @end verbatim
 
 there is one instance of the variable @code{c} for each object @code{s}
-(as opposed for each call of @code{s}). 
+(as opposed for each call of @code{count}). 
 
 Similarly, in
 @verbatim
@@ -2192,11 +2192,12 @@ int factorial(int n) {
 }
 @end verbatim
 
-there is one instance of @code{x} for every call to factorial (and not
-for every call to helper), so this is a correct, but ugly,
+there is one instance of @code{x} for every call to @code{factorial} (and not
+for every call to @code{helper}), so this is a correct, but ugly,
 implementation of factorial.
 
-For a struct member variable, it gets its enclosing frame as well, so
+Similarly, a static variable declared within a structure is allocated in
+the block where the structure is defined. Thus,
 @verbatim
 struct A {
   struct B {
@@ -2227,12 +2228,9 @@ int pow(int n, int k) {
 there is one instance of @code{x} for each call to @code{pow}, so this
 is an ugly implementation of exponentiation.
 
-Static types work in a similar way, but are not as useful.
-
-A file-level module is really just a structure with everything declared static 
-by default, so
+A file-level module is really just a structure, so a file @code{stuff.asy}
+containing
 @verbatim
-stuff.asy:
 import other;
 public int x=5;
 int y=x*4;
@@ -2243,9 +2241,9 @@ is in some way equivalent to
 @verbatim
 struct stuff {
   import other;
-  static public int x=5;
-  static int y=x*4;
-  static int sqr(int x) { return x*x; }
+  public int x=5;
+  int y=x*4;
+  int sqr(int x) { return x*x; }
 }
 @end verbatim
 
@@ -2271,28 +2269,47 @@ If you use static functions and variables from a module, then every
 import is referring to the same data. But every import of a module gets
 a different instance of its dynamic variables.
 
-Declarations are dynamic by default. Suppose @code{dyn.asy} contains
+Declarations are dynamic by default. Suppose @code{x.asy} contains
 @verbatim
 public int x=0;
 @end verbatim
 
-and @code{modifier.asy} contains
+and @code{inc.asy} contains
 @verbatim
-import dyn;
+import x;
 void inc() {++x;}
 @end verbatim
 
-Then
+Then the file @code{test.asy}:
 @verbatim
-import dyn;
-import modifier;
+import x;
+import inc;
 write(x);
 inc();
 write(x);
 @end verbatim
 
-should write 0 twice, because the @code{x} imported in @code{modifier.asy} is
-distinct from the @code{x} imported in @code{tester.asy}. 
+should write 0 twice, because the variable @code{x} imported in
+@code{inc.asy} is distinct from the variable @code{x} imported directly
+from @code{x.asy}.
+
+If @code{inc.asy} were to contain only
+@verbatim
+void inc() {++x;}
+@end verbatim
+
+then, in order for it to be able to access the variable @code{x} in
+@code{x.asy}, one needs to allocate @code{x.asy} in a higher
+enclosing block by making its import @code{static} in @code{test.asy}:
+@verbatim
+static import x;
+import inc;
+write(x);
+inc();
+write(x);
+@end verbatim
+
+This writes first 0 and then 1.
 
 @node Drawing commands
 @chapter Drawing commands
@@ -2779,7 +2796,8 @@ University of Alberta Faculty of Science.
      
 We also would like to acknowledge the previous work of John D. Hobby, 
 author of the program @code{MetaPost} that inspired the development of
-@code{Asymptote}, and Donald E. Knuth, author of @TeX{} and @code{MetaFont}.
+@code{Asymptote}, and Donald E. Knuth, author of @TeX{} and
+@code{MetaFont} (on which @code{MetaPost} is based).
 
 The authors of @code{Asymptote} are Andy Hammerlindl, John Bowman, and
 Tom Prince. Sean Healy designed the @code{Asymptote} logo.
@@ -2791,16 +2809,16 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
      
 @bye
 
-@c  LocalWords:  randMax Gaussrand asy cindex indices resized LaTeX TK
-@c  LocalWords:  latexusage tex bbox
+@c  LocalWords:  randMax Gaussrand asy cindex indices resized LaTeX TK latin au
+@c  LocalWords:  latexusage tex bbox PostScript subdirectory gcc emacs ASYDIR
 @c  LocalWords:  documentclass usepackage asydef colour subpath shipout sqrt xN
 @c  LocalWords:  xscale labeldot xaxis yaxis BeginBar gif postprocessing fpu de
 @c  LocalWords:  nomask noplain ImageMagick defaultfontsize defaultlinewidth cd
 @c  LocalWords:  startup natively xasy tkinter VxN yingyang currentpicture toc
-@c  LocalWords:  MetaPost MetaFont Hammerlindl Healy texinfo
+@c  LocalWords:  MetaPost MetaFont Hammerlindl Healy texinfo autoload setq setf
 @c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
-@c  LocalWords:  vskip filll insertcopying ifnottex detailmenu
-@c  LocalWords:  bool behaviour facto zxf cvs login Debian dev
+@c  LocalWords:  vskip filll insertcopying ifnottex detailmenu alist augroup
+@c  LocalWords:  bool behaviour facto zxf cvs login Debian dev filetypedetect
 @c  LocalWords:  libboost FFTW bp readline gv eps gifmerge wheelanimation args
 @c  LocalWords:  boolean initializer expi dir xpart ypart STL substring rfind
 @c  LocalWords:  pos substr strftime typedef pxref unitcircle yscale Bezier iff
@@ -2813,10 +2831,14 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  sqr intop addby libm asin acos atan sinh tanh asinh acosh cbrt
 @c  LocalWords:  atanh fabs hypot fmod drem ceil srand dereferenced alice pete
 @c  LocalWords:  eval fft csv runtime nonalphanumeric labely LeftTicks NoTicks
-@c  LocalWords:  RightTicks BottomTop LeftRight Ticksize UTF
-@c  LocalWords:  ticksize subintervals xlimits dyn
-@c  LocalWords:  ylimits uncommented LinearInterp automin automax cp
+@c  LocalWords:  RightTicks BottomTop LeftRight Ticksize UTF BufNewFile BufRead
+@c  LocalWords:  ticksize subintervals xlimits filetype plugin setlocal makeprg
+@c  LocalWords:  ylimits uncommented LinearInterp automin automax cp uninstall
 @c  LocalWords:  scaleT Xautomin Xautomax Yautomin Yautomax unicode RightSide
-@c  LocalWords:  NoAdjust arrowbar LeftSide ItalicAdjust EndBar BeginArrow
+@c  LocalWords:  NoAdjust arrowbar LeftSide ItalicAdjust EndBar BeginArrow lly
 @c  LocalWords:  EndArrow BeginArcArrow EndArcArrow ArcArrow ArcArrows NoFill
-@c  LocalWords:  filldraw fillpen drawpen
+@c  LocalWords:  filldraw fillpen drawpen errorformat bigsquare bezier darkblue
+@c  LocalWords:  quartercircle darkgreen lightblue urx ury texpreamble sgn
+@c  LocalWords:  lineargraph datagraph vertices parametricgraph
+@c  LocalWords:  loggraph generalaxis texhash arrowsize arrowangle arrowlength
+@c  LocalWords:  SuppressQuiet MoveQuiet
