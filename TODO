@@ -3,8 +3,6 @@ Andy: give execute(string) read/write access to caller environment
 mode" where complete lines are individually added to the parse tree and
 executed as they are entered.)
 
-Andy: Add module name to its own environment.
-
 Andy: implement "public import"
 
 Andy: implement default initialization of structures
