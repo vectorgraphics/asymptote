@@ -470,10 +470,6 @@ void base_venv(venv &ve)
   addFunc(ve,run::pathRealPostcontrol,primPair(),"postcontrol",primPath(),
 	  primReal());
   
-  addFunc(ve,run::pathIntDirection,primPair(),"direction",primPath(),
-	  primInt());
-  addFunc(ve,run::pathRealDirection,primPair(),"direction",primPath(),
-	  primReal());
   addFunc(ve,run::pathIntDirection,primPair(),"dir",primPath(),primInt());
   addFunc(ve,run::pathRealDirection,primPair(),"dir",primPath(),primReal());
 

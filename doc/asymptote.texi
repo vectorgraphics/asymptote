@@ -867,17 +867,14 @@ t=@code{x-floor(x)} (@pxref{Bezier}). If @code{x} lies outside the range
 in the case where @code{p} is cyclic or else converted to the corresponding
 endpoint of @code{p}.
 
-@cindex @code{direction}
 @cindex @code{dir}
-@item pair direction(path, int n)
+@item pair dir(path, int n)
 This returns the direction of the tangent to the path at node @code{n}.
-A synonym is @code{pair dir(path, int)}.
 
-@item pair direction(path, real x)
+@item pair dir(path, real x)
 This returns the direction of the tangent to the path at the point
 between node @code{floor(x)} and @code{floor(x)+1} corresponding to the
 cubic spline parameter t=@code{x-floor(x)} (@pxref{Bezier}).
-A synonym is @code{pair dir(path, real)}.
 
 @cindex @code{precontrol}
 @item pair precontrol(path, int n)
@@ -2390,7 +2387,7 @@ void yaxis(picture pic=currentpicture, real ymin=-infinity,
            real ymax=infinity, pen p=currentpen, string s="",
            real position=infinity, real angle=infinity, pair align=0,
            pair shift=0, pair side=0, pen plabel=currentpen,
-           axis axis=XZero, ticks ticks=NoTicks)
+           axis axis=XZero, ticks ticks=NoTicks);
 @end verbatim
 
 Draw a @math{y} axis on picture @code{pic} from @math{y}=@code{ymin} to
@@ -2425,7 +2422,7 @@ void xequals(picture pic=currentpicture, real x,
              pen p=currentpen, string s="", real position=1,
              real angle=0, pair align=W, pair shift=0, pair side=right,
              pen plabel=currentpen, ticks ticks=NoTicks,
-             int[] divisor=new int[], bool opposite=false)
+             int[] divisor=new int[], bool opposite=false);
 @end verbatim
 
 Draw the line @math{x}=@code{x} on picture @code{pic} from
@@ -2448,7 +2445,7 @@ void yequals(picture pic=currentpicture, real y,
              pen p=currentpen, string s="", real position=1,
              real angle=0, pair align=S, pair shift=0, pair side=left,
              pen plabel=currentpen, ticks ticks=NoTicks,
-             int[] divisor=new int[], bool opposite=false)
+             int[] divisor=new int[], bool opposite=false);
 @end verbatim
 
 Like @code{xequals}, but draw the line @math{y}=@code{y} on picture
@@ -2461,11 +2458,23 @@ void axis(picture pic=currentpicture, guide g, real tickmin=-infinity,
           real position=1, real angle=0, pair align=S, pair side=right,
           pen plabel=currentpen, ticks ticks=NoTicks,
           int[] divisor=new int[], bool logarithmic=false,
-          scaleT scale=Linear, part part, bool opposite=false) 
+          scaleT scale=Linear, part part, bool opposite=false);
 @end verbatim
 
 This routine can be used to draw a general axis based on an arbitrary
 path @code{g}, with ticks evenly spaced along its arclength.
+
+@item These routines are useful for putting ticks and labels on axes:
+@verbatim
+void xtick(picture pic=currentpicture, real x, pair align=N,
+	   real size=Ticksize, pen p=currentpen);
+void ytick(picture pic=currentpicture, real y, pair align=E,
+	   real size=Ticksize, pen p=currentpen);
+void labelx(picture pic=currentpicture, string s, real x, pair align=S,
+	    pair shift=infinity, pen p=currentpen);
+void labely(picture pic=currentpicture, string s, real y, pair align=W,
+	    pair shift=infinity, pen p=currentpen);
+@end verbatim
 
 @end itemize
 
@@ -2687,8 +2696,7 @@ directory), using the comma-separated data in @code{diatom.csv}
 and @code{westnile.csv}.
 
 @image{diatom}
-@page
-@image{westnile}
+@image{westnile,,7.5cm}
 
 @end enumerate
 

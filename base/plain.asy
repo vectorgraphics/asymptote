@@ -849,7 +849,7 @@ guide arrowhead(picture pic=currentpicture, path g, real position=infinity,
   pair x=point(r,0);
   real t=arctime(r,size);
   pair y=point(r,t);
-  path base=y+2*size*I*direction(r,t)--y-2*size*I*direction(r,t);
+  path base=y+2*size*I*dir(r,t)--y-2*size*I*dir(r,t);
   path left=rotate(-angle,x)*r, right=rotate(angle,x)*r;
   real tl=intersect(left,base).x, tr=intersect(right,base).x;
   pair denom=point(right,tr)-y;
@@ -1202,9 +1202,9 @@ void label(picture pic=currentpicture, string s, real angle=0,
   real L=length(g);
   if(position == infinity) position=0.5L;
   if(align == 0) {
-    if(position <= 0) align=-direction(g,0);
-    else if(position >= L) align=direction(g,L);
-    else align=side(-direction(g,position)*I,side);
+    if(position <= 0) align=-dir(g,0);
+    else if(position >= L) align=dir(g,L);
+    else align=side(-dir(g,position)*I,side);
   }
   label(pic,s,angle,point(g,position),align,shift,p);
 }
@@ -1362,7 +1362,7 @@ arrowbar ArcArrows(real size=arcarrowsize, real angle=arcarrowangle,
 arrowbar BeginBar(real size=barsize) 
 {
   return new void(picture pic, path g, pen p, arrowbarT) {
-    add(pic,bar(point(g,0),size*direction(g,0)*I,p));
+    add(pic,bar(point(g,0),size*dir(g,0)*I,p));
   };
 }
 
@@ -1370,7 +1370,7 @@ arrowbar Bar(real size=barsize)
 {
   return new void(picture pic, path g, pen p, arrowbarT) {
     int L=length(g);
-    add(pic,bar(point(g,L),size*direction(g,L)*I,p));
+    add(pic,bar(point(g,L),size*dir(g,L)*I,p));
   };
 }
 
@@ -1670,4 +1670,9 @@ void add(frame preamble=patterns, string name, picture pic, pair lb=0,
 	 pair rt=0)
 {
   add(preamble,tiling(name,pic,lb,rt));
+}
+
+pair dir(path g)
+{
+  return dir(g,1);
 }

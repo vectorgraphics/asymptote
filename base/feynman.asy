@@ -177,7 +177,7 @@ path gluon(path p, real amp = gluonamplitude, real width=-1)
     int ncurls = floor(pathlen/width);
     real firstlen = (pathlen - width*(ncurls-1))/2;
     real firstt = arctime(p, firstlen);
-    pair firstv = direction(p, firstt);
+    pair firstv = dir(p, firstt);
     guide g = point(p, 0)..{firstv}( point(p, firstt)
                                     +amp*unit(rotate(90)*firstv));
 
@@ -188,9 +188,9 @@ path gluon(path p, real amp = gluonamplitude, real width=-1)
     pathlen -= firstlen;
     for(real len = firstlen+width/2; len < pathlen; len += width) {
         t1 = arctime(p, len);
-        v1 = direction(p, t1);
+        v1 = dir(p, t1);
         t2 = arctime(p, len + width/2);
-        v2 = direction(p, t2);
+        v2 = dir(p, t2);
 
         g=g..{-v1}(point(p, t1)+amp*unit(rotate(-90)*v1))
            ..{+v2}(point(p, t2)+amp*unit(rotate(+90)*v2));
@@ -210,8 +210,8 @@ path photon(path p, real amp = photonamplitude, real width=-1)
     int ncurls = floor(pathlen/width);
     real firstlen = (pathlen - width*(ncurls-1))/2;
     real firstt = arctime(p, firstlen);
-    pair firstv = direction(p, firstt);
-    guide g =   point(p, 0){direction(p, 0)}
+    pair firstv = dir(p, firstt);
+    guide g =   point(p, 0){dir(p, 0)}
               ..{firstv}( point(p, firstt)+amp*unit(rotate(90)*firstv));
 
     real t1;
@@ -221,14 +221,14 @@ path photon(path p, real amp = photonamplitude, real width=-1)
     pathlen -= firstlen;
     for(real len = firstlen+width/2; len < pathlen; len += width) {
         t1 = arctime(p, len);
-        v1 = direction(p, t1);
+        v1 = dir(p, t1);
         t2 = arctime(p, len + width/2);
-        v2 = direction(p, t2);
+        v2 = dir(p, t2);
 
         g=g..{+v1}(point(p, t1)+amp*unit(rotate(-90)*v1))
            ..{+v2}(point(p, t2)+amp*unit(rotate(+90)*v2));
     }
-    g = g..{direction(p, size(p))}point(p, size(p));
+    g = g..{dir(p, size(p))}point(p, size(p));
     return g;
 }
 
@@ -258,9 +258,9 @@ path momArrowPath(path p,
 {
     real pathlen = arclength(p);
     real t1 = arctime(p, (pathlen-length)/2 + adjust);
-    pair v1 = direction(p, t1);
+    pair v1 = dir(p, t1);
     real t2 = arctime(p, (pathlen+length)/2+ adjust);
-    pair v2 = direction(p, t2);
+    pair v2 = dir(p, t2);
 
     pair p1 = point(p, t1) + offset*unit(scale(position)*rotate(-90)*v1);
     pair p2 = point(p, t2) + offset*unit(scale(position)*rotate(-90)*v2);
@@ -283,7 +283,7 @@ pair midLabelPoint(path p,
     real t = arctime(p, pathlen/2 + adjust);
 
     if(postype == Relative) {
-        pair v = direction(p, t);
+        pair v = dir(p, t);
         return point(p, t) + offset*unit(scale(pos)*rotate(-90)*v);
     }
 
@@ -300,7 +300,7 @@ pair endLabelPoint(path p,
                    bool postype = labelpostype)
 {
     if(postype == Relative) {
-        pair v = direction(p, size(p));
+        pair v = dir(p, size(p));
         return point(p, size(p)) + offset*unit(scale(pos)*rotate(-90)*v);
     }
 
@@ -317,7 +317,7 @@ pair beginLabelPoint(path p,
                      bool postype = labelpostype)
 {
     if(postype == Relative) {
-        pair v = direction(p, 0);
+        pair v = dir(p, 0);
         return point(p, 0) + offset*unit(scale(pos)*rotate(-90)*v);
     }
 
@@ -454,8 +454,8 @@ void drawDoubleLine(picture pic = currentpicture,
     draw(pic, p, fgpen+2*htw);
     draw(pic, p, bgpen+(linewidth(dlspacing)));
     path rect = (-htw,-htw)--(-htw,htw)--(0,htw)--(0,-htw)--cycle;
-    fill(shift(point(p,0))*scale(unit(direction(p,0)))*rect, bgpen);
-    fill(shift(point(p,size(p)))*scale(-unit(direction(p,size(p))))*rect,
+    fill(shift(point(p,0))*scale(unit(dir(p,0)))*rect, bgpen);
+    fill(shift(point(p,size(p)))*scale(-unit(dir(p,size(p))))*rect,
          bgpen);
     draw(pic, p, invisible, arrow);
 }

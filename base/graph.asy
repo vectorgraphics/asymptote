@@ -171,7 +171,7 @@ void labelaxis(frame f, string s, real position, real angle, pair align,
 	       pair shift, guide g, pen p, bool labels, bool deconstruct)
 {
   pair z=point(g,position);
-  pair dir=direction(g,position);
+  pair dir=dir(g,position);
   if(labels) {
     pair a=unit(align);
     pair offset=a.x <= 0 && a.y <= 0 ? min(f) : max(f);
@@ -202,7 +202,7 @@ private struct locateT {
     real t=arctime(g,pos);
     z=point(g,t);
     Z=T*z;
-    dir=unit(T*direction(g,t));
+    dir=unit(T*dir(g,t));
     return true;
   }
 }
