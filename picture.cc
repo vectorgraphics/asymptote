@@ -206,7 +206,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
   if(verbose > (tgifformat ? 1 : 0)) cout << "Wrote " << outname << endl;
   if(view && !deconstruct) {
     if(epsformat || pdfformat) {
-      static int pid;
+      static int pid=0;
       static string lastoutname;
       static const string PSViewers[]={PSViewer,"gv","ggv","ghostview",
 				       "kghostview","gsview"};
@@ -216,7 +216,12 @@ bool picture::postprocess(const string& epsname, const string& outname,
       const string *Viewers=pdfformat ? PDFViewers : PSViewers;
       const size_t nViewers=pdfformat ? nPDFViewers : nPSViewers;
       size_t iViewer=0;
-      if (!interact::virtualEOF || outname != lastoutname) {
+      int status;
+      bool restart=false;
+      if(interact::interactive && pid)
+	restart=(waitpid(pid, &status, WNOHANG) == pid);
+
+      if (!interact::virtualEOF || outname != lastoutname || restart) {
 	if(!wait) lastoutname=outname;
 	status=-1;
 	while(status == -1 && iViewer < nViewers) {
