@@ -24,7 +24,6 @@
 #include "settings.h"
 #include "pen.h"
 #include "interact.h"
-#include "locate.h"
 
 using boost::lexical_cast;
 using std::string;
@@ -255,15 +254,8 @@ void setOptions(int argc, char *argv[])
 
   
   if(origin == ZERO) texprocess=0;
-
-  fs::path::default_name_check(fs::native);
   
-  searchPath.push_back(fs::path("./"));
-  searchPath.push_back(getenv("ASYMPTOTE_DIR"));
-#ifdef ASYMPTOTE_SYSDIR
-  searchPath.push_back(ASYMPTOTE_SYSDIR);
-#endif
-  
+  AsyDir=getenv("ASYMPTOTE_DIR");
   char *psviewer=getenv("ASYMPTOTE_PSVIEWER");
   char *pdfviewer=getenv("ASYMPTOTE_PDFVIEWER");
   PSViewer=psviewer ? psviewer : "gv";

@@ -8,7 +8,7 @@
 
 #include <string>
 #include <iostream>
-#include <boost/filesystem/fstream.hpp>
+#include <fstream>
 #include <sstream>
 #include <boost/lexical_cast.hpp>
 
@@ -18,7 +18,6 @@
 
 using namespace absyntax;
 using boost::lexical_cast;
-namespace fs = boost::filesystem;
 
 #include "camp.tab.h"
 
@@ -50,7 +49,7 @@ extern "C" int yywrap(void)
   return 1;
 }
 
-bool setlexer(fs::path filename)
+bool setlexer(std::string filename)
 {
   yywrap();
   
@@ -59,8 +58,8 @@ bool setlexer(fs::path filename)
     my_streambuf=false;
     interactive = interact::interactive;
   } else {
-    fs::filebuf *filebuf = new fs::filebuf();
-    if (!filebuf->open(filename,std::ios::in)) {
+    std::filebuf *filebuf = new std::filebuf();
+    if (!filebuf->open(filename.c_str(),std::ios::in)) {
       delete filebuf;
       return false;
     }

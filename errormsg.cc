@@ -22,12 +22,18 @@ ostream& fileinfo::print(ostream& out, int pos)
   }
   if(filename.string() == "-" && interact::interactive && num > 1) num--;
 
-  out << filename.string() << ": " << num << "." << pos-*lines << ": ";
+  out << filename << ": " << num << "." << pos-*lines << ": ";
   return out;
 }
 
 position errorstream::lastpos=position::nullPos();
 bool errorstream::interrupt=false;
+
+void errorstream::clear()
+{
+  sync();
+  anyErrors = anyWarnings = false;
+}
 
 void errorstream::message(position pos, const std::string& s)
 {
