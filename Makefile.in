@@ -67,7 +67,7 @@ install: asy
 	${INSTALL} base/*.asy $(asydir)
 	${INSTALL} examples/*.asy $(asydir)/examples
 
-install-man: man
+install-man:
 	${INSTALL} doc/asymptote.info $(prefix)/info
 	install-info doc/asymptote.info $(prefix)/info/dir
 
