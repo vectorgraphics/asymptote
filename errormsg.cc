@@ -17,9 +17,9 @@ ostream& operator<< (ostream& out, const position& pos)
   if (!pos)
     return out;
 
-  //if(pos.file->name() == "-" && interact::interactive && num > 1) num--;
+  bool interact = pos.file->name() == "-" && interact::interactive && pos.line > 1;
   
-  out << pos.file->name() << ": " << pos.line << "." << pos.column << ": ";
+  out << pos.file->name() << ": " << interact ? pos.line-1 : pos.line << "." << pos.column << ": ";
   return out;
 }
 
