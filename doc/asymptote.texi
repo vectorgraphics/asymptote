@@ -1,7 +1,7 @@
 \input texinfo   @c -*-texinfo-*-
 @setfilename asymptote.info
-@include version.texi
 @settitle asymptote
+@include version.texi
 
 @copying
 This file documents @code{Asymptote}, version @value{VERSION}.
@@ -350,7 +350,7 @@ make all
 make install
 @end verbatim
 
-To compile without optimization, use the command @code{make OPT=-g}.
+To compile without optimization, use the command @code{make CFLAGS=-g}.
 
 @node Examples
 @chapter Examples
@@ -378,21 +378,17 @@ Because interactive mode is emulated, it is currently intended only for
 short demonstration files (@pxref{Interactive mode}). For more
 complicated graphs we recommend using batch mode.
 
-Let's repeat the previous example in batch mode. Simply type in the
-commands 
-@verbatim
-draw((0,0)--(100,100));
-shipout();
-@end verbatim
+Let's repeat the previous example in batch mode. Simply type in the commands 
+@verbatiminclude diagonal.asy
 
 into a file, say test.asy. Then execute this file by typing
 @verbatim
 asy -V test
 @end verbatim
 
-The shipout command converts the current picture into @code{PostScript}. A
-shipout command is added implicitly in interactive mode, but is
-explicitly required in batch mode. 
+The @code{shipout} command converts the current picture into
+@code{PostScript}. A @code{shipout} command is added implicitly in
+interactive mode, but is explicitly required in batch mode. 
 
 @cindex @code{-V}
 The @code{-V} option opens up a @code{PostScript}
@@ -401,19 +397,15 @@ viewer window so you can immediately view the encapsulated
 file @code{test.eps}; the prefix of the output file may be changed with
 the @code{-o} command line option.
 
-
-
 @cindex @code{cycle}
 One can draw a line with more than two points and create a cyclic path
 like this square:
-@verbatim
-draw((0,0)--(100,0)--(100,100)--(0,100)--cycle);
-shipout();
-@end verbatim
+@verbatiminclude square.asy
 @image{square}
 
 It is often inconvenient to work directly with @code{PostScript} coordinates.
-The next example draws a unit square scaled to width 100bp and height 100bp.
+The next example draws a unit square scaled to width 100 bp and height
+100 bp.
 The output is identical to that of the previous example. (If you are using
 interactive mode ignore the two messages "warning: scaling in picture
 unbounded;" see @ref{Interactive mode} for details).
@@ -422,6 +414,10 @@ size(100,100);
 draw((0,0)--(1,0)--(1,1)--(0,1)--cycle);
 shipout();
 @end verbatim
+
+For convenience, the path @code{(0,0)--(1,0)--(1,1)--(0,1)--cycle}
+may be replaced with the predefined variable
+@code{unitsquare}, or equivalently, @code{box((0,0),(1,1))}.
 
 @cindex @code{inches}
 @cindex @code{cm}
@@ -432,11 +428,7 @@ One can also specify the size in @code{pt} (1 @code{pt} = 1/72.27 @code{inch}),
 If 0 is given as a size argument, no restriction is made in that direction;
 the overall scaling will be determined by the other direction:
 @xref{size}.
-@verbatim
-size(0,5cm);
-draw((0,0)--(1,0)--(1,1)--(0,1)--cycle);
-shipout();
-@end verbatim
+@verbatiminclude bigsquare.asy
 @image{bigsquare}
 
 See section @ref{graph} for examples of two-dimensional scientific graphs.
@@ -790,11 +782,15 @@ with precontrol point @code{W}, are computed as the Bezier curve
 @image{bezier,,,(1-t)^3*z+3t(1-t)^2*Z+3t^2(1-t)*W+t^3*w for 0 <=t <= 1.}
 
 This example draws an approximate quarter circle:
-@verbatim
-draw((100,0){up}..{left}(0,100));
-shipout();
-@end verbatim
+@verbatiminclude quartercircle.asy
 @image{quartercircle}
+
+A general arc centered on @code{c} with radius @code{r} from
+@code{angle1} to @code{angle2} degrees (drawing counterclockwise if
+@code{angle2 >= angle1}) can be constructed with
+@verbatim
+guide arc(pair c, real r, real angle1, real angle2);
+@end verbatim
 
 @cindex @code{control}
 Instead of specifying the tangent directions before and after a node,
@@ -1117,70 +1113,38 @@ this value may be changed with @code{defaultpen(pen)}.
 @item @code{PostScript} commands within a @code{picture} may be used
 to create a tiling pattern, identified by the string @code{name}, for
 @code{fill} and @code{draw} operations by adding it to the default
-@code{PostScript} preamble frame @code{patterns}:
+@code{PostScript} preamble frame @code{patterns},
+with optional left-bottom margin @code{lb} and right-top margin @code{rt}.
 @verbatim
 void add(frame preamble=patterns, string name, picture pic, pair lb=0,
 	 pair rt=0)
 @end verbatim
 
 To @code{fill} or @code{draw} using pattern @code{name}, use
-the pen @code{pattern("name")}. For example, a rectangular tiling
-can be produced from the @code{picture tile(real Hx=5mm, real Hy=0)}
-defined in @code{patterns.asy} as follows:
-
+the pen @code{pattern("name")}. For example, rectangular tilings
+can be constructed using the routines 
+@code{picture tile(real Hx=5mm, real Hy=0)} and 
+@code{picture brick(real Hx=5mm, real Hy=0)} defined in
+@code{patterns.asy}:
 @cindex grid
 @cindex tile
-@verbatim
-size(0,100);
-import patterns;
-add("tile",tile(1cm,0.5cm));
-filldraw(unitcircle,pattern("tile"));
-shipout();
-@end verbatim
+@verbatiminclude tile.asy
 @image{tile}
 
 @cindex hatch
 @cindex crosshatch
-Hatch and brick patterns can be generated with the routines
+Hatch patterns can be generated with the routines
 @code{picture hatch(real H=5mm, pair dir=NE)},
 @code{picture crosshatch(real H=5mm)}:
-
-@verbatim
-size(0,100);
-import patterns;
-
-add("hatch",hatch());
-add("hatchback",hatch(NW));
-add("crosshatch",crosshatch(3mm));
-add("brick",brick());
-
-int c=0;
-filldraw(shift(++c,0)*unitsquare,pattern("hatch"));
-filldraw(shift(++c,0)*unitsquare,pattern("hatchback"));
-filldraw(shift(++c,0)*unitsquare,pattern("crosshatch"));
-filldraw(shift(++c,0)*unitsquare,pattern("brick"));
-shipout();
-@end verbatim
+@verbatiminclude hatch.asy
 @image{hatch}
 
-Custom patterns can easily be constructed, following the examples in
-@code{pattern.asy}. The tiled pattern can even incorporate shading
+You may need to turn off aliasing in your @code{PostScript} viewer for
+patterns to appear correctly. Custom patterns can easily be constructed,
+following the examples in @code{pattern.asy}. The tiled pattern can
+even incorporate shading
 (@pxref{gradient shading}):
-
-@verbatim
-size(0,100);
-import patterns;
-
-real d=4mm;
-picture tiling=new picture;
-guide square=scale(d)*unitsquare;
-fill(tiling,square,white,(0,0),black,(d,d));
-fill(tiling,shift(d,d)*square,blue);
-add("checked",tiling);
-
-filldraw(unitcircle,pattern("checked"));
-shipout();
-@end verbatim
+@verbatiminclude shadedtiling.asy
 @image{shadedtiling}
 
 @anchor{overwrite}
@@ -1362,12 +1326,16 @@ To rotate in the other direction, replace @code{Landscape} with
 @code{Seascape}.
 
 @cindex @code{bbox}
-To draw a bounding box with a 0.25cm margin around a picture, fit the
+To draw a bounding box with a 0.25 cm margin around a picture, fit the
 picture into a frame using the @code{bbox} function (defined in
 @code{plain.asy}):
 @verbatim
 shipout(bbox(0.25cm));
 @end verbatim
+
+@cindex @code{Background}
+A @code{picture} or @code{frame} may be fit to a frame with a
+backround color using pen @code{p} with the function @code{bbox(p,Background)}.
 
 Sometimes it is useful to draw objects on separate pictures and add one
 picture to another using the @code{add} function:
@@ -2576,22 +2544,7 @@ Here are some simple examples of two-dimensional graphs:
 @cindex textbook graph
 @item This example draws a textbook-style graph of
 @math{y=} exp@math{(x)}, with the @math{y} axis starting at @math{y=0}:
-@verbatim
-import graph;
-size(150,0);
-
-real f(real x) {return exp(x);}
-
-xaxis("$x$");
-yaxis(0,"$y$");
-
-draw(graph(f,-4,2,Spline));
-
-labely(1,E);
-label("$e^x$",(1,exp(1)),SE);
-
-shipout();
-@end verbatim
+@verbatiminclude exp.asy
 @image{exp}
 
 
@@ -2600,48 +2553,14 @@ shipout();
 @cindex scientific graph
 @cindex @code{LeftTicks}
 @cindex @code{RightTicks}
-@verbatim
-import graph;
-
-size(300,200,IgnoreAspect);
-
-real Sin(real t) {return sin(2pi*t);}
-real Cos(real t) {return cos(2pi*t);}
-
-draw(graph(Sin,0.01,1),red,"$\sin(2\pi x)$");
-draw(graph(Cos,0.01,1),blue,"$\cos(2\pi x)$");
-
-xaxis("$x$",BottomTop,LeftTicks);
-yaxis("$y$",LeftRight,RightTicks);
-
-shipout();
-
-@end verbatim
+@verbatiminclude lineargraph.asy
 @image{lineargraph}
 
 
 @cindex @code{dot}
 @item This example draws a graph of an array of coordinate pairs,
 using the routine @code{dot} to place a dot at each node of the resulting path.
-@verbatim
-import graph;
-
-size(400,200,IgnoreAspect);
-
-pair f[]={(1,1),(50,20),(100,100)};
-
-guide g=graph(f);
-draw(g);
-dot(g);
-
-xaxis("$x$",BottomTop,LeftTicks);
-yaxis("$y$",LeftRight,RightTicks);
-
-xaxis(Dotted,YEquals(20.0,false));
-yaxis(Dotted,XEquals(50.0,false));
-
-shipout();
-@end verbatim
+@verbatiminclude datagraph.asy
 @image{datagraph}
 
 @item This example draws a graph of a parametrized curve. 
@@ -2659,26 +2578,7 @@ specified @code{min} and @code{max} values (alternatively, the function
 box having opposite vertices at the two pairs).  The function
 @code{crop(picture pic)} can then optionally be used to crop the data 
 in picture @code{pic} to lie within the new axis limits.
-@verbatim
-import graph;
-
-size(0,200);
-
-real f(real t) {return cos(2pi*t);}
-real g(real t) {return sin(2pi*t);}
-
-draw(graph(f,g,0,1,LinearInterp));
-
-//xlimits(0,1);
-//ylimits(-1,0);
-//crop();
-
-xaxis("$x$",BottomTop,LeftTicks);
-yaxis("$y$",LeftRight,RightTicks);
-
-shipout();
-
-@end verbatim
+@verbatiminclude parametricgraph.asy
 @image{parametricgraph}
 
 @anchor{automatic scaling}
@@ -2709,26 +2609,7 @@ final argument a multiplicative scaling factor (e.g. for a depth axis,
 @cindex logarithmic graph
 @cindex log-log graph
 For example, to draw a log graph of a function, use @code{scale(Log,Log)}:
-@verbatim
-import graph;
-
-size(200,200,IgnoreAspect);
-
-real f(real t) {return 1/t;}
-
-scale(Log,Log);
-
-draw(graph(f,0.1,10));
-
-//xlimits(0,1);
-//ylimits(-1,0);
-//crop();
-
-xaxis("$x$",BottomTop,LeftTicks);
-yaxis("$y$",LeftRight,RightTicks);
-
-shipout();
-@end verbatim
+@verbatiminclude loggraph.asy
 @image{loggraph}
 
 @item @code{Asymptote} also provides a means for drawing a secondary
@@ -2736,51 +2617,12 @@ linear axis:
 @cindex secondary axis
 @cindex @code{secondaryX}
 @cindex @code{secondaryY}
-@verbatim
-import graph;
-
-size(9cm,6cm,IgnoreAspect);
-string data="secondaryaxis.csv";
-
-file in=line(csv(input(data)));
-
-string[] titlelabel=in;
-string[] columnlabel=in;
-
-real[][] a=dimension(in,0,0);
-a=transpose(a);
-real[] t=a[0], susceptible=a[1], infectious=a[2], dead=a[3], larvae=a[4];
-real[] susceptibleM=a[5], exposed=a[6],infectiousM=a[7];
-
-draw(graph(t,susceptible,t <= 20),solid);
-draw(graph(t,dead,t <= 20),dashed);
-
-xaxis("Time ($\tau$)",BottomTop,LeftTicks(5.0));
-yaxis(Left,RightTicks);
-
-picture secondary=secondaryY(new void(picture pic) {
-  draw(pic,graph(pic,t,infectious,t <= 20),red+solid);
-});
-			     
-yaxis(secondary,black,red,Right,LeftTicks(2));
-add(secondary);
-
-label("Proportion of crows",point(NW),E,5mm*N);
-
-shipout();
-@end verbatim
+@verbatiminclude secondaryaxis.asy
 @image{secondaryaxis}
 
 @item Here is an example that illustrates the general @code{axis} routine.
 @cindex @code{axis}
-@verbatim
-import graph;
-size(0,100);
-
-guide g=ellipse((0,0),100,200);
-axis(g,0,0.5*arclength(g),RightTicks(8,"%.0f"),Angle);
-shipout();
-@end verbatim
+@verbatiminclude generalaxis.asy
 @image{generalaxis}
 
 @item The following scientific graphs, which illustrate many features of
@@ -3220,11 +3062,7 @@ smoothly from @code{pena} on the circle with center @code{a} and radius
 @code{ra} to @code{penb} on the circle with center @code{b} and radius
 @code{rb}: 
 
-@verbatim
-size(100,0);
-fill(unitsquare,yellow,(0,0),0,red,(0,0),1);
-shipout();
-@end verbatim
+@verbatiminclude shade.asy
 
 @image{shade}
 
@@ -3287,90 +3125,7 @@ The @code{minipage(string s, width=100pt)} routine can be used to format
 string @code{s} into a paragraph of width @code{width}, as illustrated
 in the following example:
 
-@verbatim
-size(9cm,10cm,IgnoreAspect);
-
-pair d=(1,0.25);
-real s=1.6d.x;
-real y=0.6;
-defaultfontsize(8);
-
-picture box(string s, pair z=(0,0)) {
-  picture pic=new picture;
-  draw(pic,box(-d/2,d/2));
-  label(pic,s,(0,0));
-  return shift(z)*pic;
-}
-
-label("Birds",(0,y));
-picture removed=box("Removed ($R_B$)");
-picture infectious=box("Infectious ($I_B$)",(0,-1.5));
-picture susceptible=box("Susceptible ($S_B$)",(0,-3));
-
-add(removed);
-add(infectious);
-add(susceptible);
-
-label("Mosquitoes",(s,y));
-picture larval=box("Larval ($L_M$)",(s,0));
-picture susceptibleM=box("Susceptible ($S_M$)",(s,-1));
-picture exposed=box("Exposed ($E_M$)",(s,-2));
-picture infectiousM=box("Infectious ($I_M$)",(s,-3));
-
-add(larval);
-add(susceptibleM);
-add(exposed);
-add(infectiousM);
-
-path ls=point(larval,S)--point(susceptibleM,N);
-path se=point(susceptibleM,S)--point(exposed,N);
-path ei=point(exposed,S)--point(infectiousM,N);
-path si=point(susceptible,N)--point(infectious,S);
-
-draw(minipage("\flushright{recovery rate ($g$) \& death rate from virus
-($\mu_V$)}",40pt),point(infectious,N)--point(removed,S),LeftSide,Arrow);
-
-draw(si,LeftSide,Arrow);
-
-draw(minipage("\flushright{maturation rate ($m$)}",50pt),ls,RightSide,
-Arrow);
-draw(minipage("\flushright{viral incubation rate ($k$)}",40pt),ei,
-RightSide,Arrow);
-
-path ise=point(infectious,E)--point(se,0.5);
-  
-draw("$(ac)$",ise,LeftSide,dashed,Arrow);
-label(minipage("\flushleft{biting rate $\times$ transmission
-probability}",50pt),point(infectious,SE),dir(-60)+S);
-
-path isi=point(infectiousM,W)--point(si,2.0/3);
-
-draw("$(ab)$",isi,LeftSide,dashed,Arrow);
-draw(se,LeftSide,Arrow);
-      
-real t=2.0;
-draw("$\beta_M$",
-     point(susceptibleM,E){right}..tension t..{left}point(larval,E),
-     2*(S+SE),red,Arrow(Fill,0.5));
-draw(minipage("\flushleft{birth rate ($\beta_M$)}",20pt),
-     point(exposed,E){right}..tension t..{left}point(larval,E),2SW,red,
-     Arrow(Fill,0.5));
-draw("$\beta_M$",
-     point(infectiousM,E){right}..tension t..{left}point(larval,E),2SW,
-     red,Arrow(Fill,0.5));
-
-path arrow=(0,0)--0.75cm*dir(35);
-drawabout(point(larval,NNE),
-	  minipage("\flushleft{larval death rate ($\mu_L$)}",45pt),
-	  arrow,1,blue,Arrow);
-drawabout(point(susceptibleM,NNE),
-          minipage("\flushleft{adult death rate ($\mu_A$)}",20pt),
-	  arrow,1,N,blue,Arrow);
-drawabout(point(exposed,NNE),"$\mu_A$",arrow,1,blue,Arrow);
-drawabout(point(infectiousM,NNE),"$\mu_A$",arrow,1,blue,Arrow);
-
-shipout();
-@end verbatim
+@verbatiminclude mosquito.asy
 
 @image{mosquito}
 
@@ -3402,116 +3157,7 @@ latex latexusage
 
 Here now is @code{latexusage.tex} (from the @code{doc} directory of
 the @code{Asymptote} source):
-@verbatim
-\documentclass[12pt]{article}
-\usepackage{asymptote}
-\begin{document}
-\begin{asydef}
-// Global definitions can be put here.
-\end{asydef}
-
-Here is a figure produced with Asymptote, drawn to width 5cm:
-
-\begin{center}
-\begin{asy}
-size(5cm,0);
-pen colour1=red;
-pen colour2=green;
-
-pair z0=(0,0);
-pair z1=(-1,0);
-pair z2=(1,0);
-real r=1.5;
-guide c1=circle(z1,r);
-guide c2=circle(z2,r);
-fill(c1,colour1);
-fill(c2,colour2);
-
-picture intersection=new picture;
-fill(intersection,c1,colour1+colour2);
-clip(intersection,c2);
-
-add(intersection);
-
-draw(c1);
-draw(c2);
-
-label("$A$",z1);
-label("$B$",z2);
-
-pair z=(0,-2);
-real e=0.85;
-arrow("$A\cap B$",subpath((0,2)--z0,0,e));
-arrow("$A\cup B$",subpath(z--z0,0,e));
-draw(subpath(z--z1,0,e),Arrow);
-draw(subpath(z--z2,0,e),Arrow);
-shipout(bbox(0.25cm));
-\end{asy}
-\end{center}
-
-Each graph is drawn in its own environment. One can specify the width
-and height to \LaTeX\ explicitly:
-
-\begin{center}
-\begin{asy}[3cm,0]
-guide center = (0,1){W}..tension 0.8..(0,0){(1,-.5)}..tension 0.8..{W}(0,-1); 
-
-draw((0,1)..(-1,0)..(0,-1));
-filldraw(center{E}..{N}(1,0)..{W}cycle);
-fill(circle((0,0.5),0.125),white);
-fill(circle((0,-0.5),0.125));
-shipout();
-\end{asy}
-\end{center}
-
-The default width is the full line width:
-
-\begin{center}
-\begin{asy}
-import graph;
-real f(real x) {return sqrt(x);}
-pair F(real x) {return (x,f(x));}
-
-real g(real x) {return -sqrt(x);}
-pair G(real x) {return (x,g(x));}
-
-guide p=(0,0)--graph(f,0,1,100,Spline)--(1,0);
-guide h=p--cycle;
-fill(h,lightgray);
-draw((0,0)--graph(g,0,1,100,Spline)--(1,0),dotted);
-
-draw(p);
-
-real x=0.5;
-pair c=(4,0);
-draw(F(x)--c+(0,f(x)),dashed+red);
-draw(G(x)--c+(0,g(x)),dashed+red);
-
-arrow("$y=\sqrt{x}$",F(0.7),N);
-
-transform T=xscale(0.5);
-drawabout((2.72,0),T*arc(0,0.30cm,20,340),ArcArrow);
-
-labeldot((1,1));
-
-fill(shift(c)*T*circle(0,-f(x)),red+white);
-arrow((3,0.5*f(x)),W,1cm,red);
-arrow((3,-0.5*f(x)),W,1cm,red);
-
-xaxis(0,c.x,dashed,"$x$");
-yaxis("$y$");
-
-draw("$r$",(x,0)--F(x),E,red,Arrows,BeginBar);
-draw("$r$",(x,0)--G(x),E,red,Arrows,BeginBar);
-draw("$r$",c--c+(0,f(x)),Arrow);
-dot(c);
-shipout();
-\end{asy}
-\end{center}
-
-\end{document}
-
-@end verbatim
+@verbatiminclude latexusage.asy
 @page
 @image{latexusage,,26cm}
 

@@ -197,11 +197,11 @@ path photon(path p, real amp = photonamplitude, real width=-1)
 // generate arrows in the middle of paths. MidArrow() can be used as argument
 // to draw commands, in place of EndArrow etc.
 arrowbar MidArrow(real size=arrowsize, real angle=arrowangle,
-                  arrowhead arrowhead=Fill)
+                  filltype filltype=Fill)
 {
   return new void(picture pic, path g, pen p, arrowbarT arrowbar) {
     arrowbar.drawpath=false;
-    add(pic,arrow(g,p,size,angle,arrowhead,
+    add(pic,arrow(g,p,size,angle,filltype,
                   arctime(g, (arclength(g)+size)/2)));
   };
 }

@@ -897,21 +897,32 @@ void arrowheadbbox(picture pic=currentpicture, path g, real position=infinity,
   pic.addPoint(x,dz2,p);
 }
 
-private struct arrowheadT {};
-public arrowheadT arrowhead=null;
-typedef void arrowhead(frame, path, pen, arrowheadT);
-public arrowhead
-  Fill=new void(frame f, path g, pen p, arrowheadT) {
+private struct fillT {};
+public fillT filltype=null;
+typedef void filltype(frame, path, pen, fillT);
+public filltype
+  Fill=new void(frame f, path g, pen p, fillT) {
     p += solid;
     fill(f,g,p);
     draw(f,g,p);
   },
-  NoFill=new void(frame f, path g, pen p, arrowheadT) {
+  NoFill=new void(frame f, path g, pen p, fillT) {
     draw(f,g,p+solid);
   };
 
+typedef void Filltype(picture, path, pen, fillT);
+public Filltype
+  Fill=new void(picture pic, path g, pen p, fillT) {
+    p += solid;
+    fill(pic,g,p);
+    _draw(pic,g,p);
+  },
+  NoFill=new void(picture pic, path g, pen p, fillT) {
+    _draw(pic,g,p);
+};
+
 picture arrow(path g, pen p=currentpen, real size=arrowsize,
-	      real angle=arrowangle, arrowhead arrowhead=Fill,
+	      real angle=arrowangle, filltype filltype=Fill,
 	      real position=infinity)
 {
   picture pic=new picture;
@@ -924,7 +935,7 @@ picture arrow(path g, pen p=currentpen, real size=arrowsize,
             draw(f,subpath(R,arctime(R,size),length(R)),p);
             draw(f,S,p);
 	    guide head=arrowhead(pic,G,position,p,size,angle);
-	    arrowhead(f,head,p,arrowhead);
+	    filltype(f,head,p,filltype);
           });
   
   pic.addPath(g,p);
@@ -933,7 +944,7 @@ picture arrow(path g, pen p=currentpen, real size=arrowsize,
 }
 
 picture arrow2(path g, pen p=currentpen, real size=arrowsize,
-	       real angle=arrowangle, arrowhead arrowhead=Fill)
+	       real angle=arrowangle, filltype filltype=Fill)
 {
   picture pic=new picture;
   pic.add(new void (frame f, transform t) {
@@ -944,8 +955,8 @@ picture arrow2(path g, pen p=currentpen, real size=arrowsize,
             draw(f,subpath(R,arctime(R,size),length(R)-arctime(G,size)),p);
 	    guide head=arrowhead(pic,G,p,size,angle);
 	    guide tail=arrowhead(pic,R,p,size,angle);
-	    arrowhead(f,head,p,arrowhead);
-	    arrowhead(f,tail,p,arrowhead);
+	    filltype(f,head,p,filltype);
+	    filltype(f,tail,p,filltype);
           });
   
   pic.addPath(g,p);
@@ -1288,9 +1299,9 @@ void labeldot(picture pic=currentpicture, string s="", real angle=0,
 
 void arrow(picture pic=currentpicture, string s, real angle=0, pair shift=0,
 	   path g, pen p=currentpen, real size=arrowsize,
-	   real Angle=arrowangle, arrowhead arrowhead=Fill)
+	   real Angle=arrowangle, filltype filltype=Fill)
 {
-  add(pic,arrow(g,p,size,Angle,arrowhead));
+  add(pic,arrow(g,p,size,Angle,filltype));
   pair a=point(g,0);
   pair b=point(g,1);
   label(pic,s,angle,a,unit(a-b),shift,p);
@@ -1381,60 +1392,60 @@ arrowbar None()
 }
 
 arrowbar BeginArrow(real size=arrowsize, real angle=arrowangle,
-		    arrowhead arrowhead=Fill, real position=infinity)
+		    filltype filltype=Fill, real position=infinity)
 {
   return new void(picture pic, path g, pen p, arrowbarT arrowbar) {
     arrowbar.drawpath=false;
-    add(pic,arrow(reverse(g),p,size,angle,arrowhead,position));
+    add(pic,arrow(reverse(g),p,size,angle,filltype,position));
   };
 }
 
 arrowbar Arrow(real size=arrowsize, real angle=arrowangle,
-	       arrowhead arrowhead=Fill, real position=infinity)
+	       filltype filltype=Fill, real position=infinity)
 {
   return new void(picture pic, path g, pen p, arrowbarT arrowbar) {
     arrowbar.drawpath=false;
-    add(pic,arrow(g,p,size,angle,arrowhead,position));
+    add(pic,arrow(g,p,size,angle,filltype,position));
   };
 }
 
 arrowbar EndArrow(real size=arrowsize, real angle=arrowangle,
-		  arrowhead arrowhead=Fill, real position=infinity)
+		  filltype filltype=Fill, real position=infinity)
 {
   return Arrow(size,angle);
 }
 
 arrowbar Arrows(real size=arrowsize, real angle=arrowangle,
-		arrowhead arrowhead=Fill, real position=infinity)
+		filltype filltype=Fill, real position=infinity)
 {
   return new void(picture pic, path g, pen p, arrowbarT arrowbar) {
     arrowbar.drawpath=false;
-    add(pic,arrow2(g,p,size,angle,arrowhead));
+    add(pic,arrow2(g,p,size,angle,filltype));
   };
 }
 
 arrowbar BeginArcArrow(real size=arcarrowsize, real angle=arcarrowangle,
-		       arrowhead arrowhead=Fill, real position=infinity)
+		       filltype filltype=Fill, real position=infinity)
 {
-  return BeginArrow(size,angle,arrowhead,position);
+  return BeginArrow(size,angle,filltype,position);
 }
 
 arrowbar ArcArrow(real size=arcarrowsize, real angle=arcarrowangle,
-		  arrowhead arrowhead=Fill, real position=infinity)
+		  filltype filltype=Fill, real position=infinity)
 {
-  return Arrow(size,angle,arrowhead,position);
+  return Arrow(size,angle,filltype,position);
 }
 
 arrowbar EndArcArrow(real size=arcarrowsize, real angle=arcarrowangle,
-		     arrowhead arrowhead=Fill, real position=infinity)
+		     filltype filltype=Fill, real position=infinity)
 {
-  return Arrow(size,angle,arrowhead,position);
+  return Arrow(size,angle,filltype,position);
 }
   
 arrowbar ArcArrows(real size=arcarrowsize, real angle=arcarrowangle,
-		   arrowhead arrowhead=Fill, real position=infinity)
+		   filltype filltype=Fill, real position=infinity)
 {
-  return Arrows(size,angle,arrowhead,position);
+  return Arrows(size,angle,filltype,position);
 }
   
 arrowbar BeginBar(real size=barsize) 
@@ -1511,7 +1522,7 @@ void drawabout(pair origin, picture pic=currentpicture, string s="",
 void arrow(picture pic=currentpicture, string s="", real angle=0,
 	   pair b, pair align, real length=arrowlength, pair shift=0,
 	   pen p=currentpen, real size=arrowsize, real Angle=arrowangle,
-	   arrowhead arrowhead=Fill)
+	   filltype filltype=Fill)
 {
   pair a,c;
   pair dir=unit(align);
@@ -1521,7 +1532,7 @@ void arrow(picture pic=currentpicture, string s="", real angle=0,
     c=labelmargin(p)*dir;
     a=length*dir+c;
   }
-  drawabout(b,pic,s,angle,a--c,0.0,align,shift,p,Arrow(size,Angle,arrowhead));
+  drawabout(b,pic,s,angle,a--c,0.0,align,shift,p,Arrow(size,Angle,filltype));
 }
 
 string substr(string s, int pos)

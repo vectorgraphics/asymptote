@@ -20,35 +20,35 @@ frame tiling(string name, picture pic, pair lb=0, pair rt=0)
 }
 
 public real hatchepsilon=1e-4;
-picture hatch(real H=5mm, pair dir=NE) 
+picture hatch(real H=5mm, pair dir=NE, pen p=currentpen) 
 {
   picture tiling=new picture;
   real theta=angle(dir);
   real s=sin(theta);
   real c=cos(theta);
   if(abs(s) <= hatchepsilon) {
-    path p=(0,0)--(H,0);
-    draw(tiling,p);
-    draw(tiling,shift(0,H)*p);
+    path g=(0,0)--(H,0);
+    draw(tiling,g,p);
+    draw(tiling,shift(0,H)*g,p);
     clip(tiling,scale(H)*unitsquare);
   } else if(abs(c) <= hatchepsilon) {
-    path p=(0,0)--(0,H);
-    draw(tiling,p);
-    draw(tiling,shift(H,0)*p);
+    path g=(0,0)--(0,H);
+    draw(tiling,g,p);
+    draw(tiling,shift(H,0)*g,p);
     clip(tiling,scale(H)*unitsquare);
   } else {
     real h=H/s;
     real y=H/c;
-    path p=(0,0)--(h,y);
-    draw(tiling,p);
-    draw(tiling,shift(-h/2,y/2)*p);
-    draw(tiling,shift(h/2,-y/2)*p);
+    path g=(0,0)--(h,y);
+    draw(tiling,g,p);
+    draw(tiling,shift(-h/2,y/2)*g,p);
+    draw(tiling,shift(h/2,-y/2)*g,p);
     clip(tiling,box((0,0),(h,y)));
   }
   return tiling;
 }
 
-picture crosshatch(real H=5mm)
+picture crosshatch(real H=5mm, pen p=currentpen)
 {
   picture tiling=new picture;
   add(tiling,hatch(H));
@@ -56,24 +56,25 @@ picture crosshatch(real H=5mm)
   return tiling;
 }
 
-picture tile(real Hx=5mm, real Hy=0)
+picture tile(real Hx=5mm, real Hy=0, pen p=currentpen,
+	     Filltype filltype=NoFill)
 {
   picture tiling=new picture;
   if(Hy == 0) Hy=Hx;
   guide tile=box((0,0),(Hx,Hy));
-  draw(tiling,tile);
+  filltype(tiling,tile,p,filltype);
   clip(tiling,tile);
   return tiling;
 }
 
-picture brick(real Hx=5mm, real Hy=0)
+picture brick(real Hx=5mm, real Hy=0, pen p=currentpen)
 {
   picture tiling=new picture;
   if(Hy == 0) Hy=Hx/2;
   guide tile=box((0,0),(Hx,Hy));
-  draw(tiling,tile);
-  draw(tiling,(Hx/2,Hy)--(Hx/2,2Hy));
-  draw(tiling,(0,2Hy)--(Hx,2Hy));
+  draw(tiling,tile,p);
+  draw(tiling,(Hx/2,Hy)--(Hx/2,2Hy),p);
+  draw(tiling,(0,2Hy)--(Hx,2Hy),p);
   clip(tiling,box((0,0),(Hx,2Hy)));
   return tiling;
 }

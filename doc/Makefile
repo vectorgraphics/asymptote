@@ -22,7 +22,7 @@ figures: latexusage.eps latexusage.png $(ASYFILES:.asy=.eps) \
 asymptote.info: figures
 	makeinfo asymptote
 
-asymptote.dvi: asymptote.texi version.texi
+asymptote.dvi: figures asymptote.texi version.texi
 	texi2dvi asymptote.texi
 
 asymptote.ps: asymptote.dvi

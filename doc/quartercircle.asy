@@ -1,2 +1,3 @@
-draw((100,0){up}..{left}(0,100));
+size(100,0);
+draw((1,0){up}..{left}(0,1));
 shipout();
