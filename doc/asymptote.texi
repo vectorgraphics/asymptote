@@ -12,9 +12,9 @@ Copyright @copyright{} 2004 Andy Hammerlindl, John Bowman, and Tom Prince.
      
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the @acronym{GNU} Free Documentation License,
-Version 1.1, or any later version published by the Free Software
-Foundation.
+under the terms of the @acronym{GNU} General Public License (see the
+file LICENSE in the top-level source directory).
+
 @end quotation
 @end copying
      
@@ -262,8 +262,9 @@ environment variable and a PDF viewer list @code{gv}, @code{acroread}, and
 @cindex @code{asy-mode}
 Users of @code{emacs} can edit @code{Asymptote} code with the mode
 @code{asy-mode}, after enabling it by putting these two lines in the
-@code{~/.emacs} initialization file, replacing @code{ASYDIR} with the location
-of the Asymptote base files (by default, @code{/usr/local/share/asymptote}):
+@code{~/.emacs} initialization file, replacing @code{ASYDIR} with the
+location of the Asymptote example files (by default,
+@code{/usr/local/share/doc/asymptote}):
 @verbatim
 (autoload 'asy-mode "ASYDIR/asy-mode.el" "Asymptote major mode." t)
 (setq auto-mode-alist (cons (cons "\\.asy$" 'asy-mode) auto-mode-alist))
@@ -274,7 +275,7 @@ of the Asymptote base files (by default, @code{/usr/local/share/asymptote}):
 @cindex @code{asy.vim}
 Fans of @code{vim} can
 @verbatim 
-cp /usr/local/share/asymptote/asy.vim ~/.vim/syntax/asy.vim
+cp /usr/local/share/doc/asymptote/asy.vim ~/.vim/syntax/asy.vim
 @end verbatim 
 
 and add the following to their @code{~/.vimrc} file: 
@@ -447,8 +448,9 @@ for(int i=0; i < 10; ++i) {
 @cindex animation
 @cindex @code{ImageMagick}
 Another example of a loop, together with user-defined functions, is
-provided in the file @code{wheelanimation.asy} in the @code{examples}
-directory of the @code{Asymptote} source. This example uses the
+provided in the file @code{wheelanimation.asy} in the examples
+directory (by default @code{/usr/local/share/doc/asymptote}).
+This example uses the
 @code{gifmerge} command to @code{merge} multiple images
 into a gif animation, using the @code{ImageMagick} @code{convert} program. 
 
@@ -1076,8 +1078,9 @@ arguments are implemented):
 @verbatim
 void shipout(string prefix=defaultfilename,
   picture pic=currentpicture,
-  real xsize=infinity, real ysize=infinity,
+  real xsize=pic.xsize, real ysize=pic.ysize,
   keepAspect keepAspect=pic.keepAspect ? Aspect : IgnoreAspect,
+  orientation orientation=Portrait,
   string format="", wait wait=NoWait);
 @end verbatim
 
@@ -1107,11 +1110,17 @@ If @code{keepAspect} is set to @code{IgnoreAspect}, the picture will be
 scaled in both directions so that the final width is @code{xsize} and
 the height is @code{ysize}. 
 
+@cindex portrait mode
 @cindex landscape mode
-To output in landscape mode, simply replace the call to @code{shipout} with:
+@cindex seascape mode
+The default page orientation is @code{Portrait}. To output in landscape
+mode, simply replace the call to @code{shipout} with:
 @verbatim
-shipout(rotate(90)*currentpicture.fit());
+shipout(Landscape);
 @end verbatim
+
+To rotate in the other direction, replace @code{Landscape} with
+@code{Seascape}.
 
 @cindex @code{bbox}
 To draw a bounding box with a 0.25cm margin around a picture, fit the
@@ -1158,10 +1167,11 @@ void tex(picture pic=currentpicture, string s);
 @end verbatim
 
 @cindex @code{include}
-@cindex EPS
+@cindex @acronym{EPS}
 For example, the @code{tex} function is used in the default base file
 @code{plain.asy} to implement an @code{include} command that
-includes an encapsulated @code{PostScript} (EPS) file into a picture:
+includes an encapsulated @code{PostScript} (@acronym{EPS}) file into a
+picture: 
 @verbatim
 void include(picture pic=currentpicture, string name,
   string options="");
@@ -2209,7 +2219,7 @@ comma-separated data found in @code{diatom.csv}.
 @cindex 3D graphs
 @cindex hidden surface removal
 This module will be developed into a full three-dimensional graphics package
-in a future release. The file @code{planes.asy} in the @code{examples}
+in a future release. The file @code{planes.asy} in the examples
 directory illustrates how clipping can be used to implement hidden
 surface removal in 3d vector graphics. Perspective has not yet been
 added (but can be easily implemented using similar triangles).
@@ -2543,8 +2553,8 @@ also arrow versions with slightly modified default values of @code{size} and
 @code{EndArcArrow} (or equivalently @code{ArcArrow}), and @code{ArcArrows}.
 
 Two examples illustrating the use of arrows and bars are
-@code{Pythagoras.asy} and @code{triads.asy} in the @code{examples}
-directory of the @code{Asymptote} source.
+@code{Pythagoras.asy} and @code{triads.asy} in the examples
+(by default @code{/usr/local/share/doc/asymptote}).
 
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.
@@ -2653,9 +2663,10 @@ picture needs to be output with the @code{shipout} function (@pxref{shipout}).
 @cindex @code{LaTeX} usage
 @cindex @code{asymptote.sty}
 
-There is a convenient @code{LaTeX} style file @code{asymptote.sty} in
-the directory @code{doc} in the @code{Asymptote} source that makes
-@code{LaTeX} @code{Asymptote}-aware. Entering @code{Asymptote} code
+@code{Asymptote} comes with a convenient @code{LaTeX} style file
+@code{asymptote.sty} (in the directory @code{doc} in the
+@code{Asymptote} source) that makes @code{LaTeX}
+@code{Asymptote}-aware. Entering @code{Asymptote} code
 directly into the @code{LaTeX} source file, at the point where it is
 needed, keeps figures organized and avoids the need to invent new file
 names for each figure.
@@ -2793,25 +2804,25 @@ Usage: asy [options] [file ...]
 
 Options: 
 
--c               clear GUI operations
--i               ignore GUI operations
--x magnification deconstruct into transparent gif objects
--f format        convert each output file to specified format
--V, -View        view output file
--h, -help        help
--o name          (first) output file name
--L               disable LaTeX label postprocessing
+-V, -View        View output file
+-x magnification Deconstruct into transparent GIF objects
+-c               Clear GUI operations
+-i               Ignore GUI operations
+-f format        Convert each output file to specified format
+-o name          (First) output file name
+-h, -help        Show summary of options
 -O pair          PostScript offset: defaults to (18,-18)
--b               align to bottom-left (instead of top-left) corner of page
--v, -verbose     increase verbosity level
--k               keep intermediate files
--p               parse test
--s               translate test
--m               mask fpu exceptions (on supported architectures)
--nomask          don't mask fpu exceptions (default)
--safe            disable system call (default)
--unsafe          enable system call
--noplain         disable automatic importing of plain
+-b               Align to bottom-left (instead of top-left) corner of page
+-v, -verbose     Increase verbosity level
+-k               Keep intermediate files
+-L               Disable LaTeX label postprocessing
+-p               Parse test
+-s               Translate test
+-m               Mask fpu exceptions (on supported architectures)
+-nomask          Don't mask fpu exceptions (default)
+-safe            Disable system call (default)
+-unsafe          Enable system call
+-noplain         Disable automatic importing of plain
 @end verbatim
 
 If no arguments are given, @code{Asymptote} runs in interactive mode
@@ -2834,8 +2845,8 @@ An alternative output format may be produced by using the @code{-f format}
 option. This supports any format supported by the @code{ImageMagick}
 @code{convert} program (a relatively recent version of which must be
 installed). @code{ImageMagick} should be configured with @code{--enable-lzw} to
-produce @code{LZW}-compressed gifs (the @code{Unisys LZW} patent expired
-on June 20, 2003).
+produce @acronym{LZW}-compressed @acronym{GIF}s (the @acronym{Unisys LZW}
+patent expired on June 20, 2003).
 
 If the option @code{-unsafe} is given, @code{Asymptote} runs
 in unsafe mode. This enables the @code{int system(string)} call, allowing one
@@ -2946,8 +2957,8 @@ this preliminary GUI soon.
 As @code{xasy} is written in the interactive scripting language
 Python/TK, it requires that both Python and the @code{tkinter} package be
 installed. To use @code{xasy}, one must first deconstruct
-@code{Asymptote} pictures into transparent GIF images with the command
-@code{asy -xN}, where @code{N} denotes the magnification (say 2). 
+@code{Asymptote} pictures into transparent @acronym{GIF} images with the
+command @code{asy -xN}, where @code{N} denotes the magnification (say 2). 
 The command @code{asy -VxN} automatically invokes @code{xasy} once
 deconstruction is complete.
 
@@ -3008,7 +3019,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  randMax Gaussrand asy cindex indices resized LaTeX TK latin au
 @c  LocalWords:  latexusage tex bbox PostScript subdirectory gcc emacs ASYDIR
 @c  LocalWords:  documentclass usepackage asydef colour subpath shipout sqrt xN
-@c  LocalWords:  xscale labeldot xaxis yaxis BeginBar gif postprocessing fpu de
+@c  LocalWords:  xscale labeldot xaxis yaxis BeginBar GIF postprocessing fpu de
 @c  LocalWords:  nomask noplain ImageMagick defaultfontsize defaultlinewidth cd
 @c  LocalWords:  startup natively xasy tkinter VxN yingyang currentpicture toc
 @c  LocalWords:  MetaPost MetaFont Hammerlindl Healy texinfo autoload setq setf
@@ -3039,5 +3050,5 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  loggraph generalaxis texhash arrowsize arrowangle arrowlength
 @c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config PSVIEWER PDFVIEWER
 @c  LocalWords:  ghostview gsview SIGHUP PDF acroread xpdf nullframe
-@c  LocalWords:  libsigsegv intersectionpoint dotfactor lzw gifs vv
+@c  LocalWords:  libsigsegv intersectionpoint dotfactor lzw GIFS vv
 @c  LocalWords:  Unisys dvips vvv vvvv vvvvv traceback

@@ -89,28 +89,28 @@ void options()
 {
   cerr << endl;
   cerr << "Options: " << endl;
-  cerr << "-c \t\t clear GUI operations" << endl;
-  cerr << "-i \t\t ignore GUI operations" << endl;
-  cerr << "-x magnification deconstruct into transparent gif objects" 
+  cerr << "-V, -View\t View output file" << endl;
+  cerr << "-x magnification Deconstruct into transparent GIF objects" 
        << endl;
-  cerr << "-f format\t convert each output file to specified format" << endl;
-  cerr << "-V, -View\t view output file" << endl;
-  cerr << "-h, -help\t help" << endl;
-  cerr << "-o name\t\t (first) output file name" << endl;
-  cerr << "-L\t\t disable LaTeX label postprocessing" << endl;
+  cerr << "-c \t\t Clear GUI operations" << endl;
+  cerr << "-i \t\t Ignore GUI operations" << endl;
+  cerr << "-f format\t Convert each output file to specified format" << endl;
+  cerr << "-o name\t\t (First) output file name" << endl;
+  cerr << "-h, -help\t Show summary of options" << endl;
   cerr << "-O pair\t\t PostScript offset: defaults to (18,-18)"
        << endl; 
-  cerr << "-b\t\t align to bottom-left (instead of top-left) corner of page"
+  cerr << "-b\t\t Align to bottom-left (instead of top-left) corner of page"
        << endl;
-  cerr << "-v, -verbose\t increase verbosity level" << endl;
-  cerr << "-k\t\t keep intermediate files" << endl;
-  cerr << "-p\t\t parse test" << endl;
-  cerr << "-s\t\t translate test" << endl;
-  cerr << "-m\t\t mask fpu exceptions (on supported architectures)" << endl;
-  cerr << "-nomask\t\t don't mask fpu exceptions (default)" << endl;
-  cerr << "-safe\t\t disable system call (default)" << endl;
-  cerr << "-unsafe\t\t enable system call" << endl;
-  cerr << "-noplain\t disable automatic importing of plain" << endl;
+  cerr << "-v, -verbose\t Increase verbosity level" << endl;
+  cerr << "-k\t\t Keep intermediate files" << endl;
+  cerr << "-L\t\t Disable LaTeX label postprocessing" << endl;
+  cerr << "-p\t\t Parse test" << endl;
+  cerr << "-s\t\t Translate test" << endl;
+  cerr << "-m\t\t Mask fpu exceptions (on supported architectures)" << endl;
+  cerr << "-nomask\t\t Don't mask fpu exceptions (default)" << endl;
+  cerr << "-safe\t\t Disable system call (default)" << endl;
+  cerr << "-unsafe\t\t Enable system call" << endl;
+  cerr << "-noplain\t Disable automatic importing of plain" << endl;
 }
 
 // Local versions of the argument list.

@@ -1,0 +1,28 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.TH XASY 1x "1 Dec 2004"
+.SH NAME
+asy \- script-based vector graphics language
+.SH SYNOPSIS
+.B xasy
+.RI " file base name"
+.SH DESCRIPTION
+\fBAsymptote\fP is a powerful script-based vector graphics language for
+technical drawings, inspired by MetaPost but with an improved C++\-like syntax.
+Asymptote provides for figures the same high\-quality level of typesetting that
+LaTeX does for scientific text.
+.PP
+\fBxasy\fP is a GUI for Asymptote that allows for final figure adjustments.
+After deconstructing an Asymptote file into transparent GIF objects, using the
+-xN option (where N is the magnification factor), one can run \fBxasy\fP to
+make final adjustments.  One can also use the command "\fIasy -VxN\fP" to
+automatically invoke xasy.
+.SH OPTIONS
+xasy takes no options.
+
+.SH SEE ALSO
+Asymptote and xasy are documented fully in the asymptote Info page.
+.SH AUTHOR
+Asymptote was written by Andy Hammerlindl, John Bowman, and Tom Prince.
+.PP
+This manual page was written by Hubert Chan for the Debian project (but may
+be used by others).

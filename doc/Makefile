@@ -1,6 +1,6 @@
 asyfiles := $(wildcard *.asy)
 
-man:	figures asymptote.info asymptote.dvi html
+man:	asymptote.info asymptote.ps html
 
 %.png:	%.eps
 	convert -density 288x288 -geometry 25%x $< $@
@@ -10,7 +10,7 @@ man:	figures asymptote.info asymptote.dvi html
 
 latexusage.eps: latexusage.tex
 	latex latexusage
-	asy latexusage
+	../asy latexusage
 	latex latexusage
 	dvips -o latexusage.eps latexusage
 	rm -f latexusage.*.eps latexusage.asy
@@ -18,13 +18,19 @@ latexusage.eps: latexusage.tex
 figures: latexusage.eps latexusage.png $(asyfiles:.asy=.eps) \
 	$(asyfiles:.asy=.png)
 
+asymptote.info: figures
+	makeinfo asymptote
+
+asymptote.ps: asymptote.dvi
+	dvips -o asymptote.ps asymptote
+
 html:	figures
-	makeinfo --html asymptote
 	cp *.png asymptote
+	makeinfo --html asymptote
 
 clean: FORCE
 	rm -f *.eps *.png latexusage.{asy,dvi,log,aux,ps}
-	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,toc,tp,vr}
+	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,ps,toc,tp,vr}
 	rm -rf asymptote
 
 distclean: FORCE clean

@@ -1,0 +1,84 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.TH ASY 1 "1 Dec 2004"
+.SH NAME
+asy \- script-based vector graphics language
+.SH SYNOPSIS
+.B asy
+.RI [ options ] " files" ...
+.SH DESCRIPTION
+\fBAsymptote\fP is a powerful script-based vector graphics language for
+technical drawings, inspired by MetaPost but with an improved C++\-like syntax.
+Asymptote provides for figures the same high\-quality level of typesetting that
+LaTeX does for scientific text.
+.SH OPTIONS
+If no arguments are given, Asymptote runs in interactive mode.
+.PP
+If "\-" is given as the file argument, Asymptote reads from standard input.
+.PP
+A summary of options is included below.
+For a complete description, see the Info files.
+.TP
+.B -V, -View
+View output file.
+.TP
+.B \-x magnification
+Deconstruct into transparent GIF objects.
+.TP
+.B \-c
+Clear GUI operations.
+.TP
+.B \-i
+Ignore GUI operations.
+.TP
+.B \-f format
+Convert each output file to specified format.
+.TP
+.B -o name
+(First) output file name.
+.TP
+.B \-h, \-help
+Show summary of options.
+.TP
+.B -O pair
+PostScript offset: defaults to (18,-18).
+.TP
+.B -b
+Align to bottom-left (instead of top-left) corner of page.
+.TP
+.B -v, -verbose
+Increase verbosity level.
+.TP
+.B \-k
+Keep intermediate files.
+.TP
+.B \-L
+Disable LaTeX label postprocessing.
+.TP
+.B \-p
+Parse test.
+.TP
+.B -s
+Translate test.
+.TP
+.B -m
+Mask fpu exceptions (on supported architectures).
+.TP
+.B -nomask
+Don't mask fpu exceptions. (default)
+.TP
+.B -safe
+Disable system call. (default)
+.TP
+.B -unsafe
+Enable system call.
+.TP
+.B -noplain
+Disable automatic importing of plain.
+
+.SH SEE ALSO
+Asymptote is documented fully in the asymptote Info page.
+.SH AUTHOR
+Asymptote was written by Andy Hammerlindl, John Bowman, and Tom Prince.
+.PP
+This manual page was written by Hubert Chan for the Debian project (but may
+be used by others).

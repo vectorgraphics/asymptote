@@ -122,7 +122,7 @@ bool picture::texprocess(const string& texname, const string& outname,
 
     string psname=auxname(prefix,"ps");
     ostringstream dcmd;
-    dcmd << "dvips -e 0 -O " << hoffset << "bp," << voffset << "bp";
+    dcmd << "dvips -t letterSize -R -O " << hoffset << "bp," << voffset << "bp";
     if(verbose <= 1) dcmd << " -q";
     dcmd << " -o " << psname << " " << dviname;
     status=System(dcmd);

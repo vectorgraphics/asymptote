@@ -1,7 +1,7 @@
 			  ASYMPTOTE
       Copyright 2004 Andy Hammerlindl, John Bowman, and Tom Prince
 
-Asymptote is powerful script-based vector graphics language for technical
+Asymptote is a powerful script-based vector graphics language for technical
 drawings, inspired by MetaPost but with an improved C++-like
 syntax. Asymptote provides for figures the same high-quality level of
 typesetting that LaTeX does for scientific text.
@@ -11,13 +11,17 @@ available at:
 
 http://asymptote.sourceforge.net
 
-Bugs, patches, feature requests, questions, and comments should be sent to the
-Asymptote mailing list:
+Bugs/Patches can be submitted using the Bug/Patches Tracking Systems at
+http://sourceforge.net/projects/asymptote/.
+
+Feature requests, questions, and comments should be sent to the Asymptote
+mailing list, after first subscribing (currently only members can post):
 
 asymptote-discuss@lists.sourceforge.net
 
-All of the files in the Asymptote project are released under the GNU public
-license (see the file LICENSE in the top-level source directory).
+All of the files in the Asymptote project are released under the GNU
+General Public License (see the file LICENSE in the top-level source
+directory).
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

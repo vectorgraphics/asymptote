@@ -1,5 +1,5 @@
 import graph;
-import "examples/lowupint";
+import lowupint;
 
 size(100,0);
 

@@ -1,5 +1,5 @@
 import graph;
-import "examples/lowupint";
+import lowupint;
 
 real a=-0.8, b=1.2;
 real c=1.0/sqrt(3.0);
