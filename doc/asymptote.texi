@@ -1937,7 +1937,7 @@ well as the identity function @code{identity}.
 @cindex @code{atan2}
 @cindex @code{hypot}
 @cindex @code{fmod}
-@cindex @code{dremainder}
+@cindex @code{remainder}
 The standard real(real, real) functions @code{atan2}, @code{hypot},
 @code{fmod}, @code{remainder} are also included.
 
@@ -3640,4 +3640,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  beveljoin fillrule zerowinding insideness lineskip cmr pcrr Hx
 @c  LocalWords:  baselineskip AvantGarde Bookman Helvetica NewCenturySchoolBook
 @c  LocalWords:  Palatino TimesRoman ZapfChancery ZapfDingbats german
-@c  LocalWords:  nondeconstructed backends usr venn
+@c  LocalWords:  nondeconstructed backends usr venn labelsquare
