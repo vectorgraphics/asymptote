@@ -7,7 +7,6 @@ currentpen=fontsize(8);
 overwrite(MoveQuiet);
 
 import graph;
-import unicode;
 
 file in=line(csv(input(data)));
 pen p=linewidth(1);

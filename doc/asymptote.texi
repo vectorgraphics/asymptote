@@ -5,7 +5,7 @@
 @set VERSION 0.51cvs
 
 @copying
-This file documents ASYMPTOTE, version @value{VERSION}.
+This file documents @code{Asymptote}, version @value{VERSION}.
 
 http://asymptote.sourceforge.net
      
@@ -51,7 +51,7 @@ Foundation.
 * Example::                     A simple example
 * Programming::                 @code{Asymptote} graphics language
 * Drawing commands::            Four primitive drawing commands
-* Latex usage::                 Embedding @code{Asymptote} commands within LaTeX
+* LaTeX usage::                 
 * Options::                     Command line options
 * Interactive mode::            Typing @code{Asymptote} commands interactively
 * GUI::                         Graphical user interface
@@ -93,8 +93,7 @@ Import
 * math::                        Extend @code{Asymptote}'s math capabilities
 * stats::                       Statistic routines and histograms
 * tree::                        Dynamic binary search tree
-* unicode::                     Accept @code{unicode} (UTF8) characters
-
+* unicode::                     Accept @code{unicode} (UTF-8) characters
 
 @end detailmenu
 @end menu
@@ -137,12 +136,14 @@ write @code{Asymptote} modules that tailor it to specific
 applications. A scientific graphing module has already been written
 (@pxref{graph}).
 
-Examples of @code{Asymptote} code and the resulting output are available
-at @code{http://asymptote.sourceforge.net/gallery/}
+Examples of @code{Asymptote} code and output are available at
+@verbatim
+http://asymptote.sourceforge.net/gallery/
+@end verbatim
 
 Features of @code{Asymptote} graphics language include:
 
-@itemize
+@itemize @bullet
 @item provides a natural coordinate-based framework for technical drawings,
 inspired by MetaPost, with a much cleaner, powerful C++-like programming
 syntax;
@@ -511,7 +512,7 @@ character strings. These are implemented as STL strings, except that the
 escape character is @code{\\} not @code{\}, for compatibility with @TeX{}.
 For example; 
 
-@itemize 
+@itemize @bullet 
 @item \ maps to \
 @item \\n maps to \n
 @item \\t maps to \t
@@ -854,7 +855,7 @@ returns true iff path is straight
 color, line type, line width, font size, and calligraphic transforms on
 the pen nib. The default pen is @code{currentpen}.
 
-@itemize
+@itemize @bullet
 
 @item Colors are specified using one of the following colorspaces:
 @cindex color
@@ -916,7 +917,7 @@ The default linetype is @code{solid}.
 
 @cindex @code{linewidth}
 @cindex @code{defaultlinewidth}
-@item The pen line width is specified in postscript units with the function
+@item The pen line width is specified in postscript units with
 @code{pen linewidth(real)}. The default line width is 0.5bp
 (this global default value may be changed with the
 @code{defaultlinewidth(real)} command or reset to the startup default
@@ -1124,7 +1125,7 @@ struct S {
 
 S s=new S;
 
-write(s.f(2));                  // Outputs: 3
+write(s.f(2));                  // Outputs 3
 
 S operator + (S s1, S s2)
 {
@@ -1133,7 +1134,7 @@ S operator + (S s1, S s2)
   return result;
 }
 
-write((s+s).f(0));              // Outputs: 2
+write((s+s).f(0));              // Outputs 2
 
 @end verbatim
 
@@ -1719,7 +1720,7 @@ string s=(string) 2.5;
 @node Import
 @section Import
 @cindex @code{import}
-One can import other @code{Asymptote} files with the @code{import} command.
+One can import other @code{Asymptote} files with the @code{import} command:
 @verbatim
 import graph;
 @end verbatim
@@ -1749,31 +1750,30 @@ a module multiple times.
 * math::                        Extend @code{Asymptote}'s math capabilities
 * stats::                       Statistic routines and histograms
 * tree::                        Dynamic binary search tree
-* unicode::                     Accept @code{unicode} (UTF8) characters.
-
+* unicode::                     Accept @code{unicode} (UTF-8) characters
 @end menu
 
 @node plain
-@subsection plain
+@subsection @code{plain}
 @cindex @code{plain}
 
 This is the default @code{Asymptote} base file, which defines key parts of the
 drawing language (such as the @code{picture} structure).
 
-By default, @code{Asymptote} automatically imports @code{plain};
+By default, the top-level module automatically imports @code{plain};
 use the @code{-noplain} command-line option to disable this feature.
 In any case, no error message will be issued if one tries to explicitly
 @code{import plain}.
 
 @node simplex
-@subsection simplex
+@subsection @code{simplex}
 @cindex @code{simplex}
 
 This package solves the two-variable linear programming problem using the
 simplex method. It is used by @code{plain}, for automatic sizing of pictures.
 
 @node graph
-@subsection graph
+@subsection @code{graph}
 @cindex @code{graph}
 @cindex 2D graphs
 This package implements two-dimensional linear and logarithmic graphs,
@@ -1908,8 +1908,7 @@ shipout();
 @cindex @code{scale}
 @cindex @code{Linear}
 @cindex @code{Log}
-@cindex @code{automin}
-@cindex @code{automax}
+@cindex automatic scaling
 Axis scaling can be requested and/or automatic selection of the minimum and
 maximum axis values can be inhibited with the @code{scale} routine:
 @verbatim
@@ -1964,6 +1963,7 @@ shipout();
 @code{Asymptote}'s graphics routines. It was generated with the
 example @code{diatom.asy} (in the @code{doc} directory), using the
 comma-separated data found in @code{diatom.csv}. 
+
 @image{diatom}
 
 
@@ -1974,27 +1974,37 @@ release.
 @end enumerate
 
 @node math
-@subsection math
+@subsection @code{math}
 @cindex @code{math}
 This package extends @code{Asymptote}'s mathematical capabilities with radian/degree
 conversion routines, matrices, and point-in-polygon algorithms.
 
 @node stats
-@subsection stats
+@subsection @code{stats}
 @cindex @code{stats}
 This package implements a Gaussian random number generator
 and a collection of statistics routines, including @code{histogram}.
 
 @node tree
-@subsection tree
+@subsection @code{tree}
 @cindex @code{tree}
 This package implements a dynamic binary search tree.
 
 @node unicode
-@subsection unicode
+@subsection @code{unicode}
 @cindex @code{unicode}
-Import this package at the beginning of the file to instruct LaTeX to
-accept @code{unicode} (UTF8) standardized international characters.
+Import this package at the beginning of the file to instruct
+@code{LaTeX} to accept @code{unicode} (UTF-8) standardized international
+characters. You will also need to set up @code{LaTeX} support for
+@code{unicode} by unpacking in your latex source directory
+(e.g. @code{/usr/share/texmf/tex/latex}) the file
+@verbatim
+http://www.unruh.de/DniQ/latex/unicode/unicode.tgz
+@end verbatim
+and then running the command 
+@verbatim
+texhash
+@end verbatim
 
 @node Static & dynamic
 @section Static & dynamic qualifiers
@@ -2231,12 +2241,13 @@ void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
 
 @item
 @cindex @code{clip}
-@verbatim void clip(picture pic=currentpicture, path g);
+@verbatim 
+void clip(picture pic=currentpicture, path g);
 @end verbatim
 
 Clip picture @code{pic} to the region bounded by the path @code{g}.
 For an illustration of picture clipping, see the first example in
-@ref{Latex usage}.
+@ref{LaTeX usage}.
 
 @item
 @cindex @code{label}
@@ -2288,9 +2299,9 @@ Once the above commands have been used to draw objects on a picture, the
 picture needs to be output with the @code{shipout} function (@pxref{shipout}).
 
 
-@node Latex usage
-@chapter Latex usage
-@cindex latex usage
+@node LaTeX usage
+@chapter @code{LaTeX} usage
+@cindex @code{LaTeX} usage
 @cindex @code{asymptote.sty}
 
 There is a convenient @code{LaTeX} style file @code{asymptote.sty} in
@@ -2584,7 +2595,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @bye
 
 @c  LocalWords:  randMax Gaussrand asy cindex indices resized LaTeX TK
-@c  LocalWords:  LateX LateX LateX LateX LateX LateX LateX latexusage tex bbox
+@c  LocalWords:  latexusage tex bbox
 @c  LocalWords:  documentclass usepackage asydef colour subpath shipout sqrt xN
 @c  LocalWords:  xscale labeldot xaxis yaxis BeginBar gif postprocessing fpu de
 @c  LocalWords:  nomask noplain ImageMagick defaultfontsize defaultlinewidth cd
