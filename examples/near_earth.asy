@@ -82,4 +82,3 @@ draw(quartcirc(vector(0,0,0),
      radius*vector(1,0,0),
      radius*vector(0,1,0)), thickp);
 
-shipout();

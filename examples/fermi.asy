@@ -38,4 +38,3 @@ drawVertexOX(zl);
 drawGluon(arc((0,0),mxu,myl,CW));
 
 // shipout
-shipout();

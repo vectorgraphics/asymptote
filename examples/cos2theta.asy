@@ -12,5 +12,4 @@ draw(g);
 labeldot((1,0),NE);
 labeldot((0,1),NE);
 
-shipout();
 

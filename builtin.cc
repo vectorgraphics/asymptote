@@ -218,6 +218,12 @@ inline void addArrayOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   addUnorderedArrayOps<T>(ve,t1,t2,t3,t4);
 }
 
+function *voidFunction()
+{
+  function *ft = new function(primVoid());
+  return ft;
+}
+
 function *intRealFunction()
 {
   function *ft = new function(primInt());
@@ -365,7 +371,8 @@ void base_venv(venv &ve)
 	  primPicture(),primPicture(),primString(),primBoolean());
   
   addFunc(ve,run::abort,primVoid(),"abort",primString());
-  addFunc(ve,run::exit,primVoid(),"exit",primInt());
+  addFunc(ve,run::atExit,primVoid(),"atexit",voidFunction());
+  addFunc(ve,run::exitFunction,primVoid(),"exitfunction");
   
   addFunc(ve,run::execute,primVoid(),"execute",primString());
 
@@ -435,8 +442,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::pairDot,primReal(),"Dot",primPair(),primPair());
 
   addFunc(ve,run::interAct,primVoid(),"interact",primBoolean());
-  addFunc(ve,run::upToDate,primVoid(),"uptodate",primBoolean());
-  addFunc(ve,run::boolUpToDate,primBoolean(),"uptodate");
+  addFunc(ve,run::boolInterAct,primBoolean(),"interact");
   
   addFunc(ve,run::stringLength,primInt(),"length",primString());
   addFunc(ve,run::stringFind,primInt(),"find",primString(),primString(),

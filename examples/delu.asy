@@ -28,4 +28,3 @@ draw(z3--z3+v1-v2,green,Arrow);
 
 labeldot("1",z1,S,blue);
 labeldot("2",z2,NW,blue);
-shipout();

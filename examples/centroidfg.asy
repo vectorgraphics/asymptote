@@ -36,4 +36,3 @@ pair dot=(xm,0.5*(f(xm)+g(xm)));
 dot(dot,darkgreen+4.0);
 arrow("$\left(x,\frac{f(x)+g(x)}{2}\right)$",dot,NE,2cm,darkgreen);
 
-shipout();

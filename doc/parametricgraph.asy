@@ -14,5 +14,4 @@ draw(graph(f,g,0,1,LinearInterp));
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
 
-shipout();
 

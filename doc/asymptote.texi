@@ -385,18 +385,16 @@ enabled). Further commands specific to interactive mode are described
 in @ref{Interactive mode}.
 
 Typically, @code{Asymptote} is run in batch mode, reading commands
-directly from a file. To try this out, type the commands
+directly from a file. To try this out, type
 @verbatiminclude diagonal.asy
 
+@noindent
 into a file, say test.asy. Then execute this file by typing
 @verbatim
 asy -V test
 @end verbatim
 
-The @code{shipout} command converts the current picture into
-@code{PostScript}. A @code{shipout} command is added implicitly in
-interactive mode, but is explicitly required in batch mode. 
-
+@noindent
 @cindex @code{-V}
 The @code{-V} option opens up a @code{PostScript}
 viewer window so you can immediately view the encapsulated
@@ -419,7 +417,6 @@ unbounded;" see @ref{Interactive mode} for details).
 @verbatim
 size(100,100);
 draw((0,0)--(1,0)--(1,1)--(0,1)--cycle);
-shipout();
 @end verbatim
 
 For convenience, the path @code{(0,0)--(1,0)--(1,1)--(0,1)--cycle}
@@ -1413,8 +1410,9 @@ whenever a new picture is declared:
 picture pic=new picture;
 @end verbatim
 
-A picture is fit to a frame upon calling the function @code{shipout},
-using the default or given size specification: 
+A picture is fit to a frame and converted into a @code{PostScript} image
+upon calling the function @code{shipout}, using either the default or 
+specified size:
 
 @anchor{shipout}
 @cindex @code{shipout}
@@ -1428,10 +1426,13 @@ void shipout(string prefix=defaultfilename,
              string format="", wait wait=NoWait);
 @end verbatim
 
-In reality, @code{shipout} is implemented using several functions,
+Actually, @code{shipout} is implemented using several functions,
 because of the way default arguments are implemented. Also, an
 explicit picture argument is required in order to specify a
 @code{PostScript} preamble.
+
+A @code{shipout()} command is added implicitly at file exit 
+if no previous @code{shipout} commands have been executed.
 
 Rather than specifying the size information explicitly to @code{shipout},
 one can alternatively use the @code{size} function:
@@ -1463,7 +1464,7 @@ the height is @code{ysize}.
 @cindex landscape mode
 @cindex seascape mode
 The default page orientation is @code{Portrait}. To output in landscape
-mode, simply replace the call to @code{shipout} with:
+mode, simply replace the call to @code{shipout()} with:
 @verbatim
 shipout(Landscape);
 @end verbatim
@@ -1480,7 +1481,7 @@ shipout(bbox(0.25cm));
 @end verbatim
 
 @cindex @code{Background}
-A @code{picture} or @code{frame} may be fit to a frame with a
+Similarly, a @code{picture} or @code{frame} may be fit to a frame with a
 background color using pen @code{p} with the function
 @code{bbox(p,Background)}.
 
@@ -3536,13 +3537,11 @@ This emulation will eventually become unnecessary, once
 incremental input.
 
 In interactive mode, it is not necessary to type a semicolon at the end
-of each line; one will automatically be appended. It is
-also not necessary to end your commands with @code{shipout()}, as a
-@code{shipout()} command is automatically appended as each line is
-entered. If you type in a command like @code{size(100,100)} on the first line,
-you will get two innocuous warning messages "warning: scaling in picture
-unbounded" since @code{currentpicture} is empty and cannot be
-scaled to achieve the requested size.
+of each line; one will automatically be appended. If you type in a
+command like @code{size(100,100)} on the first line, you will get two
+innocuous warning messages "warning: scaling in picture unbounded"
+since @code{currentpicture} is empty and cannot be scaled to achieve
+the requested size.
 
 The following special commands are supported only in interactive mode
 and must be entered immediate after the prompt:

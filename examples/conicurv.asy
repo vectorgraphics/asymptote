@@ -95,5 +95,4 @@ draw( rigorouscircle( vector(0,0,0),
                       vector(0,0,1), 
                       shortradius ) );
 
-shipout();
 

@@ -24,4 +24,3 @@ draw(hidden,circle((0,0),1),dashed);
 clip(hidden,g);
 
 add(hidden);
-shipout();

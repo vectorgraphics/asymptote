@@ -22,4 +22,3 @@ draw("$\bar{x}$",z0+s--zf+s,blue,Arrows,Bars,PenMargins);
 s=-0.95*I;
 draw("$X$",z0+s--z2+s,darkgreen,Arrows,Bars,PenMargins);
 
-shipout();

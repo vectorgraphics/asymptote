@@ -27,5 +27,4 @@ draw("r",(0,0)--z,0.5*unit(z)*I,blue,Arrow,DotMargin);
 labeldot("$(a,0)$",(1,0),NE);
 labeldot("$(2a,0)$",(2,0),NE);
 
-shipout();
 

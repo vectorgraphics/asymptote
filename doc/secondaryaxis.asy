@@ -28,4 +28,3 @@ add(secondary);
 
 label("Proportion of crows",point(NW),E,5mm*N);
 
-shipout();

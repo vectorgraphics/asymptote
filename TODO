@@ -4,8 +4,6 @@ Andy: implement tags
 
 Andy: implement "public import"
 
-Andy: add atexit function
-
 Andy: allow user specified initializers (including for structures)
 
 Andy: make more expressions translate into functions (e.g. join)

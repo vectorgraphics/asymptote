@@ -8,4 +8,3 @@ xaxis(red,"$x$");
 yaxis(red);
 draw(graph(f,-1.2/pi,1.2/pi,1000));
 label("$x\sin\frac{1}{x}$",F(1.1/pi),NW);
-shipout();

@@ -17,4 +17,3 @@ draw("$\ell$",z0--z1,0.5*SE,blue);
 draw(z0--z2);
 draw(arc(z0,r,a2-360,a1),dashed+green);
 
-shipout();

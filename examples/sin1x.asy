@@ -21,4 +21,3 @@ draw(g);
 
 label("$\sin\frac{1}{x}$",(b,f(b)),SW);
 
-shipout();

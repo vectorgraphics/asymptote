@@ -91,4 +91,3 @@ drawtris(dragon(n, new pair[] {(0,0), (1,0)}), black);
 drawtris(dragon(n, new pair[] {(0,0), (0,-1)}), blue);
 drawtris(dragon(n, new pair[] {(0,0), (-1,0)}), red);
 drawtris(dragon(n, new pair[] {(0,0), (0,1)}),  green);
-shipout();

@@ -10,4 +10,3 @@ void testline(real y) {
 currentpen=linewidth(0.5);
 testline(100);
 
-shipout();

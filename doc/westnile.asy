@@ -57,4 +57,3 @@ survival for next season\end{itemize}}",
 arrow(minipage("\flushleft{\begin{itemize}\item[4.] Calculate required
 proportional reduction in mosquitoes\end{itemize}}",
 	       90),point(reduction,0.5),NW,1.5cm,(3,-27),p,NoFill);
-shipout();

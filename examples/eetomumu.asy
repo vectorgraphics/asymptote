@@ -57,4 +57,3 @@ label("$\mu^-$", yl, right);
 
 
 // shipout
-shipout();

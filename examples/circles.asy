@@ -32,4 +32,3 @@ labeldot("$B$",B,dir(C--B,A--B),red);
 labeldot("$C$",C,dir(A--C,B--C),red);
 labeldot("$D$",D,red);
 
-shipout();

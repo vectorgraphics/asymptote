@@ -244,13 +244,12 @@ void stringFilePrefix(vm::stack *s);
 
 // Interactive mode
 void interAct(vm::stack *s);
-void upToDate(vm::stack *s);
-void boolUpToDate(vm::stack *s);
+void boolInterAct(vm::stack *s);
 
 // System commands
 void system(vm::stack *s);
 void abort(vm::stack *s);
-void exit(vm::stack *s);
+void atExit(vm::stack *s);
   
 // Merge output files  
 void merge(vm::stack *s);

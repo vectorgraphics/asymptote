@@ -155,4 +155,8 @@ struct max {
 
 } //namespace trans
 
+namespace run {
+  void exitFunction(vm::stack *s);
+}
+
 #endif //BUILTIN_H

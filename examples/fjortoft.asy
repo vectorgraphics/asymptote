@@ -26,4 +26,3 @@ draw("$Z_2$",shift(s)*G,Arrow,PenMargin);
 draw("$E_2$",shift(s)*G,LeftSide,Blank);
 draw(baseline("$\ldots$"),shift(s)^2*g,Arrow,PenMargin);
 
-shipout();

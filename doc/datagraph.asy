@@ -16,5 +16,4 @@ yaxis("$y$",LeftRight,RightTicks);
 xaxis(Dotted,YEquals(60.0,false));
 yaxis(Dotted,XEquals(80.0,false));
 
-shipout();
 

@@ -9,5 +9,4 @@ fill(tiling,shift(d,d)*square,blue);
 add("shadedtiling",tiling);
 
 filldraw(unitcircle,pattern("shadedtiling"));
-shipout();
 

@@ -52,7 +52,6 @@ camp::pair postscriptOffset=0.0;
 int origin=CENTER;
   
 bool suppressStandard=false;
-bool upToDate=false;
 
 int ShipoutNumber=0;
 char* AsyDir;

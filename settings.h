@@ -40,7 +40,6 @@ extern camp::pair postscriptOffset;
 extern int origin;
   
 extern bool suppressStandard;
-extern bool upToDate;
 
 extern int ShipoutNumber;
   

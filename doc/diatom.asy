@@ -72,5 +72,4 @@ for(int i=0; i < year.length; ++i)
 
 label("\%",(0.5*location,bottom),5*S);
 
-shipout();
 

@@ -37,4 +37,3 @@ labeldot("$C'$",Cp,dir(C--Cp),red);
 
 label(include("sflogo.eps","width=4cm"),Ap,6*NE,red);
 
-shipout();

@@ -152,7 +152,7 @@ size_t interactive_input(char *buf, size_t max_size)
     if(HIST_ENTRY *next=history_get(i++)) {
       if(redraw) redraw=false;
       else {
-	// Disable stdin/stdout
+	// Disable stdin/stdout and shipout
 	add_input(to,"static {interact(false);}; interact(false)",size);
 	camp::typein.seek(0);
       }
@@ -160,11 +160,9 @@ size_t interactive_input(char *buf, size_t max_size)
 	add_input(to,next->line,size);
 	next=p;
       }
-      if(*line)
-	// Renable I/O
+      if(*line) // Renable I/O and shipout
 	add_input(to,"static {interact(true);}; interact(true)",size);
       add_input(to,next->line,size);
-      add_input(to,"shipout()",size);
     }
     end=i-1;
     

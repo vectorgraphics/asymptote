@@ -214,6 +214,8 @@ lambda *genv::bootupModule(record *r)
   base_coder.encode(i);
   base_coder.encode(inst::pop);
 
+  base_coder.encode(inst::builtin, run::exitFunction);
+  
   // Return the finished function.
   return base_coder.close();
 }

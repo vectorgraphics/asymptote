@@ -8,4 +8,3 @@ draw(f,point(b1,S)--point(b2,N),currentpen);
 
 addabout((0,0),f);
 
-shipout();

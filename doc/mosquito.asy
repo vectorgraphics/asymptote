@@ -80,4 +80,3 @@ drawabout(point(susceptibleM,NNE),
 drawabout(point(exposed,NNE),"$\mu_A$",arrow,1,blue,Arrow);
 drawabout(point(infectiousM,NNE),"$\mu_A$",arrow,1,blue,Arrow);
 
-shipout();

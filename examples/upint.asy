@@ -11,4 +11,3 @@ partition(a,b,c,max);
 arrow("$f(x)$",F(0.5*(a+b)),NNE,red);
 label("$\cal{U}$",(0.5*(a+b),f(0.5*(a+b))/2));
 
-shipout();

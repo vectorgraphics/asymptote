@@ -11,4 +11,3 @@ filldraw(unitcircle,pattern("tile"));
 filldraw(shift(s,0)*unitcircle,pattern("filledtilewithmargin"));
 filldraw(shift(2s,0)*unitcircle,pattern("checker"));
 filldraw(shift(3s,0)*unitcircle,pattern("brick"));
-shipout();

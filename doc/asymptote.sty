@@ -54,10 +54,13 @@
   }}
 
 \def\AfterasyAsymptote{%
+  \immediate\write\AsyStream{atexit(atexit);}%
+  \immediate\write\AsyStream{exitfunction();}%
   \immediate\write\AsyStream{\@charrb}%
   \openin\EpsTestStream= \jobname.\arabic{asy}.eps
   \ifeof\EpsTestStream
-    \message{File \jobname.\arabic{asy}.eps does not exist.}\closein\EpsTestStream%
+    \message{File \jobname.\arabic{asy}.eps does not exist.}%
+    \closein\EpsTestStream%
   \else
     \closein\EpsTestStream
     \includegraphics{\jobname.\arabic{asy}.eps}%
@@ -72,7 +75,6 @@
   \def\@optarg{#1}%
    \immediate\write\AsyStream{\@charlb}%
    \immediate\write\AsyStream{static import plain;}%
-   \immediate\write\AsyStream{defaultpen();}%
    \immediate\write\AsyStream{defaultfilename="\jobname.\arabic{asy}.eps";}%
   \ifx\@optarg\empty
    \immediate\write\AsyStream{size(\ASYdefaultsize);}%

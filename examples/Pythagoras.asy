@@ -21,5 +21,4 @@ draw("$c$",z3+z2*I-d*v--z2-d*v,red,Arrows,PenMargins);
 draw("$a$",z3+d--z3+z2*I+d,red,Arrows,Bars,PenMargins);
 draw("$b$",z3+z2*I+d--z3+z3*I+d,red,Arrows,Bars,PenMargins);
 
-shipout();
 

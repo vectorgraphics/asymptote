@@ -25,5 +25,4 @@ label("5",z5,dir(z1--z5));
 label("6",z6,2.5E+0.1*N);
 label("7",z7,dir(z2--z7));
 
-shipout();
 

@@ -265,11 +265,23 @@ bool picture::postprocess(const string& epsname, const string& outname,
 bool picture::shipout(const picture& preamble, const string& prefix,
 		      const string& format, bool wait)
 {
+  if(settings::suppressStandard) return true;
+  
   checkFormatString(format);
   string outputformat=format == "" ? outformat : format;
   epsformat=outputformat == "" || outputformat == "eps";
   pdfformat=outputformat == "pdf";
   tgifformat=outputformat == "tgif";
+  string outname=tgifformat ? "."+buildname(prefix,"gif") :
+    buildname(prefix,outputformat);
+  string epsname=epsformat ? outname : auxname(prefix,"eps");
+  
+  bounds();
+  
+  if(b.right <= b.left && b.top <= b.bottom) { // null picture
+    unlink(outname.c_str());
+    return true;
+  }
   
   static std::ofstream bboxout;
   if(deconstruct && !tgifformat) {
@@ -284,12 +296,6 @@ bool picture::shipout(const picture& preamble, const string& prefix,
     return true;
   }
       
-  string outname=tgifformat ? "."+buildname(prefix,"gif") :
-    buildname(prefix,outputformat);
-  string epsname=epsformat ? outname : auxname(prefix,"eps");
-  
-  bounds();
-  
   bbox bpos=b;
   
   if(!labels && pdfformat) {
@@ -324,12 +330,6 @@ bool picture::shipout(const picture& preamble, const string& prefix,
     }
   }
   bpos.shift(bboxshift);
-
-  
-  if(bpos.right <= bpos.left && bpos.top <= bpos.bottom) { // null picture
-    unlink(outname.c_str());
-    return true;
-  }
   
   string texname=auxname(prefix,"tex");
   texfile *tex=NULL;

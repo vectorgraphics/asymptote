@@ -239,7 +239,6 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	    ticklabel ticklabel=defaultticklabel, bool end=true)
 {
   locateT locate=new locateT;
-  uptodate(false);
   return new void(frame f, transform T, string s, real position, real angle,
 		  pair align, pair shift, pair side, pen plabel, path G, pen p,
 		  scaleT S, part part, bool deconstruct, bool opposite,
@@ -981,24 +980,25 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
 	    interpolate interpolatetype=LinearInterp)
 {
   return interpolatetype(new pair (real x) {
-    return (x,pic.scale.y.scale.T(f(pic.scale.x.scale.Tinv(x))));
-  },g,pic.scale.x.scale.T(a),pic.scale.x.scale.T(b),n,interpolate);
+    return (x,pic.scale.y.scale.T(f(pic.scale.x.scale.Tinv(x))));},
+			 g,pic.scale.x.scale.T(a),pic.scale.x.scale.T(b),n,
+			 interpolate);
 }
 
 guide graph(picture pic=currentpicture, guide g=nullpath,
 	    real x(real), real y(real), real a, real b,
 	    int n=ngraph, interpolate interpolatetype=LinearInterp)
 {
-  return interpolatetype(new pair (real t) {
-    return Scale(pic,(x(t),y(t)));},g,a,b,n,interpolate);
+  return interpolatetype(new pair (real t) {return Scale(pic,(x(t),y(t)));},
+			 g,a,b,n,interpolate);
 }
 
 guide graph(picture pic=currentpicture, guide g=nullpath,
 	    pair z(real), real a, real b,
 	    int n=ngraph, interpolate interpolatetype=LinearInterp)
 {
-  return interpolatetype(new pair (real t) {
-    return Scale(pic,z(t));},g,a,b,n,interpolate);
+  return interpolatetype(new pair (real t) {return Scale(pic,z(t));},
+			 g,a,b,n,interpolate);
 }
 
 private int next(int i, bool[] cond)

@@ -36,4 +36,3 @@ draw("$\theta^*$",arc((0,0),0.5*rmax,0,degrees(thetamax)),blue+fontsize(10),
 draw(arc((0,0),rmin,degrees(theta1),degrees(theta2)),red,PenMargins);
 draw(arc((0,0),rmax,degrees(theta1),degrees(theta2)),blue,PenMargins);
 
-shipout();

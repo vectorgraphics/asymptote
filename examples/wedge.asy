@@ -16,4 +16,3 @@ draw(z2--2*z2,red);
 xequals(-1,-2,2);
 xequals(1,-2,2);
 
-shipout();

@@ -25,4 +25,3 @@ labeldot("$R=(1,0)$",R);
 labeldot("$P=(\cos A,\sin A)$",P,dir(O--P)+W);
 labeldot("$Q=(\cos B,\sin B)$",Q,dir(O--Q));
       
-shipout();

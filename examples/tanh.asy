@@ -11,4 +11,3 @@ draw(graph(f,-2.5,2.5,Spline));
 
 label("$\tanh x$",F(1.5),1.25*N);
 
-shipout();

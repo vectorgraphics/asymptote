@@ -12,4 +12,3 @@ draw(graph(f,-4,2,Spline));
 labely(1,E);
 label("$e^x$",F(1),SE);
 
-shipout();

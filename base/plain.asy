@@ -6,7 +6,8 @@
  *
  *****/
 
-defaultpen(); // Reset the meaning of pen default attributes.
+public bool shipped=false;
+public bool uptodate=true;
 static public pen currentpen;
 
 real inches=72;
@@ -450,7 +451,7 @@ struct picture {
   }
   
   void add(drawer d) {
-    uptodate(false);
+    if(interact()) uptodate=false;
     bool deconstruct=this.deconstruct;
     add(new void (frame f, transform t, transform T, pair, pair) {
       frame F;
@@ -460,7 +461,7 @@ struct picture {
   }
 
   void clip(drawer d) {
-    uptodate(false);
+    if(interact()) uptodate=false;
     bool deconstruct=this.deconstruct;
     clippingwarning(deconstruct);
     for(int i=0; i < xcoords.length; ++i) {
@@ -1406,14 +1407,14 @@ void legend(frame f, Legend[] legend, bool placement=true)
 void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
 	     Legend[] legend={}, string format="", wait wait=NoWait)
 {
-  if(uptodate()) return;
   GUIPrefix=prefix;
   add(f,gui(GUIFilenum).fit(identity()));
   legend(f,legend);
   shipout(prefix,f,preamble,format,wait(wait));
   ++GUIFilenum;
   GUIObject=0;
-  uptodate(true);
+  shipped=true;
+  uptodate=true;
 }
 
 // Useful for compensating for space taken up by legend. For example:
@@ -2130,33 +2131,51 @@ pen font(string encoding, string family, string series="m", string shape="n")
 		     "}");
 }
 
-pen AvantGarde(string series="m", string shape="n") {
+pen AvantGarde(string series="m", string shape="n")
+{
   return font("OT1","pag",series,shape);
 }
-pen Bookman(string series="m", string shape="n") {
+pen Bookman(string series="m", string shape="n")
+{
   return font("OT1","pbk",series,shape);
 }
-pen Courier(string series="m", string shape="n") {
+pen Courier(string series="m", string shape="n")
+{
   return font("OT1","pcr",series,shape);
 }
-pen Helvetica(string series="m", string shape="n") {
+pen Helvetica(string series="m", string shape="n")
+{
   return font("OT1","phv",series,shape);
 }
-pen NewCenturySchoolBook(string series="m", string shape="n") {
+pen NewCenturySchoolBook(string series="m", string shape="n")
+{
   return font("OT1","pnc",series,shape);
 }
-pen Palatino(string series="m", string shape="n") {
+pen Palatino(string series="m", string shape="n")
+{
   return font("OT1","ppl",series,shape);
 }
-pen TimesRoman(string series="m", string shape="n") {
+pen TimesRoman(string series="m", string shape="n")
+{
   return font("OT1","ptm",series,shape);
 }
-pen ZapfChancery(string series="m", string shape="n") {
+pen ZapfChancery(string series="m", string shape="n")
+{
   return font("OT1","pzc",series,shape);
 }
-pen Symbol(string series="m", string shape="n") {
+pen Symbol(string series="m", string shape="n")
+{
   return font("OT1","psy",series,shape);
 }
-pen ZapfDingbats(string series="m", string shape="n") {
+pen ZapfDingbats(string series="m", string shape="n")
+{
   return font("OT1","pzd",series,shape);
 }
+
+void atexit()
+{
+  if(interact()) {
+    if(!uptodate) shipout();
+  } else if(!shipped) shipout();
+}
+atexit(atexit);

@@ -35,4 +35,3 @@ labelx("$\ldots$",++i);
 
 arrow("$f(x)$",F(2.55),0.7*NE,1.5cm,red);
 
-shipout();

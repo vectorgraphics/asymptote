@@ -20,4 +20,3 @@ TreeNode ggchild1 = makeNode( gchild1, "Great Grandchild\_1" );
 
 draw( root, (0,0) );
 
-shipout();

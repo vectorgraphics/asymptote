@@ -21,4 +21,3 @@ labeldot("$D$",D);
 labeldot(("$E$"),E,S);
 label("$1$",A--B,LeftSide);
       
-shipout();

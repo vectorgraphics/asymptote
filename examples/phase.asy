@@ -16,4 +16,3 @@ labelx("$\frac{\gamma}{\beta}$",S1.x);
 labelx("$S_\infty$",S8.x);
 labely("$I_{\max}$",S1.y);
 
-shipout();

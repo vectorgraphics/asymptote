@@ -36,4 +36,3 @@ for(int L=a.maxlevel; L >= 0; --L) {
   }
 }
 
-shipout();

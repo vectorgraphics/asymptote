@@ -1324,6 +1324,7 @@ void newPen(stack *s)
   s->push(new pen());
 }
 
+// Reset the meaning of pen default attributes.
 void resetdefaultPen(stack *)
 {
   defaultpen=camp::pen::startupdefaultpen();
@@ -1745,19 +1746,11 @@ void interAct(stack *s)
   if(interact::interactive) settings::suppressStandard=!interaction;
 }
 
-void upToDate(stack *s)
+void boolInterAct(stack *s)
 {
-  bool val=s->pop<bool>();
-  if(settings::suppressStandard && val == false) return;
-  settings::upToDate=val;
+  s->push(interact::interactive && !settings::suppressStandard);
 }
-
-void boolUpToDate(stack *s)
-{
-  s->push(interact::interactive && (settings::suppressStandard || 
-				    settings::upToDate));
-}
-
+  
 // System commands
 
 void system(stack *s)
@@ -1780,12 +1773,23 @@ void abort(stack *s)
   string msg = s->pop<string>();
   error(s,msg.c_str());
 }
+  
+static callable *atExitFunction=NULL;
 
-void exit(stack *s)
+void exitFunction(stack *s)
 {
-  _exit(s->pop<int>());
+  if(atExitFunction) {
+    atExitFunction->call(s);
+    atExitFunction=NULL;
+  }
+  defaultpen=camp::pen::startupdefaultpen();
 }
-
+  
+void atExit(stack *s)
+{
+  atExitFunction=pop<callable*>(s);
+}
+  
 // Merge output files  
 
 void merge(stack *s)
