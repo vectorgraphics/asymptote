@@ -25,9 +25,12 @@ label("$A$",z1);
 label("$B$",z2);
 
 pair z=(0,-2);
-draw("$A\cap B$",conj(z)--z0,0,Arrow,Margin);
-draw("$A\cup B$",z--z0,0,Arrow,Margin);
-draw(z--z1,Arrow,Margin(0,3));
-draw(z--z2,Arrow,Margin(0,3));
+real m=3;
+margin BigMargin=Margin(0,m*Dot(unit(z1-z),unit(z0-z)));
+
+draw("$A\cap B$",conj(z)--z0,0,Arrow,BigMargin);
+draw("$A\cup B$",z--z0,0,Arrow,BigMargin);
+draw(z--z1,Arrow,Margin(0,m));
+draw(z--z2,Arrow,Margin(0,m));
 
 shipout(bbox(0.25cm));
