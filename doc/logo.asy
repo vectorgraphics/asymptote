@@ -15,8 +15,8 @@ picture logo(pair s=0, pen q)
   draw(pic,shift(-(eps,f(b)))*graph(f,eps,b),p);
   real c=0.5*a;
   pair z=(0,f(c)-f(a));
+  label(pic,"{\it symptote}",z,0.25*E+0.5*S,p);
   draw(pic,z+c+eps--z,p);
-  label(pic,"{\it symptote}",z,0.25*E,p);
   axes(pic,p);
   return shift(s)*pic;
 } 

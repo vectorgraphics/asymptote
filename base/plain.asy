@@ -82,7 +82,7 @@ pen lavender=brown+darkgreen+blue;
 pen pink=red+darkgreen+blue;
 
 // Global parameters:
-public real labelmargin=0.4;
+public real labelmargin=0.3;
 public real arrowlength=0.75cm;
 public real arrowsize=7.5;
 public real arrowangle=15;
@@ -1492,9 +1492,11 @@ string italic(string s)
   return "{\it "+s+"}";
 }
 
-string baseline(string s)
+string baseline(string s, pair align=S, string template="M") 
 {
-  return "\baseline{"+s+"}";
+  return align.y <= -0.5*abs(align.x) ? 
+    "\setbox\ASYbox=\hbox{"+template+"}\ASYdimen=\ht\ASYbox%
+\setbox\ASYbox=\hbox{"+s+"}\lower\ASYdimen\box\ASYbox" : s;
 }
 
 string math(string s)

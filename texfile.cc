@@ -20,7 +20,7 @@ bool TeXcontaminated=false;
 std::list<std::string> TeXpreamble;
   
 texfile::texfile(const string& texname, const bbox& box) :
-    box(box), lastpen(initialpen) 
+    box(box)
 {
   out=new ofstream(texname.c_str());
   if(!out || !*out) {
@@ -29,6 +29,8 @@ texfile::texfile(const string& texname, const bbox& box) :
   }
   texdocumentclass(*out);
   TeXcontaminated=false;
+  lastpen=pen(initialpen);
+  lastpen.convert(); 
 }
 
 texfile::~texfile()
@@ -50,19 +52,22 @@ void texfile::prologue()
     
 void texfile::beginlayer(const string& psname)
 {
-  *out << "\\setbox\\ASYpsbox=\\hbox{\\includegraphics{" << psname << "}}%"
+  *out << "\\setbox\\ASYbox=\\hbox{\\includegraphics{" << psname << "}}%"
        << newl
        << "\\includegraphics{" << psname << "}%" << newl;
 }
 
 void texfile::endlayer()
 {
-  *out << "\\kern-\\wd\\ASYpsbox%" << newl;
+  *out << "\\kern-\\wd\\ASYbox%" << newl;
 }
   
 
-void texfile::setpen(pen& p)
+void texfile::setpen(pen p)
 {
+  p.convert();
+  if(p == lastpen) return;
+
   if(p.cmyk() && (!lastpen.cmyk() || 
 		  (p.cyan() != lastpen.cyan() || 
 		   p.magenta() != lastpen.magenta() || 

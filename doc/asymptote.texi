@@ -1002,14 +1002,13 @@ This produces an rgb color, where each of the red, green, and blue intensities
 
 @item pen cmyk(real c, real m, real y, real k) 
 @cindex @code{cmyk}
-This produces an cmyk color, where each of the cyan, magenta,
+This produces a cmyk color, where each of the cyan, magenta,
 yellow, and black intensities @code{c}, @code{m}, @code{y}, @code{k},
 lies in the interval [0,1].
 
 @item pen defaultpen()
 @cindex @code{defaultpen}
-This returns the default pen (that is, the current default initializer
-for pens).
+This returns the default pen (the current initializer for pens).
 
 @item pen invisible()
 @cindex @code{invisible}
@@ -3428,6 +3427,8 @@ Options:
 -s               Translate test
 -m               Mask fpu exceptions (on supported architectures)
 -nomask          Don't mask fpu exceptions (default)
+-cmyk            Convert rgb colors to cmyk
+-rgb             Convert cmyk colors to rgb
 -safe            Disable system call (default)
 -unsafe          Enable system call
 -noplain         Disable automatic importing of plain

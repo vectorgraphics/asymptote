@@ -40,11 +40,7 @@ void texpreamble(T& out) {
     TeXcontaminated=true;
   }
   out << "\\newbox\\ASYbox" << newl
-      << "\\newdimen\\ASYdimen" << newl
-      << "\\def\\baseline#1{\\setbox\\ASYbox=\\hbox{M}\\ASYdimen=\\ht\\ASYbox%"
-      << newl
-      << "\\setbox\\ASYbox=\\hbox{#1}\\lower\\ASYdimen\\box\\ASYbox}" << newl
-      << "\\newbox\\ASYpsbox" << newl;
+      << "\\newdimen\\ASYdimen" << newl;
 }
   
 class texfile {
@@ -61,7 +57,7 @@ public:
 
   void epilogue();
 
-  void setpen(pen& p);
+  void setpen(pen p);
   
   // Draws label rotated by angle (relative to the horizontal) at position z.
   void put(const std::string& label, double angle, pair z);

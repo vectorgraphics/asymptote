@@ -224,19 +224,33 @@ public:
   
   void rgbtocmyk() {
     double sat=rgbsaturation();
-    double c=0.5*max(g+b-r,0.0);
-    double m=0.5*max(b+r-g,0.0);
-    double y=0.5*max(r+g-b,0.0);
-    r=c; g=m; b=y; 
-    double newsat=rgbsaturation();
-    double scale=newsat ? sat/newsat : 1.0;
-    r *= scale;
-    g *= scale;
-    b *= scale;
+    r=1.0-r;
+    g=1.0-g;
+    b=1.0-b;
     grey=1.0-sat;
+    if(sat) {
+      double scale=1.0/sat;
+      r=(r-grey)*scale;
+      g=(g-grey)*scale;
+      b=(b-grey)*scale;
+    }
     color=CMYK;
   }
 
+  void cmyktorgb() {
+    double sat=1.0-grey;
+    r=(1.0-r)*sat;
+    g=(1.0-g)*sat;
+    b=(1.0-b)*sat;
+    grey=0.0;
+    color=RGB;
+  }
+
+  void convert() {
+    if(settings::rgbonly && cmyk()) cmyktorgb();
+    else if(settings::cmykonly && rgb()) rgbtocmyk();
+  }    
+  
   friend pen operator * (double x, const pen& q) {
     pen p=q;
     if(x < 0.0) x = 0.0;

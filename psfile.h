@@ -68,10 +68,12 @@ public:
   }
 
   void resetpen() {
-    lastpen=initialpen;
+    lastpen=pen(initialpen);
+    lastpen.convert();
   }
   
   void setpen(pen p) {
+    p.convert();
     if(p == lastpen) return;
     
     if(p.fillpattern() != "" && p.fillpattern() != lastpen.fillpattern()) 

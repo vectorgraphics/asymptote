@@ -207,6 +207,11 @@ private struct locateT {
   }
 }
 
+pair ticklabelshift(pair align, pen p=currentpen) 
+{
+  return 0.25*unit(align)*labelmargin(p);
+}
+
 pair labeltick(frame d, transform T, guide g, real pos, pair side,
 	       int sign, real Size, ticklabel ticklabel, pen plabel, part part,
 	       real norm=0, bool deconstruct=false) 
@@ -214,13 +219,15 @@ pair labeltick(frame d, transform T, guide g, real pos, pair side,
   locateT locate=new locateT;
   locate.calc(T,g,pos);
   pair align=-side*I*locate.dir;
-  pair shift=Dot(align,I*sign*locate.dir) < 0 ? align*Size : 
-    0.5*align*labelmargin(plabel);
+  pair shift=Dot(align,I*sign*locate.dir) < 0 ? align*Size :
+    ticklabelshift(align,plabel);
   pair Z=locate.Z+shift;
   if(deconstruct) Z=GUI()*Z;
   real v=part(locate.z);
   if(abs(v) < epsilon*norm) v=0;
-  label(d,ticklabel(v),Z,align,plabel);
+  string s=ticklabel(v);
+  s=baseline(s,align,"$10^4$");
+  label(d,s,Z,align,plabel);
   return locate.dir;
 }  
 
@@ -760,23 +767,24 @@ void tick(picture pic=currentpicture, pair z, pair align, real size=Ticksize,
 void xtick(picture pic=currentpicture, real x, pair align=N,
 	   real size=Ticksize, pen p=currentpen)
 {
-  tick(pic,(x,0),align,Ticksize,p);
+  tick(pic,(x,pic.userMin.y),align,Ticksize,p);
 }
 
-void labelx(picture pic=currentpicture, string s, real x, pair align=S,
-	    pair shift=0, pen p=currentpen)
+void labelx(picture pic=currentpicture, string s, pair z, pair align=S,
+	    pair shift=infinity, pen p=currentpen)
 {
-  if(align.y < 0) s=baseline(s);
-  label(pic,s,(x,0),align,shift,p);
+  if(shift == infinity) shift=ticklabelshift(align,p);
+  label(pic,baseline(s,align,"$10^4$"),z,align,shift,p);
 }
 
-void labelx(picture pic=currentpicture, real x, pair align=S, pair shift=0,
-	    pen p=currentpen)
+void labelx(picture pic=currentpicture, real x, pair align=S,
+	    pair shift=infinity, pen p=currentpen)
 {
-  labelx(pic,math(x),x,align,shift,p);
+  labelx(pic,math(x),(x,0),align,shift,p);
 }
 
-void labelxtick(picture pic=currentpicture, real x, pair align=S, pair shift=0,
+void labelxtick(picture pic=currentpicture, real x, pair align=S,
+		pair shift=infinity,
 		real size=Ticksize, pen p=currentpen)
 {
   labelx(pic,x,align,shift,p);
@@ -789,20 +797,27 @@ void ytick(picture pic=currentpicture, real y, pair align=E,
   tick(pic,(0,y),align,Ticksize,p);
 }
 
-void labely(picture pic=currentpicture, real y, pair align=W, pair shift=0,
-	    pen p=currentpen)
+void labely(picture pic=currentpicture, string s, pair z, pair align=W,
+	    pair shift=infinity, pen p=currentpen)
 {
-  label(pic,math(y),(0,y),align,shift,p);
+  if(shift == infinity) shift=ticklabelshift(align,p);
+  label(pic,baseline(s,align,"$10^4$"),z,align,shift,p);
 }
 
 void labely(picture pic=currentpicture, string s, real y, pair align=W,
-	    pair shift=0, pen p=currentpen)
+	    pair shift=infinity, pen p=currentpen)
 {
-  label(pic,s,(0,y),align,shift,p);
+  labely(pic,s,(0,y),align,shift,p);
 }
 
-void labelytick(picture pic=currentpicture, real y, pair align=W, pair shift=0,
-		real size=Ticksize, pen p=currentpen)
+void labely(picture pic=currentpicture, real y, pair align=W,
+	    pair shift=infinity, pen p=currentpen)
+{
+  labely(pic,math(y),(0,y),align,shift,p);
+}
+
+void labelytick(picture pic=currentpicture, real y, pair align=W,
+		pair shift=infinity, real size=Ticksize, pen p=currentpen)
 {
   labely(pic,y,align,shift,p);
   ytick(pic,y,-align,Ticksize,p);

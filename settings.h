@@ -28,6 +28,8 @@ namespace settings {
   extern int autoplain;
   extern int parseonly;
   extern int translate;
+  extern int rgbonly;
+  extern int cmykonly;
   extern int trap;
   extern double deconstruct;
   extern int clearGUI;
