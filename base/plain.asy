@@ -942,6 +942,12 @@ void layer(picture pic=currentpicture)
     });
 }
 
+void newpage() 
+{
+  tex("\newpage");
+  layer();
+}
+
 void include(picture pic=currentpicture, string name, string options="") 
 {
   if(options != "") options="["+options+"]";
@@ -1565,4 +1571,3 @@ pen interp(pen a, pen b, real c)
 {
   return (1-c)*a+c*b;
 }
-
