@@ -629,16 +629,18 @@ types::ty *callExp::trans(coenv &e)
   }
   else if (!castable(ft->getSignature(), &sig)) {
     em->error(getPos());
-    *em << "cannot call type\n'" << *ft << "'\nwith";
+    const char *separator=ft->getSignature()->getNumFormals() > 1 ? "\n" : " ";
+    *em << "cannot call" << separator << "'" << *((function *) ft)->getResult() << " "
+	<< *callee->getName() << *ft->getSignature() << "'" << separator;
     switch(sig.getNumFormals()) {
       case 0:
-        *em << "out parameters";
+        *em << "without parameters";
         break;
       case 1:
-        *em << " parameter\n'" << sig << "'";
+        *em << "with parameter '" << sig << "'";
         break;
       default:
-        *em << " parameters\n'" << sig << "'";
+        *em << "with parameters\n'" << sig << "'";
     }
     return primError();
   }

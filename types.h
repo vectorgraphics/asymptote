@@ -278,6 +278,10 @@ struct function : public ty {
   void print(ostream& out) const
     { out << *result << ' ' << sig; }
 
+  ty *getResult() {
+    return result;
+  }
+  
   signature *getSignature() {
     return &sig;
   }
