@@ -2792,7 +2792,7 @@ shipout();
 
 @end verbatim
 
-@image{latexusage,,20cm}
+@image{latexusage,,25cm}
 
 @node Options
 @chapter Options
@@ -2811,8 +2811,9 @@ Options:
 -f format        Convert each output file to specified format
 -o name          (First) output file name
 -h, -help        Show summary of options
--O pair          PostScript offset: defaults to (18,-18)
--b               Align to bottom-left (instead of top-left) corner of page
+-O pair          PostScript offset
+-B               Align to bottom-left corner of page
+-T               Align to top-left corner of page
 -v, -verbose     Increase verbosity level
 -k               Keep intermediate files
 -L               Disable LaTeX label postprocessing
@@ -2826,7 +2827,7 @@ Options:
 @end verbatim
 
 If no arguments are given, @code{Asymptote} runs in interactive mode
-@xref{Interactive mode}.
+(@pxref{Interactive mode}).
 
 If @code{-} is given as the file argument, @code{Asymptote} reads from
 standard input. 
@@ -2853,16 +2854,23 @@ in unsafe mode. This enables the @code{int system(string)} call, allowing one
 to execute arbitrary shell commands. The default mode, @code{-safe},
 disables this call. 
 
-A @code{PostScript} offset may be specified with the -O option. The
-default offset is equivalent to
+@cindex @code{ASYMPTOTE_PAPERTYPE}
+By default, @code{Asymptote} attempts to center the figure on the
+page, assuming that the paper type is @code{letter}. The default paper
+type may be changed to @code{a4} with the environment variable
+@code{ASYMPTOTE_PAPERTYPE}. Currently only these two paper types are
+supported. Note that adding a new type, say @code{poster}, will also
+require defining @code{posterSize} in the dvips configuration file.
+
+@cindex offset
+A @code{PostScript} offset may be specified as a pair (in bp units) with the
+-O option:
 @verbatim
-asy -O 18,-18 file
+asy -O 0,0 file
 @end verbatim
 
-By default, @code{Asymptote} attempts to position the top-left corner of
-the bounding box 18 bp to the right of and below the top-left corner of
-the page, unless that would result in a negative vertical bounding box
-coordinate.
+The default offset is zero. The offset is adjusted if it would result in
+a negative vertical bounding box coordinate.
 
 Additional debugging output is produced with each additional @code{-v} option:
 @table @code
@@ -2971,15 +2979,18 @@ currentpicture does automatic deconstruction of its objects.
 @cindex help
 @cindex mailing list
 Questions on installing and using Asymptote should be posted to the
-@code{Asymptote} mailing list
-@code{https://lists.sourceforge.net/lists/listinfo/asymptote-discuss}).
+@code{Asymptote} mailing list:
+@verbatim
+https://lists.sourceforge.net/lists/listinfo/asymptote-discuss
+@end verbatim
 
 @cindex bug reports
 If you find a bug in Asymptote, please check (if possible) whether the bug
 is still present in the latest CVS version before submitting a bug report.
-
 New bugs can be submitted using the Bug Tracking System at
-@code{http://sourceforge.net/projects/asymptote/}).
+@verbatim
+http://sourceforge.net/projects/asymptote
+@end verbatim
 
 @cindex stack overflow
 @cindex segmentation fault

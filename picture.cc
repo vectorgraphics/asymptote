@@ -114,7 +114,11 @@ bool picture::texprocess(const string& texname, const string& outname,
     double voffset=(height < 10.0) ? -137.5+height : -126.5;
     
     if(pdfformat || bottomOrigin)
-      voffset += max(11.0*72.0-(bpos.top-bpos.bottom),0.0);
+      voffset += max(pageHeight-(bpos.top-bpos.bottom),0.0);
+    else if(!topOrigin) {
+      hoffset += 0.5*max(pageWidth-(bpos.right-bpos.left),0.0);
+      voffset += 0.5*max(pageHeight-(bpos.top-bpos.bottom),0.0);
+    }
     if(!pdfformat) {
       hoffset += postscriptOffset.getx();
       voffset -= postscriptOffset.gety();
@@ -122,7 +126,8 @@ bool picture::texprocess(const string& texname, const string& outname,
 
     string psname=auxname(prefix,"ps");
     ostringstream dcmd;
-    dcmd << "dvips -t letterSize -R -O " << hoffset << "bp," << voffset << "bp";
+    dcmd << "dvips -R -t " << paperType << "size -O " << hoffset << "bp,"
+	 << voffset << "bp";
     if(verbose <= 1) dcmd << " -q";
     dcmd << " -o " << psname << " " << dviname;
     status=System(dcmd);
@@ -271,8 +276,14 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
   bboxshift=pair(-bpos.left,-bpos.bottom);
   if(!pdfformat) {
     bboxshift += postscriptOffset;
-    if(!bottomOrigin)
-      bboxshift += pair(0.0,max(11.0*72.0-(bpos.top-bpos.bottom),0.0));
+    if(!bottomOrigin) {
+      double yexcess=max(pageHeight-(bpos.top-bpos.bottom),0.0);
+      if(topOrigin) bboxshift += pair(0.0,yexcess);
+      else {
+	double xexcess=max(pageWidth-(bpos.right-bpos.left),0.0);
+	bboxshift += 0.5*pair(xexcess,yexcess);
+      }
+    }
   }	
   bpos.shift(bboxshift);
   

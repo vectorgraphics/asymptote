@@ -21,8 +21,8 @@ YACC = @YACC@
 LEX = @LEX@
 
 DEFS = @DEFS@
-OPT = -O3 -DNDEBUG
-OPTS = -g $(OPT) $(DEFS) $(CFLAGS) 
+OPT = -g -O3 -DNDEBUG
+OPTS = $(OPT) $(DEFS) $(CFLAGS) 
 INCL = -I- -I .
 
 prefix = @prefix@

@@ -51,8 +51,9 @@ int trap=1;
 double deconstruct=0;
 int clearGUI=0;
 int ignoreGUI=0;
-camp::pair postscriptOffset=camp::pair(18,-18);
+camp::pair postscriptOffset=0.0;
 int bottomOrigin=0;
+int topOrigin=0;
   
 double defaultlinewidth=0.0;  
 double defaultfontsize=0.0;
@@ -65,6 +66,9 @@ int ShipoutNumber=0;
 char* AsyDir;
 string PSViewer;
 string PDFViewer;
+string paperType;
+double pageWidth;
+double pageHeight;
 
 const std::string suffix="asy";
 const std::string guisuffix="gui";
@@ -97,10 +101,9 @@ void options()
   cerr << "-f format\t Convert each output file to specified format" << endl;
   cerr << "-o name\t\t (First) output file name" << endl;
   cerr << "-h, -help\t Show summary of options" << endl;
-  cerr << "-O pair\t\t PostScript offset: defaults to (18,-18)"
-       << endl; 
-  cerr << "-b\t\t Align to bottom-left (instead of top-left) corner of page"
-       << endl;
+  cerr << "-O pair\t\t PostScript offset" << endl; 
+  cerr << "-B\t\t Align to bottom-left corner of page" << endl;
+  cerr << "-T\t\t Align to top-left corner of page" << endl;
   cerr << "-v, -verbose\t Increase verbosity level" << endl;
   cerr << "-k\t\t Keep intermediate files" << endl;
   cerr << "-L\t\t Disable LaTeX label postprocessing" << endl;
@@ -142,15 +145,12 @@ void setOptions(int argc, char *argv[])
   errno=0;
   for(;;) {
     int c = getopt_long_only(argc,argv,
-			     "bcf:hikLmo:pPsvVx:O:",
+			     "cf:hikLmo:pPsvVx:O:BT",
 			     long_options,&option_index);
     if (c == -1) break;
 
     switch (c) {
     case 0:
-      break;
-    case 'b':
-      bottomOrigin=1;
       break;
     case 'c':
       clearGUI=1;
@@ -206,6 +206,12 @@ void setOptions(int argc, char *argv[])
         syntax=1;
       }
       break;
+    case 'B':
+      bottomOrigin=1;
+      break;
+    case 'T':
+      topOrigin=1;
+      break;
     default:
       syntax=1;
     }
@@ -230,6 +236,22 @@ void setOptions(int argc, char *argv[])
   char *pdfviewer=getenv("ASYMPTOTE_PDFVIEWER");
   PSViewer=psviewer ? psviewer : "gv";
   PDFViewer=pdfviewer ? pdfviewer : "gv";
+  
+  char *papertype=getenv("ASYMPTOTE_PAPERTYPE");
+  paperType=papertype ? papertype : "letter";
+
+  if(paperType == "letter") {
+    pageWidth=72.0*8.5;
+    pageHeight=72.0*11.0;
+  } else {
+    pageWidth=72.0*21.0/2.54;
+    pageHeight=72.0*29.7/2.54;
+    if(paperType != "a4") {
+      cerr << "Unknown paper size \'" << paperType << "\'; assuming a4." 
+	   << endl;
+      paperType="a4";
+    }
+  }
   
   if(defaultOrigin && bottomOrigin) postscriptOffset=conj(postscriptOffset);
 }

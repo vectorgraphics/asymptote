@@ -34,6 +34,7 @@ namespace settings {
   extern int ignoreGUI;
   extern camp::pair postscriptOffset;
   extern int bottomOrigin;
+  extern int topOrigin;
   
   extern double defaultlinewidth;
   extern double defaultfontsize;
@@ -56,6 +57,9 @@ namespace settings {
   extern char* AsyDir; // Environment variable ASYMPTOTE_DIR
   extern std::string PSViewer; // Environment variable ASYMPTOTE_PSVIEWER
   extern std::string PDFViewer; // Environment variable ASYMPTOTE_PSVIEWER
+  extern std::string paperType;
+  extern double pageWidth;
+  extern double pageHeight;
   
   void setOptions(int argc, char *argv[]);
 
