@@ -99,7 +99,6 @@ public real legendmargin=10;
 
 public frame currentframe;
 public pen currentpen;
-public pen background=white;
 
 public string defaultfilename="";
 
@@ -1534,16 +1533,6 @@ slice lastcut(path p, path knife)
   s.after=reverse(s.before);
   s.before=before;
   return s;
-}
-
-void unfill(picture pic=currentpicture, path g) 
-{
-  fill(pic,g,background);
-}
-
-void unfilldraw(picture pic=currentpicture, path g) 
-{
-  filldraw(pic,g,background);
 }
 
 pair interp(pair a, pair b, real c)

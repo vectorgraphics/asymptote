@@ -28,6 +28,7 @@
 */
 
 import math;
+import metapost;
 
 background = gray(0.987);
 
