@@ -62,9 +62,8 @@ public:
 
   void setpen(pen& p);
   
-  // Draws the label rotated by angle (relative to the horizontal).
-  // Align identifies the point of the label bbox to be aligned at position z.
-  void put(const std::string& label, double angle, pair z, pair align);
+  // Draws label rotated by angle (relative to the horizontal) at position z.
+  void put(const std::string& label, double angle, pair z);
 
   void beginlayer(const std::string& psname);
   void endlayer();

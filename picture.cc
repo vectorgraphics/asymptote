@@ -109,11 +109,12 @@ bool picture::texprocess(const string& texname, const string& outname,
     double height=bpos.top-bpos.bottom;
     
     // Magic dvips offsets:
-    double hoffset=-127.9;
-    double voffset=(height < 11.5) ? -137.1+height : -125.5;
+    double hoffset=-128.0;
+    double voffset=(height < 11.5) ? -137.1+height : -125.4;
     
     if(pdfformat || bottomOrigin) {
-      voffset += max(pageHeight-(bpos.top-bpos.bottom+1.0),0.0);
+      voffset += max(pageHeight-(bpos.top-bpos.bottom+
+				 (pdfformat ? 2.0 : 1.0)),0.0);
     } else if(!topOrigin) {
       hoffset += 0.5*max(pageWidth-(bpos.right-bpos.left+1.0),0.0);
       voffset += 0.5*max(pageHeight-(bpos.top-bpos.bottom+1.0),0.0);
@@ -131,6 +132,15 @@ bool picture::texprocess(const string& texname, const string& outname,
     dcmd << " -o " << psname << " " << dviname;
     status=System(dcmd);
     
+    bbox bcopy=bpos;
+    double fuzz=0.1;
+    if(bottomOrigin && !pdfformat) fuzz=1.0;
+    
+    bcopy.top += fuzz;
+    bcopy.bottom -= fuzz;
+    bcopy.left -= fuzz;
+    bcopy.right += fuzz;
+    
     ifstream fin(psname.c_str());
     ofstream fout(outname.c_str());
     string s;
@@ -138,7 +148,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     while(getline(fin,s)) {
       if(first && s.find("%%BoundingBox:") == 0) {
 	if(verbose > 2) BoundingBox(cout,bpos);
-	BoundingBox(fout,bpos);
+	BoundingBox(fout,bcopy);
 	first=false;
       } else fout << s << endl;
     }
@@ -169,7 +179,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
 		      << " -dDEVICEWIDTHPOINTS=" 
 		      << ceil(bpos.right-bpos.left+2.0)
 		      << " -dDEVICEHEIGHTPOINTS=" 
-		      << ceil(bpos.top-bpos.bottom+2.0)
+		      << ceil(bpos.top-bpos.bottom+3.0)
 		      << " -sOutputFile=" << outname << " " << epsname;
     else {
       double res=deconstruct*72.0;
@@ -251,23 +261,14 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
   
   bounds();
   
-  bbox bcopy=b;
-  
-  double fuzz=(pdfformat || bottomOrigin) ? 0.4 : 0.1;
-  bcopy.left -= fuzz;
-  bcopy.right += fuzz;
-  if(pdfformat || bottomOrigin) {
-    bcopy.top += fuzz;
-    bcopy.bottom -= fuzz;
-  }
-  bbox bpos=bcopy;
+  bbox bpos=b;
   
   if(deconstruct) {
       if(!bboxout.is_open()) {
 	bboxout.open(("."+buildname(prefix,"box")).c_str());	
 	bboxout << deconstruct << endl;
       }
-      bbox bscaled=bcopy;
+      bbox bscaled=b;
       bscaled *= deconstruct;
       bboxout << bscaled << endl;
   }
@@ -278,7 +279,7 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
     bboxshift += postscriptOffset;
     if(!bottomOrigin) {
       double yexcess=max(pageHeight-(bpos.top-bpos.bottom),0.0);
-      if(topOrigin) bboxshift += pair(0.0,yexcess);
+      if(topOrigin) bboxshift += pair(1.0,yexcess);
       else {
 	double xexcess=max(pageWidth-(bpos.right-bpos.left),0.0);
 	bboxshift += 0.5*pair(xexcess,yexcess);
@@ -297,7 +298,7 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
   bool status = true;
   
   if(labels) {
-    tex=new texfile(texname,bcopy);
+    tex=new texfile(texname,b);
     list<drawElement*>::iterator p;
     for (p = nodes.begin(); p != nodes.end(); ++p) {
       assert(*p);

@@ -45,9 +45,6 @@ void texfile::prologue()
        << "\\pagestyle{empty}" << newl
        << "\\textheight=2048pt" << newl
        << "\\textwidth=\\textheight" << newl
-       << "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{\\setbox\\ASYbox=\\hbox{#6}%"
-       << newl
-       << "\\rput[lB]{#5}(#1,#2){\\kern#3pt\\raise#4pt\\box\\ASYbox}}" << newl
        << "\\begin{document}" << newl;
 }
     
@@ -101,14 +98,12 @@ void texfile::setpen(pen& p)
   lastpen=p;
 }
    
-void texfile::put(const string& label, double angle, pair z, pair Align)
+void texfile::put(const string& label, double angle, pair z)
 {
-  *out << "\\ASYalign" << fixed
-       << "(" << (z.getx()-offset.getx())*ps2tex
+  *out << "\\rput[lB]{" << setprecision(2) << angle << fixed
+       << "}(" << (z.getx()-offset.getx())*ps2tex
        << "," << (z.gety()-offset.gety())*ps2tex
-       << ")(" << Align.getx()*ps2tex << "," << Align.gety()*ps2tex
-       << "){"
-       << setprecision(2) << angle << "}{" << label << "}" << newl;
+       << "){" << label << "}" << newl;
 }
 
 void texfile::epilogue()
