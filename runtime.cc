@@ -584,10 +584,10 @@ void array2Transpose(vm::stack *s)
   s->push(c);
 }
 
+#ifdef HAVE_LIBFFTW3
 // Compute the fast Fourier transform of a pair array
 void pairArrayFFT(vm::stack *s)
 {
-#ifdef HAVE_LIBFFTW3
   int sign = s->pop<int>() > 0 ? 1 : -1;
   array *a=pop<array *>(s);
   checkArray(s,a);
@@ -607,10 +607,9 @@ void pairArrayFFT(vm::stack *s)
     (*c)[i]=pair(z.real(),z.imag());
   }
   FFTWdelete(f);
-  
   s->push(c);
-#endif //  HAVE_LIBFFTW3
 }
+#endif //  HAVE_LIBFFTW3
 
 // Null operations
 
