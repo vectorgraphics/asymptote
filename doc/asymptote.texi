@@ -193,12 +193,53 @@ done as root. To build and install the man pages as well, type:
 @verbatim
 make man
 make install-man
-
 @end verbatim
+
+In order to compile @code{Asymptote} you will need the @code{boost}
+includes from @code{http://boost.org} (included in recent Linux
+distributions). Installation of the boost library may require the
+following (or later):
+@verbatim
+http://dl.sourceforge.net/sourceforge/boost/boost-jam-3.1.10-1.i386.rpm
+http://dl.sourceforge.net/sourceforge/boost/boost_1_31_0.tar.bz2
+@end verbatim
+
+However, Asymptote currently only needs the boost header files, so copying the
+boost subdirectory of the boost source distribution to @code{/usr/include}
+should actually be sufficient.
+
+On machines running Debian Linux, the boost library can be installed with
+@verbatim
+apt-get install libboost-graph1.31.0 libboost-dev libboost-graph-dev
+@end verbatim
+
+If you are compiling with gcc, you will need a relatively recent version
+(e.g. 3.3.3 or later).
+
+The FFTW library is only required if you want @code{Asymptote} to be able to
+take Fourier transforms of data (say to compute an audio power spectrum).
+
+If you don't want to install @code{Asymptote}, just make sure the compiled
+binary @code{asy} and GUI script @code{xasy} are in your path and set the
+environment variable @code{ASYMPTOTE_DIR} to point to the directory
+@code{base} (in the top level directory of the @code{Asymptote}
+source code). In looking for @code{Asymptote} system files, @code{asy} will
+search the following paths, in the order listed:
+
+@anchor{search paths}
+@enumerate
+@item
+current directory
+@item
+@cindex @code{ASYMPTOTE_DIR}
+@code{$ASYMPTOTE_DIR}
+@item
+system-wide directory (default: @code{/usr/local/share/asymptote})
+@end enumerate
 
 @cindex @code{emacs}
 @cindex @code{asy-mode}
-User of @code{emacs} can edit @code{Asymptote} code with the mode
+Users of @code{emacs} can edit @code{Asymptote} code with the mode
 @code{asy-mode}, after enabling it by putting these two lines in the
 @code{~/.emacs} initialization file, replacing @code{ASYDIR} with the location
 of the Asymptote base files (by default, @code{/usr/local/share/asymptote}):
@@ -237,41 +278,6 @@ To uninstall all @code{Asymptote} files, type:
 make uninstall
 @end verbatim
 
-In order to compile @code{Asymptote} you will need the boost library from
-@code{http://boost.org} (included in recent Linux distributions). Installation
-of the boost library may require the following (or later):
-@verbatim
-http://dl.sourceforge.net/sourceforge/boost/boost-jam-3.1.10-1.i386.rpm
-http://dl.sourceforge.net/sourceforge/boost/boost_1_31_0.tar.bz2
-@end verbatim
-
-On machines running Debian Linux, the boost library can be installed with
-@verbatim
-apt-get install libboost-graph1.31.0 libboost-dev libboost-graph-dev
-
-@end verbatim
-
-The FFTW library is only required if you want @code{Asymptote} to be able to
-take Fourier transforms of data (say to compute an audio power spectrum).
-
-If you don't want to install @code{Asymptote}, just make sure the compiled
-binary @code{asy} and GUI script @code{xasy} are in your path and set the
-environment variable @code{ASYMPTOTE_DIR} to point to the directory
-@code{base} (in the top level directory of the @code{Asymptote}
-source code). In looking for @code{Asymptote} system files, @code{asy} will
-search the following paths, in the order listed:
-
-@anchor{search paths}
-@enumerate
-@item
-current directory
-@item
-@cindex @code{ASYMPTOTE_DIR}
-@code{$ASYMPTOTE_DIR}
-@item
-system-wide directory (default: @code{/usr/local/share/asymptote})
-@end enumerate
-
 The following commands are needed to install the latest development version of
 @code{Asymptote} from cvs (when prompted for the CVS password, type enter): 
 @verbatim
@@ -287,7 +293,7 @@ make install
 make install-man
 @end verbatim
 
-To compile without optimization use the command @code{make OPT=}.
+To compile without optimization, use the command @code{make OPT=}.
 
 @node Examples
 @chapter Examples
@@ -1061,6 +1067,13 @@ void add(picture dest, picture src);
 @end verbatim
 The first example adds @code{src} to @code{currentpicture}; the second
 one adds @code{src} to @code{dest}. 
+
+@cindex @code{erase}
+To erase the contents of a picture (but not the size specification), use
+the function
+@verbatim
+void erase(picture pic=currentpicture);
+@end verbatim
 
 Many further examples of picture and frame operations are provided in
 the base file @code{plain.asy}.
@@ -2309,6 +2322,8 @@ coordinates.
 @cindex @code{EndArrow}
 @cindex @code{Arrow}
 @cindex @code{Arrows}
+@cindex @code{Fill}
+@cindex @code{NoFill}
 @cindex @code{BeginArcArrow}
 @cindex @code{EndArcArrow}
 @cindex @code{ArcArrow}
@@ -2367,7 +2382,21 @@ Draw label @code{s} on @code{pic}, writing at angle @code{angle} (in
 degrees), at coordinate @code{position}, aligned with the vector
 @code{align}, with pen @code{p} (and optional italic adjustment @code{adjust}).
 
-One can prevent labels from overwriting one another with the
+If you want a label with an arrow, you can use one of the following routines:
+@cindex @code{arrow}
+@verbatim
+void arrow(picture pic=currentpicture, string s, real angle=0,
+	   path g, pen p=currentpen, adjust adjust=NoAdjust,
+           real size=arrowsize, real Angle=arrowangle,
+           arrowhead arrowhead=Fill);
+
+void arrow(picture pic=currentpicture, string s="", real angle=0,
+	   pair b, pair align, real length=arrowlength, pen p=currentpen,
+	   adjust adjust=NoAdjust, real size=arrowsize,
+           real Angle=arrowangle, arrowhead arrowhead=Fill);
+@end verbatim
+
+One can prevent labels from overwriting each other with the
 @code{overwrite} function, which takes a single argument.
 This setting is global and is in effect for the remainder of the top-level
 @code{Asymptote} module or until the next call to @code{reset()}.
@@ -2564,8 +2593,8 @@ Options:
 -V, -View        view output file
 -m               mask fpu exceptions (on supported architectures)
 -nomask          don't mask fpu exceptions (default)
--safe        disable system call (default)
--unsafe      enable system call
+-safe            disable system call (default)
+-unsafe          enable system call
 -noplain         disable automatic importing of plain
 @end verbatim
 
@@ -2619,10 +2648,10 @@ In interactive mode, it is not necessary to type a semicolon at the end
 of each line; one will automatically be appended. It is
 also not necessary to end your commands with @code{shipout()}, as a
 @code{shipout()} command is automatically appended as each line is
-entered. This means that you will get two innocuous warning messages
-"warning: scaling in picture unbounded" if you type in a command like
-@code{size(100,100)} on the first line since the current picture, being
-still empty, cannot be scaled to achieve the requested size.
+entered. If you type in a command like @code{size(100,100)} on the first line,
+you will get two innocuous warning messages "warning: scaling in picture
+unbounded" since the current picture, being still empty, cannot be
+scaled to achieve the requested size.
 
 The following special commands are supported only in interactive mode:
 

@@ -167,10 +167,10 @@ string ask(string prompt)
 }
 
 private int GUIFilenum=0;
-private int GUIObject;
+private int GUIObject=0;
 private string GUIPrefix;
 
-void deconstruct(frame d) 
+void deconstruct(frame d)
 {
   if(deconstruct()) {
     string prefix=GUIPrefix == "" ? fileprefix() : GUIPrefix;
@@ -306,41 +306,48 @@ public struct ScaleT {
   }
 };
 
+struct Legend {
+  public string label;
+  public pen p;
+}
 
 struct picture {
   // The functions to do the deferred drawing.
   drawerBound[] nodes;
   
   // The coordinates in flex space to be used in sizing the picture.
-  coord[] xcoords;
-  coord[] ycoords;
+  coord[] xcoords,ycoords;
 
-  // Transform to be applied to this picture
+  // Transform to be applied to this picture.
   public transform T;
   
   public bool deconstruct=false;
-  public pair userMin=(infinity,infinity);
-  public pair userMax=(-infinity,-infinity);
+  public pair userMin,userMax;
   
-  public ScaleT scale=new ScaleT; // Needed by graph
+  public ScaleT scale; // Needed by graph
+  Legend legend[];
 
-  // The maximum sizes in the x and y directions.
-  // Zero means no restriction.
+  // The maximum sizes in the x and y directions; zero means no restriction.
   public real xsize=0, ysize=0;
   
   // If true, the x and y must be scaled by the same amount.
   public bool keepAspect=false;
 
-  // Erase the current picture, retaining any size information
-  void erase(bool Deconstruct=true) {
+  void init() {
+    userMin=(infinity,infinity);
+    userMax=-userMin;
+    scale=new ScaleT;
+  }
+  init();
+  
+  // Erase the current picture, retaining any size specification.
+  void erase() {
     nodes=new drawerBound[];
     xcoords=new coord[];
     ycoords=new coord[];
     T=identity();
-    deconstruct=Deconstruct;
-    userMin=(infinity,infinity);
-    userMax=(-infinity,-infinity);
-    scale=new ScaleT;
+    legend=new Legend[];
+    init();
   }
   
   void userBox(pair min, pair max) {
@@ -578,6 +585,7 @@ struct picture {
     dest.userMin=userMin;
     dest.userMax=userMax;
     dest.scale=scale;
+    dest.legend=legend;
 
     return dest;
   }
@@ -607,13 +615,15 @@ struct picture {
 
     // Draw by drawing the copied picture.
     add(new void (frame f, transform t, transform T, pair m, pair M) {
-      if(deconstruct) {
+      if(deconstruct && !src.deconstruct) {
 	if(GUIDelete()) return;
 	T=GUI(T);
       }
       frame d=T*src_copy.fit(t,src_copy.T,m,M);
-      if(deconstruct) deconstruct(d);
-      add(f,d);
+     if(deconstruct && !src.deconstruct) deconstruct(d);
+     add(f,d);
+     for(int i=0; i < src.legend.length; ++i)
+       legend.push(src.legend[i]);
     });
 
     // Add the coord info to this picture.
@@ -943,63 +953,53 @@ frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
 	      pic.keepAspect ? Aspect : IgnoreAspect,p);
 }
 
-struct Legend {
-  public string label;
-  public pen p;
-}
-
-Legend Legend[];
-
 pair realmult(pair z, pair w) 
 {
   return (z.x*w.x,z.y*w.y);
 }
 
-frame legend(frame f, bool deconstruct=true)
+void legend(frame f, Legend[] legend)
 {
-  if(Legend.length > 0 && !GUIDelete()) {
+  if(legend.length > 0 && !GUIDelete()) {
     picture inset=new picture;
-    for(int i=0; i < Legend.length; ++i) {
-      pen p=Legend[i].p;
+    for(int i=0; i < legend.length; ++i) {
+      pen p=legend[i].p;
       pair z1=-i*I*legendskip*fontsize(p);
       pair z2=z1+legendlinelength;
       _draw(inset,z1--z2,p);
-      label(inset,Legend[i].label,z2,E,p);
+      label(inset,legend[i].label,z2,E,p);
     }
     frame d;
     // Place legend with top left corner at legendlocation;
     add(d,bbox(inset,legendmargin,legendmargin,0,0,IgnoreAspect,legendboxpen));
     pair topleft=min(f)+realmult(legendlocation,max(f)-min(f));
-    d=shift(topleft-(min(d).x,max(d).y))*d;
-    
-    if(deconstruct) {
-      d=GUI()*d;
-      deconstruct(d);
-    }
+    d=GUI()*shift(topleft-(min(d).x,max(d).y))*d;
+    deconstruct(d);
     add(f,d);
   }
-  return f;
 }
   
-void shipout(string prefix=defaultfilename, frame f, string format="",
-	     wait wait=NoWait)
+void shipout(string prefix=defaultfilename, frame f, Legend[] legend={},
+	     string format="", wait wait=NoWait)
 {
+  GUIPrefix=prefix;
+  add(f,gui(GUIFilenum).fit(identity()));
+  legend(f,legend);
   shipout(prefix,f,format,wait(wait));
+  ++GUIFilenum;
+  GUIObject=0;
 }
 
 void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     real xsize=infinity, real ysize=infinity,
 	     keepAspect keepAspect, string format="", wait wait=NoWait)
 {
-  GUIPrefix=prefix;
-  GUIObject=0;
   if(xsize == infinity) xsize=pic.xsize;
   if(ysize == infinity) ysize=pic.ysize;
+  GUIPrefix=prefix;
+  pic.deconstruct=true;
   frame f=pic.fit(xsize,ysize,keepAspect(keepAspect));
-  add(f,gui(GUIFilenum).fit(identity()));
-  legend(f,pic.deconstruct);
-  shipout(prefix,f,format,wait(wait));
-  ++GUIFilenum;
+  shipout(prefix,f,pic.legend,format,wait);
 }
 
 void shipout(string prefix=defaultfilename, picture pic=currentpicture,
@@ -1010,9 +1010,9 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	  wait);
 }
 
-void erase(picture pic=currentpicture, bool deconstruct=true)
+void erase(picture pic=currentpicture)
 {
-  pic.erase(deconstruct);
+  pic.erase();
 }
 
 // End of flex routines
@@ -1305,7 +1305,7 @@ void draw(picture pic=currentpicture, string s="", real angle=0,
   if(arrowbar.drawpath) _draw(pic,g,p);
   if(legend != "") {
     Legend L=new Legend; L.label=legend; L.p=p;
-    Legend.push(L);
+    pic.legend.push(L);
   }
 }
 

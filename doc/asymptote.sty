@@ -67,6 +67,7 @@
    \immediate\write\AsyStream{\@charlb}%
    \immediate\write\AsyStream{reset();}%
    \immediate\write\AsyStream{currentpicture.erase();}%
+   \immediate\write\AsyStream{currentpicture.size();}%
    \immediate\write\AsyStream{currentpen=defaultpen();}%
    \immediate\write\AsyStream{defaultfilename="\jobname.\arabic{asy}.eps";}%
   \ifx\@optarg\empty

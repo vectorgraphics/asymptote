@@ -1,4 +1,3 @@
-
 pair crease(pair z1, pair z2, bool left)
 {
   pair dz = z2 - z1;
@@ -27,9 +26,6 @@ pair[] fold(pair[] oldz)
 
 pair[] dragon(int n, pair[] base={})
 {
-/*  if (base == null)
-    base = n%2 == 0 ? new pair[] {(0,0), (1,1)}
-                    : new pair[] {(0,0), (1,0)}; */
   if (base.length == 0)
     if (n%2 == 0)
       base = new pair[] {(0,0), (1,1) };
