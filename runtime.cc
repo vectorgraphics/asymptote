@@ -1013,6 +1013,7 @@ void stringFormatReal(stack *s)
 
   bool trailingzero=f.find("#") < string::npos;
   bool plus=f.find("+") < string::npos;
+  bool space=f.find(" ") < string::npos;
   
   char *q=buf; // beginning of formatted number
 
@@ -1032,7 +1033,7 @@ void stringFormatReal(stack *s)
     }
     if(zero) {
       q++;
-      if(plus) out << phantom;
+      if(plus || space) out << phantom;
     }
   }
   
