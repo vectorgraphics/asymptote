@@ -1065,10 +1065,12 @@ void errorbar(picture pic, pair z, pair dp, pair dm, pen p=currentpen,
 {
   real dmx=-abs(dm.x);
   real dmy=-abs(dm.y);
-  if(dmx != dp.x) draw(pic,Scale(pic,z+(dmx,0))--Scale(pic,z+(dp.x,0)),p,
-		       Bars(size));
-  if(dmy != dp.y) draw(pic,Scale(pic,z+(0,dmy))--Scale(pic,z+(0,dp.y)),p,
-		       Bars(size));
+  real dpx=abs(dp.x);
+  real dpy=abs(dp.y);
+  if(dmx != dpx) draw(pic,Scale(pic,z+(dmx,0))--Scale(pic,z+(dpx,0)),p,
+		      Bars(size));
+  if(dmy != dpy) draw(pic,Scale(pic,z+(0,dmy))--Scale(pic,z+(0,dpy)),p,
+		      Bars(size));
 }
   
 void errorbars(picture pic=currentpicture, pair[] z, pair[] dp, pair[] dm={},
