@@ -9,6 +9,7 @@
 #define PATH_H
 
 #include <iostream>
+#include <climits>
 #include "pool.h"
 
 #include "pair.h"

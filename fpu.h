@@ -1,9 +1,9 @@
 #ifndef FPU_H
 #define FPU_H
 
+#ifdef _GNU_SOURCE
 #include <fenv.h>
 
-#ifdef _GNU_SOURCE
 inline void fpu_trap(bool trap)
 {
   if(trap) {// Trap FPU exceptions on NaN, zero divide and overflow.
