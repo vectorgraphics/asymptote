@@ -103,7 +103,7 @@ public:
 
   virtual void prettyprint(ostream &out, int indent) = 0;
   
-  virtual void markTrans(coenv &e)
+  void markTrans(coenv &e)
   {
     markPos(e);
     trans(e);
@@ -112,7 +112,7 @@ public:
   /* Translates the stm or dec as if it were in a function definition. */
   virtual void trans(coenv &e) = 0;
 
-  virtual void markTransAsField(coenv &e, record *r)
+  void markTransAsField(coenv &e, record *r)
   {
     markPos(e);
     transAsField(e,r);
