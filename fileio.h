@@ -73,7 +73,7 @@ public:
   
   virtual void read(bool&) {noread("bool");}
   virtual void read(int&) {noread("int");}
-  virtual void read(double&) {noread("double");}
+  virtual void read(double&) {noread("real");}
   virtual void read(pair&) {noread("pair");}
   virtual void read(char&) {noread("char");}
   virtual void readwhite(std::string&) {noread("string");}
@@ -81,7 +81,7 @@ public:
 
   virtual void write(bool) {nowrite("bool");}
   virtual void write(int) {nowrite("int");}
-  virtual void write(double) {nowrite("double");}
+  virtual void write(double) {nowrite("real");}
   virtual void write(const pair&) {nowrite("pair");}
   virtual void write(const std::string&) {nowrite("string");}
   virtual void write(const pen&) {nowrite("pen");}

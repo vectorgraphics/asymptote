@@ -63,9 +63,17 @@ Foundation.
 Programming
 
 * Data types::                  
+* Transforms::                  
+* Guides and Paths::            
+* Pens::                        
+* Frames and Pictures::         
+* Files::                       
+* Structures::                  
 * Arithmetic & logical operators::  
+* Self & prefix operators::     
 * Implicit scaling::            
 * Functions::                   
+* Arrays::                      
 * Casts::                       
 * Static & dynamic qualifiers::  
 
@@ -81,24 +89,24 @@ Functions
 @cindex description
 
 Asymptote is powerful script-based vector graphics language that
-provides a natural coordinate-based framework for technical drawings,
-inspired by MetaPost. Labels and equations are typeset with LaTeX, for
-overall document consistency, yielding the same high-quality level of
-typesetting that LaTeX provides for scientific text. By default it
-produces postscript output, but it can also generate any format that the
-excellent ImageMagick package can produce.
+provides a natural coordinate-based framework for technical drawings.
+Labels and equations are typeset with LaTeX, for overall document
+consistency, yielding the same high-quality level of typesetting that
+LaTeX provides for scientific text. By default it produces postscript
+output, but it can also generate any format that the excellent
+ImageMagick package can produce.
      
 A major advantage of Asymptote over other graphics packages is
 that it is a high-level programming language, as opposed to just a graphics
 program: it can therefore exploit the best features of the script
 (command-driven) and graphical user interface (GUI) methods for
-producing graphs. The rudimentary GUI @code{xasy} is included with the
+producing figures. The rudimentary GUI @code{xasy} is included with the
 package that allows one to move script-generated objects
 around. To make Asymptote accessible to the average user, this GUI is
 currently being developed into a full-fledged interface that can
 generate objects directly. However, the script portion of the language
 is now ready for general use by users who are willing to learn a few
-straightforward Asymptote graphics commands. 
+straightforward Asymptote graphics commands @ref{Drawing commands}.
 
 Asymptote is mathematically oriented (e.g. at the lowest levels, one can
 use multiplication by complex numbers to do rotations) and uses LaTeX to do the
@@ -120,10 +128,18 @@ http://asymptote.sourceforge.net/gallery/
 Features of Asymptote graphics language:
 
 @itemize
-@item a natural mathematical coordinate-based framework for technical drawings,
-inspired by MetaPost
+@item provides a natural coordinate-based framework for technical drawings,
 
-@item TeX labels and equations, for overall document consistency
+@item inspired by MetaPost, with a much cleaner, powerful C++-like programming
+syntax;
+
+@item mathematically oriented (e.g. rotation of vectors by complex
+multiplication, built-in affine transformations);
+
+@item LaTeX typesetting of labels, for overall document consistency
+
+@item compiles figures into pseudo-machine code for speed without
+sacrificing portability;
 
 @item power of a script-based language coupled to the convenience of a GUI
 
@@ -131,15 +147,22 @@ inspired by MetaPost
 
 @item sensible defaults for graphical features, with the ability to override
 
-@item makes elegant use of complex numbers and affine transforms
-
 @item a high-level mathematically oriented interface to the postscript language
 for vector graphics
 
 @item functions can create new (anonymous) functions
 
-@item uses deferral of drawing commands and the simplex linear
-programming method to meet figure size constraints
+@item uses simplex method and deferred drawing to solve overall size
+constraint issues between fixed-sized objects (labels and arrowheads) and
+objects that should scale with figure size;
+
+@item high-level graphics commands are implemented in the Asymptote language
+itself, allowing them to be easily tailored to specific applications.
+
+@item designed to become the de-facto standard for typesetting mathematical
+figures, just as TeX/LaTeX has become the standard for typesetting
+equations;
+
 @end itemize
 
 @node Installation
@@ -201,6 +224,7 @@ following paths (in the listed order):
 @item
 current directory
 @item
+@cindex @code{ASYMPTOTE_DIR}
 $ASYMPTOTE_DIR
 @item
 system-wide directory (default: /usr/local/share/asymptote)
@@ -227,7 +251,7 @@ Further commands specific to interactive mode are described in
 
 You can use the arrow keys in interactive mode to edit previous lines
 (assuming that you have the GNU readline library installed on your
-system).  Because of interactive mode is emulated, it is currently
+system).  Because interactive mode is emulated, it is currently
 intended only for short demonstration files  @xref{Interactive
 mode}. For more complicated graphs we recommend using batch mode.
 
@@ -275,6 +299,13 @@ shipout();
 Here is a short introductory example to the Asymptote programming
 language that highlights the similarity of its control structures to
 the C/C++ programming languages.
+@cindex declaration
+@cindex assignment
+@cindex conditional
+@cindex loop
+@cindex @code{if}
+@cindex @code{else}
+@cindex @code{for}
 @verbatim
 // This is a comment.
 
@@ -297,15 +328,27 @@ for(int i=0; i < 10; ++i) {
 }
 @end verbatim
 
-However, Asymptote contains many features beyond those found in C and C++.
+@cindex @code{while}
+@cindex @code{do}
+@cindex @code{break}
+@cindex @code{continue}
+Asymptote also supports @code{while}, @code{do}, @code{break}, and
+@code{continue} statements just as in C/C++. In addition, it supports
+many features beyond those found in C and C++. 
 
 @menu
 * Data types::                  
+* Transforms::                  
+* Guides and Paths::            
+* Pens::                        
+* Frames and Pictures::         
+* Files::                       
 * Structures::                  
 * Arithmetic & logical operators::  
 * Self & prefix operators::     
 * Implicit scaling::            
 * Functions::                   
+* Arrays::                      
 * Casts::                       
 * Static & dynamic qualifiers::  
 @end menu
@@ -317,24 +360,98 @@ Asymptote supports the following data types (in addition to any
 user-defined types)
 @table @code
 
+@item void
+@cindex @code{void}
+The void type is used only by functions that take or return no arguments
+
 @item bool
-@code{true} or @code{false}
+@cindex @code{bool}
+a boolean type that can only take on the values @code{true} and
+@code{false}. For example:
+@verbatim
+bool b=true;
+@end verbatim
+defines a boolean variable @code{b} and initializes it to the value
+@code{true}. If no initializer is given:
+@verbatim
+bool b;
+@end verbatim
+the value @code{false} is assumed.
 
 @item int
-integer
+@cindex @code{int}
+an integer type; if no initializer is given, the implicit value 0 is assumed.
 
 @item real
-real number (highest-precision native floating-point type)
+@cindex @code{real}
+real number (highest-precision native floating-point type);
+the implicit initializer is 0.0.
 
 @item pair
+@cindex @code{pair}
 complex number, that is, an ordered pair of real components (x,y).
-The real and imaginary parts of a pair @code{z} can be accessed as @code{z.x}
+The real and imaginary parts of a pair @code{z} can read as @code{z.x}
 and @code{z.y}. We say that @code{x} and @code{y} are virtual members of
-the data element pair.
+the data element pair; they cannot be directly modified, however.
 
- or as xpart(z) and ypart(z), respectively.
+There are a number of ways to take the complex conjugate of a pair:
+@example
+pair z=(3.0,4.0);
+z=(z.x,-z.y);
+z=z.x-I*z.y;
+z=conj(z);
+@end example
+
+A number of builtin functions are defined for pairs:
+
+@table @code
+@item pair conj(pair)
+@cindex @code{conj}
+returns the conjugate of its argument;
+
+@item real length(pair z)
+@cindex @code{length}
+return the complex modulus @code{|z|} of its argument @code{z}. For example,
+@example
+pair z=(3.0,4.0);
+write(length(z));
+@end example
+produces the result 5;
+
+@item real angle(pair)
+@cindex @code{angle}
+returns the angle of its argument in radians;
+
+@item real Angle(pair)
+@cindex @code{Angle}
+returns the Angle of its arguments in degrees in the interval [0,360);
+
+@item pair unit(pair)
+@cindex @code{unit}
+returns a unit vector in the direction of the given pair;
+
+@item pair expi(real angle)
+@cindex @code{expi}
+returns a unit vector in the direction @code{angle} measured in radians;
+
+@item pair dir(real angle)
+@cindex @code{dir}
+returns a unit vector in the direction @code{angle} measured in degrees;
+
+@item real xpart(pair)
+@cindex @code{xpart}
+returns the @code{.x} component of its argument;
+
+@item real ypart(pair)
+@cindex @code{ypart}
+returns the @code{.y} component of its argument.
+
+@end table
+
 
 @item string
+@cindex @code{string}
+@cindex TeX
 character strings. These are implemented as STL strings, except that the
 escape character is @code{\\} not @code{\}, for compatibility with @TeX{}.
 For example 
@@ -356,6 +473,7 @@ Here are some additional useful string functions:
 @table @code
 
 @item replace(string s, string from, string to) 
+@cindex @code{replace}
 returns a string with all occurrences of the string @code{from} in the
 string @code{s} changed to the string @code{to};
 
@@ -365,6 +483,7 @@ occurences of the string @code{from} in an array @code{table} of string pairs
 @{@code{from},@code{to}@} to the corresponding string @code{to};
 
 @item format(string s, int n) 
+@cindex @code{format}
 returns the integer n formatted according to the C-style format string
 @code{s};
 
@@ -373,6 +492,7 @@ returns the real number x formatted according to the C-style format
 string @code{s}, using @TeX{} typesetting for scientific notation;
 
 @item time(string s)
+@cindex @code{time}
 returns the current time as returned by the ANSI C routine strftime
 formatted according to string @code{s}. For example,
 @verbatim
@@ -382,212 +502,372 @@ write(time("%a %b %d %H:%M:%S %Z %Y"));
 
 @end table
 
-@item transform
-affine transform @code{a+Bx}, where @code{a} is a pair and @code{B} is a
-2x2 matrix. Transforms can be applied to pairs, guides, paths, pens,
-transforms, frames, and pictures by multiplication on the left.
+As in C/C++, complicated types may be abbreviated with @code{typedef}
+(see the example in @ref{Functions}).
+
+@end table
+
+@node Transforms
+@section Transforms
+
+@cindex @code{transform}
+Asymptote supports affine transform @code{a+Bx}, where @code{a} is a
+pair and @code{B} is a 2x2 matrix. Transforms can be applied to pairs,
+guides, paths, pens, transforms, frames, and pictures by multiplication
+on the left (see @pxref{unitcircle} for an example).
+
 Possible transforms are:
 
 @table @code
 @item identity()
+@cindex @code{identity}
 the identity transform;
 @item shift(pair z)
+@cindex @code{shift}
 translates by pair @code{z};
 @item xscale(real x)
+@cindex @code{xscale}
 scales in the x-direction by @code{x};
 @item yscale(real y)
+@cindex @code{yscale}
 scales in the y-direction by @code{y};
 @item scale(pair z)
+@cindex @code{scale}
 equivalent to multiplication by @code{z};
 @item slant(real s)
+@cindex @code{slant}
 maps @code{(x,y)} --> @code{(x+s*y,y)};
 @item rotate(real a)
+@cindex @code{rotate}
 rotates by angle @code{a} about origin;
 @item rotate(real a, pair z)
 rotates by angle @code{a} about @code{z};
 @item reflect(pair z, pair w)
+@cindex @code{reflect}
 reflect about line @code{z--w}.
 @end table
 
-Note that transforms can be composed with one another and inverted with
-the function @code{transform inverse(transform)}.
+Transforms can be composed with one another and inverted with the
+function @code{transform inverse(transform)}.
 
+@node Guides and Paths
+@section Guides and Paths
+
+@table @code
 @item guide
-unresolved cubic spline (list of cubic-spline nodes and control points)
+@cindex @code{guide}
+unresolved cubic spline (list of cubic-spline nodes and control points).
+This is like a path except the computation of the cubic spline is
+deferred until drawing time (when it is resolved into a path); this allows
+two guides with free endpoint conditions to be joined together smoothly.
 
 @item path
-resolved cubic spline, with fixed endpoint conditions 
+@cindex @code{path}
+a cubic spline resolved into a fixed path.
 
-@item pen
-pen color, line type, line width, font size, calligraphic transform
+A path is specified by as a list of pairs or paths interconnected with
+@cindex @code{--}
+@cindex @code{..}
+@code{--}, which denotes a straight line segment, or @code{..}, which
+denotes a cubic spline.
+Specifying a final node @code{cycle} creates a cyclic path that connects back
+to the initial node, as in this approximation (accurate to within 0.06%)
+of a unit circle:
+@anchor{unitcircle}
+@cindex unitcircle
+@verbatim
+guide unitcircle=E..N..W..S..cycle;
+@end verbatim
+
+The above example uses the standard compass directions @code{E=(1,0)},
+@code{N=(0,1)}, @code{NE=unit(N+E)}, and @code{ENE=unit(E+NE)}, etc.,
+which along with the directions @code{up}, @code{down}, @code{right},
+and @code{left} are defined as pairs in the default asymptote base file
+@code{plain.asy}.
+@cindex circle
+A useful routine in @code{plain.asy} constructs a circle of radius
+@code{r} centered on @code{c} by transforming unitcircle:
+@verbatim
+guide circle(pair c, real r)
+{
+  return shift(c)*scale(r)*unitcircle;
+}
+@end verbatim
+
+In the case of a cubic spline, each interior node may be given a
+direction prefix or suffix @code{@{dir@}}: the direction of the pair
+@code{dir} specifies the direction of the incoming or outgoing tangent,
+respectively, to the curve at that node. Exterior nodes may only be
+given direction specifiers on their interior side. Cubic splines between
+a node z0, with postcontrol point q0, and a node z1, with precontrol
+point p1, are computed as the Bezier curve
+(1-t)^3*z0+3t(1-t)^2*q0+3t^2(1-t)*p1+t^3*z1 for 0 <=t <= 1.
+
+This examples draws an approximate quarter circle:
+@verbatim
+pair up=(0,1);
+pair left=(-1,0);
+draw((100,0){up}..{left}(0,100));
+@end verbatim
+
+@cindex @code{control}
+Instead of specifying the tangent directions before and after a node,
+one can also specify directly the control points directly:
+@verbatim
+path p=(100,0)..control(100,100)..(0,100);
+@end verbatim
+
+@cindex @code{tension}
+@cindex @code{and}
+@cindex @code{at least}
+One can also change the spline tension from its default value of 1.0 to any
+value greater than or equal to 0.75:
+@verbatim
+path p=(100,0)..tension 2.0..(100,100)..(0,100);
+path p=(100,0)..tension 2.0 and 1.0..(100,100)..(0,100);
+path p=(100,0)..tension atleast 1.0..(100,100)..(0,100);
+@end verbatim
+
+@cindex @code{curl}
+The curl parameter specifies the curvature at the endpoints of a path
+(0.0 mean straight; the default value of 1.0 means approximately circular)
+@verbatim
+path p=(100,0){curl 0.0}..(100,100)..{curl 0.0}(0,100);
+@end verbatim
+
+The special path @code{nullpath} is useful for building up a path within
+a loop. For completeness, we document here the action of direction modifiers
+on @code{nullpath}. If a single direction specifier is given to
+@code{nullpath}, it modifies the pair on the other side. 
+In the case of a two specifiers (one on each side of @code{nullpath}), the
+first one is ignored. For example, these paths
+@verbatim
+a..{up}nullpath..b;
+z..nullpath{up}..w;
+u..{up}nullpath{down}..v;
+@end verbatim
+
+are equivalent to
+@verbatim
+a..nullpath..{up}b;
+z{up}..nullpath..w;
+u{down}..nullpath..v;
+@end verbatim
+
+@end table
+
+@node Pens
+@section Pens
+
+@cindex pen
+Asymptote uses pens to specify the following drawing attributes:
+color, line type, line width, font size, and calligraphic transforms on
+the pen nib. The default pen is @code{currentpen}.
+
+@itemize
+
+@item Colors are specified using one of the following colorspaces:
+@cindex color
+@table @code
+@item @code{pen gray(real g);} 
+@cindex @code{gray}
+@cindex grey
+@cindex grayscale
+@cindex greyscale
+This produces a grayscale color, where the intensity @code{g} lies in the
+interval [0,1], with 0.0 denoting black and 1.0 denoting white.
+
+@item @code{pen rgb(real r, real g, real b);} 
+@cindex @code{rgb}
+This produces an rgb color, where each of the red, green, and blue intensities
+@code{r}, @code{g}, @code{b}, lies in the interval [0,1].
+
+@item @code{pen cmyk(real c, real m, real y, real k);} 
+@cindex @code{cmyk}
+This produces an cmyk color, where each of the cyan, magenta, and
+yellow, and black intensities @code{c}, @code{m}, @code{y}, @code{k},
+lies in the interval [0,1].
+
+@item @code{pen invisible();}
+@cindex @code{invisible}
+This special pen writes in invisible ink.
+
+@end table
+
+The default color is @code{black}. A number of named rgb and cmyk colors
+are given at the top of the default base file @code{plain.asy}.
+
+@item Line types are specified with the function @code{pen linetype(string s)},
+@cindex @code{solid}
+@cindex @code{dashed}
+@cindex @code{dotted}
+@cindex @code{longdashed}
+@cindex @code{dashdotted}
+@cindex @code{longdashdotted}
+where @code{s} is a string of integer or real numbers separated by spaces.
+The first integer specifies how far (in postscript coordinates) to draw
+with the pen on, the second integer specifies how far to draw with the pen off,
+and so on. Here are the predefined line types:
+@verbatim
+pen solid=linetype("");
+pen dotted=linetype("0 4");
+pen dashed=linetype("8 8");
+pen longdashed=linetype("24 8");
+pen dashdotted=linetype("8 8 0 8");
+pen longdashdotted=linetype("24 8 0 8");
+@end verbatim
+
+The default linetype is @code{solid}.
+
+@cindex @code{linewidth}
+@cindex @code{defaultlinewidth}
+@item The pen line width is specified in postscript units with the function
+@code{pen linewidth(real);}. The default line width is 0.5bp
+(this global default value may be changed with the
+@code{defaultlinewidth(real)} command). 
+
+@cindex @code{fontsize}
+@cindex @code{defaultfontsize}
+@item The font size is specified in TeX points (1 pt = 1/72.27 in) with
+the function @code{pen fontsize(real);}. The default pen font size is
+12pt (this global default value may be changed with the
+@code{defaultfontsize(real)} command).
+
+@end itemize
+
+Pens may be added together with the binary operator @code{+}.
+This will mix the colors of the two pens. Other non-default attributes
+of the right most pen will override those of the left most pen. Thus, one can
+obtain a yellow dashed pen by saying @code{dashed+red+green} or
+@code{red+green+dashed} or @code{red+dashed+green}, etc.
+
+@node Frames and Pictures
+@section Frames and Pictures
+
+@table @code
 
 @item frame
-canvas for drawing in postscript coodinates
+@cindex @code{frame}
+Frames are canvases for drawing in postscript coodinates. While working
+with frames directly is occasionally necessary when doing deferred drawing,
+pictures are usually more convenient to work with. The default frame is
+@code{currentframe}.
 
 @item picture
-canvas for drawing in user coordinates (fit to a frame on shipout)
+@cindex @code{picture}
+Pictures are high-level structures defined in @code{plain.asy} 
+that provide canvases for drawing in user coordinates. 
+The default picture is @code{currentpicture}.
 
-@item file
-input/output file (text or portable XDR formatted I/O)
+A picture is fit to a frame upon calling the function @code{shipout},
+using the default or given size specification:
+
+@anchor{shipout}
+@example
+@cindex @code{shipout}
+void shipout(string prefix=defaultfilename, picture pic=currentpicture,
+	     real xsize=infinity, real ysize=infinity,
+	     keepAspect keepAspect=pic.keepAspect ? Aspect : IgnoreAspect,
+             string format="", wait wait=NoWait);
+@end example
+
+Sometimes it is useful to draw objects on separate pictures and add one
+picture to another with the @code{add} function:
+@cindex @code{shipout}
+@example
+void add(picture src);
+void add(picture dest, picture src);
+@end example
+The first example adds src to currentpicture; the second one adds src to dest.
+
+Many further examples of picture and frame operations are provided in
+the base file @code{plain.asy}.
+
+@end table
+
+@node Files
+@section Files
+
+@cindex @code{file}
+Asymptote can read and write text files (including comma-separated
+value) files and portable XDR (External Data Representation) binary files.
+
 An input file must first be opened; reading is done by assignment:
+@cindex open
+@cindex @code{input}
+@cindex reading
 @verbatim
 file fin=input("test.txt");
 real a=fin;
 @end verbatim
+@cindex getc
+Strings are also read by assignment. Asymptote also includes a routine
+@code{getc(file)} that reads the next character and returns it as a string.
 
+@cindex @code{output}
+@cindex @code{write}
 Writing is implemented as a function call:
 @verbatim
-real a;
+real a=1, b=2, c=3;
 file fout=output("test.txt");
 write(fout,a);
 @end verbatim
 
+@cindex @code{stdin}
+@cindex @code{stdout}
+@cindex @code{endl}
+@cindex @code{tab}
 There are two special files @code{stdin}, which reads from the keyboard,
-and @code{stdout}, which writes to the terminal. A third optional
-argument to write may be given: either @code{endl}, which causes a newline
-to be written after writing the data, or @code{tab}, which writes a tab
-instead. The file argument is also optional, in which case the write
-is done to stdout and terminated by a newline. That is,
+and @code{stdout}, which writes to the terminal. A final optional
+@code{endl} argument to write causes a newline to be written after
+writing the data. Alternatively, a final @code{tab} argument writes a
+tab instead.
+
+The file argument is optional; when omitted the write is done to stdout
+and terminated by a newline. In this case, the write may include up to 3
+arguments, which will be output to stdout, separated by tabs. That is,
 @verbatim
+write();
 write(a);
+write(a,b);
+write(a,b,c);
 @end verbatim
-is equivalent to @code{write(stdout,a,endl);}.
+is equivalent to 
+@verbatim
+write(stdout,endl);
+write(stdout,a,endl);
+write(stdout,a,tab); write(stdout,b,endl);
+write(stdout,a,tab); write(stdout,b,tab); write(stdout,c,endl);
+@end verbatim
 
 Files may also be opened with @code{xinput} or @code{xoutput} instead of
 @code{input} or @code{output}, in which case the reading or writing will
 be done using Sun Microsystem's XDR (External Data Representation)
 portable binary format.
 
-@item void
-used by functions that take or return no arguments
-
-@end table
-
-@cindex arrays
-
-Appended @code{[]} to any of these types produces an array (technically
-a vector) indexed by integers in the interval [0,length-1], where length
-represents the array length. For convenience, integer indices in [-length,-1]
-are mapped to [0,length-1]. Reading an array element with an index
-outside of these bounds generates an error. Assigning an array element
-with an index < -length generates an error; however, if the index is positive,
-the array is resized as required. One can also index an array A with an 
-integer array B, to obtain the array formed by indexing array A with
-successive elements of array B.
-
-Array elements are neither implicitly allocated nor initialized (unless
-the elements are themselves arrays). Arrays can be explicitly
-initialized like this:
-@verbatim
-real[] a={0,1,2};
-@end verbatim
-
-Array assignment in Asymptote does only a shallow copy, that is, only
-the pointer is copied (if one copy if modified, the other will be too). 
-The @code{copy} function provides a deep copy of an array.
-
-Every array A has two virtual members, @code{length} and @code{push}.
-A.length evaluates to the length of the array A and A.push() is a
-function which pushes its argument onto the the end of the array A.
-Like all functions in Asymptote, @code{push} can be pulled off of the array 
-and used on its own:
-
-@verbatim
-int[] A={1,2,3};
-void f(int)=A.push; // A now contains {1,2,3,7}.
-f(7);
-@end verbatim
-
-In the following list of built-in array functions, T represents a generic type.
-
-@table @code
-
-@item new T[]
-returns a new array of type @code{T[]};
-
-@item new T[n]
-returns a new array of n elements of type @code{T[]}; 
-
-@item sequence(int n) 
-if n >= 1 returns the array @{0,1,...,n-1@} (otherwise returns a null array);
-
-@item reverse(int n)
-if(n >= 1) returns the array @{n-1,n-2,...,0@} (otherwise returns a null
-array);
-
-@item sequence(int n, int m)
-if m >= n returns an array @{n,n+1,...,m@} (otherwise returns a null array);
-
-@item sequence(T f(int),n)
-if n >= 1 returns the sequence @{f_i :i=0,1,...n-1@} given a function T
-f(int) and int n (otherwise returns a null array);
-
-@item find(bool[], int n=1)
-returns the index of the nth true value or -1 if not found. If n is
-negative, search backwards from the end of the array for the -nth value;
-
-@item copy(T[] A)
-returns a deep copy of array @code{A};
-
-@item alias(T[] A, T[] B)
-returns true if the arrays @code{A} and @code{B} are identical.
-
-@item sort(T[] A)
-For ordered types @code{T}, returns @code{A} sorted in ascending order.
-
-@item sort(T[][] A)
-For ordered types @code{T}, returns @code{A} with the rows sorted by the
-first column, breaking ties with successively higher columns. For example:
-@verbatim
-string[][] a={{"bob","9"},{"alice","5"},{"pete","7"},{"alice","4"}};
-write("Row sort (by column 0, using column 1 to break ties):");
-write(stdout,sort(a));
-@end verbatim
-produces
-
-alice   4
-alice   5
-bob     9
-pete    7
-
-@item transpose(T[][] A)
-returns the transpose of @code{A}.
-
-@item sum(T[] A)
-For arithmetic types @code{T}, returns the sum of A.
-
-@item min(T[] A)
-For ordered types @code{T}, returns the minimum element of A.
-
-@item max(T[] A)
-For ordered types @code{T}, returns the maximum element of A.
-
-@item fft(T[] A, int sign)
-returns the Fast Fourier Transform of @code{A} (if the optional FFTW package is
-installed), using the given @code{sign}. Here is a simple example:
-@verbatim
-int n=4;
-pair[] f=sequence(n);
-write(f);
-pair[] g=fft(f,-1);
-write();
-write(g);
-f=fft(g,1);
-write();
-write(f/n);
-@end verbatim
-
-@end table
+@cindex @code{eof}
+@cindex @code{eol}
+@cindex @code{error}
+@cindex @code{flush}
+@cindex @code{clear}
+@cindex @code{precision}
+One can test a file for end-of-file with the boolean function @code{eof(file)},
+end-of-line with @code{eol(file)}, and an I/O error with @code{error(file)}.
+One can flush the output buffers with @code{flush(file)} and clear a
+previous I/O error with @code{clear(file)}. To set the number of
+digits of output precision, use @code{precision(file,int)}. 
 
 @node Structures
 @section Structures
+@cindex @code{struct}
 @cindex structures
 
-Users may also define their own data types and operators as structures,
-much as in C++. By default, structure members are read-only
-outside the structure, but may be optionally declared public
-(read-write) or private (read and write allowed only inside the structure).
-The virtual structure @code{this} refers to the enclosing structure.
+Users may also define their own data types as structures, along with
+user-defined operators, much as in C++. By default, structure
+members are read-only outside the structure, but may be optionally
+declared public (read-write) or private (read and write allowed only
+inside the structure). The virtual structure @code{this} refers to the
+enclosing structure.
 
 @verbatim
 struct S {
@@ -610,33 +890,71 @@ write((s+s).f(0));
 
 @end verbatim
 
+For a more complicated example of a structure, see the structure
+@code{picture} in the default asymptote base file @code{plain.asy}.
+
 @node Arithmetic & logical operators
 @section arithmetic & logical operators
 @cindex arithmetic operators
 @cindex logical operators
 
+Asymptote uses the standard binary arithmetic operators
+@code{+} (addition), @code{-} (subtraction), @code{*} (multiplication),
+@code{/} (division), @code{%} (mod), @code{^} (power). 
+Both operands are promoted to the same type, which will also be the type
+of the result. The result of the @code{%} operator always has the same
+sign as the divisor. If the exponent of the power operator is an
+integer, recursive multiplication is used; otherwise, logarithms and
+exponentials are used to perform the calculation. 
+
+The usual logical operators @code{==} (equals), @code{!=} (not equals),
+@code{<} (less than), @code{<=} (less than or equals),  
+@code{>=} (greather than or equals), @code{>} (greater than), @code{&&} (and),
+@code{||} (or), and @code{!} (not) are also defined.
+Asymptote also supports the C-like conditional syntax:
+@verbatim
+bool truncated=(pi == 3.14) ? true : false;
+@end verbatim
+
 @node Self & prefix operators
 @section self & prefix operators
 @cindex self operators
 @cindex prefix operators
+@cindex @code{+=}
+@cindex @code{-=}
+@cindex @code{*=}
+@cindex @code{/=}
+@cindex @code{%=}
+@cindex @code{^=}
+@cindex @code{++}
+@cindex @code{--}
+
+As in C, each of the arithmetic operators @code{+}, @code{-}, @code{*},
+@code{/}, @code{%}, and @code{^} can be used as a self-operator. 
+The prefix operators @code{++} (increment by one) and @code{--} (decrement
+by one) are also defined.
+For example
+@verbatim
+int i=1;
+i += 2;
+int j=++i;
+@end verbatim
+
+is equivalent to the code
+@verbatim
+int i=1;
+i=i+2;
+int j=i=i+1;
+@end verbatim
+
 @cindex postfix operators
+However, postfix operators like @code{i++} and @code{i--} are not defined
+(because of the inherent ambiguities that would arise with the @code{--}
+operator used to join paths). In the rare instances where @code{i++} 
+and @code{i++} are really needed, one can substitute the expressions
+@code{(++i-1)} and @code{(--i+1)}, respectively.
 
-Each of the arithmetic operators @code{+,-,*,/,%} can be used as self-operator,
-just as in C. The prefix operators @code{++} (increment by one) and @code{--}
-(decrement by one) are also defined. For example
-@verbatim
-real a=1;
-a += 2;
-a++;
-@end verbatim
-
-is completely equivalent to
-@verbatim
-real a=1;
-a=a+2;
-a=a+1;
-@end verbatim
-
+@cindex side effects
 Keep in mind that these self- and prefix operators can cause side effects 
 due to multiple evaluations, as in the following example (which writes
 "hi!" twice rather than just once):
@@ -690,7 +1008,6 @@ This produces the output
 7.44139629388625
 @end verbatim
 
-
 @node Functions
 @section Functions
 @cindex functions
@@ -735,6 +1052,7 @@ c=a;                // Valid - only one possible assignment.
 @end verbatim
 
 @item Anonymous (so-called "high-order") functions are also allowed:
+@cindex typedef
 @verbatim
 typedef int intop(int);
 intop adder(int m)
@@ -776,6 +1094,248 @@ then @code{f(1)} returns 1, but @code{f(1.0)} returns 2.
 The value of a default argument is determined simply by evaluating the
 given asymptote expression (effectively substituted by a "cut and paste"
 operation).
+
+@node Arrays
+@section Arrays
+@cindex arrays
+
+Appended @code{[]} to any of these types produces an array (technically
+a vector) indexed by integers in the interval [0,length-1], where length
+represents the array length. For convenience, integer indices in [-length,-1]
+are mapped to [0,length-1]. Reading an array element with an index
+outside of these bounds generates an error. Assigning an array element
+with an index < -length generates an error; however, if the index is positive,
+the array is resized, as required, to accomodate the new element.
+One can also index an array A with an integer array B, to obtain the array
+formed by indexing array A with successive elements of array B.
+
+Array elements are neither implicitly allocated nor initialized:
+@verbatim
+real[] A;
+@end verbatim
+
+is initialized to be a empty (zero-length) array. Empty arrays are to be
+distinguished from null arrays:
+@verbatim
+real[] A=null;
+@end verbatim
+which cannot be dereferenced at all (they have no length and cannot be
+read from or assigned to).
+
+Arrays can be explicitly initialized like this:
+@verbatim
+real[] A={0,1,2};
+@end verbatim
+
+
+Array assignment in Asymptote does only a shallow copy, that is, only
+the pointer is copied (if one copy if modified, the other will be too). 
+The @code{copy} function provides a deep copy of an array.
+
+Every array A has two virtual members, @code{length} and @code{push}.
+A.length evaluates to the length of the array A and A.push() is a
+function which pushes its argument onto the the end of the array A.
+Like all functions in Asymptote, @code{push} can be pulled off of the array 
+and used on its own:
+
+@verbatim
+int[] A={1,2,3};
+void f(int)=A.push; // A now contains {1,2,3,7}.
+f(7);
+@end verbatim
+
+In the following list of built-in array functions, T represents a generic type.
+
+@table @code
+
+@cindex @code{new}
+@item new T[]
+returns a new array of type @code{T[]};
+
+@item new T[n]
+returns a new array of @code{n} elements of type @code{T[]}. 
+Unless they are arrays themselves, these @code{n} array elements are
+not initialized.
+
+@cindex @code{sequence}
+@item sequence(int n) 
+if @code{n >= 1} returns the array @code{@{0,1,...,n-1@}} (otherwise returns
+a null array);
+
+@item sequence(int n, int m)
+if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} (otherwise
+returns a null array);
+
+@item sequence(T f(int),n)
+if @code{n >= 1} returns the sequence @code{@{f_i :i=0,1,...n-1@}} given a
+function T @code{f(int)} and integer @code{int n} (otherwise returns a
+null array);
+
+@cindex @code{reverse}
+@item reverse(int n)
+if(@code{n >= 1} returns the array @code{@{n-1,n-2,...,0@}} (otherwise
+returns a null array);
+
+@cindex @code{find}
+@item find(bool[], int n=1)
+returns the index of the @code{n}th true value or -1 if not found.
+If @code{n} is negative, search backwards from the end of the array for the
+@code{-n}th value; 
+
+@cindex @code{copy}
+@item copy(T[] A)
+returns a deep copy of array @code{A};
+
+@cindex @code{alias}
+@item alias(T[] A, T[] B)
+returns true if the arrays @code{A} and @code{B} are identical.
+
+@cindex @code{sort}
+@item sort(T[] A)
+For ordered types @code{T}, returns @code{A} sorted in ascending order.
+
+@item sort(T[][] A)
+For ordered types @code{T}, returns @code{A} with the rows sorted by the
+first column, breaking ties with successively higher columns. For example:
+@verbatim
+string[][] a={{"bob","9"},{"alice","5"},{"pete","7"},{"alice","4"}};
+write("Row sort (by column 0, using column 1 to break ties):");
+write(stdout,sort(a));
+@end verbatim
+produces
+
+alice   4
+alice   5
+bob     9
+pete    7
+
+@cindex @code{transpose}
+@item transpose(T[][] A)
+returns the transpose of @code{A}.
+
+@cindex @code{sum}
+@item sum(T[] A)
+For arithmetic types @code{T}, returns the sum of @code{A}.
+
+@cindex @code{min}
+@item min(T[] A)
+For ordered types @code{T}, returns the minimum element of @code{A}.
+
+@cindex @code{max}
+@item max(T[] A)
+For ordered types @code{T}, returns the maximum element of @code{A}.
+
+@cindex @code{eval}
+@item eval(f(T), T[] A)
+returns the array obtained by applying the function @code{f} to each
+element of the array @code{A}.
+
+@cindex @code{min}
+@item min(T[] A, T[] B)
+For ordered types @code{T}, and arrays @code{A} and @code{B} of the same
+length, returns an array composed of the minimum of the corresponding
+elements of @code{A} and @code{B}.
+
+@cindex @code{max}
+@item max(T[] A, T[] B)
+For ordered types @code{T}, and arrays @code{A} and @code{B} of the same
+length, returns an array composed of the maximum of the corresponding elements
+of @code{A} and @code{B}.
+
+@cindex @code{fft}
+@item fft(T[] A, int sign)
+returns the Fast Fourier Transform of @code{A} (if the optional FFTW package is
+installed), using the given @code{sign}. Here is a simple example:
+@verbatim
+int n=4;
+pair[] f=sequence(n);
+write(f);
+pair[] g=fft(f,-1);
+write();
+write(g);
+f=fft(g,1);
+write();
+write(f/n);
+@end verbatim
+
+@end table
+
+Asymptote implements a full set of vectorized array instructions
+(implemented in C++ code for speed): arithmetical (including self) &
+logical operators. These are all implemented as element-by-element
+instructions. Given
+@verbatim
+real[] a={1,2};
+real[] b={3,2};
+@end verbatim
+then @code{a == b} and @code{a >= 2} both evaluate to the vector
+@code{@{false, true@}}. 
+To test whether all components of @code{a} and @code{b} agree,
+use the function @code{all(a == b)}. One can also use conditionals like
+@code{(a >= 2) ? a : b}, which returns the array @code{@{3,2@}}, or
+@code{write((a >= 2) ? a : null}, which returns the array @code{@{2@}}.
+
+All of the standard built-in functions of signature real(real) also take
+a real array as an argument, like an implicit call to @code{eval}.
+
+As with other built-in types, arrays can be read in by assignment. In this
+example, the code
+@verbatim
+file fin=input("test.txt");
+real[] A=fin;
+@end verbatim
+
+@cindex line
+@cindex line mode
+reads real values into A until the end of file is reached (or an I/O error
+occurs). If line mode is set with @code{line(file)}, then reading will
+stop once end-of-line is reached instead:
+@verbatim
+file fin=input("test.txt");
+real[] A=line(fin);
+@end verbatim
+
+@cindex csv
+@cindex comma-separated-value
+Another useful mode is comma-separated-value mode, set with @code{cvs(file)},
+which skips over any comma delimiters:
+@verbatim
+file fin=input("test.txt");
+real[] A=csv(fin);
+@end verbatim
+
+@cindex dimension
+To restrict the number of values read, use the @code{dimension(file,int)}
+function: 
+@verbatim
+file fin=input("test.txt");
+real[] A=dimension(fin,10);
+@end verbatim
+This reads 10 values into A, unless end-of-file occurs first (which
+will result in a runtime error message). Specifying a value of 0 for the
+integer limit is equivalent to the previous example of reading until
+end-of-file is encountered.
+
+Two- and three-dimensional arrays can be read in like this:
+@verbatim
+file fin=input("test.txt");
+real[][] A=dimension(fin,2,3);
+real[][][] B=dimension(fin,2,3,4);
+@end verbatim
+Again, an integer limit of zero would mean no restriction.
+
+@cindex read1
+@cindex read2
+@cindex read3
+Sometimes the array dimensions are stored as integer fields at the
+beginning of an array. Such arrays can be read in with the functions
+@code{read1}, @code{read2}, and @code{read3}, respectively:
+@verbatim
+file fin=input("test.txt");
+real[] A=read1(fin);
+real[][] B=read2(fin);
+real[][][] C=read3(fin);
+@end verbatim
 
 @node Casts
 @section Casts
@@ -887,7 +1447,8 @@ struct stuff {
 }
 @end verbatim
 
-Now when you import a module using an import declaration, it is like creating 
+@cindex import
+When you import a module using @code{import}, it is like creating 
 a new instance of the struct. That is,
 @verbatim
 int cube(int x) {
@@ -939,7 +1500,8 @@ Everywhere else, declarations are dynamic by default.
 @cindex drawing commands
 All of Asymptote's graphical capabilities are based on four primitive
 drawing commands. While some of these commands take many options, they
-all have sensible default values.
+all have sensible default values. For example, the picture argument
+defaults to currentpicture.
 
 @itemize
 @item
@@ -984,11 +1546,20 @@ Draw label s on pic, writing at the specified angle, at coordinate position,
 aligned in the direction align, with pen p (and optional italic adjustment).
 @end itemize
 
+Once the above command have drawn objects on a picture, the picture
+needs to be output with the @code{shipout} function @xref{shipout}.
+
 @node Options
 @chapter Options
 @cindex options
 Type @code{asy -h} to see the full list of command line options
 supported by asymptote.
+
+A printer offset may be added with one of these two equivalent commands:
+@verbatim
+asy -O 25 file
+asy -O "(25,25)" file
+@end verbatim
 
 @node Interactive mode
 @chapter Interactive mode
@@ -1041,7 +1612,11 @@ key ends the definition of the object. More features will be added to
 this preliminary GUI soon.
 
 As @code{xasy} is written in Python/TK, it requires that the @code{tkinter}
-package be installed.
+package be installed. In order to use @code{xasy}, one must first
+deconstruct Asymptote pictures into transparent GIF images with the command
+@code{asy -xN}, where @code{N} denotes the magnification (say 2).
+The command @code{asy -VxN} invokes @code{xasy} automatically once
+deconstruction is complete.
 
 A good example of how deconstruction of compound objects (e.g. arrows) can
 be prevented is in the example @code{yingyang.asy}. By default, only

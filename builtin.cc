@@ -499,7 +499,6 @@ void base_venv(venv &ve)
   addFunc(ve,run::cmyk,primPen(),"cmyk",primReal(),primReal(),primReal(),
 	  primReal());
   addFunc(ve,run::gray,primPen(),"gray",primReal());
-  addFunc(ve,run::defaultpen,primPen(),"defaultpen");
   addFunc(ve,run::invisiblepen,primPen(),"invisible");
   addFunc(ve,run::linewidth,primPen(),"linewidth",primReal());
   addFunc(ve,run::defaultLineWidth,primVoid(),"defaultlinewidth",primReal());

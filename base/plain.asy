@@ -20,13 +20,14 @@ pair right=(1,0);
 pair left=(-1,0);
 
 pair E=(1,0);
-pair NE=unit((1,1));
 pair N=(0,1);
-pair NW=unit((-1,1));
 pair W=(-1,0);
-pair SW=unit((-1,-1));
 pair S=(0,-1);
-pair SE=unit((1,-1));
+
+pair NE=unit(N+E);
+pair NW=unit(N+W);
+pair SW=unit(S+W);
+pair SE=unit(S+E);
 
 pair ENE=unit(E+NE);
 pair NNE=unit(N+NE);
@@ -1118,7 +1119,7 @@ guide square(pair z1, pair z2)
   return z1--z2--z3--z4--cycle;
 }
 
-guide unitcircle = E..N..W..S..cycle;
+guide unitcircle=E..N..W..S..cycle;
 
 guide circle(pair c, real r)
 {
