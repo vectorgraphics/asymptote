@@ -1547,6 +1547,14 @@ void add(pair origin=(0,0), picture dest=currentpicture,
          frame src);
 @end verbatim
 
+Alternatively, one can use @code{attach} to automatically increase the
+size of picture @code{dest} to accomodate adding a frame @code{src}
+about the user coordinate @code{origin}:
+@verbatim
+void attach(pair origin=(0,0), picture dest=currentpicture,
+            frame src);
+@end verbatim
+
 
 @cindex @code{erase}
 To erase the contents of a picture (but not the size specification), use
@@ -2826,12 +2834,9 @@ Here are some simple examples of two-dimensional graphs:
 @page
 @image{lineargraph0}
 
-To specify a size for the graph itself, fit the graph to @code{currentpicture}:
+@cindex @code{attach}
+To specify a fixed size for the graph proper, use @code{attach}:
 @verbatiminclude lineargraph.asy
-
-Alternatively, one can draw directly on @code{currentpicture} and fit
-the graph like this:
-@verbatiminclude lineargraph2.asy
 
 @cindex @code{polygon}
 @cindex @code{cross}
@@ -2924,7 +2929,6 @@ For example, to draw a log graph of a function, use @code{scale(Log,Log)}:
 @verbatiminclude loggraph.asy
 @image{loggraph}
 
-@page
 @cindex secondary axis
 @cindex @code{secondaryX}
 @cindex @code{secondaryY}
@@ -2937,7 +2941,6 @@ picture secondaryY(picture primary=currentpicture, void f(picture));
 In this example, @code{secondaryY} is used to draw a secondary logarithmic
 @math{y} axis:
 @verbatiminclude secondaryaxis.asy
-@page
 @image{secondaryaxis}
 
 @item Here is a histogram example, which uses the @code{stats} module.

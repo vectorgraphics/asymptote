@@ -570,8 +570,8 @@ struct picture {
   
   void add(drawer d) {
     if(interact()) uptodate=false;
-    bool deconstruct=this.deconstruct;
-    add(new void (frame f, transform t, transform T, pair, pair) {
+//    bool deconstruct=this.deconstruct;
+    nodes.push(new void (frame f, transform t, transform T, pair, pair) {
       frame F;
       build(F,d,t*T,deconstruct);
       add(f,F);
@@ -591,7 +591,7 @@ struct picture {
       xcoords[i].clip(userMin.x,userMax.x);
       ycoords[i].clip(userMin.y,userMax.y);
     }
-    add(new void (frame f, transform t, transform T, pair, pair) {
+    nodes.push(new void (frame f, transform t, transform T, pair, pair) {
       d(f,t*T);
     });
   }
@@ -809,9 +809,7 @@ struct picture {
   picture drawcopy()
   {
     picture dest=new picture;
-    for (int i=0; i < nodes.length; ++i)
-      dest.add(nodes[i]);
-    
+    dest.nodes=copy(nodes);
     dest.T=T;
     dest.deconstruct=deconstruct;
     dest.userMin=userMin;
@@ -847,7 +845,7 @@ struct picture {
     picture srcCopy=src.drawcopy();
 
     // Draw by drawing the copied picture.
-    add(new void (frame f, transform t, transform T, pair m, pair M) {
+    nodes.push(new void (frame f, transform t, transform T, pair m, pair M) {
       if(deconstruct && !src.deconstruct) {
 	if(GUIDelete()) return;
 	T=GUI(T);
@@ -938,6 +936,17 @@ pair max(path[] g)
   return maxg;
 }
 
+void size(picture pic=currentpicture,
+          real xsize, real ysize=0, bool keepAspect=Aspect)
+{
+  pic.size(xsize,ysize,keepAspect);
+}
+
+pair size(frame f)
+{
+  return max(f)-min(f);
+}
+				     
 // Add frame dest about origin to frame src
 void add(pair origin, frame dest, frame src)
 {
@@ -951,6 +960,19 @@ void add(pair origin=(0,0), picture dest=currentpicture, frame src)
     add(f,shift(t*origin)*src);
   });
   dest.addBox(origin,origin,min(src),max(src));
+}
+
+// Like add(pair,picture,frame) but extend picture size to accommodate frame
+void attach(pair origin=(0,0), picture dest=currentpicture, frame src)
+{
+  transform t=dest.calculateTransform(dest.xsize,dest.ysize,dest.keepAspect);
+  bool deconstruct=dest.deconstruct;
+  dest.deconstruct=false;
+  add(origin,dest,src);
+  pair s=size(dest.fit(t));
+  dest.deconstruct=deconstruct;
+  size(dest,dest.xsize != 0 ? s.x : 0,dest.ysize != 0 ? s.y : 0,
+       dest.keepAspect);
 }
 
 // Add a picture to another such that user coordinates in both will be scaled
@@ -1429,12 +1451,6 @@ public wait
   Wait=new bool(waitT) {return true;},
   NoWait=new bool(waitT) {return false;};
 
-void size(picture pic=currentpicture,
-          real xsize, real ysize=0, bool keepAspect=Aspect)
-{
-  pic.size(xsize,ysize,keepAspect);
-}
-
 private struct bboxT {};
 public bboxT bbox=null;
 typedef bool bbox(bboxT);
@@ -1719,6 +1735,8 @@ void shipout(string prefix=defaultfilename,
 void erase(picture pic=currentpicture)
 {
   pic.erase();
+  if(deconstruct() && pic.deconstruct)
+    write("warning: deconstructed pictures cannot be erased");
 }
 
 // A restore thunk is a function, that when called, restores the graphics state
