@@ -418,10 +418,10 @@ like this square:
 @image{square}
 
 It is often inconvenient to work directly with @code{PostScript} coordinates.
-The next example draws a unit square scaled to width 100 bp and height
-100 bp. The output is identical to that of the previous example.
+The next example draws a unit square scaled to width 101 bp and height
+101 bp. The output is identical to that of the previous example.
 @verbatim
-size(100,100);
+size(101,101);
 draw((0,0)--(1,0)--(1,1)--(0,1)--cycle);
 @end verbatim
 
@@ -1550,17 +1550,11 @@ void erase(picture pic=currentpicture);
 
 @cindex @code{save}
 To save a snapshot of @code{currentpicture} and @code{currentpen} use
-the function
-@verbatim
-void save();
-@end verbatim
+the function @code{save()}.
 
 @cindex @code{restore}
 To restore a snapshot of @code{currentpicture} and @code{currentpen} use
-the function
-@verbatim
-void restore();
-@end verbatim
+the function @code{restore()}.
 
 Many further examples of picture and frame operations are provided in
 the base file @code{plain.asy}.
