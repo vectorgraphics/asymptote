@@ -450,13 +450,13 @@ void axis(picture pic=currentpicture, guide g,
 void xequals(picture pic=currentpicture, real x,
 	     real ymin=-infinity, real ymax=infinity, 
 	     real tickmin=-infinity, real tickmax=infinity, pen p=currentpen,
-	     string s="", real position=1, real angle=0, pair align=S,
+	     string s="", real position=1, real angle=0, pair align=W,
 	     pair side=right, pen plabel=currentpen, ticks ticks=NoTicks,
 	     int[] divisor=new int[], bool opposite=false)
 {
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
-    pair a=ymin == -infinity ? captransform(t,(x,ymin),lb,rt,p) : t*(x,ymin);
-    pair b=ymax == infinity ? captransform(t,(x,ymax),lb,rt,p) : t*(x,ymax);
+    pair a=ymin == -infinity ? (xtrans(t,x),lb.y-min(p).y) : t*(x,ymin);
+    pair b=ymax == infinity ? (xtrans(t,x),rt.y-max(p).y) : t*(x,ymax);
     frame d;
     ticks(d,t,s,position,angle,align,side,plabel,a--b,p,pic.scale.y.scale,
 	  new real(pair z) {return pic.scale.y.scale.Label(z.y);},
@@ -467,9 +467,10 @@ void xequals(picture pic=currentpicture, real x,
   pair a=(x,finite(ymin) ? ymin : pic.userMin.y);
   pair b=(x,finite(ymax) ? ymax : pic.userMax.y);
   
+  pic.addPoint(a,p);
+  pic.addPoint(b,p);
+  
   if(finite(a) && finite(b)) {
-    pic.addPoint(a,p);
-    pic.addPoint(b,p);
     frame d;
     ticks(d,identity(),s,position,angle,align,side,plabel,
 	  (0,a.y)--(0,b.y),p,pic.scale.y.scale,
@@ -490,8 +491,8 @@ void yequals(picture pic=currentpicture, real y,
 	     int[] divisor=new int[], bool opposite=false)
 {
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
-    pair a=xmin == -infinity ? captransform(t,(xmin,y),lb,rt,p) : t*(xmin,y);
-    pair b=xmax == infinity ? captransform(t,(xmax,y),lb,rt,p) : t*(xmax,y);
+    pair a=xmin == -infinity ? (lb.x-min(p).x,ytrans(t,y)) : t*(xmin,y);
+    pair b=xmax == infinity ? (rt.x-max(p).x,ytrans(t,y)) : t*(xmax,y);
     frame d;
     ticks(d,t,s,position,angle,align,side,plabel,a--b,p,pic.scale.x.scale,
 	  new real(pair z) {return pic.scale.x.scale.Label(z.x);},
@@ -502,9 +503,10 @@ void yequals(picture pic=currentpicture, real y,
   pair a=(finite(xmin) ? xmin : pic.userMin.x,y);
   pair b=(finite(xmax) ? xmax : pic.userMax.x,y);
   
+  pic.addPoint(a,p);
+  pic.addPoint(b,p);
+  
   if(finite(a) && finite(b)) {
-    pic.addPoint(a,p);
-    pic.addPoint(b,p);
     frame d;
     ticks(d,identity(),s,position,angle,align,side,plabel,
 	  (a.x,0)--(b.x,0),p,pic.scale.x.scale,

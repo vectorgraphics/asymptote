@@ -1086,18 +1086,17 @@ void erase(picture pic=currentpicture)
 
 // End of flex routines
 
-real coordcap(real x, real m, real M, real bottom, real top)
+real cap(real x, real m, real M, real bottom, real top)
 {
   return x+top > M ? M-top : x+bottom < m ? m-bottom : x;
 }
 
-// Scales the coordinates back, so that the point z when drawn with a pen,
-// does not exceed the bounding box.
+// Scales pair z, so that when drawn with pen p, it does not exceed box(lb,rt).
 pair cap(pair z, pair lb, pair rt, pen p=currentpen)
 {
 
-  return (coordcap(z.x,lb.x,rt.x,min(p).x,max(p).x),
-          coordcap(z.y,lb.y,rt.y,min(p).y,max(p).y));
+  return (cap(z.x,lb.x,rt.x,min(p).x,max(p).x),
+          cap(z.y,lb.y,rt.y,min(p).y,max(p).y));
 }
 
 real xtrans(transform t, real x)
@@ -1110,21 +1109,20 @@ real ytrans(transform t, real y)
   return (t*(0,y)).y;
 }
 
-real coordcaptrans(transform t, real x, real m, real M, real bottom, real top,
+real cap(transform t, real x, real m, real M, real bottom, real top,
                    real ct(transform,real))
 {
   return x == infinity  ? M-top :
-         x == -infinity ? m-bottom :
-                          coordcap(ct(t,x),m,M,bottom,top);
+         x == -infinity ? m-bottom : cap(ct(t,x),m,M,bottom,top);
 }
 
-pair captransform(transform t, pair z, pair lb, pair rt, pen p=currentpen)
+pair cap(transform t, pair z, pair lb, pair rt, pen p=currentpen)
 {
   if (finite(z.x) && finite(z.y))
     return cap(t*z, lb, rt, p);
   else
-    return (coordcaptrans(t,z.x,lb.x,rt.x,min(p).x,max(p).x,xtrans),
-            coordcaptrans(t,z.y,lb.y,rt.y,min(p).y,max(p).y,ytrans));
+    return (cap(t,z.x,lb.x,rt.x,min(p).x,max(p).x,xtrans),
+            cap(t,z.y,lb.y,rt.y,min(p).y,max(p).y,ytrans));
 }
   
 void clip(picture pic=currentpicture, pair lb, pair tr)
