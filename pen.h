@@ -51,14 +51,14 @@ static const std::string OverwriteTag[]={"Allow","Suppress","SupressQuiet",
 const int nOverwrite=sizeof(OverwriteTag)/sizeof(std::string);
   
 enum FillRule {DEFFILL=-1,ZEROWINDING,EVENODD};
-static const std::string FillRuleTag[]={"","ZeroWinding","EvenOdd"};
+static const std::string FillRuleTag[]={"ZeroWinding","EvenOdd"};
 const int nFill=sizeof(FillRuleTag)/sizeof(std::string);
   
 enum BaseLine {DEFBASE=-1,NOBASEALIGN,BASEALIGN};
-static const std::string BaseLineTag[]={"","NoAlign","Align"};
+static const std::string BaseLineTag[]={"NoAlign","Align"};
 const int nBaseLine=sizeof(BaseLineTag)/sizeof(std::string);
   
-enum ColorSpace {DEFCOLOR=-1,INVISIBLE,GRAYSCALE,RGB,CMYK,PATTERN};
+enum ColorSpace {DEFCOLOR=0,INVISIBLE,GRAYSCALE,RGB,CMYK,PATTERN};
 static const int ColorComponents[]={0,0,1,3,4,0};
 static const std::string ColorDeviceSuffix[]={"","","Gray","RGB","CMYK",""};
 using settings::defaultpen;

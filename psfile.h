@@ -123,7 +123,7 @@ public:
 	     const pen& penb, const pair& b, double rb);
   
   void gsave() {
-    *out << " gsave" << newl;
+    *out << "gsave" << newl;
     pens.push(lastpen);
   }
   
@@ -134,7 +134,7 @@ public:
     }
     lastpen = pens.top();
     pens.pop();
-    *out << " grestore" << newl;
+    *out << "grestore" << newl;
   }
 
   void translate(pair z) {
