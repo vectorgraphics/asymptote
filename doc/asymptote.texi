@@ -339,6 +339,7 @@ By default this output will be written to the file @code{test.eps};
 the prefix of the output file may be changed with the @code{-o} command
 line option. 
 
+@cindex @code{cycle}
 One can draw a line with more than two points and create a cyclic path
 like this square:
 @verbatim
@@ -653,6 +654,7 @@ two guides with free endpoint conditions to be joined together smoothly.
 a cubic spline resolved into a fixed path.
 
 A path is specified by as a list of pairs or paths interconnected with
+@cindex @code{cycle}
 @cindex @code{--}
 @cindex @code{..}
 @code{--}, which denotes a straight line segment, or @code{..}, which
@@ -799,10 +801,11 @@ cumulative arclength (measured from the beginning of the path) equals @code{L}.
 @item real dirtime(path, pair z)
 This returns the first "time", a real number between 0 and the length of
 the path in the sense of @code{point(path, real)}, at which the tangent
-to the path has direction z, or -1 if the path never achieves direction z.
+to the path has direction @code{z}, or -1 if the path never achieves
+direction @code{z}.
 
 @cindex @code{intersect}
-@item real intersect(path p, path g)
+@item pair intersect(path p, path g)
 If @code{p} and @code{q} have at least one intersection point, return a
 pair of times (s,t) representing the respective path times along
 @code{p} and @code{q}, in the sense of @code{point(path, real)}, for

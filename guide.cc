@@ -149,7 +149,7 @@ void join::outsolve(knotlist &left, pathlist &solved, knotlist &right)
   // All restrictions given to knotlists are to their rightside, as the
   // left sides are always determined by the preceding section
 
-  if (left.isOpen()) {
+  if (left.isOpen() && !left.isEmpty()) {
     if (out.kind == rest::GIVEN)
       left.rightgiven(out.given);
     else
