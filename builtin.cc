@@ -474,9 +474,10 @@ void base_venv(venv &ve)
   
   addFunc(ve,run::pathIntDirection,primPair(),"direction",primPath(),
 	  primInt());
-  
   addFunc(ve,run::pathRealDirection,primPair(),"direction",primPath(),
 	  primReal());
+  addFunc(ve,run::pathIntDirection,primPair(),"dir",primPath(),primInt());
+  addFunc(ve,run::pathRealDirection,primPair(),"dir",primPath(),primReal());
 
   addFunc(ve,run::pathCyclic,primBoolean(),"cyclic",primPath());
   addFunc(ve,run::pathStraight,primBoolean(),"straight",primPath(),primInt());

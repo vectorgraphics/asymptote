@@ -868,13 +868,16 @@ in the case where @code{p} is cyclic or else converted to the corresponding
 endpoint of @code{p}.
 
 @cindex @code{direction}
+@cindex @code{dir}
 @item pair direction(path, int n)
 This returns the direction of the tangent to the path at node @code{n}.
+A synonym is @code{pair dir(path, int)}.
 
 @item pair direction(path, real x)
 This returns the direction of the tangent to the path at the point
 between node @code{floor(x)} and @code{floor(x)+1} corresponding to the
 cubic spline parameter t=@code{x-floor(x)} (@pxref{Bezier}).
+A synonym is @code{pair dir(path, real)}.
 
 @cindex @code{precontrol}
 @item pair precontrol(path, int n)
