@@ -911,7 +911,7 @@ For a more complicated example of a structure, see the structure
 @code{picture} in the default asymptote base file @code{plain.asy}.
 
 @node Arithmetic & logical operators
-@section arithmetic & logical operators
+@section Arithmetic & logical operators
 @cindex arithmetic operators
 @cindex logical operators
 
