@@ -1961,15 +1961,18 @@ shipout();
 @cindex automatic scaling
 Axis scaling can be requested and/or automatic selection of the
 axis limits can be inhibited with the @code{scale} routine:
+
 @verbatim
 void scale(picture pic=currentpicture, scaleT x, scaleT y);
 @end verbatim
+
 This sets the scalings for picture @code{pic}. The @code{graph} routines
 accept an optional @code{picture} argument for determining the appropriate
 scalings to use; if none is given, it uses those set for @code{currentpicture}.
 All path coordinates (and any call to @code{limits}, etc.)
 refer to scaled data. Two frequently used scaling routines
 @code{Linear} and @code{Log} are predefined in @code{graph}.
+
 Scaling routines can be given two optional boolean arguments:
 @code{automin} and @code{automax}. These default to @code{true}, but can
 be set to @code{false} to disable automatic selection of "nice" axis
