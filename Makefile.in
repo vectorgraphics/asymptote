@@ -15,7 +15,7 @@ NAME = asy
 XNAME = x$(NAME)
 
 CXX = @CXX@ -Wall -ansi
-MAKEDEPEND = $(CXX) $(OPTS) -M -DDEPEND
+MAKEDEPEND = $(OPTS) -M -DDEPEND
 BISON = @BISON@
 LEX = @LEX@
 
@@ -111,7 +111,9 @@ test:   asy FORCE
 .cc.o:
 	$(CXX) $(OPTS) $(INCL) -o $@ -c $<
 .cc.d:
-	$(MAKEDEPEND) $(INCL) $(MDOPTS) $< > $@
+	$(CXX) $(MAKEDEPEND) $(INCL) $(MDOPTS) $< > $@
+.c.d:
+	$(CC) $(MAKEDEPEND) $(INCL) $(MDOPTS) $< > $@
 
 FORCE:
 
