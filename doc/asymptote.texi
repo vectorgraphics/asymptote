@@ -2716,10 +2716,9 @@ linear axis:
 @image{generalaxis}
 
 @item The following scientific graphs, which illustrate many features of
-@code{Asymptote}'s graphics routines, were generated from
-@code{diatom.asy} and @code{westnile.asy} (in the @code{doc}
-directory), using the comma-separated data in @code{diatom.csv}
-and @code{westnile.csv}.
+@code{Asymptote}'s graphics routines, were generated from the examples
+@code{diatom.asy} and @code{westnile.asy}, using the comma-separated
+data in @code{diatom.csv} and @code{westnile.csv}.
 
 @image{diatom}
 @image{westnile,,7.5cm}
@@ -3256,8 +3255,7 @@ One can prevent labels from overwriting one another with the
 @cindex @code{asymptote.sty}
 
 @code{Asymptote} comes with a convenient @code{LaTeX} style file
-@code{asymptote.sty} (in the directory @code{doc} in the
-@code{Asymptote} source) that makes @code{LaTeX}
+@code{asymptote.sty} that makes @code{LaTeX}
 @code{Asymptote}-aware. Entering @code{Asymptote} code
 directly into the @code{LaTeX} source file, at the point where it is
 needed, keeps figures organized and avoids the need to invent new file
@@ -3271,8 +3269,7 @@ asy latexusage
 latex latexusage
 @end verbatim
 
-Here now is @code{latexusage.tex} (from the @code{doc} directory of
-the @code{Asymptote} source):
+Here now is @code{latexusage.tex}:
 @verbatiminclude latexusage.asy
 @page
 @image{latexusage,,26cm}
