@@ -2808,12 +2808,15 @@ Here are some simple examples of two-dimensional graphs:
 @cindex scientific graph
 @cindex @code{LeftTicks}
 @cindex @code{RightTicks}
-@verbatiminclude lineargraph.asy
+@verbatiminclude lineargraph0.asy
 @page
-@image{lineargraph}
+@image{lineargraph0}
+
+To specify a size for the graph itself, fit the graph to @code{currentpicture}:
+@verbatiminclude lineargraph.asy
 
 Alternatively, one can draw directly on @code{currentpicture} and fit
-the graph and legend frames like this:
+the graph like this:
 @verbatiminclude lineargraph2.asy
 
 @cindex @code{polygon}
@@ -2825,7 +2828,7 @@ marker is constructed with the function @code{frame marker(path g,
 pen p=currentpen, filltype filltype=NoFill}) using the path @code{unitcircle}.
 In the right-hand graph, the unit @math{n}-sided regular polygon 
 @code{polygon(int n)} and the unit @math{n}-point cross 
-@code{cross(int n)}) are used to build a custom marker frame.
+@code{cross(int n)} are used to build a custom marker frame.
 This example also illustrates the @code{errorbar} routines:
 
 @verbatim
@@ -2857,8 +2860,11 @@ positive and negative extents of the error are assumed to be equal.
 @cindex @code{ylimits}
 
 The calls to 
-@code{xlimits(picture pic=currentpicture, real min=-infinity,
-real max=infinity, bool crop=Crop)} 
+@verbatim
+xlimits(picture pic=currentpicture, real min=-infinity,
+        real max=infinity, bool crop=Crop);
+@end verbatim 
+
 and the analogous function @code{ylimits} can be uncommented
 to restrict the respective axes limits for picture @code{pic} to the
 specified @code{min} and @code{max} values (alternatively, the function

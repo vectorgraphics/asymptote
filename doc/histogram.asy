@@ -19,6 +19,4 @@ draw(graph(Gaussian,min(a),max(a)),red);
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$dP/dx$",LeftRight,RightTicks);
 
-shipout();
-
 
