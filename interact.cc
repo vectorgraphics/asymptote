@@ -7,10 +7,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "interact.h"
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 #include <readline/readline.h>
@@ -18,7 +15,6 @@
 #include <csignal>
 #endif
 
-#include "interact.h"
 #include "symbol.h"
 #include "genv.h"
 
