@@ -231,9 +231,21 @@ done as root.
 
 In order to compile @code{Asymptote} you will need version 1.32.0 or
 later of the @code{boost} library from @code{http://boost.org}.
+It is sufficient to make a link in the top-level directory of the
+@code{Asymptote} source code to the @code{boost} subdirectory of the
+@code{boost_1_32_0} source distribution:
+@verbatim
+tar -jxf boost_1_32_0.tar.bz2  
+tar -jxf asymptote-x.xx.tar.gz 
+cd asymptote-x.xx 
+ln -s ../boost_1_32_0/boost .
+./configure 
+make all
+make install 
+@end verbatim
 
-Fedora Core Linux users can upgrade their boost library like this,
-where @code{$MIRROR} denotes
+Alternatively, Fedora Core Linux users can upgrade their @code{boost}
+library like this, where @code{$MIRROR} denotes
 @code{http://download.fedora.redhat.com/pub/fedora} or an appropriate mirror
 thereof:
 @verbatim
@@ -243,7 +255,7 @@ $MIRROR/linux/core/development/i386/Fedora/RPMS/boost-devel-1.32.0-3.i386.rpm
 @end verbatim
 
 @cindex Debian
-On machines running Debian Linux, the boost library can be installed with
+On machines running Debian Linux, the @code{boost} library can be installed with
 @verbatim
 apt-get install libboost-dev libboost-graph-dev
 @end verbatim
@@ -255,15 +267,16 @@ package:
 http://www.uhoreg.ca/programming/debian.text
 @end verbatim
 
-On other platforms, it may be necessary to compile and install the boost
-library, by obtaining, for example
+For a complete installation of the @code{boost} library (not required),
+download
 @verbatim
 http://dl.sourceforge.net/sourceforge/boost/boost-jam-3.1.10-1.i386.rpm
 http://dl.sourceforge.net/sourceforge/boost/boost_1_32_0.tar.gz
 @end verbatim
 
 @noindent
-Once boost-jam is installed, compile and install the boost library:
+or equivalent and install @code{boost-jam}. Then compile and install the
+@code{boost} library itself: 
 @verbatim
 tar -zxf boost_1_32_0.tar.gz
 cd boost_1_32_0
