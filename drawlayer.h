@@ -22,6 +22,10 @@ public:
     return true;
   }
 
+  bool islabel() {
+    return true;
+  }
+  
 };
 
 }
