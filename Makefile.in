@@ -33,11 +33,9 @@ asydir = $(datadir)/asymptote
 exampledir = $(datadir)/doc/asymptote
 latexdir = @latexdir@
 INSTALL = @INSTALL@
-
-export INSTALL prefix exampledir mandir
-
 ASYMPTOTE_DIR = ../base
-export ASYMPTOTE_DIR
+
+export prefix exampledir mandir INSTALL ASYMPTOTE_DIR 
 
 # $(MAGIC) is here for when we reimport from Compile
 asy$(MAGIC): depend
@@ -63,8 +61,9 @@ lex.yy.cc: camp.l
 
 lex.yy.d: lex.yy.cc camp.tab.h
 
-install-all:
-install: install-asy install-man
+install: install-all
+
+install-all: install-asy install-man
 
 install-asy: asy
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(latexdir)
@@ -78,8 +77,11 @@ install-asy: asy
 install-man: man
 	cd doc; $(MAKE) install
 
-uninstall-all: 
-uninstall: 
+uninstall: uninstall-all
+
+uninstall-all: uninstall-man uninstall-asy
+
+uninstall-asy:
 	-cd $(exampledir); rm -f *.asy asy*
 	-rmdir $(exampledir)
 	-cd $(asydir); rm -f *.asy
@@ -87,10 +89,9 @@ uninstall:
 	-rm -f $(latexdir)/asymptote.sty
 	-rmdir $(latexdir)
 	-rm -f $(bindir)/$(NAME) $(bindir)/$(XNAME) 
-	-install-info --delete --infodir=$(prefix)/info doc/asymptote.info
-	-rm -f $(prefix)/info/asymptote.info
-	-rm -f $(mandir)/man1/$(MANFILES)
 
+uninstall-man: 
+	cd doc; $(MAKE) uninstall
 
 clean:  FORCE
 	rm -f asy *.o *.d *mon.out $(CLEAN)
