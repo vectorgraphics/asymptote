@@ -883,14 +883,10 @@ margin PenMargin(real begin, real end)
   };
 }
 					      
-private real margindot(real x)
-{
-  return x > 0 ? dotfactor*x : x;
-}
-
 margin DotMargin(real begin, real end)
 { 
   return new path(path g, pen p, marginT margin) {
+    real margindot(real x) {return x > 0 ? dotfactor*x : x;}
     real factor=linewidth(p);
     margin.begin=(margindot(begin)+0.5)*factor;
     margin.end=(margindot(end)+0.5)*factor;

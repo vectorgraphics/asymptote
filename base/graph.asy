@@ -629,7 +629,7 @@ axis LeftRight(bool extend=false) {
 axis XEquals(real x, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
-    axis.value=x;
+    axis.value=pic.scale.x.scale.T(x);
     axis.position=1;
     axis.side=left;
     axis.align=W;
@@ -641,7 +641,7 @@ axis XEquals(real x, bool extend=true)
 axis YEquals(real y, bool extend=true)
 {
     return new void(picture pic, axisT axis) {
-    axis.value=I*y;
+    axis.value=I*pic.scale.y.scale.T(y);
     axis.position=1;
     axis.side=right;
     axis.align=S;
@@ -971,6 +971,11 @@ public interpolate
 		     return g;
 		   };
 
+pair Scale(picture pic, pair z)
+{
+  return (pic.scale.x.scale.T(z.x),pic.scale.y.scale.T(z.y));
+}
+
 guide graph(picture pic=currentpicture, guide g=nullpath,
 	    real f(real), real a, real b, int n=ngraph,
 	    interpolate interpolatetype=LinearInterp)
@@ -985,8 +990,7 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
 	    int n=ngraph, interpolate interpolatetype=LinearInterp)
 {
   return interpolatetype(new pair (real t) {
-    return (pic.scale.x.scale.T(x(t)),pic.scale.y.scale.T(y(t)));
-  },g,a,b,n,interpolate);
+    return Scale(pic,(x(t),y(t)));},g,a,b,n,interpolate);
 }
 
 guide graph(picture pic=currentpicture, guide g=nullpath,
@@ -994,9 +998,7 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
 	    int n=ngraph, interpolate interpolatetype=LinearInterp)
 {
   return interpolatetype(new pair (real t) {
-    pair z=z(t);
-    return (pic.scale.x.scale.T(z.x),pic.scale.y.scale.T(z.y));
-  },g,a,b,n,interpolate);
+    return Scale(pic,z(t));},g,a,b,n,interpolate);
 }
 
 private int next(int i, bool[] cond)
@@ -1022,8 +1024,7 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
   int i=-1;
   return interpolatetype(new pair (real) {
     i=next(i,cond);
-    return (pic.scale.x.scale.T(z[i].x),pic.scale.y.scale.T(z[i].y));
-  },g,0,0,n,interpolate);
+    return Scale(pic,z[i]);},g,0,0,n,interpolate);
 }
 
 private string differentlengths="attempt to graph arrays of different lengths";
@@ -1037,8 +1038,7 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
   int i=-1;
   return interpolatetype(new pair (real) {
     i=next(i,cond);
-    return (pic.scale.x.scale.T(x[i]),pic.scale.y.scale.T(y[i]));
-  },g,0,0,n,interpolate);
+    return Scale(pic,(x[i],y[i]));},g,0,0,n,interpolate);
 }
 
 guide graph(guide g=nullpath, real f(real), real a, real b, int n=ngraph,
@@ -1065,8 +1065,10 @@ void errorbar(picture pic, pair z, pair dp, pair dm, pen p=currentpen,
 {
   real dmx=-abs(dm.x);
   real dmy=-abs(dm.y);
-  if(dmx != dp.x) draw(pic,z+(dmx,0)--z+(dp.x,0),p,Bars(size));
-  if(dmy != dp.y) draw(pic,z+(0,dmy)--z+(0,dp.y),p,Bars(size));
+  if(dmx != dp.x) draw(pic,Scale(pic,z+(dmx,0))--Scale(pic,z+(dp.x,0)),p,
+		       Bars(size));
+  if(dmy != dp.y) draw(pic,Scale(pic,z+(0,dmy))--Scale(pic,z+(0,dp.y)),p,
+		       Bars(size));
 }
   
 void errorbars(picture pic=currentpicture, pair[] z, pair[] dp, pair[] dm={},
