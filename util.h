@@ -88,4 +88,10 @@ inline void remove(char *dest, unsigned int n)
 // Strip blank lines (which would break the bidirectional TeX pipe)
 std::string stripblanklines(std::string& s);
 
+extern char *currentpath;
+
+char *startPath();
+char *getPath(char *p=currentpath);
+int setPath(const char *s);
+
 #endif

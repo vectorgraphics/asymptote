@@ -103,9 +103,10 @@ genv::genv()
   base_venv(ve);
   base_menv(me);
 
-  // Import plain, if that option is enabled.
+  // Import plain, if autoplain option is enabled.
   if (settings::autoplain) {
-    static absyntax::importdec iplain(position::nullPos(),symbol::trans("plain"));
+    static absyntax::importdec iplain(position::nullPos(),
+				      symbol::trans("plain"));
     iplain.trans(base_coenv);
     me.beginScope(); // NOTE: This is unmatched.
   }
@@ -116,7 +117,8 @@ genv::genv()
     if(exists) {
       if(settings::clearGUI) unlink(GUIname.c_str());
       else {
-	absyntax::importdec igui(position::nullPos(),symbol::trans(GUIname.c_str()));
+	absyntax::importdec igui(position::nullPos(),
+				 symbol::trans(GUIname.c_str()));
 	igui.trans(base_coenv);
 	me.beginScope();
       }

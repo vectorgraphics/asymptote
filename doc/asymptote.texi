@@ -96,6 +96,7 @@ Import
 * math::                        Extend @code{Asymptote}'s math capabilities
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
+* palette::                     Color density images and palettes
 * tree::                        Dynamic binary search tree
 * drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
@@ -391,8 +392,9 @@ You can use the arrow keys in interactive mode to edit previous lines
 enabled). Further commands specific to interactive mode are described
 in @ref{Interactive mode}.
 
-Typically, @code{Asymptote} is run in batch mode, reading commands
-directly from a file. To try this out, type
+@cindex batch mode
+In batch mode, @code{Asymptote} reads commands directly from a
+file. To try this out, type 
 @verbatiminclude diagonal.asy
 
 @noindent
@@ -417,10 +419,7 @@ like this square:
 
 It is often inconvenient to work directly with @code{PostScript} coordinates.
 The next example draws a unit square scaled to width 100 bp and height
-100 bp.
-The output is identical to that of the previous example. (If you are using
-interactive mode ignore the two messages "warning: scaling in picture
-unbounded;" see @ref{Interactive mode} for details).
+100 bp. The output is identical to that of the previous example.
 @verbatim
 size(100,100);
 draw((0,0)--(1,0)--(1,1)--(0,1)--cycle);
@@ -1369,10 +1368,10 @@ the identity transform;
 translates by pair @code{z};
 @item xscale(real x)
 @cindex @code{xscale}
-scales in the x-direction by @code{x};
+scales in the @math{x} direction by @code{x};
 @item yscale(real y)
 @cindex @code{yscale}
-scales in the y-direction by @code{y};
+scales in the @math{y} direction by @code{y};
 @item scale(pair z)
 @cindex @code{scale}
 equivalent to multiplication by @code{z};
@@ -1381,7 +1380,7 @@ equivalent to multiplication by @code{z};
 maps @code{(x,y)} --> @code{(x+s*y,y)};
 @item rotate(real a)
 @cindex @code{rotate}
-rotates by angle @code{a} about origin;
+rotates by angle @code{a} about the origin;
 @item rotate(real a, pair z)
 rotates by angle @code{a} about @code{z};
 @item reflect(pair z, pair w)
@@ -1565,9 +1564,13 @@ real a=fin;
 @end verbatim
 
 @cindex @code{error}
+@cindex @code{cd}
+@cindex directory
 If the optional boolean argument @code{check} is false, no check will
 be made that the file exists. If the file does not exist or is not
 readable, the function  @code{bool error(file)} will return @code{true}.
+One can change the current working directory with the
+@code{string cd(string)} function, which returns the new working directory.
 
 @cindex @code{getc}
 When reading pairs, the enclosing parenthesis are optional.
@@ -1900,6 +1903,27 @@ intop adder(int m)
 intop addby7=adder(7);
 write(addby7(1));   // Writes 8.
 @end verbatim
+
+@cindex function declarations
+@item Anonymous functions can be used to redefine a function variable 
+that has been declared (and implicitly initialized to the null function)
+but not yet explicitly defined:
+@verbatim
+void f(bool b);
+
+void g(bool b) {
+  if(b) f(b);
+  else write(b);
+}
+
+f=new void(bool b) {
+  write(b);
+  g(false);
+};
+
+g(true);
+@end verbatim
+
 @end enumerate
 
 @code{Asymptote} is the only language we know of that treats functions
@@ -1954,6 +1978,7 @@ operation).
 @cindex @code{atan}
 @cindex @code{exp}
 @cindex @code{log}
+@cindex @code{pow10}
 @cindex @code{log10}
 @cindex @code{sinh}
 @cindex @code{cosh}
@@ -1964,18 +1989,22 @@ operation).
 @cindex @code{sqrt}
 @cindex @code{cbrt}
 @cindex @code{fabs}
-@cindex @code{pow10}
-@code{Asymptote} has built-in versions of the standard @code{libm} mathematical
-real(real) functions @code{sin}, @code{cos}, @code{tan}, @code{asin},
-@code{acos}, @code{atan}, @code{exp}, @code{log}, @code{pow10},
-@code{log10}, @code{sinh}, @code{cosh}, @code{tanh}, @code{asinh},
-@code{acosh}, @code{atanh}, @code{sqrt}, @code{cbrt}, @code{fabs}, as
-well as the identity function @code{identity}.
-
+@cindex @code{identity}
+@cindex @code{J}
+@cindex @code{Y}
 @cindex @code{atan2}
 @cindex @code{hypot}
 @cindex @code{fmod}
 @cindex @code{remainder}
+@code{Asymptote} has built-in versions of the standard @code{libm} mathematical
+real(real) functions @code{sin}, @code{cos}, @code{tan}, @code{asin},
+@code{acos}, @code{atan}, @code{exp}, @code{log}, @code{pow10},
+@code{log10}, @code{sinh}, @code{cosh}, @code{tanh}, @code{asinh},
+@code{acosh}, @code{atanh}, @code{sqrt}, @code{cbrt}, @code{fabs},
+as well as the identity function @code{identity}. 
+@code{Asymptote} also defines the Bessel function of order @code{n} of
+the first kind @code{J(int n, real)} and the second kind
+@code{Y(int n, real)}.
 The standard real(real, real) functions @code{atan2}, @code{hypot},
 @code{fmod}, @code{remainder} are also included.
 
@@ -2218,8 +2247,8 @@ All of the standard built-in @code{libm} functions of signature
 @code{real(real)} also take a real array as an argument, effectively like an
 implicit call to @code{eval}.
 
-As with other built-in types, arrays can be read in by assignment. In this
-example, the code
+As with other built-in types, arrays of the basic data types can be read
+in by assignment. In this example, the code
 @verbatim
 file fin=input("test.txt");
 real[] A=fin;
@@ -2261,7 +2290,8 @@ runtime error message. Specifying a value of 0 for the integer limit is
 equivalent to the previous example of reading until end-of-file (or
 end-of-line in line mode) is encountered.
 
-Two- and three-dimensional arrays can be read in like this:
+Two- and three-dimensional arrays of the basic data types can be read
+in like this:
 @verbatim
 file fin=input("test.txt");
 real[][] A=dimension(fin,2,3);
@@ -2282,6 +2312,15 @@ real[] A=read1(fin);
 real[][] B=read2(fin);
 real[][][] C=read3(fin);
 @end verbatim
+
+@cindex @code{write}
+@cindex @code{scroll}
+@anchor{scroll}
+One, two, and three-dimensional arrays of the basic data types can be
+output with the functions @code{write(file,T[])},
+@code{write(file,T[][])}, @code{write(file,T[][][])}, respectively.
+The command @code{scroll(int n)} is useful for pausing the output
+after every @math{n} output lines (press @code{Enter} to continue).
 
 @node Casts
 @section Casts
@@ -2367,6 +2406,7 @@ void execute(string file);
 * math::                        Extend @code{Asymptote}'s math capabilities
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
+* palette::                     
 * tree::                        Dynamic binary search tree
 * drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
@@ -2824,6 +2864,7 @@ In this example, @code{secondaryY} is used to draw a secondary logarithmic
 @verbatiminclude generalaxis.asy
 @image{generalaxis}
 
+@anchor{images}
 @item @code{Asymptote} can also generate color density images
 and palettes. The following palettes are predefined in
 @code{palette.asy}: 
@@ -2963,6 +3004,12 @@ and a collection of statistics routines, including @code{histogram}.
 @cindex @code{patterns}
 This package implements @code{Postscript} tiling patterns and includes
 several convenient pattern generation routines.
+
+@node palette
+@subsection @code{palette}
+@cindex @code{palette}
+This package implements color density images and palette frames,
+along with several predefined palettes (@pxref{images}).
 
 @node tree
 @subsection @code{tree}
@@ -3560,9 +3607,9 @@ Options:
 -L               Disable LaTeX label postprocessing
 -p               Parse test
 -s               Translate test
--m               Mask fpu exceptions (on supported architectures)
--nomask          Don't mask fpu exceptions (default)
--black           Convert colors to black
+-m               Mask fpu exceptions (default for interactive mode)
+-nomask          Don't mask fpu exceptions (default for batch mode)
+-bw              Convert colors to black and white
 -gray            Convert colors to grayscale
 -rgb             Convert cmyk colors to rgb
 -cmyk            Convert rgb colors to cmyk
@@ -3636,14 +3683,10 @@ This emulation will eventually become unnecessary, once
 incremental input.
 
 In interactive mode, it is not necessary to type a semicolon at the end
-of each line; one will automatically be appended. If you type in a
-command like @code{size(100,100)} on the first line, you will get two
-innocuous warning messages "warning: scaling in picture unbounded"
-since @code{currentpicture} is empty and cannot be scaled to achieve
-the requested size.
+of each line; one will automatically be appended.
 
 The following special commands are supported only in interactive mode
-and must be entered immediate after the prompt:
+and must be entered immediately after the prompt:
 
 @table @code
 @cindex @code{quit}
@@ -3654,14 +3697,21 @@ exits interactive mode (abbreviated as @code{q}).
 re-executes the previous commands
 @cindex @code{reset}
 @item reset
-resets @code{Asymptote} to its initial state, before any commands were typed.
+resets @code{Asymptote} to its initial state, except that a prior call
+to @code{scroll} is respected (@pxref{scroll}).
 @cindex @code{input}
 @item input FILE
-directly inputs code from @code{FILE} into @code{Asymptote},
-after first doing a @code{reset}. For convenience, a
-trailing semi-colon followed by optional @code{Asymptote} commands may be
-entered on the same line.
+directly inputs code from @code{FILE} into @code{Asymptote}.
+Any existing @code{input} commands will automatically be
+cleared by first doing a @code{reset}, if necessary. For this reason,
+after a previous @code{input} command, first issue an explicit
+@code{reset} before entering any code that you want to execute before
+a new @code{input} command. For convenience, a trailing semi-colon
+followed by optional @code{Asymptote} commands may be entered on the same line.
 @end table
+
+Typing @code{ctrl-C} interrupts the execution of Asymptote code
+and returns control to the interactive prompt.
 
 @node GUI
 @chapter Graphical User Interface
@@ -3809,7 +3859,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 
 @c  LocalWords:  randMax Gaussrand asy cindex indices resized LaTeX TK latin au
 @c  LocalWords:  latexusage tex bbox PostScript subdirectory gcc emacs ASYDIR
-@c  LocalWords:  documentclass usepackage asydef subpath shipout sqrt xN
+@c  LocalWords:  documentclass usepackage asydef subpath shipout sqrt xN 
 @c  LocalWords:  xscale labeldot xaxis yaxis BeginBar GIF postprocessing fpu de
 @c  LocalWords:  nomask noplain ImageMagick defaultfontsize defaultlinewidth cd
 @c  LocalWords:  startup natively xasy tkinter VxN yingyang currentpicture toc
@@ -3862,4 +3912,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  PenMargin PenMargins TrueMargin labelmargin errorbars errorbar
 @c  LocalWords:  dpx dpy dmx dmy barsize arrowheadsize BeginDotMargin DotMargin
 @c  LocalWords:  EndDotMargin DotMargins NColors BWRainbow colorspace labelled
-@c  LocalWords:  paletteheight topmark
+@c  LocalWords:  paletteheight topmark paletteshift

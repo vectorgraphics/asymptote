@@ -23,6 +23,7 @@
 #include "util.h"
 #include "settings.h"
 #include "pen.h"
+#include "interact.h"
 
 using boost::lexical_cast;
 using std::string;
@@ -45,7 +46,7 @@ int bwonly=0;
 int grayonly=0;
 int rgbonly=0;
 int cmykonly=0;
-int trap=1;
+int trap=-1;
 double deconstruct=0;
 int clearGUI=0;
 int ignoreGUI=0;
@@ -62,6 +63,8 @@ string paperType;
 double pageWidth;
 double pageHeight;
 
+int scrollLines=0;
+  
 const std::string suffix="asy";
 const std::string guisuffix="gui";
   
@@ -105,9 +108,9 @@ void options()
   cerr << "-L\t\t Disable LaTeX label postprocessing" << endl;
   cerr << "-p\t\t Parse test" << endl;
   cerr << "-s\t\t Translate test" << endl;
-  cerr << "-m\t\t Mask fpu exceptions (on supported architectures)" << endl;
-  cerr << "-nomask\t\t Don't mask fpu exceptions (default)" << endl;
-  cerr << "-bw\t\t Convert all colors to black & white" << endl;
+  cerr << "-m\t\t Mask fpu exceptions (default for interactive mode)" << endl;
+  cerr << "-nomask\t\t Don't mask fpu exceptions (default for batch mode)" << endl;
+  cerr << "-bw\t\t Convert all colors to black and white" << endl;
   cerr << "-gray\t\t Convert all colors to grayscale" << endl;
   cerr << "-rgb\t\t Convert cmyk colors to rgb" << endl;
   cerr << "-cmyk\t\t Convert rgb colors to cmyk" << endl;
@@ -239,6 +242,16 @@ void setOptions(int argc, char *argv[])
 	 << " -h' for a descriptions of options." << endl;
     exit(1);
   }
+  
+  if(numArgs() == 0) {
+    interact::interactive=true;
+    if(trap == -1) trap=0;
+    deconstruct=0;
+    view=1;
+    cout << "Welcome to " << PROGRAM << " version " << VERSION << 
+      " (interactive mode)" << endl;
+  } else if(trap == -1) trap=1;
+
   
   if(origin == ZERO) texprocess=0;
   

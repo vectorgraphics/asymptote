@@ -29,6 +29,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 #include "errormsg.h"
 #include "settings.h"
 #include "util.h"
+#include "interact.h"
 
 char **args(const char *command);
   
@@ -59,6 +60,7 @@ public:
     }
     
     if(pid == 0) { 
+      if(interact::interactive) signal(SIGINT,SIG_IGN);
       close(in[1]);
       close(out[0]);
       dup2(in[0],STDIN_FILENO);
@@ -84,7 +86,8 @@ public:
   iopipestream(const std::string command, int out_fileno=STDOUT_FILENO) :
     pid(0), pipeopen(false) {open(command.c_str(),out_fileno);}
   
-  iopipestream(const std::ostringstream& command, int out_fileno=STDOUT_FILENO) :
+  iopipestream(const std::ostringstream& command,
+	       int out_fileno=STDOUT_FILENO) :
     pid(0), pipeopen(false) {open(command.str().c_str(),out_fileno);}
   
   void pipeclose() {

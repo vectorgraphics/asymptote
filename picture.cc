@@ -90,6 +90,7 @@ void picture::texinit() {
   
   if(TeXinitialized) return;
   
+  TeXinitialized=true;
   tex.open("latex");
   texdocumentclass(tex);
   
@@ -97,8 +98,6 @@ void picture::texinit() {
 
   tex << "\n";
   tex.wait(texready,"! ");
-
-  TeXinitialized=true;
 }
   
 bool picture::texprocess(const string& texname, const string& outname,

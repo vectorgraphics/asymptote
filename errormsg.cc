@@ -10,6 +10,7 @@
 #include <cstdarg>
 
 #include "errormsg.h"
+#include "interact.h"
 
 ostream& fileinfo::print(ostream& out, int pos)
 {
@@ -19,80 +20,50 @@ ostream& fileinfo::print(ostream& out, int pos)
   while (lines != last && *lines >= pos) {
     ++lines; num--;
   }
+  if(filename == "-" && interact::interactive && num == 2) num=1;
 
   out << filename << ": " << num << "." << pos-*lines << ": ";
   return out;
 }
 
-position lastpos;
+position errorstream::lastpos=position::nullPos();
+bool errorstream::interrupt=false;
 
-void errorstream::error(position pos)
+void errorstream::message(position pos, const std::string& s)
 {
   if (floating) out << endl;
-
-  out << pos;
-
-  floating = true;
-  anyErrors = true;
-}
-
-void errorstream::warning(position pos)
-{
-  if (floating) out << endl;
-
-  out << pos << "warning: ";
-
+  out << pos << s;
   floating = true;
 }
 
-void errorstream::runtime()
+void errorstream::compiler(position pos)
 {
-  if (floating) out << endl;
-
-  out << "<unknown pos>: runtime: ";
-
-  floating = true;
+  message(pos,"compiler: ");
   anyErrors = true;
 }
 
 void errorstream::runtime(position pos)
 {
-  if (floating) out << endl;
-
-  out << pos << "runtime: ";
-
-  floating = true;
+  message(pos,"runtime: ");
   anyErrors = true;
 }
 
-void errorstream::debug(position pos)
+void errorstream::error(position pos)
 {
-  if (floating) out << endl;
+  message(pos,"");
+  anyErrors = true;
+}
 
-  out << pos << "runtime: ";
+void errorstream::warning(position pos)
+{
+  message(pos,"warning: ");
+  anyWarnings = true;
+}
 
-  floating = true;
+void errorstream::trace(position pos)
+{
+  message(pos,"");
   sync();
-}
-
-void errorstream::compiler()
-{
-  if (floating) out << endl;
-
-  out << "compiler: ";
-
-  floating = true;
-  anyErrors = true;
-}
-
-void errorstream::compiler(position pos)
-{
-  if (floating) out << endl;
-
-  out << pos << "compiler: ";
-
-  floating = true;
-  anyErrors = true;
 }
 
 void errorstream::sync()

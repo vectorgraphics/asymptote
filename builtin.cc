@@ -177,6 +177,7 @@ inline void addUnorderedArrayOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   addFunc(ve,run::write3<T>,primVoid(),"write",t2,t2,t2);
   addFunc(ve,run::showArray<T>,primVoid(),"write",t1);
   addFunc(ve,run::showArray2<T>,primVoid(),"write",t3);
+  addFunc(ve,run::showArray3<T>,primVoid(),"write",t4);
   
   addFunc(ve,run::write<T>,primVoid(),"write",primFile(),t2);
   addFunc(ve,run::writeArray<T>,primVoid(),"write",primFile(),t1);
@@ -373,12 +374,6 @@ void base_venv(venv &ve)
   addFunc(ve,run::shipout,primVoid(),"shipout",primString(),
 	  primPicture(),primPicture(),primString(),primBoolean());
   
-  addFunc(ve,run::abort,primVoid(),"abort",primString());
-  addFunc(ve,run::atExit,primVoid(),"atexit",voidFunction());
-  addFunc(ve,run::exitFunction,primVoid(),"exitfunction");
-  
-  addFunc(ve,run::execute,primVoid(),"execute",primString());
-
   addFunc(ve,run::stringFilePrefix,primString(),"fileprefix");
   
   addFunc(ve,run::postscript,primVoid(),"postscript",primPicture(),
@@ -416,6 +411,9 @@ void base_venv(venv &ve)
 
   addRealFunc(pow10);
   addRealFunc(identity);
+  
+  addFunc(ve,run::realJ,primReal(),"J",primInt(),primReal());
+  addFunc(ve,run::realY,primReal(),"Y",primInt(),primReal());
   
   addRealFunc2(ve,run::realAtan2,"atan2");
   addRealFunc2(ve,run::realHypot,"hypot");
@@ -468,8 +466,14 @@ void base_venv(venv &ve)
   addFunc(ve,run::stringTime,primString(),"time",primString());
   
   addFunc(ve,run::system,primInt(),"system",primString());
+  addFunc(ve,run::abort,primVoid(),"abort",primString());
+  addFunc(ve,run::atExit,primVoid(),"atexit",voidFunction());
+  addFunc(ve,run::exitFunction,primVoid(),"exitfunction");
+  addFunc(ve,run::execute,primVoid(),"execute",primString());
   addFunc(ve,run::merge,primInt(),"merge",primString(),primString(),
 	  primBoolean());
+  addFunc(ve,run::changeDirectory,primString(),"cd",primString());
+  addFunc(ve,run::scrollLines,primVoid(),"scroll",primInt());
   addFunc(ve,run::boolDeconstruct,primBoolean(),"deconstruct");
   
   addFunc(ve,run::pathIntPoint,primPair(),"point",primPath(),primInt());
@@ -592,7 +596,6 @@ void base_venv(venv &ve)
   addFunc(ve,run::writeP<guide>,primVoid(),"write",primFile(),primGuide());
   addFunc(ve,run::writeP<transform>,primVoid(),"write",primFile(),
 	  primTransform());
-  addFunc(ve,run::showArray<string>,primVoid(),"write",stringArray());
   
   // Array functions
   

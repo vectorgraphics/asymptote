@@ -134,10 +134,7 @@ void stack::run(func *f)
             vars_t frame = pop<vars_t>();
             if (!frame) {
               UNALIAS;
-              em->runtime(getPos());
-              *em << "dereference of null pointer";
-              em->sync();
-              throw handled_error();
+	      error(this,"dereference of null pointer");
             }
             push(frame[ip->val]);
             break;
@@ -147,10 +144,7 @@ void stack::run(func *f)
             vars_t frame = pop<vars_t>();
             if (!frame) {
               UNALIAS;
-              em->runtime(getPos());
-              *em << "dereference of null pointer";
-              em->sync();
-              throw handled_error();
+	      error(this,"dereference of null pointer");
             }
             frame[ip->val] = top();
             break;
@@ -206,10 +200,7 @@ void stack::run(func *f)
             a = pop<int>();
             if (b == 0) {
               UNALIAS;
-              em->runtime(getPos());
-              (*em) << "Divide by 0.";
-              em->sync();
-              throw handled_error();
+	      error(this,"Divide by zero");
             }
             push(a / b);
             break;
@@ -306,10 +297,7 @@ void stack::run(func *f)
             x = pop<double>();
             if (y == 0) {
               UNALIAS;
-              em->runtime(getPos());
-              (*em) << "Divide by 0.";
-              em->sync();
-              throw handled_error();
+	      error(this,"Divide by zero");
             }
             push(x / y);
             break;
@@ -426,10 +414,7 @@ void stack::run(func *f)
 	
           default:
             UNALIAS;
-            em->runtime(getPos());
-            *em << "Internal VM error: Bad stack operand";
-            em->sync();
-            throw handled_error();
+	    error(this,"Internal VM error: Bad stack operand");
         }
 
 #ifdef DEBUG_STACK
@@ -441,10 +426,7 @@ void stack::run(func *f)
       ++ip;
     }
   } catch (boost::bad_any_cast&) {
-    em->runtime(getPos());
-    *em << "Trying to use uninitialized value.";
-    em->sync();
-    throw handled_error();
+    error(this,"Trying to use uninitialized value.");
   }
 }
 

@@ -8,6 +8,10 @@
 #include "config.h"
 #endif
 
+namespace run {
+  extern void cleanup(bool TeXclose);
+}
+
 namespace interact {
 
 extern int interactive;

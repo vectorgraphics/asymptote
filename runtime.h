@@ -43,6 +43,8 @@ void realIntPow(vm::stack *s);
 void realAtan2(vm::stack *s);
 void realHypot(vm::stack *s);
 void realRemainder(vm::stack *s);
+void realJ(vm::stack *s);
+void realY(vm::stack *s);
 void intAbs(vm::stack *s);
 void intCeil(vm::stack *s);
 void intFloor(vm::stack *s);
@@ -252,6 +254,8 @@ void boolInterAct(vm::stack *s);
 void system(vm::stack *s);
 void abort(vm::stack *s);
 void atExit(vm::stack *s);
+void changeDirectory(vm::stack *s);
+void scrollLines(vm::stack *s);
   
 // Merge output files  
 void merge(vm::stack *s);

@@ -26,6 +26,7 @@
 #include "pool.h"
 #include "camperror.h"
 #include "interact.h"
+#include "errormsg.h"
 
 namespace camp {
 
@@ -41,15 +42,19 @@ protected:
   bool singlemode; // If true, read/write single-precision XDR values.
   bool closed;     // If true, file has been closed.
   bool check;      // If true, check for errors after attempting to open file.
+  bool standard;   // If true, this is standard input/output
+  int lines;       // Number of scrolled lines
 public: 
 
-  bool standard() {return name == "";}
+  void resetlines() {lines=0;}
+  
+  bool Standard() {resetlines(); return standard;}
   
   void dimension(int Nx=-1, int Ny=-1, int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
   
   file(std::string name, bool check=true) : 
     name(name), linemode(false), csvmode(false), singlemode(false),
-    closed(false), check(check) {dimension();}
+    closed(false), check(check), standard(name == ""), lines(0) {dimension();}
   
   virtual void open() {};
   
@@ -112,6 +117,7 @@ public:
   virtual void write(const pen&) {nowrite("pen");}
   virtual void write(const guide&) {nowrite("guide");}
   virtual void write(const transform&) {nowrite("transform");}
+  virtual void writeline() {nowrite("string");}
   
   int Nx() {return nx;}
   int Ny() {return ny;}
@@ -137,7 +143,7 @@ public:
   }
   
   void open() {
-    if(standard()) {
+    if(standard) {
       stream=&std::cin;
     } else {
       fstream.open(name.c_str());
@@ -147,7 +153,7 @@ public:
   }
   
   void seek(size_t pos) {
-    if(!standard() && !closed) fstream.seekg(pos);
+    if(!standard && !closed) fstream.seekg(pos);
   }
   
   const char* Mode() {return "input";}
@@ -166,7 +172,7 @@ public:
   bool text() {return true;}
   bool eof() {return stream->eof();}
   bool error() {return stream->fail();}
-  void close() {if(!standard() && !closed) {fstream.close(); closed=true;}}
+  void close() {if(!standard && !closed) {fstream.close(); closed=true;}}
   void clear() {stream->clear();}
   
 public:
@@ -209,7 +215,7 @@ public:
   }
   
   void open() {
-    if(standard()) {
+    if(standard) {
       stream=&std::cout;
     } else {
       fstream.open(name.c_str());
@@ -219,7 +225,7 @@ public:
   }
   
   void seek(size_t pos) {
-    if(!standard() && !closed) fstream.seekp(pos);
+    if(!standard && !closed) fstream.seekp(pos);
   }
   
   const char* Mode() {return "output";}
@@ -227,7 +233,7 @@ public:
   bool text() {return true;}
   bool eof() {return stream->eof();}
   bool error() {return stream->fail();}
-  void close() {if(!standard() && !closed) {fstream.close(); closed=true;}}
+  void close() {if(!standard && !closed) {fstream.close(); closed=true;}}
   void clear() {stream->clear();}
   void precision(int p) {stream->precision(p);}
   void flush() {stream->flush();}
@@ -240,6 +246,15 @@ public:
   void write(const pen& val) {*stream << val;}
   void write(const guide& val) {*stream << val;}
   void write(const transform& val) {*stream << val;}
+  void writeline() {
+    if(standard && settings::scrollLines) {
+      if(lines > 0 && lines % settings::scrollLines == 0) {
+	while(std::cin.get() != '\n') continue;
+      } else *stream << newline;
+      ++lines;
+    } else *stream << newline;
+    if(errorstream::interrupt) throw interrupted();
+  }
 };
 
 #ifdef HAVE_RPC_RPC_H
@@ -300,12 +315,13 @@ extern ifile typein;
 template<class T>
 void ifile::iread(T& val)
 {
-  if(settings::suppressStandard && standard()) typein.Read(val);
+  if(errorstream::interrupt) throw interrupted();
+  if(settings::suppressStandard && standard) typein.Read(val);
   else {
     Read(val);
-    if(interact::interactive && standard()) {
+    if(interact::interactive && standard) {
       typeout.write(val);
-      typeout.write((std::string)"\n");
+      typeout.write(newline);
       typeout.flush();
     }
   }

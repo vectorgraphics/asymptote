@@ -484,6 +484,7 @@ void importdec::loadFailed(coenv &)
 {
   em->warning(getPos());
   *em << "could not load module of name '" << *id << "'";
+  em->sync();
 }
 
 void importdec::trans(coenv &e)

@@ -121,7 +121,7 @@ void realFmod(stack *s)
   double y = s->pop<double>();
   double x = s->pop<double>();
   if (y == 0.0)
-    error(s,"Division by zero");
+    error(s,"Divide by zero");
   double val = fmod(x,y);
   s->push(val);
 }
@@ -171,6 +171,20 @@ void realRemainder(stack *s)
   sx = remainder(y,x);
   s->push(sx);
 }  
+
+void realJ(stack *s)
+{
+  double x = s->pop<double>();
+  int n = s->pop<int>();
+  s->push(jn(n,x));
+}
+
+void realY(stack *s)
+{
+  double x = s->pop<double>();
+  int n = s->pop<int>();
+  s->push(yn(n,x));
+}
 
 void intAbs(stack *s)
 { 
@@ -260,8 +274,6 @@ void boolDeconstruct(stack *s)
 { 
   s->push(settings::deconstruct != 0.0);
 }
-
-
 
 // Create an empty array.
 void emptyArray(stack *s)
@@ -1323,7 +1335,6 @@ void newDirguide(stack *s)
     g->dir(rightGiven);
   }
 
-
   s->push((guide*)g);
 }
 
@@ -1803,19 +1814,25 @@ void abort(stack *s)
   
 static callable *atExitFunction=NULL;
 
+void cleanup(bool TeXclose)
+{
+  defaultpen=camp::pen::startupdefaultpen();
+  if(!interact::interactive) settings::scrollLines=0;
+  
+  if(TeXinitialized && TeXclose) {
+    camp::TeXpreamble.clear();
+    camp::tex.pipeclose();
+    TeXinitialized=camp::TeXcontaminated=false;
+  }
+}
+
 void exitFunction(stack *s)
 {
   if(atExitFunction) {
     atExitFunction->call(s);
     atExitFunction=NULL;
   }
-  defaultpen=camp::pen::startupdefaultpen();
-  
-  if(camp::TeXcontaminated) {
-    camp::TeXpreamble.clear();
-    camp::tex.pipeclose();
-    TeXinitialized=camp::TeXcontaminated=false;
-  }
+  cleanup(camp::TeXcontaminated);
 }
   
 void atExit(stack *s)
@@ -1877,6 +1894,27 @@ void execute(stack *s)
     }
   }
   outname=Outname;
+}
+
+void changeDirectory(stack *s)
+{
+  string d=s->pop<string>();
+  int rc=setPath(d.c_str());
+  if(rc != 0) {
+    ostringstream buf;
+    buf << "Cannot change to directory '" << d << "'";
+    error(s,buf.str().c_str());
+  }
+  char *p=getPath();
+  if(p && interact::interactive && !settings::suppressStandard) 
+    cout << p << endl;
+  s->push(string(p));
+}
+
+void scrollLines(stack *s)
+{
+  int n=s->pop<int>();
+  settings::scrollLines=n;
 }
 
 // I/O Operations

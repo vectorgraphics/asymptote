@@ -34,6 +34,7 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_CC
 AC_PROG_MAKE_SET
+AC_PROG_YACC
 
 CFLAGS="-g -O3"
 
@@ -63,8 +64,7 @@ AC_CHECK_LIB([sigsegv], [stackoverflow_install_handler])
 # Checks for header files.
 AC_HEADER_SYS_WAIT
 AC_HEADER_STDBOOL
-AC_CHECK_HEADERS([fenv.h])
-AC_CHECK_HEADERS([stddef.h])
+AC_CHECK_HEADERS([fenv.h stddef.h libintl.h])
 
 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include "xstream.h"]),
                    [AC_SEARCH_LIBS([xdrstdio_create],[nsl])
@@ -82,7 +82,7 @@ AC_TYPE_SIGNAL
 
 # Checks for library functions.
 AC_FUNC_FORK
-AC_CHECK_FUNCS([dup2 floor memset pow sqrt remainder])
+AC_CHECK_FUNCS([dup2 floor memset pow sqrt strchr])
 AC_FUNC_STRFTIME
 AC_FUNC_ERROR_AT_LINE
 AC_FUNC_MALLOC

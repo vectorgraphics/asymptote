@@ -8,7 +8,7 @@
 #endif
 
 #ifdef HAVE_LIBSIGSEGV
-#include "sigsegv.h"
+#include <sigsegv.h>
 #endif
 
 #include "types.h"
@@ -36,7 +36,7 @@ using interact::rejectline;
 #ifdef HAVE_LIBSIGSEGV
 void stackoverflow_handler (int, stackoverflow_context_t)
 {
-  em->runtime(lastpos);
+  em->runtime();
   cout << "Stack overflow" << endl;
   abort();
 }
@@ -44,7 +44,7 @@ void stackoverflow_handler (int, stackoverflow_context_t)
 int sigsegv_handler (void *, int emergency)
 {
   if(!emergency) return 0; // Really a stack overflow
-  em->runtime(lastpos);
+  em->runtime();
   cout << "Segmentation fault" << endl;
   cout << "Please report this programming error to" << endl 
        << BUGREPORT << endl;
@@ -66,9 +66,14 @@ void setsignal(RETSIGTYPE (*handler)(int))
 
 void signalHandler(int)
 {
-  em->runtime(lastpos);
+  if(em) em->runtime();
   signal(SIGBUS,SIG_DFL);
   signal(SIGFPE,SIG_DFL);
+}
+
+void interruptHandler(int)
+{
+  errorstream::interrupt=true;
 }
 
 int main(int argc, char *argv[])
@@ -77,18 +82,9 @@ int main(int argc, char *argv[])
 
   fpu_trap(trap);
   setsignal(signalHandler);
-//  signal(SIGCHLD, SIG_IGN); // Flush exited child processes (avoid zombies)
+  if(interactive) signal(SIGINT,interruptHandler);
 
-  if(numArgs() == 0) {
-    interactive=true;
-    deconstruct=0;
-    view=1;
-    cout << "Welcome to " << PROGRAM << " version " << VERSION << 
-      " (interactive mode)" << endl;
-  }
-  
   std::cout.precision(DBL_DIG);
-  
   int status = 0;
   
   for(int ind=0; ind < numArgs() || (interactive && virtualEOF); ind++) {
@@ -131,6 +127,7 @@ int main(int argc, char *argv[])
               print(cout, m->getRuntime()->init->code);
             } else {
               vm::stack s(0);
+	      setPath(startPath());
               s.run(l);
             }
           }
@@ -144,6 +141,10 @@ int main(int argc, char *argv[])
       ++status;
     } catch (handled_error) {
       ++status;
+    } catch (interrupted) {
+      errorstream::interrupt=false;
+      cerr << endl;
+      run::cleanup(true);
     } catch (const char* s) {
       cerr << "error: " << s << endl;
       ++status;
@@ -151,10 +152,10 @@ int main(int argc, char *argv[])
       cerr << "error: exception thrown processing '" << module_name << "'\n";
       ++status;
     }
-
-    rejectline=em->errors();
+    
+    rejectline=em->warnings();
     if(rejectline) virtualEOF=true;
-  
+    
     delete em; em = 0;
     delete outnameStack; outnameStack = 0;
     outname="";

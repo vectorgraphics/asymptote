@@ -13,12 +13,14 @@
 #include <sstream>
 #include <cerrno>
 #include <sys/wait.h>
+#include <sys/param.h>
 #include <unistd.h>
 
 #include "util.h"
 #include "settings.h"
 #include "errormsg.h"
 #include "camperror.h"
+#include "interact.h"
 
 using namespace std;
 using namespace settings;
@@ -90,6 +92,7 @@ int System(const char *command, bool quiet, bool wait, int *ppid, bool warn)
   }
   char **argv=args(command);
   if (pid == 0) {
+    if(interact::interactive) signal(SIGINT,SIG_IGN);
     if(quiet) close(STDOUT_FILENO);
     if(argv) execvp(argv[0],argv);
     ostringstream msg;
@@ -146,4 +149,40 @@ string stripblanklines(string& s)
     } else if(t[i] != '\t' && t[i] != ' ') blank=false;
   }
   return s;
+}
+
+static char *startpath=NULL;
+char *currentpath=NULL;
+
+char *startPath()
+{
+  return startpath;
+}
+
+void noPath()
+{
+  camp::reportError("Cannot get current path");
+}
+
+char *getPath(char *p)
+{
+  static int size=MAXPATHLEN;
+  if(!p) p=new char[size];
+  if(!p) noPath();
+  else while(getcwd(p,size) == NULL) {
+    if(errno == ERANGE) {
+      size *= 2;
+      delete [] p;
+      p=new char[size];
+    } else {noPath(); p=NULL;}
+  }
+  return p;
+}
+
+int setPath(const char *s)
+{
+  if(s != NULL && *s != 0) {
+    if(startpath == NULL) startpath=getPath(startpath);
+    return chdir(s);
+  } return 0;
 }

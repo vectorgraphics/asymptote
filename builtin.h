@@ -92,7 +92,7 @@ struct divide {
     if(y == 0) {
       ostringstream buf;
       if(i > 0) buf << "array element " << i << ": ";
-      buf << "Divide by 0.";
+      buf << "Divide by zero";
       error(s,buf.str().c_str());
     }
     return x/y;
@@ -136,7 +136,7 @@ struct mod {
     if(y == 0) {
       ostringstream buf;
       if(i > 0) buf << "array element " << i << ": ";
-      buf << "Divide by 0.";
+      buf << "Divide by zero";
       error(s,buf.str().c_str());
     }
     return portableMod(x,y);

@@ -37,7 +37,7 @@ extern double deconstruct;
 extern int clearGUI;
 extern int ignoreGUI;
 extern camp::pair postscriptOffset;
-  enum origin {CENTER,BOTTOM,TOP,ZERO};
+enum origin {CENTER,BOTTOM,TOP,ZERO};
 extern int origin;
   
 extern bool suppressStandard;
@@ -60,6 +60,8 @@ extern std::string PDFViewer; // Environment variable ASYMPTOTE_PDFVIEWER
 extern std::string paperType;
 extern double pageWidth;
 extern double pageHeight;
+  
+extern int scrollLines;
   
 void setOptions(int argc, char *argv[]);
 

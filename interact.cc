@@ -27,7 +27,8 @@ using namespace std;
 bool virtualEOF=true;
 bool rejectline=false;
 int interactive=false;
-
+bool rejectline_cached=false;
+  
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 
 bool redraw=false;
@@ -39,7 +40,7 @@ static const char *historyfile=".asy_history";
   
 void reset()
 {
-  start=(rejectline && history_length) ? end-1 : end;
+  start=(rejectline_cached && history_length) ? end-1 : end;
   camp::typeout.seek(0);
 }
   
@@ -50,6 +51,7 @@ static size_t ninput=strlen(input);
 char *rl_gets(void)
 {
   static char *line_read=NULL;
+  static bool needreset=false;
   
   /* If the buffer has already been allocated,
      return the memory to the free pool. */
@@ -61,13 +63,19 @@ char *rl_gets(void)
   /* Get a line from the user. */
   while((line_read=readline("> "))) {
     if(*line_read == 0) continue;    
-    if(strncmp(line_read,input,ninput) == 0) {reset(); break;}
+    if(strncmp(line_read,input,ninput) == 0) {
+      if(needreset) reset();
+      else needreset=true;
+      break;
+    }
     if(strcmp(line_read,"reset") != 0 && strcmp(line_read,"reset;") != 0)
       break;
     reset();
+    needreset=false;
   }
      
-  if(rejectline && history_length) remove_history(history_length-1);
+  if(rejectline_cached && history_length) remove_history(history_length-1);
+  rejectline_cached=false;
   
   if(!line_read) cout << endl;
   else {
@@ -102,10 +110,7 @@ void add_input(char *&dest, const char *src, size_t& size)
     src += name.length()+ninput;
     const string iname=trans::symbolToFile(trans::symbol::trans(name));
     static filebuf filebuf;
-    if(!filebuf.open(iname.c_str(),ios::in)) {
-      cout << "warning: input file '" << name << "' not found" << endl;
-      return;
-    }
+    if(!filebuf.open(iname.c_str(),ios::in)) return;
     size_t len=filebuf.sgetn(dest,size);
     filebuf.close();
     if(len == size) {overflow(); return;}
@@ -125,7 +130,7 @@ void add_input(char *&dest, const char *src, size_t& size)
   size -= len;
   dest += len;
 }
-
+ 
 size_t interactive_input(char *buf, size_t max_size)
 {
   static int nlines=1000;
@@ -134,7 +139,6 @@ size_t interactive_input(char *buf, size_t max_size)
     first=false;
     read_history(historyfile);
     rl_bind_key('\t',rl_insert); // Turn off tab completion
-    signal(SIGINT,SIG_IGN);
     camp::typeout.open();
     camp::typein.open();
   }
@@ -142,7 +146,14 @@ size_t interactive_input(char *buf, size_t max_size)
   if(virtualEOF) return 0;
   
   char *line;
+
+  if(rejectline) {
+    rejectline_cached=virtualEOF=true;
+    return 0;
+  }
+  
   if((line=rl_gets())) {
+    errorstream::interrupt=false;
     if(start == 0) start=history_length;
     char *to=buf;
     int i=start;
@@ -161,7 +172,7 @@ size_t interactive_input(char *buf, size_t max_size)
 	next=p;
       }
       if(*line) // Renable I/O and shipout
-	add_input(to,"static {interact(true);}; interact(true)",size);
+	add_input(to,"static {interact(true);}; interact(true);\n",size);
       add_input(to,next->line,size);
     }
     end=i-1;
