@@ -207,7 +207,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
   if(view && !deconstruct) {
     if(epsformat || pdfformat) {
       static int pid;
-      static bool first=true;
+      static string lastoutname;
       static const string PSViewers[]={PSViewer,"gv","ggv","ghostview",
 				       "kghostview","gsview"};
       static const string PDFViewers[]={PDFViewer,"gv","acroread","xpdf"};
@@ -216,8 +216,8 @@ bool picture::postprocess(const string& epsname, const string& outname,
       const string *Viewers=pdfformat ? PDFViewers : PSViewers;
       const size_t nViewers=pdfformat ? nPDFViewers : nPSViewers;
       size_t iViewer=0;
-      if (first || !interact::virtualEOF) {
-	first=false;
+      if (!interact::virtualEOF || outname != lastoutname) {
+	if(!wait) lastoutname=outname;
 	status=-1;
 	while(status == -1 && iViewer < nViewers) {
 	  if(iViewer == 1 && Viewers[0] == Viewers[1]) {

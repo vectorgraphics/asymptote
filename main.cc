@@ -84,6 +84,7 @@ int main(int argc, char *argv[])
 
   if(numArgs() == 0) {
     interactive=true;
+    deconstruct=0;
     view=1;
     cout << "Welcome to " << PROGRAM << " version " << VERSION << 
       " (interactive mode)" << endl;
