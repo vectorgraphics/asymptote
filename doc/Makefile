@@ -48,6 +48,12 @@ install: man
 	${INSTALL} -m 644 asymptote.pdf $(exampledir)
 	${INSTALL} -m 644 $(MANFILES) $(mandir)/man1
 
+uninstall:
+	-cd $(mandir)/man1; rm $(MANFILES)
+	-rm -f $(exampledir)/asymptote.pdf
+	-install-info --delete --infodir=$(prefix)/info doc/asymptote.info
+	-rm -f $(prefix)/info/asymptote.info
+
 distclean: FORCE clean
 	rm -f version.texi
 
