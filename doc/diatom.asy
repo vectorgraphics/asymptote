@@ -1,4 +1,4 @@
-size(13cm,12cm,IgnoreAspect);
+size(13cm,8cm,IgnoreAspect);
 real minpercent=20;
 real ignorebelow=0;
 string data="diatom.csv";

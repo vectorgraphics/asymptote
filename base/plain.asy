@@ -157,6 +157,11 @@ void write(file out=stdout, string x, real y)
   write(out,x); write(out,y,endl);
 }
 
+void write(file out=stdout, string x, pair y)
+{
+  write(out,x); write(out,y,endl);
+}
+
 void write(file out=stdout, string x, real y, string x2, real y2)
 {
   write(out,x); write(out,y,tab); write(out,x2,y2);
@@ -261,6 +266,11 @@ struct coord {
   coord copy() {
     return build(user, truesize);
   }
+  
+  void clip(real min, real max) {
+    user=min(max(user,min),max);
+  }
+  
 }
 
 coord[] append (coord[] dest, coord[] src)
@@ -392,6 +402,10 @@ struct picture {
 
   void clip(drawer d) {
     uptodate(false);
+    for(int i=0; i < xcoords.length; ++i) {
+      xcoords[i].clip(userMin.x,userMax.x);
+      ycoords[i].clip(userMin.y,userMax.y);
+    }
     add(new void (frame f, transform t, transform T, pair, pair) {
       d(f,t);
     });
@@ -765,11 +779,11 @@ void filldrawabout(picture pic=currentpicture, path g, pair origin,
   
 void clip(picture pic=currentpicture, path g)
 {
+  pic.userMin=maxbound(pic.userMin,min(g));
+  pic.userMax=minbound(pic.userMax,max(g));
   pic.clip(new void (frame f, transform t) {
     clip(f, t*g);
   });
-  pic.userMin=min(g);
-  pic.userMax=max(g);
 }
 
 guide box(pair a, pair b)
