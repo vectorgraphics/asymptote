@@ -14,7 +14,6 @@
 #include "inst.h"
 #include "types.h"
 #include "fileio.h"
-#include "builtin.h"
 
 namespace run {
 
@@ -22,7 +21,14 @@ using vm::pop;
 using vm::read;
 using vm::array;
 using camp::tab;
-  
+
+// Math - this might be better elsewhere
+template <double (*func)(double)>
+void realReal(vm::stack *s) 
+{
+  s->push(func(s->template pop<double>()));
+}
+
 template<class T, template <class S> class op>
 void arrayArrayOp(vm::stack *s)
 {

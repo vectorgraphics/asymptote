@@ -255,4 +255,12 @@ position stack::getPos()
   return curPos;
 }
 
+void error(stack *s, const char* message)
+{
+  em->runtime(s->getPos());
+  *em << message;
+  em->sync();
+  throw handled_error();
+}
+
 } // namespace vm

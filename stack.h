@@ -77,13 +77,7 @@ T pop(stack* s)
   return s->pop<T>();
 }
 
-inline void error(stack *s, const char* message)
-{
-  em->runtime(s->getPos());
-  *em << message;
-  em->sync();
-  throw handled_error();
-}
+void error(stack *s, const char* message);
   
 } // namespace vm
 

@@ -27,6 +27,7 @@
 #include "types.h"
 #include "settings.h"
 #include "builtin.h"
+#include "runtime.h"
 
 // Whether the module name should be visible like an import when translating
 // that module.

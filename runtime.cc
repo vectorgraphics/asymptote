@@ -2098,4 +2098,36 @@ void fileArray3(stack *s)
   s->push(f);
 }
 
+// Utilities
+
+vm::array *copyArray(vm::stack *s)
+{
+  vm::array *a=pop<vm::array *>(s);
+  checkArray(s,a);
+  size_t size=(size_t) a->size();
+  vm::array *c=new vm::array(size);
+  for(size_t i=0; i < size; i++) 
+    (*c)[i]=(*a)[i];
+  return c;
+}
+
+vm::array *copyArray2(vm::stack *s)
+{
+  vm::array *a=pop<vm::array *>(s);
+  checkArray(s,a);
+  size_t size=(size_t) a->size();
+  vm::array *c=new vm::array(size);
+  for(size_t i=0; i < size; i++) {
+    vm::array *ai=read<vm::array *>(a,i);
+    checkArray(s,ai);
+    size_t aisize=(size_t) ai->size();
+    vm::array *ci=new vm::array(aisize);
+    (*c)[i]=ci;
+    for(size_t j=0; j < aisize; j++) 
+      (*ci)[j]=(*ai)[j];
+  }
+  return c;
+}
+
+
 } // namespace run
