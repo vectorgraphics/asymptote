@@ -85,6 +85,16 @@ Functions
 * Mathematical functions::      Standard mathematical library functions
 
 
+Import
+
+* plain::                       
+* simplex::                     
+* graph::                       
+* math::                        
+* stats::                       
+* tree::                        
+* unicode::                     
+
 @end detailmenu
 @end menu
 
@@ -1701,6 +1711,16 @@ explicitly imported. An error will be issued if one attempts to import
 a module multiple times.
 
 @code{Asymptote} currently ships with the following base modules:
+
+@menu
+* plain::                       
+* simplex::                     
+* graph::                       
+* math::                        
+* stats::                       
+* tree::                        
+* unicode::                     
+@end menu
 
 @node plain
 @subsection plain
