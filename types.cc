@@ -81,7 +81,7 @@ ty *stringArray3() { return &stringArray3_; }
   
 const char *names[] = {
   "void", "null",
-  "<record>", "<function>", "<error>", "<overloaded>",
+  "<structure>", "<function>", "<error>", "<overloaded>",
   "bool", "int", "real",
   "string",
   "pair", "transform", "guide", "path", "pen", "frame",

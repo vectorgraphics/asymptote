@@ -123,7 +123,7 @@ record *fieldExp::transRecord(env &e, types::ty *t)
       return 0;
     default:
       em->error(object->getPos());
-      *em << "type '" << *t << "' is not a record";
+      *em << "type '" << *t << "' is not a structure";
       return 0;
   }
 }
@@ -134,7 +134,7 @@ void fieldExp::trans(env &e, types::ty *target)
 #if 0
   if (ot->kind == ty_error) {
     em->error(getPos());
-    *em << "expression is not a record";
+    *em << "expression is not a structure";
     return;
   }
 #endif

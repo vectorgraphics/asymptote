@@ -191,7 +191,7 @@ record *qualifiedName::getRecord(types::ty *t, bool tacit)
     default:
       if (!tacit) {
         em->error(qualifier->getPos());
-        *em << "type \'" << *t << "\' is not a record";
+        *em << "type \'" << *t << "\' is not a structure";
       }
       return 0;
   }
@@ -394,7 +394,7 @@ types::ty *qualifiedName::typeTrans(env &e, bool tacit)
   else if (rt->kind != ty_record) {
     if (!tacit) {
       em->error(getPos());
-      *em << "type '" << *rt << "' is not a record";
+      *em << "type '" << *rt << "' is not a structure";
     }
     return primError();
   }

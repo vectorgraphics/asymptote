@@ -76,7 +76,7 @@ types::ty *newRecordExp::trans(env &e)
     return t;
   else if (t->kind != ty_record) {
     em->error(getPos());
-    *em << "type '" << *t << "' is not a record";
+    *em << "type '" << *t << "' is not a structure";
     return primError();
   }
 
@@ -100,14 +100,14 @@ types::ty *newRecordExp::trans(env &e)
     if (!e.encode(r->getLevel()->getParent(),
 		   imp->getModule()->getLevel())) {
       em->error(getPos());
-      *em << "allocation of record '" << *t << "' is not in a valid scope";
+      *em << "allocation of struct '" << *t << "' is not in a valid scope";
       return primError();
     }
   }
   else {
     if (!e.encode(r->getLevel()->getParent())) {
       em->error(getPos());
-      *em << "allocation of record '" << *t << "' is not in a valid scope";
+      *em << "allocation of struct '" << *t << "' is not in a valid scope";
       return primError();
     }
   }

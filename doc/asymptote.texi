@@ -27,6 +27,7 @@ Foundation.
 @titlepage
 @title Asymptote
 @subtitle For version @value{VERSION}
+@image{logo}
      
 @page
 @vskip 0pt plus 1filll
@@ -45,14 +46,14 @@ Foundation.
 @end ifnottex
 
 @menu
-* Description::                 What is Asymptote?
+* Description::                 What is @code{Asymptote}?
 * Installation::                Downloading and installing
 * Example::                     A simple example
-* Programming::                 Asymptote graphics language
+* Programming::                 @code{Asymptote} graphics language
 * Drawing commands::            Four primitive drawing commands
-* Latex usage::                 Embedding Asymptote commands within LaTeX
+* Latex usage::                 Embedding @code{Asymptote} commands within LaTeX
 * Options::                     Command line options
-* Interactive mode::            Typing Asymptote commands interactively
+* Interactive mode::            Typing @code{Asymptote} commands interactively
 * GUI::                         Graphical user interface
 * Credits::                     Contributions and acknowledgements
 * Index::                       General index
@@ -67,15 +68,15 @@ Programming
 * Guides and paths::            Specifying lines and curves
 * Pens::                        Colors, line types, line widths, font sizes
 * Frames and pictures::         Deferred drawing
-* Files::                       Asymptote I/O
+* Files::                       @code{Asymptote} I/O
 * Structures::                  Organize your data
 * Arithmetic & logical::        Standard binary operators
 * Self & prefix operators::     Self operators, increment, and decrement
 * Implicit scaling::            Avoiding those ugly *s
-* Functions::                   Traditional and anonymous functions
+* Functions::                   Traditional and high-order functions
 * Arrays::                      Dynamic vector class
 * Casts::                       Implicit and explicit casts
-* Import::                      Importing external Asymptote packages
+* Import::                      Importing external @code{Asymptote} packages
 * Static & dynamic::            When to allocate your variable?
 
 Functions
@@ -86,13 +87,14 @@ Functions
 
 Import
 
-* plain::                       
-* simplex::                     
-* graph::                       
-* math::                        
-* stats::                       
-* tree::                        
-* unicode::                     
+* plain::                       Default @code{Asymptote} base file
+* simplex::                     Linear programming: simplex method
+* graph::                       2D linear & logarithmic graphs
+* math::                        Extend @code{Asymptote}'s math capabilities
+* stats::                       Statistic routines and histograms
+* tree::                        Dynamic binary search tree
+* unicode::                     Accept @code{unicode} (UTF8) characters.
+
 
 @end detailmenu
 @end menu
@@ -391,7 +393,7 @@ many features beyond the ones found in those languages.
 * Guides and paths::            Specifying lines and curves
 * Pens::                        Colors, line types, line widths, font sizes
 * Frames and pictures::         Deferred drawing
-* Files::                       Asymptote I/O
+* Files::                       @code{Asymptote} I/O
 * Structures::                  Organize your data
 * Arithmetic & logical::        Standard binary operators
 * Self & prefix operators::     Self operators, increment, and decrement
@@ -399,7 +401,7 @@ many features beyond the ones found in those languages.
 * Functions::                   Traditional and high-order functions
 * Arrays::                      Dynamic vector class
 * Casts::                       Implicit and explicit casts
-* Import::                      Importing external Asymptote packages
+* Import::                      Importing external @code{Asymptote} packages
 * Static & dynamic::            When to allocate your variable?
 @end menu
 
@@ -999,6 +1001,12 @@ than @code{xsize} and the final height is no more than @code{ysize}.
 If @code{keepAspect} is set to @code{IgnoreAspect}, the picture will be
 scaled in both directions so that the final width is @code{xsize} and
 the height is @code{ysize}. 
+
+@cindex landscape mode
+To output in landscape mode, simply replace the call to @code{shipout} with:
+@verbatim
+shipout(rotate(90)*currentpicture.fit());
+@end verbatim
 
 Sometimes it is useful to draw objects on separate pictures and add one
 picture to another with the @code{add} function:
@@ -1735,13 +1743,14 @@ a module multiple times.
 @code{Asymptote} currently ships with the following base modules:
 
 @menu
-* plain::                       
-* simplex::                     
-* graph::                       
-* math::                        
-* stats::                       
-* tree::                        
-* unicode::                     
+* plain::                       Default @code{Asymptote} base file
+* simplex::                     Linear programming: simplex method
+* graph::                       2D linear & logarithmic graphs
+* math::                        Extend @code{Asymptote}'s math capabilities
+* stats::                       Statistic routines and histograms
+* tree::                        Dynamic binary search tree
+* unicode::                     Accept @code{unicode} (UTF8) characters.
+
 @end menu
 
 @node plain
@@ -1953,7 +1962,7 @@ shipout();
 
 @item Here is a realistic scientific graph that illustrates many features of
 @code{Asymptote}'s graphics routines. It was generated with the
-example @code{diatom.asy} (in the examples directory), using the
+example @code{diatom.asy} (in the @code{doc} directory), using the
 comma-separated data found in @code{diatom.csv}. 
 @image{diatom}
 
@@ -2285,10 +2294,11 @@ picture needs to be output with the @code{shipout} function (@pxref{shipout}).
 @cindex @code{asymptote.sty}
 
 There is a convenient @code{LaTeX} style file @code{asymptote.sty} in
-the top-level @code{Asymptote} source directory that makes @code{LaTeX}
-@code{Asymptote}-aware. Entering @code{Asymptote} code directly into the
-@code{LaTeX} source file, at the point where it is needed, keeps figures
-organized and avoids the need to invent new file names for each figure.
+the directory @code{doc} in the @code{Asymptote} source that makes
+@code{LaTeX} @code{Asymptote}-aware. Entering @code{Asymptote} code
+directly into the @code{LaTeX} source file, at the point where it is
+needed, keeps figures organized and avoids the need to invent new file
+names for each figure.
 
 For example, the sample LaTeX file below, named @code{latexusage.tex}, can
 be run as follows:
@@ -2410,7 +2420,7 @@ shipout();
 \end{document}
 
 @end verbatim
-@image{latexusage,,26cm}
+@image{latexusage,,20cm}
 
 @node Options
 @chapter Options

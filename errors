@@ -9,7 +9,7 @@ errortest.asy: 32.5: no type of name 'x'
 errortest.asy: 33.5: no type of name 'x'
 errortest.asy: 34.5: no type of name 'x'
 errortest.asy: 35.12: no type of name 'x'
-errortest.asy: 41.3: type 'int' is not a record
+errortest.asy: 41.3: type 'int' is not a structure
 errortest.asy: 48.4: no matching field or type of name 'u' in 'm'
 errortest.asy: 55.12: no matching field of name 'z' in 'm'
 errortest.asy: 62.4: no matching field of name 'z' in 'm'
@@ -23,7 +23,7 @@ errortest.asy: 91.4: use of variable 'm.f' is ambiguous
 errortest.asy: 97.11: array initializer used for non-array
 errortest.asy: 98.12: array initializer used for non-array
 errortest.asy: 103.4: no matching variable of name 'f'
-errortest.asy: 108.4: type 'int' is not a record
+errortest.asy: 108.4: type 'int' is not a structure
 errortest.asy: 116.14: no matching field of name 'z' in type 'point'
 errortest.asy: 124.6: warning: expression (in whole or part) without side-effects
 errortest.asy: 124.6: no matching field of name 'z' in type 'point'
@@ -41,8 +41,8 @@ errortest.asy: 178.10: type of conditional expression is ambiguous
 errortest.asy: 183.5: cannot convert 'int ()' to 'int' in assignment
 errortest.asy: 188.5: assignment is ambiguous
 errortest.asy: 194.24: function must return a value
-errortest.asy: 200.11: type 'int' is not a record
-errortest.asy: 209.3: allocation of record 'b' is not in a valid scope
+errortest.asy: 200.11: type 'int' is not a structure
+errortest.asy: 209.3: allocation of struct 'b' is not in a valid scope
 errortest.asy: 215.3: warning: expression (in whole or part) without side-effects
 errortest.asy: 219.3: break statement outside of a loop
 errortest.asy: 223.3: continue statement outside of a loop

@@ -182,7 +182,7 @@ lambda *genv::bootupModule(record *r)
   // Encode the record dynamic instantiation.
   if (!dummy_env.encode(r->getLevel()->getParent())) {
     em->compiler();
-    *em << "invalid bootup record";
+    *em << "invalid bootup structure";
     em->sync();
     return 0;
   }

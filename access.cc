@@ -89,7 +89,7 @@ void localAccess::permitRead(position pos)
 {
   if (perm == PRIVATE) {
     em->error(pos);
-    *em << "accessing private field outside of record";
+    *em << "accessing private field outside of structure";
   }
 }
 
@@ -98,11 +98,11 @@ void localAccess::permitWrite(position pos)
   switch (perm) {
     case PRIVATE:
       em->error(pos);
-      *em << "modifying private field outside of record";
+      *em << "modifying private field outside of structure";
       break;
     case READONLY:
       em->error(pos);
-      *em << "modifying non-public field outside of record";
+      *em << "modifying non-public field outside of structure";
       break;
     case PUBLIC:
       break;

@@ -131,7 +131,7 @@ public:
 
   void debug(ostream& out) const
   {
-    out << "record " << *name << std::endl;
+    out << "struct " << *name << std::endl;
     out << "types:" << endl;
     out << te;
     out << "fields: " << endl;

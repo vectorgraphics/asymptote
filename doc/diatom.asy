@@ -1,4 +1,4 @@
-size(13cm,12cm,IgnoreAspect); // User printer offset -O25
+size(13cm,12cm,IgnoreAspect);
 real minpercent=20;
 real ignorebelow=0;
 string data="diatom.csv";
@@ -73,5 +73,5 @@ for(int i=0; i < year.length; ++i)
 
 label("\%",(0.5*location,bottom),5*S);
 
-shipout(rotate(0)*currentpicture.fit());
+shipout();
 

@@ -213,7 +213,7 @@ void reset()
 {
   defaultfontsize=12.0;
   defaultlinewidth=0.5;  
-  overwrite=1;
+  overwrite=0;
 }
 
 }

@@ -480,7 +480,7 @@ void importdec::initialize(env &e, record *m, access *a)
   // Put the enclosing frame on the stack.
   if (!e.encode(m->getLevel()->getParent())) {
     em->error(getPos());
-    *em << "import of record '" << *m << "' is not in a valid scope";
+    *em << "import of struct '" << *m << "' is not in a valid scope";
   }
  
   // Encode the allocation. 
@@ -802,7 +802,7 @@ void fundec::transAsField(env &e, record *r)
 void recorddec::prettyprint(ostream &out, int indent)
 {
   prettyindent(out, indent);
-  out << "recorddec '" << *id << "'\n";
+  out << "structdec '" << *id << "'\n";
 
   body->prettyprint(out, indent+1);
 }

@@ -38,10 +38,12 @@ asy: 	parser depend
 all:  	asy man
 
 man:	asy
-	cd doc; latex latexusage && ../asy *.asy && latex latexusage && \
-	texi2dvi asymptote.texi && convert latexusage.eps latexusage.jpg && \
-	../asy -f jpg *.asy && makeinfo asymptote && \
-		makeinfo --html asymptote && mv *.jpg asymptote
+	cd doc; rm -f latexusage.asy && ../asy -f jpg *.asy && \
+	latex latexusage && ../asy *.asy && latex latexusage && \
+	dvips -o latexusage.eps latexusage && \
+	convert latexusage.eps latexusage.jpg && \
+	makeinfo asymptote && makeinfo --html asymptote && \
+	cp *.jpg asymptote && texi2dvi asymptote.texi 
 	
 depend: $(FILES:=.d)
 
@@ -84,6 +86,8 @@ clean:  FORCE
 
 distclean: FORCE clean
 	rm -f Makefile config.h config.log config.status
+	cd doc; rm -rf *.eps *.jpg latexusage.{asy,dvi,log,aux,ps} asymptote \
+		asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,toc,tp,vr}
 
 maintainer-clean: FORCE distclean
 	rm -f configure config.h.in 
