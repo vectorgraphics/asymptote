@@ -111,7 +111,7 @@ public real legendmargin=10;
 
 public string defaultfilename="";
 
-real infinity=0.1*realMax();
+real infinity=sqrt(0.5*realMax()); // Reduced for tension atleast infinity
 real epsilon=realEpsilon();
 
 bool finite(real x)
@@ -856,6 +856,14 @@ void label(picture pic=currentpicture, string s, real angle=0, pair position,
   pic.addBox(position,position,min(f),max(f));
 }
 
+pair point(frame f, pair dir)
+{
+  real scale=max(abs(dir.x),abs(dir.y));
+  if(scale != 0) dir *= 0.5/scale;
+  dir += (0.5,0.5);
+  return min(f)+realmult(dir,max(f)-min(f));
+}
+
 pair point(picture pic=currentpicture, pair dir)
 {
   real scale=max(abs(dir.x),abs(dir.y));
@@ -1075,25 +1083,31 @@ frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
 	      pic.keepAspect ? Aspect : IgnoreAspect,p,bbox);
 }
 
+frame labelframe(real xmargin=0, real ymargin=infinity,
+		 string s, real angle=0, pair position,
+		 pair align=0, pen p=currentpen, pen pbox=currentpen)
+{
+  if(ymargin == infinity) ymargin=xmargin;
+  pair margin=(xmargin,ymargin);
+  frame b;
+  label(b,s,angle,position,align,p);
+  draw(b,box(min(b)-margin,max(b)+margin),pbox);
+  return b;
+}
+
 void labelbox(picture pic=currentpicture, real xmargin=0,
 	      real ymargin=infinity, string s, real angle=0, pair position,
 	      pair align=0, pair shift=0, pen p=currentpen,
 	      pen pbox=currentpen)
 {
-  if(ymargin == infinity) ymargin=xmargin;
-  pair margin=(xmargin,ymargin);
   pic.add(new void (frame f, transform t) {
-    pair offset=t*0;
-    frame b;
-    label(b,s,Angle(t*dir(angle)-offset),t*position+shift,
-	  length(align)*unit(t*align-offset),p);
-    draw(b,box(min(b)-margin,max(b)+margin),pbox);
-    add(f,b);
+	    pair offset=t*0;
+	    frame b=labelframe(xmargin,ymargin,s,Angle(t*dir(angle)-offset),
+			       t*position+shift,
+			       length(align)*unit(t*align-offset),p,pbox);	
+	    add(f,b);
   });
-  frame f;
-  // Create a picture with label at the origin to extract its bbox truesize.
-  label(f,s,angle,(0,0),align,p);
-  draw(f,box(min(f)-margin,max(f)+margin),p);
+  frame f=labelframe(xmargin,ymargin,s,angle,(0,0),align,p,pbox);
   pic.addBox(position,position,min(f),max(f));
 }
 
