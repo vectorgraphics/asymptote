@@ -9,8 +9,6 @@ real g(real x) {return x^2;}
 draw(graph(f,a,b,Spline),red);
 draw(graph(g,a,b,Spline),blue);
  
-dotsize=4;
-
 xaxis(); 
 
 int n=5;
@@ -35,7 +33,7 @@ real xi=b-j*width;
 real xp=xi+width;
 real xm=0.5*(xi+xp);
 pair dot=(xm,0.5*(f(xm)+g(xm)));
-dot(dot,darkgreen);
+dot(dot,4,darkgreen);
 arrow("$\left(x,\frac{f(x)+g(x)}{2}\right)$",dot,NE,2cm,darkgreen);
 
 shipout();

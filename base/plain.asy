@@ -10,6 +10,7 @@ real inches=72.0;
 real inch=inches;
 real cm=inches/2.540005;
 real mm=0.1cm;
+real bp=1;	    // A PostScript point.
 real pt=72.0/72.27; // A TeX pt is slightly smaller than a PostScript bp.
 
 pair I=(0,1);
@@ -88,7 +89,7 @@ public real arrowangle=15;
 public real arcarrowsize=0.5*arrowsize;
 public real arcarrowangle=2*arrowangle;
 public real barsize=arrowsize;
-public real dotsize=3;
+public real dotfactor=5;
 
 public pair legendlocation=(1.0,0.8);
 public real legendlinelength=50;
@@ -1113,22 +1114,21 @@ void label(picture pic=currentpicture, string s, real angle=0,
   label(pic,s,angle,point(g,0.5L),align,p,adjust);
 }
 
-void dot(picture pic=currentpicture, pair c, real size=infinity,
-	 pen p=currentpen)
+void dot(picture pic=currentpicture, pair c, real size=0, pen p=currentpen)
 {
-  if(size == infinity) {p=linewidth(dotsize)+p;}
-  else p += linewidth(size);
+  if(size == 0) size=linewidth(p)*dotfactor;
+  p += size;
   _draw(pic,c,p);
 }
 
-void dots(picture pic=currentpicture, pair[] c, real size=infinity, 
+void dots(picture pic=currentpicture, pair[] c, real size=0, 
 	  pen p=currentpen)
 {
   for(int i=0; i < c.length; ++i) dot(pic,c[i],size,p);
 }
 
 
-void labeldot(picture pic=currentpicture, real size=infinity, string s="",
+void labeldot(picture pic=currentpicture, real size=0, string s="",
 	      real angle=0, pair c, pair align=E, pen p=currentpen,
 	      adjust adjust=NoAdjust)
 {

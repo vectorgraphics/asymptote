@@ -6,7 +6,7 @@ pair l=point(p,3.5);
 pair m=point(p,4.5);
 pair s=point(p,4.9);
 
-pen c=linewidth(1.5);
+pen c=1.5;
 pair o=(xpart(m),0.5(ypart(m)+ypart(l)));
 
 pen d=c+darkgreen;

@@ -1,7 +1,5 @@
 import graph;
 
-dotsize=0.3cm;
-
 pair wheelpoint(real t)
 {
   return (t+cos(t),-sin(t));
@@ -37,7 +35,8 @@ void initialpicture() {
 int n=25;
 real dt=(t2-t1)/n;
 string prefix=fileprefix();
-currentpen=linewidth(3);
+currentpen=3.0;
+dotfactor=4;
 for(int i=0; i <= n; ++i) {
   currentpicture=new picture;
   size(0,200);

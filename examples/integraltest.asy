@@ -4,7 +4,7 @@ size(300,150,IgnoreAspect);
 real f(real x) {return 1/x^(1.1);}
 pair F(real x) {return (x,f(x));}
 
-dotsize=4;
+dotfactor=7;
 
 void subinterval(real a, real b)
 {
