@@ -9,12 +9,14 @@ man:	asymptote.info asymptote.ps asymptote.pdf html
 %.eps:	%.asy
 	../asy $<
 
-latexusage.eps: latexusage.tex
+latexusage.asy: latexusage.tex
 	latex latexusage
 	../asy latexusage
+
+latexusage.eps: latexusage.asy
 	latex latexusage
 	dvips -o latexusage.eps latexusage
-	rm -f latexusage.*.eps latexusage.asy
+	rm -f latexusage.*.eps
 
 figures: latexusage.eps latexusage.png $(ASYFILES:.asy=.eps) \
 	$(ASYFILES:.asy=.png) version.texi

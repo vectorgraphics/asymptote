@@ -1083,9 +1083,9 @@ frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
 	      pic.keepAspect ? Aspect : IgnoreAspect,p,bbox);
 }
 
-frame labelframe(real xmargin=0, real ymargin=infinity,
-		 string s, real angle=0, pair position,
-		 pair align=0, pen p=currentpen, pen pbox=currentpen)
+frame labelBox(real xmargin=0, real ymargin=infinity,
+	       string s, real angle=0, pair position,
+	       pair align=0, pen p=currentpen, pen pbox=currentpen)
 {
   if(ymargin == infinity) ymargin=xmargin;
   pair margin=(xmargin,ymargin);
@@ -1095,6 +1095,14 @@ frame labelframe(real xmargin=0, real ymargin=infinity,
   return b;
 }
 
+void labelbox(frame f, real xmargin=0, real ymargin=infinity,
+	      string s, real angle=0, pair position,
+	      pair align=0, pen p=currentpen, pen pbox=currentpen)
+{
+  frame b=labelBox(xmargin,ymargin,s,angle,position,align,p,pbox);
+  add(f,b);
+}
+
 void labelbox(picture pic=currentpicture, real xmargin=0,
 	      real ymargin=infinity, string s, real angle=0, pair position,
 	      pair align=0, pair shift=0, pen p=currentpen,
@@ -1102,12 +1110,12 @@ void labelbox(picture pic=currentpicture, real xmargin=0,
 {
   pic.add(new void (frame f, transform t) {
 	    pair offset=t*0;
-	    frame b=labelframe(xmargin,ymargin,s,Angle(t*dir(angle)-offset),
-			       t*position+shift,
-			       length(align)*unit(t*align-offset),p,pbox);	
-	    add(f,b);
+	    labelbox(f,xmargin,ymargin,s,Angle(t*dir(angle)-offset),
+		       t*position+shift,
+		       length(align)*unit(t*align-offset),p,pbox);	
   });
-  frame f=labelframe(xmargin,ymargin,s,angle,(0,0),align,p,pbox);
+  frame f;
+  labelbox(f,xmargin,ymargin,s,angle,(0,0),align,p,pbox);
   pic.addBox(position,position,min(f),max(f));
 }
 
