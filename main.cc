@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
               // NOTE: Should make it possible to show more code.
               print(cout, l->code);
               cout << "\n";
-              print(cout, m->getRuntime()->init->code);
+              print(cout, m->getInit()->code);
             } else {
               vm::stack s(0);
 	      setPath(startPath());

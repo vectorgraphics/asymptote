@@ -44,9 +44,6 @@ public:
   stack(int numGlobals);
   ~stack();
 
-  // When the program runs a module, it runs the initializer for the module.
-  void run(record *r);
-
   // Executes a function on top of the stack.
   void run(func *f);
   void run(lambda *l);

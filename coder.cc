@@ -61,7 +61,7 @@ coder::coder(function *t, coder &parent, modifier sord)
 // Start encoding the body of the record.  The function being encoded
 // is the record's initializer.
 coder::coder(record *t, coder &parent, modifier sord)
-  : level(new frame(t->getLevel(), 0)),
+  : level(t->getLevel()),
     recordLevel(t->getLevel()),
     recordType(t),
     l(t->getInit()),

@@ -67,8 +67,8 @@ void blockStm::transAsRecordBody(coenv &e, record *r)
   e.e.endScope();
 
   // Put record into finished state.
+  e.c.encode(inst::pushclosure);
   e.c.close();
-  r->close();
 }
 
 void expStm::prettyprint(ostream &out, int indent)

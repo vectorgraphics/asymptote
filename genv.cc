@@ -212,7 +212,7 @@ lambda *genv::bootupModule(record *r)
 
 
   // Encode the allocation.
-  inst i; i.op = inst::alloc; i.r = r->getRuntime();
+  inst i; i.op = inst::alloc; i.lfunc = r->getInit();
   base_coder.encode(i);
   base_coder.encode(inst::pop);
 

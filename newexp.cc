@@ -121,7 +121,7 @@ types::ty *newRecordExp::trans(coenv &e)
   // Encode the allocation. 
   inst i;
   i.op = inst::alloc;
-  i.r = r->getRuntime();
+  i.lfunc = r->getInit();
   e.c.encode(i);
 
   return t;

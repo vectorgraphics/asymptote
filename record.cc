@@ -14,12 +14,10 @@ record::record(symbol *name, frame *level, lambda *init)
     name(name),
     level(level),
     te(), ve(),
-    runtime()
+    init(init)
 {
   assert(level);
   assert(init);
-  runtime.size = 0;
-  runtime.init = init;
 }
 
 record::~record()

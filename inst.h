@@ -110,14 +110,6 @@ struct lambda : public mempool::pooled<lambda> {
   virtual ~lambda() {}
 };
 
-struct record {
-  // The number of (non-static) fields.
-  int size;
-
-  // The initializer.
-  lambda *init;
-};
-
 struct callable : public mempool::pooled<callable>
 {
   virtual void call(stack *) = 0;
@@ -181,7 +173,6 @@ struct inst {
     std::string *s;
     
     lambda *lfunc;
-    record *r;
   };
   program::label label;
   bltin bfunc;

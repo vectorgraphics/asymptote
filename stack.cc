@@ -49,15 +49,6 @@ void stack::run(lambda *l)
   run(&f);
 }
 
-void stack::run(record *r)
-{
-  func f;
-  f.body = r->init;
-  f.closure = make_frame(r->size);
-
-  run(&f);
-}
-
 #define UNALIAS                                 \
   {                                             \
     this->ip = ip;                              \
@@ -93,6 +84,7 @@ void stack::run(func *f)
     for (;;) {
 #ifdef DEBUG_STACK
       UNALIAS;
+      cerr << getPos() << "\n";
       printInst(cerr, ip, body->code.begin());
       cerr << "\n";
 #endif
@@ -204,15 +196,11 @@ void stack::run(func *f)
             // Get the record's enclosing frame off the stack.
             vars_t frame = pop<vars_t>();
 	
-            record *r = ip->r;
-            vars_t fields(make_frame(r->size));
-            fields[0] = frame;
-
-            push(fields);
+            lambda *init = ip->lfunc;
 
             // Call the initializer.
             func f;
-            f.body = r->init; f.closure = fields;
+            f.body = init; f.closure = frame;
 
             run(&f);
             break;

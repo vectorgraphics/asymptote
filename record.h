@@ -36,7 +36,7 @@ struct record : public ty {
 
   // The runtime representation of the record used by the virtual
   // machine.
-  vm::record runtime;
+  vm::lambda *init;
 
 public:
   record(symbol *name, frame *level, lambda *init);
@@ -86,7 +86,7 @@ public:
 
   lambda *getInit()
   {
-    return runtime.init;
+    return init;
   }
 
   // Allocates a new dynamic field in the record.
@@ -109,19 +109,6 @@ public:
 
     record *r = new record(id, level, init);
     return r;
-  }
-
-  // Return the simplified runtime version of the record.
-  vm::record *getRuntime()
-  {
-    return &runtime;
-  }
-
-  // Stores the proper size in runtime.
-  vm::record *close()
-  {
-    runtime.size = level->size();
-    return &runtime;
   }
 
   void print(ostream& out) const
