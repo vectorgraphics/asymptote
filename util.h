@@ -47,6 +47,8 @@ extern "C" double atanh(double x);
 extern "C" double cbrt(double x);
 extern "C" double remainder(double x, double y);
 extern "C" double hypot(double x, double y) throw();
+extern "C" double jn(int n, double x);
+extern "C" double yn(int n, double x);
 #endif
 
 extern bool False;
