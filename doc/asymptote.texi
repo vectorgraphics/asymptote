@@ -955,11 +955,11 @@ returns the pair(left,bottom) for the path bounding box.
 
 @cindex @code{cyclic}
 @item bool cyclic(path)
-returns true iff path is cyclic
+returns @code{true} iff path is cyclic
 
 @cindex @code{straight}
 @item bool straight(path, int i)
-returns true iff the segment between node @code{i} and node @code{i+1}
+returns @code{true} iff the segment between node @code{i} and node @code{i+1}
 is straight.
 
 @end table
@@ -1146,7 +1146,7 @@ for frames is @code{nullframe}.
 Pictures are high-level structures (@pxref{Structures}) defined in
 @code{plain.asy} that provide canvases for drawing in user coordinates. 
 The default picture is called @code{currentpicture}. Since structures
-currently have no default initialization, this should be done explicitly
+have no default initialization, this should be done explicitly
 whenever a new picture is declared:
 @verbatim
 picture pic=new picture;
@@ -1814,7 +1814,7 @@ returns a null array);
 
 @cindex @code{find}
 @item int find(bool[], int n=1)
-returns the index of the @code{n}th true value or -1 if not found.
+returns the index of the @code{n}th @code{true} value or -1 if not found.
 If @code{n} is negative, search backwards from the end of the array for the
 @code{-n}th value; 
 
@@ -1824,7 +1824,7 @@ returns a deep copy of array @code{A};
 
 @cindex @code{alias}
 @item bool alias(T[] A, T[] B)
-returns true if the arrays @code{A} and @code{B} are identical.
+returns @code{true} if the arrays @code{A} and @code{B} are identical.
 
 @cindex @code{sort}
 @item T[] sort(T[] A)
@@ -2150,7 +2150,7 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
 Returns a graph using the scaling information for picture @code{pic}
 of those elements of the array
 @code{z} for which the corresponding elements of the boolean array
-@code{cond} are true, with the given interpolation type.
+@code{cond} are @code{true}, with the given interpolation type.
 
 @item
 @verbatim
@@ -2162,7 +2162,7 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
 Returns a graph using the scaling information for picture @code{pic}
 of those elements of the arrays
 (@code{x},@code{y}) for which the corresponding elements of the boolean array
-@code{cond} are true, with the given interpolation type.
+@code{cond} are @code{true}, with the given interpolation type.
 
 @item
 @verbatim
@@ -2317,7 +2317,7 @@ location @code{position} (a real number from [0,1]) using angle
 @code{angle} and alignment @code{align} on side @code{side} of the axis
 and pen @code{plabel}. The tick type is specified by @code{ticks} and
 the integer array @code{divisor} specifies what tick divisors to try for
-producing uncrowded tick labels. A true value for the flag @code{opposite}
+producing uncrowded tick labels. A @code{true} value for the flag @code{opposite}
 identifies an unlabelled secondary axis (typically drawn opposite to a
 primary axis).
 
@@ -2345,8 +2345,8 @@ void axis(picture pic=currentpicture, guide g, real tickmin=-infinity,
           scaleT scale=Linear, part part, bool opposite=false) 
 @end verbatim
 
-This routine can be used to draw a general axis on picture @code{pic}
-based on an arbitrary path @code{g}.
+This routine can be used to draw a general axis based on an arbitrary
+path @code{g}, with ticks evenly spaced along its arclength.
 
 @end itemize
 
@@ -2509,9 +2509,7 @@ shipout();
 @end verbatim
 @image{loggraph}
 
-@item The @code{xaxis} and @code{yaxis} functions in the above graphs
-are special cases of a more general @code{axis} routine, which can be
-used to place ticks evenly spaced along the arclength of an arbitrary path:
+@item Here is an example that illustrates the general @code{axis} routine.
 @cindex @code{axis}
 @verbatim
 import graph;
@@ -2583,7 +2581,7 @@ Here are some additional routines provided in the @code{math} package:
 
 @cindex @code{straight}
 @item bool straight(path p)
-returns true iff the path @code{p} is straight.
+returns @code{true} iff the path @code{p} is straight.
 
 @cindex @code{intersection}
 @item real intersection(vector P, vector Q, vector n, vector Z);
@@ -2758,20 +2756,20 @@ If you use static functions and variables from a module, then every
 import is referring to the same data. But every import of a module gets
 a different instance of its dynamic variables.
 
-Declarations are dynamic by default. Suppose @code{x.asy} contains
+Declarations are dynamic by default. Suppose @code{X.asy} contains
 @verbatim
 public int x=0;
 @end verbatim
 
 and @code{inc.asy} contains
 @verbatim
-import x;
+import X;
 void inc() {++x;}
 @end verbatim
 
 Then the file @code{test.asy}:
 @verbatim
-import x;
+import X;
 import inc;
 write(x);
 inc();
@@ -2780,7 +2778,7 @@ write(x);
 
 should write 0 twice, because the variable @code{x} imported in
 @code{inc.asy} is distinct from the variable @code{x} imported directly
-from @code{x.asy}.
+from @code{X.asy}.
 
 If @code{inc.asy} were to contain only
 @verbatim
@@ -2788,7 +2786,7 @@ void inc() {++x;}
 @end verbatim
 
 then, in order for it to be able to access the variable @code{x} in
-@code{x.asy}, one needs to allocate @code{x.asy} in a higher
+@code{X.asy}, one needs to allocate @code{X.asy} in a higher
 enclosing block by making its import @code{static} in @code{test.asy}:
 @verbatim
 static import x;
