@@ -31,7 +31,7 @@ labeldot("$A'$",Ap,dir(A--Ap),red);
 labeldot("$B'$",Bp,dir(B--Bp),red);
 labeldot("$C'$",Cp,dir(C--Cp),red);
 
-label(include("sflogo.eps","width=4cm"),Ap,5*NE,red);
+label(include("sflogo.eps","width=4cm"),Ap,6*NE,red);
 
 perpendicular(Ap,Ap--O,blue);
 perpendicular(Bp,Bp--C,blue);

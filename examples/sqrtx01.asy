@@ -7,13 +7,9 @@ real g(real x) {return -sqrt(x);}
 pair G(real x) {return (x,g(x));}
 
 guide p=(0,0)--graph(f,0,1,Spline)--(1,0);
-guide h=p--cycle;
-
-picture canvas=new picture;
-fill(canvas,h,lightgray);
-draw(canvas,p);
-draw(canvas,(0,0)--graph(g,0,1,Spline)--(1,0),dotted);
-add(canvas);
+fill(p--cycle,lightgray);
+draw(p);
+draw((0,0)--graph(g,0,1,Spline)--(1,0),dotted);
 
 real x=0.5;
 pair c=(4,0);

@@ -439,8 +439,8 @@ the overall scaling will be determined by the other direction:
 @image{bigsquare}
 
 Adding labels is easy in @code{Asymptote}; one specifies the
-label as a double-quoted string, a coordinate, and an optional alignment
-direction:
+label as a double-quoted @code{LaTeX} string, a
+coordinate, and an optional alignment direction:
 @verbatiminclude labelsquare.asy
 @image{labelsquare}
 
@@ -1044,11 +1044,25 @@ is straight.
 @cindex @code{pen}
 @cindex @code{currentpen}
 @cindex @code{MetaPost pickup}
-@code{Asymptote} uses pens to specify the following drawing attributes:
-color, line type, line width, font size, and calligraphic transforms on
-the pen nib. The default pen used by the drawing routines is called
+In @code{Asymptote}, pens provide a context for the four basic drawing
+commands (@pxref{Drawing commands}). They are used to specify the
+following drawing attributes: color, line type, line width, line cap,
+line join, fill rule, text alignment, font, font size, pattern,
+overwrite mode, and calligraphic transforms on the pen nib. The
+default pen used by the drawing routines is called
 @code{currentpen}. This provides the same functionality as the
 @code{MetaPost} command @code{pickup}.
+
+@cindex @code{+}
+@cindex @code{*}
+Pens may be added together with the binary operator @code{+}.
+This will mix the colors of the two pens.
+All other non-default attributes of the right most pen will
+override those of the left most pen. Thus, one can obtain a yellow
+dashed pen by saying @code{dashed+red+green} or @code{red+green+dashed}
+or @code{red+dashed+green}. The binary operator @code{*}
+can be used to scale the color of a pen by a real number, until it
+saturates with one or more color components equal to 1.
 
 @itemize @bullet
 
@@ -1074,8 +1088,9 @@ lies in the interval [0,1].
 
 @item pen invisible()
 @cindex @code{invisible}
-This special pen writes in invisible ink! It is analogous to the
-@code{\phantom} command in @TeX{}.
+This special pen writes in invisible ink, but adjusts the bounding
+box as if something had been drawn (like the @code{\phantom}
+command in @TeX{}).
 
 @end table
 
@@ -1187,6 +1202,22 @@ The fill rule, which identifies the algorithm used to determine the
 insideness of a path or array of paths, only affects @code{clip} and
 @code{fill} commands. The default fill rule, @code{zerowinding}, may
 be changed with @code{defaultpen(pen)}.
+
+@cindex @code{nobasealign}
+@cindex @code{basealign}
+@anchor{basealign}
+@item A pen with a specific text alignment setting is returned on
+calling @code{baseline} with an integer argument:
+@verbatim
+pen nobasealign=baseline(0);
+pen basealign=baseline(1);
+@end verbatim
+
+@noindent
+The default setting, @code{nobasealign}, which may be changed with
+@code{defaultpen(pen)}, causes the label alignment routines to use the
+full label bounding box for alignment. In contrast, @code{basealign}
+requests that the @TeX{} baseline be respected.
 
 @cindex @code{fontsize}
 @cindex @code{lineskip}
@@ -1306,17 +1337,6 @@ coordinates) it could result in a larger figure than requested.
 @end table
 
 @end itemize
-
-@cindex @code{+}
-@cindex @code{*}
-Pens may be added together with the binary operator @code{+}.
-This will mix the colors of the two pens.
-Other non-default attributes of the right most pen will
-override those of the left most pen. Thus, one can obtain a yellow
-dashed pen by saying @code{dashed+red+green} or @code{red+green+dashed}
-or @code{red+dashed+green}. The binary operator @code{*}
-can be used to scale the color of a pen by a real number, until it
-saturates with one or more color components equal to 1.
 
 @cindex @code{defaultpen}
 Calling the routine @code{defaultpen()} without arguments resets all
@@ -2820,7 +2840,7 @@ and a collection of statistics routines, including @code{histogram}.
 @subsection @code{patterns}
 @cindex @code{patterns}
 This package implements @code{Postscript} tiling patterns and includes
-convenient pattern generation routines.
+several convenient pattern generation routines.
 
 @node tree
 @subsection @code{tree}
@@ -3076,6 +3096,7 @@ currentpicture).
 
 @cindex legend
 @cindex @code{draw}
+@cindex @code{arrow}
 @menu
 * draw::                        Draw a path on a picture or frame
 * fill::                        Fill a cyclic path on a picture or frame
@@ -3146,7 +3167,7 @@ also arrow versions with slightly modified default values of @code{size} and
 @code{EndArcArrow} (or equivalently @code{ArcArrow}), and @code{ArcArrows}.
 
 Two examples illustrating the use of arrows and bars are
-@code{Pythagoras.asy} and @code{triads.asy} in the examples
+@code{Pythagoras.asy} and @code{triads.asy} in the examples directory
 (by default @code{/usr/local/share/doc/asymptote}).
 
 @cindex @code{dot}
@@ -3246,8 +3267,12 @@ void label(picture pic=currentpicture, string s, real angle=0,
 @end verbatim
 
 Draw label @code{s} on @code{pic}, writing at angle @code{angle} (in
-degrees), at coordinate @code{position}, aligned with the vector
-@code{align} and true shift @code{shift}, with pen @code{p}.
+degrees), at user coordinate @code{position}, aligned with the vector
+(compass direction) @code{align} and @code{PostScript} coordinate
+translation @code{shift}, using pen @code{p}. If @code{align} is 0,
+the label will be centered at @code{position}; otherwise it will be
+aligned at @code{position+align*labelmargin(p)} in the direction given
+by @code{Angle(align)}.
 
 A label with an arrow can be produced with one of the following routines:
 @cindex @code{arrow}
@@ -3280,10 +3305,17 @@ label(include("file.eps","width=1cm"),(0,0),NE);
 layer();
 @end verbatim
 
+@cindex @code{baseline}
+The @code{string baseline(string s, pair align=S, string template="M")} 
+function can be used to enlarge the bounding box of letters aligned
+below a horizontal line to match a given template, so that their
+baselines lie on a horizontal line. See @code{Pythagoras.asy} for an
+example.
+
 @cindex @code{minipage}
-The @code{minipage(string s, width=100pt)} function can be used to format
-string @code{s} into a paragraph of width @code{width}, as illustrated
-in the following example:
+The @code{string minipage(string s, width=100pt)} function can be used
+to format string @code{s} into a paragraph of width @code{width}, as
+illustrated in the following example:
 
 @verbatiminclude mosquito.asy
 
@@ -3528,13 +3560,16 @@ make install
 @end verbatim
 
 @noindent
-
 For example, try:
 @verbatim
 asy -V /usr/local/share/doc/asymptote/venn.asy 
 pstoedit venn.eps test.asy
-asy -V test.asy
+asy -V test
 @end verbatim
+
+@noindent
+If the line widths aren't quite correct, try giving pstoedit the
+@code{-dis} option.
 
 @node Help
 @chapter Help

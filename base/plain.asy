@@ -68,6 +68,9 @@ pen beveljoin=linejoin(2);
 pen zerowinding=fillrule(0);
 pen evenodd=fillrule(1);
 
+pen nobasealign=basealign(0);
+pen basealign=basealign(1);
+
 pen invisible=invisible();
 pen black=gray(0);
 pen lightgray=gray(0.9);

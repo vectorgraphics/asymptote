@@ -192,6 +192,8 @@ void pattern(vm::stack *s);
 void penPattern(vm::stack *s);
 void fillRule(vm::stack *s);
 void penFillRule(vm::stack *s);
+void baseLine(vm::stack *s);
+void penBaseLine(vm::stack *s);
 void lineType(vm::stack *s);
 void penLineType(vm::stack *s);
 void lineCap(vm::stack *s);

@@ -23,7 +23,6 @@ namespace settings {
 
 namespace camp {
 
-static const std::string DEFLINE="default";
 static const std::string DEFPAT="<default>";
 static const std::string DEFFONT="\\usefont{OT1}{cmr}{m}{n}";
 static const double DEFWIDTH=-1;
@@ -35,7 +34,6 @@ static const struct setlinewidth_t {} setlinewidth={};
 static const struct setfont_t {} setfont={};
 static const struct setfontsize_t {} setfontsize={};
 static const struct setpattern_t {} setpattern={};
-static const struct setfillrule_t {} setfillrule={};
 static const struct setlinecap_t {} setlinecap={};
 static const struct setlinejoin_t {} setlinejoin={};
 static const struct setoverwrite_t {} setoverwrite={};
@@ -56,16 +54,33 @@ enum FillRule {DEFFILL=-1,ZEROWINDING,EVENODD};
 static const std::string FillRuleTag[]={"","ZeroWinding","EvenOdd"};
 const int nFill=sizeof(FillRuleTag)/sizeof(std::string);
   
-enum ColorSpace {DEFCOLOR,INVISIBLE,GRAYSCALE,RGB,CMYK,PATTERN};
+enum BaseLine {DEFBASE=-1,NOBASEALIGN,BASEALIGN};
+static const std::string BaseLineTag[]={"","NoAlign","Align"};
+const int nBaseLine=sizeof(BaseLineTag)/sizeof(std::string);
+  
+enum ColorSpace {DEFCOLOR=-1,INVISIBLE,GRAYSCALE,RGB,CMYK,PATTERN};
 static const int ColorComponents[]={0,0,1,3,4,0};
 static const std::string ColorDeviceSuffix[]={"","","Gray","RGB","CMYK",""};
 using settings::defaultpen;
   
+class LineType
+{
+public:  
+  std::string pattern;	// The string for the PostScript style line pattern.
+  bool scale;		// Scale the line type values by the pen width?
+  
+  LineType(std::string pattern, bool scale) : pattern(pattern), scale(scale) {}
+};
+  
+static const LineType DEFLINE("default",true);
+  
+inline bool operator == (LineType a, LineType b) {
+  return a.pattern == b.pattern && a.scale == b.scale;
+}
+  
 class pen : public mempool::pooled<pen>
 { 
-  // The string for the PostScript style line pattern.
-  std::string line;
-  bool scale; // Scale the line type values by the pen width?
+  LineType line;
 
   // Width of line, in PS units.
   double linewidth;
@@ -74,12 +89,12 @@ class pen : public mempool::pooled<pen>
   double lineskip;  
   
   ColorSpace color;
-  double r,g,b; // RGB or CMY value
-  double grey; // grayscale or K value
-
-  // The name of the user-defined fill/draw pattern.
-  std::string pattern;
-  FillRule fillrule; // Zero winding-number (default) or even-odd rule
+  double r,g,b; 	// RGB or CMY value
+  double grey; 		// grayscale or K value
+  
+  std::string pattern;	// The name of the user-defined fill/draw pattern.
+  FillRule fillrule; 	// Zero winding-number (default) or even-odd rule
+  BaseLine baseline;	// Align to TeX baseline?
   int linecap;
   int linejoin;
   overwrite_t overwrite;
@@ -115,136 +130,143 @@ public:
   }
   
   pen() :
-    line(DEFLINE), scale(true), linewidth(DEFWIDTH),
+    line(DEFLINE), linewidth(DEFWIDTH),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
-    pattern(DEFPAT), fillrule(DEFFILL),
+    pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
 
-  pen(const std::string& line, bool scale, double linewidth,
+  pen(const LineType& line, double linewidth,
       const std::string& font, double fontsize, double lineskip,
       ColorSpace color, double r, double g, double b,  double grey,
-      const std::string& pattern, FillRule fillrule,
+      const std::string& pattern, FillRule fillrule, BaseLine baseline,
       int linecap, int linejoin, overwrite_t overwrite, const transform *t) :
-    line(line), scale(scale), linewidth(linewidth),
+    line(line), linewidth(linewidth),
     font(font), fontsize(fontsize), lineskip(lineskip), color(color),
     r(r), g(g), b(b), grey(grey),
-    pattern(pattern), fillrule(fillrule),
+    pattern(pattern), fillrule(fillrule), baseline(baseline),
     linecap(linecap), linejoin(linejoin), overwrite(overwrite), t(t) {}
       
   pen(invisiblepen_t) : 
-    line(DEFLINE), scale(true), linewidth(DEFWIDTH),
+    line(DEFLINE), linewidth(DEFWIDTH),
     font(""), fontsize(0.0), lineskip(0.0), color(INVISIBLE),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
-    pattern(DEFPAT), fillrule(DEFFILL),
+    pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
   
   pen(setlinewidth_t, double linewidth) : 
-    line(DEFLINE), scale(true), linewidth(linewidth),
+    line(DEFLINE), linewidth(linewidth),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
-    pattern(DEFPAT), fillrule(DEFFILL),
+    pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
   
-  pen(const std::string& line, bool scale) :
-    line(line), scale(scale), linewidth(DEFWIDTH),
+  pen(const LineType& line) :
+    line(line), linewidth(DEFWIDTH),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
-    pattern(DEFPAT), fillrule(DEFFILL),
+    pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
   
   pen(setfont_t, std::string font) :
-    line(DEFLINE), scale(true), linewidth(DEFWIDTH),
+    line(DEFLINE), linewidth(DEFWIDTH),
     font(font), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
-    pattern(DEFPAT), fillrule(DEFFILL),
+    pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
   
   pen(setfontsize_t, double fontsize, double lineskip) :
-    line(DEFLINE), scale(true), linewidth(DEFWIDTH),
+    line(DEFLINE), linewidth(DEFWIDTH),
     font(""), fontsize(fontsize), lineskip(lineskip), color(DEFCOLOR),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
-    pattern(DEFPAT), fillrule(DEFFILL),
+    pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
   
   pen(setpattern_t, const std::string& pattern) :
-    line(DEFLINE), scale(true), linewidth(DEFWIDTH),
+    line(DEFLINE), linewidth(DEFWIDTH),
     font(""), fontsize(0.0), lineskip(0.0), color(PATTERN),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
-    pattern(pattern), fillrule(DEFFILL),
+    pattern(pattern), fillrule(DEFFILL), baseline(DEFBASE),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
   
-  pen(setfillrule_t, FillRule fillrule) :
-    line(DEFLINE), scale(true), linewidth(DEFWIDTH),
+  pen(FillRule fillrule) :
+    line(DEFLINE), linewidth(DEFWIDTH),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
-    pattern(DEFPAT), fillrule(fillrule),
+    pattern(DEFPAT), fillrule(fillrule), baseline(DEFBASE),
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+  
+  pen(BaseLine baseline) :
+    line(DEFLINE), linewidth(DEFWIDTH),
+    font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
+    r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
+    pattern(DEFPAT), fillrule(DEFFILL), baseline(baseline),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
   
   pen(setlinecap_t, int linecap) :
-    line(DEFLINE), scale(true), linewidth(DEFWIDTH),
+    line(DEFLINE), linewidth(DEFWIDTH),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
-    pattern(DEFPAT), fillrule(DEFFILL),
+    pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     linecap(linecap), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
   
   pen(setlinejoin_t, int linejoin) :
-    line(DEFLINE), scale(true), linewidth(DEFWIDTH),
+    line(DEFLINE), linewidth(DEFWIDTH),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
-    pattern(DEFPAT), fillrule(DEFFILL),
+    pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     linecap(DEFCAP), linejoin(linejoin), overwrite(DEFWRITE), t(0) {}
   
   pen(setoverwrite_t, overwrite_t overwrite) :
-    line(DEFLINE), scale(true), linewidth(DEFWIDTH),
+    line(DEFLINE), linewidth(DEFWIDTH),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
-    pattern(DEFPAT), fillrule(DEFFILL),
+    pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(overwrite), t(0) {}
   
   explicit pen(double grey) :
-    line(DEFLINE), scale(true), linewidth(DEFWIDTH),
+    line(DEFLINE), linewidth(DEFWIDTH),
     font(""), fontsize(0.0), lineskip(0.0), color(GRAYSCALE),
     r(0.0), g(0.0), b(0.0), grey(pos0(grey)),
-    pattern(DEFPAT), fillrule(DEFFILL),
+    pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0)
   {greyrange();}
   
   pen(double r, double g, double b) : 
-    line(DEFLINE), scale(true), linewidth(DEFWIDTH),
+    line(DEFLINE), linewidth(DEFWIDTH),
     font(""), fontsize(0.0), lineskip(0.0), color(RGB),
     r(pos0(r)), g(pos0(g)), b(pos0(b)),  grey(0.0), 
-    pattern(DEFPAT), fillrule(DEFFILL),
+    pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0)
   {rgbrange();}
   
   pen(double c, double m, double y, double k) :
-    line(DEFLINE), scale(true), linewidth(DEFWIDTH),
+    line(DEFLINE), linewidth(DEFWIDTH),
     font(""), fontsize(0.0), lineskip(0.0), color(CMYK),
     r(pos0(c)), g(pos0(m)), b(pos0(y)), grey(pos0(k)),
-    pattern(DEFPAT), fillrule(DEFFILL),
+    pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0)
   {cmykrange();}
   
   // Construct one pen from another, resolving defaults
   pen(resolvepen_t, const pen& p) : 
-    line(p.stroke()), scale(p.scalestroke()), linewidth(p.width()),
+    line(LineType(p.stroke(),p.scalestroke())), linewidth(p.width()),
     font(p.Font()), fontsize(p.size()), lineskip(p.Lineskip()),
     color(p.colorspace()),
     r(p.red()), g(p.green()), b(p.blue()), grey(p.gray()),
-    pattern(""), fillrule(p.Fillrule()),
+    pattern(""), fillrule(p.Fillrule()), baseline(p.Baseline()),
     linecap(p.cap()), linejoin(p.join()),overwrite(p.Overwrite()), t(p.t) {}
   
   static pen startupdefaultpen() {
-    return pen("",true,0.5,DEFFONT,12.0,12.0*1.2,GRAYSCALE,
-	       0.0,0.0,0.0,0.0,"",ZEROWINDING,1,1,ALLOW,0);
+    return pen(LineType("",true),0.5,DEFFONT,12.0,12.0*1.2,GRAYSCALE,
+	       0.0,0.0,0.0,0.0,"",ZEROWINDING,NOBASEALIGN,1,1,ALLOW,0);
   }
   
   pen(initialpen_t) : 
-    line(DEFLINE), scale(true), linewidth(-2.0),
+    line(DEFLINE), linewidth(-2.0),
     font(DEFFONT), fontsize(-1.0), lineskip(-1.0), color(GRAYSCALE),
     r(0.0), g(0.0), b(0.0), grey(0.0),
-    pattern(DEFPAT), fillrule(DEFFILL),
+    pattern(DEFPAT), fillrule(DEFFILL), baseline(NOBASEALIGN),
     linecap(-2), linejoin(-2), overwrite(DEFWRITE), t(0) {}
   
   double width() const {
@@ -264,14 +286,14 @@ public:
   }
   
   std::string stroke() const {
-    return line == DEFLINE ? defaultpen.line : line;
+    return line == DEFLINE ? defaultpen.line.pattern : line.pattern;
   }
   
   bool scalestroke() const {
-    return scale;
+    return line.scale;
   }
   
-  void setstroke(const std::string& s) {line=s;}
+  void setstroke(const std::string& s) {line.pattern=s;}
   
   std::string fillpattern() const {
     return pattern == DEFPAT ? "" : pattern;
@@ -279,6 +301,10 @@ public:
   
   FillRule Fillrule() const {
     return fillrule == DEFFILL ? defaultpen.fillrule : fillrule;
+  }
+  
+  BaseLine Baseline() const {
+    return baseline == DEFBASE ? defaultpen.baseline : baseline;
   }
   
   int cap() const {
@@ -331,7 +357,7 @@ public:
   }
   
   void rgbtogrey() {
-    grey=0.299*r+0.587*g+0.114*b; // Use standard YUV luminosity factors
+    grey=0.299*r+0.587*g+0.114*b; // Standard YUV luminosity coefficients
     r=g=b=0.0;
     color=GRAYSCALE;
   }
@@ -487,7 +513,6 @@ public:
     }
     
     return pen(q.line == DEFLINE ? p.line : q.line,
-	       q.line == DEFLINE ? p.scale : q.scale,
 	       q.linewidth == DEFWIDTH ? p.linewidth : q.linewidth,
 	       q.font == "" ? p.font : q.font,
 	       q.fontsize == 0.0 ? p.fontsize : q.fontsize,
@@ -495,6 +520,7 @@ public:
 	       colorspace,R,G,B,greyval,
 	       q.pattern == DEFPAT ? p.pattern : q.pattern,
 	       q.fillrule == DEFFILL ? p.fillrule : q.fillrule,
+	       q.baseline == DEFBASE ? p.baseline : q.baseline,
 	       q.linecap == DEFCAP ? p.linecap : q.linecap,
 	       q.linejoin == DEFJOIN ? p.linejoin : q.linejoin,
 	       q.overwrite == DEFWRITE ? p.overwrite : q.overwrite,
@@ -515,6 +541,7 @@ public:
 				     p.blue() == q.blue()))
       && p.pattern == q.pattern
       && p.Fillrule() == q.Fillrule()
+      && p.Baseline() == q.Baseline()
       && p.cap() == q.cap()
       && p.join() == q.join()
       && p.Overwrite() == q.Overwrite()
@@ -522,8 +549,8 @@ public:
   }
   
   friend ostream& operator << (ostream& out, const pen& p) {
-    out << "([" << p.line << "]";
-    if(!p.scale)
+    out << "([" << p.line.pattern << "]";
+    if(!p.line.scale)
       out << " bp";
     if(p.linewidth != DEFWIDTH)
       out << ", linewidth=" << p.linewidth;
@@ -551,6 +578,8 @@ public:
       out << ", " << "\"" << p.pattern << "\"";
     if(p.fillrule != DEFFILL)
       out << ", fillrule=" << FillRuleTag[p.fillrule];
+    if(p.baseline != DEFBASE)
+      out << ", baseline=" << BaseLineTag[p.baseline];
     if(p.overwrite != DEFWRITE)
       out << ", overwrite=" << OverwriteTag[p.overwrite];
     if(p.t)

@@ -1,4 +1,4 @@
-public pen textpen;
+public pen textpen=basealign;
 public pair align=1e-10*NE; 
 
 // These compatibility routines for the pstoedit backend do not clip

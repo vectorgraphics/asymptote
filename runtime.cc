@@ -1385,9 +1385,6 @@ void colors(stack *s)
     (*a)[3]=p->black();
     break;
   default:
-    ostringstream buf;
-    buf << "Undefined colorspace index: " << n;
-    error(s,buf.str().c_str());
     break;
   }
   s->push(a);
@@ -1407,7 +1404,7 @@ void penPattern(stack *s)
 void fillRule(stack *s)
 {
   int n = s->pop<int>();
-  s->push(new pen(setfillrule,n >= 0 && n < nFill ? (FillRule) n : DEFFILL));  
+  s->push(new pen(n >= 0 && n < nFill ? (FillRule) n : DEFFILL));
 }
 
 void penFillRule(stack *s)
@@ -1416,11 +1413,23 @@ void penFillRule(stack *s)
   s->push(p->Fillrule());  
 }
 
+void baseLine(stack *s)
+{
+  int n = s->pop<int>();
+  s->push(new pen(n >= 0 && n < nBaseLine ? (BaseLine) n : DEFBASE));
+}
+
+void penBaseLine(stack *s)
+{
+  pen *p=s->pop<pen*>();
+  s->push(p->Baseline());
+}
+
 void lineType(stack *s)
 {
   bool scale = s->pop<bool>();
   string t = s->pop<string>();
-  s->push(new pen(t,scale)); 
+  s->push(new pen(LineType(t,scale))); 
 }
 
 void penLineType(stack *s)

@@ -91,8 +91,10 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
     double scale0=max(fabs(Align.getx()),fabs(Align.gety()));
     if(scale0) Align *= 0.5/scale0;
     Align -= pair(0.5,0.5);
-    Align.scale(width,height+depth);
-    Align += pair(0.0,depth);
+    double Depth=(Pentype.Baseline() == NOBASEALIGN) ? depth : 0.0;
+    Align.scale(width,height+Depth);
+    Align += pair(0.0,Depth);
+      
     Align *= rotation;
   }
 

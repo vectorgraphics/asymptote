@@ -101,11 +101,6 @@ void addRealFunc(venv &ve, const char* name)
 
 #define addRealFunc(fcn) addRealFunc<fcn>(ve, #fcn);
 
-extern "C" double asinh(double x);
-extern "C" double acosh(double x);
-extern "C" double atanh(double x);
-extern "C" double cbrt(double x);
-
 void addRealFunc2(venv &ve, bltin fcn, const char *name)
 {
   addFunc(ve, fcn, primReal(), name, primReal(), primReal());
@@ -518,6 +513,8 @@ void base_venv(venv &ve)
   addFunc(ve,run::penPattern,primString(),"pattern",primPen());
   addFunc(ve,run::fillRule,primPen(),"fillrule",primInt());
   addFunc(ve,run::penFillRule,primInt(),"fillrule",primPen());
+  addFunc(ve,run::baseLine,primPen(),"basealign",primInt());
+  addFunc(ve,run::penBaseLine,primInt(),"basealign",primPen());
   addFunc(ve,run::resetdefaultPen,primVoid(),"defaultpen");
   addFunc(ve,run::setDefaultPen,primVoid(),"defaultpen",primPen());
   addFunc(ve,run::invisiblePen,primPen(),"invisible");

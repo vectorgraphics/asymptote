@@ -29,9 +29,9 @@ private:
 public:
   drawLabel(std::string label, double angle, pair position, pair align,
 	    pen *pentype)
-    : label(label), angle(angle), position(position),
-      align(align), pentype(pentype), width(0.0), height(0.0), depth(0.0),
-      suppress(false), scale(1.0) {}
+    : label(label), angle(angle), position(position), align(align),
+      pentype(pentype),
+      width(0.0), height(0.0), depth(0.0), suppress(false), scale(1.0) {}
   
   virtual ~drawLabel() {}
 
