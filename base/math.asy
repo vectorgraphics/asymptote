@@ -100,14 +100,16 @@ bool intersect(pair a, pair b, path p)
 {
   if(!polygon(p)) abort("Polygon must be a straight cyclic path");
   int n=length(p);
-  real t,T,de;
   for(int i=0; i < n; ++i) {
     pair A=point(p,i);
     pair B=point(p,i+1);
-    de=(b.x-a.x)*(A.y-B.y)-(A.x-B.x)*(b.y-a.y);
-    t=((A.x-a.x)*(A.y-B.y)-(A.x-B.x)*(A.y-a.y))/de;
-    T=((b.x-a.x)*(A.y-a.y)-(A.x-a.x)*(b.y-a.y))/de;
-    if(0 <= t && t <= 1 && 0 <= T && T <= 1) return true;
+    real de=(b.x-a.x)*(A.y-B.y)-(A.x-B.x)*(b.y-a.y);
+    if(de != 0) {
+      de=1/de;
+      real t=((A.x-a.x)*(A.y-B.y)-(A.x-B.x)*(A.y-a.y))*de;
+      real T=((b.x-a.x)*(A.y-a.y)-(A.x-a.x)*(b.y-a.y))*de;
+      if(0 <= t && t <= 1 && 0 <= T && T <= 1) return true;
+    }
   }
   return false;
 }
@@ -165,14 +167,12 @@ real[][] operator * (real[][] a, real[][] b)
 
 real[][] operator * (real[][] a, real[] b)
 {
-  real[][] m={b};
-  return a*transpose(m);
+  return a*transpose(new real[][] {b});
 }
 
 real[][] operator * (real[] b,real[][] a)
 {
-  real[][] m={b};
-  return m*a;
+  return new real[][] {b}*a;
 }
 
 real[][] operator * (real[][] a, real b)
@@ -206,6 +206,5 @@ real[][] inverse(real[][] m)
 {
   if(m.length != 2)
     abort("inverse of general matrix not yet implemented");
-  real[][] I={{m[1][1],-m[0][1]},{-m[1][0],m[0][0]}};
-  return I/determinant(m);
+  return new real[][] {{m[1][1],-m[0][1]},{-m[1][0],m[0][0]}}/determinant(m);
 }

@@ -33,14 +33,14 @@ public:
 // Returns true if the line a--b intersects box b.
   bool intersect(const pair& a, const pair& b) const
   {
-    double t,T,de;
     for(int i=0; i < 4; ++i) {
       pair A=p[i];
       pair B=p[i < 3 ? i+1 : 0];
-      de=(b.x-a.x)*(A.y-B.y)-(A.x-B.x)*(b.y-a.y);
-      if(de != 0) {
-	t=((A.x-a.x)*(A.y-B.y)-(A.x-B.x)*(A.y-a.y))/de;
-	T=((b.x-a.x)*(A.y-a.y)-(A.x-a.x)*(b.y-a.y))/de;
+      double de=(b.x-a.x)*(A.y-B.y)-(A.x-B.x)*(b.y-a.y);
+      if(de != 0.0) {
+	de=1.0/de;
+	double t=((A.x-a.x)*(A.y-B.y)-(A.x-B.x)*(A.y-a.y))*de;
+	double T=((b.x-a.x)*(A.y-a.y)-(A.x-a.x)*(b.y-a.y))*de;
 	if(0 <= t && t <= 1 && 0 <= T && T <= 1) return true;
       }
     }
