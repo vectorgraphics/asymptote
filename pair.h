@@ -142,7 +142,7 @@ public:
   
   friend double length(const pair& z)
   {
-    return sqrt(z.x*z.x + z.y*z.y);
+    return z.length();
   }
 
   double angle() const
