@@ -1,0 +1,6 @@
+include Makefile
+
+files: $(FILES:=.o)
+	$(CXX) $(OPT) -o $(NAME) $(FILES:=.o) $(LIBS)
+
+include $(FILES:=.d)

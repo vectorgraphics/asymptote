@@ -1,0 +1,33 @@
+Andy: give execute(string) read/write access to caller environment
+(Among other purposes, this would enable us to implement a "line at a time
+mode" where complete lines are individually added to the parse tree and
+executed as they are entered.)
+
+Andy: Add module name to its own environment.
+
+Andy: implement "public import"
+
+Andy: implement default initialization of structures
+
+Andy: implement private typedefs
+
+Andy: Fix permissions for static functions in structs.
+ex.  struct t { int x; static void f(t a) { write(a.x); } } 
+
+Andy: hide private functions to avoid ambiguity. But could this cause
+working code to break if private functions are suddenly made public?
+See "Design and Evolution of C++" or talk to Tom. :-)
+
+Tom: extend syntax to allow for explict array casts like (int[]) on real[].
+
+3d graphs
+
+In final code: Replace any asserts that can actually occur with if statements
+(Partly done, perhaps completely.)
+
+Tom: Optimized tail call recursion incompatible with call instruction?
+
+allow users to examine the structure of guides (to allow user functions that
+produce new guides from guides)
+
+garbage collection

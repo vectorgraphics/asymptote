@@ -1,0 +1,59 @@
+errortest.asy: 12.3: no variable or type of name 'x'
+errortest.asy: 16.11: no matching variable of name 'y'
+errortest.asy: 20.3: no matching variable of name 'x'
+errortest.asy: 27.3: no type of name 'x'
+errortest.asy: 28.3: no type of name 'x'
+errortest.asy: 29.3: no type of name 'x'
+errortest.asy: 30.10: no type of name 'x'
+errortest.asy: 32.5: no type of name 'x'
+errortest.asy: 33.5: no type of name 'x'
+errortest.asy: 34.5: no type of name 'x'
+errortest.asy: 35.12: no type of name 'x'
+errortest.asy: 41.3: type 'int' is not a record
+errortest.asy: 48.4: no matching field or type of name 'u' in 'm'
+errortest.asy: 55.12: no matching field of name 'z' in 'm'
+errortest.asy: 62.4: no matching field of name 'z' in 'm'
+errortest.asy: 75.4: no type of name 'u' in 'm'
+errortest.asy: 77.5: no type of name 'u' in 'm'
+errortest.asy: 84.3: expression cannot be used as an address
+errortest.asy: 89.3: warning: expression (in whole or part) without side-effects
+errortest.asy: 89.3: use of variable 'f' is ambiguous
+errortest.asy: 91.4: warning: expression (in whole or part) without side-effects
+errortest.asy: 91.4: use of variable 'm.f' is ambiguous
+errortest.asy: 97.11: array initializer used for non-array
+errortest.asy: 98.12: array initializer used for non-array
+errortest.asy: 103.4: no matching variable of name 'f'
+errortest.asy: 108.4: type 'int' is not a record
+errortest.asy: 116.14: no matching field of name 'z' in type 'point'
+errortest.asy: 124.6: warning: expression (in whole or part) without side-effects
+errortest.asy: 124.6: no matching field of name 'z' in type 'point'
+errortest.asy: 132.6: warning: expression (in whole or part) without side-effects
+errortest.asy: 132.6: use of field 'f' is ambiguous in type 'point'
+errortest.asy: 140.6: no matching field of name 'z' in type 'point'
+errortest.asy: 151.4: no matching function 'f()'
+errortest.asy: 152.4: no matching function 'f(string)'
+errortest.asy: 160.4: cannot call type 'void (int)' without parameters
+errortest.asy: 168.7: no matching unary operation '+'
+errortest.asy: 173.10: warning: expression (in whole or part) without side-effects
+errortest.asy: 173.10: types in conditional expression do not match
+errortest.asy: 178.10: warning: expression (in whole or part) without side-effects
+errortest.asy: 178.10: type of conditional expression is ambiguous
+errortest.asy: 183.5: cannot convert 'int ()' to 'int' in assignment
+errortest.asy: 188.5: assignment is ambiguous
+errortest.asy: 194.24: function must return a value
+errortest.asy: 200.11: type 'int' is not a record
+errortest.asy: 209.3: allocation of record 'b' is not in a valid scope
+errortest.asy: 215.3: warning: expression (in whole or part) without side-effects
+errortest.asy: 219.3: break statement outside of a loop
+errortest.asy: 223.3: continue statement outside of a loop
+errortest.asy: 228.5: function cannot return a value
+errortest.asy: 234.5: function must return a value
+errortest.asy: 241.11: function must return a value
+errortest.asy: 244.11: function must return a value
+errortest.asy: 254.3: type 'm' previously declared
+errortest.asy: 261.8: function variable 'f()' previously declared
+errortest.asy: 266.7: variable 'x' previously declared
+errortest.asy: 272.10: function variable 'f()' previously declared
+errortest.asy: 277.9: variable 'x' previously declared
+errortest.asy: 290.3: built-in functions cannot be modified
+errortest.asy: 298.18: cannot convert 'string' to 'int'

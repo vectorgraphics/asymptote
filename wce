@@ -1,0 +1,9 @@
+#!/bin/bash
+echo "should be 59:"
+./asy errortest 2>&1 | wc -l
+
+if [ -e errors ]; then
+  ./asy errortest 2> errors.temp
+  diff errors errors.temp
+  rm errors.temp
+fi

@@ -1,0 +1,93 @@
+%%% Asymptote style file for LaTeX
+%%% Contributed by Tom Prince 14 May 2003 <rtprince@ualberta.ca>
+%%% Modified    by John Bowman 03 Jun 2003 <bowman@math.ualberta.ca>
+%%% Version 1.2 
+%%% Copied from comment.sty (Under GPL v2)
+
+\RequirePackage{graphics}
+
+\def\makeinnocent#1{\catcode`#1=12 }
+\def\csarg#1#2{\expandafter#1\csname#2\endcsname}
+\newwrite\AsyStream
+\newread\EpsTestStream
+\def\AsyFile{\jobname.asy}
+\immediate\openout\AsyStream=\AsyFile
+\newcounter{asy}
+
+\def\ProcessComment#1% start it all off
+{\begingroup
+  \def\CurrentComment{#1}%
+  \let\do\makeinnocent \dospecials 
+  \makeinnocent\^^L% and whatever other special cases
+  \endlinechar`\^^M \catcode`\^^M=12 \xComment}
+{\catcode`\^^M=12 \endlinechar=-1 %
+  \gdef\xComment{%
+    \expandafter\ProcessCommentLine}
+  \gdef\ProcessCommentLine#1^^M{\def\test{#1}
+    \csarg\ifx{End\CurrentComment Test}\test
+    \edef\next{\noexpand\EndOfComment{\CurrentComment}}%
+    \else \ThisComment{#1}\let\next\ProcessCommentLine
+    \fi \next}
+}
+
+\def\CSstringmeaning#1{\expandafter\CSgobblearrow\meaning#1}
+\def\CSstringcsnoescape#1{\expandafter\CSgobbleescape\string#1}
+{\escapechar-1
+  \expandafter\expandafter\expandafter\gdef
+  \expandafter\expandafter\expandafter\CSgobblearrow
+  \expandafter\string\csname macro:->\endcsname{}
+}
+\def\CSgobbleescape#1{\ifnum`\\=`#1 \else #1\fi}
+\def\WriteAsyLine#1{\def\CStmp{#1}%
+  \immediate\write\AsyStream{\CSstringmeaning\CStmp}}
+
+\def\EndOfComment#1{\endgroup\end{#1}%
+    \csname After#1Comment\endcsname}
+\def\CommentEndDef#1{{\escapechar=-1\relax
+    \csarg\xdef{End#1Test}{\string\\end\string\{#1\string\}}%
+  }}
+
+\def\AfterasyComment{%
+  \immediate\write\AsyStream{\@charrb}%
+  \openin\EpsTestStream= \jobname.\arabic{asy}.eps
+  \ifeof\EpsTestStream
+    \message{File \jobname.\arabic{asy}.eps does not exist.}\closein\EpsTestStream%
+  \else
+    \closein\EpsTestStream
+    \includegraphics{\jobname.\arabic{asy}.eps}%
+  \fi
+  \relax%
+  \endgroup}
+\newcommand\asydefaultsize{0,5cm}
+\newcommand\asy[1][\asydefaultsize]{%
+  \begingroup
+  \let\par\empty
+  \stepcounter{asy}%
+  \def\@optarg{#1}%
+   \immediate\write\AsyStream{\@charlb}%
+   \immediate\write\AsyStream{currentpicture.erase();}%
+   \immediate\write\AsyStream{currentpen=defaultpen();}%
+   \immediate\write\AsyStream{defaultfilename="\jobname.\arabic{asy}.eps";}%
+  \ifx\@optarg\empty
+   \immediate\write\AsyStream{size(\asydefaultsize);}%
+  \else
+    \immediate\write\AsyStream{size(#1);}%
+  \fi
+  \let\ThisComment\WriteAsyLine%
+  \ProcessComment{asy}}
+\CommentEndDef{asy}
+\def\AfterasydefComment{\relax}
+\def\asydef{%
+  \let\ThisComment\WriteAsyLine%
+  \ProcessComment{asydef}}
+\CommentEndDef{asydef}
+
+\AtEndDocument{\immediate\closeout\AsyStream}
+
+\def\Asymptote{{\tt Asymptote}}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "shared"
+%%% End: 
+

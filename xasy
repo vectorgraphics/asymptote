@@ -1,0 +1,343 @@
+#!/usr/bin/env python
+# xasy
+# John Bowman and Tom Prince 2004/08/24
+#
+
+from Tkinter import *
+from string import split
+
+xscreen=800
+yscreen=600
+
+L=len(sys.argv)
+if L < 2 or L > 4 :
+    print "Usage: xasy prefix"
+    sys.exit(1)
+
+prefix=sys.argv[1]
+if(L > 2):
+    filenum=sys.argv[2]
+else:
+    filenum=0
+if(L > 3):
+    outname=sys.argv[3]
+else:
+    outname=prefix
+
+root=Tk()
+root.title(prefix)
+
+def killapp(event):
+    root.destroy()
+
+def readbboxes(name):
+    global magnification
+    try:
+	lines=map(split,open(name).readlines())
+    except IOError:
+	print "Cannot open "+name
+	sys.exit(1)
+    boxes=[]
+    magnification=float(lines[0][0])
+    for line in enumerate(lines[1:]):
+        box=dict(zip( ["l","b","r","t"], map(float,line[1]) ))
+        box["idx"]=line[0]
+        boxes.append(box)
+    return boxes
+
+class transform:
+    def __init__(self):
+        self.dx=self.dy=0
+    def bind(self,canv):
+        global lowerflag,liftflag
+        self.canv=canv
+        self.moveUndo=[]
+        self.moveRedo=[]
+        canv.tag_bind(self.obj,"<Button-1>",self.startMove)
+        canv.tag_bind(self.obj,"<Shift-Button-1>",nop)
+        canv.tag_bind(self.obj,"<B1-Motion>",self.move)
+        canv.tag_bind(self.obj,"<Shift-B1-Motion>",nop)
+        canv.tag_bind(self.obj,"<Button-2>",self.lower)
+        canv.tag_bind(self.obj,"<Button-4>",self.wheellower)
+        canv.tag_bind(self.obj,"<Button-5>",self.wheellift)
+        canv.tag_bind(self.obj,"<Enter>",self.enter)
+        canv.tag_bind(self.obj,"<Leave>",self.leave)
+	canv.select=[]
+        lowerflag=liftflag=0
+    def wheellower(self,event):
+        global lowerflag
+        lowerflag=1-lowerflag
+        if lowerflag:
+            self.lower(event)
+    def lower(self,event):
+        self.canv.lower(self.obj)
+    def wheellift(self,event):
+        global liftflag
+        liftflag=1-liftflag
+        if liftflag:
+            self.lift(event)
+    def lift(self,event):
+        x=canvas.canvasx(event.x)
+        y=canvas.canvasy(event.y)
+        items=self.canv.find_overlapping(x,y,x,y)
+        self.canv.lift(items[0])
+    def enter(self,event):
+	self.showSelection();
+        self.canv.bind("<Delete>",self.delete)
+        self.canv.bind("<z>",self.undo)
+        self.canv.bind("<r>",self.redo)
+    def leave(self,event):
+	self.clearSelection();
+        self.canv.unbind("<Delete>")
+        self.canv.unbind("<z>")
+    def clearSelection(self):
+	self.canv.delete(self.canv.select)
+    def showSelection(self):
+	self.clearSelection()
+        b=self.canv.bbox(self.obj)
+	self.canv.select=self.canv.create_rectangle(b[0],b[1],b[2],b[3],
+						    outline="red");
+	self.canv.lower(self.canv.select)
+    def startMove(self,event):
+	self.moveRedo=[]
+        self.moveUndo.append((self.x,self.y))
+        self.dx=event.x-self.x
+        self.dy=event.y-self.y
+    def undo(self,event):
+        if len(self.moveUndo) > 0:
+            self.moveRedo.append((self.x,self.y))
+            coord=self.moveUndo.pop()
+            event.x=coord[0]
+            event.y=coord[1]
+            self.dx=self.dy=0
+            self.move(event)
+    def redo(self,event):
+        if len(self.moveRedo) > 0:
+            self.moveUndo.append((self.x,self.y))
+            coord=self.moveRedo.pop()
+            event.x=coord[0]
+            event.y=coord[1]
+            self.dx=self.dy=0
+            self.move(event)
+
+class image(transform):
+    def __init__(self,canv,x,y,name,i):
+        self.img=PhotoImage(file=name)
+        self.obj=canv.create_image(x,y,image=self.img)
+        self.bind(canv)
+        self.x=self.x0=x
+        self.y=self.y0=y
+	self.i=i
+    def move(self,event):
+	self.canv.delete(self.canv.select)
+        self.x=min(max(event.x-self.dx,0),xscroll)
+        self.y=min(max(event.y-self.dy,0),yscroll)
+        self.canv.coords(self.obj,self.x,self.y)
+    def delete(self,event):
+        self.canv.delete(self.obj)
+        imagedelete[self.i]=1
+
+class line(transform):
+    def __init__(self,canv,tuple,i):
+        self.obj=canv.create_line(tuple)
+        self.bind(canv)
+        self.setdimensions(tuple)
+        self.i=i
+    def shiftTuple(self,tuple,dx,dy):
+        newtuple=()
+        for i in range(0,len(tuple),2):
+            newtuple += (tuple[i]+dx,tuple[i+1]+dy)
+        return newtuple
+    def setdimensions(self,tuple):
+        b=self.canv.bbox(self.obj)
+        self.x=b[0]
+        self.y=b[1]
+        self.width=b[2]-b[0]
+        self.height=b[3]-b[1]
+        self.tuple=tuple
+    def move(self,event):
+        dx=min(max(event.x-self.dx,0),xscroll-self.width)-self.x
+        dy=min(max(event.y-self.dy,0),yscroll-self.height)-self.y
+        self.tuple=self.shiftTuple(self.tuple,dx,dy)
+        self.canv.coords(self.obj,self.tuple)
+        self.x += dx
+        self.y += dy
+    def coords(self,coords):
+	self.canv.coords(self.obj,coords)
+        self.setdimensions(coords)
+    def getcoords(self):
+	return self.canv.coords(self.obj)
+    def getwidth(self):
+	return self.width;
+    def getheight(self):
+	return self.height;
+    def delete(self,event):
+        if len(self.tuple) <= 4:
+            self.deleteline(event)
+            return
+        self.tuple=self.tuple[0:-2]
+        self.coords(self.tuple)
+    def deleteline(self,event):
+        self.canv.delete(self.obj)
+        self.clearSelection()
+        lines[self.i]=0
+
+def writepair(f,coords):
+    global magnification
+    correction=0.5
+    f.write("(")
+    scale=1.0/magnification
+    f.write(str((coords.pop()-xoffset)*scale+correction))
+    f.write(",")
+    f.write(str((yoffset-coords.pop())*scale))
+    f.write(")")
+
+def writetransform(event):
+    f=open(outname+".gui",'a')
+    scale=1.0/magnification
+    for i in range(len(boxes)):
+	image=images[i]
+        if imagedelete[i] == 1:
+            f.write("GUIop("+str(i)+","+str(filenum)+",DELETE);\n")
+        else:
+            if image != 0:
+                x=(image.x-image.x0)*scale
+                y=(image.y0-image.y)*scale
+                image.x0=image.x
+                image.y0=image.y
+                if x != 0 or y != 0:
+                    f.write("GUIop("+str(i)+","+str(filenum)+
+                            ",shift("+str(x)+","+str(y)+"));\n")
+    for i in range(len(lines)):
+        line=lines[i]
+        if line != 0:
+            coords=line.getcoords()
+            coords.reverse()
+            f.write("draw(gui("+str(filenum)+"),")
+            writepair(f,coords)
+            while len(coords):
+                f.write("--")
+                writepair(f,coords)
+            f.write(");\n")
+
+root.bind_all("<q>",killapp)
+root.bind_all("<w>",writetransform)
+
+boxes=readbboxes("."+prefix+"_0.box")
+
+if len(boxes) < 1:
+    sys.exit(0)
+
+box=boxes[0]
+l=box["l"]
+b=box["b"]
+r=box["r"]
+t=box["t"]
+
+for i in range(1,len(boxes)):
+    box=boxes[i]
+    l=min(l,box["l"])
+    b=min(b,box["b"])
+    r=max(r,box["r"])
+    t=max(t,box["t"])
+
+width=r-l
+height=t-b
+expand=1.1
+xscroll=max(expand*width,xscreen)
+yscroll=max(expand*height,yscreen)
+xoffset=(xscroll-width)/2-l
+yoffset=(yscroll+height)/2+b
+
+xscrollbar=Scrollbar(root,orient=HORIZONTAL)
+xscrollbar.pack(side=BOTTOM,fill=X)
+yscrollbar=Scrollbar(root)
+yscrollbar.pack(side=RIGHT,fill=Y)
+
+canvas=Canvas(root,width=xscreen,height=yscreen,
+              scrollregion=(0,0,xscroll,yscroll),
+              xscrollcommand=xscrollbar.set,
+              yscrollcommand=yscrollbar.set,
+              background="white",relief="groove",highlightt=0)
+
+def nop(event):
+    pass
+
+lines=[]
+def startLine(event):
+    global obj,lastTuple
+    x=canvas.canvasx(event.x)
+    y=canvas.canvasy(event.y)
+    lastTuple=(x,y)
+    Tuple=lastTuple+(x+1,y+1)
+    obj=line(canvas,Tuple,len(lines))
+    lines.append(obj)
+    canvas.bind("<Shift-B1-Motion>",extendLine)
+    canvas.bind("<Shift-ButtonRelease-1>",addVertex)
+    canvas.bind("<d>",deleteVertex)
+    canvas.bind("<a>",addVertex)
+def extendLine(event):
+    global obj,Tuple,lastTuple
+    x=canvas.canvasx(event.x)
+    y=canvas.canvasy(event.y)
+    Tuple=lastTuple+(x,y)
+    obj.coords(Tuple)
+    canvas.bind("<Shift-Button-1>",extendLine)
+def deleteVertex(event):
+    global Tuple,lastTuple
+    if len(lastTuple) <= 4:
+        obj.delete(obj)
+        return
+    lastTuple=lastTuple[0:-2]
+    Tuple=lastTuple
+    obj.coords(Tuple)
+def addVertex(event):
+    global Tuple,lastTuple
+    extendLine(event)
+    lastTuple=Tuple
+def endLine(event):
+    canvas.bind("<Shift-Button-1>",startLine)
+
+canvas.bind("<Shift-Button-1>",startLine)
+canvas.bind("<Shift-Motion>",nop)
+canvas.bind("<Motion>",endLine)
+
+xscrollbar.config(command=canvas.xview)
+yscrollbar.config(command=canvas.yview)
+
+def xscrollup(event):
+    canvas.xview(SCROLL,1,UNITS)
+def xscrolldown(event):
+    canvas.xview(SCROLL,-1,UNITS)
+def yscrollup(event):
+    canvas.yview(SCROLL,1,UNITS)
+def yscrolldown(event):
+    canvas.yview(SCROLL,-1,UNITS)
+
+
+xscrollbar.bind("<Button-4>",xscrolldown)
+xscrollbar.bind("<Button-5>",xscrollup)
+yscrollbar.bind("<Button-4>",yscrolldown)
+yscrollbar.bind("<Button-5>",yscrollup)
+canvas.bind("<Control-Button-4>",xscrolldown)
+canvas.bind("<Control-Button-5>",xscrollup)
+canvas.bind("<Shift-Button-4>",yscrolldown)
+canvas.bind("<Shift-Button-5>",yscrollup)
+
+canvas.pack()
+canvas.focus_set()
+
+imagedelete=[]
+images=[]
+for i in range(len(boxes)):
+    box=boxes[i]
+    name="."+prefix+"_"+str(box["idx"])+".gif"
+    imagedelete.append(0)
+    try:
+	f=open(name,"r")
+	f.close()
+	images.append(image(canvas,xoffset+0.5*(box["l"]+box["r"]),yoffset-0.5*(box["b"]+box["t"]),name,i))
+    except IOError:
+	images.append(0);
+
+root.mainloop()

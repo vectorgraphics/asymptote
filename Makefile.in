@@ -1,0 +1,95 @@
+# @configure_input@
+
+ARCH = unix
+POLL = poll
+
+LIBS = $(LFLAGS) @LIBS@
+
+CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
+       guide knotlist pathlist drawfill
+FILES = $(CAMP) cast env genv main runtime stm dec errormsg inst name symbol \
+	types entry exp newexp stack camp.tab lex.yy import access \
+	absyn record pool interact fileio builtin fftw++ simpson
+CLEAN = camp.tab.h camp.tab.cc lex.yy.cc camp.output
+NAME = asy
+XNAME = x$(NAME)
+
+CXX = @CXX@ -Wall -ansi
+MAKEDEPEND = $(CXX) $(OPT) -M -DDEPEND
+YACC = @YACC@
+LEX = @LEX@
+
+DEFS = @DEFS@
+OPT = -g $(DEFS) $(CFLAGS)
+INCL = -I. -I-
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+asydir = @asydir@
+INSTALL = @INSTALL@
+
+all:  	asy
+
+asy: 	parser depend
+	$(MAKE) -f Compile files
+
+depend: $(FILES:=.d)
+
+parser: camp.tab.cc camp.tab.h lex.yy.cc
+
+camp.tab.h: camp.tab.cc
+
+camp.tab.cc: camp.y
+	$(YACC) -dvt -b camp camp.y
+	mv camp.tab.c camp.tab.cc
+
+lex.yy.cc: camp.l
+	$(LEX) -d -olex.yy.cc camp.l
+
+lex.yy.d: lex.yy.cc camp.tab.h
+
+install: all
+	${INSTALL} -d $(bindir) $(asydir) $(asydir)/examples
+	${INSTALL} -s $(NAME) $(bindir)
+	${INSTALL} $(XNAME) $(bindir)
+	${INSTALL} base/*.asy $(asydir)
+	${INSTALL} examples/*.asy $(asydir)/examples
+
+uninstall: 
+	-cd $(asydir)/examples; rm -f *.asy
+	-rmdir $(asydir)/examples
+	-cd $(asydir); rm -f *.asy
+	-rmdir $(asydir)
+	-rm -f $(bindir)/$(NAME) $(bindir)/$(XNAME) 
+
+clean:  FORCE
+	rm -f asy *.o *.d *mon.out $(CLEAN)
+
+distclean: FORCE clean
+	rm -f Makefile config.h config.log config.status
+
+maintainer-clean: FORCE distclean
+	rm -f configure config.h.in 
+	rm -rf autom4te.cache
+
+test:   asy FORCE
+	./wce
+
+.SUFFIXES: .c .cc .o .d
+.cc.o:
+	$(CXX) $(OPT) $(INCL) -o $@ -c $<
+.cc.d:
+	$(MAKEDEPEND) $(INCL) $(MDOPTS) $< > $@
+
+FORCE:
+
+configure: configure.ac
+	autoheader && autoconf
+
+Makefile: Makefile.in config.status
+	./config.status
+
+config.status: configure
+	./config.status --recheck
+
