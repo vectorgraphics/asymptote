@@ -8,6 +8,8 @@
 #ifdef HAVE_FENV_H
 #include <fenv.h>
 
+#ifdef _GNU_SOURCE
+
 inline int fpu_exceptions() {
   int excepts=0;
 #ifdef FE_INVALID    
@@ -22,16 +24,17 @@ inline int fpu_exceptions() {
   return excepts;
 }
 
-#ifdef _GNU_SOURCE
 inline void fpu_trap(bool trap)
 {
   // Conditionally trap FPU exceptions on NaN, zero divide and overflow.
   if(trap) feenableexcept(fpu_exceptions());
   else fedisableexcept(fpu_exceptions());
 }
+#endif
+
 #else
+
 inline void fpu_trap(bool) {}
-#endif  
 
 #endif
 
