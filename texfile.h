@@ -41,7 +41,7 @@ void texpreamble(T& out) {
   }
   out << "\\newbox\\ASYbox" << newl
       << "\\newdimen\\ASYdimen" << newl
-      << "\\def\\ASYalign#1#2{\\setbox\\ASYbox=\\hbox{#1}"
+      << "\\def\\ASYbase#1#2{\\setbox\\ASYbox=\\hbox{#1}"
       << "\\ASYdimen=\\ht\\ASYbox%"
       << newl
       << "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl;

@@ -136,7 +136,7 @@ public endlT endl=null;
 private struct tabT {};
 public tabT tab=null;
 
-void write(file out, endlT endl=null) {write(out,"\n"); flush(out);}
+void write(file out, endlT endl=null) {write(out,'\n'); flush(out);}
 void write(file out=stdout, bool x, endlT) {write(out,x); write(out);}
 void write(file out=stdout, int x, endlT) {write(out,x); write(out);}
 void write(file out=stdout, real x, endlT) {write(out,x); write(out);}
@@ -146,7 +146,7 @@ void write(file out=stdout, guide x, endlT) {write(out,x); write(out);}
 void write(file out=stdout, pen x, endlT) {write(out,x); write(out);}
 void write(file out=stdout, transform x, endlT) {write(out,x); write(out);}
 
-void write(file out=stdout, tabT) {write(out,"\t");}
+void write(file out=stdout, tabT) {write(out,'\t');}
 void write(file out=stdout, bool x, tabT) {write(out,x); write(out,tab);}
 void write(file out=stdout, int x, tabT) {write(out,x); write(out,tab);}
 void write(file out=stdout, real x, tabT) {write(out,x); write(out,tab);}
@@ -969,8 +969,8 @@ void include(picture pic=currentpicture, string name, string options="")
 {
   if(options != "") options="["+options+"]";
   string include="\includegraphics"+options+"{"+name+"}";
-  tex(pic,"\kern-\wd\ASYpsbox%
-\setbox\ASYpsbox=\hbox{"+include+"}%
+  tex(pic,"\kern-\wd\ASYbox%
+\setbox\ASYbox=\hbox{"+include+"}%
 "+include+"%");
   layer(pic);
 }
@@ -1530,7 +1530,7 @@ string baseline(string s, pair align=S, string template="M")
 {
   if(s == "") return s;
   return align.y <= -0.5*abs(align.x) ? 
-    "\ASYalign{"+template+"}{"+s+"}" : s;
+    "\ASYbase{"+template+"}{"+s+"}" : s;
 }
 
 string math(string s)
