@@ -400,15 +400,15 @@ background = gray(0.987);
 
     void drawsegment( picture pic=currentpicture, string s="", real angle=0,
       vector A, vector B, pair align=0, side side=RightSide, 
-      pen p=currentpen, adjust adjust=NoAdjust, arrowbar arrow=None,
-      arrowbar bar=None, string legend="") 
+      pen p=currentpen, arrowbar arrow=None, arrowbar bar=None,
+      string legend="") 
     {
 	   if (SphericalDistortion) {
 	     draw( pic, s, angle, pathofstraightline( A, B ), align, side, p,
-              adjust, arrow, bar, legend);
+              arrow, bar, legend);
 	   } else {
 	     draw( pic, s, angle, rp(A)--rp(B), align, side, p,
-              adjust, arrow, bar, legend);
+              arrow, bar, legend);
       }
     }
 
@@ -424,9 +424,9 @@ background = gray(0.987);
       drawsegment(orig,axxc,Arrow);
       drawsegment(orig,ayyc,Arrow);
       drawsegment(orig,azzc,Arrow);
-      label( "x" ,rp(axxc),S);       //%%%%%%%%%%%%%%%%%%%%%%% 
-      label( "y" ,rp(ayyc),S);       //   Some  Labels...   %%
-      label( "z" ,rp(azzc),W);       //%%%%%%%%%%%%%%%%%%%%%%% 
+      label("$x$",rp(axxc),S);       //%%%%%%%%%%%%%%%%%%%%%%% 
+      label("$y$",rp(ayyc),S);       //   Some  Labels...   %%
+      label("$z$",rp(azzc),W);       //%%%%%%%%%%%%%%%%%%%%%%% 
     }
 
 // This is it. Draw an arch beetween two straight lines with a
@@ -1921,13 +1921,12 @@ background = gray(0.987);
 
     void face_invisible( picture pic=currentpicture, string s="", real angle=0,
                          int Facen, pair align=0, side side=RightSide,
-                         pen p=currentpen, adjust adjust=NoAdjust,
-                         arrowbar arrow=None, arrowbar bar=None,
-                         string legend="" ) {
+                         pen p=currentpen, arrowbar arrow=None,
+			 arrowbar bar=None, string legend="" ) {
       path ghost;
       ghost = facepath( Facen );
       unfill( ghost );
-      draw(pic,s,angle, ghost, align, side, p, adjust, arrow, bar, legend);
+      draw(pic,s,angle, ghost, align, side, p, arrow, bar, legend);
     }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -2113,7 +2112,7 @@ background = gray(0.987);
     // TN
     void fill_faces( picture pic=currentpicture, string s="", real angle=0,
         pair align=0, side side=RightSide, 
-        pen p=currentpen, adjust adjust=NoAdjust, arrowbar arrow=None,
+        pen p=currentpen, arrowbar arrow=None,
         arrowbar bar=None, string legend="") 
     {
 	   if (ShadowOn) {
@@ -2121,7 +2120,7 @@ background = gray(0.987);
           fill(faceshadowpath( i ));
       }
       for (int i=1; i <= NF; i += 1)
-          face_invisible( pic, s, angle, i, align, side, p, adjust, arrow,
+          face_invisible( pic, s, angle, i, align, side, p, arrow,
                           bar, legend );
     }
 
