@@ -197,21 +197,20 @@ make install-man
 
 @end verbatim
 
-@cindex{emacs}
-@cindex{asy-mode}
+@cindex @code{emacs}
+@cindex @code{asy-mode}
 User of @code{emacs} can edit @code{Asymptote} code with the mode
 @code{asy-mode}, after enabling it by putting these two lines in the
 @code{~/.emacs} initialization file, replacing ASYDIR with the location
-of the Asymptote base files
-(by default, @code{/usr/local/share/asymptote}):
+of the Asymptote base files (by default, @code{/usr/local/share/asymptote}):
 @verbatim
 (autoload 'asy-mode "ASYDIR/asy-mode.el" "Asymptote major mode." t)
 (setq auto-mode-alist (cons (cons "\\.asy$" 'asy-mode) auto-mode-alist))
 
 @end verbatim
 
-@cindex{vim}
-@cindex{asy.vim}
+@cindex @code{vim}
+@cindex @code{asy.vim}
 Fans of @code{vim} can
 @verbatim 
 cp /usr/local/share/asymptote/asy.vim ~/.vim/syntax/asy.vim
@@ -228,7 +227,7 @@ filetype plugin on
 
 If any of these directories or files don't exist, just create them.
 To set @code{vim} up to run the current asymptote script using @code{:make}
-just add to @code{.vim/ftplugin/asy.vim}:
+just add to @code{~/.vim/ftplugin/asy.vim}:
 
 @verbatim
 setlocal makeprg=asy\ %
