@@ -16,12 +16,13 @@ Log.T=log10;
 Log.Tinv=pow10;
 Log.Label=identity;
 
-public scaleT Linear(bool automin=true, bool automax=true, real s=1.0)
+public scaleT Linear(bool automin=true, bool automax=true, real s=1,
+		     real intercept=0)
 {
   real sinv=1/s;
   scaleT scale=new scaleT;
-  scale.T=new real(real x) {return x*s;};
-  scale.Tinv=new real(real x) {return x*sinv;};
+  scale.T=new real(real x) {return (x-intercept)*s;};
+  scale.Tinv=new real(real x) {return x*sinv+intercept;};
   scale.Label=scale.Tinv;
   scale.automin=automin;
   scale.automax=automax;
@@ -129,7 +130,7 @@ bounds autoscale(real Min, real Max, bool logaxis=false)
   real a=sa.floor(Min,exp);
   real b=sb.ceil(Max,exp);
 //  if(sb.mantissa < 1.5 || (a < 0 && sa.mantissa < 1.5)) {
-  if(sb.mantissa < 1.5) {
+  if(sb.mantissa <= 1.5) {
     --exp;
     a=sa.floor(Min,exp);
     b=sb.ceil(Max,exp);
@@ -207,7 +208,7 @@ private struct locateT {
 
 pair labeltick(frame d, transform T, guide g, real pos, pair side,
 	       int sign, real Size, ticklabel ticklabel, pen plabel, part part,
-	       real norm=0.0, bool deconstruct=false) 
+	       real norm=0, bool deconstruct=false) 
 {
   locateT locate=new locateT;
   locate.calc(T,g,pos);
@@ -217,7 +218,7 @@ pair labeltick(frame d, transform T, guide g, real pos, pair side,
   pair Z=locate.Z+shift;
   if(deconstruct) Z=GUI()*Z;
   real v=part(locate.z);
-  if(abs(v) < epsilon*norm) v=0.0;
+  if(abs(v) < epsilon*norm) v=0;
   label(d,ticklabel(v),Z,align,plabel);
   return locate.dir;
 }  
@@ -287,7 +288,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	if(step != 0) n=ceil(Step/step);
       } else step=Step/n;
       
-      real lastpos=S.T(b-a);
+      real lastpos=S.T(b)-S.T(a);
       real firstpos=-epsilon*lastpos;
       lastpos *= (1+epsilon);
       if(!deconstruct || !GUIDelete()) {
@@ -598,7 +599,7 @@ public axis
     axis.value=0;
     axis.min=min;
     axis.max=max;
-    axis.position=1.0;
+    axis.position=1;
     axis.side=left;
     axis.align=W;
     axis.value2=infinity;
@@ -609,7 +610,7 @@ public axis
     axis.value=0;
     axis.min=min;
     axis.max=max;
-    axis.position=1.0;
+    axis.position=1;
     axis.side=right;
     axis.align=S;
     axis.value2=infinity;
@@ -802,7 +803,35 @@ void labelytick(picture pic=currentpicture, real y, pair align=W,
   ytick(pic,y,-align,Ticksize,p);
 }
 
+// Construct a secondary linear X axis
+picture secondaryX(picture primary=currentpicture, void f(picture))
+{
+  picture pic=new picture;
+  f(pic);
+  bounds b=autoscale(pic.userMin.x,pic.userMax.x);
+  real m=(primary.userMax.x-primary.userMin.x)/(b.max-b.min);
+  pic.erase();
+  scale(pic,Linear(m,b.min),primary.scale.y.scale);
+  pic.userMin=primary.userMin;
+  pic.userMax=primary.userMax;
+  f(pic);
+  return pic;
+}
 
+// Construct a secondary linear Y axis
+picture secondaryY(picture primary=currentpicture, void f(picture))
+{
+  picture pic=new picture;
+  f(pic);
+  bounds b=autoscale(pic.userMin.y,pic.userMax.y);
+  real m=(primary.userMax.y-primary.userMin.y)/(b.max-b.min);
+  pic.erase();
+  scale(pic,primary.scale.x.scale,Linear(m,b.min));
+  pic.userMin=primary.userMin;
+  pic.userMax=primary.userMax;
+  f(pic);
+  return pic;
+}
 
 private struct interpolateT {};
 public interpolateT interpolate=null;
