@@ -24,6 +24,8 @@
 
 namespace interact {
 
+using namespace std;  
+  
 bool virtualEOF=true;
 bool rejectline=false;
 int interactive=false;
@@ -35,7 +37,7 @@ bool redraw=false;
 static int start=0;
 static int end=0;
   
-static std::string asyinput=".asy_input";  
+static string asyinput=".asy_input";  
 static const char *historyfile=".asy_history";
   
 void reset()
@@ -50,13 +52,13 @@ static size_t ninput=strlen(input);
 /* Read a string, and return a pointer to it. Returns NULL on EOF. */
 char *rl_gets(void)
 {
-  static char *line_read=(char *) NULL;
+  static char *line_read=NULL;
   
   /* If the buffer has already been allocated,
      return the memory to the free pool. */
   if(line_read) {
     free(line_read);
-    line_read=(char *) NULL;
+    line_read=NULL;
   }
      
   /* Get a line from the user. */
@@ -70,7 +72,7 @@ char *rl_gets(void)
      
   if(rejectline && history_length) remove_history(history_length-1);
   
-  if(!line_read) std::cout << std::endl;
+  if(!line_read) cout << endl;
   else {
     if(strcmp(line_read,"q") == 0 || strcmp(line_read,"quit") == 0
        || strcmp(line_read,"quit;") == 0)
@@ -87,29 +89,42 @@ char *rl_gets(void)
   return line_read;
 }
 
+void overflow() {
+  cerr << "warning: buffer overflow, input discarded." << endl;
+}
+
 void add_input(char *&dest, const char *src, size_t& size)
 {
-  size_t len=strlen(src)+1;
-  if(len > size) {
-    std::cerr << "Error: interactive input buffer overflow." << std::endl;
-    exit(1);
-  }
-  
   if(strncmp(src,input,ninput) == 0) {
-    const std::string inputname=
-      trans::symbolToFile(trans::symbol::trans(src+ninput));
-    static std::filebuf filebuf;
-    if(!filebuf.open(inputname.c_str(),std::ios::in)) {
-      cout << "warning: input file '" << inputname << "' not found" << endl;
+    string name(src+ninput);
+    size_t p=name.find(';');
+    if(p < string::npos) {
+      name.erase(p,name.length()-p);
+      src++;
+    }
+    src += name.length()+ninput;
+    const string iname=trans::symbolToFile(trans::symbol::trans(name));
+    static filebuf filebuf;
+    if(!filebuf.open(iname.c_str(),ios::in)) {
+      cout << "warning: input file '" << name << "' not found" << endl;
       return;
     }
-    len=filebuf.sgetn(dest,size);
+    size_t len=filebuf.sgetn(dest,size);
     filebuf.close();
     settings::suppressOutput=false;
-  } else {
-    strcpy(dest,src);
-    dest[strlen(dest)]=';'; // Auto-terminate each line
+    if(len == size) {overflow(); return;}
+    size -= len;
+    dest += len;
   }
+  
+  size_t len=strlen(src)+1;
+  if(len == 1) return;
+  
+  if(len > size) {overflow(); return;}
+  
+  strcpy(dest,src);
+  dest[strlen(dest)]=';'; // Auto-terminate each line
+  
   size -= len;
   dest += len;
 }

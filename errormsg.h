@@ -62,8 +62,6 @@ public:
   {
     if (pos.file)
       pos.file->print(out, pos.p);
-    else
-      out << "<unknown pos>: ";
     return out;
   }
 

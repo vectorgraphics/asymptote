@@ -119,12 +119,12 @@ consistency, yielding the same high-quality level of typesetting that
 A major advantage of @code{Asymptote} over other graphics packages is
 that it is a high-level programming language, as opposed to just a graphics
 program: it can therefore exploit the best features of the script
-(command-driven) and graphical-user-interface (GUI) methods for
-producing figures. The rudimentary GUI @code{xasy} included with the
+(command-driven) and graphical-user-interface (@acronym{GUI}) methods for
+producing figures. The rudimentary @acronym{GUI} @code{xasy} included with the
 package allows one to move script-generated objects
-around. To make @code{Asymptote} accessible to the average user, this GUI is
-currently being developed into a full-fledged interface that can
-generate objects directly. However, the script portion of the language
+around. To make @code{Asymptote} accessible to the average user, this
+@acronym{GUI} is currently being developed into a full-fledged interface
+that can generate objects directly. However, the script portion of the language
 is now ready for general use by users who are willing to learn a few
 simple @code{Asymptote} graphics commands @ref{Drawing commands}.
 
@@ -159,7 +159,8 @@ syntax;
 @item compiles figures into pseudo-machine code for speed without
 sacrificing portability;
 
-@item the power of a script-based language coupled to the convenience of a GUI;
+@item the power of a script-based language coupled to the convenience of
+a @acronym{GUI};
 
 @item can be customized using its own C++-like graphics programming language 
 
@@ -262,7 +263,7 @@ The FFTW library is only required if you want @code{Asymptote} to be able to
 take Fourier transforms of data (say, to compute an audio power spectrum).
 
 If you don't want to install @code{Asymptote} system wide, just make
-sure the compiled binary @code{asy} and GUI script @code{xasy} are in
+sure the compiled binary @code{asy} and @acronym{GUI} script @code{xasy} are in
 your path and set the environment variable @code{ASYMPTOTE_DIR} to point
 to the directory @code{base} (in the top level directory of the
 @code{Asymptote} source code). In looking for @code{Asymptote} system
@@ -3583,28 +3584,34 @@ also not necessary to end your commands with @code{shipout()}, as a
 @code{shipout()} command is automatically appended as each line is
 entered. If you type in a command like @code{size(100,100)} on the first line,
 you will get two innocuous warning messages "warning: scaling in picture
-unbounded" since the current picture, being still empty, cannot be
+unbounded" since @code{currentpicture} is empty and cannot be
 scaled to achieve the requested size.
 
-The following special commands are supported only in interactive mode:
+The following special commands are supported only in interactive mode
+and must be entered immediate after the prompt:
 
 @table @code
+@cindex @code{quit}
 @item quit
-exits interactive mode
+exits interactive mode (abbreviated as @code{q}).
+@cindex @code{redraw}
 @item redraw
-refreshes the screen
+re-executes the previous commands
+@cindex @code{reset}
 @item reset
-resets @code{Asymptote} to its initial state on entry, before any
-commands were typed.
+resets @code{Asymptote} to its initial state, before any commands were typed.
+@cindex @code{input}
 @item input FILE
-directly inputs code from an existing file @code{FILE} into @code{Asymptote},
-after first doing an interactive @code{reset}. 
+directly inputs code from @code{FILE} into @code{Asymptote},
+after first doing a @code{reset}. For convenience, a
+trailing semi-colon followed by optional @code{Asymptote} commands may be
+entered on the same line.
 @end table
 
 @node GUI
 @chapter Graphical User Interface
 @cindex graphical user interface
-@cindex GUI
+@cindex @acronym{GUI}
 @cindex mouse
 @cindex wheel mouse
 @cindex @code{Button-1}
@@ -3612,7 +3619,7 @@ after first doing an interactive @code{reset}.
 @cindex @code{xasy}
 
 In the event that adjustments to the final figure are required, the
-Graphical User Interface @code{xasy} included with @code{Asymptote}
+Graphical User Interface (@acronym{GUI}) @code{xasy} included with @code{Asymptote}
 allows you to move graphical objects around with mouse @code{Button-1}. 
 The modified layout can be written to disk with the @code{w} key in a form
 readable to @code{Asymptote}.
@@ -3637,7 +3644,7 @@ quit
 One can also draw connected line segments by holding down the shift key
 and pressing mouse @code{Button-1} at each desired node.  Releasing the shift
 key ends the definition of the path. More features will be added to
-this preliminary GUI soon.
+this preliminary @acronym{GUI} soon.
 
 As @code{xasy} is written in the interactive scripting language
 Python/TK, it requires that both Python and the @code{tkinter} package be
