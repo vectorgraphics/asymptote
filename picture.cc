@@ -99,16 +99,13 @@ bool picture::texprocess(const string& texname, const string& outname,
     outfile.close();
     ostringstream cmd;
     cmd << "latex \\scrollmode\\input " << texname;
-    status=System(cmd,verbose <= 1);
-    if(status) return false;
-    string dviname=auxname(prefix,"dvi");
-    outfile.open(dviname.c_str());
-    if(!outfile) {
-      if(verbose <= 1) System(cmd);
+    bool quiet=verbose <= 1;
+    status=System(cmd,quiet);
+    if(status) {
+      if(quiet) status=System(cmd);
       return false;
     }
-    outfile.close();
-    
+    string dviname=auxname(prefix,"dvi");
     double height=bpos.top-bpos.bottom;
     
     // Magic dvips offsets:
@@ -358,9 +355,11 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
 	  unlink(p->c_str());
       }
     }
-    status=postprocess(epsname,outname,outputformat,wait,bpos);
+    if(status) status=postprocess(epsname,outname,outputformat,wait,bpos);
   }
   
+  if(!status) reportError("shipout failed");
+    
   if(labels) delete tex;
   
   if(!tgifformat) outnameStack->push_back(outname);
