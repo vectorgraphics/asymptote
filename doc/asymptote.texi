@@ -1551,7 +1551,8 @@ void texpreamble(string s);
 
 @cindex @code{file}
 @code{Asymptote} can read and write text files (including comma-separated
-value) files and portable XDR (External Data Representation) binary files.
+value) files and portable @acronym{XDR} (External Data Representation)
+binary files.
 
 An input file must first be opened with @code{input(string, bool check=true)};
 reading is then done by assignment:
@@ -1612,11 +1613,18 @@ write(stdout,a,tab); write(stdout,b,endl);
 write(stdout,a,tab); write(stdout,b,tab); write(stdout,c,endl);
 @end verbatim
 
-Files may also be opened with @code{xinput} or @code{xoutput} instead of
-@code{input} or @code{output}, in which case the reading or writing will
-be done using Sun Microsystem's XDR (External Data Representation)
-portable binary format (available on all UNIX platforms).
-The default initializer for file is @code{stdout}.
+
+@cindex @code{xinput}
+@cindex @code{xoutput}
+@cindex @code{single}
+@cindex @code{double}
+A file may also be opened with @code{xinput} or @code{xoutput} instead of
+@code{input} or @code{output}, in which case it will read or write
+double precision values written in Sun Microsystem's @acronym{XDR} (External
+Data Representation) portable binary format (available on all UNIX platforms).
+The function @code{file single(file)} sets the file to read single
+precision @acronym{XDR} values; @code{file double(file)} sets it back to read
+doubles again. The default initializer for file is @code{stdout}.
 
 @cindex @code{eof}
 @cindex @code{eol}
@@ -2795,23 +2803,18 @@ For example, to draw a log graph of a function, use @code{scale(Log,Log)}:
 @verbatiminclude loggraph.asy
 @image{loggraph}
 
-@item @code{Asymptote} also provides a means for drawing a secondary
-linear axis with the routines
-@verbatim
-picture secondaryX(picture primary=currentpicture,
-		   bool automin=true, bool automax=true,
-                   void f(picture));
-picture secondaryY(picture primary=currentpicture, 
-		   bool automin=true, bool automax=true,
-                   void f(picture));
-@end verbatim
-
-This example uses @code{secondaryY} to draw a secondary linear
-@math{y} axis:
-
 @cindex secondary axis
 @cindex @code{secondaryX}
 @cindex @code{secondaryY}
+@item @code{Asymptote} can draw secondary axes with the routines
+@verbatim
+picture secondaryX(picture primary=currentpicture, void f(picture));
+picture secondaryY(picture primary=currentpicture, void f(picture));
+@end verbatim
+
+In this example, @code{secondaryY} is used to draw a secondary logarithmic
+@math{y} axis:
+
 @verbatiminclude secondaryaxis.asy
 @image{secondaryaxis}
 

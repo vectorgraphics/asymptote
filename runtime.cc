@@ -2034,6 +2034,14 @@ void fileSingleMode(stack *s)
   s->push(f);
 }
 
+// Set file to read/write double-precision XDR values.
+void fileDoubleMode(stack *s) 
+{
+  file *f = s->pop<file*>();
+  f->SingleMode(false);
+  s->push(f);
+}
+
 // Set file to read an array1 (1 int size followed by a 1-d array)
 void fileArray1(stack *s) 
 {

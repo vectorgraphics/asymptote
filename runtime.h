@@ -279,6 +279,7 @@ void fileDimension3(vm::stack *s);
 void fileCSVMode(vm::stack *s);
 void fileLineMode(vm::stack *s);
 void fileSingleMode(vm::stack *s);
+void fileDoubleMode(vm::stack *s);
 void fileArray1(vm::stack *s);
 void fileArray2(vm::stack *s);
 void fileArray3(vm::stack *s);

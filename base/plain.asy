@@ -434,12 +434,12 @@ public struct scaleT {
 
 public struct autoscaleT {
   public scaleT scale=new scaleT;
-  public bool automin=true, automax=true;
+  public scaleT postscale=new scaleT;
   public real tickMin=infinity, tickMax=-infinity;
-  void update() {
-    if(automin) automin=scale.automin;
-    if(automax) automax=scale.automax;
-  }
+  
+  real T(real x) {return postscale.T(scale.T(x));}
+  real Tinv(real x) {return scale.Tinv(postscale.Tinv(x));}
+  real Label(real x) {return scale.Label(postscale.Tinv(x));}
 }
 
 public struct ScaleT {
@@ -447,11 +447,6 @@ public struct ScaleT {
   public autoscaleT x=new autoscaleT;
   public autoscaleT y=new autoscaleT;
   public autoscaleT z=new autoscaleT;
-  void update() {
-    x.update();
-    y.update();
-    z.update();
-  }
 };
 
 struct Legend {

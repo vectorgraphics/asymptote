@@ -35,7 +35,7 @@ frame palette(real[][] data, pen[] palette,
   });
   
   pic.addBox(z0,z1,(0,0),(Ticksize,0));
-  pic.scale.x.automax=false;
+  pic.scale.x.scale.automax=false;
   yaxis(pic,initialy,finaly,p,s,position,angle,align,shift,side,plabel,ticks);
   return shift(palettemargin+Ticksize,0)*
     ((shift(0,-initialy)*pic).fit(0,height,false));
