@@ -70,7 +70,7 @@ struct signature;
 // Arrays are equal if their cell types are equal.
 bool equivalent(ty *t1, ty *t2);
 
-class ty : public mempool::pooled<ty> {
+class ty : public memory::managed<ty> {
 public:
   const ty_kind kind;
   ty(ty_kind kind)
@@ -212,7 +212,7 @@ ty *stringArray3();
 // Holds the parameters of a function and if they have default values
 // (only applicable in some cases).  Technically, a signature should
 // also hold the function name.
-class signature : public mempool::pooled<signature> {
+class signature : public memory::managed<signature> {
   vector<ty *> formals;
 
   // Holds the index of the expression in an array of default

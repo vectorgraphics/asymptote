@@ -35,7 +35,7 @@ enum permission {
 
 
 // These serves as the base class for the accesses.
-class access : public mempool::pooled<access> {
+class access : public memory::managed<access> {
 protected:
   // Generic compiler access error - if the compiler functions properly,
   // none of these should be reachable by the user.

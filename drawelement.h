@@ -95,7 +95,7 @@ public:
   
 };
   
-class drawElement : public mempool::pooled<drawElement>
+class drawElement : public memory::managed<drawElement>
 {
 public:
   static pen lastpen;  

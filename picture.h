@@ -20,7 +20,7 @@ namespace camp {
 
 extern iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
 
-class picture : public mempool::pooled<picture> {
+class picture : public memory::managed<picture> {
 private:
   bbox b;
   pair bboxshift;

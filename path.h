@@ -58,7 +58,7 @@ class path {
 
   int n; // The number of knots
 
-  mempool::poolarray<solvedKnot> nodes;
+  memory::managed_array<solvedKnot> nodes;
   mutable double cached_length; // Cache length since path is immutable.
 
 public:

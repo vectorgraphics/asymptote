@@ -20,7 +20,7 @@ using std::endl;
 struct handled_error {}; // Exception to process next file.
 struct interrupted {};   // Exception to process user interrupts.
 
-class fileinfo : public mempool::pooled<fileinfo> {
+class fileinfo : public memory::managed<fileinfo> {
   std::string filename;
   std::list<int> linePos;
   int lineNum;

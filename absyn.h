@@ -19,7 +19,7 @@ namespace trans {
 
 namespace absyntax {
 
-class absyn : public mempool::pooled<absyn> {
+class absyn : public memory::managed<absyn> {
 protected:
   const position pos;
 

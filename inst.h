@@ -25,7 +25,7 @@ namespace vm {
 // Forward declarations
 struct inst; class stack;
 typedef boost::any item;
-typedef mempool::poolarray<item> frame;
+typedef memory::managed_array<item> frame;
 
 template<typename T>
 inline T get(const item& val)
@@ -36,7 +36,7 @@ inline T get(const item& val)
 // Manipulates the stack.
 typedef void (*bltin)(stack *s);
 
-class program : public mempool::pooled<program>
+class program : public memory::managed<program>
 {
 public:
   class label;
@@ -46,7 +46,7 @@ public:
   label end();
 private:
   friend class label;
-  class code_t : public std::deque<inst>, public mempool::pooled<code_t> {};
+  class code_t : public std::deque<inst>, public memory::managed<code_t> {};
   code_t *code;
 };
 
@@ -73,7 +73,7 @@ private:
   
 // A function "lambda," that is, the code that runs a function.
 // It also need the closure of the enclosing module or function to run.
-struct lambda : public mempool::pooled<lambda> {
+struct lambda : public memory::managed<lambda> {
   // The instructions to follow.
   program code;
 
@@ -96,7 +96,7 @@ struct lambda : public mempool::pooled<lambda> {
   virtual ~lambda() {}
 };
 
-struct callable : public mempool::pooled<callable>
+struct callable : public memory::managed<callable>
 {
   virtual void call(stack *) = 0;
   virtual ~callable();
@@ -166,7 +166,7 @@ struct inst {
 };
 
 // Arrays are vectors with a push func for running in asymptote.
-class array : public std::vector<item>, public mempool::pooled<array> {
+class array : public std::vector<item>, public memory::managed<array> {
 public:
   array(size_t n)
     : std::vector<item>(n)

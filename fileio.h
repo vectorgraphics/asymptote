@@ -33,7 +33,7 @@ namespace camp {
 extern std::string tab;
 extern std::string newline;
   
-class file : public mempool::pooled<file> {
+class file : public memory::managed<file> {
 protected:  
   std::string name;
   int nx,ny,nz;    // Array dimensions

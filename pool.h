@@ -10,7 +10,7 @@
 
 #include <new>
 
-namespace mempool
+namespace memory
 {
 
 void free();
@@ -20,7 +20,7 @@ void insert(poolitem);
 void erase(poolitem);
   
 template <class T>
-class pooled
+class managed
 {
 public:
   void *operator new (size_t n);
@@ -34,18 +34,18 @@ private:
 };
 
 template <class T>
-class poolarray
+class managed_array
 {
 public:
-  poolarray() : array(0) {}
-  explicit poolarray(T* array);
-  explicit poolarray(size_t n);
+  managed_array() : array(0) {}
+  explicit managed_array(T* array);
+  explicit managed_array(size_t n);
   void reset (T* new_array);
   T& operator[](std::ptrdiff_t);
   T operator[](std::ptrdiff_t) const;
   bool operator!() const;
-  bool operator==(poolarray) const;
-  bool operator!=(poolarray) const;
+  bool operator==(managed_array) const;
+  bool operator!=(managed_array) const;
 private:
   T* array;
   static void deleter(void*);
@@ -65,14 +65,14 @@ protected:
 };
 
 template <class T>
-void pooled<T>::deleter(void* ptr)
+void managed<T>::deleter(void* ptr)
 {
   static_cast<T*>(ptr)->~T();
   ::operator delete (ptr);
 }
 
 template <class T>
-inline void* pooled<T>::operator new(size_t n)
+inline void* managed<T>::operator new(size_t n)
 {
   void *p = ::operator new(n);
   insert(poolitem(p,deleter));
@@ -80,13 +80,13 @@ inline void* pooled<T>::operator new(size_t n)
 }
 
 template <class T>
-inline void* pooled<T>::operator new(size_t, void* p)
+inline void* managed<T>::operator new(size_t, void* p)
 {
   return p;
 }
 
 template <class T>
-inline void pooled<T>::operator delete(void* p)
+inline void managed<T>::operator delete(void* p)
 {
   poolitem it(p,deleter);
   erase(it);
@@ -94,59 +94,59 @@ inline void pooled<T>::operator delete(void* p)
 }
 
 template <class T>
-inline void pooled<T>::operator delete(void*, void*)
+inline void managed<T>::operator delete(void*, void*)
 {}
 
 template <class T>
-void poolarray<T>::deleter(void* ptr)
+void managed_array<T>::deleter(void* ptr)
 {
   delete[] static_cast<T*>(ptr);
 }
 
 template <class T>
-inline poolarray<T>::poolarray(T* array)
+inline managed_array<T>::managed_array(T* array)
   : array(array)
 {
   insert(poolitem(array,deleter));
 }
 
 template <class T>
-inline poolarray<T>::poolarray(size_t n)
+inline managed_array<T>::managed_array(size_t n)
   : array(new T[n])
 {
   insert(poolitem(array,deleter));
 }
 
 template <class T>
-inline void poolarray<T>::reset(T* new_array)
+inline void managed_array<T>::reset(T* new_array)
 {
   array = new_array;
   insert(poolitem(array,deleter));
 }
 
 template <class T>
-inline T& poolarray<T>::operator[](ptrdiff_t i)
+inline T& managed_array<T>::operator[](ptrdiff_t i)
 {
   return array[i];
 }
 
 template <class T>
-inline T poolarray<T>::operator[](ptrdiff_t i) const
+inline T managed_array<T>::operator[](ptrdiff_t i) const
 {
   return array[i];
 }
 template <class T>
-inline bool poolarray<T>::operator!() const
+inline bool managed_array<T>::operator!() const
 {
   return (array==0);
 }
 template <class T>
-inline bool poolarray<T>::operator==(poolarray<T> r) const
+inline bool managed_array<T>::operator==(managed_array<T> r) const
 {
   return (array==r.array);
 }
 template <class T>
-inline bool poolarray<T>::operator!=(poolarray<T> r) const
+inline bool managed_array<T>::operator!=(managed_array<T> r) const
 {
   return (array!=r.array);
 }

@@ -8,7 +8,7 @@
 #include <set>
 #include "pool.h"
 
-namespace mempool {
+namespace memory {
 
 bool cmp(poolitem l, poolitem r)
 {

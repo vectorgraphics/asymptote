@@ -19,7 +19,7 @@
 
 namespace camp {
 
-class transform : public mempool::pooled<transform> {
+class transform : public memory::managed<transform> {
   double x;
   double y;
   double xx;

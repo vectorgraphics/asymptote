@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
     delete em; em = 0;
     delete outnameStack; outnameStack = 0;
     outname="";
-    mempool::free();
+    memory::free();
   }
   return status;
 }

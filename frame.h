@@ -17,7 +17,7 @@
 
 namespace trans {
 
-class frame : public mempool::pooled<frame> {
+class frame : public memory::managed<frame> {
   frame *parent;
  
   int numFormals;

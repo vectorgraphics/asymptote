@@ -80,7 +80,7 @@ inline bool operator == (LineType a, LineType b) {
   return a.pattern == b.pattern && a.scale == b.scale;
 }
   
-class pen : public mempool::pooled<pen>
+class pen : public memory::managed<pen>
 { 
   LineType line;
 

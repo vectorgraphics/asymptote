@@ -45,7 +45,7 @@
 
 namespace camp {
 
-class guide : public mempool::pooled<guide> {
+class guide : public memory::managed<guide> {
 public:
   virtual void subsolve(knotlist &left, pathlist &solved, knotlist &right) = 0;
   virtual path solve() = 0;
