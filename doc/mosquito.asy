@@ -3,7 +3,7 @@ size(9cm,10cm,IgnoreAspect);
 pair d=(1,0.25);
 real s=1.6d.x;
 real y=0.6;
-defaultfontsize(8);
+defaultpen(fontsize(8));
 
 picture box(string s, pair z=(0,0)) {
   picture pic=new picture;

@@ -71,8 +71,8 @@
   \stepcounter{asy}%
   \def\@optarg{#1}%
    \immediate\write\AsyStream{\@charlb}%
-   \immediate\write\AsyStream{reset();}%
    \immediate\write\AsyStream{static import plain;}%
+   \immediate\write\AsyStream{reset();}%
    \immediate\write\AsyStream{defaultfilename="\jobname.\arabic{asy}.eps";}%
   \ifx\@optarg\empty
    \immediate\write\AsyStream{size(\asydefaultsize);}%

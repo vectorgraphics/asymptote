@@ -1318,6 +1318,13 @@ void defaultpen(stack *s)
   s->push(new pen());
 }
 
+void setdefaultpen(stack *s)
+{
+  pen *p=s->pop<pen*>();
+  defaultfontsize=p->size();
+  defaultlinewidth=p->width();
+}
+
 void invisiblepen(stack *s)
 {
   s->push(new pen(transparentpen));
@@ -1410,16 +1417,6 @@ void penLineWidth(stack *s)
 {
   pen *p=s->pop<pen*>();
   s->push(p->width());  
-}
-
-void defaultLineWidth(stack *s)
-{
-  defaultlinewidth = s->pop<double>();
-}
-
-void defaultFontSize(stack *s)
-{
-  defaultfontsize = s->pop<double>();
 }
 
 void fontSize(stack *s)
@@ -1592,11 +1589,6 @@ void shipout(stack *s)
 void stringFilePrefix(stack *s)
 {
   s->push((string) outname);
-}
-
-void reset(stack *)
-{
-  settings::reset();
 }
 
 // Interactive mode

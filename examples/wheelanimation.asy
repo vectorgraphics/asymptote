@@ -1,5 +1,5 @@
 import graph;
-defaultlinewidth(2.0);
+defaultpen(2.0);
 
 pair wheelpoint(real t)
 {

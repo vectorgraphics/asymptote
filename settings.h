@@ -67,7 +67,5 @@ namespace settings {
   // Access the arguments once options have been parsed.
   int numArgs();
   char *getArg(int n);
-  
-  void reset(); // Reset to startup defaults
 }
 #endif

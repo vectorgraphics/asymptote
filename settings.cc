@@ -264,11 +264,4 @@ void setOptions(int argc, char *argv[])
   }
 }
 
-// Reset to startup defaults
-void reset() 
-{
-  defaultfontsize=12.0;
-  defaultlinewidth=0.5;  
-}
-
 }

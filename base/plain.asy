@@ -6,6 +6,13 @@
  *
  *****/
 
+void reset() 
+{
+  defaultpen(fontsize(12.0)+linewidth(0.5));
+}
+
+reset();
+
 real inches=72;
 real inch=inches;
 real cm=inches/2.540005;
@@ -47,7 +54,7 @@ pen longdashed=linetype("24 8");
 pen dashdotted=linetype("8 8 0 8");
 pen longdashdotted=linetype("24 8 0 8");
 
-pen Dotted=linetype("0 4")+linewidth(1.0);
+pen Dotted=linetype("0 4")+1.0;
 
 pen invisible=invisible();
 pen black=gray(0);

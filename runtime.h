@@ -184,6 +184,7 @@ void stringTime(vm::stack *s);
   
 // Pen operations
 void defaultpen(vm::stack *s);
+void setdefaultpen(vm::stack *s);
 void invisiblepen(vm::stack *s);
 void rgb(vm::stack *s);
 void cmyk(vm::stack *s);
@@ -232,7 +233,6 @@ void upToDate(vm::stack *s);
 
 // System commands
 void system(vm::stack *s);
-void reset(vm::stack *s);
 void abort(vm::stack *s);
 void exit(vm::stack *s);
   

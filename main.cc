@@ -92,9 +92,7 @@ int main(int argc, char *argv[])
   
   int status = 0;
   
-  for(int ind=0; ind < numArgs() || (interactive && virtualEOF);
-      ind++) {
-    reset();
+  for(int ind=0; ind < numArgs() || (interactive && virtualEOF); ind++) {
     virtualEOF=false;
     ShipoutNumber=0;
     
