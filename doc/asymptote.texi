@@ -451,12 +451,12 @@ many features beyond the ones found in those languages.
 @section Data types
 @cindex data types
 @code{Asymptote} supports the following data types (in addition to any
-user-defined types)
+user-defined types):
 @table @code
 
 @item void
 @cindex @code{void}
-The void type is used only by functions that take or return no arguments
+The void type is used only by functions that take or return no arguments.
 
 @item bool
 @cindex @code{bool}
