@@ -46,58 +46,61 @@ def readbboxes(name):
     return boxes
 
 class transform:
-    def __init__(self):
-        self.dx=self.dy=0
     def bind(self,canv):
-        global lowerflag,liftflag
         self.canv=canv
         self.moveUndo=[]
         self.moveRedo=[]
         canv.tag_bind(self.obj,"<Button-1>",self.startMove)
         canv.tag_bind(self.obj,"<Shift-Button-1>",nop)
         canv.tag_bind(self.obj,"<B1-Motion>",self.move)
+        canv.tag_bind(self.obj,"<Motion>",self.showSelection)
         canv.tag_bind(self.obj,"<Shift-B1-Motion>",nop)
         canv.tag_bind(self.obj,"<Button-2>",self.lower)
         canv.tag_bind(self.obj,"<Button-4>",self.wheellower)
         canv.tag_bind(self.obj,"<Button-5>",self.wheellift)
-        canv.tag_bind(self.obj,"<Enter>",self.enter)
-        canv.tag_bind(self.obj,"<Leave>",self.leave)
 	canv.select=[]
-        lowerflag=liftflag=0
+        self.lowerflag=self.liftflag=0
     def wheellower(self,event):
-        global lowerflag
-        lowerflag=1-lowerflag
-        if lowerflag:
+        self.lowerflag=1-self.lowerflag
+        if self.lowerflag:
             self.lower(event)
-    def lower(self,event):
-        self.canv.lower(self.obj)
     def wheellift(self,event):
-        global liftflag
-        liftflag=1-liftflag
-        if liftflag:
+        self.liftflag=1-self.liftflag
+        if self.liftflag:
             self.lift(event)
+    def lower(self,event):
+        self.clearSelection()
+        self.canv.lower(self.obj)
+        x=canvas.canvasx(event.x)
+        y=canvas.canvasy(event.y)
+        items=self.canv.find_overlapping(x,y,x,y)
+        self.Selection(items[-1])
     def lift(self,event):
+        self.clearSelection()
         x=canvas.canvasx(event.x)
         y=canvas.canvasy(event.y)
         items=self.canv.find_overlapping(x,y,x,y)
         self.canv.lift(items[0])
-    def enter(self,event):
-	self.showSelection();
+        self.Selection(items[0])
+    def leave(self,event):
+	self.clearSelection();
+        self.canv.tag_unbind(self.obj,"<Delete>")
+        self.canv.unbind("<z>")
+        self.canv.unbind("<r>")
+    def clearSelection(self):
+        self.canv.delete(self.canv.select)
+    def Selection(self,obj):
+        self.canv.tag_unbind(obj,"<Leave>")
+        b=self.canv.bbox(obj)
+        self.canv.select=self.canv.create_rectangle(b[0],b[1],b[2],b[3],
+                                                        outline="red");
+    def showSelection(self,event):
+        self.clearSelection()
+        self.Selection(self.obj)
+        self.canv.tag_bind(self.obj,"<Leave>",self.leave)
         self.canv.bind("<Delete>",self.delete)
         self.canv.bind("<z>",self.undo)
         self.canv.bind("<r>",self.redo)
-    def leave(self,event):
-	self.clearSelection();
-        self.canv.unbind("<Delete>")
-        self.canv.unbind("<z>")
-    def clearSelection(self):
-	self.canv.delete(self.canv.select)
-    def showSelection(self):
-	self.clearSelection()
-        b=self.canv.bbox(self.obj)
-	self.canv.select=self.canv.create_rectangle(b[0],b[1],b[2],b[3],
-						    outline="red");
-	self.canv.lower(self.canv.select)
     def startMove(self,event):
 	self.moveRedo=[]
         self.moveUndo.append((self.x,self.y))
@@ -135,6 +138,7 @@ class image(transform):
         self.canv.coords(self.obj,self.x,self.y)
     def delete(self,event):
         self.canv.delete(self.obj)
+        self.clearSelection();
         imagedelete[self.i]=1
 
 class line(transform):
@@ -162,6 +166,7 @@ class line(transform):
         self.canv.coords(self.obj,self.tuple)
         self.x += dx
         self.y += dy
+        self.showSelection(event)
     def coords(self,coords):
 	self.canv.coords(self.obj,coords)
         self.setdimensions(coords)

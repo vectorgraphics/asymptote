@@ -285,7 +285,7 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   
   static std::ofstream bboxout;
   if(deconstruct && !tgifformat) {
-    bboxout.close();
+    if(bboxout) bboxout.close();
     if(view) {
       ostringstream cmd;
       cmd << "xasy " << buildname(prefix) 
