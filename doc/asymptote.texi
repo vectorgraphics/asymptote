@@ -48,12 +48,13 @@ Foundation.
 * Description::                 What is @code{Asymptote}?
 * Installation::                Downloading and installing
 * Examples::                    Getting started
-* Programming::                 @code{Asymptote} graphics language
+* Programming::                 The @code{Asymptote} vector graphics language
 * Drawing commands::            Four primitive graphics commands
 * LaTeX usage::                 Embedding @code{Asymptote} commands within @code{LaTeX}
 * Options::                     Command line options
 * Interactive mode::            Typing @code{Asymptote} commands interactively
 * GUI::                         Graphical user interface
+* Help::                        Where to get help and submit bug reports
 * Credits::                     Contributions and acknowledgments
 * Index::                       General index
 
@@ -553,7 +554,7 @@ returns @code{z.x};
 @cindex @code{ypart}
 returns @code{z.y};
 
-@item real dot(pair a,pair b)
+@item real Dot(pair a,pair b)
 @cindex @code{dir}
 returns the dot product @code{a.x*b.x+a.y*b.y}.
 
@@ -944,10 +945,12 @@ The default linetype is @code{solid}.
 @code{pen linewidth(real)}. The default line width is 0.5 bp
 (this global default value may be changed with the
 @code{defaultlinewidth(real)} command or reset to the startup default
-with @code{reset()}). The @code{linewidth} command is not actually needed:
-a real value is implicitly cast to a pen of the specified line width:
+with @code{reset()}). The @code{linewidth} command is not actually needed
+since a @code{real} (but not @code{int}) value is implicitly cast to a
+pen of the specified line width:
 @verbatim
-pen doublewidth=1bp;
+pen double=1bp;
+pen equivalent=1.0;
 @end verbatim
 
 @cindex @code{fontsize}
@@ -1495,9 +1498,14 @@ write(addby7(1));   // Writes 8.
 @code{Asymptote} is the only language we know of that treats functions
 as variables but still allows overloading.
 
+@cindex @code{libsigsegv}
+@anchor{stack overflow}
+@cindex recursion
+@cindex stack overflow
 Functions are allowed to recursively call themselves. As in C++, infinite
-nested recursion will generate a stack overflow (typically reported as a
-segmentation fault).
+nested recursion will generate a stack overflow (reported as a
+segmentation fault, unless the GNU library @code{libsigsegv} is
+installed at configuration time). 
 
 @menu
 * Default arguments::           Default values can appear anyway
@@ -1568,7 +1576,7 @@ The standard real(real, real) functions @code{atan2}, @code{hypot},
 @cindex @code{round}
 @cindex @code{sgn}
 The functions @code{ceil}, @code{floor}, and @code{round} differ from
-their usual definitions in that they all return an int value rather than
+their usual definitions in that they all return an @code{int} value rather than
 a real (since that is normally what one wants). We also define a
 function @code{sgn}, which returns the sign of its real argument as an
 integer (-1, 0, or 1).
@@ -1848,14 +1856,17 @@ real[][][] C=read3(fin);
 @section Casts
 @cindex casts
 @cindex implicit casts
-
-@code{Asymptote} implicitly casts int to real, int to pair, real to pair,
-pair to path, pair to guide, path to guide, and guide to path. Implicit
-casts are also automatically attempted when trying to match function calls
-with possible function signatures.
+ 
+@code{Asymptote} implicitly casts @code{int} to @code{real}, @code{int} to
+@code{pair}, @code{real} to @code{pair}, @code{pair} to @code{path},
+@code{pair} to @code{guide}, @code{path} to @code{guide}, @code{guide}
+to @code{path}, and @code{real} to @code{pen}. Implicit casts are
+also automatically attempted when trying to match function calls with
+possible function signatures.
 
 @cindex explicit casts
-Other conversions, say real to int or real to string, require an explicit cast:
+Other conversions, say @code{real} to @code{int} or 
+@code{real} to @code{string}, require an explicit cast:
 @verbatim
 int a=(int) 2.5;
 string s=(string) 2.5;
@@ -1878,11 +1889,9 @@ enclose it with quotation marks:
 import "/usr/local/share/asymptote/graph.asy";
 @end verbatim
 
-By default, variables and functions in imported modules have
-@code{static} allocation (@pxref{Static}). A variable
-@code{var} from a module named @code{module} can be distinguished from
-a local variable of the same name by prefixing it with the module name
-and a period: @code{module.var}.
+A variable @code{var} from a module named @code{module} can be
+distinguished from a local variable of the same name by prefixing it
+with the module name and a period: @code{module.var}. 
 
 Imports within an imported module are not seen outside of that module:
 even though @code{plain} imports @code{simplex}, the @code{simplex}
@@ -1890,7 +1899,14 @@ module will not be accessible to the file-level module, unless it is
 explicitly imported. An error will be issued if one attempts to import
 a module multiple times.
 
-The file name to be imported must be known at compile time.
+@cindex @code{libsigsegv}
+@cindex stack overflow
+Modules are allowed to recursively import themselves. Infinite
+nested importing will generate a stack overflow (reported as a
+segmentation fault, unless the GNU library @code{libsigsegv} is
+installed at configuration time). 
+
+Currently, the module name to be imported must be known at compile time.
 However, you can execute an @code{Asymptote} file determined at runtime in an
 independent process with the function
 @cindex execute
@@ -2493,13 +2509,14 @@ Two examples illustrating the use of arrows and bars are
 directory of the @code{Asymptote} source.
 
 @cindex @code{dot}
-To draw a dot, one simply draws a path containing a single point.
-The @code{dot} command defined in @code{plain.asy} automatically uses
-the linewidth @code{dotfactor} (by default, 5) times the pen linewidth
-unless an explicit dot diameter is given:
+To draw a dot, simply draw a path containing a single point.
+The @code{dot} command defined in @code{plain.asy} draws a dot with the
+diameter given by either the default linewidth magnified by @code{dotfactor}
+(6 by default) or an explicit pen linewidth. If no pen argument is given,
+@code{currentpen}, with its linewidth magnified by @code{dotfactor}, is used:
 @verbatim
-void dot(picture pic=currentpicture, pair c, real diameter=0,
-  pen p=currentpen);
+void dot(picture pic=currentpicture, pair c);
+void dot(picture pic=currentpicture, pair c, pen p);
 @end verbatim
 
 @item
@@ -2880,6 +2897,32 @@ deconstruction is complete.
 A good example of how deconstruction of compound objects (e.g. arrows) can
 be prevented is in the example @code{yingyang.asy}. By default, only
 currentpicture does automatic deconstruction of its objects.
+
+@node Help
+@chapter Help
+@cindex help
+@cindex mailing list
+Questions on installing and using Asymptote should be posted to the
+@code{Asymptote} mailing list
+@code{https://lists.sourceforge.net/lists/listinfo/asymptote-discuss}).
+
+@cindex bug reports
+If you find a bug in Asymptote, please check (if possible) whether the bug
+is still present in the latest CVS version before submitting a bug report.
+
+New bugs can be submitted using the Bug Tracking System at
+@code{http://sourceforge.net/projects/asymptote/}).
+
+@cindex stack overflow
+@cindex segmentation fault
+@cindex @code{libsigsegv}
+@code{Asymptote} can be configured with the optional GNU library
+@code{libsigsev}, available from
+@code{http://libsigsegv.sourceforge.net}, which allows one to distinguish
+user-generated @code{Asymptote} stack overflows (@pxref{stack overflow})
+from true segmentation faults (due to internal C++ programming errors;
+please submit the @code{Asymptote} code that generates such segmentation
+faults along with your bug report). 
 
 @node Credits
 @chapter Acknowledgments

@@ -21,9 +21,10 @@ void drawarrow(pair p, pair q, bool upscale=false, pen c)
 void spectrum(pair l,pair m, pair s) {
   draw(p,c);
  
-  labeldot(4,"$p$",l,SW,d); 
-  labeldot(4,"$q$",m,SW,d);
-  labeldot(4,"$k$",s,SW,d);
+  d += 4.0;
+  labeldot("$p$",l,SW,d); 
+  labeldot("$q$",m,SW,d);
+  labeldot("$k$",s,SW,d);
 
   xaxis(0,"$k$");
   yaxis(0,"$E(k)$");

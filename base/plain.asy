@@ -6,7 +6,7 @@
  *
  *****/
 
-real inches=72.0;
+real inches=72;
 real inch=inches;
 real cm=inches/2.540005;
 real mm=0.1cm;
@@ -89,7 +89,7 @@ public real arrowangle=15;
 public real arcarrowsize=0.5*arrowsize;
 public real arcarrowangle=2*arrowangle;
 public real barsize=arrowsize;
-public real dotfactor=5;
+public real dotfactor=6;
 
 public pair legendlocation=(1.0,0.8);
 public real legendlinelength=50;
@@ -1128,26 +1128,27 @@ void label(picture pic=currentpicture, string s, real angle=0,
   label(pic,s,angle,point(g,0.5L),align,p,adjust);
 }
 
-void dot(picture pic=currentpicture, pair c, real diameter=0, pen p=currentpen)
+void dot(picture pic=currentpicture, pair c)
 {
-  if(diameter == 0) diameter=linewidth(p)*dotfactor;
-  p += diameter;
-  _draw(pic,c,p);
+  _draw(pic,c,currentpen+linewidth(currentpen)*dotfactor);
 }
 
-void dots(picture pic=currentpicture, pair[] c, real diameter=0, 
-	  pen p=currentpen)
+void dot(picture pic=currentpicture, pair c, pen p)
 {
-  for(int i=0; i < c.length; ++i) dot(pic,c[i],diameter,p);
+  _draw(pic,c,linewidth(p)*dotfactor+p);
+}
+
+void dots(picture pic=currentpicture, pair[] c, pen p=currentpen)
+{
+  for(int i=0; i < c.length; ++i) dot(pic,c[i],p);
 }
 
 
-void labeldot(picture pic=currentpicture, real diameter=0, string s="",
-	      real angle=0, pair c, pair align=E, pen p=currentpen,
-	      adjust adjust=NoAdjust)
+void labeldot(picture pic=currentpicture, string s="", real angle=0,
+	      pair c, pair align=E, pen p=currentpen, adjust adjust=NoAdjust)
 {
   if(s == "") s=(string) c;
-  dot(pic,c,diameter,p);
+  dot(pic,c,p);
   label(pic,s,angle,c,align,p,adjust);
 }
 

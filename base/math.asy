@@ -168,12 +168,12 @@ vector operator / (vector a, real s)
   return vector(a.x/s,a.y/s,a.z/s);
 }
 
-real dot(vector a, vector b)
+real Dot(vector a, vector b)
 {
   return a.x*b.x+a.y*b.y+a.z*b.z;
 }
 
-vector cross(vector a, vector b)
+vector Cross(vector a, vector b)
 {
   return vector(a.y*b.z-a.z*b.y,
 		a.z*b.x-a.x*b.z,
@@ -184,7 +184,7 @@ vector cross(vector a, vector b)
 vector normal(vector[] p)
 {
   if(p.length < 3) abort("3 vectors are required to define a plane");
-  return cross(p[1]-p[0],p[2]-p[0]);
+  return Cross(p[1]-p[0],p[2]-p[0]);
 }
 
 vector unit(vector p)

@@ -83,14 +83,14 @@ void splitplanes(piclist Pic, vector[] a, int[] aindex,
   vector Z=intersectionpoint(na,a[0],nb,b[0]);
   if(Z.x == infinity) {abort("Parallel plane case not yet implemented");}
   pair z=P(Z);
-  vector Dir=cross(na,nb);
+  vector Dir=Cross(na,nb);
   pair lambda=abs(maxbound(Pic.userMax,z)-minbound(Pic.userMin,z))
     *unit(P(Dir));
   
   // Determine clipping half-planes
-  vector ta=cross(Dir,na);
-  vector tb=cross(Dir,nb);
-  pair T=((dot(P(ta),P(tb)) > 0) ^ (ta.z > tb.z) ? -I : I)*lambda;
+  vector ta=Cross(Dir,na);
+  vector tb=Cross(Dir,nb);
+  pair T=((Dot(P(ta),P(tb)) > 0) ^ (ta.z > tb.z) ? -I : I)*lambda;
   guide g1=z-lambda--z+lambda--z+lambda+T--z-lambda+T--cycle;
   guide g2=z-lambda--z+lambda--z+lambda-T--z-lambda-T--cycle;
   

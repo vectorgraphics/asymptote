@@ -430,7 +430,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::realDir,primPair(),"dir",primReal());
   addFunc(ve,run::pairExpi,primPair(),"expi",primReal());
   addFunc(ve,run::pairConj,primPair(),"conj",primPair());
-  addFunc(ve,run::pairDot,primReal(),"dot",primPair(),primPair());
+  addFunc(ve,run::pairDot,primReal(),"Dot",primPair(),primPair());
 
   addFunc(ve,run::suppressOutput,primVoid(),"suppressoutput",primBoolean());
   addFunc(ve,run::upToDate,primVoid(),"uptodate",primBoolean());

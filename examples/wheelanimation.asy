@@ -1,4 +1,5 @@
 import graph;
+defaultlinewidth(2.0);
 
 pair wheelpoint(real t)
 {
@@ -20,13 +21,13 @@ real t2=t1+2*pi;
 
 void initialpicture() {
   draw(circle((0,0),1));
-  draw(wheel(t1,t2,100),currentpen+linetype("0 2"));
+  draw(wheel(t1,t2,100),linetype("0 2"));
   xaxis(0,"$x$");
   yaxis(0,1.5,"$y$");
   pair z1=wheelpoint(t1);
   pair z2=wheelpoint(t2);
 
-  yequals(-1,currentpen+linetype("4 4"));
+  yequals(-1,linetype("4 4"));
   label("$y=-1$",(z2.x,-1),S);
   dot(z1);
   dot(z2);
@@ -35,15 +36,13 @@ void initialpicture() {
 int n=25;
 real dt=(t2-t1)/n;
 string prefix=fileprefix();
-currentpen=3.0;
-dotfactor=4;
 for(int i=0; i <= n; ++i) {
   currentpicture=new picture;
   size(0,200);
   initialpicture();
   real t=t1+dt*i;
-  draw(circle((t,0),1),currentpen+red);
-  dot(wheelpoint(t),currentpen+red);
+  draw(circle((t,0),1),red);
+  dot(wheelpoint(t));
   shipout(prefix+(string) i,"gif");
 }
 
