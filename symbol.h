@@ -22,10 +22,11 @@ private:
   std::string name;
 
   static std::map<std::string,symbol> dict;
-public:
   symbol() {}
   symbol(std::string name)
     : name(name) {}
+  friend class std::map<std::string,symbol>;
+public:
   
   static symbol *trans(std::string s) {
     if (dict.find(s) != dict.end())
