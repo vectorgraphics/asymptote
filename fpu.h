@@ -40,3 +40,5 @@ inline void fpu_trap(bool trap)
 inline void fpu_trap(bool) {}
 
 #endif
+
+#endif
