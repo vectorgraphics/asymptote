@@ -236,8 +236,8 @@ take Fourier transforms of data (say to compute an audio power spectrum).
 
 If you don't want to install @code{Asymptote}, just make sure the compiled
 binary @code{asy} and GUI script @code{xasy} are in your path and set the
-environment variable ASYMPTOTE_DIR to point to the location of the
-directory base/ (in the top level directory of the @code{Asymptote}
+environment variable @code{ASYMPTOTE_DIR} to point to the directory
+@code{base} (in the top level directory of the @code{Asymptote}
 source code). In looking for @code{Asymptote} system files, @code{asy} will
 search these following paths (in the listed order):
 
@@ -247,9 +247,9 @@ search these following paths (in the listed order):
 current directory
 @item
 @cindex @code{ASYMPTOTE_DIR}
-$ASYMPTOTE_DIR
+@code{$ASYMPTOTE_DIR}
 @item
-system-wide directory (default: /usr/local/share/asymptote)
+system-wide directory (default: @code{/usr/local/share/asymptote})
 @end enumerate
 
 @node Example
@@ -2308,7 +2308,7 @@ asy latexusage
 latex latexusage
 @end verbatim
 
-Here now is @code{latexusage.tex} (from the @code{examples} directory of
+Here now is @code{latexusage.tex} (from the @code{doc} directory of
 the @code{Asymptote} source):
 
 @verbatim
