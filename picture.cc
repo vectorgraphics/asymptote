@@ -74,6 +74,8 @@ void picture::prepend(picture &pic)
 
 bbox picture::bounds()
 {
+  b=bbox();
+  
   list<drawElement*>::iterator p;
   // Check to see if there are any labels yet
   if(!labels && settings::texprocess) {

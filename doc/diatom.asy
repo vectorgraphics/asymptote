@@ -51,13 +51,9 @@ for(int taxon=0; taxon < n; ++taxon) {
   if(maxP < minpercent) x=minpercent/maxP;
   if(maxP > 100) x=50/maxP;
   scale(pic,Linear(x),Linear(false,-1));
-  guide g=graph(pic,P,depth);
-  draw(pic,g,p);
-  xlimits(pic,0);
-  crop(pic);
-  filldraw(pic,(pic.userMin.x,depthmin)--g--(pic.userMin.x,depthmax)--cycle,
+  filldraw(pic,(0,depthmin)--graph(pic,P,depth)--(0,depthmax)--cycle,
 	   gray(0.9));
-  xaxis(true,pic,0,Bottom,LeftTicks(false,0,2,"%.0f"));
+  xaxis(true,pic,Bottom,LeftTicks(false,0,2,"%.0f"));
   xaxis(true,pic,TeXify(taxa[taxon]),0.5,45,Top,NoTicks);
   if(taxon == 0) yaxis(true,pic,depthlabel,Left,RightTicks(0,10));
   if(taxon == final) yaxis(true,pic,Right,LeftTicks(0,10,""));

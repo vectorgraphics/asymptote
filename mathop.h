@@ -160,4 +160,5 @@ void binaryOp(vm::stack *s)
 
 } // namespace run
 
-#endif MATHOP_H
+#endif
+

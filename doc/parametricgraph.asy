@@ -9,7 +9,6 @@ draw(graph(f,g,0,1,LinearInterp));
 
 //xlimits(0,1);
 //ylimits(-1,0);
-//crop();
 
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);

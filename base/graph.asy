@@ -740,47 +740,66 @@ public axis
   XZero=XZero(),
   YZero=YZero();
 
-void crop(picture pic=currentpicture) 
+void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
+	     bool crop=true)
 {
-  clip(pic,pic.userMin,pic.userMax);
-}
-
-void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity)
-{
-  bounds mx=autoscale(pic.userMin.x,pic.userMax.x,
-		      logarithmic(pic.scale.x.scale));
+  bounds mx;
+  if(Min == -infinity || Max == infinity)
+    mx=autoscale(pic.userMin.x,pic.userMax.x,logarithmic(pic.scale.x.scale));
   
   if(Min == -infinity) {
     Min=mx.min;
     pic.scale.x.automin=true;
-  } else pic.scale.x.automin=false;
+  } else {
+    Min=pic.scale.x.T(Min);
+    pic.scale.x.automin=false;
+  }
   
   if(Max == infinity) {
     Max=mx.max;
     pic.scale.x.automax=true;
-  } else pic.scale.x.automax=false;
+  } else {
+    Max=pic.scale.x.T(Max);
+    pic.scale.x.automax=false;
+  }
   
-  pic.userMin=(pic.scale.x.T(Min),pic.userMin.y);
-  pic.userMax=(pic.scale.x.T(Max),pic.userMax.y);
+  pic.userMin=(Min,pic.userMin.y);
+  pic.userMax=(Max,pic.userMax.y);
+  
+  if(crop) pic.clip(new void (frame f, transform t) {
+    clip(f,box(((t*pic.userMin).x,min(f).y),((t*pic.userMax).x,max(f).y)));
+  });
 }
 
-void ylimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity)
+void ylimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
+	     bool crop=true)
 {
-  bounds my=autoscale(pic.userMin.y,pic.userMax.y,
-		      logarithmic(pic.scale.y.scale));
+  bounds my;
+  if(Min == -infinity || Max == infinity)
+    my=autoscale(pic.userMin.y,pic.userMax.y,logarithmic(pic.scale.y.scale));
   
   if(Min == -infinity) {
     Min=my.min;
     pic.scale.y.automin=true;
-  } else pic.scale.y.automin=false;
+  } else {
+    Min=pic.scale.y.T(Min);
+    pic.scale.y.automin=false;
+  }
   
   if(Max == infinity) {
     Max=my.max;
     pic.scale.y.automax=true;
-  } else pic.scale.y.automax=false;
+  } else {
+    Max=pic.scale.y.T(Max);
+    pic.scale.y.automax=false;
+  }
   
-  pic.userMin=(pic.userMin.x,pic.scale.y.T(Min));
-  pic.userMax=(pic.userMax.x,pic.scale.y.T(Max));
+  pic.userMin=(pic.userMin.x,Min);
+  pic.userMax=(pic.userMax.x,Max);
+  
+  if(crop) pic.clip(new void (frame f, transform t) {
+    clip(f,box((min(f).x,(t*pic.userMin).y),(max(f).x,(t*pic.userMax).y)));
+  });
 }
 
 void limits(picture pic=currentpicture, pair min, pair max)
@@ -789,7 +808,6 @@ void limits(picture pic=currentpicture, pair min, pair max)
   ylimits(pic,min.y,max.y);
 }
   
-
 void autoscale(picture pic=currentpicture, axis axis)
 {
   if(!pic.scale.set) {
@@ -845,6 +863,7 @@ void xaxis(bool ontop=false, picture pic=currentpicture, real xmin=-infinity,
   } else autoscale(pic,axis);
   
   checkaxis(pic,axis);
+  if(axis.extend) ontop=true;
   
   if(xmin == -infinity) {
     if(pic.scale.x.automin()) {
@@ -895,6 +914,7 @@ void yaxis(bool ontop=false, picture pic=currentpicture, real ymin=-infinity,
   } else autoscale(pic,axis);
   
   checkaxis(pic,axis);
+  if(axis.extend) ontop=true;
   
   if(ymin == -infinity) {
     if(pic.scale.y.automin()) {

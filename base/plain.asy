@@ -151,12 +151,12 @@ real barsize(pen p=currentpen)
 
 bool finite(real x)
 {
-  return abs(x) != infinity;
+  return abs(x) < infinity;
 }
 
 bool finite(pair z)
 {
-  return abs(z.x) != infinity && abs(z.y) != infinity;
+  return abs(z.x) < infinity && abs(z.y) < infinity;
 }
 
 // Cut two parentheses.
@@ -1280,6 +1280,7 @@ void arrowheadbbox(picture pic=currentpicture, path g, real position=infinity,
 private struct fillT {};
 public fillT filltype=null;
 typedef void filltype(frame, path, pen, fillT);
+void filltype(frame, path, pen, fillT) {}
 public filltype
   Fill=new void(frame f, path g, pen p, fillT) {
     p += solid;
@@ -1597,17 +1598,18 @@ void mark(picture pic=currentpicture, guide g, frame mark)
     add(point(g,i),pic,mark);
 }
 
-frame marker(path g, pen p=currentpen)
+frame marker(path g, pen p=currentpen, filltype filltype=Fill)
 {
   frame f;
-  draw(f,g,p);
+  filltype(f,g,p,filltype);
   return f;
 }
 
-frame marker(path[] g, pen p=currentpen)
+frame marker(path[] g, pen p=currentpen, filltype filltype=Fill)
 {
   frame f;
-  draw(f,g,p);
+  if(filltype == Fill) fill(f,g,p);
+  else draw(f,g,p);
   return f;
 }
 
@@ -1751,11 +1753,6 @@ pair cap(transform t, pair z, pair lb, pair rt, pen p=currentpen)
             cap(t,z.y,lb.y,rt.y,min(p).y,max(p).y,ytrans));
 }
   
-void clip(picture pic=currentpicture, pair lb, pair tr)
-{
-  clip(pic,box(lb,tr));
-}
-
 void label(picture pic=currentpicture, real angle=0, pair position,
 	   pair align=0, pair shift=0, pen p=currentpen)
 {

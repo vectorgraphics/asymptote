@@ -2600,9 +2600,8 @@ string @code{s} at relative location @code{position} (a real number from
 true shift @code{shift} (postscript coordinates), and pen @code{plabel}.
 An infinite value of @code{xmin} or @code{xmax} specifies
 that the corresponding axis limit will be automatically determined from the
-picture limits. If @code{ontop} is @code{false}, draw the axis before
-any existing objects in the current layer. The axis placement is
-determined by one of the following @code{axis} types:
+picture limits. The axis placement is determined by one of the
+following @code{axis} types:
 
 @table @code
 
@@ -2629,6 +2628,10 @@ Request a top axis.
 Request a bottom and top axis.
 
 @end table
+
+If both @code{ontop} and the @code{extend} flag for @code{axis} are
+@code{false}, the axis is drawn before any existing objects in the
+current layer.
 
 @anchor{ticks}
 @cindex @code{ticks}
@@ -2679,10 +2682,9 @@ Draw a @math{y} axis on picture @code{pic} from @math{y}=@code{ymin} to
 @math{y}=@code{ymax} using pen @code{p}, optionally labelling it with
 string @code{s} at relative location @code{position} (a real number from
 [0,1]) using angle @code{angle}, alignment @code{align}, true shift
-@code{shift}, and pen @code{plabel}.  If @code{ontop} is @code{false},
-draw the axis before any existing objects in the current layer.
-The tick type is specified by @code{ticks} and the axis
-placement is determined by one of the following @code{axis} types:
+@code{shift}, and pen @code{plabel}. The tick type is specified by
+@code{ticks} and the axis placement is determined by one of the
+following @code{axis} types:
 
 @table @code
 
@@ -2709,6 +2711,10 @@ Request a right axis.
 Request a left and right axis.
 
 @end table
+
+If both @code{ontop} and the @code{extend} flag for @code{axis} are
+@code{false}, the axis is drawn before any existing objects in the
+current layer.
 
 @item
 
@@ -2806,11 +2812,14 @@ Here are some simple examples of two-dimensional graphs:
 @cindex @code{polygon}
 @cindex @code{cross}
 @cindex @code{errorbars}
-@item The next example draws a graph of an array of coordinate pairs.
-It also illustrates the use of frame alignment, data markers (constructed with
-@code{unitcircle}, the unit @math{n}-sided regular polygon 
-@code{polygon(int n)}, and the unit @math{n}-point cross 
-@code{cross(int n)}) and the @code{errorbar} routines:
+@item The next example draws two graphs of an array of coordinate pairs,
+using frame alignment and data markers. In the left-hand graph, the
+marker is constructed with the function @code{frame marker(path g,
+pen p=currentpen, filltype filltype=Fill}) using the path @code{unitcircle}.
+In the right-hand graph, the unit @math{n}-sided regular polygon 
+@code{polygon(int n)} and the unit @math{n}-point cross 
+@code{cross(int n)}) are used to build a custom marker frame.
+This example also illustrates the @code{errorbar} routines:
 
 @verbatim
 void errorbars(picture pic=currentpicture, pair[] z, pair[] dp,
@@ -2834,19 +2843,25 @@ positive and negative extents of the error are assumed to be equal.
 
 @item This example draws a graph of a parametrized curve. 
 @cindex parametrized curve
-@cindex @code{crop}
+@cindex cropping graphs
 @cindex @code{limits}
 @cindex @code{xlimits}
 @cindex @code{ylimits}
 
-The calls to @code{xlimits(picture pic, real min, real max)} 
-and @code{ylimits(picture, real min, real max)} can be uncommented
+The calls to 
+@code{xlimits(picture pic=currentpicture, real min=-infinity,
+real max=infinity, bool crop=true)} 
+and the analogous function @code{ylimits} can be uncommented
 to restrict the respective axes limits for picture @code{pic} to the
 specified @code{min} and @code{max} values (alternatively, the function
 @code{limits(pair, pair)} can be used to limit the axes to the
-box having opposite vertices at the two pairs).  The function
-@code{crop(picture pic)} can then optionally be used to crop the data 
-in picture @code{pic} to lie within the new axis limits.
+box having opposite vertices at the given pairs).  The optional
+boolean argument @code{crop} signals whether to crop the existing data
+in picture @code{pic} to lie within the graph. For example, if
+@code{xlimits} or @code{ylimits} are called with no arguments, any
+existing objects in @code{currentpicture} will be cropped to the graph
+boundaries.
+
 @verbatiminclude parametricgraph.asy
 @image{parametricgraph}
 

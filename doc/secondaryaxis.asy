@@ -24,7 +24,6 @@ picture secondary=secondaryY(new void(picture pic) {
   draw(pic,graph(pic,t,infectious,t >= 10 && t <= 15),red);
 });
 			     
-//crop(secondary);
 yaxis(secondary,black,red,Right,LeftTicks);
 add(secondary);
 
