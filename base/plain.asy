@@ -82,7 +82,7 @@ pen lavender=brown+darkgreen+blue;
 pen pink=red+darkgreen+blue;
 
 // Global parameters:
-public real labelmargin=0.25;
+public real labelmargin=0.3;
 public real arrowlength=0.75cm;
 public real arrowsize=7.5;
 public real arrowangle=15;
@@ -816,31 +816,19 @@ real labelmargin(pen p=currentpen)
   return labelmargin*fontsize(p);
 }
 
-private struct adjustT {};
-public adjustT adjust=null;
-typedef pair adjust(real, pair, pen, adjustT);
-public adjust
-  ItalicAdjust=new pair(real angle, pair position, pen p, adjustT) {
-    return position-0.27*dir(angle)*labelmargin(p);
-  },
-  NoAdjust=new pair(real, pair position, pen, adjustT) {
-    return position;
-  };
-
 void label(frame f, string s, real angle=0, pair position,
-	   pair align=0, pen p=currentpen, adjust adjust=NoAdjust)
+	   pair align=0, pen p=currentpen)
 {
-  position=adjust(angle,position,p,adjust);
   _label(f,s,angle,position+align*labelmargin(p),align,p);
 }
 
 void label(picture pic=currentpicture, string s, real angle=0, pair position,
-	   pair align=0, pen p=currentpen, adjust adjust=NoAdjust)
+	   pair align=0, pen p=currentpen)
 {
   pic.add(new void (frame f, transform t) {
     pair offset=t*0;
     label(f,s,Angle(t*dir(angle)-offset),t*position,
-	  length(align)*unit(t*align-offset),p,adjust);
+	  length(align)*unit(t*align-offset),p);
     });
   frame f;
   // Create a picture with label at the origin to extract its bbox truesize.
@@ -1025,7 +1013,7 @@ frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
 
 void labelbox(picture pic=currentpicture, real xmargin=0,
 	      real ymargin=infinity, string s, real angle=0, pair position,
-	      pair align=0, pen p=currentpen, adjust adjust=NoAdjust)
+	      pair align=0, pen p=currentpen, pen pbox=currentpen) 
 {
   if(ymargin == infinity) ymargin=xmargin;
   pair margin=(xmargin,ymargin);
@@ -1033,8 +1021,8 @@ void labelbox(picture pic=currentpicture, real xmargin=0,
     pair offset=t*0;
     frame b;
     label(b,s,Angle(t*dir(angle)-offset),t*position,
-	  length(align)*unit(t*align-offset),p,adjust);
-    draw(b,box(min(b)-margin,max(b)+margin),p);
+	  length(align)*unit(t*align-offset),p);
+    draw(b,box(min(b)-margin,max(b)+margin),pbox);
     add(f,b);
   });
   frame f;
@@ -1169,9 +1157,9 @@ void clip(picture pic=currentpicture, pair lb, pair tr)
 }
 
 void label(picture pic=currentpicture, real angle=0, pair position,
-	   pair align=0, pen p=currentpen, adjust adjust=NoAdjust)
+	   pair align=0, pen p=currentpen)
 {
-  label(pic,(string) position,angle,position,align,p,adjust);
+  label(pic,(string) position,angle,position,align,p);
 }
 
 private struct sideT {};
@@ -1184,7 +1172,7 @@ public side
 
 void label(picture pic=currentpicture, string s, real angle=0,
 	   path g, real position=infinity, pair align=0, side side=RightSide,
-	   pen p=currentpen, adjust adjust=NoAdjust)
+	   pen p=currentpen)
 {
   real L=length(g);
   if(position == infinity) position=0.5*L;
@@ -1193,7 +1181,7 @@ void label(picture pic=currentpicture, string s, real angle=0,
     else if(position >= L) align=direction(g,L);
     else align=side(-direction(g,position)*I,side);
   }
-  label(pic,s,angle,point(g,position),align,p,adjust);
+  label(pic,s,angle,point(g,position),align,p);
 }
 
 void dot(picture pic=currentpicture, pair c)
@@ -1217,28 +1205,26 @@ void dot(picture pic=currentpicture, guide g, pen p=currentpen)
 }
 
 void labeldot(picture pic=currentpicture, string s="", real angle=0,
-	      pair c, pair align=E, pen p=currentpen, adjust adjust=NoAdjust)
+	      pair c, pair align=E, pen p=currentpen)
 {
   if(s == "") s=(string) c;
   dot(pic,c,p);
-  label(pic,s,angle,c,align,p,adjust);
+  label(pic,s,angle,c,align,p);
 }
 
 void arrow(picture pic=currentpicture, string s, real angle=0,
-	   path g, pen p=currentpen,
-	   adjust adjust=NoAdjust, real size=arrowsize, real Angle=arrowangle,
-	   arrowhead arrowhead=Fill)
+	   path g, pen p=currentpen, real size=arrowsize,
+	   real Angle=arrowangle, arrowhead arrowhead=Fill)
 {
   add(arrow(g,p,size,Angle,arrowhead));
   pair a=point(g,0);
   pair b=point(g,1);
-  label(pic,s,angle,a,unit(a-b),p,adjust);
+  label(pic,s,angle,a,unit(a-b),p);
 }
 
 void arrow(picture pic=currentpicture, string s="", real angle=0,
-	   pair b, pair align,
-	   real length=arrowlength, pen p=currentpen,
-	   adjust adjust=NoAdjust, real size=arrowsize, real Angle=arrowangle,
+	   pair b, pair align, real length=arrowlength, pen p=currentpen,
+	   real size=arrowsize, real Angle=arrowangle,
 	   arrowhead arrowhead=Fill)
 {
   pair a,c;
@@ -1247,20 +1233,19 @@ void arrow(picture pic=currentpicture, string s="", real angle=0,
   } else {
     c=0.4*fontsize(p)*align;
     a=length*align+c;
-    label(pic,s,angle,b,a/labelmargin(p)+align,p,adjust);
+    label(pic,s,angle,b,a/labelmargin(p)+align,p);
   }
   addabout(b,pic,arrow(a--c,p,size,Angle,arrowhead));
 }
 
 void outarrow(picture pic=currentpicture, string s, real angle=0,
 	      pair b, pair align, real length=arrowlength,
-	      pen p=currentpen, adjust adjust=NoAdjust,
-	      real size=arrowsize, real Angle=arrowangle,
+	      pen p=currentpen, real size=arrowsize, real Angle=arrowangle,
 	      arrowhead arrowhead=Fill)
 {
   pair c=0.4*fontsize(p)*align;
   pair a=length*align+c;
-  label(pic,s,angle,b,a/labelmargin(p)+align,p,adjust);
+  label(pic,s,angle,b,a/labelmargin(p)+align,p);
   addabout(b,pic,arrow((0,0)--(a-b),p,size,Angle,arrowhead));
 }
 
@@ -1420,11 +1405,11 @@ public arrowbar
 
 void draw(picture pic=currentpicture, string s="", real angle=0,
 	  path g, real position=infinity, pair align=0,
-	  side side=RightSide, pen p=currentpen, adjust adjust=NoAdjust,
+	  side side=RightSide, pen p=currentpen,
 	  arrowbar arrow=None, arrowbar bar=None, string legend="")
 {
   arrowbarT arrowbar=new arrowbarT;
-  if(s != "") label(pic,s,angle,g,position,align,side,p,adjust);
+  if(s != "") label(pic,s,angle,g,position,align,side,p);
   bar(pic,g,p,arrowbar);
   arrow(pic,g,p,arrowbar);
   if(arrowbar.drawpath) _draw(pic,g,p);
@@ -1436,11 +1421,11 @@ void draw(picture pic=currentpicture, string s="", real angle=0,
 
 void drawabout(pair origin, picture pic=currentpicture, string s="",
 	       real angle=0, path g, real position=infinity, pair align=0,
-	       side side=RightSide, pen p=currentpen, adjust adjust=NoAdjust,
+	       side side=RightSide, pen p=currentpen,
 	       arrowbar arrow=None, arrowbar bar=None)
 {
   picture opic=new picture;
-  draw(opic,s,angle,g,position,align,side,p,adjust,arrow,bar);
+  draw(opic,s,angle,g,position,align,side,p,arrow,bar);
   addabout(origin,pic,opic);  
 }
 

@@ -2835,17 +2835,16 @@ currentpicture):
 @verbatim 
 void draw(picture pic=currentpicture, string s="", real angle=0,
   path g, pair align=0, side side=RightSide, pen p=currentpen,
-  adjust adjust=NoAdjust, arrowbar arrow=None, arrowbar bar=None,
-  string legend="");
+  arrowbar arrow=None, arrowbar bar=None, string legend="");
 @end verbatim
 
 Draw the path @code{g} on the picture @code{pic}, optionally labeled by
 string @code{s} writing at angle @code{angle} (in degrees) and aligned
 with the vector @code{align} on side @code{side} of the path, using pen
-@code{p}, and other optional drawing attributes (italic adjustment,
-arrows, bars, legend). Only one parameter, the path, is required. For
-convenience, the arguments @code{arrow} and @code{bar} may be specified
-in either order. The final argument, @code{legend}, is a string to use in
+@code{p}, and other optional drawing attributes (arrows, bars,
+legend). Only one parameter, the path, is required. For convenience, the
+arguments @code{arrow} and @code{bar} may be specified in either
+order. The final argument, @code{legend}, is a string to use in
 constructing an optional legend entry.
 
 @cindex @code{LeftSide}
@@ -2853,10 +2852,6 @@ constructing an optional legend entry.
 @cindex @code{RightSide}
 The possible values of @code{side} are @code{LeftSide}, @code{Center}, and
 @code{RightSide}. 
-
-@cindex @code{ItalicAdjust}
-@cindex @code{NoAdjust}
-The possible values of @code{adjust} are @code{ItalicAdjust} and @code{NoAdjust}. 
 
 @cindex @code{None}
 @cindex @code{BeginBar}
@@ -2943,25 +2938,24 @@ For an illustration of picture clipping, see the first example in
 @cindex @code{label}
 @verbatim
 void label(picture pic=currentpicture, string s, real angle=0,
-  pair position, pair align=0, pen p=currentpen, adjust adjust=NoAdjust);
+  pair position, pair align=0, pen p=currentpen);
 @end verbatim
 
 Draw label @code{s} on @code{pic}, writing at angle @code{angle} (in
 degrees), at coordinate @code{position}, aligned with the vector
-@code{align}, with pen @code{p} (and optional italic adjustment @code{adjust}).
+@code{align}, with pen @code{p}.
 
 If you want a label with an arrow, you can use one of the following routines:
 @cindex @code{arrow}
 @verbatim
 void arrow(picture pic=currentpicture, string s, real angle=0,
-	   path g, pen p=currentpen, adjust adjust=NoAdjust,
-           real size=arrowsize, real Angle=arrowangle,
-           arrowhead arrowhead=Fill);
+	   path g, pen p=currentpen, real size=arrowsize,
+           real Angle=arrowangle, arrowhead arrowhead=Fill);
 
 void arrow(picture pic=currentpicture, string s="", real angle=0,
 	   pair b, pair align, real length=arrowlength, pen p=currentpen,
-	   adjust adjust=NoAdjust, real size=arrowsize,
-           real Angle=arrowangle, arrowhead arrowhead=Fill);
+	   real size=arrowsize, real Angle=arrowangle,
+           arrowhead arrowhead=Fill);
 @end verbatim
 
 One can prevent labels from overwriting each other with the
@@ -3397,7 +3391,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  ticksize subintervals xlimits filetype plugin setlocal makeprg
 @c  LocalWords:  ylimits uncommented LinearInterp automin automax cp uninstall
 @c  LocalWords:  scaleT Xautomin Xautomax Yautomin Yautomax unicode RightSide
-@c  LocalWords:  NoAdjust arrowbar LeftSide ItalicAdjust EndBar BeginArrow lly
+@c  LocalWords:  arrowbar LeftSide EndBar BeginArrow lly
 @c  LocalWords:  EndArrow BeginArcArrow EndArcArrow ArcArrow ArcArrows NoFill
 @c  LocalWords:  filldraw fillpen drawpen errorformat bigsquare bezier darkblue
 @c  LocalWords:  quartercircle darkgreen lightblue urx ury texpreamble sgn texi
