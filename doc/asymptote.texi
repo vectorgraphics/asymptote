@@ -104,7 +104,7 @@ Import
 @chapter Description
 @cindex description
 
-@code{Asymptote} is powerful script-based vector graphics language that
+@code{Asymptote} is a powerful script-based vector graphics language that
 provides a natural coordinate-based framework for technical drawings.
 Labels and equations are typeset with @code{LaTeX}, for overall document
 consistency, yielding the same high-quality level of typesetting that
