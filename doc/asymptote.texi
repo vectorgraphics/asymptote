@@ -219,7 +219,7 @@ make install-man
 @end verbatim
 
 In order to compile @code{Asymptote} you will need the @code{boost}
-headers from @code{http://boost.org} (included in Fedora Linux distributions)
+headers from @code{http://boost.org} (included in Fedora Linux distributions).
 Installation of the complete boost library may require the following (or
 later):
 @verbatim
@@ -232,6 +232,7 @@ so it is sufficient to copy the @code{boost} subdirectory from the
 @code{boost} source distribution to @code{/usr/include} or even just
 make a link in the top level directory of the @code{Asymptote} source code:
 
+@verbatim
 tar -jxf boost_1_32_0.tar.bz2  
 tar -jxf asymptote-x.xx.tar.gz 
 cd asymptote-x.xx 
@@ -239,6 +240,7 @@ ln -s ../boost_1_32_0/boost .
 ./configure 
 make
 make install 
+@end verbatim
 
 @cindex Debian
 On machines running Debian Linux, the boost library can be installed with
