@@ -5,7 +5,7 @@ static public real axislabelmargin=2;
 static public real axiscoverage=0.6;
 static public int ngraph=100;
 
-static private real epsilon=100*realEpsilon();
+static public real epsilon=1000*realEpsilon();
 
 static scaleT Linear=new scaleT;
 Linear.T=identity;
@@ -481,8 +481,10 @@ void xequals(picture pic=currentpicture, real x,
   pair a=(x,finite(ymin) ? ymin : pic.userMin.y);
   pair b=(x,finite(ymax) ? ymax : pic.userMax.y);
   
-  pic.addPoint(a,p);
-  pic.addPoint(b,p);
+  pic.addFinite(a,min(p));
+  pic.addFinite(a,max(p));
+  pic.addFinite(b,min(p));
+  pic.addFinite(b,max(p));
   
   if(finite(a) && finite(b)) {
     frame d;
@@ -518,8 +520,10 @@ void yequals(picture pic=currentpicture, real y,
   pair a=(finite(xmin) ? xmin : pic.userMin.x,y);
   pair b=(finite(xmax) ? xmax : pic.userMax.x,y);
   
-  pic.addPoint(a,p);
-  pic.addPoint(b,p);
+  pic.addFinite(a,min(p));
+  pic.addFinite(a,max(p));
+  pic.addFinite(b,min(p));
+  pic.addFinite(b,max(p));
   
   if(finite(a) && finite(b)) {
     frame d;

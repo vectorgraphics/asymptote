@@ -305,11 +305,11 @@ vector intersectionpoint(vector n0, vector P0, vector n1, vector P1)
 }
 
 // Given a real array A, return its partial (optionally dx-weighted) sums.
-real[] partialsum(real[] A, real[] dx=null) 
+real[] partialsum(real[] A, real[] dx={}) 
 {
-  real[] B=new real[];
+  real[] B=new real[A.length];
   B[0]=0;
-  if(alias(dx,null))
+  if(dx.length == 0)
     for(int i=0; i < A.length; ++i) B[i+1]=B[i]+A[i];
   else
     for(int i=0; i < A.length; ++i) B[i+1]=B[i]+A[i]*dx[i];
@@ -318,7 +318,7 @@ real[] partialsum(real[] A, real[] dx=null)
 
 real[][] zero(int n)
 {
-  real[][] m;
+  real[][] m=new real[0][n];
   for(int i=0; i < n; ++i)
     m[i]=sequence(new real(int x){return 0;},n);
   return m;
@@ -326,7 +326,7 @@ real[][] zero(int n)
 
 real[][] identity(int n)
 {
-  real[][] m;
+  real[][] m=new real[0][n];
   for(int i=0; i < n; ++i)
     m[i]=sequence(new real(int x){return x == i ? 1 : 0;},n);
   return m;
@@ -334,16 +334,18 @@ real[][] identity(int n)
 
 real[][] operator + (real[][] a, real[][] b)
 {
-  real[][] m;
-  for(int i=0; i < a.length; ++i)
+  int n=a.length;
+  real[][] m=new real[0][n];
+  for(int i=0; i < n; ++i)
     m[i]=a[i]+b[i];
   return m;
 }
 
 real[][] operator - (real[][] a, real[][] b)
 {
-  real[][] m;
-  for(int i=0; i < a.length; ++i)
+  int n=a.length;
+  real[][] m=new real[0][n];
+  for(int i=0; i < n; ++i)
     m[i]=a[i]-b[i];
   return m;
 }
@@ -351,15 +353,17 @@ real[][] operator - (real[][] a, real[][] b)
 real[][] operator * (real[][] a, real[][] b)
 {
   int n=a.length;
-  real[][] m=new real[n][b[0].length];
+  int nb=b.length;
+  int nb0=b[0].length;
+  real[][] m=new real[n][nb0];
   for(int i=0; i < n; ++i) {
     real[] ai=a[i];
     real[] mi=m[i];
-    if(ai.length != b.length) 
+    if(ai.length != nb) 
       abort("Multiplication of incommensurate matrices is undefined");
-    for(int j=0; j < b[0].length; ++j) {
+    for(int j=0; j < nb0; ++j) {
       real sum;
-      for(int k=0; k < b.length; ++k)
+      for(int k=0; k < nb; ++k)
 	sum += ai[k]*b[k][j];
       mi[j]=sum;
     }
@@ -372,15 +376,16 @@ real[][] operator * (real[][] a, real[] b)
   return a*transpose(new real[][] {b});
 }
 
-real[][] operator * (real[] b,real[][] a)
+real[][] operator * (real[] b, real[][] a)
 {
   return new real[][] {b}*a;
 }
 
 real[][] operator * (real[][] a, real b)
 {
-  real[][] m;
-  for(int i=0; i < a.length; ++i)
+  int n=a.length;
+  real[][] m=new real[0][n];
+  for(int i=0; i < n; ++i)
     m[i]=a[i]*b;
   return m;
 }

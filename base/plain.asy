@@ -324,14 +324,13 @@ static struct coord {
   
 }
 
-coord[] append (coord[] dest, coord[] src)
+void append(coord[] dest, coord[] src)
 {
   for(int i=0; i < src.length; ++i)
     dest.push(src[i]);
-  return dest;
 }
 
-void append (coord[] x, coord[] y, transform T, coord[] srcx, coord[] srcy)
+void append(coord[] x, coord[] y, transform T, coord[] srcx, coord[] srcy)
 {
   for(int i=0; i < srcx.length; ++i) {
     pair z=T*(srcx[i].user,srcy[i].user);
@@ -361,7 +360,7 @@ coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
 
   int n=in.length;
   if (n == 0)
-    return new coord[] {};
+    return c;
   else {
     // Add the first coord without checking restrictions (as there are none).
     best=in[0];
@@ -408,9 +407,8 @@ coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
       return;
     else {
       int i=dominator(x);
-      if (i == NONE) {
+      if (i == NONE)
         addmaximal(x);
-      }
       else
         promote(i);
     }
@@ -554,11 +552,19 @@ struct picture {
   }
 
   // Add a point to the sizing.
-  void addPoint(pair userZ, pair trueZ=(0,0))
+  void addPoint(pair user, pair truesize=(0,0))
   {
-    if(abs(userZ.x) != infinity) xcoords.push(coord.build(userZ.x,trueZ.x));
-    if(abs(userZ.y) != infinity) ycoords.push(coord.build(userZ.y,trueZ.y));
-    userBox(userZ,userZ);
+    xcoords.push(coord.build(user.x,truesize.x));
+    ycoords.push(coord.build(user.y,truesize.y));
+    userBox(user,user);
+  }
+  
+  // Add finite components of a pair to the sizing
+  void addFinite(pair user, pair truesize=(0,0))
+  {
+    if(abs(user.x) != infinity) xcoords.push(coord.build(user.x,truesize.x));
+    if(abs(user.y) != infinity) ycoords.push(coord.build(user.y,truesize.y));
+    userBox(user,user);
   }
   
   // Add a box to the sizing.
@@ -570,22 +576,24 @@ struct picture {
   }
 
   // Add a point to the sizing, accounting also for the size of the pen.
-  void addPoint(pair userZ, pair trueZ=(0,0), pen p)
+  void addPoint(pair user, pair truesize=(0,0), pen p)
   {
-    addPoint(userZ, trueZ + max(p));
-    addPoint(userZ, trueZ + min(p));
+    addPoint(user,truesize+min(p));
+    addPoint(user,truesize+max(p));
   }
   
   // Add a (user space) path to the sizing.
   void addPath(path g)
   {
-    addBox(min(g),max(g));
+    addPoint(min(g));
+    addPoint(max(g));
   }
 
   // Add a path to the sizing with the additional padding of a pen.
   void addPath(path g, pen p)
   {
-    addBox(min(g), max(g), min(p), max(p));
+    addPoint(min(g),min(p));
+    addPoint(max(g),max(p));
   }
 
   void size(real x=0, real y=0, bool a=true)
