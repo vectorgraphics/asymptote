@@ -994,8 +994,8 @@ void stringTime(stack *s)
   string format = s->pop<std::string>();
   static const size_t n=256;
   static char Time[n]="";
+#ifdef HAVE_STRFTIME
   const time_t bintime=time(NULL);
-#ifdef HAVE_STRFTIME  
   strftime(Time,n,format.c_str(),localtime(&bintime));
 #endif  
   s->push((std::string) Time);
