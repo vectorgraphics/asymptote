@@ -105,12 +105,12 @@ syn keyword	asyType		pair transform guide path pen frame
 syn keyword     asyType         picture
 
 syn keyword	asyStructure	struct typedef
-syn keyword     asyStorageClass static dynamic public private
+syn keyword     asyStorageClass static public private
 
 syn keyword     asyPathSpec     and cycle controls tension atleast curl
 
 syn keyword     asyConstant     true false
-syn keyword     asyConstant     null nullpicture nullpath
+syn keyword     asyConstant     null nullframe nullpath
 
 if exists("asy_syn_plain")
   syn keyword	asyConstant	currentpicture currentpen
