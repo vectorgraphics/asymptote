@@ -13,6 +13,7 @@ FILES = $(CAMP) cast env genv main runtime stm dec errormsg inst name symbol \
 CLEAN = camp.tab.h camp.tab.cc lex.yy.cc camp.output
 NAME = asy
 XNAME = x$(NAME)
+MANFILES = {asy.1,xasy.1x}
 
 CXX = @CXX@ -Wall -ansi
 MAKEDEPEND = $(CXX) $(OPTS) -M -DDEPEND
@@ -27,7 +28,10 @@ INCL = -I- -I .
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
+mandir = @mandir@
 asydir = @asydir@
+exampledir = @exampledir@
+latexdir = @latexdir@
 INSTALL = @INSTALL@
 
 ASYMPTOTE_DIR = ../base
@@ -57,26 +61,33 @@ lex.yy.cc: camp.l
 lex.yy.d: lex.yy.cc camp.tab.h
 
 install: asy
-	${INSTALL} -d $(bindir) $(asydir) $(asydir)/examples
+	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(latexdir)
 	${INSTALL} -s $(NAME) $(bindir)
 	${INSTALL} $(XNAME) $(bindir)
-	${INSTALL} base/*.asy base/asy* $(asydir)
-	${INSTALL} examples/*.asy $(asydir)/examples
+	${INSTALL} -m644 base/*.asy $(asydir)
+	${INSTALL} -m644 examples/*.asy base/asy* $(exampledir)
+	${INSTALL} -m644 doc/asymptote.sty $(latexdir)
+	texhash
 
 install-man: man
-	${INSTALL} doc/asymptote.info $(prefix)/info
+	${INSTALL} -m 644 doc/asymptote.info $(prefix)/info
 	install-info --infodir=$(prefix)/info doc/asymptote.info 
+	${INSTALL} -m 644 doc/$(MANFILES) ${mandir}/man1
+
 
 install-all: install install-man
 
 uninstall: 
-	-cd $(asydir)/examples; rm -f *.asy
-	-rmdir $(asydir)/examples
-	-cd $(asydir); rm -f *.asy asy*
+	-cd $(exampledir); rm -f *.asy asy*
+	-rmdir $(exampledir)
+	-cd $(asydir); rm -f *.asy
 	-rmdir $(asydir)
+	-rm -f $(latexdir)/asymptote.sty
+	-rmdir $(latexdir)
 	-rm -f $(bindir)/$(NAME) $(bindir)/$(XNAME) 
 	-install-info --delete doc/asymptote.info $(prefix)/info/dir
-	-rm $(prefix)/info/asymptote.info
+	-rm -f $(prefix)/info/asymptote.info
+	-rm -f $(mandir)/man1/$(MANFILES)
 
 
 clean:  FORCE

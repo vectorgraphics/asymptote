@@ -6,10 +6,22 @@ AC_PREREQ(2)
 AC_INIT([Asymptote],[0.54cvs],[asymptote-discuss@lists.sourceforge.net])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
+
 test "$prefix" = NONE && prefix=/usr/local
 test "$datadir" = '${prefix}/share' && datadir=$prefix/share
 asydir=$datadir/asymptote
+exampledir=$datadir/doc/asymptote
+latexdir=/usr/share/texmf/tex/latex/asymptote
+AC_ARG_WITH(latex,
+                     [  --with-latex=PATH       Specify path to LaTeX installation ],
+                     [if test "x$withval" != "x" ; then
+			latexdir=$withval
+		      fi
+		     ])
 AC_SUBST(asydir)
+AC_SUBST(exampledir)
+AC_SUBST(latexdir)
+
 AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$asydir",
 	[System directory for global .asy files])
 AC_CONFIG_SRCDIR([absyn.cc])
