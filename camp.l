@@ -16,7 +16,7 @@
 #include "errormsg.h"
 #include "interact.h"
 
-using namespace as;
+using namespace absyn;
 using boost::lexical_cast;
 
 #include "camp.tab.h"
