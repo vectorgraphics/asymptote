@@ -82,7 +82,7 @@ pen lavender=brown+darkgreen+blue;
 pen pink=red+darkgreen+blue;
 
 // Global parameters:
-public real labelmargin=0.3;
+public real labelmargin=0.4;
 public real arrowlength=0.75cm;
 public real arrowsize=7.5;
 public real arrowangle=15;
@@ -847,7 +847,7 @@ guide arrowhead(picture pic=currentpicture, path g, real position=infinity,
   path left=rotate(-angle,x)*r, right=rotate(angle,x)*r;
   real tl=intersect(left,base).x, tr=intersect(right,base).x;
   pair denom=point(right,tr)-y;
-  real factor=denom != 0 ? length((point(left,tl)-y)/denom) : 1.0;
+  real factor=denom != 0 ? length((point(left,tl)-y)/denom) : 1;
   left=rotate(-angle,x)*r; right=rotate(angle*factor,x)*r;
   tl=intersect(left,base).x; tr=intersect(right,base).x;
   return subpath(left,0,tl > 0 ? tl : t)--subpath(right,tr > 0 ? tr : t,0)
@@ -1175,7 +1175,7 @@ void label(picture pic=currentpicture, string s, real angle=0,
 	   pen p=currentpen)
 {
   real L=length(g);
-  if(position == infinity) position=0.5*L;
+  if(position == infinity) position=0.5L;
   if(align == 0) {
     if(position <= 0) align=-direction(g,0);
     else if(position >= L) align=direction(g,L);
@@ -1220,33 +1220,6 @@ void arrow(picture pic=currentpicture, string s, real angle=0,
   pair a=point(g,0);
   pair b=point(g,1);
   label(pic,s,angle,a,unit(a-b),p);
-}
-
-void arrow(picture pic=currentpicture, string s="", real angle=0,
-	   pair b, pair align, real length=arrowlength, pen p=currentpen,
-	   real size=arrowsize, real Angle=arrowangle,
-	   arrowhead arrowhead=Fill)
-{
-  pair a,c;
-  if(s == "") {
-    a=0; c=length*unit(align);
-  } else {
-    c=0.4*fontsize(p)*align;
-    a=length*align+c;
-    label(pic,s,angle,b,a/labelmargin(p)+align,p);
-  }
-  addabout(b,pic,arrow(a--c,p,size,Angle,arrowhead));
-}
-
-void outarrow(picture pic=currentpicture, string s, real angle=0,
-	      pair b, pair align, real length=arrowlength,
-	      pen p=currentpen, real size=arrowsize, real Angle=arrowangle,
-	      arrowhead arrowhead=Fill)
-{
-  pair c=0.4*fontsize(p)*align;
-  pair a=length*align+c;
-  label(pic,s,angle,b,a/labelmargin(p)+align,p);
-  addabout(b,pic,arrow((0,0)--(a-b),p,size,Angle,arrowhead));
 }
 
 guide square(pair z1, pair z2)
@@ -1419,6 +1392,7 @@ void draw(picture pic=currentpicture, string s="", real angle=0,
   }
 }
 
+// Draw a fixed-size object about the user-coordinate 'origin'.
 void drawabout(pair origin, picture pic=currentpicture, string s="",
 	       real angle=0, path g, real position=infinity, pair align=0,
 	       side side=RightSide, pen p=currentpen,
@@ -1426,7 +1400,23 @@ void drawabout(pair origin, picture pic=currentpicture, string s="",
 {
   picture opic=new picture;
   draw(opic,s,angle,g,position,align,side,p,arrow,bar);
-  addabout(origin,pic,opic);  
+  addabout(origin,pic,opic);
+}
+
+void arrow(picture pic=currentpicture, string s="", real angle=0,
+	   pair b, pair align, real length=arrowlength, pen p=currentpen,
+	   real size=arrowsize, real Angle=arrowangle,
+	   arrowhead arrowhead=Fill)
+{
+  pair a,c;
+  pair dir=unit(align);
+  if(s == "") {
+    a=0; c=length*dir;
+  } else {
+    c=labelmargin(p)*dir;
+    a=length*dir+c;
+  }
+  drawabout(b,pic,s,angle,a--c,0.0,align,p,Arrow(size,Angle,arrowhead));
 }
 
 string substr(string s, int pos)

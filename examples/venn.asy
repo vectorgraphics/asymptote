@@ -26,8 +26,8 @@ label("$B$",z2);
 
 pair z=(0,-2);
 real e=0.85;
-arrow("$A\cap B$",subpath((0,2)--z0,0,e));
-arrow("$A\cup B$",subpath(z--z0,0,e));
+draw("$A\cap B$",subpath(conj(z)--z0,0,e),0,Arrow);
+draw("$A\cup B$",subpath(z--z0,0,e),0,Arrow);
 draw(subpath(z--z1,0,e),Arrow);
 draw(subpath(z--z2,0,e),Arrow);
 

@@ -88,7 +88,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
 	}
 
 	pair Align=(align == pair(0,0)) ? pair(1,0) : unit(align);
-	double s=1e-12;
+	double s=0.25*pentype->size();
 	pair offset=-p;
 	p=pair(Align.getx() > 0 ? 
 	       max(p.getx(),(labelbounds[i].xmax()+s)) : 
