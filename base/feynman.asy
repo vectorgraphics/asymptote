@@ -9,8 +9,9 @@
 // labels on paths are positioned with a certain offset to the path. The
 // direction of the offset can be specified as absolute direction or as
 // direction relative to the direction of the path. The functions
-// midLabelPoint, endLabelPoint and startLabelPoint use a positiontype
-// parameter to select one of the two methods.
+// midLabelPoint, endLabelPoint and startLabelPoint use a boolean parameter to
+// select one of the two methods. The synonyms Absolute and Relative are
+// provided for convenience.
 bool Absolute = false, Relative = true;
 
 /* default parameters ********************************************************/
@@ -113,6 +114,13 @@ public real momarrowoffset;
 // default margin for momentum arrows
 public real momarrowmargin;
 
+// factor for determining the size of momentum arrowheads. After changing it,
+// you still have to update currentmomarrow manually.
+public real momarrowfactor;
+
+// size function for momentum arrowheads
+real momarrowsize(pen p=momarrowpen) { return momarrowfactor*linewidth(p); }
+
 
 /* helper functions **********************************************************/
 
@@ -209,6 +217,7 @@ arrowbar MidArrow(real size=0, real angle=arrowangle, filltype filltype=Fill)
 }
 
 // provide a middle arrow with default parameters
+
 public arrowbar MidArrow = MidArrow();
 
 // returns the path of a momentum arrow along path p, with length length,
@@ -640,7 +649,7 @@ void fmdefaults()
     doublelinepen = currentpen;
     vertexpen = currentpen;
     bigvertexpen = currentpen;
-    currentarrow = MidArrow();
+    currentarrow = MidArrow;
 
     doublelinespacing = 2*linewidth;
     linemargin = 0.5*arrowsize;
@@ -649,11 +658,12 @@ void fmdefaults()
     vertexsize = 0.5*dotfactor*linewidth;
     bigvertexsize = 0.4*arrowsize;
 
-    currentmomarrow = EndArrow(0.75*arrowsize);
+    momarrowfactor = 1.5*arrowfactor;
     momarrowlength = 2.5*arrowsize;
-    momarrowpen = currentpen+min(0.5*linewidth, 0.4);
+    momarrowpen = currentpen+0.5*linewidth;
     momarrowoffset = 0.8*arrowsize;
     momarrowmargin = 0.25*arrowsize;
+    currentmomarrow = EndArrow(momarrowsize());
 }
 
 // We call fmdefaults once, when the module is loaded.

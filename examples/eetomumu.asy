@@ -1,5 +1,8 @@
 import feynman;
 
+defaultpen(0.8bp);
+MidArrow=MidArrow(0.5*arrowfactor);
+
 // scale all other defaults of the feynman module appropriately
 fmdefaults();
 
