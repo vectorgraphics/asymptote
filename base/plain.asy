@@ -247,9 +247,9 @@ struct coord {
 
   // Build a coord.
   static coord build(real user, real truesize) {
-    coord c = new coord;
-    c.user = user;
-    c.truesize = truesize;
+    coord c=new coord;
+    c.user=user;
+    c.truesize=truesize;
     return c;
   }
 
@@ -407,8 +407,8 @@ struct picture {
   struct scaling {
     public real a,b;
     static scaling build(real a, real b) {
-      scaling s = new scaling;
-      s.a = a; s.b = b;
+      scaling s=new scaling;
+      s.a=a; s.b=b;
       return s;
     }
     real scale(real x) {
@@ -423,10 +423,10 @@ struct picture {
   real min(scaling s, coord[] c)
   {
     if (c.length > 0) {
-      real m = infinity;
+      real m=infinity;
       for (int i=0; i < c.length; ++i)
 	if(finite(c[i].user) && s.scale(c[i]) < m)
-          m = s.scale(c[i]);
+          m=s.scale(c[i]);
       return m;
     }
     else
@@ -438,10 +438,10 @@ struct picture {
   real max(scaling s, coord[] c)
   {
     if (c.length > 0) {
-      real M = -infinity;
+      real M=-infinity;
       for (int i=0; i < c.length; ++i) 
         if (finite(c[i].user) && s.scale(c[i]) > M)
-          M = s.scale(c[i]);
+          M=s.scale(c[i]);
       return M;
     }
     else
@@ -452,18 +452,18 @@ struct picture {
   // Calculate the min for the final picture, given the transform of coords.
   pair min(transform t)
   {
-    pair a = t*(1,1)-t*(0,0), b = t*(0,0);
-    scaling xs = scaling.build(a.x, b.x);
-    scaling ys = scaling.build(a.y, b.y);
+    pair a=t*(1,1)-t*(0,0), b=t*(0,0);
+    scaling xs=scaling.build(a.x, b.x);
+    scaling ys=scaling.build(a.y, b.y);
     return (min(xs, xcoords), min(ys, ycoords));
   }
 
   // Calculate the max for the final picture, given the transform of coords.
   pair max(transform t)
   {
-    pair a = t*(1,1)-t*(0,0), b = t*(0,0);
-    scaling xs = scaling.build(a.x, b.x);
-    scaling ys = scaling.build(a.y, b.y);
+    pair a=t*(1,1)-t*(0,0), b=t*(0,0);
+    scaling xs=scaling.build(a.x, b.x);
+    scaling ys=scaling.build(a.y, b.y);
     return (max(xs, xcoords), max(ys, ycoords));
   }
 
@@ -471,7 +471,7 @@ struct picture {
   // Calculate the sizing constants for the given array and maximum size.
   scaling calculateScaling(coord[] coords, real max) {
     import simplex;
-    simplex.problem p = new simplex.problem;
+    simplex.problem p=new simplex.problem;
    
     void addCoord(coord c) {
       // (a*user + b) + truesize >= 0:
@@ -480,11 +480,11 @@ struct picture {
       p.addRestriction(-c.user, -1, max-c.truesize);
     }
 
-    for(int i = 0; i < coords.length; ++i) {
+    for(int i=0; i < coords.length; ++i) {
       if(finite(coords[i].user)) addCoord(coords[i]);
     }
 
-    int status = p.optimize();
+    int status=p.optimize();
     if (status == simplex.problem.OPTIMAL) {
       return scaling.build(p.a(),p.b());
     }
@@ -504,16 +504,16 @@ struct picture {
     if (xmax == 0 && ymax == 0)
       return identity();
     else if (ymax == 0) {
-      scaling sx = calculateScaling(xcoords, xmax);
+      scaling sx=calculateScaling(xcoords, xmax);
       return scale(sx.a);
     }
     else if (xmax == 0) {
-      scaling sy = calculateScaling(ycoords, ymax);
+      scaling sy=calculateScaling(ycoords, ymax);
       return scale(sy.a);
     }
     else {
-      scaling sx = calculateScaling(xcoords, xmax);
-      scaling sy = calculateScaling(ycoords, ymax);
+      scaling sx=calculateScaling(xcoords, xmax);
+      scaling sy=calculateScaling(ycoords, ymax);
       if (keepAspect)
         return scale(min(sx.a, sy.a));
       else
@@ -548,7 +548,7 @@ struct picture {
   // picture would.
   picture drawcopy()
   {
-    picture dest = new picture;
+    picture dest=new picture;
     for (int i=0; i < nodes.length; ++i)
       dest.add(nodes[i]);
     
@@ -608,7 +608,7 @@ picture operator * (transform t, picture orig)
   return pic;
 }
 
-public picture currentpicture = new picture;
+public picture currentpicture=new picture;
 currentpicture.deconstruct=true;
 
 public picture gui[];
@@ -799,8 +799,8 @@ void arrowheadbbox(picture pic=currentpicture, path g, real position=infinity,
   path r=subpath(g,position,0.0);
   pair x=point(r,0);
   pair y=point(r,arctime(r,size));
-  pair dz1 = rotate(-angle)*(y-x);
-  pair dz2 = rotate(angle)*(y-x);
+  pair dz1=rotate(-angle)*(y-x);
+  pair dz2=rotate(angle)*(y-x);
   pic.addPoint(x,p);
   pic.addPoint(x,dz1,p);
   pic.addPoint(x,dz2,p);
@@ -824,7 +824,7 @@ picture arrow(path g, pen p=currentpen, real size=arrowsize,
 {
   picture pic=new picture;
   pic.add(new void (frame f, transform t) {
-            picture pic = new picture;
+            picture pic=new picture;
 	    path G=t*g;
 	    path R=subpath(G,position,0.0);
 	    path S=subpath(G,position,length(G));
@@ -844,7 +844,7 @@ picture arrow2(path g, pen p=currentpen, real size=arrowsize,
 {
   picture pic=new picture;
   pic.add(new void (frame f, transform t) {
-            picture pic = new picture;
+            picture pic=new picture;
 	    path G=t*g;
 	    path R=reverse(G);
             draw(f,subpath(R,arctime(R,size),length(R)-arctime(G,size)),p);

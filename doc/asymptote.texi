@@ -334,7 +334,7 @@ for(int i=0; i < 10; ++i) {
 @cindex @code{continue}
 Asymptote also supports @code{while}, @code{do}, @code{break}, and
 @code{continue} statements just as in C/C++. In addition, it supports
-many features beyond those found in C and C++. 
+many features beyond those found in C and C++.
 
 @menu
 * Data types::                  
@@ -380,12 +380,14 @@ the value @code{false} is assumed.
 
 @item int
 @cindex @code{int}
-an integer type; if no initializer is given, the implicit value 0 is assumed.
+an integer type; if no initializer is given, the implicit value @code{0}
+is assumed.
 
 @item real
 @cindex @code{real}
-real number (highest-precision native floating-point type);
-the implicit initializer is 0.0.
+a real number; this should be set to the highest-precision native
+floating-point type on the architecture. The implicit initializer for
+type real is @code{0.0}.
 
 @item pair
 @cindex @code{pair}
@@ -393,6 +395,7 @@ complex number, that is, an ordered pair of real components (x,y).
 The real and imaginary parts of a pair @code{z} can read as @code{z.x}
 and @code{z.y}. We say that @code{x} and @code{y} are virtual members of
 the data element pair; they cannot be directly modified, however.
+The implicit initializer for type pair is @code{(0.0,0.0)}.
 
 There are a number of ways to take the complex conjugate of a pair:
 @example
@@ -402,7 +405,7 @@ z=z.x-I*z.y;
 z=conj(z);
 @end example
 
-A number of builtin functions are defined for pairs:
+A number of built-in functions are defined for pairs:
 
 @table @code
 @item pair conj(pair)
@@ -454,6 +457,7 @@ returns the @code{.y} component of its argument.
 @cindex TeX
 character strings. These are implemented as STL strings, except that the
 escape character is @code{\\} not @code{\}, for compatibility with @TeX{}.
+The implicit initializer for type string is the null string, @code{""}.
 For example 
 
 @itemize 
@@ -464,7 +468,7 @@ For example
 @item \\\ maps to \\
 @item \" maps to "
 @item \\" maps to to \"
-@item \1-\0377 maps to corresponding octal byte
+@item \1-\0377 map to corresponding octal byte
 @item backslash is a string containing a single backslash
 @end itemize
 
@@ -549,6 +553,7 @@ reflect about line @code{z--w}.
 
 Transforms can be composed with one another and inverted with the
 function @code{transform inverse(transform)}.
+The implicit initializer for transforms is @code{identity()}.
 
 @node Guides and Paths
 @section Guides and Paths
@@ -574,7 +579,7 @@ Specifying a final node @code{cycle} creates a cyclic path that connects back
 to the initial node, as in this approximation (accurate to within 0.06%)
 of a unit circle:
 @anchor{unitcircle}
-@cindex unitcircle
+@cindex @code{unitcircle}
 @verbatim
 guide unitcircle=E..N..W..S..cycle;
 @end verbatim
@@ -584,7 +589,7 @@ The above example uses the standard compass directions @code{E=(1,0)},
 which along with the directions @code{up}, @code{down}, @code{right},
 and @code{left} are defined as pairs in the default asymptote base file
 @code{plain.asy}.
-@cindex circle
+@cindex @code{circle}
 A useful routine in @code{plain.asy} constructs a circle of radius
 @code{r} centered on @code{c} by transforming unitcircle:
 @verbatim
@@ -635,8 +640,9 @@ The curl parameter specifies the curvature at the endpoints of a path
 path p=(100,0){curl 0.0}..(100,100)..{curl 0.0}(0,100);
 @end verbatim
 
-The special path @code{nullpath} is useful for building up a path within
-a loop. For completeness, we document here the action of direction modifiers
+The implicit initializer for paths and guides is @code{nullpath},
+which is useful for building up a path within a loop.
+For completeness, we document here the action of direction modifiers
 on @code{nullpath}. If a single direction specifier is given to
 @code{nullpath}, it modifies the pair on the other side. 
 In the case of a two specifiers (one on each side of @code{nullpath}), the
@@ -671,9 +677,7 @@ the pen nib. The default pen is @code{currentpen}.
 @table @code
 @item @code{pen gray(real g);} 
 @cindex @code{gray}
-@cindex grey
 @cindex grayscale
-@cindex greyscale
 This produces a grayscale color, where the intensity @code{g} lies in the
 interval [0,1], with 0.0 denoting black and 1.0 denoting white.
 
@@ -755,29 +759,37 @@ pictures are usually more convenient to work with. The default frame is
 
 @item picture
 @cindex @code{picture}
-Pictures are high-level structures defined in @code{plain.asy} 
-that provide canvases for drawing in user coordinates. 
-The default picture is @code{currentpicture}.
+Pictures are high-level structures (@pxref{Structures}) defined in
+@code{plain.asy} that provide canvases for drawing in user coordinates. 
+The default picture is @code{currentpicture}. Since structures currently
+have no default initialization, this must be done explicitly whenever a
+new picture is created:
+@verbatim
+picture pic=new picture;
+@end verbatim
 
 A picture is fit to a frame upon calling the function @code{shipout},
-using the default or given size specification:
+using the default or given size specification (in the default base file
+@code{plain.asy}, the following function is actually implemented using
+two separate functions, because of the way default arguments are implemented):
 
 @anchor{shipout}
-@example
 @cindex @code{shipout}
-void shipout(string prefix=defaultfilename, picture pic=currentpicture,
-	     real xsize=infinity, real ysize=infinity,
-	     keepAspect keepAspect=pic.keepAspect ? Aspect : IgnoreAspect,
-             string format="", wait wait=NoWait);
-@end example
+@verbatim
+void shipout(string prefix=defaultfilename,
+  picture pic=currentpicture,
+  real xsize=infinity, real ysize=infinity,
+  keepAspect keepAspect=pic.keepAspect ? Aspect : IgnoreAspect,
+  string format="", wait wait=NoWait);
+@end verbatim
 
 Sometimes it is useful to draw objects on separate pictures and add one
 picture to another with the @code{add} function:
 @cindex @code{shipout}
-@example
+@verbatim
 void add(picture src);
 void add(picture dest, picture src);
-@end example
+@end verbatim
 The first example adds src to currentpicture; the second one adds src to dest.
 
 Many further examples of picture and frame operations are provided in
@@ -800,7 +812,7 @@ An input file must first be opened; reading is done by assignment:
 file fin=input("test.txt");
 real a=fin;
 @end verbatim
-@cindex getc
+@cindex @code{getc}
 Strings are also read by assignment. Asymptote also includes a routine
 @code{getc(file)} that reads the next character and returns it as a string.
 
@@ -861,13 +873,18 @@ digits of output precision, use @code{precision(file,int)}.
 @section Structures
 @cindex @code{struct}
 @cindex structures
+@cindex @code{public}
+@cindex @code{private}
+@cindex @code{this}
+@cindex @code{new}
 
 Users may also define their own data types as structures, along with
 user-defined operators, much as in C++. By default, structure
 members are read-only outside the structure, but may be optionally
-declared public (read-write) or private (read and write allowed only
-inside the structure). The virtual structure @code{this} refers to the
-enclosing structure.
+declared @code{public} (read-write) or @code{private} (read and write
+allowed only inside the structure). The virtual structure @code{this}
+refers to the enclosing structure. Structures currently have no default
+initialization, so this must be done explicitly, using the keyword @code{new}:
 
 @verbatim
 struct S {
@@ -951,7 +968,7 @@ int j=i=i+1;
 However, postfix operators like @code{i++} and @code{i--} are not defined
 (because of the inherent ambiguities that would arise with the @code{--}
 operator used to join paths). In the rare instances where @code{i++} 
-and @code{i++} are really needed, one can substitute the expressions
+and @code{i--} are really needed, one can substitute the expressions
 @code{(++i-1)} and @code{(--i+1)}, respectively.
 
 @cindex side effects
@@ -1052,7 +1069,7 @@ c=a;                // Valid - only one possible assignment.
 @end verbatim
 
 @item Anonymous (so-called "high-order") functions are also allowed:
-@cindex typedef
+@cindex @code{typedef}
 @verbatim
 typedef int intop(int);
 intop adder(int m)
@@ -1099,15 +1116,16 @@ operation).
 @section Arrays
 @cindex arrays
 
-Appended @code{[]} to any of these types produces an array (technically
-a vector) indexed by integers in the interval [0,length-1], where length
-represents the array length. For convenience, integer indices in [-length,-1]
-are mapped to [0,length-1]. Reading an array element with an index
-outside of these bounds generates an error. Assigning an array element
-with an index < -length generates an error; however, if the index is positive,
-the array is resized, as required, to accomodate the new element.
-One can also index an array A with an integer array B, to obtain the array
-formed by indexing array A with successive elements of array B.
+Appended @code{[]} to any type (either built-in or user defined)
+produces an array (technically a vector) indexed by integers in the
+interval [0,length-1], where length represents the array length.
+For convenience, integer indices in [-length,-1] are mapped to
+[0,length-1]. Reading an array element with an index outside of these
+bounds generates an error. Assigning an array element with an 
+index < -length generates an error; however, if the index is non-negative,
+the array is resized, as required, to accomodate the new element. One can also
+index an array A with an integer array B, to obtain the array formed by
+indexing array A with successive elements of array B.
 
 Array elements are neither implicitly allocated nor initialized:
 @verbatim
@@ -1285,7 +1303,7 @@ file fin=input("test.txt");
 real[] A=fin;
 @end verbatim
 
-@cindex line
+@cindex @code{line}
 @cindex line mode
 reads real values into A until the end of file is reached (or an I/O error
 occurs). If line mode is set with @code{line(file)}, then reading will
@@ -1304,7 +1322,7 @@ file fin=input("test.txt");
 real[] A=csv(fin);
 @end verbatim
 
-@cindex dimension
+@cindex @code{dimension}
 To restrict the number of values read, use the @code{dimension(file,int)}
 function: 
 @verbatim
@@ -1324,9 +1342,9 @@ real[][][] B=dimension(fin,2,3,4);
 @end verbatim
 Again, an integer limit of zero would mean no restriction.
 
-@cindex read1
-@cindex read2
-@cindex read3
+@cindex @code{read1}
+@cindex @code{read2}
+@cindex @code{read3}
 Sometimes the array dimensions are stored as integer fields at the
 beginning of an array. Such arrays can be read in with the functions
 @code{read1}, @code{read2}, and @code{read3}, respectively:
@@ -1356,8 +1374,8 @@ string s=(string) 2.5;
 
 @node Static & dynamic qualifiers
 @section Static & dynamic qualifiers
-@cindex static
-@cindex dynamic
+@cindex @code{static}
+@cindex @code{dynamic}
 
 Static qualifiers allocate the memory address of a variable in a higher 
 enclosing frame. 
@@ -1447,7 +1465,7 @@ struct stuff {
 }
 @end verbatim
 
-@cindex import
+@cindex @code{import}
 When you import a module using @code{import}, it is like creating 
 a new instance of the struct. That is,
 @verbatim
@@ -1500,50 +1518,51 @@ Everywhere else, declarations are dynamic by default.
 @cindex drawing commands
 All of Asymptote's graphical capabilities are based on four primitive
 drawing commands. While some of these commands take many options, they
-all have sensible default values. For example, the picture argument
-defaults to currentpicture.
+all have sensible default values (for example, the picture argument
+defaults to currentpicture):
 
 @itemize
 @item
-@example
 @cindex @code{draw}
+@verbatim
 void draw(picture pic=currentpicture, string s="", real angle=0,
   path g, pair align=0, side side=RightSide, pen p=currentpen,
   adjust adjust=NoAdjust, arrowbar arrow=None, arrowbar bar=None,
   string legend="");
-@end example
+@end verbatim
 
-Draw the path g on the picture pic, optionally labeled by
-string s, using pen p, and other optional drawing attributes (italic
-adjustment, arrows, bars, legend). Only one parameter, the path, is required.
+Draw the path @code{g} on the picture @code{pic}, optionally labeled by
+string @code{s}, using pen @code{p}, and other optional drawing
+attributes (italic adjustment, arrows, bars, legend). Only one
+parameter, the path, is required.
 
 @item
-@example
 @cindex @code{fill}
+@verbatim
 void fill(picture pic=currentpicture, path g, pen p=currentpen);
-@end example
+@end verbatim
 
-Fill the interior region bounded by the path g on the picture pic,
-using the pen p.
+Fill the interior region bounded by the path @code{g} on the picture
+@code{pic}, using the pen @code{p}.
 
 @item
-@example
 @cindex @code{clip}
+@verbatim
 void clip(picture pic=currentpicture, path g);
-@end example
+@end verbatim
 
-Clip picture pic to the region bounded by the path g.
+Clip picture @code{pic} to the region bounded by the path @code{g}.
 
 @item
-@example
 @cindex @code{label}
+@verbatim
 void label(picture pic=currentpicture, string s, real angle=0,
-  pair position, pair align=0, pen p=currentpen,
-  adjust adjust=NoAdjust);
-@end example
+  pair position, pair align=0, pen p=currentpen, adjust adjust=NoAdjust);
+@end verbatim
 
-Draw label s on pic, writing at the specified angle, at coordinate position,
-aligned in the direction align, with pen p (and optional italic adjustment).
+Draw label @code{s} on @code{pic}, writing at angle @code{angle}, at
+coordinate @code{position}, aligned in the direction @code{align}, with pen
+@code{p} (and optional italic adjustment @code{adjust}). 
 @end itemize
 
 Once the above command have drawn objects on a picture, the picture
@@ -1553,13 +1572,43 @@ needs to be output with the @code{shipout} function @xref{shipout}.
 @chapter Options
 @cindex options
 Type @code{asy -h} to see the full list of command line options
-supported by asymptote.
+supported by asymptote:
 
-A printer offset may be added with one of these two equivalent commands:
+@verbatim
+Usage: asy [options] [file ...]
+
+Options: 
+
+-c               clear GUI operations
+-x magnification deconstruct into transparent gif objects
+-f format        convert each output file to specified format
+-h, -help        help
+-i               ignore GUI operations
+-k               keep intermediate files
+-L               disable LaTeX label postprocessing
+-p               parse test
+-O value         real or pair printer offset (postscript pt)
+-o name          (first) output file name
+-s               translate test
+-v, -verbose     increase verbosity level
+-V, -View        view output file
+-m               mask fpu exceptions (on supported architectures)
+-nomask          don't mask fpu exceptions (default)
+-S, -safe        disable system call (default)
+-U, -unsafe      enable system call
+-noplain         disable automatic importing of plain
+@end verbatim
+
+For example, a printer offset may be added with either of these two
+equivalent commands:
 @verbatim
 asy -O 25 file
 asy -O "(25,25)" file
 @end verbatim
+
+If @code{-} is given as the file argument, Asymptote reads from standard input.
+Multiple file arguments are supported. Additional debugging output is produced
+with each additional @code{-v} option.
 
 @node Interactive mode
 @chapter Interactive mode
