@@ -66,6 +66,18 @@ picture tile(real Hx=5mm, real Hy=0)
   return tiling;
 }
 
+picture brick(real Hx=5mm, real Hy=0)
+{
+  picture tiling=new picture;
+  if(Hy == 0) Hy=Hx/2;
+  guide tile=box((0,0),(Hx,Hy));
+  draw(tiling,tile);
+  draw(tiling,(Hx/2,Hy)--(Hx/2,2Hy));
+  draw(tiling,(0,2Hy)--(Hx,2Hy));
+  clip(tiling,box((0,0),(Hx,2Hy)));
+  return tiling;
+}
+
 // Add to frame preamble a tiling name constructed from picture pic
 // with optional left-bottom margin lb and right-top margin rt.
 void add(frame preamble=patterns, string name, picture pic, pair lb=0,
