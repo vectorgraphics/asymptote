@@ -33,8 +33,9 @@ inline stack::vars_t stack::make_frame(size_t size, vars_t closure)
 }
 
 stack::stack()
-  : curPos(position::nullPos())
-{}
+{
+  ip = nulllabel;
+}
 
 stack::~stack()
 {}
@@ -52,6 +53,12 @@ void stack::marshall(int args, vars_t vars)
   for (int i = args; i > 0; --i)
     vars[i] = pop();
 }
+
+#define UNALIAS                                 \
+  {                                             \
+    this->ip = ip;                              \
+    this->body = body;                          \
+  }
 
 void stack::run(func *f)
 {
@@ -74,11 +81,11 @@ void stack::run(func *f)
   /* for binops */
   vars_t u, v;
 
+  UNALIAS;
   try {
     for (;;) {
-      if (!!ip->pos) curPos = ip->pos;
-      
 #ifdef DEBUG_STACK
+      UNALIAS;
       cerr << getPos() << "\n";
       printInst(cerr, ip, body->code.begin());
       cerr << "\n";
@@ -111,6 +118,7 @@ void stack::run(func *f)
           case inst::fieldpush: {
             vars_t frame = pop<vars_t>();
             if (!frame) {
+              UNALIAS;
 	      error(this,"dereference of null pointer");
             }
             push(frame[ip->val]);
@@ -120,6 +128,7 @@ void stack::run(func *f)
           case inst::fieldsave: {
             vars_t frame = pop<vars_t>();
             if (!frame) {
+              UNALIAS;
 	      error(this,"dereference of null pointer");
             }
             frame[ip->val] = top();
@@ -130,6 +139,7 @@ void stack::run(func *f)
             bltin func = ip->bfunc;
             func(this);
             
+            UNALIAS;
             em->checkCamp(getPos());
             break;
           }
@@ -149,9 +159,11 @@ void stack::run(func *f)
           case inst::popcall: {
             /* get the function reference off of the stack */
             callable* f = pop<callable*>();
+            UNALIAS;
             
             f->call(this);
 
+            UNALIAS;
             em->checkCamp(getPos());
             
             break;
@@ -175,11 +187,13 @@ void stack::run(func *f)
           }
 	
           default:
+            UNALIAS;
 	    error(this,"Internal VM error: Bad stack operand");
         }
 
 #ifdef DEBUG_STACK
-      draw(cerr,vars,body->vars);
+      UNALIAS;
+      draw(cerr,vars);
       cerr << "\n";
 #endif
             
@@ -189,6 +203,8 @@ void stack::run(func *f)
     error(this,"Trying to use uninitialized value.");
   }
 }
+
+#undef UNALIAS
 
 #ifdef DEBUG_STACK
 #if __GNUC__
@@ -216,7 +232,7 @@ std::string demangle(const char* s)
 }
 #endif 
 
-void stack::draw(ostream& out, vars_t vars, size_t nvars)
+void stack::draw(ostream& out, vars_t vars)
 {
 //  out.setf(out.hex);
 
@@ -239,9 +255,9 @@ void stack::draw(ostream& out, vars_t vars, size_t nvars)
   
   if (!!v) {
     out << (!get<vars_t>(v[0]) ? " 0" : " link");
-    for (int i = 1; i < 10 && i < nvars; i++)
+    for (int i = 1; i < 10 && i < body->vars; i++)
       out << " " << demangle(v[i].type().name());
-    if (nvars > 10)
+    if (body->vars > 10)
       out << "...";
     out << "\n";
   }
@@ -252,7 +268,7 @@ void stack::draw(ostream& out, vars_t vars, size_t nvars)
 
 position stack::getPos()
 {
-  return curPos;
+  return body ? body->pl.getPos(ip) : position::nullPos();
 }
 
 void error(stack *s, const char* message)

@@ -102,6 +102,16 @@ void print(ostream& out, program base)
   }
 }
 
+position lambda::poslist::getPos(program::label here)
+{
+  if (empty())
+    return position::nullPos();
+  for (const_iterator ip = begin(); ip != end(); ++ip)
+    if (ip->i > here)
+      return ip==begin() ? position::nullPos() : (--ip)->p;
+  return back().p;
+}
+
 callable::~callable()
 {}
 
