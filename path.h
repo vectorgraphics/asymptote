@@ -12,15 +12,10 @@
 #include <climits>
 #include "pool.h"
 
+#include "mod.h"
 #include "pair.h"
 #include "transform.h"
 #include "bbox.h"
-
-inline int mod(int x, int y)
-{
-  int z = x%y;
-  return ((y > 0 && z < 0) || (y < 0 && z > 0)) ? z+y : z;
-}
 
 inline double intcap(double t) {
   if(t <= -INT_MAX) return -INT_MAX;
@@ -79,10 +74,6 @@ public:
   path(solvedKnot *nodes, int n, bool cycles = false)
     : cycles(cycles), n(n), nodes(nodes), cached_length(-1)
   {
-    if (n==1
-        && nodes[0].point == nodes[0].pre
-        && nodes[0].point == nodes[0].post)
-      this->cycles = false;
   }
 
 private:
@@ -139,7 +130,7 @@ public:
     if(emptyError()) return pair();
     
     if (cycles)
-      return nodes[mod(i,n)].point;
+      return nodes[imod(i,n)].point;
     else if (i < 0)
       return nodes[0].point;
     else if (i >= n)
@@ -150,7 +141,7 @@ public:
 
   bool straight(int i) const
   {
-    if (cycles) return nodes[mod(i,n)].straight;
+    if (cycles) return nodes[imod(i,n)].straight;
     return (i < n) ? nodes[i].straight : false;
   }
   
@@ -161,7 +152,7 @@ public:
     if(emptyError()) return pair();
 		       
     if (cycles)
-      return nodes[mod(i,n)].pre;
+      return nodes[imod(i,n)].pre;
     else if (i < 0)
       return nodes[0].pre;
     else if (i >= n)
@@ -177,7 +168,7 @@ public:
     if(emptyError()) return pair();
 		       
     if (cycles)
-      return nodes[mod(i,n)].post;
+      return nodes[imod(i,n)].post;
     else if (i < 0)
       return nodes[0].post;
     else if (i >= n)

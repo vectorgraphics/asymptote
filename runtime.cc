@@ -1231,110 +1231,84 @@ void nullGuide(stack *s)
   s->push((guide*)new pathguide(path()));
 }
 
-void newJoin(stack *s)
+void dotsGuide(vm::stack *s)
 {
-  guide *right = pop<guide*>(s);
+  array *a=s->pop<array *>();
 
-  // Read flags to see what goodies come with the join
-  int flags = pop<int>(s);
-  pair leftGiven, rightGiven;
-  double leftCurl=0.0, rightCurl=0.0;
-  double leftTension=0.0, rightTension=0.0;
-  pair leftCont, rightCont;
-  if (flags & RIGHT_CURL) {
-    rightCurl = pop<double>(s);
-  }
-  if (flags & RIGHT_GIVEN) {
-    rightGiven = pop<pair>(s);
-  }
-  if (flags & RIGHT_CONTROL) {
-    rightCont = pop<pair>(s);
-  }
-  if (flags & LEFT_CONTROL) {
-    leftCont = pop<pair>(s);
-  }
-  if (flags & RIGHT_TENSION) {
-    rightTension = pop<double>(s);
-  }
-  if (flags & LEFT_TENSION) {
-    leftTension = pop<double>(s);
-  }
-  if (flags & LEFT_CURL) {
-    leftCurl = pop<double>(s);
-  }
-  if (flags & LEFT_GIVEN) {
-    leftGiven = pop<pair>(s);
-  }
+  vector<guide *> v;
+  for (size_t i=0; i<a->size(); ++i)
+    v.push_back(a->read<guide *>(i));
 
-  guide *left = pop<guide*>(s);
+  s->push((guide*)new multiguide(v));
+}
 
-  join *g = new join(left, right);
+void dashesGuide(vm::stack *s)
+{
+  static camp::curlSpec curly;
+  static specguide curlout(&curly, camp::OUT);
+  static specguide curlin(&curly, camp::IN);
 
-  if (flags & RIGHT_CURL) {
-    g->curlin(rightCurl);
+  array *a=s->pop<array *>();
+  size_t n=a->size();
+
+  // a--b is equivalent to a{curl 1}..{curl 1}b
+  vector<guide *> v;
+  if (n > 0)
+    v.push_back(a->read<guide *>(0));
+
+  if (n==1) {
+    v.push_back(&curlout);
+    v.push_back(&curlin);
   }
-  if (flags & RIGHT_GIVEN) {
-    g->dirin(rightGiven);
-  }
-  if (flags & LEFT_CONTROL) {
-    if (flags & RIGHT_CONTROL) {
-      g->controls(leftCont, rightCont);
-    } else {
-      g->controls(leftCont, leftCont);
-    } 
-  }
-  if (flags & LEFT_TENSION) {
-    if (flags & TENSION_ATLEAST) {
-       g->tensionAtleast();
+  else
+    for (size_t i=1; i<n; ++i) {
+      v.push_back(&curlout);
+      v.push_back(&curlin);
+      v.push_back(a->read<guide *>(i));
     }
-    if (flags & RIGHT_TENSION) {
-      g->tension(leftTension, rightTension);
-    } else {
-      g->tension(leftTension, leftTension);
-    } 
-  }
-  if (flags & LEFT_CURL) {
-    g->curlout(leftCurl);
-  }
-  if (flags & LEFT_GIVEN) {
-    g->dirout(leftGiven);
-  }
 
-  s->push((guide*)g);
+  s->push((guide*)new multiguide(v));
 }
 
-void newCycle(stack *s)
+void cycleGuide(vm::stack *s)
 {
-  guide *g = new cycle;
-  s->push(g);
+  s->push((guide *)new cycletokguide());
 }
+      
 
-void newDirguide(stack *s)
+void dirSpec(vm::stack *s)
 {
-  // Read flags to see what the dirtag is
-  int flags = pop<int>(s);
-  pair rightGiven;
-  double rightCurl=0.0;
-  if (flags & RIGHT_CURL) {
-    rightCurl = pop<double>(s);
-  }
-  if (flags & RIGHT_GIVEN) {
-    rightGiven = pop<pair>(s);
-  }
+  camp::side d=(camp::side)s->pop<int>();
+  camp::dirSpec *sp=new camp::dirSpec(angle(s->pop<pair>()));
 
-  guide *base = pop<guide*>(s);
-
-  dirguide *g = new dirguide(base);
-
-  if (flags & RIGHT_CURL) {
-    g->curl(rightCurl);
-  }
-  if (flags & RIGHT_GIVEN) {
-    g->dir(rightGiven);
-  }
-
-  s->push((guide*)g);
+  s->push((guide *)new specguide(sp, d));
 }
+
+void curlSpec(vm::stack *s)
+{
+  camp::side d=(camp::side)s->pop<int>();
+  camp::curlSpec *sp=new camp::curlSpec(s->pop<double>());
+
+  s->push((guide *)new specguide(sp, d));
+}
+
+void realRealTension(vm::stack *s)
+{
+  bool atleast=s->pop<bool>();
+  tension  tin(s->pop<double>(), atleast),
+          tout(s->pop<double>(), atleast);
+
+  s->push((guide *)new tensionguide(tout, tin));
+}
+
+void pairPairControls(vm::stack *s)
+{
+  pair  zin=s->pop<pair>(),
+       zout=s->pop<pair>();
+
+  s->push((guide *)new controlguide(zout, zin));
+}
+
 
 // Pen operations.
 

@@ -102,6 +102,24 @@ void addRealFunc2(venv &ve, bltin fcn, const char *name)
 // operation, and no functions are called.
 identAccess id;
 
+void addGuideOperators(venv &ve)
+{
+  // The guide operators .. and -- take an array of guides, and turn them into a
+  // single guide.
+  addFunc(ve, run::dotsGuide, primGuide(), "..", guideArray());
+  addFunc(ve, run::dashesGuide, primGuide(), "--", guideArray());
+
+  addFunc(ve, run::cycleGuide, primGuide(), "cycle");
+  addFunc(ve, run::dirSpec, primGuide(), "<spec>",
+          primPair(), primInt());
+  addFunc(ve, run::curlSpec, primGuide(), "curl",
+          primReal(), primInt());
+  addFunc(ve, run::realRealTension, primGuide(), "tension",
+          primReal(), primReal(), primBoolean());
+  addFunc(ve, run::pairPairControls, primGuide(), "controls",
+          primPair(), primPair());
+}
+
 /* To avoid typing the same type three times. */
 void addSimpleOperator(venv &ve, access *a, ty *t, const char *name)
 {
@@ -273,6 +291,7 @@ double pow10(double x) {return pow(10.0,x);}
 void base_venv(venv &ve)
 {
   addOperators(ve);
+  addGuideOperators(ve);
 
   addFunc(ve,run::draw,primVoid(),"draw",primPicture(),primPath(), primPen());
   addFunc(ve,run::fill,primVoid(),"fill",primPicture(),primPath(),

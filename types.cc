@@ -61,6 +61,9 @@ ty *pathArray() { return &pathArray_; }
 array penArray_(primPen());
 ty *penArray() { return &penArray_; }
   
+array guideArray_(primGuide());
+ty *guideArray() { return &guideArray_; }
+  
 array boolArray2_(boolArray());
 ty *boolArray2() { return &boolArray2_; }
 array intArray2_(intArray());

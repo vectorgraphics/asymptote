@@ -88,8 +88,8 @@ pair path::point(double t) const
   if (t < 0) t += 1;
 
   if (cycles) {
-    i = mod(i,n);
-    iplus = mod(i+1,n);
+    i = imod(i,n);
+    iplus = imod(i+1,n);
   }
   else if (i < 0)
     return nodes[0].point;
@@ -126,8 +126,8 @@ pair path::precontrol(double t) const
   if (t<0) t += 1;
 
   if (cycles) {
-    i = mod(i,n);
-    iplus = mod(i+1,n);
+    i = imod(i,n);
+    iplus = imod(i+1,n);
   }
   else if (i < 0)
     return nodes[0].pre;
@@ -164,8 +164,8 @@ pair path::postcontrol(double t) const
   if (t<0) t += 1;
 
   if (cycles) {
-    i = mod(i,n);
-    iplus = mod(i+1,n);
+    i = imod(i,n);
+    iplus = imod(i+1,n);
   }
   else if (i < 0)
     return nodes[0].post;
@@ -272,10 +272,10 @@ path path::subpath(double start, double end) const
   } else {
     if(fabs(start) > INT_MAX || fabs(end) > INT_MAX)
       reportError("invalid path index");
-    startL = nodes[mod((int) floor(start),n)];
-    startR = nodes[mod((int) ceil(start),n)];
-    endL = nodes[mod((int) floor(end),n)];
-    endR = nodes[mod((int) ceil(end),n)];
+    startL = nodes[imod((int) floor(start),n)];
+    startR = nodes[imod((int) ceil(start),n)];
+    endL = nodes[imod((int) floor(end),n)];
+    endR = nodes[imod((int) ceil(end),n)];
   }
 
   if (start == end) return path(point(start));

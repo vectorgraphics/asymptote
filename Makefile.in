@@ -6,7 +6,7 @@ POLL = poll
 LIBS = $(LFLAGS) @LIBS@
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
-       guide knotlist pathlist drawfill
+       guide flatguide knot drawfill
 FILES = $(CAMP) cast env genv main runtime stm dec errormsg inst name symbol \
 	types entry exp newexp stack camp.tab lex.yy import access @getopt@ \
 	absyn record pool interact fileio builtin fftw++ simpson coder coenv

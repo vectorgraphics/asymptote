@@ -1,217 +1,292 @@
 /*****
  * guide.h
- * Andy Hammerlindl 2002/8/22
+ * Andy Hammerlindl 2005/02/23
  *
- * A guide is any object that describes a path or part of a path.  In
- * this way, any pair, path, join, or cycle is technically a guide. In
- * the most common sense, an expression like
- *
- *   a..b..c
- *
- * where a, b, and c are pairs. describes a path.  This expression
- * actually contains five guides.  The three pairs are all guides.  The
- * first ".." join is a guide with children guides "a" and "b".  The second
- * ".." join is a guide with children guides "a..b" and "c".  In this
- * way any guide expression will be stored as a binary tree.
- *
- * In order to be useful, a guide must eventually be solved into a path.
- * As a guide can be cyclic, and can have direction angles or curls in its
- * expression, it is not easy to tell what sections to solve. To account for
- * this, a guide is solved by traversing the binary tree with three
- * variables.  The first, left, is a list of knots that are unsolved at
- * the start of the guide, its solution will depend on whether or not
- * the path is cyclic, so it cannot be solved till the entire tree is
- * traversed.  The solved variable holds a path that represents the
- * solved section of the guide.  The last variable, right, holds the
- * list of knots after the last solved section.  Once it gets enough
- * information, it will be solved and the solved path updated.
- *
- * The subsolve() function handles this, but the last step of the
- * solve() function is to insure that all the pieces have been solved
- * and then to return the new solved path.  Because the guide might be
- * used again as part of a larger guide, it is important that solve()
- * and subsolve() produce no side-effects on the guide.
  *****/
 
 #ifndef GUIDE_H
 #define GUIDE_H
 
 #include <iostream>
+#include "knot.h"
+#include "flatguide.h"
+#include "settings.h"
 
-#include "pool.h"
-#include "pair.h"
-#include "knotlist.h"
-#include "pathlist.h"
+using std::cerr;
+using std::endl;
 
 namespace camp {
 
-class guide : public memory::managed<guide> {
+// Abstract base class for guides.
+class guide {
 public:
-  virtual void subsolve(knotlist &left, pathlist &solved, knotlist &right) = 0;
-  virtual path solve() = 0;
-  virtual void print(ostream& out) const = 0 ;
-  virtual ~guide();
+  // Returns the path that the guide represents.
+  virtual path solve() {
+    return path();
+  }
+
+  // Add the information in the guide to the flatguide, so that it can be solved
+  // via the knotlist solving routines.
+  virtual void flatten(flatguide&) {}
+
+  virtual void print(ostream& out) const {
+    out << "nullguide";
+  }
+  
+  // Needed so that multiguide can know where to put in ".." symbols.
+  virtual side printLocation() const {
+    return END;
+  }
 };
 
-// Output
 inline ostream& operator<< (ostream& out, const guide& g)
 {
   g.print(out);
-  
   return out;
 }
 
-// A guide consisting only of a pair
+// Draws dots between two printings of guides, if their locations are such that
+// the dots are necessary.
+inline void adjustLocation(ostream& out, side l1, side l2)
+{
+  if (l1 == END)
+    out << std::endl;
+  if ((l1 == END || l1 == OUT) && (l2 == IN || l2 == END))
+    out << "..";
+}
+
+// A guide representing a pair.
 class pairguide : public guide {
   pair z;
 
 public:
+  void flatten(flatguide& g) {
+    g.add(z);
+  }
+
   pairguide(pair z)
     : z(z) {}
-  virtual ~pairguide() {}
 
-  void  subsolve(knotlist &left, pathlist &solved, knotlist &right);
-  path solve();
-  void print(ostream& out) const;
+  path solve() {
+    return path(z);
+  }
+
+  void print(ostream& out) const {
+    out << z;
+  }
+  
+  side printLocation() const {
+    return END;
+  }
 };
 
-// A guide consisting only of a path
+
+// A guide representing a path.
 class pathguide : public guide {
   path p;
 
 public:
+  void flatten(flatguide& g) {
+    g.add(p);
+  }
+
   pathguide(path p)
     : p(p) {}
+
   virtual ~pathguide() {}
 
-  void  subsolve(knotlist &left, pathlist &solved, knotlist &right);
-  path solve();
-  void print(ostream& out) const;
+  path solve() {
+    return p;
+  }
+
+  void print(ostream& out) const {
+    out << p;
+  }
+  
+  side printLocation() const {
+    return END;
+  }
 };
 
-class join : public guide {
-
-  void outsolve(knotlist &left, pathlist &solved, knotlist &right);
-  void insolve(knotlist &left, pathlist &solved, knotlist &right);
-
-  guide *leftGuide;
-  rest out; // Out of the last knot (not out of the join)
-  
-  bool tensionSpec;
-  double tensionLeft;
-  double tensionRight;
-  bool tatleast;
-
-  bool controlSpec;
-  pair controlLeft;
-  pair controlRight;
-  
-  rest in; // Into the next knot (not into the join)
-  guide *rightGuide;
+// A guide giving tension information (as part of a join).
+class tensionguide : public guide {
+  tension tout,tin;
 
 public:
-  join(guide* left, guide* right)
-    : leftGuide(left),
-      tensionSpec(false),
-      tatleast(false),
-      controlSpec(false),
-      rightGuide(right) {}
+  void flatten(flatguide& g) {
+    g.setTension(tin,IN);
+    g.setTension(tout,OUT);
+  }
 
-  virtual ~join() {}
+  tensionguide(tension tout,tension tin)
+    : tout(tout),tin(tin) {}
+  tensionguide(tension t)
+    : tout(t),tin(t) {}
+
+  void print(ostream& out) const {
+    out << (tout.atleast ? ".. tension atleast " : ".. tension ")
+        << tout.val << " and " << tin.val << " ..";
+  }
   
-  void dirout(pair z) {
-    if (z.nonZero()) {
-      out.kind = rest::GIVEN;
-      out.given = z.angle();
+  side printLocation() const {
+    return JOIN;
+  }
+};
+
+// A guide giving a specifier.
+class specguide : public guide {
+  spec *p;
+  side s;
+
+public:
+  void flatten(flatguide& g) {
+    g.setSpec(p,s);
+  }
+  
+  specguide(spec *p, side s)
+    : p(p), s(s) {}
+
+  void print(ostream& out) const {
+    out << *p;
+  }
+  
+  side printLocation() const {
+    return s;
+  }
+};
+
+// A guide for explicit control points between two knots.  This could be done
+// with two specguides, instead, but this prints nicer, and is easier to encode.
+class controlguide : public guide {
+  pair zout, zin;
+
+public:
+  void flatten(flatguide& g) {
+    g.setSpec(new controlSpec(zout), OUT);
+    g.setSpec(new controlSpec(zin), IN);
+  }
+
+  controlguide(pair zout,pair zin)
+    : zout(zout),zin(zin) {}
+  controlguide(pair z)
+    : zout(z),zin(z) {}
+
+  void print(ostream& out) const {
+    out << ".. controls "
+        << zout << " and " << zin << " ..";
+  }
+  
+  side printLocation() const {
+    return JOIN;
+  }
+};
+
+// A guide that is a sequence of other guide.  This is used, for instance is
+// joins, where we have the left and right guide, and possibly specifiers and
+// tensions in between.
+class multiguide : public guide {
+  vector<guide *> v;
+
+public:
+  void flatten(flatguide& g);
+
+  multiguide(vector<guide *>& v)
+    : v(v) {}
+
+  virtual ~multiguide() {}
+
+  path solve() {
+    if (settings::verbose>3) {
+      cerr << "solving guide:\n";
+      print(cerr); cerr << "\n\n";
     }
-    else {
-      out.kind = rest::OPEN;
-    }
-  }
-
-  void dirin(pair z) {
-    if (z.nonZero()) {
-      in.kind = rest::GIVEN;
-      in.given = z.angle();
-    }
-    else {
-      in.kind = rest::OPEN;
-    }
-  }
-
-  void curlout(double c) {
-    out.kind = rest::TWIST;
-    out.curl = c;
-  }
-
-  void curlin(double c) {
-    in.kind = rest::TWIST;
-    in.curl = c;
-  }
-
-  void tension(double l, double r) {
-    tensionSpec = true;
-    tensionLeft = l;
-    tensionRight = r;
-  }
-
-  void tensionAtleast() {
-    tatleast = true;
-  }
-
-  void controls(pair l, pair r) {
-    controlSpec = true;
-    controlLeft = l;
-    controlRight = r;
-  }
-
-  void subsolve(knotlist &left, pathlist &solved, knotlist &right); 
-  path solve();
-  void print(ostream& out) const;
     
-};
+    flatguide g;
+    this->flatten(g);
+    path p=g.solve(false);
 
-// The case of a direction specifier tagged onto a guide such as a..b..c{}
-class dirguide : public guide {
-  guide *head;
-  rest tag;
-  
-public:
-  dirguide(guide *head)
-    : head(head) {}
+    if (settings::verbose>3)
+      cerr << "solved as:\n" << p << "\n\n";
 
-  virtual ~dirguide() {}
-  
-  void dir(pair z) {
-    if (z.nonZero()) {
-      tag.kind = rest::GIVEN;
-      tag.given = z.angle();
-    }
-    else {
-      tag.kind = rest::OPEN;
-    }
+    return p;
   }
 
-  void curl(double c) {
-    tag.kind = rest::TWIST;
-    tag.curl = c;
+  void print(ostream& out) const;
+  
+  side printLocation() const {
+    return v.back()->printLocation();
+  }
+};
+
+#if 0
+// A wrapper around another guide that signifies that the guide should be solved
+// cyclically.
+class cyclicguide : public guide {
+  // The guide to be solved.
+  guide *core;
+public:
+  cyclicguide(guide *core)
+    : core(core) {}
+
+  void flatten(flatguide& g) {
+    // If cycles occur in the midst of a guide, the guide up to that point
+    // should be solved and added as a path.
+    pathguide(this->solve()).flatten(g);
   }
 
-  void subsolve(knotlist &left, pathlist &solved, knotlist &right);
-  path solve();
-  void print(ostream& out) const;
+  path solve() {
+    if (settings::verbose>3) {
+      cerr << "solving guide:\n";
+      print(cerr); cerr << "\n\n";
+    }
+    
+    flatguide g;
+    core->flatten(g);
+    path p=g.solve(true);
+
+    if (settings::verbose>3)
+      cerr << "solved as:\n" << p << "\n\n";
+
+    return p;
+  }
+
+  void print(ostream& out) const {
+    core->print(out);
+    side loc=core->printLocation();
+    adjustLocation(out,loc,this->printLocation());
+    out << "cycle";
+  }
+
+  side printLocation() const {
+    return END;
+  }
 };
-
-// The reserved word cycle counts as a guide of its own, even though the
-// syntax does not allow the user to use the cycle keyword outside a
-// join.
-class cycle : public guide {
-public:
-  void subsolve(knotlist &left, pathlist &solved, knotlist &right);
-  path solve();
-  void print(ostream& out) const;
-};
-
-} //namespace camp
-
 #endif
+
+// A guide representing the cycle token.
+class cycletokguide : public guide {
+public:
+  void flatten(flatguide& g) {
+    // If cycles occur in the midst of a guide, the guide up to that point
+    // should be solved as a path.  Any subsequent guide will work with that
+    // path locked in place.
+    g.solve(true);
+  }
+
+  path solve() {
+    // Just a cycle on it's own makes an empty guide.
+    return path();
+  }
+
+  void print(ostream& out) const {
+    out << "cycle";
+  }
+
+  side printLocation() const {
+    return END;
+  }
+};
+
+} // namespace camp
+
+#endif // GUIDE_H

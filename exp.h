@@ -62,6 +62,8 @@ public:
   void add(varinit *init) {
     inits.push_back(init);
   }
+
+  friend class joinExp;
 };
 
 class exp : public varinit {
@@ -128,6 +130,9 @@ class nameExp : public exp {
 public:
   nameExp(position pos, name *value)
     : exp(pos), value(value) {}
+
+  nameExp(position pos, symbol *id)
+    : exp(pos), value(new simpleName(pos, id)) {}
 
   void prettyprint(ostream &out, int indent);
 
@@ -361,9 +366,32 @@ class callExp : public exp {
   exp *callee;
   explist *args;
 
+  types::signature *argTypes(coenv& e);
+
 public:
   callExp(position pos, exp *callee, explist *args)
     : exp(pos), callee(callee), args(args) {}
+
+  callExp(position pos, exp *callee)
+    : exp(pos), callee(callee), args(new explist(pos)) {}
+
+  callExp(position pos, exp *callee, exp *arg1)
+    : exp(pos), callee(callee), args(new explist(pos)) {
+      args->add(arg1);
+    }
+
+  callExp(position pos, exp *callee, exp *arg1, exp *arg2)
+    : exp(pos), callee(callee), args(new explist(pos)) {
+      args->add(arg1);
+      args->add(arg2);
+    }
+
+  callExp(position pos, exp *callee, exp *arg1, exp *arg2, exp *arg3)
+    : exp(pos), callee(callee), args(new explist(pos)) {
+      args->add(arg1);
+      args->add(arg2);
+      args->add(arg3);
+    }
 
   void prettyprint(ostream &out, int indent);
 
@@ -390,20 +418,6 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primPair(); }
-};
-
-class unaryExp : public exp {
-  exp *base;
-  symbol *op;
-
-public:
-  unaryExp(position pos, exp *base, symbol *op)
-    : exp(pos), base(base), op(op) {}
-
-  void prettyprint(ostream &out, int indent);
-
-  types::ty *trans(coenv &e);
-  types::ty *getType(coenv &e);
 };
 
 class dimensions : public absyn {
@@ -438,25 +452,30 @@ public:
   types::ty *getType(coenv &e);
 };
 
-class binaryExp : public exp {
-  exp *left;
-  symbol *op;
-  exp *right;
+class nullaryExp : public callExp {
+public:
+  nullaryExp(position pos, symbol *op)
+    : callExp(pos, new nameExp(pos, op)) {}
+};
 
+class unaryExp : public callExp {
+public:
+  unaryExp(position pos, exp *base, symbol *op)
+    : callExp(pos, new nameExp(pos, op), base) {}
+};
+
+class binaryExp : public callExp {
 public:
   binaryExp(position pos, exp *left, symbol *op, exp *right)
-    : exp(pos), left(left), op(op), right(right) {}
+    : callExp(pos, new nameExp(pos, op), left, right) {}
+};
 
-  void prettyprint(ostream &out, int indent);
-
-  bool scalable() { return true; }
-
-  // We may need to re-implement this function.
-  //void trans(coenv &e, types::ty *target);
-
-  types::ty *trans(coenv &e);
-  types::ty *getType(coenv &e);
-  
+// Used for tension, which takes to real values, and a boolean to denote if it
+// is a tension atleast case.
+class ternaryExp : public callExp {
+public:
+  ternaryExp(position pos, exp *left, symbol *op, exp *right, exp *last)
+    : callExp(pos, new nameExp(pos, op), left, right, last) {}
 };
 
 // The a ? b : c ternary operator.
@@ -479,140 +498,107 @@ public:
   
 };
  
-
-// dir refers to the {} direction specifiers before or after a knot.
-class dir : public absyn {
-public:
-  dir(position pos)
-    : absyn(pos) {}
-
-  virtual void trans(coenv &e) = 0;
- 
-  // What flags to mark in a joinExp.
-  virtual int leftFlags()
-    { return 0; }
-  virtual int rightFlags()
-    { return 0; }
-}; 
-
-class givenDir : public dir {
-  exp *base;
-
-public:
-  givenDir(position pos, exp *base)
-    : dir(pos), base(base) {}
-
-  void prettyprint(ostream &out, int indent);
-
-  void trans(coenv &e);
-
-  int leftFlags()
-    { return run::LEFT_GIVEN; }
-  int rightFlags()
-    { return run::RIGHT_GIVEN; }
-};
-
-class curlDir : public dir {
-  exp *base;
-
-public:
-  curlDir(position pos, exp *base)
-    : dir(pos), base(base) {}
-
-  void prettyprint(ostream &out, int indent);
-
-  void trans(coenv &e);
-
-  int leftFlags()
-    { return run::LEFT_CURL; }
-  int rightFlags()
-    { return run::RIGHT_CURL; }
-};
-  
-// join refers to the section between knots, including the tension,
-// controls, and direction specifiers
-class join : public absyn{
-  position pos;
-
-  dir *leftDir;
-  dir *rightDir;
-
-  // May be tensions or controls.
-  exp *leftCont;
-  exp *rightCont;
-
-  bool tension;
-  bool atleast;
-
-public:
-  join(position pos, exp *leftCont, exp *rightCont, bool tension, bool atleast = false)
-    : absyn(pos), leftDir(0), rightDir(0),
-      leftCont(leftCont), rightCont(rightCont),
-      tension(tension), atleast(atleast) {}
-  join(position pos, exp *leftCont, bool tension, bool atleast = false)
-    : absyn(pos), leftDir(0), rightDir(0),
-      leftCont(leftCont), rightCont(0),
-      tension(tension), atleast(atleast) {}
-  join(position pos)
-    : absyn(pos), leftDir(0), rightDir(0),
-      leftCont(0), rightCont(0),
-      tension(false), atleast(false) {}
-
-  virtual void setLeftDir(dir *leftDir)
-    { this->leftDir = leftDir; }
-  virtual void setRightDir(dir *rightDir)
-    { this->rightDir = rightDir; }
-
-  virtual void prettyprint(ostream &out, int indent);
-
-  virtual void trans(coenv &e);
-};
-
-class joinExp : public exp {
+class andOrExp : public exp {
+protected:
   exp *left;
-
-  join *middle;
-
+  symbol *op;
   exp *right;
 
 public:
-  joinExp(position pos, exp *left, join *middle, exp *right)
-    : exp(pos), left(left), middle(middle), right(right) {}
-
-  void prettyprint(ostream &out, int indent);
+  andOrExp(position pos, exp *left, symbol *op, exp *right)
+    : exp(pos), left(left), op(op), right(right) {}
 
   types::ty *trans(coenv &e);
-  types::ty *getType(coenv &) { return types::primGuide(); }
+  types::ty *getType(coenv &);
+
+  virtual types::ty *baseTrans(coenv &e) = 0;
+  virtual types::ty *baseGetType(coenv &e) {
+    return types::primBoolean();
+  }
 };
 
-// This expression is just a placeholder for the CYCLE keyword which can
-// be thought of as a guide on its own.
-class cycleExp : public exp {
+class orExp : public andOrExp {
 public:
-  cycleExp(position pos)
-    : exp(pos) {}
+  orExp(position pos, exp *left, symbol *op, exp *right)
+    : andOrExp(pos, left, op, right) {}
 
   void prettyprint(ostream &out, int indent);
 
-  types::ty *trans(coenv &e);
-  types::ty *getType(coenv &) { return types::primGuide(); }
+  types::ty *baseTrans(coenv &e);
 };
 
-// This handles guide expression with a direction specifier tagged on to
-// the end, ie. a..b..c{}
-class dirguideExp : public exp {
-  exp *base;
+class andExp : public andOrExp {
+public:
+  andExp(position pos, exp *left, symbol *op, exp *right)
+    : andOrExp(pos, left, op, right) {}
 
-  dir *tag;
+  void prettyprint(ostream &out, int indent);
+
+  types::ty *baseTrans(coenv &e);
+};
+
+class joinExp : public exp {
+  // Helper class, to translate all of the specifiers in the join into an array
+  // of guides.  This array is then given to the function
+  //
+  //   guide operator .. (guide[] a)
+  //
+  // to return the guide representing the join.
+  struct guidearray : public exp {
+    guidearray(position pos)
+      : exp(pos), base(pos) {}
+
+    arrayinit base;
+
+    void prettyprint(ostream &our, int indent);
+
+    types::ty *getType(coenv &e) {
+      return new types::array(types::primGuide());
+    }
+    types::ty *trans(coenv &e) {
+      base.trans(e, getType(e));
+      return getType(e);
+    }
+  };
+
+  guidearray guides;
 
 public:
-  dirguideExp(position pos, exp *base, dir *tag)
-    : exp(pos), base(base), tag(tag) {}
+  symbol *op;
+
+  joinExp(position pos, symbol *op)
+    : exp(pos), guides(pos), op(op) {}
+
+  void pushFront(exp *e) {
+    guides.base.inits.push_front(e);
+  }
+  void pushBack(exp *e) {
+    guides.base.inits.push_back(e);
+  }
 
   void prettyprint(ostream &out, int indent);
 
   types::ty *trans(coenv &e);
-  types::ty *getType(coenv &) { return types::primGuide(); }
+  types::ty *getType(coenv &e);
+};
+
+class specExp : public exp {
+  symbol *op;
+  exp *arg;
+  camp::side s;
+
+public:
+  specExp(position pos, symbol *op, exp *arg, camp::side s=camp::OUT)
+    : exp(pos), op(op), arg(arg), s(s) {}
+
+  void setSide(camp::side ss) {
+    s=ss;
+  }
+
+  void prettyprint(ostream &out, int indent);
+
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &e);
 };
 
 class assignExp : public exp {

@@ -154,9 +154,13 @@ void pathConcat(vm::stack *s);
 
 // Guide operations
 void nullGuide(vm::stack *s);
-void newJoin(vm::stack *s);
-void newCycle(vm::stack *s);
-void newDirguide(vm::stack *s);
+void dotsGuide(vm::stack *s);
+void dashesGuide(vm::stack *s);
+void cycleGuide(vm::stack *s);
+void dirSpec(vm::stack *s);
+void curlSpec(vm::stack *s);
+void realRealTension(vm::stack *s);
+void pairPairControls(vm::stack *s);
 
 // String operations
 void emptyString(vm::stack *s);

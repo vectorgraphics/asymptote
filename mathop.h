@@ -12,6 +12,7 @@
 #include <sstream>
 
 #include "stack.h"
+#include "mod.h"
 #include "pow.h"
 
 namespace run {
@@ -107,19 +108,6 @@ struct power<int> {
   }
 };
  
-inline int Mod(int x, int y) {return x % y;}
-inline double Mod(double x, double y) {return fmod(x,y);}
-  
-template<typename T>  
-inline T portableMod(T x,T y)
-{
-// Implementation-independent definition of mod; ensure that result has
-// same sign as divisor
-  T val=Mod(x,y);
-  if((y > 0 && val < 0) || (y < 0 && val > 0)) val += y;
-  return val;
-}
-  
 template <typename T>
 struct mod {
   T operator() (T x, T y, vm::stack *s, size_t i=0) {
@@ -160,5 +148,4 @@ void binaryOp(vm::stack *s)
 
 } // namespace run
 
-#endif
-
+#endif //MATHOP_H

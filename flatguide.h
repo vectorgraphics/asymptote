@@ -1,0 +1,155 @@
+/*****
+ * flatguide.h
+ * Andy Hammerlindl 2005/02/23
+ *
+ * The data structure that builds up a knotlist.  This is done by calling in
+ * order the methods to set knots, specifiers, and tensions.
+ * Used by the guide solving routines.
+ *
+ * NOTE: figure out how nullpath{}..a should be handled.
+ *****/
+
+#ifndef FLATGUIDE_H
+#define FLATGUIDE_H
+
+#include "knot.h"
+#include "guideflags.h"
+
+namespace camp {
+
+class flatguide
+{
+  // A cached solution of the path.  Cycle tags cause the path to be solved up
+  // to that point.  If the guide continues from there, the path control point
+  // have to be added as specifiers back into nodes, and then solved into a path
+  // again.  In the case that a cycle ends a path, the cached path avoids this
+  // second pass.
+  bool solved;
+  path p;
+
+  cvector<knot> nodes;
+
+  // Information before the first knot.  For a non-cyclic guide, this is
+  // ignored.  For a cyclic guide, it may be useful, but I can't determine a
+  // sensible way to use it yet.
+  tension tout;
+  spec *out;
+
+  // Information for the next knot to come.
+  tension tin;
+  spec *in;
+
+  static spec open;
+
+  tension& tref(side s)
+  {
+    switch (s) {
+      case OUT:
+        return nodes.empty() ? tout : nodes.back().tout;
+      case IN:
+      default:
+        return tin;
+    }
+  }
+
+  // Returns a reference to a spec* so that it may be assigned.
+  spec*& sref(side s)
+  {
+    switch (s) {
+      case OUT:
+        return nodes.empty() ? out : nodes.back().out;
+      case IN:
+      default:
+        return in;
+    }
+  }
+
+  void addPre(path& p, int j);
+  void addPoint(path& p, int j);
+  void addPost(path& p, int j);
+
+  void clearNodes() {
+    nodes.clear();
+    in=&open;
+    tin=tension();
+  }
+  void clearPath() {
+    p=path();
+    solved=false;
+  }
+
+  void uncheckedAdd(path p);
+
+  // Sets solved to false, indicating that the path has been updated since, last
+  // being solved.  Also, copies a solved path back in as knots and control
+  // specifiers, as it will have to be solved again.
+  void update() {
+    if (solved) {
+      solved=false;
+      clearNodes();
+      add(p);
+      clearPath();
+    }
+  }
+      
+public:
+  flatguide()
+    : solved(true), p(), in(&open) {}
+
+  void setTension(tension t, side s) {
+    update();
+    tref(s)=t;
+  }
+  void setSpec(spec *p, side s) {
+    update();
+    sref(s)=p;
+  }
+
+  void add(pair z) {
+    update();
+    // Push the pair onto the vector as a knot, using the current in-specifier
+    // and in-tension for the in side for the knot. Use default values for the
+    // out side, as those will be set after the point is added.
+    nodes.push_back(knot(z,in,&open,tin,tension()));
+
+    // Reset the in-spec and in-tension to defaults;
+    tin=tension();
+    in=&open;
+  }
+
+  // Reverts to an empty state.
+  void add(path p) {
+    update();
+    uncheckedAdd(p);
+  }
+
+  void clear() {
+    clearNodes();
+    clearPath();
+  }
+
+  // Once all information has been added, release the flat result.
+  simpleknotlist list(bool cycles=false) {
+    if (cycles) {
+      nodes.front().in=in;
+      nodes.front().tin=tin;
+    }
+    return simpleknotlist(nodes,cycles);
+  }
+
+  // Yield a path from the guide as represented here.
+  path solve(bool cycles=false) {
+    if (solved)
+      return p;
+    else {
+      simpleknotlist l=list(cycles);
+      p=camp::solve(l);
+      solved=true;
+      return p;
+    }
+  }
+};
+
+} // namespace camp
+
+#endif // FLATGUIDE_H

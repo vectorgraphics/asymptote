@@ -288,9 +288,9 @@ ESC \\
 "||"               {makesymbol(); return COR; }
 "!"                {makesymbol(); return LOGNOT; }
 "^^"               {makesymbol(); return CARETS; }
-"++"               {adjust(); return INCR; }
-".."               {adjust(); return DOTS; }
-"--"               {adjust(); return DASHES; }
+"++"               {makesymbol(); return INCR; }
+".."               {makesymbol(); return DOTS; }
+"--"               {makesymbol(); return DASHES; }
 
 "+="               {makeselfsymbol(); return ADD; }
 "-="               {makeselfsymbol(); return SUBTRACT; }
@@ -300,11 +300,11 @@ ESC \\
 "^="               {makeselfsymbol(); return EXPONENT; }
 
 and                {adjust(); return AND; }
-cycle              {adjust(); return CYCLE; }
-controls           {adjust(); return CONTROLS; }
-tension            {adjust(); return TENSION; }
-atleast            {adjust(); return ATLEAST; }
-curl               {adjust(); return CURL; }
+cycle              {makesymbol(); return CYCLE; }
+controls           {makesymbol(); return CONTROLS; }
+tension            {makesymbol(); return TENSION; }
+atleast            {makesymbol(); return ATLEAST; }
+curl               {makesymbol(); return CURL; }
 
 if                 {adjust(); return IF; }
 else               {adjust(); return ELSE; }
@@ -364,7 +364,11 @@ operator           {adjust(); BEGIN opname; }
                     BEGIN INITIAL;
                     yyterminate();
                    }
-[-+*/%^!<>]|==|!=|<=|>=|\^\^ {
+spec               { makesymbol("<spec>");
+                     BEGIN INITIAL;
+                     return ID;
+                   }
+[-+*/%^!<>]|==|!=|<=|>=|&&|\|\||\^\^|\.\.|--|cycle|curl|tension|atleast|controls {
   makesymbol();
   BEGIN INITIAL;
   return ID;}

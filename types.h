@@ -197,6 +197,8 @@ ty *stringArray();
 ty *pathArray();
 ty *penArray();
   
+ty *guideArray();
+
 ty *boolArray2();
 ty *intArray2();
 ty *realArray2();

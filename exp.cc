@@ -563,25 +563,30 @@ void callExp::prettyprint(ostream &out, int indent)
   args->prettyprint(out, indent+1);
 }
 
+signature *callExp::argTypes(coenv &e)
+{
+  signature *sig=new signature;
+
+  size_t n = args->size();
+  for (size_t i = 0; i < n; i++) {
+    types::ty *t = args->getType(e, i);
+    if (t->kind == types::ty_error)
+      return 0;
+    sig->add(t);
+  }
+
+  return sig;
+}
+
 types::ty *callExp::trans(coenv &e)
 {
   // First figure out the signature of what we want to call.
-  signature sig;
+  signature *sig=argTypes(e);
 
-  int n = (int) args->size();
-  int anyErrors = false;
-  for (int i = 0; i < n; i++) {
-    types::ty *t = args->getType(e, i);
-    if (t->kind == types::ty_error) {
-      anyErrors = true;
-      break;
-    }
-    sig.add(t);
-  }
-  if (anyErrors) {
+  if (!sig) {
     // Cycle through the parameters to report all errors.
     // NOTE: This may report inappropriate ambiguity errors. 
-    for (int i = 0; i < n; i++) {
+    for (size_t i = 0; i < args->size(); i++) {
       args->trans(e, i);
     }
     return types::primError();
@@ -593,21 +598,21 @@ types::ty *callExp::trans(coenv &e)
     return callee->trans(e);
   }
   if (ft->kind == ty_overloaded) {
-    ft = ((overloaded *)ft)->resolve(&sig);
+    ft = ((overloaded *)ft)->resolve(sig);
   }
 
   if (ft == 0) {
     em->error(getPos());
     symbol *s = callee->getName();
     if (s)
-      *em << "no matching function \'" << *s << sig << "\'";
+      *em << "no matching function \'" << *s << *sig << "\'";
     else
-      *em << "no matching function for signature \'" << sig << "\'";
+      *em << "no matching function for signature \'" << *sig << "\'";
     return primError();
   }
   else if (ft->kind == ty_overloaded) {
     em->error(getPos());
-    *em << "call with signature \'" << sig << "\' is ambiguous";
+    *em << "call with signature \'" << *sig << "\' is ambiguous";
     return primError();
   }
   else if (ft->kind != ty_function) {
@@ -619,7 +624,7 @@ types::ty *callExp::trans(coenv &e)
       *em << "called expression is not a function";
     return primError();
   }
-  else if (!castable(ft->getSignature(), &sig)) {
+  else if (!castable(ft->getSignature(), sig)) {
     em->error(getPos());
     const char *separator=ft->getSignature()->getNumFormals() > 1 ? "\n" : " ";
     symbol *s=callee->getName();
@@ -627,15 +632,15 @@ types::ty *callExp::trans(coenv &e)
 	<< *((function *) ft)->getResult() << " ";
     if(s) *em << *s;
     *em << *ft->getSignature() << "'" << separator;
-    switch(sig.getNumFormals()) {
+    switch(sig->getNumFormals()) {
       case 0:
         *em << "without parameters";
         break;
       case 1:
-        *em << "with parameter '" << sig << "'";
+        *em << "with parameter '" << *sig << "'";
         break;
       default:
-        *em << "with parameters\n'" << sig << "'";
+        *em << "with parameters\n'" << *sig << "'";
     }
     return primError();
   }
@@ -645,6 +650,7 @@ types::ty *callExp::trans(coenv &e)
   assert(real_sig);
 
   int m = real_sig->getNumFormals();
+  int n = (int) args->size();
  
   // Put the arguments on the stack. 
   for (int i = 0, j = 0; i < m; i++) {
@@ -670,19 +676,8 @@ types::ty *callExp::trans(coenv &e)
 types::ty *callExp::getType(coenv &e)
 {
   // First figure out the signature of what we want to call.
-  signature sig;
-
-  int n = (int) args->size();
-  int anyErrors = false;
-  for (int i = 0; i < n; i++) {
-    types::ty *t = args->getType(e, i);
-    if (t->kind == types::ty_error) {
-      anyErrors = true;
-      break;
-    }
-    sig.add(t);
-  }
-  if (anyErrors) {
+  signature *sig=argTypes(e);
+  if (!sig) {
     return types::primError();
   }
 
@@ -692,7 +687,7 @@ types::ty *callExp::getType(coenv &e)
     return primError();
   }
   if (ft->kind == ty_overloaded) {
-    ft = ((overloaded *)ft)->resolve(&sig);
+    ft = ((overloaded *)ft)->resolve(sig);
   }
 
   if (ft == 0 || ft->kind != ty_function) {
@@ -722,105 +717,6 @@ types::ty *pairExp::trans(coenv &e)
   e.c.encode(inst::builtin, run::realRealToPair);
 
   return types::primPair();
-}
-
-void unaryExp::prettyprint(ostream &out, int indent)
-{
-  prettyindent(out, indent);
-  out << "unaryExp '" << *op << "'\n";
-
-  base->prettyprint(out, indent+1);
-}
-
-types::ty *unaryExp::trans(coenv &e)
-{
-  types::ty *t = base->getType(e);
-  if (t->kind == ty_error) {
-    base->trans(e);
-    return primError();
-  }
-  
-  signature sig;
-  sig.add(t);
-
-  // Figure out what function types we have for this operator.
-  trans::ty *ft = e.e.varGetType(op);
-  if (ft == 0) {
-    em->error(getPos());
-    *em << "no matching unary operation \'" << *op << "\'";
-    return primError();
-  }
-  if (ft->kind == ty_error) {
-    return primError();
-  }
-  if (ft->kind == ty_overloaded) {
-    // NOTE: Change to "promoteResolve" or something for operators.
-    ft = ((overloaded *)ft)->resolve(&sig);
-  }
-
-  if (ft == 0) {
-    em->error(getPos());
-    *em << "no matching unary operation \'" << *op << "\'";
-    return primError();
-  }
-  else if (ft->kind == ty_overloaded) {
-    em->error(getPos());
-    *em << "unary operation \'" << *op << "\' is ambiguous";
-    return primError();
-  }
-  else if (!castable(ft->getSignature(), &sig)) {
-    em->error(getPos());
-    *em << "no unary operation \'" << *op << "\' \'" << *t << "\'";
-    return primError();
-  }
-
-  // We have a winner.
-  signature *real_sig = ft->getSignature();
-  assert(real_sig);
-
-  if (real_sig->getNumFormals() != 1) {
-    em->compiler(getPos());
-    *em << "default values used with unary operator";
-    return primError();
-  }
- 
-  // Put the argument on the stack. 
-  base->trans(e, real_sig->getFormal(0));
-
-  // Call the operator.
-  varEntry *v = e.e.lookupExactVar(op, real_sig);
-  v->getLocation()->encodeCall(getPos(), e.c);
-
-  return ((function *)ft)->result;
-}
-
-types::ty *unaryExp::getType(coenv &e)
-{
-  types::ty *t = base->getType(e);
-  if (t->kind == ty_error) 
-  {
-    return primError();
-  }
-  
-  signature sig;
-  sig.add(t);
-
-  // Figure out what function types we have for this operator.
-  trans::ty *ft = e.e.varGetType(op);
-  if (ft == 0 || ft->kind == ty_error) {
-    return primError();
-  }
-  if (ft->kind == ty_overloaded) {
-    // NOTE: Change to "promoteResolve" or something for operators.
-    ft = ((overloaded *)ft)->resolve(&sig);
-  }
-
-  if (ft == 0 || ft->kind == ty_overloaded) {
-    return primError();
-  }
-  else {
-    return ((function *)ft)->result;
-  }
 }
 
 
@@ -882,7 +778,7 @@ types::ty *castExp::getType(coenv &e)
   return target->typeTrans(e, true);
 }
 
-
+#if 0
 void binaryExp::prettyprint(ostream &out, int indent)
 {
   prettyindent(out, indent);
@@ -1039,6 +935,7 @@ types::ty *binaryExp::getType(coenv &e)
     return ((function *)ft)->result;
   }
 }
+#endif
 
 
 void conditionalExp::prettyprint(ostream &out, int indent)
@@ -1097,167 +994,130 @@ types::ty *conditionalExp::trans(coenv &e)
   return t;
 }
 
-types::ty  *conditionalExp::getType(coenv &e)
+types::ty *conditionalExp::getType(coenv &e)
 {
   types::ty *t = promote(onTrue->getType(e), onFalse->getType(e));
   return t ? t : primError();
 }
  
 
-void givenDir::prettyprint(ostream &out, int indent)
+// Checks if the expression can be translated as an array.
+bool isAnArray(exp *x, coenv &e)
 {
-  prettyname(out, "givenDir",indent);
-
-  base->prettyprint(out, indent+1);
+  types::ty *t=x->getType(e);
+  if (t->kind == ty_overloaded)
+    t=dynamic_cast<overloaded *>(t)->resolve(0);
+  return t && t->kind==ty_array;
 }
 
-void givenDir::trans(coenv &e)
+types::ty *andOrExp::trans(coenv &e)
 {
-  e.implicitCast(getPos(), types::primPair(), base->trans(e));
-}
-
-
-void curlDir::prettyprint(ostream &out, int indent)
-{
-  prettyname(out, "curlDir",indent);
-
-  base->prettyprint(out, indent+1);
-}
-
-void curlDir::trans(coenv &e)
-{
-  e.implicitCast(getPos(), types::primReal(), base->trans(e));
-}
-
-
-void join::prettyprint(ostream &out, int indent)
-{
-  prettyindent(out, indent);
-  out << "join";
-
-  // Add tension and atleast line if they are used.
-  if (leftCont || rightCont) {
-    if (tension) {
-      if (atleast)
-        out << " (tension atleast)";
-      else
-        out << " (tension)";
-    }
-    else {
-      out << " (controls)";
-    }
+  if (isAnArray(left,e) || isAnArray(right,e)) {
+    binaryExp be(getPos(), left, op, right);
+    return be.trans(e);
   }
-  out << "\n";
-
-  if (leftDir)
-    leftDir->prettyprint(out, indent+1);
-  if (leftCont)
-    leftCont->prettyprint(out, indent+1);
-  if (rightCont)
-    rightCont->prettyprint(out, indent+1);
-  if (rightDir)
-    rightDir->prettyprint(out, indent+1);
+  else
+    return baseTrans(e);
 }
 
-void join::trans(coenv &e)
+types::ty *andOrExp::getType(coenv &e)
 {
-  int flags = run::NULL_JOIN;
-
-  if (leftDir) {
-    leftDir->trans(e);
-    flags |= leftDir->leftFlags();
+  if (isAnArray(left,e) || isAnArray(right,e)) {
+    binaryExp be(getPos(), left, op, right);
+    return be.getType(e);
   }
-
-  if (leftCont) {
-     if (tension) {
-       if (atleast)
-	 flags |= run::TENSION_ATLEAST;
-       e.implicitCast(leftCont->getPos(), types::primReal(),
-	               leftCont->trans(e));
-       flags |= run::LEFT_TENSION;
-
-       if (rightCont) {
-         e.implicitCast(rightCont->getPos(), types::primReal(),
-	                 rightCont->trans(e));
-         flags |= run::RIGHT_TENSION;
-       }
-     }
-     else { // controls
-       e.implicitCast(leftCont->getPos(), types::primPair(),
-	               leftCont->trans(e));
-       flags |= run::LEFT_CONTROL;
-
-       if (rightCont) {
-         e.implicitCast(rightCont->getPos(), types::primPair(),
-	                 rightCont->trans(e));
-         flags |= run::RIGHT_CONTROL;
-       }
-     }
-  }
-
-  if (rightDir) {
-    rightDir->trans(e);
-    flags |= rightDir->rightFlags();
-  }
-
-  // Tell the join function whats been put on the stack.
-  e.c.encode(inst::intpush,flags);
+  else
+    return baseGetType(e);
 }
 
-
-void joinExp::prettyprint(ostream &out, int indent)
+void orExp::prettyprint(ostream &out, int indent)
 {
-  prettyname(out, "joinExp",indent);
+  prettyname(out, "orExp", indent);
 
   left->prettyprint(out, indent+1);
-  middle->prettyprint(out, indent+1);
   right->prettyprint(out, indent+1);
 }
 
-types::ty *joinExp::trans(coenv &e)
+types::ty *orExp::baseTrans(coenv &e)
 {
-  e.implicitCast(left->getPos(), types::primGuide(), left->trans(e));
-  middle->trans(e);
-  e.implicitCast(right->getPos(), types::primGuide(), right->trans(e));
+  booleanExp be(pos, true);
+  conditionalExp ce(pos, left, &be, right);
+  ce.trans(e, primBoolean());
 
-  e.c.encode(inst::builtin, run::newJoin);
-
-  return types::primGuide();
+  return baseGetType(e);
 }
 
 
-void cycleExp::prettyprint(ostream &out, int indent)
+void andExp::prettyprint(ostream &out, int indent)
 {
-  prettyname(out, "cycleExp",indent);
+  prettyname(out, "andExp", indent);
+
+  left->prettyprint(out, indent+1);
+  right->prettyprint(out, indent+1);
 }
 
-types::ty *cycleExp::trans(coenv &e)
+types::ty *andExp::baseTrans(coenv &e)
 {
-  e.c.encode(inst::builtin, run::newCycle);
+  booleanExp be(pos, false);
+  conditionalExp ce(pos, left, right, &be);
+  ce.trans(e, primBoolean());
 
-  return types::primGuide();
+  return getType(e);
 }
 
-void dirguideExp::prettyprint(ostream &out, int indent)
-{
-  prettyname(out, "dirguideExp",indent);
 
-  base->prettyprint(out, indent+1);
-  tag->prettyprint(out, indent+1);
+void joinExp::guidearray::prettyprint(ostream &out, int indent)
+{
+  prettyname(out, "guidearray", indent);
+  base.prettyprint(out, indent+1);
 }
 
-types::ty *dirguideExp::trans(coenv &e)
+void joinExp::prettyprint(ostream &out, int indent)
 {
-  e.implicitCast(base->getPos(), types::primGuide(), base->trans(e));
-  tag->trans(e);
-  
-  // Tell the dirtag function what type of dirtag it has.
-  e.c.encode(inst::intpush,tag->rightFlags());
-  e.c.encode(inst::builtin, run::newDirguide);
-
-  return types::primGuide();
+  prettyindent(out,indent);
+  out << "joinExp '" << *op << "'\n";
+  guides.prettyprint(out, indent+1);
 }
 
+types::ty *joinExp::trans(coenv& e)
+{
+  // Translate as a unary operator converting the guide array to a single guide.
+  unaryExp u(getPos(),&guides,op);
+  return u.trans(e);
+}
+
+types::ty *joinExp::getType(coenv& e)
+{
+  // Translate as a unary operator converting the guide array to a single guide.
+  unaryExp u(getPos(),&guides,op);
+  return u.getType(e);
+}
+
+
+void specExp::prettyprint(ostream &out, int indent)
+{
+  prettyindent(out,indent);
+  out << "specExp '" << *op << "' " 
+      << (s==camp::OUT ? "out" :
+          s==camp::IN  ? "in" :
+                         "invalid side") << endl;
+
+  arg->prettyprint(out, indent+1);
+}
+
+types::ty *specExp::trans(coenv &e)
+{
+  intExp ie(getPos(), (int)s);
+  binaryExp be(getPos(), arg, op, &ie);
+  return be.trans(e);
+}
+
+types::ty *specExp::getType(coenv &e)
+{
+  intExp ie(getPos(), (int)s);
+  binaryExp be(getPos(), arg, op, &ie);
+  return be.getType(e);
+}
 
 void assignExp::prettyprint(ostream &out, int indent)
 {

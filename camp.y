@@ -46,8 +46,8 @@ using sym::symbol;
   absyntax::varinit *vi;
   absyntax::arrayinit *ai;
   absyntax::exp *e;
-  absyntax::join *j;
-  absyntax::dir *dr;
+  absyntax::specExp *se;
+  absyntax::joinExp *j;
   absyntax::explist *elist;
   absyntax::dimensions *dim;
   absyntax::ty  *t;
@@ -74,15 +74,16 @@ using sym::symbol;
 }  
 
 %token <ps> PRIM ID OP ADD SUBTRACT TIMES DIVIDE MOD EXPONENT
+            DOTS DASHES INCR
+            CONTROLS TENSION ATLEAST CURL CYCLE
             COR CAND EQ NEQ LT LE GT GE CARETS
             '+' '-' '*' '/' '%' '^' LOGNOT POW
             STRING
 %token <pos> LOOSE ASSIGN '?' ':'
-             DIRTAG JOIN DOTS DASHES INCR
-             CONTROLS TENSION ATLEAST AND CURL
+             DIRTAG JOIN_PREC AND
              '{' '}' '(' ')' '.' ','  '[' ']' ';'
              IMPORT STRUCT TYPEDEF NEW
-             IF ELSE WHILE DO FOR BREAK CONTINUE RETURN_ CYCLE
+             IF ELSE WHILE DO FOR BREAK CONTINUE RETURN_
              STATIC PUBLIC_TOK PRIVATE_TOK THIS EXPLICIT
 %token <e>   LIT
 
@@ -95,7 +96,7 @@ using sym::symbol;
 %left  LT LE GT GE
 
 %left  DIRTAG CARETS
-%left  JOIN DOTS DASHES
+%left  JOIN_PREC DOTS DASHES
 %left  CONTROLS TENSION ATLEAST AND
 %left  CURL '{' '}'
 
@@ -125,8 +126,9 @@ using sym::symbol;
 %type  <fl>  formal
 %type  <fls> formals
 %type  <e>   value exp
-%type  <j> join basicjoin tension controls
-%type  <dr> dir
+%type  <j>   join basicjoin
+%type  <e>   tension controls
+%type  <se>  dir
 %type  <elist> explist dimexps
 %type  <s>   stm stmexp
 %type  <run> forinit
@@ -377,8 +379,8 @@ exp:
 | exp GE exp       { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | exp EQ exp       { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | exp NEQ exp      { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
-| exp CAND exp     { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
-| exp COR exp      { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
+| exp CAND exp     { $$ = new andExp($2.pos, $1, $2.sym, $3); }
+| exp COR exp      { $$ = new orExp($2.pos, $1, $2.sym, $3); }
 | exp CARETS exp   { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | NEW celltype
                    { $$ = new newRecordExp($1, $2); }
@@ -414,20 +416,25 @@ exp:
 // Camp stuff
 | '(' exp ',' exp ')'
                    { $$ = new pairExp($1, $2, $4); }
-| exp join exp %prec JOIN 
-                   { $$ = new joinExp($1->getPos(), $1, $2, $3); }
-| exp join CYCLE %prec JOIN
-                   { $$ = new joinExp($1->getPos(),
-                                      $1, $2, new cycleExp($3)); }
+| exp join exp %prec JOIN_PREC 
+                   { $2->pushFront($1); $2->pushBack($3); $$ = $2; }
+| exp join CYCLE %prec JOIN_PREC
+                   { $2->pushFront($1);
+                     $2->pushBack(new nullaryExp($3.pos, $3.sym));
+                     $$ = $2 }
 | exp dir %prec DIRTAG
-                   { $$ = new dirguideExp($2->getPos(), $1, $2); }
+                   { $2->setSide(camp::OUT);
+                     joinExp *jexp =
+                         new joinExp($2->getPos(), symbol::trans(".."));
+                     $$=jexp;
+                     jexp->pushBack($1); jexp->pushBack($2); }
 | INCR exp %prec UNARY
-                   { $$ = new prefixExp($1, $2, symbol::trans("+")); }
+                   { $$ = new prefixExp($1.pos, $2, symbol::trans("+")); }
 | DASHES exp %prec UNARY
-                   { $$ = new prefixExp($1, $2, symbol::trans("-")); }
+                   { $$ = new prefixExp($1.pos, $2, symbol::trans("-")); }
 /* Illegal - will be caught during translation. */
 | exp INCR %prec UNARY 
-                   { $$ = new postfixExp($2, $1, symbol::trans("+")); }
+                   { $$ = new postfixExp($2.pos, $1, symbol::trans("+")); }
 | exp ADD exp      { $$ = new selfExp($2.pos, $1, $2.sym, $3); }
 | exp SUBTRACT exp
                    { $$ = new selfExp($2.pos, $1, $2.sym, $3); }
@@ -441,48 +448,54 @@ exp:
 // This verbose definition is because leaving empty as an expansion for dir
 // made a whack of reduce/reduce errors.
 join:
-  DASHES           { $$ = new join($1); // treat as {curl 1}..{curl 1}
-                     $$->setLeftDir(new curlDir($1, new realExp($1, 1.0))); 
-                     $$->setRightDir(new curlDir($1, new realExp($1, 1.0))); }
-| basicjoin %prec JOIN 
+  DASHES           { $$ = new joinExp($1.pos,$1.sym); }
+| basicjoin %prec JOIN_PREC 
                    { $$ = $1; }
-| dir basicjoin %prec JOIN
-                   { $$ = $2; $$->setLeftDir($1); }
-| basicjoin dir %prec JOIN 
-                   { $$ = $1; $$->setRightDir($2); }
-| dir basicjoin dir %prec JOIN
-                   { $$ = $2; $$->setLeftDir($1); $$->setRightDir($3); }
+| dir basicjoin %prec JOIN_PREC
+                   { $1->setSide(camp::OUT);
+                     $$ = $2; $$->pushFront($1); }
+| basicjoin dir %prec JOIN_PREC 
+                   { $2->setSide(camp::IN);
+                     $$ = $1; $$->pushBack($2); }
+| dir basicjoin dir %prec JOIN_PREC
+                   { $1->setSide(camp::OUT); $3->setSide(camp::IN);
+                     $$ = $2; $$->pushFront($1); $$->pushBack($3); }
 ;
 
 dir:
-  '{' CURL exp '}' { $$ = new curlDir($2, $3); }
-| '{' exp '}'      { $$ = new givenDir($1, $2); }
+  '{' CURL exp '}' { $$ = new specExp($2.pos, $2.sym, $3); }
+| '{' exp '}'      { $$ = new specExp($1, symbol::trans("<spec>"), $2); }
 | '{' exp ',' exp '}'
-                   { $$ = new givenDir($1, new pairExp($3, $2, $4)); }
+                   { $$ = new specExp($1, symbol::trans("<spec>"),
+                                          new pairExp($3, $2, $4)); }
 ;
 
 basicjoin:
-  DOTS             { $$ = new join($1); }
+  DOTS             { $$ = new joinExp($1.pos, $1.sym); }
 | DOTS tension DOTS
-                   { $$ = $2; }
+                   { $$ = new joinExp($1.pos, $1.sym); $$->pushBack($2); }
 | DOTS controls DOTS
-                   { $$ = $2; }
+                   { $$ = new joinExp($1.pos, $1.sym); $$->pushBack($2); }
 ;
 
 tension:
-  TENSION exp      { $$ = new join($1, $2, true); }
+  TENSION exp      { $$ = new binaryExp($1.pos, $2, $1.sym,
+                              new booleanExp($1.pos, false)); }
 | TENSION exp AND exp
-                   { $$ = new join($1, $2, $4, true); }
-| TENSION ATLEAST exp
-                   { $$ = new join($1, $3, true, true); }
+                   { $$ = new ternaryExp($1.pos, $2, $1.sym, $4,
+                              new booleanExp($1.pos, false)); }
+| TENSION ATLEAST exp 
+                   { $$ = new binaryExp($1.pos, $3, $1.sym,
+                              new booleanExp($2.pos, true)); }
 | TENSION ATLEAST exp AND exp
-                   { $$ = new join($1, $3, $5, true, true); }
+                   { $$ = new ternaryExp($1.pos, $3, $1.sym, $5,
+                              new booleanExp($2.pos, true)); }
 ;
 
 controls:
-  CONTROLS exp     { $$ = new join($1, $2, false); }
+  CONTROLS exp     { $$ = new unaryExp($1.pos, $2, $1.sym); }
 | CONTROLS exp AND exp
-                   { $$ = new join($1, $2, $4, false); }
+                   { $$ = new binaryExp($1.pos, $2, $1.sym, $4); }
 ;
 
 stm:
@@ -525,5 +538,3 @@ stmexplist:
 | stmexplist ',' stmexp
                    { $$ = $1; $$->add($3); }
 ;
-
-

@@ -187,7 +187,7 @@ absyntax::file *genv::parseModule(symbol *id)
   if (filename == "")
     return 0;
 
-  // For debugging the lexer and parser that were machine generated.
+  // For debugging the machine-generated lexer and parser.
   yy_flex_debug = 0;
   yydebug = 0;
 
