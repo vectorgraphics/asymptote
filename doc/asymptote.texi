@@ -2626,6 +2626,11 @@ Request a left and right axis.
 @end table
 
 @item
+
+The @code{XEquals(real X, bool extend=true)} and 
+@code{YEquals(real Y, bool extend=true)} axes types provide the recommended
+method for drawing axes at arbitrary locations. Nevertheless,
+for completeness, we also document the following internal routines:
 @verbatim
 void xequals(picture pic=currentpicture, real X,
              real ymin=-infinity, real ymax=infinity, 
@@ -2636,17 +2641,18 @@ void xequals(picture pic=currentpicture, real X,
              int[] divisor=new int[], bool opposite=false);
 @end verbatim
 
-Draw the line @math{x}=@code{X} on picture @code{pic} from
-@math{y}=@code{ymin} to @math{y}=@code{ymax}, with optional tick minimum
-and maximum values @code{tickmin} and @code{tickmax}, using pen
-@code{p}, optionally labelling it with string @code{s} at relative
-location @code{position} (a real number from [0,1]) using angle
-@code{angle}, alignment @code{align}, true shift @code{shift} on side
-@code{side} of the axis, and pen @code{plabel}. The tick type is
-specified by @code{ticks} and the integer array @code{divisor} specifies
-what tick divisors to try for producing uncrowded tick labels. A
-@code{true} value for the flag @code{opposite} identifies an unlabelled
-secondary axis (typically drawn opposite to a primary axis).
+This internal routine draws the line @math{x}=@code{X} on picture
+@code{pic} from @math{y}=@code{ymin} to @math{y}=@code{ymax}, with
+optional tick minimum and maximum values @code{tickmin} and
+@code{tickmax}, using pen @code{p}, optionally labelling it with
+string @code{s} at relative location @code{position} (a real number
+from [0,1]) using angle @code{angle}, alignment @code{align}, true
+shift @code{shift} on side @code{side} of the axis, and pen
+@code{plabel}. The tick type is specified by @code{ticks} and the
+integer array @code{divisor} specifies what tick divisors to try for
+producing uncrowded tick labels. A @code{true} value for the flag
+@code{opposite} identifies an unlabelled secondary axis (typically
+drawn opposite to a primary axis). 
 
 @item
 @verbatim
@@ -2659,8 +2665,9 @@ void yequals(picture pic=currentpicture, real Y,
              int[] divisor=new int[], bool opposite=false);
 @end verbatim
 
-Like @code{xequals}, but draw the line @math{y}=@code{Y} on picture
-@code{pic} from @math{x}=@code{xmin} to @math{x}=@code{xmax}.
+This internal routine is @code{xequals}, but draws the line
+@math{y}=@code{Y} on picture @code{pic} from @math{x}=@code{xmin} to
+@math{x}=@code{xmax}.
 
 @item
 @verbatim
@@ -3850,4 +3857,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  PenMargin PenMargins TrueMargin labelmargin errorbars errorbar
 @c  LocalWords:  dpx dpy dmx dmy barsize arrowheadsize BeginDotMargin DotMargin
 @c  LocalWords:  EndDotMargin DotMargins NColors BWRainbow colorspace labelled
-@c  LocalWords:  paletteheight
+@c  LocalWords:  paletteheight topmark
