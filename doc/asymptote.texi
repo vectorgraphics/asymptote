@@ -1161,11 +1161,12 @@ arguments are implemented):
 @cindex @code{shipout}
 @verbatim
 void shipout(string prefix=defaultfilename,
-  picture pic=currentpicture,
-  real xsize=pic.xsize, real ysize=pic.ysize,
-  keepAspect keepAspect=pic.keepAspect ? Aspect : IgnoreAspect,
-  orientation orientation=Portrait,
-  string format="", wait wait=NoWait);
+             picture pic=currentpicture,
+             real xsize=pic.xsize, real ysize=pic.ysize,
+             keepAspect keepAspect=
+             pic.keepAspect ? Aspect : IgnoreAspect,
+             orientation orientation=Portrait,
+             string format="", wait wait=NoWait);
 @end verbatim
 
 Rather than specifying the size information explicitly to @code{shipout},
@@ -1257,8 +1258,8 @@ For example, the @code{tex} function is used in the default base file
 includes an encapsulated @code{PostScript} (@acronym{EPS}) file into a
 picture: 
 @verbatim
-void include(picture pic=currentpicture, string name,
-  string options="");
+void include(picture pic=currentpicture, string name, 
+             string options="");
 @end verbatim
 
 Here, @code{name} is the name of the file to include and
@@ -2834,25 +2835,29 @@ currentpicture):
 @item
 @verbatim 
 void draw(picture pic=currentpicture, string s="", real angle=0,
-  path g, real position=0.5*length(g), pair align=0, side side=RightSide,
-  pen p=currentpen, arrowbar arrow=None, arrowbar bar=None, string legend="");
+          path g, real position=0.5*length(g), pair align=0,
+          side side=RightSide, pen p=currentpen, arrowbar arrow=None,
+          arrowbar bar=None, string legend="");
 @end verbatim
 
 Draw the path @code{g} on the picture @code{pic}, optionally labeled by
 string @code{s} writing at angle @code{angle} (in degrees) at position
-@code{position} and aligned using the pair @code{align} (or, if zero, on
-side @code{side} of the path), using pen @code{p} and other optional
-drawing attributes (arrows, bars, legend). Only one parameter, the path,
-is required. For convenience, the arguments @code{arrow} and @code{bar}
-may be specified in either order. The final argument, @code{legend}, is
-a string to use in constructing an optional legend entry.
+@code{position} and aligned using the pair @code{align} (or, if zero,
+aligned on side @code{side}), using pen @code{p} and
+other optional drawing attributes (arrows, bars, legend). Only one
+parameter, the path, is required. For convenience, the arguments
+@code{arrow} and @code{bar} may be specified in either order. The final
+argument, @code{legend}, is a string to use in constructing an optional
+legend entry.
 
 @cindex @code{LeftSide}
 @cindex @code{Center}
 @cindex @code{RightSide}
 The possible values of @code{side} are @code{LeftSide}, @code{Center}, and
-@code{RightSide}. This parameter is ignored if @code{align} is nonzero
-or if @code{position} corresponds to an endpoint of the path @code{g}.
+@code{RightSide}. This parameter specifies the location of the path
+label relative to the direction in which the path is drawn. The value of
+@code{side} is ignored if @code{align} is nonzero or if @code{position}
+corresponds to an endpoint of the path @code{g}.
 
 @cindex @code{None}
 @cindex @code{BeginBar}
@@ -2909,8 +2914,8 @@ coordinate @code{origin}, use the routine
 @cindex @code{drawabout}
 @verbatim
 void drawabout(pair origin, picture pic=currentpicture, string s="",
-	       real angle=0, path g, real position=0.5*length(g), pair align=0,
-	       side side=RightSide, pen p=currentpen,
+	       real angle=0, path g, real position=0.5*length(g),
+               pair align=0, side side=RightSide, pen p=currentpen,
 	       arrowbar arrow=None, arrowbar bar=None);
 @end verbatim
 
@@ -2951,7 +2956,7 @@ For an illustration of picture clipping, see the first example in
 @cindex @code{label}
 @verbatim
 void label(picture pic=currentpicture, string s, real angle=0,
-  pair position, pair align=0, pen p=currentpen);
+           pair position, pair align=0, pen p=currentpen);
 @end verbatim
 
 Draw label @code{s} on @code{pic}, writing at angle @code{angle} (in
@@ -3404,7 +3409,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  ticksize subintervals xlimits filetype plugin setlocal makeprg
 @c  LocalWords:  ylimits uncommented LinearInterp automin automax cp uninstall
 @c  LocalWords:  scaleT Xautomin Xautomax Yautomin Yautomax unicode RightSide
-@c  LocalWords:  arrowbar LeftSide EndBar BeginArrow lly
+@c  LocalWords:  arrowbar LeftSide EndBar BeginArrow lly featpost feynman
 @c  LocalWords:  EndArrow BeginArcArrow EndArcArrow ArcArrow ArcArrows NoFill
 @c  LocalWords:  filldraw fillpen drawpen errorformat bigsquare bezier darkblue
 @c  LocalWords:  quartercircle darkgreen lightblue urx ury texpreamble sgn texi
@@ -3417,4 +3422,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  zxvf xargs cond polargraph xmin xmax plabel YZero labelling
 @c  LocalWords:  ticksize ymin ymax XZero xequals tickmin tickmax unlabelled
 @c  LocalWords:  yequals Nobre Barbarosie Schwaiger nearearth conicurv Wiebusch
-@c  LocalWords:  unfill PAPERTYPE posterSize
+@c  LocalWords:  unfill PAPERTYPE posterSize ngraph interpolatetype drawabout
