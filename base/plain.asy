@@ -168,9 +168,9 @@ transform shift(real x, real y)
 // I/O operations
 
 file input(string name) {return input(name,true);}
-file output(string name) {return output(name,true);}
 file xinput(string name) {return xinput(name,true);}
-file xoutput(string name) {return xoutput(name,true);}
+file output(string name) {return output(name,false);}
+file xoutput(string name) {return xoutput(name,false);}
 file csv(file f) {return csv(f,true);}
 file line(file f) {return line(f,true);}
 file single(file f) {return single(f,true);}
@@ -1595,6 +1595,20 @@ void mark(picture pic=currentpicture, guide g, frame mark)
 {
   for(int i=0; i <= length(g); ++i)
     add(point(g,i),pic,mark);
+}
+
+frame marker(path g, pen p=currentpen)
+{
+  frame f;
+  draw(f,g,p);
+  return f;
+}
+
+frame marker(path[] g, pen p=currentpen)
+{
+  frame f;
+  draw(f,g,p);
+  return f;
 }
 
 void legend(frame f, Legend[] legend, bool placement=true)

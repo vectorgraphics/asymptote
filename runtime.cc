@@ -1935,9 +1935,9 @@ void fileOpenIn(stack *s)
 
 void fileOpenOut(stack *s)
 {
-  bool check=s->pop<bool>();
+  bool append=s->pop<bool>();
   string filename=s->pop<string>();
-  file *f=new ofile(filename,check);
+  file *f=new ofile(filename,append);
   f->open();
   s->push(f);
 }
@@ -1956,10 +1956,10 @@ void fileOpenXIn(stack *s)
 
 void fileOpenXOut(stack *s)
 {
-  bool check=s->pop<bool>();
+  bool append=s->pop<bool>();
   string filename=s->pop<string>();
 #ifdef HAVE_RPC_RPC_H
-  file *f=new oxfile(filename,check);
+  file *f=new oxfile(filename,append);
   s->push(f);
 #else  
   error(s,"XDR support not enabled");

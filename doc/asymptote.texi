@@ -1595,7 +1595,7 @@ real a=fin;
 @cindex @code{error}
 @cindex @code{cd}
 @cindex directory
-If the optional boolean argument @code{check} is false, no check will
+If the optional boolean argument @code{check} is @code{false}, no check will
 be made that the file exists. If the file does not exist or is not
 readable, the function  @code{bool error(file)} will return @code{true}.
 One can change the current working directory with the
@@ -1609,8 +1609,12 @@ including a newline. In addition, @code{Asymptote} provides the function
 as a string.
 
 @cindex @code{output}
+@cindex @code{append}
 @cindex @code{write}
-Writing is implemented as a function call:
+Writing is implemented using the function call 
+@code{file output(string name,bool append=false)},
+which opens a file @code{name} for output, appending to an
+existing file only if @code{append} is @code{true}:
 @verbatim
 real a=1, b=2, c=3;
 file fout=output("test.txt");

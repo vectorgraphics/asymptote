@@ -257,7 +257,7 @@ position stack::getPos()
 
 void error(stack *s, const char* message)
 {
-  em->runtime(s->getPos());
+  em->error(s->getPos());
   *em << message;
   em->sync();
   throw handled_error();

@@ -37,12 +37,12 @@ class file : public memory::managed<file> {
 protected:  
   std::string name;
   int nx,ny,nz;    // Array dimensions
-  bool linemode;   // If true, array reads will stop at eol instead of eof.
-  bool csvmode;    // If true, read comma-separated values.
-  bool singlemode; // If true, read/write single-precision XDR values.
-  bool closed;     // If true, file has been closed.
-  bool check;      // If true, check for errors after attempting to open file.
-  bool standard;   // If true, this is standard input/output
+  bool linemode;   // Array reads will stop at eol instead of eof.
+  bool csvmode;    // Read comma-separated values.
+  bool singlemode; // Read/write single-precision XDR values.
+  bool closed;     // File has been closed.
+  bool checkappend;// Check input for errors/append to output.
+  bool standard;   // Standard input/output
   int lines;       // Number of scrolled lines
 public: 
 
@@ -52,14 +52,15 @@ public:
   
   void dimension(int Nx=-1, int Ny=-1, int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
   
-  file(std::string name, bool check=true) : 
+  file(std::string name, bool checkappend=true) : 
     name(name), linemode(false), csvmode(false), singlemode(false),
-    closed(false), check(check), standard(name == ""), lines(0) {dimension();}
+    closed(false), checkappend(checkappend), standard(name == ""),
+    lines(0) {dimension();}
   
   virtual void open() {};
   
   void Check() {
-    if(error() && check) {
+    if(error()) {
       std::ostringstream buf;
       buf << "Cannot open file \"" << name << "\".";
       reportError(buf.str().c_str());
@@ -148,7 +149,7 @@ public:
     } else {
       fstream.open(name.c_str());
       stream=&fstream;
-      Check();
+      if(checkappend) Check();
     }
   }
   
@@ -210,7 +211,7 @@ class ofile : public file {
   std::ostream *stream;
   std::ofstream fstream;
 public:
-  ofile(std::string name, bool check=true) : file(name,check) {
+  ofile(std::string name, bool append=false) : file(name,append) {
       stream=&std::cout;
   }
   
@@ -218,7 +219,7 @@ public:
     if(standard) {
       stream=&std::cout;
     } else {
-      fstream.open(name.c_str());
+      fstream.open(name.c_str(),checkappend ? std::ios::app : std::ios::trunc);
       stream=&fstream;
       Check();
     }
@@ -263,7 +264,7 @@ class ixfile : public file {
   xdr::ixstream stream;
 public:
   ixfile(std::string name, bool check=true) : 
-    file(name,check), stream(name.c_str()) {Check();}
+    file(name,check), stream(name.c_str()) {if(check) Check();}
 
   const char* Mode() {return "xinput";}
   
@@ -286,8 +287,9 @@ public:
 class oxfile : public file {
   xdr::oxstream stream;
 public:
-  oxfile(std::string name, bool check=true) : 
-    file(name,check), stream(name.c_str()) {Check();}
+  oxfile(std::string name, bool append=false) : 
+    file(name), stream(name.c_str(),
+		       append ? xdr::xios::app : xdr::xios::trunc) {Check();}
 
   const char* Mode() {return "xoutput";}
   
