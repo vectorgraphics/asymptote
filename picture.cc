@@ -319,6 +319,8 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
     status=postprocess(epsname,outname,wait);
   }
   
+  if(labels) delete tex;
+  
   if(!tgifformat) outnameStack->push_back(outname);
   
   return status;
