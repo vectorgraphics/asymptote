@@ -16,14 +16,12 @@
 #include <cstdio>
 #include <cassert>
 #include <vector>
-#include <list>
 
 #include "pool.h"
 #include "symbol.h"
 
 using std::ostream;
 using std::vector;
-using std::list;
 
 using sym::symbol;
 
@@ -311,7 +309,7 @@ public:
   ty_vector sub;
 public:
   overloaded()
-   : ty(ty_overloaded) {}
+    : ty(ty_overloaded) {}
   virtual ~overloaded() {}
 
   bool equiv(ty *other)
