@@ -180,7 +180,25 @@ equations;
 @node Installation
 @chapter Installation
 @cindex installation
-To install @code{Asymptote} from release x.xx, execute the following commands:
+
+A binary distribution for a specific platform ARCH can be installed in
+@code{/usr/local} with the commands:
+@verbatim
+cd /
+tar -zxf asymptote-x.xx.ARCH.tar.gz
+texhash
+install-info --infodir=/usr/local/info /usr/local/info/asymptote.info 
+@end verbatim
+
+To uninstall:
+@verbatim
+install-info --delete --infodir=/usr/local/info /usr/local/info/asymptote.info
+tar -zxvf asymptote-x.xx.ARCH.tar.gz | xargs rm
+texhash
+@end verbatim
+
+To compile and install @code{Asymptote} from a source release x.xx, execute the
+following commands:
 @verbatim
 tar -zxf asymptote-x.xx.tar.gz
 cd asymptote
@@ -213,7 +231,7 @@ top level directory of the @code{Asymptote} source code.
 @cindex Debian
 On machines running Debian Linux, the boost library can be installed with
 @verbatim
-apt-get install libboost-graph1.32.0 libboost-dev libboost-graph-dev
+apt-get install libboost-dev libboost-graph-dev
 @end verbatim
 
 Alternatively, Debian users can install Hubert Chan's @code{Asymptote}
@@ -322,7 +340,7 @@ make install
 make install-man
 @end verbatim
 
-To compile without optimization, use the command @code{make OPT=}.
+To compile without optimization, use the command @code{make OPT=-g}.
 
 @node Examples
 @chapter Examples

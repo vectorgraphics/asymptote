@@ -87,7 +87,7 @@ uninstall:
 	-rm -f $(latexdir)/asymptote.sty
 	-rmdir $(latexdir)
 	-rm -f $(bindir)/$(NAME) $(bindir)/$(XNAME) 
-	-install-info --delete doc/asymptote.info $(prefix)/info/dir
+	-install-info --delete --infodir=$(prefix)/info doc/asymptote.info
 	-rm -f $(prefix)/info/asymptote.info
 	-rm -f $(mandir)/man1/$(MANFILES)
 
