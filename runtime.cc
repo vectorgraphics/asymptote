@@ -353,7 +353,9 @@ void arrayWrite(stack *s)
   item value = s->pop();
 
   checkArray(s,a);
-  if (n < 0) error(s,"writing to negative index in array");
+  int len=(int) a->size();
+  if (n < 0) n += len; // Map indices [-len,-1] to [0,len-1]
+  if (n < 0) error(s,"writing out-of-bounds index in array");
   if (a->size() <= (size_t) n)
     a->resize(n+1);
   (*a)[n] = value;
@@ -447,6 +449,7 @@ void arraySequence(stack *s)
 {
   int n=pop<int>(s);
   callable* f = pop<callable*>(s);
+  if(n < 0) n=0;
   array *a=new array(n);
   for(int i=0; i < n; ++i) {
     s->push<int>(i);
@@ -460,6 +463,7 @@ void arraySequence(stack *s)
 void intSequence(stack *s)
 {
   int n=pop<int>(s);
+  if(n < 0) n=0;
   array *a=new array(n);
   for(int i=0; i < n; ++i) {
     (*a)[i]=i;
