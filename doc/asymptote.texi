@@ -914,27 +914,33 @@ pair of times (s,t) representing the respective path times along
 one such intersection point. If the paths do not intersect, return the
 pair (-1,-1).
 
-@cindex @code{before}
-@item pair before(path p, path q)
-Return the portion of @code{p} before its first intersection with
-@code{q}; if no such intersection exists, return @code{p}.
+@cindex @code{firstcut}
+@cindex @code{slice}
+@item slice firstcut(path p, path q)
+Return the portions of path @code{p} before and after the first intersection
+of @code{p} with path @code{q} as a structure @code{slice} (if no such
+intersection exists, the entire path is considered to be `before' the
+intersection):
+@verbatim
+struct slice {
+  public path before,after;
+}
+@end verbatim
 
-@cindex @code{after}
-@item pair after(path p, path q)
-Return the portion of @code{p} after its last intersection with
-@code{q}; if no such intersection exists, return @code{p}.
+@cindex MetaPost cutbefore
+Note that @code{firstcut.after} plays the role of the MetaPost @code{cutbefore}
+command.
 
-@cindex @code{cutbefore}
-@item pair cutbefore(path p, path q)
-Return a new path with the portion of @code{p} before its first
-intersection with @code{q} removed; if no such intersection exists,
-return @code{p}.
+@cindex @code{lastcut}
+@item slice lastcut(path p, path q)
+Return the portions of path @code{p} before and after the last intersection
+of @code{p} with path @code{q} as a @code{slice} (if no such
+intersection exists, the entire path is considered to be `after' the
+intersection).
 
-@cindex @code{cutafter}
-@item pair cutafter(path p, path q)
-Return a new path with the portion of @code{p} after its last
-intersection with @code{q} removed; if no such intersection exists,
-return @code{p}.
+@cindex MetaPost cutafter
+Note that @code{lastcut.before} plays the role of the MetaPost
+@code{cutafter} command.
 
 @cindex @code{max}
 @item pair max(path)

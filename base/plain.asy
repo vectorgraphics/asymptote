@@ -1513,27 +1513,27 @@ void overwrite(Overwrite Overwrite=Allow)
   overwrite(Overwrite(Overwrite));
 }
 
-path cutbefore(path p, path knife)
-{
-  return subpath(p,min(intersect(p,knife).x,intersect(p,reverse(knife)).x),
-		 length(p));
+struct slice {
+  public path before,after;
 }
 
-path before(path p, path knife)
+slice firstcut(path p, path knife) 
 {
+  slice s=new slice;
   real t=intersect(p,knife).x;
-  if (t < 0) return p;
-  return subpath(p,0,min(t,intersect(p,reverse(knife)).x));
+  if (t < 0) {s.before=p; s.after=nullpath; return s;}
+  s.before=subpath(p,0,min(t,intersect(p,reverse(knife)).x));
+  s.after=subpath(p,min(t,intersect(p,reverse(knife)).x),length(p));
+  return s;
 }
 
-path cutafter(path p, path knife) 
+slice lastcut(path p, path knife) 
 {
-  return reverse(cutbefore(reverse(p),knife));
-}
-
-path after(path p, path knife) 
-{
-  return reverse(keepbefore(reverse(p),knife));
+  slice s=firstcut(reverse(p),knife);
+  path before=reverse(s.after);
+  s.after=reverse(s.before);
+  s.before=before;
+  return s;
 }
 
 void unfill(picture pic=currentpicture, path g) 
