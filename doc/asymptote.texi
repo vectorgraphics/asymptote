@@ -1404,7 +1404,9 @@ The implicit initializer for transforms is @code{identity()}.
 Frames are canvases for drawing in @code{PostScript} coordinates. While working
 with frames directly is occasionally necessary for constructing deferred
 drawing routines, pictures are usually more convenient to work with.
-The implicit initializer for frames is @code{nullframe}.
+The implicit initializer for frames is @code{nullframe}. The function
+@code{bool empty(frame f)} returns @code{true} only if the frame @code{f}
+is empty.
 
 @item picture
 @cindex @code{picture}
