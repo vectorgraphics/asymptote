@@ -803,8 +803,9 @@ void ylimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
 
 void crop(picture pic=currentpicture) 
 {
-  xlimits(pic);
-  ylimits(pic);
+  xlimits(pic,false);
+  ylimits(pic,false);
+  clip(pic,box(pic.userMin,pic.userMax));
 }
 
 void limits(picture pic=currentpicture, pair min, pair max)
