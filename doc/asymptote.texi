@@ -731,8 +731,8 @@ direction prefix or suffix @code{@{dir@}}: the direction of the pair
 @code{dir} specifies the direction of the incoming or outgoing tangent,
 respectively, to the curve at that node. Exterior nodes may be
 given direction specifiers only on their interior side. Cubic splines between
-a node @code{z}, with postcontrol point Z, and a node @code{w}, with precontrol
-point W, are computed as the Bezier curve
+a node @code{z}, with postcontrol point @code{Z}, and a node @code{w},
+with precontrol point @code{W}, are computed as the Bezier curve
 
 @image{bezier,,,(1-t)^3*z+3t(1-t)^2*Z+3t^2(1-t)*W+t^3*w for 0 <=t <= 1.}
 
