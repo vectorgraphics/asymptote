@@ -7,18 +7,20 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
-#include <cassert>
 
-#include "interact.h"
-#include "util.h"
-#include "symbol.h"
-#include "genv.h"
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 #include <readline/readline.h>
 #include <readline/history.h>
-#include <signal.h>
+#include <csignal>
 #endif
+
+#include "interact.h"
+#include "symbol.h"
+#include "genv.h"
 
 #include "fileio.h"
 
