@@ -67,6 +67,8 @@ using vm::stack;
 using camp::pair;
 using camp::transform;
 
+file *stdout=camp::file::open("",camp::file::out);
+  
 // Math
   
 void intZero(stack *s)
@@ -1691,7 +1693,7 @@ void readChar(stack *s)
 {
   file *f = s->pop<file*>();
   char c;
-  f->read(c);
+  if(f->open()) f->read(c);
   static char str[1];
   str[0]=c;
   s->push(std::string(str));

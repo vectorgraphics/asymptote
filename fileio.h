@@ -30,9 +30,9 @@ protected:
   int nx,ny,nz; // Array dimensions
   bool linemode; // If true, array reads will stop at eol instead of eof.
   bool csvmode; // If true, read comma-separated values.
+  bool closed;
 public: 
   enum mode {
-    closed,
     in, out,
     xin, xout
   };
@@ -43,23 +43,32 @@ public:
     nx=Nx; ny=Ny; nz=Nz;
   }
   
-  file(string name) : name(name), linemode(false), csvmode(false) {
-    dimension();
-  }
+  file(string name) : name(name), linemode(false), csvmode(false),
+		      closed(false) {dimension();}
   
-  virtual ~file();
+  virtual ~file() {}
 
   virtual const char* Mode()=0;
 
+  bool open() {
+    if(closed) {
+      std::ostringstream buf;
+      buf << "I/O operation attempted on closed file \'" << name << "\'.";
+      reportError(buf.str().c_str());
+      return false;
+    } else return true;
+  }
+		
+  
   std::string filename();
   virtual bool eol() {return false;}
   virtual bool text() {return false;}
-  virtual bool eof() = 0;
-  virtual bool error() = 0;
-  virtual void close() = 0;
-  virtual void clear() = 0;
-  virtual void precision(int);
-  virtual void flush() ;
+  virtual bool eof()=0;
+  virtual bool error()=0;
+  virtual void close()=0;
+  virtual void clear()=0;
+  virtual void precision(int) {}
+  virtual void flush() {}
   
   void unsupported(const char *rw, const char *type) {
     std::ostringstream buf;

@@ -164,18 +164,20 @@ void write(vm::stack *s)
 {
   T val = s->pop<T>();
   camp::file *f = s->pop<camp::file*>();
+  if(!f->open()) return;
   if(f->filename() == "" && settings::suppressOutput) return;
   f->write(val);
 }
+
+extern camp::file *stdout;
 
 template<class T>
 void writen(vm::stack *s)
 {
   T val = s->pop<T>();
   if(settings::suppressOutput) return;
-  camp::file *f = camp::file::open("",camp::file::out);
-  f->write(val);
-  f->write(newline);
+  stdout->write(val);
+  stdout->write(newline);
 }
 
 template<class T>
@@ -184,11 +186,10 @@ void write2(vm::stack *s)
   T val2 = s->pop<T>();
   T val1 = s->pop<T>();
   if(settings::suppressOutput) return;
-  camp::file *f = camp::file::open("",camp::file::out);
-  f->write(val1);
-  f->write(tab);
-  f->write(val2);
-  f->write(newline);
+  stdout->write(val1);
+  stdout->write(tab);
+  stdout->write(val2);
+  stdout->write(newline);
 }
 
 template<class T>
@@ -198,13 +199,12 @@ void write3(vm::stack *s)
   T val2 = s->pop<T>();
   T val1 = s->pop<T>();
   if(settings::suppressOutput) return;
-  camp::file *f = camp::file::open("",camp::file::out);
-  f->write(val1);
-  f->write(tab);
-  f->write(val2);
-  f->write(tab);
-  f->write(val3);
-  f->write(newline);
+  stdout->write(val1);
+  stdout->write(tab);
+  stdout->write(val2);
+  stdout->write(tab);
+  stdout->write(val3);
+  stdout->write(newline);
 }
 
 template<class T>
@@ -212,6 +212,7 @@ void writeP(vm::stack *s)
 {
   const T& val = *(s->pop<T*>());
   camp::file *f = s->pop<camp::file*>();
+  if(!f->open()) return;
   if(f->filename() == "" && settings::suppressOutput) return;
   f->write(val);
 }
@@ -235,6 +236,7 @@ void writeArray(vm::stack *s)
 {
   array *a=pop<array *>(s);
   camp::file *f = s->pop<camp::file*>();
+  if(!f->open()) return;
   if(f->filename() == "" && settings::suppressOutput) return;
   checkArray(s,a);
   size_t size=(size_t) a->size();
@@ -268,8 +270,7 @@ template<class T>
 void showArray2(vm::stack *s)
 {
   array *a=pop<array *>(s);
-  camp::file *f = camp::file::open("",camp::file::out);
-  outArray2<T>(s,f,a);
+  outArray2<T>(s,stdout,a);
 }
 
 template<class T>
@@ -277,6 +278,7 @@ void writeArray2(vm::stack *s)
 {
   array *a=pop<array *>(s);
   camp::file *f = s->pop<camp::file*>();
+  if(!f->open()) return;
   outArray2<T>(s,f,a);
 }
 
@@ -285,6 +287,7 @@ void writeArray3(vm::stack *s)
 {
   array *a=pop<array *>(s);
   camp::file *f = s->pop<camp::file*>();
+  if(!f->open()) return;
   if(f->filename() == "" && settings::suppressOutput) return;
   checkArray(s,a);
   size_t size=(size_t) a->size();

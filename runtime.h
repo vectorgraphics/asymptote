@@ -320,7 +320,7 @@ void read(vm::stack *s)
 {
   camp::file *f = pop<camp::file*>(s);
   T val;
-  f->read(val);
+  if(f->open()) f->read(val);
   s->push(val);
 }
 
@@ -339,47 +339,49 @@ void readArray(vm::stack *s)
 {
   camp::file *f = s->pop<camp::file*>();
   vm::array *c=new vm::array(0);
-  int nx=f->Nx();
-  if(nx == -2) {f->read(nx); if(nx == 0) {s->push(c); return;}}
-  int ny=f->Ny();
-  if(ny == -2) {f->read(ny); if(ny == 0) {s->push(c); return;}}
-  int nz=f->Nz();
-  if(nz == -2) {f->read(nz); if(nz == 0) {s->push(c); return;}}
-  T v;
-  if(nx >= 0) {
-    for(int i=0; i < Limit(nx); i++) {
-      if(ny >= 0) {
-	vm::array *ci=new vm::array(0);
-	c->push(ci);
-	for(int j=0; j < Limit(ny); j++) {
-	  if(nz >= 0) {
-	    vm::array *cij=new vm::array(0);
-	    ci->push(cij);
-	    for(int k=0; k < Limit(nz); k++) {
-	      f->read(v);
-	      if(f->error()) {
-		if(nx && ny && nz) eof(s,f,(i*ny+j)*nz+k); s->push(c); return;
+  if(f->open()) {
+    int nx=f->Nx();
+    if(nx == -2) {f->read(nx); if(nx == 0) {s->push(c); return;}}
+    int ny=f->Ny();
+    if(ny == -2) {f->read(ny); if(ny == 0) {s->push(c); return;}}
+    int nz=f->Nz();
+    if(nz == -2) {f->read(nz); if(nz == 0) {s->push(c); return;}}
+    T v;
+    if(nx >= 0) {
+      for(int i=0; i < Limit(nx); i++) {
+	if(ny >= 0) {
+	  vm::array *ci=new vm::array(0);
+	  c->push(ci);
+	  for(int j=0; j < Limit(ny); j++) {
+	    if(nz >= 0) {
+	      vm::array *cij=new vm::array(0);
+	      ci->push(cij);
+	      for(int k=0; k < Limit(nz); k++) {
+		f->read(v);
+		if(f->error()) {
+		  if(nx && ny && nz) eof(s,f,(i*ny+j)*nz+k); s->push(c); return;
+		}
+		cij->push(v);
 	      }
-	      cij->push(v);
+	    } else {
+	      f->read(v);
+	      if(f->error()) {if(nx && ny) eof(s,f,i*ny+j); s->push(c); return;}
+	      ci->push(v);
 	    }
-	  } else {
-	    f->read(v);
-	    if(f->error()) {if(nx && ny) eof(s,f,i*ny+j); s->push(c); return;}
-	    ci->push(v);
 	  }
+	} else {
+	  f->read(v);
+	  if(f->error()) {if(nx) eof(s,f,i); s->push(c); return;}
+	  c->push(v);
 	}
-      } else {
-	f->read(v);
-	if(f->error()) {if(nx) eof(s,f,i); s->push(c); return;}
-	c->push(v);
       }
-    }
-  } else {
-    for(;;) {
-      f->read(v);
-      if(f->error()) break;
-      c->push(v);
-      if(f->LineMode() && f->eol()) break;
+    } else {
+      for(;;) {
+	f->read(v);
+	if(f->error()) break;
+	c->push(v);
+	if(f->LineMode() && f->eol()) break;
+      }
     }
   }
   s->push(c);

@@ -14,21 +14,9 @@ namespace camp {
 string tab="\t";
 string newline="\n";
 
-file::~file()
-{
-}
-
 string file::filename()
 {
   return name;
-}
-
-void file::precision(int)
-{
-}
-
-void file::flush()
-{
 }
 
 class ifile : public file
@@ -67,7 +55,7 @@ public:
   bool text() {return true;}
   bool eof() {return stream->eof();}
   bool error() {return stream->fail();}
-  void close() {if(fstream) fstream.close();}
+  void close() {if(fstream) fstream.close(); closed=true;}
   void clear() {stream->clear();}
   
 public:
@@ -123,9 +111,10 @@ public:
   bool text() {return true;}
   bool eof() {return stream->eof();}
   bool error() {return stream->fail();}
-  void close() {if(fstream) fstream.close();}
+  void close() {if(fstream) fstream.close(); closed=true;}
   void clear() {stream->clear();}
   void precision(int p) {stream->precision(p);}
+  void flush() {stream->flush();}
   
   void write(bool val) {*stream << (val ? "true " : "false ");}
   void write(int val) {*stream << val;}
@@ -147,7 +136,7 @@ public:
   
   bool eof() {return stream.eof();}
   bool error() {return stream.fail();}
-  void close() {stream.close();}
+  void close() {stream.close(); closed=true;}
   void clear() {stream.clear();}
   
   void read(int& val) {val=0; stream >> val;}
@@ -165,8 +154,9 @@ public:
   
   bool eof() {return stream.eof();}
   bool error() {return stream.fail();}
-  void close() {stream.close();}
+  void close() {stream.close(); closed=true;}
   void clear() {stream.clear();}
+  void flush() {stream.flush();}
   
   void write(int val) {stream << val;}
   void write(double val) {stream << val;}
