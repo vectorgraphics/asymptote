@@ -38,8 +38,9 @@ INSTALL = @INSTALL@
 ASYMPTOTE_DIR = ../base
 export ASYMPTOTE_DIR
 
-asy: 	parser depend
-	$(MAKE) -f Compile files
+# $(MAGIC) is here for when we reimport from Compile
+asy$(MAGIC): 	 depend
+	$(MAKE) -f Compile asy 
 
 all:  	asy man
 
@@ -47,8 +48,6 @@ man:	asy
 	cd doc; $(MAKE) man
 
 depend: $(FILES:=.d)
-
-parser: camp.tab.cc camp.tab.h lex.yy.cc
 
 camp.tab.h: camp.tab.cc
 
