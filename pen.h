@@ -49,10 +49,9 @@ static const std::string OverwriteTag[]={"Allow","Suppress","SupressQuiet",
 					 "Move","MoveQuiet"};
 const int nOverwrite=sizeof(OverwriteTag)/sizeof(std::string);
   
-enum ColorSpace {TRANSPARENT,DEFCOLOR,GRAYSCALE,RGB,CMYK,PATTERN};
-static const int ColorComponents[]={0,1,1,3,4,0};
-static const std::string ColorDeviceSuffix[]={"","Gray","Gray","RGB","CMYK",
-					      ""};
+enum ColorSpace {DEFCOLOR,TRANSPARENT,GRAYSCALE,RGB,CMYK,PATTERN};
+static const int ColorComponents[]={0,0,1,3,4,0};
+static const std::string ColorDeviceSuffix[]={"","","Gray","RGB","CMYK",""};
 using settings::defaultpen;
   
 class pen : public mempool::pooled<pen>
@@ -435,12 +434,14 @@ public:
       out << ", linejoin=" << Join[p.linejoin];
     if(p.fontsize)
       out << ", fontsize=" << p.fontsize;
-    if(p.color == GRAYSCALE)
+    if(p.color == TRANSPARENT)
+      out << ", invisible";
+    else if(p.color == GRAYSCALE)
       out << ", gray=" << p.grey;
-    if(p.color == RGB)
+    else if(p.color == RGB)
       out << ", red=" << p.red() << ", green=" << p.green() 
 	  << ", blue=" << p.blue();
-    if(p.color == CMYK)
+    else if(p.color == CMYK)
       out << ", cyan=" << p.cyan() << ", magenta=" << p.magenta() 
 	  << ", yellow=" << p.yellow() << ", black=" << p.black();
     if(p.pattern != DEFPAT)
