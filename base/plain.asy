@@ -1286,14 +1286,20 @@ guide arc(pair c, real r, real angle1, real angle2)
   return c+r*dir(angle1)..c+r*dir(0.5*(angle1+angle2))..c+r*dir(angle2);
 }
   
+// return an arc centered at c with radius r from angle1 to angle2 in degrees,
+// drawing in an explicit direction.
+guide arc(pair c, real r, real angle1, real angle2, direction direction)
+{
+  if(direction(direction)) 
+    return arc(c,r,(angle2 >= angle1) ? angle1 : angle1-360,angle2);
+  else 
+    return arc(c,r,angle1,(angle2 >= angle1) ? angle2-360 : angle2);
+}
+
 // return an arc centered at c from pair z1 to z2 (assuming |z2-c|=|z1-c|).
 guide arc(pair c, pair z1, pair z2, direction direction=CCW)
 {
-  real r=abs(z1-c);
-  real t1=Angle(z1);
-  real t2=Angle(z2);
-  if(direction(direction)) return arc(c,r,(t2 >= t1) ? t1 : t1-360,t2);
-  return arc(c,r,t1,(t2 >= t1) ? t2-360 : t2);
+  return arc(c,abs(z1-c),Angle(z1),Angle(z2),direction);
 }
 
 picture bar(pair a, pair d, pen p=currentpen)
