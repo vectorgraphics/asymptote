@@ -6,7 +6,6 @@
 /camp.output
 /lex.yy.cc
 /asy
-/asy-mode.elc
 /configure
 /config.status
 /config.log
@@ -14,3 +13,4 @@
 /autom4te.cache
 /config.h
 /config.h.in
+/.asy_history
