@@ -29,7 +29,7 @@
 import math;
 import metapost;
 
-background = gray(0.987);
+public pen background = gray(0.987);
 
 //write("Preloading FeatPost macros, version 0.5(alpha asy port)");
 
