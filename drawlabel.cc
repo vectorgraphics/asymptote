@@ -27,9 +27,9 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
   if(!settings::texprocess) {b += position; return;}
   string texbuf;
   pair rotation=expi(radians(angle));
-    
   pen Pentype=*pentype;
-    
+  static double fuzz=1.0;
+  
   if(!(width || height || depth)) {
     tex <<  "\\fontsize{" << Pentype.size() << "}{" << Pentype.size()*1.2
 	<< "}\\selectfont" << "\n";
@@ -58,21 +58,25 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
     tex << "\n";
     tex.wait("\n*","! ");
      
+    depth += fuzz;
+    height += fuzz;
+    width += 2*fuzz;
+    
     Align=align/rotation;
     double scale0=max(fabs(Align.getx()),fabs(Align.gety()));
     if(scale0) Align *= 0.5/scale0;
     Align -= pair(0.5,0.5);
     Align.scale(width,height+depth);
-    Align += pair(0,depth);
+    
   }
 
     
   // alignment point
-  pair p=position+Align*rotation;
-  pair A=p+pair(0,-depth)*rotation;
-  pair B=p+pair(0,height)*rotation;
-  pair C=p+pair(width,height)*rotation;
-  pair D=p+pair(width,-depth)*rotation;
+  pair p=position+(Align+pair(0,0.5*fuzz-depth))*rotation;
+  pair A=p;
+  pair B=p+pair(0,height+depth)*rotation;
+  pair C=p+pair(width,height+depth)*rotation;
+  pair D=p+pair(width,0)*rotation;
   
   if(settings::overwrite != 0) {
     size_t n=labelbounds.size();

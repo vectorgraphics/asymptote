@@ -109,8 +109,8 @@ bool picture::texprocess(const string& texname, const string& outname,
     double height=bpos.top-bpos.bottom;
     
     // Magic dvips offsets:
-    double hoffset=-128.5;
-    double voffset=(height < 10.0) ? -137.5+height : -126.5;
+    double hoffset=-128.4;
+    double voffset=(height < 11.6) ? -137.6+height : -126.0;
     
     if(pdfformat || bottomOrigin)
       voffset += max(pageHeight-(bpos.top-bpos.bottom),0.0);
@@ -253,7 +253,9 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
   
   bbox bcopy=b;
   
-  static double fuzz=1.0;
+  double fuzz;
+  if(!labels && pdfformat) fuzz=1.0;
+  else fuzz=0.1;
   bcopy.right += fuzz;
   bcopy.left -= fuzz;
   bcopy.top += fuzz;
@@ -296,8 +298,8 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
   bool status = true;
   
   if(labels) {
-    if(pdfformat || bottomOrigin) bcopy.shift(pair(0.5,0.25));
-    else bcopy.shift(pair(0.75,0.0));
+    if(pdfformat || bottomOrigin) bcopy.shift(pair(-0.25,-0.5));
+    else bcopy.shift(pair(-0.25,-1.0));
     tex=new texfile(texname,bcopy);
     list<drawElement*>::iterator p;
     for (p = nodes.begin(); p != nodes.end(); ++p) {
