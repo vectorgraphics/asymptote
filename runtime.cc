@@ -89,6 +89,13 @@ void boolTrue(stack *s)
   s->push(true);  
 }
 
+void boolXor(stack *s)
+{
+  bool b = s->pop<bool>();
+  bool a = s->pop<bool>();
+  s->push(a^b ? true : false);  
+}
+
 void intIntMod(stack *s)
 {
   int y = s->pop<int>();

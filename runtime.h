@@ -35,6 +35,7 @@ void intZero(vm::stack *s);
 void realZero(vm::stack *s);
 void boolFalse(vm::stack *s);
 void boolTrue(vm::stack *s);
+void boolXor(vm::stack *s);
 
 void intIntMod(vm::stack *s);
 void realRealMod(vm::stack *s);

@@ -277,6 +277,7 @@ void addOperators(venv &ve)
   // This works as we force all booleans to be 1 or 0 as an integer.
   addBooleanOperator(ve,inst::log_eq,primBoolean(),"==");
   addBooleanOperator(ve,inst::log_neq,primBoolean(),"!=");
+  addBooleanOperator(ve,run::boolXor,primBoolean(),"^");
 
   addBooleanOperator(ve,run::boolTrue,primNull(),"==");
   addBooleanOperator(ve,run::intZero,primNull(),"!=");
@@ -320,6 +321,7 @@ void addOperators(venv &ve)
   addFunc(ve,run::arrayBoolNegate,boolArray(),"!",boolArray());
   addArrayBooleanOps<bool,And>(ve,boolArray(),"&&",primBoolean());
   addArrayBooleanOps<bool,Or>(ve,boolArray(),"||",primBoolean());
+  addArrayBooleanOps<bool,Xor>(ve,boolArray(),"^",primBoolean());
   
   addUnorderedArrayOps<bool>(ve,boolArray(),primBoolean(),
 			     boolArray2(),boolArray3());

@@ -67,7 +67,7 @@ Programming
 * Pens::                        Colors, line types, line widths, font sizes
 * Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
-* Files::                       @code{Asymptote} I/O
+* Files::                       Reading and writing your data
 * Structures::                  Organize your data
 * Arithmetic & logical::        Standard binary operators
 * Self & prefix operators::     Self operators, increment, and decrement
@@ -439,7 +439,7 @@ many features beyond the ones found in those languages.
 * Pens::                        Colors, line types, line widths, font sizes
 * Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
-* Files::                       @code{Asymptote} I/O
+* Files::                       Reading and writing your data
 * Structures::                  Organize your data
 * Arithmetic & logical::        Standard binary operators
 * Self & prefix operators::     Self operators, increment, and decrement
@@ -1160,17 +1160,17 @@ write(fout,a);
 
 @cindex @code{stdin}
 @cindex @code{stdout}
+There are two special files: @code{stdin}, which reads from the keyboard,
+and @code{stdout}, which writes to the terminal.
+
 @cindex @code{endl}
 @cindex @code{tab}
-There are two special files: @code{stdin}, which reads from the keyboard,
-and @code{stdout}, which writes to the terminal. A final optional
-@code{endl} argument to @code{write} causes a newline to be written after
-writing the data. Alternatively, a final @code{tab} argument writes a
-tab instead.
-
-The file argument is optional; when omitted the write is done to stdout
-and terminated by a newline. In this case, the write may include up to 3
-data arguments, which will be output to stdout, separated by tabs. That is,
+A final optional @code{endl} argument to @code{write} causes a newline
+to be written after writing the data. Alternatively, a final @code{tab}
+argument writes a tab instead. The file argument to @code{write} is also
+optional; when omitted the write is done to @code{stdout} and terminated
+by a newline. In this case, the write may include up to 3 data
+arguments, which will be output to @code{stdout}, separated by tabs. That is, 
 @verbatim
 write();
 write(a);
@@ -1189,6 +1189,7 @@ Files may also be opened with @code{xinput} or @code{xoutput} instead of
 @code{input} or @code{output}, in which case the reading or writing will
 be done using Sun Microsystem's XDR (External Data Representation)
 portable binary format (available on all UNIX platforms).
+The default initializer for file is @code{stdout}.
 
 @cindex @code{eof}
 @cindex @code{eol}
@@ -1247,8 +1248,9 @@ For a more complicated example of a structure, see the structure
 @node Arithmetic & logical
 @section Arithmetic & logical operators
 @cindex arithmetic operators
-@cindex logical operators
 @cindex binary operators
+@cindex boolean operators
+@cindex logical operators
 
 @code{Asymptote} uses the standard binary arithmetic operators. Both operands
 are promoted to the same type, which will also be the type of the result: 
@@ -1275,7 +1277,7 @@ multiplication is used; otherwise, logarithms and exponentials are used.
 
 @end table
 
-The usual logical operators are also defined
+The usual boolean operators are also defined
 @table @code
 @cindex @code{==}
 @item ==
@@ -1301,6 +1303,9 @@ and
 @cindex @code{||}
 @item ||
 or
+@cindex @code{^}
+@item ^
+xor
 @cindex @code{!}
 @item !
 not
@@ -1575,12 +1580,12 @@ new element. One can also index an array @code{A} with an integer array
 @code{B}, to obtain the array formed by indexing array @code{A} with
 successive elements of array @code{B}.
 
-Array elements are neither implicitly allocated nor initialized:
+The declaration
 @verbatim
 real[] A;
 @end verbatim
 
-is initialized to be a empty (zero-length) array. Empty arrays should be
+initializes @code{A} to be a empty (zero-length) array. Empty arrays should be
 distinguished from null arrays. If we say
 @verbatim
 real[] A=null;
@@ -1593,14 +1598,13 @@ Arrays can be explicitly initialized like this:
 real[] A={0,1,2};
 @end verbatim
 
-
-Array assignment in @code{Asymptote} does only a shallow copy. That is, only
-the pointer is copied; if one copy if modified, the other will be too. 
-The @code{copy} function provides a deep copy of an array.
+Array assignment in @code{Asymptote} does a shallow copy: only
+the pointer is copied (if one copy if modified, the other will be too). 
+The @code{copy} function listed below provides a deep copy of an array.
 
 Every array @code{A} has two virtual members, @code{length} and @code{push}.
 @code{A.length} evaluates to the length of the array @code{A}, while
-@code{A.push()} is a function which pushes its argument onto the the end
+@code{A.push()} is a function that pushes its argument onto the the end
 of the array. Like all functions in @code{Asymptote}, @code{push} can be
 "pulled off" of the array and used on its own:
 @verbatim
@@ -1609,7 +1613,8 @@ void f(int)=A.push; // A now contains {1,2,3,7}.
 f(7);
 @end verbatim
 
-In the following list of built-in array functions, T represents a generic type.
+In the following list of built-in array functions, @code{T} represents a
+generic type.
 
 @table @code
 
@@ -1628,45 +1633,47 @@ Unless they are arrays themselves, these @code{n} array elements are
 not initialized.
 
 @cindex @code{sequence}
-@item sequence(int n) 
+@item int[] sequence(int n)
 if @code{n >= 1} returns the array @code{@{0,1,...,n-1@}} (otherwise returns
 a null array);
 
-@item sequence(int n, int m)
+@item int[] sequence(int n, int m)
 if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} (otherwise
 returns a null array);
 
-@item sequence(T f(int),n)
+@item int[] sequence(T f(int),n)
 if @code{n >= 1} returns the sequence @code{@{f_i :i=0,1,...n-1@}} given a
 function @code{T f(int)} and integer @code{int n} (otherwise returns a
 null array);
 
 @cindex @code{reverse}
-@item reverse(int n)
+@item int[] reverse(int n)
 if @code{n >= 1} returns the array @code{@{n-1,n-2,...,0@}} (otherwise
 returns a null array);
 
 @cindex @code{find}
-@item find(bool[], int n=1)
+@item int find(bool[], int n=1)
 returns the index of the @code{n}th true value or -1 if not found.
 If @code{n} is negative, search backwards from the end of the array for the
 @code{-n}th value; 
 
 @cindex @code{copy}
-@item copy(T[] A)
+@item T[] copy(T[] A)
 returns a deep copy of array @code{A};
 
 @cindex @code{alias}
-@item alias(T[] A, T[] B)
+@item bool alias(T[] A, T[] B)
 returns true if the arrays @code{A} and @code{B} are identical.
 
 @cindex @code{sort}
-@item sort(T[] A)
-For ordered types @code{T}, returns @code{A} sorted in ascending order.
+@item T[] sort(T[] A)
+For ordered types @code{T}, returns a copy of @code{A} sorted in
+ascending order.
 
-@item sort(T[][] A)
-For ordered types @code{T}, returns @code{A} with the rows sorted by the
-first column, breaking ties with successively higher columns. For example:
+@item T[][] sort(T[][] A)
+For ordered types @code{T}, returns a copy of @code{A} with the rows
+sorted by the first column, breaking ties with successively higher
+columns. For example:
 @verbatim
 string[][] a={{"bob","9"},{"alice","5"},{"pete","7"},
               {"alice","4"}};
@@ -1682,19 +1689,19 @@ pete    7
 @end verbatim
 
 @cindex @code{transpose}
-@item transpose(T[][] A)
+@item T[][] transpose(T[][] A)
 returns the transpose of @code{A}.
 
 @cindex @code{sum}
-@item sum(T[] A)
+@item T sum(T[] A)
 For arithmetic types @code{T}, returns the sum of @code{A}.
 
 @cindex @code{min}
-@item min(T[] A)
+@item T min(T[] A)
 For ordered types @code{T}, returns the minimum element of @code{A}.
 
 @cindex @code{max}
-@item max(T[] A)
+@item T max(T[] A)
 For ordered types @code{T}, returns the maximum element of @code{A}.
 
 @cindex @code{eval}
@@ -1703,19 +1710,19 @@ returns the array obtained by applying the function @code{f} to each
 element of the array @code{A}.
 
 @cindex @code{min}
-@item min(T[] A, T[] B)
+@item T[] min(T[] A, T[] B)
 For ordered types @code{T}, and arrays @code{A} and @code{B} of the same
 length, returns an array composed of the minimum of the corresponding
 elements of @code{A} and @code{B}.
 
 @cindex @code{max}
-@item max(T[] A, T[] B)
+@item T[] max(T[] A, T[] B)
 For ordered types @code{T}, and arrays @code{A} and @code{B} of the same
 length, returns an array composed of the maximum of the corresponding elements
 of @code{A} and @code{B}.
 
 @cindex @code{fft}
-@item fft(T[] A, int sign)
+@item pair[] fft(pair[] A, int sign)
 returns the Fast Fourier Transform of @code{A} (if the optional FFTW package is
 installed), using the given @code{sign}. Here is a simple example:
 @verbatim
@@ -1733,8 +1740,8 @@ write(f/n);
 @end table
 
 @code{Asymptote} includes a full set of vectorized array instructions for
-arithmetic (including self) and logical operations. These element-by-element instructions are implemented in C++ code for speed.
-Given
+arithmetic (including self) and logical operations. These
+element-by-element instructions are implemented in C++ code for speed. Given
 @verbatim
 real[] a={1,2};
 real[] b={3,2};

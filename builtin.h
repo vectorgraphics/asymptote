@@ -67,6 +67,11 @@ struct Or {
 };
 
 template <typename T>
+struct Xor {
+  bool operator() (T x, T y, vm::stack *, size_t) {return x ^ y;}
+};
+
+template <typename T>
 struct plus {
   T operator() (T x, T y, vm::stack *, size_t) {return x+y;}
 };
