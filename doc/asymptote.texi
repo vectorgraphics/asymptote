@@ -1106,7 +1106,8 @@ For example, the @code{tex} function is used in the default base file
 @code{plain.asy} to implement an @code{include} command that
 includes an encapsulated @code{PostScript} (EPS) file into a picture:
 @verbatim
-void include(picture pic=currentpicture, string name, string options="");
+void include(picture pic=currentpicture, string name,
+  string options="");
 @end verbatim
 
 Here, @code{name} is the name of the file to include and
@@ -1756,11 +1757,13 @@ file fin=input("test.txt");
 real[] A=fin;
 @end verbatim
 
+@cindex @code{eof}
+@cindex @code{eol}
 @cindex @code{line}
 @cindex line mode
-reads real values into A until the end of file is reached (or an I/O error
-occurs). If line mode is set with @code{line(file)}, then reading will
-stop once end-of-line is reached instead:
+reads real values into @code{A} until the end of file is reached (or an
+I/O error occurs). If line mode is set with @code{line(file)}, then
+reading will stop once the end of the line is reached instead:
 @verbatim
 file fin=input("test.txt");
 real[] A=line(fin);
@@ -2630,7 +2633,9 @@ shipout();
 \end{center}
 
 \end{document}
+
 @end verbatim
+
 @image{latexusage,,20cm}
 
 @node Options
