@@ -23,7 +23,7 @@ void drawspring(real x, string label) {
   pair a=b-20;
   pair d=c+20;
  
-  draw(a--b,BeginBar(2*barsize));
+  draw(a--b,BeginBar(2*barsize()));
   draw(c--d);
   draw(coil(lambda,r,t1,t2,100));
   dot(d);

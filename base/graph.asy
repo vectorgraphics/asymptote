@@ -1006,16 +1006,19 @@ private int next(int i, bool[] cond)
   return i;
 }
 
-guide graph(picture pic=currentpicture, guide g=nullpath,
-	    pair z[], bool cond[]={}, interpolate interpolatetype=LinearInterp)
+int conditional(pair[] z, bool[] cond)
 {
-  int n;
   if(cond.length > 0) {
     if(cond.length != z.length)
-      abort("condition array has different length than data array");
-    n=sum(cond)-1;
-  } else n=z.length-1;
-  
+      abort("condition array has different length than data");
+    return sum(cond)-1;
+  } else return z.length-1;
+}
+
+guide graph(picture pic=currentpicture, guide g=nullpath,
+	    pair[] z, bool[] cond={}, interpolate interpolatetype=LinearInterp)
+{
+  int n=conditional(z,cond);
   int i=-1;
   return interpolatetype(new pair (real) {
     i=next(i,cond);
@@ -1023,20 +1026,14 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
   },g,0,0,n,interpolate);
 }
 
+private string differentlengths="attempt to graph arrays of different lengths";
+
 guide graph(picture pic=currentpicture, guide g=nullpath,
-	    real x[], real y[], bool cond[]={},
+	    real[] x, real[] y, bool[] cond={},
 	    interpolate interpolatetype=LinearInterp)
 {
-  if(x.length != y.length)
-    abort("attempt to graph arrays of different lengths");
-  
-  int n;
-  if(cond.length > 0) {
-    if(cond.length != x.length)
-      abort("condition array has different length than data arrays");
-    n=sum(cond)-1;
-  } else n=x.length-1;
-  
+  if(x.length != y.length) abort(differentlengths);
+  int n=conditional(x,cond);
   int i=-1;
   return interpolatetype(new pair (real) {
     i=next(i,cond);
@@ -1061,6 +1058,44 @@ guide polargraph(guide g=nullpath, real f(real), real a, real b, int n=ngraph,
 {
   return interpolatetype(new pair (real theta) {return f(theta)*expi(theta);},
 			 g,a,b,n,interpolate);
+}
+
+void errorbar(picture pic, pair z, pair dp, pair dm, pen p=currentpen)
+{
+  real dmx=-abs(dm.x);
+  real dmy=-abs(dm.y);
+  if(dmx != dp.x) draw(pic,z+(dmx,0)--z+(dp.x,0),p,Bars);
+  if(dmy != dp.y) draw(pic,z+(0,dmy)--z+(0,dp.y),p,Bars);
+}
+  
+void errorbars(picture pic=currentpicture, pair[] z, pair[] dp, pair[] dm={},
+	       bool[] cond={}, pen p=currentpen)
+{
+  if(dm.length == 0) dm=dp;
+  if(z.length != dm.length || z.length != dp.length) abort(differentlengths);
+  int n=conditional(z,cond);
+  int i=-1;
+  for(int I=0; I <= n; ++I) {
+    i=next(i,cond);
+    errorbar(pic,z[i],dp[i],dm[i],p);
+  }
+}
+
+void errorbars(picture pic=currentpicture, real[] x, real[] y,
+	       real[] dpx, real[] dpy, real[] dmx={}, real[] dmy={},
+	       bool[] cond={}, pen p=currentpen)
+{
+  if(dmx.length == 0) dmx=dpx;
+  if(dmy.length == 0) dmy=dpy;
+  if(x.length != y.length || 
+     x.length != dpx.length || x.length != dmx.length ||
+     x.length != dpy.length || x.length != dmy.length) abort(differentlengths);
+  int n=conditional(x,cond);
+  int i=-1;
+  for(int I=0; I <= n; ++I) {
+    i=next(i,cond);
+    errorbar(pic,(x[i],y[i]),(dpx[i],dpy[i]),(dmx[i],dmy[i]),p);
+  }
 }
 
 // True arc

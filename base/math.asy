@@ -1,6 +1,6 @@
 // Asymptote mathematics routines
 
-public real perpsize=arrowsize;
+public real perpfactor=arrowfactor;
 
 real radians(real degrees)
 {
@@ -42,15 +42,17 @@ picture grid(int Nx, int Ny, pen p=currentpen)
 
 // Return an interior arc BAC of triangle ABC, given a radius r > 0.
 // If r < 0, return the corresponding exterior arc of radius |r|.
-guide arc(explicit pair B, explicit pair A, explicit pair C, real r=arrowsize)
+guide arc(explicit pair B, explicit pair A, explicit pair C,
+	  real r=arrowfactor)
 {
   return arc(A,r,Angle(B-A),Angle(C-A));
 }
 
 // Draw a perpendicular symbol at z going from w to I*w.
 void perpendicular(picture pic=currentpicture, pair z, pair w,
-		   real size=perpsize, pen p=currentpen) 
+		   real size=0, pen p=currentpen) 
 {
+  if(size == 0) size=perpfactor*linewidth(p);
   picture apic=new picture;
   pair d1=size*w;
   pair d2=I*d1;
@@ -60,8 +62,9 @@ void perpendicular(picture pic=currentpicture, pair z, pair w,
   
 // Draw a perpendicular symbol at z going from dir(g,0) to dir(g,0)+90
 void perpendicular(picture pic=currentpicture, pair z, path g,
-		   real size=perpsize, pen p=currentpen) 
+		   real size=0, pen p=currentpen) 
 {
+  if(size == 0) size=perpfactor*linewidth(p);
   perpendicular(pic,z,dir(g,0),size,p);
 }
 

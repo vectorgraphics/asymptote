@@ -934,12 +934,14 @@ endpoint of @code{p}.
 
 @cindex @code{dir}
 @item pair dir(path, int n)
-This returns the direction of the tangent to the path at node @code{n}.
+This returns the direction (as a pair) of the tangent to the path at
+node @code{n}. If the path contains only one point, (0,0) is returned.
 
 @item pair dir(path, real x)
 This returns the direction of the tangent to the path at the point
 between node @code{floor(x)} and @code{floor(x)+1} corresponding to the
 cubic spline parameter t=@code{x-floor(x)} (@pxref{Bezier}).
+If the path contains only one point, (0,0) is returned.
 
 @cindex @code{precontrol}
 @item pair precontrol(path, int n)
@@ -2051,8 +2053,8 @@ be of type @code{real[]}. But beware that this alternative syntax does
 not construct certain internal type-dependent functions that take
 @code{real[]} as an argument: @code{alias}, @code{copy},
 @code{sequence}, @code{eval}, and @code{transpose} for type
-@code{real[]} won't be defined until some variable is explicitly
-declared with @code{real[]}. 
+@code{real[]} won't be defined until the type @code{real[]} is used
+explicitly somewhere.
 
 In the following list of built-in array functions, @code{T} represents a
 generic type.
@@ -2438,7 +2440,7 @@ of the parametrized function
 @item
 @verbatim
 guide graph(picture pic=currentpicture, guide g=nullpath,
-            pair z[], bool cond[]={},
+            pair[] z, bool[] cond={},
             interpolate interpolatetype=LinearInterp)
 @end verbatim
 
@@ -2450,7 +2452,7 @@ of those elements of the array
 @item
 @verbatim
 guide graph(picture pic=currentpicture, guide g=nullpath,
-            real x[], real y[], bool cond[]={},
+            real[] x, real[] y, bool[] cond={},
             interpolate interpolatetype=LinearInterp)
 @end verbatim
 
@@ -2555,7 +2557,7 @@ be chosen:
 @item begin
 requests a big tick at the beginning of the axis;
 @item N
-when automatic scaling is enabled (the default; see @pxref{automatic scaling}),
+when automatic scaling is enabled (the default; @pxref{automatic scaling}),
 divide the arclength evenly into this many intervals, separated by big ticks;
 @item n
 divide each arclength interval into this many subintervals, separated by
@@ -2701,8 +2703,23 @@ Here are some simple examples of two-dimensional graphs:
 
 
 @cindex @code{dot}
-@item This example draws a graph of an array of coordinate pairs,
+@cindex @code{errorbars}
+@item The next example draws a graph of an array of coordinate pairs,
 using the routine @code{dot} to place a dot at each node of the resulting path.
+It also illustrates the use of the error bar routines, where the pair array
+@code{dp} contains the positive extent of the error and the absolute
+values of the elements of the optional array @code{dm} specify
+the negative extent of the error:
+
+@verbatim
+void errorbars(picture pic=currentpicture, pair[] z, pair[] dp,
+               pair[] dm={}, bool[] cond={}, pen p=currentpen);
+
+void errorbars(picture pic=currentpicture, real[] x, real[] y,
+	       real[] dpx, real[] dpy, real[] dmx={}, real[] dmy={},
+	       bool[] cond={}, pen p=currentpen);
+@end verbatim
+
 @verbatiminclude datagraph.asy
 @image{datagraph}
 
@@ -3080,20 +3097,21 @@ This writes first 0 and then 1.
 @node Drawing commands
 @chapter Drawing commands
 @cindex drawing commands
-@cindex @code{layer}
 
 All of @code{Asymptote}'s graphical capabilities are based on four primitive
 commands. The three @code{PostScript} drawing commands @code{draw},
 @code{fill}, and @code{clip} add objects to a picture in the order in
 which they are executed, with the most recently drawn object appearing on top.
-The @code{LaTeX} labeling command @code{label} adds text labels, which will
-appear on top of the @code{PostScript} objects (since this is normally what one
-wants), but again in the relative order in which they were executed.
-After drawing objects on a picture, the picture needs to be output with
-the @code{shipout} function (@pxref{shipout}).
+The labeling command @code{label} can be used to add text
+labels and external @acronym{EPS} images, which will appear on top of the
+@code{PostScript} objects (since this is normally what one wants), but
+again in the relative order in which they were executed. After drawing
+objects on a picture, the picture needs to be output with the
+@code{shipout} function (@pxref{shipout}).
 
+@cindex @code{layer}
 If you wish to draw @code{PostScript} objects on top of labels (or verbatim
-@code{tex} commands; see @pxref{tex}), the @code{layer} command may be
+@code{tex} commands; @pxref{tex}), the @code{layer} command may be
 used to start a
 new @code{PostScript/LaTeX} layer:
 @verbatim
@@ -3102,8 +3120,9 @@ void layer(picture pic=currentpicture);
 
 The @code{layer} function gives one full control over the order in which
 objects are drawn. Layers are drawn sequentially, with the most recent
-layer appearing on top. Within each layer, labels and verbatim @code{tex}
-commands are always drawn after the @code{PostScript} objects in that layer.
+layer appearing on top. Within each layer, labels, images, and
+verbatim @code{tex} commands are always drawn after the
+@code{PostScript} objects in that layer.
 
 While some of these drawing commands take many options, they all have sensible
 default values (for example, the picture argument defaults to
@@ -3158,7 +3177,8 @@ Bars are useful for indicating dimensions. The possible values of
 equivalently @code{Bar}), and @code{Bars} (which draws a bar at both
 ends of the path). Each of these bar specifiers (except for
 @code{None}) will accept an optional real argument that denotes the
-length of the bar in @code{PostScript} coordinates.
+length of the bar in @code{PostScript} coordinates. The default
+bar length is @code{barsize(p)}.
 
 @cindex @code{None}
 @cindex @code{Blank}
@@ -3178,10 +3198,12 @@ The possible values of @code{arrow} are @code{None}, @code{Blank}
 arrow at both ends of the path).
 Each of these arrow specifiers (except for @code{None} and @code{Blank})
 may be given the optional arguments real
-@code{size} (in @code{PostScript} coordinates), real @code{angle} (in degrees),
+@code{size} (arrowhead size in @code{PostScript} coordinates),
+real @code{angle} (arrowhead angle in degrees),
 @code{Fill} or @code{NoFill}, and a relative real @code{position}
 along the path (an @code{arctime}) where the tip of the arrow should
-be placed. There are also arrow versions with slightly modified
+be placed. The default arrowhead size is @code{arrowheadsize(p)}.
+There are also arrow versions with slightly modified
 default values of @code{size} and @code{angle} suitable for curved
 arrows: @code{BeginArcArrow}, @code{EndArcArrow} (or equivalently
 @code{ArcArrow}), and @code{ArcArrows}.
@@ -3220,7 +3242,7 @@ Examples illustrating the use of arrows, bars, and margins are
 
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.
-The @code{dot} command defined in @code{plain.asy} draws a dot with the
+The @code{dot} command defined in @code{plain.asy} draws a dot with a
 diameter given by either the default linewidth magnified by @code{dotfactor}
 (6 by default) or an explicit pen linewidth. If no pen argument is given,
 @code{currentpen}, with its linewidth magnified by @code{dotfactor}, is used:
@@ -3328,16 +3350,16 @@ A label with an arrow can be produced with one of the following routines:
 @verbatim
 void arrow(picture pic=currentpicture, string s="", real angle=0,
            pair b, pair align, real length=arrowlength, pair shift=0,
-           pen p=currentpen, real size=arrowsize, real Angle=arrowangle,
+           pen p=currentpen, real size=arrowsize(p), real Angle=arrowangle,
            arrowhead arrowhead=Fill,margin margin=EndMargin)
 
 void arrow(picture pic=currentpicture, string s, real angle=0,
-           pair shift=0, path g, pen p=currentpen, real size=arrowsize,
+           pair shift=0, path g, pen p=currentpen, real size=arrowsize(p),
            real Angle=arrowangle, arrowhead arrowhead=Fill,
            margin margin=NoMargin)
 @end verbatim
 
-@cindex including @code{EPS} files
+@cindex including images
 @cindex @code{include}
 @cindex @acronym{EPS}
 The function @code{string include(string name, string options="")}
@@ -3468,7 +3490,7 @@ require defining @code{posterSize} in the dvips configuration file.
 
 @cindex offset
 A @code{PostScript} offset may be specified as a pair (in bp units) with the
--O option:
+@code{-O} option:
 @verbatim
 asy -O 0,0 file
 @end verbatim
@@ -3725,6 +3747,6 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  beveljoin fillrule zerowinding insideness lineskip cmr pcrr Hx
 @c  LocalWords:  baselineskip AvantGarde Bookman Helvetica NewCenturySchoolBook
 @c  LocalWords:  Palatino TimesRoman ZapfChancery ZapfDingbats german basealign
-@c  LocalWords:  nondeconstructed backends usr venn labelsquare nobasealign
-@c  LocalWords:  NoMargin BeginMargin EndMargin BeginPenMargin EndPenMargin
-@c  LocalWords:  PenMargin PenMargins TrueMargin labelmargin
+@c  LocalWords:  nondeconstructed backends usr venn labelsquare nobasealign dp
+@c  LocalWords:  NoMargin BeginMargin EndMargin BeginPenMargin EndPenMargin dm
+@c  LocalWords:  PenMargin PenMargins TrueMargin labelmargin errorbars

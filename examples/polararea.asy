@@ -11,8 +11,8 @@ yaxis("$y$");
 real theta1=pi/8;
 real theta2=pi/3;
 guide k=graph(f,theta1,theta2,Spline);
-real rmin=ypart(min(k));
-real rmax=ypart(max(k));
+real rmin=min(k).y;
+real rmax=max(k).y;
 draw((0,0)--rmax*expi(theta1),dotted);
 draw((0,0)--rmax*expi(theta2),dotted);
 

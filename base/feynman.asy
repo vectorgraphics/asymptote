@@ -196,7 +196,7 @@ path photon(path p, real amp = photonamplitude, real width=-1)
 
 // generate arrows in the middle of paths. MidArrow() can be used as argument
 // to draw commands, in place of EndArrow etc.
-arrowbar MidArrow(real size=arrowsize, real angle=arrowangle,
+arrowbar MidArrow(real size=0, real angle=arrowangle,
                   filltype filltype=Fill)
 {
   return new void(picture pic, path g, pen p, margin margin,
@@ -615,13 +615,14 @@ void drawReverseMomArrow(picture pic = currentpicture,
 
 // The function fmdefaults() tries to guess reasonable values for the
 // default parameters above by looking at the default parameters of plain.asy
-// (essentially, currentpen,  arrowsize and dotfactor). After customising the
+// (essentially, currentpen, arrowfactor and dotfactor). After customising the
 // default parameters of plain.asy, you may call fmdefaults to adjust the
 // parameters of feynman.asy.
 void fmdefaults() 
 {
     gluonratio = 2;
     photonratio = 4;
+    real arrowsize=arrowsize();
     gluonamplitude = arrowsize/3;
     photonamplitude = arrowsize/4;
     labeloffset = gluonamplitude;
