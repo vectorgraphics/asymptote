@@ -6,9 +6,13 @@
 #endif
 
 #ifdef HAVE_FENV_H
-#include <fenv.h>
-
 #ifdef _GNU_SOURCE
+#define HAVE_FEENABLEEXCEPT
+#endif
+#endif
+
+#ifdef HAVE_FEENABLEEXCEPT
+#include <fenv.h>
 
 inline int fpu_exceptions() {
   int excepts=0;
@@ -30,12 +34,9 @@ inline void fpu_trap(bool trap)
   if(trap) feenableexcept(fpu_exceptions());
   else fedisableexcept(fpu_exceptions());
 }
-#endif
 
 #else
 
 inline void fpu_trap(bool) {}
-
-#endif
 
 #endif
