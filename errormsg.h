@@ -138,7 +138,7 @@ public:
   // camp is run, the function calling camp should call this to
   // report any errors.  If checkCamp() finds errors, it will print them
   // out, then stop execution.
-  void checkCamp(position pos) {
+  void checkCamp(const position& pos) {
     if (camp::errors())
       printCamp(pos);
   }

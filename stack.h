@@ -68,7 +68,10 @@ public:
 
   // Returns the position of the stack when the running lambda has line 
   // number information included.
-  position getPos();
+  position getPos() {
+    return curPos;
+  }
+    
 };
 
 inline item pop(stack* s)

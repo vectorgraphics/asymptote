@@ -81,13 +81,13 @@ void stack::run(func *f)
       curPos = ip->pos;
       
 #ifdef DEBUG_STACK
-      cerr << getPos() << "\n";
+      cerr << curPos << "\n";
       printInst(cerr, ip, body->code.begin());
       cerr << "\n";
 #endif
 
       if(errorstream::interrupt) throw interrupted();
-      if(debug) em->trace(getPos());
+      if(debug) em->trace(curPos);
       
       switch (ip->op)
         {
@@ -133,7 +133,7 @@ void stack::run(func *f)
             bltin func = ip->bfunc;
             func(this);
             
-            em->checkCamp(getPos());
+            em->checkCamp(curPos);
             break;
           }
 
@@ -155,8 +155,7 @@ void stack::run(func *f)
             
             f->call(this);
 
-            em->checkCamp(getPos());
-            
+            em->checkCamp(curPos);
             break;
           }
 
@@ -252,11 +251,6 @@ void stack::draw(ostream& out, vars_t vars, size_t nvars)
     out << "\n";
 }
 #endif // DEBUG_STACK
-
-position stack::getPos()
-{
-  return curPos;
-}
 
 void error(stack *s, const char* message)
 {
