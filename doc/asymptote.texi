@@ -47,7 +47,7 @@ Foundation.
 
 @menu
 * Description::                 What is Asymptote?
-* Installation::                Getting started
+* Installation::                Downloading and installing
 * Example::                     A simple example
 * Programming::                 Asymptote graphics language
 * Drawing commands::            Four primitive drawing commands
@@ -76,12 +76,14 @@ Programming
 * Functions::                   Traditional and high-order functions
 * Arrays::                      Dynamic vector class
 * Casts::                       Implicit and explicit casts
+* Import::                      Importing external Asymptote packages
 * Static & dynamic::            When to allocate your variable?
 
 Functions
 
 * Default arguments::           Default values can appear anyway
 * Mathematical functions::      Standard mathematical library functions
+
 
 @end detailmenu
 @end menu
@@ -189,7 +191,7 @@ These commands are needed to install the latest development version of
 @verbatim
 cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote login
  
-cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote co asymptote
+cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote co asymptote
 cd asymptote
 ./autogen.sh
 ./configure
@@ -222,6 +224,7 @@ directory base/ (in the top level directory of the @code{Asymptote}
 source code). In looking for @code{Asymptote} system files, @code{asy} will
 search these following paths (in the listed order):
 
+@anchor{search paths}
 @enumerate
 @item
 current directory
@@ -344,6 +347,17 @@ for(int i=0; i < 10; ++i) {
 }
 @end verbatim
 
+@cindex @code{gifmerge}
+@cindex @code{merge}
+@cindex @code{convert}
+@cindex animation
+@cindex ImageMagick
+Another example of a loop, together with user-defined functions, is
+provided in the file @code{wheelanimation.asy} in the @code{examples}
+directory of the @code{Asymptote} source. This example uses the
+@code{gifmerge} command to @code{merge(args,format)} multiple images
+into a gif animation, using the ImageMagick @code{convert} program. 
+
 @cindex @code{while}
 @cindex @code{do}
 @cindex @code{break}
@@ -353,20 +367,21 @@ for(int i=0; i < 10; ++i) {
 many features beyond those found in C and C++.
 
 @menu
-* Data types::                  
-* Transforms::                  
-* Guides and paths::            
-* Pens::                        
-* Frames and pictures::         
-* Files::                       
-* Structures::                  
-* Arithmetic & logical::        
-* Self & prefix operators::     
-* Implicit scaling::            
-* Functions::                   
-* Arrays::                      
-* Casts::                       
-* Static & dynamic::  
+* Data types::                  void, bool, int, real, pair, string
+* Transforms::                  Affine transforms
+* Guides and paths::            Specifying lines and curves
+* Pens::                        Colors, line types, line widths, font sizes
+* Frames and pictures::         Deferred drawing
+* Files::                       Asymptote I/O
+* Structures::                  Organize your data
+* Arithmetic & logical::        Standard binary operators
+* Self & prefix operators::     Self operators, increment, and decrement
+* Implicit scaling::            Avoiding those ugly *s
+* Functions::                   Traditional and high-order functions
+* Arrays::                      Dynamic vector class
+* Casts::                       Implicit and explicit casts
+* Import::                      Importing external Asymptote packages
+* Static & dynamic::            When to allocate your variable?
 @end menu
 
 @node Data types
@@ -473,7 +488,6 @@ returns the @code{.y} component of its argument.
 @cindex TeX
 character strings. These are implemented as STL strings, except that the
 escape character is @code{\\} not @code{\}, for compatibility with @TeX{}.
-The implicit initializer for type string is the null string, @code{""}.
 For example 
 
 @itemize 
@@ -488,6 +502,7 @@ For example
 @item backslash is a string containing a single backslash
 @end itemize
 
+The implicit initializer for type string is the null string, @code{""}.
 In the following string functions, position 0 denotes the start of the string.
 
 @table @code
@@ -531,6 +546,7 @@ returns a string constructed by translating in string @code{s} all
 occurrences of the string @code{from} in an array @code{table} of string pairs
 @{@code{from},@code{to}@} to the corresponding string @code{to};
 
+@anchor{format}
 @item string format(string s, int n) 
 @cindex @code{format}
 returns a string containing @code{n} formatted according to the C-style
@@ -877,14 +893,16 @@ The default linetype is @code{solid}.
 @item The pen line width is specified in postscript units with the function
 @code{pen linewidth(real)}. The default line width is 0.5bp
 (this global default value may be changed with the
-@code{defaultlinewidth(real)} command). 
+@code{defaultlinewidth(real)} command or reset to the startup default
+with @code{reset}). 
 
 @cindex @code{fontsize}
 @cindex @code{defaultfontsize}
 @item The font size is specified in TeX points (1 pt = 1/72.27 in) with
 the function @code{pen fontsize(real)}. The default pen font size is
 12pt (this global default value may be changed with the
-@code{defaultfontsize(real)} command).
+@code{defaultfontsize(real)} command or reset to the startup default
+with @code{reset}).
 
 @end itemize
 
@@ -901,7 +919,7 @@ obtain a yellow dashed pen by saying @code{dashed+red+green} or
 
 @item frame
 @cindex @code{frame}
-Frames are canvases for drawing in postscript coodinates. While working
+Frames are canvases for drawing in postscript coordinates. While working
 with frames directly is occasionally necessary when doing deferred drawing,
 pictures are usually more convenient to work with. The default frame is
 @code{currentframe}.
@@ -1187,7 +1205,7 @@ int j=i=i+1;
 @cindex postfix operators
 However, postfix operators like @code{i++} and @code{i--} are not defined
 (because of the inherent ambiguities that would arise with the @code{--}
-operator used to join paths). In the rare instances where @code{i++} 
+path-joining operator). In the rare instances where @code{i++} 
 and @code{i--} are really needed, one can substitute the expressions
 @code{(++i-1)} and @code{(--i+1)}, respectively.
 
@@ -1312,8 +1330,9 @@ nested recursion will generate a stack overflow (typically reported as a
 segmentation fault).
 
 @menu
-* Default arguments::           
-* Mathematical functions::      
+* Default arguments::           Default values can appear anyway
+* Mathematical functions::      Standard mathematical library functions
+
 @end menu
 
 @node Default arguments
@@ -1408,7 +1427,7 @@ For convenience, integer indices in [-length,-1] are mapped to
 [0,length-1]. Reading an array element with an index outside of these
 bounds generates an error. Assigning an array element with an 
 index < -length generates an error; however, if the index is non-negative,
-the array is resized, as required, to accomodate the new element. One can also
+the array is resized, as required, to accommodate the new element. One can also
 index an array A with an integer array B, to obtain the array formed by
 indexing array A with successive elements of array B.
 
@@ -1657,6 +1676,261 @@ int a=(int) 2.5;
 string s=(string) 2.5;
 @end verbatim
 
+@node Import
+@section Import
+@cindex @code{import}
+One can import other @code{Asymptote} files with the @code{import} command.
+@verbatim
+import graph;
+@end verbatim
+@cindex modules
+Such @code{Asymptote} files are often called modules.
+
+@code{Asymptote} searches the locations listed in @ref{search paths} for the
+matching file. If the file name contains nonalphanumeric characters,
+enclose it with quotation marks:
+
+@verbatim
+import "/usr/local/share/asymptote/graph.asy";
+@end verbatim
+
+Imports within an imported module are not seen outside of that module:
+even though @code{plain} imports @code{simplex}, the @code{simplex}
+module will not be accessible to the file-level module, unless it is
+explicitly imported. An error will be issued if one attempts to import
+a module multiple times.
+
+@code{Asymptote} currently ships with the following base modules:
+
+@node plain
+@subsection plain
+@cindex @code{plain}
+
+This is the default @code{Asymptote} base file, which defines key parts of the
+drawing language (such as the @code{picture} structure).
+
+By default, @code{Asymptote} automatically imports @code{plain};
+use @code{-noplain} command-line option to disable this feature.
+In any case, no error message will be issued if one tries to explicitly
+@code{import plain}.
+
+@node simplex
+@subsection simplex
+@cindex @code{simplex}
+
+This package solves two-variable linear programming problem using the
+simplex method. It is used by @code{plain}, for automatic sizing of pictures.
+
+@node graph
+@subsection graph
+@cindex @code{graph}
+@cindex @code{2D graphs}
+This package implements two-dimensional linear and logarithmic graphs,
+including automatic scaling and tick selection (with the ability to
+manually override).
+
+Here are some simple examples of two-dimensional graphs.
+
+@enumerate
+
+@cindex textbook-style graph
+@item This example draws a textbook-style graph of y=exp(x), with the yaxis
+starting at 0:
+@verbatim
+import graph;
+size(150,0);
+
+real f(real x) {return exp(x);}
+
+xaxis("$x$");
+yaxis(0,"$y$");
+
+draw(graph(f,-4,2,Spline));
+
+labely(1,E);
+label("$e^x$",(1,exp(1)),SE);
+
+shipout();
+@end verbatim
+
+@item The next example draws a scientific-style graph of y=cos(2pi*x).
+@cindex scientific-style graph
+@cindex @code{LeftTicks}
+@cindex @code{RightTicks}
+@verbatim
+import graph;
+
+size(400,200,IgnoreAspect);
+
+real f(real t) {return cos(2pi*t);}
+
+draw(graph(f,0.01,1));
+
+xaxis("$x$",BottomTop,LeftTicks);
+yaxis("$y$",LeftRight,RightTicks);
+
+shipout();
+@end verbatim
+
+@cindex @code{ticks}
+@cindex @code{NoTicks}
+Here @code{LeftTicks} (@code{RightTicks}) means draw ticks on the left (right),
+relative to the direction in which the path is drawn. The default is
+@code{NoTicks}. These tick routines accept a number of optional arguments:
+@verbatim
+ticks LeftTicks(bool begin=true, int N=0, int n=0, real Step=0,
+  real step=0, real Size=Ticksize, real size=ticksize, string F,
+  bool end=true)
+@end verbatim
+
+If any of these parameters are omitted (or 0), reasonable defaults will
+be chosen:
+@table @code
+@item begin
+requests a big tick at the beginning of the axis;
+@item N
+divide the arclength evenly into this many intervals, separated by
+big ticks;
+@item n
+divide each big tick arclength interval into this many subintervals,
+separated by small ticks;
+@item Step
+represents the spacing (in user arclength coordinates) between big ticks
+(if @code{N==0});
+@item step
+represents the spacing  (in user arclength coordinates) between small
+ticks (if @code{n==0});
+@item F
+is a string used for formatting the tick values (@pxref{format});
+@item end
+requests a big tick at the end of the axis.
+@end table
+
+
+@item This example draws a graph of an array of coordinate pairs.
+@verbatim
+import graph;
+
+size(400,200,IgnoreAspect);
+
+pair f[]={(1,1),(50,20),(100,100)};
+
+draw(graph(f));
+
+xaxis("$x$",BottomTop,LeftTicks);
+yaxis("$y$",LeftRight,RightTicks);
+
+shipout();
+@end verbatim
+
+@item This example draws a graph of a parametrized curve. 
+@cindex parametrized curve
+@cindex @code{limits}
+@cindex @code{xlimits}
+@cindex @code{ylimits}
+The line @code{limits(pair, pair)} can be uncommented to crop the
+data to the box with opposite corners specified by the two pairs 
+(one can also separately restrict the @code{xlimits} and @code{ylimits}).
+@verbatim
+import graph;
+
+size(0,200);
+
+real f(real t) {return cos(2pi*t);}
+real g(real t) {return sin(2pi*t);}
+
+draw(graph(f,g,0,1,LinearInterp));
+//limits((0,-1),(1,0));
+
+xaxis("$x$",BottomTop,LeftTicks);
+yaxis("$E(k)$",LeftRight,RightTicks);
+
+shipout();
+
+@end verbatim
+
+@cindex @code{scale}
+@cindex @code{Linear}
+@cindex @code{Log}
+@cindex @code{automin}
+@cindex @code{automax}
+Axis scaling can be requested and/or automatic selection of the minimum and
+maximum axis values can be inhibited with the @code{scale} routine:
+@verbatim
+void scale(picture pic=currentpicture,
+	   scaleT x, bool Xautomin=true, bool Xautomax=true,
+	   scaleT y, bool Yautomin=true, bool Yautomax=true) 
+@end verbatim
+In this case, path coordinates (and any call to @code{limits}, etc.)
+refer to the scaled data. Two frequently used scaling routines
+@code{Linear} and @code{Log} are predefined in @code{graph}.
+@code{Linear} can take as an optional argument a multiplicative scaling
+factor (e.g. for a depth axis, @code{Linear(-1)} requests axis reversal).
+
+@cindex logarithmic graph
+@cindex log-log graph
+For example, to draw a log graph of a function, use @code{scale(Log,Log)}:
+@verbatim
+import graph;
+
+size(200,200,IgnoreAspect);
+
+real f(real t) {return 1/t;}
+
+scale(Log,Log);
+
+draw(graph(f,0.1,10));
+
+//limits((0,-1),(1,0));
+
+xaxis("$x$",BottomTop,LeftTicks);
+yaxis("$y$",LeftRight,RightTicks);
+
+shipout();
+@end verbatim
+
+@item The @code{xaxis} and @code{yaxis} functions in the above graphs
+are special cases of a more general @code{axis} routine, which can be
+used to place ticks evenly spaced along the arclength of an arbitrary path:
+@cindex @code{axis}
+@verbatim
+import graph;
+size(0,100);
+
+guide g=ellipse((0,0),100,200);
+axis(g,0,0.5*arclength(g),RightTicks(8,"%.0f"),Angle);
+shipout();
+@end verbatim
+
+@item 
+A three-dimensional graphics package will be provided in a future release.
+@cindex @code{3D graphs}
+
+@end enumerate
+
+@node math
+@subsection math
+@cindex @code{math}
+This package extends @code{Asymptote}'s mathematical capabilities with radian/degree
+conversion routines, matrices, and point-in-polygon algorithms.
+
+@node stats
+@subsection stats
+@cindex @code{stats}
+This package implements a Gaussian random number generator
+and a collection of statistics routines, including @code{histogram}.
+
+@node tree
+@subsection tree
+@cindex @code{tree}
+This package implements a dynamic binary search tree.
+
+@node unicode
+@subsection unicode
+@cindex @code{unicode}
+Import this package at the beginning of the file to instruct LaTeX to
+accept @code{unicode} (utf8) standardized international characters.
+
 @node Static & dynamic
 @section Static & dynamic qualifiers
 @cindex @code{static}
@@ -1809,31 +2083,87 @@ defaults to currentpicture):
 @itemize
 @item
 @cindex @code{draw}
-@verbatim
-void draw(picture pic=currentpicture, string s="", real angle=0,
+@verbatim void draw(picture pic=currentpicture, string s="", real angle=0,
   path g, pair align=0, side side=RightSide, pen p=currentpen,
   adjust adjust=NoAdjust, arrowbar arrow=None, arrowbar bar=None,
   string legend="");
 @end verbatim
 
 Draw the path @code{g} on the picture @code{pic}, optionally labeled by
-string @code{s}, using pen @code{p}, and other optional drawing
+string @code{s} aligned with the vector @code{align} on side
+@code{side} of the path, using pen @code{p}, and other optional drawing
 attributes (italic adjustment, arrows, bars, legend). Only one
-parameter, the path, is required.
+parameter, the path, is required. For convenience, the arguments @code{arrow}
+and @code{bar} may be specified in either order. The final argument,
+@code{legend}, is a string to use 
+in constructing an optional legend entry for this path.
+
+@cindex @code{LeftSide}
+@cindex @code{Center}
+@cindex @code{RightSide}
+The possible values of @code{side},  are @code{LeftSide}, @code{Center}, and
+@code{RightSide}. 
+
+@cindex @code{ItalicAdjust}
+@cindex @code{NoAdjust}
+The possible values of @code{adjust} are @code{ItalicAdjust} and @code{NoAdjust}. 
+
+@cindex @code{None}
+@cindex @code{BeginBar}
+@cindex @code{EndBar}
+@cindex @code{Bar}
+@cindex @code{Bars}
+The possible values of @code{bar} are @code{None}, @code{BeginBar},
+@code{EndBar} (or equivalently @code{Bar}), and @code{Bars} 
+(which draws a bar at both ends of the path). These are useful for
+indicating dimensions. Each of these bar specifiers take a single
+optional real argument which denotes the length of the bar in postscript
+coordinates. 
+
+@cindex @code{None}
+@cindex @code{BeginArrow}
+@cindex @code{EndArrow}
+@cindex @code{Arrow}
+@cindex @code{Arrows}
+@cindex @code{BeginArcArrow}
+@cindex @code{EndArcArrow}
+@cindex @code{ArcArrow}
+@cindex @code{ArcArrows}
+The possible values of @code{arrow} are @code{None}, @code{BeginArrow},
+@code{EndArrow} (or equivalently @code{Arrow}), and @code{Arrows} 
+(which draws an arrow at both ends of the path).
+Each of these arrow specifiers may given optional arguments real @code{size}
+(in postscript coordinates), real @code{angle}, @code{Fill} or @code{NoFill},
+and a relative real position along the path from 0 to 1 where the tip of
+the arrow should be placed. There are also arrow versions with slightly
+modified default values of @code{size} and @code{angle} suitable for
+curved arrows: @code{BeginArcArrow}, @code{EndArcArrow} (or equivalently
+@code{ArcArrow}), and @code{ArcArrows}.
+
+Two examples illustrating the use of arrows and bars are
+@code{Pythagoras.asy} and @code{triads.asy} in the @code{examples}
+directory of the @code{Asymptote} source.
 
 @item
 @cindex @code{fill}
-@verbatim
-void fill(picture pic=currentpicture, path g, pen p=currentpen);
+@verbatim void fill(picture pic=currentpicture, path g, pen p=currentpen);
 @end verbatim
 
 Fill the interior region bounded by the path @code{g} on the picture
 @code{pic}, using the pen @code{p}.
 
+@cindex @code{filldraw}
+There is also a convenient @code{filldraw} command, which fills the path
+and then draws in the boundary. One can specify separate pens for each
+operation:
+@verbatim
+void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
+	      pen drawpen=currentpen)
+@end verbatim
+
 @item
 @cindex @code{clip}
-@verbatim
-void clip(picture pic=currentpicture, path g);
+@verbatim void clip(picture pic=currentpicture, path g);
 @end verbatim
 
 Clip picture @code{pic} to the region bounded by the path @code{g}.
@@ -1842,17 +2172,18 @@ For an illustration of picture clipping, see the first example in
 
 @item
 @cindex @code{label}
-@verbatim
-void label(picture pic=currentpicture, string s, real angle=0,
+@verbatim void label(picture pic=currentpicture, string s, real angle=0,
   pair position, pair align=0, pen p=currentpen, adjust adjust=NoAdjust);
 @end verbatim
 
 Draw label @code{s} on @code{pic}, writing at angle @code{angle}, at
-coordinate @code{position}, aligned in the direction @code{align}, with pen
+coordinate @code{position}, aligned with the vector @code{align}, with pen
 @code{p} (and optional italic adjustment @code{adjust}). 
 
 One can prevent labels from overwriting one another with the
-@code{overwrite} function, which takes a single argument:
+@code{overwrite} function, which takes a single argument.
+This setting is global and is in effect for the remainder of the top-level
+@code{Asymptote} module or until the next call to @code{reset()}.
 
 @table @code
 @cindex @code{Suppress}
@@ -1884,13 +2215,13 @@ needs to be output with the @code{shipout} function @xref{shipout}.
 @cindex aymptote.sty
 
 There is a convenient @code{LaTeX} style file @code{asymptote.sty} in
-the top-level @code{Asympote} source directory that allows one to
+the top-level @code{Asymptote} source directory that allows one to
 incorporate @code{Asymptote} figures directly into @code{LaTeX}.
 Entering the code directly in the @code{LaTeX} source file, at the point
 where it is needed, keeps figures organized and avoids the need to
 invent a new file name for each figure.
 
-For example, the sample LateX file below, named @code{latexusage.tex}, can
+For example, the sample LaTeX file below, named @code{latexusage.tex}, can
 be run as follows:
 @verbatim
 latex latexusage
@@ -2036,21 +2367,45 @@ Options:
 -V, -View        view output file
 -m               mask fpu exceptions (on supported architectures)
 -nomask          don't mask fpu exceptions (default)
--S, -safe        disable system call (default)
--U, -unsafe      enable system call
+-safe        disable system call (default)
+-unsafe      enable system call
 -noplain         disable automatic importing of plain
 @end verbatim
 
-For example, a printer offset may be added with either of these two
-equivalent commands:
+If no arguments are given, @code{Asymptote} runs in interactive mode
+@xref{Interactive mode}.
+
+If @code{-} is given as the file argument, @code{Asymptote} reads from
+standard input. 
+
+Additional debugging output is produced with each additional @code{-v} option. 
+
+If the option @code{-unsafe} is given, @code{Asymptote} runs
+in unsafe mode. This enables the @code{int system(string)} call, allowing one
+to execute arbitrary shell commands.
+The default mode, @code{-safe}, disables @code{int system(string)}.
+
+An alternative output format may be produced by using the @code{-f format}
+option. This supports any format supported by the ImageMagick
+@code{convert} program (a relatively recent version of which must be
+installed).
+
+If multiple files are specified, they are treated as separate
+@code{Asymptote} runs by implicitly calling @code{reset()}:
+
+@cindex @code{reset();}
+@table @code
+@item reset()
+Reset @code{defaultfontsize}, @code{defaultlinewidth}, and @code{overwrite}
+to their startup defaults.
+@end table
+
+A printer offset (for printers that do not print to the edge of the page)
+may be specified with either of these two equivalent shell commands:
 @verbatim
 asy -O 25 file
 asy -O "(25,25)" file
 @end verbatim
-
-If @code{-} is given as the file argument, @code{Asymptote} reads from standard input.
-Multiple file arguments are supported. Additional debugging output is produced
-with each additional @code{-v} option.
 
 @node Interactive mode
 @chapter Interactive mode
@@ -2058,7 +2413,7 @@ with each additional @code{-v} option.
 Because @code{Asymptote} as currently designed does not natively support
 an interactive mode, interactive mode is currently simulated by
 rerunning all previous commands in a new module as each line is typed.
-This emulation will eventually become unneccessary, once @code{Asymptote}'s module
+This emulation will eventually become unnecessary, once @code{Asymptote}'s module
 handling is redesigned to support a line-at-a-time mode.
 
 In interactive mode, it is not necessary to type @code{shipout();}
@@ -2075,7 +2430,7 @@ The following special commands are supported only in interactive mode:
 @item quit
 exits interactive mode
 @item redraw
-refeshes the screen
+refreshes the screen
 @item reset
 resets @code{Asymptote} to its initial state on entry, before any
 commands were typed.
@@ -2137,3 +2492,32 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
      
 @bye
 
+@c  LocalWords:  randMax Gaussrand asy cindex indices resized aymptote LaTeX TK
+@c  LocalWords:  LateX LateX LateX LateX LateX LateX LateX latexusage tex bbox
+@c  LocalWords:  documentclass usepackage asydef colour subpath shipout sqrt xN
+@c  LocalWords:  xscale labeldot xaxis yaxis BeginBar gif postprocessing fpu de
+@c  LocalWords:  nomask noplain ImageMagick defaultfontsize defaultlinewidth cd
+@c  LocalWords:  startup natively xasy tkinter VxN yingyang currentpicture toc
+@c  LocalWords:  Acknowledgements MetaPost MetaFont Hammerlindl Healy texinfo
+@c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
+@c  LocalWords:  vskip filll insertcopying ifnottex acknowledgements detailmenu
+@c  LocalWords:  acknowledgements bool behaviour facto zxf cvs login Debian dev
+@c  LocalWords:  libboost FFTW bp readline gv eps gifmerge wheelanimation args
+@c  LocalWords:  boolean initializer expi dir xpart ypart STL substring rfind
+@c  LocalWords:  pos substr strftime typedef pxref unitcircle yscale Bezier iff
+@c  LocalWords:  postcontrol precontrol atleast nullpath arclength arctime rgb
+@c  LocalWords:  dirtime currentpen colorspaces grayscale cmyk defaultpen xsize
+@c  LocalWords:  linetype longdashed dashdotted longdashdotted linewidth ysize
+@c  LocalWords:  fontsize currentframe defaultfilename keepAspect IgnoreAspect
+@c  LocalWords:  NoWait src dest XDR txt getc fout stdin stdout endl xinput eof
+@c  LocalWords:  xoutput Microsystem's eol struct exponentials postfix sayhi th
+@c  LocalWords:  sqr intop addby libm asin acos atan sinh tanh asinh acosh cbrt
+@c  LocalWords:  atanh fabs hypot fmod drem ceil srand dereferenced alice pete
+@c  LocalWords:  eval fft csv runtime nonalphanumeric labely LeftTicks NoTicks
+@c  LocalWords:  RightTicks BottomTop LeftRight Ticksize utf
+@c  LocalWords:  ticksize subintervals xlimits dyn
+@c  LocalWords:  ylimits uncommented LinearInterp automin automax cp
+@c  LocalWords:  scaleT Xautomin Xautomax Yautomin Yautomax unicode RightSide
+@c  LocalWords:  NoAdjust arrowbar LeftSide ItalicAdjust EndBar BeginArrow
+@c  LocalWords:  EndArrow BeginArcArrow EndArcArrow ArcArrow ArcArrows NoFill
+@c  LocalWords:  filldraw fillpen drawpen
