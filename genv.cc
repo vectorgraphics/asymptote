@@ -159,7 +159,7 @@ record *genv::loadModule(symbol *id)
 #if SELF_IMPORT
   e.e.beginScope();
   import i(r, c.thisLocation());
-  e.e.addImport(position::nullPos(), id, &i);
+  e.e.enterImport(id, &i);
 #endif
 
   // Translate the abstract syntax.

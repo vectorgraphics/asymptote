@@ -168,6 +168,11 @@ public:
     ve.enter(name, desc);
   }
 
+  void enterImport(symbol *name, import *i)
+  {
+    me.enter(name, i);
+  }
+    
   void addImport(position pos, symbol *name, import *i)
   {
     if (me.lookInTopScope(name)) {
@@ -177,7 +182,7 @@ public:
     }
     if(settings::verbose > 1)
       std::cerr << "Importing " <<  *name << std::endl;
-    me.enter(name, i);
+    enterImport(name, i);
   }
 
   record *getModule(symbol *id);
