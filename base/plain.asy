@@ -1155,16 +1155,6 @@ void newpage()
   layer();
 }
 
-void include(picture pic=currentpicture, string name, string options="") 
-{
-  if(options != "") options="["+options+"]";
-  string include="\includegraphics"+options+"{"+name+"}";
-  tex(pic,"\kern-\wd\ASYbox%
-\setbox\ASYbox=\hbox{"+include+"}%
-"+include+"%");
-  layer(pic);
-}
-
 private struct keepAspectT {};
 public keepAspectT keepAspect=null;
 typedef bool keepAspect(keepAspectT);
@@ -1371,8 +1361,6 @@ void erase(picture pic=currentpicture)
 {
   pic.erase();
 }
-
-// End of flex routines
 
 real cap(real x, real m, real M, real bottom, real top)
 {
@@ -1773,6 +1761,12 @@ string math(string s)
 {
   if(s == "") return s;
   return "$"+s+"$";
+}
+
+string include(string name, string options="")
+{
+  if(options != "") options="["+options+"]";
+  return "\includegraphics"+options+"{"+name+"}";
 }
 
 string minipage(string s, real width=100pt)

@@ -1,3 +1,3 @@
-size(0,5cm);
+size(0,3cm);
 draw(unitsquare);
 shipout();

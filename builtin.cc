@@ -415,7 +415,7 @@ void base_venv(venv &ve)
   addRealFunc2(ve,run::realAtan2,"atan2");
   addRealFunc2(ve,run::realHypot,"hypot");
   addRealFunc2(ve,run::realFmod,"fmod");
-  addRealFunc2(ve,run::realDrem,"drem");
+  addRealFunc2(ve,run::realRemainder,"remainder");
   
   addFunc(ve,run::intAbs,primInt(),"abs",primInt());
   addFunc(ve,run::intCeil,primInt(),"ceil",primReal());

@@ -1,6 +1,6 @@
 diff -ru --new-file pstoedit-3.40/src/Makefile.am pstoedit-3.40J/src/Makefile.am
 --- pstoedit-3.40/src/Makefile.am	2004-11-03 14:05:16.000000000 -0700
-+++ pstoedit-3.40J/src/Makefile.am	2005-02-14 17:20:54.469454304 -0700
++++ pstoedit-3.40J/src/Makefile.am	2005-02-16 15:53:02.446071016 -0700
 @@ -50,6 +50,7 @@
  	drvtext.cpp 	drvtext.h		\
  	drvsk.cpp 	drvsk.h			\
@@ -11,8 +11,8 @@ diff -ru --new-file pstoedit-3.40/src/Makefile.am pstoedit-3.40J/src/Makefile.am
  	drvpic.cpp 	drvpic.h		\
 diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 --- pstoedit-3.40/src/drvasy.cpp	1969-12-31 17:00:00.000000000 -0700
-+++ pstoedit-3.40J/src/drvasy.cpp	2005-02-15 15:54:42.528631752 -0700
-@@ -0,0 +1,479 @@
++++ pstoedit-3.40J/src/drvasy.cpp	2005-02-16 22:44:15.305470992 -0700
+@@ -0,0 +1,514 @@
 +/*
 +  drvASY.cpp : This file is part of pstoedit
 +  Backend for Asymptote files
@@ -45,12 +45,14 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +#include I_stdio
 +#include I_stdlib
 +
++#include <sys/stat.h>
++
 +#include <math.h>				// Need definition of FLT_MAX
 +#include <float.h>				// FLT_MAX on MSVC
 +
 +#include <limits.h>				// PATH_MAX for MSVC
 +#include <ctype.h>				// Need definition of ispunct()
-+
++#include <sstream>
 +
 +#if !(defined(unix) || defined(__unix__) || defined(_unix) || defined(__unix) || defined(__EMX__) || defined (NetBSD)  )
 +#define LINE_MAX 2048			// for MSVC
@@ -283,6 +285,39 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +{
 +}
 +
++void drvASY::show_image(const PSImage & imageinfo)
++{
++  static int imgcount=0;
++  static string tmpdir("pstoedit-temp");
++  static char* outname=NIL;
++  
++  if(outBaseName) outname=outBaseName;
++  else if(outname == NIL) {
++    mkdir(tmpdir.c_str(),0xFFFF);
++  
++    outname=strdup((tmpdir+"/XXXXXX").c_str());
++    if(mkstemp(outname) == -1) {
++      errf << "Cannot build temporary file prefix";
++      exit(1);
++    }
++  }
++
++  imgcount++;
++  
++  ostringstream buf;
++  buf << outname << "." << imgcount << ".eps";
++  outf << "label(include(\"" << buf.str() << "\"),(0,0));" << endl;
++  
++  ofstream outi(buf.str().c_str());
++  if (!outi) {
++    errf << "Could not open file " << buf.str() << " for output";
++    exit(1);
++  }
++  
++  imageinfo.writeEPSImage(outi);
++  outi.close();
++}
++
 +// Output a text string
 +void drvASY::show_text(const TextInfo & textinfo)
 +{
@@ -484,25 +519,25 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +				       
 +static DriverDescriptionT < drvASY > 
 +D_asy("asy", "Asymptote Format", "","asy",
-+      true,	// if backend supports subpathes
++      true,	// if backend supports subpaths
 +      true,	// if backend supports curves, else 0
 +      false,	// if backend supports elements with fill and edges
 +      true,	// if backend supports text, else 0
-+      DriverDescription::noimage,	// no support for PNG file images
++      DriverDescription::memoryeps, // support for EPS file images
 +      DriverDescription::normalopen, true, // supports multiple pages
 +      true  /*clipping */ 
 +      );
 diff -ru --new-file pstoedit-3.40/src/drvasy.h pstoedit-3.40J/src/drvasy.h
 --- pstoedit-3.40/src/drvasy.h	1969-12-31 17:00:00.000000000 -0700
-+++ pstoedit-3.40J/src/drvasy.h	2005-02-15 15:34:11.466781600 -0700
-@@ -0,0 +1,82 @@
++++ pstoedit-3.40J/src/drvasy.h	2005-02-16 22:41:49.591622864 -0700
+@@ -0,0 +1,84 @@
 +#ifndef __drvASY_h
 +#define __drvASY_h
 +
 +/* 
 +   drvasy.h : This file is part of pstoedit
 +   Backend for Asymptote files
-+   Contributed by: Scott Pakin <pakin@uiuc.edu>
++   Contributed by: John Bowman
 +
 +   Copyright (C) 1993 - 2005 Wolfgang Glunz, wglunz34_AT_pstoedit.net
 +
@@ -548,6 +583,8 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.h pstoedit-3.40J/src/drvasy.h
 +
 +#include "drvfuncs.h"
 +  void show_text(const TextInfo & textInfo);
++  void show_image(const PSImage & imageinfo);
++  
 +  void ClipPath(cliptype);
 +  void Save();
 +  void Restore();
@@ -567,10 +604,10 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.h pstoedit-3.40J/src/drvasy.h
 +
 +  // Set to true for fill or eofill, false for stroke
 +  bool fillmode;
-+  // Set to true for eofill or eoclip, false otherwise
-+  bool evenoddmode;
 +  // Set to true for clip or eoclip, false otherwise
 +  bool clipmode;
++  // Set to true for eofill or eoclip, false otherwise
++  bool evenoddmode;
 +  
 +  std::list<bool> clipstack;
 +  std::list<bool> gsavestack;

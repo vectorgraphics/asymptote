@@ -17,9 +17,6 @@
 #include "stack.h"
 #include "fileio.h"
 
-extern "C" double hypot(double x, double y) throw();
-extern "C" double drem(double x, double y) throw();
-
 using vm::pop;
 
 namespace run {
@@ -45,7 +42,7 @@ void realRealPow(vm::stack *s);
 void realIntPow(vm::stack *s);
 void realAtan2(vm::stack *s);
 void realHypot(vm::stack *s);
-void realDrem(vm::stack *s);
+void realRemainder(vm::stack *s);
 void intAbs(vm::stack *s);
 void intCeil(vm::stack *s);
 void intFloor(vm::stack *s);

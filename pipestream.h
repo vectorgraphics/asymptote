@@ -32,8 +32,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
 char **args(const char *command);
   
-extern "C" char *index(const char *s, int c);
-
 // bidirectional stream for reading and writing to pipes
 class iopipestream {
 protected:

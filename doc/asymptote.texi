@@ -8,7 +8,7 @@ This file documents @code{Asymptote}, version @value{VERSION}.
 
 http://asymptote.sourceforge.net
      
-Copyright @copyright{} 2004 Andy Hammerlindl, John Bowman, and Tom Prince.
+Copyright @copyright{} 2004-5 Andy Hammerlindl, John Bowman, and Tom Prince.
      
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -103,6 +103,13 @@ Import
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Implement @code{LaTeX} @code{babel} package
+
+Drawing commands
+
+* draw::                        Draw a path on a picture or frame
+* fill::                        Fill a cyclic path on a picture or frame
+* clip::                        Clip a picture or frame to a cyclic path
+* label::                       Label a point on a picture
 
 @end detailmenu
 @end menu
@@ -372,16 +379,13 @@ The units here are @code{PostScript} "big points"
 
 At this point you can type in further draw commands, which will be added
 to the displayed figure, or type @code{quit} to exit interactive mode.
-Further commands specific to interactive mode are described in
-@ref{Interactive mode}.
-
 You can use the arrow keys in interactive mode to edit previous lines
-(assuming that you have support for the GNU readline library enabled).
-Because interactive mode is emulated, it is currently intended only for
-short demonstration files (@pxref{Interactive mode}). For more
-complicated graphs we recommend using batch mode.
+(assuming that you have support for the GNU readline library
+enabled). Further commands specific to interactive mode are described
+in @ref{Interactive mode}.
 
-Let's repeat the previous example in batch mode. Simply type in the commands 
+Typically, @code{Asymptote} is run in batch mode, reading commands
+directly from a file. To try this out, type the commands
 @verbatiminclude diagonal.asy
 
 into a file, say test.asy. Then execute this file by typing
@@ -434,8 +438,14 @@ the overall scaling will be determined by the other direction:
 @verbatiminclude bigsquare.asy
 @image{bigsquare}
 
+Adding labels is easy in @code{Asymptote}; one specifies the
+label as a double-quoted string, a coordinate, and an optional alignment
+direction:
+@verbatiminclude labelsquare.asy
+@image{labelsquare}
+
 See section @ref{graph} (or the online @code{Asymptote} gallery at
-@code{http://asymptote.sourceforge.net}) for examples of
+@code{http://asymptote.sourceforge.net}) for further examples, including
 two-dimensional scientific graphs.
 
 @node Programming
@@ -443,8 +453,8 @@ two-dimensional scientific graphs.
 @cindex programming
 
 Here is a short introductory example to the @code{Asymptote} programming
-language that highlights it's similarity with the control structures of
-C and C++.
+language that highlights the similarity of its control structures 
+with those of C and C++.
 @cindex declaration
 @cindex assignment
 @cindex conditional
@@ -1497,25 +1507,6 @@ Verbatim @TeX{} commands can be inserted in the output with the function
 void tex(picture pic=currentpicture, string s);
 @end verbatim
 
-@cindex @code{include}
-@cindex @acronym{EPS}
-For example, the @code{tex} function is used in the default base file
-@code{plain.asy} to implement an @code{include} command that
-includes an encapsulated @code{PostScript} (@acronym{EPS}) file into a
-picture: 
-@verbatim
-void include(picture pic=currentpicture, string name, 
-             string options="");
-@end verbatim
-
-Here, @code{name} is the name of the file to include and
-@code{options} is a string containing a comma-separated list of
-optional bounding box (@code{llx lly urx ury}), width (@code{width=value}), 
-height (@code{height=value}), rotation (@code{angle=value}),
-scaling (@code{scale=factor}), clipping (@code{clip=bool}),
-and draft mode (@code{draft=bool}) parameters. Note that @code{include}
-does not change a picture's bounding box.
-
 To issue a global @TeX{} command in the @TeX{} preamble (valid for the entire
 file) use:
 @cindex @code{texpreamble}
@@ -1946,9 +1937,9 @@ well as the identity function @code{identity}.
 @cindex @code{atan2}
 @cindex @code{hypot}
 @cindex @code{fmod}
-@cindex @code{drem}
+@cindex @code{dremainder}
 The standard real(real, real) functions @code{atan2}, @code{hypot},
-@code{fmod}, @code{drem} are also included.
+@code{fmod}, @code{remainder} are also included.
 
 @cindex @code{ceil}
 @cindex @code{floor}
@@ -3081,12 +3072,19 @@ commands are always drawn after the @code{PostScript} objects in that layer.
 
 While some of these drawing commands take many options, they all have sensible
 default values (for example, the picture argument defaults to
-currentpicture):
+currentpicture).
 
-@enumerate
 @cindex legend
 @cindex @code{draw}
-@item
+@menu
+* draw::                        Draw a path on a picture or frame
+* fill::                        Fill a cyclic path on a picture or frame
+* clip::                        Clip a picture or frame to a cyclic path
+* label::                       Label a point on a picture
+@end menu
+
+@node draw
+@section draw
 @verbatim 
 void draw(picture pic=currentpicture, string s="", real angle=0,
           path g, real position=0.5*length(g), pair align=0,
@@ -3173,12 +3171,12 @@ void drawabout(pair origin, picture pic=currentpicture, string s="",
                pen p=currentpen, arrowbar arrow=None, arrowbar bar=None);
 @end verbatim
 
-
-@item
 @cindex @code{fill}
 @anchor{gradient shading}
 @cindex gradient
 @cindex shading
+@node fill
+@section fill
 @verbatim
 void fill(picture pic=currentpicture, path g,
 pen pena=currentpen, pair a=0, real ra=0,
@@ -3227,8 +3225,9 @@ void unfill(picture pic=currentpicture, path g);
 void unfill(picture pic=currentpicture, path[] g);
 @end verbatim
 
-@item
 @cindex @code{clip}
+@node clip
+@section clip
 @verbatim 
 void clip(picture pic=currentpicture, path g, pen p=currentpen)
 @end verbatim
@@ -3238,8 +3237,9 @@ by the path @code{g}, using fillrule @code{p} (@pxref{fillrule}).
 For an illustration of picture clipping, see the first example in
 @ref{LaTeX usage}.
 
-@item
 @cindex @code{label}
+@node label
+@section label
 @verbatim
 void label(picture pic=currentpicture, string s, real angle=0,
            pair position, pair align=0, pair shift=0, pen p=currentpen);
@@ -3262,8 +3262,26 @@ void arrow(picture pic=currentpicture, string s, real angle=0,
            real Angle=arrowangle, arrowhead arrowhead=Fill);
 @end verbatim
 
+@cindex including @code{EPS} files
+@cindex @code{include}
+@cindex @acronym{EPS}
+The function @code{string include(string name, string options="")}
+returns a string that can be used to include an encapsulated
+@code{PostScript} (@acronym{EPS}) file. Here, @code{name} is the name
+of the file to include and @code{options} is a string containing a
+comma-separated list of optional bounding box (@code{bb=llx lly urx
+ury}), width (@code{width=value}), height (@code{height=value}),
+rotation (@code{angle=value}), scaling (@code{scale=factor}), clipping
+(@code{clip=bool}), and draft mode (@code{draftx=bool}) parameters. The
+@code{layer()} function can be used to force future objects to be
+drawn on top of the included image:
+@verbatim
+label(include("file.eps","width=1cm"),(0,0),NE);
+layer();
+@end verbatim
+
 @cindex @code{minipage}
-The @code{minipage(string s, width=100pt)} routine can be used to format
+The @code{minipage(string s, width=100pt)} function can be used to format
 string @code{s} into a paragraph of width @code{width}, as illustrated
 in the following example:
 
@@ -3274,7 +3292,6 @@ in the following example:
 One can prevent labels from overwriting one another with the
 @code{overwrite} pen attribute (@pxref{overwrite}).
 
-@end enumerate
 
 @node LaTeX usage
 @chapter @code{LaTeX} usage
@@ -3389,7 +3406,7 @@ Also output @code{LaTeX} bidirectional pipe diagnostics.
 @item -vvvv
 Also output knot solver diagnostics.
 @item -vvvvv
-Also output Asymptote traceback diagnostics.
+Also output @code{Asymptote} traceback diagnostics.
 @end table
 
 @node Interactive mode

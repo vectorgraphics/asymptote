@@ -67,8 +67,9 @@ AC_CHECK_HEADERS([fenv.h])
 AC_CHECK_HEADERS([stddef.h])
 
 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include "xstream.h"]),
-                   AC_DEFINE(HAVE_RPC_RPC_H, 1,
-		   [Define if you have a working <rpc/rpc.h> header file]),
+                   [AC_SEARCH_LIBS([xdrstdio_create],[nsl]),
+		    AC_DEFINE(HAVE_RPC_RPC_H, 1,
+		   [Define if you have a working <rpc/rpc.h> header file])],
    AC_MSG_WARN([*** Broken rpc headers; XDR support disabled ***]))
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -81,7 +82,7 @@ AC_TYPE_SIGNAL
 
 # Checks for library functions.
 AC_FUNC_FORK
-AC_CHECK_FUNCS([dup2 floor memset pow sqrt])
+AC_CHECK_FUNCS([dup2 floor memset pow sqrt remainder])
 AC_FUNC_STRFTIME
 AC_FUNC_ERROR_AT_LINE
 AC_FUNC_MALLOC

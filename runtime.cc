@@ -159,13 +159,13 @@ void realHypot(stack *s)
   s->push(sx);
 }  
 
-void realDrem(stack *s)
+void realRemainder(stack *s)
 { 
   double x = s->pop<double>();
   double y = s->pop<double>();
   
   double sx;
-  sx = drem(y,x);
+  sx = remainder(y,x);
   s->push(sx);
 }  
 

@@ -42,8 +42,7 @@ texfile::~texfile()
 void texfile::prologue()
 {
   texpreamble(*out);
-  *out << "\\usepackage{graphicx}" << newl
-       << "\\usepackage{pstricks}" << newl
+  *out << "\\usepackage{pstricks}" << newl
        << "\\psset{unit=1pt}" << newl
        << "\\pagestyle{empty}" << newl
        << "\\textheight=2048pt" << newl
