@@ -259,13 +259,13 @@ On other platforms, it may be necessary to compile and install the boost
 library, by obtaining, for example
 @verbatim
 http://dl.sourceforge.net/sourceforge/boost/boost-jam-3.1.10-1.i386.rpm
-http://dl.sourceforge.net/sourceforge/boost/boost_1_32_0.tar.bz2
+http://dl.sourceforge.net/sourceforge/boost/boost_1_32_0.tar.gz
 @end verbatim
 
 @noindent
 Once boost-jam is installed, compile and install the boost library:
 @verbatim
-tar -zxf boost_1_32_0.tar.bz2
+tar -zxf boost_1_32_0.tar.gz
 cd boost_1_32_0
 bjam --prefix=/usr install
 @end verbatim
@@ -733,7 +733,10 @@ format string @code{s};
 
 @item string format(string s, real x)
 returns a string containing @code{x} formatted according to the C-style format
-string @code{s}, using @TeX{} to typeset scientific notation;
+string @code{s} (see the documentation for the C-function
+@code{fprintf}), except that only one data field is allowed, trailing
+zeros are removed by default (unless @code{#} is specified) and @TeX{}
+is used to typeset scientific notation;
 
 @item string time(string s)
 @cindex @code{time}
