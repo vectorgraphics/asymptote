@@ -20,7 +20,7 @@ ostream& fileinfo::print(ostream& out, int pos)
   while (lines != last && *lines >= pos) {
     ++lines; num--;
   }
-  if(filename == "-" && interact::interactive && num == 2) num=1;
+  if(filename == "-" && interact::interactive && num > 1) num--;
 
   out << filename << ": " << num << "." << pos-*lines << ": ";
   return out;
