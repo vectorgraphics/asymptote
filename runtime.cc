@@ -870,26 +870,29 @@ void stringLength(stack *s)
 
 void stringFind(stack *s)
 {
-  int pos=s->pop<int>();
+  size_t pos=s->pop<int>();
   string b = s->pop<string>();
   string a = s->pop<string>();
-  s->push((int) a.find(b,pos));
+  if(pos < a.length()) s->push((int) a.find(b,pos));
+  else s->push(-1);
 }
 
 void stringRfind(stack *s)
 {
-  int pos=s->pop<int>();
+  size_t pos=s->pop<int>();
   string b = s->pop<string>();
   string a = s->pop<string>();
-  s->push((int) a.rfind(b,pos));
+  if(pos < a.length()) s->push((int) a.rfind(b,pos));
+  else s->push(-1);
 }
 
 void stringSubstr(stack *s)
 {
   int n=s->pop<int>();
-  int pos=s->pop<int>();
+  size_t pos=s->pop<int>();
   string a = s->pop<string>();
-  s->push(a.substr(pos,n));
+  if(pos < a.length()) s->push(a.substr(pos,n));    
+  else s->push((string)"");
 }
 
 void stringReverse(stack *s)
@@ -902,17 +905,20 @@ void stringReverse(stack *s)
 void stringInsert(stack *s)
 {
   string b = s->pop<string>();
-  int pos=s->pop<int>();
+  size_t pos=s->pop<int>();
   string a = s->pop<string>();
-  s->push(a.insert(pos,b));
+  if(pos < a.length()) s->push(a.insert(pos,b));
+  else s->push(a);
 }
 
 void stringErase(stack *s)
 {
-  int n=s->pop<int>();
-  int pos=s->pop<int>();
+  size_t n=s->pop<int>();
+  size_t pos=s->pop<int>();
   string a = s->pop<string>();
-  s->push(a.erase(pos,n));
+  size_t len=a.length();
+  if(pos < len) s->push(a.erase(pos,n));
+  else s->push(a);
 }
 
 // returns a string constructed by translating all occurrences of the string
