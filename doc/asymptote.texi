@@ -64,9 +64,9 @@ Foundation.
 Programming
 
 * Data types::                  void, bool, int, real, pair, string
-* Transforms::                  Affine transforms
 * Guides and paths::            Specifying lines and curves
 * Pens::                        Colors, line types, line widths, font sizes
+* Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
 * Files::                       @code{Asymptote} I/O
 * Structures::                  Organize your data
@@ -425,9 +425,9 @@ many features beyond the ones found in those languages.
 
 @menu
 * Data types::                  void, bool, int, real, pair, string
-* Transforms::                  Affine transforms
 * Guides and paths::            Specifying lines and curves
 * Pens::                        Colors, line types, line widths, font sizes
+* Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
 * Files::                       @code{Asymptote} I/O
 * Structures::                  Organize your data
@@ -630,58 +630,13 @@ As in C/C++, complicated types may be abbreviated with @code{typedef}
 
 @end table
 
-@node Transforms
-@section Transforms
-
-@cindex @code{transform}
-@code{Asymptote} makes extensive use of affine transforms of the form
-@code{a+Bx}, where @code{a} is a pair and @code{B} is a 2x2
-matrix. Transforms can be applied to pairs, guides, paths, pens,
-transforms, frames, and pictures by multiplication on the left (see
-@pxref{unitcircle} for an example).
-
-Possible transforms are:
-
-@table @code
-@item identity()
-@cindex @code{identity}
-the identity transform;
-@item shift(pair z)
-@cindex @code{shift}
-translates by pair @code{z};
-@item xscale(real x)
-@cindex @code{xscale}
-scales in the x-direction by @code{x};
-@item yscale(real y)
-@cindex @code{yscale}
-scales in the y-direction by @code{y};
-@item scale(pair z)
-@cindex @code{scale}
-equivalent to multiplication by @code{z};
-@item slant(real s)
-@cindex @code{slant}
-maps @code{(x,y)} --> @code{(x+s*y,y)};
-@item rotate(real a)
-@cindex @code{rotate}
-rotates by angle @code{a} about origin;
-@item rotate(real a, pair z)
-rotates by angle @code{a} about @code{z};
-@item reflect(pair z, pair w)
-@cindex @code{reflect}
-reflect about line @code{z--w}.
-@end table
-
-Transforms can be composed with one another and inverted with the
-function @code{inverse(transform)}.
-The implicit initializer for transforms is @code{identity()}.
-
 @node Guides and paths
 @section Guides and paths
 
 @table @code
 @item guide
 @cindex @code{guide}
-unresolved cubic spline (list of cubic-spline nodes and control points).
+an unresolved cubic spline (list of cubic-spline nodes and control points).
 
 This is like a path except the computation of the cubic spline is
 deferred until drawing time (when it is resolved into a path); this allows
@@ -895,29 +850,29 @@ the pen nib. The default pen is @code{currentpen}.
 @item Colors are specified using one of the following colorspaces:
 @cindex color
 @table @code
-@item @code{pen gray(real g)} 
+@item pen gray(real g) 
 @cindex @code{gray}
 @cindex grayscale
 This produces a grayscale color, where the intensity @code{g} lies in the
 interval [0,1], with 0.0 denoting black and 1.0 denoting white.
 
-@item @code{pen rgb(real r, real g, real b)} 
+@item pen rgb(real r, real g, real b) 
 @cindex @code{rgb}
 This produces an rgb color, where each of the red, green, and blue intensities
 @code{r}, @code{g}, @code{b}, lies in the interval [0,1].
 
-@item @code{pen cmyk(real c, real m, real y, real k)} 
+@item pen cmyk(real c, real m, real y, real k) 
 @cindex @code{cmyk}
 This produces an cmyk color, where each of the cyan, magenta,
 yellow, and black intensities @code{c}, @code{m}, @code{y}, @code{k},
 lies in the interval [0,1].
 
-@item @code{pen defaultpen()}
+@item pen defaultpen()
 @cindex @code{defaultpen}
 This returns the default pen (that is, the current default initializer
 for pens).
 
-@item @code{pen invisible()}
+@item pen invisible()
 @cindex @code{invisible}
 This special pen writes in invisible ink! It is analogous to the
 @code{\phantom} command in @TeX{}.
@@ -981,6 +936,51 @@ This will mix the colors of the two pens. Other non-default attributes
 of the right most pen will override those of the left most pen. Thus, one can
 obtain a yellow dashed pen by saying @code{dashed+red+green} or
 @code{red+green+dashed} or @code{red+dashed+green}, etc.
+
+@node Transforms
+@section Transforms
+
+@cindex @code{transform}
+@code{Asymptote} makes extensive use of affine transforms of the form
+@code{a+Bx}, where @code{a} is a pair and @code{B} is a 2x2
+matrix. Transforms can be applied to pairs, guides, paths, pens,
+transforms, frames, and pictures by multiplication on the left (see
+@pxref{unitcircle} for an example).
+
+Possible transforms are:
+
+@table @code
+@item identity()
+@cindex @code{identity}
+the identity transform;
+@item shift(pair z)
+@cindex @code{shift}
+translates by pair @code{z};
+@item xscale(real x)
+@cindex @code{xscale}
+scales in the x-direction by @code{x};
+@item yscale(real y)
+@cindex @code{yscale}
+scales in the y-direction by @code{y};
+@item scale(pair z)
+@cindex @code{scale}
+equivalent to multiplication by @code{z};
+@item slant(real s)
+@cindex @code{slant}
+maps @code{(x,y)} --> @code{(x+s*y,y)};
+@item rotate(real a)
+@cindex @code{rotate}
+rotates by angle @code{a} about origin;
+@item rotate(real a, pair z)
+rotates by angle @code{a} about @code{z};
+@item reflect(pair z, pair w)
+@cindex @code{reflect}
+reflect about line @code{z--w}.
+@end table
+
+Transforms can be composed with one another and inverted with the
+function @code{inverse(transform)}.
+The implicit initializer for transforms is @code{identity()}.
 
 @node Frames and pictures
 @section Frames and pictures
@@ -1806,10 +1806,11 @@ explicitly imported. An error will be issued if one attempts to import
 a module multiple times.
 
 The file name to be imported must be known at compile time.
-However, you can execute a file determined at runtime with the command
+However, you can execute an @code{Asymptote} file determined at runtime in an
+independent process with the function
 @cindex execute
 @verbatim
-void execute(string s);
+void execute(string file);
 @end verbatim
 
 @code{Asymptote} currently ships with the following base modules:
@@ -2641,12 +2642,28 @@ commands.
 @cindex @code{Button-2}
 @cindex @code{xasy}
 
-Currently, the Graphical User Interface @code{xasy} included with
-@code{Asymptote} allows you to move graphical objects around in the event that
-adjustments to the final graph are required, using mouse @code{Button-1}.
+In the event that adjustments to the final figure are required, the
+Graphical User Interface @code{xasy} included with @code{Asymptote}
+allows you to move graphical objects around with mouse @code{Button-1}. 
+The modified layout can be written to disk with the @code{w} key in a form
+readable to @code{Asymptote}.
 A wheel mouse is convenient for raising and lowering objects, to expose
 the object to be moved. If a wheel mouse is not available, mouse
-@code{Button-2} (lower) can be used repeatedly instead.
+@code{Button-2} (lower) can be used repeatedly instead. Here are the
+currently defined key mappings: 
+
+@table @code
+@item z
+undo
+@item r
+redo
+@item <Delete>
+delete
+@item w
+write
+@item q
+quit
+@end table
 
 One can also draw connected line segments by holding down the shift key
 and pressing mouse @code{Button-1} at each desired node.  Releasing the shift
