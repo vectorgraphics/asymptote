@@ -33,6 +33,7 @@ inline stack::vars_t stack::make_frame(size_t size, vars_t closure)
 }
 
 stack::stack()
+  : curPos(position::nullPos())
 {
   ip = nulllabel;
 }
@@ -83,6 +84,8 @@ void stack::run(func *f)
 
   try {
     for (;;) {
+      if (!!ip->pos) curPos = ip->pos;
+      
 #ifdef DEBUG_STACK
       UNALIAS;
       cerr << getPos() << "\n";
@@ -267,7 +270,7 @@ void stack::draw(ostream& out, vars_t vars)
 
 position stack::getPos()
 {
-  return body ? body->pl.getPos(ip) : position::nullPos();
+  return curPos;
 }
 
 } // namespace vm
