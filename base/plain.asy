@@ -1000,6 +1000,28 @@ frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
 	      pic.keepAspect ? Aspect : IgnoreAspect,p);
 }
 
+void labelbox(picture pic=currentpicture, real xmargin=0, real
+	      ymargin=infinity, string s, real angle=0,
+	      pair align=0, pen p=currentpen, adjust adjust=NoAdjust)
+{
+  if(ymargin == infinity) ymargin=xmargin;
+  pair margin=(xmargin,ymargin);
+  pair position=0;
+  pic.add(new void (frame f, transform t) {
+    pair offset=t*0;
+    frame b;
+    label(b,s,Angle(t*dir(angle)-offset),t*position,
+	  length(align)*unit(t*align-offset),p,adjust);
+    draw(b,box(min(b)-margin,max(b)+margin),p);
+    add(f,b);
+  });
+  frame f;
+  // Create a picture with label at the origin to extract its bbox truesize.
+  label(f,s,angle,(0,0),align,p);
+  draw(f,box(min(f)-margin,max(f)+margin),p);
+  pic.addBox(position,position,min(f),max(f));
+}
+
 pair realmult(pair z, pair w) 
 {
   return (z.x*w.x,z.y*w.y);

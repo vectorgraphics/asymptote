@@ -109,14 +109,14 @@ bool picture::texprocess(const string& texname, const string& outname,
     double height=bpos.top-bpos.bottom;
     
     // Magic dvips offsets:
-    double hoffset=-128.4;
-    double voffset=(height < 11.6) ? -137.6+height : -126.0;
+    double hoffset=-127.9;
+    double voffset=(height < 11.1) ? -136.4+height : -125.3;
     
-    if(pdfformat || bottomOrigin)
-      voffset += max(pageHeight-(bpos.top-bpos.bottom),0.0);
-    else if(!topOrigin) {
-      hoffset += 0.5*max(pageWidth-(bpos.right-bpos.left),0.0);
-      voffset += 0.5*max(pageHeight-(bpos.top-bpos.bottom),0.0);
+    if(pdfformat || bottomOrigin) {
+      voffset += max(pageHeight-(bpos.top-bpos.bottom+1.0),0.0);
+    } else if(!topOrigin) {
+      hoffset += 0.5*max(pageWidth-(bpos.right-bpos.left+1.0),0.0);
+      voffset += 0.5*max(pageHeight-(bpos.top-bpos.bottom+1.0),0.0);
     }
     if(!pdfformat) {
       hoffset += postscriptOffset.getx();
@@ -167,9 +167,9 @@ bool picture::postprocess(const string& epsname, const string& outname,
   if(!epsformat) {
     if(pdfformat) cmd << "gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
 		      << " -dDEVICEWIDTHPOINTS=" 
-		      << ceil(bpos.right-bpos.left+1.0)
+		      << ceil(bpos.right-bpos.left+2.0)
 		      << " -dDEVICEHEIGHTPOINTS=" 
-		      << ceil(bpos.top-bpos.bottom+1.0)
+		      << ceil(bpos.top-bpos.bottom+2.0)
 		      << " -sOutputFile=" << outname << " " << epsname;
     else {
       double res=deconstruct*72.0;
@@ -253,11 +253,10 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
   
   bbox bcopy=b;
   
-  double fuzz;
-  if(!labels && pdfformat) fuzz=1.0;
-  else fuzz=0.1;
-  bcopy.right += fuzz;
+  double fuzz=0.5;
+  
   bcopy.left -= fuzz;
+  bcopy.right += fuzz;
   bcopy.top += fuzz;
   bcopy.bottom -= fuzz;
   
@@ -298,8 +297,7 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
   bool status = true;
   
   if(labels) {
-    if(pdfformat || bottomOrigin) bcopy.shift(pair(-0.25,-0.5));
-    else bcopy.shift(pair(-0.25,-1.0));
+    bcopy.shift(pair(-fuzz-((pdfformat || bottomOrigin) ? 0.5 : 0.0),0.0));
     tex=new texfile(texname,bcopy);
     list<drawElement*>::iterator p;
     for (p = nodes.begin(); p != nodes.end(); ++p) {
