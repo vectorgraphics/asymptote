@@ -28,67 +28,67 @@ void base_menv(menv&);
 
 template <typename T>
 struct less {
-  bool operator() (T x, T y, vm::stack *, size_t) {return x < y;}
+  bool operator() (T x, T y, vm::stack *, size_t i=0) {return x < y;}
 };
 
 template <typename T>
 struct lessequals {
-  bool operator() (T x, T y, vm::stack *, size_t) {return x <= y;}
+  bool operator() (T x, T y, vm::stack *, size_t i=0) {return x <= y;}
 };
 
 template <typename T>
 struct equals {
-  bool operator() (T x, T y, vm::stack *, size_t) {return x == y;}
+  bool operator() (T x, T y, vm::stack *, size_t i=0) {return x == y;}
 };
 
 template <typename T>
 struct greaterequals {
-  bool operator() (T x, T y, vm::stack *, size_t) {return x >= y;}
+  bool operator() (T x, T y, vm::stack *, size_t i=0) {return x >= y;}
 };
 
 template <typename T>
 struct greater {
-  bool operator() (T x, T y, vm::stack *, size_t) {return x > y;}
+  bool operator() (T x, T y, vm::stack *, size_t i=0) {return x > y;}
 };
 
 template <typename T>
 struct notequals {
-  bool operator() (T x, T y, vm::stack *, size_t) {return x != y;}
+  bool operator() (T x, T y, vm::stack *, size_t i=0) {return x != y;}
 };
 
 template <typename T>
 struct And {
-  bool operator() (T x, T y, vm::stack *, size_t) {return x && y;}
+  bool operator() (T x, T y, vm::stack *, size_t i=0) {return x && y;}
 };
 
 template <typename T>
 struct Or {
-  bool operator() (T x, T y, vm::stack *, size_t) {return x || y;}
+  bool operator() (T x, T y, vm::stack *, size_t i=0) {return x || y;}
 };
 
 template <typename T>
 struct Xor {
-  bool operator() (T x, T y, vm::stack *, size_t) {return x ^ y;}
+  bool operator() (T x, T y, vm::stack *s, size_t i=0) {return x ^ y;}
 };
 
 template <typename T>
 struct plus {
-  T operator() (T x, T y, vm::stack *, size_t) {return x+y;}
+  T operator() (T x, T y, vm::stack *s, size_t i=0) {return x+y;}
 };
 
 template <typename T>
 struct minus {
-  T operator() (T x, T y, vm::stack *, size_t) {return x-y;}
+  T operator() (T x, T y, vm::stack *, size_t i=0) {return x-y;}
 };
   
 template <typename T>
 struct times {
-  T operator() (T x, T y, vm::stack *, size_t) {return x*y;}
+  T operator() (T x, T y, vm::stack *s, size_t i=0) {return x*y;}
 };
 
 template <typename T>
 struct divide {
-  T operator() (T x, T y, vm::stack *s, size_t i) {
+  T operator() (T x, T y, vm::stack *s, size_t i=0) {
     if(y == 0) {
       ostringstream buf;
       if(i > 0) buf << "array element " << i << ": ";
@@ -101,12 +101,12 @@ struct divide {
 
 template <typename T>
 struct power {
-  T operator() (T x, T y, vm::stack *, size_t) {return pow(x,y);}
+  T operator() (T x, T y, vm::stack *, size_t i=0) {return pow(x,y);}
 };
 
 template <>
 struct power<int> {
-  int operator() (int x, int y, vm::stack *s, size_t i) {
+  int operator() (int x, int y, vm::stack *s, size_t i=0) {
     if (y < 0 && !(x == 1 || x == -1)) {
       ostringstream buf;
       if(i > 0) buf << "array element " << i << ": ";
@@ -132,7 +132,7 @@ inline T portableMod(T x,T y)
   
 template <typename T>
 struct mod {
-  T operator() (T x, T y, vm::stack *s, size_t i) {
+  T operator() (T x, T y, vm::stack *s, size_t i=0) {
     if(y == 0) {
       ostringstream buf;
       if(i > 0) buf << "array element " << i << ": ";
@@ -145,12 +145,12 @@ struct mod {
 
 template <typename T>
 struct min {
-  T operator() (T x, T y, vm::stack *, size_t) {return x < y ? x : y;}
+  T operator() (T x, T y, vm::stack *, size_t i=0) {return x < y ? x : y;}
 };
 
 template <typename T>
 struct max {
-  T operator() (T x, T y, vm::stack *, size_t) {return x > y ? x : y;}
+  T operator() (T x, T y, vm::stack *, size_t i=0) {return x > y ? x : y;}
 };
 
 } //namespace trans

@@ -19,19 +19,14 @@ namespace vm {
 static const char* opnames[] = {
   "pop", "intpush", "constpush", 
   "varpush", "varsave", "globalpush", "globalsave","fieldpush", "fieldsave",
-  "mem_eq", "mem_neq", "func_eq", "func_neq",
-  "i_plus", "i_minus", "i_times", "i_divide", "i_negate",
-  "log_not", "log_eq", "log_neq",
-  "i_incr", "i_decr", "i_eq", "i_neq", "i_gt", "i_ge", "i_lt", "i_le",
-  "f_plus", "f_minus", "f_times", "f_divide", "f_negate",
-  "f_eq", "f_neq", "f_gt", "f_ge", "f_lt", "f_le", 
   "builtin", "jmp", "cjmp", "njmp", "popcall",
   "pushclosure", "makefunc", "ret",
   "alloc"
 };
 static const int numOps = (int)(sizeof(opnames)/sizeof(char *));
 
-program::label printInst(ostream& out, program::label code, const program::label base)
+program::label printInst(ostream& out, program::label code,
+			 const program::label base)
 {
   out.width(4);
   out << std::distance(base,code) << " ";

@@ -77,11 +77,12 @@ inline void addFunc(venv &ve, bltin f, ty *result, const char *name,
   access *a = new bltinAccess(f);
   addFunc(ve, a, result, name, t1, t2, t3, t4, t5, t6, t7, t8);
 }
-  
+
 inline void addFunc(venv &ve, inst::opcode o, ty *result, const char *name, 
 		    ty *t1 = 0, ty *t2 = 0, ty *t3 = 0, ty* t4 = 0,
 		    ty *t5 = 0, ty *t6 = 0, ty *t7 = 0, ty *t8 = 0)
 {
+
   access *a = new instAccess(o);
   addFunc(ve, a, result, name, t1, t2, t3, t4, t5, t6, t7, t8);
 }
@@ -107,22 +108,8 @@ void addRealFunc2(venv &ve, bltin fcn, const char *name)
 }
 
 // The identity access, i.e. no instructions are encoded for a cast or
-// operation, and no fuctions are called.
+// operation, and no functions are called.
 identAccess id;
-
-void addUnaryOperators(venv &ve)
-{
-  addFunc(ve, &id, primInt(), "+", primInt());
-  addFunc(ve, inst::i_negate, primInt(), "-", primInt());
-
-  addFunc(ve, &id, primReal(), "+", primReal());
-  addFunc(ve, inst::f_negate, primReal(), "-", primReal());
-
-  addFunc(ve, inst::log_not, primBoolean(), "!", primBoolean());
-
-  addFunc(ve, &id, primPair(), "+", primPair());
-  addFunc(ve, run::pairNegate, primPair(), "-", primPair());
-}
 
 /* To avoid typing the same type three times. */
 void addSimpleOperator(venv &ve, access *a, ty *t, const char *name)
@@ -150,12 +137,28 @@ void addBooleanOperator(venv &ve, bltin f, ty *t, const char *name)
   addFunc(ve, f, primBoolean(), name, t, t);
 }
 
+template <class T>
+void Negate(stack *s)
+{
+   T a=s->pop<T>();
+   s->push(-a);
+}
+  
+template <class T, template <class S> class op>
+void binaryOp(stack *s)
+{
+   T b=s->pop<T>();
+   T a=s->pop<T>();
+   s->push(op<T>()(a,b,s));
+}
+  
 template<class T, template <class S> class op>
 inline void addArrayOps(venv &ve, ty *t1, const char *name, ty *t2)
 {
   addFunc(ve,run::arrayOp<T,op>,t1,name,t1,t2);
   addFunc(ve,run::opArray<T,op>,t1,name,t2,t1);
   addSimpleOperator(ve,run::arrayArrayOp<T,op>,t1,name);
+  addSimpleOperator(ve,binaryOp<T,op>,t2,name);
 }
 
 template<class T, template <class S> class op>
@@ -164,6 +167,7 @@ inline void addArrayBooleanOps(venv &ve, ty *t1, const char *name, ty *t2)
   addFunc(ve,run::arrayOp<T,op>,boolArray(),name,t1,t2);
   addFunc(ve,run::opArray<T,op>,boolArray(),name,t2,t1);
   addFunc(ve,run::arrayArrayOp<T,op>,boolArray(),name,t1,t1);
+  addBooleanOperator(ve,binaryOp<T,op>,t2,name);
 }
 
 template<class T>
@@ -212,7 +216,9 @@ inline void addArrayOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   addArrayOps<T,power>(ve,t1,"^",t2);
   
   addFunc(ve,&id,t1,"+",t1);
+  addFunc(ve,&id,t2,"+",t2);
   addFunc(ve,run::arrayNegate<T>,t1,"-",t1);
+  addFunc(ve,Negate<T>,t2,"-",t2);
   
   addFunc(ve,run::sumArray<T>,t2,"sum",t1);
   
@@ -243,65 +249,16 @@ function *realPairFunction()
 
 void addOperators(venv &ve) 
 {
-  addSimpleOperator(ve,inst::i_plus,primInt(),"+");
-  addSimpleOperator(ve,inst::i_minus,primInt(),"-");
-  addSimpleOperator(ve,inst::i_times,primInt(),"*");
-  addSimpleOperator(ve,inst::i_divide,primInt(),"/");
-  addSimpleOperator(ve,run::intIntMod,primInt(),"%");
-  addSimpleOperator(ve,run::intIntPow,primInt(),"^");
-  addBooleanOperator(ve,inst::i_lt,primInt(),"<");
-  addBooleanOperator(ve,inst::i_le,primInt(),"<=");
-  addBooleanOperator(ve,inst::i_eq,primInt(),"==");
-  addBooleanOperator(ve,inst::i_ge,primInt(),">=");
-  addBooleanOperator(ve,inst::i_gt,primInt(),">");
-  addBooleanOperator(ve,inst::i_neq,primInt(),"!=");
-  addSimpleOperator(ve,run::binaryOp<int,min>,primInt(),"min");
-  addSimpleOperator(ve,run::binaryOp<int,max>,primInt(),"max");
-
-  addSimpleOperator(ve,inst::f_plus,primReal(),"+");
-  addSimpleOperator(ve,inst::f_minus,primReal(),"-");
-  addSimpleOperator(ve,inst::f_times,primReal(),"*");
-  addSimpleOperator(ve,inst::f_divide,primReal(),"/");
-  addSimpleOperator(ve,run::realRealMod,primReal(),"%");
-  addSimpleOperator(ve,run::realRealPow,primReal(),"^");
-  addBooleanOperator(ve,inst::f_lt,primReal(),"<");
-  addBooleanOperator(ve,inst::f_le,primReal(),"<=");
-  addBooleanOperator(ve,inst::f_eq,primReal(),"==");
-  addBooleanOperator(ve,inst::f_ge,primReal(),">=");
-  addBooleanOperator(ve,inst::f_gt,primReal(),">");
-  addBooleanOperator(ve,inst::f_neq,primReal(),"!=");
-  addSimpleOperator(ve,run::binaryOp<double,min>,primReal(),"min");
-  addSimpleOperator(ve,run::binaryOp<double,max>,primReal(),"max");
-  
   addFunc(ve,run::realIntPow,primReal(),"^",primReal(),primInt());
 
-  // This works as we force all booleans to be 1 or 0 as an integer.
-  addBooleanOperator(ve,inst::log_eq,primBoolean(),"==");
-  addBooleanOperator(ve,inst::log_neq,primBoolean(),"!=");
+  addFunc(ve,run::boolNot,primBoolean(),"!",primBoolean());
   addBooleanOperator(ve,run::boolXor,primBoolean(),"^");
 
   addBooleanOperator(ve,run::boolTrue,primNull(),"==");
   addBooleanOperator(ve,run::intZero,primNull(),"!=");
 
-  addSimpleOperator(ve,run::binaryOp<string,plus>,primString(),"+");
-  addBooleanOperator(ve,run::binaryOp<string,less>,primString(),"<");
-  addBooleanOperator(ve,run::binaryOp<string,lessequals>,primString(),"<=");
-  addBooleanOperator(ve,run::binaryOp<string,equals>,primString(),"==");
-  addBooleanOperator(ve,run::binaryOp<string,greater>,primString(),">");
-  addBooleanOperator(ve,run::binaryOp<string,greaterequals>,primString(),">=");
-  addBooleanOperator(ve,run::binaryOp<string,notequals>,primString(),"!=");
-  addSimpleOperator(ve,run::binaryOp<string,min>,primString(),"min");
-  addSimpleOperator(ve,run::binaryOp<string,max>,primString(),"max");
-
-  addSimpleOperator(ve,run::binaryOp<pair,plus>,primPair(),"+");
-  addSimpleOperator(ve,run::binaryOp<pair,minus>,primPair(),"-");
-  addSimpleOperator(ve,run::binaryOp<pair,times>,primPair(),"*");
-  addSimpleOperator(ve,run::binaryOp<pair,divide>,primPair(),"/");
-  addSimpleOperator(ve,run::binaryOp<pair,power>,primPair(),"^");
+  addSimpleOperator(ve,binaryOp<string,plus>,primString(),"+");
   
-  addBooleanOperator(ve,run::binaryOp<pair,equals>,primPair(),"==");
-  addBooleanOperator(ve,run::binaryOp<pair,notequals>,primPair(),"!=");
-
   addSimpleOperator(ve,run::transformTransformMult,primTransform(),"*");
   addFunc(ve,run::transformPairMult,primPair(),"*",primTransform(),
 	  primPair());
@@ -347,7 +304,6 @@ double pow10(double x) {return pow(10.0,x);}
 // NOTE: We should move all of these into a "builtin" module.
 void base_venv(venv &ve)
 {
-  addUnaryOperators(ve);
   addOperators(ve);
 
   addFunc(ve,run::draw,primVoid(),"draw",primPicture(),primPath(), primPen());

@@ -69,7 +69,7 @@ void arrayNegate(vm::stack *s)
   size_t size=(size_t) a->size();
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
-      (*c)[i]=-read<T>(a,i);
+    (*c)[i]=-read<T>(a,i);
   s->push(c);
 }
 
@@ -336,14 +336,6 @@ void realArrayFunc(vm::stack *s)
   for(size_t i=0; i < size; i++)
     (*c)[i]=func(read<double>(a,i));
   s->push(c);
-}
-
-template<class T, template <class S> class op>
-void binaryOp(vm::stack *s)
-{
-  T w = pop<T>(s);
-  T z = pop<T>(s);
-  s->push(op<T>()(z,w,s,0));
 }
 
 } // namespace run

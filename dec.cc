@@ -655,9 +655,9 @@ void fundec::addOps(coenv &e, function *f)
 {
   function *ft = opType(f);
   e.e.addVar(getPos(), symbol::trans("=="),
-      new varEntry(ft, new instAccess(inst::func_eq)),true);
+      new varEntry(ft, new bltinAccess(run::boolFuncEq)),true);
   e.e.addVar(getPos(), symbol::trans("!="),
-      new varEntry(ft, new instAccess(inst::func_neq)),true);
+      new varEntry(ft, new bltinAccess(run::boolFuncNeq)),true);
 }
 
 void fundec::trans(coenv &e)
@@ -735,7 +735,7 @@ void recorddec::addOps(coenv &e, record *r)
 {
   function *ft = opType(r);
   e.e.addVar(getPos(), symbol::trans("alias"),
-      new varEntry(ft, new instAccess(inst::mem_eq)));
+      new varEntry(ft, new bltinAccess(run::boolMemEq)));
 }
 
 void recorddec::trans(coenv &e)

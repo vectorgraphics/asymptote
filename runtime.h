@@ -32,13 +32,13 @@ void intZero(vm::stack *s);
 void realZero(vm::stack *s);
 void boolFalse(vm::stack *s);
 void boolTrue(vm::stack *s);
+void boolNot(vm::stack *s);
 void boolXor(vm::stack *s);
+void boolMemEq(vm::stack *s);
+void boolFuncEq(vm::stack *s);
+void boolFuncNeq(vm::stack *s);
 
-void intIntMod(vm::stack *s);
-void realRealMod(vm::stack *s);
 void realFmod(vm::stack *s);
-void intIntPow(vm::stack *s);
-void realRealPow(vm::stack *s);
 void realIntPow(vm::stack *s);
 void realAtan2(vm::stack *s);
 void realHypot(vm::stack *s);

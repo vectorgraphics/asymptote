@@ -20,8 +20,6 @@ executed as they are entered.) Make it look interpreted but still compile.
 
 Tom: extend syntax to allow for explict array casts like (int[]) on real[].
 
-Tom: replace op codes with function calls
-
 3d graphs
 
 Document scoping and lifetime issues with the virtual machine, especially as

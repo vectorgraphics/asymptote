@@ -771,7 +771,6 @@ A path is specified as a list of pairs or paths interconnected with
 @cindex @code{..}
 @code{--}, which denotes a straight line segment, or @code{..}, which
 denotes a cubic spline.
-@anchor{unitcircle}
 @cindex @code{unitcircle}
 Specifying a final node @code{cycle} creates a cyclic path that
 connects smoothly back to the initial node, as in this approximation
@@ -786,6 +785,7 @@ which along with the directions @code{up}, @code{down}, @code{right},
 and @code{left} are defined as pairs in the default @code{Asymptote} base file
 @code{plain.asy}.
 @cindex @code{circle}
+@anchor{circle}
 A useful routine in @code{plain.asy} constructs a circle of radius
 @code{r} centered on @code{c} by transforming unitcircle:
 @verbatim
@@ -1352,12 +1352,15 @@ pen default attributes to their initial values.
 
 @cindex @code{transform}
 @code{Asymptote} makes extensive use of affine transforms of the form
-@code{a+Bx}, where @code{a} is a pair and @code{B} is a 2x2
+@math{a+Mx}, where @math{a} is a pair and @math{M} is a @math{2x2}
 matrix. Transforms can be applied to pairs, guides, paths, pens,
-transforms, frames, and pictures by multiplication on the left (see
-@pxref{unitcircle} for an example).
+transforms, frames, and pictures by multiplication (via the binary operator
+@code{*}) on the left (@pxref{circle} for an example).
+Transforms can be composed with one another and inverted with the
+function @code{transform inverse(transform)}; they can also be raised to any
+integer power with the @code{^} operator.
 
-Possible transforms are:
+The builtin transforms are:
 
 @table @code
 @item identity()
@@ -1388,8 +1391,6 @@ rotates by angle @code{a} about @code{z};
 reflect about line @code{z--w}.
 @end table
 
-Transforms can be composed with one another and inverted with the
-function @code{inverse(transform)}.
 The implicit initializer for transforms is @code{identity()}.
 
 @node Frames and pictures

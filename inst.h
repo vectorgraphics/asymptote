@@ -50,8 +50,9 @@ private:
   code_t *code;
 };
 
-class program::label : public boost::iterator_facade<label,inst,
-                                                     boost::random_access_traversal_tag> {
+class program::label : 
+  public boost::iterator_facade<label,inst,boost::random_access_traversal_tag>
+{
 public: // interface
   label() : where(0), code() {};
 private:
@@ -170,12 +171,6 @@ struct inst {
   enum opcode {
     pop, intpush, constpush,
     varpush, varsave, globalpush, globalsave, fieldpush, fieldsave,
-    mem_eq, mem_neq, func_eq, func_neq,
-    i_plus, i_minus, i_times, i_divide, i_negate,
-    log_not, log_eq, log_neq,
-    i_incr, i_decr, i_eq, i_neq, i_gt, i_ge, i_lt, i_le, 
-    f_plus, f_minus, f_times, f_divide, f_negate,
-    f_eq, f_neq, f_gt, f_ge, f_lt, f_le, 
     builtin, jmp, cjmp, njmp, popcall,
     pushclosure, makefunc, ret, 
     alloc
@@ -220,7 +215,8 @@ inline T read(vm::array *a, size_t i)
 
 // Prints one instruction (including arguments) and returns how many
 // positions in the code stream were shown.
-program::label printInst(std::ostream& out, program::label code, const program::label base);
+program::label printInst(std::ostream& out, program::label code,
+			 const program::label base);
 
 // Prints code until a ret opcode is printed.
 void print(std::ostream& out, program base);

@@ -95,25 +95,38 @@ void boolTrue(stack *s)
   s->push(true);  
 }
 
+void boolNot(stack *s)
+{
+  s->push(!s->pop<bool>());
+}
+
 void boolXor(stack *s)
 {
-  bool b = s->pop<bool>();
-  bool a = s->pop<bool>();
+  bool b=s->pop<bool>();
+  bool a=s->pop<bool>();
   s->push(a^b ? true : false);  
 }
 
-void intIntMod(stack *s)
+void boolMemEq(stack *s)
 {
-  int y = s->pop<int>();
-  int x = s->pop<int>();
-  s->push(trans::mod<int>()(x,y,s,0));
+  stack::vars_t a,b;
+  b=s->pop<stack::vars_t>();
+  a=s->pop<stack::vars_t>();
+  s->push(a == b);
 }
 
-void realRealMod(stack *s)
+void boolFuncEq(stack *s)
 {
-  double y = s->pop<double>();
-  double x = s->pop<double>();
-  s->push(trans::mod<double>()(x,y,s,0));
+  callable *l=s->pop<callable*>();
+  callable *r=s->pop<callable*>();
+  s->push(l->compare(r));
+}
+
+void boolFuncNeq(stack *s)
+{
+  callable *l=s->pop<callable*>();
+  callable *r=s->pop<callable*>();
+  s->push(!(l->compare(r)));
 }
 
 void realFmod(stack *s)
@@ -126,23 +139,9 @@ void realFmod(stack *s)
   s->push(val);
 }
 
-void intIntPow(stack *s)
-{
-  int y = s->pop<int>();
-  int x = s->pop<int>();
-  s->push(trans::power<int>()(x,y,s,0));
-}
-
 void realIntPow(stack *s)
 {
   int y = s->pop<int>();
-  double x = s->pop<double>();
-  s->push(pow(x,y));
-}
-
-void realRealPow(stack *s)
-{
-  double y = s->pop<double>();
   double x = s->pop<double>();
   s->push(pow(x,y));
 }
