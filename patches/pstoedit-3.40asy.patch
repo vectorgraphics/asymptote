@@ -313,7 +313,7 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +  buf << outBaseName << "." << imgcount << ".eps";
 +  
 +  outf << "label(include(\"" << buf.str() << "\"),("
-+       << ll.x_ << "pt," << ll.y_ << "),align,textpen);" << endl;
++       << ll.x_ << "pt," << ll.y_ << "),align);" << endl;
 +  outf << "layer();" << endl;
 +  
 +  ofstream outi(buf.str().c_str());
