@@ -469,6 +469,24 @@ pair maxbound(pair z, pair w)
   return (max(z.x,w.x),max(z.y,w.y));
 }
 
+pair realmult(pair z, pair w) 
+{
+  return (z.x*w.x,z.y*w.y);
+}
+
+pair rectify(pair dir) 
+{
+  real scale=max(abs(dir.x),abs(dir.y));
+  if(scale != 0) dir *= 0.5/scale;
+  dir += (0.5,0.5);
+  return dir;
+}
+
+pair point(frame f, pair dir)
+{
+  return min(f)+realmult(rectify(dir),max(f)-min(f));
+}
+
 struct picture {
   // The functions to do the deferred drawing.
   drawerBound[] nodes;
@@ -707,25 +725,25 @@ struct picture {
   }
 
   // Returns the transform for turning user-space pairs into true-space pairs.
-  transform calculateTransform(real xmax, real ymax=0, bool keepAspect=true)
+  transform calculateTransform(real xsize, real ysize, bool keepAspect=true)
   {
-    if (xmax == 0 && ymax == 0)
+    if (xsize == 0 && ysize == 0)
       return identity();
-    else if (ymax == 0) {
-      scaling sx=calculateScaling(xcoords,xmax);
+    else if (ysize == 0) {
+      scaling sx=calculateScaling(xcoords,xsize);
       return scale(sx.a);
     }
-    else if (xmax == 0) {
-      scaling sy=calculateScaling(ycoords,ymax);
+    else if (xsize == 0) {
+      scaling sy=calculateScaling(ycoords,ysize);
       return scale(sy.a);
     }
     else {
-      scaling sx=calculateScaling(xcoords,xmax);
-      scaling sy=calculateScaling(ycoords,ymax);
+      scaling sx=calculateScaling(xcoords,xsize);
+      scaling sy=calculateScaling(ycoords,ysize);
       if (keepAspect)
         return scale(min(sx.a,sy.a));
       else
-        return xscale(sx.a) * yscale(sy.a);
+        return xscale(sx.a)*yscale(sy.a);
     }
   }
 
@@ -743,12 +761,23 @@ struct picture {
   }
 
   // Returns the picture fit to the wanted size.
-  frame fit(real xmax, real ymax, bool keepAspect=true) {
-    return fit(calculateTransform(xmax,ymax,keepAspect));
+  frame fit(real xsize, real ysize, bool keepAspect=true) {
+    return fit(calculateTransform(xsize,ysize,keepAspect));
   }
 
   frame fit() {
     return fit(xsize,ysize,keepAspect);
+  }
+  
+  // Returns the picture fit to the wanted size, aligned in direction dir
+  frame fit(real xsize, real ysize, bool keepAspect=true, pair dir) {
+    frame f=fit(xsize,ysize,keepAspect);
+    return shift(-point(f,-dir))*f;
+  }
+
+  frame fit(pair dir) {
+    frame f=fit();
+    return shift(-point(f,-dir))*f;
   }
   
   // Copies the drawing information, but not the sizing information into a new
@@ -823,11 +852,6 @@ picture operator * (transform t, picture orig)
   return pic;
 }
 
-pair realmult(pair z, pair w) 
-{
-  return (z.x*w.x,z.y*w.y);
-}
-
 public picture currentpicture=new picture;
 currentpicture.deconstruct=true;
 
@@ -892,17 +916,12 @@ pair max(path[] g)
 }
 
 // Add frame f about origin to picture pic
-void addabout(pair origin, picture pic, frame src)
+void add(pair origin=(0,0), picture pic=currentpicture, frame src)
 {
   pic.add(new void (frame dest, transform t) {
     add(dest,shift(t*origin)*src);
   });
   pic.addBox(origin,origin,min(src),max(src));
-}
-
-void addabout(pair origin, frame src)
-{
-  addabout(origin,currentpicture,src);
 }
 
 // Add a picture to another such that user coordinates in both will be scaled
@@ -920,14 +939,14 @@ void add(picture src)
 // Fit the picture src using the identity transformation (so user
 // coordinates and truesize coordinates agree) and add it about the point
 // origin to picture dest.
-void addabout(pair origin, picture dest, picture src)
+void add(pair origin, picture dest, picture src)
 {
-  addabout(origin,dest,src.fit(identity()));
+  add(origin,dest,src.fit(identity()));
 }
 
-void addabout(pair origin, picture src)
+void add(pair origin, picture src)
 {
-  addabout(origin,currentpicture,src);
+  add(origin,currentpicture,src);
 }
 
 guide box(pair a, pair b)
@@ -1100,13 +1119,13 @@ void fill(picture pic=currentpicture, path[] g,
     pic.addPath(g[i]);
 }
 
-void fillabout(pair origin, picture pic=currentpicture, path g,
+void fill(pair origin, picture pic=currentpicture, path g,
 	       pen pena=currentpen, pair a=0, real ra=0,
 	       pen penb=currentpen, pair b=0, real rb=0)
 {
   picture opic=new picture;
   fill(opic,g,pena,a,ra,penb,b,rb);
-  addabout(origin,pic,opic);
+  add(origin,pic,opic);
 }
   
 void filldraw(picture pic=currentpicture, path g,
@@ -1125,14 +1144,14 @@ void filldraw(picture pic=currentpicture, path[] g,
   draw(pic,g,drawpen);
 }
 
-void filldrawabout(pair origin, picture pic=currentpicture, path g,
-		   pen pena=currentpen, pen drawpen=currentpen,
-		   pair a=0, real ra=0,
-		   pen penb=currentpen, pair b=0, real rb=0)
+void filldraw(pair origin, picture pic=currentpicture, path g,
+	      pen pena=currentpen, pen drawpen=currentpen,
+	      pair a=0, real ra=0,
+	      pen penb=currentpen, pair b=0, real rb=0)
 {
   picture opic=new picture;
   filldraw(opic,g,pena,drawpen,a,ra,penb,b,rb);
-  addabout(origin,pic,opic);
+  add(origin,pic,opic);
 }
   
 void clip(frame f, path g)
@@ -1209,20 +1228,9 @@ void label(picture pic=currentpicture, string s, real angle=0, pair position,
   pic.addBox(position,position,min(f),max(f));
 }
 
-pair point(frame f, pair dir)
-{
-  real scale=max(abs(dir.x),abs(dir.y));
-  if(scale != 0) dir *= 0.5/scale;
-  dir += (0.5,0.5);
-  return min(f)+realmult(dir,max(f)-min(f));
-}
-
 pair point(picture pic=currentpicture, pair dir)
 {
-  real scale=max(abs(dir.x),abs(dir.y));
-  if(scale != 0) dir *= 0.5/scale;
-  dir += (0.5,0.5);
-  return pic.userMin+realmult(dir,pic.userMax-pic.userMin);
+  return pic.userMin+realmult(rectify(dir),pic.userMax-pic.userMin);
 }
 
 transform rotate(real a) 
@@ -1378,12 +1386,8 @@ void newpage()
   layer();
 }
 
-private struct keepAspectT {};
-public keepAspectT keepAspect=null;
-typedef bool keepAspect(keepAspectT);
-public keepAspect
-  Aspect=new bool(keepAspectT) {return true;},
-  IgnoreAspect=new bool(keepAspectT) {return false;};
+bool Aspect=true;
+bool IgnoreAspect=false;
 
 private struct waitT {};
 public waitT wait=null;
@@ -1393,9 +1397,9 @@ public wait
   NoWait=new bool(waitT) {return false;};
 
 void size(picture pic=currentpicture,
-          real xsize, real ysize=0, keepAspect keepAspect=Aspect)
+          real xsize, real ysize=0, bool keepAspect=Aspect)
 {
-  pic.size(xsize,ysize,keepAspect(keepAspect));
+  pic.size(xsize,ysize,keepAspect);
 }
 
 private struct bboxT {};
@@ -1425,14 +1429,13 @@ frame bbox(frame f, real xmargin=0, real ymargin=infinity, pen p=currentpen,
 }
 
 frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
-	   real xsize=infinity, real ysize=infinity, keepAspect keepAspect,
+	   real xsize=infinity, real ysize=infinity, bool keepAspect,
 	   pen p=currentpen, bbox bbox=Boundary)
 {
   if(ymargin == infinity) ymargin=xmargin;
   if(xsize == infinity) xsize=pic.xsize;
   if(ysize == infinity) ysize=pic.ysize;
-  frame f=pic.fit(max(xsize-2*xmargin,0),max(ysize-2*ymargin,0),
-		  keepAspect(keepAspect));
+  frame f=pic.fit(max(xsize-2*xmargin,0),max(ysize-2*ymargin,0),keepAspect);
   if(pic.deconstruct && GUIDelete()) return f;
   frame d=_bbox(f,xmargin,ymargin,p,bbox);
   if(pic.deconstruct) {
@@ -1588,7 +1591,7 @@ guide ellipse(pair c, real a, real b)
 void mark(picture pic=currentpicture, guide g, frame mark)
 {
   for(int i=0; i <= length(g); ++i)
-    addabout(point(g,i),pic,mark);
+    add(point(g,i),pic,mark);
 }
 
 void legend(frame f, Legend[] legend, bool placement=true)
@@ -1649,20 +1652,20 @@ public orientation
 
 void shipout(string prefix=defaultfilename, picture pic,
 	     frame preamble=patterns, real xsize=infinity, real ysize=infinity,
-	     keepAspect keepAspect, orientation orientation=Portrait,
+	     bool keepAspect, orientation orientation=Portrait,
 	     string format="", wait wait=NoWait)
 {
   if(xsize == infinity) xsize=pic.xsize;
   if(ysize == infinity) ysize=pic.ysize;
   GUIPrefix=prefix;
   pic.deconstruct=true;
-  frame f=pic.fit(xsize,ysize,keepAspect(keepAspect));
+  frame f=pic.fit(xsize,ysize,keepAspect);
   shipout(prefix,orientation(f,orientation),preamble,pic.legend,format,wait);
 }
 
 void shipout(string prefix=defaultfilename,
 	     real xsize=infinity, real ysize=infinity,
-	     keepAspect keepAspect, orientation orientation=Portrait,
+	     bool keepAspect, orientation orientation=Portrait,
 	     string format="", wait wait=NoWait)
 {
   shipout(prefix,currentpicture,ysize,keepAspect,orientation,format,wait);
@@ -1815,7 +1818,7 @@ void bar(picture pic, pair a, pair d, pen p=currentpen)
 {
   picture opic=new picture;
   Draw(opic,-0.5d--0.5d,p+solid);
-  addabout(a,pic,opic);
+  add(a,pic,opic);
 }
 						      
 picture bar(pair a, pair d, pen p=currentpen)
@@ -1990,7 +1993,7 @@ void draw(picture pic=currentpicture, string s="", real angle=0,
 }
 
 // Draw a fixed-size object about the user-coordinate 'origin'.
-void drawabout(pair origin, picture pic=currentpicture, string s="",
+void draw(pair origin, picture pic=currentpicture, string s="",
 	       real angle=0, path g, real position=infinity, pair align=0,
 	       pair shift=0, side side=RightSide, pen p=currentpen,
 	       arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
@@ -1999,7 +2002,7 @@ void drawabout(pair origin, picture pic=currentpicture, string s="",
   picture opic=new picture;
   draw(opic,s,angle,g,position,align,shift,side,p,arrow,bar,margin,legend,
        mark,topmark);
-  addabout(origin,pic,opic);
+  add(origin,pic,opic);
 }
 
 void arrow(picture pic=currentpicture, string s="", real angle=0,
@@ -2012,7 +2015,7 @@ void arrow(picture pic=currentpicture, string s="", real angle=0,
   marginT margin=new marginT;
   margin(b--b,p,margin); // Extract margin.begin and margin.end  
   pair a=(margin.begin+length+margin.end)*unit(align);
-  drawabout(b,pic,s,angle,a--(0,0),0.0,align,shift,p,
+  draw(b,pic,s,angle,a--(0,0),0.0,align,shift,p,
 	    Arrow(size,Angle,filltype),margin);
 }
 

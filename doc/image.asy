@@ -1,4 +1,3 @@
-size(250,250);
 import graph;
 import palette;
 
@@ -12,6 +11,11 @@ for(int i=0; i < n; ++i)
 
 pen[] Palette=BWRainbow();
 
-image(v,Palette,(0,0),(1,1));
-addabout((1,0),palette(v,Palette,"$A$",
-		       LeftTicks(0.0,0.0,Ticksize,0.0,"%+#.1f")));
+picture plot=new picture;
+picture bar=new picture;
+
+image(plot,v,Palette,(0,0),(1,1));
+palette(bar,v,5mm,Palette,"$A$",PaletteTicks("%+#.1f"));
+
+add(plot.fit(250,250,W));
+add((1cm,0),bar.fit(0,250,E));

@@ -57,7 +57,7 @@ void perpendicular(picture pic=currentpicture, pair z, pair w,
   pair d1=size*w;
   pair d2=I*d1;
   _draw(apic,d1--d1+d2--d2,p);
-  addabout(z,pic,apic);
+  add(z,pic,apic);
 }
   
 // Draw a perpendicular symbol at z going from dir(g,0) to dir(g,0)+90

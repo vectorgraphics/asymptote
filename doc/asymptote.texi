@@ -20,7 +20,7 @@ file LICENSE in the top-level source directory).
      
 @dircategory Languages
 @direntry
-* asymptote: (asymptote).		Vector graphics language.
+* asymptote: (asymptote).               Vector graphics language.
 @end direntry
 
 @titlepage
@@ -143,7 +143,7 @@ simple @code{Asymptote} graphics commands @ref{Drawing commands}.
 use multiplication by complex numbers to rotate a vector) and uses
 @code{LaTeX} to do the 
 typesetting of labels. This is an important feature for scientific
-applications. It was inspired by an earlier drawing program (with a much weaker
+applications. It was inspired by an earlier drawing program (with a weaker
 syntax & capabilities) called @code{MetaPost}.
 
 Many of the features of @code{Asymptote} are written in the
@@ -1273,7 +1273,7 @@ to create a tiling pattern, identified by the string @code{name}, for
 with optional left-bottom margin @code{lb} and right-top margin @code{rt}.
 @verbatim
 void add(frame preamble=patterns, string name, picture pic, pair lb=0,
-	 pair rt=0)
+         pair rt=0)
 @end verbatim
 
 To @code{fill} or @code{draw} using pattern @code{name}, use
@@ -1360,7 +1360,7 @@ Transforms can be composed with one another and inverted with the
 function @code{transform inverse(transform)}; they can also be raised to any
 integer power with the @code{^} operator.
 
-The builtin transforms are:
+The built-in transforms are:
 
 @table @code
 @item identity()
@@ -1429,7 +1429,7 @@ specified size:
 void shipout(string prefix=defaultfilename,
              picture pic=currentpicture, frame preamble=patterns,
              real xsize=pic.xsize, real ysize=pic.ysize,
-             keepAspect keepAspect=
+             bool keepAspect=
              pic.keepAspect ? Aspect : IgnoreAspect,
              orientation orientation=Portrait,
              string format="", wait wait=NoWait);
@@ -1450,7 +1450,7 @@ one can alternatively use the @code{size} function:
 @cindex @code{size}
 @verbatim
 void size(picture pic=currentpicture,
-          real xsize, real ysize, keepAspect keepAspect=Aspect);
+          real xsize, real ysize, bool keepAspect=Aspect);
 @end verbatim
 
 If @code{xsize} and @code{ysize} are both 0, user coordinates will be
@@ -1461,13 +1461,37 @@ If exactly one of @code{xsize} or @code{ysize} is 0, no size restriction
 is imposed in that direction; it will be scaled the same as the other 
 direction.
 
-If @code{keepAspect} is set to @code{Aspect}, the picture will be scaled
-with its aspect ratio preserved such that the final width is no more
-than @code{xsize} and the final height is no more than @code{ysize}. 
+If @code{keepAspect} is set to @code{Aspect} or @code{true},
+the picture will be scaled with its aspect ratio preserved such that
+the final width is no more than @code{xsize} and the final height is
+no more than @code{ysize}.
 
-If @code{keepAspect} is set to @code{IgnoreAspect}, the picture will be
-scaled in both directions so that the final width is @code{xsize} and
-the height is @code{ysize}. 
+If @code{keepAspect} is set to @code{IgnoreAspect} or @code{false},
+the picture will be scaled in both directions so that the final width
+is @code{xsize} and the height is @code{ysize}. 
+
+@cindex @code{fit}
+@cindex @code{picture alignment}
+A picture @code{pic} can be explicitly fit to a frame by calling one
+of these member functions:
+@verbatim
+frame pic.fit();
+frame pic.fit(pair dir);
+frame pic.fit(real xsize, real ysize, bool keepAspect=true);
+frame pic.fit(real xsize, real ysize, bool keepAspect=true,
+              pair dir);
+@end verbatim
+The first two forms use the @code{xsize}, @code{ysize}, and
+@code{keepAspect} values set by the @code{size} command (or the default
+values of @code{0}, @code{0}, and @code{false}, respectively). The optional
+@code{dir} argument specifies a direction to use for aligning the
+frame, in a manner completely analogous to the @code{align} argument
+of @code{label} (@pxref{label}). Frame alignment is illustrated in the
+examples @ref{datagraph} and @ref{image}.
+
+@verbatim
+frame f=pic.fit(xsize,ysize,true);
+@end verbatim
 
 @cindex portrait mode
 @cindex landscape mode
@@ -1505,12 +1529,14 @@ void add(picture dest, picture src);
 The first example adds @code{src} to @code{currentpicture}; the second
 one adds @code{src} to @code{dest}. 
 
-There are also corresponding routines to add a picture @code{src} specified in
-postscript coordinates to another picture about the point @code{origin}:
-@cindex @code{addabout}
+There are also routines to add a picture or frame @code{src} specified
+in postscript coordinates to another picture about the user coordinate
+@code{origin}:
+@cindex @code{add}
 @verbatim
-void addabout(pair origin, picture dest, picture src);
-void addabout(pair origin, picture src);
+void add(pair origin, picture dest, picture src);
+void add(pair origin, picture src);
+void add(pair origin=(0,0), picture pic=currentpicture, frame src)
 @end verbatim
 
 
@@ -2409,7 +2435,7 @@ void execute(string file);
 * math::                        Extend @code{Asymptote}'s math capabilities
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
-* palette::                     
+* palette::                     Color density images and palettes
 * tree::                        Dynamic binary search tree
 * drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
@@ -2599,6 +2625,7 @@ Request a bottom and top axis.
 
 @end table
 
+@anchor{ticks}
 @cindex @code{ticks}
 @cindex @code{NoTicks}
 The default tick option is @code{NoTicks}. 
@@ -2738,13 +2765,13 @@ Here @code{position} denotes an @code{arctime} value.
 @item These routines are useful for putting ticks and labels on axes:
 @verbatim
 void xtick(picture pic=currentpicture, real x, pair align=N,
-	   real size=Ticksize, pen p=currentpen);
+           real size=Ticksize, pen p=currentpen);
 void ytick(picture pic=currentpicture, real y, pair align=E,
-	   real size=Ticksize, pen p=currentpen);
+           real size=Ticksize, pen p=currentpen);
 void labelx(picture pic=currentpicture, string s, real x, pair align=S,
-	    pair shift=infinity, pen p=currentpen);
+            pair shift=infinity, pen p=currentpen);
 void labely(picture pic=currentpicture, string s, real y, pair align=W,
-	    pair shift=infinity, pen p=currentpen);
+            pair shift=infinity, pen p=currentpen);
 @end verbatim
 
 @end itemize
@@ -2772,9 +2799,8 @@ Here are some simple examples of two-dimensional graphs:
 @cindex @code{polygon}
 @cindex @code{cross}
 @cindex @code{errorbars}
-@item The next example draws a graph of an array of coordinate pairs,
-using the routine @code{dot} to place a dot at each node of the resulting path.
-It also illustrates the use of data markers (constructed with
+@item The next example draws a graph of an array of coordinate pairs.
+It also illustrates the use of frame alignment, data markers (constructed with
 @code{unitcircle}, the unit @math{n}-sided regular polygon 
 @code{polygon(int n)}, and the unit @math{n}-point cross 
 @code{cross(int n)}) and the @code{errorbar} routines:
@@ -2785,8 +2811,8 @@ void errorbars(picture pic=currentpicture, pair[] z, pair[] dp,
                real size=0);
 
 void errorbars(picture pic=currentpicture, real[] x, real[] y,
-	       real[] dpx, real[] dpy, real[] dmx={}, real[] dmy={},
-	       bool[] cond={}, pen p=currentpen, real size=0);
+               real[] dpx, real[] dpy, real[] dmx={}, real[] dmy={},
+               bool[] cond={}, pen p=currentpen, real size=0);
 @end verbatim
 
 @noindent
@@ -2795,6 +2821,7 @@ absolute values of the elements of the pair array @code{dp} and the
 optional pair array @code{dm}. If @code{dm} is not specified, the
 positive and negative extents of the error are assumed to be equal.
 
+@anchor{datagraph}
 @verbatiminclude datagraph.asy
 @image{datagraph}
 
@@ -2847,6 +2874,7 @@ For example, to draw a log graph of a function, use @code{scale(Log,Log)}:
 @verbatiminclude loggraph.asy
 @image{loggraph}
 
+@page
 @cindex secondary axis
 @cindex @code{secondaryX}
 @cindex @code{secondaryY}
@@ -2858,9 +2886,14 @@ picture secondaryY(picture primary=currentpicture, void f(picture));
 
 In this example, @code{secondaryY} is used to draw a secondary logarithmic
 @math{y} axis:
-
 @verbatiminclude secondaryaxis.asy
+@page
 @image{secondaryaxis}
+
+@item Here is a histogram example, which uses the @code{stats} module.
+@cindex @code{axis}
+@verbatiminclude histogram.asy
+@image{histogram}
 
 @item Here is an example that illustrates the general @code{axis} routine.
 @cindex @code{axis}
@@ -2900,25 +2933,34 @@ spanning the rectangular region with opposite corners at coordinates
 @code{initial} and @code{final}:
 @verbatim
 void image(picture pic=currentpicture, real[][] data, pen[] palette,
-	   pair initial, pair final);
+           pair initial, pair final);
 @end verbatim
 
-An optionally labelled palette frame may be generated with the routine
-
+An optionally labelled palette bar may be generated with the routine
 @verbatim
-frame palette(real[][] data, pen[] palette,
-	      real height=paletteheight, pair paletteshift=3*Ticksize,
-	      pen p=currentpen, string s="", real position=0.5,
-	      real angle=infinity, pair align=E, pair shift=0,
-	      pair side=right, pen plabel=currentpen,
-	      ticks ticks=LeftTicks(0.0,0.0,Ticksize,0.0));
+void palette(picture pic=currentpicture, real[][] data,
+             real width=Ticksize, pen[] palette, pen p=currentpen,
+             string s="", real position=0.5, real angle=infinity,
+             pair align=E, pair shift=0, pair side=right,
+             pen plabel=currentpen, paletteticks ticks=PaletteTicks)
 @end verbatim
-The palette frame can then be added to the graph at the desire
-location using @code{addabout}:
 
+The argument @code{paletteticks} is a special tick type (@pxref{ticks})
+that takes the following arguments:
+@verbatim
+paletteticks PaletteTicks(bool begin=true, int N=0, real Step=0,
+                          string F=defaultformat, bool end=true)
+@end verbatim
+
+The image and palette bar can be fit (and optionally aligned) to a frame 
+and added to the graph at the location @code{origin} using
+@code{add(pair origin=(0,0),frame)}:
+
+@anchor{image}
 @verbatiminclude image.asy
 @image{image}
 
+@page
 @item The following scientific graphs, which illustrate many features of
 @code{Asymptote}'s graphics routines, were generated from the examples
 @code{diatom.asy} and @code{westnile.asy}, using the comma-separated
@@ -3011,7 +3053,7 @@ several convenient pattern generation routines.
 @node palette
 @subsection @code{palette}
 @cindex @code{palette}
-This package implements color density images and palette frames,
+This package implements color density images and palette bars,
 along with several predefined palettes (@pxref{images}).
 
 @node tree
@@ -3409,20 +3451,18 @@ void dot(picture pic=currentpicture, path[] g, pen p=currentpen);
 @end verbatim
 See section @ref{draw} for a more general way of marking path nodes.
 
-
 To draw a fixed-sized object (in @code{PostScript} coordinates) about the user
 coordinate @code{origin}, use the routine
-
-@cindex @code{drawabout}
+@cindex @code{draw}
 @verbatim
-void drawabout(pair origin, picture pic=currentpicture, string s="",
-               real angle=0, path g, real position=0.5*length(g),
-               pair align=0, pair shift=0, side side=RightSide,
-               pen p=currentpen, arrowbar arrow=None, arrowbar bar=None,
-	       margin margin=NoMargin, string legend="",
-               frame mark=nullframe, bool topmark=true);
+void draw(pair origin, picture pic=currentpicture, string s="", real angle=0,
+          path g, real position=0.5*length(g), pair align=0,
+          pair shift=0, side side=RightSide, pen p=currentpen,
+          arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
+          string legend="", frame mark=nullframe, bool topmark=true);
 @end verbatim
 
+@page
 @cindex @code{fill}
 @anchor{gradient shading}
 @cindex gradient
@@ -3431,8 +3471,8 @@ void drawabout(pair origin, picture pic=currentpicture, string s="",
 @section fill
 @verbatim
 void fill(picture pic=currentpicture, path g,
-pen pena=currentpen, pair a=0, real ra=0,
-pen penb=currentpen, pair b=0, real rb=0);
+          pen pena=currentpen, pair a=0, real ra=0,
+          pen penb=currentpen, pair b=0, real rb=0);
 @end verbatim
 
 Fill the interior region bounded by the cyclic path @code{g} on the picture
@@ -3459,14 +3499,25 @@ operation:
 @verbatim
 void filldraw(picture pic=currentpicture, path g, pen pena=currentpen,
               pen drawpen=currentpen, pair a=0, real ra=0,
-	      pen penb=currentpen, pair b=0, real rb=0);
+              pen penb=currentpen, pair b=0, real rb=0);
 @end verbatim
 
-@cindex @code{fillabout}
-@cindex @code{filldrawabout}
-There are also fixed-size routines analogous to @code{drawabout}:
-@code{fillabout} and @code{filldrawabout} allow one to fill a
-object described in @code{PostScript} coordinates about a user coordinate.
+@cindex @code{fill}
+@cindex @code{filldraw}
+There are also fixed-size versions of @code{fill} and @code{filldraw}
+that allow one to fill an object described in @code{PostScript}
+coordinates about the user coordinate @code{origin}:
+@verbatim
+void fill(pair origin, picture pic=currentpicture, path g,
+          pen pena=currentpen, pair a=0, real ra=0,
+          pen penb=currentpen, pair b=0, real rb=0);
+
+void filldraw(pair origin, picture pic=currentpicture, path g,
+              pen pena=currentpen,
+              pen drawpen=currentpen, pair a=0, real ra=0,
+              pen penb=currentpen, pair b=0, real rb=0);
+@end verbatim
+
 
 @cindex unfill
 The following routines use @code{evenodd} clipping together with the
@@ -3477,6 +3528,7 @@ void unfill(picture pic=currentpicture, path g);
 void unfill(picture pic=currentpicture, path[] g);
 @end verbatim
 
+@page
 @cindex @code{clip}
 @node clip
 @section clip
@@ -3780,11 +3832,11 @@ properly displayed by @code{xasy} when done in a separate
 An @code{Asymptote} backend to @code{pstoedit}
 (@code{http://pstoedit.net}) is provided in the file
 @code{pstoedit-3.40asy.patch} in the @code{patches} directory of the
-@code{Asymptote} source. Unlike virtually all other pstoedit backends,
-this driver includes native clipping and @code{PostScript} subpath
-support. To install @code{pstoedit} with this backend, do the
-following (denoting the location of the @code{Asymptote} source
-directory by @code{ASYMPTOTE_SOURCE}):
+@code{Asymptote} source. Unlike virtually all other @code{pstoedit} backends,
+this driver includes native clipping, even-odd fill rule, and
+@code{PostScript} subpath support. To install @code{pstoedit} with
+this backend, do the following (denoting the location of the
+@code{Asymptote} source directory by @code{ASYMPTOTE_SOURCE}):
 
 @verbatim
 tar -zxf pstoedit-3.40.tar.gz
@@ -3803,8 +3855,10 @@ asy -V test
 @end verbatim
 
 @noindent
-If the line widths aren't quite correct, try giving pstoedit the
+If the line widths aren't quite correct, try giving @code{pstoedit} the
 @code{-dis} option.
+If the fonts aren't typeset correctly, try giving @code{pstoedit} the
+@code{-dt} option.
 
 @node Help
 @chapter Help
@@ -3862,7 +3916,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 
 @c  LocalWords:  randMax Gaussrand asy cindex indices resized LaTeX TK latin au
 @c  LocalWords:  latexusage tex bbox PostScript subdirectory gcc emacs ASYDIR
-@c  LocalWords:  documentclass usepackage asydef subpath shipout sqrt xN 
+@c  LocalWords:  documentclass usepackage asydef subpath shipout sqrt xN  Mx bw
 @c  LocalWords:  xscale labeldot xaxis yaxis BeginBar GIF postprocessing fpu de
 @c  LocalWords:  nomask noplain ImageMagick defaultfontsize defaultlinewidth cd
 @c  LocalWords:  startup natively xasy tkinter VxN yingyang currentpicture toc
@@ -3899,10 +3953,10 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  zxvf xargs cond polargraph xmin xmax plabel YZero labelling ln
 @c  LocalWords:  ymin ymax XZero xequals tickmin tickmax unlabelled se pq pena
 @c  LocalWords:  yequals Nobre Barbarosie Schwaiger nearearth conicurv Wiebusch
-@c  LocalWords:  unfill PAPERTYPE posterSize ngraph interpolatetype drawabout
-@c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling addabout ei
-@c  LocalWords:  westnile fillabout filldrawabout minipage infectiousM ra penb
-@c  LocalWords:  susceptibleM si flushright secondaryX secondaryY secondaryaxis
+@c  LocalWords:  unfill PAPERTYPE posterSize ngraph interpolatetype ctrl dt
+@c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei
+@c  LocalWords:  westnile minipage infectiousM ra penb paletteticks
+@c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis
 @c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx XEquals YEquals
 @c  LocalWords:  treetest eetomumu fermi backend pstoedit drawtree metapost xFF
 @c  LocalWords:  vimrc CFLAGS verbatiminclude online noindent bezier superpath
@@ -3915,4 +3969,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  PenMargin PenMargins TrueMargin labelmargin errorbars errorbar
 @c  LocalWords:  dpx dpy dmx dmy barsize arrowheadsize BeginDotMargin DotMargin
 @c  LocalWords:  EndDotMargin DotMargins NColors BWRainbow colorspace labelled
-@c  LocalWords:  paletteheight topmark paletteshift
+@c  LocalWords:  topmark PaletteTicks defaultformat

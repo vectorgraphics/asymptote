@@ -83,11 +83,14 @@ void histogram(picture pic=currentpicture, real[] count, real[] bins,
   for(int i=0; i < n; ++i) {
     if(valid[i]) {
       real c=count[i];
-      draw(halfbox((bins[i],last),(bins[i+1],c)),p);
+      draw(pic,halfbox((bins[i],last),(bins[i+1],c)),p);
       last=c;
-    } else {if(last != low) draw((bins[i],last)--(bins[i],low),p); last=low;}
+    } else {
+      if(last != low) 
+	draw(pic,(bins[i],last)--(bins[i],low),p); last=low;
+    }
   }
-  if(last != low) draw((bins[n],last)--(bins[n],low),p);
+  if(last != low) draw(pic,(bins[n],last)--(bins[n],low),p);
 }
 
 // return a random number uniformly distributed in the unit interval [0,1]

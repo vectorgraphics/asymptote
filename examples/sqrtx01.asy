@@ -15,7 +15,7 @@ real x=0.5;
 pair c=(4,0);
 
 transform T=xscale(0.5);
-drawabout((2.75,0),T*arc(0,0.30cm,20,340),ArcArrow);
+draw((2.75,0),T*arc(0,0.30cm,20,340),ArcArrow);
 fill(shift(c)*T*circle(0,-f(x)),red+white);
 draw(F(x)--c+(0,f(x)),dashed+red);
 draw(G(x)--c+(0,g(x)),dashed+red);

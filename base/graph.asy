@@ -169,9 +169,16 @@ private ticksT ticks=null;
 typedef void ticks(frame, transform, string, real, real, pair, pair, pair, 
 		   pen, path, pen, autoscaleT, part, bool, bool, int[], real,
 		   real, ticksT);
+
 typedef string ticklabel(real);
 
-string defaultticklabel(real x) {return math(format("%.4g",x));}
+ticklabel ticklabel(string s) {
+  return new string(real x) {return math(format(s,x));};
+}
+
+string defaultformat="%.4g";
+ticklabel ticklabel=ticklabel(defaultformat);
+ticklabel LogFormat=ticklabel("10^{%f}");
 
 void labelaxis(frame f, string s, real position, real angle, pair align,
 	       pair shift, guide g, pen p, bool labels, bool deconstruct)
@@ -198,10 +205,6 @@ void labelaxis(frame f, string s, real position, real angle, pair align,
   if(position == length(g)) d=shift(-width)*d;
   add(f,d);
 }
-
-ticklabel LogFormat=new string(real x) {
-  return (string) format("$10^{%f}$",x);
-};
 
 private struct locateT {
   pair z; // User location 
@@ -278,7 +281,7 @@ real logaxiscoverage(int N, transform T, path g, real initial, real factor,
 
 ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	    real step=0, real Size=0, real size=0,
-	    ticklabel ticklabel=defaultticklabel, bool end=true)
+	    ticklabel ticklabel=ticklabel, bool end=true)
 {
   locateT locate=new locateT;
   return new void(frame f, transform T, string s, real position, real angle,
@@ -460,7 +463,7 @@ ticks NoTicks()
 
 ticks LeftTicks(bool begin=true, int N=0, int n=0, real Step=0, real step=0,
 		real Size=Ticksize, real size=ticksize,
-		ticklabel ticklabel=defaultticklabel,
+		ticklabel ticklabel=ticklabel,
 		bool end=true)
 {
   return Ticks(begin,-1,N,n,Step,step,Size,size,ticklabel,end);
@@ -470,13 +473,12 @@ ticks LeftTicks(bool begin=true, int N=0, int n=0, real Step=0, real step=0,
 		real Size=Ticksize, real size=ticksize, string F,
 		bool end=true)
 {
-  return Ticks(begin,-1,N,n,Step,step,Size,size,
-	       new string(real x) {return math(format(F,x));},end);
+  return Ticks(begin,-1,N,n,Step,step,Size,size,ticklabel(F),end);
 }
 
 ticks RightTicks(bool begin=true, int N=0, int n=0, real Step=0, real step=0,
 		 real Size=Ticksize, real size=ticksize,
-		 ticklabel ticklabel=defaultticklabel, bool end=true)
+		 ticklabel ticklabel=ticklabel, bool end=true)
 {
   return Ticks(begin,1,N,n,Step,step,Size,size,ticklabel,end);
 }
@@ -485,8 +487,7 @@ ticks RightTicks(bool begin=true, int N=0, int n=0, real Step=0, real step=0,
 		 real Size=Ticksize, real size=ticksize, string F,
 		 bool end=true)
 {
-  return Ticks(begin,1,N,n,Step,step,Size,size,
-	       new string(real x) {return math(format(F,x));},end);
+  return Ticks(begin,1,N,n,Step,step,Size,size,ticklabel(F),end);
 }
 
 public ticks

@@ -71,12 +71,12 @@ draw("$\beta_M$",
      red,Arrow(Fill,0.5));
 
 path arrow=(0,0)--0.75cm*dir(35);
-drawabout(point(larval,NNE),
+draw(point(larval,NNE),
 	  minipage("\flushleft{larval death rate ($\mu_L$)}",45pt),
 	  arrow,1,blue,Arrow);
-drawabout(point(susceptibleM,NNE),
+draw(point(susceptibleM,NNE),
           minipage("\flushleft{adult death rate ($\mu_A$)}",20pt),
 	  arrow,1,N,blue,Arrow);
-drawabout(point(exposed,NNE),"$\mu_A$",arrow,1,blue,Arrow);
-drawabout(point(infectiousM,NNE),"$\mu_A$",arrow,1,blue,Arrow);
+draw(point(exposed,NNE),"$\mu_A$",arrow,1,blue,Arrow);
+draw(point(infectiousM,NNE),"$\mu_A$",arrow,1,blue,Arrow);
 

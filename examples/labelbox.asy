@@ -6,5 +6,5 @@ add(f,b1);
 add(f,b2);
 draw(f,point(b1,S)--point(b2,N),currentpen);
 
-addabout((0,0),f);
+add((0,0),f);
 

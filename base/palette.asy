@@ -1,8 +1,5 @@
 static import graph;
 
-static public real paletteheight=6cm;
-static public real palettemargin=2*Ticksize;
-
 void image(picture pic=currentpicture, real[][] data, pen[] palette,
 	   pair initial, pair final)
 {
@@ -12,14 +9,24 @@ void image(picture pic=currentpicture, real[][] data, pen[] palette,
   pic.addBox(initial,final);
 }
 
-frame palette(real[][] data, pen[] palette,
-	      real height=paletteheight, pair paletteshift=3*Ticksize,
-	      pen p=currentpen, string s="", real position=0.5,
-	      real angle=infinity, pair align=E, pair shift=0,
-	      pair side=right, pen plabel=currentpen,
-	      ticks ticks=LeftTicks(0.0,0.0,Ticksize,0.0))
+typedef ticks paletteticks(real Size);
+
+paletteticks PaletteTicks(bool begin=true, int N=0, real Step=0,
+			  string F=defaultformat, bool end=true)
 {
-  picture pic=new picture;
+  return new ticks(real Size) {
+    return LeftTicks(begin,N,0,Step,0.0,Size,0.0,ticklabel(F),end);
+  };
+} 
+
+public paletteticks PaletteTicks=PaletteTicks();
+
+void palette(picture pic=currentpicture, real[][] data, real width=Ticksize,
+	     pen[] palette, pen p=currentpen, string s="", real position=0.5,
+	     real angle=infinity, pair align=E, pair shift=0,
+	     pair side=right, pen plabel=currentpen,
+	     paletteticks ticks=PaletteTicks)
+{
   real initialy=min(data);
   real finaly=max(data);
   pair z0=(0,initialy);
@@ -28,17 +35,15 @@ frame palette(real[][] data, pen[] palette,
   pic.add(new void (frame f, transform t) {
 	    pair Z0=(0,(t*z0).y);
 	    pair Z1=(0,(t*z1).y);
-	    pair initial=Z0-Ticksize;
+	    pair initial=Z0-width;
 	    image(f,new real[][] {sequence(palette.length-1)},palette,
 		  initial,Z1);
-	    draw(f,Z0--initial--Z1-Ticksize--Z1,p);
+	    draw(f,Z0--initial--Z1-width--Z1,p);
   });
   
-  pic.addBox(z0,z1,(0,0),(Ticksize,0));
-  pic.scale.x.scale.automax=false;
-  yaxis(pic,initialy,finaly,p,s,position,angle,align,shift,side,plabel,ticks);
-  return shift(paletteshift+Ticksize)*
-    ((shift(0,-initialy)*pic).fit(0,height,false));
+  pic.addBox(z0,z1,(-width,0),(0,0));
+  yaxis(pic,initialy,finaly,p,s,position,angle,align,shift,side,plabel,
+	ticks(width));
 }
 
 // A grayscale palette
