@@ -55,7 +55,7 @@ Foundation.
 * Options::                     Command line options
 * Interactive mode::            Typing @code{Asymptote} commands interactively
 * GUI::                         Graphical user interface
-* Credits::                     Contributions and acknowledgements
+* Credits::                     Contributions and acknowledgments
 * Index::                       General index
 
 @detailmenu
@@ -2561,7 +2561,7 @@ be prevented is in the example @code{yingyang.asy}. By default, only
 currentpicture does automatic deconstruction of its objects.
 
 @node Credits
-@chapter Acknowledgements
+@chapter Acknowledgments
 @cindex acknowledgments
 
 Financial support for the development of @code{Asymptote} was generously
@@ -2589,10 +2589,10 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  xscale labeldot xaxis yaxis BeginBar gif postprocessing fpu de
 @c  LocalWords:  nomask noplain ImageMagick defaultfontsize defaultlinewidth cd
 @c  LocalWords:  startup natively xasy tkinter VxN yingyang currentpicture toc
-@c  LocalWords:  Acknowledgements MetaPost MetaFont Hammerlindl Healy texinfo
+@c  LocalWords:  MetaPost MetaFont Hammerlindl Healy texinfo
 @c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
-@c  LocalWords:  vskip filll insertcopying ifnottex acknowledgements detailmenu
-@c  LocalWords:  acknowledgements bool behaviour facto zxf cvs login Debian dev
+@c  LocalWords:  vskip filll insertcopying ifnottex detailmenu
+@c  LocalWords:  bool behaviour facto zxf cvs login Debian dev
 @c  LocalWords:  libboost FFTW bp readline gv eps gifmerge wheelanimation args
 @c  LocalWords:  boolean initializer expi dir xpart ypart STL substring rfind
 @c  LocalWords:  pos substr strftime typedef pxref unitcircle yscale Bezier iff
