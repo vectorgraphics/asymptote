@@ -72,7 +72,7 @@ install-asy: asy
 	${INSTALL} $(XNAME) $(bindir)
 	${INSTALL} -m644 base/*.asy $(asydir)
 	${INSTALL} -m644 examples/*.asy base/asy* \
-		doc/*.asy doc/*.csv examples/latexusage.tex $(exampledir)
+		doc/*.asy doc/*.csv doc/latexusage.tex $(exampledir)
 	${INSTALL} -m644 doc/asymptote.sty $(latexdir)
 	texhash
 

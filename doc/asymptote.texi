@@ -3227,7 +3227,7 @@ arrows: @code{BeginArcArrow}, @code{EndArcArrow} (or equivalently
 @cindex @code{DotMargins}
 @cindex @code{Margin}
 @cindex @code{TrueMargin}
-Margins can be used to shrink the visible part of a path by
+Margins can be used to shrink the visible portion of a path by
 @code{labelmargin(p)} to avoid overlap with other drawn objects.
 Typical values of @code{margin} 
 are @code{NoMargin}, @code{BeginMargin}, @code{EndMargin} (or
@@ -3761,4 +3761,6 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  Palatino TimesRoman ZapfChancery ZapfDingbats german basealign
 @c  LocalWords:  nondeconstructed backends usr venn labelsquare nobasealign dp
 @c  LocalWords:  NoMargin BeginMargin EndMargin BeginPenMargin EndPenMargin dm
-@c  LocalWords:  PenMargin PenMargins TrueMargin labelmargin errorbars
+@c  LocalWords:  PenMargin PenMargins TrueMargin labelmargin errorbars errorbar
+@c  LocalWords:  dpx dpy dmx dmy barsize arrowheadsize BeginDotMargin DotMargin
+@c  LocalWords:  EndDotMargin DotMargins
