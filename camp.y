@@ -74,11 +74,12 @@ using sym::symbol;
 }  
 
 %token <ps> PRIM ID OP ADD SUBTRACT TIMES DIVIDE MOD EXPONENT
-            COR CAND EQ NEQ LT LE GT GE
+            COR CAND EQ NEQ LT LE GT GE CARETS
             '+' '-' '*' '/' '%' '^' LOGNOT POW
             STRING
 %token <pos> LOOSE ASSIGN '?' ':'
-             DIRTAG JOIN DOTS DASHES INCR CONTROLS TENSION ATLEAST AND CURL
+             DIRTAG JOIN DOTS DASHES INCR
+             CONTROLS TENSION ATLEAST AND CURL
              '{' '}' '(' ')' '.' ','  '[' ']' ';'
              IMPORT STRUCT TYPEDEF NEW
              IF ELSE WHILE DO FOR BREAK CONTINUE RETURN_ CYCLE
@@ -93,7 +94,7 @@ using sym::symbol;
 %left  EQ NEQ
 %left  LT LE GT GE
 
-%left  DIRTAG
+%left  DIRTAG CARETS
 %left  JOIN DOTS DASHES
 %left  CONTROLS TENSION ATLEAST AND
 %left  CURL '{' '}'
@@ -378,6 +379,7 @@ exp:
 | exp NEQ exp      { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | exp CAND exp     { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | exp COR exp      { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
+| exp CARETS exp   { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | NEW celltype
                    { $$ = new newRecordExp($1, $2); }
 //| NEW celltype dims

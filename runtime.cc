@@ -1321,22 +1321,20 @@ void newPen(stack *s)
   s->push(new pen());
 }
 
-void defaultPen(stack *)
+void resetdefaultPen(stack *)
 {
-  defaultpen=startupdefaultpen;
+  defaultpen=camp::pen::startupdefaultpen();
 }
 
 void setDefaultPen(stack *s)
 {
   pen *p=s->pop<pen*>();
-  defaultpen=pen(p->stroke(),p->scalestroke(),p->width(),p->size(),
-		 p->colorspace(),p->red(),p->green(),p->blue(),p->gray(),"",
-		 p->cap(),p->join(),p->Overwrite(),0);
+  defaultpen=pen(resolvepen,*p);
 }
 
 void invisiblePen(stack *s)
 {
-  s->push(new pen(transparentpen));
+  s->push(new pen(invisiblepen));
 }
 
 void rgb(stack *s)
@@ -1398,11 +1396,35 @@ void pattern(stack *s)
   s->push(new pen(setpattern,s->pop<string>()));  
 }
 
+void penPattern(stack *s)
+{
+  pen *p=s->pop<pen*>();
+  s->push(p->fillpattern());  
+}
+
+void fillRule(stack *s)
+{
+  int n = s->pop<int>();
+  s->push(new pen(setfillrule,n >= 0 && n < nFill ? (FillRule) n : DEFFILL));  
+}
+
+void penFillRule(stack *s)
+{
+  pen *p=s->pop<pen*>();
+  s->push(p->Fillrule());  
+}
+
 void lineType(stack *s)
 {
   bool scale = s->pop<bool>();
   string t = s->pop<string>();
   s->push(new pen(t,scale)); 
+}
+
+void penLineType(stack *s)
+{
+  pen *p=s->pop<pen*>();
+  s->push(p->stroke());  
 }
 
 void lineCap(stack *s)
@@ -1411,10 +1433,22 @@ void lineCap(stack *s)
   s->push(new pen(setlinecap,n >= 0 && n < nCap ? n : DEFCAP));
 }
 
+void penLineCap(stack *s)
+{
+  pen *p=s->pop<pen*>();
+  s->push(p->cap());  
+}
+
 void lineJoin(stack *s)
 {
   int n = s->pop<int>();
   s->push(new pen(setlinejoin,n >= 0 && n < nJoin ? n : DEFJOIN));
+}
+
+void penLineJoin(stack *s)
+{
+  pen *p=s->pop<pen*>();
+  s->push(p->join());  
 }
 
 void lineWidth(stack *s)
@@ -1429,10 +1463,25 @@ void penLineWidth(stack *s)
   s->push(p->width());  
 }
 
+void font(stack *s)
+{
+  string t = s->pop<string>();
+  s->push(new pen(setfont,t));
+}
+
+void penFont(stack *s)
+{
+  pen *p=s->pop<pen*>();
+  s->push(p->Font());  
+}
+
 void fontSize(stack *s)
 {
-  double x = s->pop<double>();
-  s->push(new pen(setfontsize,x > 0.0 ? x : 0.0));
+  double skip = s->pop<double>();
+  double size = s->pop<double>();
+  s->push(new pen(setfontsize,
+		  size > 0.0 ? size : 0.0,
+	          skip > 0.0 ? skip : 0.0));
 }
 
 void penFontSize(stack *s)
@@ -1441,11 +1490,23 @@ void penFontSize(stack *s)
   s->push(p->size());  
 }
 
+void penLineSkip(stack *s)
+{
+  pen *p=s->pop<pen*>();
+  s->push(p->Lineskip());  
+}
+
 void overWrite(stack *s)
 {
   int n = s->pop<int>();
   s->push(new pen(setoverwrite,n >= 0 && n < nOverwrite ? (overwrite_t) n 
 		  : DEFWRITE));
+}
+
+void penOverWrite(stack *s)
+{
+  pen *p=s->pop<pen*>();
+  s->push(p->Overwrite());  
 }
 
 void boolPenEq(stack *s)
@@ -1507,7 +1568,6 @@ void frameMin(stack *s)
   s->push(pic->bounds().Min());
 }
 
-
 void draw(stack *s)
 {
   pen *n = s->pop<pen*>();
@@ -1532,11 +1592,36 @@ void fill(stack *s)
   pic->append(d);
 }
  
+void fillArray(stack *s)
+{
+  double rb = s->pop<double>();
+  pair b = s->pop<pair>();
+  pen *penb = s->pop<pen*>();
+  double ra = s->pop<double>();
+  pair a = s->pop<pair>();
+  pen *pena = s->pop<pen*>();
+  array *p=s->pop<array *>();
+  picture *pic = s->pop<picture*>();
+  checkArray(s,p);
+  drawFill *d = new drawFill(p,*pena,a,ra,*penb,b,rb);
+  pic->append(d);
+}
+ 
 void clip(stack *s)
 {
+  pen *n = s->pop<pen*>();
   path p = s->pop<path>();
   picture *pic = s->pop<picture*>();
-  clip(*pic, p);
+  clip(*pic,p,*n);
+}
+  
+void clipArray(stack *s)
+{
+  pen *n = s->pop<pen*>();
+  array *p=s->pop<array *>();
+  picture *pic = s->pop<picture*>();
+  checkArray(s,p);
+  clip(*pic,p,*n);
 }
   
 void add(stack *s)

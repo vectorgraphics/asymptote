@@ -15,14 +15,14 @@ namespace camp {
 
 class drawClipEnd : public drawElement {
 bbox preclip;
-path p;  
+bbox Bounds;
 public:
   drawClipEnd() {}
 
   virtual ~drawClipEnd() {}
 
   void bounds(bbox& b, iopipestream&, std::vector<box>&) {
-    b.clip(p.bounds());
+    b.clip(Bounds);
     b += preclip;
   }
 
@@ -31,12 +31,6 @@ public:
     return true;
   }
 
-  drawElement *transformed(const transform& t)
-  {
-    p=p.transformed(t);
-    return drawElement::transformed(t);
-  }
-  
   friend class drawClipBegin;
 };
 

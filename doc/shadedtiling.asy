@@ -6,8 +6,8 @@ picture tiling=new picture;
 guide square=scale(d)*unitsquare;
 fill(tiling,square,white,(0,0),black,(d,d));
 fill(tiling,shift(d,d)*square,blue);
-add("checked",tiling);
+add("shadedtiling",tiling);
 
-filldraw(unitcircle,pattern("checked"));
+filldraw(unitcircle,pattern("shadedtiling"));
 shipout();
 

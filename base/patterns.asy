@@ -19,6 +19,48 @@ frame tiling(string name, picture pic, pair lb=0, pair rt=0)
   return tiling;
 }
 
+// Add to frame preamble a tiling name constructed from picture pic
+// with optional left-bottom margin lb and right-top margin rt.
+void add(frame preamble=patterns, string name, picture pic, pair lb=0,
+	 pair rt=0)
+{
+  add(preamble,tiling(name,pic,lb,rt));
+}
+
+picture tile(real Hx=5mm, real Hy=0, pen p=currentpen,
+	     Filltype filltype=NoFill)
+{
+  picture tiling=new picture;
+  if(Hy == 0) Hy=Hx;
+  guide tile=box((0,0),(Hx,Hy));
+  filltype(tiling,tile,p,filltype);
+  clip(tiling,tile);
+  return tiling;
+}
+
+picture checker(real Hx=5mm, real Hy=0, pen p=currentpen)
+{
+  picture tiling=new picture;
+  if(Hy == 0) Hy=Hx;
+  guide tile=box((0,0),(Hx,Hy));
+  fill(tiling,tile,p);
+  fill(tiling,shift(Hx,Hy)*tile,p);
+  clip(tiling,box((0,0),(2Hx,2Hy)));
+  return tiling;
+}
+
+picture brick(real Hx=5mm, real Hy=0, pen p=currentpen)
+{
+  picture tiling=new picture;
+  if(Hy == 0) Hy=Hx/2;
+  guide tile=box((0,0),(Hx,Hy));
+  draw(tiling,tile,p);
+  draw(tiling,(Hx/2,Hy)--(Hx/2,2Hy),p);
+  draw(tiling,(0,2Hy)--(Hx,2Hy),p);
+  clip(tiling,box((0,0),(Hx,2Hy)));
+  return tiling;
+}
+
 public real hatchepsilon=1e-4;
 picture hatch(real H=5mm, pair dir=NE, pen p=currentpen) 
 {
@@ -56,33 +98,3 @@ picture crosshatch(real H=5mm, pen p=currentpen)
   return tiling;
 }
 
-picture tile(real Hx=5mm, real Hy=0, pen p=currentpen,
-	     Filltype filltype=NoFill)
-{
-  picture tiling=new picture;
-  if(Hy == 0) Hy=Hx;
-  guide tile=box((0,0),(Hx,Hy));
-  filltype(tiling,tile,p,filltype);
-  clip(tiling,tile);
-  return tiling;
-}
-
-picture brick(real Hx=5mm, real Hy=0, pen p=currentpen)
-{
-  picture tiling=new picture;
-  if(Hy == 0) Hy=Hx/2;
-  guide tile=box((0,0),(Hx,Hy));
-  draw(tiling,tile,p);
-  draw(tiling,(Hx/2,Hy)--(Hx/2,2Hy),p);
-  draw(tiling,(0,2Hy)--(Hx,2Hy),p);
-  clip(tiling,box((0,0),(Hx,2Hy)));
-  return tiling;
-}
-
-// Add to frame preamble a tiling name constructed from picture pic
-// with optional left-bottom margin lb and right-top margin rt.
-void add(frame preamble=patterns, string name, picture pic, pair lb=0,
-	 pair rt=0)
-{
-  add(preamble,tiling(name,pic,lb,rt));
-}

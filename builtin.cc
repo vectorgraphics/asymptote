@@ -350,7 +350,11 @@ void base_venv(venv &ve)
   addFunc(ve,run::draw,primVoid(),"draw",primPicture(),primPath(), primPen());
   addFunc(ve,run::fill,primVoid(),"fill",primPicture(),primPath(),
 	  primPen(),primPair(),primReal(),primPen(),primPair(),primReal());
-  addFunc(ve,run::clip,primVoid(),"clip",primPicture(),primPath());
+  addFunc(ve,run::fillArray,primVoid(),"fill",primPicture(),pathArray(),
+	  primPen(),primPair(),primReal(),primPen(),primPair(),primReal());
+  addFunc(ve,run::clip,primVoid(),"clip",primPicture(),primPath(),primPen());
+  addFunc(ve,run::clipArray,primVoid(),"clip",primPicture(),pathArray(),
+	  primPen());
   addFunc(ve,run::add,primVoid(),"add",primPicture(),primPicture());
   addFunc(ve,run::label,primVoid(),"_label",primPicture(),
 	  primString(),primReal(),primPair(),primPair(),primPen());
@@ -504,16 +508,25 @@ void base_venv(venv &ve)
   addFunc(ve,run::gray,primPen(),"gray",primReal());
   addFunc(ve,run::colors,realArray(),"colors",primPen());
   addFunc(ve,run::pattern,primPen(),"pattern",primString());
-  addFunc(ve,run::defaultPen,primVoid(),"defaultpen");
+  addFunc(ve,run::penPattern,primString(),"pattern",primPen());
+  addFunc(ve,run::fillRule,primPen(),"fillrule",primInt());
+  addFunc(ve,run::penFillRule,primInt(),"fillrule",primPen());
+  addFunc(ve,run::resetdefaultPen,primVoid(),"defaultpen");
   addFunc(ve,run::setDefaultPen,primVoid(),"defaultpen",primPen());
   addFunc(ve,run::invisiblePen,primPen(),"invisible");
   addFunc(ve,run::lineCap,primPen(),"linecap",primInt());
+  addFunc(ve,run::penLineCap,primInt(),"linecap",primPen());
   addFunc(ve,run::lineJoin,primPen(),"linejoin",primInt());
+  addFunc(ve,run::penLineJoin,primInt(),"linejoin",primPen());
   addFunc(ve,run::lineWidth,primPen(),"linewidth",primReal());
   addFunc(ve,run::penLineWidth,primReal(),"linewidth",primPen());
-  addFunc(ve,run::fontSize,primPen(),"fontsize",primReal());
+  addFunc(ve,run::font,primPen(),"fontcommand",primString());
+  addFunc(ve,run::penFont,primString(),"font",primPen());
+  addFunc(ve,run::fontSize,primPen(),"fontsize",primReal(),primReal());
   addFunc(ve,run::penFontSize,primReal(),"fontsize",primPen());
+  addFunc(ve,run::penLineSkip,primReal(),"lineskip",primPen());
   addFunc(ve,run::overWrite,primPen(),"overwrite",primInt());
+  addFunc(ve,run::penOverWrite,primInt(),"overwrite",primPen());
   addFunc(ve,run::penMax,primPair(),"max",primPen());
   addFunc(ve,run::penMin,primPair(),"min",primPen());
   

@@ -9,32 +9,19 @@
 
 namespace camp {
 
-bool drawFill::draw(psfile *out)
+void drawFill::palette(psfile *out)
 {
-  int n = p.size();
-  if (n == 0 || pentype.transparent())
-    return true;
-
-  bool axial=ra == 0 && rb == 0;
-  bool shade=a != b || !axial;
+  axial=ra == 0 && rb == 0;
+  shade=a != b || !axial;
   
-  if(shade) out->gsave();
-  
-  out->setpen(pentype);
-
-  penStart(out);
-  penTranslate(out);
-
-  out->write(p);
-
-  ColorSpace colorspace;
+  colorspace=DEFCOLOR;
   
   if(shade) {
     colorspace=(ColorSpace) max(pentype.colorspace(),penb.colorspace());
     
     switch(colorspace) {
     case PATTERN:
-    case TRANSPARENT:
+    case INVISIBLE:
       shade=false;
       break;
     case DEFCOLOR:
@@ -61,43 +48,44 @@ bool drawFill::draw(psfile *out)
   }
   
   if(shade) {
-    out->clip();
-    out->verbatim("<< /ShadingType ");
-    out->verbatimline(axial ? "2" : "3");
-    out->verbatimline("/ColorSpace /Device"+ColorDeviceSuffix[colorspace]);
-    out->verbatim("/Coords [");
-    out->write(a);
-    if(!axial) out->write(ra);
-    out->write(b);
-    if(!axial) out->write(rb);
-    out->verbatimline("]");
-    out->verbatimline("/Extend [true true]");
-    out->verbatimline("/Function");
-    out->verbatimline("<< /FunctionType 2");
-    out->verbatimline("/Domain [0 1]");
-    out->verbatim("/C0 [");
-    out->write(pentype);
-    out->verbatimline("]");
-    out->verbatim("/C1 [");
-    out->write(penb);
-    out->verbatimline("]");
-    out->verbatimline("/N 1");
-    out->verbatimline(">>");
-    out->verbatimline(">>");
-    out->verbatimline("shfill");
-    out->grestore();
-  } else out->fill();
+    out->gsave();
+  } else {
+    out->setpen(pentype);
+    penStart(out);
+    penTranslate(out);
+  }
+}  
   
-  penEnd(out);
-
-  return true;
+void drawFill::fill(psfile *out)
+{
+  if(shade) {
+    out->clip(pentype.Fillrule());
+    out->shade(axial,ColorDeviceSuffix[colorspace],pentype,a,ra,penb,b,rb);
+    out->grestore();
+  } else {
+    out->fill(pentype.Fillrule());
+    penEnd(out);
+  }
 }
 
+bool drawFill::draw(psfile *out)
+{
+  if(pentype.invisible() || empty()) return true;
+  
+  palette(out);
+  writepath(out);
+  fill(out);
+  return true;
+}
+  
 drawElement *drawFill::transformed(const transform& t)
 {
   pair A=t*a, B=t*b;
-  return new drawFill(transpath(t),transpen(t),A,length(t*(a+ra)-A),
-		      penb,B,length(t*(b+rb)-B));
+  double RA=length(t*(a+ra)-A), RB=length(t*(b+rb)-B);
+  if(P)
+    return new drawFill(transPath(t),transpen(t),A,RA,penb,B,RB);
+  else 
+    return new drawFill(transpath(t),transpen(t),A,RA,penb,B,RB);
 }
 
 } // namespace camp

@@ -68,7 +68,7 @@ void drawPath::bounds(bbox& b, iopipestream&, std::vector<box>&)
 bool drawPath::draw(psfile *out)
 {
   int n = p.size();
-  if (n == 0 || pentype.transparent())
+  if (n == 0 || pentype.invisible())
     return true;
 
   pen pen0=pentype;

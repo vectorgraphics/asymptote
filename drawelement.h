@@ -18,6 +18,7 @@
 #include "texfile.h"
 #include "pipestream.h"
 #include "pool.h"
+#include "stack.h"
 
 namespace camp {
 
@@ -141,6 +142,7 @@ protected:
   }
 
 public:
+  drawPathBase() {}
   drawPathBase(path p) : p(p) {}
 
   virtual ~drawPathBase() {}
@@ -153,7 +155,9 @@ public:
 // Base class for drawElements that involve paths and pens.
 class drawPathPenBase : public drawPathBase {
 protected:
+  vm::array *P;
   pen pentype;
+  size_t size;
 
   // The pen's transform;
   const transform *t()
@@ -165,9 +169,51 @@ protected:
     return camp::transformed(new transform(shiftless(t)),pentype);
   }
 
+  vm::array *transPath(const transform& t) const {
+    size_t size=(size_t) P->size();
+    vm::array *Pt=new vm::array(size);
+    for(size_t i=0; i < size; i++)
+      (*Pt)[i]=vm::read<path>(P,i).transformed(t);
+    return Pt;
+  }
+  
 public:
-  drawPathPenBase(path p, pen pentype) : drawPathBase(p), pentype(pentype) {}
+  drawPathPenBase(path p, pen pentype) : 
+    drawPathBase(p), P(NULL), pentype(pentype) {}
+  
+  drawPathPenBase(vm::array *P, pen pentype) :
+    drawPathBase(), P(P), pentype(pentype), size(P->size()) {}
 
+  bool empty() {
+    if(P) {
+      for(size_t i=0; i < size; i++) 
+	if(vm::read<path>(P,i).size() != 0) return false;
+      return true;
+    } else return p.empty();
+  }
+  
+  bool cyclic() {
+    if(P) {
+      for(size_t i=0; i < size; i++) 
+	if(!vm::read<path>(P,i).cyclic()) return false;
+      return true;
+    } else return p.cyclic();
+  }
+  
+  void bounds(bbox& b, iopipestream&, std::vector<box>&) {
+    if(P) {
+      for(size_t i=0; i < size; i++)
+	b += vm::read<path>(P,i).bounds();
+    } else b += p.bounds();
+  }
+  
+  void writepath(psfile *out) {
+    if(P) {
+      for(size_t i=0; i < size; i++) 
+	out->write(vm::read<path>(P,i),i == 0);
+    } else out->write(p);
+  }
+  
   virtual void penStart(psfile *out)
   {
     if (t())

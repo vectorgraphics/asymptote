@@ -72,86 +72,11 @@ public:
     lastpen.convert();
   }
   
-  void setpen(pen p) {
-    p.convert();
-    if(p == lastpen) return;
-    
-    if(p.fillpattern() != "" && p.fillpattern() != lastpen.fillpattern()) 
-      *out << p.fillpattern() << " setpattern" << newl;
-    else if(p.cmyk() && (!lastpen.cmyk() ||
-			 (p.cyan() != lastpen.cyan() || 
-			  p.magenta() != lastpen.magenta() || 
-			  p.yellow() != lastpen.yellow() ||
-			  p.black() != lastpen.black()))) {
-      *out << p.cyan() << " " << p.magenta() << " " << p.yellow() << " " 
-	   << p.black() << " setcmykcolor" << newl;
-    } else if(p.rgb() && (!lastpen.rgb() || 
-			  (p.red() != lastpen.red() || 
-			   p.green() != lastpen.green() || 
-			   p.blue() != lastpen.blue()))) {
-      *out << p.red() << " " << p.green() << " " << p.blue()
-	   << " setrgbcolor" << newl;
-    } else if(p.grayscale() && (!lastpen.grayscale() ||
-				p.gray() != lastpen.gray())) {
-      *out << p.gray() << " setgray" << newl;
-    }
-    
-    if(p.width() != lastpen.width()) {
-      *out << " 0 " << p.width() << 
-	" dtransform truncate idtransform setlinewidth pop" << newl;
-    }
-    
-    if(p.cap() != lastpen.cap()) {
-      *out << p.cap() << " setlinecap" << newl;
-    }
-    
-    if(p.join() != lastpen.join()) {
-      *out << p.join() << " setlinejoin" << newl;
-    }
-    
-    if(p.stroke() != lastpen.stroke()) {
-      *out << "[" << p.stroke() << "] 0 setdash" << newl;
-    }
-    
-    lastpen=p;
-  }
+  void setpen(pen p);
 
-  void write(pen p) {
-    if(p.cmyk())
-      *out << p.cyan() << " " << p.magenta() << " " << p.yellow() << " " 
-	   << p.black();
-    else if(p.rgb())
-      *out << p.red() << " " << p.green() << " " << p.blue();
-    else if(p.grayscale())
-      *out << p.gray();
-  }
+  void write(pen p);
   
-  void write(path p) {
-    int n = p.size();
-    assert(n != 0);
-
-    newpath();
-
-    if (n == 1) {
-      moveto(p.point(0));
-      rlineto(pair(0,0));
-      stroke();
-    }
-
-    // Draw points
-    moveto(p.point(0));
-    for (int i = 1; i < n; i++) {
-      if(p.straight(i-1)) lineto(p.point(i));
-      else curveto(p.postcontrol(i-1), p.precontrol(i), p.point(i));
-    }
-
-    if (p.cyclic()) {
-      if(p.straight(n-1)) lineto(p.point(0));
-      else curveto(p.postcontrol(n-1), p.precontrol(0), p.point(0));
-      closepath();
-    }    
-  }
-
+  void write(path p, bool newPath=true);
   
   void newpath() {
       *out << "newpath";
@@ -185,13 +110,17 @@ public:
     *out << " stroke" << newl;
   }
   
-  void fill() {
-    *out << " fill" << newl;
+  void fill(FillRule fillrule) {
+    *out << (fillrule == EVENODD ? " eofill" : " fill") << newl;
   }
   
-  void clip() {
-    *out << " clip" << newl;
+  void clip(FillRule fillrule) {
+    *out << (fillrule == EVENODD ? " eoclip" : " clip") << newl;
   }
+  
+  void shade(bool axial, const std::string& colorspace,
+	     const pen& pena, const pair& a, double ra,
+	     const pen& penb, const pair& b, double rb);
   
   void gsave() {
     *out << " gsave" << newl;

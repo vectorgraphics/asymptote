@@ -64,4 +64,115 @@ void psfile::epilogue()
   out->flush();
 }
 
+void psfile::setpen(pen p)
+{
+  p.convert();
+  if(p == lastpen) return;
+    
+  if(p.fillpattern() != "" && p.fillpattern() != lastpen.fillpattern()) 
+    *out << p.fillpattern() << " setpattern" << newl;
+  else if(p.cmyk() && (!lastpen.cmyk() ||
+		       (p.cyan() != lastpen.cyan() || 
+			p.magenta() != lastpen.magenta() || 
+			p.yellow() != lastpen.yellow() ||
+			p.black() != lastpen.black()))) {
+    *out << p.cyan() << " " << p.magenta() << " " << p.yellow() << " " 
+	 << p.black() << " setcmykcolor" << newl;
+  } else if(p.rgb() && (!lastpen.rgb() || 
+			(p.red() != lastpen.red() || 
+			 p.green() != lastpen.green() || 
+			 p.blue() != lastpen.blue()))) {
+    *out << p.red() << " " << p.green() << " " << p.blue()
+	 << " setrgbcolor" << newl;
+  } else if(p.grayscale() && (!lastpen.grayscale() ||
+			      p.gray() != lastpen.gray())) {
+    *out << p.gray() << " setgray" << newl;
+  }
+    
+  if(p.width() != lastpen.width()) {
+    *out << " 0 " << p.width() << 
+      " dtransform truncate idtransform setlinewidth pop" << newl;
+  }
+    
+  if(p.cap() != lastpen.cap()) {
+    *out << p.cap() << " setlinecap" << newl;
+  }
+    
+  if(p.join() != lastpen.join()) {
+    *out << p.join() << " setlinejoin" << newl;
+  }
+    
+  if(p.stroke() != lastpen.stroke()) {
+    *out << "[" << p.stroke() << "] 0 setdash" << newl;
+  }
+    
+  lastpen=p;
+}
+
+void psfile::write(pen p)
+{
+  if(p.cmyk())
+    *out << p.cyan() << " " << p.magenta() << " " << p.yellow() << " " 
+	 << p.black();
+  else if(p.rgb())
+    *out << p.red() << " " << p.green() << " " << p.blue();
+  else if(p.grayscale())
+    *out << p.gray();
+}
+  
+void psfile::write(path p, bool newPath)
+{
+  int n = p.size();
+  assert(n != 0);
+
+  if(newPath) newpath();
+
+  if (n == 1) {
+    moveto(p.point(0));
+    rlineto(pair(0,0));
+    stroke();
+  }
+
+  // Draw points
+  moveto(p.point(0));
+  for (int i = 1; i < n; i++) {
+    if(p.straight(i-1)) lineto(p.point(i));
+    else curveto(p.postcontrol(i-1), p.precontrol(i), p.point(i));
+  }
+
+  if (p.cyclic()) {
+    if(p.straight(n-1)) lineto(p.point(0));
+    else curveto(p.postcontrol(n-1), p.precontrol(0), p.point(0));
+    closepath();
+  }    
+}
+
+void psfile::shade(bool axial, const string& colorspace,
+		   const pen& pena, const pair& a, double ra,
+		   const pen& penb, const pair& b, double rb)
+{
+  *out << "<< /ShadingType " << (axial ? "2" : "3") << newl
+       << "/ColorSpace /Device" << colorspace << newl
+       << "/Coords [";
+  write(a);
+  if(!axial) write(ra);
+  write(b);
+  if(!axial) write(rb);
+  *out << "]" << newl
+       << "/Extend [true true]" << newl
+       << "/Function" << newl
+       << "<< /FunctionType 2" << newl
+       << "/Domain [0 1]" << newl
+       << "/C0 [";
+  write(pena);
+  *out << "]" << newl
+       << "/C1 [";
+  write(penb);
+  *out << "]" << newl
+       << "/N 1" << newl
+       << ">>" << newl
+       << ">>" << newl
+       << "shfill" << newl;
+}
+  
 } //namespace camp

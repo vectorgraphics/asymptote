@@ -91,9 +91,13 @@ void texfile::setpen(pen p)
 	 << "}\\ASYcolor" << newl;
   }
   
-  if(p.size() != lastpen.size()) {
-    *out << "\\fontsize{" << p.size() << "}{" << p.size()*1.2
+  if(p.size() != lastpen.size() || p.Lineskip() != lastpen.Lineskip()) {
+    *out << "\\fontsize{" << p.size() << "}{" << p.Lineskip()
 	 << "}\\selectfont" << newl;
+  }
+
+  if(p.Font() != lastpen.Font()) {
+    *out << p.Font() << "%" << newl;
   }
 
   offset=pair(box.right,box.bottom);
@@ -104,7 +108,7 @@ void texfile::setpen(pen p)
 void texfile::put(const string& label, double angle, pair z)
 {
   if(label == "") return;
-  *out << "\\rput[lB]{" << setprecision(2) << angle << fixed
+  *out << "\\rput[lB]{" << setprecision(2) << fixed << angle
        << "}(" << (z.getx()-offset.getx())*ps2tex
        << "," << (z.gety()-offset.gety())*ps2tex
        << "){" << label << "}" << newl;

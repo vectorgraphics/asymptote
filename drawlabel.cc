@@ -31,12 +31,26 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
   string texbuf;
   pair rotation=expi(radians(angle));
   pen Pentype=*pentype;
-  static double fuzz=1.75;
+  static pen Lastpen;
+
+  static const double fuzz=1.75;
   
   if(!(width || height || depth)) {
-    tex <<  "\\fontsize{" << Pentype.size() << "}{" << Pentype.size()*1.2
-	<< "}\\selectfont\n";
-    tex.wait("\n*","! ");
+    
+    if(Pentype.size() != Lastpen.size() ||
+       Pentype.Lineskip() != Lastpen.Lineskip()) {
+      tex <<  "\\fontsize{" << Pentype.size() << "}{" << Pentype.Lineskip()
+	  << "}\\selectfont\n";
+      tex.wait("\n*","! ");
+    }
+    
+    if(Pentype.Font() != Lastpen.Font()) {
+      tex <<  Pentype.Font() << "%\n";
+      tex.wait("\n*","! ");
+    }
+    
+    Lastpen=Pentype;
+    
     tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(label) << "}\n\n";
     tex.wait(texready,"! ");
     tex << "\\showthe\\wd\\ASYbox\n";

@@ -69,9 +69,7 @@ std::list<string> *outnameStack;
 
 bool TeXinitialized=false;
 
-camp::pen startupdefaultpen("",true,0.5,12.0,camp::GRAYSCALE,0.0,0.0,0.0,0.0,
-			    "",1,1,camp::ALLOW,0);
-camp::pen defaultpen=startupdefaultpen;
+camp::pen defaultpen=camp::pen::startupdefaultpen();
   
 void usage(const char *program)
 {

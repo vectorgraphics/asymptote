@@ -57,6 +57,17 @@ pen longdashdotted=linetype("24 8 0 8");
 
 pen Dotted=linetype("0 4")+1.0;
 
+pen squarecap=linecap(0);
+pen roundcap=linecap(1);
+pen extendcap=linecap(2);
+
+pen miterjoin=linejoin(0);
+pen roundjoin=linejoin(1);
+pen beveljoin=linejoin(2);
+
+pen zerowinding=fillrule(0);
+pen evenodd=fillrule(1);
+
 pen invisible=invisible();
 pen black=gray(0);
 pen lightgray=gray(0.9);
@@ -666,6 +677,7 @@ struct picture {
 	T=GUI(T);
       }
      frame d=src_copy.fit(t,T*src_copy.T,m,M);
+//      frame d=T*src_copy.fit(t,src_copy.T,m,M);
      if(deconstruct && !src.deconstruct) deconstruct(d);
      add(f,d);
      for(int i=0; i < src.legend.length; ++i)
@@ -707,6 +719,39 @@ picture gui(int index) {
   return gui[index];
 }
 
+path[] operator ^^ (path p, path q) 
+{
+  return new path[] {p,q};
+}
+
+path[] operator ^^ (path p, path[] q) 
+{
+  path[] P=new path[] {p};
+  for(int i=0; i < q.length; ++i) P.push(q[i]);
+  return P;
+}
+
+path[] operator ^^ (path[] p, path q) 
+{
+  path[] P=copy(p);
+  P.push(q);
+  return P;
+}
+
+path[] operator ^^ (path[] p, path[] q) 
+{
+  path[] P=copy(p);
+  for(int i=0; i < q.length; ++i) P.push(q[i]);
+  return P;
+}
+
+path[] operator * (transform t, path[] p) 
+{
+  path[] P;
+  for(int i=0; i < p.length; ++i) P[i]=t*p[i];
+  return P;
+}
+
 // Add frame f about origin to currentpicture
 void addabout(pair origin, picture pic, frame src)
 {
@@ -746,9 +791,19 @@ void addabout(pair origin, picture src)
   addabout(origin,currentpicture,src);
 }
 
-transform rotate(real a) 
+guide box(pair a, pair b)
 {
-  return rotate(a,0);
+  return a--(a.x,b.y)--b--(b.x,a.y)--cycle;
+}
+
+void draw(frame f, path g)
+{
+  draw(f,g,currentpen);
+}
+
+void draw(frame f, path[] g, pen p=currentpen)
+{
+  for(int i=0; i < g.length; ++i) draw(f,g[i],p);
 }
 
 void _draw(picture pic=currentpicture, path g, pen p=currentpen)
@@ -759,19 +814,38 @@ void _draw(picture pic=currentpicture, path g, pen p=currentpen)
   pic.addPath(g,p);
 }
 
+void draw(picture pic=currentpicture, path[] g, pen p=currentpen)
+{
+  for(int i=0; i < g.length; ++i) _draw(pic,g[i],p);
+}
+
 // truesize draw about origin
 void _drawabout(pair origin, picture pic=currentpicture, path g,
 		pen p=currentpen)
 {
-  pic.add(new void (frame f, transform t) {
-    draw(f,shift(t*origin)*g,p);
-  });
-  pic.addBox(origin,origin,min(g)+min(p),max(g)+max(p));
+  picture opic=new picture;
+  _draw(opic,g,p);
+  addabout(origin,pic,opic);
 }
   
 void fill(frame f, path g, pen p)
 {
   fill(f,g,p,0,0,p,0,0);
+}
+
+void fill(frame f, path g)
+{
+  fill(f,g,currentpen);
+}
+
+void fill(frame f, path[] g, pen p)
+{
+  fill(f,g,p,0,0,p,0,0);
+}
+
+void fill(frame f, path[] g)
+{
+  fill(f,g,currentpen);
 }
 
 void fill(picture pic=currentpicture, path g,
@@ -783,6 +857,18 @@ void fill(picture pic=currentpicture, path g,
     fill(f,t*g,pena,A,abs(t*(a+ra)-A),penb,B,abs(t*(b+rb)-B));
     });
   pic.addPath(g);
+}
+
+void fill(picture pic=currentpicture, path[] g,
+	  pen pena=currentpen, pair a=0, real ra=0,
+	  pen penb=currentpen, pair b=0, real rb=0)
+{
+  pic.add(new void (frame f, transform t) {
+    pair A=t*a, B=t*b;
+    fill(f,t*g,pena,A,abs(t*(a+ra)-A),penb,B,abs(t*(b+rb)-B));
+    });
+  for(int i=0; i < g.length; ++i) 
+    pic.addPath(g[i]);
 }
 
 void fillabout(pair origin, picture pic=currentpicture, path g,
@@ -798,13 +884,16 @@ void filldraw(picture pic=currentpicture, path g,
 	      pen pena=currentpen, pen drawpen=currentpen, pair a=0, real ra=0,
 	      pen penb=currentpen, pair b=0, real rb=0)
 {
-  pic.add(new void (frame f, transform t) {
-    path G=t*g;
-    pair A=t*a, B=t*b;
-    fill(f,G,pena,A,abs(t*(a+ra)-A),penb,B,abs(t*(b+rb)-B));
-    draw(f,G,drawpen);
-    });
-  pic.addPath(g,drawpen);
+  fill(pic,g,pena,a,ra,penb,b,rb);
+  _draw(pic,g,drawpen);
+}
+
+void filldraw(picture pic=currentpicture, path[] g,
+	      pen pena=currentpen, pen drawpen=currentpen, pair a=0, real ra=0,
+	      pen penb=currentpen, pair b=0, real rb=0)
+{
+  fill(pic,g,pena,a,ra,penb,b,rb);
+  draw(pic,g,drawpen);
 }
 
 void filldrawabout(pair origin, picture pic=currentpicture, path g,
@@ -817,18 +906,64 @@ void filldrawabout(pair origin, picture pic=currentpicture, path g,
   addabout(origin,pic,opic);
 }
   
-void clip(picture pic=currentpicture, path g)
+void unfill(frame f, path g)
+{
+  clip(f,box(min(f),max(f))^^g,evenodd);
+}
+
+void unfill(frame f, path[] g)
+{
+  clip(f,box(min(f),max(f))^^g,evenodd);
+}
+
+void unfill(picture pic=currentpicture, path g)
+{
+  pic.clip(new void (frame f, transform t) {
+    unfill(f,t*g);
+  });
+}
+
+void unfill(picture pic=currentpicture, path[] g)
+{
+  pic.clip(new void (frame f, transform t) {
+    unfill(f,t*g);
+  });
+}
+
+void clip(frame f, path g)
+{
+  clip(f,g,currentpen);
+}
+
+void clip(frame f, path[] g)
+{
+  clip(f,g,currentpen);
+}
+
+void clip(picture pic=currentpicture, path g, pen p=currentpen)
 {
   pic.userMin=maxbound(pic.userMin,min(g));
   pic.userMax=minbound(pic.userMax,max(g));
   pic.clip(new void (frame f, transform t) {
-    clip(f,t*g);
+     clip(f,t*g,p);
   });
 }
 
-guide box(pair a, pair b)
+void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
 {
-  return a--(a.x,b.y)--b--(b.x,a.y)--cycle;
+  pair ming=(infinity,infinity);
+  pair maxg=-ming;
+  for(int i=0; i < g.length; ++i) {
+    ming=minbound(ming,min(g[i]));
+    maxg=maxbound(maxg,max(g[i]));
+  }
+  for(int i=0; i < g.length; ++i) {
+    pic.userMin=maxbound(pic.userMin,ming);
+    pic.userMax=minbound(pic.userMax,maxg);
+  }
+  pic.clip(new void (frame f, transform t) {
+     clip(f,t*g,p);
+  });
 }
 
 real labelmargin(pen p=currentpen)
@@ -870,6 +1005,11 @@ pair point(picture pic=currentpicture, pair dir)
   if(scale != 0) dir *= 0.5/scale;
   dir += (0.5,0.5);
   return pic.userMin+realmult(dir,pic.userMax-pic.userMin);
+}
+
+transform rotate(real a) 
+{
+  return rotate(a,0);
 }
 
 guide arrowhead(picture pic=currentpicture, path g, real position=infinity,
@@ -1258,9 +1398,9 @@ pair cap(transform t, pair z, pair lb, pair rt, pen p=currentpen)
             cap(t,z.y,lb.y,rt.y,min(p).y,max(p).y,ytrans));
 }
   
-void clip(picture pic=currentpicture, pair lb, pair tr)
+void clip(picture pic=currentpicture, pair lb, pair tr, pen p=currentpen)
 {
-  clip(pic,box(lb,tr));
+  clip(pic,box(lb,tr),p);
 }
 
 void label(picture pic=currentpicture, real angle=0, pair position,
@@ -1309,6 +1449,11 @@ void dot(picture pic=currentpicture, pair[] c, pen p=currentpen)
 void dot(picture pic=currentpicture, guide g, pen p=currentpen)
 {
   for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p);
+}
+
+void dot(picture pic=currentpicture, path[] g, pen p=currentpen)
+{
+  for(int i=0; i < g.length; ++i) dot(pic,g[i],p);
 }
 
 void labeldot(picture pic=currentpicture, string s="", real angle=0,
@@ -1685,32 +1830,6 @@ pen overwrite(Overwrite Overwrite)
   return overwrite(Overwrite(Overwrite));
 }
 
-private struct LinecapT {};
-public LinecapT Linecap=null;
-typedef int Linecap(LinecapT);
-public Linecap
-  Square=new int(LinecapT) {return 0;},
-  Round=new int(LinecapT) {return 1;},
-  Extended=new int(LinecapT) {return 2;};
-  
-pen linecap(Linecap Linecap)
-{
-  return linecap(Linecap(Linecap));
-}
-
-private struct LinejoinT {};
-public LinejoinT Linejoin=null;
-typedef int Linejoin(LinejoinT);
-public Linejoin
-  Miter=new int(LinejoinT) {return 0;},
-  Round=new int(LinejoinT) {return 1;},
-  Bevel=new int(LinejoinT) {return 2;};
-  
-pen linejoin(Linejoin Linejoin)
-{
-  return linejoin(Linejoin(Linejoin));
-}
-
 struct slice {
   public path before,after;
 }
@@ -1811,8 +1930,8 @@ pair endpoint(path p)
     return point(p,length(p));
 }
 
-pen[] colorPens={red,blue,green,magenta,cyan,orange,purple,brown,darkgreen,
-		 darkblue,chartreuse,fuchsia,salmon,lightblue,black,lavender,
+pen[] colorPens={red,blue,green,magenta,cyan,orange,purple,brown,darkblue,
+		 darkgreen,chartreuse,fuchsia,salmon,lightblue,black,lavender,
 		 pink,yellow,gray};
 pen[] monoPens={solid,dashed,dotted,longdashed,dashdotted,longdashdotted};
 
@@ -1821,4 +1940,20 @@ pen Pen(int n)
 {
   return mono ? monoPens[n % monoPens.length] : 
     colorPens[n % colorPens.length];
+}
+
+pen fontsize(real size) 
+{
+  return fontsize(size,1.2*size);
+}
+
+pen font(string name) 
+{
+  return fontcommand("\font\ASYfont="+name+"\ASYfont");
+}
+
+pen font(string encoding, string family, string series="m",string shape="n") 
+{
+  return fontcommand("\usefont{"+encoding+"}{"+family+"}{"+series+"}{"+shape+
+		     "}");
 }

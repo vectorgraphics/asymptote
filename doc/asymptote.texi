@@ -94,7 +94,9 @@ Import
 * featpost3D::                  Preliminary port of @code{featpost3d}
 * math::                        Extend @code{Asymptote}'s math capabilities
 * stats::                       Statistics routines and histograms
+* patterns::                    Custom fill and draw patterns
 * tree::                        Dynamic binary search tree
+* drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
 * metapost::                    @code{MetaPost} compatibility routines
 * unicode::                     Accept @code{unicode} (UTF-8) characters
@@ -431,7 +433,9 @@ the overall scaling will be determined by the other direction:
 @verbatiminclude bigsquare.asy
 @image{bigsquare}
 
-See section @ref{graph} for examples of two-dimensional scientific graphs.
+See section @ref{graph} (or the online @code{Asymptote} gallery at
+@code{http://asymptote.sourceforge.net}) for examples of
+two-dimensional scientific graphs.
 
 @node Programming
 @chapter Programming
@@ -527,12 +531,14 @@ a boolean type that can only take on the values @code{true} and
 bool b=true;
 @end verbatim
 
+@noindent
 defines a boolean variable @code{b} and initializes it to the value
 @code{true}. If no initializer is given:
 @verbatim
 bool b;
 @end verbatim
 
+@noindent
 the value @code{false} is assumed.
 
 @item int
@@ -644,8 +650,8 @@ character strings in ANSI @code{C}:
 @item \r maps to carriage return
 @item \t maps to tab
 @item \v maps to vertical tab
-@item \1-\377 map to corresponding octal byte
-@item \x1-\xFF map to corresponding hexadecimal byte
+@item \0-\377 map to corresponding octal byte
+@item \x0-\xFF map to corresponding hexadecimal byte
 @end itemize
 
 The implicit initializer for type string is the empty string @code{""}.
@@ -714,6 +720,7 @@ according to the string @code{s}. For example,
 write(time("%a %b %d %H:%M:%S %Z %Y"));
 @end verbatim
 
+@noindent
 outputs the time in the default format of the UNIX @code{date} command.
 
 @end table
@@ -740,7 +747,7 @@ two guides with free endpoint conditions to be joined together smoothly.
 @cindex @code{path}
 a cubic spline resolved into a fixed path.
 
-A path is specified by as a list of pairs or paths interconnected with
+A path is specified as a list of pairs or paths interconnected with
 @cindex @code{cycle}
 @cindex @code{--}
 @cindex @code{..}
@@ -748,14 +755,14 @@ A path is specified by as a list of pairs or paths interconnected with
 denotes a cubic spline.
 @anchor{unitcircle}
 @cindex @code{unitcircle}
-Specifying a final node @code{cycle} creates a cyclic path that connects back
-to the initial node, as in this approximation (accurate to within 0.06%)
-of a unit circle:
+Specifying a final node @code{cycle} creates a cyclic path that
+connects smoothly back to the initial node, as in this approximation
+(accurate to within 0.06%) of a unit circle:
 @verbatim
 guide unitcircle=E..N..W..S..cycle;
 @end verbatim
 
-The above example uses the standard compass directions @code{E=(1,0)},
+This example uses the standard compass directions @code{E=(1,0)},
 @code{N=(0,1)}, @code{NE=unit(N+E)}, and @code{ENE=unit(E+NE)}, etc.,
 which along with the directions @code{up}, @code{down}, @code{right},
 and @code{left} are defined as pairs in the default @code{Asymptote} base file
@@ -848,6 +855,37 @@ a..nullpath..{up}b;
 z{up}..nullpath..w;
 u{down}..nullpath..v;
 @end verbatim
+
+@cindex @code{PostScript subpath}
+@cindex @code{^^}
+@cindex @code{path[]}
+An @code{Asymptote} path, being connected, is equivalent to a
+@code{Postscript subpath}. The @code{^^} binary operator, which
+requests that the pen be moved (without drawing or affecting
+endpoint curvatures) from the final point of the left-hand path to the
+initial point of the right-hand path, may be used to group several
+@code{Asymptote} paths into a @code{path[]} array (equivalent to a
+@code{PostScript path}):
+
+@verbatiminclude superpath.asy
+@image{superpath}
+
+@cindex evenodd
+The @code{PostScript} even-odd fill rule here specifies that only the
+region bounded between the two unit circles is filled.
+In this example, the same effect can be achieved by using the default
+zero winding number fill rule, if one is careful to alternate the
+orientation of the paths:
+@verbatim
+filldraw(unitcircle^^reverse(g),yellow,black);
+@end verbatim
+
+The @code{^^} operator is used by the @code{box3d} function in
+@code{graph3d.asy} to construct a 2D projection of the edges of a 3D
+cube, without retracing steps:
+
+@verbatiminclude cube.asy
+@image{cube}
 
 Here are some useful functions for paths:
 
@@ -1035,6 +1073,7 @@ black,gray,white,red,green,blue,yellow,magenta,cyan,brown,darkgreen,
 darkblue,orange,purple,chartreuse,fuchsia,salmon,lightblue,lavender,pink,
 @end verbatim
 
+@noindent
 along with the primitive cmyk colors:
 @verbatim
 Cyan,Magenta,Yellow,Black.
@@ -1084,29 +1123,73 @@ pen equivalent=1.0;
 @end verbatim
 
 @cindex @code{linecap}
-@cindex @code{Square}
-@cindex @code{Round}
-@cindex @code{Extended}
+@cindex @code{squarecap}
+@cindex @code{roundcap}
+@cindex @code{extendcap}
 @cindex @code{defaultpen}
-@item A pen with a specific @code{PostScript} line cap style is returned
-on calling @code{linecap} with one of the arguments @code{Square},
-@code{Round}, or @code{Extended}. The default line cap style is @code{Round};
-this may be changed with @code{defaultpen(pen)}. 
+@item A pen with a specific @code{PostScript} line cap is returned on
+calling @code{linecap} with an integer argument: 
+@verbatim
+pen squarecap=linecap(0);
+pen roundcap=linecap(1);
+pen extendcap=linecap(2);
+@end verbatim
+
+@noindent
+The default line cap, @code{roundcap}, may be changed with
+@code{defaultpen(pen)}.
+
 
 @cindex @code{linejoin}
-@cindex @code{Square}
-@cindex @code{Round}
-@cindex @code{Extended}
+@cindex @code{miterjoin}
+@cindex @code{roundjoin}
+@cindex @code{beveljoin}
 @item A pen with a specific @code{PostScript} join style is returned on
-calling @code{linejoin} with one of the arguments @code{Miter},
-@code{Round}, or @code{Bevel}. The default join style is @code{Round};
-this may be changed with @code{defaultpen(pen)}. 
+calling @code{linejoin} with an integer argument:
+@verbatim
+pen miterjoin=linejoin(0);
+pen roundjoin=linejoin(1);
+pen beveljoin=linejoin(2);
+@end verbatim
+
+@noindent
+The default join style, @code{roundjoin}, may be changed with
+@code{defaultpen(pen)}.
+
+@cindex @code{fillrule}
+@cindex @code{zerowinding}
+@cindex @code{evenodd}
+@item A pen with a specific @code{PostScript} fill rule is returned on
+calling @code{fillrule} with an integer argument:
+@verbatim
+pen zerowinding=fillrule(0);
+pen evenodd=fillrule(1);
+@end verbatim
+
+@noindent
+The fill rule, which identifies the algorithm used to determine the
+insideness of a path or array of paths, only affects @code{clip} and
+@code{fill} commands. The default fill rule, @code{zerowinding}, may
+be changed with @code{defaultpen(pen)}.
 
 @cindex @code{fontsize}
+@cindex @code{lineskip}
+@cindex @code{baselineskip}
 @cindex @code{defaultpen}
 @item The font size is specified in @TeX{} points (1 pt = 1/72.27 inches) with
-the function @code{pen fontsize(real)}. The default font size is 12pt;
-this value may be changed with @code{defaultpen(pen)}.
+the function @code{pen fontsize(real size, real baselineskip=1.2*size)}.
+The default font size, 12pt, may be changed with @code{defaultpen(pen)}.
+
+@cindex @code{font}
+@cindex @code{NFSS}
+@item A pen using a specific @code{LaTeX} @code{NFSS} font is returned
+by calling the function @code{pen font(string encoding, string family,
+string series="m", string shape="n")}. The default setting,
+@code{font("OT1","cmr","m","n")}, corresponds to 12pt Computer Modern Roman;
+this may be changed with @code{defaultpen(pen)}. Alternatively, one
+may select a fixed-size @code{TeX} font (on which @code{fontsize} has
+no effect) like @code{"pcrr"} (Courier) using the function @code{pen
+font(string name)}.
 
 @cindex patterns
 @cindex tilings
@@ -1123,19 +1206,23 @@ void add(frame preamble=patterns, string name, picture pic, pair lb=0,
 To @code{fill} or @code{draw} using pattern @code{name}, use
 the pen @code{pattern("name")}. For example, rectangular tilings
 can be constructed using the routines 
-@code{picture tile(real Hx=5mm, real Hy=0)} and 
-@code{picture brick(real Hx=5mm, real Hy=0)} defined in
+@code{picture tile(real Hx=5mm, real Hy=0, pen p=currentpen,
+Filltype filltype=NoFill)},
+@code{picture checker(real Hx=5mm, real Hy=0, pen p=currentpen)}, and
+@code{picture brick(real Hx=5mm, real Hy=0, pen p=currentpen)} defined in
 @code{patterns.asy}:
 @cindex grid
 @cindex tile
+@cindex checker
+@cindex brick
 @verbatiminclude tile.asy
 @image{tile}
 
 @cindex hatch
 @cindex crosshatch
 Hatch patterns can be generated with the routines
-@code{picture hatch(real H=5mm, pair dir=NE)},
-@code{picture crosshatch(real H=5mm)}:
+@code{picture hatch(real H=5mm, pair dir=NE, pen p=currentpen)},
+@code{picture crosshatch(real H=5mm, pen p=currentpen)}:
 @verbatiminclude hatch.asy
 @image{hatch}
 
@@ -1631,6 +1718,7 @@ i += 2;
 int j=++i;
 @end verbatim
 
+@noindent
 is equivalent to the code
 @verbatim
 int i=1;
@@ -1882,12 +1970,14 @@ The declaration
 real[] A;
 @end verbatim
 
+@noindent
 initializes @code{A} to be a empty (zero-length) array. Empty arrays should be
 distinguished from null arrays. If we say
 @verbatim
 real[] A=null;
 @end verbatim
 
+@noindent
 then @code{A} cannot be dereferenced at all (null arrays have no length
 and cannot be read from or assigned to).
 
@@ -1907,8 +1997,8 @@ of the array. Like all functions in @code{Asymptote}, @code{push} can be
 "pulled off" of the array and used on its own:
 @verbatim
 int[] A={1,2,3};
-void f(int)=A.push; // A now contains {1,2,3,7}.
-f(7);
+void f(int)=A.push;
+f(7);                   // A now contains {1,2,3,7}.
 @end verbatim
 
 In the following list of built-in array functions, @code{T} represents a
@@ -2054,7 +2144,7 @@ use the boolean function @code{all(a == b)}. One can also use conditionals like
 @code{write((a >= 2) ? a : null}, which returns the array @code{@{2@}}.
 
 All of the standard built-in @code{libm} functions of signature
-real(real) also take a real array as an argument, effectively like an
+@code{real(real)} also take a real array as an argument, effectively like an
 implicit call to @code{eval}.
 
 As with other built-in types, arrays can be read in by assignment. In this
@@ -2144,9 +2234,6 @@ int f(explicit real x) {return 1;}
 write(f(0));
 @end verbatim
 
-
-
-
 @cindex explicit casts
 Other conversions, say @code{real} to @code{int} or 
 @code{real} to @code{string}, require an explicit cast:
@@ -2207,7 +2294,9 @@ void execute(string file);
 * featpost3D::                  Preliminary port of @code{featpost3d}
 * math::                        Extend @code{Asymptote}'s math capabilities
 * stats::                       Statistics routines and histograms
+* patterns::                    Custom fill and draw patterns
 * tree::                        Dynamic binary search tree
+* drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
 * metapost::                    @code{MetaPost} compatibility routines
 * unicode::                     Accept @code{unicode} (UTF-8) characters
@@ -2644,17 +2733,17 @@ and @code{westnile.csv}.
 This module will be developed into a full three-dimensional graphics package
 in a future release. The file @code{planes.asy} in the examples
 directory illustrates how clipping can be used to implement hidden
-surface removal in 3d vector graphics. Perspective has not yet been
+surface removal in 3D vector graphics. Perspective has not yet been
 added (but can be easily implemented using similar triangles). 
 @xref{featpost3D}.
 
 @node featpost3D
 @subsection @code{featpost3D}
 @cindex @code{featpost3D}
-Until a complete 3d graphics package (@pxref{graph3d}) is written, a
-preliminary port of the the @code{MetaPost} 3d package @code{featpost3D} 
+Until a complete 3D graphics package (@pxref{graph3d}) is written, a
+preliminary port of the the @code{MetaPost} 3D package @code{featpost3D} 
 of L. Nobre G., C. Barbarosie and J. Schwaiger to @code{Asymptote}
-makes some 3d functionality already available, as illustrated by the
+makes some 3D functionality already available, as illustrated by the
 examples @code{nearearth} and @code{conicurv}.
 
 @node math
@@ -2709,10 +2798,21 @@ respectively. If the planes are parallel, return
 This package implements a Gaussian random number generator
 and a collection of statistics routines, including @code{histogram}.
 
+@node patterns
+@subsection @code{patterns}
+@cindex @code{patterns}
+This package implements @code{Postscript} tiling patterns and includes
+convenient pattern generation routines.
+
 @node tree
 @subsection @code{tree}
 @cindex @code{tree}
-This package implements a dynamic binary search tree.
+This package implements an example of a dynamic binary search tree.
+
+@node drawtree
+@subsection @code{drawtree}
+@cindex @code{drawtree}
+This is a simple tree drawing module used by the example @code{treetest.asy}.
 
 @node feynman
 @subsection @code{feynman}
@@ -2781,8 +2881,9 @@ struct s {
 }
 @end verbatim
 
-there is one instance of the variable @code{c} for each object @code{s}
-(as opposed for each call of @code{count}). 
+@noindent
+there is one instance of the variable @code{c} for each
+object @code{s} (as opposed for each call of @code{count}). 
 
 Similarly, in
 @verbatim
@@ -2796,9 +2897,10 @@ int factorial(int n) {
 }
 @end verbatim
 
-there is one instance of @code{x} for every call to @code{factorial} (and not
-for every call to @code{helper}), so this is a correct, but ugly,
-implementation of factorial.
+@noindent
+there is one instance of @code{x} for every call to
+@code{factorial} (and not for every call to @code{helper}), so this is
+a correct, but ugly, implementation of factorial.
 
 Similarly, a static variable declared within a structure is allocated in
 the block where the structure is defined. Thus,
@@ -2810,6 +2912,7 @@ struct A {
 }
 @end verbatim
 
+@noindent 
 creates one object @code{z} for each object of type @code{A} created.
 
 In this example,
@@ -2829,6 +2932,7 @@ int pow(int n, int k) {
 }
 @end verbatim
 
+@noindent
 there is one instance of @code{x} for each call to @code{pow}, so this
 is an ugly implementation of exponentiation.
 
@@ -2841,6 +2945,7 @@ int y=x*4;
 int sqr(int x) {return x*x;}
 @end verbatim
 
+@noindent
 is in some way equivalent to
 @verbatim
 struct stuff {
@@ -2878,6 +2983,7 @@ Declarations are dynamic by default. Suppose @code{X.asy} contains
 public int x=0;
 @end verbatim
 
+@noindent
 and @code{inc.asy} contains
 @verbatim
 import X;
@@ -2893,6 +2999,7 @@ inc();
 write(x);
 @end verbatim
 
+@noindent
 should write 0 twice, because the variable @code{x} imported in
 @code{inc.asy} is distinct from the variable @code{x} imported directly
 from @code{X.asy}.
@@ -2902,6 +3009,7 @@ If @code{inc.asy} were to contain only
 void inc() {++x;}
 @end verbatim
 
+@noindent
 then, in order for it to be able to access the variable @code{x} in
 @code{X.asy}, one needs to allocate @code{X.asy} in a higher
 enclosing block by making its import @code{static} in @code{test.asy}:
@@ -2913,6 +3021,7 @@ inc();
 write(x);
 @end verbatim
 
+@noindent
 This writes first 0 and then 1.
 
 @node Drawing commands
@@ -3083,8 +3192,13 @@ There are also fixed-size routines analogous to @code{drawabout}:
 object described in @code{PostScript} coordinates about a user coordinate.
 
 @cindex unfill
-To unfill a region, simply fill it with the background colour (typically
-white).
+The following routines use @code{evenodd} clipping together with the
+@code{^^} operator to unfill a region:
+
+@verbatim
+void unfill(picture pic=currentpicture, path g);
+void unfill(picture pic=currentpicture, path[] g);
+@end verbatim
 
 @item
 @cindex @code{clip}
@@ -3345,8 +3459,9 @@ currentpicture does automatic deconstruction of its objects.
 @chapter Help
 @cindex help
 @cindex mailing list
-Questions on installing and using Asymptote should be posted to the
-@code{Asymptote} mailing list:
+Questions on installing and using Asymptote should be sent to the
+@code{Asymptote} mailing list, after first subscribing (currently only
+members can post): 
 @verbatim
 https://lists.sourceforge.net/lists/listinfo/asymptote-discuss
 @end verbatim
@@ -3437,4 +3552,6 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling addabout ei
 @c  LocalWords:  westnile fillabout filldrawabout minipage infectiousM ra penb
 @c  LocalWords:  susceptibleM si flushright secondaryX secondaryY secondaryaxis
-@c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx
+@c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx YEquals YEquals
+@c  LocalWords:  treetest eetomumu fermi
+

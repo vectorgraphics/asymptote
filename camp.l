@@ -287,6 +287,7 @@ ESC \\
 "&&"               {makesymbol(); return CAND; }
 "||"               {makesymbol(); return COR; }
 "!"                {makesymbol(); return LOGNOT; }
+"^^"               {makesymbol(); return CARETS; }
 "++"               {adjust(); return INCR; }
 ".."               {adjust(); return DOTS; }
 "--"               {adjust(); return DASHES; }
@@ -363,7 +364,7 @@ operator           {adjust(); BEGIN opname; }
                     BEGIN INITIAL;
                     yyterminate();
                    }
-[-+*/%^!<>]|==|!=|<=|>= {
+[-+*/%^!<>]|==|!=|<=|>=|\^\^ {
   makesymbol();
   BEGIN INITIAL;
   return ID;}

@@ -1,6 +1,5 @@
 // MetaPost compatibility routines
 
-public pen background=white;
 public path cuttings;
 
 path cutbefore(path p, path q) 
@@ -17,13 +16,4 @@ path cutafter(path p, path q)
   return s.before;
 }
 
-void unfill(picture pic=currentpicture, path g) 
-{
-  fill(pic,g,background);
-}
-
-void unfilldraw(picture pic=currentpicture, path g) 
-{
-  filldraw(pic,g,background);
-}
 

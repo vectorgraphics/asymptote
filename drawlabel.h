@@ -41,7 +41,7 @@ public:
   }
 
   bool write(texfile *out) {
-    if(suppress || pentype->transparent()) return true;
+    if(suppress || pentype->invisible()) return true;
     out->setpen(*pentype);
     out->put(label,angle,position+Align);
     return true;

@@ -13,9 +13,9 @@ pair P(vector v)
   return P(v.x,v.y,v.z);
 }
 
-guide box3d(vector v1, vector v2)
+path[] box3d(vector v1, vector v2)
 {
-  return 
+  return
     P(v1.x,v1.y,v1.z)--
     P(v1.x,v1.y,v2.z)--
     P(v1.x,v2.y,v2.z)--
@@ -25,11 +25,11 @@ guide box3d(vector v1, vector v2)
     P(v2.x,v1.y,v2.z)--
     P(v2.x,v2.y,v2.z)--
     P(v2.x,v2.y,v1.z)--
-    P(v2.x,v1.y,v1.z)--
+    P(v2.x,v1.y,v1.z)^^
     P(v2.x,v2.y,v1.z)--
-    P(v1.x,v2.y,v1.z)--
+    P(v1.x,v2.y,v1.z)^^
     P(v1.x,v2.y,v2.z)--
-    P(v2.x,v2.y,v2.z)--
+    P(v2.x,v2.y,v2.z)^^
     P(v2.x,v1.y,v2.z)--
     P(v1.x,v1.y,v2.z);
 }
