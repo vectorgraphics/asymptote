@@ -39,10 +39,10 @@ public:
   cvector(const vector<T,Alloc>& v) : vector<T,Alloc>(v) {}
   
   T& operator[](int j) {
-    return vector<T,Alloc>::operator[](imod(j,this->size()));
+    return vector<T,Alloc>::operator[](imod(j,(int) this->size()));
   }
   const T& operator[](int j) const {
-    return vector<T,Alloc>::operator[](imod(j,this->size()));
+    return vector<T,Alloc>::operator[](imod(j,(int) this->size()));
   }
 };
 
@@ -87,7 +87,7 @@ public:
   virtual spec *outPartner(pair) { return this; }
   virtual spec *inPartner(pair) { return this; }
 
-  virtual void print(ostream& out) const {}
+  virtual void print(ostream&) const {}
 };
 
 inline ostream& operator<< (ostream& out, spec& s)
@@ -256,7 +256,7 @@ struct simpleknotlist : public knotlist {
 
   virtual ~simpleknotlist() {}
 
-  int length() { return cycles ? nodes.size() : nodes.size() - 1; }
+  int length() { return cycles ? (int) nodes.size() : (int) nodes.size() - 1; }
   bool cyclic() { return cycles; }
   knot& cell(int j) { return nodes[j]; }
 };

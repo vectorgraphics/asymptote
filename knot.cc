@@ -19,10 +19,10 @@ namespace camp {
 template <typename T>
 ostream& info(ostream& o, std::string name, cvector<T>& v)
 {
-  if (settings::verbose>3) {
+  if (settings::verbose > 3) {
     o << name << ":\n\n";
 
-    for(size_t i=0;i<v.size();++i)
+    for(int i=0; i < v.size(); ++i)
       o << v[i] << std::endl;
 
     o << std::endl;
@@ -32,10 +32,10 @@ ostream& info(ostream& o, std::string name, cvector<T>& v)
 
 ostream& info(ostream& o, std::string name, knotlist& l)
 {
-  if (settings::verbose>3) {
+  if (settings::verbose > 3) {
     o << name << ":\n\n";
 
-    for(int i=0;i<l.size();++i)
+    for(int i=0; i < l.size(); ++i)
       o << l[i] << std::endl;
 
     if (l.cyclic())
@@ -51,7 +51,6 @@ ostream& info(ostream& o, std::string name, knotlist& l)
 /***** Constants *****/
 
 const double VELOCITY_BOUND = 4.00;
-const double TWIST_RATIO_CAP = 0.25;
 
 /***** Auxillary computation functions *****/
 
@@ -137,7 +136,7 @@ ostream& operator<<(ostream& out, const knot& k)
 }
 
 
-eqn dirSpec::eqnOut(int j, knotlist& l, cvector<double>& d, cvector<double>& psi)
+eqn dirSpec::eqnOut(int j, knotlist& l, cvector<double>&, cvector<double>&)
 {
   // When choosing the control points, the path will come out the first knot
   // going straight to the next knot rotated by the angle theta.  Therefore, the
@@ -149,13 +148,13 @@ eqn dirSpec::eqnOut(int j, knotlist& l, cvector<double>& d, cvector<double>& psi
   return eqn(0.0,1.0,0.0,theta);
 }
 
-eqn dirSpec::eqnIn(int j, knotlist& l, cvector<double>& d, cvector<double>& psi)
+eqn dirSpec::eqnIn(int j, knotlist& l, cvector<double>&, cvector<double>&)
 {
   double theta=reduceAngle(given-niceAngle(l[j].z-l[j-1].z));
   return eqn(0.0,1.0,0.0,theta);
 }
 
-eqn curlSpec::eqnOut(int j, knotlist& l, cvector<double>& d, cvector<double>& psi)
+eqn curlSpec::eqnOut(int j, knotlist& l, cvector<double>&, cvector<double>& psi)
 {
   double alpha=l[j].alpha();
   double beta=l[j+1].beta();
@@ -168,7 +167,7 @@ eqn curlSpec::eqnOut(int j, knotlist& l, cvector<double>& d, cvector<double>& ps
   return eqn(0.0,C,D,-D*psi[j+1]);
 }
 
-eqn curlSpec::eqnIn(int j, knotlist& l, cvector<double>& d, cvector<double>& psi)
+eqn curlSpec::eqnIn(int j, knotlist& l, cvector<double>&, cvector<double>&)
 {
   double alpha=l[j-1].alpha();
   double beta=l[j].beta();
@@ -195,7 +194,7 @@ spec *controlSpec::inPartner(pair z)
 
 // Compute the displacement between points. The j-th result is the distance
 // between knot j and knot j+1.
-struct dzprop : knotprop<pair> {
+struct dzprop : public knotprop<pair> {
   dzprop(knotlist& l)
     : knotprop<pair>(l) {}
 
@@ -208,7 +207,7 @@ struct dzprop : knotprop<pair> {
 // Compute the distance between points, using the already computed dz.  This
 // doesn't use the infomation in the knots, but the knotprop class is useful as
 // it takes care of the iteration for us.
-struct dprop : knotprop<double> {
+struct dprop : public knotprop<double> {
   cvector<pair>& dz;
 
   dprop(knotlist &l, cvector<pair>& dz)
@@ -222,7 +221,7 @@ struct dprop : knotprop<double> {
 
 // Compute the turning angles (psi) between points, using the already computed
 // dz.
-struct psiprop : knotprop<double> {
+struct psiprop : public knotprop<double> {
   cvector<pair>& dz;
 
   psiprop(knotlist &l, cvector<pair>& dz)
@@ -237,7 +236,7 @@ struct psiprop : knotprop<double> {
   double mid(int j) { return niceAngle(dz[j]/dz[j-1]); }
 };
 
-struct eqnprop : knotprop<eqn> {
+struct eqnprop : public knotprop<eqn> {
   cvector<double>& d;
   cvector<double>& psi;
 
@@ -327,11 +326,11 @@ weqn scale(weqn q) {
  */
 cvector<weqn> recalc(cvector<eqn>& e)
 {
-  int n=e.size();
+  int n=(int) e.size();
   cvector<weqn> we;
   weqn lasteqn(0,1,0,0,1);
   we.push_back(lasteqn); // As a placeholder.
-  for (int j=1;j<n;j++) {
+  for (int j=1; j < n; j++) {
     // Subtract a factor of the last equation so that the first entry is
     // zero, then procede to scale it.
     eqn& q=e[j];
@@ -367,7 +366,7 @@ double solveForTheta0(cvector<weqn>& we)
   //
   // The loop invariant maintained is that after j iterations, we have
   //   theta[n]= a + b*theta[0] + c*theta[j]
-  int n=we.size();
+  int n=(int) we.size();
   double a=0,b=0,c=1;
   for (int j=0;j<n;++j) {
     weqn& q=we[j];
@@ -386,7 +385,7 @@ double solveForTheta0(cvector<weqn>& we)
 
 cvector<double> backsubCyclic(cvector<weqn>& we, double theta0)
 {
-  int n=we.size();
+  int n=(int) we.size();
   cvector<double> thetas;
   double lastTheta=theta0;
   for (int j=1;j<=n;++j)
@@ -404,7 +403,7 @@ cvector<double> backsubCyclic(cvector<weqn>& we, double theta0)
 // For the non-cyclic equations, do row operation to put the matrix into
 // reduced echelon form, ie. calculates equivalent equations but with pre=0 and
 // piv=1 for each eqn.
-struct ref : knotprop<eqn> {
+struct ref : public knotprop<eqn> {
   cvector<eqn>& e;
   eqn lasteqn;
 
@@ -434,7 +433,7 @@ struct ref : knotprop<eqn> {
 // Once the matrix is in reduced echelon form, we can solve for the values by
 // back-substitution.  This algorithm works from the bottom-up, so backCompute
 // must be used to get the answer.
-struct backsub : knotprop<double> {
+struct backsub : public knotprop<double> {
   cvector<eqn>& e;
   double lastTheta;
 
@@ -488,7 +487,7 @@ cvector<double> solveThetas(knotlist& l, cvector<eqn>& e)
 
 // Once thetas have been solved, determine the first control point of every
 // join.
-struct postcontrolprop : knotprop<pair> {
+struct postcontrolprop : public knotprop<pair> {
   cvector<pair>& dz;
   cvector<double>& psi;
   cvector<double>& theta;
@@ -522,7 +521,7 @@ struct postcontrolprop : knotprop<pair> {
 };
 
 // Determine the first control point of every join.
-struct precontrolprop : knotprop<pair> {
+struct precontrolprop : public knotprop<pair> {
   cvector<pair>& dz;
   cvector<double>& psi;
   cvector<double>& theta;
@@ -574,7 +573,7 @@ struct encodeControls : public knoteffect {
     p.post(k+j)=post[j];
   }
 
-  void solo(int j) {
+  void solo(int) {
 #if 0
     encodePoint(j);
 #endif

@@ -512,7 +512,7 @@ public:
   types::ty *getType(coenv &);
 
   virtual types::ty *baseTrans(coenv &e) = 0;
-  virtual types::ty *baseGetType(coenv &e) {
+  virtual types::ty *baseGetType(coenv &) {
     return types::primBoolean();
   }
 };
@@ -552,7 +552,7 @@ class joinExp : public exp {
 
     void prettyprint(ostream &our, int indent);
 
-    types::ty *getType(coenv &e) {
+    types::ty *getType(coenv &) {
       return new types::array(types::primGuide());
     }
     types::ty *trans(coenv &e) {

@@ -569,7 +569,7 @@ signature *callExp::argTypes(coenv &e)
 
   size_t n = args->size();
   for (size_t i = 0; i < n; i++) {
-    types::ty *t = args->getType(e, i);
+    types::ty *t = args->getType(e,(int) i);
     if (t->kind == types::ty_error)
       return 0;
     sig->add(t);
@@ -587,7 +587,7 @@ types::ty *callExp::trans(coenv &e)
     // Cycle through the parameters to report all errors.
     // NOTE: This may report inappropriate ambiguity errors. 
     for (size_t i = 0; i < args->size(); i++) {
-      args->trans(e, i);
+      args->trans(e,(int) i);
     }
     return types::primError();
   }

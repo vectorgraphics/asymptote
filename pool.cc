@@ -32,7 +32,7 @@ void insert(poolitem p)
   thePool.push_back(p);
 }
 
-void erase(poolitem p)
+void erase(poolitem)
 {}
 
 } // namespace pool
