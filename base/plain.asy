@@ -664,7 +664,22 @@ picture operator * (transform t, picture orig)
 {
   picture pic=orig.copy();
   pic.T=t*pic.T;
+  pic.userMin=t*pic.userMin;
+  pic.userMax=t*pic.userMax;
   return pic;
+}
+
+pair realmult(pair z, pair w) 
+{
+  return (z.x*w.x,z.y*w.y);
+}
+
+pair point(picture pic, pair dir)
+{
+  real scale=max(abs(dir.x),abs(dir.y));
+  if(scale != 0) dir *= 0.5/scale;
+  dir += (0.5,0.5);
+  return pic.userMin+realmult(dir,pic.userMax-pic.userMin);
 }
 
 public picture currentpicture=new picture;
@@ -1025,11 +1040,6 @@ void labelbox(picture pic=currentpicture, real xmargin=0,
   label(f,s,angle,(0,0),align,p);
   draw(f,box(min(f)-margin,max(f)+margin),p);
   pic.addBox(position,position,min(f),max(f));
-}
-
-pair realmult(pair z, pair w) 
-{
-  return (z.x*w.x,z.y*w.y);
 }
 
 void legend(frame f, Legend[] legend, bool placement=true)
