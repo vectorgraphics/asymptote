@@ -3,7 +3,7 @@ asyfiles := $(wildcard *.asy)
 man:	asymptote.info asymptote.ps asymptote.pdf html
 
 %.png:	%.eps
-	convert -density 288x288 -geometry 25%x $< $@
+	convert +antialias -density 288x288 -geometry 25%x $< $@
 
 %.eps:	%.asy
 	../asy $<
@@ -16,10 +16,13 @@ latexusage.eps: latexusage.tex
 	rm -f latexusage.*.eps latexusage.asy
 
 figures: latexusage.eps latexusage.png $(asyfiles:.asy=.eps) \
-	$(asyfiles:.asy=.png)
+	$(asyfiles:.asy=.png) version.texi
 
 asymptote.info: figures
 	makeinfo asymptote
+
+asymptote.dvi: asymptote.texi version.texi
+	texi2dvi asymptote.texi
 
 asymptote.ps: asymptote.dvi
 	dvips -o asymptote.ps asymptote

@@ -187,9 +187,10 @@ bool picture::postprocess(const string& epsname, const string& outname,
 		      << ceil(bpos.top-bpos.bottom+3.0)
 		      << " -sOutputFile=" << outname << " " << epsname;
     else {
-      double res=deconstruct*72.0;
-      cmd << "convert";
-      if(tgifformat) cmd << " -density " << res << "x" << res;
+      double expand=2.0;
+      double res=(tgifformat ? deconstruct : expand)*72.0;
+      cmd << "convert -density " << res << "x" << res;
+      if(!tgifformat) cmd << " +antialias -geometry " << 100.0/expand << "%x";
       cmd << " eps:" << epsname;
       if(tgifformat) cmd << " -transparent white gif";
       else cmd << " " << outputformat;
@@ -222,7 +223,8 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	  }
 	  ostringstream cmd;
 	  cmd << Viewers[iViewer];
-	  if(Viewers[iViewer] == "gv") cmd << " -nowatch";
+	  if(Viewers[iViewer] == "gv" && interact::virtualEOF)
+	    cmd << " -nowatch";
 	  cmd << " " << outname;
 	  status=System(cmd,false,wait,&pid,iViewer+1 == nViewers);
 	  if(status == -1) ++iViewer;
