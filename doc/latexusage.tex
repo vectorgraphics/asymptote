@@ -4,7 +4,7 @@
 Here is a figure produced with \Asymptote:
 
 \begin{asydef}
-import graph;
+// Global definitions can be put here
 \end{asydef}
 
 \begin{center}
@@ -63,6 +63,7 @@ and height to \LaTeX\ explicitly:
 
 \begin{center}
 \begin{asy}[10cm,0]
+import graph;
 real f(real x) {return sqrt(x);}
 pair F(real x) {return (x,f(x));}
 

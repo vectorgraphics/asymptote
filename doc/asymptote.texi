@@ -50,7 +50,7 @@ Foundation.
 * Installation::                Downloading and installing
 * Examples::                    Getting started
 * Programming::                 @code{Asymptote} graphics language
-* Drawing commands::            Four primitive drawing commands
+* Drawing commands::            Four primitive graphics commands
 * LaTeX usage::                 Embedding @code{Asymptote} commands within @code{LaTeX}
 * Options::                     Command line options
 * Interactive mode::            Typing @code{Asymptote} commands interactively
@@ -1958,12 +1958,14 @@ shipout();
 @cindex @code{xlimits}
 @cindex @code{ylimits}
 
-The first two commented lines can be uncommented to restrict the 
-respective axes limits to the specified values (alternatively, the
-function @code{limits(pair, pair)} can be uncommented to limit the axes
-to the box having opposite vertices at the two pairs). 
-The function @code{crop} can then optionally be used to crop the data to lie
-within the new axis limits. 
+The calls to @code{xlimits(picture pic, real min, real max)} 
+and @code{ylimits(picture, real min, real max)} can be uncommented
+to restrict the respective axes limits for picture @code{pic} to the
+specified @code{min} and @code{max} values (alternatively, the function
+@code{limits(pair, pair)} can be uncommented to limit the axes to the
+box having opposite vertices at the two pairs).  The function
+@code{crop(picture pic)} can then optionally be used to crop the data 
+in picture @code{pic} to lie within the new axis limits.
 @verbatim
 import graph;
 
@@ -2250,9 +2252,16 @@ Everywhere else, declarations are dynamic by default.
 @chapter Drawing commands
 @cindex drawing commands
 All of @code{Asymptote}'s graphical capabilities are based on four primitive
-drawing commands. While some of these commands take many options, they
-all have sensible default values (for example, the picture argument
-defaults to currentpicture):
+commands. The three drawing commands @code{draw}, @code{fill}, and @code{clip}
+add objects to a picture in the order in which they are executed,
+with the most recently drawn object appearing on top.
+The labeling command @code{label} adds text labels, which will
+appear on top of the other drawn objects, but again in the relative
+order in which they were executed.
+
+While some of these commands take many options, they all have sensible
+default values (for example, the picture argument defaults to
+currentpicture):
 
 @enumerate
 @cindex @code{draw}
@@ -2425,7 +2434,7 @@ the @code{Asymptote} source):
 Here is a figure produced with \Asymptote:
 
 \begin{asydef}
-import graph;
+// Global definitions can be put here
 \end{asydef}
 
 \begin{center}
@@ -2484,6 +2493,7 @@ and height to \LaTeX\ explicitly:
 
 \begin{center}
 \begin{asy}[10cm,0]
+import graph;
 real f(real x) {return sqrt(x);}
 pair F(real x) {return (x,f(x));}
 
