@@ -1449,7 +1449,8 @@ shipout(bbox(0.25cm));
 
 @cindex @code{Background}
 A @code{picture} or @code{frame} may be fit to a frame with a
-backround color using pen @code{p} with the function @code{bbox(p,Background)}.
+background color using pen @code{p} with the function
+@code{bbox(p,Background)}.
 
 Sometimes it is useful to draw objects on separate pictures and add one
 picture to another using the @code{add} function:
@@ -1722,7 +1723,7 @@ bool positive=(pi >= 0) ? true : false;
 @end verbatim
 
 @node Self & prefix operators
-@section self & prefix operators
+@section Self & prefix operators
 @cindex self operators
 @cindex prefix operators
 @cindex @code{+=}
@@ -1879,7 +1880,7 @@ as variables but still allows overloading.
 @anchor{stack overflow}
 @cindex recursion
 @cindex stack overflow
-Functions are allowed to recursively call themselves. As in C++, infinite
+Functions are allowed to call themselves recursively. As in C++, infinite
 nested recursion will generate a stack overflow (reported as a
 segmentation fault, unless the GNU library @code{libsigsegv} is
 installed at configuration time). 
@@ -2019,7 +2020,7 @@ The @code{copy} function listed below provides a deep copy of an array.
 
 Every array @code{A} has two virtual members, @code{length} and @code{push}.
 @code{A.length} evaluates to the length of the array @code{A}, while
-@code{A.push()} is a function that pushes its argument onto the the end
+@code{A.push()} is a function that pushes its argument onto the end
 of the array. Like all functions in @code{Asymptote}, @code{push} can be
 "pulled off" of the array and used on its own:
 @verbatim
@@ -2298,7 +2299,7 @@ a module multiple times.
 
 @cindex @code{libsigsegv}
 @cindex stack overflow
-Modules are allowed to recursively import themselves. Infinite
+Modules are allowed to import themselves recursively. Infinite
 nested importing will generate a stack overflow (reported as a
 segmentation fault, unless the GNU library @code{libsigsegv} is
 installed at configuration time). 
@@ -2358,7 +2359,7 @@ simplex method. It is used by @code{plain} for automatic sizing of pictures.
 @cindex 2D graphs
 This package implements two-dimensional linear and logarithmic graphs,
 including automatic scale and tick selection (with the ability to
-manually override). A graph is a @code{guide} (that can be drawn with
+override manually). A graph is a @code{guide} (that can be drawn with
 the draw command, with an optional legend) constructed with one of
 the following routines: 
 
@@ -2767,7 +2768,7 @@ added (but can be easily implemented using similar triangles).
 @subsection @code{featpost3D}
 @cindex @code{featpost3D}
 Until a complete 3D graphics package (@pxref{graph3d}) is written, a
-preliminary port of the the @code{MetaPost} 3D package @code{featpost3D} 
+preliminary port of the @code{MetaPost} 3D package @code{featpost3D} 
 of L. Nobre G., C. Barbarosie and J. Schwaiger to @code{Asymptote}
 makes some 3D functionality already available, as illustrated by the
 examples @code{nearearth} and @code{conicurv}.
@@ -3493,12 +3494,13 @@ properly displayed by @code{xasy} when done in a separate
 @node PostScript to Asymptote
 @chapter @code{PostScript} to @code{Asymptote}
 An @code{Asymptote} backend to @code{pstoedit}
-(@code{http://pstoedit.net}), including native clipping and subpath
-support, is provided in the file @code{pstoedit-3.40asy.patch} in the
-@code{patches} directory of the @code{Asymptote} source. To install
-@code{pstoedit} with this backend, do the following
-(denoting the location of the @code{Asymptote} source directory by 
-@code{ASYMPTOTE_SOURCE}):
+(@code{http://pstoedit.net}) is provided in the file
+@code{pstoedit-3.40asy.patch} in the @code{patches} directory of the
+@code{Asymptote} source. Unlike virtually all other pstoedit backends,
+this driver includes native clipping and @code{PostScript} subpath
+support. To install @code{pstoedit} with this backend, do the
+following (denoting the location of the @code{Asymptote} source
+directory by @code{ASYMPTOTE_SOURCE}):
 
 @verbatim
 tar -zxf pstoedit-3.40.tar.gz
@@ -3614,6 +3616,11 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling addabout ei
 @c  LocalWords:  westnile fillabout filldrawabout minipage infectiousM ra penb
 @c  LocalWords:  susceptibleM si flushright secondaryX secondaryY secondaryaxis
-@c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx YEquals YEquals
-@c  LocalWords:  treetest eetomumu fermi
-
+@c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx XEquals YEquals
+@c  LocalWords:  treetest eetomumu fermi backend pstoedit drawtree metapost xFF
+@c  LocalWords:  vimrc CFLAGS verbatiminclude online noindent bezier superpath
+@c  LocalWords:  evenodd squarecap roundcap extendcap miterjoin roundjoin NFSS
+@c  LocalWords:  beveljoin fillrule zerowinding insideness lineskip cmr pcrr Hx
+@c  LocalWords:  baselineskip AvantGarde Bookman Helvetica NewCenturySchoolBook
+@c  LocalWords:  Palatino TimesRoman ZapfChancery ZapfDingbats german
+@c  LocalWords:  nondeconstructed backends usr venn
