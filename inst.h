@@ -164,8 +164,7 @@ struct inst {
     pop, intpush, constpush,
     varpush, varsave, fieldpush, fieldsave,
     builtin, jmp, cjmp, njmp, popcall,
-    pushclosure, makefunc, ret, 
-    alloc
+    pushclosure, makefunc, ret
   };
   opcode op;
   union {

@@ -463,9 +463,10 @@ void importdec::initialize(coenv &e, record *m, access *a)
  
   // Encode the allocation. 
   inst i;
-  i.op = inst::alloc;
+  i.op = inst::makefunc;
   i.lfunc = m->getInit();
   e.c.encode(i);
+  e.c.encode(inst::popcall);
 
   // Put the module into its memory location.
   a->encodeWrite(getPos(), e.c);

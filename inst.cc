@@ -20,7 +20,7 @@ static const char* opnames[] = {
   "pop", "intpush", "constpush", 
   "varpush", "varsave", "fieldpush", "fieldsave",
   "builtin", "jmp", "cjmp", "njmp", "popcall",
-  "pushclosure", "makefunc", "ret", "alloc"
+  "pushclosure", "makefunc", "ret"
 };
 static const int numOps = (int)(sizeof(opnames)/sizeof(char *));
 
@@ -75,7 +75,6 @@ program::label printInst(ostream& out, program::label code,
     }
 
     case inst::makefunc:
-    case inst::alloc:
     {
       out << " " << code->lfunc << " ";
       break;

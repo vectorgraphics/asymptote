@@ -182,20 +182,6 @@ void stack::run(func *f)
           case inst::ret: {
             return;
           }
-		      
-          case inst::alloc: {
-            // Get the record's enclosing frame off the stack.
-            vars_t frame = pop<vars_t>();
-	
-            lambda *init = ip->lfunc;
-
-            // Call the initializer.
-            func f;
-            f.body = init; f.closure = frame;
-
-            run(&f);
-            break;
-          }
 	
           default:
             UNALIAS;

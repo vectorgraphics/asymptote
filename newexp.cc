@@ -120,9 +120,10 @@ types::ty *newRecordExp::trans(coenv &e)
  
   // Encode the allocation. 
   inst i;
-  i.op = inst::alloc;
+  i.op = inst::makefunc;
   i.lfunc = r->getInit();
   e.c.encode(i);
+  e.c.encode(inst::popcall);
 
   return t;
 }
