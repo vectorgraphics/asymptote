@@ -34,11 +34,12 @@ picture::~picture()
 list<drawElement*>::iterator picture::layerstart()
 {
   list<drawElement*>::iterator p;
-  for(p=--nodes.end(); p != --nodes.begin(); --p) {
+  for(p=nodes.end(); p != nodes.begin();) {
+    --p;
     assert(*p);
     if((*p)->islayer()) break;
   }
-  return ++p;
+  return p;
 }
 
 // Insert at beginning of current layer.
@@ -74,7 +75,7 @@ void picture::prepend(picture &pic)
 
 bbox picture::bounds()
 {
-  size_t n=number();
+  size_t n=nodes.size();
   if(n == lastnumber) return b;
   
   if(lastnumber == 0) b=bbox();

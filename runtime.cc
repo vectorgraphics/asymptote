@@ -1587,7 +1587,7 @@ void nullFrame(stack *s)
 void boolNullFrame(stack *s)
 {
   picture *b = pop<picture*>(s);
-  s->push(b->number() == 0);
+  s->push(b->null());
 }
 
 void frameMax(stack *s)

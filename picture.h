@@ -68,9 +68,8 @@ public:
  
   picture *transformed(const transform& t);
   
-  // Return the number of element in picture.
-  size_t number() {
-    return nodes.size();
+  bool null() {
+    return nodes.empty();
   }
   
   bool empty() {

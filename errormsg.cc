@@ -16,7 +16,8 @@ ostream& fileinfo::print(ostream& out, int pos)
 {
   int num = lineNum;
   std::list<int>::iterator lines = linePos.begin();
-  std::list<int>::iterator last = --linePos.end();
+  std::list<int>::iterator last = linePos.end();
+  if(!linePos.empty()) last--;
   while (lines != last && *lines >= pos) {
     ++lines; num--;
   }
