@@ -7,11 +7,11 @@ public int ngraph=100;
 
 private real epsilon=100*realEpsilon();
 
-static scaleT Linear=new scaleT;
+scaleT Linear=new scaleT;
 Linear.T=identity;
 Linear.Tinv=identity;
 
-static scaleT Log=new scaleT;
+scaleT Log=new scaleT;
 Log.T=log10;
 Log.Tinv=pow10;
 Log.Label=identity;

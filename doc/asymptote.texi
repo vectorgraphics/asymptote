@@ -1881,7 +1881,9 @@ drawing language (such as the @code{picture} structure).
 By default, the top-level module automatically imports @code{plain};
 use the @code{-noplain} command-line option to disable this feature.
 In any case, no error message will be issued if one tries to explicitly
-@code{import plain}.
+@code{import plain} (if other imported packages depend implicitly
+on the presence of @code{plain}, it may be necessary to allocate it in a higher
+enclosing frame by declaring the import @code{static}; @pxref{static}). 
 
 @node simplex
 @subsection @code{simplex}

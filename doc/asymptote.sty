@@ -58,7 +58,7 @@
   \fi
   \relax%
   \endgroup}
-\newcommand\asydefaultsize{0,5cm}
+\newcommand\asydefaultsize{5cm,0}
 \newcommand\asy[1][\asydefaultsize]{%
   \begingroup
   \let\par\empty
@@ -66,9 +66,7 @@
   \def\@optarg{#1}%
    \immediate\write\AsyStream{\@charlb}%
    \immediate\write\AsyStream{reset();}%
-   \immediate\write\AsyStream{currentpicture.erase();}%
-   \immediate\write\AsyStream{currentpicture.size();}%
-   \immediate\write\AsyStream{currentpen=defaultpen();}%
+   \immediate\write\AsyStream{static import plain;}%
    \immediate\write\AsyStream{defaultfilename="\jobname.\arabic{asy}.eps";}%
   \ifx\@optarg\empty
    \immediate\write\AsyStream{size(\asydefaultsize);}%
