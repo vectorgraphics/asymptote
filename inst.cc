@@ -133,10 +133,7 @@ void thunk::call(stack *s)
 nullfunc nullfunc::func;
 void nullfunc::call(stack *s)
 {
-  em->runtime(s->getPos());
-  *em << "dereference of null function";
-  em->sync();
-  throw handled_error();
+  error(s,"dereference of null function");
 }
 
 bool nullfunc::compare(callable* f)
