@@ -26,6 +26,7 @@ private:
   pair bboxshift;
   std::list<drawElement*> nodes;
   bool labels;
+  bool epsformat,pdfformat,tgifformat;
 
 public:
   picture() : labels(false) {}
@@ -47,10 +48,10 @@ public:
   void texinit();
 
   bool texprocess(const string& texname, const string& tempname,
-		  const string& prefix);
+		  const string& prefix, const bbox& bpos); 
     
   bool postprocess(const string& epsname, const string& outname, 
-		   const string& outputformat, bool wait);
+		   const string& outputformat, bool wait, const bbox& bpos);
     
   // Ships the picture out to PostScript & TeX files.
   bool shipout(const string& prefix, const string& format="", bool wait=false);

@@ -178,15 +178,17 @@ public:
   friend istream& operator >> (istream& s, pair& z)
   {
     char c;
-    s >> ws >> c;
-    if(c == '(') {
-      s >> z.x >> c;
-      if(c == ',') s >> z.y >> c;
-      else z.y=0.0;
-    } else {
-      s.putback(c);
-      s >> z.x; z.y=0.0;
+    s >> ws;
+    bool paren=s.peek() == '('; // parenthesis are optional
+    if(paren) s >> c;
+    s >> z.x >> ws;
+    if(s.peek() == ',') s >> c >> z.y;
+    else z.y=0.0;
+    if(paren) {
+      s >> ws;
+      if(s.peek() == ')') s >> c;
     }
+    
     return s;
   }
 

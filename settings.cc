@@ -51,17 +51,20 @@ int trap=1;
 double deconstruct=0;
 int clearGUI=0;
 int ignoreGUI=0;
-camp::pair printerOffset=camp::pair(0,0);
+camp::pair postscriptOffset=camp::pair(18,-18);
+int bottomOrigin=0;
   
 double defaultlinewidth=0.0;  
 double defaultfontsize=0.0;
 bool suppressOutput=false;
 bool upToDate=false;
 int overwrite=0;
+bool defaultOrigin=true;
 
 int ShipoutNumber=0;
 char* AsyDir;
 string PSViewer;
+string PDFViewer;
 
 const std::string suffix="asy";
 const std::string guisuffix="gui";
@@ -87,19 +90,22 @@ void options()
   cerr << endl;
   cerr << "Options: " << endl;
   cerr << "-c \t\t clear GUI operations" << endl;
+  cerr << "-i \t\t ignore GUI operations" << endl;
   cerr << "-x magnification deconstruct into transparent gif objects" 
        << endl;
   cerr << "-f format\t convert each output file to specified format" << endl;
-  cerr << "-h, -help\t help" << endl;
-  cerr << "-i \t\t ignore GUI operations" << endl;
-  cerr << "-k\t\t keep intermediate files" << endl;
-  cerr << "-L\t\t disable LaTeX label postprocessing" << endl;
-  cerr << "-p\t\t parse test" << endl;
-  cerr << "-O value\t real or pair printer offset (PostScript pt)" << endl;
-  cerr << "-o name\t\t (first) output file name" << endl;
-  cerr << "-s\t\t translate test" << endl;
-  cerr << "-v, -verbose\t increase verbosity level" << endl;
   cerr << "-V, -View\t view output file" << endl;
+  cerr << "-h, -help\t help" << endl;
+  cerr << "-o name\t\t (first) output file name" << endl;
+  cerr << "-L\t\t disable LaTeX label postprocessing" << endl;
+  cerr << "-O pair\t\t PostScript offset: defaults to (18,-18)"
+       << endl; 
+  cerr << "-b\t\t align to bottom-left (instead of top-left) corner of page"
+       << endl;
+  cerr << "-v, -verbose\t increase verbosity level" << endl;
+  cerr << "-k\t\t keep intermediate files" << endl;
+  cerr << "-p\t\t parse test" << endl;
+  cerr << "-s\t\t translate test" << endl;
   cerr << "-m\t\t mask fpu exceptions (on supported architectures)" << endl;
   cerr << "-nomask\t\t don't mask fpu exceptions (default)" << endl;
   cerr << "-safe\t\t disable system call (default)" << endl;
@@ -136,12 +142,15 @@ void setOptions(int argc, char *argv[])
   errno=0;
   for(;;) {
     int c = getopt_long_only(argc,argv,
-			     "cf:hikLmo:pPsvVx:O:",
+			     "bcf:hikLmo:pPsvVx:O:",
 			     long_options,&option_index);
     if (c == -1) break;
 
     switch (c) {
     case 0:
+      break;
+    case 'b':
+      bottomOrigin=1;
       break;
     case 'c':
       clearGUI=1;
@@ -191,9 +200,8 @@ void setOptions(int argc, char *argv[])
       break;
     case 'O':
       try {
-        printerOffset=lexical_cast<camp::pair>(optarg);
-	if(printerOffset.isreal()) 
-	  printerOffset=camp::pair(printerOffset.getx(),printerOffset.getx());
+        postscriptOffset=lexical_cast<camp::pair>(optarg);
+	defaultOrigin=false;
       } catch (boost::bad_lexical_cast&) {
         syntax=1;
       }
@@ -219,7 +227,11 @@ void setOptions(int argc, char *argv[])
   
   AsyDir=getenv("ASYMPTOTE_DIR");
   char *psviewer=getenv("ASYMPTOTE_PSVIEWER");
+  char *pdfviewer=getenv("ASYMPTOTE_PDFVIEWER");
   PSViewer=psviewer ? psviewer : "gv";
+  PDFViewer=pdfviewer ? pdfviewer : "gv";
+  
+  if(defaultOrigin && bottomOrigin) postscriptOffset=conj(postscriptOffset);
 }
 
 // Reset to startup defaults

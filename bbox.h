@@ -164,7 +164,7 @@ struct bbox {
     return pair(right,top);
   }
   
-  bbox LowRes()
+  bbox LowRes() const
   {
     return bbox(floor(left),floor(bottom),ceil(right),ceil(top));
   }

@@ -20,6 +20,12 @@
 
 namespace camp {
 
+inline void BoundingBox(std::ostream& s, const bbox& box) 
+{
+  s << "%%BoundingBox: " << box.LowRes() << newl;
+  s << "%%HiResBoundingBox: " << std::setprecision(9) << box << newl;
+}
+
 class psfile {
   string filename;
   bbox box;

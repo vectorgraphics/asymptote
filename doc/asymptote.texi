@@ -244,6 +244,7 @@ system-wide directory (default: @code{/usr/local/share/asymptote})
 
 @cindex @code{-V}
 @cindex @code{ASYMPTOTE_PSVIEWER}
+@cindex @code{ASYMPTOTE_PDFVIEWER}
 In interactive mode, or when given the @code{-V} option,
 @code{Asymptote} will attempt to open up a @code{PostScript} viewer
 by first trying to execute the program specified by the optional
@@ -253,6 +254,9 @@ mode, the @code{PostScript} viewer must be able to redraw a file whenever
 it changes. The default @code{PostScript} viewer @code{gv}
 supports this automatically (via @code{SIGHUP}); users of @code{ggv} will need
 to enable @code{Watch file} under @code{Edit/Postscript Viewer Preferences}.
+For viewing PDF format output, there is an @code{ASYMPTOTE_PDFVIEWER}
+environment variable and a PDF viewer list @code{gv}, @code{acroread}, and
+@code{xpdf}.
 
 @cindex @code{emacs}
 @cindex @code{asy-mode}
@@ -344,10 +348,12 @@ commands
 draw((0,0)--(100,100));
 shipout();
 @end verbatim
+
 into a file, say test.asy. Then execute this file by typing
 @verbatim
 asy -V test
 @end verbatim
+
 The shipout command converts the current picture into @code{PostScript}. A
 shipout command is added implicitly in interactive mode, but is
 explicitly required in batch mode. 
@@ -477,6 +483,7 @@ many features beyond the ones found in those languages.
 @cindex data types
 @code{Asymptote} supports the following data types (in addition to any
 user-defined types):
+
 @table @code
 
 @item void
@@ -490,11 +497,13 @@ a boolean type that can only take on the values @code{true} and
 @verbatim
 bool b=true;
 @end verbatim
+
 defines a boolean variable @code{b} and initializes it to the value
 @code{true}. If no initializer is given:
 @verbatim
 bool b;
 @end verbatim
+
 the value @code{false} is assumed.
 
 @item int
@@ -658,6 +667,7 @@ according to the string @code{s}. For example,
 @verbatim
 write(time("%a %b %d %H:%M:%S %Z %Y"));
 @end verbatim
+
 outputs the time in the default format of the UNIX @code{date} command.
 
 @end table
@@ -690,11 +700,11 @@ A path is specified by as a list of pairs or paths interconnected with
 @cindex @code{..}
 @code{--}, which denotes a straight line segment, or @code{..}, which
 denotes a cubic spline.
+@anchor{unitcircle}
+@cindex @code{unitcircle}
 Specifying a final node @code{cycle} creates a cyclic path that connects back
 to the initial node, as in this approximation (accurate to within 0.06%)
 of a unit circle:
-@anchor{unitcircle}
-@cindex @code{unitcircle}
 @verbatim
 guide unitcircle=E..N..W..S..cycle;
 @end verbatim
@@ -926,6 +936,7 @@ are defined near the top of the default base file @code{plain.asy}:
 black,gray,white,red,green,blue,yellow,magenta,cyan,brown,darkgreen,
 darkblue,orange,purple,chartreuse,fuchsia,salmon,lightblue,lavender,pink,
 @end verbatim
+
 along with the primitive cmyk colors:
 @verbatim
 Cyan,Magenta,Yellow,Black.
@@ -1117,6 +1128,7 @@ picture to another using the @code{add} function:
 void add(picture src);
 void add(picture dest, picture src);
 @end verbatim
+
 The first example adds @code{src} to @code{currentpicture}; the second
 one adds @code{src} to @code{dest}. 
 
@@ -1188,7 +1200,9 @@ done by assignment:
 file fin=input("test.txt");
 real a=fin;
 @end verbatim
+
 @cindex @code{getc}
+When reading pairs, the enclosing parenthesis are optional.
 Strings are also read by assignment, by reading characters up to but not
 including a newline. In addition, @code{Asymptote} provides the function
 @code{string getc(file)} to read the next character only, returning it
@@ -1222,6 +1236,7 @@ write(a);
 write(a,b);
 write(a,b,c);
 @end verbatim
+
 is equivalent to 
 @verbatim
 write(stdout,endl);
@@ -1542,6 +1557,7 @@ For example, given
 @verbatim
 real f(int a=1, real b=0) {return a+b;}
 @end verbatim
+
 then @code{f(1)} returns 1.0, but @code{f(1.0)} returns 2.0.
 
 The value of a default argument is determined simply by evaluating the
@@ -1640,6 +1656,7 @@ distinguished from null arrays. If we say
 @verbatim
 real[] A=null;
 @end verbatim
+
 then @code{A} cannot be dereferenced at all (null arrays have no length
 and cannot be read from or assigned to).
 
@@ -1730,6 +1747,7 @@ string[][] a={{"bob","9"},{"alice","5"},{"pete","7"},
 write("Row sort (by column 0, using column 1 to break ties):");
 write(stdout,sort(a));
 @end verbatim
+
 produces
 @verbatim
 alice   4
@@ -1796,6 +1814,7 @@ element-by-element instructions are implemented in C++ code for speed. Given
 real[] a={1,2};
 real[] b={3,2};
 @end verbatim
+
 then @code{a == b} and @code{a >= 2} both evaluate to the vector
 @code{@{false, true@}}. 
 To test whether all components of @code{a} and @code{b} agree,
@@ -1842,6 +1861,7 @@ function:
 file fin=input("test.txt");
 real[] A=dimension(fin,10);
 @end verbatim
+
 This reads 10 values into A, unless end-of-file occurs first (which
 will result in a runtime error message). Specifying a value of 0 for the
 integer limit is equivalent to the previous example of reading until
@@ -1853,6 +1873,7 @@ file fin=input("test.txt");
 real[][] A=dimension(fin,2,3);
 real[][][] B=dimension(fin,2,3,4);
 @end verbatim
+
 Again, an integer limit of zero would mean no restriction.
 
 @cindex @code{read1}
@@ -2261,6 +2282,7 @@ characters. You will also need to set up @code{LaTeX} support for
 @verbatim
 http://www.unruh.de/DniQ/latex/unicode/unicode.tgz
 @end verbatim
+
 and then running the command 
 @verbatim
 texhash
@@ -2779,7 +2801,7 @@ Options:
 -k               keep intermediate files
 -L               disable LaTeX label postprocessing
 -p               parse test
--O value         real or pair printer offset (PostScript pt)
+-O pair          postscript offset from top left corner: defaults to (18,-18)
 -o name          (first) output file name
 -s               translate test
 -v, -verbose     increase verbosity level
@@ -2797,20 +2819,8 @@ If no arguments are given, @code{Asymptote} runs in interactive mode
 If @code{-} is given as the file argument, @code{Asymptote} reads from
 standard input. 
 
-Additional debugging output is produced with each additional @code{-v} option. 
-
-If the option @code{-unsafe} is given, @code{Asymptote} runs
-in unsafe mode. This enables the @code{int system(string)} call, allowing one
-to execute arbitrary shell commands.
-The default mode, @code{-safe}, disables this call.
-
-An alternative output format may be produced by using the @code{-f format}
-option. This supports any format supported by the @code{ImageMagick}
-@code{convert} program (a relatively recent version of which must be
-installed).
-
 If multiple files are specified, they are treated as separate
-@code{Asymptote} runs by implicitly calling @code{reset()}:
+@code{Asymptote} runs, by implicitly calling @code{reset()}:
 
 @cindex @code{reset()}
 @table @code
@@ -2819,12 +2829,42 @@ Reset @code{defaultfontsize}, @code{defaultlinewidth}, and @code{overwrite}
 to their startup defaults.
 @end table
 
-A @code{PostScript} offset may be specified with either of these two
-equivalent shell commands:
+An alternative output format may be produced by using the @code{-f format}
+option. This supports any format supported by the @code{ImageMagick}
+@code{convert} program (a relatively recent version of which must be
+installed). @code{ImageMagick} should be configured with @code{--enable-lzw} to
+produce @code{LZW}-compressed gifs (the @code{Unisys LZW} patent expired
+on June 20, 2003).
+
+If the option @code{-unsafe} is given, @code{Asymptote} runs
+in unsafe mode. This enables the @code{int system(string)} call, allowing one
+to execute arbitrary shell commands. The default mode, @code{-safe},
+disables this call. 
+
+A @code{PostScript} offset may be specified with the -O option. The
+default offset is equivalent to
 @verbatim
-asy -O 25 file
-asy -O "(25,25)" file
+asy -O 18,-18 file
 @end verbatim
+
+By default, @code{Asymptote} attempts to position the top-left corner of
+the bounding box 18 bp to the right of and below the top-left corner of
+the page, unless that would result in a negative vertical bounding box
+coordinate.
+
+Additional debugging output is produced with each additional @code{-v} option:
+@table @code
+@item -v
+Display top-level module and final output file names.
+@item -vv
+Also display imported module names.
+@item -vvv
+Also display @code{LaTeX} and @code{dvips} processing information.
+@item -vvvv
+Also output @code{LaTeX} bidirectional pipe and knot solver diagnostics.
+@item -vvvvv
+Also output Asymptote traceback diagnostics.
+@end table
 
 @node Interactive mode
 @chapter Interactive mode

@@ -89,7 +89,7 @@ void picture::texinit() {
 }
   
 bool picture::texprocess(const string& texname, const string& outname,
-			 const string& prefix)
+			 const string& prefix, const bbox& bpos) 
 {
   int status=0;
   std::ifstream outfile;
@@ -109,21 +109,38 @@ bool picture::texprocess(const string& texname, const string& outname,
     }
     outfile.close();
     
-    ostringstream dcmd;
-
-    double offset=-1.5*72;
-    double hoffset=offset+printerOffset.getx();
-    double voffset=offset+printerOffset.gety();
+    // Magic dvips offsets:
+    double hoffset=-128.5;
+    double voffset=-126;
     
-    dcmd << "dvips -E -O " << hoffset << "bp," << voffset << "bp";
-    if(verbose <= 2) dcmd << " -q";
-    dcmd << " -o " << outname << " " << dviname;
-    status=System(dcmd);
+    if(pdfformat || bottomOrigin)
+      voffset += max(11.0*72.0-ceil(bpos.top-bpos.bottom),0.0);
+    if(!pdfformat) {
+      hoffset += postscriptOffset.getx();
+      voffset -= postscriptOffset.gety();
+    }
 
+    string psname=auxname(prefix,"ps");
+    ostringstream dcmd;
+    dcmd << "dvips -O " << hoffset << "bp," << voffset << "bp";
+    if(verbose <= 2) dcmd << " -q";
+    dcmd << " -o " << psname << " " << dviname;
+    status=System(dcmd);
+    
+    ifstream fin(psname.c_str());
+    ofstream fout(outname.c_str());
+    string s;
+    while(getline(fin,s)) {
+      if(s.find("%%BoundingBox:") == 0) 
+	BoundingBox(fout,bpos);
+      else fout << s << endl;
+    }
+    
     if(!keep) { // Delete temporary files.
       unlink("texput.log");
       unlink(texname.c_str());
       unlink(dviname.c_str());
+      unlink(psname.c_str());
       unlink(auxname(prefix,"aux").c_str());
       unlink(auxname(prefix,"log").c_str());
     }
@@ -133,24 +150,26 @@ bool picture::texprocess(const string& texname, const string& outname,
 }
 
 bool picture::postprocess(const string& epsname, const string& outname,
-			  const string& outputformat, bool wait)
+			  const string& outputformat, bool wait,
+			  const bbox& bpos)
 {
   int status=0;
   ostringstream cmd;
-  bool epsformat=(outputformat == "" || outputformat == "eps");
-  bool pdfformat=(outputformat == "pdf");
-  bool tgifformat=(outputformat == "tgif");
   
   if(!epsformat) {
     if(pdfformat) cmd << "gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
+		      << " -dDEVICEWIDTHPOINTS=" 
+		      << ceil(bpos.right-bpos.left+1.0)
+		      << " -dDEVICEHEIGHTPOINTS=" 
+		      << ceil(bpos.top-bpos.bottom+1.0)
 		      << " -sOutputFile=" << outname << " " << epsname;
     else {
-      double res=deconstruct*72;
+      double res=deconstruct*72.0;
       cmd << "convert";
       if(tgifformat) cmd << " -density " << res << "x" << res;
       cmd << " eps:" << epsname;
       if(tgifformat) cmd << " -transparent white gif";
-      else cmd << " " << outputformat;  
+      else cmd << " " << outputformat;
       cmd << ":" << outname;
     }
     System(cmd);
@@ -158,27 +177,31 @@ bool picture::postprocess(const string& epsname, const string& outname,
   }
   
   if(verbose > (tgifformat ? 1 : 0)) cout << "Wrote " << outname << endl;
-  static bool first=true;
-  static int pid;
-  const string AltViewers[]={PSViewer,"ggv","ghostview","gsview"};
-  static size_t nViewers=sizeof(AltViewers)/sizeof(string);
-  static size_t iviewer=0;
   if(view && !deconstruct) {
     if(epsformat || pdfformat) {
+      static int pid;
+      static bool first=true;
+      static const string PSViewers[]={PSViewer,"ggv","ghostview","gsview"};
+      static const string PDFViewers[]={PDFViewer,"acroread","xpdf"};
+      static const size_t nPSViewers=sizeof(PSViewers)/sizeof(string);
+      static const size_t nPDFViewers=sizeof(PDFViewers)/sizeof(string);
+      const string *Viewers=pdfformat ? PDFViewers : PSViewers;
+      const size_t nViewers=pdfformat ? nPDFViewers : nPSViewers;
+      size_t iViewer=0;
       if (first || !interact::virtualEOF) {
 	first=false;
 	status=-1;
-	while(status == -1 && iviewer < nViewers) {
+	while(status == -1 && iViewer < nViewers) {
 	  ostringstream cmd;
-	  cmd << AltViewers[iviewer];
-	  if(AltViewers[iviewer] == "gv") cmd << " -nowatch";
+	  cmd << Viewers[iViewer];
+	  if(Viewers[iViewer] == "gv") cmd << " -nowatch";
 	  cmd << " " << outname;
-	  status=System(cmd,false,wait,&pid,iviewer+1 == nViewers);
-	  if(status == -1) ++iviewer;
+	  status=System(cmd,false,wait,&pid,iViewer+1 == nViewers);
+	  if(status == -1) ++iViewer;
 	}
 	if(status) return false;
 	// Tell gv it should reread the file.
-      } else if(AltViewers[iviewer] == "gv") kill(pid,SIGHUP);
+      } else if(Viewers[iViewer] == "gv") kill(pid,SIGHUP);
     } else {
 	cmd << "display " << outname;
 	status=System(cmd,false,wait);
@@ -195,8 +218,10 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
   upToDate=true;
   
   checkFormatString(format);
-  string outputformat=(format == "" ? outformat : format);
-  bool tgifformat=(outputformat == "tgif");
+  string outputformat=format == "" ? outformat : format;
+  epsformat=outputformat == "" || outputformat == "eps";
+  pdfformat=outputformat == "pdf";
+  tgifformat=outputformat == "tgif";
   
   static std::ofstream bboxout;
   if(deconstruct && !tgifformat) {
@@ -211,14 +236,21 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
     return true;
   }
       
-  bool epsformat=(outputformat == "" || outputformat == "eps");
   string outname=tgifformat ? "."+buildname(prefix,"gif") :
     buildname(prefix,outputformat);
   string epsname=epsformat ? outname : auxname(prefix,"eps");
   
   bounds();
   
-  bbox bpos=b;
+  bbox bcopy=b;
+  
+  static double fuzz=1.0;
+  bcopy.right += fuzz;
+  bcopy.left -= fuzz;
+  bcopy.top += fuzz;
+  bcopy.bottom -= fuzz;
+  
+  bbox bpos=bcopy;
   
   if(deconstruct) {
       if(!bboxout.is_open()) {
@@ -230,7 +262,12 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
       bboxout << bscaled << endl;
   } else {
   // Avoid negative bounding box coordinates
-    bboxshift=pair(-b.left,-b.bottom);
+    bboxshift=pair(-bpos.left,-bpos.bottom);
+    if(!pdfformat) {
+      bboxshift += postscriptOffset;
+      if(!bottomOrigin)
+	bboxshift += pair(0.0,max(11.0*72.0-ceil(bpos.top-bpos.bottom),0.0));
+    }
     bpos.shift(bboxshift);
   }
   
@@ -239,18 +276,12 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
     return true;
   }
   
-  static const double pdfoffset=2.0;
-  if(!labels && outputformat == "pdf") {
-    bpos.right += pdfoffset;
-    bpos.top += pdfoffset;
-  }
-  
   string texname=auxname(prefix,"tex");
   texfile *tex=NULL;
   bool status = true;
   
   if(labels) {
-    tex=new texfile(texname,b);
+    tex=new texfile(texname,bcopy);
     list<drawElement*>::iterator p;
     for (p = nodes.begin(); p != nodes.end(); ++p) {
       assert(*p);
@@ -268,8 +299,8 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
   
   while(p != nodes.end()) {
     ostringstream buf;
-    buf << prefix << layer;
-    string psname=labels ? auxname(buf.str(),"ps") : epsname;
+    buf << prefix << "_" << layer;
+    string psname=labels ? buildname(buf.str(),"ps") : epsname;
     psnameStack.push_back(psname);
     psfile out(psname,bpos,bboxshift);
     out.prologue();
@@ -302,14 +333,14 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
   if(status) {
     if(labels) {
       tex->epilogue();
-      status=texprocess(texname,epsname,prefix);
+      status=texprocess(texname,epsname,prefix,bpos);
       if(!keep) {
 	list<string>::iterator p;
 	for(p=psnameStack.begin(); p != psnameStack.end(); ++p)
 	  unlink(p->c_str());
       }
     }
-    status=postprocess(epsname,outname,outputformat,wait);
+    status=postprocess(epsname,outname,outputformat,wait,bpos);
   }
   
   if(labels) delete tex;

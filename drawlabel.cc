@@ -12,7 +12,6 @@
 #include "util.h"
 
 using std::list;
-using settings::verbose;
   
 namespace camp {
 

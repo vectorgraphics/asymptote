@@ -17,7 +17,6 @@ namespace camp {
 
 using std::ofstream;
 using std::setw;
-using std::setprecision;
   
 psfile::psfile(const string& filename, const bbox& box, const pair& shift)
   : filename(filename), box(box), shift(shift), lastpen(setlinewidth,0.0)
@@ -39,11 +38,7 @@ void psfile::prologue()
 {
   //*out << "%!PS" << newl;
   *out << "%!PS-Adobe-3.0 EPSF-3.0" << newl;
-
-//  assert(box.nonempty());
-  
-  *out << "%%BoundingBox: " << box.LowRes() << newl;
-  *out << "%%HiResBoundingBox: " << setprecision(9) << box << newl;
+  BoundingBox(*out,box);
   *out << "%%Creator: " << settings::PROGRAM << " " << settings::VERSION
        <<  newl;
 

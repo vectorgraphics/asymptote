@@ -113,7 +113,7 @@ public:
       p[nc]=0;
       if(nc == 0) break;
       if(nc > 0) {
-	if(settings::verbose > 2) std::cerr << p << std::endl;
+	if(settings::verbose > 3) std::cerr << p << std::endl;
 	if(index(p,'\n')) break;
 	p += nc;
 	size -= nc;
@@ -166,7 +166,7 @@ public:
   
   iopipestream& operator << (const std::string &s) {
     ssize_t size=s.length();
-    if(settings::verbose > 2) std::cerr << s << std::endl;
+    if(settings::verbose > 3) std::cerr << s << std::endl;
     if(write(in[1],s.c_str(),size) != size) {
       std::cerr << "write to pipe failed" << std::endl;
       throw handled_error();
