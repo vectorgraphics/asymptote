@@ -2720,10 +2720,10 @@ void errorbars(picture pic=currentpicture, real[] x, real[] y,
 @end verbatim
 
 @noindent
-Here, the absolute values of the elements of the pair array @code{dp}
-and the optional pair array @code{dm} are the positive and negative
-extents of the error, respectively. If @code{dm} is not specified, the
-positive and negative extents of the error are taken to be identical.
+Here, the positive and negative extents of the error are given by the
+absolute values of the elements of the pair array @code{dp} and the
+optional pair array @code{dm}. If @code{dm} is not specified, the
+positive and negative extents of the error are assumed to be equal.
 
 @verbatiminclude datagraph.asy
 @image{datagraph}

@@ -41,47 +41,48 @@ static struct problem {
   row[] rows = {rowA(), rowB()};
 
   // The number of original variables.
-  int n = 2;
-
-  // Recalculate rows v[col] and vp for the pivot-swap.
-  void swapPivot(int col, var vp)
-  {
-    row rvc = rows[v[col]], rvp = rows[vp];
-
-    real d = rvp.t[col]; // NOTE: Handle d==0 case.
-    rvc.c = -rvp.c/d;
-    rvp.c = 0;
-    for (int i = 0; i < n; ++i) {
-      rvc.t[i] = (i==col ? 1 : -rvp.t[i])/d;
-      rvp.t[i] = i==col ? 1 : 0;
-    }
-  }
-
-  // Recalculate a row r other than the two above for the pivot.
-  void swapOther(row r, int col)
-  {
-    row rvc = rows[v[col]];
-
-    real m = r.t[col];
-    r.c += m*rvc.c;
-    for (int i = 0; i < n; ++i)
-      if (i == col)
-        r.t[i] = m*rvc.t[i];
-      else
-        r.t[i] += m*rvc.t[i];
-  }
-
+  int n = rows.length;
 
   // Pivot the variable v[col] with vp.
   void pivot(int col, var vp)
   {
-    // Swap the two rows involved as a special case.
-    swapPivot(col, vp);
+    int vc=v[col];
 
-    // Swap the other rows.
-    for (var i = 0; i < rows.length; ++i)
-      if (i != v[col] && i != vp)
-        swapOther(rows[i], col);
+    // Recalculate rows v[col] and vp for the pivot-swap.
+    row rvc = rows[vc], rvp = rows[vp];
+    real factor=1/rvp.t[col]; // NOTE: Handle rvp.t[col]==0 case.
+    rvc.c=-rvp.c*factor;
+    rvp.c=0;
+    rvc.t=-rvp.t*factor;
+    rvp.t *= 0;
+    rvc.t[col]=factor;
+    rvp.t[col]=1;
+    
+    int a=min(vc,vp);
+    int b=max(vc,vp);
+    
+    // Recalculate the rows other than the two used for the above pivot.
+    for (var i = 0; i < a; ++i) {
+	row r=rows[i];
+	real m = r.t[col];
+	r.c += m*rvc.c;
+	r.t += m*rvc.t;
+	r.t[col]=m*factor;
+    }
+    for (var i = a+1; i < b; ++i) {
+	row r=rows[i];
+	real m = r.t[col];
+	r.c += m*rvc.c;
+	r.t += m*rvc.t;
+	r.t[col]=m*factor;
+    }
+    for (var i = b+1; i < rows.length; ++i) {
+	row r=rows[i];
+	real m = r.t[col];
+	r.c += m*rvc.c;
+	r.t += m*rvc.t;
+	r.t[col]=m*factor;
+    }
 
     // Relabel the vars.
     v[col] = vp;
@@ -109,13 +110,8 @@ static struct problem {
   static int OPTIMAL = -1;
   int selectColumn()
   {
-    row r = rows[0];
-
-    for (int i = 0; i < n; ++i)
-      if (r.t[i] > 0)
-        return i;
-
-    return OPTIMAL;
+    int i=find(rows[0].t > 0,1);
+    return (i >= 0) ? i : OPTIMAL;
   }
 
   // Select the new variable associated with a pivot on the column given.
@@ -129,17 +125,15 @@ static struct problem {
     // out to be the max of c/t[col].  Note that as c is positive, and
     // t[col] is negative, all c/t[col] will be negative, so we are finding
     // the smallest in magnitude.
-    var vp = UNBOUNDED;
-    row rvp = null;
-    for (var i = 2; i < rows.length; ++i) {
-      row r = rows[i];
-      if (r.t[col] < 0 && 
-          (vp == UNBOUNDED || r.c/r.t[col] > rvp.c/rvp.t[col])) {
-        vp = i;
-        rvp = r;
+    var vp=UNBOUNDED;
+    real max=-infinity;
+    for (int i = 2; i < rows.length; ++i) {
+      row r=rows[i];
+      if(r.c < max*r.t[col]) {
+	max=r.c/r.t[col]; vp=i;
       }
     }
-
+    
     return vp;
   }
 
@@ -158,6 +152,7 @@ static struct problem {
     // NOTE: Simple rows could be optimized out, since they are not really
     // used. 
     bool validVar(int col) {
+
       var vc = v[col];
       row rvc = rows[vc];
 
@@ -166,7 +161,7 @@ static struct problem {
       for (int i = 0; i < n; ++i)
         if (rvc.t[i] != (i==col ? 1 : 0))
           return false;
-
+      
       return true;
     }
 

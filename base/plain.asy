@@ -10,124 +10,124 @@ public bool shipped=false;
 public bool uptodate=true;
 static public pen currentpen;
 
-real inches=72;
-real inch=inches;
-real cm=inches/2.540005;
-real mm=0.1cm;
-real bp=1;	    // A PostScript point.
-real pt=72.0/72.27; // A TeX pt is slightly smaller than a PostScript bp.
+static real inches=72;
+static real inch=inches;
+static real cm=inches/2.540005;
+static real mm=0.1cm;
+static real bp=1;	    // A PostScript point.
+static real pt=72.0/72.27; // A TeX pt is slightly smaller than a PostScript bp.
+static pair I=(0,1);
+static real pi=pi();
 
-pair I=(0,1);
-real pi=pi();
+static pair up=(0,1);
+static pair down=(0,-1);
+static pair right=(1,0);
+static pair left=(-1,0);
 
-pair up=(0,1);
-pair down=(0,-1);
-pair right=(1,0);
-pair left=(-1,0);
+static pair E=(1,0);
+static pair N=(0,1);
+static pair W=(-1,0);
+static pair S=(0,-1);
 
-pair E=(1,0);
-pair N=(0,1);
-pair W=(-1,0);
-pair S=(0,-1);
+static pair NE=unit(N+E);
+static pair NW=unit(N+W);
+static pair SW=unit(S+W);
+static pair SE=unit(S+E);
 
-pair NE=unit(N+E);
-pair NW=unit(N+W);
-pair SW=unit(S+W);
-pair SE=unit(S+E);
-
-pair ENE=unit(E+NE);
-pair NNE=unit(N+NE);
-pair NNW=unit(N+NW);
-pair WNW=unit(W+NW);
-pair WSW=unit(W+SW);
-pair SSW=unit(S+SW);
-pair SSE=unit(S+SE);
-pair ESE=unit(E+SE);
+static pair ENE=unit(E+NE);
+static pair NNE=unit(N+NE);
+static pair NNW=unit(N+NW);
+static pair WNW=unit(W+NW);
+static pair WSW=unit(W+SW);
+static pair SSW=unit(S+SW);
+static pair SSE=unit(S+SE);
+static pair ESE=unit(E+SE);
   
-pen linetype(string s) 
+static pen linetype(string s) 
 {
   return linetype(s,true);
 }
 
-pen solid=linetype("");
-pen dotted=linetype("0 4");
-pen dashed=linetype("8 8");
-pen longdashed=linetype("24 8");
-pen dashdotted=linetype("8 8 0 8");
-pen longdashdotted=linetype("24 8 0 8");
+static pen solid=linetype("");
+static pen dotted=linetype("0 4");
+static pen dashed=linetype("8 8");
+static pen longdashed=linetype("24 8");
+static pen dashdotted=linetype("8 8 0 8");
+static pen longdashdotted=linetype("24 8 0 8");
 
-pen Dotted=dotted+1.0;
+static pen Dotted=dotted+1.0;
 
-pen squarecap=linecap(0);
-pen roundcap=linecap(1);
-pen extendcap=linecap(2);
+static pen squarecap=linecap(0);
+static pen roundcap=linecap(1);
+static pen extendcap=linecap(2);
 
-pen miterjoin=linejoin(0);
-pen roundjoin=linejoin(1);
-pen beveljoin=linejoin(2);
+static pen miterjoin=linejoin(0);
+static pen roundjoin=linejoin(1);
+static pen beveljoin=linejoin(2);
 
-pen zerowinding=fillrule(0);
-pen evenodd=fillrule(1);
+static pen zerowinding=fillrule(0);
+static pen evenodd=fillrule(1);
 
-pen nobasealign=basealign(0);
-pen basealign=basealign(1);
+static pen nobasealign=basealign(0);
+static pen basealign=basealign(1);
 
-pen invisible=invisible();
-pen black=gray(0);
-pen lightgray=gray(0.9);
-pen lightgrey=lightgray;
-pen gray=gray(0.5);
-pen grey=gray;
-pen white=gray(1);
+static pen invisible=invisible();
+static pen black=gray(0);
+static pen lightgray=gray(0.9);
+static pen lightgrey=lightgray;
+static pen gray=gray(0.5);
+static pen grey=gray;
+static pen white=gray(1);
 
-pen red=rgb(1,0,0);
-pen green=rgb(0,1,0);
-pen blue=rgb(0,0,1);
+static pen red=rgb(1,0,0);
+static pen green=rgb(0,1,0);
+static pen blue=rgb(0,0,1);
 
-pen cmyk=cmyk(0,0,0,0);
-pen Cyan=cmyk(1,0,0,0);
-pen Magenta=cmyk(0,1,0,0);
-pen Yellow=cmyk(0,0,1,0);
-pen Black=cmyk(0,0,0,1);
+static pen cmyk=cmyk(0,0,0,0);
+static pen Cyan=cmyk(1,0,0,0);
+static pen Magenta=cmyk(0,1,0,0);
+static pen Yellow=cmyk(0,0,1,0);
+static pen Black=cmyk(0,0,0,1);
 
-pen yellow=red+green;
-pen magenta=red+blue;
-pen cyan=blue+green;
+static pen yellow=red+green;
+static pen magenta=red+blue;
+static pen cyan=blue+green;
 
-pen brown=red+black;
-pen darkgreen=green+black;
-pen darkblue=blue+black;
+static pen brown=red+black;
+static pen darkgreen=green+black;
+static pen darkblue=blue+black;
 
-pen orange=red+yellow;
-pen purple=magenta+blue;
+static pen orange=red+yellow;
+static pen purple=magenta+blue;
 
-pen chartreuse=brown+green;
-pen fuchsia=red+darkblue;
-pen salmon=red+darkgreen+darkblue;
-pen lightblue=darkgreen+blue;
-pen lavender=brown+darkgreen+blue;
-pen pink=red+darkgreen+blue;
+static pen chartreuse=brown+green;
+static pen fuchsia=red+darkblue;
+static pen salmon=red+darkgreen+darkblue;
+static pen lightblue=darkgreen+blue;
+static pen lavender=brown+darkgreen+blue;
+static pen pink=red+darkgreen+blue;
 
 // Global parameters:
-public real labelmargin=0.3;
-public real arrowlength=0.75cm;
-public real arrowfactor=15;
-public real arrowangle=15;
-public real arcarrowfactor=0.5*arrowfactor;
-public real arcarrowangle=2*arrowangle;
-public real barfactor=arrowfactor;
-public real dotfactor=6;
+static public real labelmargin=0.3;
+static public real arrowlength=0.75cm;
+static public real arrowfactor=15;
+static public real arrowangle=15;
+static public real arcarrowfactor=0.5*arrowfactor;
+static public real arcarrowangle=2*arrowangle;
+static public real barfactor=arrowfactor;
+static public real dotfactor=6;
 
-public pair legendlocation=(1.0,0.8);
-public real legendlinelength=50;
-public real legendskip=1.5;
-public pen legendboxpen=black;
-public real legendmargin=10;
+static public pair legendlocation=(1.0,0.8);
+static public real legendlinelength=50;
+static public real legendskip=1.5;
+static public pen legendboxpen=black;
+static public real legendmargin=10;
 
-public string defaultfilename;
+static public string defaultfilename;
 
-real infinity=sqrt(0.5*realMax()); // Reduced for tension atleast infinity
-real epsilon=realEpsilon();
+// Reduced for tension atleast infinity
+static real infinity=sqrt(0.5*realMax());
+static real epsilon=realEpsilon();
 
 real arrowsize(pen p=currentpen) 
 {
@@ -171,10 +171,10 @@ file stdin=input("");
 file stdout;
 
 private struct endlT {};
-public endlT endl=null;
+static public endlT endl=null;
 
 private struct tabT {};
-public tabT tab=null;
+static public tabT tab=null;
 
 void write(file out, endlT endl=null) {write(out,'\n'); flush(out);}
 void write(file out=stdout, bool x, endlT) {write(out,x); write(out);}
@@ -223,11 +223,10 @@ string ask(string prompt)
   return stdin;
 }
 
-private int GUIFilenum=0;
-private int GUIObject=0;
-private string GUIPrefix;
-
-public frame patterns;
+static private int GUIFilenum=0;
+static private int GUIObject=0;
+static private string GUIPrefix;
+static public frame patterns;
 
 void deconstruct(frame d)
 {
@@ -239,7 +238,7 @@ void deconstruct(frame d)
 }
 
 private struct DELETET {}
-public DELETET DELETE=null;
+static public DELETET DELETE=null;
 
 struct GUIop
 {
@@ -1961,11 +1960,10 @@ string[] reverse(string[] a) {return a[reverse(a.length)];}
 int find(bool[] a) {return find(a,1);}
 
 // Transform coordinate in [0,1]x[0,1] to current user coordinates.
-// This might be improved with deferring drawing...
 pair relative(picture pic=currentpicture, pair z)
 {
   pair w=(pic.userMax-pic.userMin);
-  return pic.userMin+Dot(z,w);
+  return pic.userMin+(z.x*w.x,z.y*w.y);
 }
 
 void pause(string w="Hit enter to continue") 

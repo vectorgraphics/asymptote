@@ -1,17 +1,17 @@
-public real ticksize=1mm;
-public real Ticksize=2*ticksize;
-public real ylabelwidth=2.0;
-public real axislabelmargin=2;
-public real axiscoverage=0.6;
-public int ngraph=100;
+static public real ticksize=1mm;
+static public real Ticksize=2*ticksize;
+static public real ylabelwidth=2.0;
+static public real axislabelmargin=2;
+static public real axiscoverage=0.6;
+static public int ngraph=100;
 
-private real epsilon=100*realEpsilon();
+static private real epsilon=100*realEpsilon();
 
-scaleT Linear=new scaleT;
+static scaleT Linear=new scaleT;
 Linear.T=identity;
 Linear.Tinv=identity;
 
-scaleT Log=new scaleT;
+static scaleT Log=new scaleT;
 Log.T=log10;
 Log.Tinv=pow10;
 Log.Label=identity;
