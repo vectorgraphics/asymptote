@@ -131,7 +131,6 @@ public:
     lastpos=pos;
     if (camp::errors())
       printCamp(pos);
-    if(interrupt) throw interrupted();
     if (settings::verbose > 4) 
       trace(pos);
   }

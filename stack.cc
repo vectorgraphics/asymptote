@@ -100,6 +100,8 @@ void stack::run(func *f)
       cerr << "\n";
 #endif
 
+      if(errorstream::interrupt) throw interrupted();
+      
       switch (ip->op)
         {
           case inst::pop:
