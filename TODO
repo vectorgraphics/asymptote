@@ -16,6 +16,8 @@ Andy: hide private functions to avoid ambiguity. But could this cause
 working code to break if private functions are suddenly made public?
 See "Design and Evolution of C++" or talk to Tom. :-)
 
+Tom: add explicit modifier to inhibit function argument promotion.
+
 Tom: extend syntax to allow for explict array casts like (int[]) on real[].
 
 3d graphs

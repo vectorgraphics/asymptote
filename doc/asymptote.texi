@@ -192,7 +192,8 @@ install-info --infodir=/usr/local/info /usr/local/info/asymptote.info
 
 To uninstall:
 @verbatim
-install-info --delete --infodir=/usr/local/info /usr/local/info/asymptote.info
+install-info --delete --infodir=/usr/local/info \
+  /usr/local/info/asymptote.info
 tar -zxvf asymptote-x.xx.ARCH.tar.gz | xargs rm
 texhash
 @end verbatim
@@ -1032,11 +1033,16 @@ with @code{reset()}).
 
 @end itemize
 
+@cindex @code{+}
+@cindex @code{*}
 Pens may be added together with the binary operator @code{+}.
-This will mix the colors of the two pens. Other non-default attributes
-of the right most pen will override those of the left most pen. Thus, one can
-obtain a yellow dashed pen by saying @code{dashed+red+green} or
-@code{red+green+dashed} or @code{red+dashed+green}, etc.
+This will mix the colors of the two pens.
+Other non-default attributes of the right most pen will
+override those of the left most pen. Thus, one can obtain a yellow
+dashed pen by saying @code{dashed+red+green} or @code{red+green+dashed}
+or @code{red+dashed+green}. The binary operator @code{*}
+can be used to scale the color of a pen by a real number, until it
+saturates with one or more color components equal to 1.
 
 @node Transforms
 @section Transforms

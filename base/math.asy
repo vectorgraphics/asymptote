@@ -168,6 +168,21 @@ vector operator / (vector a, real s)
   return vector(a.x/s,a.y/s,a.z/s);
 }
 
+bool operator == (vector a, vector b) 
+{
+  return a.x == b.x && a.y == b.y && a.z == b.z;
+}
+
+bool operator != (vector a, vector b) 
+{
+  return a.x != b.x || a.y != b.y || a.z != b.z;
+}
+
+vector interp(vector a, vector b, real c)
+{
+  return a+c*(b-a);
+}
+
 real Dot(vector a, vector b)
 {
   return a.x*b.x+a.y*b.y+a.z*b.z;

@@ -99,6 +99,8 @@ public real legendmargin=10;
 
 public frame currentframe;
 public pen currentpen;
+public pen background=white;
+
 public string defaultfilename="";
 
 real infinity=0.1*realMax();
@@ -1512,3 +1514,37 @@ void overwrite(Overwrite Overwrite=Allow)
 {
   overwrite(Overwrite(Overwrite));
 }
+
+path cutbefore(path p, path knife)
+{
+  pair z=intersect(p,knife);
+  real t=xpart(z);
+  if (t < 0) return p;
+  else return subpath(p,t,length(p));
+}
+
+path cutafter(path p, path knife) 
+{
+  return reverse(cutbefore(reverse(p),knife));
+}
+
+void unfill(picture pic=currentpicture, path g) 
+{
+  fill(pic,g,background);
+}
+
+void unfilldraw(picture pic=currentpicture, path g) 
+{
+  filldraw(pic,g,background);
+}
+
+pair interp(pair a, pair b, real c)
+{
+  return a+c*(b-a);
+}
+
+pen interp(pen a, pen b, real c) 
+{
+  return (1-c)*a+c*b;
+}
+
