@@ -10,6 +10,9 @@
 #include <cassert>
 
 #include "interact.h"
+#include "util.h"
+#include "symbol.h"
+#include "genv.h"
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 #include <readline/readline.h>
@@ -17,12 +20,9 @@
 #include <signal.h>
 #endif
 
-namespace interact {
+#include "fileio.h"
 
-namespace {
-/* A static variable for holding the line. */
-char *line_read=(char *)NULL;
-}
+namespace interact {
 
 bool virtualEOF=true;
 bool rejectline=false;
@@ -35,12 +35,23 @@ bool redraw=false;
 static int start=0;
 static int end=0;
   
-// Special version of import command that first does a reset
-const char *Import="Import "; 
+static std::string asyinput=".asy_input";  
+static const char *historyfile=".asy_history";
+  
+void reset()
+{
+  start=(rejectline && history_length) ? end-1 : end;
+  camp::typeout->seek(0);
+}
+  
+static const char *input="input "; 
+static size_t ninput=strlen(input);
   
 /* Read a string, and return a pointer to it. Returns NULL on EOF. */
 char *rl_gets(void)
 {
+  static char *line_read=(char *) NULL;
+  
   /* If the buffer has already been allocated,
      return the memory to the free pool. */
   if(line_read) {
@@ -51,17 +62,20 @@ char *rl_gets(void)
   /* Get a line from the user. */
   while((line_read=readline("> "))) {
     if(*line_read == 0) continue;    
-    if(strcmp(line_read,"reset") != 0) break;
-    start=(rejectline && history_length) ? end-1 : end;
+    if(strncmp(line_read,input,ninput) == 0) {reset(); break;}
+    if(strcmp(line_read,"reset") != 0 && strcmp(line_read,"reset;") != 0)
+      break;
+    reset();
   }
      
   if(rejectline && history_length) remove_history(history_length-1);
   
   if(!line_read) std::cout << std::endl;
   else {
-    if(strcmp(line_read,"q") == 0 || strcmp(line_read,"quit") == 0)
+    if(strcmp(line_read,"q") == 0 || strcmp(line_read,"quit") == 0
+       || strcmp(line_read,"quit;") == 0)
       return NULL;
-    if(strcmp(line_read,"redraw") == 0) {
+    if(strcmp(line_read,"redraw") == 0 || strcmp(line_read,"redraw;") == 0) {
       redraw=true;
       *line_read=0;
     }
@@ -70,9 +84,6 @@ char *rl_gets(void)
   /* If the line has any text in it, save it on the history. */
   if(line_read && *line_read) add_history(line_read);
   
-  if(line_read && strncmp(line_read,Import,strlen(Import)) == 0)
-    start=(rejectline && history_length) ? end-1 : end;
-
   return line_read;
 }
 
@@ -80,15 +91,26 @@ void add_input(char *&dest, const char *src, size_t& size)
 {
   size_t len=strlen(src)+1;
   if(len > size) {
-    std::cerr << "Input buffer overflow;" << std::endl;
+    std::cerr << "Error: interactive input buffer overflow." << std::endl;
     exit(1);
   }
-  strcpy(dest,src);
-  dest[strlen(dest)]=';'; // Auto-terminate each line
+  
+  if(strncmp(src,input,ninput) == 0) {
+    const std::string inputname=
+      trans::symbolToFile(trans::symbol::trans(src+ninput));
+    static std::filebuf filebuf;
+    if(!filebuf.open(inputname.c_str(),std::ios::in)) {
+      cout << "warning: input file '" << inputname << "' not found" << endl;
+      return;
+    }
+    len=filebuf.sgetn(dest,size);
+    filebuf.close();
+    settings::suppressOutput=false;
+  } else {
+    strcpy(dest,src);
+    dest[strlen(dest)]=';'; // Auto-terminate each line
+  }
   size -= len;
-  
-  if(strncmp(src,Import,strlen(Import)) == 0) dest[0]='i';
-  
   dest += len;
 }
 
@@ -96,16 +118,17 @@ size_t interactive_input(char *buf, size_t max_size)
 {
   static int nlines=1000;
   static bool first=true;
-  static const char *historyfile=".asy_history";
   if(first) {
     first=false;
     read_history(historyfile);
     rl_bind_key('\t',rl_insert); // Turn off tab completion
     signal(SIGINT,SIG_IGN);
+    camp::typeout=new camp::ofile(asyinput);
+    camp::typein=new camp::ifile(asyinput);
   }
 
   if(virtualEOF) return 0;
-
+  
   char *line;
   if((line=rl_gets())) {
     if(start == 0) start=history_length;
@@ -116,7 +139,10 @@ size_t interactive_input(char *buf, size_t max_size)
     
     if(HIST_ENTRY *next=history_get(i++)) {
       if(redraw) redraw=false;
-      else add_input(to,"suppressoutput(true)",size);
+      else {
+	add_input(to,"suppressoutput(true)",size);
+	camp::typein->seek(0);
+      }
       while(HIST_ENTRY *p=history_get(i++)) {
 	add_input(to,next->line,size);
 	next=p;

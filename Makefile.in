@@ -37,7 +37,7 @@ ASYMPTOTE_DIR = ../base
 
 export prefix exampledir mandir INSTALL ASYMPTOTE_DIR 
 
-# $(MAGIC) is here for when we reimport from Compile
+# $(MAGIC) is here for when we include Makefile again from Compile
 asy$(MAGIC): depend
 	$(MAKE) -f Compile asy
 

@@ -44,8 +44,6 @@ extern int yy_flex_debug;
 
 namespace trans {
 
-namespace {
-
 // Adds the appropriate directory and suffix to the name.
 string dirSymbolToFile(string s, symbol *id)
 {
@@ -93,8 +91,6 @@ string symbolToFile(symbol *id)
   return "";
 }
  
-} // private namespace
-
 genv::genv()
  : base_coder(),
    base_env(*this),

@@ -49,7 +49,8 @@ int sigsegv_handler (void *, int emergency)
   if(!emergency) return 0; // Really a stack overflow
   em->runtime(lastpos);
   cout << "Segmentation fault" << endl;
-  cout << "Please report this programming error to " << BUGREPORT << endl;
+  cout << "Please report this programming error to" << endl 
+       << BUGREPORT << endl;
   abort();
 }
 #endif 

@@ -105,17 +105,19 @@ void arrayTy::addOps(coenv &e, types::ty* t, types::ty *ct)
 
   if(dims->size() == 1) {
     e.e.addVar(getPos(), symbol::trans("copy"),
-	     new varEntry(ftarray,new bltinAccess(run::arrayCopy)),true);
+	       new varEntry(ftarray,new bltinAccess(run::arrayCopy)),true);
     e.e.addVar(getPos(), symbol::trans("sequence"),
-	     new varEntry(ftsequence,new bltinAccess(run::arraySequence)),true);
+	       new varEntry(ftsequence,new bltinAccess(run::arraySequence)),
+	       true);
     e.e.addVar(getPos(), symbol::trans("eval"),
-	     new varEntry(fteval,new bltinAccess(run::arrayFunction)),true);
+	       new varEntry(fteval,new bltinAccess(run::arrayFunction)),true);
   }
   if(dims->size() == 2) {
     e.e.addVar(getPos(), symbol::trans("copy"),
-	     new varEntry(ftarray,new bltinAccess(run::array2Copy)),true);
+	       new varEntry(ftarray,new bltinAccess(run::array2Copy)),true);
     e.e.addVar(getPos(), symbol::trans("transpose"),
-	     new varEntry(ftarray,new bltinAccess(run::array2Transpose)),true);
+	       new varEntry(ftarray,new bltinAccess(run::array2Transpose)),
+	       true);
   }
 }
 

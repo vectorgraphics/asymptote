@@ -3574,8 +3574,8 @@ Because @code{Asymptote} as currently designed does not natively support
 a line-at-a-time mode, interactive mode is currently simulated by
 rerunning all previous commands in a new module as each line is entered.
 This emulation will eventually become unnecessary, once
-@code{Asymptote}'s module handling is redesigned to support a
-an incremental input mode.
+@code{Asymptote}'s module handling is redesigned to support
+incremental input.
 
 In interactive mode, it is not necessary to type a semicolon at the end
 of each line; one will automatically be appended. It is
@@ -3596,13 +3596,10 @@ refreshes the screen
 @item reset
 resets @code{Asymptote} to its initial state on entry, before any
 commands were typed.
-@item Import FILE;
-imports the existing @code{Asymptote} file FILE, after first doing an
-interactive @code{reset}. 
+@item input FILE
+directly inputs code from an existing file @code{FILE} into @code{Asymptote},
+after first doing an interactive @code{reset}. 
 @end table
-
-No semicolon should be typed after the first three of these interactive
-commands.
 
 @node GUI
 @chapter Graphical User Interface
