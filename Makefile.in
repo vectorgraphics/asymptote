@@ -91,7 +91,8 @@ clean:  FORCE
 distclean: FORCE clean
 	rm -f Makefile config.h config.log config.status
 	cd doc; rm -rf *.eps *.png latexusage.{asy,dvi,log,aux,ps} asymptote \
-		asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,toc,tp,vr}
+		asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,toc,tp,vr} \
+		version.texi
 
 maintainer-clean: FORCE distclean
 	rm -f configure config.h.in 
