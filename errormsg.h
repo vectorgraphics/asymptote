@@ -46,8 +46,8 @@ public:
 
 class position {
   fileinfo *file;
-  int line; // The offset in characters in the file.
-  int column;
+  size_t line; // The offset in characters in the file.
+  size_t column;
 
 public:
   void init(fileinfo *f, int p) {
