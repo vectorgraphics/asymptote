@@ -49,10 +49,8 @@ public:
   bool eol() {
     int c;
     while(isspace(c=stream->peek())) {
-      if(c == '\n') {
-	stream->ignore();
-	return true;
-      }
+      stream->ignore();
+      if(c == '\n') return true;
     }
     return false;
   }
@@ -65,7 +63,7 @@ public:
   
 public:
 
-  string getcvsline() {
+  string getcsvline() {
     string s="";
     bool quote=false;
     while(stream->good()) {
@@ -91,7 +89,7 @@ public:
   void read(string& val) {
     val=string();
     if(csvmode) {
-      val=getcvsline();
+      val=getcsvline();
       csv();
     } else getline(*stream,val);
   }

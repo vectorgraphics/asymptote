@@ -365,17 +365,20 @@ void readArray(vm::stack *s)
 		  if(nx && ny && nz) eof(s,f,(i*ny+j)*nz+k); s->push(c); return;
 		}
 		cij->push(v);
+		if(f->LineMode() && f->eol()) break;
 	      }
 	    } else {
 	      f->read(v);
 	      if(f->error()) {if(nx && ny) eof(s,f,i*ny+j); s->push(c); return;}
 	      ci->push(v);
+	      if(f->LineMode() && f->eol()) break;
 	    }
 	  }
 	} else {
 	  f->read(v);
 	  if(f->error()) {if(nx) eof(s,f,i); s->push(c); return;}
 	  c->push(v);
+	  if(f->LineMode() && f->eol()) break;
 	}
       }
     } else {
