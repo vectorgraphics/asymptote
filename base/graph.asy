@@ -748,10 +748,17 @@ void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity)
 {
   bounds mx=autoscale(pic.userMin.x,pic.userMax.x,
 		      logarithmic(pic.scale.x.scale));
-  if(Min == -infinity) Min=mx.min;
-  else pic.scale.x.automin=false;
-  if(Max == infinity) Max=mx.max;
-  else pic.scale.x.automax=false;
+  
+  if(Min == -infinity) {
+    Min=mx.min;
+    pic.scale.x.automin=true;
+  } else pic.scale.x.automin=false;
+  
+  if(Max == infinity) {
+    Max=mx.max;
+    pic.scale.x.automax=true;
+  } else pic.scale.x.automax=false;
+  
   pic.userMin=(pic.scale.x.T(Min),pic.userMin.y);
   pic.userMax=(pic.scale.x.T(Max),pic.userMax.y);
 }
@@ -760,10 +767,17 @@ void ylimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity)
 {
   bounds my=autoscale(pic.userMin.y,pic.userMax.y,
 		      logarithmic(pic.scale.y.scale));
-  if(Min == -infinity) Min=my.min;
-  else pic.scale.y.automin=false;
-  if(Max == infinity) Max=my.max;
-  else pic.scale.y.automax=false;
+  
+  if(Min == -infinity) {
+    Min=my.min;
+    pic.scale.y.automin=true;
+  } else pic.scale.y.automin=false;
+  
+  if(Max == infinity) {
+    Max=my.max;
+    pic.scale.y.automax=true;
+  } else pic.scale.y.automax=false;
+  
   pic.userMin=(pic.userMin.x,pic.scale.y.T(Min));
   pic.userMax=(pic.userMax.x,pic.scale.y.T(Max));
 }
