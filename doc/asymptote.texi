@@ -186,9 +186,19 @@ make install
 @end verbatim
 
 For a (default) system-wide installation, the last command should be
-done as root.
+done as root. To build and install the man pages as well, type:
 
-These commands are needed to install the latest development version of
+@verbatim
+make man
+make install-man
+@end verbatim
+
+To uninstall all @code{Asymptote} files, type:
+@verbatim
+make uninstall
+@end verbatim
+
+The following commands are needed to install the latest development version of
 @code{Asymptote} from cvs (when prompted for the CVS password, type enter): 
 
 @verbatim
@@ -199,7 +209,9 @@ cd asymptote
 ./autogen.sh
 ./configure
 make
+make man
 make install
+make install-man
 @end verbatim
 
 In order to compile @code{Asymptote} you will need the boost library from
@@ -683,8 +695,6 @@ point W, are computed as the Bezier curve
 
 This example draws an approximate quarter circle:
 @verbatim
-pair up=(0,1);
-pair left=(-1,0);
 draw((100,0){up}..{left}(0,100));
 shipout();
 @end verbatim
@@ -1765,7 +1775,7 @@ Here are some simple examples of two-dimensional graphs:
 
 @enumerate
 
-@cindex textbook-style graph
+@cindex textbook graph
 @item This example draws a textbook-style graph of y=exp(x), with the yaxis
 starting at 0:
 @verbatim
@@ -1788,7 +1798,7 @@ shipout();
 
 
 @item The next example draws a scientific-style graph of y=cos(2pi*x).
-@cindex scientific-style graph
+@cindex scientific graph
 @cindex @code{LeftTicks}
 @cindex @code{RightTicks}
 @verbatim
@@ -2236,18 +2246,28 @@ This setting is global and is in effect for the remainder of the top-level
 @code{Asymptote} module or until the next call to @code{reset()}.
 
 @table @code
-@cindex @code{Suppress}
-@item Suppress
-Suppress and issue a warning for each label that would overwrite another
-label.
-
 @cindex @code{Allow}
 @item Allow
 Allow labels to overwrite one another. This is the default.
 
+@cindex @code{Suppress}
+@item Suppress
+Suppress, with a warning, each label that would overwrite another
+label.
+
+@cindex @code{SuppressQuiet}
+@item SuppressQuiet
+Suppress, without warning, each label that would overwrite another label.
+
 @cindex @code{Move}
 @item Move
-Move a label that would overwrite another out of the way.
+Move a label that would overwrite another out of the way and issue a warning.
+As this adjustment is during the final output phase (in postscript
+coordinates) it could result in a larger figure than requested.
+
+@cindex @code{MoveQuiet}
+@item MoveQuiet
+Move a label that would overwrite another out of the way, without warning.
 As this adjustment is during the final output phase (in postscript
 coordinates) it could result in a larger figure than requested.
 
