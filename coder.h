@@ -173,7 +173,8 @@ public:
     return funtype->result;
   }
 
-
+  bool isRecord();
+  
   // Creates a new coder to handle the translation of a new function.
   coder newFunction(function *t, modifier sord=DEFAULT_DYNAMIC);
 

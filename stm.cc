@@ -268,6 +268,8 @@ void returnStm::trans(coenv &e)
       em->error(getPos());
       *em << "function cannot return a value";
     }
+    if (e.c.isRecord())
+      e.c.encode(inst::pushclosure);
   }
   else {
     if (value) {

@@ -238,6 +238,11 @@ vm::lambda *coder::close() {
   return l;
 }
 
+bool coder::isRecord()
+{
+  return (funtype==inittype());
+}
+
 namespace {
 function *inittype()
 {
