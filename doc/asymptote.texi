@@ -49,6 +49,7 @@ Foundation.
 * Description::                 What is Asymptote?
 * Installation::                Getting started
 * Example::                     A simple example
+* Programming::                 Asymptote graphics language
 * Drawing commands::            Four primitive drawing commands
 * Options::                     Command line options
 * Interactive mode::            Typing Asymptote commands interactively
@@ -56,6 +57,23 @@ Foundation.
 * Credits::                     Contributions and acknowledgements
 * Index::                       General index
 
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Programming
+
+* Data types::                  
+* Arithmetic & logical operators::  
+* Implicit scaling::            
+* Functions::                   
+* Casts::                       
+* Static & dynamic qualifiers::  
+
+Functions
+
+* Default Arguments::           
+
+@end detailmenu
 @end menu
 
 @node Description
@@ -129,13 +147,13 @@ programming method to meet figure size constraints
 @cindex installation
 To install asymptote from release x.xx, execute the following commands:
 
-@example
+@verbatim
 tar -zxf asymptote-x.xx.tar.gz
 cd asymptote
 ./configure
 make
 make install
-@end example
+@end verbatim
 
 For a (default) system-wide installation, the last command should be
 done as root.
@@ -143,31 +161,31 @@ done as root.
 These commands are needed to install the latest development version of
 asymptote from cvs (when prompted for the CVS password, type enter): 
 
-@example
-cvs -d:pserver:anonymous@@cvs.sourceforge.net:/cvsroot/asymptote login
+@verbatim
+cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote login
  
-cvs -z3 -d:pserver:anonymous@@cvs.sourceforge.net:/cvsroot/asymptote co asymptote
+cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote co asymptote
 cd asymptote
 ./autogen.sh
 ./configure
 make
 make install
-@end example
+@end verbatim
 
-In order to compile asymptote you will need the boost library (included
-in recent Linux distributions). Installation of the boost library
-may require the following (or later):
+In order to compile asymptote you will need the boost library from
+@code{http://boost.org} (included in recent Linux distributions). Installation
+of the boost library may require the following (or later):
 
-@example
+@verbatim
 http://dl.sourceforge.net/sourceforge/boost/boost-jam-3.1.10-1.i386.rpm
 http://dl.sourceforge.net/sourceforge/boost/boost_1_31_0.tar.bz2
-@end example
+@end verbatim
 
 On machines running Debian Linux, the boost library can be installed with
 
-@example
+@verbatim
 apt-get install libboost-graph1.31.0 libboost-dev libboost-graph-dev
-@end example
+@end verbatim
 
 The FFTW library is only required if you want Asymptote to be able to
 take Fourier transforms of data (say to compute an audio power spectrum).
@@ -194,10 +212,10 @@ system-wide directory (default: /usr/local/share/asymptote)
 To draw a line from (0,0) to (100,100) using Asymptote's interactive
 mode, type:
 
-@example
+@verbatim
 asy -V
 draw((0,0)--(100,100));
-@end example
+@end verbatim
 
 The units here are postscript "big points" (1 bp = 1/72 in).
 The @code{--} here means join with a linear segment.
@@ -215,14 +233,14 @@ mode}. For more complicated graphs we recommend using batch mode.
 
 Let's repeat the previous example in batch mode. Simply type in the
 commands 
-@example
+@verbatim
 draw((0,0)--(100,100));
 shipout();
-@end example
+@end verbatim
 into a file, say test.asy. Then execute this file by typing
-@example
+@verbatim
 asy -V test
-@end example
+@end verbatim
 The shipout command converts the current picture into postscript. A
 shipout command was added implicitly in interactive mode, but is
 explicitly required in batch mode. The -V option here opens up a gv
@@ -233,10 +251,10 @@ the prefix of the output file may be changed with the -o option.
 One can draw a line with more than two points and create a cyclic path
 like this square:
 
-@example
+@verbatim
 draw((0,0)--(100,0)--(100,100)--(0,100)--cycle);
 shipout();
-@end example
+@end verbatim
 
 It is often inconvenient to work directly with postscript coordinates.
 This example draws a unit square, scaled to size (100,100). The output
@@ -244,11 +262,677 @@ is identical to the previous example. (If you are using interactive mode
 ignore the two messages "warning: scaling in picture unbounded"; see
 @ref{Interactive mode} for details).
 
-@example
+@verbatim
 size(100,100);
 draw((0,0)--(1,0)--(1,1)--(0,1)--cycle);
 shipout();
-@end example
+@end verbatim
+
+@node Programming
+@chapter Programming
+@cindex programming
+
+Here is a short introductory example to the Asymptote programming
+language that highlights the similarity of its control structures to
+the C/C++ programming languages.
+@verbatim
+// This is a comment.
+
+// Declaration: Declare x to be a real variable;
+real x;
+
+// Assignment: Assign the real variable x the value 1.
+x=1.0;
+
+// Conditional: Test if x equals 1 or not.
+if(x == 1.0) {
+  write("x equals 1.0");
+} else {
+  write("x is not equal to 1.0");
+}
+
+// Loop: iterate 10 times
+for(int i=0; i < 10; ++i) {
+  write(i);
+}
+@end verbatim
+
+However, Asymptote contains many features beyond those found in C and C++.
+
+@menu
+* Data types::                  
+* Structures::                  
+* Arithmetic & logical operators::  
+* Self & prefix operators::     
+* Implicit scaling::            
+* Functions::                   
+* Casts::                       
+* Static & dynamic qualifiers::  
+@end menu
+
+@node Data types
+@section Data types
+@cindex data types
+Asymptote supports the following data types (in addition to any
+user-defined types)
+@table @code
+
+@item bool
+@code{true} or @code{false}
+
+@item int
+integer
+
+@item real
+real number (highest-precision native floating-point type)
+
+@item pair
+complex number, that is, an ordered pair of real components (x,y).
+The real and imaginary parts of a pair @code{z} can be accessed as @code{z.x}
+and @code{z.y}. We say that @code{x} and @code{y} are virtual members of
+the data element pair.
+
+ or as xpart(z) and ypart(z), respectively.
+
+@item string
+character strings. These are implemented as STL strings, except that the
+escape character is @code{\\} not @code{\}, for compatibility with @TeX{}.
+For example 
+
+@itemize 
+@item \ maps to \
+@item \\n maps to \n
+@item \\t maps to \t
+@item \\r maps to \r
+@item \\\ maps to \\
+@item \" maps to "
+@item \\" maps to to \"
+@item \1-\0377 maps to corresponding octal byte
+@item backslash is a string containing a single backslash
+@end itemize
+
+Here are some additional useful string functions:
+
+@table @code
+
+@item replace(string s, string from, string to) 
+returns a string with all occurrences of the string @code{from} in the
+string @code{s} changed to the string @code{to};
+
+@item replace(string s, string[][] table)
+returns a string constructed by translating in string @code{s} all
+occurences of the string @code{from} in an array @code{table} of string pairs
+@{@code{from},@code{to}@} to the corresponding string @code{to};
+
+@item format(string s, int n) 
+returns the integer n formatted according to the C-style format string
+@code{s};
+
+@item format(string s, real x)
+returns the real number x formatted according to the C-style format
+string @code{s}, using @TeX{} typesetting for scientific notation;
+
+@item time(string s)
+returns the current time as returned by the ANSI C routine strftime
+formatted according to string @code{s}. For example,
+@verbatim
+write(time("%a %b %d %H:%M:%S %Z %Y"));
+@end verbatim
+
+
+@end table
+
+@item transform
+affine transform @code{a+Bx}, where @code{a} is a pair and @code{B} is a
+2x2 matrix. Transforms can be applied to pairs, guides, paths, pens,
+transforms, frames, and pictures by multiplication on the left.
+Possible transforms are:
+
+@table @code
+@item identity()
+the identity transform;
+@item shift(pair z)
+translates by pair @code{z};
+@item xscale(real x)
+scales in the x-direction by @code{x};
+@item yscale(real y)
+scales in the y-direction by @code{y};
+@item scale(pair z)
+equivalent to multiplication by @code{z};
+@item slant(real s)
+maps @code{(x,y)} --> @code{(x+s*y,y)};
+@item rotate(real a)
+rotates by angle @code{a} about origin;
+@item rotate(real a, pair z)
+rotates by angle @code{a} about @code{z};
+@item reflect(pair z, pair w)
+reflect about line @code{z--w}.
+@end table
+
+Note that transforms can be composed with one another and inverted with
+the function @code{transform inverse(transform)}.
+
+@item guide
+unresolved cubic spline (list of cubic-spline nodes and control points)
+
+@item path
+resolved cubic spline, with fixed endpoint conditions 
+
+@item pen
+pen color, line type, line width, font size, calligraphic transform
+
+@item frame
+canvas for drawing in postscript coodinates
+
+@item picture
+canvas for drawing in user coordinates (fit to a frame on shipout)
+
+@item file
+input/output file (text or portable XDR formatted I/O)
+An input file must first be opened; reading is done by assignment:
+@verbatim
+file fin=input("test.txt");
+real a=fin;
+@end verbatim
+
+Writing is implemented as a function call:
+@verbatim
+real a;
+file fout=output("test.txt");
+write(fout,a);
+@end verbatim
+
+There are two special files @code{stdin}, which reads from the keyboard,
+and @code{stdout}, which writes to the terminal. A third optional
+argument to write may be given: either @code{endl}, which causes a newline
+to be written after writing the data, or @code{tab}, which writes a tab
+instead. The file argument is also optional, in which case the write
+is done to stdout and terminated by a newline. That is,
+@verbatim
+write(a);
+@end verbatim
+is equivalent to @code{write(stdout,a,endl);}.
+
+Files may also be opened with @code{xinput} or @code{xoutput} instead of
+@code{input} or @code{output}, in which case the reading or writing will
+be done using Sun Microsystem's XDR (External Data Representation)
+portable binary format.
+
+@item void
+used by functions that take or return no arguments
+
+@end table
+
+@cindex arrays
+
+Appended @code{[]} to any of these types produces an array (technically
+a vector) indexed by integers in the interval [0,length-1], where length
+represents the array length. For convenience, integer indices in [-length,-1]
+are mapped to [0,length-1]. Reading an array element with an index
+outside of these bounds generates an error. Assigning an array element
+with an index < -length generates an error; however, if the index is positive,
+the array is resized as required. One can also index an array A with an 
+integer array B, to obtain the array formed by indexing array A with
+successive elements of array B.
+
+Array elements are neither implicitly allocated nor initialized (unless
+the elements are themselves arrays). Arrays can be explicitly
+initialized like this:
+@verbatim
+real[] a={0,1,2};
+@end verbatim
+
+Array assignment in Asymptote does only a shallow copy, that is, only
+the pointer is copied (if one copy if modified, the other will be too). 
+The @code{copy} function provides a deep copy of an array.
+
+Every array A has two virtual members, @code{length} and @code{push}.
+A.length evaluates to the length of the array A and A.push() is a
+function which pushes its argument onto the the end of the array A.
+Like all functions in Asymptote, @code{push} can be pulled off of the array 
+and used on its own:
+
+@verbatim
+int[] A={1,2,3};
+void f(int)=A.push; // A now contains {1,2,3,7}.
+f(7);
+@end verbatim
+
+In the following list of built-in array functions, T represents a generic type.
+
+@table @code
+
+@item new T[]
+returns a new array of type @code{T[]};
+
+@item new T[n]
+returns a new array of n elements of type @code{T[]}; 
+
+@item sequence(int n) 
+if n >= 1 returns the array @{0,1,...,n-1@} (otherwise returns a null array);
+
+@item reverse(int n)
+if(n >= 1) returns the array @{n-1,n-2,...,0@} (otherwise returns a null
+array);
+
+@item sequence(int n, int m)
+if m >= n returns an array @{n,n+1,...,m@} (otherwise returns a null array);
+
+@item sequence(T f(int),n)
+if n >= 1 returns the sequence @{f_i :i=0,1,...n-1@} given a function T
+f(int) and int n (otherwise returns a null array);
+
+@item find(bool[], int n=1)
+returns the index of the nth true value or -1 if not found. If n is
+negative, search backwards from the end of the array for the -nth value;
+
+@item copy(T[] A)
+returns a deep copy of array @code{A};
+
+@item alias(T[] A, T[] B)
+returns true if the arrays @code{A} and @code{B} are identical.
+
+@item sort(T[] A)
+For ordered types @code{T}, returns @code{A} sorted in ascending order.
+
+@item sort(T[][] A)
+For ordered types @code{T}, returns @code{A} with the rows sorted by the
+first column, breaking ties with successively higher columns. For example:
+@verbatim
+string[][] a={{"bob","9"},{"alice","5"},{"pete","7"},{"alice","4"}};
+write("Row sort (by column 0, using column 1 to break ties):");
+write(stdout,sort(a));
+@end verbatim
+produces
+
+alice   4
+alice   5
+bob     9
+pete    7
+
+@item transpose(T[][] A)
+returns the transpose of @code{A}.
+
+@item sum(T[] A)
+For arithmetic types @code{T}, returns the sum of A.
+
+@item min(T[] A)
+For ordered types @code{T}, returns the minimum element of A.
+
+@item max(T[] A)
+For ordered types @code{T}, returns the maximum element of A.
+
+@item fft(T[] A, int sign)
+returns the Fast Fourier Transform of @code{A} (if the optional FFTW package is
+installed), using the given @code{sign}. Here is a simple example:
+@verbatim
+int n=4;
+pair[] f=sequence(n);
+write(f);
+pair[] g=fft(f,-1);
+write();
+write(g);
+f=fft(g,1);
+write();
+write(f/n);
+@end verbatim
+
+@end table
+
+@node Structures
+@section Structures
+@cindex structures
+
+Users may also define their own data types and operators as structures,
+much as in C++. By default, structure members are read-only
+outside the structure, but may be optionally declared public
+(read-write) or private (read and write allowed only inside the structure).
+The virtual structure @code{this} refers to the enclosing structure.
+
+@verbatim
+struct S {
+  public real a=1;
+  real f(real a) {return a+this.a;}
+}
+
+S s=new S;
+
+write(s.f(2));
+
+S operator + (S s1, S s2)
+{
+  S result=new S;
+  result.a=s1.a+s2.a;
+  return result;
+}
+
+write((s+s).f(0));
+
+@end verbatim
+
+@node Arithmetic & logical operators
+@section arithmetic & logical operators
+@cindex arithmetic operators
+@cindex logical operators
+
+@node Self & prefix operators
+@section self & prefix operators
+@cindex self operators
+@cindex prefix operators
+@cindex postfix operators
+
+Each of the arithmetic operators @code{+,-,*,/,%} can be used as self-operator,
+just as in C. The prefix operators @code{++} (increment by one) and @code{--}
+(decrement by one) are also defined. For example
+@verbatim
+real a=1;
+a += 2;
+a++;
+@end verbatim
+
+is completely equivalent to
+@verbatim
+real a=1;
+a=a+2;
+a=a+1;
+@end verbatim
+
+Keep in mind that these self- and prefix operators can cause side effects 
+due to multiple evaluations, as in the following example (which writes
+"hi!" twice rather than just once):
+@verbatim
+struct T {
+  public int x=0;
+}
+
+T sayhi() {
+  write("hi!");
+  return new T;
+}
+
+sayhi().x += 1;
+@end verbatim
+
+@node Implicit scaling
+@section Implicit scaling
+@cindex implicit scaling
+
+If a numeric literal is in front of certain types of expressions, then the two 
+are multiplied:
+
+@verbatim
+int x=2;
+real y=2.0;
+
+write(3x);
+write(2.5x);
+write(3y);
+write(-1.602e-19 y);
+write(0.5(x,y));
+write(2x^2);
+write(3x+2y);
+write(3(x+2y));
+write(3sin(x));
+write(3(sin(x))^2);
+@end verbatim
+
+This produces the output
+@verbatim
+6
+5
+6
+-3.204e-19
+(1,1)
+16
+10
+18
+2.72789228047704
+7.44139629388625
+@end verbatim
+
+
+@node Functions
+@section Functions
+@cindex functions
+
+Asymptote functions are treated as variables.  Variables with the 
+same name are allowed, so long as they have distinct signatures (or no
+signatures in the case of non-function variables).
+
+Functions arguments are passed by value. To pass an argument by
+reference, simply enclose it in a structure @xref{Structures}.
+
+Here are some examples of Asymptote functions:
+
+@enumerate
+@item Two distinct variables:
+@verbatim
+int x, x();           
+x=5;
+x=new int() {return 17;};
+x=x();              // calls x() and puts the result, 17, in the scalar x
+@end verbatim
+
+@item Traditional function definitions are allowed:
+@verbatim
+int sqr(int x)  
+{
+  return x*x;
+}
+sqr=null;           // but the function is still just a variable.
+@end verbatim
+
+@item
+@verbatim
+int a, a(), b, b(); // Valid - creates four variables.
+a=b;                // Invalid - assignment is ambiguous.
+a=(int) b;          // Valid - resolves ambiguity.
+(int) (a=b);        // Valid - resolves ambiguity.
+(int) a=b;          // Invalid as cast expressions can't be used as values.
+
+int c();
+c=a;                // Valid - only one possible assignment.
+@end verbatim
+
+@item Anonymous (so-called "high-order") functions are also allowed:
+@verbatim
+typedef int intop(int);
+intop adder(int m)
+{
+  return new int(int n) {return m+n;};
+}
+intop addby7=adder(7);
+write(addby7(1));   // Writes 8.
+@end verbatim
+@end enumerate
+
+To our knowledge, this is the only language that treats functions as variables 
+but still allows overloading.
+
+Functions are allowed to recursively call themselves. As in C++, infinite
+nested recursion will generate a stack overflow (typically reported as a
+segmentation fault).
+
+@menu
+* Default Arguments::           
+@end menu
+
+@node Default Arguments
+@subsection Default Arguments
+@cindex default arguments
+
+Asymptote supports a more flexible mechanism for default function
+arguments than C++: default function arguments may appear anywhere in
+the function prototype. Because certain data types are implicitly cast to more
+sophisticated types (see @ref{Casts}) one can often avoid ambiguities by
+ordering function arguments from simplest to more complicated.
+For example, given
+
+@verbatim
+real f(int a=1, real b=0) {return a+b;}
+@end verbatim
+then @code{f(1)} returns 1, but @code{f(1.0)} returns 2.
+
+The value of a default argument is determined simply by evaluating the
+given asymptote expression (effectively substituted by a "cut and paste"
+operation).
+
+@node Casts
+@section Casts
+@cindex casts
+@cindex implicit casts
+
+Asymptote implicitly casts int to real, int to pair, real to pair,
+pair to path, pair to guide, path to guide, and guide to path. Implicit
+casts are also automatically attempted when trying to match function calls
+with possible function signatures.
+
+@cindex explicit casts
+Other conversions, say real to int or real to string, require an explicit cast:
+@verbatim
+int a=(int) 2.5;
+string s=(string) 2.5;
+@end verbatim
+
+@node Static & dynamic qualifiers
+@section Static & dynamic qualifiers
+@cindex static
+@cindex dynamic
+
+Static qualifiers allocate the memory address of a variable in a higher 
+enclosing frame. 
+
+For a function body, the variable is stored by the function's enclosing
+frame, so for
+@verbatim
+struct s {
+  int x;
+
+  int count() {
+    static int c=0;
+    ++c;
+    return c;
+  }
+}
+@end verbatim
+
+there is one instance of the variable c for each object s (as opposed for each 
+call of s). 
+
+Similarly, in
+@verbatim
+int factorial(int n) {
+  int helper(int k) {
+    static int x=1;
+    x *= k;
+    return k == 1 ? x : helper(k-1);
+  }
+  return helper(n);
+}
+@end verbatim
+
+there is one instance of x for every call to factorial (and not for every call 
+to helper), so this is a correct, but ugly, implementation of factorial.
+
+For a struct member variable, it gets its enclosing frame as well, so
+@verbatim
+struct A {
+  struct B {
+    static pair z;
+  }
+}
+@end verbatim
+
+creates one object z for each object of type A created.
+
+In this example,
+@verbatim
+int pow(int n, int k) {
+  struct A {
+    static int x=1;
+    void helper() {
+      x *= n;
+    }
+  }
+  for (int i=0; i < k; ++i) {
+    A a=new A;
+    a.helper();
+  }
+  return A.x;
+}
+@end verbatim
+
+there is one instance of x for each call to pow, so this is an ugly 
+implementation of exponentiation.
+
+Static types work in a similar way, but are not as useful.
+
+A file-level module is really just a structure with everything declared static 
+by default, so
+@verbatim
+stuff.asy:
+import other;
+public int x=5;
+int y=x*4;
+int sqr(int x) {return x*x;}
+@end verbatim
+
+is in someway equivalent to
+@verbatim
+struct stuff {
+  import other;
+  static public int x=5;
+  static int y=x*4;
+  static int sqr(int x) { return x*x; }
+}
+@end verbatim
+
+Now when you import a module using an import declaration, it is like creating 
+a new instance of the struct. That is,
+@verbatim
+int cube(int x) {
+  import stuff;
+  return x*sqr(x);
+}
+@end verbatim
+
+is roughly equivalent to
+@verbatim
+int cube(int x) {
+  stuff s=new stuff;
+  return x*s.sqr(x);
+}
+@end verbatim
+
+As long as you use static functions and variables of a module, then every 
+import is referring to the same data.  However, if a module has a dynamic 
+variable, every import gets a different instance of that variable.
+Suppose @code{dyn.asy} contains
+@verbatim
+dynamic public int x=0;
+@end verbatim
+
+and @code{modifier.asy} contains
+@verbatim
+import dyn;
+void inc() {++x;}
+@end verbatim
+
+Then
+@verbatim
+import dyn;
+import modifier;
+write(x);
+inc();
+write(x);
+@end verbatim
+
+should write 0 twice, because the @code{x} imported in @code{modifier.asy} is
+distinct from the @code{x} imported in @code{tester.asy}. 
+
+The dynamic modifier is designed for this purpose.  It is only necessary at 
+the module-level declaration, where declarations are static by default.
+Everywhere else, declarations are dynamic by default.
 
 @node Drawing commands
 @chapter Drawing commands
@@ -325,14 +1009,16 @@ requested size).
 
 The following special commands are supported only in interactive mode:
 
-@itemize
-@item @code{quit} exits interactive mode
-@item @code{redraw} refeshes the screen
-@item @code{reset} resets asymptote to its initial state on entry,
-before any commands were typed.
-@item @code{Import FILE;} imports the existing Asymptote file FILE, after first
-doing a reset. 
-@end itemize
+@table @code
+@item quit
+exits interactive mode
+@item redraw
+refeshes the screen
+@item reset
+resets asymptote to its initial state on entry, before any commands were typed.
+@item Import FILE;
+imports the existing Asymptote file FILE, after first doing a reset. 
+@end table
 
 Except for the last item, no semicolon should be typed after these
 interactive commands.
@@ -357,20 +1043,22 @@ this preliminary GUI soon.
 As @code{xasy} is written in Python/TK, it requires that the @code{tkinter}
 package be installed.
 
+A good example of how deconstruction of compound objects (e.g. arrows) can
+be prevented is in the example @code{yingyang.asy}. By default, only
+currentpicture does automatic deconstruction of its objects.
+
 @node Credits
 @chapter Acknowledgements
 @cindex acknowledgments
 
 Financial support for the development of Asymptote was generously
 provided by the Natural Sciences and Engineering Research Council of
-Canada, the Pacific Institute for Mathematical Sciences, and the Faculty of
-Science, University of Alberta.
+Canada, the Pacific Institute for Mathematical Sciences, and the 
+University of Alberta Faculty of Science.
      
 We also would like to acknowledge the previous work of John D. Hobby, 
 author of the program @code{MetaPost} that inspired the development of
-@code{Asymptote}. In turn, @code{MetaPost} was based on Donald E. Knuth's
-@code{MetaFont} font generation system, also the author of @TeX{}, so we
-would like to thank him as well.
+@code{Asymptote}, and Donald E. Knuth, author of @TeX{} and @code{MetaFont}.
 
 The authors of Asymptote are Andy Hammerlindl, John Bowman, and Tom Prince.
 Sean Healy designed the Asymptote logo.

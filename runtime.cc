@@ -877,7 +877,7 @@ void stringErase(stack *s)
   s->push(a.erase(pos,n));
 }
 
-// returns a string constructed by translating all occurances of the string
+// returns a string constructed by translating all occurrences of the string
 // from in an array of string pairs {from,to} to the string to in string s.
 void stringReplace(stack *s)
 {

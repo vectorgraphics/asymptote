@@ -2,39 +2,13 @@ Behaviour of (a..{}nullpath)..(nullpath{}..b):
 In case of 1 specifier, it modifies the pair on the other side.
 In case of 2 specifiers, the first one is ignored.
 
-
-\ is converted to  \  (so that Tex and write("H\n") will work)
-\\n		to \n
-\\t		to \t
-\\r		to \r
-\\\		to \\
-\"		to "
-\\"		to \"
-\1-\0377        octal byte
-backslash is a string containing a single backslash
-
-write(x) with no file argument does a write(stdout,x,endl)
-
-real[] a;
-real[] z={1},b={1,2,3};
-real[] z=new real[10];
-
-a[10]=11;
-write(a.length);
-a[20]=21;
-write(a.length);
-write(a[20]);
-
 printer offsets:
 asy -O "(25,25)" dia
 
 Full set of vectorized (implemented in C++ code for speed) instructions:
 arithmetical (including self) & logical operators, all, ? : conditionals,
-min(2), max(2), sum, fft, builtin real(real) functions, int[] array indices,
-sequence, eval, find, sort(2), copy, transpose,
+min(1), max(1), sum, builtin real(real) functions, eval
 implicit casts/promotions, write, read{1,2,3},dimension.
-
-array assignment (shallow copy) and alias
 
 Other script-based drawing packages:
 http://glx.sourceforge.net/
@@ -44,13 +18,9 @@ asy -d sends transparent gifs to xasy.
 xasy keeps track of changes, additions, and deletions and returns these
 modifications to asy.
 
-A good example of how deconstruction of compound objects (e.g. arrows) can
-be prevented is in yingyang. By default, only currentpicture does automatic
-deconstruction of its objects.
-
-
 Distinguish between empty arrays and null arrays.
 
-Document multiple evaluation issue (+=, ++, etc.)
+transform t = shift(50) * scale(3);
+path p = (0,0)--(100,100)--(200,0);
+draw(t*p);
 
-Document default function arguments (cut and paste)
