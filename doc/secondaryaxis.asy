@@ -20,7 +20,7 @@ xaxis("Time ($\tau$)",BottomTop,LeftTicks);
 yaxis(Left,RightTicks);
 
 picture secondary=secondaryY(new void(picture pic) {
-  draw(pic,graph(pic,t,infectious,t >= 10 && t <= 15),red+solid);
+  draw(pic,graph(pic,t,4*infectious,t >= 10 && t <= 15),red+solid);
 });
 			     
 //crop(secondary);
