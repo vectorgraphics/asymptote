@@ -255,18 +255,7 @@ void boolDeconstruct(stack *s)
   s->push(settings::deconstruct != 0.0);
 }
 
-void pairExpi(stack *s)
-{
-  pair z =expi(s->pop<double>());
-  s->push(z);
-}
 
-void pairConj(stack *s)
-{
-  pair i = s->pop<pair>();
-  pair z = conj(i);
-  s->push(z);
-}
 
 // Create an empty array.
 void emptyArray(stack *s)
@@ -680,8 +669,7 @@ void realRealToPair(stack *s)
 
 void pairNegate(stack *s)
 {
-  pair z(-1.0 * s->pop<pair>());
-  s->push(z);
+  s->push(-s->pop<pair>());
 }
 
 void pairXPart(stack *s)
@@ -719,9 +707,24 @@ void pairUnit(stack *s)
 
 void realDir(stack *s)
 {
-  double x = s->pop<double>();
-  pair z=expi(radians(x));
-  s->push(z);
+  s->push(expi(radians(s->pop<double>())));
+}
+
+void pairExpi(stack *s)
+{
+  s->push(expi(s->pop<double>()));
+}
+
+void pairConj(stack *s)
+{
+  s->push(conj(s->pop<pair>()));
+}
+
+void pairDot(stack *s)
+{
+  pair b = s->pop<pair>();
+  pair a = s->pop<pair>();
+  s->push(a.getx()*b.getx()+a.gety()*b.gety());
 }
 
 void transformIdentity(stack *s)

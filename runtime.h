@@ -61,8 +61,6 @@ void realRealMin(vm::stack *s);
 void realRealEpsilon(vm::stack *s);
 void intRandMax(vm::stack *s);
 void boolDeconstruct(vm::stack *s);
-void pairExpi(vm::stack *s);
-void pairConj(vm::stack *s);
 
 // String concatenation
 void concat(vm::stack *s);
@@ -114,6 +112,9 @@ void pairAngle(vm::stack *s);
 void pairDegrees(vm::stack *s);
 void pairUnit(vm::stack *s);
 void realDir(vm::stack *s);
+void pairExpi(vm::stack *s);
+void pairConj(vm::stack *s);
+void pairDot(vm::stack *s);
 
 // Transform operations
 void transformIdentity(vm::stack *s);

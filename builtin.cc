@@ -415,15 +415,23 @@ void base_venv(venv &ve)
   addFunc(ve,run::intFloor,primInt(),"floor",primReal());
   addFunc(ve,run::intSgn,primInt(),"sgn",primReal());
   addFunc(ve,run::intRound,primInt(),"round",primReal());
-  addFunc(ve,run::pairExpi,primPair(),"expi",primReal());
-  addFunc(ve,run::pairConj,primPair(),"conj",primPair());
-  addFunc(ve,run::pairXPart,primReal(),"xpart",primPair());
-  addFunc(ve,run::pairYPart,primReal(),"ypart",primPair());
-
+  
   addFunc(ve,run::intRand,primInt(),"rand");
   addFunc(ve,run::intSrand,primVoid(),"srand",primInt());
   addFunc(ve,run::intRandMax,primInt(),"randMax");
   
+  addFunc(ve,run::pairXPart,primReal(),"xpart",primPair());
+  addFunc(ve,run::pairYPart,primReal(),"ypart",primPair());
+  addFunc(ve,run::pairLength,primReal(),"length",primPair());
+  addFunc(ve,run::pairLength,primReal(),"abs",primPair());
+  addFunc(ve,run::pairAngle,primReal(),"angle",primPair());
+  addFunc(ve,run::pairDegrees,primReal(),"Angle",primPair());
+  addFunc(ve,run::pairUnit,primPair(),"unit",primPair());
+  addFunc(ve,run::realDir,primPair(),"dir",primReal());
+  addFunc(ve,run::pairExpi,primPair(),"expi",primReal());
+  addFunc(ve,run::pairConj,primPair(),"conj",primPair());
+  addFunc(ve,run::pairDot,primReal(),"dot",primPair(),primPair());
+
   addFunc(ve,run::suppressOutput,primVoid(),"suppressoutput",primBoolean());
   addFunc(ve,run::upToDate,primVoid(),"uptodate",primBoolean());
   
@@ -494,13 +502,6 @@ void base_venv(venv &ve)
   
   addFunc(ve,run::frameMax,primPair(),"max",primPicture());
   addFunc(ve,run::frameMin,primPair(),"min",primPicture());
-  
-  addFunc(ve,run::realDir,primPair(),"dir",primReal());
-  addFunc(ve,run::pairLength,primReal(),"abs",primPair());
-  addFunc(ve,run::pairLength,primReal(),"length",primPair());
-  addFunc(ve,run::pairAngle,primReal(),"angle",primPair());
-  addFunc(ve,run::pairDegrees,primReal(),"Angle",primPair());
-  addFunc(ve,run::pairUnit,primPair(),"unit",primPair());
   
   addFunc(ve,run::linetype,primPen(),"linetype",primString());
   addFunc(ve,run::rgb,primPen(),"rgb",primReal(),primReal(),primReal());

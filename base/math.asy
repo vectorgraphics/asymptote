@@ -61,14 +61,19 @@ real length(vector a)
   return sqrt(a.x^2+a.y^2+a.z^2);
 }
 
+vector operator - (vector a)
+{
+  return vector(-a.x,-a.y,-a.z);
+}
+
 vector operator + (vector a, vector b)
 {
-  return vector(a.x+b.x, a.y+b.y, a.z+b.z);
+  return vector(a.x+b.x,a.y+b.y,a.z+b.z);
 }
 
 vector operator - (vector a, vector b)
 {
-  return vector(a.x-b.x, a.y-b.y, a.z-b.z);
+  return vector(a.x-b.x,a.y-b.y,a.z-b.z);
 }
 
 vector operator * (vector a, real s)
@@ -76,7 +81,7 @@ vector operator * (vector a, real s)
   return vector(a.x*s,a.y*s,a.z*s);
 }
 
-vector operator * (real s, vector a)
+vector operator * (real s,vector a)
 {
   return a*s;
 }
@@ -86,8 +91,7 @@ vector operator / (vector a, real s)
   return vector(a.x/s,a.y/s,a.z/s);
 }
 
-// dot product
-real operator * (vector a, vector b)
+real dot(vector a, vector b)
 {
   return a.x*b.x+a.y*b.y+a.z*b.z;
 }
@@ -118,7 +122,8 @@ vector unitnormal(vector[] p)
 
 
 // Return any point on the intersection of the two planes with normals
-// n0 and n1 passing through points P0 and P1, respectively
+// n0 and n1 passing through points P0 and P1, respectively.
+// If the planes are parallel return vector(infinity,infinity,infinity).
 vector intersection(vector n0, vector P0, vector n1, vector P1)
 {
   real de=n0.y*n1.z-n1.y*n0.z;
@@ -139,7 +144,7 @@ vector intersection(vector n0, vector P0, vector n1, vector P1)
     real y=(n0.x*d0-n1.x*d1)*De;
     return vector(x,y,P0.z);
   } else {
-    if(DE == 0) abort("Parallel planes do not intersect.");
+    if(DE == 0) return vector(infinity,infinity,infinity);
     real d0=n0.z*P0.z+n0.x*P0.x;
     real d1=n1.z*P1.z+n1.x*P1.x+n1.y*(P1.y-P0.y);
     real z=(d0*n1.x-d1*n0.x)*DE;

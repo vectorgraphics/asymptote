@@ -506,30 +506,32 @@ z=conj(z);
 A number of built-in functions are defined for pairs:
 
 @table @code
-@item pair conj(pair)
+@item pair conj(pair z)
 @cindex @code{conj}
-returns the conjugate of its argument;
+returns the conjugate of @code{z};
 
 @item real length(pair z)
 @cindex @code{length}
-return the complex modulus @code{|z|} of its argument @code{z}. For example,
+@cindex @code{abs}
+return the complex modulus @code{|z|} of its argument @code{z}. 
+For example,
 @example
 pair z=(3.0,4.0);
 write(length(z));
 @end example
-produces the result 5;
+produces the result 5. A synonym for @code{length(pair)} is @code{abs(pair)};
 
-@item real angle(pair)
+@item real angle(pair z)
 @cindex @code{angle}
-returns the angle of its argument in radians;
+returns the angle of @code{z} in radians;
 
-@item real Angle(pair)
+@item real Angle(pair z)
 @cindex @code{Angle}
-returns the angle of its arguments in degrees in the interval [0,360);
+returns the angle of @code{z} in degrees in the interval [0,360);
 
-@item pair unit(pair)
+@item pair unit(pair z)
 @cindex @code{unit}
-returns a unit vector in the direction of the given pair;
+returns a unit vector in the direction of the pair @code{z};
 
 @item pair expi(real angle)
 @cindex @code{expi}
@@ -539,13 +541,17 @@ returns a unit vector in the direction @code{angle} measured in radians;
 @cindex @code{dir}
 returns a unit vector in the direction @code{angle} measured in degrees;
 
-@item real xpart(pair)
+@item real xpart(pair z)
 @cindex @code{xpart}
-returns the @code{.x} component of its argument;
+returns @code{z.x};
 
-@item real ypart(pair)
+@item real ypart(pair z)
 @cindex @code{ypart}
-returns the @code{.y} component of its argument.
+returns @code{z.y};
+
+@item real dot(pair a,pair b)
+@cindex @code{dir}
+returns the dot product @code{a.x*b.x+a.y*b.y}.
 
 @end table
 
@@ -624,17 +630,18 @@ format string
 returns a string containing @code{x} formatted according to the C-style format
 string @code{s}, using @TeX{} to typeset scientific notation;
 
-@item time(string s)
+@item string time(string s)
 @cindex @code{time}
-returns the current time as returned by the ANSI C routine strftime
-formatted according to string @code{s}. For example,
+returns the current time formatted by the ANSI C routine strftime
+according to the string @code{s}. For example,
 @verbatim
 write(time("%a %b %d %H:%M:%S %Z %Y"));
 @end verbatim
-
+outputs the time in the default format of the UNIX @code{date} command.
 
 @end table
 
+@cindex @code{typedef}
 As in C/C++, complicated types may be abbreviated with @code{typedef}
 (see the example in @ref{Functions}).
 
@@ -1002,10 +1009,12 @@ The implicit initializer for transforms is @code{identity()}.
 
 @item frame
 @cindex @code{frame}
+@cindex @code{nullframe}
 Frames are canvases for drawing in @code{PostScript} coordinates. While working
-with frames directly is occasionally necessary when constructing deferred
+with frames directly is occasionally necessary for constructing deferred
 drawing routines, pictures are usually more convenient to work with. The
-default frame is called @code{currentframe}.
+default frame is called @code{currentframe}. The implicit initializer
+for frames is @code{nullframe}.
 
 @item picture
 @cindex @code{picture}
@@ -1065,8 +1074,16 @@ To output in landscape mode, simply replace the call to @code{shipout} with:
 shipout(rotate(90)*currentpicture.fit());
 @end verbatim
 
+@cindex @code{bbox}
+To draw a bounding box with a 0.25cm margin around a picture, fit the
+picture into a frame using the @code{bbox} function (defined in
+@code{plain.asy}):
+@verbatim
+shipout(bbox(0.25cm));
+@end verbatim
+
 Sometimes it is useful to draw objects on separate pictures and add one
-picture to another with the @code{add} function:
+picture to another using the @code{add} function:
 @cindex @code{add}
 @verbatim
 void add(picture src);
@@ -1277,7 +1294,7 @@ multiplication is used; otherwise, logarithms and exponentials are used.
 
 @end table
 
-The usual boolean operators are also defined
+The usual boolean operators are also defined:
 @table @code
 @cindex @code{==}
 @item ==

@@ -950,7 +950,7 @@ frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
   if(ysize == infinity) ysize=pic.ysize;
   frame f=pic.fit(max(xsize-2*xmargin,0),max(ysize-2*ymargin,0),
 		  keepAspect(keepAspect));
-  if(pic.deconstruct && GUIDelete()) return nullframe;
+  if(pic.deconstruct && GUIDelete()) return f;
   pair z=(xmargin,ymargin);
   frame d;
   draw(d,box(min(f)+0.5*min(p)-z,max(f)+0.5*max(p)+z),p);

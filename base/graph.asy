@@ -55,7 +55,7 @@ struct scientific
   public real mantissa;
   public int exponent;
   int ceil() {return sign*ceil(mantissa);}
-  real scale(real x, real exp) {return (exp > 0) ? x/10^exp : x*10^-exp;}
+  real scale(real x, real exp) {return exp > 0 ? x/10^exp : x*10^-exp;}
   real ceil(real x, real exp) {return ceil(sign*scale(abs(x),exp));}
   real floor(real x, real exp) {return floor(sign*scale(abs(x),exp));}
 }
@@ -173,8 +173,8 @@ void labelaxis(frame f, string s, real position, real angle, pair align,
   pair dir=direction(g,position);
   if(labels) {
     pair a=unit(align);
-    pair offset=(a.x <= 0 && a.y <= 0) ? min(f) : max(f);
-    z=(dir != 0) ? (z*dir).x/dir : 0;
+    pair offset=a.x <= 0 && a.y <= 0 ? min(f) : max(f);
+    z=dir != 0 ? (z*dir).x/dir : 0;
     if(a != 0) z += (offset*a).x/a;
   }
   if(position == 0) align += 0.5*dir;
@@ -213,7 +213,7 @@ pair labeltick(frame d, transform T, guide g, real pos, pair side,
   locateT locate=new locateT;
   locate.calc(T,g,pos);
   pair align=-side*I*locate.dir;
-  pair shift=((align*conj(I*sign*locate.dir)).x < 0) ? align*Size : 
+  pair shift=dot(align,I*sign*locate.dir) < 0 ? align*Size : 
     0.5*align*labelmargin(plabel);
   pair Z=locate.Z+shift;
   if(deconstruct) Z=GUI()*Z;
@@ -262,7 +262,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	      frame d;
 	      pair dir=labeltick(d,T,g,i*Step,side,sign,Size,ticklabel,plabel,
 				 part,norm);
-	      coverage += abs(((max(d)-min(d))*conj(dir)).x);
+	      coverage += abs(dot(max(d)-min(d),dir));
 	      if(coverage > limit) break;
 	    }
 	    if(coverage <= limit) {
@@ -698,7 +698,7 @@ void yaxis(picture pic=currentpicture, real ymin=-infinity, real ymax=infinity,
   if(angle == infinity) {
     frame f;
     label(f,s,0,(0,0),0,plabel);
-    angle=(length(max(f)-min(f)) > ylabelwidth*fontsize(plabel)) ? 90 : 0;
+    angle=length(max(f)-min(f)) > ylabelwidth*fontsize(plabel) ? 90 : 0;
   }
   
   if(ymin == -infinity && !pic.scale.y.automin) ymin=pic.userMin.y;
