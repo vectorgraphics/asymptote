@@ -23,7 +23,7 @@ void initialpicture() {
   draw(circle((0,0),1));
   draw(wheel(t1,t2,100),linetype("0 2"));
   xaxis(0,"$x$");
-  yaxis(0,1.5,"$y$");
+  yaxis(0,1.15,"$y$");
   pair z1=wheelpoint(t1);
   pair z2=wheelpoint(t2);
 

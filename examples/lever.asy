@@ -7,8 +7,8 @@ pair z2=(5,0);
 pair zf=z1+0.75*(z2-z1);
 
 draw(z1--z2);
-dot(z1,red+0.2cm);
-dot(z2,darkgreen+0.3cm);
+dot(z1,red+0.12cm);
+dot(z2,darkgreen+0.24cm);
 label("$m$",z1,N,red);
 label("$M$",z2,N,darkgreen);
 label("$\hat{\ }$",zf,0.2*S,fontsize(24)+blue);

@@ -455,8 +455,8 @@ void xequals(picture pic=currentpicture, real x,
 	     int[] divisor=new int[], bool opposite=false)
 {
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
-    pair a=captransform(t,(x,ymin),lb,rt,p);
-    pair b=captransform(t,(x,ymax),lb,rt,p);
+    pair a=ymin == -infinity ? captransform(t,(x,ymin),lb,rt,p) : t*(x,ymin);
+    pair b=ymax == infinity ? captransform(t,(x,ymax),lb,rt,p) : t*(x,ymax);
     frame d;
     ticks(d,t,s,position,angle,align,side,plabel,a--b,p,pic.scale.y.scale,
 	  new real(pair z) {return pic.scale.y.scale.Label(z.y);},
@@ -490,8 +490,8 @@ void yequals(picture pic=currentpicture, real y,
 	     int[] divisor=new int[], bool opposite=false)
 {
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
-    pair a=captransform(t,(xmin,y),lb,rt,p);
-    pair b=captransform(t,(xmax,y),lb,rt,p);
+    pair a=xmin == -infinity ? captransform(t,(xmin,y),lb,rt,p) : t*(xmin,y);
+    pair b=xmax == infinity ? captransform(t,(xmax,y),lb,rt,p) : t*(xmax,y);
     frame d;
     ticks(d,t,s,position,angle,align,side,plabel,a--b,p,pic.scale.x.scale,
 	  new real(pair z) {return pic.scale.x.scale.Label(z.x);},
