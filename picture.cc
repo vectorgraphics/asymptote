@@ -77,6 +77,8 @@ bbox picture::bounds()
   size_t n=number();
   if(n == lastnumber) return b;
   
+  if(lastnumber == 0) b=bbox();
+  
   list<drawElement*>::iterator p;
   
   if(!labels && settings::texprocess) {
