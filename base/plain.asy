@@ -494,7 +494,7 @@ struct picture {
   {
     if (c.length > 0) {
       real M=-infinity;
-      for (int i=0; i < c.length; ++i) 
+      for (int i=0; i < c.length; ++i)
         if (finite(c[i].user) && s.scale(c[i]) > M)
           M=s.scale(c[i]);
       return M;
@@ -522,7 +522,6 @@ struct picture {
     return (max(xs, xcoords), max(ys, ycoords));
   }
 
- 
   // Calculate the sizing constants for the given array and maximum size.
   scaling calculateScaling(coord[] coords, real max) {
     import simplex;
@@ -549,7 +548,7 @@ struct picture {
     }
     else {
       write("warning: picture cannot fit in requested size");
-      return scaling.build(0,0);
+      return scaling.build(1,0);
     }
   }
 
@@ -1005,7 +1004,7 @@ pair realmult(pair z, pair w)
   return (z.x*w.x,z.y*w.y);
 }
 
-void legend(frame f, Legend[] legend)
+void legend(frame f, Legend[] legend, bool placement=true)
 {
   if(legend.length > 0 && !GUIDelete()) {
     picture inset=new picture;
@@ -1019,9 +1018,11 @@ void legend(frame f, Legend[] legend)
     frame d;
     // Place legend with top left corner at legendlocation;
     add(d,bbox(inset,legendmargin,legendmargin,0,0,IgnoreAspect,legendboxpen));
-    pair topleft=min(f)+realmult(legendlocation,max(f)-min(f));
-    d=GUI()*shift(topleft-(min(d).x,max(d).y))*d;
-    deconstruct(d);
+    if(placement) {
+      pair topleft=min(f)+realmult(legendlocation,max(f)-min(f))+legendmargin;
+      d=GUI()*shift(topleft-(min(d).x,max(d).y))*d;
+      deconstruct(d);
+    }
     add(f,d);
   }
 }
@@ -1035,6 +1036,15 @@ void shipout(string prefix=defaultfilename, frame f, Legend[] legend={},
   shipout(prefix,f,format,wait(wait));
   ++GUIFilenum;
   GUIObject=0;
+}
+
+// Useful for compensating for space taken up by legend. For example:
+// shipout(currentpicture.xsize-legendsize().x);
+pair legendsize(picture pic=currentpicture)
+{
+  frame f;
+  legend(f,pic.legend,false);
+  return legendmargin+max(f)-min(f);
 }
 
 private struct orientationT {};

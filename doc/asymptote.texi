@@ -2743,7 +2743,7 @@ shipout();
 \end{asy}
 \end{center}
 
-The default width is 90\% of the full line width:
+The default width is the full line width:
 
 \begin{center}
 \begin{asy}
