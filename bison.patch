@@ -1,0 +1,198 @@
+diff -ru bison-1.875/data/yacc.c bison-1.875J/data/yacc.c
+--- bison-1.875/data/yacc.c	Sat Dec 28 01:36:02 2002
++++ bison-1.875J/data/yacc.c	Sat Mar  8 10:30:08 2003
+@@ -218,7 +218,7 @@
+ 
+ /* The parser invokes alloca or malloc; define the necessary symbols.  */
+ 
+-# if YYSTACK_USE_ALLOCA
++# ifdef YYSTACK_USE_ALLOCA
+ #  define YYSTACK_ALLOC alloca
+ # else
+ #  ifndef YYSTACK_USE_ALLOCA
+@@ -234,7 +234,7 @@
+ 
+ # ifdef YYSTACK_ALLOC
+    /* Pacify GCC's `empty if-body' warning. */
+-#  define YYSTACK_FREE(Ptr) do { /* empty */; } while (0)
++#  define YYSTACK_FREE(Ptr) { /* empty */; }
+ # else
+ #  if defined (__STDC__) || defined (__cplusplus)
+ #   include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
+@@ -275,18 +275,19 @@
+ /* Copy COUNT objects from FROM to TO.  The source and destination do
+    not overlap.  */
+ # ifndef YYCOPY
+-#  if 1 < __GNUC__
+-#   define YYCOPY(To, From, Count) \
+-      __builtin_memcpy (To, From, (Count) * sizeof (*(From)))
+-#  else
++#  ifdef __GNUC__
++#   if 1 < __GNUC__
++#    define YYCOPY(To, From, Count) \
++       __builtin_memcpy (To, From, (Count) * sizeof (*(From)))
++#   endif
++#  endif
++#  ifndef YYCOPY
+ #   define YYCOPY(To, From, Count)		\
+-      do					\
+ 	{					\
+ 	  register YYSIZE_T yyi;		\
+ 	  for (yyi = 0; yyi < (Count); yyi++)	\
+ 	    (To)[yyi] = (From)[yyi];		\
+-	}					\
+-      while (0)
++	}
+ #  endif
+ # endif
+ 
+@@ -296,16 +297,13 @@
+    stack.  Advance YYPTR to a properly aligned location for the next
+    stack.  */
+ # define YYSTACK_RELOCATE(Stack)					\
+-    do									\
+       {									\
+ 	YYSIZE_T yynewbytes;						\
+ 	YYCOPY (&yyptr->Stack, Stack, yysize);				\
+ 	Stack = &yyptr->Stack;						\
+ 	yynewbytes = yystacksize * sizeof (*Stack) + YYSTACK_GAP_MAXIMUM; \
+ 	yyptr += yynewbytes / sizeof (*yyptr);				\
+-      }									\
+-    while (0)
+-
++      }
+ #endif
+ 
+ #if defined (__STDC__) || defined (__cplusplus)
+@@ -466,6 +464,7 @@
+ #define YYACCEPT	goto yyacceptlab
+ #define YYABORT		goto yyabortlab
+ #define YYERROR		goto yyerrlab1
++int yy_false=false; /* Used to suppress compiler warning about unused label */
+ 
+ /* Like YYERROR except do call yyerror.  This remains here temporarily
+    to ease the transition to the new meaning of YYERROR, for GCC.
+@@ -476,7 +475,6 @@
+ #define YYRECOVERING()  (!!yyerrstatus)
+ 
+ #define YYBACKUP(Token, Value)					\
+-do								\
+   if (yychar == YYEMPTY && yylen == 1)				\
+     {								\
+       yychar = (Token);						\
+@@ -489,8 +487,7 @@
+     { 								\
+       yyerror (]b4_yyerror_args["syntax error: cannot back up");\
+       YYERROR;							\
+-    }								\
+-while (0)
++    }
+ 
+ #define YYTERROR	1
+ #define YYERRCODE	256
+@@ -523,19 +520,18 @@
+ # endif
+ 
+ # define YYDPRINTF(Args)			\
+-do {						\
++{						\
+   if (yydebug)					\
+     YYFPRINTF Args;				\
+-} while (0)
++}
+ 
+ # define YYDSYMPRINT(Args)			\
+-do {						\
++{						\
+   if (yydebug)					\
+     yysymprint Args;				\
+-} while (0)
+-
++}
+ # define YYDSYMPRINTF(Title, Token, Value, Location)		\
+-do {								\
++{								\
+   if (yydebug)							\
+     {								\
+       YYFPRINTF (stderr, "%s ", Title);				\
+@@ -543,7 +539,7 @@
+                   Token, Value]b4_location_if([, Location])[);	\
+       YYFPRINTF (stderr, "\n");					\
+     }								\
+-} while (0)
++}
+ 
+ /*------------------------------------------------------------------.
+ | yy_stack_print -- Print the state stack from its BOTTOM up to its |
+@@ -561,10 +557,10 @@
+ }
+ 
+ # define YY_STACK_PRINT(Bottom, Top)				\
+-do {								\
++{								\
+   if (yydebug)							\
+     yy_stack_print ((Bottom), (Top));				\
+-} while (0)
++}
+ 
+ 
+ /*------------------------------------------------.
+@@ -585,10 +581,10 @@
+ }
+ 
+ # define YY_REDUCE_PRINT(Rule)		\
+-do {					\
++{					\
+   if (yydebug)				\
+     yy_reduce_print (Rule);		\
+-} while (0)
++}
+ 
+ /* Nonzero means print parse trace.  It is left uninitialized so that
+    multiple parsers can coexist.  */
+@@ -614,9 +610,11 @@
+    SIZE_MAX < YYSTACK_BYTES (YYMAXDEPTH)
+    evaluated with infinite-precision integer arithmetic.  */
+ 
++#ifdef YYMAXDEPTH
+ #if YYMAXDEPTH == 0
+ # undef YYMAXDEPTH
+ #endif
++#endif
+ 
+ #ifndef YYMAXDEPTH
+ # define YYMAXDEPTH ]b4_stack_depth_max[
+@@ -810,7 +808,7 @@
+   yyssp++;
+ 
+  yysetstate:
+-  *yyssp = yystate;
++  *yyssp = (short) yystate;
+ 
+   if (yyss + yystacksize - 1 <= yyssp)
+     {
+@@ -1111,12 +1109,6 @@
+ `----------------------------------------------------*/
+ yyerrlab1:
+ 
+-  /* Suppress GCC warning that yyerrlab1 is unused when no action
+-     invokes YYERROR.  */
+-#if defined (__GNUC_MINOR__) && 2093 <= (__GNUC__ * 1000 + __GNUC_MINOR__)
+-  __attribute__ ((__unused__))
+-#endif
+-
+ ]b4_location_if([  yylerrsp = yylsp;
+   *++yylerrsp = yyloc;])[
+   goto yyerrlab2;
+@@ -1179,6 +1171,11 @@
+ `-----------------------------------*/
+ yyabortlab:
+   yyresult = 1;
++
++  /* Suppress compiler warnings that yyerrlab1 is unused when no action
++     invokes YYERROR.  */
++  if(yy_false) goto yyerrlab1;
++
+   goto yyreturn;
+ 
+ #ifndef yyoverflow
