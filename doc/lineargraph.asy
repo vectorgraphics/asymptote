@@ -15,4 +15,4 @@ xaxis(pic,"$x$",BottomTop,LeftTicks);
 yaxis(pic,"$y$",LeftRight,RightTicks);
 
 add(pic.fit(W));
-add(point(E),legend(pic,20E));
+add(legend(pic,20E));

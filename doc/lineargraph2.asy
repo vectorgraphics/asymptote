@@ -12,7 +12,6 @@ yaxis("$y$",LeftRight,RightTicks);
 
 frame G=currentpicture.fit(250,200,IgnoreAspect,W);
 frame L=legend(20E);
-
 erase();
 add(G);
-add(point(E),L);
+add(L);
