@@ -629,16 +629,16 @@ types::ty *callExp::trans(coenv &e)
   }
   else if (!castable(ft->getSignature(), &sig)) {
     em->error(getPos());
-    *em << "cannot call type '" << *ft << "' with";
+    *em << "cannot call type\n'" << *ft << "'\nwith";
     switch(sig.getNumFormals()) {
       case 0:
         *em << "out parameters";
         break;
       case 1:
-        *em << " parameter '" << sig << "'";
+        *em << " parameter\n'" << sig << "'";
         break;
       default:
-        *em << " parameters '" << sig << "'";
+        *em << " parameters\n'" << sig << "'";
     }
     return primError();
   }
