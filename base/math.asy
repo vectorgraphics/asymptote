@@ -31,6 +31,15 @@ real sec(real x) {return 1/cos(x);}
 real cot(real x) {return tan(pi/2-x);}
 real frac(real x) {return x-(int)x;}
 
+// Return an Nx by Ny unit square lattice with lower-left corner at (0,0).
+picture grid(int Nx, int Ny, pen p=currentpen)
+{
+  picture pic=new picture;
+  for(int i=0; i <= Nx; ++i) draw(pic,(i,0)--(i,Ny),p);
+  for(int j=0; j <= Ny; ++j) draw(pic,(0,j)--(Nx,j),p);
+  return pic; 
+}
+
 // Return an interior arc BAC of triangle ABC, given a radius r > 0.
 // If r < 0, return the corresponding exterior arc of radius |r|.
 guide arc(explicit pair B, explicit pair A, explicit pair C, real r=arrowsize)
