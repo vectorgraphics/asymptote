@@ -79,17 +79,6 @@ public:
     
 };
 
-class file : public blockStm {
-  void prologue(coenv &e, record *r);
-public:
-  file(position pos)
-    : blockStm(pos) {}
-
-  void prettyprint(ostream &out, int indent);
-
-  void transAsRecordBody(coenv &e, record *r);
-};
-
 // A statement that consist of a single expression to evaluate.
 class expStm : public stm {
   exp *body;

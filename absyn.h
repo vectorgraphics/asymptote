@@ -54,7 +54,7 @@ class stm;
 class dec;
 class blockStm;
 
-class file;
+typedef blockStm file;
 
 // This is the abstract syntax tree of a file, assigned to when running
 // yyparse.

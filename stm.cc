@@ -71,18 +71,6 @@ void blockStm::transAsRecordBody(coenv &e, record *r)
   r->close();
 }
 
-void file::prettyprint(ostream &out, int indent)
-{
-  prettyname(out,"file",indent);
-  prettystms(out, indent+1);
-}
-
-void file::transAsRecordBody(coenv &e, record *r)
-{
-  blockStm::transAsRecordBody(e,r);
-}
-
-
 void expStm::prettyprint(ostream &out, int indent)
 {
   prettyname(out,"expStm",indent);
