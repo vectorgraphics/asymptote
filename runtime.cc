@@ -55,6 +55,9 @@ using std::string;
 #include "fileio.h"
 #include "genv.h"
 #include "builtin.h"
+#include "texfile.h"
+#include "pipestream.h"
+#include "interact.h"
 
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
@@ -63,6 +66,9 @@ using std::string;
 using namespace vm;
 using namespace camp;
 using namespace settings;
+
+using interact::virtualEOF;
+using interact::rejectline;
 
 namespace run {
   
@@ -1783,6 +1789,15 @@ void exitFunction(stack *s)
     atExitFunction=NULL;
   }
   defaultpen=camp::pen::startupdefaultpen();
+  
+  rejectline=em->errors();
+  if(rejectline) virtualEOF=true;
+  
+  if(camp::TeXcontaminated) {
+    camp::TeXpreamble.clear();
+    camp::tex.pipeclose();
+    TeXinitialized=false;
+  }
 }
   
 void atExit(stack *s)

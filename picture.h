@@ -16,9 +16,9 @@
 #include "pool.h"
 #include "drawelement.h"
 
-extern iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
-
 namespace camp {
+
+extern iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
 
 class picture : public mempool::pooled<picture> {
 private:

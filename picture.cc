@@ -21,11 +21,11 @@ using std::ofstream;
 
 using namespace settings;
 
-iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
-const char *texready="(Please type a command or say `\\end')\n*";
-
 namespace camp {
 
+const char *texready="(Please type a command or say `\\end')\n*";
+iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
+  
 std::list<bbox> bboxstack;
   
 picture::~picture()

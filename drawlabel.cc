@@ -14,10 +14,9 @@
 using std::string;
 using std::list;
   
-extern const char *texready;
-
 namespace camp {
   
+extern const char *texready;
 pen drawElement::lastpen;
 
 void drawLabel::labelwarning(const char *action) 

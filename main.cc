@@ -20,12 +20,10 @@
 #include "settings.h"
 #include "stack.h"
 #include "interact.h"
-#include "texfile.h"
-#include "pipestream.h"
-#include "picture.h"
 
 using namespace settings;
 using namespace std;
+using interact::virtualEOF;
 
 using absyntax::file;
 using trans::genv;
@@ -33,8 +31,6 @@ using types::record;
 
 errorstream *em;
 using interact::interactive;
-using interact::virtualEOF;
-using interact::rejectline;
 
 #ifdef HAVE_LIBSIGSEGV
 void stackoverflow_handler (int, stackoverflow_context_t)
@@ -155,15 +151,8 @@ int main(int argc, char *argv[])
       ++status;
     }
 
-    rejectline=em->errors();
-    if(rejectline) virtualEOF=true;
     delete em; em = 0;
     delete outnameStack; outnameStack = 0;
-    if(camp::TeXcontaminated) {
-      camp::TeXpreamble.clear();
-      tex.pipeclose();
-      TeXinitialized=false;
-    }
     outname="";
     mempool::free();
   }
