@@ -12,20 +12,26 @@
 
 using namespace types;
 using trans::import;
+using trans::coder;
+using trans::coenv;
 
 namespace as {
 
-types::ty *newFunctionExp::trans(env &e)
+types::ty *newFunctionExp::trans(coenv &e)
 {
   // Check for illegal default values.
   params->reportDefaults();
   
+  // NOTE: Duplicate code with dec.cc
+  
   // Create a new function environment.
   types::ty *rt = result->trans(e);
   function *ft = params->getType(rt, e);
-  env fe = e.newFunction(ft);
 
-  fe.beginScope();
+  coder fc = e.c.newFunction(ft);
+  coenv fe(fc,e.e);
+
+  fe.e.beginScope();
 
   // Add the formal parameters to the environment.
   params->trans(fe);
@@ -40,13 +46,13 @@ types::ty *newFunctionExp::trans(env &e)
     *em << "function must return a value";
   }
 
-  fe.endScope();
+  fe.e.endScope();
 
   // Use the lambda to put the function on the stack.
-  lambda *l = fe.close();
-  e.encode(inst::pushclosure);
-  e.encode(inst::makefunc);
-  e.encode(l);
+  lambda *l = fe.c.close();
+  e.c.encode(inst::pushclosure);
+  e.c.encode(inst::makefunc);
+  e.c.encode(l);
 
   //std::cout << "made new lambda:\n";
   //print(std::cout, l->code);
@@ -54,7 +60,7 @@ types::ty *newFunctionExp::trans(env &e)
   return ft;
 }
 
-types::ty *newFunctionExp::getType(env &e)
+types::ty *newFunctionExp::getType(coenv &e)
 {
   return params->getType(result->trans(e, true), e);
 }
@@ -69,7 +75,7 @@ void printFrame(frame *f) {
   }
 }
 
-types::ty *newRecordExp::trans(env &e)
+types::ty *newRecordExp::trans(coenv &e)
 {
   types::ty *t = result->trans(e);
   if (t->kind == ty_error)
@@ -85,7 +91,7 @@ types::ty *newRecordExp::trans(env &e)
   import *imp = result->getImport(e);
   if (imp) {
     // Put the import frame on the stack.
-    imp->getLocation()->encodeRead(getPos(), e);
+    imp->getLocation()->encodeRead(getPos(), e.c);
 
 #if 0
     std::cerr << *(r->getName()) << ": ";
@@ -97,7 +103,7 @@ types::ty *newRecordExp::trans(env &e)
 #endif
    
     // Dig down to the record's parent's frame.
-    if (!e.encode(r->getLevel()->getParent(),
+    if (!e.c.encode(r->getLevel()->getParent(),
 		   imp->getModule()->getLevel())) {
       em->error(getPos());
       *em << "allocation of struct '" << *t << "' is not in a valid scope";
@@ -105,7 +111,7 @@ types::ty *newRecordExp::trans(env &e)
     }
   }
   else {
-    if (!e.encode(r->getLevel()->getParent())) {
+    if (!e.c.encode(r->getLevel()->getParent())) {
       em->error(getPos());
       *em << "allocation of struct '" << *t << "' is not in a valid scope";
       return primError();
@@ -113,15 +119,15 @@ types::ty *newRecordExp::trans(env &e)
   }
  
   // Encode the allocation. 
-  e.encode(inst::alloc);
+  e.c.encode(inst::alloc);
   inst i;
   i.r = r->getRuntime();
-  e.encode(i);
+  e.c.encode(i);
 
   return t;
 }
 
-types::ty *newRecordExp::getType(env &e)
+types::ty *newRecordExp::getType(coenv &e)
 {
   types::ty *t = result->trans(e, true);
   if (t->kind == ty_error)
@@ -142,12 +148,12 @@ void newArrayExp::prettyprint(ostream &out, int indent)
   if (ai) ai->prettyprint(out, indent+1);
 }
 
-types::ty *newArrayExp::trans(env &e)
+types::ty *newArrayExp::trans(coenv &e)
 {
   types::ty *c = celltype->trans(e);
   if (c->kind == ty_void) {
     em->compiler(getPos());
-    *em << "can't declare array of type void";
+    *em << "arrays cannot be of type void";
     return primError();
   }
 
@@ -166,24 +172,24 @@ types::ty *newArrayExp::trans(env &e)
     }
     if (dims) {
       for (int i = 0; i < (int)dims->size(); ++i) {
-        e.encode(inst::intpush);
-        e.encode(0);
+        e.c.encode(inst::intpush);
+        e.c.encode(0);
       }
     }
-    e.encode(inst::intpush);
-    e.encode((int) (dimexps ? dimexps->size():0 + dims ? dims->size():0));
-    e.encode(inst::builtin);
-    e.encode(run::newDeepArray);
+    e.c.encode(inst::intpush);
+    e.c.encode((int) (dimexps ? dimexps->size():0 + dims ? dims->size():0));
+    e.c.encode(inst::builtin);
+    e.c.encode(run::newDeepArray);
 
     return c;
   } else {
     em->compiler(getPos());
-    *em << "internal: New array expresion must have either dims or dimexps.";
+    *em << "new array expression must have either dims or dimexps";
     return primError();
   }
 }
 
-types::ty *newArrayExp::getType(env &e)
+types::ty *newArrayExp::getType(coenv &e)
 {
   types::ty *c = celltype->trans(e);
   if (c->kind == ty_void) {

@@ -17,7 +17,7 @@ namespace as {
   using namespace types;
   using trans::access;
 
-// Checks if a varEntry returned from env::lookupExactVar is ambiguous,
+// Checks if a varEntry returned from coenv::lookupExactVar is ambiguous,
 // an reports an error if it is.
 static bool checkAmbiguity(position pos, symbol *s, varEntry *v)
 {
@@ -34,15 +34,15 @@ static bool checkAmbiguity(position pos, symbol *s, varEntry *v)
     return true;
 }
 
-types::ty *simpleName::getType(env &e, bool tacit)
+types::ty *simpleName::getType(coenv &e, bool tacit)
 {
-  varEntry *v = e.lookupExactVar(id, 0);
+  varEntry *v = e.e.lookupExactVar(id, 0);
 
   if (v) {
     return v->getType();
   }
   else {
-    types::ty *t = e.lookupType(id);
+    types::ty *t = e.e.lookupType(id);
     if (t) {
       if (t->kind == types::ty_overloaded) {
 	if (!tacit) {
@@ -64,13 +64,13 @@ types::ty *simpleName::getType(env &e, bool tacit)
   }
 }
 
-void simpleName::varTrans(env &e, types::ty *target)
+void simpleName::varTrans(coenv &e, types::ty *target)
 {
-  varEntry *v = e.lookupExactVar(id, target->getSignature());
+  varEntry *v = e.e.lookupExactVar(id, target->getSignature());
   
   if (v) {
     if (checkAmbiguity(getPos(), id, v)) {
-      v->getLocation()->encodeRead(getPos(), e);
+      v->getLocation()->encodeRead(getPos(), e.c);
       e.implicitCast(getPos(), target, v->getType());
     }
   }
@@ -80,13 +80,13 @@ void simpleName::varTrans(env &e, types::ty *target)
   }
 }
 
-void simpleName::varTransWrite(env &e, types::ty *target)
+void simpleName::varTransWrite(coenv &e, types::ty *target)
 {
-  varEntry *v = e.lookupExactVar(id, target->getSignature());
+  varEntry *v = e.e.lookupExactVar(id, target->getSignature());
 
   if (v) {
     if (checkAmbiguity(getPos(), id, v)) {
-      v->getLocation()->encodeWrite(getPos(), e);
+      v->getLocation()->encodeWrite(getPos(), e.c);
       if (!equivalent(v->getType(), target)) {
 	em->compiler(getPos());
 	*em << "type mismatch in variable writing: "
@@ -101,13 +101,13 @@ void simpleName::varTransWrite(env &e, types::ty *target)
   }
 }
 
-void simpleName::varTransCall(env &e, types::ty *target)
+void simpleName::varTransCall(coenv &e, types::ty *target)
 {
-  varEntry *v = e.lookupExactVar(id, target->getSignature());
+  varEntry *v = e.e.lookupExactVar(id, target->getSignature());
 
   if (v) {
     if (checkAmbiguity(getPos(), id, v)) {
-      v->getLocation()->encodeCall(getPos(), e);
+      v->getLocation()->encodeCall(getPos(), e.c);
       if (!equivalent(v->getType(), target)) {
 	em->compiler(getPos());
 	*em << "type mismatch in variable call";
@@ -120,15 +120,15 @@ void simpleName::varTransCall(env &e, types::ty *target)
   }
 }
 
-types::ty *simpleName::varGetType(env &e)
+types::ty *simpleName::varGetType(coenv &e)
 {
-  types::ty *t = e.varGetType(id);
+  types::ty *t = e.e.varGetType(id);
   return t ? t : primError();
 }
 
-types::ty *simpleName::typeTrans(env &e, bool tacit)
+types::ty *simpleName::typeTrans(coenv &e, bool tacit)
 {
-  types::ty *t = e.lookupType(id);
+  types::ty *t = e.e.lookupType(id);
   if (t) {
     if (t->kind == types::ty_overloaded) {
       if (!tacit) {
@@ -149,19 +149,19 @@ types::ty *simpleName::typeTrans(env &e, bool tacit)
   }
 }
 
-trans::import *simpleName::typeGetImport(env &e)
+trans::import *simpleName::typeGetImport(coenv &e)
 {
-  return e.lookupTypeImport(id);
+  return e.e.lookupTypeImport(id);
 }
 
-frame *simpleName::frameTrans(env &e)
+frame *simpleName::frameTrans(coenv &e)
 {
-  varEntry *v = e.lookupExactVar(id, 0);
+  varEntry *v = e.e.lookupExactVar(id, 0);
 
   if (v) {
     types::ty *t = v->getType();
     if (t->kind == types::ty_record) {
-      v->getLocation()->encodeRead(getPos(), e);
+      v->getLocation()->encodeRead(getPos(), e.c);
       return ((record *)t)->getLevel();
     }
   }
@@ -197,7 +197,7 @@ record *qualifiedName::getRecord(types::ty *t, bool tacit)
   }
 }
 
-types::ty *qualifiedName::getType(env &e, bool tacit)
+types::ty *qualifiedName::getType(coenv &e, bool tacit)
 {
   types::ty *qt = qualifier->getType(e, tacit);
 
@@ -239,7 +239,7 @@ types::ty *qualifiedName::getType(env &e, bool tacit)
   }
 }
 
-void qualifiedName::varTrans(env &e, types::ty *target)
+void qualifiedName::varTrans(coenv &e, types::ty *target)
 {
   types::ty *qt = qualifier->getType(e);
 
@@ -250,7 +250,7 @@ void qualifiedName::varTrans(env &e, types::ty *target)
     qualifier->varTrans(e, qt);
 
     // Call instead of reading as it is a virtual field.
-    v->getLocation()->encodeCall(getPos(), e);
+    v->getLocation()->encodeCall(getPos(), e.c);
     e.implicitCast(getPos(), target, v->getType());
     return;
   }
@@ -266,9 +266,9 @@ void qualifiedName::varTrans(env &e, types::ty *target)
 
     frame *f = qualifier->frameTrans(e);
     if (f)
-      loc->encodeRead(getPos(), e, f);
+      loc->encodeRead(getPos(), e.c, f);
     else
-      loc->encodeRead(getPos(), e);
+      loc->encodeRead(getPos(), e.c);
 
     e.implicitCast(getPos(), target, v->getType());
   }
@@ -278,7 +278,7 @@ void qualifiedName::varTrans(env &e, types::ty *target)
   }
 }
 
-void qualifiedName::varTransWrite(env &e, types::ty *target)
+void qualifiedName::varTransWrite(coenv &e, types::ty *target)
 {
   types::ty *qt = qualifier->getType(e);
 
@@ -304,9 +304,9 @@ void qualifiedName::varTransWrite(env &e, types::ty *target)
 
     frame *f = qualifier->frameTrans(e);
     if (f)
-      loc->encodeWrite(getPos(), e, r->getLevel());
+      loc->encodeWrite(getPos(), e.c, r->getLevel());
     else
-      loc->encodeWrite(getPos(), e);
+      loc->encodeWrite(getPos(), e.c);
 
     if (!equivalent(v->getType(), target)) {
       em->compiler(getPos());
@@ -320,7 +320,7 @@ void qualifiedName::varTransWrite(env &e, types::ty *target)
   }
 }
 
-void qualifiedName::varTransCall(env &e, types::ty *target)
+void qualifiedName::varTransCall(coenv &e, types::ty *target)
 {
   types::ty *qt = qualifier->getType(e);
 
@@ -331,13 +331,13 @@ void qualifiedName::varTransCall(env &e, types::ty *target)
     qualifier->varTrans(e, qt);
     
     // Call instead of reading as it is a virtual field.
-    v->getLocation()->encodeCall(getPos(), e);
+    v->getLocation()->encodeCall(getPos(), e.c);
     e.implicitCast(getPos(), target, v->getType());
 
     // In this case, the virtual field will construct a vm::func object
     // and push it on the stack.
     // Then, pop and call the function.
-    e.encode(inst::popcall);
+    e.c.encode(inst::popcall);
     return;
   }
 
@@ -352,9 +352,9 @@ void qualifiedName::varTransCall(env &e, types::ty *target)
     
     frame *f = qualifier->frameTrans(e);
     if (f)
-      loc->encodeCall(getPos(), e, f);
+      loc->encodeCall(getPos(), e.c, f);
     else
-      loc->encodeCall(getPos(), e);
+      loc->encodeCall(getPos(), e.c);
 
     if (!equivalent(v->getType(), target)) {
       em->compiler(getPos());
@@ -368,7 +368,7 @@ void qualifiedName::varTransCall(env &e, types::ty *target)
   }
 }
 
-types::ty *qualifiedName::varGetType(env &e)
+types::ty *qualifiedName::varGetType(coenv &e)
 {
   types::ty *qt = qualifier->getType(e, true);
 
@@ -386,7 +386,7 @@ types::ty *qualifiedName::varGetType(env &e)
     return primError();
 }
 
-types::ty *qualifiedName::typeTrans(env &e, bool tacit)
+types::ty *qualifiedName::typeTrans(coenv &e, bool tacit)
 {
   types::ty *rt = qualifier->typeTrans(e, tacit);
   if (rt->kind == ty_error)
@@ -422,12 +422,12 @@ types::ty *qualifiedName::typeTrans(env &e, bool tacit)
   }
 }
 
-trans::import *qualifiedName::typeGetImport(env &e)
+trans::import *qualifiedName::typeGetImport(coenv &e)
 {
   return qualifier->typeGetImport(e);
 }
 
-frame *qualifiedName::frameTrans(env &e)
+frame *qualifiedName::frameTrans(coenv &e)
 {
   types::ty *qt = qualifier->getType(e, true);
   record *r = getRecord(qt, true);
@@ -442,10 +442,10 @@ frame *qualifiedName::frameTrans(env &e)
       access *a = v->getLocation();
       frame *level = qualifier->frameTrans(e);
       if (level) {
-	a->encodeRead(getPos(), e, level);
+	a->encodeRead(getPos(), e.c, level);
       }
       else {
-	a->encodeRead(getPos(), e);
+	a->encodeRead(getPos(), e.c);
       }
       return ((record *)t)->getLevel();
     }

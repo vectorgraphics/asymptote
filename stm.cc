@@ -24,7 +24,7 @@ void stm::prettyprint(ostream &out, int indent)
   prettyname(out,"stm",indent);
 }
 
-void stm::trans(env &)
+void stm::trans(coenv &)
 {
   em->compiler(getPos());
   *em <<  "base stm in abstract syntax";
@@ -49,25 +49,25 @@ void blockStm::prettyprint(ostream &out, int indent)
   prettystms(out, indent+1);
 }
 
-void blockStm::trans(env &e)
+void blockStm::trans(coenv &e)
 {
-  e.beginScope();
+  e.e.beginScope();
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTrans(e);
   }
-  e.endScope();
+  e.e.endScope();
 }
 
-void blockStm::transAsRecordBody(env &e, record *r)
+void blockStm::transAsRecordBody(coenv &e, record *r)
 {
-  e.beginScope();
+  e.e.beginScope();
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
     (*p)->markTransAsField(e, r);
   }
-  e.endScope();
+  e.e.endScope();
 
   // Put record into finished state.
-  e.close();
+  e.c.close();
   r->close();
 }
 
@@ -77,7 +77,7 @@ void file::prettyprint(ostream &out, int indent)
   prettystms(out, indent+1);
 }
 
-void file::transAsRecordBody(env &e, record *r)
+void file::transAsRecordBody(coenv &e, record *r)
 {
   blockStm::transAsRecordBody(e,r);
 }
@@ -90,7 +90,7 @@ void expStm::prettyprint(ostream &out, int indent)
   body->prettyprint(out, indent+1);
 }
 
-void expStm::trans(env &e)
+void expStm::trans(coenv &e)
 {
   if(!body->stmable()) {
     em->warning(getPos());
@@ -101,7 +101,7 @@ void expStm::trans(env &e)
   if (kind != types::ty_void &&
       kind != types::ty_void)
     // Remove any value it puts on the stack.
-    e.encode(inst::pop);
+    e.c.encode(inst::pop);
 }
 
 
@@ -115,26 +115,26 @@ void ifStm::prettyprint(ostream &out, int indent)
     onFalse->prettyprint(out, indent+1);
 }
 
-void ifStm::trans(env &e)
+void ifStm::trans(coenv &e)
 {
   test->trans(e, types::primBoolean());
 
-  int elseLabel = e.fwdLabel();
-  int end = e.fwdLabel();
+  int elseLabel = e.c.fwdLabel();
+  int end = e.c.fwdLabel();
 
-  e.encode(inst::njmp);
-  e.useLabel(elseLabel);
+  e.c.encode(inst::njmp);
+  e.c.useLabel(elseLabel);
 
   onTrue->markTrans(e);
-  e.encode(inst::jmp);
-  e.useLabel(end);
+  e.c.encode(inst::jmp);
+  e.c.useLabel(end);
   
-  e.defLabel(elseLabel);
+  e.c.defLabel(elseLabel);
   // Produces efficient code whether or not there is an else clause.
   if (onFalse)
     onFalse->markTrans(e);
 
-  e.defLabel(end);
+  e.c.defLabel(end);
 }
 
 
@@ -146,25 +146,25 @@ void whileStm::prettyprint(ostream &out, int indent)
   body->prettyprint(out, indent+1);
 }
 
-void whileStm::trans(env &e)
+void whileStm::trans(coenv &e)
 {
-  int start = e.defLabel();
-  e.pushContinue(start);
+  int start = e.c.defLabel();
+  e.c.pushContinue(start);
   test->trans(e, types::primBoolean());
 
-  int end = e.fwdLabel();
-  e.pushBreak(end);
-  e.encode(inst::njmp);
-  e.useLabel(end);
+  int end = e.c.fwdLabel();
+  e.c.pushBreak(end);
+  e.c.encode(inst::njmp);
+  e.c.useLabel(end);
 
   body->markTrans(e);
 
-  e.encode(inst::jmp);
-  e.useLabel(start);
-  e.defLabel(end);
+  e.c.encode(inst::jmp);
+  e.c.useLabel(start);
+  e.c.defLabel(end);
 
-  e.popBreak();
-  e.popContinue();
+  e.c.popBreak();
+  e.c.popContinue();
 }
 
 
@@ -176,25 +176,25 @@ void doStm::prettyprint(ostream &out, int indent)
   test->prettyprint(out, indent+1);
 }
 
-void doStm::trans(env &e)
+void doStm::trans(coenv &e)
 {
-  int testLabel = e.fwdLabel();
-  e.pushContinue(testLabel);
-  int end = e.fwdLabel();
-  e.pushBreak(end);
+  int testLabel = e.c.fwdLabel();
+  e.c.pushContinue(testLabel);
+  int end = e.c.fwdLabel();
+  e.c.pushBreak(end);
  
-  int start = e.defLabel();
+  int start = e.c.defLabel();
 
   body->markTrans(e);  
   
-  e.defLabel(testLabel);
+  e.c.defLabel(testLabel);
   test->trans(e, types::primBoolean());
-  e.encode(inst::cjmp);
-  e.useLabel(start);
-  e.defLabel(end);
+  e.c.encode(inst::cjmp);
+  e.c.useLabel(start);
+  e.c.defLabel(end);
 
-  e.popBreak();
-  e.popContinue();
+  e.c.popBreak();
+  e.c.popContinue();
 }
 
 
@@ -208,37 +208,37 @@ void forStm::prettyprint(ostream &out, int indent)
   body->prettyprint(out, indent+1);
 }
 
-void forStm::trans(env &e)
+void forStm::trans(coenv &e)
 {
   // Any vardec in the initializer needs its own scope.
-  e.beginScope();
+  e.e.beginScope();
   if(init) init->markTrans(e);
 
-  int ctarget = e.fwdLabel();
-  e.pushContinue(ctarget);
-  int end = e.fwdLabel();
-  e.pushBreak(end);
+  int ctarget = e.c.fwdLabel();
+  e.c.pushContinue(ctarget);
+  int end = e.c.fwdLabel();
+  e.c.pushBreak(end);
 
-  int start = e.defLabel();
+  int start = e.c.defLabel();
   if(test) {
     test->trans(e, types::primBoolean());
-    e.encode(inst::njmp);
-    e.useLabel(end);
+    e.c.encode(inst::njmp);
+    e.c.useLabel(end);
   }
 
   body->markTrans(e);
 
-  e.defLabel(ctarget);
+  e.c.defLabel(ctarget);
   
   if (update) update->markTrans(e);
-  e.encode(inst::jmp);
-  e.useLabel(start);
+  e.c.encode(inst::jmp);
+  e.c.useLabel(start);
 
-  e.defLabel(end);
+  e.c.defLabel(end);
 
-  e.endScope();
-  e.popBreak();
-  e.popContinue();
+  e.e.endScope();
+  e.c.popBreak();
+  e.c.popContinue();
 }
 
 
@@ -247,9 +247,9 @@ void breakStm::prettyprint(ostream &out, int indent)
   prettyname(out,"breakStm",indent);
 }
 
-void breakStm::trans(env &e)
+void breakStm::trans(coenv &e)
 {
-  if (!e.encodeBreak()) {
+  if (!e.c.encodeBreak()) {
     em->error(getPos());
     *em << "break statement outside of a loop";
   }
@@ -261,9 +261,9 @@ void continueStm::prettyprint(ostream &out, int indent)
   prettyname(out,"continueStm",indent);
 }
 
-void continueStm::trans(env &e)
+void continueStm::trans(coenv &e)
 {
-  if (!e.encodeContinue()) {
+  if (!e.c.encodeContinue()) {
     em->error(getPos()); 
     *em << "continue statement outside of a loop";
   }
@@ -278,9 +278,9 @@ void returnStm::prettyprint(ostream &out, int indent)
     value->prettyprint(out, indent+1);
 }
 
-void returnStm::trans(env &e)
+void returnStm::trans(coenv &e)
 {
-  types::ty *t = e.getReturnType();
+  types::ty *t = e.c.getReturnType();
 
   if (t->kind == ty_void) {
     if (value) {
@@ -300,7 +300,7 @@ void returnStm::trans(env &e)
 
   // NOTE: Currently, a return statement in a module definition will end
   // the initializer.  Should this be allowed?
-  e.encode(inst::ret);
+  e.c.encode(inst::ret);
 }
 
 
@@ -312,7 +312,7 @@ void stmExpList::prettyprint(ostream &out, int indent)
     (*p)->prettyprint(out, indent+1);
 }
 
-void stmExpList::trans(env &e)
+void stmExpList::trans(coenv &e)
 {
   for (list<stm *>::iterator p = stms.begin(); p != stms.end(); ++p)
     (*p)->markTrans(e);

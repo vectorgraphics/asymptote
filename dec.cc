@@ -8,7 +8,7 @@
  *****/
 
 #include "errormsg.h"
-#include "env.h"
+#include "coenv.h"
 #include "dec.h"
 #include "stm.h"
 #include "camp.tab.h"
@@ -26,7 +26,7 @@ void nameTy::prettyprint(ostream &out, int indent)
   id->prettyprint(out, indent+1);
 }
 
-types::ty *nameTy::trans(env &e, bool tacit)
+types::ty *nameTy::trans(coenv &e, bool tacit)
 {
   return id->typeTrans(e, tacit);
 }
@@ -93,33 +93,33 @@ function *arrayTy::evalType(types::ty* t, types::ty *ct)
   return ft;
 }
 
-void arrayTy::addOps(env &e, types::ty* t, types::ty *ct)
+void arrayTy::addOps(coenv &e, types::ty* t, types::ty *ct)
 {
   function *ft = opType(t);
   function *ftarray = arrayType(t);
   function *ftsequence = sequenceType(t,ct);
   function *fteval = evalType(t,ct);
   
-  e.addVar(getPos(), symbol::trans("alias"),
+  e.e.addVar(getPos(), symbol::trans("alias"),
       new varEntry(ft,new bltinAccess(run::arrayAlias)),true);
 
   if(dims->size() == 1) {
-    e.addVar(getPos(), symbol::trans("copy"),
+    e.e.addVar(getPos(), symbol::trans("copy"),
 	     new varEntry(ftarray,new bltinAccess(run::arrayCopy)),true);
-    e.addVar(getPos(), symbol::trans("sequence"),
+    e.e.addVar(getPos(), symbol::trans("sequence"),
 	     new varEntry(ftsequence,new bltinAccess(run::arraySequence)),true);
-    e.addVar(getPos(), symbol::trans("eval"),
+    e.e.addVar(getPos(), symbol::trans("eval"),
 	     new varEntry(fteval,new bltinAccess(run::arrayFunction)),true);
   }
   if(dims->size() == 2) {
-    e.addVar(getPos(), symbol::trans("copy"),
+    e.e.addVar(getPos(), symbol::trans("copy"),
 	     new varEntry(ftarray,new bltinAccess(run::array2Copy)),true);
-    e.addVar(getPos(), symbol::trans("transpose"),
+    e.e.addVar(getPos(), symbol::trans("transpose"),
 	     new varEntry(ftarray,new bltinAccess(run::array2Transpose)),true);
   }
 }
 
-types::ty *arrayTy::trans(env &e, bool tacit)
+types::ty *arrayTy::trans(coenv &e, bool tacit)
 {
   types::ty *ct = cell->trans(e, tacit);
   assert(ct);
@@ -247,32 +247,31 @@ void modifiedRunnable::prettyprint(ostream &out, int indent)
   body->prettyprint(out, indent+1);
 }
 
-void modifiedRunnable::trans(env &e)
+void modifiedRunnable::trans(coenv &e)
 {
-  e.pushModifier(mods->isStatic() ? EXPLICIT_STATIC : EXPLICIT_DYNAMIC);
-
-  body->trans(e);
-
-  e.popModifier();
+  transAsField(e,0);
 }
 
-void modifiedRunnable::transAsField(env &e, record *r)
+void modifiedRunnable::transAsField(coenv &e, record *r)
 {
   if (mods->staticSet())
-    e.pushModifier(mods->isStatic() ? EXPLICIT_STATIC : EXPLICIT_DYNAMIC);
+    e.c.pushModifier(mods->isStatic() ? EXPLICIT_STATIC : EXPLICIT_DYNAMIC);
 
   permission p = mods->getPermission();
-  if (p != READONLY && !body->allowPermissions()) {
+  if (p != READONLY && (!r || !body->allowPermissions())) {
     em->error(pos);
     *em << "invalid permission modifier";
   }
-  e.setPermission(p);
+  e.c.setPermission(p);
 
-  body->transAsField(e,r);
+  if (r)
+    body->transAsField(e,r);
+  else
+    body->trans(e);
 
-  e.clearPermission();
+  e.c.clearPermission();
   if (mods->staticSet())
-    e.popModifier();
+    e.c.popModifier();
 }
 
 
@@ -285,7 +284,7 @@ void decidstart::prettyprint(ostream &out, int indent)
     dims->prettyprint(out, indent+1);
 }
 
-types::ty *decidstart::getType(types::ty *base, env &, bool)
+types::ty *decidstart::getType(types::ty *base, coenv &, bool)
 {
   return dims ? dims->truetype(base) : base;
 }
@@ -302,7 +301,7 @@ void fundecidstart::prettyprint(ostream &out, int indent)
     params->prettyprint(out, indent+1);
 }
 
-types::ty *fundecidstart::getType(types::ty *base, env &e, bool tacit)
+types::ty *fundecidstart::getType(types::ty *base, coenv &e, bool tacit)
 {
   types::ty *result = decidstart::getType(base, e, tacit);
 
@@ -325,45 +324,17 @@ void decid::prettyprint(ostream &out, int indent)
     init->prettyprint(out, indent+1);
 }
 
-void decid::trans(env &e, types::ty *base)
+void decid::trans(coenv &e, types::ty *base)
 {
-  // give the variable a location.
-  access *a = e.allocLocal();
-
-  symbol *id = start->getName();
-  types::ty *t = start->getType(base, e);
-  assert(t);
-  if (t->kind == ty_void) {
-    em->compiler(getPos());
-    *em << "can't declare variable of type void";
-  }
-
-  varEntry *ent = new varEntry(t, a);
-
-  if (init) {
-    init->trans(e, t);
-  }
-  else {
-    // Use the default initializer if there is one.
-    access *ia = initializer(t);
-    if (ia)
-      ia->encodeCall(getPos(), e);
-    else {
-      e.encode(inst::constpush);
-      e.encode((item)(void *)0);
-    }
-  }
-
-  e.addVar(getPos(), id, ent);
-
-  a->encodeWrite(getPos(), e);
-  e.encode(inst::pop);
+  transAsField(e,0,base);
 }
 
-void decid::transAsField(env &e, record *r, types::ty *base)
+void decid::transAsField(coenv &e, record *r, types::ty *base)
 {
   // give the field a location.
-  access *a = r->allocField(e.isStatic(), e.getPermission());
+  access *a = r ? r->allocField(e.c.isStatic(), e.c.getPermission()) :
+                  e.c.allocLocal();
+                
 
   symbol *id = start->getName();
   types::ty *t = start->getType(base, e);
@@ -382,24 +353,25 @@ void decid::transAsField(env &e, record *r, types::ty *base)
     // Use the default initializer if there is one.
     access *ia = initializer(t);
     if (ia)
-      ia->encodeCall(getPos(), e);
+      ia->encodeCall(getPos(), e.c);
     else {
-      e.encode(inst::constpush);
-      e.encode((item)(void *)0);
+      e.c.encode(inst::constpush);
+      e.c.encode((item)(void *)0);
     }
   }
   
   // Add to the record so it can be accessed when qualified; add to the
   // environment so it can be accessed unqualified in the scope of the
   // record definition.
-  r->addVar(id, ent);
-  e.addVar(getPos(), id, ent);
+  if (r)
+    r->addVar(id, ent);
+  e.e.addVar(getPos(), id, ent);
   
-  a->encodeWrite(getPos(), e);
-  e.encode(inst::pop);
+  a->encodeWrite(getPos(), e.c);
+  e.c.encode(inst::pop);
 }
 
-void decid::transAsTypedef(env &e, types::ty *base)
+void decid::transAsTypedef(coenv &e, types::ty *base)
 {
   types::ty *t = start->getType(base, e);
   assert(t);
@@ -410,10 +382,10 @@ void decid::transAsTypedef(env &e, types::ty *base)
   }
    
   // Add to type environment.
-  e.addType(getPos(), start->getName(), t);
+  e.e.addType(getPos(), start->getName(), t);
 }
 
-void decid::transAsTypedefField(env &e, types::ty *base, record *r)
+void decid::transAsTypedefField(coenv &e, types::ty *base, record *r)
 {
   types::ty *t = start->getType(base, e);
   assert(t);
@@ -425,7 +397,7 @@ void decid::transAsTypedefField(env &e, types::ty *base, record *r)
    
   // Add to type to record and environment.
   r->addType(start->getName(), t);
-  e.addType(getPos(), start->getName(), t);
+  e.e.addType(getPos(), start->getName(), t);
 }
 
 
@@ -437,25 +409,25 @@ void decidlist::prettyprint(ostream &out, int indent)
     (*p)->prettyprint(out, indent+1);
 }
 
-void decidlist::trans(env &e, types::ty *base)
+void decidlist::trans(coenv &e, types::ty *base)
 {
   for (std::list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
     (*p)->trans(e, base);
 }
 
-void decidlist::transAsField(env &e, record *r, types::ty *base)
+void decidlist::transAsField(coenv &e, record *r, types::ty *base)
 {
   for (std::list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
     (*p)->transAsField(e, r, base);
 }
 
-void decidlist::transAsTypedef(env &e, types::ty *base)
+void decidlist::transAsTypedef(coenv &e, types::ty *base)
 {
   for (std::list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
     (*p)->transAsTypedef(e, base);
 }
 
-void decidlist::transAsTypedefField(env &e, types::ty *base, record *r)
+void decidlist::transAsTypedefField(coenv &e, types::ty *base, record *r)
 {
   for (std::list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
     (*p)->transAsTypedefField(e, base, r);
@@ -470,33 +442,33 @@ void vardec::prettyprint(ostream &out, int indent)
   decs->prettyprint(out, indent+1);
 }
 
-void vardec::transAsTypedef(env &e)
+void vardec::transAsTypedef(coenv &e)
 {
   decs->transAsTypedef(e, base->trans(e));
 }
 
-void vardec::transAsTypedefField(env &e, record *r)
+void vardec::transAsTypedefField(coenv &e, record *r)
 {
   decs->transAsTypedefField(e, base->trans(e), r);
 }
 
-void importdec::initialize(env &e, record *m, access *a)
+void importdec::initialize(coenv &e, record *m, access *a)
 {
   // Put the enclosing frame on the stack.
-  if (!e.encode(m->getLevel()->getParent())) {
+  if (!e.c.encode(m->getLevel()->getParent())) {
     em->error(getPos());
     *em << "import of struct '" << *m << "' is not in a valid scope";
   }
  
   // Encode the allocation. 
-  e.encode(inst::alloc);
+  e.c.encode(inst::alloc);
   inst i;
   i.r = m->getRuntime();
-  e.encode(i);
+  e.c.encode(i);
 
   // Put the module into its memory location.
-  a->encodeWrite(getPos(), e);
-  e.encode(inst::pop);
+  a->encodeWrite(getPos(), e.c);
+  e.c.encode(inst::pop);
 }
 
 
@@ -507,50 +479,36 @@ void importdec::prettyprint(ostream &out, int indent)
   out << "importdec (" << *id << ")\n";
 }
 
-void importdec::loadFailed(env &)
+void importdec::loadFailed(coenv &)
 {
   em->warning(getPos());
   *em << "could not load module of name '" << *id << "'";
 }
 
-void importdec::trans(env &e)
+void importdec::trans(coenv &e)
 {
-  record *m = e.getModule(id);
-  if (m == 0) {
-    loadFailed(e);
-    return;
-  }
-
-  // PRIVATE as only the body of a record, may refer to an imported record.
-  e.setPermission(PRIVATE);
-  access *a = e.allocLocal();
-  e.clearPermission();
-
-  import *i = new import(m, a);
-
-  e.addImport(getPos(), id, i);
-
-  // Add the initializer for the record.
-  initialize(e, m, a);
+  transAsField(e,0);
 }
 
-void importdec::transAsField(env &e, record *r)
+void importdec::transAsField(coenv &e, record *r)
 {
-  record *m = e.getModule(id);
+  record *m = e.e.getModule(id);
   if (m == 0) {
     loadFailed(e);
     return;
   }
 
   // PRIVATE as only the body of a record, may refer to an imported record.
-  access *a = r->allocField(e.isStatic(), PRIVATE);
+  access *a = r ? r->allocField(e.c.isStatic(), PRIVATE) :
+                  e.c.allocLocal(PRIVATE);
+
   import *i = new import(m, a);
 
   // While the import is allocated as a field of the record, it is
   // only accessible inside the initializer of the record (and
   // nested functions and initializers), so there is no need to add it
   // to the environment maintained by the record.
-  e.addImport(getPos(), id, i);
+  e.e.addImport(getPos(), id, i);
 
   // Add the initializer for the record.
   initialize(e, m, a);
@@ -574,7 +532,7 @@ void formal::prettyprint(ostream &out, int indent)
   if (defval) defval->prettyprint(out, indent+1);
 }
 
-types::ty *formal::getType(env &e, bool tacit) {
+types::ty *formal::getType(coenv &e, bool tacit) {
   types::ty *t = start ? start->getType(base->trans(e), e, tacit)
     : base->trans(e, tacit);
   if (t->kind == ty_void) {
@@ -596,7 +554,7 @@ void formals::prettyprint(ostream &out, int indent)
 // Returns the types of each parameter as a signature.
 // encodeDefVal means that it will also encode information regarding
 // the default values into the signature
-signature *formals::getSignature(env &e, bool encodeDefVal, bool tacit)
+signature *formals::getSignature(coenv &e, bool encodeDefVal, bool tacit)
 {
   signature *sig = new signature;
 
@@ -623,7 +581,7 @@ signature *formals::getSignature(env &e, bool encodeDefVal, bool tacit)
 
 // Returns the corresponding function type, assuming it has a return
 // value of types::ty *result.
-function *formals::getType(types::ty *result, env &e,
+function *formals::getType(types::ty *result, coenv &e,
                            bool encodeDefVal,
 			   bool tacit)
 {
@@ -649,7 +607,7 @@ function *formals::getType(types::ty *result, env &e,
   return ft;
 }
 
-void formals::trans(env &e)
+void formals::trans(coenv &e)
 {
   list <formal *>::iterator p = fields.begin();
   int argIndex = 0;
@@ -657,7 +615,7 @@ void formals::trans(env &e)
   while (p != fields.end()) {
     symbol *name = (*p)->getName();
     if (name) {
-      trans::access *a = e.accessFormal(argIndex);
+      trans::access *a = e.c.accessFormal(argIndex);
       assert(a);
 
       // Suppress error messages because they will already be reported
@@ -665,7 +623,7 @@ void formals::trans(env &e)
       types::ty *t = (*p)->getType(e, true);
       varEntry *argEntry = new varEntry(t, a);
 
-      e.addVar((*p)->getPos(), (*p)->getName(), argEntry);
+      e.e.addVar((*p)->getPos(), (*p)->getName(), argEntry);
     }
 
     ++p;
@@ -705,79 +663,44 @@ function *fundec::opType(function *f)
   return ft;
 }
 
-void fundec::addOps(env &e, function *f)
+void fundec::addOps(coenv &e, function *f)
 {
   function *ft = opType(f);
-  e.addVar(getPos(), symbol::trans("=="),
+  e.e.addVar(getPos(), symbol::trans("=="),
       new varEntry(ft, new instAccess(inst::func_eq)),true);
-  e.addVar(getPos(), symbol::trans("!="),
+  e.e.addVar(getPos(), symbol::trans("!="),
       new varEntry(ft, new instAccess(inst::func_neq)),true);
 }
 
-void fundec::trans(env &e)
+void fundec::trans(coenv &e)
 {
-  function *ft = params->getType(result->trans(e), e, true);
-  assert(ft);
-
-  addOps(e,ft);
-  
-  // give the variable a location.
-  access *a = e.allocLocal();
-
-  varEntry *ent = new varEntry(ft, a);
-  
-  e.addVar(getPos(), id, ent);
-
-  // Create a new function environment.
-  env fe = e.newFunction(ft);
-
-  // Translate the function.
-  fe.beginScope();
-  params->trans(fe);
-  
-  body->trans(fe);
-
-  types::ty *rt = ft->result;
-  if (rt->kind != ty_void &&
-      rt->kind != ty_error &&
-      !body->returns()) {
-    em->error(body->getPos());
-    *em << "function must return a value";
-  }
-
-  fe.endScope();
-
-  // Put an instance of the new function on the stack.
-  lambda *l = fe.close();
-  e.encode(inst::pushclosure);
-  e.encode(inst::makefunc);
-  e.encode(l);
-
-  // Write the new function to the variable location.
-  a->encodeWrite(getPos(), e);
-  e.encode(inst::pop);
+  transAsField(e,0);
 }
 
-void fundec::transAsField(env &e, record *r)
+void fundec::transAsField(coenv &e, record *r)
 {
   function *ft = params->getType(result->trans(e), e, true);
   assert(ft);
 
   addOps(e,ft);
   
-  // give the variable a location.
-  access *a = r->allocField(e.isStatic(), e.getPermission());
+  // Give the variable a location.
+  access *a = r ? r->allocField(e.c.isStatic(), e.c.getPermission()) :
+                  e.c.allocLocal();
+                  
 
   varEntry *ent = new varEntry(ft, a);
   
-  r->addVar(id, ent);
-  e.addVar(getPos(), id, ent);
+  if (r)
+    r->addVar(id, ent);
+  e.e.addVar(getPos(), id, ent);
 
   // Create a new function environment.
-  env fe = e.newFunction(ft);
+  coder fc = e.c.newFunction(ft);
+  coenv fe(fc,e.e);
 
   // Translate the function.
-  fe.beginScope();
+  fe.e.beginScope();
   params->trans(fe);
   
   body->trans(fe);
@@ -790,17 +713,17 @@ void fundec::transAsField(env &e, record *r)
     *em << "function must return a value";
   }
 
-  fe.endScope();
+  fe.e.endScope();
 
   // Put an instance of the new function on the stack.
-  lambda *l = fe.close();
-  e.encode(inst::pushclosure);
-  e.encode(inst::makefunc);
-  e.encode(l);
+  lambda *l = fe.c.close();
+  e.c.encode(inst::pushclosure);
+  e.c.encode(inst::makefunc);
+  e.c.encode(l);
 
   // Write the new function to the variable location.
-  a->encodeWrite(getPos(), e);
-  e.encode(inst::pop);
+  a->encodeWrite(getPos(), e.c);
+  e.c.encode(inst::pop);
 } 
 
 
@@ -821,36 +744,33 @@ function *recorddec::opType(record *r)
   return ft;
 }
 
-void recorddec::addOps(env &e, record *r)
+void recorddec::addOps(coenv &e, record *r)
 {
   function *ft = opType(r);
-  e.addVar(getPos(), symbol::trans("=="),
+  e.e.addVar(getPos(), symbol::trans("=="),
       new varEntry(ft, new instAccess(inst::mem_eq)));
-  e.addVar(getPos(), symbol::trans("!="),
+  e.e.addVar(getPos(), symbol::trans("!="),
       new varEntry(ft, new instAccess(inst::mem_neq)));
 }
 
-void recorddec::trans(env &e)
+void recorddec::trans(coenv &e)
 {
-  record *r = e.newRecord(id);
-  e.addType(getPos(), id, r);
-  addOps(e,r);
-
-  // Start translating the initializer.
-  env re = e.newRecordInit(r);
-  
-  body->transAsRecordBody(re, r);
+  transAsField(e,0);
 }  
 
-void recorddec::transAsField(env &e, record *parent)
+void recorddec::transAsField(coenv &e, record *parent)
 {
-  record *r = parent->newRecord(id, e.isStatic());
-  parent->addType(id, r);
-  e.addType(getPos(), id, r);
+  record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
+                       e.c.newRecord(id);
+                     
+  if (parent)
+    parent->addType(id, r);
+  e.e.addType(getPos(), id, r);
   addOps(e,r);
 
   // Start translating the initializer.
-  env re = e.newRecordInit(r);
+  coder c=e.c.newRecordInit(r);
+  coenv re(c,e.e);
   
   body->transAsRecordBody(re, r);
 }  

@@ -31,37 +31,37 @@ public:
   importAccess(access *rloc, frame *rlevel, access *floc)
     : rloc(rloc), rlevel(rlevel), floc(floc) {}
 
-  void encodeRead(position pos, env &e)
+  void encodeRead(position pos, coder &e)
   {
     rloc->encodeRead(pos, e);
     floc->encodeRead(pos, e, rlevel);
   }
 
-  void encodeRead(position pos, env &e, frame *top)
+  void encodeRead(position pos, coder &e, frame *top)
   {
     rloc->encodeRead(pos, e, top);
     floc->encodeRead(pos, e, rlevel);
   }
   
-  void encodeWrite(position pos, env &e)
+  void encodeWrite(position pos, coder &e)
   {
     rloc->encodeRead(pos, e);
     floc->encodeWrite(pos, e, rlevel);
   }
   
-  void encodeWrite(position pos, env &e, frame *top)
+  void encodeWrite(position pos, coder &e, frame *top)
   {
     rloc->encodeRead(pos, e, top);
     floc->encodeWrite(pos, e, rlevel);
   }
   
-  void encodeCall(position pos, env &e)
+  void encodeCall(position pos, coder &e)
   {
     rloc->encodeRead(pos, e);
     floc->encodeCall(pos, e, rlevel);
   }
   
-  void encodeCall(position pos, env &e, frame *top)
+  void encodeCall(position pos, coder &e, frame *top)
   {
     rloc->encodeRead(pos, e, top);
     floc->encodeCall(pos, e, rlevel);

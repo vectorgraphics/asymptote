@@ -1,14 +1,14 @@
 /*****
- * access.h
+ * access.cc
  * Andy Hammerlindl 2003/12/03
- * Describes an "access," a reprsentation of where a variable will be
+ * Describes an "access," a representation of where a variable will be
  * stored at runtime, so that read, write, and call instructions can be
  * made.
  *****/
 
 #include "access.h"
 #include "frame.h"
-#include "env.h"
+#include "coder.h"
 
 namespace trans {
 
@@ -17,12 +17,12 @@ access::~access()
 {}
 
 /* identAccess */
-void identAccess::encodeCall(position, env&)
+void identAccess::encodeCall(position, coder&)
 {}
 
 
 /* instAccess */
-void instAccess::encodeCall(position, env &e)
+void instAccess::encodeCall(position, coder &e)
 {
   e.encode(i);
 }
@@ -35,29 +35,29 @@ static void bltinError(position pos)
   *em << "built-in functions cannot be modified";
 }
 
-void bltinAccess::encodeRead(position, env &e)
+void bltinAccess::encodeRead(position, coder &e)
 {
   e.encode(inst::constpush);
   e.encode((item)(vm::callable*)new vm::bfunc(f));
 }
 
-void bltinAccess::encodeRead(position, env &e, frame *)
+void bltinAccess::encodeRead(position, coder &e, frame *)
 {
   e.encode(inst::constpush);
   e.encode((item)(vm::callable*)new vm::bfunc(f));
 }
 
-void bltinAccess::encodeWrite(position pos, env &)
+void bltinAccess::encodeWrite(position pos, coder &)
 {
   bltinError(pos);
 }
 
-void bltinAccess::encodeWrite(position pos, env &, frame *)
+void bltinAccess::encodeWrite(position pos, coder &, frame *)
 {
   bltinError(pos);
 }
 
-void bltinAccess::encodeCall(position, env &e)
+void bltinAccess::encodeCall(position, coder &e)
 {
   e.encode(inst::builtin);
   e.encode(f);
@@ -65,24 +65,40 @@ void bltinAccess::encodeCall(position, env &e)
 
 
 /* globalAccess */
-void globalAccess::encodeRead(position, env &e)
+void globalAccess::encodeRead(position, coder &e)
 {
   e.encode(inst::globalpush);
   e.encode(offset);
 }
 
-void globalAccess::encodeWrite(position, env &e)
+void globalAccess::encodeWrite(position, coder &e)
 {
   e.encode(inst::globalsave);
   e.encode(offset);
 }
 
-void globalAccess::encodeCall(position pos, env &e)
+void globalAccess::encodeCall(position pos, coder &e)
 {
   encodeRead(pos, e);
   e.encode(inst::popcall);
 }
 
+/* frameAccess */
+void frameAccess::encodeRead(position pos, coder &e)
+{
+  if (!e.encode(f)) {
+    em->compiler(pos);
+    *em << "encoding frame out of context";
+  }
+}
+
+void frameAccess::encodeRead(position pos, coder &e, frame *top)
+{
+  if (!e.encode(f,top)) {
+    em->compiler(pos);
+    *em << "encoding frame out of context";
+  }
+}
 
 /* localAccess */
 void localAccess::permitRead(position pos)
@@ -109,7 +125,7 @@ void localAccess::permitWrite(position pos)
   }
 }
 
-void localAccess::encodeRead(position pos, env &e)
+void localAccess::encodeRead(position pos, coder &e)
 {
   // Get the active frame of the virtual machine.
   frame *active = e.getFrame();
@@ -127,14 +143,9 @@ void localAccess::encodeRead(position pos, env &e)
   }
 }
 
-void localAccess::encodeRead(position pos, env &e, frame *top)
+void localAccess::encodeRead(position pos, coder &e, frame *top)
 {
-  if (top == 0) {
-    // The local variable is being used when its frame is not active.
-    em->error(pos);
-    *em << "static use of dynamic variable";
-  }
-  else if (level == top) {
+  if (e.encode(level,top)) {
     // Test permissions.
     if (!top->isDescendant(e.getFrame()))
       permitRead(pos);
@@ -143,14 +154,13 @@ void localAccess::encodeRead(position pos, env &e, frame *top)
     e.encode(offset);
   }
   else {
-    // Go another level down.
-    e.encode(inst::fieldpush);
-    e.encode(0);
-    encodeRead(pos, e, top->getParent());
+    // The local variable is being used when its frame is not active.
+    em->error(pos);
+    *em << "static use of dynamic variable";
   }
 }
 
-void localAccess::encodeWrite(position pos, env &e)
+void localAccess::encodeWrite(position pos, coder &e)
 {
   // Get the active frame of the virtual machine.
   frame *active = e.getFrame();
@@ -168,36 +178,30 @@ void localAccess::encodeWrite(position pos, env &e)
   }
 }
 
-void localAccess::encodeWrite(position pos, env &e, frame *top)
+void localAccess::encodeWrite(position pos, coder &e, frame *top)
 {
-  if (top == 0) {
-    // The local variable is being used when its frame is not active.
-    em->compiler(pos);
-    *em << "access used out of scope";
-  }
-  else if (level == top) {
+  if (e.encode(level,top)) {
     // Test permissions.
     if (!top->isDescendant(e.getFrame()))
       permitWrite(pos);
-
+  
     e.encode(inst::fieldsave);
     e.encode(offset);
   }
   else {
-    // Go another level down.
-    e.encode(inst::fieldpush);
-    e.encode(0);
-    encodeWrite(pos, e, top->getParent());
+    // The local variable is being used when its frame is not active.
+    em->error(pos);
+    *em << "static use of dynamic variable";
   }
 }
 
-void localAccess::encodeCall(position pos, env &e)
+void localAccess::encodeCall(position pos, coder &e)
 {
   encodeRead(pos, e);
   e.encode(inst::popcall);
 }
 
-void localAccess::encodeCall(position pos, env &e, frame *top)
+void localAccess::encodeCall(position pos, coder &e, frame *top)
 {
   encodeRead(pos, e, top);
   e.encode(inst::popcall);

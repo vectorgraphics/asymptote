@@ -9,7 +9,7 @@ CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide knotlist pathlist drawfill
 FILES = $(CAMP) cast env genv main runtime stm dec errormsg inst name symbol \
 	types entry exp newexp stack camp.tab lex.yy import access \
-	absyn record pool interact fileio builtin fftw++ simpson
+	absyn record pool interact fileio builtin fftw++ simpson coder coenv
 CLEAN = camp.tab.h camp.tab.cc lex.yy.cc camp.output
 NAME = asy
 XNAME = x$(NAME)

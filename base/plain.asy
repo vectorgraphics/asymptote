@@ -399,7 +399,6 @@ struct picture {
   {
     addPoint(userMin,trueMin);
     addPoint(userMax,trueMax);
-    userBox(userMin,userMax);
   }
 
   // Add a point to the sizing, accounting also for the size of the pen.
@@ -407,21 +406,18 @@ struct picture {
   {
     addPoint(userZ, trueZ + max(p));
     addPoint(userZ, trueZ + min(p));
-    userBox(userZ,userZ);
   }
   
   // Add a (user space) path to the sizing.
   void addPath(path g)
   {
     addBox(min(g),max(g));
-    userBox(min(g),max(g));
   }
 
   // Add a path to the sizing with the additional padding of a pen.
   void addPath(path g, pen p)
   {
     addBox(min(g), max(g), min(p), max(p));
-    userBox(min(g),max(g));
   }
 
   void size(real x=0, real y=0, bool a=true)
@@ -462,7 +458,7 @@ struct picture {
       return 0;
   }
  
-  // Calculate the minimum point in scaling the coords.
+  // Calculate the maximum point in scaling the coords.
   real max(scaling s, coord[] c)
   {
     if (c.length > 0) {

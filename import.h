@@ -16,6 +16,7 @@
 #include "pool.h"
 
 using types::record;
+using types::overloaded;
 
 namespace trans {
 
@@ -90,14 +91,25 @@ public:
         return v;
     return 0;
   }
+  
   ty *varGetType(symbol *name)
   {
+#if 0 // Yield first match by name.
     for (scopes_t::iterator p = scopes.begin();
          p != scopes.end();
          ++p)
       if (ty *t = varGetType(name,*p))
         return t;
     return 0;
+#else // Yield all matches.
+    overloaded *o = new overloaded;
+    for (scopes_t::iterator p = scopes.begin();
+         p != scopes.end();
+         ++p)
+      if (ty *t = varGetType(name,*p))
+        o->addDistinct(t);
+    return o->simplify();
+#endif
   }
 };
 

@@ -21,7 +21,7 @@
 #include "record.h"
 #include "absyn.h"
 #include "access.h"
-#include "env.h"
+#include "coenv.h"
 
 using types::record;
 using vm::lambda;
@@ -32,10 +32,13 @@ class genv {
   // The collection of loaded modules.
   sym::table<record *> modules;
 
-  // Dummy environment for allocating global variables and encoding
+  // Base environment for allocating global variables and encoding
   // static code of file-level modules.
   friend class env;
-  env dummy_env;
+  coder base_coder;
+  env base_env;
+  coenv base_coenv;
+  
   tenv te;
   venv ve;
   menv me;

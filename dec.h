@@ -16,7 +16,7 @@
 #include "exp.h"
 
 namespace trans {
-class env;
+class coenv;
 class access;
 }
 
@@ -28,7 +28,7 @@ class function;
 
 namespace as {
 
-using trans::env;
+using trans::coenv;
 using trans::access;
 using sym::symbol;
 
@@ -42,12 +42,12 @@ public:
   // Returns the internal representation of the type.  This method can
   // be called by stm::getType which does not report errors, so tacit is
   // needed to silence errors in this case.
-  virtual types::ty *trans(env &e, bool tacit = false) = 0;
+  virtual types::ty *trans(coenv &e, bool tacit = false) = 0;
 
   // Finds the import that the type is imported from.
   // This necessary for record allocations.
   // Returns 0 if the type ultimately refers to no imports.
-  virtual trans::import *getImport(env &e) = 0;
+  virtual trans::import *getImport(coenv &e) = 0;
 };
 
 class nameTy : public ty {
@@ -59,9 +59,9 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  types::ty *trans(env &e, bool tacit = false);
+  types::ty *trans(coenv &e, bool tacit = false);
 
-  trans::import *getImport(env &e)
+  trans::import *getImport(coenv &e)
   {
     return id->typeGetImport(e);
   }
@@ -83,11 +83,11 @@ public:
   types::function *sequenceType(types::ty* t, types::ty *ct);
   types::function *cellTypeType(types::ty* t);
   types::function *evalType(types::ty* t, types::ty *ct);
-  void addOps(env &e, types::ty* t, types::ty *ct);
+  void addOps(coenv &e, types::ty* t, types::ty *ct);
   
-  types::ty *trans(env &e, bool tacit = false);
+  types::ty *trans(coenv &e, bool tacit = false);
 
-  trans::import *getImport(env &e)
+  trans::import *getImport(coenv &e)
   {
     return cell->getImport(e);
   }
@@ -102,18 +102,18 @@ public:
 
   virtual void prettyprint(ostream &out, int indent) = 0;
   
-  virtual void markTrans(env &e)
+  virtual void markTrans(coenv &e)
   {
-    markPos(e);
+    markPos(e.c);
     trans(e);
   }
   
   /* Translates the stm or dec as if it were in a function definition. */
-  virtual void trans(env &e) = 0;
+  virtual void trans(coenv &e) = 0;
 
-  virtual void markTransAsField(env &e, record *r)
+  virtual void markTransAsField(coenv &e, record *r)
   {
-    markPos(e);
+    markPos(e.c);
     transAsField(e,r);
   }
 
@@ -122,7 +122,7 @@ public:
    * record's initializer.  A declaration, however, will also have to
    * add a new type or field to the record.
    */
-  virtual void transAsField(env &e, record *) {
+  virtual void transAsField(coenv &e, record *) {
     // By default, translate as normal.
     trans(e);
   }
@@ -182,13 +182,12 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(env &e);
-  void transAsField(env &e, record *r);
+  void trans(coenv &e);
+  void transAsField(coenv &e, record *r);
 
   bool returns()
     { return body->returns(); }
 };
-
 
 
 class decidstart : public absyn {
@@ -202,7 +201,7 @@ public:
 
   virtual void prettyprint(ostream &out, int indent);
 
-  virtual types::ty *getType(types::ty *base, env &, bool = false);
+  virtual types::ty *getType(types::ty *base, coenv &, bool = false);
 
   virtual symbol *getName()
     { return id; }
@@ -223,7 +222,7 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  types::ty *getType(types::ty *base, env &e, bool tacit = false);
+  types::ty *getType(types::ty *base, coenv &e, bool tacit = false);
 };
 
 class decid : public absyn {
@@ -231,7 +230,7 @@ class decid : public absyn {
   varinit *init;
 
   // Returns the default initializer for the type.
-  access *defaultInit(env &e, types::ty *t);
+  access *defaultInit(coenv &e, types::ty *t);
 
 public:
   decid(position pos, decidstart *start, varinit *init = 0)
@@ -239,13 +238,13 @@ public:
 
   virtual void prettyprint(ostream &out, int indent);
 
-  virtual void trans(env &e, types::ty *base);
+  virtual void trans(coenv &e, types::ty *base);
 
-  virtual void transAsField(env &e, record *r, types::ty *base);
+  virtual void transAsField(coenv &e, record *r, types::ty *base);
 
   // Translate, but add the names in as types rather than variables. 
-  virtual void transAsTypedef(env &e, types::ty *base);
-  virtual void transAsTypedefField(env &e, types::ty *base, record *r);
+  virtual void transAsTypedef(coenv &e, types::ty *base);
+  virtual void transAsTypedefField(coenv &e, types::ty *base, record *r);
 };
 
 class decidlist : public absyn {
@@ -263,13 +262,13 @@ public:
 
   virtual void prettyprint(ostream &out, int indent);
 
-  virtual void trans(env &e, types::ty *base);
+  virtual void trans(coenv &e, types::ty *base);
 
-  virtual void transAsField(env &e, record *r, types::ty *base);
+  virtual void transAsField(coenv &e, record *r, types::ty *base);
 
   // Translate, but add the names in as types rather than variables. 
-  virtual void transAsTypedef(env &e, types::ty *base);
-  virtual void transAsTypedefField(env &e, types::ty *base, record *r);
+  virtual void transAsTypedef(coenv &e, types::ty *base);
+  virtual void transAsTypedefField(coenv &e, types::ty *base, record *r);
 };
 
 class dec : public runnable {
@@ -294,36 +293,36 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(env &e)
+  void trans(coenv &e)
   {
     decs->trans(e, base->trans(e));
   }
 
-  void transAsField(env &e, record *r)
+  void transAsField(coenv &e, record *r)
   {
     decs->transAsField(e, r, base->trans(e));
   }
 
   // Translate, but add the names in as types rather than variables. 
-  virtual void transAsTypedef(env &e);
-  virtual void transAsTypedefField(env &e, record *r);
+  virtual void transAsTypedef(coenv &e);
+  virtual void transAsTypedefField(coenv &e, record *r);
 };
 
 class importdec : public dec {
   symbol *id;
 
-  void initialize(env &e, record *m, access *a);
+  void initialize(coenv &e, record *m, access *a);
 
 public:
   importdec(position pos, symbol *id)
     : dec(pos), id(id) {}
 
   void prettyprint(ostream &out, int indent);
-  void loadFailed(env &e);
+  void loadFailed(coenv &e);
 
-  void trans(env &e);
+  void trans(coenv &e);
 
-  void transAsField(env &e, record *r);
+  void transAsField(coenv &e, record *r);
 
   // PUBLIC and PRIVATE modifiers are meaningless to imports, so we do
   // not allow them.
@@ -341,10 +340,10 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(env &e) {
+  void trans(coenv &e) {
     body->transAsTypedef(e);
   }
-  void transAsField(env &e, record *r) {
+  void transAsField(coenv &e, record *r) {
     body->transAsTypedefField(e,r);
   }
 };
@@ -373,7 +372,7 @@ public:
 
   virtual void prettyprint(ostream &out, int indent);
 
-  virtual types::ty *getType(env &e, bool tacit = false);
+  virtual types::ty *getType(coenv &e, bool tacit = false);
 
   virtual varinit *getDefaultValue() {
     return defval;
@@ -404,19 +403,19 @@ public:
   // Returns the types of each parameter as a signature.
   // encodeDefVal means that it will also encode information regarding
   // the default values into the signature
-  signature *getSignature(env &e,
+  signature *getSignature(coenv &e,
                           bool encodeDefVal = false,
 			  bool tacit = false);
 
   // Returns the corresponding function type, assuming it has a return
   // value of "result."
-  types::function *getType(types::ty *result, env &e,
+  types::function *getType(types::ty *result, coenv &e,
                            bool encodeDefVal = false,
                            bool tacit = false);
 
   // Add the formal parameters to the environment to prepare for the
   // function body's translation.
-  virtual void trans(env &e);
+  virtual void trans(coenv &e);
 
   // Report an error if there are default values.
   // Used by newFunctionExp.
@@ -436,11 +435,11 @@ public:
   void prettyprint(ostream &out, int indent);
 
   types::function *opType(types::function *f);
-  void addOps(env &e, types::function *f);
+  void addOps(coenv &e, types::function *f);
   
-  void trans(env &e);
+  void trans(coenv &e);
 
-  void transAsField(env &e, record *r);
+  void transAsField(coenv &e, record *r);
 };
   
 
@@ -450,7 +449,7 @@ class recorddec : public dec {
   blockStm *body;
 
   types::function *opType(record *r);
-  void addOps(env &e, record *r);
+  void addOps(coenv &e, record *r);
 
 public:
   recorddec(position pos, symbol *id, blockStm *body)
@@ -461,9 +460,9 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(env &e);
+  void trans(coenv &e);
 
-  void transAsField(env &e, record *parent);
+  void transAsField(coenv &e, record *parent);
 };
 
 

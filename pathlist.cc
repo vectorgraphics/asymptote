@@ -1,5 +1,5 @@
 /*****
- * pathlist.h
+ * pathlist.cc
  * Andy Hammerlindl 2002/08/23
  *
  * As segments are solved in a guide, they are put into this structure.

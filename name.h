@@ -14,12 +14,12 @@
 #include "absyn.h"
 #include "types.h"
 #include "cast.h"
-#include "env.h"
+#include "coenv.h"
 
 namespace as {
 
-using trans::env;
-using trans::env;
+using trans::coenv;
+using trans::coenv;
 using types::record;
 using std::ostream;
 
@@ -39,21 +39,21 @@ public:
   // Because this is used only on qualifiers, it does not look at
   // function variables.
   // Tacit means that no error messages will be reported to the user.
-  virtual types::ty *getType(env &e, bool tacit = false) = 0;
+  virtual types::ty *getType(coenv &e, bool tacit = false) = 0;
 
   // As a variable:
-  virtual void varTrans(env &e, types::ty *target) = 0;
-  virtual void varTransWrite(env &e, types::ty *target) = 0;
-  virtual void varTransCall(env &e, types::ty *target) = 0;
-  virtual types::ty *varGetType(env &e) = 0;
+  virtual void varTrans(coenv &e, types::ty *target) = 0;
+  virtual void varTransWrite(coenv &e, types::ty *target) = 0;
+  virtual void varTransCall(coenv &e, types::ty *target) = 0;
+  virtual types::ty *varGetType(coenv &e) = 0;
 
   // As a type:
-  virtual types::ty *typeTrans(env &e, bool tacit = false) = 0;
-  virtual trans::import *typeGetImport(env &e) = 0;
+  virtual types::ty *typeTrans(coenv &e, bool tacit = false) = 0;
+  virtual trans::import *typeGetImport(coenv &e) = 0;
 
   // Pushes the highest level frame possible onto the stack.  Returning
   // the frame pushed.  If no frame can be pushed, returns 0.
-  virtual frame *frameTrans(env &e) = 0;
+  virtual frame *frameTrans(coenv &e) = 0;
 
   virtual void prettyprint(ostream &out, int indent) = 0;
   virtual void print(ostream& out) const {
@@ -75,19 +75,19 @@ public:
   simpleName(position pos, symbol *id)
     : name(pos), id(id) {}
 
-  types::ty *getType(env &e, bool tacit = false);
+  types::ty *getType(coenv &e, bool tacit = false);
 
   // As a variable:
-  void varTrans(env &, types::ty *target);
-  void varTransWrite(env &, types::ty *target);
-  void varTransCall(env &, types::ty *target);
-  types::ty *varGetType(env &);
+  void varTrans(coenv &, types::ty *target);
+  void varTransWrite(coenv &, types::ty *target);
+  void varTransCall(coenv &, types::ty *target);
+  types::ty *varGetType(coenv &);
 
   // As a type:
-  types::ty *typeTrans(env &e, bool tacit = false);
-  trans::import *typeGetImport(env &e);
+  types::ty *typeTrans(coenv &e, bool tacit = false);
+  trans::import *typeGetImport(coenv &e);
 
-  frame *frameTrans(env &e);
+  frame *frameTrans(coenv &e);
   
   void prettyprint(ostream &out, int indent);
   void print(ostream& out) const {
@@ -112,19 +112,19 @@ public:
   qualifiedName(position pos, name *qualifier, symbol *id)
     : name(pos), qualifier(qualifier), id(id) {}
 
-  types::ty *getType(env &e, bool tacit = false);
+  types::ty *getType(coenv &e, bool tacit = false);
 
   // As a variable:
-  void varTrans(env &, types::ty *target);
-  void varTransWrite(env &, types::ty *target);
-  void varTransCall(env &, types::ty *target);
-  types::ty *varGetType(env &);
+  void varTrans(coenv &, types::ty *target);
+  void varTransWrite(coenv &, types::ty *target);
+  void varTransCall(coenv &, types::ty *target);
+  types::ty *varGetType(coenv &);
 
   // As a type:
-  types::ty *typeTrans(env &e, bool tacit = false);
-  trans::import *typeGetImport(env &e);
+  types::ty *typeTrans(coenv &e, bool tacit = false);
+  trans::import *typeGetImport(coenv &e);
 
-  frame *frameTrans(env &e);
+  frame *frameTrans(coenv &e);
   
   void prettyprint(ostream &out, int indent);
   void print(ostream& out) const {

@@ -14,8 +14,8 @@
 
 static struct problem {
   typedef int var;
-  var VAR_A = 0;
-  var VAR_B = 1;
+  static var VAR_A = 0;
+  static var VAR_B = 1;
 
   struct row {
     public real c, t[];

@@ -31,7 +31,7 @@ void arrayinit::prettyprint(ostream &out, int indent)
     (*p)->prettyprint(out, indent+1);
 }
 
-void arrayinit::trans(env &e, types::ty *target)
+void arrayinit::trans(coenv &e, types::ty *target)
 {
   types::ty *celltype;
   if (target->kind != types::ty_array) {
@@ -48,10 +48,10 @@ void arrayinit::trans(env &e, types::ty *target)
     (*p)->trans(e, celltype);
 
   // Push the number of cells and call the array maker.
-  e.encode(inst::intpush);
-  e.encode((int)inits.size());
-  e.encode(inst::builtin);
-  e.encode(run::newInitializedArray);
+  e.c.encode(inst::intpush);
+  e.c.encode((int)inits.size());
+  e.c.encode(inst::builtin);
+  e.c.encode(run::newInitializedArray);
 }
 
 
@@ -60,7 +60,7 @@ void exp::prettyprint(ostream &out, int indent)
   prettyname(out, "exp",indent);
 }
 
-void exp::trans(env &e, types::ty *target)
+void exp::trans(coenv &e, types::ty *target)
 {
   // Defer to context-less translation.
   e.implicitCast(getPos(), target, trans(e));
@@ -102,7 +102,7 @@ record *fieldExp::getRecord(types::ty *t)
   } 
 }
 
-types::ty *fieldExp::getObject(env& e)
+types::ty *fieldExp::getObject(coenv& e)
 {
   types::ty *t = object->getType(e);
   if (t->kind == ty_overloaded) {
@@ -112,7 +112,7 @@ types::ty *fieldExp::getObject(env& e)
   return t;
 }
 
-record *fieldExp::transRecord(env &e, types::ty *t)
+record *fieldExp::transRecord(coenv &e, types::ty *t)
 {
   object->trans(e, t);
 
@@ -128,7 +128,7 @@ record *fieldExp::transRecord(env &e, types::ty *t)
   }
 }
 
-void fieldExp::trans(env &e, types::ty *target)
+void fieldExp::trans(coenv &e, types::ty *target)
 {
   types::ty *ot = getObject(e);
 #if 0
@@ -145,7 +145,7 @@ void fieldExp::trans(env &e, types::ty *target)
     object->trans(e, ot);
 
     // Call instead of reading as it is a virtual field.
-    v->getLocation()->encodeCall(getPos(), e);
+    v->getLocation()->encodeCall(getPos(), e.c);
     e.implicitCast(getPos(), target, v->getType());
     return;
   }
@@ -158,7 +158,7 @@ void fieldExp::trans(env &e, types::ty *target)
 
   if (v) {
     access *loc = v->getLocation();
-    loc->encodeRead(getPos(), e, r->getLevel());
+    loc->encodeRead(getPos(), e.c, r->getLevel());
     e.implicitCast(getPos(), target, v->getType());
   }
   else {
@@ -168,7 +168,7 @@ void fieldExp::trans(env &e, types::ty *target)
   }
 }
 
-types::ty *fieldExp::trans(env &e)
+types::ty *fieldExp::trans(coenv &e)
 {
   trans::ty *t = getType(e);
   if (!t) {
@@ -189,7 +189,7 @@ types::ty *fieldExp::trans(env &e)
   }
 }
 
-types::ty *fieldExp::getType(env &e)
+types::ty *fieldExp::getType(coenv &e)
 {
   types::ty *ot = getObject(e);
   if (ot->kind == ty_error) return primError();
@@ -207,7 +207,7 @@ types::ty *fieldExp::getType(env &e)
     return primError();
 }
 
-void fieldExp::transWrite(env &e, types::ty *target)
+void fieldExp::transWrite(coenv &e, types::ty *target)
 {
   types::ty *ot = getObject(e);
 
@@ -230,7 +230,7 @@ void fieldExp::transWrite(env &e, types::ty *target)
 
   if (v) {
     access *loc = v->getLocation();
-    loc->encodeWrite(getPos(), e, r->getLevel());
+    loc->encodeWrite(getPos(), e.c, r->getLevel());
   }
   else {
     em->error(getPos());
@@ -239,7 +239,7 @@ void fieldExp::transWrite(env &e, types::ty *target)
   }
 }
 
-void fieldExp::transCall(env &e, types::ty *target)
+void fieldExp::transCall(coenv &e, types::ty *target)
 {
   types::ty *ot = object->getType(e);
 
@@ -250,13 +250,13 @@ void fieldExp::transCall(env &e, types::ty *target)
     object->trans(e, ot);
     
     // Call instead of reading as it is a virtual field.
-    v->getLocation()->encodeCall(getPos(), e);
+    v->getLocation()->encodeCall(getPos(), e.c);
     e.implicitCast(getPos(), target, v->getType());
 
     // In this case, the virtual field will construct a vm::func object
     // and push it on the stack.
     // Then, pop and call the function.
-    e.encode(inst::popcall);
+    e.c.encode(inst::popcall);
     return;
   }
 
@@ -268,7 +268,7 @@ void fieldExp::transCall(env &e, types::ty *target)
 
   if (v) {
     access *loc = v->getLocation();
-    loc->encodeCall(getPos(), e, r->getLevel());
+    loc->encodeCall(getPos(), e.c, r->getLevel());
   }
   else {
     em->error(getPos());
@@ -287,7 +287,7 @@ void subscriptExp::prettyprint(ostream &out, int indent)
   index->prettyprint(out, indent+1);
 }
 
-array *subscriptExp::getArrayType(env &e)
+array *subscriptExp::getArrayType(coenv &e)
 {
   types::ty *a = set->getType(e);
   if (a->kind == ty_overloaded) {
@@ -306,7 +306,7 @@ array *subscriptExp::getArrayType(env &e)
   }
 }
 
-array *subscriptExp::transArray(env &e)
+array *subscriptExp::transArray(coenv &e)
 {
   types::ty *a = set->getType(e);
   if (a->kind == ty_overloaded) {
@@ -332,7 +332,7 @@ array *subscriptExp::transArray(env &e)
   }
 }
 
-types::ty *subscriptExp::trans(env &e)
+types::ty *subscriptExp::trans(coenv &e)
 {
   array *a = transArray(e);
   if (!a)
@@ -341,21 +341,21 @@ types::ty *subscriptExp::trans(env &e)
   types::ty *t=index->getType(e);
   if(t->kind == ty_array) {
     index->trans(e, types::intArray());
-    e.encode(inst::builtin);
-    e.encode(run::arrayIntArray);
+    e.c.encode(inst::builtin);
+    e.c.encode(run::arrayIntArray);
     return getArrayType(e);
   }
      
   index->trans(e, types::primInt());
-  e.encode(inst::builtin);
+  e.c.encode(inst::builtin);
   if(a->celltype->kind == ty_array)
-    e.encode(run::arrayArrayRead);
-  else e.encode(run::arrayRead);
+    e.c.encode(run::arrayArrayRead);
+  else e.c.encode(run::arrayRead);
 
   return a->celltype;
 }
 
-types::ty *subscriptExp::getType(env &e)
+types::ty *subscriptExp::getType(coenv &e)
 {
   types::ty *t=index->getType(e);
   array *a = getArrayType(e);
@@ -366,7 +366,7 @@ types::ty *subscriptExp::getType(env &e)
   return a ? a->celltype : primError();
 }
      
-void subscriptExp::transWrite(env &e, types::ty *t)
+void subscriptExp::transWrite(coenv &e, types::ty *t)
 {
   array *a = transArray(e);
   if (!a)
@@ -375,8 +375,8 @@ void subscriptExp::transWrite(env &e, types::ty *t)
   e.implicitCast(getPos(), a->celltype, t);
 
   index->trans(e, types::primInt());
-  e.encode(inst::builtin);
-  e.encode(run::arrayWrite);
+  e.c.encode(inst::builtin);
+  e.c.encode(run::arrayWrite);
 }
 
 
@@ -385,18 +385,18 @@ void thisExp::prettyprint(ostream &out, int indent)
   prettyname(out, "thisExp", indent);
 }
 
-types::ty *thisExp::trans(env &e)
+types::ty *thisExp::trans(coenv &e)
 {
-  if (!e.encodeThis()) {
+  if (!e.c.encodeThis()) {
     em->error(getPos());
     *em << "static use of 'this' expression";
   }
   return getType(e);
 }
 
-types::ty *thisExp::getType(env &e)
+types::ty *thisExp::getType(coenv &e)
 {
-  return e.thisType();
+  return e.c.thisType();
 }
 
 void scaleExp::prettyprint(ostream &out, int indent)
@@ -406,7 +406,7 @@ void scaleExp::prettyprint(ostream &out, int indent)
   right->prettyprint(out, indent+1);
 }
 
-types::ty *scaleExp::trans(env &e)
+types::ty *scaleExp::trans(coenv &e)
 {
   types::ty *lt = left->getType(e);
   if (lt->kind != types::ty_int && lt->kind != types::ty_real) {
@@ -432,7 +432,7 @@ types::ty *scaleExp::trans(env &e)
   return b.trans(e);
 }
 
-types::ty *scaleExp::getType(env &e)
+types::ty *scaleExp::getType(coenv &e)
 {
   // Defer to the binaryExp for multiplication.
   // NOTE: This may cause problems later for memory deletion.
@@ -447,10 +447,10 @@ void intExp::prettyprint(ostream &out, int indent)
   out << "intExp: " << value << "\n";
 }
 
-types::ty *intExp::trans(env &e)
+types::ty *intExp::trans(coenv &e)
 {
-  e.encode(inst::intpush);
-  e.encode(value);
+  e.c.encode(inst::intpush);
+  e.c.encode(value);
   
   return types::primInt();  
 }
@@ -462,10 +462,10 @@ void realExp::prettyprint(ostream &out, int indent)
   out << "realExp: " << value << "\n";
 }
 
-types::ty *realExp::trans(env &e)
+types::ty *realExp::trans(coenv &e)
 {
-  e.encode(inst::constpush);
-  e.encode((item)value);
+  e.c.encode(inst::constpush);
+  e.c.encode((item)value);
   
   return types::primReal();  
 }
@@ -476,10 +476,10 @@ void stringExp::prettyprint(ostream &out, int indent)
   out << "stringExp '" << str << "'\n";
 }
 
-types::ty *stringExp::trans(env &e)
+types::ty *stringExp::trans(coenv &e)
 {
-  e.encode(inst::constpush);
-  e.encode((item)str);
+  e.c.encode(inst::constpush);
+  e.c.encode((item)str);
   
   return types::primString();  
 }
@@ -491,10 +491,10 @@ void booleanExp::prettyprint(ostream &out, int indent)
   out << "booleanExp: " << value << "\n";
 }
 
-types::ty *booleanExp::trans(env &e)
+types::ty *booleanExp::trans(coenv &e)
 {
-  e.encode(inst::constpush);
-  e.encode((item)value);
+  e.c.encode(inst::constpush);
+  e.c.encode((item)value);
   
   return types::primBoolean();  
 }
@@ -504,10 +504,10 @@ void nullPictureExp::prettyprint(ostream &out, int indent)
   prettyname(out, "nullPictureExp",indent);
 }
 
-types::ty *nullPictureExp::trans(env &e)
+types::ty *nullPictureExp::trans(coenv &e)
 {
-  e.encode(inst::builtin);
-  e.encode(run::nullFrame);
+  e.c.encode(inst::builtin);
+  e.c.encode(run::nullFrame);
   
   return types::primPicture();  
 }
@@ -517,10 +517,10 @@ void nullPathExp::prettyprint(ostream &out, int indent)
   prettyname(out, "nullPathExp",indent);
 }
 
-types::ty *nullPathExp::trans(env &e)
+types::ty *nullPathExp::trans(coenv &e)
 {
-  e.encode(inst::builtin);
-  e.encode(run::nullPath);
+  e.c.encode(inst::builtin);
+  e.c.encode(run::nullPath);
   
   return types::primPath();  
 }
@@ -530,7 +530,7 @@ void nullExp::prettyprint(ostream &out, int indent)
   prettyname(out, "nullExp",indent);
 }
 
-types::ty *nullExp::trans(env &)
+types::ty *nullExp::trans(coenv &)
 {
   // Things get put on the stack when ty_null
   // is cast to an appropriate type
@@ -544,19 +544,19 @@ void explist::prettyprint(ostream &out, int indent)
     (*p)->prettyprint(out, indent+1);
 }
 
-types::ty *explist::trans(env &e, int index)
+types::ty *explist::trans(coenv &e, int index)
 {
   assert((unsigned)index < exps.size());
   return exps[index]->trans(e);
 }
 
-void explist::trans(env &e, types::ty *target, int index)
+void explist::trans(coenv &e, types::ty *target, int index)
 {
   assert((unsigned)index < exps.size());
   exps[index]->trans(e, target);
 }
 
-types::ty *explist::getType(env &e, int index)
+types::ty *explist::getType(coenv &e, int index)
 {
   assert((unsigned)index < exps.size());
   return exps[index]->getType(e);
@@ -571,7 +571,7 @@ void callExp::prettyprint(ostream &out, int indent)
   args->prettyprint(out, indent+1);
 }
 
-types::ty *callExp::trans(env &e)
+types::ty *callExp::trans(coenv &e)
 {
   // First figure out the signature of what we want to call.
   signature sig;
@@ -669,7 +669,7 @@ types::ty *callExp::trans(env &e)
   return ((function *)ft)->result;
 }
 
-types::ty *callExp::getType(env &e)
+types::ty *callExp::getType(coenv &e)
 {
   // First figure out the signature of what we want to call.
   signature sig;
@@ -713,7 +713,7 @@ void pairExp::prettyprint(ostream &out, int indent)
   y->prettyprint(out, indent+1);
 }
 
-types::ty *pairExp::trans(env &e)
+types::ty *pairExp::trans(coenv &e)
 {
   types::ty *xt = x->trans(e);
   e.implicitCast(x->getPos(), types::primReal(), xt);
@@ -721,8 +721,8 @@ types::ty *pairExp::trans(env &e)
   types::ty *yt = y->trans(e);
   e.implicitCast(y->getPos(), types::primReal(), yt);
 
-  e.encode(inst::builtin);
-  e.encode(run::realRealToPair);
+  e.c.encode(inst::builtin);
+  e.c.encode(run::realRealToPair);
 
   return types::primPair();
 }
@@ -735,7 +735,7 @@ void unaryExp::prettyprint(ostream &out, int indent)
   base->prettyprint(out, indent+1);
 }
 
-types::ty *unaryExp::trans(env &e)
+types::ty *unaryExp::trans(coenv &e)
 {
   types::ty *t = base->getType(e);
   if (t->kind == ty_error) {
@@ -747,7 +747,7 @@ types::ty *unaryExp::trans(env &e)
   sig.add(t);
 
   // Figure out what function types we have for this operator.
-  trans::ty *ft = e.varGetType(op);
+  trans::ty *ft = e.e.varGetType(op);
   if (ft == 0) {
     em->error(getPos());
     *em << "no matching unary operation \'" << *op << "\'";
@@ -791,13 +791,13 @@ types::ty *unaryExp::trans(env &e)
   base->trans(e, real_sig->getFormal(0));
 
   // Call the operator.
-  varEntry *v = e.lookupExactVar(op, real_sig);
-  v->getLocation()->encodeCall(getPos(), e);
+  varEntry *v = e.e.lookupExactVar(op, real_sig);
+  v->getLocation()->encodeCall(getPos(), e.c);
 
   return ((function *)ft)->result;
 }
 
-types::ty *unaryExp::getType(env &e)
+types::ty *unaryExp::getType(coenv &e)
 {
   types::ty *t = base->getType(e);
   if (t->kind == ty_error) 
@@ -809,7 +809,7 @@ types::ty *unaryExp::getType(env &e)
   sig.add(t);
 
   // Figure out what function types we have for this operator.
-  trans::ty *ft = e.varGetType(op);
+  trans::ty *ft = e.e.varGetType(op);
   if (ft == 0 || ft->kind == ty_error) {
     return primError();
   }
@@ -855,7 +855,7 @@ void castExp::prettyprint(ostream &out, int indent)
   castee->prettyprint(out, indent+1);
 }
 
-types::ty *castExp::trans(env &e)
+types::ty *castExp::trans(coenv &e)
 {
   types::ty *t = target->typeTrans(e);
 
@@ -880,7 +880,7 @@ types::ty *castExp::trans(env &e)
   return t;
 }
 
-types::ty *castExp::getType(env &e)
+types::ty *castExp::getType(coenv &e)
 {
   return target->typeTrans(e, true);
 }
@@ -895,7 +895,7 @@ void binaryExp::prettyprint(ostream &out, int indent)
   right->prettyprint(out, indent+1);
 }
 
-types::ty *binaryExp::trans(env &e)
+types::ty *binaryExp::trans(coenv &e)
 {
   /* The conditional && and || need jumps in the translated code in
    * order to conditionally evaluate their operands (not done for arrays).
@@ -905,41 +905,41 @@ types::ty *binaryExp::trans(env &e)
     if (op == symbol::trans("&&")) {
       left->trans(e, primBoolean());
 
-      int second = e.fwdLabel();
-      e.encode(inst::cjmp);
-      e.useLabel(second);
-      e.encode(inst::constpush);
-      e.encode((item)false);
+      int second = e.c.fwdLabel();
+      e.c.encode(inst::cjmp);
+      e.c.useLabel(second);
+      e.c.encode(inst::constpush);
+      e.c.encode((item)false);
 
-      int end = e.fwdLabel();
-      e.encode(inst::jmp);
-      e.useLabel(end);
+      int end = e.c.fwdLabel();
+      e.c.encode(inst::jmp);
+      e.c.useLabel(end);
     
-      e.defLabel(second);
+      e.c.defLabel(second);
 
       right->trans(e, primBoolean());
 
-      e.defLabel(end);
+      e.c.defLabel(end);
       return types::primBoolean();
     }
     else if (op == symbol::trans("||")) {
       left->trans(e, primBoolean());
 
-      int pushtrue = e.fwdLabel();
-      e.encode(inst::cjmp);
-      e.useLabel(pushtrue);
+      int pushtrue = e.c.fwdLabel();
+      e.c.encode(inst::cjmp);
+      e.c.useLabel(pushtrue);
 
       right->trans(e, primBoolean());
 
-      int end = e.fwdLabel();
-      e.encode(inst::jmp);
-      e.useLabel(end);
+      int end = e.c.fwdLabel();
+      e.c.encode(inst::jmp);
+      e.c.useLabel(end);
 
-      e.defLabel(pushtrue);
-      e.encode(inst::constpush);
-      e.encode((item)true);
+      e.c.defLabel(pushtrue);
+      e.c.encode(inst::constpush);
+      e.c.encode((item)true);
 
-      e.defLabel(end);
+      e.c.defLabel(end);
       return types::primBoolean();
     }
   }
@@ -957,7 +957,7 @@ types::ty *binaryExp::trans(env &e)
   sig.add(t2);
 
   // Figure out what function types we have for this operator.
-  trans::ty *ft = e.varGetType(op);
+  trans::ty *ft = e.e.varGetType(op);
   if (ft == 0) {
     em->error(getPos());
     *em << "no matching operation \'" << *op << "\'";
@@ -1003,13 +1003,13 @@ types::ty *binaryExp::trans(env &e)
   right->trans(e, real_sig->getFormal(1));
 
   // Call the operator.
-  varEntry *v = e.lookupExactVar(op, real_sig);
-  v->getLocation()->encodeCall(getPos(), e);
+  varEntry *v = e.e.lookupExactVar(op, real_sig);
+  v->getLocation()->encodeCall(getPos(), e.c);
 
   return ((function *)ft)->result;
 }
 
-types::ty *binaryExp::getType(env &e)
+types::ty *binaryExp::getType(coenv &e)
 {
   /* The conditional && and || need jumps in the translated code in
    * order to conditionally evaluate their operands (not done for arrays).
@@ -1032,7 +1032,7 @@ types::ty *binaryExp::getType(env &e)
   sig.add(t2);
 
   // Figure out what function types we have for this operator.
-  trans::ty *ft = e.varGetType(op);
+  trans::ty *ft = e.e.varGetType(op);
   if (ft == 0 || ft->kind == ty_error) {
     return primError();
   }
@@ -1059,7 +1059,7 @@ void conditionalExp::prettyprint(ostream &out, int indent)
   onFalse->prettyprint(out, indent+1);
 }
 
-void conditionalExp::trans(env &e, types::ty *target)
+void conditionalExp::trans(coenv &e, types::ty *target)
 {
   types::ty *t=test->getType(e);
   if(t->kind == ty_array && ((array *)t)->celltype == primBoolean()) {
@@ -1067,31 +1067,31 @@ void conditionalExp::trans(env &e, types::ty *target)
       test->trans(e, types::boolArray());
       onTrue->trans(e, target);
       onFalse->trans(e, target);
-      e.encode(inst::builtin);
-      e.encode(run::arrayConditional);
+      e.c.encode(inst::builtin);
+      e.c.encode(run::arrayConditional);
       return;
     }
   }
   
   test->trans(e, types::primBoolean());
 
-  int tlabel = e.fwdLabel();
-  e.encode(inst::cjmp);
-  e.useLabel(tlabel);
+  int tlabel = e.c.fwdLabel();
+  e.c.encode(inst::cjmp);
+  e.c.useLabel(tlabel);
 
   onFalse->trans(e, target);
 
-  int end = e.fwdLabel();
-  e.encode(inst::jmp);
-  e.useLabel(end);
+  int end = e.c.fwdLabel();
+  e.c.encode(inst::jmp);
+  e.c.useLabel(end);
 
-  e.defLabel(tlabel);
+  e.c.defLabel(tlabel);
   onTrue->trans(e, target);
 
-  e.defLabel(end);
+  e.c.defLabel(end);
 }
 
-types::ty *conditionalExp::trans(env &e)
+types::ty *conditionalExp::trans(coenv &e)
 {
   types::ty *t = promote(onTrue->getType(e), onFalse->getType(e));
   if (!t) {
@@ -1109,7 +1109,7 @@ types::ty *conditionalExp::trans(env &e)
   return t;
 }
 
-types::ty  *conditionalExp::getType(env &e)
+types::ty  *conditionalExp::getType(coenv &e)
 {
   types::ty *t = promote(onTrue->getType(e), onFalse->getType(e));
   return t ? t : primError();
@@ -1123,7 +1123,7 @@ void givenDir::prettyprint(ostream &out, int indent)
   base->prettyprint(out, indent+1);
 }
 
-void givenDir::trans(env &e)
+void givenDir::trans(coenv &e)
 {
   e.implicitCast(getPos(), types::primPair(), base->trans(e));
 }
@@ -1136,7 +1136,7 @@ void curlDir::prettyprint(ostream &out, int indent)
   base->prettyprint(out, indent+1);
 }
 
-void curlDir::trans(env &e)
+void curlDir::trans(coenv &e)
 {
   e.implicitCast(getPos(), types::primReal(), base->trans(e));
 }
@@ -1171,7 +1171,7 @@ void join::prettyprint(ostream &out, int indent)
     rightDir->prettyprint(out, indent+1);
 }
 
-void join::trans(env &e)
+void join::trans(coenv &e)
 {
   int flags = run::NULL_JOIN;
 
@@ -1213,8 +1213,8 @@ void join::trans(env &e)
   }
 
   // Tell the join function whats been put on the stack.
-  e.encode(inst::intpush);
-  e.encode(flags);
+  e.c.encode(inst::intpush);
+  e.c.encode(flags);
 }
 
 
@@ -1227,14 +1227,14 @@ void joinExp::prettyprint(ostream &out, int indent)
   right->prettyprint(out, indent+1);
 }
 
-types::ty *joinExp::trans(env &e)
+types::ty *joinExp::trans(coenv &e)
 {
   e.implicitCast(left->getPos(), types::primGuide(), left->trans(e));
   middle->trans(e);
   e.implicitCast(right->getPos(), types::primGuide(), right->trans(e));
 
-  e.encode(inst::builtin);
-  e.encode(run::newJoin);
+  e.c.encode(inst::builtin);
+  e.c.encode(run::newJoin);
 
   return types::primGuide();
 }
@@ -1245,10 +1245,10 @@ void cycleExp::prettyprint(ostream &out, int indent)
   prettyname(out, "cycleExp",indent);
 }
 
-types::ty *cycleExp::trans(env &e)
+types::ty *cycleExp::trans(coenv &e)
 {
-  e.encode(inst::builtin);
-  e.encode(run::newCycle);
+  e.c.encode(inst::builtin);
+  e.c.encode(run::newCycle);
 
   return types::primGuide();
 }
@@ -1261,16 +1261,16 @@ void dirguideExp::prettyprint(ostream &out, int indent)
   tag->prettyprint(out, indent+1);
 }
 
-types::ty *dirguideExp::trans(env &e)
+types::ty *dirguideExp::trans(coenv &e)
 {
   e.implicitCast(base->getPos(), types::primGuide(), base->trans(e));
   tag->trans(e);
   
   // Tell the dirtag function what type of dirtag it has.
-  e.encode(inst::intpush);
-  e.encode(tag->rightFlags());
-  e.encode(inst::builtin);
-  e.encode(run::newDirguide);
+  e.c.encode(inst::intpush);
+  e.c.encode(tag->rightFlags());
+  e.c.encode(inst::builtin);
+  e.c.encode(run::newDirguide);
 
   return types::primGuide();
 }
@@ -1284,13 +1284,13 @@ void assignExp::prettyprint(ostream &out, int indent)
   value->prettyprint(out, indent+1);
 }
 
-void assignExp::trans(env &e, types::ty *target)
+void assignExp::trans(coenv &e, types::ty *target)
 {
   value->trans(e, target);
   dest->transWrite(e, target);
 }
 
-types::ty *assignExp::trans(env &e)
+types::ty *assignExp::trans(coenv &e)
 {
   types::ty *lt = dest->getType(e), *rt = value->getType(e);
 
@@ -1316,7 +1316,7 @@ types::ty *assignExp::trans(env &e)
   }
 }
 
-types::ty *assignExp::getType(env &e)
+types::ty *assignExp::getType(coenv &e)
 {
   types::ty *lt = dest->getType(e), *rt = value->getType(e);
   types::ty *t = castType(lt, rt);
@@ -1333,7 +1333,7 @@ void selfExp::prettyprint(ostream &out, int indent)
   value->prettyprint(out, indent+1);
 }
 
-types::ty *selfExp::trans(env &e)
+types::ty *selfExp::trans(coenv &e)
 {
   // Convert into the operation and the assign.
   // NOTE: This can cause multiple evaluations.
@@ -1342,7 +1342,7 @@ types::ty *selfExp::trans(env &e)
   return ae.trans(e);
 }
 
-types::ty *selfExp::getType(env &e)
+types::ty *selfExp::getType(coenv &e)
 {
   // Convert into the operation and the assign.
   binaryExp be(getPos(), dest, op, value);
@@ -1358,7 +1358,7 @@ void prefixExp::prettyprint(ostream &out, int indent)
   dest->prettyprint(out, indent+1);
 }
 
-types::ty *prefixExp::trans(env &e)
+types::ty *prefixExp::trans(coenv &e)
 {
   // Convert into the operation and the assign.
   // NOTE: This can cause multiple evaluations.
@@ -1369,7 +1369,7 @@ types::ty *prefixExp::trans(env &e)
   return ae.trans(e);
 }
 
-types::ty *prefixExp::getType(env &e)
+types::ty *prefixExp::getType(coenv &e)
 {
   // Convert into the operation and the assign.
   intExp ie(getPos(), 1);
@@ -1388,7 +1388,7 @@ void postfixExp::prettyprint(ostream &out, int indent)
   dest->prettyprint(out, indent+1);
 }
 
-types::ty *postfixExp::trans(env &)
+types::ty *postfixExp::trans(coenv &)
 {
   em->error(getPos());
   *em << "postfix expressions are not allowed";

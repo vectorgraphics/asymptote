@@ -23,8 +23,8 @@ public:
   newFunctionExp(position pos, ty *result, formals *params, stm *body)
     : exp(pos), result(result), params(params), body(body) {}
 
-  types::ty *trans(env &e);
-  types::ty *getType(env &e);
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &e);
 
   bool stmable() 
   {
@@ -39,8 +39,8 @@ public:
   newRecordExp(position pos, ty *result)
     : exp(pos), result(result) {}
 
-  types::ty *trans(env &e);
-  types::ty *getType(env &e);
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &e);
 
   bool stmable()
   {
@@ -64,8 +64,8 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  types::ty *trans(env &e);
-  types::ty *getType(env &e);
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &e);
 
   bool stmable()
   {

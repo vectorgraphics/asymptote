@@ -1,5 +1,5 @@
 /*****
- * builtin.h
+ * builtin.cc
  * Tom Prince 2004/08/25
  *
  * Initialize builtins.

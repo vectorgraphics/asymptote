@@ -1,5 +1,5 @@
 /*****
- * drawfill.h
+ * drawfill.cc
  * Andy Hammerlindl 2002/06/06
  *
  * Stores a cyclic path that will outline a filled shape in a picture.

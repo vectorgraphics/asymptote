@@ -28,6 +28,10 @@
 #include "settings.h"
 #include "builtin.h"
 
+// Whether the module name should be visible like an import when translating
+// that module.
+#define SELF_IMPORT 1
+
 using namespace std;
 using namespace types;
 using vm::inst;
@@ -86,18 +90,22 @@ string symbolToFile(symbol *id)
 } // private namespace
 
 genv::genv()
- : dummy_env(*this)
+ : base_coder(),
+   base_env(*this),
+   base_coenv(base_coder,base_env)
 {
   types::initializeCasts();
   types::initializeInitializers();
+
   base_tenv(te);
   base_venv(ve);
   base_menv(me);
+
   // Import plain, if that option is enabled.
   if (settings::autoplain) {
     static as::importdec iplain(position::nullPos(),symbol::trans("plain"));
-    iplain.trans(dummy_env);
-    me.beginScope();
+    iplain.trans(base_coenv);
+    me.beginScope(); // NOTE: This is unmatched.
   }
   
   if(!settings::ignoreGUI) {
@@ -107,7 +115,7 @@ genv::genv()
       if(settings::clearGUI) unlink(GUIname.c_str());
       else {
 	as::importdec igui(position::nullPos(),symbol::trans(GUIname.c_str()));
-	igui.trans(dummy_env);
+	igui.trans(base_coenv);
 	me.beginScope();
       }
     }
@@ -137,18 +145,30 @@ record *genv::loadModule(symbol *id)
   //ast->prettyprint(stdout, 0);
  
   // Create the new module.
-  record *r = dummy_env.newRecord(id);
+  record *r = base_coder.newRecord(id);
 
   // Add it to the table of modules.
   modules.enter(id, r);
 
-  // Create an environment to translate the module.
+  // Create coder and environment to translate the module.
   // File-level modules have dynamic fields by default.
-  env e(r, dummy_env, DEFAULT_DYNAMIC);
+  coder c=base_coder.newRecordInit(r);
+  coenv e(c, base_env);
+
+  // Make the record name visible like an import when translating the module.
+#if SELF_IMPORT
+  e.e.beginScope();
+  import i(r, c.thisLocation());
+  e.e.addImport(position::nullPos(), id, &i);
+#endif
 
   // Translate the abstract syntax.
   ast->transAsRecordBody(e, r);
   em->sync();
+
+#if SELF_IMPORT
+  e.e.endScope();
+#endif
 
   return r;
 }
@@ -179,7 +199,7 @@ as::file *genv::parseModule(symbol *id)
 lambda *genv::bootupModule(record *r)
 {
   // Encode the record dynamic instantiation.
-  if (!dummy_env.encode(r->getLevel()->getParent())) {
+  if (!base_coder.encode(r->getLevel()->getParent())) {
     em->compiler();
     *em << "invalid bootup structure";
     em->sync();
@@ -188,13 +208,13 @@ lambda *genv::bootupModule(record *r)
 
 
   // Encode the allocation.
-  dummy_env.encode(inst::alloc);
+  base_coder.encode(inst::alloc);
   inst i; i.r = r->getRuntime();
-  dummy_env.encode(i);
-  dummy_env.encode(inst::pop);
+  base_coder.encode(i);
+  base_coder.encode(inst::pop);
 
   // Return the finished function.
-  return dummy_env.close();
+  return base_coder.close();
 }
 
 } // namespace trans

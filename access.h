@@ -2,7 +2,7 @@
  * access.h
  * Andy Hammerlindl 2003/12/03
  *
- * Describes an "access," a reprsentation of where a variable will be
+ * Describes an "access," a representation of where a variable will be
  * stored at runtime, so that read, write, and call instructions can be
  * made.
  *****/
@@ -14,7 +14,7 @@
 
 #include "errormsg.h"
 #include "pool.h"
-#include "inst.h" // for bltin
+#include "inst.h"
 
 using vm::inst;
 using vm::bltin;
@@ -22,7 +22,7 @@ using vm::bltin;
 namespace trans {
   
 class frame;
-class env;
+class coder;
 
 // PUBLIC, PRIVATE, or READONLY - the permission tokens defined in
 // camp.y for accessing a variable outside of its lexically enclosing
@@ -49,30 +49,30 @@ public:
   virtual ~access() = 0;
   
   // Encode a read of the access when nothing is on the stack.
-  virtual void encodeRead(position pos, env &)
+  virtual void encodeRead(position pos, coder &)
   {
     error(pos);
   }
   // Encode a read of the access when the frame "top" is on top
   // of the stack.
-  virtual void encodeRead(position pos, env &, frame *)
+  virtual void encodeRead(position pos, coder &, frame *)
   {
     error(pos);
   }
 
-  virtual void encodeWrite(position pos, env &)
+  virtual void encodeWrite(position pos, coder &)
   {
     error(pos);
   }
-  virtual void encodeWrite(position pos, env &, frame *)
+  virtual void encodeWrite(position pos, coder &, frame *)
   {
     error(pos);
   }
-  virtual void encodeCall(position pos, env &)
+  virtual void encodeCall(position pos, coder &)
   {
     error(pos);
   }
-  virtual void encodeCall(position pos, env &, frame *)
+  virtual void encodeCall(position pos, coder &, frame *)
   {
     error(pos);
   }
@@ -81,7 +81,7 @@ public:
 // This class represents identity conversions in casting.
 class identAccess : public access 
 {
-  virtual void encodeCall(position, env&);
+  virtual void encodeCall(position, coder&);
 };
 
 // This access represents functions that are implemented by instructions
@@ -96,7 +96,7 @@ public:
   instAccess(inst::opcode o)
     { i.op = o; }
 
-  void encodeCall(position pos, env &e);
+  void encodeCall(position pos, coder &e);
 };
 
 // Represents a function that is implemented by a built-in C++ function.
@@ -107,14 +107,15 @@ public:
   bltinAccess(bltin f)
     : f(f) {}
 
-  void encodeRead(position pos, env &e);
-  void encodeRead(position pos, env &e, frame *top);
-  void encodeWrite(position pos, env &e);
-  void encodeWrite(position pos, env &e, frame *top);
-  void encodeCall(position pos, env &e);
+  void encodeRead(position pos, coder &e);
+  void encodeRead(position pos, coder &e, frame *top);
+  void encodeWrite(position pos, coder &e);
+  void encodeWrite(position pos, coder &e, frame *top);
+  void encodeCall(position pos, coder &e);
 };
 
 // Represents the access of a global variable.
+// Not used, as global variables are now represented as a record.
 class globalAccess : public access {
   int offset;
 
@@ -122,12 +123,24 @@ public:
   globalAccess(int offset)
     : offset(offset) {}
 
-  void encodeRead(position pos, env &e);
-  //void encodeRead(position pos, env &e, frame *top);
-  void encodeWrite(position pos, env &e);
-  //void encodeWrite(position pos, env &e, frame *top);
-  void encodeCall(position pos, env &e);
-  //void encodeCall(position pos, env &e, frame *top);
+  void encodeRead(position pos, coder &e);
+  //void encodeRead(position pos, coder &e, frame *top);
+  void encodeWrite(position pos, coder &e);
+  //void encodeWrite(position pos, coder &e, frame *top);
+  void encodeCall(position pos, coder &e);
+  //void encodeCall(position pos, coder &e, frame *top);
+};
+
+// An access that puts a frame on the top of the stack.
+class frameAccess : public access {
+  frame *f;
+
+public:
+  frameAccess(frame *f)
+    : f(f) {}
+  
+  void encodeRead(position pos, coder &e);
+  void encodeRead(position pos, coder &e, frame *top);
 };
 
 // Represents the access of a local variable.
@@ -148,12 +161,12 @@ public:
   localAccess(permission perm, int offset, frame *level)
     : offset(offset), level(level), perm(perm) {}
 
-  void encodeRead(position pos, env &e);
-  void encodeRead(position pos, env &e, frame *top);
-  void encodeWrite(position pos, env &e);
-  void encodeWrite(position pos, env &e, frame *top);
-  void encodeCall(position pos, env &e);
-  void encodeCall(position pos, env &e, frame *top);
+  void encodeRead(position pos, coder &e);
+  void encodeRead(position pos, coder &e, frame *top);
+  void encodeWrite(position pos, coder &e);
+  void encodeWrite(position pos, coder &e, frame *top);
+  void encodeCall(position pos, coder &e);
+  void encodeCall(position pos, coder &e, frame *top);
 };
 
 } // namespace trans

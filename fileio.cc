@@ -1,5 +1,5 @@
 /******
- * fileio.h
+ * fileio.cc
  * Tom Prince 2004/08/10
  *
  * Handle input/output

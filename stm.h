@@ -13,7 +13,7 @@
 
 #include "types.h"
 #include "symbol.h"
-#include "env.h"
+#include "coenv.h"
 
 #include "dec.h"
 
@@ -21,7 +21,7 @@ namespace as {
 
 using std::list;
 
-using trans::env;
+using trans::coenv;
 using sym::symbol;
 
 class stm : public runnable {
@@ -31,7 +31,7 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(env &e);
+  void trans(coenv &e);
 };
 
 class emptyStm : public stm {
@@ -41,7 +41,7 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(env &) {}
+  void trans(coenv &) {}
 };
 
 class blockStm : public stm {
@@ -63,9 +63,9 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(env &e);
+  void trans(coenv &e);
 
-  void transAsRecordBody(env &e, record *r);
+  void transAsRecordBody(coenv &e, record *r);
 
   // A block is guaranteed to return iff its last statement is
   // guaranteed to return. 
@@ -78,14 +78,14 @@ public:
 };
 
 class file : public blockStm {
-  void prologue(env &e, record *r);
+  void prologue(coenv &e, record *r);
 public:
   file(position pos)
     : blockStm(pos) {}
 
   void prettyprint(ostream &out, int indent);
 
-  void transAsRecordBody(env &e, record *r);
+  void transAsRecordBody(coenv &e, record *r);
 };
 
 // A statement that consist of a single expression to evaluate.
@@ -98,7 +98,7 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(env &e);
+  void trans(coenv &e);
 };
 
 class ifStm : public stm {
@@ -112,7 +112,7 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(env &e);
+  void trans(coenv &e);
 
   // An if statement is guaranteed to return iff both its pieces are
   // guaranteed to return.
@@ -133,7 +133,7 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(env &e);
+  void trans(coenv &e);
 };
 
 class doStm : public stm {
@@ -146,7 +146,7 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(env &e);
+  void trans(coenv &e);
 };
 
 class forStm : public stm {
@@ -161,7 +161,7 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(env &e);
+  void trans(coenv &e);
 };
 
 class breakStm : public stm {
@@ -171,7 +171,7 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(env &e);
+  void trans(coenv &e);
 };
 
 class continueStm : public stm {
@@ -181,7 +181,7 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(env &e);
+  void trans(coenv &e);
 };
 
 class returnStm : public stm {
@@ -193,7 +193,7 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(env &e);
+  void trans(coenv &e);
 
   // A return statement, is of course, guaranteed to return.
   bool returns() {
@@ -219,7 +219,7 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(env &e);
+  void trans(coenv &e);
 };
 
 } // namespace as

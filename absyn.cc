@@ -6,13 +6,13 @@
  *****/
 
 #include "absyn.h"
-#include "env.h"
+#include "coder.h"
 
 namespace as {
 
-void absyn::markPos(trans::env& e)
+void absyn::markPos(trans::coder& c)
 {
-  e.markPos(getPos());
+  c.markPos(getPos());
 }
 
 absyn::~absyn()
