@@ -54,7 +54,9 @@ pen Dotted=linetype("0 4")+1.0;
 
 pen invisible=invisible();
 pen black=gray(0);
-pen gray=gray(0.9);
+pen lightgray=gray(0.9);
+pen lightgrey=lightgray;
+pen gray=gray(0.5);
 pen grey=gray;
 pen white=gray(1);
 
@@ -1753,4 +1755,16 @@ pair midpoint(path p)
 pair endpoint(path p)
 {
     return point(p,length(p));
+}
+
+pen[] colorPens={red,green,blue,magenta,cyan,orange,purple,brown,darkgreen,
+		 darkblue,chartreuse,fuchsia,salmon,lightblue,black,lavender,
+		 pink,yellow,gray};
+pen[] monoPens={solid,dashed,dotted,longdashed,dashdotted,longdashdotted};
+
+public bool mono=false;
+pen Pen(int n) 
+{
+  return mono ? monoPens[n % monoPens.length] : 
+    colorPens[n % colorPens.length];
 }

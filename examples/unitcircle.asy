@@ -6,7 +6,7 @@ real theta=30;
 pair z=dir(theta);
 
 draw(circle(z0,1));
-filldraw(z0--arc(z0,1,0,theta)--cycle,grey);
+filldraw(z0--arc(z0,1,0,theta)--cycle,lightgrey);
 dot(z0);
 labeldot(z1);
 labeldot("$(x,y)=(\cos\theta,\sin\theta)$",z);

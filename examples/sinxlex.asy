@@ -8,7 +8,7 @@ pair C=(1,0);
 pair D=(1,Tan(theta));
 pair E=(Cos(theta),0);
 
-filldraw(A--C{N}..B--cycle,grey);
+filldraw(A--C{N}..B--cycle,lightgrey);
 draw(B--C--D--cycle);
 draw(B--E);
 
