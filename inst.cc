@@ -52,21 +52,21 @@ program::label printInst(ostream& out, program::label code, const program::label
     case inst::fieldpush:
     case inst::fieldsave:
     {
-      out << " " << (++code)->val;
+      out << " " << code->val;
       break;
     }
 
     case inst::constpush:
     {
       std::ios::fmtflags f = out.flags();
-      out << std::hex << " 0x" << (++code)->val;
+      out << std::hex << " 0x" << code->val;
       out.flags(f);
       break;
     }
     
     case inst::builtin:
     {      
-      out << " " << (++code)->bfunc << " ";
+      out << " " << code->bfunc << " ";
       break;
     }
 
@@ -77,21 +77,21 @@ program::label printInst(ostream& out, program::label code, const program::label
       char f = out.fill('0');
       out << " i";
       out.width(4);
-      out << std::distance(base,(++code)->label);
+      out << std::distance(base,code->label);
       out.fill(f);
       break;
     }
 
     case inst::makefunc:
     {
-      out << " " << (++code)->lfunc << " ";
+      out << " " << code->lfunc << " ";
       break;
     }
     
 
     case inst::alloc:
     {
-      out << " " << (++code)->r << " ";
+      out << " " << code->r << " ";
       break;
     }
 

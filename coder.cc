@@ -104,15 +104,13 @@ bool coder::encode(frame *f)
   frame *toplevel = getFrame();
   
   if (f == 0) {
-    encode(inst::constpush);
-    encode(0);
+    encode(inst::constpush,(item)0);
   }
   else if (f == toplevel) {
     encode(inst::pushclosure);
   }
   else {
-    encode(inst::varpush);
-    encode(0);
+    encode(inst::varpush,0);
     
     frame *level = toplevel->getParent();
     while (level != f) {
@@ -120,8 +118,7 @@ bool coder::encode(frame *f)
 	// Frame request was in an improper scope.
 	return false;
 
-      encode(inst::fieldpush);
-      encode(0);
+      encode(inst::fieldpush,0);
 
       level = level->getParent();
     }
@@ -136,8 +133,7 @@ bool coder::encode(frame *dest, frame *top)
   
   if (dest == 0) {
     encode(inst::pop);
-    encode(inst::constpush);
-    encode(0);
+    encode(inst::constpush,(item)0);
   }
   else {
     frame *level = top;
@@ -149,8 +145,7 @@ bool coder::encode(frame *dest, frame *top)
 	return false;
       }
 
-      encode(inst::fieldpush);
-      encode(0);
+      encode(inst::fieldpush,0);
 
       level = level->getParent();
     }
@@ -187,19 +182,20 @@ int coder::defLabel(int label)
   return label;
 }
 
-void coder::useLabel(int label)
+void coder::useLabel(inst::opcode op, int label)
 {
   if (isStatic())
-    return parent->useLabel(label);
+    return parent->useLabel(op,label);
   
   std::map<int,vm::program::label>::iterator p = defs.find(label);
   if (p != defs.end()) {
-    inst i; i.label = p->second;
+    inst i; i.op = op; i.label = p->second;
     program.encode(i);
   } else {
     // Not yet defined
     uses.insert(std::make_pair(label,program.end()));
-    program.encode(inst());
+    inst i; i.op = op; 
+    program.encode(i);
   }
 }
 

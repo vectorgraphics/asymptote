@@ -52,8 +52,7 @@ types::ty *newFunctionExp::trans(coenv &e)
   // Use the lambda to put the function on the stack.
   lambda *l = fe.c.close();
   e.c.encode(inst::pushclosure);
-  e.c.encode(inst::makefunc);
-  e.c.encode(l);
+  e.c.encode(inst::makefunc, l);
 
   //std::cout << "made new lambda:\n";
   //print(std::cout, l->code);
@@ -120,8 +119,8 @@ types::ty *newRecordExp::trans(coenv &e)
   }
  
   // Encode the allocation. 
-  e.c.encode(inst::alloc);
   inst i;
+  i.op = inst::alloc;
   i.r = r->getRuntime();
   e.c.encode(i);
 
@@ -173,14 +172,13 @@ types::ty *newArrayExp::trans(coenv &e)
     }
     if (dims) {
       for (int i = 0; i < (int)dims->size(); ++i) {
-        e.c.encode(inst::intpush);
-        e.c.encode(0);
+        e.c.encode(inst::intpush,0);
       }
     }
-    e.c.encode(inst::intpush);
-    e.c.encode((int) (dimexps ? dimexps->size():0 + dims ? dims->size():0));
-    e.c.encode(inst::builtin);
-    e.c.encode(run::newDeepArray);
+    e.c.encode(inst::intpush,
+               (int) (dimexps ? dimexps->size():0
+                      + dims ? dims->size():0));
+    e.c.encode(inst::builtin, run::newDeepArray);
 
     return c;
   } else {

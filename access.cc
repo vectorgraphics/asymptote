@@ -37,14 +37,12 @@ static void bltinError(position pos)
 
 void bltinAccess::encodeRead(position, coder &e)
 {
-  e.encode(inst::constpush);
-  e.encode((item)(vm::callable*)new vm::bfunc(f));
+  e.encode(inst::constpush,(item)(vm::callable*)new vm::bfunc(f));
 }
 
 void bltinAccess::encodeRead(position, coder &e, frame *)
 {
-  e.encode(inst::constpush);
-  e.encode((item)(vm::callable*)new vm::bfunc(f));
+  e.encode(inst::constpush,(item)(vm::callable*)new vm::bfunc(f));
 }
 
 void bltinAccess::encodeWrite(position pos, coder &)
@@ -59,22 +57,19 @@ void bltinAccess::encodeWrite(position pos, coder &, frame *)
 
 void bltinAccess::encodeCall(position, coder &e)
 {
-  e.encode(inst::builtin);
-  e.encode(f);
+  e.encode(inst::builtin, f);
 }
 
 
 /* globalAccess */
 void globalAccess::encodeRead(position, coder &e)
 {
-  e.encode(inst::globalpush);
-  e.encode(offset);
+  e.encode(inst::globalpush,offset);
 }
 
 void globalAccess::encodeWrite(position, coder &e)
 {
-  e.encode(inst::globalsave);
-  e.encode(offset);
+  e.encode(inst::globalsave,offset);
 }
 
 void globalAccess::encodeCall(position pos, coder &e)
@@ -130,13 +125,11 @@ void localAccess::encodeRead(position pos, coder &e)
   // Get the active frame of the virtual machine.
   frame *active = e.getFrame();
   if (level == active) {
-    e.encode(inst::varpush);
-    e.encode(offset);
+    e.encode(inst::varpush,offset);
   }
   else {
     // Put the parent frame (in local variable 0) on the stack.
-    e.encode(inst::varpush);
-    e.encode(0);
+    e.encode(inst::varpush,0);
 
     // Encode the access from that frame.
     this->encodeRead(pos, e, active->getParent());
@@ -150,8 +143,7 @@ void localAccess::encodeRead(position pos, coder &e, frame *top)
     if (!top->isDescendant(e.getFrame()))
       permitRead(pos);
   
-    e.encode(inst::fieldpush);
-    e.encode(offset);
+    e.encode(inst::fieldpush,offset);
   }
   else {
     // The local variable is being used when its frame is not active.
@@ -165,13 +157,11 @@ void localAccess::encodeWrite(position pos, coder &e)
   // Get the active frame of the virtual machine.
   frame *active = e.getFrame();
   if (level == active) {
-    e.encode(inst::varsave);
-    e.encode(offset);
+    e.encode(inst::varsave,offset);
   }
   else {
     // Put the parent frame (in local variable 0) on the stack.
-    e.encode(inst::varpush);
-    e.encode(0);
+    e.encode(inst::varpush,0);
 
     // Encode the access from that frame.
     this->encodeWrite(pos, e, active->getParent());
@@ -185,8 +175,7 @@ void localAccess::encodeWrite(position pos, coder &e, frame *top)
     if (!top->isDescendant(e.getFrame()))
       permitWrite(pos);
   
-    e.encode(inst::fieldsave);
-    e.encode(offset);
+    e.encode(inst::fieldsave,offset);
   }
   else {
     // The local variable is being used when its frame is not active.

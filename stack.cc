@@ -86,7 +86,7 @@ void stack::run(func *f)
   for (int i = body->params; i > 0; --i)
     vars[i] = pop();
 
- /* for binops */
+  /* for binops */
   int a, b;
   bool m, n;
   double x, y;
@@ -99,37 +99,37 @@ void stack::run(func *f)
       printInst(cerr, ip, body->code.begin());
       cerr << "\n";
 #endif
-   
-      switch ((ip++)->op)
+
+      switch (ip->op)
         {
           case inst::pop:
             pop();
             break;
-
+        
           case inst::intpush:
-            push((ip++)->val);
+            push(ip->val);
             break;
         
           case inst::constpush:
-            push((ip++)->ref);
+            push(ip->ref);
             break;
-
+        
           case inst::varpush:
-            push(vars[(ip++)->val]);
+            push(vars[ip->val]);
             break;
-
+        
           case inst::varsave:
-            vars[(ip++)->val] = top();
+            vars[ip->val] = top();
             break;
-
+        
           case inst::globalpush:
-            push(globals[(ip++)->val]);
+            push(globals[ip->val]);
             break;
-
+        
           case inst::globalsave:
-            globals[(ip++)->val] = top();
+            globals[ip->val] = top();
             break;
-
+        
           case inst::fieldpush: {
             vars_t frame = pop<vars_t>();
             if (!frame) {
@@ -139,10 +139,10 @@ void stack::run(func *f)
               em->sync();
               throw handled_error();
             }
-            push(frame[(ip++)->val]);
+            push(frame[ip->val]);
             break;
           }
-
+        
           case inst::fieldsave: {
             vars_t frame = pop<vars_t>();
             if (!frame) {
@@ -152,7 +152,7 @@ void stack::run(func *f)
               em->sync();
               throw handled_error();
             }
-            frame[(ip++)->val] = top();
+            frame[ip->val] = top();
             break;
           }
 	
@@ -354,38 +354,35 @@ void stack::run(func *f)
             x = pop<double>();
             push(x <= y);
             break;
-
 	
           case inst::builtin: {
-            this->ip = ip;
-            this->body = body; // For debugging information in case of errors.
-            bltin func = (ip++)->bfunc;
+            bltin func = ip->bfunc;
             func(this);
+            
+            UNALIAS;
             em->checkCamp(getPos());
             break;
           }
 
           case inst::jmp:
             ip = ip->label;
-            break;
+            continue;
 
           case inst::cjmp:
-            if (pop<bool>()) ip = ip->label;
-            else ip++;
+            if (pop<bool>()) { ip = ip->label; continue; }
             break;
 
           case inst::njmp:
-            if (!pop<bool>()) ip = ip->label;
-            else ip++;
+            if (!pop<bool>()) { ip = ip->label; continue; }
             break;
 
           case inst::popcall: {
             /* get the function reference off of the stack */
             callable* f = pop<callable*>();
             UNALIAS;
-        
-            f->call(this);
             
+            f->call(this);
+
             UNALIAS;
             em->checkCamp(getPos());
             
@@ -399,7 +396,7 @@ void stack::run(func *f)
           case inst::makefunc: {
             func *f = new func;
             f->closure = pop<vars_t>();
-            f->body = (ip++)->lfunc;
+            f->body = ip->lfunc;
 
             push((callable*)f);
             break;
@@ -413,7 +410,7 @@ void stack::run(func *f)
             // Get the record's enclosing frame off the stack.
             vars_t frame = pop<vars_t>();
 	
-            record *r = (ip++)->r;
+            record *r = ip->r;
             vars_t fields(make_frame(r->size));
             fields[0] = frame;
 
@@ -440,6 +437,8 @@ void stack::run(func *f)
       draw(cerr);
       cerr << "\n";
 #endif
+            
+      ++ip;
     }
   } catch (boost::bad_any_cast&) {
     em->runtime(getPos());

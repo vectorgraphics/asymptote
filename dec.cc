@@ -355,8 +355,7 @@ void decid::transAsField(coenv &e, record *r, types::ty *base)
     if (ia)
       ia->encodeCall(getPos(), e.c);
     else {
-      e.c.encode(inst::constpush);
-      e.c.encode((item)(void *)0);
+      e.c.encode(inst::constpush,(item)(void *)0);
     }
   }
   
@@ -461,8 +460,8 @@ void importdec::initialize(coenv &e, record *m, access *a)
   }
  
   // Encode the allocation. 
-  e.c.encode(inst::alloc);
   inst i;
+  i.op = inst::alloc;
   i.r = m->getRuntime();
   e.c.encode(i);
 
@@ -718,8 +717,7 @@ void fundec::transAsField(coenv &e, record *r)
   // Put an instance of the new function on the stack.
   lambda *l = fe.c.close();
   e.c.encode(inst::pushclosure);
-  e.c.encode(inst::makefunc);
-  e.c.encode(l);
+  e.c.encode(inst::makefunc, l);
 
   // Write the new function to the variable location.
   a->encodeWrite(getPos(), e.c);

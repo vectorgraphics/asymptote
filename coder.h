@@ -230,28 +230,29 @@ public:
     encode(i);
   }
 
-  void encode(int val)
+  void encode(inst::opcode op, int val)
   {
-    inst i; i.val = val;
+    inst i; i.op = op; i.val = val;
     encode(i);
   }
-  void encode(item it)
+  void encode(inst::opcode op, item it)
   {
-    inst i; i.ref = it;
+    inst i; i.op = op; i.ref = it;
     encode(i);
   }
-  void encode(bltin func)
+  void encode(inst::opcode op, bltin func)
   {
-    inst i; i.bfunc = func;
+    
+    inst i; i.op = op; i.bfunc = func;
     encode(i);
   }
-  void encode(vm::lambda *l)
+  void encode(inst::opcode op, vm::lambda *l)
   {
-    inst i; i.lfunc = l;
+    inst i; i.op = op; i.lfunc = l;
     encode(i);
   }
 
-  // Puts the requested frame on the stack.  If the frame is not that of
+  // Puts tphe requested frame on the stack.  If the frame is not that of
   // this coder or its ancestors, false is returned.
   bool encode(frame *f);
 
@@ -292,7 +293,7 @@ public:
   // Encodes the address pointed to by the handle label into the
   // sequence of instructions.  This is useful for jump instruction to
   // jump to where a label was defined.
-  void useLabel(int label);
+  void useLabel(inst::opcode op, int label);
 
   // If an address has to be used for a jump instruction before it is
   // actually encoded, a handle can be given to it by this function.
@@ -316,8 +317,7 @@ public:
     if (breakLabels.empty())
       return false;
     else {
-      encode(inst::jmp);
-      useLabel(breakLabels.top());
+      useLabel(inst::jmp,breakLabels.top());
       return true;
     }
   }
@@ -325,8 +325,7 @@ public:
     if (continueLabels.empty())
       return false;
     else {
-      encode(inst::jmp);
-      useLabel(continueLabels.top());
+      useLabel(inst::jmp,continueLabels.top());
       return true;
     }
   }

@@ -122,12 +122,10 @@ void ifStm::trans(coenv &e)
   int elseLabel = e.c.fwdLabel();
   int end = e.c.fwdLabel();
 
-  e.c.encode(inst::njmp);
-  e.c.useLabel(elseLabel);
+  e.c.useLabel(inst::njmp,elseLabel);
 
   onTrue->markTrans(e);
-  e.c.encode(inst::jmp);
-  e.c.useLabel(end);
+  e.c.useLabel(inst::jmp,end);
   
   e.c.defLabel(elseLabel);
   // Produces efficient code whether or not there is an else clause.
@@ -154,13 +152,11 @@ void whileStm::trans(coenv &e)
 
   int end = e.c.fwdLabel();
   e.c.pushBreak(end);
-  e.c.encode(inst::njmp);
-  e.c.useLabel(end);
+  e.c.useLabel(inst::njmp,end);
 
   body->markTrans(e);
 
-  e.c.encode(inst::jmp);
-  e.c.useLabel(start);
+  e.c.useLabel(inst::jmp,start);
   e.c.defLabel(end);
 
   e.c.popBreak();
@@ -189,8 +185,7 @@ void doStm::trans(coenv &e)
   
   e.c.defLabel(testLabel);
   test->trans(e, types::primBoolean());
-  e.c.encode(inst::cjmp);
-  e.c.useLabel(start);
+  e.c.useLabel(inst::cjmp,start);
   e.c.defLabel(end);
 
   e.c.popBreak();
@@ -222,8 +217,7 @@ void forStm::trans(coenv &e)
   int start = e.c.defLabel();
   if(test) {
     test->trans(e, types::primBoolean());
-    e.c.encode(inst::njmp);
-    e.c.useLabel(end);
+    e.c.useLabel(inst::njmp,end);
   }
 
   body->markTrans(e);
@@ -231,8 +225,7 @@ void forStm::trans(coenv &e)
   e.c.defLabel(ctarget);
   
   if (update) update->markTrans(e);
-  e.c.encode(inst::jmp);
-  e.c.useLabel(start);
+  e.c.useLabel(inst::jmp,start);
 
   e.c.defLabel(end);
 

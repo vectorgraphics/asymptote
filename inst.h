@@ -180,8 +180,8 @@ struct inst {
     pushclosure, makefunc, ret, 
     alloc
   };
+  opcode op;
   union {
-    opcode op;
     int val;
     std::string *s;
     

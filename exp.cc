@@ -53,10 +53,8 @@ void arrayinit::trans(coenv &e, types::ty *target)
     (*p)->trans(e, celltype);
 
   // Push the number of cells and call the array maker.
-  e.c.encode(inst::intpush);
-  e.c.encode((int)inits.size());
-  e.c.encode(inst::builtin);
-  e.c.encode(run::newInitializedArray);
+  e.c.encode(inst::intpush,(int)inits.size());
+  e.c.encode(inst::builtin, run::newInitializedArray);
 }
 
 
@@ -346,16 +344,14 @@ types::ty *subscriptExp::trans(coenv &e)
   types::ty *t=index->getType(e);
   if(t->kind == ty_array) {
     index->trans(e, types::intArray());
-    e.c.encode(inst::builtin);
-    e.c.encode(run::arrayIntArray);
+    e.c.encode(inst::builtin, run::arrayIntArray);
     return getArrayType(e);
   }
      
   index->trans(e, types::primInt());
-  e.c.encode(inst::builtin);
   if(a->celltype->kind == ty_array)
-    e.c.encode(run::arrayArrayRead);
-  else e.c.encode(run::arrayRead);
+    e.c.encode(inst::builtin, run::arrayArrayRead);
+  else e.c.encode(inst::builtin, run::arrayRead);
 
   return a->celltype;
 }
@@ -380,8 +376,7 @@ void subscriptExp::transWrite(coenv &e, types::ty *t)
   e.implicitCast(getPos(), a->celltype, t);
 
   index->trans(e, types::primInt());
-  e.c.encode(inst::builtin);
-  e.c.encode(run::arrayWrite);
+  e.c.encode(inst::builtin, run::arrayWrite);
 }
 
 
@@ -454,8 +449,7 @@ void intExp::prettyprint(ostream &out, int indent)
 
 types::ty *intExp::trans(coenv &e)
 {
-  e.c.encode(inst::intpush);
-  e.c.encode(value);
+  e.c.encode(inst::intpush,value);
   
   return types::primInt();  
 }
@@ -469,8 +463,7 @@ void realExp::prettyprint(ostream &out, int indent)
 
 types::ty *realExp::trans(coenv &e)
 {
-  e.c.encode(inst::constpush);
-  e.c.encode((item)value);
+  e.c.encode(inst::constpush,(item)value);
   
   return types::primReal();  
 }
@@ -483,8 +476,7 @@ void stringExp::prettyprint(ostream &out, int indent)
 
 types::ty *stringExp::trans(coenv &e)
 {
-  e.c.encode(inst::constpush);
-  e.c.encode((item)str);
+  e.c.encode(inst::constpush,(item)str);
   
   return types::primString();  
 }
@@ -498,8 +490,7 @@ void booleanExp::prettyprint(ostream &out, int indent)
 
 types::ty *booleanExp::trans(coenv &e)
 {
-  e.c.encode(inst::constpush);
-  e.c.encode((item)value);
+  e.c.encode(inst::constpush,(item)value);
   
   return types::primBoolean();  
 }
@@ -511,8 +502,7 @@ void nullPictureExp::prettyprint(ostream &out, int indent)
 
 types::ty *nullPictureExp::trans(coenv &e)
 {
-  e.c.encode(inst::builtin);
-  e.c.encode(run::nullFrame);
+  e.c.encode(inst::builtin, run::nullFrame);
   
   return types::primPicture();  
 }
@@ -524,8 +514,7 @@ void nullPathExp::prettyprint(ostream &out, int indent)
 
 types::ty *nullPathExp::trans(coenv &e)
 {
-  e.c.encode(inst::builtin);
-  e.c.encode(run::nullPath);
+  e.c.encode(inst::builtin, run::nullPath);
   
   return types::primPath();  
 }
@@ -729,8 +718,7 @@ types::ty *pairExp::trans(coenv &e)
   types::ty *yt = y->trans(e);
   e.implicitCast(y->getPos(), types::primReal(), yt);
 
-  e.c.encode(inst::builtin);
-  e.c.encode(run::realRealToPair);
+  e.c.encode(inst::builtin, run::realRealToPair);
 
   return types::primPair();
 }
@@ -914,14 +902,11 @@ types::ty *binaryExp::trans(coenv &e)
       left->trans(e, primBoolean());
 
       int second = e.c.fwdLabel();
-      e.c.encode(inst::cjmp);
-      e.c.useLabel(second);
-      e.c.encode(inst::constpush);
-      e.c.encode((item)false);
+      e.c.useLabel(inst::cjmp,second);
+      e.c.encode(inst::constpush,(item)false);
 
       int end = e.c.fwdLabel();
-      e.c.encode(inst::jmp);
-      e.c.useLabel(end);
+      e.c.useLabel(inst::jmp,end);
     
       e.c.defLabel(second);
 
@@ -934,18 +919,15 @@ types::ty *binaryExp::trans(coenv &e)
       left->trans(e, primBoolean());
 
       int pushtrue = e.c.fwdLabel();
-      e.c.encode(inst::cjmp);
-      e.c.useLabel(pushtrue);
+      e.c.useLabel(inst::cjmp,pushtrue);
 
       right->trans(e, primBoolean());
 
       int end = e.c.fwdLabel();
-      e.c.encode(inst::jmp);
-      e.c.useLabel(end);
+      e.c.useLabel(inst::jmp,end);
 
       e.c.defLabel(pushtrue);
-      e.c.encode(inst::constpush);
-      e.c.encode((item)true);
+      e.c.encode(inst::constpush,(item)true);
 
       e.c.defLabel(end);
       return types::primBoolean();
@@ -1075,8 +1057,7 @@ void conditionalExp::trans(coenv &e, types::ty *target)
       test->trans(e, types::boolArray());
       onTrue->trans(e, target);
       onFalse->trans(e, target);
-      e.c.encode(inst::builtin);
-      e.c.encode(run::arrayConditional);
+      e.c.encode(inst::builtin, run::arrayConditional);
       return;
     }
   }
@@ -1084,14 +1065,12 @@ void conditionalExp::trans(coenv &e, types::ty *target)
   test->trans(e, types::primBoolean());
 
   int tlabel = e.c.fwdLabel();
-  e.c.encode(inst::cjmp);
-  e.c.useLabel(tlabel);
+  e.c.useLabel(inst::cjmp,tlabel);
 
   onFalse->trans(e, target);
 
   int end = e.c.fwdLabel();
-  e.c.encode(inst::jmp);
-  e.c.useLabel(end);
+  e.c.useLabel(inst::jmp,end);
 
   e.c.defLabel(tlabel);
   onTrue->trans(e, target);
@@ -1221,8 +1200,7 @@ void join::trans(coenv &e)
   }
 
   // Tell the join function whats been put on the stack.
-  e.c.encode(inst::intpush);
-  e.c.encode(flags);
+  e.c.encode(inst::intpush,flags);
 }
 
 
@@ -1241,8 +1219,7 @@ types::ty *joinExp::trans(coenv &e)
   middle->trans(e);
   e.implicitCast(right->getPos(), types::primGuide(), right->trans(e));
 
-  e.c.encode(inst::builtin);
-  e.c.encode(run::newJoin);
+  e.c.encode(inst::builtin, run::newJoin);
 
   return types::primGuide();
 }
@@ -1255,8 +1232,7 @@ void cycleExp::prettyprint(ostream &out, int indent)
 
 types::ty *cycleExp::trans(coenv &e)
 {
-  e.c.encode(inst::builtin);
-  e.c.encode(run::newCycle);
+  e.c.encode(inst::builtin, run::newCycle);
 
   return types::primGuide();
 }
@@ -1275,10 +1251,8 @@ types::ty *dirguideExp::trans(coenv &e)
   tag->trans(e);
   
   // Tell the dirtag function what type of dirtag it has.
-  e.c.encode(inst::intpush);
-  e.c.encode(tag->rightFlags());
-  e.c.encode(inst::builtin);
-  e.c.encode(run::newDirguide);
+  e.c.encode(inst::intpush,tag->rightFlags());
+  e.c.encode(inst::builtin, run::newDirguide);
 
   return types::primGuide();
 }
