@@ -14,6 +14,51 @@
 
 namespace camp {
 
+// {{{ Solve quadratic equations
+
+struct quad 
+{
+  enum { NONE, SINGLE, DOUBLE } roots;
+  double t1,t2;
+};
+
+inline quad solveQuadratic(double a, double b, double c)
+{
+  quad ret; ret.roots = quad::NONE;
+  if (a == 0) {
+    if (b != 0) {
+      ret.roots = quad::SINGLE;
+      ret.t1 = ret.t2 = -c/b;
+    }
+  } else {
+    // NOTE: If -epsilon < det < 0 we should probably detect a root
+    // there, but that would mean FUZZ.
+    double det = b*b-4*a*c;
+    if (det >= 0) {
+      ret.roots = quad::DOUBLE;
+      det = sqrt(det);
+      if (fabs(a) > DBL_EPSILON) { // FUZZ
+        ret.t1=-0.5*(b+det)/a;
+        ret.t2=-0.5*(b-det)/a;
+      } else if (det == fabs(b)) {
+        ret.roots = quad::SINGLE;
+        ret.t1 = ret.t2 = -c/b;
+      } else {
+        ret.t1=-2*c/(b+det);
+        ret.t2=-2*c/(b-det);
+      }
+      if (ret.t1>ret.t2) {
+        double temp = ret.t1;
+        ret.t1 = ret.t2;
+        ret.t2 = temp;
+      }
+    }
+  }
+  return ret;
+}
+
+// }}}
+
 pair path::point(double t) const
 {
   if(emptyError()) return pair();
@@ -401,34 +446,30 @@ inline double cubicDir(const solvedKnot& left, const solvedKnot& right,
     b = 2*(left.point+right.pre) - 4*left.post,
     c = left.post-left.point;
   a *= rot; b *= rot; c *= rot;
-  double det = b.gety()*b.gety()-4*a.gety()*c.gety();
-  double ay=a.gety();
-  double epsilon=10.0*DBL_EPSILON;
-  if (ay*ay <= epsilon*a.abs2()) {
-    if (b.gety() != 0) {
-      double t = -c.gety()/b.gety();
-      if (0 <= t && t <= 1 &&
-          a.getx()*t*t+b.getx()*t+c.getx() >= 0)
+  quad ret = solveQuadratic(a.gety(),b.gety(),c.gety());
+  switch(ret.roots) {
+    case quad::SINGLE: {
+      double t = ret.t1;
+      if (0 <= t && t <=1 &&
+          a.getx()*t*t+b.getx()*t+c.getx()>=0)
         return t;
-    }
-  } else if (det >= 0) {
-    // NOTE: If -epsilon < det < 0 we should probably detect a root
-    // there, but that would mean FUZZ.
-    det = sqrt(det);
-    double t1=-0.5*(b.gety()+det)/a.gety(),
-      t2=-0.5*(b.gety()-det)/a.gety();
-    if (t2 < t1) {
-      double temp = t2;
-      t2 = t1;
-      t1 = temp;
-    }
-    if (0 <= t1 && t1 <= 1 &&
-        a.getx()*t1*t1+b.getx()*t1+c.getx() >= 0)
-      return t1;
-    if (0 <= t2 && t2 <= 1 &&
-        a.getx()*t2*t2+b.getx()*t2+c.getx() >= 0)
-      return t2;
+    } break;
+
+    case quad::DOUBLE: {
+      double t1=ret.t1;
+      double t2=ret.t2;
+      if (0 <= t1 && t1 <=1 &&
+          a.getx()*t1*t1+b.getx()*t1+c.getx()>=0)
+        return t1;
+      if (0 <= t2 && t2 <=1 &&
+          a.getx()*t2*t2+b.getx()*t2+c.getx()>=0)
+        return t2;
+    } break;
+
+    case quad::NONE: // Do nothing.
+      ;
   }
+
   return -1;
 }
 
