@@ -1499,7 +1499,7 @@ void texPreamble(stack *s)
 {
   string t=s->pop<string>();
   // Replace newlines with spaces as they can break bidirectional TeX pipe
-  int pos=0;
+  size_t pos=0;
   while((pos=t.find('\n',pos)) < string::npos) {
     t[pos]=' ';
     pos++;
