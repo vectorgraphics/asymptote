@@ -146,12 +146,12 @@ real barsize(pen p=currentpen)
 
 bool finite(real x)
 {
-  return x != infinity && x != -infinity;
+  return abs(x) != infinity;
 }
 
 bool finite(pair z)
 {
-  return finite(z.x) && finite(z.y);
+  return abs(z) != infinity;
 }
 
 // Cut two parentheses.
@@ -300,7 +300,7 @@ typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
 
 // A coordinate in "flex space." A linear combination of user and true-size
 // coordinates.
-struct coord {
+static struct coord {
   public real user, truesize;
 
   // Build a coord.
@@ -339,6 +339,87 @@ void append (coord[] x, coord[] y, transform T, coord[] srcx, coord[] srcy)
     y.push(coord.build(z.y,srcy[i].truesize));
   }
   return;
+}
+
+bool operator <= (coord a, coord b)
+{
+  return a.user <= b.user && a.truesize <= b.truesize;
+}
+
+bool operator >= (coord a, coord b)
+{
+  return a.user >= b.user && a.truesize >= b.truesize;
+}
+
+coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
+{
+  // As operator <= is defined in the parameter list, it has a special
+  // meaning in the body of the function.
+
+  coord best;
+  coord[] c;
+
+  int n=in.length;
+  if (n == 0)
+    return new coord[] {};
+  else {
+    // Add the first coord without checking restrictions (as there are none).
+    best=in[0];
+    c.push(best);
+  }
+
+  static int NONE=-1;
+
+  int dominator(coord x)
+  {
+    // This assumes it has already been checked against the best.
+    for (int i=1; i < c.length; ++i)
+      if (x <= c[i])
+        return i;
+    return NONE;
+  }
+
+  void promote(int i)
+  {
+    // Swap with the top
+    coord x=c[i];
+    c[i]=best;
+    best=c[0]=x;
+  }
+
+  void addmaximal(coord x)
+  {
+    coord[] newc;
+
+    // Check if it beats any others.
+    for (int i=0; i < c.length; ++i) {
+      coord y=c[i];
+      if (!(y <= x))
+        newc.push(y);
+    }
+    newc.push(x);
+    c=newc;
+    best=c[0];
+  }
+
+  void add(coord x)
+  {
+    if (x <= best)
+      return;
+    else {
+      int i=dominator(x);
+      if (i == NONE) {
+        addmaximal(x);
+      }
+      else
+        promote(i);
+    }
+  }
+
+  for(int i=1; i < n; ++i)
+      add(in[i]);
+
+  return c;
 }
 
 public struct scaleT {
@@ -475,8 +556,8 @@ struct picture {
   // Add a point to the sizing.
   void addPoint(pair userZ, pair trueZ=(0,0))
   {
-    xcoords.push(coord.build(userZ.x,trueZ.x));
-    ycoords.push(coord.build(userZ.y,trueZ.y));
+    if(abs(userZ.x) != infinity) xcoords.push(coord.build(userZ.x,trueZ.x));
+    if(abs(userZ.y) != infinity) ycoords.push(coord.build(userZ.y,trueZ.y));
     userBox(userZ,userZ);
   }
   
@@ -536,8 +617,7 @@ struct picture {
     if (c.length > 0) {
       real m=infinity;
       for (int i=0; i < c.length; ++i)
-	if(finite(c[i].user) && s.scale(c[i]) < m)
-          m=s.scale(c[i]);
+	if(s.scale(c[i]) < m) m=s.scale(c[i]);
       return m;
     }
     else
@@ -551,7 +631,7 @@ struct picture {
     if (c.length > 0) {
       real M=-infinity;
       for (int i=0; i < c.length; ++i)
-        if (finite(c[i].user) && s.scale(c[i]) > M)
+        if (s.scale(c[i]) > M)
           M=s.scale(c[i]);
       return M;
     }
@@ -583,16 +663,22 @@ struct picture {
     import simplex;
     simplex.problem p=new simplex.problem;
    
-    void addCoord(coord c) {
+    void addMinCoord(coord c) {
       // (a*user + b) + truesize >= 0:
       p.addRestriction(c.user,1,c.truesize);
+    }
+    void addMaxCoord(coord c) {
       // (a*user + b) + truesize <= max:
       p.addRestriction(-c.user,-1,max-c.truesize);
     }
 
-    for(int i=0; i < coords.length; ++i) {
-      if(finite(coords[i].user)) addCoord(coords[i]);
-    }
+    coord[] m=maxcoords(coords,operator >=);
+    coord[] M=maxcoords(coords,operator <=);
+    
+    for(int i=0; i < m.length; ++i)
+      addMinCoord(m[i]);
+    for(int i=0; i < M.length; ++i)
+      addMaxCoord(M[i]);
 
     int status=p.optimize();
     if (status == simplex.problem.OPTIMAL) {
