@@ -1,0 +1,607 @@
+--- gv-3.5.8/source/gv_user_res.dat.mike	Mon Jan 25 17:50:08 1999
++++ gv-3.5.8/source/gv_user_res.dat	Mon Jan 25 17:50:34 1999
+@@ -8,7 +8,7 @@
+ GV.fallbackOrientation:	portrait
+ GV.swapLandscape:	False
+ GV.autoCenter:		True
+-GV.antialias:		False
++GV.antialias:		True
+ GV.respectDSC:		True
+ GV.ignoreEOF:		True
+ GV.confirmPrint:	True
+--- gv-3.5.8/source/ps.c.foo	2002-09-13 15:00:15.000000000 -0400
++++ gv-3.5.8/source/ps.c	2002-09-24 18:32:03.000000000 -0400
+@@ -483,7 +483,7 @@
+       doc = (struct document *) PS_malloc(sizeof(struct document));
+       CHECK_MALLOCED(doc);
+       memset(doc, 0, sizeof(struct document));
+-      sscanf(line, "%*s %s", text);
++      sscanf(line, "%*s %256s", text);
+       /*###jp###*/
+       /*doc->epsf = iscomment(text, "EPSF-");*/
+       doc->epsf = iscomment(text, "EPSF");
+@@ -576,7 +576,7 @@
+ 	} else if (doc->date == NULL && iscomment(line+2, "CreationDate:")) {
+ 	    doc->date = gettextline(line+length("%%CreationDate:"));
+ 	} else if (bb_set == NONE && iscomment(line+2, "BoundingBox:")) {
+-	    sscanf(line+length("%%BoundingBox:"), "%s", text);
++	    sscanf(line+length("%%BoundingBox:"), "%256s", text);
+ 	    if (strcmp(text, "(atend)") == 0) {
+ 		bb_set = ATEND;
+ 	    } else {
+@@ -608,7 +608,7 @@
+ 	    }
+ 	} else if (orientation_set == NONE &&
+ 		   iscomment(line+2, "Orientation:")) {
+-	    sscanf(line+length("%%Orientation:"), "%s", text);
++	    sscanf(line+length("%%Orientation:"), "%256s", text);
+ 	    if (strcmp(text, "(atend)") == 0) {
+ 		orientation_set = ATEND;
+ 	    } else if (strcmp(text, "Portrait") == 0) {
+@@ -619,7 +619,7 @@
+ 		orientation_set = 1;
+ 	    }
+ 	} else if (page_order_set == NONE && iscomment(line+2, "PageOrder:")) {
+-	    sscanf(line+length("%%PageOrder:"), "%s", text);
++	    sscanf(line+length("%%PageOrder:"), "%256s", text);
+ 	    if (strcmp(text, "(atend)") == 0) {
+ 		page_order_set = ATEND;
+ 	    } else if (strcmp(text, "Ascend") == 0) {
+@@ -633,7 +633,7 @@
+ 		page_order_set = 1;
+ 	    }
+ 	} else if (pages_set == NONE && iscomment(line+2, "Pages:")) {
+-	    sscanf(line+length("%%Pages:"), "%s", text);
++	    sscanf(line+length("%%Pages:"), "%256s", text);
+ 	    if (strcmp(text, "(atend)") == 0) {
+ 		pages_set = ATEND;
+ 	    } else {
+@@ -853,7 +853,7 @@
+ 		/* Do nothing */
+ 	    } else if (doc->default_page_orientation == NONE &&
+ 		iscomment(line+2, "PageOrientation:")) {
+-		sscanf(line+length("%%PageOrientation:"), "%s", text);
++		sscanf(line+length("%%PageOrientation:"), "%256s", text);
+ 		if (strcmp(text, "Portrait") == 0) {
+ 		    doc->default_page_orientation = PORTRAIT;
+ 		} else if (strcmp(text, "Landscape") == 0) {
+@@ -975,7 +975,7 @@
+ 		/* Do nothing */
+ 	    } else if (doc->default_page_orientation == NONE &&
+ 		iscomment(line+2, "PageOrientation:")) {
+-		sscanf(line+length("%%PageOrientation:"), "%s", text);
++		sscanf(line+length("%%PageOrientation:"), "%256s", text);
+ 		if (strcmp(text, "Portrait") == 0) {
+ 		    doc->default_page_orientation = PORTRAIT;
+ 		} else if (strcmp(text, "Landscape") == 0) {
+@@ -1112,7 +1112,7 @@
+ 		/* Do nothing */
+ 	    } else if (doc->pages[doc->numpages].orientation == NONE &&
+ 		iscomment(line+2, "PageOrientation:")) {
+-		sscanf(line+length("%%PageOrientation:"), "%s", text);
++		sscanf(line+length("%%PageOrientation:"), "%256s", text);
+ 		if (strcmp(text, "Portrait") == 0) {
+ 		    doc->pages[doc->numpages].orientation = PORTRAIT;
+ 		} else if (strcmp(text, "Landscape") == 0) {
+@@ -1144,7 +1144,7 @@
+ 		PS_free(cp);
+ 	    } else if ((page_bb_set == NONE || page_bb_set == ATEND) &&
+ 		       iscomment(line+2, "PageBoundingBox:")) {
+-		sscanf(line+length("%%PageBoundingBox:"), "%s", text);
++		sscanf(line+length("%%PageBoundingBox:"), "%256s", text);
+ 		if (strcmp(text, "(atend)") == 0) {
+ 		    page_bb_set = ATEND;
+ 		} else {
+@@ -1258,14 +1258,14 @@
+ 	    }
+ 	} else if (orientation_set == ATEND &&
+ 		   iscomment(line+2, "Orientation:")) {
+-	    sscanf(line+length("%%Orientation:"), "%s", text);
++	    sscanf(line+length("%%Orientation:"), "%256s", text);
+ 	    if (strcmp(text, "Portrait") == 0) {
+ 		doc->orientation = PORTRAIT;
+ 	    } else if (strcmp(text, "Landscape") == 0) {
+ 		doc->orientation = LANDSCAPE;
+ 	    }
+ 	} else if (page_order_set == ATEND && iscomment(line+2, "PageOrder:")) {
+-	    sscanf(line+length("%%PageOrder:"), "%s", text);
++	    sscanf(line+length("%%PageOrder:"), "%256s", text);
+ 	    if (strcmp(text, "Ascend") == 0) {
+ 		doc->pageorder = ASCEND;
+ 	    } else if (strcmp(text, "Descend") == 0) {
+@@ -1819,7 +1819,7 @@
+       INFMESSAGE(encountered "BeginData:")
+       if (FD_LINE_LEN > 100) FD_BUF[100] = '\0';
+       text[0] = '\0';
+-      if (sscanf(line+length("%%BeginData:"), "%d %*s %s", &num, text) >= 1) {
++      if (sscanf(line+length("%%BeginData:"), "%d %*s %100s", &num, text) >= 1) {
+          if (strcmp(text, "Lines") == 0) {
+             INFIMESSAGE(number of lines to skip:,num)
+             while (num) {
+@@ -1918,7 +1918,7 @@
+          INFMESSAGE(encountered "BeginData:")
+          if (FD_LINE_LEN > 100) FD_BUF[100] = '\0';
+          text[0] = '\0';
+-         if (sscanf(line+length("%%BeginData:"), "%d %*s %s", &num, text) >= 1) {
++         if (sscanf(line+length("%%BeginData:"), "%d %*s %100s", &num, text) >= 1) {
+             if (strcmp(text, "Lines") == 0) {
+                INFIMESSAGE(number of lines:,num)
+                while (num) {
+@@ -2015,7 +2015,7 @@
+           PS_free(comment);
+           continue;
+        }
+-       sscanf(comment+length("%%Pages:"), "%s", text);
++       sscanf(comment+length("%%Pages:"), "%256s", text);
+        if (strcmp(text, "(atend)") == 0) {
+           fputs(comment, dest_file);
+           pages_atend = True;
+--- gv-3.5.8/source/file.c.foo	2002-09-24 17:01:07.000000000 -0400
++++ gv-3.5.8/source/file.c	2002-09-24 18:29:44.000000000 -0400
+@@ -208,21 +208,13 @@
+       if (strlen(tmpExt)>11) tmpExt[11] = '\0';     /* allow .ps_page_nnn */
+       if (strlen(tmpName)+strlen(tmpExt)>23) tmpName[23-strlen(tmpExt)] = '\0';
+    }
+-   {
+-      struct stat s;
+-      int no_such_file;
+-      int i=1;
+-      do {
+ #ifdef VMS
+          sprintf(tempFilename,"%sgv_%lx_%x_%s_%s.tmp",tmpDirBuf,time(NULL),i,tmpName,tmpExt);
+ #else
+-         sprintf(tempFilename,"%sgv_%lx_%x_%s.%s.tmp",tmpDirBuf,time(NULL),i,tmpName,tmpExt);
++         sprintf(tempFilename,"%sgv_%s.%s.XXXXXX",tmpDirBuf,tmpName,tmpExt);
+ #endif
+-         file_translateTildeInPath(tempFilename);
+-         no_such_file = stat(tempFilename,&s);
+-         i++;
+-      } while (!no_such_file);
+-   } 
++   file_translateTildeInPath(tempFilename);
++   close(mkstemp(tempFilename));
+    SMESSAGE(tempFilename)
+    tempFilenameP = GV_XtNewString(tempFilename);
+    ENDMESSAGE(file_getTmpFilename)
+--- gv-3.5.8/config.Unix.config	Wed Oct 22 19:39:18 1997
++++ gv-3.5.8/config.Unix	Wed Oct 22 19:42:45 1997
+@@ -32,10 +32,10 @@
+ XCOMM --------------------------------------------------------------------
+ XCOMM  Destination directories.
+ XCOMM --------------------------------------------------------------------
+-      GV_BINDIR    = /usr/local/bin/
+-      GV_DOCDIR    = /usr/local/doc/gv/
+-      GV_LIBDIR    = /usr/local/lib/gv/
+-      GV_MANDIR    = /usr/local/man/man1/
++      GV_BINDIR    = /usr/X11R6/bin/
++      GV_DOCDIR    = /usr/doc/gv/
++      GV_LIBDIR    = /usr/X11R6/lib/X11/gv/
++      GV_MANDIR    = /usr/X11R6/man/man1/
+ 
+ XCOMM --------------------------------------------------------------------
+ XCOMM --- The name of the Xaw3d library.
+@@ -70,8 +70,8 @@
+ XCOMM --------------------------------------------------------------------
+ XCOMM  The default papersize (can be changed at runtime).
+ XCOMM --------------------------------------------------------------------
+-XCOMM PAPERSIZE = letter
+-      PAPERSIZE = a4
++      PAPERSIZE = letter
++XCOMM PAPERSIZE = a4
+ 
+ XCOMM --------------------------------------------------------------------
+ XCOMM  If defined: PDF to PostScript conversion will produce
+--- gv-3.5.8/source/paths.h.arg	Fri Jan 25 19:34:35 2002
++++ gv-3.5.8/source/paths.h	Fri Jan 25 19:34:52 2002
+@@ -34,9 +34,9 @@
+ #   define INC_XMU(aaa) <XMU_DIRECTORY/aaa>
+ #   define INC_XAW(aaa) <XAW_DIRECTORY/aaa>
+ #else
+-#   define INC_X11(aaa) <X11/##aaa##>
+-#   define INC_XMU(aaa) <X11/Xmu/##aaa##>
+-#   define INC_XAW(aaa) <X11/Xaw3d/##aaa##>
++#   define INC_X11(aaa) <X11/aaa>
++#   define INC_XMU(aaa) <X11/Xmu/aaa>
++#   define INC_XAW(aaa) <X11/Xaw3d/aaa>
+ #endif
+ 
+ #endif /* _PATHS_H_ */
+diff -ru gv-3.5.8/source/misc.c gv-3.5.8J/source/misc.c
+--- gv-3.5.8/source/misc.c	Fri Jun 20 16:00:00 1997
++++ gv-3.5.8J/source/misc.c	Mon Jun 23 15:04:52 2003
+@@ -412,6 +412,14 @@
+     if (!b && file_fileIsNotUseful(p)) sprintf(p,"%s.ps",name);  else b = True;
+     if (!b && file_fileIsNotUseful(p)) sprintf(p,"%s.pdf",name); else b = True;
+     if (!b)                            strcpy(p,name);
++    char *dir=file_getDirOfPath(p);
++    if(strcmp(dir,p)) {
++      chdir(dir);
++      // Strip off directory from p to satisfy GS 8.00 security change
++      char *q=p;
++      while(*dir && *dir == *q) {dir++; q++;}
++      strcpy(p,q);
++    }
+   }
+   name = p;
+   INFSMESSAGE(trying to open,name)
+
+diff -ru gv-3.5.8/source/Ghostview.c gv-3.5.8J/source/Ghostview.c
+--- gv-3.5.8/source/Ghostview.c	Fri Jun  6 16:00:00 1997
++++ gv-3.5.8J/source/Ghostview.c	Mon Jun 23 13:08:36 2003
+@@ -1324,6 +1324,7 @@
+ 	 while (isspace(*dptr)) dptr++;
+     }
+     argv[argc++] = "-dNOPAUSE";
++    argv[argc++] = "-g2x2"; // Avoid unwanted rotation of landscape pdf files
+     if (gvw->ghostview.quiet) argv[argc++] = "-dQUIET";
+     if (gvw->ghostview.safer) argv[argc++] = "-dSAFER";
+     if (gvw->ghostview.arguments) {
+--- gv-3.5.8.orig/source/Imakefile
++++ gv-3.5.8/source/Imakefile
+@@ -311,8 +311,8 @@
+ 	@echo "!########## gv_intern_res.dat (generated by makefile)" >> $(GV_INTERN_RES_DAT)
+ 	@echo ""							>> $(GV_INTERN_RES_DAT)
+ 	@echo "GV.gsInterpreter:	gs" >> $(GV_INTERN_RES_DAT)
+-	@echo "GV.gsCmdScanPDF:	gs -dNODISPLAY -dQUIET -sPDFname=%s -sDSCname=%s pdf2dsc.ps -c quit" >> $(GV_INTERN_RES_DAT)
+-	@echo "GV.gsCmdConvPDF:	gs -dNODISPLAY -dQUIET $(PS_LEVEL) -dNOPAUSE -sPSFile=%s %s -c quit" >> $(GV_INTERN_RES_DAT)
++	@echo "GV.gsCmdScanPDF:	pdf2dsc %pdf %dsc" >> $(GV_INTERN_RES_DAT)
++	@echo "GV.gsCmdConvPDF:	pdf2ps $(PS_LEVEL) %pdf %ps" >> $(GV_INTERN_RES_DAT)
+ 	@echo "GV.gsX11Device:		-sDEVICE=x11" >> $(GV_INTERN_RES_DAT)
+ 	@echo "GV.gsX11AlphaDevice:	-dNOPLATFONTS -sDEVICE=x11alpha" >> $(GV_INTERN_RES_DAT)
+ 	@echo "GV.gsSafer:		True" >> $(GV_INTERN_RES_DAT)
+--- gv-3.5.8.orig/source/ps.c
++++ gv-3.5.8/source/ps.c
+@@ -417,10 +417,15 @@
+       struct document *retval = NULL;
+       FILE *tmpfile = (FILE*)NULL;
+       char *filename_unc;
++      char *quoted_filename, *quoted_filename_unc;
+       char cmd[512];
+       char s[512];
+       filename_unc=file_getTmpFilename(NULL,filename_raw);
+-      sprintf(cmd,cmd_uncompress,filename,filename_unc);
++      quoted_filename = quote_filename(filename);
++      quoted_filename_unc = quote_filename(filename_unc);
++      sprintf(cmd,cmd_uncompress,quoted_filename,quoted_filename_unc);
++      GV_XtFree(quoted_filename);
++      GV_XtFree(quoted_filename_unc);
+       INFMESSAGE(is compressed)
+       INFSMESSAGE(uncompress command,cmd)
+       if (ps_system(cmd) || file_fileIsNotUseful(filename_unc)) {
+@@ -488,10 +493,35 @@
+       struct document *retval = NULL;
+       FILE *tmpfile = (FILE*)NULL;
+       char *filename_dsc;
++      char *quoted_filename, *quoted_filename_dsc;
++      char *pdfpos;
++      char *dscpos;
+       char cmd[512];
+       char s[512];
+-      filename_dsc=file_getTmpFilename(NULL,filename_raw);
+-      sprintf(cmd,cmd_scan_pdf,filename,filename_dsc);
++      filename_dsc=file_getTmpFilename(NULL,filename_raw);      
++      quoted_filename = quote_filename(filename);
++      quoted_filename_dsc = quote_filename(filename_dsc);
++      if ((pdfpos = strstr(cmd_scan_pdf,"%pdf")) &&
++	  (dscpos = strstr(cmd_scan_pdf,"%dsc"))) {
++	cmd[0] = '\0';
++	if (pdfpos < dscpos) {
++	  strncat(cmd,cmd_scan_pdf,(pdfpos-cmd_scan_pdf));
++	  strcat(cmd,quoted_filename);
++	  strncat(cmd,pdfpos+4,(dscpos-pdfpos-4));
++	  strcat(cmd,quoted_filename_dsc);
++	  strcat(cmd,dscpos+4);
++	} else {
++	  strncat(cmd,cmd_scan_pdf,(dscpos-cmd_scan_pdf));
++	  strcat(cmd,quoted_filename_dsc);
++	  strncat(cmd,dscpos+4,(pdfpos-dscpos-4));
++	  strcat(cmd,quoted_filename);
++	  strcat(cmd,pdfpos+4);
++	}
++      } else {
++	sprintf(cmd,cmd_scan_pdf,quoted_filename,quoted_filename_dsc);
++      }
++      GV_XtFree(quoted_filename);
++      GV_XtFree(quoted_filename_dsc);
+       INFMESSAGE(is PDF)
+       INFSMESSAGE(scan command,cmd)
+ #ifdef VMS
+--- gv-3.5.8.orig/source/misc.c
++++ gv-3.5.8/source/misc.c
+@@ -1154,7 +1154,7 @@
+     misc_setSensitive(w_printAllPages     , show_printAllPages     , (gv_psfile   != NULL));
+     misc_setSensitive(w_checkFile         , show_checkFile         , (gv_filename != NULL));
+     misc_setSensitive(w_updateFile        , show_updateFile        , (gv_filename != NULL));
+-    misc_setSensitive(w_showThisPage      , show_showThisPage      , (gv_filename != NULL));
++    misc_setSensitive(w_showThisPage      , show_showThisPage      , (gv_psfile   != NULL));
+     misc_setSensitive(w_prevPage          , show_prevPage          , (toc_text    != NULL));
+     misc_setSensitive(w_nextPage          , show_nextPage          , (gv_filename != NULL));
+     misc_setSensitive(w_toggleCurrentPage , show_toggleCurrentPage , (toc_text    != NULL));
+@@ -1168,7 +1168,7 @@
+     XtSetSensitive(saveAllEntry,     (gv_psfile   != NULL));
+     XtSetSensitive(saveMarkedEntry,  (toc_text    != NULL));
+     XtSetSensitive(nextEntry,        (gv_filename != NULL));
+-    XtSetSensitive(redisplayEntry,   (gv_filename != NULL));
++    XtSetSensitive(redisplayEntry,   (gv_psfile   != NULL));
+     XtSetSensitive(prevEntry,        (toc_text    != NULL));
+     XtSetSensitive(currentEntry,     (toc_text    != NULL));
+     XtSetSensitive(oddEntry,         (toc_text    != NULL));
+@@ -1717,4 +1717,52 @@
+     XtDestroyWidget(toplevel);
+     ENDMESSAGE(catch_Xerror)
+     return 0;
++}
++
++/*############################################################*/
++/* quote_filename */
++/* Quotes special characters in filenames */
++/* (taken from bash sources) */
++/*############################################################*/
++
++char *
++quote_filename (string) 
++     char *string;
++{
++    int c;
++    char *result, *r, *s;
++
++    BEGINMESSAGE(quote_filename)
++
++    result = (char*) GV_XtMalloc((2 * strlen (string) + 1) * sizeof(char));
++
++    for (r = result, s = string; s && (c = *s); s++)
++    {
++      switch (c)
++	{
++	case ' ': case '\t': case '\n':		/* IFS white space */
++	case '\'': case '"': case '\\':		/* quoting chars */
++	case '|': case '&': case ';':		/* shell metacharacters */
++	case '(': case ')': case '<': case '>':
++	case '!': case '{': case '}':		/* reserved words */
++	case '*': case '[': case '?': case ']':	/* globbing chars */
++	case '^':
++	case '$': case '`':			/* expansion chars */
++	  *r++ = '\\';
++	  *r++ = c;
++	  break;
++	case '#':				/* comment char */
++	  if (s == string)
++	    *r++ = '\\';
++	  /* FALLTHROUGH */
++	default:
++	  *r++ = c;
++	  break;
++	}
++    }
++    *r = '\0';
++
++    ENDMESSAGE(quote_filename)
++
++    return (result);
+ }
+--- gv-3.5.8.orig/source/callbacks.c
++++ gv-3.5.8/source/callbacks.c
+@@ -870,7 +870,7 @@
+   char *s;
+ 
+   BEGINMESSAGE(cb_page)
+-  if (gv_psfile && client_data) {
++  if (gv_filename && client_data) {
+     s = (char*)client_data;
+     if (*s=='-' || *s=='+') {  
+       k = 1;
+--- gv-3.5.8.orig/source/descrip.mms
++++ gv-3.5.8/source/descrip.mms
+@@ -262,7 +262,7 @@
+  @ WRITE_ file ""
+  @ WRITE_ file "GV.gsInterpreter:	gs"
+  @ WRITE_ file "GV.gsCmdScanPDF:	gs ""-dNODISPLAY"" ""-dQUIET"" ""-sPDFname""=%s ""-sDSCname""=%s pdf2dsc.ps -c quit"
+- @ WRITE_ file "GV.gsCmdConvPDF:	gs ""-dNODISPLAY"" ""-dQUIET"" $(PS_LEVEL) ""-dNOPAUSE"" ""-sPSFile""=%s %s -c quit"
++ @ WRITE_ file "GV.gsCmdConvPDF:       gs ""-dNODISPLAY"" ""-dQUIET"" $(PS_LEVEL) ""-dNOPAUSE"" ""-sPSFile""=%s %s -c quit"
+  @ WRITE_ file "GV.gsX11Device:	""-sDEVICE=x11"""
+  @ WRITE_ file "GV.gsX11AlphaDevice:""-dNOPLATFONTS"" ""-sDEVICE=x11alpha"""
+  @ WRITE_ file "GV.gsSafer:	True"
+--- gv-3.5.8.orig/source/misc.h
++++ gv-3.5.8/source/misc.h
+@@ -115,6 +115,12 @@
+ #endif
+ );
+  
++extern char *                   quote_filename (
++#if NeedFunctionPrototypes
++    char*
++#endif
++);
++
+ #endif	/* _GV_MISC_H_ */
+ 
+ 
+--- gv-3.5.8.orig/source/file.c
++++ gv-3.5.8/source/file.c
+@@ -145,6 +145,25 @@
+ }
+ 
+ /*############################################################*/
++/* file_assureDirectory */
++/*############################################################*/
++
++void
++file_assureDirectory(to,from)
++   char *to;
++   char *from;
++{
++   int len;
++   BEGINMESSAGE(file_assureDirectory)
++   strcpy(to,from);
++#  ifndef VMS
++      len = strlen(to);
++      if (to[len-1] != '/') { to[len] = '/'; to[len+1] = '\0'; }
++#  endif
++   ENDMESSAGE(file_assureDirectory)
++}
++
++/*############################################################*/
+ /* file_getTmpFilename */
+ /* provide some temporary file name */
+ /*############################################################*/
+@@ -164,11 +183,13 @@
+ 
+    BEGINMESSAGE(file_getTmpFilename)
+ 
+-   if (!baseDirectory) baseDirectory = app_res.scratch_dir;
+-   strcpy(tmpDirBuf,baseDirectory);
+-   pos = file_locateFilename(tmpDirBuf);
+-   if (pos) { ++pos; *pos='\0'; }
+-   else strcpy(tmpDirBuf,app_res.scratch_dir);
++   pos = NULL;
++   if (baseDirectory) {
++     strcpy(tmpDirBuf,baseDirectory); 
++     pos = file_locateFilename(tmpDirBuf);
++   }
++   if (pos) *pos='\0';
++   else file_assureDirectory(tmpDirBuf,app_res.scratch_dir);
+ 
+    if (!baseFilename) baseFilename= ".";
+    strcpy(tmpNameBuf,baseFilename);
+--- gv-3.5.8.orig/source/save.c
++++ gv-3.5.8/source/save.c
+@@ -112,17 +112,19 @@
+    String print_filename;
+ {
+    String error=NULL;
++   char *print_quoted_filename;
+    char *c,*p;
+    Cardinal m,n;
+    String printfail=GV_ERROR_PRINT_FAIL;
+ 
+    BEGINMESSAGE(print_file)
+ 
++   print_quoted_filename = quote_filename(print_filename);
+    p = GV_XtNewString(print_command);
+    n=0;
+    c=p;
+    while ((c=strstr(c,"%s"))) { c+=2; n++; }
+-   m = (strlen(p)+(n>0?n:1)*strlen(print_filename)+5)*sizeof(char);
++   m = (strlen(p)+(n>0?n:1)*strlen(print_quoted_filename)+5)*sizeof(char);
+    c = (char*) GV_XtMalloc(m);
+    if (n>0) {
+      char *e,*s;
+@@ -133,13 +135,13 @@
+        if (s) *s='\0';
+        strcat(c,e);
+        if (s) {
+-	 strcat(c,print_filename);
++	 strcat(c,print_quoted_filename);
+          e=s+2;
+        } 
+        else s=NULL;
+      }
+    } else {
+-     sprintf(c, "%s %s",p,print_filename);
++     sprintf(c, "%s %s",p,print_quoted_filename);
+    }
+    INFSMESSAGE(printing:,c)
+    if (SYSTEM_FAILED_ON(c)) {
+@@ -149,6 +151,7 @@
+    }
+    GV_XtFree(c);
+    GV_XtFree(p);
++   GV_XtFree(print_quoted_filename);
+    ENDMESSAGE(print_file)
+    return(error);
+ }
+@@ -198,6 +201,9 @@
+    char proc_name[256];
+    char *error=NULL;
+    char *pos;
++   char *pdfpos;
++   char *pspos;
++   char *quoted_src_fn, *quoted_conv_fn;
+ 
+    BEGINMESSAGE(save_forkPDFToPSConversion)
+ 
+@@ -205,7 +211,30 @@
+    strcpy(proc_name,pos);
+    strcat(proc_name," conversion");
+ 
+-   sprintf(command,gv_gs_cmd_conv_pdf,sd->conv_fn,sd->src_fn);
++   quoted_src_fn = quote_filename(sd->src_fn);
++   quoted_conv_fn = quote_filename(sd->conv_fn);
++   if ((pdfpos = strstr(gv_gs_cmd_conv_pdf,"%pdf")) &&
++       (pspos = strstr(gv_gs_cmd_conv_pdf,"%ps"))) {
++     command[0] = '\0';
++     if (pdfpos < pspos) {
++       strncat(command,gv_gs_cmd_conv_pdf,(pdfpos-gv_gs_cmd_conv_pdf));
++       strcat(command,quoted_src_fn);
++       strncat(command,pdfpos+4,(pspos-pdfpos-4));
++       strcat(command,quoted_conv_fn);
++       strcat(command,pspos+3);
++     } else {
++       strncat(command,gv_gs_cmd_conv_pdf,(pspos-gv_gs_cmd_conv_pdf));
++       strcat(command,quoted_conv_fn);
++       strncat(command,pspos+3,(pdfpos-pspos-3));
++       strcat(command,quoted_src_fn);
++       strcat(command,pdfpos+4);
++     }
++   } else {
++     sprintf(command,gv_gs_cmd_conv_pdf,quoted_conv_fn,quoted_src_fn);
++   }
++   GV_XtFree(quoted_src_fn);
++   GV_XtFree(quoted_conv_fn);
++
+    INFSMESSAGE(starting conversion:,command)
+    process_fork(proc_name,command,save_forkPDFToPSConversionDone,(XtPointer)sd);
+    ENDMESSAGE(save_forkPDFToPSConversion)
+--- gv-3.5.8.orig/source/process.c
++++ gv-3.5.8/source/process.c
+@@ -272,8 +272,7 @@
+    pid = fork();
+ 
+    if (pid == 0) { /* child */
+-      int  argc=0;
+-      char *argv[20];
++      char *argv[3];
+       char *c;
+ 
+       INFMESSAGE(child process)
+@@ -286,15 +285,10 @@
+        */
+       system(c);
+ #else
+-      while (isspace(*c)) c++;
+-      while (*c) {
+-         argv[argc++] = c;
+-         while (*c && !isspace(*c)) c++;
+-         if (*c) *c++ = '\0';
+-         while (isspace(*c)) c++;
+-         SMESSAGE(argv[argc-1])
+-      }
+-      argv[argc] = NULL;
++      argv[0] = "sh";
++      argv[1] = "-c";
++      argv[2] = c;
++      argv[3] = NULL;
+ 
+       INFMESSAGE(spawning conversion process)
+ /*
+--- gv-3.5.8.orig/source/miscmenu.c
++++ gv-3.5.8/source/miscmenu.c
+@@ -60,7 +60,7 @@
+ 
+ static MiscMenuEntryStruct miscmenu_entries[] = {
+   { "update",cb_checkFile,(XtPointer)CHECK_FILE_DATE,2 },
+-  { "redisplay",cb_redisplay,NULL,2 },
++  { "redisplay",cb_redisplay,NULL,3 },
+   { "toggle_current" , cb_setPageMark, (XtPointer)(SPM_CURRENT|SPM_TOGGLE),1 },
+   { "toggle_even"    , cb_setPageMark, (XtPointer)(SPM_EVEN|SPM_TOGGLE),1 },
+   { "toggle_odd"     , cb_setPageMark, (XtPointer)(SPM_ODD|SPM_TOGGLE),1 },
+--- gv-3.5.8.orig/source/options_fs.c
++++ gv-3.5.8/source/options_fs.c
+@@ -105,7 +105,6 @@
+    Widget	w;
+    XtPointer	client_data, call_data;
+ {
+-   BEGINMESSAGE(options_fs_cb_apply)
+    Arg args[5];
+    Cardinal n;
+    static Boolean s_scratch_dir = False;
