@@ -1273,13 +1273,29 @@ guide ellipse(pair c, real a, real b)
   return shift(c)*xscale(a)*yscale(b)*unitcircle;
 }
 
+private struct directionT {};
+public directionT direction=null;
+typedef bool direction(directionT);
+public direction
+  CCW=new bool(directionT) {return true;},
+  CW=new bool(directionT) {return false;};
+
+// return an arc centered at c with radius r from angle1 to angle2 in degrees.
 guide arc(pair c, real r, real angle1, real angle2)
 {
-  angle1=fmod(angle1,360);
-  angle2=fmod(angle2,360);
   return c+r*dir(angle1)..c+r*dir(0.5*(angle1+angle2))..c+r*dir(angle2);
 }
   
+// return an arc centered at c from pair z1 to z2 (assuming |z2-c|=|z1-c|).
+guide arc(pair c, pair z1, pair z2, direction direction=CCW)
+{
+  real r=abs(z1-c);
+  real t1=Angle(z1);
+  real t2=Angle(z2);
+  if(direction(direction)) return arc(c,r,(t2 >= t1) ? t1 : t1-360,t2);
+  return arc(c,r,t1,(t2 >= t1) ? t2-360 : t2);
+}
+
 picture bar(pair a, pair d, pen p=currentpen)
 {
   picture pic=new picture;
@@ -1681,10 +1697,53 @@ void add(frame preamble=patterns, string name, picture pic, pair lb=0,
 
 pair dir(path g)
 {
-  return dir(g,1);
+  return dir(g,length(g));
 }
 
 pair dir(path g, path h)
 {
   return 0.5*(dir(g)+dir(h));
+}
+
+// return the point on path p at arclength L
+pair arcpoint(path p, real L)
+{
+    return point(p,arctime(p,L));
+}
+
+// return the point on path p at the given relative fraction of its arclength
+pair relpoint(path p, real l)
+{
+  return arcpoint(p,l*arclength(p));
+}
+
+// return the direction on path p at arclength L
+pair arcdir(path p, real L)
+{
+    return dir(p,arctime(p,L));
+}
+
+// return the direction of path p at the given relative fraction of its
+// arclength
+pair reldir(path p, real l)
+{
+  return arcdir(p,l*arclength(p));
+}
+
+// return the initial point of path p
+pair beginpoint(path p)
+{
+    return point(p,0);
+}
+
+// return the point on path p at half of its arclength
+pair midpoint(path p)
+{
+    return relpoint(p,0.5);
+}
+
+// return the final point of path p
+pair endpoint(path p)
+{
+    return point(p,length(p));
 }

@@ -7,7 +7,6 @@
 
 % featpost3D.mp
 % L. Nobre G., C. Barbarosie and J. Schwaiger
-% nobre@lince.cii.fc.ul.pt
 % http://matagalatlante.org
 % Copyright (C) 2004
 % see also featpost.mp

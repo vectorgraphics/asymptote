@@ -1,7 +1,7 @@
 /*****************************************************************************
  * feynman.asy -- An asymptote library for drawing Feynman diagrams.         *
  *                                                                           *
- * by:  Martin Wiebusch
+ * by:  Martin Wiebusch                                                      *
  *****************************************************************************/
 
 
@@ -60,6 +60,9 @@ public pen bigvertexpen;
 // inner spacing of a double line
 public real doublelinespacing;
 
+// default arrow for propagators
+public arrowbar currentarrow;
+
 // if true, each of the drawSomething commands blots out the background
 // (with pen backgroundpen) before drawing.
 public bool overpaint;
@@ -95,7 +98,7 @@ public bool labelpostype;
 // direction of momentum)
 
 // default size of the arrowhead of momentum arrows
-public real momarrowsize;
+public arrowbar currentmomarrow;
 
 // default length of momentum arrows
 public real momarrowlength;
@@ -111,47 +114,6 @@ public real momarrowmargin;
 
 
 /* helper functions **********************************************************/
-
-// initialisation. This function tries to guess reasonable values for the
-// default parameters above by looking at the default parameters of plain.asy
-// (essentially, currentpen,  arrowsize and dotfactor). After customising the
-// default parameters of plain.asy, you may call fmdefaults to adjust the
-// parameters of feynman.asy.
-void fmdefaults() 
-{
-    gluonratio = 2;
-    photonratio = 4;
-    gluonamplitude = 0.4*arrowsize;
-    photonamplitude = 0.4*arrowsize;
-    labeloffset = 0.4*arrowsize;
-    labelpostype = Relative;
-
-    backgroundpen = white;
-    gluonpen = currentpen;
-    photonpen = currentpen;
-    fermionpen = currentpen;
-    scalarpen = dashed+linewidth(currentpen);
-    ghostpen = dotted+linewidth(currentpen);
-    doublelinepen = currentpen;
-    vertexpen = currentpen;
-    bigvertexpen = currentpen;
-
-    doublelinespacing = 2*linewidth(currentpen);
-    linemargin = 0.5*arrowsize;
-    minvertexangle = 30;
-    overpaint = true;
-    vertexsize = 0.5*dotfactor*linewidth(currentpen);
-    bigvertexsize = 0.4*arrowsize;
-
-    momarrowsize = 0.75*arrowsize;
-    momarrowlength = 2.5*arrowsize;
-    momarrowpen = currentpen+0.5*linewidth(currentpen);
-    momarrowoffset = 0.8*arrowsize;
-    momarrowmargin = 0.25*arrowsize;
-}
-
-// We call fmdefaults once, when the module is loaded.
-fmdefaults();
 
 // internal function for overpainting
 private void do_overpaint(picture pic, path p, pen bgpen,
@@ -233,8 +195,7 @@ path photon(path p, real amp = photonamplitude, real width=-1)
 }
 
 // generate arrows in the middle of paths. MidArrow() can be used as argument
-// to draw commands, in place of EndArrow etc. Note that, unlike for EndArrow,
-// round brackets are required at the end.
+// to draw commands, in place of EndArrow etc.
 arrowbar MidArrow(real size=arrowsize, real angle=arrowangle,
                   arrowhead arrowhead=Fill)
 {
@@ -245,6 +206,8 @@ arrowbar MidArrow(real size=arrowsize, real angle=arrowangle,
   };
 }
 
+// provide a middle arrow with default parameters
+public arrowbar MidArrow = MidArrow();
 
 // returns the path of a momentum arrow along path p, with length length,
 // an offset offset from the path p and at position position. position will
@@ -311,10 +274,10 @@ pair endLabelPoint(path p,
 // from the path, shifted in direction of pos. postype determines, whether the
 // direction of pos describes an absolute direction or a direction relative to
 // the path direction. The constants Relative and Absolute may be used here.
-pair beginLabelPoint(path p,
-                     pair pos,
-                     real offset = labeloffset,
-                     bool postype = labelpostype)
+pair initialLabelPoint(path p,
+                       pair pos,
+                       real offset = labeloffset,
+                       bool postype = labelpostype)
 {
     if(postype == Relative) {
         pair v = dir(p, 0);
@@ -382,7 +345,7 @@ void drawPhoton(picture pic = currentpicture,
 void drawFermion(picture pic = currentpicture,
                  path p,
                  pen fgpen = currentpen,
-                 arrowbar arrow = MidArrow(),
+                 arrowbar arrow = currentarrow,
                  bool erasebg = overpaint,
                  pen bgpen = backgroundpen,
                  real vertexangle = minvertexangle,
@@ -401,7 +364,7 @@ void drawFermion(picture pic = currentpicture,
 void drawScalar(picture pic = currentpicture,
                 path p,
                 pen fgpen = scalarpen,
-                arrowbar arrow = MidArrow(),
+                arrowbar arrow = currentarrow,
                 bool erasebg = overpaint,
                 pen bgpen = backgroundpen,
                 real vertexangle = minvertexangle,
@@ -420,7 +383,7 @@ void drawScalar(picture pic = currentpicture,
 void drawGhost(picture pic = currentpicture,
                path p,
                pen fgpen = ghostpen,
-               arrowbar arrow = MidArrow(),
+               arrowbar arrow = currentarrow,
                bool erasebg = overpaint,
                pen bgpen = backgroundpen,
                real vertexangle = minvertexangle,
@@ -441,7 +404,7 @@ void drawDoubleLine(picture pic = currentpicture,
                     path p,
                     pen fgpen = doublelinepen,
                     real dlspacing = doublelinespacing,
-                    arrowbar arrow = MidArrow(),
+                    arrowbar arrow = currentarrow,
                     bool erasebg = overpaint,
                     pen bgpen = backgroundpen,
                     real vertexangle = minvertexangle,
@@ -610,7 +573,7 @@ void drawMomArrow(picture pic = currentpicture,
                   real offset = momarrowoffset,
                   real length = momarrowlength,
                   pen fgpen = momarrowpen,
-                  arrowbar arrow = EndArrow(momarrowsize),
+                  arrowbar arrow = currentmomarrow,
                   bool erasebg = overpaint,
                   pen bgpen = backgroundpen,
                   real margin = momarrowmargin)
@@ -635,7 +598,7 @@ void drawReverseMomArrow(picture pic = currentpicture,
                          real offset = momarrowoffset,
                          real length = momarrowlength,
                          pen fgpen = momarrowpen,
-                         arrowbar arrow = EndArrow(momarrowsize),
+                         arrowbar arrow = currentmomarrow,
                          bool erasebg = overpaint,
                          pen bgpen = backgroundpen,
                          real margin = momarrowmargin)
@@ -645,3 +608,48 @@ void drawReverseMomArrow(picture pic = currentpicture,
                              linewidth(fgpen)+margin, 90);
     draw(pic, reverse(momarrow), fgpen, arrow);
 }
+
+
+/* initialisation ************************************************************/
+
+// The function fmdefaults() tries to guess reasonable values for the
+// default parameters above by looking at the default parameters of plain.asy
+// (essentially, currentpen,  arrowsize and dotfactor). After customising the
+// default parameters of plain.asy, you may call fmdefaults to adjust the
+// parameters of feynman.asy.
+void fmdefaults() 
+{
+    gluonratio = 2;
+    photonratio = 4;
+    gluonamplitude = arrowsize/3;
+    photonamplitude = arrowsize/4;
+    labeloffset = gluonamplitude;
+    labelpostype = Relative;
+
+    backgroundpen = white;
+    gluonpen = currentpen;
+    photonpen = currentpen;
+    fermionpen = currentpen;
+    scalarpen = dashed+linewidth(currentpen);
+    ghostpen = dotted+linewidth(currentpen);
+    doublelinepen = currentpen;
+    vertexpen = currentpen;
+    bigvertexpen = currentpen;
+    currentarrow = MidArrow();
+
+    doublelinespacing = 2*linewidth(currentpen);
+    linemargin = 0.5*arrowsize;
+    minvertexangle = 30;
+    overpaint = true;
+    vertexsize = 0.5*dotfactor*linewidth(currentpen);
+    bigvertexsize = 0.4*arrowsize;
+
+    currentmomarrow = EndArrow(0.75*arrowsize);
+    momarrowlength = 2.5*arrowsize;
+    momarrowpen = currentpen+min(0.5*linewidth(currentpen), 0.4);
+    momarrowoffset = 0.8*arrowsize;
+    momarrowmargin = 0.25*arrowsize;
+}
+
+// We call fmdefaults once, when the module is loaded.
+fmdefaults();

@@ -116,8 +116,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     
     if(origin != ZERO) {
       if(pdfformat || origin == BOTTOM) {
-	voffset += max(pageHeight-(bpos.top-bpos.bottom+
-				   (pdfformat ? 2.0 : 1.0)),0.0);
+	voffset += max(pageHeight-(bpos.top-bpos.bottom+1.0),0.0);
       } else if(origin == CENTER) {
 	hoffset += 0.5*max(pageWidth-(bpos.right-bpos.left+1.0),0.0);
 	voffset += 0.5*max(pageHeight-(bpos.top-bpos.bottom+1.0),0.0);
@@ -140,13 +139,15 @@ bool picture::texprocess(const string& texname, const string& outname,
     bbox bcopy=bpos;
     double hfuzz=0.1;
     double vfuzz=0.2;
-    if(origin == CENTER || origin == TOP) {hfuzz *= 2.0; vfuzz *= 2.0;}
+    if(origin == CENTER || origin == TOP) {
+      hfuzz *= 2.0; vfuzz *= 2.0;
+    }
     
     bcopy.left -= hfuzz;
     bcopy.right += hfuzz;
     
-    bcopy.top += vfuzz;
     bcopy.bottom -= vfuzz;
+    bcopy.top += vfuzz;
     
     ifstream fin(psname.c_str());
     ofstream fout(outname.c_str());
@@ -186,7 +187,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
 		      << " -dDEVICEWIDTHPOINTS=" 
 		      << ceil(bpos.right-bpos.left+2.0)
 		      << " -dDEVICEHEIGHTPOINTS=" 
-		      << ceil(bpos.top-bpos.bottom+3.0)
+		      << ceil(bpos.top-bpos.bottom+2.0)
 		      << " -sOutputFile=" << outname << " " << epsname;
     else {
       double expand=2.0;
@@ -277,6 +278,14 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   bounds();
   
   bbox bpos=b;
+  
+  if(!labels && pdfformat) {
+    double fuzz=1.0;
+    bpos.left -= fuzz;
+    bpos.right += fuzz;
+    bpos.bottom -= fuzz;
+    bpos.top += fuzz;
+  }
   
   if(deconstruct) {
       if(!bboxout.is_open()) {
