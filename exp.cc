@@ -622,9 +622,11 @@ types::ty *callExp::trans(coenv &e)
   else if (!castable(ft->getSignature(), &sig)) {
     em->error(getPos());
     const char *separator=ft->getSignature()->getNumFormals() > 1 ? "\n" : " ";
+    symbol *s=callee->getName();
     *em << "cannot call" << separator << "'" 
-	<< *((function *) ft)->getResult() << " "
-	<< *callee->getName() << *ft->getSignature() << "'" << separator;
+	<< *((function *) ft)->getResult() << " ";
+    if(s) *em << s;
+    *em << *ft->getSignature() << "'" << separator;
     switch(sig.getNumFormals()) {
       case 0:
         *em << "without parameters";
