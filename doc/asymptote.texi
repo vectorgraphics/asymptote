@@ -909,7 +909,8 @@ Cyan,Magenta,Yellow,Black.
 where @code{s} is a string of integer or real numbers separated by spaces.
 The first number specifies how far (in @code{PostScript} coordinates) to draw
 with the pen on, the second number specifies how far to draw with the pen off,
-and so on. Here are the predefined line types:
+and so on (these spacings are automatically adjusted by @code{Asymptote}
+to fit the arclength of the path). Here are the predefined line types:
 @verbatim
 pen solid=linetype("");
 pen dotted=linetype("0 4");
