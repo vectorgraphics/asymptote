@@ -77,7 +77,7 @@ Programming
 * Arrays::                      Dynamic vector class
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} packages
-* Static & dynamic::            Where to allocate your variable?
+* Static::                      Where to allocate your variable?
 
 Functions
 
@@ -445,7 +445,7 @@ many features beyond the ones found in those languages.
 * Arrays::                      Dynamic vector class
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} packages
-* Static & dynamic::            Where to allocate your variable?
+* Static::                      Where to allocate your variable?
 @end menu
 
 @node Data types
@@ -1840,7 +1840,7 @@ import "/usr/local/share/asymptote/graph.asy";
 @end verbatim
 
 By default, variables and functions in imported modules have
-@code{static} allocation (@pxref{Static & dynamic}). A variable
+@code{static} allocation (@pxref{Static}). A variable
 @code{var} from a module named @code{module} can be distinguished from
 a local variable of the same name by prefixing it with the module name
 and a period: @code{module.var}.
@@ -1884,8 +1884,7 @@ use the @code{-noplain} command-line option to disable this feature.
 In any case, no error message will be issued if one tries to explicitly
 @code{import plain} (if other imported packages depend implicitly
 on the presence of @code{plain}, it may be necessary to allocate it in a higher
-enclosing scope by declaring the import @code{static}; @pxref{Static &
-dynamic}).
+enclosing scope by declaring the import @code{static}; @pxref{Static}).
 
 @node simplex
 @subsection @code{simplex}
@@ -2157,10 +2156,9 @@ you can enable support for Western European languages (ISO 8859-1) by
 importing the module @code{latin1}. This module can be used as a
 template for providing support for other ISO 8859 alphabets.
 
-@node Static & dynamic
-@section Static & dynamic qualifiers
+@node Static
+@section Static
 @cindex @code{static}
-@cindex dynamic
 
 Static qualifiers allocate the memory address of a variable in a higher 
 enclosing scope.
