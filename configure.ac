@@ -8,9 +8,9 @@ VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 
 test "$prefix" = NONE && prefix=/usr/local
-test "$datadir" = '${prefix}/share' && datadir=$prefix/share
-asydir=$datadir/asymptote
-exampledir=$datadir/doc/asymptote
+Datadir=$datadir
+test "$datadir" = '${prefix}/share' && Datadir=$prefix/share
+
 latexdir=/usr/share/texmf/tex/latex
 AC_ARG_WITH(latex,
                      [  --with-latex=PATH       specify path to LaTeX installation ],
@@ -19,11 +19,9 @@ AC_ARG_WITH(latex,
 		      fi
 		     ])
 latexdir=$latexdir/asymptote
-AC_SUBST(asydir)
-AC_SUBST(exampledir)
 AC_SUBST(latexdir)
 
-AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$asydir",
+AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$Datadir/asymptote",
 	[System directory for global .asy files])
 AC_CONFIG_SRCDIR([absyn.cc])
 AC_LANG([C++])

@@ -1,6 +1,6 @@
 asyfiles := $(wildcard *.asy)
 
-man:	asymptote.info asymptote.ps html
+man:	asymptote.info asymptote.ps asymptote.pdf html
 
 %.png:	%.eps
 	convert -density 288x288 -geometry 25%x $< $@
@@ -24,6 +24,9 @@ asymptote.info: figures
 asymptote.ps: asymptote.dvi
 	dvips -o asymptote.ps asymptote
 
+asymptote.pdf: asymptote.ps
+	ps2pdf asymptote.ps
+
 html:	figures
 	mkdir -p asymptote
 	cp *.png asymptote
@@ -31,7 +34,7 @@ html:	figures
 
 clean: FORCE
 	rm -f *.eps *.png latexusage.{asy,dvi,log,aux,ps}
-	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,ps,toc,tp,vr}
+	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,ps,pdf,toc,tp,vr}
 	rm -rf asymptote
 
 distclean: FORCE clean

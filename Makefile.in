@@ -29,8 +29,9 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
 mandir = @mandir@
-asydir = @asydir@
-exampledir = @exampledir@
+datadir = @datadir@
+asydir = $(datadir)/asymptote
+exampledir = $(datadir)/doc/asymptote
 latexdir = @latexdir@
 INSTALL = @INSTALL@
 
@@ -72,8 +73,8 @@ install: asy
 install-man: man
 	${INSTALL} -m 644 doc/asymptote.info $(prefix)/info
 	install-info --infodir=$(prefix)/info doc/asymptote.info 
+	${INSTALL} -m 644 doc/asymptote.pdf $(exampledir)
 	${INSTALL} -m 644 doc/$(MANFILES) ${mandir}/man1
-
 
 install-all: install install-man
 
