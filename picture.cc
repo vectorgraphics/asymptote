@@ -356,13 +356,6 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   
   if(labels) {
     tex=new texfile(texname,b);
-    list<drawElement*>::iterator p;
-    for (p = nodes.begin(); p != nodes.end(); ++p) {
-      assert(*p);
-      if (!(*p)->setup(tex))
-	status = false;
-    }
-  
     tex->prologue();
   }
   
@@ -414,7 +407,7 @@ bool picture::shipout(const picture& preamble, const string& prefix,
 	  break;
 	}
 	assert(*p);
-	if (!(*p)->write(tex))
+	if(!(*p)->write(tex))
 	  status = false;
       }
     }    

@@ -21,17 +21,18 @@ private:
   pair position;
   pair align;
   pen *pentype;
-  pair Align;
   double width,height,depth;
+  bool havebounds;
   bool suppress;
   double scale;
+  pair Align;
   
 public:
   drawLabel(std::string label, double angle, pair position, pair align,
 	    pen *pentype)
     : label(label), angle(angle), position(position), align(align),
-      pentype(pentype),
-      width(0.0), height(0.0), depth(0.0), suppress(false), scale(1.0) {}
+      pentype(pentype), width(0.0), height(0.0), depth(0.0),
+      havebounds(false), suppress(false), scale(1.0) {} 
   
   virtual ~drawLabel() {}
 
@@ -42,6 +43,8 @@ public:
   }
 
   bool write(texfile *out) {
+    if(!havebounds) 
+      reportError("drawLabel::write called before bounds");
     if(suppress || pentype->invisible()) return true;
     out->setpen(*pentype);
     out->put(label,angle,position+Align);

@@ -34,8 +34,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
   pen Pentype=*pentype;
   static const double fuzz=1.75;
   
-  if(!(width || height || depth)) {
-    
+  if(!havebounds) {
     if(Pentype.size() != lastpen.size() ||
        Pentype.Lineskip() != lastpen.Lineskip()) {
       tex <<  "\\fontsize{" << Pentype.size() << "}{" << Pentype.Lineskip()
@@ -64,21 +63,21 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
     tex >> texbuf;
     if(texbuf[0] == '>' && texbuf[1] == ' ')
       width=atof(texbuf.c_str()+2)*tex2ps;
-    else cerr << "Can't read label width\n";
+    else reportError("Can't read label width");
     tex << "\n";
     tex.wait("\n*","! ");
     tex << "\\showthe\\ht\\ASYbox\n";
     tex >> texbuf;
     if(texbuf[0] == '>' && texbuf[1] == ' ')
       height=atof(texbuf.c_str()+2)*tex2ps;
-    else cerr << "Can't read label height" << newl;
+    else reportError("Can't read label height");
     tex << "\n";
     tex.wait("\n*","! ");
     tex << "\\showthe\\dp\\ASYbox\n";
     tex >> texbuf;
     if(texbuf[0] == '>' && texbuf[1] == ' ')
       depth=atof(texbuf.c_str()+2)*tex2ps;
-    else cerr << "Can't read label depth" << newl;
+    else reportError("Can't read label depth");
     tex << "\n";
     tex.wait("\n*","! ");
      
@@ -95,6 +94,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
     Align += pair(0.0,Depth);
       
     Align *= rotation;
+    havebounds=true;
   }
 
   // alignment point
@@ -151,7 +151,7 @@ drawElement *drawLabel::transformed(const transform& t)
   pair offset=t*origin;
   return new drawLabel(label,
 		       degrees((t*expi(radians(angle))-offset).angle()),
-		       t*position,t*align-offset,pentype);
+		       t*position,length(align)*unit(t*align-offset),pentype);
 }
 
 } //namespace camp

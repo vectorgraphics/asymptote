@@ -113,11 +113,6 @@ public:
     return false;
   }
 
-  // Do any initial set up
-  virtual bool setup(texfile *) {
-    return true;
-  }
-
   // Handles its output in a PostScript file
   virtual bool draw(psfile *) {
     return true;
