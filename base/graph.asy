@@ -168,7 +168,6 @@ string defaultticklabel(real x) {return math(format("%.4g",x));}
 void labelaxis(frame f, string s, real position, real angle, pair align,
 	       guide g, pen p, bool labels, bool deconstruct)
 {
-  if(s == "") return;
   pair z=point(g,position);
   pair dir=direction(g,position);
   if(labels) {
@@ -377,7 +376,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
       }
     }
     
-    if(!opposite) 
+    if(s != "" && !opposite) 
       labelaxis(f,s,position,angle,align,G,plabel,labels,deconstruct);
   };
 }
@@ -437,13 +436,19 @@ void axis(picture pic=currentpicture, guide g,
 	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
     add(f,t*T*inverse(t)*d);
   });
+  
+  pair a=point(g,0);
+  pair b=point(g,length(g));
+  
   pic.addPath(g,p);
   
-  if(s != "") {
-    frame f;
-    label(f,s,angle,(0,0),align,plabel);
+  if(finite(a) && finite(b)) {
     pair pos=point(g,position*length(g));
-    pic.addBox(pos,pos,min(f),max(f));
+    frame d;
+    ticks(d,identity(),s,position,angle,align,side,plabel,a--b,p,Linear,
+	  new real(pair z) {return pic.scale.y.scale.Label(z.y);},
+	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
+    pic.addBox(pos,pos,min(d)-pos,max(d)-pos);
   }
 }
 
@@ -464,16 +469,19 @@ void xequals(picture pic=currentpicture, real x,
     add(f,t*T*inverse(t)*d);
   });
   
-  pic.addPoint((x,finite(ymin) ? ymin : pic.userMin.y),p);
-  pic.addPoint((x,finite(ymax) ? ymax : pic.userMax.y),p);
+  pair a=(x,finite(ymin) ? ymin : pic.userMin.y);
+  pair b=(x,finite(ymax) ? ymax : pic.userMax.y);
   
-  if(s != "") {
-    frame f;
-    label(f,s,angle,(0,0),align,plabel);
-    pair a=(x,finite(ymin) ? ymin : pic.userMin.y);
-    pair b=(x,finite(ymax) ? ymax : pic.userMax.y);
+  pic.addPoint(a,p);
+  pic.addPoint(b,p);
+  
+  if(finite(a) && finite(b)) {
     pair pos=a+position*(b-a);
-    pic.addBox(pos,pos,min(f),max(f));
+    frame d;
+    ticks(d,identity(),s,position,angle,align,side,plabel,a--b,p,Linear,
+	  new real(pair z) {return pic.scale.y.scale.Label(z.y);},
+	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
+    pic.addBox(pos,pos,min(d)-pos,max(d)-pos);
   }
 }
 
@@ -494,16 +502,19 @@ void yequals(picture pic=currentpicture, real y,
     add(f,t*T*inverse(t)*d);
   });
 
-  pic.addPoint((finite(xmin) ? xmin : pic.userMin.x,y),p);
-  pic.addPoint((finite(xmax) ? xmax : pic.userMax.x,y),p);
+  pair a=(finite(xmin) ? xmin : pic.userMin.x,y);
+  pair b=(finite(xmax) ? xmax : pic.userMax.x,y);
   
-  if(s != "") {
-    frame f;
-    label(f,s,angle,(0,0),align,plabel);
-    pair a=(finite(xmin) ? xmin : pic.userMin.x,y);
-    pair b=(finite(xmax) ? xmax : pic.userMax.x,y);
+  pic.addPoint(a,p);
+  pic.addPoint(b,p);
+  
+  if(finite(a) && finite(b)) {
     pair pos=a+position*(b-a);
-    pic.addBox(pos,pos,min(f),max(f));
+    frame d;
+    ticks(d,identity(),s,position,angle,align,side,plabel,a--b,p,Linear,
+	  new real(pair z) {return pic.scale.y.scale.Label(z.y);},
+	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
+    pic.addBox(pos,pos,min(d)-pos,max(d)-pos);
   }
 }
 

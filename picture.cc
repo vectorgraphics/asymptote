@@ -130,10 +130,12 @@ bool picture::texprocess(const string& texname, const string& outname,
     ifstream fin(psname.c_str());
     ofstream fout(outname.c_str());
     string s;
+    bool first=true;
     while(getline(fin,s)) {
-      if(s.find("%%BoundingBox:") == 0) {
-	if(verbose > 1) BoundingBox(cout,bpos);
+      if(first && s.find("%%BoundingBox:") == 0) {
+	if(verbose > 2) BoundingBox(cout,bpos);
 	BoundingBox(fout,bpos);
+	first=false;
       } else fout << s << endl;
     }
     fout.close();

@@ -109,6 +109,11 @@ bool finite(real x)
   return x != infinity && x != -infinity;
 }
 
+bool finite(pair z)
+{
+  return finite(z.x) && finite(z.y);
+}
+
 // To cut down two parentheses.
 transform shift(real x, real y)
 {
@@ -1032,24 +1037,34 @@ void shipout(string prefix=defaultfilename, frame f, Legend[] legend={},
   GUIObject=0;
 }
 
+private struct orientationT {};
+public orientationT orientation=null;
+typedef frame orientation(frame, orientationT);
+public orientation
+  Portrait=new frame(frame f, orientationT) {return f;},
+  Landscape=new frame(frame f, orientationT) {return rotate(90)*f;},
+  Seascape=new frame(frame f, orientationT) {return rotate(-90)*f;};
+
 void shipout(string prefix=defaultfilename, picture pic=currentpicture,
 	     real xsize=infinity, real ysize=infinity,
-	     keepAspect keepAspect, string format="", wait wait=NoWait)
+	     keepAspect keepAspect, orientation orientation=Portrait,
+	     string format="", wait wait=NoWait)
 {
   if(xsize == infinity) xsize=pic.xsize;
   if(ysize == infinity) ysize=pic.ysize;
   GUIPrefix=prefix;
   pic.deconstruct=true;
   frame f=pic.fit(xsize,ysize,keepAspect(keepAspect));
-  shipout(prefix,f,pic.legend,format,wait);
+  shipout(prefix,orientation(f,orientation),pic.legend,format,wait);
 }
 
 void shipout(string prefix=defaultfilename, picture pic=currentpicture,
-	     real xsize=infinity, real ysize=infinity, string format="",
+	     real xsize=infinity, real ysize=infinity,
+	     orientation orientation=Portrait, string format="",
 	     wait wait=NoWait)
 {
-  shipout(prefix,pic,xsize,ysize,pic.keepAspect ? Aspect : IgnoreAspect,format,
-	  wait);
+  shipout(prefix,pic,xsize,ysize,pic.keepAspect ? Aspect : IgnoreAspect,
+	  orientation,format,wait);
 }
 
 void erase(picture pic=currentpicture)
