@@ -233,6 +233,9 @@ namespace boost
 
       inline bool dot_or_dot_dot( const char * name )
       {
+#ifndef __BORLANDC__
+#define	__BORLANDC__ 0
+#endif
 # if !BOOST_WORKAROUND( __BORLANDC__, BOOST_TESTED_AT(0x0564) )
         return std::strcmp( name, "." ) == 0
             || std::strcmp( name, ".." ) == 0;
