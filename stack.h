@@ -32,8 +32,6 @@ private:
 
   vars_t make_frame(size_t, vars_t closure);
 
-  program::label ip;
-
   void draw(ostream& out);
 
   // Move arguments from stack to frame.
