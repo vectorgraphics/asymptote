@@ -2040,6 +2040,20 @@ void f(int)=A.push;
 f(7);                   // A now contains {1,2,3,7}.
 @end verbatim
 
+The @code{[]} suffix can also appear after the variable name; this
+is sometimes convenient for declaring a list of variables and arrays
+of the same type:
+@verbatim
+real a,A[];
+@end verbatim
+This declares @code{a} to be @code{real} and implicitly declares @code{A} to
+be of type @code{real[]}. But beware that this alternative syntax does
+not construct certain internal type-dependent functions that take
+@code{real[]} as an argument: @code{alias}, @code{copy},
+@code{sequence}, @code{eval}, and @code{transpose} for type
+@code{real[]} won't be defined until some variable is explicitly
+declared with @code{real[]}. 
+
 In the following list of built-in array functions, @code{T} represents a
 generic type.
 
@@ -3681,7 +3695,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  NoWait src dest XDR txt getc fout stdin stdout endl xinput eof
 @c  LocalWords:  xoutput Microsystem's eol struct exponentials postfix sayhi th
 @c  LocalWords:  sqr intop addby libm asin acos atan sinh tanh asinh acosh cbrt
-@c  LocalWords:  atanh fabs hypot fmod ceil srand dereferenced alice pete
+@c  LocalWords:  atanh fabs hypot fmod ceil srand dereferenced alice pete sqrtx
 @c  LocalWords:  eval fft csv runtime nonalphanumeric labely LeftTicks NoTicks
 @c  LocalWords:  RightTicks BottomTop LeftRight Ticksize UTF BufNewFile BufRead
 @c  LocalWords:  ticksize subintervals xlimits filetype plugin setlocal makeprg
@@ -3710,5 +3724,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  evenodd squarecap roundcap extendcap miterjoin roundjoin NFSS
 @c  LocalWords:  beveljoin fillrule zerowinding insideness lineskip cmr pcrr Hx
 @c  LocalWords:  baselineskip AvantGarde Bookman Helvetica NewCenturySchoolBook
-@c  LocalWords:  Palatino TimesRoman ZapfChancery ZapfDingbats german
-@c  LocalWords:  nondeconstructed backends usr venn labelsquare
+@c  LocalWords:  Palatino TimesRoman ZapfChancery ZapfDingbats german basealign
+@c  LocalWords:  nondeconstructed backends usr venn labelsquare nobasealign
+@c  LocalWords:  NoMargin BeginMargin EndMargin BeginPenMargin EndPenMargin
+@c  LocalWords:  PenMargin PenMargins TrueMargin labelmargin
