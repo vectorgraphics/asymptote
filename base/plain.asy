@@ -97,7 +97,6 @@ public real legendskip=1.5;
 public pen legendboxpen=black;
 public real legendmargin=10;
 
-public frame currentframe;
 public pen currentpen;
 
 public string defaultfilename="";

@@ -1137,9 +1137,8 @@ The implicit initializer for transforms is @code{identity()}.
 @cindex @code{nullframe}
 Frames are canvases for drawing in @code{PostScript} coordinates. While working
 with frames directly is occasionally necessary for constructing deferred
-drawing routines, pictures are usually more convenient to work with. The
-default frame is called @code{currentframe}. The implicit initializer
-for frames is @code{nullframe}.
+drawing routines, pictures are usually more convenient to work with.
+The implicit initializer for frames is @code{nullframe}.
 
 @item picture
 @cindex @code{picture}
@@ -1957,10 +1956,11 @@ file fin=input("test.txt");
 real[] A=dimension(fin,10);
 @end verbatim
 
-This reads 10 values into A, unless end-of-file occurs first (which
-will result in a runtime error message). Specifying a value of 0 for the
-integer limit is equivalent to the previous example of reading until
-end-of-file is encountered.
+This reads 10 values into A, unless end-of-file (or end-of-line in line mode)
+occurs first. Attempting to read beyond the end of the file will produce a
+runtime error message. Specifying a value of 0 for the integer limit is
+equivalent to the previous example of reading until end-of-file (or
+end-of-line in line mode) is encountered.
 
 Two- and three-dimensional arrays can be read in like this:
 @verbatim
@@ -1969,7 +1969,7 @@ real[][] A=dimension(fin,2,3);
 real[][][] B=dimension(fin,2,3,4);
 @end verbatim
 
-Again, an integer limit of zero would mean no restriction.
+Again, an integer limit of zero means no restriction.
 
 @cindex @code{read1}
 @cindex @code{read2}
@@ -2318,9 +2318,9 @@ location @code{position} (a real number from [0,1]) using angle
 @code{angle} and alignment @code{align} on side @code{side} of the axis
 and pen @code{plabel}. The tick type is specified by @code{ticks} and
 the integer array @code{divisor} specifies what tick divisors to try for
-producing uncrowded tick labels. A @code{true} value for the flag @code{opposite}
-identifies an unlabelled secondary axis (typically drawn opposite to a
-primary axis).
+producing uncrowded tick labels. A @code{true} value for the flag
+@code{opposite} identifies an unlabelled secondary axis (typically drawn
+opposite to a primary axis).
 
 @item
 @verbatim
@@ -3399,7 +3399,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  postcontrol precontrol atleast nullpath arclength arctime rgb
 @c  LocalWords:  dirtime currentpen colorspaces grayscale cmyk defaultpen xsize
 @c  LocalWords:  linetype longdashed dashdotted longdashdotted linewidth ysize
-@c  LocalWords:  fontsize currentframe defaultfilename keepAspect IgnoreAspect
+@c  LocalWords:  fontsize defaultfilename keepAspect IgnoreAspect
 @c  LocalWords:  NoWait src dest XDR txt getc fout stdin stdout endl xinput eof
 @c  LocalWords:  xoutput Microsystem's eol struct exponentials postfix sayhi th
 @c  LocalWords:  sqr intop addby libm asin acos atan sinh tanh asinh acosh cbrt
