@@ -5,7 +5,7 @@
  * Memory tracking utilities.
  *****/
 
-#include <set>
+#include <deque>
 #include "pool.h"
 
 namespace memory {
@@ -15,8 +15,8 @@ bool cmp(poolitem l, poolitem r)
   return l.ptr < r.ptr;
 }
 
-typedef std::set<poolitem,bool(*)(poolitem,poolitem)> pool_t;
-pool_t thePool(cmp);
+typedef std::deque<poolitem> pool_t;
+pool_t thePool;
 
 void free()
 {
@@ -24,20 +24,16 @@ void free()
       p != thePool.end(); ++p) {
     p->free();
   }
-  pool_t(cmp).swap(thePool);
+  pool_t().swap(thePool);
 }
 
 void insert(poolitem p)
 {
-  thePool.insert(p);
+  thePool.push_back(p);
 }
 
 void erase(poolitem p)
-{
-  pool_t::iterator it = thePool.find(p);
-  it->free();
-  thePool.erase(it);
-}
+{}
 
 } // namespace pool
 
