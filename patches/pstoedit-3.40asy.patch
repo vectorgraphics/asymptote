@@ -11,7 +11,7 @@ diff -ru --new-file pstoedit-3.40/src/Makefile.am pstoedit-3.40J/src/Makefile.am
  	drvpic.cpp 	drvpic.h		\
 diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 --- pstoedit-3.40/src/drvasy.cpp	1969-12-31 17:00:00.000000000 -0700
-+++ pstoedit-3.40J/src/drvasy.cpp	2005-02-27 11:09:53.393951608 -0700
++++ pstoedit-3.40J/src/drvasy.cpp	2005-02-27 11:09:53.000000000 -0700
 @@ -0,0 +1,517 @@
 +/*
 +  drvASY.cpp : This file is part of pstoedit
@@ -532,7 +532,7 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +      );
 diff -ru --new-file pstoedit-3.40/src/drvasy.h pstoedit-3.40J/src/drvasy.h
 --- pstoedit-3.40/src/drvasy.h	1969-12-31 17:00:00.000000000 -0700
-+++ pstoedit-3.40J/src/drvasy.h	2005-02-27 11:14:29.572966016 -0700
++++ pstoedit-3.40J/src/drvasy.h	2005-02-27 11:14:29.000000000 -0700
 @@ -0,0 +1,89 @@
 +#ifndef __drvASY_h
 +#define __drvASY_h
@@ -623,3 +623,17 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.h pstoedit-3.40J/src/drvasy.h
 +};
 +
 +#endif
+diff -ru --new-file pstoedit-3.40/src/pstoedit.cpp pstoedit-3.40J/src/pstoedit.cpp
+--- pstoedit-3.40/src/pstoedit.cpp	2005-01-01 15:41:06.000000000 -0700
++++ pstoedit-3.40J/src/pstoedit.cpp	2005-03-09 21:05:10.679193512 -0700
+@@ -958,7 +958,9 @@
+ 					default:
+ 							break;
+ 				}
+-				if ((currentDriverDesc->backendDesiredImageFormat !=  DriverDescription::noimage) 					&& (!options.nameOfOutputFile) ) {
++				if ((currentDriverDesc->backendDesiredImageFormat != DriverDescription::noimage) &&
++				    (currentDriverDesc->backendDesiredImageFormat != DriverDescription::memoryeps) && 
++				    (!options.nameOfOutputFile) ) {
+ 						errstream <<
+ 							"Warning: some types of raster images in the input file cannot be converted if the output is sent to standard output"
+ 							<< endl;
