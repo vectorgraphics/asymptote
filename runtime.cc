@@ -1619,7 +1619,8 @@ void execute(stack *s)
 
 void nullFile(stack *s)
 {
-  s->push(&camp::Stdout);
+  file *f=&camp::Stdout;
+  s->push(f);
 }
 
 void fileOpenOut(stack *s)
