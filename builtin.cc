@@ -120,28 +120,13 @@ void addBooleanOperator(venv &ve, bltin f, ty *t, const char *name)
   addFunc(ve, f, primBoolean(), name, t, t);
 }
 
-template <class T>
-void Negate(stack *s)
-{
-   T a=s->pop<T>();
-   s->push(-a);
-}
-  
-template <class T, template <class S> class op>
-void binaryOp(stack *s)
-{
-   T b=s->pop<T>();
-   T a=s->pop<T>();
-   s->push(op<T>()(a,b,s));
-}
-  
 template<class T, template <class S> class op>
 inline void addArrayOps(venv &ve, ty *t1, const char *name, ty *t2)
 {
   addFunc(ve,run::arrayOp<T,op>,t1,name,t1,t2);
   addFunc(ve,run::opArray<T,op>,t1,name,t2,t1);
   addSimpleOperator(ve,run::arrayArrayOp<T,op>,t1,name);
-  addSimpleOperator(ve,binaryOp<T,op>,t2,name);
+  addSimpleOperator(ve,run::binaryOp<T,op>,t2,name);
 }
 
 template<class T, template <class S> class op>
@@ -150,7 +135,7 @@ inline void addArrayBooleanOps(venv &ve, ty *t1, const char *name, ty *t2)
   addFunc(ve,run::arrayOp<T,op>,boolArray(),name,t1,t2);
   addFunc(ve,run::opArray<T,op>,boolArray(),name,t2,t1);
   addFunc(ve,run::arrayArrayOp<T,op>,boolArray(),name,t1,t1);
-  addBooleanOperator(ve,binaryOp<T,op>,t2,name);
+  addBooleanOperator(ve,run::binaryOp<T,op>,t2,name);
 }
 
 template<class T>
@@ -201,7 +186,7 @@ inline void addArrayOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   addFunc(ve,&id,t1,"+",t1);
   addFunc(ve,&id,t2,"+",t2);
   addFunc(ve,run::arrayNegate<T>,t1,"-",t1);
-  addFunc(ve,Negate<T>,t2,"-",t2);
+  addFunc(ve,run::Negate<T>,t2,"-",t2);
   
   addFunc(ve,run::sumArray<T>,t2,"sum",t1);
   
@@ -240,7 +225,7 @@ void addOperators(venv &ve)
   addBooleanOperator(ve,run::boolTrue,primNull(),"==");
   addBooleanOperator(ve,run::intZero,primNull(),"!=");
 
-  addSimpleOperator(ve,binaryOp<string,run::plus>,primString(),"+");
+  addSimpleOperator(ve,run::binaryOp<string,run::plus>,primString(),"+");
   
   addSimpleOperator(ve,run::transformTransformMult,primTransform(),"*");
   addFunc(ve,run::transformPairMult,primPair(),"*",primTransform(),

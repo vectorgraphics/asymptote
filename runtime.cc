@@ -97,42 +97,41 @@ void boolTrue(stack *s)
 
 void boolNot(stack *s)
 {
-  s->push(!s->pop<bool>());
+  s->push(!pop<bool>(s));
 }
 
 void boolXor(stack *s)
 {
-  bool b=s->pop<bool>();
-  bool a=s->pop<bool>();
+  bool b=pop<bool>(s);
+  bool a=pop<bool>(s);
   s->push(a^b ? true : false);  
 }
 
 void boolMemEq(stack *s)
 {
-  stack::vars_t a,b;
-  b=s->pop<stack::vars_t>();
-  a=s->pop<stack::vars_t>();
+  vm::frame b = pop<vm::frame>(s);
+  vm::frame a = pop<vm::frame>(s);
   s->push(a == b);
 }
 
 void boolFuncEq(stack *s)
 {
-  callable *l=s->pop<callable*>();
-  callable *r=s->pop<callable*>();
+  callable *l=pop<callable*>(s);
+  callable *r=pop<callable*>(s);
   s->push(l->compare(r));
 }
 
 void boolFuncNeq(stack *s)
 {
-  callable *l=s->pop<callable*>();
-  callable *r=s->pop<callable*>();
+  callable *l=pop<callable*>(s);
+  callable *r=pop<callable*>(s);
   s->push(!(l->compare(r)));
 }
 
 void realFmod(stack *s)
 {
-  double y = s->pop<double>();
-  double x = s->pop<double>();
+  double y = pop<double>(s);
+  double x = pop<double>(s);
   if (y == 0.0)
     error(s,"Divide by zero");
   double val = fmod(x,y);
@@ -141,20 +140,20 @@ void realFmod(stack *s)
 
 void realIntPow(stack *s)
 {
-  int y = s->pop<int>();
-  double x = s->pop<double>();
+  int y = pop<int>(s);
+  double x = pop<double>(s);
   s->push(pow(x,y));
 }
 
 void realAtan2(stack *s)
 { 
-  s->push(atan2(s->pop<double>(),s->pop<double>()));
+  s->push(atan2(pop<double>(s),pop<double>(s)));
 }  
 
 void realHypot(stack *s)
 { 
-  double x = s->pop<double>();
-  double y = s->pop<double>();
+  double x = pop<double>(s);
+  double y = pop<double>(s);
   
   double sx;
   sx = hypot(x,y);
@@ -163,8 +162,8 @@ void realHypot(stack *s)
 
 void realRemainder(stack *s)
 { 
-  double x = s->pop<double>();
-  double y = s->pop<double>();
+  double x = pop<double>(s);
+  double y = pop<double>(s);
   
   double sx;
   sx = remainder(y,x);
@@ -173,21 +172,21 @@ void realRemainder(stack *s)
 
 void realJ(stack *s)
 {
-  double x = s->pop<double>();
-  int n = s->pop<int>();
+  double x = pop<double>(s);
+  int n = pop<int>(s);
   s->push(jn(n,x));
 }
 
 void realY(stack *s)
 {
-  double x = s->pop<double>();
-  int n = s->pop<int>();
+  double x = pop<double>(s);
+  int n = pop<int>(s);
   s->push(yn(n,x));
 }
 
 void intAbs(stack *s)
 { 
-  s->push(abs(s->pop<int>()));
+  s->push(abs(pop<int>(s)));
 }  
 
 static inline int round(double x) 
@@ -197,28 +196,28 @@ static inline int round(double x)
 
 void intCeil(stack *s)
 { 
-  double x = s->pop<double>();
+  double x = pop<double>(s);
   int sx = round(ceil(x));
   s->push(sx);
 }  
 
 void intFloor(stack *s)
 { 
-  double x = s->pop<double>();
+  double x = pop<double>(s);
   int sx = round(floor(x));
   s->push(sx);
 }  
 
 void intRound(stack *s)
 { 
-  double x = s->pop<double>();
+  double x = pop<double>(s);
   int sx = round(x);
   s->push(sx);
 }  
 
 void intSgn(stack *s)
 { 
-  double x = s->pop<double>();
+  double x = pop<double>(s);
   int sx = (x == 0.0 ? 0 : (x > 0.0 ? 1 : -1));
   s->push(sx);
 }  
@@ -230,7 +229,7 @@ void intRand(stack *s)
 
 void intSrand(stack *s)
 { 
-  int seed = s->pop<int>();
+  int seed = pop<int>(s);
   srand(seed);
 }  
 
@@ -308,13 +307,13 @@ static array* deepArray(int depth, int *dims)
 // dimension arrays and so on.
 void newDeepArray(stack *s)
 {
-  int depth = s->pop<int>();
+  int depth = pop<int>(s);
   assert(depth > 0);
 
   int *dims = new int[depth];
 
   for (int index = depth-1; index >= 0; index--)
-    dims[index] = s->pop<int>();
+    dims[index] = pop<int>(s);
 
   s->push(deepArray(depth, dims));
   delete [] dims;
@@ -325,13 +324,13 @@ void newDeepArray(stack *s)
 // reverse order.
 void newInitializedArray(stack *s)
 {
-  int n = s->pop<int>();
+  int n = pop<int>(s);
   assert(n >= 0);
 
   array *a = new array(n);
 
   for (int index = n-1; index >= 0; index--)
-    (*a)[index] = s->pop();
+    (*a)[index] = pop(s);
 
   s->push(a);
 }
@@ -347,9 +346,9 @@ static void outOfBounds(stack *s, const char *op, int len, int n)
 // Read an element from an array. Checks for initialization & bounds.
 void arrayRead(stack *s)
 {
-  int n = s->pop<int>();
+  int n = pop<int>(s);
   int n0 = n;
-  array *a = s->pop<array*>();
+  array *a = pop<array*>(s);
 
   checkArray(s,a);
   int len=(int) a->size();
@@ -369,9 +368,9 @@ void arrayRead(stack *s)
 // as necessary.
 void arrayArrayRead(stack *s)
 {
-  int n = s->pop<int>();
+  int n = pop<int>(s);
   int n0 = n;
-  array *a = s->pop<array*>();
+  array *a = pop<array*>(s);
 
   checkArray(s,a);
   int len=(int) a->size();
@@ -386,9 +385,9 @@ void arrayArrayRead(stack *s)
 // Write an element to an array.  Increases size if necessary.
 void arrayWrite(stack *s)
 {
-  int n = s->pop<int>();
-  array *a = s->pop<array*>();
-  item value = s->pop();
+  int n = pop<int>(s);
+  array *a = pop<array*>(s);
+  item value = pop(s);
 
   checkArray(s,a);
   int len=(int) a->size();
@@ -403,7 +402,7 @@ void arrayWrite(stack *s)
 // Returns the length of an array.
 void arrayLength(stack *s)
 {
-  array *a = s->pop<array*>();
+  array *a = pop<array*>(s);
   checkArray(s,a);
   s->push((int)a->size());
 }
@@ -411,7 +410,7 @@ void arrayLength(stack *s)
 // Returns the push method for an array.
 void arrayPush(stack *s)
 {
-  array *a = s->pop<array *>();
+  array *a = pop<array *>(s);
   checkArray(s,a);
   s->push((callable*)new vm::thunk(new vm::bfunc(arrayPushHelper),a));
 }
@@ -419,8 +418,8 @@ void arrayPush(stack *s)
 // The helper function for the push method that does the actual operation.
 void arrayPushHelper(stack *s)
 {
-  array *a = s->pop<array *>();
-  item i = s->pop();
+  array *a = pop<array *>(s);
+  item i = pop(s);
 
   checkArray(s,a);
   a->push(i);
@@ -493,7 +492,7 @@ void arraySequence(stack *s)
   for(int i=0; i < n; ++i) {
     s->push<int>(i);
     f->call(s);
-    (*a)[i]=s->pop();
+    (*a)[i]=pop(s);
   }
   s->push(a);
 }
@@ -521,7 +520,7 @@ void arrayFunction(stack *s)
   for(size_t i=0; i < size; ++i) {
     s->push((*a)[i]);
     f->call(s);
-    (*b)[i]=s->pop();
+    (*b)[i]=pop(s);
   }
   s->push(b);
 }
@@ -550,7 +549,7 @@ void arrayFind(stack *s)
 
 void arrayAll(stack *s)
 {
-  array *a = s->pop<array*>();
+  array *a = pop<array*>(s);
   checkArray(s,a);
   unsigned int size=(unsigned int) a->size();
   bool c=true;
@@ -622,7 +621,7 @@ void array2Transpose(vm::stack *s)
 // Compute the fast Fourier transform of a pair array
 void pairArrayFFT(vm::stack *s)
 {
-  int sign = s->pop<int>() > 0 ? 1 : -1;
+  int sign = pop<int>(s) > 0 ? 1 : -1;
   array *a=pop<array *>(s);
   checkArray(s,a);
   unsigned n=(unsigned) a->size();
@@ -665,19 +664,19 @@ void pushNullFunction(stack *s)
 //Casts
 
 void pairToGuide(stack *s) {
-  pair z = s->pop<pair>();
+  pair z = pop<pair>(s);
   guide *g = new pairguide(z);
   s->push(g);
 }
 
 void pathToGuide(stack *s) {
-  path p = s->pop<path>();
+  path p = pop<path>(s);
   guide *g = new pathguide(p);
   s->push(g);
 }
 
 void guideToPath(stack *s) {
-  guide *g = s->pop<guide*>();
+  guide *g = pop<guide*>(s);
   path p = g->solve();
   s->push(p);
 }
@@ -690,69 +689,69 @@ void pairZero(stack *s)
 
 void realRealToPair(stack *s)
 {
-  double y = s->pop<double>();
-  double x = s->pop<double>();
+  double y = pop<double>(s);
+  double x = pop<double>(s);
   pair z(x, y);
   s->push(z);
 }
 
 void pairNegate(stack *s)
 {
-  s->push(-s->pop<pair>());
+  s->push(-pop<pair>(s));
 }
 
 void pairXPart(stack *s)
 {
-  s->push(s->pop<pair>().getx());
+  s->push(pop<pair>(s).getx());
 }
 
 void pairYPart(stack *s)
 {
-  s->push(s->pop<pair>().gety());
+  s->push(pop<pair>(s).gety());
 }
 
 void pairLength(stack *s)
 {
-  s->push(s->pop<pair>().length());
+  s->push(pop<pair>(s).length());
 }
 
 void pairAngle(stack *s)
 {
-  s->push(s->pop<pair>().angle());
+  s->push(pop<pair>(s).angle());
 }
 
 // Return the angle of z in degrees (between 0 and 360)
 void pairDegrees(stack *s)
 {
-  double deg=degrees(s->pop<pair>().angle());
+  double deg=degrees(pop<pair>(s).angle());
   if(deg < 0) deg += 360; 
   s->push(deg);
 }
 
 void pairUnit(stack *s)
 {
-  s->push(unit(s->pop<pair>()));
+  s->push(unit(pop<pair>(s)));
 }
 
 void realDir(stack *s)
 {
-  s->push(expi(radians(s->pop<double>())));
+  s->push(expi(radians(pop<double>(s))));
 }
 
 void pairExpi(stack *s)
 {
-  s->push(expi(s->pop<double>()));
+  s->push(expi(pop<double>(s)));
 }
 
 void pairConj(stack *s)
 {
-  s->push(conj(s->pop<pair>()));
+  s->push(conj(pop<pair>(s)));
 }
 
 void pairDot(stack *s)
 {
-  pair b = s->pop<pair>();
-  pair a = s->pop<pair>();
+  pair b = pop<pair>(s);
+  pair a = pop<pair>(s);
   s->push(a.getx()*b.getx()+a.gety()*b.gety());
 }
 
@@ -763,105 +762,105 @@ void transformIdentity(stack *s)
 
 void transformInverse(stack *s)
 {
-  transform *t = s->pop<transform*>();
+  transform *t = pop<transform*>(s);
   s->push(new transform(inverse(*t)));
 }
 
 void transformShift(stack *s)
 {
-  pair z = s->pop<pair>();
+  pair z = pop<pair>(s);
   s->push(new transform(shift(z)));
 }
 
 void transformXscale(stack *s)
 {
-  double x = s->pop<double>();
+  double x = pop<double>(s);
   s->push(new transform(xscale(x)));
 }
 
 void transformYscale(stack *s)
 {
-  double x = s->pop<double>();
+  double x = pop<double>(s);
   s->push(new transform(yscale(x)));
 }
 
 void transformScale(stack *s)
 {
-  double x = s->pop<double>();
+  double x = pop<double>(s);
   s->push(new transform(scale(x)));
 }
 
 void transformScaleInt(stack *s)
 {
-  double x = (double) s->pop<int>();
+  double x = (double) pop<int>(s);
   s->push(new transform(scale(x)));
 }
 
 void transformScalePair(stack *s)
 {
-  pair z = s->pop<pair>();
+  pair z = pop<pair>(s);
   s->push(new transform(scale(z)));
 }
 
 void transformSlant(stack *s)
 {
-  double x = s->pop<double>();
+  double x = pop<double>(s);
   s->push(new transform(slant(x)));
 }
 
 void transformRotate(stack *s)
 {
-  pair z = s->pop<pair>();
-  double x = s->pop<double>();
+  pair z = pop<pair>(s);
+  double x = pop<double>(s);
   s->push(new transform(rotatearound(z,radians(x))));
 }
 
 void transformReflect(stack *s)
 {
-  pair w = s->pop<pair>();
-  pair z = s->pop<pair>();
+  pair w = pop<pair>(s);
+  pair z = pop<pair>(s);
   s->push(new transform(reflectabout(z,w)));
 }
 
 void transformTransformMult(stack *s)
 {
-  transform *t2 = s->pop<transform*>();
-  transform *t1 = s->pop<transform*>();
+  transform *t2 = pop<transform*>(s);
+  transform *t1 = pop<transform*>(s);
   s->push(new transform(*t1 * *t2));
 }
 
 void transformPairMult(stack *s)
 {
-  pair z = s->pop<pair>();
-  transform *t = s->pop<transform*>();
+  pair z = pop<pair>(s);
+  transform *t = pop<transform*>(s);
   s->push((*t)*z);
 }
 
 void transformPathMult(stack *s)
 {
-  path p = s->pop<path>();
-  transform *t = s->pop<transform*>();
+  path p = pop<path>(s);
+  transform *t = pop<transform*>(s);
   s->push(transformed(*t,p));
 }
 
 void transformPenMult(stack *s)
 {
-  pen *p = s->pop<pen*>();
-  transform *t = s->pop<transform*>();
+  pen *p = pop<pen*>(s);
+  transform *t = pop<transform*>(s);
   s->push(new pen(transformed(t,*p)));
 }
 
 void transformFrameMult(stack *s)
 {
-  picture *p = s->pop<picture *>();
-  transform *t = s->pop<transform*>();
+  picture *p = pop<picture *>(s);
+  transform *t = pop<transform*>(s);
   s->push(transformed(*t,p));
 }
 
 void transformPow(stack *s)
 {
-  int n = s->pop<int>();
-  transform *t = s->pop<transform*>();
+  int n = pop<int>(s);
+  transform *t = pop<transform*>(s);
   transform *T=new transform(identity());
   bool alloc=false;
   if(n < 0) {
@@ -881,56 +880,56 @@ void emptyString(stack *s)
 
 void stringLength(stack *s)
 {
-  string a = s->pop<string>();
+  string a = pop<string>(s);
   s->push((int) a.length());
 }
 
 void stringFind(stack *s)
 {
-  size_t pos=s->pop<int>();
-  string b = s->pop<string>();
-  string a = s->pop<string>();
+  size_t pos=pop<int>(s);
+  string b = pop<string>(s);
+  string a = pop<string>(s);
   s->push((int) a.find(b,pos));
 }
 
 void stringRfind(stack *s)
 {
-  size_t pos=s->pop<int>();
-  string b = s->pop<string>();
-  string a = s->pop<string>();
+  size_t pos=pop<int>(s);
+  string b = pop<string>(s);
+  string a = pop<string>(s);
   s->push((int) a.rfind(b,pos));
 }
 
 void stringSubstr(stack *s)
 {
-  size_t n=s->pop<int>();
-  size_t pos=s->pop<int>();
-  string a = s->pop<string>();
+  size_t n=pop<int>(s);
+  size_t pos=pop<int>(s);
+  string a = pop<string>(s);
   if(pos < a.length()) s->push(a.substr(pos,n));
   else s->push((string)"");
 }
 
 void stringReverse(stack *s)
 {
-  string a = s->pop<string>();
+  string a = pop<string>(s);
   reverse(a.begin(),a.end());
   s->push(a);
 }
 
 void stringInsert(stack *s)
 {
-  string b = s->pop<string>();
-  size_t pos=s->pop<int>();
-  string a = s->pop<string>();
+  string b = pop<string>(s);
+  size_t pos=pop<int>(s);
+  string a = pop<string>(s);
   if(pos < a.length()) s->push(a.insert(pos,b));
   else s->push(a);
 }
 
 void stringErase(stack *s)
 {
-  size_t n=s->pop<int>();
-  size_t pos=s->pop<int>();
-  string a = s->pop<string>();
+  size_t n=pop<int>(s);
+  size_t pos=pop<int>(s);
+  string a = pop<string>(s);
   if(pos < a.length()) s->push(a.erase(pos,n));
   else s->push(a);
 }
@@ -939,8 +938,8 @@ void stringErase(stack *s)
 // from in an array of string pairs {from,to} to the string to in string s.
 void stringReplace(stack *s)
 {
-  array *translate=s->pop<array*>();
-  string S=s->pop<string>();
+  array *translate=pop<array*>(s);
+  string S=pop<string>(s);
   checkArray(s,translate);
   size_t size=translate->size();
   for(size_t i=0; i < size; i++) {
@@ -967,8 +966,8 @@ void stringReplace(stack *s)
 
 void stringFormatInt(stack *s) 
 {
-  int x=s->pop<int>();
-  string format=s->pop<string>();
+  int x=pop<int>(s);
+  string format=pop<string>(s);
   int size=snprintf(NULL,0,format.c_str(),x)+1;
   char *buf=new char[size];
   snprintf(buf,size,format.c_str(),x);
@@ -978,8 +977,8 @@ void stringFormatInt(stack *s)
 
 void stringFormatReal(stack *s) 
 {
-  double x=s->pop<double>();
-  string format=s->pop<string>();
+  double x=pop<double>(s);
+  string format=pop<string>(s);
   const char *beginScientific="\\!\\times\\!10^{";
   const char *phantom="\\phantom{+}";
   const char *endScientific="}";
@@ -1064,11 +1063,11 @@ void stringTime(stack *s)
   static const size_t n=256;
   static char Time[n]="";
 #ifdef HAVE_STRFTIME
-  string format = s->pop<string>();
+  string format = pop<string>(s);
   const time_t bintime=time(NULL);
   strftime(Time,n,format.c_str(),localtime(&bintime));
 #else
-  s->pop<string>();
+  pop<string>(s);
 #endif  
   s->push((string) Time);
 }
@@ -1082,146 +1081,146 @@ void nullPath(stack *s)
 
 void pathIntPoint(stack *s)
 {
-  int n = s->pop<int>();
-  path p = s->pop<path>();
+  int n = pop<int>(s);
+  path p = pop<path>(s);
   s->push(p.point(n));
 }
 
 void pathRealPoint(stack *s)
 {
-  double t = s->pop<double>();
-  path p = s->pop<path>();
+  double t = pop<double>(s);
+  path p = pop<path>(s);
   s->push(p.point(t));
 }
 
 void pathIntPrecontrol(stack *s)
 {
-  int n = s->pop<int>();
-  path p= s->pop<path>();
+  int n = pop<int>(s);
+  path p= pop<path>(s);
   s->push(p.precontrol(n));
 }
 
 void pathRealPrecontrol(stack *s)
 {
-  double t = s->pop<double>();
-  path p= s->pop<path>();
+  double t = pop<double>(s);
+  path p= pop<path>(s);
   s->push(p.precontrol(t));
 }
 
 void pathIntPostcontrol(stack *s)
 {
-  int n = s->pop<int>();
-  path p= s->pop<path>();
+  int n = pop<int>(s);
+  path p= pop<path>(s);
   s->push(p.postcontrol(n));
 }
 
 void pathRealPostcontrol(stack *s)
 {
-  double t = s->pop<double>();
-  path p= s->pop<path>();
+  double t = pop<double>(s);
+  path p= pop<path>(s);
   s->push(p.postcontrol(t));
 }
 
 void pathIntDirection(stack *s)
 {
-  int n = s->pop<int>();
-  path p= s->pop<path>();
+  int n = pop<int>(s);
+  path p= pop<path>(s);
   s->push(unit(p.direction(n)));
 }
 
 void pathRealDirection(stack *s)
 {
-  double t = s->pop<double>();
-  path p= s->pop<path>();
+  double t = pop<double>(s);
+  path p= pop<path>(s);
   s->push(unit(p.direction(t)));
 }
 
 void pathReverse(stack *s)
 {
-  s->push(s->pop<path>().reverse());
+  s->push(pop<path>(s).reverse());
 }
 
 void pathSubPath(stack *s)
 {
-  int e = s->pop<int>();
-  int b = s->pop<int>();
-  s->push(s->pop<path>().subpath(b,e));
+  int e = pop<int>(s);
+  int b = pop<int>(s);
+  s->push(pop<path>(s).subpath(b,e));
 }
 
 void pathSubPathReal(stack *s)
 {
-  double e = s->pop<double>();
-  double b = s->pop<double>();
-  s->push(s->pop<path>().subpath(b,e));
+  double e = pop<double>(s);
+  double b = pop<double>(s);
+  s->push(pop<path>(s).subpath(b,e));
 }
 
 void pathLength(stack *s)
 {
-  path p = s->pop<path>();
+  path p = pop<path>(s);
   s->push(p.length());
 }
 
 void pathCyclic(stack *s)
 {
-  path p = s->pop<path>();
+  path p = pop<path>(s);
   s->push(p.cyclic());
 }
 
 void pathStraight(stack *s)
 {
-  int i = s->pop<int>();
-  path p = s->pop<path>();
+  int i = pop<int>(s);
+  path p = pop<path>(s);
   s->push(p.straight(i));
 }
 
 void pathArcLength(stack *s)
 {
-  s->push(s->pop<path>().arclength());
+  s->push(pop<path>(s).arclength());
 }
 
 void pathArcTimeOfLength(stack *s)
 {
-  double dval = s->pop<double>();
-  path p = s->pop<path>();
+  double dval = pop<double>(s);
+  path p = pop<path>(s);
   s->push(p.arctime(dval));
 }
 
 void pathDirectionTime(stack *s)
 {
-  pair z = s->pop<pair>();
-  path p = s->pop<path>();
+  pair z = pop<pair>(s);
+  path p = pop<path>(s);
   s->push(p.directiontime(z));
 }
 
 void pathIntersectionTime(stack *s)
 {
-  path y = s->pop<path>();
-  path x = s->pop<path>();
+  path y = pop<path>(s);
+  path x = pop<path>(s);
   s->push(intersectiontime(x,y));
 }
 
 void pathSize(stack *s)
 {
-  path p = s->pop<path>();
+  path p = pop<path>(s);
   s->push(p.size());
 }
 
 void pathConcat(stack *s)
 {
-  path y = s->pop<path>();
-  path x = s->pop<path>();
+  path y = pop<path>(s);
+  path x = pop<path>(s);
   s->push(camp::concat(x, y));
 }
 
 void pathMin(stack *s)
 {
-  path p = s->pop<path>();
+  path p = pop<path>(s);
   s->push(p.bounds().Min());
 }
 
 void pathMax(stack *s)
 {
-  path p = s->pop<path>();
+  path p = pop<path>(s);
   s->push(p.bounds().Max());
 }
 
@@ -1234,40 +1233,40 @@ void nullGuide(stack *s)
 
 void newJoin(stack *s)
 {
-  guide *right = s->pop<guide*>();
+  guide *right = pop<guide*>(s);
 
   // Read flags to see what goodies come with the join
-  int flags = s->pop<int>();
+  int flags = pop<int>(s);
   pair leftGiven, rightGiven;
   double leftCurl=0.0, rightCurl=0.0;
   double leftTension=0.0, rightTension=0.0;
   pair leftCont, rightCont;
   if (flags & RIGHT_CURL) {
-    rightCurl = s->pop<double>();
+    rightCurl = pop<double>(s);
   }
   if (flags & RIGHT_GIVEN) {
-    rightGiven = s->pop<pair>();
+    rightGiven = pop<pair>(s);
   }
   if (flags & RIGHT_CONTROL) {
-    rightCont = s->pop<pair>();
+    rightCont = pop<pair>(s);
   }
   if (flags & LEFT_CONTROL) {
-    leftCont = s->pop<pair>();
+    leftCont = pop<pair>(s);
   }
   if (flags & RIGHT_TENSION) {
-    rightTension = s->pop<double>();
+    rightTension = pop<double>(s);
   }
   if (flags & LEFT_TENSION) {
-    leftTension = s->pop<double>();
+    leftTension = pop<double>(s);
   }
   if (flags & LEFT_CURL) {
-    leftCurl = s->pop<double>();
+    leftCurl = pop<double>(s);
   }
   if (flags & LEFT_GIVEN) {
-    leftGiven = s->pop<pair>();
+    leftGiven = pop<pair>(s);
   }
 
-  guide *left = s->pop<guide*>();
+  guide *left = pop<guide*>(s);
 
   join *g = new join(left, right);
 
@@ -1313,17 +1312,17 @@ void newCycle(stack *s)
 void newDirguide(stack *s)
 {
   // Read flags to see what the dirtag is
-  int flags = s->pop<int>();
+  int flags = pop<int>(s);
   pair rightGiven;
   double rightCurl=0.0;
   if (flags & RIGHT_CURL) {
-    rightCurl = s->pop<double>();
+    rightCurl = pop<double>(s);
   }
   if (flags & RIGHT_GIVEN) {
-    rightGiven = s->pop<pair>();
+    rightGiven = pop<pair>(s);
   }
 
-  guide *base = s->pop<guide*>();
+  guide *base = pop<guide*>(s);
 
   dirguide *g = new dirguide(base);
 
@@ -1352,7 +1351,7 @@ void resetdefaultPen(stack *)
 
 void setDefaultPen(stack *s)
 {
-  pen *p=s->pop<pen*>();
+  pen *p=pop<pen*>(s);
   defaultpen=pen(resolvepen,*p);
 }
 
@@ -1363,29 +1362,29 @@ void invisiblePen(stack *s)
 
 void rgb(stack *s)
 {
-  double b = s->pop<double>();
-  double g = s->pop<double>();
-  double r = s->pop<double>();
+  double b = pop<double>(s);
+  double g = pop<double>(s);
+  double r = pop<double>(s);
   s->push(new pen(r,g,b));
 }
 
 void cmyk(stack *s)
 {
-  double k = s->pop<double>();
-  double y = s->pop<double>();
-  double m = s->pop<double>();
-  double c = s->pop<double>();
+  double k = pop<double>(s);
+  double y = pop<double>(s);
+  double m = pop<double>(s);
+  double c = pop<double>(s);
   s->push(new pen(c,m,y,k));  
 }
 
 void gray(stack *s)
 {
-  s->push(new pen(s->pop<double>()));  
+  s->push(new pen(pop<double>(s)));  
 }
 
 void colors(stack *s)
 {  
-  pen *p=s->pop<pen*>();
+  pen *p=pop<pen*>(s);
   int n=ColorComponents[p->colorspace()];
   array *a=new array(n);
   
@@ -1414,104 +1413,104 @@ void colors(stack *s)
 
 void pattern(stack *s)
 {
-  s->push(new pen(setpattern,s->pop<string>()));  
+  s->push(new pen(setpattern,pop<string>(s)));  
 }
 
 void penPattern(stack *s)
 {
-  pen *p=s->pop<pen*>();
+  pen *p=pop<pen*>(s);
   s->push(p->fillpattern());  
 }
 
 void fillRule(stack *s)
 {
-  int n = s->pop<int>();
+  int n = pop<int>(s);
   s->push(new pen(n >= 0 && n < nFill ? (FillRule) n : DEFFILL));
 }
 
 void penFillRule(stack *s)
 {
-  pen *p=s->pop<pen*>();
+  pen *p=pop<pen*>(s);
   s->push(p->Fillrule());  
 }
 
 void baseLine(stack *s)
 {
-  int n = s->pop<int>();
+  int n = pop<int>(s);
   s->push(new pen(n >= 0 && n < nBaseLine ? (BaseLine) n : DEFBASE));
 }
 
 void penBaseLine(stack *s)
 {
-  pen *p=s->pop<pen*>();
+  pen *p=pop<pen*>(s);
   s->push(p->Baseline());
 }
 
 void lineType(stack *s)
 {
-  bool scale = s->pop<bool>();
-  string t = s->pop<string>();
+  bool scale = pop<bool>(s);
+  string t = pop<string>(s);
   s->push(new pen(LineType(t,scale))); 
 }
 
 void penLineType(stack *s)
 {
-  pen *p=s->pop<pen*>();
+  pen *p=pop<pen*>(s);
   s->push(p->stroke());  
 }
 
 void lineCap(stack *s)
 {
-  int n = s->pop<int>();
+  int n = pop<int>(s);
   s->push(new pen(setlinecap,n >= 0 && n < nCap ? n : DEFCAP));
 }
 
 void penLineCap(stack *s)
 {
-  pen *p=s->pop<pen*>();
+  pen *p=pop<pen*>(s);
   s->push(p->cap());  
 }
 
 void lineJoin(stack *s)
 {
-  int n = s->pop<int>();
+  int n = pop<int>(s);
   s->push(new pen(setlinejoin,n >= 0 && n < nJoin ? n : DEFJOIN));
 }
 
 void penLineJoin(stack *s)
 {
-  pen *p=s->pop<pen*>();
+  pen *p=pop<pen*>(s);
   s->push(p->join());  
 }
 
 void lineWidth(stack *s)
 {
-  double x = s->pop<double>();
+  double x = pop<double>(s);
   s->push(new pen(setlinewidth,x >= 0.0 ? x : DEFWIDTH));
 }
 
 void penLineWidth(stack *s)
 {
-  pen *p=s->pop<pen*>();
+  pen *p=pop<pen*>(s);
   s->push(p->width());  
 }
 
 void font(stack *s)
 {
-  string t = s->pop<string>();
+  string t = pop<string>(s);
   s->push(new pen(setfont,t));
 }
 
 void penFont(stack *s)
 {
-  pen *p=s->pop<pen*>();
+  pen *p=pop<pen*>(s);
   s->push(p->Font());  
 }
 
 void fontSize(stack *s)
 {
-  double skip = s->pop<double>();
-  double size = s->pop<double>();
+  double skip = pop<double>(s);
+  double size = pop<double>(s);
   s->push(new pen(setfontsize,
 		  size > 0.0 ? size : 0.0,
 	          skip > 0.0 ? skip : 0.0));
@@ -1519,66 +1518,66 @@ void fontSize(stack *s)
 
 void penFontSize(stack *s)
 {
-  pen *p=s->pop<pen*>();
+  pen *p=pop<pen*>(s);
   s->push(p->size());  
 }
 
 void penLineSkip(stack *s)
 {
-  pen *p=s->pop<pen*>();
+  pen *p=pop<pen*>(s);
   s->push(p->Lineskip());  
 }
 
 void overWrite(stack *s)
 {
-  int n = s->pop<int>();
+  int n = pop<int>(s);
   s->push(new pen(setoverwrite,n >= 0 && n < nOverwrite ? (overwrite_t) n 
 		  : DEFWRITE));
 }
 
 void penOverWrite(stack *s)
 {
-  pen *p=s->pop<pen*>();
+  pen *p=pop<pen*>(s);
   s->push(p->Overwrite());  
 }
 
 void boolPenEq(stack *s)
 {
-  pen *b = s->pop<pen*>();
-  pen *a = s->pop<pen*>();
+  pen *b = pop<pen*>(s);
+  pen *a = pop<pen*>(s);
   s->push((*a) == (*b));
 }
 
 void penPenPlus(stack *s)
 {
-  pen *b = s->pop<pen*>();
-  pen *a = s->pop<pen*>();
+  pen *b = pop<pen*>(s);
+  pen *a = pop<pen*>(s);
   s->push(new pen((*a) + (*b)));
 }
 
 void realPenTimes(stack *s)
 {
-  pen *b = s->pop<pen*>();
-  double a = s->pop<double>();
+  pen *b = pop<pen*>(s);
+  double a = pop<double>(s);
   s->push(new pen(a * (*b)));
 }
 
 void penRealTimes(stack *s)
 {
-  double b = s->pop<double>();
-  pen *a = s->pop<pen*>();
+  double b = pop<double>(s);
+  pen *a = pop<pen*>(s);
   s->push(new pen(b * (*a)));
 }
 
 void penMax(stack *s)
 {
-  pen *p = s->pop<pen*>();
+  pen *p = pop<pen*>(s);
   s->push(p->bounds().Max());
 }
 
 void penMin(stack *s)
 {
-  pen *p = s->pop<pen*>();
+  pen *p = pop<pen*>(s);
   s->push(p->bounds().Min());
 }
 
@@ -1591,27 +1590,27 @@ void nullFrame(stack *s)
 
 void boolNullFrame(stack *s)
 {
-  picture *b = s->pop<picture*>();
+  picture *b = pop<picture*>(s);
   s->push(b->number() == 0);
 }
 
 void frameMax(stack *s)
 {
-  picture *pic = s->pop<picture *>();
+  picture *pic = pop<picture *>(s);
   s->push(pic->bounds().Max());
 }
 
 void frameMin(stack *s)
 {
-  picture *pic = s->pop<picture *>();
+  picture *pic = pop<picture *>(s);
   s->push(pic->bounds().Min());
 }
 
 void draw(stack *s)
 {
-  pen *n = s->pop<pen*>();
-  path p = s->pop<path>();
-  picture *pic = s->pop<picture*>();
+  pen *n = pop<pen*>(s);
+  path p = pop<path>(s);
+  picture *pic = pop<picture*>(s);
 
   drawPath *d = new drawPath(p,*n);
   pic->append(d);
@@ -1619,28 +1618,28 @@ void draw(stack *s)
 
 void fill(stack *s)
 {
-  double rb = s->pop<double>();
-  pair b = s->pop<pair>();
-  pen *penb = s->pop<pen*>();
-  double ra = s->pop<double>();
-  pair a = s->pop<pair>();
-  pen *pena = s->pop<pen*>();
-  path p = s->pop<path>();
-  picture *pic = s->pop<picture*>();
+  double rb = pop<double>(s);
+  pair b = pop<pair>(s);
+  pen *penb = pop<pen*>(s);
+  double ra = pop<double>(s);
+  pair a = pop<pair>(s);
+  pen *pena = pop<pen*>(s);
+  path p = pop<path>(s);
+  picture *pic = pop<picture*>(s);
   drawFill *d = new drawFill(p,*pena,a,ra,*penb,b,rb);
   pic->append(d);
 }
  
 void fillArray(stack *s)
 {
-  double rb = s->pop<double>();
-  pair b = s->pop<pair>();
-  pen *penb = s->pop<pen*>();
-  double ra = s->pop<double>();
-  pair a = s->pop<pair>();
-  pen *pena = s->pop<pen*>();
+  double rb = pop<double>(s);
+  pair b = pop<pair>(s);
+  pen *penb = pop<pen*>(s);
+  double ra = pop<double>(s);
+  pair a = pop<pair>(s);
+  pen *pena = pop<pen*>(s);
   array *p=copyArray(s);
-  picture *pic = s->pop<picture*>();
+  picture *pic = pop<picture*>(s);
   checkArray(s,p);
   drawFill *d = new drawFill(p,*pena,a,ra,*penb,b,rb);
   pic->append(d);
@@ -1650,110 +1649,110 @@ void fillArray(stack *s)
 // Subsequent additions to the picture will not be affected by the path.
 void clip(stack *s)
 {
-  pen *n = s->pop<pen*>();
-  path p = s->pop<path>();
-  picture *pic = s->pop<picture*>();
+  pen *n = pop<pen*>(s);
+  path p = pop<path>(s);
+  picture *pic = pop<picture*>(s);
   pic->prepend(new drawClipBegin(p,*n));
   pic->append(new drawClipEnd());
 }
   
 void clipArray(stack *s)
 {
-  pen *n = s->pop<pen*>();
+  pen *n = pop<pen*>(s);
   array *p=copyArray(s);
-  picture *pic = s->pop<picture*>();
+  picture *pic = pop<picture*>(s);
   pic->prepend(new drawClipBegin(p,*n));
   pic->append(new drawClipEnd());
 }
   
 void beginclip(stack *s)
 {
-  pen *n = s->pop<pen*>();
-  path p = s->pop<path>();
-  picture *pic = s->pop<picture*>();
+  pen *n = pop<pen*>(s);
+  path p = pop<path>(s);
+  picture *pic = pop<picture*>(s);
   pic->append(new drawClipBegin(p,*n,false));
 }
   
 void beginclipArray(stack *s)
 {
-  pen *n = s->pop<pen*>();
+  pen *n = pop<pen*>(s);
   array *p=copyArray(s);
-  picture *pic = s->pop<picture*>();
+  picture *pic = pop<picture*>(s);
   pic->append(new drawClipBegin(p,*n,false));
 }
   
 void endclip(stack *s)
 {
-  picture *pic = s->pop<picture*>();
+  picture *pic = pop<picture*>(s);
   pic->append(new drawClipEnd(false));
 }
   
 void gsave(stack *s)
 {
-  picture *pic = s->pop<picture*>();
+  picture *pic = pop<picture*>(s);
   pic->append(new drawGsave());
 }
   
 void grestore(stack *s)
 {
-  picture *pic = s->pop<picture*>();
+  picture *pic = pop<picture*>(s);
   pic->append(new drawGrestore());
 }
   
 void add(stack *s)
 {
-  picture *from = s->pop<picture*>();
-  picture *to = s->pop<picture*>();
+  picture *from = pop<picture*>(s);
+  picture *to = pop<picture*>(s);
   to->add(*from);
 }
 
 void postscript(stack *s)
 {
-  string t = s->pop<string>();
-  picture *pic = s->pop<picture*>();
+  string t = pop<string>(s);
+  picture *pic = pop<picture*>(s);
   drawVerbatim *d = new drawVerbatim(PostScript,t);
   pic->append(d);
 }
   
 void tex(stack *s)
 {
-  string t = s->pop<string>();
-  picture *pic = s->pop<picture*>();
+  string t = pop<string>(s);
+  picture *pic = pop<picture*>(s);
   drawVerbatim *d = new drawVerbatim(TeX,t);
   pic->append(d);
 }
   
 void texPreamble(stack *s)
 {
-  camp::TeXpreamble.push_back(s->pop<string>()+"\n");
+  camp::TeXpreamble.push_back(pop<string>(s)+"\n");
 }
   
 void layer(stack *s)
 {
-  picture *pic = s->pop<picture*>();
+  picture *pic = pop<picture*>(s);
   drawLayer *d = new drawLayer();
   pic->append(d);
 }
   
 void label(stack *s)
 {
-  pen *p = s->pop<pen*>();
-  pair a = s->pop<pair>();
-  pair z = s->pop<pair>();
-  double r = s->pop<double>();
-  string t = s->pop<string>();
-  picture *pic = s->pop<picture*>();
+  pen *p = pop<pen*>(s);
+  pair a = pop<pair>(s);
+  pair z = pop<pair>(s);
+  double r = pop<double>(s);
+  string t = pop<string>(s);
+  picture *pic = pop<picture*>(s);
   drawLabel *d = new drawLabel(t,r,z,a,p);
   pic->append(d);
 }
   
 void image(stack *s)
 {
-  pair final = s->pop<pair>();
-  pair initial = s->pop<pair>();
+  pair final = pop<pair>(s);
+  pair initial = pop<pair>(s);
   array *p=copyArray(s);
   array *a=copyArray2(s);
-  picture *pic = s->pop<picture*>();
+  picture *pic = pop<picture*>(s);
   pair size=final-initial;
   drawImage *d = new drawImage(*a,*p,transform(initial.getx(),initial.gety(),
 					       size.getx(),0,0,size.gety()));
@@ -1762,11 +1761,11 @@ void image(stack *s)
   
 void shipout(stack *s)
 {
-  bool wait = s->pop<bool>();
-  string format = s->pop<string>();
-  const picture *preamble = s->pop<picture*>();
-  picture *pic = s->pop<picture*>();
-  string prefix = s->pop<string>();
+  bool wait = pop<bool>(s);
+  string format = pop<string>(s);
+  const picture *preamble = pop<picture*>(s);
+  picture *pic = pop<picture*>(s);
+  string prefix = pop<string>(s);
   pic->shipout(*preamble,prefix == "" ? outname : prefix,format,wait);
 }
 
@@ -1779,7 +1778,7 @@ void stringFilePrefix(stack *s)
 
 void interAct(stack *s)
 {
-  bool interaction=s->pop<bool>();
+  bool interaction=pop<bool>(s);
   if(interact::interactive) settings::suppressStandard=!interaction;
 }
 
@@ -1792,22 +1791,19 @@ void boolInterAct(stack *s)
 
 void system(stack *s)
 {
-  string str = s->pop<string>();
+  string str = pop<string>(s);
   
   if(settings::suppressStandard) {s->push(0); return;}
   
   if(safe){
-    em->runtime(s->getPos());
-    *em << "system() call disabled; override with option -unsafe";
-    em->sync();
-    s->push(-1);
+    error(s,"system() call disabled; override with option -unsafe");
   }
   else s->push(System(str.c_str()));
 }
 
 void abort(stack *s)
 {
-  string msg = s->pop<string>();
+  string msg = pop<string>(s);
   error(s,msg.c_str());
 }
   
@@ -1844,9 +1840,9 @@ void atExit(stack *s)
 void merge(stack *s)
 {
   int ret;
-  bool keep = s->pop<bool>();
-  string format = s->pop<string>();
-  string args = s->pop<string>();
+  bool keep = pop<bool>(s);
+  string format = pop<string>(s);
+  string args = pop<string>(s);
   
   if(settings::suppressStandard) {s->push(0); return;}
   
@@ -1876,7 +1872,7 @@ void merge(stack *s)
 
 void execute(stack *s)
 {
-  string str = s->pop<string>();
+  string str = pop<string>(s);
   symbol *id = symbol::trans(str);
   string Outname=outname;
   outname=str;
@@ -1897,7 +1893,7 @@ void execute(stack *s)
 
 void changeDirectory(stack *s)
 {
-  string d=s->pop<string>();
+  string d=pop<string>(s);
   int rc=setPath(d.c_str());
   if(rc != 0) {
     ostringstream buf;
@@ -1912,7 +1908,7 @@ void changeDirectory(stack *s)
 
 void scrollLines(stack *s)
 {
-  int n=s->pop<int>();
+  int n=pop<int>(s);
   settings::scrollLines=n;
 }
 
@@ -1926,8 +1922,8 @@ void nullFile(stack *s)
 
 void fileOpenIn(stack *s)
 {
-  bool check=s->pop<bool>();
-  string filename=s->pop<string>();
+  bool check=pop<bool>(s);
+  string filename=pop<string>(s);
   file *f=new ifile(filename,check);
   f->open();
   s->push(f);
@@ -1935,8 +1931,8 @@ void fileOpenIn(stack *s)
 
 void fileOpenOut(stack *s)
 {
-  bool append=s->pop<bool>();
-  string filename=s->pop<string>();
+  bool append=pop<bool>(s);
+  string filename=pop<string>(s);
   file *f=new ofile(filename,append);
   f->open();
   s->push(f);
@@ -1944,8 +1940,8 @@ void fileOpenOut(stack *s)
 
 void fileOpenXIn(stack *s)
 {
-  bool check=s->pop<bool>();
-  string filename=s->pop<string>();
+  bool check=pop<bool>(s);
+  string filename=pop<string>(s);
 #ifdef HAVE_RPC_RPC_H
   file *f=new ixfile(filename,check);
   s->push(f);
@@ -1956,8 +1952,8 @@ void fileOpenXIn(stack *s)
 
 void fileOpenXOut(stack *s)
 {
-  bool append=s->pop<bool>();
-  string filename=s->pop<string>();
+  bool append=pop<bool>(s);
+  string filename=pop<string>(s);
 #ifdef HAVE_RPC_RPC_H
   file *f=new oxfile(filename,append);
   s->push(f);
@@ -1968,50 +1964,50 @@ void fileOpenXOut(stack *s)
 
 void fileEof(stack *s)
 {
-  file *f = s->pop<file*>();
+  file *f = pop<file*>(s);
   s->push(f->eof());
 }
 
 void fileEol(stack *s)
 {
-  file *f = s->pop<file*>();
+  file *f = pop<file*>(s);
   s->push(f->eol());
 }
 
 void fileError(stack *s)
 {
-  file *f = s->pop<file*>();
+  file *f = pop<file*>(s);
   s->push(f->error());
 }
 
 void fileClear(stack *s)
 {
-  file *f = s->pop<file*>();
+  file *f = pop<file*>(s);
   f->clear();
 }
 
 void fileClose(stack *s)
 {
-  file *f = s->pop<file*>();
+  file *f = pop<file*>(s);
   f->close();
 }
 
 void filePrecision(stack *s) 
 {
-  int val = s->pop<int>();
-  file *f = s->pop<file*>();
+  int val = pop<int>(s);
+  file *f = pop<file*>(s);
   f->precision(val);
 }
 
 void fileFlush(stack *s) 
 {
-   file *f = s->pop<file*>();
+   file *f = pop<file*>(s);
    f->flush();
 }
 
 void readChar(stack *s)
 {
-  file *f = s->pop<file*>();
+  file *f = pop<file*>(s);
   char c;
   if(f->isOpen()) f->read(c);
   static char str[1];
@@ -2022,27 +2018,27 @@ void readChar(stack *s)
 // Set file dimensions
 void fileDimension1(stack *s) 
 {
-  int nx = s->pop<int>();
-  file *f = s->pop<file*>();
+  int nx = pop<int>(s);
+  file *f = pop<file*>(s);
   f->dimension(nx);
   s->push(f);
 }
 
 void fileDimension2(stack *s) 
 {
-  int ny = s->pop<int>();
-  int nx = s->pop<int>();
-  file *f = s->pop<file*>();
+  int ny = pop<int>(s);
+  int nx = pop<int>(s);
+  file *f = pop<file*>(s);
   f->dimension(nx,ny);
   s->push(f);
 }
 
 void fileDimension3(stack *s) 
 {
-  int nz = s->pop<int>();
-  int ny = s->pop<int>();
-  int nx = s->pop<int>();
-  file *f = s->pop<file*>();
+  int nz = pop<int>(s);
+  int ny = pop<int>(s);
+  int nx = pop<int>(s);
+  file *f = pop<file*>(s);
   f->dimension(nx,ny,nz);
   s->push(f);
 }
@@ -2050,8 +2046,8 @@ void fileDimension3(stack *s)
 // Set file to read comma-separated values
 void fileCSVMode(stack *s) 
 {
-  bool b = s->pop<bool>();
-  file *f = s->pop<file*>();
+  bool b = pop<bool>(s);
+  file *f = pop<file*>(s);
   f->CSVMode(b);
   s->push(f);
 }
@@ -2059,8 +2055,8 @@ void fileCSVMode(stack *s)
 // Set file to read arrays in line-at-a-time mode
 void fileLineMode(stack *s) 
 {
-  bool b = s->pop<bool>();
-  file *f = s->pop<file*>();
+  bool b = pop<bool>(s);
+  file *f = pop<file*>(s);
   f->LineMode(b);
   s->push(f);
 }
@@ -2068,8 +2064,8 @@ void fileLineMode(stack *s)
 // Set file to read/write single-precision XDR values.
 void fileSingleMode(stack *s) 
 {
-  bool b = s->pop<bool>();
-  file *f = s->pop<file*>();
+  bool b = pop<bool>(s);
+  file *f = pop<file*>(s);
   f->SingleMode(b);
   s->push(f);
 }
@@ -2077,7 +2073,7 @@ void fileSingleMode(stack *s)
 // Set file to read an array1 (1 int size followed by a 1-d array)
 void fileArray1(stack *s) 
 {
-  file *f = s->pop<file*>();
+  file *f = pop<file*>(s);
   f->dimension(-2);
   s->push(f);
 }
@@ -2085,7 +2081,7 @@ void fileArray1(stack *s)
 // Set file to read an array2 (2 int sizes followed by a 2-d array)
 void fileArray2(stack *s) 
 {
-  file *f = s->pop<file*>();
+  file *f = pop<file*>(s);
   f->dimension(-2,-2);
   s->push(f);
 }
@@ -2093,7 +2089,7 @@ void fileArray2(stack *s)
 // Set file to read an array3 (3 int sizes followed by a 3-d array)
 void fileArray3(stack *s) 
 {
-  file *f = s->pop<file*>();
+  file *f = pop<file*>(s);
   f->dimension(-2,-2,-2);
   s->push(f);
 }

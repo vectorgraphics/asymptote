@@ -20,7 +20,7 @@ using vm::pop;
 template<class T, class S>
 void cast(vm::stack *s)
 {
-  s->push((S) s->pop<T>());
+  s->push((S) pop<T>(s));
 }
 
 template<class T>
@@ -28,7 +28,7 @@ void stringCast(vm::stack *s)
 {
   std::ostringstream buf;
   buf.precision(DBL_DIG);
-  buf << s->pop<T>();
+  buf << pop<T>(s);
   s->push(std::string(buf.str()));
 }
 
@@ -36,7 +36,7 @@ template<class T>
 void castString(vm::stack *s)
 {
   try {
-    s->push(boost::lexical_cast<T>(s->pop<std::string>()));
+    s->push(boost::lexical_cast<T>(pop<std::string>(s)));
   } catch (boost::bad_lexical_cast&) {
     vm::error(s,"invalid cast.");
   }
@@ -45,7 +45,7 @@ void castString(vm::stack *s)
 template<class T, class S>
 void arrayToArray(vm::stack *s)
 {
-  vm::array *a = s->pop<vm::array*>();
+  vm::array *a = pop<vm::array*>(s);
   checkArray(s,a);
   unsigned int size=(unsigned int) a->size();
   vm::array *c=new vm::array(size);
@@ -75,7 +75,7 @@ inline void reportEof(vm::stack *s, camp::file *f, int count)
 template<class T>
 void readArray(vm::stack *s)
 {
-  camp::file *f = s->pop<camp::file*>();
+  camp::file *f = pop<camp::file*>(s);
   vm::array *c=new vm::array(0);
   if(f->isOpen()) {
     int nx=f->Nx();

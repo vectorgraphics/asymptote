@@ -140,4 +140,19 @@ struct max {
   T operator() (T x, T y, vm::stack *, size_t=0) {return x > y ? x : y;}
 };
 
+template <class T>
+void Negate(vm::stack *s)
+{
+  T a=vm::pop<T>(s);
+  s->push(-a);
+}
+  
+template <class T, template <class S> class op>
+void binaryOp(vm::stack *s)
+{
+  T b=vm::pop<T>(s);
+  T a=vm::pop<T>(s);
+  s->push(op<T>()(a,b,s));
+}
+
 } // namespace run

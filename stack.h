@@ -71,10 +71,15 @@ public:
   position getPos();
 };
 
-template <typename T>
-T pop(stack* s)
+inline item pop(stack* s)
 {
-  return s->pop<T>();
+  return s->pop();
+}
+
+template <typename T>
+inline T pop(stack* s)
+{
+  return get<T>(pop(s));
 }
 
 void error(stack *s, const char* message);
