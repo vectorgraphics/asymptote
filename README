@@ -1,13 +1,3 @@
-./autogen.sh
-./configure
-make install
-
-Acknowlege NSERC, PIMS, and University of Alberta Faculty of Science
-The boost library requires the following
-
-http://dl.sourceforge.net/sourceforge/boost/boost-jam-3.1.10-1.i386.rpm
-http://dl.sourceforge.net/sourceforge/boost/boost_1_31_0.tar.bz2
-
 Behaviour of (a..{}nullpath)..(nullpath{}..b):
 In case of 1 specifier, it modifies the pair on the other side.
 In case of 2 specifiers, the first one is ignored.

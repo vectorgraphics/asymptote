@@ -2,10 +2,12 @@
 @setfilename asymptote.info
 @settitle asymptote
      
-@set VERSION 0.99
+@set VERSION 0.50
 
 @copying
 This file documents ASYMPTOTE, version @value{VERSION}.
+
+http://www/asymptote.sourceforge.net
      
 Copyright @copyright{} 2004 Andy Hammerlindl, John Bowman, and Tom Prince.
      
@@ -44,8 +46,9 @@ Foundation.
 
 @menu
 * Description::                 What is Asymptote?
+* Installation::                Getting started
 * Example::                     A simple example
-* Drawing commands::            
+* Drawing commands::            Four primitive drawing commands
 * Interactive mode::            Typing Asymptote commands interactively
 * Credits::                     Contributions and acknowledgements
 * Index::                       General index
@@ -54,17 +57,114 @@ Foundation.
 
 @node Description
 @chapter Description
+@cindex description
+
 Asymptote is powerful script-based vector graphics language that
 provides a natural coordinate-based framework for technical drawings,
 inspired by MetaPost. Labels and equations are typeset with LaTeX, for
 overall document consistency, yielding the same high-quality level of
-typesetting that LaTeX provides for scientific text.
+typesetting that LaTeX provides for scientific text. By default it
+produces postscript output, but it can also generate any format that the
+excellent ImageMagick package can produce.
      
-@cindex description
+A major advantage of Asymptote over other graphics packages is
+that it is a high-level programming language, as opposed to just a graphics
+program: it can therefore exploit the best features of the script
+(command-driven) and graphical user interface (GUI) methods for
+producing graphs. A rudimentary GUI called xasy is included with the
+package that allows one to move script-generated objects
+around. To make Asymptote accessible to the average user, this GUI is
+currently being developed into a full-fledged interface that can
+generate objects directly. However, the script portion of the language
+is now ready for general use by users who are willing to learn a few
+straightforward Asymptote graphics commands. 
+
+Asymptote is mathematically oriented (e.g. at the lowest levels, one can
+use multiplication by complex numbers to do rotations) and uses LaTeX to do the
+typesetting of labels. This is an important feature for scientific
+applications. It was inspired by an earlier drawing program (with a much weaker
+syntax & capabilities) called MetaPost.
+
+Many of the features of Asymptote are written in the Asymptote language
+itself. This allows users to easily tailor its behaviour for a particular
+application. While the stock version of Asymptote is designed for
+mathematics typesetting needs, one can write Asymptote modules that
+tailor it to specific applications. A scientific graphing module has
+already been written.
+
+Examples of asymptote output and corresponding source code (written in
+the Asymptote language) are available at
+http://asymptote.sourceforge.net/gallery/
+
+Features of Asymptote graphics language:
+
+@itemize
+@item a natural mathematical coordinate-based framework for technical drawings,
+inspired by MetaPost
+
+@item TeX labels and equations, for overall document consistency
+
+@item power of a script-based language coupled to the convenience of a GUI
+
+@item can be customized using its own C++-like graphics programming language 
+
+@item sensible defaults for graphical features, with the ability to override
+
+@item makes elegant use of complex numbers and affine transforms
+
+@item a high-level mathematically oriented interface to the postscript language
+for vector graphics
+
+@item functions can create new (anonymous) functions
+
+@item uses deferral of drawing commands and the simplex linear
+programming method to meet figure size constraints
+@end itemize
+
+@node Installation
+@chapter Installation
+@cindex installation
+To install asymptote from release x.xx, execute the following commands:
+
+@example
+tar -zxf asymptote-x.xx.tar.gz
+cd asymptote
+./configure
+make
+make install
+@end example
+
+For a (default) system-wide installation, the last command should be
+done as root.
+
+These commands are needed to install the latest development version of
+asymptote from cvs (when prompted for the CVS password, type enter): 
+
+@example
+cvs -d:pserver:anonymous@@cvs.sourceforge.net:/cvsroot/asymptote login
+ 
+cvs -z3 -d:pserver:anonymous@@cvs.sourceforge.net:/cvsroot/asymptote co asymptote
+cd asymptote
+./autogen.sh
+./configure
+make
+make install
+@end example
+
+In order to run asymptote you will need the boost library (included
+in recent Linux distributions). In particular, the boost library
+requires the following:
+
+@example
+http://dl.sourceforge.net/sourceforge/boost/boost-jam-3.1.10-1.i386.rpm
+http://dl.sourceforge.net/sourceforge/boost/boost_1_31_0.tar.bz2
+@end example
 
 @node Example
 @chapter Example
-To draw a line from (0,0) to (100,100) using interactive mode, type:
+@cindex example
+To draw a line from (0,0) to (100,100) using Asymptote's interactive
+mode, type:
 
 @example
 asy -V
@@ -81,14 +181,23 @@ Further commands specific to interactive mode are described in
 
 You can use the arrow keys in interactive mode to edit previous lines
 (assuming that you have the GNU readline library installed on your
-system).  Because of the current limitations described in @ref{Interactive
-mode}, interactive mode is currently intended only for short 
-demonstration files. For more complicated graphs we recommend typing in the
-commands into a separate file, say test.asy, and executing them by typing
+system).  Because of interactive mode is emulated, it is currently
+intended only for short demonstration files  @xref{Interactive
+mode}. For more complicated graphs we recommend using batch mode.
 
+Let's repeat the previous example in batch mode. Simply type in the
+commands 
+@example
+draw((0,0)--(100,100));
+shipout();
+@end example
+into a file, say test.asy. Then execute this file by typing
 @example
 asy -V test
 @end example
+The shipout command converts the current picture into a postscript. A
+shipout command was added implicitly in interactive mode, but is
+explicitly required in batch mode.
 
 The -V option here opens up a gv window so you can immediately view the
 postscript output.
@@ -98,6 +207,7 @@ like this square:
 
 @example
 draw((0,0)--(100,0)--(100,100)--(0,100)--cycle);
+shipout();
 @end example
 
 It is often inconvenient to work directly with postscript coordinates.
@@ -109,10 +219,12 @@ ignore the two messages "warning: scaling in picture unbounded"; see
 @example
 size(100,100);
 draw((0,0)--(1,0)--(1,1)--(0,1)--cycle);
+shipout();
 @end example
 
 @node Drawing commands
 @chapter Drawing commands
+@cindex drawing commands
 All of Asymptote's graphical capabilities are based on four primitive
 drawing commands. While some of these commands take many options, they
 all have sensible default values.
@@ -120,6 +232,7 @@ all have sensible default values.
 @itemize
 @item
 @example
+@cindex @code{draw}
 void draw(picture pic=currentpicture, string s="", real angle=0,
   path g, pair align=0, side side=RightSide, pen p=currentpen,
   adjust adjust=NoAdjust, arrowbar arrow=None, arrowbar bar=None,
@@ -132,6 +245,7 @@ adjustment, arrows, bars, legend). Only one parameter, the path, is required.
 
 @item
 @example
+@cindex @code{fill}
 void fill(picture pic=currentpicture, path g, pen p=currentpen);
 @end example
 
@@ -140,6 +254,7 @@ using the pen p.
 
 @item
 @example
+@cindex @code{clip}
 void clip(picture pic=currentpicture, path g);
 @end example
 
@@ -147,6 +262,7 @@ Clip picture pic to the region bounded by the path g.
 
 @item
 @example
+@cindex @code{label}
 void label(picture pic=currentpicture, string s, real angle=0,
   pair position, pair align=0, pen p=currentpen,
   adjust adjust=NoAdjust);
@@ -179,7 +295,7 @@ The following special commands are supported only in interactive mode:
 @item @code{redraw} refeshes the screen
 @item @code{reset} resets asymptote to its initial state on entry,
 before any commands were typed.
-@item @code{Import FILE;} imports the existing file FILE, after first
+@item @code{Import FILE;} imports the existing Asymptote file FILE, after first
 doing a reset. 
 @end itemize
 
@@ -188,12 +304,21 @@ interactive commands.
 
 @node Credits
 @chapter Acknowledgements
-Financial support for the developement of Asymptote was generously
+@cindex acknowledgments
+
+Financial support for the development of Asymptote was generously
 provided by the Natural Sciences and Engineering Research Council of
 Canada, the Pacific Institute for Mathematical Sciences, and the Faculty of
 Science, University of Alberta.
      
-@cindex acknowledgments
+We also would like to acknowledge the previous work of John D. Hobby, 
+author of the program @code{MetaPost} that inspired the development of
+@code{Asymptote}. In turn, @code{MetaPost} was based on Donald E. Knuth's
+@code{MetaFont} font generation system, also the author of @TeX{}, so we
+would like to thank him as well.
+
+The authors of Asymptote are Andy Hammerlindl, John Bowman, and Tom Prince.
+Sean Healy designed the Asymptote logo.
 
 @node Index
 @unnumbered Index
