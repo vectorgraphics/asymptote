@@ -304,6 +304,7 @@ void newDeepArray(stack *s)
     dims[index] = s->pop<int>();
 
   s->push(deepArray(depth, dims));
+  delete [] dims;
 }
 
 // Creates an array with elements already specified.  First, the number
@@ -823,12 +824,15 @@ void transformPow(stack *s)
   int n = s->pop<int>();
   transform *t = s->pop<transform*>();
   transform *T=new transform(identity());
+  bool alloc=false;
   if(n < 0) {
     n=-n;
     t=new transform(inverse(*t));
+    alloc=true;
   }
   for(int i=0; i < n; i++) (*T)=(*T) * (*t);
   s->push(T);
+  if(alloc) delete t;
 }
 
 void emptyString(stack *s)
@@ -1615,9 +1619,7 @@ void execute(stack *s)
 
 void nullFile(stack *s)
 {
-  // stdout
-  file *f = file::open("", file::out);
-  s->push(f);
+  s->push(&camp::stdout);
 }
 
 void fileOpenOut(stack *s)

@@ -213,8 +213,11 @@ On machines running Debian Linux, the boost library can be installed with
 apt-get install libboost-graph1.32.0 libboost-dev libboost-graph-dev
 @end verbatim
 
+@cindex readline
 If you are compiling with gcc, you will need a relatively recent version
-(e.g. 3.3.3 or later).
+(e.g. 3.3.3 or later). If you get errors compiling @code{interact.cc},
+try installing an up-to-date version of the GNU @code{readline} library
+or else uncomment @code{HAVE_LIBREADLINE} in @code{config.h}.
 
 The FFTW library is only required if you want @code{Asymptote} to be able to
 take Fourier transforms of data (say to compute an audio power spectrum).
@@ -316,11 +319,10 @@ Further commands specific to interactive mode are described in
 @ref{Interactive mode}.
 
 You can use the arrow keys in interactive mode to edit previous lines
-(assuming that you have a reasonably up-to-date version of the GNU
-readline library installed on your system).  Because interactive mode is
-emulated, it is currently intended only for short demonstration files
-(@pxref{Interactive mode}). For more complicated graphs we recommend
-using batch mode.
+(assuming that you have support for the GNU readline library enabled).
+Because interactive mode is emulated, it is currently intended only for
+short demonstration files (@pxref{Interactive mode}). For more
+complicated graphs we recommend using batch mode.
 
 Let's repeat the previous example in batch mode. Simply type in the
 commands 

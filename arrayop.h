@@ -174,9 +174,8 @@ void writen(vm::stack *s)
 {
   T val = s->pop<T>();
   if(settings::suppressOutput) return;
-  camp::file *stdout=camp::file::open("",camp::file::out);
-  stdout->write(val);
-  stdout->write(newline);
+  camp::stdout.write(val);
+  camp::stdout.write(newline);
 }
 
 template<class T>
@@ -185,11 +184,10 @@ void write2(vm::stack *s)
   T val2 = s->pop<T>();
   T val1 = s->pop<T>();
   if(settings::suppressOutput) return;
-  camp::file *stdout=camp::file::open("",camp::file::out);
-  stdout->write(val1);
-  stdout->write(tab);
-  stdout->write(val2);
-  stdout->write(newline);
+  camp::stdout.write(val1);
+  camp::stdout.write(tab);
+  camp::stdout.write(val2);
+  camp::stdout.write(newline);
 }
 
 template<class T>
@@ -199,13 +197,12 @@ void write3(vm::stack *s)
   T val2 = s->pop<T>();
   T val1 = s->pop<T>();
   if(settings::suppressOutput) return;
-  camp::file *stdout=camp::file::open("",camp::file::out);
-  stdout->write(val1);
-  stdout->write(tab);
-  stdout->write(val2);
-  stdout->write(tab);
-  stdout->write(val3);
-  stdout->write(newline);
+  camp::stdout.write(val1);
+  camp::stdout.write(tab);
+  camp::stdout.write(val2);
+  camp::stdout.write(tab);
+  camp::stdout.write(val3);
+  camp::stdout.write(newline);
 }
 
 template<class T>
@@ -223,11 +220,13 @@ template<class T>
 void showArray(vm::stack *s)
 {
   array *a=pop<array *>(s);
+  if(settings::suppressOutput) return;
   checkArray(s,a);
   size_t size=(size_t) a->size();
   for(size_t i=0; i < size; i++) {
-    cout << std::boolalpha;
-    cout << i << ":\t" << read<T>(a,i) << "\n";
+    cout << i << ":\t";
+    camp::stdout.write(read<T>(a,i));
+    cout << "\n";
   }
   flush(cout);
 }
@@ -271,8 +270,7 @@ template<class T>
 void showArray2(vm::stack *s)
 {
   array *a=pop<array *>(s);
-  camp::file *stdout=camp::file::open("",camp::file::out);
-  outArray2<T>(s,stdout,a);
+  outArray2<T>(s,&camp::stdout,a);
 }
 
 template<class T>

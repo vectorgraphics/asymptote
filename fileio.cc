@@ -93,38 +93,7 @@ public:
 
 };
 
-class ofile : public file
-{
-  ostream *stream;
-  ofstream fstream;
-public:
-  ofile(string name) : file(name) {
-    if(name == "") stream=&cout;
-    else {
-      fstream.open(name.c_str());
-      stream=&fstream;
-    }
-  }
-  
-  const char* Mode() {return "output";}
-
-  bool text() {return true;}
-  bool eof() {return stream->eof();}
-  bool error() {return stream->fail();}
-  void close() {if(fstream) fstream.close(); closed=true;}
-  void clear() {stream->clear();}
-  void precision(int p) {stream->precision(p);}
-  void flush() {stream->flush();}
-  
-  void write(bool val) {*stream << (val ? "true " : "false ");}
-  void write(int val) {*stream << val;}
-  void write(double val) {*stream << val;}
-  void write(const pair& val) {*stream << val;}
-  void write(const std::string& val) {*stream << val;}
-  void write(const pen& val) {*stream << val;}
-  void write(const guide& val) {*stream << val;}
-  void write(const transform& val) {*stream << val;}
-};
+ofile stdout("");
 
 class ixfile : public file
 {
