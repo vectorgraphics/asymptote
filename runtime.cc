@@ -1387,7 +1387,7 @@ void colors(stack *s)
     break;
   default:
     ostringstream buf;
-    buf << "Undefined colorspace index encountered: " << n;
+    buf << "Undefined colorspace index: " << n;
     error(s,buf.str().c_str());
     break;
   }
@@ -1603,21 +1603,22 @@ void stringFilePrefix(stack *s)
 
 // Interactive mode
 
-void suppressOutput(stack *s)
+void interact(stack *s)
 {
-  settings::suppressOutput = s->pop<bool>();
+  bool interaction=s->pop<bool>();
+  if(interact::interactive) settings::suppressStandard=!interaction;
 }
 
 void upToDate(stack *s)
 {
   bool val=s->pop<bool>();
-  if(settings::suppressOutput) return;
+  if(settings::suppressStandard && val == false) return;
   settings::upToDate=val;
 }
 
 void boolUpToDate(stack *s)
 {
-  s->push(interact::interactive && (settings::suppressOutput || 
+  s->push(interact::interactive && (settings::suppressStandard || 
 				    settings::upToDate));
 }
 
@@ -1627,7 +1628,7 @@ void system(stack *s)
 {
   string str = s->pop<string>();
   
-  if(settings::suppressOutput) {s->push(0); return;}
+  if(settings::suppressStandard) {s->push(0); return;}
   
   if(safe){
     em->runtime(s->getPos());
@@ -1658,10 +1659,9 @@ void merge(stack *s)
   string format = s->pop<string>();
   string args = s->pop<string>();
   
-  if(settings::suppressOutput) {s->push(0); return;}
+  if(settings::suppressStandard) {s->push(0); return;}
   
-  if (!checkFormatString(format))
-    return;
+  if(!checkFormatString(format)) return;
   
   ostringstream cmd,remove;
   cmd << "convert "+args;
@@ -1691,7 +1691,7 @@ void execute(stack *s)
   symbol *id = symbol::trans(str);
   string Outname=outname;
   outname=str;
-  size_t p=outname.rfind("."+settings::suffix);
+  size_t p=findextension(outname,suffix);
   if (p < string::npos) outname.erase(p);
   trans::genv ge;
   trans::record *m = ge.loadModule(id);

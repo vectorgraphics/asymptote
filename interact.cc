@@ -110,7 +110,6 @@ void add_input(char *&dest, const char *src, size_t& size)
     }
     size_t len=filebuf.sgetn(dest,size);
     filebuf.close();
-    settings::suppressOutput=false;
     if(len == size) {overflow(); return;}
     size -= len;
     dest += len;
@@ -155,14 +154,17 @@ size_t interactive_input(char *buf, size_t max_size)
     if(HIST_ENTRY *next=history_get(i++)) {
       if(redraw) redraw=false;
       else {
-	add_input(to,"suppressoutput(true)",size);
+	// Disable stdin/stdout
+	add_input(to,"static {interact(false);}; interact(false)",size);
 	camp::typein.seek(0);
       }
       while(HIST_ENTRY *p=history_get(i++)) {
 	add_input(to,next->line,size);
 	next=p;
       }
-      if(*line) add_input(to,"suppressoutput(false)",size);
+      if(*line)
+	// Renable I/O
+	add_input(to,"static {interact(true);}; interact(true)",size);
       add_input(to,next->line,size);
       add_input(to,"shipout()",size);
     }

@@ -50,7 +50,7 @@ int ignoreGUI=0;
 camp::pair postscriptOffset=0.0;
 int origin=CENTER;
   
-bool suppressOutput=false;
+bool suppressStandard=false;
 bool upToDate=false;
 
 int ShipoutNumber=0;

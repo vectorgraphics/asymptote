@@ -286,11 +286,10 @@ extern ifile typein;
 template<class T>
 void ifile::iread(T& val)
 {
-  if(settings::suppressOutput && standard() && interact::interactive)
-    typein.Read(val);
+  if(settings::suppressStandard && standard()) typein.Read(val);
   else {
     Read(val);
-    if(standard() && interact::interactive) {
+    if(interact::interactive && standard()) {
       typeout.write(val);
       typeout.write((std::string)"\n");
       typeout.flush();

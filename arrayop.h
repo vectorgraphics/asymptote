@@ -165,7 +165,7 @@ void write(vm::stack *s)
   T val = s->pop<T>();
   camp::file *f = s->pop<camp::file*>();
   if(!f->isOpen()) return;
-  if(f->filename() == "" && settings::suppressOutput) return;
+  if(f->standard() && settings::suppressStandard) return;
   f->write(val);
 }
 
@@ -173,7 +173,7 @@ template<class T>
 void writen(vm::stack *s)
 {
   T val = s->pop<T>();
-  if(settings::suppressOutput) return;
+  if(settings::suppressStandard) return;
   camp::Stdout.write(val);
   camp::Stdout.write(newline);
 }
@@ -183,7 +183,7 @@ void write2(vm::stack *s)
 {
   T val2 = s->pop<T>();
   T val1 = s->pop<T>();
-  if(settings::suppressOutput) return;
+  if(settings::suppressStandard) return;
   camp::Stdout.write(val1);
   camp::Stdout.write(tab);
   camp::Stdout.write(val2);
@@ -196,7 +196,7 @@ void write3(vm::stack *s)
   T val3 = s->pop<T>();
   T val2 = s->pop<T>();
   T val1 = s->pop<T>();
-  if(settings::suppressOutput) return;
+  if(settings::suppressStandard) return;
   camp::Stdout.write(val1);
   camp::Stdout.write(tab);
   camp::Stdout.write(val2);
@@ -211,7 +211,7 @@ void writeP(vm::stack *s)
   const T& val = *(s->pop<T*>());
   camp::file *f = s->pop<camp::file*>();
   if(!f->isOpen()) return;
-  if(f->filename() == "" && settings::suppressOutput) return;
+  if(f->standard() && settings::suppressStandard) return;
   f->write(val);
 }
   
@@ -220,7 +220,7 @@ template<class T>
 void showArray(vm::stack *s)
 {
   array *a=pop<array *>(s);
-  if(settings::suppressOutput) return;
+  if(settings::suppressStandard) return;
   checkArray(s,a);
   size_t size=(size_t) a->size();
   for(size_t i=0; i < size; i++) {
@@ -237,7 +237,7 @@ void writeArray(vm::stack *s)
   array *a=pop<array *>(s);
   camp::file *f = s->pop<camp::file*>();
   if(!f->isOpen()) return;
-  if(f->filename() == "" && settings::suppressOutput) return;
+  if(f->standard() && settings::suppressStandard) return;
   checkArray(s,a);
   size_t size=(size_t) a->size();
   for(size_t i=0; i < size; i++) {
@@ -250,7 +250,7 @@ void writeArray(vm::stack *s)
 template<class T>
 void outArray2(vm::stack *s, camp::file *f, array *a)
 {
-  if(f->filename() == "" && settings::suppressOutput) return;
+  if(f->standard() && settings::suppressStandard) return;
   checkArray(s,a);
   size_t size=(size_t) a->size();
   for(size_t i=0; i < size; i++) {
@@ -288,7 +288,7 @@ void writeArray3(vm::stack *s)
   array *a=pop<array *>(s);
   camp::file *f = s->pop<camp::file*>();
   if(!f->isOpen()) return;
-  if(f->filename() == "" && settings::suppressOutput) return;
+  if(f->standard() && settings::suppressStandard) return;
   checkArray(s,a);
   size_t size=(size_t) a->size();
   for(size_t i=0; i < size; i++) {

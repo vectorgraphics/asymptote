@@ -38,7 +38,7 @@ extern camp::pair postscriptOffset;
   enum origin {CENTER,BOTTOM,TOP,ZERO};
 extern int origin;
   
-extern bool suppressOutput;
+extern bool suppressStandard;
 extern bool upToDate;
 
 extern int ShipoutNumber;
