@@ -70,7 +70,7 @@ install: asy
 
 install-man:
 	${INSTALL} doc/asymptote.info $(prefix)/info
-	install-info doc/asymptote.info $(prefix)/info/dir
+	install-info --infodir=$(prefix)/info doc/asymptote.info 
 
 uninstall: 
 	-cd $(asydir)/examples; rm -f *.asy
