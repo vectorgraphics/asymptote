@@ -298,42 +298,25 @@ bbox path::bounds() const
 
   bbox box;
   pair a,b,c;
-  double det;
+  quad ret;
   for (int i = 0; i < length(); i++) {
     box += point(i);
     if(straight(i)) continue;
     
     derivative(a,b,c,point(i),postcontrol(i),precontrol(i+1),point(i+1));
-    
+
     // Check x coordinate
-    if (a.getx() == 0.0) {
-      if (b.getx() != 0.0) {
-        double t = -c.getx()/b.getx();
-        if (0 < t && t < 1)
-          box += point(i+t);
-      }
-    } else {
-      det = b.getx()*b.getx()-4*a.getx()*c.getx();
-      if (det >= 0.0) {
-        det = sqrt(det);
-        box += point(i-0.5*(b.getx()+det)/a.getx());
-        box += point(i-0.5*(b.getx()-det)/a.getx());
-      }
+    ret = solveQuadratic(a.getx(),b.getx(),c.getx());
+    if (ret.roots != quad::NONE) {
+      box += point(i+ret.t1);
+      box += point(i+ret.t2);
     }
+    
     // Check y coordinate
-    if (a.gety() == 0.0) {
-      if (b.gety() != 0.0) {
-        double t = -c.gety()/b.gety();
-        if (0 < t && t < 1)
-          box += point(i+t);
-      }
-    } else {
-      det = b.gety()*b.gety()-4*a.gety()*c.gety();
-      if (det >= 0.0) {
-        det = sqrt(det);
-        box += point(i-0.5*(b.gety()+det)/a.gety());
-        box += point(i-0.5*(b.gety()-det)/a.gety());
-      }
+    ret = solveQuadratic(a.gety(),b.gety(),c.gety());
+    if (ret.roots != quad::NONE) {
+      box += point(i+ret.t1);
+      box += point(i+ret.t2);
     }
   }
   box += point(length());
