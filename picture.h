@@ -28,6 +28,8 @@ private:
   pair bboxshift;
   std::list<drawElement*> nodes;
   bool epsformat,pdfformat,tgifformat;
+  std::vector<box> labelbounds;  
+  std::list<bbox> bboxstack;
 
 public:
   picture() : labels(false), lastnumber(0) {}
@@ -36,7 +38,7 @@ public:
   ~picture();
 
   // Find beginning of current layer.
-  std::list<drawElement*>::iterator layerstart();
+  std::list<drawElement*>::iterator layerstart(std::list<bbox>::iterator&);
   
   // Prepend an object to the picture.
   void prepend(drawElement *p);

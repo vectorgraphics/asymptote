@@ -35,7 +35,7 @@ public:
   
   virtual ~drawLabel() {}
 
-  void bounds(bbox& b, iopipestream&, std::vector<box>&);
+  void bounds(bbox& b, iopipestream&, std::vector<box>&, std::list<bbox>&);
   
   bool islabel() {
     return true;

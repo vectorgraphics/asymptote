@@ -14,8 +14,6 @@
 
 namespace camp {
 
-extern std::list<bbox> bboxstack;
-  
 class drawClipBegin : public drawPathPenBase {
 bool gsave;
 public:
@@ -36,10 +34,11 @@ public:
 
   virtual ~drawClipBegin() {}
 
-  void bounds(bbox& b, iopipestream& iopipe, std::vector<box>& vbox) {
+  void bounds(bbox& b, iopipestream& iopipe, std::vector<box>& vbox,
+	      std::list<bbox>& bboxstack) {
     bboxstack.push_back(b);
     bbox bpath;
-    drawPathPenBase::bounds(bpath,iopipe,vbox);
+    drawPathPenBase::bounds(bpath,iopipe,vbox,bboxstack);
     bboxstack.push_back(bpath);
   }
 

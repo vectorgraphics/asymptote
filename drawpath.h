@@ -19,7 +19,7 @@ public:
   
   virtual ~drawPath() {}
 
-  void bounds(bbox& b, iopipestream&, std::vector<box>&);
+  void bounds(bbox& b, iopipestream&, std::vector<box>&, std::list<bbox>&);
 
   bool draw(psfile *out);
 

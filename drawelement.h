@@ -102,7 +102,8 @@ public:
   
   // Adjust the bbox of the picture based on the addition of this
   // element. The iopipestream is needed for determining label sizes.
-  virtual void bounds(bbox&, iopipestream&, std::vector<box>&) {}
+  virtual void bounds(bbox&, iopipestream&, std::vector<box>&,
+		      std::list<bbox>&) {}
 
   virtual bool islabel() {
     return false;
@@ -148,7 +149,7 @@ public:
 
   virtual ~drawPathBase() {}
 
-  void bounds(bbox& b, iopipestream&, std::vector<box>&) {
+  void bounds(bbox& b, iopipestream&, std::vector<box>&, std::list<bbox>&) {
     b += p.bounds();
   }
 };
@@ -201,7 +202,7 @@ public:
     } else return p.cyclic();
   }
   
-  void bounds(bbox& b, iopipestream&, std::vector<box>&) {
+  void bounds(bbox& b, iopipestream&, std::vector<box>&, std::list<bbox>&) {
     if(P) {
       for(size_t i=0; i < size; i++)
 	b += vm::read<path>(P,i).bounds();

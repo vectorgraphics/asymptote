@@ -60,9 +60,10 @@ void drawPath::adjustdash(pen& pen0)
   }
 }  
 
-void drawPath::bounds(bbox& b, iopipestream&, std::vector<box>&)
+void drawPath::bounds(bbox& b, iopipestream&, std::vector<box>&,
+		      std::list<bbox>&)
 {
-  b += pad(p.bounds(), pentype.bounds());
+  b += pad(p.bounds(),pentype.bounds());
 }
 
 bool drawPath::draw(psfile *out)

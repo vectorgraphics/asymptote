@@ -26,7 +26,7 @@ void drawLabel::labelwarning(const char *action)
 }
   
 void drawLabel::bounds(bbox& b, iopipestream& tex,
-		       std::vector<box>& labelbounds)
+		       std::vector<box>& labelbounds, std::list<bbox>&)
 {
   if(!settings::texprocess) {b += position; return;}
   string texbuf;

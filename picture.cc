@@ -26,20 +26,19 @@ namespace camp {
 const char *texready="(Please type a command or say `\\end')\n*";
 iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
   
-std::list<bbox> bboxstack;
-  
 picture::~picture()
 {
 }
 
 // Find beginning of current layer.
-list<drawElement*>::iterator picture::layerstart()
+list<drawElement*>::iterator picture::layerstart(list<bbox>::iterator& b)
 {
   list<drawElement*>::iterator p;
-  for(p=--nodes.end(); p != --nodes.begin(); --p) {
+  for(p=--nodes.end(), b=--bboxstack.end(); p != --nodes.begin(); --p, --b) {
     assert(*p);
     if((*p)->islayer()) break;
   }
+  ++b;
   return ++p;
 }
 
@@ -47,7 +46,9 @@ list<drawElement*>::iterator picture::layerstart()
 void picture::prepend(drawElement *P)
 {
   assert(P);
-  nodes.insert(layerstart(),P);
+  list<bbox>::iterator b;
+  nodes.insert(layerstart(b),P);
+  lastnumber=0;
 }
 
 void picture::append(drawElement *p)
@@ -61,7 +62,8 @@ void picture::add(picture &pic)
   if (&pic == this) return;
 
   // STL's funny way of copying one list into another.
-  copy(pic.nodes.begin(), pic.nodes.end(), inserter(nodes, nodes.end()));
+  copy(pic.nodes.begin(), pic.nodes.end(), back_inserter(nodes));
+  copy(pic.bboxstack.begin(), pic.bboxstack.end(), back_inserter(bboxstack));
 }
 
 // Insert picture pic at beginning of current layer.
@@ -69,45 +71,48 @@ void picture::prepend(picture &pic)
 {
   if (&pic == this) return;
   
-  copy(pic.nodes.begin(), pic.nodes.end(), inserter(nodes, layerstart()));
+  list<bbox>::iterator b;
+  copy(pic.nodes.begin(), pic.nodes.end(), inserter(nodes, layerstart(b)));
+  copy(pic.bboxstack.begin(), pic.bboxstack.end(),inserter(bboxstack,b));
+  lastnumber=0;
 }
 
 bbox picture::bounds()
 {
   size_t n=number();
-  if(lastnumber == n) return b;
-  lastnumber=n;
-  
-  b=bbox();
+  if(n == lastnumber) return b;
   
   list<drawElement*>::iterator p;
-  // Check to see if there are any labels yet
+  
   if(!labels && settings::texprocess) {
-    for (p = nodes.begin(); p != nodes.end(); ++p) {
+    // Check to see if there are any labels yet
+    p=nodes.begin();
+    for(size_t i=0; i < lastnumber; ++i) ++p;
+    for(; p != nodes.end(); ++p) {
       assert(*p);
       if((*p)->islabel())
-	labels=true;
+        labels=true;
     }
   }
   
-  if(labels) texinit();
+  if(labels) {
+    drawElement::lastpen=pen(initialpen);
+    if(!TeXinitialized) texinit();
+  }
   
-  std::vector<box> labelbounds;  
-
-  for (p = nodes.begin(); p != nodes.end(); ++p) {
+  p=nodes.begin();
+  for(size_t i=0; i < lastnumber; ++i) ++p;
+  for(; p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->bounds(b,tex,labelbounds);
+    (*p)->bounds(b,tex,labelbounds,bboxstack);
   }
 
+  lastnumber=n;
   return b;
 }
 
-void picture::texinit() {
-  drawElement::lastpen=pen(initialpen);
-  
-  if(TeXinitialized) return;
-  
-  TeXinitialized=true;
+void picture::texinit()
+{
   tex.open("latex");
   texdocumentclass(tex);
   
@@ -115,6 +120,7 @@ void picture::texinit() {
 
   tex << "\n";
   tex.wait(texready,"! ");
+  TeXinitialized=true;
 }
   
 bool picture::texprocess(const string& texname, const string& outname,
