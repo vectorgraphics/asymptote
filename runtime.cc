@@ -1001,12 +1001,14 @@ void stringFormatReal(stack *s)
 
 void stringTime(stack *s)
 {
-  string format = s->pop<std::string>();
   static const size_t n=256;
   static char Time[n]="";
 #ifdef HAVE_STRFTIME
+  string format = s->pop<std::string>();
   const time_t bintime=time(NULL);
   strftime(Time,n,format.c_str(),localtime(&bintime));
+#else
+  s->pop<std::string>();
 #endif  
   s->push((std::string) Time);
 }
@@ -1491,7 +1493,7 @@ void stringFilePrefix(stack *s)
   s->push((std::string) outname);
 }
 
-void reset(stack *s)
+void reset(stack *)
 {
   settings::reset();
 }
