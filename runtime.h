@@ -45,6 +45,7 @@ void realIntPow(vm::stack *s);
 void realAtan2(vm::stack *s);
 void realHypot(vm::stack *s);
 void realDrem(vm::stack *s);
+void intAbs(vm::stack *s);
 void intCeil(vm::stack *s);
 void intFloor(vm::stack *s);
 void intRound(vm::stack *s);

@@ -9,7 +9,6 @@
 real inches=72.0;
 real cm=inches/2.540005;
 real mm=0.1cm;
-real pt=1;
 
 pair I=(0,1);
 real pi=pi();
@@ -82,12 +81,12 @@ pen pink=red+darkgreen+blue;
 // Global parameters:
 public real labelmargin=0.4;
 public real arrowlength=0.75cm;
-public real arrowsize=7.5pt;
+public real arrowsize=7.5;
 public real arrowangle=15;
 public real arcarrowsize=0.5*arrowsize;
 public real arcarrowangle=2*arrowangle;
 public real barsize=arrowsize;
-public real dotsize=3pt;
+public real dotsize=3;
 
 public pair legendlocation=(1.0,0.8);
 public real legendlinelength=50;

@@ -158,6 +158,11 @@ void realDrem(stack *s)
   s->push(sx);
 }  
 
+void intAbs(stack *s)
+{ 
+  s->push(abs(s->pop<int>()));
+}  
+
 static inline int round(double x) 
 {
   return int(x+((x >= 0) ? 0.5 : -0.5));

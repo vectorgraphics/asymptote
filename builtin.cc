@@ -405,6 +405,7 @@ void base_venv(venv &ve)
   addRealFunc2(ve,run::realFmod,"fmod");
   addRealFunc2(ve,run::realDrem,"drem");
   
+  addFunc(ve,run::intAbs,primInt(),"abs",primInt());
   addFunc(ve,run::intCeil,primInt(),"ceil",primReal());
   addFunc(ve,run::intFloor,primInt(),"floor",primReal());
   addFunc(ve,run::intRound,primInt(),"round",primReal());
@@ -499,6 +500,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::cmyk,primPen(),"cmyk",primReal(),primReal(),primReal(),
 	  primReal());
   addFunc(ve,run::gray,primPen(),"gray",primReal());
+  addFunc(ve,run::defaultpen,primPen(),"defaultpen");
   addFunc(ve,run::invisiblepen,primPen(),"invisible");
   addFunc(ve,run::linewidth,primPen(),"linewidth",primReal());
   addFunc(ve,run::defaultLineWidth,primVoid(),"defaultlinewidth",primReal());
