@@ -18,7 +18,6 @@
 #include "texfile.h"
 #include "pipestream.h"
 #include "pool.h"
-#include "stack.h"
 
 namespace camp {
 
