@@ -1138,11 +1138,15 @@ void dot(picture pic=currentpicture, pair c, pen p)
   _draw(pic,c,linewidth(p)*dotfactor+p);
 }
 
-void dots(picture pic=currentpicture, pair[] c, pen p=currentpen)
+void dot(picture pic=currentpicture, pair[] c, pen p=currentpen)
 {
   for(int i=0; i < c.length; ++i) dot(pic,c[i],p);
 }
 
+void dot(picture pic=currentpicture, guide g, pen p=currentpen)
+{
+  for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p);
+}
 
 void labeldot(picture pic=currentpicture, string s="", real angle=0,
 	      pair c, pair align=E, pen p=currentpen, adjust adjust=NoAdjust)

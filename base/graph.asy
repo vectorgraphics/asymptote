@@ -815,6 +815,16 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
   },g,a,b,n,interpolate);
 }
 
+guide graph(picture pic=currentpicture, guide g=nullpath,
+	    pair z(real), real a, real b,
+	    int n=ngraph, interpolate interpolatetype=LinearInterp)
+{
+  return interpolatetype(new pair (real t) {
+    pair z=z(t);
+    return (pic.scale.x.scale.T(z.x),pic.scale.y.scale.T(z.y));
+  },g,a,b,n,interpolate);
+}
+
 private int next(int i, bool[] cond)
 {
   ++i;
