@@ -466,6 +466,15 @@ void xequals(picture pic=currentpicture, real x,
   
   pic.addPoint((x,finite(ymin) ? ymin : pic.userMin.y),p);
   pic.addPoint((x,finite(ymax) ? ymax : pic.userMax.y),p);
+  
+  if(s != "") {
+    frame f;
+    label(f,s,angle,(0,0),align,plabel);
+    pair a=(x,finite(ymin) ? ymin : pic.userMin.y);
+    pair b=(x,finite(ymax) ? ymax : pic.userMax.y);
+    pair pos=a+position*(b-a);
+    pic.addBox(pos,pos,min(f),max(f));
+  }
 }
 
 void yequals(picture pic=currentpicture, real y,
@@ -487,6 +496,15 @@ void yequals(picture pic=currentpicture, real y,
 
   pic.addPoint((finite(xmin) ? xmin : pic.userMin.x,y),p);
   pic.addPoint((finite(xmax) ? xmax : pic.userMax.x,y),p);
+  
+  if(s != "") {
+    frame f;
+    label(f,s,angle,(0,0),align,plabel);
+    pair a=(finite(xmin) ? xmin : pic.userMin.x,y);
+    pair b=(finite(xmax) ? xmax : pic.userMax.x,y);
+    pair pos=a+position*(b-a);
+    pic.addBox(pos,pos,min(f),max(f));
+  }
 }
 
 private struct axisT {
