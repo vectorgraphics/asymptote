@@ -1233,7 +1233,7 @@ void nullGuide(stack *s)
 
 void dotsGuide(vm::stack *s)
 {
-  array *a=s->pop<array *>();
+  array *a=pop<array *>(s);
 
   vector<guide *> v;
   for (size_t i=0; i<a->size(); ++i)
@@ -1248,7 +1248,7 @@ void dashesGuide(vm::stack *s)
   static specguide curlout(&curly, camp::OUT);
   static specguide curlin(&curly, camp::IN);
 
-  array *a=s->pop<array *>();
+  array *a=pop<array *>(s);
   size_t n=a->size();
 
   // a--b is equivalent to a{curl 1}..{curl 1}b
@@ -1278,33 +1278,33 @@ void cycleGuide(vm::stack *s)
 
 void dirSpec(vm::stack *s)
 {
-  camp::side d=(camp::side)s->pop<int>();
-  camp::dirSpec *sp=new camp::dirSpec(angle(s->pop<pair>()));
+  camp::side d=(camp::side)pop<int>(s);
+  camp::dirSpec *sp=new camp::dirSpec(angle(pop<pair>(s)));
 
   s->push((guide *)new specguide(sp, d));
 }
 
 void curlSpec(vm::stack *s)
 {
-  camp::side d=(camp::side)s->pop<int>();
-  camp::curlSpec *sp=new camp::curlSpec(s->pop<double>());
+  camp::side d=(camp::side)pop<int>(s);
+  camp::curlSpec *sp=new camp::curlSpec(pop<double>(s));
 
   s->push((guide *)new specguide(sp, d));
 }
 
 void realRealTension(vm::stack *s)
 {
-  bool atleast=s->pop<bool>();
-  tension  tin(s->pop<double>(), atleast),
-          tout(s->pop<double>(), atleast);
+  bool atleast=pop<bool>(s);
+  tension  tin(pop<double>(s), atleast),
+          tout(pop<double>(s), atleast);
 
   s->push((guide *)new tensionguide(tout, tin));
 }
 
 void pairPairControls(vm::stack *s)
 {
-  pair  zin=s->pop<pair>(),
-       zout=s->pop<pair>();
+  pair  zin=pop<pair>(s),
+       zout=pop<pair>(s);
 
   s->push((guide *)new controlguide(zout, zin));
 }
@@ -1682,8 +1682,8 @@ void add(stack *s)
 
 void prepend(stack *s)
 {
-  picture *from = s->pop<picture*>();
-  picture *to = s->pop<picture*>();
+  picture *from = pop<picture*>(s);
+  picture *to = pop<picture*>(s);
   to->prepend(*from);
 }
 
