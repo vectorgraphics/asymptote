@@ -829,7 +829,6 @@ real labelmargin(pen p=currentpen)
 
 private struct marginT {
   public real begin,end;
-  public bool forwards=true;
 };
 public marginT margin=new marginT;
 
@@ -855,8 +854,7 @@ margin Margin(real begin, real end)
     real factor=labelmargin(p);
     margin.begin=begin*factor;
     margin.end=end*factor;
-    return margin.forwards ? trim(g,margin.begin,margin.end) : 
-      trim(g,margin.end,margin.begin);
+    return trim(g,margin.begin,margin.end);
   };
 }
 							   
@@ -864,10 +862,9 @@ margin PenMargin(real begin, real end)
 { 
   return new path(path g, pen p, marginT margin) {
     real factor=linewidth(p);
-    margin.begin=begin*factor;
-    margin.end=end*factor;
-    return margin.forwards ? trim(g,margin.begin,margin.end) :
-      trim(g,margin.end,margin.begin);
+    margin.begin=(begin+0.5)*factor;
+    margin.end=(end+0.5)*factor;
+    return trim(g,margin.begin,margin.end);
   };
 }
 						      
@@ -876,7 +873,7 @@ margin TrueMargin(real begin, real end)
   margin.begin=begin;
   margin.end=end;
   return new path(path g, pen p, marginT margin) {
-    return margin.forwards ? trim(g,begin,end) : trim(g,end,begin);
+    return trim(g,begin,end);
   };
 }
 						      
@@ -886,10 +883,10 @@ public margin
   Margin=Margin(0,1),
   EndMargin=Margin,
   Margins=Margin(1,1),
-  BeginPenMargin=PenMargin(1,0),
-  PenMargin=PenMargin(0,1),
+  BeginPenMargin=PenMargin(0.5,-0.5),
+  PenMargin=PenMargin(-0.5,0.5),
   EndPenMargin=PenMargin,
-  PenMargins=PenMargin(1,1);
+  PenMargins=PenMargin(0.5,0.5);
 
 void draw(frame f, path g)
 {
@@ -1118,12 +1115,13 @@ void arrowheadbbox(picture pic=currentpicture, path g, real position=infinity,
 		   pen p=currentpen, real size=arrowsize,
 		   real angle=arrowangle)
 {
-  // Estimate the bounding box contribution using the local slope at endpoint:
+  // Estimate the bounding box contribution using the local slope at endpoint
+  // and ignoring margin.
   path r=subpath(g,position,0.0);
   pair x=point(r,0);
-  pair y=point(r,arctime(r,size));
-  pair dz1=rotate(-angle)*(y-x);
-  pair dz2=rotate(angle)*(y-x);
+  pair y=point(r,arctime(r,size))-x;
+  pair dz1=rotate(-angle)*y;
+  pair dz2=rotate(angle)*y;
   pic.addPoint(x,p);
   pic.addPoint(x,dz1,p);
   pic.addPoint(x,dz2,p);
@@ -1155,9 +1153,10 @@ public Filltype
 
 void arrow(frame f, path G, pen p=currentpen, real size=arrowsize,
 	   real angle=arrowangle, filltype filltype=Fill,
-	   real position=infinity, margin margin=NoMargin)
+	   real position=infinity, bool forwards=true, margin margin=NoMargin)
 {
   G=margin(G,p,margin);
+  if(!forwards) G=reverse(G);
   path R=subpath(G,position,0.0);
   path S=subpath(G,position,length(G));
   size=min(arclength(G),size);
@@ -1183,15 +1182,16 @@ void arrow2(frame f, path G, pen p=currentpen, real size=arrowsize,
 
 picture arrow(path g, pen p=currentpen, real size=arrowsize,
 	      real angle=arrowangle, filltype filltype=Fill,
-	      real position=infinity, margin margin=NoMargin)
+	      real position=infinity, bool forwards=true,
+	      margin margin=NoMargin)
 {
   picture pic=new picture;
   pic.add(new void (frame f, transform t) {
-    arrow(f,t*g,p,size,angle,filltype,position,margin);
+    arrow(f,t*g,p,size,angle,filltype,position,forwards,margin);
   });
   
   pic.addPath(g,p);
-  arrowheadbbox(pic,g,position,p,size,angle);
+  arrowheadbbox(pic,forwards ? g : reverse(g),position,p,size,angle);
   return pic;
 }
 
@@ -1618,7 +1618,7 @@ guide arc(pair c, explicit pair z1, explicit pair z2, direction direction=CCW)
   return arc(c,abs(z1-c),Angle(z1-c),Angle(z2-c),direction);
 }
 
-picture bar(pair a, pair d, pen p=currentpen, margin margin=NoMargin)
+picture bar(pair a, pair d, pen p=currentpen)
 {
   picture pic=new picture;
   _drawabout(a,pic,-0.5d--0.5d,p+solid);
@@ -1652,8 +1652,7 @@ arrowbar BeginArrow(real size=arrowsize, real angle=arrowangle,
   return new void(picture pic, path g, pen p, margin margin,
 		  arrowbarT arrowbar) {
     arrowbar.drawpath=false;
-    margin.forwards=false;
-    add(pic,arrow(reverse(g),p,size,angle,filltype,position,margin));
+    add(pic,arrow(g,p,size,angle,filltype,position,false,margin));
   };
 }
 
@@ -1710,7 +1709,7 @@ arrowbar ArcArrows(real size=arcarrowsize, real angle=arcarrowangle,
 arrowbar BeginBar(real size=barsize) 
 {
   return new void(picture pic, path g, pen p, margin margin, arrowbarT) {
-    add(pic,bar(point(g,0),size*dir(g,0)*I,p,margin));
+    add(pic,bar(point(g,0),size*dir(g,0)*I,p));
   };
 }
 
@@ -1756,8 +1755,8 @@ public arrowbar
 void draw(picture pic=currentpicture, string s="", real angle=0,
 	  path g, real position=infinity, pair align=0, pair shift=0,
 	  side side=RightSide, pen p=currentpen,
-	  arrowbar arrow=None, arrowbar bar=None, string legend="",
-	  margin margin=NoMargin)
+	  arrowbar arrow=None, arrowbar bar=None,
+	  margin margin=NoMargin, string legend="")
 {
   arrowbarT arrowbar=new arrowbarT;
   if(s != "") label(pic,s,angle,g,position,align,shift,side,p);
@@ -1774,11 +1773,11 @@ void draw(picture pic=currentpicture, string s="", real angle=0,
 void drawabout(pair origin, picture pic=currentpicture, string s="",
 	       real angle=0, path g, real position=infinity, pair align=0,
 	       pair shift=0, side side=RightSide, pen p=currentpen,
-	       arrowbar arrow=None, arrowbar bar=None, string legend="",
-	       margin margin=NoMargin)
+	       arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
+	       string legend="")
 {
   picture opic=new picture;
-  draw(opic,s,angle,g,position,align,shift,side,p,arrow,bar,legend,margin);
+  draw(opic,s,angle,g,position,align,shift,side,p,arrow,bar,margin,legend);
   addabout(origin,pic,opic);
 }
 

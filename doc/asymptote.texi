@@ -2650,6 +2650,7 @@ void axis(picture pic=currentpicture, guide g, real tickmin=-infinity,
 
 This routine can be used to draw a general axis based on an arbitrary
 path @code{g}, with ticks evenly spaced along its arclength.
+Here @code{position} denotes an @code{arctime} value.
 
 @item These routines are useful for putting ticks and labels on axes:
 @verbatim
@@ -3110,18 +3111,19 @@ currentpicture).
 void draw(picture pic=currentpicture, string s="", real angle=0,
           path g, real position=0.5*length(g), pair align=0,
           pair shift=0, side side=RightSide, pen p=currentpen,
-          arrowbar arrow=None, arrowbar bar=None, string legend="");
+          arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
+          string legend="");
 @end verbatim
 
 Draw the path @code{g} on the picture @code{pic}, optionally labeled by
 string @code{s} writing at angle @code{angle} (in degrees) at position
 @code{position} and aligned using the pair @code{align} (or, if zero,
 aligned on side @code{side}) and true shift @code{shift}, using pen
-@code{p} and other optional drawing attributes (arrows, bars, legend). Only one
-parameter, the path, is required. For convenience, the arguments
-@code{arrow} and @code{bar} may be specified in either order. The final
-argument, @code{legend}, is a string to use in constructing an optional
-legend entry.
+@code{p} and other optional drawing attributes (arrows, bars, margins,
+legend). Only one parameter, the path, is required. For convenience,
+the arguments @code{arrow} and @code{bar} may be specified in either order. 
+The final argument, @code{legend}, is a string to use in constructing
+an optional legend entry.
 
 @cindex @code{LeftSide}
 @cindex @code{Center}
@@ -3137,14 +3139,15 @@ corresponds to an endpoint of the path @code{g}.
 @cindex @code{EndBar}
 @cindex @code{Bar}
 @cindex @code{Bars}
-The possible values of @code{bar} are @code{None}, @code{BeginBar},
-@code{EndBar} (or equivalently @code{Bar}), and @code{Bars} 
-(which draws a bar at both ends of the path). These are useful for
-indicating dimensions. Each of these bar specifiers take a single
-optional real argument that denotes the length of the bar in @code{PostScript}
-coordinates. 
+Bars are useful for indicating dimensions. The possible values of
+@code{bar} are @code{None}, @code{BeginBar}, @code{EndBar} (or
+equivalently @code{Bar}), and @code{Bars} (which draws a bar at both
+ends of the path). Each of these bar specifiers (except for
+@code{None}) will accept an optional real argument that denotes the
+length of the bar in @code{PostScript} coordinates.
 
 @cindex @code{None}
+@cindex @code{Blank}
 @cindex @code{BeginArrow}
 @cindex @code{EndArrow}
 @cindex @code{Arrow}
@@ -3155,20 +3158,51 @@ coordinates.
 @cindex @code{EndArcArrow}
 @cindex @code{ArcArrow}
 @cindex @code{ArcArrows}
-The possible values of @code{arrow} are @code{None}, @code{BeginArrow},
-@code{EndArrow} (or equivalently @code{Arrow}), and @code{Arrows} 
-(which draws an arrow at both ends of the path).
-Each of these arrow specifiers may be given the optional arguments real
+The possible values of @code{arrow} are @code{None}, @code{Blank}
+(which draws no arrows or path), @code{BeginArrow}, @code{EndArrow}
+(or equivalently @code{Arrow}), and @code{Arrows} (which draws an
+arrow at both ends of the path).
+Each of these arrow specifiers (except for @code{None} and @code{Blank})
+may be given the optional arguments real
 @code{size} (in @code{PostScript} coordinates), real @code{angle} (in degrees),
-@code{Fill} or @code{NoFill}, and a relative real position along the
-path from 0 to 1 where the tip of the arrow should be placed. There are
-also arrow versions with slightly modified default values of @code{size} and
-@code{angle} suitable for curved arrows: @code{BeginArcArrow},
-@code{EndArcArrow} (or equivalently @code{ArcArrow}), and @code{ArcArrows}.
+@code{Fill} or @code{NoFill}, and a relative real @code{position}
+along the path (an @code{arctime}) where the tip of the arrow should
+be placed. There are also arrow versions with slightly modified
+default values of @code{size} and @code{angle} suitable for curved
+arrows: @code{BeginArcArrow}, @code{EndArcArrow} (or equivalently
+@code{ArcArrow}), and @code{ArcArrows}.
 
-Two examples illustrating the use of arrows and bars are
-@code{Pythagoras.asy} and @code{triads.asy} in the examples directory
-(by default @code{/usr/local/share/doc/asymptote}).
+@cindex @code{NoMargin}
+@cindex @code{BeginMargin}
+@cindex @code{EndMargin}
+@cindex @code{Margin}
+@cindex @code{Margins}
+@cindex @code{BeginPenMargin}
+@cindex @code{EndPenMargin}
+@cindex @code{PenMargin}
+@cindex @code{PenMargins}
+@cindex @code{Margin}
+@cindex @code{TrueMargin}
+Margins can be used to shrink a path by @code{labelmargin(p)} to avoid
+overlap with other drawn objects. The possible values of @code{margin}
+are @code{NoMargin}, @code{BeginMargin}, @code{EndMargin} (or
+equivalently @code{Margin}), and @code{Margins} (which leaves a margin
+at both ends of the path). One may use @code{Margin(real begin, real end)}
+to specify the size of the beginning and ending margin, respectively,
+in multiples of the units @code{labelmargin(p)} used for aligning labels.
+Alternatively, @code{BeginPenMargin}, @code{EndPenMargin}
+(or equivalently @code{Margin}), @code{Margins},
+@code{PenMargin(real begin, real end)} specify a margin in units of
+the pen linewidth, taking account of the pen linewidth when drawing
+the path or arrow. For example, use @code{PenMargin(-0.5,0.5*dotfactor)}
+to draw from the usual beginning point just up to the boundary of an
+end dot of width @code{dotfactor*linewidth(p)}. The qualifier
+@code{TrueMargin(real begin, real end)} allows one to specify a margin
+directly in @code{PostScript} units, independent of the pen linewidth.
+
+Examples illustrating the use of arrows, bars, and margins are
+@code{Pythagoras.asy}, @code{sqrtx01.asy}, and @code{triads.asy} 
+(in the examples directory, by default @code{/usr/local/share/doc/asymptote}).
 
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.
@@ -3273,7 +3307,7 @@ translation @code{shift}, using pen @code{p}. If @code{align} is 0,
 the label will be centered at @code{position}; otherwise it will be
 aligned in the direction of @code{align} and displaced from
 the user coordinate @code{position} by the @code{PostScript} offset
-@code{align*labelmargin*fontsize(p)}.
+@code{align*labelmargin(p)}.
 
 A label with an arrow can be produced with one of the following routines:
 @cindex @code{arrow}
@@ -3281,11 +3315,12 @@ A label with an arrow can be produced with one of the following routines:
 void arrow(picture pic=currentpicture, string s="", real angle=0,
            pair b, pair align, real length=arrowlength, pair shift=0,
            pen p=currentpen, real size=arrowsize, real Angle=arrowangle,
-           arrowhead arrowhead=Fill);
+           arrowhead arrowhead=Fill,margin margin=EndMargin)
 
 void arrow(picture pic=currentpicture, string s, real angle=0,
            pair shift=0, path g, pen p=currentpen, real size=arrowsize,
-           real Angle=arrowangle, arrowhead arrowhead=Fill);
+           real Angle=arrowangle, arrowhead arrowhead=Fill,
+           margin margin=NoMargin)
 @end verbatim
 
 @cindex including @code{EPS} files
@@ -3347,7 +3382,7 @@ latex latexusage
 @end verbatim
 
 Here now is @code{latexusage.tex}:
-@verbatiminclude latexusage.asy
+@verbatiminclude latexusage.tex
 @page
 @image{latexusage,,26cm}
 
