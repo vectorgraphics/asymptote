@@ -32,7 +32,7 @@ real cot(real x) {return tan(pi/2-x);}
 real frac(real x) {return x-(int)x;}
 
 struct vector {
-  real x,y,z;
+  public real x,y,z;
   void vector(real x, real y, real z) {this.x=x; this.y=y; this.z=z;}
 }
 
@@ -120,36 +120,36 @@ vector unitnormal(vector[] p)
   return unit(normal(p));
 }
 
-
 // Return any point on the intersection of the two planes with normals
 // n0 and n1 passing through points P0 and P1, respectively.
 // If the planes are parallel return vector(infinity,infinity,infinity).
 vector intersection(vector n0, vector P0, vector n1, vector P1)
 {
-  real de=n0.y*n1.z-n1.y*n0.z;
-  real De=n0.x*n1.y-n1.x*n0.y;
-  real DE=n0.z*n1.x-n1.z*n0.x;
-  if(abs(de) > abs(De) && abs(de) > abs(DE)) {
-    de=1/de;
+  real Dx=n0.y*n1.z-n1.y*n0.z;
+  real Dy=n0.z*n1.x-n1.z*n0.x;
+  real Dz=n0.x*n1.y-n1.x*n0.y;
+  if(abs(Dx) > abs(Dy) && abs(Dx) > abs(Dz)) {
+    Dx=1/Dx;
     real d0=n0.y*P0.y+n0.z*P0.z;
     real d1=n1.y*P1.y+n1.z*P1.z+n1.x*(P1.x-P0.x);
-    real y=(d0*n1.z-d1*n0.z)*de;
-    real z=(n0.y*d0-n1.y*d1)*de;
+    real y=(d0*n1.z-d1*n0.z)*Dx;
+    real z=(d0*n0.y-d1*n1.y)*Dx;
     return vector(P0.x,y,z);
-  } else if(abs(De) > abs(DE)) {
-    De=1/De;
-    real d0=n0.x*P0.x+n0.y*P0.y;
-    real d1=n1.x*P1.x+n1.y*P1.y+n1.z*(P1.z-P0.z);
-    real x=(d0*n1.y-d1*n0.y)*De;
-    real y=(n0.x*d0-n1.x*d1)*De;
-    return vector(x,y,P0.z);
-  } else {
-    if(DE == 0) return vector(infinity,infinity,infinity);
+  } else if(abs(Dy) > abs(Dz)) {
+    Dy=1/Dy;
     real d0=n0.z*P0.z+n0.x*P0.x;
     real d1=n1.z*P1.z+n1.x*P1.x+n1.y*(P1.y-P0.y);
-    real z=(d0*n1.x-d1*n0.x)*DE;
-    real x=(n0.z*d0-n1.z*d1)*DE;
+    real z=(d0*n1.x-d1*n0.x)*Dy;
+    real x=(d1*n0.z-d0*n1.z)*Dy;
     return vector(x,P0.y,z);
+  } else {
+    if(Dz == 0) return vector(infinity,infinity,infinity);
+    Dz=1/Dz;
+    real d0=n0.x*P0.x+n0.y*P0.y;
+    real d1=n1.x*P1.x+n1.y*P1.y+n1.z*(P1.z-P0.z);
+    real x=(d0*n1.y-d1*n0.y)*Dz;
+    real y=(d1*n0.x-d0*n1.x)*Dz;
+    return vector(x,y,P0.z);
   }
 }
 
