@@ -229,6 +229,8 @@ void clipArray(vm::stack *s);
 void beginclip(vm::stack *s);
 void beginclipArray(vm::stack *s);
 void endclip(vm::stack *s);
+void gsave(vm::stack *s);
+void grestore(vm::stack *s);
 void add(vm::stack *s);
 
 void postscript(vm::stack *s);

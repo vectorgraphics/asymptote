@@ -105,7 +105,7 @@ syn keyword	asyType		pair transform guide path pen frame
 syn keyword     asyType         picture
 
 syn keyword	asyStructure	struct typedef
-syn keyword     asyStorageClass static public private
+syn keyword     asyStorageClass static public private explicit
 
 syn keyword     asyPathSpec     and cycle controls tension atleast curl
 
@@ -114,18 +114,23 @@ syn keyword     asyConstant     null nullframe nullpath
 
 if exists("asy_syn_plain")
   syn keyword	asyConstant	currentpicture currentpen
-  syn keyword	asyConstant	in cm up down right left 
+  syn keyword	asyConstant	inch inches cm mm bp pt up down right left 
   syn keyword	asyConstant	E NE N NW W SW S SE
   syn keyword	asyConstant	ENE NNE NNW WNW WSW SSW SSE ESE
   syn keyword	asyConstant	I pi twopi
   syn keyword	asyConstant	solid dotted dashed dashdotted
-  syn keyword	asyConstant	black gray white
+  syn keyword	asyConstant	longdashed longdashdotted
+  syn keyword	asyConstant	squarecap roundcap extendcap
+  syn keyword	asyConstant	miterjoin roundjoin beveljoin
+  syn keyword	asyConstant	zerowinding evenodd
+  syn keyword	asyConstant	invisible black gray grey white
+  syn keyword	asyConstant	lightgray lightgrey
   syn keyword	asyConstant	red green blue
   syn keyword	asyConstant	cmyk Cyan Magenta Yellow Black
   syn keyword	asyConstant	yellow magenta cyan
   syn keyword	asyConstant	brown darkgreen darkblue
   syn keyword	asyConstant	orange purple
-  syn keyword	asyConstant	chartreuse fushsia salmon lightblue lavender
+  syn keyword	asyConstant	chartreuse fuchsia salmon lightblue lavender
   syn keyword	asyConstant	pink
 endif
 

@@ -17,18 +17,19 @@ namespace camp {
 extern std::list<bbox> bboxstack;
   
 class drawClipBegin : public drawPathPenBase {
+bool gsave;
 public:
   void noncyclic() {
       reportError("cannot clip to non-cyclic path");
   }
   
-  drawClipBegin(path src, const pen& pentype)
-    : drawPathPenBase(src,pentype) {
+  drawClipBegin(path src, const pen& pentype, bool gsave=true)
+    : drawPathPenBase(src,pentype), gsave(gsave) {
     if(!cyclic()) noncyclic();
   }
 
-  drawClipBegin(vm::array *src, const pen& pentype)
-    : drawPathPenBase(src,pentype) {
+  drawClipBegin(vm::array *src, const pen& pentype, bool gsave=true)
+    : drawPathPenBase(src,pentype), gsave(gsave) {
     for(size_t i=0; i < size; i++)
       if(!cyclic()) noncyclic();
   }
@@ -43,7 +44,7 @@ public:
   }
 
   bool draw(psfile *out) {
-    out->gsave();
+    if(gsave) out->gsave();
     if (empty()) return true;
     
     writepath(out);

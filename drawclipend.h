@@ -14,8 +14,9 @@
 namespace camp {
 
 class drawClipEnd : public drawElement {
+bool grestore;  
 public:
-  drawClipEnd() {}
+  drawClipEnd(bool grestore=true) : grestore(grestore) {}
 
   virtual ~drawClipEnd() {}
 
@@ -31,7 +32,7 @@ public:
   }
 
   bool draw(psfile *out) {
-    out->grestore();
+    if(grestore) out->grestore();
     return true;
   }
 

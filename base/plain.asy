@@ -120,7 +120,7 @@ public real legendskip=1.5;
 public pen legendboxpen=black;
 public real legendmargin=10;
 
-public string defaultfilename="";
+public string defaultfilename;
 
 real infinity=sqrt(0.5*realMax()); // Reduced for tension atleast infinity
 real epsilon=realEpsilon();
@@ -934,19 +934,13 @@ void clip(frame f, path[] g)
   clip(f,g,currentpen);
 }
 
-void clip(picture pic=currentpicture, path g, pen p=currentpen)
+private void clippicture(picture pic, path g)
 {
   pic.userMin=maxbound(pic.userMin,min(g));
   pic.userMax=minbound(pic.userMax,max(g));
-  pic.beginclip(new void (frame f, transform t) {
-    beginclip(f,t*g,p);
-  });
-  pic.add(new void (frame f, transform t) {
-    endclip(f);
-  });
 }
 
-void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
+private void clippicture(picture pic, path[] g)
 {
   pair ming=(infinity,infinity);
   pair maxg=-ming;
@@ -958,11 +952,64 @@ void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
     pic.userMin=maxbound(pic.userMin,ming);
     pic.userMax=minbound(pic.userMax,maxg);
   }
+}
+
+void clip(picture pic=currentpicture, path g, pen p=currentpen)
+{
+  clippicture(pic,g);
   pic.beginclip(new void (frame f, transform t) {
-    beginclip(f,t*g,p);
+    beginclip(f,t*g,p,true);
   });
+  pic.add(new void (frame f, transform) {
+    endclip(f,true);
+  });
+}
+
+void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
+{
+  clippicture(pic,g);
+  pic.beginclip(new void (frame f, transform t) {
+    beginclip(f,t*g,p,true);
+  });
+  pic.add(new void (frame f, transform) {
+    endclip(f,true);
+  });
+}
+
+void beginclip(picture pic=currentpicture, path g, pen p=currentpen)
+{
+  clippicture(pic,g);
   pic.add(new void (frame f, transform t) {
-    endclip(f);
+    beginclip(f,t*g,p,false);
+  });
+}
+
+void beginclip(picture pic=currentpicture, path[] g, pen p=currentpen)
+{
+  clippicture(pic,g);
+  pic.add(new void (frame f, transform t) {
+    beginclip(f,t*g,p,false);
+  });
+}
+
+void endclip(picture pic=currentpicture)
+{
+  pic.add(new void (frame f, transform) {
+    endclip(f,false);
+  });
+}
+
+void gsave(picture pic=currentpicture)
+{
+  pic.add(new void (frame f, transform) {
+    gsave(f);
+  });
+}
+
+void grestore(picture pic=currentpicture)
+{
+  pic.add(new void (frame f, transform) {
+    grestore(f);
   });
 }
 
@@ -1973,8 +2020,52 @@ pen font(string name)
   return fontcommand("\font\ASYfont="+name+"\ASYfont");
 }
 
-pen font(string encoding, string family, string series="m",string shape="n") 
+pen font(string name, real size) 
+{
+  // Extract size of requested TeX font
+  string basesize;
+  for(int i=0; i < length(name); ++i) {
+    string c=substr(name,i,1);
+    if(c >= "0" && c <= "9") basesize += c;
+    else if(basesize != "") break;
+  }
+  return basesize == "" ? font(name) :
+    font(name+" scaled "+(string) (1000*size/(int) basesize)); 
+}
+
+pen font(string encoding, string family, string series="m", string shape="n") 
 {
   return fontcommand("\usefont{"+encoding+"}{"+family+"}{"+series+"}{"+shape+
 		     "}");
+}
+
+pen AvantGarde(string series="m", string shape="n") {
+  return font("OT1","pag",series,shape);
+}
+pen Bookman(string series="m", string shape="n") {
+  return font("OT1","pbk",series,shape);
+}
+pen Courier(string series="m", string shape="n") {
+  return font("OT1","pcr",series,shape);
+}
+pen Helvetica(string series="m", string shape="n") {
+  return font("OT1","phv",series,shape);
+}
+pen NewCenturySchoolBook(string series="m", string shape="n") {
+  return font("OT1","pnc",series,shape);
+}
+pen Palatino(string series="m", string shape="n") {
+  return font("OT1","ppl",series,shape);
+}
+pen TimesRoman(string series="m", string shape="n") {
+  return font("OT1","ptm",series,shape);
+}
+pen ZapfChancery(string series="m", string shape="n") {
+  return font("OT1","pzc",series,shape);
+}
+pen Symbol(string series="m", string shape="n") {
+  return font("OT1","psy",series,shape);
+}
+pen ZapfDingbats(string series="m", string shape="n") {
+  return font("OT1","pzd",series,shape);
 }

@@ -54,6 +54,7 @@ file LICENSE in the top-level source directory).
 * Options::                     Command line options
 * Interactive mode::            Typing @code{Asymptote} commands interactively
 * GUI::                         Graphical user interface
+* PostScript to Asymptote::     @code{Asymptote} backend to @code{pstoedit}
 * Help::                        Where to get help and submit bug reports
 * Credits::                     Contributions and acknowledgments
 * Index::                       General index
@@ -659,6 +660,10 @@ In the following string functions, position 0 denotes the start of the string.
 
 @table @code
 
+@cindex @code{length}
+@item int length(string s)
+returns the length of the string @code{s};
+
 @cindex @code{find}
 @item int find(string s, string t, int pos=0)
 returns the position of the first occurrence of string @code{t} in string
@@ -1182,15 +1187,36 @@ the function @code{pen fontsize(real size, real baselineskip=1.2*size)}.
 The default font size, 12pt, may be changed with @code{defaultpen(pen)}.
 
 @cindex @code{font}
+@cindex @code{LaTeX fonts}
 @cindex @code{NFSS}
 @item A pen using a specific @code{LaTeX} @code{NFSS} font is returned
 by calling the function @code{pen font(string encoding, string family,
 string series="m", string shape="n")}. The default setting,
 @code{font("OT1","cmr","m","n")}, corresponds to 12pt Computer Modern Roman;
-this may be changed with @code{defaultpen(pen)}. Alternatively, one
-may select a fixed-size @code{TeX} font (on which @code{fontsize} has
-no effect) like @code{"pcrr"} (Courier) using the function @code{pen
-font(string name)}.
+this may be changed with @code{defaultpen(pen)}. 
+
+@cindex @code{TeX fonts}
+Alternatively, one may select a fixed-size @code{TeX} font (on which
+@code{fontsize} has no effect) like @code{"cmr12"} (12pt Computer Modern
+Roman) or @code{"pcrr"} (Courier) using the function @code{pen font(string
+name)}. An optional size argument can also be given to scale the font
+to the requested size: @code{pen font(string name, real size)}.
+
+@cindex @code{PostScript fonts}
+A convenient interface to the following standard @code{PostScript}
+fonts is also provided:
+@verbatim
+pen AvantGarde(string series="m", string shape="n");
+pen Bookman(string series="m", string shape="n");
+pen Courier(string series="m", string shape="n");
+pen Helvetica(string series="m", string shape="n");
+pen NewCenturySchoolBook(string series="m", string shape="n");
+pen Palatino(string series="m", string shape="n");
+pen TimesRoman(string series="m", string shape="n");
+pen ZapfChancery(string series="m", string shape="n");
+pen Symbol(string series="m", string shape="n");
+pen ZapfDingbats(string series="m", string shape="n");
+@end verbatim
 
 @cindex patterns
 @cindex tilings
@@ -3463,6 +3489,33 @@ unfilled regions or compound objects (e.g. arrows) can be prevented.
 Deconstructed pictures cannot be clipped, but clipping will be
 properly displayed by @code{xasy} when done in a separate
 (nondeconstructed) picture.
+
+@node PostScript to Asymptote
+@chapter @code{PostScript} to @code{Asymptote}
+An @code{Asymptote} backend to @code{pstoedit}
+(@code{http://pstoedit.net}), including native clipping and subpath
+support, is provided in the file @code{pstoedit-3.40asy.patch} in the
+@code{patches} directory of the @code{Asymptote} source. To install
+@code{pstoedit} with this backend, do the following
+(denoting the location of the @code{Asymptote} source directory by 
+@code{ASYMPTOTE_SOURCE}):
+
+@verbatim
+tar -zxf pstoedit-3.40.tar.gz
+cd pstoedit-3.40
+patch -p1 < ASYMPTOTE_SOURCE/patches/pstoedit-3.40asy.patch
+./configure --prefix=/usr
+make install
+@end verbatim
+
+@noindent
+
+For example, try:
+@verbatim
+asy -V /usr/local/share/doc/asymptote/venn.asy 
+pstoedit venn.eps test.asy
+asy -V test.asy
+@end verbatim
 
 @node Help
 @chapter Help

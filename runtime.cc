@@ -49,6 +49,8 @@ using std::string;
 #include "drawclipend.h"
 #include "drawlabel.h"
 #include "drawverbatim.h"
+#include "drawgsave.h"
+#include "drawgrestore.h"
 #include "drawlayer.h"
 #include "fileio.h"
 #include "genv.h"
@@ -1618,20 +1620,6 @@ void clip(stack *s)
   pic->append(new drawClipEnd());
 }
   
-void beginclip(stack *s)
-{
-  pen *n = s->pop<pen*>();
-  path p = s->pop<path>();
-  picture *pic = s->pop<picture*>();
-  pic->prepend(new drawClipBegin(p,*n));
-}
-  
-void endclip(stack *s)
-{
-  picture *pic = s->pop<picture*>();
-  pic->append(new drawClipEnd());
-}
-  
 void clipArray(stack *s)
 {
   pen *n = s->pop<pen*>();
@@ -1642,13 +1630,44 @@ void clipArray(stack *s)
   pic->append(new drawClipEnd());
 }
   
+void beginclip(stack *s)
+{
+  bool gsave = s->pop<bool>();
+  pen *n = s->pop<pen*>();
+  path p = s->pop<path>();
+  picture *pic = s->pop<picture*>();
+  if(gsave) pic->prepend(new drawClipBegin(p,*n));
+  else pic->append(new drawClipBegin(p,*n,false));
+}
+  
 void beginclipArray(stack *s)
 {
+  bool gsave = s->pop<bool>();
   pen *n = s->pop<pen*>();
   array *p=s->pop<array *>();
   picture *pic = s->pop<picture*>();
   checkArray(s,p);
-  pic->prepend(new drawClipBegin(p,*n));
+  if(gsave) pic->prepend(new drawClipBegin(p,*n));
+  else pic->append(new drawClipBegin(p,*n,false));
+}
+  
+void endclip(stack *s)
+{
+  bool grestore = s->pop<bool>();
+  picture *pic = s->pop<picture*>();
+  pic->append(new drawClipEnd(grestore));
+}
+  
+void gsave(stack *s)
+{
+  picture *pic = s->pop<picture*>();
+  pic->append(new drawGsave());
+}
+  
+void grestore(stack *s)
+{
+  picture *pic = s->pop<picture*>();
+  pic->append(new drawGrestore());
 }
   
 void add(stack *s)

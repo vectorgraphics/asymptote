@@ -1,0 +1,593 @@
+diff -ru --new-file pstoedit-3.40/src/Makefile.am pstoedit-3.40J/src/Makefile.am
+--- pstoedit-3.40/src/Makefile.am	2004-11-03 14:05:16.000000000 -0700
++++ pstoedit-3.40J/src/Makefile.am	2005-02-05 11:32:36.000000000 -0700
+@@ -50,6 +50,7 @@
+ 	drvtext.cpp 	drvtext.h		\
+ 	drvsk.cpp 	drvsk.h			\
+ 	drvmpost.cpp 	drvmpost.h		\
++	drvasy.cpp 	drvasy.h		\
+ 	drvmma.cpp 	drvmma.h		\
+ 	drvlatex2e.cpp 	drvlatex2e.h		\
+ 	drvpic.cpp 	drvpic.h		\
+diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
+--- pstoedit-3.40/src/drvasy.cpp	1969-12-31 17:00:00.000000000 -0700
++++ pstoedit-3.40J/src/drvasy.cpp	2005-02-14 16:43:26.018270840 -0700
+@@ -0,0 +1,489 @@
++/*
++  drvASY.cpp : This file is part of pstoedit
++  Backend for Asymptote files
++  Contributed by: John Bowman
++
++  Copyright (C) 1993 - 2005 Wolfgang Glunz, wglunz34_AT_geocities.com
++
++  This program is free software; you can redistribute it and/or modify
++  it under the terms of the GNU General Public License as published by
++  the Free Software Foundation; either version 2 of the License, or
++  (at your option) any later version.
++
++  This program is distributed in the hope that it will be useful,
++  but WITHOUT ANY WARRANTY; without even the implied warranty of
++  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++  GNU General Public License for more details.
++
++  You should have received a copy of the GNU General Public License
++  along with this program; if not, write to the Free Software
++  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++
++*/
++#ifdef _MSC_VER
++// #define _POSIX_					// for MSVC and limits.h
++#endif
++
++#include "drvasy.h"
++
++// #include I_fstream
++#include I_stdio
++#include I_stdlib
++
++#include <math.h>				// Need definition of FLT_MAX
++#include <float.h>				// FLT_MAX on MSVC
++
++#include <limits.h>				// PATH_MAX for MSVC
++#include <ctype.h>				// Need definition of ispunct()
++
++
++#if !(defined(unix) || defined(__unix__) || defined(_unix) || defined(__unix) || defined(__EMX__) || defined (NetBSD)  )
++#define LINE_MAX 2048			// for MSVC
++#endif
++// Constructor -- Initialize variables and take other per-document actions
++
++static bool firstpage;
++
++drvASY::derivedConstructor(drvASY):
++  constructBase,
++  // Initialize member variables
++  prevFontName(""), prevFontWeight(""), prevR(0.0f), prevG(0.0f), prevB(0.0f),
++  // Black
++  prevFontAngle(FLT_MAX), prevFontSize(-1.0), prevLineWidth(0.0f),
++  prevLineCap(1),		// Round line caps
++  prevLineJoin(1),		// Round joins
++  prevDashPattern(""),		// Solid lines
++  fillmode(false),
++  evenoddmode(false),
++  clipmode(false),
++  savemode(0),
++  restoremode(0)
++{
++  // Output copyright information
++  outf << "// Converted from PostScript(TM) to Asymptote by pstoedit\n"
++       << "// Asymptote backend contributed by John Bowman\n"
++       << "// pstoedit is Copyright (C) 1993 - 2005 Wolfgang Glunz"
++       << " <wglunz34_AT_pstoedit.net>\n\n";
++	
++  outf << "pen textpen;" << endl;
++  outf << "pair align=1e-10*NE;" << endl;
++  firstpage=true;
++}
++
++
++// Destructor -- Tell Asymptote to end the file
++drvASY::~drvASY()
++{
++  outf << "shipout();" << endl;
++}
++
++// Output a path
++void drvASY::print_coords()
++{
++  bool withinpath = false;	// true=already started plotting points
++  unsigned int pointsOnLine = 0;// Number of points on the current output line
++  bool havecycle=false;
++  bool firstpoint=false;
++
++  if (fillmode || clipmode) {
++    for (unsigned int n = 0; n < numberOfElementsInPath(); n++) {
++      const basedrawingelement & elem = pathElement(n);
++      switch (elem.getType()) {
++      case moveto:
++	if(withinpath) {
++	  if(firstpoint) {
++	    firstpoint=false;
++	    // ignore a spurious moveto
++	    unsigned int next=n+1;
++	    if(next == numberOfElementsInPath()) break;
++	    Dtype nexttype=pathElement(next).getType();
++	    if(nexttype == moveto || nexttype == closepath) break;
++	  }
++	} else {
++	  firstpoint=true;
++	  if(clipmode) {
++	    outf << "beginclip(";
++	    bool pop=clipmodestack.size() > 0;
++	    if(pop) {
++	      clipmodestack.pop_back();
++	      clipmodestack.push_back(true);
++	    }
++	  } else
++	    outf << "fill(";
++	}
++      case lineto:
++	{
++	  const Point & p = elem.getPoint(0);
++	  if(elem.getType() == lineto) {
++	    if (withinpath) {
++	      outf << "--";
++	    } else {
++	      cerr << "lineto without a moveto; ignoring" << endl;
++	      break;
++	    }
++	  } else {
++	    if (withinpath) {
++	      outf << "^^";
++	      firstpoint=true;
++	    }
++	  }
++	  
++	  outf << '(' << (p.x_ + x_offset) << ',' << (p.y_ + y_offset)
++	       << ')';
++	  withinpath = true;
++	  havecycle=false;
++	  pointsOnLine++;
++	}
++	break;
++
++      case closepath:
++	outf << "--cycle";
++	havecycle=true;
++	break;
++
++      case curveto:
++	{
++	  if (!withinpath) {
++	    cerr << "curveto without a moveto; ignoring" << endl;
++	    break;
++	  }
++	  const Point & p0 = elem.getPoint(0);
++	  outf << "..controls (" << (p0.x_ + x_offset)
++	       << ',' << (p0.y_ + y_offset) << ") and (";
++	  const Point & pt1 = elem.getPoint(1);
++	  outf << (pt1.x_ + x_offset) << ',' << (pt1.y_ + y_offset) << ")..(";
++	  const Point & pt2 = elem.getPoint(2);
++	  outf << (pt2.x_ + x_offset) << ',' << (pt2.y_ + y_offset) << ')';
++	  pointsOnLine += 3;
++	  withinpath = true;
++	  havecycle=false;
++	}
++	break;
++
++      default:
++	errf << "\t\tFatal: unexpected path element in drvasy" << endl;
++	abort();
++	break;
++      }
++      if (pointsOnLine >= 3) {
++	outf << "\n\t";
++	pointsOnLine = 0;
++      }
++    }
++    if (withinpath)	{		// Finish the final path
++      if(!havecycle) outf << "--cycle";
++      if(evenoddmode) outf << ",currentpen+evenodd";
++      outf << ");" << endl;
++    }
++  } else {					// Stroking, not filling
++    for (unsigned int n = 0; n < numberOfElementsInPath(); n++) {
++      const basedrawingelement & elem = pathElement(n);
++      switch (elem.getType()) {
++      case moveto:
++	if(!withinpath) outf << "draw(";
++      case lineto:
++	{
++	  const Point & p = elem.getPoint(0);
++	  if(elem.getType() == lineto) {
++	    if (withinpath) {
++	      outf << "--";
++	    } else {
++	      cerr << "lineto without a moveto; ignoring" << endl;
++	      break;
++	    }
++	  } else {
++	    if (withinpath) outf << "^^";
++	  }
++	  
++	  outf << '(' << (p.x_ + x_offset) << ',' << (p.y_ + y_offset)
++	       << ')';
++	  withinpath = true;
++	  pointsOnLine++;
++	}
++	break;
++
++      case closepath:
++	outf << "--cycle);" << endl;
++	withinpath = false;
++	pointsOnLine = 0;
++	break;
++
++      case curveto:
++	{
++	  if (!withinpath) {
++	    cerr << "curveto without a moveto; ignoring" << endl;
++	    break;
++	  }
++	  const Point & p0 = elem.getPoint(0);
++	  outf << "..controls (" << (p0.x_ + x_offset)
++	       << ',' << (p0.y_ + y_offset) << ") and (";
++	  const Point & pt1 = elem.getPoint(1);
++	  outf << (pt1.x_ + x_offset) << ',' << (pt1.y_ + y_offset) << ")..(";
++	  const Point & pt2 = elem.getPoint(2);
++	  outf << (pt2.x_ + x_offset) << ',' << (pt2.y_ + y_offset) << ')';
++	  pointsOnLine += 3;
++	  withinpath = true;
++	}
++	break;
++
++      default:
++	errf << "\t\tFatal: unexpected path element in drvasy" << endl;
++	abort();
++	break;
++      }
++      if (pointsOnLine >= 3 &&
++	  n + 1 < numberOfElementsInPath() && 
++	  pathElement(n + 1).getType() != moveto) {
++	outf << "\n\t";
++	pointsOnLine = 0;
++      }
++    }
++    if (withinpath)	{		// Finish the final path
++      outf << ");" << endl;
++    }
++  }
++  
++  // Prune spurious gsave/grestore pairs
++  while(savemode && restoremode) {
++    savemode--;
++    restoremode--;
++  }
++  
++  while(savemode) {
++    outf << "gsave();" << endl;
++    clipmodestack.push_back(false);
++    savemode--;
++  }
++  
++  while(restoremode) {
++    bool pop=clipmodestack.size() > 0;
++    if(pop) {
++      if(clipmodestack.back()) outf << "endclip();" << endl;
++      clipmodestack.pop_back();
++    }
++    outf << "grestore();" << endl;
++    restoremode--;
++  }
++}
++
++
++// Each page will produce a different figure
++void drvASY::open_page()
++{
++  if(firstpage) firstpage=false;
++  else outf << "newpage();" << endl;
++}
++
++void drvASY::close_page()
++{
++}
++
++// Output a text string
++void drvASY::show_text(const TextInfo & textinfo)
++{
++  // Change fonts
++  string thisFontName(textinfo.currentFontName.value());
++  string thisFontWeight(textinfo.currentFontWeight.value());
++
++  const double ps2tex=72.27/72.0;
++    
++  if (thisFontName != prevFontName || thisFontWeight != prevFontWeight) {
++    if(textinfo.is_non_standard_font) {
++      size_t n = thisFontName.length();
++      for(size_t i=0; i < n; i++) thisFontName[i] = tolower(thisFontName[i]);
++      outf << "textpen += font(\"" << thisFontName << "\"";
++      if(textinfo.currentFontSize > 0) 
++	outf << "," << textinfo.currentFontSize*ps2tex;
++      outf << ");" << endl;
++    } else {
++      outf << "textpen += " << thisFontName << "(";
++      if(thisFontWeight == "Bold") outf << "\"b\"";
++      else if(thisFontWeight == "Condensed") outf << "\"c\"";
++      outf << ");" << endl;
++    }
++    prevFontName = thisFontName;
++    prevFontWeight = thisFontWeight;
++  }
++	
++  // Change colors
++  if (textinfo.currentR != prevR || textinfo.currentG != prevG ||
++      textinfo.currentB != prevB) {
++    outf << "textpen=0*textpen+rgb("
++	 << textinfo.currentR << "," 
++	 << textinfo.currentG << ","
++	 << textinfo.currentB << ");" << endl;
++    prevR = textinfo.currentR;
++    prevG = textinfo.currentG;
++    prevB = textinfo.currentB;
++  }
++	
++  // Change font size
++  if (textinfo.currentFontSize != prevFontSize) {
++    if (textinfo.currentFontSize > 0) {
++      outf << "textpen += fontsize(" << textinfo.currentFontSize*ps2tex
++	   << ");" << endl;
++      prevFontSize = textinfo.currentFontSize;
++    } else {
++      if (Verbose())
++	errf << "warning: font size of " << textinfo.
++	  currentFontSize << "pt encountered; ignoring" << endl;
++    }
++  }
++  // Change rotation
++  if (textinfo.currentFontAngle != prevFontAngle)
++    prevFontAngle = textinfo.currentFontAngle;
++
++  // Output the text using macros defined in the constructor
++  outf << "label (";
++  bool texify=false;
++  bool quote=false;
++  for (const char *c = textinfo.thetext.value(); *c; c++) {
++    if (*c >= ' ' && *c != '\\' && *c <= '~') {
++      if(!texify) {
++	if(quote) outf << "\"+";
++	else quote=true;
++	outf << "texify(\"";
++	texify=true;
++      }
++      if (*c == '"') outf << "\\\"";
++      else outf << (*c);
++    } else {
++      if(texify) {
++	outf << "\")+";
++	texify=false;
++	quote=false;
++      }
++      if(!quote) {
++	outf << "\"";
++	quote=true;
++      }
++	outf << "\\char" << (int) *c;
++    }
++  }
++  if(quote) outf << "\"";
++  if(texify) outf << ")";
++  outf << "," << prevFontAngle 
++       << ",(" << textinfo.x << ',' << textinfo.y << "),align,textpen);" 
++       << endl;
++}
++
++
++// Output a path
++void drvASY::show_path()
++{
++  // Change colors
++  if (currentR() != prevR || currentG() != prevG || currentB() != prevB) {
++    prevR = currentR();
++    prevG = currentG();
++    prevB = currentB();
++    outf << "currentpen=0*currentpen+rgb("
++	 << prevR << ","
++	 << prevG << ","
++	 << prevB << ");" << endl;
++  }
++  // Change line width
++  double linewidth=currentLineWidth();
++  // Fix up zero linewidths resulting from a dtransform truncate idtransform
++  if(linewidth == 0.0) linewidth=0.5;
++  if(linewidth != prevLineWidth) {
++    prevLineWidth = linewidth;
++    outf << "currentpen += " << prevLineWidth << "bp;" << endl;
++  }
++  // Change line cap
++  if (currentLineCap() != prevLineCap) {
++    prevLineCap = currentLineCap();
++    outf << "currentpen += ";
++    switch (prevLineCap) {
++    case 0:
++      outf << "squarecap;" << endl;
++      break;
++    case 1:
++      outf << "roundcap;" << endl;
++      break;
++    case 2:
++      outf << "extendcap;" << endl;
++      break;
++    default:
++      errf << "\t\tFatal: Unknown linecap \"" << prevLineCap << '"' << endl;
++      abort();
++      break;
++    }
++  }
++  // Change line join
++  if (currentLineJoin() != prevLineJoin) {
++    prevLineJoin = currentLineJoin();
++    outf << "currentpen += ";
++    switch (prevLineJoin) {
++    case 0:
++      outf << "miterjoin;" << endl;
++      break;
++    case 1:
++      outf << "roundjoin;" << endl;
++      break;
++    case 2:
++      outf << "beveljoin;" << endl;
++      break;
++    default:
++      errf << "\t\tFatal: Unknown linejoin \"" << prevLineJoin << '"' << endl;
++      abort();
++      break;
++    }
++  }
++  // Change dash pattern
++  string currentDashPattern = dashPattern();
++  if (currentDashPattern != prevDashPattern) {
++    prevDashPattern = currentDashPattern;
++    size_t p=currentDashPattern.find('[');
++    if(p < string::npos) currentDashPattern[p]='\"';
++    p=currentDashPattern.find(']');
++    if(p < string::npos) {
++      currentDashPattern[p]='\"';
++      size_t n=currentDashPattern.length();
++      p++;
++      if(p < n)
++	currentDashPattern.erase(p,n-p);
++    }
++    outf << "currentpen += linetype(" << currentDashPattern
++	 << ",false);" << endl;
++  }
++
++  // Determine the fill mode
++  evenoddmode=(currentShowType() == drvbase::eofill); 
++  fillmode = (evenoddmode || currentShowType() == drvbase::fill);
++  if (!fillmode && currentShowType() != drvbase::stroke) {
++    errf << "\t\tFatal: unexpected show type " << (int)
++      currentShowType() << " in drvasy" << endl;
++    abort();
++  }
++  // Draw the path
++  print_coords();
++}
++
++void drvASY::ClipPath(cliptype type)
++{
++  clipmode=true;
++  evenoddmode=(type == drvbase::eoclip);
++  print_coords();
++  clipmode=false;
++}
++
++void drvASY::Save()
++{
++  savemode++;
++}
++
++void drvASY::Restore()
++{
++  restoremode++;
++}
++				       
++static DriverDescriptionT < drvASY > 
++D_asy("asy", "Asymptote Format", "","asy",
++      true,	// if backend supports subpathes
++      true,	// if backend supports curves, else 0
++      false,	// if backend supports elements with fill and edges
++      true,	// if backend supports text, else 0
++      DriverDescription::noimage,	// no support for PNG file images
++      DriverDescription::normalopen, true, // supports multiple pages
++      true  /*clipping */ 
++      );
+diff -ru --new-file pstoedit-3.40/src/drvasy.h pstoedit-3.40J/src/drvasy.h
+--- pstoedit-3.40/src/drvasy.h	1969-12-31 17:00:00.000000000 -0700
++++ pstoedit-3.40J/src/drvasy.h	2005-02-14 17:17:56.515507416 -0700
+@@ -0,0 +1,85 @@
++#ifndef __drvASY_h
++#define __drvASY_h
++
++/* 
++   drvasy.h : This file is part of pstoedit
++   Backend for Asymptote files
++   Contributed by: Scott Pakin <pakin@uiuc.edu>
++
++   Copyright (C) 1993 - 2005 Wolfgang Glunz, wglunz34_AT_pstoedit.net
++
++   This program is free software; you can redistribute it and/or modify
++   it under the terms of the GNU General Public License as published by
++   the Free Software Foundation; either version 2 of the License, or
++   (at your option) any later version.
++
++   This program is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program; if not, write to the Free Software
++   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++
++*/
++
++
++
++#include "drvbase.h"
++
++
++#ifdef HAVESTL
++#include <string>        // C++ string class
++#include <list>
++#else
++typedef RSString string;
++#endif
++
++class drvASY : public drvbase {
++
++public:
++
++  derivedConstructor(drvASY);
++
++  ~drvASY(); // Destructor
++  class DriverOptions : public ProgramOptions {
++  public:
++    DriverOptions() {}
++  }*options;
++
++#include "drvfuncs.h"
++  void show_text(const TextInfo & textInfo);
++  void ClipPath(cliptype);
++  void Save();
++  void Restore();
++
++private:
++  void print_coords();
++  // Previous values of graphics state variables
++  string prevFontName;
++  string prevFontWeight;
++  float prevR, prevG, prevB;
++  float prevFontAngle;
++  float prevFontSize;
++  float prevLineWidth;
++  unsigned int prevLineCap;
++  unsigned int prevLineJoin;
++  string prevDashPattern;
++
++  // Set to true for fill or eofill, false for stroke
++  bool fillmode;
++  // Set to true for eofill or eoclip, false otherwise
++  bool evenoddmode;
++  // Set to true for clip or eoclip, false otherwise
++  bool clipmode;
++  // Number of pending gsave instructions
++  unsigned int savemode;
++  // Number of pending grestore instructions
++  unsigned int restoremode;
++  
++  std::list<bool> clipmodestack;
++
++};
++
++#endif

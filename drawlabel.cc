@@ -44,8 +44,16 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
       tex.wait("\n*","! ");
     }
     
-    if(Pentype.Font() != lastpen.Font()) {
-      tex <<  Pentype.Font() << "%\n";
+    string font=Pentype.Font();
+    if(font != lastpen.Font()) {
+      scale=1.0;
+      string scaled=" scaled";
+      size_t p=font.find(scaled);
+      if(p < string::npos) {
+	p += scaled.length();
+	scale=atof(font.substr(p,string::npos).c_str())/1000.0;
+      }
+      tex <<  font << "%\n";
       tex.wait("\n*","! ");
     }
     
@@ -75,6 +83,10 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
     tex << "\n";
     tex.wait("\n*","! ");
      
+    width *= scale;
+    height *= scale;
+    depth *= scale;
+    
     Align=align/rotation;
     double scale0=max(fabs(Align.getx()),fabs(Align.gety()));
     if(scale0) Align *= 0.5/scale0;
