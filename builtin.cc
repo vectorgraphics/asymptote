@@ -411,6 +411,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::intAbs,primInt(),"abs",primInt());
   addFunc(ve,run::intCeil,primInt(),"ceil",primReal());
   addFunc(ve,run::intFloor,primInt(),"floor",primReal());
+  addFunc(ve,run::intSgn,primInt(),"sgn",primReal());
   addFunc(ve,run::intRound,primInt(),"round",primReal());
   addFunc(ve,run::pairExpi,primPair(),"expi",primReal());
   addFunc(ve,run::pairConj,primPair(),"conj",primPair());
@@ -493,6 +494,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::frameMin,primPair(),"min",primPicture());
   
   addFunc(ve,run::realDir,primPair(),"dir",primReal());
+  addFunc(ve,run::pairLength,primReal(),"abs",primPair());
   addFunc(ve,run::pairLength,primReal(),"length",primPair());
   addFunc(ve,run::pairAngle,primReal(),"angle",primPair());
   addFunc(ve,run::pairDegrees,primReal(),"Angle",primPair());

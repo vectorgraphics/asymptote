@@ -1382,6 +1382,11 @@ string italic(string s)
   return "{\it "+s+"}";
 }
 
+string baseline(string s)
+{
+  return "\baseline{"+s+"}";
+}
+
 string math(string s)
 {
   return "$"+s+"$";
@@ -1390,11 +1395,6 @@ string math(string s)
 string math(real x)
 {
   return math((string) x);
-}
-
-string baseline(string s)
-{
-  return "\baseline{"+s+"}";
 }
 
 private struct keepT {};

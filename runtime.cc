@@ -190,6 +190,13 @@ void intRound(stack *s)
   s->push(sx);
 }  
 
+void intSgn(stack *s)
+{ 
+  double x = s->pop<double>();
+  int sx = (x == 0.0 ? 0 : (x > 0.0 ? 1 : -1));
+  s->push(sx);
+}  
+
 void intRand(stack *s)
 { 
   s->push(rand());

@@ -1,4 +1,4 @@
-			Known Asymptote Bugs
+	 Known bugs in Asymptote (relative to latest CVS version)
 -------------------------------------------------------------------------------
 2004-17-11: Import scoping problem. 
 Suppose blah0.asy contains the single line

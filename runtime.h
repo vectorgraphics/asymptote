@@ -49,6 +49,7 @@ void intAbs(vm::stack *s);
 void intCeil(vm::stack *s);
 void intFloor(vm::stack *s);
 void intRound(vm::stack *s);
+void intSgn(vm::stack *s);
 void intRand(vm::stack *s);
 void intSrand(vm::stack *s);
 void realPi(vm::stack *s);

@@ -2,16 +2,6 @@
 
 public real perpsize=arrowsize;
 
-real abs(pair z)
-{
-  return length(z);
-}
-
-int sgn(real x)
-{
-  return (x == 0 ? 0 : (x > 0 ? 1 : -1));
-}
-
 real radians(real degrees)
 {
   return degrees*pi/180;
@@ -41,7 +31,124 @@ real sec(real x) {return 1/cos(x);}
 real cot(real x) {return tan(pi/2-x);}
 real frac(real x) {return x-(int)x;}
 
-// Given a vector A, return its partial (optionally dx-weighted) sums.
+struct vector {
+  real x,y,z;
+  void vector(real x, real y, real z) {this.x=x; this.y=y; this.z=z;}
+}
+
+void write(file out, vector v)
+{
+  write(out,"(");
+  write(out,v.x); write(out,","); write(out,v.y); write(out,",");
+  write(out,v.z);
+  write(out,")");
+}
+
+void write(vector v)
+{
+  write(stdout,v); write(stdout,endl);
+}
+
+vector vector(real x, real y, real z)
+{
+  vector v=new vector;
+  v.vector(x,y,z);
+  return v;
+}
+
+real length(vector a)
+{
+  return sqrt(a.x^2+a.y^2+a.z^2);
+}
+
+vector operator + (vector a, vector b)
+{
+  return vector(a.x+b.x, a.y+b.y, a.z+b.z);
+}
+
+vector operator - (vector a, vector b)
+{
+  return vector(a.x-b.x, a.y-b.y, a.z-b.z);
+}
+
+vector operator * (vector a, real s)
+{
+  return vector(a.x*s,a.y*s,a.z*s);
+}
+
+vector operator * (real s, vector a)
+{
+  return a*s;
+}
+
+vector operator / (vector a, real s)
+{
+  return vector(a.x/s,a.y/s,a.z/s);
+}
+
+// dot product
+real operator * (vector a, vector b)
+{
+  return a.x*b.x+a.y*b.y+a.z*b.z;
+}
+
+vector cross(vector a, vector b)
+{
+  return vector(a.y*b.z-a.z*b.y,
+		a.z*b.x-a.x*b.z,
+		a.x*b.y-b.x*a.y);
+}
+
+// Compute normal vector to the plane defined by the first 3 vectors of p.
+vector normal(vector[] p)
+{
+  if(p.length < 3) abort("3 vectors are required");
+  return cross(p[1]-p[0],p[2]-p[0]);
+}
+
+vector unit(vector p)
+{
+  return p/length(p);
+}
+
+vector unitnormal(vector[] p)
+{
+  return unit(normal(p));
+}
+
+
+// Return any point on the intersection of the two planes with normals
+// n0 and n1 passing through points P0 and P1, respectively
+vector intersection(vector n0, vector P0, vector n1, vector P1)
+{
+  real de=n0.y*n1.z-n1.y*n0.z;
+  real De=n0.x*n1.y-n1.x*n0.y;
+  real DE=n0.z*n1.x-n1.z*n0.x;
+  if(abs(de) > abs(De) && abs(de) > abs(DE)) {
+    de=1/de;
+    real d0=n0.y*P0.y+n0.z*P0.z;
+    real d1=n1.y*P1.y+n1.z*P1.z+n1.x*(P1.x-P0.x);
+    real y=(d0*n1.z-d1*n0.z)*de;
+    real z=(n0.y*d0-n1.y*d1)*de;
+    return vector(P0.x,y,z);
+  } else if(abs(De) > abs(DE)) {
+    De=1/De;
+    real d0=n0.x*P0.x+n0.y*P0.y;
+    real d1=n1.x*P1.x+n1.y*P1.y+n1.z*(P1.z-P0.z);
+    real x=(d0*n1.y-d1*n0.y)*De;
+    real y=(n0.x*d0-n1.x*d1)*De;
+    return vector(x,y,P0.z);
+  } else {
+    if(DE == 0) abort("Parallel planes do not intersect.");
+    real d0=n0.z*P0.z+n0.x*P0.x;
+    real d1=n1.z*P1.z+n1.x*P1.x+n1.y*(P1.y-P0.y);
+    real z=(d0*n1.x-d1*n0.x)*DE;
+    real x=(n0.z*d0-n1.z*d1)*DE;
+    return vector(x,P0.y,z);
+  }
+}
+
+// Given a real array A, return its partial (optionally dx-weighted) sums.
 real[] partialsum(real[] A, real[] dx=null) 
 {
   real[] B=new real[];
@@ -60,11 +167,6 @@ void perpendicular(picture pic=currentpicture, pair z1, pair z2, real
   picture apic=new picture;
   _draw(apic,v--v+I*v--I*v,p);
   addabout(pic,apic,z1);
-}
-
-real dotproduct(pair z, pair w) 
-{
-  return z.x*w.x+z.y*w.y;
 }
 
 bool straight(guide p)

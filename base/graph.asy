@@ -1,5 +1,3 @@
-import math;
-
 public real ticksize=1mm;
 public real Ticksize=2*ticksize;
 public real ylabelwidth=1.5;
@@ -215,7 +213,7 @@ pair labeltick(frame d, transform T, guide g, real pos, pair side,
   locateT locate=new locateT;
   locate.calc(T,g,pos);
   pair align=-side*I*locate.dir;
-  pair shift=(dotproduct(align,I*sign*locate.dir) < 0) ? align*Size : 
+  pair shift=((align*conj(I*sign*locate.dir)).x < 0) ? align*Size : 
     0.5*align*labelmargin(plabel);
   pair Z=locate.Z+shift;
   if(deconstruct) Z=GUI()*Z;
@@ -264,7 +262,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	      frame d;
 	      pair dir=labeltick(d,T,g,i*Step,side,sign,Size,ticklabel,plabel,
 				 part,norm);
-	      coverage += abs(dotproduct(max(d)-min(d),dir));
+	      coverage += abs(((max(d)-min(d))*conj(dir)).x);
 	      if(coverage > limit) break;
 	    }
 	    if(coverage <= limit) {
