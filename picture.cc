@@ -32,11 +32,18 @@ picture::~picture()
 {
 }
 
-void picture::prepend(drawElement *p)
+// Insert at beginning of current layer.
+void picture::prepend(drawElement *P)
 {
-  assert(p);
+  assert(P);
 
-  nodes.push_front(p);
+  list<drawElement*>::iterator p;
+  for(p=--nodes.end(); p != --nodes.begin(); --p) {
+    assert(*p);
+    if((*p)->islayer()) break;
+  }
+    
+  nodes.insert(++p,P);
 }
 
 void picture::append(drawElement *p)
