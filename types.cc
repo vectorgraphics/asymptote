@@ -285,7 +285,7 @@ void overloaded::addDistinct(ty *t)
 	return;
     }
 
-    // Inequalivent in signature - add it.
+    // Nonequivalent in signature - add it.
     this->add(t);
   }
 }
