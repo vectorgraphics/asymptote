@@ -35,6 +35,9 @@ AC_PROG_INSTALL
 AC_PROG_CC
 AC_PROG_MAKE_SET
 
+CFLAGS="-O3 -DNEBUG"
+AC_SUBST(CFLAGS)
+
 AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
 			   [Define if getopt.h is the GNU version]),
 			   getopt="getopt getopt1",)
