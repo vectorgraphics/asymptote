@@ -107,7 +107,7 @@ void options()
   cerr << "-C\t\t Center on page (default)" << endl;
   cerr << "-B\t\t Align to bottom-left corner of page" << endl;
   cerr << "-T\t\t Align to top-left corner of page" << endl;
-  cerr << "-Z\t\t Position origin at (0,0)" << endl;
+  cerr << "-Z\t\t Position origin at (0,0) (implies -L)" << endl;
   cerr << "-v, -verbose\t Increase verbosity level" << endl;
   cerr << "-k\t\t Keep intermediate files" << endl;
   cerr << "-L\t\t Disable LaTeX label postprocessing" << endl;
@@ -243,6 +243,8 @@ void setOptions(int argc, char *argv[])
 	 << " -h' for a descriptions of options." << endl;
     exit(1);
   }
+  
+  if(origin == ZERO) texprocess=0;
   
   AsyDir=getenv("ASYMPTOTE_DIR");
   char *psviewer=getenv("ASYMPTOTE_PSVIEWER");

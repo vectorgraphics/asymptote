@@ -3462,7 +3462,7 @@ Options:
 -C               Center on page (default)
 -B               Align to bottom-left corner of page
 -T               Align to top-left corner of page
--Z               Position origin at (0,0)
+-Z               Position origin at (0,0) (implies -L)
 -v, -verbose     Increase verbosity level
 -k               Keep intermediate files
 -L               Disable LaTeX label postprocessing

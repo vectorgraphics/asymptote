@@ -1493,11 +1493,13 @@ string texify(string s)
 
 string italic(string s)
 {
+  if(s == "") return s;
   return "{\it "+s+"}";
 }
 
 string baseline(string s, pair align=S, string template="M") 
 {
+  if(s == "") return s;
   return align.y <= -0.5*abs(align.x) ? 
     "\setbox\ASYbox=\hbox{"+template+"}\ASYdimen=\ht\ASYbox%
 \setbox\ASYbox=\hbox{"+s+"}\lower\ASYdimen\box\ASYbox" : s;
@@ -1505,6 +1507,7 @@ string baseline(string s, pair align=S, string template="M")
 
 string math(string s)
 {
+  if(s == "") return s;
   return "$"+s+"$";
 }
 
