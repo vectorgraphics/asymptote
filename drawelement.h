@@ -161,7 +161,7 @@ protected:
     return pentype.getTransform();
   }
 
-  pen transpen(const transform& t) {
+  pen transpen(const transform& t) const {
     return camp::transformed(new transform(shiftless(t)),pentype);
   }
 

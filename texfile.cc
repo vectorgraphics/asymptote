@@ -71,18 +71,14 @@ void texfile::setpen(pen& p)
     *out << "\\newcmykcolor{ASYcolor}{" 
 	 << p.cyan() << " " << p.magenta() << " " << p.yellow() << " " 
 	 << p.black() << "}\\ASYcolor" << newl;
-    
-  }
-    
-  if(p.rgb() && (!lastpen.rgb() ||
-		 (p.red() != lastpen.red() || p.green() != lastpen.green() || 
-		  p.blue() != lastpen.blue()))) {
+  } else if(p.rgb() && (!lastpen.rgb() ||
+			(p.red() != lastpen.red() ||
+			 p.green() != lastpen.green() || 
+			 p.blue() != lastpen.blue()))) {
     *out << "\\newrgbcolor{ASYcolor}{" 
 	 << p.red() << " " << p.green() << " " << p.blue()
 	 << "}\\ASYcolor" << newl;
-  }
-  
-  if(p.mono() && (!lastpen.mono() || p.gray() != lastpen.gray())) {
+  } else if(p.mono() && (!lastpen.mono() || p.gray() != lastpen.gray())) {
     *out << "\\newgray{ASYcolor}{" 
 	 << p.gray()
 	 << "}\\ASYcolor" << newl;

@@ -19,7 +19,7 @@ using std::ofstream;
 using std::setw;
   
 psfile::psfile(const string& filename, const bbox& box, const pair& shift)
-  : filename(filename), box(box), shift(shift), lastpen(initialpen)
+  : filename(filename), box(box), shift(shift), rawmode(false)
 {
   if(filename != "") out=new ofstream(filename.c_str());
   else out=&std::cout;
@@ -55,8 +55,8 @@ void psfile::prologue()
   *out << "%%EndProlog" << newl;
   *out << "%%Page: 1 1" << newl;
 
-  *out << " 1 setlinecap 1 setlinejoin 10 setmiterlimit" << newl;
-  
+  pen defaultpen;
+  setpen(defaultpen);
 }
 
 void psfile::epilogue()

@@ -1342,8 +1342,12 @@ void cmyk(stack *s)
 
 void gray(stack *s)
 {
-  double x = s->pop<double>();
-  s->push(new pen(x));  
+  s->push(new pen(s->pop<double>()));  
+}
+
+void pattern(stack *s)
+{
+  s->push(new pen(setpattern,s->pop<string>()));  
 }
 
 void lineType(stack *s)
@@ -1352,21 +1356,33 @@ void lineType(stack *s)
   s->push(new pen(t));  
 }
 
-void defaultLineWidth(stack *s)
+void lineCap(stack *s)
 {
-  defaultlinewidth = s->pop<double>();
+  int n = s->pop<int>();
+  s->push(new pen(setlinecap,n >= 0 && n < nCap ? n : DEFCAP));
+}
+
+void lineJoin(stack *s)
+{
+  int n = s->pop<int>();
+  s->push(new pen(setlinejoin,n >= 0 && n < nJoin ? n : DEFJOIN));
 }
 
 void lineWidth(stack *s)
 {
   double x = s->pop<double>();
-  s->push(new pen(setlinewidth,x >= 0.0 ? x : DEFWIDTH));  
+  s->push(new pen(setlinewidth,x >= 0.0 ? x : DEFWIDTH));
 }
 
 void penLineWidth(stack *s)
 {
   pen p(*s->pop<pen*>());
   s->push(p.width());  
+}
+
+void defaultLineWidth(stack *s)
+{
+  defaultlinewidth = s->pop<double>();
 }
 
 void defaultFontSize(stack *s)
@@ -1458,10 +1474,13 @@ void draw(stack *s)
 
 void fill(stack *s)
 {
+  pair end = s->pop<pair>();
+  pen *endpen = s->pop<pen*>();
+  pair begin = s->pop<pair>();
   pen *n = s->pop<pen*>();
   path p = s->pop<path>();
   picture *pic = s->pop<picture*>();
-  drawFill *d = new drawFill(p,*n);
+  drawFill *d = new drawFill(p,*n,begin,*endpen,end);
   pic->append(d);
 }
  
@@ -1528,9 +1547,10 @@ void shipout(stack *s)
 {
   bool wait = s->pop<bool>();
   string format = s->pop<string>();
+  const picture *preamble = s->pop<picture*>();
   picture *pic = s->pop<picture*>();
   string prefix = s->pop<string>();
-  pic->shipout(prefix == "" ? outname : prefix,format,wait);
+  pic->shipout(*preamble,prefix == "" ? outname : prefix,format,wait);
 }
 
 void stringFilePrefix(stack *s)

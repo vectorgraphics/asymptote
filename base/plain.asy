@@ -186,7 +186,7 @@ void deconstruct(frame d)
 {
   if(deconstruct()) {
     string prefix=GUIPrefix == "" ? fileprefix() : GUIPrefix;
-    shipout(prefix+"_"+(string) GUIObject,d,"tgif",false);
+    shipout(prefix+"_"+(string) GUIObject,d,nullframe,"tgif",false);
   }
   ++GUIObject;
 }
@@ -510,7 +510,7 @@ struct picture {
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x, b.x);
     scaling ys=scaling.build(a.y, b.y);
-    return (min(xs, xcoords), min(ys, ycoords));
+    return (min(xs,xcoords),min(ys,ycoords));
   }
 
   // Calculate the max for the final picture, given the transform of coords.
@@ -519,7 +519,7 @@ struct picture {
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x, b.x);
     scaling ys=scaling.build(a.y, b.y);
-    return (max(xs, xcoords), max(ys, ycoords));
+    return (max(xs,xcoords),max(ys,ycoords));
   }
 
   // Calculate the sizing constants for the given array and maximum size.
@@ -529,9 +529,9 @@ struct picture {
    
     void addCoord(coord c) {
       // (a*user + b) + truesize >= 0:
-      p.addRestriction(c.user, 1, c.truesize);
+      p.addRestriction(c.user,1,c.truesize);
       // (a*user + b) + truesize <= max:
-      p.addRestriction(-c.user, -1, max-c.truesize);
+      p.addRestriction(-c.user,-1,max-c.truesize);
     }
 
     for(int i=0; i < coords.length; ++i) {
@@ -558,18 +558,18 @@ struct picture {
     if (xmax == 0 && ymax == 0)
       return identity();
     else if (ymax == 0) {
-      scaling sx=calculateScaling(xcoords, xmax);
+      scaling sx=calculateScaling(xcoords,xmax);
       return scale(sx.a);
     }
     else if (xmax == 0) {
-      scaling sy=calculateScaling(ycoords, ymax);
+      scaling sy=calculateScaling(ycoords,ymax);
       return scale(sy.a);
     }
     else {
-      scaling sx=calculateScaling(xcoords, xmax);
-      scaling sy=calculateScaling(ycoords, ymax);
+      scaling sx=calculateScaling(xcoords,xmax);
+      scaling sy=calculateScaling(ycoords,ymax);
       if (keepAspect)
-        return scale(min(sx.a, sy.a));
+        return scale(min(sx.a,sy.a));
       else
         return xscale(sx.a) * yscale(sy.a);
     }
@@ -585,7 +585,7 @@ struct picture {
   // Returns a rigid version of the picture using t to transform user coords
   // into truesize coords.
   frame fit(transform t) {
-    return fit(t, min(t), max(t));
+    return fit(t,min(t),max(t));
   }
 
   // Returns the picture fit to the wanted size.
@@ -743,7 +743,7 @@ transform rotate(real a)
 void _draw(picture pic=currentpicture, path g, pen p=currentpen)
 {
   pic.add(new void (frame f, transform t) {
-    draw(f, t*g, p);
+    draw(f,t*g,p);
     });
   pic.addPath(g,p);
 }
@@ -753,48 +753,48 @@ void _drawabout(pair origin, picture pic=currentpicture, path g,
 		pen p=currentpen)
 {
   pic.add(new void (frame f, transform t) {
-    draw(f, shift(t*origin)*g, p);
+    draw(f,shift(t*origin)*g,p);
   });
-  pic.addBox(origin, origin, min(g)+min(p), max(g)+max(p));
+  pic.addBox(origin,origin,min(g)+min(p),max(g)+max(p));
 }
   
-void fill(picture pic=currentpicture, path g, pen p=currentpen)
+void fill(picture pic=currentpicture, path g, pen p=currentpen,
+	  pair begin=0, pen endpen=currentpen, pair end=0)
 {
   pic.add(new void (frame f, transform t) {
-    fill(f, t*g, p);
+    fill(f,t*g,p,t*begin,endpen,t*end);
     });
   pic.addPath(g);
 }
 
 void fillabout(pair origin, picture pic=currentpicture, path g,
-	       pen p=currentpen)
+	       pen p=currentpen,
+	       pair begin=0, pen endpen=currentpen, pair end=0)
 {
-  pic.add(new void (frame f, transform t) {
-    fill(f, shift(t*origin)*g, p);
-  });
-  pic.addBox(origin, origin, min(g), max(g));
+  picture opic=new picture;
+  fill(opic,g,p,begin,endpen,end);
+  addabout(origin,pic,opic);
 }
   
 void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
-	      pen drawpen=currentpen)
+	      pen drawpen=currentpen,
+	      pair begin=0, pen endpen=currentpen, pair end=0)
 {
   pic.add(new void (frame f, transform t) {
     path G=t*g;
-    fill(f,G,fillpen);
+    fill(f,G,fillpen,t*begin,endpen,t*end);
     draw(f,G,drawpen);
     });
   pic.addPath(g,drawpen);
 }
 
 void filldrawabout(pair origin, picture pic=currentpicture, path g,
-		   pen fillpen=currentpen, pen drawpen=currentpen)
+		   pen fillpen=currentpen, pen drawpen=currentpen,
+		   pair begin=0, pen endpen=currentpen, pair end=0)
 {
-  pic.add(new void (frame f, transform t) {
-    path G=shift(t*origin)*g;
-    fill(f,G,fillpen);
-    draw(f,G,drawpen);
-  });
-  pic.addBox(origin, origin, min(g)+min(drawpen), max(g)+max(drawpen));
+  picture opic=new picture;
+  filldraw(opic,g,fillpen,drawpen,begin,endpen,end);
+  addabout(origin,pic,opic);
 }
   
 void clip(picture pic=currentpicture, path g)
@@ -802,7 +802,7 @@ void clip(picture pic=currentpicture, path g)
   pic.userMin=maxbound(pic.userMin,min(g));
   pic.userMax=minbound(pic.userMax,max(g));
   pic.clip(new void (frame f, transform t) {
-    clip(f, t*g);
+    clip(f,t*g);
   });
 }
 
@@ -875,7 +875,7 @@ typedef void arrowhead(frame, path, pen, arrowheadT);
 public arrowhead
   Fill=new void(frame f, path g, pen p, arrowheadT) {
     p += solid;
-    fill(f,g,p);
+    fill(f,g,p,0,p,0);
     draw(f,g,p);
   },
   NoFill=new void(frame f, path g, pen p, arrowheadT) {
@@ -1056,13 +1056,13 @@ void legend(frame f, Legend[] legend, bool placement=true)
   }
 }
   
-void shipout(string prefix=defaultfilename, frame f, Legend[] legend={},
-	     string format="", wait wait=NoWait)
+void shipout(string prefix=defaultfilename, frame f, frame preamble,
+	     Legend[] legend={}, string format="", wait wait=NoWait)
 {
   GUIPrefix=prefix;
   add(f,gui(GUIFilenum).fit(identity()));
   legend(f,legend);
-  shipout(prefix,f,format,wait(wait));
+  shipout(prefix,f,preamble,format,wait(wait));
   ++GUIFilenum;
   GUIObject=0;
 }
@@ -1084,8 +1084,10 @@ public orientation
   Landscape=new frame(frame f, orientationT) {return rotate(90)*f;},
   Seascape=new frame(frame f, orientationT) {return rotate(-90)*f;};
 
+frame patterns;
+
 void shipout(string prefix=defaultfilename, picture pic=currentpicture,
-	     real xsize=infinity, real ysize=infinity,
+	     frame preamble=patterns, real xsize=infinity, real ysize=infinity,
 	     keepAspect keepAspect, orientation orientation=Portrait,
 	     string format="", wait wait=NoWait)
 {
@@ -1094,16 +1096,16 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
   GUIPrefix=prefix;
   pic.deconstruct=true;
   frame f=pic.fit(xsize,ysize,keepAspect(keepAspect));
-  shipout(prefix,orientation(f,orientation),pic.legend,format,wait);
+  shipout(prefix,orientation(f,orientation),preamble,pic.legend,format,wait);
 }
 
 void shipout(string prefix=defaultfilename, picture pic=currentpicture,
-	     real xsize=infinity, real ysize=infinity,
+	     frame preamble=patterns, real xsize=infinity, real ysize=infinity,
 	     orientation orientation=Portrait, string format="",
 	     wait wait=NoWait)
 {
-  shipout(prefix,pic,xsize,ysize,pic.keepAspect ? Aspect : IgnoreAspect,
-	  orientation,format,wait);
+  shipout(prefix,pic,preamble,xsize,ysize,
+	  pic.keepAspect ? Aspect : IgnoreAspect,orientation,format,wait);
 }
 
 void erase(picture pic=currentpicture)
@@ -1217,11 +1219,13 @@ void arrow(picture pic=currentpicture, string s, real angle=0, pair shift=0,
 	   path g, pen p=currentpen, real size=arrowsize,
 	   real Angle=arrowangle, arrowhead arrowhead=Fill)
 {
-  add(arrow(g,p,size,Angle,arrowhead));
+  add(pic,arrow(g,p,size,Angle,arrowhead));
   pair a=point(g,0);
   pair b=point(g,1);
   label(pic,s,angle,a,unit(a-b),shift,p);
 }
+
+guide unitsquare=(0,0)--(1,0)--(1,1)--(0,1)--cycle;
 
 guide square(pair z1, pair z2)
 {
@@ -1546,6 +1550,32 @@ void overwrite(Overwrite Overwrite=Allow)
   overwrite(Overwrite(Overwrite));
 }
 
+private struct LinecapT {};
+public LinecapT Linecap=null;
+typedef int Linecap(LinecapT);
+public Linecap
+  Square=new int(LinecapT) {return 0;},
+  Round=new int(LinecapT) {return 1;},
+  Extended=new int(LinecapT) {return 2;};
+  
+pen linecap(Linecap Linecap)
+{
+  return linecap(Linecap(Linecap));
+}
+
+private struct LinejoinT {};
+public LinejoinT Linejoin=null;
+typedef int Linejoin(LinejoinT);
+public Linejoin
+  Miter=new int(LinejoinT) {return 0;},
+  Round=new int(LinejoinT) {return 1;},
+  Bevel=new int(LinejoinT) {return 2;};
+  
+pen linejoin(Linejoin Linejoin)
+{
+  return linejoin(Linejoin(Linejoin));
+}
+
 struct slice {
   public path before,after;
 }
@@ -1588,3 +1618,34 @@ pen interp(pen a, pen b, real c)
 {
   return (1-c)*a+c*b;
 }
+
+
+string format(real x) {
+  return format("%.9g",x);
+}
+
+frame tiling(string name, picture pic, pair lb=0, pair rt=0)
+{
+  frame tiling;
+  frame f=pic.fit(identity());
+  pair pmin=min(f)-lb;
+  pair pmax=max(f)-rt;
+  postscript(tiling,"<< /PaintType 1 /PatternType 1 /TilingType 1 
+/BBox ["+format(pmin.x)+" "+format(pmin.y)+" "+format(pmax.x)+" "
+	     +format(pmax.y)+"]
+/XStep "+format(pmax.x-pmin.x)+"
+/YStep "+format(pmax.y-pmin.y)+"
+/PaintProc {pop");
+  add(tiling,f);
+  postscript(tiling,"} >>
+ matrix makepattern
+/"+name+" exch def");
+  return tiling;
+}
+
+void add(frame preamble=patterns, string name, picture pic, pair lb=0,
+	 pair rt=0)
+{
+  add(preamble,tiling(name,pic,lb,rt));
+}
+

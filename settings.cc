@@ -52,15 +52,13 @@ double deconstruct=0;
 int clearGUI=0;
 int ignoreGUI=0;
 camp::pair postscriptOffset=0.0;
-int bottomOrigin=0;
-int topOrigin=0;
+int origin=CENTER;
   
 double defaultlinewidth=0.0;  
 double defaultfontsize=0.0;
 bool suppressOutput=false;
 bool upToDate=false;
 int overwrite=0;
-bool defaultOrigin=true;
 
 int ShipoutNumber=0;
 char* AsyDir;
@@ -102,8 +100,10 @@ void options()
   cerr << "-o name\t\t (First) output file name" << endl;
   cerr << "-h, -help\t Show summary of options" << endl;
   cerr << "-O pair\t\t PostScript offset" << endl; 
+  cerr << "-C\t\t Center on page (default)" << endl;
   cerr << "-B\t\t Align to bottom-left corner of page" << endl;
   cerr << "-T\t\t Align to top-left corner of page" << endl;
+  cerr << "-Z\t\t Align origin to (0,0)" << endl;
   cerr << "-v, -verbose\t Increase verbosity level" << endl;
   cerr << "-k\t\t Keep intermediate files" << endl;
   cerr << "-L\t\t Disable LaTeX label postprocessing" << endl;
@@ -145,7 +145,7 @@ void setOptions(int argc, char *argv[])
   errno=0;
   for(;;) {
     int c = getopt_long_only(argc,argv,
-			     "cf:hikLmo:pPsvVx:O:BT",
+			     "cf:hikLmo:pPsvVx:O:CBTZ",
 			     long_options,&option_index);
     if (c == -1) break;
 
@@ -201,16 +201,21 @@ void setOptions(int argc, char *argv[])
     case 'O':
       try {
         postscriptOffset=lexical_cast<camp::pair>(optarg);
-	defaultOrigin=false;
       } catch (boost::bad_lexical_cast&) {
         syntax=1;
       }
       break;
+    case 'C':
+      origin=CENTER;
+      break;
     case 'B':
-      bottomOrigin=1;
+      origin=BOTTOM;
       break;
     case 'T':
-      topOrigin=1;
+      origin=TOP;
+      break;
+    case 'Z':
+      origin=ZERO;
       break;
     default:
       syntax=1;
@@ -252,8 +257,6 @@ void setOptions(int argc, char *argv[])
       paperType="a4";
     }
   }
-  
-  if(defaultOrigin && bottomOrigin) postscriptOffset=conj(postscriptOffset);
 }
 
 // Reset to startup defaults

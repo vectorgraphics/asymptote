@@ -205,7 +205,7 @@ To compile and install @code{Asymptote} from a source release x.xx, execute the
 following commands:
 @verbatim
 tar -zxf asymptote-x.xx.tar.gz
-cd asymptote
+cd asymptote-x.xx
 ./configure
 make
 make install
@@ -219,9 +219,9 @@ make install-man
 @end verbatim
 
 In order to compile @code{Asymptote} you will need the @code{boost}
-headers from @code{http://boost.org} (included in recent Linux
-distributions). Installation of the boost library may require the
-following (or later):
+headers from @code{http://boost.org} (included in Fedora Linux distributions)
+Installation of the complete boost library may require the following (or
+later):
 @verbatim
 http://dl.sourceforge.net/sourceforge/boost/boost-jam-3.1.10-1.i386.rpm
 http://dl.sourceforge.net/sourceforge/boost/boost_1_32_0.tar.bz2
@@ -229,8 +229,16 @@ http://dl.sourceforge.net/sourceforge/boost/boost_1_32_0.tar.bz2
 
 However, Asymptote currently only uses the @code{boost} header files,
 so it is sufficient to copy the @code{boost} subdirectory from the
-@code{boost} source distribution to @code{/usr/include} or even just to the
-top level directory of the @code{Asymptote} source code.
+@code{boost} source distribution to @code{/usr/include} or even just
+make a link in the top level directory of the @code{Asymptote} source code:
+
+tar -jxf boost_1_32_0.tar.bz2  
+tar -jxf asymptote-x.xx.tar.gz 
+cd asymptote-x.xx 
+ln -s ../boost_1_32_0/boost .
+./configure 
+make
+make install 
 
 @cindex Debian
 On machines running Debian Linux, the boost library can be installed with
@@ -335,7 +343,7 @@ The following commands are needed to install the latest development version of
 cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote login
  
 cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote co asymptote
-cd asymptote
+cd asymptote-x.xx
 ./autogen.sh
 ./configure
 make
@@ -389,7 +397,7 @@ shipout command is added implicitly in interactive mode, but is
 explicitly required in batch mode. 
 
 @cindex @code{-V}
-The @code{-V} option opens up a postscript
+The @code{-V} option opens up a @code{PostScript}
 viewer window so you can immediately view the encapsulated
 @code{PostScript} output. By default the output will be written to the
 file @code{test.eps}; the prefix of the output file may be changed with
@@ -684,8 +692,7 @@ occurrences of the string @code{from} in an array @code{table} of string pairs
 @item string format(string s, int n) 
 @cindex @code{format}
 returns a string containing @code{n} formatted according to the C-style
-format string
-@code{s};
+format string @code{s};
 
 @item string format(string s, real x)
 returns a string containing @code{x} formatted according to the C-style format
@@ -1061,6 +1068,22 @@ pen double=1bp;
 pen equivalent=1.0;
 @end verbatim
 
+@cindex @code{linecap}
+@cindex @code{Square}
+@cindex @code{Round}
+@cindex @code{Extended}
+@item A pen with a specific @code{PostScript} line cap style is returned
+on calling @code{linecap} with one of the arguments @code{Square},
+@code{Round}, or @code{Extended}. The default line cap style is @code{Round}.
+
+@cindex @code{linejoin}
+@cindex @code{Square}
+@cindex @code{Round}
+@cindex @code{Extended}
+@item A pen with a specific @code{PostScript} join style is returned on
+calling @code{linejoin} with one of the argument @code{Miter},
+@code{Round}, or @code{Bevel}. The default join style is @code{Round}.
+
 @cindex @code{fontsize}
 @cindex @code{defaultfontsize}
 @item The font size is specified in @TeX{} points (1 pt = 1/72.27 in) with
@@ -1068,6 +1091,50 @@ the function @code{pen fontsize(real)}. The default font size is 12pt
 (this global default value may be changed with the
 @code{defaultfontsize(real)} command or reset to the startup default
 with @code{reset()}).
+
+@cindex patterns
+@cindex tilings
+@item @code{PostScript} commands within a @code{picture} may be used
+to create a tiling pattern, identified by the string @code{name}, for
+@code{fill} and @code{draw} operations by adding it to the default
+@code{PostScript} preamble frame @code{patterns}:
+@verbatim
+void add(frame preamble=patterns, string name, picture pic, pair lb=0,
+	 pair rt=0)
+@end verbatim
+
+To @code{fill} or @code{draw} using pattern @code{name}, use
+the pen @code{pattern("name")}. For example, a hatch pattern can be produced
+as follows:
+
+@verbatim
+size(100,0);
+
+picture tiling=new picture;
+draw(tiling,scale(4mm)*unitsquare,linecap(Square)+linejoin(Miter));
+add("hatch",tiling,min(currentpen),max(currentpen));
+
+fill(unitsquare,pattern("hatch"));
+shipout();
+@end verbatim
+@image{hatch}
+
+The tiled pattern may even incorporate shading (@pxref{gradient shading}):
+
+@verbatim
+size(0,100);
+real d=4mm;
+
+picture tiling=new picture;
+guide square=scale(d)*unitsquare;
+fill(tiling,square,white,(0,0),black,(d,d));
+fill(tiling,shift(d,d)*square,blue);
+add("checked",tiling);
+
+fill(unitcircle,pattern("checked"));
+shipout();
+@end verbatim
+@image{shadedtiling}
 
 @end itemize
 
@@ -1160,7 +1227,7 @@ arguments are implemented):
 @cindex @code{shipout}
 @verbatim
 void shipout(string prefix=defaultfilename,
-             picture pic=currentpicture,
+             picture pic=currentpicture, frame preamble=patterns,
              real xsize=pic.xsize, real ysize=pic.ysize,
              keepAspect keepAspect=
              pic.keepAspect ? Aspect : IgnoreAspect,
@@ -2919,7 +2986,7 @@ void dot(picture pic=currentpicture, pair c);
 void dot(picture pic=currentpicture, pair c, pen p);
 @end verbatim
 
-To draw a fixed-sized object (in postscript coordinates) about the user
+To draw a fixed-sized object (in @code{PostScript} coordinates) about the user
 coordinate @code{origin}, use the routine
 
 @cindex @code{drawabout}
@@ -2933,12 +3000,19 @@ void drawabout(pair origin, picture pic=currentpicture, string s="",
 
 @item
 @cindex @code{fill}
+@anchor{gradient shading}
+@cindex gradient
+@cindex shading
 @verbatim
-void fill(picture pic=currentpicture, path g, pen p=currentpen);
+void fill(picture pic=currentpicture, path g, pen p=currentpen,
+pair begin=0, end=0, pen a=currentpen, pen b=currentpen);
 @end verbatim
 
 Fill the interior region bounded by the path @code{g} on the picture
-@code{pic}, using the pen @code{p}.
+@code{pic}, using the pen @code{p}. If @code{begin} != @code{end},
+fill with a color gradient varying from @code{a} to @code{b} in the direction
+@code{begin}--@code{end}. Note that the pens @code{a} and @code{b} must
+be (solid) colors, not patterns.
 
 @cindex @code{filldraw}
 There is also a convenient @code{filldraw} command, which fills the path
@@ -2946,8 +3020,15 @@ and then draws in the boundary. One can specify separate pens for each
 operation:
 @verbatim
 void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
-              pen drawpen=currentpen);
+              pen drawpen=currentpen,
+              pair begin=0, end=0, pen a=currentpen, pen b=currentpen);
 @end verbatim
+
+@cindex @code{fillabout}
+@cindex @code{filldrawabout}
+There are also fixed-size routines analogous to @code{drawabout}:
+@code{fillabout} and @code{filldrawabout} allow one to fill a
+object described in @code{PostScript} coordinates about a user coordinate.
 
 @cindex unfill
 To unfill a region, simply fill it with the background colour (typically

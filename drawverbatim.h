@@ -29,7 +29,7 @@ public:
   }
   
   bool draw(psfile *out) {
-    if(language == PostScript) out->verbatim(text);
+    if(language == PostScript) out->verbatimline(text);
     return true;
   }
 

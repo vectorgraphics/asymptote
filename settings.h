@@ -33,8 +33,8 @@ namespace settings {
   extern int clearGUI;
   extern int ignoreGUI;
   extern camp::pair postscriptOffset;
-  extern int bottomOrigin;
-  extern int topOrigin;
+  enum origin {CENTER,BOTTOM,TOP,ZERO};
+  extern int origin;
   
   extern double defaultlinewidth;
   extern double defaultfontsize;

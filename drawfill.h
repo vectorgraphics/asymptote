@@ -14,8 +14,12 @@
 namespace camp {
 
 class drawFill : public drawPathPenBase {
+  pair begin;
+  pen endpen;
+  pair end;
 public:
-  drawFill(path src, pen pentype) : drawPathPenBase(src, pentype) {
+  drawFill(path src, pen pentype, pair begin, pen endpen, pair end) 
+    : drawPathPenBase(src, pentype), begin(begin), endpen(endpen), end(end) {
     if (!p.cyclic())
       reportError("non-cyclic path cannot be filled");
   }

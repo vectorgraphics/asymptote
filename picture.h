@@ -54,7 +54,8 @@ public:
 		   const string& outputformat, bool wait, const bbox& bpos);
     
   // Ships the picture out to PostScript & TeX files.
-  bool shipout(const string& prefix, const string& format="", bool wait=false);
+  bool shipout(const picture& preamble, const string& prefix,
+	       const string& format, bool wait);
  
   picture *transformed(const transform& t);
 };

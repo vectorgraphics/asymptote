@@ -20,13 +20,26 @@ namespace camp {
 
 static const string DEFLINE="default";
 static const double DEFWIDTH=-1;
+static const int DEFCAP=-1;
+static const int DEFJOIN=-1;
+  
 static const struct transparentpen_t {} transparentpen={};
 static const struct setlinewidth_t {} setlinewidth={};
 static const struct setfontsize_t {} setfontsize={};
+static const struct setpattern_t {} setpattern={};
+static const struct setlinecap_t {} setlinecap={};
+static const struct setlinejoin_t {} setlinejoin={};
 static const struct initialpen_t {} initialpen={};
   
-enum Colorspace {TRANSPARENT,DEFCOLOR,GRAYSCALE,RGB,CMYK};
+static const std::string Cap[]={"square","round","extended"};
+static const std::string Join[]={"miter","round","bevel"};
   
+const int nCap=sizeof(Cap)/sizeof(string);
+const int nJoin=sizeof(Join)/sizeof(string);
+  
+enum Colorspace {TRANSPARENT,DEFCOLOR,GRAYSCALE,RGB,CMYK,PATTERN};
+static const std::string ColorDeviceSuffix[]={"","Gray","Gray","RGB","CMYK",
+					      ""};
 class pen : public mempool::pooled<pen>
 { 
   // The string for the PostScript style line pattern.
@@ -40,41 +53,53 @@ class pen : public mempool::pooled<pen>
   double r,g,b; // RGB or CMY value
   double grey; // grayscale or K value
 
+  // The name of the user-defined fill/draw pattern.
+  string pattern;
+  int linecap;
+  int linejoin;
+  
   // The transformation applied to the pen nib for calligraphic effects.
   // Null means the identity transformation.
   const transform *t;
   
 public:
   pen() : line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
-	  color(DEFCOLOR), r(0.0), g(0.0), b(0.0), grey(0.0), t(0) {}
+	  color(DEFCOLOR), r(0.0), g(0.0), b(0.0), grey(0.0), pattern(""),
+	  linecap(DEFCAP), linejoin(DEFJOIN), t(0) {}
 
   pen(transparentpen_t) : 
     line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
-    color(TRANSPARENT), r(0.0), g(0.0), b(0.0), grey(0.0), t(0) {}
+    color(TRANSPARENT), r(0.0), g(0.0), b(0.0), grey(0.0), pattern (""),
+    linecap(DEFCAP), linejoin(DEFJOIN), t(0) {}
   
   pen(const string& line, double linewidth, double fontsize,
       Colorspace color, double r, double g, double b,  double grey,
-      const transform *t)
+      const string& pattern, int linecap, int linejoin, const transform *t)
     : line(line), linewidth(linewidth), fontsize(fontsize),
-      color(color), r(r), g(g), b(b), grey(grey), t(t) {}
+      color(color), r(r), g(g), b(b), grey(grey), pattern(pattern),
+      linecap(linecap), linejoin(linejoin), t(t) {}
       
   
   explicit pen(setlinewidth_t, double linewidth) : 
     line(DEFLINE), linewidth(linewidth), fontsize(0.0), color(DEFCOLOR),
-    r(0.0), g(0.0), b(0.0), grey(0.0), t(0) {}
+    r(0.0), g(0.0), b(0.0), grey(0.0), pattern(""),
+    linecap(DEFCAP), linejoin(DEFJOIN), t(0) {}
   
   explicit pen(const string& line) : line(line), linewidth(DEFWIDTH),
-			    fontsize(0.0), color(DEFCOLOR),
-			    r(0.0), g(0.0), b(0.0), grey(0.0), t(0) {}
+				     fontsize(0.0), color(DEFCOLOR),
+				     r(0.0), g(0.0), b(0.0), grey(0.0),
+				     pattern(""), linecap(DEFCAP),
+				     linejoin(DEFJOIN), t(0) {}
   
   pen(setfontsize_t, double fontsize) : line(DEFLINE), linewidth(DEFWIDTH),
 					fontsize(fontsize), color(DEFCOLOR), 
 					r(0.0), g(0.0), b(0.0), grey(0.0),
-					t(0) {}
+					pattern(""), linecap(DEFCAP),
+					linejoin(DEFJOIN), t(0) {}
   
   pen(initialpen_t) : line(DEFLINE), linewidth(-2), fontsize(-1),
 		      color(DEFCOLOR), r(0.0), g(0.0), b(0.0), grey(0.0),
-		      t(0) {}
+		      pattern(""), linecap(-2), linejoin(-2), t(0) {}
   
   static double pos0(double x) {return x >= 0 ? x : 0;}
   
@@ -83,7 +108,25 @@ public:
   explicit pen(double grey) : line(DEFLINE), linewidth(DEFWIDTH),
 			      fontsize(0.0),
 		              color(GRAYSCALE), r(0.0), g(0.0), b(0.0),
-		              grey(pos0(grey)), t(0) {greyrange();}
+		              grey(pos0(grey)), pattern(""),
+			      linecap(DEFCAP), linejoin(DEFJOIN), t(0) {
+    greyrange();
+  }
+  
+  explicit pen(setpattern_t, const string& pattern) :
+    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0), color(PATTERN),
+    r(0.0), g(0.0), b(0.0), grey(0.0), pattern(pattern),
+    linecap(DEFCAP), linejoin(DEFJOIN), t(0) {}
+  
+  explicit pen(setlinecap_t, int linecap) :
+    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0), color(DEFCOLOR),
+    r(0.0), g(0.0), b(0.0), grey(0.0), pattern(""),
+    linecap(linecap), linejoin(DEFJOIN), t(0) {}
+  
+  explicit pen(setlinejoin_t, int linejoin) :
+    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0), color(DEFCOLOR),
+    r(0.0), g(0.0), b(0.0), grey(0.0), pattern(""),
+    linecap(DEFCAP), linejoin(linejoin), t(0) {}
   
   void rgbrange() {
     double sat=rgbsaturation();
@@ -97,7 +140,8 @@ public:
   
   pen(double r, double g, double b) : 
     line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
-    color(RGB), r(pos0(r)), g(pos0(g)), b(pos0(b)),  grey(0.0), t(0) {
+    color(RGB), r(pos0(r)), g(pos0(g)), b(pos0(b)),  grey(0.0), 
+    pattern(""), linecap(DEFCAP), linejoin(DEFJOIN), t(0) {
     rgbrange();
   }
   
@@ -114,19 +158,28 @@ public:
   
   pen(double c, double m, double y, double k) :
     line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
-    color(CMYK), r(pos0(c)), g(pos0(m)), b(pos0(y)), grey(pos0(k)), t(0) {
+    color(CMYK), r(pos0(c)), g(pos0(m)), b(pos0(y)), grey(pos0(k)),
+    pattern(""), linecap(DEFCAP), linejoin(DEFJOIN), t(0) {
     cmykrange();
   }
   
   double width() const {
-    return (linewidth == DEFWIDTH) ? defaultlinewidth : linewidth;
+    return linewidth == DEFWIDTH ? defaultlinewidth : linewidth;
   }
   
-  double size() const {return (fontsize == 0.0) ? defaultfontsize : fontsize;}
+  double size() const {return fontsize == 0.0 ? defaultfontsize : fontsize;}
   
-  string stroke() {return (line == DEFLINE) ? "" : line;}
+  string stroke() {return line == DEFLINE ? "" : line;}
   
   void setstroke(const string& s) {line=s;}
+  
+  string fillpattern() {return pattern;}
+  
+  int cap() {return linecap == DEFCAP ? 1 : linecap;}
+  
+  int join() {return linejoin == DEFJOIN ? 1 : linejoin;}
+  
+  Colorspace Color() {return color;}
   
   bool transparent() const {return color == TRANSPARENT;}
   
@@ -187,6 +240,7 @@ public:
     pen p=q;
     if(x < 0.0) x = 0.0;
     switch(p.color) {
+    case PATTERN:
     case TRANSPARENT:
       break;
     case DEFCOLOR:
@@ -226,6 +280,7 @@ public:
     pen Q=q;
     
     switch(colspace) {
+    case PATTERN:
     case TRANSPARENT:
       break;
     case DEFCOLOR:
@@ -291,6 +346,9 @@ public:
 	       q.linewidth == DEFWIDTH ? p.linewidth : q.linewidth,
 	       q.fontsize == 0.0 ? p.fontsize : q.fontsize,
 	       colspace,R,G,B,greyval,
+	       q.pattern == "" ? p.pattern : q.pattern,
+	       q.linecap == DEFCAP ? p.linecap : q.linecap,
+	       q.linejoin == DEFJOIN ? p.linejoin : q.linejoin,
 	       q.t == NULL ? p.t : q.t);
   }
 
@@ -300,21 +358,34 @@ public:
       && p.fontsize == q.fontsize
       && (!(p.grayscale() || p.cmyk())  || p.grey == q.grey)
       && (!(p.rgb() || p.cmyk()) || (p.r == q.r && p.g == q.g && p.b == q.b))
+      && p.pattern == q.pattern
+      && p.linecap == q.linecap
+      && p.linejoin == q.linejoin
       && (p.t ? *p.t : identity()) == (q.t ? *q.t : identity());
   }
   
   friend ostream& operator << (ostream& out, const pen& p) {
     out << "([" << p.line << "]";
-    if(p.linewidth >= 0) out << ", linewidth " << p.linewidth;
-    if(p.fontsize) out << ", fontsize=" << p.fontsize;
-    if(p.grayscale()) out << ", gray=" << p.grey;
+    if(p.linewidth != DEFWIDTH)
+      out << ", linewidth=" << p.linewidth;
+    if(p.linecap != DEFCAP)
+      out << ", linecap=" << Cap[p.linecap];
+    if(p.linejoin != DEFJOIN)
+      out << ", linejoin=" << Join[p.linejoin];
+    if(p.fontsize)
+      out << ", fontsize=" << p.fontsize;
+    if(p.grayscale())
+      out << ", gray=" << p.grey;
     if(p.rgb()) 
       out << ", red=" << p.red() << ", green=" << p.green() 
 	  << ", blue=" << p.blue();
     if(p.cmyk()) 
       out << ", cyan=" << p.cyan() << ", magenta=" << p.magenta() 
 	  << ", yellow=" << p.yellow() << ", black=" << p.black();
-    if(p.t) out << ", transform=" << *(p.t);
+    if(p.pattern != "")
+      out << ", " << "\"" << p.pattern << "\"";
+    if(p.t)
+      out << ", transform=" << *(p.t);
     out << ")";
     
     return out;

@@ -349,14 +349,15 @@ void base_venv(venv &ve)
   addOperators(ve);
 
   addFunc(ve,run::draw,primVoid(),"draw",primPicture(),primPath(), primPen());
-  addFunc(ve,run::fill,primVoid(),"fill",primPicture(),primPath(),primPen());
+  addFunc(ve,run::fill,primVoid(),"fill",primPicture(),primPath(),primPen(),
+	  primPair(),primPen(),primPair());
   addFunc(ve,run::clip,primVoid(),"clip",primPicture(),primPath());
   addFunc(ve,run::add,primVoid(),"add",primPicture(),primPicture());
   addFunc(ve,run::label,primVoid(),"_label",primPicture(),
 	  primString(),primReal(),primPair(),primPair(),primPen());
   
   addFunc(ve,run::shipout,primVoid(),"shipout",primString(),
-	  primPicture(),primString(),primBoolean());
+	  primPicture(),primPicture(),primString(),primBoolean());
   
   addFunc(ve,run::reset,primVoid(),"reset");
   
@@ -508,8 +509,11 @@ void base_venv(venv &ve)
   addFunc(ve,run::cmyk,primPen(),"cmyk",primReal(),primReal(),primReal(),
 	  primReal());
   addFunc(ve,run::gray,primPen(),"gray",primReal());
+  addFunc(ve,run::pattern,primPen(),"pattern",primString());
   addFunc(ve,run::defaultpen,primPen(),"defaultpen");
   addFunc(ve,run::invisiblepen,primPen(),"invisible");
+  addFunc(ve,run::lineCap,primPen(),"linecap",primInt());
+  addFunc(ve,run::lineJoin,primPen(),"linejoin",primInt());
   addFunc(ve,run::lineWidth,primPen(),"linewidth",primReal());
   addFunc(ve,run::penLineWidth,primReal(),"linewidth",primPen());
   addFunc(ve,run::defaultLineWidth,primVoid(),"defaultlinewidth",primReal());

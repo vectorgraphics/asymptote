@@ -113,13 +113,16 @@ bool picture::texprocess(const string& texname, const string& outname,
     double hoffset=-128.0;
     double voffset=(height < 11.5) ? -137.1+height : -125.4;
     
-    if(pdfformat || bottomOrigin) {
-      voffset += max(pageHeight-(bpos.top-bpos.bottom+
-				 (pdfformat ? 2.0 : 1.0)),0.0);
-    } else if(!topOrigin) {
-      hoffset += 0.5*max(pageWidth-(bpos.right-bpos.left+1.0),0.0);
-      voffset += 0.5*max(pageHeight-(bpos.top-bpos.bottom+1.0),0.0);
+    if(origin != ZERO) {
+      if(pdfformat || origin == BOTTOM) {
+	voffset += max(pageHeight-(bpos.top-bpos.bottom+
+				   (pdfformat ? 2.0 : 1.0)),0.0);
+      } else if(origin != TOP) {
+	hoffset += 0.5*max(pageWidth-(bpos.right-bpos.left+1.0),0.0);
+	voffset += 0.5*max(pageHeight-(bpos.top-bpos.bottom+1.0),0.0);
+      }
     }
+    
     if(!pdfformat) {
       hoffset += postscriptOffset.getx();
       voffset -= postscriptOffset.gety();
@@ -135,7 +138,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     
     bbox bcopy=bpos;
     double fuzz=0.1;
-    if(bottomOrigin && !pdfformat) fuzz=1.0;
+    if(origin == BOTTOM && !pdfformat) fuzz=1.0;
     
     bcopy.top += fuzz;
     bcopy.bottom -= fuzz;
@@ -232,7 +235,8 @@ bool picture::postprocess(const string& epsname, const string& outname,
   return true;
 }
 
-bool picture::shipout(const string& prefix, const string& format, bool wait)
+bool picture::shipout(const picture& preamble, const string& prefix,
+		      const string& format, bool wait)
 {
   if(interact::interactive && (suppressOutput || upToDate)) return true;
   upToDate=true;
@@ -275,19 +279,20 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
   }
   
   // Avoid negative bounding box coordinates
-  bboxshift=pair(-bpos.left,-bpos.bottom);
+  bboxshift=origin == ZERO ? 0.0 : pair(-bpos.left,-bpos.bottom);
   if(!pdfformat) {
     bboxshift += postscriptOffset;
-    if(!bottomOrigin) {
+    if(!(origin == BOTTOM || origin == ZERO)) {
       double yexcess=max(pageHeight-(bpos.top-bpos.bottom),0.0);
-      if(topOrigin) bboxshift += pair(1.0,yexcess);
+      if(origin == TOP) bboxshift += pair(1.0,yexcess);
       else {
 	double xexcess=max(pageWidth-(bpos.right-bpos.left),0.0);
 	bboxshift += 0.5*pair(xexcess,yexcess);
       }
     }
-  }	
+  }
   bpos.shift(bboxshift);
+
   
   if(bpos.right <= bpos.left && bpos.top <= bpos.bottom) { // null picture
     unlink(outname.c_str());
@@ -325,6 +330,22 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
   
     if(labels) tex->beginlayer(psname);
   
+    // Postscript preamble.
+    std::list<drawElement*> Nodes=preamble.nodes;
+    list<drawElement*>::iterator P=Nodes.begin();
+    if(P != Nodes.end()) {
+      out.resetpen();
+      for(; P != Nodes.end(); ++P) {
+	assert(*P);
+	out.raw(true);
+	if(!(*P)->draw(&out))
+	  status = false;
+	out.raw(false);
+      }
+    }
+    
+    out.resetpen();
+    
     for(; p != nodes.end(); ++p) {
       assert(*p);
       if(labels && (*p)->islayer()) break;

@@ -30,14 +30,10 @@ class psfile {
   string filename;
   bbox box;
   pair shift;
+  bool rawmode;
   pen lastpen;
   ostream *out;
   std::stack<pen> pens;
-
-  void write(pair z) {
-    *out << " " << z.getx()+shift.getx() 
-	 << " " << z.gety()+shift.gety();
-  }
 
   void writeUnshifted(pair z) {
     *out << " " << z.getx() << " " << z.gety();
@@ -54,36 +50,56 @@ public:
   ~psfile();
   
   void prologue();
-
   void epilogue();
 
+  void raw(bool mode) {rawmode=mode;}
+  bool raw() {return rawmode;}
+  
+  void write(pair z) {
+    if(rawmode) writeUnshifted(z);
+    else {
+      *out << " " << z.getx()+shift.getx() 
+	   << " " << z.gety()+shift.gety();
+    }
+  }
+
+  void resetpen() {
+    lastpen=initialpen;
+  }
+  
   void setpen(pen p) {
     if(p == lastpen) return;
     
-    if(p.cmyk() && (!lastpen.cmyk() || 
-		    (p.cyan() != lastpen.cyan() || 
-		     p.magenta() != lastpen.magenta() || 
-		     p.yellow() != lastpen.yellow() ||
-		     p.black() != lastpen.black()))) {
+    if(p.fillpattern() != "" && p.fillpattern() != lastpen.fillpattern()) 
+      *out << p.fillpattern() << " setpattern" << newl;
+    else if(p.cmyk() && (!lastpen.cmyk() || 
+			 (p.cyan() != lastpen.cyan() || 
+			  p.magenta() != lastpen.magenta() || 
+			  p.yellow() != lastpen.yellow() ||
+			  p.black() != lastpen.black()))) {
       *out << p.cyan() << " " << p.magenta() << " " << p.yellow() << " " 
 	   << p.black() << " setcmykcolor" << newl;
-    }
-    
-    if(p.rgb() && (!lastpen.rgb() || 
-		   (p.red() != lastpen.red() || 
-		    p.green() != lastpen.green() || 
-		    p.blue() != lastpen.blue()))) {
+    } else if(p.rgb() && (!lastpen.rgb() || 
+			  (p.red() != lastpen.red() || 
+			   p.green() != lastpen.green() || 
+			   p.blue() != lastpen.blue()))) {
       *out << p.red() << " " << p.green() << " " << p.blue()
 	   << " setrgbcolor" << newl;
-    }
-    
-    if(p.mono() && (!lastpen.mono() || p.gray() != lastpen.gray())) {
+    } else if(p.mono() && (!lastpen.mono() || p.gray() != lastpen.gray())) {
       *out << p.gray() << " setgray" << newl;
     }
     
     if(p.width() != lastpen.width()) {
       *out << " 0 " << p.width() << 
 	" dtransform truncate idtransform setlinewidth pop" << newl;
+    }
+    
+    if(p.cap() != lastpen.cap()) {
+      *out << p.cap() << " setlinecap" << newl;
+    }
+    
+    if(p.join() != lastpen.join()) {
+      *out << p.join() << " setlinejoin" << newl;
     }
     
     if(p.stroke() != lastpen.stroke()) {
@@ -93,6 +109,16 @@ public:
     lastpen=p;
   }
 
+  void write(pen p) {
+    if(p.cmyk())
+      *out << p.cyan() << " " << p.magenta() << " " << p.yellow() << " " 
+	   << p.black();
+    else if(p.rgb())
+      *out << p.red() << " " << p.green() << " " << p.blue();
+    else if(p.mono() || p.gray())
+      *out << p.gray();
+  }
+  
   void write(path p) {
     int n = p.size();
     assert(n != 0);
@@ -182,8 +208,12 @@ public:
     *out << " concat" << newl;
   }
   
-  void verbatim(const std::string& s) {
+  void verbatimline(const std::string& s) {
     *out << s << newl;
+  }
+  
+  void verbatim(const std::string& s) {
+    *out << s;
   }
 
 };
