@@ -760,42 +760,46 @@ void _drawabout(pair origin, picture pic=currentpicture, path g,
   pic.addBox(origin,origin,min(g)+min(p),max(g)+max(p));
 }
   
-void fill(picture pic=currentpicture, path g, pen p=currentpen,
-	  pair begin=0, pen endpen=currentpen, pair end=0)
+void fill(picture pic=currentpicture, path g,
+	  pen pena=currentpen, pair a=0, real ra=0,
+	  pen penb=currentpen, pair b=0, real rb=0)
 {
   pic.add(new void (frame f, transform t) {
-    fill(f,t*g,p,t*begin,endpen,t*end);
+    pair A=t*a, B=t*b;
+    fill(f,t*g,pena,A,abs(t*(a+ra)-A),penb,B,abs(t*(b+rb)-B));
     });
   pic.addPath(g);
 }
 
 void fillabout(pair origin, picture pic=currentpicture, path g,
-	       pen p=currentpen,
-	       pair begin=0, pen endpen=currentpen, pair end=0)
+	       pen pena=currentpen, pair a=0, real ra=0,
+	       pen penb=currentpen, pair b=0, real rb=0)
 {
   picture opic=new picture;
-  fill(opic,g,p,begin,endpen,end);
+  fill(opic,g,pena,a,ra,penb,b,rb);
   addabout(origin,pic,opic);
 }
   
-void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
-	      pen drawpen=currentpen,
-	      pair begin=0, pen endpen=currentpen, pair end=0)
+void filldraw(picture pic=currentpicture, path g,
+	      pen pena=currentpen, pen drawpen=currentpen, pair a=0, real ra=0,
+	      pen penb=currentpen, pair b=0, real rb=0)
 {
   pic.add(new void (frame f, transform t) {
     path G=t*g;
-    fill(f,G,fillpen,t*begin,endpen,t*end);
+    pair A=t*a, B=t*b;
+    fill(f,G,pena,A,abs(t*(a+ra)-A),penb,B,abs(t*(b+rb)-B));
     draw(f,G,drawpen);
     });
   pic.addPath(g,drawpen);
 }
 
 void filldrawabout(pair origin, picture pic=currentpicture, path g,
-		   pen fillpen=currentpen, pen drawpen=currentpen,
-		   pair begin=0, pen endpen=currentpen, pair end=0)
+		   pen pena=currentpen, pen drawpen=currentpen,
+		   pair a=0, real ra=0,
+		   pen penb=currentpen, pair b=0, real rb=0)
 {
   picture opic=new picture;
-  filldraw(opic,g,fillpen,drawpen,begin,endpen,end);
+  filldraw(opic,g,pena,drawpen,a,ra,penb,b,rb);
   addabout(origin,pic,opic);
 }
   
@@ -877,7 +881,7 @@ typedef void arrowhead(frame, path, pen, arrowheadT);
 public arrowhead
   Fill=new void(frame f, path g, pen p, arrowheadT) {
     p += solid;
-    fill(f,g,p,0,p,0);
+    fill(f,g,p,0,0,p,0,0);
     draw(f,g,p);
   },
   NoFill=new void(frame f, path g, pen p, arrowheadT) {
@@ -1637,7 +1641,6 @@ pen interp(pen a, pen b, real c)
   return (1-c)*a+c*b;
 }
 
-
 string format(real x) {
   return format("%.9g",x);
 }
@@ -1666,4 +1669,3 @@ void add(frame preamble=patterns, string name, picture pic, pair lb=0,
 {
   add(preamble,tiling(name,pic,lb,rt));
 }
-

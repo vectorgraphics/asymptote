@@ -3055,24 +3055,40 @@ void drawabout(pair origin, picture pic=currentpicture, string s="",
 @cindex gradient
 @cindex shading
 @verbatim
-void fill(picture pic=currentpicture, path g, pen p=currentpen,
-pair begin=0, end=0, pen a=currentpen, pen b=currentpen);
+void fill(picture pic=currentpicture, path g,
+pen pena=currentpen, pair a=0, real ra=0,
+pen penb=currentpen, pair b=0, real rb=0);
 @end verbatim
 
-Fill the interior region bounded by the path @code{g} on the picture
-@code{pic}, using the pen @code{p}. If @code{begin} != @code{end},
-fill with a color gradient varying from @code{a} to @code{b} in the direction
-@code{begin}--@code{end}. Note that the pens @code{a} and @code{b} must
-be (solid) colors, not patterns.
+Fill the interior region bounded by the cyclic path @code{g} on the picture
+@code{pic}, using the pen @code{pena}. 
+
+Gradient shading requires that @code{pena} and @code{penb} contain
+distinct colors (not patterns).  
+If @code{a} != @code{b} and @code{ra}=@code{rb}=0, fill with a color
+gradient varying smoothly from @code{pena} to @code{penb} in the
+direction of the line segment @code{a--b}.  
+If @code{ra} != 0 or @code{rb} != 0, fill with a color gradient varying
+smoothly from @code{pena} on the circle with center @code{a} and radius
+@code{ra} to @code{penb} on the circle with center @code{b} and radius
+@code{rb}: 
+
+@verbatim
+size(100,0);
+fill(unitsquare,yellow,(0,0),0,red,(0,0),1);
+shipout();
+@end verbatim
+
+@image{shade}
 
 @cindex @code{filldraw}
 There is also a convenient @code{filldraw} command, which fills the path
 and then draws in the boundary. One can specify separate pens for each
 operation:
 @verbatim
-void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
-              pen drawpen=currentpen,
-              pair begin=0, end=0, pen a=currentpen, pen b=currentpen);
+void filldraw(picture pic=currentpicture, path g, pen pena=currentpen,
+              pen drawpen=currentpen, pair a=0, real ra=0,
+	      pen penb=currentpen, pair b=0, real rb=0)
 @end verbatim
 
 @cindex @code{fillabout}
@@ -3401,8 +3417,10 @@ Options:
 -o name          (First) output file name
 -h, -help        Show summary of options
 -O pair          PostScript offset
+-C               Center on page (default)
 -B               Align to bottom-left corner of page
 -T               Align to top-left corner of page
+-Z               Position origin at (0,0)
 -v, -verbose     Increase verbosity level
 -k               Keep intermediate files
 -L               Disable LaTeX label postprocessing
@@ -3653,10 +3671,10 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  libsigsegv intersectionpoint dotfactor lzw GIFS vv firstcut pq
 @c  LocalWords:  Unisys dvips vvv vvvv vvvvv traceback lastcut cutafter infodir
 @c  LocalWords:  zxvf xargs cond polargraph xmin xmax plabel YZero labelling ln
-@c  LocalWords:  ymin ymax XZero xequals tickmin tickmax unlabelled se pq
+@c  LocalWords:  ymin ymax XZero xequals tickmin tickmax unlabelled se pq pena
 @c  LocalWords:  yequals Nobre Barbarosie Schwaiger nearearth conicurv Wiebusch
 @c  LocalWords:  unfill PAPERTYPE posterSize ngraph interpolatetype drawabout
 @c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling addabout ei
-@c  LocalWords:  westnile fillabout filldrawabout minipage infectiousM
+@c  LocalWords:  westnile fillabout filldrawabout minipage infectiousM ra penb
 @c  LocalWords:  susceptibleM si flushright secondaryX secondaryY secondaryaxis
-@c  LocalWords:  titlelabel columnlabel
+@c  LocalWords:  titlelabel columnlabel rb

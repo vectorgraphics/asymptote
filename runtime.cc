@@ -1506,13 +1506,15 @@ void draw(stack *s)
 
 void fill(stack *s)
 {
-  pair end = s->pop<pair>();
-  pen *endpen = s->pop<pen*>();
-  pair begin = s->pop<pair>();
-  pen *n = s->pop<pen*>();
+  double rb = s->pop<double>();
+  pair b = s->pop<pair>();
+  pen *penb = s->pop<pen*>();
+  double ra = s->pop<double>();
+  pair a = s->pop<pair>();
+  pen *pena = s->pop<pen*>();
   path p = s->pop<path>();
   picture *pic = s->pop<picture*>();
-  drawFill *d = new drawFill(p,*n,begin,*endpen,end);
+  drawFill *d = new drawFill(p,*pena,a,ra,*penb,b,rb);
   pic->append(d);
 }
  

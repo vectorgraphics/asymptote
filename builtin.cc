@@ -49,10 +49,9 @@ void base_tenv(tenv &ret)
 }
 
 // Macro to make a function.
-inline void addFunc(venv &ve, access *a,
-                    ty *result, const char *name, 
+inline void addFunc(venv &ve, access *a, ty *result, const char *name, 
 		    ty *t1 = 0, ty *t2 = 0, ty *t3 = 0, ty* t4 = 0,
-		    ty *t5 = 0, ty *t6 = 0, ty *t7 = 0)
+		    ty *t5 = 0, ty *t6 = 0, ty *t7 = 0, ty *t8 = 0)
 {
   function *fun = new function(result);
 
@@ -63,28 +62,27 @@ inline void addFunc(venv &ve, access *a,
   if (t5) fun->add(t5);
   if (t6) fun->add(t6);
   if (t7) fun->add(t7);
+  if (t8) fun->add(t8);
 
   varEntry *ent = new varEntry(fun, a);
 
   ve.enter(symbol::trans(name), ent);
 }
 
-inline void addFunc(venv &ve, bltin f,
-                    ty *result, const char *name, 
+inline void addFunc(venv &ve, bltin f, ty *result, const char *name, 
 		    ty *t1 = 0, ty *t2 = 0, ty *t3 = 0, ty* t4 = 0,
-		    ty *t5 = 0, ty *t6 = 0, ty *t7 = 0)
+		    ty *t5 = 0, ty *t6 = 0, ty *t7 = 0, ty *t8 = 0)
 {
   access *a = new bltinAccess(f);
-  addFunc(ve, a, result, name, t1, t2, t3, t4, t5, t6, t7);
+  addFunc(ve, a, result, name, t1, t2, t3, t4, t5, t6, t7, t8);
 }
   
-inline void addFunc(venv &ve, inst::opcode o,
-                    ty *result, const char *name, 
+inline void addFunc(venv &ve, inst::opcode o, ty *result, const char *name, 
 		    ty *t1 = 0, ty *t2 = 0, ty *t3 = 0, ty* t4 = 0,
-		    ty *t5 = 0, ty *t6 = 0, ty *t7 = 0)
+		    ty *t5 = 0, ty *t6 = 0, ty *t7 = 0, ty *t8 = 0)
 {
   access *a = new instAccess(o);
-  addFunc(ve, a, result, name, t1, t2, t3, t4, t5, t6, t7);
+  addFunc(ve, a, result, name, t1, t2, t3, t4, t5, t6, t7, t8);
 }
   
   
@@ -349,8 +347,8 @@ void base_venv(venv &ve)
   addOperators(ve);
 
   addFunc(ve,run::draw,primVoid(),"draw",primPicture(),primPath(), primPen());
-  addFunc(ve,run::fill,primVoid(),"fill",primPicture(),primPath(),primPen(),
-	  primPair(),primPen(),primPair());
+  addFunc(ve,run::fill,primVoid(),"fill",primPicture(),primPath(),
+	  primPen(),primPair(),primReal(),primPen(),primPair(),primReal());
   addFunc(ve,run::clip,primVoid(),"clip",primPicture(),primPath());
   addFunc(ve,run::add,primVoid(),"add",primPicture(),primPicture());
   addFunc(ve,run::label,primVoid(),"_label",primPicture(),

@@ -103,7 +103,7 @@ void options()
   cerr << "-C\t\t Center on page (default)" << endl;
   cerr << "-B\t\t Align to bottom-left corner of page" << endl;
   cerr << "-T\t\t Align to top-left corner of page" << endl;
-  cerr << "-Z\t\t Align origin to (0,0)" << endl;
+  cerr << "-Z\t\t Position origin at (0,0)" << endl;
   cerr << "-v, -verbose\t Increase verbosity level" << endl;
   cerr << "-k\t\t Keep intermediate files" << endl;
   cerr << "-L\t\t Disable LaTeX label postprocessing" << endl;

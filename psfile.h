@@ -63,6 +63,10 @@ public:
     }
   }
 
+  void write(double x) {
+    *out << " " << x;
+  }
+
   void resetpen() {
     lastpen=initialpen;
   }

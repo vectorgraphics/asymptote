@@ -15,7 +15,8 @@ bool drawFill::draw(psfile *out)
   if (n == 0 || pentype.transparent())
     return true;
 
-  bool shade=begin != end;
+  bool axial=ra == 0 && rb == 0;
+  bool shade=a != b || !axial;
   
   if(shade) out->gsave();
   
@@ -29,7 +30,7 @@ bool drawFill::draw(psfile *out)
   ColorSpace colorspace;
   
   if(shade) {
-    colorspace=(ColorSpace) max(pentype.colorspace(),endpen.colorspace());
+    colorspace=(ColorSpace) max(pentype.colorspace(),penb.colorspace());
     
     switch(colorspace) {
     case PATTERN:
@@ -43,17 +44,17 @@ bool drawFill::draw(psfile *out)
     case RGB:
       {
 	if (pentype.grayscale()) pentype.greytorgb();
-	else if (endpen.grayscale()) endpen.greytorgb();
+	else if (penb.grayscale()) penb.greytorgb();
 	break;
       }
       
     case CMYK:
       {
 	if (pentype.grayscale()) pentype.greytocmyk();
-	else if (endpen.grayscale()) endpen.greytocmyk();
+	else if (penb.grayscale()) penb.greytocmyk();
 	
 	if (pentype.rgb()) pentype.rgbtocmyk();
-	else if (endpen.rgb()) endpen.rgbtocmyk();
+	else if (penb.rgb()) penb.rgbtocmyk();
 	break;
       }
     }
@@ -61,11 +62,14 @@ bool drawFill::draw(psfile *out)
   
   if(shade) {
     out->clip();
-    out->verbatimline("<< /ShadingType 2");
+    out->verbatim("<< /ShadingType ");
+    out->verbatimline(axial ? "2" : "3");
     out->verbatimline("/ColorSpace /Device"+ColorDeviceSuffix[colorspace]);
     out->verbatim("/Coords [");
-    out->write(begin);
-    out->write(end);
+    out->write(a);
+    if(!axial) out->write(ra);
+    out->write(b);
+    if(!axial) out->write(rb);
     out->verbatimline("]");
     out->verbatimline("/Extend [true true]");
     out->verbatimline("/Function");
@@ -75,7 +79,7 @@ bool drawFill::draw(psfile *out)
     out->write(pentype);
     out->verbatimline("]");
     out->verbatim("/C1 [");
-    out->write(endpen);
+    out->write(penb);
     out->verbatimline("]");
     out->verbatimline("/N 1");
     out->verbatimline(">>");
@@ -91,7 +95,9 @@ bool drawFill::draw(psfile *out)
 
 drawElement *drawFill::transformed(const transform& t)
 {
-  return new drawFill(transpath(t),transpen(t),t*begin,endpen,t*end);
+  pair A=t*a, B=t*b;
+  return new drawFill(transpath(t),transpen(t),A,length(t*(a+ra)-A),
+		      penb,B,length(t*(b+rb)-B));
 }
 
 } // namespace camp
