@@ -156,8 +156,8 @@ double velocity(double theta, double phi, double tension, bool t_atleast)
   if (t_atleast)
   {
     double sine = sin(theta + phi);
-    if ((st >= 0.0 && sf >= 0.0 && sine >= 0.0) ||
-        (st <= 0.0 && sf <= 0.0 && sine <= 0.0))
+    if ((st >= 0.0 && sf >= 0.0 && sine > 0.0) ||
+        (st <= 0.0 && sf <= 0.0 && sine < 0.0))
     {
       double rmax = sf / sine;
       if (r > rmax)
