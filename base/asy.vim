@@ -19,7 +19,7 @@ syn keyword	asyStatement	break return continue
 syn keyword	asyConditional	if else
 syn keyword	asyRepeat	while for do
 syn keyword     asyExternal     import
-syn keyword     asyOperator     new
+syn keyword     asyOperator     new operator
 
 syn keyword	asyTodo		contained TODO FIXME XXX
 
@@ -27,11 +27,15 @@ syn keyword	asyTodo		contained TODO FIXME XXX
 syn cluster	asyCommentGroup	contains=asyTodo
 
 " String and Character constants
-" Highlight special characters (those which have a backslash) differently
-syn match	asySpecial	display contained "\\."
+" Highlight special characters (those proceding a double backslash) differently
+syn match	asySpecial	display contained "\\\\."
+" Highlight line continuation slashes
+syn match	asySpecial	display contained "\\$"
 syn region	asyString	start=+L\="+ skip=+\\\\\|\\"+ end=+"+ contains=asySpecial
   " asyCppString: same as asyString, but ends at end of line
+if 0
 syn region	asyCppString	start=+L\="+ skip=+\\\\\|\\"\|\\$+ excludenl end=+"+ end='$' contains=asySpecial
+endif
 
 "when wanted, highlight trailing white space
 if exists("asy_space_errors")
@@ -97,7 +101,8 @@ syntax match	asyCommentError	display "\*/"
 syntax match	asyCommentStartError display "/\*"me=e-1 contained
 
 syn keyword	asyType		void bool int real string
-syn keyword	asyType		pair transform guide path pen picture
+syn keyword	asyType		pair transform guide path pen frame
+syn keyword     asyType         picture
 
 syn keyword	asyStructure	struct typedef
 syn keyword     asyStorageClass static dynamic public private
