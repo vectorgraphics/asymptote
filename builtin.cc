@@ -509,6 +509,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::cmyk,primPen(),"cmyk",primReal(),primReal(),primReal(),
 	  primReal());
   addFunc(ve,run::gray,primPen(),"gray",primReal());
+  addFunc(ve,run::colors,realArray(),"colors",primPen());
   addFunc(ve,run::pattern,primPen(),"pattern",primString());
   addFunc(ve,run::defaultpen,primPen(),"defaultpen");
   addFunc(ve,run::invisiblepen,primPen(),"invisible");

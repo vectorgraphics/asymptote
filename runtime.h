@@ -188,6 +188,7 @@ void invisiblepen(vm::stack *s);
 void rgb(vm::stack *s);
 void cmyk(vm::stack *s);
 void gray(vm::stack *s);
+void colors(vm::stack *s);
 void pattern(vm::stack *s);
 void lineType(vm::stack *s);
 void lineCap(vm::stack *s);

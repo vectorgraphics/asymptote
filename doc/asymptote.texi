@@ -1030,6 +1030,9 @@ along with the primitive cmyk colors:
 Cyan,Magenta,Yellow,Black.
 @end verbatim
 
+@cindex @code{colors}
+The function @code{real[] colors(pen)} returns the color components of a pen.
+
 @item Line types are specified with the function @code{pen linetype(string s)},
 @cindex @code{solid}
 @cindex @code{dashed}
@@ -1219,9 +1222,7 @@ picture pic=new picture;
 @end verbatim
 
 A picture is fit to a frame upon calling the function @code{shipout},
-using the default or given size specification (in reality, @code{shipout} is
-implemented using two separate functions, because of the way default
-arguments are implemented):
+using the default or given size specification: 
 
 @anchor{shipout}
 @cindex @code{shipout}
@@ -1234,6 +1235,11 @@ void shipout(string prefix=defaultfilename,
              orientation orientation=Portrait,
              string format="", wait wait=NoWait);
 @end verbatim
+
+In reality, @code{shipout} is implemented using several functions,
+because of the way default arguments are implemented. Also, an
+explicit picture argument is required in order to specify a
+@code{PostScript} preamble.
 
 Rather than specifying the size information explicitly to @code{shipout},
 one can alternatively use the @code{size} function:
@@ -1345,7 +1351,7 @@ scaling (@code{scale=factor}), clipping (@code{clip=bool}),
 and draft mode (@code{draft=bool}) parameters. Note that @code{include}
 does not change a picture's bounding box.
 
-To issue a global @TeX{} command in the preamble (valid for the entire
+To issue a global @TeX{} command in the @TeX{} preamble (valid for the entire
 file) use:
 @cindex @code{texpreamble}
 @verbatim
@@ -2317,8 +2323,8 @@ ticks on the left (right) of the path, relative to the direction in which
 the path is drawn. The tick routines accept a number of optional arguments:
 @verbatim
 ticks LeftTicks(bool begin=true, int N=0, int n=0, real Step=0,
-                real step=0, real Size=Ticksize, real size=ticksize, string F,
-                bool end=true);
+                real step=0, real Size=Ticksize, real size=ticksize,
+                string F, bool end=true);
 @end verbatim
 
 If any of these parameters are omitted (or 0), reasonable defaults will
@@ -2588,6 +2594,46 @@ shipout();
 @end verbatim
 @image{loggraph}
 
+@item @code{Asymptote} also provides a means for drawing a secondary
+linear axis:
+@cindex secondary axis
+@cindex @code{secondaryX}
+@cindex @code{secondaryY}
+@verbatim
+import graph;
+
+size(9cm,6cm,IgnoreAspect);
+string data="secondaryaxis.csv";
+
+file in=line(csv(input(data)));
+
+string[] titlelabel=in;
+string[] columnlabel=in;
+
+real[][] a=dimension(in,0,0);
+a=transpose(a);
+real[] t=a[0], susceptible=a[1], infectious=a[2], dead=a[3], larvae=a[4];
+real[] susceptibleM=a[5], exposed=a[6],infectiousM=a[7];
+
+draw(graph(t,susceptible,t <= 20),solid);
+draw(graph(t,dead,t <= 20),dashed);
+
+xaxis("Time ($\tau$)",BottomTop,LeftTicks(5.0));
+yaxis(Left,RightTicks);
+
+picture secondary=secondaryY(new void(picture pic) {
+  draw(pic,graph(pic,t,infectious,t <= 20),red+solid);
+});
+			     
+yaxis(secondary,black,red,Right,LeftTicks(2));
+add(secondary);
+
+label("Proportion of crows",point(NW),E,5mm*N);
+
+shipout();
+@end verbatim
+@image{secondaryaxis}
+
 @item Here is an example that illustrates the general @code{axis} routine.
 @cindex @code{axis}
 @verbatim
@@ -2600,12 +2646,15 @@ shipout();
 @end verbatim
 @image{generalaxis}
 
-@item Here is a realistic scientific graph that illustrates many features of
-@code{Asymptote}'s graphics routines. It was generated with the
-example @code{diatom.asy} (in the @code{doc} directory), using the
-comma-separated data found in @code{diatom.csv}. 
+@item The following scientific graphs, which illustrate many features of
+@code{Asymptote}'s graphics routines, were generated from
+@code{diatom.asy} and @code{westnile.asy} (in the @code{doc}
+directory), using the comma-separated data in @code{diatom.csv}
+and @code{westnile.csv}.
 
 @image{diatom}
+@page
+@image{westnile}
 
 @end enumerate
 
@@ -2889,6 +2938,8 @@ which they are executed, with the most recently drawn object appearing on top.
 The @code{LaTeX} labeling command @code{label} adds text labels, which will
 appear on top of the @code{PostScript} objects (since this is normally what one
 wants), but again in the relative order in which they were executed.
+After drawing objects on a picture, the picture needs to be output with
+the @code{shipout} function (@pxref{shipout}).
 
 If you wish to draw @code{PostScript} objects on top of labels (or verbatim
 @code{tex} commands; see @pxref{tex}), the @code{layer} command may be
@@ -3068,10 +3119,100 @@ void arrow(picture pic=currentpicture, string s, real angle=0,
            real Angle=arrowangle, arrowhead arrowhead=Fill);
 @end verbatim
 
-One can prevent labels from overwriting each other with the
-@code{overwrite} function, which takes a single argument.
-This setting is global and is in effect for the remainder of the top-level
-@code{Asymptote} module or until the next call to @code{reset()}.
+@cindex @code{minipage}
+The @code{minipage(string s, width=100pt)} routine can be used to format
+string @code{s} into a paragraph of width @code{width}, as illustrated
+in the following example:
+
+@verbatim
+size(9cm,10cm,IgnoreAspect);
+
+pair d=(1,0.25);
+real s=1.6d.x;
+real y=0.6;
+defaultfontsize(8);
+
+picture box(string s, pair z=(0,0)) {
+  picture pic=new picture;
+  draw(pic,box(-d/2,d/2));
+  label(pic,s,(0,0));
+  return shift(z)*pic;
+}
+
+label("Birds",(0,y));
+picture removed=box("Removed ($R_B$)");
+picture infectious=box("Infectious ($I_B$)",(0,-1.5));
+picture susceptible=box("Susceptible ($S_B$)",(0,-3));
+
+add(removed);
+add(infectious);
+add(susceptible);
+
+label("Mosquitoes",(s,y));
+picture larval=box("Larval ($L_M$)",(s,0));
+picture susceptibleM=box("Susceptible ($S_M$)",(s,-1));
+picture exposed=box("Exposed ($E_M$)",(s,-2));
+picture infectiousM=box("Infectious ($I_M$)",(s,-3));
+
+add(larval);
+add(susceptibleM);
+add(exposed);
+add(infectiousM);
+
+path ls=point(larval,S)--point(susceptibleM,N);
+path se=point(susceptibleM,S)--point(exposed,N);
+path ei=point(exposed,S)--point(infectiousM,N);
+path si=point(susceptible,N)--point(infectious,S);
+
+draw(minipage("\flushright{recovery rate ($g$) \& death rate from virus
+($\mu_V$)}",40pt),point(infectious,N)--point(removed,S),LeftSide,Arrow);
+
+draw(si,LeftSide,Arrow);
+
+draw(minipage("\flushright{maturation rate ($m$)}",50pt),ls,RightSide,
+Arrow);
+draw(minipage("\flushright{viral incubation rate ($k$)}",40pt),ei,
+RightSide,Arrow);
+
+path ise=point(infectious,E)--point(se,0.5);
+  
+draw("$(ac)$",ise,LeftSide,dashed,Arrow);
+label(minipage("\flushleft{biting rate $\times$ transmission
+probability}",50pt),point(infectious,SE),dir(-60)+S);
+
+path isi=point(infectiousM,W)--point(si,2.0/3);
+
+draw("$(ab)$",isi,LeftSide,dashed,Arrow);
+draw(se,LeftSide,Arrow);
+      
+real t=2.0;
+draw("$\beta_M$",
+     point(susceptibleM,E){right}..tension t..{left}point(larval,E),
+     2*(S+SE),red,Arrow(Fill,0.5));
+draw(minipage("\flushleft{birth rate ($\beta_M$)}",20pt),
+     point(exposed,E){right}..tension t..{left}point(larval,E),2SW,red,
+     Arrow(Fill,0.5));
+draw("$\beta_M$",
+     point(infectiousM,E){right}..tension t..{left}point(larval,E),2SW,
+     red,Arrow(Fill,0.5));
+
+path arrow=(0,0)--0.75cm*dir(35);
+drawabout(point(larval,NNE),
+	  minipage("\flushleft{larval death rate ($\mu_L$)}",45pt),
+	  arrow,1,blue,Arrow);
+drawabout(point(susceptibleM,NNE),
+          minipage("\flushleft{adult death rate ($\mu_A$)}",20pt),
+	  arrow,1,N,blue,Arrow);
+drawabout(point(exposed,NNE),"$\mu_A$",arrow,1,blue,Arrow);
+drawabout(point(infectiousM,NNE),"$\mu_A$",arrow,1,blue,Arrow);
+
+shipout();
+@end verbatim
+
+@image{mosquito}
+
+One can prevent labels from overwriting one another with the
+@code{overwrite} function, which takes a single argument:
 
 @table @code
 @cindex @code{Allow}
@@ -3099,12 +3240,12 @@ Move a label that would overwrite another out of the way, without warning.
 As this adjustment is during the final output phase (in @code{PostScript}
 coordinates) it could result in a larger figure than requested.
 
+This setting is global and is in effect for the remainder of the top-level
+@code{Asymptote} module or until the next call to @code{reset()}.
+
 @end table
 
 @end enumerate
-
-Once the above commands have been used to draw objects on a picture, the
-picture needs to be output with the @code{shipout} function (@pxref{shipout}).
 
 @node LaTeX usage
 @chapter @code{LaTeX} usage
@@ -3239,8 +3380,8 @@ shipout();
 \end{document}
 
 @end verbatim
-
-@image{latexusage,,25cm}
+@page
+@image{latexusage,,26cm}
 
 @node Options
 @chapter Options
@@ -3491,7 +3632,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  postcontrol precontrol atleast nullpath arclength arctime rgb
 @c  LocalWords:  dirtime currentpen colorspaces grayscale cmyk defaultpen xsize
 @c  LocalWords:  linetype longdashed dashdotted longdashdotted linewidth ysize
-@c  LocalWords:  fontsize defaultfilename keepAspect IgnoreAspect
+@c  LocalWords:  fontsize defaultfilename keepAspect IgnoreAspect ise flushleft
 @c  LocalWords:  NoWait src dest XDR txt getc fout stdin stdout endl xinput eof
 @c  LocalWords:  xoutput Microsystem's eol struct exponentials postfix sayhi th
 @c  LocalWords:  sqr intop addby libm asin acos atan sinh tanh asinh acosh cbrt
@@ -3501,7 +3642,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  ticksize subintervals xlimits filetype plugin setlocal makeprg
 @c  LocalWords:  ylimits uncommented LinearInterp automin automax cp uninstall
 @c  LocalWords:  scaleT Xautomin Xautomax Yautomin Yautomax unicode RightSide
-@c  LocalWords:  arrowbar LeftSide EndBar BeginArrow lly featpost feynman
+@c  LocalWords:  arrowbar LeftSide EndBar BeginArrow lly featpost feynman isi
 @c  LocalWords:  EndArrow BeginArcArrow EndArcArrow ArcArrow ArcArrows NoFill
 @c  LocalWords:  filldraw fillpen drawpen errorformat bigsquare bezier darkblue
 @c  LocalWords:  quartercircle darkgreen lightblue urx ury texpreamble sgn texi
@@ -3511,7 +3652,11 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  ghostview gsview SIGHUP PDF acroread xpdf nullframe cutbefore
 @c  LocalWords:  libsigsegv intersectionpoint dotfactor lzw GIFS vv firstcut pq
 @c  LocalWords:  Unisys dvips vvv vvvv vvvvv traceback lastcut cutafter infodir
-@c  LocalWords:  zxvf xargs cond polargraph xmin xmax plabel YZero labelling
-@c  LocalWords:  ticksize ymin ymax XZero xequals tickmin tickmax unlabelled
+@c  LocalWords:  zxvf xargs cond polargraph xmin xmax plabel YZero labelling ln
+@c  LocalWords:  ymin ymax XZero xequals tickmin tickmax unlabelled se pq
 @c  LocalWords:  yequals Nobre Barbarosie Schwaiger nearearth conicurv Wiebusch
 @c  LocalWords:  unfill PAPERTYPE posterSize ngraph interpolatetype drawabout
+@c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling addabout ei
+@c  LocalWords:  westnile fillabout filldrawabout minipage infectiousM
+@c  LocalWords:  susceptibleM si flushright secondaryX secondaryY secondaryaxis
+@c  LocalWords:  titlelabel columnlabel

@@ -182,11 +182,13 @@ private int GUIFilenum=0;
 private int GUIObject=0;
 private string GUIPrefix;
 
+public frame patterns;
+
 void deconstruct(frame d)
 {
   if(deconstruct()) {
     string prefix=GUIPrefix == "" ? fileprefix() : GUIPrefix;
-    shipout(prefix+"_"+(string) GUIObject,d,nullframe,"tgif",false);
+    shipout(prefix+"_"+(string) GUIObject,d,patterns,"tgif",false);
   }
   ++GUIObject;
 }
@@ -1056,7 +1058,7 @@ void legend(frame f, Legend[] legend, bool placement=true)
   }
 }
   
-void shipout(string prefix=defaultfilename, frame f, frame preamble,
+void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
 	     Legend[] legend={}, string format="", wait wait=NoWait)
 {
   GUIPrefix=prefix;
@@ -1084,9 +1086,7 @@ public orientation
   Landscape=new frame(frame f, orientationT) {return rotate(90)*f;},
   Seascape=new frame(frame f, orientationT) {return rotate(-90)*f;};
 
-frame patterns;
-
-void shipout(string prefix=defaultfilename, picture pic=currentpicture,
+void shipout(string prefix=defaultfilename, picture pic,
 	     frame preamble=patterns, real xsize=infinity, real ysize=infinity,
 	     keepAspect keepAspect, orientation orientation=Portrait,
 	     string format="", wait wait=NoWait)
@@ -1099,13 +1099,31 @@ void shipout(string prefix=defaultfilename, picture pic=currentpicture,
   shipout(prefix,orientation(f,orientation),preamble,pic.legend,format,wait);
 }
 
-void shipout(string prefix=defaultfilename, picture pic=currentpicture,
+void shipout(string prefix=defaultfilename,
+	     real xsize=infinity, real ysize=infinity,
+	     keepAspect keepAspect, orientation orientation=Portrait,
+	     string format="", wait wait=NoWait)
+{
+  shipout(prefix,currentpicture,ysize,keepAspect,orientation,format,wait);
+}
+
+void shipout(string prefix=defaultfilename, picture pic,
 	     frame preamble=patterns, real xsize=infinity, real ysize=infinity,
 	     orientation orientation=Portrait, string format="",
 	     wait wait=NoWait)
 {
   shipout(prefix,pic,preamble,xsize,ysize,
 	  pic.keepAspect ? Aspect : IgnoreAspect,orientation,format,wait);
+}
+
+void shipout(string prefix=defaultfilename,
+	     real xsize=infinity, real ysize=infinity,
+	     orientation orientation=Portrait, string format="",
+	     wait wait=NoWait)
+{
+  shipout(prefix,currentpicture,xsize,ysize,
+	  currentpicture.keepAspect ? Aspect : IgnoreAspect,
+	  orientation,format,wait);
 }
 
 void erase(picture pic=currentpicture)
@@ -1480,9 +1498,9 @@ string math(string s)
   return "$"+s+"$";
 }
 
-string minipage(string s, real vsize=100pt)
+string minipage(string s, real width=100pt)
 {
-  return "\begin{minipage}{"+(string) (vsize*pt)+"pt}"+s+"\end{minipage}";
+  return "\begin{minipage}{"+(string) (width*pt)+"pt}"+s+"\end{minipage}";
 }
 
 string math(real x)

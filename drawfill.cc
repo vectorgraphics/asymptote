@@ -26,12 +26,12 @@ bool drawFill::draw(psfile *out)
 
   out->write(p);
 
-  Colorspace colspace;
+  ColorSpace colorspace;
   
   if(shade) {
-    colspace=(Colorspace) max(pentype.Color(),endpen.Color());
+    colorspace=(ColorSpace) max(pentype.colorspace(),endpen.colorspace());
     
-    switch(colspace) {
+    switch(colorspace) {
     case PATTERN:
     case TRANSPARENT:
       shade=false;
@@ -62,7 +62,7 @@ bool drawFill::draw(psfile *out)
   if(shade) {
     out->clip();
     out->verbatimline("<< /ShadingType 2");
-    out->verbatimline("/ColorSpace /Device"+ColorDeviceSuffix[colspace]);
+    out->verbatimline("/ColorSpace /Device"+ColorDeviceSuffix[colorspace]);
     out->verbatim("/Coords [");
     out->write(begin);
     out->write(end);

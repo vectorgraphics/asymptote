@@ -116,7 +116,7 @@ void realFmod(stack *s)
   double y = s->pop<double>();
   double x = s->pop<double>();
   if (y == 0.0)
-    error(s, "Division by zero");
+    error(s,"Division by zero");
   double val = fmod(x,y);
   s->push(val);
 }
@@ -1345,6 +1345,38 @@ void gray(stack *s)
   s->push(new pen(s->pop<double>()));  
 }
 
+void colors(stack *s)
+{  
+  pen *p=s->pop<pen*>();
+  int n=ColorComponents[p->colorspace()];
+  array *a=new array(n);
+  
+  switch(n) {
+  case 0:
+    break;
+  case 1: 
+    (*a)[0]=p->gray(); 
+    break;
+  case 3:
+    (*a)[0]=p->red(); 
+    (*a)[1]=p->blue(); 
+    (*a)[2]=p->green(); 
+    break;
+  case 4:
+    (*a)[0]=p->cyan();
+    (*a)[1]=p->magenta(); 
+    (*a)[2]=p->yellow(); 
+    (*a)[3]=p->black();
+    break;
+  default:
+    ostringstream buf;
+    buf << "Undefined colorspace index encountered: " << n;
+    error(s,buf.str().c_str());
+    break;
+  }
+  s->push(a);
+}
+
 void pattern(stack *s)
 {
   s->push(new pen(setpattern,s->pop<string>()));  
@@ -1376,8 +1408,8 @@ void lineWidth(stack *s)
 
 void penLineWidth(stack *s)
 {
-  pen p(*s->pop<pen*>());
-  s->push(p.width());  
+  pen *p=s->pop<pen*>();
+  s->push(p->width());  
 }
 
 void defaultLineWidth(stack *s)
@@ -1398,8 +1430,8 @@ void fontSize(stack *s)
 
 void penFontSize(stack *s)
 {
-  pen p(*s->pop<pen*>());
-  s->push(p.size());  
+  pen *p=s->pop<pen*>();
+  s->push(p->size());  
 }
 
 void boolPenEq(stack *s)

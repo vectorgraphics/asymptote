@@ -37,12 +37,12 @@ namespace types {
 enum ty_kind {
   ty_void,
   ty_null,
-  ty_record,
+  ty_record,	// "struct" in Asymptote language
   ty_function,
   ty_error,
   ty_overloaded,
  
-  ty_boolean, 
+  ty_boolean,	// "bool" in Asymptote language
   ty_int,
   ty_real,
   
@@ -52,7 +52,7 @@ enum ty_kind {
   ty_guide,
   ty_path,
   ty_pen,
-  ty_picture,
+  ty_picture,	// "frame" in Asymptote language
   ty_file,
   ty_array
 };

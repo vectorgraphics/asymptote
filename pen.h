@@ -37,7 +37,8 @@ static const std::string Join[]={"miter","round","bevel"};
 const int nCap=sizeof(Cap)/sizeof(string);
 const int nJoin=sizeof(Join)/sizeof(string);
   
-enum Colorspace {TRANSPARENT,DEFCOLOR,GRAYSCALE,RGB,CMYK,PATTERN};
+enum ColorSpace {TRANSPARENT,DEFCOLOR,GRAYSCALE,RGB,CMYK,PATTERN};
+static const int ColorComponents[]={0,1,1,3,4,0};
 static const std::string ColorDeviceSuffix[]={"","Gray","Gray","RGB","CMYK",
 					      ""};
 class pen : public mempool::pooled<pen>
@@ -49,7 +50,7 @@ class pen : public mempool::pooled<pen>
   double linewidth;
   double fontsize;  
   
-  Colorspace color;
+  ColorSpace color;
   double r,g,b; // RGB or CMY value
   double grey; // grayscale or K value
 
@@ -73,7 +74,7 @@ public:
     linecap(DEFCAP), linejoin(DEFJOIN), t(0) {}
   
   pen(const string& line, double linewidth, double fontsize,
-      Colorspace color, double r, double g, double b,  double grey,
+      ColorSpace color, double r, double g, double b,  double grey,
       const string& pattern, int linecap, int linejoin, const transform *t)
     : line(line), linewidth(linewidth), fontsize(fontsize),
       color(color), r(r), g(g), b(b), grey(grey), pattern(pattern),
@@ -179,7 +180,7 @@ public:
   
   int join() {return linejoin == DEFJOIN ? 1 : linejoin;}
   
-  Colorspace Color() {return color;}
+  ColorSpace colorspace() {return color;}
   
   bool transparent() const {return color == TRANSPARENT;}
   
@@ -203,9 +204,9 @@ public:
   
   double yellow() const {return b;}
   
-  double gray() const {return grey;}
-  
   double black() const {return grey;}
+  
+  double gray() const {return grey;}
   
   double rgbsaturation() const {return max(max(r,g),b);}
   
@@ -273,13 +274,13 @@ public:
   }
   
   friend pen operator + (const pen& p, const pen& q) {
-    Colorspace colspace=(Colorspace) max(p.color,q.color);
+    ColorSpace colorspace=(ColorSpace) max(p.color,q.color);
     
     double R=0.0,G=0.0,B=0.0,greyval=0.0;
     pen P=p;
     pen Q=q;
     
-    switch(colspace) {
+    switch(colorspace) {
     case PATTERN:
     case TRANSPARENT:
       break;
@@ -345,7 +346,7 @@ public:
     return pen(q.line == DEFLINE ? p.line : q.line,
 	       q.linewidth == DEFWIDTH ? p.linewidth : q.linewidth,
 	       q.fontsize == 0.0 ? p.fontsize : q.fontsize,
-	       colspace,R,G,B,greyval,
+	       colorspace,R,G,B,greyval,
 	       q.pattern == "" ? p.pattern : q.pattern,
 	       q.linecap == DEFCAP ? p.linecap : q.linecap,
 	       q.linejoin == DEFJOIN ? p.linejoin : q.linejoin,
