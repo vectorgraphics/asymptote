@@ -24,6 +24,10 @@ public:
   
   virtual ~drawVerbatim() {}
 
+  bool islabel() {
+    return language == TeX;
+  }
+  
   bool draw(psfile *out) {
     if(language == PostScript) out->verbatim(text);
     return true;
