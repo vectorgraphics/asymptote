@@ -1,3 +1,11 @@
+/*****
+ * mathop.h
+ * Tom Prince 2005/3/18
+ *
+ * Defines some runtime functions used by the stack machine.
+ *
+ *****/
+
 #include <sstream>
 
 #include "stack.h"

@@ -1,3 +1,11 @@
+/*****
+ * castop.h
+ * Tom Prince 2005/3/18
+ *
+ * Defines some runtime functions used by the stack machine.
+ *
+ *****/
+
 #include <boost/lexical_cast.hpp>
 #include <cfloat>
 
