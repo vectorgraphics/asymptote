@@ -19,7 +19,8 @@ using std::setprecision;
 bool TeXcontaminated=false;
 std::list<std::string> TeXpreamble;
   
-texfile::texfile(const string& texname, const bbox& box) : box(box)
+  texfile::texfile(const string& texname, const bbox& box) : 
+    box(box), lastpen(initialpen) 
 {
   out=new ofstream(texname.c_str());
   if(!out || !*out) {

@@ -23,6 +23,7 @@ static const double DEFWIDTH=-1;
 static const struct transparentpen_t {} transparentpen={};
 static const struct setlinewidth_t {} setlinewidth={};
 static const struct setfontsize_t {} setfontsize={};
+static const struct initialpen_t {} initialpen={};
   
 enum Colorspace {TRANSPARENT,DEFCOLOR,GRAYSCALE,RGB,CMYK};
   
@@ -70,6 +71,10 @@ public:
 					fontsize(fontsize), color(DEFCOLOR), 
 					r(0.0), g(0.0), b(0.0), grey(0.0),
 					t(0) {}
+  
+  pen(initialpen_t) : line(DEFLINE), linewidth(-2), fontsize(-1),
+		      color(DEFCOLOR), r(0.0), g(0.0), b(0.0), grey(0.0),
+		      t(0) {}
   
   static double pos0(double x) {return x >= 0 ? x : 0;}
   

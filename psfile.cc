@@ -19,7 +19,7 @@ using std::ofstream;
 using std::setw;
   
 psfile::psfile(const string& filename, const bbox& box, const pair& shift)
-  : filename(filename), box(box), shift(shift), lastpen(setlinewidth,0.0)
+  : filename(filename), box(box), shift(shift), lastpen(initialpen)
 {
   if(filename != "") out=new ofstream(filename.c_str());
   else out=&std::cout;
