@@ -1930,12 +1930,17 @@ shipout();
 
 @item This example draws a graph of a parametrized curve. 
 @cindex parametrized curve
+@cindex @code{crop}
 @cindex @code{limits}
 @cindex @code{xlimits}
 @cindex @code{ylimits}
-The line @code{limits(pair, pair)} can be uncommented to crop the
-data to the box with opposite corners specified by the two pairs 
-(one can also separately restrict the @code{xlimits} and @code{ylimits}).
+
+The first two commented lines can be uncommented to restrict the 
+respective axes limits to the specifed values (alternatively, the
+function @code{limits(pair, pair)} can be uncommented to limit the axes
+to the box having opposite vertices at the two pairs). 
+The function @code{crop} can then optionally be used to crop the data to lie
+within the new axis limits. 
 @verbatim
 import graph;
 
@@ -1945,10 +1950,13 @@ real f(real t) {return cos(2pi*t);}
 real g(real t) {return sin(2pi*t);}
 
 draw(graph(f,g,0,1,LinearInterp));
-//limits((0,-1),(1,0));
+
+//xlimits(0,1);
+//ylimits(-1,0);
+//crop();
 
 xaxis("$x$",BottomTop,LeftTicks);
-yaxis("$E(k)$",LeftRight,RightTicks);
+yaxis("$y$",LeftRight,RightTicks);
 
 shipout();
 
@@ -1962,7 +1970,6 @@ shipout();
 @cindex automatic scaling
 Axis scaling can be requested and/or automatic selection of the
 axis limits can be inhibited with the @code{scale} routine:
-
 @verbatim
 void scale(picture pic=currentpicture, scaleT x, scaleT y);
 @end verbatim
@@ -1996,7 +2003,9 @@ scale(Log,Log);
 
 draw(graph(f,0.1,10));
 
-//limits((0,-1),(1,0));
+//xlimits(0,1);
+//ylimits(-1,0);
+//crop();
 
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);

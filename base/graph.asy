@@ -608,45 +608,43 @@ public axis
     axis.tickMax=max;
   };
 
-void limits0(picture pic=currentpicture, pair lb, pair rt)
+void crop(picture pic=currentpicture) 
 {
   pic.clip(new void (frame f, transform t) {
-    clip(f, box(t*lb,t*rt));
+    clip(f, box(t*pic.userMin,t*pic.userMax));
   });
-  pic.userMin=lb;
-  pic.userMax=rt;
 }
 
-void limits(picture pic=currentpicture, pair lb, pair rt)
-{
-  limits0(pic,lb,rt);
-  pic.scale.x.automin=pic.scale.x.automax=false;
-  pic.scale.y.automin=pic.scale.y.automax=false;
-}
-
-  
 void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity)
 {
-  bounds mx=autoscale(pic.userMin.x,pic.userMax.x,logarithmic(pic.scale.x.scale));
+  bounds mx=autoscale(pic.userMin.x,pic.userMax.x,
+		      logarithmic(pic.scale.x.scale));
   if(Min == -infinity) Min=mx.min;
   else pic.scale.x.automin=false;
   if(Max == infinity) Max=mx.max;
   else pic.scale.x.automax=false;
-  if(finite(pic.userMin.y) && finite(pic.userMax.y))
-    limits0(pic,(Min,pic.userMin.y),(Max,pic.userMax.y));
+  pic.userMin=(Min,pic.userMin.y);
+  pic.userMax=(Max,pic.userMax.y);
 }
 
 void ylimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity)
 {
-  bounds my=autoscale(pic.userMin.y,pic.userMax.y,logarithmic(pic.scale.y.scale));
+  bounds my=autoscale(pic.userMin.y,pic.userMax.y,
+		      logarithmic(pic.scale.y.scale));
   if(Min == -infinity) Min=my.min;
   else pic.scale.y.automin=false;
   if(Max == infinity) Max=my.max;
   else pic.scale.y.automax=false;
-  if(finite(pic.userMin.x) && finite(pic.userMax.x))
-    limits0(pic,(pic.userMin.x,Min),(pic.userMax.x,Max));
+  pic.userMin=(pic.userMin.x,Min);
+  pic.userMax=(pic.userMax.x,Max);
 }
 
+void limits(picture pic=currentpicture, pair min, pair max)
+{
+  xlimits(min.x,max.x);
+  ylimits(min.y,max.y);
+}
+  
 
 void autoscale(picture pic=currentpicture, axis axis) 
 {

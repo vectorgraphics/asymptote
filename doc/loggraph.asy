@@ -8,7 +8,9 @@ scale(Log,Log);
 
 draw(graph(f,0.1,10));
 
-//limits((0,-1),(1,0));
+//xlimits(0,1);
+//ylimits(-1,0);
+//crop();
 
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
