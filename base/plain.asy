@@ -1296,7 +1296,8 @@ guide arc(pair c, real r, real angle1, real angle2, direction direction)
     return arc(c,r,angle1,(angle2 >= angle1) ? angle2-360 : angle2);
 }
 
-// return an arc centered at c from pair z1 to z2 (assuming |z2-c|=|z1-c|).
+// return an arc centered at c from pair z1 to z2 (assuming |z2-c|=|z1-c|),
+// drawing counter-clockwise unless direction=CW
 guide arc(pair c, pair z1, pair z2, direction direction=CCW)
 {
   return arc(c,abs(z1-c),Angle(z1),Angle(z2),direction);

@@ -249,7 +249,7 @@ ESC \\
 {ESC}n        {adjust(); append('\n'); continue; }
 {ESC}f        {adjust(); append('\f'); continue; }
 {ESC}r        {adjust(); append('\r'); continue; }
-{ESC}\\       {adjust(); append('\\'); append('\\'); continue; }
+{ESC}\\       {adjust(); append('\\'); continue; }
 {ESC}(\"|\')       {adjust(); append(yytext[1]); continue; }
 {ESC}[0-7]         {adjust();
                     char x=(char)(yytext[1]-'0');
