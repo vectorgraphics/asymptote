@@ -76,14 +76,15 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
   pair C=p+pair(width+fuzz,height+depth+fuzz)*rotation;
   pair D=p+pair(width+fuzz,-fuzz)*rotation;
   
-  if(settings::overwrite != 0) {
+  if(pentype->Overwrite() != ALLOW) {
     size_t n=labelbounds.size();
     box Box=box(A,B,C,D);
     for(size_t i=0; i < n; i++) {
       if(labelbounds[i].intersect(Box)) {
-	if(abs(settings::overwrite) == 1) {
+	if(pentype->Overwrite() == SUPPRESS || 
+	   pentype->Overwrite() == SUPPRESSQUIET) {
 	  suppress=true; 
-	  if(settings::overwrite > 0) labelwarning("suppressed");
+	  if(pentype->Overwrite() == SUPPRESS) labelwarning("suppressed");
 	  return;
 	}
 
@@ -102,7 +103,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
 	C += offset;
 	D += offset;
 	Box=box(A,B,C,D);
-	if(settings::overwrite > 0) labelwarning("moved");
+	if(pentype->Overwrite() == MOVE) labelwarning("moved");
 	i=0;
       }
     }

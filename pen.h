@@ -29,13 +29,18 @@ static const struct setfontsize_t {} setfontsize={};
 static const struct setpattern_t {} setpattern={};
 static const struct setlinecap_t {} setlinecap={};
 static const struct setlinejoin_t {} setlinejoin={};
+static const struct setoverwrite_t {} setoverwrite={};
 static const struct initialpen_t {} initialpen={};
   
 static const std::string Cap[]={"square","round","extended"};
 static const std::string Join[]={"miter","round","bevel"};
-  
 const int nCap=sizeof(Cap)/sizeof(string);
 const int nJoin=sizeof(Join)/sizeof(string);
+  
+enum overwrite_t {DEFWRITE=-1,ALLOW,SUPPRESS,SUPPRESSQUIET,MOVE,MOVEQUIET};
+static const std::string OverwriteTag[]={"Allow","Suppress","SupressQuiet",
+					 "Move","MoveQuiet"};
+const int nOverwrite=sizeof(OverwriteTag)/sizeof(string);
   
 enum ColorSpace {TRANSPARENT,DEFCOLOR,GRAYSCALE,RGB,CMYK,PATTERN};
 static const int ColorComponents[]={0,1,1,3,4,0};
@@ -58,76 +63,16 @@ class pen : public mempool::pooled<pen>
   string pattern;
   int linecap;
   int linejoin;
+  overwrite_t overwrite;
   
   // The transformation applied to the pen nib for calligraphic effects.
   // Null means the identity transformation.
   const transform *t;
   
 public:
-  pen() : line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
-	  color(DEFCOLOR), r(0.0), g(0.0), b(0.0), grey(0.0), pattern(""),
-	  linecap(DEFCAP), linejoin(DEFJOIN), t(0) {}
-
-  pen(transparentpen_t) : 
-    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
-    color(TRANSPARENT), r(0.0), g(0.0), b(0.0), grey(0.0), pattern (""),
-    linecap(DEFCAP), linejoin(DEFJOIN), t(0) {}
-  
-  pen(const string& line, double linewidth, double fontsize,
-      ColorSpace color, double r, double g, double b,  double grey,
-      const string& pattern, int linecap, int linejoin, const transform *t)
-    : line(line), linewidth(linewidth), fontsize(fontsize),
-      color(color), r(r), g(g), b(b), grey(grey), pattern(pattern),
-      linecap(linecap), linejoin(linejoin), t(t) {}
-      
-  
-  explicit pen(setlinewidth_t, double linewidth) : 
-    line(DEFLINE), linewidth(linewidth), fontsize(0.0), color(DEFCOLOR),
-    r(0.0), g(0.0), b(0.0), grey(0.0), pattern(""),
-    linecap(DEFCAP), linejoin(DEFJOIN), t(0) {}
-  
-  explicit pen(const string& line) : line(line), linewidth(DEFWIDTH),
-				     fontsize(0.0), color(DEFCOLOR),
-				     r(0.0), g(0.0), b(0.0), grey(0.0),
-				     pattern(""), linecap(DEFCAP),
-				     linejoin(DEFJOIN), t(0) {}
-  
-  pen(setfontsize_t, double fontsize) : line(DEFLINE), linewidth(DEFWIDTH),
-					fontsize(fontsize), color(DEFCOLOR), 
-					r(0.0), g(0.0), b(0.0), grey(0.0),
-					pattern(""), linecap(DEFCAP),
-					linejoin(DEFJOIN), t(0) {}
-  
-  pen(initialpen_t) : line(DEFLINE), linewidth(-2), fontsize(-1),
-		      color(DEFCOLOR), r(0.0), g(0.0), b(0.0), grey(0.0),
-		      pattern(""), linecap(-2), linejoin(-2), t(0) {}
-  
   static double pos0(double x) {return x >= 0 ? x : 0;}
   
   void greyrange() {if(grey > 1.0) grey=1.0;}
-  
-  explicit pen(double grey) : line(DEFLINE), linewidth(DEFWIDTH),
-			      fontsize(0.0),
-		              color(GRAYSCALE), r(0.0), g(0.0), b(0.0),
-		              grey(pos0(grey)), pattern(""),
-			      linecap(DEFCAP), linejoin(DEFJOIN), t(0) {
-    greyrange();
-  }
-  
-  explicit pen(setpattern_t, const string& pattern) :
-    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0), color(PATTERN),
-    r(0.0), g(0.0), b(0.0), grey(0.0), pattern(pattern),
-    linecap(DEFCAP), linejoin(DEFJOIN), t(0) {}
-  
-  explicit pen(setlinecap_t, int linecap) :
-    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0), color(DEFCOLOR),
-    r(0.0), g(0.0), b(0.0), grey(0.0), pattern(""),
-    linecap(linecap), linejoin(DEFJOIN), t(0) {}
-  
-  explicit pen(setlinejoin_t, int linejoin) :
-    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0), color(DEFCOLOR),
-    r(0.0), g(0.0), b(0.0), grey(0.0), pattern(""),
-    linecap(DEFCAP), linejoin(linejoin), t(0) {}
   
   void rgbrange() {
     double sat=rgbsaturation();
@@ -137,13 +82,6 @@ public:
       g *= scale;
       b *= scale;
     }
-  }
-  
-  pen(double r, double g, double b) : 
-    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
-    color(RGB), r(pos0(r)), g(pos0(g)), b(pos0(b)),  grey(0.0), 
-    pattern(""), linecap(DEFCAP), linejoin(DEFJOIN), t(0) {
-    rgbrange();
   }
   
   void cmykrange() {
@@ -157,10 +95,89 @@ public:
     }
   }
   
+  pen() : line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
+	  color(DEFCOLOR), r(0.0), g(0.0), b(0.0), grey(0.0), pattern(""),
+	  linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+
+  pen(transparentpen_t) : 
+    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
+    color(TRANSPARENT), r(0.0), g(0.0), b(0.0), grey(0.0), pattern (""),
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+  
+  pen(const string& line, double linewidth, double fontsize,
+      ColorSpace color, double r, double g, double b,  double grey,
+      const string& pattern, int linecap, int linejoin, overwrite_t overwrite,
+      const transform *t)
+    : line(line), linewidth(linewidth), fontsize(fontsize),
+      color(color), r(r), g(g), b(b), grey(grey), pattern(pattern),
+      linecap(linecap), linejoin(linejoin), overwrite(overwrite), t(t) {}
+      
+  explicit pen(setlinewidth_t, double linewidth) : 
+    line(DEFLINE), linewidth(linewidth), fontsize(0.0), color(DEFCOLOR),
+    r(0.0), g(0.0), b(0.0), grey(0.0), pattern(""),
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+  
+  explicit pen(const string& line) : line(line), linewidth(DEFWIDTH),
+				     fontsize(0.0), color(DEFCOLOR),
+				     r(0.0), g(0.0), b(0.0), grey(0.0),
+				     pattern(""), linecap(DEFCAP),
+				     linejoin(DEFJOIN), overwrite(DEFWRITE),
+				     t(0) {}
+  
+  pen(setfontsize_t, double fontsize) : line(DEFLINE), linewidth(DEFWIDTH),
+					fontsize(fontsize), color(DEFCOLOR), 
+					r(0.0), g(0.0), b(0.0), grey(0.0),
+					pattern(""), linecap(DEFCAP),
+					linejoin(DEFJOIN), overwrite(DEFWRITE),
+					t(0) {}
+  
+  pen(initialpen_t) : line(DEFLINE), linewidth(-2), fontsize(-1),
+		      color(DEFCOLOR), r(0.0), g(0.0), b(0.0), grey(0.0),
+		      pattern(""), linecap(-2), linejoin(-2),
+		      overwrite(DEFWRITE), t(0) {}
+  
+  explicit pen(double grey) : line(DEFLINE), linewidth(DEFWIDTH),
+			      fontsize(0.0),
+		              color(GRAYSCALE), r(0.0), g(0.0), b(0.0),
+		              grey(pos0(grey)), pattern(""),
+			      linecap(DEFCAP), linejoin(DEFJOIN),
+			      overwrite(DEFWRITE), t(0) {
+    greyrange();
+  }
+  
+  explicit pen(setpattern_t, const string& pattern) :
+    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0), color(PATTERN),
+    r(0.0), g(0.0), b(0.0), grey(0.0), pattern(pattern),
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+  
+  explicit pen(setlinecap_t, int linecap) :
+    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0), color(DEFCOLOR),
+    r(0.0), g(0.0), b(0.0), grey(0.0), pattern(""),
+    linecap(linecap), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+  
+  explicit pen(setlinejoin_t, int linejoin) :
+    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0), color(DEFCOLOR),
+    r(0.0), g(0.0), b(0.0), grey(0.0), pattern(""),
+    linecap(DEFCAP), linejoin(linejoin), overwrite(DEFWRITE), t(0) {}
+  
+  explicit pen(setoverwrite_t, overwrite_t overwrite) :
+    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0), color(DEFCOLOR),
+    r(0.0), g(0.0), b(0.0), grey(0.0), pattern(""),
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(overwrite), t(0) {}
+  
+  pen(double r, double g, double b) : 
+    line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
+    color(RGB), r(pos0(r)), g(pos0(g)), b(pos0(b)),  grey(0.0), 
+    pattern(""), linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE),
+    t(0) {
+    rgbrange();
+  }
+  
   pen(double c, double m, double y, double k) :
     line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
     color(CMYK), r(pos0(c)), g(pos0(m)), b(pos0(y)), grey(pos0(k)),
-    pattern(""), linecap(DEFCAP), linejoin(DEFJOIN), t(0) {
+    pattern(""), linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE),
+    t(0) {
     cmykrange();
   }
   
@@ -179,6 +196,8 @@ public:
   int cap() {return linecap == DEFCAP ? 1 : linecap;}
   
   int join() {return linejoin == DEFJOIN ? 1 : linejoin;}
+  
+  overwrite_t Overwrite() {return overwrite == DEFWRITE ? ALLOW : overwrite;}
   
   ColorSpace colorspace() {return color;}
   
@@ -364,6 +383,7 @@ public:
 	       q.pattern == "" ? p.pattern : q.pattern,
 	       q.linecap == DEFCAP ? p.linecap : q.linecap,
 	       q.linejoin == DEFJOIN ? p.linejoin : q.linejoin,
+	       q.overwrite == DEFWRITE ? p.overwrite : q.overwrite,
 	       q.t == NULL ? p.t : q.t);
   }
 
@@ -376,6 +396,7 @@ public:
       && p.pattern == q.pattern
       && p.linecap == q.linecap
       && p.linejoin == q.linejoin
+      && p.overwrite == q.overwrite
       && (p.t ? *p.t : identity()) == (q.t ? *q.t : identity());
   }
   
@@ -399,6 +420,8 @@ public:
 	  << ", yellow=" << p.yellow() << ", black=" << p.black();
     if(p.pattern != "")
       out << ", " << "\"" << p.pattern << "\"";
+    if(p.overwrite != DEFWRITE)
+      out << ", overwrite=" << OverwriteTag[p.overwrite];
     if(p.t)
       out << ", transform=" << *(p.t);
     out << ")";

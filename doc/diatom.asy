@@ -3,8 +3,7 @@ real minpercent=20;
 real ignorebelow=0;
 string data="diatom.csv";
 
-currentpen=fontsize(8);
-overwrite(MoveQuiet);
+currentpen=fontsize(8)+overwrite(MoveQuiet);
 
 import graph;
 

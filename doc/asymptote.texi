@@ -1141,6 +1141,38 @@ shipout();
 @end verbatim
 @image{shadedtiling}
 
+@anchor{overwrite}
+@cindex @code{overwrite}
+@item One can prevent labels from overwriting one another by using
+the pen attribute @code{overwrite}, which takes a single argument:
+
+@table @code
+@cindex @code{Allow}
+@item Allow
+Allow labels to overwrite one another. This is the default.
+
+@cindex @code{Suppress}
+@item Suppress
+Suppress, with a warning, each label that would overwrite another label.
+
+@cindex @code{SuppressQuiet}
+@item SuppressQuiet
+Suppress, without warning, each label that would overwrite another label.
+
+@cindex @code{Move}
+@item Move
+Move a label that would overwrite another out of the way and issue a warning.
+As this adjustment is during the final output phase (in @code{PostScript}
+coordinates) it could result in a larger figure than requested.
+
+@cindex @code{MoveQuiet}
+@item MoveQuiet
+Move a label that would overwrite another out of the way, without warning.
+As this adjustment is during the final output phase (in @code{PostScript}
+coordinates) it could result in a larger figure than requested.
+
+@end table
+
 @end itemize
 
 @cindex @code{+}
@@ -3230,38 +3262,7 @@ shipout();
 @image{mosquito}
 
 One can prevent labels from overwriting one another with the
-@code{overwrite} function, which takes a single argument:
-
-@table @code
-@cindex @code{Allow}
-@item Allow
-Allow labels to overwrite one another. This is the default.
-
-@cindex @code{Suppress}
-@item Suppress
-Suppress, with a warning, each label that would overwrite another
-label.
-
-@cindex @code{SuppressQuiet}
-@item SuppressQuiet
-Suppress, without warning, each label that would overwrite another label.
-
-@cindex @code{Move}
-@item Move
-Move a label that would overwrite another out of the way and issue a warning.
-As this adjustment is during the final output phase (in @code{PostScript}
-coordinates) it could result in a larger figure than requested.
-
-@cindex @code{MoveQuiet}
-@item MoveQuiet
-Move a label that would overwrite another out of the way, without warning.
-As this adjustment is during the final output phase (in @code{PostScript}
-coordinates) it could result in a larger figure than requested.
-
-This setting is global and is in effect for the remainder of the top-level
-@code{Asymptote} module or until the next call to @code{reset()}.
-
-@end table
+@code{overwrite} pen attribute (@pxref{overwrite}).
 
 @end enumerate
 
@@ -3449,8 +3450,8 @@ If multiple files are specified, they are treated as separate
 @cindex @code{reset()}
 @table @code
 @item reset()
-Reset @code{defaultfontsize}, @code{defaultlinewidth}, and @code{overwrite}
-to their startup defaults.
+Reset @code{defaultfontsize} and @code{defaultlinewidth} to their
+startup defaults.
 @end table
 
 An alternative output format may be produced by using the @code{-f format}

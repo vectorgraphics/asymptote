@@ -1565,13 +1565,13 @@ typedef int Overwrite(OverwriteT);
 public Overwrite
   Allow=new int(OverwriteT) {return 0;},
   Suppress=new int(OverwriteT) {return 1;},
-  SuppressQuiet=new int(OverwriteT) {return -1;},
-  Move=new int(OverwriteT) {return 2;},
-  MoveQuiet=new int(OverwriteT) {return -2;};
+  SuppressQuiet=new int(OverwriteT) {return 2;},
+  Move=new int(OverwriteT) {return 3;},
+  MoveQuiet=new int(OverwriteT) {return 4;};
     
-void overwrite(Overwrite Overwrite=Allow) 
+pen overwrite(Overwrite Overwrite) 
 {
-  overwrite(Overwrite(Overwrite));
+  return overwrite(Overwrite(Overwrite));
 }
 
 private struct LinecapT {};

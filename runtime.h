@@ -199,6 +199,7 @@ void defaultLineWidth(vm::stack *s);
 void fontSize(vm::stack *s);
 void defaultFontSize(vm::stack *s);
 void penFontSize(vm::stack *s);
+void overWrite(vm::stack *s);
 void boolPenEq(vm::stack *s);
 void penPenPlus(vm::stack *s);
 void realPenTimes(vm::stack *s);

@@ -60,7 +60,6 @@ double defaultlinewidth=0.0;
 double defaultfontsize=0.0;
 bool suppressOutput=false;
 bool upToDate=false;
-int overwrite=0;
 
 int ShipoutNumber=0;
 char* AsyDir;
@@ -270,7 +269,6 @@ void reset()
 {
   defaultfontsize=12.0;
   defaultlinewidth=0.5;  
-  overwrite=0;
 }
 
 }

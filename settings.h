@@ -42,7 +42,6 @@ namespace settings {
   extern double defaultfontsize;
   extern bool suppressOutput;
   extern bool upToDate;
-  extern int overwrite;
 
   extern int ShipoutNumber;
   

@@ -1434,6 +1434,13 @@ void penFontSize(stack *s)
   s->push(p->size());  
 }
 
+void overWrite(stack *s)
+{
+  int n = s->pop<int>();
+  s->push(new pen(setoverwrite,n >= 0 && n < nOverwrite ? (overwrite_t) n 
+		  : DEFWRITE));
+}
+
 void boolPenEq(stack *s)
 {
   pen *b = s->pop<pen*>();
@@ -1572,11 +1579,6 @@ void label(stack *s)
   pic->append(d);
 }
   
-void overwrite(stack *s)
-{
-  settings::overwrite = s->pop<int>();
-}
-
 void shipout(stack *s)
 {
   bool wait = s->pop<bool>();

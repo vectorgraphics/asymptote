@@ -359,8 +359,6 @@ void base_venv(venv &ve)
   
   addFunc(ve,run::reset,primVoid(),"reset");
   
-  addFunc(ve,run::overwrite,primVoid(),"overwrite",primInt());
-  
   addFunc(ve,run::abort,primVoid(),"abort",primString());
   addFunc(ve,run::exit,primVoid(),"exit",primInt());
   
@@ -520,6 +518,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::fontSize,primPen(),"fontsize",primReal());
   addFunc(ve,run::penFontSize,primReal(),"fontsize",primPen());
   addFunc(ve,run::defaultFontSize,primVoid(),"defaultfontsize",primReal());
+  addFunc(ve,run::overWrite,primPen(),"overwrite",primInt());
   addFunc(ve,run::penMax,primPair(),"max",primPen());
   addFunc(ve,run::penMin,primPair(),"min",primPen());
   
