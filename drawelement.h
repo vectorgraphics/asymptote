@@ -105,13 +105,13 @@ public:
   virtual void bounds(bbox&, iopipestream&, std::vector<box>&,
 		      std::list<bbox>&) {}
 
-  virtual bool islabel() {
-    return false;
-  }
+  virtual bool islabel() {return false;}
 
-  virtual bool islayer() {
-    return false;
-  }
+  virtual bool islayer() {return false;}
+
+  virtual bool begingroup() {return false;}
+
+  virtual bool endgroup() {return false;}
 
   // Handles its output in a PostScript file
   virtual bool draw(psfile *) {

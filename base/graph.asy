@@ -164,7 +164,7 @@ typedef real part(pair);
 struct ticksT {};
 private ticksT ticks=null;
 typedef void ticks(frame, transform, string, real, real, pair, pair, pair, 
-		   pen, path, pen, autoscaleT, part, bool, bool, int[], real,
+		   pen, path, pen, autoscaleT, part, bool, int[], real,
 		   real, ticksT);
 
 typedef string ticklabel(real);
@@ -180,7 +180,7 @@ ticklabel LogFormat=new string(real x) {
 };
   
 void labelaxis(frame f, string s, real position, real angle, pair align,
-	       pair shift, guide g, pen p, bool labels, bool deconstruct)
+	       pair shift, guide g, pen p, bool labels)
 {
   pair z=point(g,position);
   pair dir=dir(g,position);
@@ -192,13 +192,8 @@ void labelaxis(frame f, string s, real position, real angle, pair align,
     pair Idir=I*dir;
     z += Dot(offset,Idir)*Idir;
   }
-  if(deconstruct) {
-    if(GUIDelete()) return;
-    z=GUI()*z;
-  }
   frame d;
   label(d,s,angle,z,labels ? axislabelmargin*align : align,p);
-  if(deconstruct) deconstruct(d);
   pair width=0.5*Dot(max(d)-min(d),dir)*dir;
   if(position == 0) d=shift(width)*d;
   if(position == length(g)) d=shift(-width)*d;
@@ -225,7 +220,7 @@ pair ticklabelshift(pair align, pen p=currentpen)
 
 pair labeltick(frame d, transform T, guide g, real pos, pair side,
 	       int sign, real Size, ticklabel ticklabel, pen plabel, part part,
-	       real norm=0, bool deconstruct=false) 
+	       real norm=0)
 {
   locateT locate=new locateT;
   locate.calc(T,g,pos);
@@ -233,7 +228,6 @@ pair labeltick(frame d, transform T, guide g, real pos, pair side,
   pair shift=Dot(align,I*sign*locate.dir) < 0 ? align*Size :
     ticklabelshift(align,plabel);
   pair Z=locate.Z+shift;
-  if(deconstruct) Z=GUI()*Z;
   real v=part(locate.z);
   if(abs(v) < epsilon*norm) v=0;
   string s=ticklabel(v);
@@ -285,7 +279,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
   locateT locate=new locateT;
   return new void(frame f, transform T, string s, real position, real angle,
 		  pair align, pair shift, pair side, pen plabel, path G, pen p,
-		  autoscaleT S, part part, bool deconstruct, bool opposite,
+		  autoscaleT S, part part, bool opposite,
 		  int[] divisor, real tickmin, real tickmax, ticksT) {
     // Use local copy of context variables:
     int sign=opposite ? -sign : sign;
@@ -352,44 +346,36 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
       } else step=Step/n;
       
       lastpos *= (1+epsilon);
-      if(!deconstruct || !GUIDelete()) {
-	frame d;
-	draw(d,G,p);
-	if(Size > 0) for(int i=0; i <= N; ++i) {
-	  real pos=i*Step+offset;
-	  if(cyclic(g) || (pos >= firstpos && pos <= lastpos)) {
-	    locate.calc(T,g,pos);
-	    draw(d,locate.Z--locate.Z-Size*I*sign*locate.dir,p);
-	  }
-	  if(size > 0 && step > 0) {
-	    real iStep=i*Step;
-	    real jstop=(len-iStep)/step;
-	    iStep += offset;
-	    for(int j=1; j < n && j <= jstop; ++j) {
-	      real pos=iStep+j*step;
-	      if(cyclic(g) || (pos >= firstpos && pos <= lastpos)) {
-		locate.calc(T,g,pos);
-		draw(d,locate.Z--locate.Z-size*I*sign*locate.dir,p);
-	      }
+      
+      begingroup(f);
+      draw(f,G,p);
+      if(Size > 0) for(int i=0; i <= N; ++i) {
+	real pos=i*Step+offset;
+	if(cyclic(g) || (pos >= firstpos && pos <= lastpos)) {
+	  locate.calc(T,g,pos);
+	  draw(f,locate.Z--locate.Z-Size*I*sign*locate.dir,p);
+	}
+	if(size > 0 && step > 0) {
+	  real iStep=i*Step;
+	  real jstop=(len-iStep)/step;
+	  iStep += offset;
+	  for(int j=1; j < n && j <= jstop; ++j) {
+	    real pos=iStep+j*step;
+	    if(cyclic(g) || (pos >= firstpos && pos <= lastpos)) {
+	      locate.calc(T,g,pos);
+	      draw(f,locate.Z--locate.Z-size*I*sign*locate.dir,p);
 	    }
 	  }
 	}
-	if(deconstruct) deconstruct(d);
-	add(f,d);
       }
+      endgroup(f);
     
       if(Size > 0 && !opposite) {
 	for(int i=(begin ? 0 : 1); i <= (end ? N : N-1); ++i) {
-	  if(!deconstruct || !GUIDelete()) {
-	    labels=true;
-	    frame d;
-	    real pos=i*Step+offset;
-	    if(cyclic(g) || (pos >= firstpos && pos <= lastpos)) {
-	    labeltick(d,T,g,pos,side,sign,Size,ticklabel,plabel,part,
-		      norm,deconstruct);
-	    }
-	      if(deconstruct) deconstruct(d);
-	      add(f,d);
+	  labels=true;
+	  real pos=i*Step+offset;
+	  if(cyclic(g) || (pos >= firstpos && pos <= lastpos)) {
+	    labeltick(f,T,g,pos,side,sign,Size,ticklabel,plabel,part,norm);
 	  }
 	}
       }
@@ -417,46 +403,38 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
       
       if(N <= 2 && n == 0) n=10;
       
-      if(!deconstruct || !GUIDelete()) {
-	frame d;
-	draw(d,G,p);
-	if(N > 0) for(int i=first-1; i <= last+1; ++i) {
-	  real pos=(i-initial)*factor;
-	  if(pos >= firstpos && pos <= lastpos) {
-	    locate.calc(T,g,pos);
-	    real Size0=((i-first) % N == 0 || n != 0) ? Size : size;
-	    draw(d,locate.Z--locate.Z-Size0*I*sign*locate.dir,p);
-	  }
-	  if(n > 0) {
-	    for(int j=2; j < n; ++j) {
-	      real pos=(i-initial+1+log10((real) j/n))*factor;
-	      if(pos >= firstpos && pos <= lastpos) {
-		locate.calc(T,g,pos);
-		draw(d,locate.Z--locate.Z-size*I*sign*locate.dir,p);
-	      }
+      begingroup(f);
+      draw(f,G,p);
+      if(N > 0) for(int i=first-1; i <= last+1; ++i) {
+	real pos=(i-initial)*factor;
+	if(pos >= firstpos && pos <= lastpos) {
+	  locate.calc(T,g,pos);
+	  real Size0=((i-first) % N == 0 || n != 0) ? Size : size;
+	  draw(f,locate.Z--locate.Z-Size0*I*sign*locate.dir,p);
+	}
+	if(n > 0) {
+	  for(int j=2; j < n; ++j) {
+	    real pos=(i-initial+1+log10((real) j/n))*factor;
+	    if(pos >= firstpos && pos <= lastpos) {
+	      locate.calc(T,g,pos);
+	      draw(f,locate.Z--locate.Z-size*I*sign*locate.dir,p);
 	    }
 	  }
 	}
-	if(deconstruct) deconstruct(d);
-	add(f,d);
       }
-    
+      endgroup(f);
+      
       if(!opposite && N > 0)
 	for(int i=(begin ? first : ceil(initial+epsilon));
-		   i <= (end ? last : floor(final-epsilon)); i += N) {
-	  if(!deconstruct || !GUIDelete()) {
-	    labels=true;
-	    frame d;
-	    labeltick(d,T,g,(i-initial)*factor,side,sign,Size,LogFormat,plabel,
-		      part,deconstruct);
-	    if(deconstruct) deconstruct(d);
-	    add(f,d);
-	  }
+	    i <= (end ? last : floor(final-epsilon)); i += N) {
+	  labels=true;
+	  labeltick(f,T,g,(i-initial)*factor,side,sign,Size,LogFormat,plabel,
+		    part);
 	}
     }
     
     if(s != "" && !opposite) 
-      labelaxis(f,s,position,angle,align,shift,G,plabel,labels,deconstruct);
+      labelaxis(f,s,position,angle,align,shift,G,plabel,labels);
   };
 }
 
@@ -513,7 +491,7 @@ void axis(bool put=Above, picture pic=currentpicture, guide g,
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
     frame d;
     ticks(d,t,s,position,angle,align,shift,side,plabel,t*g,p,S,part,
-	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
+	  opposite,divisor,tickmin,tickmax,ticks);
     (put ? add : prepend) (f,t*T*inverse(t)*d);
   });
   
@@ -542,7 +520,7 @@ void xequals(bool put=Above, picture pic=currentpicture, real x,
     ticks(d,t,s,position,angle,align,shift,side,plabel,a--b,p,
 	  pic.scale.y,
 	  new real(pair z) {return pic.scale.y.Label(z.y);},
-	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
+	  opposite,divisor,tickmin,tickmax,ticks);
     (put ? add : prepend) (f,t*T*inverse(t)*d);
   });
   
@@ -559,7 +537,7 @@ void xequals(bool put=Above, picture pic=currentpicture, real x,
     ticks(d,identity(),s,position,angle,align,shift,side,plabel,
 	  (0,a.y)--(0,b.y),p,pic.scale.y,
 	  new real(pair z) {return pic.scale.y.Label(z.y);},
-	  false,opposite,divisor,tickmin,tickmax,ticks);
+	  opposite,divisor,tickmin,tickmax,ticks);
     frame f;
     if(s != "") label(f,s,angle,(0,0),align,plabel);
     pair pos=a+position*(b-a);
@@ -582,7 +560,7 @@ void yequals(bool put=Above, picture pic=currentpicture, real y,
     ticks(d,t,s,position,angle,align,shift,side,plabel,a--b,p,
 	  pic.scale.x,
 	  new real(pair z) {return pic.scale.x.Label(z.x);},
-	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
+	  opposite,divisor,tickmin,tickmax,ticks);
     (put ? add : prepend) (f,t*T*inverse(t)*d);
   });
 
@@ -599,7 +577,7 @@ void yequals(bool put=Above, picture pic=currentpicture, real y,
     ticks(d,identity(),s,position,angle,align,shift,side,plabel,
 	  (a.x,0)--(b.x,0),p,pic.scale.x,
 	  new real(pair z) {return pic.scale.y.Label(z.x);},
-	  false,opposite,divisor,tickmin,tickmax,ticks);
+	  opposite,divisor,tickmin,tickmax,ticks);
     frame f;
     if(s != "") label(f,s,angle,(0,0),align,plabel);
     pair pos=a+position*(b-a);

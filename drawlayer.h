@@ -18,10 +18,7 @@ public:
 
   virtual ~drawLayer() {}
 
-  bool islayer() {
-    return true;
-  }
-
+  bool islayer() {return true;}
 };
 
 }

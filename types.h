@@ -192,6 +192,7 @@ ty *intArray();
 ty *realArray();
 ty *pairArray();
 ty *stringArray();
+ty *transformArray();
 ty *pathArray();
 ty *penArray();
   

@@ -26,12 +26,13 @@ private:
   size_t lastnumber;
   bbox b;
   pair bboxshift;
-  std::list<drawElement*> nodes;
   bool epsformat,pdfformat,tgifformat;
   std::vector<box> labelbounds;  
   std::list<bbox> bboxstack;
 
 public:
+  std::list<drawElement*> nodes;
+  
   picture() : labels(false), lastnumber(0) {}
   
   // Destroy all of the owned picture objects.
@@ -63,13 +64,18 @@ public:
     
   // Ship the picture out to PostScript & TeX files.
   bool shipout(const picture& preamble, const std::string& prefix,
-	       const std::string& format, bool wait);
+	       const std::string& format, bool wait, bool Delete=false);
  
   picture *transformed(const transform& t);
   
   // Return the number of element in picture.
   size_t number() {
     return nodes.size();
+  }
+  
+  bool empty() {
+    bounds();
+    return (b.right <= b.left && b.top <= b.bottom);
   }
 };
 

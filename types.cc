@@ -57,6 +57,8 @@ array pairArray_(primPair());
 ty *pairArray() { return &pairArray_; }
 array stringArray_(primString());
 ty *stringArray() { return &stringArray_; }
+array transformArray_(primTransform());
+ty *transformArray() { return &transformArray_; }
 array pathArray_(primPath());
 ty *pathArray() { return &pathArray_; }
 array penArray_(primPen());

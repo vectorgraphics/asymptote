@@ -32,6 +32,8 @@ public:
     bboxstack.pop_back();
   }
 
+  bool endgroup() {return true;}
+  
   bool draw(psfile *out) {
     if(grestore) out->grestore();
     return true;

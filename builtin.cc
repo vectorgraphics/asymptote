@@ -301,13 +301,15 @@ void base_venv(venv &ve)
   addFunc(ve,run::clip,primVoid(),"clip",primPicture(),primPath(),primPen());
   addFunc(ve,run::clipArray,primVoid(),"clip",primPicture(),pathArray(),
 	  primPen());
-  addFunc(ve,run::beginclip,primVoid(),"beginclip",primPicture(),primPath(),
+  addFunc(ve,run::beginClip,primVoid(),"beginclip",primPicture(),primPath(),
 	  primPen());
-  addFunc(ve,run::beginclipArray,primVoid(),"beginclip",primPicture(),
+  addFunc(ve,run::beginClipArray,primVoid(),"beginclip",primPicture(),
 	  pathArray(),primPen());
-  addFunc(ve,run::endclip,primVoid(),"endclip",primPicture());
+  addFunc(ve,run::endClip,primVoid(),"endclip",primPicture());
   addFunc(ve,run::gsave,primVoid(),"gsave",primPicture());
   addFunc(ve,run::grestore,primVoid(),"grestore",primPicture());
+  addFunc(ve,run::beginGroup,primVoid(),"begingroup",primPicture());
+  addFunc(ve,run::endGroup,primVoid(),"endgroup",primPicture());
   addFunc(ve,run::add,primVoid(),"add",primPicture(),primPicture());
   addFunc(ve,run::prepend,primVoid(),"prepend",primPicture(),primPicture());
   addFunc(ve,run::label,primVoid(),"_label",primPicture(),
@@ -315,8 +317,9 @@ void base_venv(venv &ve)
   addFunc(ve,run::image,primVoid(),"image",primPicture(),realArray2(),
 	  penArray(),primPair(),primPair());
   
-  addFunc(ve,run::shipout,primVoid(),"shipout",primString(),
-	  primPicture(),primPicture(),primString(),primBoolean());
+  addFunc(ve,run::shipout,primVoid(),"shipout",primString(),primPicture(),
+	  primPicture(),primString(),primBoolean(),transformArray(),
+	  boolArray());
   
   addFunc(ve,run::stringFilePrefix,primString(),"fileprefix");
   

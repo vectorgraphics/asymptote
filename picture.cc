@@ -282,7 +282,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
 }
 
 bool picture::shipout(const picture& preamble, const string& prefix,
-		      const string& format, bool wait)
+		      const string& format, bool wait, bool Delete)
 {
   if(settings::suppressStandard) return true;
   
@@ -295,14 +295,13 @@ bool picture::shipout(const picture& preamble, const string& prefix,
     buildname(prefix,outputformat);
   string epsname=epsformat ? outname : auxname(prefix,"eps");
   
-  bounds();
-  
-  if(b.right <= b.left && b.top <= b.bottom) { // null picture
+  if(empty()) {
     unlink(outname.c_str());
-    return true;
+    return false;
   }
   
   static std::ofstream bboxout;
+  
   if(deconstruct && !tgifformat) {
     if(bboxout) bboxout.close();
     if(view) {
@@ -333,7 +332,12 @@ bool picture::shipout(const picture& preamble, const string& prefix,
       bbox bscaled=b;
       bscaled *= deconstruct;
       bboxout << bscaled << endl;
+      if(Delete) {
+	unlink(outname.c_str());
+	return false;
+      }
   }
+  
   
   // Avoid negative bounding box coordinates
   bboxshift=origin == ZERO ? 0.0 : pair(-bpos.left,-bpos.bottom);

@@ -223,11 +223,13 @@ void fill(vm::stack *s);
 void fillArray(vm::stack *s);
 void clip(vm::stack *s);
 void clipArray(vm::stack *s);
-void beginclip(vm::stack *s);
-void beginclipArray(vm::stack *s);
-void endclip(vm::stack *s);
+void beginClip(vm::stack *s);
+void beginClipArray(vm::stack *s);
+void endClip(vm::stack *s);
 void gsave(vm::stack *s);
 void grestore(vm::stack *s);
+void beginGroup(vm::stack *s);
+void endGroup(vm::stack *s);
 void add(vm::stack *s);
 void prepend(vm::stack *s);
 

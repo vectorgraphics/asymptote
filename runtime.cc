@@ -53,6 +53,7 @@ using std::string;
 #include "drawgrestore.h"
 #include "drawlayer.h"
 #include "drawimage.h"
+#include "drawgroup.h"
 #include "fileio.h"
 #include "genv.h"
 #include "builtin.h"
@@ -1659,7 +1660,7 @@ void clipArray(stack *s)
   pic->append(new drawClipEnd());
 }
   
-void beginclip(stack *s)
+void beginClip(stack *s)
 {
   pen *n = pop<pen*>(s);
   path p = pop<path>(s);
@@ -1667,7 +1668,7 @@ void beginclip(stack *s)
   pic->append(new drawClipBegin(p,*n,false));
 }
   
-void beginclipArray(stack *s)
+void beginClipArray(stack *s)
 {
   pen *n = pop<pen*>(s);
   array *p=copyArray(s);
@@ -1675,7 +1676,7 @@ void beginclipArray(stack *s)
   pic->append(new drawClipBegin(p,*n,false));
 }
   
-void endclip(stack *s)
+void endClip(stack *s)
 {
   picture *pic = pop<picture*>(s);
   pic->append(new drawClipEnd(false));
@@ -1691,6 +1692,18 @@ void grestore(stack *s)
 {
   picture *pic = pop<picture*>(s);
   pic->append(new drawGrestore());
+}
+  
+void beginGroup(stack *s)
+{
+  picture *pic = pop<picture*>(s);
+  pic->append(new drawBegin());
+}
+  
+void endGroup(stack *s)
+{
+  picture *pic = pop<picture*>(s);
+  pic->append(new drawEnd());
 }
   
 void add(stack *s)
@@ -1762,12 +1775,61 @@ void image(stack *s)
   
 void shipout(stack *s)
 {
+  array *GUIdelete=pop<array*>(s);
+  array *GUItransform=pop<array*>(s);
   bool wait = pop<bool>(s);
   string format = pop<string>(s);
   const picture *preamble = pop<picture*>(s);
   picture *pic = pop<picture*>(s);
   string prefix = pop<string>(s);
-  pic->shipout(*preamble,prefix == "" ? outname : prefix,format,wait);
+  if(prefix == "") prefix=outname;
+  
+  size_t size=checkArrays(s,GUItransform,GUIdelete);
+  
+  if(settings::deconstruct || size) {
+    picture *result=new picture;
+    unsigned level=0;
+    unsigned i=0;
+    std::list<drawElement*>::iterator p;
+    for(p = pic->nodes.begin(); p != pic->nodes.end(); ++p) {
+      bool Delete;
+      transform t;
+      if(i < size) {
+	t=*(vm::read<transform *>(GUItransform,i));
+	Delete=vm::read<bool>(GUIdelete,i);
+      } else {
+	t=identity();
+	Delete=false;
+      }
+      assert(*p);
+      picture *group=new picture;
+      if((*p)->begingroup()) {
+	++level;
+	while(p != pic->nodes.end() && level) {
+	  drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
+	  group->append(e);
+	  ++p;
+	  assert(*p);
+	  if((*p)->begingroup()) ++level;
+	  if((*p)->endgroup()) if(level) --level;
+	}
+      }
+      drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
+      group->append(e);
+      if(!group->empty()) {
+	if(settings::deconstruct) {
+	  ostringstream buf;
+	  buf << prefix << "_" << i;
+	  group->shipout(*preamble,buf.str(),"tgif",false,Delete);
+	}
+	++i;
+      }
+      if(size && !Delete) result->add(*group);
+    }
+    if(size) pic=result;
+  }
+
+  pic->shipout(*preamble,prefix,format,wait);
 }
 
 void stringFilePrefix(stack *s)

@@ -26,7 +26,7 @@ static real inches=72;
 static real inch=inches;
 static real cm=inches/2.540005;
 static real mm=0.1cm;
-static real bp=1;	    // A PostScript point.
+static real bp=1;	   // A PostScript point.
 static real pt=72.0/72.27; // A TeX pt; slightly smaller than a PostScript bp.
 static pair I=(0,1);
 static real pi=pi();
@@ -244,71 +244,41 @@ string ask(string prompt)
 }
 
 static private int GUIFilenum=0;
-static private int GUIObject=0;
-static private string GUIPrefix;
 static public frame patterns;
-
-void deconstruct(frame d)
-{
-  if(deconstruct()) {
-    string prefix=GUIPrefix == "" ? fileprefix() : GUIPrefix;
-    shipout(prefix+"_"+(string) GUIObject,d,patterns,"tgif",false);
-  }
-  ++GUIObject;
-}
 
 private struct DELETET {}
 static public DELETET DELETE=null;
 
 struct GUIop
 {
-  public transform [] Transform=new transform [];
-  public bool Delete=false;
+  public transform[] Transform=new transform[];
+  public bool[] Delete=new bool[];
 }
 
-GUIop [][] GUIlist;
+GUIop[] GUIlist;
 
 // Delete item
 void GUIop(int index, int filenum=0, DELETET)
 {
-  if(GUIlist.length <= filenum) GUIlist[filenum]=new GUIop [];
-  GUIop [] GUIobj=GUIlist[filenum];
-  while(GUIobj.length <= index) GUIobj.push(new GUIop);
-  GUIobj[index].Delete=true;
+  if(GUIlist.length <= filenum) GUIlist[filenum]=new GUIop;
+  GUIop GUIobj=GUIlist[filenum];
+  while(GUIobj.Transform.length <= index) {
+    GUIobj.Transform.push(identity());
+    GUIobj.Delete.push(false);
+  }
+  GUIobj.Delete[index]=true;
 }
 
 // Transform item
-void GUIop(int index, int filenum=0, transform g)
+void GUIop(int index, int filenum=0, transform T)
 {
-  if(GUIlist.length <= filenum) GUIlist[filenum]=new GUIop [];
-  GUIop [] GUIobj=GUIlist[filenum];
-  while(GUIobj.length <= index) GUIobj.push(new GUIop);
-  GUIobj[index].Transform.push(g);
-}
-
-bool GUIDelete()
-{
-  if(GUIFilenum < GUIlist.length) {
-    GUIop [] GUIobj=GUIlist[GUIFilenum];
-    bool del=(GUIObject < GUIobj.length) ? GUIobj[GUIObject].Delete : false;
-    if(del) deconstruct(nullframe);
-    return del;
+  if(GUIlist.length <= filenum) GUIlist[filenum]=new GUIop;
+  GUIop GUIobj=GUIlist[filenum];
+  while(GUIobj.Transform.length <= index) {
+    GUIobj.Transform.push(identity());
+    GUIobj.Delete.push(false);
   }
-  return false;
-}
-
-transform GUI(transform t=identity())
-{
-  if(GUIFilenum < GUIlist.length) {
-    GUIop [] GUIobj=GUIlist[GUIFilenum];
-    if(GUIObject < GUIobj.length) {
-      transform [] G=GUIobj[GUIObject].Transform;
-      for(int i=0; i < G.length; ++i) {
-	t=G[i]*t;
-      }
-    }
-  }
-  return t;
+  GUIobj.Transform[index]=T*GUIobj.Transform[index];
 }
 
 // A function that draws an object to frame pic, given that the transform
@@ -558,35 +528,17 @@ struct picture {
     nodes.push(d);
   }
 
-  void build(frame f, drawer d, transform t, bool deconstruct) {
-      if(deconstruct) {
-	if(GUIDelete()) return;
-	t=GUI(t);
-      }
-      d(f,t);
-      if(deconstruct) deconstruct(f);
-      return;
-  }
-  
   void add(drawer d) {
     if(interact()) uptodate=false;
-//    bool deconstruct=this.deconstruct;
     nodes.push(new void (frame f, transform t, transform T, pair, pair) {
       frame F;
-      build(F,d,t*T,deconstruct);
+      d(F,t*T);
       add(f,F);
     });
   }
 
-  static string clipwarn="warning: deconstructed pictures cannot be clipped";
-  void clippingwarning()
-  {
-    if(deconstruct && deconstruct()) write(clipwarn);
-  }
-  
   void clip(drawer d) {
     if(interact()) uptodate=false;
-    clippingwarning();
     for(int i=0; i < xcoords.length; ++i) {
       xcoords[i].clip(userMin.x,userMax.x);
       ycoords[i].clip(userMin.y,userMax.y);
@@ -846,13 +798,10 @@ struct picture {
 
     // Draw by drawing the copied picture.
     nodes.push(new void (frame f, transform t, transform T, pair m, pair M) {
-      if(deconstruct && !src.deconstruct) {
-	if(GUIDelete()) return;
-	T=GUI(T);
-      }
      frame d=srcCopy.fit(t,T*srcCopy.T,m,M);
-     if(deconstruct && !src.deconstruct) deconstruct(d);
+     if(deconstruct && !src.deconstruct) begingroup(f);
      add(f,d);
+     if(deconstruct && !src.deconstruct) endgroup(f);
      for(int i=0; i < src.legend.length; ++i)
        legend.push(src.legend[i]);
     });
@@ -876,13 +825,12 @@ picture operator * (transform t, picture orig)
 public picture currentpicture=new picture;
 currentpicture.deconstruct=true;
 
-public picture gui[];
+public frame gui[];
 
-picture gui(int index) {
+frame gui(int index) {
   while(gui.length <= index) {
-    picture g=new picture;
-    g.deconstruct=true;
-    gui.push(g);
+    frame f;
+    gui.push(f);
   }
   return gui[index];
 }
@@ -947,17 +895,35 @@ pair size(frame f)
   return max(f)-min(f);
 }
 				     
+void begingroup(picture pic=currentpicture)
+{
+  pic.add(new void (frame f, transform) {
+    begingroup(f);
+  });
+}
+
+void endgroup(picture pic=currentpicture)
+{
+  pic.add(new void (frame f, transform) {
+    endgroup(f);
+  });
+}
+
 // Add frame dest about origin to frame src
 void add(pair origin, frame dest, frame src)
 {
+  begingroup(dest);
   add(dest,shift(origin)*src);
+  endgroup(dest);
 }
 
 // Add frame src about origin to picture dest
 void add(pair origin=(0,0), picture dest=currentpicture, frame src)
 {
   dest.add(new void (frame f, transform t) {
+    begingroup(f);
     add(f,shift(t*origin)*src);
+    endgroup(f);
   });
   dest.addBox(origin,origin,min(src),max(src));
 }
@@ -966,11 +932,8 @@ void add(pair origin=(0,0), picture dest=currentpicture, frame src)
 void attach(pair origin=(0,0), picture dest=currentpicture, frame src)
 {
   transform t=dest.calculateTransform(dest.xsize,dest.ysize,dest.keepAspect);
-  bool deconstruct=dest.deconstruct;
-  dest.deconstruct=false;
   add(origin,dest,src);
   pair s=size(dest.fit(t));
-  dest.deconstruct=deconstruct;
   size(dest,dest.xsize != 0 ? s.x : 0,dest.ysize != 0 ? s.y : 0,
        dest.keepAspect);
 }
@@ -1484,13 +1447,7 @@ frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
   if(xsize == infinity) xsize=pic.xsize;
   if(ysize == infinity) ysize=pic.ysize;
   frame f=pic.fit(max(xsize-2*xmargin,0),max(ysize-2*ymargin,0),keepAspect);
-  if(pic.deconstruct && GUIDelete()) return f;
-  frame d=_bbox(f,xmargin,ymargin,p,bbox);
-  if(pic.deconstruct) {
-    d=GUI()*d;
-    deconstruct(d);
-  }
-  add(f,d);
+  add(f,_bbox(f,xmargin,ymargin,p,bbox));
   return f;
 }
 
@@ -1649,10 +1606,20 @@ frame marker(path[] g, pen p=currentpen, filltype filltype=NoFill)
 void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
 	     string format="", wait wait=NoWait)
 {
-  GUIPrefix=prefix;
-  shipout(prefix,f,preamble,format,wait(wait));
+  bool Transform=GUIFilenum < GUIlist.length;
+  static transform[] noTransforms=new transform[];
+  static bool[] noDeletes=new bool[];
+  if(gui.length > 0) {
+    frame F;
+    add(F,f);
+    for(int i=0; i < gui.length; ++i)
+      add(F,gui(i));
+    f=F;
+  }
+  shipout(prefix,f,preamble,format,wait(wait),
+  	  Transform ? GUIlist[GUIFilenum].Transform : noTransforms,
+	  Transform ? GUIlist[GUIFilenum].Delete : noDeletes);
   ++GUIFilenum;
-  GUIObject=0;
   shipped=true;
   uptodate=true;
 }
@@ -1660,7 +1627,7 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
 picture legend(Legend[] legend)
 {
   picture inset=new picture;
-  if(legend.length > 0 && !GUIDelete()) {
+  if(legend.length > 0) {
     for(int i=0; i < legend.length; ++i) {
       Legend L=legend[i];
       pen p=L.p;
@@ -1699,7 +1666,6 @@ void shipout(string prefix=defaultfilename, picture pic,
 {
   if(xsize == infinity) xsize=pic.xsize;
   if(ysize == infinity) ysize=pic.ysize;
-  GUIPrefix=prefix;
   pic.deconstruct=true;
   shipout(prefix,orientation(pic.fit(xsize,ysize,keepAspect),orientation),
 	  preamble,format,wait);
@@ -1735,8 +1701,6 @@ void shipout(string prefix=defaultfilename,
 void erase(picture pic=currentpicture)
 {
   pic.erase();
-  if(deconstruct() && pic.deconstruct)
-    write("warning: deconstructed pictures cannot be erased");
 }
 
 // A restore thunk is a function, that when called, restores the graphics state
@@ -2382,25 +2346,25 @@ pen ZapfDingbats(string series="m", string shape="n")
   return font("OT1","pzd",series,shape);
 }
 
-real min(real [][] a) {
+real min(real[][] a) {
   real min=infinity;
   for(int i=0; i < a.length; ++i) min=min(min,min(a[i]));
   return min;
 }
 
-real max(real [][] a) {
+real max(real[][] a) {
   real max=-infinity;
   for(int i=0; i < a.length; ++i) max=max(max,max(a[i]));
   return max;
 }
 
-real min(real [][][] a) {
+real min(real[][][] a) {
   real min=infinity;
   for(int i=0; i < a.length; ++i) min=min(min,min(a[i]));
   return min;
 }
 
-real max(real [][][] a) {
+real max(real[][][] a) {
   real max=-infinity;
   for(int i=0; i < a.length; ++i) max=max(max,max(a[i]));
   return max;

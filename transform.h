@@ -95,6 +95,12 @@ public:
     return !(t1 == t2);
   }
 
+  bool isIdentity()
+  {
+    return x == 0.0 && y == 0.0 &&
+      xx == 1.0 && xy == 0.0 && yx == 0.0 && yy == 1.0;
+  }
+
   // Calculates the determinant, as if it were a matrix.
   friend double det(const transform& t)
   {

@@ -86,6 +86,7 @@ void histogram(picture pic=currentpicture, real[] bins, real[] count,
   if(low == -infinity) low=pic.scale.y.scale.Tinv(my.min);
   real last=low;
   int n=count.length;
+  begingroup(pic);
   for(int i=0; i < n; ++i) {
     if(valid[i]) {
       real c=count[i];
@@ -100,6 +101,7 @@ void histogram(picture pic=currentpicture, real[] bins, real[] count,
   }
   if(last != low)
     draw(pic,Scale(pic,(bins[n],last))--Scale(pic,(bins[n],low)),p);
+  endgroup(pic);
 }
 
 // return a random number uniformly distributed in the unit interval [0,1]

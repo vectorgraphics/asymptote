@@ -42,6 +42,8 @@ public:
     bboxstack.push_back(bpath);
   }
 
+  bool begingroup() {return true;}
+  
   bool draw(psfile *out) {
     if(gsave) out->gsave();
     if (empty()) return true;
