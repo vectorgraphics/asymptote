@@ -439,6 +439,9 @@ public struct autoscaleT {
   public scaleT scale=new scaleT;
   public scaleT postscale=new scaleT;
   public real tickMin=infinity, tickMax=-infinity;
+  public bool automin=true, automax=true;
+  public bool automin() {return automin && scale.automin;}
+  public bool automax() {return automax && scale.automax;}
   
   real T(real x) {return postscale.T(scale.T(x));}
   real Tinv(real x) {return scale.Tinv(postscale.Tinv(x));}
