@@ -10,6 +10,7 @@ real inches=72.0;
 real inch=inches;
 real cm=inches/2.540005;
 real mm=0.1cm;
+real pt=72.0/72.27; // A TeX pt is slightly smaller than a PostScript bp.
 
 pair I=(0,1);
 real pi=pi();

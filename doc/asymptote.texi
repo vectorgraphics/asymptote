@@ -1883,7 +1883,8 @@ use the @code{-noplain} command-line option to disable this feature.
 In any case, no error message will be issued if one tries to explicitly
 @code{import plain} (if other imported packages depend implicitly
 on the presence of @code{plain}, it may be necessary to allocate it in a higher
-enclosing frame by declaring the import @code{static}; @pxref{static}). 
+enclosing frame by declaring the import @code{static}; @pxref{Static &
+dynamic}).
 
 @node simplex
 @subsection @code{simplex}
@@ -2506,14 +2507,15 @@ the @code{Asymptote} source):
 \documentclass[12pt]{article}
 \usepackage{asymptote}
 \begin{document}
-Here is a figure produced with \Asymptote:
-
 \begin{asydef}
-// Global definitions can be put here
+// Global definitions can be put here.
 \end{asydef}
+
+Here is a figure produced with \Asymptote, drawn to width 5cm:
 
 \begin{center}
 \begin{asy}
+size(5cm,0);
 pen colour1=red;
 pen colour2=green;
 
@@ -2548,11 +2550,11 @@ shipout(bbox(0.25cm));
 \end{asy}
 \end{center}
 
-Here is another figure, drawn to the width 5cm:
+Each graph is drawn in its own environment. One can specify the width
+and height to \LaTeX\ explicitly:
 
 \begin{center}
-\begin{asy}
-size(5cm,0);
+\begin{asy}[3cm,0]
 guide center = (0,1){W}..tension 0.8..(0,0){(1,-.5)}..tension 0.8..{W}(0,-1); 
 
 draw((0,1)..(-1,0)..(0,-1));
@@ -2563,11 +2565,10 @@ shipout();
 \end{asy}
 \end{center}
 
-Each graph is drawn in its own environment. One can also specify the width
-and height to \LaTeX\ explicitly:
+The default width is 90\% of the full line width:
 
 \begin{center}
-\begin{asy}[10cm,0]
+\begin{asy}
 import graph;
 real f(real x) {return sqrt(x);}
 pair F(real x) {return (x,f(x));}
@@ -2610,7 +2611,6 @@ shipout();
 \end{center}
 
 \end{document}
-
 @end verbatim
 @image{latexusage,,20cm}
 
