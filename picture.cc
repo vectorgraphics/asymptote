@@ -112,13 +112,13 @@ bool picture::texprocess(const string& texname, const string& outname,
     
     // Magic dvips offsets:
     double hoffset=-128.0;
-    double voffset=(height < 11.6) ? -137.1+height : -125.5;
+    double voffset=(height < 11.0) ? -137.0+height : -126.0;
     
     if(origin != ZERO) {
       if(pdfformat || origin == BOTTOM) {
 	voffset += max(pageHeight-(bpos.top-bpos.bottom+
 				   (pdfformat ? 2.0 : 1.0)),0.0);
-      } else if(origin != TOP) {
+      } else if(origin == CENTER) {
 	hoffset += 0.5*max(pageWidth-(bpos.right-bpos.left+1.0),0.0);
 	voffset += 0.5*max(pageHeight-(bpos.top-bpos.bottom+1.0),0.0);
       }
@@ -138,13 +138,15 @@ bool picture::texprocess(const string& texname, const string& outname,
     status=System(dcmd);
     
     bbox bcopy=bpos;
-    double fuzz=0.1;
-    if(origin == BOTTOM && !pdfformat) fuzz=1.0;
+    double hfuzz=0.1;
+    double vfuzz=0.2;
+    if(origin == CENTER || origin == TOP) {hfuzz *= 2.0; vfuzz *= 2.0;}
     
-    bcopy.top += fuzz;
-    bcopy.bottom -= fuzz;
-    bcopy.left -= fuzz;
-    bcopy.right += fuzz;
+    bcopy.left -= hfuzz;
+    bcopy.right += hfuzz;
+    
+    bcopy.top += vfuzz;
+    bcopy.bottom -= vfuzz;
     
     ifstream fin(psname.c_str());
     ofstream fout(outname.c_str());
@@ -292,7 +294,7 @@ bool picture::shipout(const picture& preamble, const string& prefix,
     bboxshift += postscriptOffset;
     if(!(origin == BOTTOM || origin == ZERO)) {
       double yexcess=max(pageHeight-(bpos.top-bpos.bottom),0.0);
-      if(origin == TOP) bboxshift += pair(1.0,yexcess);
+      if(origin == TOP) bboxshift += pair(0.5,yexcess-0.5);
       else {
 	double xexcess=max(pageWidth-(bpos.right-bpos.left),0.0);
 	bboxshift += 0.5*pair(xexcess,yexcess);

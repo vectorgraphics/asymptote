@@ -204,7 +204,7 @@ void setOptions(int argc, char *argv[])
       } catch (boost::bad_lexical_cast&) {
         syntax=1;
       }
-      if(deconstruct <= 0) syntax=1;
+      if(deconstruct < 0) syntax=1;
       break;
     case 'O':
       try {

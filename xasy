@@ -123,7 +123,7 @@ class transform:
 class image(transform):
     def __init__(self,canv,x,y,name,i):
         self.img=PhotoImage(file=name)
-        self.obj=canv.create_image(x,y,image=self.img)
+        self.obj=canv.create_image(x,y,anchor=SW,image=self.img)
         self.bind(canv)
         self.x=self.x0=x
         self.y=self.y0=y
@@ -336,7 +336,7 @@ for i in range(len(boxes)):
     try:
 	f=open(name,"r")
 	f.close()
-	images.append(image(canvas,xoffset+0.5*(box["l"]+box["r"]),yoffset-0.5*(box["b"]+box["t"]),name,i))
+	images.append(image(canvas,xoffset+box["l"],yoffset-box["b"],name,i))
     except IOError:
 	images.append(0);
 
