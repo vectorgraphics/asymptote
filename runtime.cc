@@ -1313,19 +1313,25 @@ void newDirguide(stack *s)
 
 // Pen operations.
 
-void defaultpen(stack *s)
+void newPen(stack *s)
 {
   s->push(new pen());
 }
 
-void setdefaultpen(stack *s)
+void defaultPen(stack *s)
 {
-  pen *p=s->pop<pen*>();
-  defaultfontsize=p->size();
-  defaultlinewidth=p->width();
+  defaultpen=startupdefaultpen;
 }
 
-void invisiblepen(stack *s)
+void setDefaultPen(stack *s)
+{
+  pen *p=s->pop<pen*>();
+  defaultpen=pen(p->stroke(),p->width(),p->size(),p->colorspace(),
+		 p->red(),p->green(),p->blue(),p->gray(),"",
+		 p->cap(),p->join(),p->Overwrite(),0);
+}
+
+void invisiblePen(stack *s)
 {
   s->push(new pen(transparentpen));
 }

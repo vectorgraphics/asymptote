@@ -183,9 +183,10 @@ void stringFormatInt(vm::stack *s);
 void stringTime(vm::stack *s);
   
 // Pen operations
-void defaultpen(vm::stack *s);
-void setdefaultpen(vm::stack *s);
-void invisiblepen(vm::stack *s);
+void newPen(vm::stack *s);
+void defaultPen(vm::stack *s);
+void setDefaultPen(vm::stack *s);
+void invisiblePen(vm::stack *s);
 void rgb(vm::stack *s);
 void cmyk(vm::stack *s);
 void gray(vm::stack *s);
@@ -196,9 +197,7 @@ void lineCap(vm::stack *s);
 void lineJoin(vm::stack *s);
 void lineWidth(vm::stack *s);
 void penLineWidth(vm::stack *s);
-void defaultLineWidth(vm::stack *s);
 void fontSize(vm::stack *s);
-void defaultFontSize(vm::stack *s);
 void penFontSize(vm::stack *s);
 void overWrite(vm::stack *s);
 void boolPenEq(vm::stack *s);

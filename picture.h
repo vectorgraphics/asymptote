@@ -47,15 +47,16 @@ public:
 
   void texinit();
 
-  bool texprocess(const string& texname, const string& tempname,
-		  const string& prefix, const bbox& bpos); 
+  bool texprocess(const std::string& texname, const std::string& tempname,
+		  const std::string& prefix, const bbox& bpos); 
     
-  bool postprocess(const string& epsname, const string& outname, 
-		   const string& outputformat, bool wait, const bbox& bpos);
+  bool postprocess(const std::string& epsname, const std::string& outname, 
+		   const std::string& outputformat, bool wait,
+		   const bbox& bpos);
     
   // Ships the picture out to PostScript & TeX files.
-  bool shipout(const picture& preamble, const string& prefix,
-	       const string& format, bool wait);
+  bool shipout(const picture& preamble, const std::string& prefix,
+	       const std::string& format, bool wait);
  
   picture *transformed(const transform& t);
 };

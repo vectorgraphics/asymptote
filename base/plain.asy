@@ -6,12 +6,8 @@
  *
  *****/
 
-void reset() 
-{
-  defaultpen(fontsize(12.0)+linewidth(0.5));
-}
-
-reset();
+defaultpen(); // Reset the meaning of pen default attributes.
+static public pen currentpen;
 
 real inches=72;
 real inch=inches;
@@ -105,8 +101,6 @@ public real legendlinelength=50;
 public real legendskip=1.5;
 public pen legendboxpen=black;
 public real legendmargin=10;
-
-static public pen currentpen;
 
 public string defaultfilename="";
 
@@ -1691,4 +1685,3 @@ pair dir(path g, path h)
 {
   return 0.5*(dir(g)+dir(h));
 }
-

@@ -11,6 +11,7 @@
 #include "settings.h"
 #include "util.h"
 
+using std::string;
 using std::list;
   
 extern const char *texready;

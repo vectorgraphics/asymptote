@@ -19,6 +19,7 @@ using namespace vm;
 
 namespace types {
 
+using std::string;
 using trans::access;
 using camp::pair;
 using camp::path;
@@ -209,7 +210,7 @@ void initializeInitializers()
   addInitializer(primTransform(), run::transformIdentity);
   addInitializer(primGuide(), run::nullGuide);
   addInitializer(primPath(), run::nullPath);
-  addInitializer(primPen(), run::defaultpen);
+  addInitializer(primPen(), run::newPen);
   addInitializer(primPicture(), run::nullFrame);
   addInitializer(primFile(), run::nullFile);
 }

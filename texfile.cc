@@ -10,12 +10,13 @@
 #include "texfile.h"
 #include "errormsg.h"
 
-namespace camp {
-
+using std::string;
 using std::ofstream;
 using std::fixed;
 using std::setprecision;
   
+namespace camp {
+
 bool TeXcontaminated=false;
 std::list<std::string> TeXpreamble;
   
@@ -83,7 +84,8 @@ void texfile::setpen(pen p)
     *out << "\\newrgbcolor{ASYcolor}{" 
 	 << p.red() << " " << p.green() << " " << p.blue()
 	 << "}\\ASYcolor" << newl;
-  } else if(p.mono() && (!lastpen.mono() || p.gray() != lastpen.gray())) {
+  } else if(p.grayscale() && (!lastpen.grayscale() || 
+			      p.gray() != lastpen.gray())) {
     *out << "\\newgray{ASYcolor}{" 
 	 << p.gray()
 	 << "}\\ASYcolor" << newl;

@@ -28,12 +28,12 @@
 
 namespace camp {
 
-extern string tab;
-extern string newline;
+extern std::string tab;
+extern std::string newline;
   
 class file : public mempool::pooled<file> {
 protected:  
-  string name;
+  std::string name;
   int nx,ny,nz; // Array dimensions
   bool linemode; // If true, array reads will stop at eol instead of eof.
   bool csvmode; // If true, read comma-separated values.
@@ -50,7 +50,7 @@ public:
     nx=Nx; ny=Ny; nz=Nz;
   }
   
-  file(string name) : name(name), linemode(false), csvmode(false),
+  file(std::string name) : name(name), linemode(false), csvmode(false),
 		      closed(false) {dimension();}
   
   virtual ~file() {}
@@ -121,7 +121,7 @@ class ofile : public file
   std::ostream *stream;
   std::ofstream fstream;
 public:
-  ofile(string name) : file(name) {
+  ofile(std::string name) : file(name) {
     if(name == "") {
       stream=&std::cout;
       fstream.setstate(std::ios_base::failbit);

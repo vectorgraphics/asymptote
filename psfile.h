@@ -27,7 +27,7 @@ inline void BoundingBox(std::ostream& s, const bbox& box)
 }
 
 class psfile {
-  string filename;
+  std::string filename;
   bbox box;
   pair shift;
   bool rawmode;
@@ -46,7 +46,7 @@ class psfile {
   }
 
 public: 
-  psfile(const string& filename, const bbox& box, const pair& shift);
+  psfile(const std::string& filename, const bbox& box, const pair& shift);
   ~psfile();
   
   void prologue();
@@ -78,7 +78,7 @@ public:
     
     if(p.fillpattern() != "" && p.fillpattern() != lastpen.fillpattern()) 
       *out << p.fillpattern() << " setpattern" << newl;
-    else if(p.cmyk() && (!lastpen.cmyk() || 
+    else if(p.cmyk() && (!lastpen.cmyk() ||
 			 (p.cyan() != lastpen.cyan() || 
 			  p.magenta() != lastpen.magenta() || 
 			  p.yellow() != lastpen.yellow() ||
@@ -91,7 +91,8 @@ public:
 			   p.blue() != lastpen.blue()))) {
       *out << p.red() << " " << p.green() << " " << p.blue()
 	   << " setrgbcolor" << newl;
-    } else if(p.mono() && (!lastpen.mono() || p.gray() != lastpen.gray())) {
+    } else if(p.grayscale() && (!lastpen.grayscale() ||
+				p.gray() != lastpen.gray())) {
       *out << p.gray() << " setgray" << newl;
     }
     
@@ -121,7 +122,7 @@ public:
 	   << p.black();
     else if(p.rgb())
       *out << p.red() << " " << p.green() << " " << p.blue();
-    else if(p.mono() || p.gray())
+    else if(p.grayscale())
       *out << p.gray();
   }
   

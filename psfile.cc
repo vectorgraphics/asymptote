@@ -13,11 +13,12 @@
 #include "settings.h"
 #include "errormsg.h"
 
-namespace camp {
-
+using std::string;
 using std::ofstream;
 using std::setw;
   
+namespace camp {
+
 psfile::psfile(const string& filename, const bbox& box, const pair& shift)
   : filename(filename), box(box), shift(shift), rawmode(false)
 {
@@ -54,9 +55,6 @@ void psfile::prologue()
   *out << "%%Pages: 1" << newl;
   *out << "%%EndProlog" << newl;
   *out << "%%Page: 1 1" << newl;
-
-  pen defaultpen;
-  setpen(defaultpen);
 }
 
 void psfile::epilogue()

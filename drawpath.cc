@@ -13,6 +13,7 @@
 #include "psfile.h"
 #include "util.h"
 
+using std::string;
 using std::ostringstream;
 using std::istringstream;
 using std::vector;

@@ -28,6 +28,7 @@ namespace trans {
 using camp::pair;
 using camp::transform;
 using vm::stack;
+using std::string;
 
 // The base environments for built-in types and functions
 void base_tenv(tenv &ret)
@@ -502,9 +503,9 @@ void base_venv(venv &ve)
   addFunc(ve,run::gray,primPen(),"gray",primReal());
   addFunc(ve,run::colors,realArray(),"colors",primPen());
   addFunc(ve,run::pattern,primPen(),"pattern",primString());
-  addFunc(ve,run::defaultpen,primPen(),"defaultpen");
-  addFunc(ve,run::setdefaultpen,primVoid(),"defaultpen",primPen());
-  addFunc(ve,run::invisiblepen,primPen(),"invisible");
+  addFunc(ve,run::defaultPen,primVoid(),"defaultpen");
+  addFunc(ve,run::setDefaultPen,primVoid(),"defaultpen",primPen());
+  addFunc(ve,run::invisiblePen,primPen(),"invisible");
   addFunc(ve,run::lineCap,primPen(),"linecap",primInt());
   addFunc(ve,run::lineJoin,primPen(),"linejoin",primInt());
   addFunc(ve,run::lineWidth,primPen(),"linewidth",primReal());

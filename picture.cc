@@ -14,6 +14,7 @@
 #include "settings.h"
 #include "interact.h"
 
+using std::string;
 using std::list;
 using std::ifstream;
 using std::ofstream;

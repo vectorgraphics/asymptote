@@ -29,6 +29,7 @@ extern "C" int getopt_long_only(int argc, char * const argv[],
 
 #include "util.h"
 #include "settings.h"
+#include "pen.h"
 
 using boost::lexical_cast;
 using std::string;
@@ -56,8 +57,6 @@ int ignoreGUI=0;
 camp::pair postscriptOffset=0.0;
 int origin=CENTER;
   
-double defaultlinewidth=0.0;  
-double defaultfontsize=0.0;
 bool suppressOutput=false;
 bool upToDate=false;
 
@@ -77,6 +76,10 @@ std::list<string> *outnameStack;
 
 bool TeXinitialized=false;
 
+camp::pen startupdefaultpen("",0.5,12.0,camp::GRAYSCALE,0.0,0.0,0.0,0.0,"",1,1,
+			    camp::ALLOW,0);
+camp::pen defaultpen=startupdefaultpen;
+  
 void usage(const char *program)
 {
   cerr << PROGRAM << " version " << VERSION
