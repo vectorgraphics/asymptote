@@ -50,8 +50,7 @@ AC_CHECK_HEADER(fftw3.h,
 
 AC_MSG_CHECKING([for working Boost::Filesystem library])
 
-AC_ARG_WITH([boost-filesystem],AS_HELP_STRING([--with-boost-filesystem],
-  [specify the boost filesystem library or suffix to use]),
+AC_ARG_WITH([boost-filesystem],[  --with-boost-filesystem specify the boost filesystem library or suffix to use],
   [if test "x$with_boost_filesystem" != "xno"; then
     ax_filesystem_lib=$with_boost_filesystem
     ax_boost_filesystem_lib=boost_filesystem-$with_boost_filesystem
