@@ -296,6 +296,8 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
   bool status = true;
   
   if(labels) {
+    if(pdfformat || bottomOrigin) bcopy.shift(pair(0.5,0.25));
+    else bcopy.shift(pair(0.75,0.0));
     tex=new texfile(texname,bcopy);
     list<drawElement*>::iterator p;
     for (p = nodes.begin(); p != nodes.end(); ++p) {
