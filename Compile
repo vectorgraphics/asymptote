@@ -2,6 +2,6 @@ MAGIC=magic # Hide asy rule from Makefile.
 include Makefile
 
 asy: $(FILES:=.o)
-	$(CXX) $(OPT) -o $(NAME) $(FILES:=.o) $(LIBS)
+	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) $(LIBS)
 
 include $(FILES:=.d)
