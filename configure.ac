@@ -22,10 +22,17 @@ AC_PROG_CC
 
 AC_CHECK_HEADER(fftw3.h,
    AC_CHECK_LIB([fftw3], fftw_execute,,
-           AC_MSG_WARN([*** Could not find libfftw3: disabling fast Fourier transforms.])),
-     AC_MSG_WARN([*** Header file fftw3.h not found: disabling fast Fourier transforms.])
+           AC_MSG_WARN([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
+     AC_MSG_WARN([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***])
      , dnl Don't use standard includes.
      )
+
+# The boost library
+# Currently only headers are used
+AC_CHECK_HEADER([boost/shared_ptr.hpp],
+    AC_SUBST(HAVE_BOOST_SHARED_PTR_HPP, 1),
+    AC_MSG_ERROR([*** could not find the boost headers ***
+*** please install the libboost-dev package (http://www.boost.org) ***]))
 
 # Checks for libraries.
 AC_CHECK_LIB([curses], [tparm])

@@ -5,7 +5,8 @@
 @set VERSION 0.50
 
 @copying
-This file documents ASYMPTOTE, version @value{VERSION}.
+This file documents ASYMPTOTE, version @value{VERSION}. It is still
+under construction.
 
 http://www/asymptote.sourceforge.net
      
@@ -49,7 +50,9 @@ Foundation.
 * Installation::                Getting started
 * Example::                     A simple example
 * Drawing commands::            Four primitive drawing commands
+* Options::                     Command line options
 * Interactive mode::            Typing Asymptote commands interactively
+* GUI::                         Graphical User Interface
 * Credits::                     Contributions and acknowledgements
 * Index::                       General index
 
@@ -71,7 +74,7 @@ A major advantage of Asymptote over other graphics packages is
 that it is a high-level programming language, as opposed to just a graphics
 program: it can therefore exploit the best features of the script
 (command-driven) and graphical user interface (GUI) methods for
-producing graphs. A rudimentary GUI called xasy is included with the
+producing graphs. The rudimentary GUI @code{xasy} is included with the
 package that allows one to move script-generated objects
 around. To make Asymptote accessible to the average user, this GUI is
 currently being developed into a full-fledged interface that can
@@ -151,14 +154,39 @@ make
 make install
 @end example
 
-In order to run asymptote you will need the boost library (included
-in recent Linux distributions). In particular, the boost library
-requires the following:
+In order to compile asymptote you will need the boost library (included
+in recent Linux distributions). Installation of the boost library
+may require the following (or later):
 
 @example
 http://dl.sourceforge.net/sourceforge/boost/boost-jam-3.1.10-1.i386.rpm
 http://dl.sourceforge.net/sourceforge/boost/boost_1_31_0.tar.bz2
 @end example
+
+On machines running Debian Linux, the boost library can be installed with
+
+@example
+apt-get install libboost-graph1.31.0 libboost-dev libboost-graph-dev
+@end example
+
+The FFTW library is only required if you want Asymptote to be able to
+take Fourier transforms of data (say to compute an audio power spectrum).
+
+If you don't want to install asymptote, just make sure the compiled
+binary @code{asy} and GUI script @code{xasy} are in your path and set the
+environment variable ASYMPTOTE_DIR to point to the location of the
+directory base/ (in the top level directory of the asymptote source code).
+In looking for asymptote system files, asy will search these following paths
+(in the listed order):
+
+@enumerate
+@item
+current directory
+@item
+$ASYMPTOTE_DIR
+@item
+system-wide directory (default: /usr/local/share/asymptote)
+@end enumerate
 
 @node Example
 @chapter Example
@@ -195,12 +223,12 @@ into a file, say test.asy. Then execute this file by typing
 @example
 asy -V test
 @end example
-The shipout command converts the current picture into a postscript. A
+The shipout command converts the current picture into postscript. A
 shipout command was added implicitly in interactive mode, but is
-explicitly required in batch mode.
-
-The -V option here opens up a gv window so you can immediately view the
-postscript output.
+explicitly required in batch mode. The -V option here opens up a gv
+window so you can immediately view the encapsulated postscript output.
+By default this output will be written to the file @code{test.eps};
+the prefix of the output file may be changed with the -o option.
 
 One can draw a line with more than two points and create a cyclic path
 like this square:
@@ -214,7 +242,7 @@ It is often inconvenient to work directly with postscript coordinates.
 This example draws a unit square, scaled to size (100,100). The output
 is identical to the previous example. (If you are using interactive mode
 ignore the two messages "warning: scaling in picture unbounded"; see
-@ref{Interactive mode}, for details).
+@ref{Interactive mode} for details).
 
 @example
 size(100,100);
@@ -272,8 +300,15 @@ Draw label s on pic, writing at the specified angle, at coordinate position,
 aligned in the direction align, with pen p (and optional italic adjustment).
 @end itemize
 
+@node Options
+@chapter Options
+@cindex options
+Type @code{asy -h} to see the full list of command line options
+supported by asymptote.
+
 @node Interactive mode
 @chapter Interactive mode
+@cindex interactive mode
 Because Asymptote as currently designed does not natively support
 an interactive mode, interactive mode is currently simulated by
 rerunning all previous commands in a new module as each line is typed.
@@ -301,6 +336,26 @@ doing a reset.
 
 Except for the last item, no semicolon should be typed after these
 interactive commands.
+
+@node GUI
+@chapter Graphical User Interface
+@cindex graphical user interface
+@cindex GUI
+
+Currently, the Graphical User Interface @code{xasy} included with
+Asymptote allows you to move graphical objects around in the event that
+positioning adjustments to the final graph are required, using mouse
+Button-1. A wheel mouse is convenient for raising/lowering the object to
+be moved. If a wheel mouse is not available, mouse Button-2 (self.lower)
+can be used instead.
+
+One can also draw connected line segments by holding down the shift key
+and pressing mouse Button-1 at each desired node.  Releasing the shift
+key ends the definition of the object. More features will be added to
+this preliminary GUI soon.
+
+As @code{xasy} is written in Python/TK, it requires that the @code{tkinter}
+package be installed.
 
 @node Credits
 @chapter Acknowledgements
