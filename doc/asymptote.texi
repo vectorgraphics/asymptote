@@ -316,10 +316,11 @@ Further commands specific to interactive mode are described in
 @ref{Interactive mode}.
 
 You can use the arrow keys in interactive mode to edit previous lines
-(assuming that you have the GNU readline library installed on your
-system).  Because interactive mode is emulated, it is currently
-intended only for short demonstration files (@pxref{Interactive
-mode}). For more complicated graphs we recommend using batch mode.
+(assuming that you have a reasonably up-to-date version of the GNU
+readline library installed on your system).  Because interactive mode is
+emulated, it is currently intended only for short demonstration files
+(@pxref{Interactive mode}). For more complicated graphs we recommend
+using batch mode.
 
 Let's repeat the previous example in batch mode. Simply type in the
 commands 
