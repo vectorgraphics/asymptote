@@ -686,8 +686,8 @@ void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity)
   else pic.scale.x.automin=false;
   if(Max == infinity) Max=mx.max;
   else pic.scale.x.automax=false;
-  pic.userMin=(Min,pic.userMin.y);
-  pic.userMax=(Max,pic.userMax.y);
+  pic.userMin=(pic.scale.x.scale.T(Min),pic.userMin.y);
+  pic.userMax=(pic.scale.x.scale.T(Max),pic.userMax.y);
 }
 
 void ylimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity)
@@ -698,8 +698,8 @@ void ylimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity)
   else pic.scale.y.automin=false;
   if(Max == infinity) Max=my.max;
   else pic.scale.y.automax=false;
-  pic.userMin=(pic.userMin.x,Min);
-  pic.userMax=(pic.userMax.x,Max);
+  pic.userMin=(pic.userMin.x,pic.scale.y.scale.T(Min));
+  pic.userMax=(pic.userMax.x,pic.scale.y.scale.T(Max));
 }
 
 void limits(picture pic=currentpicture, pair min, pair max)
@@ -925,10 +925,11 @@ picture secondaryX(picture primary=currentpicture, void f(picture))
   if(denom != 0.0) {
     real m=(primary.userMax.x-primary.userMin.x)/denom;
     pic.erase();
-    scale(pic,Linear(m,b.min),primary.scale.y.scale);
+    scale(pic,Linear(m,b.min-primary.userMin.x/m),primary.scale.y.scale);
     pic.userMin=primary.userMin;
     pic.userMax=primary.userMax;
     f(pic);
+    ylimits(pic,primary.userMin.y,primary.userMax.y);
   }
   return pic;
 }
@@ -943,10 +944,11 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
   if(denom != 0.0) {
     real m=(primary.userMax.y-primary.userMin.y)/denom;
     pic.erase();
-    scale(pic,primary.scale.x.scale,Linear(m,b.min));
+    scale(pic,primary.scale.x.scale,Linear(m,b.min-primary.userMin.y/m));
     pic.userMin=primary.userMin;
     pic.userMax=primary.userMax;
     f(pic);
+    xlimits(pic,primary.userMin.x,primary.userMax.x);
   }
   return pic;
 }

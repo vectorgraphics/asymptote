@@ -2746,7 +2746,7 @@ The calls to @code{xlimits(picture pic, real min, real max)}
 and @code{ylimits(picture, real min, real max)} can be uncommented
 to restrict the respective axes limits for picture @code{pic} to the
 specified @code{min} and @code{max} values (alternatively, the function
-@code{limits(pair, pair)} can be uncommented to limit the axes to the
+@code{limits(pair, pair)} can be used to limit the axes to the
 box having opposite vertices at the two pairs).  The function
 @code{crop(picture pic)} can then optionally be used to crop the data 
 in picture @code{pic} to lie within the new axis limits.
