@@ -29,7 +29,7 @@ bindir = @bindir@
 asydir = @asydir@
 INSTALL = @INSTALL@
 
-ASYMPTOTE_DIR = /u/bowman/camp/base
+ASYMPTOTE_DIR = ../base
 export ASYMPTOTE_DIR
 
 asy: 	parser depend
