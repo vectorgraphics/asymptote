@@ -133,7 +133,7 @@ vector intersection(vector n0, vector P0, vector n1, vector P1)
     real d0=n0.y*P0.y+n0.z*P0.z;
     real d1=n1.y*P1.y+n1.z*P1.z+n1.x*(P1.x-P0.x);
     real y=(d0*n1.z-d1*n0.z)*Dx;
-    real z=(d0*n0.y-d1*n1.y)*Dx;
+    real z=(d1*n0.y-d0*n1.y)*Dx;
     return vector(P0.x,y,z);
   } else if(abs(Dy) > abs(Dz)) {
     Dy=1/Dy;
@@ -165,8 +165,8 @@ real[] partialsum(real[] A, real[] dx=null)
   return B;
 }
 
-void perpendicular(picture pic=currentpicture, pair z1, pair z2, real
-		   size=perpsize, pen p=currentpen)
+void perpendicular(picture pic=currentpicture, pair z1, pair z2,
+		   real size=perpsize, pen p=currentpen)
 {
   pair v=perpsize*unit(z2-z1);
   picture apic=new picture;
@@ -174,21 +174,21 @@ void perpendicular(picture pic=currentpicture, pair z1, pair z2, real
   addabout(pic,apic,z1);
 }
 
-bool straight(guide p)
+bool straight(path p)
 {
   for(int i=0; i < length(p); ++i)
     if(!straight(p,i)) return false;
   return true;
 }
 
-bool polygon(guide p)
+bool polygon(path p)
 {
   return cyclic(p) && straight(p);
 }
 
 // Returns true iff the point z lies in the region bounded by the cyclic
 // polygon p.
-bool inside(pair z, guide p)
+bool inside(pair z, path p)
 {
   if(!polygon(p)) abort("Polygon must be a straight cyclic path");
   bool c=false;
@@ -219,6 +219,19 @@ bool intersect(pair a, pair b, path p)
     }
   }
   return false;
+}
+
+// Return the intersection point of the extensions of the line segments 
+// PQ and pq.
+pair extension(pair P, pair Q, pair p, pair q) 
+{
+  real M=(Q.y-P.y)/(Q.x-P.x);
+  real m=(q.y-p.y)/(q.x-p.x);
+  if(m == M) return (infinity,infinity);
+  real B=P.y-M*P.x;
+  real b=p.y-m*p.x;
+  real x=(B-b)/(m-M);
+  return (x,m*x+b);
 }
 
 real[][] zero(int n)
