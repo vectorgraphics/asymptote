@@ -176,8 +176,8 @@ If you don't want to install asymptote, just make sure the compiled
 binary @code{asy} and GUI script @code{xasy} are in your path and set the
 environment variable ASYMPTOTE_DIR to point to the location of the
 directory base/ (in the top level directory of the asymptote source code).
-In looking for asymptote system files, asy will search these following paths
-(in the listed order):
+In looking for asymptote system files, @code{asy} will search these
+following paths (in the listed order):
 
 @enumerate
 @item
