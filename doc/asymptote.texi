@@ -2153,10 +2153,11 @@ This package extends @code{Asymptote}'s mathematical capabilities with
 radian/degree conversion routines, matrices, and point-in-polygon algorithms.
 It also defines
 
+@table @code
 @cindex @code{straight}
 @item bool straight(path p)
 returns true iff the path @code{p} is straight.
-
+@end table
 
 @node stats
 @subsection @code{stats}
