@@ -684,9 +684,6 @@ public:
   types::ty *getType(coenv &) { return types::primError(); }
 };
   
-// Global array of default expressions
-extern vector<varinit *> defaultExp;
-  
 } // namespace as
 
 #endif

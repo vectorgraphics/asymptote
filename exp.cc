@@ -20,8 +20,6 @@ namespace as {
 using namespace types;
 using namespace trans;
 
-vector<varinit *> defaultExp;
-
 void exp::transCall(coenv &e, types::ty *target)
 {
     trans(e, target);
@@ -654,10 +652,9 @@ types::ty *callExp::trans(coenv &e)
       args->trans(e, real_sig->getFormal(i), j);
       j++;
     } else { // Use default value instead
-      size_t k=real_sig->getDefault(i);
-      assert(k);
-      assert(k <= defaultExp.size());
-      defaultExp[k-1]->trans(e, real_sig->getFormal(i));
+      varinit *def=real_sig->getDefault(i);
+      assert(def);
+      def->trans(e, real_sig->getFormal(i));
     }
   }
 

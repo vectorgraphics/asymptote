@@ -29,7 +29,10 @@ using sym::symbol;
 
 // Forward declaration.
 namespace trans {
-  class varEntry;
+class varEntry;
+}
+namespace as {
+class varinit;
 }
 
 namespace types {
@@ -212,7 +215,7 @@ class signature : public mempool::pooled<signature> {
 
   // Holds the index of the expression in an array of default
   // expressions.
-  vector<size_t> defaultindex;
+  vector<as::varinit*> defaults;
   size_t ndefault;
 
   vector<bool> Explicit;
@@ -223,12 +226,12 @@ public:
   virtual ~signature()
     {}
 
-  void add(ty *t, size_t index=0, bool Explicit=false)
+  void add(ty *t, as::varinit *def=0, bool Explicit=false)
     { 
       formals.push_back(t);
       this->Explicit.push_back(Explicit);
-      defaultindex.push_back(index);
-      if(index) ++ndefault;
+      defaults.push_back(def);
+      if(def) ++ndefault;
     }
 
   int getNumFormals()
@@ -239,9 +242,9 @@ public:
     return formals[n];
   }
 
-  size_t getDefault(size_t n) {
-    assert(n < defaultindex.size());
-    return defaultindex[n];
+  as::varinit *getDefault(size_t n) {
+    assert(n < defaults.size());
+    return defaults[n];
   }
 
   bool getExplicit(size_t n) {
@@ -263,8 +266,8 @@ struct function : public ty {
     : ty(ty_function), result(result) {}
   virtual ~function() {}
 
-  void add(ty *t, size_t index=0, bool Explicit=false) {
-    sig.add(t, index, Explicit);
+  void add(ty *t, as::varinit *def=0, bool Explicit=false) {
+    sig.add(t, def, Explicit);
   }
 
   virtual bool isReference() {

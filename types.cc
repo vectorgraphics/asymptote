@@ -173,7 +173,7 @@ std::ostream& operator<< (std::ostream& out, const signature& s)
   out << "(";
 
   vector<ty *>::const_iterator t = s.formals.begin();
-  vector<size_t>::const_iterator dt = s.defaultindex.begin();
+  vector<as::varinit*>::const_iterator dt = s.defaults.begin();
   if (t != s.formals.end()) {
     out << **t;
     if (*dt != 0)
@@ -230,7 +230,7 @@ bool castable(signature *target, signature *source)
 		  equivalent(target->formals[i], source->formals[j]) :
 		  castable(target->formals[i], source->formals[j])))
       j++;
-    else if (!target->defaultindex[i]) return false;
+    else if (!target->defaults[i]) return false;
   }
   
   return (j == n) ? true : false;
