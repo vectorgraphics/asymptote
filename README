@@ -6,8 +6,8 @@ drawings, inspired by MetaPost but with an improved C++-like
 syntax. Asymptote provides for figures the same high-quality level of
 typesetting that LaTeX does for scientific text.
 
-Installation instructions and documentation of the Asymptote language
-is available at:
+Installation instructions and documentation for the Asymptote language
+are available at:
 
 http://asymptote.sourceforge.net
 
