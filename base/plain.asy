@@ -151,7 +151,7 @@ bool finite(real x)
 
 bool finite(pair z)
 {
-  return abs(z) != infinity;
+  return abs(z.x) != infinity && abs(z.y) != infinity;
 }
 
 // Cut two parentheses.
