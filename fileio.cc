@@ -93,7 +93,7 @@ public:
 
 };
 
-ofile stdout("");
+ofile Stdout("");
 
 class ixfile : public file
 {

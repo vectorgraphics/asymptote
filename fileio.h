@@ -142,7 +142,7 @@ public:
   void write(const transform& val) {*stream << val;}
 };
 
-extern ofile stdout;
+extern ofile Stdout;
 
 }
 
