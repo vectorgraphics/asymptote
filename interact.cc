@@ -116,13 +116,14 @@ void add_input(char *&dest, const char *src, size_t& size)
     dest += len;
   }
   
-  size_t len=strlen(src)+1;
-  if(len == 1) return;
+  size_t len=strlen(src);
+  if(len == 0) return;
   
-  if(len > size) {overflow(); return;}
+  if(len >= size) {overflow(); return;}
   
   strcpy(dest,src);
-  dest[strlen(dest)]=';'; // Auto-terminate each line
+  // Auto-terminate each line:
+  if(dest[len-1] != ';') {dest[len]=';'; len++;}
   
   size -= len;
   dest += len;
@@ -163,7 +164,7 @@ size_t interactive_input(char *buf, size_t max_size)
       }
       if(*line) add_input(to,"suppressoutput(false)",size);
       add_input(to,next->line,size);
-      add_input(to,"shipout();\n",size);
+      add_input(to,"shipout()",size);
     }
     end=i-1;
     

@@ -249,9 +249,6 @@ bool picture::postprocess(const string& epsname, const string& outname,
 bool picture::shipout(const picture& preamble, const string& prefix,
 		      const string& format, bool wait)
 {
-  if(interact::interactive && (suppressOutput || upToDate)) return true;
-  upToDate=true;
-  
   checkFormatString(format);
   string outputformat=format == "" ? outformat : format;
   epsformat=outputformat == "" || outputformat == "eps";

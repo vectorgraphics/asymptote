@@ -229,6 +229,7 @@ void stringFilePrefix(vm::stack *s);
 // Interactive mode
 void suppressOutput(vm::stack *s);
 void upToDate(vm::stack *s);
+void boolUpToDate(vm::stack *s);
 
 // System commands
 void system(vm::stack *s);

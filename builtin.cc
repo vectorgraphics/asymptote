@@ -430,6 +430,7 @@ void base_venv(venv &ve)
 
   addFunc(ve,run::suppressOutput,primVoid(),"suppressoutput",primBoolean());
   addFunc(ve,run::upToDate,primVoid(),"uptodate",primBoolean());
+  addFunc(ve,run::boolUpToDate,primBoolean(),"uptodate");
   
   addFunc(ve,run::stringLength,primInt(),"length",primString());
   addFunc(ve,run::stringFind,primInt(),"find",primString(),primString(),

@@ -1071,12 +1071,14 @@ void legend(frame f, Legend[] legend, bool placement=true)
 void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
 	     Legend[] legend={}, string format="", wait wait=NoWait)
 {
+  if(uptodate()) return;
   GUIPrefix=prefix;
   add(f,gui(GUIFilenum).fit(identity()));
   legend(f,legend);
   shipout(prefix,f,preamble,format,wait(wait));
   ++GUIFilenum;
   GUIObject=0;
+  uptodate(true);
 }
 
 // Useful for compensating for space taken up by legend. For example:

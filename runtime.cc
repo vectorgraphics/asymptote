@@ -1617,6 +1617,12 @@ void upToDate(stack *s)
   settings::upToDate=val;
 }
 
+void boolUpToDate(stack *s)
+{
+  s->push(interact::interactive && (settings::suppressOutput || 
+				    settings::upToDate));
+}
+
 // System commands
 
 void system(stack *s)
