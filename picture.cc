@@ -6,6 +6,8 @@
  * PostScript. 
  *****/
 
+#include <csignal>
+
 #include "errormsg.h"
 #include "picture.h"
 #include "util.h"
