@@ -12,7 +12,7 @@
  * assumption may in fact be incorrect.
  *****/
 
-struct problem {
+static struct problem {
   typedef int var;
   var VAR_A = 0;
   var VAR_B = 1;

@@ -143,9 +143,8 @@ record *genv::loadModule(symbol *id)
   modules.enter(id, r);
 
   // Create an environment to translate the module.
-  // File-level modules have static fields by default.
-  env e(r, dummy_env, DEFAULT_STATIC);
-  //env &e = new env(r, dummy_env, DEFAULT_DYNAMIC);
+  // File-level modules have dynamic fields by default.
+  env e(r, dummy_env, DEFAULT_DYNAMIC);
 
   // Translate the abstract syntax.
   ast->transAsRecordBody(e, r);

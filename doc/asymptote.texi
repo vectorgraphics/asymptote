@@ -204,9 +204,9 @@ http://dl.sourceforge.net/sourceforge/boost/boost-jam-3.1.10-1.i386.rpm
 http://dl.sourceforge.net/sourceforge/boost/boost_1_31_0.tar.bz2
 @end verbatim
 
-However, Asymptote currently only needs the boost header files, so copying the
-boost subdirectory of the boost source distribution to @code{/usr/include}
-should actually be sufficient.
+However, Asymptote currently only needs the @code{boost} header files,
+so copying the @code{boost} subdirectory of the @code{boost} source
+distribution to @code{/usr/include} should actually be sufficient.
 
 On machines running Debian Linux, the boost library can be installed with
 @verbatim
@@ -1732,7 +1732,7 @@ real[] A=line(fin);
 
 @cindex csv
 @cindex comma-separated-value
-Another useful mode is comma-separated-value mode, set with @code{cvs(file)},
+Another useful mode is comma-separated-value mode, set with @code{csv(file)},
 which skips over any comma delimiters:
 @verbatim
 file fin=input("test.txt");
@@ -2116,7 +2116,7 @@ texhash
 @node latin1
 @subsection @code{latin1}
 @cindex @code{latin1}
-If don't have @code{LaTeX} support for @code{unicode} installed,
+If you don't have @code{LaTeX} support for @code{unicode} installed,
 you can enable support for Western European languages (ISO 8859-1) by
 importing the module @code{latin1}. This module can be used as a
 template for providing support for other ISO 8859 alphabets.
@@ -2231,12 +2231,13 @@ int cube(int x) {
 }
 @end verbatim
 
-As long as you use static functions and variables of a module, then every 
-import is referring to the same data.  However, if a module has a dynamic 
-variable, every import gets a different instance of that variable.
-Suppose @code{dyn.asy} contains
+If you use static functions and variables from a module, then every
+import is referring to the same data. But every import of a module gets
+a different instance of its dynamic variables.
+
+Declarations are dynamic by default. Suppose @code{dyn.asy} contains
 @verbatim
-dynamic public int x=0;
+public int x=0;
 @end verbatim
 
 and @code{modifier.asy} contains
@@ -2256,10 +2257,6 @@ write(x);
 
 should write 0 twice, because the @code{x} imported in @code{modifier.asy} is
 distinct from the @code{x} imported in @code{tester.asy}. 
-
-The dynamic modifier is designed for this purpose.  It is only necessary at 
-the module-level declaration, where declarations are static by default.
-Everywhere else, declarations are dynamic by default.
 
 @node Drawing commands
 @chapter Drawing commands
