@@ -33,7 +33,7 @@ errortest.asy: 140.6: no matching field of name 'z' in type 'point'
 errortest.asy: 151.4: no matching function 'f()'
 errortest.asy: 152.4: no matching function 'f(string)'
 errortest.asy: 160.4: cannot call 'void f(int)' without parameters
-errortest.asy: 168.7: no matching unary operation '+'
+errortest.asy: 168.7: no matching function '+(point)'
 errortest.asy: 173.10: warning: expression (in whole or part) without side-effects
 errortest.asy: 173.10: types in conditional expression do not match
 errortest.asy: 178.10: warning: expression (in whole or part) without side-effects

@@ -766,6 +766,9 @@ void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
   if(crop) {
     pair userMin=pic.userMin;
     pair userMax=pic.userMax;
+    for(int i=0; i < pic.xcoords.length; ++i)
+      pic.xcoords[i].clip(userMin.x,userMax.x);
+    
     pic.clip(new void (frame f, transform t) {
       clip(f,box(((t*userMin).x,min(f).y),((t*userMax).x,max(f).y)));
   });
@@ -795,6 +798,9 @@ void ylimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
   if(crop) {
     pair userMin=pic.userMin;
     pair userMax=pic.userMax;
+    for(int i=0; i < pic.ycoords.length; ++i)
+      pic.ycoords[i].clip(userMin.y,userMax.y);
+    
     pic.clip(new void (frame f, transform t) {
       clip(f,box((min(f).x,(t*userMin).y),(max(f).x,(t*userMax).y)));
   });
@@ -819,28 +825,31 @@ void autoscale(picture pic=currentpicture, axis axis)
   if(!pic.scale.set) {
     bounds mx,my;
     pic.scale.set=true;
-    if(finite(pic.userMin.x) && finite(pic.userMax.x))
+    
+    if(finite(pic.userMin.x) && finite(pic.userMax.x)) {
       mx=autoscale(pic.userMin.x,pic.userMax.x,logarithmic(pic.scale.x.scale));
-    else {mx=new bounds; mx.min=mx.max=0; pic.scale.set=false;}
-    if(finite(pic.userMin.y) && finite(pic.userMax.y))
+      if(logarithmic(pic.scale.x.scale) && 
+	 floor(pic.userMin.x) == floor(pic.userMax.x)) {
+	pic.userMin=(floor(pic.userMin.x),pic.userMin.y);
+	pic.userMax=(ceil(pic.userMax.x),pic.userMax.y);
+      }
+    } else {mx=new bounds; mx.min=mx.max=0; pic.scale.set=false;}
+    
+    if(finite(pic.userMin.y) && finite(pic.userMax.y)) {
       my=autoscale(pic.userMin.y,pic.userMax.y,logarithmic(pic.scale.y.scale));
-    else {my=new bounds; my.min=my.max=0; pic.scale.set=false;}
+      if(logarithmic(pic.scale.y.scale) && 
+	 floor(pic.userMin.y) == floor(pic.userMax.y)) {
+	pic.userMin=(pic.userMin.x,floor(pic.userMin.y));
+	pic.userMax=(pic.userMax.x,ceil(pic.userMax.y));
+      }
+    } else {my=new bounds; my.min=my.max=0; pic.scale.set=false;}
+    
     pic.scale.x.tickMin=mx.min;
     pic.scale.x.tickMax=mx.max;
     pic.scale.y.tickMin=my.min;
     pic.scale.y.tickMax=my.max;
     axis.xdivisor=mx.divisor;
     axis.ydivisor=my.divisor;
-    if(logarithmic(pic.scale.x.scale) && 
-       floor(pic.userMin.x) == floor(pic.userMax.x)) {
-      pic.userMin=(floor(pic.userMin.x),pic.userMin.y);
-      pic.userMax=(ceil(pic.userMax.x),pic.userMax.y);
-    }
-    if(logarithmic(pic.scale.y.scale) && 
-       floor(pic.userMin.y) == floor(pic.userMax.y)) {
-      pic.userMin=(pic.userMin.x,floor(pic.userMin.y));
-      pic.userMax=(pic.userMax.x,ceil(pic.userMax.y));
-    }
     axis.userMin=(pic.scale.x.automin() ? mx.min : pic.userMin.x,
 		  pic.scale.y.automin() ? my.min : pic.userMin.y);
     axis.userMax=(pic.scale.x.automax() ? mx.max : pic.userMax.x,

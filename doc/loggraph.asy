@@ -14,5 +14,3 @@ draw(graph(f,0.1,10));
 
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
-
-

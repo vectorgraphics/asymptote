@@ -31,14 +31,13 @@ picture::~picture()
 }
 
 // Find beginning of current layer.
-list<drawElement*>::iterator picture::layerstart(list<bbox>::iterator& b)
+list<drawElement*>::iterator picture::layerstart()
 {
   list<drawElement*>::iterator p;
-  for(p=--nodes.end(), b=--bboxstack.end(); p != --nodes.begin(); --p, --b) {
+  for(p=--nodes.end(); p != --nodes.begin(); --p) {
     assert(*p);
     if((*p)->islayer()) break;
   }
-  ++b;
   return ++p;
 }
 
@@ -46,8 +45,7 @@ list<drawElement*>::iterator picture::layerstart(list<bbox>::iterator& b)
 void picture::prepend(drawElement *P)
 {
   assert(P);
-  list<bbox>::iterator b;
-  nodes.insert(layerstart(b),P);
+  nodes.insert(layerstart(),P);
   lastnumber=0;
 }
 
@@ -63,7 +61,6 @@ void picture::add(picture &pic)
 
   // STL's funny way of copying one list into another.
   copy(pic.nodes.begin(), pic.nodes.end(), back_inserter(nodes));
-  copy(pic.bboxstack.begin(), pic.bboxstack.end(), back_inserter(bboxstack));
 }
 
 // Insert picture pic at beginning of current layer.
@@ -71,9 +68,7 @@ void picture::prepend(picture &pic)
 {
   if (&pic == this) return;
   
-  list<bbox>::iterator b;
-  copy(pic.nodes.begin(), pic.nodes.end(), inserter(nodes, layerstart(b)));
-  copy(pic.bboxstack.begin(), pic.bboxstack.end(),inserter(bboxstack,b));
+  copy(pic.nodes.begin(), pic.nodes.end(), inserter(nodes, layerstart()));
   lastnumber=0;
 }
 

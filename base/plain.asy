@@ -1248,7 +1248,8 @@ void label(picture pic=currentpicture, string s, real angle=0, pair position,
 {
   pic.add(new void (frame f, transform t) {
     pair offset=t*0;
-    label(f,s,Angle(t*dir(angle)-offset),t*position+shift,
+    _label(f,s,Angle(t*dir(angle)-offset),
+	   t*position+align*labelmargin(p)+shift,
 	  length(align)*unit(t*align-offset),p);
   });
   frame f;
@@ -1455,9 +1456,8 @@ frame _bbox(frame f, real xmargin=0, real ymargin=infinity, pen p=currentpen,
 frame bbox(frame f, real xmargin=0, real ymargin=infinity, pen p=currentpen,
 	   bbox bbox=Boundary)
 {
-  frame d=_bbox(f,xmargin,ymargin,p,bbox);
-  add(d,f);
-  return d;
+  add(f,_bbox(f,xmargin,ymargin,p,bbox));
+  return f;
 }
 
 frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
@@ -1474,8 +1474,8 @@ frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
     d=GUI()*d;
     deconstruct(d);
   }
-  add(d,f);
-  return d;
+  add(f,d);
+  return f;
 }
 
 frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
@@ -1486,24 +1486,12 @@ frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
 	      pic.keepAspect ? Aspect : IgnoreAspect,p,bbox);
 }
 
-frame labelBox(real xmargin=0, real ymargin=infinity,
-	       string s, real angle=0, pair position,
-	       pair align=0, pen p=currentpen, pen pbox=currentpen)
-{
-  if(ymargin == infinity) ymargin=xmargin;
-  pair margin=(xmargin,ymargin);
-  frame b;
-  label(b,s,angle,position,align,p);
-  draw(b,box(min(b)-margin,max(b)+margin),pbox);
-  return b;
-}
-
 void labelbox(frame f, real xmargin=0, real ymargin=infinity,
 	      string s, real angle=0, pair position,
 	      pair align=0, pen p=currentpen, pen pbox=currentpen)
 {
-  frame b=labelBox(xmargin,ymargin,s,angle,position,align,p,pbox);
-  add(f,b);
+  label(f,s,angle,position,align,p);
+  add(f,_bbox(f,xmargin,ymargin,pbox));
 }
 
 void labelbox(picture pic=currentpicture, real xmargin=0,
@@ -1512,10 +1500,11 @@ void labelbox(picture pic=currentpicture, real xmargin=0,
 	      pen pbox=currentpen)
 {
   pic.add(new void (frame f, transform t) {
-	    pair offset=t*0;
-	    labelbox(f,xmargin,ymargin,s,Angle(t*dir(angle)-offset),
-		       t*position+shift,
-		       length(align)*unit(t*align-offset),p,pbox);	
+    pair offset=t*0;
+    _label(f,s,Angle(t*dir(angle)-offset),
+	   t*position+align*labelmargin(p)+shift,
+	   length(align)*unit(t*align-offset),p);
+    add(f,_bbox(f,xmargin,ymargin,pbox));
   });
   frame f;
   labelbox(f,xmargin,ymargin,s,angle,(0,0),align,p,pbox);

@@ -38,7 +38,7 @@ public:
   ~picture();
 
   // Find beginning of current layer.
-  std::list<drawElement*>::iterator layerstart(std::list<bbox>::iterator&);
+  std::list<drawElement*>::iterator layerstart();
   
   // Prepend an object to the picture.
   void prepend(drawElement *p);
