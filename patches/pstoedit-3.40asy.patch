@@ -1,6 +1,6 @@
-diff --new-file -ru pstoedit-3.40/src/Makefile.am pstoedit-3.40J/src/Makefile.am
+diff -ru --new-file pstoedit-3.40/src/Makefile.am pstoedit-3.40J/src/Makefile.am
 --- pstoedit-3.40/src/Makefile.am	2004-11-03 14:05:16.000000000 -0700
-+++ pstoedit-3.40J/src/Makefile.am	2005-02-16 22:48:26.000000000 -0700
++++ pstoedit-3.40J/src/Makefile.am	2005-02-26 16:51:58.000000000 -0700
 @@ -50,6 +50,7 @@
  	drvtext.cpp 	drvtext.h		\
  	drvsk.cpp 	drvsk.h			\
@@ -9,10 +9,10 @@ diff --new-file -ru pstoedit-3.40/src/Makefile.am pstoedit-3.40J/src/Makefile.am
  	drvmma.cpp 	drvmma.h		\
  	drvlatex2e.cpp 	drvlatex2e.h		\
  	drvpic.cpp 	drvpic.h		\
-diff --new-file -ru pstoedit-3.40/src/Makefile.in pstoedit-3.40J/src/Makefile.in
+diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 --- pstoedit-3.40/src/drvasy.cpp	1969-12-31 17:00:00.000000000 -0700
-+++ pstoedit-3.40J/src/drvasy.cpp	2005-02-26 16:48:18.701676008 -0700
-@@ -0,0 +1,513 @@
++++ pstoedit-3.40J/src/drvasy.cpp	2005-02-27 11:09:53.393951608 -0700
+@@ -0,0 +1,517 @@
 +/*
 +  drvASY.cpp : This file is part of pstoedit
 +  Backend for Asymptote files
@@ -36,7 +36,7 @@ diff --new-file -ru pstoedit-3.40/src/Makefile.in pstoedit-3.40J/src/Makefile.in
 +
 +*/
 +#ifdef _MSC_VER
-+// #define _POSIX_					// for MSVC and limits.h
++// #define _POSIX_				// for MSVC and limits.h
 +#endif
 +
 +#include "drvasy.h"
@@ -59,7 +59,6 @@ diff --new-file -ru pstoedit-3.40/src/Makefile.in pstoedit-3.40J/src/Makefile.in
 +#endif
 +// Constructor -- Initialize variables and take other per-document actions
 +
-+static bool firstpage;
 +
 +drvASY::derivedConstructor(drvASY):
 +  constructBase,
@@ -71,8 +70,12 @@ diff --new-file -ru pstoedit-3.40/src/Makefile.in pstoedit-3.40J/src/Makefile.in
 +  prevLineJoin(1),		// Round joins
 +  prevDashPattern(""),		// Solid lines
 +  fillmode(false),
++  clipmode(false),
 +  evenoddmode(false),
-+  clipmode(false)
++  firstpage(true),
++  imgcount(0),
++  tmpdir("pstoedit-temp"),
++  outname(NULL)
 +{
 +  // Output copyright information
 +  outf << "// Converted from PostScript(TM) to Asymptote by pstoedit\n"
@@ -81,7 +84,6 @@ diff --new-file -ru pstoedit-3.40/src/Makefile.in pstoedit-3.40J/src/Makefile.in
 +       << " <wglunz34_AT_pstoedit.net>\n\n";
 +	
 +  outf << "import pstoedit;" << endl;
-+  firstpage=true;
 +}
 +
 +
@@ -286,12 +288,13 @@ diff --new-file -ru pstoedit-3.40/src/Makefile.in pstoedit-3.40J/src/Makefile.in
 +
 +void drvASY::show_image(const PSImage & imageinfo)
 +{
-+  static int imgcount=0;
-+  static string tmpdir("pstoedit-temp");
-+  static char* outname=NIL;
-+  
 +  if(outBaseName) outname=outBaseName;
-+  else if(outname == NIL) {
++  else if (outname == NULL) {
++#if defined(_WIN32)
++    errf << "images cannot be handled via standard output. Use an output file"
++	 << endl;
++    return;
++#else
 +    mkdir(tmpdir.c_str(),0xFFFF);
 +  
 +    outname=strdup((tmpdir+"/XXXXXX").c_str());
@@ -299,6 +302,7 @@ diff --new-file -ru pstoedit-3.40/src/Makefile.in pstoedit-3.40J/src/Makefile.in
 +      errf << "Cannot build temporary file prefix";
 +      exit(1);
 +    }
++#endif
 +  }
 +
 +  imgcount++;
@@ -526,10 +530,10 @@ diff --new-file -ru pstoedit-3.40/src/Makefile.in pstoedit-3.40J/src/Makefile.in
 +      DriverDescription::normalopen, true, // supports multiple pages
 +      true  /*clipping */ 
 +      );
-diff --new-file -ru pstoedit-3.40/src/drvasy.h pstoedit-3.40J/src/drvasy.h
+diff -ru --new-file pstoedit-3.40/src/drvasy.h pstoedit-3.40J/src/drvasy.h
 --- pstoedit-3.40/src/drvasy.h	1969-12-31 17:00:00.000000000 -0700
-+++ pstoedit-3.40J/src/drvasy.h	2005-02-16 22:48:26.000000000 -0700
-@@ -0,0 +1,84 @@
++++ pstoedit-3.40J/src/drvasy.h	2005-02-27 11:14:29.572966016 -0700
+@@ -0,0 +1,89 @@
 +#ifndef __drvASY_h
 +#define __drvASY_h
 +
@@ -607,10 +611,15 @@ diff --new-file -ru pstoedit-3.40/src/drvasy.h pstoedit-3.40J/src/drvasy.h
 +  bool clipmode;
 +  // Set to true for eofill or eoclip, false otherwise
 +  bool evenoddmode;
++  // Set to true on first page, false otherwise
++  bool firstpage;
++  
++  int imgcount;
++  string tmpdir;
++  char* outname;
 +  
 +  std::list<bool> clipstack;
 +  std::list<bool> gsavestack;
-+
 +};
 +
 +#endif
