@@ -3610,7 +3610,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  NoWait src dest XDR txt getc fout stdin stdout endl xinput eof
 @c  LocalWords:  xoutput Microsystem's eol struct exponentials postfix sayhi th
 @c  LocalWords:  sqr intop addby libm asin acos atan sinh tanh asinh acosh cbrt
-@c  LocalWords:  atanh fabs hypot fmod drem ceil srand dereferenced alice pete
+@c  LocalWords:  atanh fabs hypot fmod ceil srand dereferenced alice pete
 @c  LocalWords:  eval fft csv runtime nonalphanumeric labely LeftTicks NoTicks
 @c  LocalWords:  RightTicks BottomTop LeftRight Ticksize UTF BufNewFile BufRead
 @c  LocalWords:  ticksize subintervals xlimits filetype plugin setlocal makeprg

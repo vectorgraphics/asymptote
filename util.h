@@ -47,7 +47,9 @@ extern "C" double asinh(double x);
 extern "C" double acosh(double x);
 extern "C" double atanh(double x);
 extern "C" double cbrt(double x);
+extern "C" double remainder(double x, double y);
 #endif
+
 
 extern bool False;
 
