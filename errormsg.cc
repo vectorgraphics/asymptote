@@ -22,7 +22,7 @@ ostream& fileinfo::print(ostream& out, int pos)
   }
   if(filename == "-" && interact::interactive && num > 1) num--;
 
-  out << filename << ": " << num << "." << pos-*lines << ": ";
+  out << filename.string() << ": " << num << "." << pos-*lines << ": ";
   return out;
 }
 

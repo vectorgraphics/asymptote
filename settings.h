@@ -47,14 +47,11 @@ extern int ShipoutNumber;
 extern const std::string suffix;
 extern const std::string guisuffix;
   
-const char *getAsyDir(); // Returns the environment asymptote directory.
-
 extern std::string outname; 
 extern std::list<std::string> *outnameStack;
-  
+
 extern bool TeXinitialized; // Is LaTeX process initialized?
 
-extern char* AsyDir; // Environment variable ASYMPTOTE_DIR
 extern std::string PSViewer; // Environment variable ASYMPTOTE_PSVIEWER
 extern std::string PDFViewer; // Environment variable ASYMPTOTE_PDFVIEWER
 extern std::string paperType;

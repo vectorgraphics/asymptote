@@ -3,13 +3,14 @@
 ARCH = unix
 POLL = poll
 
-LIBS = $(LFLAGS) @LIBS@
+LIBS = $(LFLAGS) @LIBS@ -lboost_filesystem
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill
 FILES = $(CAMP) cast env genv main runtime stm dec errormsg inst name symbol \
 	types entry exp newexp stack camp.tab lex.yy import access @getopt@ \
-	absyn record pool interact fileio builtin fftw++ simpson coder coenv
+	absyn record pool interact fileio builtin fftw++ simpson coder coenv \
+	locate
 CLEAN = camp.tab.h camp.tab.cc lex.yy.cc camp.output
 NAME = asy
 XNAME = x$(NAME)
@@ -47,9 +48,7 @@ all:  	asy man
 man:	asy
 	cd doc; $(MAKE) man
 
-depend: parser $(FILES:=.d)
-
-parser: camp.tab.cc camp.tab.h lex.yy.cc
+depend: camp.tab.h $(FILES:=.d)
 
 camp.tab.h: camp.tab.cc
 

@@ -10,9 +10,12 @@
 
 #include <list>
 #include <iostream>
+#include <boost/filesystem/path.hpp>
 #include "camperror.h"
 #include "pool.h"
 #include "settings.h"
+
+namespace fs = boost::filesystem;
 
 using std::ostream;
 using std::endl;
@@ -21,12 +24,12 @@ struct handled_error {}; // Exception to process next file.
 struct interrupted {};   // Exception to process user interrupts.
 
 class fileinfo : public memory::managed<fileinfo> {
-  std::string filename;
+  fs::path filename;
   std::list<int> linePos;
   int lineNum;
 
 public:
-  fileinfo(std::string filename)
+  fileinfo(fs::path filename)
     : filename(filename), lineNum(1) {
     linePos.push_front(0);
   }

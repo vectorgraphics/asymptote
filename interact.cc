@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
+#include <boost/filesystem/fstream.hpp>
 #include "interact.h"
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
@@ -16,9 +17,11 @@
 #endif
 
 #include "symbol.h"
-#include "genv.h"
+#include "locate.h"
 
 #include "fileio.h"
+
+namespace fs = boost::filesystem;
 
 namespace interact {
 
@@ -108,9 +111,9 @@ void add_input(char *&dest, const char *src, size_t& size)
       src++;
     }
     src += name.length()+ninput;
-    const string iname=trans::symbolToFile(trans::symbol::trans(name));
-    static filebuf filebuf;
-    if(!filebuf.open(iname.c_str(),ios::in)) return;
+    const fs::path iname=settings::locateFile(name);
+    static fs::filebuf filebuf;
+    if(!filebuf.open(iname,ios::in)) return;
     size_t len=filebuf.sgetn(dest,size);
     filebuf.close();
     if(len == size) {overflow(); return;}
