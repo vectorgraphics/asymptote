@@ -25,7 +25,6 @@ private:
   bbox b;
   pair bboxshift;
   std::list<drawElement*> nodes;
-  string outputformat;
   bool labels;
 
 public:
@@ -50,7 +49,8 @@ public:
   bool texprocess(const string& texname, const string& tempname,
 		  const string& prefix);
     
-  bool postprocess(const string& epsname, const string& outname, bool wait);
+  bool postprocess(const string& epsname, const string& outname, 
+		   const string& outputformat, bool wait);
     
   // Ships the picture out to PostScript & TeX files.
   bool shipout(const string& prefix, const string& format="", bool wait=false);

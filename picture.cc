@@ -24,8 +24,6 @@ iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
 
 namespace camp {
 
-static double pdfoffset=2.0;
-  
 picture::~picture()
 {
 }
@@ -112,23 +110,12 @@ bool picture::texprocess(const string& texname, const string& outname,
     outfile.close();
     
     ostringstream dcmd;
-    double width=b.right-b.left;
-    double height=b.top-b.bottom;
-    // Magic dvips offsets:
-    double hoffset=-128.2;
-    double voffset=(height < 10.6) ? -136.1+height : -125.5;
 
-    if(outputformat == "pdf") {
-      voffset += pdfoffset;
-      height += pdfoffset;
-    }
-
-    hoffset += printerOffset.getx();
-    width += printerOffset.getx();
-    height += printerOffset.gety();
+    double offset=-1.5*72;
+    double hoffset=offset+printerOffset.getx();
+    double voffset=offset+printerOffset.gety();
     
-    dcmd << "dvips -O " << hoffset << "bp," << voffset << "bp -T "
-	 <<  width+2 << "bp," << height+2 << "bp"; 
+    dcmd << "dvips -E -O " << hoffset << "bp," << voffset << "bp";
     if(verbose <= 2) dcmd << " -q";
     dcmd << " -o " << outname << " " << dviname;
     status=System(dcmd);
@@ -146,7 +133,7 @@ bool picture::texprocess(const string& texname, const string& outname,
 }
 
 bool picture::postprocess(const string& epsname, const string& outname,
-			  bool wait)
+			  const string& outputformat, bool wait)
 {
   int status=0;
   ostringstream cmd;
@@ -173,19 +160,25 @@ bool picture::postprocess(const string& epsname, const string& outname,
   if(verbose > (tgifformat ? 1 : 0)) cout << "Wrote " << outname << endl;
   static bool first=true;
   static int pid;
+  const string AltViewers[]={PSViewer,"ggv","ghostview","gsview"};
+  static size_t nViewers=sizeof(AltViewers)/sizeof(string);
+  static size_t iviewer=0;
   if(view && !deconstruct) {
-    ostringstream cmd;
     if(epsformat || pdfformat) {
       if (first || !interact::virtualEOF) {
 	first=false;
-	cmd << "gv ";
-	if(!wait) cmd << "-watch ";
-        cmd << outname;
-	status=System(cmd,false,wait,&pid);
+	status=-1;
+	while(status == -1 && iviewer < nViewers) {
+	  ostringstream cmd;
+	  cmd << AltViewers[iviewer];
+	  if(AltViewers[iviewer] == "gv") cmd << " -nowatch";
+	  cmd << " " << outname;
+	  status=System(cmd,false,wait,&pid,iviewer+1 == nViewers);
+	  if(status == -1) ++iviewer;
+	}
 	if(status) return false;
-      } else {
-//	kill(pid,SIGHUP);
-      }
+	// Tell gv it should reread the file.
+      } else if(AltViewers[iviewer] == "gv") kill(pid,SIGHUP);
     } else {
 	cmd << "display " << outname;
 	status=System(cmd,false,wait);
@@ -202,7 +195,7 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
   upToDate=true;
   
   checkFormatString(format);
-  outputformat=(format == "" ? outformat : format);
+  string outputformat=(format == "" ? outformat : format);
   bool tgifformat=(outputformat == "tgif");
   
   static std::ofstream bboxout;
@@ -236,9 +229,8 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
       bscaled *= deconstruct;
       bboxout << bscaled << endl;
   } else {
-  // Avoid negative bounding box coordinates; adjust for printer Offset
-    bboxshift=pair(-min(b.left,-printerOffset.getx()),
-		   -min(b.bottom,-printerOffset.gety()));
+  // Avoid negative bounding box coordinates
+    bboxshift=pair(-b.left,-b.bottom);
     bpos.shift(bboxshift);
   }
   
@@ -247,6 +239,7 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
     return true;
   }
   
+  static const double pdfoffset=2.0;
   if(!labels && outputformat == "pdf") {
     bpos.right += pdfoffset;
     bpos.top += pdfoffset;
@@ -316,7 +309,7 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
 	  unlink(p->c_str());
       }
     }
-    status=postprocess(epsname,outname,wait);
+    status=postprocess(epsname,outname,outputformat,wait);
   }
   
   if(labels) delete tex;

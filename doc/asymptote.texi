@@ -224,12 +224,12 @@ or else uncomment @code{HAVE_LIBREADLINE} in @code{config.h}.
 The FFTW library is only required if you want @code{Asymptote} to be able to
 take Fourier transforms of data (say to compute an audio power spectrum).
 
-If you don't want to install @code{Asymptote}, just make sure the compiled
-binary @code{asy} and GUI script @code{xasy} are in your path and set the
-environment variable @code{ASYMPTOTE_DIR} to point to the directory
-@code{base} (in the top level directory of the @code{Asymptote}
-source code). In looking for @code{Asymptote} system files, @code{asy} will
-search the following paths, in the order listed:
+If you don't want to install @code{Asymptote} system wide, just make
+sure the compiled binary @code{asy} and GUI script @code{xasy} are in
+your path and set the environment variable @code{ASYMPTOTE_DIR} to point
+to the directory @code{base} (in the top level directory of the
+@code{Asymptote} source code). In looking for @code{Asymptote} system
+files, @code{asy} will search the following paths, in the order listed:
 
 @anchor{search paths}
 @enumerate
@@ -241,6 +241,18 @@ current directory
 @item
 system-wide directory (default: @code{/usr/local/share/asymptote})
 @end enumerate
+
+@cindex @code{-V}
+@cindex @code{ASYMPTOTE_PSVIEWER}
+In interactive mode, or when given the @code{-V} option,
+@code{Asymptote} will attempt to open up a @code{PostScript} viewer
+by first trying to execute the program specified by the optional
+environment variable @code{ASYMPTOTE_PSVIEWER}, then @code{gv},
+@code{ggv}, @code{ghostview}, and finally @code{gsview}. To support interactive
+mode, the @code{PostScript} viewer must be able to redraw a file whenever
+it changes. The default @code{PostScript} viewer @code{gv}
+supports this automatically (via @code{SIGHUP}); users of @code{ggv} will need
+to enable @code{Watch file} under @code{Edit/Postscript Viewer Preferences}.
 
 @cindex @code{emacs}
 @cindex @code{asy-mode}
@@ -303,18 +315,17 @@ To compile without optimization, use the command @code{make OPT=}.
 @node Examples
 @chapter Examples
 @cindex examples
-To draw a line from (0,0) to (100,100) using @code{Asymptote}'s interactive
-mode, type:
+To draw a line from coordinate (0,0) to coordinate (100,100) using
+@code{Asymptote}'s interactive mode, type:
 @verbatim
-asy -V
+asy
 draw((0,0)--(100,100));
 @end verbatim
 @image{diagonal}
 
 @cindex @code{bp}
-The units here are @code{PostScript} "big points" (1 @code{bp} = 1/72
-@code{inch}).
-The @code{--} here means join with a linear segment.
+The units here are @code{PostScript} "big points" 
+(1 @code{bp} = 1/72 @code{inch}); @code{--} means join with a linear segment.
 
 At this point you can type in further draw commands, which will be added
 to the displayed figure, or type @code{quit} to exit interactive mode.
@@ -339,11 +350,16 @@ asy -V test
 @end verbatim
 The shipout command converts the current picture into @code{PostScript}. A
 shipout command is added implicitly in interactive mode, but is
-explicitly required in batch mode. The -V option here opens up a gv
-window so you can immediately view the encapsulated @code{PostScript} output.
-By default this output will be written to the file @code{test.eps};
-the prefix of the output file may be changed with the @code{-o} command
-line option. 
+explicitly required in batch mode. 
+
+@cindex @code{-V}
+The @code{-V} option opens up a postscript
+viewer window so you can immediately view the encapsulated
+@code{PostScript} output. By default the output will be written to the
+file @code{test.eps}; the prefix of the output file may be changed with
+the @code{-o} command line option.
+
+
 
 @cindex @code{cycle}
 One can draw a line with more than two points and create a cyclic path
@@ -2803,9 +2819,8 @@ Reset @code{defaultfontsize}, @code{defaultlinewidth}, and @code{overwrite}
 to their startup defaults.
 @end table
 
-A @code{PostScript} printer offset (for printers that do not print to the edge
-of the page) may be specified with either of these two equivalent shell
-commands:
+A @code{PostScript} offset may be specified with either of these two
+equivalent shell commands:
 @verbatim
 asy -O 25 file
 asy -O "(25,25)" file

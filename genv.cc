@@ -47,18 +47,22 @@ namespace trans {
 namespace {
 
 // Adds the appropriate directory and suffix to the name.
-// Note that "asy examples/blah.asy" works even in the examples/ directory,
-// if examples is in ASYMPTOTE_DIR.
 string dirSymbolToFile(string s, symbol *id)
 {
   ostringstream buf;
   if (!s.empty())
     buf << s << "/";
   
-  if(((string)*id).find('.') != string::npos) 
+  size_t p=findextension((string)*id,settings::suffix);
+  if(p < string::npos)
     buf << *id;
-  else
-    buf << *id << "." << settings::suffix;
+  else {
+    p=findextension((string)*id,settings::guisuffix);
+    if(p < string::npos)
+      buf << *id;
+    else
+      buf << *id << "." << settings::suffix;
+  }
   return buf.str();
 }
 
@@ -76,8 +80,10 @@ string symbolToFile(symbol *id)
   string filename = dirSymbolToFile("", id);
   if(exists(filename)) return filename;
 
-  filename = dirSymbolToFile(settings::getAsyDir(), id);
-  if(exists(filename)) return filename;
+  if(settings::AsyDir) {
+    filename = dirSymbolToFile(settings::AsyDir, id);
+    if(exists(filename)) return filename;
+  }
 
 #ifdef ASYMPTOTE_SYSDIR
   filename = dirSymbolToFile(ASYMPTOTE_SYSDIR, id);

@@ -60,15 +60,12 @@ bool upToDate=false;
 int overwrite=0;
 
 int ShipoutNumber=0;
-char localdir[]=".";
+char* AsyDir;
+string PSViewer;
 
-std::string suffix="asy";
+const std::string suffix="asy";
+const std::string guisuffix="gui";
   
-const char *getAsyDir() {
-  char *dir = getenv("ASYMPTOTE_DIR");
-  return dir ? dir : localdir;
-}
-
 string outname;
 std::list<string> *outnameStack;
 
@@ -219,6 +216,10 @@ void setOptions(int argc, char *argv[])
 	 << " -h' for a descriptions of options." << endl;
     exit(1);
   }
+  
+  AsyDir=getenv("ASYMPTOTE_DIR");
+  char *psviewer=getenv("ASYMPTOTE_PSVIEWER");
+  PSViewer=psviewer ? psviewer : "gv";
 }
 
 // Reset to startup defaults

@@ -16,6 +16,8 @@ using std::cerr;
 using std::endl;
 using std::ostringstream;
 
+size_t findextension(const std::string& name, const std::string& suffix);
+  
 // Construct a filename from the original, adding aux at the end, and
 // changing the suffix.
 std::string buildname(std::string filename, std::string suffix="",
@@ -29,9 +31,9 @@ bool checkFormatString(const std::string& format);
 // Similar to the standard system call except allows interrupts and does
 // not invoke a shell.
 int System(const char *command, bool quiet=false, bool wait=true,
-	   int *pid=NULL);
+	   int *pid=NULL, bool warn=true);
 int System(const ostringstream& command, bool quiet=false, bool wait=true,
-	   int *pid=NULL); 
+	   int *pid=NULL, bool warn=true); 
   
 extern "C" char *strsignal(int sig);
 extern "C" int snprintf(char *str, size_t size, const  char  *format,...);

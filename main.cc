@@ -81,25 +81,25 @@ int main(int argc, char *argv[])
   setsignal(signalHandler);
   signal(SIGCHLD, SIG_IGN); // Flush exited child processes (avoid zombies)
 
-  if(settings::numArgs() == 0) {
+  if(numArgs() == 0) {
     interactive=true;
     view=1;
-    cout << "Welcome to " << settings::PROGRAM << " version " 
-	 << settings::VERSION << " (interactive mode)" << endl;
+    cout << "Welcome to " << PROGRAM << " version " << VERSION << 
+      " (interactive mode)" << endl;
   }
   
   std::cout.precision(DBL_DIG);
   
   int status = 0;
   
-  for(int ind=0; ind < settings::numArgs() || (interactive && virtualEOF);
+  for(int ind=0; ind < numArgs() || (interactive && virtualEOF);
       ind++) {
-    settings::reset();
+    reset();
     virtualEOF=false;
     ShipoutNumber=0;
     
     string module_name = interactive ? "-" : getArg(ind);
-    size_t p=module_name.rfind("."+settings::suffix);
+    size_t p=findextension(module_name,suffix);
     if (p < string::npos) module_name.erase(p);
     
     try {

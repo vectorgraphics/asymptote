@@ -42,7 +42,9 @@ namespace settings {
 
   extern int ShipoutNumber;
   
-  extern std::string suffix;
+  extern const std::string suffix;
+  extern const std::string guisuffix;
+  
   const char *getAsyDir(); // Returns the environment asymptote directory.
 
   extern std::string outname; 
@@ -50,6 +52,9 @@ namespace settings {
   
   extern bool TeXinitialized; // Is LaTeX process initialized?
 
+  extern char* AsyDir; // Environment variable ASYMPTOTE_DIR
+  extern std::string PSViewer; // Environment variable ASYMPTOTE_PSVIEWER
+  
   void setOptions(int argc, char *argv[]);
 
   // Access the arguments once options have been parsed.

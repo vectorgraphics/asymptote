@@ -21,18 +21,24 @@
 #include "camperror.h"
 
 using namespace std;
-using settings::verbose;
+using namespace settings;
 
 bool False=false;
+
+size_t findextension(const string& name, const string& suffix) 
+{
+  size_t p=name.rfind("."+suffix);
+  if (p == name.length()-suffix.length()-1) return p;
+  else return string::npos;
+}
 
 string buildname(string filename, string suffix, string aux) 
 {
   string name=filename;
   size_t p=name.rfind('/');
   if(p < string::npos) name.erase(0,p+1);
-  p=name.rfind('.');
-  if (p < string::npos && name.find(settings::outformat,p+1) < string::npos)
-    name.erase(p);
+  p=findextension(name,outformat);
+  if(p < string::npos) name.erase(p);
 
   name += aux;
   if(suffix != "") name += "."+suffix;
@@ -70,7 +76,7 @@ char **args(const char *command)
   return argv;
 }
 
-int System(const char *command, bool quiet, bool wait, int *ppid) 
+int System(const char *command, bool quiet, bool wait, int *ppid, bool warn)
 {
   int status;
 
@@ -79,7 +85,7 @@ int System(const char *command, bool quiet, bool wait, int *ppid)
 
   int pid = fork();
   if (pid == -1) {
-    camp::reportError("Can't fork process");
+    camp::reportError("Cannot fork process");
     return 1;
   }
   char **argv=args(command);
@@ -87,9 +93,11 @@ int System(const char *command, bool quiet, bool wait, int *ppid)
     if(quiet) close(STDOUT_FILENO);
     if(argv) execvp(argv[0],argv);
     ostringstream msg;
-    msg <<  "Can't execute " << argv[0];
-    camp::reportError(msg.str());
-    return 1;
+    if(warn) {
+      msg <<  "Cannot execute " << argv[0];
+      camp::reportError(msg.str());
+    }
+    return -1;
   }
 
   if(ppid) *ppid=pid;
@@ -119,8 +127,9 @@ int System(const char *command, bool quiet, bool wait, int *ppid)
   }
 }
 
-int System(const ostringstream& command, bool quiet, bool wait, int *pid) 
+int System(const ostringstream& command, bool quiet, bool wait, int *pid,
+	   bool warn) 
 {
-  return System(command.str().c_str(),quiet,wait,pid);
+  return System(command.str().c_str(),quiet,wait,pid,warn);
 }
 
