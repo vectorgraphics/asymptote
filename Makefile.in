@@ -39,12 +39,7 @@ asy: 	parser depend
 all:  	asy man
 
 man:	asy
-	cd doc; rm -f latexusage.asy && ../asy -f png *.asy && \
-	latex latexusage && ../asy *.asy && latex latexusage && \
-	dvips -o latexusage.eps latexusage && \
-	convert latexusage.eps latexusage.png && \
-	makeinfo asymptote && makeinfo --html asymptote && \
-	cp *.png asymptote && texi2dvi asymptote.texi 
+	cd doc; make man
 
 depend: $(FILES:=.d)
 
@@ -68,11 +63,11 @@ install: asy
 	${INSTALL} base/*.asy base/asy* $(asydir)
 	${INSTALL} examples/*.asy $(asydir)/examples
 
-install-man:
+install-man: man
 	${INSTALL} doc/asymptote.info $(prefix)/info
 	install-info --infodir=$(prefix)/info doc/asymptote.info 
 
-install-all: all install install-man
+install-all: install install-man
 
 uninstall: 
 	-cd $(asydir)/examples; rm -f *.asy
@@ -89,9 +84,7 @@ clean:  FORCE
 
 distclean: FORCE clean
 	rm -f Makefile config.h config.log config.status
-	cd doc; rm -rf *.eps *.png latexusage.{asy,dvi,log,aux,ps} asymptote \
-		asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,toc,tp,vr} \
-		version.texi
+	cd doc; make distclean
 
 maintainer-clean: FORCE distclean
 	rm -f configure config.h.in 

@@ -849,8 +849,9 @@ returns the pair(left,bottom) for the path bounding box.
 returns true iff path is cyclic
 
 @cindex @code{straight}
-@item bool straight(path)
-returns true iff path is straight
+@item bool straight(path, int i)
+returns true iff the segment between node @code{i} and node @code{i+1}
+is straight.
 
 @end table
 
@@ -2148,8 +2149,14 @@ release.
 @node math
 @subsection @code{math}
 @cindex @code{math}
-This package extends @code{Asymptote}'s mathematical capabilities with radian/degree
-conversion routines, matrices, and point-in-polygon algorithms.
+This package extends @code{Asymptote}'s mathematical capabilities with
+radian/degree conversion routines, matrices, and point-in-polygon algorithms.
+It also defines
+
+@cindex @code{straight}
+@item bool straight(path p)
+returns true iff the path @code{p} is straight.
+
 
 @node stats
 @subsection @code{stats}

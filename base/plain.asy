@@ -312,6 +312,16 @@ struct Legend {
   public pen p;
 }
 
+pair minbound(pair z, pair w) 
+{
+  return (min(z.x,w.x),min(z.y,w.y));
+}
+
+pair maxbound(pair z, pair w) 
+{
+  return (max(z.x,w.x),max(z.y,w.y));
+}
+
 struct picture {
   // The functions to do the deferred drawing.
   drawerBound[] nodes;
@@ -352,8 +362,8 @@ struct picture {
   }
   
   void userBox(pair min, pair max) {
-    userMin=(min(userMin.x,min.x),min(userMin.y,min.y));
-    userMax=(max(userMax.x,max.x),max(userMax.y,max.y));
+    userMin=minbound(userMin,min);
+    userMax=maxbound(userMax,max);
   }
   
   void add(drawerBound d) {
@@ -1103,20 +1113,22 @@ void label(picture pic=currentpicture, string s, real angle=0,
   label(pic,s,angle,point(g,0.5L),align,p,adjust);
 }
 
-void dot(picture pic=currentpicture, pair c, real size=dotsize,
+void dot(picture pic=currentpicture, pair c, real size=infinity,
 	 pen p=currentpen)
 {
-  _draw(pic,c,p+linewidth(size));
+  if(size == infinity) {p=linewidth(dotsize)+p;}
+  else p += linewidth(size);
+  _draw(pic,c,p);
 }
 
-void dots(picture pic=currentpicture, pair[] c, real size=dotsize,
-	 pen p=currentpen)
+void dots(picture pic=currentpicture, pair[] c, real size=infinity, 
+	  pen p=currentpen)
 {
   for(int i=0; i < c.length; ++i) dot(pic,c[i],size,p);
 }
 
 
-void labeldot(picture pic=currentpicture, real size=dotsize, string s="",
+void labeldot(picture pic=currentpicture, real size=infinity, string s="",
 	      real angle=0, pair c, pair align=E, pen p=currentpen,
 	      adjust adjust=NoAdjust)
 {

@@ -106,7 +106,7 @@ vector cross(vector a, vector b)
 // Compute normal vector to the plane defined by the first 3 vectors of p.
 vector normal(vector[] p)
 {
-  if(p.length < 3) abort("3 vectors are required");
+  if(p.length < 3) abort("3 vectors are required to define a plane");
   return cross(p[1]-p[0],p[2]-p[0]);
 }
 
@@ -120,10 +120,19 @@ vector unitnormal(vector[] p)
   return unit(normal(p));
 }
 
+// Return the intersection time of the extension of the line segment PQ
+// with the plane perpendicular to n and passing through Z.
+real intersection(vector P, vector Q, vector n, vector Z)
+{
+  real d=n.x*Z.x+n.y*Z.y+n.z*Z.z;
+  real denom=n.x*(Q.x-P.x)+n.y*(Q.y-P.y)+n.z*(Q.z-P.z);
+  return denom == 0 ? infinity : (d-n.x*P.x-n.y*P.y-n.z*P.z)/denom;
+}
+		    
 // Return any point on the intersection of the two planes with normals
 // n0 and n1 passing through points P0 and P1, respectively.
 // If the planes are parallel return vector(infinity,infinity,infinity).
-vector intersection(vector n0, vector P0, vector n1, vector P1)
+vector intersectionpoint(vector n0, vector P0, vector n1, vector P1)
 {
   real Dx=n0.y*n1.z-n1.y*n0.z;
   real Dy=n0.z*n1.x-n1.z*n0.x;
@@ -186,11 +195,19 @@ bool polygon(path p)
   return cyclic(p) && straight(p);
 }
 
+void assertpolygon(path p)
+{
+  if(!polygon(p)) {
+    write(p);
+    abort("Polygon must be a straight cyclic path. ");
+  }
+}
+
 // Returns true iff the point z lies in the region bounded by the cyclic
 // polygon p.
 bool inside(pair z, path p)
 {
-  if(!polygon(p)) abort("Polygon must be a straight cyclic path");
+  assertpolygon(p);
   bool c=false;
   int n=length(p);
   for(int i=0; i < n; ++i) {
@@ -205,7 +222,7 @@ bool inside(pair z, path p)
 // Returns true iff the line a--b intersects the cyclic polygon p.
 bool intersect(pair a, pair b, path p)
 {
-  if(!polygon(p)) abort("Polygon must be a straight cyclic path");
+  assertpolygon(p);
   int n=length(p);
   for(int i=0; i < n; ++i) {
     pair A=point(p,i);
