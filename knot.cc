@@ -22,7 +22,7 @@ ostream& info(ostream& o, std::string name, cvector<T>& v)
   if (settings::verbose > 3) {
     o << name << ":\n\n";
 
-    for(size_t i=0; i < (size_t) v.size(); ++i)
+    for(int i=0; i < (int) v.size(); ++i)
       o << v[i] << std::endl;
 
     o << std::endl;
@@ -35,7 +35,7 @@ ostream& info(ostream& o, std::string name, knotlist& l)
   if (settings::verbose > 3) {
     o << name << ":\n\n";
 
-    for(size_t i=0; i < (size_t) l.size(); ++i)
+    for(int i=0; i < (int) l.size(); ++i)
       o << l[i] << std::endl;
 
     if (l.cyclic())
