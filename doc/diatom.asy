@@ -55,6 +55,7 @@ for(int taxon=0; taxon < n; ++taxon) {
   guide g=graph(pic,P,depth);
   draw(pic,g,p);
   xlimits(pic,0);
+  crop(pic);
   filldraw(pic,(pic.userMin.x,depthmin)--g--(pic.userMin.x,depthmax)--cycle,
 	   gray(0.9));
   xaxis(pic,0,Bottom,LeftTicks(false,0,2,"%.0f"));
