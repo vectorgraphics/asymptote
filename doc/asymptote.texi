@@ -3416,7 +3416,8 @@ entered on the same line.
 @cindex @code{xasy}
 
 In the event that adjustments to the final figure are required, the
-Graphical User Interface (@acronym{GUI}) @code{xasy} included with @code{Asymptote}
+Graphical User Interface (@acronym{GUI}) @code{xasy} included with
+@code{Asymptote}
 allows you to move graphical objects around with mouse @code{Button-1}. 
 The modified layout can be written to disk with the @code{w} key in a form
 readable to @code{Asymptote}.
@@ -3451,10 +3452,17 @@ command @code{asy -xN}, where @code{N} denotes the magnification (say 2).
 The command @code{asy -VxN} automatically invokes @code{xasy} once
 deconstruction is complete.
 
-A good example of how deconstruction of compound objects (e.g. arrows)
-or unfilled regions can be prevented is in the example
-@code{yingyang.asy}. By default, only currentpicture does automatic
-deconstruction of its objects.
+By default, only @code{currentpicture} automatically deconstructs its
+objects. Deconstruction of a picture @code{pic} can be requested by
+changing its deconstruct flag:
+@verbatim
+pic.deconstruct=true;
+@end verbatim
+The example @code{yingyang.asy} illustrates how deconstruction of
+unfilled regions or compound objects (e.g. arrows) can be prevented.
+Deconstructed pictures cannot be clipped, but clipping will be
+properly displayed by @code{xasy} when done in a separate
+(nondeconstructed) picture.
 
 @node Help
 @chapter Help

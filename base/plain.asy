@@ -452,6 +452,8 @@ struct picture {
   void beginclip(drawer d) {
     uptodate(false);
     bool deconstruct=this.deconstruct;
+    if(deconstruct && deconstruct())
+      write("warning: deconstructed pictures cannot be clipped");
     for(int i=0; i < xcoords.length; ++i) {
       xcoords[i].clip(userMin.x,userMax.x);
       ycoords[i].clip(userMin.y,userMax.y);
