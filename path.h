@@ -83,10 +83,6 @@ public:
         && nodes[0].point == nodes[0].pre
         && nodes[0].point == nodes[0].post)
       this->cycles = false;
-//    if (n <= 0) {
-//      reportError("path must have at least one node");
-//      return;
-//    }
   }
 
 private:
@@ -115,7 +111,7 @@ public:
     return n;
   }
 
-  int empty() const
+  bool empty() const
   {
     return n == 0;
   }
@@ -130,8 +126,18 @@ public:
     return cycles;
   }
   
+  bool emptyError() const {
+    if(empty()) {
+      reportError("nullpath has no points");
+      return true;
+    }
+    return false;
+  }
+  
   pair point(int i) const
   {
+    if(emptyError()) return pair();
+    
     if (cycles)
       return nodes[mod(i,n)].point;
     else if (i < 0)
@@ -152,6 +158,8 @@ public:
   
   pair precontrol(int i) const
   {
+    if(emptyError()) return pair();
+		       
     if (cycles)
       return nodes[mod(i,n)].pre;
     else if (i < 0)
@@ -166,6 +174,8 @@ public:
   
   pair postcontrol(int i) const
   {
+    if(emptyError()) return pair();
+		       
     if (cycles)
       return nodes[mod(i,n)].post;
     else if (i < 0)

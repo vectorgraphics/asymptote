@@ -16,6 +16,8 @@ namespace camp {
 
 pair path::point(double t) const
 {
+  if(emptyError()) return pair();
+    
   // NOTE: there may be better methods, but let's not split hairs, yet.
   int i = ifloor(t);
   int iplus;
@@ -52,11 +54,13 @@ pair path::point(double t) const
 
 pair path::precontrol(double t) const
 {
+  if(emptyError()) return pair();
+		     
   // NOTE: may be better methods, but let's not split hairs, yet.
   int i = ifloor(t);
   int iplus;
   t = fmod(t,1);
-  if (t<0) t+=1;
+  if (t<0) t += 1;
 
   if (cycles) {
     i = mod(i,n);
@@ -88,11 +92,13 @@ pair path::precontrol(double t) const
  
 pair path::postcontrol(double t) const
 {
+  if(emptyError()) return pair();
+  
   // NOTE: may be better methods, but let's not split hairs, yet.
   int i = ifloor(t);
   int iplus;
   t = fmod(t,1);
-  if (t<0) t+=1;
+  if (t<0) t += 1;
 
   if (cycles) {
     i = mod(i,n);
@@ -136,6 +142,8 @@ path path::reverse() const
 
 path path::subpath(int start, int end) const
 {
+  if(empty()) return path();
+
   if (start > end) {
     const path &rp = reverse();
     path result = rp.subpath(length()-start, length()-end);
@@ -180,6 +188,8 @@ inline void splitCubic(solvedKnot sn[], double t, solvedKnot left_,
 
 path path::subpath(double start, double end) const
 {
+  if(empty()) return path();
+  
   if (start > end) {
     const path &rp = reverse();
     path result = rp.subpath(length()-start, length()-end);
@@ -227,7 +237,7 @@ path path::subpath(double start, double end) const
 
 bbox path::bounds() const
 {
-  if (n == 0) {
+  if (empty()) {
     // No bounds
     return bbox(/* empty */);
   }
@@ -417,7 +427,7 @@ inline double cubicDir(const solvedKnot& left, const solvedKnot& right,
 // TODO: Check that we handle corner cases.
 // Velocity(t) == (0,0)
 double path::directiontime(pair dir) const {
-  if (dir==pair(0,0)) return 0;
+  if (dir == pair(0,0)) return 0;
   pair rot = pair(1,0)/unit(dir);
     
   double t; double pre,post;
