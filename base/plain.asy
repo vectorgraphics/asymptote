@@ -55,7 +55,7 @@ pen longdashed=linetype("24 8");
 pen dashdotted=linetype("8 8 0 8");
 pen longdashdotted=linetype("24 8 0 8");
 
-pen Dotted=linetype("0 4")+1.0;
+pen Dotted=dotted+1.0;
 
 pen squarecap=linecap(0);
 pen roundcap=linecap(1);
@@ -1554,9 +1554,14 @@ void label(picture pic=currentpicture, string s, real angle=0,
   label(pic,s,angle,point(g,position),align,shift,p);
 }
 
+real linewidth() 
+{
+  return linewidth(currentpen);
+}
+
 void dot(picture pic=currentpicture, pair c)
 {
-  _draw(pic,c,currentpen+linewidth(currentpen)*dotfactor);
+  _draw(pic,c,currentpen+linewidth()*dotfactor);
 }
 
 void dot(picture pic=currentpicture, pair c, pen p)

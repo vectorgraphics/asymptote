@@ -38,25 +38,26 @@ path ei=point(exposed,S)--point(infectiousM,N);
 path si=point(susceptible,N)--point(infectious,S);
 
 draw(minipage("\flushright{recovery rate ($g$) \& death rate from virus
-($\mu_V$)}",40pt),point(infectious,N)--point(removed,S),LeftSide,Arrow);
+($\mu_V$)}",40pt),point(infectious,N)--point(removed,S),LeftSide,Arrow,
+PenMargin);
 
-draw(si,LeftSide,Arrow);
+draw(si,LeftSide,Arrow,PenMargin);
 
 draw(minipage("\flushright{maturation rate ($m$)}",50pt),ls,RightSide,
-Arrow);
+Arrow,PenMargin);
 draw(minipage("\flushright{viral incubation rate ($k$)}",40pt),ei,
-RightSide,Arrow);
+RightSide,Arrow,PenMargin);
 
 path ise=point(infectious,E)--point(se,0.5);
   
-draw("$(ac)$",ise,LeftSide,dashed,Arrow);
+draw("$(ac)$",ise,LeftSide,dashed,Arrow,PenMargin);
 label(minipage("\flushleft{biting rate $\times$ transmission
 probability}",50pt),point(infectious,SE),dir(-60)+S);
 
 path isi=point(infectiousM,W)--point(si,2.0/3);
 
-draw("$(ab)$",isi,LeftSide,dashed,Arrow);
-draw(se,LeftSide,Arrow);
+draw("$(ab)$",isi,LeftSide,dashed,Arrow,PenMargin);
+draw(se,LeftSide,Arrow,PenMargin);
       
 real t=2.0;
 draw("$\beta_M$",

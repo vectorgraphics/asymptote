@@ -34,14 +34,14 @@ real M2=interp(a,b,intersect(h2,g).x);
 labelx("$M_1$",M1);
 labelx("$M_2$",M2);
 
-draw((a,S2)--(M2,S2)--(M2,0),dotted+1bp);
+draw((a,S2)--(M2,S2)--(M2,0),Dotted);
 draw((a,S1)--(M1,S1)--(M1,0),dashed);
 
 pen p=fontsize(10);
 
 real y3=0.043;
 path reduction=(M1,y3)--(M2,y3);
-draw(reduction,Arrow);
+draw(reduction,Arrow,TrueMargin(0,0.5*(linewidth(Dotted)+linewidth())));
 
 arrow(minipage("\flushleft{\begin{itemize}\item[1.] Estimate proportion of 
 birds surviving at end of season\end{itemize}}",
