@@ -71,10 +71,11 @@ install: asy
 	texhash
 
 install-man: man
+	${INSTALL} -d $(prefix)/info $(exampledir) $(mandir)/man1
 	${INSTALL} -m 644 doc/asymptote.info $(prefix)/info
 	install-info --infodir=$(prefix)/info doc/asymptote.info 
 	${INSTALL} -m 644 doc/asymptote.pdf $(exampledir)
-	${INSTALL} -m 644 doc/$(MANFILES) ${mandir}/man1
+	${INSTALL} -m 644 doc/$(MANFILES) $(mandir)/man1
 
 install-all: install install-man
 
