@@ -1729,7 +1729,8 @@ void erase(picture pic=currentpicture)
 typedef void restoreThunk();
 
 // When save is called, this will be redefined to do the corresponding restore.
-void restore() {
+void restore()
+{
   write("warning: restore called with no matching save");
 }
 
@@ -1738,18 +1739,18 @@ restoreThunk buildRestoreThunk() {
   picture pic=currentpicture.copy();
   restoreThunk r=restore;
   return new void () {
-      currentpen=p;
-      currentpicture=pic;
-      restore=r;
-      uptodate=false;
-    };
+    currentpen=p;
+    currentpicture=pic;
+    restore=r;
+    uptodate=false;
+  };
 }
 
 // Save the current state, so that restore will put things back in that state.
-restoreThunk save() {
+restoreThunk save() 
+{
   return restore=buildRestoreThunk();
 }
-
 
 real cap(real x, real m, real M, real bottom, real top)
 {

@@ -1548,6 +1548,20 @@ the function
 void erase(picture pic=currentpicture);
 @end verbatim
 
+@cindex @code{save}
+To save a snapshot of @code{currentpicture} and @code{currentpen} use
+the function
+@verbatim
+void save();
+@end verbatim
+
+@cindex @code{restore}
+To restore a snapshot of @code{currentpicture} and @code{currentpen} use
+the function
+@verbatim
+void restore();
+@end verbatim
+
 Many further examples of picture and frame operations are provided in
 the base file @code{plain.asy}.
 
