@@ -101,7 +101,7 @@ public frame currentframe;
 public pen currentpen;
 public string defaultfilename="";
 
-real infinity=realMax();
+real infinity=0.1*realMax();
 real epsilon=realEpsilon();
 
 bool finite(real x)
@@ -966,7 +966,7 @@ public wait
   NoWait=new bool(waitT) {return false;};
 
 void size(picture pic=currentpicture,
-          real xsize, real ysize, keepAspect keepAspect=Aspect)
+          real xsize, real ysize=0, keepAspect keepAspect=Aspect)
 {
   pic.size(xsize,ysize,keepAspect(keepAspect));
 }

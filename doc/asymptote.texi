@@ -116,8 +116,8 @@ A major advantage of @code{Asymptote} over other graphics packages is
 that it is a high-level programming language, as opposed to just a graphics
 program: it can therefore exploit the best features of the script
 (command-driven) and graphical-user-interface (GUI) methods for
-producing figures. The rudimentary GUI @code{xasy} is included with the
-package that allows one to move script-generated objects
+producing figures. The rudimentary GUI @code{xasy} included with the
+package allows one to move script-generated objects
 around. To make @code{Asymptote} accessible to the average user, this GUI is
 currently being developed into a full-fledged interface that can
 generate objects directly. However, the script portion of the language
@@ -210,9 +210,16 @@ so it is sufficient to copy the @code{boost} subdirectory from the
 @code{boost} source distribution to @code{/usr/include} or even just to the
 top level directory of the @code{Asymptote} source code.
 
+@cindex Debian
 On machines running Debian Linux, the boost library can be installed with
 @verbatim
 apt-get install libboost-graph1.32.0 libboost-dev libboost-graph-dev
+@end verbatim
+
+Alternatively, Debian users can install Hubert Chan's @code{Asymptote}
+package:
+@verbatim
+http://www.uhoreg.ca/programming/debian.text
 @end verbatim
 
 @cindex readline
@@ -762,9 +769,21 @@ path p=(100,0)..tension 2.0 and 1.0..(100,100)..(0,100);
 path p=(100,0)..tension atleast 1.0..(100,100)..(0,100);
 @end verbatim
 
+@cindex @code{MetaPost ...}
+@cindex @code{MetaPost ---}
+The @code{MetaPost ...} joiner, which selects an inflection-free
+path where possible, is not explicitly implemented in Asymptote since it is
+just a macro for @code{..tension atleast 1.0..} (likewise, the
+@code{MetaPost ---} joiner is a macro for @code{..tension atleast
+infinity..}). For example,
+@verbatim
+path p=(0,0){up}..tension atleast 1.0..(1,0.25){right}..
+tension atleast 1.0..(2,0){down};
+@end verbatim
+
 @cindex @code{curl}
 The curl parameter specifies the curvature at the endpoints of a path
-(0.0 mean straight; the default value of 1.0 means approximately circular):
+(0.0 means straight; the default value of 1.0 means approximately circular):
 @verbatim
 path p=(100,0){curl 0.0}..(100,100)..{curl 0.0}(0,100);
 @end verbatim
@@ -894,9 +913,12 @@ is straight.
 @section Pens
 
 @cindex @code{pen}
+@cindex @code{currentpen}
+@cindex @code{MetaPost pickup}
 @code{Asymptote} uses pens to specify the following drawing attributes:
 color, line type, line width, font size, and calligraphic transforms on
-the pen nib. The default pen is @code{currentpen}.
+the pen nib. The default pen is @code{currentpen}; this variable plays
+the role of the @code{MetaPost} command @code{pickup}. 
 
 @itemize @bullet
 
@@ -2232,7 +2254,7 @@ radian/degree conversion routines, point-in-polygon and intersection
 algorithms, 3D vectors, and matrices.
 
 @cindex @code{implicit linear solver}
-@cindex @code{whatever}
+@cindex @code{MetaPost whatever}
 @cindex @code{extension}
 Unlike @code{MetaPost}, @code{Asymptote} does not solve linear equations
 implicitly and does not have the notion of a @code{whatever} unknown.
@@ -2584,6 +2606,10 @@ operation:
 void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
 	      pen drawpen=currentpen);
 @end verbatim
+
+@cindex unfill
+To unfill a region, simply fill it with the background colour (typically
+white).
 
 @item
 @cindex @code{clip}
