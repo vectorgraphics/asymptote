@@ -97,7 +97,7 @@ public real legendskip=1.5;
 public pen legendboxpen=black;
 public real legendmargin=10;
 
-public pen currentpen;
+static public pen currentpen;
 
 public string defaultfilename="";
 
@@ -676,14 +676,6 @@ pair realmult(pair z, pair w)
   return (z.x*w.x,z.y*w.y);
 }
 
-pair point(picture pic=currentpicture, pair dir)
-{
-  real scale=max(abs(dir.x),abs(dir.y));
-  if(scale != 0) dir *= 0.5/scale;
-  dir += (0.5,0.5);
-  return pic.userMin+realmult(dir,pic.userMax-pic.userMin);
-}
-
 public picture currentpicture=new picture;
 currentpicture.deconstruct=true;
 
@@ -840,6 +832,14 @@ void label(picture pic=currentpicture, string s, real angle=0, pair position,
   // Create a picture with label at the origin to extract its bbox truesize.
   label(f,s,angle,(0,0),align,p);
   pic.addBox(position,position,min(f),max(f));
+}
+
+pair point(picture pic=currentpicture, pair dir)
+{
+  real scale=max(abs(dir.x),abs(dir.y));
+  if(scale != 0) dir *= 0.5/scale;
+  dir += (0.5,0.5);
+  return pic.userMin+realmult(dir,pic.userMax-pic.userMin);
 }
 
 guide arrowhead(picture pic=currentpicture, path g, real position=infinity,
