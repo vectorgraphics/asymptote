@@ -22,29 +22,32 @@ struct interrupted {};   // Exception to process user interrupts.
 
 class fileinfo : public memory::managed<fileinfo> {
   std::string filename;
-  std::list<int> linePos;
-  int lineNum;
+  size_t lineNum;
 
 public:
   fileinfo(std::string filename)
-    : filename(filename), lineNum(1) {
-    linePos.push_front(0);
+    : filename(filename), lineNum(1) {}
+
+  size_t line()
+  {
+    return lineNum;
   }
   
   // Specifies a newline symbol at the character position given.
-  void newline(int tokPos) {
-    linePos.push_front(tokPos);
+  void newline() {
     ++lineNum;
   }
-
-  // Prints out a position for an error message, with filename, row and column.
-  ostream& print(ostream& out, int p);
+  
+  std::string name() {
+    return filename;
+  }
 };
 
 
 class position {
   fileinfo *file;
-  int p; // The offset in characters in the file.
+  int line; // The offset in characters in the file.
+  int column;
 
 public:
   /*position()
@@ -54,20 +57,22 @@ public:
     : file(file), p(p) {}
   */
 
-  void init(fileinfo *file, int p) {
-    this->file = file;
-    this->p = p;
+  void init(fileinfo *f, int p) {
+    file = f;
+    if (file) {
+      line = file->line();
+      column = p;
+    } else {
+      line = column = 0;
+    }
   }
 
-  bool operator ! () {
-    return !file;
+  bool operator! () const
+  {
+    return (file == 0);
   }
   
-  friend ostream& operator << (ostream& out, const position& pos) {
-    if (pos.file)
-      pos.file->print(out, pos.p);
-    return out;
-  }
+  friend ostream& operator << (ostream& out, const position& pos);
 
   static position nullPos() {
     position p;

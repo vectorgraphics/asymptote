@@ -132,7 +132,8 @@ void makeselfsymbol(std::string text = yytext)
 
 void newline()
 {
-  fi->newline(tokPos);
+  fi->newline();
+  charPos = tokPos = 1;
 }
 
 void error(void)

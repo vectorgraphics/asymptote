@@ -12,18 +12,14 @@
 #include "errormsg.h"
 #include "interact.h"
 
-ostream& fileinfo::print(ostream& out, int pos)
+ostream& operator<< (ostream& out, const position& pos)
 {
-  int num = lineNum;
-  std::list<int>::iterator lines = linePos.begin();
-  std::list<int>::iterator last = linePos.end();
-  if(!linePos.empty()) last--;
-  while (lines != last && *lines >= pos) {
-    ++lines; num--;
-  }
-  if(filename == "-" && interact::interactive && num > 1) num--;
+  if (!pos)
+    return out;
 
-  out << filename << ": " << num << "." << pos-*lines << ": ";
+  //if(pos.file->name() == "-" && interact::interactive && num > 1) num--;
+  
+  out << pos.file->name() << ": " << pos.line << "." << pos.column << ": ";
   return out;
 }
 
