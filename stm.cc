@@ -14,7 +14,7 @@
 #include "coenv.h"
 #include "stm.h"
 
-namespace as {
+namespace absyn {
 
 using namespace trans;
 using namespace types;
@@ -312,4 +312,4 @@ void stmExpList::trans(coenv &e)
 }
 
 
-} // namespace as
+} // namespace absyn

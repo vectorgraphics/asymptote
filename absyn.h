@@ -17,7 +17,7 @@ namespace trans {
   class coenv;
 }
 
-namespace as {
+namespace absyn {
 
 class absyn : public mempool::pooled<absyn> {
 protected:

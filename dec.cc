@@ -14,7 +14,7 @@
 #include "camp.tab.h"
 #include "runtime.h"
 
-namespace as {
+namespace absyn {
 
 using namespace trans;
 using namespace types;
@@ -760,4 +760,4 @@ void recorddec::transAsField(coenv &e, record *parent)
 }  
 
   
-} // namespace as
+} // namespace absyn

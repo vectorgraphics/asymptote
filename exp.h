@@ -22,7 +22,7 @@ namespace trans {
 class coenv;
 }
 
-namespace as {
+namespace absyn {
 
 using std::list;
 using trans::coenv;
@@ -684,6 +684,6 @@ public:
   types::ty *getType(coenv &) { return types::primError(); }
 };
   
-} // namespace as
+} // namespace absyn
 
 #endif

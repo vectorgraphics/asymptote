@@ -31,7 +31,7 @@ using sym::symbol;
 namespace trans {
 class varEntry;
 }
-namespace as {
+namespace absyn {
 class varinit;
 }
 
@@ -216,7 +216,7 @@ class signature : public mempool::pooled<signature> {
 
   // Holds the index of the expression in an array of default
   // expressions.
-  vector<as::varinit*> defaults;
+  vector<absyn::varinit*> defaults;
   size_t ndefault;
 
   vector<bool> Explicit;
@@ -227,7 +227,7 @@ public:
   virtual ~signature()
     {}
 
-  void add(ty *t, as::varinit *def=0, bool Explicit=false)
+  void add(ty *t, absyn::varinit *def=0, bool Explicit=false)
     { 
       formals.push_back(t);
       this->Explicit.push_back(Explicit);
@@ -243,7 +243,7 @@ public:
     return formals[n];
   }
 
-  as::varinit *getDefault(size_t n) {
+  absyn::varinit *getDefault(size_t n) {
     assert(n < defaults.size());
     return defaults[n];
   }
@@ -267,7 +267,7 @@ struct function : public ty {
     : ty(ty_function), result(result) {}
   virtual ~function() {}
 
-  void add(ty *t, as::varinit *def=0, bool Explicit=false) {
+  void add(ty *t, absyn::varinit *def=0, bool Explicit=false) {
     sig.add(t, def, Explicit);
   }
 

@@ -27,7 +27,7 @@ class signature;
 class function;
 }
 
-namespace as {
+namespace absyn {
 
 using trans::coenv;
 using trans::access;
@@ -474,7 +474,7 @@ public:
 };
 
 
-} // namespace as
+} // namespace absyn
 
 #endif
 
