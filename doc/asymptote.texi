@@ -1525,36 +1525,39 @@ Similarly, a @code{picture} or @code{frame} may be fit to a frame with a
 background color using pen @code{p} with the function
 @code{bbox(p,Background)}.
 
+@anchor{add}
 Sometimes it is useful to draw objects on separate pictures and add one
 picture to another using the @code{add} function:
 @cindex @code{add}
 @verbatim
-void add(picture src);
-void add(picture dest, picture src);
+void add(picture src, bool group=true);
+void add(picture dest, picture src, bool group=true);
 @end verbatim
 
 The first example adds @code{src} to @code{currentpicture}; the second
 one adds @code{src} to @code{dest}. 
+The @code{group} option specifies whether or not the graphical user
+interface @code{xasy} should treat all of the elements of @code{src}
+as a single entity (@pxref{GUI}).
 
 There are also routines to add a picture or frame @code{src} specified
 in postscript coordinates to another picture about the user coordinate
 @code{origin}:
 @cindex @code{add}
 @verbatim
-void add(pair origin, picture dest, picture src);
-void add(pair origin, picture src);
+void add(pair origin, picture dest, picture src, bool group=true);
+void add(pair origin, picture src, bool group=true);
 void add(pair origin=(0,0), picture dest=currentpicture,
-         frame src);
+         frame src, bool group=true);
 @end verbatim
 
 Alternatively, one can use @code{attach} to automatically increase the
-size of picture @code{dest} to accomodate adding a frame @code{src}
+size of picture @code{dest} to accommodate adding a frame @code{src}
 about the user coordinate @code{origin}:
 @verbatim
 void attach(pair origin=(0,0), picture dest=currentpicture,
-            frame src);
+            frame src, bool group=true);
 @end verbatim
-
 
 @cindex @code{erase}
 To erase the contents of a picture (but not the size specification), use
@@ -1937,13 +1940,13 @@ int sqr(int x)
 sqr=null;           // but the function is still just a variable.
 @end verbatim
 
-@item
+@item Casting can be used to resolve ambiguities:
 @verbatim
 int a, a(), b, b(); // Valid: creates four variables.
 a=b;                // Invalid: assignment is ambiguous.
 a=(int) b;          // Valid: resolves ambiguity.
 (int) (a=b);        // Valid: resolves ambiguity.
-(int) a=b;          // Invalid: cast expressions can't be used as values.
+(int) a=b;          // Invalid: cast expressions cannot be L-values.
 
 int c();
 c=a;                // Valid: only one possible assignment.
@@ -2827,6 +2830,8 @@ Here are some simple examples of two-dimensional graphs:
 
 
 @item The next example draws a scientific-style graph with a legend.
+The position of the legend can either be adjusted explicitly or by using the
+graphical user interface @code{xasy} (@pxref{GUI}).
 @cindex scientific graph
 @cindex @code{LeftTicks}
 @cindex @code{RightTicks}
@@ -3917,17 +3922,16 @@ command @code{asy -xN}, where @code{N} denotes the magnification (say 2).
 The command @code{asy -VxN} automatically invokes @code{xasy} once
 deconstruction is complete.
 
-By default, only @code{currentpicture} automatically deconstructs its
-objects. Deconstruction of a picture @code{pic} can be requested by
-changing its deconstruct flag:
+Deconstruction of compound objects (e.g. arrows) can be prevented 
+by grouping objects together with the commands
 @verbatim
-pic.deconstruct=true;
+void begingroup(picture pic=currentpicture);
+void endgroup(picture pic=currentpicture);
 @end verbatim
-The example @code{yingyang.asy} illustrates how deconstruction of
-unfilled regions or compound objects (e.g. arrows) can be prevented.
-Deconstructed pictures cannot be clipped, but clipping will be
-properly displayed by @code{xasy} when done in a separate
-(nondeconstructed) picture.
+By default, the elements of a picture or frame will be grouped
+together on adding them to a picture. However, the elements of a frame
+added to another frame are not grouped together by default: their
+elements will individually deconstructed (@pxref{add}).
 
 @node PostScript to Asymptote
 @chapter @code{PostScript} to @code{Asymptote}
@@ -4071,4 +4075,5 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  PenMargin PenMargins TrueMargin labelmargin errorbars errorbar
 @c  LocalWords:  dpx dpy dmx dmy barsize arrowheadsize BeginDotMargin DotMargin
 @c  LocalWords:  EndDotMargin DotMargins NColors BWRainbow colorspace labelled
-@c  LocalWords:  PaletteTicks defaultformat leastsquares bjam fprintf
+@c  LocalWords:  PaletteTicks defaultformat leastsquares bjam fprintf endgroup
+@c  LocalWords:  begingroup

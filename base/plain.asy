@@ -490,7 +490,6 @@ struct picture {
   // Transform to be applied to this picture.
   public transform T;
   
-  public bool deconstruct=false;
   public pair userMin,userMax;
   
   public ScaleT scale; // Needed by graph
@@ -531,9 +530,7 @@ struct picture {
   void add(drawer d) {
     if(interact()) uptodate=false;
     nodes.push(new void (frame f, transform t, transform T, pair, pair) {
-      frame F;
-      d(F,t*T);
-      add(f,F);
+      d(f,t*T);
     });
   }
 
@@ -763,7 +760,6 @@ struct picture {
     picture dest=new picture;
     dest.nodes=copy(nodes);
     dest.T=T;
-    dest.deconstruct=deconstruct;
     dest.userMin=userMin;
     dest.userMax=userMax;
     dest.scale=scale;
@@ -788,7 +784,7 @@ struct picture {
 
   // Add a picture to this picture, such that the user coordinates will be
   // scaled identically in the shipout.
-  void add(picture src)
+  void add(picture src, bool group=true)
   {
     // Copy the picture.  Only the drawing function closures are needed, so we
     // only copy them.  This needs to be a deep copy, as src could later have
@@ -799,9 +795,9 @@ struct picture {
     // Draw by drawing the copied picture.
     nodes.push(new void (frame f, transform t, transform T, pair m, pair M) {
      frame d=srcCopy.fit(t,T*srcCopy.T,m,M);
-     if(deconstruct && !src.deconstruct) begingroup(f);
+     if(group) begingroup(f);
      add(f,d);
-     if(deconstruct && !src.deconstruct) endgroup(f);
+     if(group) endgroup(f);
      for(int i=0; i < src.legend.length; ++i)
        legend.push(src.legend[i]);
     });
@@ -823,7 +819,6 @@ picture operator * (transform t, picture orig)
 }
 
 public picture currentpicture=new picture;
-currentpicture.deconstruct=true;
 
 public frame gui[];
 
@@ -909,30 +904,40 @@ void endgroup(picture pic=currentpicture)
   });
 }
 
-// Add frame dest about origin to frame src
-void add(pair origin, frame dest, frame src)
+// Add frame dest to frame src with optional grouping (default false)
+void add(frame dest, frame src, bool group)
 {
-  begingroup(dest);
-  add(dest,shift(origin)*src);
-  endgroup(dest);
+  if(group) begingroup(dest);
+  add(dest,src);
+  if(group) endgroup(dest);
 }
 
-// Add frame src about origin to picture dest
-void add(pair origin=(0,0), picture dest=currentpicture, frame src)
+// Add frame dest about origin to frame src with optional grouping
+// (default false)
+void add(pair origin, frame dest, frame src, bool group=false)
+{
+  add(dest,shift(origin)*src);
+}
+
+// Add frame src about origin to picture dest with optional grouping
+// (default true)
+void add(pair origin=(0,0), picture dest=currentpicture, frame src,
+	 bool group=true)
 {
   dest.add(new void (frame f, transform t) {
-    begingroup(f);
+    if(group) begingroup(f);
     add(f,shift(t*origin)*src);
-    endgroup(f);
+    if(group) endgroup(f);
   });
   dest.addBox(origin,origin,min(src),max(src));
 }
 
-// Like add(pair,picture,frame) but extend picture size to accommodate frame
-void attach(pair origin=(0,0), picture dest=currentpicture, frame src)
+// Like add(pair,picture,frame,bool) but extend picture to accommodate frame
+void attach(pair origin=(0,0), picture dest=currentpicture, frame src,
+	    bool group=true)
 {
   transform t=dest.calculateTransform(dest.xsize,dest.ysize,dest.keepAspect);
-  add(origin,dest,src);
+  add(origin,dest,src,group);
   pair s=size(dest.fit(t));
   size(dest,dest.xsize != 0 ? s.x : 0,dest.ysize != 0 ? s.y : 0,
        dest.keepAspect);
@@ -940,27 +945,27 @@ void attach(pair origin=(0,0), picture dest=currentpicture, frame src)
 
 // Add a picture to another such that user coordinates in both will be scaled
 // identically in the shipout.
-void add(picture dest, picture src)
+void add(picture dest, picture src, bool group=true)
 {
-  dest.add(src);
+  dest.add(src,group);
 }
 
-void add(picture src)
+void add(picture src, bool group=true)
 {
-  add(currentpicture,src);
+  add(currentpicture,src,group);
 }
 
 // Fit the picture src using the identity transformation (so user
 // coordinates and truesize coordinates agree) and add it about the point
 // origin to picture dest.
-void add(pair origin, picture dest, picture src)
+void add(pair origin, picture dest, picture src, bool group=true)
 {
-  add(origin,dest,src.fit(identity()));
+  add(origin,dest,src.fit(identity()),group);
 }
 
-void add(pair origin, picture src)
+void add(pair origin, picture src, bool group=true)
 {
-  add(origin,currentpicture,src);
+  add(origin,currentpicture,src,group);
 }
 
 guide box(pair a, pair b)
@@ -1666,7 +1671,6 @@ void shipout(string prefix=defaultfilename, picture pic,
 {
   if(xsize == infinity) xsize=pic.xsize;
   if(ysize == infinity) ysize=pic.ysize;
-  pic.deconstruct=true;
   shipout(prefix,orientation(pic.fit(xsize,ysize,keepAspect),orientation),
 	  preamble,format,wait);
 }
