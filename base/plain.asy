@@ -1114,26 +1114,26 @@ void label(picture pic=currentpicture, string s, real angle=0,
   label(pic,s,angle,point(g,0.5L),align,p,adjust);
 }
 
-void dot(picture pic=currentpicture, pair c, real size=0, pen p=currentpen)
+void dot(picture pic=currentpicture, pair c, real diameter=0, pen p=currentpen)
 {
-  if(size == 0) size=linewidth(p)*dotfactor;
-  p += size;
+  if(diameter == 0) diameter=linewidth(p)*dotfactor;
+  p += diameter;
   _draw(pic,c,p);
 }
 
-void dots(picture pic=currentpicture, pair[] c, real size=0, 
+void dots(picture pic=currentpicture, pair[] c, real diameter=0, 
 	  pen p=currentpen)
 {
-  for(int i=0; i < c.length; ++i) dot(pic,c[i],size,p);
+  for(int i=0; i < c.length; ++i) dot(pic,c[i],diameter,p);
 }
 
 
-void labeldot(picture pic=currentpicture, real size=0, string s="",
+void labeldot(picture pic=currentpicture, real diameter=0, string s="",
 	      real angle=0, pair c, pair align=E, pen p=currentpen,
 	      adjust adjust=NoAdjust)
 {
   if(s == "") s=(string) c;
-  dot(pic,c,size,p);
+  dot(pic,c,diameter,p);
   label(pic,s,angle,c,align,p,adjust);
 }
 

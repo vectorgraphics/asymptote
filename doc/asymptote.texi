@@ -311,7 +311,8 @@ draw((0,0)--(100,100));
 @image{diagonal}
 
 @cindex @code{bp}
-The units here are @code{PostScript} "big points" (1 bp = 1/72 in).
+The units here are @code{PostScript} "big points" (1 @code{bp} = 1/72
+@code{inch}).
 The @code{--} here means join with a linear segment.
 
 At this point you can type in further draw commands, which will be added
@@ -366,7 +367,9 @@ shipout();
 @cindex @code{inches}
 @cindex @code{cm}
 @cindex @code{mm}
-One can also specify the size in @code{cm}, @code{mm}, or @code{inches}.
+@cindex @code{pt}
+One can also specify the size in @code{pt} (1 @code{pt} = 1/72.27 @code{inch}),
+@code{cm}, @code{mm}, or @code{inches}. 
 If 0 is given as a size argument, no restriction is made in that direction;
 the overall scaling will be determined by the other direction:
 @xref{size}.
@@ -938,10 +941,14 @@ The default linetype is @code{solid}.
 @cindex @code{linewidth}
 @cindex @code{defaultlinewidth}
 @item The pen line width is specified in @code{PostScript} units with
-@code{pen linewidth(real)}. The default line width is 0.5bp
+@code{pen linewidth(real)}. The default line width is 0.5 bp
 (this global default value may be changed with the
 @code{defaultlinewidth(real)} command or reset to the startup default
-with @code{reset()}). 
+with @code{reset()}). The @code{linewidth} command is not actually needed:
+a real value is implicitly cast to a pen of the specified line width:
+@verbatim
+pen doublewidth=1bp;
+@end verbatim
 
 @cindex @code{fontsize}
 @cindex @code{defaultfontsize}
@@ -2485,6 +2492,16 @@ Two examples illustrating the use of arrows and bars are
 @code{Pythagoras.asy} and @code{triads.asy} in the @code{examples}
 directory of the @code{Asymptote} source.
 
+@cindex @code{dot}
+To draw a dot, one simply draws a path containing a single point.
+The @code{dot} command defined in @code{plain.asy} automatically uses
+the linewidth @code{dotfactor} (by default, 5) times the pen linewidth
+unless an explicit dot diameter is given:
+@verbatim
+void dot(picture pic=currentpicture, pair c, real diameter=0,
+  pen p=currentpen);
+@end verbatim
+
 @item
 @cindex @code{fill}
 @verbatim
@@ -2686,7 +2703,7 @@ draw(G(x)--c+(0,g(x)),dashed+red);
 arrow("$y=\sqrt{x}$",F(0.7),N);
 
 transform T=xscale(0.5);
-drawabout(T*arc(0,0.30cm,20,340),(2.83,0),ArcArrow);
+drawabout(T*arc(0,0.30cm,20,340),(2.86,0),ArcArrow);
 
 labeldot((1,1));
 
