@@ -747,10 +747,8 @@ function *recorddec::opType(record *r)
 void recorddec::addOps(coenv &e, record *r)
 {
   function *ft = opType(r);
-  e.e.addVar(getPos(), symbol::trans("=="),
+  e.e.addVar(getPos(), symbol::trans("alias"),
       new varEntry(ft, new instAccess(inst::mem_eq)));
-  e.e.addVar(getPos(), symbol::trans("!="),
-      new varEntry(ft, new instAccess(inst::mem_neq)));
 }
 
 void recorddec::trans(coenv &e)
