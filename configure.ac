@@ -11,13 +11,14 @@ test "$prefix" = NONE && prefix=/usr/local
 test "$datadir" = '${prefix}/share' && datadir=$prefix/share
 asydir=$datadir/asymptote
 exampledir=$datadir/doc/asymptote
-latexdir=/usr/share/texmf/tex/latex/asymptote
+latexdir=/usr/share/texmf/tex/latex
 AC_ARG_WITH(latex,
-                     [  --with-latex=PATH       Specify path to LaTeX installation ],
+                     [  --with-latex=PATH       specify path to LaTeX installation ],
                      [if test "x$withval" != "x" ; then
 			latexdir=$withval
 		      fi
 		     ])
+latexdir=$latexdir/asymptote
 AC_SUBST(asydir)
 AC_SUBST(exampledir)
 AC_SUBST(latexdir)
