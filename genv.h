@@ -69,8 +69,6 @@ public:
   lambda *bootupModule(record *r);
 };
 
-std::string symbolToFile(symbol *id);
-  
 } // namespace trans
 
 #endif
