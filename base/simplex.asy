@@ -20,7 +20,7 @@ static struct problem {
   struct row {
     public real c, t[];
   }
-
+  
   // The variables of the rows.
   // Initialized for the two variable problem.
   var[] v = {VAR_A, VAR_B};
@@ -39,7 +39,10 @@ static struct problem {
     return r;
   }
   row[] rows = {rowA(), rowB()};
-
+  
+  row[] Rows; // Temporary list of rows used to prune superfluous constraints.
+  bool[] active; // True if corresponding Row constraint is active.
+  
   // The number of original variables.
   int n = rows.length;
 
@@ -129,8 +132,8 @@ static struct problem {
     real max=-infinity;
     for (int i = 2; i < rows.length; ++i) {
       row r=rows[i];
-      if(r.c < max*r.t[col]) {
-	if(r.c >= 0) {max=r.c/r.t[col]; vp=i;}
+      if(r.c < max*r.t[col] && r.c >= 0) {
+	max=r.c/r.t[col]; vp=i;
       }
     }
     
@@ -182,6 +185,9 @@ static struct problem {
   static int INVALID = -3;
   int optimize()
   {
+    for(int i=0; i < Rows.length; ++i)
+      if(active[i]) rows.push(Rows[i]);
+    
     // Put into a valid state to begin.
     if (!valid())
       init();
@@ -210,10 +216,35 @@ static struct problem {
   // t1*a + t2*b + c >= 0
   void addRestriction(real t1, real t2, real c)
   {
+    // Ignore a superfluous constraint
+    for(int i=0; i < Rows.length; ++i) {
+      if(active[i]) {
+	row r=Rows[i];
+	if(r.t[1] == t2 && t1 >= r.t[0] && c >= r.c) return;
+      }
+    }
+    
+    // Check to see if any existing constraints should be eliminated
+    for(int i=0; i < Rows.length; ++i) {
+      if(active[i]) {
+	row r=Rows[i];
+	if(r.t[1] == t2 && t1 <= r.t[0] && c <= r.c) active[i]=false;
+      }
+    }
+    
+    int hole=find(active == false,1);
+    
     row r = new row;
     r.c = c;
     r.t = new real[] {t1, t2};
-    rows.push(r);
+    
+    if(hole >= 0) {
+      Rows[hole]=r;
+      active[hole]=true;
+    } else {
+      Rows.push(r);
+      active.push(true);
+    }
   }
 
   // Return the value of a computed.
