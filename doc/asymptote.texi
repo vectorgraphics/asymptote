@@ -663,14 +663,16 @@ In the following string functions, position 0 denotes the start of the string.
 @table @code
 
 @cindex @code{find}
-@item int find(string s, string t)
+@item int find(string s, string t, int pos=0)
 returns the position of the first occurrence of string @code{t} in string
-@code{s}, or -1 if  @code{t} is not a substring of @code{s}; 
+@code{s} at or after position @code{pos}, or -1 if @code{t} is not a
+substring of @code{s};
 
 @cindex @code{rfind}
-@item int rfind(string s, string t)
+@item int rfind(string s, string t, int pos=-1)
 returns the position of the last occurrence of string @code{t} in string
-@code{s}, or -1 if  @code{t} is not a substring of @code{s};
+@code{s} at or before position @code{pos} (if @code{pos=-1}, at the end
+of the string @code{s}), or -1 if @code{t} is not a substring of @code{s};
 
 @cindex @code{insert}
 @item string insert(string s, int pos, string t)
@@ -683,9 +685,10 @@ returns the string formed by erasing the string of length @code{n} at
 position @code{pos} in @code{s};
 
 @cindex @code{substr}
-@item string substr(string s, int pos, int n)
+@item string substr(string s, int pos, int n=-1)
 returns the substring of @code{s} starting at position @code{pos}
-and of length @code{n};
+and of length @code{n} (if @code{n=-1}, until the end of the
+string @code{s});
 
 @cindex @code{reverse}
 @item string reverse(string s)

@@ -873,8 +873,7 @@ void stringFind(stack *s)
   size_t pos=s->pop<int>();
   string b = s->pop<string>();
   string a = s->pop<string>();
-  if(pos < a.length()) s->push((int) a.find(b,pos));
-  else s->push(-1);
+  s->push((int) a.find(b,pos));
 }
 
 void stringRfind(stack *s)
@@ -882,16 +881,15 @@ void stringRfind(stack *s)
   size_t pos=s->pop<int>();
   string b = s->pop<string>();
   string a = s->pop<string>();
-  if(pos < a.length()) s->push((int) a.rfind(b,pos));
-  else s->push(-1);
+  s->push((int) a.rfind(b,pos));
 }
 
 void stringSubstr(stack *s)
 {
-  int n=s->pop<int>();
+  size_t n=s->pop<int>();
   size_t pos=s->pop<int>();
   string a = s->pop<string>();
-  if(pos < a.length()) s->push(a.substr(pos,n));    
+  if(pos < a.length()) s->push(a.substr(pos,n));
   else s->push((string)"");
 }
 
