@@ -1678,7 +1678,7 @@ void merge(stack *s)
 void execute(stack *s)
 {
   string str = s->pop<string>();
-  symbol *id = symbol::trans(str.c_str());
+  symbol *id = symbol::trans(str);
   string Outname=outname;
   outname=str;
   size_t p=outname.rfind("."+settings::suffix);
