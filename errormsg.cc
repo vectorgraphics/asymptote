@@ -19,7 +19,7 @@ ostream& operator<< (ostream& out, const position& pos)
 
   bool interact = pos.file->name() == "-" && interact::interactive && pos.line > 1;
   
-  out << pos.file->name() << ": " << interact ? pos.line-1 : pos.line << "." << pos.column << ": ";
+  out << pos.file->name() << ": " << (interact ? pos.line-1 : pos.line) << "." << pos.column << ": ";
   return out;
 }
 
