@@ -51,7 +51,7 @@ Foundation.
 * Example::                     A simple example
 * Programming::                 @code{Asymptote} graphics language
 * Drawing commands::            Four primitive drawing commands
-* LaTeX usage::                 
+* LaTeX usage::                 Embedding @code{Asymptote} commands within @code{LaTeX}
 * Options::                     Command line options
 * Interactive mode::            Typing @code{Asymptote} commands interactively
 * GUI::                         Graphical user interface
