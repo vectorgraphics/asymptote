@@ -2109,13 +2109,27 @@ real[][][] C=read3(fin);
 @section Casts
 @cindex casts
 @cindex implicit casts
+@cindex @code{explicit}
  
 @code{Asymptote} implicitly casts @code{int} to @code{real}, @code{int} to
 @code{pair}, @code{real} to @code{pair}, @code{pair} to @code{path},
 @code{pair} to @code{guide}, @code{path} to @code{guide}, @code{guide}
 to @code{path}, and @code{real} to @code{pen}. Implicit casts are
 also automatically attempted when trying to match function calls with
-possible function signatures.
+possible function signatures. Implicit casting can be inhibited
+by declaring individual arguments @code{explicit} in the function
+signature, say to avoid an ambiguous function call in the following
+example, which outputs 0:
+
+@verbatim
+int f(pair a) {return 0;}
+int f(explicit real x) {return 1;}
+
+write(f(0));
+@end verbatim
+
+
+
 
 @cindex explicit casts
 Other conversions, say @code{real} to @code{int} or 

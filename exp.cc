@@ -648,7 +648,8 @@ types::ty *callExp::trans(coenv &e)
  
   // Put the arguments on the stack. 
   for (int i = 0, j = 0; i < m; i++) {
-    if(j < n && castable(real_sig->getFormal(i), args->getType(e,j))) {
+    if (j < n && (real_sig->getExplicit(i) ? equivalent(real_sig->getFormal(i), args->getType(e,j))
+                                           : castable(real_sig->getFormal(i), args->getType(e,j)))) {
       // Argument given
       args->trans(e, real_sig->getFormal(i), j);
       j++;

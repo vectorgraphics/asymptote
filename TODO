@@ -20,8 +20,6 @@ Andy: give execute(string) read/write access to caller environment
 mode" where complete lines are individually added to the parse tree and
 executed as they are entered.) Make it look interpreted but still compile.
 
-Tom: add explicit modifier to inhibit function argument promotion.
-
 Tom: extend syntax to allow for explict array casts like (int[]) on real[].
 
 Tom: replace op codes with function calls

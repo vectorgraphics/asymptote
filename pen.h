@@ -130,7 +130,7 @@ public:
     pattern(DEFPAT), linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE),
     t(0) {}
   
-  pen(const std::string& line) :
+  explicit pen(const std::string& line) :
     line(line), linewidth(DEFWIDTH), fontsize(0.0), color(DEFCOLOR),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
     pattern(DEFPAT), linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE),
@@ -172,7 +172,7 @@ public:
     pattern(DEFPAT), linecap(DEFCAP), linejoin(DEFJOIN), overwrite(overwrite),
     t(0) {}
   
-  pen(double grey) :
+  explicit pen(double grey) :
     line(DEFLINE), linewidth(DEFWIDTH), fontsize(0.0),
     color(GRAYSCALE), r(0.0), g(0.0), b(0.0), grey(pos0(grey)),
     pattern(DEFPAT), linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE),

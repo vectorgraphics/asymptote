@@ -297,6 +297,12 @@ formal:
 | type decidstart  { $$ = new formal($2->getPos(), $1, $2); }
 | type decidstart ASSIGN varinit
                    { $$ = new formal($2->getPos(), $1, $2, $4); }
+| EXPLICIT type
+                   { $$ = new formal($2->getPos(), $2, 0, 0, true); }
+| EXPLICIT type decidstart
+                   { $$ = new formal($3->getPos(), $2, $3, 0, true); }
+| EXPLICIT type decidstart ASSIGN varinit
+                   { $$ = new formal($3->getPos(), $2, $3, $5, true); }
 ;
 
 fundec:

@@ -563,15 +563,15 @@ signature *formals::getSignature(coenv &e, bool encodeDefVal, bool tacit)
       varinit *defval=(*p)->getDefaultValue();
       if (defval) {
 	defaultExp.push_back(defval);
-	sig->add((*p)->getType(e, tacit),defaultExp.size());
+	sig->add((*p)->getType(e, tacit),defaultExp.size(),(*p)->getExplicit());
       }
       else 
-	sig->add((*p)->getType(e, tacit));
+	sig->add((*p)->getType(e, tacit),0,(*p)->getExplicit());
     }
   }
   else {
     for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
-      sig->add((*p)->getType(e, tacit));
+      sig->add((*p)->getType(e, tacit),0,(*p)->getExplicit());
   }
 
   return sig;
@@ -592,15 +592,15 @@ function *formals::getType(types::ty *result, coenv &e,
       varinit *defval=(*p)->getDefaultValue();
       if (defval) {
 	defaultExp.push_back(defval);
-	ft->add((*p)->getType(e, tacit),defaultExp.size());
+	ft->add((*p)->getType(e, tacit),defaultExp.size(),(*p)->getExplicit());
       }
       else 
-	ft->add((*p)->getType(e, tacit));
+	ft->add((*p)->getType(e, tacit),0,(*p)->getExplicit());
     }
   }
   else {
     for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
-      ft->add((*p)->getType(e, tacit));
+      ft->add((*p)->getType(e, tacit),0,(*p)->getExplicit());
   }
 
   return ft;

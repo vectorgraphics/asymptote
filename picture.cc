@@ -112,7 +112,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     
     // Magic dvips offsets:
     double hoffset=-128.0;
-    double voffset=(height < 11.5) ? -137.1+height : -125.4;
+    double voffset=(height < 11.6) ? -137.1+height : -125.5;
     
     if(origin != ZERO) {
       if(pdfformat || origin == BOTTOM) {

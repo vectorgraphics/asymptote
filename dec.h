@@ -353,6 +353,7 @@ public:
 class formal : public absyn {
   ty *base;
   decidstart *start;
+  bool Explicit;
   // NOTE: expressions used in default values are translated into vm
   // code at the call location, not the function definition location.
   // This should be changed, using codelets or small helper functions.
@@ -368,20 +369,26 @@ class formal : public absyn {
   varinit *defval;
 
 public:
-  formal(position pos, ty *base, decidstart *start=0, varinit *defval=0)
-    : absyn(pos), base(base), start(start), defval(defval) {}
+  formal(position pos, ty *base, decidstart *start=0, varinit *defval=0,
+	 bool Explicit= false)
+    : absyn(pos), base(base), start(start), Explicit(Explicit),
+      defval(defval) {}
 
   virtual void prettyprint(ostream &out, int indent);
 
-  virtual types::ty *getType(coenv &e, bool tacit = false);
+  types::ty *getType(coenv &e, bool tacit = false);
 
-  virtual varinit *getDefaultValue() {
+  varinit *getDefaultValue() {
     return defval;
   }
 
-  virtual symbol *getName() {
+  symbol *getName() {
     return start ? start->getName() : 0;
-  } 
+  }
+
+  bool getExplicit() {
+    return Explicit;
+  }
 };
 
 class formals : public absyn {

@@ -226,7 +226,10 @@ bool castable(signature *target, signature *source)
 
   unsigned int j=0;
   for (unsigned int i = 0; i < m; i++) {
-    if(j < n && castable(target->formals[i], source->formals[j])) j++;
+    if (j < n && (target->Explicit[i] ? 
+		  equivalent(target->formals[i], source->formals[j]) :
+		  castable(target->formals[i], source->formals[j])))
+      j++;
     else if (!target->defaultindex[i]) return false;
   }
   

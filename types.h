@@ -213,20 +213,22 @@ class signature : public mempool::pooled<signature> {
   // Holds the index of the expression in an array of default
   // expressions.
   vector<size_t> defaultindex;
-  unsigned int ndefault;
-  
+  size_t ndefault;
+
+  vector<bool> Explicit;
 public:
   signature()
-    : ndefault(0) {}
+    : ndefault(0) {} 
 
   virtual ~signature()
     {}
 
-  void add(ty *t, size_t index=0)
+  void add(ty *t, size_t index=0, bool Explicit=false)
     { 
-      formals.push_back(t); 
+      formals.push_back(t);
+      this->Explicit.push_back(Explicit);
       defaultindex.push_back(index);
-      if(index) ndefault++;
+      if(index) ++ndefault;
     }
 
   int getNumFormals()
@@ -240,6 +242,10 @@ public:
   size_t getDefault(size_t n) {
     assert(n < defaultindex.size());
     return defaultindex[n];
+  }
+
+  bool getExplicit(size_t n) {
+    return Explicit[n];
   }
 
   friend ostream& operator<< (ostream& out, const signature& s);
@@ -257,8 +263,8 @@ struct function : public ty {
     : ty(ty_function), result(result) {}
   virtual ~function() {}
 
-  void add(ty *t, size_t index=0) {
-    sig.add(t, index);
+  void add(ty *t, size_t index=0, bool Explicit=false) {
+    sig.add(t, index, Explicit);
   }
 
   virtual bool isReference() {
