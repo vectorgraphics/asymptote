@@ -19,19 +19,12 @@
 
 #include "errormsg.h"
 #include "pool.h"
+#include "item.h"
 
 namespace vm {
 
 // Forward declarations
 struct inst; class stack;
-typedef boost::any item;
-typedef memory::managed_array<item> frame;
-
-template<typename T>
-inline T get(const item& val)
-{
-  return boost::any_cast<T>(val);
-}  
  
 // Manipulates the stack.
 typedef void (*bltin)(stack *s);
