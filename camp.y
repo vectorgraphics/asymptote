@@ -82,7 +82,7 @@ using sym::symbol;
              '{' '}' '(' ')' '.' ','  '[' ']' ';'
              IMPORT STRUCT TYPEDEF NEW
              IF ELSE WHILE DO FOR BREAK CONTINUE RETURN_ CYCLE
-             STATIC PUBLIC_TOK PRIVATE_TOK THIS
+             STATIC PUBLIC_TOK PRIVATE_TOK THIS EXPLICIT
 %token <e>   LIT
 
 %left  LOOSE

@@ -294,6 +294,7 @@ static             {adjust(); return STATIC; }
 public             {adjust(); return PUBLIC_TOK; }
 private            {adjust(); return PRIVATE_TOK; }
 this               {adjust(); return THIS; }
+explicit           {adjust(); return EXPLICIT; }
 
 
 void|bool|int|real|string|pair|transform|guide|path|pen|frame {
