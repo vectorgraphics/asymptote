@@ -1728,7 +1728,7 @@ void fileOpenXOut(stack *s)
 #ifdef HAVE_RPC_RPC_H
   s->push(file::open(filename,file::xout));
 #else  
-  error(s,"xdr support not enabled");
+  error(s,"XDR support not enabled");
 #endif
 }
 
@@ -1738,7 +1738,7 @@ void fileOpenXIn(stack *s)
 #ifdef HAVE_RPC_RPC_H
   s->push(file::open(filename,file::xin));
 #else  
-  error(s,"xdr support not enabled");
+  error(s,"XDR support not enabled");
 #endif
 }
 
