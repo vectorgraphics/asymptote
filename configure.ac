@@ -36,8 +36,9 @@ AC_PROG_CC
 AC_PROG_MAKE_SET
 
 AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
-			   [Define if getopt.h is the GNU version]),)
-AC_SEARCH_LIBS([getopt_long_only],[gnugetopt])
+			   [Define if getopt.h is the GNU version]),
+			   getopt="getopt getopt1",)
+AC_SUBST(getopt)
 
 AC_CHECK_HEADER(fftw3.h,
    AC_CHECK_LIB([fftw3], fftw_execute,,

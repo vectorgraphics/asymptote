@@ -8,12 +8,11 @@ LIBS = $(LFLAGS) @LIBS@
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide knotlist pathlist drawfill
 FILES = $(CAMP) cast env genv main runtime stm dec errormsg inst name symbol \
-	types entry exp newexp stack camp.tab lex.yy import access \
+	types entry exp newexp stack camp.tab lex.yy import access @getopt@ \
 	absyn record pool interact fileio builtin fftw++ simpson coder coenv
 CLEAN = camp.tab.h camp.tab.cc lex.yy.cc camp.output
 NAME = asy
 XNAME = x$(NAME)
-MANFILES = {asy.1,xasy.1x}
 
 CXX = @CXX@ -Wall -ansi
 MAKEDEPEND = $(CXX) $(OPTS) -M -DDEPEND
@@ -35,12 +34,14 @@ exampledir = $(datadir)/doc/asymptote
 latexdir = @latexdir@
 INSTALL = @INSTALL@
 
+export INSTALL prefix exampledir mandir
+
 ASYMPTOTE_DIR = ../base
 export ASYMPTOTE_DIR
 
 # $(MAGIC) is here for when we reimport from Compile
 asy$(MAGIC): depend
-	$(MAKE) -f Compile asy 
+	$(MAKE) -f Compile asy
 
 all:  	asy man
 
@@ -62,7 +63,10 @@ lex.yy.cc: camp.l
 
 lex.yy.d: lex.yy.cc camp.tab.h
 
-install: asy
+install-all:
+install: install-asy install-man
+
+install-asy: asy
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(latexdir)
 	${INSTALL} -s $(NAME) $(bindir)
 	${INSTALL} $(XNAME) $(bindir)
@@ -72,14 +76,9 @@ install: asy
 	texhash
 
 install-man: man
-	${INSTALL} -d $(prefix)/info $(exampledir) $(mandir)/man1
-	${INSTALL} -m 644 doc/asymptote.info $(prefix)/info
-	install-info --infodir=$(prefix)/info doc/asymptote.info 
-	${INSTALL} -m 644 doc/asymptote.pdf $(exampledir)
-	${INSTALL} -m 644 doc/$(MANFILES) $(mandir)/man1
+	cd doc; $(MAKE) install
 
-install-all: install install-man
-
+uninstall-all: 
 uninstall: 
 	-cd $(exampledir); rm -f *.asy asy*
 	-rmdir $(exampledir)

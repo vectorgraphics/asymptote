@@ -1,4 +1,5 @@
-asyfiles := $(wildcard *.asy)
+MANFILES = asy.1 xasy.1x
+ASYFILES = $(wildcard *.asy)
 
 man:	asymptote.info asymptote.ps asymptote.pdf html
 
@@ -15,8 +16,8 @@ latexusage.eps: latexusage.tex
 	dvips -o latexusage.eps latexusage
 	rm -f latexusage.*.eps latexusage.asy
 
-figures: latexusage.eps latexusage.png $(asyfiles:.asy=.eps) \
-	$(asyfiles:.asy=.png) version.texi
+figures: latexusage.eps latexusage.png $(ASYFILES:.asy=.eps) \
+	$(ASYFILES:.asy=.png) version.texi
 
 asymptote.info: figures
 	makeinfo asymptote
@@ -39,6 +40,13 @@ clean: FORCE
 	rm -f *.eps *.png latexusage.{asy,dvi,log,aux,ps}
 	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,ps,pdf,toc,tp,vr}
 	rm -rf asymptote
+
+install: man
+	${INSTALL} -d $(prefix)/info $(exampledir) $(mandir)/man1
+	${INSTALL} -m 644 asymptote.info $(prefix)/info
+	install-info --infodir=$(prefix)/info asymptote.info 
+	${INSTALL} -m 644 asymptote.pdf $(exampledir)
+	${INSTALL} -m 644 $(MANFILES) $(mandir)/man1
 
 distclean: FORCE clean
 	rm -f version.texi

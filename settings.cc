@@ -17,14 +17,7 @@
 #if HAVE_GNU_GETOPT_H
 #include <getopt.h>
 #else
-// Work around conflicts with non-GNU versions of getopt.h:
-struct option {
-  const char *name;
-  int has_arg, *flag, val;
-};
-extern "C" int getopt_long_only(int argc, char * const argv[],
-				const char *optstring,
-				const struct option *longopts, int *longindex);
+#include "getopt.h"
 #endif
 
 #include "util.h"

@@ -185,8 +185,9 @@ equations;
 @chapter Installation
 @cindex installation
 
-A binary distribution for a specific platform ARCH can be installed in
-@code{/usr/local} with the commands:
+A binary distribution of @code{Asymptote} version @code{x.xx} for a
+specific platform @code{ARCH} can be installed in @code{/usr/local} with
+the commands:
 @verbatim
 cd /
 tar -zxf asymptote-x.xx.ARCH.tar.gz
@@ -202,22 +203,18 @@ tar -zxvf asymptote-x.xx.ARCH.tar.gz | xargs rm
 texhash
 @end verbatim
 
-To compile and install @code{Asymptote} from a source release x.xx, execute the
-following commands:
+To compile and install @code{Asymptote} from a source release
+@code{x.xx}, execute the commands:
 @verbatim
 tar -zxf asymptote-x.xx.tar.gz
 cd asymptote-x.xx
 ./configure
-make
+make all
 make install
 @end verbatim
 
 For a (default) system-wide installation, the last command should be
-done as root. To build and install the man pages as well, type:
-@verbatim
-make man
-make install-man
-@end verbatim
+done as root.
 
 In order to compile @code{Asymptote} you will need the @code{boost}
 headers from @code{http://boost.org} (included in Fedora Linux distributions).
@@ -228,7 +225,7 @@ http://dl.sourceforge.net/sourceforge/boost/boost-jam-3.1.10-1.i386.rpm
 http://dl.sourceforge.net/sourceforge/boost/boost_1_32_0.tar.bz2
 @end verbatim
 
-However, Asymptote currently only uses the @code{boost} header files,
+However, @code{Asymptote} currently only uses the @code{boost} header files,
 so it is sufficient to copy the @code{boost} subdirectory from the
 @code{boost} source distribution to @code{/usr/include} or even just
 make a link in the top level directory of the @code{Asymptote} source code:
@@ -239,7 +236,7 @@ tar -jxf asymptote-x.xx.tar.gz
 cd asymptote-x.xx 
 ln -s ../boost_1_32_0/boost .
 ./configure 
-make
+make all
 make install 
 @end verbatim
 
@@ -256,13 +253,13 @@ http://www.uhoreg.ca/programming/debian.text
 @end verbatim
 
 @cindex readline
-If you are compiling with gcc, you will need a relatively recent version
+If you are compiling with @code{gcc}, you will need a relatively recent version
 (e.g. 3.3.3 or later). If you get errors compiling @code{interact.cc},
 try installing an up-to-date version of the GNU @code{readline} library
 or else uncomment @code{HAVE_LIBREADLINE} in @code{config.h}.
 
 The FFTW library is only required if you want @code{Asymptote} to be able to
-take Fourier transforms of data (say to compute an audio power spectrum).
+take Fourier transforms of data (say, to compute an audio power spectrum).
 
 If you don't want to install @code{Asymptote} system wide, just make
 sure the compiled binary @code{asy} and GUI script @code{xasy} are in
@@ -349,10 +346,8 @@ cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote co asymptote
 cd asymptote-x.xx
 ./autogen.sh
 ./configure
-make
-make man
+make all
 make install
-make install-man
 @end verbatim
 
 To compile without optimization, use the command @code{make OPT=-g}.
