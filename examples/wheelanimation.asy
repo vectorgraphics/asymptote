@@ -27,7 +27,7 @@ void initialpicture() {
   pair z1=wheelpoint(t1);
   pair z2=wheelpoint(t2);
 
-  yequals(-1,linetype("4 4"));
+  xaxis(linetype("4 4"),YEquals(-1));
   label("$y=-1$",(z2.x,-1),S);
   dot(z1);
   dot(z2);
