@@ -89,6 +89,7 @@ Import
 * plain::                       Default @code{Asymptote} base file
 * simplex::                     Linear programming: simplex method
 * graph::                       2D linear & logarithmic graphs
+* graph3d::                     Preliminary 3D projection routines
 * math::                        Extend @code{Asymptote}'s math capabilities
 * stats::                       Statistic routines and histograms
 * tree::                        Dynamic binary search tree
@@ -1896,6 +1897,7 @@ void execute(string file);
 * plain::                       Default @code{Asymptote} base file
 * simplex::                     Linear programming: simplex method
 * graph::                       2D linear & logarithmic graphs
+* graph3d::                     Preliminary 3D projection routines
 * math::                        Extend @code{Asymptote}'s math capabilities
 * stats::                       Statistic routines and histograms
 * tree::                        Dynamic binary search tree
@@ -2139,24 +2141,63 @@ comma-separated data found in @code{diatom.csv}.
 
 @image{diatom}
 
-
-@item A three-dimensional graphics package will be provided in a future
-release.
-@cindex 3D graphs
-
 @end enumerate
+
+@node graph3d
+@subsection @code{graph3d}
+@cindex @code{graph3d}
+@cindex 3D graphs
+@cindex hidden surface removal
+This module will be developed into a full three-dimensional graphics package
+in a future release. The file @code{planes.asy} in the @code{examples}
+directory illustrates how clipping can be used to implement hidden
+surface removal in 3d vector graphics. Perspective has not yet been
+added (but can be easily implemented using similar triangles).
 
 @node math
 @subsection @code{math}
 @cindex @code{math}
 This package extends @code{Asymptote}'s mathematical capabilities with
-radian/degree conversion routines, matrices, and point-in-polygon algorithms.
-It also defines
+radian/degree conversion routines, point-in-polygon and intersection
+algorithms, 3D vectors, and matrices.
+
+@cindex @code{implicit linear solver}
+@cindex @code{whatever}
+@cindex @code{extension}
+Unlike @code{MetaPost}, @code{Asymptote} does not solve linear equations
+implicitly and does not have the notion of a @code{whatever} unknown.
+The following routine provides a useful replacement for a common use of
+these facilities: finding intersection points of the extensions of the
+sides of a triangle:
 
 @table @code
+
+@item pair extension(pair P, pair Q, pair p, pair q);
+Return the intersection point of the extensions of the line segments 
+@code{PQ} and @code{pq}.
+
+@end table
+
+Here are some additional routines provided in the @code{math} package:
+
+@table @code
+
 @cindex @code{straight}
 @item bool straight(path p)
 returns true iff the path @code{p} is straight.
+
+@cindex @code{intersection}
+@item real intersection(vector P, vector Q, vector n, vector Z);
+Return the intersection time of the extension of the line segment @code{PQ}
+with the plane perpendicular to vector @code{n} and passing through @code{Z}.
+
+@cindex @code{intersection}
+@item vector intersectionpoint(vector n0, vector P0, vector n1, vector P1);
+Return any point on the intersection of the two planes with normals
+@code{n0} and @code{n1} passing through points @code{P0} and @code{P1},
+respectively. If the planes are parallel, return
+@code{vector(infinity,infinity,infinity)}.
+
 @end table
 
 @node stats

@@ -31,6 +31,83 @@ real sec(real x) {return 1/cos(x);}
 real cot(real x) {return tan(pi/2-x);}
 real frac(real x) {return x-(int)x;}
 
+void perpendicular(picture pic=currentpicture, pair z1, pair z2,
+		   real size=perpsize, pen p=currentpen)
+{
+  pair v=perpsize*unit(z2-z1);
+  picture apic=new picture;
+  _draw(apic,v--v+I*v--I*v,p);
+  addabout(pic,apic,z1);
+}
+
+bool straight(path p)
+{
+  for(int i=0; i < length(p); ++i)
+    if(!straight(p,i)) return false;
+  return true;
+}
+
+bool polygon(path p)
+{
+  return cyclic(p) && straight(p);
+}
+
+void assertpolygon(path p)
+{
+  if(!polygon(p)) {
+    write(p);
+    abort("Polygon must be a straight cyclic path. ");
+  }
+}
+
+// Returns true iff the point z lies in the region bounded by the cyclic
+// polygon p.
+bool inside(pair z, path p)
+{
+  assertpolygon(p);
+  bool c=false;
+  int n=length(p);
+  for(int i=0; i < n; ++i) {
+    pair pi=point(p,i);
+    pair pj=point(p,i+1);
+    if(((pi.y <= z.y && z.y < pj.y) || (pj.y <= z.y && z.y < pi.y)) &&
+       z.x < pi.x+(pj.x-pi.x)*(z.y-pi.y)/(pj.y-pi.y)) c=!c;
+  }
+  return c;
+}
+
+// Returns true iff the line a--b intersects the cyclic polygon p.
+bool intersect(pair a, pair b, path p)
+{
+  assertpolygon(p);
+  int n=length(p);
+  for(int i=0; i < n; ++i) {
+    pair A=point(p,i);
+    pair B=point(p,i+1);
+    real de=(b.x-a.x)*(A.y-B.y)-(A.x-B.x)*(b.y-a.y);
+    if(de != 0) {
+      de=1/de;
+      real t=((A.x-a.x)*(A.y-B.y)-(A.x-B.x)*(A.y-a.y))*de;
+      real T=((b.x-a.x)*(A.y-a.y)-(A.x-a.x)*(b.y-a.y))*de;
+      if(0 <= t && t <= 1 && 0 <= T && T <= 1) return true;
+    }
+  }
+  return false;
+}
+
+// Return the intersection point of the extensions of the line segments 
+// PQ and pq.
+pair extension(pair P, pair Q, pair p, pair q) 
+{
+  real M=(Q.y-P.y)/(Q.x-P.x);
+  real m=(q.y-p.y)/(q.x-p.x);
+  if(m == M) return (infinity,infinity);
+  real B=P.y-M*P.x;
+  real b=p.y-m*p.x;
+  real x=(B-b)/(m-M);
+  return (x,m*x+b);
+}
+
 struct vector {
   public real x,y,z;
   void vector(real x, real y, real z) {this.x=x; this.y=y; this.z=z;}
@@ -172,83 +249,6 @@ real[] partialsum(real[] A, real[] dx=null)
   else
     for(int i=0; i < A.length; ++i) B[i+1]=B[i]+A[i]*dx[i];
   return B;
-}
-
-void perpendicular(picture pic=currentpicture, pair z1, pair z2,
-		   real size=perpsize, pen p=currentpen)
-{
-  pair v=perpsize*unit(z2-z1);
-  picture apic=new picture;
-  _draw(apic,v--v+I*v--I*v,p);
-  addabout(pic,apic,z1);
-}
-
-bool straight(path p)
-{
-  for(int i=0; i < length(p); ++i)
-    if(!straight(p,i)) return false;
-  return true;
-}
-
-bool polygon(path p)
-{
-  return cyclic(p) && straight(p);
-}
-
-void assertpolygon(path p)
-{
-  if(!polygon(p)) {
-    write(p);
-    abort("Polygon must be a straight cyclic path. ");
-  }
-}
-
-// Returns true iff the point z lies in the region bounded by the cyclic
-// polygon p.
-bool inside(pair z, path p)
-{
-  assertpolygon(p);
-  bool c=false;
-  int n=length(p);
-  for(int i=0; i < n; ++i) {
-    pair pi=point(p,i);
-    pair pj=point(p,i+1);
-    if(((pi.y <= z.y && z.y < pj.y) || (pj.y <= z.y && z.y < pi.y)) &&
-       z.x < pi.x+(pj.x-pi.x)*(z.y-pi.y)/(pj.y-pi.y)) c=!c;
-  }
-  return c;
-}
-
-// Returns true iff the line a--b intersects the cyclic polygon p.
-bool intersect(pair a, pair b, path p)
-{
-  assertpolygon(p);
-  int n=length(p);
-  for(int i=0; i < n; ++i) {
-    pair A=point(p,i);
-    pair B=point(p,i+1);
-    real de=(b.x-a.x)*(A.y-B.y)-(A.x-B.x)*(b.y-a.y);
-    if(de != 0) {
-      de=1/de;
-      real t=((A.x-a.x)*(A.y-B.y)-(A.x-B.x)*(A.y-a.y))*de;
-      real T=((b.x-a.x)*(A.y-a.y)-(A.x-a.x)*(b.y-a.y))*de;
-      if(0 <= t && t <= 1 && 0 <= T && T <= 1) return true;
-    }
-  }
-  return false;
-}
-
-// Return the intersection point of the extensions of the line segments 
-// PQ and pq.
-pair extension(pair P, pair Q, pair p, pair q) 
-{
-  real M=(Q.y-P.y)/(Q.x-P.x);
-  real m=(q.y-p.y)/(q.x-p.x);
-  if(m == M) return (infinity,infinity);
-  real B=P.y-M*P.x;
-  real b=p.y-m*p.x;
-  real x=(B-b)/(m-M);
-  return (x,m*x+b);
 }
 
 real[][] zero(int n)
