@@ -58,6 +58,8 @@ array stringArray_(primString());
 ty *stringArray() { return &stringArray_; }
 array pathArray_(primPath());
 ty *pathArray() { return &pathArray_; }
+array penArray_(primPen());
+ty *penArray() { return &penArray_; }
   
 array boolArray2_(boolArray());
 ty *boolArray2() { return &boolArray2_; }

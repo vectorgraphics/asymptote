@@ -52,6 +52,7 @@ using std::string;
 #include "drawgsave.h"
 #include "drawgrestore.h"
 #include "drawlayer.h"
+#include "drawimage.h"
 #include "fileio.h"
 #include "genv.h"
 #include "builtin.h"
@@ -982,7 +983,14 @@ void stringFormatReal(stack *s)
     if(*p == '%' && *(p+1) != '%') break;
     p++;
   }
+  
   char *q=buf+(p-p0); // beginning of formatted number
+  
+  bool trailingzero=false;
+  while (*p != 0) {
+    if(*p == '#') {trailingzero=true; break;}
+    p++;
+  }
   
   // Ignore any spaces
   while(*q != 0) {
@@ -1009,7 +1017,7 @@ void stringFormatReal(stack *s)
     if(*r == '.') dp=true;
     r++;
   }
-  if(dp) { // Remove trailing zeros and/or decimal point
+  if(dp && !trailingzero) { // Remove trailing zeros and/or decimal point
     r--;
     unsigned int n=0;
     while(r > q && *r == '0') {r--; n++;}
@@ -1379,8 +1387,8 @@ void colors(stack *s)
     break;
   case 3:
     (*a)[0]=p->red(); 
-    (*a)[1]=p->blue(); 
-    (*a)[2]=p->green(); 
+    (*a)[1]=p->green(); 
+    (*a)[2]=p->blue(); 
     break;
   case 4:
     (*a)[0]=p->cyan();
@@ -1571,6 +1579,12 @@ void nullFrame(stack *s)
   s->push(new picture());
 }
 
+void boolNullFrame(stack *s)
+{
+  picture *b = s->pop<picture*>();
+  s->push(b->number() == 0);
+}
+
 void frameMax(stack *s)
 {
   picture *pic = s->pop<picture *>();
@@ -1615,7 +1629,7 @@ void fillArray(stack *s)
   double ra = s->pop<double>();
   pair a = s->pop<pair>();
   pen *pena = s->pop<pen*>();
-  array *p=s->pop<array *>();
+  array *p=copyArray(s);
   picture *pic = s->pop<picture*>();
   checkArray(s,p);
   drawFill *d = new drawFill(p,*pena,a,ra,*penb,b,rb);
@@ -1636,9 +1650,8 @@ void clip(stack *s)
 void clipArray(stack *s)
 {
   pen *n = s->pop<pen*>();
-  array *p=s->pop<array *>();
+  array *p=copyArray(s);
   picture *pic = s->pop<picture*>();
-  checkArray(s,p);
   pic->prepend(new drawClipBegin(p,*n));
   pic->append(new drawClipEnd());
 }
@@ -1654,9 +1667,8 @@ void beginclip(stack *s)
 void beginclipArray(stack *s)
 {
   pen *n = s->pop<pen*>();
-  array *p=s->pop<array *>();
+  array *p=copyArray(s);
   picture *pic = s->pop<picture*>();
-  checkArray(s,p);
   pic->append(new drawClipBegin(p,*n,false));
 }
   
@@ -1722,6 +1734,19 @@ void label(stack *s)
   string t = s->pop<string>();
   picture *pic = s->pop<picture*>();
   drawLabel *d = new drawLabel(t,r,z,a,p);
+  pic->append(d);
+}
+  
+void image(stack *s)
+{
+  pair final = s->pop<pair>();
+  pair initial = s->pop<pair>();
+  array *p=copyArray(s);
+  array *a=copyArray2(s);
+  picture *pic = s->pop<picture*>();
+  pair size=final-initial;
+  drawImage *d = new drawImage(*a,*p,transform(initial.getx(),initial.gety(),
+					       size.getx(),0,0,size.gety()));
   pic->append(d);
 }
   
@@ -2001,6 +2026,14 @@ void fileLineMode(stack *s)
   s->push(f);
 }
 
+// Set file to read/write single-precision XDR values.
+void fileSingleMode(stack *s) 
+{
+  file *f = s->pop<file*>();
+  f->SingleMode(true);
+  s->push(f);
+}
+
 // Set file to read an array1 (1 int size followed by a 1-d array)
 void fileArray1(stack *s) 
 {
@@ -2017,7 +2050,7 @@ void fileArray2(stack *s)
   s->push(f);
 }
 
-// Set file to read an array1 (3 int sizes followed by a 3-d array)
+// Set file to read an array3 (3 int sizes followed by a 3-d array)
 void fileArray3(stack *s) 
 {
   file *f = s->pop<file*>();

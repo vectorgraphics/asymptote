@@ -15,7 +15,7 @@ static real inch=inches;
 static real cm=inches/2.540005;
 static real mm=0.1cm;
 static real bp=1;	    // A PostScript point.
-static real pt=72.0/72.27; // A TeX pt is slightly smaller than a PostScript bp.
+static real pt=72.0/72.27; // A TeX pt; slightly smaller than a PostScript bp.
 static pair I=(0,1);
 static real pi=pi();
 
@@ -452,6 +452,8 @@ public struct ScaleT {
 struct Legend {
   public string label;
   public pen p;
+  public frame mark;
+  public bool topmark;
 }
 
 pair minbound(pair z, pair w) 
@@ -464,12 +466,6 @@ pair maxbound(pair z, pair w)
   return (max(z.x,w.x),max(z.y,w.y));
 }
 
-void clippingwarning(bool deconstruct)
-{
-  if(deconstruct && deconstruct())
-    write("warning: deconstructed pictures cannot be clipped");
-}
-  
 struct picture {
   // The functions to do the deferred drawing.
   drawerBound[] nodes;
@@ -538,10 +534,15 @@ struct picture {
     });
   }
 
+  static string clipwarn="warning: deconstructed pictures cannot be clipped";
+  void clippingwarning()
+  {
+    if(deconstruct && deconstruct()) write(clipwarn);
+  }
+  
   void clip(drawer d) {
     if(interact()) uptodate=false;
-    bool deconstruct=this.deconstruct;
-    clippingwarning(deconstruct);
+    clippingwarning();
     for(int i=0; i < xcoords.length; ++i) {
       xcoords[i].clip(userMin.x,userMax.x);
       ycoords[i].clip(userMin.y,userMax.y);
@@ -887,7 +888,7 @@ pair max(path[] g)
   return maxg;
 }
 
-// Add frame f about origin to currentpicture
+// Add frame f about origin to picture pic
 void addabout(pair origin, picture pic, frame src)
 {
   pic.add(new void (frame dest, transform t) {
@@ -1081,6 +1082,7 @@ void fill(picture pic=currentpicture, path[] g,
 	  pen pena=currentpen, pair a=0, real ra=0,
 	  pen penb=currentpen, pair b=0, real rb=0)
 {
+  g=copy(g);
   pic.add(new void (frame f, transform t) {
     pair A=t*a, B=t*b;
     fill(f,t*g,pena,A,abs(t*(a+ra)-A),penb,B,abs(t*(b+rb)-B));
@@ -1145,6 +1147,7 @@ void clip(picture pic=currentpicture, path g, pen p=currentpen)
 
 void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
 {
+  g=copy(g);
   pic.userMin=maxbound(pic.userMin,min(g));
   pic.userMax=minbound(pic.userMax,max(g));
   pic.clip(new void (frame f, transform t) {
@@ -1171,6 +1174,7 @@ void unfill(picture pic=currentpicture, path g)
 
 void unfill(picture pic=currentpicture, path[] g)
 {
+  g=copy(g);
   pic.clip(new void (frame f, transform t) {
     unfill(f,t*g);
   });
@@ -1474,16 +1478,116 @@ void labelbox(picture pic=currentpicture, real xmargin=0,
   pic.addBox(position,position,min(f),max(f));
 }
 
+real linewidth() 
+{
+  return linewidth(currentpen);
+}
+
+real interp(int a, int b, real c)
+{
+  return a+c*(b-a);
+}
+
+real interp(real a, real b, real c)
+{
+  return a+c*(b-a);
+}
+
+pair interp(pair a, pair b, real c)
+{
+  return a+c*(b-a);
+}
+
+pen interp(pen a, pen b, real c) 
+{
+  return (1-c)*a+c*b;
+}
+
+void dot(picture pic=currentpicture, pair c)
+{
+  _draw(pic,c,currentpen+linewidth()*dotfactor);
+}
+
+void dot(picture pic=currentpicture, pair c, pen p)
+{
+  _draw(pic,c,linewidth(p)*dotfactor+p);
+}
+
+void dot(picture pic=currentpicture, pair[] c, pen p=currentpen)
+{
+  for(int i=0; i < c.length; ++i) dot(pic,c[i],p);
+}
+
+void dot(picture pic=currentpicture, guide g, pen p=currentpen)
+{
+  for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p);
+}
+
+void dot(picture pic=currentpicture, path[] g, pen p=currentpen)
+{
+  for(int i=0; i < g.length; ++i) dot(pic,g[i],p);
+}
+
+void labeldot(picture pic=currentpicture, string s="", real angle=0,
+	      pair c, pair align=E, pair shift=0, pen p=currentpen)
+{
+  if(s == "") s=(string) c;
+  dot(pic,c,p);
+  label(pic,s,angle,c,align,shift,p);
+}
+
+path[] plus=(-1,0)--(1,0)^^(0,-1)--(0,1);
+path[] cross=rotate(45)*plus;
+
+// Return a unit polygon with n sides
+guide polygon(int n) 
+{
+  guide g;
+  for(int i=0; i < n; ++i) g=g--expi(2pi*(i+0.5)/n-0.5*pi);
+  return g--cycle;
+}
+
+guide unitsquare=box((0,0),(1,1));
+
+guide square(pair z1, pair z2)
+{
+  pair v=z2-z1;
+  pair z3=z2+I*v;
+  pair z4=z3-v;
+  return z1--z2--z3--z4--cycle;
+}
+
+guide unitcircle=E..N..W..S..cycle;
+
+guide circle(pair c, real r)
+{
+  return shift(c)*scale(r)*unitcircle;
+}
+
+guide ellipse(pair c, real a, real b)
+{
+  return shift(c)*xscale(a)*yscale(b)*unitcircle;
+}
+
+void mark(picture pic=currentpicture, guide g, frame mark)
+{
+  for(int i=0; i <= length(g); ++i)
+    addabout(point(g,i),pic,mark);
+}
+
 void legend(frame f, Legend[] legend, bool placement=true)
 {
   if(legend.length > 0 && !GUIDelete()) {
     picture inset=new picture;
     for(int i=0; i < legend.length; ++i) {
-      pen p=legend[i].p;
+      Legend L=legend[i];
+      pen p=L.p;
       pair z1=-i*I*legendskip*fontsize(p);
       pair z2=z1+legendlinelength;
+      if(!L.topmark && !empty(L.mark)) mark(inset,interp(z1,z2,0.5),L.mark);
       _draw(inset,z1--z2,p);
-      label(inset,legend[i].label,z2,E,p);
+      label(inset,L.label,z2,E,p);
+      if(L.topmark && !empty(L.mark)) mark(inset,interp(z1,z2,0.5),L.mark);
     }
     frame d;
     // Place legend with top left corner at legendlocation;
@@ -1644,44 +1748,6 @@ void label(picture pic=currentpicture, string s, real angle=0,
   label(pic,s,angle,point(g,position),align,shift,p);
 }
 
-real linewidth() 
-{
-  return linewidth(currentpen);
-}
-
-void dot(picture pic=currentpicture, pair c)
-{
-  _draw(pic,c,currentpen+linewidth()*dotfactor);
-}
-
-void dot(picture pic=currentpicture, pair c, pen p)
-{
-  _draw(pic,c,linewidth(p)*dotfactor+p);
-}
-
-void dot(picture pic=currentpicture, pair[] c, pen p=currentpen)
-{
-  for(int i=0; i < c.length; ++i) dot(pic,c[i],p);
-}
-
-void dot(picture pic=currentpicture, guide g, pen p=currentpen)
-{
-  for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p);
-}
-
-void dot(picture pic=currentpicture, path[] g, pen p=currentpen)
-{
-  for(int i=0; i < g.length; ++i) dot(pic,g[i],p);
-}
-
-void labeldot(picture pic=currentpicture, string s="", real angle=0,
-	      pair c, pair align=E, pair shift=0, pen p=currentpen)
-{
-  if(s == "") s=(string) c;
-  dot(pic,c,p);
-  label(pic,s,angle,c,align,shift,p);
-}
-
 void arrow(picture pic=currentpicture, string s, real angle=0, pair shift=0,
 	   path g, pen p=currentpen, real size=0,
 	   real Angle=arrowangle, filltype filltype=Fill,
@@ -1691,28 +1757,6 @@ void arrow(picture pic=currentpicture, string s, real angle=0, pair shift=0,
   pair a=point(g,0);
   pair b=point(g,1);
   label(pic,s,angle,a,unit(a-b),shift,p);
-}
-
-guide unitsquare=box((0,0),(1,1));
-
-guide square(pair z1, pair z2)
-{
-  pair v=z2-z1;
-  pair z3=z2+I*v;
-  pair z4=z3-v;
-  return z1--z2--z3--z4--cycle;
-}
-
-guide unitcircle=E..N..W..S..cycle;
-
-guide circle(pair c, real r)
-{
-  return shift(c)*scale(r)*unitcircle;
-}
-
-guide ellipse(pair c, real a, real b)
-{
-  return shift(c)*xscale(a)*yscale(b)*unitcircle;
 }
 
 private struct directionT {};
@@ -1910,17 +1954,20 @@ void draw(picture pic=currentpicture, string s="", real angle=0,
 	  path g, real position=infinity, pair align=0, pair shift=0,
 	  side side=RightSide, pen p=currentpen,
 	  arrowbar arrow=None, arrowbar bar=None,
-	  margin margin=NoMargin, string legend="")
+	  margin margin=NoMargin, string legend="", frame mark=nullframe,
+	  bool topmark=true)
 {
+  if(!topmark && !empty(mark)) mark(pic,g,mark);
   arrowbarT arrowbar=new arrowbarT;
   if(s != "") label(pic,s,angle,g,position,align,shift,side,p);
   bar(pic,g,p,margin,arrowbar);
   arrow(pic,g,p,margin,arrowbar);
   if(arrowbar.drawpath) _draw(pic,g,p,margin);
   if(legend != "") {
-    Legend L=new Legend; L.label=legend; L.p=p;
+    Legend L=new Legend; L.label=legend; L.p=p; L.mark=mark; L.topmark=topmark;
     pic.legend.push(L);
   }
+  if(topmark && !empty(mark)) mark(pic,g,mark);
 }
 
 // Draw a fixed-size object about the user-coordinate 'origin'.
@@ -1928,10 +1975,11 @@ void drawabout(pair origin, picture pic=currentpicture, string s="",
 	       real angle=0, path g, real position=infinity, pair align=0,
 	       pair shift=0, side side=RightSide, pen p=currentpen,
 	       arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
-	       string legend="")
+	       string legend="", frame mark=nullframe, bool topmark=true)
 {
   picture opic=new picture;
-  draw(opic,s,angle,g,position,align,shift,side,p,arrow,bar,margin,legend);
+  draw(opic,s,angle,g,position,align,shift,side,p,arrow,bar,margin,legend,
+       mark,topmark);
   addabout(origin,pic,opic);
 }
 
@@ -2105,26 +2153,6 @@ slice lastcut(path p, path knife)
   return s;
 }
 
-real interp(int a, int b, real c)
-{
-  return a+c*(b-a);
-}
-
-real interp(real a, real b, real c)
-{
-  return a+c*(b-a);
-}
-
-pair interp(pair a, pair b, real c)
-{
-  return a+c*(b-a);
-}
-
-pen interp(pen a, pen b, real c) 
-{
-  return (1-c)*a+c*b;
-}
-
 string format(real x) {
   return format("%.9g",x);
 }
@@ -2262,6 +2290,30 @@ pen Symbol(string series="m", string shape="n")
 pen ZapfDingbats(string series="m", string shape="n")
 {
   return font("OT1","pzd",series,shape);
+}
+
+real min(real [][] a) {
+  real min=infinity;
+  for(int i=0; i < a.length; ++i) min=min(min,min(a[i]));
+  return min;
+}
+
+real max(real [][] a) {
+  real max=-infinity;
+  for(int i=0; i < a.length; ++i) max=max(max,max(a[i]));
+  return max;
+}
+
+real min(real [][][] a) {
+  real min=infinity;
+  for(int i=0; i < a.length; ++i) min=min(min,min(a[i]));
+  return min;
+}
+
+real max(real [][][] a) {
+  real max=-infinity;
+  for(int i=0; i < a.length; ++i) max=max(max,max(a[i]));
+  return max;
 }
 
 void atexit()

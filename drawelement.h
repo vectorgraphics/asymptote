@@ -231,7 +231,7 @@ public:
   virtual void penConcat(psfile *out)
   {
     if (t())
-      out->concat(shiftless(*t()));
+      out->concatUnshifted(shiftless(*t()));
   }
 
   virtual void penEnd(psfile *out)

@@ -312,6 +312,7 @@ void addOperators(venv &ve)
 	  primPicture());
   addFunc(ve,run::transformPow,primTransform(),"^",primTransform(),
 	  primInt());
+  addFunc(ve,run::boolNullFrame,primBoolean(),"empty",primPicture());
 
   addSimpleOperator(ve,run::penPenPlus,primPen(),"+");
   addFunc(ve,run::realPenTimes,primPen(),"*",primReal(),primPen());
@@ -366,6 +367,8 @@ void base_venv(venv &ve)
   addFunc(ve,run::add,primVoid(),"add",primPicture(),primPicture());
   addFunc(ve,run::label,primVoid(),"_label",primPicture(),
 	  primString(),primReal(),primPair(),primPair(),primPen());
+  addFunc(ve,run::image,primVoid(),"image",primPicture(),realArray2(),
+	  penArray(),primPair(),primPair());
   
   addFunc(ve,run::shipout,primVoid(),"shipout",primString(),
 	  primPicture(),primPicture(),primString(),primBoolean());
@@ -579,6 +582,7 @@ void base_venv(venv &ve)
 	  primInt(),primInt());
   addFunc(ve,run::fileCSVMode,primFile(),"csv",primFile());
   addFunc(ve,run::fileLineMode,primFile(),"line",primFile());
+  addFunc(ve,run::fileSingleMode,primFile(),"single",primFile());
   addFunc(ve,run::fileArray1,primFile(),"read1",primFile());
   addFunc(ve,run::fileArray2,primFile(),"read2",primFile());
   addFunc(ve,run::fileArray3,primFile(),"read3",primFile());

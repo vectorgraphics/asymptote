@@ -59,6 +59,11 @@ public:
 	       const std::string& format, bool wait);
  
   picture *transformed(const transform& t);
+  
+  // Returns the number of element in picture.
+  int number() {
+    return nodes.size();
+  }
 };
 
 inline picture *transformed(const transform& t, picture *p)

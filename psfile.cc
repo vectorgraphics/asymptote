@@ -8,6 +8,7 @@
 
 #include <ctime>
 #include <iomanip>
+#include <sstream>
 
 #include "psfile.h"
 #include "settings.h"
@@ -16,11 +17,13 @@
 using std::string;
 using std::ofstream;
 using std::setw;
+using vm::array;
+using vm::read;
   
 namespace camp {
 
-psfile::psfile(const string& filename, const bbox& box, const pair& shift)
-  : filename(filename), box(box), shift(shift), rawmode(false)
+psfile::psfile(const string& filename, const bbox& box, const pair& Shift)
+  : filename(filename), box(box), Shift(Shift), rawmode(false)
 {
   if(filename != "") out=new ofstream(filename.c_str());
   else out=&std::cout;
@@ -175,4 +178,96 @@ void psfile::shade(bool axial, const string& colorspace,
        << "shfill" << newl;
 }
   
+inline unsigned int byte(double r) // Map [0,1] to [0,255]
+{
+  if(r < 0.0) r=0.0;
+  else if(r > 1.0) r=1.0;
+  int a=(int)(256.0*r);
+  if(a == 256) a=255;
+  return a;
+}
+
+void psfile::image(array *a, array *P)
+{
+  size_t asize=(size_t) a->size();
+  size_t Psize=(size_t) P->size();
+  
+  if(asize == 0 || Psize == 0) return;
+  
+  array *a0=read<array *>(a,0);
+  size_t a0size=(size_t) a0->size();
+  
+  pen *p=read<pen *>(P,0);
+  ColorSpace colorspace=p->colorspace();
+  unsigned ncomponents=ColorComponents[colorspace];
+  
+  *out << "/Device" << ColorDeviceSuffix[colorspace] << " setcolorspace" 
+       << newl
+       << "<<" << newl
+       << "/ImageType 1" << newl
+       << "/Width " << asize << newl
+       << "/Height " << a0size << newl
+       << "/BitsPerComponent 8" << newl
+       << "/Decode [";
+  
+  for(unsigned i=0; i < ncomponents; ++i)
+    *out << "0 1 ";
+  
+  *out << "]" << newl
+       << "/ImageMatrix [" << asize << " 0 0 " << a0size << " 0 0]" << newl
+       << "/DataSource currentfile /ASCIIHexDecode filter" << newl
+       << ">>" << newl
+       << "image" << newl;
+  
+  double min=read<double>(a0,0);
+  double max=min;
+  for(size_t i=0; i < asize; i++) {
+    array *ai=read<array *>(a,i);
+    for(size_t j=0; j < a0size; j++) {
+	double val=read<double>(ai,j);
+	if(val > max) max=val;
+	else if(val < min) min=val;
+    }
+  }
+  
+  double step=(max == min) ? 0.0 : (Psize-1)/(max-min);
+  
+  for(size_t i=0; i < asize; i++) {
+    array *ai=read<array *>(a,i);
+    for(size_t j=0; j < a0size; j++) {
+      double val=read<double>(ai,j);
+      pen *p=read<pen *>(P,(int) ((val-min)*step+0.5));
+      if(p->colorspace() != colorspace) {
+	reportError("inconsistent colorspaces in palette");
+	return;
+      }
+  
+      switch(ncomponents) {
+      case 0:
+	break;
+      case 1: 
+	writeHex(byte(p->gray())); 
+	*out << newl;
+	break;
+      case 3:
+	writeHex(byte(p->red())); 
+	writeHex(byte(p->green())); 
+	writeHex(byte(p->blue())); 
+	*out << newl;
+	break;
+      case 4:
+	writeHex(byte(p->cyan())); 
+	writeHex(byte(p->magenta())); 
+	writeHex(byte(p->yellow())); 
+	writeHex(byte(p->black())); 
+	*out << newl;
+      default:
+	break;
+      }
+    }
+  }
+  
+  *out << ">" << endl;
+}
+
 } //namespace camp

@@ -17,6 +17,7 @@
 #include "path.h"
 #include "bbox.h"
 #include "pen.h"
+#include "inst.h"
 
 namespace camp {
 
@@ -29,7 +30,7 @@ inline void BoundingBox(std::ostream& s, const bbox& box)
 class psfile {
   std::string filename;
   bbox box;
-  pair shift;
+  pair Shift;
   bool rawmode;
   pen lastpen;
   ostream *out;
@@ -41,12 +42,16 @@ class psfile {
 
   void write(transform t) {
     *out << "[" << " " << t.getxx() << " " << t.getyx()
-                << " " << t.getxy() << " " << t.getyy()
-	        << " " << t.getx()  << " " << t.gety() << "]";
+	 << " " << t.getxy() << " " << t.getyy()
+	 << " " << t.getx() << " " << t.gety() << "]";
   }
 
+  void writeHex(unsigned int n) {
+    *out << std::hex << std::setw(2) << std::setfill('0') << n << std::dec;
+  }
+  
 public: 
-  psfile(const std::string& filename, const bbox& box, const pair& shift);
+  psfile(const std::string& filename, const bbox& box, const pair& Shift);
   ~psfile();
   
   void prologue();
@@ -56,11 +61,7 @@ public:
   bool raw() {return rawmode;}
   
   void write(pair z) {
-    if(rawmode) writeUnshifted(z);
-    else {
-      *out << " " << z.getx()+shift.getx() 
-	   << " " << z.gety()+shift.gety();
-    }
+    writeUnshifted(rawmode ? z : z+Shift);
   }
 
   void write(double x) {
@@ -122,6 +123,8 @@ public:
 	     const pen& pena, const pair& a, double ra,
 	     const pen& penb, const pair& b, double rb);
   
+  void image(vm::array *a, vm::array *p);
+
   void gsave() {
     *out << "gsave" << newl;
     pens.push(lastpen);
@@ -142,10 +145,14 @@ public:
     *out << " translate" << newl;
   }
 
-  // Multiply on a transform to the transformation matrix.
-  void concat(transform t) {
+  void concatUnshifted(transform t) {
     write(t);
     *out << " concat" << newl;
+  }
+  
+  // Multiply on a transform to the transformation matrix.
+  void concat(transform t) {
+    concatUnshifted(rawmode ? t : shift(Shift)*t);
   }
   
   void verbatimline(const std::string& s) {

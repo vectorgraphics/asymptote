@@ -35,11 +35,12 @@ extern std::string newline;
 class file : public mempool::pooled<file> {
 protected:  
   std::string name;
-  int nx,ny,nz;  // Array dimensions
-  bool linemode; // If true, array reads will stop at eol instead of eof.
-  bool csvmode;  // If true, read comma-separated values.
-  bool closed;   // If true, file has been closed.
-  bool check;    // If true, check for errors after attempting to open file.
+  int nx,ny,nz;    // Array dimensions
+  bool linemode;   // If true, array reads will stop at eol instead of eof.
+  bool csvmode;    // If true, read comma-separated values.
+  bool singlemode; // If true, read/write single-precision XDR values.
+  bool closed;     // If true, file has been closed.
+  bool check;      // If true, check for errors after attempting to open file.
 public: 
 
   bool standard() {return name == "";}
@@ -47,8 +48,8 @@ public:
   void dimension(int Nx=-1, int Ny=-1, int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
   
   file(std::string name, bool check=true) : 
-    name(name), linemode(false), csvmode(false), closed(false),
-    check(check) {dimension();}
+    name(name), linemode(false), csvmode(false), singlemode(false),
+    closed(false), check(check) {dimension();}
   
   virtual void open() {};
   
@@ -97,6 +98,7 @@ public:
   virtual void read(bool&) {noread("bool");}
   virtual void read(int&) {noread("int");}
   virtual void read(double&) {noread("real");}
+  virtual void read(float&) {noread("real");}
   virtual void read(pair&) {noread("pair");}
   virtual void read(char&) {noread("char");}
   virtual void readwhite(std::string&) {noread("string");}
@@ -120,6 +122,9 @@ public:
   
   void CSVMode(bool b) {csvmode=b;}
   bool CSVMode() {return csvmode;}
+  
+  void SingleMode(bool b) {singlemode=b;}
+  bool SingleMode() {return singlemode;}
 };
 
 class ifile : public file {
@@ -253,7 +258,13 @@ public:
   void clear() {stream.clear();}
   
   void read(int& val) {val=0; stream >> val;}
-  void read(double& val) {val=0.0; stream >> val;}
+  void read(double& val) {
+    if(singlemode) {float fval=0.0; stream >> fval; val=fval;}
+    else {
+      val=0.0;
+      stream >> val;
+    }
+  }
   void read(pair& val) {double x=0.0, y=0.0; stream >> x >> y; val=pair(x,y);}
 };
 
@@ -272,7 +283,10 @@ public:
   void flush() {stream.flush();}
   
   void write(int val) {stream << val;}
-  void write(double val) {stream << val;}
+  void write(double val) {
+    if(singlemode) {float fval=val; stream << fval;}
+    stream << val;
+  }
   void write(const pair& val) {stream << val.getx() << val.gety();}
 };
 

@@ -218,6 +218,7 @@ void penMin(vm::stack *s);
 
 // Picture operations
 void nullFrame(vm::stack *s);
+void boolNullFrame(vm::stack *s);
 void frameMax(vm::stack *s);
 void frameMin(vm::stack *s);
 void draw(vm::stack *s);
@@ -237,6 +238,7 @@ void tex(vm::stack *s);
 void texPreamble(vm::stack *s);
 void layer(vm::stack *s);
 void label(vm::stack *s);
+void image(vm::stack *s);
 void overwrite(vm::stack *s);
 
 void shipout(vm::stack *s);
@@ -276,6 +278,7 @@ void fileDimension2(vm::stack *s);
 void fileDimension3(vm::stack *s);
 void fileCSVMode(vm::stack *s);
 void fileLineMode(vm::stack *s);
+void fileSingleMode(vm::stack *s);
 void fileArray1(vm::stack *s);
 void fileArray2(vm::stack *s);
 void fileArray3(vm::stack *s);

@@ -61,6 +61,8 @@ const int nBaseLine=sizeof(BaseLineTag)/sizeof(std::string);
 enum ColorSpace {DEFCOLOR=0,INVISIBLE,GRAYSCALE,RGB,CMYK,PATTERN};
 static const int ColorComponents[]={0,0,1,3,4,0};
 static const std::string ColorDeviceSuffix[]={"","","Gray","RGB","CMYK",""};
+const int nColorSpace=sizeof(ColorDeviceSuffix)/sizeof(std::string);
+  
 using settings::defaultpen;
   
 class LineType

@@ -23,8 +23,8 @@ picture secondary=secondaryY(new void(picture pic) {
   draw(pic,graph(pic,t,infectious,t >= 10 && t <= 15),red+solid);
 });
 			     
-crop(secondary);
-yaxis(secondary,black,red,Right,LeftTicks(2));
+//crop(secondary);
+yaxis(secondary,black,red,Right,LeftTicks);
 add(secondary);
 
 label("Proportion of crows",point(NW),E,5mm*N);
