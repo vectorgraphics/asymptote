@@ -28,11 +28,9 @@ private:
   typedef std::deque<item> stack_t;
   stack_t theStack;
 
-  lambda *body;
+  position curPos;
 
   vars_t make_frame(size_t, vars_t closure);
-
-  program::label ip;
 
   void draw(ostream& out);
 
