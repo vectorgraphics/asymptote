@@ -32,24 +32,27 @@ picture::~picture()
 {
 }
 
-// Insert at beginning of current layer.
-void picture::prepend(drawElement *P)
+// Find beginning of current layer.
+list<drawElement*>::iterator picture::layerstart()
 {
-  assert(P);
-
   list<drawElement*>::iterator p;
   for(p=--nodes.end(); p != --nodes.begin(); --p) {
     assert(*p);
     if((*p)->islayer()) break;
   }
-    
-  nodes.insert(++p,P);
+  return ++p;
+}
+
+// Insert at beginning of current layer.
+void picture::prepend(drawElement *P)
+{
+  assert(P);
+  nodes.insert(layerstart(),P);
 }
 
 void picture::append(drawElement *p)
 {
   assert(p);
-
   nodes.push_back(p);
 }
 
@@ -59,6 +62,14 @@ void picture::add(picture &pic)
 
   // STL's funny way of copying one list into another.
   copy(pic.nodes.begin(), pic.nodes.end(), inserter(nodes, nodes.end()));
+}
+
+// Insert picture pic at beginning of current layer.
+void picture::prepend(picture &pic)
+{
+  if (&pic == this) return;
+  
+  copy(pic.nodes.begin(), pic.nodes.end(), inserter(nodes, layerstart()));
 }
 
 bbox picture::bounds()

@@ -31,18 +31,22 @@ private:
 public:
   picture() : labels(false) {}
   
-  // Destroys all of the owned picture objects.
+  // Destroy all of the owned picture objects.
   ~picture();
 
+  // Find beginning of current layer.
+  std::list<drawElement*>::iterator layerstart();
+  
   // Prepend an object to the picture.
   void prepend(drawElement *p);
   
   // Append an object to the picture.
   void append(drawElement *p);
 
-  // Adds the content of another picture.
+  // Add the content of another picture.
   void add(picture &pic);
-
+  void prepend(picture &pic);
+  
   bbox bounds();
 
   void texinit();
@@ -54,13 +58,13 @@ public:
 		   const std::string& outputformat, bool wait,
 		   const bbox& bpos);
     
-  // Ships the picture out to PostScript & TeX files.
+  // Ship the picture out to PostScript & TeX files.
   bool shipout(const picture& preamble, const std::string& prefix,
 	       const std::string& format, bool wait);
  
   picture *transformed(const transform& t);
   
-  // Returns the number of element in picture.
+  // Return the number of element in picture.
   size_t number() {
     return nodes.size();
   }

@@ -57,10 +57,10 @@ for(int taxon=0; taxon < n; ++taxon) {
   crop(pic);
   filldraw(pic,(pic.userMin.x,depthmin)--g--(pic.userMin.x,depthmax)--cycle,
 	   gray(0.9));
-  xaxis(pic,0,Bottom,LeftTicks(false,0,2,"%.0f"));
-  xaxis(pic,TeXify(taxa[taxon]),0.5,45,Top,NoTicks);
-  if(taxon == 0) yaxis(pic,depthlabel,Left,RightTicks(0,10));
-  if(taxon == final) yaxis(pic,Right,LeftTicks(0,10,""));
+  xaxis(true,pic,0,Bottom,LeftTicks(false,0,2,"%.0f"));
+  xaxis(true,pic,TeXify(taxa[taxon]),0.5,45,Top,NoTicks);
+  if(taxon == 0) yaxis(true,pic,depthlabel,Left,RightTicks(0,10));
+  if(taxon == final) yaxis(true,pic,Right,LeftTicks(0,10,""));
   
   add(shift(location,0)*pic);
   location += pic.userMax.x;

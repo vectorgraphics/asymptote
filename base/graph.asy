@@ -496,7 +496,7 @@ public ticks
   LeftTicks=LeftTicks(),
   RightTicks=RightTicks();
 
-void axis(picture pic=currentpicture, guide g,
+void axis(bool ontop=false, picture pic=currentpicture, guide g,
 	  real tickmin=-infinity, real tickmax=infinity, pen p=currentpen,
 	  string s="", real position=1, real angle=0, pair align=S,
 	  pair shift=0, pair side=right, pen plabel=currentpen,
@@ -511,7 +511,7 @@ void axis(picture pic=currentpicture, guide g,
     frame d;
     ticks(d,t,s,position,angle,align,shift,side,plabel,t*g,p,S,part,
 	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
-    add(f,t*T*inverse(t)*d);
+    (ontop ? add : prepend) (f,t*T*inverse(t)*d);
   });
   
   pic.addPath(g,p);
@@ -524,7 +524,7 @@ void axis(picture pic=currentpicture, guide g,
   }
 }
 
-void xequals(picture pic=currentpicture, real x,
+void xequals(bool ontop=false, picture pic=currentpicture, real x,
 	     real ymin=-infinity, real ymax=infinity, 
 	     real tickmin=-infinity, real tickmax=infinity, pen p=currentpen,
 	     string s="", real position=1, real angle=0, pair align=W,
@@ -540,7 +540,7 @@ void xequals(picture pic=currentpicture, real x,
 	  pic.scale.y,
 	  new real(pair z) {return pic.scale.y.Label(z.y);},
 	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
-    add(f,t*T*inverse(t)*d);
+    (ontop ? add : prepend) (f,t*T*inverse(t)*d);
   });
   
   pair a=(x,finite(ymin) ? ymin : pic.userMin.y);
@@ -564,7 +564,7 @@ void xequals(picture pic=currentpicture, real x,
   }
 }
 
-void yequals(picture pic=currentpicture, real y,
+void yequals(bool ontop=false, picture pic=currentpicture, real y,
 	     real xmin=-infinity, real xmax=infinity,
 	     real tickmin=-infinity, real tickmax=infinity, pen p=currentpen,
 	     string s="", real position=1, real angle=0, pair align=S, 
@@ -580,7 +580,7 @@ void yequals(picture pic=currentpicture, real y,
 	  pic.scale.x,
 	  new real(pair z) {return pic.scale.x.Label(z.x);},
 	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
-    add(f,t*T*inverse(t)*d);
+    (ontop ? add : prepend) (f,t*T*inverse(t)*d);
   });
 
   pair a=(finite(xmin) ? xmin : pic.userMin.x,y);
@@ -620,6 +620,7 @@ private struct axisT {
 
 public axisT axis=new axisT;
 typedef void axis(picture, axisT);
+void axis(picture, axisT) {};
 
 axis Bottom(bool extend=false) {
   return new void(picture pic, axisT axis) {
@@ -813,10 +814,18 @@ void autoscale(picture pic=currentpicture, axis axis)
   }
 }
 
-void xaxis(picture pic=currentpicture, real xmin=-infinity, real xmax=infinity,
-	   pen p=currentpen, string s="", real position=infinity, real angle=0,
-	   pair align=0, pair shift=0, pair side=0, pen plabel=currentpen,
-	   axis axis=YZero, ticks ticks=NoTicks)
+void checkaxis(picture pic, axis axis) 
+{
+  axis(pic,axis);
+  if(axis.extend || (finite(pic.userMin) && finite(pic.userMax))) return;
+  abort("unextended axis called before draw");
+}
+
+void xaxis(bool ontop=false, picture pic=currentpicture, real xmin=-infinity,
+	   real xmax=infinity, pen p=currentpen, string s="",
+	   real position=infinity, real angle=0, pair align=0, pair shift=0,
+	   pair side=0, pen plabel=currentpen, axis axis=YZero,
+	   ticks ticks=NoTicks)
 {
   bool newticks=false;
   if(xmin != -infinity) {
@@ -835,7 +844,7 @@ void xaxis(picture pic=currentpicture, real xmin=-infinity, real xmax=infinity,
     axis.xdivisor=mx.divisor;
   } else autoscale(pic,axis);
   
-  axis(pic,axis);
+  checkaxis(pic,axis);
   
   if(xmin == -infinity) {
     if(pic.scale.x.automin()) {
@@ -853,18 +862,20 @@ void xaxis(picture pic=currentpicture, real xmin=-infinity, real xmax=infinity,
   if(align == 0) align=axis.align;
   if(side == 0) side=axis.side;
   
-  yequals(pic,axis.value.y,xmin,xmax,pic.scale.x.tickMin,pic.scale.x.tickMax,
-	  p,s,position,angle,align,shift,side,plabel,ticks,axis.xdivisor);
+  yequals(ontop,pic,axis.value.y,xmin,xmax,pic.scale.x.tickMin,
+	  pic.scale.x.tickMax,p,s,position,angle,align,shift,side,plabel,
+	  ticks,axis.xdivisor);
   if(axis.value2 != infinity)
-    yequals(pic,axis.value2.y,xmin,xmax,pic.scale.x.tickMin,
-	    pic.scale.x.tickMax,p,s,
-	    position,angle,align,shift,side,plabel,ticks,axis.xdivisor,true);
+    yequals(ontop,pic,axis.value2.y,xmin,xmax,pic.scale.x.tickMin,
+	    pic.scale.x.tickMax,p,s,position,angle,align,shift,side,plabel,
+	    ticks,axis.xdivisor,true);
 }
 
-void yaxis(picture pic=currentpicture, real ymin=-infinity, real ymax=infinity,
-	   pen p=currentpen, string s="", real position=infinity,
-	   real angle=infinity, pair align=0, pair shift=0, pair side=0,
-	   pen plabel=currentpen, axis axis=XZero, ticks ticks=NoTicks)
+void yaxis(bool ontop=false, picture pic=currentpicture, real ymin=-infinity,
+	   real ymax=infinity, pen p=currentpen, string s="",
+	   real position=infinity, real angle=infinity, pair align=0,
+	   pair shift=0, pair side=0, pen plabel=currentpen, axis axis=XZero,
+	   ticks ticks=NoTicks)
 {
   bool newticks=false;
   if(ymin != -infinity) {
@@ -883,7 +894,7 @@ void yaxis(picture pic=currentpicture, real ymin=-infinity, real ymax=infinity,
     axis.ydivisor=my.divisor;
   } else autoscale(pic,axis);
   
-  axis(pic,axis);
+  checkaxis(pic,axis);
   
   if(ymin == -infinity) {
     if(pic.scale.y.automin()) {
@@ -907,12 +918,13 @@ void yaxis(picture pic=currentpicture, real ymin=-infinity, real ymax=infinity,
     angle=length(max(f)-min(f)) > ylabelwidth*fontsize(plabel) ? 90 : 0;
   }
   
-  xequals(pic,axis.value.x,ymin,ymax,pic.scale.y.tickMin,pic.scale.y.tickMax,
-	  p,s,position,angle,align,shift,side,plabel,ticks,axis.ydivisor);
+  xequals(ontop,pic,axis.value.x,ymin,ymax,pic.scale.y.tickMin,
+	  pic.scale.y.tickMax,p,s,position,angle,align,shift,side,plabel,
+	  ticks,axis.ydivisor);
   if(axis.value2 != infinity)
-    xequals(pic,axis.value2.x,ymin,ymax,pic.scale.y.tickMin,
-	    pic.scale.y.tickMax,p,s,
-	    position,angle,align,shift,side,plabel,ticks,axis.ydivisor,true);
+    xequals(ontop,pic,axis.value2.x,ymin,ymax,pic.scale.y.tickMin,
+	    pic.scale.y.tickMax,p,s,position,angle,align,shift,side,plabel,
+	    ticks,axis.ydivisor,true);
 }
 
 void axes(picture pic=currentpicture, pen p=currentpen)

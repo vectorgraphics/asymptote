@@ -147,7 +147,8 @@ ty *array::pushType()
 
 ty *array::virtualFieldGetType(symbol *id)
 {
-  return id == symbol::trans("push") ? pushType() : ty::virtualFieldGetType(id);
+  return id == symbol::trans("push") ? pushType() : 
+    ty::virtualFieldGetType(id);
 }
 
 trans::varEntry *array::virtualField(symbol *id, signature *sig)

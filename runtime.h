@@ -225,6 +225,7 @@ void endclip(vm::stack *s);
 void gsave(vm::stack *s);
 void grestore(vm::stack *s);
 void add(vm::stack *s);
+void prepend(vm::stack *s);
 
 void postscript(vm::stack *s);
 void tex(vm::stack *s);
@@ -299,7 +300,7 @@ inline size_t checkArrays(vm::stack *s, vm::array *a, vm::array *b)
   
   size_t asize=(size_t) a->size();
   if(asize != (size_t) b->size())
-    vm::error(s,"array operation attempted on arrays of different lengths.");
+    vm::error(s,"operation attempted on arrays of different lengths.");
   return asize;
 }
   

@@ -1706,6 +1706,13 @@ void add(stack *s)
   to->add(*from);
 }
 
+void prepend(stack *s)
+{
+  picture *from = s->pop<picture*>();
+  picture *to = s->pop<picture*>();
+  to->prepend(*from);
+}
+
 void postscript(stack *s)
 {
   string t = pop<string>(s);

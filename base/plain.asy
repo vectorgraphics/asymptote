@@ -775,12 +775,12 @@ struct picture {
   // Returns the picture fit to the wanted size, aligned in direction dir
   frame fit(real xsize, real ysize, bool keepAspect=true, pair dir) {
     frame f=fit(xsize,ysize,keepAspect);
-    return shift(-abs(dir)*point(f,-dir))*f;
+    return shift(dir)*shift(-point(f,-dir))*f;
   }
 
   frame fit(pair dir) {
     frame f=fit();
-    return shift(-abs(dir)*point(f,-dir))*f;
+    return shift(dir)*shift(-point(f,-dir))*f;
   }
   
   // Copies the drawing information, but not the sizing information into a new

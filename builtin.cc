@@ -290,6 +290,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::gsave,primVoid(),"gsave",primPicture());
   addFunc(ve,run::grestore,primVoid(),"grestore",primPicture());
   addFunc(ve,run::add,primVoid(),"add",primPicture(),primPicture());
+  addFunc(ve,run::prepend,primVoid(),"prepend",primPicture(),primPicture());
   addFunc(ve,run::label,primVoid(),"_label",primPicture(),
 	  primString(),primReal(),primPair(),primPair(),primPen());
   addFunc(ve,run::image,primVoid(),"image",primPicture(),realArray2(),

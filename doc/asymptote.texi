@@ -2586,11 +2586,11 @@ An axis can be drawn on a picture with one of the following commands:
 
 @item
 @verbatim
-void xaxis(picture pic=currentpicture, real xmin=-infinity,
-           real xmax=infinity, pen p=currentpen, string s="",
-           real position=infinity, real angle=0, pair align=0,
-           pair shift=0, pair side=0, pen plabel=currentpen,
-           axis axis=YZero, ticks ticks=NoTicks);
+void xaxis(bool ontop=false, picture pic=currentpicture,
+           real xmin=-infinity, real xmax=infinity, pen p=currentpen,
+           string s="", real position=infinity, real angle=0,
+           pair align=0, pair shift=0, pair side=0,
+           pen plabel=currentpen, axis axis=YZero, ticks ticks=NoTicks);
 @end verbatim
 
 Draw an @math{x} axis on picture @code{pic} from @math{x}=@code{xmin} to
@@ -2600,8 +2600,9 @@ string @code{s} at relative location @code{position} (a real number from
 true shift @code{shift} (postscript coordinates), and pen @code{plabel}.
 An infinite value of @code{xmin} or @code{xmax} specifies
 that the corresponding axis limit will be automatically determined from the
-picture limits. The axis placement is determined by one of the
-following @code{axis} types:
+picture limits. If @code{ontop} is @code{false}, draw the axis before
+any existing objects in the current layer. The axis placement is
+determined by one of the following @code{axis} types:
 
 @table @code
 
@@ -2667,18 +2668,19 @@ requests a big tick at the end of the axis.
 
 @item
 @verbatim
-void yaxis(picture pic=currentpicture, real ymin=-infinity,
-           real ymax=infinity, pen p=currentpen, string s="",
-           real position=infinity, real angle=infinity, pair align=0,
-           pair shift=0, pair side=0, pen plabel=currentpen,
-           axis axis=XZero, ticks ticks=NoTicks);
+void yaxis(bool ontop=false, picture pic=currentpicture,
+           real ymin=-infinity, real ymax=infinity, pen p=currentpen,
+           string s="", real position=infinity, real angle=infinity,
+           pair align=0, pair shift=0, pair side=0,
+           pen plabel=currentpen, axis axis=XZero, ticks ticks=NoTicks);
 @end verbatim
 
 Draw a @math{y} axis on picture @code{pic} from @math{y}=@code{ymin} to
 @math{y}=@code{ymax} using pen @code{p}, optionally labelling it with
 string @code{s} at relative location @code{position} (a real number from
 [0,1]) using angle @code{angle}, alignment @code{align}, true shift
-@code{shift}, and pen @code{plabel}.
+@code{shift}, and pen @code{plabel}.  If @code{ontop} is @code{false},
+draw the axis before any existing objects in the current layer.
 The tick type is specified by @code{ticks} and the axis
 placement is determined by one of the following @code{axis} types:
 
@@ -2715,7 +2717,7 @@ The @code{XEquals(real X, bool extend=true)} and
 method for drawing axes at arbitrary locations. Nevertheless,
 for completeness, we also document the following internal routines:
 @verbatim
-void xequals(picture pic=currentpicture, real X,
+void xequals(bool ontop=false, picture pic=currentpicture, real X,
              real ymin=-infinity, real ymax=infinity, 
              real tickmin=-infinity, real tickmax=infinity,
              pen p=currentpen, string s="", real position=1,
@@ -2731,15 +2733,16 @@ optional tick minimum and maximum values @code{tickmin} and
 string @code{s} at relative location @code{position} (a real number
 from [0,1]) using angle @code{angle}, alignment @code{align}, true
 shift @code{shift} on side @code{side} of the axis, and pen
-@code{plabel}. The tick type is specified by @code{ticks} and the
-integer array @code{divisor} specifies what tick divisors to try for
-producing uncrowded tick labels. A @code{true} value for the flag
-@code{opposite} identifies an unlabelled secondary axis (typically
-drawn opposite to a primary axis). 
+@code{plabel}. If @code{ontop} is @code{false}, draw the axis before
+any existing objects in the current layer. The tick type is specified
+by @code{ticks} and the integer array @code{divisor} specifies what
+tick divisors to try for producing uncrowded tick labels.
+A @code{true} value for the flag @code{opposite} identifies an
+unlabelled secondary axis (typically drawn opposite to a primary axis). 
 
 @item
 @verbatim
-void yequals(picture pic=currentpicture, real Y,
+void yequals(bool ontop=false, picture pic=currentpicture, real Y,
              real xmin=-infinity, real xmax=infinity,
              real tickmin=-infinity, real tickmax=infinity,
              pen p=currentpen, string s="", real position=1,
