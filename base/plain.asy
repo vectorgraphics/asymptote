@@ -1530,8 +1530,7 @@ string baseline(string s, pair align=S, string template="M")
 {
   if(s == "") return s;
   return align.y <= -0.5*abs(align.x) ? 
-    "\setbox\ASYbox=\hbox{"+template+"}\ASYdimen=\ht\ASYbox%
-\setbox\ASYbox=\hbox{"+s+"}\lower\ASYdimen\box\ASYbox" : s;
+    "\ASYalign{"+template+"}{"+s+"}" : s;
 }
 
 string math(string s)
