@@ -314,7 +314,7 @@ bool castable(ty *target, ty *source)
 ty *castType(ty *target, ty *source)
 {
   // If errors already exist, don't report more.
-  // This may, however, cause problems with resoving the signature of an
+  // This may, however, cause problems with resolving the signature of an
   // overloaded function to use.  The abstract syntax should check if any
   // of the parameters had an error before finding the signature.
   if (target->kind == ty_error || source->kind == ty_error)
