@@ -9,8 +9,8 @@ pair zf=z1+0.75*(z2-z1);
 draw(z1--z2);
 dot(z1,red+0.15cm);
 dot(z2,darkgreen+0.3cm);
-label("$m$",z1,1.5N,red);
-label("$M$",z2,2N,darkgreen);
+label("$m$",z1,1.2N,red);
+label("$M$",z2,1.5N,darkgreen);
 label("$\hat{\ }$",zf,0.2*S,fontsize(24)+blue);
 
 pair s=-0.2*I;
