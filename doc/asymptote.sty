@@ -1,7 +1,7 @@
 %%% Asymptote style file for LaTeX
 %%% Contributed by Tom Prince 14 May 2003
 %%% Modified by John Bowman
-%%% Copied from comment.sty (Under GPL v2)
+%%% Adapted from comment.sty (Under GPL v2)
 
 \RequirePackage{graphics}
 
@@ -13,47 +13,47 @@
 \immediate\openout\AsyStream=\AsyFile
 \newcounter{asy}
 
-\def\ProcessComment#1% start it all off
+\def\ProcessAsymptote#1% start it all off
 {\begingroup
-  \def\CurrentComment{#1}%
+  \def\CurrentAsymptote{#1}%
   \let\do\makeinnocent \dospecials 
   \makeinnocent\^^L% and whatever other special cases
-  \endlinechar`\^^M \catcode`\^^M=12 \xComment}
+  \endlinechar`\^^M \catcode`\^^M=12 \xAsymptote}
 {\catcode`\^^M=12 \endlinechar=-1 %
-  \gdef\xComment{%
-    \expandafter\ProcessCommentLine}
-  \gdef\ProcessCommentLine#1^^M{\def\test{#1}
-    \csarg\ifx{End\CurrentComment Test}\test
-    \edef\next{\noexpand\EndOfComment{\CurrentComment}}%
-    \else \ThisComment{#1}\let\next\ProcessCommentLine
+  \gdef\xAsymptote{%
+    \expandafter\ProcessAsymptoteLine}
+  \gdef\ProcessAsymptoteLine#1^^M{\def\test{#1}
+    \csarg\ifx{End\CurrentAsymptote Test}\test
+    \edef\next{\noexpand\EndOfAsymptote{\CurrentAsymptote}}%
+    \else \ThisAsymptote{#1}\let\next\ProcessAsymptoteLine
     \fi \next}
 }
 
-\def\CSstringmeaning#1{\expandafter\CSgobblearrow\meaning#1}
-\def\CSstringcsnoescape#1{\expandafter\CSgobbleescape\string#1}
+\def\ASYstringmeaning#1{\expandafter\ASYgobblearrow\meaning#1}
+\def\ASYstringcsnoescape#1{\expandafter\ASYgobbleescape\string#1}
 {\escapechar-1
   \expandafter\expandafter\expandafter\gdef
-  \expandafter\expandafter\expandafter\CSgobblearrow
+  \expandafter\expandafter\expandafter\ASYgobblearrow
   \expandafter\string\csname macro:->\endcsname{}
 }
-\def\CSgobbleescape#1{\ifnum`\\=`#1 \else #1\fi}
-\def\WriteAsyLine#1{\def\CStmp{#1}%
-  \immediate\write\AsyStream{\CSstringmeaning\CStmp}}
+\def\ASYgobbleescape#1{\ifnum`\\=`#1 \else #1\fi}
+\def\WriteAsyLine#1{\def\ASYtmp{#1}%
+  \immediate\write\AsyStream{\ASYstringmeaning\ASYtmp}}
 \def\gedefappend#1#2{%
   \toks@ = \expandafter{#1}%
   \global\edef#1{\the\toks@ #2}%
 }%
-\def\globalasydefs{}
-\def\WriteGlobalAsyLine#1{\def\CStmp{#1^^J}%
-\gedefappend\globalasydefs{\CSstringmeaning\CStmp}}
+\def\globalASYdefs{}
+\def\WriteGlobalAsyLine#1{\def\ASYtmp{#1^^J}%
+\gedefappend\globalASYdefs{\ASYstringmeaning\ASYtmp}}
 
-\def\EndOfComment#1{\endgroup\end{#1}%
-    \csname After#1Comment\endcsname}
-\def\CommentEndDef#1{{\escapechar=-1\relax
+\def\EndOfAsymptote#1{\endgroup\end{#1}%
+    \csname After#1Asymptote\endcsname}
+\def\AsymptoteEndDef#1{{\escapechar=-1\relax
     \csarg\xdef{End#1Test}{\string\\end\string\{#1\string\}}%
   }}
 
-\def\AfterasyComment{%
+\def\AfterasyAsymptote{%
   \immediate\write\AsyStream{\@charrb}%
   \openin\EpsTestStream= \jobname.\arabic{asy}.eps
   \ifeof\EpsTestStream
@@ -64,8 +64,8 @@
   \fi
   \relax%
   \endgroup}
-\newcommand\asydefaultsize{\the\linewidth,0,Aspect}
-\newcommand\asy[1][\asydefaultsize]{%
+\newcommand\ASYdefaultsize{\the\linewidth,0,Aspect}
+\newcommand\asy[1][\ASYdefaultsize]{%
   \begingroup
   \let\par\empty
   \stepcounter{asy}%
@@ -75,19 +75,19 @@
    \immediate\write\AsyStream{defaultpen();}%
    \immediate\write\AsyStream{defaultfilename="\jobname.\arabic{asy}.eps";}%
   \ifx\@optarg\empty
-   \immediate\write\AsyStream{size(\asydefaultsize);}%
+   \immediate\write\AsyStream{size(\ASYdefaultsize);}%
   \else
     \immediate\write\AsyStream{size(#1);}%
   \fi
-  \immediate\write\AsyStream{\globalasydefs}%
-  \let\ThisComment\WriteAsyLine%
-  \ProcessComment{asy}}
-\CommentEndDef{asy}
-\def\AfterasydefComment{\relax}
+  \immediate\write\AsyStream{\globalASYdefs}%
+  \let\ThisAsymptote\WriteAsyLine%
+  \ProcessAsymptote{asy}}
+\AsymptoteEndDef{asy}
+\def\AfterasydefAsymptote{\relax}
 \def\asydef{%
-  \let\ThisComment\WriteGlobalAsyLine%
-  \ProcessComment{asydef}}
-\CommentEndDef{asydef}
+  \let\ThisAsymptote\WriteGlobalAsyLine%
+  \ProcessAsymptote{asydef}}
+\AsymptoteEndDef{asydef}
 
 \AtEndDocument{\immediate\closeout\AsyStream}
 

@@ -15,11 +15,11 @@ perpendicular(z3,N,blue);
 
 real d=0.3;
 pair v=unit(z2-z1);
-draw(baseline("$a$"),-d*I--z2-d*I,red,Bars,Arrows);
-draw(baseline("$b$"),z2-d*I--z3-d*I,red,Arrows,Bars);
-draw("$c$",z3+z2*I-d*v--z2-d*v,red,Arrows);
-draw("$a$",z3+d--z3+z2*I+d,red,Arrows,Bars);
-draw("$b$",z3+z2*I+d--z3+z3*I+d,red,Arrows,Bars);
+draw(baseline("$a$"),-d*I--z2-d*I,red,Bars,Arrows,PenMargins);
+draw(baseline("$b$"),z2-d*I--z3-d*I,red,Arrows,Bars,PenMargins);
+draw("$c$",z3+z2*I-d*v--z2-d*v,red,Arrows,PenMargins);
+draw("$a$",z3+d--z3+z2*I+d,red,Arrows,Bars,PenMargins);
+draw("$b$",z3+z2*I+d--z3+z3*I+d,red,Arrows,Bars,PenMargins);
 
 shipout();
 

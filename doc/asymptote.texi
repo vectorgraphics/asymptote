@@ -3271,8 +3271,9 @@ degrees), at user coordinate @code{position}, aligned with the vector
 (compass direction) @code{align} and @code{PostScript} coordinate
 translation @code{shift}, using pen @code{p}. If @code{align} is 0,
 the label will be centered at @code{position}; otherwise it will be
-aligned at @code{position+align*labelmargin(p)} in the direction given
-by @code{Angle(align)}.
+aligned in the direction of @code{align} and displaced from
+the user coordinate @code{position} by the @code{PostScript} offset
+@code{align*labelmargin*fontsize(p)}.
 
 A label with an arrow can be produced with one of the following routines:
 @cindex @code{arrow}

@@ -71,8 +71,8 @@ install-asy: asy
 	${INSTALL} -s $(NAME) $(bindir)
 	${INSTALL} $(XNAME) $(bindir)
 	${INSTALL} -m644 base/*.asy $(asydir)
-	${INSTALL} -m644 examples/*.asy base/asy* doc/*.asy doc/*.csv \
-		$(exampledir)
+	${INSTALL} -m644 examples/*.asy base/asy* \
+		doc/*.asy doc/*.csv examples/latexusage.tex $(exampledir)
 	${INSTALL} -m644 doc/asymptote.sty $(latexdir)
 	texhash
 
@@ -84,7 +84,7 @@ uninstall: uninstall-all
 uninstall-all: uninstall-man uninstall-asy
 
 uninstall-asy:
-	-cd $(exampledir); rm -f *.asy *.csv asy*
+	-cd $(exampledir); rm -f *.asy *.csv asy* latexusage.tex
 	-rmdir $(exampledir)
 	-cd $(asydir); rm -f *.asy
 	-rmdir $(asydir)

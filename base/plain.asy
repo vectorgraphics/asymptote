@@ -822,6 +822,75 @@ guide box(pair a, pair b)
   return a--(a.x,b.y)--b--(b.x,a.y)--cycle;
 }
 
+real labelmargin(pen p=currentpen)
+{
+  return labelmargin*fontsize(p);
+}
+
+private struct marginT {
+  public real begin,end;
+  public bool forwards=true;
+};
+public marginT margin=new marginT;
+
+typedef path margin(path, pen, marginT);
+
+path trim(path g, real begin, real end) {
+  real a=arctime(g,begin);
+  real b=arctime(g,arclength(g)-end);
+  return a <= b ? subpath(g,a,b) : point(g,a);
+}
+
+margin NoMargin()
+{ 
+  return new path(path g, pen, marginT margin) {
+    margin.begin=margin.end=0;
+    return g;
+  };
+}
+						      
+margin Margin(real begin, real end)
+{ 
+  return new path(path g, pen p, marginT margin) {
+    real factor=labelmargin(p);
+    margin.begin=begin*factor;
+    margin.end=end*factor;
+    return margin.forwards ? trim(g,margin.begin,margin.end) : 
+      trim(g,margin.end,margin.begin);
+  };
+}
+							   
+margin PenMargin(real begin, real end)
+{ 
+  return new path(path g, pen p, marginT margin) {
+    real factor=linewidth(p);
+    margin.begin=begin*factor;
+    margin.end=end*factor;
+    return margin.forwards ? trim(g,margin.begin,margin.end) :
+      trim(g,margin.end,margin.begin);
+  };
+}
+						      
+margin TrueMargin(real begin, real end)
+{ 
+  margin.begin=begin;
+  margin.end=end;
+  return new path(path g, pen p, marginT margin) {
+    return margin.forwards ? trim(g,begin,end) : trim(g,end,begin);
+  };
+}
+						      
+public margin
+  NoMargin=NoMargin(),
+  BeginMargin=Margin(1,0),
+  Margin=Margin(0,1),
+  EndMargin=Margin,
+  Margins=Margin(1,1),
+  BeginPenMargin=PenMargin(1,0),
+  PenMargin=PenMargin(0,1),
+  EndPenMargin=PenMargin,
+  PenMargins=PenMargin(1,1);
+
 void draw(frame f, path g)
 {
   draw(f,g,currentpen);
@@ -832,10 +901,12 @@ void draw(frame f, path[] g, pen p=currentpen)
   for(int i=0; i < g.length; ++i) draw(f,g[i],p);
 }
 
-void _draw(picture pic=currentpicture, path g, pen p=currentpen)
+void _draw(picture pic=currentpicture, path g, pen p=currentpen,
+	   margin margin=NoMargin)
+ 
 {
   pic.add(new void (frame f, transform t) {
-    draw(f,t*g,p);
+    draw(f,margin(t*g,p,margin),p);
     });
   pic.addPath(g,p);
 }
@@ -847,10 +918,10 @@ void draw(picture pic=currentpicture, path[] g, pen p=currentpen)
 
 // truesize draw about origin
 void _drawabout(pair origin, picture pic=currentpicture, path g,
-		pen p=currentpen)
+		pen p=currentpen, margin margin=NoMargin)
 {
   picture opic=new picture;
-  _draw(opic,g,p);
+  _draw(opic,g,p,margin);
   addabout(origin,pic,opic);
 }
   
@@ -984,11 +1055,6 @@ void unfill(picture pic=currentpicture, path[] g)
   });
 }
 
-real labelmargin(pen p=currentpen)
-{
-  return labelmargin*fontsize(p);
-}
-
 void label(frame f, string s, real angle=0, pair position,
 	   pair align=0, pen p=currentpen)
 {
@@ -1030,8 +1096,8 @@ transform rotate(real a)
   return rotate(a,0);
 }
 
-guide arrowhead(picture pic=currentpicture, path g, real position=infinity,
-		pen p=currentpen, real size=arrowsize, real angle=arrowangle)
+guide arrowhead(path g, real position=infinity, pen p=currentpen,
+		real size=arrowsize, real angle=arrowangle)
 {
   path r=subpath(g,position,0.0);
   pair x=point(r,0);
@@ -1087,22 +1153,42 @@ public Filltype
     _draw(pic,g,p);
 };
 
+void arrow(frame f, path G, pen p=currentpen, real size=arrowsize,
+	   real angle=arrowangle, filltype filltype=Fill,
+	   real position=infinity, margin margin=NoMargin)
+{
+  G=margin(G,p,margin);
+  path R=subpath(G,position,0.0);
+  path S=subpath(G,position,length(G));
+  size=min(arclength(G),size);
+  draw(f,subpath(R,arctime(R,size),length(R)),p);
+  draw(f,S,p);
+  guide head=arrowhead(G,position,p,size,angle);
+  filltype(f,head,p,filltype);
+}
+
+void arrow2(frame f, path G, pen p=currentpen, real size=arrowsize,
+	    real angle=arrowangle, filltype filltype=Fill,
+	    margin margin=NoMargin)
+{
+  G=margin(G,p,margin);
+  path R=reverse(G);
+  size=min(0.5*arclength(G),size);
+  draw(f,subpath(R,arctime(R,size),length(R)-arctime(G,size)),p);
+  guide head=arrowhead(G,p,size,angle);
+  guide tail=arrowhead(R,p,size,angle);
+  filltype(f,head,p,filltype);
+  filltype(f,tail,p,filltype);
+}
+
 picture arrow(path g, pen p=currentpen, real size=arrowsize,
 	      real angle=arrowangle, filltype filltype=Fill,
-	      real position=infinity)
+	      real position=infinity, margin margin=NoMargin)
 {
   picture pic=new picture;
   pic.add(new void (frame f, transform t) {
-            picture pic=new picture;
-	    path G=t*g;
-	    path R=subpath(G,position,0.0);
-	    path S=subpath(G,position,length(G));
-	    size=min(arclength(G),size);
-            draw(f,subpath(R,arctime(R,size),length(R)),p);
-            draw(f,S,p);
-	    guide head=arrowhead(pic,G,position,p,size,angle);
-	    filltype(f,head,p,filltype);
-          });
+    arrow(f,t*g,p,size,angle,filltype,position,margin);
+  });
   
   pic.addPath(g,p);
   arrowheadbbox(pic,g,position,p,size,angle);
@@ -1110,20 +1196,13 @@ picture arrow(path g, pen p=currentpen, real size=arrowsize,
 }
 
 picture arrow2(path g, pen p=currentpen, real size=arrowsize,
-	       real angle=arrowangle, filltype filltype=Fill)
+	       real angle=arrowangle, filltype filltype=Fill,
+	       margin margin=NoMargin)
 {
   picture pic=new picture;
   pic.add(new void (frame f, transform t) {
-            picture pic=new picture;
-	    path G=t*g;
-	    path R=reverse(G);
-	    size=min(0.5*arclength(G),size);
-            draw(f,subpath(R,arctime(R,size),length(R)-arctime(G,size)),p);
-	    guide head=arrowhead(pic,G,p,size,angle);
-	    guide tail=arrowhead(pic,R,p,size,angle);
-	    filltype(f,head,p,filltype);
-	    filltype(f,tail,p,filltype);
-          });
+    arrow2(f,t*g,p,size,angle,filltype,margin);
+  });
   
   pic.addPath(g,p);
   arrowheadbbox(pic,g,p,size,angle);
@@ -1472,9 +1551,10 @@ void labeldot(picture pic=currentpicture, string s="", real angle=0,
 
 void arrow(picture pic=currentpicture, string s, real angle=0, pair shift=0,
 	   path g, pen p=currentpen, real size=arrowsize,
-	   real Angle=arrowangle, filltype filltype=Fill)
+	   real Angle=arrowangle, filltype filltype=Fill,
+	   margin margin=NoMargin)
 {
-  add(pic,arrow(g,p,size,Angle,filltype));
+  add(pic,arrow(g,p,size,Angle,filltype,margin));
   pair a=point(g,0);
   pair b=point(g,1);
   label(pic,s,angle,a,unit(a-b),shift,p);
@@ -1538,7 +1618,7 @@ guide arc(pair c, explicit pair z1, explicit pair z2, direction direction=CCW)
   return arc(c,abs(z1-c),Angle(z1-c),Angle(z2-c),direction);
 }
 
-picture bar(pair a, pair d, pen p=currentpen)
+picture bar(pair a, pair d, pen p=currentpen, margin margin=NoMargin)
 {
   picture pic=new picture;
   _drawabout(a,pic,-0.5d--0.5d,p+solid);
@@ -1548,37 +1628,42 @@ picture bar(pair a, pair d, pen p=currentpen)
 private struct arrowbarT {
   public bool drawpath=true;
 };
-public arrowbarT arrowbar=null;
+public arrowbarT arrowbar=new arrowbarT;
 
-typedef void arrowbar(picture, path, pen, arrowbarT);
+typedef void arrowbar(picture, path, pen, margin, arrowbarT);
 
 arrowbar Blank()
 {
-  return new void(picture pic, path g, pen p, arrowbarT arrowbar) {
+  return new void(picture pic, path g, pen p, margin margin,
+		  arrowbarT arrowbar) {
     arrowbar.drawpath=false;
   };	
 }
 
 arrowbar None()
 {
-  return new void(picture pic, path g, pen p, arrowbarT arrowbar) {};	
+  return new void(picture pic, path g, pen p, margin margin,
+		  arrowbarT arrowbar) {};	
 }
 
 arrowbar BeginArrow(real size=arrowsize, real angle=arrowangle,
 		    filltype filltype=Fill, real position=infinity)
 {
-  return new void(picture pic, path g, pen p, arrowbarT arrowbar) {
+  return new void(picture pic, path g, pen p, margin margin,
+		  arrowbarT arrowbar) {
     arrowbar.drawpath=false;
-    add(pic,arrow(reverse(g),p,size,angle,filltype,position));
+    margin.forwards=false;
+    add(pic,arrow(reverse(g),p,size,angle,filltype,position,margin));
   };
 }
 
 arrowbar Arrow(real size=arrowsize, real angle=arrowangle,
 	       filltype filltype=Fill, real position=infinity)
 {
-  return new void(picture pic, path g, pen p, arrowbarT arrowbar) {
+  return new void(picture pic, path g, pen p, margin margin,
+		  arrowbarT arrowbar) {
     arrowbar.drawpath=false;
-    add(pic,arrow(g,p,size,angle,filltype,position));
+    add(pic,arrow(g,p,size,angle,filltype,position,margin));
   };
 }
 
@@ -1591,9 +1676,10 @@ arrowbar EndArrow(real size=arrowsize, real angle=arrowangle,
 arrowbar Arrows(real size=arrowsize, real angle=arrowangle,
 		filltype filltype=Fill, real position=infinity)
 {
-  return new void(picture pic, path g, pen p, arrowbarT arrowbar) {
+  return new void(picture pic, path g, pen p, margin margin,
+		  arrowbarT arrowbar) {
     arrowbar.drawpath=false;
-    add(pic,arrow2(g,p,size,angle,filltype));
+    add(pic,arrow2(g,p,size,angle,filltype,margin));
   };
 }
 
@@ -1623,14 +1709,15 @@ arrowbar ArcArrows(real size=arcarrowsize, real angle=arcarrowangle,
   
 arrowbar BeginBar(real size=barsize) 
 {
-  return new void(picture pic, path g, pen p, arrowbarT) {
-    add(pic,bar(point(g,0),size*dir(g,0)*I,p));
+  return new void(picture pic, path g, pen p, margin margin, arrowbarT) {
+    add(pic,bar(point(g,0),size*dir(g,0)*I,p,margin));
   };
 }
 
 arrowbar Bar(real size=barsize) 
 {
-  return new void(picture pic, path g, pen p, arrowbarT) {
+  return new void(picture pic, path g, pen p, margin margin,
+		  arrowbarT) {
     int L=length(g);
     add(pic,bar(point(g,L),size*dir(g,L)*I,p));
   };
@@ -1643,9 +1730,10 @@ arrowbar EndBar(real size=barsize)
 
 arrowbar Bars(real size=barsize) 
 {
-  return new void(picture pic, path g, pen p, arrowbarT) {
-    BeginBar(size)(pic,g,p,arrowbar);
-    EndBar(size)(pic,g,p,arrowbar);
+  return new void(picture pic, path g, pen p, margin margin,
+		  arrowbarT) {
+    BeginBar(size)(pic,g,p,margin,arrowbar);
+    EndBar(size)(pic,g,p,margin,arrowbar);
   };
 }
 
@@ -1668,13 +1756,14 @@ public arrowbar
 void draw(picture pic=currentpicture, string s="", real angle=0,
 	  path g, real position=infinity, pair align=0, pair shift=0,
 	  side side=RightSide, pen p=currentpen,
-	  arrowbar arrow=None, arrowbar bar=None, string legend="")
+	  arrowbar arrow=None, arrowbar bar=None, string legend="",
+	  margin margin=NoMargin)
 {
   arrowbarT arrowbar=new arrowbarT;
   if(s != "") label(pic,s,angle,g,position,align,shift,side,p);
-  bar(pic,g,p,arrowbar);
-  arrow(pic,g,p,arrowbar);
-  if(arrowbar.drawpath) _draw(pic,g,p);
+  bar(pic,g,p,margin,arrowbar);
+  arrow(pic,g,p,margin,arrowbar);
+  if(arrowbar.drawpath) _draw(pic,g,p,margin);
   if(legend != "") {
     Legend L=new Legend; L.label=legend; L.p=p;
     pic.legend.push(L);
@@ -1685,27 +1774,26 @@ void draw(picture pic=currentpicture, string s="", real angle=0,
 void drawabout(pair origin, picture pic=currentpicture, string s="",
 	       real angle=0, path g, real position=infinity, pair align=0,
 	       pair shift=0, side side=RightSide, pen p=currentpen,
-	       arrowbar arrow=None, arrowbar bar=None)
+	       arrowbar arrow=None, arrowbar bar=None, string legend="",
+	       margin margin=NoMargin)
 {
   picture opic=new picture;
-  draw(opic,s,angle,g,position,align,shift,side,p,arrow,bar);
+  draw(opic,s,angle,g,position,align,shift,side,p,arrow,bar,legend,margin);
   addabout(origin,pic,opic);
 }
 
 void arrow(picture pic=currentpicture, string s="", real angle=0,
-	   pair b, pair align, real length=arrowlength, pair shift=0,
-	   pen p=currentpen, real size=arrowsize, real Angle=arrowangle,
-	   filltype filltype=Fill)
+	   pair b, pair align, real length=arrowlength, real position=infinity,
+	   pair shift=0, pen p=currentpen, real size=arrowsize,
+	   real Angle=arrowangle, filltype filltype=Fill,
+	   margin margin=EndMargin)
 {
-  pair a,c;
-  pair dir=unit(align);
-  if(s == "") {
-    a=0; c=length*dir;
-  } else {
-    c=labelmargin(p)*dir;
-    a=length*dir+c;
-  }
-  drawabout(b,pic,s,angle,a--c,0.0,align,shift,p,Arrow(size,Angle,filltype));
+  if(position == infinity) position=0;
+  marginT margin=new marginT;
+  margin(b--b,p,margin); // Extract margin.begin and margin.end  
+  pair a=(margin.begin+length+margin.end)*unit(align);
+  drawabout(b,pic,s,angle,a--(0,0),0.0,align,shift,p,
+	    Arrow(size,Angle,filltype),margin);
 }
 
 string substr(string s, int pos)
@@ -1817,7 +1905,7 @@ int find(bool[] a) {return find(a,1);}
 pair relative(picture pic=currentpicture, pair z)
 {
   pair w=(pic.userMax-pic.userMin);
-  return pic.userMin+(z.x*w.x,z.y*w.y);
+  return pic.userMin+Dot(z,w);
 }
 
 void pause(string w="Hit enter to continue") 

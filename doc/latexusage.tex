@@ -78,26 +78,25 @@ draw((0,0)--graph(g,0,1,Spline)--(1,0),dotted);
 
 real x=0.5;
 pair c=(4,0);
-draw(F(x)--c+(0,f(x)),dashed+red);
-draw(G(x)--c+(0,g(x)),dashed+red);
-
-arrow("$y=\sqrt{x}$",F(0.7),N);
 
 transform T=xscale(0.5);
 drawabout((2.695,0),T*arc(0,0.30cm,20,340),ArcArrow);
+fill(shift(c)*T*circle(0,-f(x)),red+white);
+draw(F(x)--c+(0,f(x)),dashed+red);
+draw(G(x)--c+(0,g(x)),dashed+red);
 
 labeldot((1,1));
+arrow("$y=\sqrt{x}$",F(0.7),N);
 
-fill(shift(c)*T*circle(0,-f(x)),red+white);
 arrow((3,0.5*f(x)),W,1cm,red);
 arrow((3,-0.5*f(x)),W,1cm,red);
 
 xaxis(0,c.x,dashed,"$x$");
 yaxis("$y$");
 
-draw("$r$",(x,0)--F(x),E,red,Arrows,BeginBar);
-draw("$r$",(x,0)--G(x),E,red,Arrows,BeginBar);
-draw("$r$",c--c+(0,f(x)),Arrow);
+draw("$r$",(x,0)--F(x),E,red,Arrows,BeginBar,PenMargins);
+draw("$r$",(x,0)--G(x),E,red,Arrows,BeginBar,PenMargins);
+draw("$r$",c--c+(0,f(x)),Arrow,PenMargin);
 dot(c);
 shipout();
 \end{asy}
