@@ -39,6 +39,13 @@
 \def\CSgobbleescape#1{\ifnum`\\=`#1 \else #1\fi}
 \def\WriteAsyLine#1{\def\CStmp{#1}%
   \immediate\write\AsyStream{\CSstringmeaning\CStmp}}
+\def\gedefappend#1#2{%
+  \toks@ = \expandafter{#1}%
+  \global\edef#1{\the\toks@ #2}%
+}%
+\def\globalasydefs{}
+\def\WriteGlobalAsyLine#1{\def\CStmp{#1^^J}%
+\gedefappend\globalasydefs{\CSstringmeaning\CStmp}}
 
 \def\EndOfComment#1{\endgroup\end{#1}%
     \csname After#1Comment\endcsname}
@@ -72,12 +79,13 @@
   \else
     \immediate\write\AsyStream{size(#1);}%
   \fi
+  \immediate\write\AsyStream{\globalasydefs}%
   \let\ThisComment\WriteAsyLine%
   \ProcessComment{asy}}
 \CommentEndDef{asy}
 \def\AfterasydefComment{\relax}
 \def\asydef{%
-  \let\ThisComment\WriteAsyLine%
+  \let\ThisComment\WriteGlobalAsyLine%
   \ProcessComment{asydef}}
 \CommentEndDef{asydef}
 
@@ -89,4 +97,3 @@
 %%% mode: latex
 %%% TeX-master: "shared"
 %%% End: 
-
