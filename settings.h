@@ -17,6 +17,7 @@
 namespace settings {
   extern const char PROGRAM[];
   extern const char VERSION[];
+  extern const char BUGREPORT[];
 
   extern std::string outformat;
   extern int keep;

@@ -1,6 +1,15 @@
 #include <iostream>
 #include <cfloat>
 #include <csignal>
+#include <cstdlib>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_LIBSIGSEGV
+#include "sigsegv.h"
+#endif
 
 #include "types.h"
 #include "errormsg.h"
@@ -27,17 +36,41 @@ using interact::interactive;
 using interact::virtualEOF;
 using interact::rejectline;
 
+#ifdef HAVE_LIBSIGSEGV
+void stackoverflow_handler (int, stackoverflow_context_t)
+{
+  em->runtime(lastpos);
+  cout << "Stack overflow" << endl;
+  abort();
+}
+
+int sigsegv_handler (void *, int emergency)
+{
+  if(!emergency) return 0; // Really a stack overflow
+  em->runtime(lastpos);
+  cout << "Segmentation fault" << endl;
+  cout << "Please report this programming error to " << BUGREPORT << endl;
+  abort();
+}
+#endif 
+
 void setsignal(RETSIGTYPE (*handler)(int))
 {
+#ifdef HAVE_LIBSIGSEGV
+  char mystack[16384];
+  if(stackoverflow_install_handler(&stackoverflow_handler,
+				   mystack,sizeof (mystack)) < 0) exit(1);
+  if(sigsegv_install_handler (&sigsegv_handler) < 0) exit (1);
+#endif
   signal(SIGBUS,handler);
   signal(SIGFPE,handler);
-  signal(SIGSEGV,handler);
 }
 
 void signalHandler(int)
 {
   em->runtime(lastpos);
-  setsignal(SIG_DFL);
+  signal(SIGBUS,SIG_DFL);
+  signal(SIGFPE,SIG_DFL);
 }
 
 int main(int argc, char *argv[])

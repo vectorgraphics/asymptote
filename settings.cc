@@ -36,6 +36,7 @@ using std::string;
 namespace settings {
 const char PROGRAM[]=PACKAGE_NAME;
 const char VERSION[]=PACKAGE_VERSION;
+const char BUGREPORT[]=PACKAGE_BUGREPORT;
 
 string outformat="eps";
 int keep=0;

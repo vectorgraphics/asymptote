@@ -21,6 +21,7 @@ AC_PROG_LEX
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_CC
+AC_PROG_MAKE_SET
 
 AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
 			   [Define if getopt.h is the GNU version]),)
@@ -42,6 +43,7 @@ AC_CHECK_HEADER([boost/shared_ptr.hpp],,
 AC_CHECK_LIB([curses], [tparm])
 AC_CHECK_LIB([m], [sqrt])
 AC_CHECK_LIB([readline], [readline])
+AC_CHECK_LIB([sigsegv], [stackoverflow_install_handler])
 
 # Checks for header files.
 AC_HEADER_SYS_WAIT
