@@ -131,9 +131,9 @@ pair extension(pair P, pair Q, pair p, pair q)
   real Dy=(Q.y-P.y);
   real dx=(q.x-p.x);
   real dy=(q.y-p.y);
-  if(Dx == 0 || dx == 0) {
+  if(abs(Dx) <= abs(Dy) || abs(dx) <= abs(dy)) {
     if(Dx == 0 && dy == 0) return (P.x,p.y);
-    if(Dy == 0 && dx == 0) return (p.x,P.y);
+    if(dx == 0 && Dy == 0) return (p.x,P.y);
     if((Dx == 0 && Dy == 0) || (dx == 0 && dy == 0))
       return (infinity,infinity);
     real M=Dx/Dy;

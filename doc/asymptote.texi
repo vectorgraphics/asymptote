@@ -2710,11 +2710,15 @@ Here are some simple examples of two-dimensional graphs:
 @image{lineargraph}
 
 
-@cindex @code{dot}
+@cindex @code{polygon}
+@cindex @code{cross}
 @cindex @code{errorbars}
 @item The next example draws a graph of an array of coordinate pairs,
 using the routine @code{dot} to place a dot at each node of the resulting path.
-It also illustrates the use of the @code{errorbar} routines:
+It also illustrates the use of data markers (constructed with
+@code{unitcircle}, the unit @math{n}-sided regular polygon 
+@code{polygon(int n)}, and the unit @math{n}-point cross 
+@code{cross(int n)}) and the @code{errorbar} routines:
 
 @verbatim
 void errorbars(picture pic=currentpicture, pair[] z, pair[] dp,
