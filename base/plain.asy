@@ -398,9 +398,9 @@ struct picture {
   
   void add(drawer d) {
     uptodate(false);
-    add(new void (frame f, transform t, transform T0, pair, pair) {
+    add(new void (frame f, transform t, transform T, pair, pair) {
       frame F;
-      build(F,d,t*T0);
+      build(F,d,t*T);
       add(f,F);
     });
   }
@@ -411,7 +411,7 @@ struct picture {
       xcoords[i].clip(userMin.x,userMax.x);
       ycoords[i].clip(userMin.y,userMax.y);
     }
-    add(new void (frame f, transform t, transform T, pair, pair) {
+    add(new void (frame f, transform t, transform, pair, pair) {
       d(f,t);
     });
   }
@@ -637,6 +637,7 @@ struct picture {
     // Copy the picture.  Only the drawing function closures are needed, so we
     // only copy them.  This needs to be a deep copy, as src could later have
     // objects added to it that should not be included in this picture.
+
     picture src_copy=src.drawcopy();
 
     // Draw by drawing the copied picture.
@@ -645,7 +646,7 @@ struct picture {
 	if(GUIDelete()) return;
 	T=GUI(T);
       }
-      frame d=T*src_copy.fit(t,src_copy.T,m,M);
+     frame d=src_copy.fit(t,T*src_copy.T,m,M);
      if(deconstruct && !src.deconstruct) deconstruct(d);
      add(f,d);
      for(int i=0; i < src.legend.length; ++i)
@@ -822,11 +823,11 @@ void label(frame f, string s, real angle=0, pair position,
 }
 
 void label(picture pic=currentpicture, string s, real angle=0, pair position,
-	   pair align=0, pen p=currentpen)
+	   pair align=0, pair shift=0, pen p=currentpen)
 {
   pic.add(new void (frame f, transform t) {
     pair offset=t*0;
-    label(f,s,Angle(t*dir(angle)-offset),t*position,
+    label(f,s,Angle(t*dir(angle)-offset),t*position+shift,
 	  length(align)*unit(t*align-offset),p);
     });
   frame f;
@@ -1012,14 +1013,15 @@ frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
 
 void labelbox(picture pic=currentpicture, real xmargin=0,
 	      real ymargin=infinity, string s, real angle=0, pair position,
-	      pair align=0, pen p=currentpen, pen pbox=currentpen) 
+	      pair align=0, pair shift=0, pen p=currentpen,
+	      pen pbox=currentpen)
 {
   if(ymargin == infinity) ymargin=xmargin;
   pair margin=(xmargin,ymargin);
   pic.add(new void (frame f, transform t) {
     pair offset=t*0;
     frame b;
-    label(b,s,Angle(t*dir(angle)-offset),t*position,
+    label(b,s,Angle(t*dir(angle)-offset),t*position+shift,
 	  length(align)*unit(t*align-offset),p);
     draw(b,box(min(b)-margin,max(b)+margin),pbox);
     add(f,b);
@@ -1156,9 +1158,9 @@ void clip(picture pic=currentpicture, pair lb, pair tr)
 }
 
 void label(picture pic=currentpicture, real angle=0, pair position,
-	   pair align=0, pen p=currentpen)
+	   pair align=0, pair shift=0, pen p=currentpen)
 {
-  label(pic,(string) position,angle,position,align,p);
+  label(pic,(string) position,angle,position,align,shift,p);
 }
 
 private struct sideT {};
@@ -1170,8 +1172,8 @@ public side
   RightSide=new pair(pair align, sideT) {return align;};
 
 void label(picture pic=currentpicture, string s, real angle=0,
-	   path g, real position=infinity, pair align=0, side side=RightSide,
-	   pen p=currentpen)
+	   path g, real position=infinity, pair align=0, pair shift=0,
+	   side side=RightSide, pen p=currentpen)
 {
   real L=length(g);
   if(position == infinity) position=0.5L;
@@ -1180,7 +1182,7 @@ void label(picture pic=currentpicture, string s, real angle=0,
     else if(position >= L) align=direction(g,L);
     else align=side(-direction(g,position)*I,side);
   }
-  label(pic,s,angle,point(g,position),align,p);
+  label(pic,s,angle,point(g,position),align,shift,p);
 }
 
 void dot(picture pic=currentpicture, pair c)
@@ -1204,21 +1206,21 @@ void dot(picture pic=currentpicture, guide g, pen p=currentpen)
 }
 
 void labeldot(picture pic=currentpicture, string s="", real angle=0,
-	      pair c, pair align=E, pen p=currentpen)
+	      pair c, pair align=E, pair shift=0, pen p=currentpen)
 {
   if(s == "") s=(string) c;
   dot(pic,c,p);
-  label(pic,s,angle,c,align,p);
+  label(pic,s,angle,c,align,shift,p);
 }
 
-void arrow(picture pic=currentpicture, string s, real angle=0,
+void arrow(picture pic=currentpicture, string s, real angle=0, pair shift=0,
 	   path g, pen p=currentpen, real size=arrowsize,
 	   real Angle=arrowangle, arrowhead arrowhead=Fill)
 {
   add(arrow(g,p,size,Angle,arrowhead));
   pair a=point(g,0);
   pair b=point(g,1);
-  label(pic,s,angle,a,unit(a-b),p);
+  label(pic,s,angle,a,unit(a-b),shift,p);
 }
 
 guide square(pair z1, pair z2)
@@ -1376,12 +1378,12 @@ public arrowbar
   Bars=Bars();
 
 void draw(picture pic=currentpicture, string s="", real angle=0,
-	  path g, real position=infinity, pair align=0,
+	  path g, real position=infinity, pair align=0, pair shift=0,
 	  side side=RightSide, pen p=currentpen,
 	  arrowbar arrow=None, arrowbar bar=None, string legend="")
 {
   arrowbarT arrowbar=new arrowbarT;
-  if(s != "") label(pic,s,angle,g,position,align,side,p);
+  if(s != "") label(pic,s,angle,g,position,align,shift,side,p);
   bar(pic,g,p,arrowbar);
   arrow(pic,g,p,arrowbar);
   if(arrowbar.drawpath) _draw(pic,g,p);
@@ -1394,17 +1396,17 @@ void draw(picture pic=currentpicture, string s="", real angle=0,
 // Draw a fixed-size object about the user-coordinate 'origin'.
 void drawabout(pair origin, picture pic=currentpicture, string s="",
 	       real angle=0, path g, real position=infinity, pair align=0,
-	       side side=RightSide, pen p=currentpen,
+	       pair shift=0, side side=RightSide, pen p=currentpen,
 	       arrowbar arrow=None, arrowbar bar=None)
 {
   picture opic=new picture;
-  draw(opic,s,angle,g,position,align,side,p,arrow,bar);
+  draw(opic,s,angle,g,position,align,shift,side,p,arrow,bar);
   addabout(origin,pic,opic);
 }
 
 void arrow(picture pic=currentpicture, string s="", real angle=0,
-	   pair b, pair align, real length=arrowlength, pen p=currentpen,
-	   real size=arrowsize, real Angle=arrowangle,
+	   pair b, pair align, real length=arrowlength, pair shift=0,
+	   pen p=currentpen, real size=arrowsize, real Angle=arrowangle,
 	   arrowhead arrowhead=Fill)
 {
   pair a,c;
@@ -1415,7 +1417,7 @@ void arrow(picture pic=currentpicture, string s="", real angle=0,
     c=labelmargin(p)*dir;
     a=length*dir+c;
   }
-  drawabout(b,pic,s,angle,a--c,0.0,align,p,Arrow(size,Angle,arrowhead));
+  drawabout(b,pic,s,angle,a--c,0.0,align,shift,p,Arrow(size,Angle,arrowhead));
 }
 
 string substr(string s, int pos)

@@ -1225,6 +1225,15 @@ void add(picture dest, picture src);
 The first example adds @code{src} to @code{currentpicture}; the second
 one adds @code{src} to @code{dest}. 
 
+There are also corresponding routines to add a picture @code{src} specified in
+postscript coordinates to another picture about the point @code{origin}:
+@cindex @code{addabout}
+@verbatim
+void addabout(pair origin, picture dest, picture src);
+void addabout(pair origin, picture src);
+@end verbatim
+
+
 @cindex @code{erase}
 To erase the contents of a picture (but not the size specification), use
 the function
@@ -2098,8 +2107,8 @@ the following routines:
 @item
 @verbatim
 guide graph(picture pic=currentpicture, guide g=nullpath,
-	    real f(real), real a, real b, int n=ngraph,
-	    interpolate interpolatetype=LinearInterp);
+            real f(real), real a, real b, int n=ngraph,
+            interpolate interpolatetype=LinearInterp);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2119,8 +2128,8 @@ one of the interpolation types:
 @item
 @verbatim
 guide graph(picture pic=currentpicture, guide g=nullpath,
-	    real x(real), real y(real), real a, real b,
-	    int n=ngraph, interpolate interpolatetype=LinearInterp)
+            real x(real), real y(real), real a, real b,
+            int n=ngraph, interpolate interpolatetype=LinearInterp)
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2132,8 +2141,8 @@ the given interpolation type.
 @item
 @verbatim
 guide graph(picture pic=currentpicture, guide g=nullpath,
-	    pair z(real), real a, real b,
-	    int n=ngraph, interpolate interpolatetype=LinearInterp)
+            pair z(real), real a, real b,
+            int n=ngraph, interpolate interpolatetype=LinearInterp)
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2144,7 +2153,7 @@ of the parametrized function
 @item
 @verbatim
 guide graph(picture pic=currentpicture, guide g=nullpath,
-	    pair z[], bool cond[]={},
+            pair z[], bool cond[]={},
             interpolate interpolatetype=LinearInterp)
 @end verbatim
 
@@ -2156,8 +2165,8 @@ of those elements of the array
 @item
 @verbatim
 guide graph(picture pic=currentpicture, guide g=nullpath,
-	    real x[], real y[], bool cond[]={},
-	    interpolate interpolatetype=LinearInterp)
+            real x[], real y[], bool cond[]={},
+            interpolate interpolatetype=LinearInterp)
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2168,7 +2177,7 @@ of those elements of the arrays
 @item
 @verbatim
 guide graph(guide g=nullpath, real f(real), real a, real b, int n=ngraph,
-	    real T(real), interpolate interpolatetype=LinearInterp)
+            real T(real), interpolate interpolatetype=LinearInterp)
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2203,15 +2212,16 @@ An axis can be drawn on a picture with one of the following commands:
 void xaxis(picture pic=currentpicture, real xmin=-infinity,
            real xmax=infinity, pen p=currentpen, string s="",
            real position=infinity, real angle=0, pair align=0,
-           pair side=0, pen plabel=currentpen, axis axis=YZero,
-	   ticks ticks=NoTicks)
+           pair shift=0, pair side=0, pen plabel=currentpen,
+           axis axis=YZero, ticks ticks=NoTicks)
 @end verbatim
 
 Draw an @math{x} axis on picture @code{pic} from @math{x}=@code{xmin} to
 @math{x}=@code{xmax} using pen @code{p}, optionally labelling it with
 string @code{s} at relative location @code{position} (a real number from
-[0,1]) using angle @code{angle} and alignment @code{align} and pen
-@code{plabel}. An infinite value of @code{xmin} or @code{xmax} specifies
+[0,1]) using angle @code{angle}, alignment @code{align} (user coordinates),
+true shift @code{shift} (postscript coordinates), and pen @code{plabel}.
+An infinite value of @code{xmin} or @code{xmax} specifies
 that the corresponding axis limit will be automatically determined from the
 picture limits. The axis placement is determined by one of the
 following @code{axis} types:
@@ -2240,8 +2250,8 @@ ticks on the left (right) of the path, relative to the direction in which
 the path is drawn. The tick routines accept a number of optional arguments:
 @verbatim
 ticks LeftTicks(bool begin=true, int N=0, int n=0, real Step=0,
-  real step=0, real Size=Ticksize, real size=ticksize, string F,
-  bool end=true);
+                real step=0, real Size=Ticksize, real size=ticksize, string F,
+                bool end=true);
 @end verbatim
 
 If any of these parameters are omitted (or 0), reasonable defaults will
@@ -2272,15 +2282,16 @@ requests a big tick at the end of the axis.
 void yaxis(picture pic=currentpicture, real ymin=-infinity,
            real ymax=infinity, pen p=currentpen, string s="",
            real position=infinity, real angle=infinity, pair align=0,
-           pair side=0, pen plabel=currentpen, axis axis=XZero,
-           ticks ticks=NoTicks)
+           pair shift=0, pair side=0, pen plabel=currentpen,
+           axis axis=XZero, ticks ticks=NoTicks)
 @end verbatim
 
 Draw a @math{y} axis on picture @code{pic} from @math{y}=@code{ymin} to
 @math{y}=@code{ymax} using pen @code{p}, optionally labelling it with
 string @code{s} at relative location @code{position} (a real number from
-[0,1]) using angle @code{angle} and alignment @code{align} and pen
-@code{plabel}. The tick type is specified by @code{ticks} and the axis
+[0,1]) using angle @code{angle}, alignment @code{align}, true shift
+@code{shift}, and pen @code{plabel}.
+The tick type is specified by @code{ticks} and the axis
 placement is determined by one of the following @code{axis} types:
 
 @itemize @bullet 
@@ -2302,12 +2313,12 @@ placement is determined by one of the following @code{axis} types:
 @item
 @verbatim
 void xequals(picture pic=currentpicture, real x,
-	     real ymin=-infinity, real ymax=infinity, 
-	     real tickmin=-infinity, real tickmax=infinity,
+             real ymin=-infinity, real ymax=infinity, 
+             real tickmin=-infinity, real tickmax=infinity,
              pen p=currentpen, string s="", real position=1,
-             real angle=0, pair align=W, pair side=right,
+             real angle=0, pair align=W, pair shift=0, pair side=right,
              pen plabel=currentpen, ticks ticks=NoTicks,
-	     int[] divisor=new int[], bool opposite=false)
+             int[] divisor=new int[], bool opposite=false)
 @end verbatim
 
 Draw the line @math{x}=@code{x} on picture @code{pic} from
@@ -2315,22 +2326,22 @@ Draw the line @math{x}=@code{x} on picture @code{pic} from
 and maximum values @code{tickmin} and @code{tickmax}, using pen
 @code{p}, optionally labelling it with string @code{s} at relative
 location @code{position} (a real number from [0,1]) using angle
-@code{angle} and alignment @code{align} on side @code{side} of the axis
-and pen @code{plabel}. The tick type is specified by @code{ticks} and
-the integer array @code{divisor} specifies what tick divisors to try for
-producing uncrowded tick labels. A @code{true} value for the flag
-@code{opposite} identifies an unlabelled secondary axis (typically drawn
-opposite to a primary axis).
+@code{angle}, alignment @code{align}, true shift @code{shift} on side
+@code{side} of the axis, and pen @code{plabel}. The tick type is
+specified by @code{ticks} and the integer array @code{divisor} specifies
+what tick divisors to try for producing uncrowded tick labels. A
+@code{true} value for the flag @code{opposite} identifies an unlabelled
+secondary axis (typically drawn opposite to a primary axis).
 
 @item
 @verbatim
 void yequals(picture pic=currentpicture, real y,
-	     real xmin=-infinity, real xmax=infinity,
-	     real tickmin=-infinity, real tickmax=infinity,
+             real xmin=-infinity, real xmax=infinity,
+             real tickmin=-infinity, real tickmax=infinity,
              pen p=currentpen, string s="", real position=1,
-             real angle=0, pair align=S, pair side=left,
+             real angle=0, pair align=S, pair shift=0, pair side=left,
              pen plabel=currentpen, ticks ticks=NoTicks,
-	     int[] divisor=new int[], bool opposite=false)
+             int[] divisor=new int[], bool opposite=false)
 @end verbatim
 
 Like @code{xequals}, but draw the line @math{y}=@code{y} on picture
@@ -2836,15 +2847,15 @@ currentpicture):
 @verbatim 
 void draw(picture pic=currentpicture, string s="", real angle=0,
           path g, real position=0.5*length(g), pair align=0,
-          side side=RightSide, pen p=currentpen, arrowbar arrow=None,
-          arrowbar bar=None, string legend="");
+          pair shift=0, side side=RightSide, pen p=currentpen,
+          arrowbar arrow=None, arrowbar bar=None, string legend="");
 @end verbatim
 
 Draw the path @code{g} on the picture @code{pic}, optionally labeled by
 string @code{s} writing at angle @code{angle} (in degrees) at position
 @code{position} and aligned using the pair @code{align} (or, if zero,
-aligned on side @code{side}), using pen @code{p} and
-other optional drawing attributes (arrows, bars, legend). Only one
+aligned on side @code{side}) and true shift @code{shift}, using pen
+@code{p} and other optional drawing attributes (arrows, bars, legend). Only one
 parameter, the path, is required. For convenience, the arguments
 @code{arrow} and @code{bar} may be specified in either order. The final
 argument, @code{legend}, is a string to use in constructing an optional
@@ -2914,9 +2925,9 @@ coordinate @code{origin}, use the routine
 @cindex @code{drawabout}
 @verbatim
 void drawabout(pair origin, picture pic=currentpicture, string s="",
-	       real angle=0, path g, real position=0.5*length(g),
-               pair align=0, side side=RightSide, pen p=currentpen,
-	       arrowbar arrow=None, arrowbar bar=None);
+               real angle=0, path g, real position=0.5*length(g),
+               pair align=0, pair shift=0, side side=RightSide,
+               pen p=currentpen, arrowbar arrow=None, arrowbar bar=None);
 @end verbatim
 
 
@@ -2935,7 +2946,7 @@ and then draws in the boundary. One can specify separate pens for each
 operation:
 @verbatim
 void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
-	      pen drawpen=currentpen);
+              pen drawpen=currentpen);
 @end verbatim
 
 @cindex unfill
@@ -2956,23 +2967,23 @@ For an illustration of picture clipping, see the first example in
 @cindex @code{label}
 @verbatim
 void label(picture pic=currentpicture, string s, real angle=0,
-           pair position, pair align=0, pen p=currentpen);
+           pair position, pair align=0, pair shift=0, pen p=currentpen);
 @end verbatim
 
 Draw label @code{s} on @code{pic}, writing at angle @code{angle} (in
 degrees), at coordinate @code{position}, aligned with the vector
-@code{align}, with pen @code{p}.
+@code{align} and true shift @code{shift}, with pen @code{p}.
 
-If you want a label with an arrow, you can use one of the following routines:
+A label with an arrow can be produced with one of the following routines:
 @cindex @code{arrow}
 @verbatim
 void arrow(picture pic=currentpicture, string s="", real angle=0,
-	   pair b, pair align, real length=arrowlength, pen p=currentpen,
-	   real size=arrowsize, real Angle=arrowangle,
+           pair b, pair align, real length=arrowlength, pair shift=0,
+           pen p=currentpen, real size=arrowsize, real Angle=arrowangle,
            arrowhead arrowhead=Fill);
 
 void arrow(picture pic=currentpicture, string s, real angle=0,
-	   path g, pen p=currentpen, real size=arrowsize,
+           pair shift=0, path g, pen p=currentpen, real size=arrowsize,
            real Angle=arrowangle, arrowhead arrowhead=Fill);
 @end verbatim
 

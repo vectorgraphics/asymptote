@@ -12,7 +12,7 @@ pair zh=(1.5,0.3);
 guide g=zm--zp--zh--cycle;
 
 xaxis("$x$");
-yaxis(-infinity,1.2,"$y$");
+yaxis(-infinity,1.3,"$y$");
 
 draw("1",(0,0)--dir(135),Arrow);
 

@@ -160,14 +160,15 @@ typedef real part(pair);
 
 struct ticksT {};
 private ticksT ticks=null;
-typedef void ticks(frame, transform, string, real, real, pair, pair, pen, path,
-		   pen, scaleT, part, bool, bool, int[], real, real, ticksT);
+typedef void ticks(frame, transform, string, real, real, pair, pair, pair, 
+		   pen, path, pen, scaleT, part, bool, bool, int[], real, real,
+		   ticksT);
 typedef string ticklabel(real);
 
 string defaultticklabel(real x) {return math(format("%.4g",x));}
 
 void labelaxis(frame f, string s, real position, real angle, pair align,
-	       guide g, pen p, bool labels, bool deconstruct)
+	       pair shift, guide g, pen p, bool labels, bool deconstruct)
 {
   pair z=point(g,position);
   pair dir=direction(g,position);
@@ -230,9 +231,9 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
   locateT locate=new locateT;
   uptodate(false);
   return new void(frame f, transform T, string s, real position, real angle,
-		  pair align, pair side, pen plabel, path G, pen p, scaleT S,
-		  part part, bool deconstruct, bool opposite, int[] divisor,
-		  real tickmin, real tickmax, ticksT) {
+		  pair align, pair shift, pair side, pen plabel, path G, pen p,
+		  scaleT S, part part, bool deconstruct, bool opposite,
+		  int[] divisor, real tickmin, real tickmax, ticksT) {
     // Use local copy of context variables:
     int sign=opposite ? -sign : sign;
     int N=N;
@@ -378,7 +379,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
     }
     
     if(s != "" && !opposite) 
-      labelaxis(f,s,position,angle,align,G,plabel,labels,deconstruct);
+      labelaxis(f,s,position,angle,align,shift,G,plabel,labels,deconstruct);
   };
 }
 
@@ -426,14 +427,14 @@ public ticks
 void axis(picture pic=currentpicture, guide g,
 	  real tickmin=-infinity, real tickmax=infinity, pen p=currentpen,
 	  string s="", real position=1, real angle=0, pair align=S,
-	  pair side=right, pen plabel=currentpen, ticks ticks=NoTicks,
-	  int[] divisor=new int[],
+	  pair shift=0, pair side=right, pen plabel=currentpen,
+	  ticks ticks=NoTicks, int[] divisor=new int[],
 	  bool logarithmic=false, scaleT scale=Linear, part part,
 	  bool opposite=false) 
 {
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
     frame d;
-    ticks(d,t,s,position,angle,align,side,plabel,t*g,p,scale,part,
+    ticks(d,t,s,position,angle,align,shift,side,plabel,t*g,p,scale,part,
 	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
     add(f,t*T*inverse(t)*d);
   });
@@ -452,14 +453,15 @@ void xequals(picture pic=currentpicture, real x,
 	     real ymin=-infinity, real ymax=infinity, 
 	     real tickmin=-infinity, real tickmax=infinity, pen p=currentpen,
 	     string s="", real position=1, real angle=0, pair align=W,
-	     pair side=right, pen plabel=currentpen, ticks ticks=NoTicks,
-	     int[] divisor=new int[], bool opposite=false)
+	     pair shift=0, pair side=right, pen plabel=currentpen,
+	     ticks ticks=NoTicks, int[] divisor=new int[], bool opposite=false)
 {
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
     pair a=ymin == -infinity ? (xtrans(t,x),lb.y-min(p).y) : t*(x,ymin);
     pair b=ymax == infinity ? (xtrans(t,x),rt.y-max(p).y) : t*(x,ymax);
     frame d;
-    ticks(d,t,s,position,angle,align,side,plabel,a--b,p,pic.scale.y.scale,
+    ticks(d,t,s,position,angle,align,shift,side,plabel,a--b,p,
+	  pic.scale.y.scale,
 	  new real(pair z) {return pic.scale.y.scale.Label(z.y);},
 	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
     add(f,t*T*inverse(t)*d);
@@ -473,7 +475,7 @@ void xequals(picture pic=currentpicture, real x,
   
   if(finite(a) && finite(b)) {
     frame d;
-    ticks(d,identity(),s,position,angle,align,side,plabel,
+    ticks(d,identity(),s,position,angle,align,shift,side,plabel,
 	  (0,a.y)--(0,b.y),p,pic.scale.y.scale,
 	  new real(pair z) {return pic.scale.y.scale.Label(z.y);},
 	  false,opposite,divisor,tickmin,tickmax,ticks);
@@ -488,14 +490,15 @@ void yequals(picture pic=currentpicture, real y,
 	     real xmin=-infinity, real xmax=infinity,
 	     real tickmin=-infinity, real tickmax=infinity, pen p=currentpen,
 	     string s="", real position=1, real angle=0, pair align=S, 
-	     pair side=left, pen plabel=currentpen, ticks ticks=NoTicks,
-	     int[] divisor=new int[], bool opposite=false)
+	     pair shift=0, pair side=left, pen plabel=currentpen,
+	     ticks ticks=NoTicks, int[] divisor=new int[], bool opposite=false)
 {
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
     pair a=xmin == -infinity ? (lb.x-min(p).x,ytrans(t,y)) : t*(xmin,y);
     pair b=xmax == infinity ? (rt.x-max(p).x,ytrans(t,y)) : t*(xmax,y);
     frame d;
-    ticks(d,t,s,position,angle,align,side,plabel,a--b,p,pic.scale.x.scale,
+    ticks(d,t,s,position,angle,align,shift,side,plabel,a--b,p,
+	  pic.scale.x.scale,
 	  new real(pair z) {return pic.scale.x.scale.Label(z.x);},
 	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
     add(f,t*T*inverse(t)*d);
@@ -509,7 +512,7 @@ void yequals(picture pic=currentpicture, real y,
   
   if(finite(a) && finite(b)) {
     frame d;
-    ticks(d,identity(),s,position,angle,align,side,plabel,
+    ticks(d,identity(),s,position,angle,align,shift,side,plabel,
 	  (a.x,0)--(b.x,0),p,pic.scale.x.scale,
 	  new real(pair z) {return pic.scale.y.scale.Label(z.x);},
 	  false,opposite,divisor,tickmin,tickmax,ticks);
@@ -678,8 +681,8 @@ void autoscale(picture pic=currentpicture, axis axis)
 
 void xaxis(picture pic=currentpicture, real xmin=-infinity, real xmax=infinity,
 	   pen p=currentpen, string s="", real position=infinity, real angle=0,
-	   pair align=0, pair side=0, pen plabel=currentpen, axis axis=YZero,
-	   ticks ticks=NoTicks)
+	   pair align=0, pair shift=0, pair side=0, pen plabel=currentpen,
+	   axis axis=YZero, ticks ticks=NoTicks)
 {
   if(xmin == -infinity && !pic.scale.x.automin) xmin=pic.userMin.x;
   if(xmax == -infinity && !pic.scale.x.automax) xmax=pic.userMax.x;
@@ -697,15 +700,15 @@ void xaxis(picture pic=currentpicture, real xmin=-infinity, real xmax=infinity,
   if(side == 0) side=axis.side;
   
   yequals(pic,axis.value.y,xmin,xmax,axis.tickMin.x,axis.tickMax.x,p,s,
-	  position,angle,align,side,plabel,ticks,axis.xdivisor);
+	  position,angle,align,shift,side,plabel,ticks,axis.xdivisor);
   if(axis.value2 != infinity)
     yequals(pic,axis.value2.y,xmin,xmax,axis.tickMin.x,axis.tickMax.x,p,s,
-	    position,angle,align,side,plabel,ticks,axis.xdivisor,true);
+	    position,angle,align,shift,side,plabel,ticks,axis.xdivisor,true);
 }
 
 void yaxis(picture pic=currentpicture, real ymin=-infinity, real ymax=infinity,
 	   pen p=currentpen, string s="", real position=infinity,
-	   real angle=infinity, pair align=0, pair side=0,
+	   real angle=infinity, pair align=0, pair shift=0, pair side=0,
 	   pen plabel=currentpen, axis axis=XZero, ticks ticks=NoTicks)
 {
   if(angle == infinity) {
@@ -731,10 +734,10 @@ void yaxis(picture pic=currentpicture, real ymin=-infinity, real ymax=infinity,
   if(side == 0) side=axis.side;
   
   xequals(pic,axis.value.x,ymin,ymax,axis.tickMin.y,axis.tickMax.y,p,s,
-	  position,angle,align,side,plabel,ticks,axis.ydivisor);
+	  position,angle,align,shift,side,plabel,ticks,axis.ydivisor);
   if(axis.value2 != infinity)
     xequals(pic,axis.value2.x,ymin,ymax,axis.tickMin.y,axis.tickMax.y,p,s,
-	    position,angle,align,side,plabel,ticks,axis.ydivisor,true);
+	    position,angle,align,shift,side,plabel,ticks,axis.ydivisor,true);
 }
 
 void axes(picture pic=currentpicture, pen p=currentpen)
@@ -747,7 +750,7 @@ void tick(picture pic=currentpicture, pair z, pair align, real size=Ticksize,
 	  pen p=currentpen)
 {
   pic.add(new void (frame f, transform t) {
-    pair tz = t*z;
+    pair tz=t*z;
     draw(f,tz--tz+align*size,p);
   });
   pic.addPoint(z,p);
@@ -761,21 +764,22 @@ void xtick(picture pic=currentpicture, real x, pair align=N,
 }
 
 void labelx(picture pic=currentpicture, string s, real x, pair align=S,
-	    pen p=currentpen)
+	    pair shift=0, pen p=currentpen)
 {
   if(align.y < 0) s=baseline(s);
-  label(pic,s,(x,0),align,p);
+  label(pic,s,(x,0),align,shift,p);
 }
 
-void labelx(picture pic=currentpicture, real x, pair align=S, pen p=currentpen)
+void labelx(picture pic=currentpicture, real x, pair align=S, pair shift=0,
+	    pen p=currentpen)
 {
-  labelx(pic,math(x),x,align,p);
+  labelx(pic,math(x),x,align,shift,p);
 }
 
-void labelxtick(picture pic=currentpicture, real x,
-                pair align=S, real size=Ticksize, pen p=currentpen)
+void labelxtick(picture pic=currentpicture, real x, pair align=S, pair shift=0,
+		real size=Ticksize, pen p=currentpen)
 {
-  labelx(pic,x,align,p);
+  labelx(pic,x,align,shift,p);
   xtick(pic,x,-align,Ticksize,p);
 }
 
@@ -785,21 +789,22 @@ void ytick(picture pic=currentpicture, real y, pair align=E,
   tick(pic,(0,y),align,Ticksize,p);
 }
 
-void labely(picture pic=currentpicture, real y, pair align=W, pen p=currentpen)
+void labely(picture pic=currentpicture, real y, pair align=W, pair shift=0,
+	    pen p=currentpen)
 {
-  label(pic,math(y),(0,y),align,p);
+  label(pic,math(y),(0,y),align,shift,p);
 }
 
 void labely(picture pic=currentpicture, string s, real y, pair align=W,
-	    pen p=currentpen)
+	    pair shift=0, pen p=currentpen)
 {
-  label(pic,s,(0,y),align,p);
+  label(pic,s,(0,y),align,shift,p);
 }
 
-void labelytick(picture pic=currentpicture, real y, pair align=W,
+void labelytick(picture pic=currentpicture, real y, pair align=W, pair shift=0,
 		real size=Ticksize, pen p=currentpen)
 {
-  labely(pic,y,align,p);
+  labely(pic,y,align,shift,p);
   ytick(pic,y,-align,Ticksize,p);
 }
 
