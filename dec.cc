@@ -151,9 +151,11 @@ void modifierList::prettyprint(ostream &out, int indent)
       case STATIC:
 	out << "static";
 	break;
+#if 0	
       case DYNAMIC:
 	out << "dynamic";
 	break;
+#endif	
       default:
 	out << "invalid code:" << *p;
     }
@@ -165,7 +167,8 @@ void modifierList::prettyprint(ostream &out, int indent)
 bool modifierList::staticSet()
 {
   for (std::list<int>::iterator p = mods.begin(); p != mods.end(); ++p)
-    if (*p == STATIC || *p == DYNAMIC)
+//    if (*p == STATIC || *p == DYNAMIC)
+    if (*p == STATIC)
       return true;
   return false;
 }
@@ -181,9 +184,11 @@ bool modifierList::isStatic()
 	++uses;
 	result = true;
 	break;
+#if 0	
       case DYNAMIC:
 	++uses;
 	break;
+#endif	
       case PUBLIC_TOK:
       case PRIVATE_TOK:
 	break;
@@ -217,7 +222,7 @@ permission modifierList::getPermission()
 	result = PRIVATE;
 	break;
       case STATIC:
-      case DYNAMIC:
+//      case DYNAMIC:
 	break;
       default:
 	em->compiler(getPos());

@@ -289,7 +289,6 @@ typedef            {adjust(); return TYPEDEF; }
 new                {adjust(); return NEW; }
 import             {adjust(); return IMPORT; }
 static             {adjust(); return STATIC; }
-dynamic            {adjust(); return DYNAMIC; }
 public             {adjust(); return PUBLIC_TOK; }
 private            {adjust(); return PRIVATE_TOK; }
 this               {adjust(); return THIS; }

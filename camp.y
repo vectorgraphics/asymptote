@@ -78,7 +78,7 @@ using sym::symbol;
              '{' '}' '(' ')' '.' ','  '[' ']' ';'
              IMPORT STRUCT TYPEDEF NEW
              IF ELSE WHILE DO FOR BREAK CONTINUE RETURN_ CYCLE
-             STATIC DYNAMIC PUBLIC_TOK PRIVATE_TOK THIS
+             STATIC PUBLIC_TOK PRIVATE_TOK THIS
 %token <e>   LIT
 
 %left  LOOSE
@@ -188,7 +188,6 @@ modifiers:
 
 modifier:
   STATIC           { $$.pos = $1; $$.keyword = STATIC; }
-| DYNAMIC          { $$.pos = $1; $$.keyword = DYNAMIC; }
 | PUBLIC_TOK       { $$.pos = $1; $$.keyword = PUBLIC_TOK; }
 | PRIVATE_TOK      { $$.pos = $1; $$.keyword = PRIVATE_TOK; }
 ;

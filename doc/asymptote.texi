@@ -1196,6 +1196,7 @@ optionally declared @code{public} (read-write) or @code{private} (read
 and write allowed only inside the structure). The virtual structure @code{this}
 refers to the enclosing structure. Structures currently have no default
 initialization, so this must be done explicitly, using the keyword @code{new}:
+@cindex @code{operator}
 @verbatim
 struct S {
   public real a=1;
@@ -1536,15 +1537,15 @@ and the integer @code{randMax()}. A Gaussian random number generator
 
 Appending @code{[]} to any type (either built-in or user defined)
 produces an array (technically a vector) indexed by integers in the
-interval [0,length-1], where length represents the array length.
-For convenience, integer indices in [-length,-1] are mapped to
-[0,length-1]. Reading an array element with an index outside of these
+interval [0,@code{length}-1], where @code{length} represents the array length.
+For convenience, integer indices in [-@code{length},-1] are mapped to
+[0,@code{length}-1]. Reading an array element with an index outside of these
 bounds generates an error. Assigning an array element with an 
-index < -length generates an error; however, if the index is non-negative,
-the array is resized, as required, to accommodate the new element. One can also
-index an array @code{A} with an integer array @code{B}, to obtain the
-array formed by indexing array @code{A} with successive elements of
-array @code{B}.
+index less than -@code{length} generates an error; however, if the index
+is non-negative, the array is resized, as required, to accommodate the
+new element. One can also index an array @code{A} with an integer array
+@code{B}, to obtain the array formed by indexing array @code{A} with
+successive elements of array @code{B}.
 
 Array elements are neither implicitly allocated nor initialized:
 @verbatim
@@ -1586,7 +1587,12 @@ In the following list of built-in array functions, T represents a generic type.
 
 @cindex @code{new}
 @item new T[]
-returns a new array of type @code{T[]};
+returns a new empty array of type @code{T[]};
+
+@cindex @code{new}
+@item new T[] @{list@}
+returns a new array of type @code{T[]} initialized with @code{list} (a comma
+delimited list of elements).
 
 @item new T[n]
 returns a new array of @code{n} elements of type @code{T[]}. 
@@ -2127,7 +2133,7 @@ template for providing support for other ISO 8859 alphabets.
 @node Static & dynamic
 @section Static & dynamic qualifiers
 @cindex @code{static}
-@cindex @code{dynamic}
+@cindex dynamic
 
 Static qualifiers allocate the memory address of a variable in a higher 
 enclosing frame. 
