@@ -127,30 +127,11 @@ bool intersect(pair a, pair b, path p)
 // PQ and pq.
 pair extension(pair P, pair Q, pair p, pair q) 
 {
-  real Dx=(Q.x-P.x);
-  real Dy=(Q.y-P.y);
-  real dx=(q.x-p.x);
-  real dy=(q.y-p.y);
-  if(abs(Dx) <= abs(Dy) || abs(dx) <= abs(dy)) {
-    if(Dx == 0 && dy == 0) return (P.x,p.y);
-    if(dx == 0 && Dy == 0) return (p.x,P.y);
-    if((Dx == 0 && Dy == 0) || (dx == 0 && dy == 0))
-      return (infinity,infinity);
-    real M=Dx/Dy;
-    real m=dx/dy;
-    if(m == M) return (infinity,infinity);
-    real B=P.x-M*P.y;
-    real b=p.x-m*p.y;
-    real y=(B-b)/(m-M);
-    return (m*y+b,y);
-  }
-  real M=Dy/Dx;
-  real m=dy/dx;
-  if(m == M) return (infinity,infinity);
-  real B=P.y-M*P.x;
-  real b=p.y-m*p.x;
-  real x=(B-b)/(m-M);
-  return (x,m*x+b);
+  pair ac=P-Q;
+  pair bd=q-p;
+  real det=(conj(ac)*bd).y;
+  if(det == 0) return (infinity,infinity);
+  return P+(conj(p-P)*bd).y*ac/det;
 }
 
 pair intersectionpoint(path a, path b)
