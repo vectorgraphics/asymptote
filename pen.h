@@ -330,6 +330,12 @@ public:
     color=RGB;
   }
   
+  void rgbtogrey() {
+    grey=0.299*r+0.587*g+0.114*b; // Use standard YUV luminosity factors
+    r=g=b=0.0;
+    color=GRAYSCALE;
+  }
+  
   void greytocmyk() {
     grey=1.0-grey;
     color=CMYK;
@@ -359,8 +365,17 @@ public:
     color=RGB;
   }
 
+  void cmyktogrey() {
+    cmyktorgb();
+    rgbtogrey();
+  }
+  
   void convert() {
-    if(settings::rgbonly && cmyk()) cmyktorgb();
+    if(settings::grayonly) {
+      if(rgb()) rgbtogrey();
+      else if(cmyk()) cmyktogrey();
+    }
+    else if(settings::rgbonly && cmyk()) cmyktorgb();
     else if(settings::cmykonly && rgb()) rgbtocmyk();
   }    
   

@@ -3303,8 +3303,9 @@ Options:
 -s               Translate test
 -m               Mask fpu exceptions (on supported architectures)
 -nomask          Don't mask fpu exceptions (default)
--cmyk            Convert rgb colors to cmyk
+-gray            Convert colors to grayscale
 -rgb             Convert cmyk colors to rgb
+-cmyk            Convert rgb colors to cmyk
 -safe            Disable system call (default)
 -unsafe          Enable system call
 -noplain         Disable automatic importing of plain

@@ -41,6 +41,7 @@ int safe=1;
 int autoplain=1;
 int parseonly=0;
 int translate=0;
+int grayonly=0;
 int rgbonly=0;
 int cmykonly=0;
 int trap=1;
@@ -106,8 +107,9 @@ void options()
   cerr << "-s\t\t Translate test" << endl;
   cerr << "-m\t\t Mask fpu exceptions (on supported architectures)" << endl;
   cerr << "-nomask\t\t Don't mask fpu exceptions (default)" << endl;
-  cerr << "-cmyk\t\t Convert rgb colors to cmyk" << endl;
+  cerr << "-gray\t\t Convert colors to grayscale" << endl;
   cerr << "-rgb\t\t Convert cmyk colors to rgb" << endl;
+  cerr << "-cmyk\t\t Convert rgb colors to cmyk" << endl;
   cerr << "-safe\t\t Disable system call (default)" << endl;
   cerr << "-unsafe\t\t Enable system call" << endl;
   cerr << "-noplain\t Disable automatic importing of plain" << endl;
@@ -135,6 +137,7 @@ void setOptions(int argc, char *argv[])
     {"View", 0, &view, 1},
     {"mask", 0, &trap, 0},
     {"nomask", 0, &trap, 1},
+    {"gray", 0, &grayonly, 1},
     {"rgb", 0, &rgbonly, 1},
     {"cmyk", 0, &cmykonly, 1},
     {"noplain", 0, &autoplain, 0},
