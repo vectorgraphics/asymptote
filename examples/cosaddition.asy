@@ -14,8 +14,8 @@ draw(Q--O--P);
 draw(P--Q,red);
 draw(O--Q--R--cycle);
 
-draw("$A$",arc(O,0.3,0,A),blue,Arrow);
-draw("$B$",arc(O,0.6,0,B),blue,Arrow);
+draw("$A$",arc(R,O,P,0.3),blue,Arrow);
+draw("$B$",arc(R,O,Q,0.6),blue,Arrow);
 pair S=(Cos(B),0);
 draw(Q--S,blue);
 perpendicular(S,(1,0),blue);
