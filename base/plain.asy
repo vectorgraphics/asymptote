@@ -866,11 +866,12 @@ public arrowheadT arrowhead=null;
 typedef void arrowhead(frame, path, pen, arrowheadT);
 public arrowhead
   Fill=new void(frame f, path g, pen p, arrowheadT) {
+    p += solid;
     fill(f,g,p);
     draw(f,g,p);
   },
   NoFill=new void(frame f, path g, pen p, arrowheadT) {
-    draw(f,g,p);
+    draw(f,g,p+solid);
   };
 
 picture arrow(path g, pen p=currentpen, real size=arrowsize,
@@ -1216,7 +1217,7 @@ guide arc(pair c, real r, real angle1, real angle2)
 picture bar(pair a, pair d, pen p=currentpen)
 {
   picture pic=new picture;
-  _drawabout(pic,-0.5d--0.5d,a,p);
+  _drawabout(pic,-0.5d--0.5d,a,p+solid);
   return pic;
 }
 
