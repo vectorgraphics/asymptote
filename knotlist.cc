@@ -873,7 +873,7 @@ path knotlist::solve2(knotlist &first, knotlist &second)
     for (int j = 0; j < n2; j++) {
       nodes[i].point = p2.point(j);
       nodes[i].post = p2.postcontrol(j);
-      nodes[i+1].pre = p1.precontrol(j+1);
+      nodes[i+1].pre = p2.precontrol(j+1);
       i++;
     }
     nodes[i].point = nodes[i].post = p2.point(n2);
