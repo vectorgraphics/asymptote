@@ -26,7 +26,10 @@ class ifile : public file
   
 public:
   ifile(string name) : file(name) {
-    if(name == "") stream=&cin;
+    if(name == "") {
+      stream=&cin;
+      fstream.setstate(std::ios_base::failbit);
+    }
     else {
       fstream.open(name.c_str());
       stream=&fstream;
@@ -55,7 +58,7 @@ public:
   bool text() {return true;}
   bool eof() {return stream->eof();}
   bool error() {return stream->fail();}
-  void close() {if(fstream) fstream.close(); closed=true;}
+  void close() {if(fstream) {fstream.close(); closed=true;}}
   void clear() {stream->clear();}
   
 public:

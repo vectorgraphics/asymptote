@@ -115,8 +115,10 @@ class ofile : public file
   std::ofstream fstream;
 public:
   ofile(string name) : file(name) {
-    if(name == "") stream=&std::cout;
-    else {
+    if(name == "") {
+      stream=&std::cout;
+      fstream.setstate(std::ios_base::failbit);
+    } else {
       fstream.open(name.c_str());
       stream=&fstream;
     }
@@ -127,7 +129,7 @@ public:
   bool text() {return true;}
   bool eof() {return stream->eof();}
   bool error() {return stream->fail();}
-  void close() {if(fstream) fstream.close(); closed=true;}
+  void close() {if(fstream) {fstream.close(); closed=true;}}
   void clear() {stream->clear();}
   void precision(int p) {stream->precision(p);}
   void flush() {stream->flush();}
