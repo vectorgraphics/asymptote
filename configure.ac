@@ -45,15 +45,39 @@ AC_SUBST(getopt)
 
 AC_CHECK_HEADER(fftw3.h,
    AC_CHECK_LIB([fftw3], fftw_execute,,
-           AC_MSG_WARN([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
-     AC_MSG_WARN([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
+           AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
+     AC_MSG_NOTICE([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
 
-# Currently only the boost headers are used
-AC_CHECK_HEADER([boost/shared_ptr.hpp],,
-    AC_CHECK_FILE(["boost/shared_ptr.hpp"],,
-    AC_MSG_ERROR([*** could not find the boost headers ***
+AC_MSG_CHECKING([for working Boost::Filesystem library])
+
+AC_ARG_WITH([boost-filesystem],AS_HELP_STRING([--with-boost-filesystem],
+  [specify the boost filesystem library or suffix to use]),
+  [if test "x$with_boost_filesystem" != "xno"; then
+    ax_filesystem_lib=$with_boost_filesystem
+    ax_boost_filesystem_lib=boost_filesystem-$with_boost_filesystem
+  fi])
+
+LIBS_SAVED=$LIBS
+BOOST_FILE_SYSTEM_LIB=
+for LIBS in -l$ax_filesystem_lib -l$ax_boost_filesystem_lib -lboost_filesystem-$CC -lboost_filesystem;
+do 
+   if test "$LIBS" != "-l"; then
+      AC_LINK_IFELSE(AC_LANG_PROGRAM([[#include <boost/filesystem/path.hpp>]],
+          [[boost::filesystem::path p("");]]),
+	  [AC_MSG_RESULT([$LIBS])
+	  BOOST_FILESYSTEM_LIB=$LIBS break],)
+   fi
+done
+
+if test "$BOOST_FILESYSTEM_LIB" == ""; then
+AC_MSG_RESULT([no])
+AC_MSG_ERROR([*** could not find a working boost library ***
 *** Please install boost_1_32_0 or later from http://www.boost.org ***
-*** (it is sufficient to move or link the boost_1_32_0/boost directory into .) ***])))
+*** or specify the correct library or suffix with --with-boost-filesystem= ***
+])
+fi
+
+LIBS="$LIBS_SAVED$BOOST_FILESYSTEM_LIB "
 
 # Checks for libraries.
 AC_CHECK_LIB([curses], [tparm])

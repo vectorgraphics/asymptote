@@ -53,40 +53,6 @@ extern "C" double yn(int n, double x);
 
 extern bool False;
 
-// Like strcpy but allow overlap
-inline char *Strcpy(char *dest, const char *src) 
-{
-  size_t len=strlen(src);
-  const char *stop=src+len;
-  char *q=dest;
-  for(const char *p=src; p <= stop; p++) *(q++)=*p;
-  return dest;
-}
-
-// Like Strcpy but copies in reverse direction
-inline char *rStrcpy(char *dest, const char *src) 
-{
-  size_t len=strlen(src);
-  char *p=dest+len;
-  for(const char *r=src+len; r >= src; r--) *(p--)=*r;
-  return dest;
-}
-
-// insert src at location dest; return location after insertion
-inline char *insert(char *dest, const char *src) 
-{
-  size_t len=strlen(src);
-  rStrcpy(dest+len,dest);
-  for(size_t i=0; i < len; i++) dest[i]=src[i];
-  return dest+len;
-}
-
-// delete n characters at location dest
-inline void remove(char *dest, unsigned int n) 
-{
-  if(n > 0) Strcpy(dest,dest+n);
-}
-
 // Strip blank lines (which would break the bidirectional TeX pipe)
 std::string stripblanklines(std::string& s);
 

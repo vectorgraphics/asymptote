@@ -977,39 +977,51 @@ void stringFormatInt(stack *s)
 
 void stringFormatReal(stack *s) 
 {
+  ostringstream out;
+  
   double x=pop<double>(s);
   string format=pop<string>(s);
-  const char *beginScientific="\\!\\times\\!10^{";
+  
   const char *phantom="\\phantom{+}";
-  const char *endScientific="}";
-  int size=snprintf(NULL,0,format.c_str(),x)+1
-    +(int) (strlen(beginScientific)+strlen(phantom)+strlen(endScientific));
-  char *buf=new char[size];
-  snprintf(buf,size,format.c_str(),x);
-
   const char *p0=format.c_str();
+  
   const char *p=p0;
+  const char *start=NULL;
   while (*p != 0) {
-    if(*p == '%' && *(p+1) != '%') break;
+    if(*p == '%') {
+      p++;
+      if(*p != '%') {start=p-1; break;}
+    }
+    out << *(p++);
+  }
+  
+  if(!start) {s->push(string(out.str())); return;}
+  
+  // Allow at most 1 argument  
+  while (*p != 0) {
+    if(*p == '*' || *p == '$') {s->push(string(out.str())); return;}
+    if(isupper(*p) || islower(*p)) {p++; break;}
     p++;
   }
   
-  char *q=buf+(p-p0); // beginning of formatted number
+  const char *tail=p;
+  string f=format.substr(start-p0,tail-start);
+  int size=snprintf(NULL,0,f.c_str(),x)+1;
+  char *buf=new char[size];
+  snprintf(buf,size,f.c_str(),x);
+
+  bool trailingzero=f.find("#") < string::npos;
+  bool plus=f.find("+") < string::npos;
   
-  bool trailingzero=false;
-  while (*p != 0) {
-    if(*p == '#') {trailingzero=true; break;}
-    p++;
-  }
-  
-  // Ignore any spaces
-  while(*q != 0) {
-    if(*q != ' ') break;
+  char *q=buf; // beginning of formatted number
+
+  if(*q == ' ') {
+    out << phantom;
     q++;
   }
   
-  // Remove any spurious minus sign
-  if(*q == '-') {
+  // Remove any spurious sign
+  if(*q == '-' || *q == '+') {
     p=q+1;
     bool zero=true;
     while(*p != 0) {
@@ -1017,45 +1029,53 @@ void stringFormatReal(stack *s)
       if(isdigit(*p) && *p != '0') {zero=false; break;}
       p++;
     }
-    if(zero) remove(q,1);
+    if(zero) {
+      q++;
+      if(plus) out << phantom;
+    }
   }
   
-  
-  char *r=q;
+  const char *r=p=q;
   bool dp=false;
   while(*r != 0 && (isdigit(*r) || *r == '.' || *r == '+' || *r == '-')) {
     if(*r == '.') dp=true;
     r++;
   }
-  if(dp && !trailingzero) { // Remove trailing zeros and/or decimal point
+  if(dp) { // Remove trailing zeros and/or decimal point
     r--;
     unsigned int n=0;
     while(r > q && *r == '0') {r--; n++;}
     if(*r == '.') {r--; n++;}
-    if(n > 0) remove(r+1,n);
+    while(q <= r) out << *(q++);
+    if(!trailingzero) q += n;
   }
   
-  bool zero=(r == q && *r == '0');
+  bool zero=(r == p && *r == '0') && !trailingzero;
   
   // Translate "E+/E-/e+/e-" exponential notation to TeX
   while(*q != 0) {
     if((*q == 'E' || *q == 'e') && (*(q+1) == '+' || *(q+1) == '-')) {
-      if(!zero) q=insert(q,beginScientific);
+      if(!zero) out << "\\!\\times\\!10^{";
       bool plus=(*(q+1) == '+');
-      remove(q,plus ? 2 : 1);
-      if(*q == '-') q++;
-      while(*q == '0' && (zero || isdigit(*(q+1)))) remove(q,1);
-      while(isdigit(*q)) q++;
+      q++;
+      if(plus) q++;
+      if(*q == '-') out << *(q++);
+      while(*q == '0' && (zero || isdigit(*(q+1)))) q++;
+      while(isdigit(*q)) out << *(q++);
       if(!zero) {
-	if(plus) q=insert(q,phantom);
-	insert(q,endScientific);
+	if(plus) out << phantom;
+	out << "}";
       }
       break;
     }
-    q++;
+    out << *(q++);
   }
-  s->push(string(buf));
+  
+  while(*tail != 0) 
+    out << *(tail++);
+  
   delete [] buf;
+  s->push(string(out.str()));
 }
 
 void stringTime(stack *s)

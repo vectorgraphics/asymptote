@@ -1,3 +1,5 @@
+static import graph;
+
 real mean(real A[])
 {
   return sum(A)/A.length;
@@ -54,8 +56,8 @@ real Gaussian(real x)
   return exp(-0.5*x^2)*invsqrt2pi;
 }
 
-// Return frequency count of data in [bins[i],bins[i+1]) for i=0,...n-1.
-int[] frequency(real[] data, real[] bins)
+// Return frequency count in [bins[i],bins[i+1]) for i=0,...n-1 of data.
+int[] frequency(real[] bins, real[] data)
 {
   int n=bins.length-1;
   int[] freq=new int[n];
@@ -72,25 +74,32 @@ guide halfbox(pair a, pair b)
   return a--(a.x,b.y)--b;
 }
 
-// Draw a histogram from count[n], given bin boundaries bin[n+1].
-void histogram(picture pic=currentpicture, real[] count, real[] bins,
-	       pen p=currentpen)
+// Draw a histogram for bin boundaries bin[n+1] of frequency data in count[n].
+void histogram(picture pic=currentpicture, real[] bins, real[] count,
+	       real low=-infinity, pen p=currentpen)
 {
-  bool[] valid=count > -infinity;
-  real low=floor(min(valid ? count : null));
+  bool[] valid=count > 0;
+  real m=min(valid ? count : null);
+  real M=max(valid ? count : null);
+  bounds my=autoscale(pic.scale.y.scale.T(m),pic.scale.y.T(M),
+		      logarithmic(pic.scale.y.scale));
+  if(low == -infinity) low=pic.scale.y.scale.Tinv(my.min);
   real last=low;
   int n=count.length;
   for(int i=0; i < n; ++i) {
     if(valid[i]) {
       real c=count[i];
-      draw(pic,halfbox((bins[i],last),(bins[i+1],c)),p);
+      draw(pic,halfbox(Scale(pic,(bins[i],last)),Scale(pic,(bins[i+1],c))),p);
       last=c;
     } else {
-      if(last != low) 
-	draw(pic,(bins[i],last)--(bins[i],low),p); last=low;
+      if(last != low) {
+	draw(pic,Scale(pic,(bins[i],last))--Scale(pic,(bins[i],low)),p);
+	last=low;
+      }
     }
   }
-  if(last != low) draw(pic,(bins[n],last)--(bins[n],low),p);
+  if(last != low)
+    draw(pic,Scale(pic,(bins[n],last))--Scale(pic,(bins[n],low)),p);
 }
 
 // return a random number uniformly distributed in the unit interval [0,1]

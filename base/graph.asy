@@ -11,32 +11,26 @@ static bool Crop=true;
 static bool NoCrop=false;
 
 static scaleT Linear=new scaleT;
-Linear.T=identity;
-Linear.Tinv=identity;
+Linear.set(identity,identity);
 
 static scaleT Log=new scaleT;
-Log.T=log10;
-Log.Tinv=pow10;
-Log.Label=identity;
+Log.set(log10,pow10);
 
 public scaleT Linear(bool automin=true, bool automax=true, real s=1,
 		     real intercept=0)
 {
   real sinv=1/s;
   scaleT scale=new scaleT;
-  scale.T=new real(real x) {return (x-intercept)*s;};
-  scale.Tinv=new real(real x) {return x*sinv+intercept;};
-  scale.Label=scale.Tinv;
-  scale.automin=automin;
-  scale.automax=automax;
+  real Tinv(real x) {return x*sinv+intercept;}
+  scale.set(new real(real x) {return (x-intercept)*s;},
+	    Tinv,Tinv,automin,automax);
   return scale;
 }
 
 public scaleT Log(bool automin=true, bool automax=true)
 {
-  scaleT scale=Log;
-  scale.automin=automin;
-  scale.automax=automax;
+  scaleT scale=new scaleT;
+  scale.set(Log.T,Log.Tinv,Log.Label,automin,automax);
   return scale;
 }
 
@@ -408,6 +402,8 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
       real len=arclength(g);
       real denom=final-initial;
       real factor=denom != 0 ? len/denom : len;
+      real firstpos=-epsilon*len;
+      real lastpos=len-firstpos;
     
       if(N == 0) {
 	real limit=axiscoverage*arclength(G);
@@ -425,15 +421,19 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	frame d;
 	draw(d,G,p);
 	if(N > 0) for(int i=first-1; i <= last+1; ++i) {
-	  locate.calc(T,g,(i-initial)*factor);
-	  real Size0=((i-first) % N == 0 || n != 0) ? Size : size;
-	  draw(d,locate.Z--locate.Z-Size0*I*sign*locate.dir,p);
+	  real pos=(i-initial)*factor;
+	  if(pos >= firstpos && pos <= lastpos) {
+	    locate.calc(T,g,pos);
+	    real Size0=((i-first) % N == 0 || n != 0) ? Size : size;
+	    draw(d,locate.Z--locate.Z-Size0*I*sign*locate.dir,p);
+	  }
 	  if(n > 0) {
 	    for(int j=2; j < n; ++j) {
 	      real pos=(i-initial+1+log10((real) j/n))*factor;
-	      if(pos > len+epsilon) break;
-	      locate.calc(T,g,pos);
-	      draw(d,locate.Z--locate.Z-size*I*sign*locate.dir,p);
+	      if(pos >= firstpos && pos <= lastpos) {
+		locate.calc(T,g,pos);
+		draw(d,locate.Z--locate.Z-size*I*sign*locate.dir,p);
+	      }
 	    }
 	  }
 	}
@@ -831,6 +831,16 @@ void autoscale(picture pic=currentpicture, axis axis)
     pic.scale.y.tickMax=my.max;
     axis.xdivisor=mx.divisor;
     axis.ydivisor=my.divisor;
+    if(logarithmic(pic.scale.x.scale) && 
+       floor(pic.userMin.x) == floor(pic.userMax.x)) {
+      pic.userMin=(floor(pic.userMin.x),pic.userMin.y);
+      pic.userMax=(ceil(pic.userMax.x),pic.userMax.y);
+    }
+    if(logarithmic(pic.scale.y.scale) && 
+       floor(pic.userMin.y) == floor(pic.userMax.y)) {
+      pic.userMin=(pic.userMin.x,floor(pic.userMin.y));
+      pic.userMax=(pic.userMax.x,ceil(pic.userMax.y));
+    }
     axis.userMin=(pic.scale.x.automin() ? mx.min : pic.userMin.x,
 		  pic.scale.y.automin() ? my.min : pic.userMin.y);
     axis.userMax=(pic.scale.x.automax() ? mx.max : pic.userMax.x,

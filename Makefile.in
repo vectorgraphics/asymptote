@@ -3,7 +3,7 @@
 ARCH = unix
 POLL = poll
 
-LIBS = $(LFLAGS) @LIBS@ -lboost_filesystem
+LIBS = $(LFLAGS) @LIBS@
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill

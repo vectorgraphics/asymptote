@@ -54,7 +54,7 @@ bool setlexer(fs::path filename)
 {
   yywrap();
   
-  if(filename == "-") {
+  if(filename.string() == "-") {
     yy_streambuf = std::cin.rdbuf();
     my_streambuf=false;
     interactive = interact::interactive;

@@ -442,9 +442,17 @@ coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
 
 public struct scaleT {
   typedef real scalefcn(real x);
-  public scalefcn T,Tinv,Label;
+  scalefcn T,Tinv,Label;
   T=Tinv=Label=identity;
-  public bool automin=true, automax=true;
+  bool automin=true, automax=true;
+  void set(scalefcn T, scalefcn Tinv, scalefcn Label=identity,
+      bool automin=true, bool automax=true) {
+    this.T=T;
+    this.Tinv=Tinv;
+    this.Label=Label;
+    this.automin=automin;
+    this.automax=automax;
+  }
 };
 
 public struct autoscaleT {
