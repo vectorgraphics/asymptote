@@ -59,6 +59,10 @@ public:
     this->p = p;
   }
 
+  bool operator ! () {
+    return !file;
+  }
+  
   friend ostream& operator << (ostream& out, const position& pos) {
     if (pos.file)
       pos.file->print(out, pos.p);

@@ -73,6 +73,7 @@ void errorstream::warning(position pos)
 
 void errorstream::trace(position pos)
 {
+  if(!pos) return;
   message(pos,"");
   sync();
 }
