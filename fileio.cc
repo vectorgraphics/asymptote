@@ -49,8 +49,10 @@ public:
   bool eol() {
     int c;
     while(isspace(c=stream->peek())) {
-      if(c == '\n') return true;
-      stream->ignore();
+      if(c == '\n') {
+	stream->ignore();
+	return true;
+      }
     }
     return false;
   }
@@ -70,7 +72,7 @@ public:
       int c=stream->peek();
       if(c == '"') {quote=!quote; stream->ignore(); continue;}
       if(!quote && (c == ',' || c == '\n')) {
-	if(c == ',' || !linemode) stream->ignore();
+	if(c == '\n' && !linemode) stream->ignore();
 	return s;
       }
       s += (char) stream->get();
