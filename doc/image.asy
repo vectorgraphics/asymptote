@@ -5,7 +5,7 @@ import graph;
 file fin=single(xinput("weiss"));
 real[][][] v=read3(fin);
 
-pen[] Palette=BWrainbow(true);
+pen[] Palette=BWrainbow();
 
 image(v[0],Palette,(0,0),(1,-1));
 addabout((1,-1),

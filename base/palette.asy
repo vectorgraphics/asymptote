@@ -1,6 +1,6 @@
 // A rainbow palette tapering off to black/white at the spectrum ends.
-// two=true means circle the color wheel twice, scaling the intensity linearly.
-pen[] BWrainbow(int NColors=65536, bool two=false)
+// two=true means circle the color wheel twice, linearly scaling the intensity.
+pen[] BWrainbow(int NColors=65485, bool two=false)
 {
   int offset=1;
   int nintervals=6;

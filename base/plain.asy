@@ -892,8 +892,8 @@ pair max(path[] g)
 void addabout(pair origin, picture pic, frame src)
 {
   pic.add(new void (frame dest, transform t) {
-      add(dest,shift(t*origin)*src);
-      });
+    add(dest,shift(t*origin)*src);
+  });
   pic.addBox(origin,origin,min(src),max(src));
 }
 
@@ -943,6 +943,7 @@ private struct marginT {
 public marginT margin=new marginT;
 
 typedef path margin(path, pen, marginT);
+private path margin(path, pen, marginT) {return nullpath;}
 
 path trim(path g, real begin, real end) {
   real a=arctime(g,begin);
@@ -1029,7 +1030,7 @@ void _draw(picture pic=currentpicture, path g, pen p=currentpen,
 {
   pic.add(new void (frame f, transform t) {
     draw(f,margin(t*g,p,margin),p);
-    });
+  });
   pic.addPath(g,p);
 }
 
@@ -1074,7 +1075,7 @@ void fill(picture pic=currentpicture, path g,
   pic.add(new void (frame f, transform t) {
     pair A=t*a, B=t*b;
     fill(f,t*g,pena,A,abs(t*(a+ra)-A),penb,B,abs(t*(b+rb)-B));
-    });
+  });
   pic.addPath(g);
 }
 
@@ -1086,7 +1087,7 @@ void fill(picture pic=currentpicture, path[] g,
   pic.add(new void (frame f, transform t) {
     pair A=t*a, B=t*b;
     fill(f,t*g,pena,A,abs(t*(a+ra)-A),penb,B,abs(t*(b+rb)-B));
-    });
+  });
   for(int i=0; i < g.length; ++i) 
     pic.addPath(g[i]);
 }
@@ -1193,7 +1194,7 @@ void label(picture pic=currentpicture, string s, real angle=0, pair position,
     pair offset=t*0;
     label(f,s,Angle(t*dir(angle)-offset),t*position+shift,
 	  length(align)*unit(t*align-offset),p);
-    });
+  });
   frame f;
   // Create a picture with label at the origin to extract its bbox truesize.
   label(f,s,angle,(0,0),align,p);
@@ -1353,14 +1354,14 @@ void tex(picture pic=currentpicture, string s)
 {
   pic.add(new void (frame f, transform) {
     tex(f,s);
-    });
+  });
 }
 
 void layer(picture pic=currentpicture)
 {
   pic.add(new void (frame f, transform) {
     layer(f);
-    });
+  });
 }
 
 void newpage() 
@@ -1813,6 +1814,7 @@ private struct arrowbarT {
 public arrowbarT arrowbar=new arrowbarT;
 
 typedef void arrowbar(picture, path, pen, margin, arrowbarT);
+private void arrowbar(picture, path, pen, margin, arrowbarT) {}
 
 arrowbar Blank()
 {
