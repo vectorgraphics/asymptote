@@ -3236,7 +3236,7 @@ at both ends of the path). One may use @code{Margin(real begin, real end)}
 to specify the size of the beginning and ending margin, respectively,
 in multiples of the units @code{labelmargin(p)} used for aligning labels.
 Alternatively, @code{BeginPenMargin}, @code{EndPenMargin}
-(or equivalently @code{Margin}), @code{Margins},
+(or equivalently @code{PenMargin}), @code{PenMargins},
 @code{PenMargin(real begin, real end)} specify a margin in units of
 the pen linewidth, taking account of the pen linewidth when drawing
 the path or arrow. For example, use @code{DotMargin}, an
