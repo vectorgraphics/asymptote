@@ -203,8 +203,9 @@ bool picture::postprocess(const string& epsname, const string& outname,
     if(epsformat || pdfformat) {
       static int pid;
       static bool first=true;
-      static const string PSViewers[]={PSViewer,"ggv","ghostview","gsview"};
-      static const string PDFViewers[]={PDFViewer,"acroread","xpdf"};
+      static const string PSViewers[]={PSViewer,"gv","ggv","ghostview",
+				       "kghostview","gsview"};
+      static const string PDFViewers[]={PDFViewer,"gv","acroread","xpdf"};
       static const size_t nPSViewers=sizeof(PSViewers)/sizeof(string);
       static const size_t nPDFViewers=sizeof(PDFViewers)/sizeof(string);
       const string *Viewers=pdfformat ? PDFViewers : PSViewers;
@@ -214,6 +215,10 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	first=false;
 	status=-1;
 	while(status == -1 && iViewer < nViewers) {
+	  if(iViewer == 1 && Viewers[0] == Viewers[1]) {
+	    iViewer++;
+	    continue;
+	  }
 	  ostringstream cmd;
 	  cmd << Viewers[iViewer];
 	  if(Viewers[iViewer] == "gv") cmd << " -nowatch";
