@@ -428,7 +428,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::pairConj,primPair(),"conj",primPair());
   addFunc(ve,run::pairDot,primReal(),"Dot",primPair(),primPair());
 
-  addFunc(ve,run::interact,primVoid(),"interact",primBoolean());
+  addFunc(ve,run::interAct,primVoid(),"interact",primBoolean());
   addFunc(ve,run::upToDate,primVoid(),"uptodate",primBoolean());
   addFunc(ve,run::boolUpToDate,primBoolean(),"uptodate");
   

@@ -227,7 +227,7 @@ void shipout(vm::stack *s);
 void stringFilePrefix(vm::stack *s);
 
 // Interactive mode
-void interact(vm::stack *s);
+void interAct(vm::stack *s);
 void upToDate(vm::stack *s);
 void boolUpToDate(vm::stack *s);
 

@@ -1603,7 +1603,7 @@ void stringFilePrefix(stack *s)
 
 // Interactive mode
 
-void interact(stack *s)
+void interAct(stack *s)
 {
   bool interaction=s->pop<bool>();
   if(interact::interactive) settings::suppressStandard=!interaction;
