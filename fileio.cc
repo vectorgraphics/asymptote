@@ -98,6 +98,8 @@ public:
 
 ofile Stdout("");
 
+#ifdef HAVE_RPC_RPC_H
+
 class ixfile : public file
 {
   xdr::ixstream stream;
@@ -135,6 +137,8 @@ public:
   void write(const pair& val) {stream << val.getx() << val.gety();}
 };
 
+#endif
+
 file* file::open(string name, mode mode_)
 {
   file *f;
@@ -145,12 +149,16 @@ file* file::open(string name, mode mode_)
     case out:
       f=new ofile(name);
       break;
+      
+#ifdef HAVE_RPC_RPC_H
     case xin:
       f=new ixfile(name);
       break;
     case xout:
       f=new oxfile(name);
       break;
+#endif
+      
     default:
       reportError("Internal error: invalid file mode.");
       return NULL;

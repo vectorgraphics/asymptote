@@ -12,7 +12,14 @@
 #include <iostream>
 #include <sstream>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_RPC_RPC_H
 #include "xstream.h"
+#endif
+
 #include "pair.h"
 #include "guide.h"
 #include "pen.h"

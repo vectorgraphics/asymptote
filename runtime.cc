@@ -1721,14 +1721,23 @@ void fileOpenIn(stack *s)
 void fileOpenXOut(stack *s)
 {
   string filename = s->pop<string>();
+#ifdef HAVE_RPC_RPC_H
   s->push(file::open(filename,file::xout));
+#else  
+  error(s,"xdr support not enabled");
+#endif
 }
 
 void fileOpenXIn(stack *s)
 {
   string filename = s->pop<string>();
+#ifdef HAVE_RPC_RPC_H
   s->push(file::open(filename,file::xin));
+#else  
+  error(s,"xdr support not enabled");
+#endif
 }
+
 
 void fileEof(stack *s)
 {

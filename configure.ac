@@ -62,6 +62,7 @@ AC_HEADER_SYS_WAIT
 AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([fenv.h])
 AC_CHECK_HEADERS([stddef.h])
+AC_CHECK_HEADERS([rpc/rpc.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_PID_T
