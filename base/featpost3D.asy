@@ -1,7 +1,8 @@
-/* featpost3D.mp translated to asymptote.
+/* featpost3D.mp translated to asymptote by Jacques Pienaar (2004).
+   preliminary version (incomplete)
    
    Mostly the original structures and commands were retained.
-   The result is that neither the "translator" nor the original authors
+   The result is that neither the translator nor the original authors
    would be 100% happy about the result.
 
 % featpost3D.mp
@@ -28,7 +29,6 @@
 
 import math;
 
-//public bool warningcheck = false;
 background = gray(0.987);
 
 //write("Preloading FeatPost macros, version 0.5(alpha asy port)");
