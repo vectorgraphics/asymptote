@@ -129,16 +129,16 @@ void localAccess::encodeRead(position pos, env &e)
 
 void localAccess::encodeRead(position pos, env &e, frame *top)
 {
-  // Test permissions.
-  if (!top->isDescendant(e.getFrame()))
-    permitRead(pos);
-  
   if (top == 0) {
     // The local variable is being used when its frame is not active.
-    em->compiler(pos);
-    *em << "access used out of scope";
+    em->error(pos);
+    *em << "static use of dynamic variable";
   }
   else if (level == top) {
+    // Test permissions.
+    if (!top->isDescendant(e.getFrame()))
+      permitRead(pos);
+  
     e.encode(inst::fieldpush);
     e.encode(offset);
   }
@@ -170,16 +170,16 @@ void localAccess::encodeWrite(position pos, env &e)
 
 void localAccess::encodeWrite(position pos, env &e, frame *top)
 {
-  // Test permissions.
-  if (!top->isDescendant(e.getFrame()))
-    permitWrite(pos);
-
   if (top == 0) {
     // The local variable is being used when its frame is not active.
     em->compiler(pos);
     *em << "access used out of scope";
   }
   else if (level == top) {
+    // Test permissions.
+    if (!top->isDescendant(e.getFrame()))
+      permitWrite(pos);
+
     e.encode(inst::fieldsave);
     e.encode(offset);
   }

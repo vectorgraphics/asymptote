@@ -84,8 +84,9 @@ void drawblocks(pair[] z, pen p1, pen p2)
 
 size(500,0);
 
-int n = 11;
-drawblocks(dragon(n), orange, red);
+int n = 10;
+
+//drawblocks(dragon(n), orange, red);
 drawtris(dragon(n, new pair[] {(0,0), (1,0)}), black);
 drawtris(dragon(n, new pair[] {(0,0), (0,-1)}), blue);
 drawtris(dragon(n, new pair[] {(0,0), (-1,0)}), red);
