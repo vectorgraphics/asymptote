@@ -93,7 +93,7 @@ Import
 * math::                        Extend @code{Asymptote}'s math capabilities
 * stats::                       Statistic routines and histograms
 * tree::                        Dynamic binary search tree
-* unicode::                     Accept @code{unicode} (UTF8) characters.
+* unicode::                     Accept @code{unicode} (UTF8) characters
 
 
 @end detailmenu
