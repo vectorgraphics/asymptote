@@ -13,10 +13,10 @@ void image(picture pic=currentpicture, real[][] data, pen[] palette,
 }
 
 frame palette(real[][] data, pen[] palette,
-	      real height=paletteheight, pen p=currentpen,
-	      string s="", real position=0.5, real angle=infinity,
-	      pair align=E, pair shift=0, pair side=right,
-	      pen plabel=currentpen,
+	      real height=paletteheight, pair paletteshift=3*Ticksize,
+	      pen p=currentpen, string s="", real position=0.5,
+	      real angle=infinity, pair align=E, pair shift=0,
+	      pair side=right, pen plabel=currentpen,
 	      ticks ticks=LeftTicks(0.0,0.0,Ticksize,0.0))
 {
   picture pic=new picture;
@@ -37,7 +37,7 @@ frame palette(real[][] data, pen[] palette,
   pic.addBox(z0,z1,(0,0),(Ticksize,0));
   pic.scale.x.scale.automax=false;
   yaxis(pic,initialy,finaly,p,s,position,angle,align,shift,side,plabel,ticks);
-  return shift(palettemargin+Ticksize,0)*
+  return shift(paletteshift+Ticksize)*
     ((shift(0,-initialy)*pic).fit(0,height,false));
 }
 

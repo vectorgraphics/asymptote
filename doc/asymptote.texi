@@ -2823,7 +2823,7 @@ In this example, @code{secondaryY} is used to draw a secondary logarithmic
 @verbatiminclude generalaxis.asy
 @image{generalaxis}
 
-@item The next example show how to generate color density images
+@item @code{Asymptote} can also generate color density images
 and palettes. The following palettes are predefined in
 @code{palette.asy}: 
 
@@ -2862,10 +2862,10 @@ An optionally labelled palette frame may be generated with the routine
 
 @verbatim
 frame palette(real[][] data, pen[] palette,
-	      real height=paletteheight, pen p=currentpen,
-	      string s="", real position=0.5, real angle=infinity,
-	      pair align=E, pair shift=0, pair side=right,
-	      pen plabel=currentpen,
+	      real height=paletteheight, pair paletteshift=3*Ticksize,
+	      pen p=currentpen, string s="", real position=0.5,
+	      real angle=infinity, pair align=E, pair shift=0,
+	      pair side=right, pen plabel=currentpen,
 	      ticks ticks=LeftTicks(0.0,0.0,Ticksize,0.0));
 @end verbatim
 The palette frame can then be added to the graph at the desire
