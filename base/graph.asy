@@ -6,25 +6,36 @@ real Ticksize=2*ticksize;
 public real ylabelwidth=1.5;
 public real axislabelmargin=2;
 public real axiscoverage=0.6;
+public int ngraph=100;
 
-public scaleT Linear(real s)
+static scaleT Linear=new scaleT;
+Linear.T=identity;
+Linear.Tinv=identity;
+
+static scaleT Log=new scaleT;
+Log.T=log10;
+Log.Tinv=pow10;
+Log.Label=identity;
+
+public scaleT Linear(bool automin=true, bool automax=true, real s=1.0)
 {
   real sinv=1/s;
   scaleT scale=new scaleT;
   scale.T=new real(real x) {return x*s;};
   scale.Tinv=new real(real x) {return x*sinv;};
   scale.Label=scale.Tinv;
+  scale.automin=automin;
+  scale.automax=automax;
   return scale;
 }
 
-public static scaleT Linear=new scaleT;
-Linear.T=identity;
-Linear.Tinv=identity;
-
-public static scaleT Log=new scaleT;
-Log.T=log10;
-Log.Tinv=pow10;
-Log.Label=identity;
+public scaleT Log(bool automin=true, bool automax=true)
+{
+  scaleT scale=Log;
+  scale.automin=automin;
+  scale.automax=automax;
+  return scale;
+}
 
 real scalefcn_operators(real x) {return 0;}
 
@@ -33,25 +44,10 @@ bool logarithmic(scaleT S)
   return S.T == log10 && S.Label == identity;
 }
 
-
-// Global scale settings (used by graph)
-public scaleT xscale=Linear, yscale=Linear;
-private bool xautomin=true;
-private bool xautomax=true;
-private bool yautomin=true;
-private bool yautomax=true;
-
-void scale(picture pic=currentpicture,
-	   scaleT x, bool Xautomin=true, bool Xautomax=true,
-	   scaleT y, bool Yautomin=true, bool Yautomax=true) 
+void scale(picture pic=currentpicture, scaleT x, scaleT y)
 {
-  pic.xscale=xscale=x;
-  pic.yscale=yscale=y;
-  pic.autoscale=true;
-  xautomin=Xautomin;
-  xautomax=Xautomax;
-  yautomin=Yautomin;
-  yautomax=Yautomax;
+  pic.scale.x=x;
+  pic.scale.y=y;
 }
 
 struct scientific 
@@ -465,8 +461,8 @@ void xequals(picture pic=currentpicture, real x,
     pair a=captransform(t,(x,ymin),lb,rt,p);
     pair b=captransform(t,(x,ymax),lb,rt,p);
     frame d;
-    ticks(d,t,s,position,angle,align,side,plabel,a--b,p,pic.yscale,
-	  new real(pair z) {return pic.yscale.Label(z.y);},
+    ticks(d,t,s,position,angle,align,side,plabel,a--b,p,pic.scale.y,
+	  new real(pair z) {return pic.scale.y.Label(z.y);},
 	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
     add(f,t*T*inverse(t)*d);
   });
@@ -495,8 +491,8 @@ void yequals(picture pic=currentpicture, real y,
     pair a=captransform(t,(xmin,y),lb,rt,p);
     pair b=captransform(t,(xmax,y),lb,rt,p);
     frame d;
-    ticks(d,t,s,position,angle,align,side,plabel,a--b,p,pic.xscale,
-	  new real(pair z) {return pic.xscale.Label(z.x);},
+    ticks(d,t,s,position,angle,align,side,plabel,a--b,p,pic.scale.x,
+	  new real(pair z) {return pic.scale.x.Label(z.x);},
 	  pic.deconstruct,opposite,divisor,tickmin,tickmax,ticks);
     add(f,t*T*inverse(t)*d);
   });
@@ -533,10 +529,10 @@ private struct axisT {
 };
 
 public axisT axis=new axisT;
-typedef void axis(pair, pair, axisT);
+typedef void axis(picture, pair, pair, axisT);
 public axis
-  Bottom=new void(pair min, pair max, axisT axis) {
-    axis.value=yautomin ? axis.tickMin : axis.userMin;
+  Bottom=new void(picture pic, pair min, pair max, axisT axis) {
+    axis.value=pic.scale.y.automin ? axis.tickMin : axis.userMin;
     axis.min=axis.userMin;
     axis.max=axis.userMax;
     axis.position=0.5;
@@ -544,8 +540,8 @@ public axis
     axis.align=S;
     axis.value2=infinity;
   },
-  Top=new void(pair min, pair max, axisT axis) {
-    axis.value=yautomax ? axis.tickMax : axis.userMax;
+  Top=new void(picture pic, pair min, pair max, axisT axis) {
+    axis.value=pic.scale.y.automax ? axis.tickMax : axis.userMax;
     axis.min=axis.userMin;
     axis.max=axis.userMax;
     axis.position=0.5;
@@ -553,17 +549,17 @@ public axis
     axis.align=N;
     axis.value2=infinity;
   },
-  BottomTop=new void(pair min, pair max, axisT axis) {
-    axis.value=yautomin ? axis.tickMin : axis.userMin;
+  BottomTop=new void(picture pic, pair min, pair max, axisT axis) {
+    axis.value=pic.scale.y.automin ? axis.tickMin : axis.userMin;
     axis.min=axis.userMin;
     axis.max=axis.userMax;
     axis.position=0.5;
     axis.side=right;
     axis.align=S;
-    axis.value2=yautomax ? axis.tickMax : axis.userMax;
+    axis.value2=pic.scale.y.automax ? axis.tickMax : axis.userMax;
   },
-  Left=new void(pair min, pair max, axisT axis) {
-    axis.value=xautomin ? axis.tickMin : axis.userMin;
+  Left=new void(picture pic, pair min, pair max, axisT axis) {
+    axis.value=pic.scale.x.automin ? axis.tickMin : axis.userMin;
     axis.min=axis.userMin;
     axis.max=axis.userMax;
     axis.position=0.5;
@@ -571,8 +567,8 @@ public axis
     axis.align=W;
     axis.value2=infinity;
   },
-  Right=new void(pair min, pair max, axisT axis) {
-    axis.value=xautomax ? axis.tickMax : axis.userMax;
+  Right=new void(picture pic, pair min, pair max, axisT axis) {
+    axis.value=pic.scale.x.automax ? axis.tickMax : axis.userMax;
     axis.min=axis.userMin;
     axis.max=axis.userMax;
     axis.position=0.5;
@@ -580,16 +576,16 @@ public axis
     axis.align=E;
     axis.value2=infinity;
   },
-  LeftRight=new void(pair min, pair max, axisT axis) {
-    axis.value=xautomin ? axis.tickMin : axis.userMin;
+  LeftRight=new void(picture pic, pair min, pair max, axisT axis) {
+    axis.value=pic.scale.x.automin ? axis.tickMin : axis.userMin;
     axis.min=axis.userMin;
     axis.max=axis.userMax;
     axis.position=0.5;
     axis.side=left;
     axis.align=W;
-    axis.value2=xautomax ? axis.tickMax : axis.userMax;
+    axis.value2=pic.scale.x.automax ? axis.tickMax : axis.userMax;
   },
-  XZero=new void(pair min, pair max, axisT axis) {
+  XZero=new void(picture, pair min, pair max, axisT axis) {
     axis.value=0;
     axis.min=min;
     axis.max=max;
@@ -600,7 +596,7 @@ public axis
     axis.tickMin=min;
     axis.tickMax=max;
   },
-  YZero=new void(pair min, pair max, axisT axis) {
+  YZero=new void(picture, pair min, pair max, axisT axis) {
     axis.value=0;
     axis.min=min;
     axis.max=max;
@@ -614,13 +610,13 @@ public axis
 
 void autoscale(picture pic=currentpicture, axis axis) 
 {
-  if(pic.autoscale) {
+  if(!pic.scale.set) {
     bounds mx,my;
     if(finite(pic.userMin.x) && finite(pic.userMax.x))
-      mx=autoscale(pic.userMin.x,pic.userMax.x,logarithmic(pic.xscale));
+      mx=autoscale(pic.userMin.x,pic.userMax.x,logarithmic(pic.scale.x));
     else {mx=new bounds; mx.min=-infinity; mx.max=infinity;}
     if(finite(pic.userMin.y) && finite(pic.userMax.y))
-      my=autoscale(pic.userMin.y,pic.userMax.y,logarithmic(pic.yscale));
+      my=autoscale(pic.userMin.y,pic.userMax.y,logarithmic(pic.scale.y));
     else {my=new bounds; my.min=-infinity; my.max=infinity;}
     axis.tickMin=(mx.min,my.min);
     axis.tickMax=(mx.max,my.max);
@@ -628,7 +624,7 @@ void autoscale(picture pic=currentpicture, axis axis)
     axis.userMax=pic.userMax;
     axis.xdivisor=mx.divisor;
     axis.ydivisor=my.divisor;
-    pic.autoscale=false;
+    pic.scale.set=true;
   }
 }
 
@@ -638,9 +634,11 @@ void xaxis(picture pic=currentpicture, real xmin=-infinity, real xmax=infinity,
 	   ticks ticks=NoTicks)
 {
   autoscale(pic,axis);
-  axis((xmin,0),(xmax,0),axis);
-  if(xmin == -infinity) xmin=xautomin ? axis.tickMin.x : axis.userMin.x;
-  if(xmax == infinity) xmax=xautomax ? axis.tickMax.x : axis.userMax.x;
+  axis(pic,(xmin,0),(xmax,0),axis);
+  if(xmin == -infinity) 
+    xmin=pic.scale.x.automin ? axis.tickMin.x : axis.userMin.x;
+  if(xmax == infinity)
+    xmax=pic.scale.x.automax ? axis.tickMax.x : axis.userMax.x;
   
   if(position == infinity) position=axis.position;
   if(align == 0) align=axis.align;
@@ -665,9 +663,11 @@ void yaxis(picture pic=currentpicture, real ymin=-infinity, real ymax=infinity,
   }
   
   autoscale(pic,axis);
-  axis((0,ymin),(0,ymax),axis);
-  if(ymin == -infinity) ymin=yautomin ? axis.tickMin.y : axis.userMin.y;
-  if(ymax == infinity) ymax=yautomax ? axis.tickMax.y : axis.userMax.y;
+  axis(pic,(0,ymin),(0,ymax),axis);
+  if(ymin == -infinity)
+    ymin=pic.scale.y.automin ? axis.tickMin.y : axis.userMin.y;
+  if(ymax == infinity) 
+    ymax=pic.scale.y.automax ? axis.tickMax.y : axis.userMax.y;
   
   if(position == infinity) position=axis.position;
   if(align == 0) align=axis.align;
@@ -771,43 +771,43 @@ public interpolate
 		     return g;
 		   };
 
-public int ngraph=100;
-
-guide graph(guide g=nullpath, real f(real), real a, real b, int n=ngraph,
+guide graph(picture pic=currentpicture, guide g=nullpath,
+	    real f(real), real a, real b, int n=ngraph,
 	    interpolate interpolatetype=LinearInterp)
 {
   return interpolatetype(new pair (real x) {
-    return (x,yscale.T(f(xscale.Tinv(x))));
-  },g,xscale.T(a),xscale.T(b),n,interpolate);
+    return (x,pic.scale.y.T(f(pic.scale.x.Tinv(x))));
+  },g,pic.scale.x.T(a),pic.scale.x.T(b),n,interpolate);
 }
 
-guide graph(guide g=nullpath, real x(real), real y(real), real a, real b,
+guide graph(picture pic=currentpicture, guide g=nullpath,
+	    real x(real), real y(real), real a, real b,
 	    int n=ngraph, interpolate interpolatetype=LinearInterp)
 {
   return interpolatetype(new pair (real t) {
-    return (xscale.T(x(t)),yscale.T(y(t)));
+    return (pic.scale.x.T(x(t)),pic.scale.y.T(y(t)));
   },g,a,b,n,interpolate);
 }
 
-guide graph(guide g=nullpath, pair z[],
-	    interpolate interpolatetype=LinearInterp)
+guide graph(picture pic=currentpicture, guide g=nullpath,
+	    pair z[], interpolate interpolatetype=LinearInterp)
 {
   int i=0;
   return interpolatetype(new pair (real) {
     pair w=z[i];
     ++i;
-    return (xscale.T(w.x),yscale.T(w.y));
+    return (pic.scale.x.T(w.x),pic.scale.y.T(w.y));
   },g,0,0,z.length-1,interpolate);
 }
 
-guide graph(guide g=nullpath, real x[], real y[],
-	    interpolate interpolatetype=LinearInterp)
+guide graph(picture pic=currentpicture, guide g=nullpath,
+	    real x[], real y[], interpolate interpolatetype=LinearInterp)
 {
   if(x.length != y.length)
     abort("attempt to graph arrays of different lengths");
   int i=0;
   return interpolatetype(new pair (real) {
-    return (xscale.T(x[i]),yscale.T(y[++i-1]));
+    return (pic.scale.x.T(x[i]),pic.scale.y.T(y[++i-1]));
   },g,0,0,x.length-1,interpolate);
 }
 
@@ -830,11 +830,6 @@ guide graph(guide g=nullpath, real f(real), real a, real b, int n=ngraph,
 			 g,a,b,n,interpolate);
 }
 
-pair project(real x, real y, real z)
-{
-  return x*(-1,-1)+y*(1,0)+z*(0,1);
-}
-
 void limits(picture pic=currentpicture, pair lb, pair rt)
 {
   pic.clip(new void (frame f, transform t) {
@@ -846,7 +841,7 @@ void limits(picture pic=currentpicture, pair lb, pair rt)
 
 void xlimits(picture pic=currentpicture, real Min=infinity, real Max=infinity)
 {
-  bounds mx=autoscale(pic.userMin.x,pic.userMax.x,logarithmic(pic.xscale));
+  bounds mx=autoscale(pic.userMin.x,pic.userMax.x,logarithmic(pic.scale.x));
   if(Min == infinity) Min=mx.min;
   if(Max == infinity) Max=mx.max;
   limits(pic,(Min,pic.userMin.y),(Max,pic.userMax.y));
@@ -854,7 +849,7 @@ void xlimits(picture pic=currentpicture, real Min=infinity, real Max=infinity)
 
 void ylimits(picture pic=currentpicture, real Min=infinity, real Max=infinity)
 {
-  bounds my=autoscale(pic.userMin.y,pic.userMax.y,logarithmic(pic.yscale));
+  bounds my=autoscale(pic.userMin.y,pic.userMax.y,logarithmic(pic.scale.y));
   if(Min == infinity) Min=my.min;
   if(Max == infinity) Max=my.max;
   limits(pic,(pic.userMin.x,Min),(pic.userMax.x,Max));

@@ -7,6 +7,7 @@
  *****/
 
 real inches=72.0;
+real inch=inches;
 real cm=inches/2.540005;
 real mm=0.1cm;
 
@@ -280,8 +281,19 @@ void append (coord[] x, coord[] y, transform T, coord[] srcx, coord[] srcy)
 public struct scaleT {
   typedef real scalefcn(real x);
   public scalefcn T,Tinv,Label;
+  public bool automin,automax;
   T=Tinv=Label=identity;
+  automin=automax=true;
 };
+
+public struct ScaleT {
+  private static scaleT Linear=new scaleT;
+  public bool set=false;
+  public scaleT x=Linear;
+  public scaleT y=Linear;
+  public scaleT z=Linear;
+};
+
 
 struct picture {
   // The functions to do the deferred drawing.
@@ -298,9 +310,7 @@ struct picture {
   public pair userMin=(infinity,infinity);
   public pair userMax=(-infinity,-infinity);
   
-  public bool autoscale=true; // These variables are needed by graph
-  private static scaleT Linear=new scaleT;
-  public scaleT xscale=Linear, yscale=Linear, zscale=Linear;
+  public ScaleT scale=new ScaleT; // Needed by graph
 
   // The maximum sizes in the x and y directions.
   // Zero means no restriction.
@@ -318,7 +328,7 @@ struct picture {
     deconstruct=Deconstruct;
     userMin=(infinity,infinity);
     userMax=(-infinity,-infinity);
-    autoscale=true;
+    scale=new ScaleT;
   }
   
   void userBox(pair min, pair max) {
@@ -555,8 +565,7 @@ struct picture {
     dest.deconstruct=deconstruct;
     dest.userMin=userMin;
     dest.userMax=userMax;
-    dest.autoscale=autoscale;
-    dest.xscale=xscale; dest.yscale=yscale; dest.zscale=zscale;
+    dest.scale=scale;
 
     return dest;
   }

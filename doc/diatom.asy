@@ -51,8 +51,8 @@ for(int taxon=0; taxon < n; ++taxon) {
   real x=1;
   if(maxP < minpercent) x=minpercent/maxP;
   if(maxP > 100) x=50/maxP;
-  scale(pic,Linear(x),Linear(-1),false);
-  guide g=graph(P,depth);
+  scale(pic,Linear(x),Linear(false,-1));
+  guide g=graph(pic,P,depth);
   draw(pic,g,p);
   xlimits(pic,0);
   filldraw(pic,(pic.userMin.x,depthmin)--g--(pic.userMin.x,depthmax)--cycle,
