@@ -14,10 +14,16 @@
 #include "config.h"
 #endif
 
-#if HAVE_GETOPT_H
+#if HAVE_GNU_GETOPT_H
 #include <getopt.h>
 #else
-#include "gnugetopt.h"
+struct option {
+  const char *name;
+  int has_arg, *flag, val;
+};
+extern "C" int getopt_long_only(int argc, char * const argv[],
+				const char *optstring,
+				const struct option *longopts, int *longindex);
 #endif
 
 #include "util.h"

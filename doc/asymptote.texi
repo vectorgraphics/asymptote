@@ -1,8 +1,7 @@
 \input texinfo   @c -*-texinfo-*-
 @setfilename asymptote.info
+@include version.texi
 @settitle asymptote
-
-@set VERSION 0.53cvs
 
 @copying
 This file documents @code{Asymptote}, version @value{VERSION}.

@@ -22,7 +22,7 @@ LEX = @LEX@
 DEFS = @DEFS@
 OPT = -O3 -DNDEBUG
 ACFLAGS = @ACFLAGS@
-OPTS = -g $(OPT) $(DEFS) $(CFLAGS) $(ACFLAGS)
+OPTS = -g $(OPT) $(DEFS) $(ACFLAGS) $(CFLAGS) 
 INCL = 
 
 prefix = @prefix@

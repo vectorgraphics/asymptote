@@ -4,6 +4,8 @@
 
 AC_PREREQ(2)
 AC_INIT([Asymptote],[0.53cvs],[asymptote-discuss@lists.sourceforge.net])
+VERSION=$PACKAGE_VERSION
+AC_SUBST(VERSION)
 test "$prefix" = NONE && prefix=/usr/local
 test "$datadir" = '${prefix}/share' && datadir=$prefix/share
 asydir=$datadir/asymptote
@@ -20,10 +22,9 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_CC
 
-AC_CHECK_FUNC(getopt_long, AC_DEFINE(HAVE_GETOPT_H, 1,
-			   [Define if there is a GNU getopt.h header;
-			   otherwise look for gnugetopt.h]),)
-AC_SEARCH_LIBS([getopt_long],[gnugetopt])
+AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
+			   [Define if getopt.h is the GNU version]),)
+AC_SEARCH_LIBS([getopt_long_only],[gnugetopt])
 
 AC_CHECK_HEADER(fftw3.h,
    AC_CHECK_LIB([fftw3], fftw_execute,,
@@ -32,13 +33,12 @@ AC_CHECK_HEADER(fftw3.h,
      , dnl Don't use standard includes.
      )
 
-# The boost library
-# Currently only headers are used
+# Currently only the boost headers are used
 AC_CHECK_HEADER([boost/shared_ptr.hpp],,
     AC_CHECK_FILE(["boost/shared_ptr.hpp"],AC_SUBST(ACFLAGS,"-I- -I boost -I ."),
     AC_MSG_ERROR([*** could not find the boost headers ***
 *** Please install boost_1_32_0 or later from http://www.boost.org ***
-*** (it is sufficient to move the boost_1_32_0/boost directory into .) ***])))
+*** (it is sufficient to move or link the boost_1_32_0/boost directory into .) ***])))
 
 # Checks for libraries.
 AC_CHECK_LIB([curses], [tparm])
@@ -69,5 +69,5 @@ AC_FUNC_REALLOC
 
 AC_CONFIG_HEADERS(config.h)
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile doc/version.texi])
 AC_OUTPUT
