@@ -27,7 +27,7 @@ using interact::interactive;
 using interact::virtualEOF;
 using interact::rejectline;
 
-void setsignal(void (*handler)(int))
+void setsignal(RETSIGTYPE (*handler)(int))
 {
   signal(SIGBUS,handler);
   signal(SIGFPE,handler);

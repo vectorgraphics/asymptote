@@ -11,6 +11,10 @@
 #include "newexp.h"
 #include "stm.h"
 
+// Avoid error messages with unpatched bison-1.875:
+#ifndef __attribute__
+#define __attribute__(x)
+#endif
 
 // Used when a position needs to be determined and no token is
 // available.  Defined in camp.l.

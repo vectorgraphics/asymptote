@@ -21,8 +21,9 @@ LEX = @LEX@
 
 DEFS = @DEFS@
 OPT = -O3 -DNDEBUG
-OPTS = -g $(OPT) $(DEFS) $(CFLAGS)
-INCL = -I. -I-
+ACFLAGS = @ACFLAGS@
+OPTS = -g $(OPT) $(DEFS) $(CFLAGS) $(ACFLAGS)
+INCL = 
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@

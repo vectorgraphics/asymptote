@@ -7,12 +7,17 @@
 
 #include <iostream>
 #include <cstdlib>
-#include <getopt.h>
 #include <cerrno>
 #include <boost/lexical_cast.hpp>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
+
+#if HAVE_GETOPT_H
+#include <getopt.h>
+#else
+#include "gnugetopt.h"
 #endif
 
 #include "util.h"

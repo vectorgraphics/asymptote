@@ -196,21 +196,22 @@ make install-man
 @end verbatim
 
 In order to compile @code{Asymptote} you will need the @code{boost}
-includes from @code{http://boost.org} (included in recent Linux
+headers from @code{http://boost.org} (included in recent Linux
 distributions). Installation of the boost library may require the
 following (or later):
 @verbatim
 http://dl.sourceforge.net/sourceforge/boost/boost-jam-3.1.10-1.i386.rpm
-http://dl.sourceforge.net/sourceforge/boost/boost_1_31_0.tar.bz2
+http://dl.sourceforge.net/sourceforge/boost/boost_1_32_0.tar.bz2
 @end verbatim
 
-However, Asymptote currently only needs the @code{boost} header files,
-so copying the @code{boost} subdirectory of the @code{boost} source
-distribution to @code{/usr/include} should actually be sufficient.
+However, Asymptote currently only uses the @code{boost} header files,
+so it is sufficient to copy the @code{boost} subdirectory from the
+@code{boost} source distribution to @code{/usr/include} or even just to the
+top level directory of the @code{Asymptote} source code.
 
 On machines running Debian Linux, the boost library can be installed with
 @verbatim
-apt-get install libboost-graph1.31.0 libboost-dev libboost-graph-dev
+apt-get install libboost-graph1.32.0 libboost-dev libboost-graph-dev
 @end verbatim
 
 If you are compiling with gcc, you will need a relatively recent version

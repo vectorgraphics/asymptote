@@ -29,7 +29,9 @@ int charPos;
 //int commentDepth = 0;
 
 // Needed by the cxx compiler
-extern "C" int fileno(FILE *stream);
+#ifndef fileno
+extern "C" int fileno(FILE *);
+#endif
 
 std::streambuf *yy_streambuf = 0;
 bool my_streambuf = false;

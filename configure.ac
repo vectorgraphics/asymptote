@@ -3,13 +3,13 @@
 # this file.
 
 AC_PREREQ(2)
-AC_INIT([Asymptote],[0.53cvs])
+AC_INIT([Asymptote],[0.53cvs],[asymptote-discuss@lists.sourceforge.net])
 test "$prefix" = NONE && prefix=/usr/local
 test "$datadir" = '${prefix}/share' && datadir=$prefix/share
 asydir=$datadir/asymptote
 AC_SUBST(asydir)
 AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$asydir",
-	System directory for global .asy files)
+	[System directory for global .asy files])
 AC_CONFIG_SRCDIR([absyn.cc])
 AC_LANG([C++])
 
@@ -20,6 +20,11 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_CC
 
+AC_CHECK_FUNC(getopt_long, AC_DEFINE(HAVE_GETOPT_H, 1,
+			   [Define if there is a GNU getopt.h header;
+			   otherwise look for gnugetopt.h]),)
+AC_SEARCH_LIBS([getopt_long],[gnugetopt])
+
 AC_CHECK_HEADER(fftw3.h,
    AC_CHECK_LIB([fftw3], fftw_execute,,
            AC_MSG_WARN([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
@@ -29,10 +34,11 @@ AC_CHECK_HEADER(fftw3.h,
 
 # The boost library
 # Currently only headers are used
-AC_CHECK_HEADER([boost/shared_ptr.hpp],
-    AC_SUBST(HAVE_BOOST_SHARED_PTR_HPP, 1),
+AC_CHECK_HEADER([boost/shared_ptr.hpp],,
+    AC_CHECK_FILE(["boost/shared_ptr.hpp"],AC_SUBST(ACFLAGS,"-I- -I boost -I ."),
     AC_MSG_ERROR([*** could not find the boost headers ***
-*** please install the libboost-dev package (http://www.boost.org) ***]))
+*** Please install boost_1_32_0 or later from http://www.boost.org ***
+*** (it is sufficient to move the boost_1_32_0/boost directory into .) ***])))
 
 # Checks for libraries.
 AC_CHECK_LIB([curses], [tparm])
