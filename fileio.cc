@@ -16,9 +16,9 @@ string tab="\t";
 string newline="\n";
 
 ofile Stdout("");
-  
-ifile *typein=NULL;
-ofile *typeout=NULL;
+static string asyinput=".asy_input";  
+ofile typeout(asyinput);
+ifile typein(asyinput);
 
 void ifile::csv() {
   if(!csvmode || stream->eof()) return;

@@ -23,14 +23,16 @@
 #include "pair.h"
 #include "guide.h"
 #include "pen.h"
+#include "pool.h"
 #include "camperror.h"
+#include "interact.h"
 
 namespace camp {
 
 extern std::string tab;
 extern std::string newline;
   
-class file {
+class file : public mempool::pooled<file> {
 protected:  
   std::string name;
   int nx,ny,nz;  // Array dimensions
@@ -46,6 +48,8 @@ public:
   file(std::string name) : name(name), linemode(false), csvmode(false),
 			   closed(false) {dimension();}
   
+  virtual void open() {};
+  
   void check() {
     if(error()) {
       std::ostringstream buf;
@@ -59,7 +63,7 @@ public:
 
   virtual const char* Mode()=0;
 
-  bool open() {
+  bool isOpen() {
     if(closed) {
       std::ostringstream buf;
       buf << "I/O operation attempted on closed file \'" << name << "\'.";
@@ -118,25 +122,25 @@ public:
 
 class ifile : public file {
   istream *stream;
-  std::ifstream *fstream;
+  std::ifstream fstream;
   
 public:
   ifile(std::string name) : file(name) {
+      stream=&std::cin;
+  }
+  
+  void open() {
     if(standard()) {
       stream=&std::cin;
     } else {
-      stream=fstream=new std::ifstream;
-      fstream->open(name.c_str());
+      fstream.open(name.c_str());
+      stream=&fstream;
       check();
     }
   }
   
-  virtual ~ifile() {
-    if(!standard()) delete fstream;
-  }
-  
   void seek(size_t pos) {
-    if(!standard() && !closed) fstream->seekg(pos);
+    if(!standard() && !closed) fstream.seekg(pos);
   }
   
   const char* Mode() {return "input";}
@@ -155,7 +159,7 @@ public:
   bool text() {return true;}
   bool eof() {return stream->eof();}
   bool error() {return stream->fail();}
-  void close() {if(!standard() && !closed) {fstream->close(); closed=true;}}
+  void close() {if(!standard() && !closed) {fstream.close(); closed=true;}}
   void clear() {stream->clear();}
   
 public:
@@ -191,24 +195,24 @@ public:
   
 class ofile : public file {
   std::ostream *stream;
-  std::ofstream *fstream;
+  std::ofstream fstream;
 public:
   ofile(std::string name) : file(name) {
+      stream=&std::cout;
+  }
+  
+  void open() {
     if(standard()) {
       stream=&std::cout;
     } else {
-      stream=fstream=new std::ofstream;
-      fstream->open(name.c_str());
+      fstream.open(name.c_str());
+      stream=&fstream;
       check();
     }
   }
   
-  virtual ~ofile() {
-    if(!standard()) delete fstream;
-  }
-  
   void seek(size_t pos) {
-    if(!standard() && !closed) fstream->seekp(pos);
+    if(!standard() && !closed) fstream.seekp(pos);
   }
   
   const char* Mode() {return "output";}
@@ -216,7 +220,7 @@ public:
   bool text() {return true;}
   bool eof() {return stream->eof();}
   bool error() {return stream->fail();}
-  void close() {if(!standard() && !closed) {fstream->close(); closed=true;}}
+  void close() {if(!standard() && !closed) {fstream.close(); closed=true;}}
   void clear() {stream->clear();}
   void precision(int p) {stream->precision(p);}
   void flush() {stream->flush();}
@@ -272,19 +276,20 @@ public:
 
 extern ofile Stdout;
 
-extern ifile *typein;
-extern ofile *typeout;
+extern ofile typeout;
+extern ifile typein;
 
 template<class T>
 void ifile::iread(T& val)
 {
-  if(settings::suppressOutput && standard() && typein) typein->Read(val);
+  if(settings::suppressOutput && standard() && interact::interactive)
+    typein.Read(val);
   else {
     Read(val);
-    if(standard() && typeout) {
-      typeout->write(val);
-      typeout->write((std::string)"\n");
-      typeout->flush();
+    if(standard() && interact::interactive) {
+      typeout.write(val);
+      typeout.write((std::string)"\n");
+      typeout.flush();
     }
   }
 }

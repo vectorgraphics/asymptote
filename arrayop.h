@@ -164,7 +164,7 @@ void write(vm::stack *s)
 {
   T val = s->pop<T>();
   camp::file *f = s->pop<camp::file*>();
-  if(!f->open()) return;
+  if(!f->isOpen()) return;
   if(f->filename() == "" && settings::suppressOutput) return;
   f->write(val);
 }
@@ -210,7 +210,7 @@ void writeP(vm::stack *s)
 {
   const T& val = *(s->pop<T*>());
   camp::file *f = s->pop<camp::file*>();
-  if(!f->open()) return;
+  if(!f->isOpen()) return;
   if(f->filename() == "" && settings::suppressOutput) return;
   f->write(val);
 }
@@ -236,7 +236,7 @@ void writeArray(vm::stack *s)
 {
   array *a=pop<array *>(s);
   camp::file *f = s->pop<camp::file*>();
-  if(!f->open()) return;
+  if(!f->isOpen()) return;
   if(f->filename() == "" && settings::suppressOutput) return;
   checkArray(s,a);
   size_t size=(size_t) a->size();
@@ -278,7 +278,7 @@ void writeArray2(vm::stack *s)
 {
   array *a=pop<array *>(s);
   camp::file *f = s->pop<camp::file*>();
-  if(!f->open()) return;
+  if(!f->isOpen()) return;
   outArray2<T>(s,f,a);
 }
 
@@ -287,7 +287,7 @@ void writeArray3(vm::stack *s)
 {
   array *a=pop<array *>(s);
   camp::file *f = s->pop<camp::file*>();
-  if(!f->open()) return;
+  if(!f->isOpen()) return;
   if(f->filename() == "" && settings::suppressOutput) return;
   checkArray(s,a);
   size_t size=(size_t) a->size();

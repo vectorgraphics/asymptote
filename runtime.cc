@@ -1713,12 +1713,14 @@ void nullFile(stack *s)
 void fileOpenIn(stack *s)
 {
   file *f=new ifile(s->pop<string>());
+  f->open();
   s->push(f);
 }
 
 void fileOpenOut(stack *s)
 {
   file *f=new ofile(s->pop<string>());
+  f->open();
   s->push(f);
 }
 
@@ -1791,7 +1793,7 @@ void readChar(stack *s)
 {
   file *f = s->pop<file*>();
   char c;
-  if(f->open()) f->read(c);
+  if(f->isOpen()) f->read(c);
   static char str[1];
   str[0]=c;
   s->push(string(str));

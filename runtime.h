@@ -327,7 +327,7 @@ void read(vm::stack *s)
 {
   camp::file *f = pop<camp::file*>(s);
   T val;
-  if(f->open()) f->read(val);
+  if(f->isOpen()) f->read(val);
   s->push(val);
 }
 
@@ -346,7 +346,7 @@ void readArray(vm::stack *s)
 {
   camp::file *f = s->pop<camp::file*>();
   vm::array *c=new vm::array(0);
-  if(f->open()) {
+  if(f->isOpen()) {
     int nx=f->Nx();
     if(nx == -2) {f->read(nx); if(nx == 0) {s->push(c); return;}}
     int ny=f->Ny();

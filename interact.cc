@@ -37,13 +37,12 @@ bool redraw=false;
 static int start=0;
 static int end=0;
   
-static string asyinput=".asy_input";  
 static const char *historyfile=".asy_history";
   
 void reset()
 {
   start=(rejectline && history_length) ? end-1 : end;
-  camp::typeout->seek(0);
+  camp::typeout.seek(0);
 }
   
 static const char *input="input "; 
@@ -138,8 +137,8 @@ size_t interactive_input(char *buf, size_t max_size)
     read_history(historyfile);
     rl_bind_key('\t',rl_insert); // Turn off tab completion
     signal(SIGINT,SIG_IGN);
-    camp::typeout=new camp::ofile(asyinput);
-    camp::typein=new camp::ifile(asyinput);
+    camp::typeout.open();
+    camp::typein.open();
   }
 
   if(virtualEOF) return 0;
@@ -156,7 +155,7 @@ size_t interactive_input(char *buf, size_t max_size)
       if(redraw) redraw=false;
       else {
 	add_input(to,"suppressoutput(true)",size);
-	camp::typein->seek(0);
+	camp::typein.seek(0);
       }
       while(HIST_ENTRY *p=history_get(i++)) {
 	add_input(to,next->line,size);
