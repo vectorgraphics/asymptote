@@ -113,12 +113,12 @@ bounds autoscale(real Min, real Max, bool logaxis=false)
   m.min=Min;
   m.max=Max;
   if(Min == infinity && Max == -infinity) return m;
-  if(Min > Max) {real tmp=Min; Min=Max; Max=tmp;} //abort("error: min > Max");
+  if(Min > Max) {real tmp=Min; Min=Max; Max=tmp;}
   if(Min == Max) {
-    if(Min == 0) return m;
+    if(Min == 0) {m.max=1; return m;}
     if(Min > 0) {Min=0; Max *= 2;}
     else {Min *= 2; Max=0;}
-    }
+  }
   
   int sign;
   if(Min < 0 && Max <= 0) {real temp=-Min; Min=-Max; Max=temp; sign=-1;}
@@ -466,15 +466,6 @@ void xequals(picture pic=currentpicture, real x,
   
   pic.addPoint((x,finite(ymin) ? ymin : pic.userMin.y),p);
   pic.addPoint((x,finite(ymax) ? ymax : pic.userMax.y),p);
-  
-  if(s != "") {
-    frame f;
-    label(f,s,angle,(0,0),align,plabel);
-    pair a=(x,finite(ymin) ? ymin : pic.userMin.y);
-    pair b=(x,finite(ymax) ? ymax : pic.userMax.y);
-    pair pos=a+position*(b-a);
-    pic.addBox(pos,pos,min(f),max(f));
-  }
 }
 
 void yequals(picture pic=currentpicture, real y,
@@ -496,15 +487,6 @@ void yequals(picture pic=currentpicture, real y,
 
   pic.addPoint((finite(xmin) ? xmin : pic.userMin.x,y),p);
   pic.addPoint((finite(xmax) ? xmax : pic.userMax.x,y),p);
-  
-  if(s != "") {
-    frame f;
-    label(f,s,angle,(0,0),align,plabel);
-    pair a=(finite(xmin) ? xmin : pic.userMin.x,y);
-    pair b=(finite(xmax) ? xmax : pic.userMax.x,y);
-    pair pos=a+position*(b-a);
-    pic.addBox(pos,pos,min(f),max(f));
-  }
 }
 
 private struct axisT {
@@ -833,26 +815,49 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
   },g,a,b,n,interpolate);
 }
 
-guide graph(picture pic=currentpicture, guide g=nullpath,
-	    pair z[], interpolate interpolatetype=LinearInterp)
+private int next(int i, bool[] cond)
 {
-  int i=0;
-  return interpolatetype(new pair (real) {
-    pair w=z[i];
-    ++i;
-    return (pic.scale.x.scale.T(w.x),pic.scale.y.scale.T(w.y));
-  },g,0,0,z.length-1,interpolate);
+  ++i;
+  if(cond.length > 0) while(!cond[i]) ++i;
+  return i;
 }
 
 guide graph(picture pic=currentpicture, guide g=nullpath,
-	    real x[], real y[], interpolate interpolatetype=LinearInterp)
+	    pair z[], bool cond[]={}, interpolate interpolatetype=LinearInterp)
+{
+  int n;
+  if(cond.length > 0) {
+    if(cond.length != z.length)
+      abort("condition array has different length than data array");
+    n=sum(cond)-1;
+  } else n=z.length-1;
+  
+  int i=-1;
+  return interpolatetype(new pair (real) {
+    i=next(i,cond);
+    return (pic.scale.x.scale.T(z[i].x),pic.scale.y.scale.T(z[i].y));
+  },g,0,0,n,interpolate);
+}
+
+guide graph(picture pic=currentpicture, guide g=nullpath,
+	    real x[], real y[], bool cond[]={},
+	    interpolate interpolatetype=LinearInterp)
 {
   if(x.length != y.length)
     abort("attempt to graph arrays of different lengths");
-  int i=0;
+  
+  int n;
+  if(cond.length > 0) {
+    if(cond.length != x.length)
+      abort("condition array has different length than data arrays");
+    n=sum(cond)-1;
+  } else n=x.length-1;
+  
+  int i=-1;
   return interpolatetype(new pair (real) {
-    return (pic.scale.x.scale.T(x[i]),pic.scale.y.scale.T(y[++i-1]));
-  },g,0,0,x.length-1,interpolate);
+    i=next(i,cond);
+    return (pic.scale.x.scale.T(x[i]),pic.scale.y.scale.T(y[i]));
+  },g,0,0,n,interpolate);
 }
 
 pair polar(real r, real theta)
