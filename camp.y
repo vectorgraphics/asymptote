@@ -29,9 +29,9 @@ void yyerror(const char *s)
   em->sync();
 }
 
-namespace absyn { file *root; }
+namespace absyntax { file *root; }
 
-using namespace absyn;
+using namespace absyntax;
 using sym::symbol;
 %}
 
@@ -42,35 +42,35 @@ using sym::symbol;
     position pos;
     sym::symbol *sym;
   } ps;
-  absyn::name *n;
-  absyn::varinit *vi;
-  absyn::arrayinit *ai;
-  absyn::exp *e;
-  absyn::join *j;
-  absyn::dir *dr;
-  absyn::explist *elist;
-  absyn::dimensions *dim;
-  absyn::ty  *t;
-  absyn::decid *di;
-  absyn::decidlist *dil;
-  absyn::decidstart *dis;
-  absyn::runnable *run;
-  absyn::modifierList *ml;
+  absyntax::name *n;
+  absyntax::varinit *vi;
+  absyntax::arrayinit *ai;
+  absyntax::exp *e;
+  absyntax::join *j;
+  absyntax::dir *dr;
+  absyntax::explist *elist;
+  absyntax::dimensions *dim;
+  absyntax::ty  *t;
+  absyntax::decid *di;
+  absyntax::decidlist *dil;
+  absyntax::decidstart *dis;
+  absyntax::runnable *run;
+  absyntax::modifierList *ml;
   struct {
     position pos;
     int keyword;
   } mod;
-  //absyn::program *prog;
-  absyn::vardec *vd;
-  //absyn::vardecs *vds;
-  absyn::dec *d;
-  absyn::stm *s;
-  absyn::blockStm *bs;
-  absyn::stmExpList *sel;
-  //absyn::funheader *fh;
-  absyn::formal *fl;
-  absyn::formals *fls;
-  absyn::file *fil;
+  //absyntax::program *prog;
+  absyntax::vardec *vd;
+  //absyntax::vardecs *vds;
+  absyntax::dec *d;
+  absyntax::stm *s;
+  absyntax::blockStm *bs;
+  absyntax::stmExpList *sel;
+  //absyntax::funheader *fh;
+  absyntax::formal *fl;
+  absyntax::formals *fls;
+  absyntax::file *fil;
 }  
 
 %token <ps> PRIM ID OP ADD SUBTRACT TIMES DIVIDE MOD EXPONENT
@@ -144,7 +144,7 @@ using sym::symbol;
 %%
 
 file:
-  fileblock        { absyn::root = $1; }
+  fileblock        { absyntax::root = $1; }
 ;
 
 fileblock:

@@ -23,7 +23,7 @@ namespace types {
 class record;
 }
 
-namespace absyn {
+namespace absyntax {
 
 using trans::coenv;
 using types::record;
@@ -141,6 +141,6 @@ public:
   }
 };
 
-} // namespace absyn
+} // namespace absyntax
 
 #endif

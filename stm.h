@@ -19,7 +19,7 @@ namespace trans {
 class coenv;
 }
 
-namespace absyn {
+namespace absyntax {
 
 using std::list;
 
@@ -224,6 +224,6 @@ public:
   void trans(coenv &e);
 };
 
-} // namespace absyn
+} // namespace absyntax
 
 #endif

@@ -8,7 +8,7 @@
 #include "absyn.h"
 #include "coenv.h"
 
-namespace absyn {
+namespace absyntax {
 
 void absyn::markPos(trans::coenv& e)
 {
@@ -27,4 +27,4 @@ void prettyname(ostream &out, std::string name, int indent) {
   out << name << "\n";
 }
 
-} // namespace absyn
+} // namespace absyntax

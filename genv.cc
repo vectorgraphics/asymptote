@@ -105,7 +105,7 @@ genv::genv()
 
   // Import plain, if that option is enabled.
   if (settings::autoplain) {
-    static absyn::importdec iplain(position::nullPos(),symbol::trans("plain"));
+    static absyntax::importdec iplain(position::nullPos(),symbol::trans("plain"));
     iplain.trans(base_coenv);
     me.beginScope(); // NOTE: This is unmatched.
   }
@@ -116,7 +116,7 @@ genv::genv()
     if(exists) {
       if(settings::clearGUI) unlink(GUIname.c_str());
       else {
-	absyn::importdec igui(position::nullPos(),symbol::trans(GUIname.c_str()));
+	absyntax::importdec igui(position::nullPos(),symbol::trans(GUIname.c_str()));
 	igui.trans(base_coenv);
 	me.beginScope();
       }
@@ -138,7 +138,7 @@ record *genv::getModule(symbol *id)
 record *genv::loadModule(symbol *id)
 {
   // Get the abstract syntax tree.
-  absyn::file *ast = parseModule(id);
+  absyntax::file *ast = parseModule(id);
   em->sync();
 
   if (!ast)
@@ -177,7 +177,7 @@ record *genv::loadModule(symbol *id)
 
 // Opens and parses the file returning the abstract syntax tree.  If
 // there is an unrecoverable parse error, returns null.
-absyn::file *genv::parseModule(symbol *id)
+absyntax::file *genv::parseModule(symbol *id)
 {
   std::string filename = symbolToFile(id);
 
@@ -191,7 +191,7 @@ absyn::file *genv::parseModule(symbol *id)
   if (!setlexer(filename))
     return 0;
 
-  if (yyparse() == 0) return absyn::root;
+  if (yyparse() == 0) return absyntax::root;
   return 0;
 }
 

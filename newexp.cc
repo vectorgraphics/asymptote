@@ -16,7 +16,7 @@ using trans::import;
 using trans::coder;
 using trans::coenv;
 
-namespace absyn {
+namespace absyntax {
 
 types::ty *newFunctionExp::trans(coenv &e)
 {
@@ -211,4 +211,4 @@ types::ty *newArrayExp::getType(coenv &e)
 }
 
 
-} // namespace absyn
+} // namespace absyntax

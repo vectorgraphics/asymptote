@@ -12,7 +12,7 @@
 #include "exp.h"
 #include "dec.h"
 
-namespace absyn {
+namespace absyntax {
 
 class newFunctionExp : public exp {
   ty *result;
@@ -73,6 +73,6 @@ public:
   }
 };
   
-} // namespace absyn
+} // namespace absyntax
 
 #endif

@@ -57,7 +57,7 @@ public:
 
   // Opens and parses the file returning the abstract syntax tree.  If
   // there is an unrecoverable parse error, returns null.
-  absyn::file *parseModule(symbol *id);
+  absyntax::file *parseModule(symbol *id);
 
   // Returns a function that statically initializes all loaded modules.
   // Then runs the dynamic initializer of r.

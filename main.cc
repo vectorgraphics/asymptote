@@ -27,7 +27,7 @@
 using namespace settings;
 using namespace std;
 
-using absyn::file;
+using absyntax::file;
 using trans::genv;
 using types::record;
 
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
       genv ge;
 
       if (parseonly) {
-        absyn::file *tree = ge.parseModule(id);
+        absyntax::file *tree = ge.parseModule(id);
         em->sync();
         if (!em->errors())
           tree->prettyprint(std::cout, 0);

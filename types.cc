@@ -175,7 +175,7 @@ std::ostream& operator<< (std::ostream& out, const signature& s)
   out << "(";
 
   vector<ty *>::const_iterator t = s.formals.begin();
-  vector<absyn::varinit*>::const_iterator dt = s.defaults.begin();
+  vector<absyntax::varinit*>::const_iterator dt = s.defaults.begin();
   if (t != s.formals.end()) {
     out << **t;
     if (*dt != 0)

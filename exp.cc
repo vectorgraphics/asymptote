@@ -15,7 +15,7 @@
 #include "stm.h"
 #include "camp.tab.h"  // For the binary operator names
 
-namespace absyn {
+namespace absyntax {
 
 using namespace types;
 using namespace trans;
@@ -1377,5 +1377,5 @@ types::ty *postfixExp::trans(coenv &)
 }
 
 
-} // namespace absyn
+} // namespace absyntax
 

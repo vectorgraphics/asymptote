@@ -13,7 +13,7 @@
 #include "record.h"
 #include "coenv.h"
 
-namespace absyn {
+namespace absyntax {
 
   using namespace types;
   using trans::access;
@@ -464,4 +464,4 @@ void qualifiedName::prettyprint(ostream &out, int indent)
 
 
 
-} // namespace absyn
+} // namespace absyntax
