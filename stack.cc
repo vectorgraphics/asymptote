@@ -74,87 +74,80 @@ void stack::run(func *f)
   /* for binops */
   vars_t u, v;
 
-  bool debug=settings::verbose > 4;
-   
+  em->Pending(settings::verbose > 4);
+  
   try {
     for (;;) {
-      curPos = ip->pos;
+      inst *i = &(*ip);
+      curPos = i->pos;
       
 #ifdef DEBUG_STACK
-      cerr << curPos << "\n";
+      cerr << getPos() << "\n";
       printInst(cerr, ip, body->code.begin());
       cerr << "\n";
 #endif
 
-      if(errorstream::interrupt) throw interrupted();
-      if(debug) em->trace(curPos);
-      
-      switch (ip->op)
+      switch (i->op)
         {
           case inst::pop:
             pop();
             break;
         
           case inst::intpush:
-            push(ip->val);
+            push(i->val);
             break;
         
           case inst::constpush:
-            push(ip->ref);
+            push(i->ref);
             break;
         
           case inst::varpush:
-            push(vars[ip->val]);
+            push(vars[i->val]);
             break;
-        
+
           case inst::varsave:
-            vars[ip->val] = top();
+            vars[i->val] = top();
             break;
         
           case inst::fieldpush: {
             vars_t frame = pop<vars_t>();
-            if (!frame) {
+            if (!frame)
 	      error(this,"dereference of null pointer");
-            }
-            push(frame[ip->val]);
+            push(frame[i->val]);
             break;
           }
         
           case inst::fieldsave: {
             vars_t frame = pop<vars_t>();
-            if (!frame) {
+            if (!frame)
 	      error(this,"dereference of null pointer");
-            }
-            frame[ip->val] = top();
+            frame[i->val] = top();
             break;
           }
 	
           case inst::builtin: {
-            bltin func = ip->bfunc;
+            bltin func = i->bfunc;
             func(this);
-            
             em->checkCamp(curPos);
             break;
           }
 
           case inst::jmp:
-            ip = ip->label;
+            ip = i->label;
             continue;
 
           case inst::cjmp:
-            if (pop<bool>()) { ip = ip->label; continue; }
+            if (pop<bool>()) { ip = i->label; continue; }
             break;
 
           case inst::njmp:
-            if (!pop<bool>()) { ip = ip->label; continue; }
+            if (!pop<bool>()) { ip = i->label; continue; }
             break;
 
           case inst::popcall: {
             /* get the function reference off of the stack */
             callable* f = pop<callable*>();
-            
             f->call(this);
-
             em->checkCamp(curPos);
             break;
           }
@@ -166,7 +159,7 @@ void stack::run(func *f)
           case inst::makefunc: {
             func *f = new func;
             f->closure = pop<vars_t>();
-            f->body = ip->lfunc;
+            f->body = i->lfunc;
 
             push((callable*)f);
             break;
@@ -185,6 +178,7 @@ void stack::run(func *f)
       cerr << "\n";
 #endif
             
+      if(em->Pending()) em->process(curPos);
       ++ip;
     }
   } catch (boost::bad_any_cast&) {

@@ -25,7 +25,6 @@ extern bool errorFlag;
 void reportError(std::string desc);
 
 // Checks if an error has occured.
-// TODO: Does this need to be inline.
 inline bool errors() {
   return errorFlag;
 }

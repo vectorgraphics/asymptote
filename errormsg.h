@@ -50,13 +50,6 @@ class position {
   int column;
 
 public:
-  /*position()
-    : file(0), p(0) {} 
-
-  position(fileinfo *file, int p)
-    : file(file), p(p) {}
-  */
-
   void init(fileinfo *f, int p) {
     file = f;
     if (file) {
@@ -85,22 +78,25 @@ class errorstream {
   ostream& out;
   bool anyErrors;
   bool anyWarnings;
-
-  // If there is an error printed without the closing newline.
-  bool floating;
-
-  // Prints errors occured with camp and exits.  Does not return.
-  void printCamp(position pos);
-
+  bool floating;	// Was a message output without a terminating newline?
+  bool pending;		// Are there pending interrupts or tracing requests?
+  void printCamp(position pos); // Print camp errors and throw exception.
+  
 public:
-  static bool interrupt;
+  static bool interrupt; // Is there a pending interrupt?
   
   errorstream(ostream& out = std::cerr)
-    : out(out), anyErrors(false), anyWarnings(false), floating(false) {}
+    : out(out), anyErrors(false), anyWarnings(false), floating(false),
+      pending(false) {}
 
   void clear();
 
   void message(position pos, const std::string& s);
+  
+  void Interrupt(bool b) {
+    interrupt=b;
+    if(b) pending=true;
+  }
   
   // An error is encountered, not in the user's code, but in the way the
   // compiler works!  This may be augmented in the future with a message
@@ -143,13 +139,23 @@ public:
       printCamp(pos);
   }
   
-  bool errors() {
+  bool errors() const {
     return anyErrors;
   }
   
-  bool warnings() {
+  bool warnings() const {
     return anyWarnings || errors();
   }
+  
+  bool Pending() {
+    return pending;
+  }
+
+  void Pending(bool b) {
+    pending=b;
+  }
+
+  void process(const position& pos);
   
 };
 

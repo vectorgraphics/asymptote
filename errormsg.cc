@@ -12,6 +12,8 @@
 #include "errormsg.h"
 #include "interact.h"
 
+bool errorstream::interrupt=false;
+
 ostream& operator<< (ostream& out, const position& pos)
 {
   if (!pos)
@@ -24,8 +26,6 @@ ostream& operator<< (ostream& out, const position& pos)
       << pos.column << ": ";
   return out;
 }
-
-bool errorstream::interrupt=false;
 
 void errorstream::clear()
 {
@@ -94,3 +94,8 @@ void errorstream::printCamp(position pos)
   throw handled_error();
 }
 
+void errorstream::process(const position& pos)
+{
+  if(interrupt) throw interrupted();
+  else trace(pos);
+}

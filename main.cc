@@ -75,7 +75,7 @@ void signalHandler(int)
 
 void interruptHandler(int)
 {
-  errorstream::interrupt=true;
+  em->Interrupt(true);
 }
 
 int main(int argc, char *argv[])
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
     } catch (handled_error) {
       ++status;
     } catch (interrupted) {
-      errorstream::interrupt=false;
+      em->Interrupt(false);
       cerr << endl;
       run::cleanup(true);
     } catch (const char* s) {
