@@ -625,7 +625,7 @@ types::ty *callExp::trans(coenv &e)
     symbol *s=callee->getName();
     *em << "cannot call" << separator << "'" 
 	<< *((function *) ft)->getResult() << " ";
-    if(s) *em << s;
+    if(s) *em << *s;
     *em << *ft->getSignature() << "'" << separator;
     switch(sig.getNumFormals()) {
       case 0:
