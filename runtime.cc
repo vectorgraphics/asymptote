@@ -22,6 +22,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::ostringstream;
+using std::string;
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -858,28 +859,28 @@ void transformPow(stack *s)
 
 void emptyString(stack *s)
 {
-  s->push((std::string) "");
+  s->push((string) "");
 }
 
 void stringLength(stack *s)
 {
-  string a = s->pop<std::string>();
+  string a = s->pop<string>();
   s->push((int) a.length());
 }
 
 void stringFind(stack *s)
 {
   int pos=s->pop<int>();
-  string b = s->pop<std::string>();
-  string a = s->pop<std::string>();
+  string b = s->pop<string>();
+  string a = s->pop<string>();
   s->push((int) a.find(b,pos));
 }
 
 void stringRfind(stack *s)
 {
   int pos=s->pop<int>();
-  string b = s->pop<std::string>();
-  string a = s->pop<std::string>();
+  string b = s->pop<string>();
+  string a = s->pop<string>();
   s->push((int) a.rfind(b,pos));
 }
 
@@ -887,22 +888,22 @@ void stringSubstr(stack *s)
 {
   int n=s->pop<int>();
   int pos=s->pop<int>();
-  string a = s->pop<std::string>();
+  string a = s->pop<string>();
   s->push(a.substr(pos,n));
 }
 
 void stringReverse(stack *s)
 {
-  string a = s->pop<std::string>();
+  string a = s->pop<string>();
   reverse(a.begin(),a.end());
   s->push(a);
 }
 
 void stringInsert(stack *s)
 {
-  string b = s->pop<std::string>();
+  string b = s->pop<string>();
   int pos=s->pop<int>();
-  string a = s->pop<std::string>();
+  string a = s->pop<string>();
   s->push(a.insert(pos,b));
 }
 
@@ -910,7 +911,7 @@ void stringErase(stack *s)
 {
   int n=s->pop<int>();
   int pos=s->pop<int>();
-  string a = s->pop<std::string>();
+  string a = s->pop<string>();
   s->push(a.erase(pos,n));
 }
 
@@ -947,18 +948,18 @@ void stringReplace(stack *s)
 void stringFormatInt(stack *s) 
 {
   int x=s->pop<int>();
-  string format=s->pop<std::string>();
+  string format=s->pop<string>();
   int size=snprintf(NULL,0,format.c_str(),x)+1;
   char *buf=new char[size];
   snprintf(buf,size,format.c_str(),x);
-  s->push(std::string(buf));
+  s->push(string(buf));
   delete [] buf;
 }
 
 void stringFormatReal(stack *s) 
 {
   double x=s->pop<double>();
-  string format=s->pop<std::string>();
+  string format=s->pop<string>();
   const char *beginScientific="\\!\\times\\!10^{";
   const char *phantom="\\phantom{+}";
   const char *endScientific="}";
@@ -1027,7 +1028,7 @@ void stringFormatReal(stack *s)
     }
     q++;
   }
-  s->push(std::string(buf));
+  s->push(string(buf));
   delete [] buf;
 }
 
@@ -1036,13 +1037,13 @@ void stringTime(stack *s)
   static const size_t n=256;
   static char Time[n]="";
 #ifdef HAVE_STRFTIME
-  string format = s->pop<std::string>();
+  string format = s->pop<string>();
   const time_t bintime=time(NULL);
   strftime(Time,n,format.c_str(),localtime(&bintime));
 #else
-  s->pop<std::string>();
+  s->pop<string>();
 #endif  
-  s->push((std::string) Time);
+  s->push((string) Time);
 }
 
 // Path operations.
@@ -1347,7 +1348,7 @@ void gray(stack *s)
 
 void lineType(stack *s)
 {
-  string t = s->pop<std::string>();
+  string t = s->pop<string>();
   s->push(new pen(t));  
 }
 
@@ -1480,7 +1481,7 @@ void add(stack *s)
 
 void postscript(stack *s)
 {
-  string t = s->pop<std::string>();
+  string t = s->pop<string>();
   picture *pic = s->pop<picture*>();
   drawVerbatim *d = new drawVerbatim(PostScript,t);
   pic->append(d);
@@ -1488,7 +1489,7 @@ void postscript(stack *s)
   
 void tex(stack *s)
 {
-  string t = s->pop<std::string>();
+  string t = s->pop<string>();
   picture *pic = s->pop<picture*>();
   drawVerbatim *d = new drawVerbatim(TeX,t);
   pic->append(d);
@@ -1496,7 +1497,14 @@ void tex(stack *s)
   
 void texPreamble(stack *s)
 {
-  camp::TeXpreamble.push_back(s->pop<std::string>());
+  string t=s->pop<string>();
+  // Replace newlines with spaces as they can break bidirectional TeX pipe
+  int pos=0;
+  while((pos=t.find('\n',pos)) < string::npos) {
+    t[pos]=' ';
+    pos++;
+  }
+  camp::TeXpreamble.push_back(t);
 }
   
 void layer(stack *s)
@@ -1512,7 +1520,7 @@ void label(stack *s)
   pair a = s->pop<pair>();
   pair z = s->pop<pair>();
   double r = s->pop<double>();
-  string t = s->pop<std::string>();
+  string t = s->pop<string>();
   picture *pic = s->pop<picture*>();
   drawLabel *d = new drawLabel(t,r,z,a,p);
   pic->append(d);
@@ -1526,15 +1534,15 @@ void overwrite(stack *s)
 void shipout(stack *s)
 {
   bool wait = s->pop<bool>();
-  string format = s->pop<std::string>();
+  string format = s->pop<string>();
   picture *pic = s->pop<picture*>();
-  string prefix = s->pop<std::string>();
+  string prefix = s->pop<string>();
   pic->shipout(prefix == "" ? outname : prefix,format,wait);
 }
 
 void stringFilePrefix(stack *s)
 {
-  s->push((std::string) outname);
+  s->push((string) outname);
 }
 
 void reset(stack *)
@@ -1560,7 +1568,7 @@ void upToDate(stack *s)
 
 void system(stack *s)
 {
-  std::string str = s->pop<std::string>();
+  string str = s->pop<string>();
   
   if(settings::suppressOutput) {s->push(0); return;}
   
@@ -1575,7 +1583,7 @@ void system(stack *s)
 
 void abort(stack *s)
 {
-  string msg = s->pop<std::string>();
+  string msg = s->pop<string>();
   error(s,msg.c_str());
 }
 
@@ -1590,8 +1598,8 @@ void merge(stack *s)
 {
   int ret;
   bool keep = s->pop<bool>();
-  string format = s->pop<std::string>();
-  string args = s->pop<std::string>();
+  string format = s->pop<string>();
+  string args = s->pop<string>();
   
   if(settings::suppressOutput) {s->push(0); return;}
   
@@ -1602,7 +1610,7 @@ void merge(stack *s)
   cmd << "convert "+args;
   remove << "rm";
   while(!outnameStack->empty()) {
-    std::string name=outnameStack->front();
+    string name=outnameStack->front();
     cmd << " " << name;
     remove << " " << name;
     outnameStack->pop_front();
@@ -1622,7 +1630,7 @@ void merge(stack *s)
 
 void execute(stack *s)
 {
-  std::string str = s->pop<std::string>();
+  string str = s->pop<string>();
   symbol *id = symbol::trans(str.c_str());
   string Outname=outname;
   outname=str;
@@ -1651,25 +1659,25 @@ void nullFile(stack *s)
 
 void fileOpenOut(stack *s)
 {
-  string filename = s->pop<std::string>();
+  string filename = s->pop<string>();
   s->push(file::open(filename,file::out));
 }
 
 void fileOpenIn(stack *s)
 {
-  string filename = s->pop<std::string>();
+  string filename = s->pop<string>();
   s->push(file::open(filename,file::in));
 }
 
 void fileOpenXOut(stack *s)
 {
-  string filename = s->pop<std::string>();
+  string filename = s->pop<string>();
   s->push(file::open(filename,file::xout));
 }
 
 void fileOpenXIn(stack *s)
 {
-  string filename = s->pop<std::string>();
+  string filename = s->pop<string>();
   s->push(file::open(filename,file::xin));
 }
 
@@ -1723,7 +1731,7 @@ void readChar(stack *s)
   if(f->open()) f->read(c);
   static char str[1];
   str[0]=c;
-  s->push(std::string(str));
+  s->push(string(str));
 }
 
 // Set file dimensions
