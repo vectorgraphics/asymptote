@@ -86,20 +86,6 @@ struct lambda : public memory::managed<lambda> {
   // escaping items.
   int vars;
 
-  // For debugging purposes, it is good to know what line a machine
-  // instruction corresponds to in a source file.
-  // These pairs must be sorted in order of accending inst location.
-  struct instpos {
-    program::label i;
-    position p;
-    instpos(program::label i, position p) : i(i), p(p) {}
-  };
-
-  struct poslist : public std::vector<instpos> {
-    position getPos(program::label here);
-  };
-  poslist pl;
-
   virtual ~lambda() {}
 };
 
@@ -160,6 +146,7 @@ struct inst {
     pushclosure, makefunc, ret
   };
   opcode op;
+  position pos;
   union {
     int val;
     std::string *s;
