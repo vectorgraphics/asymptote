@@ -13,6 +13,7 @@
 #include <sstream>
 #include <cerrno>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include "util.h"
 #include "settings.h"

@@ -24,6 +24,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 #include <sys/wait.h>
 #include <cerrno>
 #include <sstream>
+#include <unistd.h>
 
 #include "errormsg.h"
 #include "settings.h"
