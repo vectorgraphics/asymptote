@@ -20,7 +20,8 @@ BISON = @BISON@
 LEX = @LEX@
 
 DEFS = @DEFS@
-OPT = -g -O3 -DNDEBUG
+OPT = -DNDEBUG
+CFLAGS = @CFLAGS@
 OPTS = $(OPT) $(DEFS) $(CFLAGS) 
 INCL = -I- -I .
 
