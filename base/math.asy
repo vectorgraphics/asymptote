@@ -31,6 +31,13 @@ real sec(real x) {return 1/cos(x);}
 real cot(real x) {return tan(pi/2-x);}
 real frac(real x) {return x-(int)x;}
 
+// Return an interior arc BAC of triangle ABC, given a radius r > 0.
+// If r < 0, return the corresponding exterior arc of radius |r|.
+guide arc(explicit pair B, explicit pair A, explicit pair C, real r=arrowsize)
+{
+  return arc(A,r,Angle(B-A),Angle(C-A));
+}
+
 // Draw a perpendicular symbol at z going from w to I*w.
 void perpendicular(picture pic=currentpicture, pair z, pair w,
 		   real size=perpsize, pen p=currentpen) 

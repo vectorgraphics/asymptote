@@ -10,7 +10,7 @@ guide p=(0,0)--graph(f,0,1,Spline)--(1,0);
 guide h=p--cycle;
 
 picture canvas=new picture;
-fill(canvas,h,gray);
+fill(canvas,h,lightgray);
 draw(canvas,p);
 draw(canvas,(0,0)--graph(g,0,1,Spline)--(1,0),dotted);
 add(canvas);

@@ -8,7 +8,7 @@ void rectangle(real a, real b, real c, real h(real,real))
   real height=(a < c && c < b) ? f(c) : h(f(a),f(b));
   pair p=(a,0), q=(b,height);
   guide g=box(p,q);
-  fill(g,gray); 
+  fill(g,lightgray); 
   draw(g); 
 }
 

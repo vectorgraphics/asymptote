@@ -99,6 +99,7 @@ Import
 * metapost::                    @code{MetaPost} compatibility routines
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
+* babel::                       Implement @code{LaTeX} @code{babel} package
 
 @end detailmenu
 @end menu
@@ -629,21 +630,35 @@ returns the dot product @code{a.x*b.x+a.y*b.y}.
 
 @item string
 @cindex @code{string}
-@cindex TeX
-character strings. These are implemented as STL strings, except that the
-escape character is @code{\\} not @code{\}, for compatibility with @TeX{}.
-For example; 
+@cindex @TeX{} string
+a character string, implemented using the STL @code{string} class.
+
+Strings delimited by double quotes (@code{"}) are subject to the
+following mapping to allow the use of double quotes in @TeX{} (e.g. for
+using the @code{babel} package, @pxref{babel}):
 
 @itemize @bullet 
-@item \ maps to \
-@item \\n maps to \n
-@item \\t maps to \t
-@item \\r maps to \r
-@item \\\ maps to \\
 @item \" maps to "
-@item \\" maps to to \"
-@item \1-\0377 map to corresponding octal byte
-@item the variable @code{backslash} is a string containing a single backslash.
+@end itemize
+
+@cindex @code{C} string
+Strings delimited by single quotes (@code{'}) have the same mappings as
+character strings in ANSI @code{C}:
+
+@itemize @bullet 
+@item \' maps to '
+@item \" maps to "
+@item \? maps to ?
+@item \\ maps to backslash
+@item \a maps to alert
+@item \b maps to backspace
+@item \f maps to form feed
+@item \n maps to newline
+@item \r maps to carriage return
+@item \t maps to tab
+@item \v maps to vertical tab
+@item \1-\377 map to corresponding octal byte
+@item \x1-\xFF map to corresponding hexadecimal byte
 @end itemize
 
 The implicit initializer for type string is the empty string @code{""}.
@@ -2196,6 +2211,7 @@ void execute(string file);
 * metapost::                    @code{MetaPost} compatibility routines
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
+* babel::                       Implement @code{LaTeX} @code{babel} package
 @end menu
 
 @node plain
@@ -2827,7 +2843,8 @@ This package implements a dynamic binary search tree.
 @subsection @code{feynman}
 @cindex @code{feynman}
 This package, contributed by Martin Wiebusch, is useful for drawing
-Feynman diagrams, as illustrated by the example @code{gluon}.
+Feynman diagrams, as illustrated by the examples @code{eetomumu.asy}
+and @code{fermi.asy}.
 
 @node metapost
 @subsection @code{metapost}
@@ -2859,6 +2876,16 @@ If you don't have @code{LaTeX} support for @code{unicode} installed,
 you can enable support for Western European languages (ISO 8859-1) by
 importing the module @code{latin1}. This module can be used as a
 template for providing support for other ISO 8859 alphabets.
+
+@node babel
+@subsection @code{babel}
+@cindex @code{babel}
+This module implements the @code{LaTeX} @code{babel} package in
+@code{Asymptote}. For example:
+@verbatim
+import babel;
+babel("german");
+@end verbatim
 
 @node Static
 @section Static
@@ -3417,7 +3444,7 @@ pair G(real x) {return (x,g(x));}
 
 guide p=(0,0)--graph(f,0,1,100,Spline)--(1,0);
 guide h=p--cycle;
-fill(h,gray);
+fill(h,lightgray);
 draw((0,0)--graph(g,0,1,100,Spline)--(1,0),dotted);
 
 draw(p);

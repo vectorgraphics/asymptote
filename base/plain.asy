@@ -136,7 +136,7 @@ public endlT endl=null;
 private struct tabT {};
 public tabT tab=null;
 
-void write(file out, endlT endl=null) {write(out,"\\n"); flush(out);}
+void write(file out, endlT endl=null) {write(out,"\n"); flush(out);}
 void write(file out=stdout, bool x, endlT) {write(out,x); write(out);}
 void write(file out=stdout, int x, endlT) {write(out,x); write(out);}
 void write(file out=stdout, real x, endlT) {write(out,x); write(out);}
@@ -146,7 +146,7 @@ void write(file out=stdout, guide x, endlT) {write(out,x); write(out);}
 void write(file out=stdout, pen x, endlT) {write(out,x); write(out);}
 void write(file out=stdout, transform x, endlT) {write(out,x); write(out);}
 
-void write(file out=stdout, tabT) {write(out,"\\t");}
+void write(file out=stdout, tabT) {write(out,"\t");}
 void write(file out=stdout, bool x, tabT) {write(out,x); write(out,tab);}
 void write(file out=stdout, int x, tabT) {write(out,x); write(out,tab);}
 void write(file out=stdout, real x, tabT) {write(out,x); write(out,tab);}
@@ -360,7 +360,7 @@ struct picture {
   public pair userMin,userMax;
   
   public ScaleT scale; // Needed by graph
-  Legend legend[];
+  public Legend legend[];
 
   // The maximum sizes in the x and y directions; zero means no restriction.
   public real xsize=0, ysize=0;
@@ -1282,27 +1282,33 @@ public direction
   CCW=new bool(directionT) {return true;},
   CW=new bool(directionT) {return false;};
 
-// return an arc centered at c with radius r from angle1 to angle2 in degrees.
-guide arc(pair c, real r, real angle1, real angle2)
-{
-  return c+r*dir(angle1)..c+r*dir(0.5*(angle1+angle2))..c+r*dir(angle2);
-}
-  
 // return an arc centered at c with radius r from angle1 to angle2 in degrees,
-// drawing in an explicit direction.
+// drawing in the given direction.
 guide arc(pair c, real r, real angle1, real angle2, direction direction)
 {
-  if(direction(direction)) 
-    return arc(c,r,(angle2 >= angle1) ? angle1 : angle1-360,angle2);
-  else 
-    return arc(c,r,angle1,(angle2 >= angle1) ? angle2-360 : angle2);
+  real t1=intersect(unitcircle,(0,0)--2*dir(angle1)).x;
+  real t2=intersect(unitcircle,(0,0)--2*dir(angle2)).x;
+  static int n=length(unitcircle);
+  if(t1 >= t2 && direction(direction)) t1 -= n;
+  if(t2 >= t1 && !direction(direction)) t2 -= n;
+  return shift(c)*scale(r)*subpath(unitcircle,t1,t2);
+}
+  
+// return an arc centered at c with radius r > 0 from angle1 to angle2 in
+// degrees, drawing counterclockwise if angle2 >= angle1 (otherwise clockwise).
+// If r < 0, draw the complementary arc of radius |r|.
+guide arc(pair c, real r, real angle1, real angle2)
+{
+  bool pos=angle2 >= angle1;
+  if(r > 0) return arc(c,r,angle1,angle2,pos ? CCW : CW);
+  else return arc(c,-r,angle1,angle2,pos ? CW : CCW);
 }
 
 // return an arc centered at c from pair z1 to z2 (assuming |z2-c|=|z1-c|),
-// drawing counter-clockwise unless direction=CW
-guide arc(pair c, pair z1, pair z2, direction direction=CCW)
+// drawing in the given direction.
+guide arc(pair c, explicit pair z1, explicit pair z2, direction direction=CCW)
 {
-  return arc(c,abs(z1-c),Angle(z1),Angle(z2),direction);
+  return arc(c,abs(z1-c),Angle(z1-c),Angle(z2-c),direction);
 }
 
 picture bar(pair a, pair d, pen p=currentpen)
@@ -1497,8 +1503,6 @@ string replace(string s, string from, string to)
   return replace(s,new string[][] {{from,to}});
 }
 
-string backslash="\0134";
-
 // Like texify but don't convert embedded TeX commands: \${}
 string TeXify(string s) 
 {
@@ -1511,9 +1515,9 @@ string TeXify(string s)
 // Convert string to TeX
 string texify(string s) 
 {
-  static string[][] t={{backslash,"\backslash"},{"$","\$"},
-		       {"\backslash","$\backslash$"},{"{","\{"},{"}","\}"}};
-  return TeXify(replace(s,t));
+  static string[][] t={{'\\',"\backslash "},{"$","\$"},{"{","\{"},{"}","\}"}};
+  static string[][] u={{"\backslash ","$\backslash$"}};
+  return TeXify(replace(replace(s,t),u));
 }
 
 string italic(string s)
@@ -1757,7 +1761,7 @@ pair endpoint(path p)
     return point(p,length(p));
 }
 
-pen[] colorPens={red,green,blue,magenta,cyan,orange,purple,brown,darkgreen,
+pen[] colorPens={red,blue,green,magenta,cyan,orange,purple,brown,darkgreen,
 		 darkblue,chartreuse,fuchsia,salmon,lightblue,black,lavender,
 		 pink,yellow,gray};
 pen[] monoPens={solid,dashed,dotted,longdashed,dashdotted,longdashdotted};

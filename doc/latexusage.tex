@@ -72,7 +72,7 @@ pair G(real x) {return (x,g(x));}
 
 guide p=(0,0)--graph(f,0,1,100,Spline)--(1,0);
 guide h=p--cycle;
-fill(h,gray);
+fill(h,lightgray);
 draw((0,0)--graph(g,0,1,100,Spline)--(1,0),dotted);
 
 draw(p);

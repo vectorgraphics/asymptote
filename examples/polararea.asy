@@ -18,7 +18,7 @@ draw((0,0)--rmax*expi(theta2),dotted);
 
 guide g=polargraph(f,theta1,theta2,Spline);
 guide h=(0,0)--g--cycle;
-fill(h,gray);
+fill(h,lightgray);
 draw(h);
 
 real thetamin=3*pi/10;

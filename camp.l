@@ -199,35 +199,7 @@ ESC \\
                     yyterminate();
                    }
 \r\n|\n|\r         {adjust(); newline(); append('\n'); continue; }
-{ESC}{ESC}b        {adjust(); append('\b'); continue; }
-{ESC}{ESC}t        {adjust(); append('\t'); continue; }
-{ESC}{ESC}n        {adjust(); append('\n'); continue; }
-{ESC}{ESC}f        {adjust(); append('\f'); continue; }
-{ESC}{ESC}r        {adjust(); append('\r'); continue; }
-{ESC}{ESC}\\       {adjust(); append('\\'); append('\\'); continue; }
-{ESC}(\"|\')       {adjust(); append(yytext[1]); continue; }
-{ESC}[0-7]         {adjust();
-                    char x=(char)(yytext[1]-'0');
-                    append(x);
-                    continue;
-                   } 
-{ESC}[0-7][0-7]    {adjust();
-                    char x=(char)((yytext[1]-'0')*8+yytext[2]-'0');
-                    append(x);
-                    continue;
-                   } 
-{ESC}[0-3][0-7][0-7] {adjust();
-                    char x=(char)((yytext[1]-'0')*64+(yytext[2]-'0')*8
-                            +yytext[3]-'0');
-                    append(x);
-                    continue;
-                   } 
-{ESC}0[0-3][0-7][0-7] {adjust();
-                    char x=(char)((yytext[2]-'0')*64+(yytext[3]-'0')*8
-                            +yytext[4]-'0');
-                    append(x);
-                    continue;
-                   } 
+{ESC}\"            {adjust(); append('\"'); continue; }
 .                  {adjust(); append(*yytext); }
 }
 
@@ -244,13 +216,14 @@ ESC \\
                     yyterminate();
                    }
 \r\n|\n|\r         {adjust(); newline(); append('\n'); continue; }
+{ESC}(\'|\"|\?|\\)       {adjust(); append(yytext[1]); continue; }
+{ESC}a        {adjust(); append('\a'); continue; }
 {ESC}b        {adjust(); append('\b'); continue; }
-{ESC}t        {adjust(); append('\t'); continue; }
-{ESC}n        {adjust(); append('\n'); continue; }
 {ESC}f        {adjust(); append('\f'); continue; }
+{ESC}n        {adjust(); append('\n'); continue; }
 {ESC}r        {adjust(); append('\r'); continue; }
-{ESC}\\       {adjust(); append('\\'); continue; }
-{ESC}(\"|\')       {adjust(); append(yytext[1]); continue; }
+{ESC}t        {adjust(); append('\t'); continue; }
+{ESC}v        {adjust(); append('\v'); continue; }
 {ESC}[0-7]         {adjust();
                     char x=(char)(yytext[1]-'0');
                     append(x);
@@ -267,12 +240,20 @@ ESC \\
                     append(x);
                     continue;
                    } 
-{ESC}0[0-3][0-7][0-7] {adjust();
-                    char x=(char)((yytext[2]-'0')*64+(yytext[3]-'0')*8
-                            +yytext[4]-'0');
+{ESC}x[0-9,A-F]    {adjust();
+                    char x=(char) (yytext[2] <= '9' ? yytext[2]-'0' : 
+                                                      10+yytext[2]-'A');
                     append(x);
                     continue;
-                   }
+                   } 
+{ESC}x[0-9,A-F][0-9,A-F] {adjust();
+                    char x=(char) ((yytext[2] <= '9' ? yytext[2]-'0' : 
+                                                      10+yytext[2]-'A')*16
+                                  +(yytext[3] <= '9' ? yytext[3]-'0' : 
+                                                      10+yytext[3]-'A'));
+                    append(x);
+                    continue;
+                   } 
 .                  {adjust(); append(*yytext); }
 }
 
