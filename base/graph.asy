@@ -407,7 +407,6 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
       if(N == 0) {
 	real limit=axiscoverage*arclength(G);
 	N=1;
-	n=10;
 	while(N <= last-first) {
 	  if(logaxiscoverage(N,T,g,initial,factor,side,sign,Size,LogFormat,
 			     plabel,part,limit,first,last) <= limit) break;
@@ -415,14 +414,14 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	}
       }
       
-      if(N > 1) n=0;
-
+      if(n == 0) n=10;
+      
       if(!deconstruct || !GUIDelete()) {
 	frame d;
 	draw(d,G,p);
 	if(N > 0) for(int i=first; i <= last; ++i) {
 	  locate.calc(T,g,(i-initial)*factor);
-	  real Size0=((i-first) % N == 0) ? Size : size;
+	  real Size0=((i-first) % N == 0 || n != 2) ? Size : size;
 	  draw(d,locate.Z--locate.Z-Size0*I*sign*locate.dir,p);
 	  if(n > 0) {
 	    for(int j=2; j < n; ++j) {
