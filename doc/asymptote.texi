@@ -226,30 +226,20 @@ make install
 For a (default) system-wide installation, the last command should be
 done as root.
 
-In order to compile @code{Asymptote} you will need version 1.32.0 or
-later of the @code{boost} library from @code{http://boost.org}.
-If your system lacks a working version of the @code{boost} library,
-it is sufficient to make a link in the top-level directory of the
-@code{Asymptote} source code to the @code{boost} subdirectory of the
+In order to compile @code{Asymptote} you will need the @code{boost}
+header files from @code{http://boost.org} (included in Fedora Linux
+distributions). If your system lacks these headers, it is sufficient
+to make a link in the top-level directory of the @code{Asymptote}
+source code to the @code{boost} subdirectory of the
 @code{boost_1_32_0} source distribution:
 @verbatim
-tar -jxf boost_1_32_0.tar.bz2  
-tar -jxf asymptote-x.xx.tar.gz 
+tar -zxf boost_1_32_0.tar.gz
+tar -zxf asymptote-x.xx.tar.gz 
 cd asymptote-x.xx 
 ln -s ../boost_1_32_0/boost .
 ./configure 
 make all
 make install 
-@end verbatim
-
-Alternatively, Fedora Core Linux users can upgrade their @code{boost}
-library like this, where @code{$MIRROR} denotes
-@code{http://download.fedora.redhat.com/pub/fedora} or an appropriate mirror
-thereof:
-@verbatim
-rpm -U \
-$MIRROR/linux/core/development/i386/Fedora/RPMS/boost-1.32.0-3.i386.rpm \
-$MIRROR/linux/core/development/i386/Fedora/RPMS/boost-devel-1.32.0-3.i386.rpm
 @end verbatim
 
 @cindex Debian
@@ -278,7 +268,7 @@ or equivalent and install @code{boost-jam}. Then compile and install the
 @verbatim
 tar -zxf boost_1_32_0.tar.gz
 cd boost_1_32_0
-bjam --prefix=/usr install
+bjam --prefix=/usr install --layout=system
 @end verbatim
 
 @cindex readline
