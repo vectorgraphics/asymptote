@@ -108,6 +108,12 @@ int main(int argc, char *argv[])
 
       genv ge;
 
+      // Import plain, if autoplain option is enabled.
+      if (autoplain)
+        ge.loadPlain();
+      if (!ignoreGUI)
+        ge.loadGUI(outname);
+
       if (parseonly) {
         absyntax::file *tree = ge.parseModule(id);
         em->sync();

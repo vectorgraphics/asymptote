@@ -103,26 +103,27 @@ genv::genv()
   base_tenv(te);
   base_venv(ve);
   base_menv(me);
+}
 
-  // Import plain, if autoplain option is enabled.
-  if (settings::autoplain) {
-    static absyntax::importdec iplain(position::nullPos(),
-				      symbol::trans("plain"));
-    iplain.trans(base_coenv);
-    me.beginScope(); // NOTE: This is unmatched.
-  }
-  
-  if(!settings::ignoreGUI) {
-    string GUIname=buildname(settings::outname,"gui");
-    std::ifstream exists(GUIname.c_str());
-    if(exists) {
-      if(settings::clearGUI) unlink(GUIname.c_str());
-      else {
-	absyntax::importdec igui(position::nullPos(),
-				 symbol::trans(GUIname.c_str()));
-	igui.trans(base_coenv);
-	me.beginScope();
-      }
+void genv::loadPlain()
+{
+  static absyntax::importdec iplain(position::nullPos(),
+                                    symbol::trans("plain"));
+  iplain.trans(base_coenv);
+  me.beginScope(); // NOTE: This is unmatched.
+}
+
+void genv::loadGUI(string outname) 
+{
+  string GUIname=buildname(outname,"gui");
+  std::ifstream exists(GUIname.c_str());
+  if(exists) {
+    if(settings::clearGUI) unlink(GUIname.c_str());
+    else {
+      absyntax::importdec igui(position::nullPos(),
+                               symbol::trans(GUIname.c_str()));
+      igui.trans(base_coenv);
+      me.beginScope(); // NOTE: This is unmatched.
     }
   }
 }

@@ -45,6 +45,9 @@ class genv {
 public:
   genv();
 
+  void loadPlain();
+  void loadGUI(std::string outname);
+
   // If a module is already loaded, this will return it.  Otherwise, it
   // returns null.
   record *getModule(symbol *id);
