@@ -1,6 +1,18 @@
+diff -ru --new-file pstoedit-3.40/configure.ac pstoedit-3.40J/configure.ac
+--- pstoedit-3.40/configure.ac	2005-01-12 13:55:58.000000000 -0700
++++ pstoedit-3.40J/configure.ac	2005-03-12 00:36:37.001802824 -0700
+@@ -69,6 +69,8 @@
+ fi
+ AC_SUBST(LIBLD_LDFLAGS)
+ 
++AC_CHECK_LIB([gd],[gdImageCreateFromPng])
++
+ dnl some optional packages - default is to check automatically
+ dnl but the check can be disabled using --without-PACKAGE
+ dnl legal PACKAGE names are:
 diff -ru --new-file pstoedit-3.40/src/Makefile.am pstoedit-3.40J/src/Makefile.am
 --- pstoedit-3.40/src/Makefile.am	2004-11-03 14:05:16.000000000 -0700
-+++ pstoedit-3.40J/src/Makefile.am	2005-02-26 16:51:58.000000000 -0700
++++ pstoedit-3.40J/src/Makefile.am	2005-03-12 00:36:37.002802672 -0700
 @@ -50,6 +50,7 @@
  	drvtext.cpp 	drvtext.h		\
  	drvsk.cpp 	drvsk.h			\
@@ -11,8 +23,8 @@ diff -ru --new-file pstoedit-3.40/src/Makefile.am pstoedit-3.40J/src/Makefile.am
  	drvpic.cpp 	drvpic.h		\
 diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 --- pstoedit-3.40/src/drvasy.cpp	1969-12-31 17:00:00.000000000 -0700
-+++ pstoedit-3.40J/src/drvasy.cpp	2005-02-27 11:09:53.000000000 -0700
-@@ -0,0 +1,517 @@
++++ pstoedit-3.40J/src/drvasy.cpp	2005-03-12 00:48:21.064768984 -0700
+@@ -0,0 +1,512 @@
 +/*
 +  drvASY.cpp : This file is part of pstoedit
 +  Backend for Asymptote files
@@ -73,9 +85,7 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +  clipmode(false),
 +  evenoddmode(false),
 +  firstpage(true),
-+  imgcount(0),
-+  tmpdir("pstoedit-temp"),
-+  outname(NULL)
++  imgcount(0)
 +{
 +  // Output copyright information
 +  outf << "// Converted from PostScript(TM) to Asymptote by pstoedit\n"
@@ -288,28 +298,23 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +
 +void drvASY::show_image(const PSImage & imageinfo)
 +{
-+  if(outBaseName) outname=outBaseName;
-+  else if (outname == NULL) {
-+#if defined(_WIN32)
++  if (outBaseName == NULL) {
 +    errf << "images cannot be handled via standard output. Use an output file"
 +	 << endl;
 +    return;
-+#else
-+    mkdir(tmpdir.c_str(),0xFFFF);
-+  
-+    outname=strdup((tmpdir+"/XXXXXX").c_str());
-+    if(mkstemp(outname) == -1) {
-+      errf << "Cannot build temporary file prefix";
-+      exit(1);
-+    }
-+#endif
 +  }
 +
 +  imgcount++;
 +  
++  Point ll,ur;
++  imageinfo.getBoundingBox(ll,ur);
++  
 +  ostringstream buf;
-+  buf << outname << "." << imgcount << ".eps";
-+  outf << "label(include(\"" << buf.str() << "\"),(0,0));" << endl;
++  buf << outBaseName << "." << imgcount << ".eps";
++  
++  outf << "label(include(\"" << buf.str() << "\"),("
++       << ll.x_ << "pt," << ll.y_ << "),align,textpen);" << endl;
++  outf << "layer();" << endl;
 +  
 +  ofstream outi(buf.str().c_str());
 +  if (!outi) {
@@ -318,6 +323,8 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +  }
 +  
 +  imageinfo.writeEPSImage(outi);
++  remove(imageinfo.FileName.value());
++
 +  outi.close();
 +}
 +
@@ -400,7 +407,7 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +	outf << "\"";
 +	quote=true;
 +      }
-+	outf << "\\char" << (int) *c;
++      outf << "\\char" << (int) *c;
 +    }
 +  }
 +  if(quote) outf << "\"";
@@ -526,14 +533,14 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.cpp pstoedit-3.40J/src/drvasy.cpp
 +      true,	// if backend supports curves, else 0
 +      false,	// if backend supports elements with fill and edges
 +      true,	// if backend supports text, else 0
-+      DriverDescription::memoryeps, // support for EPS file images
++      DriverDescription::png, // support for PNG file images
 +      DriverDescription::normalopen, true, // supports multiple pages
 +      true  /*clipping */ 
 +      );
 diff -ru --new-file pstoedit-3.40/src/drvasy.h pstoedit-3.40J/src/drvasy.h
 --- pstoedit-3.40/src/drvasy.h	1969-12-31 17:00:00.000000000 -0700
-+++ pstoedit-3.40J/src/drvasy.h	2005-02-27 11:14:29.000000000 -0700
-@@ -0,0 +1,89 @@
++++ pstoedit-3.40J/src/drvasy.h	2005-03-12 00:36:37.004802368 -0700
+@@ -0,0 +1,87 @@
 +#ifndef __drvASY_h
 +#define __drvASY_h
 +
@@ -614,26 +621,125 @@ diff -ru --new-file pstoedit-3.40/src/drvasy.h pstoedit-3.40J/src/drvasy.h
 +  // Set to true on first page, false otherwise
 +  bool firstpage;
 +  
-+  int imgcount;
-+  string tmpdir;
-+  char* outname;
++  unsigned int imgcount;
 +  
 +  std::list<bool> clipstack;
 +  std::list<bool> gsavestack;
 +};
 +
 +#endif
-diff -ru --new-file pstoedit-3.40/src/pstoedit.cpp pstoedit-3.40J/src/pstoedit.cpp
---- pstoedit-3.40/src/pstoedit.cpp	2005-01-01 15:41:06.000000000 -0700
-+++ pstoedit-3.40J/src/pstoedit.cpp	2005-03-09 21:05:10.679193512 -0700
-@@ -958,7 +958,9 @@
- 					default:
- 							break;
- 				}
--				if ((currentDriverDesc->backendDesiredImageFormat !=  DriverDescription::noimage) 					&& (!options.nameOfOutputFile) ) {
-+				if ((currentDriverDesc->backendDesiredImageFormat != DriverDescription::noimage) &&
-+				    (currentDriverDesc->backendDesiredImageFormat != DriverDescription::memoryeps) && 
-+				    (!options.nameOfOutputFile) ) {
- 						errstream <<
- 							"Warning: some types of raster images in the input file cannot be converted if the output is sent to standard output"
- 							<< endl;
+diff -ru --new-file pstoedit-3.40/src/psimage.cpp pstoedit-3.40J/src/psimage.cpp
+--- pstoedit-3.40/src/psimage.cpp	2005-01-01 15:41:06.000000000 -0700
++++ pstoedit-3.40J/src/psimage.cpp	2005-03-12 00:36:37.006802064 -0700
+@@ -20,6 +20,12 @@
+     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ 
+ */
++#ifdef HAVE_LIBGD
++#include <gd.h>
++#endif
++
++#include <cmath>
++
+ #include "drvbase.h"
+  
+ #include "version.h"
+@@ -287,10 +293,9 @@
+ void PSImage::writeEPSImage(ostream & outi) const
+ {
+ 	if (isFileImage) {
+-#ifdef HAVELIBGD
+-
++#ifdef HAVE_LIBGD
+ 		FILE* in = fopen(FileName.value(),"rb");
+-		cerr<<"Reading: "<<FileName.value()<<endl;
++//		cerr << "Reading: "<<FileName.value() << endl;
+ 		gdImagePtr im=gdImageCreateFromPng(in);
+ 		assert(im);
+ 		fclose(in);
+@@ -298,33 +303,44 @@
+ 		const int w=gdImageSX(im);
+ 		const int h=gdImageSY(im);
+ 		
+-		outi<<"%!PS-Adobe-2.0 EPSF-2.0\n";
+-		outi<<"%%Title: image created by pstoedit\n";
+-		outi<<"%%Creator: pstoedit version "<<version<<endl;
+-		outi<<"%%BoundingBox: 0 0 "<<w<<" "<<h<<"\n";
+-		outi<<"%%Pages: 1\n";
+-		outi<<"%%EndComments\n";
++		outi << "%!PS-Adobe-2.0 EPSF-2.0\n";
++		outi << "%%Title: image created by pstoedit\n";
++		outi << "%%Creator: pstoedit version "<< version << endl;
++		outi << "%%BoundingBox: " 
++		     << floor(ll.x_) << " " << floor(ll.y_) << " "
++		     << ceil(ur.x_) << " " << ceil(ur.y_) << endl;
+ 
+-		outi<<"%%Page: 1 1\n";
++		outi << "%%Pages: 1\n";
++		outi << "%%EndComments\n";
++
++		outi << "%%Page: 1 1\n";
+ 		
+-		outi<<"gsave\n";
++		outi << "gsave\n";
+ 
+-		outi<<"1 dict begin % temp dict for storing str1\n";
+-		outi<<"/str1 1 string def\n";
++		outi << "1 dict begin % temp dict for storing str1\n";
++		outi << "% transformation matrix" << endl;
++		outi << "[ ";
++		{
++			for (unsigned int i = 0; i < 6; i++)
++				outi << normalizedImageCurrentMatrix[i] << " ";
++		}
++		outi << "] concat" << endl;
++		outi << "[ 1 0 0 -1 0 " << h << " ] concat" << endl;
++		outi << "/str1 1 string def\n";
+ 			
+-		outi<<"0 "<<h<<" translate\n";
+-		outi<<w<<" "<<-h<<" scale\n";
+-		outi<<w<<" "<<h<<" 8"<<endl;
+-		outi<<"[ "<<w<<" 0 0 "<<h<<" 0 0 ]\n";
++		outi << "0 " << h << " translate\n";
++		outi<< w << " " << -h << " scale\n";
++		outi<< w << " "<< h << " 8" << endl;
++		outi<< "[ " << w << " 0 0 " << h << " 0 0 ]\n";
+ 		
+ 		outi << "{currentfile str1 readhexstring pop} % decoding procedure" << endl;
+ 		outi << "false 3 % has many sources, number of color components" << endl;
+-		outi << "% number of data " << w*h*3 << endl;
++		outi << "% number of hex bytes " << w*h*3 << endl;
+ 		outi << "colorimage" << endl;
+ 		
+ 		int x,y,c,i=0;
+-		for(y=0; y<h; y++)
+-			for(x=0; x<w; x++)
++		for(y=0; y < h; y++)
++			for(x=0; x < w; x++)
+ 			{
+ 				if (i % (12 * ncomp) == 0) outi << endl;
+ 				c=gdImageGetPixel(im,x,y);
+@@ -346,7 +362,11 @@
+ 		gdImageDestroy(im);
+ 		return;
+ #else
+-		cerr << "Image::writeEPSImage not yet supported for PNG File Image objects" << endl;
++		static bool first=true;
++		if(first) {
++			cerr << "Reconfigure with libgd installed to support PNG to EPS image file conversion" << endl;
++			first=false;
++		}
+ 		return;
+ #endif
+ 	}
+@@ -356,8 +376,8 @@
+ 	outi << "%!PS-Adobe-2.0 EPSF-2.0" << endl;
+ 	outi << "%%Title: image created by pstoedit" << endl;
+ 	outi << "%%Creator: pstoedit version " << version << endl;
+-	outi << "%%BoundingBox: " << (int) ll.x_ << " " << (int) ll.y_ << " "
+-		<< (int) ur.x_ << " " << (int) ur.y_ << endl;
++	outi << "%%BoundingBox: " << floor(ll.x_) << " " << floor(ll.y_) << " "
++	     << ceil(ur.x_) << " " << ceil(ur.y_) << endl;
+ 	outi << "%%Pages: 1" << endl;
+ 	outi << "%%EndComments" << endl << endl;
+ 	outi << "%%Page: 1 1" << endl << endl;
