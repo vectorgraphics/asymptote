@@ -130,7 +130,7 @@ static struct problem {
     for (int i = 2; i < rows.length; ++i) {
       row r=rows[i];
       if(r.c < max*r.t[col]) {
-	max=r.c/r.t[col]; vp=i;
+	if(r.c >= 0) {max=r.c/r.t[col]; vp=i;}
       }
     }
     
