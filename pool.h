@@ -60,8 +60,8 @@ public:
   void free() const { return free_func(ptr); }
 protected:
   friend bool cmp(poolitem,poolitem);
-  void* const ptr;
-  free_t const free_func;
+  void* ptr;
+  free_t free_func;
 };
 
 template <class T>
