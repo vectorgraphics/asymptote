@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ(2)
-AC_INIT([Asymptote],[0.53cvs],[asymptote-discuss@lists.sourceforge.net])
+AC_INIT([Asymptote],[0.54cvs],[asymptote-discuss@lists.sourceforge.net])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 test "$prefix" = NONE && prefix=/usr/local
