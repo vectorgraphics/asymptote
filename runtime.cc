@@ -319,10 +319,19 @@ void newInitializedArray(stack *s)
   s->push(a);
 }
 
+static void outOfBounds(stack *s, const char *op, int len, int n)
+{
+    ostringstream buf;
+    buf << op << " array of length " << len << " with out-of-bounds index "
+	<< n;
+    error(s,buf.str().c_str());
+}
+
 // Read an element from an array. Checks for initialization & bounds.
 void arrayRead(stack *s)
 {
   int n = s->pop<int>();
+  int n0 = n;
   array *a = s->pop<array*>();
 
   checkArray(s,a);
@@ -330,11 +339,13 @@ void arrayRead(stack *s)
   if (n < 0) n += len; // Map indices [-len,-1] to [0,len-1]
   if (n >= 0 && n < len) {
     item i = (*a)[(unsigned) n];
-    if (i.empty())
-      error(s,"reading uninitialized value from array");
+    if (i.empty()) {
+      ostringstream buf;
+      buf << "read uninitialized value from array at index " << n0;
+      error(s,buf.str().c_str());
+    }
     s->push(i);
-  } else 
-    error(s,"reading out-of-bounds index from array");
+  } else outOfBounds(s,"reading",len,n0);
 }
 
 // Read an element from an array of arrays. Checks bounds and initialize
@@ -342,6 +353,7 @@ void arrayRead(stack *s)
 void arrayArrayRead(stack *s)
 {
   int n = s->pop<int>();
+  int n0 = n;
   array *a = s->pop<array*>();
 
   checkArray(s,a);
@@ -351,8 +363,7 @@ void arrayArrayRead(stack *s)
     item i = (*a)[(unsigned) n];
     if (i.empty()) i=new array(0);
     s->push(i);
-  } else 
-    error(s,"reading out-of-bounds index from array");
+  } else outOfBounds(s,"reading",len,n0);
 }
 
 // Write an element to an array.  Increases size if necessary.
@@ -365,7 +376,7 @@ void arrayWrite(stack *s)
   checkArray(s,a);
   int len=(int) a->size();
   if (n < 0) n += len; // Map indices [-len,-1] to [0,len-1]
-  if (n < 0) error(s,"writing out-of-bounds index in array");
+  if (n < 0) outOfBounds(s,"writing",len,n-len);
   if (a->size() <= (size_t) n)
     a->resize(n+1);
   (*a)[n] = value;
