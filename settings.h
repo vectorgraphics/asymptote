@@ -58,7 +58,7 @@ namespace settings {
 
   extern char* AsyDir; // Environment variable ASYMPTOTE_DIR
   extern std::string PSViewer; // Environment variable ASYMPTOTE_PSVIEWER
-  extern std::string PDFViewer; // Environment variable ASYMPTOTE_PSVIEWER
+  extern std::string PDFViewer; // Environment variable ASYMPTOTE_PDFVIEWER
   extern std::string paperType;
   extern double pageWidth;
   extern double pageHeight;
