@@ -6,8 +6,6 @@
  * PostScript. 
  *****/
 
-//#include <errno.h>
-
 #include "errormsg.h"
 #include "picture.h"
 #include "util.h"

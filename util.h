@@ -8,6 +8,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <sys/types.h>
 #include <string>
 #include <iostream>
 
@@ -35,6 +36,7 @@ int System(const char *command, bool quiet=false, bool wait=true,
 int System(const ostringstream& command, bool quiet=false, bool wait=true,
 	   int *pid=NULL, bool warn=true); 
   
+extern "C" int kill(pid_t pid, int sig);
 extern "C" char *strsignal(int sig);
 extern "C" int snprintf(char *str, size_t size, const  char  *format,...);
 extern "C" char *index(const char *s, int c);
