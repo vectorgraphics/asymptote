@@ -904,6 +904,7 @@ picture arrow(path g, pen p=currentpen, real size=arrowsize,
 	    path G=t*g;
 	    path R=subpath(G,position,0.0);
 	    path S=subpath(G,position,length(G));
+	    size=min(arclength(G),size);
             draw(f,subpath(R,arctime(R,size),length(R)),p);
             draw(f,S,p);
 	    guide head=arrowhead(pic,G,position,p,size,angle);
@@ -923,6 +924,7 @@ picture arrow2(path g, pen p=currentpen, real size=arrowsize,
             picture pic=new picture;
 	    path G=t*g;
 	    path R=reverse(G);
+	    size=min(0.5*arclength(G),size);
             draw(f,subpath(R,arctime(R,size),length(R)-arctime(G,size)),p);
 	    guide head=arrowhead(pic,G,p,size,angle);
 	    guide tail=arrowhead(pic,R,p,size,angle);
@@ -1185,9 +1187,8 @@ void label(picture pic=currentpicture, string s, real angle=0,
 	   adjust adjust=NoAdjust)
 {
   int L=length(g);
-  if(align == 0) align=-direction(g,0.5L)*I;
-  align=side(align,side);
-  label(pic,s,angle,point(g,0.5L),align,p,adjust);
+  if(align == 0) align=side(-direction(g,0.5L)*I,side);
+  label(pic,s,angle,point(g,0.5*L),align,p,adjust);
 }
 
 void dot(picture pic=currentpicture, pair c)
@@ -1240,12 +1241,24 @@ void arrow(picture pic=currentpicture, string s="", real angle=0,
     a=0; c=length*unit(align);
   } else {
     real halfem=labelmargin(p);
-    real arrowmargin=halfem;
-    c=arrowmargin*align;
+    c=halfem*align;
     a=length*align+c;
     label(pic,s,angle,b,(a+c)/halfem,p,adjust);
   }
   addabout(pic,arrow(a--c,p,size,Angle,arrowhead),b);
+}
+
+void outarrow(picture pic=currentpicture, string s, real angle=0,
+	      pair b, pair align, real length=arrowlength,
+	      pen p=currentpen, adjust adjust=NoAdjust,
+	      real size=arrowsize, real Angle=arrowangle,
+	      arrowhead arrowhead=Fill)
+{
+  real halfem=labelmargin(p);
+  pair c=halfem*align;
+  pair a=length*align+c;
+  label(pic,s,angle,b,(a+c)/halfem,p,adjust);
+  addabout(pic,arrow((0,0)--(a-b),p,size,Angle,arrowhead),b);
 }
 
 guide square(pair z1, pair z2)
@@ -1482,6 +1495,11 @@ string baseline(string s)
 string math(string s)
 {
   return "$"+s+"$";
+}
+
+string minipage(string s, real vsize=100pt)
+{
+  return "\begin{minipage}{"+(string) (vsize*pt)+"pt}"+s+"\end{minipage}";
 }
 
 string math(real x)
