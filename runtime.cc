@@ -556,7 +556,7 @@ void arrayAll(stack *s)
   unsigned int size=(unsigned int) a->size();
   bool c=true;
   for(unsigned i=0; i < size; i++)
-    if(!boost::any_cast<bool>((*a)[i])) {c=false; break;}
+    if(!get<bool>((*a)[i])) {c=false; break;}
   s->push(c);
 }
 
