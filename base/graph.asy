@@ -3,8 +3,6 @@ static public real Ticksize=2*ticksize;
 static public real ylabelwidth=2.0;
 static public real axislabelmargin=2;
 static public real axiscoverage=0.6;
-static public real paletteheight=5cm;
-static public real palettemargin=2*Ticksize;
 static public int ngraph=100;
 
 static public real epsilon=1000*realEpsilon();
@@ -41,19 +39,9 @@ public scaleT Log(bool automin=true, bool automax=true)
 
 real scalefcn_operators(real x) {return 0;}
 
-bool linear(scaleT S) 
-{
-  return S.T == identity;
-}
-
 bool logarithmic(scaleT S) 
 {
   return S.T == log10 && S.Label == identity;
-}
-
-bool linlog(scaleT S) 
-{
-  return linear(S) || logarithmic(S);
 }
 
 void scale(picture pic=currentpicture, scaleT x, scaleT y)
@@ -141,7 +129,6 @@ bounds autoscale(real Min, real Max, bool logaxis=false)
   int exp=max(sa.exponent,sb.exponent);
   real a=sa.floor(Min,exp);
   real b=sb.ceil(Max,exp);
-//  if(sb.mantissa < 1.5 || (a < 0 && sa.mantissa < 1.5)) {
   if(sb.mantissa <= 1.5) {
     --exp;
     a=sa.floor(Min,exp);
@@ -246,6 +233,20 @@ pair labeltick(frame d, transform T, guide g, real pos, pair side,
   return locate.dir;
 }  
 
+real axiscoverage(int N, transform T, path g, real Step, pair side, int sign,
+		  real Size, ticklabel ticklabel, pen plabel, part part,
+		  real norm, real limit)
+{
+  real coverage=0;
+  for(int i=0; i <= N; ++i) {
+    frame d;
+    pair dir=labeltick(d,T,g,i*Step,side,sign,Size,ticklabel,plabel,part,norm);
+    coverage += abs(Dot(max(d)-min(d),dir));
+    if(coverage > limit) return coverage;
+  }
+  return coverage;
+}
+
 ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	    real step=0, real Size=0, real size=0,
 	    ticklabel ticklabel=defaultticklabel, bool end=true)
@@ -269,9 +270,11 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
       real a=part(point(g,0));
       real b=part(point(g,length(g)));
       real offset;
+      bool singletick=false;
       if(finite(tickmin)) offset=tickmin-S.T(a);
       else {tickmin=S.T(0); offset=0;}
-      if(!finite(tickmax)) tickmax=S.T(arclength(g));
+      if(!finite(tickmax)) 
+	tickmax=S.T(arclength(g));
       real len=tickmax-tickmin;
       real norm=max(abs(a),abs(b));
       if(Step == 0 && N == 0) {
@@ -280,15 +283,15 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	  for(int d=divisor.length-1; d >= 0; --d) {
 	    N=divisor[d];
 	    Step=len/N;
-	    real coverage=0;
-	    for(int i=0; i <= N; ++i) {
-	      frame d;
-	      pair dir=labeltick(d,T,g,i*Step,side,sign,Size,ticklabel,plabel,
-				 part,norm);
-	      coverage += abs(Dot(max(d)-min(d),dir));
-	      if(coverage > limit) break;
-	    }
-	    if(coverage <= limit) {
+	    if(axiscoverage(N,T,g,Step,side,sign,Size,ticklabel,
+			    plabel,part,norm,limit) <= limit) {
+	      if(N == 1 && !(S.automin && S.automax) && d < divisor.length-1) {
+		// Try using 2 ticks (otherwise 1);
+		int div=divisor[d+1];
+		singletick=true; Step=div/2*len/div;
+		if(axiscoverage(2,T,g,Step,side,sign,Size,ticklabel,
+				plabel,part,norm,limit) <= limit) N=2;
+	      }
 	      // Found a good divisor; now compute subtick divisor
 	      if(n == 0) {
 		n=divisor[-1]/N;
@@ -301,10 +304,12 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	} else N=1;
       }
       
-      if(N == 0) N=(int) (len/Step);
-      else {
-	Step=len/N;
-	if(cyclic(g) && len == arclength(g)) --N;
+      if(!singletick) {
+	if(N == 0) N=(int) (len/Step);
+	else {
+	  Step=len/N;
+	  if(cyclic(g) && len == arclength(g)) --N;
+	}
       }
 
       if(n == 0) {
@@ -729,28 +734,19 @@ void autoscale(picture pic=currentpicture, axis axis)
 {
   if(!pic.scale.set) {
     bounds mx,my;
-    bounds Mx,My;
     pic.scale.set=true;
-    if(finite(pic.userMin.x) && finite(pic.userMax.x)) {
+    if(finite(pic.userMin.x) && finite(pic.userMax.x))
       mx=autoscale(pic.userMin.x,pic.userMax.x,logarithmic(pic.scale.x.scale));
-      Mx=linlog(pic.scale.x.scale) ? mx :
-	autoscale(pic.scale.x.scale.Tinv(pic.userMin.x),
-		  pic.scale.x.scale.Tinv(pic.userMax.x),
-		  logarithmic(pic.scale.x.scale));
-    } else {mx=new bounds; mx.min=mx.max=0; Mx=mx; pic.scale.set=false;}
-    if(finite(pic.userMin.y) && finite(pic.userMax.y)) {
+    else {mx=new bounds; mx.min=mx.max=0; pic.scale.set=false;}
+    if(finite(pic.userMin.y) && finite(pic.userMax.y))
       my=autoscale(pic.userMin.y,pic.userMax.y,logarithmic(pic.scale.y.scale));
-      My=linlog(pic.scale.y.scale) ? my :
-	autoscale(pic.scale.y.scale.Tinv(pic.userMin.y),
-		  pic.scale.y.scale.Tinv(pic.userMax.y),
-		  logarithmic(pic.scale.y.scale));
-    } else {my=new bounds; my.min=my.max=0; My=my; pic.scale.set=false;}
+    else {my=new bounds; my.min=my.max=0; pic.scale.set=false;}
     pic.scale.x.tickMin=mx.min;
-    pic.scale.y.tickMin=my.min;
     pic.scale.x.tickMax=mx.max;
+    pic.scale.y.tickMin=my.min;
     pic.scale.y.tickMax=my.max;
-    axis.xdivisor=Mx.divisor;
-    axis.ydivisor=My.divisor;
+    axis.xdivisor=mx.divisor;
+    axis.ydivisor=my.divisor;
     axis.userMin=(pic.scale.x.automin ? mx.min : pic.userMin.x,
 		  pic.scale.y.automin ? my.min : pic.userMin.y);
     axis.userMax=(pic.scale.x.automax ? mx.max : pic.userMax.x,
@@ -941,16 +937,29 @@ void labelytick(picture pic=currentpicture, real y, pair align=W,
 }
 
 // Construct a secondary linear X axis
-picture secondaryX(picture primary=currentpicture, void f(picture))
+picture secondaryX(picture primary=currentpicture,
+		   bool automin=true, bool automax=true, void f(picture))
 {
   picture pic=new picture;
   f(pic);
-  bounds b=autoscale(pic.userMin.x,pic.userMax.x);
-  real denom=b.max-b.min;
+  bounds a=autoscale(pic.userMin.x,pic.userMax.x);
+  real bmin=automin ? a.min : pic.userMin.x;
+  real bmax=automax ? a.max : pic.userMax.x;
+  
+  real denom=bmax-bmin;
   if(denom != 0.0) {
-    real m=(primary.userMax.x-primary.userMin.x)/denom;
     pic.erase();
-    scale(pic,Linear(m,b.min-primary.userMin.x/m),primary.scale.y.scale);
+    real m=(primary.userMax.x-primary.userMin.x)/denom;
+    scale(pic,Linear(automin,automax,m,bmin-primary.userMin.x/m),
+	  primary.scale.y.scale);
+    pic.scale.set=true;
+    pic.scale.x.tickMin=pic.scale.x.scale.T(a.min);
+    pic.scale.x.tickMax=pic.scale.x.scale.T(a.max);
+    pic.scale.y.tickMin=primary.scale.y.tickMin;
+    pic.scale.y.tickMax=primary.scale.y.tickMax;
+    axis.userMin=(bmin,axis.userMin.y);
+    axis.userMax=(bmax,axis.userMax.y);
+    axis.xdivisor=a.divisor;
     f(pic);
   }
   pic.userMin=primary.userMin;
@@ -959,17 +968,30 @@ picture secondaryX(picture primary=currentpicture, void f(picture))
 }
 
 // Construct a secondary linear Y axis
-picture secondaryY(picture primary=currentpicture, void f(picture))
+picture secondaryY(picture primary=currentpicture, 
+		   bool automin=true, bool automax=true, void f(picture))
+
 {
   picture pic=new picture;
   f(pic);
-  bounds b=autoscale(pic.userMin.y,pic.userMax.y);
+  bounds a=autoscale(pic.userMin.y,pic.userMax.y);
+  real bmin=automin ? a.min : pic.userMin.y;
+  real bmax=automax ? a.max : pic.userMax.y;
 
-  real denom=b.max-b.min;
+  real denom=bmax-bmin;
   if(denom != 0.0) {
-    real m=(primary.userMax.y-primary.userMin.y)/denom;
     pic.erase();
-    scale(pic,primary.scale.x.scale,Linear(m,b.min-primary.userMin.y/m));
+    real m=(primary.userMax.y-primary.userMin.y)/denom;
+    scale(pic,primary.scale.x.scale,
+	  Linear(automin,automax,m,bmin-primary.userMin.y/m));
+    pic.scale.set=true;
+    pic.scale.x.tickMin=primary.scale.x.tickMin;
+    pic.scale.x.tickMax=primary.scale.x.tickMax;
+    pic.scale.y.tickMin=pic.scale.y.scale.T(a.min);
+    pic.scale.y.tickMax=pic.scale.y.scale.T(a.max);
+    axis.userMin=(axis.userMin.x,bmin);
+    axis.userMax=(axis.userMax.x,bmax);
+    axis.ydivisor=a.divisor;
     f(pic);
   }
   pic.userMin=primary.userMin;
@@ -1131,44 +1153,6 @@ void errorbars(picture pic=currentpicture, real[] x, real[] y,
     i=next(i,cond);
     errorbar(pic,(x[i],y[i]),(dpx[i],dpy[i]),(dmx[i],dmy[i]),p,size);
   }
-}
-
-void image(picture pic=currentpicture, real[][] data, pen[] palette,
-	   pair initial, pair final)
-{
-  pic.add(new void (frame f, transform t) {
-	    image(f,data,palette,t*initial,t*final);
-    });
-  pic.addBox(initial,final);
-}
-
-frame palette(real[][] data, pen[] palette,
-	      real height=paletteheight, pen p=currentpen,
-	      string s="", real position=0.5, real angle=infinity,
-	      pair align=E, pair shift=0, pair side=right,
-	      pen plabel=currentpen,
-	      ticks ticks=LeftTicks(0.0,0.0,Ticksize,0.0))
-{
-  picture pic=new picture;
-  real initialy=min(data);
-  real finaly=max(data);
-  pair z0=(0,initialy);
-  pair z1=(0,finaly);
-  
-  pic.add(new void (frame f, transform t) {
-	    pair Z0=(0,(t*z0).y);
-	    pair Z1=(0,(t*z1).y);
-	    pair initial=Z0-Ticksize;
-	    image(f,new real[][] {sequence(palette.length-1)},palette,
-		  initial,Z1);
-	    draw(f,Z0--initial--Z1-Ticksize--Z1,p);
-  });
-  
-  pic.addBox(z0,z1,(0,0),(Ticksize,0));
-  pic.scale.x.automax=false;
-  yaxis(pic,initialy,finaly,p,Right,ticks);
-  return shift(palettemargin+Ticksize,0)*
-    ((shift(0,-initialy)*pic).fit(0,height));
 }
 
 // True arc

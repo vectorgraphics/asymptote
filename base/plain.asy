@@ -129,6 +129,11 @@ static public string defaultfilename;
 static real infinity=sqrt(0.5*realMax());
 static real epsilon=realEpsilon();
 
+real dotsize(pen p=currentpen) 
+{
+  return dotfactor*linewidth(p);
+}
+
 real arrowsize(pen p=currentpen) 
 {
   return arrowfactor*linewidth(p);
@@ -789,7 +794,7 @@ struct picture {
     // only copy them.  This needs to be a deep copy, as src could later have
     // objects added to it that should not be included in this picture.
 
-    picture src_copy=src.drawcopy();
+    picture srcCopy=src.drawcopy();
 
     // Draw by drawing the copied picture.
     add(new void (frame f, transform t, transform T, pair m, pair M) {
@@ -797,7 +802,7 @@ struct picture {
 	if(GUIDelete()) return;
 	T=GUI(T);
       }
-     frame d=src_copy.fit(t,T*src_copy.T,m,M);
+     frame d=srcCopy.fit(t,T*srcCopy.T,m,M);
      if(deconstruct && !src.deconstruct) deconstruct(d);
      add(f,d);
      for(int i=0; i < src.legend.length; ++i)
@@ -807,7 +812,7 @@ struct picture {
     userBox(src.userMin,src.userMax);
 
     // Add the coord info to this picture.
-    append(xcoords,ycoords,src_copy.T,src.xcoords,src.ycoords);
+    append(xcoords,ycoords,srcCopy.T,src.xcoords,src.ycoords);
   }
 }
 
@@ -1024,6 +1029,14 @@ void draw(frame f, path[] g, pen p=currentpen)
   for(int i=0; i < g.length; ++i) draw(f,g[i],p);
 }
 
+void Draw(picture pic=currentpicture, path g, pen p=currentpen)
+{
+  pic.add(new void (frame f, transform t) {
+    draw(f,t*g,p);
+  });
+  pic.addPath(g,p);
+}
+
 void _draw(picture pic=currentpicture, path g, pen p=currentpen,
 	   margin margin=NoMargin)
  
@@ -1036,18 +1049,9 @@ void _draw(picture pic=currentpicture, path g, pen p=currentpen,
 
 void draw(picture pic=currentpicture, path[] g, pen p=currentpen)
 {
-  for(int i=0; i < g.length; ++i) _draw(pic,g[i],p);
+  for(int i=0; i < g.length; ++i) Draw(pic,g[i],p);
 }
 
-// truesize draw about origin
-void _drawabout(pair origin, picture pic=currentpicture, path g,
-		pen p=currentpen, margin margin=NoMargin)
-{
-  picture opic=new picture;
-  _draw(opic,g,p,margin);
-  addabout(origin,pic,opic);
-}
-  
 void fill(frame f, path g, pen p)
 {
   fill(f,g,p,0,0,p,0,0);
@@ -1066,6 +1070,12 @@ void fill(frame f, path[] g, pen p)
 void fill(frame f, path[] g)
 {
   fill(f,g,currentpen);
+}
+
+void filldraw(frame f, path g, pen p=currentpen)
+{
+  fill(f,g,p);
+  draw(f,g,p);
 }
 
 void fill(picture pic=currentpicture, path g,
@@ -1106,7 +1116,7 @@ void filldraw(picture pic=currentpicture, path g,
 	      pen penb=currentpen, pair b=0, real rb=0)
 {
   fill(pic,g,pena,a,ra,penb,b,rb);
-  _draw(pic,g,drawpen);
+  Draw(pic,g,drawpen);
 }
 
 void filldraw(picture pic=currentpicture, path[] g,
@@ -1276,10 +1286,10 @@ public Filltype
   Fill=new void(picture pic, path g, pen p, fillT) {
     p += solid;
     fill(pic,g,p);
-    _draw(pic,g,p);
+    Draw(pic,g,p);
   },
   NoFill=new void(picture pic, path g, pen p, fillT) {
-    _draw(pic,g,p);
+    Draw(pic,g,p);
 };
 
 void arrow(frame f, path G, pen p=currentpen, real size=0,
@@ -1506,12 +1516,12 @@ pen interp(pen a, pen b, real c)
 
 void dot(picture pic=currentpicture, pair c)
 {
-  _draw(pic,c,currentpen+linewidth()*dotfactor);
+  Draw(pic,c,currentpen+dotsize());
 }
 
 void dot(picture pic=currentpicture, pair c, pen p)
 {
-  _draw(pic,c,linewidth(p)*dotfactor+p);
+  Draw(pic,c,dotsize(p)+p);
 }
 
 void dot(picture pic=currentpicture, pair[] c, pen p=currentpen)
@@ -1537,9 +1547,6 @@ void labeldot(picture pic=currentpicture, string s="", real angle=0,
   label(pic,s,angle,c,align,shift,p);
 }
 
-path[] plus=(-1,0)--(1,0)^^(0,-1)--(0,1);
-path[] cross=rotate(45)*plus;
-
 // Return a unit polygon with n sides
 guide polygon(int n) 
 {
@@ -1547,6 +1554,16 @@ guide polygon(int n)
   for(int i=0; i < n; ++i) g=g--expi(2pi*(i+0.5)/n-0.5*pi);
   return g--cycle;
 }
+
+// Return an n-point unit cross
+path[] cross(int n) 
+{
+  path[] g;
+  for(int i=0; i < n; ++i) g=g^^(0,0)--expi(2pi*(i+0.5)/n-0.5*pi);
+  return g;
+}
+
+path[] plus=(-1,0)--(1,0)^^(0,-1)--(0,1);
 
 guide unitsquare=box((0,0),(1,1));
 
@@ -1586,7 +1603,7 @@ void legend(frame f, Legend[] legend, bool placement=true)
       pair z1=-i*I*legendskip*fontsize(p);
       pair z2=z1+legendlinelength;
       if(!L.topmark && !empty(L.mark)) mark(inset,interp(z1,z2,0.5),L.mark);
-      _draw(inset,z1--z2,p);
+      Draw(inset,z1--z2,p);
       label(inset,L.label,z2,E,p);
       if(L.topmark && !empty(L.mark)) mark(inset,interp(z1,z2,0.5),L.mark);
     }
@@ -1798,7 +1815,9 @@ guide arc(pair c, explicit pair z1, explicit pair z2, direction direction=CCW)
 
 void bar(picture pic, pair a, pair d, pen p=currentpen)
 {
-  _drawabout(a,pic,-0.5d--0.5d,p+solid);
+  picture opic=new picture;
+  Draw(opic,-0.5d--0.5d,p+solid);
+  addabout(a,pic,opic);
 }
 						      
 picture bar(pair a, pair d, pen p=currentpen)

@@ -1083,12 +1083,12 @@ interval [0,1], with 0.0 denoting black and 1.0 denoting white.
 
 @item pen rgb(real r, real g, real b) 
 @cindex @code{rgb}
-This produces an rgb color, where each of the red, green, and blue intensities
-@code{r}, @code{g}, @code{b}, lies in the interval [0,1].
+This produces an @acronym{RGB} color, where each of the red, green,
+and blue intensities @code{r}, @code{g}, @code{b}, lies in the interval [0,1].
 
 @item pen cmyk(real c, real m, real y, real k) 
 @cindex @code{cmyk}
-This produces a cmyk color, where each of the cyan, magenta,
+This produces a @acronym{CMYK} color, where each of the cyan, magenta,
 yellow, and black intensities @code{c}, @code{m}, @code{y}, @code{k},
 lies in the interval [0,1].
 
@@ -2047,7 +2047,7 @@ of the array. Like all functions in @code{Asymptote}, @code{push} can be
 @verbatim
 int[] A={1,2,3};
 void f(int)=A.push;
-f(7);                   // A now contains {1,2,3,7}.
+f(7);              // A now contains {1,2,3,7}.
 @end verbatim
 
 The @code{[]} suffix can also appear after the variable name; this
@@ -2424,7 +2424,7 @@ one of the interpolation types:
 @verbatim
 guide graph(picture pic=currentpicture, guide g=nullpath,
             real x(real), real y(real), real a, real b,
-            int n=ngraph, interpolate interpolatetype=LinearInterp)
+            int n=ngraph, interpolate interpolatetype=LinearInterp);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2437,7 +2437,7 @@ the given interpolation type.
 @verbatim
 guide graph(picture pic=currentpicture, guide g=nullpath,
             pair z(real), real a, real b,
-            int n=ngraph, interpolate interpolatetype=LinearInterp)
+            int n=ngraph, interpolate interpolatetype=LinearInterp);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2449,7 +2449,7 @@ of the parametrized function
 @verbatim
 guide graph(picture pic=currentpicture, guide g=nullpath,
             pair[] z, bool[] cond={},
-            interpolate interpolatetype=LinearInterp)
+            interpolate interpolatetype=LinearInterp);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2461,7 +2461,7 @@ of those elements of the array
 @verbatim
 guide graph(picture pic=currentpicture, guide g=nullpath,
             real[] x, real[] y, bool[] cond={},
-            interpolate interpolatetype=LinearInterp)
+            interpolate interpolatetype=LinearInterp);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2472,7 +2472,7 @@ of those elements of the arrays
 @item
 @verbatim
 guide graph(guide g=nullpath, real f(real), real a, real b, int n=ngraph,
-            real T(real), interpolate interpolatetype=LinearInterp)
+            real T(real), interpolate interpolatetype=LinearInterp);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2483,7 +2483,7 @@ spaced in [@code{a},@code{b}], with the given interpolation type.
 @item
 @verbatim
 guide polargraph(guide g=nullpath, real f(real), real a, real b,
-                 int n=ngraph, interpolate interpolatetype=LinearInterp)
+                 int n=ngraph, interpolate interpolatetype=LinearInterp);
 @end verbatim
 
 Returns a polar-coordinate graph using the scaling information for
@@ -2508,7 +2508,7 @@ void xaxis(picture pic=currentpicture, real xmin=-infinity,
            real xmax=infinity, pen p=currentpen, string s="",
            real position=infinity, real angle=0, pair align=0,
            pair shift=0, pair side=0, pen plabel=currentpen,
-           axis axis=YZero, ticks ticks=NoTicks)
+           axis axis=YZero, ticks ticks=NoTicks);
 @end verbatim
 
 Draw an @math{x} axis on picture @code{pic} from @math{x}=@code{xmin} to
@@ -2773,10 +2773,10 @@ refer to scaled data. Two frequently used scaling routines
 
 Scaling routines can be given two optional boolean arguments:
 @code{automin} and @code{automax}. These default to @code{true}, but can
-be set to @code{false} to disable automatic selection of "nice" axis
-minimum and maximum values. @code{Linear} can also take as an optional
-final argument a multiplicative scaling factor (e.g. for a depth axis,
-@code{Linear(-1)} requests axis reversal). 
+be respectively set to @code{false} to disable automatic selection of
+"nice" axis minimum and maximum values. @code{Linear}
+can also take as an optional final argument a multiplicative scaling
+factor (e.g. for a depth axis, @code{Linear(-1)} requests axis reversal). 
 
 @cindex logarithmic graph
 @cindex log-log graph
@@ -2785,7 +2785,19 @@ For example, to draw a log graph of a function, use @code{scale(Log,Log)}:
 @image{loggraph}
 
 @item @code{Asymptote} also provides a means for drawing a secondary
-linear axis:
+linear axis with the routines
+@verbatim
+picture secondaryX(picture primary=currentpicture,
+		   bool automin=true, bool automax=true,
+                   void f(picture));
+picture secondaryY(picture primary=currentpicture, 
+		   bool automin=true, bool automax=true,
+                   void f(picture));
+@end verbatim
+
+This example uses @code{secondaryY} to draw a secondary linear
+@math{y} axis:
+
 @cindex secondary axis
 @cindex @code{secondaryX}
 @cindex @code{secondaryY}
@@ -2796,6 +2808,57 @@ linear axis:
 @cindex @code{axis}
 @verbatiminclude generalaxis.asy
 @image{generalaxis}
+
+@item The next example show how to generate color density images
+and palettes. The following palettes are predefined in
+@code{palette.asy}: 
+
+@table @code
+
+@cindex @code{Grayscale}
+@item pen[] Grayscale(int NColors=256)
+a grayscale palette;
+
+@cindex @code{Rainbow}
+@item pen[] Rainbow(int NColors=65501)
+a rainbow spectrum;
+
+@cindex @code{BWRainbow}
+@item pen[] BWRainbow(int NColors=65485)
+a rainbow spectrum tapering off to black/white at the ends;
+
+@cindex @code{BWRainbow2}
+@item pen[] BWRainbow2(int NColors=65485)
+a double rainbow palette tapering off to black/white at the ends, with
+a linearly scaled intensity.
+@end table
+
+The function @code{cmyk(pen[] Palette)} may be used to convert any
+of these palettes to the @acronym{CMYK} colorspace.
+A color density plot can added to a picture @code{pic} by generating
+from a real[][] array @code{data}, using palette @code{palette}, an image
+spanning the rectangular region with opposite corners at coordinates
+@code{initial} and @code{final}:
+@verbatim
+void image(picture pic=currentpicture, real[][] data, pen[] palette,
+	   pair initial, pair final);
+@end verbatim
+
+An optionally labelled palette frame may be generated with the routine
+
+@verbatim
+frame palette(real[][] data, pen[] palette,
+	      real height=paletteheight, pen p=currentpen,
+	      string s="", real position=0.5, real angle=infinity,
+	      pair align=E, pair shift=0, pair side=right,
+	      pen plabel=currentpen,
+	      ticks ticks=LeftTicks(0.0,0.0,Ticksize,0.0));
+@end verbatim
+The palette frame can then be added to the graph at the desire
+location using @code{addabout}:
+
+@verbatiminclude image.asy
+@image{image}
 
 @item The following scientific graphs, which illustrate many features of
 @code{Asymptote}'s graphics routines, were generated from the examples
@@ -3157,7 +3220,7 @@ void draw(picture pic=currentpicture, string s="", real angle=0,
           path g, real position=0.5*length(g), pair align=0,
           pair shift=0, side side=RightSide, pen p=currentpen,
           arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
-          string legend="");
+          string legend="", frame mark=nullframe, bool topmark=true);
 @end verbatim
 
 Draw the path @code{g} on the picture @code{pic}, optionally labeled by
@@ -3167,8 +3230,9 @@ aligned on side @code{side}) and true shift @code{shift}, using pen
 @code{p} and other optional drawing attributes (arrows, bars, margins,
 legend). Only one parameter, the path, is required. For convenience,
 the arguments @code{arrow} and @code{bar} may be specified in either order. 
-The final argument, @code{legend}, is a string to use in constructing
-an optional legend entry.
+The argument @code{legend} is a string to use in constructing
+an optional legend entry. An optional frame @code{mark} may be drawn
+at every node, on top of the path unless @code{topmark=false}.
 
 @cindex @code{LeftSide}
 @cindex @code{Center}
@@ -3269,7 +3333,17 @@ diameter given by either the default linewidth magnified by @code{dotfactor}
 @verbatim
 void dot(picture pic=currentpicture, pair c);
 void dot(picture pic=currentpicture, pair c, pen p);
+void dot(picture pic=currentpicture, pair[] c, pen p=currentpen);
 @end verbatim
+
+The third routine draws a dot at every point of an pair array @code{c}.
+One can also draw a dot at every node of a path:
+@verbatim
+void dot(picture pic=currentpicture, guide g, pen p=currentpen);
+void dot(picture pic=currentpicture, path[] g, pen p=currentpen);
+@end verbatim
+See section @ref{draw} for a more general way of marking path nodes.
+
 
 To draw a fixed-sized object (in @code{PostScript} coordinates) about the user
 coordinate @code{origin}, use the routine
@@ -3279,7 +3353,9 @@ coordinate @code{origin}, use the routine
 void drawabout(pair origin, picture pic=currentpicture, string s="",
                real angle=0, path g, real position=0.5*length(g),
                pair align=0, pair shift=0, side side=RightSide,
-               pen p=currentpen, arrowbar arrow=None, arrowbar bar=None);
+               pen p=currentpen, arrowbar arrow=None, arrowbar bar=None,
+	       margin margin=NoMargin, string legend="",
+               frame mark=nullframe, bool topmark=true);
 @end verbatim
 
 @cindex @code{fill}
@@ -3318,7 +3394,7 @@ operation:
 @verbatim
 void filldraw(picture pic=currentpicture, path g, pen pena=currentpen,
               pen drawpen=currentpen, pair a=0, real ra=0,
-	      pen penb=currentpen, pair b=0, real rb=0)
+	      pen penb=currentpen, pair b=0, real rb=0);
 @end verbatim
 
 @cindex @code{fillabout}
@@ -3340,7 +3416,7 @@ void unfill(picture pic=currentpicture, path[] g);
 @node clip
 @section clip
 @verbatim 
-void clip(picture pic=currentpicture, path g, pen p=currentpen)
+void clip(picture pic=currentpicture, path g, pen p=currentpen);
 @end verbatim
 
 Clip the current contents of picture @code{pic} to the region bounded
@@ -3371,12 +3447,12 @@ A label with an arrow can be produced with one of the following routines:
 void arrow(picture pic=currentpicture, string s="", real angle=0,
            pair b, pair align, real length=arrowlength, pair shift=0,
            pen p=currentpen, real size=arrowsize(p), real Angle=arrowangle,
-           arrowhead arrowhead=Fill,margin margin=EndMargin)
+           arrowhead arrowhead=Fill,margin margin=EndMargin);
 
 void arrow(picture pic=currentpicture, string s, real angle=0,
            pair shift=0, path g, pen p=currentpen, real size=arrowsize(p),
            real Angle=arrowangle, arrowhead arrowhead=Fill,
-           margin margin=NoMargin)
+           margin margin=NoMargin);
 @end verbatim
 
 @cindex including images
@@ -3717,7 +3793,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 
 @c  LocalWords:  randMax Gaussrand asy cindex indices resized LaTeX TK latin au
 @c  LocalWords:  latexusage tex bbox PostScript subdirectory gcc emacs ASYDIR
-@c  LocalWords:  documentclass usepackage asydef colour subpath shipout sqrt xN
+@c  LocalWords:  documentclass usepackage asydef subpath shipout sqrt xN
 @c  LocalWords:  xscale labeldot xaxis yaxis BeginBar GIF postprocessing fpu de
 @c  LocalWords:  nomask noplain ImageMagick defaultfontsize defaultlinewidth cd
 @c  LocalWords:  startup natively xasy tkinter VxN yingyang currentpicture toc
@@ -3769,4 +3845,5 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  NoMargin BeginMargin EndMargin BeginPenMargin EndPenMargin dm
 @c  LocalWords:  PenMargin PenMargins TrueMargin labelmargin errorbars errorbar
 @c  LocalWords:  dpx dpy dmx dmy barsize arrowheadsize BeginDotMargin DotMargin
-@c  LocalWords:  EndDotMargin DotMargins
+@c  LocalWords:  EndDotMargin DotMargins NColors BWRainbow colorspace labelled
+@c  LocalWords:  paletteheight

@@ -1,6 +1,84 @@
-// A rainbow palette tapering off to black/white at the spectrum ends.
-// two=true means circle the color wheel twice, linearly scaling the intensity.
-pen[] BWrainbow(int NColors=65485, bool two=false)
+static import graph;
+
+static public real paletteheight=6cm;
+static public real palettemargin=2*Ticksize;
+
+void image(picture pic=currentpicture, real[][] data, pen[] palette,
+	   pair initial, pair final)
+{
+  pic.add(new void (frame f, transform t) {
+	    image(f,data,palette,t*initial,t*final);
+    });
+  pic.addBox(initial,final);
+}
+
+frame palette(real[][] data, pen[] palette,
+	      real height=paletteheight, pen p=currentpen,
+	      string s="", real position=0.5, real angle=infinity,
+	      pair align=E, pair shift=0, pair side=right,
+	      pen plabel=currentpen,
+	      ticks ticks=LeftTicks(0.0,0.0,Ticksize,0.0))
+{
+  picture pic=new picture;
+  real initialy=min(data);
+  real finaly=max(data);
+  pair z0=(0,initialy);
+  pair z1=(0,finaly);
+  
+  pic.add(new void (frame f, transform t) {
+	    pair Z0=(0,(t*z0).y);
+	    pair Z1=(0,(t*z1).y);
+	    pair initial=Z0-Ticksize;
+	    image(f,new real[][] {sequence(palette.length-1)},palette,
+		  initial,Z1);
+	    draw(f,Z0--initial--Z1-Ticksize--Z1,p);
+  });
+  
+  pic.addBox(z0,z1,(0,0),(Ticksize,0));
+  pic.scale.x.automax=false;
+  yaxis(pic,initialy,finaly,p,s,position,angle,align,shift,side,plabel,ticks);
+  return shift(palettemargin+Ticksize,0)*
+    ((shift(0,-initialy)*pic).fit(0,height,false));
+}
+
+// A grayscale palette
+pen[] Grayscale(int NColors=256)
+{
+  real ninv=1.0/(NColors-1.0);
+  return sequence(new pen(int i) {return gray(i*ninv);},NColors);
+}
+
+// A rainbow palette
+pen[] Rainbow(int NColors=65501)
+{
+  int offset=1;
+  int nintervals=5;
+  int n=(NColors-1)/nintervals;
+		
+  pen[] Palette;
+  if(n == 0) return Palette;
+  
+  Palette=new pen[n*nintervals+offset];
+  real ninv=1.0/n;
+
+  int N2=2n;
+  int N3=3n;
+  int N4=4n;
+  for(int i=0; i < n; ++i) {
+    real ininv=i*ninv;
+    real ininv1=1.0-ininv;
+    Palette[i]=rgb(ininv1,0.0,1.0);
+    Palette[n+i]=rgb(0.0,ininv,1.0);
+    Palette[N2+i]=rgb(0.0,1.0,ininv1);
+    Palette[N3+i]=rgb(ininv,1.0,0.0);    
+    Palette[N4+i]=rgb(1.0,ininv1,0.0);
+  }
+  Palette[N4+n]=rgb(1.0,0.0,0.0);
+  
+  return Palette;
+}
+
+private pen[] BWRainbow(int NColors, bool two)
 {
   int offset=1;
   int nintervals=6;
@@ -77,10 +155,32 @@ pen[] BWrainbow(int NColors=65485, bool two=false)
   k=N5+n;
   Palette[k]=rgb(1.0,1.0,1.0);
   
-  if(two) {
-    real NColorsinv=1.0/NColors;
-    for(int i=0; i <= k; ++i)
-      Palette[i]=i*NColorsinv*Palette[i];
-  }
   return Palette;
 }
+
+// A rainbow palette tapering off to black/white at the spectrum ends,
+pen[] BWRainbow(int NColors=65485)
+{
+  return BWRainbow(NColors,false);
+}
+
+// A double rainbow palette tapering off to black/white at the spectrum ends,
+// with a linearly scaled intensity.
+pen[] BWRainbow2(int NColors=65485)
+{
+  pen[] Palette=BWRainbow(NColors,true);
+  int n=Palette.length;
+  real ninv=1.0/n;
+  for(int i=0; i < n; ++i)
+    Palette[i]=i*ninv*Palette[i];
+  return Palette;
+}
+
+pen[] cmyk(pen[] Palette) 
+{
+  int n=Palette.length;
+  for(int i=0; i < n; ++i)
+    Palette[i]=cmyk+Palette[i];
+  return Palette;
+}
+  
