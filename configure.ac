@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ(2)
-AC_INIT([Asymptote],[0.55cvs],[asymptote-discuss@lists.sourceforge.net])
+AC_INIT([Asymptote],[0.55cvs],[http://sourceforge.net/projects/asymptote])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 
