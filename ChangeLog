@@ -1,4 +1,6 @@
 2004-11-12  jcbowman  <jcbowman@wizard>
+	
+        * ChangeLog: release: Version 0.52
 
 	* doc/asymptote.texi, doc/latexusage.tex:
 	Made import graph local to each figure in latexusage.
