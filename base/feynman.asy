@@ -1,7 +1,8 @@
 /*****************************************************************************
  * feynman.asy -- An asymptote library for drawing Feynman diagrams.         *
  *                                                                           *
- * by:  Martin Wiebusch                                                      *
+ * by:  Martin Wiebusch <martin.wiebusch@gmx.net>                            *
+ * last change: 2005/02/25                                                   *
  *****************************************************************************/
 
 
@@ -198,12 +199,13 @@ path photon(path p, real amp = photonamplitude, real width=-1)
 // to draw commands, in place of EndArrow etc.
 arrowbar MidArrow(real size=0, real angle=arrowangle, filltype filltype=Fill)
 {
-  return new void(picture pic, path g, pen p, margin margin,
-		  arrowbarT arrowbar) {
-    arrowbar.drawpath=false;
-    add(pic,arrow(g,p,size,angle,filltype,
-                  arctime(g,(arclength(g)+size)/2),margin));
-  };
+    return new void(picture pic, path g, pen p, margin margin,
+                    arrowbarT arrowbar) {
+        if(size==0) size = arrowsize(p);
+        arrowbar.drawpath=false;
+        add(pic,arrow(g,p,size,angle,filltype,
+                      arctime(g,(arclength(g)+size)/2),margin));
+    };
 }
 
 // provide a middle arrow with default parameters
@@ -619,9 +621,11 @@ void drawReverseMomArrow(picture pic = currentpicture,
 // parameters of feynman.asy.
 void fmdefaults() 
 {
+    real arrowsize=arrowsize(currentpen);
+    real linewidth=linewidth(currentpen);
+
     gluonratio = 2;
     photonratio = 4;
-    real arrowsize=arrowsize();
     gluonamplitude = arrowsize/3;
     photonamplitude = arrowsize/4;
     labeloffset = gluonamplitude;
@@ -631,23 +635,23 @@ void fmdefaults()
     gluonpen = currentpen;
     photonpen = currentpen;
     fermionpen = currentpen;
-    scalarpen = dashed+linewidth(currentpen);
-    ghostpen = dotted+linewidth(currentpen);
+    scalarpen = dashed+linewidth;
+    ghostpen = dotted+linewidth;
     doublelinepen = currentpen;
     vertexpen = currentpen;
     bigvertexpen = currentpen;
     currentarrow = MidArrow();
 
-    doublelinespacing = 2*linewidth(currentpen);
+    doublelinespacing = 2*linewidth;
     linemargin = 0.5*arrowsize;
     minvertexangle = 30;
     overpaint = true;
-    vertexsize = 0.5*dotfactor*linewidth(currentpen);
+    vertexsize = 0.5*dotfactor*linewidth;
     bigvertexsize = 0.4*arrowsize;
 
     currentmomarrow = EndArrow(0.75*arrowsize);
     momarrowlength = 2.5*arrowsize;
-    momarrowpen = currentpen+min(0.5*linewidth(currentpen), 0.4);
+    momarrowpen = currentpen+min(0.5*linewidth, 0.4);
     momarrowoffset = 0.8*arrowsize;
     momarrowmargin = 0.25*arrowsize;
 }
