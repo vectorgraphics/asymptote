@@ -67,7 +67,7 @@ Programming
 * Transforms::                  Affine transforms
 * Guides and paths::            Specifying lines and curves
 * Pens::                        Colors, line types, line widths, font sizes
-* Frames and pictures::         Deferred drawing
+* Frames and pictures::         Canvases for immediate and deferred drawing
 * Files::                       @code{Asymptote} I/O
 * Structures::                  Organize your data
 * Arithmetic & logical::        Standard binary operators
@@ -94,6 +94,7 @@ Import
 * stats::                       Statistic routines and histograms
 * tree::                        Dynamic binary search tree
 * unicode::                     Accept @code{unicode} (UTF-8) characters
+* latin1::                      Accept @code{ISO 8859-1} characters
 
 @end detailmenu
 @end menu
@@ -179,7 +180,6 @@ equations;
 @chapter Installation
 @cindex installation
 To install @code{Asymptote} from release x.xx, execute the following commands:
-
 @verbatim
 tar -zxf asymptote-x.xx.tar.gz
 cd asymptote
@@ -190,7 +190,6 @@ make install
 
 For a (default) system-wide installation, the last command should be
 done as root. To build and install the man pages as well, type:
-
 @verbatim
 make man
 make install-man
@@ -201,7 +200,7 @@ make install-man
 @cindex @code{asy-mode}
 User of @code{emacs} can edit @code{Asymptote} code with the mode
 @code{asy-mode}, after enabling it by putting these two lines in the
-@code{~/.emacs} initialization file, replacing ASYDIR with the location
+@code{~/.emacs} initialization file, replacing @code{ASYDIR} with the location
 of the Asymptote base files (by default, @code{/usr/local/share/asymptote}):
 @verbatim
 (autoload 'asy-mode "ASYDIR/asy-mode.el" "Asymptote major mode." t)
@@ -217,7 +216,6 @@ cp /usr/local/share/asymptote/asy.vim ~/.vim/syntax/asy.vim
 @end verbatim 
 
 and add the following to their @code{~/.vimrc} file: 
-
 @verbatim
 augroup filetypedetect
 au BufNewFile,BufRead *.asy     setf asy
@@ -228,7 +226,6 @@ filetype plugin on
 If any of these directories or files don't exist, just create them.
 To set @code{vim} up to run the current asymptote script using @code{:make}
 just add to @code{~/.vim/ftplugin/asy.vim}:
-
 @verbatim
 setlocal makeprg=asy\ %
 setlocal errorformat=%f:\ %l.%c:\ %m
@@ -243,14 +240,12 @@ make uninstall
 In order to compile @code{Asymptote} you will need the boost library from
 @code{http://boost.org} (included in recent Linux distributions). Installation
 of the boost library may require the following (or later):
-
 @verbatim
 http://dl.sourceforge.net/sourceforge/boost/boost-jam-3.1.10-1.i386.rpm
 http://dl.sourceforge.net/sourceforge/boost/boost_1_31_0.tar.bz2
 @end verbatim
 
 On machines running Debian Linux, the boost library can be installed with
-
 @verbatim
 apt-get install libboost-graph1.31.0 libboost-dev libboost-graph-dev
 
@@ -279,7 +274,6 @@ system-wide directory (default: @code{/usr/local/share/asymptote})
 
 The following commands are needed to install the latest development version of
 @code{Asymptote} from cvs (when prompted for the CVS password, type enter): 
-
 @verbatim
 cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote login
  
@@ -293,12 +287,13 @@ make install
 make install-man
 @end verbatim
 
+To compile without optimization use the command @code{make OPT=}.
+
 @node Examples
 @chapter Examples
 @cindex examples
 To draw a line from (0,0) to (100,100) using @code{Asymptote}'s interactive
 mode, type:
-
 @verbatim
 asy -V
 draw((0,0)--(100,100));
@@ -340,7 +335,6 @@ line option.
 
 One can draw a line with more than two points and create a cyclic path
 like this square:
-
 @verbatim
 draw((0,0)--(100,0)--(100,100)--(0,100)--cycle);
 shipout();
@@ -352,7 +346,6 @@ The next example draws a unit square scaled to width 100bp and height 100bp.
 The output is identical to that of the previous example. (If you are using
 interactive mode ignore the two messages "warning: scaling in picture
 unbounded;" see @ref{Interactive mode} for details).
-
 @verbatim
 size(100,100);
 draw((0,0)--(1,0)--(1,1)--(0,1)--cycle);
@@ -435,7 +428,7 @@ many features beyond the ones found in those languages.
 * Transforms::                  Affine transforms
 * Guides and paths::            Specifying lines and curves
 * Pens::                        Colors, line types, line widths, font sizes
-* Frames and pictures::         Deferred drawing
+* Frames and pictures::         Canvases for immediate and deferred drawing
 * Files::                       @code{Asymptote} I/O
 * Structures::                  Organize your data
 * Arithmetic & logical::        Standard binary operators
@@ -975,9 +968,9 @@ with @code{reset()}).
 
 @cindex @code{fontsize}
 @cindex @code{defaultfontsize}
-@item The font size is specified in TeX points (1 pt = 1/72.27 in) with
-the function @code{pen fontsize(real)}. The default font size is
-12pt (this global default value may be changed with the
+@item The font size is specified in @TeX{} points (1 pt = 1/72.27 in) with
+the function @code{pen fontsize(real)}. The default font size is 12pt
+(this global default value may be changed with the
 @code{defaultfontsize(real)} command or reset to the startup default
 with @code{reset()}).
 
@@ -1006,8 +999,8 @@ default frame is called @code{currentframe}.
 Pictures are high-level structures (@pxref{Structures}) defined in
 @code{plain.asy} that provide canvases for drawing in user coordinates. 
 The default picture is called @code{currentpicture}. Since structures
-currently have no default initialization, this must be done explicitly
-whenever a new picture is created:
+currently have no default initialization, this should be done explicitly
+whenever a new picture is declared:
 @verbatim
 picture pic=new picture;
 @end verbatim
@@ -1061,7 +1054,7 @@ shipout(rotate(90)*currentpicture.fit());
 
 Sometimes it is useful to draw objects on separate pictures and add one
 picture to another with the @code{add} function:
-@cindex @code{shipout}
+@cindex @code{add}
 @verbatim
 void add(picture src);
 void add(picture dest, picture src);
@@ -1071,6 +1064,27 @@ one adds @code{src} to @code{dest}.
 
 Many further examples of picture and frame operations are provided in
 the base file @code{plain.asy}.
+
+@cindex verbatim
+@cindex @code{postscript}
+It is possible to insert verbatim postscript commands in a picture with
+the routine
+@verbatim
+void postscript(picture pic=currentpicture, string s);
+@end verbatim
+
+@cindex @code{tex}
+Verbatim @TeX{} commands can be inserted in the output with the function
+@verbatim
+void tex(picture pic=currentpicture, string s);
+@end verbatim
+
+To issue a global @TeX{} command in the preamble (valid for the entire
+file) use:
+@cindex @code{texpreamble}
+@verbatim
+void texpreamble(string s);
+@end verbatim
 
 @end table
 
@@ -1166,7 +1180,6 @@ optionally declared @code{public} (read-write) or @code{private} (read
 and write allowed only inside the structure). The virtual structure @code{this}
 refers to the enclosing structure. Structures currently have no default
 initialization, so this must be done explicitly, using the keyword @code{new}:
-
 @verbatim
 struct S {
   public real a=1;
@@ -1319,7 +1332,6 @@ sayhi().x += 1;
 
 If a numeric literal is in front of certain types of expressions, then the two 
 are multiplied:
-
 @verbatim
 int x=2;
 real y=2.0;
@@ -1432,7 +1444,6 @@ Because certain data types are implicitly cast to more
 sophisticated types (see @ref{Casts}) one can often avoid ambiguities by
 ordering function arguments from the simplest to the most complicated.
 For example, given
-
 @verbatim
 real f(int a=1, real b=0) {return a+b;}
 @end verbatim
@@ -1547,7 +1558,6 @@ Every array @code{A} has two virtual members, @code{length} and @code{push}.
 @code{A.push()} is a function which pushes its argument onto the the end
 of the array. Like all functions in @code{Asymptote}, @code{push} can be
 "pulled off" of the array and used on its own:
-
 @verbatim
 int[] A={1,2,3};
 void f(int)=A.push; // A now contains {1,2,3,7}.
@@ -1614,7 +1624,6 @@ write("Row sort (by column 0, using column 1 to break ties):");
 write(stdout,sort(a));
 @end verbatim
 produces
-
 @verbatim
 alice   4
 alice   5
@@ -1775,21 +1784,33 @@ One can import other @code{Asymptote} files with the @code{import} command:
 import graph;
 @end verbatim
 @cindex modules
-Such @code{Asymptote} files are often called modules.
+Such @code{Asymptote} files are often called modules. 
 
 @code{Asymptote} searches the locations listed in @ref{search paths} for the
 matching file. If the file name contains nonalphanumeric characters,
 enclose it with quotation marks:
-
 @verbatim
 import "/usr/local/share/asymptote/graph.asy";
 @end verbatim
+
+By default, variables and functions in imported modules have
+@code{static} allocation (@pxref{Static & dynamic}). A variable
+@code{var} from a module named @code{module} can be distinguished from
+a local variable of the same name by prefixing it with the module name
+and a period: @code{module.var}.
 
 Imports within an imported module are not seen outside of that module:
 even though @code{plain} imports @code{simplex}, the @code{simplex}
 module will not be accessible to the file-level module, unless it is
 explicitly imported. An error will be issued if one attempts to import
 a module multiple times.
+
+The file name to be imported must be known at compile time.
+However, you can execute a file determined at runtime with the command
+@cindex execute
+@verbatim
+void execute(string s);
+@end verbatim
 
 @code{Asymptote} currently ships with the following base modules:
 
@@ -1801,6 +1822,7 @@ a module multiple times.
 * stats::                       Statistic routines and histograms
 * tree::                        Dynamic binary search tree
 * unicode::                     Accept @code{unicode} (UTF-8) characters
+* latin1::                      Accept @code{ISO 8859-1} characters
 @end menu
 
 @node plain
@@ -1884,7 +1906,7 @@ relative to the direction in which the path is drawn. The default is
 @verbatim
 ticks LeftTicks(bool begin=true, int N=0, int n=0, real Step=0,
   real step=0, real Size=Ticksize, real size=ticksize, string F,
-  bool end=true)
+  bool end=true);
 @end verbatim
 
 If any of these parameters are omitted (or 0), reasonable defaults will
@@ -1936,7 +1958,7 @@ shipout();
 @cindex @code{ylimits}
 
 The first two commented lines can be uncommented to restrict the 
-respective axes limits to the specifed values (alternatively, the
+respective axes limits to the specified values (alternatively, the
 function @code{limits(pair, pair)} can be uncommented to limit the axes
 to the box having opposite vertices at the two pairs). 
 The function @code{crop} can then optionally be used to crop the data to lie
@@ -2065,7 +2087,7 @@ This package implements a dynamic binary search tree.
 Import this package at the beginning of the file to instruct
 @code{LaTeX} to accept @code{unicode} (UTF-8) standardized international
 characters. You will also need to set up @code{LaTeX} support for
-@code{unicode} by unpacking in your latex source directory
+@code{unicode} by unpacking in your @code{LaTeX} source directory
 (e.g. @code{/usr/share/texmf/tex/latex}) the file
 @verbatim
 http://www.unruh.de/DniQ/latex/unicode/unicode.tgz
@@ -2074,6 +2096,14 @@ and then running the command
 @verbatim
 texhash
 @end verbatim
+
+@node latin1
+@subsection @code{latin1}
+@cindex @code{latin1}
+If don't have @code{LaTeX} support for @code{unicode} installed,
+you can enable support for Western European languages (ISO 8859-1) by
+importing the module @code{latin1}. This module can be used as a
+template for providing support for other ISO 8859 alphabets.
 
 @node Static & dynamic
 @section Static & dynamic qualifiers
@@ -2087,8 +2117,6 @@ For a function body, the variable is stored by the function's enclosing
 frame, so for
 @verbatim
 struct s {
-  int x;
-
   int count() {
     static int c=0;
     ++c;
@@ -2170,8 +2198,8 @@ struct stuff {
 @end verbatim
 
 @cindex @code{import}
-When you @code{import} a module using @code{import}, it is like creating 
-a new instance of the struct. That is,
+When you @code{import} a module, it is like creating a new instance of
+the struct. That is,
 @verbatim
 int cube(int x) {
   import stuff;
@@ -2179,7 +2207,7 @@ int cube(int x) {
 }
 @end verbatim
 
-is roughly equivalent to
+is essentially equivalent to
 @verbatim
 int cube(int x) {
   stuff s=new stuff;
@@ -2367,7 +2395,6 @@ coordinates) it could result in a larger figure than requested.
 Once the above commands have been used to draw objects on a picture, the
 picture needs to be output with the @code{shipout} function (@pxref{shipout}).
 
-
 @node LaTeX usage
 @chapter @code{LaTeX} usage
 @cindex @code{LaTeX} usage
@@ -2380,8 +2407,8 @@ directly into the @code{LaTeX} source file, at the point where it is
 needed, keeps figures organized and avoids the need to invent new file
 names for each figure.
 
-For example, the sample LaTeX file below, named @code{latexusage.tex}, can
-be run as follows:
+For example, the sample @code{LaTeX} file below, named
+@code{latexusage.tex}, can be run as follows:
 @verbatim
 latex latexusage
 asy latexusage
@@ -2390,7 +2417,6 @@ latex latexusage
 
 Here now is @code{latexusage.tex} (from the @code{doc} directory of
 the @code{Asymptote} source):
-
 @verbatim
 \documentclass[12pt]{article}
 \usepackage{asymptote}
@@ -2507,7 +2533,6 @@ shipout();
 @cindex options
 Type @code{asy -h} to see the full list of command line options
 supported by @code{Asymptote}:
-
 @verbatim
 Usage: asy [options] [file ...]
 
@@ -2624,7 +2649,7 @@ the object to be moved. If a wheel mouse is not available, mouse
 @code{Button-2} (lower) can be used repeatedly instead.
 
 One can also draw connected line segments by holding down the shift key
-and pressing mouse Button-1 at each desired node.  Releasing the shift
+and pressing mouse @code{Button-1} at each desired node.  Releasing the shift
 key ends the definition of the path. More features will be added to
 this preliminary GUI soon.
 

@@ -162,6 +162,8 @@ bareblock:
 name:
   ID               { $$ = new simpleName($1.pos, $1.sym); }
 | name '.' ID      { $$ = new qualifiedName($2, $1, $3.sym); }
+| STRING '.' ID    { $$ = new qualifiedName($2, new simpleName($2, $1.sym),
+					    $3.sym); }
 ;
 
 /*runnables:

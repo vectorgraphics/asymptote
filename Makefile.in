@@ -15,12 +15,13 @@ NAME = asy
 XNAME = x$(NAME)
 
 CXX = @CXX@ -Wall -ansi
-MAKEDEPEND = $(CXX) $(OPT) -M -DDEPEND
+MAKEDEPEND = $(CXX) $(OPTS) -M -DDEPEND
 YACC = @YACC@
 LEX = @LEX@
 
 DEFS = @DEFS@
-OPT = -g -O3 -DNDEBUG $(DEFS) $(CFLAGS)
+OPT = -O3 -DNDEBUG
+OPTS = -g $(OPT) $(DEFS) $(CFLAGS)
 INCL = -I. -I-
 
 prefix = @prefix@
@@ -98,7 +99,7 @@ test:   asy FORCE
 
 .SUFFIXES: .c .cc .o .d
 .cc.o:
-	$(CXX) $(OPT) $(INCL) -o $@ -c $<
+	$(CXX) $(OPTS) $(INCL) -o $@ -c $<
 .cc.d:
 	$(MAKEDEPEND) $(INCL) $(MDOPTS) $< > $@
 

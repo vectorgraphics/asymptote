@@ -1,8 +1,7 @@
 import math;
 
-real ticksize=1mm;
-real Ticksize=2*ticksize;
-
+public real ticksize=1mm;
+public real Ticksize=2*ticksize;
 public real ylabelwidth=1.5;
 public real axislabelmargin=2;
 public real axiscoverage=0.6;
