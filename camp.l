@@ -329,6 +329,7 @@ operator           {adjust(); BEGIN opname; }
   makesymbol();
   BEGIN INITIAL;
   return ID;}
+.                   {}
 }
 
 {LETTER}({LETTER}|[0-9])* {
