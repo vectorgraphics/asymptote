@@ -51,9 +51,10 @@ public:
     color(TRANSPARENT), r(0.0), g(0.0), b(0.0), grey(0.0), t(0) {}
   
   pen(const string& line, double linewidth, double fontsize,
-      Colorspace color, double r, double g, double b,  double grey)
+      Colorspace color, double r, double g, double b,  double grey,
+      const transform *t)
     : line(line), linewidth(linewidth), fontsize(fontsize),
-      color(color), r(r), g(g), b(b), grey(grey), t(0) {}
+      color(color), r(r), g(g), b(b), grey(grey), t(t) {}
       
   
   pen(const string& line, double linewidth) : 
@@ -300,7 +301,8 @@ public:
     return pen(q.line == DEFLINE ? p.line : q.line,
 	       q.linewidth == DEFWIDTH ? p.linewidth : q.linewidth,
 	       q.fontsize == 0.0 ? p.fontsize : q.fontsize,
-	       colspace,R,G,B,greyval);
+	       colspace,R,G,B,greyval,
+	       q.t == NULL ? p.t : q.t);
   }
 
   friend bool operator == (const pen& p, const pen& q) {
@@ -308,7 +310,8 @@ public:
       && p.color == q.color
       && p.fontsize == q.fontsize
       && (!(p.grayscale() || p.cmyk())  || p.grey == q.grey)
-      && (!(p.rgb() || p.cmyk()) || (p.r == q.r && p.g == q.g && p.b == q.b));
+      && (!(p.rgb() || p.cmyk()) || (p.r == q.r && p.g == q.g && p.b == q.b))
+      && (p.t ? *p.t : identity()) == (q.t ? *q.t : identity());
   }
   
   friend ostream& operator << (ostream& out, const pen& p) {
@@ -322,6 +325,7 @@ public:
     if(p.cmyk()) 
       out << ", cyan=" << p.cyan() << ", magenta=" << p.magenta() 
 	  << ", yellow=" << p.yellow() << ", black=" << p.black();
+    if(p.t) out << ", transform=" << *(p.t);
     out << ")";
     
     return out;
