@@ -783,7 +783,8 @@ guide arrowhead(picture pic=currentpicture, path g, real position=infinity,
   path base=y+2*size*I*direction(r,t)--y-2*size*I*direction(r,t);
   path left=rotate(-angle,x)*r, right=rotate(angle,x)*r;
   real tl=intersect(left,base).x, tr=intersect(right,base).x;
-  real factor=length((point(left,tl)-y)/(point(right,tr)-y));
+  pair denom=point(right,tr)-y;
+  real factor=denom != 0 ? length((point(left,tl)-y)/denom) : 1.0;
   left=rotate(-angle,x)*r; right=rotate(angle*factor,x)*r;
   tl=intersect(left,base).x; tr=intersect(right,base).x;
   return subpath(left,0,tl > 0 ? tl : t)--subpath(right,tr > 0 ? tr : t,0)
@@ -1070,6 +1071,13 @@ void dot(picture pic=currentpicture, pair c, real size=dotsize,
 {
   _draw(pic,c,p+linewidth(size));
 }
+
+void dots(picture pic=currentpicture, pair[] c, real size=dotsize,
+	 pen p=currentpen)
+{
+  for(int i=0; i < c.length; ++i) dot(pic,c[i],size,p);
+}
+
 
 void labeldot(picture pic=currentpicture, real size=dotsize, string s="",
 	      real angle=0, pair c, pair align=E, pen p=currentpen,
