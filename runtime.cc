@@ -1318,7 +1318,7 @@ void newPen(stack *s)
   s->push(new pen());
 }
 
-void defaultPen(stack *s)
+void defaultPen(stack *)
 {
   defaultpen=startupdefaultpen;
 }
