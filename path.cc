@@ -14,52 +14,62 @@
 
 namespace camp {
 
-// {{{ Solve quadratic equations
-
 struct quad 
 {
-  enum { NONE, SINGLE, DOUBLE } roots;
+  enum { NONE, SINGLE, DOUBLE, ANY } roots;
   double t1,t2;
 };
 
+// Accurate computation of sqrt(1+x)-1.
+inline double sqrt1pxm1(double x) {
+  return x/(sqrt(1.0+x)+1.0);
+}
+  
+// Solve the quadratic equation ax^2+bx+c=0.
 inline quad solveQuadratic(double a, double b, double c)
 {
-  quad ret; ret.roots = quad::NONE;
-  if (a == 0) {
-    if (b != 0) {
-      ret.roots = quad::SINGLE;
-      ret.t1 = ret.t2 = -c/b;
-    }
-  } else if (b == 0) {
-    if (c/a <= 0) {
-      ret.roots = quad::SINGLE;
-      ret.t1 = ret.t2 = sqrt(-c/a);
-    }
+  quad ret;
+  
+  if(a == 0.0) {
+    if(b != 0.0) {
+      ret.roots=quad::SINGLE;
+      ret.t1=-c/b;
+    } else if(c == 0.0) {
+      ret.roots=quad::ANY;
+      ret.t1=0.0;
+      } else
+      ret.roots=quad::NONE;
+  } else if(b == 0.0) {
+    double x=-c/a;
+    if(x >= 0.0) {
+      ret.roots=quad::DOUBLE;
+      ret.t2=sqrt(x);
+      ret.t1=-ret.t2;
+    } else
+      ret.roots=quad::NONE;
   } else {
-    // NOTE: If -epsilon < det < 0 we should probably detect a root
-    // there, but that would mean FUZZ.
-    double det = b*b-4*a*c;
-    if (det >= 0) {
+    double factor=0.5*b/a;
+    double x=-2.0*c/(b*factor);
+    if(x > -1.0) {
       ret.roots = quad::DOUBLE;
-      det = sqrt(det);
-      if ( (fabs(det) - fabs(b))/(fabs(det)+fabs(b)) < sqrt(DBL_EPSILON)) { // FUZZ
-        ret.roots = quad::SINGLE;
-        ret.t1 = ret.t2 = -c/b;
+      double sqrtm1=sqrt1pxm1(x);
+      double r2=factor*sqrtm1;
+      double r1=-r2-2.0*factor;
+      if(r1 <= r2) {
+	ret.t1=r1;
+	ret.t2=r2;
       } else {
-        ret.t1=-0.5*(b+det)/a;
-        ret.t2=-0.5*(b-det)/a;
-        if (ret.t1>ret.t2) {
-          double temp = ret.t1;
-          ret.t1 = ret.t2;
-          ret.t2 = temp;
-        }
+	ret.t1=r2;
+	ret.t2=r1;
       }
-    }
+    } else if(x == -1.0) {
+      ret.roots=quad::SINGLE;
+      ret.t1=ret.t2=-factor;
+    } else
+      ret.roots=quad::NONE;
   }
   return ret;
 }
-
-// }}}
 
 pair path::point(double t) const
 {
@@ -422,37 +432,36 @@ double path::arctime (double goal) const {
 
 // }}}
 
+inline bool goodroot(double a, double b, double c, double t)
+{
+  return 0.0 <= t && t <= 1.0 && a*t*t+b*t+c >= 0.0;
+}
+
 // {{{ Direction Time Calulation
 // Algorithm Stolen from Knuth's MetaFont
 inline double cubicDir(const solvedKnot& left, const solvedKnot& right,
 		       const pair& rot)
 {
-  pair a = (right.point-left.point)+3*(left.post-right.pre),
-    b = 2*(left.point+right.pre) - 4*left.post,
-    c = left.post-left.point;
+  pair a,b,c;
+  derivative(a,b,c,left.point,left.post,right.pre,right.point);
   a *= rot; b *= rot; c *= rot;
+  
   quad ret = solveQuadratic(a.gety(),b.gety(),c.gety());
   switch(ret.roots) {
-    case quad::SINGLE: {
-      double t = ret.t1;
-      if (0 <= t && t <=1 &&
-          a.getx()*t*t+b.getx()*t+c.getx()>=0)
-        return t;
-    } break;
+    case quad::ANY:
+    case quad::SINGLE:
+      {
+      if(goodroot(a.getx(),b.getx(),c.getx(),ret.t1)) return ret.t1;
+      } break;
 
-    case quad::DOUBLE: {
-      double t1=ret.t1;
-      double t2=ret.t2;
-      if (0 <= t1 && t1 <=1 &&
-          a.getx()*t1*t1+b.getx()*t1+c.getx()>=0)
-        return t1;
-      if (0 <= t2 && t2 <=1 &&
-          a.getx()*t2*t2+b.getx()*t2+c.getx()>=0)
-        return t2;
-    } break;
+    case quad::DOUBLE:
+      {
+      if(goodroot(a.getx(),b.getx(),c.getx(),ret.t1)) return ret.t1;
+      if(goodroot(a.getx(),b.getx(),c.getx(),ret.t2)) return ret.t2;
+      } break;
 
-    case quad::NONE: // Do nothing.
-      ;
+    case quad::NONE:
+      break;
   }
 
   return -1;
