@@ -20,7 +20,7 @@ YACC = @YACC@
 LEX = @LEX@
 
 DEFS = @DEFS@
-OPT = -g -O3 -DNEBUG $(DEFS) $(CFLAGS)
+OPT = -g -O3 -DNDEBUG $(DEFS) $(CFLAGS)
 INCL = -I. -I-
 
 prefix = @prefix@
