@@ -171,6 +171,9 @@ file input(string name) {return input(name,true);}
 file output(string name) {return output(name,true);}
 file xinput(string name) {return xinput(name,true);}
 file xoutput(string name) {return xoutput(name,true);}
+file csv(file f) {return csv(f,true);}
+file line(file f) {return line(f,true);}
+file single(file f) {return single(f,true);}
 
 file stdin=input("");
 file stdout;

@@ -399,9 +399,10 @@ public:
   }
   
   void convert() {
-    if(settings::grayonly) {
+    if(settings::grayonly || settings::bwonly) {
       if(rgb()) rgbtogrey();
       else if(cmyk()) cmyktogrey();
+      if(settings::bwonly) {grey=(grey == 1.0) ? 1.0 : 0.0;}
     }
     else if(settings::rgbonly && cmyk()) cmyktorgb();
     else if(settings::cmykonly && rgb()) rgbtocmyk();

@@ -580,10 +580,9 @@ void base_venv(venv &ve)
 	  primInt());
   addFunc(ve,run::fileDimension3,primFile(),"dimension",primFile(),primInt(),
 	  primInt(),primInt());
-  addFunc(ve,run::fileCSVMode,primFile(),"csv",primFile());
-  addFunc(ve,run::fileLineMode,primFile(),"line",primFile());
-  addFunc(ve,run::fileSingleMode,primFile(),"single",primFile());
-  addFunc(ve,run::fileDoubleMode,primFile(),"double",primFile());
+  addFunc(ve,run::fileCSVMode,primFile(),"csv",primFile(),primBoolean());
+  addFunc(ve,run::fileLineMode,primFile(),"line",primFile(),primBoolean());
+  addFunc(ve,run::fileSingleMode,primFile(),"single",primFile(),primBoolean());
   addFunc(ve,run::fileArray1,primFile(),"read1",primFile());
   addFunc(ve,run::fileArray2,primFile(),"read2",primFile());
   addFunc(ve,run::fileArray3,primFile(),"read3",primFile());

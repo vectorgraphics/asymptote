@@ -1623,8 +1623,8 @@ A file may also be opened with @code{xinput} or @code{xoutput} instead of
 double precision values written in Sun Microsystem's @acronym{XDR} (External
 Data Representation) portable binary format (available on all UNIX platforms).
 The function @code{file single(file)} sets the file to read single
-precision @acronym{XDR} values; @code{file double(file)} sets it back to read
-doubles again. The default initializer for file is @code{stdout}.
+precision @acronym{XDR} values; calling @code{file single(file,false)} sets it
+back to read doubles again. The default initializer for file is @code{stdout}.
 
 @cindex @code{eof}
 @cindex @code{eol}
@@ -2231,7 +2231,8 @@ real[] A=fin;
 @cindex line mode
 reads real values into @code{A} until the end of file is reached (or an
 I/O error occurs). If line mode is set with @code{line(file)}, then
-reading will stop once the end of the line is reached instead:
+reading will stop once the end of the line is reached instead
+(line mode may be cleared with @code{line(file,false)}):
 @verbatim
 file fin=input("test.txt");
 real[] A=line(fin);
@@ -2239,8 +2240,8 @@ real[] A=line(fin);
 
 @cindex csv
 @cindex comma-separated-value
-Another useful mode is comma-separated-value mode, set with @code{csv(file)},
-which skips over any comma delimiters:
+Another useful mode is comma-separated-value mode, set with @code{csv(file)}
+and cleared with @code{csv(file,false)}, which skips over any comma delimiters:
 @verbatim
 file fin=input("test.txt");
 real[] A=csv(fin);
@@ -3561,6 +3562,7 @@ Options:
 -s               Translate test
 -m               Mask fpu exceptions (on supported architectures)
 -nomask          Don't mask fpu exceptions (default)
+-black           Convert colors to black
 -gray            Convert colors to grayscale
 -rgb             Convert cmyk colors to rgb
 -cmyk            Convert rgb colors to cmyk

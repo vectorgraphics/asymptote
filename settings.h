@@ -28,6 +28,7 @@ extern int safe;
 extern int autoplain;
 extern int parseonly;
 extern int translate;
+extern int bwonly;
 extern int grayonly;
 extern int rgbonly;
 extern int cmykonly;

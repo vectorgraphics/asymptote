@@ -2013,32 +2013,27 @@ void fileDimension3(stack *s)
 // Set file to read comma-separated values
 void fileCSVMode(stack *s) 
 {
+  bool b = s->pop<bool>();
   file *f = s->pop<file*>();
-  f->CSVMode(true);
+  f->CSVMode(b);
   s->push(f);
 }
 
 // Set file to read arrays in line-at-a-time mode
 void fileLineMode(stack *s) 
 {
+  bool b = s->pop<bool>();
   file *f = s->pop<file*>();
-  f->LineMode(true);
+  f->LineMode(b);
   s->push(f);
 }
 
 // Set file to read/write single-precision XDR values.
 void fileSingleMode(stack *s) 
 {
+  bool b = s->pop<bool>();
   file *f = s->pop<file*>();
-  f->SingleMode(true);
-  s->push(f);
-}
-
-// Set file to read/write double-precision XDR values.
-void fileDoubleMode(stack *s) 
-{
-  file *f = s->pop<file*>();
-  f->SingleMode(false);
+  f->SingleMode(b);
   s->push(f);
 }
 
