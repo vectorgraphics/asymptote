@@ -2809,8 +2809,12 @@ Here are some simple examples of two-dimensional graphs:
 @cindex @code{LeftTicks}
 @cindex @code{RightTicks}
 @verbatiminclude lineargraph.asy
+@page
 @image{lineargraph}
 
+Alternatively, one can draw directly on @code{currentpicture} and fit
+the graph and legend frames like this:
+@verbatiminclude lineargraph2.asy
 
 @cindex @code{polygon}
 @cindex @code{cross}
@@ -2842,6 +2846,7 @@ positive and negative extents of the error are assumed to be equal.
 
 @anchor{datagraph}
 @verbatiminclude datagraph.asy
+@page
 @image{datagraph}
 
 @item This example draws a graph of a parametrized curve. 
