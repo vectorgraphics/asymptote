@@ -3098,8 +3098,10 @@ respectively. If the planes are parallel, return
 @node stats
 @subsection @code{stats}
 @cindex @code{stats}
+@cindex @code{leastsquares}
 This package implements a Gaussian random number generator
-and a collection of statistics routines, including @code{histogram}.
+and a collection of statistics routines, including @code{histogram}
+and @code{leastsquares}.
 
 @node patterns
 @subsection @code{patterns}
