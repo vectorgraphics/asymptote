@@ -78,4 +78,7 @@ inline void remove(char *dest, unsigned int n)
   if(n > 0) Strcpy(dest,dest+n);
 }
 
+// Strip blank lines (which would break the bidirectional TeX pipe)
+std::string stripblanklines(std::string& s);
+
 #endif

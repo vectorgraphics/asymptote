@@ -1497,14 +1497,7 @@ void tex(stack *s)
   
 void texPreamble(stack *s)
 {
-  string t=s->pop<string>();
-  // Replace newlines with spaces as they can break bidirectional TeX pipe
-  size_t pos=0;
-  while((pos=t.find('\n',pos)) < string::npos) {
-    t[pos]=' ';
-    pos++;
-  }
-  camp::TeXpreamble.push_back(t);
+  camp::TeXpreamble.push_back(s->pop<string>()+"\n");
 }
   
 void layer(stack *s)

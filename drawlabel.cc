@@ -13,6 +13,8 @@
 
 using std::list;
   
+extern const char *texready;
+
 namespace camp {
 
 void drawLabel::labelwarning(const char *action) 
@@ -32,29 +34,29 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
   
   if(!(width || height || depth)) {
     tex <<  "\\fontsize{" << Pentype.size() << "}{" << Pentype.size()*1.2
-	<< "}\\selectfont" << "\n";
+	<< "}\\selectfont\n";
     tex.wait("\n*","! ");
-    tex << "\\setbox\\ASYbox=\\hbox{" << label << "}" << "\n";
-    tex.wait("\n*","! ");
-    tex << "\\showthe\\wd\\ASYbox" << "\n";
+    tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(label) << "}\n\n";
+    tex.wait(texready,"! ");
+    tex << "\\showthe\\wd\\ASYbox\n";
     tex >> texbuf;
-    if(texbuf[0] == '>' && texbuf[1] == ' ') 
+    if(texbuf[0] == '>' && texbuf[1] == ' ')
       width=atof(texbuf.c_str()+2)*tex2ps;
-    else cerr << "Can't read label width" << "\n";
+    else cerr << "Can't read label width\n";
     tex << "\n";
     tex.wait("\n*","! ");
-    tex << "\\showthe\\ht\\ASYbox" << "\n";
+    tex << "\\showthe\\ht\\ASYbox\n";
     tex >> texbuf;
     if(texbuf[0] == '>' && texbuf[1] == ' ')
       height=atof(texbuf.c_str()+2)*tex2ps;
-    else cerr << "Can't read label height" << "\n";
+    else cerr << "Can't read label height" << newl;
     tex << "\n";
     tex.wait("\n*","! ");
-    tex << "\\showthe\\dp\\ASYbox" << "\n";
+    tex << "\\showthe\\dp\\ASYbox\n";
     tex >> texbuf;
     if(texbuf[0] == '>' && texbuf[1] == ' ')
       depth=atof(texbuf.c_str()+2)*tex2ps;
-    else cerr << "Can't read label depth" << "\n";
+    else cerr << "Can't read label depth" << newl;
     tex << "\n";
     tex.wait("\n*","! ");
      

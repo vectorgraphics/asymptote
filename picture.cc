@@ -21,6 +21,7 @@ using std::ofstream;
 using namespace settings;
 
 iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
+const char *texready="(Please type a command or say `\\end')\n*";
 
 namespace camp {
 
@@ -83,7 +84,7 @@ void picture::texinit() {
   texpreamble(tex);
 
   tex << "\n";
-  tex.wait("(Please type a command or say `\\end')\n*","! ");
+  tex.wait(texready,"! ");
 
   TeXinitialized=true;
 }

@@ -133,3 +133,17 @@ int System(const ostringstream& command, bool quiet, bool wait, int *pid,
   return System(command.str().c_str(),quiet,wait,pid,warn);
 }
 
+string stripblanklines(string& s)
+{
+  bool blank=true;
+  const char *t=s.c_str();
+  size_t len=s.length();
+  
+  for(size_t i=0; i < len; i++) {
+    if(t[i] == '\n') {
+      if(blank) s[i]=' ';
+      else blank=true;
+    } else if(t[i] != '\t' && t[i] != ' ') blank=false;
+  }
+  return s;
+}

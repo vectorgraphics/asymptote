@@ -138,9 +138,19 @@ public:
     if(abort) alen=strlen(abort);
     do {
       len=readbuffer();
-      if(abort && strncmp(buffer,abort,alen) == 0) {
-	std::cerr << buffer << std::endl;
-	throw handled_error();
+      if(abort) {
+	if(strncmp(buffer,abort,alen) == 0) {
+	  std::cerr << buffer << std::endl;
+	  throw handled_error();
+	}
+	char *p=buffer;
+	while((p=strchr(p,'\n')) != NULL) {
+	  ++p;
+	  if(strncmp(p,abort,alen) == 0) {
+	    std::cerr << buffer << std::endl;
+	    throw handled_error();
+	  }
+	}
       }
     } while (strcmp(buffer+len-plen,prompt) != 0);
   }

@@ -17,6 +17,7 @@
 #include "pair.h"
 #include "bbox.h"
 #include "pen.h"
+#include "util.h"
 
 namespace camp {
 
@@ -35,7 +36,7 @@ template<class T>
 void texpreamble(T& out) {
   std::list<std::string>::iterator p;
   for (p = TeXpreamble.begin(); p != TeXpreamble.end(); ++p) {
-    out << *p << newl;
+    out << stripblanklines(*p);
     TeXcontaminated=true;
   }
   out << "\\newbox\\ASYbox" << newl
