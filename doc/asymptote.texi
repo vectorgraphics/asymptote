@@ -2794,18 +2794,19 @@ Usage: asy [options] [file ...]
 Options: 
 
 -c               clear GUI operations
+-i               ignore GUI operations
 -x magnification deconstruct into transparent gif objects
 -f format        convert each output file to specified format
--h, -help        help
--i               ignore GUI operations
--k               keep intermediate files
--L               disable LaTeX label postprocessing
--p               parse test
--O pair          postscript offset from top left corner: defaults to (18,-18)
--o name          (first) output file name
--s               translate test
--v, -verbose     increase verbosity level
 -V, -View        view output file
+-h, -help        help
+-o name          (first) output file name
+-L               disable LaTeX label postprocessing
+-O pair          PostScript offset: defaults to (18,-18)
+-b               align to bottom-left (instead of top-left) corner of page
+-v, -verbose     increase verbosity level
+-k               keep intermediate files
+-p               parse test
+-s               translate test
 -m               mask fpu exceptions (on supported architectures)
 -nomask          don't mask fpu exceptions (default)
 -safe            disable system call (default)
@@ -2857,11 +2858,12 @@ Additional debugging output is produced with each additional @code{-v} option:
 @item -v
 Display top-level module and final output file names.
 @item -vv
-Also display imported module names.
+Also display imported module names and final @code{LaTeX} and
+@code{dvips} processing information.
 @item -vvv
-Also display @code{LaTeX} and @code{dvips} processing information.
+Also output @code{LaTeX} bidirectional pipe diagnostics.
 @item -vvvv
-Also output @code{LaTeX} bidirectional pipe and knot solver diagnostics.
+Also output knot solver diagnostics.
 @item -vvvvv
 Also output Asymptote traceback diagnostics.
 @end table
@@ -2972,7 +2974,7 @@ New bugs can be submitted using the Bug Tracking System at
 @cindex segmentation fault
 @cindex @code{libsigsegv}
 @code{Asymptote} can be configured with the optional GNU library
-@code{libsigsev}, available from
+@code{libsigsegv}, available from
 @code{http://libsigsegv.sourceforge.net}, which allows one to distinguish
 user-generated @code{Asymptote} stack overflows (@pxref{stack overflow})
 from true segmentation faults (due to internal C++ programming errors;
@@ -3011,7 +3013,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  startup natively xasy tkinter VxN yingyang currentpicture toc
 @c  LocalWords:  MetaPost MetaFont Hammerlindl Healy texinfo autoload setq setf
 @c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
-@c  LocalWords:  vskip filll insertcopying ifnottex detailmenu alist augroup
+@c  LocalWords:  vskip filll insertcopying ifnottex detailmenu alist augroup PQ
 @c  LocalWords:  bool behaviour facto zxf cvs login Debian dev filetypedetect
 @c  LocalWords:  libboost FFTW bp readline gv eps gifmerge wheelanimation args
 @c  LocalWords:  boolean initializer expi dir xpart ypart STL substring rfind
@@ -3032,7 +3034,10 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  NoAdjust arrowbar LeftSide ItalicAdjust EndBar BeginArrow lly
 @c  LocalWords:  EndArrow BeginArcArrow EndArcArrow ArcArrow ArcArrows NoFill
 @c  LocalWords:  filldraw fillpen drawpen errorformat bigsquare bezier darkblue
-@c  LocalWords:  quartercircle darkgreen lightblue urx ury texpreamble sgn
-@c  LocalWords:  lineargraph datagraph vertices parametricgraph
+@c  LocalWords:  quartercircle darkgreen lightblue urx ury texpreamble sgn texi
+@c  LocalWords:  lineargraph datagraph vertices parametricgraph uncomment ggv
 @c  LocalWords:  loggraph generalaxis texhash arrowsize arrowangle arrowlength
-@c  LocalWords:  SuppressQuiet MoveQuiet
+@c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config PSVIEWER PDFVIEWER
+@c  LocalWords:  ghostview gsview SIGHUP PDF acroread xpdf nullframe
+@c  LocalWords:  libsigsegv intersectionpoint dotfactor lzw gifs vv
+@c  LocalWords:  Unisys dvips vvv vvvv vvvvv traceback

@@ -97,22 +97,24 @@ bool picture::texprocess(const string& texname, const string& outname,
     outfile.close();
     ostringstream cmd;
     cmd << "latex \\scrollmode\\input " << texname;
-    status=System(cmd,verbose <= 2);
+    status=System(cmd,verbose <= 1);
     if(status) return false;
     string dviname=auxname(prefix,"dvi");
     outfile.open(dviname.c_str());
     if(!outfile) {
-      if(verbose <= 2) System(cmd);
+      if(verbose <= 1) System(cmd);
       return false;
     }
     outfile.close();
     
+    double height=bpos.top-bpos.bottom;
+    
     // Magic dvips offsets:
     double hoffset=-128.5;
-    double voffset=-126;
+    double voffset=(height < 10.0) ? -137.5+height : -126.5;
     
     if(pdfformat || bottomOrigin)
-      voffset += max(11.0*72.0-ceil(bpos.top-bpos.bottom),0.0);
+      voffset += max(11.0*72.0-(bpos.top-bpos.bottom),0.0);
     if(!pdfformat) {
       hoffset += postscriptOffset.getx();
       voffset -= postscriptOffset.gety();
@@ -120,8 +122,8 @@ bool picture::texprocess(const string& texname, const string& outname,
 
     string psname=auxname(prefix,"ps");
     ostringstream dcmd;
-    dcmd << "dvips -O " << hoffset << "bp," << voffset << "bp";
-    if(verbose <= 2) dcmd << " -q";
+    dcmd << "dvips -e 0 -O " << hoffset << "bp," << voffset << "bp";
+    if(verbose <= 1) dcmd << " -q";
     dcmd << " -o " << psname << " " << dviname;
     status=System(dcmd);
     
@@ -129,10 +131,12 @@ bool picture::texprocess(const string& texname, const string& outname,
     ofstream fout(outname.c_str());
     string s;
     while(getline(fin,s)) {
-      if(s.find("%%BoundingBox:") == 0) 
+      if(s.find("%%BoundingBox:") == 0) {
+	if(verbose > 1) BoundingBox(cout,bpos);
 	BoundingBox(fout,bpos);
-      else fout << s << endl;
+      } else fout << s << endl;
     }
+    fout.close();
     
     if(!keep) { // Delete temporary files.
       unlink("texput.log");
@@ -201,9 +205,10 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	// Tell gv it should reread the file.
       } else if(Viewers[iViewer] == "gv") kill(pid,SIGHUP);
     } else {
-	cmd << "display " << outname;
-	status=System(cmd,false,wait);
-	if(status) return false;
+      ostringstream cmd;
+      cmd << "display " << outname;
+      status=System(cmd,false,wait);
+      if(status) return false;
     }
   }
   
@@ -255,19 +260,19 @@ bool picture::shipout(const string& prefix, const string& format, bool wait)
 	bboxout.open(("."+buildname(prefix,"box")).c_str());	
 	bboxout << deconstruct << endl;
       }
-      bbox bscaled=b;
+      bbox bscaled=bcopy;
       bscaled *= deconstruct;
       bboxout << bscaled << endl;
-  } else {
-  // Avoid negative bounding box coordinates
-    bboxshift=pair(-bpos.left,-bpos.bottom);
-    if(!pdfformat) {
-      bboxshift += postscriptOffset;
-      if(!bottomOrigin)
-	bboxshift += pair(0.0,max(11.0*72.0-ceil(bpos.top-bpos.bottom),0.0));
-    }
-    bpos.shift(bboxshift);
   }
+  
+  // Avoid negative bounding box coordinates
+  bboxshift=pair(-bpos.left,-bpos.bottom);
+  if(!pdfformat) {
+    bboxshift += postscriptOffset;
+    if(!bottomOrigin)
+      bboxshift += pair(0.0,max(11.0*72.0-(bpos.top-bpos.bottom),0.0));
+  }	
+  bpos.shift(bboxshift);
   
   if(bpos.right <= bpos.left && bpos.top <= bpos.bottom) { // null picture
     unlink(outname.c_str());

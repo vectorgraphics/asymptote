@@ -81,7 +81,7 @@ int System(const char *command, bool quiet, bool wait, int *ppid, bool warn)
   int status;
 
   if (!command) return 1;
-  if(verbose > 2) cerr << command << endl;
+  if(verbose > 1) cerr << command << endl;
 
   int pid = fork();
   if (pid == -1) {
