@@ -44,7 +44,7 @@ asy: 	parser depend
 all:  	asy man
 
 man:	asy
-	cd doc; make man
+	cd doc; $(MAKE) man
 
 depend: $(FILES:=.d)
 
@@ -97,7 +97,7 @@ clean:  FORCE
 
 distclean: FORCE clean
 	rm -f Makefile config.h config.log config.status
-	cd doc; make distclean
+	cd doc; $(MAKE) distclean
 
 maintainer-clean: FORCE distclean
 	rm -f configure config.h.in 
