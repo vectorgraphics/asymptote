@@ -396,3 +396,35 @@ real[][] inverse(real[][] m)
     abort("inverse of general matrix not yet implemented");
   return new real[][] {{m[1][1],-m[0][1]},{-m[1][0],m[0][0]}}/determinant(m);
 }
+
+// draw the (infinite) line going through P and Q, without altering the
+// size of picture pic.
+void drawline(picture pic=currentpicture, pair P, pair Q, pen p=currentpen)
+{
+  pic.add(new void (frame f, transform t, transform, pair m, pair M) {
+    // Reduce the bounds by the size of the pen.
+    m -= min(p); M -= max(p);
+
+    // Calculate the points and direction vector in the transformed space.
+    pair z=t*P;
+    pair v=t*Q-z;
+
+    // Handle horizontal and vertical lines.
+    if(v.x == 0) {
+      if(m.x <= z.x && z.x <= M.x)
+	draw(f,(z.x,m.y)--(z.x,M.y),p);
+    } else if(v.y == 0) {
+      if(m.y <= z.y && z.y <= M.y)
+	draw(f,(m.y,z.y)--(M.x,z.y),p);
+    } else {
+      // Calculate the maximum and minimum t values allowed for the
+      // parametric equation z + t*v
+      real mx=(m.x-z.x)/v.x, Mx=(M.x-z.x)/v.x;
+      real my=(m.y-z.y)/v.y, My=(M.y-z.y)/v.y;
+      real tmin=max(v.x > 0 ? mx : Mx, v.y > 0 ? my : My);
+      real tmax=min(v.x > 0 ? Mx : mx, v.y > 0 ? My : my);
+      if(tmin <= tmax)
+	draw(f,z+tmin*v--z+tmax*v,p);
+    }
+  });
+}

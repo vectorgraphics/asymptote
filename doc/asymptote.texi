@@ -3061,6 +3061,12 @@ Here are some additional routines provided in the @code{math} package:
 @item bool straight(path p)
 returns @code{true} iff the path @code{p} is straight.
 
+@cindex @code{drawline}
+@item void drawline(picture pic=currentpicture, pair P, pair Q, pen p=currentpen);
+draw the visible portion of the (infinite) line going through
+@code{P} and @code{Q}, without altering the size of picture @code{pic},
+using pen @code{p}.
+
 @cindex @code{intersection}
 @item real intersection(vector P, vector Q, vector n, vector Z);
 Return the intersection time of the extension of the line segment @code{PQ}
