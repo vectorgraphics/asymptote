@@ -130,11 +130,14 @@ class image(transform):
         self.bind(canv)
         self.x=self.x0=x
         self.y=self.y0=y
+        self.halfwidth=0.5*(box["r"]-box["l"])
+        self.halfheight=0.5*(box["t"]-box["b"])
 	self.i=i
     def move(self,event):
 	self.canv.delete(self.canv.select)
-        self.x=min(max(event.x-self.dx,0),xscroll)
-        self.y=min(max(event.y-self.dy,0),yscroll)
+        self.x=min(max(event.x-self.dx,-self.halfwidth),xscroll-self.halfwidth)
+        self.y=min(max(event.y-self.dy,self.halfheight),yscroll+
+                   self.halfheight)
         self.canv.coords(self.obj,self.x,self.y)
     def delete(self,event):
         self.canv.delete(self.obj)
