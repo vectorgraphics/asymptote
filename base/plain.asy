@@ -1000,13 +1000,12 @@ frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
 	      pic.keepAspect ? Aspect : IgnoreAspect,p);
 }
 
-void labelbox(picture pic=currentpicture, real xmargin=0, real
-	      ymargin=infinity, string s, real angle=0,
+void labelbox(picture pic=currentpicture, real xmargin=0,
+	      real ymargin=infinity, string s, real angle=0, pair position,
 	      pair align=0, pen p=currentpen, adjust adjust=NoAdjust)
 {
   if(ymargin == infinity) ymargin=xmargin;
   pair margin=(xmargin,ymargin);
-  pair position=0;
   pic.add(new void (frame f, transform t) {
     pair offset=t*0;
     frame b;
