@@ -86,13 +86,14 @@ bbox picture::bounds()
 }
 
 void picture::texinit() {
+  drawElement::lastpen=pen(initialpen);
+  
   if(TeXinitialized) return;
   
   tex.open("latex");
   texdocumentclass(tex);
   
   texpreamble(tex);
-  drawElement::lastpen=pen(initialpen);
 
   tex << "\n";
   tex.wait(texready,"! ");
