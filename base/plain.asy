@@ -117,7 +117,7 @@ transform shift(real x, real y)
 // I/O operations
 
 file stdin=input("");
-file stdout=output("");
+file stdout;
 
 private struct endlT {};
 public endlT endl=null;
@@ -622,6 +622,8 @@ struct picture {
      for(int i=0; i < src.legend.length; ++i)
        legend.push(src.legend[i]);
     });
+    
+    userBox(src.userMin,src.userMax);
 
     // Add the coord info to this picture.
     append(xcoords,ycoords,src_copy.T,src.xcoords,src.ycoords);
@@ -1430,6 +1432,12 @@ pair relative(picture pic=currentpicture, pair z)
 {
   pair w=(pic.userMax-pic.userMin);
   return pic.userMin+(z.x*w.x,z.y*w.y);
+}
+
+void pause(string w="Hit enter to continue") 
+{
+  write(w);
+  w=stdin;
 }
 
 // Options for handling label overwriting
