@@ -68,12 +68,12 @@ struct Or {
 
 template <typename T>
 struct Xor {
-  bool operator() (T x, T y, vm::stack *s, size_t=0) {return x ^ y;}
+  bool operator() (T x, T y, vm::stack *, size_t=0) {return x ^ y;}
 };
 
 template <typename T>
 struct plus {
-  T operator() (T x, T y, vm::stack *s, size_t=0) {return x+y;}
+  T operator() (T x, T y, vm::stack *, size_t=0) {return x+y;}
 };
 
 template <typename T>
@@ -83,7 +83,7 @@ struct minus {
   
 template <typename T>
 struct times {
-  T operator() (T x, T y, vm::stack *s, size_t=0) {return x*y;}
+  T operator() (T x, T y, vm::stack *, size_t=0) {return x*y;}
 };
 
 template <typename T>
