@@ -84,7 +84,7 @@ T pop(stack* s)
   return s->pop<T>();
 }
 
-inline void error(vm::stack *s, const char* message)
+inline void error(stack *s, const char* message)
 {
   em->runtime(s->getPos());
   *em << message;
