@@ -127,7 +127,7 @@ use multiplication by complex numbers to rotate a vector) and uses
 @code{LaTeX} to do the 
 typesetting of labels. This is an important feature for scientific
 applications. It was inspired by an earlier drawing program (with a much weaker
-syntax & capabilities) called MetaPost.
+syntax & capabilities) called @code{MetaPost}.
 
 Many of the features of @code{Asymptote} are written in the
 @code{Asymptote} language itself. While the stock version of
@@ -141,11 +141,11 @@ Examples of @code{Asymptote} code and output are available at
 http://asymptote.sourceforge.net/gallery/
 @end verbatim
 
-Features of @code{Asymptote} graphics language include:
+Features of the @code{Asymptote} graphics language include:
 
 @itemize @bullet
 @item provides a natural coordinate-based framework for technical drawings,
-inspired by MetaPost, with a much cleaner, powerful C++-like programming
+inspired by @code{MetaPost}, with a much cleaner, powerful C++-like programming
 syntax;
 
 @item @code{LaTeX} typesetting of labels, for overall document consistency
