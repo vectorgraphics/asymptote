@@ -10,7 +10,7 @@ draw(graph(f,g,0,1,LinearInterp));
 //xlimits(0,1);
 //ylimits(-1,0);
 
-xaxis("$x$",BottomTop,LeftTicks);
-yaxis("$y$",LeftRight,RightTicks);
+xaxis("$x$",BottomTop,LeftTicks("%#.1f"));
+yaxis("$y$",LeftRight,RightTicks("%#.1f"));
 
 

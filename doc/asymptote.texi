@@ -2858,6 +2858,7 @@ positive and negative extents of the error are assumed to be equal.
 @cindex @code{limits}
 @cindex @code{xlimits}
 @cindex @code{ylimits}
+@cindex @code{crop}
 
 The calls to 
 @verbatim
@@ -2870,11 +2871,12 @@ to restrict the respective axes limits for picture @code{pic} to the
 specified @code{min} and @code{max} values (alternatively, the function
 @code{limits(pair, pair)} can be used to limit the axes to the
 box having opposite vertices at the given pairs).
-Any existing objects in picture @code{pic} will be cropped to lie
-within the graph unless @code{crop}=@code{NoCrop}. For example, if
-@code{xlimits} or @code{ylimits} are called with no arguments, any
-existing objects in @code{currentpicture} will be cropped to the graph
-boundaries.
+Existing objects in picture @code{pic} will be cropped to lie
+within the given limits unless @code{crop}=@code{NoCrop}. For example, if
+@code{xlimits} or @code{ylimits} are called with no arguments,
+existing objects in @code{currentpicture} will be cropped to the current
+graph limits. The function @code{crop(picture pic)} is equivalent
+to calling both @code{xlimits()} and @code{ylimits()}.
 
 @verbatiminclude parametricgraph.asy
 @image{parametricgraph}
