@@ -26,7 +26,6 @@ ostream& fileinfo::print(ostream& out, int pos)
   return out;
 }
 
-position errorstream::lastpos=position::nullPos();
 bool errorstream::interrupt=false;
 
 void errorstream::clear()
@@ -45,6 +44,12 @@ void errorstream::message(position pos, const std::string& s)
 void errorstream::compiler(position pos)
 {
   message(pos,"compiler: ");
+  anyErrors = true;
+}
+
+void errorstream::compiler()
+{
+  message(position::nullPos(),"compiler: ");
   anyErrors = true;
 }
 

@@ -76,7 +76,6 @@ class errorstream {
   ostream& out;
   bool anyErrors;
   bool anyWarnings;
-  static position lastpos;
 
   // If there is an error printed without the closing newline.
   bool floating;
@@ -97,12 +96,13 @@ public:
   // An error is encountered, not in the user's code, but in the way the
   // compiler works!  This may be augmented in the future with a message
   // to contact the compiler writers.
-  void compiler(position pos=lastpos);
+  void compiler();
+  void compiler(position pos);
 
   // An error encountered when running compiled code.  This method does
   // not stop the executable, but the executable should be stopped
   // shortly after calling this method.
-  void runtime(position pos=lastpos);
+  void runtime(position pos);
 
   // Errors encountered when compiling making it impossible to run the code.
   void error(position pos);
@@ -130,11 +130,8 @@ public:
   // report any errors.  If checkCamp() finds errors, it will print them
   // out, then stop execution.
   void checkCamp(position pos) {
-    lastpos=pos;
     if (camp::errors())
       printCamp(pos);
-    if (settings::verbose > 4) 
-      trace(pos);
   }
   
   bool errors() {

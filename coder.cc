@@ -37,8 +37,7 @@ coder::coder(modifier sord)
     sord(sord),
     perm(READONLY),
     program(),
-    numLabels(0),
-    curPos(position::nullPos())
+    numLabels(0)
 {
   sord_stack.push(sord);
 }
@@ -54,8 +53,7 @@ coder::coder(function *t, coder &parent, modifier sord)
     sord(sord),
     perm(READONLY),
     program(),
-    numLabels(0),
-    curPos(position::nullPos())
+    numLabels(0)
 {
   sord_stack.push(sord);
 }
@@ -72,8 +70,7 @@ coder::coder(record *t, coder &parent, modifier sord)
     sord(sord),
     perm(READONLY),
     program(),
-    numLabels(0),
-    curPos(position::nullPos())
+    numLabels(0)
 {
   sord_stack.push(sord);
 }
@@ -213,7 +210,10 @@ int coder::fwdLabel()
 
 void coder::markPos(position pos)
 {
-  curPos = pos;
+  if (isStatic())
+    parent->markPos(pos);
+  else
+    l->pl.push_back(lambda::instpos(program.end(), pos));
 }
 
 // When translating the function is finished, this ties up loose ends

@@ -99,8 +99,6 @@ class coder {
   std::stack<int> breakLabels;
   std::stack<int> continueLabels;
 
-  // Current File Position
-  position curPos;
 private:
   // Define a new function coder.
   coder(function *t, coder &parent, modifier sord = DEFAULT_DYNAMIC);
@@ -218,7 +216,6 @@ public:
   // The encode functions add instructions and operands on to the code array.
   void encode(inst i)
   {
-    i.pos = curPos;
     if (isStatic()) {
       assert(parent);
       parent->encode(i);
