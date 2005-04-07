@@ -78,8 +78,8 @@ void stack::run(func *f)
   
   try {
     for (;;) {
-      inst *i = &(*ip);
-      curPos = i->pos;
+      const inst &i = *ip;
+      curPos = i.pos;
       
 #ifdef DEBUG_STACK
       cerr << getPos() << "\n";
@@ -87,33 +87,33 @@ void stack::run(func *f)
       cerr << "\n";
 #endif
 
-      switch (i->op)
+      switch (i.op)
         {
           case inst::pop:
             pop();
             break;
         
           case inst::intpush:
-            push(i->val);
+            push(i.val);
             break;
         
           case inst::constpush:
-            push(i->ref);
+            push(i.ref);
             break;
         
           case inst::varpush:
-            push(vars[i->val]);
+            push(vars[i.val]);
             break;
 
           case inst::varsave:
-            vars[i->val] = top();
+            vars[i.val] = top();
             break;
         
           case inst::fieldpush: {
             vars_t frame = pop<vars_t>();
             if (!frame)
 	      error(this,"dereference of null pointer");
-            push(frame[i->val]);
+            push(frame[i.val]);
             break;
           }
         
@@ -121,27 +121,27 @@ void stack::run(func *f)
             vars_t frame = pop<vars_t>();
             if (!frame)
 	      error(this,"dereference of null pointer");
-            frame[i->val] = top();
+            frame[i.val] = top();
             break;
           }
 	
           case inst::builtin: {
-            bltin func = i->bfunc;
+            bltin func = i.bfunc;
             func(this);
             em->checkCamp(curPos);
             break;
           }
 
           case inst::jmp:
-            ip = i->label;
+            ip = i.label;
             continue;
 
           case inst::cjmp:
-            if (pop<bool>()) { ip = i->label; continue; }
+            if (pop<bool>()) { ip = i.label; continue; }
             break;
 
           case inst::njmp:
-            if (!pop<bool>()) { ip = i->label; continue; }
+            if (!pop<bool>()) { ip = i.label; continue; }
             break;
 
           case inst::popcall: {
@@ -159,7 +159,7 @@ void stack::run(func *f)
           case inst::makefunc: {
             func *f = new func;
             f->closure = pop<vars_t>();
-            f->body = i->lfunc;
+            f->body = i.lfunc;
 
             push((callable*)f);
             break;
