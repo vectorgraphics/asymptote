@@ -1512,7 +1512,7 @@ shipout(Landscape);
 To rotate in the other direction, replace @code{Landscape} with
 @code{Seascape}.
 
-@cindex @code{bbox}
+@cindex @code{box}
 To draw a bounding box with a 0.25 cm margin around a picture, fit the
 picture into a frame using the @code{bbox} function (defined in
 @code{plain.asy}):
@@ -1521,9 +1521,25 @@ shipout(bbox(0.25cm));
 @end verbatim
 
 @cindex @code{Background}
-Similarly, a @code{picture} or @code{frame} may be fit to a frame with a
-background color using pen @code{p} with the function
-@code{bbox(p,Background)}.
+Similarly, a @code{picture} may be fit to a frame with the
+background color of pen @code{p} with the function
+@code{bbox(p,Background)}. 
+
+To draw or fill a box or ellipse around a frame or label, use one of
+the routines
+@verbatim
+void box(frame f, real xmargin=0, real ymargin=infinity,
+         pen p=currentpen, bbox bbox=Boundary);
+void ellipse(frame f, real xmargin=0, real ymargin=infinity,
+             pen p=currentpen, bbox bbox=Boundary);
+void labelbox(frame f, real xmargin=0, real ymargin=infinity,
+              string s, real angle=0, pair position,
+              pair align=0, pen p=currentpen, pen pbox=currentpen);
+void labelellipse(frame f, real xmargin=0, real ymargin=infinity,
+                  string s, real angle=0, pair position,
+                  pair align=0, pen p=currentpen,
+                  pen pbox=currentpen);
+@end verbatim
 
 @anchor{add}
 Sometimes it is useful to draw objects on separate pictures and add one

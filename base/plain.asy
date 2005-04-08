@@ -973,6 +973,28 @@ guide box(pair a, pair b)
   return a--(a.x,b.y)--b--(b.x,a.y)--cycle;
 }
 
+guide unitsquare=box((0,0),(1,1));
+
+guide square(pair z1, pair z2)
+{
+  pair v=z2-z1;
+  pair z3=z2+I*v;
+  pair z4=z3-v;
+  return z1--z2--z3--z4--cycle;
+}
+
+guide unitcircle=E..N..W..S..cycle;
+
+guide circle(pair c, real r)
+{
+  return shift(c)*scale(r)*unitcircle;
+}
+
+guide ellipse(pair c, real a, real b)
+{
+  return shift(c)*xscale(a)*yscale(b)*unitcircle;
+}
+
 real labelmargin(pen p=currentpen)
 {
   return labelmargin*fontsize(p);
@@ -1426,39 +1448,47 @@ public bbox
   Background=new bool(bboxT) {return true;},
   Boundary=new bool(bboxT) {return false;};
 
-frame _bbox(frame f, real xmargin=0, real ymargin=infinity, pen p=currentpen,
-	   bbox bbox=Boundary)
+void box(frame f, real xmargin=0, real ymargin=infinity, pen p=currentpen,
+	 bbox bbox=Boundary)
 {
   if(ymargin == infinity) ymargin=xmargin;
   pair z=(xmargin,ymargin);
-  frame d;
-  if(bbox(bbox)) fill(d,box(min(f)-0.5*min(p)-z,max(f)-0.5*max(p)+z),p);
-  else draw(d,box(min(f)+0.5*min(p)-z,max(f)+0.5*max(p)+z),p);
-  return d;
+  if(bbox(bbox)) fill(f,box(min(f)-0.5*min(p)-z,max(f)-0.5*max(p)+z),p);
+  else draw(f,box(min(f)+0.5*min(p)-z,max(f)+0.5*max(p)+z),p);
 }
 
-frame bbox(frame f, real xmargin=0, real ymargin=infinity, pen p=currentpen,
-	   bbox bbox=Boundary)
+void ellipse(frame f, real xmargin=0, real ymargin=infinity,
+	     pen p=currentpen, bbox bbox=Boundary)
 {
-  add(f,_bbox(f,xmargin,ymargin,p,bbox));
-  return f;
+  if(ymargin == infinity) ymargin=xmargin;
+  pair m=min(f);
+  pair M=max(f);
+  pair c=0.5*(M+m);
+  pair D=M-m;
+  real s=D.y/D.x;
+  static real factor=0.5*sqrt(2);
+  real a=factor*D.x;
+  real b=factor*D.y;
+  if(bbox(bbox))
+    fill(f,ellipse(c,a-0.5*max(p).x+xmargin,b-0.5*max(p).y+ymargin),p);
+  else draw(f,ellipse(c,a+0.5*max(p).x+xmargin,b+0.5*max(p).y+ymargin),p);
 }
 
 frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
-	   real xsize=infinity, real ysize=infinity, bool keepAspect,
-	   pen p=currentpen, bbox bbox=Boundary)
+	  real xsize=infinity, real ysize=infinity, bool keepAspect,
+	  pen p=currentpen, bbox bbox=Boundary)
 {
   if(ymargin == infinity) ymargin=xmargin;
   if(xsize == infinity) xsize=pic.xsize;
   if(ysize == infinity) ysize=pic.ysize;
   frame f=pic.fit(max(xsize-2*xmargin,0),max(ysize-2*ymargin,0),keepAspect);
-  add(f,_bbox(f,xmargin,ymargin,p,bbox));
+  box(f,xmargin,ymargin,p,bbox);
   return f;
 }
 
 frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
-	   real xsize=infinity, real ysize=infinity, pen p=currentpen,
-	   bbox bbox=Boundary)
+	  real xsize=infinity, real ysize=infinity, pen p=currentpen,
+	  bbox bbox=Boundary)
 {
   return bbox(pic,xmargin,ymargin,xsize,ysize,
 	      pic.keepAspect ? Aspect : IgnoreAspect,p,bbox);
@@ -1469,7 +1499,15 @@ void labelbox(frame f, real xmargin=0, real ymargin=infinity,
 	      pair align=0, pen p=currentpen, pen pbox=currentpen)
 {
   label(f,s,angle,position,align,p);
-  add(f,_bbox(f,xmargin,ymargin,pbox));
+  box(f,xmargin,ymargin,pbox);
+}
+
+void labelellipse(frame f, real xmargin=0, real ymargin=infinity,
+		  string s, real angle=0, pair position,
+		  pair align=0, pen p=currentpen, pen pbox=currentpen)
+{
+  label(f,s,angle,position,align,p);
+  ellipse(f,xmargin,ymargin,pbox);
 }
 
 void labelbox(picture pic=currentpicture, real xmargin=0,
@@ -1482,7 +1520,7 @@ void labelbox(picture pic=currentpicture, real xmargin=0,
     _label(f,s,Angle(t*dir(angle)-offset),
 	   t*position+align*labelmargin(p)+shift,
 	   length(align)*unit(t*align-offset),p);
-    add(f,_bbox(f,xmargin,ymargin,pbox));
+    box(f,xmargin,ymargin,pbox);
   });
   frame f;
   labelbox(f,xmargin,ymargin,s,angle,(0,0),align,p,pbox);
@@ -1565,28 +1603,6 @@ path[] cross(int n)
 
 path[] plus=(-1,0)--(1,0)^^(0,-1)--(0,1);
 
-guide unitsquare=box((0,0),(1,1));
-
-guide square(pair z1, pair z2)
-{
-  pair v=z2-z1;
-  pair z3=z2+I*v;
-  pair z4=z3-v;
-  return z1--z2--z3--z4--cycle;
-}
-
-guide unitcircle=E..N..W..S..cycle;
-
-guide circle(pair c, real r)
-{
-  return shift(c)*scale(r)*unitcircle;
-}
-
-guide ellipse(pair c, real a, real b)
-{
-  return shift(c)*xscale(a)*yscale(b)*unitcircle;
-}
-
 void mark(picture pic=currentpicture, guide g, frame mark)
 {
   for(int i=0; i <= length(g); ++i)
@@ -1652,7 +1668,7 @@ frame legend(picture pic=currentpicture, pair dir=0)
   frame F;
   if(pic.legend.length == 0) return F;
   F=bbox(legend(pic.legend),legendmargin,legendmargin,0,0,IgnoreAspect,
-	       legendboxpen);
+	 legendboxpen);
   return shift(dir-point(F,-dir))*F;
 }
 
