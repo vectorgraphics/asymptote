@@ -178,9 +178,9 @@ public:
 };
 
 template <typename T>
-inline T read(vm::array *a, size_t i)
+inline T read(array *a, size_t i)
 {
-  return a->read<T>(i);
+  return a->array::read<T>(i);
 }
 
 // Prints one instruction (including arguments) and returns how many
