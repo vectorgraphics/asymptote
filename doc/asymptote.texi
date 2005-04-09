@@ -1520,25 +1520,26 @@ picture into a frame using the @code{bbox} function (defined in
 shipout(bbox(0.25cm));
 @end verbatim
 
-@cindex @code{Background}
-Similarly, a @code{picture} may be fit to a frame with the
-background color of pen @code{p} with the function
-@code{bbox(p,Background)}. 
+@cindex @code{Fill}
+@cindex @code{NoFill}
+A @code{picture} may be fit to a frame with the background color of
+pen @code{p} with the function @code{bbox(p,Fill)}. 
 
 To draw or fill a box or ellipse around a frame or label, use one of
-the routines
+the routines (which for convenience also return the boundary as a guide):
 @verbatim
-void box(frame f, real xmargin=0, real ymargin=infinity,
-         pen p=currentpen, bbox bbox=Boundary);
-void ellipse(frame f, real xmargin=0, real ymargin=infinity,
-             pen p=currentpen, bbox bbox=Boundary);
-void labelbox(frame f, real xmargin=0, real ymargin=infinity,
-              string s, real angle=0, pair position,
-              pair align=0, pen p=currentpen, pen pbox=currentpen);
-void labelellipse(frame f, real xmargin=0, real ymargin=infinity,
-                  string s, real angle=0, pair position,
-                  pair align=0, pen p=currentpen,
-                  pen pbox=currentpen);
+guide box(frame f, real xmargin=0, real ymargin=infinity,
+          pen pbox=currentpen, filltype filltype=NoFill);
+guide ellipse(frame f, real xmargin=0, real ymargin=infinity,
+              pen pbox=currentpen, filltype filltype=NoFill);
+guide labelbox(frame f, real xmargin=0, real ymargin=infinity,
+               string s, real angle=0, pair position,
+	       pair align=0, pen p=currentpen,
+               pen pbox=currentpen, filltype filltype=NoFill);
+guide labelellipse(frame f, real xmargin=0, real ymargin=infinity,
+                   string s, real angle=0, pair position,
+                   pair align=0, pen p=currentpen,
+                   pen pbox=currentpen, filltype filltype=NoFill);
 @end verbatim
 
 @anchor{add}

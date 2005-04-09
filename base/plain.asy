@@ -1441,89 +1441,90 @@ public wait
   Wait=new bool(waitT) {return true;},
   NoWait=new bool(waitT) {return false;};
 
-private struct bboxT {};
-public bboxT bbox=null;
-typedef bool bbox(bboxT);
-public bbox
-  Background=new bool(bboxT) {return true;},
-  Boundary=new bool(bboxT) {return false;};
-
-void box(frame f, real xmargin=0, real ymargin=infinity, pen p=currentpen,
-	 bbox bbox=Boundary)
+guide box(frame f, real xmargin=0, real ymargin=infinity,
+	  pen p=currentpen, filltype filltype=NoFill)
 {
   if(ymargin == infinity) ymargin=xmargin;
   pair z=(xmargin,ymargin);
-  if(bbox(bbox)) fill(f,box(min(f)-0.5*min(p)-z,max(f)-0.5*max(p)+z),p);
-  else draw(f,box(min(f)+0.5*min(p)-z,max(f)+0.5*max(p)+z),p);
+  int sign=filltype == Fill ? -1 : 1;
+  guide g=box(min(f)+0.5*sign*min(p)-z,max(f)+0.5*sign*max(p)+z);
+  frame F;
+  filltype(F,g,p,filltype);
+  prepend(f,F);
+  return g;
 }
 
-void ellipse(frame f, real xmargin=0, real ymargin=infinity,
-	     pen p=currentpen, bbox bbox=Boundary)
+guide ellipse(frame f, real xmargin=0, real ymargin=infinity,
+	      pen p=currentpen, filltype filltype=NoFill)
 {
   if(ymargin == infinity) ymargin=xmargin;
   pair m=min(f);
   pair M=max(f);
-  pair c=0.5*(M+m);
   pair D=M-m;
-  real s=D.y/D.x;
   static real factor=0.5*sqrt(2);
   real a=factor*D.x;
   real b=factor*D.y;
-  if(bbox(bbox))
-    fill(f,ellipse(c,a-0.5*max(p).x+xmargin,b-0.5*max(p).y+ymargin),p);
-  else draw(f,ellipse(c,a+0.5*max(p).x+xmargin,b+0.5*max(p).y+ymargin),p);
+  int sign=filltype == Fill ? -1 : 1;
+  guide g=ellipse(0.5*(M+m),a+0.5*sign*max(p).x+xmargin,
+		  b+0.5*sign*max(p).y+ymargin);
+  frame F;
+  filltype(F,g,p,filltype);
+  prepend(f,F);
+  return g;
 }
 
 frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
 	  real xsize=infinity, real ysize=infinity, bool keepAspect,
-	  pen p=currentpen, bbox bbox=Boundary)
+	   pen pbox=currentpen, filltype filltype=NoFill)
 {
   if(ymargin == infinity) ymargin=xmargin;
   if(xsize == infinity) xsize=pic.xsize;
   if(ysize == infinity) ysize=pic.ysize;
   frame f=pic.fit(max(xsize-2*xmargin,0),max(ysize-2*ymargin,0),keepAspect);
-  box(f,xmargin,ymargin,p,bbox);
+  box(f,xmargin,ymargin,pbox,filltype);
   return f;
 }
 
 frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
-	  real xsize=infinity, real ysize=infinity, pen p=currentpen,
-	  bbox bbox=Boundary)
+	   real xsize=infinity, real ysize=infinity, pen pbox=currentpen,
+	   filltype filltype=NoFill)
 {
   return bbox(pic,xmargin,ymargin,xsize,ysize,
-	      pic.keepAspect ? Aspect : IgnoreAspect,p,bbox);
+	      pic.keepAspect ? Aspect : IgnoreAspect,pbox,filltype);
 }
 
-void labelbox(frame f, real xmargin=0, real ymargin=infinity,
-	      string s, real angle=0, pair position,
-	      pair align=0, pen p=currentpen, pen pbox=currentpen)
+guide labelbox(frame f, real xmargin=0, real ymargin=infinity,
+	       string s, real angle=0, pair position,
+	       pair align=0, pen p=currentpen, pen pbox=currentpen,
+	       filltype filltype=NoFill)
 {
   label(f,s,angle,position,align,p);
-  box(f,xmargin,ymargin,pbox);
+  return box(f,xmargin,ymargin,pbox,filltype);
 }
 
-void labelellipse(frame f, real xmargin=0, real ymargin=infinity,
-		  string s, real angle=0, pair position,
-		  pair align=0, pen p=currentpen, pen pbox=currentpen)
+guide labelellipse(frame f, real xmargin=0, real ymargin=infinity,
+		   string s, real angle=0, pair position,
+		   pair align=0, pen p=currentpen, pen pbox=currentpen,
+		   filltype filltype=NoFill)
 {
   label(f,s,angle,position,align,p);
-  ellipse(f,xmargin,ymargin,pbox);
+  return ellipse(f,xmargin,ymargin,pbox,filltype);
 }
 
 void labelbox(picture pic=currentpicture, real xmargin=0,
 	      real ymargin=infinity, string s, real angle=0, pair position,
 	      pair align=0, pair shift=0, pen p=currentpen,
-	      pen pbox=currentpen)
+	      pen pbox=currentpen, filltype filltype=NoFill)
 {
   pic.add(new void (frame f, transform t) {
     pair offset=t*0;
     _label(f,s,Angle(t*dir(angle)-offset),
 	   t*position+align*labelmargin(p)+shift,
 	   length(align)*unit(t*align-offset),p);
-    box(f,xmargin,ymargin,pbox);
+    box(f,xmargin,ymargin,pbox,filltype);
   });
   frame f;
-  labelbox(f,xmargin,ymargin,s,angle,(0,0),align,p,pbox);
+  labelbox(f,xmargin,ymargin,s,angle,(0,0),align,p,pbox,filltype);
   pic.addBox(position,position,min(f),max(f));
 }
 
