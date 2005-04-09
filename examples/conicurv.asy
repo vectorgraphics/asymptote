@@ -5,10 +5,11 @@
 import math;
 import featpost3D;
 
+//Removed, as these are not scalable fonts:
 texpreamble("
-\usepackage{beton}
-\usepackage{concmath}
-\usepackage{ccfonts}
+%\usepackage{beton}
+%\usepackage{concmath}
+%\usepackage{ccfonts}
 ");
 
 f = vector(10,-5,5.44);
