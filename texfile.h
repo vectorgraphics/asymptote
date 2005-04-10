@@ -22,7 +22,7 @@
 namespace camp {
 
 extern bool TeXcontaminated;
-extern std::list<std::string> TeXpreamble;
+extern std::list<std::string> TeXpipepreamble, TeXpreamble;
 
 const double tex2ps=72.0/72.27;
 const double ps2tex=1.0/tex2ps;
@@ -33,12 +33,18 @@ void texdocumentclass(T& out) {
 }
   
 template<class T>
-void texpreamble(T& out) {
-  std::list<std::string>::iterator p;
-  for (p = TeXpreamble.begin(); p != TeXpreamble.end(); ++p) {
-    out << stripblanklines(*p);
+void texpreamble(T& out, std::list<std::string>& preamble=TeXpreamble) {
+  std::list<std::string>::iterator p=preamble.begin();
+  if(p != preamble.end()) {
     TeXcontaminated=true;
+    for (; p != preamble.end(); ++p)
+      out << stripblanklines(*p);
   }
+}
+  
+template<class T>
+void texdefines(T& out, std::list<std::string>& preamble=TeXpreamble) {
+  texpreamble(out,preamble);
   out << "\\newbox\\ASYbox" << newl
       << "\\newdimen\\ASYdimen" << newl
       << "\\def\\ASYbase#1#2{\\setbox\\ASYbox=\\hbox{#1}"

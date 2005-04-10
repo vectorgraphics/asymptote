@@ -96,7 +96,7 @@ bbox picture::bounds()
   
   if(labels) {
     drawElement::lastpen=pen(initialpen);
-    if(!TeXinitialized) texinit();
+    texinit();
   }
   
   p=nodes.begin();
@@ -112,10 +112,18 @@ bbox picture::bounds()
 
 void picture::texinit()
 {
+  // Output any new texpreamble commands
+  if(TeXinitialized) {
+    texpreamble(tex,TeXpipepreamble);
+    TeXpipepreamble.clear();
+    return;
+  }
+  
   tex.open("latex");
   texdocumentclass(tex);
   
-  texpreamble(tex);
+  texdefines(tex,TeXpipepreamble);
+  TeXpipepreamble.clear();
 
   tex << "\n";
   tex.wait(texready,"! ");
@@ -126,7 +134,7 @@ bool picture::texprocess(const string& texname, const string& outname,
 			 const string& prefix, const bbox& bpos) 
 {
   int status=0;
-  std::ifstream outfile;
+  ifstream outfile;
   
   outfile.open(texname.c_str());
   if(outfile) {
@@ -302,7 +310,7 @@ bool picture::shipout(const picture& preamble, const string& prefix,
     return false;
   }
   
-  static std::ofstream bboxout;
+  static ofstream bboxout;
   
   if(deconstruct && !tgifformat) {
     if(bboxout) bboxout.close();
@@ -381,7 +389,7 @@ bool picture::shipout(const picture& preamble, const string& prefix,
     if(labels) tex->beginlayer(psname);
   
     // Postscript preamble.
-    std::list<drawElement*> Nodes=preamble.nodes;
+    list<drawElement*> Nodes=preamble.nodes;
     list<drawElement*>::iterator P=Nodes.begin();
     if(P != Nodes.end()) {
       out.resetpen();

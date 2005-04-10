@@ -1739,7 +1739,9 @@ void tex(stack *s)
   
 void texPreamble(stack *s)
 {
-  camp::TeXpreamble.push_back(pop<string>(s)+"\n");
+  string t = pop<string>(s)+"\n";
+  camp::TeXpipepreamble.push_back(t);
+  camp::TeXpreamble.push_back(t);
 }
   
 void layer(stack *s)
@@ -1879,6 +1881,7 @@ void cleanup(bool TeXclose)
   if(!interact::interactive) settings::scrollLines=0;
   
   if(TeXinitialized && TeXclose) {
+    camp::TeXpipepreamble.clear();
     camp::TeXpreamble.clear();
     camp::tex.pipeclose();
     TeXinitialized=camp::TeXcontaminated=false;

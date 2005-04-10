@@ -1609,8 +1609,8 @@ Verbatim @TeX{} commands can be inserted in the output with the function
 void tex(picture pic=currentpicture, string s);
 @end verbatim
 
-To issue a global @TeX{} command in the @TeX{} preamble (valid for the entire
-file) use:
+To issue a global @TeX{} command in the @TeX{} preamble (valid for the
+remainder of the top-level module) use:
 @cindex @code{texpreamble}
 @verbatim
 void texpreamble(string s);

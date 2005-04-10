@@ -18,7 +18,7 @@ using std::setprecision;
 namespace camp {
 
 bool TeXcontaminated=false;
-std::list<std::string> TeXpreamble;
+std::list<std::string> TeXpipepreamble, TeXpreamble;
   
 texfile::texfile(const string& texname, const bbox& box) :
     box(box)
@@ -41,7 +41,7 @@ texfile::~texfile()
   
 void texfile::prologue()
 {
-  texpreamble(*out);
+  texdefines(*out);
   *out << "\\usepackage{pstricks}" << newl
        << "\\psset{unit=1pt}" << newl
        << "\\pagestyle{empty}" << newl
