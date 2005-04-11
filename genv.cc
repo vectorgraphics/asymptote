@@ -28,7 +28,9 @@
 #include "settings.h"
 #include "builtin.h"
 #include "runtime.h"
+#include "parser.h"
 #include "locate.h"
+#include "interact.h"
 
 // Whether the module name should be visible like an import when translating
 // that module.
@@ -37,12 +39,6 @@
 using namespace std;
 using namespace types;
 using vm::inst;
-
-// The lexical analysis and parsing functions used by parseFile.
-extern bool setlexer(std::string filename);
-extern bool yyparse(void);
-extern int yydebug;
-extern int yy_flex_debug;
 
 namespace trans {
 
@@ -137,21 +133,11 @@ record *genv::loadModule(symbol *id)
 // there is an unrecoverable parse error, returns null.
 absyntax::file *genv::parseModule(symbol *id)
 {
-  std::string filename = (string)*id == "-" ? "-"
-                            : settings::locateFile(*id);
-
-  if (filename == "")
-    return 0;
-
-  // For debugging the machine-generated lexer and parser.
-  yy_flex_debug = 0;
-  yydebug = 0;
-
-  if (!setlexer(filename))
-    return 0;
-
-  if (yyparse() == 0) return absyntax::root;
-  return 0;
+  if (interact::interactive &&
+      (string) *id == "-")
+    return parser::parseInteractive();
+  else
+    return parser::parseFile(*id);
 }
 
 // Returns a function that statically initializes all loaded modules.
