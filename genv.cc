@@ -28,6 +28,7 @@
 #include "settings.h"
 #include "builtin.h"
 #include "runtime.h"
+#include "locate.h"
 
 // Whether the module name should be visible like an import when translating
 // that module.
@@ -45,53 +46,6 @@ extern int yy_flex_debug;
 
 namespace trans {
 
-// Adds the appropriate directory and suffix to the name.
-string dirSymbolToFile(string s, symbol *id)
-{
-  ostringstream buf;
-  if (!s.empty())
-    buf << s << "/";
-  
-  size_t p=findextension((string)*id,settings::suffix);
-  if(p < string::npos)
-    buf << *id;
-  else {
-    p=findextension((string)*id,settings::guisuffix);
-    if(p < string::npos)
-      buf << *id;
-    else
-      buf << *id << "." << settings::suffix;
-  }
-  return buf.str();
-}
-
-bool exists(string filename)
-{
-  return ::access(filename.c_str(), R_OK) == 0;
-}
-
-// Find the appropriate file, first looking in the local directory, then the
-// directory given in settings, and finally the global system directory.
-string symbolToFile(symbol *id)
-{
-  if((string) *id == "-") return "-";
-  
-  string filename = dirSymbolToFile("", id);
-  if(exists(filename)) return filename;
-
-  if(settings::AsyDir) {
-    filename = dirSymbolToFile(settings::AsyDir, id);
-    if(exists(filename)) return filename;
-  }
-
-#ifdef ASYMPTOTE_SYSDIR
-  filename = dirSymbolToFile(ASYMPTOTE_SYSDIR, id);
-  if(exists(filename)) return filename;
-#endif  
-
-  return "";
-}
- 
 genv::genv()
  : base_coder(),
    base_env(*this),
@@ -183,7 +137,8 @@ record *genv::loadModule(symbol *id)
 // there is an unrecoverable parse error, returns null.
 absyntax::file *genv::parseModule(symbol *id)
 {
-  std::string filename = symbolToFile(id);
+  std::string filename = (string)*id == "-" ? "-"
+                            : settings::locateFile(*id);
 
   if (filename == "")
     return 0;
