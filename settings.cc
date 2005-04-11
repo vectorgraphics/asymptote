@@ -256,7 +256,7 @@ void setOptions(int argc, char *argv[])
   
   if(origin == ZERO) texprocess=0;
   
-  searchPath.push_back("./");
+  searchPath.push_back(".");
   searchPath.push_back(getenv("ASYMPTOTE_DIR"));
 #ifdef ASYMPTOTE_SYSDIR
   searchPath.push_back(ASYMPTOTE_SYSDIR);
