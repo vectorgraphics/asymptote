@@ -181,7 +181,7 @@ void stack::run(func *f)
       if(em->Pending()) em->process(curPos);
       ++ip;
     }
-  } catch (boost::bad_any_cast&) {
+  } catch (bad_item_value&) {
     error("Trying to use uninitialized value.");
   }
 }

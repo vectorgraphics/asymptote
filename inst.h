@@ -13,8 +13,6 @@
 #include <deque>
 #include <iterator>
 #include <iostream>
-
-#include <boost/any.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 
 #include "errormsg.h"
