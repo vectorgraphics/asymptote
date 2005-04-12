@@ -32,8 +32,6 @@ class item {
 
   template <typename T>
   class help;
-  template <typename T>
-  friend class help;
   
 public:
   bool empty() {return *type == typeid(void);}
