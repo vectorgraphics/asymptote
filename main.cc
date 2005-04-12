@@ -33,12 +33,10 @@ using interact::interactive;
 using interact::virtualEOF;
 using interact::rejectline;
 
-vm::stack *s;
-
 #ifdef HAVE_LIBSIGSEGV
 void stackoverflow_handler (int, stackoverflow_context_t)
 {
-  em->runtime(s->getPos());
+  em->runtime(vm::getPos());
   cout << "Stack overflow" << endl;
   abort();
 }
@@ -46,7 +44,7 @@ void stackoverflow_handler (int, stackoverflow_context_t)
 int sigsegv_handler (void *, int emergency)
 {
   if(!emergency) return 0; // Really a stack overflow
-  em->runtime(s->getPos());
+  em->runtime(vm::getPos());
   cout << "Segmentation fault" << endl;
   cout << "Please report this programming error to" << endl 
        << BUGREPORT << endl;
@@ -68,7 +66,7 @@ void setsignal(RETSIGTYPE (*handler)(int))
 
 void signalHandler(int)
 {
-  if(em) em->runtime(s->getPos());
+  if(em) em->runtime(vm::getPos());
   signal(SIGBUS,SIG_DFL);
   signal(SIGFPE,SIG_DFL);
 }
@@ -134,10 +132,9 @@ int main(int argc, char *argv[])
               cout << "\n";
               print(cout, m->getInit()->code);
             } else {
-              s=new vm::stack;
+              vm::stack s;
 	      setPath(startPath());
-              s->run(l);
-	      delete s;
+              s.run(l);
             }
           }
         } else {

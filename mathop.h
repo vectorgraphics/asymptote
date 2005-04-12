@@ -84,7 +84,7 @@ struct divide {
       std::ostringstream buf;
       if(i > 0) buf << "array element " << i << ": ";
       buf << "Divide by zero";
-      error(s,buf.str().c_str());
+      vm::error(buf.str().c_str());
     }
     return x/y;
   }
@@ -102,7 +102,7 @@ struct power<int> {
       std::ostringstream buf;
       if(i > 0) buf << "array element " << i << ": ";
       buf << "Only 1 and -1 can be raised to negative exponents as integers.";
-      error(s,buf.str().c_str());
+      vm::error(buf.str().c_str());
     }
     return pow(x,y);
   }
@@ -115,7 +115,7 @@ struct mod {
       std::ostringstream buf;
       if(i > 0) buf << "array element " << i << ": ";
       buf << "Divide by zero";
-      error(s,buf.str().c_str());
+      vm::error(buf.str().c_str());
     }
     return portableMod(x,y);
   }

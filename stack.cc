@@ -22,6 +22,7 @@ using std::endl;
 namespace vm {
 
 namespace {
+position curPos = position::nullPos();
 const program::label nulllabel;
 }
 
@@ -33,7 +34,6 @@ inline stack::vars_t stack::make_frame(size_t size, vars_t closure)
 }
 
 stack::stack()
-  : curPos(position::nullPos())
 {}
 
 stack::~stack()
@@ -82,7 +82,7 @@ void stack::run(func *f)
       curPos = i.pos;
       
 #ifdef DEBUG_STACK
-      cerr << getPos() << "\n";
+      cerr << curPos << "\n";
       printInst(cerr, ip, body->code.begin());
       cerr << "\n";
 #endif
@@ -112,7 +112,7 @@ void stack::run(func *f)
           case inst::fieldpush: {
             vars_t frame = pop<vars_t>();
             if (!frame)
-	      error(this,"dereference of null pointer");
+	      error("dereference of null pointer");
             push(frame[i.val]);
             break;
           }
@@ -120,7 +120,7 @@ void stack::run(func *f)
           case inst::fieldsave: {
             vars_t frame = pop<vars_t>();
             if (!frame)
-	      error(this,"dereference of null pointer");
+	      error("dereference of null pointer");
             frame[i.val] = top();
             break;
           }
@@ -170,7 +170,7 @@ void stack::run(func *f)
           }
 	
           default:
-	    error(this,"Internal VM error: Bad stack operand");
+	    error("Internal VM error: Bad stack operand");
         }
 
 #ifdef DEBUG_STACK
@@ -182,7 +182,7 @@ void stack::run(func *f)
       ++ip;
     }
   } catch (boost::bad_any_cast&) {
-    error(this,"Trying to use uninitialized value.");
+    error("Trying to use uninitialized value.");
   }
 }
 
@@ -246,9 +246,13 @@ void stack::draw(ostream& out, vars_t vars, size_t nvars)
 }
 #endif // DEBUG_STACK
 
-void error(stack *s, const char* message)
+position getPos() {
+  return curPos;
+}
+
+void error(const char* message)
 {
-  em->error(s->getPos());
+  em->error(curPos);
   *em << message;
   em->sync();
   throw handled_error();

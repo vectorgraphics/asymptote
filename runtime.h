@@ -13,7 +13,7 @@
 #include "fileio.h"
 
 namespace vm {
-void error(stack *s, const char* message);
+void error(const char* message);
 }
 
 namespace run {
@@ -295,7 +295,7 @@ vm::array *copyArray2(vm::stack *s);
 
 inline bool checkArray(vm::stack *s, vm::array *a)
 {
-  if(a == 0) vm::error(s,"dereference of null array");
+  if(a == 0) vm::error("dereference of null array");
   return true;
 }
 
@@ -306,7 +306,7 @@ inline size_t checkArrays(vm::stack *s, vm::array *a, vm::array *b)
   
   size_t asize=(size_t) a->size();
   if(asize != (size_t) b->size())
-    vm::error(s,"operation attempted on arrays of different lengths.");
+    vm::error("operation attempted on arrays of different lengths.");
   return asize;
 }
   

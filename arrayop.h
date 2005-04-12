@@ -97,7 +97,7 @@ void maxArray(vm::stack *s)
   array *a=pop<array *>(s);
   checkArray(s,a);
   size_t size=(size_t) a->size();
-  if(size == 0) error(s,"cannot take max of empty array");
+  if(size == 0) vm::error("cannot take max of empty array");
   T m=read<T>(a,0);
   for(size_t i=1; i < size; i++) {
     T val=read<T>(a,i);
@@ -112,7 +112,7 @@ void minArray(vm::stack *s)
   array *a=pop<array *>(s);
   checkArray(s,a);
   size_t size=(size_t) a->size();
-  if(size == 0) error(s,"cannot take min of empty array");
+  if(size == 0) vm::error("cannot take min of empty array");
   T m=read<T>(a,0);
   for(size_t i=1; i < size; i++) {
     T val=read<T>(a,i);

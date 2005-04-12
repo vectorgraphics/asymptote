@@ -41,7 +41,7 @@ void castString(vm::stack *s)
   try {
     s->push(boost::lexical_cast<T>(pop<std::string>(s)));
   } catch (boost::bad_lexical_cast&) {
-    vm::error(s,"invalid cast.");
+    vm::error("invalid cast.");
   }
 }
 
@@ -72,7 +72,7 @@ inline void reportEof(vm::stack *s, camp::file *f, int count)
   std::ostringstream buf;
   buf << "EOF after reading " << count
       << " values from file '" << f->filename() << "'.";
-  error(s,buf.str().c_str());
+  vm::error(buf.str().c_str());
 }
 
 template<class T>

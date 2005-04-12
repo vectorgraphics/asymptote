@@ -28,8 +28,6 @@ private:
   typedef std::deque<item> stack_t;
   stack_t theStack;
 
-  position curPos;
-
   vars_t make_frame(size_t, vars_t closure);
 
   void draw(ostream& out);
@@ -65,13 +63,6 @@ public:
   {
     return get<T>(pop());
   }
-
-  // Returns the position of the stack when the running lambda has line 
-  // number information included.
-  position getPos() {
-    return curPos;
-  }
-    
 };
 
 inline item pop(stack* s)
@@ -85,7 +76,8 @@ inline T pop(stack* s)
   return get<T>(pop(s));
 }
 
-void error(stack *s, const char* message);
+position getPos();
+void error(const char* message);
   
 } // namespace vm
 

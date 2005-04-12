@@ -134,7 +134,7 @@ void realFmod(stack *s)
   double y = pop<double>(s);
   double x = pop<double>(s);
   if (y == 0.0)
-    error(s,"Divide by zero");
+    error("Divide by zero");
   double val = fmod(x,y);
   s->push(val);
 }
@@ -341,7 +341,7 @@ static void outOfBounds(stack *s, const char *op, int len, int n)
     ostringstream buf;
     buf << op << " array of length " << len << " with out-of-bounds index "
 	<< n;
-    error(s,buf.str().c_str());
+    error(buf.str().c_str());
 }
 
 // Read an element from an array. Checks for initialization & bounds.
@@ -359,7 +359,7 @@ void arrayRead(stack *s)
     if (i.empty()) {
       ostringstream buf;
       buf << "read uninitialized value from array at index " << n0;
-      error(s,buf.str().c_str());
+      error(buf.str().c_str());
     }
     s->push(i);
   } else outOfBounds(s,"reading",len,n0);
@@ -477,7 +477,7 @@ void arrayIntArray(stack *s)
     int index=read<int>(b,i);
     if(index < 0) index += (int) asize;
     if(index < 0 || index >= (int) asize)
-      error(s,"reading out-of-bounds index from array");
+      error("reading out-of-bounds index from array");
     (*r)[i]=(*a)[index];
   }
   s->push(r);
@@ -1862,7 +1862,7 @@ void system(stack *s)
   if(settings::suppressStandard) {s->push(0); return;}
   
   if(safe){
-    error(s,"system() call disabled; override with option -unsafe");
+    error("system() call disabled; override with option -unsafe");
   }
   else s->push(System(str.c_str()));
 }
@@ -1870,7 +1870,7 @@ void system(stack *s)
 void abort(stack *s)
 {
   string msg = pop<string>(s);
-  error(s,msg.c_str());
+  error(msg.c_str());
 }
   
 static callable *atExitFunction=NULL;
@@ -1965,7 +1965,7 @@ void changeDirectory(stack *s)
   if(rc != 0) {
     ostringstream buf;
     buf << "Cannot change to directory '" << d << "'";
-    error(s,buf.str().c_str());
+    error(buf.str().c_str());
   }
   char *p=getPath();
   if(p && interact::interactive && !settings::suppressStandard) 
@@ -2013,7 +2013,7 @@ void fileOpenXIn(stack *s)
   file *f=new ixfile(filename,check);
   s->push(f);
 #else  
-  error(s,"XDR support not enabled");
+  error("XDR support not enabled");
 #endif
 }
 
@@ -2025,7 +2025,7 @@ void fileOpenXOut(stack *s)
   file *f=new oxfile(filename,append);
   s->push(f);
 #else  
-  error(s,"XDR support not enabled");
+  error("XDR support not enabled");
 #endif
 }
 
