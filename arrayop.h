@@ -22,13 +22,6 @@ using vm::read;
 using vm::array;
 using camp::tab;
 
-// Math - this might be better elsewhere
-template <double (*func)(double)>
-void realReal(vm::stack *s) 
-{
-  s->push(func(pop<double>(s)));
-}
-
 template<class T, template <class S> class op>
 void arrayArrayOp(vm::stack *s)
 {
@@ -37,7 +30,7 @@ void arrayArrayOp(vm::stack *s)
   size_t size=checkArrays(s,a,b);
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
-      (*c)[i]=op<T>()(read<T>(a,i),read<T>(b,i),s,i);
+      (*c)[i]=op<T>()(read<T>(a,i),read<T>(b,i),i);
   s->push(c);
 }
 
@@ -50,7 +43,7 @@ void arrayOp(vm::stack *s)
   size_t size=(size_t) a->size();
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
-      (*c)[i]=op<T>()(read<T>(a,i),b,s,i);
+      (*c)[i]=op<T>()(read<T>(a,i),b,i);
   s->push(c);
 }
 
@@ -63,7 +56,7 @@ void opArray(vm::stack *s)
   size_t size=(size_t) a->size();
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
-      (*c)[i]=op<T>()(b,read<T>(a,i),s,i);
+      (*c)[i]=op<T>()(b,read<T>(a,i),i);
   s->push(c);
 }
 
