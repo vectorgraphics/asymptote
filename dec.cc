@@ -357,7 +357,7 @@ void decid::transAsField(coenv &e, record *r, types::ty *base)
     if (ia)
       ia->encodeCall(getPos(), e.c);
     else {
-      e.c.encode(inst::constpush,(item)(void *)0);
+      e.c.encode(inst::constpush,item());
     }
   }
   
