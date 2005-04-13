@@ -39,7 +39,11 @@ template<class T>
 void castString(vm::stack *s)
 {
   try {
-    s->push(boost::lexical_cast<T>(pop<std::string>(s)));
+    std::string *S=pop<std::string*>(s);
+    if(S->empty()) {
+      T x=0;
+      s->push(x);
+    } else s->push(boost::lexical_cast<T>(*S));
   } catch (boost::bad_lexical_cast&) {
     vm::error("invalid cast.");
   }

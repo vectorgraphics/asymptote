@@ -24,7 +24,7 @@ void drawPath::adjustdash(pen& pen0)
 {
   // Adjust dash sizes to fit arclength; also compensate for linewidth.
   string stroke=pen0.stroke();
-  if(stroke != "") {
+  if(!stroke.empty()) {
     double arclength=p.arclength();
     
     if(arclength) {

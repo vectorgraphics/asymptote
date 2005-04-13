@@ -25,8 +25,8 @@ namespace camp {
 psfile::psfile(const string& filename, const bbox& box, const pair& Shift)
   : filename(filename), box(box), Shift(Shift), rawmode(false)
 {
-  if(filename != "") out=new ofstream(filename.c_str());
-  else out=&std::cout;
+  if(filename.empty()) out=&std::cout;
+  else out=new ofstream(filename.c_str());
   if(!out || !*out) {
     std::cerr << "Can't write to " << filename << std::endl;
     throw handled_error();
@@ -35,7 +35,7 @@ psfile::psfile(const string& filename, const bbox& box, const pair& Shift)
 
 psfile::~psfile()
 {
-  if(filename != "" && out) delete out;
+  if(!filename.empty() && out) delete out;
 }
 
 void psfile::prologue()
@@ -72,7 +72,7 @@ void psfile::setpen(pen p)
   p.convert();
   if(p == lastpen) return;
     
-  if(p.fillpattern() != "" && p.fillpattern() != lastpen.fillpattern()) 
+  if(!p.fillpattern().empty() && p.fillpattern() != lastpen.fillpattern()) 
     *out << p.fillpattern() << " setpattern" << newl;
   else if(p.cmyk() && (!lastpen.cmyk() ||
 		       (p.cyan() != lastpen.cyan() || 

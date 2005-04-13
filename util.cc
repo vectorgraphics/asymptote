@@ -43,7 +43,7 @@ string buildname(string filename, string suffix, string aux)
   if(p < string::npos) name.erase(p);
 
   name += aux;
-  if(suffix != "") name += "."+suffix;
+  if(!suffix.empty()) name += "."+suffix;
   return name;
 }
 

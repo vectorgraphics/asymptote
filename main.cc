@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
       
       if (verbose) cout << "Processing " << module_name << endl;
     
-      if(outname == "") outname=(module_name == "-") ? "out" : module_name;
+      if(outname.empty()) outname=(module_name == "-") ? "out" : module_name;
     
       symbol *id = symbol::trans(module_name);
     

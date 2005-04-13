@@ -54,7 +54,7 @@ public:
   
   file(const std::string& name, bool checkappend=true) : 
     name(name), linemode(false), csvmode(false), singlemode(false),
-    closed(false), checkappend(checkappend), standard(name == ""),
+    closed(false), checkappend(checkappend), standard(name.empty()),
     lines(0) {dimension();}
   
   virtual void open() {};

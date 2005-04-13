@@ -25,8 +25,8 @@ using camp::tab;
 template<class T, template <class S> class op>
 void arrayArrayOp(vm::stack *s)
 {
-  array *b=pop<array *>(s);
-  array *a=pop<array *>(s);
+  array *b=pop<array*>(s);
+  array *a=pop<array*>(s);
   size_t size=checkArrays(a,b);
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
@@ -38,7 +38,7 @@ template<class T, template <class S> class op>
 void arrayOp(vm::stack *s)
 {
   T b=pop<T>(s);
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   checkArray(a);
   size_t size=(size_t) a->size();
   array *c=new array(size);
@@ -50,7 +50,7 @@ void arrayOp(vm::stack *s)
 template<class T, template <class S> class op>
 void opArray(vm::stack *s)
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   T b=pop<T>(s);
   checkArray(a);
   size_t size=(size_t) a->size();
@@ -63,7 +63,7 @@ void opArray(vm::stack *s)
 template<class T>
 void arrayNegate(vm::stack *s)
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   checkArray(a);
   size_t size=(size_t) a->size();
   array *c=new array(size);
@@ -75,7 +75,7 @@ void arrayNegate(vm::stack *s)
 template<class T>
 void sumArray(vm::stack *s)
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   checkArray(a);
   size_t size=(size_t) a->size();
   T sum=0;
@@ -87,7 +87,7 @@ void sumArray(vm::stack *s)
 template<class T>
 void maxArray(vm::stack *s)
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   checkArray(a);
   size_t size=(size_t) a->size();
   if(size == 0) vm::error("cannot take max of empty array");
@@ -102,7 +102,7 @@ void maxArray(vm::stack *s)
 template<class T>
 void minArray(vm::stack *s)
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   checkArray(a);
   size_t size=(size_t) a->size();
   if(size == 0) vm::error("cannot take min of empty array");
@@ -134,8 +134,8 @@ template<class T>
 struct compare2 {
   bool operator() (const vm::item& A, const vm::item& B)
   {
-    array *a=vm::get<array *>(A);
-    array *b=vm::get<array *>(B);
+    array *a=vm::get<array*>(A);
+    array *b=vm::get<array*>(B);
     size_t size=(size_t) a->size();
     if(size != (size_t) b->size()) return false;
 
@@ -220,7 +220,7 @@ void writeP(vm::stack *s)
 template<class T>
 void showArray(vm::stack *s)
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   if(settings::suppressStandard) return;
   camp::Stdout.resetlines();
   checkArray(a);
@@ -236,7 +236,7 @@ void showArray(vm::stack *s)
 template<class T>
 void writeArray(vm::stack *s)
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   camp::file *f = pop<camp::file*>(s);
   if(!f->isOpen()) return;
   if(f->Standard() && settings::suppressStandard) return;
@@ -256,7 +256,7 @@ void outArray2(camp::file *f, array *a)
   checkArray(a);
   size_t size=(size_t) a->size();
   for(size_t i=0; i < size; i++) {
-    array *ai=read<array *>(a,i);
+    array *ai=read<array*>(a,i);
     checkArray(ai);
     size_t aisize=(size_t) ai->size();
     for(size_t j=0; j < aisize; j++) {
@@ -271,14 +271,14 @@ void outArray2(camp::file *f, array *a)
 template<class T>
 void showArray2(vm::stack *s)
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   outArray2<T>(&camp::Stdout,a);
 }
 
 template<class T>
 void writeArray2(vm::stack *s)
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   camp::file *f = pop<camp::file*>(s);
   if(!f->isOpen()) return;
   outArray2<T>(f,a);
@@ -291,11 +291,11 @@ void outArray3(camp::file *f, array *a)
   checkArray(a);
   size_t size=(size_t) a->size();
   for(size_t i=0; i < size; i++) {
-    array *ai=read<array *>(a,i);
+    array *ai=read<array*>(a,i);
     checkArray(ai);
     size_t aisize=(size_t) ai->size();
     for(size_t j=0; j < aisize; j++) {
-      array *aij=read<array *>(ai,j);
+      array *aij=read<array*>(ai,j);
       checkArray(aij);
       size_t aijsize=(size_t) aij->size();
       for(size_t k=0; k < aijsize; k++) {
@@ -312,14 +312,14 @@ void outArray3(camp::file *f, array *a)
 template<class T>
 void showArray3(vm::stack *s)
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   outArray3<T>(&camp::Stdout,a);
 }
 
 template<class T>
 void writeArray3(vm::stack *s)
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   camp::file *f = pop<camp::file*>(s);
   if(!f->isOpen()) return;
   outArray3<T>(f,a);
@@ -328,7 +328,7 @@ void writeArray3(vm::stack *s)
 template <double (*func)(double)>
 void realArrayFunc(vm::stack *s) 
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   checkArray(a);
   size_t size=(size_t) a->size();
   array *c=new array(size);

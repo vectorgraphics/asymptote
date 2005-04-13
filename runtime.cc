@@ -71,6 +71,7 @@ using namespace settings;
 namespace run {
   
 using vm::stack;
+using vm::frame;
 using camp::pair;
 using camp::transform;
 
@@ -110,8 +111,8 @@ void boolXor(stack *s)
 
 void boolMemEq(stack *s)
 {
-  vm::frame b = pop<vm::frame>(s);
-  vm::frame a = pop<vm::frame>(s);
+  frame b = pop<frame>(s);
+  frame a = pop<frame>(s);
   s->push(a == b);
 }
 
@@ -411,15 +412,15 @@ void arrayLength(stack *s)
 // Returns the push method for an array.
 void arrayPush(stack *s)
 {
-  array *a = pop<array *>(s);
+  array *a = pop<array*>(s);
   checkArray(a);
-  s->push((callable*)new vm::thunk(new vm::bfunc(arrayPushHelper),a));
+  s->push((callable*)new thunk(new bfunc(arrayPushHelper),a));
 }
 
 // The helper function for the push method that does the actual operation.
 void arrayPushHelper(stack *s)
 {
-  array *a = pop<array *>(s);
+  array *a = pop<array*>(s);
   item i = pop(s);
 
   checkArray(a);
@@ -428,8 +429,8 @@ void arrayPushHelper(stack *s)
 
 void arrayAlias(stack *s)
 {
-  array *b=pop<array *>(s);
-  array *a=pop<array *>(s);
+  array *b=pop<array*>(s);
+  array *a=pop<array*>(s);
   s->push(a==b);
 }
 
@@ -437,9 +438,9 @@ void arrayAlias(stack *s)
 // corresponding elements of a are false by the corresponding element of c.
 void arrayConditional(stack *s)
 {
-  array *c=pop<array *>(s);
-  array *b=pop<array *>(s);
-  array *a=pop<array *>(s);
+  array *c=pop<array*>(s);
+  array *b=pop<array*>(s);
+  array *a=pop<array*>(s);
   size_t size=(size_t) a->size();
   array *r=new array(size);
   if(b && c) {
@@ -466,8 +467,8 @@ void arrayConditional(stack *s)
 // Return array formed by indexing array a with elements of integer array b
 void arrayIntArray(stack *s)
 {
-  array *b=pop<array *>(s);
-  array *a=pop<array *>(s);
+  array *b=pop<array*>(s);
+  array *a=pop<array*>(s);
   checkArray(a);
   checkArray(b);
   size_t asize=(size_t) a->size();
@@ -513,7 +514,7 @@ void intSequence(stack *s)
 // Apply a function to each element of an array
 void arrayFunction(stack *s)
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   callable* f = pop<callable*>(s);
   checkArray(a);
   size_t size=(size_t) a->size();
@@ -531,7 +532,7 @@ void arrayFunction(stack *s)
 void arrayFind(stack *s)
 {
   int n=pop<int>(s);
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   checkArray(a);
   int size=(int) a->size();
   int j=-1;
@@ -561,7 +562,7 @@ void arrayAll(stack *s)
 
 void arrayBoolNegate(stack *s)
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   checkArray(a);
   size_t size=(size_t) a->size();
   array *c=new array(size);
@@ -572,7 +573,7 @@ void arrayBoolNegate(stack *s)
 
 void arrayBoolSum(stack *s)
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   checkArray(a);
   size_t size=(size_t) a->size();
   int sum=0;
@@ -581,25 +582,25 @@ void arrayBoolSum(stack *s)
   s->push(sum);
 }
 
-void arrayCopy(vm::stack *s)
+void arrayCopy(stack *s)
 {
   s->push(copyArray(s));
 }
 
-void array2Copy(vm::stack *s)
+void array2Copy(stack *s)
 {
   s->push(copyArray2(s));
 }
 
-void array2Transpose(vm::stack *s)
+void array2Transpose(stack *s)
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   checkArray(a);
   size_t asize=(size_t) a->size();
   array *c=new array(0);
   for(size_t i=0; i < asize; i++) {
     size_t ip=i+1;
-    array *ai=read<array *>(a,i);
+    array *ai=read<array*>(a,i);
     checkArray(ai);
     size_t aisize=(size_t) ai->size();
     size_t csize=(size_t) c->size();
@@ -610,7 +611,7 @@ void array2Transpose(vm::stack *s)
       }
     }
     for(size_t j=0; j < aisize; j++) {
-    array *cj=read<array *>(c,j);
+    array *cj=read<array*>(c,j);
     if(cj->size() < ip) cj->resize(ip);
     (*cj)[i]=(*ai)[j];
     }
@@ -620,10 +621,10 @@ void array2Transpose(vm::stack *s)
 
 #ifdef HAVE_LIBFFTW3
 // Compute the fast Fourier transform of a pair array
-void pairArrayFFT(vm::stack *s)
+void pairArrayFFT(stack *s)
 {
   int sign = pop<int>(s) > 0 ? 1 : -1;
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   checkArray(a);
   unsigned n=(unsigned) a->size();
   Complex *f=FFTWComplex(n);
@@ -649,12 +650,12 @@ void pairArrayFFT(vm::stack *s)
 
 void pushNullArray(stack *s)
 {
-  s->push<array *>(0);
+  s->push<array*>(0);
 }
 
 void pushNullRecord(stack *s)
 {
-  s->push<vm::frame>(vm::frame());
+  s->push<frame>(frame());
 }
 
 void pushNullFunction(stack *s)
@@ -853,7 +854,7 @@ void transformPenMult(stack *s)
 
 void transformFrameMult(stack *s)
 {
-  picture *p = pop<picture *>(s);
+  picture *p = pop<picture*>(s);
   transform *t = pop<transform*>(s);
   s->push(transformed(*t,p));
 }
@@ -882,23 +883,23 @@ void emptyString(stack *s)
 
 void stringLength(stack *s)
 {
-  string *a = pop<string *>(s);
+  string *a = pop<string*>(s);
   s->push((int) a->length());
 }
 
 void stringFind(stack *s)
 {
   size_t pos=pop<int>(s);
-  string *b = pop<string *>(s);
-  string *a = pop<string *>(s);
+  string *b = pop<string*>(s);
+  string *a = pop<string*>(s);
   s->push((int) a->find(*b,pos));
 }
 
 void stringRfind(stack *s)
 {
   size_t pos=pop<int>(s);
-  string *b = pop<string *>(s);
-  string *a = pop<string *>(s);
+  string *b = pop<string*>(s);
+  string *a = pop<string*>(s);
   s->push((int) a->rfind(*b,pos));
 }
 
@@ -906,23 +907,23 @@ void stringSubstr(stack *s)
 {
   size_t n=pop<int>(s);
   size_t pos=pop<int>(s);
-  string *a = pop<string *>(s);
+  string *a = pop<string*>(s);
   if(pos < a->length()) s->push(a->substr(pos,n));
   else s->push(&emptystring);
 }
 
 void stringReverse(stack *s)
 {
-  string *a = pop<string *>(s);
+  string *a = pop<string*>(s);
   reverse(a->begin(),a->end());
   s->push(a);
 }
 
 void stringInsert(stack *s)
 {
-  string *b = pop<string *>(s);
+  string *b = pop<string*>(s);
   size_t pos=pop<int>(s);
-  string *a = pop<string *>(s);
+  string *a = pop<string*>(s);
   if(pos < a->length()) s->push(a->insert(pos,*b));
   else s->push(a);
 }
@@ -931,7 +932,7 @@ void stringErase(stack *s)
 {
   size_t n=pop<int>(s);
   size_t pos=pop<int>(s);
-  string *a = pop<string *>(s);
+  string *a = pop<string*>(s);
   if(pos < a->length()) s->push(a->erase(pos,n));
   else s->push(a);
 }
@@ -941,19 +942,19 @@ void stringErase(stack *s)
 void stringReplace(stack *s)
 {
   array *translate=pop<array*>(s);
-  string *S=pop<string *>(s);
+  string *S=pop<string*>(s);
   checkArray(translate);
   size_t size=translate->size();
   for(size_t i=0; i < size; i++) {
-    array *a=read<array *>(translate,i);
+    array *a=read<array*>(translate,i);
     checkArray(a);
   }
   const char *p=S->c_str();
   ostringstream buf;
   while(*p) {
     for(size_t i=0; i < size;) {
-      array *a=read<array *>(translate,i);
-      string* from=read<string *>(a,0);
+      array *a=read<array*>(translate,i);
+      string* from=read<string*>(a,0);
       size_t len=from->length();
       if(strncmp(p,from->c_str(),len) != 0) {i++; continue;}
       buf << read<string>(a,1);
@@ -969,7 +970,7 @@ void stringReplace(stack *s)
 void stringFormatInt(stack *s) 
 {
   int x=pop<int>(s);
-  string *format=pop<string *>(s);
+  string *format=pop<string*>(s);
   int size=snprintf(NULL,0,format->c_str(),x)+1;
   char *buf=new char[size];
   snprintf(buf,size,format->c_str(),x);
@@ -982,7 +983,7 @@ void stringFormatReal(stack *s)
   ostringstream out;
   
   double x=pop<double>(s);
-  string *format=pop<string *>(s);
+  string *format=pop<string*>(s);
   
   const char *phantom="\\phantom{+}";
   const char *p0=format->c_str();
@@ -1086,11 +1087,11 @@ void stringTime(stack *s)
   static const size_t n=256;
   static char Time[n]="";
 #ifdef HAVE_STRFTIME
-  string *format = pop<string *>(s);
+  string *format = pop<string*>(s);
   const time_t bintime=time(NULL);
   strftime(Time,n,format->c_str(),localtime(&bintime));
 #else
-  pop<string *>(s);
+  pop<string*>(s);
 #endif  
   s->push(new string(Time));
 }
@@ -1254,30 +1255,30 @@ void nullGuide(stack *s)
   s->push((guide*)new pathguide(path()));
 }
 
-void dotsGuide(vm::stack *s)
+void dotsGuide(stack *s)
 {
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
 
-  vector<guide *> v;
+  vector<guide*> v;
   for (size_t i=0; i<a->size(); ++i)
-    v.push_back(a->read<guide *>(i));
+    v.push_back(a->read<guide*>(i));
 
   s->push((guide*)new multiguide(v));
 }
 
-void dashesGuide(vm::stack *s)
+void dashesGuide(stack *s)
 {
   static camp::curlSpec curly;
   static specguide curlout(&curly, camp::OUT);
   static specguide curlin(&curly, camp::IN);
 
-  array *a=pop<array *>(s);
+  array *a=pop<array*>(s);
   size_t n=a->size();
 
   // a--b is equivalent to a{curl 1}..{curl 1}b
-  vector<guide *> v;
+  vector<guide*> v;
   if (n > 0)
-    v.push_back(a->read<guide *>(0));
+    v.push_back(a->read<guide*>(0));
 
   if (n==1) {
     v.push_back(&curlout);
@@ -1287,19 +1288,19 @@ void dashesGuide(vm::stack *s)
     for (size_t i=1; i<n; ++i) {
       v.push_back(&curlout);
       v.push_back(&curlin);
-      v.push_back(a->read<guide *>(i));
+      v.push_back(a->read<guide*>(i));
     }
 
   s->push((guide*)new multiguide(v));
 }
 
-void cycleGuide(vm::stack *s)
+void cycleGuide(stack *s)
 {
   s->push((guide *)new cycletokguide());
 }
       
 
-void dirSpec(vm::stack *s)
+void dirSpec(stack *s)
 {
   camp::side d=(camp::side)pop<int>(s);
   camp::dirSpec *sp=new camp::dirSpec(angle(pop<pair>(s)));
@@ -1307,7 +1308,7 @@ void dirSpec(vm::stack *s)
   s->push((guide *)new specguide(sp, d));
 }
 
-void curlSpec(vm::stack *s)
+void curlSpec(stack *s)
 {
   camp::side d=(camp::side)pop<int>(s);
   camp::curlSpec *sp=new camp::curlSpec(pop<double>(s));
@@ -1315,7 +1316,7 @@ void curlSpec(vm::stack *s)
   s->push((guide *)new specguide(sp, d));
 }
 
-void realRealTension(vm::stack *s)
+void realRealTension(stack *s)
 {
   bool atleast=pop<bool>(s);
   tension  tin(pop<double>(s), atleast),
@@ -1324,7 +1325,7 @@ void realRealTension(vm::stack *s)
   s->push((guide *)new tensionguide(tout, tin));
 }
 
-void pairPairControls(vm::stack *s)
+void pairPairControls(stack *s)
 {
   pair  zin=pop<pair>(s),
        zout=pop<pair>(s);
@@ -1446,7 +1447,7 @@ void penBaseLine(stack *s)
 void lineType(stack *s)
 {
   bool scale = pop<bool>(s);
-  string *t = pop<string *>(s);
+  string *t = pop<string*>(s);
   s->push(new pen(LineType(*t,scale))); 
 }
 
@@ -1494,7 +1495,7 @@ void penLineWidth(stack *s)
 
 void font(stack *s)
 {
-  string *t = pop<string *>(s);
+  string *t = pop<string*>(s);
   s->push(new pen(setfont,*t));
 }
 
@@ -1593,13 +1594,13 @@ void boolNullFrame(stack *s)
 
 void frameMax(stack *s)
 {
-  picture *pic = pop<picture *>(s);
+  picture *pic = pop<picture*>(s);
   s->push(pic->bounds().Max());
 }
 
 void frameMin(stack *s)
 {
-  picture *pic = pop<picture *>(s);
+  picture *pic = pop<picture*>(s);
   s->push(pic->bounds().Min());
 }
 
@@ -1724,7 +1725,7 @@ void prepend(stack *s)
 
 void postscript(stack *s)
 {
-  string *t = pop<string *>(s);
+  string *t = pop<string*>(s);
   picture *pic = pop<picture*>(s);
   drawVerbatim *d = new drawVerbatim(PostScript,*t);
   pic->append(d);
@@ -1732,7 +1733,7 @@ void postscript(stack *s)
   
 void tex(stack *s)
 {
-  string *t = pop<string *>(s);
+  string *t = pop<string*>(s);
   picture *pic = pop<picture*>(s);
   drawVerbatim *d = new drawVerbatim(TeX,*t);
   pic->append(d);
@@ -1758,7 +1759,7 @@ void label(stack *s)
   pair a = pop<pair>(s);
   pair z = pop<pair>(s);
   double r = pop<double>(s);
-  string *t = pop<string *>(s);
+  string *t = pop<string*>(s);
   picture *pic = pop<picture*>(s);
   drawLabel *d = new drawLabel(*t,r,z,a,p);
   pic->append(d);
@@ -1782,11 +1783,11 @@ void shipout(stack *s)
   array *GUIdelete=pop<array*>(s);
   array *GUItransform=pop<array*>(s);
   bool wait = pop<bool>(s);
-  string *format = pop<string *>(s);
+  string *format = pop<string*>(s);
   const picture *preamble = pop<picture*>(s);
   picture *pic = pop<picture*>(s);
   string prefix = pop<string>(s);
-  if(prefix == "") prefix=outname;
+  if(prefix.empty()) prefix=outname;
   
   size_t size=checkArrays(GUItransform,GUIdelete);
   
@@ -1799,8 +1800,8 @@ void shipout(stack *s)
       bool Delete;
       transform t;
       if(i < size) {
-	t=*(vm::read<transform *>(GUItransform,i));
-	Delete=vm::read<bool>(GUIdelete,i);
+	t=*(read<transform*>(GUItransform,i));
+	Delete=read<bool>(GUIdelete,i);
       } else {
 	t=identity();
 	Delete=false;
@@ -1858,7 +1859,7 @@ void boolInterAct(stack *s)
 
 void system(stack *s)
 {
-  string *str = pop<string *>(s);
+  string *str = pop<string*>(s);
   
   if(settings::suppressStandard) {s->push(0); return;}
   
@@ -1868,7 +1869,7 @@ void system(stack *s)
 
 void abort(stack *s)
 {
-  string *msg = pop<string *>(s);
+  string *msg = pop<string*>(s);
   error(msg->c_str());
 }
   
@@ -1907,8 +1908,8 @@ void merge(stack *s)
 {
   int ret;
   bool keep = pop<bool>(s);
-  string *format = pop<string *>(s);
-  string *args = pop<string *>(s);
+  string *format = pop<string*>(s);
+  string *args = pop<string*>(s);
   
   if(settings::suppressStandard) {s->push(0); return;}
   
@@ -1939,7 +1940,7 @@ void merge(stack *s)
 void execute(stack *s)
 {
   string Outname=outname;
-  string *str = pop<string *>(s);
+  string *str = pop<string*>(s);
   outname=*str;
   symbol *id = symbol::trans(outname);
   size_t p=findextension(outname,suffix);
@@ -1959,7 +1960,7 @@ void execute(stack *s)
 
 void changeDirectory(stack *s)
 {
-  string *d=pop<string *>(s);
+  string *d=pop<string*>(s);
   int rc=setPath(d->c_str());
   if(rc != 0) {
     ostringstream buf;
@@ -1989,7 +1990,7 @@ void nullFile(stack *s)
 void fileOpenIn(stack *s)
 {
   bool check=pop<bool>(s);
-  string *filename=pop<string *>(s);
+  string *filename=pop<string*>(s);
   file *f=new ifile(*filename,check);
   f->open();
   s->push(f);
@@ -1998,7 +1999,7 @@ void fileOpenIn(stack *s)
 void fileOpenOut(stack *s)
 {
   bool append=pop<bool>(s);
-  string *filename=pop<string *>(s);
+  string *filename=pop<string*>(s);
   file *f=new ofile(*filename,append);
   f->open();
   s->push(f);
@@ -2007,7 +2008,7 @@ void fileOpenOut(stack *s)
 void fileOpenXIn(stack *s)
 {
   bool check=pop<bool>(s);
-  string *filename=pop<string *>(s);
+  string *filename=pop<string*>(s);
 #ifdef HAVE_RPC_RPC_H
   file *f=new ixfile(*filename,check);
   s->push(f);
@@ -2019,7 +2020,7 @@ void fileOpenXIn(stack *s)
 void fileOpenXOut(stack *s)
 {
   bool append=pop<bool>(s);
-  string *filename=pop<string *>(s);
+  string *filename=pop<string*>(s);
 #ifdef HAVE_RPC_RPC_H
   file *f=new oxfile(*filename,append);
   s->push(f);
@@ -2162,28 +2163,28 @@ void fileArray3(stack *s)
 
 // Utilities
 
-vm::array *copyArray(vm::stack *s)
+array *copyArray(stack *s)
 {
-  vm::array *a=pop<vm::array *>(s);
+  array *a=pop<array*>(s);
   checkArray(a);
   size_t size=(size_t) a->size();
-  vm::array *c=new vm::array(size);
+  array *c=new array(size);
   for(size_t i=0; i < size; i++) 
     (*c)[i]=(*a)[i];
   return c;
 }
 
-vm::array *copyArray2(vm::stack *s)
+array *copyArray2(stack *s)
 {
-  vm::array *a=pop<vm::array *>(s);
+  array *a=pop<array*>(s);
   checkArray(a);
   size_t size=(size_t) a->size();
-  vm::array *c=new vm::array(size);
+  array *c=new array(size);
   for(size_t i=0; i < size; i++) {
-    vm::array *ai=read<vm::array *>(a,i);
+    array *ai=read<array*>(a,i);
     checkArray(ai);
     size_t aisize=(size_t) ai->size();
-    vm::array *ci=new vm::array(aisize);
+    array *ci=new array(aisize);
     (*c)[i]=ci;
     for(size_t j=0; j < aisize; j++) 
       (*ci)[j]=(*ai)[j];

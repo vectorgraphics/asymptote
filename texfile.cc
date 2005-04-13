@@ -106,7 +106,7 @@ void texfile::setpen(pen p)
    
 void texfile::put(const string& label, double angle, pair z)
 {
-  if(label == "") return;
+  if(label.empty()) return;
   *out << "\\rput[lB]{" << setprecision(2) << fixed << angle
        << "}(" << (z.getx()-offset.getx())*ps2tex
        << "," << (z.gety()-offset.gety())*ps2tex

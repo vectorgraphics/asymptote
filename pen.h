@@ -276,7 +276,7 @@ public:
   }
   
   std::string Font() const {
-    return font == "" ? defaultpen.font : font;
+    return font.empty() ? defaultpen.font : font;
   }
   
   double size() const {
@@ -449,7 +449,7 @@ public:
     pen P=p;
     pen Q=q;
     
-    if(P.color == PATTERN && P.pattern == "") P.color=DEFCOLOR;
+    if(P.color == PATTERN && P.pattern.empty()) P.color=DEFCOLOR;
     ColorSpace colorspace=(ColorSpace) max(P.color,Q.color);
     
   switch(colorspace) {
@@ -517,7 +517,7 @@ public:
     
     return pen(q.line == DEFLINE ? p.line : q.line,
 	       q.linewidth == DEFWIDTH ? p.linewidth : q.linewidth,
-	       q.font == "" ? p.font : q.font,
+	       q.font.empty() ? p.font : q.font,
 	       q.fontsize == 0.0 ? p.fontsize : q.fontsize,
 	       q.lineskip == 0.0 ? p.lineskip : q.lineskip,
 	       colorspace,R,G,B,greyval,
@@ -561,7 +561,7 @@ public:
       out << ", linecap=" << Cap[p.linecap];
     if(p.linejoin != DEFJOIN)
       out << ", linejoin=" << Join[p.linejoin];
-    if(p.font != "")
+    if(!p.font.empty())
       out << ", font=\"" << p.font << "\"";
     if(p.fontsize)
       out << ", fontsize=" << p.fontsize;

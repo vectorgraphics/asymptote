@@ -297,8 +297,8 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   if(settings::suppressStandard) return true;
   
   checkFormatString(format);
-  string outputformat=format == "" ? outformat : format;
-  epsformat=outputformat == "" || outputformat == "eps";
+  string outputformat=format.empty() ? outformat : format;
+  epsformat=outputformat.empty() || outputformat == "eps";
   pdfformat=outputformat == "pdf";
   tgifformat=outputformat == "tgif";
   string outname=tgifformat ? "."+buildname(prefix,"gif") :
