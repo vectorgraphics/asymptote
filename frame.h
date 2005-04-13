@@ -42,7 +42,7 @@ public:
   }
 
   int size() {
-    return 1 + numFormals + numLocals;
+    return numLocals;
   }
 
   access *accessFormal(int index) {

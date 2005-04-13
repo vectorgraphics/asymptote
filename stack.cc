@@ -17,6 +17,10 @@
 using std::cout;
 using std::cerr;
 using std::endl;
+
+namespace vm {
+void draw(ostream& out, frame *v);
+}
 #endif
 
 namespace vm {
@@ -28,8 +32,8 @@ const program::label nulllabel;
 
 inline stack::vars_t stack::make_frame(size_t size, vars_t closure)
 {
-  vars_t vars(new item[size]);
-  vars[0] = closure;
+  vars_t vars = new frame(1+size);
+  (*vars)[0] = closure;
   return vars;
 }
 
@@ -50,7 +54,7 @@ void stack::run(lambda *l)
 void stack::marshall(int args, vars_t vars)
 {
   for (int i = args; i > 0; --i)
-    vars[i] = pop();
+    (*vars)[i] = pop();
 }
 
 void stack::run(func *f)
@@ -68,7 +72,7 @@ void stack::run(func *f)
   /* start the new function */
   program::label ip = body->code.begin();
   /* make new activation record */
-  vars_t vars = make_frame(body->vars, f->closure);
+  vars_t vars = make_frame(body->params, f->closure);
   marshall(body->params, vars);
 
   em->Pending(settings::verbose > 4);
@@ -99,18 +103,18 @@ void stack::run(func *f)
             break;
         
           case inst::varpush:
-            push(vars[i.val]);
+            push((*vars)[i.val]);
             break;
 
           case inst::varsave:
-            vars[i.val] = top();
+            (*vars)[i.val] = top();
             break;
         
           case inst::fieldpush: {
             vars_t frame = pop<vars_t>();
             if (!frame)
 	      error("dereference of null pointer");
-            push(frame[i.val]);
+            push((*frame)[i.val]);
             break;
           }
         
@@ -118,7 +122,7 @@ void stack::run(func *f)
             vars_t frame = pop<vars_t>();
             if (!frame)
 	      error("dereference of null pointer");
-            frame[i.val] = top();
+            (*frame)[i.val] = top();
             break;
           }
 	
@@ -165,13 +169,19 @@ void stack::run(func *f)
           case inst::ret: {
             return;
           }
+
+          case inst::alloc: {
+            vars->extend(i.val);
+            break;
+          }
 	
           default:
 	    error("Internal VM error: Bad stack operand");
         }
 
 #ifdef DEBUG_STACK
-      draw(cerr,vars,body->vars);
+      draw(cerr);
+      draw(cerr,vars);
       cerr << "\n";
 #endif
             
@@ -209,7 +219,7 @@ std::string demangle(const char* s)
 }
 #endif 
 
-void stack::draw(ostream& out, vars_t vars, size_t nvars)
+void stack::draw(ostream& out)
 {
 //  out.setf(out.hex);
 
@@ -226,15 +236,17 @@ void stack::draw(ostream& out, vars_t vars, size_t nvars)
       left++;
     }
   out << "\n";
+}
 
+void draw(ostream& out, frame* v)
+{
   out << "vars:    ";
-  vars_t v = vars;
   
   if (!!v) {
-    out << (!get<vars_t>(v[0]) ? " 0" : " link");
-    for (int i = 1; i < 10 && i < nvars; i++)
-      out << " " << demangle(v[i].type().name());
-    if (nvars > 10)
+    out << (!get<frame*>((*v)[0]) ? " 0" : " link");
+    for (int i = 1; i < 10 && i < v->size(); i++)
+      out << " " << demangle((*v)[i].type().name());
+    if (v->size() > 10)
       out << "...";
     out << "\n";
   }

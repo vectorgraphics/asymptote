@@ -12,7 +12,6 @@
 #include <iostream>
 #include <string>
 #include <deque>
-#include <stack>
 
 #include "errormsg.h"
 #include "inst.h"
@@ -21,7 +20,7 @@ namespace vm {
 
 class stack {
 public:
-  typedef frame vars_t;
+  typedef frame* vars_t;
 
 private:
   // stack for operands

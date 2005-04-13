@@ -41,6 +41,7 @@ coder::coder(modifier sord)
     curPos(position::nullPos())
 {
   sord_stack.push(sord);
+  encode(inst::alloc,0);
 }
 
 // Defines a new function environment.
@@ -58,6 +59,7 @@ coder::coder(function *t, coder &parent, modifier sord)
     curPos(position::nullPos())
 {
   sord_stack.push(sord);
+  encode(inst::alloc,0);
 }
 
 // Start encoding the body of the record.  The function being encoded
@@ -76,6 +78,7 @@ coder::coder(record *t, coder &parent, modifier sord)
     curPos(position::nullPos())
 {
   sord_stack.push(sord);
+  encode(inst::alloc,0);
 }
 
 coder coder::newFunction(function *t, modifier sord)
@@ -230,7 +233,7 @@ vm::lambda *coder::close() {
   l->code = program;
   l->maxStackSize = 10; // NOTE: To be implemented.
   l->params = level->getNumFormals();
-  l->vars = level->size();
+  program.begin()->val = level->size();
 
   sord_stack.pop();
   sord = sord_stack.top();

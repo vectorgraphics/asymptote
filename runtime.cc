@@ -111,8 +111,8 @@ void boolXor(stack *s)
 
 void boolMemEq(stack *s)
 {
-  frame b = pop<frame>(s);
-  frame a = pop<frame>(s);
+  frame* b = pop<frame*>(s);
+  frame* a = pop<frame*>(s);
   s->push(a == b);
 }
 
@@ -655,7 +655,7 @@ void pushNullArray(stack *s)
 
 void pushNullRecord(stack *s)
 {
-  s->push(new frame());
+  s->push<frame*>(0);
 }
 
 void pushNullFunction(stack *s)

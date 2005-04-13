@@ -8,11 +8,16 @@
 #ifndef ITEM_H
 #define ITEM_H
 
+#include <vector>
 #include "pool.h"
 
 namespace vm {
 
+class item;
 class bad_item_value {};
+
+template<typename T>
+T get(const item&);
 
 class item {
 public:
@@ -54,7 +59,7 @@ public:
   
   template<typename T>
   friend inline T get(const item&);
-  
+
 private:
   const std::type_info *type;
   
@@ -89,6 +94,25 @@ private:
   };
 };
   
+class frame : public memory::managed<frame> {
+  typedef std::vector<item> vars_t;
+  vars_t vars;
+public:
+  frame(size_t size)
+    : vars(size) {}
+
+  item& operator[] (size_t n)
+    { return vars[n]; }
+  item operator[] (size_t n) const
+    { return vars[n]; }
+
+  size_t size()
+    { return vars.size(); }
+  
+  void extend(size_t n)
+    { vars.resize(vars.size() + n); }
+};
+
 template<typename T>
 inline T get(const item& it)
 {
@@ -118,8 +142,6 @@ inline bool get<bool>(const item& it)
     return it.b;
   throw vm::bad_item_value();
 }
-
-typedef memory::managed_array<item> frame;
 
 } // namespace vm
 

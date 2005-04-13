@@ -19,8 +19,9 @@ namespace vm {
 static const char* opnames[] = {
   "pop", "intpush", "constpush", 
   "varpush", "varsave", "fieldpush", "fieldsave",
-  "builtin", "jmp", "cjmp", "njmp", "popcall",
-  "pushclosure", "makefunc", "ret"
+  "builtin", "jmp", "cjmp", "njmp", "call",
+  "pushclosure", "makefunc", "ret",
+  "alloc"
 };
 static const int numOps = (int)(sizeof(opnames)/sizeof(char *));
 
@@ -43,6 +44,7 @@ void printInst(ostream& out, const program::label& code,
     case inst::varsave:
     case inst::fieldpush:
     case inst::fieldsave:
+    case inst::alloc:
     {
       out << " " << code->val;
       break;

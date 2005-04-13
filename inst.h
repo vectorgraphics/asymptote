@@ -107,8 +107,8 @@ public:
 // How a function reference to a non-builtin function is stored.
 struct func : public callable {
   lambda *body;
-  frame closure;
-  func () : body(0), closure() {};
+  frame *closure;
+  func () : body(), closure() {};
   virtual void call (stack*);
   virtual bool compare(callable*);
 };
@@ -140,7 +140,8 @@ struct inst {
     pop, intpush, constpush,
     varpush, varsave, fieldpush, fieldsave,
     builtin, jmp, cjmp, njmp, popcall,
-    pushclosure, makefunc, ret
+    pushclosure, makefunc, ret,
+    alloc
   };
   opcode op;
   position pos;
@@ -210,7 +211,7 @@ inline inst& program::label::operator*() const
 inline inst* program::label::operator->() const
 { return &**this; }
 inline ptrdiff_t offset(const program::label& left,
-			const program::label& right)
+                        const program::label& right)
 { return right.where - left.where; }
 
 } // namespace vm
