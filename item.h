@@ -16,9 +16,11 @@ class bad_item_value {};
 
 class item {
 public:
-  bool empty() {return *type == typeid(void);}
+  bool empty()
+  { return *type == typeid(void); }
   
-  item() : type(&typeid(void)) {}
+  item()
+    : type(&typeid(void)) {}
   
   item(int i)
     : type(&typeid(int)), i(i) {}

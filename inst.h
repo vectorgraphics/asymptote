@@ -13,7 +13,6 @@
 #include <deque>
 #include <iterator>
 #include <iostream>
-#include <boost/iterator/iterator_facade.hpp>
 
 #include "errormsg.h"
 #include "pool.h"
@@ -27,12 +26,13 @@ struct inst; class stack;
 // Manipulates the stack.
 typedef void (*bltin)(stack *s);
 
-class program : public memory::managed<program>
+class program
 {
 public:
   class label;
   program();
   inline void encode(inst i);
+  inline void prepend(inst i);
   label begin();
   label end();
 private:
@@ -41,19 +41,18 @@ private:
   code_t *code;
 };
 
-class program::label : 
-  public boost::iterator_facade<label,inst,boost::random_access_traversal_tag>
+class program::label
 {
 public: // interface
   label() : where(0), code() {};
-private:
-  friend class boost::iterator_core_access;
-  void increment();
-  void decrement();
-  void advance(ptrdiff_t n);
-  ptrdiff_t distance_to(const label& right) const;
-  bool equal(const label& right) const;
-  inst& dereference() const;
+public: //interface
+  void operator++();
+  bool operator==(const label& right) const;
+  bool operator!=(const label& right) const;
+  inst& operator*() const;
+  inst* operator->() const;
+  friend ptrdiff_t offset(const label& left,
+                          const label& right);
 private:
   label (size_t where, code_t* code)
     : where(where), code(code) {};
@@ -183,8 +182,8 @@ inline T read(array *a, size_t i)
 
 // Prints one instruction (including arguments) and returns how many
 // positions in the code stream were shown.
-program::label printInst(std::ostream& out, program::label code,
-			 const program::label base);
+void printInst(std::ostream& out, program::label code,
+               const program::label base);
 
 // Prints code until a ret opcode is printed.
 void print(std::ostream& out, program base);
@@ -198,18 +197,20 @@ inline program::label program::begin()
 { return label(0, code); }
 inline void program::encode(inst i)
 { code->push_back(i); }
-inline void program::label::increment()
+inline void program::prepend(inst i)
+{ code->push_front(i); }
+inline void program::label::operator++()
 { ++where; }
-inline void program::label::decrement()
-{ ++where; }
-inline void program::label::advance(ptrdiff_t n)
-{ where+=n; }
-inline ptrdiff_t program::label::distance_to(const label& right) const
-{ return right.where-where; }
-inline bool program::label::equal(const label& right) const
+inline bool program::label::operator==(const label& right) const
 { return (code == right.code) && (where == right.where); }
-inline inst& program::label::dereference() const
+inline bool program::label::operator!=(const label& right) const
+{ return !(*this == right); }
+inline inst& program::label::operator*() const
 { return (*code)[where]; }
+inline inst* program::label::operator->() const
+{ return &**this; }
+inline ptrdiff_t offset(const program::label& left, const program::label& right)
+{ return left.where - right.where; }
 
 } // namespace vm
 

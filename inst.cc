@@ -24,11 +24,11 @@ static const char* opnames[] = {
 };
 static const int numOps = (int)(sizeof(opnames)/sizeof(char *));
 
-program::label printInst(ostream& out, program::label code,
-			 const program::label base)
+void printInst(ostream& out, program::label code,
+               program::label base)
 {
   out.width(4);
-  out << std::distance(base,code) << " ";
+  out << offset(base,code) << " ";
   
   int i = (int)code->op;
   
@@ -69,7 +69,7 @@ program::label printInst(ostream& out, program::label code,
       char f = out.fill('0');
       out << " i";
       out.width(4);
-      out << std::distance(base,code->label);
+      out << offset(base,code->label);
       out.fill(f);
       break;
     }
@@ -85,7 +85,6 @@ program::label printInst(ostream& out, program::label code,
       break;
     }
   };
-  return code;
 }
 
 void print(ostream& out, program base)
@@ -96,7 +95,7 @@ void print(ostream& out, program base)
     if (code->op == inst::ret || 
         code->op < 0 || code->op >= numOps)
       active = false;
-    code = printInst(out, code, base.begin());
+    printInst(out, code, base.begin());
     out << '\n';
     ++code;
   }
