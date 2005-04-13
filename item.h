@@ -14,7 +14,46 @@ namespace vm {
 
 class bad_item_value {};
 
-class item : public memory::managed<item> {
+class item {
+public:
+  bool empty() {return *type == typeid(void);}
+  
+  item() : type(&typeid(void)) {}
+  
+  item(int i)
+    : type(&typeid(int)), i(i) {}
+  item(double x)
+    : type(&typeid(double)), x(x) {}
+  item(bool b)
+    : type(&typeid(bool)), b(b) {}
+  
+  item& operator= (int a)
+  { type=&typeid(int); i=a; return *this; }
+  item& operator= (double a)
+  { type=&typeid(double); x=a; return *this; }
+  item& operator= (bool a)
+  { type=&typeid(bool); b=a; return *this; }
+  
+  template<class T>
+  item(T *p)
+    : type(&typeid(T)), p(p) {}
+  
+  template<class T>
+  item(const T &p)
+    : type(&typeid(T)), p(new T(p)) {}
+  
+  template<class T>
+  item& operator= (T *a)
+  { type=&typeid(T); p=a; return *this; }
+  
+  template<class T>
+  item& operator= (const T &it)
+  { type=&typeid(T); p=new T(it); return *this; }
+  
+  template<typename T>
+  friend inline T get(const item&);
+  
+private:
   const std::type_info *type;
   
   union {
@@ -46,34 +85,6 @@ class item : public memory::managed<item> {
       throw vm::bad_item_value();
     }
   };
-  
-public:
-  bool empty() {return *type == typeid(void);}
-  
-  item() : type(&typeid(void)) {}
-  
-  item(int i) :    type(&typeid(int)), i(i) {}
-  item(double x) : type(&typeid(double)), x(x) {}
-  item(bool b) :   type(&typeid(bool)), b(b) {}
-  
-  item& operator = (int a)    {type=&typeid(int); i=a; return *this;}
-  item& operator = (double a) {type=&typeid(double); x=a; return *this;}
-  item& operator = (bool a)   {type=&typeid(bool); b=a; return *this;}
-  
-  template<class T>
-  item(T *p) : type(&typeid(T)), p(p) {}
-  
-  template<class T>
-  item(const T &p) : type(&typeid(T)), p(new T(p)) {}
-  
-  template<class T>
-  item& operator = (T *a) {type=&typeid(T); p=a; return *this;}
-  
-  template<class T>
-  item& operator = (const T &it) {type=&typeid(T); p=new T(it); return *this;}
-  
-  template<typename T>
-  friend inline T get(const item&);
 };
   
 template<typename T>
