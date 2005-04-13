@@ -71,9 +71,6 @@ void stack::run(func *f)
   vars_t vars = make_frame(body->vars, f->closure);
   marshall(body->params, vars);
 
-  /* for binops */
-  vars_t u, v;
-
   em->Pending(settings::verbose > 4);
   
   try {

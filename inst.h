@@ -182,8 +182,7 @@ inline T read(array *a, size_t i)
 
 // Prints one instruction (including arguments) and returns how many
 // positions in the code stream were shown.
-void printInst(std::ostream& out, program::label code,
-               const program::label base);
+void printInst(std::ostream& out, program::label code, program::label base);
 
 // Prints code until a ret opcode is printed.
 void print(std::ostream& out, program base);
