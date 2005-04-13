@@ -1100,7 +1100,8 @@ void stringTime(stack *s)
 
 void nullPath(stack *s)
 {
-  s->push(new path());
+  static path *nullpath=new path();
+  s->push(nullpath);
 }
 
 void pathIntPoint(stack *s)
