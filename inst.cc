@@ -24,7 +24,8 @@ static const char* opnames[] = {
 };
 static const int numOps = (int)(sizeof(opnames)/sizeof(char *));
 
-void printInst(ostream& out, program::label code, program::label base)
+void printInst(ostream& out, const program::label& code,
+	       const program::label& base)
 {
   out.width(4);
   out << offset(base,code) << " ";
