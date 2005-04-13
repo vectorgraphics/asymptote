@@ -67,7 +67,7 @@ void read(vm::stack *s)
 }
 
 inline int Limit(int nx) {return nx == 0 ? INT_MAX : nx;}
-inline void reportEof(vm::stack *s, camp::file *f, int count) 
+inline void reportEof(camp::file *f, int count) 
 {
   std::ostringstream buf;
   buf << "EOF after reading " << count
@@ -100,7 +100,7 @@ void readArray(vm::stack *s)
 	      for(int k=0; k < Limit(nz); k++) {
 		f->read(v);
 		if(f->error()) {
-		  if(nx && ny && nz) reportEof(s,f,(i*ny+j)*nz+k);
+		  if(nx && ny && nz) reportEof(f,(i*ny+j)*nz+k);
 		  s->push(c);
 		  return;
 		}
@@ -110,7 +110,7 @@ void readArray(vm::stack *s)
 	    } else {
 	      f->read(v);
 	      if(f->error()) {
-		if(nx && ny) reportEof(s,f,i*ny+j);
+		if(nx && ny) reportEof(f,i*ny+j);
 		s->push(c);
 		return;
 	      }
@@ -121,7 +121,7 @@ void readArray(vm::stack *s)
 	} else {
 	  f->read(v);
 	  if(f->error()) {
-	    if(nx) reportEof(s,f,i);
+	    if(nx) reportEof(f,i);
 	    s->push(c);
 	    return;
 	  }

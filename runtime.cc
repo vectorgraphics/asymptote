@@ -336,7 +336,7 @@ void newInitializedArray(stack *s)
   s->push(a);
 }
 
-static void outOfBounds(stack *s, const char *op, int len, int n)
+static void outOfBounds(const char *op, int len, int n)
 {
     ostringstream buf;
     buf << op << " array of length " << len << " with out-of-bounds index "
@@ -362,7 +362,7 @@ void arrayRead(stack *s)
       error(buf.str().c_str());
     }
     s->push(i);
-  } else outOfBounds(s,"reading",len,n0);
+  } else outOfBounds("reading",len,n0);
 }
 
 // Read an element from an array of arrays. Checks bounds and initialize
@@ -380,7 +380,7 @@ void arrayArrayRead(stack *s)
     item i = (*a)[(unsigned) n];
     if (i.empty()) i=new array(0);
     s->push(i);
-  } else outOfBounds(s,"reading",len,n0);
+  } else outOfBounds("reading",len,n0);
 }
 
 // Write an element to an array.  Increases size if necessary.
@@ -393,7 +393,7 @@ void arrayWrite(stack *s)
   checkArray(a);
   int len=(int) a->size();
   if (n < 0) n += len; // Map indices [-len,-1] to [0,len-1]
-  if (n < 0) outOfBounds(s,"writing",len,n-len);
+  if (n < 0) outOfBounds("writing",len,n-len);
   if (a->size() <= (size_t) n)
     a->resize(n+1);
   (*a)[n] = value;

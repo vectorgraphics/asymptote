@@ -250,7 +250,7 @@ void writeArray(vm::stack *s)
 }
 
 template<class T>
-void outArray2(vm::stack *s, camp::file *f, array *a)
+void outArray2(camp::file *f, array *a)
 {
   if(f->Standard() && settings::suppressStandard) return;
   checkArray(a);
@@ -272,7 +272,7 @@ template<class T>
 void showArray2(vm::stack *s)
 {
   array *a=pop<array *>(s);
-  outArray2<T>(s,&camp::Stdout,a);
+  outArray2<T>(&camp::Stdout,a);
 }
 
 template<class T>
@@ -281,11 +281,11 @@ void writeArray2(vm::stack *s)
   array *a=pop<array *>(s);
   camp::file *f = pop<camp::file*>(s);
   if(!f->isOpen()) return;
-  outArray2<T>(s,f,a);
+  outArray2<T>(f,a);
 }
 
 template<class T>
-void outArray3(vm::stack *s, camp::file *f, array *a)
+void outArray3(camp::file *f, array *a)
 {
   if(f->Standard() && settings::suppressStandard) return;
   checkArray(a);
@@ -313,7 +313,7 @@ template<class T>
 void showArray3(vm::stack *s)
 {
   array *a=pop<array *>(s);
-  outArray3<T>(s,&camp::Stdout,a);
+  outArray3<T>(&camp::Stdout,a);
 }
 
 template<class T>
@@ -322,7 +322,7 @@ void writeArray3(vm::stack *s)
   array *a=pop<array *>(s);
   camp::file *f = pop<camp::file*>(s);
   if(!f->isOpen()) return;
-  outArray3<T>(s,f,a);
+  outArray3<T>(f,a);
 }
 
 template <double (*func)(double)>

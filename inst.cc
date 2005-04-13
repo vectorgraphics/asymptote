@@ -131,7 +131,7 @@ void thunk::call(stack *s)
 }
 
 nullfunc nullfunc::func;
-void nullfunc::call(stack *s)
+void nullfunc::call(stack *)
 {
   error("dereference of null function");
 }
