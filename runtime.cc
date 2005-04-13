@@ -874,55 +874,56 @@ void transformPow(stack *s)
   if(alloc) delete t;
 }
 
+static string emptystring;
 void emptyString(stack *s)
 {
-  s->push((string) "");
+  s->push(&emptystring);
 }
 
 void stringLength(stack *s)
 {
-  string a = pop<string>(s);
-  s->push((int) a.length());
+  string *a = pop<string *>(s);
+  s->push((int) a->length());
 }
 
 void stringFind(stack *s)
 {
   size_t pos=pop<int>(s);
-  string b = pop<string>(s);
-  string a = pop<string>(s);
-  s->push((int) a.find(b,pos));
+  string *b = pop<string *>(s);
+  string *a = pop<string *>(s);
+  s->push((int) a->find(*b,pos));
 }
 
 void stringRfind(stack *s)
 {
   size_t pos=pop<int>(s);
-  string b = pop<string>(s);
-  string a = pop<string>(s);
-  s->push((int) a.rfind(b,pos));
+  string *b = pop<string *>(s);
+  string *a = pop<string *>(s);
+  s->push((int) a->rfind(*b,pos));
 }
 
 void stringSubstr(stack *s)
 {
   size_t n=pop<int>(s);
   size_t pos=pop<int>(s);
-  string a = pop<string>(s);
-  if(pos < a.length()) s->push(a.substr(pos,n));
-  else s->push((string)"");
+  string *a = pop<string *>(s);
+  if(pos < a->length()) s->push(a->substr(pos,n));
+  else s->push(&emptystring);
 }
 
 void stringReverse(stack *s)
 {
-  string a = pop<string>(s);
-  reverse(a.begin(),a.end());
+  string *a = pop<string *>(s);
+  reverse(a->begin(),a->end());
   s->push(a);
 }
 
 void stringInsert(stack *s)
 {
-  string b = pop<string>(s);
+  string *b = pop<string *>(s);
   size_t pos=pop<int>(s);
-  string a = pop<string>(s);
-  if(pos < a.length()) s->push(a.insert(pos,b));
+  string *a = pop<string *>(s);
+  if(pos < a->length()) s->push(a->insert(pos,*b));
   else s->push(a);
 }
 
@@ -930,8 +931,8 @@ void stringErase(stack *s)
 {
   size_t n=pop<int>(s);
   size_t pos=pop<int>(s);
-  string a = pop<string>(s);
-  if(pos < a.length()) s->push(a.erase(pos,n));
+  string *a = pop<string *>(s);
+  if(pos < a->length()) s->push(a->erase(pos,n));
   else s->push(a);
 }
 
@@ -940,21 +941,21 @@ void stringErase(stack *s)
 void stringReplace(stack *s)
 {
   array *translate=pop<array*>(s);
-  string S=pop<string>(s);
+  string *S=pop<string *>(s);
   checkArray(s,translate);
   size_t size=translate->size();
   for(size_t i=0; i < size; i++) {
     array *a=read<array *>(translate,i);
     checkArray(s,a);
   }
-  const char *p=S.c_str();
+  const char *p=S->c_str();
   ostringstream buf;
   while(*p) {
     for(size_t i=0; i < size;) {
       array *a=read<array *>(translate,i);
-      string from=read<string>(a,0);
-      size_t len=from.length();
-      if(strncmp(p,from.c_str(),len) != 0) {i++; continue;}
+      string* from=read<string *>(a,0);
+      size_t len=from->length();
+      if(strncmp(p,from->c_str(),len) != 0) {i++; continue;}
       buf << read<string>(a,1);
       p += len;
       if(*p == 0) {s->push(buf.str()); return;}
@@ -968,11 +969,11 @@ void stringReplace(stack *s)
 void stringFormatInt(stack *s) 
 {
   int x=pop<int>(s);
-  string format=pop<string>(s);
-  int size=snprintf(NULL,0,format.c_str(),x)+1;
+  string *format=pop<string *>(s);
+  int size=snprintf(NULL,0,format->c_str(),x)+1;
   char *buf=new char[size];
-  snprintf(buf,size,format.c_str(),x);
-  s->push(string(buf));
+  snprintf(buf,size,format->c_str(),x);
+  s->push(new string(buf));
   delete [] buf;
 }
 
@@ -981,10 +982,10 @@ void stringFormatReal(stack *s)
   ostringstream out;
   
   double x=pop<double>(s);
-  string format=pop<string>(s);
+  string *format=pop<string *>(s);
   
   const char *phantom="\\phantom{+}";
-  const char *p0=format.c_str();
+  const char *p0=format->c_str();
   
   const char *p=p0;
   const char *start=NULL;
@@ -996,17 +997,17 @@ void stringFormatReal(stack *s)
     out << *(p++);
   }
   
-  if(!start) {s->push(string(out.str())); return;}
+  if(!start) {s->push(out.str()); return;}
   
   // Allow at most 1 argument  
   while (*p != 0) {
-    if(*p == '*' || *p == '$') {s->push(string(out.str())); return;}
+    if(*p == '*' || *p == '$') {s->push(out.str()); return;}
     if(isupper(*p) || islower(*p)) {p++; break;}
     p++;
   }
   
   const char *tail=p;
-  string f=format.substr(start-p0,tail-start);
+  string f=format->substr(start-p0,tail-start);
   int size=snprintf(NULL,0,f.c_str(),x)+1;
   char *buf=new char[size];
   snprintf(buf,size,f.c_str(),x);
@@ -1077,7 +1078,7 @@ void stringFormatReal(stack *s)
     out << *(tail++);
   
   delete [] buf;
-  s->push(string(out.str()));
+  s->push(out.str());
 }
 
 void stringTime(stack *s)
@@ -1085,13 +1086,13 @@ void stringTime(stack *s)
   static const size_t n=256;
   static char Time[n]="";
 #ifdef HAVE_STRFTIME
-  string format = pop<string>(s);
+  string *format = pop<string *>(s);
   const time_t bintime=time(NULL);
-  strftime(Time,n,format.c_str(),localtime(&bintime));
+  strftime(Time,n,format->c_str(),localtime(&bintime));
 #else
-  pop<string>(s);
+  pop<string *>(s);
 #endif  
-  s->push((string) Time);
+  s->push(new string(Time));
 }
 
 // Path operations.
@@ -1445,8 +1446,8 @@ void penBaseLine(stack *s)
 void lineType(stack *s)
 {
   bool scale = pop<bool>(s);
-  string t = pop<string>(s);
-  s->push(new pen(LineType(t,scale))); 
+  string *t = pop<string *>(s);
+  s->push(new pen(LineType(*t,scale))); 
 }
 
 void penLineType(stack *s)
@@ -1493,8 +1494,8 @@ void penLineWidth(stack *s)
 
 void font(stack *s)
 {
-  string t = pop<string>(s);
-  s->push(new pen(setfont,t));
+  string *t = pop<string *>(s);
+  s->push(new pen(setfont,*t));
 }
 
 void penFont(stack *s)
@@ -1723,17 +1724,17 @@ void prepend(stack *s)
 
 void postscript(stack *s)
 {
-  string t = pop<string>(s);
+  string *t = pop<string *>(s);
   picture *pic = pop<picture*>(s);
-  drawVerbatim *d = new drawVerbatim(PostScript,t);
+  drawVerbatim *d = new drawVerbatim(PostScript,*t);
   pic->append(d);
 }
   
 void tex(stack *s)
 {
-  string t = pop<string>(s);
+  string *t = pop<string *>(s);
   picture *pic = pop<picture*>(s);
-  drawVerbatim *d = new drawVerbatim(TeX,t);
+  drawVerbatim *d = new drawVerbatim(TeX,*t);
   pic->append(d);
 }
   
@@ -1757,9 +1758,9 @@ void label(stack *s)
   pair a = pop<pair>(s);
   pair z = pop<pair>(s);
   double r = pop<double>(s);
-  string t = pop<string>(s);
+  string *t = pop<string *>(s);
   picture *pic = pop<picture*>(s);
-  drawLabel *d = new drawLabel(t,r,z,a,p);
+  drawLabel *d = new drawLabel(*t,r,z,a,p);
   pic->append(d);
 }
   
@@ -1781,7 +1782,7 @@ void shipout(stack *s)
   array *GUIdelete=pop<array*>(s);
   array *GUItransform=pop<array*>(s);
   bool wait = pop<bool>(s);
-  string format = pop<string>(s);
+  string *format = pop<string *>(s);
   const picture *preamble = pop<picture*>(s);
   picture *pic = pop<picture*>(s);
   string prefix = pop<string>(s);
@@ -1832,12 +1833,12 @@ void shipout(stack *s)
     if(size) pic=result;
   }
 
-  pic->shipout(*preamble,prefix,format,wait);
+  pic->shipout(*preamble,prefix,*format,wait);
 }
 
 void stringFilePrefix(stack *s)
 {
-  s->push((string) outname);
+  s->push(outname);
 }
 
 // Interactive mode
@@ -1857,20 +1858,18 @@ void boolInterAct(stack *s)
 
 void system(stack *s)
 {
-  string str = pop<string>(s);
+  string *str = pop<string *>(s);
   
   if(settings::suppressStandard) {s->push(0); return;}
   
-  if(safe){
-    error("system() call disabled; override with option -unsafe");
-  }
-  else s->push(System(str.c_str()));
+  if(safe) error("system() call disabled; override with option -unsafe");
+  else s->push(System(str->c_str()));
 }
 
 void abort(stack *s)
 {
-  string msg = pop<string>(s);
-  error(msg.c_str());
+  string *msg = pop<string *>(s);
+  error(msg->c_str());
 }
   
 static callable *atExitFunction=NULL;
@@ -1908,15 +1907,15 @@ void merge(stack *s)
 {
   int ret;
   bool keep = pop<bool>(s);
-  string format = pop<string>(s);
-  string args = pop<string>(s);
+  string *format = pop<string *>(s);
+  string *args = pop<string *>(s);
   
   if(settings::suppressStandard) {s->push(0); return;}
   
-  if(!checkFormatString(format)) return;
+  if(!checkFormatString(*format)) return;
   
   ostringstream cmd,remove;
-  cmd << "convert "+args;
+  cmd << "convert "+*args;
   remove << "rm";
   while(!outnameStack->empty()) {
     string name=outnameStack->front();
@@ -1925,7 +1924,7 @@ void merge(stack *s)
     outnameStack->pop_front();
   }
   
-  string name=buildname(outname,format.c_str());
+  string name=buildname(outname,format->c_str());
   cmd << " " << name;
   ret=System(cmd);
   
@@ -1939,10 +1938,10 @@ void merge(stack *s)
 
 void execute(stack *s)
 {
-  string str = pop<string>(s);
-  symbol *id = symbol::trans(str);
   string Outname=outname;
-  outname=str;
+  string *str = pop<string *>(s);
+  outname=*str;
+  symbol *id = symbol::trans(outname);
   size_t p=findextension(outname,suffix);
   if (p < string::npos) outname.erase(p);
   trans::genv ge;
@@ -1960,8 +1959,8 @@ void execute(stack *s)
 
 void changeDirectory(stack *s)
 {
-  string d=pop<string>(s);
-  int rc=setPath(d.c_str());
+  string *d=pop<string *>(s);
+  int rc=setPath(d->c_str());
   if(rc != 0) {
     ostringstream buf;
     buf << "Cannot change to directory '" << d << "'";
@@ -1970,7 +1969,7 @@ void changeDirectory(stack *s)
   char *p=getPath();
   if(p && interact::interactive && !settings::suppressStandard) 
     cout << p << endl;
-  s->push(string(p));
+  s->push(new string(p));
 }
 
 void scrollLines(stack *s)
@@ -1990,8 +1989,8 @@ void nullFile(stack *s)
 void fileOpenIn(stack *s)
 {
   bool check=pop<bool>(s);
-  string filename=pop<string>(s);
-  file *f=new ifile(filename,check);
+  string *filename=pop<string *>(s);
+  file *f=new ifile(*filename,check);
   f->open();
   s->push(f);
 }
@@ -1999,8 +1998,8 @@ void fileOpenIn(stack *s)
 void fileOpenOut(stack *s)
 {
   bool append=pop<bool>(s);
-  string filename=pop<string>(s);
-  file *f=new ofile(filename,append);
+  string *filename=pop<string *>(s);
+  file *f=new ofile(*filename,append);
   f->open();
   s->push(f);
 }
@@ -2008,9 +2007,9 @@ void fileOpenOut(stack *s)
 void fileOpenXIn(stack *s)
 {
   bool check=pop<bool>(s);
-  string filename=pop<string>(s);
+  string *filename=pop<string *>(s);
 #ifdef HAVE_RPC_RPC_H
-  file *f=new ixfile(filename,check);
+  file *f=new ixfile(*filename,check);
   s->push(f);
 #else  
   error("XDR support not enabled");
@@ -2020,9 +2019,9 @@ void fileOpenXIn(stack *s)
 void fileOpenXOut(stack *s)
 {
   bool append=pop<bool>(s);
-  string filename=pop<string>(s);
+  string *filename=pop<string *>(s);
 #ifdef HAVE_RPC_RPC_H
-  file *f=new oxfile(filename,append);
+  file *f=new oxfile(*filename,append);
   s->push(f);
 #else  
   error("XDR support not enabled");
@@ -2079,7 +2078,7 @@ void readChar(stack *s)
   if(f->isOpen()) f->read(c);
   static char str[1];
   str[0]=c;
-  s->push(string(str));
+  s->push(new string(str));
 }
 
 // Set file dimensions

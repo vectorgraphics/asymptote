@@ -12,15 +12,9 @@
 
 namespace vm {
 
-class item;
 class bad_item_value {};
 
-typedef memory::managed_array<item> frame;
-
-template<typename T>
-T get(const item&);
-
-class item {
+class item : public memory::managed<item> {
   const std::type_info *type;
   
   union {
@@ -111,6 +105,8 @@ inline bool get<bool>(const item& it)
     return it.b;
   throw vm::bad_item_value();
 }
+
+typedef memory::managed_array<item> frame;
 
 } // namespace vm
 

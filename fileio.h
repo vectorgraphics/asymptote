@@ -52,7 +52,7 @@ public:
   
   void dimension(int Nx=-1, int Ny=-1, int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
   
-  file(std::string name, bool checkappend=true) : 
+  file(const std::string& name, bool checkappend=true) : 
     name(name), linemode(false), csvmode(false), singlemode(false),
     closed(false), checkappend(checkappend), standard(name == ""),
     lines(0) {dimension();}
@@ -139,7 +139,7 @@ class ifile : public file {
   std::ifstream fstream;
   
 public:
-  ifile(std::string name, bool check=true) : file(name,check) {
+  ifile(const std::string& name, bool check=true) : file(name,check) {
       stream=&std::cin;
   }
   
@@ -211,7 +211,7 @@ class ofile : public file {
   std::ostream *stream;
   std::ofstream fstream;
 public:
-  ofile(std::string name, bool append=false) : file(name,append) {
+  ofile(const std::string& name, bool append=false) : file(name,append) {
       stream=&std::cout;
   }
   
@@ -263,7 +263,7 @@ public:
 class ixfile : public file {
   xdr::ixstream stream;
 public:
-  ixfile(std::string name, bool check=true) : 
+  ixfile(const std::string& name, bool check=true) : 
     file(name,check), stream(name.c_str()) {if(check) Check();}
 
   const char* Mode() {return "xinput";}
@@ -287,7 +287,7 @@ public:
 class oxfile : public file {
   xdr::oxstream stream;
 public:
-  oxfile(std::string name, bool append=false) : 
+  oxfile(const std::string& name, bool append=false) : 
     file(name), stream(name.c_str(),
 		       append ? xdr::xios::app : xdr::xios::trunc) {Check();}
 
