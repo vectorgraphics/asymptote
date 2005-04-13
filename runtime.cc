@@ -655,7 +655,7 @@ void pushNullArray(stack *s)
 
 void pushNullRecord(stack *s)
 {
-  s->push<frame>(frame());
+  s->push(new frame());
 }
 
 void pushNullFunction(stack *s)
@@ -686,15 +686,15 @@ void guideToPath(stack *s) {
 // Pair operations.
 void pairZero(stack *s)
 {
-  s->push(pair(0,0));
+  static pair zero;
+  s->push(&zero);
 }
 
 void realRealToPair(stack *s)
 {
   double y = pop<double>(s);
   double x = pop<double>(s);
-  pair z(x, y);
-  s->push(z);
+  s->push(new pair(x,y));
 }
 
 void pairNegate(stack *s)
@@ -1100,7 +1100,7 @@ void stringTime(stack *s)
 
 void nullPath(stack *s)
 {
-  s->push(path());
+  s->push(new path());
 }
 
 void pathIntPoint(stack *s)
@@ -1252,7 +1252,7 @@ void pathMax(stack *s)
 
 void nullGuide(stack *s)
 {
-  s->push((guide*)new pathguide(path()));
+  s->push<guide *>(new pathguide(path()));
 }
 
 void dotsGuide(stack *s)
