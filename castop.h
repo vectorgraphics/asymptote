@@ -49,7 +49,7 @@ template<class T, class S>
 void arrayToArray(vm::stack *s)
 {
   vm::array *a = pop<vm::array*>(s);
-  checkArray(s,a);
+  checkArray(a);
   unsigned int size=(unsigned int) a->size();
   vm::array *c=new vm::array(size);
   for(unsigned i=0; i < size; i++)

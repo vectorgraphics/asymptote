@@ -25,7 +25,27 @@ class item : public memory::managed<item> {
   };
 
   template <typename T>
-  class help;
+  struct help;
+  
+  template <typename T>
+  struct help<T*> {
+    static T* unwrap(const item& it)
+    {
+      if (*it.type == typeid(T))
+	return (T*) it.p;
+      throw vm::bad_item_value();
+    }
+  };
+  
+  template <typename T>
+  struct help {
+    static T& unwrap(const item& it)
+    {
+      if (*it.type == typeid(T))
+	return *(T*) it.p;
+      throw vm::bad_item_value();
+    }
+  };
   
 public:
   bool empty() {return *type == typeid(void);}
@@ -55,27 +75,7 @@ public:
   template<typename T>
   friend inline T get(const item&);
 };
-
-template <typename T>
-struct item::help<T*> {
-  static T* unwrap(const item& it)
-  {
-    if (*it.type == typeid(T))
-      return (T*) it.p;
-    throw vm::bad_item_value();
-  }
-};
-
-template <typename T>
-struct item::help {
-  static T& unwrap(const item& it)
-  {
-    if (*it.type == typeid(T))
-      return *(T*) it.p;
-    throw vm::bad_item_value();
-  }
-};
-
+  
 template<typename T>
 inline T get(const item& it)
 {

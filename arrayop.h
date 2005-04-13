@@ -27,7 +27,7 @@ void arrayArrayOp(vm::stack *s)
 {
   array *b=pop<array *>(s);
   array *a=pop<array *>(s);
-  size_t size=checkArrays(s,a,b);
+  size_t size=checkArrays(a,b);
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
       (*c)[i]=op<T>()(read<T>(a,i),read<T>(b,i),i);
@@ -39,7 +39,7 @@ void arrayOp(vm::stack *s)
 {
   T b=pop<T>(s);
   array *a=pop<array *>(s);
-  checkArray(s,a);
+  checkArray(a);
   size_t size=(size_t) a->size();
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
@@ -52,7 +52,7 @@ void opArray(vm::stack *s)
 {
   array *a=pop<array *>(s);
   T b=pop<T>(s);
-  checkArray(s,a);
+  checkArray(a);
   size_t size=(size_t) a->size();
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
@@ -64,7 +64,7 @@ template<class T>
 void arrayNegate(vm::stack *s)
 {
   array *a=pop<array *>(s);
-  checkArray(s,a);
+  checkArray(a);
   size_t size=(size_t) a->size();
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
@@ -76,7 +76,7 @@ template<class T>
 void sumArray(vm::stack *s)
 {
   array *a=pop<array *>(s);
-  checkArray(s,a);
+  checkArray(a);
   size_t size=(size_t) a->size();
   T sum=0;
   for(size_t i=0; i < size; i++)
@@ -88,7 +88,7 @@ template<class T>
 void maxArray(vm::stack *s)
 {
   array *a=pop<array *>(s);
-  checkArray(s,a);
+  checkArray(a);
   size_t size=(size_t) a->size();
   if(size == 0) vm::error("cannot take max of empty array");
   T m=read<T>(a,0);
@@ -103,7 +103,7 @@ template<class T>
 void minArray(vm::stack *s)
 {
   array *a=pop<array *>(s);
-  checkArray(s,a);
+  checkArray(a);
   size_t size=(size_t) a->size();
   if(size == 0) vm::error("cannot take min of empty array");
   T m=read<T>(a,0);
@@ -223,7 +223,7 @@ void showArray(vm::stack *s)
   array *a=pop<array *>(s);
   if(settings::suppressStandard) return;
   camp::Stdout.resetlines();
-  checkArray(s,a);
+  checkArray(a);
   size_t size=(size_t) a->size();
   for(size_t i=0; i < size; i++) {
     std::cout << i << ":\t";
@@ -240,7 +240,7 @@ void writeArray(vm::stack *s)
   camp::file *f = pop<camp::file*>(s);
   if(!f->isOpen()) return;
   if(f->Standard() && settings::suppressStandard) return;
-  checkArray(s,a);
+  checkArray(a);
   size_t size=(size_t) a->size();
   for(size_t i=0; i < size; i++) {
     f->write(read<T>(a,i));
@@ -253,11 +253,11 @@ template<class T>
 void outArray2(vm::stack *s, camp::file *f, array *a)
 {
   if(f->Standard() && settings::suppressStandard) return;
-  checkArray(s,a);
+  checkArray(a);
   size_t size=(size_t) a->size();
   for(size_t i=0; i < size; i++) {
     array *ai=read<array *>(a,i);
-    checkArray(s,ai);
+    checkArray(ai);
     size_t aisize=(size_t) ai->size();
     for(size_t j=0; j < aisize; j++) {
       if(j > 0 && f->text()) f->write(tab);
@@ -288,15 +288,15 @@ template<class T>
 void outArray3(vm::stack *s, camp::file *f, array *a)
 {
   if(f->Standard() && settings::suppressStandard) return;
-  checkArray(s,a);
+  checkArray(a);
   size_t size=(size_t) a->size();
   for(size_t i=0; i < size; i++) {
     array *ai=read<array *>(a,i);
-    checkArray(s,ai);
+    checkArray(ai);
     size_t aisize=(size_t) ai->size();
     for(size_t j=0; j < aisize; j++) {
       array *aij=read<array *>(ai,j);
-      checkArray(s,aij);
+      checkArray(aij);
       size_t aijsize=(size_t) aij->size();
       for(size_t k=0; k < aijsize; k++) {
 	if(k > 0 && f->text()) f->write(tab);
@@ -329,7 +329,7 @@ template <double (*func)(double)>
 void realArrayFunc(vm::stack *s) 
 {
   array *a=pop<array *>(s);
-  checkArray(s,a);
+  checkArray(a);
   size_t size=(size_t) a->size();
   array *c=new array(size);
   for(size_t i=0; i < size; i++)

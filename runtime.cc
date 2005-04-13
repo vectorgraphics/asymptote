@@ -351,7 +351,7 @@ void arrayRead(stack *s)
   int n0 = n;
   array *a = pop<array*>(s);
 
-  checkArray(s,a);
+  checkArray(a);
   int len=(int) a->size();
   if (n < 0) n += len; // Map indices [-len,-1] to [0,len-1]
   if (n >= 0 && n < len) {
@@ -373,7 +373,7 @@ void arrayArrayRead(stack *s)
   int n0 = n;
   array *a = pop<array*>(s);
 
-  checkArray(s,a);
+  checkArray(a);
   int len=(int) a->size();
   if (n < 0) n += len; // Map indices [-len,-1] to [0,len-1]
   if (n >= 0 && n < len) {
@@ -390,7 +390,7 @@ void arrayWrite(stack *s)
   array *a = pop<array*>(s);
   item value = pop(s);
 
-  checkArray(s,a);
+  checkArray(a);
   int len=(int) a->size();
   if (n < 0) n += len; // Map indices [-len,-1] to [0,len-1]
   if (n < 0) outOfBounds(s,"writing",len,n-len);
@@ -404,7 +404,7 @@ void arrayWrite(stack *s)
 void arrayLength(stack *s)
 {
   array *a = pop<array*>(s);
-  checkArray(s,a);
+  checkArray(a);
   s->push((int)a->size());
 }
 
@@ -412,7 +412,7 @@ void arrayLength(stack *s)
 void arrayPush(stack *s)
 {
   array *a = pop<array *>(s);
-  checkArray(s,a);
+  checkArray(a);
   s->push((callable*)new vm::thunk(new vm::bfunc(arrayPushHelper),a));
 }
 
@@ -422,7 +422,7 @@ void arrayPushHelper(stack *s)
   array *a = pop<array *>(s);
   item i = pop(s);
 
-  checkArray(s,a);
+  checkArray(a);
   a->push(i);
 }
 
@@ -443,18 +443,18 @@ void arrayConditional(stack *s)
   size_t size=(size_t) a->size();
   array *r=new array(size);
   if(b && c) {
-    checkArrays(s,a,b);
-    checkArrays(s,b,c);
+    checkArrays(a,b);
+    checkArrays(b,c);
     for(size_t i=0; i < size; i++)
       (*r)[i]=read<bool>(a,i) ? (*b)[i] : (*c)[i];
   } else {
     r->clear();
     if(b) {
-      checkArrays(s,a,b);
+      checkArrays(a,b);
     for(size_t i=0; i < size; i++)
       if(read<bool>(a,i)) r->push((*b)[i]);
     } else if(c) {
-      checkArrays(s,a,c);
+      checkArrays(a,c);
       for(size_t i=0; i < size; i++)
       if(!read<bool>(a,i)) r->push((*c)[i]);
     }
@@ -468,8 +468,8 @@ void arrayIntArray(stack *s)
 {
   array *b=pop<array *>(s);
   array *a=pop<array *>(s);
-  checkArray(s,a);
-  checkArray(s,b);
+  checkArray(a);
+  checkArray(b);
   size_t asize=(size_t) a->size();
   size_t bsize=(size_t) b->size();
   array *r=new array(bsize);
@@ -515,7 +515,7 @@ void arrayFunction(stack *s)
 {
   array *a=pop<array *>(s);
   callable* f = pop<callable*>(s);
-  checkArray(s,a);
+  checkArray(a);
   size_t size=(size_t) a->size();
   array *b=new array(size);
   for(size_t i=0; i < size; ++i) {
@@ -532,7 +532,7 @@ void arrayFind(stack *s)
 {
   int n=pop<int>(s);
   array *a=pop<array *>(s);
-  checkArray(s,a);
+  checkArray(a);
   int size=(int) a->size();
   int j=-1;
   if(n > 0)
@@ -551,7 +551,7 @@ void arrayFind(stack *s)
 void arrayAll(stack *s)
 {
   array *a = pop<array*>(s);
-  checkArray(s,a);
+  checkArray(a);
   unsigned int size=(unsigned int) a->size();
   bool c=true;
   for(unsigned i=0; i < size; i++)
@@ -562,7 +562,7 @@ void arrayAll(stack *s)
 void arrayBoolNegate(stack *s)
 {
   array *a=pop<array *>(s);
-  checkArray(s,a);
+  checkArray(a);
   size_t size=(size_t) a->size();
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
@@ -573,7 +573,7 @@ void arrayBoolNegate(stack *s)
 void arrayBoolSum(stack *s)
 {
   array *a=pop<array *>(s);
-  checkArray(s,a);
+  checkArray(a);
   size_t size=(size_t) a->size();
   int sum=0;
   for(size_t i=0; i < size; i++)
@@ -594,13 +594,13 @@ void array2Copy(vm::stack *s)
 void array2Transpose(vm::stack *s)
 {
   array *a=pop<array *>(s);
-  checkArray(s,a);
+  checkArray(a);
   size_t asize=(size_t) a->size();
   array *c=new array(0);
   for(size_t i=0; i < asize; i++) {
     size_t ip=i+1;
     array *ai=read<array *>(a,i);
-    checkArray(s,ai);
+    checkArray(ai);
     size_t aisize=(size_t) ai->size();
     size_t csize=(size_t) c->size();
     if(csize < aisize) {
@@ -624,7 +624,7 @@ void pairArrayFFT(vm::stack *s)
 {
   int sign = pop<int>(s) > 0 ? 1 : -1;
   array *a=pop<array *>(s);
-  checkArray(s,a);
+  checkArray(a);
   unsigned n=(unsigned) a->size();
   Complex *f=FFTWComplex(n);
   fft1d Forward(n,sign,f);
@@ -942,11 +942,11 @@ void stringReplace(stack *s)
 {
   array *translate=pop<array*>(s);
   string *S=pop<string *>(s);
-  checkArray(s,translate);
+  checkArray(translate);
   size_t size=translate->size();
   for(size_t i=0; i < size; i++) {
     array *a=read<array *>(translate,i);
-    checkArray(s,a);
+    checkArray(a);
   }
   const char *p=S->c_str();
   ostringstream buf;
@@ -1637,7 +1637,7 @@ void fillArray(stack *s)
   pen *pena = pop<pen*>(s);
   array *p=copyArray(s);
   picture *pic = pop<picture*>(s);
-  checkArray(s,p);
+  checkArray(p);
   drawFill *d = new drawFill(p,*pena,a,ra,*penb,b,rb);
   pic->append(d);
 }
@@ -1788,7 +1788,7 @@ void shipout(stack *s)
   string prefix = pop<string>(s);
   if(prefix == "") prefix=outname;
   
-  size_t size=checkArrays(s,GUItransform,GUIdelete);
+  size_t size=checkArrays(GUItransform,GUIdelete);
   
   if(settings::deconstruct || size) {
     picture *result=new picture;
@@ -2165,7 +2165,7 @@ void fileArray3(stack *s)
 vm::array *copyArray(vm::stack *s)
 {
   vm::array *a=pop<vm::array *>(s);
-  checkArray(s,a);
+  checkArray(a);
   size_t size=(size_t) a->size();
   vm::array *c=new vm::array(size);
   for(size_t i=0; i < size; i++) 
@@ -2176,12 +2176,12 @@ vm::array *copyArray(vm::stack *s)
 vm::array *copyArray2(vm::stack *s)
 {
   vm::array *a=pop<vm::array *>(s);
-  checkArray(s,a);
+  checkArray(a);
   size_t size=(size_t) a->size();
   vm::array *c=new vm::array(size);
   for(size_t i=0; i < size; i++) {
     vm::array *ai=read<vm::array *>(a,i);
-    checkArray(s,ai);
+    checkArray(ai);
     size_t aisize=(size_t) ai->size();
     vm::array *ci=new vm::array(aisize);
     (*c)[i]=ci;

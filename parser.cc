@@ -31,9 +31,7 @@ std::streambuf *sbuf = NULL;
 
 size_t stream_input(char *buf, size_t max_size)
 {
-  //if(eof) return YY_NULL;
-  int count= sbuf ? sbuf->sgetn(buf,max_size) : 0;
-  //if(count < max_size) eof=true;
+  size_t count= sbuf ? sbuf->sgetn(buf,max_size) : 0;
   return count ? count : YY_NULL;
 }
 

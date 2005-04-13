@@ -7,6 +7,7 @@
  *****/
 
 #include "knot.h"
+#include "util.h"
 
 #include "angle.h"
 #include "settings.h"
@@ -244,7 +245,7 @@ struct eqnprop : public knotprop<eqn> {
     : knotprop<eqn>(l), d(d), psi(psi) {}
 
   eqn solo(int) {
-    assert(false);
+    assert(False);
     return eqn(0.0,1.0,0.0,0.0);
   }
 

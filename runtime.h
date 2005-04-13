@@ -293,16 +293,16 @@ void exitFunction(vm::stack *s);
 vm::array *copyArray(vm::stack *s);
 vm::array *copyArray2(vm::stack *s);
 
-inline bool checkArray(vm::stack *s, vm::array *a)
+inline bool checkArray(vm::array *a)
 {
   if(a == 0) vm::error("dereference of null array");
   return true;
 }
 
-inline size_t checkArrays(vm::stack *s, vm::array *a, vm::array *b) 
+inline size_t checkArrays(vm::array *a, vm::array *b) 
 {
-  checkArray(s,a);
-  checkArray(s,b);
+  checkArray(a);
+  checkArray(b);
   
   size_t asize=(size_t) a->size();
   if(asize != (size_t) b->size())
