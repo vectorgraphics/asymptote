@@ -60,13 +60,19 @@ string locateFile(string id)
   for (file_list_t::iterator leaf = filenames.begin();
        leaf != filenames.end();
        ++leaf) {
-    for (file_list_t::iterator dir = searchPath.begin();
-         dir != searchPath.end();
-         ++dir) {
-      string file = *dir + "/" + *leaf;
+    if ((*leaf)[0] == '/') { // NOTE: breaks on windows
+      string file = *leaf;
       if (fs::exists(file))
         return file;
-    }
+    } else {
+      for (file_list_t::iterator dir = searchPath.begin();
+           dir != searchPath.end();
+           ++dir) {
+        string file = *dir + "/" + *leaf;
+        if (fs::exists(file))
+          return file;
+      }
+    } 
   }
   return std::string();
 }
