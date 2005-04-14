@@ -89,10 +89,10 @@ record *genv::getModule(symbol *id)
 // of loaded modules.  If a module of the same name was already
 // loaded, it will be shadowed by the new one.
 // If the module could not be loaded, returns null.
-record *genv::loadModule(symbol *id)
+record *genv::loadModule(symbol *id, absyntax::file *ast)
 {
   // Get the abstract syntax tree.
-  absyntax::file *ast = parseModule(id);
+  if (ast == 0) ast = parser::parseFile(*id);
   em->sync();
 
   if (!ast)
@@ -127,17 +127,6 @@ record *genv::loadModule(symbol *id)
 #endif
 
   return r;
-}
-
-// Opens and parses the file returning the abstract syntax tree.  If
-// there is an unrecoverable parse error, returns null.
-absyntax::file *genv::parseModule(symbol *id)
-{
-  if (interact::interactive &&
-      (string) *id == "-")
-    return parser::parseInteractive();
-  else
-    return parser::parseFile(*id);
 }
 
 // Returns a function that statically initializes all loaded modules.
