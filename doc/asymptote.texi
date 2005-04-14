@@ -1313,10 +1313,10 @@ Hatch patterns can be generated with the routines
 You may need to turn off aliasing in your @code{PostScript} viewer for
 patterns to appear correctly. Custom patterns can easily be constructed,
 following the examples in @code{pattern.asy}. The tiled pattern can
-even incorporate shading
-(@pxref{gradient shading}):
+even incorporate shading (@pxref{gradient shading}), as illustrated
+in this example (not included in the manual because not all printers support
+@code{PostScript} 3):
 @verbatiminclude shadedtiling.asy
-@image{shadedtiling}
 
 @anchor{overwrite}
 @cindex @code{overwrite}
@@ -3613,8 +3613,6 @@ smoothly from @code{pena} on the circle with center @code{a} and radius
 @code{ra} to @code{penb} on the circle with center @code{b} and radius
 @code{rb}: 
 @verbatiminclude shade.asy
-
-@image{shade}
 
 @cindex @code{filldraw}
 There is also a convenient @code{filldraw} command, which fills the path
