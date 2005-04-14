@@ -1,8 +1,6 @@
 
 import graph;
 
-picture pic=new picture;
-
 size(250,200,IgnoreAspect);
 
 real Sin(real t) {return sin(2pi*t);}

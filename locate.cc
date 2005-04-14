@@ -60,7 +60,7 @@ string locateFile(string id)
   for (file_list_t::iterator leaf = filenames.begin();
        leaf != filenames.end();
        ++leaf) {
-    if ((*leaf)[0] == '/') { // NOTE: breaks on windows
+    if ((*leaf)[0] == '/') { // NOTE: will break on Microsoft Windows
       string file = *leaf;
       if (fs::exists(file))
         return file;

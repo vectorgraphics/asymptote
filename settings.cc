@@ -57,7 +57,6 @@ int origin=CENTER;
 bool suppressStandard=false;
 
 int ShipoutNumber=0;
-char* AsyDir;
 string PSViewer;
 string PDFViewer;
 string paperType;
@@ -257,7 +256,8 @@ void setOptions(int argc, char *argv[])
   if(origin == ZERO) texprocess=0;
   
   searchPath.push_back(".");
-  searchPath.push_back(getenv("ASYMPTOTE_DIR"));
+  char *asydir=getenv("ASYMPTOTE_DIR");
+  if(asydir) searchPath.push_back(asydir);
 #ifdef ASYMPTOTE_SYSDIR
   searchPath.push_back(ASYMPTOTE_SYSDIR);
 #endif
