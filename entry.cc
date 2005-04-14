@@ -50,7 +50,7 @@ varEntry *venv::lookInTopScope(symbol *name, signature *key)
 
 ty *venv::getType(symbol *name)
 {
-  types::overloaded *set = new types::overloaded;
+  types::overloaded set;
 
   // Find all applicable functions in scope.
   name_t &list = names[name];
@@ -58,10 +58,10 @@ ty *venv::getType(symbol *name)
   for(name_iterator p = list.begin();
       p != list.end();
       ++p) {
-      set->addDistinct((*p)->getType());
+      set.addDistinct((*p)->getType());
   }
 
-  return set->simplify();
+  return set.simplify();
 }
 
 } // namespace trans
