@@ -56,7 +56,7 @@ pen[] Grayscale(int NColors=256)
 }
 
 // A rainbow palette
-pen[] Rainbow(int NColors=65501)
+pen[] Rainbow(int NColors=32766)
 {
   int offset=1;
   int nintervals=5;
@@ -166,14 +166,14 @@ private pen[] BWRainbow(int NColors, bool two)
 }
 
 // A rainbow palette tapering off to black/white at the spectrum ends,
-pen[] BWRainbow(int NColors=65485)
+pen[] BWRainbow(int NColors=32761)
 {
   return BWRainbow(NColors,false);
 }
 
 // A double rainbow palette tapering off to black/white at the spectrum ends,
 // with a linearly scaled intensity.
-pen[] BWRainbow2(int NColors=65485)
+pen[] BWRainbow2(int NColors=32761)
 {
   pen[] Palette=BWRainbow(NColors,true);
   int n=Palette.length;
