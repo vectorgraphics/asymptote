@@ -524,6 +524,7 @@ struct picture {
   }
   
   void add(drawerBound d) {
+    if(interact()) uptodate=false;
     nodes.push(d);
   }
 
