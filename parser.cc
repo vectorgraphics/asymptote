@@ -6,8 +6,7 @@
 
 #include <string>
 #include <fstream>
-
-#include <fstream>
+#include <sstream>
 
 #include "interact.h"
 #include "locate.h"
@@ -37,6 +36,12 @@ size_t stream_input(char *buf, size_t max_size)
 
 } // namespace yy
 
+void debug(bool state)
+{
+  // For debugging the lexer and parser that were machine generated.
+  yy_flex_debug = yydebug = state;
+}
+
 absyntax::file *parseFile(string filename)
 {
   string file = settings::locateFile(filename);
@@ -44,9 +49,7 @@ absyntax::file *parseFile(string filename)
   if (file.empty())
     return 0;
 
-  // For debugging the lexer and parser that were machine generated.
-  yy_flex_debug = 0;
-  yydebug = 0;
+  debug(false); 
 
   std::filebuf filebuf;
   if (!filebuf.open(file.c_str(),std::ios::in)) {
@@ -60,11 +63,19 @@ absyntax::file *parseFile(string filename)
   return root;
 }
 
+absyntax::file *parseString(string code)
+{
+  std::stringbuf buf(code);
+  yy::sbuf = &buf;
+  setlexer(yy::stream_input,"<eval>");
+  absyntax::file *root = yyparse() == 0 ? absyntax::root : 0;
+  yy::sbuf = 0;
+  return root;
+}
+
 absyntax::file *parseInteractive()
 {
-  // For debugging the machine-generated lexer and parser.
-  yy_flex_debug = 0;
-  yydebug = 0;
+  debug(false);
   
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   setlexer(interact::interactive_input,"<stdin>");

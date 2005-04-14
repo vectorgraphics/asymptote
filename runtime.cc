@@ -59,6 +59,7 @@ using std::string;
 #include "builtin.h"
 #include "texfile.h"
 #include "pipestream.h"
+#include "parser.h"
 
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
@@ -1957,6 +1958,26 @@ void execute(stack *s)
     }
   }
   outname=Outname;
+}
+
+void eval(stack *s)
+{
+  //string Outname=outname;
+  string *str = pop<string*>(s);
+  //outname=*str;
+  symbol *id = symbol::trans(*str);
+  absyntax::file *tree = parser::parseString(*str);
+  trans::genv ge;
+  trans::record *m = ge.loadModule(id,tree);
+  if (em->errors() == false) {
+    if (m) {
+      lambda *l = ge.bootupModule(m);
+      assert(l);
+      stack s;
+      s.run(l);
+    }
+  }
+  //outname=Outname;
 }
 
 void changeDirectory(stack *s)

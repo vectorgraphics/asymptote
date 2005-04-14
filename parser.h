@@ -16,6 +16,9 @@ namespace parser {
 // there is an unrecoverable parse error, returns null.
 absyntax::file *parseFile(std::string filename);
 
+// Parses string and returns the abstract syntax tree.
+absyntax::file *parseString(std::string);
+
 // Parses standard input and returns the abstract syntax tree.
 absyntax::file *parseInteractive();
 
