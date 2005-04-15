@@ -1,0 +1,52 @@
+/*****
+ * gen_runtime.in
+ * Tom Prince 2005/4/15
+ *
+ * Does some stuff.
+ *
+ *****/
+
+pen*     => primPen()
+pair     => primPair()
+double   => primReal()
+string*  => primSting()
+picture* => primPicture()
+void     => primVoid()
+
+#include "angle.h"
+#include "pair.h"
+#include "transform.h"
+#include "path.h"
+#include "pen.h"
+#include "guide.h"
+#include "picture.h"
+#include "drawpath.h"
+#include "drawfill.h"
+#include "drawclipbegin.h"
+#include "drawclipend.h"
+#include "drawlabel.h"
+#include "drawverbatim.h"
+#include "drawgsave.h"
+#include "drawgrestore.h"
+#include "drawlayer.h"
+#include "drawimage.h"
+#include "drawgroup.h"
+#include "fileio.h"
+#include "genv.h"
+#include "builtin.h"
+#include "texfile.h"
+#include "pipestream.h"
+#include "parser.h"
+
+void _label (picture *pic, string *t, double r, pair z, pair a, pen *p)
+{
+  drawLabel *d = new drawLabel(*t,r,z,a,p);
+  pic->append(d);
+}
+
+pen *basealign(int n)
+{
+  return new pen(n >= 0 && n < nBaseLine 
+                   ? (BaseLine) n
+                   : DEFBASE);
+}
