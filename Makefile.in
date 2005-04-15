@@ -48,7 +48,10 @@ all:  	asy man
 man:	asy
 	cd doc; $(MAKE) man
 
-depend: camp.tab.h $(FILES:=.d)
+depend: camp.tab.h gen_run.cc $(FILES:=.d)
+
+gen_run.cc: runtime.pl runtime.in
+	./runtime.pl
 
 camp.tab.h: camp.tab.cc
 

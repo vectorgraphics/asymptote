@@ -87,11 +87,11 @@ while (<>) {
   $type =~ s/\s//g;
   
   my @params = split m/,\s*/, $params;
-  
+
   push @builtin, "  addFunc(ve, run::" . $cname 
       . ", " . $type_map{$type}
-      . ", " . '"' . $cname . '"'
-      . ( $#params ? ", " . join(", ",asy_params(@params))
+      . ", " . '"' . $name . '"'
+      . ( @params ? ", " . join(", ",asy_params(@params))
                    : "" )
       . ");\n";
 
