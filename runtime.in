@@ -8,11 +8,13 @@
 
 void     => primVoid()
 int      => primInt()
-bool     => primBool()
+bool     => primBoolean()
 double   => primReal()
+string*  => primString()
+string   => primString() 
 pen*     => primPen()
 pair     => primPair()
-string*  => primString()
+path     => primPath()
 picture* => primPicture()
 
 #include "angle.h"
@@ -58,4 +60,187 @@ pen *basealign(int n)
   return new pen(n >= 0 && n < nBaseLine 
                    ? (BaseLine) n
                    : DEFBASE);
+}
+
+void draw(picture *pic, path p, pen *n)
+{
+  drawPath *d = new drawPath(p,*n);
+  pic->append(d);
+}
+
+void fill(picture *pic, path p,
+          pen *pena, pair a, double ra,
+          pen *penb, pair b, double rb)
+{
+  drawFill *d = new drawFill(p,*pena,a,ra,*penb,b,rb);
+  pic->append(d);
+}
+
+// Clip a picture to a path using the given fill rule.
+// Subsequent additions to the picture will not be affected by the path.
+void clip(picture *pic, path p, pen *n)
+{
+  pic->prepend(new drawClipBegin(p,*n));
+  pic->append(new drawClipEnd());
+}
+
+void beginclip(picture *pic, path p, pen *n)
+{
+  pic->append(new drawClipBegin(p,*n,false));
+}
+
+void endclip(picture *pic)
+{
+  pic->append(new drawClipEnd(false));
+}
+
+void gsave (picture *pic)
+{
+  pic->append(new drawGsave());
+}
+
+void grestore (picture *pic)
+{
+  pic->append(new drawGrestore());
+}
+
+void begingroup(picture *pic)
+{
+  pic->append(new drawBegin());
+}
+
+void endGroup(picture *pic)
+{
+  pic->append(new drawEnd());
+}
+
+void add(picture *to, picture *from)
+{
+  to->add(*from);
+}
+
+void prepend(picture *to, picture *from)
+{
+  to->prepend(*from);
+}
+
+string fileprefix()
+{
+  return outname;
+}
+
+// Interactive mode
+void interact(bool interaction)
+{
+  if(interact::interactive) settings::suppressStandard=!interaction;
+}
+
+bool interact()
+{
+  return interact::interactive && !settings::suppressStandard;
+}
+
+// System commands
+int system(string *str)
+{
+  if(settings::suppressStandard) return 0;
+  
+  if(safe) error("system() call disabled; override with option -unsafe");
+  else return System(str->c_str());
+}
+
+void abort(string *msg)
+{
+  error(msg->c_str());
+}
+
+// Path operations
+pair point(path p, int n)
+{
+  return p.point(n);
+}
+
+pair point(path p, double t)
+{
+  return p.point(t);
+}
+
+pair precontrol(path p, int n)
+{
+  return p.precontrol(n);
+}
+
+pair precontrol(path p, double t)
+{
+  return p.precontrol(t);
+}
+
+pair postcontrol(path p, int n)
+{
+  return p.postcontrol(n);
+}
+
+pair postcontrol(path p, double t)
+{
+  return p.postcontrol(t);
+}
+
+pair dir(path p, int n)
+{
+  return unit(p.direction(n));
+}
+
+pair dir(path p, double t)
+{
+  return unit(p.direction(t));
+}
+
+path reverse(path p)
+{
+  return p.reverse();
+}
+
+path subpath(path p, int b, int e)
+{
+  return p.subpath(b,e);
+}
+
+path subpath(path p, double b, double e)
+{
+  return p.subpath(b,e);
+}
+
+double length(path p)
+{
+  return p.length();
+}
+
+bool cyclic(path p)
+{
+  return p.cyclic();
+}
+
+bool straigt(path p, int i)
+{
+  return p.straight(i);
+}
+
+double arglength(path p)
+{
+  return p.arclength();
+}
+
+double arctime(path p, double dval)
+{
+  return p.arctime(dval);
+}
+
+double dirtime(path p, pair z)
+{
+  return p.directiontime(z);
+}
+
+pair intersect(path x, path y)
+{
+  return intersectiontime(x,y);
 }

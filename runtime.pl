@@ -54,7 +54,7 @@ sub c_params {
    reverse @params;
 }
 
-$/ = "\f";
+$/ = "\f\n";
 
 open STDIN, "<runtime.in";
 open STDOUT, ">gen_run.cc";
@@ -72,22 +72,26 @@ read_types($types);
 my @builtins;
 my $count = 0;
 while (<>) {
-  ($type,$name,$params,$code) = 
-    m|^\s*
-      (\w*(?:\s*\*)?)
+  my ($comments,$type,$name,$params,$code) = 
+    m|^((?:\s*//.*\n)*) # comment lines
       \s*
-      (\w*)
+      (\w*(?:\s*\*)?) # return type
       \s*
-      \(([\w\s*,]*)\)
+      (\w*)           # function name
       \s*
-      \{(.*)}
+      \(([\w\s*,]*)\) # paramaters
+      \s*
+      \{(.*)}         # body
       |xs;
 
+  # Unique C++ function name
   $cname = "gen${count}_$name";
-  $type =~ s/\s//g;
+  
+  clean_type($type);
   
   my @params = split m/,\s*/, $params;
 
+  # Build addFunc call for asymptote
   push @builtin, "  addFunc(ve, run::" . $cname 
       . ", " . $type_map{$type}
       . ", " . '"' . $name . '"'
@@ -95,10 +99,11 @@ while (<>) {
                    : "" )
       . ");\n";
 
-  $code =~ s/return ([^;]*);/s->push<$type>($1);/;
+  # Handle marshalling of values to/from stack
+  $code =~ s/\breturn ([^;]*);/{ s->push<$type>($1); return; }/g;
   $args = join("",c_params(@params));
 
-  print "void $cname(vm::stack *s)\n{\n$args$code}\n\f\n";
+  print $comments . "void $cname(vm::stack *s)\n{\n$args$code}\n\f\n";
   
   ++$count;
 }
