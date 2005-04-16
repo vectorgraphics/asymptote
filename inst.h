@@ -31,8 +31,8 @@ class program
 public:
   class label;
   program();
-  inline void encode(inst i);
-  inline void prepend(inst i);
+  void encode(inst i);
+  void prepend(inst i);
   label begin();
   label end();
 private:
@@ -46,7 +46,7 @@ class program::label
 public: // interface
   label() : where(0), code() {};
 public: //interface
-  void operator++();
+  label& operator++();
   bool operator==(const label& right) const;
   bool operator!=(const label& right) const;
   inst& operator*() const;
@@ -82,8 +82,6 @@ struct lambda : public memory::managed<lambda> {
   // have one array store escaping items, and another to store non-
   // escaping items.
   int vars;
-
-  virtual ~lambda() {}
 };
 
 struct callable : public memory::managed<callable>
@@ -198,8 +196,8 @@ inline void program::encode(inst i)
 { code->push_back(i); }
 inline void program::prepend(inst i)
 { code->push_front(i); }
-inline void program::label::operator++()
-{ ++where; }
+inline program::label& program::label::operator++()
+{ ++where; return *this; }
 inline bool program::label::operator==(const label& right) const
 { return (code == right.code) && (where == right.where); }
 inline bool program::label::operator!=(const label& right) const
