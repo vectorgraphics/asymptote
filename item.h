@@ -22,46 +22,48 @@ T get(const item&);
 class item {
 public:
   bool empty()
-  { return *type == typeid(void); }
+  { return *kind == typeid(void); }
   
   item()
-    : type(&typeid(void)) {}
+    : kind(&typeid(void)) {}
   
   item(int i)
-    : type(&typeid(int)), i(i) {}
+    : kind(&typeid(int)), i(i) {}
   item(double x)
-    : type(&typeid(double)), x(x) {}
+    : kind(&typeid(double)), x(x) {}
   item(bool b)
-    : type(&typeid(bool)), b(b) {}
+    : kind(&typeid(bool)), b(b) {}
   
   item& operator= (int a)
-  { type=&typeid(int); i=a; return *this; }
+  { kind=&typeid(int); i=a; return *this; }
   item& operator= (double a)
-  { type=&typeid(double); x=a; return *this; }
+  { kind=&typeid(double); x=a; return *this; }
   item& operator= (bool a)
-  { type=&typeid(bool); b=a; return *this; }
+  { kind=&typeid(bool); b=a; return *this; }
   
   template<class T>
   item(T *p)
-    : type(&typeid(T)), p(p) {}
+    : kind(&typeid(T)), p(p) {}
   
   template<class T>
   item(const T &p)
-    : type(&typeid(T)), p(new T(p)) {}
+    : kind(&typeid(T)), p(new T(p)) {}
   
   template<class T>
   item& operator= (T *a)
-  { type=&typeid(T); p=a; return *this; }
+  { kind=&typeid(T); p=a; return *this; }
   
   template<class T>
   item& operator= (const T &it)
-  { type=&typeid(T); p=new T(it); return *this; }
+  { kind=&typeid(T); p=new T(it); return *this; }
   
   template<typename T>
   friend inline T get(const item&);
 
+  const std::type_info &type() const
+  { return *kind; }
 private:
-  const std::type_info *type;
+  const std::type_info *kind;
   
   union {
     int i;
@@ -77,7 +79,7 @@ private:
   struct help<T*> {
     static T* unwrap(const item& it)
     {
-      if (*it.type == typeid(T))
+      if (*it.kind == typeid(T))
 	return (T*) it.p;
       throw vm::bad_item_value();
     }
@@ -87,7 +89,7 @@ private:
   struct help {
     static T& unwrap(const item& it)
     {
-      if (*it.type == typeid(T))
+      if (*it.kind == typeid(T))
 	return *(T*) it.p;
       throw vm::bad_item_value();
     }
@@ -122,7 +124,7 @@ inline T get(const item& it)
 template <>
 inline int get<int>(const item& it)
 {
-  if (*it.type == typeid(int))
+  if (*it.kind == typeid(int))
     return it.i;
   throw vm::bad_item_value();
 }
@@ -130,7 +132,7 @@ inline int get<int>(const item& it)
 template <>
 inline double get<double>(const item& it)
 {
-  if (*it.type == typeid(double))
+  if (*it.kind == typeid(double))
     return it.x;
   throw vm::bad_item_value();
 }
@@ -138,7 +140,7 @@ inline double get<double>(const item& it)
 template <>
 inline bool get<bool>(const item& it)
 {
-  if (*it.type == typeid(bool))
+  if (*it.kind == typeid(bool))
     return it.b;
   throw vm::bad_item_value();
 }
