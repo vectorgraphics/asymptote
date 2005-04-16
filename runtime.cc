@@ -1105,126 +1105,6 @@ void nullPath(stack *s)
   s->push(nullpath);
 }
 
-void pathIntPoint(stack *s)
-{
-  int n = pop<int>(s);
-  path p = pop<path>(s);
-  s->push(p.point(n));
-}
-
-void pathRealPoint(stack *s)
-{
-  double t = pop<double>(s);
-  path p = pop<path>(s);
-  s->push(p.point(t));
-}
-
-void pathIntPrecontrol(stack *s)
-{
-  int n = pop<int>(s);
-  path p= pop<path>(s);
-  s->push(p.precontrol(n));
-}
-
-void pathRealPrecontrol(stack *s)
-{
-  double t = pop<double>(s);
-  path p= pop<path>(s);
-  s->push(p.precontrol(t));
-}
-
-void pathIntPostcontrol(stack *s)
-{
-  int n = pop<int>(s);
-  path p= pop<path>(s);
-  s->push(p.postcontrol(n));
-}
-
-void pathRealPostcontrol(stack *s)
-{
-  double t = pop<double>(s);
-  path p= pop<path>(s);
-  s->push(p.postcontrol(t));
-}
-
-void pathIntDirection(stack *s)
-{
-  int n = pop<int>(s);
-  path p= pop<path>(s);
-  s->push(unit(p.direction(n)));
-}
-
-void pathRealDirection(stack *s)
-{
-  double t = pop<double>(s);
-  path p= pop<path>(s);
-  s->push(unit(p.direction(t)));
-}
-
-void pathReverse(stack *s)
-{
-  s->push(pop<path>(s).reverse());
-}
-
-void pathSubPath(stack *s)
-{
-  int e = pop<int>(s);
-  int b = pop<int>(s);
-  s->push(pop<path>(s).subpath(b,e));
-}
-
-void pathSubPathReal(stack *s)
-{
-  double e = pop<double>(s);
-  double b = pop<double>(s);
-  s->push(pop<path>(s).subpath(b,e));
-}
-
-void pathLength(stack *s)
-{
-  path p = pop<path>(s);
-  s->push(p.length());
-}
-
-void pathCyclic(stack *s)
-{
-  path p = pop<path>(s);
-  s->push(p.cyclic());
-}
-
-void pathStraight(stack *s)
-{
-  int i = pop<int>(s);
-  path p = pop<path>(s);
-  s->push(p.straight(i));
-}
-
-void pathArcLength(stack *s)
-{
-  s->push(pop<path>(s).arclength());
-}
-
-void pathArcTimeOfLength(stack *s)
-{
-  double dval = pop<double>(s);
-  path p = pop<path>(s);
-  s->push(p.arctime(dval));
-}
-
-void pathDirectionTime(stack *s)
-{
-  pair z = pop<pair>(s);
-  path p = pop<path>(s);
-  s->push(p.directiontime(z));
-}
-
-void pathIntersectionTime(stack *s)
-{
-  path y = pop<path>(s);
-  path x = pop<path>(s);
-  s->push(intersectiontime(x,y));
-}
-
 void pathSize(stack *s)
 {
   path p = pop<path>(s);
@@ -1434,12 +1314,6 @@ void penFillRule(stack *s)
   s->push(p->Fillrule());  
 }
 
-void baseLine(stack *s)
-{
-  int n = pop<int>(s);
-  s->push(new pen(n >= 0 && n < nBaseLine ? (BaseLine) n : DEFBASE));
-}
-
 void penBaseLine(stack *s)
 {
   pen *p=pop<pen*>(s);
@@ -1606,16 +1480,6 @@ void frameMin(stack *s)
   s->push(pic->bounds().Min());
 }
 
-void draw(stack *s)
-{
-  pen *n = pop<pen*>(s);
-  path p = pop<path>(s);
-  picture *pic = pop<picture*>(s);
-
-  drawPath *d = new drawPath(p,*n);
-  pic->append(d);
-}
-
 void fill(stack *s)
 {
   double rb = pop<double>(s);
@@ -1645,17 +1509,6 @@ void fillArray(stack *s)
   pic->append(d);
 }
  
-// Clip a picture to a path using the given fill rule.
-// Subsequent additions to the picture will not be affected by the path.
-void clip(stack *s)
-{
-  pen *n = pop<pen*>(s);
-  path p = pop<path>(s);
-  picture *pic = pop<picture*>(s);
-  pic->prepend(new drawClipBegin(p,*n));
-  pic->append(new drawClipEnd());
-}
-  
 void clipArray(stack *s)
 {
   pen *n = pop<pen*>(s);
@@ -1665,64 +1518,12 @@ void clipArray(stack *s)
   pic->append(new drawClipEnd());
 }
   
-void beginClip(stack *s)
-{
-  pen *n = pop<pen*>(s);
-  path p = pop<path>(s);
-  picture *pic = pop<picture*>(s);
-  pic->append(new drawClipBegin(p,*n,false));
-}
-  
 void beginClipArray(stack *s)
 {
   pen *n = pop<pen*>(s);
   array *p=copyArray(s);
   picture *pic = pop<picture*>(s);
   pic->append(new drawClipBegin(p,*n,false));
-}
-  
-void endClip(stack *s)
-{
-  picture *pic = pop<picture*>(s);
-  pic->append(new drawClipEnd(false));
-}
-  
-void gsave(stack *s)
-{
-  picture *pic = pop<picture*>(s);
-  pic->append(new drawGsave());
-}
-  
-void grestore(stack *s)
-{
-  picture *pic = pop<picture*>(s);
-  pic->append(new drawGrestore());
-}
-  
-void beginGroup(stack *s)
-{
-  picture *pic = pop<picture*>(s);
-  pic->append(new drawBegin());
-}
-  
-void endGroup(stack *s)
-{
-  picture *pic = pop<picture*>(s);
-  pic->append(new drawEnd());
-}
-  
-void add(stack *s)
-{
-  picture *from = pop<picture*>(s);
-  picture *to = pop<picture*>(s);
-  to->add(*from);
-}
-
-void prepend(stack *s)
-{
-  picture *from = pop<picture*>(s);
-  picture *to = pop<picture*>(s);
-  to->prepend(*from);
 }
 
 void postscript(stack *s)
@@ -1752,18 +1553,6 @@ void layer(stack *s)
 {
   picture *pic = pop<picture*>(s);
   drawLayer *d = new drawLayer();
-  pic->append(d);
-}
-  
-void label(stack *s)
-{
-  pen *p = pop<pen*>(s);
-  pair a = pop<pair>(s);
-  pair z = pop<pair>(s);
-  double r = pop<double>(s);
-  string *t = pop<string*>(s);
-  picture *pic = pop<picture*>(s);
-  drawLabel *d = new drawLabel(*t,r,z,a,p);
   pic->append(d);
 }
   
@@ -1839,42 +1628,8 @@ void shipout(stack *s)
   pic->shipout(*preamble,prefix,*format,wait);
 }
 
-void stringFilePrefix(stack *s)
-{
-  s->push(outname);
-}
-
-// Interactive mode
-
-void interAct(stack *s)
-{
-  bool interaction=pop<bool>(s);
-  if(interact::interactive) settings::suppressStandard=!interaction;
-}
-
-void boolInterAct(stack *s)
-{
-  s->push(interact::interactive && !settings::suppressStandard);
-}
-  
 // System commands
 
-void system(stack *s)
-{
-  string *str = pop<string*>(s);
-  
-  if(settings::suppressStandard) {s->push(0); return;}
-  
-  if(safe) error("system() call disabled; override with option -unsafe");
-  else s->push(System(str->c_str()));
-}
-
-void abort(stack *s)
-{
-  string *msg = pop<string*>(s);
-  error(msg->c_str());
-}
-  
 static callable *atExitFunction=NULL;
 
 void cleanup(bool TeXclose)

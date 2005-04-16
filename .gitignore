@@ -14,3 +14,4 @@
 /config.h
 /config.h.in
 /.asy_history
+/genrun.cc

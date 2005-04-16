@@ -57,7 +57,7 @@ sub c_params {
 $/ = "\f\n";
 
 open STDIN, "<runtime.in";
-open STDOUT, ">gen_run.cc";
+open STDOUT, ">genrun.cc";
 
 $header = <>;
 $types = <>;

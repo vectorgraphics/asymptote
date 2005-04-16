@@ -288,40 +288,24 @@ double identity(double x) {return x;}
 double pow10(double x) {return pow(10.0,x);}
 
 // NOTE: We should move all of these into a "builtin" module.
+void gen_base_venv(venv &ve);
 void base_venv(venv &ve)
 {
   addOperators(ve);
   addGuideOperators(ve);
 
-  addFunc(ve,run::draw,primVoid(),"draw",primPicture(),primPath(), primPen());
-  addFunc(ve,run::fill,primVoid(),"fill",primPicture(),primPath(),
-	  primPen(),primPair(),primReal(),primPen(),primPair(),primReal());
   addFunc(ve,run::fillArray,primVoid(),"fill",primPicture(),pathArray(),
 	  primPen(),primPair(),primReal(),primPen(),primPair(),primReal());
-  addFunc(ve,run::clip,primVoid(),"clip",primPicture(),primPath(),primPen());
   addFunc(ve,run::clipArray,primVoid(),"clip",primPicture(),pathArray(),
-	  primPen());
-  addFunc(ve,run::beginClip,primVoid(),"beginclip",primPicture(),primPath(),
 	  primPen());
   addFunc(ve,run::beginClipArray,primVoid(),"beginclip",primPicture(),
 	  pathArray(),primPen());
-  addFunc(ve,run::endClip,primVoid(),"endclip",primPicture());
-  addFunc(ve,run::gsave,primVoid(),"gsave",primPicture());
-  addFunc(ve,run::grestore,primVoid(),"grestore",primPicture());
-  addFunc(ve,run::beginGroup,primVoid(),"begingroup",primPicture());
-  addFunc(ve,run::endGroup,primVoid(),"endgroup",primPicture());
-  addFunc(ve,run::add,primVoid(),"add",primPicture(),primPicture());
-  addFunc(ve,run::prepend,primVoid(),"prepend",primPicture(),primPicture());
-  addFunc(ve,run::label,primVoid(),"_label",primPicture(),
-	  primString(),primReal(),primPair(),primPair(),primPen());
   addFunc(ve,run::image,primVoid(),"image",primPicture(),realArray2(),
 	  penArray(),primPair(),primPair());
   
   addFunc(ve,run::shipout,primVoid(),"shipout",primString(),primPicture(),
 	  primPicture(),primString(),primBoolean(),transformArray(),
 	  boolArray());
-  
-  addFunc(ve,run::stringFilePrefix,primString(),"fileprefix");
   
   addFunc(ve,run::postscript,primVoid(),"postscript",primPicture(),
 	  primString());
@@ -389,9 +373,6 @@ void base_venv(venv &ve)
   addFunc(ve,run::pairConj,primPair(),"conj",primPair());
   addFunc(ve,run::pairDot,primReal(),"Dot",primPair(),primPair());
 
-  addFunc(ve,run::interAct,primVoid(),"interact",primBoolean());
-  addFunc(ve,run::boolInterAct,primBoolean(),"interact");
-  
   addFunc(ve,run::stringLength,primInt(),"length",primString());
   addFunc(ve,run::stringFind,primInt(),"find",primString(),primString(),
 	  primInt());
@@ -412,8 +393,6 @@ void base_venv(venv &ve)
 	  primInt());
   addFunc(ve,run::stringTime,primString(),"time",primString());
   
-  addFunc(ve,run::system,primInt(),"system",primString());
-  addFunc(ve,run::abort,primVoid(),"abort",primString());
   addFunc(ve,run::atExit,primVoid(),"atexit",voidFunction());
   addFunc(ve,run::exitFunction,primVoid(),"exitfunction");
   addFunc(ve,run::execute,primVoid(),"execute",primString());
@@ -423,39 +402,6 @@ void base_venv(venv &ve)
   addFunc(ve,run::changeDirectory,primString(),"cd",primString());
   addFunc(ve,run::scrollLines,primVoid(),"scroll",primInt());
   addFunc(ve,run::boolDeconstruct,primBoolean(),"deconstruct");
-  
-  addFunc(ve,run::pathIntPoint,primPair(),"point",primPath(),primInt());
-  addFunc(ve,run::pathRealPoint,primPair(),"point",primPath(),primReal());
-  
-  addFunc(ve,run::pathIntPrecontrol,primPair(),"precontrol",primPath(),
-	  primInt());
-  addFunc(ve,run::pathRealPrecontrol,primPair(),"precontrol",primPath(),
-	  primReal());
-  
-  addFunc(ve,run::pathIntPostcontrol,primPair(),"postcontrol",primPath(),
-	  primInt());
-  addFunc(ve,run::pathRealPostcontrol,primPair(),"postcontrol",primPath(),
-	  primReal());
-  
-  addFunc(ve,run::pathIntDirection,primPair(),"dir",primPath(),primInt());
-  addFunc(ve,run::pathRealDirection,primPair(),"dir",primPath(),primReal());
-
-  addFunc(ve,run::pathCyclic,primBoolean(),"cyclic",primPath());
-  addFunc(ve,run::pathStraight,primBoolean(),"straight",primPath(),primInt());
-  addFunc(ve,run::pathReverse,primPath(),"reverse",primPath());
-  addFunc(ve,run::pathSubPath,primPath(),"subpath",primPath(),
-	  primInt(),primInt());
-  addFunc(ve,run::pathSubPathReal,primPath(),"subpath",primPath(),
-	  primReal(),primReal());
-  
-  addFunc(ve,run::pathLength,primInt(),"length",primPath());
-  addFunc(ve,run::pathArcLength,primReal(),"arclength",primPath());
-  addFunc(ve,run::pathArcTimeOfLength,primReal(),"arctime",primPath(),
-	  primReal());
-  addFunc(ve,run::pathDirectionTime,primReal(),"dirtime",primPath(),
-	  primPair());
-  addFunc(ve,run::pathIntersectionTime,primPair(),"intersect",primPath(),
-	  primPath());
   
   addFunc(ve,run::pathSize,primInt(),"size",primPath());
   addFunc(ve,run::pathMax,primPair(),"max",primPath());
@@ -474,7 +420,6 @@ void base_venv(venv &ve)
   addFunc(ve,run::penPattern,primString(),"pattern",primPen());
   addFunc(ve,run::fillRule,primPen(),"fillrule",primInt());
   addFunc(ve,run::penFillRule,primInt(),"fillrule",primPen());
-  addFunc(ve,run::baseLine,primPen(),"basealign",primInt());
   addFunc(ve,run::penBaseLine,primInt(),"basealign",primPen());
   addFunc(ve,run::resetdefaultPen,primVoid(),"defaultpen");
   addFunc(ve,run::setDefaultPen,primVoid(),"defaultpen",primPen());
@@ -560,6 +505,8 @@ void base_venv(venv &ve)
 #ifdef HAVE_LIBFFTW3
   addFunc(ve,run::pairArrayFFT,pairArray(),"fft",pairArray(),primInt());
 #endif
+
+  gen_base_venv(ve);
 }
 
 void base_menv(menv&)
@@ -567,3 +514,5 @@ void base_menv(menv&)
 }
 
 } //namespace trans
+
+#include "genrun.cc"
