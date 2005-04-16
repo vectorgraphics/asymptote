@@ -147,8 +147,6 @@ struct inst {
   position pos;
   union {
     int val;
-    std::string *s;
-    
     lambda *lfunc;
   };
   program::label label;
