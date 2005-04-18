@@ -165,7 +165,7 @@ syntax;
 
 @item @code{LaTeX} typesetting of labels, for overall document consistency;
 
-@item compilation of figures into pseudo-machine code for speed, without
+@item compilation of figures into virtual machine code for speed, without
 sacrificing portability;
 
 @item the power of a script-based language coupled to the convenience of
