@@ -1703,6 +1703,12 @@ void execute(stack *s)
   size_t p=findextension(outname,suffix);
   if (p < string::npos) outname.erase(p);
   trans::genv ge;
+  
+  if (autoplain)
+    ge.loadPlain();
+  if (!ignoreGUI)
+    ge.loadGUI(outname);
+
   trans::record *m = ge.loadModule(id);
   if (em->errors() == false) {
     if (m) {
