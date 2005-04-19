@@ -109,9 +109,9 @@ void add_input(char *&dest, const char *src, size_t& size, bool warn=false)
     }
     src += name.length()+ninput;
     const string iname=settings::locateFile(name);
-    static filebuf filebuf;
+    filebuf filebuf;
     if(!filebuf.open(iname.c_str(),ios::in) || filebuf.in_avail() == 0) {
-      if(warn) cerr << "error: could not load module '" << iname << "'" 
+      if(warn) cerr << "error: could not load module '" << name << "'" 
 		    << endl; 
       return;
     }
