@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
       if (parseonly) {
         absyntax::file *tree = ge.parseModule(id);
         em->sync();
-        if (!em->errors())
+        if (!em->errors() && (tree != 0))
           tree->prettyprint(std::cout, 0);
       } else {
         record *m = ge.loadModule(id);
