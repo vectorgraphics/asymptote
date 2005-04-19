@@ -52,7 +52,7 @@ absyntax::file *doParse()
 absyntax::file *parseStdin()
 {
   yy::sbuf = std::cin.rdbuf();
-  setlexer(yy::stream_input,"<stdin>");
+  setlexer(yy::stream_input,"-");
   return doParse();
 }
 
@@ -92,7 +92,7 @@ absyntax::file *parseInteractive()
   debug(false);
   
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-  setlexer(interact::interactive_input,"<stdin>");
+  setlexer(interact::interactive_input,"-");
   return doParse();
 #else
   return parseStdin();

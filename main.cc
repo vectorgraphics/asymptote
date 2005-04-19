@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     virtualEOF=false;
     ShipoutNumber=0;
     
-    string module_name = interactive ? "<stdin>" : getArg(ind);
+    string module_name = interactive ? "-" : getArg(ind);
     size_t p=findextension(module_name,suffix);
     if (p < string::npos) module_name.erase(p);
     
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
       if (verbose) cout << "Processing " << module_name << endl;
     
       if(outname.empty()) 
-	outname=(module_name == "<stdin>") ? "out" : module_name;
+	outname=(module_name == "-") ? "out" : module_name;
     
       symbol *id = symbol::trans(module_name);
     
