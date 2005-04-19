@@ -2,7 +2,7 @@
  * gen_runtime.in
  * Tom Prince 2005/4/15
  *
- * Does some stuff.
+ * Generated runtime functions.
  *
  *****/
 
@@ -40,13 +40,16 @@ picture* => primPicture()
 #include "builtin.h"
 #include "texfile.h"
 #include "pipestream.h"
-#include "parser.h"
 
 using std::string;
 
 using namespace vm;
 using namespace camp;
 using namespace settings;
+
+namespace run {
+using camp::pair;
+}
 
 
 void _label (picture *pic, string *t, double r, pair z, pair a, pen *p)

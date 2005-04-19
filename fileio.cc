@@ -24,7 +24,7 @@ void ifile::csv() {
   if(!csvmode || stream->eof()) return;
   std::ios::iostate rdstate=stream->rdstate();
   if(stream->fail()) stream->clear();
-  char c=stream->peek();
+  int c=stream->peek();
   if(c == ',' || (c == '\n' && !linemode)) stream->ignore();
   else stream->clear(rdstate);
 }

@@ -59,7 +59,6 @@ using std::string;
 #include "builtin.h"
 #include "texfile.h"
 #include "pipestream.h"
-#include "parser.h"
 
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"

@@ -20,7 +20,6 @@
 #include "settings.h"
 #include "stack.h"
 #include "interact.h"
-#include "parser.h"
 
 using namespace settings;
 using namespace std;
