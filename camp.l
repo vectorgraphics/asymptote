@@ -33,24 +33,64 @@ int charPos;
 extern "C" int fileno(FILE *);
 #endif
 
+std::streambuf *yy_streambuf = 0;
+bool my_streambuf = false;
+bool interactive;
+bool eof;
+
 extern errorstream *em;
 
 extern "C" int yywrap(void)
 {
+  if(my_streambuf) delete yy_streambuf;
+  yy_streambuf=NULL;
+  my_streambuf=false;
   charPos=1;
   return 1;
 }
 
-typedef size_t (*input_f) (char* bif, size_t max_size);
-
-input_f yy_input = NULL;
-
-void setlexer(input_f input, std::string filename) 
+bool setlexer(std::string filename)
 {
   yywrap();
+  
+  if(filename == "-") {
+    yy_streambuf = std::cin.rdbuf();
+    my_streambuf=false;
+    interactive = interact::interactive;
+  } else {
+    std::filebuf *filebuf = new std::filebuf();
+    if (!filebuf->open(filename.c_str(),std::ios::in)) {
+      delete filebuf;
+      return false;
+    }
+    yy_streambuf = filebuf;
+    my_streambuf = true;
+    interactive = false;
+  }
+
+  eof=false;
   fi = new fileinfo(filename);
-  yy_input = input;
+
   tokPos = charPos = 1;
+
+  return true;
+}
+
+size_t yy_input(char *buf, size_t max_size)
+{
+  size_t count;
+
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+  if(interactive) count=interact::interactive_input(buf,max_size);
+  else
+#endif
+  {
+    if(eof) return YY_NULL;
+    count=yy_streambuf ? yy_streambuf->sgetn(buf,max_size) : 0;
+    if(count < max_size) eof=true;
+  }
+
+  return count ? count : YY_NULL;
 }
 
 #define YY_INPUT(buf,result,max_size) {result=yy_input(buf,max_size);}

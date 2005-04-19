@@ -1715,15 +1715,15 @@ void execute(stack *s)
   outname=Outname;
 }
 
+#if 0 
 void eval(stack *s)
 {
   //string Outname=outname;
   string *str = pop<string*>(s);
   //outname=*str;
   symbol *id = symbol::trans(*str);
-  absyntax::file *tree = parser::parseString(*str);
   trans::genv ge;
-  trans::record *m = ge.loadModule(id,tree);
+  trans::record *m = ge.loadModule(id);
   if (em->errors() == false) {
     if (m) {
       lambda *l = ge.bootupModule(m);
@@ -1734,6 +1734,7 @@ void eval(stack *s)
   }
   //outname=Outname;
 }
+#endif  
 
 void changeDirectory(stack *s)
 {

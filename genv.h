@@ -56,7 +56,11 @@ public:
   // of loaded modules.  If a module of the same name was already
   // loaded, it will be shadowed by the new one.
   // If the module could not be loaded, returns null.
-  record *loadModule(symbol *id, absyntax::file *ast = 0);
+  record *loadModule(symbol *id);
+
+  // Opens and parses the file returning the abstract syntax tree.  If
+  // there is an unrecoverable parse error, returns null.
+  absyntax::file *parseModule(symbol *id);
 
   // Returns a function that statically initializes all loaded modules.
   // Then runs the dynamic initializer of r.
