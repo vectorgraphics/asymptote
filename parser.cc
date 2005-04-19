@@ -69,6 +69,7 @@ absyntax::file *parseFile(string filename)
   debug(false); 
 
   std::filebuf filebuf;
+  // NOTE: .in_avail() called so we don't crash on directories.
   if (!filebuf.open(file.c_str(),std::ios::in) || filebuf.in_avail() == 0)
     return 0;
   
