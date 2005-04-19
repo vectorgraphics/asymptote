@@ -20,6 +20,7 @@
 #include "settings.h"
 #include "stack.h"
 #include "interact.h"
+#include "parser.h"
 
 using namespace settings;
 using namespace std;
@@ -114,13 +115,14 @@ int main(int argc, char *argv[])
       if (!ignoreGUI)
         ge.loadGUI(outname);
 
+      absyntax::file *tree = interact::interactive ?
+        parser::parseInteractive() : parser::parseFile(module_name);
       if (parseonly) {
-        absyntax::file *tree = ge.parseModule(id);
         em->sync();
         if (!em->errors() && (tree != 0))
           tree->prettyprint(std::cout, 0);
       } else {
-        record *m = ge.loadModule(id);
+        record *m = ge.loadModule(id,tree);
         if (m) {
           lambda *l = ge.bootupModule(m);
           assert(l);

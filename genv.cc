@@ -28,6 +28,9 @@
 #include "settings.h"
 #include "builtin.h"
 #include "runtime.h"
+#include "parser.h"
+#include "locate.h"
+#include "interact.h"
 
 // Whether the module name should be visible like an import when translating
 // that module.
@@ -37,61 +40,8 @@ using namespace std;
 using namespace types;
 using vm::inst;
 
-// The lexical analysis and parsing functions used by parseFile.
-extern bool setlexer(std::string filename);
-extern bool yyparse(void);
-extern int yydebug;
-extern int yy_flex_debug;
-
 namespace trans {
 
-// Adds the appropriate directory and suffix to the name.
-string dirSymbolToFile(string s, symbol *id)
-{
-  ostringstream buf;
-  if (!s.empty())
-    buf << s << "/";
-  
-  size_t p=findextension((string)*id,settings::suffix);
-  if(p < string::npos)
-    buf << *id;
-  else {
-    p=findextension((string)*id,settings::guisuffix);
-    if(p < string::npos)
-      buf << *id;
-    else
-      buf << *id << "." << settings::suffix;
-  }
-  return buf.str();
-}
-
-bool exists(string filename)
-{
-  return ::access(filename.c_str(), R_OK) == 0;
-}
-
-// Find the appropriate file, first looking in the local directory, then the
-// directory given in settings, and finally the global system directory.
-string symbolToFile(symbol *id)
-{
-  if((string) *id == "-") return "-";
-  
-  string filename = dirSymbolToFile("", id);
-  if(exists(filename)) return filename;
-
-  if(settings::AsyDir) {
-    filename = dirSymbolToFile(settings::AsyDir, id);
-    if(exists(filename)) return filename;
-  }
-
-#ifdef ASYMPTOTE_SYSDIR
-  filename = dirSymbolToFile(ASYMPTOTE_SYSDIR, id);
-  if(exists(filename)) return filename;
-#endif  
-
-  return "";
-}
- 
 genv::genv()
  : base_coder(),
    base_env(*this),
@@ -139,10 +89,10 @@ record *genv::getModule(symbol *id)
 // of loaded modules.  If a module of the same name was already
 // loaded, it will be shadowed by the new one.
 // If the module could not be loaded, returns null.
-record *genv::loadModule(symbol *id)
+record *genv::loadModule(symbol *id, absyntax::file *ast)
 {
   // Get the abstract syntax tree.
-  absyntax::file *ast = parseModule(id);
+  if (ast == 0) ast = parser::parseFile(*id);
   em->sync();
 
   if (!ast)
@@ -177,26 +127,6 @@ record *genv::loadModule(symbol *id)
 #endif
 
   return r;
-}
-
-// Opens and parses the file returning the abstract syntax tree.  If
-// there is an unrecoverable parse error, returns null.
-absyntax::file *genv::parseModule(symbol *id)
-{
-  std::string filename = symbolToFile(id);
-
-  if (filename == "")
-    return 0;
-
-  // For debugging the machine-generated lexer and parser.
-  yy_flex_debug = 0;
-  yydebug = 0;
-
-  if (!setlexer(filename))
-    return 0;
-
-  if (yyparse() == 0) return absyntax::root;
-  return 0;
 }
 
 // Returns a function that statically initializes all loaded modules.

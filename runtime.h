@@ -260,7 +260,7 @@ void merge(vm::stack *s);
   
 // Execute an asymptote file
 void execute(vm::stack *s);
-//void eval(vm::stack *s);
+void eval(vm::stack *s);
   
 // I/O Routines
 void nullFile(vm::stack *s);

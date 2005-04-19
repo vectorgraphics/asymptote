@@ -16,13 +16,9 @@
 #endif
 
 #include "symbol.h"
-#include "genv.h"
+#include "locate.h"
 
 #include "fileio.h"
-
-namespace trans {
-  std::string symbolToFile(symbol *id);
-}
 
 namespace interact {
 
@@ -112,7 +108,7 @@ void add_input(char *&dest, const char *src, size_t& size)
       src++;
     }
     src += name.length()+ninput;
-    const string iname=trans::symbolToFile(trans::symbol::trans(name));
+    const string iname=settings::locateFile(name);
     static filebuf filebuf;
     if(!filebuf.open(iname.c_str(),ios::in)) return;
     size_t len=filebuf.sgetn(dest,size);

@@ -40,6 +40,7 @@ picture* => primPicture()
 #include "builtin.h"
 #include "texfile.h"
 #include "pipestream.h"
+#include "parser.h"
 
 using std::string;
 
