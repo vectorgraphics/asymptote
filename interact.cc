@@ -98,7 +98,7 @@ void overflow() {
   cerr << "warning: buffer overflow, input discarded." << endl;
 }
 
-void add_input(char *&dest, const char *src, size_t& size)
+void add_input(char *&dest, const char *src, size_t& size, bool warn=false)
 {
   if(strncmp(src,input,ninput) == 0) {
     string name(src+ninput);
@@ -110,7 +110,11 @@ void add_input(char *&dest, const char *src, size_t& size)
     src += name.length()+ninput;
     const string iname=settings::locateFile(name);
     static filebuf filebuf;
-    if(!filebuf.open(iname.c_str(),ios::in)) return;
+    if(!filebuf.open(iname.c_str(),ios::in) || filebuf.in_avail() == 0) {
+      if(warn) cerr << "error: could not load module '" << iname << "'" 
+		    << endl; 
+      return;
+    }
     size_t len=filebuf.sgetn(dest,size);
     filebuf.close();
     if(len == size) {overflow(); return;}
@@ -173,7 +177,7 @@ size_t interactive_input(char *buf, size_t max_size)
       }
       if(*line) // Renable I/O and shipout
 	add_input(to,"static {interact(true);}; interact(true);\n",size);
-      add_input(to,next->line,size);
+      add_input(to,next->line,size,true);
     }
     end=i-1;
     
