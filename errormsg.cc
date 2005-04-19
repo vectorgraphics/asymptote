@@ -19,10 +19,10 @@ ostream& operator<< (ostream& out, const position& pos)
   if (!pos)
     return out;
 
-  bool interact = pos.file->name() == "-" && interact::interactive
-    && pos.line > 1;
+  bool interact = pos.file->name() == "<stdin>" && interact::interactive;
   
-  out << pos.file->name() << ": " << (interact ? pos.line-1 : pos.line) << "."
+  if(!interact) out << pos.file->name() << ": ";
+  out << (interact && pos.line > 1 ? pos.line-1 : pos.line) << "."
       << pos.column << ": ";
   return out;
 }
