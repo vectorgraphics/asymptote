@@ -42,8 +42,10 @@ void debug(bool state)
   yy_flex_debug = yydebug = state;
 }
 
-absyntax::file *doParse()
+absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
+                        string filename)
 {
+  setlexer(input,filename);
   absyntax::file *root = yyparse() == 0 ? absyntax::root : 0;
   yy::sbuf = 0;
   return root;
@@ -52,8 +54,7 @@ absyntax::file *doParse()
 absyntax::file *parseStdin()
 {
   yy::sbuf = std::cin.rdbuf();
-  setlexer(yy::stream_input,"-");
-  return doParse();
+  return doParse(yy::stream_input,"-");
 }
 
 absyntax::file *parseFile(string filename)
@@ -79,16 +80,14 @@ absyntax::file *parseFile(string filename)
   }
   yy::sbuf = &filebuf;
   
-  setlexer(yy::stream_input,filename);
-  return doParse();
+  return doParse(yy::stream_input,filename);
 }
 
 absyntax::file *parseString(string code)
 {
   std::stringbuf buf(code);
   yy::sbuf = &buf;
-  setlexer(yy::stream_input,"<eval>");
-  return doParse();
+  return doParse(yy::stream_input,"<eval>");
 }
 
 absyntax::file *parseInteractive()
@@ -96,8 +95,7 @@ absyntax::file *parseInteractive()
   debug(false);
   
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-  setlexer(interact::interactive_input,"-");
-  return doParse();
+  return doParse(interact::interactive_input,"-");
 #else
   return parseStdin();
 #endif
