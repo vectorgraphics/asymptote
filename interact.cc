@@ -94,10 +94,16 @@ char *rl_gets(void)
   return line_read;
 }
 
-void overflow() {
+void overflow()
+{
   cerr << "warning: buffer overflow, input discarded." << endl;
 }
 
+void readerror(const string& name) 
+{
+  cerr << "error: could not load module '" << name << "'" << endl; 
+}
+  
 void add_input(char *&dest, const char *src, size_t& size, bool warn=false)
 {
   if(strncmp(src,input,ninput) == 0) {
@@ -110,11 +116,18 @@ void add_input(char *&dest, const char *src, size_t& size, bool warn=false)
     src += name.length()+ninput;
     const string iname=settings::locateFile(name);
     filebuf filebuf;
-    if(!filebuf.open(iname.c_str(),ios::in) || filebuf.in_avail() == 0) {
-      if(warn) cerr << "error: could not load module '" << name << "'" 
-		    << endl; 
+    if(!filebuf.open(iname.c_str(),ios::in)) {
+      if(warn) readerror(name);
       return;
     }
+    // Check that the file can actually be read.
+    try {
+      filebuf.sgetc();
+    } catch (...) {
+      if(warn) readerror(name);
+      return;
+    }
+
     size_t len=filebuf.sgetn(dest,size);
     filebuf.close();
     if(len == size) {overflow(); return;}

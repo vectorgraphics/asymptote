@@ -69,10 +69,14 @@ absyntax::file *parseFile(string filename)
   debug(false); 
 
   std::filebuf filebuf;
-  // NOTE: .in_avail() called so we don't crash on directories.
-  if (!filebuf.open(file.c_str(),std::ios::in) || filebuf.in_avail() == 0)
+  if (!filebuf.open(file.c_str(),std::ios::in))
     return 0;
-  
+  // Check that the file can actually be read.
+  try {
+    filebuf.sgetc();
+  } catch (...) {
+    return 0;
+  }
   yy::sbuf = &filebuf;
   
   setlexer(yy::stream_input,filename);
