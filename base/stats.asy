@@ -138,6 +138,9 @@ struct linefit {
   public real m,b;	// slope, intercept
   public real dm,db;	// standard error in slope, intercept
   public real r;	// correlation coefficient
+  real fit(real x) {
+    return m*x+b;
+  }
 }
 
 // Do a least-squares fit of data in real arrays x and y to the line y=m*x+b
@@ -155,7 +158,7 @@ linefit leastsquares(real[] x, real[] y)
   if(n > 2) {
     real syy=n*sum(y^2)-sy^2;
     real s=sqrt((syy-sxy^2/sxx)/(n-2));
-    L.r=sqrt(sxy/(sxx*syy));
+    L.r=sxy/sqrt(sxx*syy);
     L.dm=s*sqrt(1/sxx);
     L.db=s*sqrt(1+sx^2/sxx)/n;
   }  
