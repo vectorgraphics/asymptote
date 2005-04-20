@@ -120,14 +120,14 @@ int main(int argc, char *argv[])
         parser::parseInteractive() : parser::parseFile(module_name);
       if (parseonly) {
         em->sync();
-        if (!em->errors() && (tree != 0))
+        if (!em->errors())
           tree->prettyprint(std::cout, 0);
       } else {
         record *m = ge.loadModule(id,tree);
         if (m) {
           lambda *l = ge.bootupModule(m);
           assert(l);
-        
+          
           if (em->errors() == false) {
             if (translate) {
               // NOTE: Should make it possible to show more code.
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
               print(cout, m->getInit()->code);
             } else {
               vm::stack s;
-	      setPath(startPath());
+              setPath(startPath());
               s.run(l);
             }
           }
