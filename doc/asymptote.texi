@@ -2634,11 +2634,12 @@ An axis can be drawn on a picture with one of the following commands:
 
 @item
 @verbatim
-void xaxis(bool put=Below, picture pic=currentpicture,
+void xaxis(picture pic=currentpicture,
            real xmin=-infinity, real xmax=infinity, pen p=currentpen,
            string s="", real position=infinity, real angle=0,
            pair align=0, pair shift=0, pair side=0,
-           pen plabel=currentpen, axis axis=YZero, ticks ticks=NoTicks);
+           pen plabel=currentpen, axis axis=YZero, ticks
+           ticks=NoTicks, bool put=Below);
 @end verbatim
 
 Draw an @math{x} axis on picture @code{pic} from @math{x}=@code{xmin} to
@@ -2719,11 +2720,12 @@ requests a big tick at the end of the axis.
 
 @item
 @verbatim
-void yaxis(bool put=Below, picture pic=currentpicture,
+void yaxis(picture pic=currentpicture,
            real ymin=-infinity, real ymax=infinity, pen p=currentpen,
            string s="", real position=infinity, real angle=infinity,
            pair align=0, pair shift=0, pair side=0,
-           pen plabel=currentpen, axis axis=XZero, ticks ticks=NoTicks);
+           pen plabel=currentpen, axis axis=XZero, ticks ticks=NoTicks,
+           bool put=Below);         
 @end verbatim
 
 Draw a @math{y} axis on picture @code{pic} from @math{y}=@code{ymin} to
@@ -2771,13 +2773,14 @@ The @code{XEquals(real X, bool extend=true)} and
 method for drawing axes at arbitrary locations. Nevertheless,
 for completeness, we also document the following internal routines:
 @verbatim
-void xequals(bool put=Above, picture pic=currentpicture, real X,
+void xequals(picture pic=currentpicture, real X,
              real ymin=-infinity, real ymax=infinity, 
              real tickmin=-infinity, real tickmax=infinity,
              pen p=currentpen, string s="", real position=1,
              real angle=0, pair align=W, pair shift=0, pair side=right,
              pen plabel=currentpen, ticks ticks=NoTicks,
-             int[] divisor=new int[], bool opposite=false);
+             int[] divisor=new int[], bool put=Above,
+             bool opposite=false);
 @end verbatim
 
 This internal routine draws the line @math{x}=@code{X} on picture
@@ -2797,13 +2800,14 @@ only if @code{put} is @code{Above}.
 
 @item
 @verbatim
-void yequals(bool put=Above, picture pic=currentpicture, real Y,
+void yequals(picture pic=currentpicture, real Y,
              real xmin=-infinity, real xmax=infinity,
              real tickmin=-infinity, real tickmax=infinity,
              pen p=currentpen, string s="", real position=1,
              real angle=0, pair align=S, pair shift=0, pair side=left,
              pen plabel=currentpen, ticks ticks=NoTicks,
-             int[] divisor=new int[], bool opposite=false);
+             int[] divisor=new int[], bool put=Above,
+             bool opposite=false);
 @end verbatim
 
 This internal routine is @code{xequals}, but draws the line

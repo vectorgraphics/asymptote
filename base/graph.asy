@@ -477,13 +477,13 @@ public ticks
   LeftTicks=LeftTicks(),
   RightTicks=RightTicks();
 
-void axis(bool put=Above, picture pic=currentpicture, guide g,
+void axis(picture pic=currentpicture, guide g,
 	  real tickmin=-infinity, real tickmax=infinity, pen p=currentpen,
 	  string s="", real position=1, real angle=0, pair align=S,
 	  pair shift=0, pair side=right, pen plabel=currentpen,
 	  ticks ticks=NoTicks, int[] divisor=new int[],
 	  bool logarithmic=false, scaleT scale=Linear, part part,
-	  bool opposite=false) 
+	  bool put=Above, bool opposite=false) 
 {
   autoscaleT S=new autoscaleT;
   S.scale=scale;
@@ -505,12 +505,13 @@ void axis(bool put=Above, picture pic=currentpicture, guide g,
   }
 }
 
-void xequals(bool put=Above, picture pic=currentpicture, real x,
+void xequals(picture pic=currentpicture, real x,
 	     real ymin=-infinity, real ymax=infinity, 
 	     real tickmin=-infinity, real tickmax=infinity, pen p=currentpen,
 	     string s="", real position=1, real angle=0, pair align=W,
 	     pair shift=0, pair side=right, pen plabel=currentpen,
-	     ticks ticks=NoTicks, int[] divisor=new int[], bool opposite=false)
+	     ticks ticks=NoTicks, int[] divisor=new int[],
+	     bool put=Above, bool opposite=false)
 {
   divisor=copy(divisor);
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
@@ -545,12 +546,13 @@ void xequals(bool put=Above, picture pic=currentpicture, real x,
   }
 }
 
-void yequals(bool put=Above, picture pic=currentpicture, real y,
+void yequals(picture pic=currentpicture, real y,
 	     real xmin=-infinity, real xmax=infinity,
 	     real tickmin=-infinity, real tickmax=infinity, pen p=currentpen,
 	     string s="", real position=1, real angle=0, pair align=S, 
 	     pair shift=0, pair side=left, pen plabel=currentpen,
-	     ticks ticks=NoTicks, int[] divisor=new int[], bool opposite=false)
+	     ticks ticks=NoTicks, int[] divisor=new int[],
+	     bool put=Above, bool opposite=false)
 {
   divisor=copy(divisor);
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
@@ -843,11 +845,11 @@ void checkaxis(picture pic, axis axis)
   abort("unextended axis called before draw");
 }
 
-void xaxis(bool put=Below, picture pic=currentpicture, real xmin=-infinity,
+void xaxis(picture pic=currentpicture, real xmin=-infinity,
 	   real xmax=infinity, pen p=currentpen, string s="",
 	   real position=infinity, real angle=0, pair align=0, pair shift=0,
 	   pair side=0, pen plabel=currentpen, axis axis=YZero,
-	   ticks ticks=NoTicks)
+	   ticks ticks=NoTicks, bool put=Below)
 {
   bool newticks=false;
   if(xmin != -infinity) {
@@ -885,20 +887,20 @@ void xaxis(bool put=Below, picture pic=currentpicture, real xmin=-infinity,
   if(align == 0) align=axis.align;
   if(side == 0) side=axis.side;
   
-  yequals(put,pic,axis.value.y,xmin,xmax,pic.scale.x.tickMin,
+  yequals(pic,axis.value.y,xmin,xmax,pic.scale.x.tickMin,
 	  pic.scale.x.tickMax,p,s,position,angle,align,shift,side,plabel,
-	  ticks,axis.xdivisor);
+	  ticks,axis.xdivisor,put);
   if(axis.value2 != infinity)
-    yequals(put,pic,axis.value2.y,xmin,xmax,pic.scale.x.tickMin,
+    yequals(pic,axis.value2.y,xmin,xmax,pic.scale.x.tickMin,
 	    pic.scale.x.tickMax,p,s,position,angle,align,shift,side,plabel,
-	    ticks,axis.xdivisor,true);
+	    ticks,axis.xdivisor,put,true);
 }
 
-void yaxis(bool put=Below, picture pic=currentpicture, real ymin=-infinity,
+void yaxis(picture pic=currentpicture, real ymin=-infinity,
 	   real ymax=infinity, pen p=currentpen, string s="",
 	   real position=infinity, real angle=infinity, pair align=0,
 	   pair shift=0, pair side=0, pen plabel=currentpen, axis axis=XZero,
-	   ticks ticks=NoTicks)
+	   ticks ticks=NoTicks, bool put=Below)
 {
   bool newticks=false;
   if(ymin != -infinity) {
@@ -942,19 +944,39 @@ void yaxis(bool put=Below, picture pic=currentpicture, real ymin=-infinity,
     angle=length(max(f)-min(f)) > ylabelwidth*fontsize(plabel) ? 90 : 0;
   }
   
-  xequals(put,pic,axis.value.x,ymin,ymax,pic.scale.y.tickMin,
+  xequals(pic,axis.value.x,ymin,ymax,pic.scale.y.tickMin,
 	  pic.scale.y.tickMax,p,s,position,angle,align,shift,side,plabel,
-	  ticks,axis.ydivisor);
+	  ticks,axis.ydivisor,put);
   if(axis.value2 != infinity)
-    xequals(put,pic,axis.value2.x,ymin,ymax,pic.scale.y.tickMin,
+    xequals(pic,axis.value2.x,ymin,ymax,pic.scale.y.tickMin,
 	    pic.scale.y.tickMax,p,s,position,angle,align,shift,side,plabel,
-	    ticks,axis.ydivisor,true);
+	    ticks,axis.ydivisor,put,true);
 }
 
-void axes(picture pic=currentpicture, pen p=currentpen)
+void axes(picture pic=currentpicture, pen p=currentpen, bool put=Below)
 {
-  xaxis(pic,p);
-  yaxis(pic,p);
+  xaxis(pic,p,put);
+  yaxis(pic,p,put);
+}
+
+void xline(picture pic=currentpicture, real x, real ymin=-infinity,
+	   real ymax=infinity, pen p=currentpen, string s="",
+	   real position=infinity, real angle=infinity, pair align=0,
+	   pair shift=0, pair side=0, pen plabel=currentpen,
+	   ticks ticks=NoTicks, bool put=Above, bool extend=false)
+{
+  yaxis(pic,ymin,ymax,p,s,position,angle,align,shift,side,plabel,
+	XEquals(x,extend),ticks,put);
+}
+
+void yline(picture pic=currentpicture, real x, real xmin=-infinity,
+	   real xmax=infinity, pen p=currentpen, string s="",
+	   real position=infinity, real angle=0, pair align=0,
+	   pair shift=0, pair side=0, pen plabel=currentpen,
+	   ticks ticks=NoTicks, bool put=Above, bool extend=false)
+{
+  xaxis(pic,xmin,xmax,p,s,position,angle,align,shift,side,plabel,
+	YEquals(x,extend),ticks,put);
 }
 
 void tick(picture pic=currentpicture, pair z, pair align, real size=Ticksize,
