@@ -51,8 +51,10 @@ absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
   yy::sbuf = 0;
   if (!root) {
     em->error(position::nullPos());
-    *em << "error: could not load module '" << filename << "'\n";
-    em->sync();
+    if(!interact::interactive) {
+      *em << "error: could not load module '" << filename << "'\n";
+      em->sync();
+    }
     throw handled_error();
   }
   return root;

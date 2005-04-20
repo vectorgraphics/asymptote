@@ -1704,10 +1704,7 @@ void execute(stack *s)
   if (p < string::npos) outname.erase(p);
   trans::genv ge;
   
-  if (autoplain)
-    ge.loadPlain();
-  if (!ignoreGUI)
-    ge.loadGUI(outname);
+  ge.autoloads(outname);
 
   trans::record *m = ge.loadModule(id);
   if (em->errors() == false) {

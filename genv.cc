@@ -15,6 +15,7 @@
 
 #include <sstream>
 #include <string>
+#include <unistd.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -55,6 +56,15 @@ genv::genv()
   base_menv(me);
 }
 
+void genv::autoloads(const string& outname)
+{
+  // Import plain, if autoplain option is enabled.
+  if (settings::autoplain)
+    loadPlain();
+  if (!settings::ignoreGUI)
+    loadGUI(outname);
+}
+  
 void genv::loadPlain()
 {
   static absyntax::importdec iplain(position::nullPos(),
@@ -63,7 +73,7 @@ void genv::loadPlain()
   me.beginScope(); // NOTE: This is unmatched.
 }
 
-void genv::loadGUI(string outname) 
+void genv::loadGUI(const string& outname) 
 {
   string GUIname=buildname(outname,"gui");
   std::ifstream exists(GUIname.c_str());

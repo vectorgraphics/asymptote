@@ -45,8 +45,9 @@ class genv {
 public:
   genv();
 
+  void autoloads(const std::string& outname);
   void loadPlain();
-  void loadGUI(std::string outname);
+  void loadGUI(const std::string& outname);
 
   // If a module is already loaded, this will return it.  Otherwise, it
   // returns null.

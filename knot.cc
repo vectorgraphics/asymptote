@@ -783,11 +783,11 @@ path solveSimple(cvector<pair>& z)
 {
   // The two specifiers used: an open spec and a curl spec for the ends.
   spec open;
-  curlSpec curl;
-  curlSpec curly(2.0);
-
-  dirSpec E(0);
-  dirSpec N(PI/2.0);
+  
+//  curlSpec curl;
+//  curlSpec curly(2.0);
+//  dirSpec E(0);
+//  dirSpec N(PI/2.0);
 
   controlSpec here(pair(150,150));
 

@@ -110,13 +110,9 @@ int main(int argc, char *argv[])
 
       genv ge;
 
-      // Import plain, if autoplain option is enabled.
-      if (autoplain)
-        ge.loadPlain();
-      if (!ignoreGUI)
-        ge.loadGUI(outname);
-
-      absyntax::file *tree = interact::interactive ?
+      ge.autoloads(outname);
+      
+      absyntax::file *tree = interactive ?
         parser::parseInteractive() : parser::parseFile(module_name);
       if (parseonly) {
         em->sync();
