@@ -194,9 +194,11 @@ as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
 @chapter Installation
 @cindex installation
 
-A binary distribution of @code{Asymptote} version @code{x.xx} for a
-specific platform @code{ARCH} can be installed in @code{/usr/local} 
-by the root user with the commands:
+Here are the commands that the root user can use to install the binary
+distribution of version @code{x.xx} of @code{Asymptote} for a specific
+platform @code{ARCH} in @code{/usr/local}. The executable file will
+be @code{/usr/local/bin/asy} (the optional @code{texhash} and
+@code{install-info} commands install a LaTeX style file and man pages):
 @verbatim
 tar -C / -zxf asymptote-x.xx.ARCH.tar.gz
 texhash
