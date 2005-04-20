@@ -18,6 +18,8 @@
 
 namespace vm {
 
+void run(lambda *l);
+
 class stack {
 public:
   typedef frame* vars_t;
@@ -39,7 +41,6 @@ public:
 
   // Executes a function on top of the stack.
   void run(func *f);
-  void run(lambda *l);
 
   // These are so that built-in functions can easily manipulate the stack
   void push(item next) {

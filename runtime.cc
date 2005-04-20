@@ -1714,8 +1714,7 @@ void execute(stack *s)
     if (m) {
       lambda *l = ge.bootupModule(m);
       assert(l);
-      stack s;
-      s.run(l);
+      vm::run(l);
     }
   }
   outname=Outname;
@@ -1734,8 +1733,7 @@ void eval(stack *s)
     if (m) {
       lambda *l = ge.bootupModule(m);
       assert(l);
-      stack s;
-      s.run(l);
+      vm::run(l);
     }
   }
   //outname=Outname;

@@ -43,12 +43,12 @@ stack::stack()
 stack::~stack()
 {}
 
-void stack::run(lambda *l)
+void run(lambda *l)
 {
   func f;
   f.body = l;
-    
-  run(&f);
+  stack s;
+  s.run(&f);
 }
 
 void stack::marshall(int args, vars_t vars)
