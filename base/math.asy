@@ -539,3 +539,58 @@ void drawline(picture pic=currentpicture, pair P, pair Q, pen p=currentpen)
     }
   });
 }
+
+// Do a binary search of an ordered array of n elements to find an interval
+// containing a given key. Return the index corresponding to the left-hand
+// endpoint of the matching interval, n-1 if the key is greater than or
+// equal to the last element, or n if the key is less than the first element.
+
+int binarysearch(real key, real[] x)
+{
+  int n=x.length;
+  if(n == 0) return 0;
+  if(key < x[0]) return n;
+  if(key >= x[n-1]) return n-1;
+  
+  int l=0;
+  int u=n-1;
+	
+  while (l < u) {
+    int i=(l+u)/2;
+    if(x[i] <= key && key < x[i+1]) return i;
+    if(key < x[i]) u=i;
+    else l=i+1;
+  }
+  return 0;
+}
+
+// Linearly interpolate data points (x,y) to (x0,y0), where the elements of
+// real[] x are listed in ascending order and return y0. Values outside the
+// available data range are linearly extrapolated using the first derivative
+// at the nearest endpoint.
+  
+real interpolate(real[] x, real[] y, real x0, int i) 
+{
+  int n=x.length;
+  if(n == 0) abort("Zero data points in interpolate");
+  if(n == 1) return y[0];
+  if(i >= n) {
+    real dx=x[1]-x[0];
+    return y[0]+(y[1]-y[0])/dx*(x0-x[0]);
+  }
+  if(i == n-1) {
+    real dx=x[n-1]-x[n-2];
+    return y[n-1]+(y[n-1]-y[n-2])/dx*(x0-x[n-1]);
+  }
+
+  real D=x[i+1]-x[i];
+  real B=(x0-x[i])/D;
+  real A=1.0-B;
+  return A*y[i]+B*y[i+1];
+}
+
+real interpolate(real[] x, real[] y, real x0) 
+{
+  return interpolate(x,y,x0,binarysearch(x0,x));
+}
+
