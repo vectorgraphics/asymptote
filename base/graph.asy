@@ -969,14 +969,14 @@ void xline(picture pic=currentpicture, real x, real ymin=-infinity,
 	XEquals(x,extend),ticks,put);
 }
 
-void yline(picture pic=currentpicture, real x, real xmin=-infinity,
+void yline(picture pic=currentpicture, real y, real xmin=-infinity,
 	   real xmax=infinity, pen p=currentpen, string s="",
 	   real position=infinity, real angle=0, pair align=0,
 	   pair shift=0, pair side=0, pen plabel=currentpen,
 	   ticks ticks=NoTicks, bool put=Above, bool extend=false)
 {
   xaxis(pic,xmin,xmax,p,s,position,angle,align,shift,side,plabel,
-	YEquals(x,extend),ticks,put);
+	YEquals(y,extend),ticks,put);
 }
 
 void tick(picture pic=currentpicture, pair z, pair align, real size=Ticksize,

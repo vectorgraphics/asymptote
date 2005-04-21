@@ -2770,10 +2770,14 @@ current layer.
 
 @item
 
-The @code{XEquals(real X, bool extend=true)} and 
-@code{YEquals(real Y, bool extend=true)} axes types provide the recommended
-method for drawing axes at arbitrary locations. Nevertheless,
-for completeness, we also document the following internal routines:
+@cindex @code{xline}
+@cindex @code{yline}
+For convenience, the functions @code{xline(real x)} and
+@code{yline(real y)} can be respectively used to call @code{yaxis} and
+@code{xaxis} with the appropriate axis types @code{XEquals(x)} and
+@code{YEquals(y)}. This is the recommended method for drawing vertical
+and horizontal axes at arbitrary locations. Nevertheless, for
+completeness, we also document the following internal routines:
 @verbatim
 void xequals(picture pic=currentpicture, real X,
              real ymin=-infinity, real ymax=infinity, 
@@ -2812,7 +2816,7 @@ void yequals(picture pic=currentpicture, real Y,
              bool opposite=false);
 @end verbatim
 
-This internal routine is @code{xequals}, but draws the line
+This internal routine is like @code{xequals}, but draws the line
 @math{y}=@code{Y} on picture @code{pic} from @math{x}=@code{xmin} to
 @math{x}=@code{xmax}.
 
