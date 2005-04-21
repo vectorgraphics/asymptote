@@ -126,8 +126,9 @@ void body(string module_name) // TODO: Refactor
     
     absyntax::file *tree = interactive ?
       parser::parseInteractive() : parser::parseFile(module_name);
+    em->sync();
+
     if (parseonly) {
-      em->sync();
       if (!em->errors())
         tree->prettyprint(std::cout, 0);
     } else {
@@ -147,11 +148,10 @@ void body(string module_name) // TODO: Refactor
             vm::run(l);
           }
         }
-      } else {
-        if (em->errors() == false)
-          cerr << "error: could not load module '" << *id << "'" << endl;
       }
     }
+    if (em->errors() == false)
+      cerr << "error: could not load module '" << *id << "'" << endl;
   } catch (std::bad_alloc&) {
     cerr << "error: out of memory" << endl;
     ++status;
