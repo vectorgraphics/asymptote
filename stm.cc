@@ -80,11 +80,6 @@ void expStm::prettyprint(ostream &out, int indent)
 
 void expStm::trans(coenv &e)
 {
-  if(!body->stmable()) {
-    em->warning(getPos());
-    *em << "expression (in whole or part) without side-effects";
-  }
-
   types::ty_kind kind = body->trans(e)->kind;
   if (kind != types::ty_void &&
       kind != types::ty_void)

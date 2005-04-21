@@ -82,9 +82,6 @@ public:
     return 0;
   }
 
-  // Checks if this exp can be used as a statement on its own.
-  virtual bool stmable() { return false; }
-
   // Checks if expression can be used as the right side of a scale
   // expression.  ie. 3sin(x)
   virtual bool scalable() { return false; }
@@ -395,9 +392,6 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  // A function call can be used alone in a statement.
-  bool stmable() { return true; }
-
   bool scalable() { return true; }
   
   types::ty *trans(coenv &e);
@@ -611,8 +605,6 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  bool stmable() { return true; }
-
   void trans(coenv &e, types::ty *target);
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
@@ -629,8 +621,6 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  bool stmable() { return true; }
-  
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
 };
@@ -645,8 +635,6 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  bool stmable() { return true; }
-  
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
 };
@@ -664,8 +652,6 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  bool stmable() { return true; }
-  
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primError(); }
 };

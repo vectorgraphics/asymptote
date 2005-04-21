@@ -25,11 +25,6 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
-
-  bool stmable() 
-  {
-    return true;
-  }
 };
 
 class newRecordExp : public exp {
@@ -41,11 +36,6 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
-
-  bool stmable()
-  {
-    return true;
-  }
 };
   
 class newArrayExp : public exp {
@@ -66,11 +56,6 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
-
-  bool stmable()
-  {
-    return true;
-  }
 };
   
 } // namespace absyntax
