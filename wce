@@ -1,5 +1,5 @@
 #!/bin/sh
-echo "should be 59:"
+echo "should be 52:"
 ./asy errortest 2>&1 | wc -l
 
 if [ -e errors ]; then
