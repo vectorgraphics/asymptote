@@ -85,6 +85,10 @@ void init()
 {
   if (interactive) virtualEOF=false;
   ShipoutNumber=0;
+
+  outnameStack=new std::list<std::string>;
+
+  em = new errorstream();
 }
 
 
@@ -103,22 +107,18 @@ void cleanup()
 
 void body(string module_name) // TODO: Refactor
 {
-  init();
-
-  size_t p=findextension(module_name,suffix);
-  if (p < string::npos) module_name.erase(p);
-  
   try {
-    outnameStack=new std::list<std::string>;
+    init();
     
+    size_t p=findextension(module_name,suffix);
+    if (p < string::npos) module_name.erase(p);
+  
     if (verbose) cout << "Processing " << module_name << endl;
     
     if(outname.empty()) 
       outname=(module_name == "-") ? "out" : module_name;
     
     symbol *id = symbol::trans(module_name);
-    
-    em = new errorstream();
     
     genv ge;
     
