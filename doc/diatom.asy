@@ -54,9 +54,9 @@ for(int taxon=0; taxon < n; ++taxon) {
   filldraw(pic,(0,depthmin)--graph(pic,P,depth)--(0,depthmax)--cycle,
 	   gray(0.9));
   xaxis(pic,Bottom,LeftTicks(false,0,2,"%.0f"),Above);
-  xaxis(Above,pic,TeXify(taxa[taxon]),0.5,45,Top,NoTicks);
+  xaxis(pic,TeXify(taxa[taxon]),0.5,45,Top,NoTicks,Above);
   if(taxon == 0) yaxis(pic,depthlabel,Left,RightTicks(0,10),Above);
-  if(taxon == final) yaxis(Above,pic,Right,LeftTicks(0,10,""));
+  if(taxon == final) yaxis(pic,Right,LeftTicks(0,10,""),Above);
   
   add(shift(location,0)*pic);
   location += pic.userMax.x;
