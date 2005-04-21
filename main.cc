@@ -77,6 +77,104 @@ void interruptHandler(int)
   if(em) em->Interrupt(true);
 }
 
+int status = 0;
+
+namespace loop {
+
+void init()
+{
+  if (interactive) virtualEOF=false;
+  ShipoutNumber=0;
+}
+
+
+void cleanup()
+{
+  if (interactive) {
+    rejectline=em->warnings();
+    if(rejectline) virtualEOF=true;
+  }
+  
+  delete em; em = 0;
+  delete outnameStack; outnameStack = 0;
+  outname="";
+  memory::free();
+}
+
+void body(string module_name) // TODO: Refactor
+{
+  init();
+
+  size_t p=findextension(module_name,suffix);
+  if (p < string::npos) module_name.erase(p);
+  
+  try {
+    outnameStack=new std::list<std::string>;
+    
+    if (verbose) cout << "Processing " << module_name << endl;
+    
+    if(outname.empty()) 
+      outname=(module_name == "-") ? "out" : module_name;
+    
+    symbol *id = symbol::trans(module_name);
+    
+    em = new errorstream();
+    
+    genv ge;
+    
+    ge.autoloads(outname);
+    
+    absyntax::file *tree = interactive ?
+      parser::parseInteractive() : parser::parseFile(module_name);
+    if (parseonly) {
+      em->sync();
+      if (!em->errors())
+        tree->prettyprint(std::cout, 0);
+    } else {
+      record *m = ge.loadModule(id,tree);
+      if (m) {
+        lambda *l = ge.bootupModule(m);
+        assert(l);
+          
+        if (em->errors() == false) {
+          if (translate) {
+            // NOTE: Should make it possible to show more code.
+            print(cout, l->code);
+            cout << "\n";
+            print(cout, m->getInit()->code);
+          } else {
+            setPath(startPath());
+            vm::run(l);
+          }
+        }
+      } else {
+        if (em->errors() == false)
+          cerr << "error: could not load module '" << *id << "'" << endl;
+      }
+    }
+  } catch (std::bad_alloc&) {
+    cerr << "error: out of memory" << endl;
+    ++status;
+  } catch (handled_error) {
+    ++status;
+  } catch (interrupted) {
+    if(em) em->Interrupt(false);
+    cerr << endl;
+    run::cleanup(true);
+  } catch (const char* s) {
+    cerr << "error: " << s << endl;
+    ++status;
+  } catch (...) {
+    cerr << "error: exception thrown processing '" << module_name << "'\n";
+    ++status;
+  }
+
+  cleanup();
+}
+
+}
+
+
 int main(int argc, char *argv[])
 {
   setOptions(argc,argv);
@@ -86,84 +184,13 @@ int main(int argc, char *argv[])
   if(interactive) signal(SIGINT,interruptHandler);
 
   std::cout.precision(DBL_DIG);
-  int status = 0;
-  
-  for(int ind=0; ind < numArgs() || (interactive && virtualEOF); ind++) {
-    virtualEOF=false;
-    ShipoutNumber=0;
-    
-    string module_name = interactive ? "-" : getArg(ind);
-    size_t p=findextension(module_name,suffix);
-    if (p < string::npos) module_name.erase(p);
-    
-    try {
-      outnameStack=new std::list<std::string>;
-      
-      if (verbose) cout << "Processing " << module_name << endl;
-    
-      if(outname.empty()) 
-	outname=(module_name == "-") ? "out" : module_name;
-    
-      symbol *id = symbol::trans(module_name);
-    
-      em = new errorstream();
 
-      genv ge;
-
-      ge.autoloads(outname);
-      
-      absyntax::file *tree = interactive ?
-        parser::parseInteractive() : parser::parseFile(module_name);
-      if (parseonly) {
-        em->sync();
-        if (!em->errors())
-          tree->prettyprint(std::cout, 0);
-      } else {
-        record *m = ge.loadModule(id,tree);
-        if (m) {
-          lambda *l = ge.bootupModule(m);
-          assert(l);
-          
-          if (em->errors() == false) {
-            if (translate) {
-              // NOTE: Should make it possible to show more code.
-              print(cout, l->code);
-              cout << "\n";
-              print(cout, m->getInit()->code);
-            } else {
-              setPath(startPath());
-              vm::run(l);
-            }
-          }
-        } else {
-          if (em->errors() == false)
-            cerr << "error: could not load module '" << *id << "'" << endl;
-        }
-      }
-    } catch (std::bad_alloc&) {
-      cerr << "error: out of memory" << endl;
-      ++status;
-    } catch (handled_error) {
-      ++status;
-    } catch (interrupted) {
-      if(em) em->Interrupt(false);
-      cerr << endl;
-      run::cleanup(true);
-    } catch (const char* s) {
-      cerr << "error: " << s << endl;
-      ++status;
-    } catch (...) {
-      cerr << "error: exception thrown processing '" << module_name << "'\n";
-      ++status;
-    }
-    
-    rejectline=em->warnings();
-    if(rejectline) virtualEOF=true;
-    
-    delete em; em = 0;
-    delete outnameStack; outnameStack = 0;
-    outname="";
-    memory::free();
+  if (interactive) {
+    while (virtualEOF)
+      loop::body("-"); 
+  } else {
+    for(int ind=0; ind < numArgs() ; ind++)
+      loop::body(getArg(ind));
   }
   return status;
 }
