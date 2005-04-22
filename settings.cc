@@ -8,7 +8,6 @@
 #include <iostream>
 #include <cstdlib>
 #include <cerrno>
-#include <boost/lexical_cast.hpp>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -25,8 +24,8 @@
 #include "pen.h"
 #include "interact.h"
 #include "locate.h"
+#include "lexical.h"
 
-using boost::lexical_cast;
 using std::string;
 
 namespace settings {
@@ -199,16 +198,16 @@ void setOptions(int argc, char *argv[])
       break;
     case 'x':
       try {
-        deconstruct=lexical_cast<double>(optarg);
-      } catch (boost::bad_lexical_cast&) {
+        deconstruct=lexical::cast<double>(optarg);
+      } catch (lexical::bad_cast&) {
         syntax=1;
       }
       if(deconstruct < 0) syntax=1;
       break;
     case 'O':
       try {
-        postscriptOffset=lexical_cast<camp::pair>(optarg);
-      } catch (boost::bad_lexical_cast&) {
+        postscriptOffset=lexical::cast<camp::pair>(optarg);
+      } catch (lexical::bad_cast&) {
         syntax=1;
       }
       break;

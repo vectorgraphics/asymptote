@@ -228,50 +228,11 @@ make install
 For a (default) system-wide installation, the last command should be
 done as root.
 
-In order to compile @code{Asymptote} you will need the @code{boost}
-header files from @code{http://boost.org} (included in Fedora Linux
-distributions). If your system lacks these headers, it is sufficient
-to make a link in the top-level directory of the @code{Asymptote}
-source code to the @code{boost} subdirectory of the
-@code{boost_1_32_0} source distribution:
-@verbatim
-tar -zxf boost_1_32_0.tar.gz
-tar -zxf asymptote-x.xx.tar.gz 
-cd asymptote-x.xx 
-ln -s ../boost_1_32_0/boost .
-./configure 
-make all
-make install 
-@end verbatim
-
-@cindex Debian
-On machines running Debian Linux, the @code{boost} library can be
-installed with
-@verbatim
-apt-get install libboost-dev libboost-graph-dev
-@end verbatim
-
 @noindent
 Alternatively, Debian users can install Hubert Chan's @code{Asymptote}
 package:
 @verbatim
 http://www.uhoreg.ca/programming/debian.text
-@end verbatim
-
-For a complete installation of the @code{boost} library (not required),
-download
-@verbatim
-http://dl.sourceforge.net/sourceforge/boost/boost-jam-3.1.10-1.i386.rpm
-http://dl.sourceforge.net/sourceforge/boost/boost_1_32_0.tar.gz
-@end verbatim
-
-@noindent
-or equivalent and install @code{boost-jam}. Then compile and install the
-@code{boost} library itself: 
-@verbatim
-tar -zxf boost_1_32_0.tar.gz
-cd boost_1_32_0
-bjam --prefix=/usr install --layout=system
 @end verbatim
 
 @cindex readline
@@ -4054,7 +4015,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
 @c  LocalWords:  vskip filll insertcopying ifnottex detailmenu alist augroup PQ
 @c  LocalWords:  bool behaviour facto zxf cvs login Debian dev filetypedetect
-@c  LocalWords:  libboost FFTW bp readline gv eps gifmerge wheelanimation args
+@c  LocalWords:  FFTW bp readline gv eps gifmerge wheelanimation args
 @c  LocalWords:  boolean initializer expi dir xpart ypart STL substring rfind
 @c  LocalWords:  pos substr strftime typedef pxref unitcircle yscale Bezier iff
 @c  LocalWords:  postcontrol precontrol atleast nullpath arclength arctime rgb

@@ -9,11 +9,11 @@
 #ifndef CASTOP_H
 #define CASTOP_H
 
-#include <boost/lexical_cast.hpp>
 #include <cfloat>
 
 #include "stack.h"
 #include "fileio.h"
+#include "lexical.h"
 
 namespace run {
 
@@ -43,8 +43,8 @@ void castString(vm::stack *s)
     if(S->empty()) {
       T x=0;
       s->push(x);
-    } else s->push(boost::lexical_cast<T>(*S));
-  } catch (boost::bad_lexical_cast&) {
+    } else s->push(lexical::cast<T>(*S));
+  } catch (lexical::bad_cast&) {
     vm::error("invalid cast.");
   }
 }
