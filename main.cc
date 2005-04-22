@@ -90,7 +90,6 @@ void init()
   em = new errorstream();
 }
 
-
 void cleanup()
 {
   delete em; em = 0;
@@ -137,7 +136,7 @@ void body(string filename) // TODO: Refactor
         tree->prettyprint(std::cout, 0);
     } else {
       record *m = ge.loadModule(symbol::trans(basename),tree);
-      if (em->errors() == false) {
+      if (!em->errors()) {
         if (translate)
           doTranslate(ge,m);
         else

@@ -1705,7 +1705,7 @@ void execute(stack *s)
 
   absyntax::file *tree = parser::parseFile(*str);
   trans::record *m = ge.loadModule(symbol::trans(outname),tree);
-  if (em->errors() == false && m) {
+  if (!em->errors()) {
     lambda *l = ge.bootupModule(m);
     assert(l);
     vm::run(l);
@@ -1722,12 +1722,10 @@ void eval(stack *s)
   absyntax::file *tree = parser::parseString(*str);
   trans::genv ge;
   trans::record *m = ge.loadModule(id,tree);
-  if (em->errors() == false) {
-    if (m) {
-      lambda *l = ge.bootupModule(m);
-      assert(l);
-      vm::run(l);
-    }
+  if (!em->errors()) {
+    lambda *l = ge.bootupModule(m);
+    assert(l);
+    vm::run(l);
   }
   //outname=Outname;
 }
