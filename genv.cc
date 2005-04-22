@@ -104,12 +104,7 @@ record *genv::loadModule(symbol *id, absyntax::file *ast)
   // Get the abstract syntax tree.
   if (ast == 0) ast = parser::parseFile(*id);
   em->sync();
-
-  if (!ast)
-    return 0;
-
-  //ast->prettyprint(stdout, 0);
- 
+  
   // Create the new module.
   record *r = base_coder.newRecord(id);
 
@@ -149,9 +144,8 @@ lambda *genv::bootupModule(record *r)
     em->compiler();
     *em << "invalid bootup structure";
     em->sync();
-    return 0;
+    throw handled_error();
   }
-
 
   // Encode the allocation.
   inst i; i.op = inst::makefunc; i.lfunc = r->getInit();

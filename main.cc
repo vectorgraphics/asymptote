@@ -105,12 +105,26 @@ void cleanup()
   memory::free();
 }
 
+void doTranslate(genv& ge, record *m)
+{
+  lambda *l = ge.bootupModule(m);
+  // NOTE: Should make it possible to show more code.
+  print(cout, l->code);
+  cout << "\n";
+  print(cout, m->getInit()->code);
+}
+
+void doRun(genv& ge, record *m)
+{
+  lambda *l = ge.bootupModule(m);
+  setPath(startPath());
+  vm::run(l);
+}
+
 void body(string filename) // TODO: Refactor
 {
   string basename = stripext(filename,suffix);
   try {
-    init();
-  
     if (verbose) cout << "Processing " << basename << endl;
     
     if(outname.empty()) 
@@ -129,24 +143,11 @@ void body(string filename) // TODO: Refactor
         tree->prettyprint(std::cout, 0);
     } else {
       record *m = ge.loadModule(symbol::trans(basename),tree);
-      if (m) {
-        lambda *l = ge.bootupModule(m);
-        assert(l);
-          
-        if (em->errors() == false) {
-          if (translate) {
-            // NOTE: Should make it possible to show more code.
-            print(cout, l->code);
-            cout << "\n";
-            print(cout, m->getInit()->code);
-          } else {
-            setPath(startPath());
-            vm::run(l);
-          }
-        }
-      } else {
-        if (em->errors() == false)
-          cerr << "error: could not load module '" << basename << "'" << endl;
+      if (em->errors() == false) {
+        if (translate)
+          doTranslate(ge,m);
+        else
+          doRun(ge,m);
       }
     }
   } catch (std::bad_alloc&) {
@@ -154,10 +155,6 @@ void body(string filename) // TODO: Refactor
     ++status;
   } catch (handled_error) {
     ++status;
-  } catch (interrupted) {
-    if(em) em->Interrupt(false);
-    cerr << endl;
-    run::cleanup(true);
   } catch (const char* s) {
     cerr << "error: " << s << endl;
     ++status;
@@ -165,12 +162,33 @@ void body(string filename) // TODO: Refactor
     cerr << "error: exception thrown processing '" << basename << "'\n";
     ++status;
   }
-
-  cleanup();
 }
 
+void doInteractive()
+{
+  while (virtualEOF) {
+    init();
+    try {
+      body("-");
+    } catch (interrupted) {
+      if(em) em->Interrupt(false);
+      cerr << endl;
+      run::cleanup(true);
+    }
+    cleanup(); 
+  }
 }
 
+void doBatch()
+{
+  for(int ind=0; ind < numArgs() ; ind++) {
+    init();
+    body(getArg(ind));
+    cleanup();
+  }
+}
+
+} // namespace loop
 
 int main(int argc, char *argv[])
 {
@@ -182,12 +200,9 @@ int main(int argc, char *argv[])
 
   std::cout.precision(DBL_DIG);
 
-  if (interactive) {
-    while (virtualEOF)
-      loop::body("-"); 
-  } else {
-    for(int ind=0; ind < numArgs() ; ind++)
-      loop::body(getArg(ind));
-  }
+  if (interactive)
+    loop::doInteractive();
+  else
+    loop::doBatch();
   return status;
 }
