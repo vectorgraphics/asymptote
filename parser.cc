@@ -103,6 +103,7 @@ absyntax::file *parseFile(string filename)
 
 absyntax::file *parseString(string code)
 {
+  debug(false);
   std::stringbuf buf(code);
   yy::sbuf = &buf;
   return doParse(yy::stream_input,"<eval>");
@@ -119,5 +120,5 @@ absyntax::file *parseInteractive()
 #endif
 }
 
-}
+} // namespace parser
 
