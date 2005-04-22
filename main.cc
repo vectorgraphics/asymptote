@@ -83,7 +83,6 @@ namespace loop {
 
 void init()
 {
-  if (interactive) virtualEOF=false;
   ShipoutNumber=0;
 
   outnameStack=new std::list<std::string>;
@@ -94,11 +93,6 @@ void init()
 
 void cleanup()
 {
-  if (interactive) {
-    rejectline=em->warnings();
-    if(rejectline) virtualEOF=true;
-  }
-  
   delete em; em = 0;
   delete outnameStack; outnameStack = 0;
   outname="";
@@ -167,6 +161,7 @@ void body(string filename) // TODO: Refactor
 void doInteractive()
 {
   while (virtualEOF) {
+    virtualEOF=false;
     init();
     try {
       body("-");
@@ -175,6 +170,8 @@ void doInteractive()
       cerr << endl;
       run::cleanup(true);
     }
+    rejectline=em->warnings();
+    if(rejectline) virtualEOF=true;
     cleanup(); 
   }
 }
