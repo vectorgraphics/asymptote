@@ -43,6 +43,15 @@ void debug(bool state)
   yy_flex_debug = yydebug = state;
 }
 
+namespace {
+void error(string filename)
+{
+  *em << "error: could not load module '" << filename << "'\n";
+  em->sync();
+  throw handled_error();
+}
+
+
 absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
                         string filename)
 {
@@ -51,11 +60,10 @@ absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
   yy::sbuf = 0;
   if (!root) {
     em->error(position::nullPos());
-    if(!interact::interactive) {
-      *em << "error: could not load module '" << filename << "'\n";
-      em->sync();
-    }
-    throw handled_error();
+    if(!interact::interactive)
+      error(filename);
+    else
+      throw handled_error();
   }
   return root;
 }
@@ -74,18 +82,19 @@ absyntax::file *parseFile(string filename)
   string file = settings::locateFile(filename);
 
   if (file.empty())
-    return 0;
+    error(filename);
+
 
   debug(false); 
 
   std::filebuf filebuf;
   if (!filebuf.open(file.c_str(),std::ios::in))
-    return 0;
+    error(file);
   // Check that the file can actually be read.
   try {
     filebuf.sgetc();
   } catch (...) {
-    return 0;
+    error(file);
   }
   yy::sbuf = &filebuf;
   
