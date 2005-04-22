@@ -50,7 +50,7 @@ void error(string filename)
   em->sync();
   throw handled_error();
 }
-
+}
 
 absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
                         string filename)
@@ -120,3 +120,4 @@ absyntax::file *parseInteractive()
 }
 
 }
+

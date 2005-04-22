@@ -229,8 +229,7 @@ For a (default) system-wide installation, the last command should be
 done as root.
 
 @noindent
-Alternatively, Debian users can install Hubert Chan's @code{Asymptote}
-package:
+Debian users can install Hubert Chan's @code{Asymptote} package:
 @verbatim
 http://www.uhoreg.ca/programming/debian.text
 @end verbatim
