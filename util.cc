@@ -27,11 +27,13 @@ using namespace settings;
 
 bool False=false;
 
-size_t findextension(const string& name, const string& suffix) 
+string stripext(const string& name, const string& ext)
 {
-  size_t p=name.rfind("."+suffix);
-  if (p == name.length()-suffix.length()-1) return p;
-  else return string::npos;
+  string suffix = "." + ext;
+  size_t p=name.rfind(suffix);
+  if (p == name.length()-suffix.length())
+    return name.substr(0,p);
+  else return name;
 }
 
 string buildname(string filename, string suffix, string aux) 
@@ -39,8 +41,7 @@ string buildname(string filename, string suffix, string aux)
   string name=filename;
   size_t p=name.rfind('/');
   if(p < string::npos) name.erase(0,p+1);
-  p=findextension(name,outformat);
-  if(p < string::npos) name.erase(p);
+  name = stripext(name,outformat);
 
   name += aux;
   if(!suffix.empty()) name += "."+suffix;

@@ -18,7 +18,7 @@ using std::cerr;
 using std::endl;
 using std::ostringstream;
 
-size_t findextension(const std::string& name, const std::string& suffix);
+std::string stripext(const std::string& name, const std::string& suffix);
   
 // Construct a filename from the original, adding aux at the end, and
 // changing the suffix.

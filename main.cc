@@ -105,34 +105,30 @@ void cleanup()
   memory::free();
 }
 
-void body(string module_name) // TODO: Refactor
+void body(string filename) // TODO: Refactor
 {
+  string basename = stripext(filename,suffix);
   try {
     init();
-    
-    size_t p=findextension(module_name,suffix);
-    if (p < string::npos) module_name.erase(p);
   
-    if (verbose) cout << "Processing " << module_name << endl;
+    if (verbose) cout << "Processing " << basename << endl;
     
     if(outname.empty()) 
-      outname=(module_name == "-") ? "out" : module_name;
-    
-    symbol *id = symbol::trans(module_name);
-    
+      outname=(filename == "-") ? "out" : basename;
+
     genv ge;
     
     ge.autoloads(outname);
     
     absyntax::file *tree = interactive ?
-      parser::parseInteractive() : parser::parseFile(module_name);
+      parser::parseInteractive() : parser::parseFile(filename);
     em->sync();
 
     if (parseonly) {
       if (!em->errors())
         tree->prettyprint(std::cout, 0);
     } else {
-      record *m = ge.loadModule(id,tree);
+      record *m = ge.loadModule(symbol::trans(basename),tree);
       if (m) {
         lambda *l = ge.bootupModule(m);
         assert(l);
@@ -150,7 +146,7 @@ void body(string module_name) // TODO: Refactor
         }
       } else {
         if (em->errors() == false)
-          cerr << "error: could not load module '" << *id << "'" << endl;
+          cerr << "error: could not load module '" << basename << "'" << endl;
       }
     }
   } catch (std::bad_alloc&) {
@@ -166,7 +162,7 @@ void body(string module_name) // TODO: Refactor
     cerr << "error: " << s << endl;
     ++status;
   } catch (...) {
-    cerr << "error: exception thrown processing '" << module_name << "'\n";
+    cerr << "error: exception thrown processing '" << basename << "'\n";
     ++status;
   }
 

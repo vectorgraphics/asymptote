@@ -1698,21 +1698,17 @@ void execute(stack *s)
 {
   string Outname=outname;
   string *str = pop<string*>(s);
-  outname=*str;
-  symbol *id = symbol::trans(outname);
-  size_t p=findextension(outname,suffix);
-  if (p < string::npos) outname.erase(p);
+  outname = stripext(*str,suffix);
+
   trans::genv ge;
-  
   ge.autoloads(outname);
 
-  trans::record *m = ge.loadModule(id);
-  if (em->errors() == false) {
-    if (m) {
-      lambda *l = ge.bootupModule(m);
-      assert(l);
-      vm::run(l);
-    }
+  absyntax::file *tree = parser::parseFile(*str);
+  trans::record *m = ge.loadModule(symbol::trans(outname),tree);
+  if (em->errors() == false && m) {
+    lambda *l = ge.bootupModule(m);
+    assert(l);
+    vm::run(l);
   }
   outname=Outname;
 }
