@@ -317,6 +317,7 @@ extern ifile typein;
 template<class T>
 void ifile::iread(T& val)
 {
+  if(standard) clear();
   if(errorstream::interrupt) throw interrupted();
   if(settings::suppressStandard && standard) typein.Read(val);
   else {
