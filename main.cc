@@ -148,12 +148,6 @@ void body(string filename) // TODO: Refactor
     ++status;
   } catch (handled_error) {
     ++status;
-  } catch (const char* s) {
-    cerr << "error: " << s << endl;
-    ++status;
-  } catch (...) {
-    cerr << "error: exception thrown processing '" << basename << "'\n";
-    ++status;
   }
 }
 
@@ -164,7 +158,7 @@ void doInteractive()
     init();
     try {
       body("-");
-    } catch (interrupted) {
+    } catch (interrupted&) {
       if(em) em->Interrupt(false);
       cerr << endl;
       run::cleanup(true);
@@ -196,9 +190,14 @@ int main(int argc, char *argv[])
 
   std::cout.precision(DBL_DIG);
 
-  if (interactive)
-    loop::doInteractive();
-  else
-    loop::doBatch();
+  try {
+    if (interactive)
+      loop::doInteractive();
+    else
+      loop::doBatch();
+  } catch (...) {
+    cerr << "error: exception thrown.\n";
+    ++status;
+  }
   return status;
 }
