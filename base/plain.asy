@@ -68,6 +68,7 @@ static pen dashdotted=linetype("8 8 0 8");
 static pen longdashdotted=linetype("24 8 0 8");
 
 static pen Dotted=dotted+1.0;
+static pen Dotted(pen p) {return dotted+2*linewidth(p);}
 
 static pen squarecap=linecap(0);
 static pen roundcap=linecap(1);
@@ -2286,16 +2287,21 @@ pair endpoint(path p)
     return point(p,length(p));
 }
 
-pen[] colorPens={red,blue,green,magenta,cyan,orange,purple,brown,darkblue,
+pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,darkblue,
 		 darkgreen,chartreuse,fuchsia,salmon,lightblue,black,lavender,
 		 pink,yellow,gray};
-pen[] monoPens={solid,dashed,dotted,longdashed,dashdotted,longdashdotted};
+pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,longdashdotted};
 
 public bool mono=false;
+
+pen monoPen(int n) 
+{
+  return monoPen[n % monoPen.length];
+}
+
 pen Pen(int n) 
 {
-  return mono ? monoPens[n % monoPens.length] : 
-    colorPens[n % colorPens.length];
+  return mono ? monoPen(n) : colorPen[n % colorPen.length];
 }
 
 pen fontsize(real size) 
