@@ -70,6 +70,7 @@ absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
 
 absyntax::file *parseStdin()
 {
+  debug(false);
   yy::sbuf = std::cin.rdbuf();
   return doParse(yy::stream_input,"-");
 }
