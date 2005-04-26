@@ -90,7 +90,7 @@ vector m = pB-vector(0.26,-0.4,0.28);
 real width=5;
 labeldot("$m$",rp(m),SE,linewidth(width));
 draw("$\vec{\rho}$",rp(vector(0,0,0))--rp(m),Arrow,PenMargin(0,width));
-draw("$\bm{r}$",rp(pB)--rp(m),Arrow,PenMargin(0,width));
+draw("$\vec{r}$",rp(pB)--rp(m),Arrow,PenMargin(0,width));
 
 { // Sphere
   real sirk_rad;

@@ -187,6 +187,7 @@ int main(int argc, char *argv[])
   fpu_trap(trap);
   setsignal(signalHandler);
   if(interactive) signal(SIGINT,interruptHandler);
+  else signal(SIGCHLD, SIG_IGN); // Flush exited child processes (zombies)
 
   std::cout.precision(DBL_DIG);
 
