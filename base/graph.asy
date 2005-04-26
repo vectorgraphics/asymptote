@@ -1269,6 +1269,12 @@ void errorbars(picture pic=currentpicture, real[] x, real[] y,
   }
 }
 
+void errorbars(picture pic=currentpicture, real[] x, real[] y,
+	       real[] dpy, bool[] cond={}, pen p=currentpen, real size=0)
+{
+  errorbars(pic,x,y,0*x,dpy,cond,p,size);
+}
+
 // True arc
 guide Arc(pair c, real r, real angle1, real angle2)
 {

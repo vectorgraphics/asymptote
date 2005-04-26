@@ -1,4 +1,5 @@
-Andy: implement general casting
+Andy: implement general casting;
+extend syntax to allow for explict array casts like (int[]) on real[].
 
 Andy: implement tags
 
@@ -17,8 +18,6 @@ Andy: give execute(string) read/write access to caller environment
 (Among other purposes, this would enable us to implement a "line at a time
 mode" where complete lines are individually added to the parse tree and
 executed as they are entered.) Make it look interpreted but still compile.
-
-Tom: extend syntax to allow for explict array casts like (int[]) on real[].
 
 3d graphs
 
