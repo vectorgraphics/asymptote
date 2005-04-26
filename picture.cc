@@ -114,9 +114,15 @@ void picture::texinit()
 {
   // Output any new texpreamble commands
   if(TeXinitialized) {
-    texpreamble(tex,TeXpipepreamble);
-    TeXpipepreamble.clear();
-    return;
+    if(TeXpipepreamble.empty()) return;
+    if(TeXcontaminated) { // add on to existing texpreamble
+      texpreamble(tex,TeXpipepreamble);
+      TeXpipepreamble.clear();
+      return;
+    } else { // texpreamble should appear before any other commands
+      tex.pipeclose();
+      TeXinitialized=TeXcontaminated=false;
+    }
   }
   
   tex.open("latex");
@@ -271,7 +277,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	  }
 	  ostringstream cmd;
 	  cmd << Viewers[iViewer];
-	  if(Viewers[iViewer] == "gv" && interact::virtualEOF)
+	  if(Viewers[iViewer] == "gv" && interact::interactive)
 	    cmd << " -nowatch";
 	  cmd << " " << outname;
 	  status=System(cmd,false,wait,&pid,iViewer+1 == nViewers);
