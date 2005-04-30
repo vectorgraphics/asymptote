@@ -77,7 +77,7 @@ using sym::symbol;
             DOTS DASHES INCR
             CONTROLS TENSION ATLEAST CURL CYCLE
             COR CAND EQ NEQ LT LE GT GE CARETS
-            '+' '-' '*' '/' '%' '^' LOGNOT POW
+            '+' '-' '*' '/' '%' '^' LOGNOT
             STRING
 %token <pos> LOOSE ASSIGN '?' ':'
              DIRTAG JOIN_PREC AND
@@ -101,12 +101,11 @@ using sym::symbol;
 %left  CURL '{' '}'
 
 %left  '+' '-' 
-%left  '*' '/' '%'
-%left  '^'
+%left  '*' '/' '%' LIT
 %left  '(' ')'
-%left  UNARY LOGNOT INCR
-%left  LIT
-%right POW
+%left  UNARY
+%left '^'
+%left  LOGNOT INCR
 
 %type  <fil> file fileblock
 %type  <bs>  block bareblock
