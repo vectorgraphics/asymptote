@@ -415,17 +415,13 @@ types::ty *scaleExp::trans(coenv &e)
     right->trans(e);
     return types::primError();
   }
+
   if (!right->scalable()) {
-    types::ty *rt = right->trans(e);
-    if (rt->kind != types::ty_error) {
-      em->error(right->getPos());
-      *em << "expression cannot be implicitly scaled";
-    }
-    return types::primError();
+    em->warning(right->getPos());
+    *em << "implicit scaling may be unintentional";
   }
 
   // Defer to the binaryExp for multiplication.
-  // NOTE: This may cause problems later for memory deletion.
   binaryExp b(getPos(), left, symbol::trans("*"), right);
   return b.trans(e);
 }
@@ -433,7 +429,6 @@ types::ty *scaleExp::trans(coenv &e)
 types::ty *scaleExp::getType(coenv &e)
 {
   // Defer to the binaryExp for multiplication.
-  // NOTE: This may cause problems later for memory deletion.
   binaryExp b(getPos(), left, symbol::trans("*"), right);
   return b.getType(e);
 }

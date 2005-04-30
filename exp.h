@@ -84,7 +84,7 @@ public:
 
   // Checks if expression can be used as the right side of a scale
   // expression.  ie. 3sin(x)
-  virtual bool scalable() { return false; }
+  virtual bool scalable() { return true; }
   
   // Translates the expression to the given target type.  The default
   // behavior is to trans without the target, then perform a cast. 
@@ -137,8 +137,6 @@ public:
   {
     return value->getName();
   }
-
-  bool scalable() { return true; }
 
   void trans(coenv &e, types::ty *target) {
     value->varTrans(e, target);
@@ -241,14 +239,25 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
+
+  bool scalable() { return false; }
 };
 
-class intExp : public exp {
+
+class literalExp : public exp {
+public:
+  literalExp(position pos)
+    : exp(pos) {}
+
+  bool scalable() { return false; }
+};
+
+class intExp : public literalExp {
   int value;
 
 public:
   intExp(position pos, int value)
-    : exp(pos), value(value) {}
+    : literalExp(pos), value(value) {}
 
   void prettyprint(ostream &out, int indent);
 
@@ -256,13 +265,13 @@ public:
   types::ty *getType(coenv &) { return types::primInt(); }
 };
 
-class realExp : public exp {
+class realExp : public literalExp {
 protected:
   double value;
 
 public:
   realExp(position pos, double value)
-    : exp(pos), value(value) {}
+    : literalExp(pos), value(value) {}
 
   void prettyprint(ostream &out, int indent);
 
@@ -271,12 +280,12 @@ public:
 };
 
 
-class stringExp : public exp {
+class stringExp : public literalExp {
   std::string str;
 
 public:
   stringExp(position pos, std::string str)
-    : exp(pos), str(str) {}
+    : literalExp(pos), str(str) {}
 
   void prettyprint(ostream &out, int indent);
 
@@ -284,12 +293,12 @@ public:
   types::ty *getType(coenv &) { return types::primString(); }
 };
 
-class booleanExp : public exp {
+class booleanExp : public literalExp {
   bool value;
 
 public:
   booleanExp(position pos, bool value)
-    : exp(pos), value(value) {}
+    : literalExp(pos), value(value) {}
 
   void prettyprint(ostream &out, int indent);
 
@@ -297,11 +306,11 @@ public:
   types::ty *getType(coenv &) { return types::primBoolean(); }
 };
 
-class nullPictureExp : public exp {
+class nullPictureExp : public literalExp {
 
 public:
   nullPictureExp(position pos)
-    : exp(pos) {}
+    : literalExp(pos) {}
 
   void prettyprint(ostream &out, int indent);
 
@@ -309,11 +318,11 @@ public:
   types::ty *getType(coenv &) { return types::primPicture(); }
 };
 
-class nullPathExp : public exp {
+class nullPathExp : public literalExp {
 
 public:
   nullPathExp(position pos)
-    : exp(pos) {}
+    : literalExp(pos) {}
 
   void prettyprint(ostream &out, int indent);
 
@@ -321,11 +330,11 @@ public:
   types::ty *getType(coenv &) { return types::primPath(); }
 };
 
-class nullExp : public exp {
+class nullExp : public literalExp {
 
 public:
   nullExp(position pos)
-    : exp(pos) {}
+    : literalExp(pos) {}
 
   void prettyprint(ostream &out, int indent);
 
@@ -392,8 +401,6 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  bool scalable() { return true; }
-  
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
 };
@@ -407,8 +414,6 @@ public:
     : exp(pos), x(x), y(y) {}
 
   void prettyprint(ostream &out, int indent);
-
-  bool scalable() { return true; }
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primPair(); }
@@ -483,8 +488,6 @@ public:
     : exp(pos), test(test), onTrue(onTrue), onFalse(onFalse) {}
 
   void prettyprint(ostream &out, int indent);
-
-  // NOTE: decide if this is scalable.
 
   void trans(coenv &e, types::ty *target);
   types::ty *trans(coenv &e);
@@ -634,6 +637,8 @@ public:
     : exp(pos), dest(dest), op(op) {}
 
   void prettyprint(ostream &out, int indent);
+
+  bool scalable() { return false; }
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
