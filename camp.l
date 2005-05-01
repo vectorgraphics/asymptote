@@ -236,6 +236,7 @@ ESC \\
 "/"                {makesymbol(); return '/'; }
 "%"                {makesymbol(); return '%'; }
 "^"                {makesymbol(); return '^'; }
+"**"               {makesymbol("^"); return '^'; }
 "?"                {adjust(); return '?'; }
 "="                {adjust(); return ASSIGN; }
 "=="               {makesymbol(); return EQ; }
@@ -325,6 +326,10 @@ operator           {adjust(); BEGIN opname; }
                     yyterminate();
                    }
 spec               { makesymbol("<spec>");
+                     BEGIN INITIAL;
+                     return ID;
+                   }
+"**"               { makesymbol("^");
                      BEGIN INITIAL;
                      return ID;
                    }

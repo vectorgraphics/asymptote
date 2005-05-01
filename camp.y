@@ -104,7 +104,7 @@ using sym::symbol;
 %left  '*' '/' '%' LIT
 %left  '(' ')'
 %left  UNARY
-%left '^'
+%right '^'
 %left  LOGNOT INCR
 
 %type  <fil> file fileblock
