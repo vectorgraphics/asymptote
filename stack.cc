@@ -129,7 +129,6 @@ void stack::run(func *f)
           case inst::builtin: {
             bltin func = i.bfunc;
             func(this);
-            em->checkCamp(curPos);
             break;
           }
 
@@ -149,7 +148,6 @@ void stack::run(func *f)
             /* get the function reference off of the stack */
             callable* f = pop<callable*>();
             f->call(this);
-            em->checkCamp(curPos);
             break;
           }
 

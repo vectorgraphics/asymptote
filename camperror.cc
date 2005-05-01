@@ -12,36 +12,18 @@
 #include <cassert>
 
 #include "camperror.h"
+#include "stack.h"
+#include "errormsg.h"
 
 namespace camp {
-
-bool errorFlag;
-
-std::queue<std::string> errorQueue; 
 
 // Used internally to report an error in an operation.
 void reportError(std::string desc)
 {
-  errorFlag = true;
-  errorQueue.push(desc);
-}
-
-// Copies the description of the oldest unretrieved error into the
-// buffer.  Once all errors have had their descriptions retrieve this
-// way, errors() will once again return false.
-std::string getError()
-{
-  if (!errorFlag)
-    return std::string();
-
-  assert(!errorQueue.empty());
-
-  std::string desc = errorQueue.front();
-  errorQueue.pop();
-  
-  if (errorQueue.empty())
-    errorFlag = false;
-  return desc;
+  em->runtime(vm::getPos());
+  *em << "camp: " << desc;
+  em->sync();
+  throw handled_error(); 
 }
 
 } // namespace camp

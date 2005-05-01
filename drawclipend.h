@@ -24,7 +24,6 @@ public:
 	      std::list<bbox>& bboxstack) {
     if(bboxstack.size() < 2) {
       reportError("endclip without matching beginclip");
-      return;
     }
     b.clip(bboxstack.back());
     bboxstack.pop_back();

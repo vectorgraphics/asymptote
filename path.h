@@ -117,17 +117,14 @@ public:
     return cycles;
   }
   
-  bool emptyError() const {
-    if(empty()) {
+  void emptyError() const {
+    if(empty())
       reportError("nullpath has no points");
-      return true;
-    }
-    return false;
   }
   
   pair point(int i) const
   {
-    if(emptyError()) return pair();
+    emptyError();
     
     if (cycles)
       return nodes[imod(i,n)].point;
@@ -149,7 +146,7 @@ public:
   
   pair precontrol(int i) const
   {
-    if(emptyError()) return pair();
+    emptyError();
 		       
     if (cycles)
       return nodes[imod(i,n)].pre;
@@ -165,7 +162,7 @@ public:
   
   pair postcontrol(int i) const
   {
-    if(emptyError()) return pair();
+    emptyError();
 		       
     if (cycles)
       return nodes[imod(i,n)].post;

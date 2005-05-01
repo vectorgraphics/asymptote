@@ -116,10 +116,8 @@ public:
   friend transform inverse(const transform& t)
   {
     double d = det(t);
-    if (d == 0.0) {
+    if (d == 0.0)
       reportError("inverting singular transform");
-      return transform();
-    }
 
     d=1.0/d;
     return transform((t.xy * t.y - t.yy * t.x)*d,
@@ -191,10 +189,8 @@ inline transform rotatearound(pair z, double theta)
 
 inline transform reflectabout(pair z, pair w)
 {
-  if (z == w) { 
+  if (z == w)
     reportError("must reflect about line determined by two distinct points");
-    return transform();
-  }
   
   // Also could be optimized.
   transform basis = shift(z) * scale(w-z);

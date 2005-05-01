@@ -237,10 +237,8 @@ void psfile::image(array *a, array *P)
     for(size_t j=0; j < a0size; j++) {
       double val=read<double>(ai,j);
       pen *p=read<pen *>(P,(int) ((val-min)*step+0.5));
-      if(p->colorspace() != colorspace) {
+      if(p->colorspace() != colorspace)
 	reportError("inconsistent colorspaces in palette");
-	return;
-      }
   
       switch(ncomponents) {
       case 0:

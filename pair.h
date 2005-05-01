@@ -100,20 +100,16 @@ public:
 
   friend pair operator/ (const pair &z, const double& t)
   {
-    if (t == 0.0) {
+    if (t == 0.0)
       reportError("division by 0");
-      return pair(0,0);
-    }
    
     return pair(z.x/t, z.y/t);
   }
 
   friend pair operator/ (const pair& z, const pair& w)
   {
-    if (!w.nonZero()) {
+    if (!w.nonZero())
       reportError("divison by pair (0,0)");
-      return pair(0,0);
-    }
 
     double t = 1.0 / (w.x*w.x + w.y*w.y);
     return pair(t*(z.x*w.x + z.y*w.y),
@@ -147,19 +143,15 @@ public:
 
   double angle() const
   {
-    if (y == 0.0 && x == 0.0) {
+    if (y == 0.0 && x == 0.0)
       reportError("taking angle of (0,0)");
-      return 0.0;
-    }
     return atan2(y,x);
   }
   
   friend double angle(const pair& z)
   {
-    if (z.y == 0.0 && z.x == 0.0) {
+    if (z.y == 0.0 && z.x == 0.0)
       reportError("taking angle of (0,0)");
-      return 0.0;
-    }
     return atan2(z.y,z.x);
   }
 

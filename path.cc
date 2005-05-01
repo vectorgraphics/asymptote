@@ -79,7 +79,7 @@ inline quad solveQuadratic(double a, double b, double c)
 
 pair path::point(double t) const
 {
-  if(emptyError()) return pair();
+  emptyError();
     
   // NOTE: there may be better methods, but let's not split hairs, yet.
   int i = ifloor(t);
@@ -117,7 +117,7 @@ pair path::point(double t) const
 
 pair path::precontrol(double t) const
 {
-  if(emptyError()) return pair();
+  emptyError();
 		     
   // NOTE: may be better methods, but let's not split hairs, yet.
   int i = ifloor(t);
@@ -155,7 +155,7 @@ pair path::precontrol(double t) const
  
 pair path::postcontrol(double t) const
 {
-  if(emptyError()) return pair();
+  emptyError();
   
   // NOTE: may be better methods, but let's not split hairs, yet.
   int i = ifloor(t);
@@ -590,10 +590,8 @@ path concat(path p1, path p2)
 
   if (n1 == 0) return p2;
   if (n2 == 0) return p1;
-  if (p1.point(n1) != p2.point(0)) {
+  if (p1.point(n1) != p2.point(0))
     reportError("paths in concatenation do not meet");
-    return path();
-  }
 
   solvedKnot *nodes = new solvedKnot[n1+n2+1];
 

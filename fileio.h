@@ -64,7 +64,6 @@ public:
       std::ostringstream buf;
       buf << "Cannot open file \"" << name << "\".";
       reportError(buf.str().c_str());
-      closed=true;
     }
   }
   
@@ -77,8 +76,8 @@ public:
       std::ostringstream buf;
       buf << "I/O operation attempted on closed file \'" << name << "\'.";
       reportError(buf.str().c_str());
-      return false;
-    } else return true;
+    }
+    return true;
   }
 		
   std::string filename() {return name;}

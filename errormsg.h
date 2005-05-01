@@ -10,7 +10,6 @@
 
 #include <list>
 #include <iostream>
-#include "camperror.h"
 #include "pool.h"
 #include "settings.h"
 
@@ -80,7 +79,6 @@ class errorstream {
   bool anyWarnings;
   bool floating;	// Was a message output without a terminating newline?
   bool pending;		// Are there pending interrupts or tracing requests?
-  void printCamp(position pos); // Print camp errors and throw exception.
   
 public:
   static bool interrupt; // Is there a pending interrupt?
@@ -130,15 +128,6 @@ public:
   // appropriate newlines or file excerpts that may be needed at the end.
   void sync();
 
-  // Camp has its own methods for reporting errors.  After a method in
-  // camp is run, the function calling camp should call this to
-  // report any errors.  If checkCamp() finds errors, it will print them
-  // out, then stop execution.
-  void checkCamp(const position& pos) {
-    if (camp::errors())
-      printCamp(pos);
-  }
-  
   bool errors() const {
     return anyErrors;
   }

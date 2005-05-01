@@ -59,7 +59,6 @@ bool checkFormatString(const string& format)
     ostringstream msg;
     msg << "output format \'" << format << "\' is invalid";
     camp::reportError(msg.str());
-    return false;
   }
   return true;
 }
@@ -87,10 +86,8 @@ int System(const char *command, bool quiet, bool wait, int *ppid, bool warn)
   if(verbose > 1) cerr << command << endl;
 
   int pid = fork();
-  if (pid == -1) {
+  if (pid == -1)
     camp::reportError("Cannot fork process");
-    return 1;
-  }
   char **argv=args(command);
   if (pid == 0) {
     if(interact::interactive) signal(SIGINT,SIG_IGN);
@@ -113,7 +110,6 @@ int System(const char *command, bool quiet, bool wait, int *ppid, bool warn)
         ostringstream msg;
         msg << "Command " << command << " failed";
         camp::reportError(msg.str());
-        return 1;
       }
     } else {
       if(WIFEXITED(status)) {
@@ -125,7 +121,6 @@ int System(const char *command, bool quiet, bool wait, int *ppid, bool warn)
         ostringstream msg;
         msg << "Command " << command << " exited abnormally";
         camp::reportError(msg.str());
-        return 1;
       }
     }
   }

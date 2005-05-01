@@ -83,17 +83,6 @@ void errorstream::sync()
   floating = false;
 }
 
-void errorstream::printCamp(position pos)
-{
-  while (camp::errors()) {
-    runtime(pos);
-    *this << "camp: " << camp::getError();
-    sync();
-  }
-
-  throw handled_error();
-}
-
 void errorstream::process(const position& pos)
 {
   if(interrupt) throw interrupted();

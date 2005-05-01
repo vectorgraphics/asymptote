@@ -14,27 +14,12 @@
 #include <iostream>
 #include <string>
 
-using std::ostream;
-
 namespace camp {
-
-// Used internally, should use errors() to check for errors.
-extern bool errorFlag;
 
 // Used internally to report an error in an operation.
 void reportError(std::string desc);
 
-// Checks if an error has occured.
-inline bool errors() {
-  return errorFlag;
-}
-
-// Copies the description of the oldest unretrieved error into the
-// buffer.  Once all errors have had their descriptions retrieved this
-// way, errors() will once again return false.
-std::string getError();
-
-inline ostream& newl(ostream& s) {s << '\n'; return s;}
+inline std::ostream& newl(std::ostream& s) {s << '\n'; return s;}
   
 } // namespace camp
 
