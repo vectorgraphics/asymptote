@@ -2099,8 +2099,8 @@ void draw(pair origin, picture pic=currentpicture, string s="", real angle=0,
 	  string legend="", frame mark=nullframe, bool putmark=Above)
 {
   picture opic=new picture;
-  draw(opic,s,angle,g,position,align,shift,side,p,arrow,bar,margin,legend,
-       mark,putmark);
+  draw(opic,s,angle,g,position,align,shift,side,p,plabel,arrow,bar,margin,
+       legend,mark,putmark);
   add(origin,pic,opic);
 }
 
