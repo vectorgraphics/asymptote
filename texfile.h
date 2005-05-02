@@ -18,10 +18,10 @@
 #include "bbox.h"
 #include "pen.h"
 #include "util.h"
+#include "interact.h"
 
 namespace camp {
 
-extern bool TeXcontaminated;
 extern std::list<std::string> TeXpipepreamble, TeXpreamble;
 
 const double tex2ps=72.0/72.27;

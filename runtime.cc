@@ -1632,12 +1632,12 @@ void shipout(stack *s)
 
 static callable *atExitFunction=NULL;
 
-void cleanup(bool TeXclose)
+void cleanup()
 {
   defaultpen=camp::pen::startupdefaultpen();
   if(!interact::interactive) settings::scrollLines=0;
   
-  if(TeXinitialized && TeXclose) {
+  if(TeXinitialized && TeXcontaminated) {
     camp::TeXpipepreamble.clear();
     camp::TeXpreamble.clear();
     camp::tex.pipeclose();
@@ -1651,7 +1651,7 @@ void exitFunction(stack *s)
     atExitFunction->call(s);
     atExitFunction=NULL;
   }
-  cleanup(camp::TeXcontaminated);
+  cleanup();
 }
   
 void atExit(stack *s)

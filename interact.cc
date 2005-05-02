@@ -162,13 +162,13 @@ size_t interactive_input(char *buf, size_t max_size)
 
   if(virtualEOF) return 0;
   
-  char *line;
-
   if(rejectline) {
     rejectline_cached=virtualEOF=true;
     return 0;
   }
   
+  char *line;
+
   if((line=rl_gets())) {
     errorstream::interrupt=false;
     if(start == 0) start=history_length;

@@ -90,7 +90,7 @@ void init()
   em = new errorstream();
 }
 
-void cleanup()
+void purge()
 {
   delete em; em = 0;
   delete outnameStack; outnameStack = 0;
@@ -161,11 +161,14 @@ void doInteractive()
     } catch (interrupted&) {
       if(em) em->Interrupt(false);
       cerr << endl;
-      run::cleanup(true);
+      run::cleanup();
     }
     rejectline=em->warnings();
-    if(rejectline) virtualEOF=true;
-    cleanup(); 
+    if(rejectline) {
+      virtualEOF=true;
+      run::cleanup();
+    }
+    purge();
   }
 }
 
@@ -174,7 +177,7 @@ void doBatch()
   for(int ind=0; ind < numArgs() ; ind++) {
     init();
     body(getArg(ind));
-    cleanup();
+    purge();
   }
 }
 
@@ -187,7 +190,6 @@ int main(int argc, char *argv[])
   fpu_trap(trap);
   setsignal(signalHandler);
   if(interactive) signal(SIGINT,interruptHandler);
-  else signal(SIGCHLD, SIG_IGN); // Flush exited child processes (zombies)
 
   std::cout.precision(DBL_DIG);
 

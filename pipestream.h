@@ -1,6 +1,6 @@
 /* Pipestream: A simple C++ interface to UNIX pipes
-   Version 0.00
-   Copyright (C) 2004 John C. Bowman
+   Version 0.01
+   Copyright (C) 2005 John C. Bowman
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -45,39 +45,55 @@ protected:
 public:
   void open(const char *command, int out_fileno=STDOUT_FILENO) {
     if(pipe(in) == -1) {
-      std::cerr << "in pipe failed: " << command << std::endl;
-      throw handled_error();
+      ostringstream buf;
+      buf << "in pipe failed: " << command;
+      camp::reportError(buf.str());
     }
 
     if(pipe(out) == -1) {
-      std::cerr << "out pipe failed: " << command << std::endl;
-      throw handled_error();
+      ostringstream buf;
+      buf << "out pipe failed: " << command;
+      camp::reportError(buf.str());
     }
     
-    if((pid=fork()) < 0) {
-      std::cerr << "fork failed: " << command << std::endl;
-      throw handled_error();
+    int wrapperpid;
+    // Portable way of forking that avoids zombie child processes
+    if((wrapperpid=fork()) < 0) {
+      ostringstream buf;
+      buf << "fork failed: " << command;
+      camp::reportError(buf.str());
     }
     
-    if(pid == 0) { 
-      if(interact::interactive) signal(SIGINT,SIG_IGN);
-      close(in[1]);
-      close(out[0]);
-      dup2(in[0],STDIN_FILENO);
-      dup2(out[1],out_fileno);
-      close(in[0]);
+    if(wrapperpid == 0) {
+      if((pid=fork()) < 0) {
+	ostringstream buf;
+	buf << "fork failed: " << command;
+	camp::reportError(buf.str());
+      }
+    
+      if(pid == 0) { 
+	if(interact::interactive) signal(SIGINT,SIG_IGN);
+	close(in[1]);
+	close(out[0]);
+	dup2(in[0],STDIN_FILENO);
+	dup2(out[1],out_fileno);
+	close(in[0]);
+	close(out[1]);
+	char **argv=args(command);
+	if(argv) execvp(argv[0],argv);
+	ostringstream buf;
+	buf << "exec failed: " << command << std::endl;
+	camp::reportError(buf.str());
+      }
+      exit(0);
+    } else {
       close(out[1]);
-      char **argv=args(command);
-      if(argv) execvp(argv[0],argv);
-      std::cerr << "exec failed: " << command << std::endl;
-      throw handled_error();
+      close(in[0]);
+      pipeopen=true;
+      waitpid(wrapperpid,NULL,0);
     }
-    
-    close(out[1]);
-    close(in[0]);
-    pipeopen=true;
   }
-  
+
   iopipestream(): pid(0), pipeopen(false) {}
   
   iopipestream(const char *command, int out_fileno=STDOUT_FILENO) :
@@ -108,8 +124,7 @@ public:
     ssize_t size=BUFSIZE-1;
     for(;;) {
       if((nc=read(out[0],p,size)) < 0) {
-	std::cerr << "read from pipe failed" << std::endl;
-	throw handled_error();
+	camp::reportError("read from pipe failed");
       }
       p[nc]=0;
       if(nc == 0) break;
@@ -141,16 +156,14 @@ public:
       len=readbuffer();
       if(abort) {
 	if(strncmp(buffer,abort,alen) == 0) {
-	  std::cerr << buffer << std::endl;
-	  throw handled_error();
+	  camp::TeXcontaminated=true;
+	  camp::reportError(buffer);
 	}
 	char *p=buffer;
 	while((p=strchr(p,'\n')) != NULL) {
 	  ++p;
-	  if(strncmp(p,abort,alen) == 0) {
-	    std::cerr << buffer << std::endl;
-	    throw handled_error();
-	  }
+	  if(strncmp(p,abort,alen) == 0)
+	    camp::reportError(buffer);
 	}
       }
     } while (strcmp(buffer+len-plen,prompt) != 0);
@@ -162,14 +175,16 @@ public:
       if (waitpid(pid, &status, 0) == -1) {
 	if (errno == ECHILD) return 0;
 	if (errno != EINTR) {
-	  std::cerr << "Process " << pid << " failed" << std::endl;
-	  throw handled_error();
+	  ostringstream buf;
+	  buf << "Process " << pid << " failed";
+	  camp::reportError(buf.str());
 	}
       } else {
 	if(WIFEXITED(status)) return WEXITSTATUS(status);
 	else {
-	  std::cerr << "Process " << pid << " exited abnormally" << std::endl;
-	  throw handled_error();
+	  ostringstream buf;
+	  buf << "Process " << pid << " exited abnormally";
+	  camp::reportError(buf.str());
 	}
       }
     }
@@ -178,10 +193,8 @@ public:
   iopipestream& operator << (const std::string &s) {
     ssize_t size=s.length();
     if(settings::verbose > 2) std::cerr << s << std::endl;
-    if(write(in[1],s.c_str(),size) != size) {
-      std::cerr << "write to pipe failed" << std::endl;
-      throw handled_error();
-    }
+    if(write(in[1],s.c_str(),size) != size)
+      camp::reportError("write to pipe failed");
     return *this;
   }
   
