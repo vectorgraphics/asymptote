@@ -11,10 +11,10 @@ static bool Crop=true;
 static bool NoCrop=false;
 
 static scaleT Linear=new scaleT;
-Linear.set(identity,identity);
+Linear.init(identity,identity);
 
 static scaleT Log=new scaleT;
-Log.set(log10,pow10);
+Log.init(log10,pow10);
 
 public scaleT Linear(bool automin=true, bool automax=true, real s=1,
 		     real intercept=0)
@@ -22,7 +22,7 @@ public scaleT Linear(bool automin=true, bool automax=true, real s=1,
   real sinv=1/s;
   scaleT scale=new scaleT;
   real Tinv(real x) {return x*sinv+intercept;}
-  scale.set(new real(real x) {return (x-intercept)*s;},
+  scale.init(new real(real x) {return (x-intercept)*s;},
 	    Tinv,Tinv,automin,automax);
   return scale;
 }
@@ -30,7 +30,7 @@ public scaleT Linear(bool automin=true, bool automax=true, real s=1,
 public scaleT Log(bool automin=true, bool automax=true)
 {
   scaleT scale=new scaleT;
-  scale.set(Log.T,Log.Tinv,Log.Label,automin,automax);
+  scale.init(Log.T,Log.Tinv,Log.Label,automin,automax);
   return scale;
 }
 
@@ -478,13 +478,15 @@ public ticks
   RightTicks=RightTicks();
 
 void axis(picture pic=currentpicture, guide g,
-	  real tickmin=-infinity, real tickmax=infinity, pen p=currentpen,
+	  real tickmin=-infinity, real tickmax=infinity,
 	  string s="", real position=1, real angle=0, pair align=S,
-	  pair shift=0, pair side=right, pen plabel=currentpen,
+	  pair shift=0, pair side=right,
+	  pen plabel=currentpen, pen p=nullpen,
 	  ticks ticks=NoTicks, int[] divisor=new int[],
 	  bool logarithmic=false, scaleT scale=Linear, part part,
 	  bool put=Above, bool opposite=false) 
 {
+  if(p == nullpen) p=plabel;
   autoscaleT S=new autoscaleT;
   S.scale=scale;
   divisor=copy(divisor);
@@ -492,7 +494,7 @@ void axis(picture pic=currentpicture, guide g,
     frame d;
     ticks(d,t,s,position,angle,align,shift,side,plabel,t*g,p,S,part,
 	  opposite,divisor,tickmin,tickmax,ticks);
-    (put ? add : prepend) (f,t*T*inverse(t)*d);
+    (put ? add : prepend)(f,t*T*inverse(t)*d);
   });
   
   pic.addPath(g,p);
@@ -507,12 +509,14 @@ void axis(picture pic=currentpicture, guide g,
 
 void xequals(picture pic=currentpicture, real x,
 	     real ymin=-infinity, real ymax=infinity, 
-	     real tickmin=-infinity, real tickmax=infinity, pen p=currentpen,
+	     real tickmin=-infinity, real tickmax=infinity,
 	     string s="", real position=1, real angle=0, pair align=W,
-	     pair shift=0, pair side=right, pen plabel=currentpen,
+	     pair shift=0, pair side=right,
+	     pen plabel=currentpen, pen p=nullpen, 
 	     ticks ticks=NoTicks, int[] divisor=new int[],
 	     bool put=Above, bool opposite=false)
 {
+  if(p == nullpen) p=plabel;
   divisor=copy(divisor);
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
     pair a=ymin == -infinity ? (xtrans(t,x),lb.y-min(p).y) : t*(x,ymin);
@@ -522,7 +526,7 @@ void xequals(picture pic=currentpicture, real x,
 	  pic.scale.y,
 	  new real(pair z) {return pic.scale.y.Label(z.y);},
 	  opposite,divisor,tickmin,tickmax,ticks);
-    (put ? add : prepend) (f,t*T*inverse(t)*d);
+    (put ? add : prepend)(f,t*T*inverse(t)*d);
   });
   
   pair a=(x,finite(ymin) ? ymin : pic.userMin.y);
@@ -548,12 +552,14 @@ void xequals(picture pic=currentpicture, real x,
 
 void yequals(picture pic=currentpicture, real y,
 	     real xmin=-infinity, real xmax=infinity,
-	     real tickmin=-infinity, real tickmax=infinity, pen p=currentpen,
+	     real tickmin=-infinity, real tickmax=infinity,
 	     string s="", real position=1, real angle=0, pair align=S, 
-	     pair shift=0, pair side=left, pen plabel=currentpen,
+	     pair shift=0, pair side=left,
+	     pen plabel=currentpen, pen p=nullpen, 
 	     ticks ticks=NoTicks, int[] divisor=new int[],
 	     bool put=Above, bool opposite=false)
 {
+  if(p == nullpen) p=plabel;
   divisor=copy(divisor);
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
     pair a=xmin == -infinity ? (lb.x-min(p).x,ytrans(t,y)) : t*(xmin,y);
@@ -563,7 +569,7 @@ void yequals(picture pic=currentpicture, real y,
 	  pic.scale.x,
 	  new real(pair z) {return pic.scale.x.Label(z.x);},
 	  opposite,divisor,tickmin,tickmax,ticks);
-    (put ? add : prepend) (f,t*T*inverse(t)*d);
+    (put ? add : prepend)(f,t*T*inverse(t)*d);
   });
 
   pair a=(finite(xmin) ? xmin : pic.userMin.x,y);
@@ -845,12 +851,13 @@ void checkaxis(picture pic, axis axis)
   abort("unextended axis called before draw");
 }
 
-void xaxis(picture pic=currentpicture, real xmin=-infinity,
-	   real xmax=infinity, pen p=currentpen, string s="",
+void xaxis(picture pic=currentpicture,
+	   real xmin=-infinity, real xmax=infinity, string s="",
 	   real position=infinity, real angle=0, pair align=0, pair shift=0,
-	   pair side=0, pen plabel=currentpen, axis axis=YZero,
-	   ticks ticks=NoTicks, bool put=Below)
+	   pair side=0, pen plabel=currentpen, pen p=nullpen,
+	   axis axis=YZero, ticks ticks=NoTicks, bool put=Below)
 {
+  if(p == nullpen) p=plabel;
   bool newticks=false;
   if(xmin != -infinity) {
     pic.userMin=(xmin,pic.userMin.y);
@@ -888,20 +895,21 @@ void xaxis(picture pic=currentpicture, real xmin=-infinity,
   if(side == 0) side=axis.side;
   
   yequals(pic,axis.value.y,xmin,xmax,pic.scale.x.tickMin,
-	  pic.scale.x.tickMax,p,s,position,angle,align,shift,side,plabel,
+	  pic.scale.x.tickMax,s,position,angle,align,shift,side,plabel,p,
 	  ticks,axis.xdivisor,put);
   if(axis.value2 != infinity)
     yequals(pic,axis.value2.y,xmin,xmax,pic.scale.x.tickMin,
-	    pic.scale.x.tickMax,p,s,position,angle,align,shift,side,plabel,
+	    pic.scale.x.tickMax,s,position,angle,align,shift,side,plabel,p,
 	    ticks,axis.xdivisor,put,true);
 }
 
-void yaxis(picture pic=currentpicture, real ymin=-infinity,
-	   real ymax=infinity, pen p=currentpen, string s="",
+void yaxis(picture pic=currentpicture,
+	   real ymin=-infinity, real ymax=infinity, string s="",
 	   real position=infinity, real angle=infinity, pair align=0,
-	   pair shift=0, pair side=0, pen plabel=currentpen, axis axis=XZero,
-	   ticks ticks=NoTicks, bool put=Below)
+	   pair shift=0, pair side=0, pen plabel=currentpen, pen p=nullpen,
+	   axis axis=XZero, ticks ticks=NoTicks, bool put=Below)
 {
+  if(p == nullpen) p=plabel;
   bool newticks=false;
   if(ymin != -infinity) {
     pic.userMin=(pic.userMin.x,ymin);
@@ -945,11 +953,11 @@ void yaxis(picture pic=currentpicture, real ymin=-infinity,
   }
   
   xequals(pic,axis.value.x,ymin,ymax,pic.scale.y.tickMin,
-	  pic.scale.y.tickMax,p,s,position,angle,align,shift,side,plabel,
+	  pic.scale.y.tickMax,s,position,angle,align,shift,side,plabel,p,
 	  ticks,axis.ydivisor,put);
   if(axis.value2 != infinity)
     xequals(pic,axis.value2.x,ymin,ymax,pic.scale.y.tickMin,
-	    pic.scale.y.tickMax,p,s,position,angle,align,shift,side,plabel,
+	    pic.scale.y.tickMax,s,position,angle,align,shift,side,plabel,p,
 	    ticks,axis.ydivisor,put,true);
 }
 
@@ -960,22 +968,22 @@ void axes(picture pic=currentpicture, pen p=currentpen, bool put=Below)
 }
 
 void xline(picture pic=currentpicture, real x, real ymin=-infinity,
-	   real ymax=infinity, pen p=currentpen, string s="",
+	   real ymax=infinity, string s="",
 	   real position=infinity, real angle=infinity, pair align=0,
-	   pair shift=0, pair side=0, pen plabel=currentpen,
+	   pair shift=0, pair side=0, pen plabel=currentpen, pen p=nullpen,
 	   ticks ticks=NoTicks, bool put=Above, bool extend=false)
 {
-  yaxis(pic,ymin,ymax,p,s,position,angle,align,shift,side,plabel,
+  yaxis(pic,ymin,ymax,s,position,angle,align,shift,side,plabel,p,
 	XEquals(x,extend),ticks,put);
 }
 
 void yline(picture pic=currentpicture, real y, real xmin=-infinity,
-	   real xmax=infinity, pen p=currentpen, string s="",
+	   real xmax=infinity, string s="",
 	   real position=infinity, real angle=0, pair align=0,
-	   pair shift=0, pair side=0, pen plabel=currentpen,
+	   pair shift=0, pair side=0, pen plabel=currentpen, pen p=nullpen,
 	   ticks ticks=NoTicks, bool put=Above, bool extend=false)
 {
-  xaxis(pic,xmin,xmax,p,s,position,angle,align,shift,side,plabel,
+  xaxis(pic,xmin,xmax,s,position,angle,align,shift,side,plabel,p,
 	YEquals(y,extend),ticks,put);
 }
 

@@ -21,6 +21,7 @@ guide operator controls(pair z)
 public bool shipped=false;
 public bool uptodate=true;
 static public pen currentpen;
+static pen nullpen=linewidth(0);
 
 static real inches=72;
 static real inch=inches;
@@ -244,6 +245,38 @@ string ask(string prompt)
   return stdin;
 }
 
+string getstringprefix=".asy_";
+
+void savestring(string name, string value, string prefix=getstringprefix)
+{
+  file out=output(prefix+name);
+  write(out,value);
+  close(out);
+}
+
+string getstring(string name, string default="", string prompt="",
+		 string prefix=getstringprefix,bool save=true)
+{
+  string value;
+  file in=input(prefix+name,false);
+  if(error(in)) value=default;
+  else value=in;
+  if(prompt == "") prompt=name+"? ["+value+"] ";
+  string input=ask(prompt);
+  if(input != "") value=input;
+  if(save) savestring(name,value);
+  return value;
+}
+
+real getreal(string name, real default=0, string prompt="",
+	     string prefix=getstringprefix, bool save=true)
+{
+  string value=getstring(name,(string) default,prompt,getstringprefix,false);
+  real x=(real) value;
+  if(save) savestring(name,value);
+  return x;
+}
+
 static private int GUIFilenum=0;
 static public frame patterns;
 
@@ -416,8 +449,8 @@ public struct scaleT {
   scalefcn T,Tinv,Label;
   T=Tinv=Label=identity;
   bool automin=true, automax=true;
-  void set(scalefcn T, scalefcn Tinv, scalefcn Label=identity,
-      bool automin=true, bool automax=true) {
+  void init(scalefcn T, scalefcn Tinv, scalefcn Label=identity,
+	    bool automin=true, bool automax=true) {
     this.T=T;
     this.Tinv=Tinv;
     this.Label=Label;
@@ -448,9 +481,18 @@ public struct ScaleT {
 
 struct Legend {
   public string label;
+  public pen plabel;
   public pen p;
   public frame mark;
   public bool putmark;
+  void init(string label, pen plabel=currentpen, pen p=nullpen,
+	    frame mark=nullframe, bool putmark=false) {
+    this.label=label;
+    this.plabel=plabel;
+    this.p=(p == nullpen) ? plabel : p;
+    this.mark=mark;
+    this.putmark=putmark;
+  }
 }
 
 pair minbound(pair z, pair w) 
@@ -480,6 +522,9 @@ pair point(frame f, pair dir)
 {
   return min(f)+realmult(rectify(dir),max(f)-min(f));
 }
+
+static bool Above=true;
+static bool Below=false;
 
 struct picture {
   // The functions to do the deferred drawing.
@@ -786,7 +831,7 @@ struct picture {
 
   // Add a picture to this picture, such that the user coordinates will be
   // scaled identically in the shipout.
-  void add(picture src, bool group=true)
+  void add(picture src, bool group=true, bool put=Above)
   {
     // Copy the picture.  Only the drawing function closures are needed, so we
     // only copy them.  This needs to be a deep copy, as src could later have
@@ -798,7 +843,7 @@ struct picture {
     nodes.push(new void (frame f, transform t, transform T, pair m, pair M) {
      frame d=srcCopy.fit(t,T*srcCopy.T,m,M);
      if(group) begingroup(f);
-     add(f,d);
+     (put ? add : prepend)(f,d);
      if(group) endgroup(f);
      for(int i=0; i < src.legend.length; ++i)
        legend.push(src.legend[i]);
@@ -918,17 +963,19 @@ void add(frame dest, frame src, bool group)
 // (default false)
 void add(pair origin, frame dest, frame src, bool group=false)
 {
+  if(group) begingroup(dest);
   add(dest,shift(origin)*src);
+  if(group) endgroup(dest);
 }
 
 // Add frame src about origin to picture dest with optional grouping
 // (default true)
 void add(pair origin=(0,0), picture dest=currentpicture, frame src,
-	 bool group=true)
+	 bool group=true, bool put=Above)
 {
   dest.add(new void (frame f, transform t) {
     if(group) begingroup(f);
-    add(f,shift(t*origin)*src);
+    (put ? add : prepend)(f,shift(t*origin)*src);
     if(group) endgroup(f);
   });
   dest.addBox(origin,origin,min(src),max(src));
@@ -936,10 +983,10 @@ void add(pair origin=(0,0), picture dest=currentpicture, frame src,
 
 // Like add(pair,picture,frame,bool) but extend picture to accommodate frame
 void attach(pair origin=(0,0), picture dest=currentpicture, frame src,
-	    bool group=true)
+	    bool group=true, bool put=Above)
 {
   transform t=dest.calculateTransform(dest.xsize,dest.ysize,dest.keepAspect);
-  add(origin,dest,src,group);
+  add(origin,dest,src,group,put);
   pair s=size(dest.fit(t));
   size(dest,dest.xsize != 0 ? s.x : 0,dest.ysize != 0 ? s.y : 0,
        dest.keepAspect);
@@ -947,27 +994,28 @@ void attach(pair origin=(0,0), picture dest=currentpicture, frame src,
 
 // Add a picture to another such that user coordinates in both will be scaled
 // identically in the shipout.
-void add(picture dest, picture src, bool group=true)
+void add(picture dest, picture src, bool group=true, bool put=Above)
 {
-  dest.add(src,group);
+  dest.add(src,group,put);
 }
 
-void add(picture src, bool group=true)
+void add(picture src, bool group=true, bool put=Above)
 {
-  add(currentpicture,src,group);
+  add(currentpicture,src,group,put);
 }
 
 // Fit the picture src using the identity transformation (so user
 // coordinates and truesize coordinates agree) and add it about the point
 // origin to picture dest.
-void add(pair origin, picture dest, picture src, bool group=true)
+void add(pair origin, picture dest, picture src, bool group=true,
+	 bool put=Above)
 {
-  add(origin,dest,src.fit(identity()),group);
+  add(origin,dest,src.fit(identity()),group,put);
 }
 
-void add(pair origin, picture src, bool group=true)
+void add(pair origin, picture src, bool group=true, bool put=Above)
 {
-  add(origin,currentpicture,src,group);
+  add(origin,currentpicture,src,group,put);
 }
 
 guide box(pair a, pair b)
@@ -1433,8 +1481,6 @@ void newpage()
 
 static bool Aspect=true;
 static bool IgnoreAspect=false;
-static bool Above=true;
-static bool Below=false;
 
 private struct waitT {};
 public waitT wait=null;
@@ -1654,12 +1700,11 @@ picture legend(Legend[] legend)
   if(legend.length > 0) {
     for(int i=0; i < legend.length; ++i) {
       Legend L=legend[i];
-      pen p=L.p;
-      pair z1=legendmargin-i*I*legendskip*fontsize(p);
+      pair z1=legendmargin-i*I*legendskip*fontsize(L.p);
       pair z2=z1+legendlinelength;
       if(!L.putmark && !empty(L.mark)) mark(inset,interp(z1,z2,0.5),L.mark);
-      Draw(inset,z1--z2,p);
-      label(inset,L.label,z2,E,p);
+      Draw(inset,z1--z2,L.p);
+      label(inset,L.label,z2,E,L.plabel);
       if(L.putmark && !empty(L.mark)) mark(inset,interp(z1,z2,0.5),L.mark);
     }
   }
@@ -2028,29 +2073,28 @@ public arrowbar
 
 void draw(picture pic=currentpicture, string s="", real angle=0,
 	  path g, real position=infinity, pair align=0, pair shift=0,
-	  side side=RightSide, pen p=currentpen,
-	  arrowbar arrow=None, arrowbar bar=None,
-	  margin margin=NoMargin, string legend="", frame mark=nullframe,
-	  bool putmark=Above)
+	  side side=RightSide, pen plabel=currentpen, pen p=nullpen,
+	  arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
+	  string legend="", frame mark=nullframe, bool putmark=Above)
 {
+  if(p == nullpen) p=plabel;
   if(!putmark && !empty(mark)) mark(pic,g,mark);
   arrowbarT arrowbar=new arrowbarT;
-  if(s != "") label(pic,s,angle,g,position,align,shift,side,p);
+  if(s != "") label(pic,s,angle,g,position,align,shift,side,plabel);
   bar(pic,g,p,margin,arrowbar);
   arrow(pic,g,p,margin,arrowbar);
   if(arrowbar.drawpath) _draw(pic,g,p,margin);
   if(legend != "") {
-    Legend L=new Legend; L.label=legend; L.p=p; L.mark=mark;
-    L.putmark=putmark;
+    Legend L=new Legend; L.init(legend,plabel,p,mark,putmark);
     pic.legend.push(L);
   }
   if(putmark && !empty(mark)) mark(pic,g,mark);
 }
 
 // Draw a fixed-size object about the user-coordinate 'origin'.
-void draw(pair origin, picture pic=currentpicture, string s="",
-	  real angle=0, path g, real position=infinity, pair align=0,
-	  pair shift=0, side side=RightSide, pen p=currentpen,
+void draw(pair origin, picture pic=currentpicture, string s="", real angle=0,
+	  path g, real position=infinity, pair align=0, pair shift=0, 
+	  side side=RightSide, pen plabel=currentpen, pen p=nullpen,
 	  arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
 	  string legend="", frame mark=nullframe, bool putmark=Above)
 {
@@ -2292,6 +2336,22 @@ pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,darkblue,
 		 pink,yellow,gray};
 pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,longdashdotted};
 
+transform invert=reflect((0,0),(1,0));
+real circlescale=0.85;
+
+frame[] Mark={
+  scale(circlescale)*marker(unitcircle),
+  marker(polygon(3)),marker(polygon(4)),
+  marker(polygon(5)),marker(invert*polygon(3)),
+  marker(cross(4)),marker(cross(6))
+};
+
+frame[] MarkFill={
+  scale(circlescale)*marker(unitcircle,Fill),marker(polygon(3),Fill),
+  marker(polygon(4),Fill),marker(polygon(5),Fill),
+  marker(invert*polygon(3),Fill)
+};
+
 public bool mono=false;
 
 pen monoPen(int n) 
@@ -2302,6 +2362,13 @@ pen monoPen(int n)
 pen Pen(int n) 
 {
   return mono ? monoPen(n) : colorPen[n % colorPen.length];
+}
+
+frame Mark(int n) 
+{
+  n=n % (Mark.length+MarkFill.length);
+  if(n < Mark.length) return Mark[n];
+  else return MarkFill[n-Mark.length];
 }
 
 pen fontsize(real size) 

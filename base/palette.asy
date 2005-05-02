@@ -22,11 +22,12 @@ paletteticks PaletteTicks(bool begin=true, int N=0, real Step=0,
 public paletteticks PaletteTicks=PaletteTicks();
 
 picture palette(real[][] data, real width=Ticksize,
-	     pen[] palette, pen p=currentpen, string s="", real position=0.5,
+	     pen[] palette, string s="", real position=0.5,
 	     real angle=infinity, pair align=E, pair shift=0,
-	     pair side=right, pen plabel=currentpen,
+	     pair side=right, pen plabel=currentpen, pen p=nullpen,
 	     paletteticks ticks=PaletteTicks)
 {
+  if(p == nullpen) p=plabel;
   picture pic=new picture;
   real initialy=min(data);
   real finaly=max(data);
@@ -43,7 +44,7 @@ picture palette(real[][] data, real width=Ticksize,
   });
   
   pic.addBox(z0,z1,(-width,0),(0,0));
-  yaxis(pic,initialy,finaly,p,s,position,angle,align,shift,side,plabel,
+  yaxis(pic,initialy,finaly,s,position,angle,align,shift,side,p,plabel,
 	ticks(width),Above);
   return pic;
 }
