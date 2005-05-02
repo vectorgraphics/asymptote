@@ -1753,8 +1753,10 @@ division
 modulo; the result always has the same sign as the divisor. 
 @cindex @code{^}
 @item ^
+@cindex @code{**}
 power; if the exponent (second argument) is an int, recursive
 multiplication is used; otherwise, logarithms and exponentials are used.
+@code{**} is a synonym for @code{^}.
 
 @end table
 
@@ -2597,11 +2599,11 @@ An axis can be drawn on a picture with one of the following commands:
 @item
 @verbatim
 void xaxis(picture pic=currentpicture,
-           real xmin=-infinity, real xmax=infinity, pen p=currentpen,
-           string s="", real position=infinity, real angle=0,
-           pair align=0, pair shift=0, pair side=0,
-           pen plabel=currentpen, axis axis=YZero, ticks
-           ticks=NoTicks, bool put=Below);
+           real xmin=-infinity, real xmax=infinity, string s="",
+           real position=infinity, real angle=0, pair align=0,
+           pair shift=0, pair side=0,
+           pen plabel=currentpen, pen p=plabel,
+           axis axis=YZero, ticks ticks=NoTicks, bool put=Below);
 @end verbatim
 
 Draw an @math{x} axis on picture @code{pic} from @math{x}=@code{xmin} to
@@ -2683,11 +2685,11 @@ requests a big tick at the end of the axis.
 @item
 @verbatim
 void yaxis(picture pic=currentpicture,
-           real ymin=-infinity, real ymax=infinity, pen p=currentpen,
-           string s="", real position=infinity, real angle=infinity,
-           pair align=0, pair shift=0, pair side=0,
-           pen plabel=currentpen, axis axis=XZero, ticks ticks=NoTicks,
-           bool put=Below);         
+           real ymin=-infinity, real ymax=infinity, string s="",
+           real position=infinity, real angle=infinity, pair align=0,
+           pair shift=0, pair side=0,
+           pen plabel=currentpen, pen p=plabel,
+           axis axis=XZero, ticks ticks=NoTicks, bool put=Below);         
 @end verbatim
 
 Draw a @math{y} axis on picture @code{pic} from @math{y}=@code{ymin} to
@@ -2742,11 +2744,11 @@ completeness, we also document the following internal routines:
 void xequals(picture pic=currentpicture, real X,
              real ymin=-infinity, real ymax=infinity, 
              real tickmin=-infinity, real tickmax=infinity,
-             pen p=currentpen, string s="", real position=1,
-             real angle=0, pair align=W, pair shift=0, pair side=right,
-             pen plabel=currentpen, ticks ticks=NoTicks,
-             int[] divisor=new int[], bool put=Above,
-             bool opposite=false);
+             string s="", real position=1, real angle=0, pair align=W,
+             pair shift=0, pair side=right,
+             pen plabel=currentpen, pen p=plabel,
+             ticks ticks=NoTicks, int[] divisor=new int[],
+             bool put=Above, bool opposite=false);
 @end verbatim
 
 This internal routine draws the line @math{x}=@code{X} on picture
@@ -2769,11 +2771,11 @@ only if @code{put} is @code{Above}.
 void yequals(picture pic=currentpicture, real Y,
              real xmin=-infinity, real xmax=infinity,
              real tickmin=-infinity, real tickmax=infinity,
-             pen p=currentpen, string s="", real position=1,
-             real angle=0, pair align=S, pair shift=0, pair side=left,
-             pen plabel=currentpen, ticks ticks=NoTicks,
-             int[] divisor=new int[], bool put=Above,
-             bool opposite=false);
+             string s="", real position=1, real angle=0, pair align=S,
+             pair shift=0, pair side=left,
+             pen plabel=currentpen, pen p=plabel,
+             ticks ticks=NoTicks, int[] divisor=new int[],
+             bool put=Above, bool opposite=false);
 @end verbatim
 
 This internal routine is like @code{xequals}, but draws the line
@@ -2782,13 +2784,14 @@ This internal routine is like @code{xequals}, but draws the line
 
 @item
 @verbatim
-void axis(bool put=Above, picture pic=currentpicture, guide g,
+void axis(picture pic=currentpicture, guide g,
           real tickmin=-infinity, real tickmax=infinity,
-          pen p=currentpen, string s="", real position=1,
-          real angle=0, pair align=S, pair side=right,
-          pen plabel=currentpen, ticks ticks=NoTicks,
-          int[] divisor=new int[], bool logarithmic=false,
-          scaleT scale=Linear, part part, bool opposite=false);
+          string s="", real position=1, real angle=0, pair align=S,
+          pair shift=0, pair side=right,
+          pen plabel=currentpen, pen p=plabel,
+          ticks ticks=NoTicks, int[] divisor=new int[],
+          bool logarithmic=false, scaleT scale=Linear, part part,
+          bool put=Above, bool opposite=false);
 @end verbatim
 
 This routine can be used to draw a general axis based on an arbitrary
@@ -2827,7 +2830,6 @@ graphical user interface @code{xasy} (@pxref{GUI}).
 @cindex @code{LeftTicks}
 @cindex @code{RightTicks}
 @verbatiminclude lineargraph0.asy
-@page
 @image{lineargraph0}
 
 @cindex @code{attach}
@@ -2863,7 +2865,6 @@ optional pair array @code{dm}. If @code{dm} is not specified, the
 positive and negative extents of the error are assumed to be equal.
 @anchor{datagraph}
 @verbatiminclude datagraph.asy
-@page
 @image{datagraph}
 
 @item This example draws a graph of a parametrized curve. 
@@ -2987,11 +2988,11 @@ void image(picture pic=currentpicture, real[][] data, pen[] palette,
 
 An optionally labelled palette bar may be generated with the routine
 @verbatim
-void palette(picture pic=currentpicture, real[][] data,
-             real width=Ticksize, pen[] palette, pen p=currentpen,
-             string s="", real position=0.5, real angle=infinity,
-             pair align=E, pair shift=0, pair side=right,
-             pen plabel=currentpen, paletteticks ticks=PaletteTicks)
+picture palette(real[][] data, real width=Ticksize,
+             pen[] palette, string s="", real position=0.5,
+             real angle=infinity, pair align=E, pair shift=0,
+             pair side=right, pen plabel=currentpen, pen p=plabel,
+             paletteticks ticks=PaletteTicks)
 @end verbatim
 
 The argument @code{paletteticks} is a special tick type (@pxref{ticks})
@@ -3038,7 +3039,7 @@ Until a complete 3D graphics package (@pxref{graph3d}) is written, a
 preliminary port of the @code{MetaPost} 3D package @code{featpost3D} 
 of L. Nobre G., C. Barbarosie and J. Schwaiger to @code{Asymptote}
 makes some 3D functionality already available, as illustrated by the
-examples @code{nearearth} and @code{conicurv}.
+examples @code{near_earth} and @code{conicurv}.
 
 @node math
 @subsection @code{math}
@@ -3407,8 +3408,8 @@ currentpicture).
 @section draw
 @verbatim 
 void draw(picture pic=currentpicture, string s="", real angle=0,
-          path g, real position=0.5*length(g), pair align=0,
-          pair shift=0, side side=RightSide, pen p=currentpen,
+          path g, real position=0.5*length(g), pair align=0, pair shift=0,
+          side side=RightSide, pen plabel=currentpen, pen p=plabel,
           arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
           string legend="", frame mark=nullframe, bool putmark=Above);
 @end verbatim
@@ -3417,13 +3418,14 @@ Draw the path @code{g} on the picture @code{pic}, optionally labeled by
 string @code{s} writing at angle @code{angle} (in degrees) at position
 @code{position} and aligned using the pair @code{align} (or, if zero,
 aligned on side @code{side}) and true shift @code{shift}, using pen
-@code{p} and other optional drawing attributes (arrows, bars, margins,
-legend). Only one parameter, the path, is required. For convenience,
-the arguments @code{arrow} and @code{bar} may be specified in either order. 
-The argument @code{legend} is a string to use in constructing
-an optional legend entry. An optional frame @code{mark} may be drawn
-at every node, on on top of (underneath) the path if
-@code{putmark}=@code{Above} (@code{putmark}=@code{Below}).
+@code{plabel} for labelling and pen @code{p} for drawing, with
+optional drawing attributes (arrows, bars, margins, legend). Only one
+parameter, the path, is required. For convenience, the arguments
+@code{arrow} and @code{bar} may be specified in either order. The
+argument @code{legend} is a string to use in constructing an optional
+legend entry. An optional frame @code{mark} may be drawn at every
+node, on on top of (underneath) the path if @code{putmark}=@code{Above}
+(@code{putmark}=@code{Below}).
 
 @cindex @code{LeftSide}
 @cindex @code{Center}
@@ -3552,8 +3554,8 @@ coordinate @code{origin}, use the routine
 @cindex @code{draw}
 @verbatim
 void draw(pair origin, picture pic=currentpicture, string s="", real angle=0,
-          path g, real position=0.5*length(g), pair align=0,
-          pair shift=0, side side=RightSide, pen p=currentpen,
+          path g, real position=0.5*length(g), pair align=0, pair shift=0,
+          side side=RightSide, pen plabel=currentpen, pen p=plabel,
           arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
           string legend="", frame mark=nullframe, bool putmark=Above);
 @end verbatim
