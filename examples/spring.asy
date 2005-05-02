@@ -29,5 +29,5 @@ void drawspring(real x, string label) {
   dot(d);
 
   pair h=20*I;
-  draw(label,a-h--d-h,red,Arrow,Bars);
+  draw(label,a-h--d-h,red,Arrow,Bars,PenMargin);
 }
