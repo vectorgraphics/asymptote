@@ -96,17 +96,19 @@ void readArray(vm::stack *s)
       for(int i=0; i < Limit(nx); i++) {
 	if(ny >= 0) {
 	  vm::array *ci=new vm::array(0);
-	  c->push(ci);
 	  for(int j=0; j < Limit(ny); j++) {
 	    if(nz >= 0) {
 	      vm::array *cij=new vm::array(0);
-	      ci->push(cij);
 	      for(int k=0; k < Limit(nz); k++) {
 		f->read(v);
 		if(f->error()) {
 		  if(nx && ny && nz) reportEof(f,(i*ny+j)*nz+k);
 		  s->push(c);
 		  return;
+		}
+		if(k == 0) {
+		  if(j == 0) c->push(ci);
+		  ci->push(cij);
 		}
 		cij->push(v);
 		if(f->LineMode() && f->eol()) break;
@@ -118,6 +120,7 @@ void readArray(vm::stack *s)
 		s->push(c);
 		return;
 	      }
+	      if(j == 0) c->push(ci);
 	      ci->push(v);
 	      if(f->LineMode() && f->eol()) break;
 	    }
