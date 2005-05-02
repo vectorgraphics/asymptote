@@ -131,6 +131,8 @@ record *genv::loadModule(symbol *id, absyntax::file *ast)
   e.e.endScope();
 #endif
 
+  if(settings::listonly) r->list();
+  
   return r;
 }
 

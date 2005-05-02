@@ -35,6 +35,23 @@ varEntry *venv::lookExact(symbol *name, signature *key)
   return 0;
 }
 
+void venv::list()
+{
+  // List all functions.
+  for(names_t::iterator N = names.begin(); N != names.end(); ++N) {
+    symbol *s=N->first;
+    name_t &list=names[s];
+    for(name_iterator p = list.begin(); p != list.end(); ++p) {
+      signature *sig=(*p)->getSignature();
+      if(sig) {
+	std::cout << *((types::function *) (*p)->getType())->getResult() << " "
+		  << *s;
+	std::cout << *sig << ";" << std::endl;
+      }
+    }
+  }
+}
+
 varEntry *venv::lookInTopScope(symbol *name, signature *key)
 {
   scope_t &scope = scopes.front();

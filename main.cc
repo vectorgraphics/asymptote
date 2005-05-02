@@ -85,7 +85,7 @@ void init()
 {
   ShipoutNumber=0;
 
-  outnameStack=new std::list<std::string>;
+  outnameStack=new list<string>;
 
   em = new errorstream();
 }
@@ -124,8 +124,11 @@ void body(string filename) // TODO: Refactor
       outname=(filename == "-") ? "out" : basename;
 
     genv ge;
-    
     ge.autoloads(outname);
+    if(settings::listonly) {
+      ge.list();
+      if(filename == "") return;
+    }
     
     absyntax::file *tree = interactive ?
       parser::parseInteractive() : parser::parseFile(filename);
@@ -133,17 +136,18 @@ void body(string filename) // TODO: Refactor
 
     if (parseonly) {
       if (!em->errors())
-        tree->prettyprint(std::cout, 0);
+        tree->prettyprint(cout, 0);
     } else {
       record *m = ge.loadModule(symbol::trans(basename),tree);
+      if(listonly) return;
       if (!em->errors()) {
-        if (translate)
-          doTranslate(ge,m);
-        else
-          doRun(ge,m);
+	if (translate)
+	  doTranslate(ge,m);
+	else
+	  doRun(ge,m);
       }
     }
-  } catch (std::bad_alloc&) {
+  } catch (bad_alloc&) {
     cerr << "error: out of memory" << endl;
     ++status;
   } catch (handled_error) {
@@ -174,7 +178,11 @@ void doInteractive()
 
 void doBatch()
 {
-  for(int ind=0; ind < numArgs() ; ind++) {
+  if(listonly && numArgs() == 0) {
+    init();
+    body("");
+    purge();
+  } else for(int ind=0; ind < numArgs() ; ind++) {
     init();
     body(getArg(ind));
     purge();
@@ -191,7 +199,7 @@ int main(int argc, char *argv[])
   setsignal(signalHandler);
   if(interactive) signal(SIGINT,interruptHandler);
 
-  std::cout.precision(DBL_DIG);
+  cout.precision(DBL_DIG);
 
   try {
     if (interactive)

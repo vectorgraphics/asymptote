@@ -52,6 +52,11 @@ public:
     ve.enter(name, desc);
   }
 
+  void list()
+  {
+    ve.list();
+  }
+
   ty *lookupType(symbol *s)
   {
     return te.look(s);

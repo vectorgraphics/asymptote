@@ -188,13 +188,13 @@ std::ostream& operator<< (std::ostream& out, const signature& s)
   if (t != s.formals.end()) {
     out << **t;
     if (*dt != 0)
-      out << " = <default>"; 
+      out << "=<default>"; 
     ++t; ++dt;
   }
   for (; t != s.formals.end(); ++t, ++dt) {
     out << ", " << **t;
     if (*dt != 0)
-      out << " = <default>"; 
+      out << "=<default>"; 
   }
 
   out << ")";

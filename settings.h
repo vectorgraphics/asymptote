@@ -27,6 +27,7 @@ extern int view;
 extern int safe;
 extern int autoplain;
 extern int parseonly;
+extern int listonly;
 extern int translate;
 extern int bwonly;
 extern int grayonly;

@@ -42,6 +42,7 @@ int safe=1;
 int autoplain=1;
 int parseonly=0;
 int translate=0;
+int listonly=0;
 int bwonly=0;
 int grayonly=0;
 int rgbonly=0;
@@ -107,6 +108,7 @@ void options()
   cerr << "-L\t\t Disable LaTeX label postprocessing" << endl;
   cerr << "-p\t\t Parse test" << endl;
   cerr << "-s\t\t Translate test" << endl;
+  cerr << "-l\t\t List available global functions" << endl;
   cerr << "-m\t\t Mask fpu exceptions (default for interactive mode)" << endl;
   cerr << "-nomask\t\t Don't mask fpu exceptions (default for batch mode)" << endl;
   cerr << "-bw\t\t Convert all colors to black and white" << endl;
@@ -151,7 +153,7 @@ void setOptions(int argc, char *argv[])
   errno=0;
   for(;;) {
     int c = getopt_long_only(argc,argv,
-			     "cf:hikLmo:pPsvVx:O:CBTZ",
+			     "cf:hiklLmo:pPsvVx:O:CBTZ",
 			     long_options,&option_index);
     if (c == -1) break;
 
@@ -189,6 +191,9 @@ void setOptions(int argc, char *argv[])
       break;
     case 's':
       translate=1;
+      break;
+    case 'l':
+      listonly=1;
       break;
     case 'v':
       verbose++;
@@ -242,7 +247,7 @@ void setOptions(int argc, char *argv[])
     exit(1);
   }
   
-  if(numArgs() == 0) {
+  if(numArgs() == 0 && !listonly) {
     interact::interactive=true;
     if(trap == -1) trap=0;
     deconstruct=0;

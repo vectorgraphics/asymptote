@@ -49,6 +49,10 @@ public:
   void loadPlain();
   void loadGUI(const std::string& outname);
 
+  void list() {
+    ve.list();
+  }
+  
   // If a module is already loaded, this will return it.  Otherwise, it
   // returns null.
   record *getModule(symbol *id);

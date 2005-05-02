@@ -1723,7 +1723,27 @@ write((s+s).f(0));              // Outputs 2
 
 @end verbatim
 
-For a more complicated example of a structure, see the structure
+Any code at the top-level scope within the structure is executed on
+initialization. In the following example, the routine @code{init}
+plays the role of a default constructor. Currently, any arguments to
+the constructor must be passed with an explicit call after initialization:
+
+@verbatim
+struct S {
+  real x;
+  void init(real x=0) {this.x=x;}
+  init();
+}
+
+S a=new S;
+S b=new S;
+b.init(1);
+
+write(a.x);             // Outputs 0
+write(b.x);             // Outputs 1
+@end verbatim
+
+For more complicated examples, see the structures @code{Legend} and
 @code{picture} in the default @code{Asymptote} base file @code{plain.asy}.
 
 @node Arithmetic & logical
@@ -3755,6 +3775,7 @@ Options:
 -L               Disable LaTeX label postprocessing
 -p               Parse test
 -s               Translate test
+-l               List available global functions.
 -m               Mask fpu exceptions (default for interactive mode)
 -nomask          Don't mask fpu exceptions (default for batch mode)
 -bw              Convert colors to black and white

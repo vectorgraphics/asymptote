@@ -65,6 +65,8 @@ public:
   ty *getType(symbol *name);
 
   friend std::ostream& operator<< (std::ostream& out, const venv& ve);
+  
+  void list();
 };
 
 } // namespace trans
