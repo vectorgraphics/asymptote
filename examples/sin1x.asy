@@ -14,7 +14,7 @@ g=g--(0,f(0));
 g=graph(g,f,m+n,m,n,T);
 g=graph(g,f,T(m),b,n);
 
-xaxis(red,"$x$");
+xaxis("$x$",red);
 yaxis(red);
 
 draw(g);

@@ -7,8 +7,8 @@ pair z1=(-1,-d);
 pair z2=-z1;
 filldraw(z1--z2--(1,0)--(-1,0)--cycle,red);
 
-xaxis(red,"$x$");
-yaxis(dotted,"$y$");
+xaxis("$x$",red);
+yaxis("$y$",dotted);
 
 draw(z1--2*z1,red);
 draw(z2--2*z2,red);
