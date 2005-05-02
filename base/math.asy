@@ -594,3 +594,38 @@ real interpolate(real[] x, real[] y, real x0)
   return interpolate(x,y,x0,binarysearch(x0,x));
 }
 
+real node(path g, real x)
+{
+  real m=min(g).y;
+  real M=max(g).y;
+  return intersect(g,(x,m)--(x,M)).x;
+}
+
+real node(path g, explicit pair z)
+{
+  real m=min(g).x;
+  real M=max(g).x;
+  return intersect(g,(m,z.y)--(M,z.y)).x;
+}
+
+real value(path g, real x)
+{
+  return point(g,node(g,x)).y;
+}
+
+real value(path g, explicit pair z)
+{
+  return point(g,node(g,(0,z.y))).x;
+}
+
+real slope(path g, real x)
+{
+  pair a=dir(g,node(g,x));
+  return a.y/a.x;
+}
+
+real slope(path g, explicit pair z)
+{
+  pair a=dir(g,node(g,(0,z.y)));
+  return a.y/a.x;
+}
