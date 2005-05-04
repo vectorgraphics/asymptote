@@ -1570,13 +1570,14 @@ void postscript(picture pic=currentpicture, string s);
 
 @anchor{tex}
 @cindex @code{tex}
-Verbatim @TeX{} commands can be inserted in the output with the function
+Verbatim @TeX{} commands can be inserted in the intermediate
+@code{LaTeX} output file with the function 
 @verbatim
 void tex(picture pic=currentpicture, string s);
 @end verbatim
 
-To issue a global @TeX{} command in the @TeX{} preamble (valid for the
-remainder of the top-level module) use:
+To issue a global @TeX{} command (such as a @TeX{} macro definition) in the
+@TeX{} preamble (valid for the remainder of the top-level module) use:
 @cindex @code{texpreamble}
 @verbatim
 void texpreamble(string s);
@@ -1743,8 +1744,9 @@ write(a.x);             // Outputs 0
 write(b.x);             // Outputs 1
 @end verbatim
 
-For more complicated examples, see the structures @code{Legend} and
-@code{picture} in the default @code{Asymptote} base file @code{plain.asy}.
+For more complicated usages of structures, see the example
+@code{triangle.asy} or the structures @code{Legend} and @code{picture}
+in the default @code{Asymptote} base file @code{plain.asy}.
 
 @node Arithmetic & logical
 @section Arithmetic & logical operators
