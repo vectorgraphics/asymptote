@@ -8,6 +8,14 @@
 #include <fstream>
 #include <sstream>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+
 #include "interact.h"
 #include "locate.h"
 #include "errormsg.h"
@@ -91,14 +99,24 @@ absyntax::file *parseFile(string filename)
   std::filebuf filebuf;
   if (!filebuf.open(file.c_str(),std::ios::in))
     error(file);
+  
+#ifdef HAVE_SYS_STAT_H
+  // Check that the file is not a directory.
+  static struct stat buf;
+  if(stat(file.c_str(),&buf) == 0) {
+    if(S_ISDIR(buf.st_mode))
+      error(file);
+  }
+#endif
+  
   // Check that the file can actually be read.
   try {
     filebuf.sgetc();
   } catch (...) {
     error(file);
   }
-  yy::sbuf = &filebuf;
   
+  yy::sbuf = &filebuf;
   return doParse(yy::stream_input,filename);
 }
 
