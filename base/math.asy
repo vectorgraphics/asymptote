@@ -31,6 +31,9 @@ real sec(real x) {return 1/cos(x);}
 real cot(real x) {return tan(pi/2-x);}
 real frac(real x) {return x-(int)x;}
 
+pair exp(explicit pair z) {return exp(z.x)*expi(z.y);}
+pair log(explicit pair z) {return log(abs(z))+I*angle(z);}
+
 // Return an Nx by Ny unit square lattice with lower-left corner at (0,0).
 picture grid(int Nx, int Ny, pen p=currentpen)
 {
