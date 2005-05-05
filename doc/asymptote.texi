@@ -1994,7 +1994,8 @@ g(true);
 @end enumerate
 
 @code{Asymptote} is the only language we know of that treats functions
-as variables but still allows overloading.
+as variables, but allows overloading by distinguishing variables by their
+signatures.  
 
 @cindex @code{libsigsegv}
 @anchor{stack overflow}
@@ -2196,7 +2197,7 @@ a null array);
 if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} (otherwise
 returns a null array);
 
-@item int[] sequence(T f(int),n)
+@item T[] sequence(T f(int),n)
 if @code{n >= 1} returns the sequence @code{@{f_i :i=0,1,...n-1@}} given a
 function @code{T f(int)} and integer @code{int n} (otherwise returns a
 null array);
@@ -3777,7 +3778,7 @@ Options:
 -L               Disable LaTeX label postprocessing
 -p               Parse test
 -s               Translate test
--l               List available global functions.
+-l               List available global functions and variables.
 -m               Mask fpu exceptions (default for interactive mode)
 -nomask          Don't mask fpu exceptions (default for batch mode)
 -bw              Convert colors to black and white

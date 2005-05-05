@@ -43,11 +43,11 @@ void venv::list()
     name_t &list=names[s];
     for(name_iterator p = list.begin(); p != list.end(); ++p) {
       signature *sig=(*p)->getSignature();
-      if(sig) {
+      if(sig)
 	std::cout << *((types::function *) (*p)->getType())->getResult() << " "
-		  << *s;
-	std::cout << *sig << ";" << std::endl;
-      }
+		  << *s << *sig << ";" << std::endl;
+      else
+	std::cout << *((*p)->getType()) << " " << *s << ";" << std::endl;
     }
   }
 }
