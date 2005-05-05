@@ -78,6 +78,14 @@ using camp::transform;
 
 // Math
   
+void dividebyzero(int i=0)
+{
+  std::ostringstream buf;
+  if(i > 0) buf << "array element " << i << ": ";
+  buf << "Divide by zero";
+  error(buf.str().c_str());
+}
+  
 void intZero(stack *s)
 {
   s->push(0);
@@ -135,8 +143,7 @@ void realFmod(stack *s)
 {
   double y = pop<double>(s);
   double x = pop<double>(s);
-  if (y == 0.0)
-    error("Divide by zero");
+  if (y == 0.0) dividebyzero();
   double val = fmod(x,y);
   s->push(val);
 }
@@ -155,8 +162,8 @@ void realAtan2(stack *s)
 
 void realHypot(stack *s)
 { 
-  double x = pop<double>(s);
   double y = pop<double>(s);
+  double x = pop<double>(s);
   
   double sx;
   sx = hypot(x,y);
@@ -165,12 +172,9 @@ void realHypot(stack *s)
 
 void realRemainder(stack *s)
 { 
-  double x = pop<double>(s);
   double y = pop<double>(s);
-  
-  double sx;
-  sx = remainder(y,x);
-  s->push(sx);
+  double x = pop<double>(s);
+  s->push(remainder(x,y));
 }  
 
 void realJ(stack *s)
@@ -186,6 +190,14 @@ void realY(stack *s)
   int n = pop<int>(s);
   s->push(yn(n,x));
 }
+
+void intQuotient(stack *s)
+{ 
+  int y = pop<int>(s);
+  int x = pop<int>(s);
+  if (y == 0.0) dividebyzero();
+  s->push(x/y);
+}  
 
 void intAbs(stack *s)
 { 

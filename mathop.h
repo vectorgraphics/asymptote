@@ -77,16 +77,21 @@ struct times {
   T operator() (T x, T y, size_t=0) {return x*y;}
 };
 
+extern void dividebyzero(int i=0);  
+  
 template <typename T>
 struct divide {
   T operator() (T x, T y,  size_t i=0) {
-    if(y == 0) {
-      std::ostringstream buf;
-      if(i > 0) buf << "array element " << i << ": ";
-      buf << "Divide by zero";
-      vm::error(buf.str().c_str());
-    }
+    if(y == 0) dividebyzero(i);
     return x/y;
+  }
+};
+
+template<>
+struct divide<int> {
+  double operator() (int x, int y,  size_t i=0) {
+    if(y == 0) dividebyzero(i);
+    return ((double) x)/(double) y;
   }
 };
 
@@ -111,12 +116,7 @@ struct power<int> {
 template <typename T>
 struct mod {
   T operator() (T x, T y,  size_t i=0) {
-    if(y == 0) {
-      std::ostringstream buf;
-      if(i > 0) buf << "array element " << i << ": ";
-      buf << "Divide by zero";
-      vm::error(buf.str().c_str());
-    }
+    if(y == 0) dividebyzero(i);
     return portableMod(x,y);
   }
 };
@@ -155,3 +155,4 @@ void binaryOp(vm::stack *s)
 } // namespace run
 
 #endif //MATHOP_H
+

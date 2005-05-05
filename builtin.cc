@@ -30,6 +30,7 @@ using camp::pair;
 using camp::transform;
 using vm::stack;
 using std::string;
+using run::divide;
 
 // The base environments for built-in types and functions
 void base_tenv(tenv &ret)
@@ -141,19 +142,19 @@ void addBooleanOperator(venv &ve, bltin f, ty *t, const char *name)
 template<class T, template <class S> class op>
 inline void addOps(venv &ve, ty *t1, const char *name, ty *t2)
 {
+  addSimpleOperator(ve,run::binaryOp<T,op>,t2,name);
   addFunc(ve,run::arrayOp<T,op>,t1,name,t1,t2);
   addFunc(ve,run::opArray<T,op>,t1,name,t2,t1);
   addSimpleOperator(ve,run::arrayArrayOp<T,op>,t1,name);
-  addSimpleOperator(ve,run::binaryOp<T,op>,t2,name);
 }
 
 template<class T, template <class S> class op>
 inline void addBooleanOps(venv &ve, ty *t1, const char *name, ty *t2)
 {
+  addBooleanOperator(ve,run::binaryOp<T,op>,t2,name);
   addFunc(ve,run::arrayOp<T,op>,boolArray(),name,t1,t2);
   addFunc(ve,run::opArray<T,op>,boolArray(),name,t2,t1);
   addFunc(ve,run::arrayArrayOp<T,op>,boolArray(),name,t1,t1);
-  addBooleanOperator(ve,run::binaryOp<T,op>,t2,name);
 }
 
 template<class T>
@@ -193,12 +194,12 @@ inline void addOrderedOps(venv &ve, ty *t1, ty *t2, ty *t3)
 }
 
 template<class T>
-inline void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
+inline void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool divide=true)
 {
   addOps<T,run::plus>(ve,t1,"+",t2);
   addOps<T,run::minus>(ve,t1,"-",t2);
   addOps<T,run::times>(ve,t1,"*",t2);
-  addOps<T,run::divide>(ve,t1,"/",t2);
+  if(divide) addOps<T,run::divide>(ve,t1,"/",t2);
   addOps<T,run::power>(ve,t1,"^",t2);
   
   addFunc(ve,&id,t1,"+",t1);
@@ -268,13 +269,19 @@ void addOperators(venv &ve)
   addBooleanOps<bool,run::Or>(ve,boolArray(),"||",primBoolean());
   addBooleanOps<bool,run::Xor>(ve,boolArray(),"^",primBoolean());
   
-  addUnorderedOps<bool>(ve,boolArray(),primBoolean(),
-			     boolArray2(),boolArray3());
-  addOps<int>(ve,intArray(),primInt(),intArray2(),intArray3());
+  addUnorderedOps<bool>(ve,boolArray(),primBoolean(),boolArray2(),
+			boolArray3());
+  addOps<int>(ve,intArray(),primInt(),intArray2(),intArray3(),false);
   addOps<double>(ve,realArray(),primReal(),realArray2(),realArray3());
   addOps<pair>(ve,pairArray(),primPair(),pairArray2(),pairArray3());
-  addUnorderedOps<string>(ve,stringArray(),primString(),
-			       stringArray2(),stringArray3());
+  addUnorderedOps<string>(ve,stringArray(),primString(),stringArray2(),
+			  stringArray3());
+  
+  addFunc(ve,run::binaryOp<int,divide>,primReal(),"/",primInt(),primInt());
+  addFunc(ve,run::arrayOp<int,divide>,realArray(),"/",intArray(),primInt());
+  addFunc(ve,run::opArray<int,divide>,realArray(),"/",primInt(),intArray());
+  addFunc(ve,run::arrayArrayOp<int,divide>,realArray(),"/",intArray(),
+	  intArray());
   
   addOrderedOps<int>(ve,intArray(),primInt(),intArray2());
   addOrderedOps<double>(ve,realArray(),primReal(),realArray2());
@@ -351,6 +358,7 @@ void base_venv(venv &ve)
   addRealFunc2(ve,run::realFmod,"fmod");
   addRealFunc2(ve,run::realRemainder,"remainder");
   
+  addFunc(ve,run::intQuotient,primInt(),"quotient",primInt(),primInt());
   addFunc(ve,run::intAbs,primInt(),"abs",primInt());
   addFunc(ve,run::intCeil,primInt(),"ceil",primReal());
   addFunc(ve,run::intFloor,primInt(),"floor",primReal());

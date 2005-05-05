@@ -1754,9 +1754,16 @@ in the default @code{Asymptote} base file @code{plain.asy}.
 @cindex binary operators
 @cindex boolean operators
 @cindex logical operators
+@cindex integer division
+@cindex @code{quotient}
 
-@code{Asymptote} uses the standard binary arithmetic operators. Both operands
-are promoted to the same type, which will also be the type of the result: 
+@code{Asymptote} uses the standard binary arithmetic operators.
+However, when one integer is divided by another, both arguments are
+converted to real values before dividing and a real quotient is
+returned (since this is usually what is intended). The function
+@code{int quotient(int a, int b)} can be used for those cases where an
+integer quotient is desired. In all other cases both operands are
+promoted to the same type, which will also be the type of the result:
 @table @code
 @cindex @code{+}
 @item +

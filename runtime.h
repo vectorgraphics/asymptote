@@ -36,6 +36,7 @@ void realHypot(vm::stack *s);
 void realRemainder(vm::stack *s);
 void realJ(vm::stack *s);
 void realY(vm::stack *s);
+void intQuotient(vm::stack *s);
 void intAbs(vm::stack *s);
 void intCeil(vm::stack *s);
 void intFloor(vm::stack *s);
