@@ -61,7 +61,7 @@ pen[] Rainbow(int NColors=32766)
 {
   int offset=1;
   int nintervals=5;
-  int n=(NColors-1)/nintervals;
+  int n=quotient(NColors-1,nintervals);
 		
   pen[] Palette;
   if(n == 0) return Palette;
@@ -95,7 +95,7 @@ private pen[] BWRainbow(int NColors, bool two)
   if(two) nintervals += 6;
   
   int num=NColors-offset;
-  int n=(num/(nintervals*divisor))*divisor;
+  int n=quotient(num,nintervals*divisor)*divisor;
   NColors=n*nintervals+offset;
 		
   pen[] Palette;
@@ -130,7 +130,7 @@ private pen[] BWRainbow(int NColors, bool two)
     for(int i=0; i < n; ++i) 
       Palette[k+i]=rgb(1.0-i*ninv,0.0,1.0);
   else {
-    int n3=n/3;
+    int n3=quotient(n,3);
     int n23=2*n3;
     real third=n3*ninv;
     real twothirds=n23*ninv;

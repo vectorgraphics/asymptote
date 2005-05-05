@@ -556,7 +556,7 @@ int binarysearch(real key, real[] x)
   int u=n-1;
 	
   while (l < u) {
-    int i=(l+u)/2;
+    int i=quotient(l+u,2);
     if(x[i] <= key && key < x[i+1]) return i;
     if(key < x[i]) u=i;
     else l=i+1;

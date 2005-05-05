@@ -1761,8 +1761,8 @@ in the default @code{Asymptote} base file @code{plain.asy}.
 However, when one integer is divided by another, both arguments are
 converted to real values before dividing and a real quotient is
 returned (since this is usually what is intended). The function
-@code{int quotient(int a, int b)} can be used for those cases where an
-integer quotient is desired. In all other cases both operands are
+@code{int quotient(int x, int y)} returns the integer part of
+@code{x/y}, rounded toward 0. In all other cases both operands are
 promoted to the same type, which will also be the type of the result:
 @table @code
 @cindex @code{+}

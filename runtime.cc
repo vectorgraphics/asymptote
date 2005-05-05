@@ -195,8 +195,8 @@ void intQuotient(stack *s)
 { 
   int y = pop<int>(s);
   int x = pop<int>(s);
-  if (y == 0.0) dividebyzero();
-  s->push(x/y);
+  if (y == 0) dividebyzero();
+  s->push(div(x,y).quot);
 }  
 
 void intAbs(stack *s)

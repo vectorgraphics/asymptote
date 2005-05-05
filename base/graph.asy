@@ -94,7 +94,7 @@ int[] divisors(int a, int b)
   for(int d=2; d <= sqrtn; ++d)
     if(n % d == 0 && (a*b >= 0 || b % (n/d) == 0)) dlist[++i]=d;
   for(int d=sqrtn; d >= 1; --d)
-    if(n % d == 0 && (a*b >= 0 || b % d == 0)) dlist[++i]=n/d;
+    if(n % d == 0 && (a*b >= 0 || b % d == 0)) dlist[++i]=quotient(n,d);
   return dlist;
 }
 
@@ -323,7 +323,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	      }
 	      // Found a good divisor; now compute subtick divisor
 	      if(n == 0) {
-		n=divisor[-1]/N;
+		n=quotient(divisor[-1],N);
 		if(N == 1) n=(a*b >= 0) ? 2 : 1;
 		if(n == 1) n=2;
 	      }
