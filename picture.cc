@@ -33,7 +33,6 @@ picture::~picture()
 // Find beginning of current layer.
 list<drawElement*>::iterator picture::layerstart()
 {
-  if(nodes.empty()) return nodes.end();
   list<drawElement*>::iterator p;
   for(p=nodes.end(); p != nodes.begin();) {
     --p;
