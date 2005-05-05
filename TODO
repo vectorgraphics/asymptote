@@ -3,16 +3,18 @@ extend syntax to allow for explict array casts like (int[]) on real[].
 
 Andy: implement tags
 
+Andy: public:/private: default qualifiers
+
 Andy: implement "public import"
 
 Andy: allow user specified initializers (including for structures)
-
-Andy: make more expressions translate into functions (e.g. join)
 
 Andy: implement private typedefs
 
 Andy: Fix permissions for static functions in structs.
 ex.  struct t { int x; static void f(t a) { write(a.x); } } 
+
+Andy: Python-style function argument keywords
 
 Andy: give execute(string) read/write access to caller environment
 (Among other purposes, this would enable us to implement a "line at a time
