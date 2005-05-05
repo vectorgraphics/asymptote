@@ -164,7 +164,7 @@ typedef real part(pair);
 struct ticksT {};
 private ticksT ticks=null;
 typedef void ticks(frame, transform, string, real, real, pair, pair, pair, 
-		   pen, path, pen, autoscaleT, part, bool, int[], real,
+		   path, pen, pen, autoscaleT, part, bool, int[], real,
 		   real, ticksT);
 
 typedef string ticklabel(real);
@@ -278,7 +278,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 {
   locateT locate=new locateT;
   return new void(frame f, transform T, string s, real position, real angle,
-		  pair align, pair shift, pair side, pen plabel, path G, pen p,
+		  pair align, pair shift, pair side, path G, pen plabel, pen p,
 		  autoscaleT S, part part, bool opposite,
 		  int[] divisor, real tickmin, real tickmax, ticksT) {
     // Use local copy of context variables:
@@ -316,7 +316,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 		 && d < divisor.length-1) {
 		// Try using 2 ticks (otherwise 1);
 		int div=divisor[d+1];
-		singletick=true; Step=div/2*len/div;
+		singletick=true; Step=quotient(div,2)*len/div;
 		if(axiscoverage(2,T,g,Step,side,sign,Size,ticklabel,plabel,
 				part,norm,limit,offset,firstpos,lastpos) 
 		   <= limit) N=2;
@@ -414,7 +414,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	}
 	if(n > 0) {
 	  for(int j=2; j < n; ++j) {
-	    real pos=(i-initial+1+log10((real) j/n))*factor;
+	    real pos=(i-initial+1+log10(j/n))*factor;
 	    if(pos >= firstpos && pos <= lastpos) {
 	      locate.calc(T,g,pos);
 	      draw(f,locate.Z--locate.Z-size*I*sign*locate.dir,p);
@@ -492,7 +492,7 @@ void axis(picture pic=currentpicture, guide g,
   divisor=copy(divisor);
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
     frame d;
-    ticks(d,t,s,position,angle,align,shift,side,plabel,t*g,p,S,part,
+    ticks(d,t,s,position,angle,align,shift,side,t*g,plabel,p,S,part,
 	  opposite,divisor,tickmin,tickmax,ticks);
     (put ? add : prepend)(f,t*T*inverse(t)*d);
   });
@@ -522,7 +522,7 @@ void xequals(picture pic=currentpicture, real x,
     pair a=ymin == -infinity ? (xtrans(t,x),lb.y-min(p).y) : t*(x,ymin);
     pair b=ymax == infinity ? (xtrans(t,x),rt.y-max(p).y) : t*(x,ymax);
     frame d;
-    ticks(d,t,s,position,angle,align,shift,side,plabel,a--b,p,
+    ticks(d,t,s,position,angle,align,shift,side,a--b,plabel,p,
 	  pic.scale.y,
 	  new real(pair z) {return pic.scale.y.Label(z.y);},
 	  opposite,divisor,tickmin,tickmax,ticks);
@@ -539,8 +539,8 @@ void xequals(picture pic=currentpicture, real x,
   
   if(finite(a) && finite(b)) {
     frame d;
-    ticks(d,identity(),s,position,angle,align,shift,side,plabel,
-	  (0,a.y)--(0,b.y),p,pic.scale.y,
+    ticks(d,identity(),s,position,angle,align,shift,side,
+	  (0,a.y)--(0,b.y),plabel,p,pic.scale.y,
 	  new real(pair z) {return pic.scale.y.Label(z.y);},
 	  opposite,divisor,tickmin,tickmax,ticks);
     frame f;
@@ -565,7 +565,7 @@ void yequals(picture pic=currentpicture, real y,
     pair a=xmin == -infinity ? (lb.x-min(p).x,ytrans(t,y)) : t*(xmin,y);
     pair b=xmax == infinity ? (rt.x-max(p).x,ytrans(t,y)) : t*(xmax,y);
     frame d;
-    ticks(d,t,s,position,angle,align,shift,side,plabel,a--b,p,
+    ticks(d,t,s,position,angle,align,shift,side,a--b,plabel,p,
 	  pic.scale.x,
 	  new real(pair z) {return pic.scale.x.Label(z.x);},
 	  opposite,divisor,tickmin,tickmax,ticks);
@@ -582,8 +582,8 @@ void yequals(picture pic=currentpicture, real y,
   
   if(finite(a) && finite(b)) {
     frame d;
-    ticks(d,identity(),s,position,angle,align,shift,side,plabel,
-	  (a.x,0)--(b.x,0),p,pic.scale.x,
+    ticks(d,identity(),s,position,angle,align,shift,side,
+	  (a.x,0)--(b.x,0),plabel,p,pic.scale.x,
 	  new real(pair z) {return pic.scale.y.Label(z.x);},
 	  opposite,divisor,tickmin,tickmax,ticks);
     frame f;

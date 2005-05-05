@@ -43,17 +43,17 @@ real y3=0.043;
 path reduction=(M1,y3)--(M2,y3);
 draw(reduction,Arrow,TrueMargin(0,0.5*(linewidth(Dotted)+linewidth())));
 
-arrow(minipage("\flushleft{\begin{itemize}\item[1.] Estimate proportion of 
-birds surviving at end of season\end{itemize}}",
-	       100),(M1,S1),NNE,1cm,(-20,5),p,NoFill);
+arrow(minipage("\flushleft{\begin{itemize}\item[1.] Estimate proportion of
+birds surviving at end of season\end{itemize}}",100),
+      (M1,S1),NNE,1cm,(-20,5),p,NoFill);
 
 arrow(minipage("\flushleft{\begin{itemize}\item[2.] Read off initial mosquito
 abundance\end{itemize}}",80),(M1,0),NE,2.0cm,(-49,6),p,NoFill);
 
 arrow(minipage("\flushleft{\begin{itemize}\item[3.] Determine desired bird
-survival for next season\end{itemize}}",
-	       90),(M2,S2),SW,arrowlength,(16,-2),p,NoFill);
+survival for next season\end{itemize}}",90),
+      (M2,S2),SW,arrowlength,(16,-2),p,NoFill);
 
 arrow(minipage("\flushleft{\begin{itemize}\item[4.] Calculate required
-proportional reduction in mosquitoes\end{itemize}}",
-	       90),point(reduction,0.5),NW,1.5cm,(3,-27),p,NoFill);
+proportional reduction in mosquitoes\end{itemize}}",90),
+      point(reduction,0.5),NW,1.5cm,(3,-27),p,NoFill);

@@ -1854,14 +1854,15 @@ void label(picture pic=currentpicture, string s, real angle=0,
 }
 
 void arrow(picture pic=currentpicture, string s, real angle=0, pair shift=0,
-	   path g, pen p=currentpen, real size=0,
+	   path g, pen plabel=currentpen, pen p=nullpen, real size=0,
 	   real Angle=arrowangle, filltype filltype=Fill,
 	   margin margin=NoMargin)
 {
+  if(p == nullpen) p=plabel;
   add(pic,arrow(g,p,size,Angle,filltype,margin));
   pair a=point(g,0);
   pair b=point(g,1);
-  label(pic,s,angle,a,unit(a-b),shift,p);
+  label(pic,s,angle,a,unit(a-b),shift,plabel);
 }
 
 private struct directionT {};
@@ -2086,22 +2087,23 @@ void draw(pair origin, picture pic=currentpicture, string s="", real angle=0,
 	  string legend="", frame mark=nullframe, bool putmark=Above)
 {
   picture opic=new picture;
-  draw(opic,s,angle,g,position,align,shift,side,p,plabel,arrow,bar,margin,
+  draw(opic,s,angle,g,position,align,shift,side,plabel,p,arrow,bar,margin,
        legend,mark,putmark);
   add(origin,pic,opic);
 }
 
 void arrow(picture pic=currentpicture, string s="", real angle=0,
 	   pair b, pair align, real length=arrowlength, real position=infinity,
-	   pair shift=0, pen p=currentpen, real size=0,
+	   pair shift=0, pen plabel=currentpen, pen p=nullpen, real size=0,
 	   real Angle=arrowangle, filltype filltype=Fill,
 	   margin margin=EndMargin)
 {
+  if(p == nullpen) p=plabel;
   if(position == infinity) position=0;
   marginT margin=new marginT;
   margin(b--b,p,margin); // Extract margin.begin and margin.end  
   pair a=(margin.begin+length+margin.end)*unit(align);
-  draw(b,pic,s,angle,a--(0,0),0.0,align,shift,p,
+  draw(b,pic,s,angle,a--(0,0),0.0,align,shift,plabel,p,
 	    Arrow(size,Angle,filltype),margin);
 }
 

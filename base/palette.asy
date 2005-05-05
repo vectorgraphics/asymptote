@@ -44,7 +44,7 @@ picture palette(real[][] data, real width=Ticksize,
   });
   
   pic.addBox(z0,z1,(-width,0),(0,0));
-  yaxis(pic,initialy,finaly,s,position,angle,align,shift,side,p,plabel,
+  yaxis(pic,initialy,finaly,s,position,angle,align,shift,side,plabel,p
 	ticks(width),Above);
   return pic;
 }
