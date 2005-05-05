@@ -78,6 +78,7 @@ void arrayAll(vm::stack *s);
 void arrayBoolNegate(vm::stack *s);
 void arrayBoolSum(vm::stack *s);
 void arrayCopy(vm::stack *s);
+void arrayConcat(vm::stack *s);
 void array2Copy(vm::stack *s);
 void array2Transpose(vm::stack *s);
 void pairArrayFFT(vm::stack *s);

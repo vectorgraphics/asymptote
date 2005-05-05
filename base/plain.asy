@@ -348,12 +348,6 @@ static struct coord {
   
 }
 
-void append(coord[] dest, coord[] src)
-{
-  for(int i=0; i < src.length; ++i)
-    dest.push(src[i]);
-}
-
 void append(coord[] x, coord[] y, transform T, coord[] srcx, coord[] srcy)
 {
   for(int i=0; i < srcx.length; ++i) {
@@ -821,9 +815,8 @@ struct picture {
   {
     picture dest=drawcopy();
 
-    append(dest.xcoords,xcoords);
-    append(dest.ycoords,ycoords);
-
+    dest.xcoords=copy(xcoords);
+    dest.ycoords=copy(ycoords);
     dest.xsize=xsize; dest.ysize=ysize; dest.keepAspect=keepAspect;
 
     return dest;
@@ -884,23 +877,17 @@ path[] operator ^^ (path p, path q)
 
 path[] operator ^^ (path p, path[] q) 
 {
-  path[] P=new path[] {p};
-  for(int i=0; i < q.length; ++i) P.push(q[i]);
-  return P;
+  return concat(new path[] {p},q);
 }
 
 path[] operator ^^ (path[] p, path q) 
 {
-  path[] P=copy(p);
-  P.push(q);
-  return P;
+  return concat(p,new path[] {q});
 }
 
 path[] operator ^^ (path[] p, path[] q) 
 {
-  path[] P=copy(p);
-  for(int i=0; i < q.length; ++i) P.push(q[i]);
-  return P;
+  return concat(p,q);
 }
 
 path[] operator * (transform t, path[] p) 

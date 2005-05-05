@@ -2172,7 +2172,7 @@ This declares @code{a} to be @code{real} and implicitly declares @code{A} to
 be of type @code{real[]}. But beware that this alternative syntax does
 not construct certain internal type-dependent functions that take
 @code{real[]} as an argument: @code{alias}, @code{copy},
-@code{sequence}, @code{eval}, and @code{transpose} for type
+@code{sequence}, @code{map}, and @code{transpose} for type
 @code{real[]} won't be defined until the type @code{real[]} is used
 explicitly somewhere.
 
@@ -2222,16 +2222,20 @@ If @code{n} is negative, search backwards from the end of the array for the
 
 @cindex @code{copy}
 @item T[] copy(T[] A)
-returns a deep copy of array @code{A};
+returns a deep copy of the array @code{A};
+
+@cindex @code{concat}
+@item T[] concat(T[] A, T[] B)
+returns a new array formed by concatenating arrays @code{A} and @code{B};
 
 @cindex @code{alias}
 @item bool alias(T[] A, T[] B)
-returns @code{true} if the arrays @code{A} and @code{B} are identical.
+returns @code{true} if the arrays @code{A} and @code{B} are identical;
 
 @cindex @code{sort}
 @item T[] sort(T[] A)
 For ordered types @code{T}, returns a copy of @code{A} sorted in
-ascending order.
+ascending order;
 
 @item T[][] sort(T[][] A)
 For ordered types @code{T}, returns a copy of @code{A} with the rows
@@ -2268,8 +2272,8 @@ For ordered types @code{T}, returns the minimum element of @code{A}.
 @item T max(T[] A)
 For ordered types @code{T}, returns the maximum element of @code{A}.
 
-@cindex @code{eval}
-@item eval(f(T), T[] A)
+@cindex @code{map}
+@item map(f(T), T[] A)
 returns the array obtained by applying the function @code{f} to each
 element of the array @code{A}.
 
@@ -2320,7 +2324,7 @@ use the boolean function @code{all(a == b)}. One can also use conditionals like
 
 All of the standard built-in @code{libm} functions of signature
 @code{real(real)} also take a real array as an argument, effectively like an
-implicit call to @code{eval}.
+implicit call to @code{map}.
 
 As with other built-in types, arrays of the basic data types can be read
 in by assignment. In this example, the code
@@ -2468,6 +2472,12 @@ independent process with the function
 @cindex execute
 @verbatim
 void execute(string file);
+@end verbatim
+You can also evaluate an asymptote expression (without any return
+value, however) contained in the string @code{s} with:
+@cindex eval
+@verbatim
+void eval(string s);
 @end verbatim
 
 @code{Asymptote} currently ships with the following base modules:

@@ -80,10 +80,11 @@ public:
 
   types::function *opType(types::ty* t);
   types::function *arrayType(types::ty* t);
+  types::function *array2Type(types::ty* t);
   types::function *cellIntType(types::ty* t);
   types::function *sequenceType(types::ty* t, types::ty *ct);
   types::function *cellTypeType(types::ty* t);
-  types::function *evalType(types::ty* t, types::ty *ct);
+  types::function *mapType(types::ty* t, types::ty *ct);
   void addOps(coenv &e, types::ty* t, types::ty *ct);
   
   types::ty *trans(coenv &e, bool tacit = false);

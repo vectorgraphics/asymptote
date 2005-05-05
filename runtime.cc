@@ -600,6 +600,22 @@ void arrayCopy(stack *s)
   s->push(copyArray(s));
 }
 
+void arrayConcat(stack *s)
+{
+  array *b=pop<array*>(s);
+  array *a=pop<array*>(s);
+  checkArray(a);
+  checkArray(b);
+  size_t asize=(size_t) a->size();
+  size_t bsize=(size_t) b->size();
+  array *c=new array(asize+bsize);
+  for(size_t i=0; i < asize; i++) 
+    (*c)[i]=(*a)[i];
+  for(size_t i=0; i < bsize; i++, asize++) 
+    (*c)[asize]=(*b)[i];
+  s->push(c);
+}
+
 void array2Copy(stack *s)
 {
   s->push(copyArray2(s));
@@ -1727,19 +1743,19 @@ void execute(stack *s)
 
 void eval(stack *s)
 {
-  //string Outname=outname;
   string *str = pop<string*>(s);
-  //outname=*str;
   symbol *id = symbol::trans(*str);
   absyntax::file *tree = parser::parseString(*str);
+  
   trans::genv ge;
+  ge.autoloads("");
+  
   trans::record *m = ge.loadModule(id,tree);
   if (!em->errors()) {
     lambda *l = ge.bootupModule(m);
     assert(l);
     vm::run(l);
   }
-  //outname=Outname;
 }
 
 void changeDirectory(stack *s)

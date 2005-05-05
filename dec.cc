@@ -57,6 +57,15 @@ function *arrayTy::arrayType(types::ty* t)
   return ft;
 }
 
+function *arrayTy::array2Type(types::ty* t)
+{
+  function *ft = new function(t);
+  ft->add(t);
+  ft->add(t);
+
+  return ft;
+}
+
 function *arrayTy::cellIntType(types::ty* t)
 {
   function *ft = new function(t);
@@ -83,7 +92,7 @@ function *arrayTy::cellTypeType(types::ty* t)
   return ft;
 }
   
-function *arrayTy::evalType(types::ty* t, types::ty *ct)
+function *arrayTy::mapType(types::ty* t, types::ty *ct)
 {
   function *ft = new function(t);
   function *fc = cellTypeType(ct);
@@ -97,8 +106,9 @@ void arrayTy::addOps(coenv &e, types::ty* t, types::ty *ct)
 {
   function *ft = opType(t);
   function *ftarray = arrayType(t);
+  function *ftarray2 = array2Type(t);
   function *ftsequence = sequenceType(t,ct);
-  function *fteval = evalType(t,ct);
+  function *ftmap = mapType(t,ct);
   
   e.e.addVar(getPos(), symbol::trans("alias"),
       new varEntry(ft,new bltinAccess(run::arrayAlias)),true);
@@ -106,11 +116,13 @@ void arrayTy::addOps(coenv &e, types::ty* t, types::ty *ct)
   if(dims->size() == 1) {
     e.e.addVar(getPos(), symbol::trans("copy"),
 	       new varEntry(ftarray,new bltinAccess(run::arrayCopy)),true);
+    e.e.addVar(getPos(), symbol::trans("concat"),
+	       new varEntry(ftarray2,new bltinAccess(run::arrayConcat)),true);
     e.e.addVar(getPos(), symbol::trans("sequence"),
 	       new varEntry(ftsequence,new bltinAccess(run::arraySequence)),
 	       true);
-    e.e.addVar(getPos(), symbol::trans("eval"),
-	       new varEntry(fteval,new bltinAccess(run::arrayFunction)),true);
+    e.e.addVar(getPos(), symbol::trans("map"),
+	       new varEntry(ftmap,new bltinAccess(run::arrayFunction)),true);
   }
   if(dims->size() == 2) {
     e.e.addVar(getPos(), symbol::trans("copy"),

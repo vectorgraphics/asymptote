@@ -500,9 +500,9 @@ void base_venv(venv &ve)
   
   // Array functions
   
-  addFunc(ve,run::arrayFunction,realArray(),"eval",realPairFunction(),
+  addFunc(ve,run::arrayFunction,realArray(),"map",realPairFunction(),
 	  pairArray());
-  addFunc(ve,run::arrayFunction,intArray(),"eval",intRealFunction(),
+  addFunc(ve,run::arrayFunction,intArray(),"map",intRealFunction(),
 	  realArray());
   
   addFunc(ve,run::arrayAll,primBoolean(),"all",boolArray());

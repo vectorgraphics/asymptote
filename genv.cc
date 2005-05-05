@@ -61,7 +61,7 @@ void genv::autoloads(const string& outname)
   // Import plain, if autoplain option is enabled.
   if (settings::autoplain)
     loadPlain();
-  if (!settings::ignoreGUI)
+  if (!settings::ignoreGUI && outname != "")
     loadGUI(outname);
 }
   
