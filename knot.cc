@@ -610,32 +610,34 @@ void encodeStraight(protopath& p, int k, knotlist& l)
 
 void solveSection(protopath& p, int k, knotlist& l)
 {
-  info(std::cerr, "solving section", l);
+  if (l.length()>0) {
+    info(std::cerr, "solving section", l);
 
-  // Calculate useful properties.
-  cvector<pair>   dz  =  dzprop(l)   .compute();
-  cvector<double> d   =   dprop(l,dz).compute();
-  cvector<double> psi = psiprop(l,dz).compute();
+    // Calculate useful properties.
+    cvector<pair>   dz  =  dzprop(l)   .compute();
+    cvector<double> d   =   dprop(l,dz).compute();
+    cvector<double> psi = psiprop(l,dz).compute();
 
-  INFO(dz); INFO(d); INFO(psi);
+    INFO(dz); INFO(d); INFO(psi);
 
-  // Build and solve the linear equations for theta.
-  cvector<eqn>        e = eqnprop(l,d,psi).compute();
-  INFO(e);
+    // Build and solve the linear equations for theta.
+    cvector<eqn>        e = eqnprop(l,d,psi).compute();
+    INFO(e);
 
-  if (straightSection(e))
-    // Handle striaght section as special case.
-    encodeStraight(p,k,l);
-  else {
-    cvector<double> theta = solveThetas(l,e);
-    INFO(theta);
+    if (straightSection(e))
+      // Handle striaght section as special case.
+      encodeStraight(p,k,l);
+    else {
+      cvector<double> theta = solveThetas(l,e);
+      INFO(theta);
 
-    // Calculate the control points.
-    cvector<pair> post = postcontrolprop(l,dz,psi,theta).compute();
-    cvector<pair> pre  =  precontrolprop(l,dz,psi,theta).compute();
+      // Calculate the control points.
+      cvector<pair> post = postcontrolprop(l,dz,psi,theta).compute();
+      cvector<pair> pre  =  precontrolprop(l,dz,psi,theta).compute();
 
-    // Encode the results into the protopath.
-    encodeControls(p,k,pre,l,post).exec();
+      // Encode the results into the protopath.
+      encodeControls(p,k,pre,l,post).exec();
+    }
   }
 }
 
@@ -653,14 +655,16 @@ int firstBreakpoint(knotlist& l)
   return NOBREAK;
 }
 
-// Once a breakpoint, b, is found, find where the next breakpoint after it is.
+// Once a breakpoint, a, is found, find where the next breakpoint after it is.
 // This must be called with a knot that has all of its implicit specifiers in
 // place, so that breakpoint can be identified by either an in or out specifier
 // that is not open.
 int nextBreakpoint(knotlist& l, int a)
 {
-  // This is guaranteed to terminate if b is the index of a breakpoint, because
-  // it will eventually loop around to the same index.
+  // This is guaranteed to terminate if a is the index of a breakpoint.  If the
+  // path is non-cyclic it will stop at or before the last knot which must be a
+  // breakpoint.  If the path is cyclic, it will stop at or before looping back
+  // around to a which is a breakpoint.
   int j=a+1;
   while (l[j].in->open())
     ++j;
@@ -779,6 +783,8 @@ path solve(knotlist& l)
   return solveSpecified(l);
 }
 
+// Code for Testing
+#if 0
 path solveSimple(cvector<pair>& z)
 {
   // The two specifiers used: an open spec and a curl spec for the ends.
@@ -814,5 +820,6 @@ path solveSimple(cvector<pair>& z)
   simpleknotlist l(nodes,false);
   return solve(l);
 }
+#endif
 
 } // namespace camp
