@@ -9,7 +9,7 @@
 #ifndef ABSYN_H
 #define ABSYN_H
 
-#include "pool.h"
+
 #include "errormsg.h" // For position
 
 // Forward declaration for markPos.
@@ -19,7 +19,7 @@ namespace trans {
 
 namespace absyntax {
 
-class absyn : public memory::managed<absyn> {
+class absyn : public gc {
 protected:
   const position pos;
 
@@ -43,7 +43,7 @@ private:  // Non-copyable
 };
 
 void prettyindent(ostream &out, int indent);
-void prettyname(ostream &out, std::string name, int indent);
+void prettyname(ostream &out, string name, int indent);
 
 class name;
 class ty;

@@ -14,28 +14,29 @@
 #include <map>
 
 using std::ostream;
+using std::string;
 
 namespace sym {
 
 struct symbol {
 private:
-  std::string name;
+  string name;
 
-  static std::map<std::string,symbol> dict;
+  static std::map<string,symbol> dict;
   symbol() {}
-  symbol(std::string name)
+  symbol(string name)
     : name(name) {}
-  friend class std::map<std::string,symbol>;
+  friend class std::map<string,symbol>;
 public:
   
-  static symbol *trans(std::string s) {
+  static symbol *trans(string s) {
     if (dict.find(s) != dict.end())
       return &dict[s];
     else
       return &(dict[s]=symbol(s));
   }
 
-  operator std::string () { return std::string(name); }
+  operator string () { return string(name); }
 
   friend ostream& operator<< (ostream& out, const symbol& sym)
   { return out << sym.name; }

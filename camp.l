@@ -6,7 +6,6 @@
  * The lexical analyzer of the Asymptote language.
  *****/
 
-#include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -44,7 +43,7 @@ typedef size_t (*input_f) (char* bif, size_t max_size);
 
 input_f yy_input = NULL;
 
-void setlexer(input_f input, std::string filename) 
+void setlexer(input_f input, string filename) 
 {
   yywrap();
   fi = new fileinfo(filename);
@@ -74,14 +73,14 @@ void adjust()
   yylval.pos = here();
 } 
 
-void makesymbol(std::string text = yytext)
+void makesymbol(string text = yytext)
 {
   adjust();
   yylval.ps.pos=here();
   yylval.ps.sym=symbol::trans(text);
 }
 
-void makeselfsymbol(std::string text = yytext)
+void makeselfsymbol(string text = yytext)
 {
   /* Copy all but the last digit, which should be an =. */
   assert(text[text.length()-1] == '=');
@@ -102,7 +101,7 @@ void error(void)
 
 }
 
-std::string stringbuild;
+string stringbuild;
 
 namespace {
 void append(char c)
@@ -115,7 +114,7 @@ void getstring(void)
 {
   // NOTE: Replace here() with a position at the start of the string.
   makesymbol(stringbuild);
-  std::string().swap(stringbuild);
+  string().swap(stringbuild);
 }
 }
 

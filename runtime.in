@@ -42,8 +42,6 @@ picture* => primPicture()
 #include "pipestream.h"
 #include "parser.h"
 
-using std::string;
-
 using namespace vm;
 using namespace camp;
 using namespace settings;

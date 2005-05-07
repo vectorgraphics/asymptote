@@ -11,7 +11,6 @@
 #include "settings.h"
 #include "util.h"
 
-using std::string;
 using std::list;
   
 namespace camp {
@@ -26,7 +25,7 @@ void drawLabel::labelwarning(const char *action)
 }
   
 void drawLabel::bounds(bbox& b, iopipestream& tex,
-		       std::vector<box>& labelbounds, std::list<bbox>&)
+		       boxvector& labelbounds, bboxlist&)
 {
   if(!settings::texprocess) {b += position; return;}
   string texbuf;

@@ -20,7 +20,6 @@ using namespace vm;
 
 namespace types {
 
-using std::string;
 using trans::access;
 using camp::pair;
 using camp::path;
@@ -255,7 +254,7 @@ bool castable(ty *target, ty *source)
   // Casting of overloaded types is based on a match of subtypes.
   if (source->kind == ty_overloaded) {
     overloaded *set = (overloaded *)source;
-    for (vector<ty *>::iterator t = set->sub.begin();
+    for (ty_vector::iterator t = set->sub.begin();
          t != set->sub.end();
 	 ++t) {
      if (castable(target, *t))
@@ -330,7 +329,7 @@ ty *castType(ty *target, ty *source)
   if (overloaded *set = dynamic_cast<overloaded *>(target)) {
     overloaded result;
 
-    for (vector<ty *>::iterator t = set->sub.begin();
+    for (ty_vector::iterator t = set->sub.begin();
          t != set->sub.end();
 	 ++t) {
       if (castable(*t, source))
@@ -341,7 +340,7 @@ ty *castType(ty *target, ty *source)
   if (source->kind == ty_overloaded) {
     overloaded *set = dynamic_cast<overloaded *>(source);
 
-    for (vector<ty *>::iterator t = set->sub.begin();
+    for (ty_vector::iterator t = set->sub.begin();
          t != set->sub.end();
 	 ++t) {
      if (castable(target, *t))
@@ -418,7 +417,7 @@ ty *explicitCastType(ty *target, ty *source)
     overloaded *set = (overloaded *)target;
     overloaded result;
 
-    for (vector<ty *>::iterator t = set->sub.begin();
+    for (ty_vector::iterator t = set->sub.begin();
          t != set->sub.end();
 	 ++t) {
       types::ty *ts = explicitCastType(*t, source);
@@ -431,7 +430,7 @@ ty *explicitCastType(ty *target, ty *source)
     overloaded *set = (overloaded *)source;
     overloaded result;
 
-    for (vector<ty *>::iterator t = set->sub.begin();
+    for (ty_vector::iterator t = set->sub.begin();
          t != set->sub.end();
 	 ++t) {
       types::ty *ts = explicitCastType(target, *t);
@@ -644,7 +643,7 @@ ty *promote(ty *t1, ty *t2)
     overloaded *set = dynamic_cast<overloaded *>(t1);
     overloaded result;
 
-    for (vector<ty *>::iterator t = set->sub.begin();
+    for (ty_vector::iterator t = set->sub.begin();
          t != set->sub.end();
 	 ++t) {
       ty *pt = promote(*t, t2);
@@ -658,7 +657,7 @@ ty *promote(ty *t1, ty *t2)
     overloaded *set = (overloaded *)t2;
     overloaded result;
     
-    for (vector<ty *>::iterator t = set->sub.begin();
+    for (ty_vector::iterator t = set->sub.begin();
          t != set->sub.end();
 	 ++t) {
       ty *pt = promote(t1, *t);

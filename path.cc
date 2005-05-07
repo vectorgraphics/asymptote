@@ -5,7 +5,6 @@
  * Stores and returns information on a predefined path.
  *****/
 
-#include <string>
 #include <cfloat>
 
 #include "path.h"

@@ -8,7 +8,6 @@
 
 #include <cassert>
 #include <cstdio>
-#include <string>
 #include <cfloat>
 #include <cmath>
 #include <sstream>
@@ -22,7 +21,6 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::ostringstream;
-using std::string;
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -427,7 +425,7 @@ void arrayPush(stack *s)
 {
   array *a = pop<array*>(s);
   checkArray(a);
-  s->push((callable*)new thunk(new bfunc(arrayPushHelper),a));
+  s->push((callable*) new thunk(new bfunc(arrayPushHelper),a));
 }
 
 // The helper function for the push method that does the actual operation.
@@ -1003,7 +1001,7 @@ void stringFormatInt(stack *s)
   int size=snprintf(NULL,0,format->c_str(),x)+1;
   char *buf=new char[size];
   snprintf(buf,size,format->c_str(),x);
-  s->push(new string(buf));
+  s->push(new(UseGC) string(buf));
   delete [] buf;
 }
 
@@ -1122,7 +1120,7 @@ void stringTime(stack *s)
 #else
   pop<string*>(s);
 #endif  
-  s->push(new string(Time));
+  s->push(new(UseGC) string(Time));
 }
 
 // Path operations.
@@ -1169,11 +1167,11 @@ void dotsGuide(stack *s)
 {
   array *a=pop<array*>(s);
 
-  vector<guide*> v;
+  guidevector v;
   for (size_t i=0; i<a->size(); ++i)
     v.push_back(a->read<guide*>(i));
 
-  s->push((guide*)new multiguide(v));
+  s->push((guide *) new multiguide(v));
 }
 
 void dashesGuide(stack *s)
@@ -1186,7 +1184,7 @@ void dashesGuide(stack *s)
   size_t n=a->size();
 
   // a--b is equivalent to a{curl 1}..{curl 1}b
-  vector<guide*> v;
+  guidevector v;
   if (n > 0)
     v.push_back(a->read<guide*>(0));
 
@@ -1201,29 +1199,29 @@ void dashesGuide(stack *s)
       v.push_back(a->read<guide*>(i));
     }
 
-  s->push((guide*)new multiguide(v));
+  s->push((guide *) new multiguide(v));
 }
 
 void cycleGuide(stack *s)
 {
-  s->push((guide *)new cycletokguide());
+  s->push((guide *) new cycletokguide());
 }
       
 
 void dirSpec(stack *s)
 {
-  camp::side d=(camp::side)pop<int>(s);
+  camp::side d=(camp::side) pop<int>(s);
   camp::dirSpec *sp=new camp::dirSpec(angle(pop<pair>(s)));
 
-  s->push((guide *)new specguide(sp, d));
+  s->push((guide *) new specguide(sp, d));
 }
 
 void curlSpec(stack *s)
 {
-  camp::side d=(camp::side)pop<int>(s);
+  camp::side d=(camp::side) pop<int>(s);
   camp::curlSpec *sp=new camp::curlSpec(pop<double>(s));
 
-  s->push((guide *)new specguide(sp, d));
+  s->push((guide *) new specguide(sp, d));
 }
 
 void realRealTension(stack *s)
@@ -1232,7 +1230,7 @@ void realRealTension(stack *s)
   tension  tin(pop<double>(s), atleast),
           tout(pop<double>(s), atleast);
 
-  s->push((guide *)new tensionguide(tout, tin));
+  s->push((guide *) new tensionguide(tout, tin));
 }
 
 void pairPairControls(stack *s)
@@ -1240,7 +1238,7 @@ void pairPairControls(stack *s)
   pair  zin=pop<pair>(s),
        zout=pop<pair>(s);
 
-  s->push((guide *)new controlguide(zout, zin));
+  s->push((guide *) new controlguide(zout, zin));
 }
 
 
@@ -1644,7 +1642,7 @@ void shipout(stack *s)
 	if(settings::deconstruct) {
 	  ostringstream buf;
 	  buf << prefix << "_" << i;
-	  group->shipout(*preamble,buf.str(),"tgif",false,Delete);
+	  group->shipout(*preamble,buf.str().c_str(),"tgif",false,Delete);
 	}
 	++i;
       }
@@ -1770,7 +1768,7 @@ void changeDirectory(stack *s)
   char *p=getPath();
   if(p && interact::interactive && !settings::suppressStandard) 
     cout << p << endl;
-  s->push(new string(p));
+  s->push(new(UseGC) string(p));
 }
 
 void scrollLines(stack *s)
@@ -1879,7 +1877,7 @@ void readChar(stack *s)
   if(f->isOpen()) f->read(c);
   static char str[1];
   str[0]=c;
-  s->push(new string(str));
+  s->push(new(UseGC) string(str));
 }
 
 // Set file dimensions

@@ -527,7 +527,8 @@ types::ty *nullExp::trans(coenv &)
 void explist::prettyprint(ostream &out, int indent)
 {
   prettyname(out, "explist",indent);
-  for (std::vector<exp *>::iterator p = exps.begin(); p != exps.end(); ++p)
+  for (expvector::iterator p = exps.begin();
+       p != exps.end(); ++p)
     (*p)->prettyprint(out, indent+1);
 }
 

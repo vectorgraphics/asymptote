@@ -20,9 +20,11 @@
 #include "util.h"
 #include "interact.h"
 
+using std::string;
+
 namespace camp {
 
-extern std::list<std::string> TeXpipepreamble, TeXpreamble;
+extern std::list<string> TeXpipepreamble, TeXpreamble;
 
 const double tex2ps=72.0/72.27;
 const double ps2tex=1.0/tex2ps;
@@ -33,8 +35,8 @@ void texdocumentclass(T& out) {
 }
   
 template<class T>
-void texpreamble(T& out, std::list<std::string>& preamble=TeXpreamble) {
-  std::list<std::string>::iterator p=preamble.begin();
+void texpreamble(T& out, std::list<string>& preamble=TeXpreamble) {
+  std::list<string>::iterator p=preamble.begin();
   if(p != preamble.end()) {
     TeXcontaminated=true;
     for (; p != preamble.end(); ++p)
@@ -43,7 +45,7 @@ void texpreamble(T& out, std::list<std::string>& preamble=TeXpreamble) {
 }
   
 template<class T>
-void texdefines(T& out, std::list<std::string>& preamble=TeXpreamble) {
+void texdefines(T& out, std::list<string>& preamble=TeXpreamble) {
   texpreamble(out,preamble);
   out << "\\newbox\\ASYbox" << newl
       << "\\newdimen\\ASYdimen" << newl
@@ -54,14 +56,14 @@ void texdefines(T& out, std::list<std::string>& preamble=TeXpreamble) {
       << "\\usepackage{graphicx}" << newl;
 }
   
-class texfile {
+class texfile : public gc {
   ostream *out;
   pair offset;
   bbox box;
   pen lastpen;
 
 public:
-  texfile(const std::string& texname, const bbox& box);
+  texfile(const string& texname, const bbox& box);
   ~texfile();
 
   void prologue();
@@ -71,12 +73,12 @@ public:
   void setpen(pen p);
   
   // Draws label rotated by angle (relative to the horizontal) at position z.
-  void put(const std::string& label, double angle, pair z);
+  void put(const string& label, double angle, pair z);
 
-  void beginlayer(const std::string& psname);
+  void beginlayer(const string& psname);
   void endlayer();
   
-  void verbatim(const std::string& s) {
+  void verbatim(const string& s) {
     *out << s << newl;
   }
   

@@ -18,7 +18,7 @@ namespace camp {
 //bool tracing_solving=false;
 
 template <typename T>
-ostream& info(ostream& o, std::string name, cvector<T>& v)
+ostream& info(ostream& o, string name, cvector<T>& v)
 {
   if (settings::verbose > 3) {
     o << name << ":\n\n";
@@ -31,7 +31,7 @@ ostream& info(ostream& o, std::string name, cvector<T>& v)
   return o;
 }
 
-ostream& info(ostream& o, std::string name, knotlist& l)
+ostream& info(ostream& o, string name, knotlist& l)
 {
   if (settings::verbose > 3) {
     o << name << ":\n\n";
@@ -289,9 +289,9 @@ struct eqnprop : public knotprop<eqn> {
 //
 // which arises when solving a one-length path a..b or in a larger path a
 // section a--b.
-bool homogeneous(vector<eqn>& e)
+bool homogeneous(vector<eqn,gc_allocator<eqn> >& e)
 {
-  for(vector<eqn>::iterator p=e.begin(); p!=e.end(); ++p)
+  for(vector<eqn,gc_allocator<eqn> >::iterator p=e.begin(); p!=e.end(); ++p)
     if (p->aug != 0)
       return false;
   return true;

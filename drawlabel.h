@@ -16,7 +16,7 @@ namespace camp {
   
 class drawLabel : public drawElement {
 private:
-  std::string label;
+  string label;
   double angle;
   pair position;
   pair align;
@@ -28,7 +28,7 @@ private:
   pair Align;
   
 public:
-  drawLabel(std::string label, double angle, pair position, pair align,
+  drawLabel(string label, double angle, pair position, pair align,
 	    pen *pentype)
     : label(label), angle(angle), position(position), align(align),
       pentype(pentype), width(0.0), height(0.0), depth(0.0),
@@ -36,7 +36,7 @@ public:
   
   virtual ~drawLabel() {}
 
-  void bounds(bbox& b, iopipestream&, std::vector<box>&, std::list<bbox>&);
+  void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&);
   
   bool islabel() {
     return true;

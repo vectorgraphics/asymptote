@@ -45,9 +45,9 @@ class genv {
 public:
   genv();
 
-  void autoloads(const std::string& outname);
+  void autoloads(const string& outname);
   void loadPlain();
-  void loadGUI(const std::string& outname);
+  void loadGUI(const string& outname);
 
   void list() {
     ve.list();

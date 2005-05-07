@@ -22,7 +22,7 @@ void prettyindent(ostream &out, int indent)
 {
   for (int i = 0; i < indent; i++) out << " ";
 }
-void prettyname(ostream &out, std::string name, int indent) {
+void prettyname(ostream &out, string name, int indent) {
   prettyindent(out,indent);
   out << name << "\n";
 }

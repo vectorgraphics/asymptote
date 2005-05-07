@@ -13,7 +13,6 @@
 #include "psfile.h"
 #include "util.h"
 
-using std::string;
 using std::ostringstream;
 using std::istringstream;
 using std::vector;
@@ -28,9 +27,9 @@ void drawPath::adjustdash(pen& pen0)
     double arclength=p.arclength();
     
     if(arclength) {
-      vector<double> pat;
+      vector<double, gc_allocator<double> > pat;
       {
-        istringstream buf(stroke);
+        istringstream buf(stroke.c_str());
         double l;
         while(buf >> l) {
           pat.push_back(l);
@@ -55,13 +54,12 @@ void drawPath::adjustdash(pen& pen0)
       double factor=arclength/(ncycle*sum+(p.cyclic() ? 0.0 : pat[0]));
       ostringstream buf;
       for(unsigned int i=0; i < n; i++) buf << pat[i]*factor << " ";
-      pen0.setstroke(buf.str());
+      pen0.setstroke(buf.str().c_str());
     }
   }
 }  
 
-void drawPath::bounds(bbox& b, iopipestream&, std::vector<box>&,
-		      std::list<bbox>&)
+void drawPath::bounds(bbox& b, iopipestream&, boxvector&, bboxlist&)
 {
   b += pad(p.bounds(),pentype.bounds());
 }

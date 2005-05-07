@@ -194,12 +194,12 @@ void stack::run(func *f)
 #ifdef DEBUG_STACK
 #if __GNUC__
 #include <cxxabi.h>
-std::string demangle(const char *s)
+string demangle(const char *s)
 {
   int status;
   char *demangled = abi::__cxa_demangle(s,NULL,NULL,&status);
   if (status == 0 && demangled) {
-    std::string str(demangled);
+    string str(demangled);
     free(demangled);
     return str;
   } else if (status == -2) {
@@ -207,11 +207,11 @@ std::string demangle(const char *s)
     return s;
   } else {
     free(demangled);
-    return std::string("Unknown(") + s + ")";
+    return string("Unknown(") + s + ")";
   }
 };
 #else
-std::string demangle(const char* s)
+string demangle(const char* s)
 {
   return s;
 }

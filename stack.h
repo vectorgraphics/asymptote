@@ -16,6 +16,8 @@
 #include "errormsg.h"
 #include "inst.h"
 
+using std::string;
+
 namespace vm {
 
 void run(lambda *l);

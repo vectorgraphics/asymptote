@@ -28,7 +28,7 @@ inline void BoundingBox(std::ostream& s, const bbox& box)
 }
 
 class psfile {
-  std::string filename;
+  string filename;
   bbox box;
   pair Shift;
   bool rawmode;
@@ -51,7 +51,7 @@ class psfile {
   }
   
 public: 
-  psfile(const std::string& filename, const bbox& box, const pair& Shift);
+  psfile(const string& filename, const bbox& box, const pair& Shift);
   ~psfile();
   
   void prologue();
@@ -119,7 +119,7 @@ public:
     *out << (fillrule == EVENODD ? " eoclip" : " clip") << newl;
   }
   
-  void shade(bool axial, const std::string& colorspace,
+  void shade(bool axial, const string& colorspace,
 	     const pen& pena, const pair& a, double ra,
 	     const pen& penb, const pair& b, double rb);
   
@@ -153,11 +153,11 @@ public:
     concatUnshifted(rawmode ? t : shift(Shift)*t);
   }
   
-  void verbatimline(const std::string& s) {
+  void verbatimline(const string& s) {
     *out << s << newl;
   }
   
-  void verbatim(const std::string& s) {
+  void verbatim(const string& s) {
     *out << s;
   }
 

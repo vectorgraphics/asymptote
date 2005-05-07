@@ -14,7 +14,6 @@
 #include "settings.h"
 #include "errormsg.h"
 
-using std::string;
 using std::ofstream;
 using std::setw;
 using vm::array;

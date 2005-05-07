@@ -20,10 +20,10 @@ AC_ARG_WITH(latex,
 		     ])
 latexdir=$latexdir/asymptote
 AC_SUBST(latexdir)
-
 AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$Datadir/asymptote",
 	[System directory for global .asy files])
 AC_CONFIG_SRCDIR([absyn.cc])
+
 AC_LANG([C++])
 
 # Checks for programs.

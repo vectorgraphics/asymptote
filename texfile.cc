@@ -10,7 +10,6 @@
 #include "texfile.h"
 #include "errormsg.h"
 
-using std::string;
 using std::ofstream;
 using std::fixed;
 using std::setprecision;
@@ -18,7 +17,7 @@ using std::setprecision;
 namespace camp {
 
 bool TeXcontaminated=false;
-std::list<std::string> TeXpipepreamble, TeXpreamble;
+std::list<string> TeXpipepreamble, TeXpreamble;
   
 texfile::texfile(const string& texname, const bbox& box) :
     box(box)

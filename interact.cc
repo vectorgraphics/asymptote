@@ -20,10 +20,10 @@
 
 #include "fileio.h"
 
+using std::cout;
+
 namespace interact {
 
-using namespace std;  
-  
 bool virtualEOF=true;
 bool rejectline=false;
 int interactive=false;
@@ -115,8 +115,8 @@ void add_input(char *&dest, const char *src, size_t& size, bool warn=false)
     }
     src += name.length()+ninput;
     const string iname=settings::locateFile(name);
-    filebuf filebuf;
-    if(!filebuf.open(iname.c_str(),ios::in)) {
+    std::filebuf filebuf;
+    if(!filebuf.open(iname.c_str(),std::ios::in)) {
       if(warn) readerror(name);
       return;
     }

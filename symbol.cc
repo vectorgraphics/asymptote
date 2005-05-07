@@ -7,13 +7,12 @@
  *****/
 
 #include <cstdio>
-#include <string>
 
 #include "symbol.h"
 
 namespace sym {
 
-std::map<std::string,symbol> symbol::dict;
+std::map<string,symbol> symbol::dict;
   
 } // namespace sym
 

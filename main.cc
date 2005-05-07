@@ -23,7 +23,7 @@
 #include "parser.h"
 
 using namespace settings;
-using namespace std;
+using std::list;
 
 using absyntax::file;
 using trans::genv;
@@ -85,7 +85,7 @@ void init()
 {
   ShipoutNumber=0;
 
-  outnameStack=new list<string>;
+  outnameStack=new list<string,gc_allocator<string> >;
 
   em = new errorstream();
 }
@@ -95,7 +95,6 @@ void purge()
   delete em; em = 0;
   delete outnameStack; outnameStack = 0;
   outname="";
-  memory::free();
 }
 
 void doTranslate(genv& ge, record *m)
@@ -147,7 +146,7 @@ void body(string filename) // TODO: Refactor
 	  doRun(ge,m);
       }
     }
-  } catch (bad_alloc&) {
+  } catch (std::bad_alloc&) {
     cerr << "error: out of memory" << endl;
     ++status;
   } catch (handled_error) {
@@ -193,6 +192,9 @@ void doBatch()
 
 int main(int argc, char *argv[])
 {
+  GC_free_space_divisor = 2;
+  GC_dont_expand = 0;
+
   setOptions(argc,argv);
 
   fpu_trap(trap);

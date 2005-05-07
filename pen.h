@@ -8,7 +8,9 @@
 #define PEN_H
 
 #include <string>
-#include "pool.h"
+
+using std::string;
+
 #include "transform.h"
 #include "settings.h"
 #include "bbox.h"
@@ -23,8 +25,8 @@ namespace settings {
 
 namespace camp {
 
-static const std::string DEFPAT="<default>";
-static const std::string DEFFONT="\\usefont{OT1}{cmr}{m}{n}";
+static const string DEFPAT="<default>";
+static const string DEFFONT="\\usefont{OT1}{cmr}{m}{n}";
 static const double DEFWIDTH=-1;
 static const int DEFCAP=-1;
 static const int DEFJOIN=-1;
@@ -40,38 +42,38 @@ static const struct setoverwrite_t {} setoverwrite={};
 static const struct initialpen_t {} initialpen={};
 static const struct resolvepen_t {} resolvepen={};
   
-static const std::string Cap[]={"square","round","extended"};
-static const std::string Join[]={"miter","round","bevel"};
-const int nCap=sizeof(Cap)/sizeof(std::string);
-const int nJoin=sizeof(Join)/sizeof(std::string);
+static const string Cap[]={"square","round","extended"};
+static const string Join[]={"miter","round","bevel"};
+const int nCap=sizeof(Cap)/sizeof(string);
+const int nJoin=sizeof(Join)/sizeof(string);
   
 enum overwrite_t {DEFWRITE=-1,ALLOW,SUPPRESS,SUPPRESSQUIET,MOVE,MOVEQUIET};
-static const std::string OverwriteTag[]={"Allow","Suppress","SupressQuiet",
+static const string OverwriteTag[]={"Allow","Suppress","SupressQuiet",
 					 "Move","MoveQuiet"};
-const int nOverwrite=sizeof(OverwriteTag)/sizeof(std::string);
+const int nOverwrite=sizeof(OverwriteTag)/sizeof(string);
   
 enum FillRule {DEFFILL=-1,ZEROWINDING,EVENODD};
-static const std::string FillRuleTag[]={"ZeroWinding","EvenOdd"};
-const int nFill=sizeof(FillRuleTag)/sizeof(std::string);
+static const string FillRuleTag[]={"ZeroWinding","EvenOdd"};
+const int nFill=sizeof(FillRuleTag)/sizeof(string);
   
 enum BaseLine {DEFBASE=-1,NOBASEALIGN,BASEALIGN};
-static const std::string BaseLineTag[]={"NoAlign","Align"};
-const int nBaseLine=sizeof(BaseLineTag)/sizeof(std::string);
+static const string BaseLineTag[]={"NoAlign","Align"};
+const int nBaseLine=sizeof(BaseLineTag)/sizeof(string);
   
 enum ColorSpace {DEFCOLOR=0,INVISIBLE,GRAYSCALE,RGB,CMYK,PATTERN};
 static const int ColorComponents[]={0,0,1,3,4,0};
-static const std::string ColorDeviceSuffix[]={"","","Gray","RGB","CMYK",""};
-const int nColorSpace=sizeof(ColorDeviceSuffix)/sizeof(std::string);
+static const string ColorDeviceSuffix[]={"","","Gray","RGB","CMYK",""};
+const int nColorSpace=sizeof(ColorDeviceSuffix)/sizeof(string);
   
 using settings::defaultpen;
   
 class LineType
 {
 public:  
-  std::string pattern;	// The string for the PostScript style line pattern.
+  string pattern;	// The string for the PostScript style line pattern.
   bool scale;		// Scale the line type values by the pen width?
   
-  LineType(std::string pattern, bool scale) : pattern(pattern), scale(scale) {}
+  LineType(string pattern, bool scale) : pattern(pattern), scale(scale) {}
 };
   
 static const LineType DEFLINE("default",true);
@@ -80,13 +82,12 @@ inline bool operator == (LineType a, LineType b) {
   return a.pattern == b.pattern && a.scale == b.scale;
 }
   
-class pen : public memory::managed<pen>
-{ 
+class pen : public gc { 
   LineType line;
 
   // Width of line, in PS units.
   double linewidth;
-  std::string font;
+  string font;
   double fontsize;  
   double lineskip;  
   
@@ -94,7 +95,7 @@ class pen : public memory::managed<pen>
   double r,g,b; 	// RGB or CMY value
   double grey; 		// grayscale or K value
   
-  std::string pattern;	// The name of the user-defined fill/draw pattern.
+  string pattern;	// The name of the user-defined fill/draw pattern.
   FillRule fillrule; 	// Zero winding-number (default) or even-odd rule
   BaseLine baseline;	// Align to TeX baseline?
   int linecap;
@@ -139,9 +140,9 @@ public:
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
 
   pen(const LineType& line, double linewidth,
-      const std::string& font, double fontsize, double lineskip,
+      const string& font, double fontsize, double lineskip,
       ColorSpace color, double r, double g, double b,  double grey,
-      const std::string& pattern, FillRule fillrule, BaseLine baseline,
+      const string& pattern, FillRule fillrule, BaseLine baseline,
       int linecap, int linejoin, overwrite_t overwrite, const transform *t) :
     line(line), linewidth(linewidth),
     font(font), fontsize(fontsize), lineskip(lineskip), color(color),
@@ -170,7 +171,7 @@ public:
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
   
-  pen(setfont_t, std::string font) :
+  pen(setfont_t, string font) :
     line(DEFLINE), linewidth(DEFWIDTH),
     font(font), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
@@ -184,7 +185,7 @@ public:
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
   
-  pen(setpattern_t, const std::string& pattern) :
+  pen(setpattern_t, const string& pattern) :
     line(DEFLINE), linewidth(DEFWIDTH),
     font(""), fontsize(0.0), lineskip(0.0), color(PATTERN),
     r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
@@ -275,7 +276,7 @@ public:
     return linewidth == DEFWIDTH ? defaultpen.linewidth : linewidth;
   }
   
-  std::string Font() const {
+  string Font() const {
     return font.empty() ? defaultpen.font : font;
   }
   
@@ -287,7 +288,7 @@ public:
     return lineskip == 0.0 ? defaultpen.lineskip : lineskip;
   }
   
-  std::string stroke() const {
+  string stroke() const {
     return line == DEFLINE ? defaultpen.line.pattern : line.pattern;
   }
   
@@ -295,9 +296,9 @@ public:
     return line.scale;
   }
   
-  void setstroke(const std::string& s) {line.pattern=s;}
+  void setstroke(const string& s) {line.pattern=s;}
   
-  std::string fillpattern() const {
+  string fillpattern() const {
     return pattern == DEFPAT ? "" : pattern;
   }
   

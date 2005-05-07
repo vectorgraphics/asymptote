@@ -39,7 +39,7 @@ template<class T>
 void castString(vm::stack *s)
 {
   try {
-    std::string *S=pop<std::string*>(s);
+    string *S=pop<string*>(s);
     if(S->empty()) {
       T x=0;
       s->push(x);

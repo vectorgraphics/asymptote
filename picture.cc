@@ -14,7 +14,6 @@
 #include "settings.h"
 #include "interact.h"
 
-using std::string;
 using std::list;
 using std::ifstream;
 using std::ofstream;
@@ -386,7 +385,7 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   while(p != nodes.end()) {
     ostringstream buf;
     buf << prefix << "_" << layer;
-    string psname=labels ? buildname(buf.str(),"ps") : epsname;
+    string psname=labels ? buildname(buf.str().c_str(),"ps") : epsname;
     psnameStack.push_back(psname);
     psfile out(psname,bpos,bboxshift);
     out.prologue();

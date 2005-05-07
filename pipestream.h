@@ -31,6 +31,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 #include "util.h"
 #include "interact.h"
 
+using std::string;
+
 char **args(const char *command);
   
 // bidirectional stream for reading and writing to pipes
@@ -47,13 +49,13 @@ public:
     if(pipe(in) == -1) {
       ostringstream buf;
       buf << "in pipe failed: " << command;
-      camp::reportError(buf.str());
+      camp::reportError(buf);
     }
 
     if(pipe(out) == -1) {
       ostringstream buf;
       buf << "out pipe failed: " << command;
-      camp::reportError(buf.str());
+      camp::reportError(buf);
     }
     
     int wrapperpid;
@@ -61,14 +63,14 @@ public:
     if((wrapperpid=fork()) < 0) {
       ostringstream buf;
       buf << "fork failed: " << command;
-      camp::reportError(buf.str());
+      camp::reportError(buf);
     }
     
     if(wrapperpid == 0) {
       if((pid=fork()) < 0) {
 	ostringstream buf;
 	buf << "fork failed: " << command;
-	camp::reportError(buf.str());
+	camp::reportError(buf);
       }
     
       if(pid == 0) { 
@@ -83,7 +85,7 @@ public:
 	if(argv) execvp(argv[0],argv);
 	ostringstream buf;
 	buf << "exec failed: " << command << std::endl;
-	camp::reportError(buf.str());
+	camp::reportError(buf);
       }
       exit(0);
     } else {
@@ -99,7 +101,7 @@ public:
   iopipestream(const char *command, int out_fileno=STDOUT_FILENO) :
     pid(0), pipeopen(false) {open(command,out_fileno);}
   
-  iopipestream(const std::string command, int out_fileno=STDOUT_FILENO) :
+  iopipestream(const string command, int out_fileno=STDOUT_FILENO) :
     pid(0), pipeopen(false) {open(command.c_str(),out_fileno);}
   
   iopipestream(const std::ostringstream& command,
@@ -141,7 +143,7 @@ public:
   typedef iopipestream& (*imanip)(iopipestream&);
   iopipestream& operator << (imanip func) { return (*func)(*this); }
   
-  iopipestream& operator >> (std::string& s) {
+  iopipestream& operator >> (string& s) {
     readbuffer();
     s=buffer;
     return *this;
@@ -177,20 +179,20 @@ public:
 	if (errno != EINTR) {
 	  ostringstream buf;
 	  buf << "Process " << pid << " failed";
-	  camp::reportError(buf.str());
+	  camp::reportError(buf);
 	}
       } else {
 	if(WIFEXITED(status)) return WEXITSTATUS(status);
 	else {
 	  ostringstream buf;
 	  buf << "Process " << pid << " exited abnormally";
-	  camp::reportError(buf.str());
+	  camp::reportError(buf);
 	}
       }
     }
   }
   
-  iopipestream& operator << (const std::string &s) {
+  iopipestream& operator << (const string &s) {
     ssize_t size=s.length();
     if(settings::verbose > 2) std::cerr << s << std::endl;
     if(write(in[1],s.c_str(),size) != size)

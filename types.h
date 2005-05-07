@@ -12,13 +12,18 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <gc_allocator.h>
+#include <gc_cpp.h>
+
 #include <iostream>
 #include <cstdio>
 #include <cassert>
 #include <vector>
 
-#include "pool.h"
 #include "symbol.h"
+
+using std::cout;
+using std::endl;
 
 using std::ostream;
 using std::vector;
@@ -68,7 +73,7 @@ struct signature;
 // Arrays are equal if their cell types are equal.
 bool equivalent(ty *t1, ty *t2);
 
-class ty : public memory::managed<ty> {
+class ty : public gc {
 public:
   const ty_kind kind;
   ty(ty_kind kind)
@@ -210,18 +215,22 @@ ty *realArray3();
 ty *pairArray3();
 ty *stringArray3();
   
+typedef std::vector<ty *, gc_allocator<ty *> > ty_vector;
+typedef vector<absyntax::varinit*,
+	       gc_allocator<absyntax::varinit *> > varinit_vector;
+  
 // Holds the parameters of a function and if they have default values
 // (only applicable in some cases).  Technically, a signature should
 // also hold the function name.
-class signature : public memory::managed<signature> {
-  vector<ty *> formals;
+class signature : public gc {
+  ty_vector formals;
 
   // Holds the index of the expression in an array of default
   // expressions.
-  vector<absyntax::varinit*> defaults;
+  varinit_vector defaults;
   size_t ndefault;
 
-  vector<bool> Explicit;
+  std::vector<bool, gc_allocator<bool> > Explicit;
 public:
   signature()
     : ndefault(0) {} 
@@ -301,12 +310,9 @@ struct function : public ty {
   ty *stripDefaults();
 };
 
-// This is used in getType expressions when it is an overloaded
-// varible being  accessed.
+// This is used in getType expressions when an overloaded variable is accessed.
 class overloaded : public ty {
 public:
-  typedef std::vector<ty *> ty_vector;
-  typedef ty_vector::iterator ty_iter;
   ty_vector sub;
 public:
   overloaded()
@@ -315,7 +321,7 @@ public:
 
   bool equiv(ty *other)
   {
-    for(ty_iter i=sub.begin();i!=sub.end();++i)
+    for(ty_vector::iterator i=sub.begin();i!=sub.end();++i)
       if (equivalent(*i,other))
         return true;
     return false;

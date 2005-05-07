@@ -15,8 +15,9 @@
 #include <iostream>
 
 #include "errormsg.h"
-#include "pool.h"
 #include "item.h"
+
+using std::string;
 
 namespace vm {
 
@@ -37,7 +38,7 @@ public:
   label end();
 private:
   friend class label;
-  class code_t : public std::deque<inst>, public memory::managed<code_t> {};
+  class code_t : public std::deque<inst>, public gc {};
   code_t *code;
 };
 
@@ -63,7 +64,7 @@ private:
   
 // A function "lambda," that is, the code that runs a function.
 // It also need the closure of the enclosing module or function to run.
-struct lambda : public memory::managed<lambda> {
+struct lambda : public gc {
   // The instructions to follow.
   program code;
 
@@ -84,14 +85,14 @@ struct lambda : public memory::managed<lambda> {
   int vars;
 };
 
-struct callable : public memory::managed<callable>
+struct callable : public gc
 {
   virtual void call(stack *) = 0;
   virtual ~callable();
   virtual bool compare(callable*) { return false; }
 };
 
-class nullfunc : public callable 
+class nullfunc : public callable
 {
 private:
   nullfunc() {}
@@ -153,15 +154,16 @@ struct inst {
 };
 
 // Arrays are vectors with a push func for running in asymptote.
-class array : public std::vector<item>, public memory::managed<array> {
+class array : public std::vector<item,gc_allocator<item> >, public gc {
 public:
   array(size_t n)
-    : std::vector<item>(n)
+    : std::vector<item,gc_allocator<item> >(n)
   {}
+      //  {GC_register_finalizer_no_order( GC_base(this), 0, 0, 0, 0 );}
 
   void push(item i)
   {
-    std::vector<item>::push_back(i);
+    push_back(i);
   }
 
   template <typename T>

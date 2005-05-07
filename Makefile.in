@@ -3,14 +3,17 @@
 ARCH = unix
 POLL = poll
 
-LIBS = $(LFLAGS) @LIBS@
+GC = gc6.3
+GCLIBS = $(GC)/.libs/libgccpp.a $(GC)/.libs/libgc.a 
+LIBS = $(LFLAGS) @LIBS@ $(GCLIBS)
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill
 FILES = $(CAMP) cast env genv main runtime stm dec errormsg inst name symbol \
 	types entry exp newexp stack camp.tab lex.yy import access @getopt@ \
-	absyn record pool interact fileio builtin fftw++ simpson coder coenv \
+	absyn record interact fileio builtin fftw++ simpson coder coenv \
 	locate parser
+
 CLEAN = camp.tab.h camp.tab.cc lex.yy.cc camp.output genrun.cc
 NAME = asy
 XNAME = x$(NAME)
@@ -24,7 +27,7 @@ LEX = @LEX@
 DEFS = @DEFS@
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) $(CFLAGS) 
-INCL = -I .
+INCL = -I . -I $(GC)/include
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -40,10 +43,18 @@ ASYMPTOTE_DIR = ../base
 export prefix exampledir mandir INSTALL ASYMPTOTE_DIR 
 
 # $(MAGIC) is here for when we include Makefile again from Compile
-asy$(MAGIC): depend
+asy$(MAGIC): depend $(GCLIBS)
 	$(MAKE) -f Compile asy
 
 all:  	asy man
+
+$(GCLIBS):	
+	gunzip -c $(GC).tar.gz > $(GC).tar
+	tar -xf $(GC).tar
+	rm -f $(GC).tar
+	cd $(GC); \
+	configure --disable-threads --disable-shared --enable-cplusplus; \
+	make check
 
 man:	asy
 	cd doc; $(MAKE) man
@@ -101,6 +112,7 @@ clean:  FORCE
 	rm -f asy *.o *.d *mon.out $(CLEAN)
 
 distclean: FORCE clean
+	cd $(GC); make distclean
 	rm -f Makefile config.h config.log config.status
 	cd doc; $(MAKE) distclean
 

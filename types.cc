@@ -183,8 +183,8 @@ std::ostream& operator<< (std::ostream& out, const signature& s)
 {
   out << "(";
 
-  vector<ty *>::const_iterator t = s.formals.begin();
-  vector<absyntax::varinit*>::const_iterator dt = s.defaults.begin();
+  ty_vector::const_iterator t = s.formals.begin();
+  varinit_vector::const_iterator dt = s.defaults.begin();
   if (t != s.formals.end()) {
     out << **t;
     if (*dt != 0)
@@ -278,7 +278,7 @@ void overloaded::addDistinct(ty *t)
 {
   if (t->kind == ty_overloaded) {
     overloaded *ot = (overloaded *)t;
-    for (vector<ty *>::iterator st = ot->sub.begin();
+    for (ty_vector::iterator st = ot->sub.begin();
 	 st != ot->sub.end();
 	 ++st)
     {
@@ -287,7 +287,7 @@ void overloaded::addDistinct(ty *t)
   }
   else {
     signature *tsig = t->getSignature();
-    for (vector<ty *>::iterator st = this->sub.begin();
+    for (ty_vector::iterator st = this->sub.begin();
 	 st != this->sub.end();
 	 ++st)
     {
@@ -308,7 +308,7 @@ ty *overloaded::resolve(signature *key)
   overloaded set;
   
   // Pick out all applicable signatures.
-  for(vector<ty *>::iterator t = sub.begin();
+  for(ty_vector::iterator t = sub.begin();
       t != sub.end();
       ++t)
   {
@@ -323,7 +323,7 @@ ty *overloaded::resolve(signature *key)
     }
   }
 
-  vector<ty *>& candidates = set.sub;
+  ty_vector& candidates = set.sub;
   if (candidates.size() <= 1)
     return set.simplify();
 
@@ -331,8 +331,8 @@ ty *overloaded::resolve(signature *key)
   // arguments exactly matched.
   for (int n = key->getNumFormals(); n > 0; n--)
   {
-    vector<ty *> matches;
-    for (vector<ty *>::iterator p = candidates.begin();
+    ty_vector matches;
+    for (ty_vector::iterator p = candidates.begin();
          p != candidates.end();
 	 ++p)
     {

@@ -26,8 +26,6 @@
 #include "locate.h"
 #include "lexical.h"
 
-using std::string;
-
 namespace settings {
 const char PROGRAM[]=PACKAGE_NAME;
 const char VERSION[]=PACKAGE_VERSION;
@@ -65,11 +63,11 @@ double pageHeight;
 
 int scrollLines=0;
   
-const std::string suffix="asy";
-const std::string guisuffix="gui";
+const string suffix="asy";
+const string guisuffix="gui";
   
 string outname;
-std::list<string> *outnameStack;
+std::list<string,gc_allocator<string> > *outnameStack;
 
 bool TeXinitialized=false;
 

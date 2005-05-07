@@ -34,8 +34,8 @@ public:
 
   virtual ~drawClipBegin() {}
 
-  void bounds(bbox& b, iopipestream& iopipe, std::vector<box>& vbox,
-	      std::list<bbox>& bboxstack) {
+  void bounds(bbox& b, iopipestream& iopipe, boxvector& vbox,
+	      bboxlist& bboxstack) {
     bboxstack.push_back(b);
     bbox bpath;
     drawPathPenBase::bounds(bpath,iopipe,vbox,bboxstack);

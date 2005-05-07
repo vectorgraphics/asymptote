@@ -20,8 +20,7 @@ public:
 
   virtual ~drawClipEnd() {}
 
-  void bounds(bbox& b, iopipestream&, std::vector<box>&,
-	      std::list<bbox>& bboxstack) {
+  void bounds(bbox& b, iopipestream&, boxvector&, bboxlist& bboxstack) {
     if(bboxstack.size() < 2) {
       reportError("endclip without matching beginclip");
     }

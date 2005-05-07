@@ -8,8 +8,6 @@
 #include "fileio.h"
 #include "settings.h"
 
-using namespace std;
-
 namespace camp {
 
 string tab="\t";
@@ -29,9 +27,9 @@ void ifile::csv() {
   else stream->clear(rdstate);
 }
   
-std::string ifile::getcsvline() 
+string ifile::getcsvline() 
 {
-  std::string s="";
+  string s="";
   bool quote=false;
   while(stream->good()) {
     int c=stream->peek();

@@ -4,7 +4,6 @@
  *
  *****/
 
-#include <string>
 #include <fstream>
 #include <sstream>
 
@@ -20,8 +19,6 @@
 #include "locate.h"
 #include "errormsg.h"
 #include "parser.h"
-
-using std::string;
 
 // The lexical analysis and parsing functions used by parseFile.
 void setlexer(size_t (*input) (char* bif, size_t max_size),
@@ -123,7 +120,7 @@ absyntax::file *parseFile(string filename)
 absyntax::file *parseString(string code)
 {
   debug(false);
-  std::stringbuf buf(code);
+  std::stringbuf buf(code.c_str());
   yy::sbuf = &buf;
   return doParse(yy::stream_input,"<eval>");
 }

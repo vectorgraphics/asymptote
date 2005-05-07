@@ -8,7 +8,6 @@
 #include <cassert>
 #include <iostream>
 #include <cstdio>
-#include <string>
 #include <cfloat>
 #include <sstream>
 #include <cerrno>
@@ -22,7 +21,6 @@
 #include "camperror.h"
 #include "interact.h"
 
-using namespace std;
 using namespace settings;
 
 bool False=false;
@@ -58,7 +56,7 @@ bool checkFormatString(const string& format)
   if(format.find(' ') != string::npos) { // Avoid potential security hole
     ostringstream msg;
     msg << "output format \'" << format << "\' is invalid";
-    camp::reportError(msg.str());
+    camp::reportError(msg);
   }
   return true;
 }
@@ -96,7 +94,7 @@ int System(const char *command, bool quiet, bool wait, int *ppid, bool warn)
     ostringstream msg;
     if(warn) {
       msg <<  "Cannot execute " << argv[0];
-      camp::reportError(msg.str());
+      camp::reportError(msg);
     }
     return -1;
   }
@@ -109,7 +107,7 @@ int System(const char *command, bool quiet, bool wait, int *ppid, bool warn)
       if (errno != EINTR) {
         ostringstream msg;
         msg << "Command " << command << " failed";
-        camp::reportError(msg.str());
+        camp::reportError(msg);
       }
     } else {
       if(WIFEXITED(status)) {
@@ -120,7 +118,7 @@ int System(const char *command, bool quiet, bool wait, int *ppid, bool warn)
       else {
         ostringstream msg;
         msg << "Command " << command << " exited abnormally";
-        camp::reportError(msg.str());
+        camp::reportError(msg);
       }
     }
   }

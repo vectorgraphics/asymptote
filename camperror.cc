@@ -8,8 +8,8 @@
  * if any errors were encountered.
  *****/
 
-#include <queue>
 #include <cassert>
+#include <sstream>
 
 #include "camperror.h"
 #include "stack.h"
@@ -18,7 +18,7 @@
 namespace camp {
 
 // Used internally to report an error in an operation.
-void reportError(std::string desc)
+void reportError(const string& desc)
 {
   em->runtime(vm::getPos());
   *em << "camp: " << desc;
@@ -26,4 +26,9 @@ void reportError(std::string desc)
   throw handled_error(); 
 }
 
+void reportError(const std::ostringstream& desc)
+{
+  reportError(desc.str());
+}
+  
 } // namespace camp

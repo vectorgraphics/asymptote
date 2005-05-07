@@ -23,19 +23,19 @@
 #include "pair.h"
 #include "guide.h"
 #include "pen.h"
-#include "pool.h"
+
 #include "camperror.h"
 #include "interact.h"
 #include "errormsg.h"
 
 namespace camp {
 
-extern std::string tab;
-extern std::string newline;
+extern string tab;
+extern string newline;
   
-class file : public memory::managed<file> {
+class file : public gc {
 protected:  
-  std::string name;
+  string name;
   int nx,ny,nz;    // Array dimensions
   bool linemode;   // Array reads will stop at eol instead of eof.
   bool csvmode;    // Read comma-separated values.
@@ -52,7 +52,7 @@ public:
   
   void dimension(int Nx=-1, int Ny=-1, int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
   
-  file(const std::string& name, bool checkappend=true) : 
+  file(const string& name, bool checkappend=true) : 
     name(name), linemode(false), csvmode(false), singlemode(false),
     closed(false), checkappend(checkappend), standard(name.empty()),
     lines(0) {dimension();}
@@ -63,7 +63,7 @@ public:
     if(error()) {
       std::ostringstream buf;
       buf << "Cannot open file \"" << name << "\".";
-      reportError(buf.str().c_str());
+      reportError(buf);
     }
   }
   
@@ -75,12 +75,12 @@ public:
     if(closed) {
       std::ostringstream buf;
       buf << "I/O operation attempted on closed file \'" << name << "\'.";
-      reportError(buf.str().c_str());
+      reportError(buf);
     }
     return true;
   }
 		
-  std::string filename() {return name;}
+  string filename() {return name;}
   virtual bool eol() {return false;}
   virtual bool text() {return false;}
   virtual bool eof()=0;
@@ -94,7 +94,7 @@ public:
     std::ostringstream buf;
     buf << rw << " of type " << type << " not supported in " << Mode()
 	<< " mode.";
-    reportError(buf.str().c_str());
+    reportError(buf);
   }
   
   void noread(const char *type) {unsupported("Read",type);}
@@ -106,14 +106,14 @@ public:
   virtual void read(float&) {noread("real");}
   virtual void read(pair&) {noread("pair");}
   virtual void read(char&) {noread("char");}
-  virtual void readwhite(std::string&) {noread("string");}
-  virtual void read(std::string&) {noread("string");}
+  virtual void readwhite(string&) {noread("string");}
+  virtual void read(string&) {noread("string");}
   
   virtual void write(bool) {nowrite("bool");}
   virtual void write(int) {nowrite("int");}
   virtual void write(double) {nowrite("real");}
   virtual void write(const pair&) {nowrite("pair");}
-  virtual void write(const std::string&) {nowrite("string");}
+  virtual void write(const string&) {nowrite("string");}
   virtual void write(const pen&) {nowrite("pen");}
   virtual void write(const guide&) {nowrite("guide");}
   virtual void write(const transform&) {nowrite("transform");}
@@ -138,9 +138,11 @@ class ifile : public file {
   std::ifstream fstream;
   
 public:
-  ifile(const std::string& name, bool check=true) : file(name,check) {
+  ifile(const string& name, bool check=true) : file(name,check) {
       stream=&std::cin;
   }
+  
+  ~ifile() {close();}
   
   void open() {
     if(standard) {
@@ -177,18 +179,18 @@ public:
   
 public:
 
-  std::string getcsvline();
+  string getcsvline();
   
   // Skip over white space
-  void readwhite(std::string& val) {val=std::string(); *stream >> val; csv();}
+  void readwhite(string& val) {val=string(); *stream >> val; csv();}
   
-  void Read(bool &val) {std::string t; readwhite(t); val=(t == "true"); csv();}
+  void Read(bool &val) {string t; readwhite(t); val=(t == "true"); csv();}
   void Read(int& val) {val=0; *stream >> val; csv();}
   void Read(double& val) {val=0.0; *stream >> val; csv();}
   void Read(pair& val) {val=0.0; *stream >> val; csv();}
   void Read(char& val) {val=char(); stream->get(val); csv();}
-  void Read(std::string& val) {
-    val=std::string();
+  void Read(string& val) {
+    val=string();
     if(csvmode) {
       val=getcsvline();
       csv();
@@ -203,14 +205,14 @@ public:
   void read(double& val) {iread<double>(val);}
   void read(pair& val) {iread<pair>(val);}
   void read(char& val) {iread<char>(val);}
-  void read(std::string& val) {iread<std::string>(val);}
+  void read(string& val) {iread<string>(val);}
 };
   
 class ofile : public file {
   std::ostream *stream;
   std::ofstream fstream;
 public:
-  ofile(const std::string& name, bool append=false) : file(name,append) {
+  ofile(const string& name, bool append=false) : file(name,append) {
       stream=&std::cout;
   }
   
@@ -242,7 +244,7 @@ public:
   void write(int val) {*stream << val;}
   void write(double val) {*stream << val;}
   void write(const pair& val) {*stream << val;}
-  void write(const std::string& val) {*stream << val;}
+  void write(const string& val) {*stream << val;}
   void write(const pen& val) {*stream << val;}
   void write(const guide& val) {*stream << val;}
   void write(const transform& val) {*stream << val;}
@@ -262,7 +264,7 @@ public:
 class ixfile : public file {
   xdr::ixstream stream;
 public:
-  ixfile(const std::string& name, bool check=true) : 
+  ixfile(const string& name, bool check=true) : 
     file(name,check), stream(name.c_str()) {if(check) Check();}
 
   const char* Mode() {return "xinput";}
@@ -286,7 +288,7 @@ public:
 class oxfile : public file {
   xdr::oxstream stream;
 public:
-  oxfile(const std::string& name, bool append=false) : 
+  oxfile(const string& name, bool append=false) : 
     file(name), stream(name.c_str(),
 		       append ? xdr::xios::app : xdr::xios::trunc) {Check();}
 

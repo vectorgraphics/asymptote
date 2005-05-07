@@ -33,7 +33,7 @@ void errorstream::clear()
   anyErrors = anyWarnings = false;
 }
 
-void errorstream::message(position pos, const std::string& s)
+void errorstream::message(position pos, const string& s)
 {
   if (floating) out << endl;
   out << pos << s;

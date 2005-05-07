@@ -10,13 +10,11 @@
 #include "settings.h"
 #include "locate.h"
 
-using std::string;
-
 namespace settings {
 
 namespace fs {
 
-string extension(std::string name)
+string extension(string name)
 {
   size_t n = name.rfind(".");
   if (n != string::npos)
@@ -74,7 +72,7 @@ string locateFile(string id)
       }
     } 
   }
-  return std::string();
+  return string();
 }
 
 } // namespace settings

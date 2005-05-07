@@ -14,6 +14,8 @@
 #ifndef PAIR_H
 #define PAIR_H
 
+#include <gc_allocator.h>
+#include <gc_cpp.h>
 #include <cassert>
 #include <iostream>
 #include <cmath>
@@ -26,7 +28,7 @@ using std::ostream;
 using std::istream;
 using std::ws;
 
-class pair {
+class pair : public gc {
   double x;
   double y;
 

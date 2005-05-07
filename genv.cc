@@ -14,7 +14,6 @@
  *****/
 
 #include <sstream>
-#include <string>
 #include <unistd.h>
 
 #ifdef HAVE_CONFIG_H
@@ -37,7 +36,6 @@
 // that module.
 #define SELF_IMPORT 1
 
-using namespace std;
 using namespace types;
 using vm::inst;
 

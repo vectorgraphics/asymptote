@@ -14,12 +14,14 @@
 
 #include "pair.h"
 
+using std::string;
+
 namespace settings {
 extern const char PROGRAM[];
 extern const char VERSION[];
 extern const char BUGREPORT[];
 
-extern std::string outformat;
+extern string outformat;
 extern int keep;
 extern int texprocess;
 extern int verbose;
@@ -45,17 +47,17 @@ extern bool suppressStandard;
 
 extern int ShipoutNumber;
   
-extern const std::string suffix;
-extern const std::string guisuffix;
+extern const string suffix;
+extern const string guisuffix;
   
-extern std::string outname; 
-extern std::list<std::string> *outnameStack;
+extern string outname; 
+extern std::list<string,gc_allocator<string> > *outnameStack;
 
 extern bool TeXinitialized; // Is LaTeX process initialized?
 
-extern std::string PSViewer; // Environment variable ASYMPTOTE_PSVIEWER
-extern std::string PDFViewer; // Environment variable ASYMPTOTE_PDFVIEWER
-extern std::string paperType;
+extern string PSViewer; // Environment variable ASYMPTOTE_PSVIEWER
+extern string PDFViewer; // Environment variable ASYMPTOTE_PDFVIEWER
+extern string paperType;
 extern double pageWidth;
 extern double pageHeight;
   

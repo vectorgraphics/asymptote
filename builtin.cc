@@ -29,7 +29,6 @@ namespace trans {
 using camp::pair;
 using camp::transform;
 using vm::stack;
-using std::string;
 using run::divide;
 
 // The base environments for built-in types and functions

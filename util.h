@@ -17,18 +17,18 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::ostringstream;
+using std::string;
 
-std::string stripext(const std::string& name, const std::string& suffix);
+string stripext(const string& name, const string& suffix);
   
 // Construct a filename from the original, adding aux at the end, and
 // changing the suffix.
-std::string buildname(std::string filename, std::string suffix="",
-		      std::string aux="");
+string buildname(string filename, string suffix="", string aux="");
 
 // Construct an alternate filename for a temporary file.
-std::string auxname(std::string filename, std::string suffix="");
+string auxname(string filename, string suffix="");
 
-bool checkFormatString(const std::string& format);
+bool checkFormatString(const string& format);
 
 // Similar to the standard system call except allows interrupts and does
 // not invoke a shell.
@@ -54,7 +54,7 @@ extern "C" double yn(int n, double x);
 extern bool False;
 
 // Strip blank lines (which would break the bidirectional TeX pipe)
-std::string stripblanklines(std::string& s);
+string stripblanklines(string& s);
 
 extern char *currentpath;
 

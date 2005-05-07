@@ -23,7 +23,7 @@ public:
   
   virtual ~drawImage() {}
 
-  void bounds(bbox& b, iopipestream&, std::vector<box>&, std::list<bbox>&) {
+  void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&) {
     b += t*pair(0,0);
     b += t*pair(1,1);
   }

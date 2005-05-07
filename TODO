@@ -28,5 +28,3 @@ compared to C/C++ as opposed to lisp.
 
 allow users to examine the structure of guides (to allow user functions that
 produce new guides from guides)
-
-garbage collection

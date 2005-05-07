@@ -13,22 +13,22 @@
 #include <sstream>
 #include <iostream>
 
-#include "pool.h"
+
 #include "drawelement.h"
 
 namespace camp {
 
 extern iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
 
-class picture : public memory::managed<picture> {
+class picture : public gc {
 private:
   bool labels;
   size_t lastnumber;
   bbox b;
   pair bboxshift;
   bool epsformat,pdfformat,tgifformat;
-  std::vector<box> labelbounds;  
-  std::list<bbox> bboxstack;
+  boxvector labelbounds;
+  bboxlist bboxstack;
 
 public:
   std::list<drawElement*> nodes;
@@ -55,16 +55,16 @@ public:
 
   void texinit();
 
-  bool texprocess(const std::string& texname, const std::string& tempname,
-		  const std::string& prefix, const bbox& bpos); 
+  bool texprocess(const string& texname, const string& tempname,
+		  const string& prefix, const bbox& bpos); 
     
-  bool postprocess(const std::string& epsname, const std::string& outname, 
-		   const std::string& outputformat, bool wait,
+  bool postprocess(const string& epsname, const string& outname, 
+		   const string& outputformat, bool wait,
 		   const bbox& bpos);
     
   // Ship the picture out to PostScript & TeX files.
-  bool shipout(const picture& preamble, const std::string& prefix,
-	       const std::string& format, bool wait, bool Delete=false);
+  bool shipout(const picture& preamble, const string& prefix,
+	       const string& format, bool wait, bool Delete=false);
  
   picture *transformed(const transform& t);
   

@@ -17,7 +17,8 @@
 #include "psfile.h"
 #include "texfile.h"
 #include "pipestream.h"
-#include "pool.h"
+
+using std::string;
 
 namespace camp {
 
@@ -95,15 +96,18 @@ public:
   
 };
   
-class drawElement : public memory::managed<drawElement>
+typedef std::vector<box,gc_allocator<box> > boxvector;
+typedef std::list<bbox,gc_allocator<bbox> > bboxlist;
+  
+class drawElement : public gc
 {
 public:
   static pen lastpen;  
   
   // Adjust the bbox of the picture based on the addition of this
   // element. The iopipestream is needed for determining label sizes.
-  virtual void bounds(bbox&, iopipestream&, std::vector<box>&,
-		      std::list<bbox>&) {}
+  virtual void bounds(bbox&, iopipestream&, boxvector&,
+		      bboxlist&) {}
 
   virtual bool islabel() {return false;}
 
@@ -144,7 +148,7 @@ public:
 
   virtual ~drawPathBase() {}
 
-  void bounds(bbox& b, iopipestream&, std::vector<box>&, std::list<bbox>&) {
+  void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&) {
     b += p.bounds();
   }
 };
@@ -197,7 +201,7 @@ public:
     } else return p.cyclic();
   }
   
-  void bounds(bbox& b, iopipestream&, std::vector<box>&, std::list<bbox>&) {
+  void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&) {
     if(P) {
       for(size_t i=0; i < size; i++)
 	b += vm::read<path>(P,i).bounds();

@@ -352,7 +352,7 @@ exp:
   name             { $$ = new nameExp($1->getPos(), $1); }
 | value            { $$ = $1; }
 | LIT              { $$ = $1; }
-| STRING           { $$ = new stringExp($1.pos, *$1.sym);; }
+| STRING           { $$ = new stringExp($1.pos, *$1.sym); }
 /* This is for scaling expressions such as 105cm */
 | LIT exp          { $$ = new scaleExp($1->getPos(), $1, $2); }
 | '(' PRIM ')' exp { $$ = new castExp($2.pos,

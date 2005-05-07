@@ -17,9 +17,9 @@ enum Language {PostScript,TeX};
 class drawVerbatim : public drawElement {
 private:
   Language language;
-  std::string text;
+  string text;
 public:
-  drawVerbatim(Language language, const std::string& text) : 
+  drawVerbatim(Language language, const string& text) : 
     language(language), text(text) {}
   
   virtual ~drawVerbatim() {}

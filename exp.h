@@ -281,10 +281,10 @@ public:
 
 
 class stringExp : public literalExp {
-  std::string str;
+  string str;
 
 public:
-  stringExp(position pos, std::string str)
+  stringExp(position pos, string str)
     : literalExp(pos), str(str) {}
 
   void prettyprint(ostream &out, int indent);
@@ -344,7 +344,8 @@ public:
 
 // A list of expressions used in a function call.
 class explist : public absyn {
-  std::vector<exp *> exps;
+  typedef std::vector<exp *, gc_allocator<exp *> > expvector;
+  expvector exps;
 
 public:
   explist(position pos)
