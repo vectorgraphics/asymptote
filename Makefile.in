@@ -3,8 +3,8 @@
 ARCH = unix
 POLL = poll
 
-GC = gc6.3
-GCLIBS = $(GC)/.libs/libgccpp.a $(GC)/.libs/libgc.a 
+GC = @GCDIR@
+GCLIBS = @GCLIBS@
 LIBS = $(LFLAGS) @LIBS@ $(GCLIBS)
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
@@ -24,10 +24,10 @@ MAKEDEPEND = $(OPTS) -O0 -M -DDEPEND
 BISON = @BISON@
 LEX = @LEX@
 
-DEFS = @DEFS@
+DEFS = @DEFS@ @USEGC@
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) $(CFLAGS) 
-INCL = -I . -I $(GC)/include
+INCL = -I . @INCL@
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -112,9 +112,11 @@ clean:  FORCE
 	rm -f asy *.o *.d *mon.out $(CLEAN)
 
 distclean: FORCE clean
-	cd $(GC); make distclean
-	rm -f Makefile config.h config.log config.status
-	cd doc; $(MAKE) distclean
+	if test -d $(GC); then \
+		cd $(GC); make distclean; \
+		rm -f Makefile config.h config.log config.status; \
+		cd doc; $(MAKE) distclean; \
+	fi
 
 maintainer-clean: FORCE distclean
 	rm -f configure config.h.in 

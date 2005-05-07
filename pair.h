@@ -14,12 +14,11 @@
 #ifndef PAIR_H
 #define PAIR_H
 
-#include <gc_allocator.h>
-#include <gc_cpp.h>
 #include <cassert>
 #include <iostream>
 #include <cmath>
 
+#include "collect.h"
 #include "camperror.h"
 
 namespace camp {

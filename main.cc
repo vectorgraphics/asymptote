@@ -192,8 +192,10 @@ void doBatch()
 
 int main(int argc, char *argv[])
 {
+#ifdef COLLECT  
   GC_free_space_divisor = 2;
   GC_dont_expand = 0;
+#endif  
 
   setOptions(argc,argv);
 

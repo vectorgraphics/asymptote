@@ -12,14 +12,12 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#include <gc_allocator.h>
-#include <gc_cpp.h>
-
 #include <iostream>
 #include <cstdio>
 #include <cassert>
 #include <vector>
 
+#include "collect.h"
 #include "symbol.h"
 
 using std::cout;
