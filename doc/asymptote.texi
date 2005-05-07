@@ -1016,6 +1016,26 @@ is straight.
 
 @end table
 
+Finally, we point out an efficiency distinction in the use of guides and paths:
+@verbatim
+guide g;
+for(int i=0; i < 10; ++i)
+  g=g--(i,i);
+path p=g;
+@end verbatim
+
+@noindent
+runs in linear time, whereas
+@verbatim
+path p;
+for(int i=0; i < 10; ++i)
+  p=p--(i,i);
+@end verbatim
+
+@noindent
+runs in quadratic time, as the entire path up to that point is copied at each
+step of the iteration.
+
 @node Pens
 @section Pens
 

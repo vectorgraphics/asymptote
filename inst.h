@@ -159,7 +159,6 @@ public:
   array(size_t n)
     : std::vector<item,gc_allocator<item> >(n)
   {}
-      //  {GC_register_finalizer_no_order( GC_base(this), 0, 0, 0, 0 );}
 
   void push(item i)
   {

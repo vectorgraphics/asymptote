@@ -43,7 +43,7 @@ ASYMPTOTE_DIR = ../base
 export prefix exampledir mandir INSTALL ASYMPTOTE_DIR 
 
 # $(MAGIC) is here for when we include Makefile again from Compile
-asy$(MAGIC): depend $(GCLIBS)
+asy$(MAGIC): depend
 	$(MAKE) -f Compile asy
 
 all:  	asy man
@@ -59,7 +59,7 @@ $(GCLIBS):
 man:	asy
 	cd doc; $(MAKE) man
 
-depend: camp.tab.h genrun.cc $(FILES:=.d)
+depend: $(GCLIBS) camp.tab.h genrun.cc $(FILES:=.d)
 
 genrun.cc: runtime.pl runtime.in
 	./runtime.pl
