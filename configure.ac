@@ -12,8 +12,8 @@ Datadir=$datadir
 test "$datadir" = '${prefix}/share' && Datadir=$prefix/share
 
 latexdir=/usr/share/texmf/tex/latex
-AC_ARG_WITH(latex,AS_HELP_STRING([--with-latex=PATH],
-		                 [specify path to LaTeX installation ]),
+AC_ARG_WITH(latex,
+	[  --with-latex=PATH       specify path to LaTeX installation ],
                      [if test "x$withval" != "x" ; then
 			latexdir=$withval
 		      fi
@@ -23,8 +23,8 @@ AC_SUBST(latexdir)
 AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$Datadir/asymptote",
 	[System directory for global .asy files])
 
-AC_ARG_ENABLE(gc,AS_HELP_STRING([--enable-gc],
-			[enable Boehm garbage collector (default)]),
+AC_ARG_ENABLE(gc,
+	[  --enable-gc             enable Boehm garbage collector (default)],
 			[ac_cv_use_gc=$enableval],[ac_cv_use_gc=yes])
 
 
