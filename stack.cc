@@ -10,11 +10,17 @@
 #include "errormsg.h"
 #include "util.h"
 
+//#define DEBUG_STACK
+
 #ifdef DEBUG_STACK
 #include <iostream>
 using std::cout;
 using std::cerr;
 using std::endl;
+
+namespace vm {
+void draw(ostream& out, frame *v);
+}
 #endif
 
 namespace vm {

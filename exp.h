@@ -344,7 +344,7 @@ public:
 
 // A list of expressions used in a function call.
 class explist : public absyn {
-  typedef std::vector<exp *, gc_allocator<exp *> > expvector;
+  typedef std::vector<exp *> expvector;
   expvector exps;
 
 public:

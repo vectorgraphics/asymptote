@@ -11,6 +11,7 @@
 #include "knot.h"
 #include "flatguide.h"
 #include "settings.h"
+#include "pool.h"
 
 using std::cerr;
 using std::endl;
@@ -18,7 +19,7 @@ using std::endl;
 namespace camp {
 
 // Abstract base class for guides.
-class guide : public gc {
+class guide : public memory::managed<guide> {
 public:
   // Returns the path that the guide represents.
   virtual path solve() {
@@ -184,7 +185,7 @@ public:
 // A guide that is a sequence of other guide.  This is used, for instance is
 // joins, where we have the left and right guide, and possibly specifiers and
 // tensions in between.
-typedef vector<guide *,gc_allocator<guide *> > guidevector;
+typedef vector<guide *> guidevector;
 
 class multiguide : public guide {
   guidevector v;

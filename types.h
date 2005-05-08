@@ -17,11 +17,8 @@
 #include <cassert>
 #include <vector>
 
-#include "collect.h"
+#include "pool.h"
 #include "symbol.h"
-
-using std::cout;
-using std::endl;
 
 using std::ostream;
 using std::vector;
@@ -71,7 +68,7 @@ struct signature;
 // Arrays are equal if their cell types are equal.
 bool equivalent(ty *t1, ty *t2);
 
-class ty : public gc {
+class ty : public memory::managed<ty> {
 public:
   const ty_kind kind;
   ty(ty_kind kind)
@@ -213,14 +210,13 @@ ty *realArray3();
 ty *pairArray3();
 ty *stringArray3();
   
-typedef std::vector<ty *, gc_allocator<ty *> > ty_vector;
-typedef vector<absyntax::varinit*,
-	       gc_allocator<absyntax::varinit *> > varinit_vector;
+typedef std::vector<ty *> ty_vector;
+typedef vector<absyntax::varinit*> varinit_vector;
   
 // Holds the parameters of a function and if they have default values
 // (only applicable in some cases).  Technically, a signature should
 // also hold the function name.
-class signature : public gc {
+class signature : public memory::managed<signature> {
   ty_vector formals;
 
   // Holds the index of the expression in an array of default
@@ -228,7 +224,7 @@ class signature : public gc {
   varinit_vector defaults;
   size_t ndefault;
 
-  std::vector<bool, gc_allocator<bool> > Explicit;
+  std::vector<bool> Explicit;
 public:
   signature()
     : ndefault(0) {} 

@@ -95,6 +95,7 @@ void purge()
   delete em; em = 0;
   delete outnameStack; outnameStack = 0;
   outname="";
+  memory::free();
 }
 
 void doTranslate(genv& ge, record *m)
@@ -192,11 +193,6 @@ void doBatch()
 
 int main(int argc, char *argv[])
 {
-#ifdef USEGC
-  GC_free_space_divisor = 2;
-  GC_dont_expand = 0;
-#endif  
-
   setOptions(argc,argv);
 
   fpu_trap(trap);

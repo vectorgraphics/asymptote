@@ -18,7 +18,6 @@
 #include <iostream>
 #include <cmath>
 
-#include "collect.h"
 #include "camperror.h"
 
 namespace camp {
@@ -27,7 +26,7 @@ using std::ostream;
 using std::istream;
 using std::ws;
 
-class pair : public gc {
+class pair {
   double x;
   double y;
 

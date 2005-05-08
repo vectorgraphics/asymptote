@@ -10,9 +10,14 @@
 #ifndef ENTRY_H
 #define ENTRY_H
 
+#include <vector>
+
+#include "pool.h"
 #include "frame.h"
 #include "table.h"
 #include "types.h"
+
+using std::vector; 
 
 using sym::symbol;
 using types::ty;
@@ -24,7 +29,7 @@ namespace trans {
 class tenv : public sym::table<ty *>
 {};
 
-class varEntry : public gc {
+class varEntry : public memory::managed<varEntry> {
   ty *t;
   access *location;
 

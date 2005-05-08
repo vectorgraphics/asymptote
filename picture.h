@@ -20,9 +20,9 @@ namespace camp {
 
 extern iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
 
-typedef std::list<drawElement*,gc_allocator<drawElement*> > nodelist;
+typedef std::list<drawElement*> nodelist;
   
-class picture : public gc {
+class picture : public memory::managed<picture> {
 private:
   bool labels;
   size_t lastnumber;

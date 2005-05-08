@@ -82,7 +82,8 @@ inline bool operator == (LineType a, LineType b) {
   return a.pattern == b.pattern && a.scale == b.scale;
 }
   
-class pen : public gc { 
+class pen : public memory::managed<pen>
+{ 
   LineType line;
 
   // Width of line, in PS units.

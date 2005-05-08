@@ -14,12 +14,12 @@
 
 #include <iostream>
 
-
+#include "pool.h"
 #include "pair.h"
 
 namespace camp {
 
-class transform : public gc {
+class transform : public memory::managed<transform> {
   double x;
   double y;
   double xx;

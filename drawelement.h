@@ -17,8 +17,7 @@
 #include "psfile.h"
 #include "texfile.h"
 #include "pipestream.h"
-
-using std::string;
+#include "pool.h"
 
 namespace camp {
 
@@ -96,10 +95,10 @@ public:
   
 };
   
-typedef std::vector<box,gc_allocator<box> > boxvector;
-typedef std::list<bbox,gc_allocator<bbox> > bboxlist;
+typedef std::vector<box> boxvector;
+typedef std::list<bbox> bboxlist;
   
-class drawElement : public gc
+class drawElement : public memory::managed<drawElement>
 {
 public:
   static pen lastpen;  

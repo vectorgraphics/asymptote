@@ -13,14 +13,14 @@
 #include "record.h"
 #include "frame.h"
 #include "entry.h"
-
+#include "pool.h"
 
 using types::record;
 using types::overloaded;
 
 namespace trans {
 
-class import : public gc {
+class import : public memory::managed<import> {
   friend class menv;
 
   record *m;  // Class information of imported module.
