@@ -82,6 +82,8 @@ void stack::run(func *f)
       cerr << "\n";
 #endif
 
+      if(em->Pending()) em->process(curPos);
+      
       switch (i.op)
         {
           case inst::pop:
@@ -177,7 +179,6 @@ void stack::run(func *f)
       cerr << "\n";
 #endif
             
-      if(em->Pending()) em->process(curPos);
       ++ip;
     }
   } catch (bad_item_value&) {
