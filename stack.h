@@ -34,6 +34,7 @@ private:
   vars_t make_frame(size_t, vars_t closure);
 
   void draw(ostream& out);
+  void draw(ostream& out, vm::frame* v);
 
   // Move arguments from stack to frame.
   void marshall(int args, vars_t vars);

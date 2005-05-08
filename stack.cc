@@ -10,17 +10,11 @@
 #include "errormsg.h"
 #include "util.h"
 
-//#define DEBUG_STACK
-
 #ifdef DEBUG_STACK
 #include <iostream>
 using std::cout;
 using std::cerr;
 using std::endl;
-
-namespace vm {
-void draw(ostream& out, frame *v);
-}
 #endif
 
 namespace vm {
@@ -236,13 +230,13 @@ void stack::draw(ostream& out)
   out << "\n";
 }
 
-void draw(ostream& out, frame* v)
+void stack::draw(ostream& out, frame* v)
 {
   out << "vars:    ";
   
   if (!!v) {
     out << (!get<frame*>((*v)[0]) ? " 0" : " link");
-    for (int i = 1; i < 10 && i < v->size(); i++)
+    for (size_t i = 1; i < 10 && i < v->size(); i++)
       out << " " << demangle((*v)[i].type().name());
     if (v->size() > 10)
       out << "...";
