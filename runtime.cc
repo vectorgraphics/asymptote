@@ -1612,7 +1612,7 @@ void shipout(stack *s)
     picture *result=new picture;
     unsigned level=0;
     unsigned i=0;
-    std::list<drawElement*>::iterator p;
+    nodelist::iterator p;
     for(p = pic->nodes.begin(); p != pic->nodes.end(); ++p) {
       bool Delete;
       transform t;

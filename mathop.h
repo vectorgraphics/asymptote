@@ -77,7 +77,7 @@ struct times {
   T operator() (T x, T y, size_t=0) {return x*y;}
 };
 
-extern void dividebyzero(int i=0);  
+extern void dividebyzero(size_t i=0);  
   
 template <typename T>
 struct divide {

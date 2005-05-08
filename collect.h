@@ -10,10 +10,20 @@
 
 class gc {};
 
+enum GCPlacement {UseGC,
+#ifndef GC_NAME_CONFLICT
+		  GC=UseGC,
+#endif
+                  NoGC, PointerFreeGC};
+
 template<class T>
 class gc_allocator : public std::allocator<T> {};
 
-#define UseGC
+extern "C" {typedef void (*GCCleanUpFunc)( void* obj, void* clientData );}
+
+inline void* operator new(size_t size, GCPlacement, GCCleanUpFunc=0) {
+  return new char[size];
+}
 
 #endif
 
