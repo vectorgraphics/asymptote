@@ -20,6 +20,8 @@ namespace camp {
 
 extern iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
 
+typedef std::list<drawElement*,gc_allocator<drawElement*> > nodelist;
+  
 class picture : public gc {
 private:
   bool labels;
@@ -31,7 +33,7 @@ private:
   bboxlist bboxstack;
 
 public:
-  std::list<drawElement*> nodes;
+  nodelist nodes;
   
   picture() : labels(false), lastnumber(0) {}
   
@@ -39,7 +41,7 @@ public:
   ~picture();
 
   // Find beginning of current layer.
-  std::list<drawElement*>::iterator layerstart();
+  nodelist::iterator layerstart();
   
   // Prepend an object to the picture.
   void prepend(drawElement *p);

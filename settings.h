@@ -51,7 +51,7 @@ extern const string suffix;
 extern const string guisuffix;
   
 extern string outname; 
-extern std::list<string,gc_allocator<string> > *outnameStack;
+extern std::list<string> *outnameStack;
 
 extern bool TeXinitialized; // Is LaTeX process initialized?
 

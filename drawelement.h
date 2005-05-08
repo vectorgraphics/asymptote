@@ -106,8 +106,7 @@ public:
   
   // Adjust the bbox of the picture based on the addition of this
   // element. The iopipestream is needed for determining label sizes.
-  virtual void bounds(bbox&, iopipestream&, boxvector&,
-		      bboxlist&) {}
+  virtual void bounds(bbox&, iopipestream&, boxvector&, bboxlist&) {}
 
   virtual bool islabel() {return false;}
 

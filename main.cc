@@ -85,7 +85,7 @@ void init()
 {
   ShipoutNumber=0;
 
-  outnameStack=new list<string,gc_allocator<string> >;
+  outnameStack=new list<string>;
 
   em = new errorstream();
 }

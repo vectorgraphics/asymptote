@@ -24,7 +24,8 @@ using std::string;
 
 namespace camp {
 
-extern std::list<string> TeXpipepreamble, TeXpreamble;
+typedef std::list<string,gc_allocator<string> > stringlist;
+extern stringlist TeXpipepreamble, TeXpreamble;
 
 const double tex2ps=72.0/72.27;
 const double ps2tex=1.0/tex2ps;
@@ -35,8 +36,8 @@ void texdocumentclass(T& out) {
 }
   
 template<class T>
-void texpreamble(T& out, std::list<string>& preamble=TeXpreamble) {
-  std::list<string>::iterator p=preamble.begin();
+void texpreamble(T& out, stringlist& preamble=TeXpreamble) {
+  stringlist::iterator p=preamble.begin();
   if(p != preamble.end()) {
     TeXcontaminated=true;
     for (; p != preamble.end(); ++p)
@@ -45,7 +46,7 @@ void texpreamble(T& out, std::list<string>& preamble=TeXpreamble) {
 }
   
 template<class T>
-void texdefines(T& out, std::list<string>& preamble=TeXpreamble) {
+void texdefines(T& out, stringlist& preamble=TeXpreamble) {
   texpreamble(out,preamble);
   out << "\\newbox\\ASYbox" << newl
       << "\\newdimen\\ASYdimen" << newl

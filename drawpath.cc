@@ -27,7 +27,7 @@ void drawPath::adjustdash(pen& pen0)
     double arclength=p.arclength();
     
     if(arclength) {
-      vector<double, gc_allocator<double> > pat;
+      vector<double> pat;
       {
         istringstream buf(stroke.c_str());
         double l;

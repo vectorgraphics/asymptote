@@ -30,9 +30,9 @@ picture::~picture()
 }
 
 // Find beginning of current layer.
-list<drawElement*>::iterator picture::layerstart()
+nodelist::iterator picture::layerstart()
 {
-  list<drawElement*>::iterator p;
+  nodelist::iterator p;
   for(p=nodes.end(); p != nodes.begin();) {
     --p;
     assert(*p);
@@ -79,7 +79,7 @@ bbox picture::bounds()
   
   if(lastnumber == 0) b=bbox();
   
-  list<drawElement*>::iterator p;
+  nodelist::iterator p;
   
   if(!labels && settings::texprocess) {
     // Check to see if there are any labels yet
@@ -377,8 +377,8 @@ bool picture::shipout(const picture& preamble, const string& prefix,
     tex->prologue();
   }
   
-  list<drawElement*>::iterator layerp=nodes.begin();
-  list<drawElement*>::iterator p=layerp;
+  nodelist::iterator layerp=nodes.begin();
+  nodelist::iterator p=layerp;
   unsigned int layer=0;
   list<string> psnameStack;
   
@@ -393,8 +393,8 @@ bool picture::shipout(const picture& preamble, const string& prefix,
     if(labels) tex->beginlayer(psname);
   
     // Postscript preamble.
-    list<drawElement*> Nodes=preamble.nodes;
-    list<drawElement*>::iterator P=Nodes.begin();
+    nodelist Nodes=preamble.nodes;
+    nodelist::iterator P=Nodes.begin();
     if(P != Nodes.end()) {
       out.resetpen();
       for(; P != Nodes.end(); ++P) {
@@ -457,7 +457,7 @@ picture *picture::transformed(const transform& t)
 {
   picture *pic = new picture;
 
-  list<drawElement*>::iterator p;
+  nodelist::iterator p;
   for (p = nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
     pic->append((*p)->transformed(t));

@@ -67,7 +67,7 @@ const string suffix="asy";
 const string guisuffix="gui";
   
 string outname;
-std::list<string,gc_allocator<string> > *outnameStack;
+std::list<string> *outnameStack;
 
 bool TeXinitialized=false;
 

@@ -17,7 +17,7 @@ using std::setprecision;
 namespace camp {
 
 bool TeXcontaminated=false;
-std::list<string> TeXpipepreamble, TeXpreamble;
+stringlist TeXpipepreamble, TeXpreamble;
   
 texfile::texfile(const string& texname, const bbox& box) :
     box(box)
