@@ -9,6 +9,8 @@
 #define ITEM_H
 
 #include <vector>
+#include <gc_allocator.h>
+#include <gc_cpp.h>
 #include "pool.h"
 
 namespace vm {
@@ -96,8 +98,8 @@ private:
   };
 };
   
-class frame : public memory::managed<frame> {
-  typedef std::vector<item> vars_t;
+class frame : public gc_cleanup {
+  typedef std::vector<item,traceable_allocator<item> > vars_t;
   vars_t vars;
 public:
   frame(size_t size)

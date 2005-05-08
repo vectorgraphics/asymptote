@@ -11,6 +11,8 @@
 #include <sigsegv.h>
 #endif
 
+#include <gc.h>
+
 #include "types.h"
 #include "errormsg.h"
 #include "fpu.h"
@@ -193,6 +195,9 @@ void doBatch()
 
 int main(int argc, char *argv[])
 {
+  GC_free_space_divisor = 2;
+//  GC_dont_expand = 0;
+//  GC_use_entire_heap = 1;
   setOptions(argc,argv);
 
   fpu_trap(trap);

@@ -158,7 +158,7 @@ void stack::run(func *f)
             break; 
 
           case inst::makefunc: {
-            func *f = new func;
+            func *f = ::new (UseGC) func;
             f->closure = pop<vars_t>();
             f->body = i.lfunc;
 
