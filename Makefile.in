@@ -114,7 +114,7 @@ clean:  FORCE
 
 cleaner: distclean
 distclean: FORCE clean
-	if test -d $(GC); then \
+	-if test -d $(GC); then \
 		cd $(GC); make distclean; \
 		rm -f $(GC); \
 		rm -f Makefile config.h config.log config.status; \
