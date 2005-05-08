@@ -50,7 +50,9 @@ asy$(MAGIC): depend
 all:  	asy man
 
 $(GCLIBS):	
+	gunzip -c $(GC).tar.gz > $(GC).tar
 	tar -xf $(GC).tar
+	rm -f $(GC).tar
 	cd $(GC); \
 	configure --disable-threads --disable-shared --enable-cplusplus; \
 	make check
