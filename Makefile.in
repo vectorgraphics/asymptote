@@ -54,7 +54,7 @@ $(GCLIBS):
 	tar -xf $(GC).tar
 	rm -f $(GC).tar
 	cd $(GC); \
-	configure --disable-threads --disable-shared --enable-cplusplus; \
+	./configure --disable-threads --disable-shared --enable-cplusplus; \
 	make check
 
 man:	asy
@@ -115,11 +115,11 @@ clean:  FORCE
 cleaner: distclean
 distclean: FORCE clean
 	-if test -d $(GC); then \
-		cd $(GC); make distclean; \
-		rm -f $(GC); \
-		rm -f Makefile config.h config.log config.status; \
-		cd doc; $(MAKE) distclean; \
+		make -C $(GC) distclean; \
+		rm -rf $(GC); \
 	fi
+	rm -f Makefile config.h config.log config.status; \
+	cd doc; $(MAKE) distclean; \
 
 cleanest: maintainer-clean
 maintainer-clean: FORCE distclean
