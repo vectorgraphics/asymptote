@@ -94,6 +94,7 @@ Import
 * graph3d::                     Preliminary 3D projection routines
 * featpost3D::                  Preliminary port of @code{featpost3d}
 * math::                        Extend @code{Asymptote}'s math capabilities
+* geometry::                    Geometry routines
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
 * palette::                     Color density images and palettes
@@ -1770,9 +1771,9 @@ write(a.x);             // Outputs 0
 write(b.x);             // Outputs 1
 @end verbatim
 
-For more complicated usages of structures, see the example
-@code{triangle.asy} or the structures @code{Legend} and @code{picture}
-in the default @code{Asymptote} base file @code{plain.asy}.
+For more complicated examples, see the structure @code{triangle} in
+@code{geometry.asy} or the structures @code{Legend} and
+@code{picture} in the default @code{Asymptote} base file @code{plain.asy}.
 
 @node Arithmetic & logical
 @section Arithmetic & logical operators
@@ -2516,6 +2517,7 @@ void eval(string s);
 * graph3d::                     Preliminary 3D projection routines
 * featpost3D::                  Preliminary port of @code{featpost3d}
 * math::                        Extend @code{Asymptote}'s math capabilities
+* geometry::                    Geometry routines
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
 * palette::                     Color density images and palettes
@@ -3186,6 +3188,15 @@ replaced by @code{x}.
 returns @code{true} iff the path @code{p} is straight.
 
 @end table
+
+@node geometry
+@subsection @code{geometry}
+@cindex @code{geometry}
+@cindex @code{triangle}
+@cindex @code{perpendicular}
+This module provides the beginnings of a geometry package.
+It currently includes a triangle structure and functions to draw
+interior arcs of triangles and perpendicular symbols.
 
 @node stats
 @subsection @code{stats}

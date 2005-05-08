@@ -1,7 +1,5 @@
 // Asymptote mathematics routines
 
-public real perpfactor=arrowfactor;
-
 real radians(real degrees)
 {
   return degrees*pi/180;
@@ -41,34 +39,6 @@ picture grid(int Nx, int Ny, pen p=currentpen)
   for(int i=0; i <= Nx; ++i) draw(pic,(i,0)--(i,Ny),p);
   for(int j=0; j <= Ny; ++j) draw(pic,(0,j)--(Nx,j),p);
   return pic; 
-}
-
-// Return an interior arc BAC of triangle ABC, given a radius r > 0.
-// If r < 0, return the corresponding exterior arc of radius |r|.
-guide arc(explicit pair B, explicit pair A, explicit pair C,
-	  real r=arrowfactor)
-{
-  return arc(A,r,Angle(B-A),Angle(C-A));
-}
-
-// Draw a perpendicular symbol at z going from w to I*w.
-void perpendicular(picture pic=currentpicture, pair z, pair w,
-		   real size=0, pen p=currentpen) 
-{
-  if(size == 0) size=perpfactor*linewidth(p);
-  picture apic=new picture;
-  pair d1=size*w;
-  pair d2=I*d1;
-  _draw(apic,d1--d1+d2--d2,p);
-  add(z,pic,apic);
-}
-  
-// Draw a perpendicular symbol at z going from dir(g,0) to dir(g,0)+90
-void perpendicular(picture pic=currentpicture, pair z, path g,
-		   real size=0, pen p=currentpen) 
-{
-  if(size == 0) size=perpfactor*linewidth(p);
-  perpendicular(pic,z,dir(g,0),size,p);
 }
 
 bool straight(path p)
@@ -632,3 +602,5 @@ real slope(path g, explicit pair z)
   pair a=dir(g,node(g,(0,z.y)));
   return a.y/a.x;
 }
+
+

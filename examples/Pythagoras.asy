@@ -1,5 +1,5 @@
 size(0,150);
-import math;
+import geometry;
 
 real a=3;
 real b=4;

@@ -1,5 +1,7 @@
-size(7cm,0);
+import geometry;
 import math;
+
+size(7cm,0);
 
 real theta=degrees(asin(0.5/sqrt(7)));
 
@@ -35,5 +37,5 @@ labeldot("$A'$",Ap,dir(A--Ap),red);
 labeldot("$B'$",Bp,dir(B--Bp),red);
 labeldot("$C'$",Cp,dir(C--Cp),red);
 
-label(include("sflogo.eps","width=4cm"),Ap,6*NE,red);
+label(include("piicon.eps","width=2.5cm"),Ap,5ENE,red);
 
