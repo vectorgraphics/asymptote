@@ -76,7 +76,7 @@ using camp::transform;
 
 // Math
   
-void dividebyzero(int i=0)
+void dividebyzero(size_t i=0)
 {
   std::ostringstream buf;
   if(i > 0) buf << "array element " << i << ": ";
