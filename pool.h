@@ -8,16 +8,11 @@
 #ifndef POOL_H
 #define POOL_H
 
+#include <deque>
 #include <new>
 
 namespace memory
 {
-
-void free();
-
-class poolitem;
-void insert(poolitem);
-void erase(poolitem);
   
 template <class T>
 class managed
@@ -59,10 +54,24 @@ public:
     : ptr(p), free_func(free) {}
   void free() const { return free_func(ptr); }
 protected:
-  friend bool cmp(poolitem,poolitem);
   void* ptr;
   free_t free_func;
 };
+
+typedef std::deque<poolitem> pool_t;
+extern pool_t thePool;
+  
+inline void free()
+{
+  for(pool_t::iterator p = thePool.begin(); p != thePool.end(); ++p)
+    p->free();
+  pool_t().swap(thePool);
+};
+
+inline void insert(poolitem p)
+{
+  thePool.push_back(p);
+}
 
 template <class T>
 void managed<T>::deleter(void* ptr)
@@ -89,7 +98,6 @@ template <class T>
 inline void managed<T>::operator delete(void* p)
 {
   poolitem it(p,deleter);
-  erase(it);
   it.free();
 }
 

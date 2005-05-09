@@ -17,9 +17,9 @@
 #include "pair.h"
 #include "path.h"
 
-using std::vector;
-
 namespace camp {
+
+using mem::vector;
 
 // The choice of branch cuts of atan2 disguishes between y=+0.0 and y=-0.0 in
 // the case where x<0.  This can lead to strange looking paths being
@@ -30,19 +30,19 @@ double niceAngle(pair z);
 
 // A cyclic vector: ie. a vector where the index is taken mod the size of the
 // vector.
-template <typename T, typename Alloc=gc_allocator<T> >
-class cvector : public vector<T,Alloc>, public gc {
+template <typename T>
+class cvector : public vector<T> {
 public:
   cvector() {}
-  cvector(size_t n) : vector<T,Alloc>(n) {}
-  cvector(size_t n, const T& t) : vector<T,Alloc>(n,t) {}
-  cvector(const vector<T,Alloc>& v) : vector<T,Alloc>(v) {}
+  cvector(size_t n) : vector<T>(n) {}
+  cvector(size_t n, const T& t) : vector<T>(n,t) {}
+  cvector(const vector<T>& v) : vector<T>(v) {}
   
   T& operator[](int j) {
-    return vector<T,Alloc>::operator[](imod(j,(int) this->size()));
+    return vector<T>::operator[](imod(j,(int) this->size()));
   }
   const T& operator[](int j) const {
-    return vector<T,Alloc>::operator[](imod(j,(int) this->size()));
+    return vector<T>::operator[](imod(j,(int) this->size()));
   }
 };
 
@@ -208,7 +208,7 @@ struct knot {
 ostream& operator<<(ostream& out, const knot& k);
 
 // Abstract base class for a section of a guide.
-class knotlist : public gc {
+class knotlist {
 public:
   virtual int length() = 0;
   virtual bool cyclic() = 0;

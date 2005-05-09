@@ -11,7 +11,7 @@
 #include "settings.h"
 #include "util.h"
 
-using std::list;
+using mem::list;
   
 namespace camp {
   

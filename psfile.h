@@ -10,7 +10,7 @@
 #define PSFILE_H
 
 #include <fstream>
-#include <stack>
+#include <list>
 #include <iomanip>
 
 #include "pair.h"
@@ -34,7 +34,7 @@ class psfile {
   bool rawmode;
   pen lastpen;
   ostream *out;
-  std::stack<pen> pens;
+  mem::list<pen> pens;
 
   void writeUnshifted(pair z) {
     *out << " " << z.getx() << " " << z.gety();
@@ -127,14 +127,14 @@ public:
 
   void gsave() {
     *out << "gsave" << newl;
-    pens.push(lastpen);
+    pens.push_back(lastpen);
   }
   
   void grestore() {
     if(pens.size() < 1)
       reportError("grestore without matching gsave");
-    lastpen = pens.top();
-    pens.pop();
+    lastpen = pens.back();
+    pens.pop_back();
     *out << "grestore" << newl;
   }
 

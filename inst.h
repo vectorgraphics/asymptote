@@ -14,6 +14,7 @@
 #include <iterator>
 #include <iostream>
 
+#include "pool.h"
 #include "errormsg.h"
 #include "item.h"
 
@@ -33,12 +34,11 @@ public:
   class label;
   program();
   void encode(inst i);
-  void prepend(inst i);
   label begin();
   label end();
 private:
   friend class label;
-  class code_t : public std::deque<inst>, public gc {};
+  class code_t : public mem::deque<inst>, public memory::managed<code_t> {};
   code_t *code;
 };
 
@@ -154,10 +154,10 @@ struct inst {
 };
 
 // Arrays are vectors with a push func for running in asymptote.
-class array : public std::vector<item,gc_allocator<item> >, public gc {
+class array : public mem::vector<item>, public gc {
 public:
   array(size_t n)
-    : std::vector<item,gc_allocator<item> >(n)
+    : mem::vector<item>(n)
   {}
 
   void push(item i)
@@ -195,8 +195,6 @@ inline program::label program::begin()
 { return label(0, code); }
 inline void program::encode(inst i)
 { code->push_back(i); }
-inline void program::prepend(inst i)
-{ code->push_front(i); }
 inline program::label& program::label::operator++()
 { ++where; return *this; }
 inline bool program::label::operator==(const label& right) const

@@ -14,12 +14,10 @@
 #include <iostream>
 #include <string>
 
-using std::string;
-
 namespace camp {
 
 // Used internally to report an error in an operation.
-void reportError(const string& desc);
+void reportError(const std::string& desc);
 void reportError(const std::ostringstream& desc);
 
 inline std::ostream& newl(std::ostream& s) {s << '\n'; return s;}

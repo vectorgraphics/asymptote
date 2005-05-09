@@ -13,7 +13,7 @@ class bad_cast {};
 template <typename T> 
 T cast(const string& s) 
 {
-  std::istringstream is(s.c_str()); 
+  std::istringstream is(s);
   T value;
   if(is && is >> value && (is >> std::ws).eof()) return value;
   throw bad_cast();

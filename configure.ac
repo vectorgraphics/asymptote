@@ -36,7 +36,7 @@ if test "x$ac_cv_use_gc" != "xno" ; then
    AC_MSG_NOTICE([enabling $GCNAME])
    USEGC="-DUSEGC"
    GCLIBS="\$(GC)/.libs/libgccpp.a \$(GC)/.libs/libgc.a"
-   INCL="-I $GCDIR/include"
+   INCL="-I \$(GC)/include"
 else
    AC_MSG_NOTICE([disabling $GCNAME])
 fi

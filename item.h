@@ -9,7 +9,7 @@
 #define ITEM_H
 
 #include <vector>
-
+#include "memory.h"
 
 namespace vm {
 
@@ -97,7 +97,7 @@ private:
 };
   
 class frame : public gc {
-  typedef std::vector<item,gc_allocator<item> > vars_t;
+  typedef mem::vector<item> vars_t;
   vars_t vars;
 public:
   frame(size_t size)

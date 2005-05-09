@@ -1642,7 +1642,7 @@ void shipout(stack *s)
 	if(settings::deconstruct) {
 	  ostringstream buf;
 	  buf << prefix << "_" << i;
-	  group->shipout(*preamble,buf.str().c_str(),"tgif",false,Delete);
+	  group->shipout(*preamble,buf.str(),"tgif",false,Delete);
 	}
 	++i;
       }

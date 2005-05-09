@@ -184,7 +184,7 @@ public:
 // A guide that is a sequence of other guide.  This is used, for instance is
 // joins, where we have the left and right guide, and possibly specifiers and
 // tensions in between.
-typedef vector<guide *,gc_allocator<guide *> > guidevector;
+typedef mem::vector<guide *> guidevector;
 
 class multiguide : public guide {
   guidevector v;

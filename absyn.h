@@ -9,7 +9,7 @@
 #ifndef ABSYN_H
 #define ABSYN_H
 
-
+#include "pool.h"
 #include "errormsg.h" // For position
 
 // Forward declaration for markPos.
@@ -19,7 +19,7 @@ namespace trans {
 
 namespace absyntax {
 
-class absyn : public gc {
+class absyn : public memory::managed<absyn> {
 protected:
   const position pos;
 

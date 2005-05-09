@@ -24,7 +24,7 @@ namespace trans {
 class tenv : public sym::table<ty *>
 {};
 
-class varEntry : public gc {
+  class varEntry : public memory::managed<varEntry> {
   ty *t;
   access *location;
 

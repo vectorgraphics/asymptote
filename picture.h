@@ -13,14 +13,13 @@
 #include <sstream>
 #include <iostream>
 
-
 #include "drawelement.h"
 
 namespace camp {
 
 extern iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
 
-typedef std::list<drawElement*,gc_allocator<drawElement*> > nodelist;
+typedef mem::list<drawElement*> nodelist;
   
 class picture : public gc {
 private:

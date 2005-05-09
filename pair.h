@@ -18,7 +18,7 @@
 #include <iostream>
 #include <cmath>
 
-#include "collect.h"
+#include "memory.h"
 #include "camperror.h"
 
 namespace camp {

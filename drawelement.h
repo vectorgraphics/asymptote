@@ -96,8 +96,8 @@ public:
   
 };
   
-typedef std::vector<box,gc_allocator<box> > boxvector;
-typedef std::list<bbox,gc_allocator<bbox> > bboxlist;
+typedef mem::vector<box> boxvector;
+typedef mem::list<bbox> bboxlist;
   
 class drawElement : public gc
 {

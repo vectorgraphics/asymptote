@@ -10,8 +10,6 @@
 #ifndef EXP_H
 #define EXP_H
 
-#include <list>
-
 #include "types.h"
 #include "symbol.h"
 #include "absyn.h"
@@ -24,7 +22,6 @@ class coenv;
 
 namespace absyntax {
 
-using std::list;
 using trans::coenv;
 using sym::symbol;
 using vm::inst;
@@ -46,7 +43,7 @@ public:
 };
 
 class arrayinit : public varinit {
-  list<varinit *> inits;
+  std::list<varinit *> inits;
 
 public:
   arrayinit(position pos)
@@ -344,7 +341,7 @@ public:
 
 // A list of expressions used in a function call.
 class explist : public absyn {
-  typedef std::vector<exp *, gc_allocator<exp *> > expvector;
+  typedef std::vector<exp *> expvector;
   expvector exps;
 
 public:

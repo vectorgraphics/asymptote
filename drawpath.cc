@@ -15,7 +15,7 @@
 
 using std::ostringstream;
 using std::istringstream;
-using std::vector;
+using mem::vector;
 
 namespace camp {
 
@@ -29,7 +29,7 @@ void drawPath::adjustdash(pen& pen0)
     if(arclength) {
       vector<double> pat;
       {
-        istringstream buf(stroke.c_str());
+        istringstream buf(stroke);
         double l;
         while(buf >> l) {
           pat.push_back(l);
@@ -54,7 +54,7 @@ void drawPath::adjustdash(pen& pen0)
       double factor=arclength/(ncycle*sum+(p.cyclic() ? 0.0 : pat[0]));
       ostringstream buf;
       for(unsigned int i=0; i < n; i++) buf << pat[i]*factor << " ";
-      pen0.setstroke(buf.str().c_str());
+      pen0.setstroke(buf.str());
     }
   }
 }  

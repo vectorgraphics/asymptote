@@ -11,6 +11,7 @@
 #include <list>
 #include <iostream>
 
+#include "pool.h"
 #include "settings.h"
 
 using std::ostream;
@@ -19,7 +20,7 @@ using std::endl;
 struct handled_error {}; // Exception to process next file.
 struct interrupted {};   // Exception to process user interrupts.
 
-class fileinfo : public gc {
+class fileinfo : public memory::managed<fileinfo> {
   string filename;
   size_t lineNum;
 
@@ -73,7 +74,7 @@ public:
   }
 };
 
-class errorstream : public gc {
+class errorstream {
   ostream& out;
   bool anyErrors;
   bool anyWarnings;
