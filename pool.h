@@ -66,7 +66,7 @@ inline void free()
   for(pool_t::iterator p = thePool.begin(); p != thePool.end(); ++p)
     p->free();
   pool_t().swap(thePool);
-};
+}
 
 inline void insert(poolitem p)
 {

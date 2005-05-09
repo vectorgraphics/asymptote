@@ -15,7 +15,6 @@
 
 using std::ostringstream;
 using std::istringstream;
-using mem::vector;
 
 namespace camp {
 
@@ -27,7 +26,7 @@ void drawPath::adjustdash(pen& pen0)
     double arclength=p.arclength();
     
     if(arclength) {
-      vector<double> pat;
+      std::vector<double> pat;
       {
         istringstream buf(stroke);
         double l;

@@ -380,7 +380,7 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   nodelist::iterator layerp=nodes.begin();
   nodelist::iterator p=layerp;
   unsigned int layer=0;
-  list<string> psnameStack;
+  mem::list<string> psnameStack;
   
   while(p != nodes.end()) {
     ostringstream buf;
@@ -436,7 +436,7 @@ bool picture::shipout(const picture& preamble, const string& prefix,
       tex->epilogue();
       status=texprocess(texname,epsname,prefix,bpos);
       if(!keep) {
-	list<string>::iterator p;
+	mem::list<string>::iterator p;
 	for(p=psnameStack.begin(); p != psnameStack.end(); ++p)
 	  unlink(p->c_str());
       }
