@@ -24,7 +24,7 @@ using std::string;
 
 namespace camp {
 
-typedef mem::list<string> stringlist;
+typedef std::list<string> stringlist;
 extern stringlist TeXpipepreamble, TeXpreamble;
 
 const double tex2ps=72.0/72.27;

@@ -231,7 +231,7 @@ void stack::draw(ostream& out)
   out << "\n";
 }
 
-void stack::draw(ostream& out, frame* v)
+void draw(ostream& out, frame* v)
 {
   out << "vars:    ";
   

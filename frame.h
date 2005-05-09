@@ -12,11 +12,12 @@
 
 #include <cassert>
 
+
 #include "access.h"
 
 namespace trans {
 
-class frame : public memory::managed<frame> {
+class frame : public gc {
   frame *parent;
  
   int numFormals;

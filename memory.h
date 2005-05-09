@@ -10,6 +10,7 @@
 #include <list>
 #include <vector>
 #include <deque>
+#include <map>
 
 #ifdef USEGC
 
@@ -42,15 +43,26 @@ namespace mem {
 
 #define GC_CONTAINER(KIND)                                              \
   template <typename T>                                                 \
-  struct KIND : public std::KIND<T, ALLOC<T> > {          	\
-    KIND() : std::KIND<T, ALLOC<T> >() {};                	\
-    KIND(size_t n) : std::KIND<T, ALLOC<T> >(n) {};       	\
-    KIND(size_t n, const T& t) : std::KIND<T, ALLOC<T> >(n,t) {};\
+  struct KIND : public std::KIND<T, ALLOC<T> > {                        \
+    KIND() : std::KIND<T, ALLOC<T> >() {};                              \
+    KIND(size_t n) : std::KIND<T, ALLOC<T> >(n) {};                     \
+    KIND(size_t n, const T& t) : std::KIND<T, ALLOC<T> >(n,t) {};       \
   }
 
 GC_CONTAINER(list);
 GC_CONTAINER(vector);
 GC_CONTAINER(deque);
+
+#undef GC_CONTAINER
+
+#define GC_CONTAINER(KIND)                                              \
+  template <typename Key, typename T, typename Compare = std::less<Key> > \
+  struct KIND : public std::KIND<Key,T,Compare,gc_allocator<std::pair<Key,T> > > { \
+    KIND() : std::KIND<Key,T,Compare,gc_allocator<std::pair<Key,T> > > () {}; \
+  }
+
+GC_CONTAINER(map);
+GC_CONTAINER(multimap);
 
 #undef GC_CONTAINER
 

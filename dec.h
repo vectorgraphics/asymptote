@@ -250,7 +250,7 @@ public:
 };
 
 class decidlist : public absyn {
-  std::list<decid *> decs;
+  mem::list<decid *> decs;
 
 public:
   decidlist(position pos)
@@ -395,7 +395,7 @@ public:
 class formals : public absyn {
   //friend class funheader;
 
-  std::list<formal *> fields;
+  mem::list<formal *> fields;
 
 public:
   formals(position pos)

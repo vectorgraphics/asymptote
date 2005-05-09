@@ -11,6 +11,7 @@
 #include <sigsegv.h>
 #endif
 
+#include "pool.h"
 #include "types.h"
 #include "errormsg.h"
 #include "fpu.h"

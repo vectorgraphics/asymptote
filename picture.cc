@@ -14,7 +14,6 @@
 #include "settings.h"
 #include "interact.h"
 
-using mem::list;
 using std::ifstream;
 using std::ofstream;
 

@@ -11,8 +11,6 @@
 #include "settings.h"
 #include "util.h"
 
-using mem::list;
-  
 namespace camp {
   
 extern const char *texready;

@@ -14,8 +14,8 @@
 #include <iterator>
 #include <iostream>
 
-#include "pool.h"
 #include "errormsg.h"
+#include "memory.h"
 #include "item.h"
 
 using std::string;
@@ -38,7 +38,7 @@ public:
   label end();
 private:
   friend class label;
-  class code_t : public mem::deque<inst>, public memory::managed<code_t> {};
+  class code_t : public mem::deque<inst>, public gc {};
   code_t *code;
 };
 

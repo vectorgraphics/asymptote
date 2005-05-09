@@ -21,7 +21,7 @@ class coenv;
 
 namespace absyntax {
 
-using std::list;
+using mem::list;
 
 using trans::coenv;
 using sym::symbol;
