@@ -28,7 +28,7 @@ public:
 
 private:
   // stack for operands
-  typedef std::deque<item> stack_t;
+  typedef mem::deque<item> stack_t;
   stack_t theStack;
 
   vars_t make_frame(size_t, vars_t closure);
