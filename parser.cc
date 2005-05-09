@@ -62,7 +62,6 @@ absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
 {
   setlexer(input,filename);
   absyntax::file *root = yyparse() == 0 ? absyntax::root : 0;
-  absyntax::root = 0;
   yy::sbuf = 0;
   if (!root) {
     em->error(position::nullPos());

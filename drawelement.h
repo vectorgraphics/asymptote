@@ -17,7 +17,8 @@
 #include "psfile.h"
 #include "texfile.h"
 #include "pipestream.h"
-#include "pool.h"
+
+using std::string;
 
 namespace camp {
 
@@ -95,8 +96,8 @@ public:
   
 };
   
-typedef std::vector<box> boxvector;
-typedef std::list<bbox> bboxlist;
+typedef std::vector<box,gc_allocator<box> > boxvector;
+typedef std::list<bbox,gc_allocator<bbox> > bboxlist;
   
 class drawElement : public gc
 {

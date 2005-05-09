@@ -24,7 +24,7 @@ using std::string;
 
 namespace camp {
 
-typedef std::list<string> stringlist;
+typedef std::list<string,gc_allocator<string> > stringlist;
 extern stringlist TeXpipepreamble, TeXpreamble;
 
 const double tex2ps=72.0/72.27;
@@ -57,7 +57,7 @@ void texdefines(T& out, stringlist& preamble=TeXpreamble) {
       << "\\usepackage{graphicx}" << newl;
 }
   
-class texfile {
+class texfile : public gc {
   ostream *out;
   pair offset;
   bbox box;

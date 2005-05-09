@@ -446,7 +446,7 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   
   if(!status) reportError("shipout failed");
     
-  delete tex;
+  if(labels) delete tex;
   
   if(!tgifformat) outnameStack->push_back(outname);
   

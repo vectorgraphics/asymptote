@@ -10,17 +10,11 @@
 #include "errormsg.h"
 #include "util.h"
 
-//#define DEBUG_STACK
-
 #ifdef DEBUG_STACK
 #include <iostream>
 using std::cout;
 using std::cerr;
 using std::endl;
-
-namespace vm {
-void draw(ostream& out, frame *v);
-}
 #endif
 
 namespace vm {
@@ -158,7 +152,7 @@ void stack::run(func *f)
             break; 
 
           case inst::makefunc: {
-            func *f = ::new (UseGC) func;
+            func *f = new func;
             f->closure = pop<vars_t>();
             f->body = i.lfunc;
 

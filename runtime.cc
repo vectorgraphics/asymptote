@@ -1001,7 +1001,7 @@ void stringFormatInt(stack *s)
   int size=snprintf(NULL,0,format->c_str(),x)+1;
   char *buf=new char[size];
   snprintf(buf,size,format->c_str(),x);
-  s->push(new string(buf));
+  s->push(new(UseGC) string(buf));
   delete [] buf;
 }
 
@@ -1120,7 +1120,7 @@ void stringTime(stack *s)
 #else
   pop<string*>(s);
 #endif  
-  s->push(new string(Time));
+  s->push(new(UseGC) string(Time));
 }
 
 // Path operations.
@@ -1768,7 +1768,7 @@ void changeDirectory(stack *s)
   char *p=getPath();
   if(p && interact::interactive && !settings::suppressStandard) 
     cout << p << endl;
-  s->push(new string(p));
+  s->push(new(UseGC) string(p));
 }
 
 void scrollLines(stack *s)
@@ -1877,7 +1877,7 @@ void readChar(stack *s)
   if(f->isOpen()) f->read(c);
   static char str[1];
   str[0]=c;
-  s->push(new string(str));
+  s->push(new(UseGC) string(str));
 }
 
 // Set file dimensions

@@ -14,7 +14,6 @@ using std::string;
 #include "transform.h"
 #include "settings.h"
 #include "bbox.h"
-#include "memory.h"
 
 namespace camp {
   class pen;

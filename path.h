@@ -10,7 +10,6 @@
 
 #include <iostream>
 #include <climits>
-#include "pool.h"
 
 #include "mod.h"
 #include "pair.h"
@@ -39,7 +38,7 @@ using std::ostream;
 using std::endl;
 
 // Used in the storage of solved path knots.
-struct solvedKnot : public gc_atomic {
+struct solvedKnot : public gc {
   pair pre;
   pair point;
   pair post;

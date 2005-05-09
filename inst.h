@@ -15,8 +15,6 @@
 #include <iostream>
 
 #include "errormsg.h"
-#include "pool.h"
-#include "memory.h"
 #include "item.h"
 
 using std::string;
@@ -40,7 +38,7 @@ public:
   label end();
 private:
   friend class label;
-  class code_t : public std::deque<inst,traceable_allocator<inst> >, public memory::managed<code_t> {};
+  class code_t : public std::deque<inst>, public gc {};
   code_t *code;
 };
 
@@ -87,7 +85,7 @@ struct lambda : public gc {
   int vars;
 };
 
-struct callable : public memory::managed<callable>
+struct callable : public gc
 {
   virtual void call(stack *) = 0;
   virtual ~callable();
@@ -156,11 +154,10 @@ struct inst {
 };
 
 // Arrays are vectors with a push func for running in asymptote.
-class array : public mem::vector<item>, public gc {
+class array : public std::vector<item,gc_allocator<item> >, public gc {
 public:
-  typedef mem::vector<item> vector_t;
   array(size_t n)
-    : vector_t(n)
+    : std::vector<item,gc_allocator<item> >(n)
   {}
 
   void push(item i)

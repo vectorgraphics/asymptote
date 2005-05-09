@@ -23,7 +23,7 @@
 #include "pair.h"
 #include "guide.h"
 #include "pen.h"
-#include "pool.h"
+
 #include "camperror.h"
 #include "interact.h"
 #include "errormsg.h"
@@ -33,7 +33,7 @@ namespace camp {
 extern string tab;
 extern string newline;
   
-class file : public memory::managed<file> {
+class file : public gc {
 protected:  
   string name;
   int nx,ny,nz;    // Array dimensions

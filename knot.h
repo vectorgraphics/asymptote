@@ -30,8 +30,8 @@ double niceAngle(pair z);
 
 // A cyclic vector: ie. a vector where the index is taken mod the size of the
 // vector.
-template <typename T, typename Alloc=std::allocator<T> >
-class cvector : public vector<T,Alloc> {
+template <typename T, typename Alloc=gc_allocator<T> >
+class cvector : public vector<T,Alloc>, public gc {
 public:
   cvector() {}
   cvector(size_t n) : vector<T,Alloc>(n) {}
@@ -73,7 +73,7 @@ struct eqn {
 
 // A direction specifier, telling how the path behaves coming in or out of a
 // point.  The base class represents the "open" specifier.
-class spec {
+class spec : public gc {
 public:
   // If the knot is open, it gives no restriction on the behavior of the
   // path.
@@ -208,7 +208,7 @@ struct knot {
 ostream& operator<<(ostream& out, const knot& k);
 
 // Abstract base class for a section of a guide.
-class knotlist {
+class knotlist : public gc {
 public:
   virtual int length() = 0;
   virtual bool cyclic() = 0;

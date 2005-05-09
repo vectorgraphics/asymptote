@@ -14,12 +14,12 @@
 
 #include <iostream>
 
-#include "memory.h"
+
 #include "pair.h"
 
 namespace camp {
 
-class transform : public gc_atomic {
+class transform : public gc {
   double x;
   double y;
   double xx;

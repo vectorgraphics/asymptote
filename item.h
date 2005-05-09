@@ -9,9 +9,7 @@
 #define ITEM_H
 
 #include <vector>
-#include <gc_allocator.h>
-#include <gc_cpp.h>
-#include "pool.h"
+
 
 namespace vm {
 
@@ -21,7 +19,7 @@ class bad_item_value {};
 template<typename T>
 T get(const item&);
 
-class item {
+class item : public gc {
 public:
   bool empty()
   { return *kind == typeid(void); }
@@ -99,11 +97,12 @@ private:
 };
   
 class frame : public gc {
-  typedef mem::vector<item> vars_t;
+  typedef std::vector<item,gc_allocator<item> > vars_t;
   vars_t vars;
 public:
   frame(size_t size)
-    : vars(size) {}
+    : vars(size)
+  {}
 
   item& operator[] (size_t n)
     { return vars[n]; }
