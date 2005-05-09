@@ -39,7 +39,7 @@ using std::ostream;
 using std::endl;
 
 // Used in the storage of solved path knots.
-struct solvedKnot {
+struct solvedKnot : public gc_atomic {
   pair pre;
   pair point;
   pair post;
@@ -48,12 +48,12 @@ struct solvedKnot {
 };
 
 
-class path {
+class path : public gc {
   bool cycles;  // If the knot is closed in a loop
 
   int n; // The number of knots
 
-  memory::managed_array<solvedKnot> nodes;
+  solvedKnot *nodes;
   mutable double cached_length; // Cache length since path is immutable.
 
 public:
