@@ -3,7 +3,9 @@
 ARCH = unix
 POLL = poll
 
-LIBS = $(LFLAGS) @LIBS@ -lgc
+GC = @GCDIR@
+GCLIBS = @GCLIBS@
+LIBS = $(LFLAGS) @LIBS@ $(GCLIBS)
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill
@@ -26,7 +28,7 @@ LEX = @LEX@
 DEFS = @DEFS@ @USEGC@
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) $(CFLAGS) 
-INCL = -I . 
+INCL = -I . @INCL@
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -47,10 +49,18 @@ asy$(MAGIC): depend
 
 all:  	asy man
 
+$(GCLIBS):	
+	gunzip -c $(GC).tar.gz > $(GC).tar
+	tar -xf $(GC).tar
+	rm -f $(GC).tar
+	cd $(GC); \
+	./configure --disable-threads --disable-shared --enable-cplusplus; \
+	make check
+
 man:	asy
 	cd doc; $(MAKE) man
 
-depend: camp.tab.h genrun.cc $(FILES:=.d)
+depend: $(GCLIBS) camp.tab.h genrun.cc $(FILES:=.d)
 
 genrun.cc: runtime.pl runtime.in
 	./runtime.pl
@@ -104,8 +114,12 @@ clean:  FORCE
 
 cleaner: distclean
 distclean: FORCE clean
-	rm -f Makefile config.h config.log config.status
-	cd doc; $(MAKE) distclean
+	-if test -d $(GC); then \
+		make -C $(GC) distclean; \
+		rm -rf $(GC); \
+	fi
+	rm -f Makefile config.h config.log config.status; \
+	cd doc; $(MAKE) distclean; \
 
 cleanest: maintainer-clean
 maintainer-clean: FORCE distclean
