@@ -98,8 +98,8 @@ private:
   };
 };
   
-class frame : public gc_cleanup {
-  typedef std::vector<item,traceable_allocator<item> > vars_t;
+class frame : public gc {
+  typedef mem::vector<item> vars_t;
   vars_t vars;
 public:
   frame(size_t size)

@@ -16,6 +16,7 @@
 
 #include "errormsg.h"
 #include "pool.h"
+#include "memory.h"
 #include "item.h"
 
 using std::string;
@@ -155,9 +156,9 @@ struct inst {
 };
 
 // Arrays are vectors with a push func for running in asymptote.
-class array : public std::vector<item,traceable_allocator<item> >, public gc_cleanup {
+class array : public mem::vector<item>, public gc {
 public:
-  typedef std::vector<item,traceable_allocator<item> > vector_t;
+  typedef mem::vector<item> vector_t;
   array(size_t n)
     : vector_t(n)
   {}
