@@ -3,16 +3,14 @@
 ARCH = unix
 POLL = poll
 
-GC = @GCDIR@
-GCLIBS = @GCLIBS@
-LIBS = $(LFLAGS) @LIBS@ $(GCLIBS)
+LIBS = $(LFLAGS) @LIBS@ -lgc
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill
 FILES = $(CAMP) cast env genv main runtime stm dec errormsg inst name symbol \
 	types entry exp newexp stack camp.tab lex.yy import access @getopt@ \
 	absyn record interact fileio builtin fftw++ simpson coder coenv \
-	locate parser
+	locate parser pool
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc genrun.cc
 CLEAN = camp.output
@@ -28,7 +26,7 @@ LEX = @LEX@
 DEFS = @DEFS@ @USEGC@
 CFLAGS = @CFLAGS@
 OPTS = $(DEFS) $(CFLAGS) 
-INCL = -I . @INCL@
+INCL = -I . 
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -49,18 +47,10 @@ asy$(MAGIC): depend
 
 all:  	asy man
 
-$(GCLIBS):	
-	gunzip -c $(GC).tar.gz > $(GC).tar
-	tar -xf $(GC).tar
-	rm -f $(GC).tar
-	cd $(GC); \
-	./configure --disable-threads --disable-shared --enable-cplusplus; \
-	make check
-
 man:	asy
 	cd doc; $(MAKE) man
 
-depend: $(GCLIBS) camp.tab.h genrun.cc $(FILES:=.d)
+depend: camp.tab.h genrun.cc $(FILES:=.d)
 
 genrun.cc: runtime.pl runtime.in
 	./runtime.pl
@@ -114,12 +104,8 @@ clean:  FORCE
 
 cleaner: distclean
 distclean: FORCE clean
-	-if test -d $(GC); then \
-		make -C $(GC) distclean; \
-		rm -rf $(GC); \
-	fi
-	rm -f Makefile config.h config.log config.status; \
-	cd doc; $(MAKE) distclean; \
+	rm -f Makefile config.h config.log config.status
+	cd doc; $(MAKE) distclean
 
 cleanest: maintainer-clean
 maintainer-clean: FORCE distclean
