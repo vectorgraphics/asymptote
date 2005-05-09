@@ -22,7 +22,7 @@ extern iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
 
 typedef mem::list<drawElement*> nodelist;
   
-class picture : public gc_atomic {
+class picture : public gc {
 private:
   bool labels;
   size_t lastnumber;
