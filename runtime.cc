@@ -935,13 +935,13 @@ void stringSubstr(stack *s)
   size_t n=pop<int>(s);
   size_t pos=pop<int>(s);
   string *a = pop<string*>(s);
-  if(pos < a->length()) s->push(new (UseGC) string(a->substr(pos,n)));
+  if(pos < a->length()) s->push(new(UseGC) string(a->substr(pos,n)));
   else s->push(&emptystring);
 }
 
 void stringReverse(stack *s)
 {
-  string *a = new (UseGC) string(pop<string>(s));
+  string *a = new(UseGC) string(pop<string>(s));
   reverse(a->begin(),a->end());
   s->push(a);
 }
@@ -950,7 +950,7 @@ void stringInsert(stack *s)
 {
   string *b = pop<string*>(s);
   size_t pos=pop<int>(s);
-  string *a = new (UseGC) string(pop<string>(s));
+  string *a = new(UseGC) string(pop<string>(s));
   if(pos < a->length()) s->push(a->insert(pos,*b));
   else s->push(a);
 }
@@ -959,7 +959,7 @@ void stringErase(stack *s)
 {
   size_t n=pop<int>(s);
   size_t pos=pop<int>(s);
-  string *a = new (UseGC) string(pop<string>(s));
+  string *a = new(UseGC) string(pop<string>(s));
   if(pos < a->length()) s->push(a->erase(pos,n));
   else s->push(a);
 }
@@ -986,12 +986,12 @@ void stringReplace(stack *s)
       if(strncmp(p,from->c_str(),len) != 0) {i++; continue;}
       buf << read<string>(a,1);
       p += len;
-      if(*p == 0) {s->push(buf.str()); return;}
+      if(*p == 0) {s->push(new(UseGC) string(buf.str())); return;}
       i=0;
     }
     buf << *(p++);
   }
-  s->push(new (UseGC) string(buf.str()));
+  s->push(new(UseGC) string(buf.str()));
 }
 
 void stringFormatInt(stack *s) 
@@ -1025,11 +1025,11 @@ void stringFormatReal(stack *s)
     out << *(p++);
   }
   
-  if(!start) {s->push(out.str()); return;}
+  if(!start) {s->push(new(UseGC) string(out.str())); return;}
   
   // Allow at most 1 argument  
   while (*p != 0) {
-    if(*p == '*' || *p == '$') {s->push(out.str()); return;}
+    if(*p == '*' || *p == '$') {s->push(new(UseGC) string(out.str())); return;}
     if(isupper(*p) || islower(*p)) {p++; break;}
     p++;
   }
@@ -1106,7 +1106,7 @@ void stringFormatReal(stack *s)
     out << *(tail++);
   
   delete [] buf;
-  s->push(new (UseGC) string(out.str()));
+  s->push(new(UseGC) string(out.str()));
 }
 
 void stringTime(stack *s)
