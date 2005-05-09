@@ -935,13 +935,13 @@ void stringSubstr(stack *s)
   size_t n=pop<int>(s);
   size_t pos=pop<int>(s);
   string *a = pop<string*>(s);
-  if(pos < a->length()) s->push(a->substr(pos,n));
+  if(pos < a->length()) s->push(new (UseGC) string(a->substr(pos,n)));
   else s->push(&emptystring);
 }
 
 void stringReverse(stack *s)
 {
-  string *a = pop<string*>(s);
+  string *a = new (UseGC) string(pop<string>(s));
   reverse(a->begin(),a->end());
   s->push(a);
 }
@@ -950,7 +950,7 @@ void stringInsert(stack *s)
 {
   string *b = pop<string*>(s);
   size_t pos=pop<int>(s);
-  string *a = pop<string*>(s);
+  string *a = new (UseGC) string(pop<string>(s));
   if(pos < a->length()) s->push(a->insert(pos,*b));
   else s->push(a);
 }
@@ -959,7 +959,7 @@ void stringErase(stack *s)
 {
   size_t n=pop<int>(s);
   size_t pos=pop<int>(s);
-  string *a = pop<string*>(s);
+  string *a = new (UseGC) string(pop<string>(s));
   if(pos < a->length()) s->push(a->erase(pos,n));
   else s->push(a);
 }
@@ -991,7 +991,7 @@ void stringReplace(stack *s)
     }
     buf << *(p++);
   }
-  s->push(buf.str());
+  s->push(new (UseGC) string(buf.str()));
 }
 
 void stringFormatInt(stack *s) 
@@ -1106,7 +1106,7 @@ void stringFormatReal(stack *s)
     out << *(tail++);
   
   delete [] buf;
-  s->push(out.str());
+  s->push(new (UseGC) string(out.str()));
 }
 
 void stringTime(stack *s)

@@ -96,8 +96,8 @@ public:
   
 };
   
-typedef mem::vector<box> boxvector;
-typedef mem::list<bbox> bboxlist;
+typedef std::vector<box> boxvector;
+typedef std::list<bbox> bboxlist;
   
 class drawElement : public gc
 {
