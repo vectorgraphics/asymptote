@@ -14,6 +14,7 @@ using std::string;
 #include "transform.h"
 #include "settings.h"
 #include "bbox.h"
+#include "memory.h"
 
 namespace camp {
   class pen;
@@ -82,8 +83,7 @@ inline bool operator == (LineType a, LineType b) {
   return a.pattern == b.pattern && a.scale == b.scale;
 }
   
-class pen : public memory::managed<pen>
-{ 
+class pen : public gc { 
   LineType line;
 
   // Width of line, in PS units.
