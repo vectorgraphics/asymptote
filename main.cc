@@ -11,7 +11,6 @@
 #include <sigsegv.h>
 #endif
 
-#include "pool.h"
 #include "types.h"
 #include "errormsg.h"
 #include "fpu.h"
@@ -34,8 +33,6 @@ errorstream *em;
 using interact::interactive;
 using interact::virtualEOF;
 using interact::rejectline;
-
-memory::pool_t memory::thePool;
 
 #ifdef HAVE_LIBSIGSEGV
 void stackoverflow_handler (int, stackoverflow_context_t)
@@ -98,7 +95,6 @@ void purge()
   delete em; em = 0;
   delete outnameStack; outnameStack = 0;
   outname="";
-  memory::free();
 }
 
 void doTranslate(genv& ge, record *m)
