@@ -1485,7 +1485,7 @@ void penMin(stack *s)
 
 void nullFrame(stack *s)
 {
-  s->push(new picture());
+  s->push(new (PointerFreeGC) picture());
 }
 
 void boolNullFrame(stack *s)
@@ -1609,7 +1609,7 @@ void shipout(stack *s)
   size_t size=checkArrays(GUItransform,GUIdelete);
   
   if(settings::deconstruct || size) {
-    picture *result=new picture;
+    picture *result=new (PointerFreeGC) picture;
     unsigned level=0;
     unsigned i=0;
     nodelist::iterator p;
@@ -1624,7 +1624,7 @@ void shipout(stack *s)
 	Delete=false;
       }
       assert(*p);
-      picture *group=new picture;
+      picture *group=new (PointerFreeGC) picture;
       if((*p)->begingroup()) {
 	++level;
 	while(p != pic->nodes.end() && level) {

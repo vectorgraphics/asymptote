@@ -98,7 +98,7 @@ public:
 typedef std::vector<box> boxvector;
 typedef std::list<bbox> bboxlist;
   
-class drawElement : public memory::managed<drawElement>
+class drawElement : public gc
 {
 public:
   static pen lastpen;  

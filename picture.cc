@@ -455,7 +455,7 @@ bool picture::shipout(const picture& preamble, const string& prefix,
 
 picture *picture::transformed(const transform& t)
 {
-  picture *pic = new picture;
+  picture *pic = new (PointerFreeGC) picture;
 
   nodelist::iterator p;
   for (p = nodes.begin(); p != nodes.end(); ++p) {

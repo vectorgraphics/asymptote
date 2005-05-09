@@ -13,16 +13,16 @@
 #include <sstream>
 #include <iostream>
 
-
+#include "memory.h"
 #include "drawelement.h"
 
 namespace camp {
 
 extern iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
 
-typedef std::list<drawElement*> nodelist;
+typedef mem::list<drawElement*> nodelist;
   
-class picture : public memory::managed<picture> {
+class picture {
 private:
   bool labels;
   size_t lastnumber;
