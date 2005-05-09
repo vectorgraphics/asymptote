@@ -16,6 +16,11 @@
 
 #define ALLOC gc_allocator
 
+#include <gc.h>
+
+#undef GC_MALLOC
+#define GC_MALLOC(sz) GC_malloc(sz) ? : throw std::bad_alloc()
+  
 #include <gc_allocator.h>
 #include <gc_cpp.h>
 
