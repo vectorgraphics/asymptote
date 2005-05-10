@@ -19,7 +19,11 @@
 #include <gc.h>
 
 #undef GC_MALLOC
-#define GC_MALLOC(sz) GC_malloc(sz) ? : throw std::bad_alloc()
+inline void *GC_MALLOC(size_t n) { \
+  void *mem=GC_malloc(n); 	   \
+  if(mem) return mem; 		   \
+  throw std::bad_alloc();	   \
+}
   
 #include <gc_allocator.h>
 #include <gc_cpp.h>

@@ -15,7 +15,7 @@
 #include <iostream>
 
 #include "errormsg.h"
-#include "memory.h"
+#include "pool.h"
 #include "item.h"
 
 using std::string;
@@ -38,7 +38,7 @@ public:
   label end();
 private:
   friend class label;
-  class code_t : public mem::deque<inst>, public gc {};
+  class code_t : public mem::deque<inst>, public memory::managed<code_t> {};
   code_t *code;
 };
 
