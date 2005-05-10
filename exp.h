@@ -43,7 +43,7 @@ public:
 };
 
 class arrayinit : public varinit {
-  mem::list<varinit *> inits;
+  std::list<varinit *> inits;
 
 public:
   arrayinit(position pos)
@@ -341,7 +341,7 @@ public:
 
 // A list of expressions used in a function call.
 class explist : public absyn {
-  typedef mem::vector<exp *> expvector;
+  typedef std::vector<exp *> expvector;
   expvector exps;
 
 public:
