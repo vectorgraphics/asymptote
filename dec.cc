@@ -418,31 +418,31 @@ void decidlist::prettyprint(ostream &out, int indent)
 {
   prettyname(out, "decidlist",indent);
 
-  for (mem::list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
+  for (list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
     (*p)->prettyprint(out, indent+1);
 }
 
 void decidlist::trans(coenv &e, types::ty *base)
 {
-  for (mem::list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
+  for (list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
     (*p)->trans(e, base);
 }
 
 void decidlist::transAsField(coenv &e, record *r, types::ty *base)
 {
-  for (mem::list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
+  for (list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
     (*p)->transAsField(e, r, base);
 }
 
 void decidlist::transAsTypedef(coenv &e, types::ty *base)
 {
-  for (mem::list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
+  for (list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
     (*p)->transAsTypedef(e, base);
 }
 
 void decidlist::transAsTypedefField(coenv &e, types::ty *base, record *r)
 {
-  for (mem::list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
+  for (list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
     (*p)->transAsTypedefField(e, base, r);
 }
 
