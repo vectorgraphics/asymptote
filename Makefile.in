@@ -49,7 +49,7 @@ asy$(MAGIC): depend
 
 all:  	asy man
 
-$(GCLIBS):	
+$(GCLIBS): $(GC).tar.gz
 	gunzip -c $(GC).tar.gz > $(GC).tar
 	tar -xf $(GC).tar
 	rm -f $(GC).tar

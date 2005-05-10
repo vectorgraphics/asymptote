@@ -216,10 +216,16 @@ texhash
 @end verbatim
 
 To compile and install @code{Asymptote} from a source release
-@code{x.xx}, execute the commands:
+@code{x.xx}, first execute the commands:
 @verbatim
 tar -zxf asymptote-x.xx.tar.gz
 cd asymptote-x.xx
+@end verbatim
+
+@noindent Then put
+@code{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.4.tar.gz}
+in the current directory and
+@verbatim
 ./configure
 make all
 make install
@@ -227,10 +233,10 @@ make install
 
 @noindent
 For a (default) system-wide installation, the last command should be
-done as root. The above steps will compile an interally supplied
-single-threaded static version of the Boehm garbage collector
-(@code{http://www.hpl.hp.com/personal/Hans_Boehm/gc/}); however, this memory
-management tool can disabled by configuring with 
+done as root. The above steps will compile a single-threaded static
+version of the Boehm garbage collector
+(@code{http://www.hpl.hp.com/personal/Hans_Boehm/gc/}); however, the use
+of this memory manager can disabled by configuring instead with
 @code{./configure --disable-gc}. For a list of other configuration
 options, say @code{./configure --help}.
 
@@ -342,6 +348,7 @@ cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote login
 cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote co asymptote
 cd asymptote-x.xx
 ./autogen.sh
+wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.4.tar.gz
 ./configure
 make all
 make install
