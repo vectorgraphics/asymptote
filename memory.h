@@ -66,8 +66,8 @@ GC_CONTAINER(deque);
 
 #define GC_CONTAINER(KIND)                                              \
   template <typename Key, typename T, typename Compare = std::less<Key> > \
-  struct KIND : public std::KIND<Key,T,Compare,gc_allocator<std::pair<Key,T> > > { \
-    KIND() : std::KIND<Key,T,Compare,gc_allocator<std::pair<Key,T> > > () {}; \
+  struct KIND : public std::KIND<Key,T,Compare,ALLOC<std::pair<Key,T> > > { \
+    KIND() : std::KIND<Key,T,Compare,ALLOC<std::pair<Key,T> > > () {}; \
   }
 
 GC_CONTAINER(map);
