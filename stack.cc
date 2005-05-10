@@ -181,7 +181,7 @@ void stack::run(func *f)
 
 #ifdef DEBUG_STACK
       draw(cerr);
-      draw(cerr,vars);
+      vm::draw(cerr,vars);
       cerr << "\n";
 #endif
             
