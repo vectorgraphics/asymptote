@@ -210,8 +210,8 @@ ty *realArray3();
 ty *pairArray3();
 ty *stringArray3();
   
-typedef std::vector<ty *> ty_vector;
-typedef std::vector<absyntax::varinit*> varinit_vector;
+typedef mem::vector<ty *> ty_vector;
+typedef mem::vector<absyntax::varinit*> varinit_vector;
   
 // Holds the parameters of a function and if they have default values
 // (only applicable in some cases).  Technically, a signature should

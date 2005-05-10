@@ -38,7 +38,7 @@ public:
   label end();
 private:
   friend class label;
-  class code_t : public std::deque<inst, traceable_allocator<inst> >, public memory::managed<code_t> {};
+  class code_t : public mem::deque<inst>, public memory::managed<code_t> {};
   code_t *code;
 };
 
