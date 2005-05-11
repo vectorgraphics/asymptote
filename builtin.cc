@@ -187,6 +187,7 @@ inline void addOrderedOps(venv &ve, ty *t1, ty *t2, ty *t3)
   addFunc(ve,run::maxArray<T>,t2,"max",t1);
   addFunc(ve,run::sortArray<T>,t1,"sort",t1);
   addFunc(ve,run::sortArray2<T>,t3,"sort",t3);
+  addFunc(ve,run::searchArray<T>,primInt(),"search",t1,t2);
   
   addOps<T,run::min>(ve,t1,"min",t2);
   addOps<T,run::max>(ve,t1,"max",t2);

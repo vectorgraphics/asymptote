@@ -157,6 +157,31 @@ void sortArray2(vm::stack *s)
   s->push(c);
 }
 
+// Search a sorted ordered array of n elements to find an interval containing
+// a given key. Returns n-1 if the key is greater than or equal to the last
+// element, -1 if the key is less than the first element, and otherwise the
+// index corresponding to the left-hand endpoint of the matching interval. 
+template<class T>
+void searchArray(vm::stack *s)
+{
+  T key=pop<T>(s);
+  array *a=pop<array*>(s);
+  int size=(int) a->size();
+  if(size == 0) {s->push(0); return;}
+  if(key < read<T>(a,0)) {s->push(-1); return;}
+  int u=size-1;
+  if(key >= read<T>(a,u)) {s->push(u); return;}
+  int l=0;
+	
+  while (l < u) {
+    int i=(l+u)/2;
+    if(read<T>(a,i) <= key && key < read<T>(a,i+1)) {s->push(i); return;}
+    if(key < read<T>(a,i)) u=i;
+    else l=i+1;
+  }
+  s->push(0);
+}
+
 template<class T>
 void write(vm::stack *s)
 {

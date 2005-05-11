@@ -2205,7 +2205,7 @@ real a,A[];
 This declares @code{a} to be @code{real} and implicitly declares @code{A} to
 be of type @code{real[]}. But beware that this alternative syntax does
 not construct certain internal type-dependent functions that take
-@code{real[]} as an argument: @code{alias}, @code{copy},
+@code{real[]} as an argument: @code{alias}, @code{copy}, @code{concat},
 @code{sequence}, @code{map}, and @code{transpose} for type
 @code{real[]} won't be defined until the type @code{real[]} is used
 explicitly somewhere.
@@ -2253,6 +2253,14 @@ returns a null array);
 returns the index of the @code{n}th @code{true} value or -1 if not found.
 If @code{n} is negative, search backwards from the end of the array for the
 @code{-n}th value; 
+
+@cindex @code{search}
+@item int search(T[], T key)
+For ordered types @code{T}, searches a sorted ordered array of
+@code{n} elements to find an interval containing @code{key}, returning
+@code{-1} if @code{key} is less than the first element, @code{n-1} if
+@code{key} is greater than or equal to the last element, and otherwise
+the index corresponding to the left-hand (smaller) endpoint.
 
 @cindex @code{copy}
 @item T[] copy(T[] A)
