@@ -236,7 +236,7 @@ For a (default) system-wide installation, the last command should be
 done as root. The above steps will compile an optimized single-threaded static
 version of the Boehm garbage collector
 (@code{http://www.hpl.hp.com/personal/Hans_Boehm/gc/}).
-Alternatively, one can request use of a (presumably multithread and therefore
+Alternatively, one can request use of a (presumably multithreaded and therefore
 slower) system version of the Boehm garbage collector by configuring
 instead with @code{./configure --enable-gc=system}. One can disable
 use of the garbage collector by configuring with @code{./configure

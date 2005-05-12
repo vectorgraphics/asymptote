@@ -154,10 +154,10 @@ struct inst {
 };
 
 // Arrays are vectors with a push func for running in asymptote.
-class array : public mem::vector<item>, public gc {
+class array : public mem::deque<item>, public gc {
 public:
   array(size_t n)
-    : mem::vector<item>(n)
+    : mem::deque<item>(n)
   {}
 
   void push(item i)
