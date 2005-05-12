@@ -847,7 +847,9 @@ void autoscale(picture pic=currentpicture, axis axis)
 void checkaxis(picture pic, axis axis) 
 {
   axis(pic,axis);
-  if(axis.extend || (finite(pic.userMin) && finite(pic.userMax))) return;
+  pair Infinity=(infinity,infinity);
+  if(axis.extend || pic.userMin != Infinity || pic.userMax != -Infinity)
+    return;
   abort("unextended axis called before draw");
 }
 
