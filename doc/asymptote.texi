@@ -233,12 +233,15 @@ make install
 
 @noindent
 For a (default) system-wide installation, the last command should be
-done as root. The above steps will compile a single-threaded static
+done as root. The above steps will compile an optimized single-threaded static
 version of the Boehm garbage collector
-(@code{http://www.hpl.hp.com/personal/Hans_Boehm/gc/}); however, the use
-of this memory manager can disabled by configuring instead with
-@code{./configure --disable-gc}. For a list of other configuration
-options, say @code{./configure --help}.
+(@code{http://www.hpl.hp.com/personal/Hans_Boehm/gc/}).
+Alternatively, one can request use of a (presumably multithread and therefore
+slower) system version of the Boehm garbage collector by configuring
+instead with @code{./configure --enable-gc=system}. One can disable
+use of the garbage collector by configuring with @code{./configure
+--disable-gc}. For a list of other configuration options, say
+@code{./configure --help}.
 
 @noindent
 Debian users can install Hubert Chan's @code{Asymptote} package:

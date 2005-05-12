@@ -23,40 +23,6 @@ AC_SUBST(latexdir)
 AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$Datadir/asymptote",
 	[System directory for global .asy files])
 
-GCVERSION=6.4
-
-AC_ARG_ENABLE(gc,
-	[  --enable-gc[=VERSION]     Boehm garbage collector version],
-			[
-			if test "x$enableval" = "xyes"; then
-			   ac_cv_use_gc=$GCVERSION
-			else 
-			   ac_cv_use_gc=$enableval
-			fi
-			],[ac_cv_use_gc=$GCVERSION])
-
-USEGC=
-GCLIBS=
-GCNAME="the Boehm Garbage Collector"
-if test "x$ac_cv_use_gc" != "xno" ; then
-   GCDIR=gc$ac_cv_use_gc
-   AC_MSG_NOTICE([enabling $GCNAME])
-   USEGC="-DUSEGC"
-   GCLIBS="\$(GC)/.libs/libgccpp.a \$(GC)/.libs/libgc.a"
-   INCL="-I \$(GC)/include"
-   AC_CHECK_FILE($GCDIR.tar.gz,,[
-   echo
-   echo You need to obtain the Boehm garbage collector source code.
-   echo For example, use the command:
-   echo
-   echo wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/$GCDIR.tar.gz
-   echo
-   exit 1])
-else
-   GCDIR=
-   AC_MSG_NOTICE([disabling $GCNAME])
-fi
-
 AC_CONFIG_SRCDIR([absyn.cc])
 
 AC_LANG([C++])
@@ -68,6 +34,41 @@ AC_PROG_INSTALL
 AC_PROG_CC
 AC_PROG_MAKE_SET
 AC_PROG_YACC
+
+GCVERSION=6.4
+
+AC_ARG_ENABLE(gc,
+	[  --enable-gc[[=VERSION]]   Use single-threaded Boehm garbage collector (default)]
+	[     [[=system]]    Use system Boehm garbage collector],
+			[
+			if test "x$enableval" = "xyes"; then
+			   ac_cv_use_gc=$GCVERSION
+			else 
+			   ac_cv_use_gc=$enableval
+			fi
+			],[ac_cv_use_gc=$GCVERSION])
+
+USEGC=
+GCLIBS=
+LIBS=
+GCNAME="Boehm Garbage Collector"
+if test "x$ac_cv_use_gc" != "xno" ; then
+   USEGC="-DUSEGC"
+   if test "x$ac_cv_use_gc" = "xsystem"; then
+      AC_CHECK_LIB([gc],[GC_malloc],[LIBS=$LIBS"-lgccpp -lgc"
+      AC_MSG_NOTICE([enabling system $GCNAME])],[
+      AC_MSG_WARN(system $GCNAME not found)
+      USEGC=])
+   else
+      GCDIR=gc$ac_cv_use_gc
+      AC_MSG_NOTICE([enabling the $GCNAME $GCDIR])
+      GCLIBS="\$(GC)/.libs/libgccpp.a \$(GC)/.libs/libgc.a"
+      INCL="-I \$(GC)/include"
+   fi
+else
+   GCDIR=
+   AC_MSG_NOTICE([disabling the $GCNAME])
+fi
 
 CFLAGS="-g -O3"
 
@@ -122,3 +123,15 @@ AC_CONFIG_HEADERS(config.h)
 
 AC_CONFIG_FILES([Makefile doc/version.texi])
 AC_OUTPUT
+
+if test "x$GCDIR" != "x" ; then
+   AC_CHECK_FILE($GCDIR.tar.gz,,[
+   echo
+   echo You need to obtain the Boehm garbage collector source code.
+   echo For example, use the command:
+   echo
+   echo wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/$GCDIR.tar.gz
+   echo
+   exit 1
+   ])
+fi
