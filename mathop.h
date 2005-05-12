@@ -141,7 +141,8 @@ void Negate(vm::stack *s)
 template <double (*func)(double)>
 void realReal(vm::stack *s) 
 {
-  s->push(func(vm::pop<double>(s)));
+  double x=vm::pop<double>(s);
+  s->push(func(x));
 }
 
 template <class T, template <class S> class op>

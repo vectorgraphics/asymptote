@@ -357,8 +357,10 @@ void realArrayFunc(vm::stack *s)
   checkArray(a);
   size_t size=(size_t) a->size();
   array *c=new array(size);
-  for(size_t i=0; i < size; i++)
-    (*c)[i]=func(read<double>(a,i));
+  for(size_t i=0; i < size; i++) {
+    double x=read<double>(a,i);
+    (*c)[i]=func(x);
+  }
   s->push(c);
 }
 
