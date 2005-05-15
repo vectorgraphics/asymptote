@@ -35,6 +35,11 @@ AC_PROG_CC
 AC_PROG_MAKE_SET
 AC_PROG_YACC
 
+AC_CHECK_HEADER(fftw3.h,
+   AC_CHECK_LIB([fftw3], fftw_execute,,
+           AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
+     AC_MSG_NOTICE([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
+
 GCVERSION=6.4
 
 AC_ARG_ENABLE(gc,
@@ -81,11 +86,6 @@ AC_SUBST(GCDIR)
 AC_SUBST(GCLIBS)
 AC_SUBST(INCL)
 AC_SUBST(USEGC)
-
-AC_CHECK_HEADER(fftw3.h,
-   AC_CHECK_LIB([fftw3], fftw_execute,,
-           AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
-     AC_MSG_NOTICE([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
 
 # Checks for libraries.
 AC_CHECK_LIB([curses], [tparm])
