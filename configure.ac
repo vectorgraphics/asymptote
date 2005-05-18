@@ -55,7 +55,6 @@ AC_ARG_ENABLE(gc,
 
 USEGC=
 GCLIBS=
-LIBS=
 GCNAME="Boehm Garbage Collector"
 if test "x$ac_cv_use_gc" != "xno" ; then
    USEGC="-DUSEGC"
