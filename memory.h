@@ -11,6 +11,7 @@
 #include <vector>
 #include <deque>
 #include <map>
+#include <string>
 
 #ifdef USEGC
 
@@ -79,6 +80,22 @@ GC_CONTAINER(map);
 GC_CONTAINER(multimap);
 
 #undef GC_CONTAINER
+
+#ifdef USEGC
+#define GC_STRING std::basic_string<char,std::char_traits<char>,gc_allocator<char> >
+struct string : public GC_STRING
+{
+  string () {}
+  string (char* str) : GC_STRING(str) {}
+  string (std::string str) : GC_STRING(str.c_str(),str.size()) {}
+  string (GC_STRING str) : GC_STRING(str) {}
+  operator std::string () { return std::string(c_str(),size()); }
+};
+#undef GC_STRING
+#else
+using std::string;
+#endif // USEGC
+
 
 } // namespace mem
 
