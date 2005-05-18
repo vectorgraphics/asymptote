@@ -132,7 +132,7 @@ public:
       if(nc == 0) break;
       if(nc > 0) {
 	if(settings::verbose > 2) std::cerr << p << std::endl;
-	if(index(p,'\n')) break;
+	if(strchr(p,'\n')) break;
 	p += nc;
 	size -= nc;
       }

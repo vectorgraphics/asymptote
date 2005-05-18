@@ -67,11 +67,11 @@ char **args(const char *command)
   char *cmd=strcpy(new char[strlen(command)+1],command);
   char *p=cmd;
   int n=1;
-  while((p=index(p,' '))) {n++; p++; while(*p == ' ') p++;}
+  while((p=strchr(p,' '))) {n++; p++; while(*p == ' ') p++;}
   char **argv=new char*[n+1];
   argv[0]=p=cmd;
   n=1;
-  while((p=index(p,' '))) {*(p++)=0; while(*p == ' ') p++; argv[n++]=p;}
+  while((p=strchr(p,' '))) {*(p++)=0; while(*p == ' ') p++; argv[n++]=p;}
   argv[n]=NULL;
   return argv;
 }
