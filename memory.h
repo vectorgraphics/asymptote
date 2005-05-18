@@ -18,8 +18,8 @@
 
 #undef GC_MALLOC
 inline void *GC_MALLOC(size_t n) { \
-  void *mem=GC_malloc(n);          \
-  if(mem) return mem;              \
+  if (void *mem=GC_malloc(n))      \
+    return mem;                    \
   throw std::bad_alloc();          \
 }
   
@@ -44,15 +44,9 @@ public:
 
 class gc {};
 
-enum GCPlacement {UseGC,
-#ifndef GC_NAME_CONFLICT
-		  GC=UseGC,
-#endif
-                  NoGC, PointerFreeGC};
+enum GCPlacement {UseGC, NoGC, PointerFreeGC};
 
-extern "C" {typedef void (*GCCleanUpFunc)( void* obj, void* clientData );}
-
-inline void* operator new(size_t size, GCPlacement, GCCleanUpFunc=0) {
+inline void* operator new(size_t size, GCPlacement) {
   return operator new(size);
 }
 
