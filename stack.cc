@@ -97,26 +97,23 @@ void stack::run(func *f)
             break;
         
           case inst::intpush:
-            push(i.val);
-            break;
-        
           case inst::constpush:
             push(i.ref);
             break;
         
           case inst::varpush:
-            push((*vars)[i.val]);
+            push((*vars)[get<int>(i)]);
             break;
 
           case inst::varsave:
-            (*vars)[i.val] = top();
+            (*vars)[get<int>(i)] = top();
             break;
         
           case inst::fieldpush: {
             vars_t frame = pop<vars_t>();
             if (!frame)
 	      error("dereference of null pointer");
-            push((*frame)[i.val]);
+            push((*frame)[get<int>(i)]);
             break;
           }
         
@@ -124,26 +121,26 @@ void stack::run(func *f)
             vars_t frame = pop<vars_t>();
             if (!frame)
 	      error("dereference of null pointer");
-            (*frame)[i.val] = top();
+            (*frame)[get<int>(i)] = top();
             break;
           }
 	
           case inst::builtin: {
-            bltin func = i.bfunc;
+            bltin func = get<bltin>(i);
             func(this);
             break;
           }
 
           case inst::jmp:
-            ip = i.label;
+            ip = get<program::label>(i);
             continue;
 
           case inst::cjmp:
-            if (pop<bool>()) { ip = i.label; continue; }
+            if (pop<bool>()) { ip = get<program::label>(i); continue; }
             break;
 
           case inst::njmp:
-            if (!pop<bool>()) { ip = i.label; continue; }
+            if (!pop<bool>()) { ip = get<program::label>(i); continue; }
             break;
 
           case inst::popcall: {
@@ -160,7 +157,7 @@ void stack::run(func *f)
           case inst::makefunc: {
             func *f = new func;
             f->closure = pop<vars_t>();
-            f->body = i.lfunc;
+            f->body = get<lambda*>(i);
 
             push((callable*)f);
             break;
@@ -171,7 +168,7 @@ void stack::run(func *f)
           }
 
           case inst::alloc: {
-            vars->extend(i.val);
+            vars->extend(get<int>(i));
             break;
           }
 	

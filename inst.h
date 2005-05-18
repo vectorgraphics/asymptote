@@ -144,14 +144,11 @@ struct inst {
   };
   opcode op;
   position pos;
-  union {
-    int val;
-    lambda *lfunc;
-  };
-  program::label label;
-  bltin bfunc;
   item ref;
 };
+template<typename T>
+inline T get(const inst& it)
+{ return get<T>(it.ref); }
 
 // Arrays are vectors with a push func for running in asymptote.
 class array : public mem::deque<item>, public gc {

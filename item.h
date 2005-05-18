@@ -50,7 +50,7 @@ public:
   
   template<class T>
   item& operator= (T *a)
-  { kind=&typeid(T); p=a; return *this; }
+  { kind=&typeid(T); p=(void*)a; return *this; }
   
   template<class T>
   item& operator= (const T &it)

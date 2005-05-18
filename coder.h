@@ -236,7 +236,7 @@ public:
 
   void encode(inst::opcode op, int val)
   {
-    inst i; i.op = op; i.val = val;
+    inst i; i.op = op; i.ref = val;
     encode(i);
   }
   void encode(inst::opcode op, item it)
@@ -247,12 +247,12 @@ public:
   void encode(inst::opcode op, bltin func)
   {
     
-    inst i; i.op = op; i.bfunc = func;
+    inst i; i.op = op; i.ref = func;
     encode(i);
   }
   void encode(inst::opcode op, vm::lambda *l)
   {
-    inst i; i.op = op; i.lfunc = l;
+    inst i; i.op = op; i.ref = l;
     encode(i);
   }
 

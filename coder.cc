@@ -181,7 +181,7 @@ int coder::defLabel(int label)
 
   std::multimap<int,vm::program::label>::iterator p = uses.lower_bound(label);
   while (p != uses.upper_bound(label)) {
-    p->second->label = program.end();
+    p->second->ref = program.end();
     ++p;
   }
 
@@ -195,7 +195,7 @@ void coder::useLabel(inst::opcode op, int label)
   
   std::map<int,vm::program::label>::iterator p = defs.find(label);
   if (p != defs.end()) {
-    inst i; i.op = op; i.label = p->second;
+    inst i; i.op = op; i.ref = p->second;
     encode(i);
   } else {
     // Not yet defined
@@ -233,7 +233,7 @@ vm::lambda *coder::close() {
   l->code = program;
   l->maxStackSize = 10; // NOTE: To be implemented.
   l->params = level->getNumFormals();
-  program.begin()->val = level->size();
+  program.begin()->ref = level->size();
 
   sord_stack.pop();
   sord = sord_stack.top();

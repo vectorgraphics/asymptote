@@ -46,21 +46,13 @@ void printInst(ostream& out, const program::label& code,
     case inst::fieldsave:
     case inst::alloc:
     {
-      out << " " << code->val;
+      out << " " << get<int>(*code);
       break;
     }
 
-    case inst::constpush:
-    {
-      std::ios::fmtflags f = out.flags();
-      out << std::hex << " 0x" << code->val;
-      out.flags(f);
-      break;
-    }
-    
     case inst::builtin:
     {      
-      out << " " << code->bfunc << " ";
+      out << " " << get<bltin>(*code) << " ";
       break;
     }
 
@@ -71,14 +63,14 @@ void printInst(ostream& out, const program::label& code,
       char f = out.fill('0');
       out << " i";
       out.width(4);
-      out << offset(base,code->label);
+      out << offset(base,get<program::label>(*code));
       out.fill(f);
       break;
     }
 
     case inst::makefunc:
     {
-      out << " " << code->lfunc << " ";
+      out << " " << get<lambda*>(*code) << " ";
       break;
     }
     
