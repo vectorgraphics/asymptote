@@ -33,7 +33,7 @@ namespace camp {
 extern string tab;
 extern string newline;
   
-class file : public gc {
+class file : public memory::managed<file> {
 protected:  
   string name;
   int nx,ny,nz;    // Array dimensions
@@ -216,6 +216,8 @@ public:
       stream=&std::cout;
   }
   
+  ~ofile() {close();}
+  
   void open() {
     if(standard) {
       stream=&std::cout;
@@ -267,6 +269,8 @@ public:
   ixfile(const string& name, bool check=true) : 
     file(name,check), stream(name.c_str()) {if(check) Check();}
 
+  ~ixfile() {close();}
+  
   const char* Mode() {return "xinput";}
   
   bool eof() {return stream.eof();}
@@ -292,6 +296,8 @@ public:
     file(name), stream(name.c_str(),
 		       append ? xdr::xios::app : xdr::xios::trunc) {Check();}
 
+  ~oxfile() {close();}
+  
   const char* Mode() {return "xoutput";}
   
   bool eof() {return stream.eof();}
