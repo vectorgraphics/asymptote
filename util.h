@@ -37,7 +37,7 @@ int System(const char *command, bool quiet=false, bool wait=true,
 int System(const ostringstream& command, bool quiet=false, bool wait=true,
 	   int *pid=NULL, bool warn=true); 
   
-#ifdef __DECCXX_LIBCXX_RH70
+#if defined(__DECCXX_LIBCXX_RH70) || defined(__CYGWIN__)
 extern "C" int kill(pid_t pid, int sig) throw();
 extern "C" char *strsignal(int sig);
 extern "C" int snprintf(char *str, size_t size, const  char  *format,...);
@@ -49,6 +49,7 @@ extern "C" double remainder(double x, double y);
 extern "C" double hypot(double x, double y) throw();
 extern "C" double jn(int n, double x);
 extern "C" double yn(int n, double x);
+extern "C" int fileno(FILE *);
 #endif
 
 extern bool False;

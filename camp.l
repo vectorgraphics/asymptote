@@ -10,6 +10,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "util.h"
 #include "stm.h"
 #include "errormsg.h"
 #include "interact.h"
@@ -25,11 +26,6 @@ fileinfo* fi;
 int tokPos;
 int charPos;
 //int commentDepth = 0;
-
-// Needed by the cxx compiler
-#ifdef __DECCXX_LIBCXX_RH70
-extern "C" int fileno(FILE *);
-#endif
 
 extern errorstream *em;
 
