@@ -81,8 +81,9 @@ GC_CONTAINER(multimap);
 
 #undef GC_CONTAINER
 
-#ifdef USEGC
-#define GC_STRING std::basic_string<char,std::char_traits<char>,gc_allocator<char> >
+#ifdef USEGC_STRING
+#define GC_STRING \
+  std::basic_string<char,std::char_traits<char>,gc_allocator<char> >
 struct string : public GC_STRING
 {
   string () {}
