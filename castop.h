@@ -19,6 +19,7 @@ namespace run {
 
 using vm::read;
 using vm::pop;
+using mem::string;
 
 template<class T, class S>
 void cast(vm::stack *s)
@@ -32,7 +33,7 @@ void stringCast(vm::stack *s)
   std::ostringstream buf;
   buf.precision(DBL_DIG);
   buf << pop<T>(s);
-  s->push(buf.str());
+  s->push<string>(buf.str());
 }
 
 template<class T>

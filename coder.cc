@@ -195,13 +195,11 @@ void coder::useLabel(inst::opcode op, int label)
   
   std::map<int,vm::program::label>::iterator p = defs.find(label);
   if (p != defs.end()) {
-    inst i; i.op = op; i.ref = p->second;
-    encode(i);
+    encode(op,p->second);
   } else {
     // Not yet defined
     uses.insert(std::make_pair(label,program.end()));
-    inst i; i.op = op; 
-    encode(i);
+    encode(op);
   }
 }
 

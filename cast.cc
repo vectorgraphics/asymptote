@@ -23,6 +23,7 @@ namespace types {
 using trans::access;
 using camp::pair;
 using camp::path;
+using mem::string;
   
 typedef unsigned int uint;
 

@@ -48,6 +48,7 @@ using namespace settings;
 
 namespace run {
 using camp::pair;
+using mem::string;
 }
 
 

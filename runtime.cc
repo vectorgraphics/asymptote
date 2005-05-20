@@ -73,6 +73,7 @@ using vm::stack;
 using vm::frame;
 using camp::pair;
 using camp::transform;
+using mem::string;
 
 // Math
   
@@ -935,14 +936,14 @@ void stringSubstr(stack *s)
   size_t n=pop<int>(s);
   size_t pos=pop<int>(s);
   string *a = pop<string*>(s);
-  if(pos < a->length()) s->push(new(UseGC) string(a->substr(pos,n)));
+  if(pos < a->length()) s->push(a->substr(pos,n));
   else s->push(&emptystring);
 }
 
 void stringReverse(stack *s)
 {
-  string *a = new(UseGC) string(pop<string>(s));
-  reverse(a->begin(),a->end());
+  string a = pop<string>(s);
+  reverse(a.begin(),a.end());
   s->push(a);
 }
 
@@ -950,8 +951,8 @@ void stringInsert(stack *s)
 {
   string *b = pop<string*>(s);
   size_t pos=pop<int>(s);
-  string *a = new(UseGC) string(pop<string>(s));
-  if(pos < a->length()) s->push(a->insert(pos,*b));
+  string a = pop<string>(s);
+  if(pos < a.length()) s->push(a.insert(pos,*b));
   else s->push(a);
 }
 
@@ -959,8 +960,8 @@ void stringErase(stack *s)
 {
   size_t n=pop<int>(s);
   size_t pos=pop<int>(s);
-  string *a = new(UseGC) string(pop<string>(s));
-  if(pos < a->length()) s->push(a->erase(pos,n));
+  string a = pop<string>(s);
+  if(pos < a.length()) s->push(a.erase(pos,n));
   else s->push(a);
 }
 
@@ -986,12 +987,12 @@ void stringReplace(stack *s)
       if(strncmp(p,from->c_str(),len) != 0) {i++; continue;}
       buf << read<string>(a,1);
       p += len;
-      if(*p == 0) {s->push(new(UseGC) string(buf.str())); return;}
+      if(*p == 0) {s->push<string>(buf.str()); return;}
       i=0;
     }
     buf << *(p++);
   }
-  s->push(new(UseGC) string(buf.str()));
+  s->push<string>(buf.str());
 }
 
 void stringFormatInt(stack *s) 
@@ -1001,7 +1002,7 @@ void stringFormatInt(stack *s)
   int size=snprintf(NULL,0,format->c_str(),x)+1;
   char *buf=new char[size];
   snprintf(buf,size,format->c_str(),x);
-  s->push(new(UseGC) string(buf));
+  s->push<string>(buf);
   delete [] buf;
 }
 
@@ -1025,11 +1026,11 @@ void stringFormatReal(stack *s)
     out << *(p++);
   }
   
-  if(!start) {s->push(new(UseGC) string(out.str())); return;}
+  if(!start) {s->push<string>(out.str()); return;}
   
   // Allow at most 1 argument  
   while (*p != 0) {
-    if(*p == '*' || *p == '$') {s->push(new(UseGC) string(out.str())); return;}
+    if(*p == '*' || *p == '$') {s->push<string>(out.str()); return;}
     if(isupper(*p) || islower(*p)) {p++; break;}
     p++;
   }
@@ -1106,7 +1107,7 @@ void stringFormatReal(stack *s)
     out << *(tail++);
   
   delete [] buf;
-  s->push(new(UseGC) string(out.str()));
+  s->push<string>(out.str());
 }
 
 void stringTime(stack *s)
@@ -1120,7 +1121,7 @@ void stringTime(stack *s)
 #else
   pop<string*>(s);
 #endif  
-  s->push(new(UseGC) string(Time));
+  s->push<string>(Time);
 }
 
 // Path operations.
@@ -1768,7 +1769,7 @@ void changeDirectory(stack *s)
   char *p=getPath();
   if(p && interact::interactive && !settings::suppressStandard) 
     cout << p << endl;
-  s->push(new(UseGC) string(p));
+  s->push<string>(p);
 }
 
 void scrollLines(stack *s)
@@ -1877,7 +1878,7 @@ void readChar(stack *s)
   if(f->isOpen()) f->read(c);
   static char str[1];
   str[0]=c;
-  s->push(new(UseGC) string(str));
+  s->push<string>(str);
 }
 
 // Set file dimensions

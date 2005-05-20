@@ -106,14 +106,14 @@ public:
   virtual void read(float&) {noread("real");}
   virtual void read(pair&) {noread("pair");}
   virtual void read(char&) {noread("char");}
-  virtual void readwhite(string&) {noread("string");}
-  virtual void read(string&) {noread("string");}
+  virtual void readwhite(mem::string&) {noread("string");}
+  virtual void read(mem::string&) {noread("string");}
   
   virtual void write(bool) {nowrite("bool");}
   virtual void write(int) {nowrite("int");}
   virtual void write(double) {nowrite("real");}
   virtual void write(const pair&) {nowrite("pair");}
-  virtual void write(const string&) {nowrite("string");}
+  virtual void write(const mem::string&) {nowrite("string");}
   virtual void write(const pen&) {nowrite("pen");}
   virtual void write(const guide&) {nowrite("guide");}
   virtual void write(const transform&) {nowrite("transform");}
@@ -189,8 +189,8 @@ public:
   void Read(double& val) {val=0.0; *stream >> val; csv();}
   void Read(pair& val) {val=0.0; *stream >> val; csv();}
   void Read(char& val) {val=char(); stream->get(val); csv();}
-  void Read(string& val) {
-    val=string();
+  void Read(mem::string& val) {
+    val=mem::string();
     if(csvmode) {
       val=getcsvline();
       csv();
@@ -205,7 +205,7 @@ public:
   void read(double& val) {iread<double>(val);}
   void read(pair& val) {iread<pair>(val);}
   void read(char& val) {iread<char>(val);}
-  void read(string& val) {iread<string>(val);}
+  void read(mem::string& val) {iread<mem::string>(val);}
 };
   
 class ofile : public file {
@@ -246,7 +246,7 @@ public:
   void write(int val) {*stream << val;}
   void write(double val) {*stream << val;}
   void write(const pair& val) {*stream << val;}
-  void write(const string& val) {*stream << val;}
+  void write(const mem::string& val) {*stream << val;}
   void write(const pen& val) {*stream << val;}
   void write(const guide& val) {*stream << val;}
   void write(const transform& val) {*stream << val;}

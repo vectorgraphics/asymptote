@@ -30,6 +30,7 @@ using camp::pair;
 using camp::transform;
 using vm::stack;
 using run::divide;
+using mem::string;
 
 // The base environments for built-in types and functions
 void base_tenv(tenv &ret)

@@ -216,6 +216,7 @@ public:
 
 
   // The encode functions add instructions and operands on to the code array.
+private:
   void encode(inst i)
   {
     i.pos = curPos;
@@ -227,32 +228,15 @@ public:
       program.encode(i);
     }
   }
-
+public:
   void encode(inst::opcode op)
   {
     inst i; i.op = op;
     encode(i);
   }
-
-  void encode(inst::opcode op, int val)
-  {
-    inst i; i.op = op; i.ref = val;
-    encode(i);
-  }
   void encode(inst::opcode op, item it)
   {
     inst i; i.op = op; i.ref = it;
-    encode(i);
-  }
-  void encode(inst::opcode op, bltin func)
-  {
-    
-    inst i; i.op = op; i.ref = func;
-    encode(i);
-  }
-  void encode(inst::opcode op, vm::lambda *l)
-  {
-    inst i; i.op = op; i.ref = l;
     encode(i);
   }
 

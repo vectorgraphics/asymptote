@@ -42,7 +42,7 @@ public:
   
   template<class T>
   item(T *p)
-    : kind(&typeid(T)), p(p) {}
+    : kind(&typeid(T)), p((void*)p) {}
   
   template<class T>
   item(const T &p)

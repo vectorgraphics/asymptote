@@ -469,7 +469,7 @@ void stringExp::prettyprint(ostream &out, int indent)
 
 types::ty *stringExp::trans(coenv &e)
 {
-  e.c.encode(inst::constpush,(item)new (UseGC) string(str));
+  e.c.encode(inst::constpush,(item) mem::string(str));
   
   return types::primString();  
 }
