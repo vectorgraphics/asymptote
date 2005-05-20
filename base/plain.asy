@@ -794,8 +794,8 @@ struct picture {
   }
   
   // Copies the drawing information, but not the sizing information into a new
-  // picture. Warning: Shipping out this picture will not scale as a normal
-  // picture would.
+  // picture. Warning: "fitting" this picture will not scale as a normal picture
+  // would.
   picture drawcopy()
   {
     picture dest=new picture;
@@ -823,7 +823,7 @@ struct picture {
   }
 
   // Add a picture to this picture, such that the user coordinates will be
-  // scaled identically in the shipout.
+  // scaled identically when fitted
   void add(picture src, bool group=true, bool put=Above)
   {
     // Copy the picture.  Only the drawing function closures are needed, so we
@@ -834,12 +834,12 @@ struct picture {
 
     // Draw by drawing the copied picture.
     nodes.push(new void (frame f, transform t, transform T, pair m, pair M) {
-     frame d=srcCopy.fit(t,T*srcCopy.T,m,M);
-     if(group) begingroup(f);
-     (put ? add : prepend)(f,d);
-     if(group) endgroup(f);
-     for(int i=0; i < src.legend.length; ++i)
-       legend.push(src.legend[i]);
+      frame d=srcCopy.fit(t,T*srcCopy.T,m,M);
+      if(group) begingroup(f);
+      (put ? add : prepend)(f,d);
+      if(group) endgroup(f);
+      for(int i=0; i < src.legend.length; ++i)
+        legend.push(src.legend[i]);
     });
     
     userBox(src.userMin,src.userMax);
