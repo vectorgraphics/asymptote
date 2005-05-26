@@ -42,19 +42,19 @@ public:
   
   template<class T>
   item(T *p)
-    : kind(&typeid(T)), p((void*)p) {}
+    : kind(&typeid(T)), p((void *) p) {}
   
   template<class T>
   item(const T &p)
-    : kind(&typeid(T)), p(new (UseGC) T(p)) {}
+    : kind(&typeid(T)), p(new(UseGC) T(p)) {}
   
   template<class T>
   item& operator= (T *a)
-  { kind=&typeid(T); p=(void*)a; return *this; }
+  { kind=&typeid(T); p=(void *) a; return *this; }
   
   template<class T>
   item& operator= (const T &it)
-  { kind=&typeid(T); p=new (UseGC) T(it); return *this; }
+  { kind=&typeid(T); p=new(UseGC) T(it); return *this; }
   
   template<typename T>
   friend inline T get(const item&);
