@@ -98,6 +98,7 @@ void purge()
   delete outnameStack; outnameStack = 0;
   outname="";
   memory::free();
+  GC_gcollect();
 }
 
 void doTranslate(genv& ge, record *m)

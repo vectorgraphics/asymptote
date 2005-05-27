@@ -33,7 +33,7 @@ namespace camp {
 extern string tab;
 extern string newline;
   
-class file : public memory::managed<file> {
+class file : public gc_cleanup {
 protected:  
   string name;
   int nx,ny,nz;    // Array dimensions
