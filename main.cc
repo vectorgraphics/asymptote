@@ -98,7 +98,6 @@ void purge()
   delete outnameStack; outnameStack = 0;
   outname="";
   memory::free();
-  GC_gcollect();
 }
 
 void doTranslate(genv& ge, record *m)
@@ -218,5 +217,10 @@ int main(int argc, char *argv[])
     cerr << "error: exception thrown.\n";
     ++status;
   }
+  
+#ifdef USEGC
+  GC_gcollect();
+#endif  
+  
   return status;
 }
