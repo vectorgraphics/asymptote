@@ -14,7 +14,6 @@
 #include <utility>
 
 #include "symbol.h"
-#include "memory.h"
 
 namespace sym {
 
@@ -27,12 +26,12 @@ std::ostream& operator<< (std::ostream& out, const table<B>& t);
 template <class B>
 class table {
 protected:
-  typedef mem::multimap<symbol*,B> scope_t;
+  typedef std::multimap<symbol*,B> scope_t;
   typedef typename scope_t::iterator scope_iterator;
-  typedef mem::list<scope_t> scopes_t;
-  typedef mem::list<B> name_t;
+  typedef std::list<scope_t> scopes_t;
+  typedef std::list<B> name_t;
   typedef typename name_t::iterator name_iterator;
-  typedef mem::map<symbol*,name_t> names_t;
+  typedef std::map<symbol*,name_t> names_t;
 
   scopes_t scopes;
   names_t names;
