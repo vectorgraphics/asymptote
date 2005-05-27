@@ -15,7 +15,7 @@
 
 #ifdef USEGC
 
-#include <gc.h>
+#include <gc/gc.h>
 
 #undef GC_MALLOC
 inline void *GC_MALLOC(size_t n) { \

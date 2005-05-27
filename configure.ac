@@ -59,8 +59,8 @@ GCNAME="Boehm Garbage Collector"
 if test "x$ac_cv_use_gc" != "xno" ; then
    USEGC="-DUSEGC"
    if test "x$ac_cv_use_gc" = "xsystem"; then
-      AC_CHECK_HEADER(gc.h,
-	AC_CHECK_LIB([gc],[GC_malloc],[LIBS=$LIBS"-lgccpp -lgc"
+      AC_CHECK_HEADER(gc/gc.h,
+ 	AC_CHECK_LIB([gc],[GC_malloc],[LIBS=$LIBS"-lpthread -lgccpp -lgc"
 	AC_MSG_NOTICE([enabling system $GCNAME])],[
 	AC_MSG_ERROR($GCNAME library not found)
 	USEGC=]),AC_MSG_ERROR($GCNAME header file not found))
@@ -132,6 +132,7 @@ if test "x$GCDIR" != "x" ; then
    echo
    echo wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/$GCDIR.tar.gz
    echo
+   echo Or ./configure --enable-gc=system to use a slower system version of gc
    exit 1
    ])
 fi
