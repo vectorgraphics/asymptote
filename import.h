@@ -20,7 +20,7 @@ using types::overloaded;
 
 namespace trans {
 
-class import : public memory::managed<import> {
+class import : public gc {
   friend class menv;
 
   record *m;  // Class information of imported module.
