@@ -24,6 +24,9 @@ pair zeta(int n, int k = 1)
 real Sin(real deg) {return sin(radians(deg));}
 real Cos(real deg) {return cos(radians(deg));}
 real Tan(real deg) {return tan(radians(deg));}
+real aSin(real x) {return degrees(asin(x));}
+real aCos(real x) {return degrees(acos(x));}
+real aTan(real x) {return degrees(atan(x));}
 real csc(real x) {return 1/sin(x);}
 real sec(real x) {return 1/cos(x);}
 real cot(real x) {return tan(pi/2-x);}
