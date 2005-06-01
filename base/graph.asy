@@ -107,18 +107,20 @@ real upscale(real b, real a)
   return b;
 }
 
-bounds autoscale(real Min, real Max, bool logaxis=false)
+bounds autoscale(real Min, real Max, scaleT scale=Linear)
 {
   bounds m=new bounds;
-  if(logaxis) {
+  if(logarithmic(scale)) {
     m.min=floor(Min);
     m.max=ceil(Max);
     return m;
   }
+  if(Min == infinity && Max == -infinity) {m.min=Min; m.max=Max; return m;}
+  Min=scale.Tinv(Min);
+  Max=scale.Tinv(Max);
   m.min=Min;
   m.max=Max;
-  if(Min == infinity && Max == -infinity) return m;
-  if(Min > Max) {real tmp=Min; Min=Max; Max=tmp;}
+  if(Min > Max) {real temp=Min; Min=Max; Max=temp;}
   if(Min == Max) {
     if(Min == 0) {m.max=1; return m;}
     if(Min > 0) {Min=0; Max *= 2;}
@@ -152,9 +154,10 @@ bounds autoscale(real Min, real Max, bool logaxis=false)
     b=upscale(bsave,a);
   
   if(sign == -1) {real temp=-a; a=-b; b=temp;}
-  real scale=10.0^exp;
-  m.min=a*scale;
-  m.max=b*scale;
+  real Scale=10.0^exp;
+  m.min=scale.T(a*Scale);
+  m.max=scale.T(b*Scale);
+  if(m.min > m.max) {real temp=m.min; m.min=m.max; m.max=temp;}
   m.divisor=divisors(round(a),round(b));
   return m;
 }
@@ -739,7 +742,7 @@ void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
   
   bounds mx;
   if(pic.scale.x.automin() || pic.scale.x.automax())
-    mx=autoscale(pic.userMin.x,pic.userMax.x,logarithmic(pic.scale.x.scale));
+    mx=autoscale(pic.userMin.x,pic.userMax.x,pic.scale.x.scale);
   
   if(pic.scale.x.automin) {
     if(pic.scale.x.automin()) pic.userMin=(mx.min,pic.userMin.y);
@@ -771,7 +774,7 @@ void ylimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
   
   bounds my;
   if(pic.scale.y.automin() || pic.scale.y.automax())
-    my=autoscale(pic.userMin.y,pic.userMax.y,logarithmic(pic.scale.y.scale));
+    my=autoscale(pic.userMin.y,pic.userMax.y,pic.scale.y.scale);
   
   if(pic.scale.y.automin) {
     if(pic.scale.y.automin()) pic.userMin=(pic.userMin.x,my.min);
@@ -814,7 +817,7 @@ void autoscale(picture pic=currentpicture, axis axis)
     pic.scale.set=true;
     
     if(finite(pic.userMin.x) && finite(pic.userMax.x)) {
-      mx=autoscale(pic.userMin.x,pic.userMax.x,logarithmic(pic.scale.x.scale));
+      mx=autoscale(pic.userMin.x,pic.userMax.x,pic.scale.x.scale);
       if(logarithmic(pic.scale.x.scale) && 
 	 floor(pic.userMin.x) == floor(pic.userMax.x)) {
 	pic.userMin=(floor(pic.userMin.x),pic.userMin.y);
@@ -823,7 +826,7 @@ void autoscale(picture pic=currentpicture, axis axis)
     } else {mx=new bounds; mx.min=mx.max=0; pic.scale.set=false;}
     
     if(finite(pic.userMin.y) && finite(pic.userMax.y)) {
-      my=autoscale(pic.userMin.y,pic.userMax.y,logarithmic(pic.scale.y.scale));
+      my=autoscale(pic.userMin.y,pic.userMax.y,pic.scale.y.scale);
       if(logarithmic(pic.scale.y.scale) && 
 	 floor(pic.userMin.y) == floor(pic.userMax.y)) {
 	pic.userMin=(pic.userMin.x,floor(pic.userMin.y));
@@ -871,7 +874,7 @@ void xaxis(picture pic=currentpicture,
   }
   
   if(pic.scale.set && newticks) {
-    bounds mx=autoscale(xmin,xmax,logarithmic(pic.scale.x.scale));
+    bounds mx=autoscale(xmin,xmax,pic.scale.x.scale);
     pic.scale.x.tickMin=mx.min;
     pic.scale.x.tickMax=mx.max;
     axis.xdivisor=mx.divisor;
@@ -923,7 +926,7 @@ void yaxis(picture pic=currentpicture,
   }
   
   if(pic.scale.set && newticks) {
-    bounds my=autoscale(ymin,ymax,logarithmic(pic.scale.y.scale));
+    bounds my=autoscale(ymin,ymax,pic.scale.y.scale);
     pic.scale.y.tickMin=my.min;
     pic.scale.y.tickMax=my.max;
     axis.ydivisor=my.divisor;
@@ -1067,8 +1070,7 @@ picture secondaryX(picture primary=currentpicture, void f(picture))
   if(!primary.scale.set) abort(noprimary);
   picture pic=new picture;
   f(pic);
-  bounds a=autoscale(pic.userMin.x,pic.userMax.x,
-		     logarithmic(pic.scale.x.scale));
+  bounds a=autoscale(pic.userMin.x,pic.userMax.x,pic.scale.x.scale);
   real bmin=pic.scale.x.automin() ? a.min : pic.userMin.x;
   real bmax=pic.scale.x.automax() ? a.max : pic.userMax.x;
   
@@ -1098,8 +1100,7 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
   if(!primary.scale.set) abort(noprimary);
   picture pic=new picture;
   f(pic);
-  bounds a=autoscale(pic.userMin.y,pic.userMax.y,
-		     logarithmic(pic.scale.y.scale));
+  bounds a=autoscale(pic.userMin.y,pic.userMax.y,pic.scale.y.scale);
   real bmin=pic.scale.y.automin() ? a.min : pic.userMin.y;
   real bmax=pic.scale.y.automax() ? a.max : pic.userMax.y;
 

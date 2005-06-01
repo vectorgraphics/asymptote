@@ -3,16 +3,14 @@ real minpercent=20;
 real ignorebelow=0;
 string data="diatom.csv";
 
-currentpen=fontsize(8)+overwrite(MoveQuiet);
-
 import graph;
 
+defaultpen(fontsize(8)+overwrite(MoveQuiet));
+
 file in=line(csv(input(data)));
-pen p=linewidth(1);
 
 string depthlabel=in;
 string yearlabel=in;
-
 string[] taxa=in;
 
 real[] depth;
@@ -41,7 +39,6 @@ for(int taxon=0; taxon < n; ++taxon) {
 }  
 
 real location=0;
-real bottom;
 for(int taxon=0; taxon < n; ++taxon) {
   real[] P=percentage[taxon];
   real maxP=max(P);
@@ -53,19 +50,18 @@ for(int taxon=0; taxon < n; ++taxon) {
   scale(pic,Linear(x),Linear(false,-1));
   filldraw(pic,(0,depthmin)--graph(pic,P,depth)--(0,depthmax)--cycle,
 	   gray(0.9));
-  xaxis(pic,Bottom,LeftTicks(false,0,2,"%.0f"),Above);
+  xaxis(pic,Bottom,LeftTicks(false,0,2,"%.2g"),Above);
   xaxis(pic,TeXify(taxa[taxon]),0.5,45,Top,NoTicks,Above);
   if(taxon == 0) yaxis(pic,depthlabel,Left,RightTicks(0,10),Above);
   if(taxon == final) yaxis(pic,Right,LeftTicks(0,10,""),Above);
   
   add(shift(location,0)*pic);
   location += pic.userMax.x;
-  bottom=pic.userMin.y;
 }
 
 for(int i=0; i < year.length; ++i)
   if(year[i] != 0) label((string) year[i],(location,-depth[i]),E);
 
-label("\%",(0.5*location,bottom),5*S);
+label("\%",(0.5*location,point(S).y),5*S);
 
 

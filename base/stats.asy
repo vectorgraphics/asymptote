@@ -82,7 +82,7 @@ void histogram(picture pic=currentpicture, real[] bins, real[] count,
   real m=min(valid ? count : null);
   real M=max(valid ? count : null);
   bounds my=autoscale(pic.scale.y.scale.T(m),pic.scale.y.T(M),
-		      logarithmic(pic.scale.y.scale));
+		      pic.scale.y.scale);
   if(low == -infinity) low=pic.scale.y.scale.Tinv(my.min);
   real last=low;
   int n=count.length;
