@@ -59,7 +59,7 @@ GCNAME="Boehm Garbage Collector"
 if test "x$ac_cv_use_gc" != "xno" ; then
    USEGC="-DUSEGC"
    if test "x$ac_cv_use_gc" = "xsystem"; then
-      AC_CHECK_HEADER(gc/gc.h,
+      AC_CHECK_HEADER(gc.h,
  	AC_CHECK_LIB([gc],[GC_malloc],[LIBS=$LIBS"-lpthread -lgccpp -lgc"
 	AC_MSG_NOTICE([enabling system $GCNAME])],[
 	AC_MSG_ERROR($GCNAME library not found)
