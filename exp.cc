@@ -105,7 +105,7 @@ record *fieldExp::getRecord(types::ty *t)
 
 types::ty *fieldExp::getObject(coenv& e)
 {
-  types::ty *t = object->getType(e);
+  types::ty *t = object->cgetType(e);
   if (t->kind == ty_overloaded) {
     t=((overloaded *)t)->resolve(0);
     if(!t) return primError();
@@ -171,7 +171,7 @@ void fieldExp::trans(coenv &e, types::ty *target)
 
 types::ty *fieldExp::trans(coenv &e)
 {
-  trans::ty *t = getType(e);
+  trans::ty *t = cgetType(e);
   if (!t) {
     em->error(getPos());
     *em << "no matching field of name '" << *field
@@ -242,7 +242,7 @@ void fieldExp::transWrite(coenv &e, types::ty *target)
 
 void fieldExp::transCall(coenv &e, types::ty *target)
 {
-  types::ty *ot = object->getType(e);
+  types::ty *ot = object->cgetType(e);
 
   // Look for virtual fields.
   varEntry *v = ot->virtualField(field, target->getSignature());
@@ -290,7 +290,7 @@ void subscriptExp::prettyprint(ostream &out, int indent)
 
 array *subscriptExp::getArrayType(coenv &e)
 {
-  types::ty *a = set->getType(e);
+  types::ty *a = set->cgetType(e);
   if (a->kind == ty_overloaded) {
     a = ((overloaded *)a)->resolve(0);
     if (!a)
@@ -309,7 +309,7 @@ array *subscriptExp::getArrayType(coenv &e)
 
 array *subscriptExp::transArray(coenv &e)
 {
-  types::ty *a = set->getType(e);
+  types::ty *a = set->cgetType(e);
   if (a->kind == ty_overloaded) {
     a = ((overloaded *)a)->resolve(0);
     if (!a) {
@@ -339,7 +339,7 @@ types::ty *subscriptExp::trans(coenv &e)
   if (!a)
     return primError();
 
-  types::ty *t=index->getType(e);
+  types::ty *t=index->cgetType(e);
   if(t->kind == ty_array) {
     index->trans(e, types::intArray());
     e.c.encode(inst::builtin, run::arrayIntArray);
@@ -356,7 +356,7 @@ types::ty *subscriptExp::trans(coenv &e)
 
 types::ty *subscriptExp::getType(coenv &e)
 {
-  types::ty *t=index->getType(e);
+  types::ty *t=index->cgetType(e);
   array *a = getArrayType(e);
   
   if(t->kind == ty_array)
@@ -389,7 +389,7 @@ types::ty *thisExp::trans(coenv &e)
     em->error(getPos());
     *em << "static use of 'this' expression";
   }
-  return getType(e);
+  return cgetType(e);
 }
 
 types::ty *thisExp::getType(coenv &e)
@@ -406,7 +406,7 @@ void scaleExp::prettyprint(ostream &out, int indent)
 
 types::ty *scaleExp::trans(coenv &e)
 {
-  types::ty *lt = left->getType(e);
+  types::ty *lt = left->cgetType(e);
   if (lt->kind != types::ty_int && lt->kind != types::ty_real) {
     if (lt->kind != types::ty_error) {
       em->error(left->getPos());
@@ -430,7 +430,7 @@ types::ty *scaleExp::getType(coenv &e)
 {
   // Defer to the binaryExp for multiplication.
   binaryExp b(getPos(), left, symbol::trans("*"), right);
-  return b.getType(e);
+  return b.cgetType(e);
 }
 
 
@@ -547,7 +547,7 @@ void explist::trans(coenv &e, types::ty *target, int index)
 types::ty *explist::getType(coenv &e, int index)
 {
   assert((unsigned)index < exps.size());
-  return exps[index]->getType(e);
+  return exps[index]->cgetType(e);
 }
 
 
@@ -589,7 +589,7 @@ types::ty *callExp::trans(coenv &e)
   }
 
   // Figure out what function types we can call.
-  trans::ty *ft = callee->getType(e);
+  trans::ty *ft = callee->cgetType(e);
   if (ft->kind == ty_error) {
     return callee->trans(e);
   }
@@ -678,7 +678,7 @@ types::ty *callExp::getType(coenv &e)
   }
 
   // Figure out what function types we can call.
-  trans::ty *ft = callee->getType(e);
+  trans::ty *ft = callee->cgetType(e);
   if (ft->kind == ty_error) {
     return primError();
   }
@@ -748,7 +748,7 @@ types::ty *castExp::trans(coenv &e)
 {
   types::ty *t = target->typeTrans(e);
 
-  types::ty *source = castee->getType(e);
+  types::ty *source = castee->cgetType(e);
 
   // Find the source type to actually use.
   types::ty *intermed = types::explicitCastType(t, source);
@@ -897,7 +897,7 @@ types::ty *binaryExp::getType(coenv &e)
   /* The conditional && and || need jumps in the translated code in
    * order to conditionally evaluate their operands (not done for arrays).
    */
-  types::ty *t1 = left->getType(e), *t2 = right->getType(e);
+  types::ty *t1 = left->cgetType(e), *t2 = right->cgetType(e);
   if ((op == symbol::trans("&&") ||
        op == symbol::trans("||")) && 
       t1->kind != ty_array && t2->kind != ty_array) {
@@ -945,7 +945,7 @@ void conditionalExp::prettyprint(ostream &out, int indent)
 
 void conditionalExp::trans(coenv &e, types::ty *target)
 {
-  types::ty *t=test->getType(e);
+  types::ty *t=test->cgetType(e);
   if(t->kind == ty_array && ((array *)t)->celltype == primBoolean()) {
     if(target->kind == ty_array) {
       test->trans(e, types::boolArray());
@@ -974,7 +974,7 @@ void conditionalExp::trans(coenv &e, types::ty *target)
 
 types::ty *conditionalExp::trans(coenv &e)
 {
-  types::ty *t = promote(onTrue->getType(e), onFalse->getType(e));
+  types::ty *t = promote(onTrue->cgetType(e), onFalse->cgetType(e));
   if (!t) {
     em->error(getPos());
     *em << "types in conditional expression do not match";
@@ -992,7 +992,7 @@ types::ty *conditionalExp::trans(coenv &e)
 
 types::ty *conditionalExp::getType(coenv &e)
 {
-  types::ty *t = promote(onTrue->getType(e), onFalse->getType(e));
+  types::ty *t = promote(onTrue->cgetType(e), onFalse->cgetType(e));
   return t ? t : primError();
 }
  
@@ -1000,7 +1000,7 @@ types::ty *conditionalExp::getType(coenv &e)
 // Checks if the expression can be translated as an array.
 bool isAnArray(exp *x, coenv &e)
 {
-  types::ty *t=x->getType(e);
+  types::ty *t=x->cgetType(e);
   if (t->kind == ty_overloaded)
     t=dynamic_cast<overloaded *>(t)->resolve(0);
   return t && t->kind==ty_array;
@@ -1020,7 +1020,7 @@ types::ty *andOrExp::getType(coenv &e)
 {
   if (isAnArray(left,e) || isAnArray(right,e)) {
     binaryExp be(getPos(), left, op, right);
-    return be.getType(e);
+    return be.cgetType(e);
   }
   else
     return baseGetType(e);
@@ -1058,7 +1058,7 @@ types::ty *andExp::baseTrans(coenv &e)
   conditionalExp ce(pos, left, right, &be);
   ce.trans(e, primBoolean());
 
-  return getType(e);
+  return cgetType(e);
 }
 
 
@@ -1086,7 +1086,7 @@ types::ty *joinExp::getType(coenv& e)
 {
   // Translate as a unary operator converting the guide array to a single guide.
   unaryExp u(getPos(),&guides,op);
-  return u.getType(e);
+  return u.cgetType(e);
 }
 
 
@@ -1112,7 +1112,7 @@ types::ty *specExp::getType(coenv &e)
 {
   intExp ie(getPos(), (int)s);
   binaryExp be(getPos(), arg, op, &ie);
-  return be.getType(e);
+  return be.cgetType(e);
 }
 
 void assignExp::prettyprint(ostream &out, int indent)
@@ -1131,7 +1131,7 @@ void assignExp::trans(coenv &e, types::ty *target)
 
 types::ty *assignExp::trans(coenv &e)
 {
-  types::ty *lt = dest->getType(e), *rt = value->getType(e);
+  types::ty *lt = dest->cgetType(e), *rt = value->cgetType(e);
 
   if (lt->kind == ty_error)
     return dest->trans(e);
@@ -1157,7 +1157,7 @@ types::ty *assignExp::trans(coenv &e)
 
 types::ty *assignExp::getType(coenv &e)
 {
-  types::ty *lt = dest->getType(e), *rt = value->getType(e);
+  types::ty *lt = dest->cgetType(e), *rt = value->cgetType(e);
   types::ty *t = castType(lt, rt);
 
   return t ? t : primError();
@@ -1186,7 +1186,7 @@ types::ty *selfExp::getType(coenv &e)
   // Convert into the operation and the assign.
   binaryExp be(getPos(), dest, op, value);
   assignExp ae(getPos(), dest, &be);
-  return ae.getType(e);
+  return ae.cgetType(e);
 }
 
 void prefixExp::prettyprint(ostream &out, int indent)
@@ -1215,7 +1215,7 @@ types::ty *prefixExp::getType(coenv &e)
   binaryExp be(getPos(), dest, op, &ie);
   assignExp ae(getPos(), dest, &be);
 
-  return ae.getType(e);
+  return ae.cgetType(e);
 }
 
 void postfixExp::prettyprint(ostream &out, int indent)

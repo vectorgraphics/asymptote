@@ -64,9 +64,11 @@ public:
 };
 
 class exp : public varinit {
+  // The cached type (from a call to cgetType).
+  types::ty *ct;
 public:
   exp(position pos)
-    : varinit(pos) {}
+    : varinit(pos), ct(0) {}
 
   void prettyprint(ostream &out, int indent);
 
@@ -109,6 +111,13 @@ public:
   //      error.
   virtual types::ty *getType(coenv &) { return types::primError(); }
 
+  // Same result as getType, but caches the result, so that subsequent call are
+  // faster.  For this to work correctly, the expression should only be used in
+  // one place, so the environment doesn't change between calls.
+  virtual types::ty *cgetType(coenv &e) {
+    return ct ? ct : ct = getType(e);
+  }
+  
   // The expression is being used as an address to write to.
   virtual void transWrite(coenv &, types::ty *) {
     em->error(getPos());
