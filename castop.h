@@ -33,7 +33,7 @@ void stringCast(vm::stack *s)
   std::ostringstream buf;
   buf.precision(DBL_DIG);
   buf << pop<T>(s);
-  s->push<string>(buf.str());
+  s->push((string) buf.str());
 }
 
 template<class T>
