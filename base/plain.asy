@@ -345,7 +345,6 @@ static struct coord {
   void clip(real min, real max) {
     user=min(max(user,min),max);
   }
-  
 }
 
 void append(coord[] x, coord[] y, transform T, coord[] srcx, coord[] srcy)
@@ -830,8 +829,9 @@ struct picture {
     // only copy them.  This needs to be a deep copy, as src could later have
     // objects added to it that should not be included in this picture.
 
+    if(alias(src,this)) abort("cannot add picture to itself");
+    
     picture srcCopy=src.drawcopy();
-
     // Draw by drawing the copied picture.
     nodes.push(new void (frame f, transform t, transform T, pair m, pair M) {
       frame d=srcCopy.fit(t,T*srcCopy.T,m,M);
