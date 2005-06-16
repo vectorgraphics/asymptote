@@ -87,9 +87,9 @@ struct string : public GC_STRING
 {
   string () {}
   string (const char* str) : GC_STRING(str) {}
-  string (std::string str) : GC_STRING(str.c_str(),str.size()) {}
-  string (GC_STRING str) : GC_STRING(str) {}
-  operator std::string () { return std::string(c_str(),size()); }
+  string (const std::string& str) : GC_STRING(str.c_str(),str.size()) {}
+  string (const GC_STRING& str) : GC_STRING(str) {}
+  operator std::string () const { return std::string(c_str(),size()); }
 };
 #undef GC_STRING
 #else

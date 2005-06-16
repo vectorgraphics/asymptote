@@ -22,6 +22,7 @@ class coenv;
 
 namespace absyntax {
 
+using mem::list;
 using trans::coenv;
 using sym::symbol;
 using vm::inst;
@@ -43,7 +44,7 @@ public:
 };
 
 class arrayinit : public varinit {
-  std::list<varinit *> inits;
+  list<varinit *> inits;
 
 public:
   arrayinit(position pos)
@@ -287,7 +288,7 @@ public:
 
 
 class stringExp : public literalExp {
-  string str;
+  mem::string str;
 
 public:
   stringExp(position pos, string str)
@@ -350,7 +351,7 @@ public:
 
 // A list of expressions used in a function call.
 class explist : public absyn {
-  typedef std::vector<exp *> expvector;
+  typedef mem::vector<exp *> expvector;
   expvector exps;
 
 public:

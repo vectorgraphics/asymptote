@@ -10,7 +10,7 @@
 
 #include <list>
 #include <iostream>
-#include "pool.h"
+#include "memory.h"
 #include "settings.h"
 
 using std::ostream;
@@ -19,8 +19,8 @@ using std::endl;
 struct handled_error {}; // Exception to process next file.
 struct interrupted {};   // Exception to process user interrupts.
 
-class fileinfo : public memory::managed<fileinfo> {
-  string filename;
+class fileinfo : public gc {
+  mem::string filename;
   size_t lineNum;
 
 public:
@@ -37,7 +37,7 @@ public:
     ++lineNum;
   }
   
-  string name() {
+  mem::string name() {
     return filename;
   }
 };

@@ -936,7 +936,7 @@ void stringSubstr(stack *s)
   size_t n=pop<int>(s);
   size_t pos=pop<int>(s);
   string *a = pop<string*>(s);
-  if(pos < a->length()) s->push(new(UseGC) string(a->substr(pos,n)));
+  if(pos < a->length()) s->push(a->substr(pos,n));
   else s->push(&emptystring);
 }
 

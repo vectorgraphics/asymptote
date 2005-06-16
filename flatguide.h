@@ -19,11 +19,12 @@ namespace camp {
 
 class flatguide
 {
-  // A cached solution of the path.  Cycle tags cause the path to be solved up
-  // to that point.  If the guide continues from there, the path control point
-  // have to be added as specifiers back into nodes, and then solved into a path
-  // again.  In the case that a cycle ends a path, the cached path avoids this
-  // second pass.
+  // A cached solution of the path.  When traversing through a tree of guides,
+  // if a cycle tag is encountered, then the path is solved up to that point.
+  // If the guide continues from there (which rarely occurs in reality), all of
+  // the control points solved are added as control specifiers, and then solved
+  // into a path again.  In the (usual) case that a cycle ends a path, the
+  // cached path avoids this second pass.
   bool solved;
   path p;
 
@@ -80,7 +81,7 @@ class flatguide
 
   void uncheckedAdd(path p);
 
-  // Sets solved to false, indicating that the path has been updated since, last
+  // Sets solved to false, indicating that the path has been updated since last
   // being solved.  Also, copies a solved path back in as knots and control
   // specifiers, as it will have to be solved again.
   void update() {

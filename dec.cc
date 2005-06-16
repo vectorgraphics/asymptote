@@ -158,7 +158,7 @@ void modifierList::prettyprint(ostream &out, int indent)
   prettyindent(out,indent);
   out << "modifierList (";
   
-  for (std::list<int>::iterator p = mods.begin(); p != mods.end(); ++p) {
+  for (list<int>::iterator p = mods.begin(); p != mods.end(); ++p) {
     if (p != mods.begin())
       out << out << ", ";
     switch (*p) {
@@ -180,7 +180,7 @@ void modifierList::prettyprint(ostream &out, int indent)
 
 bool modifierList::staticSet()
 {
-  for (std::list<int>::iterator p = mods.begin(); p != mods.end(); ++p)
+  for (list<int>::iterator p = mods.begin(); p != mods.end(); ++p)
 //    if (*p == STATIC || *p == DYNAMIC)
     if (*p == STATIC)
       return true;
@@ -192,7 +192,7 @@ bool modifierList::isStatic()
   int uses = 0;
   bool result = false;
 
-  for (std::list<int>::iterator p = mods.begin(); p != mods.end(); ++p) {
+  for (list<int>::iterator p = mods.begin(); p != mods.end(); ++p) {
     switch (*p) {
       case STATIC:
 	++uses;
@@ -225,7 +225,7 @@ permission modifierList::getPermission()
   int uses = 0;
   permission result = READONLY;
 
-  for (std::list<int>::iterator p = mods.begin(); p != mods.end(); ++p) {
+  for (list<int>::iterator p = mods.begin(); p != mods.end(); ++p) {
     switch (*p) {
       case PUBLIC_TOK:
 	++uses;

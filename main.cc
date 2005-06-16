@@ -21,6 +21,7 @@
 #include "stack.h"
 #include "interact.h"
 #include "parser.h"
+#include "pool.h"
 
 using namespace settings;
 using std::list;
@@ -85,6 +86,9 @@ namespace loop {
 
 void init()
 {
+#ifdef USEGC
+  GC_gcollect();
+#endif
   ShipoutNumber=0;
 
   outnameStack=new list<string>;
@@ -217,10 +221,8 @@ int main(int argc, char *argv[])
     cerr << "error: exception thrown.\n";
     ++status;
   }
-  
 #ifdef USEGC
   GC_gcollect();
-#endif  
-  
+#endif
   return status;
 }

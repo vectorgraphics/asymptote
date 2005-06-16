@@ -7,13 +7,10 @@
 #ifndef PEN_H
 #define PEN_H
 
-#include <string>
-
-using std::string;
-
 #include "transform.h"
 #include "settings.h"
 #include "bbox.h"
+#include "memory.h"
 
 namespace camp {
   class pen;
@@ -70,7 +67,7 @@ using settings::defaultpen;
 class LineType
 {
 public:  
-  string pattern;	// The string for the PostScript style line pattern.
+  mem::string pattern;	// The string for the PostScript style line pattern.
   bool scale;		// Scale the line type values by the pen width?
   
   LineType(string pattern, bool scale) : pattern(pattern), scale(scale) {}
@@ -87,7 +84,7 @@ class pen : public gc {
 
   // Width of line, in PS units.
   double linewidth;
-  string font;
+  mem::string font;
   double fontsize;  
   double lineskip;  
   

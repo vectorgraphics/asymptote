@@ -29,6 +29,7 @@ class function;
 
 namespace absyntax {
 
+using mem::list;
 using trans::coenv;
 using trans::access;
 using sym::symbol;
@@ -141,7 +142,7 @@ public:
 }; 
 
 class modifierList : public absyn {
-  std::list<int> mods;
+  list<int> mods;
 
 public:
   modifierList(position pos)
@@ -250,7 +251,7 @@ public:
 };
 
 class decidlist : public absyn {
-  std::list<decid *> decs;
+  list<decid *> decs;
 
 public:
   decidlist(position pos)
@@ -395,7 +396,7 @@ public:
 class formals : public absyn {
   //friend class funheader;
 
-  std::list<formal *> fields;
+  list<formal *> fields;
 
 public:
   formals(position pos)

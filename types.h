@@ -19,7 +19,6 @@
 
 #include "symbol.h"
 #include "memory.h"
-#include "pool.h"
 
 using std::ostream;
 
@@ -68,7 +67,7 @@ struct signature;
 // Arrays are equal if their cell types are equal.
 bool equivalent(ty *t1, ty *t2);
 
-class ty : public memory::managed<ty> {
+class ty : public gc {
 public:
   const ty_kind kind;
   ty(ty_kind kind)
@@ -210,13 +209,13 @@ ty *realArray3();
 ty *pairArray3();
 ty *stringArray3();
   
-typedef std::vector<ty *> ty_vector;
-typedef std::vector<absyntax::varinit*> varinit_vector;
+typedef mem::vector<ty *> ty_vector;
+typedef mem::vector<absyntax::varinit*> varinit_vector;
   
 // Holds the parameters of a function and if they have default values
 // (only applicable in some cases).  Technically, a signature should
 // also hold the function name.
-class signature : public memory::managed<signature> {
+class signature : public gc {
   ty_vector formals;
 
   // Holds the index of the expression in an array of default
@@ -224,7 +223,7 @@ class signature : public memory::managed<signature> {
   varinit_vector defaults;
   size_t ndefault;
 
-  std::vector<bool> Explicit;
+  mem::vector<bool> Explicit;
 public:
   signature()
     : ndefault(0) {} 
