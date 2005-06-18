@@ -128,6 +128,7 @@ maintainer-clean: FORCE distclean
 
 test:   asy FORCE
 	./wce
+	make -C tests
 
 .SUFFIXES: .c .cc .o .d
 .cc.o:
