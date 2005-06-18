@@ -1,5 +1,6 @@
-for (int i = 0; i < 1e7; ++i)
+for (int i = 0; i < 1e5; ++i)
 {
-  file a=input("gc/file.asy");
+  file a=output((string)i);
+  write(a,i,endl);
   close(a);
 }

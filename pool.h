@@ -8,82 +8,77 @@
 #ifndef POOL_H
 #define POOL_H
 
-#include <deque>
-#include <new>
+#include <algorithm>
+#include "memory.h"
 
-namespace memory {
+namespace mem {
   
 template <class T>
 class managed {
 public:
   void *operator new (size_t n);
-  void operator delete (void*);
-// The following are the standard placement new and delete
-// operators to make old compilers happy.
-  void *operator new (size_t n,void*);
-  void operator delete (void*,void*);
+  static void free();
+  managed();
 private:
-  static void deleter(void *);
+  static void finalizer(void *,void *);
+  static void free_it(T *);
+  typedef std::list<T*> pool_t;
+  typedef typename pool_t::iterator iter_t;
+  iter_t ref;
+  static pool_t thePool; 
 };
 
-class poolitem {
-public:
-  typedef void (*free_t)(void*);
-  poolitem(void *p, free_t free)
-    : ptr(p), free_func(free) {}
-  void free() const { return free_func(ptr); }
-protected:
-  void* ptr;
-  free_t free_func;
-};
+template <class T>
+std::list<T*> managed<T>::thePool(0);
 
-typedef std::deque<poolitem> pool_t;
-extern pool_t thePool;
-  
-inline void free()
+template <class T>
+inline managed<T>::managed()
 {
-  for(pool_t::iterator p = thePool.begin(); p != thePool.end(); ++p)
-    p->free();
-  pool_t().swap(thePool);
-}
-
-inline void insert(poolitem p)
-{
-  thePool.push_back(p);
+  iter_t iter = thePool.begin();
+  while (iter != thePool.end()) {
+    if (*iter == this) {
+      ref = iter;
+      return;
+    }
+    ++iter;
+  }
 }
 
 template <class T>
-void managed<T>::deleter(void* ptr)
+inline void managed<T>::free_it(T *ptr)
+  { ptr->~T();
+#ifdef USEGC
+    GC_REGISTER_FINALIZER(ptr,0,0,0,0);
+#endif
+    GC_FREE(ptr); }
+
+template <class T>
+void managed<T>::free()
 {
-  static_cast<T*>(ptr)->~T();
-  ::operator delete (ptr);
+  std::for_each(thePool.begin(),thePool.end(),free_it);
+  pool_t().swap(thePool);
+}
+
+template <class T>
+void managed<T>::finalizer(void *ptr, void*)
+{
+  iter_t iter = ((managed<T>*)(T*)ptr)->ref;
+  if (iter != iter_t())
+    thePool.erase(iter);
+  free_it((T*)ptr);
 }
 
 template <class T>
 inline void* managed<T>::operator new(size_t n)
 {
-  void *p = ::operator new(n);
-  insert(poolitem(p,deleter));
-  return p;
+  void *ptr = GC_MALLOC(n);
+  thePool.push_front((T*)ptr);
+#ifdef USEGC
+  GC_REGISTER_FINALIZER_IGNORE_SELF(ptr,&finalizer,0,0,0);
+#endif
+  return ptr;
 }
 
-template <class T>
-inline void* managed<T>::operator new(size_t, void* p)
-{
-  return p;
-}
-
-template <class T>
-inline void managed<T>::operator delete(void* p)
-{
-  poolitem it(p,deleter);
-  it.free();
-}
-
-template <class T>
-inline void managed<T>::operator delete(void*, void*)
-{}
-
-} // namespace mempool
+} // namespace mem
 
 #endif 

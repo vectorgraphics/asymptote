@@ -29,19 +29,8 @@ inline void *GC_MALLOC(size_t n) { \
 
 #else // USEGC
 
-template<class T>
-class gc_allocator : public std::allocator<T> {
-public:  
-  gc_allocator() {}
-  gc_allocator(const std::allocator<T>&) {}
-};
-
-template<class T>
-class traceable_allocator : public std::allocator<T> {
-public:  
-  traceable_allocator() {}
-  traceable_allocator(const std::allocator<T>&) {}
-};
+using std::allocator;
+#define gc_allocator allocator
 
 class gc {};
 
@@ -50,6 +39,9 @@ enum GCPlacement {UseGC, NoGC, PointerFreeGC};
 inline void* operator new(size_t size, GCPlacement) {
   return operator new(size);
 }
+
+#define GC_MALLOC(size) ::operator new(size)
+#define GC_FREE(ptr) ::operator delete(ptr)
 
 #endif // USEGC
 

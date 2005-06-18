@@ -27,13 +27,14 @@
 #include "camperror.h"
 #include "interact.h"
 #include "errormsg.h"
+#include "pool.h"
 
 namespace camp {
 
 extern string tab;
 extern string newline;
   
-class file : public gc_cleanup {
+class file : public mem::managed<file> {
 protected:  
   string name;
   int nx,ny,nz;    // Array dimensions

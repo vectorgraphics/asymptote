@@ -60,14 +60,14 @@ if test "x$ac_cv_use_gc" != "xno" ; then
    USEGC="-DUSEGC"
    if test "x$ac_cv_use_gc" = "xsystem"; then
       AC_CHECK_HEADER(gc.h,
- 	AC_CHECK_LIB([gc],[GC_malloc],[LIBS=$LIBS"-lpthread -lgccpp -lgc"
+	AC_CHECK_LIB([gc],[GC_malloc],[LIBS=$LIBS"-lgc"
 	AC_MSG_NOTICE([enabling system $GCNAME])],[
 	AC_MSG_ERROR($GCNAME library not found)
 	USEGC=]),AC_MSG_ERROR($GCNAME header file not found))
    else
       GCDIR=gc$ac_cv_use_gc
       AC_MSG_NOTICE([enabling the $GCNAME $GCDIR])
-      GCLIBS="\$(GC)/.libs/libgccpp.a \$(GC)/.libs/libgc.a"
+      GCLIBS="\$(GC)/.libs/libgc.a"
       INCL="-I \$(GC)/include"
    fi
 else

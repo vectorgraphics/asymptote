@@ -21,7 +21,7 @@
 #include "stack.h"
 #include "interact.h"
 #include "parser.h"
-#include "pool.h"
+#include "fileio.h"
 
 using namespace settings;
 using std::list;
@@ -34,8 +34,6 @@ errorstream *em;
 using interact::interactive;
 using interact::virtualEOF;
 using interact::rejectline;
-
-memory::pool_t memory::thePool;
 
 #ifdef HAVE_LIBSIGSEGV
 void stackoverflow_handler (int, stackoverflow_context_t)
@@ -101,7 +99,7 @@ void purge()
   delete em; em = 0;
   delete outnameStack; outnameStack = 0;
   outname="";
-  memory::free();
+  camp::file::free();
 }
 
 void doTranslate(genv& ge, record *m)
@@ -221,8 +219,5 @@ int main(int argc, char *argv[])
     cerr << "error: exception thrown.\n";
     ++status;
   }
-#ifdef USEGC
-  GC_gcollect();
-#endif
   return status;
 }
