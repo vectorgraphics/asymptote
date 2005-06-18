@@ -450,6 +450,11 @@ public struct scaleT {
     this.automin=automin;
     this.automax=automax;
   }
+  scaleT copy() {
+    scaleT dest=new scaleT;
+    dest.init(T,Tinv,Label,automin,automax);
+    return dest;
+  }
 };
 
 public struct autoscaleT {
@@ -463,6 +468,16 @@ public struct autoscaleT {
   real T(real x) {return postscale.T(scale.T(x));}
   real Tinv(real x) {return scale.Tinv(postscale.Tinv(x));}
   real Label(real x) {return scale.Label(postscale.Tinv(x));}
+  autoscaleT copy() {
+    autoscaleT dest=new autoscaleT;
+    dest.scale=scale.copy();
+    dest.postscale=postscale.copy();
+    dest.tickMin=tickMin;
+    dest.tickMax=tickMax;
+    dest.automin=(bool) automin;
+    dest.automax=(bool) automax;
+    return dest;
+  }
 }
 
 public struct ScaleT {
@@ -470,6 +485,14 @@ public struct ScaleT {
   public autoscaleT x=new autoscaleT;
   public autoscaleT y=new autoscaleT;
   public autoscaleT z=new autoscaleT;
+  ScaleT copy() {
+    ScaleT dest=new ScaleT;
+    dest.set=set;
+    dest.x=x.copy();
+    dest.y=y.copy();
+    dest.z=z.copy();
+    return dest;
+  }
 };
 
 struct Legend {
@@ -532,7 +555,7 @@ struct picture {
   public pair userMin,userMax;
   
   public ScaleT scale; // Needed by graph
-  public Legend legend[];
+  public Legend[] legend;
 
   // The maximum sizes in the x and y directions; zero means no restriction.
   public real xsize=0, ysize=0;
@@ -591,16 +614,14 @@ struct picture {
   }
 
   // Add a point to the sizing.
-  void addPoint(pair user, pair truesize=(0,0))
-  {
+  void addPoint(pair user, pair truesize=(0,0)) {
     xcoords.push(coord.build(user.x,truesize.x));
     ycoords.push(coord.build(user.y,truesize.y));
     userBox(user,user);
   }
   
   // Add finite components of a pair to the sizing
-  void addFinite(pair user, pair truesize=(0,0))
-  {
+  void addFinite(pair user, pair truesize=(0,0)) {
     if(abs(user.x) != infinity) xcoords.push(coord.build(user.x,truesize.x));
     if(abs(user.y) != infinity) ycoords.push(coord.build(user.y,truesize.y));
     userBox(user,user);
@@ -608,35 +629,30 @@ struct picture {
   
   // Add a box to the sizing.
   void addBox(pair userMin, pair userMax,
-              pair trueMin=(0,0), pair trueMax=(0,0))
-  {
+              pair trueMin=(0,0), pair trueMax=(0,0)) {
     addPoint(userMin,trueMin);
     addPoint(userMax,trueMax);
   }
 
   // Add a point to the sizing, accounting also for the size of the pen.
-  void addPoint(pair user, pair truesize=(0,0), pen p)
-  {
+  void addPoint(pair user, pair truesize=(0,0), pen p) {
     addPoint(user,truesize+min(p));
     addPoint(user,truesize+max(p));
   }
   
   // Add a (user space) path to the sizing.
-  void addPath(path g)
-  {
+  void addPath(path g) {
     addPoint(min(g));
     addPoint(max(g));
   }
 
   // Add a path to the sizing with the additional padding of a pen.
-  void addPath(path g, pen p)
-  {
+  void addPath(path g, pen p) {
     addPoint(min(g),min(p));
     addPoint(max(g),max(p));
   }
 
-  void size(real x=0, real y=0, bool a=true)
-  {
+  void size(real x=0, real y=0, bool a=true) {
     xsize=x;
     ysize=y;
     keepAspect=a;
@@ -659,8 +675,7 @@ struct picture {
   }
 
   // Calculate the minimum point in scaling the coords.
-  real min(scaling s, coord[] c)
-  {
+  real min(scaling s, coord[] c) {
     if (c.length > 0) {
       real m=infinity;
       for (int i=0; i < c.length; ++i)
@@ -673,8 +688,7 @@ struct picture {
   }
  
   // Calculate the maximum point in scaling the coords.
-  real max(scaling s, coord[] c)
-  {
+  real max(scaling s, coord[] c) {
     if (c.length > 0) {
       real M=-infinity;
       for (int i=0; i < c.length; ++i)
@@ -688,8 +702,7 @@ struct picture {
   }
 
   // Calculate the min for the final picture, given the transform of coords.
-  pair min(transform t)
-  {
+  pair min(transform t) {
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x, b.x);
     scaling ys=scaling.build(a.y, b.y);
@@ -697,8 +710,7 @@ struct picture {
   }
 
   // Calculate the max for the final picture, given the transform of coords.
-  pair max(transform t)
-  {
+  pair max(transform t) {
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x, b.x);
     scaling ys=scaling.build(a.y, b.y);
@@ -742,8 +754,7 @@ struct picture {
   }
 
   // Returns the transform for turning user-space pairs into true-space pairs.
-  transform calculateTransform(real xsize, real ysize, bool keepAspect=true)
-  {
+  transform calculateTransform(real xsize, real ysize, bool keepAspect=true) {
     if (xsize == 0 && ysize == 0)
       return identity();
     else if (ysize == 0) {
@@ -798,25 +809,23 @@ struct picture {
   }
   
   // Copies the drawing information, but not the sizing information into a new
-  // picture. Warning: "fitting" this picture will not scale as a normal picture
-  // would.
-  picture drawcopy()
-  {
+  // picture. Warning: "fitting" this picture will not scale as a normal
+  // picture would.
+  picture drawcopy() {
     picture dest=new picture;
     dest.nodes=copy(nodes);
     dest.T=T;
     dest.userMin=userMin;
     dest.userMax=userMax;
-    dest.scale=scale;
-    dest.legend=legend;
+    dest.scale=scale.copy();
+    dest.legend=copy(legend);
 
     return dest;
   }
 
   // A deep copy of this picture.  Modifying the copied picture will not affect
   // the original.
-  picture copy()
-  {
+  picture copy() {
     picture dest=drawcopy();
 
     dest.xcoords=copy(xcoords);
@@ -828,8 +837,7 @@ struct picture {
 
   // Add a picture to this picture, such that the user coordinates will be
   // scaled identically when fitted
-  void add(picture src, bool group=true, bool put=Above)
-  {
+  void add(picture src, bool group=true, bool put=Above) {
     // Copy the picture.  Only the drawing function closures are needed, so we
     // only copy them.  This needs to be a deep copy, as src could later have
     // objects added to it that should not be included in this picture.
