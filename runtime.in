@@ -254,17 +254,17 @@ pair intersect(path x, path y)
 
 int length(string *s)
 {
-  return s->length();
+  return (int) s->length();
 }
 
 int find(string *s, string *sub, int pos)
 {
-  return s->find(*sub,pos);
+  return (int) s->find(*sub,pos);
 }
 
 int rfind(string *s, string *sub, int pos)
 {
-  return s->rfind(*sub,pos);
+  return (int) s->rfind(*sub,pos);
 }
 
 string reverse(string s)
