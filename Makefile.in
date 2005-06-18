@@ -54,7 +54,7 @@ $(GCLIBS): $(GC).tar.gz
 	tar -xf $(GC).tar
 	rm -f $(GC).tar
 	cd $(GC); \
-	./configure --disable-threads --disable-shared --enable-cplusplus; \
+	./configure --disable-threads --disable-shared; \
 	make check
 
 man:	asy
@@ -128,7 +128,6 @@ maintainer-clean: FORCE distclean
 
 test:   asy FORCE
 	./wce
-	make -C tests
 
 .SUFFIXES: .c .cc .o .d
 .cc.o:
