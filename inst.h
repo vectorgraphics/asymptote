@@ -68,10 +68,6 @@ struct lambda : public gc {
   // The instructions to follow.
   program *code;
 
-  // How many item can be pushed on the stack during the execution
-  // of this function.
-  int maxStackSize;
-
   // The number of parameters of the function.  This does not include the
   // closure of the enclosing module or function.
   int params;

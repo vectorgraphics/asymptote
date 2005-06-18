@@ -228,7 +228,6 @@ vm::lambda *coder::close() {
     encode(inst::ret);
 
   l->code = program;
-  l->maxStackSize = 10; // NOTE: To be implemented.
   l->params = level->getNumFormals();
   program->begin()->ref = level->size();
 
