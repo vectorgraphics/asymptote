@@ -557,6 +557,11 @@ struct picture {
     init();
   }
   
+  bool empty() {
+    pair Infinity=(infinity,infinity);
+    return userMin == Infinity && userMax == -Infinity;
+  }
+	      
   void userBox(pair min, pair max) {
     userMin=minbound(userMin,min);
     userMax=maxbound(userMax,max);

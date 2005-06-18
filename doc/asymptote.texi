@@ -3028,8 +3028,12 @@ picture secondaryX(picture primary=currentpicture, void f(picture));
 picture secondaryY(picture primary=currentpicture, void f(picture));
 @end verbatim
 
-In this example, @code{secondaryY} is used to draw a secondary logarithmic
-@math{y} axis:
+In this example, @code{secondaryY} is used to draw a secondary linear
+@math{y} axis against a primary logarithmic @math{y} axis:
+@verbatiminclude Bode.asy
+@image{Bode}
+
+A secondary logarithmic @math{y} axis can be drawn like this:
 @verbatiminclude secondaryaxis.asy
 @image{secondaryaxis}
 

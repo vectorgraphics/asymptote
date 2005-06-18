@@ -850,10 +850,7 @@ void autoscale(picture pic=currentpicture, axis axis)
 void checkaxis(picture pic, axis axis) 
 {
   axis(pic,axis);
-  pair Infinity=(infinity,infinity);
-  if(axis.extend || pic.userMin != Infinity || pic.userMax != -Infinity)
-    return;
-  abort("unextended axis called before draw");
+  if(!axis.extend && pic.empty()) abort("unextended axis called before draw");
 }
 
 void xaxis(picture pic=currentpicture,
@@ -1070,6 +1067,7 @@ picture secondaryX(picture primary=currentpicture, void f(picture))
   if(!primary.scale.set) abort(noprimary);
   picture pic=new picture;
   f(pic);
+  if(pic.empty()) abort("empty secondaryX picture");
   bounds a=autoscale(pic.userMin.x,pic.userMax.x,pic.scale.x.scale);
   real bmin=pic.scale.x.automin() ? a.min : pic.userMin.x;
   real bmax=pic.scale.x.automax() ? a.max : pic.userMax.x;
@@ -1100,6 +1098,7 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
   if(!primary.scale.set) abort(noprimary);
   picture pic=new picture;
   f(pic);
+  if(pic.empty()) abort("empty secondaryY picture");
   bounds a=autoscale(pic.userMin.y,pic.userMax.y,pic.scale.y.scale);
   real bmin=pic.scale.y.automin() ? a.min : pic.userMin.y;
   real bmax=pic.scale.y.automax() ? a.max : pic.userMax.y;
