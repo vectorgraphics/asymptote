@@ -1,9 +1,9 @@
 #!/bin/sh
 echo "should be 52:"
-./asy errortest 2>&1 | wc -l
+./asy -noplain errortest 2>&1 | wc -l
 
 if [ -e errors ]; then
-  ./asy errortest 2> errors.temp
+  ./asy -noplain errortest 2> errors.temp
   diff errors errors.temp
   rm errors.temp
 fi

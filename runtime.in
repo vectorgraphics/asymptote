@@ -251,3 +251,45 @@ pair intersect(path x, path y)
 {
   return intersectiontime(x,y);
 }
+
+int length(string *s)
+{
+  return s->length();
+}
+
+int find(string *s, string *sub, int pos)
+{
+  return s->find(*sub,pos);
+}
+
+int rfind(string *s, string *sub, int pos)
+{
+  return s->rfind(*sub,pos);
+}
+
+string reverse(string s)
+{
+  reverse(s.begin(),s.end());
+  return s;
+}
+
+string insert(string s, int pos, string *sub)
+{
+  if ((size_t)pos < s.length())
+    return s.insert(pos,*sub);
+  return s;
+}
+
+string substr(string* s, int pos, int n)
+{
+  if ((size_t)pos < s->length())
+    return s->substr(pos,n);
+  return ""; // TODO: Make this shared again.
+}
+
+string erase(string s, int pos, int n)
+{
+  if ((size_t)pos < s.length())
+    return s.erase(pos,n);
+  return s; 
+}

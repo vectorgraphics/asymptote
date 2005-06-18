@@ -382,18 +382,6 @@ void base_venv(venv &ve)
   addFunc(ve,run::pairConj,primPair(),"conj",primPair());
   addFunc(ve,run::pairDot,primReal(),"Dot",primPair(),primPair());
 
-  addFunc(ve,run::stringLength,primInt(),"length",primString());
-  addFunc(ve,run::stringFind,primInt(),"find",primString(),primString(),
-	  primInt());
-  addFunc(ve,run::stringRfind,primInt(),"rfind",primString(),primString(),
-	  primInt());
-  addFunc(ve,run::stringSubstr,primString(),"substr",primString(),primInt(),
-	  primInt());
-  addFunc(ve,run::stringReverse,primString(),"reverse",primString());
-  addFunc(ve,run::stringInsert,primString(),"insert",primString(),primInt(),
-	  primString());
-  addFunc(ve,run::stringErase,primString(),"erase",primString(),primInt(),
-	  primInt());
   addFunc(ve,run::stringReplace,primString(),"replace",primString(),
 	  stringArray2());
   addFunc(ve,run::stringFormatReal,primString(),"format",primString(),

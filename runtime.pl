@@ -49,7 +49,7 @@ sub c_params {
               (\w*(?:\s*\*)?)
               \s*
               (\w*)|xs;
-       $_ = "  $type $name = vm::pop<$type>(s);\n";
+       $_ = "  $type $name = vm::pop<$type>(gen_theStack);\n";
    }
    reverse @params;
 }
@@ -100,10 +100,10 @@ while (<>) {
       . ");\n";
 
   # Handle marshalling of values to/from stack
-  $code =~ s/\breturn ([^;]*);/{ s->push<$type>($1); return; }/g;
+  $code =~ s/\breturn ([^;]*);/{ gen_theStack->push<$type>($1); return; }/g;
   $args = join("",c_params(@params));
 
-  print $comments . "void $cname(vm::stack *s)\n{\n$args$code}\n\f\n";
+  print $comments . "void $cname(vm::stack *gen_theStack)\n{\n$args$code}\n\f\n";
   
   ++$count;
 }

@@ -909,62 +909,6 @@ void emptyString(stack *s)
   s->push(&emptystring);
 }
 
-void stringLength(stack *s)
-{
-  string *a = pop<string*>(s);
-  s->push((int) a->length());
-}
-
-void stringFind(stack *s)
-{
-  size_t pos=pop<int>(s);
-  string *b = pop<string*>(s);
-  string *a = pop<string*>(s);
-  s->push((int) a->find(*b,pos));
-}
-
-void stringRfind(stack *s)
-{
-  size_t pos=pop<int>(s);
-  string *b = pop<string*>(s);
-  string *a = pop<string*>(s);
-  s->push((int) a->rfind(*b,pos));
-}
-
-void stringSubstr(stack *s)
-{
-  size_t n=pop<int>(s);
-  size_t pos=pop<int>(s);
-  string *a = pop<string*>(s);
-  if(pos < a->length()) s->push((string)a->substr(pos,n));
-  else s->push(&emptystring);
-}
-
-void stringReverse(stack *s)
-{
-  string a = pop<string>(s);
-  reverse(a.begin(),a.end());
-  s->push(a);
-}
-
-void stringInsert(stack *s)
-{
-  string *b = pop<string*>(s);
-  size_t pos=pop<int>(s);
-  string a = pop<string>(s);
-  if(pos < a.length()) s->push(a.insert(pos,*b));
-  else s->push(a);
-}
-
-void stringErase(stack *s)
-{
-  size_t n=pop<int>(s);
-  size_t pos=pop<int>(s);
-  string a = pop<string>(s);
-  if(pos < a.length()) s->push(a.erase(pos,n));
-  else s->push(a);
-}
-
 // returns a string constructed by translating all occurrences of the string
 // from in an array of string pairs {from,to} to the string to in string s.
 void stringReplace(stack *s)
