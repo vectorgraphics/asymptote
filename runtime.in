@@ -1,5 +1,5 @@
 /*****
- * gen_runtime.in
+ * runtime.in
  * Tom Prince 2005/4/15
  *
  * Generated runtime functions.
@@ -41,7 +41,8 @@ picture* => primPicture()
 #include "texfile.h"
 #include "pipestream.h"
 #include "parser.h"
-
+#include "stack.h"
+  
 using namespace vm;
 using namespace camp;
 using namespace settings;
@@ -49,6 +50,9 @@ using namespace settings;
 namespace run {
 using camp::pair;
 using mem::string;
+}
+namespace trans {
+using namespace types;
 }
 
 

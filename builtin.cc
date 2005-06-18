@@ -21,6 +21,7 @@
 #include "mathop.h"
 #include "arrayop.h"
 #include "pow.h"
+#include "genrun.h"
 
 using namespace types;
 using namespace camp;
@@ -52,9 +53,9 @@ void base_tenv(tenv &ret)
 }
 
 // Macro to make a function.
-inline void addFunc(venv &ve, access *a, ty *result, const char *name, 
-		    ty *t1 = 0, ty *t2 = 0, ty *t3 = 0, ty* t4 = 0,
-		    ty *t5 = 0, ty *t6 = 0, ty *t7 = 0, ty *t8 = 0)
+void addFunc(venv &ve, access *a, ty *result, const char *name, 
+             ty *t1 = 0, ty *t2 = 0, ty *t3 = 0, ty* t4 = 0,
+             ty *t5 = 0, ty *t6 = 0, ty *t7 = 0, ty *t8 = 0)
 {
   function *fun = new function(result);
 
@@ -72,9 +73,9 @@ inline void addFunc(venv &ve, access *a, ty *result, const char *name,
   ve.enter(symbol::trans(name), ent);
 }
 
-inline void addFunc(venv &ve, bltin f, ty *result, const char *name, 
-		    ty *t1 = 0, ty *t2 = 0, ty *t3 = 0, ty* t4 = 0,
-		    ty *t5 = 0, ty *t6 = 0, ty *t7 = 0, ty *t8 = 0)
+void addFunc(venv &ve, bltin f, ty *result, const char *name, 
+             ty *t1, ty *t2, ty *t3, ty* t4,
+             ty *t5, ty *t6, ty *t7, ty *t8)
 {
   access *a = new bltinAccess(f);
   addFunc(ve, a, result, name, t1, t2, t3, t4, t5, t6, t7, t8);
@@ -296,7 +297,6 @@ double identity(double x) {return x;}
 double pow10(double x) {return pow(10.0,x);}
 
 // NOTE: We should move all of these into a "builtin" module.
-void gen_base_venv(venv &ve);
 void base_venv(venv &ve)
 {
   addOperators(ve);
@@ -523,5 +523,3 @@ void base_menv(menv&)
 }
 
 } //namespace trans
-
-#include "genrun.cc"

@@ -49,7 +49,7 @@ sub c_params {
               (\w*(?:\s*\*)?)
               \s*
               (\w*)|xs;
-       $_ = "  $type $name = pop<$type>(s);\n";
+       $_ = "  $type $name = vm::pop<$type>(s);\n";
    }
    reverse @params;
 }
