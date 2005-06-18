@@ -70,7 +70,7 @@ void stack::run(func *f)
   /* alias the variables */
   
   /* start the new function */
-  program::label ip = body->code.begin();
+  program::label ip = body->code->begin();
   /* make new activation record */
   vars_t vars = make_frame(body->params, f->closure);
   marshall(body->params, vars);
@@ -84,7 +84,7 @@ void stack::run(func *f)
       
 #ifdef DEBUG_STACK
       cerr << curPos << "\n";
-      printInst(cerr, ip, body->code.begin());
+      printInst(cerr, ip, body->code->begin());
       cerr << "\n";
 #endif
 

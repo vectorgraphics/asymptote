@@ -81,15 +81,15 @@ void printInst(ostream& out, const program::label& code,
   };
 }
 
-void print(ostream& out, program base)
+void print(ostream& out, program *base)
 {
-  program::label code = base.begin();
+  program::label code = base->begin();
   bool active = true;
   while (active) {
     if (code->op == inst::ret || 
         code->op < 0 || code->op >= numOps)
       active = false;
-    printInst(out, code, base.begin());
+    printInst(out, code, base->begin());
     out << '\n';
     ++code;
   }

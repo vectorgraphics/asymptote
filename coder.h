@@ -10,8 +10,6 @@
 #ifndef CODER_H
 #define CODER_H
 
-#include <list>
-#include <map>
 #include <stack>
 
 #include "errormsg.h"
@@ -25,8 +23,6 @@
 #include "util.h"
 
 namespace trans {
-
-using std::list;
 
 using sym::symbol;
 using types::ty;
@@ -82,10 +78,7 @@ class coder {
   
   // The function code as its being written.  Code points to next place in
   // array to write.
-  // NOTE: As the program array is only given a finite size at its
-  // allocation, it may overflow for a large program.  Check on fixing
-  // this.
-  vm::program program;
+  vm::program *program;
 
   // Keeps track of labels and writes in memory addresses as they're defined.
   // This way a label can be used before its address is known.
@@ -225,7 +218,7 @@ private:
       parent->encode(i);
     }
     else {
-      program.encode(i);
+      program->encode(i);
     }
   }
 public:

@@ -36,7 +36,7 @@ coder::coder(modifier sord)
     parent(0),
     sord(sord),
     perm(READONLY),
-    program(),
+    program(new vm::program),
     numLabels(0),
     curPos(position::nullPos())
 {
@@ -54,7 +54,7 @@ coder::coder(function *t, coder &parent, modifier sord)
     parent(&parent),
     sord(sord),
     perm(READONLY),
-    program(),
+    program(new vm::program),
     numLabels(0),
     curPos(position::nullPos())
 {
@@ -73,7 +73,7 @@ coder::coder(record *t, coder &parent, modifier sord)
     parent(&parent),
     sord(sord),
     perm(READONLY),
-    program(),
+    program(new vm::program),
     numLabels(0),
     curPos(position::nullPos())
 {
@@ -166,7 +166,6 @@ int coder::defLabel()
   if (isStatic())
     return parent->defLabel();
   
-  //defs.insert(std::make_pair(numLabel,program.size()));
   return defLabel(numLabels++);
 }
 
@@ -177,11 +176,11 @@ int coder::defLabel(int label)
   
   assert(label >= 0 && label < numLabels);
 
-  defs.insert(std::make_pair(label,program.end()));
+  defs.insert(std::make_pair(label,program->end()));
 
   std::multimap<int,vm::program::label>::iterator p = uses.lower_bound(label);
   while (p != uses.upper_bound(label)) {
-    p->second->ref = program.end();
+    p->second->ref = program->end();
     ++p;
   }
 
@@ -198,7 +197,7 @@ void coder::useLabel(inst::opcode op, int label)
     encode(op,p->second);
   } else {
     // Not yet defined
-    uses.insert(std::make_pair(label,program.end()));
+    uses.insert(std::make_pair(label,program->end()));
     encode(op);
   }
 }
@@ -231,7 +230,7 @@ vm::lambda *coder::close() {
   l->code = program;
   l->maxStackSize = 10; // NOTE: To be implemented.
   l->params = level->getNumFormals();
-  program.begin()->ref = level->size();
+  program->begin()->ref = level->size();
 
   sord_stack.pop();
   sord = sord_stack.top();

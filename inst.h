@@ -27,7 +27,7 @@ struct inst; class stack;
 // Manipulates the stack.
 typedef void (*bltin)(stack *s);
 
-class program
+class program : public gc
 {
 public:
   class label;
@@ -37,8 +37,9 @@ public:
   label end();
 private:
   friend class label;
-  class code_t : public mem::deque<inst>, public gc {};
-  code_t *code;
+  typedef mem::deque<inst> code_t;
+  code_t code;
+  inst& operator[](size_t);
 };
 
 class program::label
@@ -54,10 +55,10 @@ public: //interface
   friend ptrdiff_t offset(const label& left,
                           const label& right);
 private:
-  label (size_t where, code_t* code)
+  label (size_t where, program* code)
     : where(where), code(code) {};
   size_t where;
-  code_t* code;
+  program* code;
   friend class program;
 };
   
@@ -65,7 +66,7 @@ private:
 // It also need the closure of the enclosing module or function to run.
 struct lambda : public gc {
   // The instructions to follow.
-  program code;
+  program *code;
 
   // How many item can be pushed on the stack during the execution
   // of this function.
@@ -180,17 +181,19 @@ void printInst(std::ostream& out, const program::label& code,
 	       const program::label& base);
 
 // Prints code until a ret opcode is printed.
-void print(std::ostream& out, program base);
+void print(std::ostream& out, program *base);
 
 // Inline forwarding functions for vm::program
 inline program::program()
-  : code(new code_t) {}
+  : code() {}
 inline program::label program::end()
-{ return label(code->size(), code); }
+{ return label(code.size(), this); }
 inline program::label program::begin()
-{ return label(0, code); }
+{ return label(0, this); }
 inline void program::encode(inst i)
-{ code->push_back(i); }
+{ code.push_back(i); }
+inline inst& program::operator[](size_t n)
+{ return code[n]; }
 inline program::label& program::label::operator++()
 { ++where; return *this; }
 inline bool program::label::operator==(const label& right) const
