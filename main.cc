@@ -18,7 +18,7 @@
 #include "stm.h"
 #include "camp.tab.h"
 #include "settings.h"
-#include "stack.h"
+#include "vm.h"
 #include "interact.h"
 #include "parser.h"
 #include "fileio.h"

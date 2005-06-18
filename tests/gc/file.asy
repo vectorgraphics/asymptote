@@ -4,3 +4,5 @@ for (int i = 0; i < 1e5; ++i)
   write(a,i,endl);
   close(a);
 }
+write("Pass.");
+

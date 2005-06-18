@@ -12,7 +12,7 @@
 #include <sstream>
 
 #include "camperror.h"
-#include "stack.h"
+#include "vm.h"
 #include "errormsg.h"
 
 namespace camp {

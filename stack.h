@@ -10,13 +10,10 @@
 #define STACK_H
 
 #include <iostream>
-#include <string>
 #include <deque>
 
 #include "errormsg.h"
-#include "inst.h"
-
-using std::string;
+#include "vm.h"
 
 namespace vm {
 
@@ -77,11 +74,8 @@ inline T pop(stack* s)
 {
   return get<T>(pop(s));
 }
-
-position getPos();
-void error(const char* message);
   
 } // namespace vm
 
-#endif
+#endif // STACK_H
   
