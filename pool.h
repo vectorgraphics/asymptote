@@ -25,22 +25,24 @@ private:
   typedef std::list<T*> pool_t;
   typedef typename pool_t::iterator iter_t;
   iter_t ref;
-  static pool_t thePool; 
+  static pool_t *thePool;
 };
 
 template <class T>
-std::list<T*> managed<T>::thePool(0);
+std::list<T*> *managed<T>::thePool = 0;
 
 template <class T>
 inline managed<T>::managed()
 {
-  iter_t iter = thePool.begin();
-  while (iter != thePool.end()) {
-    if (*iter == this) {
-      ref = iter;
-      return;
+  if (thePool) {
+    iter_t iter = thePool->begin();
+    while (iter != thePool->end()) {
+      if (*iter == this) {
+        ref = iter;
+        return;
+      }
+      ++iter;
     }
-    ++iter;
   }
 }
 
@@ -55,24 +57,29 @@ inline void managed<T>::free_it(T *ptr)
 template <class T>
 void managed<T>::free()
 {
-  std::for_each(thePool.begin(),thePool.end(),free_it);
-  pool_t().swap(thePool);
+  if (thePool) {
+    std::for_each(thePool->begin(),thePool->end(),free_it);
+    delete thePool; thePool=0;
+  }
 }
 
 template <class T>
 void managed<T>::finalizer(void *ptr, void*)
 {
-  iter_t iter = ((managed<T>*)(T*)ptr)->ref;
-  if (iter != iter_t())
-    thePool.erase(iter);
+  if (thePool) {
+    iter_t iter = ((managed<T>*)(T*)ptr)->ref;
+    if (iter != iter_t())
+      thePool->erase(iter);
+  }
   free_it((T*)ptr);
 }
 
 template <class T>
 inline void* managed<T>::operator new(size_t n)
 {
+  if (!thePool) thePool = new pool_t();
   void *ptr = GC_MALLOC(n);
-  thePool.push_front((T*)ptr);
+  thePool->push_front((T*)ptr);
 #ifdef USEGC
   GC_REGISTER_FINALIZER_IGNORE_SELF(ptr,&finalizer,0,0,0);
 #endif
