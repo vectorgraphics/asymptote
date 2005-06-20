@@ -9,7 +9,7 @@
 #define DRAWIMAGE_H
 
 #include "drawelement.h"
-#include "inst.h"
+#include "array.h"
 #include "pen.h"
 
 namespace camp {

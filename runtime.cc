@@ -33,6 +33,7 @@ using std::ostringstream;
 #include "settings.h"
 #include "guideflags.h"
 #include "stack.h"
+#include "callable.h"
 
 #include "angle.h"
 #include "pair.h"

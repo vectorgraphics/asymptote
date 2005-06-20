@@ -25,7 +25,6 @@ namespace absyntax {
 using mem::list;
 using trans::coenv;
 using sym::symbol;
-using vm::inst;
 using types::record;
 using types::array;
 

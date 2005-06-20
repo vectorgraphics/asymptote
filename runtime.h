@@ -9,11 +9,12 @@
 #ifndef RUNTIME_H
 #define RUNTIME_H
 
-#include "inst.h"
+#include "vm.h"
+#include "array.h"
 #include "fileio.h"
 
 namespace vm {
-void error(const char* message);
+class stack;
 }
 
 namespace run {

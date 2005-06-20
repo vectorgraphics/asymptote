@@ -11,14 +11,16 @@
 #include "types.h"
 #include "entry.h"
 #include "frame.h"
-#include "inst.h"
 #include "access.h"
+
+namespace vm {
+struct lambda;
+}
 
 using trans::frame;
 using trans::venv;
 using trans::tenv;
 using trans::varEntry;
-using vm::lambda;
 
 namespace types {
 
@@ -39,7 +41,7 @@ struct record : public ty {
   vm::lambda *init;
 
 public:
-  record(symbol *name, frame *level, lambda *init);
+  record(symbol *name, frame *level, vm::lambda *init);
   ~record();
 
   void addType(symbol *name, ty *desc)
@@ -89,7 +91,7 @@ public:
       return level;
   }
 
-  lambda *getInit()
+  vm::lambda *getInit()
   {
     return init;
   }
@@ -103,18 +105,7 @@ public:
   }
 
   // Create a statically enclosed record from this record.
-  record *newRecord(symbol *id, bool statically)
-  {
-    frame *underlevel = getLevel(statically);
-    assert(underlevel);
-    
-    frame *level = new frame(underlevel, 0);
-
-    lambda *init = new lambda;
-
-    record *r = new record(id, level, init);
-    return r;
-  }
+  record *newRecord(symbol *id, bool statically);
 
   void print(ostream& out) const
   {

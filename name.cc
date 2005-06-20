@@ -12,11 +12,13 @@
 #include "frame.h"
 #include "record.h"
 #include "coenv.h"
+#include "inst.h"
 
 namespace absyntax {
+using namespace types;
+using trans::access;
+using vm::inst;
 
-  using namespace types;
-  using trans::access;
 
 // Checks if a varEntry returned from coenv::lookupExactVar is ambiguous,
 // an reports an error if it is.

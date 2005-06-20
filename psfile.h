@@ -17,7 +17,7 @@
 #include "path.h"
 #include "bbox.h"
 #include "pen.h"
-#include "inst.h"
+#include "array.h"
 
 namespace camp {
 

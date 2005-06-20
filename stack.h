@@ -14,10 +14,11 @@
 
 #include "errormsg.h"
 #include "vm.h"
+#include "item.h"
 
 namespace vm {
 
-void run(lambda *l);
+class func;
 
 class stack {
 public:

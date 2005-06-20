@@ -9,9 +9,11 @@
 #define VM_H
 
 #include "errormsg.h"
-#include "inst.h"
 
 namespace vm {
+
+class lambda; class stack;
+typedef void (*bltin)(stack *s);
 
 void run(lambda *l);
 position getPos();

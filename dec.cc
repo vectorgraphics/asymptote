@@ -714,7 +714,7 @@ void fundec::transAsField(coenv &e, record *r)
   fe.e.endScope();
 
   // Put an instance of the new function on the stack.
-  lambda *l = fe.c.close();
+  vm::lambda *l = fe.c.close();
   e.c.encode(inst::pushclosure);
   e.c.encode(inst::makefunc, l);
 

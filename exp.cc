@@ -13,12 +13,14 @@
 #include "coenv.h"
 #include "dec.h"
 #include "stm.h"
+#include "inst.h"
 #include "camp.tab.h"  // For the binary operator names
 
 namespace absyntax {
 
 using namespace types;
 using namespace trans;
+using vm::inst;
 
 void exp::transCall(coenv &e, types::ty *target)
 {

@@ -6,10 +6,11 @@
  *****/
 
 #include "record.h"
+#include "inst.h"
 
 namespace types {
 
-record::record(symbol *name, frame *level, lambda *init)
+record::record(symbol *name, frame *level, vm::lambda *init)
   : ty(ty_record),
     name(name),
     level(level),
@@ -22,5 +23,18 @@ record::record(symbol *name, frame *level, lambda *init)
 
 record::~record()
 {}
+
+record *record::newRecord(symbol *id, bool statically)
+{
+  frame *underlevel = getLevel(statically);
+  assert(underlevel);
+    
+  frame *level = new frame(underlevel, 0);
+
+  vm::lambda *init = new vm::lambda;
+
+  record *r = new record(id, level, init);
+  return r;
+}
 
 } // namespace types

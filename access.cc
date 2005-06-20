@@ -9,6 +9,7 @@
 #include "access.h"
 #include "frame.h"
 #include "coder.h"
+#include "callable.h"
 
 namespace trans {
 

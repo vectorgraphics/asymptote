@@ -19,6 +19,7 @@
 #include "camp.tab.h"
 #include "settings.h"
 #include "vm.h"
+#include "program.h"
 #include "interact.h"
 #include "parser.h"
 #include "fileio.h"

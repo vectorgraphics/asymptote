@@ -10,11 +10,13 @@
 #include "stm.h"
 #include "runtime.h"
 #include "coenv.h"
+#include "inst.h"
 
 using namespace types;
 using trans::import;
 using trans::coder;
 using trans::coenv;
+using vm::inst;
 
 namespace absyntax {
 
@@ -50,7 +52,7 @@ types::ty *newFunctionExp::trans(coenv &e)
   fe.e.endScope();
 
   // Use the lambda to put the function on the stack.
-  lambda *l = fe.c.close();
+  vm::lambda *l = fe.c.close();
   e.c.encode(inst::pushclosure);
   e.c.encode(inst::makefunc, l);
 

@@ -7,10 +7,7 @@
 #ifndef BUILTIN_H
 #define BUILTIN_H
 
-namespace vm {
-class stack;
-typedef void (*bltin)(stack*);
-}
+#include "vm.h"
 namespace types {
 class ty;
 }

@@ -1,18 +1,12 @@
 /*****
- * stack.cc
- * Andy Hammerlindl 2002/06/27
- *
- * The general stack machine that will be used to run compiled camp
- * code.
+ * program.cc
+ * Tom Prince
+ * 
+ * The list of instructions used by the virtual machine.
  *****/
 
-#include <cassert>
-#include <cstdio>
 #include <iostream>
-#include <iterator>
-
-#include "stack.h"
-#include "runtime.h"
+#include "program.h"
 
 namespace vm {
 
@@ -93,45 +87,6 @@ void print(ostream& out, program *base)
     out << '\n';
     ++code;
   }
-}
-
-callable::~callable()
-{}
-
-void func::call(stack *s)
-{
-  s->run(this);
-}
-
-bool func::compare(callable* F)
-{
-  if (func* f=dynamic_cast<func*>(F))
-    return (body == f->body) && (closure == f->closure);
-  else return false;
-}
-
-bool bfunc::compare(callable* F)
-{
-  if (bfunc* f=dynamic_cast<bfunc*>(F))
-    return (func == f->func);
-  else return false;
-}
-
-void thunk::call(stack *s)
-{
-  s->push(arg);
-  func->call(s);
-}
-
-nullfunc nullfunc::func;
-void nullfunc::call(stack *)
-{
-  error("dereference of null function");
-}
-
-bool nullfunc::compare(callable* f)
-{
-  return f == &func;
 }
 
 } // namespace vm

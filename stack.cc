@@ -7,6 +7,8 @@
  *****/
 
 #include "stack.h"
+#include "program.h"
+#include "callable.h"
 #include "errormsg.h"
 #include "util.h"
 

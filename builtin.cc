@@ -22,6 +22,7 @@
 #include "arrayop.h"
 #include "pow.h"
 #include "genrun.h"
+#include "vm.h"
 
 using namespace types;
 using namespace camp;
@@ -29,7 +30,7 @@ using namespace camp;
 namespace trans {
 using camp::pair;
 using camp::transform;
-using vm::stack;
+using vm::bltin;
 using run::divide;
 using mem::string;
 

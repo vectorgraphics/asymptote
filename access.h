@@ -13,10 +13,7 @@
 #include <cassert>
 
 #include "errormsg.h"
-#include "inst.h"
-
-using vm::inst;
-using vm::bltin;
+#include "vm.h"
 
 namespace trans {
   
@@ -85,10 +82,10 @@ class identAccess : public access
 
 // Represents a function that is implemented by a built-in C++ function.
 class bltinAccess : public access {
-  bltin f;
+  vm::bltin f;
 
 public:
-  bltinAccess(bltin f)
+  bltinAccess(vm::bltin f)
     : f(f) {}
 
   void encodeRead(position pos, coder &e);

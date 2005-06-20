@@ -11,7 +11,7 @@
 
 #include "util.h"
 #include "stack.h"
-#include "inst.h"
+#include "array.h"
 #include "types.h"
 #include "fileio.h"
 

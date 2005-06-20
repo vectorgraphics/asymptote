@@ -18,7 +18,7 @@
 #include "cast.h"
 #include "record.h"
 #include "frame.h"
-#include "inst.h"
+#include "program.h"
 #include "import.h"
 #include "util.h"
 
