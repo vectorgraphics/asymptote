@@ -1,7 +1,8 @@
 import feynman;
 
-defaultpen(0.8bp);
-MidArrow=MidArrow(0.5*arrowfactor);
+
+// set default line width to 0.8bp
+currentpen = linewidth(0.8);
 
 // scale all other defaults of the feynman module appropriately
 fmdefaults();
@@ -57,6 +58,3 @@ label("$e^+$", xl, left);
 
 label("$\mu^+$", yu, right);
 label("$\mu^-$", yl, right);
-
-
-// shipout

@@ -1,8 +1,8 @@
 /*****************************************************************************
- * feynman.asy -- An asymptote library for drawing Feynman diagrams.         *
+ * feynman.asy -- An Asymptote library for drawing Feynman diagrams.         *
  *                                                                           *
  * by:  Martin Wiebusch <martin.wiebusch@gmx.net>                            *
- * last change: 2005/02/25                                                   *
+ * last change: 2005/06/20                                                   *
  *****************************************************************************/
 
 
@@ -19,59 +19,59 @@ bool Absolute = false, Relative = true;
 // default ratio of width (distance between two loops) to amplitude for a gluon
 // line. The gluon function uses this ratio, if the width parameter is
 // negative. 
-public real gluonratio;
+static public real gluonratio;
 
 // default ratio of width (distance between two crests) to amplitude for a
 // photon  line. The photon function uses this ratio, if the width parameter is
 // negative. 
-public real photonratio;
+static public real photonratio;
 
 // default gluon amplitude
-public real gluonamplitude;
+static public real gluonamplitude;
 
 // default photon amplitude
-public real photonamplitude;
+static public real photonamplitude;
 
 // default pen for drawing the background. Usually white.
-public pen backgroundpen;
+static public pen backgroundpen;
 
 // default pen for drawing gluon lines
-public pen gluonpen;
+static public pen gluonpen;
 
 // default pen for drawing photon lines
-public pen photonpen;
+static public pen photonpen;
 
 // default pen for drawing fermion lines
-public pen fermionpen;
+static public pen fermionpen;
 
 // default pen for drawing scalar lines
-public pen scalarpen;
+static public pen scalarpen;
 
 // default pen for drawing ghost lines
-public pen ghostpen;
+static public pen ghostpen;
 
 // default pen for drawing double lines
-public pen doublelinepen;
+static public pen doublelinepen;
 
 // default pen for drawing vertices
-public pen vertexpen;
+static public pen vertexpen;
 
 // default pen for drawing big vertices (drawVertexOX and drawVertexBoxX)
-public pen bigvertexpen;
+static public pen bigvertexpen;
 
 // inner spacing of a double line
-public real doublelinespacing;
+static public real doublelinespacing;
 
 // default arrow for propagators
-public arrowbar currentarrow;
+static public arrowbar currentarrow;
 
 // if true, each of the drawSomething commands blots out the background
 // (with pen backgroundpen) before drawing.
-public bool overpaint;
+static public bool overpaint;
 
 // margin around lines. If one line is drawn over anoter, a white margin
 // of size linemargin is kept around the top one.
-public real linemargin;
+static public real linemargin;
 
 // at vertices, where many lines join, the last line drawn should not blot
 // out the others. By not erasing the background near the ends of lines,
@@ -79,19 +79,19 @@ public real linemargin;
 // each other. Note, that small values for minvertexangle mean that the
 // background is only erased behind a small segment of every line. Setting
 // minvertexangle = 0 effectively disables background erasing for lines.
-public real minvertexangle;
+static public real minvertexangle;
 
 // size (radius) of vertices
-public real vertexsize;
+static public real vertexsize;
 
 // size (radius) of big vertices (drawVertexOX and drawVertexBoxX)
-public real bigvertexsize;
+static public real bigvertexsize;
 
 // offset of labels from paths. Used by the function labelPoint.
-public real labeloffset;
+static public real labeloffset;
 
 // default method for positioning labels on paths.
-public bool labelpostype;
+static public bool labelpostype;
 
 
 /* defaults for momentum arrows **********************************************/
@@ -100,23 +100,23 @@ public bool labelpostype;
 // direction of momentum)
 
 // default size of the arrowhead of momentum arrows
-public arrowbar currentmomarrow;
+static public arrowbar currentmomarrow;
 
 // default length of momentum arrows
-public real momarrowlength;
+static public real momarrowlength;
 
 // default pen for momentum arrows
-public pen momarrowpen;
+static public pen momarrowpen;
 
 // default offset between momentum arrow and related particle line
-public real momarrowoffset;
+static public real momarrowoffset;
 
 // default margin for momentum arrows
-public real momarrowmargin;
+static public real momarrowmargin;
 
 // factor for determining the size of momentum arrowheads. After changing it,
 // you still have to update currentmomarrow manually.
-public real momarrowfactor;
+static public real momarrowfactor;
 
 // size function for momentum arrowheads
 real momarrowsize(pen p=momarrowpen) { return momarrowfactor*linewidth(p); }
