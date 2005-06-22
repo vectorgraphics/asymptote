@@ -218,11 +218,7 @@ void write(file out=stdout, guide x, tabT) {write(out,x); write(out,tab);}
 void write(file out=stdout, pen x, tabT) {write(out,x); write(out,tab);}
 void write(file out=stdout, transform x, tabT) {write(out,x); write(out,tab);}
 
-// write(x) with no file argument does a write(stdout,x,endl)
 void write() {write(stdout);}
-void write(guide x) {write(stdout,x,endl);}
-void write(pen x) {write(stdout,x,endl);}
-void write(transform x) {write(stdout,x,endl);}
 
 void write(file out=stdout, string x, real y)
 {
