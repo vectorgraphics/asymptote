@@ -649,7 +649,7 @@ void solveSection(protopath& p, int k, knotlist& l)
 const int NOBREAK=-1;
 int firstBreakpoint(knotlist& l)
 {
-  for (int j=0;j<l.length();++j)
+  for (int j=0;j<l.size();++j)
     if (!l[j].out->open())
       return j;
   return NOBREAK;
