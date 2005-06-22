@@ -1129,22 +1129,22 @@ typedef guide interpolate(pair F(real), guide, real, real, int, interpolateT);
 public interpolate
   LinearInterp=new guide(pair F(real), guide g, real a, real b, int n,
 			 interpolateT) {
-			   real width=(b-a)/n;
-			   for(int i=0; i <= n; ++i) {
-			     real x=a+width*i;
-			     g=g--F(x);	
-			   }
-			   return g;
-			 },
-  Spline=new guide(pair F(real), guide g, real a, real b, int n,
+    real width=n == 0 ? 0 : (b-a)/n;
+    for(int i=0; i <= n; ++i) {
+      real x=a+width*i;
+      g=g--F(x);	
+    }	
+    return g;
+  },
+  Spline=new guide(pair F(real), guide g, real a, real b, int n, 
 		   interpolateT) {
-		     real width=(b-a)/n;
-		     for(int i=0; i <= n; ++i) {
-		       real x=a+width*i;
-		       g=g..F(x);
-		     }
-		     return g;
-		   };
+    real width=n == 0 ? 0 : (b-a)/n;
+    for(int i=0; i <= n; ++i) {
+      real x=a+width*i;
+      g=g..F(x);
+    }
+    return g;
+  };
 
 pair Scale(picture pic, pair z)
 {
