@@ -2389,6 +2389,7 @@ real[] A=fin;
 @cindex @code{eol}
 @cindex @code{line}
 @cindex line mode
+@noindent
 reads real values into @code{A} until the end of file is reached (or an
 I/O error occurs). If line mode is set with @code{line(file)}, then
 reading will stop once the end of the line is reached instead
