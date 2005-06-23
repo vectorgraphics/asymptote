@@ -11,7 +11,6 @@
 
 #include "vm.h"
 #include "array.h"
-#include "fileio.h"
 
 namespace vm {
 class stack;
