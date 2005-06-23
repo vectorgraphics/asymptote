@@ -68,6 +68,8 @@ using namespace vm;
 using namespace camp;
 using namespace settings;
 
+const int camp::ColorComponents[]={0,0,1,3,4,0};
+
 namespace run {
   
 using vm::stack;

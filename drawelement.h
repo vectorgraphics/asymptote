@@ -102,6 +102,8 @@ typedef mem::list<bbox> bboxlist;
 class drawElement : public gc
 {
 public:
+  virtual ~drawElement() {}
+  
   static pen lastpen;  
   
   // Adjust the bbox of the picture based on the addition of this

@@ -20,6 +20,8 @@ namespace camp {
 // Abstract base class for guides.
 class guide : public gc {
 public:
+  virtual ~guide() {};
+  
   // Returns the path that the guide represents.
   virtual path solve() {
     return path();
@@ -92,8 +94,6 @@ public:
 
   pathguide(path p)
     : p(p) {}
-
-  virtual ~pathguide() {}
 
   path solve() {
     return p;
@@ -194,8 +194,6 @@ public:
 
   multiguide(guidevector& v)
     : v(v) {}
-
-  virtual ~multiguide() {}
 
   path solve() {
     if (settings::verbose>3) {

@@ -360,8 +360,7 @@ bool equivalent(ty *t1, ty *t2)
   // overloaded type's method is called.
   if (t1->kind == ty_overloaded || t2->kind != ty_overloaded)
     return t1->equiv(t2);
-  else
-    return t2->equiv(t1);
+  return t2->equiv(t1);
 }
 
 } // namespace types
