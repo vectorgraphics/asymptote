@@ -207,12 +207,11 @@ path photon(path p, real amp = photonamplitude, real width=-1)
 // to draw commands, in place of EndArrow etc.
 arrowbar MidArrow(real size=0, real angle=arrowangle, filltype filltype=Fill)
 {
-    return new void(picture pic, path g, pen p, margin margin,
-                    arrowbarT arrowbar) {
+    return new bool(picture pic, path g, pen p, margin margin) {
         if(size==0) size = arrowsize(p);
-        arrowbar.drawpath=false;
         add(pic,arrow(g,p,size,angle,filltype,
                       arctime(g,(arclength(g)+size)/2),margin));
+	return false;
     };
 }
 

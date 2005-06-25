@@ -1448,7 +1448,7 @@ void shipout(string prefix=defaultfilename,
              bool keepAspect=
              pic.keepAspect ? Aspect : IgnoreAspect,
              orientation orientation=Portrait,
-             string format="", wait wait=NoWait);
+             string format="", bool wait=NoWait);
 @end verbatim
 
 Actually, @code{shipout} is implemented using several functions,

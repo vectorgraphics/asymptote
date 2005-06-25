@@ -194,16 +194,17 @@ file stdout;
 
 void endl(file out) {write(out,'\n'); flush(out);}
 void tab(file out) {write(out,'\t');}
+typedef void suffix(file);
 
-void write(file out=stdout, void e(file)=endl) {e(out);}
-void write(file out=stdout, bool x, void e(file)) {write(out,x); e(out);}
-void write(file out=stdout, int x, void e(file)) {write(out,x); e(out);}
-void write(file out=stdout, real x, void e(file)) {write(out,x); e(out);}
-void write(file out=stdout, pair x, void e(file)) {write(out,x); e(out);}
-void write(file out=stdout, string x, void e(file)) {write(out,x); e(out);}
-void write(file out=stdout, guide x, void e(file)) {write(out,x); e(out);}
-void write(file out=stdout, pen x, void e(file)) {write(out,x); e(out);}
-void write(file out=stdout, transform x, void e(file)) {write(out,x); e(out);}
+void write(file out=stdout, suffix s=endl) {s(out);}
+void write(file out=stdout, bool x, suffix s) {write(out,x); s(out);}
+void write(file out=stdout, int x, suffix s) {write(out,x); s(out);}
+void write(file out=stdout, real x, suffix s) {write(out,x); s(out);}
+void write(file out=stdout, pair x, suffix s) {write(out,x); s(out);}
+void write(file out=stdout, string x, suffix s) {write(out,x); s(out);}
+void write(file out=stdout, guide x, suffix s) {write(out,x); s(out);}
+void write(file out=stdout, pen x, suffix s) {write(out,x); s(out);}
+void write(file out=stdout, transform x, suffix s) {write(out,x); s(out);}
 
 void write(file out=stdout, string x, real y)
 {
@@ -1032,12 +1033,12 @@ real labelmargin(pen p=currentpen)
 }
 
 private struct marginT {
+  public path g;
   public real begin,end;
 };
-public marginT margin=new marginT;
 
-typedef path margin(path, pen, marginT);
-private path margin(path, pen, marginT) {return nullpath;}
+typedef marginT margin(path, pen);
+private marginT margin(path, pen) {return new marginT;}
 
 path trim(path g, real begin, real end) {
   real a=arctime(g,begin);
@@ -1047,49 +1048,59 @@ path trim(path g, real begin, real end) {
 
 margin NoMargin()
 { 
-  return new path(path g, pen, marginT margin) {
+  return new marginT(path g, pen) {
+    marginT margin=new marginT;
     margin.begin=margin.end=0;
-    return g;
+    margin.g=g;
+    return margin;
   };
 }
 						      
 margin Margin(real begin, real end)
 { 
-  return new path(path g, pen p, marginT margin) {
+  return new marginT(path g, pen p) {
+    marginT margin=new marginT;
     real factor=labelmargin(p);
     margin.begin=begin*factor;
     margin.end=end*factor;
-    return trim(g,margin.begin,margin.end);
+    margin.g=trim(g,margin.begin,margin.end);
+    return margin;
   };
 }
 							   
 margin PenMargin(real begin, real end)
 { 
-  return new path(path g, pen p, marginT margin) {
+  return new marginT(path g, pen p) {
+    marginT margin=new marginT;
     real factor=linewidth(p);
     margin.begin=(begin+0.5)*factor;
     margin.end=(end+0.5)*factor;
-    return trim(g,margin.begin,margin.end);
+    margin.g=trim(g,margin.begin,margin.end);
+    return margin;
   };
 }
 					      
 margin DotMargin(real begin, real end)
 { 
-  return new path(path g, pen p, marginT margin) {
+  return new marginT(path g, pen p) {
+    marginT margin=new marginT;
     real margindot(real x) {return x > 0 ? dotfactor*x : x;}
     real factor=linewidth(p);
     margin.begin=(margindot(begin)+0.5)*factor;
     margin.end=(margindot(end)+0.5)*factor;
-    return trim(g,margin.begin,margin.end);
+    margin.g=trim(g,margin.begin,margin.end);
+    return margin;
   };
 }
 						      
 margin TrueMargin(real begin, real end)
 { 
-  margin.begin=begin;
-  margin.end=end;
-  return new path(path g, pen p, marginT margin) {
-    return trim(g,begin,end);
+  return new marginT(path g, pen p) {
+    marginT margin=new marginT;
+    margin.begin=begin;
+    margin.end=end;
+    margin.g=trim(g,begin,end);
+    return margin;
   };
 }
 						      
@@ -1131,7 +1142,7 @@ void _draw(picture pic=currentpicture, path g, pen p=currentpen,
  
 {
   pic.add(new void (frame f, transform t) {
-    draw(f,margin(t*g,p,margin),p);
+    draw(f,margin(t*g,p).g,p);
   });
   pic.addPath(g,p);
 }
@@ -1347,28 +1358,26 @@ void arrowheadbbox(picture pic=currentpicture, path g, real position=infinity,
   pic.addPoint(x,dz2,p);
 }
 
-private struct fillT {};
-public fillT filltype=null;
-typedef void filltype(frame, path, pen, fillT);
-void filltype(frame, path, pen, fillT) {}
+typedef void filltype(frame, path, pen);
+void filltype(frame, path, pen) {}
 public filltype
-  Fill=new void(frame f, path g, pen p, fillT) {
+  Fill=new void(frame f, path g, pen p) {
     p += solid;
     fill(f,g,p);
     draw(f,g,p);
   },
-  NoFill=new void(frame f, path g, pen p, fillT) {
+  NoFill=new void(frame f, path g, pen p) {
     draw(f,g,p+solid);
   };
 
-typedef void Filltype(picture, path, pen, fillT);
+typedef void Filltype(picture, path, pen);
 public Filltype
-  Fill=new void(picture pic, path g, pen p, fillT) {
+  Fill=new void(picture pic, path g, pen p) {
     p += solid;
     fill(pic,g,p);
     Draw(pic,g,p);
   },
-  NoFill=new void(picture pic, path g, pen p, fillT) {
+  NoFill=new void(picture pic, path g, pen p) {
     Draw(pic,g,p);
 };
 
@@ -1377,7 +1386,7 @@ void arrow(frame f, path G, pen p=currentpen, real size=0,
 	   real position=infinity, bool forwards=true, margin margin=NoMargin)
 {
   if(size == 0) size=arrowsize(p);
-  G=margin(G,p,margin);
+  G=margin(G,p).g;
   if(!forwards) G=reverse(G);
   path R=subpath(G,position,0.0);
   path S=subpath(G,position,length(G));
@@ -1385,7 +1394,7 @@ void arrow(frame f, path G, pen p=currentpen, real size=0,
   draw(f,subpath(R,arctime(R,size),length(R)),p);
   draw(f,S,p);
   guide head=arrowhead(G,position,p,size,angle);
-  filltype(f,head,p,filltype);
+  filltype(f,head,p);
 }
 
 void arrow2(frame f, path G, pen p=currentpen, real size=0,
@@ -1393,14 +1402,14 @@ void arrow2(frame f, path G, pen p=currentpen, real size=0,
 	    margin margin=NoMargin)
 {
   if(size == 0) size=arrowsize(p);
-  G=margin(G,p,margin);
+  G=margin(G,p).g;
   path R=reverse(G);
   size=min(0.5*arclength(G),size);
   draw(f,subpath(R,arctime(R,size),length(R)-arctime(G,size)),p);
   guide head=arrowhead(G,p,size,angle);
   guide tail=arrowhead(R,p,size,angle);
-  filltype(f,head,p,filltype);
-  filltype(f,tail,p,filltype);
+  filltype(f,head,p);
+  filltype(f,tail,p);
 }
 
 picture arrow(path g, pen p=currentpen, real size=0,
@@ -1462,13 +1471,8 @@ void newpage()
 
 static bool Aspect=true;
 static bool IgnoreAspect=false;
-
-private struct waitT {};
-public waitT wait=null;
-typedef bool wait(waitT);
-public wait
-  Wait=new bool(waitT) {return true;},
-  NoWait=new bool(waitT) {return false;};
+static bool Wait=true;				
+static bool NoWait=false;
 
 guide box(frame f, real xmargin=0, real ymargin=infinity,
 	  pen p=currentpen, filltype filltype=NoFill)
@@ -1478,7 +1482,7 @@ guide box(frame f, real xmargin=0, real ymargin=infinity,
   int sign=filltype == Fill ? -1 : 1;
   guide g=box(min(f)+0.5*sign*min(p)-z,max(f)+0.5*sign*max(p)+z);
   frame F;
-  filltype(F,g,p,filltype);
+  filltype(F,g,p);
   prepend(f,F);
   return g;
 }
@@ -1497,7 +1501,7 @@ guide ellipse(frame f, real xmargin=0, real ymargin=infinity,
   guide g=ellipse(0.5*(M+m),a+0.5*sign*max(p).x+xmargin,
 		  b+0.5*sign*max(p).y+ymargin);
   frame F;
-  filltype(F,g,p,filltype);
+  filltype(F,g,p);
   prepend(f,F);
   return g;
 }
@@ -1642,7 +1646,7 @@ void mark(picture pic=currentpicture, guide g, frame mark)
 frame marker(path g, pen p=currentpen, filltype filltype=NoFill)
 {
   frame f;
-  filltype(f,g,p,filltype);
+  filltype(f,g,p);
   return f;
 }
 
@@ -1655,7 +1659,7 @@ frame marker(path[] g, pen p=currentpen, filltype filltype=NoFill)
 }
 
 void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
-	     string format="", wait wait=NoWait)
+	     string format="", bool wait=NoWait)
 {
   bool Transform=GUIFilenum < GUIlist.length;
   static transform[] noTransforms=new transform[];
@@ -1667,7 +1671,7 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
       add(F,gui(i));
     f=F;
   }
-  shipout(prefix,f,preamble,format,wait(wait),
+  shipout(prefix,f,preamble,format,wait,
   	  Transform ? GUIlist[GUIFilenum].Transform : noTransforms,
 	  Transform ? GUIlist[GUIFilenum].Delete : noDeletes);
   ++GUIFilenum;
@@ -1701,29 +1705,26 @@ frame legend(picture pic=currentpicture, pair dir=0)
   return shift(dir-point(F,-dir))*F;
 }
 
-private struct orientationT {};
-public orientationT orientation=null;
-typedef frame orientation(frame, orientationT);
-public orientation
-  Portrait=new frame(frame f, orientationT) {return f;},
-  Landscape=new frame(frame f, orientationT) {return rotate(90)*f;},
-  Seascape=new frame(frame f, orientationT) {return rotate(-90)*f;};
+frame Portrait(frame f) {return f;};
+frame Landscape(frame f) {return rotate(90)*f;};
+frame Seascape(frame f) {return rotate(-90)*f;};
+typedef frame orientation(frame);
 
 void shipout(string prefix=defaultfilename, picture pic,
 	     frame preamble=patterns, real xsize=infinity, real ysize=infinity,
 	     bool keepAspect, orientation orientation=Portrait,
-	     string format="", wait wait=NoWait)
+	     string format="", bool wait=NoWait)
 {
   if(xsize == infinity) xsize=pic.xsize;
   if(ysize == infinity) ysize=pic.ysize;
-  shipout(prefix,orientation(pic.fit(xsize,ysize,keepAspect),orientation),
+  shipout(prefix,orientation(pic.fit(xsize,ysize,keepAspect)),
 	  preamble,format,wait);
 }
 
 void shipout(string prefix=defaultfilename,
 	     real xsize=infinity, real ysize=infinity,
 	     bool keepAspect, orientation orientation=Portrait,
-	     string format="", wait wait=NoWait)
+	     string format="", bool wait=NoWait)
 {
   shipout(prefix,currentpicture,ysize,keepAspect,orientation,format,wait);
 }
@@ -1731,7 +1732,7 @@ void shipout(string prefix=defaultfilename,
 void shipout(string prefix=defaultfilename, picture pic,
 	     frame preamble=patterns, real xsize=infinity, real ysize=infinity,
 	     orientation orientation=Portrait, string format="",
-	     wait wait=NoWait)
+	     bool wait=NoWait)
 {
   shipout(prefix,pic,preamble,xsize,ysize,
 	  pic.keepAspect ? Aspect : IgnoreAspect,orientation,format,wait);
@@ -1740,7 +1741,7 @@ void shipout(string prefix=defaultfilename, picture pic,
 void shipout(string prefix=defaultfilename,
 	     real xsize=infinity, real ysize=infinity,
 	     orientation orientation=Portrait, string format="",
-	     wait wait=NoWait)
+	     bool wait=NoWait)
 {
   shipout(prefix,currentpicture,xsize,ysize,
 	  currentpicture.keepAspect ? Aspect : IgnoreAspect,
@@ -1825,13 +1826,10 @@ void label(picture pic=currentpicture, real angle=0, pair position,
   label(pic,(string) position,angle,position,align,shift,p);
 }
 
-private struct sideT {};
-public sideT side=null;
-typedef pair side(pair, sideT);
-public side
-  LeftSide=new pair(pair align, sideT) {return -align;},
-  Center=new pair(pair align, sideT) {return 0;},
-  RightSide=new pair(pair align, sideT) {return align;};
+pair LeftSide(pair align) {return -align;}
+pair Center(pair align) {return 0;}
+pair RightSide(pair align) {return align;}
+typedef pair side(pair);
 
 void label(picture pic=currentpicture, string s, real angle=0,
 	   path g, real position=infinity, pair align=0, pair shift=0,
@@ -1842,7 +1840,7 @@ void label(picture pic=currentpicture, string s, real angle=0,
   if(align == 0) {
     if(position <= 0) align=-dir(g,0);
     else if(position >= L) align=dir(g,L);
-    else align=side(-dir(g,position)*I,side);
+    else align=side(-dir(g,position)*I);
   }
   label(pic,s,angle,point(g,position),align,shift,p);
 }
@@ -1859,22 +1857,18 @@ void arrow(picture pic=currentpicture, string s, real angle=0, pair shift=0,
   label(pic,s,angle,a,unit(a-b),shift,plabel);
 }
 
-private struct directionT {};
-public directionT direction=null;
-typedef bool direction(directionT);
-public direction
-  CCW=new bool(directionT) {return true;},
-  CW=new bool(directionT) {return false;};
+static bool CCW=true;
+static bool CW=false;						  
 
 // return an arc centered at c with radius r from angle1 to angle2 in degrees,
 // drawing in the given direction.
-guide arc(pair c, real r, real angle1, real angle2, direction direction)
+guide arc(pair c, real r, real angle1, real angle2, bool direction)
 {
   real t1=intersect(unitcircle,(0,0)--2*dir(angle1)).x;
   real t2=intersect(unitcircle,(0,0)--2*dir(angle2)).x;
   static int n=length(unitcircle);
-  if(t1 >= t2 && direction(direction)) t1 -= n;
-  if(t2 >= t1 && !direction(direction)) t2 -= n;
+  if(t1 >= t2 && direction) t1 -= n;
+  if(t2 >= t1 && !direction) t2 -= n;
   return shift(c)*scale(r)*subpath(unitcircle,t1,t2);
 }
   
@@ -1890,7 +1884,7 @@ guide arc(pair c, real r, real angle1, real angle2)
 
 // return an arc centered at c from pair z1 to z2 (assuming |z2-c|=|z1-c|),
 // drawing in the given direction.
-guide arc(pair c, explicit pair z1, explicit pair z2, direction direction=CCW)
+guide arc(pair c, explicit pair z1, explicit pair z2, bool direction=CCW)
 {
   return arc(c,abs(z1-c),Angle(z1-c),Angle(z2-c),direction);
 }
@@ -1909,45 +1903,38 @@ picture bar(pair a, pair d, pen p=currentpen)
   return pic;
 }
 
-private struct arrowbarT {
-  public bool drawpath=true;
-};
-public arrowbarT arrowbar=new arrowbarT;
-
-typedef void arrowbar(picture, path, pen, margin, arrowbarT);
-private void arrowbar(picture, path, pen, margin, arrowbarT) {}
+typedef bool arrowbar(picture, path, pen, margin);
+private bool arrowbar(picture, path, pen, margin) {return true;}
 
 arrowbar Blank()
 {
-  return new void(picture pic, path g, pen p, margin margin,
-		  arrowbarT arrowbar) {
-    arrowbar.drawpath=false;
+  return new bool(picture pic, path g, pen p, margin margin) {
+    return false;
   };	
 }
 
 arrowbar None()
 {
-  return new void(picture pic, path g, pen p, margin margin,
-		  arrowbarT arrowbar) {};	
+  return new bool(picture pic, path g, pen p, margin margin) {
+    return true;
+  };	
 }
 
 arrowbar BeginArrow(real size=0, real angle=arrowangle,
 		    filltype filltype=Fill, real position=infinity)
 {
-  return new void(picture pic, path g, pen p, margin margin,
-		  arrowbarT arrowbar) {
-    arrowbar.drawpath=false;
+  return new bool(picture pic, path g, pen p, margin margin) {
     add(pic,arrow(g,p,size,angle,filltype,position,false,margin));
+    return false;
   };
 }
 
 arrowbar Arrow(real size=0, real angle=arrowangle,
 	       filltype filltype=Fill, real position=infinity)
 {
-  return new void(picture pic, path g, pen p, margin margin,
-		  arrowbarT arrowbar) {
-    arrowbar.drawpath=false;
+  return new bool(picture pic, path g, pen p, margin margin) {
     add(pic,arrow(g,p,size,angle,filltype,position,margin));
+    return false;
   };
 }
 
@@ -1960,32 +1947,29 @@ arrowbar EndArrow(real size=0, real angle=arrowangle,
 arrowbar Arrows(real size=0, real angle=arrowangle,
 		filltype filltype=Fill, real position=infinity)
 {
-  return new void(picture pic, path g, pen p, margin margin,
-		  arrowbarT arrowbar) {
-    arrowbar.drawpath=false;
+  return new bool(picture pic, path g, pen p, margin margin) {
     add(pic,arrow2(g,p,size,angle,filltype,margin));
+    return false;
   };
 }
 
 arrowbar BeginArcArrow(real size=0, real angle=arcarrowangle,
 		       filltype filltype=Fill, real position=infinity)
 {
-  return new void(picture pic, path g, pen p, margin margin,
-		  arrowbarT arrowbar) {
-    arrowbar.drawpath=false;
+  return new bool(picture pic, path g, pen p, margin margin) {
     if(size == 0) size=arcarrowsize(p);
     add(pic,arrow(g,p,size,angle,filltype,position,false,margin));
+    return false;
   };
 }
 
 arrowbar ArcArrow(real size=0, real angle=arcarrowangle,
 		  filltype filltype=Fill, real position=infinity)
 {
-  return new void(picture pic, path g, pen p, margin margin,
-		  arrowbarT arrowbar) {
-    arrowbar.drawpath=false;
+  return new bool(picture pic, path g, pen p, margin margin) {
     if(size == 0) size=arcarrowsize(p);
     add(pic,arrow(g,p,size,angle,filltype,position,margin));
+    return false;
   };
 }
 
@@ -1998,28 +1982,29 @@ arrowbar EndArcArrow(real size=0, real angle=arcarrowangle,
 arrowbar ArcArrows(real size=0, real angle=arcarrowangle,
 		   filltype filltype=Fill, real position=infinity)
 {
-  return new void(picture pic, path g, pen p, margin margin,
-		  arrowbarT arrowbar) {
-    arrowbar.drawpath=false;
+  return new bool(picture pic, path g, pen p, margin margin) {
     if(size == 0) size=arcarrowsize(p);
     add(pic,arrow2(g,p,size,angle,filltype,margin));
+    return false;
   };
 }
   
 arrowbar BeginBar(real size=0) 
 {
-  return new void(picture pic, path g, pen p, margin margin, arrowbarT) {
+  return new bool(picture pic, path g, pen p, margin margin) {
     if(size == 0) size=barsize(p);
     bar(pic,point(g,0),size*dir(g,0)*I,p);
+    return true;
   };
 }
 
 arrowbar Bar(real size=0) 
 {
-  return new void(picture pic, path g, pen p, margin margin, arrowbarT) {
+  return new bool(picture pic, path g, pen p, margin margin) {
     int L=length(g);
     if(size == 0) size=barsize(p);
     bar(pic,point(g,L),size*dir(g,L)*I,p);
+    return true;
   };
 }
 
@@ -2030,10 +2015,11 @@ arrowbar EndBar(real size=0)
 
 arrowbar Bars(real size=0) 
 {
-  return new void(picture pic, path g, pen p, margin margin, arrowbarT) {
+  return new bool(picture pic, path g, pen p, margin margin) {
     if(size == 0) size=barsize(p);
-    BeginBar(size)(pic,g,p,margin,arrowbar);
-    EndBar(size)(pic,g,p,margin,arrowbar);
+    BeginBar(size)(pic,g,p,margin);
+    EndBar(size)(pic,g,p,margin);
+    return true;
   };
 }
 
@@ -2061,11 +2047,9 @@ void draw(picture pic=currentpicture, string s="", real angle=0,
 {
   if(p == nullpen) p=plabel;
   if(!putmark && !empty(mark)) mark(pic,g,mark);
-  arrowbarT arrowbar=new arrowbarT;
   if(s != "") label(pic,s,angle,g,position,align,shift,side,plabel);
-  bar(pic,g,p,margin,arrowbar);
-  arrow(pic,g,p,margin,arrowbar);
-  if(arrowbar.drawpath) _draw(pic,g,p,margin);
+  bool drawpath=arrow(pic,g,p,margin);
+  if(bar(pic,g,p,margin) && drawpath) _draw(pic,g,p,margin);
   if(legend != "") {
     Legend L=new Legend; L.init(legend,plabel,p,mark,putmark);
     pic.legend.push(L);
@@ -2094,8 +2078,7 @@ void arrow(picture pic=currentpicture, string s="", real angle=0,
 {
   if(p == nullpen) p=plabel;
   if(position == infinity) position=0;
-  marginT margin=new marginT;
-  margin(b--b,p,margin); // Extract margin.begin and margin.end  
+  marginT margin=margin(b--b,p); // Extract margin.begin and margin.end
   pair a=(margin.begin+length+margin.end)*unit(align);
   draw(b,pic,s,angle,a--(0,0),0.0,align,shift,plabel,p,
 	    Arrow(size,Angle,filltype),margin);
@@ -2175,18 +2158,13 @@ string math(real x)
   return math((string) x);
 }
 
-private struct keepT {};
-public keepT keep=null;
-typedef bool keep(keepT);
-public keep
-  Keep=new bool(keepT) {return true;},
-  Purge=new bool(keepT) {return false;};
+static bool Keep=true;
+static bool Purge=false;			  
 
 // delay is in units of 0.01s
-int gifmerge(int loops=0, int delay=50, keep keep=Purge)
+int gifmerge(int loops=0, int delay=50, bool keep=Purge)
 {
-  return merge("-loop " +(string) loops+" -delay "+(string)delay,"gif",
-	       keep(keep));
+  return merge("-loop " +(string) loops+" -delay "+(string)delay,"gif",keep);
 }
 
 // Return the sequence 0,1,...n-1
@@ -2219,11 +2197,11 @@ void pause(string w="Hit enter to continue")
 }
 
 // Options for handling label overwriting
-int Allow=0;
-int Suppress=1;
-int SuppressQuiet=2;
-int Move=3;
-int MoveQuiet=4;
+static int Allow=0;
+static int Suppress=1;
+static int SuppressQuiet=2;
+static int Move=3;
+static int MoveQuiet=4;
 
 struct slice {
   public path before,after;

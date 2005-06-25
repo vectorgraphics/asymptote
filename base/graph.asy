@@ -1123,28 +1123,27 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
   return pic;
 }
 
-private struct interpolateT {};
-public interpolateT interpolate=null;
-typedef guide interpolate(pair F(real), guide, real, real, int, interpolateT);
-public interpolate
-  LinearInterp=new guide(pair F(real), guide g, real a, real b, int n,
-			 interpolateT) {
-    real width=n == 0 ? 0 : (b-a)/n;
-    for(int i=0; i <= n; ++i) {
-      real x=a+width*i;
-      g=g--F(x);	
-    }	
-    return g;
-  },
-  Spline=new guide(pair F(real), guide g, real a, real b, int n, 
-		   interpolateT) {
-    real width=n == 0 ? 0 : (b-a)/n;
-    for(int i=0; i <= n; ++i) {
-      real x=a+width*i;
-      g=g..F(x);
-    }
-    return g;
-  };
+typedef guide interpolate(pair F(real), guide, real, real, int);
+		       
+public interpolate LinearInterp=new guide(pair F(real),
+					  guide g, real a, real b, int n) {
+  real width=n == 0 ? 0 : (b-a)/n;
+  for(int i=0; i <= n; ++i) {
+    real x=a+width*i;
+    g=g--F(x);	
+  }	
+  return g;
+};
+		       
+public interpolate Spline=new guide(pair F(real),
+				    guide g, real a, real b, int n) {
+  real width=n == 0 ? 0 : (b-a)/n;
+  for(int i=0; i <= n; ++i) {
+    real x=a+width*i;
+    g=g..F(x);
+  }
+  return g;
+};
 
 pair Scale(picture pic, pair z)
 {
@@ -1157,8 +1156,7 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
 {
   return interpolatetype(new pair (real x) {
     return (x,pic.scale.y.T(f(pic.scale.x.Tinv(x))));},
-			 g,pic.scale.x.T(a),pic.scale.x.T(b),n,
-			 interpolate);
+			 g,pic.scale.x.T(a),pic.scale.x.T(b),n);
 }
 
 guide graph(picture pic=currentpicture, guide g=nullpath,
@@ -1166,7 +1164,7 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
 	    int n=ngraph, interpolate interpolatetype=LinearInterp)
 {
   return interpolatetype(new pair (real t) {return Scale(pic,(x(t),y(t)));},
-			 g,a,b,n,interpolate);
+			 g,a,b,n);
 }
 
 guide graph(picture pic=currentpicture, guide g=nullpath,
@@ -1174,7 +1172,7 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
 	    int n=ngraph, interpolate interpolatetype=LinearInterp)
 {
   return interpolatetype(new pair (real t) {return Scale(pic,z(t));},
-			 g,a,b,n,interpolate);
+			 g,a,b,n);
 }
 
 private int next(int i, bool[] cond)
@@ -1200,7 +1198,7 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
   int i=-1;
   return interpolatetype(new pair (real) {
     i=next(i,cond);
-    return Scale(pic,z[i]);},g,0,0,n,interpolate);
+    return Scale(pic,z[i]);},g,0,0,n);
 }
 
 private string differentlengths="attempt to graph arrays of different lengths";
@@ -1214,14 +1212,14 @@ guide graph(picture pic=currentpicture, guide g=nullpath,
   int i=-1;
   return interpolatetype(new pair (real) {
     i=next(i,cond);
-    return Scale(pic,(x[i],y[i]));},g,0,0,n,interpolate);
+    return Scale(pic,(x[i],y[i]));},g,0,0,n);
 }
 
 guide graph(guide g=nullpath, real f(real), real a, real b, int n=ngraph,
 	    real T(real), interpolate interpolatetype=LinearInterp)
 {
   return interpolatetype(new pair (real x) {return (T(x),f(T(x)));},
-			 g,a,b,n,interpolate);
+			 g,a,b,n);
 }
 
 pair polar(real r, real theta)
@@ -1233,7 +1231,7 @@ guide polargraph(guide g=nullpath, real f(real), real a, real b, int n=ngraph,
 		 interpolate interpolatetype=LinearInterp)
 {
   return interpolatetype(new pair (real theta) {return f(theta)*expi(theta);},
-			 g,a,b,n,interpolate);
+			 g,a,b,n);
 }
 
 void errorbar(picture pic, pair z, pair dp, pair dm, pen p=currentpen,

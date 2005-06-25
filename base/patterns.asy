@@ -33,7 +33,7 @@ picture tile(real Hx=5mm, real Hy=0, pen p=currentpen,
   picture tiling=new picture;
   if(Hy == 0) Hy=Hx;
   guide tile=box((0,0),(Hx,Hy));
-  filltype(tiling,tile,p,filltype);
+  filltype(tiling,tile,p);
   clip(tiling,tile);
   return tiling;
 }
