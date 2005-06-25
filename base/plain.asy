@@ -192,33 +192,18 @@ file single(file f) {return single(f,true);}
 file stdin=input("");
 file stdout;
 
-private struct endlT {};
-static public endlT endl=null;
+void endl(file out) {write(out,'\n'); flush(out);}
+void tab(file out) {write(out,'\t');}
 
-private struct tabT {};
-static public tabT tab=null;
-
-void write(file out, endlT endl=null) {write(out,'\n'); flush(out);}
-void write(file out=stdout, bool x, endlT) {write(out,x); write(out);}
-void write(file out=stdout, int x, endlT) {write(out,x); write(out);}
-void write(file out=stdout, real x, endlT) {write(out,x); write(out);}
-void write(file out=stdout, pair x, endlT) {write(out,x); write(out);}
-void write(file out=stdout, string x, endlT) {write(out,x); write(out);}
-void write(file out=stdout, guide x, endlT) {write(out,x); write(out);}
-void write(file out=stdout, pen x, endlT) {write(out,x); write(out);}
-void write(file out=stdout, transform x, endlT) {write(out,x); write(out);}
-
-void write(file out=stdout, tabT) {write(out,'\t');}
-void write(file out=stdout, bool x, tabT) {write(out,x); write(out,tab);}
-void write(file out=stdout, int x, tabT) {write(out,x); write(out,tab);}
-void write(file out=stdout, real x, tabT) {write(out,x); write(out,tab);}
-void write(file out=stdout, pair x, tabT) {write(out,x); write(out,tab);}
-void write(file out=stdout, string x, tabT) {write(out,x); write(out,tab);}
-void write(file out=stdout, guide x, tabT) {write(out,x); write(out,tab);}
-void write(file out=stdout, pen x, tabT) {write(out,x); write(out,tab);}
-void write(file out=stdout, transform x, tabT) {write(out,x); write(out,tab);}
-
-void write() {write(stdout);}
+void write(file out=stdout, void e(file)=endl) {e(out);}
+void write(file out=stdout, bool x, void e(file)) {write(out,x); e(out);}
+void write(file out=stdout, int x, void e(file)) {write(out,x); e(out);}
+void write(file out=stdout, real x, void e(file)) {write(out,x); e(out);}
+void write(file out=stdout, pair x, void e(file)) {write(out,x); e(out);}
+void write(file out=stdout, string x, void e(file)) {write(out,x); e(out);}
+void write(file out=stdout, guide x, void e(file)) {write(out,x); e(out);}
+void write(file out=stdout, pen x, void e(file)) {write(out,x); e(out);}
+void write(file out=stdout, transform x, void e(file)) {write(out,x); e(out);}
 
 void write(file out=stdout, string x, real y)
 {
