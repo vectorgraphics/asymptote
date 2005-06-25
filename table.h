@@ -44,7 +44,6 @@ protected:
   names_t names;
 public :
   table();
-  virtual ~table() {}; // NOTE: not needed but shuts gcc up.
 
   void enter(symbol *key, B value);
   B look(symbol *key);
