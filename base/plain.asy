@@ -2219,20 +2219,11 @@ void pause(string w="Hit enter to continue")
 }
 
 // Options for handling label overwriting
-private struct OverwriteT {};
-public OverwriteT Overwrite=null;
-typedef int Overwrite(OverwriteT);
-public Overwrite
-  Allow=new int(OverwriteT) {return 0;},
-  Suppress=new int(OverwriteT) {return 1;},
-  SuppressQuiet=new int(OverwriteT) {return 2;},
-  Move=new int(OverwriteT) {return 3;},
-  MoveQuiet=new int(OverwriteT) {return 4;};
-    
-pen overwrite(Overwrite Overwrite) 
-{
-  return overwrite(Overwrite(Overwrite));
-}
+int Allow=0;
+int Suppress=1;
+int SuppressQuiet=2;
+int Move=3;
+int MoveQuiet=4;
 
 struct slice {
   public path before,after;
