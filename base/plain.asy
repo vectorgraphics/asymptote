@@ -1184,7 +1184,9 @@ void fill(picture pic=currentpicture, path g,
 {
   pic.add(new void (frame f, transform t) {
     pair A=t*a, B=t*b;
-    fill(f,t*g,pena,A,abs(t*(a+ra)-A),penb,B,abs(t*(b+rb)-B));
+    real RA=ra == 0.0 ? 0.0 : abs(t*(a+ra)-A);
+    real RB=rb == 0.0 ? 0.0 : abs(t*(b+rb)-B);
+    fill(f,t*g,pena,A,RA,penb,B,RB);
   });
   pic.addPath(g);
 }
@@ -1196,7 +1198,9 @@ void fill(picture pic=currentpicture, path[] g,
   g=copy(g);
   pic.add(new void (frame f, transform t) {
     pair A=t*a, B=t*b;
-    fill(f,t*g,pena,A,abs(t*(a+ra)-A),penb,B,abs(t*(b+rb)-B));
+    real RA=ra == 0.0 ? 0.0 : abs(t*(a+ra)-A);
+    real RB=rb == 0.0 ? 0.0 : abs(t*(b+rb)-B);
+    fill(f,t*g,pena,A,RA,penb,B,RB);
   });
   for(int i=0; i < g.length; ++i) 
     pic.addPath(g[i]);

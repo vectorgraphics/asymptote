@@ -53,9 +53,6 @@ void realRealEpsilon(vm::stack *s);
 void intRandMax(vm::stack *s);
 void boolDeconstruct(vm::stack *s);
 
-// String concatenation
-void concat(vm::stack *s);
-
 // Array operations
 void emptyArray(vm::stack *s);
 void newArray(vm::stack *s);
@@ -166,13 +163,6 @@ void pairPairControls(vm::stack *s);
 
 // String operations
 void emptyString(vm::stack *s);
-void stringLength(vm::stack *s);
-void stringFind(vm::stack *s);
-void stringRfind(vm::stack *s);
-void stringSubstr(vm::stack *s);
-void stringReverse(vm::stack *s);
-void stringInsert(vm::stack *s);
-void stringErase(vm::stack *s);
 void stringReplace(vm::stack *s);
 void stringFormatReal(vm::stack *s);
 void stringFormatInt(vm::stack *s);
@@ -220,35 +210,19 @@ void nullFrame(vm::stack *s);
 void boolNullFrame(vm::stack *s);
 void frameMax(vm::stack *s);
 void frameMin(vm::stack *s);
-void draw(vm::stack *s);
-void fill(vm::stack *s);
 void fillArray(vm::stack *s);
-void clip(vm::stack *s);
 void clipArray(vm::stack *s);
-void beginClip(vm::stack *s);
 void beginClipArray(vm::stack *s);
-void endClip(vm::stack *s);
-void gsave(vm::stack *s);
-void grestore(vm::stack *s);
-void beginGroup(vm::stack *s);
-void endGroup(vm::stack *s);
-void add(vm::stack *s);
-void prepend(vm::stack *s);
 
 void postscript(vm::stack *s);
 void tex(vm::stack *s);
 void texPreamble(vm::stack *s);
 void layer(vm::stack *s);
-void label(vm::stack *s);
 void image(vm::stack *s);
 void overwrite(vm::stack *s);
 
 void shipout(vm::stack *s);
 void stringFilePrefix(vm::stack *s);
-
-// Interactive mode
-void interAct(vm::stack *s);
-void boolInterAct(vm::stack *s);
 
 // System commands
 void system(vm::stack *s);

@@ -81,7 +81,8 @@ bool drawFill::draw(psfile *out)
 drawElement *drawFill::transformed(const transform& t)
 {
   pair A=t*a, B=t*b;
-  double RA=length(t*(a+ra)-A), RB=length(t*(b+rb)-B);
+  double RA=ra == 0.0 ? 0.0 : length(t*(a+ra)-A);
+  double RB=rb == 0.0 ? 0.0 : length(t*(b+rb)-B);
   if(P)
     return new drawFill(transPath(t),transpen(t),A,RA,penb,B,RB);
   else 

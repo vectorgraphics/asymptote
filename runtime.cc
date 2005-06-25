@@ -1634,7 +1634,6 @@ void atExit(stack *s)
 }
   
 // Merge output files  
-
 void merge(stack *s)
 {
   int ret;
