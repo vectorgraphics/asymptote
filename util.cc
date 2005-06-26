@@ -66,46 +66,38 @@ bool checkFormatString(const string& format)
 char **args(const char *command)
 {
   if(command == NULL) return NULL;
-  char c;
   
-  const char *p=command;
-  bool empty=true;
-  bool quote=false;
-  int n=0;
-  while((c=*(p++))) {
-    if(!quote && c == ' ') {
-      if(!empty) {
-	empty=true;
-	n++;
+  int n;
+  char **argv=NULL;  
+  for(int pass=0; pass < 2; ++pass) {
+    if(pass) argv=new char*[n+1];
+    ostringstream buf;
+    const char *p=command;
+    bool empty=true;
+    bool quote=false;
+    n=0;
+    char c;
+    while((c=*(p++))) {
+      if(!quote && c == ' ') {
+	if(!empty) {
+	  if(pass) {
+	    argv[n]=strdup(buf.str().c_str());
+	    buf.str("");
+	  }
+	  empty=true;
+	  n++;
+	}
+      } else {
+	empty=false;
+	if(c == '\'') quote=!quote;
+	else if(pass) buf << c;
       }
-    } else {
-      empty=false;
-      if(c == '\'') quote=!quote;
+    }
+    if(!empty) {
+      if(pass) argv[n]=strdup(buf.str().c_str());
+      n++;
     }
   }
-  if(!empty) n++;
-  
-  char **argv=new char*[n+1];
-  ostringstream buf;
-  
-  p=command;
-  empty=true;
-  quote=false;
-  n=0;
-  while((c=*(p++))) {
-    if(!quote && c == ' ') {
-      if(!empty) {
-	empty=true;
-	argv[n++]=strdup(buf.str().c_str());
-	buf.str("");
-      }
-    } else {
-      empty=false;
-      if(c == '\'') quote=!quote;
-      else buf << c;
-    }
-  }
-  if(!empty) argv[n++]=strdup(buf.str().c_str());
   
   argv[n]=NULL;
   return argv;
