@@ -61,17 +61,52 @@ bool checkFormatString(const string& format)
   return true;
 }
   
+// Return an argv array corresponding to the fields in command delimited
+// by spaces not within matching single quotes.
 char **args(const char *command)
 {
   if(command == NULL) return NULL;
-  char *cmd=strcpy(new char[strlen(command)+1],command);
-  char *p=cmd;
-  int n=1;
-  while((p=strchr(p,' '))) {n++; p++; while(*p == ' ') p++;}
+  char c;
+  
+  const char *p=command;
+  bool empty=true;
+  bool quote=false;
+  int n=0;
+  while((c=*(p++))) {
+    if(!quote && c == ' ') {
+      if(!empty) {
+	empty=true;
+	n++;
+      }
+    } else {
+      empty=false;
+      if(c == '\'') quote=!quote;
+    }
+  }
+  if(!empty) n++;
+  
   char **argv=new char*[n+1];
-  argv[0]=p=cmd;
-  n=1;
-  while((p=strchr(p,' '))) {*(p++)=0; while(*p == ' ') p++; argv[n++]=p;}
+  ostringstream buf;
+  
+  p=command;
+  empty=true;
+  quote=false;
+  n=0;
+  while((c=*(p++))) {
+    if(!quote && c == ' ') {
+      if(!empty) {
+	empty=true;
+	argv[n++]=strdup(buf.str().c_str());
+	buf.str("");
+      }
+    } else {
+      empty=false;
+      if(c == '\'') quote=!quote;
+      else buf << c;
+    }
+  }
+  if(!empty) argv[n++]=strdup(buf.str().c_str());
+  
   argv[n]=NULL;
   return argv;
 }
@@ -111,8 +146,13 @@ int System(const char *command, bool quiet, bool wait, int *ppid, bool warn)
       }
     } else {
       if(WIFEXITED(status)) {
-	delete [] argv[0];
-	delete [] argv;
+	if(argv) {
+	  char **p=argv;
+	  char *s;
+	  while((s=*(p++)) != NULL)
+	    free(s);
+	  delete [] argv;
+	}
 	return WEXITSTATUS(status);
       }
       else {
