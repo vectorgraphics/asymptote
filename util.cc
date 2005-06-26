@@ -67,7 +67,7 @@ char **args(const char *command)
 {
   if(command == NULL) return NULL;
   
-  int n;
+  int n=0;
   char **argv=NULL;  
   for(int pass=0; pass < 2; ++pass) {
     if(pass) argv=new char*[n+1];
