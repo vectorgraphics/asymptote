@@ -42,6 +42,7 @@ typedef vector<score> score_vector;
 typedef vector<tempExp *> temp_vector;
 
 struct arg : public gc {
+  virtual ~arg() {}
   varinit *v;
   types::ty *t;
 
