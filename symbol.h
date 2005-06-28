@@ -10,9 +10,11 @@
 #define SYMBOL_H
 
 #include <iostream>
+#include <cassert>
 #include <string>
 #include <map>
 
+//using std::assert;
 using std::ostream;
 using std::string;
 
@@ -23,17 +25,40 @@ private:
   string name;
 
   static std::map<string,symbol> dict;
-  symbol() {}
-  symbol(string name)
-    : name(name) {}
+
+  static symbol *specialTrans(string s) {
+    assert(dict.find(s) == dict.end());
+    return &(dict[s]=symbol(s,true));
+  }
+
+  symbol() : special(false) {}
+  symbol(string name, bool special=false)
+    : name(name), special(special) {}
+
   friend class std::map<string,symbol>;
 public:
+  bool special; // NOTE: make this const (later).
   
-  static symbol *trans(string s) {
+  static symbol *initsym;
+  static symbol *castsym;
+  static symbol *ecastsym;
+  
+  static symbol *literalTrans(string s) {
     if (dict.find(s) != dict.end())
       return &dict[s];
     else
       return &(dict[s]=symbol(s));
+  }
+
+  static symbol *opTrans(string s) {
+    return literalTrans("operator "+s);
+  }
+
+  static symbol *trans(string s) {
+    // Figure out whether it's an operator or an identifier by looking at the
+    // first character.
+    char c=s[0];
+    return isalpha(c) || c == '_' ? literalTrans(s) : opTrans(s);
   }
 
   operator string () { return string(name); }

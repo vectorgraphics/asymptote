@@ -100,7 +100,7 @@ void ifStm::prettyprint(ostream &out, int indent)
 
 void ifStm::trans(coenv &e)
 {
-  test->trans(e, types::primBoolean());
+  test->transToType(e, types::primBoolean());
 
   int elseLabel = e.c.fwdLabel();
   int end = e.c.fwdLabel();
@@ -131,7 +131,7 @@ void whileStm::trans(coenv &e)
 {
   int start = e.c.defLabel();
   e.c.pushContinue(start);
-  test->trans(e, types::primBoolean());
+  test->transToType(e, types::primBoolean());
 
   int end = e.c.fwdLabel();
   e.c.pushBreak(end);
@@ -167,7 +167,7 @@ void doStm::trans(coenv &e)
   body->markTrans(e);  
   
   e.c.defLabel(testLabel);
-  test->trans(e, types::primBoolean());
+  test->transToType(e, types::primBoolean());
   e.c.useLabel(inst::cjmp,start);
   e.c.defLabel(end);
 
@@ -199,7 +199,7 @@ void forStm::trans(coenv &e)
 
   int start = e.c.defLabel();
   if(test) {
-    test->trans(e, types::primBoolean());
+    test->transToType(e, types::primBoolean());
     e.c.useLabel(inst::njmp,end);
   }
 
@@ -268,7 +268,7 @@ void returnStm::trans(coenv &e)
   }
   else {
     if (value) {
-      value->trans(e, t);
+      value->transToType(e, t);
     }
     else {
       em->error(getPos());

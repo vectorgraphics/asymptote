@@ -56,7 +56,8 @@ public:
 
   void list()
   {
-    ve.list();
+    std::cerr << "reimplement this!\n" << std::endl;
+    //ve.list();
   }
 
   ty *lookupType(symbol *s)
@@ -64,9 +65,16 @@ public:
     return te.look(s);
   }
 
+#if 0 
   varEntry *lookupExactVar(symbol *name, signature *sig)
   {
     return ve.lookExact(name, sig);
+  }
+#endif
+
+  varEntry *lookupVarByType(symbol *name, ty *t)
+  {
+    return ve.lookByType(name, t);
   }
 
   ty *varGetType(symbol *name)
@@ -79,9 +87,17 @@ public:
     return name;
   }
 
-  virtual bool isReference() {
+  bool isReference() {
     return true;
   }
+
+  size_t hash() {
+    // Use the pointer, as two records are equivalent only if they are the same object.
+    return (size_t)this;
+  }
+
+  // Initialize to null by default.
+  trans::access *initializer();
 
   frame *getLevel(bool statically = false)
   {
@@ -118,7 +134,8 @@ public:
     out << "types:" << endl;
     out << te;
     out << "fields: " << endl;
-    out << ve;
+    out << "re-implement" << endl;
+    //out << ve;
   }
 };
 

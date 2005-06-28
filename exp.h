@@ -18,12 +18,15 @@
 
 namespace trans {
 class coenv;
+class application;
 }
 
 namespace absyntax {
 
 using mem::list;
 using trans::coenv;
+using trans::application;
+using trans::access;
 using sym::symbol;
 using types::record;
 using types::array;
@@ -33,37 +36,62 @@ public:
   varinit(position pos)
     : absyn(pos) {}
 
-  // This determines what instruction and needed to put the associated
+  // This determines what instruction are needed to put the associated
   // value onto the stack, then adds those instructions to the current
   // lambda in e.
   // In some expressions and initializers, the target type needs to be
   // known in order to translate properly.  For most expressions, this is
   // kept to a minimum.
-  virtual void trans(coenv &e, types::ty *target) = 0;
+  // For expression, this also allows an implicit cast, hence the name.
+  virtual void transToType(coenv &e, types::ty *target) = 0;
+};
+
+// A default initializer.  For example:
+//   int a;
+// is in some since equivalent to
+//   int a=0;
+// where the definit for int is a function that returns 0.
+class definit : public varinit {
+public:
+  definit(position pos)
+    : varinit(pos) {}
+
+  void prettyprint(ostream &out, int indent);
+
+  void transToType(coenv &e, types::ty *target);
 };
 
 class arrayinit : public varinit {
   list<varinit *> inits;
 
+  varinit *rest;
 public:
   arrayinit(position pos)
-    : varinit(pos) {}
+    : varinit(pos), rest(0) {}
 
   virtual ~arrayinit() 
     {}
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(coenv &e, types::ty *target);
+  // Encodes the instructions to make an array from size elements on the stack.
+  static void transMaker(coenv &e, int size, bool rest);
+
+  void transToType(coenv &e, types::ty *target);
 
   void add(varinit *init) {
     inits.push_back(init);
+  }
+
+  void addRest(varinit *init) {
+    rest=init;
   }
 
   friend class joinExp;
 };
 
 class exp : public varinit {
+protected:
   // The cached type (from a call to cgetType).
   types::ty *ct;
 public:
@@ -85,9 +113,14 @@ public:
   // expression.  ie. 3sin(x)
   virtual bool scalable() { return true; }
   
-  // Translates the expression to the given target type.  The default
-  // behavior is to trans without the target, then perform a cast. 
-  void trans(coenv &, types::ty *target);
+  // Translates the expression to the given target type.  This should only be
+  // called with a type returned by getType().  It does not perform implicit
+  // casting.
+  virtual void transAsType(coenv &e, types::ty *target);
+
+  // Translates the expression to the given target type, possibly using an
+  // implicit cast.
+  void transToType(coenv &e, types::ty *target);
 
   // Translates the expression and returns the resultant type.
   // For some expressions, this will be ambiguous and return an error.
@@ -105,7 +138,7 @@ public:
   //      if fed to trans(e, t).
   //   3. If this returns ty_error, then so must a call to trans(e) and
   //      any call to either trans must report an error to em.
-  //   4. Any call to trans(e, t) with a type that is not returned by
+  //   4. Any call to transToType(e, t) with a type that is not returned by
   //      getType() (or one of the subtypes in case of a superposition)
   //      or any type not implicitly castable from the above must report an
   //      error.
@@ -117,14 +150,54 @@ public:
   virtual types::ty *cgetType(coenv &e) {
     return ct ? ct : ct = getType(e);
   }
-  
-  // The expression is being used as an address to write to.
+
+  // The expression is being used as an address to write to.  This writes code
+  // so that the value on top of stack is put into the address (but not popped
+  // off the stack).
   virtual void transWrite(coenv &, types::ty *) {
     em->error(getPos());
     *em << "expression cannot be used as an address";
   }
 
+  // Translates code for calling a function.  The arguments, in the order they
+  // appear in the function's signature, must all be on the stack.
   virtual void transCall(coenv &e, types::ty *target);
+
+  // This is used to ensure the proper order and number of evaluations.  When
+  // called, it immediately translates code to perform the side-effects
+  // consistent with a corresponding call to transAsType(e, target).
+  //
+  // The return value, called an evaluation for lack of a better name, is
+  // another expression that responds to the trans methods exactly as would the
+  // original expression, but without producing side-effects.  It is also no
+  // longer overloaded, due to the resolution effected by giving a target type
+  // to evaluate().
+  //
+  // The methods transAsType, transWrite, and transCall of the evaluation must
+  // be called with the same target type as the original call to evaluate.  When
+  // evaluate() is called during the translation of a function, that function
+  // must still be in translation when the evaluation is translated.
+  // 
+  // The base implementation uses a tempExp (see below).  This is sufficient for
+  // most expressions.
+  virtual exp *evaluate(coenv &e, types::ty *target);
+
+  // NOTE: could add a "side-effects" method which says if the expression has
+  // side-effects.  This might allow some small optimizations in translating.
+};
+
+class tempExp : public exp {
+  access *a;
+  types::ty *t;
+
+public:
+  tempExp(coenv &e, varinit *v, types::ty *t);
+
+  types::ty *trans(coenv &e);
+
+  types::ty *getType(coenv &) {
+    return t;
+  }
 };
 
 class nameExp : public exp {
@@ -144,7 +217,7 @@ public:
     return value->getName();
   }
 
-  void trans(coenv &e, types::ty *target) {
+  void transAsType(coenv &e, types::ty *target) {
     value->varTrans(e, target);
   }
 
@@ -156,7 +229,7 @@ public:
       return types::primError();
     }
     else {
-      value->varTrans(e, t);
+      transAsType(e, t);
       return t;
     }
   }
@@ -171,6 +244,11 @@ public:
   
   void transCall(coenv &e, types::ty *target) {
     value->varTransCall(e, target);
+  }
+
+  exp *evaluate(coenv &, types::ty *) {
+    // Names have no side-effects.
+    return this;
   }
 };
 
@@ -195,12 +273,16 @@ public:
     return field;
   }
 
-  // This has the whole smorgasbord of trans functions!
-  void trans(coenv &e, types::ty *target);
+  void transAsType(coenv &e, types::ty *target);
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
   void transWrite(coenv &e, types::ty *target);
   void transCall(coenv &e, types::ty *target);
+
+  exp *evaluate(coenv &e, types::ty *) {
+    // Evaluate the object.
+    return new fieldExp(getPos(), new tempExp(e, object, getObject(e)), field);
+  }
 };
 
 class subscriptExp : public exp {
@@ -219,6 +301,12 @@ public:
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
   void transWrite(coenv &e, types::ty *target);
+
+  exp *evaluate(coenv &e, types::ty *) {
+    return new subscriptExp(getPos(),
+                            new tempExp(e, set, getArrayType(e)),
+                            new tempExp(e, index, types::primInt()));
+  }
 };
 
 // The expression "this," that evaluates to the lexically enclosing record.
@@ -232,23 +320,6 @@ public:
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
 };
-// Exceptional expressions such as 3sin(x).
-class scaleExp : public exp {
-  exp *left;
-  exp *right;
-
-public:
-  scaleExp(position pos, exp *left, exp *right)
-    : exp(pos), left(left), right(right) {}
-
-  void prettyprint(ostream &out, int indent);
-
-  types::ty *trans(coenv &e);
-  types::ty *getType(coenv &e);
-
-  bool scalable() { return false; }
-};
-
 
 class literalExp : public exp {
 public:
@@ -369,38 +440,95 @@ public:
     return exps.size();
   }
   
-  virtual types::ty *trans(coenv &e, int index);
-  virtual void trans(coenv &e, types::ty *target, int index);
-  virtual types::ty *getType(coenv &e, int index);
+  virtual exp * operator[] (size_t index) {
+    return exps[index];
+  }
+};
+
+struct argument {
+  exp *val;
+  symbol *name;
+
+#if 0
+  argument(exp *val=0, symbol *name=0)
+    : val(val), name(name) {}
+#endif
+
+  void prettyprint(ostream &out, int indent);
+};
+
+class arglist : public gc {
+public:
+  typedef mem::vector<argument> argvector;
+  argvector args;
+  argument rest;
+
+  arglist()
+    : args(), rest() {}
+
+  virtual ~arglist() {}
+  
+  virtual void add(argument a) {
+    args.push_back(a);
+  }
+
+  virtual void add(exp *val, symbol *name=0) {
+    argument a; a.val=val; a.name=name;
+    add(a);
+  }
+
+  virtual void prettyprint(ostream &out, int indent);
+
+  virtual size_t size() {
+    return args.size();
+  }
+  
+  virtual argument operator[] (size_t index) {
+    return args[index];
+  }
+
+  virtual argument getRest() {
+    return rest;
+  }
 };
 
 
 class callExp : public exp {
   exp *callee;
-  explist *args;
+  arglist *args;
+
+  // Cache the application when it's determined.
+  application *ca;
 
   types::signature *argTypes(coenv& e);
+  application *resolve(coenv &e,
+                       types::overloaded *o,
+                       types::signature *source);
+  void reportMismatch(symbol *s,
+                      types::function *ft,
+                      types::signature *source);
+  application *getApplication(coenv &e);
 
 public:
-  callExp(position pos, exp *callee, explist *args)
-    : exp(pos), callee(callee), args(args) {}
+  callExp(position pos, exp *callee, arglist *args)
+    : exp(pos), callee(callee), args(args), ca(0) { assert(args); }
 
   callExp(position pos, exp *callee)
-    : exp(pos), callee(callee), args(new explist(pos)) {}
+    : exp(pos), callee(callee), args(new arglist()), ca(0) {}
 
   callExp(position pos, exp *callee, exp *arg1)
-    : exp(pos), callee(callee), args(new explist(pos)) {
+    : exp(pos), callee(callee), args(new arglist()), ca(0) {
       args->add(arg1);
     }
 
   callExp(position pos, exp *callee, exp *arg1, exp *arg2)
-    : exp(pos), callee(callee), args(new explist(pos)) {
+    : exp(pos), callee(callee), args(new arglist()), ca(0) {
       args->add(arg1);
       args->add(arg2);
     }
 
   callExp(position pos, exp *callee, exp *arg1, exp *arg2, exp *arg3)
-    : exp(pos), callee(callee), args(new explist(pos)) {
+    : exp(pos), callee(callee), args(new arglist()), ca(0) {
       args->add(arg1);
       args->add(arg2);
       args->add(arg3);
@@ -448,6 +576,8 @@ class castExp : public exp {
   name *target;
   exp *castee;
 
+  types::ty *tryCast(coenv &e, types::ty *t, types::ty *s,
+                     symbol *csym);
 public:
   castExp(position pos, name *target, exp *castee)
     : exp(pos), target(target), castee(castee) {}
@@ -476,7 +606,24 @@ public:
     : callExp(pos, new nameExp(pos, op), left, right) {}
 };
 
-// Used for tension, which takes to real values, and a boolean to denote if it
+// Scaling expressions such as 3sin(x).
+class scaleExp : public binaryExp {
+  exp *left;
+  exp *right;
+
+public:
+  scaleExp(position pos, exp *left, exp *right)
+    : binaryExp(pos, left, symbol::trans("*"), right), left(left), right(right) {}
+
+  void prettyprint(ostream &out, int indent);
+
+  types::ty *trans(coenv &e);
+  //types::ty *getType(coenv &e);
+
+  bool scalable() { return false; }
+};
+
+// Used for tension, which takes two real values, and a boolean to denote if it
 // is a tension atleast case.
 class ternaryExp : public callExp {
 public:
@@ -496,7 +643,7 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(coenv &e, types::ty *target);
+  void transToType(coenv &e, types::ty *target);
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
   
@@ -560,7 +707,7 @@ class joinExp : public exp {
       return new types::array(types::primGuide());
     }
     types::ty *trans(coenv &e) {
-      base.trans(e, getType(e));
+      base.transToType(e, getType(e));
       return getType(e);
     }
   };
@@ -606,8 +753,16 @@ public:
 };
 
 class assignExp : public exp {
+protected:
   exp *dest;
   exp *value;
+
+  // This is basically a hook to facilitate selfExp.  dest is given as an
+  // argument since it will be a temporary in translation in order to avoid
+  // multiple evaluation.
+  virtual exp *ultimateValue(exp *dest) {
+    return value;
+  }
 
 public:
   assignExp(position pos, exp *dest, exp *value)
@@ -615,24 +770,23 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(coenv &e, types::ty *target);
+  void transAsType(coenv &e, types::ty *target);
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
 };
 
-class selfExp : public exp {
-  exp *dest;
+class selfExp : public assignExp {
   symbol *op;
-  exp *value;
+
+  exp *ultimateValue(exp *dest) {
+    return new binaryExp(getPos(), dest, op, value);
+  }
 
 public:
   selfExp(position pos, exp *dest, symbol *op, exp *value)
-    : exp(pos), dest(dest), op(op), value(value) {}
+    : assignExp(pos, dest, value), op(op) {}
 
   void prettyprint(ostream &out, int indent);
-
-  types::ty *trans(coenv &e);
-  types::ty *getType(coenv &e);
 };
 
 class prefixExp : public exp {

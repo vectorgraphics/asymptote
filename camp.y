@@ -49,6 +49,8 @@ using sym::symbol;
   absyntax::specExp *se;
   absyntax::joinExp *j;
   absyntax::explist *elist;
+  absyntax::argument arg;
+  absyntax::arglist *alist;
   absyntax::dimensions *dim;
   absyntax::ty  *t;
   absyntax::decid *di;
@@ -81,7 +83,7 @@ using sym::symbol;
             STRING
 %token <pos> LOOSE ASSIGN '?' ':'
              DIRTAG JOIN_PREC AND
-             '{' '}' '(' ')' '.' ','  '[' ']' ';'
+             '{' '}' '(' ')' '.' ','  '[' ']' ';' ELLIPSIS
              IMPORT STRUCT TYPEDEF NEW
              IF ELSE WHILE DO FOR BREAK CONTINUE RETURN_
              STATIC PUBLIC_TOK PRIVATE_TOK THIS EXPLICIT
@@ -121,23 +123,26 @@ using sym::symbol;
 %type  <di>  decid
 %type  <dis> decidstart
 %type  <vi>  varinit
-%type  <ai>  arrayinit varinits
+%type  <ai>  arrayinit basearrayinit varinits
 %type  <fl>  formal
-%type  <fls> formals
+%type  <fls> formals baseformals
 %type  <e>   value exp
+%type  <arg> argument
 %type  <j>   join basicjoin
 %type  <e>   tension controls
 %type  <se>  dir
-%type  <elist> explist dimexps
+%type  <elist> dimexps
+%type  <alist> arglist basearglist
 %type  <s>   stm stmexp
 %type  <run> forinit
 %type  <sel> forupdate stmexplist
 
-/* There are two shift/reduce conflicts:
+/* There are three shift/reduce conflicts:
  *   the dangling ELSE in IF (exp) IF (exp) stm ELSE stm
  *   new ID
+ *   the argument id=exp is taken as an argument instead of an assignExp
  */
-%expect 2
+%expect 3
 
 /* Enable grammar debugging. */
 /*%debug*/
@@ -274,23 +279,37 @@ block:
 
 arrayinit:
   '{' '}'          { $$ = new arrayinit($1); }
-| '{' ',' '}'      { $$ = new arrayinit($1); }
-| '{' varinits '}' { $$ = $2; }
-| '{' varinits ',' '}'
+| '{' ELLIPSIS varinit '}'
+                   { $$ = new arrayinit($1); $$->addRest($3); }
+| '{' basearrayinit '}'
                    { $$ = $2; }
+| '{' basearrayinit ELLIPSIS varinit '}'
+                   { $$ = $2; $$->addRest($4); }
+;
+
+basearrayinit:
+  ','              { $$ = new arrayinit($1); }
+| varinits         { $$ = $1; }
+| varinits ','     { $$ = $1; }
 ;
 
 varinits:
-  varinit
-                   { $$ = new arrayinit($1->getPos());
+  varinit          { $$ = new arrayinit($1->getPos());
 		     $$->add($1);}
 | varinits ',' varinit
                    { $$ = $1; $$->add($3); }
 ;
 
 formals:
+  baseformals      { $$ = $1; }
+| baseformals ELLIPSIS formal
+                   { $$ = $1; $$->addRest($3); }
+| ELLIPSIS formal  { $$ = new formals($1); $$->addRest($2); }
+;
+
+baseformals:
   formal           { $$ = new formals($1->getPos()); $$->add($1); }
-| formals ',' formal
+| baseformals ',' formal
                    { $$ = $1; $$->add($3); }
 ;
 
@@ -329,24 +348,45 @@ value:
 | value '[' exp ']'{ $$ = new subscriptExp($2, $1, $3); }
 | name '(' ')'     { $$ = new callExp($2,
                                       new nameExp($1->getPos(), $1),
-                                      new explist($2)); } 
-| name '(' explist ')'
+                                      new arglist()); } 
+| name '(' arglist ')'
                    { $$ = new callExp($2, 
                                       new nameExp($1->getPos(), $1),
                                       $3); }
-| value '(' ')'    { $$ = new callExp($2, $1, new explist($2)); }
-| value '(' explist ')'
+| value '(' ')'    { $$ = new callExp($2, $1, new arglist()); }
+| value '(' arglist ')'
                    { $$ = new callExp($2, $1, $3); }
-//| '(' name ')'     { $$ = new nameExp($2->getPos(), $2); }
+//| '(' name ')'   { $$ = new nameExp($2->getPos(), $2); }
 | '(' exp ')' %prec LOOSE
                    { $$ = $2; }
 | THIS             { $$ = new thisExp($1); }
 ;
 
+argument:
+  exp              { $$.name=0;      $$.val=$1; }
+| ID ASSIGN exp    { $$.name=$1.sym; $$.val=$3; }
+;
+
+arglist:
+  basearglist      { $$ = $1; }
+| basearglist ELLIPSIS argument
+                   { $$ = $1; $$->rest = $3; }
+| ELLIPSIS argument     { $$ = new arglist(); $$->rest = $2; }
+;
+
+basearglist:
+  argument         { $$ = new arglist(); $$->add($1); }
+| basearglist ',' argument
+                   { $$ = $1; $$->add($3); }
+;
+
+
+/*
 explist:
   exp              { $$ = new explist($1->getPos()); $$->add($1); }
 | explist ',' exp  { $$ = $1; $$->add($3); }
 ;
+*/
 
 exp:
   name             { $$ = new nameExp($1->getPos(), $1); }
@@ -463,9 +503,9 @@ join:
 
 dir:
   '{' CURL exp '}' { $$ = new specExp($2.pos, $2.sym, $3); }
-| '{' exp '}'      { $$ = new specExp($1, symbol::trans("<spec>"), $2); }
+| '{' exp '}'      { $$ = new specExp($1, symbol::opTrans("spec"), $2); }
 | '{' exp ',' exp '}'
-                   { $$ = new specExp($1, symbol::trans("<spec>"),
+                   { $$ = new specExp($1, symbol::opTrans("spec"),
                                           new pairExp($3, $2, $4)); }
 ;
 

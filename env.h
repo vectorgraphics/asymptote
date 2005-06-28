@@ -15,11 +15,12 @@
 
 #include "errormsg.h"
 #include "entry.h"
+#include "builtin.h"
 #include "types.h"
-#include "cast.h"
 #include "record.h"
 #include "import.h"
 #include "util.h"
+
 
 namespace trans {
 
@@ -41,6 +42,8 @@ class env {
   tenv &te;
   venv &ve;
   menv &me;
+
+  access *baseLookupCast(ty *target, ty *source, symbol *name);
 
 public:
   // Start an environment for a file-level module.
@@ -101,6 +104,7 @@ public:
     return 0;
   }
 
+#if 0
   varEntry *lookupExactVar(symbol *name, signature *sig)
   {
     // Search in local vars.
@@ -121,6 +125,48 @@ public:
     // No luck.
     return 0;
   }
+#endif
+
+  varEntry *lookupVarByType(symbol *name, ty *t)
+  {
+    // Search in local vars.
+    varEntry *v = ve.lookByType(name, t);
+    if (v)
+      return v;
+
+    // Search in modules.
+    v = me.lookupVarByType(name, t);
+    if (v)
+      return v;
+    
+    // Search module name.
+    import *i = me.look(name);
+    if (i)
+      return i->getVarEntry();
+
+    // No luck.
+    return 0;
+  }
+
+  access *lookupInitializer(ty *t)
+  {
+    // The initializer's type is a function returning the desired type.
+    function *it=new function(t);
+    varEntry *v=lookupVarByType(symbol::initsym,it);
+
+    // If not in the environment, try the type itself.
+    return v ? v->getLocation() : t->initializer();
+  }
+
+  // Find the function that handles casting between the types.
+  // The name is "cast" for implicitCasting and "ecast" for explicit (for now).
+  access *lookupCast(ty *target, ty *source, symbol *name);
+  bool castable(ty *target, ty *source, symbol *name);
+
+  // Given overloaded types, this resolves which types should be the target and
+  // the source of the cast.
+  ty *castTarget(ty *target, ty *source, symbol *name);
+  ty *castSource(ty *target, ty *source, symbol *name);
 
   ty *varGetType(symbol *name)
   {
@@ -153,18 +199,20 @@ public:
   
   void addVar(position pos, symbol *name, varEntry *desc, bool ignore=false)
   {
+    // For now don't check for multiple variables, as this makes adding casts
+    // and initializers harder.  Figure out what to do about this.
+#if 0
     signature *sig = desc->getSignature();
     if (ve.lookInTopScope(name, sig)) {
       if(ignore) return;
       em->error(pos);
-      if (sig) {
+      if (sig)
         *em << "function variable \'" << *name << *sig
             << "\' previously declared";
-      }
-      else {
+      else
         *em << "variable '" << *name <<  "' previously declared";
-      }
     }
+#endif
     ve.enter(name, desc);
   }
 

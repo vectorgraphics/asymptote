@@ -11,18 +11,19 @@
 
 #include "entry.h"
 #include "types.h"
-#include "cast.h"
 #include "runtime.h" // For arrayLength().
 #include "access.h"
+
+using std::cout;
 
 namespace types {
 
 /* Base types */
-ty pVoid(ty_void);
+primitiveTy pVoid(ty_void);
 ty *primVoid() { return &pVoid; }
-ty pNull(ty_null);
+nullTy pNull;
 ty *primNull() { return &pNull; }
-ty pError(ty_error);
+primitiveTy pError(ty_error);
 ty *primError() { return &pError; }
 primitiveTy pBoolean(ty_boolean);
 ty *primBoolean() { return &pBoolean; }
@@ -107,37 +108,59 @@ void ty::print(ostream& out) const
   out << names[kind];
 }
 
-trans::varEntry *ty::virtualField(symbol *id, signature *sig)
+trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
 {
-  if (primitive())
-    switch (kind) {
-      case ty_pair:
-        if (sig == 0 && id == symbol::trans("x"))
-        {
-          static trans::bltinAccess a(run::pairXPart);
-          static trans::varEntry v(primReal(), &a);
+  switch (kind) {
+    case ty_pair:
+      if (sig == 0 && id == symbol::trans("x"))
+      {
+        static trans::bltinAccess a(run::pairXPart);
+        static trans::varEntry v(primReal(), &a);
 
-          return &v;
-        }
-        if (sig == 0 && id == symbol::trans("y"))
-        {
-          static trans::bltinAccess a(run::pairYPart);
-          static trans::varEntry v(primReal(), &a);
+        return &v;
+      }
+      if (sig == 0 && id == symbol::trans("y"))
+      {
+        static trans::bltinAccess a(run::pairYPart);
+        static trans::varEntry v(primReal(), &a);
 
-          return &v;
-        }
-        //TODO: Add transform.
-      default:
-        return 0;
-    }
-  else
-    return 0;
+        return &v;
+      }
+      //TODO: Add transform.
+    default:
+      return 0;
+  }
 }
 
 ty *ty::virtualFieldGetType(symbol *id)
 {
   trans::varEntry *v = virtualField(id, 0);
   return v ? v->getType() : 0;
+}
+
+trans::access *nullTy::castTo(ty *target, caster &) {
+  switch (target->kind) {
+    case ty_array: {
+      static trans::bltinAccess a(run::pushNullArray);
+      return &a;
+    }
+    case ty_record: {
+      static trans::bltinAccess a(run::pushNullRecord);
+      return &a;
+    } 
+    case ty_function: {
+      static trans::bltinAccess a(run::pushNullFunction);
+      return &a;
+    }
+    default:
+      return 0;
+  }
+}
+
+trans::access *array::initializer()
+{
+  static trans::bltinAccess a(run::emptyArray);
+  return &a;
 }
 
 ty *array::pushType()
@@ -178,23 +201,43 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
     return ty::virtualField(id, sig);
 }
 
+std::ostream& operator<< (std::ostream& out, const formal& f)
+{
+  if (f.xplicit)
+    out << "explicit ";
+  if (f.name)
+    f.t->printVar(out,f.name);
+  else
+    f.t->print(out);
+  if (f.defval)
+    out << "=<default>";
+  return out;
+}
+  
+bool equivalent(formal& f1, formal& f2) {
+  // Just test the types.
+  // This will also return true for the rest parameter if both types are null.
+  // NOTE: Is this the right behavior?
+  return equivalent(f1.t,f2.t);
+}
+
 
 std::ostream& operator<< (std::ostream& out, const signature& s)
 {
   out << "(";
 
-  ty_vector::const_iterator t = s.formals.begin();
-  varinit_vector::const_iterator dt = s.defaults.begin();
-  if (t != s.formals.end()) {
-    out << **t;
-    if (*dt != 0)
-      out << "=<default>"; 
-    ++t; ++dt;
+  formal_vector::const_iterator f = s.formals.begin();
+  if (f != s.formals.end()) {
+    out << *f;
+    ++f;
   }
-  for (; t != s.formals.end(); ++t, ++dt) {
-    out << ", " << **t;
-    if (*dt != 0)
-      out << "=<default>"; 
+  for (; f != s.formals.end(); ++f)
+    out << ", " << *f;
+
+  if (s.rest.t) {
+    if (!s.formals.empty())
+      out << " ";
+    out << "... " << s.rest;
   }
 
   out << ")";
@@ -216,51 +259,49 @@ bool equivalent(signature *s1, signature *s2)
     return false;
 
   return std::equal(s1->formals.begin(),s1->formals.end(),s2->formals.begin(),
-                    (bool (*)(ty*,ty*)) equivalent);
+                    (bool (*)(formal&,formal&)) equivalent) &&
+         equivalent(s1->rest, s2->rest);
 }
 
-bool castable(signature *target, signature *source)
-{
-  // Handle null signature
-  if (target == 0)
-    return source == 0;
-  else if (source == 0)
-    return false;
+size_t signature::hash() {
+  int x=2038;
+  for (formal_vector::iterator i=formals.begin(); i!=formals.end(); ++i)
+    x=x*0xFAEC+i->t->hash();
 
-  unsigned int m = (unsigned int)target->formals.size();
-  unsigned int n = (unsigned int)source->formals.size();
-  if (n > m || n+target->ndefault < m) return false;
+  if (rest.t)
+    x=x*0xACED +rest.t->hash();
 
-  unsigned int j=0;
-  for (unsigned int i = 0; i < m; i++) {
-    if (j < n && (target->Explicit[i] ? 
-		  equivalent(target->formals[i], source->formals[j]) :
-		  castable(target->formals[i], source->formals[j])))
-      j++;
-    else if (!target->defaults[i]) return false;
-  }
-  
-  return (j == n) ? true : false;
+  return x;
 }
 
-
+#if 0
 int numFormalsMatch(signature *target, signature *source)
 {
-  unsigned int m = (unsigned int)target->formals.size();
-  unsigned int n = (unsigned int)source->formals.size();
+  assert(target && source);
 
-  int matches = 0;
-  for (unsigned int i = 0, j = 0; i < m; i++) {
-    if (j < n && castable(target->formals[i], source->formals[j])) {
-      if (equivalent(target->formals[i], source->formals[j]))
-        matches++;
-      j++;
+  int matches=0;
+
+  formal_vector::iterator t    =target->formals.begin(),
+                          t_end=target->formals.end(),
+                          s    =source->formals.begin(),
+                          s_end=source->formals.end();
+  for (; t!=t_end; ++t)
+    if (s!=s_end && castable(*t, *s)) {
+      if (equivalent(*t, *s))
+        ++matches;
+      ++s;
     }
-  }
-  
+
   return matches;
 }
+#endif
 
+trans::access *function::initializer() {
+  static trans::bltinAccess a(run::pushNullFunction);
+  return &a;
+}
+
+#if 0
 ty *function::stripDefaults()
 {
   function *f = new function(result);
@@ -271,6 +312,7 @@ ty *function::stripDefaults()
 
   return f;
 }
+#endif
 
 // Only add a type with a signature distinct from the ones currently
 // in the overloaded type.
@@ -301,10 +343,29 @@ void overloaded::addDistinct(ty *t)
 }
 
 
-	 
+ty *overloaded::signatureless()
+{
+  for(ty_vector::iterator t = sub.begin(); t != sub.end(); ++t)
+    if ((*t)->getSignature()==0)
+      return *t;
+ 
+  return 0;
+}
 
+bool overloaded::castable(ty *target, caster &c)
+{
+  for(ty_vector::iterator s = sub.begin(); s != sub.end(); ++s)
+    if (c.castable(target,*s))
+      return true;
+  return false;
+}
+
+#if 0 //{{{
 ty *overloaded::resolve(signature *key)
 {
+  cout << "sig: " << (key ? "fun " : "trivial\n");
+  cout << "candidates: " << sub.size();
+
   overloaded set;
   
   // Pick out all applicable signatures.
@@ -324,6 +385,7 @@ ty *overloaded::resolve(signature *key)
   }
 
   ty_vector& candidates = set.sub;
+  cout << " applicable: " << candidates.size() << endl; 
   if (candidates.size() <= 1)
     return set.simplify();
 
@@ -350,11 +412,74 @@ ty *overloaded::resolve(signature *key)
   return new overloaded(set);
 }
 
+ty *overloaded::resolve(signature *key, symbol *name, position pos)
+{
+  cout << "name: ";
+  if (name)
+    cout << *name;
+  else
+    cout << "none";
+  cout << "position: " << pos;
+
+  cout << " sig: " << (key ? "fun " : "trivial\n");
+  cout << "candidates: " << sub.size();
+
+  overloaded set;
+  
+  // Pick out all applicable signatures.
+  for(ty_vector::iterator t = sub.begin();
+      t != sub.end();
+      ++t)
+  {
+    signature *nsig = (*t)->getSignature();
+   
+    if (castable(nsig, key)) {
+      set.add(*t);
+
+      // Shortcut for simple (ie. non-function) variables.
+      if (key == 0)
+	return (*t);
+    }
+  }
+
+  ty_vector& candidates = set.sub;
+  cout << " applicable: " << candidates.size() << endl; 
+  if (candidates.size() <= 1)
+    return set.simplify();
+
+  // Try to further resolve candidates by checking for number of
+  // arguments exactly matched.
+  for (int n = key->getNumFormals(); n > 0; n--)
+  {
+    ty_vector matches;
+    for (ty_vector::iterator p = candidates.begin();
+         p != candidates.end();
+	 ++p)
+    {
+      if (numFormalsMatch((*p)->getSignature(), key) >= n) {
+        matches.push_back(*p);
+      }
+    }
+
+    if (matches.size() == 1)
+      return matches.front();
+    if (matches.size() > 1)
+      break;
+  }
+
+  return new overloaded(set);
+}
+#endif //}}}
+
 bool equivalent(ty *t1, ty *t2)
 {
   // The same pointer must point to the same type.
   if (t1 == t2)
     return true; 
+
+  // Handle empty types (used in equating empty rest parameters).
+  if (t1 == 0 || t2 == 0)
+    return false;
 
   // Ensure if an overloaded type is compared to a non-overloaded one, that the
   // overloaded type's method is called.

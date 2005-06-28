@@ -28,9 +28,6 @@ public:
   // If it is allowed, the casting instructions (if any) will be added.
   // Otherwise, an appropriate error message will be printed.
   bool implicitCast(position pos, ty *target, ty *source);
-
-  // Similar to implicitCast, but allows the narowing conversion of
-  // real to int.
   bool explicitCast(position pos, ty *target, ty *source);
 };
 

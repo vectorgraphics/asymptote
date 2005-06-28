@@ -42,18 +42,10 @@ access *ecasts[arrayDepth][arrayDepth][numKinds][numKinds];
 access *casts[arrayDepth][arrayDepth][numKinds][numKinds];
 access *promotions[arrayDepth][arrayDepth][numKinds][numKinds];
   
-// Operators are stored via a map.
-// If this proves too inefficient, a different scheme may be used.
-struct opKey {
-  int ltypecode;
-  int rtypecode;
-  int symcode;
-};
 
 // The identity access, ie. no instructions are encoded for a cast, and
-// no fuctions are called.
+// no functions are called.
 identAccess id;
-
 
 static bool valid(ty *target)
 {
@@ -186,54 +178,6 @@ void initializeCasts()
   addCast(realArray3(), primFile(), run::readArray<double>);
   addCast(pairArray3(), primFile(), run::readArray<pair>);
   addCast(stringArray3(), primFile(), run::readArray<string>);
-}
-
-void addInitializer(ty *t, access *a)
-{
-  assert(valid(t));
-  inits[t->kind] = a;
-}
-
-void addInitializer(ty *t, bltin f)
-{
-  access *a = new bltinAccess(f);
-  addInitializer(t, a);
-}
-
-void initializeInitializers()
-{
-  addInitializer(primBoolean(), run::boolFalse);
-  addInitializer(primInt(), run::intZero);
-  addInitializer(primReal(), run::realZero);
-
-  addInitializer(primString(), run::emptyString);
-  addInitializer(primPair(), run::pairZero);
-  addInitializer(primTransform(), run::transformIdentity);
-  addInitializer(primGuide(), run::nullGuide);
-  addInitializer(primPath(), run::nullPath);
-  addInitializer(primPen(), run::newPen);
-  addInitializer(primPicture(), run::nullFrame);
-  addInitializer(primFile(), run::nullFile);
-}
-
-// Gets the initializer for a type.
-// NOTE: There may be a better place for this than with the casts.
-access *initializer(ty *t)
-{
-  if (t->primitive())
-    return inits[t->kind];
-  else if (t->kind == ty_array) {
-    static bltinAccess a(run::emptyArray);
-    return &a;
-  } else if (t->kind == ty_record) {
-    // NOTE: May want to allocate a new instance of the record instead.
-    static bltinAccess a(run::pushNullRecord);
-    return &a;
-  } else if (t->kind == ty_function) {
-    static bltinAccess a(run::pushNullFunction);
-    return &a;
-  } else
-    return 0;
 }
 
 bool castable(ty *target, ty *source)
@@ -704,18 +648,10 @@ ty *promote(ty *t1, ty *t2)
   
   // Function casting (for now) allows only equivalent function types.
   // NOTE: consider constructing casts for castable functions.
-  if (t1->kind == ty_function) {
-    if (t2->kind == ty_function) {
-      function *f1 = (function *)t1, *f2 = (function *)t2;
-      if (equivalent(f1->result, f2->result) &&
-          equivalent(&f1->sig, &f2->sig))
-        return f1->stripDefaults();
-      else
-        return 0;
-    }
-    else
-      return 0;
-  }
+  if (t1->kind == ty_function)
+    // NOTE: Should strip default values and such from t1 if they do not agree
+    // with the corresponding junk in t2.
+    return equivalent(t1,t2) ? t1 : 0;
 
   // Now, only primitive conversions are allowed.
   if (!valid(t1) || !valid(t2))

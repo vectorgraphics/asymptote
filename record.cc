@@ -7,6 +7,7 @@
 
 #include "record.h"
 #include "inst.h"
+#include "runtime.h"
 
 namespace types {
 
@@ -35,6 +36,12 @@ record *record::newRecord(symbol *id, bool statically)
 
   record *r = new record(id, level, init);
   return r;
+}
+
+// Initialize to null by default.
+trans::access *record::initializer() {
+  static trans::bltinAccess a(run::pushNullRecord);
+  return &a;
 }
 
 } // namespace types

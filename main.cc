@@ -16,7 +16,7 @@
 #include "fpu.h"
 #include "genv.h"
 #include "stm.h"
-#include "camp.tab.h"
+//#include "camp.tab.h"
 #include "settings.h"
 #include "vm.h"
 #include "program.h"

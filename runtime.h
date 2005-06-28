@@ -58,6 +58,7 @@ void emptyArray(vm::stack *s);
 void newArray(vm::stack *s);
 void newDeepArray(vm::stack *s);
 void newInitializedArray(vm::stack *s);
+void newAppendedArray(vm::stack *s);
 void arrayRead(vm::stack *s);
 void arrayArrayRead(vm::stack *s);
 void arrayWrite(vm::stack *s);

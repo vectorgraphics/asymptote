@@ -352,6 +352,25 @@ void newInitializedArray(stack *s)
   s->push(a);
 }
 
+// Similar to newInitializedArray, but after the n elements, append another
+// array to it.
+void newAppendedArray(stack *s)
+{
+  int n = pop<int>(s);
+  assert(n >= 0);
+
+  array *tail = pop<array *>(s);
+
+  array *a = new array(n);
+
+  for (int index = n-1; index >= 0; index--)
+    (*a)[index] = pop(s);
+  
+  copy(tail->begin(), tail->end(), back_inserter(*a));
+
+  s->push(a);
+}
+
 static void outOfBounds(const char *op, int len, int n)
 {
     ostringstream buf;

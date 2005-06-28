@@ -10,8 +10,11 @@
 #include <list>
 #include <vector>
 #include <deque>
+#include <stack>
 #include <map>
 #include <string>
+
+#include <ext/hash_map>
 
 #ifdef USEGC
 
@@ -59,6 +62,10 @@ GC_CONTAINER(list);
 GC_CONTAINER(vector);
 GC_CONTAINER(deque);
 
+template <typename T, typename Container = deque<T> >
+struct stack : public std::stack<T, Container> {
+};
+
 #undef GC_CONTAINER
 
 #define GC_CONTAINER(KIND)                                                    \
@@ -72,6 +79,22 @@ GC_CONTAINER(map);
 GC_CONTAINER(multimap);
 
 #undef GC_CONTAINER
+
+#define EXT __gnu_cxx
+#define GC_CONTAINER(KIND)                                                    \
+  template <typename Key, typename T,                                         \
+            typename Hash = EXT::hash<Key>,                                   \
+            typename Eq = std::equal_to<Key> >                                \
+  struct KIND : public                                                        \
+  EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > > {                \
+    KIND() : EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > > () {};\
+  }
+
+GC_CONTAINER(hash_map);
+GC_CONTAINER(hash_multimap);
+
+#undef GC_CONTAINER
+#undef EXT
 
 #ifdef USEGC
 #define GC_STRING std::basic_string<char,std::char_traits<char>,gc_allocator<char> >

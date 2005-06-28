@@ -15,9 +15,10 @@
 #include "entry.h"
 #include "import.h"
 #include "runtime.h"
-#include "cast.h"
 #include "types.h"
 #include "pair.h"
+
+#include "castop.h"
 #include "mathop.h"
 #include "arrayop.h"
 #include "pow.h"
@@ -33,6 +34,12 @@ using camp::transform;
 using vm::bltin;
 using run::divide;
 using mem::string;
+
+#if 0
+const char *INIT_ID="initializer";
+const char *ECAST_ID="ecast";
+const char *CAST_ID="cast";
+#endif
 
 // The base environments for built-in types and functions
 void base_tenv(tenv &ret)
@@ -54,9 +61,9 @@ void base_tenv(tenv &ret)
 }
 
 // Macro to make a function.
-void addFunc(venv &ve, access *a, ty *result, const char *name, 
-             ty *t1 = 0, ty *t2 = 0, ty *t3 = 0, ty* t4 = 0,
-             ty *t5 = 0, ty *t6 = 0, ty *t7 = 0, ty *t8 = 0)
+inline void addFunc(venv &ve, access *a, ty *result, symbol *name,
+		    ty *t1 = 0, ty *t2 = 0, ty *t3 = 0, ty* t4 = 0,
+		    ty *t5 = 0, ty *t6 = 0, ty *t7 = 0, ty *t8 = 0)
 {
   function *fun = new function(result);
 
@@ -71,7 +78,14 @@ void addFunc(venv &ve, access *a, ty *result, const char *name,
 
   varEntry *ent = new varEntry(fun, a);
 
-  ve.enter(symbol::trans(name), ent);
+  ve.enter(name, ent);
+}
+
+inline void addFunc(venv &ve, access *a, ty *result, const char *name, 
+		    ty *t1 = 0, ty *t2 = 0, ty *t3 = 0, ty* t4 = 0,
+		    ty *t5 = 0, ty *t6 = 0, ty *t7 = 0, ty *t8 = 0)
+{
+  addFunc(ve, a, result, symbol::trans(name), t1, t2, t3, t4, t5, t6, t7, t8);
 }
 
 void addFunc(venv &ve, bltin f, ty *result, const char *name, 
@@ -101,9 +115,111 @@ void addRealFunc2(venv &ve, bltin fcn, const char *name)
   addFunc(ve, fcn, primReal(), name, primReal(), primReal());
 }
 
+void addInitializer(venv &ve, ty *t, access *a)
+{
+  addFunc(ve, a, t, symbol::initsym);
+}
+
+void addInitializer(venv &ve, ty *t, bltin f)
+{
+  access *a = new bltinAccess(f);
+  addInitializer(ve, t, a);
+}
+
+// Specifies that source may be cast to target, but only if an explicit
+// cast expression is used.
+void addExplicitCast(venv &ve, ty *target, ty *source, access *a) {
+  addFunc(ve, a, target, symbol::ecastsym, source);
+}
+
+// Specifies that source may be implicitly cast to target by the
+// function or instruction stores at a.
+void addCast(venv &ve, ty *target, ty *source, access *a) {
+  //addExplicitCast(target,source,a);
+  addFunc(ve, a, target, symbol::castsym, source);
+}
+
+void addExplicitCast(venv &ve, ty *target, ty *source, bltin f) {
+  addExplicitCast(ve, target, source, new bltinAccess(f));
+}
+
+void addCast(venv &ve, ty *target, ty *source, bltin f) {
+  addCast(ve, target, source, new bltinAccess(f));
+}
+
 // The identity access, i.e. no instructions are encoded for a cast or
 // operation, and no functions are called.
 identAccess id;
+
+void addInitializers(venv &ve)
+{
+  addInitializer(ve, primBoolean(), run::boolFalse);
+  addInitializer(ve, primInt(), run::intZero);
+  addInitializer(ve, primReal(), run::realZero);
+
+  addInitializer(ve, primString(), run::emptyString);
+  addInitializer(ve, primPair(), run::pairZero);
+  addInitializer(ve, primTransform(), run::transformIdentity);
+  addInitializer(ve, primGuide(), run::nullGuide);
+  addInitializer(ve, primPath(), run::nullPath);
+  addInitializer(ve, primPen(), run::newPen);
+  addInitializer(ve, primPicture(), run::nullFrame);
+  addInitializer(ve, primFile(), run::nullFile);
+}
+
+void addCasts(venv &ve)
+{
+  addExplicitCast(ve, primString(), primInt(), run::stringCast<int>);
+  addExplicitCast(ve, primString(), primReal(), run::stringCast<double>);
+  addExplicitCast(ve, primString(), primPair(), run::stringCast<pair>);
+  addExplicitCast(ve, primInt(), primString(), run::castString<int>);
+  addExplicitCast(ve, primReal(), primString(), run::castString<double>);
+  addExplicitCast(ve, primPair(), primString(), run::castString<pair>);
+
+  addExplicitCast(ve, primInt(), primReal(), run::cast<double,int>);
+
+  addCast(ve, primReal(), primInt(), run::cast<int,double>);
+  addCast(ve, primPair(), primInt(), run::cast<int,pair>);
+  addCast(ve, primPair(), primReal(), run::cast<double,pair>);
+  
+  addCast(ve, primPath(), primPair(), run::cast<pair,path>);
+  addCast(ve, primGuide(), primPair(), run::pairToGuide);
+  addCast(ve, primGuide(), primPath(), run::pathToGuide);
+  addCast(ve, primPath(), primGuide(), run::guideToPath);
+
+  addCast(ve, primPen(), primReal(), run::lineWidth);
+  
+  addCast(ve, primBoolean(), primFile(), run::read<bool>);
+  addCast(ve, primInt(), primFile(), run::read<int>);
+  addCast(ve, primReal(), primFile(), run::read<double>);
+  addCast(ve, primPair(), primFile(), run::read<pair>);
+  addCast(ve, primString(), primFile(), run::read<string>);
+
+  // Vectorized casts.
+  addExplicitCast(ve, intArray(), realArray(), run::arrayToArray<double,int>);
+  
+  addCast(ve, realArray(), intArray(), run::arrayToArray<int,double>);
+  addCast(ve, pairArray(), intArray(), run::arrayToArray<int,pair>);
+  addCast(ve, pairArray(), realArray(), run::arrayToArray<double,pair>);
+  
+  addCast(ve, boolArray(), primFile(), run::readArray<bool>);
+  addCast(ve, intArray(), primFile(), run::readArray<int>);
+  addCast(ve, realArray(), primFile(), run::readArray<double>);
+  addCast(ve, pairArray(), primFile(), run::readArray<pair>);
+  addCast(ve, stringArray(), primFile(), run::readArray<string>);
+  
+  addCast(ve, boolArray2(), primFile(), run::readArray<bool>);
+  addCast(ve, intArray2(), primFile(), run::readArray<int>);
+  addCast(ve, realArray2(), primFile(), run::readArray<double>);
+  addCast(ve, pairArray2(), primFile(), run::readArray<pair>);
+  addCast(ve, stringArray2(), primFile(), run::readArray<string>);
+  
+  addCast(ve, boolArray3(), primFile(), run::readArray<bool>);
+  addCast(ve, intArray3(), primFile(), run::readArray<int>);
+  addCast(ve, realArray3(), primFile(), run::readArray<double>);
+  addCast(ve, pairArray3(), primFile(), run::readArray<pair>);
+  addCast(ve, stringArray3(), primFile(), run::readArray<string>);
+}
 
 void addGuideOperators(venv &ve)
 {
@@ -112,14 +228,14 @@ void addGuideOperators(venv &ve)
   addFunc(ve, run::dotsGuide, primGuide(), "..", guideArray());
   addFunc(ve, run::dashesGuide, primGuide(), "--", guideArray());
 
-  addFunc(ve, run::cycleGuide, primGuide(), "cycle");
-  addFunc(ve, run::dirSpec, primGuide(), "<spec>",
+  addFunc(ve, run::cycleGuide, primGuide(), "operator cycle");
+  addFunc(ve, run::dirSpec, primGuide(), "operator spec",
           primPair(), primInt());
-  addFunc(ve, run::curlSpec, primGuide(), "curl",
+  addFunc(ve, run::curlSpec, primGuide(), "operator curl",
           primReal(), primInt());
-  addFunc(ve, run::realRealTension, primGuide(), "tension",
+  addFunc(ve, run::realRealTension, primGuide(), "operator tension",
           primReal(), primReal(), primBoolean());
-  addFunc(ve, run::pairPairControls, primGuide(), "controls",
+  addFunc(ve, run::pairPairControls, primGuide(), "operator controls",
           primPair(), primPair());
 }
 
@@ -300,6 +416,8 @@ double pow10(double x) {return pow(10.0,x);}
 // NOTE: We should move all of these into a "builtin" module.
 void base_venv(venv &ve)
 {
+  addInitializers(ve);
+  addCasts(ve);
   addOperators(ve);
   addGuideOperators(ve);
 

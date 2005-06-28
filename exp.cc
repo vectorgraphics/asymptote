@@ -11,6 +11,7 @@
 #include "errormsg.h"
 #include "runtime.h"
 #include "coenv.h"
+#include "application.h"
 #include "dec.h"
 #include "stm.h"
 #include "inst.h"
@@ -22,10 +23,22 @@ using namespace types;
 using namespace trans;
 using vm::inst;
 
-void exp::transCall(coenv &e, types::ty *target)
+
+void definit::prettyprint(ostream &out, int indent)
 {
-    trans(e, target);
-    e.c.encode(inst::popcall);
+  prettyname(out, "definit",indent);
+}
+
+void definit::transToType(coenv &e, types::ty *target)
+{
+  access *a=e.e.lookupInitializer(target);
+
+  if (a)
+    a->encodeCall(getPos(), e.c);
+  else {
+    em->error(getPos());
+    *em << "no default initializer for type '" << *target << "'";
+  }
 }
 
 void arrayinit::prettyprint(ostream &out, int indent)
@@ -33,10 +46,19 @@ void arrayinit::prettyprint(ostream &out, int indent)
   prettyname(out, "arrayinit",indent);
 
   for (list<varinit *>::iterator p = inits.begin(); p != inits.end(); ++p)
-    (*p)->prettyprint(out, indent+1);
+    (*p)->prettyprint(out, indent+2);
+  if (rest)
+    rest->prettyprint(out, indent+1);
 }
 
-void arrayinit::trans(coenv &e, types::ty *target)
+void arrayinit::transMaker(coenv &e, int size, bool rest) {
+  // Push the number of cells and call the array maker.
+  e.c.encode(inst::intpush, size);
+  e.c.encode(inst::builtin, rest ? run::newAppendedArray :
+                                   run::newInitializedArray);
+}
+
+void arrayinit::transToType(coenv &e, types::ty *target)
 {
   types::ty *celltype;
   if (target->kind != types::ty_array) {
@@ -47,14 +69,15 @@ void arrayinit::trans(coenv &e, types::ty *target)
   else {
     celltype = ((types::array *)target)->celltype;
   }
-  
+
   // Push the values on the stack.
   for (list<varinit *>::iterator p = inits.begin(); p != inits.end(); ++p)
-    (*p)->trans(e, celltype);
+    (*p)->transToType(e, celltype);
 
-  // Push the number of cells and call the array maker.
-  e.c.encode(inst::intpush,(int)inits.size());
-  e.c.encode(inst::builtin, run::newInitializedArray);
+  if (rest)
+    rest->transToType(e, target);
+  
+  transMaker(e, (int)inits.size(), (bool)rest);
 }
 
 
@@ -63,10 +86,50 @@ void exp::prettyprint(ostream &out, int indent)
   prettyname(out, "exp",indent);
 }
 
-void exp::trans(coenv &e, types::ty *target)
+void exp::transAsType(coenv &e, types::ty *target) {
+  types::ty *t=trans(e);
+  assert(t->kind==ty_error || equivalent(t,target));
+}
+
+void exp::transToType(coenv &e, types::ty *target)
 {
-  // Defer to context-less translation.
-  e.implicitCast(getPos(), target, trans(e));
+  types::ty *source=e.e.castSource(target, cgetType(e), symbol::castsym);
+  if (source==0) {
+    em->error(getPos());
+    *em << "cannot cast expression to '" << *target << "'";
+  }
+  else if (source->kind==ty_overloaded) {
+    em->error(getPos());
+    *em << "expression is ambiguous in cast to '" << *target << "'";
+  }
+  else {
+    transAsType(e, source);
+    e.implicitCast(getPos(), target, source);
+  }
+}
+
+void exp::transCall(coenv &e, types::ty *target)
+{
+    transAsType(e, target);
+    e.c.encode(inst::popcall);
+}
+
+exp *exp::evaluate(coenv &e, types::ty *target) {
+  return new tempExp(e, this, target);
+}
+
+
+tempExp::tempExp(coenv &e, varinit *v, types::ty *t)
+  : exp(v->getPos()), a(e.c.allocLocal()), t(t)
+{
+  v->transToType(e, t);
+  a->encodeWrite(getPos(), e.c);
+  e.c.encode(inst::pop);
+}
+
+types::ty *tempExp::trans(coenv &e) {
+  a->encodeRead(getPos(), e.c);
+  return t;
 }
 
 
@@ -89,7 +152,7 @@ void fieldExp::prettyprint(ostream &out, int indent)
 record *fieldExp::getRecord(types::ty *t)
 {
   if (t->kind == ty_overloaded) {
-    t = ((overloaded *)t)->resolve(0);
+    t = ((overloaded *)t)->signatureless();
     if (!t) {
       return 0;
     }
@@ -109,7 +172,7 @@ types::ty *fieldExp::getObject(coenv& e)
 {
   types::ty *t = object->cgetType(e);
   if (t->kind == ty_overloaded) {
-    t=((overloaded *)t)->resolve(0);
+    t=((overloaded *)t)->signatureless();
     if(!t) return primError();
   }
   return t;
@@ -117,7 +180,7 @@ types::ty *fieldExp::getObject(coenv& e)
 
 record *fieldExp::transRecord(coenv &e, types::ty *t)
 {
-  object->trans(e, t);
+  object->transAsType(e, t);
 
   switch(t->kind) {
     case ty_record:
@@ -131,43 +194,32 @@ record *fieldExp::transRecord(coenv &e, types::ty *t)
   }
 }
 
-void fieldExp::trans(coenv &e, types::ty *target)
+void fieldExp::transAsType(coenv &e, types::ty *target)
 {
   types::ty *ot = getObject(e);
-#if 0
-  if (ot->kind == ty_error) {
-    em->error(getPos());
-    *em << "expression is not a structure";
-    return;
-  }
-#endif
   
   varEntry *v = ot->virtualField(field, target->getSignature());
   if (v) {
     // Push object onto stack.
-    object->trans(e, ot);
+    object->transAsType(e, ot);
 
     // Call instead of reading as it is a virtual field.
     v->getLocation()->encodeCall(getPos(), e.c);
-    e.implicitCast(getPos(), target, v->getType());
-    return;
-  }
-
-  record *r = transRecord(e, ot);
-  if (!r)
-    return;
-
-  v = r->lookupExactVar(field, target->getSignature());
-
-  if (v) {
-    access *loc = v->getLocation();
-    loc->encodeRead(getPos(), e.c, r->getLevel());
-    e.implicitCast(getPos(), target, v->getType());
   }
   else {
-    em->error(getPos());
-    *em << "no matching field of name '" << *field
-        << "' in type '" << *r << "'";
+    record *r = transRecord(e, ot);
+    if (!r)
+      return;
+
+    //varEntry *v = r->lookupExactVar(field, target->getSignature());
+    varEntry *v = r->lookupVarByType(field, target);
+    if (v)
+      v->getLocation()->encodeRead(getPos(), e.c, r->getLevel());
+    else {
+      em->error(getPos());
+      *em << "no matching field of name '" << *field
+          << "' in type '" << *r << "'";
+    }
   }
 }
 
@@ -187,7 +239,7 @@ types::ty *fieldExp::trans(coenv &e)
     return primError();
   }
   else {
-    trans(e, t);
+    transAsType(e, t);
     return t;
   }
 }
@@ -218,7 +270,7 @@ void fieldExp::transWrite(coenv &e, types::ty *target)
   varEntry *v = ot->virtualField(field, target->getSignature());
   if (v) {
     // Push qualifier onto stack.
-    object->trans(e, ot);
+    object->transAsType(e, ot);
     
     em->error(getPos());
     *em << "virtual field '" << *field << "' of '" << *ot
@@ -229,7 +281,8 @@ void fieldExp::transWrite(coenv &e, types::ty *target)
   if (!r)
     return;
 
-  v = r->lookupExactVar(field, target->getSignature());
+  //v = r->lookupExactVar(field, target->getSignature());
+  v = r->lookupVarByType(field, target);
 
   if (v) {
     access *loc = v->getLocation();
@@ -250,7 +303,7 @@ void fieldExp::transCall(coenv &e, types::ty *target)
   varEntry *v = ot->virtualField(field, target->getSignature());
   if (v) {
     // Push object onto stack.
-    object->trans(e, ot);
+    object->transAsType(e, ot);
     
     // Call instead of reading as it is a virtual field.
     v->getLocation()->encodeCall(getPos(), e.c);
@@ -267,7 +320,8 @@ void fieldExp::transCall(coenv &e, types::ty *target)
   if (!r)
     return;
 
-  v = r->lookupExactVar(field, target->getSignature());
+  //v = r->lookupExactVar(field, target->getSignature());
+  v = r->lookupVarByType(field, target);
 
   if (v) {
     access *loc = v->getLocation();
@@ -294,7 +348,7 @@ array *subscriptExp::getArrayType(coenv &e)
 {
   types::ty *a = set->cgetType(e);
   if (a->kind == ty_overloaded) {
-    a = ((overloaded *)a)->resolve(0);
+    a = ((overloaded *)a)->signatureless();
     if (!a)
       return 0;
   }
@@ -313,7 +367,7 @@ array *subscriptExp::transArray(coenv &e)
 {
   types::ty *a = set->cgetType(e);
   if (a->kind == ty_overloaded) {
-    a = ((overloaded *)a)->resolve(0);
+    a = ((overloaded *)a)->signatureless();
     if (!a) {
       em->error(set->getPos());
       *em << "expression is not an array";
@@ -321,7 +375,7 @@ array *subscriptExp::transArray(coenv &e)
     }
   }
 
-  set->trans(e, a);
+  set->transAsType(e, a);
 
   switch (a->kind) {
     case ty_array:
@@ -335,36 +389,40 @@ array *subscriptExp::transArray(coenv &e)
   }
 }
 
+// Checks if the expression can be translated as an array.
+bool isAnArray(coenv &e, exp *x)
+{
+  types::ty *t=x->cgetType(e);
+  if (t->kind == ty_overloaded)
+    t=dynamic_cast<overloaded *>(t)->signatureless();
+  return t && t->kind==ty_array;
+}
+
 types::ty *subscriptExp::trans(coenv &e)
 {
   array *a = transArray(e);
   if (!a)
     return primError();
 
-  types::ty *t=index->cgetType(e);
-  if(t->kind == ty_array) {
-    index->trans(e, types::intArray());
+  if (isAnArray(e, index)) {
+    index->transToType(e, types::intArray());
     e.c.encode(inst::builtin, run::arrayIntArray);
     return getArrayType(e);
   }
-     
-  index->trans(e, types::primInt());
-  if(a->celltype->kind == ty_array)
-    e.c.encode(inst::builtin, run::arrayArrayRead);
-  else e.c.encode(inst::builtin, run::arrayRead);
-
-  return a->celltype;
+  else {
+    index->transToType(e, types::primInt());
+    e.c.encode(inst::builtin,
+               a->celltype->kind==ty_array ? run::arrayArrayRead :
+                                             run::arrayRead);
+    return a->celltype;
+  }
 }
 
 types::ty *subscriptExp::getType(coenv &e)
 {
-  types::ty *t=index->cgetType(e);
   array *a = getArrayType(e);
-  
-  if(t->kind == ty_array)
-    return a ? a : primError();
-  
-  return a ? a->celltype : primError();
+  return a ? (isAnArray(e, index) ? a : a->celltype) :
+             primError();
 }
      
 void subscriptExp::transWrite(coenv &e, types::ty *t)
@@ -372,10 +430,9 @@ void subscriptExp::transWrite(coenv &e, types::ty *t)
   array *a = transArray(e);
   if (!a)
     return;
+  assert(equivalent(a->celltype, t));
 
-  e.implicitCast(getPos(), a->celltype, t);
-
-  index->trans(e, types::primInt());
+  index->transToType(e, types::primInt());
   e.c.encode(inst::builtin, run::arrayWrite);
 }
 
@@ -424,15 +481,7 @@ types::ty *scaleExp::trans(coenv &e)
   }
 
   // Defer to the binaryExp for multiplication.
-  binaryExp b(getPos(), left, symbol::trans("*"), right);
-  return b.trans(e);
-}
-
-types::ty *scaleExp::getType(coenv &e)
-{
-  // Defer to the binaryExp for multiplication.
-  binaryExp b(getPos(), left, symbol::trans("*"), right);
-  return b.cgetType(e);
+  return binaryExp::trans(e);
 }
 
 
@@ -534,22 +583,25 @@ void explist::prettyprint(ostream &out, int indent)
     (*p)->prettyprint(out, indent+1);
 }
 
-types::ty *explist::trans(coenv &e, int index)
+
+void argument::prettyprint(ostream &out, int indent)
 {
-  assert((unsigned)index < exps.size());
-  return exps[index]->trans(e);
+  prettyindent(out, indent);
+  out << "explist";
+  if (name)
+    out << " '" << *name << "'";
+  out << endl;
+
+  val->prettyprint(out, indent+1);
 }
 
-void explist::trans(coenv &e, types::ty *target, int index)
-{
-  assert((unsigned)index < exps.size());
-  exps[index]->trans(e, target);
-}
 
-types::ty *explist::getType(coenv &e, int index)
+void arglist::prettyprint(ostream &out, int indent)
 {
-  assert((unsigned)index < exps.size());
-  return exps[index]->cgetType(e);
+  prettyname(out, "arglist",indent);
+  for (argvector::iterator p = args.begin();
+       p != args.end(); ++p)
+    p->prettyprint(out, indent+1);
 }
 
 
@@ -563,137 +615,180 @@ void callExp::prettyprint(ostream &out, int indent)
 
 signature *callExp::argTypes(coenv &e)
 {
-  signature *sig=new signature;
+  signature *source=new signature;
 
   size_t n = args->size();
   for (size_t i = 0; i < n; i++) {
-    types::ty *t = args->getType(e,(int) i);
+    argument a=(*args)[i];
+    types::ty *t = a.val->cgetType(e);
     if (t->kind == types::ty_error)
       return 0;
-    sig->add(t);
+    source->add(types::formal(t,a.name));
   }
 
-  return sig;
+  if (args->rest.val) {
+    argument a=args->rest;
+    types::ty *t = a.val->cgetType(e);
+    if (t->kind == types::ty_error)
+      return 0;
+    source->addRest(types::formal(t,a.name));
+  }
+
+  return source;
 }
 
-types::ty *callExp::trans(coenv &e)
+application *callExp::resolve(coenv &e, overloaded *o, signature *source) {
+  app_list l=multimatch(e.e, o, source, *args);
+
+  if (l.empty()) {
+    //cerr << "l is empty\n";
+    em->error(getPos());
+    symbol *s = callee->getName();
+    if (s)
+      *em << "no matching function \'" << *s << *source << "\'";
+    else
+      *em << "no matching function for signature \'" << *source << "\'";
+    return 0;
+  }
+  else if (l.size() > 1) { // This may take O(n) time.
+    //cerr << "l is full\n";
+    em->error(getPos());
+    *em << "call with signature \'" << *source << "\' is ambiguous";
+    return 0;
+  }
+  else {
+    //cerr << "l is singleton\n";
+    return l.front();
+  }
+}
+
+
+void callExp::reportMismatch(symbol *s, function *ft, signature *source)
+{
+  const char *separator=ft->getSignature()->getNumFormals() > 1 ? "\n" : " ";
+
+  em->error(getPos());
+  *em << "cannot call" << separator << "'" << *ft->getResult() << " ";
+  if(s)
+    *em << *s;
+  *em << *ft->getSignature() << "'" << separator;
+
+  switch(source->getNumFormals()) {
+    case 0:
+      *em << "without parameters";
+      break;
+    case 1:
+      *em << "with parameter '" << *source << "'";
+      break;
+    default:
+      *em << "with parameters\n'" << *source << "'";
+  }
+}
+
+application *callExp::getApplication(coenv &e)
 {
   // First figure out the signature of what we want to call.
-  signature *sig=argTypes(e);
+  signature *source=argTypes(e);
 
-  if (!sig) {
+  if (!source) {
     // Cycle through the parameters to report all errors.
     // NOTE: This may report inappropriate ambiguity errors. 
     for (size_t i = 0; i < args->size(); i++) {
-      args->trans(e,(int) i);
+      (*args)[i].val->trans(e);
     }
-    return types::primError();
+    return 0;
   }
 
   // Figure out what function types we can call.
   trans::ty *ft = callee->cgetType(e);
-  if (ft->kind == ty_error) {
-    return callee->trans(e);
+  switch (ft->kind) {
+    case ty_error:
+      // Report callee errors.
+      //cerr << "reporting callee errors\n";
+      callee->trans(e);
+      return 0;
+    case ty_function: {
+      application *a=application::match(e.e, (function *)ft, source, *args);
+      if (!a) {
+        //cerr << "reporting mismatch\n";
+        reportMismatch(callee->getName(), (function *)ft, source);
+      }
+      //cerr << "returning function\n";
+      return a;
+    } 
+    case ty_overloaded:
+      //cerr << "resolving overloaded\n";
+      return resolve(e, (overloaded *)ft, source);
+    default:
+      //cerr << "not a function\n";
+      em->error(getPos());
+      symbol *s = callee->getName();
+      if (s)
+        *em << "\'" << *s << "\' is not a function";
+      else
+        *em << "called expression is not a function";
+      return 0;
   }
-  if (ft->kind == ty_overloaded) {
-    ft = ((overloaded *)ft)->resolve(sig);
-  }
+}
 
-  if (ft == 0) {
-    em->error(getPos());
-    symbol *s = callee->getName();
-    if (s)
-      *em << "no matching function \'" << *s << *sig << "\'";
-    else
-      *em << "no matching function for signature \'" << *sig << "\'";
-    return primError();
-  }
-  else if (ft->kind == ty_overloaded) {
-    em->error(getPos());
-    *em << "call with signature \'" << *sig << "\' is ambiguous";
-    return primError();
-  }
-  else if (ft->kind != ty_function) {
-    em->error(getPos());
-    symbol *s = callee->getName();
-    if (s)
-      *em << "\'" << *s << "\' is not a function";
-    else
-      *em << "called expression is not a function";
-    return primError();
-  }
-  else if (!castable(ft->getSignature(), sig)) {
-    em->error(getPos());
-    const char *separator=ft->getSignature()->getNumFormals() > 1 ? "\n" : " ";
-    symbol *s=callee->getName();
-    *em << "cannot call" << separator << "'" 
-	<< *((function *) ft)->getResult() << " ";
-    if(s) *em << *s;
-    *em << *ft->getSignature() << "'" << separator;
-    switch(sig->getNumFormals()) {
-      case 0:
-        *em << "without parameters";
-        break;
-      case 1:
-        *em << "with parameter '" << *sig << "'";
-        break;
-      default:
-        *em << "with parameters\n'" << *sig << "'";
-    }
-    return primError();
-  }
+types::ty *callExp::trans(coenv &e)
+{
+#if 0
+  cerr << "callExp::trans() called for ";
+  if (callee->getName())
+    cerr << *callee->getName();
+  cerr << endl;
+#endif
 
-  // We have a winner.
-  signature *real_sig = ft->getSignature();
-  assert(real_sig);
+  application *a= ca ? ca : getApplication(e);
+  
+  if (!a)
+    return primError();
 
-  int m = real_sig->getNumFormals();
-  int n = (int) args->size();
- 
-  // Put the arguments on the stack. 
-  for (int i = 0, j = 0; i < m; i++) {
-    if (j < n && (real_sig->getExplicit(i) ? 
-		  equivalent(real_sig->getFormal(i), args->getType(e,j)) :
-		  castable(real_sig->getFormal(i), args->getType(e,j)))) {
-      // Argument given
-      args->trans(e, real_sig->getFormal(i), j);
-      j++;
-    } else { // Use default value instead
-      varinit *def=real_sig->getDefault(i);
-      assert(def);
-      def->trans(e, real_sig->getFormal(i));
-    }
-  }
+  // To simulate left-to-right order of evaluation, produce the side-effects for
+  // the callee.
+  assert(a);
+  function *t=a->getType();
+  assert(t);
+  exp *temp=callee->evaluate(e, t);
+
+  // Let the application handle the argument translation.
+  a->transArgs(e);
 
   // Translate the call.
-  callee->transCall(e, ft);
+  temp->transCall(e, t);
 
-  return ((function *)ft)->result;
+  assert(ct==0 || equivalent(ct, t->result));
+  return t->result;
 }
 
 types::ty *callExp::getType(coenv &e)
 {
   // First figure out the signature of what we want to call.
-  signature *sig=argTypes(e);
-  if (!sig) {
+  signature *source=argTypes(e);
+  if (!source)
     return types::primError();
-  }
 
   // Figure out what function types we can call.
   trans::ty *ft = callee->cgetType(e);
-  if (ft->kind == ty_error) {
-    return primError();
-  }
-  if (ft->kind == ty_overloaded) {
-    ft = ((overloaded *)ft)->resolve(sig);
-  }
 
-  if (ft == 0 || ft->kind != ty_function) {
-    return primError();
-  }
+  switch (ft->kind) {
+    case ty_function:
+      return ((function *)ft)->result;
+    case ty_overloaded: {
+      app_list l=multimatch(e.e, (overloaded *)ft, source, *args);
 
-  // We have a winner.
-  return ((function *)ft)->result;
+      if (l.size()==1) {
+        // Cache the application to avoid calling multimatch again later.
+        ca=l.front();
+        return ca->getType()->result;
+      }
+      else
+        return primError();
+    }
+    default:
+      return primError();
+  }
 }
     
 void pairExp::prettyprint(ostream &out, int indent)
@@ -706,11 +801,8 @@ void pairExp::prettyprint(ostream &out, int indent)
 
 types::ty *pairExp::trans(coenv &e)
 {
-  types::ty *xt = x->trans(e);
-  e.implicitCast(x->getPos(), types::primReal(), xt);
-  
-  types::ty *yt = y->trans(e);
-  e.implicitCast(y->getPos(), types::primReal(), yt);
+  x->transToType(e, types::primReal());
+  y->transToType(e, types::primReal());
 
   e.c.encode(inst::builtin, run::realRealToPair);
 
@@ -746,27 +838,39 @@ void castExp::prettyprint(ostream &out, int indent)
   castee->prettyprint(out, indent+1);
 }
 
-types::ty *castExp::trans(coenv &e)
+types::ty *castExp::tryCast(coenv &e, types::ty *t, types::ty *s,
+                            symbol *csym)
 {
-  types::ty *t = target->typeTrans(e);
-
-  types::ty *source = castee->cgetType(e);
-
-  // Find the source type to actually use.
-  types::ty *intermed = types::explicitCastType(t, source);
-  if (intermed == 0) {
-    em->error(getPos());
-    *em << "cannot cast '" << *source << "' to '" << *target << "'"; 
-    return primError();
+  types::ty *ss=e.e.castSource(t, s, csym);
+  if (ss == 0) {
+    return 0;
   }
-  else if (intermed->kind == ty_overloaded) {
-    // NOTE: I can't see how this situation could arise.
+  if (ss->kind == ty_overloaded) {
     em->error(getPos());
     *em << "cast is ambiguous";
+    return primError();
   }
+  else {
+    castee->transAsType(e, ss);
 
-  castee->trans(e, intermed);
-  e.explicitCast(getPos(), t, intermed);
+    access *a=e.e.lookupCast(t, ss, csym);
+    assert(a);
+    a->encodeCall(getPos(), e.c);
+    return ss;
+  }
+}
+
+types::ty *castExp::trans(coenv &e)
+{
+  types::ty *t= target->typeTrans(e);
+
+  types::ty *s = castee->cgetType(e);
+
+  if (!tryCast(e, t, s, symbol::ecastsym))
+    if (!tryCast(e, t, s, symbol::castsym)) {
+      em->error(getPos());
+      *em << "cannot cast '" << *s << "' to '" << *t << "'";
+    }
 
   return t;
 }
@@ -775,165 +879,6 @@ types::ty *castExp::getType(coenv &e)
 {
   return target->typeTrans(e, true);
 }
-
-#if 0
-void binaryExp::prettyprint(ostream &out, int indent)
-{
-  prettyindent(out, indent);
-  out << "binaryExp '" << *op << "'\n";
-
-  left->prettyprint(out, indent+1);
-  right->prettyprint(out, indent+1);
-}
-
-types::ty *binaryExp::trans(coenv &e)
-{
-  /* The conditional && and || need jumps in the translated code in
-   * order to conditionally evaluate their operands (not done for arrays).
-   */
-  types::ty *t1 = left->getType(e), *t2 = right->getType(e);
-  if (t1->kind != ty_array && t2->kind != ty_array) {
-    if (op == symbol::trans("&&")) {
-      left->trans(e, primBoolean());
-
-      int second = e.c.fwdLabel();
-      e.c.useLabel(inst::cjmp,second);
-      e.c.encode(inst::constpush,(item)false);
-
-      int end = e.c.fwdLabel();
-      e.c.useLabel(inst::jmp,end);
-    
-      e.c.defLabel(second);
-
-      right->trans(e, primBoolean());
-
-      e.c.defLabel(end);
-      return types::primBoolean();
-    }
-    else if (op == symbol::trans("||")) {
-      left->trans(e, primBoolean());
-
-      int pushtrue = e.c.fwdLabel();
-      e.c.useLabel(inst::cjmp,pushtrue);
-
-      right->trans(e, primBoolean());
-
-      int end = e.c.fwdLabel();
-      e.c.useLabel(inst::jmp,end);
-
-      e.c.defLabel(pushtrue);
-      e.c.encode(inst::constpush,(item)true);
-
-      e.c.defLabel(end);
-      return types::primBoolean();
-    }
-  }
-  
-  if (t1->kind == ty_error ||
-      t2->kind == ty_error)
-  {
-    left->trans(e);
-    right->trans(e);
-    return primError();
-  }
-  
-  signature sig;
-  sig.add(t1);
-  sig.add(t2);
-
-  // Figure out what function types we have for this operator.
-  trans::ty *ft = e.e.varGetType(op);
-  if (ft == 0) {
-    em->error(getPos());
-    *em << "no matching operation \'" << *op << "\'";
-    return primError();
-  }
-  if (ft->kind == ty_error) {
-    return primError();
-  }
-  if (ft->kind == ty_overloaded) {
-    // NOTE: Change to "promoteResolve" or something for operators.
-    ft = ((overloaded *)ft)->resolve(&sig);
-  }
-
-  if (ft == 0) {
-    em->error(getPos());
-    *em << "no matching operation \'" << *op << "\'";
-    return primError();
-  }
-  else if (ft->kind == ty_overloaded) {
-    em->error(getPos());
-    *em << "operation \'" << *op << "\' is ambiguous";
-    return primError();
-  }
-  else if (!castable(ft->getSignature(), &sig)) {
-    em->error(getPos());
-    *em << "no operation \'" << *t1 << "\' \'" << *op << "\' \'" << *t2 
-	<< "\'";
-    return primError();
-  }
-
-  // We have a winner.
-  signature *real_sig = ft->getSignature();
-  assert(real_sig);
-
-  if (real_sig->getNumFormals() != 2) {
-    em->compiler(getPos());
-    *em << "default values used with operator";
-    return primError();
-  }
- 
-  // Put the arguments on the stack. 
-  left->trans(e, real_sig->getFormal(0));
-  right->trans(e, real_sig->getFormal(1));
-
-  // Call the operator.
-  varEntry *v = e.e.lookupExactVar(op, real_sig);
-  v->getLocation()->encodeCall(getPos(), e.c);
-
-  return ((function *)ft)->result;
-}
-
-types::ty *binaryExp::getType(coenv &e)
-{
-  /* The conditional && and || need jumps in the translated code in
-   * order to conditionally evaluate their operands (not done for arrays).
-   */
-  types::ty *t1 = left->cgetType(e), *t2 = right->cgetType(e);
-  if ((op == symbol::trans("&&") ||
-       op == symbol::trans("||")) && 
-      t1->kind != ty_array && t2->kind != ty_array) {
-    return primBoolean();
-  }
-
-  if (t1->kind == ty_error ||
-      t2->kind == ty_error)
-  {
-    return primError();
-  }
-  
-  signature sig;
-  sig.add(t1);
-  sig.add(t2);
-
-  // Figure out what function types we have for this operator.
-  trans::ty *ft = e.e.varGetType(op);
-  if (ft == 0 || ft->kind == ty_error) {
-    return primError();
-  }
-  if (ft->kind == ty_overloaded) {
-    // NOTE: Change to "promoteResolve" or something for operators.
-    ft = ((overloaded *)ft)->resolve(&sig);
-  }
-
-  if (ft == 0 || ft->kind == ty_overloaded) {
-    return primError();
-  }
-  else {
-    return ((function *)ft)->result;
-  }
-}
-#endif
 
 
 void conditionalExp::prettyprint(ostream &out, int indent)
@@ -945,38 +890,80 @@ void conditionalExp::prettyprint(ostream &out, int indent)
   onFalse->prettyprint(out, indent+1);
 }
 
-void conditionalExp::trans(coenv &e, types::ty *target)
+void conditionalExp::transToType(coenv &e, types::ty *target)
 {
-  types::ty *t=test->cgetType(e);
-  if(t->kind == ty_array && ((array *)t)->celltype == primBoolean()) {
-    if(target->kind == ty_array) {
-      test->trans(e, types::boolArray());
-      onTrue->trans(e, target);
-      onFalse->trans(e, target);
-      e.c.encode(inst::builtin, run::arrayConditional);
-      return;
+  if (isAnArray(e, test)) {
+    if (target->kind != ty_array) {
+      em->error(getPos());
+      *em << "cannot cast vectorized conditional to '" << target << "'";
     }
+    test->transToType(e, types::boolArray());
+    onTrue->transToType(e, target);
+    onFalse->transToType(e, target);
+    e.c.encode(inst::builtin, run::arrayConditional);
   }
-  
-  test->trans(e, types::primBoolean());
+  else {
+    test->transToType(e, types::primBoolean());
 
-  int tlabel = e.c.fwdLabel();
-  e.c.useLabel(inst::cjmp,tlabel);
+    int tlabel = e.c.fwdLabel();
+    e.c.useLabel(inst::cjmp,tlabel);
 
-  onFalse->trans(e, target);
+    onFalse->transToType(e, target);
 
-  int end = e.c.fwdLabel();
-  e.c.useLabel(inst::jmp,end);
+    int end = e.c.fwdLabel();
+    e.c.useLabel(inst::jmp,end);
 
-  e.c.defLabel(tlabel);
-  onTrue->trans(e, target);
+    e.c.defLabel(tlabel);
+    onTrue->transToType(e, target);
 
-  e.c.defLabel(end);
+    e.c.defLabel(end);
+  }
+}
+
+types::ty *promote(coenv &e, types::ty *x, types::ty *y)
+{
+  struct promoter : public collector {
+    env &e;
+
+    promoter(env &e)
+      : e(e) {}
+
+    types::ty *both (types::ty *x, types::ty *y) {
+      overloaded *o=new overloaded;
+      o->add(x); o->add(y);
+      return o;
+    }
+
+    types::ty *base (types::ty *x, types::ty *y) {
+      if (equivalent(x,y))
+        return x;
+      else {
+        bool castToFirst=e.castable(x, y, symbol::castsym);
+        bool castToSecond=e.castable(y, x, symbol::castsym);
+
+        return (castToFirst && castToSecond) ? both(x,y) : 
+                                 castToFirst ? x :
+                                castToSecond ? y :
+                                               0;
+      }
+    }
+  };
+
+  promoter p(e.e);
+  return p.collect(x,y);
 }
 
 types::ty *conditionalExp::trans(coenv &e)
 {
-  types::ty *t = promote(onTrue->cgetType(e), onFalse->cgetType(e));
+  types::ty *tt=onTrue->cgetType(e);
+  types::ty *ft=onFalse->cgetType(e);
+
+  if (tt->kind==ty_error)
+    return onTrue->trans(e);
+  if (ft->kind==ty_error)
+    return onFalse->trans(e);
+
+  types::ty *t=promote(e, tt, ft);
   if (!t) {
     em->error(getPos());
     *em << "types in conditional expression do not match";
@@ -988,29 +975,25 @@ types::ty *conditionalExp::trans(coenv &e)
     return primError();
   }
 
-  trans(e,t);
+  transToType(e,t);
   return t;
 }
 
 types::ty *conditionalExp::getType(coenv &e)
 {
-  types::ty *t = promote(onTrue->cgetType(e), onFalse->cgetType(e));
+  types::ty *tt=onTrue->cgetType(e);
+  types::ty *ft=onFalse->cgetType(e);
+  if (tt->kind==ty_error || ft->kind==ty_error)
+    return primError();
+
+  types::ty *t = promote(e, tt, ft);
   return t ? t : primError();
 }
  
 
-// Checks if the expression can be translated as an array.
-bool isAnArray(exp *x, coenv &e)
-{
-  types::ty *t=x->cgetType(e);
-  if (t->kind == ty_overloaded)
-    t=dynamic_cast<overloaded *>(t)->resolve(0);
-  return t && t->kind==ty_array;
-}
-
 types::ty *andOrExp::trans(coenv &e)
 {
-  if (isAnArray(left,e) || isAnArray(right,e)) {
+  if (isAnArray(e,left) || isAnArray(e,right)) {
     binaryExp be(getPos(), left, op, right);
     return be.trans(e);
   }
@@ -1020,7 +1003,7 @@ types::ty *andOrExp::trans(coenv &e)
 
 types::ty *andOrExp::getType(coenv &e)
 {
-  if (isAnArray(left,e) || isAnArray(right,e)) {
+  if (isAnArray(e,left) || isAnArray(e,right)) {
     binaryExp be(getPos(), left, op, right);
     return be.cgetType(e);
   }
@@ -1038,9 +1021,12 @@ void orExp::prettyprint(ostream &out, int indent)
 
 types::ty *orExp::baseTrans(coenv &e)
 {
+  //     a || b
+  // translates into
+  //     a ? true : b
   booleanExp be(pos, true);
   conditionalExp ce(pos, left, &be, right);
-  ce.trans(e, primBoolean());
+  ce.transToType(e, primBoolean());
 
   return baseGetType(e);
 }
@@ -1056,9 +1042,12 @@ void andExp::prettyprint(ostream &out, int indent)
 
 types::ty *andExp::baseTrans(coenv &e)
 {
+  //     a && b
+  // translates into
+  //     a ? b : false
   booleanExp be(pos, false);
   conditionalExp ce(pos, left, right, &be);
-  ce.trans(e, primBoolean());
+  ce.transToType(e, primBoolean());
 
   return cgetType(e);
 }
@@ -1125,22 +1114,25 @@ void assignExp::prettyprint(ostream &out, int indent)
   value->prettyprint(out, indent+1);
 }
 
-void assignExp::trans(coenv &e, types::ty *target)
+void assignExp::transAsType(coenv &e, types::ty *target)
 {
-  value->trans(e, target);
-  dest->transWrite(e, target);
+  // For left-to-right order, we have to evaluate the side-effects of the
+  // destination first.
+  exp *temp=dest->evaluate(e, target);
+  ultimateValue(temp)->transToType(e, target);
+  temp->transWrite(e, target);
 }
 
 types::ty *assignExp::trans(coenv &e)
 {
-  types::ty *lt = dest->cgetType(e), *rt = value->cgetType(e);
+  types::ty *lt = dest->cgetType(e), *rt = ultimateValue(dest)->cgetType(e);
 
   if (lt->kind == ty_error)
     return dest->trans(e);
   if (rt->kind == ty_error)
     return value->trans(e);
 
-  types::ty *t = castType(lt, rt);
+  types::ty *t = e.e.castTarget(lt, rt, symbol::castsym);
   if (!t) {
     em->error(getPos());
     *em << "cannot convert '" << *rt << "' to '" << *lt << "' in assignment";
@@ -1152,18 +1144,21 @@ types::ty *assignExp::trans(coenv &e)
     return primError();
   }
   else {
-    trans(e, t);
+    transAsType(e, t);
     return t;
   }
 }
 
 types::ty *assignExp::getType(coenv &e)
 {
-  types::ty *lt = dest->cgetType(e), *rt = value->cgetType(e);
-  types::ty *t = castType(lt, rt);
+  types::ty *lt = dest->cgetType(e), *rt = ultimateValue(dest)->cgetType(e);
+  if (lt->kind==ty_error || rt->kind==ty_error)
+    return primError();
+  types::ty *t = e.e.castTarget(lt, rt, symbol::castsym);
 
   return t ? t : primError();
 }
+
 
 void selfExp::prettyprint(ostream &out, int indent)
 {
@@ -1174,22 +1169,6 @@ void selfExp::prettyprint(ostream &out, int indent)
   value->prettyprint(out, indent+1);
 }
 
-types::ty *selfExp::trans(coenv &e)
-{
-  // Convert into the operation and the assign.
-  // NOTE: This can cause multiple evaluations.
-  binaryExp be(getPos(), dest, op, value);
-  assignExp ae(getPos(), dest, &be);
-  return ae.trans(e);
-}
-
-types::ty *selfExp::getType(coenv &e)
-{
-  // Convert into the operation and the assign.
-  binaryExp be(getPos(), dest, op, value);
-  assignExp ae(getPos(), dest, &be);
-  return ae.cgetType(e);
-}
 
 void prefixExp::prettyprint(ostream &out, int indent)
 {
@@ -1204,20 +1183,18 @@ types::ty *prefixExp::trans(coenv &e)
   // Convert into the operation and the assign.
   // NOTE: This can cause multiple evaluations.
   intExp ie(getPos(), 1);
-  binaryExp be(getPos(), dest, op, &ie);
-  assignExp ae(getPos(), dest, &be);
+  selfExp se(getPos(), dest, op, &ie);
 
-  return ae.trans(e);
+  return se.trans(e);
 }
 
 types::ty *prefixExp::getType(coenv &e)
 {
   // Convert into the operation and the assign.
   intExp ie(getPos(), 1);
-  binaryExp be(getPos(), dest, op, &ie);
-  assignExp ae(getPos(), dest, &be);
+  selfExp se(getPos(), dest, op, &ie);
 
-  return ae.cgetType(e);
+  return se.getType(e);
 }
 
 void postfixExp::prettyprint(ostream &out, int indent)

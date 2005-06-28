@@ -58,6 +58,7 @@ import *menv::lookupTypeImport(symbol *s, scope_t &scope)
     return 0;
 }
 
+#if 0
 varEntry *menv::lookupExactVar(symbol *s, signature *sig, scope_t &scope)
 {
   // If there is more than one exact match, then the reference to this variable
@@ -82,6 +83,42 @@ varEntry *menv::lookupExactVar(symbol *s, signature *sig, scope_t &scope)
     import *i = p->second;
     if (i == look(p->first)) {
       varEntry *v = i->m->lookupExactVar(s, sig);
+      if (v) {
+	set.add(v->getType());
+	lastVar = v;
+	lastImport = i;
+      }
+    }
+  }
+  
+  ty *ret = set.simplify();
+  if (ret) {
+    if (ret->kind == types::ty_overloaded) {
+      varEntry *v = new varEntry(ret, 0);
+      return v;
+    }
+    else
+      return importedVarEntry(lastVar, lastImport);
+  }
+  else
+    return 0;
+}
+#endif
+
+varEntry *menv::lookupVarByType(symbol *s, ty *t, scope_t &scope)
+{
+  types::overloaded set;
+
+  varEntry *lastVar = 0;
+  import   *lastImport = 0;
+  
+  // Find first applicable function.
+  for(scope_iterator p = scope.begin();
+      p != scope.end() && (*p).second;//XXXX
+      ++p) {
+    import *i = p->second;
+    if (i == look(p->first)) {
+      varEntry *v = i->m->lookupVarByType(s, t);
       if (v) {
 	set.add(v->getType());
 	lastVar = v;

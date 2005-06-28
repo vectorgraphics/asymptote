@@ -46,9 +46,6 @@ genv::genv()
    base_env(*this),
    base_coenv(base_coder,base_env)
 {
-  types::initializeCasts();
-  types::initializeInitializers();
-
   base_tenv(te);
   base_venv(ve);
   base_menv(me);

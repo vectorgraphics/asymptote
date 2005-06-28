@@ -1,5 +1,4 @@
-Andy: implement general casting;
-extend syntax to allow for explict array casts like (int[]) on real[].
+Andy: extend syntax to allow for explict array casts like (int[]) on real[].
 
 Andy: implement tags
 
@@ -14,8 +13,9 @@ Andy: implement private typedefs
 Andy: Fix permissions for static functions in structs.
 ex.  struct t { int x; static void f(t a) { write(a.x); } } 
 
-Andy: Python-style function argument keywords
-
+Andy and John: (if possible) automatically turn expressions with array
+sub-expressions into iteration over the array(s)
+    
 Andy: give execute(string) read/write access to caller environment
 (Among other purposes, this would enable us to implement a "line at a time
 mode" where complete lines are individually added to the parse tree and

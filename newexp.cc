@@ -130,9 +130,7 @@ types::ty *newRecordExp::trans(coenv &e)
 types::ty *newRecordExp::getType(coenv &e)
 {
   types::ty *t = result->trans(e, true);
-  if (t->kind == ty_error)
-    return t;
-  else if (t->kind != ty_record)
+  if (t->kind != ty_error && t->kind != ty_record)
     return primError();
   else
     return t;
@@ -161,17 +159,17 @@ types::ty *newArrayExp::trans(coenv &e)
     c = dims->truetype(c);
 
   if (ai) {
-    ai->trans(e, c);
+    ai->transToType(e, c);
     return c;
   } else if (dimexps || dims) {
     if (dimexps) {
-      for (int i = 0; i < (int)dimexps->size(); ++i) {
-        dimexps->trans(e, types::primInt(), i);
+      for (size_t i = 0; i < dimexps->size(); ++i) {
+        (*dimexps)[i]->transToType(e, types::primInt());
 	c = new types::array(c);
       }
     }
     if (dims) {
-      for (int i = 0; i < (int)dims->size(); ++i) {
+      for (size_t i = 0; i < dims->size(); ++i) {
         e.c.encode(inst::intpush,0);
       }
     }

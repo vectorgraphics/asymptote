@@ -12,7 +12,7 @@ CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
 FILES = $(CAMP) cast env genv main runtime stm dec errormsg callable name \
 	symbol types entry exp newexp stack camp.tab lex.yy import access \
 	absyn record interact fileio builtin fftw++ simpson coder coenv \
-	@getopt@ locate parser genrun program
+	@getopt@ locate parser genrun program application
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc genrun.cc
 CLEAN = camp.output
@@ -54,7 +54,7 @@ $(GCLIBS): $(GC).tar.gz
 	tar -xf $(GC).tar
 	rm -f $(GC).tar
 	cd $(GC); \
-	./configure --disable-threads --disable-shared; \
+	./configure --disable-threads --disable-shared --enable-cplusplus; \
 	make check
 
 man:	asy

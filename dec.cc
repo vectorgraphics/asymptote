@@ -11,7 +11,7 @@
 #include "coenv.h"
 #include "dec.h"
 #include "stm.h"
-#include "camp.tab.h"
+#include "camp.tab.h"  // For qualifiers.
 #include "runtime.h"
 
 namespace absyntax {
@@ -360,17 +360,11 @@ void decid::transAsField(coenv &e, record *r, types::ty *base)
 
   varEntry *ent = new varEntry(t, a);
 
-  if (init) {
-    init->trans(e, t);
-  }
+  if (init)
+    init->transToType(e, t);
   else {
-    // Use the default initializer if there is one.
-    access *ia = initializer(t);
-    if (ia)
-      ia->encodeCall(getPos(), e.c);
-    else {
-      e.c.encode(inst::constpush,item());
-    }
+    definit d(getPos());
+    d.transToType(e, t);
   }
   
   // Add to the record so it can be accessed when qualified; add to the
@@ -544,10 +538,17 @@ void formal::prettyprint(ostream &out, int indent)
   if (defval) defval->prettyprint(out, indent+1);
 }
 
+types::formal formal::trans(coenv &e, bool encodeDefVal, bool tacit) {
+  return types::formal(getType(e,tacit),
+                       getName(),
+                       encodeDefVal ? getDefaultValue() : 0,
+                       getExplicit());
+}
+
 types::ty *formal::getType(coenv &e, bool tacit) {
   types::ty *t = start ? start->getType(base->trans(e), e, tacit)
     : base->trans(e, tacit);
-  if (t->kind == ty_void) {
+  if (t->kind == ty_void && !tacit) {
     em->compiler(getPos());
     *em << "can't declare parameters of type void";
     return primError();
@@ -563,23 +564,22 @@ void formals::prettyprint(ostream &out, int indent)
     (*p)->prettyprint(out, indent+1);
 }
 
+void formals::addToSignature(signature& sig,
+                             coenv &e, bool encodeDefVal, bool tacit) {
+  for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
+    sig.add((*p)->trans(e, encodeDefVal, tacit));
+
+  if (rest)
+    sig.addRest(rest->trans(e, encodeDefVal, tacit));
+}
+
 // Returns the types of each parameter as a signature.
 // encodeDefVal means that it will also encode information regarding
 // the default values into the signature
 signature *formals::getSignature(coenv &e, bool encodeDefVal, bool tacit)
 {
   signature *sig = new signature;
-
-  if (encodeDefVal) {
-    for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
-      sig->add((*p)->getType(e, tacit),(*p)->getDefaultValue(),
-	       (*p)->getExplicit());
-  }
-  else {
-    for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
-      sig->add((*p)->getType(e, tacit),0,(*p)->getExplicit());
-  }
-
+  addToSignature(*sig,e,encodeDefVal,tacit);
   return sig;
 }
 
@@ -591,55 +591,49 @@ function *formals::getType(types::ty *result, coenv &e,
 			   bool tacit)
 {
   function *ft = new function(result);
-
-  if (encodeDefVal) {
-    for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
-      ft->add((*p)->getType(e, tacit),(*p)->getDefaultValue(),
-	      (*p)->getExplicit());
-  }
-  else {
-    for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
-      ft->add((*p)->getType(e, tacit),0,(*p)->getExplicit());
-  }
-
+  addToSignature(ft->sig,e,encodeDefVal,tacit);
   return ft;
+}
+
+void formal::transAsVar(coenv &e, int index) {
+  symbol *name = getName();
+  if (name) {
+    trans::access *a = e.c.accessFormal(index);
+    assert(a);
+
+    // Suppress error messages because they will already be reported
+    // when the formals are translated to yield the type earlier.
+    types::ty *t = getType(e, true);
+    varEntry *v = new varEntry(t, a);
+
+    e.e.addVar(getPos(), name, v);
+  }
 }
 
 void formals::trans(coenv &e)
 {
   list <formal *>::iterator p = fields.begin();
-  int argIndex = 0;
+  int index = 0;
 
-  while (p != fields.end()) {
-    symbol *name = (*p)->getName();
-    if (name) {
-      trans::access *a = e.c.accessFormal(argIndex);
-      assert(a);
+  for (list<formal *>::iterator p=fields.begin(); p!=fields.end(); ++p) {
+    (*p)->transAsVar(e, index);
+    ++index;
+  }
 
-      // Suppress error messages because they will already be reported
-      // when the formals are translated to yield the type earlier.
-      types::ty *t = (*p)->getType(e, true);
-      varEntry *argEntry = new varEntry(t, a);
-
-      e.e.addVar((*p)->getPos(), (*p)->getName(), argEntry);
-    }
-
-    ++p;
-    ++argIndex;
+  if (rest) {
+    rest->transAsVar(e, index);
+    ++index;
   }
 }
 
 void formals::reportDefaults()
 {
   for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
-  {
-    varinit *defval=(*p)->getDefaultValue();
-    if (defval) {
-      em->error((*p)->getPos());
-      *em << "default value in anonymous function";
-      break;
-    }
-  }
+    if ((*p)->reportDefault())
+      return;
+  
+  if (rest)
+    rest->reportDefault();
 }
 
 void fundec::prettyprint(ostream &out, int indent)

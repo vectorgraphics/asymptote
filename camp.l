@@ -69,19 +69,19 @@ void adjust()
   yylval.pos = here();
 } 
 
-void makesymbol(string text = yytext)
+void makesymbol(bool op=true, string text = yytext)
 {
   adjust();
   yylval.ps.pos=here();
-  yylval.ps.sym=symbol::trans(text);
+  yylval.ps.sym=op ? symbol::opTrans(text) : symbol::literalTrans(text);
 }
 
-void makeselfsymbol(string text = yytext)
+void makeselfsymbol(bool op=true, string text = yytext)
 {
   /* Copy all but the last digit, which should be an =. */
   assert(text[text.length()-1] == '=');
   text.erase(text.length()-1);
-  makesymbol(text);
+  makesymbol(op,text);
 }
 
 void newline()
@@ -109,7 +109,7 @@ void append(char c)
 void getstring(void)
 {
   // NOTE: Replace here() with a position at the start of the string.
-  makesymbol(stringbuild);
+  makesymbol(false,stringbuild);
   string().swap(stringbuild);
 }
 }
@@ -225,6 +225,7 @@ ESC \\
 "{"                {adjust(); return '{'; }
 "}"                {adjust(); return '}'; }
 "."                {adjust(); return '.'; }
+"..."              {adjust(); return ELLIPSIS; }
 "+"                {makesymbol(); return '+'; }
 "-"                {makesymbol(); return '-'; }
 "*"                {makesymbol(); return '*'; }
@@ -282,7 +283,7 @@ explicit           {adjust(); return EXPLICIT; }
 
 
 void|bool|int|real|string|pair|transform|guide|path|pen|frame {
-  makesymbol();
+  makesymbol(false);
   return PRIM; }
 
 [0-9]+             try {
@@ -320,11 +321,7 @@ operator           {adjust(); BEGIN opname; }
                     BEGIN INITIAL;
                     yyterminate();
                    }
-spec               { makesymbol("<spec>");
-                     BEGIN INITIAL;
-                     return ID;
-                   }
-"**"               { makesymbol("^");
+"**"               { makesymbol(true, "^");
                      BEGIN INITIAL;
                      return ID;
                    }
@@ -332,11 +329,15 @@ spec               { makesymbol("<spec>");
   makesymbol();
   BEGIN INITIAL;
   return ID;}
+{LETTER}({LETTER}|[0-9])* {
+  makesymbol(true);
+  BEGIN INITIAL;
+  return ID; }
 .                   {}
 }
 
 {LETTER}({LETTER}|[0-9])* {
-  makesymbol();
+  makesymbol(false);
   return ID; }  
 
 \/\*               {adjust(); /*commentDepth = 1;*/ BEGIN lexcomment; }

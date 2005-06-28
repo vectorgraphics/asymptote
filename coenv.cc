@@ -35,13 +35,13 @@ static inline bool accessCast(position pos, ty *target, ty *source,
 bool coenv::implicitCast(position pos, ty *target, ty *source)
 {
   return accessCast(pos, target, source,
-                    types::cast(target, source), this->c);
+                    e.lookupCast(target, source, symbol::castsym), c);
 }
 
 bool coenv::explicitCast(position pos, ty *target, ty *source)
 {
   return accessCast(pos, target, source,
-                    types::explicitCast(target, source), this->c);
+                    e.lookupCast(target, source, symbol::ecastsym), c);
 }
 
 }

@@ -16,7 +16,6 @@
 #ifndef GENV_H
 #define GENV_H
 
-#include "cast.h"
 #include "table.h"
 #include "record.h"
 #include "absyn.h"
@@ -50,7 +49,7 @@ public:
   void loadGUI(const string& outname);
 
   void list() {
-    ve.list();
+    //ve.list();
   }
   
   // If a module is already loaded, this will return it.  Otherwise, it

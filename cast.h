@@ -2,7 +2,7 @@
  * cast.h
  * Andy Hammerlindl 2003/07/24
  *
- * Handles the casting of types, numeric promotions, and the operators,
+ * Handles the casting of types and numeric promotions,
  * using a table of accesses for each.  An access here specifies the
  * instruction or builtin function used to handle the casting.
  *****/
@@ -20,13 +20,6 @@ namespace types {
 
 // Puts the default casts and operators into the tables.
 void initializeCasts();
-
-// Builds the table of initializers for primitive types.
-void initializeInitializers();
-
-// Gets the initializer for a type.
-// NOTE: There may be a better place for this than with the casts.
-trans::access *initializer(ty *t);
 
 // Checks if one type can be casted into another.  Works much like the
 // env::implicitCast() function but only checks for the possibility, and

@@ -37,13 +37,19 @@ static bool checkAmbiguity(position pos, symbol *s, varEntry *v)
     return true;
 }
 
+types::ty *signatureless(types::ty *t) {
+  if (overloaded *o=dynamic_cast<overloaded *>(t))
+    return o->signatureless();
+  else
+    return (t && !t->getSignature()) ? t : 0;
+}
+
 types::ty *simpleName::getType(coenv &e, bool tacit)
 {
-  varEntry *v = e.e.lookupExactVar(id, 0);
+  types::ty *t=signatureless(e.e.varGetType(id));
 
-  if (v) {
-    return v->getType();
-  }
+  if (t)
+    return t;
   else {
     types::ty *t = e.e.lookupType(id);
     if (t) {
@@ -69,7 +75,8 @@ types::ty *simpleName::getType(coenv &e, bool tacit)
 
 void simpleName::varTrans(coenv &e, types::ty *target)
 {
-  varEntry *v = e.e.lookupExactVar(id, target->getSignature());
+  //varEntry *v = e.e.lookupExactVar(id, target->getSignature());
+  varEntry *v = e.e.lookupVarByType(id, target);
   
   if (v) {
     if (checkAmbiguity(getPos(), id, v)) {
@@ -85,7 +92,8 @@ void simpleName::varTrans(coenv &e, types::ty *target)
 
 void simpleName::varTransWrite(coenv &e, types::ty *target)
 {
-  varEntry *v = e.e.lookupExactVar(id, target->getSignature());
+  //varEntry *v = e.e.lookupExactVar(id, target->getSignature());
+  varEntry *v = e.e.lookupVarByType(id, target);
 
   if (v) {
     if (checkAmbiguity(getPos(), id, v)) {
@@ -106,7 +114,8 @@ void simpleName::varTransWrite(coenv &e, types::ty *target)
 
 void simpleName::varTransCall(coenv &e, types::ty *target)
 {
-  varEntry *v = e.e.lookupExactVar(id, target->getSignature());
+  //varEntry *v = e.e.lookupExactVar(id, target->getSignature());
+  varEntry *v = e.e.lookupVarByType(id, target);
 
   if (v) {
     if (checkAmbiguity(getPos(), id, v)) {
@@ -159,14 +168,14 @@ trans::import *simpleName::typeGetImport(coenv &e)
 
 frame *simpleName::frameTrans(coenv &e)
 {
-  varEntry *v = e.e.lookupExactVar(id, 0);
+  types::ty *t=signatureless(e.e.varGetType(id));
+  //varEntry *v = e.e.lookupExactVar(id, 0);
 
-  if (v) {
-    types::ty *t = v->getType();
-    if (t->kind == types::ty_record) {
-      v->getLocation()->encodeRead(getPos(), e.c);
-      return ((record *)t)->getLevel();
-    }
+  if (t && t->kind == types::ty_record) {
+    varEntry *v = e.e.lookupVarByType(id, t);
+    assert(v);
+    v->getLocation()->encodeRead(getPos(), e.c);
+    return ((record *)t)->getLevel();
   }
   return 0;
 }
@@ -214,11 +223,12 @@ types::ty *qualifiedName::getType(coenv &e, bool tacit)
   if (!r)
     return primError();
 
-  varEntry *v = r->lookupExactVar(id, 0);
+  //varEntry *v = r->lookupExactVar(id, 0);
 
-  if (v) {
-    return v->getType();
-  }
+  types::ty *t=signatureless(r->varGetType(id));
+  
+  if (t)
+    return t;
   else {
     types::ty *t = r->lookupType(id);
     if (t) {
@@ -262,7 +272,8 @@ void qualifiedName::varTrans(coenv &e, types::ty *target)
   if (!r)
     return;
 
-  v = r->lookupExactVar(id, target->getSignature());
+  //v = r->lookupExactVar(id, target->getSignature());
+  v = r->lookupVarByType(id, target);
 
   if (v) {
     access *loc = v->getLocation();
@@ -300,7 +311,8 @@ void qualifiedName::varTransWrite(coenv &e, types::ty *target)
   if (!r)
     return;
 
-  v = r->lookupExactVar(id, target->getSignature());
+  //v = r->lookupExactVar(id, target->getSignature());
+  v = r->lookupVarByType(id, target);
 
   if (v) {
     access *loc = v->getLocation();
@@ -348,7 +360,8 @@ void qualifiedName::varTransCall(coenv &e, types::ty *target)
   if (!r)
     return;
 
-  v = r->lookupExactVar(id, target->getSignature());
+  //v = r->lookupExactVar(id, target->getSignature());
+  v = r->lookupVarByType(id, target);
 
   if (v) {
     access *loc = v->getLocation();
@@ -437,21 +450,20 @@ frame *qualifiedName::frameTrans(coenv &e)
   if (!r)
     return 0;
 
-  varEntry *v = r->lookupExactVar(id, 0);
+  //varEntry *v = r->lookupExactVar(id, 0);
+  types::ty *t=signatureless(r->varGetType(id));
 
-  if (v) {
-    types::ty *t = v->getType();
-    if (t->kind == types::ty_record) {
-      access *a = v->getLocation();
-      frame *level = qualifier->frameTrans(e);
-      if (level) {
-	a->encodeRead(getPos(), e.c, level);
-      }
-      else {
-	a->encodeRead(getPos(), e.c);
-      }
-      return ((record *)t)->getLevel();
-    }
+  if (t && t->kind == types::ty_record) {
+    varEntry *v=r->lookupVarByType(id, t);
+    access *a = v->getLocation();
+    
+    frame *level = qualifier->frameTrans(e);
+    if (level)
+      a->encodeRead(getPos(), e.c, level);
+    else
+      a->encodeRead(getPos(), e.c);
+
+    return ((record *)t)->getLevel();
   }
   return 0;
 }

@@ -349,6 +349,8 @@ bool operator >= (coord a, coord b)
   return a.user >= b.user && a.truesize >= b.truesize;
 }
 
+// Find the maximal elements of the input array, using the partial ordering
+// given.
 coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
 {
   // As operator <= is defined in the parameter list, it has a special
@@ -2179,11 +2181,13 @@ int[] sequence(int n, int m) {
 }
 int[] reverse(int n) {return sequence(new int(int x){return n-1-x;},n);}
 
+/*
 bool[] reverse(bool[] a) {return a[reverse(a.length)];}
 int[] reverse(int[] a) {return a[reverse(a.length)];}
 real[] reverse(real[] a) {return a[reverse(a.length)];}
 pair[] reverse(pair[] a) {return a[reverse(a.length)];}
 string[] reverse(string[] a) {return a[reverse(a.length)];}
+*/
 
 int find(bool[] a) {return find(a,1);}
 

@@ -67,7 +67,7 @@ if test "x$ac_cv_use_gc" != "xno" ; then
    else
       GCDIR=gc$ac_cv_use_gc
       AC_MSG_NOTICE([enabling the $GCNAME $GCDIR])
-      GCLIBS="\$(GC)/.libs/libgc.a"
+      GCLIBS="\$(GC)/.libs/libgccpp.a \$(GC)/.libs/libgc.a"
       INCL="-I \$(GC)/include"
    fi
 else

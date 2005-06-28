@@ -1,6 +1,6 @@
 /*****
- * qname.h
- * Andy Hammerlindl2002/07/14
+ * name.h
+ * Andy Hammerlindl 2002/07/14
  *
  * Qualified names (such as x, f, builtin.sin, a.b.c.d, etc.) can be used
  * either as varibles or a type names.  This class stores qualified
@@ -8,12 +8,12 @@
  * implements the exp and type functions.
  *****/
 
-#ifndef QNAME_H
-#define QNAME_H
+#ifndef NAME_H
+#define NAME_H
 
 #include "absyn.h"
 #include "types.h"
-#include "cast.h"
+#include "frame.h"
 
 namespace trans {
 class coenv;

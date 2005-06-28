@@ -13,6 +13,9 @@
 namespace sym {
 
 std::map<string,symbol> symbol::dict;
-  
+symbol *symbol::initsym=symbol::specialTrans("operator init");
+symbol *symbol::castsym=symbol::specialTrans("operator cast");
+symbol *symbol::ecastsym=symbol::specialTrans("operator ecast");
+
 } // namespace sym
 

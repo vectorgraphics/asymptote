@@ -23,6 +23,7 @@ class access;
 namespace types
 {
 class ty;
+class formal;
 class signature;
 class function;
 }
@@ -355,7 +356,7 @@ public:
 class formal : public absyn {
   ty *base;
   decidstart *start;
-  bool Explicit;
+  bool xplicit;
   // NOTE: expressions used in default values are translated into vm
   // code at the call location, not the function definition location.
   // This should be changed, using codelets or small helper functions.
@@ -372,16 +373,35 @@ class formal : public absyn {
 
 public:
   formal(position pos, ty *base, decidstart *start=0, varinit *defval=0,
-	 bool Explicit= false)
-    : absyn(pos), base(base), start(start), Explicit(Explicit),
+	 bool xplicit= false)
+    : absyn(pos), base(base), start(start), xplicit(xplicit),
       defval(defval) {}
 
   virtual void prettyprint(ostream &out, int indent);
 
-  types::ty *getType(coenv &e, bool tacit = false);
+  // Build the corresponding types::formal to put into a signature.
+  types::formal trans(coenv &e, bool encodeDefVal, bool tacit=false);
+  
+  // Add the formal parameter to the environment to prepare for the
+  // function body's translation.
+  virtual void transAsVar(coenv &e, int index);
+
+  types::ty *getType(coenv &e, bool tacit=false);
 
   varinit *getDefaultValue() {
     return defval;
+  }
+
+  // Report an error if there is a default value.
+  // Used by newFunctionExp.
+  bool reportDefault() {
+    if (defval) {
+      em->error(getPos());
+      *em << "default value in anonymous function";
+      return true;
+    }
+    else 
+      return false;
   }
 
   symbol *getName() {
@@ -389,18 +409,21 @@ public:
   }
 
   bool getExplicit() {
-    return Explicit;
+    return xplicit;
   }
 };
 
 class formals : public absyn {
   //friend class funheader;
 
-  list<formal *> fields;
+  mem::list<formal *> fields;
+  formal *rest;
 
+  void addToSignature(types::signature& sig,
+                      coenv &e, bool encodeDefVal, bool tacit);
 public:
   formals(position pos)
-    : absyn(pos) {}
+    : absyn(pos), rest(0) {}
 
   virtual ~formals() {}
 
@@ -408,6 +431,10 @@ public:
 
   virtual void add(formal *f) {
     fields.push_back(f);
+  }
+
+  virtual void addRest(formal *f) {
+    rest = f;
   }
 
   // Returns the types of each parameter as a signature.

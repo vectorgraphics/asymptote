@@ -51,7 +51,8 @@ public:
 class menv : public sym::table<import *> {
   ty *lookupType(symbol *s, scope_t&);
   import *lookupTypeImport(symbol *s, scope_t&);
-  varEntry *lookupExactVar(symbol *name, signature *sig, scope_t&);
+  //varEntry *lookupExactVar(symbol *name, signature *sig, scope_t&);
+  varEntry *lookupVarByType(symbol *name, ty *t, scope_t&);
   ty *varGetType(symbol *name, scope_t&);
 
   // This transforms varEntries so that the new varEntry has an access
@@ -82,12 +83,24 @@ public:
     return 0;
   }
   
+#if 0
   varEntry *lookupExactVar(symbol *name, signature *sig)
   {
     for (scopes_t::iterator p = scopes.begin();
          p != scopes.end();
          ++p)
       if (varEntry *v = lookupExactVar(name, sig, *p))
+        return v;
+    return 0;
+  }
+#endif
+  
+  varEntry *lookupVarByType(symbol *name, ty *t)
+  {
+    for (scopes_t::iterator p = scopes.begin();
+         p != scopes.end();
+         ++p)
+      if (varEntry *v = lookupVarByType(name, t, *p))
         return v;
     return 0;
   }

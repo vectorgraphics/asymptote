@@ -7,21 +7,26 @@
  * "entries" is used.
  *****/
 
+#include <iostream>
+
 #include <cmath>
 #include <utility>
 #include "entry.h"
 
-// For function resolution debugging.
-#define DFL 0
+using std::ostream;
+using std::cerr;
+using std::endl;
 
 using types::signature;
 
 namespace trans {
 
+#if 0
 venv::venv()
 {
 }
 
+#if 0 //{{{
 varEntry *venv::lookExact(symbol *name, signature *key)
 {
   // Find first applicable function.
@@ -34,6 +39,20 @@ varEntry *venv::lookExact(symbol *name, signature *key)
   }
   return 0;
 }
+#endif
+
+varEntry *venv::lookByType(symbol *name, ty *t)
+{
+  // Find first applicable function.
+  name_t &list = names[name];
+  for(name_iterator p = list.begin();
+      p != list.end();
+      ++p) {
+    if (equivalent((*p)->getType(), t))
+      return *p;
+  }
+  return 0;
+}
 
 void venv::list()
 {
@@ -41,6 +60,7 @@ void venv::list()
   for(names_t::iterator N = names.begin(); N != names.end(); ++N) {
     symbol *s=N->first;
     name_t &list=names[s];
+#if 0
     for(name_iterator p = list.begin(); p != list.end(); ++p) {
       signature *sig=(*p)->getSignature();
       if(sig)
@@ -48,6 +68,11 @@ void venv::list()
 		  << *s << *sig << ";" << std::endl;
       else
 	std::cout << *((*p)->getType()) << " " << *s << ";" << std::endl;
+    }
+#endif
+    for(name_iterator p = list.begin(); p != list.end(); ++p) {
+      (*p)->getType()->printVar(std::cout, s);
+      std::cout << ";" << std::endl;
     }
   }
 }
@@ -80,5 +105,102 @@ ty *venv::getType(symbol *name)
 
   return set.simplify();
 }
+// }}}
+#else // {{{
+
+ostream& operator<< (ostream& out, const venv::key &k) {
+  k.t->printVar(out, k.name);
+  return out;
+}
+
+#if TEST_COLLISION
+bool venv::keyeq::operator()(const key k, const key l) const {
+  keyhash kh;
+  if (kh(k)==kh(l)) {
+    if (base(k,l))
+      return true;
+    else {
+      cerr << "collision: " << endl;
+      cerr << "  " << k << " -> " << kh(k) << endl;
+      cerr << "  " << l << " -> " << kh(l) << endl;
+    }
+  }
+  return false;
+}
+#else
+bool venv::keyeq::operator()(const key k, const key l) const {
+#if 0
+  cerr << "k.t = " << k.t << " " << k << endl;
+  cerr << "l.t = " << l.t << " " << l << endl;
+#endif
+  return k.name==l.name &&
+    (k.name->special ? equivalent(k.t, l.t) :
+     equivalent(k.t->getSignature(),
+       l.t->getSignature()));
+}
+#endif
+
+void venv::remove(key k) {
+  //cerr << "removing: " << k << endl;
+  value *&val=all[k];
+  assert(val);
+  if (val->next) {
+#if SHADOWING
+    val->next->shadowed=false;
+#endif
+    val=val->next;
+  }
+  else
+    all.erase(k);
+
+  // Don't erase it from scopes.top() as that will be popped of the stack at
+  // the end of endScope anyway.
+
+  names[k.name].pop_front();
+}
+
+void venv::enter(symbol *name, varEntry *v) {
+  assert(!scopes.empty());
+  key k(name, v);
+  //cerr << "entering: " << k << " (t=" << k.t << ")" << endl;
+  value *val=new value(v);
+
+#if 0
+  keymap::iterator p=all.find(k);
+  if (p!=all.end()) {
+    cerr << "  over: " << p->first << endl;
+  }
+#endif
+  
+  val->next=all[k];
+#if SHADOWING
+  if (val->next)
+    val->next->shadowed=true;
+#endif
+
+  all[k]=val;
+  scopes.top().insert(keymultimap::value_type(k,val));
+  names[k.name].push_front(val);
+}
+
+ty *venv::getType(symbol *name)
+{
+  //cerr << "getType: " << *name << endl;
+  types::overloaded set;
+  values &list=names[name];
+
+  for (values::iterator p=list.begin(); p!=list.end(); ++p) {
+#if SHADOWING
+    if (!(*p)->shadowed)
+      set.add((*p)->v->getType());
+#else
+    set.addDistinct((*p)->v->getType());
+#endif
+  }
+
+  return set.simplify();
+}
+
+#endif // }}}
 
 } // namespace trans
