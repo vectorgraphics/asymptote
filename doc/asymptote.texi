@@ -1430,38 +1430,13 @@ whenever a new picture is declared:
 picture pic=new picture;
 @end verbatim
 
-A picture is fit to a frame and converted into a @code{PostScript} image
-upon calling the function @code{shipout}, using either the default or 
-specified size:
-
-@anchor{shipout}
-@cindex @code{shipout}
-@verbatim
-void shipout(string prefix=defaultfilename,
-             picture pic=currentpicture, frame preamble=patterns,
-             real xsize=pic.xsize, real ysize=pic.ysize,
-             bool keepAspect=
-             pic.keepAspect ? Aspect : IgnoreAspect,
-             orientation orientation=Portrait,
-             string format="", bool wait=NoWait);
-@end verbatim
-
-Actually, @code{shipout} is implemented using several functions,
-because of the way default arguments are implemented. Also, an
-explicit picture argument is required in order to specify a
-@code{PostScript} preamble.
-
-A @code{shipout()} command is added implicitly at file exit 
-if no previous @code{shipout} commands have been executed.
-
-Rather than specifying the size information explicitly to @code{shipout},
-one can alternatively use the @code{size} function:
+The @code{size} routine specifies the dimensions of the desired picture:
 
 @anchor{size}
 @cindex @code{size}
 @verbatim
 void size(picture pic=currentpicture,
-          real xsize, real ysize, bool keepAspect=Aspect);
+          real xsize, real ysize=0, bool keepAspect=Aspect);
 @end verbatim
 
 If @code{xsize} and @code{ysize} are both 0, user coordinates will be
@@ -1469,7 +1444,7 @@ interpreted as @code{PostScript} coordinates. In this case, the transform
 mapping @code{pic} to the final output frame is @code{identity}.
 
 If exactly one of @code{xsize} or @code{ysize} is 0, no size restriction
-is imposed in that direction; it will be scaled the same as the other 
+is imposed in that direction; it will be scaled the same as the other
 direction.
 
 If @code{keepAspect} is set to @code{Aspect} or @code{true},
@@ -1480,6 +1455,23 @@ no more than @code{ysize}.
 If @code{keepAspect} is set to @code{IgnoreAspect} or @code{false},
 the picture will be scaled in both directions so that the final width
 is @code{xsize} and the height is @code{ysize}. 
+
+A picture can be fit to a frame and converted into a @code{PostScript} image
+by calling the function @code{shipout}:
+@anchor{shipout}
+@cindex @code{shipout}
+@verbatim
+void shipout(string prefix=defaultfilename, picture pic,
+	     frame preamble=patterns,
+             orientation orientation=Portrait,
+	     string format="", bool wait=NoWait);
+void shipout(string prefix=defaultfilename,
+             orientation orientation=Portrait,
+	     string format="", bool wait=NoWait);
+@end verbatim
+@noindent
+A @code{shipout()} command is added implicitly at file exit if no
+previous @code{shipout} commands have been executed.
 
 @cindex @code{fit}
 @cindex @code{picture alignment}

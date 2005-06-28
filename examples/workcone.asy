@@ -1,3 +1,4 @@
+size(0,150);
 import graph;
 
 real r=4;
@@ -29,5 +30,3 @@ draw((string) h,(r,0)--(r,h),red,Arrow,Bar,PenMargin);
 label("$r$",(0.5*x2,s2),0.5*N,red);
 
 label((string) r,(0.5*r,h+0.3),0.5*N,red);
-
-shipout(0,150);

@@ -1,3 +1,4 @@
+size(0,150);
 import graph;
 
 real f(real x) {return sqrt(x);}
@@ -33,5 +34,3 @@ draw("$r$",(x,0)--F(x),E,red,Arrows,BeginBar,PenMargins);
 draw("$r$",(x,0)--G(x),E,red,Arrows,PenMargins);
 draw("$r$",c--c+(0,f(x)),Arrow,PenMargin);
 dot(c);
-
-shipout(0,150);

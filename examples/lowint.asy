@@ -1,3 +1,4 @@
+size(100,0);
 import graph;
 import lowupint;
 
@@ -8,5 +9,3 @@ partition(a,b,c,min);
 
 arrow("$f(x)$",F(0.5*(a+b)),NNE,red);
 label("$\cal{L}$",(0.5*(a+b),f(0.5*(a+b))/2));
-
-shipout(100,0);

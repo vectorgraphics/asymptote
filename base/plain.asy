@@ -1717,41 +1717,16 @@ frame Seascape(frame f) {return rotate(-90)*f;};
 typedef frame orientation(frame);
 
 void shipout(string prefix=defaultfilename, picture pic,
-	     frame preamble=patterns, real xsize=infinity, real ysize=infinity,
-	     bool keepAspect, orientation orientation=Portrait,
+	     frame preamble=patterns, orientation orientation=Portrait,
 	     string format="", bool wait=NoWait)
 {
-  if(xsize == infinity) xsize=pic.xsize;
-  if(ysize == infinity) ysize=pic.ysize;
-  shipout(prefix,orientation(pic.fit(xsize,ysize,keepAspect)),
-	  preamble,format,wait);
+  shipout(prefix,orientation(pic.fit()),preamble,format,wait);
 }
 
-void shipout(string prefix=defaultfilename,
-	     real xsize=infinity, real ysize=infinity,
-	     bool keepAspect, orientation orientation=Portrait,
+void shipout(string prefix=defaultfilename, orientation orientation=Portrait,
 	     string format="", bool wait=NoWait)
 {
-  shipout(prefix,currentpicture,ysize,keepAspect,orientation,format,wait);
-}
-
-void shipout(string prefix=defaultfilename, picture pic,
-	     frame preamble=patterns, real xsize=infinity, real ysize=infinity,
-	     orientation orientation=Portrait, string format="",
-	     bool wait=NoWait)
-{
-  shipout(prefix,pic,preamble,xsize,ysize,
-	  pic.keepAspect ? Aspect : IgnoreAspect,orientation,format,wait);
-}
-
-void shipout(string prefix=defaultfilename,
-	     real xsize=infinity, real ysize=infinity,
-	     orientation orientation=Portrait, string format="",
-	     bool wait=NoWait)
-{
-  shipout(prefix,currentpicture,xsize,ysize,
-	  currentpicture.keepAspect ? Aspect : IgnoreAspect,
-	  orientation,format,wait);
+  shipout(prefix,currentpicture,orientation,format,wait);
 }
 
 void erase(picture pic=currentpicture)
