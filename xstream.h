@@ -38,10 +38,10 @@ namespace xdr {
 class xbyte {
   unsigned char c;
  public:
-  xbyte() {};
-  xbyte(unsigned char c0) : c(c0) {};
-  xbyte(int c0) : c((unsigned char) c0) {};
-  xbyte(unsigned int c0) : c((unsigned char) c0) {};
+  xbyte() {}
+  xbyte(unsigned char c0) : c(c0) {}
+  xbyte(int c0) : c((unsigned char) c0) {}
+  xbyte(unsigned int c0) : c((unsigned char) c0) {}
   int byte() const {return c;}
   operator unsigned char () const {return c;}
 };
