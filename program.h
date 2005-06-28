@@ -31,7 +31,7 @@ private:
 class program::label
 {
 public: // interface
-  label() : where(0), code() {};
+  label() : where(0), code() {}
 public: //interface
   label& operator++();
   bool operator==(const label& right) const;
@@ -42,7 +42,7 @@ public: //interface
                           const label& right);
 private:
   label (size_t where, program* code)
-    : where(where), code(code) {};
+    : where(where), code(code) {}
   size_t where;
   program* code;
   friend class program;

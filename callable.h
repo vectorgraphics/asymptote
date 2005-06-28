@@ -38,7 +38,7 @@ public:
 struct func : public callable {
   lambda *body;
   frame *closure;
-  func () : body(), closure() {};
+  func () : body(), closure() {}
   virtual void call (stack*);
   virtual bool compare(callable*);
 };
@@ -46,7 +46,7 @@ struct func : public callable {
 class bfunc : public callable 
 {
 public:
-  bfunc(bltin b) : func(b) {};
+  bfunc(bltin b) : func(b) {}
   virtual void call (stack *s) { func(s); }
   virtual bool compare(callable*);
 private:
@@ -56,7 +56,7 @@ private:
 class thunk : public callable
 {
 public:
-  thunk(callable *f, item i) : func(f), arg(i) {};
+  thunk(callable *f, item i) : func(f), arg(i) {}
   virtual void call (stack*);
 private:
   callable *func;

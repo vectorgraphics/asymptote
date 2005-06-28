@@ -20,7 +20,7 @@ namespace camp {
 // Abstract base class for guides.
 class guide : public gc {
 public:
-  virtual ~guide() {};
+  virtual ~guide() {}
   
   // Returns the path that the guide represents.
   virtual path solve() {

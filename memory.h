@@ -53,9 +53,9 @@ namespace mem {
 #define GC_CONTAINER(KIND)                                               \
   template <typename T>                                                  \
   struct KIND : public std::KIND<T, gc_allocator<T> > {                  \
-    KIND() : std::KIND<T, gc_allocator<T> >() {};                        \
-    KIND(size_t n) : std::KIND<T, gc_allocator<T> >(n) {};               \
-    KIND(size_t n, const T& t) : std::KIND<T, gc_allocator<T> >(n,t) {}; \
+    KIND() : std::KIND<T, gc_allocator<T> >() {}                         \
+    KIND(size_t n) : std::KIND<T, gc_allocator<T> >(n) {}                \
+    KIND(size_t n, const T& t) : std::KIND<T, gc_allocator<T> >(n,t) {}  \
   }
 
 GC_CONTAINER(list);
@@ -72,7 +72,7 @@ struct stack : public std::stack<T, Container> {
   template <typename Key, typename T, typename Compare = std::less<Key> >     \
   struct KIND : public                                                        \
   std::KIND<Key,T,Compare,gc_allocator<std::pair<Key,T> > > {                 \
-    KIND() : std::KIND<Key,T,Compare,gc_allocator<std::pair<Key,T> > > () {}; \
+    KIND() : std::KIND<Key,T,Compare,gc_allocator<std::pair<Key,T> > > () {}  \
   }
 
 GC_CONTAINER(map);
@@ -87,7 +87,7 @@ GC_CONTAINER(multimap);
             typename Eq = std::equal_to<Key> >                                \
   struct KIND : public                                                        \
   EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > > {                \
-    KIND() : EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > > () {};\
+    KIND() : EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > > () {} \
   }
 
 GC_CONTAINER(hash_map);

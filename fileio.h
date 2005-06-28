@@ -58,7 +58,7 @@ public:
     closed(false), checkappend(checkappend), standard(name.empty()),
     lines(0) {dimension();}
   
-  virtual void open() {};
+  virtual void open() {}
   
   void Check() {
     if(error()) {

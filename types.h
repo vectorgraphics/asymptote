@@ -69,6 +69,7 @@ bool equivalent(ty *t1, ty *t2);
 
 class caster {
 public:
+  virtual ~caster() {}
   virtual trans::access *operator() (ty *target, ty *source) = 0;
   virtual bool castable(ty *target, ty *source) = 0;
 };
@@ -478,6 +479,7 @@ public:
 // types.
 class collector {
 public:
+  virtual ~collector() {}
   virtual ty *base(ty *target, ty *source) = 0;
 
   virtual ty *collect(ty *target, ty *source) {
@@ -515,6 +517,7 @@ public:
 
 class tester {
 public:
+  virtual ~tester() {}
   virtual bool base(ty *target, ty *source) = 0;
 
   virtual bool test(ty *target, ty *source) {

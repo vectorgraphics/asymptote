@@ -75,7 +75,7 @@ struct eqn {
 // point.  The base class represents the "open" specifier.
 class spec : public gc {
 public:
-  virtual ~spec() {};
+  virtual ~spec() {}
   
   // If the knot is open, it gives no restriction on the behavior of the
   // path.
@@ -212,7 +212,7 @@ ostream& operator<<(ostream& out, const knot& k);
 // Abstract base class for a section of a guide.
 class knotlist {
 public:
-  virtual ~knotlist() {};
+  virtual ~knotlist() {}
   
   virtual int length() = 0;
   virtual bool cyclic() = 0;
@@ -380,7 +380,7 @@ protected:
   }
 
 public:
-  virtual ~knotprop() {};
+  virtual ~knotprop() {}
   
   virtual cvector<T> compute() {
     return l.cyclic() ? cyclicCompute() : linearCompute();
@@ -412,7 +412,7 @@ protected:
   }
 
 public:
-  virtual ~knottrans() {};
+  virtual ~knottrans() {}
   
   knottrans(knotlist& l)
     : knotprop<knot>(l) {}
@@ -483,7 +483,7 @@ protected:
   }
 
 public:
-  virtual ~knoteffect() {};
+  virtual ~knoteffect() {}
   
   virtual void exec() {
     if (l.cyclic())
