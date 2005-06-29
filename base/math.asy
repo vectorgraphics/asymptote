@@ -38,7 +38,7 @@ pair log(explicit pair z) {return log(abs(z))+I*angle(z);}
 // Return an Nx by Ny unit square lattice with lower-left corner at (0,0).
 picture grid(int Nx, int Ny, pen p=currentpen)
 {
-  picture pic=new picture;
+  picture pic;
   for(int i=0; i <= Nx; ++i) draw(pic,(i,0)--(i,Ny),p);
   for(int j=0; j <= Ny; ++j) draw(pic,(0,j)--(Nx,j),p);
   return pic; 

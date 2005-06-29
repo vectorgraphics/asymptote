@@ -28,7 +28,7 @@ picture palette(real[][] data, real width=Ticksize,
 	     paletteticks ticks=PaletteTicks)
 {
   if(p == nullpen) p=plabel;
-  picture pic=new picture;
+  picture pic;
   real initialy=min(data);
   real finaly=max(data);
   pair z0=(0,initialy);

@@ -271,12 +271,14 @@ struct GUIop
   public bool[] Delete=new bool[];
 }
 
+GUIop operator init() {return new GUIop;}
+  
 GUIop[] GUIlist;
 
 // Delete item
 void GUIop(int index, int filenum=0, DELETET)
 {
-  if(GUIlist.length <= filenum) GUIlist[filenum]=new GUIop;
+  if(GUIlist.length <= filenum) GUIlist[filenum];
   GUIop GUIobj=GUIlist[filenum];
   while(GUIobj.Transform.length <= index) {
     GUIobj.Transform.push(identity());
@@ -288,7 +290,7 @@ void GUIop(int index, int filenum=0, DELETET)
 // Transform item
 void GUIop(int index, int filenum=0, transform T)
 {
-  if(GUIlist.length <= filenum) GUIlist[filenum]=new GUIop;
+  if(GUIlist.length <= filenum) GUIlist[filenum];
   GUIop GUIobj=GUIlist[filenum];
   while(GUIobj.Transform.length <= index) {
     GUIobj.Transform.push(identity());
@@ -306,6 +308,7 @@ typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
 
 // A coordinate in "flex space." A linear combination of user and true-size
 // coordinates.
+  
 static struct coord {
   public real user, truesize;
 
@@ -441,9 +444,11 @@ public struct scaleT {
   }
 };
 
+scaleT operator init() {return new scaleT;}
+				  
 public struct autoscaleT {
-  public scaleT scale=new scaleT;
-  public scaleT postscale=new scaleT;
+  public scaleT scale;
+  public scaleT postscale;
   public real tickMin=infinity, tickMax=-infinity;
   public bool automin=true, automax=true;
   public bool automin() {return automin && scale.automin;}
@@ -464,11 +469,13 @@ public struct autoscaleT {
   }
 }
 
+autoscaleT operator init() {return new autoscaleT;}
+				  
 public struct ScaleT {
   public bool set=false;
-  public autoscaleT x=new autoscaleT;
-  public autoscaleT y=new autoscaleT;
-  public autoscaleT z=new autoscaleT;
+  public autoscaleT x;
+  public autoscaleT y;
+  public autoscaleT z;
   ScaleT copy() {
     ScaleT dest=new ScaleT;
     dest.set=set;
@@ -494,6 +501,8 @@ struct Legend {
     this.putmark=putmark;
   }
 }
+
+Legend operator init() {return new Legend;}
 
 pair minbound(pair z, pair w) 
 {
@@ -857,7 +866,7 @@ picture operator * (transform t, picture orig)
   return pic;
 }
 
-public picture currentpicture=new picture;
+public picture currentpicture;
 
 public frame gui[];
 
@@ -1214,7 +1223,7 @@ void fill(pair origin, picture pic=currentpicture, path g,
 	       pen pena=currentpen, pair a=0, real ra=0,
 	       pen penb=currentpen, pair b=0, real rb=0)
 {
-  picture opic=new picture;
+  picture opic;
   fill(opic,g,pena,a,ra,penb,b,rb);
   add(origin,pic,opic);
 }
@@ -1240,7 +1249,7 @@ void filldraw(pair origin, picture pic=currentpicture, path g,
 	      pair a=0, real ra=0,
 	      pen penb=currentpen, pair b=0, real rb=0)
 {
-  picture opic=new picture;
+  picture opic;
   filldraw(opic,g,pena,drawpen,a,ra,penb,b,rb);
   add(origin,pic,opic);
 }
@@ -1425,7 +1434,7 @@ picture arrow(path g, pen p=currentpen, real size=0,
 	      real position=infinity, bool forwards=true,
 	      margin margin=NoMargin)
 {
-  picture pic=new picture;
+  picture pic;
   pic.add(new void (frame f, transform t) {
     arrow(f,t*g,p,size,angle,filltype,position,forwards,margin);
   });
@@ -1439,7 +1448,7 @@ picture arrow2(path g, pen p=currentpen, real size=0,
 	       real angle=arrowangle, filltype filltype=Fill,
 	       margin margin=NoMargin)
 {
-  picture pic=new picture;
+  picture pic;
   pic.add(new void (frame f, transform t) {
     arrow2(f,t*g,p,size,angle,filltype,margin);
   });
@@ -1689,7 +1698,7 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
 
 picture legend(Legend[] legend)
 {
-  picture inset=new picture;
+  picture inset;
   if(legend.length > 0) {
     for(int i=0; i < legend.length; ++i) {
       Legend L=legend[i];
@@ -1874,14 +1883,14 @@ guide arc(pair c, explicit pair z1, explicit pair z2, bool direction=CCW)
 
 void bar(picture pic, pair a, pair d, pen p=currentpen)
 {
-  picture opic=new picture;
+  picture opic;
   Draw(opic,-0.5d--0.5d,p+solid);
   add(a,pic,opic);
 }
 						      
 picture bar(pair a, pair d, pen p=currentpen)
 {
-  picture pic=new picture;
+  picture pic;
   bar(pic,a,d,p);
   return pic;
 }
@@ -2034,7 +2043,7 @@ void draw(picture pic=currentpicture, string s="", real angle=0,
   bool drawpath=arrow(pic,g,p,margin);
   if(bar(pic,g,p,margin) && drawpath) _draw(pic,g,p,margin);
   if(legend != "") {
-    Legend L=new Legend; L.init(legend,plabel,p,mark,putmark);
+    Legend L; L.init(legend,plabel,p,mark,putmark);
     pic.legend.push(L);
   }
   if(putmark && !empty(mark)) mark(pic,g,mark);
@@ -2047,7 +2056,7 @@ void draw(pair origin, picture pic=currentpicture, string s="", real angle=0,
 	  arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
 	  string legend="", frame mark=nullframe, bool putmark=Above)
 {
-  picture opic=new picture;
+  picture opic;
   draw(opic,s,angle,g,position,align,shift,side,plabel,p,arrow,bar,margin,
        legend,mark,putmark);
   add(origin,pic,opic);
@@ -2189,10 +2198,12 @@ static int MoveQuiet=4;
 struct slice {
   public path before,after;
 }
+  
+slice operator init() {return new slice;}
 
 slice firstcut(path g, path knife) 
 {
-  slice s=new slice;
+  slice s;
   real t=intersect(g,knife).x;
   if (t < 0) {s.before=g; s.after=nullpath; return s;}
   s.before=subpath(g,0,min(t,intersect(g,reverse(knife)).x));

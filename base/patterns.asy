@@ -30,7 +30,7 @@ void add(frame preamble=patterns, string name, picture pic, pair lb=0,
 picture tile(real Hx=5mm, real Hy=0, pen p=currentpen,
 	     Filltype filltype=NoFill)
 {
-  picture tiling=new picture;
+  picture tiling;
   if(Hy == 0) Hy=Hx;
   guide tile=box((0,0),(Hx,Hy));
   filltype(tiling,tile,p);
@@ -40,7 +40,7 @@ picture tile(real Hx=5mm, real Hy=0, pen p=currentpen,
 
 picture checker(real Hx=5mm, real Hy=0, pen p=currentpen)
 {
-  picture tiling=new picture;
+  picture tiling;
   if(Hy == 0) Hy=Hx;
   guide tile=box((0,0),(Hx,Hy));
   fill(tiling,tile,p);
@@ -51,7 +51,7 @@ picture checker(real Hx=5mm, real Hy=0, pen p=currentpen)
 
 picture brick(real Hx=5mm, real Hy=0, pen p=currentpen)
 {
-  picture tiling=new picture;
+  picture tiling;
   if(Hy == 0) Hy=Hx/2;
   guide tile=box((0,0),(Hx,Hy));
   draw(tiling,tile,p);
@@ -64,7 +64,7 @@ picture brick(real Hx=5mm, real Hy=0, pen p=currentpen)
 public real hatchepsilon=1e-4;
 picture hatch(real H=5mm, pair dir=NE, pen p=currentpen) 
 {
-  picture tiling=new picture;
+  picture tiling;
   real theta=angle(dir);
   real s=sin(theta);
   real c=cos(theta);
@@ -92,7 +92,7 @@ picture hatch(real H=5mm, pair dir=NE, pen p=currentpen)
 
 picture crosshatch(real H=5mm, pen p=currentpen)
 {
-  picture tiling=new picture;
+  picture tiling;
   add(tiling,hatch(H));
   add(tiling,shift(H*sqrt(2))*rotate(90)*hatch(H));
   return tiling;

@@ -1062,7 +1062,7 @@ private string noprimary="Primary axis must be drawn before secondary axis";
 picture secondaryX(picture primary=currentpicture, void f(picture))
 {
   if(!primary.scale.set) abort(noprimary);
-  picture pic=new picture;
+  picture pic;
   f(pic);
   if(pic.empty()) abort("empty secondaryX picture");
   bounds a=autoscale(pic.userMin.x,pic.userMax.x,pic.scale.x.scale);
@@ -1093,7 +1093,7 @@ picture secondaryX(picture primary=currentpicture, void f(picture))
 picture secondaryY(picture primary=currentpicture, void f(picture))
 {
   if(!primary.scale.set) abort(noprimary);
-  picture pic=new picture;
+  picture pic;
   f(pic);
   if(pic.empty()) abort("empty secondaryY picture");
   bounds a=autoscale(pic.userMin.y,pic.userMax.y,pic.scale.y.scale);

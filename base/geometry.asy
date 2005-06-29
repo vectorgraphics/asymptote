@@ -7,7 +7,7 @@ void perpendicular(picture pic=currentpicture, pair z, pair w,
 		   real size=0, pen p=currentpen) 
 {
   if(size == 0) size=perpfactor*linewidth(p);
-  picture apic=new picture;
+  picture apic;
   pair d1=size*w;
   pair d2=I*d1;
   _draw(apic,d1--d1+d2--d2,p);
@@ -51,6 +51,8 @@ struct triangle {
   path Path() {return A--C--B--cycle;}
 }
 
+triangle operator init() {return new triangle;}
+  
 void draw(picture pic=currentpicture, triangle t, pen p=currentpen) 
 {
   draw(pic,t.Path(),p);
@@ -58,7 +60,7 @@ void draw(picture pic=currentpicture, triangle t, pen p=currentpen)
 
 triangle operator * (transform T, triangle t)
 {
-  triangle s=new triangle;
+  triangle s;
   s.vertices(T*t.A,T*t.B,T*t.C);
   return s;
 }

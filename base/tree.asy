@@ -13,6 +13,8 @@ struct tree
   public int value = 0;
 }
 
+tree operator init() {return new tree;}
+  
 bool operator == (tree a, tree b)
 {
   return alias(a,b);
@@ -31,7 +33,7 @@ tree newtree()
 tree add(tree t, int key, int value)
 {
   if (t == null) {
-    tree tt = new tree;
+    tree tt;
     tt.key = key; tt.value = value;
     return tt;
   }
@@ -39,7 +41,7 @@ tree add(tree t, int key, int value)
     return t;
   }
   else if (key < t.key) {
-    tree tt = new tree;
+    tree tt;
     tt.left = add(t.left, key, value);
     tt.key = t.key;
     tt.value = t.value;
@@ -47,7 +49,7 @@ tree add(tree t, int key, int value)
     return tt;
   }
   else {
-    tree tt = new tree;
+    tree tt;
     tt.left = t.left;
     tt.key = t.key;
     tt.value = t.value;

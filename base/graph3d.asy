@@ -98,7 +98,7 @@ void splitplanes(piclist Pic, vector[] a, int[] aindex,
   for(int i=0; i < n; ++i) {
     int I=aindex[i];
     picture bottom=Pic.list[I].pic;
-    picture top=new picture;
+    picture top;
     add(top,bottom);
     clip(bottom,g2);
     clip(top,g1);
@@ -111,7 +111,7 @@ void splitplanes(piclist Pic, vector[] a, int[] aindex,
   for(int i=0; i < n; ++i) {
     int I=bindex[i];
     picture bottom=Pic.list[I].pic;
-    picture top=new picture;
+    picture top;
     add(top,bottom);
     clip(bottom,g1);
     clip(top,g2);

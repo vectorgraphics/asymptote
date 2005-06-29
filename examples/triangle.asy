@@ -1,7 +1,7 @@
 size(0,100);
 import geometry;
 
-triangle t=new triangle;
+triangle t;
 t.SAS(3,90,4);
   
 dot((0,0));

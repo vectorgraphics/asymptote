@@ -143,10 +143,12 @@ struct linefit {
   }
 }
 
+linefit operator init() {return new linefit;}
+  
 // Do a least-squares fit of data in real arrays x and y to the line y=m*x+b
 linefit leastsquares(real[] x, real[] y)
 {
-  linefit L=new linefit;
+  linefit L;
   int n=x.length;
   if(n == 1) abort("Least square fit requires at least 2 data points");
   real sx=sum(x);
