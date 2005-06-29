@@ -12,7 +12,7 @@ guide c2=circle(z2,r);
 fill(c1,colour1);
 fill(c2,colour2);
 
-picture intersection=new picture;
+picture intersection;
 fill(intersection,c1,colour1+colour2);
 clip(intersection,c2);
 

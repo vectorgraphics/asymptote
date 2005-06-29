@@ -4,7 +4,7 @@ pair d=(1.5,1);
 real s=d.x+1;
 
 picture box(string s) {
-  picture pic=new picture;
+  picture pic;
   draw(pic,box(0,d));
   label(pic,s,d/2);
   return pic;

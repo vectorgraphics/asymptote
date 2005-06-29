@@ -67,19 +67,23 @@ static struct curve {
   }
 }
 
+curve operator init() {
+  return new curve;
+}
+
 import graph;
 import math;
 
 size(0,200);
 
-curve c=new curve; c.a=-1; c.b=4;
+curve c; c.a=-1; c.b=4;
 
 pair oncurve(real x) 
 {
   return (x,sqrt(c.y2(x)));
 }
 
-picture output=new picture;
+picture output;
 
 axes();
 c.locus(-4,3,.3red+.7blue);

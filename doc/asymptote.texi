@@ -1423,11 +1423,10 @@ is empty.
 @cindex @code{picture}
 Pictures are high-level structures (@pxref{Structures}) defined in
 @code{plain.asy} that provide canvases for drawing in user coordinates. 
-The default picture is called @code{currentpicture}. Since structures
-have no default initialization, this should be done explicitly
-whenever a new picture is declared:
+The default picture is called @code{currentpicture}. A new picture
+can be created like this:
 @verbatim
-picture pic=new picture;
+picture pic;
 @end verbatim
 
 The @code{size} routine specifies the dimensions of the desired picture:
@@ -1730,22 +1729,29 @@ user-defined operators, much as in C++. By default, structure
 members are read-only when referenced outside the structure, but may be
 optionally declared @code{public} (read-write) or @code{private} (read
 and write allowed only inside the structure). The virtual structure @code{this}
-refers to the enclosing structure. Structures currently have no default
-initialization, so this must be done explicitly, using the keyword @code{new}:
+refers to the enclosing structure. A default initializer for a
+structure @code{S} can be defined by creating a function
+@code{S operator init()}, which initializes each instance of @code{S}
+using the keyword @code{new}:
+
 @cindex @code{operator}
+@cindex @code{operator init}
+@cindex @code{new}
 @verbatim
 struct S {
   public real a=1;
   real f(real a) {return a+this.a;}
 }
 
-S s=new S;
+S operator init() {return new S;}
+
+S s;                            // Initializes s with S operator init();
 
 write(s.f(2));                  // Outputs 3
 
 S operator + (S s1, S s2)
 {
-  S result=new S;
+  S result;
   result.a=s1.a+s2.a;
   return result;
 }
@@ -1755,9 +1761,10 @@ write((s+s).f(0));              // Outputs 2
 @end verbatim
 
 Any code at the top-level scope within the structure is executed on
-initialization. In the following example, the routine @code{init}
-plays the role of a default constructor. Currently, any arguments to
-the constructor must be passed with an explicit call after initialization:
+initialization. In the following example, the member function
+@code{void init(real x=0)} plays the role of a default constructor.
+Currently, any arguments to the constructor must be passed with an
+explicit call after initialization:
 
 @verbatim
 struct S {
@@ -1766,8 +1773,10 @@ struct S {
   init();
 }
 
-S a=new S;
-S b=new S;
+S operator init() {return new S;}
+
+S a;
+S b;
 b.init(1);
 
 write(a.x);             // Outputs 0
@@ -3354,8 +3363,9 @@ int pow(int n, int k) {
       x *= n;
     }
   }
+  A operator init() {return new A;}
   for (int i=0; i < k; ++i) {
-    A a=new A;
+    A a;
     a.helper();
   }
   return A.x;

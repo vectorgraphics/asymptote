@@ -19,7 +19,7 @@ draw("1",(0,0)--dir(135),Arrow,PenMargin);
 draw(circle((0,0),1));
 filldraw(g,red+white);
 
-picture hidden=new picture;
+picture hidden;
 draw(hidden,circle((0,0),1),dashed);
 clip(hidden,g);
 

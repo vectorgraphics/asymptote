@@ -16,13 +16,13 @@ piclist a=new piclist;
 picture pic;
 int[] Yindex,Gindex,Aindex;
 
-pic=new picture;
+pic;
 filldraw(pic,P(FaceY)--cycle,yellow); a.push(pic,Yindex);
 
-pic=new picture;
+pic;
 filldraw(pic,P(FaceA)--cycle,lightgrey); a.push(pic,Aindex);
 
-pic=new picture;
+pic;
 filldraw(pic,P(FaceG)--cycle,green); a.push(pic,Gindex);
 
 splitplanes(a,FaceY,Yindex,FaceG,Gindex);

@@ -846,6 +846,8 @@ struct picture {
   }
 }
 
+picture operator init() {return new picture;}
+
 picture operator * (transform t, picture orig)
 {
   picture pic=orig.copy();

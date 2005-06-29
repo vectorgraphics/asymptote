@@ -1,7 +1,7 @@
 
 import graph;
 
-picture pic=new picture;
+picture pic;
 real xsize=200, ysize=140;
 size(pic,xsize,ysize,IgnoreAspect);
 
@@ -14,7 +14,7 @@ draw(pic,graph(pic,f),marker(scale(0.8mm)*unitcircle,blue,Fill),Below);
 xaxis(pic,"$x$",BottomTop,LeftTicks);
 yaxis(pic,"$y$",LeftRight,RightTicks);
 
-picture pic2=new picture;
+picture pic2;
 size(pic2,xsize,ysize,IgnoreAspect);
 
 frame mark;

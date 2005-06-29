@@ -37,7 +37,7 @@ int n=25;
 real dt=(t2-t1)/n;
 string prefix=fileprefix();
 for(int i=0; i <= n; ++i) {
-  currentpicture=new picture;
+  currentpicture;
   size(0,200);
   initialpicture();
   real t=t1+dt*i;

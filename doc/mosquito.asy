@@ -7,7 +7,7 @@ real y=0.6;
 defaultpen(fontsize(8));
 
 picture box(string s, pair z=(0,0)) {
-  picture pic=new picture;
+  picture pic;
   draw(pic,box(-d/2,d/2));
   label(pic,s,(0,0));
   return shift(z)*pic;

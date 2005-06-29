@@ -43,7 +43,7 @@ for(int taxon=0; taxon < n; ++taxon) {
   real[] P=percentage[taxon];
   real maxP=max(P);
   if(maxP < ignorebelow) continue;
-  picture pic=new picture;
+  picture pic;
   real x=1;
   if(maxP < minpercent) x=minpercent/maxP;
   if(maxP > 100) x=50/maxP;

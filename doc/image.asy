@@ -12,7 +12,7 @@ for(int i=0; i < n; ++i)
 
 pen[] Palette=BWRainbow();
 
-picture plot=new picture;
+picture plot;
 
 image(plot,v,Palette,(0,0),(1,1));
 picture bar=palette(v,5mm,Palette,"$A$",PaletteTicks("%+#.1f"));
