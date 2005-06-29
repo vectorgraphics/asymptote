@@ -164,11 +164,8 @@ bounds autoscale(real Min, real Max, scaleT scale=Linear)
 
 typedef real part(pair);
 
-struct ticksT {};
-private ticksT ticks=null;
 typedef void ticks(frame, transform, string, real, real, pair, pair, pair, 
-		   path, pen, pen, autoscaleT, part, bool, int[], real,
-		   real, ticksT);
+		   path, pen, pen, autoscaleT, part, bool, int[], real, real);
 
 typedef string ticklabel(real);
 
@@ -283,7 +280,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
   return new void(frame f, transform T, string s, real position, real angle,
 		  pair align, pair shift, pair side, path G, pen plabel, pen p,
 		  autoscaleT S, part part, bool opposite,
-		  int[] divisor, real tickmin, real tickmax, ticksT) {
+		  int[] divisor, real tickmin, real tickmax) {
     // Use local copy of context variables:
     int sign=opposite ? -sign : sign;
     int N=N;
@@ -496,7 +493,7 @@ void axis(picture pic=currentpicture, guide g,
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
     frame d;
     ticks(d,t,s,position,angle,align,shift,side,t*g,plabel,p,S,part,
-	  opposite,divisor,tickmin,tickmax,ticks);
+	  opposite,divisor,tickmin,tickmax);
     (put ? add : prepend)(f,t*T*inverse(t)*d);
   });
   
@@ -528,7 +525,7 @@ void xequals(picture pic=currentpicture, real x,
     ticks(d,t,s,position,angle,align,shift,side,a--b,plabel,p,
 	  pic.scale.y,
 	  new real(pair z) {return pic.scale.y.Label(z.y);},
-	  opposite,divisor,tickmin,tickmax,ticks);
+	  opposite,divisor,tickmin,tickmax);
     (put ? add : prepend)(f,t*T*inverse(t)*d);
   });
   
@@ -545,7 +542,7 @@ void xequals(picture pic=currentpicture, real x,
     ticks(d,identity(),s,position,angle,align,shift,side,
 	  (0,a.y)--(0,b.y),plabel,p,pic.scale.y,
 	  new real(pair z) {return pic.scale.y.Label(z.y);},
-	  opposite,divisor,tickmin,tickmax,ticks);
+	  opposite,divisor,tickmin,tickmax);
     frame f;
     if(s != "") label(f,s,angle,(0,0),align,plabel);
     pair pos=a+position*(b-a);
@@ -571,7 +568,7 @@ void yequals(picture pic=currentpicture, real y,
     ticks(d,t,s,position,angle,align,shift,side,a--b,plabel,p,
 	  pic.scale.x,
 	  new real(pair z) {return pic.scale.x.Label(z.x);},
-	  opposite,divisor,tickmin,tickmax,ticks);
+	  opposite,divisor,tickmin,tickmax);
     (put ? add : prepend)(f,t*T*inverse(t)*d);
   });
 
@@ -588,7 +585,7 @@ void yequals(picture pic=currentpicture, real y,
     ticks(d,identity(),s,position,angle,align,shift,side,
 	  (a.x,0)--(b.x,0),plabel,p,pic.scale.x,
 	  new real(pair z) {return pic.scale.y.Label(z.x);},
-	  opposite,divisor,tickmin,tickmax,ticks);
+	  opposite,divisor,tickmin,tickmax);
     frame f;
     if(s != "") label(f,s,angle,(0,0),align,plabel);
     pair pos=a+position*(b-a);
