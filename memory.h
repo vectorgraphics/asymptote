@@ -97,7 +97,8 @@ GC_CONTAINER(hash_multimap);
 #undef EXT
 
 #ifdef USEGC
-#define GC_STRING std::basic_string<char,std::char_traits<char>,gc_allocator<char> >
+#define GC_STRING \
+  std::basic_string<char,std::char_traits<char>,gc_allocator<char> >
 struct string : public GC_STRING
 {
   string () {}

@@ -11,16 +11,16 @@
 #include <list>
 #include <string>
 
-using std::string;
+#include "memory.h"
 
 namespace settings {
 
-typedef std::list<string> file_list_t;
+typedef mem::list<mem::string> file_list_t;
 extern file_list_t searchPath;
 
 // Find the appropriate file, first looking in the local directory, then the
 // directory given in settings, and finally the global system directory.
-string locateFile(string id);
+std::string locateFile(std::string id);
 
 } // namespace settings
 

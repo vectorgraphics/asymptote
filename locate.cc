@@ -66,7 +66,7 @@ string locateFile(string id)
       for (file_list_t::iterator dir = searchPath.begin();
            dir != searchPath.end();
            ++dir) {
-        string file = *dir + "/" + *leaf;
+	mem::string file = *dir + "/" + *leaf;
         if (fs::exists(file))
           return file;
       }
