@@ -114,7 +114,7 @@ public:
   // If a cast function is not stored in the environment, ask the type itself.
   // This handles null->record casting, and the like.  The caster is used as a 
   // callback to the environment for casts of subtypes.
-  virtual trans::access *castTo(ty *target, caster &) {
+  virtual trans::access *castTo(ty *, caster &) {
     return 0;
   }
 

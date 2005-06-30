@@ -197,7 +197,8 @@ public:
     te.enter(name, desc);
   }
   
-  void addVar(position pos, symbol *name, varEntry *desc, bool ignore=false)
+//  void addVar(position pos, symbol *name, varEntry *desc, bool ignore=false)
+  void addVar(position, symbol *name, varEntry *desc, bool=false)
   {
     // For now don't check for multiple variables, as this makes adding casts
     // and initializers harder.  Figure out what to do about this.
