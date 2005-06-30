@@ -16,7 +16,6 @@
 #include "fpu.h"
 #include "genv.h"
 #include "stm.h"
-//#include "camp.tab.h"
 #include "settings.h"
 #include "vm.h"
 #include "program.h"
@@ -85,13 +84,8 @@ namespace loop {
 
 void init()
 {
-#ifdef USEGC
-  GC_gcollect();
-#endif
   ShipoutNumber=0;
-
   outnameStack=new list<string>;
-
   em = new errorstream();
 }
 
@@ -100,7 +94,10 @@ void purge()
   delete em; em = 0;
   delete outnameStack; outnameStack = 0;
   outname="";
-  camp::file::free();
+//  camp::file::free();
+#ifdef USEGC
+  GC_gcollect();
+#endif
 }
 
 void doTranslate(genv& ge, record *m)
