@@ -81,7 +81,7 @@ char **args(const char *command)
       if(!quote && c == ' ') {
 	if(!empty) {
 	  if(pass) {
-	    argv[n]=strdup(buf.str().c_str());
+	    argv[n]=strcpy(new char[buf.str().size()+1],buf.str().c_str());
 	    buf.str("");
 	  }
 	  empty=true;
@@ -94,7 +94,7 @@ char **args(const char *command)
       }
     }
     if(!empty) {
-      if(pass) argv[n]=strdup(buf.str().c_str());
+      if(pass) argv[n]=strcpy(new char[buf.str().size()+1],buf.str().c_str());
       n++;
     }
   }
@@ -142,7 +142,7 @@ int System(const char *command, bool quiet, bool wait, int *ppid, bool warn)
 	  char **p=argv;
 	  char *s;
 	  while((s=*(p++)) != NULL)
-	    free(s);
+	    delete [] s;
 	  delete [] argv;
 	}
 	return WEXITSTATUS(status);
