@@ -1411,11 +1411,11 @@ The implicit initializer for transforms is @code{identity()}.
 
 @item frame
 @cindex @code{frame}
-@cindex @code{nullframe}
+@cindex @code{newframe}
 Frames are canvases for drawing in @code{PostScript} coordinates. While working
 with frames directly is occasionally necessary for constructing deferred
 drawing routines, pictures are usually more convenient to work with.
-The implicit initializer for frames is @code{nullframe}. The function
+The implicit initializer for frames is @code{newframe}. The function
 @code{bool empty(frame f)} returns @code{true} only if the frame @code{f}
 is empty.
 
@@ -1428,6 +1428,8 @@ can be created like this:
 @verbatim
 picture pic;
 @end verbatim
+@noindent
+Anonymous pictures can be made by the expression @code{new picture}.
 
 The @code{size} routine specifies the dimensions of the desired picture:
 
@@ -1731,8 +1733,9 @@ optionally declared @code{public} (read-write) or @code{private} (read
 and write allowed only inside the structure). The virtual structure @code{this}
 refers to the enclosing structure. A default initializer for a
 structure @code{S} can be defined by creating a function
-@code{S operator init()}, which initializes each instance of @code{S}
-using the keyword @code{new}:
+@code{S operator init()}. This can be used to initialize each instance
+of @code{S} with @code{new S} (which creates a new anonymous instance
+of @code{S}).
 
 @cindex @code{operator}
 @cindex @code{operator init}

@@ -1450,7 +1450,7 @@ void penMin(stack *s)
 
 // Picture operations.
 
-void nullFrame(stack *s)
+void newFrame(stack *s)
 {
   s->push(new picture());
 }
@@ -1745,7 +1745,7 @@ void scrollLines(stack *s)
 
 // I/O Operations
 
-void nullFile(stack *s)
+void newFile(stack *s)
 {
   file *f=&camp::Stdout;
   s->push(f);

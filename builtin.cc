@@ -163,8 +163,8 @@ void addInitializers(venv &ve)
   addInitializer(ve, primGuide(), run::nullGuide);
   addInitializer(ve, primPath(), run::nullPath);
   addInitializer(ve, primPen(), run::newPen);
-  addInitializer(ve, primPicture(), run::nullFrame);
-  addInitializer(ve, primFile(), run::nullFile);
+  addInitializer(ve, primPicture(), run::newFrame);
+  addInitializer(ve, primFile(), run::newFile);
 }
 
 void addCasts(venv &ve)

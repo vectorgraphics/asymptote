@@ -539,14 +539,14 @@ types::ty *booleanExp::trans(coenv &e)
   return types::primBoolean();  
 }
 
-void nullPictureExp::prettyprint(ostream &out, int indent)
+void newPictureExp::prettyprint(ostream &out, int indent)
 {
-  prettyname(out, "nullPictureExp",indent);
+  prettyname(out, "newFrameExp",indent);
 }
 
-types::ty *nullPictureExp::trans(coenv &e)
+types::ty *newPictureExp::trans(coenv &e)
 {
-  e.c.encode(inst::builtin, run::nullFrame);
+  e.c.encode(inst::builtin, run::newFrame);
   
   return types::primPicture();  
 }

@@ -493,7 +493,7 @@ struct Legend {
   public frame mark;
   public bool putmark;
   void init(string label, pen plabel=currentpen, pen p=nullpen,
-	    frame mark=nullframe, bool putmark=false) {
+	    frame mark=newframe, bool putmark=false) {
     this.label=label;
     this.plabel=plabel;
     this.p=(p == nullpen) ? plabel : p;
@@ -2035,7 +2035,7 @@ void draw(picture pic=currentpicture, string s="", real angle=0,
 	  path g, real position=infinity, pair align=0, pair shift=0,
 	  side side=RightSide, pen plabel=currentpen, pen p=nullpen,
 	  arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
-	  string legend="", frame mark=nullframe, bool putmark=Above)
+	  string legend="", frame mark=newframe, bool putmark=Above)
 {
   if(p == nullpen) p=plabel;
   if(!putmark && !empty(mark)) mark(pic,g,mark);
@@ -2054,7 +2054,7 @@ void draw(pair origin, picture pic=currentpicture, string s="", real angle=0,
 	  path g, real position=infinity, pair align=0, pair shift=0, 
 	  side side=RightSide, pen plabel=currentpen, pen p=nullpen,
 	  arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
-	  string legend="", frame mark=nullframe, bool putmark=Above)
+	  string legend="", frame mark=newframe, bool putmark=Above)
 {
   picture opic;
   draw(opic,s,angle,g,position,align,shift,side,plabel,p,arrow,bar,margin,

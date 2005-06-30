@@ -306,8 +306,8 @@ false              {
   adjust(); yylval.e= new booleanExp(here(), false); return LIT; }
 null               {
   adjust(); yylval.e= new nullExp(here()); return LIT; }
-nullframe        {
-  adjust(); yylval.e= new nullPictureExp(here()); return LIT; }
+newframe        {
+  adjust(); yylval.e= new newPictureExp(here()); return LIT; }
 nullpath        {
   adjust(); yylval.e= new nullPathExp(here()); return LIT; }
 

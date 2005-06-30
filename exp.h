@@ -383,10 +383,10 @@ public:
   types::ty *getType(coenv &) { return types::primBoolean(); }
 };
 
-class nullPictureExp : public literalExp {
+class newPictureExp : public literalExp {
 
 public:
-  nullPictureExp(position pos)
+  newPictureExp(position pos)
     : literalExp(pos) {}
 
   void prettyprint(ostream &out, int indent);

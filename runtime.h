@@ -207,7 +207,7 @@ void penMax(vm::stack *s);
 void penMin(vm::stack *s);
 
 // Picture operations
-void nullFrame(vm::stack *s);
+void newFrame(vm::stack *s);
 void boolNullFrame(vm::stack *s);
 void frameMax(vm::stack *s);
 void frameMin(vm::stack *s);
@@ -240,7 +240,7 @@ void execute(vm::stack *s);
 void eval(vm::stack *s);
   
 // I/O Routines
-void nullFile(vm::stack *s);
+void newFile(vm::stack *s);
 void fileOpenOut(vm::stack *s);
 void fileOpenIn(vm::stack *s);
 void fileOpenXOut(vm::stack *s);
