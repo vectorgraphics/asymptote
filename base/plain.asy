@@ -185,40 +185,40 @@ file input(string name) {return input(name,true);}
 file xinput(string name) {return xinput(name,true);}
 file output(string name) {return output(name,false);}
 file xoutput(string name) {return xoutput(name,false);}
-file csv(file f) {return csv(f,true);}
-file line(file f) {return line(f,true);}
-file single(file f) {return single(f,true);}
+file csv(file file) {return csv(file,true);}
+file line(file file) {return line(file,true);}
+file single(file file) {return single(file,true);}
 
 file stdin=input("");
 file stdout;
 
-void endl(file out) {write(out,'\n'); flush(out);}
-void tab(file out) {write(out,'\t');}
+void endl(file file) {write(file,'\n'); flush(file);}
+void tab(file file) {write(file,'\t');}
 typedef void suffix(file);
 
-void write(file out=stdout, suffix s=endl) {s(out);}
-void write(file out=stdout, bool x, suffix s) {write(out,x); s(out);}
-void write(file out=stdout, int x, suffix s) {write(out,x); s(out);}
-void write(file out=stdout, real x, suffix s) {write(out,x); s(out);}
-void write(file out=stdout, pair x, suffix s) {write(out,x); s(out);}
-void write(file out=stdout, string x, suffix s) {write(out,x); s(out);}
-void write(file out=stdout, guide x, suffix s) {write(out,x); s(out);}
-void write(file out=stdout, pen x, suffix s) {write(out,x); s(out);}
-void write(file out=stdout, transform x, suffix s) {write(out,x); s(out);}
+void write(file file=stdout, suffix s=endl) {s(file);}
+void write(file file=stdout, bool x, suffix s) {write(file,x); s(file);}
+void write(file file=stdout, int x, suffix s) {write(file,x); s(file);}
+void write(file file=stdout, real x, suffix s) {write(file,x); s(file);}
+void write(file file=stdout, pair x, suffix s) {write(file,x); s(file);}
+void write(file file=stdout, string x, suffix s) {write(file,x); s(file);}
+void write(file file=stdout, guide x, suffix s) {write(file,x); s(file);}
+void write(file file=stdout, pen x, suffix s) {write(file,x); s(file);}
+void write(file file=stdout, transform x, suffix s) {write(file,x); s(file);}
 
-void write(file out=stdout, string x, real y)
+void write(file file=stdout, string x, real y)
 {
-  write(out,x); write(out,y,endl);
+  write(file,x); write(file,y,endl);
 }
 
-void write(file out=stdout, string x, pair y)
+void write(file file=stdout, string x, pair y)
 {
-  write(out,x); write(out,y,endl);
+  write(file,x); write(file,y,endl);
 }
 
-void write(file out=stdout, string x, real y, string x2, real y2)
+void write(file file=stdout, string x, real y, string x2, real y2)
 {
-  write(out,x); write(out,y,tab); write(out,x2,y2);
+  write(file,x); write(file,y,tab); write(file,x2,y2);
 }
 
 string ask(string prompt)
