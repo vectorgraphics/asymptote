@@ -36,6 +36,7 @@ using std::allocator;
 #define gc_allocator allocator
 
 class gc {};
+class gc_cleanup {};
 
 enum GCPlacement {UseGC, NoGC, PointerFreeGC};
 

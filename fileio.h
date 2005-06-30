@@ -27,7 +27,7 @@
 #include "camperror.h"
 #include "interact.h"
 #include "errormsg.h"
-#include "pool.h"
+#include "memory.h"
 
 namespace camp {
 
