@@ -18,8 +18,6 @@
 #include "coenv.h"
 #include "exp.h"
 
-using mem::vector;
-
 using absyntax::arglist;
 using absyntax::varinit;
 using absyntax::arrayinit;
@@ -28,6 +26,8 @@ using absyntax::tempExp;
 // This is mid-way between trans an absyntax.
 namespace trans {
 
+using mem::vector;
+  
 typedef int score;
 
 typedef vector<score> score_vector;

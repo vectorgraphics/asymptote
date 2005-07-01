@@ -131,7 +131,8 @@ void application::initRest() {
   }
 }
 
-const int REST=-1, NOMATCH=-2;
+//const int REST=-1; 
+const int NOMATCH=-2;
 
 int application::find(symbol *name) {
   formal_vector &f=sig->formals;

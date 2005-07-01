@@ -760,7 +760,7 @@ protected:
   // This is basically a hook to facilitate selfExp.  dest is given as an
   // argument since it will be a temporary in translation in order to avoid
   // multiple evaluation.
-  virtual exp *ultimateValue(exp *dest) {
+  virtual exp *ultimateValue(exp *) {
     return value;
   }
 

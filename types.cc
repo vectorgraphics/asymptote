@@ -264,7 +264,7 @@ bool equivalent(signature *s1, signature *s2)
 }
 
 size_t signature::hash() {
-  int x=2038;
+  size_t x=2038;
   for (formal_vector::iterator i=formals.begin(); i!=formals.end(); ++i)
     x=x*0xFAEC+i->t->hash();
 
