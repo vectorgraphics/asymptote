@@ -1,12 +1,8 @@
 Andy: extend syntax to allow for explict array casts like (int[]) on real[].
 
-Andy: implement tags
-
 Andy: public:/private: default qualifiers
 
 Andy: implement "public import"
-
-Andy: allow user specified initializers (including for structures)
 
 Andy: implement private typedefs
 

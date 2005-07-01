@@ -83,6 +83,8 @@ Programming
 Functions
 
 * Default arguments::           Default values can appear anyway
+* Named arguments::             Assigning function arguments by keyword
+* Rest arguments::              Functions with a variable number of arguments
 * Mathematical functions::      Standard libm functions
 
 
@@ -2057,6 +2059,8 @@ installed at configuration time).
 
 @menu
 * Default arguments::           Default values can appear anyway
+* Named arguments::             Assigning function arguments by keyword
+* Rest arguments::              Functions with a variable number of arguments
 * Mathematical functions::      Standard libm functions
 
 @end menu
@@ -2064,12 +2068,13 @@ installed at configuration time).
 @node Default arguments
 @subsection Default arguments
 @cindex default arguments
+@cindex arguments
 
 @code{Asymptote} supports a more flexible mechanism for default function
 arguments than C++: they may appear anywhere in the function prototype.
-Because certain data types are implicitly cast to more 
-sophisticated types (see @ref{Casts}) one can often avoid ambiguities by
-ordering function arguments from the simplest to the most complicated.
+Because certain data types are implicitly cast to more sophisticated
+types (see @ref{Casts}) one can often avoid ambiguities by ordering
+function arguments from the simplest to the most complicated.
 For example, given
 @verbatim
 real f(int a=1, real b=0) {return a+b;}
@@ -2078,8 +2083,169 @@ real f(int a=1, real b=0) {return a+b;}
 then @code{f(1)} returns 1.0, but @code{f(1.0)} returns 2.0.
 
 The value of a default argument is determined simply by evaluating the
-given @code{Asymptote} expression (effectively substituted by a "cut and paste"
-operation).
+given @code{Asymptote} expression (effectively using a "cut and paste"
+operation to substitute the default value). 
+
+@node Named arguments
+@subsection Named arguments
+@cindex keywords
+@cindex named arguments
+
+It is sometimes difficult to remember the order in which arguments
+appear in a function declaration. Named (keyword) arguments make calling
+functions with multiple arguments easier. Unlike in the C and C++
+languages, an assignment in a function argument is interpreted as an
+assignment to a parameter of the same name in the function signature,
+@emph{not within the local scope}. 
+
+When matching arguments to signatures, first all of the keywords are
+matched, then the arguments without names are matched against the
+unmatched formals as usual. For example,
+@verbatim
+int f(int x, int y) {
+  return 10x+y;
+}
+write(f(4,x=3));
+@end verbatim
+@noindent 
+output 34, as @code{x} is already matched when we try to match the
+unnamed argument @code{4}, so it gets matched to the next item, @code{y}. 
+
+For the rare occasions where it is desirable to assign a value to
+local variable within a function argument (generally @emph{not} a good
+programming practice), simply enclose the assignment in
+parentheses. For example, given the definition of @code{f} in the
+previous example,
+@verbatim
+int x;
+write(f(4,(x=3)));
+@end verbatim
+@noindent
+is equivalent to the statements
+@verbatim
+int x;
+x=3;
+write(f(4,3));
+@end verbatim
+@noindent
+and outputs 43.
+
+As a technical detail, we point out that, since variables of the same
+name but different signatures are allowed in the same scope, the code
+@verbatim
+int f(int x, int x()) {
+  return x+x();
+}
+int seven() {return 7;}
+@end verbatim
+@noindent
+is legal in @code{Asymptote} and @code{f(2,seven)} returns 9.  A named argument
+matches the first unmatched formal of the same name, so
+@code{f(x=2,x=seven)} is an equivalent call, but @code{f(x=seven,2)}
+is not, as the first argument is matched to the first formal, and
+@code{int ()} cannot be implicitly cast to @code{int}.  Default
+arguments do not affect which formal a named argument is matched to,
+so if @code{f} were defined as
+@verbatim
+int f(int x=3, int x()) {
+  return x+x();
+}
+@end verbatim
+@noindent
+then @code{f(x=seven)} would be illegal, even though @code{f(seven)}
+obviously would be allowed.
+
+@node Rest arguments
+@subsection Rest arguments
+@cindex rest arguments
+
+Rest arguments allow one to write functions that take a variable
+number of arguments:
+@verbatim
+// This function sums its arguments.
+int sum(... int[] nums) {
+  int total=0; 
+  for (int i=0; i < nums.length; ++i)
+    total += nums[i];
+  return total;
+}
+
+sum(1,2,3,4);                       // returns 10
+sum();                              // returns 0
+
+// This function subtracts subsequent arguments from the first.
+int subtract(int start ... int[] subs) {
+  for (int i=0; i < subs.length; ++i)
+    start -= subs[i];
+  return start;
+}
+
+subtract(10,1,2);                   // returns 7
+subtract(10);                       // returns 10
+subtract();                         // illegal
+@end verbatim
+  
+@cindex packing 
+Putting an argument into a rest array is called @emph{packing}.
+One can give an explicit list of arguments for the rest
+argument, so @code{subtract} could alternatively be implemented as
+@verbatim
+int subtract(int start ... int[] subs) {
+  return start - sum(... subs);
+}
+@end verbatim
+  
+One can even combine normal arguments with rest arguments:
+@verbatim
+sum(1,2,3 ... new int[] {4,5,6});   // returns 21
+@end verbatim
+@noindent
+@cindex unpacking
+This builds a new six-element array that is passed to @code{sum} as
+@code{nums}. The opposite operation, @emph{unpacking}, is not allowed:
+@verbatim
+subtract(... new int[] {10, 1, 2});
+@end verbatim
+@noindent
+is illegal, as the start formal is not matched.
+
+If no arguments are packed, then a zero-length array (as opposed to
+@code{null}) is bound to the rest parameter. Note that default
+arguments are ignored for rest formals and the rest argument is not
+bound to a keyword.
+
+The overloading resolution in @code{Asymptote} is similar to the
+function matching rules used in C++. Every argument match is given a
+score.  Exact matches score better than matches with casting, and
+matches with formals score better than packing an argument into the
+rest array.  A candidate is maximal if all of the arguments score as
+well in it as with any other candidate.  If there is one unique
+maximal candidate, it is chosen; otherwise, there is an ambiguity
+error.
+
+@verbatim
+int f(path g);
+int f(guide g);
+f((0,0)--(100,100)); // matches the second; the argument is a guide
+
+int g(int x, real y);
+int g(real x, int x);
+
+g(3,4); // ambiguous; the first candidate is better for the first argument,
+        // but the second candidate is better for the second argument
+
+int h(... int[] rest);
+int h(real x ... int[] rest);
+
+h(1,2); // the second definition matches, even though there is a cast,
+        // because casting is preferred over packing
+
+int i(int x ... int[] rest);
+int i(real x, real y ... int[] rest);
+
+i(3,4); // ambiguous; the first candidate is better for the first argument,
+        // but the second candidate is better for the second one
+@end verbatim
 
 @node Mathematical functions
 @subsection Mathematical functions
@@ -4124,7 +4290,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
 @c  LocalWords:  vskip filll insertcopying ifnottex detailmenu alist augroup PQ
 @c  LocalWords:  bool behaviour facto zxf cvs login Debian dev filetypedetect
-@c  LocalWords:  FFTW bp readline gv eps gifmerge wheelanimation args
+@c  LocalWords:  FFTW bp readline gv eps gifmerge wheelanimation args Boehm gc
 @c  LocalWords:  boolean initializer expi dir xpart ypart STL substring rfind
 @c  LocalWords:  pos substr strftime typedef pxref unitcircle yscale Bezier iff
 @c  LocalWords:  postcontrol precontrol atleast nullpath arclength arctime rgb
@@ -4170,4 +4336,5 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  dpx dpy dmx dmy barsize arrowheadsize BeginDotMargin DotMargin
 @c  LocalWords:  EndDotMargin DotMargins NColors BWRainbow colorspace labelled
 @c  LocalWords:  PaletteTicks defaultformat leastsquares bjam fprintf endgroup
-@c  LocalWords:  begingroup xmargin ymargin pbox labelbox labelellipse
+@c  LocalWords:  begingroup xmargin ymargin pbox labelbox labelellipse wget
+@c  LocalWords:  multithreaded newframe init emph nums concat xline yline
