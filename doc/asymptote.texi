@@ -1493,7 +1493,7 @@ values of @code{0}, @code{0}, and @code{false}, respectively). The optional
 @code{dir} argument specifies a direction to use for aligning the
 frame, in a manner completely analogous to the @code{align} argument
 of @code{label} (@pxref{label}). Frame alignment is illustrated in the
-examples @ref{datagraph} and @ref{image}.
+examples @ref{errorbars} and @ref{image}.
 
 @verbatim
 frame f=pic.fit(xsize,ysize,true);
@@ -2958,7 +2958,7 @@ current layer.
 The default tick option is @code{NoTicks}. 
 The option @code{LeftTicks} (@code{RightTicks}) can be used to draw
 ticks on the left (right) of the path, relative to the direction in which
-the path is drawn. The tick routines accept a number of optional arguments:
+the path is drawn. These tick routines accept a number of optional arguments:
 @verbatim
 ticks LeftTicks(bool begin=true, int N=0, int n=0, real Step=0,
                 real step=0, real Size=Ticksize, real size=ticksize,
@@ -2987,6 +2987,16 @@ is a string used for formatting the tick values (@pxref{format});
 @item end
 requests a big tick at the end of the axis.
 @end table
+
+@cindex custom tick locations
+It is also possible to specify custom tick locations with
+@code{LeftTicks} and @code{RightTicks} by passing explicit real
+arrays @code{Ticks} and (optionally) @code{ticks} containing the
+locations of the big and small ticks, respectively:
+@verbatim
+ticks LeftTicks(real[] Ticks, real[] ticks=new real[],
+		real Size=Ticksize, real size=ticksize, string F);
+@end verbatim
 
 @item
 @verbatim
@@ -3142,6 +3152,11 @@ graphical user interface @code{xasy} (@pxref{GUI}).
 To specify a fixed size for the graph proper, use @code{attach}:
 @verbatiminclude lineargraph.asy
 
+@item This example draws a graph of one array versus another (both of
+the same size) using custom ticks locations on the @math{y} axis.
+@verbatiminclude datagraph.asy
+@image{datagraph}
+
 @cindex @code{polygon}
 @cindex @code{cross}
 @cindex @code{errorbars}
@@ -3169,9 +3184,9 @@ Here, the positive and negative extents of the error are given by the
 absolute values of the elements of the pair array @code{dp} and the
 optional pair array @code{dm}. If @code{dm} is not specified, the
 positive and negative extents of the error are assumed to be equal.
-@anchor{datagraph}
-@verbatiminclude datagraph.asy
-@image{datagraph}
+@anchor{errorbars}
+@verbatiminclude errorbars.asy
+@image{errorbars}
 
 @item This example draws a graph of a parametrized curve. 
 @cindex parametrized curve

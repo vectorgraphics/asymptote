@@ -444,6 +444,52 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
   };
 }
 
+ticks Ticks(int sign, real[] Ticks, real[] ticks=new real[],
+	    real Size=Ticksize, real size=ticksize,
+	    ticklabel ticklabel=ticklabel)
+{
+  locateT locate;
+  return new void(frame f, transform T, string s, real position, real angle,
+		  pair align, pair shift, pair side, path G, pen plabel, pen p,
+		  autoscaleT S, part part, bool opposite,
+		  int[] divisor, real tickmin, real tickmax) {
+    // Use local copy of context variables:
+    int sign=opposite ? -sign : sign;
+    guide g=inverse(T)*G;
+    
+    real a=part(point(g,0));
+    real b=part(point(g,length(g)));
+    real norm=max(abs(a),abs(b));
+    if(logarithmic(S.scale)) ticklabel=new string(real x) {
+      return math(format("10^{%g}",x));
+    };
+
+    begingroup(f);
+    draw(f,G,p);
+    for(int i=0; i < Ticks.length; ++i) {
+      real pos=S.T(Ticks[i])-a;
+      locate.calc(T,g,pos);
+      draw(f,locate.Z--locate.Z-Size*I*sign*locate.dir,p);
+      
+    }
+    for(int i=0; i < ticks.length; ++i) {
+      real pos=S.T(ticks[i])-a;
+      locate.calc(T,g,pos);
+      draw(f,locate.Z--locate.Z-size*I*sign*locate.dir,p);
+    }
+    endgroup(f);
+    
+    if(Size > 0 && !opposite) {
+      for(int i=0; i < Ticks.length; ++i) {
+	real pos=S.T(Ticks[i])-a;
+	labeltick(f,T,g,pos,side,sign,Size,ticklabel,plabel,part,norm);
+      }
+    }
+    if(s != "" && !opposite) 
+      labelaxis(f,s,position,angle,align,shift,G,plabel,true);
+  };
+}
+
 ticks NoTicks()
 {
   return Ticks(1,-1);
@@ -476,6 +522,31 @@ ticks RightTicks(bool begin=true, int N=0, int n=0, real Step=0, real step=0,
 		 bool end=true)
 {
   return Ticks(begin,1,N,n,Step,step,Size,size,ticklabel(F),end);
+}
+
+ticks LeftTicks(real[] Ticks, real[] ticks=new real[],
+		real Size=Ticksize, real size=ticksize,
+		ticklabel ticklabel=ticklabel)
+{
+  return Ticks(-1,Ticks,ticks,Size,size,ticklabel);
+}
+
+ticks LeftTicks(real[] Ticks, real[] ticks=new real[],
+		real Size=Ticksize, real size=ticksize, string F)
+{
+  return Ticks(-1,Ticks,ticks,Size,size,ticklabel(F));
+}
+
+ticks RightTicks(real[] Ticks, real[] ticks=new real[],
+		real Size=Ticksize, real size=ticksize)
+{
+  return Ticks(1,Ticks,ticks,Size,size,ticklabel);
+}
+
+ticks RightTicks(real[] Ticks, real[] ticks=new real[],
+		 real Size=Ticksize, real size=ticksize, string F)
+{
+  return Ticks(1,Ticks,ticks,Size,size,ticklabel(F));
 }
 
 public ticks
