@@ -53,9 +53,9 @@ void run(lambda *l)
   s.run(&f);
 }
 
-void stack::marshall(size_t args, vars_t vars)
+void stack::marshall(int args, vars_t vars)
 {
-  for (size_t i = args; i > 0; --i)
+  for (int i = args; i > 0; --i)
     (*vars)[i] = pop();
 }
 
