@@ -21,12 +21,12 @@ using types::signature;
 
 namespace trans {
 
-#if 0
+#ifdef NOHASH //{{{
 venv::venv()
 {
 }
 
-#if 0 //{{{
+#if 0
 varEntry *venv::lookExact(symbol *name, signature *key)
 {
   // Find first applicable function.
@@ -77,14 +77,14 @@ void venv::list()
   }
 }
 
-varEntry *venv::lookInTopScope(symbol *name, signature *key)
+varEntry *venv::lookInTopScope(symbol *name, ty *t)
 {
   scope_t &scope = scopes.front();
   for (scope_iterator p = scope.lower_bound(name);
        p != scope.upper_bound(name);
        ++p) {
     if (name == p->first &&
-        equivalent(p->second->getSignature(), key))//XXX
+        equivalent(t, p->second->getType(), name->special))
       return p->second;
   }
   return 0;
@@ -100,7 +100,7 @@ ty *venv::getType(symbol *name)
   for(name_iterator p = list.begin();
       p != list.end();
       ++p) {
-      set.addDistinct((*p)->getType());
+      set.addDistinct((*p)->getType(), name->special);
   }
 
   return set.simplify();

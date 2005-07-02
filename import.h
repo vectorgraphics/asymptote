@@ -120,7 +120,7 @@ public:
          p != scopes.end();
          ++p)
       if (ty *t = varGetType(name,*p))
-        o->addDistinct(t);
+        o->addDistinct(t, name->special);
     return o->simplify();
 #endif
   }

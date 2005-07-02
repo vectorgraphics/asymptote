@@ -50,7 +50,7 @@ public:
     { return location; }
 };
 
-#if 0 //{{{
+#if NOHASH //{{{
 class venv : public sym::table<varEntry*> {
 public:
   venv();
@@ -65,7 +65,7 @@ public:
 
   // Checks if a function was added in the top scope as two identical
   // functions cannot be defined in one scope.
-  varEntry *lookInTopScope(symbol *name, signature *key);
+  varEntry *lookInTopScope(symbol *name, ty *t);
 
   // Return the type of the variable, if name is overloaded, return an
   // overloaded type.
@@ -75,8 +75,9 @@ public:
   
   void list();
 };
-#else //}}}
 
+//}}}
+#else //{{{
 #define SHADOWING 1
 
 // venv implemented with a hash table.  Will replace venv soon...

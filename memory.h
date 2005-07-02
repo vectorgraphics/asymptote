@@ -14,7 +14,9 @@
 #include <map>
 #include <string>
 
+#ifndef NOHASH
 #include <ext/hash_map>
+#endif
 
 #ifdef USEGC
 
@@ -81,6 +83,7 @@ GC_CONTAINER(multimap);
 
 #undef GC_CONTAINER
 
+#ifndef NOHASH
 #define EXT __gnu_cxx
 #define GC_CONTAINER(KIND)                                                    \
   template <typename Key, typename T,                                         \
@@ -96,6 +99,7 @@ GC_CONTAINER(hash_multimap);
 
 #undef GC_CONTAINER
 #undef EXT
+#endif
 
 #ifdef USEGC
 #define GC_STRING \

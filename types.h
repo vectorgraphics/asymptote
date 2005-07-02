@@ -68,6 +68,10 @@ struct signature;
 // Arrays are equal if their cell types are equal.
 bool equivalent(ty *t1, ty *t2);
 
+// If special is true, this is the same as above.  If special is false, just the
+// signatures are compared.
+bool equivalent(ty *t1, ty *t2, bool special);
+
 class caster {
 public:
   virtual ~caster() {}
@@ -438,9 +442,9 @@ public:
       sub.push_back(t);
   }
 
-  // Only add a type with a signature distinct from the ones currently
-  // in the overloaded type.
-  void addDistinct(ty *t);
+  // Only add a type distinct from the ones currently in the overloaded type.
+  // If special is false, just the distinct signatures are added.
+  void addDistinct(ty *t, bool special=false);
 
   // If there are less than two overloaded types, the type isn't really
   // overloaded.  This gives a more appropriate type in this case.

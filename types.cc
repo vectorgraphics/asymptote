@@ -316,7 +316,7 @@ ty *function::stripDefaults()
 
 // Only add a type with a signature distinct from the ones currently
 // in the overloaded type.
-void overloaded::addDistinct(ty *t)
+void overloaded::addDistinct(ty *t, bool special)
 {
   if (t->kind == ty_overloaded) {
     overloaded *ot = (overloaded *)t;
@@ -324,16 +324,15 @@ void overloaded::addDistinct(ty *t)
 	 st != ot->sub.end();
 	 ++st)
     {
-      this->addDistinct(*st);
+      this->addDistinct(*st, special);
     }
   }
   else {
-    signature *tsig = t->getSignature();
     for (ty_vector::iterator st = this->sub.begin();
 	 st != this->sub.end();
 	 ++st)
     {
-      if (equivalent(tsig, (*st)->getSignature()))
+      if (equivalent(t, *st, special))
 	return;
     }
 
@@ -486,6 +485,11 @@ bool equivalent(ty *t1, ty *t2)
   if (t1->kind == ty_overloaded || t2->kind != ty_overloaded)
     return t1->equiv(t2);
   return t2->equiv(t1);
+}
+
+bool equivalent(ty *t1, ty *t2, bool special) {
+  return special ? equivalent(t1, t2) :
+                   equivalent(t1->getSignature(), t2->getSignature());
 }
 
 } // namespace types

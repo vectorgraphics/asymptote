@@ -179,11 +179,11 @@ public:
 
     t = me.varGetType(name);
     if (t)
-      o.addDistinct(t);
+      o.addDistinct(t, name->special);
 
     import *i = me.look(name);
     if (i)
-      o.addDistinct(i->getModule());
+      o.addDistinct(i->getModule(), name->special);
 
     return o.simplify();
   }
