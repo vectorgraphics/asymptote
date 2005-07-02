@@ -109,7 +109,7 @@ public:
 
 // Represents the access of a local variable.
 class localAccess : public access {
-  int offset;
+  size_t offset;
   frame *level;
 
   permission perm;
@@ -122,7 +122,7 @@ class localAccess : public access {
   void permitWrite(position pos);
 
 public:
-  localAccess(permission perm, int offset, frame *level)
+  localAccess(permission perm, size_t offset, frame *level)
     : offset(offset), level(level), perm(perm) {}
 
   void encodeRead(position pos, coder &e);

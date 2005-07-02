@@ -19,20 +19,19 @@ namespace trans {
 class frame : public gc {
   frame *parent;
  
-  unsigned int numFormals;
-  int numLocals;
+  size_t numFormals;
+  size_t numLocals;
 
 public:
-  frame(frame *parent, int numFormals)
+  frame(frame *parent, size_t numFormals)
     : parent(parent), numFormals(numFormals), numLocals(0)
   {
-    assert(numFormals >= 0);
   }
 
-  int getNumFormals() {
+  size_t getNumFormals() {
     return numFormals;
   } 
-  int getNumLocals() {
+  size_t getNumLocals() {
     return numLocals;
   }
 
@@ -40,12 +39,12 @@ public:
     return parent;
   }
 
-  int size() {
+  size_t size() {
     return numLocals;
   }
 
-  access *accessFormal(unsigned int index) {
-    assert(index >= 0 && index < numFormals);
+  access *accessFormal(size_t index) {
+    assert(index < numFormals);
     return new localAccess(PRIVATE, 1 + index, this);
   }
 

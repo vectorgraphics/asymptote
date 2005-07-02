@@ -30,7 +30,7 @@ struct lambda : public gc {
 
   // The number of parameters of the function.  This does not include the
   // closure of the enclosing module or function.
-  int params;
+  size_t params;
 
   // The total number of items that will be stored in the closure of this
   // function.  Includes the higher closure, the parameters, and the local
