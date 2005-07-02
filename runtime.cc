@@ -1771,9 +1771,9 @@ void fileOpenOut(stack *s)
 
 void fileOpenXIn(stack *s)
 {
+#ifdef HAVE_RPC_RPC_H
   bool check=pop<bool>(s);
   string *filename=pop<string*>(s);
-#ifdef HAVE_RPC_RPC_H
   file *f=new ixfile(*filename,check);
   s->push(f);
 #else  
@@ -1783,9 +1783,9 @@ void fileOpenXIn(stack *s)
 
 void fileOpenXOut(stack *s)
 {
+#ifdef HAVE_RPC_RPC_H
   bool append=pop<bool>(s);
   string *filename=pop<string*>(s);
-#ifdef HAVE_RPC_RPC_H
   file *f=new oxfile(*filename,append);
   s->push(f);
 #else  
