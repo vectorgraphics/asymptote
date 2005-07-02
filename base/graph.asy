@@ -1076,65 +1076,55 @@ void tick(picture pic=currentpicture, pair z, pair align, real size=Ticksize,
   pic.addPoint(z,align*size,p);
 }
 
-void xtick(picture pic=currentpicture, real x, pair align=N,
-	   real size=Ticksize, pen p=currentpen)
-{
-  tick(pic,(x,pic.userMin.y),align,Ticksize,p);
-}
-
-void labelx(picture pic=currentpicture, string s, pair z, pair align=S,
+void xlabel(picture pic=currentpicture, string s="", pair z, pair align=S,
 	    pair shift=infinity, pen p=currentpen)
 {
   if(shift == infinity) shift=ticklabelshift(align,p);
+  if(s == "") s=math(z.x);
   label(pic,baseline(s,align,"$10^4$"),z,align,shift,p);
 }
 
-void labelx(picture pic=currentpicture, real x, pair align=S,
+void xtick(picture pic=currentpicture, string s="", pair z, pair tickalign=N,
+	   pair align=0, pair shift=infinity, real size=Ticksize,
+	   pen p=currentpen)
+{
+  if(align == 0) {
+    align=-tickalign;
+  } else if(shift == infinity) 
+    shift=Dot(tickalign,align) > 0 ? tickalign*size : 
+      ticklabelshift(tickalign,p);
+  if(s != "") xlabel(pic,s,z,align,shift,p);
+  tick(pic,z,tickalign,Ticksize,p);
+}
+
+void ylabel(picture pic=currentpicture, string s="", explicit pair z,
+	    pair align=W, pair shift=infinity, pen p=currentpen)
+{
+  if(s == "") s=math(z.y);
+  xlabel(pic,s,z,align,shift,p);
+}
+
+void ylabel(picture pic=currentpicture, string s="", real y, pair align=W,
 	    pair shift=infinity, pen p=currentpen)
 {
-  labelx(pic,math(x),(x,0),align,shift,p);
+  if(s == "") s=math(y);
+  xlabel(pic,s,(0,y),align,shift,p);
 }
 
-void labelxtick(picture pic=currentpicture, real x, pair align=S,
-		pair shift=infinity,
-		real size=Ticksize, pen p=currentpen)
-{
-  labelx(pic,x,align,shift,p);
-  xtick(pic,x,-align,Ticksize,p);
-}
-
-void ytick(picture pic=currentpicture, real y, pair align=E,
+void ytick(picture pic=currentpicture, string s="", explicit pair z,
+	   pair tickalign=E, pair align=0, pair shift=infinity,
 	   real size=Ticksize, pen p=currentpen)
 {
-  tick(pic,(0,y),align,Ticksize,p);
+  xtick(pic,s,z,tickalign,align,shift,size,p);
 }
 
-void labely(picture pic=currentpicture, string s, pair z, pair align=W,
-	    pair shift=infinity, pen p=currentpen)
+void ytick(picture pic=currentpicture, string s="", real y, pair tickalign=E,
+	   pair align=0, pair shift=infinity, real size=Ticksize,
+	   pen p=currentpen)
 {
-  if(shift == infinity) shift=ticklabelshift(align,p);
-  label(pic,baseline(s,align,"$10^4$"),z,align,shift,p);
+  xtick(pic,s,(0,y),tickalign,align,shift,size,p);
 }
 
-void labely(picture pic=currentpicture, string s, real y, pair align=W,
-	    pair shift=infinity, pen p=currentpen)
-{
-  labely(pic,s,(0,y),align,shift,p);
-}
-
-void labely(picture pic=currentpicture, real y, pair align=W,
-	    pair shift=infinity, pen p=currentpen)
-{
-  labely(pic,math(y),(0,y),align,shift,p);
-}
-
-void labelytick(picture pic=currentpicture, real y, pair align=W,
-		pair shift=infinity, real size=Ticksize, pen p=currentpen)
-{
-  labely(pic,y,align,shift,p);
-  ytick(pic,y,-align,Ticksize,p);
-}
-			   
 private string noprimary="Primary axis must be drawn before secondary axis";
 
 // Construct a secondary X axis

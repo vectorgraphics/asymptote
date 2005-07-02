@@ -26,6 +26,6 @@ void partition(real a, real b, real c, real h(real,real))
 
   draw(graph(f,a,b,Spline),red);
   draw((a,0)--(b,0));
-  labelx("$a$",a);
-  labelx("$b$",b);
+  xlabel("$a$",a);
+  xlabel("$b$",b);
 }

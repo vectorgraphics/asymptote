@@ -10,6 +10,6 @@ yaxis(0,"$y$");
 
 draw(graph(f,-4,2,Spline),red);
 
-labely(1,E);
+ylabel(1,E);
 label("$e^x$",F(1),SE);
 

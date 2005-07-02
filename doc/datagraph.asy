@@ -1,7 +1,7 @@
 
 import graph;
 
-size(250,200,IgnoreAspect);
+size(200,150,IgnoreAspect);
 
 real[] x={0,1,2,3};
 real[] y=x^2;

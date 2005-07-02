@@ -31,8 +31,8 @@ real S2=0.9;
 path h2=(a,S2)--(b,S2);
 real M2=interp(a,b,intersect(h2,g).x);
 
-labelx("$M_1$",M1);
-labelx("$M_2$",M2);
+xlabel("$M_1$",M1);
+xlabel("$M_2$",M2);
 
 draw((a,S2)--(M2,S2)--(M2,0),Dotted);
 draw((a,S1)--(M1,S1)--(M1,0),dashed);

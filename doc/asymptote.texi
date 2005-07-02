@@ -1465,12 +1465,12 @@ by calling the function @code{shipout}:
 @cindex @code{shipout}
 @verbatim
 void shipout(string prefix=defaultfilename, picture pic,
-	     frame preamble=patterns,
+             frame preamble=patterns,
              orientation orientation=Portrait,
-	     string format="", bool wait=NoWait);
+             string format="", bool wait=NoWait);
 void shipout(string prefix=defaultfilename,
              orientation orientation=Portrait,
-	     string format="", bool wait=NoWait);
+             string format="", bool wait=NoWait);
 @end verbatim
 @noindent
 A @code{shipout()} command is added implicitly at file exit if no
@@ -1533,7 +1533,7 @@ guide ellipse(frame f, real xmargin=0, real ymargin=infinity,
               pen pbox=currentpen, filltype filltype=NoFill);
 guide labelbox(frame f, real xmargin=0, real ymargin=infinity,
                string s, real angle=0, pair position,
-	       pair align=0, pen p=currentpen,
+               pair align=0, pen p=currentpen,
                pen pbox=currentpen, filltype filltype=NoFill);
 guide labelellipse(frame f, real xmargin=0, real ymargin=infinity,
                    string s, real angle=0, pair position,
@@ -2687,13 +2687,11 @@ real operator cast(int x)=convert;
 @end verbatim
 
 @cindex operator ecast
-Explicit casts are implemented similarly, with @code{operator ecast}.
-Currently, to do an explicit cast to an array, one must use a typedef:
+Explicit casts are implemented similarly, with @code{operator ecast}:
 @verbatim
 real[] a={1.5,-3.5};
 int[] b={2,4};
-typedef int[] intarray;
-b=(intarray) a;
+b=(int []) a;
 write(stdout,b);     // Outputs 1,-3
 @end verbatim
 
@@ -2995,7 +2993,7 @@ arrays @code{Ticks} and (optionally) @code{ticks} containing the
 locations of the big and small ticks, respectively:
 @verbatim
 ticks LeftTicks(real[] Ticks, real[] ticks=new real[],
-		real Size=Ticksize, real size=ticksize, string F);
+                real Size=Ticksize, real size=ticksize, string F);
 @end verbatim
 
 @item
@@ -3111,21 +3109,35 @@ void axis(picture pic=currentpicture, guide g,
 @end verbatim
 
 This routine can be used to draw a general axis based on an arbitrary
-path @code{g}, with ticks evenly spaced along its arclength.
+path @code{g}, with ticks placed along its arclength (either evenly
+spaced or at custom locations).
 Here @code{position} denotes an @code{arctime} value.
 
-@item These routines are useful for putting ticks and labels on axes:
+@item These routines are useful for manually putting ticks and labels on axes:
+@cindex xtick
+@cindex ytick
+@cindex xlabel
+@cindex ylabel
+@cindex tick
 @verbatim
-void xtick(picture pic=currentpicture, real x, pair align=N,
+void xtick(picture pic=currentpicture, string s="", pair z,
+           pair tickalign=N, pair align=0, pair shift=infinity,
            real size=Ticksize, pen p=currentpen);
-void ytick(picture pic=currentpicture, real y, pair align=E,
+void ytick(picture pic=currentpicture, string s="", explicit pair z,
+           pair tickalign=E, pair align=0, pair shift=infinity,
            real size=Ticksize, pen p=currentpen);
-void labelx(picture pic=currentpicture, string s, real x, pair align=S,
-            pair shift=infinity, pen p=currentpen);
-void labely(picture pic=currentpicture, string s, real y, pair align=W,
-            pair shift=infinity, pen p=currentpen);
+void ytick(picture pic=currentpicture, string s="", real y,
+           pair tickalign=E, pair align=0, pair shift=infinity,
+           real size=Ticksize, pen p=currentpen);
+void tick(picture pic=currentpicture, pair z, pair align,
+          real size=Ticksize, pen p=currentpen);
+void xlabel(picture pic=currentpicture, string s="", pair z,
+            pair align=S, pair shift=infinity, pen p=currentpen);
+void ylabel(picture pic=currentpicture, string s="", explicit pair z,
+            pair align=W, pair shift=infinity, pen p=currentpen);
+void ylabel(picture pic=currentpicture, string s="", real y,
+            pair align=W, pair shift=infinity, pen p=currentpen);
 @end verbatim
-
 @end itemize
 
 Here are some simple examples of two-dimensional graphs:
@@ -3153,7 +3165,7 @@ To specify a fixed size for the graph proper, use @code{attach}:
 @verbatiminclude lineargraph.asy
 
 @item This example draws a graph of one array versus another (both of
-the same size) using custom ticks locations on the @math{y} axis.
+the same size) using custom tick locations on the @math{y} axis.
 @verbatiminclude datagraph.asy
 @image{datagraph}
 

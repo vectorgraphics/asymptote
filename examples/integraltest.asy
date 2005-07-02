@@ -23,15 +23,15 @@ draw(graph(f,a,b,Spline),red);
  
 for(int i=a; i <= b; ++i) {
   if(i < b) subinterval(i,i+1);
-  if(i <= 3) labelx(i);
+  if(i <= 3) xlabel(i);
   dot(F(i));
 }
  
 int i=3;
-labelx("$\ldots$",++i);
-labelx("$k$",++i);
-labelx("$k+1$",++i);
-labelx("$\ldots$",++i);
+xlabel("$\ldots$",++i);
+xlabel("$k$",++i);
+xlabel("$k+1$",++i);
+xlabel("$\ldots$",++i);
 
 arrow("$f(x)$",F(2.55),0.7*NE,1.5cm,red);
 
