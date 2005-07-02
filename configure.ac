@@ -53,17 +53,18 @@ AC_ARG_ENABLE(gc,
 			fi
 			],[ac_cv_use_gc=$GCVERSION])
 
-USEGC=
+OPTIONS=
 GCLIBS=
 GCNAME="Boehm Garbage Collector"
 if test "x$ac_cv_use_gc" != "xno" ; then
-   USEGC="-DUSEGC"
+   OPTIONS=$OPTIONS"-DUSEGC "
    if test "x$ac_cv_use_gc" = "xsystem"; then
       AC_CHECK_HEADER(gc.h,
-	AC_CHECK_LIB([gc],[GC_malloc],[LIBS=$LIBS"-lgccpp -lgc"
-	AC_MSG_NOTICE([enabling system $GCNAME])],[
-	AC_MSG_ERROR($GCNAME library not found)
-	USEGC=]),AC_MSG_ERROR($GCNAME header file not found))
+	AC_CHECK_LIB([gc],[GC_malloc],[
+	  LIBS=$LIBS"-lgccpp -lgc"
+	  AC_MSG_NOTICE([enabling system $GCNAME])],[
+	AC_MSG_ERROR($GCNAME library not found)]),
+      AC_MSG_ERROR($GCNAME header file not found))
    else
       GCDIR=gc$ac_cv_use_gc
       AC_MSG_NOTICE([enabling the $GCNAME $GCDIR])
@@ -80,11 +81,13 @@ CFLAGS="-g -O3"
 AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
 			   [Define if getopt.h is the GNU version]),
 			   getopt="getopt getopt1",)
+AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")
+
 AC_SUBST(getopt)
 AC_SUBST(GCDIR)
 AC_SUBST(GCLIBS)
 AC_SUBST(INCL)
-AC_SUBST(USEGC)
+AC_SUBST(OPTIONS)
 
 # Checks for libraries.
 AC_CHECK_LIB([curses], [tparm])

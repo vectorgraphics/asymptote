@@ -19,7 +19,7 @@ namespace trans {
 class frame : public gc {
   frame *parent;
  
-  int numFormals;
+  unsigned int numFormals;
   int numLocals;
 
 public:
@@ -44,7 +44,7 @@ public:
     return numLocals;
   }
 
-  access *accessFormal(int index) {
+  access *accessFormal(unsigned int index) {
     assert(index >= 0 && index < numFormals);
     return new localAccess(PRIVATE, 1 + index, this);
   }

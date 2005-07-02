@@ -613,7 +613,6 @@ void formal::transAsVar(coenv &e, int index) {
 
 void formals::trans(coenv &e)
 {
-  list <formal *>::iterator p = fields.begin();
   int index = 0;
 
   for (list<formal *>::iterator p=fields.begin(); p!=fields.end(); ++p) {
