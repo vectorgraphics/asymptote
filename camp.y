@@ -75,7 +75,7 @@ using sym::symbol;
   absyntax::file *fil;
 }  
 
-%token <ps> PRIM ID OP ADD SUBTRACT TIMES DIVIDE MOD EXPONENT
+%token <ps> ID OP ADD SUBTRACT TIMES DIVIDE MOD EXPONENT
             DOTS DASHES INCR
             CONTROLS TENSION ATLEAST CURL CYCLE
             COR CAND EQ NEQ LT LE GT GE CARETS
@@ -222,18 +222,17 @@ barevardec:
 
 type:
   celltype         { $$ = $1; }
-| PRIM dims        { $$ = new arrayTy($1.pos, 
+/*| PRIM dims        { $$ = new arrayTy($1.pos, 
                             new nameTy($1.pos,
                               new simpleName($1.pos, $1.sym)),
-                            $2); }
-| name dims        { $$ = new arrayTy($1->getPos(),
-                                      new nameTy($1->getPos(), $1), $2); }
+                            $2); }*/
+| name dims        { $$ = new arrayTy($1, $2); }
 ;
 
 celltype:
-  name             { $$ = new nameTy($1->getPos(), $1); }
-| PRIM             { $$ = new nameTy($1.pos,
-                                     new simpleName($1.pos, $1.sym)); }
+  name             { $$ = new nameTy($1); }
+/*| PRIM             { $$ = new nameTy($1.pos, 
+                                     new simpleName($1.pos, $1.sym)); }*/
 ;
 
 dims:
@@ -396,11 +395,15 @@ exp:
 | STRING           { $$ = new stringExp($1.pos, *$1.sym); }
 /* This is for scaling expressions such as 105cm */
 | LIT exp          { $$ = new scaleExp($1->getPos(), $1, $2); }
-| '(' PRIM ')' exp { $$ = new castExp($2.pos,
+/*| '(' PRIM ')' exp { $$ = new castExp($2.pos,
                                       new simpleName($2.pos, $2.sym),
-                                      $4); }
+                                      $4); } */
 | '(' name ')' exp
-                   { $$ = new castExp($2->getPos(), $2, $4); }
+                   { $$ = new castExp($2->getPos(), new nameTy($2), $4); }
+/* | '(' PRIM dims ')' exp
+                   { $$ = new castExp($2->getPos(), $2, $4); } */
+| '(' name dims ')' exp
+                   { $$ = new castExp($2->getPos(), new arrayTy($2, $3), $5); }
 | '+' exp %prec UNARY
                    { $$ = new unaryExp($1.pos, $2, $1.sym); }
 | '-' exp %prec UNARY

@@ -13,6 +13,7 @@
 #include "types.h"
 #include "symbol.h"
 #include "absyn.h"
+#include "varinit.h"
 #include "name.h"
 #include "guideflags.h"
 
@@ -30,65 +31,6 @@ using trans::access;
 using sym::symbol;
 using types::record;
 using types::array;
-
-class varinit : public absyn {
-public:
-  varinit(position pos)
-    : absyn(pos) {}
-
-  // This determines what instruction are needed to put the associated
-  // value onto the stack, then adds those instructions to the current
-  // lambda in e.
-  // In some expressions and initializers, the target type needs to be
-  // known in order to translate properly.  For most expressions, this is
-  // kept to a minimum.
-  // For expression, this also allows an implicit cast, hence the name.
-  virtual void transToType(coenv &e, types::ty *target) = 0;
-};
-
-// A default initializer.  For example:
-//   int a;
-// is in some since equivalent to
-//   int a=0;
-// where the definit for int is a function that returns 0.
-class definit : public varinit {
-public:
-  definit(position pos)
-    : varinit(pos) {}
-
-  void prettyprint(ostream &out, int indent);
-
-  void transToType(coenv &e, types::ty *target);
-};
-
-class arrayinit : public varinit {
-  list<varinit *> inits;
-
-  varinit *rest;
-public:
-  arrayinit(position pos)
-    : varinit(pos), rest(0) {}
-
-  virtual ~arrayinit() 
-    {}
-
-  void prettyprint(ostream &out, int indent);
-
-  // Encodes the instructions to make an array from size elements on the stack.
-  static void transMaker(coenv &e, int size, bool rest);
-
-  void transToType(coenv &e, types::ty *target);
-
-  void add(varinit *init) {
-    inits.push_back(init);
-  }
-
-  void addRest(varinit *init) {
-    rest=init;
-  }
-
-  friend class joinExp;
-};
 
 class exp : public varinit {
 protected:
@@ -455,6 +397,10 @@ struct argument {
 #endif
 
   void prettyprint(ostream &out, int indent);
+
+  // Tests if a named argument could be mistaken for an assignment, and prints a
+  // warning if so.
+  void assignAmbiguity(coenv &e);
 };
 
 class arglist : public gc {
@@ -499,6 +445,9 @@ class callExp : public exp {
 
   // Cache the application when it's determined.
   application *ca;
+
+  // Warns of ambiguity with assign expression in named arguments.
+  void argAmbiguity(coenv &e);
 
   types::signature *argTypes(coenv& e);
   application *resolve(coenv &e,
@@ -554,32 +503,14 @@ public:
   types::ty *getType(coenv &) { return types::primPair(); }
 };
 
-class dimensions : public absyn {
-  size_t depth;
-public:
-  dimensions(position pos)
-    : absyn(pos), depth(1) {}
-
-  void prettyprint(ostream &out, int indent);
-
-  void increase()
-    { depth++; }
-  
-  size_t size() {
-    return depth;
-  }
-
-  types::ty *truetype(types::ty *base);
-};
-
 class castExp : public exp {
-  name *target;
+  ty *target;
   exp *castee;
 
   types::ty *tryCast(coenv &e, types::ty *t, types::ty *s,
                      symbol *csym);
 public:
-  castExp(position pos, name *target, exp *castee)
+  castExp(position pos, ty *target, exp *castee)
     : exp(pos), target(target), castee(castee) {}
 
   void prettyprint(ostream &out, int indent);

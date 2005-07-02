@@ -12,6 +12,7 @@
 #include "errormsg.h"
 #include "settings.h"
 #include "coenv.h"
+#include "exp.h"
 #include "stm.h"
 
 namespace absyntax {

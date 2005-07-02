@@ -11,6 +11,7 @@
 #include <sstream>
 
 #include "util.h"
+#include "exp.h"
 #include "stm.h"
 #include "errormsg.h"
 #include "interact.h"
@@ -281,10 +282,6 @@ private            {adjust(); return PRIVATE_TOK; }
 this               {adjust(); return THIS; }
 explicit           {adjust(); return EXPLICIT; }
 
-
-void|bool|int|real|string|pair|transform|guide|path|pen|frame {
-  makesymbol(false);
-  return PRIM; }
 
 [0-9]+             try {
   adjust(); yylval.e= new intExp(here(), lexical::cast<int>(yytext)); 

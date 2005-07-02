@@ -24,63 +24,6 @@ using namespace trans;
 using vm::inst;
 
 
-void definit::prettyprint(ostream &out, int indent)
-{
-  prettyname(out, "definit",indent);
-}
-
-void definit::transToType(coenv &e, types::ty *target)
-{
-  access *a=e.e.lookupInitializer(target);
-
-  if (a)
-    a->encodeCall(getPos(), e.c);
-  else {
-    em->error(getPos());
-    *em << "no default initializer for type '" << *target << "'";
-  }
-}
-
-void arrayinit::prettyprint(ostream &out, int indent)
-{
-  prettyname(out, "arrayinit",indent);
-
-  for (list<varinit *>::iterator p = inits.begin(); p != inits.end(); ++p)
-    (*p)->prettyprint(out, indent+2);
-  if (rest)
-    rest->prettyprint(out, indent+1);
-}
-
-void arrayinit::transMaker(coenv &e, int size, bool rest) {
-  // Push the number of cells and call the array maker.
-  e.c.encode(inst::intpush, size);
-  e.c.encode(inst::builtin, rest ? run::newAppendedArray :
-                                   run::newInitializedArray);
-}
-
-void arrayinit::transToType(coenv &e, types::ty *target)
-{
-  types::ty *celltype;
-  if (target->kind != types::ty_array) {
-    em->error(getPos());
-    *em << "array initializer used for non-array";
-    celltype = types::primError();
-  }
-  else {
-    celltype = ((types::array *)target)->celltype;
-  }
-
-  // Push the values on the stack.
-  for (list<varinit *>::iterator p = inits.begin(); p != inits.end(); ++p)
-    (*p)->transToType(e, celltype);
-
-  if (rest)
-    rest->transToType(e, target);
-  
-  transMaker(e, (int)inits.size(), (bool)rest);
-}
-
-
 void exp::prettyprint(ostream &out, int indent)
 {
   prettyname(out, "exp",indent);
@@ -595,6 +538,12 @@ void argument::prettyprint(ostream &out, int indent)
   val->prettyprint(out, indent+1);
 }
 
+void argument::assignAmbiguity(coenv &e) {
+  if (name && e.e.varGetType(name)) {
+    em->warning(val->getPos());
+    *em << "named argument may be mistaken for assignment";
+  }
+}
 
 void arglist::prettyprint(ostream &out, int indent)
 {
@@ -611,6 +560,13 @@ void callExp::prettyprint(ostream &out, int indent)
 
   callee->prettyprint(out, indent+1);
   args->prettyprint(out, indent+1);
+}
+
+void callExp::argAmbiguity(coenv &e)
+{
+  size_t n = args->size();
+  for (size_t i = 0; i < n; i++)
+    (*args)[i].assignAmbiguity(e);
 }
 
 signature *callExp::argTypes(coenv &e)
@@ -740,6 +696,8 @@ types::ty *callExp::trans(coenv &e)
   cerr << endl;
 #endif
 
+  argAmbiguity(e);
+
   application *a= ca ? ca : getApplication(e);
   
   if (!a)
@@ -862,9 +820,9 @@ types::ty *castExp::tryCast(coenv &e, types::ty *t, types::ty *s,
 
 types::ty *castExp::trans(coenv &e)
 {
-  types::ty *t= target->typeTrans(e);
+  types::ty *t=target->trans(e);
 
-  types::ty *s = castee->cgetType(e);
+  types::ty *s=castee->cgetType(e);
 
   if (!tryCast(e, t, s, symbol::ecastsym))
     if (!tryCast(e, t, s, symbol::castsym)) {
@@ -877,7 +835,7 @@ types::ty *castExp::trans(coenv &e)
 
 types::ty *castExp::getType(coenv &e)
 {
-  return target->typeTrans(e, true);
+  return target->trans(e, true);
 }
 
 

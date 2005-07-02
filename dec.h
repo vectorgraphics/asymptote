@@ -13,7 +13,7 @@
 #include "symbol.h"
 #include "absyn.h"
 #include "name.h"
-#include "exp.h"
+#include "varinit.h"
 
 namespace trans {
 class coenv;
@@ -60,6 +60,9 @@ public:
   nameTy(position pos, name *id)
     : ty(pos), id(id) {}
 
+  nameTy(name *id)
+    : ty(id->getPos()), id(id) {}
+
   void prettyprint(ostream &out, int indent);
 
   types::ty *trans(coenv &e, bool tacit = false);
@@ -70,6 +73,24 @@ public:
   }
 };
 
+class dimensions : public absyn {
+  size_t depth;
+public:
+  dimensions(position pos)
+    : absyn(pos), depth(1) {}
+
+  void prettyprint(ostream &out, int indent);
+
+  void increase()
+    { depth++; }
+  
+  size_t size() {
+    return depth;
+  }
+
+  types::ty *truetype(types::ty *base);
+};
+
 class arrayTy : public ty {
   ty *cell;
   dimensions *dims;
@@ -77,6 +98,9 @@ class arrayTy : public ty {
 public:
   arrayTy(position pos, ty *cell, dimensions *dims)
     : ty(pos), cell(cell), dims(dims) {}
+
+  arrayTy(name *id, dimensions *dims)
+    : ty(dims->getPos()), cell(new nameTy(id)), dims(dims) {}
 
   void prettyprint(ostream &out, int indent);
 

@@ -11,6 +11,7 @@
 #include "coenv.h"
 #include "dec.h"
 #include "stm.h"
+#include "exp.h"
 #include "camp.tab.h"  // For qualifiers.
 #include "runtime.h"
 
