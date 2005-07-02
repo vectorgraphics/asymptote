@@ -137,12 +137,13 @@ using sym::symbol;
 %type  <run> forinit
 %type  <sel> forupdate stmexplist
 
-/* There are three shift/reduce conflicts:
+/* There are four shift/reduce conflicts:
  *   the dangling ELSE in IF (exp) IF (exp) stm ELSE stm
  *   new ID
  *   the argument id=exp is taken as an argument instead of an assignExp
+ *   explicit cast
  */
-%expect 3
+%expect 4
 
 /* Enable grammar debugging. */
 /*%debug*/
@@ -398,9 +399,8 @@ exp:
 | '(' PRIM ')' exp { $$ = new castExp($2.pos,
                                       new simpleName($2.pos, $2.sym),
                                       $4); }
-// NOTE: This casting is useful - try to bring it back in.
-//| '(' name ')' exp
-//                   { $$ = new castExp($2->getPos(), $2, $4); }
+| '(' name ')' exp
+                   { $$ = new castExp($2->getPos(), $2, $4); }
 | '+' exp %prec UNARY
                    { $$ = new unaryExp($1.pos, $2, $1.sym); }
 | '-' exp %prec UNARY
