@@ -10,17 +10,17 @@ static public real epsilon=1000*realEpsilon();
 static bool Crop=true;
 static bool NoCrop=false;
 
-static scaleT Linear=new scaleT;
+static scaleT Linear;
 Linear.init(identity,identity);
 
-static scaleT Log=new scaleT;
+static scaleT Log;
 Log.init(log10,pow10);
 
 public scaleT Linear(bool automin=true, bool automax=true, real s=1,
 		     real intercept=0)
 {
   real sinv=1/s;
-  scaleT scale=new scaleT;
+  scaleT scale;
   real Tinv(real x) {return x*sinv+intercept;}
   scale.init(new real(real x) {return (x-intercept)*s;},
 	    Tinv,Tinv,automin,automax);
@@ -29,7 +29,7 @@ public scaleT Linear(bool automin=true, bool automax=true, real s=1,
 
 public scaleT Log(bool automin=true, bool automax=true)
 {
-  scaleT scale=new scaleT;
+  scaleT scale;
   scale.init(Log.T,Log.Tinv,Log.Label,automin,automax);
   return scale;
 }
@@ -63,9 +63,11 @@ struct scientific
   real floor(real x, real exp) {return floor(sign*scale(abs(x),exp));}
 }
 
+scientific operator init() {return new scientific;}
+  
 scientific scientific(real x) 
 {
-    scientific s=new scientific;
+    scientific s;
     s.sign=sgn(x);
     x=abs(x);
     if(x == 0) {s.mantissa=0; s.exponent=-intMax(); return s;}
@@ -82,6 +84,8 @@ struct bounds {
   public int[] divisor=new int[];
 }
 
+bounds operator init() {return new bounds;}
+  
 int[] divisors(int a, int b)
 {
   int[] dlist;
@@ -109,7 +113,7 @@ real upscale(real b, real a)
 
 bounds autoscale(real Min, real Max, scaleT scale=Linear)
 {
-  bounds m=new bounds;
+  bounds m;
   if(logarithmic(scale)) {
     m.min=floor(Min);
     m.max=ceil(Max);
@@ -213,6 +217,8 @@ private struct locateT {
   }
 }
 
+locateT operator init() {return new locateT;}
+  
 pair ticklabelshift(pair align, pen p=currentpen) 
 {
   return 0.25*unit(align)*labelmargin(p);
@@ -222,7 +228,7 @@ pair labeltick(frame d, transform T, guide g, real pos, pair side,
 	       int sign, real Size, ticklabel ticklabel, pen plabel, part part,
 	       real norm=0)
 {
-  locateT locate=new locateT;
+  locateT locate;
   locate.calc(T,g,pos);
   pair align=-side*I*locate.dir;
   pair shift=Dot(align,I*sign*locate.dir) < 0 ? align*Size :
@@ -276,7 +282,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	    real step=0, real Size=0, real size=0,
 	    ticklabel ticklabel=ticklabel, bool end=true)
 {
-  locateT locate=new locateT;
+  locateT locate;
   return new void(frame f, transform T, string s, real position, real angle,
 		  pair align, pair shift, pair side, path G, pen plabel, pen p,
 		  autoscaleT S, part part, bool opposite,
@@ -487,7 +493,7 @@ void axis(picture pic=currentpicture, guide g,
 	  bool put=Above, bool opposite=false) 
 {
   if(p == nullpen) p=plabel;
-  autoscaleT S=new autoscaleT;
+  autoscaleT S;
   S.scale=scale;
   divisor=copy(divisor);
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
@@ -607,7 +613,9 @@ private struct axisT {
   public bool extend;
 };
 
-public axisT axis=new axisT;
+axisT operator init() {return new axisT;}
+					       
+public axisT axis;
 typedef void axis(picture, axisT);
 void axis(picture, axisT) {};
 
@@ -820,7 +828,7 @@ void autoscale(picture pic=currentpicture, axis axis)
 	pic.userMin=(floor(pic.userMin.x),pic.userMin.y);
 	pic.userMax=(ceil(pic.userMax.x),pic.userMax.y);
       }
-    } else {mx=new bounds; mx.min=mx.max=0; pic.scale.set=false;}
+    } else {mx.min=mx.max=0; pic.scale.set=false;}
     
     if(finite(pic.userMin.y) && finite(pic.userMax.y)) {
       my=autoscale(pic.userMin.y,pic.userMax.y,pic.scale.y.scale);
@@ -829,7 +837,7 @@ void autoscale(picture pic=currentpicture, axis axis)
 	pic.userMin=(pic.userMin.x,floor(pic.userMin.y));
 	pic.userMax=(pic.userMax.x,ceil(pic.userMax.y));
       }
-    } else {my=new bounds; my.min=my.max=0; pic.scale.set=false;}
+    } else {my.min=my.max=0; pic.scale.set=false;}
     
     pic.scale.x.tickMin=mx.min;
     pic.scale.x.tickMax=mx.max;
