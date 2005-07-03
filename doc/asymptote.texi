@@ -2906,8 +2906,8 @@ void xaxis(picture pic=currentpicture,
            real xmin=-infinity, real xmax=infinity, string s="",
            real position=infinity, real angle=0, pair align=0,
            pair shift=0, pair side=0,
-           pen plabel=currentpen, pen p=plabel,
-           axis axis=YZero, ticks ticks=NoTicks, bool put=Below);
+           pen plabel=currentpen, pen p=plabel, axis axis=YZero,
+           ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below);
 @end verbatim
 
 Draw an @math{x} axis on picture @code{pic} from @math{x}=@code{xmin} to
@@ -2946,9 +2946,10 @@ Request a bottom and top axis.
 
 @end table
 
-If @code{put}=@code{Below} and the @code{extend} flag for @code{axis} is
-@code{false}, the axis is drawn before any existing objects in the
-current layer.
+The optional @code{arrow} argument takes the same values as in the
+@code{draw} command (@pxref{arrows}). If @code{put}=@code{Below} and
+the @code{extend} flag for @code{axis} is @code{false}, the axis is
+drawn before any existing objects in the current layer.
 
 @anchor{ticks}
 @cindex @code{ticks}
@@ -3002,8 +3003,8 @@ void yaxis(picture pic=currentpicture,
            real ymin=-infinity, real ymax=infinity, string s="",
            real position=infinity, real angle=infinity, pair align=0,
            pair shift=0, pair side=0,
-           pen plabel=currentpen, pen p=plabel,
-           axis axis=XZero, ticks ticks=NoTicks, bool put=Below);         
+           pen plabel=currentpen, pen p=plabel, axis axis=XZero,
+           ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below);
 @end verbatim
 
 Draw a @math{y} axis on picture @code{pic} from @math{y}=@code{ymin} to
@@ -3040,9 +3041,10 @@ Request a left and right axis.
 
 @end table
 
-If @code{put}=@code{Below} and the @code{extend} flag for @code{axis} is
-@code{false}, the axis is drawn before any existing objects in the
-current layer.
+The optional @code{arrow} argument takes the same values as in the
+@code{draw} command (@pxref{arrows}). If @code{put}=@code{Below} and
+the @code{extend} flag for @code{axis} is @code{false}, the axis is
+drawn before any existing objects in the current layer.
 
 @item
 
@@ -3055,17 +3057,17 @@ For convenience, the functions @code{xline(real x)} and
 and horizontal axes at arbitrary locations. Nevertheless, for
 completeness, we also document the following internal routines:
 @verbatim
-void xequals(picture pic=currentpicture, real X,
+void xequals(picture pic=currentpicture, real x,
              real ymin=-infinity, real ymax=infinity, 
              real tickmin=-infinity, real tickmax=infinity,
              string s="", real position=1, real angle=0, pair align=W,
              pair shift=0, pair side=right,
-             pen plabel=currentpen, pen p=plabel,
-             ticks ticks=NoTicks, int[] divisor=new int[],
+             pen plabel=currentpen, pen p=plabel, ticks ticks=NoTicks,
+             arrowbar arrow=None, int[] divisor=new int[],
              bool put=Above, bool opposite=false);
 @end verbatim
 
-This internal routine draws the line @math{x}=@code{X} on picture
+This internal routine draws the line @math{x}=@code{x} on picture
 @code{pic} from @math{y}=@code{ymin} to @math{y}=@code{ymax}, with
 optional tick minimum and maximum values @code{tickmin} and
 @code{tickmax}, using pen @code{p}, optionally labelling it with
@@ -3080,20 +3082,21 @@ unlabelled secondary axis (typically drawn opposite to a primary axis).
 Draw the axis on top of any existing objects in the current layer
 only if @code{put} is @code{Above}. 
 
+
 @item
 @verbatim
-void yequals(picture pic=currentpicture, real Y,
+void yequals(picture pic=currentpicture, real y,
              real xmin=-infinity, real xmax=infinity,
              real tickmin=-infinity, real tickmax=infinity,
              string s="", real position=1, real angle=0, pair align=S,
              pair shift=0, pair side=left,
-             pen plabel=currentpen, pen p=plabel,
-             ticks ticks=NoTicks, int[] divisor=new int[],
+             pen plabel=currentpen, pen p=plabel, ticks ticks=NoTicks,
+             arrowbar arrow=None, int[] divisor=new int[],
              bool put=Above, bool opposite=false);
 @end verbatim
 
 This internal routine is like @code{xequals}, but draws the line
-@math{y}=@code{Y} on picture @code{pic} from @math{x}=@code{xmin} to
+@math{y}=@code{y} on picture @code{pic} from @math{x}=@code{xmin} to
 @math{x}=@code{xmax}.
 
 @item
@@ -3102,22 +3105,22 @@ void axis(picture pic=currentpicture, guide g,
           real tickmin=-infinity, real tickmax=infinity,
           string s="", real position=1, real angle=0, pair align=S,
           pair shift=0, pair side=right,
-          pen plabel=currentpen, pen p=plabel,
-          ticks ticks=NoTicks, int[] divisor=new int[],
+          pen plabel=currentpen, pen p=plabel, ticks ticks=NoTicks,
+          arrowbar arrow=None, int[] divisor=new int[],
           bool logarithmic=false, scaleT scale=Linear, part part,
           bool put=Above, bool opposite=false);
 @end verbatim
 
 This routine can be used to draw a general axis based on an arbitrary
-path @code{g}, with ticks placed along its arclength (either evenly
+path @code{g}, with ticks placed along its arclength b(either evenly
 spaced or at custom locations).
 Here @code{position} denotes an @code{arctime} value.
 
 @item These routines are useful for manually putting ticks and labels on axes:
 @cindex xtick
 @cindex ytick
-@cindex xlabel
-@cindex ylabel
+@cindex labelx
+@cindex labely
 @cindex tick
 @verbatim
 void xtick(picture pic=currentpicture, string s="", pair z,
@@ -3131,11 +3134,11 @@ void ytick(picture pic=currentpicture, string s="", real y,
            real size=Ticksize, pen p=currentpen);
 void tick(picture pic=currentpicture, pair z, pair align,
           real size=Ticksize, pen p=currentpen);
-void xlabel(picture pic=currentpicture, string s="", pair z,
+void labelx(picture pic=currentpicture, string s="", pair z,
             pair align=S, pair shift=infinity, pen p=currentpen);
-void ylabel(picture pic=currentpicture, string s="", explicit pair z,
+void labely(picture pic=currentpicture, string s="", explicit pair z,
             pair align=W, pair shift=infinity, pen p=currentpen);
-void ylabel(picture pic=currentpicture, string s="", real y,
+void labely(picture pic=currentpicture, string s="", real y,
             pair align=W, pair shift=infinity, pen p=currentpen);
 @end verbatim
 @end itemize
@@ -3796,6 +3799,7 @@ ends of the path). Each of these bar specifiers (except for
 length of the bar in @code{PostScript} coordinates. The default
 bar length is @code{barsize(p)}.
 
+@anchor{arrows}
 @cindex @code{None}
 @cindex @code{Blank}
 @cindex @code{BeginArrow}
@@ -4357,7 +4361,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  randMax Gaussrand asy cindex indices resized LaTeX TK latin au
 @c  LocalWords:  latexusage tex bbox PostScript subdirectory gcc emacs ASYDIR
 @c  LocalWords:  documentclass usepackage asydef subpath shipout sqrt xN  Mx bw
-@c  LocalWords:  xscale labeldot xaxis yaxis BeginBar GIF postprocessing fpu de
+@c  LocalWords:  xscale xaxis yaxis BeginBar GIF postprocessing fpu de
 @c  LocalWords:  nomask noplain ImageMagick defaultfontsize defaultlinewidth cd
 @c  LocalWords:  startup natively xasy tkinter VxN yingyang currentpicture toc
 @c  LocalWords:  MetaPost MetaFont Hammerlindl Healy texinfo autoload setq setf

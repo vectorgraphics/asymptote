@@ -1343,6 +1343,7 @@ guide arrowhead(path g, real position=infinity, pen p=currentpen,
 		real size=0, real angle=arrowangle)
 {
   if(size == 0) size=arrowsize(p);
+  if(position == infinity) position=length(g);
   path r=subpath(g,position,0.0);
   pair x=point(r,0);
   real t=arctime(r,size);
@@ -1365,6 +1366,7 @@ void arrowheadbbox(picture pic=currentpicture, path g, real position=infinity,
   // Estimate the bounding box contribution using the local slope at endpoint
   // and ignoring margin.
   if(size == 0) size=arrowsize(p);
+  if(position == infinity) position=length(g);
   path r=subpath(g,position,0.0);
   pair x=point(r,0);
   pair y=point(r,arctime(r,size))-x;
@@ -1403,6 +1405,7 @@ void arrow(frame f, path G, pen p=currentpen, real size=0,
 	   real position=infinity, bool forwards=true, margin margin=NoMargin)
 {
   if(size == 0) size=arrowsize(p);
+  if(position == infinity) position=length(G);
   G=margin(G,p).g;
   if(!forwards) G=reverse(G);
   path R=subpath(G,position,0.0);
@@ -1931,10 +1934,7 @@ arrowbar Arrow(real size=0, real angle=arrowangle,
 }
 
 arrowbar EndArrow(real size=0, real angle=arrowangle,
-		  filltype filltype=Fill, real position=infinity)
-{
-  return Arrow(size,angle);
-}
+		  filltype filltype=Fill, real position=infinity)=Arrow;
 
 arrowbar Arrows(real size=0, real angle=arrowangle,
 		filltype filltype=Fill, real position=infinity)
@@ -2000,10 +2000,7 @@ arrowbar Bar(real size=0)
   };
 }
 
-arrowbar EndBar(real size=0) 
-{
-  return Bar(size);
-}
+arrowbar EndBar(real size=0)=Bar; 
 
 arrowbar Bars(real size=0) 
 {
@@ -2030,6 +2027,13 @@ public arrowbar
   Bar=Bar(),
   EndBar=Bar(),
   Bars=Bars();
+
+void draw(frame f, path g, pen p=currentpen, arrowbar arrow)
+{
+  picture pic;
+  if(arrow(pic,g,p,NoMargin)) draw(f,g,p);
+  add(f,pic.fit());
+}
 
 void draw(picture pic=currentpicture, string s="", real angle=0,
 	  path g, real position=infinity, pair align=0, pair shift=0,

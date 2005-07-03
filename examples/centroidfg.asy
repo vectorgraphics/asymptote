@@ -19,8 +19,8 @@ for(int i=0; i <= n; ++i) {
   draw((x,g(x))--(x,f(x)));
 }
  
-xlabel("$a$",a);
-xlabel("$b$",b);
+labelx("$a$",a);
+labelx("$b$",b);
 draw((a,0)--(a,g(a)),dotted);
 draw((b,0)--(b,g(b)),dotted);
 

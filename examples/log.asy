@@ -10,6 +10,6 @@ yaxis("$y$");
 
 draw(graph(f,0.01,10,Spline));
 
-xlabel(1,SSE);
+labelx(1,SSE);
 label("$\log x$",F(7),SE);
 
