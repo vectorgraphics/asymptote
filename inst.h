@@ -30,7 +30,7 @@ struct lambda : public gc {
 
   // The number of parameters of the function.  This does not include the
   // closure of the enclosing module or function.
-  int params;
+  size_t params;
 
   // The total number of items that will be stored in the closure of this
   // function.  Includes the higher closure, the parameters, and the local
@@ -38,7 +38,7 @@ struct lambda : public gc {
   // NOTE: In order to help garbage collection, this could be modified to
   // have one array store escaping items, and another to store non-
   // escaping items.
-  int vars;
+  size_t vars;
 };
 
 // The code run is just a string of instructions.  The ops are actual commands

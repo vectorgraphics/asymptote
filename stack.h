@@ -34,7 +34,7 @@ private:
   void draw(ostream& out);
 
   // Move arguments from stack to frame.
-  void marshall(int args, vars_t vars);
+  void marshall(size_t args, vars_t vars);
 public:
   stack();
   ~stack();
