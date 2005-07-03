@@ -24,6 +24,7 @@ extern const char BUGREPORT[];
 extern string outformat;
 extern int keep;
 extern int texprocess;
+extern int debug;
 extern int verbose;
 extern int view;
 extern int safe;

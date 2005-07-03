@@ -34,6 +34,7 @@ const char BUGREPORT[]=PACKAGE_BUGREPORT;
 string outformat="eps";
 int keep=0;
 int texprocess=1;
+int debug=0;
 int verbose=0;
 int view=0;
 int safe=1;
@@ -101,6 +102,7 @@ void options()
   cerr << "-B\t\t Align to bottom-left corner of page" << endl;
   cerr << "-T\t\t Align to top-left corner of page" << endl;
   cerr << "-Z\t\t Position origin at (0,0) (implies -L)" << endl;
+  cerr << "-d\t\t Enable debugging messages" << endl;
   cerr << "-v, -verbose\t Increase verbosity level" << endl;
   cerr << "-k\t\t Keep intermediate files" << endl;
   cerr << "-L\t\t Disable LaTeX label postprocessing" << endl;
@@ -151,7 +153,7 @@ void setOptions(int argc, char *argv[])
   errno=0;
   for(;;) {
     int c = getopt_long_only(argc,argv,
-			     "cf:hiklLmo:pPsvVx:O:CBTZ",
+			     "cdf:hiklLmo:pPsvVx:O:CBTZ",
 			     long_options,&option_index);
     if (c == -1) break;
 
@@ -192,6 +194,9 @@ void setOptions(int argc, char *argv[])
       break;
     case 'l':
       listonly=1;
+      break;
+    case 'd':
+      debug=1;
       break;
     case 'v':
       verbose++;

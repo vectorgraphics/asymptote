@@ -2096,7 +2096,9 @@ appear in a function declaration. Named (keyword) arguments make calling
 functions with multiple arguments easier. Unlike in the C and C++
 languages, an assignment in a function argument is interpreted as an
 assignment to a parameter of the same name in the function signature,
-@emph{not within the local scope}. 
+@emph{not within the local scope}. The command-line option @code{-d}
+may be used to check @code{Asymptote} code for cases where a 
+named argument may be mistaken for a local assignment.
 
 When matching arguments to signatures, first all of the keywords are
 matched, then the arguments without names are matched against the
@@ -4101,6 +4103,7 @@ Options:
 -B               Align to bottom-left corner of page
 -T               Align to top-left corner of page
 -Z               Position origin at (0,0) (implies -L)
+-d               Enable debugging messages
 -v, -verbose     Increase verbosity level
 -k               Keep intermediate files
 -L               Disable LaTeX label postprocessing

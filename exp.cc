@@ -539,7 +539,7 @@ void argument::prettyprint(ostream &out, int indent)
 }
 
 void argument::assignAmbiguity(coenv &e) {
-  if (name && e.e.varGetType(name)) {
+  if (settings::debug && name && e.e.varGetType(name)) {
     em->warning(val->getPos());
     *em << "named argument may be mistaken for assignment";
   }
