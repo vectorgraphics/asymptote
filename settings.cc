@@ -52,6 +52,7 @@ int clearGUI=0;
 int ignoreGUI=0;
 camp::pair postscriptOffset=0.0;
 int origin=CENTER;
+int version=0;
   
 bool suppressStandard=false;
 
@@ -118,6 +119,7 @@ void options()
   cerr << "-safe\t\t Disable system call (default)" << endl;
   cerr << "-unsafe\t\t Enable system call" << endl;
   cerr << "-noplain\t Disable automatic importing of plain" << endl;
+  cerr << "-version\t Show version" << endl;
 }
 
 // Local versions of the argument list.
@@ -137,6 +139,7 @@ void setOptions(int argc, char *argv[])
   {
     {"verbose", 0, 0, 'v'},
     {"help", 0, 0, 'h'},
+    {"version", 0, &version, 1},
     {"safe", 0, &safe, 1},
     {"unsafe", 0, &safe, 0},
     {"View", 0, &view, 1},
@@ -242,7 +245,7 @@ void setOptions(int argc, char *argv[])
   argCount = argc - optind;
   argList = argv + optind;
 
-  if (syntax) {
+  if (syntax || version) {
     cerr << endl;
     usage(argv[0]);
     cerr << endl << "Type '" << argv[0]
