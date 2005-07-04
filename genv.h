@@ -49,7 +49,7 @@ public:
   void loadGUI(const string& outname);
 
   void list() {
-    //ve.list();
+    ve.list();
   }
   
   // If a module is already loaded, this will return it.  Otherwise, it

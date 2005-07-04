@@ -26,21 +26,6 @@ venv::venv()
 {
 }
 
-#if 0
-varEntry *venv::lookExact(symbol *name, signature *key)
-{
-  // Find first applicable function.
-  name_t &list = names[name];
-  for(name_iterator p = list.begin();
-      p != list.end();
-      ++p) {
-    if (equivalent((*p)->getSignature(), key))
-      return *p;
-  }
-  return 0;
-}
-#endif
-
 varEntry *venv::lookByType(symbol *name, ty *t)
 {
   // Find first applicable function.
@@ -60,16 +45,6 @@ void venv::list()
   for(names_t::iterator N = names.begin(); N != names.end(); ++N) {
     symbol *s=N->first;
     name_t &list=names[s];
-#if 0
-    for(name_iterator p = list.begin(); p != list.end(); ++p) {
-      signature *sig=(*p)->getSignature();
-      if(sig)
-	std::cout << *((types::function *) (*p)->getType())->getResult() << " "
-		  << *s << *sig << ";" << std::endl;
-      else
-	std::cout << *((*p)->getType()) << " " << *s << ";" << std::endl;
-    }
-#endif
     for(name_iterator p = list.begin(); p != list.end(); ++p) {
       (*p)->getType()->printVar(std::cout, s);
       std::cout << ";" << std::endl;
@@ -199,6 +174,24 @@ ty *venv::getType(symbol *name)
   }
 
   return set.simplify();
+}
+
+void venv::listValues(symbol *name, values &vals) {
+  ostream& out=std::cout;
+
+  for(values::iterator p = vals.begin(); p != vals.end(); ++p) {
+    if ((*p)->shadowed)
+      out << "  <shadowed> ";
+    (*p)->v->getType()->printVar(out, name);
+    out << ";" << std::endl;
+  }
+}
+
+void venv::list()
+{
+  // List all variables.
+  for(namemap::iterator N = names.begin(); N != names.end(); ++N)
+    listValues(N->first, N->second);
 }
 
 #endif // }}}

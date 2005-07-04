@@ -56,8 +56,7 @@ public:
 
   void list()
   {
-    std::cerr << "reimplement this!\n" << std::endl;
-    //ve.list();
+    ve.list();
   }
 
   ty *lookupType(symbol *s)

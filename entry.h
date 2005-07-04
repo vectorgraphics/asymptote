@@ -154,6 +154,8 @@ public:
   typedef mem::hash_map<symbol *, values, namehash, nameeq> namemap;
   namemap names;
 
+  void listValues(symbol *name, values &vals);
+
   // Helper function for endScope.
   void remove(key k);
 
@@ -195,6 +197,9 @@ public:
     }
     scopes.pop();
   }
+
+  // Prints a list of the variables to the standard output.
+  void list();
 };
 #endif
 
