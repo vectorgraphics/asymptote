@@ -1011,31 +1011,12 @@ types::ty *andExp::baseTrans(coenv &e)
 }
 
 
-void joinExp::guidearray::prettyprint(ostream &out, int indent)
-{
-  prettyname(out, "guidearray", indent);
-  base.prettyprint(out, indent+1);
-}
-
 void joinExp::prettyprint(ostream &out, int indent)
 {
   prettyindent(out,indent);
-  out << "joinExp '" << *op << "'\n";
-  guides.prettyprint(out, indent+1);
-}
 
-types::ty *joinExp::trans(coenv& e)
-{
-  // Translate as a unary operator converting the guide array to a single guide.
-  unaryExp u(getPos(),&guides,op);
-  return u.trans(e);
-}
-
-types::ty *joinExp::getType(coenv& e)
-{
-  // Translate as a unary operator converting the guide array to a single guide.
-  unaryExp u(getPos(),&guides,op);
-  return u.cgetType(e);
+  callee->prettyprint(out, indent+1);
+  args->prettyprint(out, indent+1);
 }
 
 

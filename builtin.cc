@@ -96,6 +96,23 @@ void addFunc(venv &ve, bltin f, ty *result, const char *name,
   addFunc(ve, a, result, name, t1, t2, t3, t4, t5, t6, t7, t8);
 }
   
+inline void addRestFunc(venv &ve, access *a, ty *result, symbol *name,
+		        ty *trest) {
+  function *fun = new function(result);
+
+  if (trest) fun->addRest(trest);
+
+  varEntry *ent = new varEntry(fun, a);
+
+  ve.enter(name, ent);
+}
+
+inline void addRestFunc(venv &ve, bltin f, ty *result, const char *name,
+		        ty *trest) {
+  access *a = new bltinAccess(f);
+  addRestFunc(ve, a, result, symbol::trans(name), trest);
+}
+
 void addRealFunc0(venv &ve, bltin fcn, const char *name)
 {
   addFunc(ve, fcn, primReal(), name);
@@ -225,8 +242,8 @@ void addGuideOperators(venv &ve)
 {
   // The guide operators .. and -- take an array of guides, and turn them into a
   // single guide.
-  addFunc(ve, run::dotsGuide, primGuide(), "..", guideArray());
-  addFunc(ve, run::dashesGuide, primGuide(), "--", guideArray());
+  addRestFunc(ve, run::dotsGuide, primGuide(), "..", guideArray());
+  addRestFunc(ve, run::dashesGuide, primGuide(), "--", guideArray());
 
   addFunc(ve, run::cycleGuide, primGuide(), "operator cycle");
   addFunc(ve, run::dirSpec, primGuide(), "operator spec",

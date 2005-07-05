@@ -131,7 +131,7 @@ public:
 
   // Once all information has been added, release the flat result.
   simpleknotlist list(bool cycles=false) {
-    if (cycles) {
+    if (cycles && !nodes.empty()) {
       nodes.front().in=in;
       nodes.front().tin=tin;
     }

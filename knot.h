@@ -221,6 +221,9 @@ public:
   int size() {
     return cyclic() ? length() : length() + 1;
   }
+  bool empty() {
+    return size()==0;
+  }
 
   virtual knot& cell(int) = 0;
   virtual knot& operator[] (int i) {

@@ -414,6 +414,15 @@ public:
 
   virtual ~arglist() {}
   
+  virtual void addFront(argument a) {
+    args.insert(args.begin(), a);
+  }
+
+  virtual void addFront(exp *val, symbol *name=0) {
+    argument a; a.val=val; a.name=name;
+    addFront(a);
+  }
+
   virtual void add(argument a) {
     args.push_back(a);
   }
@@ -440,9 +449,11 @@ public:
 
 
 class callExp : public exp {
+protected:
   exp *callee;
   arglist *args;
 
+private:
   // Cache the application when it's determined.
   application *ca;
 
@@ -619,49 +630,19 @@ public:
   types::ty *baseTrans(coenv &e);
 };
 
-class joinExp : public exp {
-  // Helper class, to translate all of the specifiers in the join into an array
-  // of guides.  This array is then given to the function
-  //
-  //   guide operator .. (guide[] a)
-  //
-  // to return the guide representing the join.
-  struct guidearray : public exp {
-    guidearray(position pos)
-      : exp(pos), base(pos) {}
-
-    arrayinit base;
-
-    void prettyprint(ostream &our, int indent);
-
-    types::ty *getType(coenv &) {
-      return new types::array(types::primGuide());
-    }
-    types::ty *trans(coenv &e) {
-      base.transToType(e, getType(e));
-      return getType(e);
-    }
-  };
-
-  guidearray guides;
-
+class joinExp : public callExp {
 public:
-  symbol *op;
-
   joinExp(position pos, symbol *op)
-    : exp(pos), guides(pos), op(op) {}
+    : callExp(pos, new nameExp(pos, op)) {}
 
   void pushFront(exp *e) {
-    guides.base.inits.push_front(e);
+    args->addFront(e);
   }
   void pushBack(exp *e) {
-    guides.base.inits.push_back(e);
+    args->add(e);
   }
 
   void prettyprint(ostream &out, int indent);
-
-  types::ty *trans(coenv &e);
-  types::ty *getType(coenv &e);
 };
 
 class specExp : public exp {

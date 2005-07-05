@@ -775,12 +775,16 @@ struct controlDuplicates : public knoteffect {
 
 path solve(knotlist& l)
 {
-  info(std::cerr, "input knotlist", l);
-  curlEnds(l);
-  controlDuplicates(l).exec();
-  partnerUp(l).exec();
-  info(std::cerr, "specified knotlist", l);
-  return solveSpecified(l);
+  if (l.empty())
+    return path();
+  else {
+    info(std::cerr, "input knotlist", l);
+    curlEnds(l);
+    controlDuplicates(l).exec();
+    partnerUp(l).exec();
+    info(std::cerr, "specified knotlist", l);
+    return solveSpecified(l);
+  }
 }
 
 // Code for Testing

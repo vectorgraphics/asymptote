@@ -365,6 +365,10 @@ struct function : public ty {
     sig.add(f);
   }
 
+  void addRest(formal f) {
+    sig.addRest(f);
+  }
+
   virtual bool isReference() {
     return true;
   }
