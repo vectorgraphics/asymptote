@@ -636,14 +636,52 @@ void formals::reportDefaults()
     rest->reportDefault();
 }
 
+void fundef::prettyprint(ostream &out, int indent)
+{
+  result->prettyprint(out, indent+1);
+  params->prettyprint(out, indent+1);
+  body->prettyprint(out, indent+1);
+}
+
+function *fundef::getType(coenv &e, bool tacit) {
+  return params->getType(result->trans(e, tacit), e, tacit);
+}
+
+void fundef::trans(coenv &e) {
+  function *ft=getType(e, false);
+  
+  // Create a new function environment.
+  coder fc = e.c.newFunction(ft);
+  coenv fe(fc,e.e);
+
+  // Translate the function.
+  fe.e.beginScope();
+  params->trans(fe);
+  
+  body->trans(fe);
+
+  types::ty *rt = ft->result;
+  if (rt->kind != ty_void &&
+      rt->kind != ty_error &&
+      !body->returns()) {
+    em->error(body->getPos());
+    *em << "function must return a value";
+  }
+
+  fe.e.endScope();
+
+  // Put an instance of the new function on the stack.
+  vm::lambda *l = fe.c.close();
+  e.c.encode(inst::pushclosure);
+  e.c.encode(inst::makefunc, l);
+}
+
 void fundec::prettyprint(ostream &out, int indent)
 {
   prettyindent(out, indent);
   out << "fundec '" << *id << "'\n";
 
-  result->prettyprint(out, indent+1);
-  params->prettyprint(out, indent+1);
-  body->prettyprint(out, indent+1);
+  fun.prettyprint(out, indent);
 }
 
 function *fundec::opType(function *f)
@@ -671,7 +709,7 @@ void fundec::trans(coenv &e)
 
 void fundec::transAsField(coenv &e, record *r)
 {
-  function *ft = params->getType(result->trans(e), e, true);
+  function *ft = fun.getType(e, true);
   assert(ft);
 
   addOps(e,ft);
@@ -679,38 +717,13 @@ void fundec::transAsField(coenv &e, record *r)
   // Give the variable a location.
   access *a = r ? r->allocField(e.c.isStatic(), e.c.getPermission()) :
                   e.c.allocLocal();
-                  
-
   varEntry *ent = new varEntry(ft, a);
-  
   if (r)
     r->addVar(id, ent);
   e.e.addVar(getPos(), id, ent);
 
-  // Create a new function environment.
-  coder fc = e.c.newFunction(ft);
-  coenv fe(fc,e.e);
-
-  // Translate the function.
-  fe.e.beginScope();
-  params->trans(fe);
-  
-  body->trans(fe);
-
-  types::ty *rt = ft->result;
-  if (rt->kind != ty_void &&
-      rt->kind != ty_error &&
-      !body->returns()) {
-    em->error(body->getPos());
-    *em << "function must return a value";
-  }
-
-  fe.e.endScope();
-
-  // Put an instance of the new function on the stack.
-  vm::lambda *l = fe.c.close();
-  e.c.encode(inst::pushclosure);
-  e.c.encode(inst::makefunc, l);
+  // Push the function on to the stack.
+  fun.trans(e);
 
   // Write the new function to the variable location.
   a->encodeWrite(getPos(), e.c);

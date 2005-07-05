@@ -20,53 +20,6 @@ using vm::inst;
 
 namespace absyntax {
 
-types::ty *newFunctionExp::trans(coenv &e)
-{
-  // Check for illegal default values.
-  params->reportDefaults();
-  
-  // NOTE: Duplicate code with dec.cc
-  
-  // Create a new function environment.
-  types::ty *rt = result->trans(e);
-  function *ft = params->getType(rt, e);
-
-  coder fc = e.c.newFunction(ft);
-  coenv fe(fc,e.e);
-
-  fe.e.beginScope();
-
-  // Add the formal parameters to the environment.
-  params->trans(fe);
-
-  // Translate the body.
-  body->trans(fe);
-
-  if (rt->kind != ty_void &&
-      rt->kind != ty_error &&
-      !body->returns()) {
-    em->error(body->getPos());
-    *em << "function must return a value";
-  }
-
-  fe.e.endScope();
-
-  // Use the lambda to put the function on the stack.
-  vm::lambda *l = fe.c.close();
-  e.c.encode(inst::pushclosure);
-  e.c.encode(inst::makefunc, l);
-
-  //std::cout << "made new lambda:\n";
-  //print(std::cout, l->code);
-
-  return ft;
-}
-
-types::ty *newFunctionExp::getType(coenv &e)
-{
-  return params->getType(result->trans(e, true), e);
-}
-
 void printFrame(frame *f) {
   if (f == 0) {
     std::cerr << '0';

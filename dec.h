@@ -483,15 +483,29 @@ public:
   void reportDefaults();
 };
 
-class fundec : public dec {
+class fundef : public absyn {
   ty *result;
-  symbol *id;
   formals *params;
   stm *body;
+  
+public:
+  fundef(position pos, ty *result, formals *params, stm *body)
+    : absyn(pos), result(result), params(params), body(body) {}
+
+  void prettyprint(ostream &out, int indent);
+
+  void trans(coenv &e);
+
+  types::function *getType(coenv &e, bool tacit);
+};
+
+class fundec : public dec {
+  symbol *id;
+  fundef fun;
 
 public:
   fundec(position pos, ty *result, symbol *id, formals *params, stm *body)
-    : dec(pos), result(result), id(id), params(params), body(body) {}
+    : dec(pos), id(id), fun(pos, result, params, body) {}
 
   void prettyprint(ostream &out, int indent);
 

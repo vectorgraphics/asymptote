@@ -15,16 +15,20 @@
 namespace absyntax {
 
 class newFunctionExp : public exp {
-  ty *result;
-  formals *params;
-  stm *body;
+  fundef fun;
 
 public:
   newFunctionExp(position pos, ty *result, formals *params, stm *body)
-    : exp(pos), result(result), params(params), body(body) {}
+    : exp(pos), fun(pos, result, params, body) {}
 
-  types::ty *trans(coenv &e);
-  types::ty *getType(coenv &e);
+  types::ty *trans(coenv &e) {
+    fun.trans(e);
+    return cgetType(e);
+  }
+
+  types::ty *getType(coenv &e) {
+    return fun.getType(e, true);
+  }
 };
 
 class newRecordExp : public exp {
