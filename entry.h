@@ -50,7 +50,7 @@ public:
     { return location; }
 };
 
-#if NOHASH //{{{
+#ifdef NOHASH //{{{
 class venv : public sym::table<varEntry*> {
 public:
   venv();
