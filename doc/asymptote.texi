@@ -252,7 +252,7 @@ http://www.uhoreg.ca/programming/debian.text
 @end verbatim
 
 If you are compiling @code{Asymptote} with @code{gcc}, you will need a
-relatively recent version (e.g. 3.3.3 or later).
+relatively recent version (e.g. 3.2 or later).
 The @code{FFTW} library is only required if you want @code{Asymptote}
 to be able to take Fourier transforms of data (say, to compute an
 audio power spectrum).

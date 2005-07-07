@@ -87,8 +87,8 @@ transform3 rotate(real angle, triple axis) {
 
 // Transformation corresponding to moving the camera from the origin looking
 // down the negative axis to sitting at the point "from" looking to the origin.
-// Since, in actually, we are transforming the points instead of the camera, we
-// calculate the inverse matrix.
+// Since, in actuality, we are transforming the points instead of the camera,
+// we calculate the inverse matrix.
 transform3 lookAtOrigin(triple from) {
   real x=from.x,y=from.y,z=from.z;
   if (x==0 && y==0)

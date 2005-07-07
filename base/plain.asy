@@ -538,12 +538,10 @@ guide[] operator cast(pair[] z) {
   return g;
 }
 
-guide operator cast(pair[] z) {
-  return operator -- (... z);
-}
-
-path operator cast(pair[] z) {
-  return (guide) z;
+path[] operator cast(pair[] z) {
+  path[] g;
+  for(int i=0; i < z.length; ++i) g[i]=z[i];
+  return g;
 }
 
 pair[] operator ecast(path g) {
@@ -1643,8 +1641,7 @@ void dot(picture pic=currentpicture, pair[] c, pen p=currentpen)
 
 void dot(picture pic=currentpicture, path g, pen p=currentpen)
 {
-  for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p);
-//  dot(pic,(pair[]) g,p);
+  dot(pic,(pair[]) g,p);
 }
 
 void dot(picture pic=currentpicture, path[] g, pen p=currentpen)
