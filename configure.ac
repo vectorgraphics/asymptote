@@ -27,6 +27,8 @@ AC_CONFIG_SRCDIR([absyn.cc])
 
 AC_LANG([C++])
 
+test "$CFLAGS" || CFLAGS="-g -O3"
+
 # Checks for programs.
 AC_PROG_LEX
 AC_PROG_CXX
@@ -75,8 +77,6 @@ else
    GCDIR=
    AC_MSG_NOTICE([disabling the $GCNAME])
 fi
-
-CFLAGS="-g -O3"
 
 AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
 			   [Define if getopt.h is the GNU version]),
