@@ -56,23 +56,10 @@ void drawtris(pair[] z, pen p1, pen p2)
     fill(z[i]--z[i+1]--z[i+2]--cycle, 2i < n-1 ? p1 : p2);
 }
 
-void drawblocks(pair[] z, pen p1, pen p2)
-{
-  int n = z.length;
-
-  for (int i = 0; i < n-2; i+=2) {
-    pair z0 = z[i], z1 = z[i+1], z2 = z[i+2], z3 = z0+z2-z1; 
-    path p = z0--z1--z2--z3--cycle;
-    fill(p, 2i < n-1 ? p1 : p2);
-    draw(p);
-  }
-}
-
 size(500,0);
 
 int n = 10;
 
-//drawblocks(dragon(n), orange, red);
 drawtris(dragon(n, new pair[] {(0,0), (1,0)}), black);
 drawtris(dragon(n, new pair[] {(0,0), (0,-1)}), blue);
 drawtris(dragon(n, new pair[] {(0,0), (-1,0)}), red);
