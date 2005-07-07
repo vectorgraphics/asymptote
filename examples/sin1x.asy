@@ -8,16 +8,11 @@ real T(real x) {return 2/(x*pi);}
 real a=-4/pi, b=4/pi;
 int n=150,m=5;
 
-guide g=graph(f,a,-T(m),n);
-g=graph(g,f,-m,-(m+n),n,T);
-g=g--(0,f(0));
-g=graph(g,f,m+n,m,n,T);
-g=graph(g,f,T(m),b,n);
-
 xaxis("$x$",red);
 yaxis(red);
 
-draw(g);
+draw(graph(f,a,-T(m),n)--graph(f,-m,-(m+n),n,T)--(0,f(0))--graph(f,m+n,m,n,T)--
+     graph(f,T(m),b,n));
 
 label("$\sin\frac{1}{x}$",(b,f(b)),SW);
 

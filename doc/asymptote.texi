@@ -845,22 +845,18 @@ path p=(100,0){curl 0.0}..(100,100)..{curl 0.0}(0,100);
 
 The implicit initializer for paths and guides is @code{nullpath},
 which is useful for building up a path within a loop.
-For completeness, we document here the action of direction modifiers
-on @code{nullpath}. If a single direction specifier is given to
-@code{nullpath}, it modifies the pair on the other side. 
-In the case of a two specifiers (one on each side of @code{nullpath}), the
-first one is ignored. For example, these paths
+A direction specifier given to @code{nullpath} modifies the node on
+the other side: the paths
 @verbatim
 a..{up}nullpath..b;
-z..nullpath{up}..w;
-u..{up}nullpath{down}..v;
+c..nullpath{up}..d;
+e..{up}nullpath{down}..f;
 @end verbatim
-
 are respectively equivalent to
 @verbatim
 a..nullpath..{up}b;
-z{up}..nullpath..w;
-u{down}..nullpath..v;
+c{up}..nullpath..d;
+e{down}..nullpath..{up}f;
 @end verbatim
 
 @cindex @code{PostScript subpath}
@@ -2799,19 +2795,18 @@ the following routines:
 @itemize
 @item
 @verbatim
-guide graph(picture pic=currentpicture, guide g=nullpath,
-            real f(real), real a, real b, int n=ngraph,
-            interpolate interpolatetype=LinearInterp);
+guide graph(picture pic=currentpicture, real f(real), real a, real b,
+            int n=ngraph, interpolate interpolatetype=Straight);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
 (@pxref{automatic scaling}) of the function @code{f} on the interval
 [@code{a},@code{b}], sampling at @code{n} evenly spaced points, with
-one of the interpolation types:
+one of these interpolation types:
 @itemize @bullet 
 
-@cindex @code{LinearInterp}
-@item @code{LinearInterp} (linear interpolation)
+@cindex @code{Straight}
+@item @code{Straight} (linear interpolation)
 
 @cindex @code{Spline} 
 @item @code{Spline} (piecewise Bezier cubic spline interpolation)
@@ -2820,9 +2815,9 @@ one of the interpolation types:
 
 @item
 @verbatim
-guide graph(picture pic=currentpicture, guide g=nullpath,
-            real x(real), real y(real), real a, real b,
-            int n=ngraph, interpolate interpolatetype=LinearInterp);
+guide graph(picture pic=currentpicture, real x(real), real y(real),
+            real a, real b, int n=ngraph,
+            interpolate interpolatetype=Straight);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2833,9 +2828,8 @@ the given interpolation type.
 
 @item
 @verbatim
-guide graph(picture pic=currentpicture, guide g=nullpath,
-            pair z(real), real a, real b,
-            int n=ngraph, interpolate interpolatetype=LinearInterp);
+guide graph(picture pic=currentpicture, pair z(real), real a, real b,
+            int n=ngraph, interpolate interpolatetype=Straight);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2845,9 +2839,8 @@ of the parametrized function
 
 @item
 @verbatim
-guide graph(picture pic=currentpicture, guide g=nullpath,
-            pair[] z, bool[] cond={},
-            interpolate interpolatetype=LinearInterp);
+guide graph(picture pic=currentpicture, pair[] z, bool[] cond={},
+            interpolate interpolatetype=Straight);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2857,9 +2850,8 @@ of those elements of the array
 
 @item
 @verbatim
-guide graph(picture pic=currentpicture, guide g=nullpath,
-            real[] x, real[] y, bool[] cond={},
-            interpolate interpolatetype=LinearInterp);
+guide graph(picture pic=currentpicture, real[] x, real[] y,
+            bool[] cond={}, interpolate interpolatetype=Straight);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2869,8 +2861,8 @@ of those elements of the arrays
 
 @item
 @verbatim
-guide graph(guide g=nullpath, real f(real), real a, real b, int n=ngraph,
-            real T(real), interpolate interpolatetype=LinearInterp);
+guide graph(real f(real), real a, real b, int n=ngraph, real T(real),
+           interpolate interpolatetype=Straight);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2880,8 +2872,8 @@ spaced in [@code{a},@code{b}], with the given interpolation type.
 
 @item
 @verbatim
-guide polargraph(guide g=nullpath, real f(real), real a, real b,
-                 int n=ngraph, interpolate interpolatetype=LinearInterp);
+guide polargraph(real f(real), real a, real b, int n=ngraph,
+                 interpolate interpolatetype=Straight);
 @end verbatim
 
 Returns a polar-coordinate graph using the scaling information for
@@ -4384,7 +4376,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  eval fft csv runtime nonalphanumeric labely LeftTicks NoTicks
 @c  LocalWords:  RightTicks BottomTop LeftRight Ticksize UTF BufNewFile BufRead
 @c  LocalWords:  ticksize subintervals xlimits filetype plugin setlocal makeprg
-@c  LocalWords:  ylimits uncommented LinearInterp automin automax cp uninstall
+@c  LocalWords:  ylimits uncommented automin automax cp uninstall
 @c  LocalWords:  scaleT Xautomin Xautomax Yautomin Yautomax unicode RightSide
 @c  LocalWords:  arrowbar LeftSide EndBar BeginArrow lly featpost feynman isi
 @c  LocalWords:  EndArrow BeginArcArrow EndArcArrow ArcArrow ArcArrows NoFill

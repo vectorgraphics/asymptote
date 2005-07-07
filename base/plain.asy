@@ -532,6 +532,26 @@ pair point(frame f, pair dir)
   return min(f)+realmult(rectify(dir),max(f)-min(f));
 }
 
+guide[] operator cast(pair[] z) {
+  guide[] g;
+  for(int i=0; i < z.length; ++i) g[i]=z[i];
+  return g;
+}
+
+guide operator cast(pair[] z) {
+  return operator -- (... z);
+}
+
+path operator cast(pair[] z) {
+  return (guide) z;
+}
+
+pair[] operator ecast(path g) {
+  pair[] z;
+  for(int i=0; i <= length(g); ++i) z.push(point(g,i));
+  return z;
+}
+
 static bool Above=true;
 static bool Below=false;
 
@@ -1621,9 +1641,10 @@ void dot(picture pic=currentpicture, pair[] c, pen p=currentpen)
   for(int i=0; i < c.length; ++i) dot(pic,c[i],p);
 }
 
-void dot(picture pic=currentpicture, guide g, pen p=currentpen)
+void dot(picture pic=currentpicture, path g, pen p=currentpen)
 {
   for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p);
+//  dot(pic,(pair[]) g,p);
 }
 
 void dot(picture pic=currentpicture, path[] g, pen p=currentpen)

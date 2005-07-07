@@ -40,24 +40,12 @@ pair[] dragon(int n, pair[] base={})
   return z;
 }
 
-void draw(pair[] z)
-{
-  int n = z.length;
-  guide g;
-
-  for (int i = 0; i < n; ++i) {
-    g = g -- z[i];
-  }
-
-  draw(g);
-}
-
 void drawtris(pair[] z, pen p = currentpen)
 {
   int n = z.length;
 
   for (int i = 0; i < n-2; i+=2)
-    fill(z[i] -- z[i+1] -- z[i+2] -- cycle, p);
+    fill(z[i]--z[i+1]--z[i+2]--cycle, p);
 }
 
 void drawtris(pair[] z, pen p1, pen p2)
@@ -65,7 +53,7 @@ void drawtris(pair[] z, pen p1, pen p2)
   int n = z.length;
 
   for (int i = 0; i < n-2; i+=2)
-    fill(z[i] -- z[i+1] -- z[i+2] -- cycle, 2i < n-1 ? p1 : p2);
+    fill(z[i]--z[i+1]--z[i+2]--cycle, 2i < n-1 ? p1 : p2);
 }
 
 void drawblocks(pair[] z, pen p1, pen p2)
@@ -79,8 +67,6 @@ void drawblocks(pair[] z, pen p1, pen p2)
     draw(p);
   }
 }
-
-
 
 size(500,0);
 

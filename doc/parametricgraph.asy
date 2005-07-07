@@ -6,7 +6,7 @@ size(0,200);
 real f(real t) {return cos(2pi*t);}
 real g(real t) {return sin(2pi*t);}
 
-draw(graph(f,g,0,1,LinearInterp));
+draw(graph(f,g,0,1));
 
 //xlimits(0,1);
 //ylimits(-1,0);
