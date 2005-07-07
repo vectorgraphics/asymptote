@@ -4109,7 +4109,6 @@ Options:
 -safe            Disable system call (default)
 -unsafe          Enable system call
 -noplain         Disable automatic importing of plain
--version         Show version
 @end verbatim
 
 If no arguments are given, @code{Asymptote} runs in interactive mode
