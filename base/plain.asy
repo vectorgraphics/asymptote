@@ -544,12 +544,6 @@ path[] operator cast(pair[] z) {
   return g;
 }
 
-pair[] operator ecast(path g) {
-  pair[] z;
-  for(int i=0; i <= length(g); ++i) z.push(point(g,i));
-  return z;
-}
-
 static bool Above=true;
 static bool Below=false;
 
@@ -1641,7 +1635,7 @@ void dot(picture pic=currentpicture, pair[] c, pen p=currentpen)
 
 void dot(picture pic=currentpicture, path g, pen p=currentpen)
 {
-  dot(pic,(pair[]) g,p);
+  for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p);
 }
 
 void dot(picture pic=currentpicture, path[] g, pen p=currentpen)
