@@ -76,7 +76,7 @@ else
    AC_MSG_NOTICE([disabling the $GCNAME])
 fi
 
-CFLAGS="-g -O3" $CFLAGS
+CFLAGS="-g -O3 $CFLAGS"
 
 AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
 			   [Define if getopt.h is the GNU version]),
