@@ -257,13 +257,13 @@ int main(int argc, char *argv[])
 
   cout.precision(DBL_DIG);
 
-  cout << "laat = " << laat << endl;
-
   try {
     if (interactive)
       loop::doInteractive();
-    else if (laat)
+    else if (laat) {
+      cout << "laat = " << laat << endl;
       loop::doIBatch();
+    }
     else
       loop::doBatch();
   } catch (...) {
