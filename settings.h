@@ -43,6 +43,7 @@ extern int ignoreGUI;
 extern camp::pair postscriptOffset;
 enum origin {CENTER,BOTTOM,TOP,ZERO};
 extern int origin;
+extern int laat; // Temporary, for testing line-at-a-time capabilities.
   
 extern bool suppressStandard;
 

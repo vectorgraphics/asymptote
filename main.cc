@@ -23,6 +23,8 @@
 #include "parser.h"
 #include "fileio.h"
 
+#include "stack.h"
+
 using namespace settings;
 using std::list;
 
@@ -191,6 +193,52 @@ void doBatch()
   }
 }
 
+typedef vm::interactiveStack istack;
+using absyntax::runnable;
+using absyntax::file;
+
+void doIRunnable(absyntax::runnable *r, genv &ge, istack &s) {
+  lambda *codelet=ge.trans(r);
+  print(cout, codelet->code);
+  cout << "\n";
+  s.run(codelet);
+}
+
+void doITree(file *ast, genv &ge, istack &s) {
+  for (list<runnable *>::iterator r=ast->stms.begin();
+       r!=ast->stms.end();
+       ++r)
+    doIRunnable(*r, ge, s);
+}
+
+void doIFile(const char *name,  genv &ge, istack &s) {
+  cout << "ifile: " << name << endl;
+  file *ast=parser::parseFile(name);
+  assert(ast);
+  doITree(ast, ge, s);
+}
+
+void doIBatch()
+{
+  cout << "ibatch\n";
+  if(listonly && numArgs() == 0) {
+    init();
+    body("");
+    purge();
+  }
+  else {
+    init();
+
+    genv ge;
+    vm::interactiveStack s;
+
+    for(int ind=0; ind < numArgs() ; ind++)
+      doIFile(getArg(ind), ge, s);
+
+    purge();
+  }
+}
+
 } // namespace loop
 
 int main(int argc, char *argv[])
@@ -209,9 +257,13 @@ int main(int argc, char *argv[])
 
   cout.precision(DBL_DIG);
 
+  cout << "laat = " << laat << endl;
+
   try {
     if (interactive)
       loop::doInteractive();
+    else if (laat)
+      loop::doIBatch();
     else
       loop::doBatch();
   } catch (...) {

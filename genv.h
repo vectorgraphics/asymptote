@@ -67,6 +67,11 @@ public:
   // This should be the lowest-level function run by the stack.
   // loadModule() should not be called after calling this function.
   lambda *bootupModule(record *r);
+
+  // Translate a runnable "line" into a function that can be run to execute it.
+  // Any variable declaration go into the existing environment and frame, so
+  // that the variable is usable in late statements.
+  lambda *trans(absyntax::runnable *r);
 };
 
 } // namespace trans

@@ -111,8 +111,11 @@ public:
   size_t size()
     { return vars.size(); }
   
-  void extend(size_t n)
-    { vars.resize(vars.size() + n); }
+  // Extends vars to ensure it has a place for any variable indexed up to n.
+  void extend(size_t n) {
+    if (vars.size() < n)
+      vars.resize(n);
+  }
 };
 
 template<typename T>

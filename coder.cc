@@ -45,8 +45,9 @@ coder::coder(modifier sord)
 }
 
 // Defines a new function environment.
-coder::coder(function *t, coder &parent, modifier sord)
-  : level(new frame(parent.getFrame(), t->sig.getNumFormals())),
+coder::coder(function *t, coder &parent, modifier sord, bool reframe)
+  : level(reframe ? new frame(parent.getFrame(), t->sig.getNumFormals()) :
+                    parent.getFrame()),
     recordLevel(parent.recordLevel),
     recordType(parent.recordType),
     l(new vm::lambda),
@@ -84,6 +85,11 @@ coder::coder(record *t, coder &parent, modifier sord)
 coder coder::newFunction(function *t, modifier sord)
 {
   return coder(t, *this, sord);
+}
+
+coder coder::newCodelet()
+{
+  return coder(new function(primVoid()), *this, DEFAULT_DYNAMIC, false);
 }
 
 record *coder::newRecord(symbol *id)
@@ -228,6 +234,7 @@ vm::lambda *coder::close() {
     encode(inst::ret);
 
   l->code = program;
+
   l->params = level->getNumFormals();
   program->begin()->ref = level->size();
 

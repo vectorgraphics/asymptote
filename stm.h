@@ -47,6 +47,7 @@ public:
 };
 
 class blockStm : public stm {
+public: // NOTE: For interactive codelet.  Fix this.
   list<runnable *> stms;
 
 protected:

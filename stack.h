@@ -19,6 +19,8 @@
 namespace vm {
 
 class func;
+class program;
+class lambda;
 
 class stack {
 public:
@@ -38,6 +40,9 @@ private:
 public:
   stack();
   ~stack();
+
+  // Runs the instruction listed in code, with vars as frame of variables.
+  void run(program *code, vars_t vars);
 
   // Executes a function on top of the stack.
   void run(func *f);
@@ -76,6 +81,15 @@ inline T pop(stack* s)
   return get<T>(pop(s));
 }
   
+class interactiveStack : public stack {
+  vars_t globals;
+public:
+  interactiveStack();
+    
+  // Run a codelet, a small piece of code that uses globals as its frame.
+  void run(lambda *codelet);
+};
+
 } // namespace vm
 
 #endif // STACK_H

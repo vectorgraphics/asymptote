@@ -69,13 +69,18 @@ void stack::run(func *f)
   cout << endl;
 #endif
   
-  /* alias the variables */
-  
   /* start the new function */
   program::label ip = body->code->begin();
   /* make new activation record */
   vars_t vars = make_frame(body->params, f->closure);
   marshall(body->params, vars);
+
+  run(body->code, vars);
+}
+
+void stack::run(program *code, vars_t vars)
+{
+  program::label ip = code->begin();
 
   em->Pending(settings::verbose > 4);
   
@@ -263,6 +268,13 @@ void error(const char* message)
   *em << message;
   em->sync();
   throw handled_error();
+}
+
+interactiveStack::interactiveStack()
+  : globals(new frame(1)) {}
+
+void interactiveStack::run(lambda *codelet) {
+  stack::run(codelet->code, globals);
 }
 
 } // namespace vm

@@ -52,6 +52,7 @@ int clearGUI=0;
 int ignoreGUI=0;
 camp::pair postscriptOffset=0.0;
 int origin=CENTER;
+int laat=0;
   
 bool suppressStandard=false;
 
@@ -137,6 +138,7 @@ void setOptions(int argc, char *argv[])
   {
     {"verbose", 0, 0, 'v'},
     {"help", 0, 0, 'h'},
+    {"laat", 0, &laat, 1},
     {"safe", 0, &safe, 1},
     {"unsafe", 0, &safe, 0},
     {"View", 0, &view, 1},

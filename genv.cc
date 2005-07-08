@@ -155,4 +155,13 @@ lambda *genv::bootupModule(record *r)
   return base_coder.close();
 }
 
+lambda *genv::trans(absyntax::runnable *r) {
+  coder c=base_coder.newCodelet();
+  coenv e(c, base_env);
+
+  r->trans(e);
+
+  return c.close();
+}
+
 } // namespace trans

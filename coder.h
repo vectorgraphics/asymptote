@@ -94,8 +94,11 @@ class coder {
   // Current File Position
   position curPos;
 private:
-  // Define a new function coder.
-  coder(function *t, coder &parent, modifier sord = DEFAULT_DYNAMIC);
+  // Define a new function coder.  Reframe gives the function its own frame,
+  // which is the usual (sensible) thing to do.  It is false for line-at-a-time
+  // codelet, where variables should be allocated in the lower frame.
+  coder(function *t, coder &parent, modifier sord = DEFAULT_DYNAMIC,
+        bool reframe=true);
 
   // Start encoding the body of the record.  The function being encoded
   // is the record's initializer.
@@ -178,11 +181,14 @@ public:
   // Create a coder for the initializer of the record.
   coder newRecordInit(record *r, modifier sord=DEFAULT_DYNAMIC);
 
+  // Create a coder for translating a small piece of code.  Used for
+  // line-at-a-time mode.
+  coder newCodelet();
 
   frame *getFrame()
   {
     if (isStatic()) {
-      assert(parent);
+      assert(parent->getFrame());
       return parent->getFrame();
     }
     else
@@ -212,7 +218,9 @@ private:
   void encode(inst i)
   {
     i.pos = curPos;
-    if (isStatic()) {
+    // Static code is put into the enclosing coder, unless we are translating a
+    // codelet.
+    if (isStatic() && parent->getFrame() != level) {  
       assert(parent);
       parent->encode(i);
     }
