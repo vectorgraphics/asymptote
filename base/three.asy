@@ -30,6 +30,10 @@ triple operator - (triple u, triple v) {
   return triple(u.x-v.x,u.y-v.y,u.z-v.z);
 }
 
+triple operator + (triple v) {
+  return v;
+}
+
 triple operator - (triple v) {
   return triple(-v.x,-v.y,-v.z);
 }
@@ -44,11 +48,11 @@ triple X=triple(1,0,0), Y=triple(0,1,0), Z=triple(0,0,1);
   return v.w==1 ? v : triple(v.x/v.w,v.y/v.w,v.z/v.w);
 }*/
 
-real[] operator cast(triple v) {
+real[] operator ecast(triple v) {
   return new real[] {v.x, v.y, v.z, 1};
 }
 
-triple operator cast(real[] a) {
+triple operator ecast(real[] a) {
   //assert(a.length==4);
 
   real w=a[3];
@@ -58,7 +62,7 @@ triple operator cast(real[] a) {
 typedef real[][] transform3;
 
 triple operator * (transform3 t, triple v) {
-  return t*(real[])v;
+  return (triple)(t*(real[])v);
 }
 
 transform3 I=identity(4);
@@ -66,7 +70,7 @@ transform3 I=identity(4);
 // A translation in 3d-space.
 transform3 shift(triple v) {
   transform3 t=identity(4);
-  real[] a=v;
+  real[] a=(real [])v;
   for (int i=0; i<3; ++i)
     t[i][3]=a[i];
   return t;
@@ -140,13 +144,14 @@ path3 operator init() {return new path3;}
 int size(path3 g) { return g.nodes.length; }
 triple point(path3 g,int k) { return g.nodes[k]; }
 bool cyclic(path3 g) { return g.cycles; }
+int length(path3 g) { return cyclic(g) ? size(g) : size(g)-1; }
   
 path project(path3 g, projection P)
 {
   guide pg;
   for (int i=0; i<size(g); ++i)
     pg=pg--P(point(g,i));
-  return cyclic(g) ? pg : pg--cycle;
+  return cyclic(g) ? pg--cycle : pg;
 }
 
 struct flatguide3 {
@@ -155,6 +160,16 @@ struct flatguide3 {
 
   void add(triple v) {
     nodes.push(v);
+  }
+
+  void add(path3 p) {
+    if (nodes.length==0) {
+      nodes=p.nodes;
+      cycles=p.cycles;
+    }
+    else
+      for (int i=0; i<=length(p); ++i)
+        add(point(p, i));
   }
 
   path3 solve() {
@@ -170,10 +185,33 @@ flatguide3 operator init () {return new flatguide3;}
 // A guide is most easily represented as something that modifies a flatguide.
 typedef void guide3(flatguide3);
 
+void nullguide3(flatguide3) {};
+
+guide3 operator init() {
+  return nullguide3;
+}
+
 guide3 operator cast(triple v) {
   return new void(flatguide3 f) {
     f.add(v);
   };
+}
+
+guide3 operator cast (path3 p) {
+  return new void(flatguide3 f) {
+    f.add(p);
+  };
+}
+
+guide3[] operator cast(triple[] v) {
+  guide3[] g;
+  for (int i=0; i<v.length; ++i)
+    g[i]=v[i];
+  return g;
+}
+
+void cycle3 (flatguide3 f) {
+  f.cycles=true;
 }
 
 /*
@@ -204,6 +242,47 @@ path3 solve(guide3 g) {
   return f.solve();
 }
 
+// The graph of a function along a path.
+guide3 graph(real f(pair z), path p, int n=10) {
+  triple F(pair z) {
+    return triple(z.x, z.y, f(z));
+  }
+
+  guide3 g;
+  for (int i=0; i<n*length(p); ++i) {
+    pair z=point(p, i/n);
+    g=g--F(z);
+  }
+  return cyclic(p) ? g--cycle3 : g--F(endpoint(p));
+}
+
+picture plot(real f(pair z), pair min, pair max,
+             projection P, int n=20, int subn=1)
+{
+  picture pic;
+
+  void drawpath(path g) {
+    fill(pic, g, grey);
+    draw(pic, g);
+  }
+
+  void drawcell(pair a, pair b) {
+    guide3 g = graph(f, box(a,b), subn);
+    drawpath(project(solve(g), P));
+  }
+
+  pair sample(int i, int j) {
+    return (interp(min.x,max.x,i/n),
+            interp(min.y,max.y,j/n));
+  }
+
+  for (int i=0; i<n; ++i)
+    for (int j=0; j<n; ++j)
+      drawcell(sample(i,j), sample(i+1,j+1));
+
+  return pic;
+}
+
 /*{
   // A test.
   size(200,0);
@@ -221,7 +300,7 @@ path3 solve(guide3 g) {
   draw(g--cycle);
 }*/
 
-{
+/*{
   // A test.
   size(200,0);
   guide3 g=triple(-1,-1,0)--triple(1,-1,0)--triple(1,1,0)--triple(-1,1,0);
@@ -231,4 +310,33 @@ path3 solve(guide3 g) {
 
   path pg=project(solve(g),P);
   draw(pg);
+}*/
+
+{
+  size(200,0);
+  real f(pair z) {
+    return exp(-abs(z)^2);
+  }
+
+  guide3 g=triple(-1,-1,0)--
+           triple(1,-1,0)--
+           triple(1,1,0)--
+           triple(-1,1,0)--cycle3;
+  guide3 eg=graph(f, (1,0)--(-1,0));
+ 
+  triple camera=triple(-5,4,2);
+  projection P=perspective(1) * lookAtOrigin(camera);
+
+  path pg=project(solve(g),P);
+  draw(pg);
+
+  add(plot(f, (-1,-1), (1,1), P, n=10));
+
+  /*int n=20;
+  real a=-1, b=1;
+  for (int i=0; i<=n; ++i) {
+    real y=a+(b-a)*i/n;
+    draw(project(solve(graph(f, (1,y), (-1,y))), P), blue);
+    draw(project(solve(graph(f, (y,1), (y,-1))), P), blue);
+  }*/
 }
