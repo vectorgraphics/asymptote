@@ -5,24 +5,20 @@ import graph3d;
 real u=2.5;
 real v=1;
 
-vector[] FaceY=
-new vector[] {vector(-u,-v,0),vector(-u,v,0),vector(u,v,0),vector(u,-v,0)};
-vector[] FaceG=
-new vector[] {vector(0,-u,-v),vector(0,-u,v),vector(0,u,v),vector(0,u,-v)};
-vector[] FaceA=
-new vector[] {vector(-v,0,-u),vector(-v,0,u),vector(v,0,u),vector(v,0,-u)};
+triple[] FaceY=new triple[] {(-u,-v,0),(-u,v,0),(u,v,0),(u,-v,0)};
+triple[] FaceG=new triple[] {(0,-u,-v),(0,-u,v),(0,u,v),(0,u,-v)};
+triple[] FaceA=new triple[] {(-v,0,-u),(-v,0,u),(v,0,u),(v,0,-u)};
 
 piclist a=new piclist;
 picture pic;
 int[] Yindex,Gindex,Aindex;
 
-pic;
 filldraw(pic,P(FaceY)--cycle,yellow); a.push(pic,Yindex);
 
-pic;
+pic.erase();
 filldraw(pic,P(FaceA)--cycle,lightgrey); a.push(pic,Aindex);
 
-pic;
+pic.erase;
 filldraw(pic,P(FaceG)--cycle,green); a.push(pic,Gindex);
 
 splitplanes(a,FaceY,Yindex,FaceG,Gindex);

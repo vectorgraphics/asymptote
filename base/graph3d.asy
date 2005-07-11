@@ -8,12 +8,12 @@ pair P(real x, real y, real z)
   return x*(1,0)+y*(0,1)+projection*z;
 }
 
-pair P(vector v) 
+pair P(triple v) 
 {
   return P(v.x,v.y,v.z);
 }
 
-path[] box3d(vector v1, vector v2)
+path[] box3d(triple v1, triple v2)
 {
   return
     P(v1.x,v1.y,v1.z)--
@@ -34,7 +34,7 @@ path[] box3d(vector v1, vector v2)
     P(v1.x,v1.y,v2.z);
 }
 
-guide P(vector[] p) {
+guide P(triple[] p) {
     guide g;
     for(int i=0; i < p.length; ++i) {
       g=g--P(p[i]);
@@ -75,21 +75,21 @@ struct piclist {
   int length() {return list.length; }
 }
 
-void splitplanes(piclist Pic, vector[] a, int[] aindex,
-		 vector[] b, int[] bindex)
+void splitplanes(piclist Pic, triple[] a, int[] aindex,
+		 triple[] b, int[] bindex)
 {
-  vector na=normal(a);
-  vector nb=normal(b);
-  vector Z=intersectionpoint(na,a[0],nb,b[0]);
+  triple na=normal(a);
+  triple nb=normal(b);
+  triple Z=intersectionpoint(na,a[0],nb,b[0]);
   if(Z.x == infinity) {abort("Parallel plane case not yet implemented");}
   pair z=P(Z);
-  vector Dir=Cross(na,nb);
+  triple Dir=Cross(na,nb);
   pair lambda=abs(maxbound(Pic.userMax,z)-minbound(Pic.userMin,z))
     *unit(P(Dir));
   
   // Determine clipping half-planes
-  vector ta=Cross(Dir,na);
-  vector tb=Cross(Dir,nb);
+  triple ta=Cross(Dir,na);
+  triple tb=Cross(Dir,nb);
   pair T=((Dot(P(ta),P(tb)) > 0) ^ (ta.z > tb.z) ? -I : I)*lambda;
   guide g1=z-lambda--z+lambda--z+lambda+T--z-lambda+T--cycle;
   guide g2=z-lambda--z+lambda--z+lambda-T--z-lambda-T--cycle;

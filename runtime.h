@@ -114,6 +114,7 @@ void tripleYPart(vm::stack *s);
 void tripleZPart(vm::stack *s);
 void realTripleMult(vm::stack *s);
 void tripleRealMult(vm::stack *s);
+void tripleRealDivide(vm::stack *s);
 void tripleLength(vm::stack *s);
 void tripleColatitude(vm::stack *s);
 void tripleAzimuth(vm::stack *s);

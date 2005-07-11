@@ -12,14 +12,14 @@ texpreamble("
 %\usepackage{ccfonts}
 ");
 
-f = vector(10,-5,5.44);
+f = (10,-5,5.44);
 Spread = 30;
 
 real shortradius, longradius, theta, width, height;
 real updiff, refsize, vecsize, anglar, bord, totup;
-vector rn, fa, fc, pg, centre, speed, refx, refy;
-vector iplow, iphig, oplow,ophig, anglebase, central, refo;
-vector eplow, ephig, aplow,aphig;
+triple rn, fa, fc, pg, centre, speed, refx, refy;
+triple iplow, iphig, oplow,ophig, anglebase, central, refo;
+triple eplow, ephig, aplow,aphig;
 
 theta = 30;
 width = 3;
@@ -34,23 +34,23 @@ totup = 3;
 longradius = shortradius + width*Cos(theta);
 updiff = width*Sin(theta);
 
-iplow = vector(0,shortradius,0);
-iphig = vector(0,longradius,updiff);
-oplow = vector(-shortradius,0,0);
-ophig = vector(-longradius,0,updiff);
+iplow = (0,shortradius,0);
+iphig = (0,longradius,updiff);
+oplow = (-shortradius,0,0);
+ophig = (-longradius,0,updiff);
 aplow = -iplow;
-aphig = vector(0,-longradius,updiff);
+aphig = (0,-longradius,updiff);
 eplow = -oplow;
-ephig = vector(longradius,0,updiff);
+ephig = (longradius,0,updiff);
 
-anglebase = vector(0,longradius,0);
-centre = interp(iplow,iphig,0.5)+vector(0,0,height);
-central = vector(0,0,Z(centre));
+anglebase = (0,longradius,0);
+centre = interp(iplow,iphig,0.5)+(0,0,height);
+central = (0,0,Z(centre));
 
 //	refo = (0,0,-shortradius*Sin(theta)/Cos(theta));
-refo = vector(0,0.5*Y(centre),Z(centre));
-refx = refsize*vector(0,Cos(theta),Sin(theta));
-refy = refsize*vector(0,-Sin(theta),Cos(theta));
+refo = (0,0.5*Y(centre),Z(centre));
+refx = refsize*(0,Cos(theta),Sin(theta));
+refy = refsize*(0,-Sin(theta),Cos(theta));
 
 //	anglinen( iplow, oplow, (0,0,0), shortradius, "", 0 );
 //	anglinen( iphig, ophig, (0,0,updiff), longradius, "", 0 );
@@ -66,17 +66,17 @@ draw( rp(central)--rp(centre), dashed);
 //	draw rp((0,-bord,-bord))--rp((0,longradius+bord,-bord))
 //	   --rp((0,longradius+bord,totup))--rp((0,-bord,totup))--cycle
 //	     withpen pencircle scaled 2pt;
-draw( rp(vector(0,0,-bord))--rp(vector(0,longradius+bord,-bord))
-    --rp(vector(0,longradius+bord,totup))--rp(vector(0,0,totup))--cycle);
+draw( rp((0,0,-bord))--rp((0,longradius+bord,-bord))
+    --rp((0,longradius+bord,totup))--rp((0,0,totup))--cycle);
 draw (rp(refo)..rp(refo+refy), Arrow);
 draw (rp(refo)..rp(refo+refx), Arrow);
 label("$y$", rp(refo+refy), SW);
 label("$x$", rp(refo+refx), SE);
 rn = centre+vecsize*refy;
 fa = centre+vecsize*refx;
-fc = centre+vecsize*vector(0,1,0);
-pg = centre+vecsize*vector(0,0,-1);
-speed = centre+vecsize*vector(1,0,0);
+fc = centre+vecsize*(0,1,0);
+pg = centre+vecsize*(0,0,-1);
+speed = centre+vecsize*(1,0,0);
 draw( rp(centre)..rp(rn), Arrow);
 draw( rp(centre)..rp(fa), Arrow);
 draw( rp(centre)..rp(fc), Arrow);
@@ -89,11 +89,7 @@ label("$\vec{P}$", rp(pg), E);
 label("$\vec{v}$", rp(speed), E);
 draw(rp(centre), linewidth(10pt)+blue);
 currentpen = linewidth(2pt);
-draw( rigorouscircle( vector(0,0,updiff), 
-                      vector(0,0,1), 
-                      longradius ) );
-draw( rigorouscircle( vector(0,0,0), 
-                      vector(0,0,1), 
-                      shortradius ) );
+draw( rigorouscircle( (0,0,updiff), (0,0,1), longradius ) );
+draw( rigorouscircle( (0,0,0), (0,0,1), shortradius ) );
 
 

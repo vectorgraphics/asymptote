@@ -115,113 +115,38 @@ pair intersectionpoint(path a, path b)
   return point(a,intersect(a,b).x);
 }
 
-struct vector {
-  public real x,y,z;
-  void vector(real x, real y, real z) {this.x=x; this.y=y; this.z=z;}
-}
-
-void write(file out, vector v)
-{
-  write(out,"(");
-  write(out,v.x); write(out,","); write(out,v.y); write(out,",");
-  write(out,v.z);
-  write(out,")");
-}
-
-void write(vector v)
-{
-  write(stdout,v); write(stdout,endl);
-}
-
-vector vector(real x, real y, real z)
-{
-  vector v=new vector;
-  v.vector(x,y,z);
-  return v;
-}
-
-real length(vector a)
-{
-  return sqrt(a.x^2+a.y^2+a.z^2);
-}
-
-vector operator - (vector a)
-{
-  return vector(-a.x,-a.y,-a.z);
-}
-
-vector operator + (vector a, vector b)
-{
-  return vector(a.x+b.x,a.y+b.y,a.z+b.z);
-}
-
-vector operator - (vector a, vector b)
-{
-  return vector(a.x-b.x,a.y-b.y,a.z-b.z);
-}
-
-vector operator * (vector a, real s)
-{
-  return vector(a.x*s,a.y*s,a.z*s);
-}
-
-vector operator * (real s,vector a)
-{
-  return a*s;
-}
-
-vector operator / (vector a, real s)
-{
-  return vector(a.x/s,a.y/s,a.z/s);
-}
-
-bool operator == (vector a, vector b) 
-{
-  return a.x == b.x && a.y == b.y && a.z == b.z;
-}
-
-bool operator != (vector a, vector b) 
-{
-  return a.x != b.x || a.y != b.y || a.z != b.z;
-}
-
-vector interp(vector a, vector b, real c)
+triple interp(triple a, triple b, real c)
 {
   return a+c*(b-a);
 }
 
-real Dot(vector a, vector b)
+real Dot(triple a, triple b)
 {
   return a.x*b.x+a.y*b.y+a.z*b.z;
 }
 
-vector Cross(vector a, vector b)
+triple Cross(triple a, triple b)
 {
-  return vector(a.y*b.z-a.z*b.y,
+  return (a.y*b.z-a.z*b.y,
 		a.z*b.x-a.x*b.z,
 		a.x*b.y-b.x*a.y);
 }
 
 // Compute normal vector to the plane defined by the first 3 vectors of p.
-vector normal(vector[] p)
+triple normal(triple[] p)
 {
   if(p.length < 3) abort("3 vectors are required to define a plane");
   return Cross(p[1]-p[0],p[2]-p[0]);
 }
 
-vector unit(vector p)
-{
-  return p/length(p);
-}
-
-vector unitnormal(vector[] p)
+triple unitnormal(triple[] p)
 {
   return unit(normal(p));
 }
 
 // Return the intersection time of the extension of the line segment PQ
 // with the plane perpendicular to n and passing through Z.
-real intersection(vector P, vector Q, vector n, vector Z)
+real intersection(triple P, triple Q, triple n, triple Z)
 {
   real d=n.x*Z.x+n.y*Z.y+n.z*Z.z;
   real denom=n.x*(Q.x-P.x)+n.y*(Q.y-P.y)+n.z*(Q.z-P.z);
@@ -230,8 +155,8 @@ real intersection(vector P, vector Q, vector n, vector Z)
 		    
 // Return any point on the intersection of the two planes with normals
 // n0 and n1 passing through points P0 and P1, respectively.
-// If the planes are parallel return vector(infinity,infinity,infinity).
-vector intersectionpoint(vector n0, vector P0, vector n1, vector P1)
+// If the planes are parallel return (infinity,infinity,infinity).
+triple intersectionpoint(triple n0, triple P0, triple n1, triple P1)
 {
   real Dx=n0.y*n1.z-n1.y*n0.z;
   real Dy=n0.z*n1.x-n1.z*n0.x;
@@ -242,22 +167,22 @@ vector intersectionpoint(vector n0, vector P0, vector n1, vector P1)
     real d1=n1.y*P1.y+n1.z*P1.z+n1.x*(P1.x-P0.x);
     real y=(d0*n1.z-d1*n0.z)*Dx;
     real z=(d1*n0.y-d0*n1.y)*Dx;
-    return vector(P0.x,y,z);
+    return (P0.x,y,z);
   } else if(abs(Dy) > abs(Dz)) {
     Dy=1/Dy;
     real d0=n0.z*P0.z+n0.x*P0.x;
     real d1=n1.z*P1.z+n1.x*P1.x+n1.y*(P1.y-P0.y);
     real z=(d0*n1.x-d1*n0.x)*Dy;
     real x=(d1*n0.z-d0*n1.z)*Dy;
-    return vector(x,P0.y,z);
+    return (x,P0.y,z);
   } else {
-    if(Dz == 0) return vector(infinity,infinity,infinity);
+    if(Dz == 0) return (infinity,infinity,infinity);
     Dz=1/Dz;
     real d0=n0.x*P0.x+n0.y*P0.y;
     real d1=n1.x*P1.x+n1.y*P1.y+n1.z*(P1.z-P0.z);
     real x=(d0*n1.y-d1*n0.y)*Dz;
     real y=(d1*n0.x-d0*n1.x)*Dz;
-    return vector(x,y,P0.z);
+    return (x,y,P0.z);
   }
 }
 

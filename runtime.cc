@@ -854,6 +854,13 @@ void tripleRealMult(stack *s)
   s->push(x*v);
 }
 
+void tripleRealDivide(stack *s)
+{
+  double x = pop<double>(s);
+  triple v = pop<triple>(s);
+  s->push(v/x);
+}
+
 void tripleLength(stack *s)
 {
   s->push(pop<triple>(s).length());

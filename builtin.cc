@@ -439,6 +439,7 @@ void addOperators(venv &ve)
   
   addFunc(ve,run::realTripleMult,primTriple(),"*",primReal(),primTriple());
   addFunc(ve,run::tripleRealMult,primTriple(),"*",primTriple(),primReal());
+  addFunc(ve,run::tripleRealDivide,primTriple(),"/",primTriple(),primReal());
 }
 
 double identity(double x) {return x;}

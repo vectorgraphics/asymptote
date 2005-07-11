@@ -75,7 +75,7 @@ Programming
 * Self & prefix operators::     Self operators, increment, and decrement
 * Implicit scaling::            Avoiding those ugly *s
 * Functions::                   Traditional and high-order functions
-* Arrays::                      Dynamic vector class
+* Arrays::                      Dynamic vectors
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} packages
 * Static::                      Where to allocate your variable?
@@ -505,7 +505,7 @@ many features beyond the ones found in those languages.
 * Self & prefix operators::     Self operators, increment, and decrement
 * Implicit scaling::            Avoiding those ugly *s
 * Functions::                   Traditional and high-order functions
-* Arrays::                      Dynamic vector class
+* Arrays::                      Dynamic vectors
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} packages
 * Static::                      Where to allocate your variable?
@@ -3410,16 +3410,16 @@ draw the visible portion of the (infinite) line going through
 using pen @code{p}.
 
 @cindex @code{intersection}
-@item real intersection(vector P, vector Q, vector n, vector Z);
+@item real intersection(triple P, triple Q, triple n, triple Z);
 Return the intersection time of the extension of the line segment @code{PQ}
-with the plane perpendicular to vector @code{n} and passing through @code{Z}.
+with the plane perpendicular to @code{n} and passing through @code{Z}.
 
 @cindex @code{intersection}
-@item vector intersectionpoint(vector n0, vector P0, vector n1, vector P1);
+@item triple intersectionpoint(triple n0, triple P0, triple n1, triple P1);
 Return any point on the intersection of the two planes with normals
 @code{n0} and @code{n1} passing through points @code{P0} and @code{P1},
 respectively. If the planes are parallel, return
-@code{vector(infinity,infinity,infinity)}.
+@code{(infinity,infinity,infinity)}.
 
 @cindex @code{solve}
 @item real[] solve(real[][] a, real[] b)

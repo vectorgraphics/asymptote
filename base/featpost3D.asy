@@ -40,7 +40,7 @@ public pen background = gray(0.987);
   public real MaxFearLimit;
 
 //     V[], L[]p[], F[]p[];
-  vector V[], L[][], F[][];
+  triple V[], L[][], F[][];
   int NL, npl[], NF, npf[];
     
   public bool ParallelProj, SphericalDistortion, FCD[], ShadowOn;
@@ -50,19 +50,19 @@ public pen background = gray(0.987);
   public int Nobjects, FC[];
   public pair OriginProjPagePos;
   public path VGAborder;
-  public vector f, viewcentr;
+  public triple f, viewcentr;
   public pen TableC[]; 
   public pen HigColor, SubColor;
-  public vector LightSource;
+  public triple LightSource;
   public string ostr[];
 
   pair origin = (0,0);
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Default Values %%%%%%%%%%%%%%%
 
-    f = vector(3,5,4);  // This f is the point of view in 3D
+    f = (3,5,4);  // This f is the point of view in 3D
 	    
-	 viewcentr = vector(0,0,0);  // This is the aim of the view
+	 viewcentr = (0,0,0);  // This is the aim of the view
 	    
     Spread = 140;   // Magnification
 
@@ -99,7 +99,7 @@ public pen background = gray(0.987);
 	    
     HigColor = gray(0.85);          // These two colors are used in
 	 SubColor = gray(0.35);             // fillfacewithlight
-    LightSource = 10*vector(4,-3,4);   // This also
+    LightSource = 10*(4,-3,4);   // This also
     OverRidePolyhedricColor = false;   // And also this
 	    	    
     TableC[0] = gray(0.85);           // grey
@@ -136,34 +136,34 @@ public pen background = gray(0.987);
 	    
 // Colors have three coordinates. Get one. 
 
-    real X(vector A) {
+    real X(triple A) {
       return A.x;
     }
 
-    real Y(vector A) {
+    real Y(triple A) {
       return A.y;
     }
 
-    real Z(vector A) {
+    real Z(triple A) {
       return A.z;
     }
 
-// The length of a vector.
+// The length of a triple.
 
-    real conorm(vector A) { 
+    real conorm(triple A) { 
        return length(A);  
     }
 
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-%%%% Vector Calculus:*/
+%%%% Triple Calculus:*/
 	    
-// Calculate the unit vector of a vector (or a point)
+// Calculate the unit triple of a triple (or a point)
 
-    vector N(vector A) {
+    triple N(triple A) {
       return unit(A);
     }
 
-/*    real Dot(vector A, vector B) { 
+/*    real Dot(triple A, triple B) { 
       return Dot(A,B);
     }
 
@@ -173,23 +173,23 @@ public pen background = gray(0.987);
           X(A)*Y(B) - Y(A)*X(B) )
     enddef;
 */
-// The Dotproduct of two normalized vectors is the cosine of the angle 
+// The Dotproduct of two normalized triples is the cosine of the angle 
 // they form.
 
-    real nDotprod(vector A, vector B) {
+    real nDotprod(triple A, triple B) {
       return Dot(unit(A),unit(B));
     }
 
-// The normalized crossproduct of two vectors. 
+// The normalized crossproduct of two triples. 
 // Also check getangle below.
 
-    vector ncrossprod(vector A, vector B) { 
+    triple ncrossprod(triple A, triple B) { 
         return unit( Cross( A, B ) );
     }
 
 // Haahaa! Trigonometry. 
 
-    real getangle(vector A, vector B) {
+    real getangle(triple A, triple B) {
       real coss, sine;
       coss = Dot( A, B );
       sine = conorm( Cross( A, B ) );
@@ -197,7 +197,7 @@ public pen background = gray(0.987);
     }
 // Something I need for spatialhalfsfear.
 
-    real getcossine( vector Center, real Radius ) {
+    real getcossine( triple Center, real Radius ) {
 	   real a, b;
 	   a = conorm( f - Center );
 	   b = Radius/a;
@@ -212,16 +212,16 @@ public pen background = gray(0.987);
 	    
 // Rigorous Projection. This the kernel of all these lines of code.
 // It won't work if R belongs the plane that contains f and that is 
-// ortogonal to vector f, unless SphericalDistortion is true.
+// ortogonal to triple f, unless SphericalDistortion is true.
 // f must not be on a line parallel to zz and that contains the
 // viewcentr.
  
-    pair rp(vector R) {
+    pair rp(triple R) {
 	   pair projpoi;
-      vector v, u;
+      triple v, u;
       real verti, horiz, eta, squarf, radio, ang, lenpl;
 
-      v = unit( vector(-Y(f-viewcentr), X(f-viewcentr), 0) );
+      v = unit( (-Y(f-viewcentr), X(f-viewcentr), 0) );
       u = ncrossprod( f-viewcentr, v );
 
 	   horiz = Dot( R-viewcentr, v );
@@ -258,7 +258,7 @@ public pen background = gray(0.987);
 // Much improved rigorous pseudo-projection algorithm that follows 
 // an idea from Cristian Barbarosie. This makes shadows.
 
-    vector cb(vector R) {
+    triple cb(triple R) {
       real ve, ho, sc;
       sc = Z(LightSource)-Z(R);
       if ( sc!=0 ) {
@@ -269,22 +269,22 @@ public pen background = gray(0.987);
 
       ho = (1-sc)*X(LightSource)+sc*X(R);
       ve = (1-sc)*Y(LightSource)+sc*Y(R);
-      return vector(ho, ve, HoriZon);
+      return (ho, ve, HoriZon);
     }
 
 // And this just projects points rigorously on some generic plane.
     
-    vector projectpoint(vector ViewCentr, vector R) {
+    triple projectpoint(triple ViewCentr, triple R) {
       real verti, horiz;
-      vector v, u, lray;
+      triple v, u, lray;
       
 	   lray = LightSource-ViewCentr;
-      v = unit( vector(-Y(lray), X(lray), 0) );
+      v = unit( (-Y(lray), X(lray), 0) );
       u = ncrossprod( lray, v );
       // TN : Problem, don't really want to implement a singular 3 var Gauss-Jordan here
 //      lray - horiz*v - verti*u = whatever*( LightSource - R );
 //      return horiz*v + verti*u + ViewCentr;
-      return vector(0,0,0);
+      return (0,0,0);
     }
    
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -293,7 +293,7 @@ public pen background = gray(0.987);
 // Projection Size. Meant for objects with size one.
 // Used by signalvertex.
 
-    real ps(vector A, real Thicken_Factor) {
+    real ps(triple A, real Thicken_Factor) {
       return Thicken_Factor/conorm(A-f)/3;
     }
 
@@ -301,24 +301,24 @@ public pen background = gray(0.987);
 // a diameter inversely proportional to the distance of
 // that Point from the point of view.
 
-    void signalvertex(vector A, real TF, pen Col) {
+    void signalvertex(triple A, real TF, pen Col) {
       draw(rp(A), linewidth(Spread*ps(A,TF))+Col);
     }
 
-    void signalshadowvertex(vector A, real TF, pen Col) {
-	   vector auxc;
+    void signalshadowvertex(triple A, real TF, pen Col) {
+	   triple auxc;
 	   real auxn;
 	   auxc = cb(A);
 	   auxn = TF*conorm(f-auxc)/conorm(LightSource-A);
 	   signalvertex( auxc, auxn, Col );
     }
 
-// Get the vector that projects onto the resolution
+// Get the triple that projects onto the resolution
 
-    vector resolvec(vector A, vector B) {
+    triple resolvec(triple A, triple B) {
       pair ap, bp;
       real sizel;
-      vector returnvec;
+      triple returnvec;
       ap = rp(A);
       bp = rp(B);
       sizel = abs( ap - bp );
@@ -355,7 +355,7 @@ public pen background = gray(0.987);
         endgroup
     enddef;
 */
-    string cstr( vector Cl ) {
+    string cstr( triple Cl ) {
       return "(" + (string)X(Cl) + "," + (string)Y(Cl) + "," + (string)Z(Cl) + ")";
     }
 
@@ -374,9 +374,9 @@ public pen background = gray(0.987);
 // the concept of three-dimensional path. That is not possible now.
 // Also this is only interesting when using SphericalDistortion:=true
    
-    path pathofstraightline( vector A, vector B ) {
+    path pathofstraightline( triple A, triple B ) {
       int k;
-      vector mark, stepVec;
+      triple mark, stepVec;
 	   guide returnp;
 	   pair pos[];
       
@@ -398,7 +398,7 @@ public pen background = gray(0.987);
     }
 
     void drawsegment( picture pic=currentpicture, string s="", real angle=0,
-      vector A, vector B, pair align=0, side side=RightSide, 
+      triple A, triple B, pair align=0, side side=RightSide, 
       pen p=currentpen, arrowbar arrow=None, arrowbar bar=None,
       string legend="") 
     {
@@ -414,11 +414,11 @@ public pen background = gray(0.987);
 //% Cartesian axes with prescribed lengths.
 
     void cartaxes(real axex, real axey, real axez) {
-      vector orig, axxc, ayyc, azzc;
-      orig = vector(0,0,0);
-      axxc = vector(axex,0,0);
-      ayyc = vector(0,axey,0);
-      azzc = vector(0,0,axez);
+      triple orig, axxc, ayyc, azzc;
+      orig = (0,0,0);
+      axxc = (axex,0,0);
+      ayyc = (0,axey,0);
+      azzc = (0,0,axez);
       // TN : changed draw(..) to drawsegment(..)
       drawsegment(orig,axxc,Arrow);
       drawsegment(orig,ayyc,Arrow);
@@ -436,10 +436,10 @@ public pen background = gray(0.987);
 // llft,bot,lrt). But arches must be smaller than 180 degrees.
 /* TN : The RelPos should be (E, NE, N, NW, W, SW, S, SE) */
 
-    void angline(vector A, vector B, vector Or, real W, 
+    void angline(triple A, triple B, triple Or, real W, 
                  string S, pair RelPos) {
       real G;
-      vector Dna, Dnb;
+      triple Dna, Dnb;
       path al;
       G = conorm( W*( unit(A-Or) - unit(B-Or) ) )/2.5; //%%%%%%% BIG DANGER!
       Dna = ncrossprod(ncrossprod(A-Or,B-Or),A-Or);
@@ -457,10 +457,10 @@ public pen background = gray(0.987);
 // i provide a way to avoid the problem. This time RelPos may
 // be 0,1,2,3,4,6,7 or anything else.
 
-    void anglinen(vector A, vector B, vector Or, real W, 
+    void anglinen(triple A, triple B, triple Or, real W, 
                   string S, pair RelPos) {
       real G;
-      vector Dna, Dnb;
+      triple Dna, Dnb;
       path al;
       pair middlarc;
       G = conorm( W*( N(A-Or) - N(B-Or) ) )/3;
@@ -477,7 +477,7 @@ public pen background = gray(0.987);
 
 // As a bigger avoidance, replace the arch by a paralellogram.
 
-    void squareangline(vector A, vector B, vector Or, real W) {
+    void squareangline(triple A, triple B, triple Or, real W) {
       path sal;
       sal = rp(Or)--rp(W*N(A-Or)+Or)-- 
                     rp(W*(N(B-Or)+N(A-Or))+Or)--rp(W*N(B-Or)+Or)--cycle;
@@ -486,9 +486,9 @@ public pen background = gray(0.987);
 
 // Just as we are here we can draw circles. (color,color,real)
 
-    path rigorouscircle(vector CenterPos, vector AngulMom, real Radius) {
+    path rigorouscircle(triple CenterPos, triple AngulMom, real Radius) {
       real ind, G;
-      vector vec[], Dna, Dnb;
+      triple vec[], Dna, Dnb;
       path al;
       vec[1] = ncrossprod( CenterPos-f, AngulMom);
       for (int ind = 2; ind <= 8;  ind += 2) {
@@ -511,8 +511,8 @@ public pen background = gray(0.987);
 
 // 3D arrow.
 
-    void tdarrow(vector FromPos, vector ToTip ) {
-      vector basevec, longvec, a, b, c, d, e, g, h;
+    void tdarrow(triple FromPos, triple ToTip ) {
+      triple basevec, longvec, a, b, c, d, e, g, h;
 	   real len;
 	   path p;
 	   len = conorm( ToTip - FromPos );
@@ -541,7 +541,7 @@ public pen background = gray(0.987);
 
     void emptyline(bool JoinP, real ThickenFactor, pen OutCol, pen InCol,
                    int theN, real EmptyFrac, int sN, 
-                   vector LinFunc(real)) {
+                   triple LinFunc(real)) {
 	   real i, j;
 	   if (ShadowOn) {
 	     for (int i = 0; i <= theN; i+=1) {
@@ -591,9 +591,9 @@ public pen background = gray(0.987);
     
 // Ellipse on the air.
 
-    path ellipticpath(vector CenterPos, vector OneAxe, vector OtherAxe ) {
+    path ellipticpath(triple CenterPos, triple OneAxe, triple OtherAxe ) {
       real ind;
-      vector vec[];
+      triple vec[];
       guide cirath;
       
 	   for (int ind=1; ind <= 36; ind += 1) {
@@ -610,10 +610,10 @@ public pen background = gray(0.987);
 
 // Shadow of an ellipse on the air.
 
-    path ellipticshadowpath(vector CenterPos, 
-                            vector OneAxe, vector OtherAxe ) {
+    path ellipticshadowpath(triple CenterPos, 
+                            triple OneAxe, triple OtherAxe ) {
       real ind;
-      vector vec[];
+      triple vec[];
       guide cirath;
       
 	   for (int ind=1; ind <= 36; ind +=1) {
@@ -630,12 +630,12 @@ public pen background = gray(0.987);
 // It should be possible to attach some text to some plan.
 // Unfortunately, this only works correctly when ParallelProj := true;
 /* TN : not yet implemented (
-  void labelinspace(bool KeepRatio, vector RefPoi, vector BaseVec,
-                     vector UpVec, string SomeString) {
+  void labelinspace(bool KeepRatio, triple RefPoi, triple BaseVec,
+                     triple UpVec, string SomeString) {
     picture labelpic;
 	 pair lrc, ulc, llc;
 	 transform plak;
-	 vector centerc, newbase;
+	 triple centerc, newbase;
 	 real aratio;
 	 labelpic = thelabel( SomeString, origin );
 	 lrc = lrcorner labelpic;
@@ -664,12 +664,12 @@ public pen background = gray(0.987);
 // When there are realal problems with the previous routine
 // use the following alternative:
 
-    path head_on_circle(vector Pos, real Radius ) {
+    path head_on_circle(triple Pos, real Radius ) {
       real ind;
-      vector vecx, vecy, vec[], view;
+      triple vecx, vecy, vec[], view;
       guide cirath;
 	   view = f-Pos;
-      vecx = unit( vector(-Y(view), X(view), 0) );
+      vecx = unit( (-Y(view), X(view), 0) );
       vecy = ncrossprod( view, vecx );
       for (int ind=1; ind <= 36; ind += 1) {
         vec[ind] = vecx*Cos(ind*10) + vecy*Sin(ind*10);
@@ -683,9 +683,9 @@ public pen background = gray(0.987);
       return (path)cirath;
     }
 
-    path goodcirclepath(vector CenterPos, vector AngulMom, real Radius ) {
+    path goodcirclepath(triple CenterPos, triple AngulMom, real Radius ) {
       real ind, decision;
-      vector vecx, vecy, vec[], goodangulmom, view;
+      triple vecx, vecy, vec[], goodangulmom, view;
       guide cirath;
 	   view = f-CenterPos;
 	   decision = Dot( view, AngulMom );
@@ -714,9 +714,9 @@ public pen background = gray(0.987);
 
 // And its shadow. 
 
-    path circleshadowpath(vector CenterPos, vector AngulMom, real Radius ) {
+    path circleshadowpath(triple CenterPos, triple AngulMom, real Radius ) {
        real decision;
-       vector vecx, vecy, view;
+       triple vecx, vecy, view;
        guide cirath;
 	    view = LightSource-CenterPos;
        vecx = ncrossprod( view, AngulMom );
@@ -725,7 +725,7 @@ public pen background = gray(0.987);
 	      vecy = ncrossprod( AngulMom, vecx );
 	      cirath = ellipticshadowpath(CenterPos,vecx*Radius,vecy*Radius);
 	    } else {
-	      vecx = N( vector(-Y(view), X(view), 0) );
+	      vecx = N( (-Y(view), X(view), 0) );
 	      vecy = ncrossprod( view, vecx );
 	      cirath = ellipticshadowpath(CenterPos,vecx*Radius,vecy*Radius);
 	    }
@@ -737,9 +737,9 @@ public pen background = gray(0.987);
 // This function has been set to work for rigorousdisc (next).
 // Very tough settings they were.
 
-    path spatialhalfcircle(vector Center, vector AngulMom, real Radius,
+    path spatialhalfcircle(triple Center, triple AngulMom, real Radius,
                            bool ItsTheNearest ) {
-      vector va, vb, vc, cc, vd, ux, uy, pa, pb;
+      triple va, vb, vc, cc, vd, ux, uy, pa, pb;
       real nr, cn, valx, valy, valr, choiceang;
 	   path auxil, auxih, fcirc, returnp;
 	   bool choice;
@@ -795,10 +795,10 @@ public pen background = gray(0.987);
 // not drawn correctly (they are straight). And when it is a tube
 // you should force the background to be white.
  
-    void rigorousdisc(real InRay, bool FullFill, vector BaseCenter, real Radius, vector LenVec) {
-      vector va, vb, vc, cc, vd, base;
+    void rigorousdisc(real InRay, bool FullFill, triple BaseCenter, real Radius, triple LenVec) {
+      triple va, vb, vc, cc, vd, base;
 	   picture holepic;
-	   vector vA, cC;
+	   triple vA, cC;
       real nr, vala, valb;
 	   bool hashole, istube;
 	   path auxil, auxih, halfl, halfh, thehole;
@@ -905,8 +905,8 @@ public pen background = gray(0.987);
 // draw only the in fact visible part of circular lines. Please, don't
 // put the vertex too close to the base plan when UsualForm=false.
  
-  path rigorouscone(bool UsualForm, vector CenterPos, 
-                     vector AngulMom, real Radius, vector VertexPos) {
+  path rigorouscone(bool UsualForm, triple CenterPos, 
+                     triple AngulMom, real Radius, triple VertexPos) {
     path basepath, thesubpath, fullpath, auxpath;
     guide finalpath;
 	 path bigcirc;
@@ -947,8 +947,8 @@ public pen background = gray(0.987);
 	 return finalpath;
   }
   
-  void verygoodcone(bool BackDash, vector CenterPos, vector AngulMom, real Radius, vector VertexPos) {
-	 vector bonevec, sidevec, viewaxe;
+  void verygoodcone(bool BackDash, triple CenterPos, triple AngulMom, real Radius, triple VertexPos) {
+	 triple bonevec, sidevec, viewaxe;
 	 path thepath, cipath, basepath, thesubpath;
 	 real lenpath, thelengthofc, themargin;
 	 themargin = 0.02;
@@ -988,8 +988,8 @@ public pen background = gray(0.987);
 // Its a sphere, don't fear, but remember that the rigorous projection
 // of a sphere is an ellipse. 
 
-    path rigorousfearpath(vector Center, real Radius ) {
-      vector ux, uy, newcen;
+    path rigorousfearpath(triple Center, real Radius ) {
+      triple ux, uy, newcen;
       real nr, valx, valy, valr;
 	   path auxil;
       nr = conorm( Center - f );
@@ -1001,8 +1001,8 @@ public pen background = gray(0.987);
 	   return auxil;
     }
 
-    path rigorousfearshadowpath(vector Center, real Radius ) {
-      vector ux, uy, newcen;
+    path rigorousfearshadowpath(triple Center, real Radius ) {
+      triple ux, uy, newcen;
       real nr, valx, valy, valr, lenr;
 	   path auxil, auxih, fcirc, returnp;
 	   pair dcenter;
@@ -1017,8 +1017,8 @@ public pen background = gray(0.987);
 
 // It's a globe (without land).
 
-  void tropicalglobe( int NumLats, vector TheCenter, real Radius, vector AngulMom ) {
-	 vector viewaxe, globaxe, foc, newcenter;
+  void tropicalglobe( int NumLats, triple TheCenter, real Radius, triple AngulMom ) {
+	 triple viewaxe, globaxe, foc, newcenter;
 	 real sinalfa, sinbeta, aux, limicos, stepang, actang;
 	 real newradius, lc, i;
 	 path cpath, outerpath;
@@ -1071,9 +1071,9 @@ public pen background = gray(0.987);
     }
   }
 	
-  void whatisthis(vector CenterPos, vector OneAxe, vector OtherAxe, real CentersDist, real TheFactor ) {
+  void whatisthis(triple CenterPos, triple OneAxe, triple OtherAxe, real CentersDist, real TheFactor ) {
 	 path patha, pathb, pathc;
-	 vector centersvec;
+	 triple centersvec;
 
 	 centersvec = CentersDist*ncrossprod( OneAxe, OtherAxe );
 	 if (ShadowOn) {
@@ -1103,15 +1103,15 @@ public pen background = gray(0.987);
       
 // It is time for a kind of cube. Don't use SphericalDistortion here.
     
-    void kindofcube(bool WithDash, bool IsVertex, vector RefP, real AngA,
+    void kindofcube(bool WithDash, bool IsVertex, triple RefP, real AngA,
                     real AngB, real AngC, real LenA, real LenB, real LenC) {
-	   vector star, pos[], refv, near, newa, newb, newc;
-	   vector veca, vecb, vecc, auxx, auxy, centre, farv;
+	   triple star, pos[], refv, near, newa, newb, newc;
+	   triple veca, vecb, vecc, auxx, auxy, centre, farv;
 	   path patw, patb;
-	   veca = vector( Cos(AngA)*Cos(AngB),
+	   veca = ( Cos(AngA)*Cos(AngB),
 	                  Sin(AngA)*Cos(AngB),
 	                  Sin(AngB) );
-	   auxx = vector( Cos(AngA+90), Sin(AngA+90), 0 );
+	   auxx = ( Cos(AngA+90), Sin(AngA+90), 0 );
 	   auxy = Cross( veca, auxx );
 	   vecb = Cos(AngC)*auxx + Sin(AngC)*auxy;
 	   vecc = Cos(AngC+90)*auxx + Sin(AngC+90)*auxy;
@@ -1175,7 +1175,7 @@ public pen background = gray(0.987);
     
 // Maybe you would like to calculate the angular arguments of kindofcube...
     
-    pair getanglepair( vector InVec ) {
+    pair getanglepair( triple InVec ) {
 	   real alphaone, alphatwo;
 	   alphaone = angle( ( X(InVec), Y(InVec) ) );
 	   alphatwo = angle( ( sqrt(X(InVec)^2 + Y(InVec)^2), Z(InVec) ) );
@@ -1187,14 +1187,14 @@ public pen background = gray(0.987);
     void setthestage( real NumberOfSideSquares, real SideSize ) {
 	   real i, j, squaresize;
 	   path squarepath;
-	   vector ca, cb, cc, cd;
+	   triple ca, cb, cc, cd;
 	   squaresize = SideSize/(2*NumberOfSideSquares-1);
 	   for (real i=-0.5*SideSize; i!=0.5*SideSize; i+=2*squaresize) {
 	     for (real j=-0.5*SideSize; j!=0.5*SideSize;  j+=2*squaresize) {
-	       ca = vector(i,j,HoriZon);
-	       cb = vector(i,j+squaresize,HoriZon);
-	       cc = vector(i+squaresize,j+squaresize,HoriZon);
-	       cd = vector(i+squaresize,j,HoriZon);
+	       ca = (i,j,HoriZon);
+	       cb = (i,j+squaresize,HoriZon);
+	       cc = (i+squaresize,j+squaresize,HoriZon);
+	       cd = (i+squaresize,j,HoriZon);
 	       squarepath = rp(ca)--rp(cb)--rp(cc)--rp(cd)--cycle;
 	       unfill( squarepath );
 	       draw( squarepath );
@@ -1204,32 +1204,32 @@ public pen background = gray(0.987);
     
     void setthearena( real NumberOfDiameterCircles, real ArenaDiameter ) {
 	   real i, j, circlesize, polar, phi;
-	   vector currpos;
+	   triple currpos;
 	   path cpath;
  	   circlesize = ArenaDiameter/NumberOfDiameterCircles;
 	   for (real i=0.5*ArenaDiameter; i!=0.4*circlesize; i+=-circlesize) {
 	     polar = floor(6.28318*i/circlesize);
 	     for (real j=1; j<= polar; j+=1) {
 	       phi = 360*j/polar;
-	       currpos = i*vector(Cos(phi),Sin(phi),HoriZon);
-          // TN : changed blue -> vector(0,0,1)
-	       cpath = rigorouscircle( currpos, vector(0,0,1), 0.25*circlesize);
+	       currpos = i*(Cos(phi),Sin(phi),HoriZon);
+          // TN : changed blue -> (0,0,1)
+	       cpath = rigorouscircle( currpos, (0,0,1), 0.25*circlesize);
 	       unfill( cpath );
 	       draw( cpath );
         }
       }
     }
 
-// And a transparent dome. The angular momentum vector is supposed 
+// And a transparent dome. The angular momentum triple is supposed 
 // to point from the concavity of the dome and into outer space.
 // The pen can only be changed with a previous drawoptions().
 
-    void spatialhalfsfear(vector Center, vector AngulMom, real Radius ) {
+    void spatialhalfsfear(triple Center, triple AngulMom, real Radius ) {
 	   path spath, cpath, fpath, rpath, cutp;
 	   pair ap, bp, cp, dp, cuti, cute, vp;
 	   real auxcos, actcos, actsin, auxsin;
 	   picture partoffear;
-      vector A, B;
+      triple A, B;
       spath = rigorousfearpath( Center, Radius );
 	   auxcos = getcossine( Center, Radius );
 	   actcos = Dot( N( f - Center ), N( AngulMom ) );
@@ -1270,8 +1270,8 @@ public pen background = gray(0.987);
 	      
 // Take a donut. 
 
-    void smoothtorus( vector Tcenter, vector Tmoment, real Bray, real Sray ) {
-	   vector nearaxe, sideaxe, viewline, circlecenter, circlemoment;
+    void smoothtorus( triple Tcenter, triple Tmoment, real Bray, real Sray ) {
+	   triple nearaxe, sideaxe, viewline, circlecenter, circlemoment;
 	   real ang, anglim, angstep, distance, coofrac, lr;
       int ind, i;
 	   path cpath, apath, ipath, opath, wp, ep;
@@ -1279,7 +1279,7 @@ public pen background = gray(0.987);
 	   pair outerp[], innerp[], refpair;
 	   bool cuspcond;
 	   picture holepic;
-	   vector tmoment;
+	   triple tmoment;
 
 	   angstep= 4; //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DANGER!
 
@@ -1419,12 +1419,12 @@ public pen background = gray(0.987);
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 //%% Non-standard objects:
 	    
-    void positivecharge( bool InFactPositive, vector Center, real BallRay ) {
-	   vector auxc, axehorf, axeside, viewline, pa, pb, pc, pd;
+    void positivecharge( bool InFactPositive, triple Center, real BallRay ) {
+	   triple auxc, axehorf, axeside, viewline, pa, pb, pc, pd;
 	   path spath;
 	   viewline = f - Center;
-	   axehorf = N( vector( X(viewline), Y(viewline), 0 ) );
-	   axeside = Cross( axehorf, vector(0,0,1) );
+	   axehorf = N( ( X(viewline), Y(viewline), 0 ) );
+	   axeside = Cross( axehorf, (0,0,1) );
 	   if (ShadowOn)
 	     fill( rigorousfearshadowpath( Center, BallRay ) );
 	   spath = rigorousfearpath( Center, BallRay );
@@ -1435,15 +1435,15 @@ public pen background = gray(0.987);
 	   pb = auxc - axeside;
 	   angline( pa, pb, Center, BallRay, "", N );
 	   if (InFactPositive) {
-	     pc = auxc + vector(0,0,1);
-	     pd = auxc - vector(0,0,1);
+	     pc = auxc + (0,0,1);
+	     pd = auxc - (0,0,1);
 	     angline( pc, pd, Center, BallRay, "", N );
 	   }
     }
 
-    void simplecar(vector RefP, vector AngCol, vector LenCol, 
-                  vector FronWheelCol, vector RearWheelCol ) {
-	   vector veca, auxx, auxy, vecb, vecc, viewline, fl, fr, rl, rr, inrefp;
+    void simplecar(triple RefP, triple AngCol, triple LenCol, 
+                  triple FronWheelCol, triple RearWheelCol ) {
+	   triple veca, auxx, auxy, vecb, vecc, viewline, fl, fr, rl, rr, inrefp;
 	   real anga, angb, angc, lena, lenb, lenc, auxm, auxn;
 	   real fmar, fthi, fray, rmar, rthi, rray;
 	   anga = X( AngCol );
@@ -1458,10 +1458,10 @@ public pen background = gray(0.987);
 	   rmar = X( RearWheelCol );
 	   rthi = Y( RearWheelCol );
 	   rray = Z( RearWheelCol );
-	   veca = vector( Cos(anga)*Cos(angb),
+	   veca = ( Cos(anga)*Cos(angb),
 	                  Sin(anga)*Cos(angb),
 	                  Sin(angb) );
-	   auxx = vector( Cos(anga+90), Sin(anga+90), 0 );
+	   auxx = ( Cos(anga+90), Sin(anga+90), 0 );
 	   auxy = Cross( veca, auxx );
 	   vecb = Cos(angc)*auxx + Sin(angc)*auxy;
 	   vecc = Cos(angc+90)*auxx + Sin(angc+90)*auxy;
@@ -1524,21 +1524,21 @@ public pen background = gray(0.987);
 //%%% Differential Equations:
 	    
 // Oh! Well... I couldn't do without differential equations.
-// The point is that I want to draw vectorial field lines in space.
+// The point is that I want to draw tripleial field lines in space.
 // Keep it simple: second-order Runge-Kutta method.
 
-    vector fieldlinestep( vector Spos, real Step, vector VecFunc(vector ) ) {
-	   vector kone, ktwo;
+    triple fieldlinestep( triple Spos, real Step, triple VecFunc(triple ) ) {
+	   triple kone, ktwo;
 	   kone = Step*VecFunc( Spos );
 	   ktwo = Step*VecFunc( Spos+0.5*kone );
 	   return Spos+ktwo;
     }
 
 
-    path fieldlinepath( int Numb, vector Spos, real Step,
-                        vector VecFunc(vector ) ) {
+    path fieldlinepath( int Numb, triple Spos, real Step,
+                        triple VecFunc(triple ) ) {
 	   real ind;
-	   vector prevpos, thispos;
+	   triple prevpos, thispos;
 	   guide flpath;
       
 	   prevpos = Spos;
@@ -1553,10 +1553,10 @@ public pen background = gray(0.987);
     
 // Another point is that I want to draw trajectories in space.
 
-    path trajectorypath( int Numb, vector Spos, vector Svel, 
-                         real Step, vector VecFunc(vector ) ) {
-	   vector prevpos, thispos, prevvel, thisvel;
-	   vector rone, rtwo, vone, vtwo;
+    path trajectorypath( int Numb, triple Spos, triple Svel, 
+                         real Step, triple VecFunc(triple ) ) {
+	   triple prevpos, thispos, prevvel, thisvel;
+	   triple rone, rtwo, vone, vtwo;
 	   guide flpath;
       
 	   prevpos = Spos;
@@ -1578,10 +1578,10 @@ public pen background = gray(0.987);
 
 //% And now i stop.
 
-    path magnetictrajectorypath( int Numb, vector Spos, vector Svel, 
-                                 real Step, vector VecFunc(vector ) ) {
-	   vector prevpos, thispos, prevvel, thisvel;
-	   vector rone, rtwo, rthr, rfou, vone, vtwo, vthr, vfou;
+    path magnetictrajectorypath( int Numb, triple Spos, triple Svel, 
+                                 real Step, triple VecFunc(triple ) ) {
+	   triple prevpos, thispos, prevvel, thisvel;
+	   triple rone, rtwo, rthr, rfou, vone, vtwo, vthr, vfou;
 	   guide flpath;
       
 	   prevpos = Spos;
@@ -1635,7 +1635,7 @@ public pen background = gray(0.987);
       FCD[NF] = false;
     }
 
-    void getready( string commstr, vector refpoi ) {
+    void getready( string commstr, triple refpoi ) {
       ++Nobjects;
       ostr[Nobjects] = commstr;
       RefDist[Nobjects] = conorm( f - refpoi );
@@ -1682,8 +1682,8 @@ public pen background = gray(0.987);
     
 // Flip first argument accordingly to the second
 
-    vector flipvector(vector A, vector B) {
-      vector nv;
+    triple flip(triple A, triple B) {
+      triple nv;
       if (Dot( A, B) < 0)
         nv = -A;
       else
@@ -1693,37 +1693,37 @@ public pen background = gray(0.987);
 
 // Frontside of a face given by three of its vertices
 
-    vector facevector(vector A, vector B, vector C) {
-      vector nv;
+    triple face(triple A, triple B, triple C) {
+      triple nv;
       nv = ncrossprod( A-B, B-C );
-      return flipvector( nv, f-B );
+      return flip( nv, f-B );
     }
 
 // Center or inside of a face
 
-    vector masscenter(int Nsides, vector Coords[]) {
+    triple masscenter(int Nsides, triple Coords[]) {
       real  counter;
-      vector mc;
-      mc = vector(0,0,0);
+      triple mc;
+      mc = (0,0,0);
       for (int counter=1; counter <= Nsides; counter+=1) 
         mc = mc + Coords[counter];
       return mc / Nsides;
     }
 
 // Direction of coverability. The trick is here. The condition for visibility
-// is that the angle beetween the vector that goes from the side of a face to
-// the mark position and the covervector must be greater than 90 degrees.
+// is that the angle beetween the triple that goes from the side of a face to
+// the mark position and the covertriple must be greater than 90 degrees.
 
-    vector covervector(vector A, vector B, vector MassCenter) {
-            vector nv;
+    triple cover(triple A, triple B, triple MassCenter) {
+            triple nv;
             nv = ncrossprod( A-f, B-f );
-            return flipvector( nv, MassCenter-B );
+            return flip( nv, MassCenter-B );
     }
 
 // O.K., the following macro tests the visibility of a point
 
-    bool themarkisinview(vector Mark, int OwnFace) {
-      vector c, faceVec, centerPoint, coverVec;
+    bool themarkisinview(triple Mark, int OwnFace) {
+      triple c, faceVec, centerPoint, coverVec;
       bool inview;
       int l, m;
       l = 0;
@@ -1732,7 +1732,7 @@ public pen background = gray(0.987);
         if (l == OwnFace)
           ++l;
         if (l > NF) break;
-        faceVec = facevector(F[l][1],F[l][2],F[l][3]);
+        faceVec = face(F[l][1],F[l][2],F[l][3]);
         inview = true;
         if (Dot(Mark-F[l][1], faceVec) < 0) {
           centerPoint = masscenter(npf[l], F[l]);
@@ -1744,7 +1744,7 @@ public pen background = gray(0.987);
               c = F[l][m+1];
             else
               c = F[l][1];
-            coverVec = covervector(F[l][m], c, centerPoint);
+            coverVec = cover(F[l][m], c, centerPoint);
             inview = Dot(Mark-c,coverVec) <= 0;
             if (inview) break;
           }
@@ -1756,15 +1756,15 @@ public pen background = gray(0.987);
 
 // Check for possible intersection or crossing.
 
-    bool maycrossviewplan(vector Ea, vector Eb,
-                          vector La, vector Lb) {
+    bool maycrossviewplan(triple Ea, triple Eb,
+                          triple La, triple Lb) {
       return (abs( Dot( Cross(Ea-f,Eb-f), La-Lb ) ) > 0.001);
     }
 
 // Calculate the intersection of two sides. This is very nice.
 
-    vector crossingpoint(vector Ea, vector Eb, vector La, vector Lb) {
-      vector thecrossing, perpend;
+    triple crossingpoint(triple Ea, triple Eb, triple La, triple Lb) {
+      triple thecrossing, perpend;
       real exten, aux;
       if ( Ea == Lb || Ea == La )
          thecrossing = Ea;
@@ -1786,8 +1786,8 @@ public pen background = gray(0.987);
 
 
 // Calculate the intersection of an edge and a face.
-    vector crossingpointf(vector Ea, vector Eb, int Fen) {
-      vector thecrossing, perpend;
+    triple crossingpointf(triple Ea, triple Eb, int Fen) {
+      triple thecrossing, perpend;
       real exten;
       perpend = Cross( F[Fen][1]-F[Fen][2], F[Fen][3]-F[Fen][2] );
       // TN : 4x4
@@ -1798,16 +1798,16 @@ public pen background = gray(0.987);
 
 // Check for possible intersection of an edge and a face.
 
-    bool maycrossviewplanf(vector Ea, vector Eb, int Fen) 
+    bool maycrossviewplanf(triple Ea, triple Eb, int Fen) 
     {
-      vector perpend;
+      triple perpend;
       perpend = Cross( F[Fen][1]-F[Fen][2], F[Fen][3]-F[Fen][2] );
       return ( abs( Dot( perpend, Ea-Eb ) ) > 0.001 );
     }
 
 // The intersection point must be within the extremes of the segment.
 
-    bool insidedge(vector Point, vector Ea, vector Eb) {
+    bool insidedge(triple Point, triple Ea, triple Eb) {
       real fract;
       fract = Dot( Point-Ea, Point-Eb );
       return fract < 0;
@@ -1815,9 +1815,9 @@ public pen background = gray(0.987);
 
 // Skip edges that are too far away
 
-    bool insideviewsphere(vector Ea, vector Eb, 
-                          vector La, vector Lb) {
-      vector nearestofline, furthestofedge;
+    bool insideviewsphere(triple Ea, triple Eb, 
+                          triple La, triple Lb) {
+      triple nearestofline, furthestofedge;
       bool flag;
       real exten;
       nearestofline = La+exten*(Lb-La);
@@ -1837,13 +1837,13 @@ public pen background = gray(0.987);
 // The intersection point must be within the triangle defined by 
 // three points. Really smart.
 
-    bool insidethistriangle(vector Point, vector A, vector B, vector C ) {
-            vector arep, area, areb, aret;
+    bool insidethistriangle(triple Point, triple A, triple B, triple C ) {
+            triple arep, area, areb, aret;
             bool flag;
             aret = Cross( A-C, B-C );
-            arep = flipvector( Cross( C-Point, A-Point ), aret );
-            area = flipvector( Cross( A-Point, B-Point ), aret );
-            areb = flipvector( Cross( B-Point, C-Point ), aret );
+            arep = flip( Cross( C-Point, A-Point ), aret );
+            area = flip( Cross( A-Point, B-Point ), aret );
+            areb = flip( Cross( B-Point, C-Point ), aret );
             flag = ( conorm( arep + area + areb ) <= 2*conorm( aret ) ); 
             return flag;
     }
@@ -1851,16 +1851,16 @@ public pen background = gray(0.987);
 // The intersection point must be within the triangle defined by the
 // point of view f and the extremes of some edge. 
 
-    bool insideviewtriangle(vector Point, vector Ea, vector Eb) {
+    bool insideviewtriangle(triple Point, triple Ea, triple Eb) {
         return insidethistriangle( Point, Ea, Eb, f );
     }
 
 // The intersection point must be within the face
 
-    bool insidethisface(vector Point, int FaN) {
+    bool insidethisface(triple Point, int FaN) {
             bool flag;
             int m;
-            vector central;
+            triple central;
             m = npf[FaN];
             central = masscenter( m, F[FaN] );
             flag = insidethistriangle( Point, 
@@ -1876,9 +1876,9 @@ public pen background = gray(0.987);
 // Draw the visible parts of a straight line in beetween points A and B
 // changing the thickness of the line accordingly to the distance from f
 
-    void coarse_line(vector A, vector B, int Facen, real Press, pen Col) {
+    void coarse_line(triple A, triple B, int Facen, real Press, pen Col) {
             int k;
-            vector mark, stepVec;
+            triple mark, stepVec;
             stepVec = resolvec(A,B); 
             k = 0;
             while (true) {                    // cycle along a whole segment 
@@ -1939,12 +1939,12 @@ public pen background = gray(0.987);
 //                     ( expr LabelcrossPoints ) 
           int i, j, k, l, counter;
           real swapn;
-          vector a, b, c, d, currcross, swapc;
+          triple a, b, c, d, currcross, swapc;
           bool flag, trythis;
           path refpath, otherpath;
           pair intertimes;
           string infolabel;
-          vector crosspoin[];
+          triple crosspoin[];
           real sortangle[];
           for (int i=1; i <= NF; i += 1) {                   // scan all faces
              for (int j=1; j <= npf[i]; j += 1) {            // scan all edges
@@ -1975,7 +1975,7 @@ public pen background = gray(0.987);
                                  swapc = Cross( a-b, f-currcross);
                                  swapc = Cross(swapc,f-currcross);
                                  
-                                 vector somepo;
+                                 triple somepo;
                                  int fract;
                                 /* TN :
                                  (b-a)*fract = somepo-a;
@@ -2041,7 +2041,7 @@ public pen background = gray(0.987);
 
     void lineraytrace(real Press, pen Col) {
             int i, j;
-            vector a, b;
+            triple a, b;
             for (int i=1; i <= NL; i += 1) {        // scan all lines
                 for (int j=1; j <= npl[i]-1; j += 1) {
                     a = L[i][j];
@@ -2055,7 +2055,7 @@ public pen background = gray(0.987);
 
     void faceraytrace(real Press, pen Col) {
             int i, j;
-            vector a, b;
+            triple a, b;
             for (int i=1; i <= NF; i += 1) {     // scan all faces
                 for (int j=1; j <= npf[i]; j += 1) {
                     a = F[i][j];
@@ -2072,7 +2072,7 @@ public pen background = gray(0.987);
 // Fast test for your three-dimensional object
 
     void draw_all_test( pen Col, bool AlsoDrawLines ) {
-	   vector a, b;
+	   triple a, b;
 	   if (ShadowOn) {
 	     for (int i=1; i <= NF; i += 1)
 	       fill( faceshadowpath( i ) );
@@ -2164,10 +2164,10 @@ public pen background = gray(0.987);
 //%% Nematic Liquid Crystal wise:
 
     void generatedirline(int Lin, real Phi, real Theta, 
-                        real Long, vector Currpos ) {
-            vector longvec;
+                        real Long, triple Currpos ) {
+            triple longvec;
             npl[Lin] = 2;
-            longvec = Long*vector( Cos(Phi)*Cos(Theta),
+            longvec = Long*( Cos(Phi)*Cos(Theta),
                                    Sin(Phi)*Cos(Theta),
                                    Sin(Theta) );
             L[Lin][1] = Currpos-0.5*longvec;
@@ -2175,10 +2175,10 @@ public pen background = gray(0.987);
     }
 
     void generatedirface(int Fen, real Phi, real Theta, 
-                         real Long, real Base, vector Currpos ) {
-            vector basevec, longvec;
+                         real Long, real Base, triple Currpos ) {
+            triple basevec, longvec;
             npf[Fen] = 3;
-            longvec = Long*vector( Cos(Phi)*Cos(Theta),
+            longvec = Long*( Cos(Phi)*Cos(Theta),
                                    Sin(Phi)*Cos(Theta),
                                    Sin(Theta) );
             basevec = Base*ncrossprod( Currpos-f, longvec );
@@ -2188,14 +2188,14 @@ public pen background = gray(0.987);
     }
 
     void generateonebiax(int Lin, real Phi, real Theta, real Long, 
-                         real SndDirAngl, real Base, vector Currpos ) {
-            vector basevec, longvec, u, v;
+                         real SndDirAngl, real Base, triple Currpos ) {
+            triple basevec, longvec, u, v;
             npl[Lin] = 4;
-            longvec = Long*vector( Cos(Phi)*Cos(Theta),
+            longvec = Long*( Cos(Phi)*Cos(Theta),
                                    Sin(Phi)*Cos(Theta),
                                    Sin(Theta) );
-            v = vector(-Sin(Phi), Cos(Phi), 0);
-            u = vector( Cos(Phi)*Cos(Theta+90),
+            v = (-Sin(Phi), Cos(Phi), 0);
+            u = ( Cos(Phi)*Cos(Theta+90),
                         Sin(Phi)*Cos(Theta+90),
                         Sin(Theta+90) );
             basevec = Base*( v*Cos(SndDirAngl)+u*Sin(SndDirAngl) );
@@ -2267,9 +2267,9 @@ public pen background = gray(0.987);
 //%% Plotting:
 
     void fillfacewithlight( int FaceN ) {
-	   vector perpvec, reflectio, viewvec, inciden, refpos, projincid;
+	   triple perpvec, reflectio, viewvec, inciden, refpos, projincid;
 	   pen fcol, lcol, lowcolor;
-      vector pa, pb, pc, shiftv;
+      triple pa, pb, pc, shiftv;
 	   real theangle;
       int j;
 	   path ghost;
@@ -2287,7 +2287,7 @@ public pen background = gray(0.987);
 	     inciden = LightSource - refpos;
 	     viewvec = f - refpos;
 	     perpvec = ncrossprod( pa-pb, pb-pc );
-	     if (Dot( perpvec, vector(0,0,1) ) < 0) 
+	     if (Dot( perpvec, (0,0,1) ) < 0) 
 	       perpvec = -perpvec;
 	     projincid = perpvec*Dot( perpvec, inciden );
 	     shiftv = inciden - projincid;
@@ -2315,7 +2315,7 @@ public pen background = gray(0.987);
 	   real posx, posy, posz, higx, higy,
            stepx, stepy, lowx, lowy;
       int counter, newn, i;
-	   vector poi[][];
+	   triple poi[][];
 	   bool bola, bolb, bolc;
 
 	   npf[0] = 3;
@@ -2336,7 +2336,7 @@ public pen background = gray(0.987);
           posx = lowx + i*stepx;
           posy = lowy + i*stepx/sqrt(3) + j*stepy;
 	    	 posz = SurFunc( posx, posy );
-	    	 poi[i][j] = vector( posx, posy, posz );
+	    	 poi[i][j] = ( posx, posy, posz );
         }
       }
       if (BeHexa) 
@@ -2392,7 +2392,7 @@ public pen background = gray(0.987);
     void face_drawfill( int Facen, real dmin_, real dmax_ , pen ColAtrib, pen ColAtribone ) {
 	   path ghost;
 	   real colfac_;
-	   vector ptmp, coltmp_;
+	   triple ptmp, coltmp_;
 	   ghost = rp( F[Facen][1] );
 	   for (int j=2; j <= npf[Facen]; j += 1) 
 	     ghost = ghost--rp( F[Facen][j] );
@@ -2425,7 +2425,7 @@ public pen background = gray(0.987);
     void draw_invisible( bool Option, bool DoJS, pen ColAtrib, pen ColAtribone ) {
 	   real dist[], thisfar, distmin_, distmax_;
       int farone[], j;
-	   vector a, b, ptmp;
+	   triple a, b, ptmp;
 	   for (int i=1; i <= NF; i += 1) {      // scan all faces
 	     if (Option) {                       // for distances of
 	       dist[i] = conorm( F[i][1] - f );   // nearest vertices
@@ -2502,10 +2502,10 @@ public pen background = gray(0.987);
     void partrimesh( int nt, int ns, real lowt, real higt,
         real lows, real higs, real lowx, real higx,
         real lowy, real higy, real lowz, real higz,
-        real facz, vector parSurFunc(real, real) ) {
+        real facz, triple parSurFunc(real, real) ) {
 	   real posx, posy, posz, poss, post, steps, stept;
       int counter;
-	   vector poi[][], tmpaux;
+	   triple poi[][], tmpaux;
 	   counter = NF;                     // <-- NF must be initialized!
 	   ++ActuC;
 	   if (ActuC > TableColors) 
@@ -2523,7 +2523,7 @@ public pen background = gray(0.987);
 	       posx = bracket(lowx,posx,higx);      // see below (TN : above )
 	       posy = bracket(lowy,posy,higy);      // see below
 	       posz = bracket(lowz,posz,higz)/facz; // see below
-	       poi[i][j] = vector( posx, posy, posz );
+	       poi[i][j] = ( posx, posy, posz );
         }
       }
 	   for (int i=1; i <= ns; i += 1) {
