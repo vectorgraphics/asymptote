@@ -873,7 +873,7 @@ void conditionalExp::transToType(coenv &e, types::ty *target)
   if (isAnArray(e, test)) {
     if (target->kind != ty_array) {
       em->error(getPos());
-      *em << "cannot cast vectorized conditional to '" << target << "'";
+      *em << "cannot cast vectorized conditional to '" << *target << "'";
     }
     test->transToType(e, types::boolArray());
     onTrue->transToType(e, target);

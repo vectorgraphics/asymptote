@@ -10,7 +10,7 @@ triple operator ecast(real[] a) {
   //assert(a.length==4);
 
   real w=a[3];
-  return w==1 ? (a[0],a[1],a[2]) : (a[0]/w,a[1]/w,a[2]/w);
+  return w == 1 ? (a[0],a[1],a[2]) : (a[0]/w,a[1]/w,a[2]/w);
 }
 
 typedef real[][] transform3;
@@ -25,7 +25,7 @@ transform3 I=identity(4);
 transform3 shift(triple v) {
   transform3 t=identity(4);
   real[] a=(real [])v;
-  for (int i=0; i<3; ++i)
+  for (int i=0; i < 3; ++i)
     t[i][3]=a[i];
   return t;
 }
@@ -102,7 +102,7 @@ int length(path3 g) { return cyclic(g) ? size(g) : size(g)-1; }
 path project(path3 g, projection P)
 {
   guide pg;
-  for (int i=0; i<size(g); ++i)
+  for (int i=0; i < size(g); ++i)
     pg=pg--P(point(g,i));
   return cyclic(g) ? pg--cycle : pg;
 }
@@ -121,7 +121,7 @@ struct flatguide3 {
       cycles=p.cycles;
     }
     else
-      for (int i=0; i<=length(p); ++i)
+      for (int i=0; i <= length(p); ++i)
         add(point(p, i));
   }
 
@@ -201,12 +201,12 @@ picture plot(real f(pair z), pair min, pair max,
   picture pic;
 
   void drawpath(path g) {
-    fill(pic, g, grey);
-    draw(pic, g);
+    fill(pic,g,grey);
+    draw(pic,g);
   }
 
   void drawcell(pair a, pair b) {
-    guide3 g = graph(f, box(a,b), subn);
+    guide3 g=graph(f, box(a,b), subn);
     drawpath(project(solve(g), P));
   }
 
@@ -215,9 +215,9 @@ picture plot(real f(pair z), pair min, pair max,
             interp(min.y,max.y,j/n));
   }
 
-  for (int i=0; i<n; ++i)
-    for (int j=0; j<n; ++j)
-      drawcell(sample(i,j), sample(i+1,j+1));
+  for (int i=0; i < n; ++i)
+    for (int j=0; j < n; ++j)
+      drawcell(sample(i,j),sample(i+1,j+1));
 
   return pic;
 }
@@ -225,16 +225,13 @@ picture plot(real f(pair z), pair min, pair max,
 /*{
   // A test.
   size(200,0);
-  triple[] points={(-1,-1,0),
-                   (1,-1,0),
-                   (1,1,0),
-                   (-1,1,0)};
+  triple[] points={(-1,-1,0),(1,-1,0),(1,1,0),(-1,1,0)};
 
   triple camera=(5,-5,2);
   projection P=perspective(1) * lookAtOrigin(camera);
 
   guide g;
-  for (int i=0; i<points.length; ++i)
+  for (int i=0; i < points.length; ++i)
     g=g--P(points[i]);
   draw(g--cycle);
 }*/
@@ -257,11 +254,8 @@ picture plot(real f(pair z), pair min, pair max,
     return exp(-abs(z)^2);
   }
 
-  guide3 g=(-1,-1,0)--
-           (1,-1,0)--
-           (1,1,0)--
-           (-1,1,0)--cycle3;
-  guide3 eg=graph(f, (1,0)--(-1,0));
+  guide3 g=(-1,-1,0)--(1,-1,0)--(1,1,0)--(-1,1,0)--cycle3;
+  guide3 eg=graph(f,(1,0)--(-1,0));
  
   triple camera=(-5,4,2);
   projection P=perspective(1) * lookAtOrigin(camera);
@@ -269,11 +263,11 @@ picture plot(real f(pair z), pair min, pair max,
   path pg=project(solve(g),P);
   draw(pg);
 
-  add(plot(f, (-1,-1), (1,1), P, n=10));
+  add(plot(f,(-1,-1),(1,1),P,n=10));
 
   /*int n=20;
   real a=-1, b=1;
-  for (int i=0; i<=n; ++i) {
+  for (int i=0; i <= n; ++i) {
     real y=a+(b-a)*i/n;
     draw(project(solve(graph(f, (1,y), (-1,y))), P), blue);
     draw(project(solve(graph(f, (y,1), (y,-1))), P), blue);
