@@ -17,6 +17,7 @@
 #include "runtime.h"
 #include "types.h"
 #include "pair.h"
+#include "triple.h"
 
 #include "castop.h"
 #include "mathop.h"
@@ -30,6 +31,7 @@ using namespace camp;
 
 namespace trans {
 using camp::pair;
+using camp::triple;
 using camp::transform;
 using vm::bltin;
 using run::divide;
@@ -51,6 +53,7 @@ void base_tenv(tenv &ret)
   ret.enter(symbol::trans("string"), primString());
   
   ret.enter(symbol::trans("pair"), primPair());
+  ret.enter(symbol::trans("triple"), primTriple());
   ret.enter(symbol::trans("transform"), primTransform());
   ret.enter(symbol::trans("guide"), primGuide());
   ret.enter(symbol::trans("path"), primPath());
@@ -176,6 +179,7 @@ void addInitializers(venv &ve)
 
   addInitializer(ve, primString(), run::emptyString);
   addInitializer(ve, primPair(), run::pairZero);
+  addInitializer(ve, primTriple(), run::tripleZero);
   addInitializer(ve, primTransform(), run::transformIdentity);
   addInitializer(ve, primGuide(), run::nullGuide);
   addInitializer(ve, primPath(), run::nullPath);
@@ -330,13 +334,10 @@ inline void addOrderedOps(venv &ve, ty *t1, ty *t2, ty *t3)
 }
 
 template<class T>
-inline void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool divide=true)
+inline void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
 {
   addOps<T,run::plus>(ve,t1,"+",t2);
   addOps<T,run::minus>(ve,t1,"-",t2);
-  addOps<T,run::times>(ve,t1,"*",t2);
-  if(divide) addOps<T,run::divide>(ve,t1,"/",t2);
-  addOps<T,run::power>(ve,t1,"^",t2);
   
   addFunc(ve,&id,t1,"+",t1);
   addFunc(ve,&id,t2,"+",t2);
@@ -344,8 +345,16 @@ inline void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool divide=true)
   addFunc(ve,run::Negate<T>,t2,"-",t2);
   
   addFunc(ve,run::sumArray<T>,t2,"sum",t1);
-  
   addUnorderedOps<T>(ve,t1,t2,t3,t4);
+}
+
+template<class T>
+inline void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool divide=true)
+{
+  addBasicOps<T>(ve,t1,t2,t3,t4);
+  addOps<T,run::times>(ve,t1,"*",t2);
+  if(divide) addOps<T,run::divide>(ve,t1,"/",t2);
+  addOps<T,run::power>(ve,t1,"^",t2);
 }
 
 function *voidFunction()
@@ -410,6 +419,8 @@ void addOperators(venv &ve)
   addOps<int>(ve,intArray(),primInt(),intArray2(),intArray3(),false);
   addOps<double>(ve,realArray(),primReal(),realArray2(),realArray3());
   addOps<pair>(ve,pairArray(),primPair(),pairArray2(),pairArray3());
+  addBasicOps<triple>(ve,tripleArray(),primTriple(),tripleArray2(),
+		      tripleArray3());
   addUnorderedOps<string>(ve,stringArray(),primString(),stringArray2(),
 			  stringArray3());
   
@@ -425,6 +436,9 @@ void addOperators(venv &ve)
   
   addOps<int,run::mod>(ve,intArray(),"%",primInt());
   addOps<double,run::mod>(ve,realArray(),"%",primReal());
+  
+  addFunc(ve,run::realTripleMult,primTriple(),"*",primReal(),primTriple());
+  addFunc(ve,run::tripleRealMult,primTriple(),"*",primTriple(),primReal());
 }
 
 double identity(double x) {return x;}
@@ -518,6 +532,14 @@ void base_venv(venv &ve)
   addFunc(ve,run::pairConj,primPair(),"conj",primPair());
   addFunc(ve,run::pairDot,primReal(),"Dot",primPair(),primPair());
 
+  addFunc(ve,run::tripleXPart,primReal(),"xpart",primTriple());
+  addFunc(ve,run::tripleYPart,primReal(),"ypart",primTriple());
+  addFunc(ve,run::tripleZPart,primReal(),"zpart",primTriple());
+  addFunc(ve,run::tripleLength,primReal(),"length",primTriple());
+  addFunc(ve,run::tripleColatitude,primReal(),"colatitude",primTriple());
+  addFunc(ve,run::tripleAzimuth,primReal(),"azimuth",primTriple());
+  addFunc(ve,run::tripleUnit,primTriple(),"unit",primTriple());
+  
   addFunc(ve,run::stringReplace,primString(),"replace",primString(),
 	  stringArray2());
   addFunc(ve,run::stringFormatReal,primString(),"format",primString(),

@@ -14,11 +14,13 @@ string*  => primString()
 string   => primString() 
 pen*     => primPen()
 pair     => primPair()
+triple   => primTriple()
 path     => primPath()
 picture* => primPicture()
 
 #include "angle.h"
 #include "pair.h"
+#include "triple.h"
 #include "transform.h"
 #include "path.h"
 #include "pen.h"

@@ -514,6 +514,21 @@ public:
   types::ty *getType(coenv &) { return types::primPair(); }
 };
 
+class tripleExp : public exp {
+  exp *x;
+  exp *y;
+  exp *z;
+
+public:
+  tripleExp(position pos, exp *x, exp *y, exp *z)
+    : exp(pos), x(x), y(y), z(z) {}
+
+  void prettyprint(ostream &out, int indent);
+
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primTriple(); }
+};
+
 class castExp : public exp {
   ty *target;
   exp *castee;

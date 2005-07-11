@@ -767,6 +767,26 @@ types::ty *pairExp::trans(coenv &e)
   return types::primPair();
 }
 
+void tripleExp::prettyprint(ostream &out, int indent)
+{
+  prettyname(out, "tripleExp",indent);
+
+  x->prettyprint(out, indent+1);
+  y->prettyprint(out, indent+1);
+  z->prettyprint(out, indent+1);
+}
+
+types::ty *tripleExp::trans(coenv &e)
+{
+  x->transToType(e, types::primReal());
+  y->transToType(e, types::primReal());
+  z->transToType(e, types::primReal());
+
+  e.c.encode(inst::builtin, run::realRealRealToTriple);
+
+  return types::primTriple();
+}
+
 
 void dimensions::prettyprint(ostream &out, int indent)
 {

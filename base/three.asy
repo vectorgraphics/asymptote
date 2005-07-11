@@ -1,52 +1,6 @@
 import math;
 
-// A point in three-dimensional space.
-// Because of the homogenized w-coordinate, it is actually in three-dimension
-// projective space.
-struct triple {
-  // Remove the public modifier when permissions for static functions are
-  // fixed.
-  
-  public real x,y,z;
-  //real w=1;
-
-  static triple init(real x, real y, real z) {
-    triple v=new triple;
-    v.x=x; v.y=y; v.z=z;
-    return v;
-  }
-}
-
-triple operator init() {return new triple;}
-
-// Allows the notation triple(x,y,z).
-triple triple(real,real,real)=triple.init;
-
-triple operator + (triple u, triple v) {
-  return triple(u.x+v.x,u.y+v.y,u.z+v.z);
-}
-
-triple operator - (triple u, triple v) {
-  return triple(u.x-v.x,u.y-v.y,u.z-v.z);
-}
-
-triple operator + (triple v) {
-  return v;
-}
-
-triple operator - (triple v) {
-  return triple(-v.x,-v.y,-v.z);
-}
-
-triple operator * (real t, triple v) {
-  return triple(t*v.x,t*v.y,t*v.z);
-}
-
-triple X=triple(1,0,0), Y=triple(0,1,0), Z=triple(0,0,1);
-
-/*triple homogenize(triple v) {
-  return v.w==1 ? v : triple(v.x/v.w,v.y/v.w,v.z/v.w);
-}*/
+triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
 
 real[] operator ecast(triple v) {
   return new real[] {v.x, v.y, v.z, 1};
@@ -56,7 +10,7 @@ triple operator ecast(real[] a) {
   //assert(a.length==4);
 
   real w=a[3];
-  return w==1 ? triple(a[0],a[1],a[2]) : triple(a[0]/w,a[1]/w,a[2]/w);
+  return w==1 ? (a[0],a[1],a[2]) : (a[0]/w,a[1]/w,a[2]/w);
 }
 
 typedef real[][] transform3;
@@ -83,9 +37,9 @@ transform3 rotate(real angle, triple axis) {
   real s=sin(angle),c=cos(angle),t=1-c;
 
   return new real[][] {
-    {t*x^2+c,   t*x*y-s*z, t*y*z+s*y, 0},
+    {t*x^2+c,   t*x*y-s*z, t*x*z+s*y, 0},
     {t*x*y+s*z, t*y^2+c,   t*y*z-s*x, 0},
-    {t*y*z-s*y, t*y*z+s*x, t*z*z+c,   0},
+    {t*x*z-s*y, t*y*z+s*x, t*z^2+c,   0},
     {0,         0,         0,         1}};
 }
 
@@ -94,16 +48,15 @@ transform3 rotate(real angle, triple axis) {
 // Since, in actuality, we are transforming the points instead of the camera,
 // we calculate the inverse matrix.
 transform3 lookAtOrigin(triple from) {
-  real x=from.x,y=from.y,z=from.z;
-  if (x==0 && y==0)
+  if (from.x == 0 && from.y == 0)
     // Look up or down.
-    return z >= 0 ? shift(-from) :
+    return from.z >= 0 ? shift(-from) :
                     rotate(pi,Y) * shift(-from);
   else {
-    real d=sqrt(x^2+y^2+z^2);
-    return shift(triple(0,0,-d)) *
-           rotate(-acos(z/d),X) *
-           rotate(-angle((x,y)),Z);
+    real d=length(from);
+    return shift((0,0,-d)) *
+      rotate(-colatitude(from),X) *
+           rotate(-azimuth(from),Z);
   }
 }
 
@@ -205,7 +158,7 @@ guide3 operator cast (path3 p) {
 
 guide3[] operator cast(triple[] v) {
   guide3[] g;
-  for (int i=0; i<v.length; ++i)
+  for (int i=0; i < v.length; ++i)
     g[i]=v[i];
   return g;
 }
@@ -213,20 +166,6 @@ guide3[] operator cast(triple[] v) {
 void cycle3 (flatguide3 f) {
   f.cycles=true;
 }
-
-/*
-guide3 operator ^^ (triple g, triple h) {
-  return new void(flatguide3 f) {
-    f.nodes.push(g);
-    f.nodes.push(h);
-  };
-}
-
-guide3 operator ^^ (guide3 g, triple h) {
-  return new void(flatguide3 f) {
-  };
-}
-*/
 
 guide3 operator -- (... guide3[] g) {
   return new void(flatguide3 f) {
@@ -245,12 +184,12 @@ path3 solve(guide3 g) {
 // The graph of a function along a path.
 guide3 graph(real f(pair z), path p, int n=10) {
   triple F(pair z) {
-    return triple(z.x, z.y, f(z));
+    return (z.x,z.y,f(z));
   }
 
   guide3 g;
-  for (int i=0; i<n*length(p); ++i) {
-    pair z=point(p, i/n);
+  for (int i=0; i < n*length(p); ++i) {
+    pair z=point(p,i/n);
     g=g--F(z);
   }
   return cyclic(p) ? g--cycle3 : g--F(endpoint(p));
@@ -286,12 +225,12 @@ picture plot(real f(pair z), pair min, pair max,
 /*{
   // A test.
   size(200,0);
-  triple[] points={triple(-1,-1,0),
-                   triple(1,-1,0),
-                   triple(1,1,0),
-                   triple(-1,1,0)};
+  triple[] points={(-1,-1,0),
+                   (1,-1,0),
+                   (1,1,0),
+                   (-1,1,0)};
 
-  triple camera=triple(5,-5,2);
+  triple camera=(5,-5,2);
   projection P=perspective(1) * lookAtOrigin(camera);
 
   guide g;
@@ -303,9 +242,9 @@ picture plot(real f(pair z), pair min, pair max,
 /*{
   // A test.
   size(200,0);
-  guide3 g=triple(-1,-1,0)--triple(1,-1,0)--triple(1,1,0)--triple(-1,1,0);
+  guide3 g=(-1,-1,0)--(1,-1,0)--(1,1,0)--(-1,1,0);
  
-  triple camera=triple(5,-5,2);
+  triple camera=(5,-5,2);
   projection P=perspective(1) * lookAtOrigin(camera);
 
   path pg=project(solve(g),P);
@@ -318,13 +257,13 @@ picture plot(real f(pair z), pair min, pair max,
     return exp(-abs(z)^2);
   }
 
-  guide3 g=triple(-1,-1,0)--
-           triple(1,-1,0)--
-           triple(1,1,0)--
-           triple(-1,1,0)--cycle3;
+  guide3 g=(-1,-1,0)--
+           (1,-1,0)--
+           (1,1,0)--
+           (-1,1,0)--cycle3;
   guide3 eg=graph(f, (1,0)--(-1,0));
  
-  triple camera=triple(-5,4,2);
+  triple camera=(-5,4,2);
   projection P=perspective(1) * lookAtOrigin(camera);
 
   path pg=project(solve(g),P);

@@ -49,6 +49,7 @@ enum ty_kind {
   
   ty_string,
   ty_pair,
+  ty_triple,
   ty_transform,
   ty_guide,
   ty_path,
@@ -254,6 +255,7 @@ ty *primInt();
 ty *primReal();
 ty *primString();
 ty *primPair();
+ty *primTriple();
 ty *primTransform();
 ty *primGuide();
 ty *primPath();
@@ -265,23 +267,25 @@ ty *boolArray();
 ty *intArray();
 ty *realArray();
 ty *pairArray();
+ty *tripleArray();
 ty *stringArray();
 ty *transformArray();
 ty *pathArray();
 ty *penArray();
-  
 ty *guideArray();
 
 ty *boolArray2();
 ty *intArray2();
 ty *realArray2();
 ty *pairArray2();
+ty *tripleArray2();
 ty *stringArray2();
 
 ty *boolArray3();
 ty *intArray3();
 ty *realArray3();
 ty *pairArray3();
+ty *tripleArray3();
 ty *stringArray3();
   
 struct formal {

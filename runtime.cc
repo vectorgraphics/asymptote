@@ -37,6 +37,7 @@ using std::ostringstream;
 
 #include "angle.h"
 #include "pair.h"
+#include "triple.h"
 #include "transform.h"
 #include "path.h"
 #include "pen.h"
@@ -75,6 +76,7 @@ namespace run {
 using vm::stack;
 using vm::frame;
 using camp::pair;
+using camp::triple;
 using camp::transform;
 using mem::string;
 
@@ -713,7 +715,7 @@ void pushNullFunction(stack *s)
   s->push(nullfunc::instance());
 }
 
-//Casts
+// Casts
 
 void pairToGuide(stack *s) {
   pair z = pop<pair>(s);
@@ -733,7 +735,7 @@ void guideToPath(stack *s) {
   s->push(p);
 }
 
-// Pair operations.
+// Pair operations
 void pairZero(stack *s)
 {
   static pair zero;
@@ -807,6 +809,73 @@ void pairDot(stack *s)
   s->push(a.getx()*b.getx()+a.gety()*b.gety());
 }
 
+// Triple operations
+
+void tripleZero(stack *s)
+{
+  static triple zero;
+  s->push(&zero);
+}
+
+void realRealRealToTriple(stack *s)
+{
+  double z = pop<double>(s);
+  double y = pop<double>(s);
+  double x = pop<double>(s);
+  s->push(new triple(x,y,z));
+}
+
+void tripleXPart(stack *s)
+{
+  s->push(pop<triple>(s).getx());
+}
+
+void tripleYPart(stack *s)
+{
+  s->push(pop<triple>(s).gety());
+}
+
+void tripleZPart(stack *s)
+{
+  s->push(pop<triple>(s).getz());
+}
+
+void realTripleMult(stack *s)
+{
+  triple v = pop<triple>(s);
+  double x = pop<double>(s);
+  s->push(x*v);
+}
+
+void tripleRealMult(stack *s)
+{
+  double x = pop<double>(s);
+  triple v = pop<triple>(s);
+  s->push(x*v);
+}
+
+void tripleLength(stack *s)
+{
+  s->push(pop<triple>(s).length());
+}
+
+void tripleColatitude(stack *s)
+{
+  s->push(pop<triple>(s).colatitude());
+}
+
+void tripleAzimuth(stack *s)
+{
+  s->push(pop<triple>(s).azimuth());
+}
+
+void tripleUnit(stack *s)
+{
+  s->push(unit(pop<triple>(s)));
+}
+
+// Transforms
+  
 void transformIdentity(stack *s)
 {
   s->push(new transform(identity()));

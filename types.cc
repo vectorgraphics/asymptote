@@ -35,6 +35,8 @@ primitiveTy pString(ty_string);
 ty *primString() { return &pString; }
 primitiveTy pPair(ty_pair);
 ty *primPair() { return &pPair; }
+primitiveTy pTriple(ty_triple);
+ty *primTriple() { return &pTriple; }
 primitiveTy pTransform(ty_transform);
 ty *primTransform() { return &pTransform; }
 primitiveTy pGuide(ty_guide);
@@ -56,6 +58,8 @@ array realArray_(primReal());
 ty *realArray() { return &realArray_; }
 array pairArray_(primPair());
 ty *pairArray() { return &pairArray_; }
+array tripleArray_(primTriple());
+ty *tripleArray() { return &tripleArray_; }
 array stringArray_(primString());
 ty *stringArray() { return &stringArray_; }
 array transformArray_(primTransform());
@@ -64,7 +68,6 @@ array pathArray_(primPath());
 ty *pathArray() { return &pathArray_; }
 array penArray_(primPen());
 ty *penArray() { return &penArray_; }
-  
 array guideArray_(primGuide());
 ty *guideArray() { return &guideArray_; }
   
@@ -76,6 +79,8 @@ array realArray2_(realArray());
 ty *realArray2() { return &realArray2_; }
 array pairArray2_(pairArray());
 ty *pairArray2() { return &pairArray2_; }
+array tripleArray2_(tripleArray());
+ty *tripleArray2() { return &tripleArray2_; }
 array stringArray2_(stringArray());
 ty *stringArray2() { return &stringArray2_; }
   
@@ -87,6 +92,8 @@ array realArray3_(realArray2());
 ty *realArray3() { return &realArray3_; }
 array pairArray3_(pairArray2());
 ty *pairArray3() { return &pairArray3_; }
+array tripleArray3_(tripleArray2());
+ty *tripleArray3() { return &tripleArray3_; }
 array stringArray3_(stringArray2());
 ty *stringArray3() { return &stringArray3_; }
   
@@ -95,7 +102,7 @@ const char *names[] = {
   "<structure>", "<function>", "<error>", "<overloaded>",
   "bool", "int", "real",
   "string",
-  "pair", "transform", "guide", "path", "pen", "frame",
+  "pair", "triple", "transform", "guide", "path", "pen", "frame",
   "file",
   "<array>"
 };
@@ -112,21 +119,33 @@ trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
 {
   switch (kind) {
     case ty_pair:
-      if (sig == 0 && id == symbol::trans("x"))
-      {
+      if (sig == 0 && id == symbol::trans("x")) {
         static trans::bltinAccess a(run::pairXPart);
         static trans::varEntry v(primReal(), &a);
-
         return &v;
       }
-      if (sig == 0 && id == symbol::trans("y"))
-      {
+      if (sig == 0 && id == symbol::trans("y")) {
         static trans::bltinAccess a(run::pairYPart);
         static trans::varEntry v(primReal(), &a);
-
         return &v;
       }
       //TODO: Add transform.
+    case ty_triple:
+      if (sig == 0 && id == symbol::trans("x")) {
+        static trans::bltinAccess a(run::tripleXPart);
+        static trans::varEntry v(primReal(), &a);
+        return &v;
+      }
+      if (sig == 0 && id == symbol::trans("y")) {
+        static trans::bltinAccess a(run::tripleYPart);
+        static trans::varEntry v(primReal(), &a);
+        return &v;
+      }
+      if (sig == 0 && id == symbol::trans("z")) {
+        static trans::bltinAccess a(run::tripleZPart);
+        static trans::varEntry v(primReal(), &a);
+        return &v;
+      }
     default:
       return 0;
   }

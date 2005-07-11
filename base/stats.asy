@@ -150,7 +150,7 @@ linefit leastsquares(real[] x, real[] y)
 {
   linefit L;
   int n=x.length;
-  if(n == 1) abort("Least square fit requires at least 2 data points");
+  if(n == 1) abort("Least squares fit requires at least 2 data points");
   real sx=sum(x);
   real sy=sum(y);
   real sxx=n*sum(x^2)-sx^2;

@@ -106,6 +106,19 @@ void pairExpi(vm::stack *s);
 void pairConj(vm::stack *s);
 void pairDot(vm::stack *s);
 
+// Triple operations
+void tripleZero(vm::stack *s);
+void realRealRealToTriple(vm::stack *s);
+void tripleXPart(vm::stack *s);
+void tripleYPart(vm::stack *s);
+void tripleZPart(vm::stack *s);
+void realTripleMult(vm::stack *s);
+void tripleRealMult(vm::stack *s);
+void tripleLength(vm::stack *s);
+void tripleColatitude(vm::stack *s);
+void tripleAzimuth(vm::stack *s);
+void tripleUnit(vm::stack *s);
+  
 // Transform operations
 void transformIdentity(vm::stack *s);
 void transformInverse(vm::stack *s);

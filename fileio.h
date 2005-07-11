@@ -21,6 +21,7 @@
 #endif
 
 #include "pair.h"
+#include "triple.h"
 #include "guide.h"
 #include "pen.h"
 
@@ -106,6 +107,7 @@ public:
   virtual void read(double&) {noread("real");}
   virtual void read(float&) {noread("real");}
   virtual void read(pair&) {noread("pair");}
+  virtual void read(triple&) {noread("triple");}
   virtual void read(char&) {noread("char");}
   virtual void readwhite(mem::string&) {noread("string");}
   virtual void read(mem::string&) {noread("string");}
@@ -114,6 +116,7 @@ public:
   virtual void write(int) {nowrite("int");}
   virtual void write(double) {nowrite("real");}
   virtual void write(const pair&) {nowrite("pair");}
+  virtual void write(const triple&) {nowrite("triple");}
   virtual void write(const mem::string&) {nowrite("string");}
   virtual void write(const pen&) {nowrite("pen");}
   virtual void write(const guide&) {nowrite("guide");}
@@ -189,6 +192,7 @@ public:
   void Read(int& val) {val=0; *stream >> val; csv();}
   void Read(double& val) {val=0.0; *stream >> val; csv();}
   void Read(pair& val) {val=0.0; *stream >> val; csv();}
+  void Read(triple& val) {val=0.0; *stream >> val; csv();}
   void Read(char& val) {val=char(); stream->get(val); csv();}
   void Read(mem::string& val) {
     val=mem::string();
@@ -205,6 +209,7 @@ public:
   void read(int& val) {iread<int>(val);}
   void read(double& val) {iread<double>(val);}
   void read(pair& val) {iread<pair>(val);}
+  void read(triple& val) {iread<triple>(val);}
   void read(char& val) {iread<char>(val);}
   void read(mem::string& val) {iread<mem::string>(val);}
 };
@@ -247,6 +252,7 @@ public:
   void write(int val) {*stream << val;}
   void write(double val) {*stream << val;}
   void write(const pair& val) {*stream << val;}
+  void write(const triple& val) {*stream << val;}
   void write(const mem::string& val) {*stream << val;}
   void write(const pen& val) {*stream << val;}
   void write(const guide& val) {*stream << val;}
@@ -287,7 +293,15 @@ public:
       stream >> val;
     }
   }
-  void read(pair& val) {double x=0.0, y=0.0; stream >> x >> y; val=pair(x,y);}
+  void read(pair& val) {
+    double x=0.0, y=0.0;
+    stream >> x >> y;
+    val=pair(x,y);
+  }
+  void read(triple& val) {
+    double x=0.0, y=0.0, z=0.0;
+    stream >> x >> y >> z;
+    val=triple(x,y,z);}
 };
 
 class oxfile : public file {
@@ -312,7 +326,12 @@ public:
     if(singlemode) {float fval=val; stream << fval;}
     stream << val;
   }
-  void write(const pair& val) {stream << val.getx() << val.gety();}
+  void write(const pair& val) {
+    stream << val.getx() << val.gety();
+  }
+  void write(const triple& val) {
+    stream << val.getx() << val.gety() << val.getz();
+  }
 };
 
 #endif

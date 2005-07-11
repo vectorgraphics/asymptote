@@ -2,7 +2,7 @@
  * pair.h
  * Andy Hammerlindl 2002/05/16
  *
- * Stores a two-dimension point similar to the pair type in MetaPost.
+ * Stores a two-dimensional point similar to the pair type in MetaPost.
  * In some cases, pairs behave as complex numbers.
  *
  * A pair is a guide as a pair alone can be used to describe a path.
@@ -19,7 +19,7 @@
 #include <cmath>
 
 #include "memory.h"
-#include "camperror.h"
+#include "angle.h"
 
 namespace camp {
 
@@ -99,7 +99,7 @@ public:
     return *this;
   }
 
-  friend pair operator/ (const pair &z, const double& t)
+  friend pair operator/ (const pair &z, double t)
   {
     if (t == 0.0)
       reportError("division by 0");
@@ -144,18 +144,14 @@ public:
 
   double angle() const
   {
-    if (y == 0.0 && x == 0.0)
-      reportError("taking angle of (0,0)");
-    return atan2(y,x);
+    return camp::angle(x,y);
   }
   
   friend double angle(const pair& z)
   {
-    if (z.y == 0.0 && z.x == 0.0)
-      reportError("taking angle of (0,0)");
-    return atan2(z.y,z.x);
+    return z.angle();
   }
-
+  
   friend pair unit(const pair& z)
   {
     double scale=z.length();
@@ -200,7 +196,7 @@ public:
 };
 
 // Calculates exp(i * theta), useful for unit vectors.
-inline pair expi(const double theta)
+inline pair expi(double theta)
 {
   if(theta == 0.0) return pair(1.0,0.0); // Frequently occurring case
   return pair(cos(theta),sin(theta));
