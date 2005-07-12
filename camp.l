@@ -246,6 +246,7 @@ ESC \\
 "||"               {makesymbol(); return COR; }
 "!"                {makesymbol(); return LOGNOT; }
 "^^"               {makesymbol(); return CARETS; }
+"::"               {makesymbol(); return COLONS; }
 "++"               {makesymbol(); return INCR; }
 ".."               {makesymbol(); return DOTS; }
 "--"               {makesymbol(); return DASHES; }
@@ -322,7 +323,7 @@ operator           {adjust(); BEGIN opname; }
                      BEGIN INITIAL;
                      return ID;
                    }
-[-+*/%^!<>]|==|!=|<=|>=|&&|\|\||\^\^|\.\.|--|cycle|curl|tension|atleast|controls {
+[-+*/%^!<>]|==|!=|<=|>=|&&|\|\||\^\^|\.\.|--|::|cycle|curl|tension|atleast|controls {
   makesymbol();
   BEGIN INITIAL;
   return ID;}
