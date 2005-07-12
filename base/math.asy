@@ -128,8 +128,8 @@ real Dot(triple a, triple b)
 triple Cross(triple a, triple b)
 {
   return (a.y*b.z-a.z*b.y,
-		a.z*b.x-a.x*b.z,
-		a.x*b.y-b.x*a.y);
+	  a.z*b.x-a.x*b.z,
+	  a.x*b.y-b.x*a.y);
 }
 
 // Compute normal vector to the plane defined by the first 3 vectors of p.

@@ -59,8 +59,8 @@ public:
   {
     if (s == 0.0)
       reportError("division by 0");
-   
-    return triple(z.x/s, z.y/s, z.z/s);
+    s=1.0/s;
+    return triple(z.x*s, z.y*s, z.z*s);
   }
 
   const triple& operator+= (const triple& w)

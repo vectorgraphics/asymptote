@@ -193,9 +193,11 @@ void addCasts(venv &ve)
   addExplicitCast(ve, primString(), primInt(), run::stringCast<int>);
   addExplicitCast(ve, primString(), primReal(), run::stringCast<double>);
   addExplicitCast(ve, primString(), primPair(), run::stringCast<pair>);
+  addExplicitCast(ve, primString(), primTriple(), run::stringCast<triple>);
   addExplicitCast(ve, primInt(), primString(), run::castString<int>);
   addExplicitCast(ve, primReal(), primString(), run::castString<double>);
   addExplicitCast(ve, primPair(), primString(), run::castString<pair>);
+  addExplicitCast(ve, primTriple(), primString(), run::castString<triple>);
 
   addExplicitCast(ve, primInt(), primReal(), run::cast<double,int>);
 
@@ -214,6 +216,7 @@ void addCasts(venv &ve)
   addCast(ve, primInt(), primFile(), run::read<int>);
   addCast(ve, primReal(), primFile(), run::read<double>);
   addCast(ve, primPair(), primFile(), run::read<pair>);
+  addCast(ve, primTriple(), primFile(), run::read<triple>);
   addCast(ve, primString(), primFile(), run::read<string>);
 
   // Vectorized casts.
@@ -227,18 +230,21 @@ void addCasts(venv &ve)
   addCast(ve, intArray(), primFile(), run::readArray<int>);
   addCast(ve, realArray(), primFile(), run::readArray<double>);
   addCast(ve, pairArray(), primFile(), run::readArray<pair>);
+  addCast(ve, tripleArray(), primFile(), run::readArray<triple>);
   addCast(ve, stringArray(), primFile(), run::readArray<string>);
   
   addCast(ve, boolArray2(), primFile(), run::readArray<bool>);
   addCast(ve, intArray2(), primFile(), run::readArray<int>);
   addCast(ve, realArray2(), primFile(), run::readArray<double>);
   addCast(ve, pairArray2(), primFile(), run::readArray<pair>);
+  addCast(ve, tripleArray2(), primFile(), run::readArray<triple>);
   addCast(ve, stringArray2(), primFile(), run::readArray<string>);
   
   addCast(ve, boolArray3(), primFile(), run::readArray<bool>);
   addCast(ve, intArray3(), primFile(), run::readArray<int>);
   addCast(ve, realArray3(), primFile(), run::readArray<double>);
   addCast(ve, pairArray3(), primFile(), run::readArray<pair>);
+  addCast(ve, tripleArray3(), primFile(), run::readArray<triple>);
   addCast(ve, stringArray3(), primFile(), run::readArray<string>);
 }
 

@@ -87,11 +87,6 @@ public:
     return (*this);
   }
 
-  friend pair scale (const pair& z, double xscale, double yscale)
-  {
-    return pair(z.x*xscale,z.y*yscale);
-  }
-
   const pair& scale (double xscale, double yscale)
   {
     x *= xscale;
@@ -103,8 +98,8 @@ public:
   {
     if (t == 0.0)
       reportError("division by 0");
-   
-    return pair(z.x/t, z.y/t);
+    t=1.0/t;
+    return pair(z.x*t, z.y*t);
   }
 
   friend pair operator/ (const pair& z, const pair& w)
@@ -114,7 +109,7 @@ public:
 
     double t = 1.0 / (w.x*w.x + w.y*w.y);
     return pair(t*(z.x*w.x + z.y*w.y),
-                 t*(-z.x*w.y + w.x*z.y));
+		t*(-z.x*w.y + w.x*z.y));
   }
 
   friend bool operator== (const pair& z, const pair& w)

@@ -22,6 +22,7 @@ namespace types {
 
 using trans::access;
 using camp::pair;
+using camp::triple;
 using camp::path;
 using mem::string;
   
@@ -126,58 +127,6 @@ void addPromotion(ty *target, ty *source, bltin f, bool castToo=true)
 {
   access *a = new bltinAccess(f);
   addPromotion(target, source, a, castToo);
-}
-
-void initializeCasts()
-{
-  addExplicitCast(primInt(), primReal(), run::cast<double,int>);
-  addExplicitCast(primString(), primInt(), run::stringCast<int>);
-  addExplicitCast(primString(), primReal(), run::stringCast<double>);
-  addExplicitCast(primString(), primPair(), run::stringCast<pair>);
-  addExplicitCast(primInt(), primString(), run::castString<int>);
-  addExplicitCast(primReal(), primString(), run::castString<double>);
-  addExplicitCast(primPair(), primString(), run::castString<pair>);
-
-  addPromotion(primReal(), primInt(), run::cast<int,double>);
-  addPromotion(primPair(), primInt(), run::cast<int,pair>);
-  addPromotion(primPair(), primReal(), run::cast<double,pair>);
-  
-  addPromotion(primPath(), primPair(), run::cast<pair,path>);
-  addPromotion(primGuide(), primPair(), run::pairToGuide);
-  addPromotion(primGuide(), primPath(), run::pathToGuide);
-  addCast(primPath(), primGuide(), run::guideToPath);
-
-  addCast(primPen(), primReal(), run::lineWidth);
-  
-  addCast(primBoolean(), primFile(), run::read<bool>);
-  addCast(primInt(), primFile(), run::read<int>);
-  addCast(primReal(), primFile(), run::read<double>);
-  addCast(primPair(), primFile(), run::read<pair>);
-  addCast(primString(), primFile(), run::read<string>);
-  
-  addExplicitCast(intArray(), realArray(), run::arrayToArray<double,int>);
-  
-  addPromotion(realArray(), intArray(), run::arrayToArray<int,double>);
-  addPromotion(pairArray(), intArray(), run::arrayToArray<int,pair>);
-  addPromotion(pairArray(), realArray(), run::arrayToArray<double,pair>);
-  
-  addCast(boolArray(), primFile(), run::readArray<bool>);
-  addCast(intArray(), primFile(), run::readArray<int>);
-  addCast(realArray(), primFile(), run::readArray<double>);
-  addCast(pairArray(), primFile(), run::readArray<pair>);
-  addCast(stringArray(), primFile(), run::readArray<string>);
-  
-  addCast(boolArray2(), primFile(), run::readArray<bool>);
-  addCast(intArray2(), primFile(), run::readArray<int>);
-  addCast(realArray2(), primFile(), run::readArray<double>);
-  addCast(pairArray2(), primFile(), run::readArray<pair>);
-  addCast(stringArray2(), primFile(), run::readArray<string>);
-  
-  addCast(boolArray3(), primFile(), run::readArray<bool>);
-  addCast(intArray3(), primFile(), run::readArray<int>);
-  addCast(realArray3(), primFile(), run::readArray<double>);
-  addCast(pairArray3(), primFile(), run::readArray<pair>);
-  addCast(stringArray3(), primFile(), run::readArray<string>);
 }
 
 bool castable(ty *target, ty *source)
