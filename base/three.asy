@@ -45,15 +45,12 @@ transform3 rotate(real angle, triple axis) {
 // origin). Since, in actuality, we are transforming the points instead of
 // the camera, we calculate the inverse matrix.
 transform3 lookAtOrigin(triple from) {
-  if (from.x == 0 && from.y == 0)
-    // Look up or down.
-    return from.z >= 0 ? shift(-from) :
-                    rotate(pi,Y)*shift(-from);
-  else {
-    return shift((0,0,-length(from))) *
-      rotate(-colatitude(from),X) *
-      rotate(-azimuth(from),Z);
-  }
+  transform3 t=(from.x == 0 && from.y == 0) ? shift(-from) : 
+    shift((0,0,-length(from)))*
+    rotate(-pi/2,Z)*
+    rotate(-colatitude(from),Y)*
+    rotate(-azimuth(from),Z);
+  return from.z >= 0 ? t : rotate(pi,Y)*t;
 }
 
 transform3 lookAt(triple from, triple to) {
@@ -194,13 +191,9 @@ picture plot(real f(pair z), pair min, pair max,
 {
   picture pic;
 
-  void drawpath(path g) {
-    filldraw(pic,g,grey);
-  }
-
   void drawcell(pair a, pair b) {
     guide3 g=graph(f,box(a,b),subn);
-    drawpath(project(solve(g),P));
+    filldraw(project(solve(g),P),grey);
   }
 
   pair sample(int i, int j) {
@@ -250,14 +243,13 @@ picture plot(real f(pair z), pair min, pair max,
   guide3 g=(-1,-1,0)--(1,-1,0)--(1,1,0)--(-1,1,0)--cycle3;
   guide3 eg=graph(f,(1,0)--(-1,0));
  
-  triple camera=(-5,4,2); // Not quite right yet.
-  erase();
+  triple camera=(5,4,2);
   projection P=perspective(1)*lookAtOrigin(camera);
 
   path pg=project(solve(g),P);
   draw(pg);
 
-  real r=1.5;
+  real r=1.2;
   draw("$x$",project(solve((0,0,0)--(r,0,0)),P),1,red,Arrow);
   draw("$y$",project(solve((0,0,0)--(0,r,0)),P),1,red,Arrow);
   draw("$z$",project(solve((0,0,0)--(0,0,r)),P),1,red,Arrow);
