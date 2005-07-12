@@ -252,7 +252,11 @@ http://www.uhoreg.ca/programming/debian.text
 @end verbatim
 
 If you are compiling @code{Asymptote} with @code{gcc}, you will need a
-relatively recent version (e.g. 3.2 or later).
+relatively recent version (e.g. 3.2 or later).  If you get errors
+compiling @code{interact.cc}, try installing an up-to-date version of
+the @acronym{GNU} @code{readline} library or else uncomment
+@code{HAVE_LIBREADLINE} in @code{config.h}.
+
 The @code{FFTW} library is only required if you want @code{Asymptote}
 to be able to take Fourier transforms of data (say, to compute an
 audio power spectrum).
