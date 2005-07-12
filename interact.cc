@@ -74,7 +74,9 @@ char *rl_gets(void)
     needreset=false;
   }
      
+#ifdef HAVE_REMOVE_HISTORY
   if(rejectline_cached && history_length) remove_history(history_length-1);
+#endif  
   rejectline_cached=false;
   
   if(!line_read) cout << endl;
