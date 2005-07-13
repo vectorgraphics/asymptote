@@ -64,10 +64,10 @@ const double VELOCITY_BOUND = 4.00;
 // bounding with tension atleast.
 double velocity(double theta, double phi, tension t)
 {
-  const double a = 1.41421356237309504880; // sqrt(2)
-  const double b = 0.0625;                 // 1/16
-  const double c = 1.23606797749978969641; // sqrt(5) - 1
-  const double d = 0.76393202250021030359; // 3 - sqrt(5)
+  static const double a = sqrt(2.0);
+  static const double b = 1.0/16.0;
+  static const double c = sqrt(5.0)-1.0;
+  static const double d = 3.0-sqrt(5.0);
 
   double st = sin(theta), ct = cos(theta),
          sf = sin(phi),   cf = cos(phi);
