@@ -55,10 +55,10 @@ const double VELOCITY_BOUND = 4.00;
 
 /***** Auxillary computation functions *****/
 
-// Computes the relative distance of a control point given the angles.  The name
-// is somewhat misleading as the velocity (with respect to the variable that
-// parameterizes the path) is relative to the distance between the knots and
-// even then, is actually three times this.
+// Computes the relative distance of a control point given the angles.
+// The name is somewhat misleading as the velocity (with respect to the
+// variable that parameterizes the path) is relative to the distance
+// between the knots and even then, is actually three times this.
 // The routine is based on the velocity function in Section 131 of the MetaPost
 // code, but differs in that it automatically accounts for the tension and
 // bounding with tension atleast.
@@ -140,9 +140,9 @@ ostream& operator<<(ostream& out, const knot& k)
 eqn dirSpec::eqnOut(int j, knotlist& l, cvector<double>&, cvector<double>&)
 {
   // When choosing the control points, the path will come out the first knot
-  // going straight to the next knot rotated by the angle theta.  Therefore, the
-  // angle theta we want is the difference between the specified heading given
-  // and the heading to the next knot.
+  // going straight to the next knot rotated by the angle theta.
+  // Therefore, the angle theta we want is the difference between the
+  // specified heading given and the heading to the next knot.
   double theta=reduceAngle(given-niceAngle(l[j+1].z-l[j].z));
 
   // Give a simple linear equation to ensure this theta is picked.
@@ -155,7 +155,8 @@ eqn dirSpec::eqnIn(int j, knotlist& l, cvector<double>&, cvector<double>&)
   return eqn(0.0,1.0,0.0,theta);
 }
 
-eqn curlSpec::eqnOut(int j, knotlist& l, cvector<double>&, cvector<double>& psi)
+eqn curlSpec::eqnOut(int j, knotlist& l, cvector<double>&,
+		     cvector<double>& psi)
 {
   double alpha=l[j].alpha();
   double beta=l[j+1].beta();
@@ -264,8 +265,8 @@ struct eqnprop : public knotprop<eqn> {
     double thisBeta  = l[j].beta();
     double nextBeta  = l[j+1].beta();
 
-    // Values based on the linear approximation of the curvature coming into the
-    // knot with respect to theta[j-1] and theta[j].
+    // Values based on the linear approximation of the curvature coming
+    // into the knot with respect to theta[j-1] and theta[j].
     double inDenom = thisBeta*thisBeta*d[j-1];
     double A = lastAlpha/inDenom;
     double B = (3.0 - lastAlpha)/inDenom;
@@ -280,10 +281,10 @@ struct eqnprop : public knotprop<eqn> {
   }
 };
 
-// If the system of equations is homogeneous (ie. we are solving for x in Ax=0),
-// then there is no need to solve for theta, we can just use zeros for the
-// thetas.  In fact, our general solving method may not work in this case.  A
-// common example of this is
+// If the system of equations is homogeneous (ie. we are solving for x in
+// Ax=0), there is no need to solve for theta; we can just use zeros for the
+// thetas.  In fact, our general solving method may not work in this case.
+// A common example of this is
 //   
 //   a{curl 1}..{curl 1}b
 //
@@ -467,11 +468,11 @@ cvector<double> solveThetas(knotlist& l, cvector<eqn>& e)
     // We are solving Ax=0, so a solution is zero for every theta.
     return cvector<double>(e.size(),0);
   else if (l.cyclic()) {
-    // The knotprop template is unusually unhelpful in this case, so I won't use
-    // it here. The algorithm breaks into three passes on the object.  The old
-    // Asymptote code used a two-pass method, but I implemented this to stay
-    // closer to the MetaPost source code.  This might be something to look at
-    // for optimization.
+    // The knotprop template is unusually unhelpful in this case, so I
+    // won't use it here. The algorithm breaks into three passes on the
+    // object.  The old Asymptote code used a two-pass method, but I
+    // implemented this to stay closer to the MetaPost source code.
+    // This might be something to look at for optimization.
     cvector<weqn> we=recalc(e);
     INFO(we);
     double theta0=solveForTheta0(we);
@@ -694,9 +695,8 @@ path solveSpecified(knotlist& l)
     // Encode the first point.
     p.point(first)=l[first].z;
 
-    /* If the path is cyclic, we should stop where we started (modulo the length
-     * of the path), otherwise, just stop at the end.
-     */
+    // If the path is cyclic, we should stop where we started (modulo the
+    // length of the path); otherwise, just stop at the end.
     int last=l.cyclic() ? first+l.length()
                         : l.length();
     int a=first;
@@ -724,8 +724,9 @@ path solveSpecified(knotlist& l)
 }
 
 /* If a knot is open on one side and restricted on the other, this replaces the
- * open side with a restriction determined by the restriction on the other side.
- * After this, any knot will either have two open specs or two restrictions.
+ * open side with a restriction determined by the restriction on the other
+ * side. After this, any knot will either have two open specs or two
+ * restrictions.
  */
 struct partnerUp : public knoteffect {
   partnerUp(knotlist& l)
@@ -755,8 +756,8 @@ void curlEnds(knotlist& l)
   }
 }
 
-/* If a point occurs twice in a row in a knotlist, write in controls between the
- * two knots at that point (unless it already has controls).
+/* If a point occurs twice in a row in a knotlist, write in controls
+ * between the two knots at that point (unless it already has controls).
  */
 struct controlDuplicates : public knoteffect {
   controlDuplicates(knotlist& l)
