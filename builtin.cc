@@ -649,11 +649,11 @@ void base_venv(venv &ve)
 
   addFunc(ve,run::writen<pen>,primVoid(),"write",primPen());
   addFunc(ve,run::write<pen>,primVoid(),"write",primFile(),primPen());
-  addFunc(ve,run::writen<guide>,primVoid(),"write",primGuide());
-  addFunc(ve,run::write<guide>,primVoid(),"write",primFile(),primGuide());
   addFunc(ve,run::writen<transform>,primVoid(),"write",primTransform());
   addFunc(ve,run::write<transform>,primVoid(),"write",primFile(),
 	  primTransform());
+  addFunc(ve,run::writenP<guide>,primVoid(),"write",primGuide());
+  addFunc(ve,run::writeP<guide>,primVoid(),"write",primFile(),primGuide());
   
   // Array functions
   

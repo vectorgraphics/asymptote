@@ -231,6 +231,26 @@ void write3(vm::stack *s)
   camp::Stdout.writeline();
 }
 
+template<class T>
+void writeP(vm::stack *s)
+{
+  const T& val = *(pop<T*>(s));
+  camp::file *f = pop<camp::file*>(s);
+  if(!f->isOpen()) return;
+  if(f->Standard() && settings::suppressStandard) return;
+  f->write(val);
+}
+  
+template<class T>
+void writenP(vm::stack *s)
+{
+  const T& val = *(pop<T*>(s));
+  if(settings::suppressStandard) return;
+  camp::Stdout.resetlines();
+  camp::Stdout.write(val);
+  camp::Stdout.writeline();
+}
+
 // write an array to stdout, with indices
 template<class T>
 void showArray(vm::stack *s)
