@@ -84,11 +84,33 @@ projection operator cast(transform3 t) {
   };
 }
 
+struct control {
+  public triple pre,post;
+  public bool active=false;
+  void init(triple pre, triple post) {
+    this.pre=pre;
+    this.post=post;
+    active=true;
+  }
+}
+
+control operator init() {return new control;}
+
+control nocontrol;
+  
 // Extend to cubic splines at some point.
 struct path3 {
-  public triple[] nodes,pre,post; 
-  public bool[] havepre,havepost;
+  public triple[] nodes;
+  public control[] control;
   public bool cycles=false;
+  
+  triple pre(int i) {
+    return control[i].pre;
+  }
+  
+  triple post(int i) {
+    return control[i].post;
+  }
 }
 
 path3 operator init() {return new path3;}
@@ -107,53 +129,46 @@ path project(path3 g, projection P)
 {
   guide pg;
   for(int i=0; i < size(g); ++i) {
-    if(g.havepre.length > i && g.havepost.length > i &&
-       g.havepre[i] && g.havepost[i]) {
-      pg=pg..P(point(g,i))..controls P(g.pre[i]) and P(g.post[i])..nullpath;
-    } else pg=pg--P(point(g,i));
+    if(g.control[i].active)
+      pg=pg..P(point(g,i))..controls P(g.pre(i)) and P(g.post(i))..nullpath;
+    else pg=pg--P(point(g,i));
   }
-  int i=size(g)-1;
-  if(g.havepre.length > i && g.havepost.length > i &&
-     g.havepre[i] && g.havepost[i])
-    return cyclic(g) ? pg..cycle : pg;
-  return cyclic(g) ? pg--cycle : pg;
+  if(cyclic(g))
+    return (g.control[-1].active) ? pg..cycle : pg--cycle;
+  return pg;
 }
 
 struct flatguide3 {
-  public triple[] nodes,pre,post; 
-  public bool[] havepre,havepost;
+  public triple[] nodes;
+  public control[] control;
   public bool cycles=false;
 
   void add(triple v) {
     nodes.push(v);
+    control.push(nocontrol);
+  }
+
+  void control(triple pre, triple post) {
+    control c;
+    c.init(pre,post);
+    control[-1]=c;
   }
 
   void add(path3 p) {
     if (nodes.length == 0) {
       nodes=p.nodes;
-      pre=p.pre;
-      post=p.post;
-      havepre=p.havepre;
-      havepost=p.havepost;
+      control=p.control;
       cycles=p.cycles;
     } else {
-      for(int i=0; i <= length(p); ++i) {
+      for(int i=0; i <= length(p); ++i)
         add(point(p,i));
-	pre.push(p.pre[i]);
-	post.push(p.post[i]);
-	havepre.push(p.havepre[i]);
-	havepost.push(p.havepost[i]);
-      }
     }
   }
 
   path3 solve() {
-    path3 g=new path3;
+    path3 g;
     g.nodes=nodes;
-    g.pre=pre;
-    g.post=post;
-    g.havepre=havepre;
-    g.havepost=havepost;
+    g.control=control;
     g.cycles=cycles;
     return g;
   }
@@ -193,18 +208,15 @@ guide3 operator cycle() {
   };
 }
 
-guide3 operator controls(triple z, triple w) {
+guide3 operator controls(triple pre, triple post) {
   return new void(flatguide3 f) {
-    f.havepre.push(true);
-    f.havepost.push(true);
-    f.pre.push(z);
-    f.post.push(w);
+    f.control(pre,post);
   };
 };
   
-guide3 operator controls(triple z)
+guide3 operator controls(triple v)
 {
-  return operator controls(z,z);
+  return operator controls(v,v);
 }
 
 guide3 operator -- (... guide3[] g) {
