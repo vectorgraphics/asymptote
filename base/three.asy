@@ -191,9 +191,9 @@ void cycle3(flatguide3 f) {
   f.cycles=true;
 }
 
-typedef void Controls3(flatguide3 f);
+typedef void controls3(flatguide3 f);
 
-Controls3 controls3(triple z, triple w) {
+controls3 operator controls(triple z, triple w) {
   return new void(flatguide3 f) {
     f.havepre.push(true);
     f.havepost.push(true);
@@ -202,6 +202,11 @@ Controls3 controls3(triple z, triple w) {
   };
 };
   
+controls3 operator controls(triple z)
+{
+  return operator controls(z,z);
+}
+
 guide3 operator -- (... guide3[] g) {
   return new void(flatguide3 f) {
     // Apply the subguides in order.
@@ -307,10 +312,10 @@ picture plot(real f(pair z), pair min, pair max,
   draw("$z$",project((0,0,0)--(0,0,r),P),1,red,Arrow);
   
   real a=4(sqrt(2)-1)/3;
-  draw(project((1,0,0)..controls3((1,a,0),(a,1,0))..
-       (0,1,0)..controls3((-a,1,0),(-1,a,0))..
-       (-1,0,0)..controls3((-1,-a,0),(-a,-1,0))..
-       (0,-1,0)..controls3((a,-1,0),(1,-a,0))..cycle3,P),1,green);
+  draw(project((1,0,0)..controls (1,a,0) and (a,1,0)..
+       (0,1,0)..controls (-a,1,0) and (-1,a,0)..
+       (-1,0,0)..controls (-1,-a,0) and (-a,-1,0)..
+       (0,-1,0)..controls (a,-1,0) and (1,-a,0)..cycle3,P),1,green);
   label("$O$",project((0,0,0),P),S);
   
   add(plot(f,(-1,-1),(1,1),P,n=10));
