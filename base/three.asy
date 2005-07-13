@@ -187,13 +187,13 @@ guide3[] operator cast(triple[] v) {
   return g;
 }
 
-void cycle3(flatguide3 f) {
+guide3 operator cycle() {
+  return new void(flatguide3 f) {
   f.cycles=true;
+  };
 }
 
-typedef void controls3(flatguide3 f);
-
-controls3 operator controls(triple z, triple w) {
+guide3 operator controls(triple z, triple w) {
   return new void(flatguide3 f) {
     f.havepre.push(true);
     f.havepost.push(true);
@@ -202,7 +202,7 @@ controls3 operator controls(triple z, triple w) {
   };
 };
   
-controls3 operator controls(triple z)
+guide3 operator controls(triple z)
 {
   return operator controls(z,z);
 }
@@ -240,7 +240,7 @@ guide3 graph(real f(pair z), path p, int n=10) {
     pair z=point(p,i/n);
     g=g--F(z);
   }
-  return cyclic(p) ? g--cycle3 : g--F(endpoint(p));
+  return cyclic(p) ? g--cycle : g--F(endpoint(p));
 }
 
 picture plot(real f(pair z), pair min, pair max,
@@ -283,7 +283,7 @@ picture plot(real f(pair z), pair min, pair max,
 /*{
   // A test.
   size(200,0);
-  guide3 g=(-1,-1,0)--(1,-1,0)--(1,1,0)--(-1,1,0)--cycle3;
+  guide3 g=(-1,-1,0)--(1,-1,0)--(1,1,0)--(-1,1,0)--cycle;
  
   triple camera=(5,-5,2);
   projection P=perspective(camera);
@@ -298,7 +298,7 @@ picture plot(real f(pair z), pair min, pair max,
     return 0.5+exp(-abs(z)^2);
   }
 
-  guide3 g=(-1,-1,0)--(1,-1,0)--(1,1,0)--(-1,1,0)--cycle3;
+  guide3 g=(-1,-1,0)--(1,-1,0)--(1,1,0)--(-1,1,0)--cycle;
   guide3 eg=graph(f,(1,0)--(-1,0));
  
   triple camera=(5,4,2);
@@ -315,7 +315,7 @@ picture plot(real f(pair z), pair min, pair max,
   draw(project((1,0,0)..controls (1,a,0) and (a,1,0)..
        (0,1,0)..controls (-a,1,0) and (-1,a,0)..
        (-1,0,0)..controls (-1,-a,0) and (-a,-1,0)..
-       (0,-1,0)..controls (a,-1,0) and (1,-a,0)..cycle3,P),1,green);
+       (0,-1,0)..controls (a,-1,0) and (1,-a,0)..cycle,P),1,green);
   label("$O$",project((0,0,0),P),S);
   
   add(plot(f,(-1,-1),(1,1),P,n=10));
