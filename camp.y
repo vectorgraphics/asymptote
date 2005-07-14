@@ -97,9 +97,9 @@ using sym::symbol;
 %left  EQ NEQ
 %left  LT LE GT GE
 
-%left  DIRTAG CARETS COLONS
-%left  JOIN_PREC DOTS DASHES
-%left  CONTROLS TENSION ATLEAST AND
+%left  CARETS
+%left  JOIN_PREC DOTS DASHES COLONS
+%left  DIRTAG CONTROLS TENSION ATLEAST AND
 %left  CURL '{' '}'
 
 %left  '+' '-' 

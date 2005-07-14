@@ -13,7 +13,7 @@
 
 namespace vm {
 
-// Arrays are vectors with a push func for running in asymptote.
+// Arrays are vectors with push and pop functions.
 class array : public mem::deque<item>, public gc {
 public:
   array(size_t n)
@@ -23,6 +23,13 @@ public:
   void push(item i)
   {
     push_back(i);
+  }
+
+  item pop()
+  {
+    item i=back();
+    pop_back();
+    return i;
   }
 
   template <typename T>

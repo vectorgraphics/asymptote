@@ -458,9 +458,27 @@ void arrayPushHelper(stack *s)
 {
   array *a = pop<array*>(s);
   item i = pop(s);
-
   checkArray(a);
   a->push(i);
+}
+
+// Returns the pop method for an array.
+void arrayPop(stack *s)
+{
+  array *a = pop<array*>(s);
+  checkArray(a);
+  s->push((callable*) new thunk(new bfunc(arrayPopHelper),a));
+}
+
+// The helper function for the pop method that does the actual operation.
+void arrayPopHelper(stack *s)
+{
+  array *a = pop<array*>(s);
+  checkArray(a);
+  if(a->size() == 0) 
+    error("cannot pop element from empty array");
+  item i=a->pop();
+  s->push(i);
 }
 
 void arrayAlias(stack *s)
@@ -1211,7 +1229,7 @@ void dotsGuide(stack *s)
   array *a=pop<array*>(s);
 
   guidevector v;
-  for (size_t i=0; i<a->size(); ++i)
+  for (size_t i=0; i < a->size(); ++i)
     v.push_back(a->read<guide*>(i));
 
   s->push((guide *) new multiguide(v));

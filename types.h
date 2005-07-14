@@ -214,9 +214,10 @@ inline ostream& operator<< (ostream& out, const ty& t)
 struct array : public ty {
   ty *celltype;
   ty *pushtype;
+  ty *poptype;
 
   array(ty *celltype)
-    : ty(ty_array), celltype(celltype), pushtype(0) {}
+    : ty(ty_array), celltype(celltype), pushtype(0), poptype(0) {}
 
   virtual bool isReference() {
     return true;
@@ -235,6 +236,7 @@ struct array : public ty {
     { out << *celltype << "[]"; }
 
   ty *pushType();
+  ty *popType();
 
   // Initialize to an empty array by default.
   trans::access *initializer();

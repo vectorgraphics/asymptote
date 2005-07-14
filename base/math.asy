@@ -115,11 +115,6 @@ pair intersectionpoint(path a, path b)
   return point(a,intersect(a,b).x);
 }
 
-triple interp(triple a, triple b, real c)
-{
-  return a+c*(b-a);
-}
-
 real Dot(triple a, triple b)
 {
   return a.x*b.x+a.y*b.y+a.z*b.z;

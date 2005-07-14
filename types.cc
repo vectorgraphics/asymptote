@@ -193,10 +193,21 @@ ty *array::pushType()
   return pushtype;
 }
 
+ty *array::popType()
+{
+  if (poptype == 0) {
+    function *ft = new function(celltype);
+    poptype = ft;
+  }
+
+  return poptype;
+}
+
 ty *array::virtualFieldGetType(symbol *id)
 {
   return id == symbol::trans("push") ? pushType() : 
-    ty::virtualFieldGetType(id);
+    id == symbol::trans("pop") ? popType() : 
+     ty::virtualFieldGetType(id);
 }
 
 trans::varEntry *array::virtualField(symbol *id, signature *sig)
@@ -213,6 +224,15 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
     static trans::bltinAccess a(run::arrayPush);
     // v needs to be dynamic, as the push type differs among arrays.
     trans::varEntry *v = new trans::varEntry(pushType(), &a);
+
+    return v;
+  }
+  if (id == symbol::trans("pop") &&
+      equivalent(sig, popType()->getSignature()))
+  {
+    static trans::bltinAccess a(run::arrayPop);
+    // v needs to be dynamic, as the pop type differs among arrays.
+    trans::varEntry *v = new trans::varEntry(popType(), &a);
 
     return v;
   }

@@ -8,6 +8,7 @@ real[] operator ecast(triple v) {
 
 triple operator ecast(real[] a) {
   if(a.length != 4) abort("vector length of "+(string) a.length+" != 4");
+  if(a[3] == 0) abort("camera is too close to object");
   return (a[0],a[1],a[2])/a[3];
 }
 
@@ -85,32 +86,36 @@ projection operator cast(transform3 t) {
 }
 
 struct control {
-  public triple pre,post;
+  public triple post,pre;
   public bool active=false;
-  void init(triple pre, triple post) {
-    this.pre=pre;
+  void init(triple post, triple pre) {
     this.post=post;
+    this.pre=pre;
     active=true;
   }
 }
 
 control operator init() {return new control;}
-
 control nocontrol;
   
-// Extend to cubic splines at some point.
+struct dir {
+  public triple value;
+  public bool active=false;
+  void init(triple v) {
+    this.value=v;
+    active=true;
+  }
+}
+
+dir operator init() {return new dir;}
+dir nodir;
+
 struct path3 {
   public triple[] nodes;
-  public control[] control;
+  public control[] control; // control points for segment starting at node
+  public dir[] in,out;    // in and out directions for segment starting at node
+  public bool[] straight; // true (--) or false (..)
   public bool cycles=false;
-  
-  triple pre(int i) {
-    return control[i].pre;
-  }
-  
-  triple post(int i) {
-    return control[i].post;
-  }
 }
 
 path3 operator init() {return new path3;}
@@ -125,50 +130,59 @@ pair project(triple p, projection P)
   return P(p);
 }
 
-path project(path3 g, projection P)
-{
-  guide pg;
-  for(int i=0; i < size(g); ++i) {
-    if(g.control[i].active)
-      pg=pg..P(point(g,i))..controls P(g.pre(i)) and P(g.post(i))..nullpath;
-    else pg=pg--P(point(g,i));
-  }
-  if(cyclic(g))
-    return (g.control[-1].active) ? pg..cycle : pg--cycle;
-  return pg;
-}
-
 struct flatguide3 {
   public triple[] nodes;
   public control[] control;
+  public dir[] in,out;
   public bool cycles=false;
+  public bool[] straight;
 
   void add(triple v) {
     nodes.push(v);
     control.push(nocontrol);
-  }
+    in.push(nodir);
+    out.push(nodir);
+    straight.push(false);
+ }
 
-  void control(triple pre, triple post) {
+  void control(triple post, triple pre) {
     control c;
-    c.init(pre,post);
+    c.init(post,pre);
     control[-1]=c;
   }
 
-  void add(path3 p) {
-    if (nodes.length == 0) {
-      nodes=p.nodes;
-      control=p.control;
-      cycles=p.cycles;
-    } else {
-      for(int i=0; i <= length(p); ++i)
-        add(point(p,i));
-    }
+  void in(triple v) {
+    dir d;
+    d.init(v);
+    in[-1]=d;
+  }
+
+  void out(triple v) {
+    dir d;
+    d.init(v);
+    out[-1]=d;
+  }
+
+  void straight(bool b) {
+    straight[-1]=b;
+  }
+  
+  void init(path3 p) {
+    nodes=p.nodes;
+    control=p.control;
+    in=p.in;
+    out=p.out;
+    straight=p.straight;
+    cycles=p.cycles;
   }
 
   path3 solve() {
     path3 g;
     g.nodes=nodes;
     g.control=control;
+    g.in=in;
+    g.out=out;
+    g.straight=straight;
     g.cycles=cycles;
     return g;
   }
@@ -191,7 +205,7 @@ guide3 operator cast(triple v) {
 
 guide3 operator cast(path3 p) {
   return new void(flatguide3 f) {
-    f.add(p);
+    f.init(p);
   };
 }
 
@@ -202,15 +216,14 @@ guide3[] operator cast(triple[] v) {
   return g;
 }
 
-guide3 operator cycle() {
-  return new void(flatguide3 f) {
+void cycle3 (flatguide3 f) {
+  f.straight.push(false);
   f.cycles=true;
-  };
 }
 
-guide3 operator controls(triple pre, triple post) {
+guide3 operator controls(triple post, triple pre) {
   return new void(flatguide3 f) {
-    f.control(pre,post);
+    f.control(post,pre);
   };
 };
   
@@ -222,23 +235,53 @@ guide3 operator controls(triple v)
 guide3 operator -- (... guide3[] g) {
   return new void(flatguide3 f) {
     // Apply the subguides in order.
-    for(int i=0; i < g.length; ++i)
+    for(int i=0; i < g.length; ++i) {
       g[i](f);
+    }
+    f.straight(true);
   };
 }
 
 guide3 operator .. (... guide3[] g) {
   return new void(flatguide3 f) {
-    // Apply the subguides in order.
-    for(int i=0; i < g.length; ++i)
+    for(int i=0; i < g.length; ++i) {
       g[i](f);
+    }
   };
 }
 
+guide3 operator spec(triple v, int p) {
+  return new void(flatguide3 f) {
+    if(p == 0) f.out(v);
+    else if(p == 1) f.in(v);
+  };
+}
+  
 path3 operator cast(guide3 g) {
   flatguide3 f;
   g(f);
   return f.solve();
+}
+
+// TODO: Do dir to control point conversion in 3d.
+
+path project(path3 g, projection P)
+{
+  guide pg;
+  typedef guide connector(... guide[]);
+  
+  for(int i=0; i < size(g); ++i) {
+    connector joint=g.straight[i] ? operator -- : operator ..;
+    if(g.out[i].active)
+      pg=joint(pg,P(point(g,i)){P(g.out[i].value)}..nullpath);
+    else if(g.in[i].active)
+      pg=pg..{P(g.in[i].value)}nullpath;
+    else if(g.control[i].active)
+      pg=joint(pg,P(point(g,i))..controls P(g.control[i].post) and 
+	       P(g.control[i].pre)..nullpath);
+    else pg=joint(pg,P(point(g,i)));
+  }
+  return cyclic(g) ? (g.straight[-1] ? pg--cycle : pg..cycle) : pg;
 }
 
 // The graph of a function along a path.
@@ -252,7 +295,7 @@ guide3 graph(real f(pair z), path p, int n=10) {
     pair z=point(p,i/n);
     g=g--F(z);
   }
-  return cyclic(p) ? g--cycle : g--F(endpoint(p));
+  return cyclic(p) ? g--cycle3 : g--F(endpoint(p));
 }
 
 picture plot(real f(pair z), pair min, pair max,
@@ -295,7 +338,7 @@ picture plot(real f(pair z), pair min, pair max,
 /*{
   // A test.
   size(200,0);
-  guide3 g=(-1,-1,0)--(1,-1,0)--(1,1,0)--(-1,1,0)--cycle;
+  guide3 g=(-1,-1,0)--(1,-1,0)--(1,1,0)--(-1,1,0)--cycle3;
  
   triple camera=(5,-5,2);
   projection P=perspective(camera);
@@ -310,7 +353,7 @@ picture plot(real f(pair z), pair min, pair max,
     return 0.5+exp(-abs(z)^2);
   }
 
-  guide3 g=(-1,-1,0)--(1,-1,0)--(1,1,0)--(-1,1,0)--cycle;
+  guide3 g=(-1,-1,0)--(1,-1,0)--(1,1,0)--(-1,1,0)--cycle3;
   guide3 eg=graph(f,(1,0)--(-1,0));
  
   triple camera=(5,4,2);
@@ -318,16 +361,24 @@ picture plot(real f(pair z), pair min, pair max,
 
   draw(project(g,P));
 
-  real r=2;
+  real r=1.75;
   draw("$x$",project((0,0,0)--(r,0,0),P),1,red,Arrow);
   draw("$y$",project((0,0,0)--(0,r,0),P),1,red,Arrow);
   draw("$z$",project((0,0,0)--(0,0,r),P),1,red,Arrow);
   
   real a=4(sqrt(2)-1)/3;
+  
   draw(project((1,0,0)..controls (1,a,0) and (a,1,0)..
-       (0,1,0)..controls (-a,1,0) and (-1,a,0)..
-       (-1,0,0)..controls (-1,-a,0) and (-a,-1,0)..
-       (0,-1,0)..controls (a,-1,0) and (1,-a,0)..cycle,P),1,green);
+	       (0,1,0)..controls (-a,1,0) and (-1,a,0)..
+	              (-1,0,0)..controls (-1,-a,0) and (-a,-1,0)..
+	       (0,-1,0)..controls (a,-1,0) and (1,-a,0)..
+	       cycle3,P),1,blue);
+
+
+//  draw(project((1,0,0)--(0,1,0)--(-1,0,0)..(0,-1,0){X}..{Y}(1,0,0),P),magenta);
+  draw(project((1,0,0){Y}..{(-X)}(0,1,0){-X}..{-Y}(-1,0,0){-Y}
+	       ..{X}(0,-1,0){X}..{Y}(1,0,0),P),green);
+  
   label("$O$",project((0,0,0),P),S);
   
   add(plot(f,(-1,-1),(1,1),P,n=10));

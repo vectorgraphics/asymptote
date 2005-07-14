@@ -65,6 +65,8 @@ void arrayWrite(vm::stack *s);
 void arrayLength(vm::stack *s);
 void arrayPush(vm::stack *s);
 void arrayPushHelper(vm::stack *s);
+void arrayPop(vm::stack *s);
+void arrayPopHelper(vm::stack *s);
 void arrayAlias(vm::stack *s);
 void arrayConditional(vm::stack *s);
 void arrayIntArray(vm::stack *s);

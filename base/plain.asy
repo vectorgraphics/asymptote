@@ -18,6 +18,13 @@ guide operator controls(pair z)
   return operator controls(z,z);
 }
 
+guide operator ::(... guide[] a) {
+  guide g;
+  for(int i=0; i < a.length; ++i)
+    g=g..tension atleast 1.0..a[i];
+  return g;
+}
+		    
 public bool shipped=false;
 public bool uptodate=true;
 static public pen currentpen;
@@ -201,17 +208,28 @@ void write(file file=stdout, bool x, suffix s) {write(file,x); s(file);}
 void write(file file=stdout, int x, suffix s) {write(file,x); s(file);}
 void write(file file=stdout, real x, suffix s) {write(file,x); s(file);}
 void write(file file=stdout, pair x, suffix s) {write(file,x); s(file);}
+void write(file file=stdout, triple x, suffix s) {write(file,x); s(file);}
 void write(file file=stdout, string x, suffix s) {write(file,x); s(file);}
 void write(file file=stdout, guide x, suffix s) {write(file,x); s(file);}
 void write(file file=stdout, pen x, suffix s) {write(file,x); s(file);}
 void write(file file=stdout, transform x, suffix s) {write(file,x); s(file);}
+
+void write(file file=stdout, string x, bool y)
+{
+  write(file,x); write(file,y,endl);
+}
 
 void write(file file=stdout, string x, real y)
 {
   write(file,x); write(file,y,endl);
 }
 
-void write(file file=stdout, string x, pair y)
+void write(file file=stdout, string x, explicit pair y)
+{
+  write(file,x); write(file,y,endl);
+}
+
+void write(file file=stdout, string x, triple y)
 {
   write(file,x); write(file,y,endl);
 }
@@ -1609,6 +1627,11 @@ real interp(real a, real b, real c)
 }
 
 pair interp(pair a, pair b, real c)
+{
+  return a+c*(b-a);
+}
+
+triple interp(triple a, triple b, real c)
 {
   return a+c*(b-a);
 }
