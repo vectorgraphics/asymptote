@@ -600,13 +600,22 @@ struct encodeControls : public knoteffect {
 void encodeStraight(protopath& p, int k, knotlist& l)
 {
   pair a=l.front().z;
+  double at=l.front().tout.val;
   pair b=l.back().z;
+  double bt=l.back().tin.val;
   pair step=(b-a)/3.0;
   
-  p.straight(k)=true;
-  p.post(k)=a+step;
-  p.pre(k+1)=b-step;
-  p.point(k+1)=b;
+  if (at==1.0 && bt==1.0) {
+    p.straight(k)=true;
+    p.post(k)=a+step;
+    p.pre(k+1)=b-step;
+    p.point(k+1)=b;
+  }
+  else {
+    p.post(k)=a+step/at;
+    p.pre(k+1)=b-step/bt;
+    p.point(k+1)=b;
+  }
 }
 
 void solveSection(protopath& p, int k, knotlist& l)
