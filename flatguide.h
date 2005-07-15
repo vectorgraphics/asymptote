@@ -103,7 +103,10 @@ public:
   }
   void setSpec(spec *p, side s) {
     update();
-    sref(s)=p;
+    spec *&ref=sref(s);
+    // Control specifiers trump normal direction specifiers.
+    if (!(ref && ref->controlled()))
+      ref=p;
   }
 
   void add(pair z) {

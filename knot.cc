@@ -129,9 +129,9 @@ ostream& operator<<(ostream& out, const knot& k)
   if (interesting(k.in))
     out << *k.in << " ";
   out << k.z;
-  if (interesting(k.in))
+  if (interesting(k.out))
     out << " " << *k.out;
-  if (interesting(k.tin))
+  if (interesting(k.tout))
     out << " " << k.tout;
   return out;
 }
@@ -702,6 +702,8 @@ path solveSpecified(knotlist& l)
     int a=first;
     while (a!=last) {
       if (l[a].out->controlled()) {
+        assert(l[a+1].in->controlled());
+
         // Controls are already picked, just write them out.
         writeControls(p,a,l);
         ++a;
