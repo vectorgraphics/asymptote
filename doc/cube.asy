@@ -1,7 +1,9 @@
 size(0,100);
 import math;
-import graph3d;
+import three;
 
-path[] p=box3d((0,0,0),(1,1,1));
+currentprojection=oblique;
+
+path3[] p=box3d((0,0,0),(1,1,1));
 draw(p);
 dot(p,red);

@@ -250,6 +250,7 @@ ESC \\
 "++"               {makesymbol(); return INCR; }
 ".."               {makesymbol(); return DOTS; }
 "--"               {makesymbol(); return DASHES; }
+"---"              {makesymbol(); return LONGDASH; }
 
 "+="               {makeselfsymbol(); return ADD; }
 "-="               {makeselfsymbol(); return SUBTRACT; }
@@ -323,7 +324,7 @@ operator           {adjust(); BEGIN opname; }
                      BEGIN INITIAL;
                      return ID;
                    }
-[-+*/%^!<>]|==|!=|<=|>=|&&|\|\||\^\^|\.\.|--|::|cycle|curl|tension|atleast|controls {
+[-+*/%^!<>]|==|!=|<=|>=|&&|\|\||\^\^|\.\.|::|--|---|\+\+|cycle|curl|tension|atleast|controls {
   makesymbol();
   BEGIN INITIAL;
   return ID;}

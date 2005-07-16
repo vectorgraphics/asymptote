@@ -66,8 +66,8 @@ double velocity(double theta, double phi, tension t)
 {
   static const double a = sqrt(2.0);
   static const double b = 1.0/16.0;
-  static const double c = sqrt(5.0)-1.0;
-  static const double d = 3.0-sqrt(5.0);
+  static const double c = 1.5*(sqrt(5.0)-1.0);
+  static const double d = 1.5*(3.0-sqrt(5.0));
 
   double st = sin(theta), ct = cos(theta),
          sf = sin(phi),   cf = cos(phi);
@@ -75,7 +75,7 @@ double velocity(double theta, double phi, tension t)
   // NOTE: Have to deal with degenerate condition theta = phi = -pi
 
   double r =  (2.0 + a*(st - b*sf)*(sf - b*st)*(ct-cf)) /
-              (3.0 * t.val * (1.0 + 0.5*c*ct + 0.5*d*cf));
+              (t.val * (3.0 + c*ct + d*cf));
 
   //cerr << " velocity(" << theta << "," << phi <<")= " << r << endl;
   if (r >  VELOCITY_BOUND)

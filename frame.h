@@ -38,7 +38,7 @@ public:
   }
 
   int size() {
-    return 1+numFormals+numLocals;
+    return (int) (1+numFormals+numLocals);
   }
 
   access *accessFormal(size_t index) {

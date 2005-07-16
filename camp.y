@@ -76,9 +76,9 @@ using sym::symbol;
 }  
 
 %token <ps> ID OP ADD SUBTRACT TIMES DIVIDE MOD EXPONENT
-            DOTS DASHES INCR
+            DOTS COLONS DASHES LONGDASH INCR
             CONTROLS TENSION ATLEAST CURL CYCLE
-            COR CAND EQ NEQ LT LE GT GE CARETS COLONS
+            COR CAND EQ NEQ LT LE GT GE CARETS
             '+' '-' '*' '/' '%' '^' LOGNOT
             STRING
 %token <pos> LOOSE ASSIGN '?' ':'
@@ -98,7 +98,7 @@ using sym::symbol;
 %left  LT LE GT GE
 
 %left  CARETS
-%left  JOIN_PREC DOTS DASHES COLONS
+%left  JOIN_PREC DOTS COLONS DASHES INCR LONGDASH
 %left  DIRTAG CONTROLS TENSION ATLEAST AND
 %left  CURL '{' '}'
 
@@ -107,7 +107,7 @@ using sym::symbol;
 %left  '(' ')'
 %left  UNARY
 %right '^'
-%left  LOGNOT INCR
+%left  LOGNOT
 
 %type  <fil> file fileblock
 %type  <bs>  block bareblock
@@ -424,7 +424,7 @@ exp:
 | exp CAND exp     { $$ = new andExp($2.pos, $1, $2.sym, $3); }
 | exp COR exp      { $$ = new orExp($2.pos, $1, $2.sym, $3); }
 | exp CARETS exp   { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
-| exp COLONS exp   { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
+| exp INCR exp     { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | NEW celltype
                    { $$ = new newRecordExp($1, $2); }
 //| NEW celltype dims
@@ -521,6 +521,8 @@ basicjoin:
                    { $$ = new joinExp($1.pos, $1.sym); $$->pushBack($2); }
 | DOTS controls DOTS
                    { $$ = new joinExp($1.pos, $1.sym); $$->pushBack($2); }
+| COLONS           { $$ = new joinExp($1.pos, $1.sym); }
+| LONGDASH         { $$ = new joinExp($1.pos, $1.sym); }
 ;
 
 tension:

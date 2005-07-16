@@ -6,25 +6,6 @@
  *
  *****/
 
-// Define a.. tension x ..b to be equivalent to
-//        a.. tension x and x ..b
-// and likewise with controls.
-guide operator tension(real x, bool atl)
-{
-  return operator tension(x,x,atl);
-}
-guide operator controls(pair z)
-{
-  return operator controls(z,z);
-}
-
-guide operator ::(... guide[] a) {
-  guide g;
-  for(int i=0; i < a.length; ++i)
-    g=g..tension atleast 1.0..a[i];
-  return g;
-}
-		    
 public bool shipped=false;
 public bool uptodate=true;
 static public pen currentpen;
@@ -149,6 +130,32 @@ static public string defaultfilename;
 // Reduced for tension atleast infinity
 static real infinity=sqrt(0.5*realMax());
 static real epsilon=realEpsilon();
+
+// Define a.. tension x ..b to be equivalent to
+//        a.. tension x and x ..b
+// and likewise with controls.
+guide operator tension(real x, bool atl)
+{
+  return operator tension(x,x,atl);
+}
+guide operator controls(pair z)
+{
+  return operator controls(z,z);
+}
+
+guide operator ::(... guide[] a) {
+  guide g;
+  for(int i=0; i < a.length; ++i)
+    g=g..tension atleast 1 ..a[i];
+  return g;
+}
+		    
+guide operator ---(... guide[] a) {
+  guide g;
+  for(int i=0; i < a.length; ++i)
+    g=g..tension atleast infinity..a[i];
+  return g;
+}
 
 real dotsize(pen p=currentpen) 
 {
@@ -551,13 +558,13 @@ pair point(frame f, pair dir)
 }
 
 guide[] operator cast(pair[] z) {
-  guide[] g;
+  guide[] g=new guide[z.length];
   for(int i=0; i < z.length; ++i) g[i]=z[i];
   return g;
 }
 
 path[] operator cast(pair[] z) {
-  path[] g;
+  path[] g=new path[z.length];
   for(int i=0; i < z.length; ++i) g[i]=z[i];
   return g;
 }
@@ -2323,8 +2330,8 @@ pair endpoint(path g)
 }
 
 pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,darkblue,
-		 darkgreen,chartreuse,fuchsia,salmon,lightblue,black,lavender,
-		 pink,yellow,gray};
+		darkgreen,chartreuse,fuchsia,salmon,lightblue,black,lavender,
+		pink,yellow,gray};
 pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,longdashdotted};
 
 transform invert=reflect((0,0),(1,0));

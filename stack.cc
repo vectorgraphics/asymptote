@@ -69,8 +69,6 @@ void stack::run(func *f)
   cout << endl;
 #endif
   
-  /* start the new function */
-  program::label ip = body->code->begin();
   /* make new activation record */
   vars_t vars = make_frame(body->params, f->closure);
   marshall(body->params, vars);
@@ -80,6 +78,7 @@ void stack::run(func *f)
 
 void stack::run(program *code, vars_t vars)
 {
+  /* start the new function */
   program::label ip = code->begin();
 
   em->Pending(settings::verbose > 4);
