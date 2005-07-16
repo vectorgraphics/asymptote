@@ -115,23 +115,11 @@ pair intersectionpoint(path a, path b)
   return point(a,intersect(a,b).x);
 }
 
-real Dot(triple a, triple b)
-{
-  return a.x*b.x+a.y*b.y+a.z*b.z;
-}
-
-triple Cross(triple a, triple b)
-{
-  return (a.y*b.z-a.z*b.y,
-	  a.z*b.x-a.x*b.z,
-	  a.x*b.y-b.x*a.y);
-}
-
 // Compute normal vector to the plane defined by the first 3 vectors of p.
 triple normal(triple[] p)
 {
   if(p.length < 3) abort("3 vectors are required to define a plane");
-  return Cross(p[1]-p[0],p[2]-p[0]);
+  return cross(p[1]-p[0],p[2]-p[0]);
 }
 
 triple unitnormal(triple[] p)

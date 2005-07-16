@@ -195,11 +195,11 @@ void labelaxis(frame f, string s, real position, real angle, pair align,
     pair offset=(align.x > 0 ? maxf.x : (align.x < 0 ? minf.x : 0),
 		 align.y > 0 ? maxf.y : (align.y < 0 ? minf.y : 0))-z;
     pair Idir=I*dir;
-    z += Dot(offset,Idir)*Idir;
+    z += dot(offset,Idir)*Idir;
   }
   frame d;
   label(d,s,angle,z,labels ? axislabelmargin*align : align,p);
-  pair width=0.5*Dot(max(d)-min(d),dir)*dir;
+  pair width=0.5*dot(max(d)-min(d),dir)*dir;
   if(position == 0) d=shift(width)*d;
   if(position == length(g)) d=shift(-width)*d;
   add(f,d);
@@ -232,7 +232,7 @@ pair labeltick(frame d, transform T, guide g, real pos, pair side,
   locateT locate;
   locate.calc(T,g,pos);
   pair align=-side*I*locate.dir;
-  pair shift=Dot(align,I*sign*locate.dir) < 0 ? align*Size :
+  pair shift=dot(align,I*sign*locate.dir) < 0 ? align*Size :
     ticklabelshift(align,plabel);
   pair Z=locate.Z+shift;
   real v=part(locate.z);
@@ -256,7 +256,7 @@ real axiscoverage(int N, transform T, path g, real Step, pair side, int sign,
       frame d;
       pair dir=labeltick(d,T,g,iStep,side,sign,Size,ticklabel,plabel,part,
 			 norm);
-      coverage += abs(Dot(max(d)-min(d),dir));
+      coverage += abs(dot(max(d)-min(d),dir));
     }
     if(coverage > limit) return coverage;
   }
@@ -273,7 +273,7 @@ real logaxiscoverage(int N, transform T, path g, real initial, real factor,
     frame d;
     pair dir=labeltick(d,T,g,(i-initial)*factor,side,sign,Size,ticklabel,
 		       plabel,part);
-    coverage += abs(Dot(max(d)-min(d),dir));
+    coverage += abs(dot(max(d)-min(d),dir));
     if(coverage > limit) return coverage;
   }
   return coverage;
@@ -1099,7 +1099,7 @@ void xtick(picture pic=currentpicture, string s="", pair z, pair tickalign=N,
   if(align == 0) {
     align=-tickalign;
   } else if(shift == infinity) 
-    shift=Dot(tickalign,align) > 0 ? tickalign*size : 
+    shift=dot(tickalign,align) > 0 ? tickalign*size : 
       ticklabelshift(tickalign,p);
   if(s != "") labelx(pic,s,z,align,shift,p);
   tick(pic,z,tickalign,Ticksize,p);

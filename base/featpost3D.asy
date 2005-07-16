@@ -163,36 +163,26 @@ public pen background = gray(0.987);
       return unit(A);
     }
 
-/*    real Dot(triple A, triple B) { 
-      return Dot(A,B);
-    }
-
-    def Cross(expr A, B) = 
-        ( Y(A)*Z(B) - Z(A)*Y(B), 
-          Z(A)*X(B) - X(A)*Z(B), 
-          X(A)*Y(B) - Y(A)*X(B) )
-    enddef;
-*/
 // The Dotproduct of two normalized triples is the cosine of the angle 
 // they form.
 
     real nDotprod(triple A, triple B) {
-      return Dot(unit(A),unit(B));
+      return dot(unit(A),unit(B));
     }
 
 // The normalized crossproduct of two triples. 
 // Also check getangle below.
 
     triple ncrossprod(triple A, triple B) { 
-        return unit( Cross( A, B ) );
+        return unit( cross( A, B ) );
     }
 
 // Haahaa! Trigonometry. 
 
     real getangle(triple A, triple B) {
       real coss, sine;
-      coss = Dot( A, B );
-      sine = conorm( Cross( A, B ) );
+      coss = dot( A, B );
+      sine = conorm( cross( A, B ) );
       return angle((coss, sine));
     }
 // Something I need for spatialhalfsfear.
@@ -224,8 +214,8 @@ public pen background = gray(0.987);
       v = unit( (-Y(f-viewcentr), X(f-viewcentr), 0) );
       u = ncrossprod( f-viewcentr, v );
 
-	   horiz = Dot( R-viewcentr, v );
-	   verti = Dot( R-viewcentr, u );
+	   horiz = dot( R-viewcentr, v );
+	   verti = dot( R-viewcentr, u );
 
 	   if (SphericalDistortion) {
 		  if ( horiz != 0 || verti != 0 ) {
@@ -242,8 +232,8 @@ public pen background = gray(0.987);
 	     if (ParallelProj) {
 		    eta = 1;
 	     } else {
-	       squarf = Dot( f-viewcentr, f-viewcentr );
-		    radio = Dot( R-viewcentr, f-viewcentr );
+	       squarf = dot( f-viewcentr, f-viewcentr );
+		    radio = dot( R-viewcentr, f-viewcentr );
 		    eta = 1 - radio/squarf;
 		    if (eta < 0.03) {  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DANGER
 		        eta = 0.03;
@@ -385,7 +375,7 @@ public pen background = gray(0.987);
       k = 1;
       while (true) {
 	     mark = A+(k*stepVec);
-        if (Dot(B-mark,stepVec) <= 0) break;
+        if (dot(B-mark,stepVec) <= 0) break;
 		  pos[k] = rp( mark );
 		  ++k;
 	   }
@@ -688,7 +678,7 @@ public pen background = gray(0.987);
       triple vecx, vecy, vec[], goodangulmom, view;
       guide cirath;
 	   view = f-CenterPos;
-	   decision = Dot( view, AngulMom );
+	   decision = dot( view, AngulMom );
 	   if (decision < 0)
 	     goodangulmom = -AngulMom;
 	   else
@@ -745,7 +735,7 @@ public pen background = gray(0.987);
 	   bool choice;
 	   va = Center - f; 
       vb = N( AngulMom ); 
-      vc = vb*( Dot( va, vb ) );
+      vc = vb*( dot( va, vb ) );
       cc = f + vc;
 	   vd = cc - Center;  // vd := va + vc;
       nr = conorm( vd );
@@ -774,12 +764,12 @@ public pen background = gray(0.987);
 		      returnp = cutbefore(fcirc,auxih)..cutafter(fcirc,auxil);
 		  }  else {
 		    if (ItsTheNearest) {
-		      if (Dot( va, AngulMom ) > 0)
+		      if (dot( va, AngulMom ) > 0)
 		        returnp = rp(pb)--rp(pa);
 		      else
 		        returnp = rp(pa)--rp(pb);
           } else {
-		      if (Dot( va, AngulMom ) < 0)
+		      if (dot( va, AngulMom ) < 0)
 		        returnp = rp(pb)--rp(pa);
 		      else
 		        returnp = rp(pa)--rp(pb);
@@ -806,7 +796,7 @@ public pen background = gray(0.987);
 
 	   va = BaseCenter - f; 
       vb = N( LenVec ); 
-      vc = vb*( Dot( va, vb ) );
+      vc = vb*( dot( va, vb ) );
       cc = f + vc;
 	   vd = cc - BaseCenter;
       nr = conorm( vd );
@@ -860,7 +850,7 @@ public pen background = gray(0.987);
 	     }
 	   } else {
 	     cC = base + vd;
-        if ( Dot( f - cc, f - cC ) <= 0 || !FullFill ) {
+        if ( dot( f - cc, f - cC ) <= 0 || !FullFill ) {
 	       halfl = spatialhalfcircle(BaseCenter,LenVec,Radius,true);
 	       halfh = spatialhalfcircle(base,LenVec,Radius,true);
 	       if (FullFill) 
@@ -953,7 +943,7 @@ public pen background = gray(0.987);
 	 real lenpath, thelengthofc, themargin;
 	 themargin = 0.02;
 	 bonevec = VertexPos - CenterPos;
-	 if (Dot( bonevec, AngulMom ) < 0)
+	 if (dot( bonevec, AngulMom ) < 0)
 	   sidevec = -N(AngulMom);
 	 else
 	   sidevec = N(AngulMom);
@@ -970,7 +960,7 @@ public pen background = gray(0.987);
 	 if (lenpath!=0) {
 	   unfill(thepath);
 	   draw( thepath );
-	   if (Dot( sidevec, viewaxe ) < 0)
+	   if (dot( sidevec, viewaxe ) < 0)
 	     draw( goodcirclepath( CenterPos, AngulMom, Radius ) );
 	   else {
 	     if (BackDash)
@@ -980,7 +970,7 @@ public pen background = gray(0.987);
 	   cipath = goodcirclepath( CenterPos, AngulMom, Radius );
 	   unfill(cipath);
 	   draw(cipath);
-	   if (Dot( sidevec, viewaxe ) > 0)
+	   if (dot( sidevec, viewaxe ) > 0)
 	     draw( rp( VertexPos ) );
     }
   }
@@ -1029,12 +1019,12 @@ public pen background = gray(0.987);
 	   fill( rigorousfearshadowpath( TheCenter, Radius ) );
 	 viewaxe = f-TheCenter;
 	 sinalfa = Radius/conorm( viewaxe );
-	 aux = Dot( viewaxe, AngulMom );
+	 aux = dot( viewaxe, AngulMom );
 	 if (aux < 0)
 	   globaxe = -N(AngulMom);
 	 else
 	   globaxe = N(AngulMom);
-	 sinbeta = Dot( globaxe, N(viewaxe) );
+	 sinbeta = dot( globaxe, N(viewaxe) );
 	 aux = sqrt((1-sinalfa^2)*(1-sinbeta^2));
 	 limicos = aux - sinalfa*sinbeta;
 	 stepang = 180/NumLats;
@@ -1048,13 +1038,13 @@ public pen background = gray(0.987);
 	     newradius = Radius*Sin(actang);
 	     newcenter = TheCenter - globaxe*Cos(actang);
 	     conditiona = (actang<94) && (actang>86); // DANGER % DANGER VV
-	     conditionb = abs(Dot(globaxe/Radius,N(f-newcenter)))<0.08;
+	     conditionb = abs(dot(globaxe/Radius,N(f-newcenter)))<0.08;
 	     if (conditiona || conditionb) 
 	       draw( spatialhalfcircle(newcenter,globaxe,newradius,true) );
 	     else {
 	       foc = TheCenter - globaxe/Cos(actang);
 	       lena = -Radius*Cos(actang);
-	       lenb = Dot(viewaxe,globaxe/Radius);
+	       lenb = dot(viewaxe,globaxe/Radius);
 	       if ((actang <= 86) || ((lenb<lena) && (actang>=94))) {
 		      cpath = rigorouscone(false,newcenter,globaxe,newradius,foc);
 		      draw( cpath );
@@ -1095,7 +1085,7 @@ public pen background = gray(0.987);
 	 pathc = twocyclestogether( patha, pathb );
 	 unfill( pathc );
 	 draw( pathc );
-	 if (Dot( centersvec, f-CenterPos ) > 0)
+	 if (dot( centersvec, f-CenterPos ) > 0)
 	   draw( pathb );
 	 else
 	   draw( patha );
@@ -1112,7 +1102,7 @@ public pen background = gray(0.987);
 	                  Sin(AngA)*Cos(AngB),
 	                  Sin(AngB) );
 	   auxx = ( Cos(AngA+90), Sin(AngA+90), 0 );
-	   auxy = Cross( veca, auxx );
+	   auxy = cross( veca, auxx );
 	   vecb = Cos(AngC)*auxx + Sin(AngC)*auxy;
 	   vecc = Cos(AngC+90)*auxx + Sin(AngC+90)*auxy;
 	   veca = LenA*veca;
@@ -1149,15 +1139,15 @@ public pen background = gray(0.987);
 	   unfill( patb );
 	   draw( patb );
 	   refv = f - centre;
-	   if (Dot( refv, veca ) > 0)
+	   if (dot( refv, veca ) > 0)
 	      newa = -veca;
 	   else
 	      newa = veca;
-	   if (Dot( refv, vecb ) > 0)
+	   if (dot( refv, vecb ) > 0)
 	     newb = -vecb;
 	   else
 	     newb = vecb;
-	   if (Dot( refv, vecc ) > 0)
+	   if (dot( refv, vecc ) > 0)
 	     newc = -vecc;
 	   else
 	     newc = vecc;
@@ -1232,7 +1222,7 @@ public pen background = gray(0.987);
       triple A, B;
       spath = rigorousfearpath( Center, Radius );
 	   auxcos = getcossine( Center, Radius );
-	   actcos = Dot( N( f - Center ), N( AngulMom ) );
+	   actcos = dot( N( f - Center ), N( AngulMom ) );
 	   actsin = sqrt(1-actcos^2);
 	   auxsin = sqrt(1-auxcos^2);
 	   if (actsin <= auxcos) {
@@ -1284,14 +1274,14 @@ public pen background = gray(0.987);
 	   angstep= 4; //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DANGER!
 
 	   viewline = f-Tcenter;
-	   if (Dot( viewline, Tmoment ) < 0)
+	   if (dot( viewline, Tmoment ) < 0)
 	     tmoment = -Tmoment;
 	   else
 	     tmoment = Tmoment;
 	   refpair = unit( rp(Tcenter+tmoment)-rp(Tcenter) );
 	   sideaxe = Bray*ncrossprod( tmoment, viewline );
 	   nearaxe = Bray*ncrossprod( sideaxe, tmoment );
-	   coofrac = Dot( viewline, N( tmoment ) )/Sray;
+	   coofrac = dot( viewline, N( tmoment ) )/Sray;
 
 	   if (coofrac <= 1.04 && coofrac >= 1.01) { //%%%%%%%% DANGER!
         // TN : possible conversion problem
@@ -1401,7 +1391,7 @@ public pen background = gray(0.987);
         while (true) {
 	       ++i;
 	       if (i > ind-1) break;
-	       cuspcond=Dot(refpair, innerp[i+1]) < Dot(refpair, innerp[i]);
+	       cuspcond=dot(refpair, innerp[i+1]) < dot(refpair, innerp[i]);
 	       if (cuspcond) break;
 	     }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1424,7 +1414,7 @@ public pen background = gray(0.987);
 	   path spath;
 	   viewline = f - Center;
 	   axehorf = N( ( X(viewline), Y(viewline), 0 ) );
-	   axeside = Cross( axehorf, (0,0,1) );
+	   axeside = cross( axehorf, (0,0,1) );
 	   if (ShadowOn)
 	     fill( rigorousfearshadowpath( Center, BallRay ) );
 	   spath = rigorousfearpath( Center, BallRay );
@@ -1462,12 +1452,12 @@ public pen background = gray(0.987);
 	                  Sin(anga)*Cos(angb),
 	                  Sin(angb) );
 	   auxx = ( Cos(anga+90), Sin(anga+90), 0 );
-	   auxy = Cross( veca, auxx );
+	   auxy = cross( veca, auxx );
 	   vecb = Cos(angc)*auxx + Sin(angc)*auxy;
 	   vecc = Cos(angc+90)*auxx + Sin(angc+90)*auxy;
 	   viewline = f - RefP;
-	   auxm = Dot( viewline, veca );
-	   auxn = Dot( viewline, vecb );
+	   auxm = dot( viewline, veca );
+	   auxn = dot( viewline, vecb );
 	   inrefp = RefP - 0.5*lenc*vecc;
 	   fl = inrefp + (0.5*lena-fmar-fray)*veca + 0.5*lenb*vecb;
 	   fr = inrefp + (0.5*lena-fmar-fray)*veca - 0.5*lenb*vecb;
@@ -1588,13 +1578,13 @@ public pen background = gray(0.987);
 	   prevvel = Svel;
 	   flpath = rp( Spos );
 	   for (int ind=1; ind <= Numb; ind+=1 ) {
-	     vone = Step*Cross( VecFunc( prevpos ), prevvel );
+	     vone = Step*cross( VecFunc( prevpos ), prevvel );
 	     rone = Step*prevvel;
-	     vtwo = Step*Cross( VecFunc( prevpos+0.5*rone ), prevvel+0.5*vone );
+	     vtwo = Step*cross( VecFunc( prevpos+0.5*rone ), prevvel+0.5*vone );
 	     rtwo = Step*( prevvel+0.5*vone );
-	     vthr = Step*Cross( VecFunc( prevpos+0.5*rtwo ), prevvel+0.5*vtwo );
+	     vthr = Step*cross( VecFunc( prevpos+0.5*rtwo ), prevvel+0.5*vtwo );
 	     rthr = Step*( prevvel+0.5*vtwo );
-	     vfou = Step*Cross( VecFunc( prevpos+rthr ), prevvel+vthr );
+	     vfou = Step*cross( VecFunc( prevpos+rthr ), prevvel+vthr );
 	     rfou = Step*( prevvel+vthr );	    
 	     thisvel = prevvel+(vtwo+vthr)/3+(vone+vfou)/6;
 	     thispos = prevpos+(rtwo+rthr)/3+(rone+rfou)/6;
@@ -1684,7 +1674,7 @@ public pen background = gray(0.987);
 
     triple flip(triple A, triple B) {
       triple nv;
-      if (Dot( A, B) < 0)
+      if (dot( A, B) < 0)
         nv = -A;
       else
         nv = A;
@@ -1734,7 +1724,7 @@ public pen background = gray(0.987);
         if (l > NF) break;
         faceVec = face(F[l][1],F[l][2],F[l][3]);
         inview = true;
-        if (Dot(Mark-F[l][1], faceVec) < 0) {
+        if (dot(Mark-F[l][1], faceVec) < 0) {
           centerPoint = masscenter(npf[l], F[l]);
           m = 0;
           while(true) {                 // cycle over segments of a face 
@@ -1745,7 +1735,7 @@ public pen background = gray(0.987);
             else
               c = F[l][1];
             coverVec = cover(F[l][m], c, centerPoint);
-            inview = Dot(Mark-c,coverVec) <= 0;
+            inview = dot(Mark-c,coverVec) <= 0;
             if (inview) break;
           }
         }
@@ -1758,7 +1748,7 @@ public pen background = gray(0.987);
 
     bool maycrossviewplan(triple Ea, triple Eb,
                           triple La, triple Lb) {
-      return (abs( Dot( Cross(Ea-f,Eb-f), La-Lb ) ) > 0.001);
+      return (abs( dot( cross(Ea-f,Eb-f), La-Lb ) ) > 0.001);
     }
 
 // Calculate the intersection of two sides. This is very nice.
@@ -1771,13 +1761,13 @@ public pen background = gray(0.987);
       else if ( Eb == Lb || Eb == La )
          thecrossing = Eb;
       else {
-         perpend = Cross( Ea-f, Eb-f );
+         perpend = cross( Ea-f, Eb-f );
          if ( conorm( perpend ) == 0 )
            thecrossing = Eb;
          else {
-           aux = Dot( perpend, f );
+           aux = dot( perpend, f );
            /* TN : 4x4 system of linear equalities
-           Dot( perpend, thecrossing ) = aux; 
+           dot( perpend, thecrossing ) = aux; 
            ( La-Lb )*exten = La-thecrossing; */
          }
       }
@@ -1789,9 +1779,9 @@ public pen background = gray(0.987);
     triple crossingpointf(triple Ea, triple Eb, int Fen) {
       triple thecrossing, perpend;
       real exten;
-      perpend = Cross( F[Fen][1]-F[Fen][2], F[Fen][3]-F[Fen][2] );
+      perpend = cross( F[Fen][1]-F[Fen][2], F[Fen][3]-F[Fen][2] );
       // TN : 4x4
-      //Dot( perpend, thecrossing ) = Dot( perpend, F[Fen]p2 );
+      //dot( perpend, thecrossing ) = dot( perpend, F[Fen]p2 );
       //( Ea-Eb )*exten = Ea-thecrossing; 
       return thecrossing;
     }
@@ -1801,15 +1791,15 @@ public pen background = gray(0.987);
     bool maycrossviewplanf(triple Ea, triple Eb, int Fen) 
     {
       triple perpend;
-      perpend = Cross( F[Fen][1]-F[Fen][2], F[Fen][3]-F[Fen][2] );
-      return ( abs( Dot( perpend, Ea-Eb ) ) > 0.001 );
+      perpend = cross( F[Fen][1]-F[Fen][2], F[Fen][3]-F[Fen][2] );
+      return ( abs( dot( perpend, Ea-Eb ) ) > 0.001 );
     }
 
 // The intersection point must be within the extremes of the segment.
 
     bool insidedge(triple Point, triple Ea, triple Eb) {
       real fract;
-      fract = Dot( Point-Ea, Point-Eb );
+      fract = dot( Point-Ea, Point-Eb );
       return fract < 0;
     }
 
@@ -1821,7 +1811,7 @@ public pen background = gray(0.987);
       bool flag;
       real exten;
       nearestofline = La+exten*(Lb-La);
-      // TN : Dot( nearestofline-f, Lb-La ) = 0;
+      // TN : dot( nearestofline-f, Lb-La ) = 0;
       if (conorm(Ea-f) < conorm(Eb-f))
         furthestofedge = Eb;
       else
@@ -1840,10 +1830,10 @@ public pen background = gray(0.987);
     bool insidethistriangle(triple Point, triple A, triple B, triple C ) {
             triple arep, area, areb, aret;
             bool flag;
-            aret = Cross( A-C, B-C );
-            arep = flip( Cross( C-Point, A-Point ), aret );
-            area = flip( Cross( A-Point, B-Point ), aret );
-            areb = flip( Cross( B-Point, C-Point ), aret );
+            aret = cross( A-C, B-C );
+            arep = flip( cross( C-Point, A-Point ), aret );
+            area = flip( cross( A-Point, B-Point ), aret );
+            areb = flip( cross( B-Point, C-Point ), aret );
             flag = ( conorm( arep + area + areb ) <= 2*conorm( aret ) ); 
             return flag;
     }
@@ -1883,7 +1873,7 @@ public pen background = gray(0.987);
             k = 0;
             while (true) {                    // cycle along a whole segment 
                 mark = A+(k*stepVec);
-                if (Dot(B-mark,stepVec) < 0) break;
+                if (dot(B-mark,stepVec) < 0) break;
                 if (themarkisinview(mark,Facen))
                     signalvertex(mark, Press, Col);
                 ++k;
@@ -1972,14 +1962,14 @@ public pen background = gray(0.987);
                              currcross = crossingpoint( a, b, c, d );
                              if (insideviewtriangle( currcross, a, b )) {
                                if (insidedge( currcross, c, d )) {
-                                 swapc = Cross( a-b, f-currcross);
-                                 swapc = Cross(swapc,f-currcross);
+                                 swapc = cross( a-b, f-currcross);
+                                 swapc = cross(swapc,f-currcross);
                                  
                                  triple somepo;
                                  int fract;
                                 /* TN :
                                  (b-a)*fract = somepo-a;
-                                 Dot(swapc,somepo)=Dot(swapc,f);
+                                 dot(swapc,somepo)=dot(swapc,f);
                                */  
                                  if (fract>0 && fract<1) {
                                    crosspoin[counter] = somepo;
@@ -2030,7 +2020,7 @@ public pen background = gray(0.987);
 //                   for k=1 <= counter:
 //                      infolabel:=decimal(i)&","&decimal(j)&","&decimal(k); 
 //                      infolabel := "0";
-//                      Dotlabelrand(infolabel,rp(crosspoin[k]));
+//                      dotlabelrand(infolabel,rp(crosspoin[k]));
 //                   endfor;
 //                fi;
              }
@@ -2287,9 +2277,9 @@ public pen background = gray(0.987);
 	     inciden = LightSource - refpos;
 	     viewvec = f - refpos;
 	     perpvec = ncrossprod( pa-pb, pb-pc );
-	     if (Dot( perpvec, (0,0,1) ) < 0) 
+	     if (dot( perpvec, (0,0,1) ) < 0) 
 	       perpvec = -perpvec;
-	     projincid = perpvec*Dot( perpvec, inciden );
+	     projincid = perpvec*dot( perpvec, inciden );
 	     shiftv = inciden - projincid;
 	     reflectio = projincid - shiftv;
 	     theangle = getangle( reflectio, viewvec );
@@ -2298,7 +2288,7 @@ public pen background = gray(0.987);
 	     else
 	       lowcolor = TableC[0];
 	     lcol = interp(lowcolor,HigColor,Cos( theangle ));
-/*	     if (Dot( viewvec, perpvec ) < 0)
+/*	     if (dot( viewvec, perpvec ) < 0)
 	       fcol = lcol - SubColor;
 	     else
 	       fcol = lcol;*/

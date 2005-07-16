@@ -792,7 +792,7 @@ void pairAngle(stack *s)
   s->push(pop<pair>(s).angle());
 }
 
-// Return the angle of z in degrees (between 0 and 360)
+// Return the angle of a pair in degrees in the interval [0,360).
 void pairDegrees(stack *s)
 {
   double deg=degrees(pop<pair>(s).angle());
@@ -894,9 +894,46 @@ void tripleAzimuth(stack *s)
   s->push(pop<triple>(s).azimuth());
 }
 
+void tripleColatitudeDegrees(stack *s)
+{
+  s->push(degrees(pop<triple>(s).colatitude()));
+}
+
+void tripleAzimuthDegrees(stack *s)
+{
+  double deg=degrees(pop<triple>(s).azimuth());
+  if(deg < 0) deg += 360; 
+  s->push(deg);
+}
+
 void tripleUnit(stack *s)
 {
   s->push(unit(pop<triple>(s)));
+}
+
+void tripleDir(stack *s)
+{
+  double phi=radians(pop<double>(s));
+  double theta=radians(pop<double>(s));
+  double sintheta=sin(theta);
+  s->push(triple(sintheta*cos(phi),sintheta*sin(phi),cos(theta)));
+}
+
+void tripleDot(stack *s)
+{
+  triple b = pop<triple>(s);
+  triple a = pop<triple>(s);
+  s->push(a.getx()*b.getx()+a.gety()*b.gety()+a.getz()*b.getz());
+}
+
+void tripleCross(stack *s)
+{
+  triple b = pop<triple>(s);
+  triple a = pop<triple>(s);
+  triple c=triple(a.gety()*b.getz()-a.getz()*b.gety(),
+		  a.getz()*b.getx()-a.getx()*b.getz(),
+		  a.getx()*b.gety()-b.getx()*a.gety());
+  s->push(c);
 }
 
 // Transforms

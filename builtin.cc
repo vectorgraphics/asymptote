@@ -537,7 +537,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::realDir,primPair(),"dir",primReal());
   addFunc(ve,run::pairExpi,primPair(),"expi",primReal());
   addFunc(ve,run::pairConj,primPair(),"conj",primPair());
-  addFunc(ve,run::pairDot,primReal(),"Dot",primPair(),primPair());
+  addFunc(ve,run::pairDot,primReal(),"dot",primPair(),primPair());
 
   addFunc(ve,run::tripleXPart,primReal(),"xpart",primTriple());
   addFunc(ve,run::tripleYPart,primReal(),"ypart",primTriple());
@@ -545,7 +545,13 @@ void base_venv(venv &ve)
   addFunc(ve,run::tripleLength,primReal(),"length",primTriple());
   addFunc(ve,run::tripleColatitude,primReal(),"colatitude",primTriple());
   addFunc(ve,run::tripleAzimuth,primReal(),"azimuth",primTriple());
+  addFunc(ve,run::tripleColatitudeDegrees,primReal(),"Colatitude",
+	  primTriple());
+  addFunc(ve,run::tripleAzimuthDegrees,primReal(),"Azimuth",primTriple());
   addFunc(ve,run::tripleUnit,primTriple(),"unit",primTriple());
+  addFunc(ve,run::tripleDir,primTriple(),"dir",primReal(),primReal());
+  addFunc(ve,run::tripleDot,primReal(),"dot",primTriple(),primTriple());
+  addFunc(ve,run::tripleCross,primTriple(),"cross",primTriple(),primTriple());
   
   addFunc(ve,run::stringReplace,primString(),"replace",primString(),
 	  stringArray2());

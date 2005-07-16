@@ -73,10 +73,16 @@ transform3 orthographic(triple camera) {
   return lookAtOrigin(camera);
 }
 
-transform3 oblique=identity(4);
-oblique[0][2]=0.5;
-oblique[1][2]=0.5;
-oblique[2][2]=0;
+transform3 oblique(real angle=30) {
+  transform3 t=identity(4);
+  real x=Cos(angle)^2;
+  t[0][2]=-x;
+  t[1][2]=x-1;
+  t[2][2]=0;
+  return t;
+}
+
+transform3 oblique=oblique();
 
 typedef pair projection(triple a);
 
