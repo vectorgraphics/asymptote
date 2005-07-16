@@ -2417,7 +2417,7 @@ real[] A;
 @end verbatim
 
 @noindent
-initializes @code{A} to be a empty (zero-length) array. Empty arrays should be
+initializes @code{A} to be an empty (zero-length) array. Empty arrays should be
 distinguished from null arrays. If we say
 @verbatim
 real[] A=null;
@@ -2991,7 +2991,8 @@ Draw an @math{x} axis on picture @code{pic} from @math{x}=@code{xmin} to
 @math{x}=@code{xmax} using pen @code{p}, optionally labelling it with
 string @code{s} at relative location @code{position} (a real number from
 [0,1]) using angle @code{angle}, alignment @code{align} (user coordinates),
-true shift @code{shift} (postscript coordinates), and pen @code{plabel}.
+true shift @code{shift} (postscript coordinates) on side @code{side}
+of the axis, and pen @code{plabel}.
 An infinite value of @code{xmin} or @code{xmax} specifies
 that the corresponding axis limit will be automatically determined from the
 picture limits. The axis placement is determined by one of the
@@ -3088,9 +3089,9 @@ Draw a @math{y} axis on picture @code{pic} from @math{y}=@code{ymin} to
 @math{y}=@code{ymax} using pen @code{p}, optionally labelling it with
 string @code{s} at relative location @code{position} (a real number from
 [0,1]) using angle @code{angle}, alignment @code{align}, true shift
-@code{shift}, and pen @code{plabel}. The tick type is specified by
-@code{ticks} and the axis placement is determined by one of the
-following @code{axis} types:
+@code{shift} on side @code{side} of the axis, and pen
+@code{plabel}. The tick type is specified by @code{ticks} and the axis
+placement is determined by one of the following @code{axis} types:
 
 @table @code
 
@@ -3125,56 +3126,13 @@ drawn before any existing objects in the current layer.
 
 @item
 
-@cindex @code{xline}
-@cindex @code{yline}
-For convenience, the functions @code{xline(real x)} and
-@code{yline(real y)} can be respectively used to call @code{yaxis} and
+@cindex @code{xequals}
+@cindex @code{yequals}
+For convenience, the functions @code{xequals(real x)} and
+@code{yequals(real y)} can be respectively used to call @code{yaxis} and
 @code{xaxis} with the appropriate axis types @code{XEquals(x)} and
 @code{YEquals(y)}. This is the recommended method for drawing vertical
-and horizontal axes at arbitrary locations. Nevertheless, for
-completeness, we also document the following internal routines:
-@verbatim
-void xequals(picture pic=currentpicture, real x,
-             real ymin=-infinity, real ymax=infinity, 
-             real tickmin=-infinity, real tickmax=infinity,
-             string s="", real position=1, real angle=0, pair align=W,
-             pair shift=0, pair side=right,
-             pen plabel=currentpen, pen p=plabel, ticks ticks=NoTicks,
-             arrowbar arrow=None, int[] divisor=new int[],
-             bool put=Above, bool opposite=false);
-@end verbatim
-
-This internal routine draws the line @math{x}=@code{x} on picture
-@code{pic} from @math{y}=@code{ymin} to @math{y}=@code{ymax}, with
-optional tick minimum and maximum values @code{tickmin} and
-@code{tickmax}, using pen @code{p}, optionally labelling it with
-string @code{s} at relative location @code{position} (a real number
-from [0,1]) using angle @code{angle}, alignment @code{align}, true
-shift @code{shift} on side @code{side} of the axis, and pen
-@code{plabel}. The tick type is specified
-by @code{ticks} and the integer array @code{divisor} specifies what
-tick divisors to try for producing uncrowded tick labels.
-A @code{true} value for the flag @code{opposite} identifies an
-unlabelled secondary axis (typically drawn opposite to a primary axis). 
-Draw the axis on top of any existing objects in the current layer
-only if @code{put} is @code{Above}. 
-
-
-@item
-@verbatim
-void yequals(picture pic=currentpicture, real y,
-             real xmin=-infinity, real xmax=infinity,
-             real tickmin=-infinity, real tickmax=infinity,
-             string s="", real position=1, real angle=0, pair align=S,
-             pair shift=0, pair side=left,
-             pen plabel=currentpen, pen p=plabel, ticks ticks=NoTicks,
-             arrowbar arrow=None, int[] divisor=new int[],
-             bool put=Above, bool opposite=false);
-@end verbatim
-
-This internal routine is like @code{xequals}, but draws the line
-@math{y}=@code{y} on picture @code{pic} from @math{x}=@code{xmin} to
-@math{x}=@code{xmax}.
+and horizontal lines or axes at arbitrary locations. 
 
 @item
 @verbatim
@@ -3188,10 +3146,21 @@ void axis(picture pic=currentpicture, guide g,
           bool put=Above, bool opposite=false);
 @end verbatim
 
-This routine can be used to draw a general axis based on an arbitrary
-path @code{g}, with ticks placed along its arclength b(either evenly
+This routine can be used to draw a general axis 
+on picture @code{pic} using pen @code{p}, based on an arbitrary
+path @code{g}, with ticks placed along its arclength (either evenly
 spaced or at custom locations).
-Here @code{position} denotes an @code{arctime} value.
+One may specify optional tick minimum and maximum values @code{tickmin} and
+@code{tickmax}, optionally labelling the axis with string @code{s} at
+relative location @code{position} (an @code{arctime} value from [0,1]),
+angle @code{angle}, alignment @code{align}, true shift
+@code{shift} on side @code{side} of the axis, and pen
+@code{plabel}. The tick type is specified by @code{ticks} and the
+integer array @code{divisor} specifies what tick divisors to try in the
+attempt to produce uncrowded tick labels. A @code{true} value for the flag
+@code{opposite} identifies an unlabelled secondary axis (typically
+drawn opposite to a primary axis).  The axis is drawn on top of any
+existing objects in the current layer only if @code{put} is @code{Above}. 
 
 @item These routines are useful for manually putting ticks and labels on axes:
 @cindex xtick

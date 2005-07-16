@@ -292,8 +292,8 @@ static public DELETET DELETE=null;
 
 struct GUIop
 {
-  public transform[] Transform=new transform[];
-  public bool[] Delete=new bool[];
+  public transform[] Transform;
+  public bool[] Delete;
 }
 
 GUIop operator init() {return new GUIop;}
@@ -511,6 +511,8 @@ public struct ScaleT {
   }
 };
 
+ScaleT operator init() {return new ScaleT;}
+
 struct Legend {
   public string label;
   public pen plabel;
@@ -596,7 +598,6 @@ struct picture {
   void init() {
     userMin=(infinity,infinity);
     userMax=-userMin;
-    scale=new ScaleT;
   }
   init();
   
@@ -606,6 +607,7 @@ struct picture {
     xcoords=new coord[];
     ycoords=new coord[];
     T=identity();
+    scale=new ScaleT;
     legend=new Legend[];
     init();
   }
@@ -750,7 +752,7 @@ struct picture {
   // Calculate the sizing constants for the given array and maximum size.
   scaling calculateScaling(coord[] coords, real max) {
     import simplex;
-    simplex.problem p=new simplex.problem;
+    simplex.problem p;
    
     void addMinCoord(coord c) {
       // (a*user + b) + truesize >= 0:
@@ -1087,6 +1089,8 @@ private struct marginT {
   public real begin,end;
 };
 
+marginT operator init() {return new marginT;}
+
 typedef marginT margin(path, pen);
 private marginT margin(path, pen) {return new marginT;}
 
@@ -1099,7 +1103,7 @@ path trim(path g, real begin, real end) {
 margin NoMargin()
 { 
   return new marginT(path g, pen) {
-    marginT margin=new marginT;
+    marginT margin;
     margin.begin=margin.end=0;
     margin.g=g;
     return margin;
@@ -1109,7 +1113,7 @@ margin NoMargin()
 margin Margin(real begin, real end)
 { 
   return new marginT(path g, pen p) {
-    marginT margin=new marginT;
+    marginT margin;
     real factor=labelmargin(p);
     margin.begin=begin*factor;
     margin.end=end*factor;
@@ -1121,7 +1125,7 @@ margin Margin(real begin, real end)
 margin PenMargin(real begin, real end)
 { 
   return new marginT(path g, pen p) {
-    marginT margin=new marginT;
+    marginT margin;
     real factor=linewidth(p);
     margin.begin=(begin+0.5)*factor;
     margin.end=(end+0.5)*factor;
@@ -1133,7 +1137,7 @@ margin PenMargin(real begin, real end)
 margin DotMargin(real begin, real end)
 { 
   return new marginT(path g, pen p) {
-    marginT margin=new marginT;
+    marginT margin;
     real margindot(real x) {return x > 0 ? dotfactor*x : x;}
     real factor=linewidth(p);
     margin.begin=(margindot(begin)+0.5)*factor;
@@ -1146,7 +1150,7 @@ margin DotMargin(real begin, real end)
 margin TrueMargin(real begin, real end)
 { 
   return new marginT(path g, pen p) {
-    marginT margin=new marginT;
+    marginT margin;
     margin.begin=begin;
     margin.end=end;
     margin.g=trim(g,begin,end);
@@ -1724,8 +1728,8 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
 	     string format="", bool wait=NoWait)
 {
   bool Transform=GUIFilenum < GUIlist.length;
-  static transform[] noTransforms=new transform[];
-  static bool[] noDeletes=new bool[];
+  static transform[] noTransforms;
+  static bool[] noDeletes;
   if(gui.length > 0) {
     frame F;
     add(F,f);
