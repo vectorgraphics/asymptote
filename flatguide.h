@@ -95,17 +95,18 @@ class flatguide
       
 public:
   flatguide()
-    : solved(true), p(), in(&open) {}
+    : solved(true), p(), out(&open), in(&open) {}
 
   void setTension(tension t, side s) {
     update();
     tref(s)=t;
   }
   void setSpec(spec *p, side s) {
+    assert(p);
     update();
     spec *&ref=sref(s);
     // Control specifiers trump normal direction specifiers.
-    if (!(ref && ref->controlled()))
+    if (!ref || !ref->controlled() || p->controlled())
       ref=p;
   }
 
