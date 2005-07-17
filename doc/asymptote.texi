@@ -2983,8 +2983,9 @@ void xaxis(picture pic=currentpicture,
            real xmin=-infinity, real xmax=infinity, string s="",
            real position=infinity, real angle=0, pair align=0,
            pair shift=0, pair side=0,
-           pen plabel=currentpen, pen p=plabel, axis axis=YZero,
-           ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below);
+           pen plabel=currentpen, pen p=plabel, pen pticklabel=plabel,
+           axis axis=YZero, ticks ticks=NoTicks, arrowbar arrow=None,
+           bool put=Below);
 @end verbatim
 
 Draw an @math{x} axis on picture @code{pic} from @math{x}=@code{xmin} to
@@ -2992,7 +2993,7 @@ Draw an @math{x} axis on picture @code{pic} from @math{x}=@code{xmin} to
 string @code{s} at relative location @code{position} (a real number from
 [0,1]) using angle @code{angle}, alignment @code{align} (user coordinates),
 true shift @code{shift} (postscript coordinates) on side @code{side}
-of the axis, and pen @code{plabel}.
+of the axis, and pens @code{plabel} and @code{pticklabel}.
 An infinite value of @code{xmin} or @code{xmax} specifies
 that the corresponding axis limit will be automatically determined from the
 picture limits. The axis placement is determined by one of the
@@ -3081,17 +3082,19 @@ void yaxis(picture pic=currentpicture,
            real ymin=-infinity, real ymax=infinity, string s="",
            real position=infinity, real angle=infinity, pair align=0,
            pair shift=0, pair side=0,
-           pen plabel=currentpen, pen p=plabel, axis axis=XZero,
-           ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below);
+           pen plabel=currentpen, pen p=plabel, pen pticklabel=plabel,
+           axis axis=XZero, ticks ticks=NoTicks, arrowbar arrow=None,
+           bool put=Below);
 @end verbatim
 
 Draw a @math{y} axis on picture @code{pic} from @math{y}=@code{ymin} to
 @math{y}=@code{ymax} using pen @code{p}, optionally labelling it with
 string @code{s} at relative location @code{position} (a real number from
 [0,1]) using angle @code{angle}, alignment @code{align}, true shift
-@code{shift} on side @code{side} of the axis, and pen
-@code{plabel}. The tick type is specified by @code{ticks} and the axis
-placement is determined by one of the following @code{axis} types:
+@code{shift} on side @code{side} of the axis, and pens
+@code{plabel} and @code{pticklabel}. The tick type is specified by
+@code{ticks} and the axis placement is determined by one of the
+following @code{axis} types:
 
 @table @code
 
@@ -3133,18 +3136,18 @@ For convenience, the functions
 void xequals(picture pic=currentpicture, real x, bool extend=false,
 	     real ymin=-infinity, real ymax=infinity, string s="",
 	     real position=infinity, real angle=infinity, pair align=0,
-	     pair shift=0, pair side=0, pen plabel=currentpen,
-             pen p=nullpen, ticks ticks=NoTicks, bool put=Above,
-             arrowbar arrow=None);
+	     pair shift=0, pair side=0, 
+             pen plabel=currentpen, pen p=plabel, pen pticklabel=plabel,
+             ticks ticks=NoTicks, bool put=Above, arrowbar arrow=None);
 @end verbatim
 and
 @verbatim
 void yequals(picture pic=currentpicture, real y, bool extend=false,
 	     real xmin=-infinity, real xmax=infinity, string s="",
 	     real position=infinity, real angle=0, pair align=0,
-	     pair shift=0, pair side=0, pen plabel=currentpen,
-             pen p=nullpen, ticks ticks=NoTicks, bool put=Above,
-             arrowbar arrow=None);
+	     pair shift=0, pair side=0,
+             pen plabel=currentpen, pen p=plabel, pen pticklabel=plabel,
+             ticks ticks=NoTicks, bool put=Above, arrowbar arrow=None);
 @end verbatim
 can be respectively used to call @code{yaxis} and
 @code{xaxis} with the appropriate axis types @code{XEquals(x,extend)} and
@@ -3156,8 +3159,8 @@ or horizontal lines and axes at arbitrary locations.
 void axis(picture pic=currentpicture, guide g,
           real tickmin=-infinity, real tickmax=infinity,
           string s="", real position=1, real angle=0, pair align=S,
-          pair shift=0, pair side=right,
-          pen plabel=currentpen, pen p=plabel, ticks ticks=NoTicks,
+          pair shift=0, pair side=right, pen plabel=currentpen,
+          pen p=plabel, pen pticklabel=plabel, ticks ticks=NoTicks,
           arrowbar arrow=None, int[] divisor=new int[],
           bool logarithmic=false, scaleT scale=Linear, part part,
           bool put=Above, bool opposite=false);
@@ -3168,16 +3171,18 @@ on picture @code{pic} using pen @code{p}, based on an arbitrary
 path @code{g}, with ticks placed along its arclength (either evenly
 spaced or at custom locations).
 One may specify optional tick minimum and maximum values @code{tickmin} and
-@code{tickmax}, optionally labelling the axis with string @code{s} at
+@code{tickmax}, a tick label pen @code{pticklabel}, and
+optionally label the axis with string @code{s} at
 relative location @code{position} (an @code{arctime} value from [0,1]),
 angle @code{angle}, alignment @code{align}, true shift
 @code{shift} on side @code{side} of the axis, and pen
-@code{plabel}. The tick type is specified by @code{ticks} and the
-integer array @code{divisor} specifies what tick divisors to try in the
-attempt to produce uncrowded tick labels. A @code{true} value for the flag
-@code{opposite} identifies an unlabelled secondary axis (typically
-drawn opposite to a primary axis).  The axis is drawn on top of any
-existing objects in the current layer only if @code{put} is @code{Above}. 
+@code{plabel}. The tick type is specified by
+@code{ticks} and the integer array @code{divisor} specifies what tick
+divisors to try in the attempt to produce uncrowded tick labels. A
+@code{true} value for the flag @code{opposite} identifies an
+unlabelled secondary axis (typically drawn opposite to a primary
+axis).  The axis is drawn on top of any existing objects in the
+current layer only if @code{put} is @code{Above}.
 
 @item These routines are useful for manually putting ticks and labels on axes:
 @cindex xtick
@@ -3242,7 +3247,8 @@ To specify a fixed size for the graph proper, use @code{attach}:
 @verbatiminclude lineargraph.asy
 
 @item This example draws a graph of one array versus another (both of
-the same size) using custom tick locations on the @math{y} axis.
+the same size) using custom tick locations and a smaller font size for
+the tick labels on the @math{y} axis.
 @verbatiminclude datagraph.asy
 @image{datagraph}
 
@@ -3406,7 +3412,7 @@ picture palette(real[][] data, real width=Ticksize,
              pen[] palette, string s="", real position=0.5,
              real angle=infinity, pair align=E, pair shift=0,
              pair side=right, pen plabel=currentpen, pen p=plabel,
-             paletteticks ticks=PaletteTicks)
+             pen pticklabel=plabel, paletteticks ticks=PaletteTicks)
 @end verbatim
 
 The argument @code{paletteticks} is a special tick type (@pxref{ticks})

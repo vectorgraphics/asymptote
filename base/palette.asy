@@ -25,7 +25,7 @@ picture palette(real[][] data, real width=Ticksize,
 	     pen[] palette, string s="", real position=0.5,
 	     real angle=infinity, pair align=E, pair shift=0,
 	     pair side=right, pen plabel=currentpen, pen p=nullpen,
-	     paletteticks ticks=PaletteTicks)
+	     pen pticklabel=nullpen, paletteticks ticks=PaletteTicks)
 {
   if(p == nullpen) p=plabel;
   picture pic;
@@ -45,7 +45,7 @@ picture palette(real[][] data, real width=Ticksize,
   
   pic.addBox(z0,z1,(-width,0),(0,0));
   yaxis(pic,initialy,finaly,s,position,angle,align,shift,side,plabel,p,
-	ticks(width),Above);
+	pticklabel,ticks(width),Above);
   return pic;
 }
 
