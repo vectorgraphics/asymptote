@@ -1,4 +1,5 @@
 import graph;
+
 defaultpen(2.0);
 
 pair wheelpoint(real t)
@@ -22,13 +23,11 @@ real t2=t1+2*pi;
 void initialpicture() {
   draw(circle((0,0),1));
   draw(wheel(t1,t2,100),linetype("0 2"));
+  yequals(-1,extend=true,"$y=-1$",1.0,linetype("4 4"));
   xaxis(0,"$x$");
   yaxis(0,1.15,"$y$");
   pair z1=wheelpoint(t1);
   pair z2=wheelpoint(t2);
-
-  xaxis(linetype("4 4"),YEquals(-1));
-  label("$y=-1$",(z2.x,-1),S);
   dot(z1);
   dot(z2);
 }
@@ -37,7 +36,7 @@ int n=25;
 real dt=(t2-t1)/n;
 string prefix=fileprefix();
 for(int i=0; i <= n; ++i) {
-  currentpicture;
+  currentpicture.erase();
   size(0,200);
   initialpicture();
   real t=t1+dt*i;

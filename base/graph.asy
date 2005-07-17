@@ -34,7 +34,7 @@ public scaleT Log(bool automin=true, bool automax=true)
   return scale;
 }
 
-real scalefcn_operators(real x) {return 0;}
+real scaleT(real x) {return 0;}
 
 bool linear(scaleT S) 
 {
@@ -171,6 +171,10 @@ typedef real part(pair);
 typedef void ticks(frame, transform, string, real, real, pair, pair, pair, 
 		   path, pen, pen, arrowbar, autoscaleT, part, bool, int[],
 		   real, real);
+
+private void ticks(frame, transform, string, real, real, pair, pair, pair,
+		   path, pen, pen, arrowbar, autoscaleT, part, bool, int[],
+		   real, real) {};
 
 typedef string ticklabel(real);
 
@@ -951,28 +955,30 @@ void xaxis(picture pic=currentpicture,
     newticks=true;
   }
   
-  if(pic.scale.set && newticks) {
-    bounds mx=autoscale(xmin,xmax,pic.scale.x.scale);
-    pic.scale.x.tickMin=mx.min;
-    pic.scale.x.tickMax=mx.max;
-    axis.xdivisor=mx.divisor;
-  } else autoscale(pic,axis);
+  if(ticks != NoTicks) {
+    if(pic.scale.set && newticks) {
+      bounds mx=autoscale(xmin,xmax,pic.scale.x.scale);
+      pic.scale.x.tickMin=mx.min;
+      pic.scale.x.tickMax=mx.max;
+      axis.xdivisor=mx.divisor;
+    } else autoscale(pic,axis);
+  }
   
   checkaxis(pic,axis);
   if(axis.extend) put=Above;
   
-  if(xmin == -infinity) {
-    if(pic.scale.x.automin()) {
-      if(!axis.extend) xmin=pic.scale.x.tickMin;
-    } else xmin=pic.userMin.x;
+  if(xmin == -infinity && !axis.extend) {
+    if(pic.scale.set && pic.scale.x.automin())
+      xmin=pic.scale.x.tickMin;
+    else xmin=pic.userMin.x;
   }
   
-  if(xmax == infinity) {
-    if(pic.scale.x.automax()) {
-      if(!axis.extend) xmax=pic.scale.x.tickMax;
-    } else xmax=pic.userMax.x;
+  if(xmax == infinity && !axis.extend) {
+    if(pic.scale.set && pic.scale.x.automax())
+      xmax=pic.scale.x.tickMax;
+    else xmax=pic.userMax.x;
   }
-  
+
   if(position == infinity) position=axis.position;
   if(align == 0) align=axis.align;
   if(side == 0) side=axis.side;
@@ -1004,28 +1010,30 @@ void yaxis(picture pic=currentpicture,
     newticks=true;
   }
   
-  if(pic.scale.set && newticks) {
-    bounds my=autoscale(ymin,ymax,pic.scale.y.scale);
-    pic.scale.y.tickMin=my.min;
-    pic.scale.y.tickMax=my.max;
-    axis.ydivisor=my.divisor;
-  } else autoscale(pic,axis);
+  if(ticks != NoTicks) {
+    if(pic.scale.set && newticks) {
+      bounds my=autoscale(ymin,ymax,pic.scale.y.scale);
+      pic.scale.y.tickMin=my.min;
+      pic.scale.y.tickMax=my.max;
+      axis.ydivisor=my.divisor;
+    } else autoscale(pic,axis);
+  }
   
   checkaxis(pic,axis);
   if(axis.extend) put=Above;
   
-  if(ymin == -infinity) {
-    if(pic.scale.y.automin()) {
-      if(!axis.extend) ymin=pic.scale.y.tickMin;
-    } else ymin=pic.userMin.y;
+  if(ymin == -infinity && !axis.extend) {
+    if(pic.scale.set && pic.scale.y.automin())
+      ymin=pic.scale.y.tickMin;
+    else ymin=pic.userMin.y;
   }
   
-  if(ymax == infinity) {
-    if(pic.scale.y.automax()) {
-      if(!axis.extend) ymax=pic.scale.y.tickMax;
-    } else ymax=pic.userMax.y;
+  if(ymax == infinity && !axis.extend) {
+    if(pic.scale.set && pic.scale.y.automax())
+      ymax=pic.scale.y.tickMax;
+    else ymax=pic.userMax.y;
   }
-  
+
   if(position == infinity) position=axis.position;
   if(align == 0) align=axis.align;
   if(side == 0) side=axis.side;
@@ -1051,23 +1059,21 @@ void axes(picture pic=currentpicture, pen p=currentpen, bool put=Below)
   yaxis(pic,p,put);
 }
 
-void xequals(picture pic=currentpicture, real x, real ymin=-infinity,
-	     real ymax=infinity, string s="",
+void xequals(picture pic=currentpicture, real x, bool extend=false,
+	     real ymin=-infinity, real ymax=infinity, string s="",
 	     real position=infinity, real angle=infinity, pair align=0,
 	     pair shift=0, pair side=0, pen plabel=currentpen, pen p=nullpen,
-	     ticks ticks=NoTicks, bool put=Above, arrowbar arrow=None,
-	     bool extend=false)
+	     ticks ticks=NoTicks, bool put=Above, arrowbar arrow=None)
 {
   yaxis(pic,ymin,ymax,s,position,angle,align,shift,side,plabel,p,
 	XEquals(x,extend),ticks,arrow,put);
 }
 
-void yequals(picture pic=currentpicture, real y, real xmin=-infinity,
-	   real xmax=infinity, string s="",
-	   real position=infinity, real angle=0, pair align=0,
-	   pair shift=0, pair side=0, pen plabel=currentpen, pen p=nullpen,
-	   ticks ticks=NoTicks, bool put=Above, arrowbar arrow=None,
-	   bool extend=false)
+void yequals(picture pic=currentpicture, real y, bool extend=false,
+	     real xmin=-infinity, real xmax=infinity, string s="",
+	     real position=infinity, real angle=0, pair align=0,
+	     pair shift=0, pair side=0, pen plabel=currentpen, pen p=nullpen,
+	     ticks ticks=NoTicks, bool put=Above, arrowbar arrow=None)
 {
   xaxis(pic,xmin,xmax,s,position,angle,align,shift,side,plabel,p,
 	YEquals(y,extend),ticks,arrow,put);

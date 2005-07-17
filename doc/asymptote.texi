@@ -3128,10 +3128,25 @@ drawn before any existing objects in the current layer.
 
 @cindex @code{xequals}
 @cindex @code{yequals}
-For convenience, the functions @code{xequals(real x)} and
-@code{yequals(real y)} can be respectively used to call @code{yaxis} and
-@code{xaxis} with the appropriate axis types @code{XEquals(x)} and
-@code{YEquals(y)}. This is the recommended method for drawing vertical
+For convenience, the functions 
+@verbatim
+void xequals(picture pic=currentpicture, real x, bool extend=false,
+	     real ymin=-infinity, real ymax=infinity, string s="",
+	     real position=infinity, real angle=infinity, pair align=0,
+	     pair shift=0, pair side=0, pen plabel=currentpen, pen p=nullpen,
+	     ticks ticks=NoTicks, bool put=Above, arrowbar arrow=None);
+@end verbatim
+and
+@verbatim
+void yequals(picture pic=currentpicture, real y, bool extend=false,
+	     real xmin=-infinity, real xmax=infinity, string s="",
+	     real position=infinity, real angle=0, pair align=0,
+	     pair shift=0, pair side=0, pen plabel=currentpen, pen p=nullpen,
+	     ticks ticks=NoTicks, bool put=Above, arrowbar arrow=None);
+@end verbatim
+can be respectively used to call @code{yaxis} and
+@code{xaxis} with the appropriate axis types @code{XEquals(x,extend)} and
+@code{YEquals(y,extend)}. This is the recommended wasy of drawing vertical
 and horizontal lines or axes at arbitrary locations. 
 
 @item
