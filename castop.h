@@ -100,6 +100,7 @@ void readArray(vm::stack *s)
 	  for(int j=0; j < Limit(ny); j++) {
 	    if(nz >= 0) {
 	      vm::array *cij=new vm::array(0);
+	      bool break2=false;
 	      for(int k=0; k < Limit(nz); k++) {
 		f->read(v);
 		if(f->error()) {
@@ -112,8 +113,12 @@ void readArray(vm::stack *s)
 		  ci->push(cij);
 		}
 		cij->push(v);
-		if(f->LineMode() && f->eol()) break;
+		if(f->LineMode() && f->eol()) {
+		  if(f->eol()) break2=true;
+		  break;
+		}
 	      }
+	      if(break2) break;
 	    } else {
 	      f->read(v);
 	      if(f->error()) {
