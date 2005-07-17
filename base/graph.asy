@@ -1079,15 +1079,15 @@ void yequals(picture pic=currentpicture, real y, bool extend=false,
 	YEquals(y,extend),ticks,arrow,put);
 }
 
-void tick(picture pic=currentpicture, pair z, pair align, real size=Ticksize,
+void tick(picture pic=currentpicture, pair z, pair dir, real size=Ticksize,
 	  pen p=currentpen)
 {
   pic.add(new void (frame f, transform t) {
     pair tz=t*z;
-    draw(f,tz--tz+align*size,p);
+    draw(f,tz--tz+unit(dir)*size,p);
   });
   pic.addPoint(z,p);
-  pic.addPoint(z,align*size,p);
+  pic.addPoint(z,unit(dir)*size,p);
 }
 
 void labelx(picture pic=currentpicture, string s="", pair z, pair align=S,
@@ -1098,17 +1098,22 @@ void labelx(picture pic=currentpicture, string s="", pair z, pair align=S,
   label(pic,baseline(s,align,"$10^4$"),z,align,shift,p);
 }
 
-void xtick(picture pic=currentpicture, string s="", pair z, pair tickalign=N,
+void xtick(picture pic=currentpicture, string s="", pair z, pair dir=N,
 	   pair align=0, pair shift=infinity, real size=Ticksize,
 	   pen p=currentpen)
 {
   if(align == 0) {
-    align=-tickalign;
+    align=-dir;
   } else if(shift == infinity) 
-    shift=dot(tickalign,align) > 0 ? tickalign*size : 
-      ticklabelshift(tickalign,p);
+    shift=dot(dir,align) > 0 ? dir*size : ticklabelshift(align,p);
   if(s != "") labelx(pic,s,z,align,shift,p);
-  tick(pic,z,tickalign,Ticksize,p);
+  tick(pic,z,dir,size,p);
+}
+
+void labelxtick(picture pic=currentpicture, pair z, pair align=S,
+		pair shift=infinity, real size=Ticksize, pen p=currentpen)
+{
+  xtick(pic,math(z.x),z,-align,align,shift,size,p);
 }
 
 void labely(picture pic=currentpicture, string s="", explicit pair z,
@@ -1126,17 +1131,29 @@ void labely(picture pic=currentpicture, string s="", real y, pair align=W,
 }
 
 void ytick(picture pic=currentpicture, string s="", explicit pair z,
-	   pair tickalign=E, pair align=0, pair shift=infinity,
+	   pair dir=E, pair align=0, pair shift=infinity,
 	   real size=Ticksize, pen p=currentpen)
 {
-  xtick(pic,s,z,tickalign,align,shift,size,p);
+  xtick(pic,s,z,dir,align,shift,size,p);
 }
 
-void ytick(picture pic=currentpicture, string s="", real y, pair tickalign=E,
+void ytick(picture pic=currentpicture, string s="", real y, pair dir=E,
 	   pair align=0, pair shift=infinity, real size=Ticksize,
 	   pen p=currentpen)
 {
-  xtick(pic,s,(0,y),tickalign,align,shift,size,p);
+  xtick(pic,s,(0,y),dir,align,shift,size,p);
+}
+
+void labelytick(picture pic=currentpicture, explicit pair z, pair align=W,
+		pair shift=infinity, real size=Ticksize, pen p=currentpen)
+{
+  xtick(pic,math(z.y),z,-align,align,shift,size,p);
+}
+
+void labelytick(picture pic=currentpicture, real y, pair align=W,
+		pair shift=infinity, real size=Ticksize, pen p=currentpen)
+{
+  xtick(pic,math(y),(0,y),-align,align,shift,size,p);
 }
 
 private string noprimary="Primary axis must be drawn before secondary axis";

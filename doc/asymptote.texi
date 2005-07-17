@@ -3007,7 +3007,7 @@ of the picture, unless @code{extend}=false.
 
 @cindex @code{YEquals}
 @item YEquals(real Y, bool extend=true)
-Request an @math{x} axis at @math{Y}=@code{Y} extending to the full
+Request an @math{x} axis at @math{y}=@code{Y} extending to the full
 dimensions of the picture, unless @code{extend}=false.
 
 @cindex @code{Bottom}
@@ -3133,21 +3133,23 @@ For convenience, the functions
 void xequals(picture pic=currentpicture, real x, bool extend=false,
 	     real ymin=-infinity, real ymax=infinity, string s="",
 	     real position=infinity, real angle=infinity, pair align=0,
-	     pair shift=0, pair side=0, pen plabel=currentpen, pen p=nullpen,
-	     ticks ticks=NoTicks, bool put=Above, arrowbar arrow=None);
+	     pair shift=0, pair side=0, pen plabel=currentpen,
+             pen p=nullpen, ticks ticks=NoTicks, bool put=Above,
+             arrowbar arrow=None);
 @end verbatim
 and
 @verbatim
 void yequals(picture pic=currentpicture, real y, bool extend=false,
 	     real xmin=-infinity, real xmax=infinity, string s="",
 	     real position=infinity, real angle=0, pair align=0,
-	     pair shift=0, pair side=0, pen plabel=currentpen, pen p=nullpen,
-	     ticks ticks=NoTicks, bool put=Above, arrowbar arrow=None);
+	     pair shift=0, pair side=0, pen plabel=currentpen,
+             pen p=nullpen, ticks ticks=NoTicks, bool put=Above,
+             arrowbar arrow=None);
 @end verbatim
 can be respectively used to call @code{yaxis} and
 @code{xaxis} with the appropriate axis types @code{XEquals(x,extend)} and
-@code{YEquals(y,extend)}. This is the recommended wasy of drawing vertical
-and horizontal lines or axes at arbitrary locations. 
+@code{YEquals(y,extend)}. This is the recommended way of drawing vertical
+or horizontal lines and axes at arbitrary locations. 
 
 @item
 @verbatim
@@ -3182,16 +3184,18 @@ existing objects in the current layer only if @code{put} is @code{Above}.
 @cindex ytick
 @cindex labelx
 @cindex labely
+@cindex labelxtick
+@cindex labelytick
 @cindex tick
 @verbatim
 void xtick(picture pic=currentpicture, string s="", pair z,
-           pair tickalign=N, pair align=0, pair shift=infinity,
+           pair dir=N, pair align=0, pair shift=infinity,
            real size=Ticksize, pen p=currentpen);
 void ytick(picture pic=currentpicture, string s="", explicit pair z,
-           pair tickalign=E, pair align=0, pair shift=infinity,
+           pair dir=E, pair align=0, pair shift=infinity,
            real size=Ticksize, pen p=currentpen);
 void ytick(picture pic=currentpicture, string s="", real y,
-           pair tickalign=E, pair align=0, pair shift=infinity,
+           pair dir=E, pair align=0, pair shift=infinity,
            real size=Ticksize, pen p=currentpen);
 void tick(picture pic=currentpicture, pair z, pair align,
           real size=Ticksize, pen p=currentpen);
@@ -3201,6 +3205,15 @@ void labely(picture pic=currentpicture, string s="", explicit pair z,
             pair align=W, pair shift=infinity, pen p=currentpen);
 void labely(picture pic=currentpicture, string s="", real y,
             pair align=W, pair shift=infinity, pen p=currentpen);
+void labelxtick(picture pic=currentpicture, pair z, pair align=S,
+		pair shift=infinity, real size=Ticksize,
+                pen p=currentpen);
+void labelytick(picture pic=currentpicture, explicit pair z,
+                 pair align=W, pair shift=infinity, real size=Ticksize,
+                pen p=currentpen);
+void labelytick(picture pic=currentpicture, real y,
+                pair align=W, pair shift=infinity, real size=Ticksize,
+                pen p=currentpen);
 @end verbatim
 @end itemize
 
@@ -3429,21 +3442,42 @@ data in @code{diatom.csv} and @code{westnile.csv}.
 @cindex hidden surface removal
 This module extends the notion of paths and guides in @code{Asymptote}
 to three dimensions, introducing the new types @code{guide3} and
-@code{path3}, along with the cycle specifier @code{cycle3}. Currently
-three projections are implemented:
-oblique, orthographic, and perspective. General hidden surface removal
-will be implemented via clipping in an upcoming release.
-Here is an example of a surface plot:
+@code{path3}, along with the cycle specifier @code{cycle3}.
+These projections to two dimensions are predefined:
+@table @code
+@item oblique
+@cindex oblique
+The point @code{(x,y,z)} is projected to @code{(x-0.5z,y-0.5z)}.
+If an optional real argument is given to @code{oblique}, the
+negative @math{z} axis is drawn at this angle in degrees measured
+counterclockwise from the positive @math{x} axis.
+
+@item orthographic
+@cindex orthographic(triple camera)
+This projects three dimensions onto two using the view seen at the
+location @code{camera}. Parallel lines are projected to parallel lines.
+
+@item perspective
+@cindex perspective(triple camera)
+This projects three dimensions onto two taking account of perspective,
+as seen from the location @code{camera}.
+
+@end table
+
+Here is an example of a surface plot using perspective drawing:
 @anchor{surface}
 @verbatiminclude surface.asy
 @image{surface}
+
+General hidden surface removal will be implemented via clipping and
+binary space partitions in an upcoming release. 
 
 @node graph3d
 @subsection @code{graph3d}
 @cindex @code{graph3d}
 @cindex 3D graphs
-This module will be developed into a full three-dimensional graph
-package in a future release.
+This module will be developed into a full three-dimensional graphing
+package in the near future.
 
 @node featpost3D
 @subsection @code{featpost3D}
@@ -4490,4 +4524,3 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  PaletteTicks defaultformat leastsquares bjam fprintf endgroup
 @c  LocalWords:  begingroup xmargin ymargin pbox labelbox labelellipse wget
 @c  LocalWords:  multithreaded newframe init emph nums concat xline yline
-@c  LocalWords:  tickalign
