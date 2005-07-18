@@ -2271,7 +2271,7 @@ slice lastcut(path g, path knife)
 }
 
 string format(real x) {
-  return format("%.9g",x);
+  return format("$%.9g$",x);
 }
 
 pair dir(path g)

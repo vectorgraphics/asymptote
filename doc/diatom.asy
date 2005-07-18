@@ -50,7 +50,7 @@ for(int taxon=0; taxon < n; ++taxon) {
   scale(pic,Linear(x),Linear(false,-1));
   filldraw(pic,(0,depthmin)--graph(pic,P,depth)--(0,depthmax)--cycle,
 	   gray(0.9));
-  xaxis(pic,Bottom,LeftTicks(false,0,2,"%.2g"),Above);
+  xaxis(pic,Bottom,LeftTicks(false,0,2,"$%.2g$"),Above);
   xaxis(pic,TeXify(taxa[taxon]),0.5,45,Top,NoTicks,Above);
   if(taxon == 0) yaxis(pic,depthlabel,Left,RightTicks(0,10),Above);
   if(taxon == final) yaxis(pic,Right,LeftTicks(0,10,""),Above);

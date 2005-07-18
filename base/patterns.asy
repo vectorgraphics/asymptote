@@ -2,15 +2,16 @@
 // with optional left-bottom margin lb and right-top margin rt.
 frame tiling(string name, picture pic, pair lb=0, pair rt=0)
 {
+  string F="%.9g";
   frame tiling;
   frame f=pic.fit(identity());
   pair pmin=min(f)-lb;
   pair pmax=max(f)+rt;
   postscript(tiling,"<< /PaintType 1 /PatternType 1 /TilingType 1 
-/BBox ["+format(pmin.x)+" "+format(pmin.y)+" "+format(pmax.x)+" "
-	     +format(pmax.y)+"]
-/XStep "+format(pmax.x-pmin.x)+"
-/YStep "+format(pmax.y-pmin.y)+"
+/BBox ["+format(F,pmin.x)+" "+format(F,pmin.y)+" "+format(F,pmax.x)+" "
+	     +format(F,pmax.y)+"]
+/XStep "+format(F,pmax.x-pmin.x)+"
+/YStep "+format(F,pmax.y-pmin.y)+"
 /PaintProc {pop");
   add(tiling,f);
   postscript(tiling,"} >>

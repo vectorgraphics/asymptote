@@ -179,13 +179,13 @@ private void ticks(frame, transform, string, real, real, pair, pair, pair,
 typedef string ticklabel(real);
 
 ticklabel ticklabel(string s) {
-  return new string(real x) {return math(format(s,x));};
+  return new string(real x) {return format(s,x);};
 }
 
-string defaultformat="%.4g";
+string defaultformat="$%.4g$";
 ticklabel ticklabel=ticklabel(defaultformat);
 ticklabel LogFormat=new string(real x) {
-  return math(format("10^{%d}",round(x)));
+  return format("$10^{%d}$",round(x));
 };
   
 void labelaxis(frame f, string s, real position, real angle, pair align,
@@ -473,7 +473,7 @@ ticks Ticks(int sign, real[] Ticks, real[] ticks=new real[],
     real b=part(point(g,length(g)));
     real norm=max(abs(a),abs(b));
     if(logarithmic(S.scale)) ticklabel=new string(real x) {
-      return math(format("10^{%g}",x));
+      return format("$10^{%g}$",x);
     };
 
     begingroup(f);
@@ -517,10 +517,10 @@ ticks LeftTicks(bool begin=true, int N=0, int n=0, real Step=0, real step=0,
 }
 
 ticks LeftTicks(bool begin=true, int N=0, int n=0, real Step=0, real step=0,
-		real Size=Ticksize, real size=ticksize, string F,
+		real Size=Ticksize, real size=ticksize, string format,
 		bool end=true)
 {
-  return Ticks(begin,-1,N,n,Step,step,Size,size,ticklabel(F),end);
+  return Ticks(begin,-1,N,n,Step,step,Size,size,ticklabel(format),end);
 }
 
 ticks RightTicks(bool begin=true, int N=0, int n=0, real Step=0, real step=0,
@@ -531,10 +531,10 @@ ticks RightTicks(bool begin=true, int N=0, int n=0, real Step=0, real step=0,
 }
 
 ticks RightTicks(bool begin=true, int N=0, int n=0, real Step=0, real step=0,
-		 real Size=Ticksize, real size=ticksize, string F,
+		 real Size=Ticksize, real size=ticksize, string format,
 		 bool end=true)
 {
-  return Ticks(begin,1,N,n,Step,step,Size,size,ticklabel(F),end);
+  return Ticks(begin,1,N,n,Step,step,Size,size,ticklabel(format),end);
 }
 
 ticks LeftTicks(real[] Ticks, real[] ticks=new real[],
@@ -545,9 +545,9 @@ ticks LeftTicks(real[] Ticks, real[] ticks=new real[],
 }
 
 ticks LeftTicks(real[] Ticks, real[] ticks=new real[],
-		real Size=Ticksize, real size=ticksize, string F)
+		real Size=Ticksize, real size=ticksize, string format)
 {
-  return Ticks(-1,Ticks,ticks,Size,size,ticklabel(F));
+  return Ticks(-1,Ticks,ticks,Size,size,ticklabel(format));
 }
 
 ticks RightTicks(real[] Ticks, real[] ticks=new real[],
@@ -557,9 +557,9 @@ ticks RightTicks(real[] Ticks, real[] ticks=new real[],
 }
 
 ticks RightTicks(real[] Ticks, real[] ticks=new real[],
-		 real Size=Ticksize, real size=ticksize, string F)
+		 real Size=Ticksize, real size=ticksize, string format)
 {
-  return Ticks(1,Ticks,ticks,Size,size,ticklabel(F));
+  return Ticks(1,Ticks,ticks,Size,size,ticklabel(format));
 }
 
 public ticks
@@ -1094,10 +1094,10 @@ void tick(picture pic=currentpicture, pair z, pair dir, real size=Ticksize,
 }
 
 void labelx(picture pic=currentpicture, string s="", pair z, pair align=S,
-	    pair shift=infinity, pen p=currentpen)
+	    pair shift=infinity, string format=defaultformat, pen p=currentpen)
 {
   if(shift == infinity) shift=ticklabelshift(align,p);
-  if(s == "") s=math(z.x);
+  if(s == "") s=format(format,z.x);
   label(pic,baseline(s,align,"$10^4$"),z,align,shift,p);
 }
 
@@ -1114,22 +1114,24 @@ void xtick(picture pic=currentpicture, string s="", pair z, pair dir=N,
 }
 
 void labelxtick(picture pic=currentpicture, pair z, pair align=S,
-		pair shift=infinity, real size=Ticksize, pen p=currentpen)
+		pair shift=infinity, string format=defaultformat,
+		real size=Ticksize, pen p=currentpen)
 {
-  xtick(pic,math(z.x),z,-align,align,shift,size,p);
+  xtick(pic,format(format,z.x),z,-align,align,shift,size,p);
 }
 
 void labely(picture pic=currentpicture, string s="", explicit pair z,
-	    pair align=W, pair shift=infinity, pen p=currentpen)
+	    pair align=W, pair shift=infinity, string format=defaultformat,
+	    pen p=currentpen)
 {
-  if(s == "") s=math(z.y);
+  if(s == "") s=format(format,z.y);
   labelx(pic,s,z,align,shift,p);
 }
 
 void labely(picture pic=currentpicture, string s="", real y, pair align=W,
-	    pair shift=infinity, pen p=currentpen)
+	    pair shift=infinity, string format=defaultformat, pen p=currentpen)
 {
-  if(s == "") s=math(y);
+  if(s == "") s=format(format,y);
   labelx(pic,s,(0,y),align,shift,p);
 }
 
@@ -1148,15 +1150,17 @@ void ytick(picture pic=currentpicture, string s="", real y, pair dir=E,
 }
 
 void labelytick(picture pic=currentpicture, explicit pair z, pair align=W,
-		pair shift=infinity, real size=Ticksize, pen p=currentpen)
+		pair shift=infinity, string format=defaultformat,
+		real size=Ticksize, pen p=currentpen)
 {
-  xtick(pic,math(z.y),z,-align,align,shift,size,p);
+  xtick(pic,format(format,z.y),z,-align,align,shift,size,p);
 }
 
 void labelytick(picture pic=currentpicture, real y, pair align=W,
-		pair shift=infinity, real size=Ticksize, pen p=currentpen)
+		pair shift=infinity, string format=defaultformat,
+		real size=Ticksize, pen p=currentpen)
 {
-  xtick(pic,math(y),(0,y),-align,align,shift,size,p);
+  xtick(pic,format(format,y),(0,y),-align,align,shift,size,p);
 }
 
 private string noprimary="Primary axis must be drawn before secondary axis";

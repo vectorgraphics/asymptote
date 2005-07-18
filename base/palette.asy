@@ -12,10 +12,10 @@ void image(picture pic=currentpicture, real[][] data, pen[] palette,
 typedef ticks paletteticks(real Size);
 
 paletteticks PaletteTicks(bool begin=true, int N=0, real Step=0,
-			  string F=defaultformat, bool end=true)
+			  string format=defaultformat, bool end=true)
 {
   return new ticks(real Size) {
-    return LeftTicks(begin,N,0,Step,0.0,Size,0.0,ticklabel(F),end);
+    return LeftTicks(begin,N,0,Step,0.0,Size,0.0,ticklabel(format),end);
   };
 } 
 
