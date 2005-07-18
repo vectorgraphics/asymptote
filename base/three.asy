@@ -243,24 +243,62 @@ path3[] operator cast(guide3[] g) {
   return p;
 }
 
-// TODO: Improve dir to control point conversion in 3d.
-
 pair project(triple v, projection P)
 {
   return P(v);
 }
 
+struct Controls {
+  triple c0,c1;
+  
+  // John Hobby's velocity formula (used by both MetaPost and Asymptote)
+  real velocity(real theta, real phi, real t=1) {
+    static real bound=4;
+    static real a=sqrt(2);
+    static real b=1/16;
+    static real c=1.5*(sqrt(5)-1);
+    static real d=1.5*(3-sqrt(5));
+
+    real st=sin(theta), ct=cos(theta), sp=sin(phi), cp=cos(phi);
+
+    real r=(2+a*(st-b*sp)*(sp-b*st)*(ct-cp))/(t*(3+c*ct+d*cp));
+
+    if(r < 0) abort("negative");
+    return (r > bound) ? bound : r;
+  }
+
+  // TODO: Determine the correct signs of theta and phi, at least in the
+  // planar case, so that this reduces to the (2D) formula used by MetaPost
+  // and Asymptote.
+  
+  // TODO: Implement tension.
+  
+  void init(triple z0, triple z1, triple d0, triple d1) {
+    triple v=z1-z0;
+    triple u=unit(z1-z0);
+    real L=length(v);
+    real theta=acos(dot(unit(d0),u));
+    real phi=acos(dot(unit(d1),u));
+    c0=z0+d0*L*velocity(theta,phi);
+    c1=z1-d1*L*velocity(phi,theta);
+  }
+}
+
+Controls operator init() {return new Controls;}
+  
 path project(path3 g, projection P)
 {
   guide pg;
   typedef guide connector(... guide[]);
-  real r=4(sqrt(2)-1)/3;
   
   for(int i=0; i < size(g); ++i) {
     connector joint=g.straight[i] ? operator -- : operator ..;
-    if(g.out[i].active && g.in[i].active)
-      pg=joint(pg,P(point(g,i))..controls P(point(g,i)+r*unit(g.out[i].dir)) and 
-	       P(point(g,i+1)-r*unit(g.in[i].dir))..nullpath);
+    if(g.out[i].active && g.in[i].active) {
+      Controls c;
+      c.init(point(g,i),point(g,i+1),g.out[i].dir,g.in[i].dir);
+      pg=joint(pg,P(point(g,i))..controls
+	       P(c.c0) and P(c.c1)..nullpath);
+    }
     else if(g.out[i].active)
       pg=joint(pg,P(point(g,i)){P(g.out[i].dir)}..nullpath);
     else if(g.in[i].active)
