@@ -894,18 +894,6 @@ void tripleAzimuth(stack *s)
   s->push(pop<triple>(s).azimuth());
 }
 
-void tripleColatitudeDegrees(stack *s)
-{
-  s->push(degrees(pop<triple>(s).colatitude()));
-}
-
-void tripleAzimuthDegrees(stack *s)
-{
-  double deg=degrees(pop<triple>(s).azimuth());
-  if(deg < 0) deg += 360; 
-  s->push(deg);
-}
-
 void tripleUnit(stack *s)
 {
   s->push(unit(pop<triple>(s)));
@@ -1502,7 +1490,7 @@ void font(stack *s)
 void penFont(stack *s)
 {
   pen *p=pop<pen*>(s);
-  s->push(p->Font());  
+  s->push(new string(p->Font()));  
 }
 
 void fontSize(stack *s)

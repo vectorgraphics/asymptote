@@ -532,7 +532,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::pairLength,primReal(),"length",primPair());
   addFunc(ve,run::pairLength,primReal(),"abs",primPair());
   addFunc(ve,run::pairAngle,primReal(),"angle",primPair());
-  addFunc(ve,run::pairDegrees,primReal(),"Angle",primPair());
+  addFunc(ve,run::pairDegrees,primReal(),"degrees",primPair());
   addFunc(ve,run::pairUnit,primPair(),"unit",primPair());
   addFunc(ve,run::realDir,primPair(),"dir",primReal());
   addFunc(ve,run::pairExpi,primPair(),"expi",primReal());
@@ -545,9 +545,6 @@ void base_venv(venv &ve)
   addFunc(ve,run::tripleLength,primReal(),"length",primTriple());
   addFunc(ve,run::tripleColatitude,primReal(),"colatitude",primTriple());
   addFunc(ve,run::tripleAzimuth,primReal(),"azimuth",primTriple());
-  addFunc(ve,run::tripleColatitudeDegrees,primReal(),"Colatitude",
-	  primTriple());
-  addFunc(ve,run::tripleAzimuthDegrees,primReal(),"Azimuth",primTriple());
   addFunc(ve,run::tripleUnit,primTriple(),"unit",primTriple());
   addFunc(ve,run::tripleDir,primTriple(),"dir",primReal(),primReal());
   addFunc(ve,run::tripleDot,primReal(),"dot",primTriple(),primTriple());

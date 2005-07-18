@@ -10,6 +10,14 @@ real degrees(real radians)
   return radians*180/pi;
 }
 
+// Convert radians to degrees in [0,360).
+real Degrees(real radians) 
+{
+  real deg=degrees(radians);
+  if(deg < 0) deg += 360; 
+  return deg;
+}
+
 int quadrant(real degrees)
 {
   return floor(degrees/90) % 4;

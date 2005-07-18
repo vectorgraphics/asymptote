@@ -70,6 +70,6 @@ triangle operator * (transform T, triangle t)
 guide arc(explicit pair B, explicit pair A, explicit pair C,
 	  real r=arrowfactor)
 {
-  return arc(A,r,Angle(B-A),Angle(C-A));
+  return arc(A,r,degrees(B-A),degrees(C-A));
 }
 

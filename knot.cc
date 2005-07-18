@@ -49,10 +49,6 @@ ostream& info(ostream& o, string name, knotlist& l)
 
 #define INFO(x) info(std::cerr,#x,x)
 
-/***** Constants *****/
-
-const double VELOCITY_BOUND = 4.00;
-
 /***** Auxillary computation functions *****/
 
 // Computes the relative distance of a control point given the angles.
@@ -64,6 +60,7 @@ const double VELOCITY_BOUND = 4.00;
 // bounding with tension atleast.
 double velocity(double theta, double phi, tension t)
 {
+  static const double VELOCITY_BOUND = 4.00;
   static const double a = sqrt(2.0);
   static const double b = 1.0/16.0;
   static const double c = 1.5*(sqrt(5.0)-1.0);

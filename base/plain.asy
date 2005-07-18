@@ -1360,7 +1360,7 @@ void label(picture pic=currentpicture, string s, real angle=0, pair position,
 {
   pic.add(new void (frame f, transform t) {
     pair offset=t*0;
-    _label(f,s,Angle(t*dir(angle)-offset),
+    _label(f,s,degrees(t*dir(angle)-offset),
 	   t*position+align*labelmargin(p)+shift,
 	  length(align)*unit(t*align-offset),p);
   });
@@ -1612,7 +1612,7 @@ void labelbox(picture pic=currentpicture, real xmargin=0,
 {
   pic.add(new void (frame f, transform t) {
     pair offset=t*0;
-    _label(f,s,Angle(t*dir(angle)-offset),
+    _label(f,s,degrees(t*dir(angle)-offset),
 	   t*position+align*labelmargin(p)+shift,
 	   length(align)*unit(t*align-offset),p);
     box(f,xmargin,ymargin,pbox,filltype);
@@ -1927,7 +1927,7 @@ guide arc(pair c, real r, real angle1, real angle2)
 // drawing in the given direction.
 guide arc(pair c, explicit pair z1, explicit pair z2, bool direction=CCW)
 {
-  return arc(c,abs(z1-c),Angle(z1-c),Angle(z2-c),direction);
+  return arc(c,abs(z1-c),degrees(z1-c),degrees(z2-c),direction);
 }
 
 void bar(picture pic, pair a, pair d, pen p=currentpen)

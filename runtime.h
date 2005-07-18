@@ -120,8 +120,6 @@ void tripleRealDivide(vm::stack *s);
 void tripleLength(vm::stack *s);
 void tripleColatitude(vm::stack *s);
 void tripleAzimuth(vm::stack *s);
-void tripleColatitudeDegrees(vm::stack *s);
-void tripleAzimuthDegrees(vm::stack *s);
 void tripleUnit(vm::stack *s);
 void tripleDir(vm::stack *s);
 void tripleDot(vm::stack *s);
