@@ -267,10 +267,6 @@ struct Controls {
     return (r > bound) ? bound : r;
   }
 
-  // TODO: Determine the correct signs of theta and phi, at least in the
-  // planar case, so that this reduces to the (2D) formula used by MetaPost
-  // and Asymptote.
-  
   // TODO: Implement tension.
   
   void init(triple z0, triple z1, triple d0, triple d1) {
@@ -279,6 +275,7 @@ struct Controls {
     real L=length(v);
     real theta=acos(dot(unit(d0),u));
     real phi=acos(dot(unit(d1),u));
+    if(dot(cross(d0,v),cross(v,d1)) < 0) phi=-phi;
     c0=z0+d0*L*velocity(theta,phi);
     c1=z1-d1*L*velocity(phi,theta);
   }
@@ -291,22 +288,42 @@ path project(path3 g, projection P)
   guide pg;
   typedef guide connector(... guide[]);
   
-  for(int i=0; i < size(g); ++i) {
-    connector joint=g.straight[i] ? operator -- : operator ..;
-    if(g.out[i].active && g.in[i].active) {
-      Controls c;
-      c.init(point(g,i),point(g,i+1),g.out[i].dir,g.in[i].dir);
-      pg=joint(pg,P(point(g,i))..controls
-	       P(c.c0) and P(c.c1)..nullpath);
+  // Propagate directions across nodes.
+  for(int i=0; i < length(g); ++i) {
+    int next=(i+1 == size(g)) ? 0 : i+1;
+    if(!g.in[i].active && g.out[next].active) {
+      g.in[i]=g.out[next];
+      g.in[i].active=true;
     }
+    if(!g.out[next].active && g.in[i].active) {
+      g.out[next]=g.in[i];
+      g.out[next].active=true;
+    }
+  }
+  
+  // Compute missing control points where possible.
+  for(int i=0; i < length(g); ++i) {
+    int next=(i+1 == size(g)) ? 0 : i+1;
+    if(!g.control[i].active && g.out[i].active && g.in[i].active) {
+      Controls C;
+      C.init(point(g,i),point(g,next),g.out[i].dir,g.in[i].dir);
+      control c;
+      c.init(C.c0,C.c1);
+      g.control[i]=c;
+    }
+  }
+  
+  // Construct the path.
+  for(int i=0; i < size(g); ++i) {
+    connector join=g.straight[i] ? operator -- : operator ..;
+    if(g.control[i].active)
+      pg=join(pg,P(point(g,i))..controls P(g.control[i].post) and 
+	      P(g.control[i].pre)..nullpath);
     else if(g.out[i].active)
-      pg=joint(pg,P(point(g,i)){P(g.out[i].dir)}..nullpath);
+      pg=join(pg,P(point(g,i)){P(g.out[i].dir)}..nullpath);
     else if(g.in[i].active)
       pg=pg..{P(g.in[i].dir)}nullpath;
-    else if(g.control[i].active)
-      pg=joint(pg,P(point(g,i))..controls P(g.control[i].post) and 
-	       P(g.control[i].pre)..nullpath);
-    else pg=joint(pg,P(point(g,i)));
+    else pg=join(pg,P(point(g,i)));
   }
   return cyclic(g) ? (g.straight[-1] ? pg--cycle : pg..cycle) : pg;
 }
