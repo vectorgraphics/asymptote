@@ -884,14 +884,31 @@ void tripleLength(stack *s)
   s->push(pop<triple>(s).length());
 }
 
-void tripleColatitude(stack *s)
+void triplePolar(stack *s)
 {
-  s->push(pop<triple>(s).colatitude());
+  s->push(pop<triple>(s).polar());
 }
 
 void tripleAzimuth(stack *s)
 {
   s->push(pop<triple>(s).azimuth());
+}
+
+void tripleCoLatitude(stack *s)
+{
+  s->push(degrees(pop<triple>(s).polar()));
+}
+
+void tripleLatitude(stack *s)
+{
+  s->push(90.0-degrees(pop<triple>(s).polar()));
+}
+
+void tripleLongitude(stack *s)
+{
+  double deg=degrees(pop<triple>(s).azimuth());
+  if(deg < 0) deg += 360; 
+  s->push(deg);
 }
 
 void tripleUnit(stack *s)
@@ -1241,7 +1258,7 @@ void pathMax(stack *s)
   path p = pop<path>(s);
   s->push(p.bounds().Max());
 }
-
+  
 // Guide operations.
 
 void nullGuide(stack *s)
@@ -1327,6 +1344,14 @@ void pairPairControls(stack *s)
   s->push((guide *) new controlguide(zout, zin));
 }
 
+void relativeDistance(stack *s)
+{
+  bool atleast=pop<bool>(s);
+  tension t(pop<double>(s), atleast);
+  double phi=pop<double>(s);
+  double theta=pop<double>(s);
+  s->push(camp::velocity(theta,phi,t));
+}
 
 // Pen operations.
 

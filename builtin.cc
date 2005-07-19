@@ -37,12 +37,6 @@ using vm::bltin;
 using run::divide;
 using mem::string;
 
-#if 0
-const char *INIT_ID="initializer";
-const char *ECAST_ID="ecast";
-const char *CAST_ID="cast";
-#endif
-
 // The base environments for built-in types and functions
 void base_tenv(tenv &ret)
 {
@@ -264,6 +258,8 @@ void addGuideOperators(venv &ve)
           primReal(), primReal(), primBoolean());
   addFunc(ve, run::pairPairControls, primGuide(), "operator controls",
           primPair(), primPair());
+  addFunc(ve, run::relativeDistance, primReal(), "relativedistance",
+          primReal(), primReal(), primReal(), primBoolean());
 }
 
 /* To avoid typing the same type three times. */
@@ -543,8 +539,11 @@ void base_venv(venv &ve)
   addFunc(ve,run::tripleYPart,primReal(),"ypart",primTriple());
   addFunc(ve,run::tripleZPart,primReal(),"zpart",primTriple());
   addFunc(ve,run::tripleLength,primReal(),"length",primTriple());
-  addFunc(ve,run::tripleColatitude,primReal(),"colatitude",primTriple());
+  addFunc(ve,run::triplePolar,primReal(),"polar",primTriple());
   addFunc(ve,run::tripleAzimuth,primReal(),"azimuth",primTriple());
+  addFunc(ve,run::tripleCoLatitude,primReal(),"colatitude",primTriple());
+  addFunc(ve,run::tripleLatitude,primReal(),"latitude",primTriple());
+  addFunc(ve,run::tripleLongitude,primReal(),"longitude",primTriple());
   addFunc(ve,run::tripleUnit,primTriple(),"unit",primTriple());
   addFunc(ve,run::tripleDir,primTriple(),"dir",primReal(),primReal());
   addFunc(ve,run::tripleDot,primReal(),"dot",primTriple(),primTriple());

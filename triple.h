@@ -91,11 +91,11 @@ public:
     return sqrt(abs2());
   }
   
-  double colatitude() const /* theta */
+  double polar() const /* theta */
   {
     double r=length();
     if (r == 0.0)
-      reportError("taking colatitude of (0,0,0)");
+      reportError("taking polar angle of (0,0,0)");
     return acos(z/r);
   }
   

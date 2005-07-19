@@ -118,8 +118,11 @@ void realTripleMult(vm::stack *s);
 void tripleRealMult(vm::stack *s);
 void tripleRealDivide(vm::stack *s);
 void tripleLength(vm::stack *s);
-void tripleColatitude(vm::stack *s);
+void triplePolar(vm::stack *s);
 void tripleAzimuth(vm::stack *s);
+void tripleCoLatitude(vm::stack *s);
+void tripleLatitude(vm::stack *s);
+void tripleLongitude(vm::stack *s);
 void tripleUnit(vm::stack *s);
 void tripleDir(vm::stack *s);
 void tripleDot(vm::stack *s);
@@ -180,6 +183,7 @@ void dirSpec(vm::stack *s);
 void curlSpec(vm::stack *s);
 void realRealTension(vm::stack *s);
 void pairPairControls(vm::stack *s);
+void relativeDistance(vm::stack *s);
 
 // String operations
 void emptyString(vm::stack *s);

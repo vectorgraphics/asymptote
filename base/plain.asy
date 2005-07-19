@@ -131,30 +131,26 @@ static public string defaultfilename;
 static real infinity=sqrt(0.5*realMax());
 static real epsilon=realEpsilon();
 
-// Define a.. tension x ..b to be equivalent to
-//        a.. tension x and x ..b
+// Define a.. tension t ..b to be equivalent to
+//        a.. tension t and t ..b
 // and likewise with controls.
-guide operator tension(real x, bool atl)
+guide operator tension(real t, bool atLeast)
 {
-  return operator tension(x,x,atl);
+  return operator tension(t,t,atLeast);
 }
 guide operator controls(pair z)
 {
   return operator controls(z,z);
 }
 
-guide operator ::(... guide[] a) {
-  guide g;
-  for(int i=0; i < a.length; ++i)
-    g=g..tension atleast 1 ..a[i];
-  return g;
+guide operator ::(guide a ... guide[] b)
+{
+  return a..operator tension(1,true)..operator ..(... b);
 }
-		    
-guide operator ---(... guide[] a) {
-  guide g;
-  for(int i=0; i < a.length; ++i)
-    g=g..tension atleast infinity..a[i];
-  return g;
+
+guide operator ---(guide a ... guide[] b)
+{
+  return a..operator tension(infinity,true)..operator ..(... b);
 }
 
 real dotsize(pen p=currentpen) 
@@ -187,7 +183,7 @@ bool finite(pair z)
   return abs(z.x) < infinity && abs(z.y) < infinity;
 }
 
-// Cut two parentheses.
+// Avoid two parentheses.
 transform shift(real x, real y)
 {
   return shift((x,y));
@@ -211,6 +207,17 @@ void tab(file file) {write(file,'\t');}
 typedef void suffix(file);
 
 void write(file file=stdout, suffix s=endl) {s(file);}
+
+void write(file file, path[] g)
+{
+  if(g.length > 0) write(file,g[0]);
+  for(int i=1; i < g.length; ++i) {
+    write(file);
+    write(file," ^^");
+    write(file,g[i]);
+  }
+}
+
 void write(file file=stdout, bool x, suffix s) {write(file,x); s(file);}
 void write(file file=stdout, int x, suffix s) {write(file,x); s(file);}
 void write(file file=stdout, real x, suffix s) {write(file,x); s(file);}
@@ -220,6 +227,8 @@ void write(file file=stdout, string x, suffix s) {write(file,x); s(file);}
 void write(file file=stdout, guide x, suffix s) {write(file,x); s(file);}
 void write(file file=stdout, pen x, suffix s) {write(file,x); s(file);}
 void write(file file=stdout, transform x, suffix s) {write(file,x); s(file);}
+void write(file file=stdout, path[] x, suffix s) {write(file,x); s(file);}
+void write(path[] g) {write(stdout,g,endl);}
 
 void write(file file=stdout, string x, bool y)
 {
@@ -1375,9 +1384,9 @@ pair point(picture pic=currentpicture, pair dir)
   return pic.userMin+realmult(rectify(dir),pic.userMax-pic.userMin);
 }
 
-transform rotate(real a) 
+transform rotate(real angle) 
 {
-  return rotate(a,0);
+  return rotate(angle,0);
 }
 
 guide arrowhead(path g, real position=infinity, pen p=currentpen,

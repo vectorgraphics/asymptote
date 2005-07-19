@@ -510,6 +510,8 @@ path solve(knotlist& l);
 
 path solveSimple(cvector<pair>& z);
 
+double velocity(double theta, double phi, tension t);
+  
 } // namespace camp
 
 #endif // KNOT_H
