@@ -100,12 +100,12 @@
 {
   // line 110
   int f(), f(int);
-  (f).m = 5;
+  f.m = 5;
 }
 {
   // line 122
   int x;
-  (x).m = 5;
+  x.m = 5;
 }
 {
   // line 147
@@ -113,7 +113,7 @@
     int x,y;
   }
   point p;
-  int x = (p).z;
+  int x = p.z;
 }
 {
   // line 157
@@ -121,7 +121,7 @@
     int x, y;
   }
   point p;
-  (p).z;
+  p.z;
 }
 {
   // line 163
@@ -129,7 +129,7 @@
     int f(), f(int);
   }
   point p;
-  (p).f;
+  p.f;
 }
 {
   // line 204
@@ -137,7 +137,7 @@
     int x, y;
   }
   point p;
-  (p).z = 5;
+  p.z = 5;
 }
 {
   // line 229 - unreachable

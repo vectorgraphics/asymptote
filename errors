@@ -2,10 +2,12 @@ errortest: 12.3: no variable or type of name 'x'
 errortest: 16.11: no matching variable of name 'y'
 errortest: 20.3: no matching variable of name 'x'
 errortest: 27.3: no type of name 'x'
+errortest: 27.5: no default initializer for type '<error>'
 errortest: 28.3: no type of name 'x'
 errortest: 29.3: no type of name 'x'
 errortest: 30.10: no type of name 'x'
 errortest: 32.5: no type of name 'x'
+errortest: 32.7: no default initializer for type '<error>'
 errortest: 33.5: no type of name 'x'
 errortest: 34.5: no type of name 'x'
 errortest: 35.12: no type of name 'x'
@@ -14,22 +16,24 @@ errortest: 48.4: no matching field or type of name 'u' in 'm'
 errortest: 55.12: no matching field of name 'z' in 'm'
 errortest: 62.4: no matching field of name 'z' in 'm'
 errortest: 75.4: no type of name 'u' in 'm'
+errortest: 75.7: no default initializer for type '<error>'
 errortest: 77.5: no type of name 'u' in 'm'
+errortest: 77.8: no default initializer for type '<error>'
 errortest: 84.3: expression cannot be used as an address
 errortest: 89.3: use of variable 'f' is ambiguous
 errortest: 91.4: use of variable 'm.f' is ambiguous
 errortest: 97.11: array initializer used for non-array
 errortest: 98.12: array initializer used for non-array
-errortest: 103.4: no matching variable of name 'f'
-errortest: 108.4: type 'int' is not a structure
-errortest: 116.14: no matching field of name 'z' in type 'point'
-errortest: 124.6: no matching field of name 'z' in type 'point'
-errortest: 132.6: use of field 'f' is ambiguous in type 'point'
-errortest: 140.6: no matching field of name 'z' in type 'point'
+errortest: 103.3: no variable or type of name 'f'
+errortest: 108.3: type 'int' is not a structure
+errortest: 116.12: no matching field of name 'z' in 'point'
+errortest: 124.4: no matching field of name 'z' in 'point'
+errortest: 132.4: use of variable 'p.f' is ambiguous
+errortest: 140.4: no matching field of name 'z' in 'point'
 errortest: 151.4: no matching function 'f()'
 errortest: 152.4: no matching function 'f(string)'
 errortest: 160.4: cannot call 'void f(int)' without parameters
-errortest: 168.7: no matching function '+(point)'
+errortest: 168.7: no matching function 'operator +(point)'
 errortest: 173.10: types in conditional expression do not match
 errortest: 178.10: type of conditional expression is ambiguous
 errortest: 183.5: cannot convert 'int ()' to 'int' in assignment
@@ -44,9 +48,5 @@ errortest: 234.5: function must return a value
 errortest: 241.11: function must return a value
 errortest: 244.11: function must return a value
 errortest: 254.3: type 'm' previously declared
-errortest: 261.8: function variable 'f()' previously declared
-errortest: 266.7: variable 'x' previously declared
-errortest: 272.10: function variable 'f()' previously declared
-errortest: 277.9: variable 'x' previously declared
 errortest: 290.3: built-in functions cannot be modified
-errortest: 298.18: cannot convert 'string' to 'int'
+errortest: 298.18: cannot cast expression to 'int'
