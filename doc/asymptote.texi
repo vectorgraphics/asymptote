@@ -93,8 +93,8 @@ Import
 * plain::                       Default @code{Asymptote} base file
 * simplex::                     Linear programming: simplex method
 * graph::                       2D linear & logarithmic graphs
-* three::                       
-* graph3d::                     Preliminary 3D projection routines
+* three::                       Three-dimensional vector graphics
+* graph3d::                     3D linear & logarithmic graphs
 * featpost3D::                  Preliminary port of @code{featpost3d}
 * math::                        Extend @code{Asymptote}'s math capabilities
 * geometry::                    Geometry routines
