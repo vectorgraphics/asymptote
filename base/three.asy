@@ -127,7 +127,7 @@ transform3 orthographic(triple camera)
   return lookAtOrigin(camera);
 }
 
-transform3 oblique(real angle=30)
+transform3 oblique(real angle=45)
 {
   transform3 t=identity(4);
   real x=Cos(angle)^2;

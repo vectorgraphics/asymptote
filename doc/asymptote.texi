@@ -104,7 +104,7 @@ Import
 * tree::                        Dynamic binary search tree
 * drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
-* metapost::                    @code{MetaPost} compatibility routines
+* MetaPost::                    @code{MetaPost} compatibility routines
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Implement @code{LaTeX} @code{babel} package
@@ -663,7 +663,7 @@ returns a unit triple in the direction of the triple @code{v};
 
 @item triple dir(real colatitude, real longitude)
 @cindex @code{dir}
-returns a unit triple in the direction @code{(lolatitude,longitude)}
+returns a unit triple in the direction @code{(colatitude,longitude)}
 measured in degrees;
 
 @item real xpart(triple v)
@@ -894,7 +894,7 @@ draw((100,0)..tension 2 and 1 ..(100,100)..(0,100));
 draw((100,0)..tension atleast 1 ..(100,100)..(0,100));
 @end verbatim
 
-@cindex @code{MetaPost ...}
+@cindex @code{MetaPost ...@ }
 @cindex @code{::}
 The @code{MetaPost ...} joiner, which requests, when possible, an
 inflection-free curve confined to a triangle defined by the
@@ -2839,7 +2839,7 @@ void eval(string s);
 * tree::                        Dynamic binary search tree
 * drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
-* metapost::                    @code{MetaPost} compatibility routines
+* MetaPost::                    @code{MetaPost} compatibility routines
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Implement @code{LaTeX} @code{babel} package
@@ -3473,13 +3473,13 @@ If an optional real argument is given to @code{oblique}, the
 negative @math{z} axis is drawn at this angle in degrees measured
 counterclockwise from the positive @math{x} axis.
 
-@item orthographic
-@cindex orthographic(triple camera)
+@item orthographic(triple camera)
+@cindex orthographic
 This projects three dimensions onto two using the view seen at the
 location @code{camera}. Parallel lines are projected to parallel lines.
 
-@item perspective
-@cindex perspective(triple camera)
+@item perspective(triple camera)
+@cindex perspective
 This projects three dimensions onto two taking account of perspective,
 as seen from the location @code{camera}.
 
@@ -3663,9 +3663,9 @@ This package, contributed by Martin Wiebusch, is useful for drawing
 Feynman diagrams, as illustrated by the examples @code{eetomumu.asy}
 and @code{fermi.asy}.
 
-@node metapost
-@subsection @code{metapost}
-@cindex @code{metapost}
+@node MetaPost
+@subsection @code{MetaPost}
+@cindex @code{MetaPost}
 This package provides some useful routines to help @code{MetaPost} users
 migrate old @code{MetaPost} code to @code{Asymptote}.
 
@@ -4519,7 +4519,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  randMax Gaussrand asy cindex indices resized LaTeX TK latin au
 @c  LocalWords:  latexusage tex bbox PostScript subdirectory gcc emacs ASYDIR
 @c  LocalWords:  documentclass usepackage asydef subpath shipout sqrt xN  Mx bw
-@c  LocalWords:  xscale xaxis yaxis BeginBar GIF postprocessing fpu de rpair
+@c  LocalWords:  xscale xaxis yaxis BeginBar GIF postprocessing fpu de rpair xy
 @c  LocalWords:  nomask noplain ImageMagick defaultfontsize defaultlinewidth cd
 @c  LocalWords:  startup natively xasy tkinter VxN yingyang currentpicture toc
 @c  LocalWords:  MetaPost MetaFont Hammerlindl Healy texinfo autoload setq setf
@@ -4560,7 +4560,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  westnile minipage infectiousM ra penb paletteticks drawline
 @c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis
 @c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx XEquals YEquals
-@c  LocalWords:  treetest eetomumu fermi backend pstoedit drawtree metapost xFF
+@c  LocalWords:  treetest eetomumu fermi backend pstoedit drawtree xFF
 @c  LocalWords:  vimrc CFLAGS verbatiminclude online noindent bezier superpath
 @c  LocalWords:  evenodd squarecap roundcap extendcap miterjoin roundjoin NFSS
 @c  LocalWords:  beveljoin fillrule zerowinding insideness lineskip cmr pcrr Hx
@@ -4574,4 +4574,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  PaletteTicks defaultformat leastsquares bjam fprintf endgroup
 @c  LocalWords:  begingroup xmargin ymargin pbox labelbox labelellipse wget
 @c  LocalWords:  multithreaded newframe init emph nums concat xline yline zpart
-@c  LocalWords:  colatitude pticklabel labelxtick labelytick
+@c  LocalWords:  colatitude pticklabel labelxtick labelytick zscale
