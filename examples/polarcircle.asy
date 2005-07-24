@@ -5,7 +5,7 @@ size(0,100);
 real f(real t) {return 2*cos(t);}
 pair F(real x) {return (x,f(x));}
 
-draw(polargraph(f,0,pi,Spline));
+draw(polargraph(f,0,pi,operator ..));
 
 defaultpen(fontsize(10));
 

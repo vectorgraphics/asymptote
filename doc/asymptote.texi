@@ -2880,7 +2880,7 @@ the following routines:
 @item
 @verbatim
 guide graph(picture pic=currentpicture, real f(real), real a, real b,
-            int n=ngraph, interpolate interpolatetype=Straight);
+            int n=ngraph, interpolate join=operator --);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2889,11 +2889,15 @@ Returns a graph using the scaling information for picture @code{pic}
 one of these interpolation types:
 @itemize @bullet 
 
+@cindex @code{operator --}
 @cindex @code{Straight}
-@item @code{Straight} (linear interpolation)
+@item @code{operator --} (linear interpolation; the abbreviation
+@code{Straight} is also accepted) 
 
+@cindex @code{operator ..}
 @cindex @code{Spline} 
-@item @code{Spline} (piecewise Bezier cubic spline interpolation)
+@item @code{operator ..} (piecewise Bezier cubic spline interpolation;
+the abbreviation @code{Spline} is also accepted)
 
 @end itemize
 
@@ -2901,7 +2905,7 @@ one of these interpolation types:
 @verbatim
 guide graph(picture pic=currentpicture, real x(real), real y(real),
             real a, real b, int n=ngraph,
-            interpolate interpolatetype=Straight);
+            interpolate join=operator --);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2913,7 +2917,7 @@ the given interpolation type.
 @item
 @verbatim
 guide graph(picture pic=currentpicture, pair z(real), real a, real b,
-            int n=ngraph, interpolate interpolatetype=Straight);
+            int n=ngraph, interpolate join=operator --);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2924,7 +2928,7 @@ of the parametrized function
 @item
 @verbatim
 guide graph(picture pic=currentpicture, pair[] z, bool[] cond={},
-            interpolate interpolatetype=Straight);
+            interpolate join=operator --);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2935,7 +2939,7 @@ of those elements of the array
 @item
 @verbatim
 guide graph(picture pic=currentpicture, real[] x, real[] y,
-            bool[] cond={}, interpolate interpolatetype=Straight);
+            bool[] cond={}, interpolate join=operator --);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2946,7 +2950,7 @@ of those elements of the arrays
 @item
 @verbatim
 guide graph(real f(real), real a, real b, int n=ngraph, real T(real),
-           interpolate interpolatetype=Straight);
+           interpolate join=operator --);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -2957,7 +2961,7 @@ spaced in [@code{a},@code{b}], with the given interpolation type.
 @item
 @verbatim
 guide polargraph(real f(real), real a, real b, int n=ngraph,
-                 interpolate interpolatetype=Straight);
+                 interpolate join=operator --);
 @end verbatim
 
 Returns a polar-coordinate graph using the scaling information for

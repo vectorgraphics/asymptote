@@ -19,7 +19,7 @@ int a=1, b=9;
 xaxis(0,b,"$x$"); 
 yaxis(0,"$y$"); 
  
-draw(graph(f,a,b,Spline),red);
+draw(graph(f,a,b,operator ..),red);
  
 for(int i=a; i <= b; ++i) {
   if(i < b) subinterval(i,i+1);

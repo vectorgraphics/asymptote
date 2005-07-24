@@ -24,7 +24,7 @@ void partition(real a, real b, real c, real h(real,real))
   draw((a,0)--(F(a)));
   draw((b,0)--(F(b)));
 
-  draw(graph(f,a,b,Spline),red);
+  draw(graph(f,a,b,operator ..),red);
   draw((a,0)--(b,0));
   labelx("$a$",a);
   labelx("$b$",b);

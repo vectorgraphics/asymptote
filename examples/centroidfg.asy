@@ -6,8 +6,8 @@ int a=-1, b=1;
 real f(real x) {return x^3-x+2;}
 real g(real x) {return x^2;}
 
-draw(graph(f,a,b,Spline),red);
-draw(graph(g,a,b,Spline),blue);
+draw(graph(f,a,b,operator ..),red);
+draw(graph(g,a,b,operator ..),blue);
  
 xaxis(); 
 

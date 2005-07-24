@@ -10,13 +10,13 @@ yaxis("$y$");
 
 real theta1=pi/8;
 real theta2=pi/3;
-guide k=graph(f,theta1,theta2,Spline);
+guide k=graph(f,theta1,theta2,operator ..);
 real rmin=min(k).y;
 real rmax=max(k).y;
 draw((0,0)--rmax*expi(theta1),dotted);
 draw((0,0)--rmax*expi(theta2),dotted);
 
-guide g=polargraph(f,theta1,theta2,Spline);
+guide g=polargraph(f,theta1,theta2,operator ..);
 guide h=(0,0)--g--cycle;
 fill(h,lightgray);
 draw(h);

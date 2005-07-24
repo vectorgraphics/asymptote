@@ -1,3 +1,4 @@
+import graph;
 import three;
 size(200,0);
 

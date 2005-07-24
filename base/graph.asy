@@ -1227,53 +1227,51 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
   return pic;
 }
 
-typedef guide interpolate(pair F(real), real, real, int);
+typedef guide graph(pair F(real), real, real, int);
 		       
-public interpolate Straight=new guide(pair F(real), real a, real b, int n) {
-  guide g;
-  real width=n == 0 ? 0 : (b-a)/n;
-  for(int i=0; i <= n; ++i) {
-    real x=a+width*i;
-    g=g--F(x);	
-  }	
-  return g;
-};
-		       
-public interpolate Spline=new guide(pair F(real), real a, real b, int n) {
-  guide g;
-  real width=n == 0 ? 0 : (b-a)/n;
-  for(int i=0; i <= n; ++i) {
-    real x=a+width*i;
-    g=g..F(x);
-  }
-  return g;
-};
+public graph graph(guide join(... guide[]))
+{
+  return new guide(pair F(real), real a, real b, int n) {
+    guide g;
+    real width=n == 0 ? 0 : (b-a)/n;
+    for(int i=0; i <= n; ++i) {
+      real x=a+width*i;
+      g=join(g,F(x));	
+    }	
+    return g;
+  };
+}
+
+guide Straight(... guide[])=operator --;
+guide Spline(... guide[])=operator ..;
 
 pair Scale(picture pic, pair z)
 {
   return (pic.scale.x.T(z.x),pic.scale.y.T(z.y));
 }
 
+typedef guide interpolate(... guide[]);
+
 guide graph(picture pic=currentpicture, real f(real), real a, real b,
-	    int n=ngraph, interpolate interpolatetype=Straight)
+	    int n=ngraph, interpolate join=operator --)
 {
-  return interpolatetype(new pair (real x) {
+  return graph(join)(new pair (real x) {
     return (x,pic.scale.y.T(f(pic.scale.x.Tinv(x))));},
 			 pic.scale.x.T(a),pic.scale.x.T(b),n);
 }
 
 guide graph(picture pic=currentpicture, real x(real), real y(real), real a,
-	    real b, int n=ngraph, interpolate interpolatetype=Straight)
+	    real b, int n=ngraph, interpolate join=operator --)
 {
-  return interpolatetype(new pair (real t) {return Scale(pic,(x(t),y(t)));},
-			 a,b,n);
+  return graph(join)(new pair (real t) {return Scale(pic,(x(t),y(t)));},
+			   a,b,n);
 }
 
 guide graph(picture pic=currentpicture, pair z(real), real a, real b,
-	    int n=ngraph, interpolate interpolatetype=Straight)
+	    int n=ngraph, interpolate join=operator --)
 {
-  return interpolatetype(new pair (real t) {return Scale(pic,z(t));},
-			 a,b,n);
+  return graph(join)(new pair (real t) {return Scale(pic,z(t));},
+			   a,b,n);
 }
 
 private int next(int i, bool[] cond)
@@ -1293,11 +1291,11 @@ int conditional(pair[] z, bool[] cond)
 }
 
 guide graph(picture pic=currentpicture, pair[] z, bool[] cond={},
-	    interpolate interpolatetype=Straight)
+	    interpolate join=operator --)
 {
   int n=conditional(z,cond);
   int i=-1;
-  return interpolatetype(new pair (real) {
+  return graph(join)(new pair (real) {
     i=next(i,cond);
     return Scale(pic,z[i]);},0,0,n);
 }
@@ -1305,20 +1303,20 @@ guide graph(picture pic=currentpicture, pair[] z, bool[] cond={},
 private string differentlengths="attempt to graph arrays of different lengths";
 
 guide graph(picture pic=currentpicture, real[] x, real[] y, bool[] cond={},
-	    interpolate interpolatetype=Straight)
+	    interpolate join=operator --)
 {
   if(x.length != y.length) abort(differentlengths);
   int n=conditional(x,cond);
   int i=-1;
-  return interpolatetype(new pair (real) {
+  return graph(join)(new pair (real) {
     i=next(i,cond);
     return Scale(pic,(x[i],y[i]));},0,0,n);
 }
 
 guide graph(real f(real), real a, real b, int n=ngraph,
-	    real T(real), interpolate interpolatetype=Straight)
+	    real T(real), interpolate join=operator --)
 {
-  return interpolatetype(new pair (real x) {return (T(x),f(T(x)));},a,b,n);
+  return graph(join)(new pair (real x) {return (T(x),f(T(x)));},a,b,n);
 }
 
 pair polar(real r, real theta)
@@ -1327,10 +1325,11 @@ pair polar(real r, real theta)
 }
 
 guide polargraph(real f(real), real a, real b, int n=ngraph,
-		 interpolate interpolatetype=Straight)
+		 interpolate join=operator --)
 {
-  return interpolatetype(new pair (real theta) {return f(theta)*expi(theta);},
-			 a,b,n);
+  return graph(join)(new pair (real theta) {
+      return f(theta)*expi(theta);
+    },a,b,n);
 }
 
 void errorbar(picture pic, pair z, pair dp, pair dm, pen p=currentpen,
@@ -1386,7 +1385,7 @@ void errorbars(picture pic=currentpicture, real[] x, real[] y,
 guide Arc(pair c, real r, real angle1, real angle2)
 {
   return shift(c)*polargraph(new real (real t){return r;},angle1,angle2,
-  Spline);
+  operator ..);
 }
 
 // True circle

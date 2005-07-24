@@ -7,7 +7,7 @@ pair F(real x) {return (x,f(x));}
 real g(real x) {return sqrt(-x);}
 pair G(real x) {return (x,g(x));}
 
-guide p=graph(f,0,1,Spline);
+guide p=graph(f,0,1,operator ..);
 
 draw(p--(0,1),dotted);
 
@@ -22,7 +22,7 @@ draw(q);
 
 arrow("$y=\sqrt{x}$",F(0.7),ESE);
 
-draw(graph(g,0,-1,Spline)--(0,1),dotted);
+draw(graph(g,0,-1,operator ..)--(0,1),dotted);
 
 draw((0,0.74),yscale(0.5)*arc(0,0.25cm,-250,70),ArcArrow);
 

@@ -143,16 +143,6 @@ guide operator controls(pair z)
   return operator controls(z,z);
 }
 
-guide operator ::(guide a ... guide[] b)
-{
-  return a..operator tension(1,true)..operator ..(... b);
-}
-
-guide operator ---(guide a ... guide[] b)
-{
-  return a..operator tension(infinity,true)..operator ..(... b);
-}
-
 real dotsize(pen p=currentpen) 
 {
   return dotfactor*linewidth(p);
@@ -2483,3 +2473,15 @@ void atexit()
   } else if(!shipped) shipout();
 }
 atexit(atexit);
+
+guide operator ::(... guide[] a)
+{
+  return a[0]..operator tension(1,true)..
+    operator ..(... a[sequence(1,a.length-1)]);
+}
+
+guide operator ---(... guide[] a)
+{
+  return a[0]..operator tension(infinity,true)..
+    operator ..(... a[sequence(1,a.length-1)]);
+}

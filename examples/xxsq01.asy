@@ -12,7 +12,7 @@ guide h=(0,0)--graph(g,0,1);
 arrow("$y=x^2$",F(0.85),E,0.75cm);
 arrow("$y=x$",G(0.4),N);
 
-guide g=(0,0)--graph(f,0,1,Spline)--cycle;
+guide g=(0,0)--graph(f,0,1,operator ..)--cycle;
 fill(g,lightgray);
 draw(h);
 draw(g);

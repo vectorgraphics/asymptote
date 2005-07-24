@@ -247,27 +247,35 @@ struct flatguide3 {
  }
 
   void control(triple post, triple pre) {
-    control c;
-    c.init(post,pre);
-    control[-1]=c;
+    if(control.length > 0) {
+      control c;
+      c.init(post,pre);
+      control[-1]=c;
+    }
   }
 
   void Tension(real out, real in, bool atLeast) {
-    Tension t;
-    t.init(out,in,atLeast);
-    Tension[-1]=t;
+    if(Tension.length > 0) {
+      Tension t;
+      t.init(out,in,atLeast);
+      Tension[-1]=t;
+    }
   }
 
   void in(triple v) {
-    dir d;
-    d.init(v);
-    in[-1]=d;
+    if(in.length > 0) {
+      dir d;
+      d.init(v);
+      in[-1]=d;
+    }
   }
 
   void out(triple v) {
-    dir d;
-    d.init(v);
-    out[-1]=d;
+    if(out.length > 0) {
+      dir d;
+      d.init(v);
+      out[-1]=d;
+    }
   }
 
   void straight(bool b) {
@@ -286,7 +294,11 @@ int length(explicit flatguide3 g) {
 
 void write(file file, flatguide3 g)
 {
-  for(int i=0; i < size(g); ++i) {
+  if(size(g) == 0) {
+    write("<nullguide3>");
+  if(cyclic(g) && g.straight.length > 0)
+      write(file,g.straight[0] ? " --" : " ..");
+  } else for(int i=0; i < size(g); ++i) {
     write(file,g.nodes[i],endl);
     if(g.out[i].active) {
       write(file,"{"); write(file,g.out[i].dir); write(file,"}");
@@ -395,14 +407,16 @@ guide3 operator .. (... guide3[] g)
   };
 }
 
-guide3 operator ::(guide3 a ... guide3[] b)
+guide3 operator ::(... guide3[] a)
 {
-  return a..operator tension3(1,true)..operator ..(... b);
+  return a[0]..operator tension3(1,true)..
+    operator ..(... a[sequence(1,a.length-1)]);
 }
 
-guide3 operator ---(guide3 a ... guide3[] b)
+guide3 operator ---(... guide3[] a)
 {
-  return a..operator tension3(infinity,true)..operator ..(... b);
+  return a[0]..operator tension3(infinity,true)..
+    operator ..(... a[sequence(1,a.length-1)]);
 }
 
 guide3 operator spec(triple v, int p)
@@ -477,7 +491,6 @@ Controls operator init() {return new Controls;}
 path project(flatguide3 g, projection P)
 {
   guide pg;
-  typedef guide connector(... guide[]);
   
   // Propagate directions across nodes.
   for(int i=0; i < length(g); ++i) {
@@ -507,7 +520,7 @@ path project(flatguide3 g, projection P)
   
   // Construct the path.
   for(int i=0; i < size(g); ++i) {
-    connector join=g.straight[i] ? operator -- : operator ..;
+    guide join(... guide[])=g.straight[i] ? operator -- : operator ..;
     if(g.control[i].active)
       pg=join(pg,P(point(g,i))..controls P(g.control[i].post) and 
 	      P(g.control[i].pre)..nullpath);
