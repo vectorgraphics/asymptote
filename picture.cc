@@ -197,6 +197,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     string s;
     bool first=true;
     while(getline(fin,s)) {
+      if(s.find("%%DocumentPaperSizes:") == 0) continue;
       if(first && s.find("%%BoundingBox:") == 0) {
 	if(verbose > 2) BoundingBox(cout,bpos);
 	BoundingBox(fout,bcopy);
