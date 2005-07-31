@@ -60,7 +60,7 @@ ostream& info(ostream& o, string name, knotlist& l)
 // bounding with tension atleast.
 double velocity(double theta, double phi, tension t)
 {
-  static const double VELOCITY_BOUND = 4.00;
+  static const double VELOCITY_BOUND = 4.0;
   static const double a = sqrt(2.0);
   static const double b = 1.0/16.0;
   static const double c = 1.5*(sqrt(5.0)-1.0);
