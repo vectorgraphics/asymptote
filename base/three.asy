@@ -21,7 +21,7 @@ triple operator * (transform3 t, triple v)
   return (triple) (t*(real[]) v);
 }
 
-// A translation in 3d-space.
+// A translation in 3D space.
 transform3 shift(triple v)
 {
   transform3 t=identity(4);
@@ -37,7 +37,7 @@ transform3 shift(real x, real y, real z)
   return shift((x,y,z));
 }
 
-// A uniform scaling in 3d-space.
+// A uniform scaling in 3D space.
 transform3 scale3(real s)
 {
   transform3 t=identity(4);
@@ -45,7 +45,7 @@ transform3 scale3(real s)
   return t;
 }
 
-// A scaling in the x direction in 3d-space.
+// A scaling in the x direction in 3D space.
 transform3 xscale3(real s)
 {
   transform3 t=identity(4);
@@ -53,7 +53,7 @@ transform3 xscale3(real s)
   return t;
 }
 
-// A scaling in the y direction in 3d-space.
+// A scaling in the y direction in 3D space.
 transform3 yscale3(real s)
 {
   transform3 t=identity(4);
@@ -61,7 +61,7 @@ transform3 yscale3(real s)
   return t;
 }
 
-// A scaling in the x direction in 3d-space.
+// A scaling in the z direction in 3D space.
 transform3 zscale3(real s)
 {
   transform3 t=identity(4);
@@ -409,14 +409,18 @@ guide3 operator .. (... guide3[] g)
 
 guide3 operator ::(... guide3[] a)
 {
-  return a[0]..operator tension3(1,true)..
-    operator ..(... a[sequence(1,a.length-1)]);
+  guide3 g;
+  for(int i=0; i < a.length; ++i)
+    g=g..operator tension3(1,true)..a[i];
+  return g;
 }
 
 guide3 operator ---(... guide3[] a)
 {
-  return a[0]..operator tension3(infinity,true)..
-    operator ..(... a[sequence(1,a.length-1)]);
+  guide3 g;
+  for(int i=0; i < a.length; ++i)
+    g=g..operator tension3(infinity,true)..a[i];
+  return g;
 }
 
 guide3 operator spec(triple v, int p)

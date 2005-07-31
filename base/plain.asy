@@ -1205,24 +1205,14 @@ void draw(picture pic=currentpicture, path[] g, pen p=currentpen)
   for(int i=0; i < g.length; ++i) Draw(pic,g[i],p);
 }
 
-void fill(frame f, path g, pen p)
+void fill(frame f, path g, pen p=currentpen)
 {
   fill(f,g,p,0,0,p,0,0);
 }
 
-void fill(frame f, path g)
-{
-  fill(f,g,currentpen);
-}
-
-void fill(frame f, path[] g, pen p)
+void fill(frame f, path[] g, pen p=currentpen)
 {
   fill(f,g,p,0,0,p,0,0);
-}
-
-void fill(frame f, path[] g)
-{
-  fill(f,g,currentpen);
 }
 
 void filldraw(frame f, path g, pen p=currentpen)
@@ -1231,69 +1221,110 @@ void filldraw(frame f, path g, pen p=currentpen)
   draw(f,g,p);
 }
 
-void fill(picture pic=currentpicture, path g,
-	  pen pena=currentpen, pair a=0, real ra=0,
-	  pen penb=currentpen, pair b=0, real rb=0)
+void fill(picture pic=currentpicture, path g, pen p=currentpen)
+{
+  pic.add(new void (frame f, transform t) {
+    fill(f,t*g,p);
+  });
+  pic.addPath(g);
+}
+
+void fill(picture pic=currentpicture, path[] g, pen p=currentpen)
+{
+  g=copy(g);
+  pic.add(new void (frame f, transform t) {
+    fill(f,t*g,p);
+  });
+  for(int i=0; i < g.length; ++i) 
+    pic.addPath(g[i]);
+}
+
+// radial shading
+void fill(picture pic=currentpicture, path g, pen pena, pair a, real ra,
+	  pen penb, pair b, real rb)
 {
   pic.add(new void (frame f, transform t) {
     pair A=t*a, B=t*b;
-    real RA=ra == 0.0 ? 0.0 : abs(t*(a+ra)-A);
-    real RB=rb == 0.0 ? 0.0 : abs(t*(b+rb)-B);
+    real RA=abs(t*(a+ra)-A);
+    real RB=abs(t*(b+rb)-B);
     fill(f,t*g,pena,A,RA,penb,B,RB);
   });
   pic.addPath(g);
 }
 
-void fill(picture pic=currentpicture, path[] g,
-	  pen pena=currentpen, pair a=0, real ra=0,
-	  pen penb=currentpen, pair b=0, real rb=0)
+void fill(picture pic=currentpicture, path[] g, pen pena, pair a, real ra,
+	  pen penb, pair b, real rb)
 {
   g=copy(g);
   pic.add(new void (frame f, transform t) {
     pair A=t*a, B=t*b;
-    real RA=ra == 0.0 ? 0.0 : abs(t*(a+ra)-A);
-    real RB=rb == 0.0 ? 0.0 : abs(t*(b+rb)-B);
+    real RA=abs(t*(a+ra)-A);
+    real RB=abs(t*(b+rb)-B);
     fill(f,t*g,pena,A,RA,penb,B,RB);
   });
   for(int i=0; i < g.length; ++i) 
     pic.addPath(g[i]);
 }
 
+// axial shading
+void fill(picture pic=currentpicture, path g, pen pena, pair a,
+	  pen penb, pair b)
+{
+  pic.add(new void (frame f, transform t) {
+    fill(f,t*g,pena,t*a,0,penb,t*b,0);
+  });
+  pic.addPath(g);
+}
+
+void fill(picture pic=currentpicture, path[] g, pen pena, pair a,
+	  pen penb, pair b)
+{
+  g=copy(g);
+  pic.add(new void (frame f, transform t) {
+    fill(f,t*g,pena,t*a,0,penb,t*b,0);
+  });
+  for(int i=0; i < g.length; ++i) 
+    pic.addPath(g[i]);
+}
+
+void fill(pair origin, picture pic=currentpicture, path g, pen p=currentpen)
+{
+  picture opic;
+  fill(opic,g,p);
+  add(origin,pic,opic);
+}
+  
 void fill(pair origin, picture pic=currentpicture, path g,
-	       pen pena=currentpen, pair a=0, real ra=0,
-	       pen penb=currentpen, pair b=0, real rb=0)
+	  pen pena, pair a, pen penb, pair b)
+{
+  picture opic;
+  fill(opic,g,pena,a,penb,b);
+  add(origin,pic,opic);
+}
+  
+void fill(pair origin, picture pic=currentpicture, path g,
+	  pen pena, pair a, real ra,
+	  pen penb, pair b, real rb)
 {
   picture opic;
   fill(opic,g,pena,a,ra,penb,b,rb);
   add(origin,pic,opic);
 }
   
-void filldraw(picture pic=currentpicture, path g,
-	      pen pena=currentpen, pen drawpen=currentpen, pair a=0, real ra=0,
-	      pen penb=currentpen, pair b=0, real rb=0)
+void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
+	      pen drawpen=currentpen)
 {
-  fill(pic,g,pena,a,ra,penb,b,rb);
+  fill(pic,g,fillpen);
   Draw(pic,g,drawpen);
 }
 
-void filldraw(picture pic=currentpicture, path[] g,
-	      pen pena=currentpen, pen drawpen=currentpen, pair a=0, real ra=0,
-	      pen penb=currentpen, pair b=0, real rb=0)
+void filldraw(picture pic=currentpicture, path[] g, pen fillpen=currentpen,
+	      pen drawpen=currentpen)
 {
-  fill(pic,g,pena,a,ra,penb,b,rb);
+  fill(pic,g,fillpen);
   draw(pic,g,drawpen);
 }
 
-void filldraw(pair origin, picture pic=currentpicture, path g,
-	      pen pena=currentpen, pen drawpen=currentpen,
-	      pair a=0, real ra=0,
-	      pen penb=currentpen, pair b=0, real rb=0)
-{
-  picture opic;
-  filldraw(opic,g,pena,drawpen,a,ra,penb,b,rb);
-  add(origin,pic,opic);
-}
-  
 void clip(frame f, path g)
 {
   clip(f,g,currentpen);
@@ -2476,12 +2507,16 @@ atexit(atexit);
 
 guide operator ::(... guide[] a)
 {
-  return a[0]..operator tension(1,true)..
-    operator ..(... a[sequence(1,a.length-1)]);
+  guide g;
+  for(int i=0; i < a.length; ++i)
+    g=g..operator tension(1,true)..a[i];
+  return g;
 }
 
 guide operator ---(... guide[] a)
 {
-  return a[0]..operator tension(infinity,true)..
-    operator ..(... a[sequence(1,a.length-1)]);
+  guide g;
+  for(int i=0; i < a.length; ++i)
+    g=g..operator tension(infinity,true)..a[i];
+  return g;
 }

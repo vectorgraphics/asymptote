@@ -1960,7 +1960,7 @@ bool positive=(pi >= 0) ? true : false;
 @cindex @code{--}
 
 As in C, each of the arithmetic operators @code{+}, @code{-}, @code{*},
-@code{/}, @code{%}, and @code{^} can be used as a self-operator. 
+@code{/}, @code{%}, and @code{^} can be used as a self operator. 
 The prefix operators @code{++} (increment by one) and @code{--} (decrement
 by one) are also defined.
 For example,
@@ -1984,23 +1984,6 @@ However, postfix operators like @code{i++} and @code{i--} are not defined
 path-joining operator). In the rare instances where @code{i++} 
 and @code{i--} are really needed, one can substitute the expressions
 @code{(++i-1)} and @code{(--i+1)}, respectively.
-
-@cindex side effects
-Keep in mind that these self- and prefix operators can cause side effects 
-due to multiple evaluations, as in the following example (which writes
-"hi!" twice rather than just once):
-@verbatim
-struct T {
-  public int x=0;
-}
-
-T sayhi() {
-  write("hi!");
-  return new T;
-}
-
-sayhi().x += 1;
-@end verbatim
 
 @node Implicit scaling
 @section Implicit scaling
@@ -4057,7 +4040,6 @@ The third routine draws a dot at every point of an pair array @code{c}.
 One can also draw a dot at every node of a path:
 @verbatim
 void dot(picture pic=currentpicture, guide g, pen p=currentpen);
-void dot(picture pic=currentpicture, path[] g, pen p=currentpen);
 @end verbatim
 See section @ref{draw} for a more general way of marking path nodes.
 
@@ -4079,59 +4061,64 @@ void draw(pair origin, picture pic=currentpicture, string s="", real angle=0,
 @node fill
 @section fill
 @verbatim
-void fill(picture pic=currentpicture, path g,
-          pen pena=currentpen, pair a=0, real ra=0,
-          pen penb=currentpen, pair b=0, real rb=0);
+void fill(picture pic=currentpicture, path g, pen p=currentpen);
 @end verbatim
 
 Fill the interior region bounded by the cyclic path @code{g} on the picture
-@code{pic}, using the pen @code{pena}. 
+@code{pic}, using the pen @code{p}. 
 
-Gradient shading requires that @code{pena} and @code{penb} contain
-distinct colors (not patterns).  
-If @code{a} != @code{b} and @code{ra}=@code{rb}=0, fill with a color
-gradient varying smoothly from @code{pena} to @code{penb} in the
-direction of the line segment @code{a--b}.  
-If @code{ra} != 0 or @code{rb} != 0, fill with a color gradient varying
-smoothly from @code{pena} on the circle with center @code{a} and radius
-@code{ra} to @code{penb} on the circle with center @code{b} and radius
-@code{rb}: 
-@verbatiminclude shade.asy
+Axial gradient shading varying smoothly from @code{pena} to @code{penb} in the
+direction of the line segment @code{a--b} can be achieved with
+@verbatim
+void fill(picture pic=currentpicture, path g,
+          pen pena, pair a,
+          pen penb, pair b);
+@end verbatim
+
+Radial gradient shading varying smoothly from smoothly from
+@code{pena} on the circle with center @code{a} and radius @code{ra} to
+@code{penb} on the circle with center @code{b} and radius @code{rb} 
+can be achieved with
+@verbatim
+void fill(picture pic=currentpicture, path g,
+          pen pena, pair a, real ra,
+          pen penb, pair b, real rb);
+@end verbatim
+@noindent
+An illustration of radial shading is provided in the example file
+@code{shade.asy}.
 
 @cindex @code{filldraw}
 There is also a convenient @code{filldraw} command, which fills the path
 and then draws in the boundary. One can specify separate pens for each
 operation:
 @verbatim
-void filldraw(picture pic=currentpicture, path g, pen pena=currentpen,
-              pen drawpen=currentpen, pair a=0, real ra=0,
-              pen penb=currentpen, pair b=0, real rb=0);
+void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
+	      pen drawpen=currentpen);
 @end verbatim
 
 @cindex @code{fill}
 @cindex @code{filldraw}
-There are also fixed-size versions of @code{fill} and @code{filldraw}
-that allow one to fill an object described in @code{PostScript}
+Fixed-size versions of @code{fill} and @code{filldraw}
+allow one to fill an object described in @code{PostScript}
 coordinates about the user coordinate @code{origin}:
 @verbatim
+void fill(pair origin, picture pic=currentpicture, path g, pen p=currentpen);
 void fill(pair origin, picture pic=currentpicture, path g,
-          pen pena=currentpen, pair a=0, real ra=0,
-          pen penb=currentpen, pair b=0, real rb=0);
-
-void filldraw(pair origin, picture pic=currentpicture, path g,
-              pen pena=currentpen,
-              pen drawpen=currentpen, pair a=0, real ra=0,
-              pen penb=currentpen, pair b=0, real rb=0);
+          pen pena, pair a,
+          pen penb, pair b);
+void fill(pair origin, picture pic=currentpicture, path g,
+          pen pena, pair a, real ra,
+          pen penb, pair b, real rb);
 @end verbatim
 
 
 @cindex unfill
-The following routines use @code{evenodd} clipping together with the
+The following routine uses @code{evenodd} clipping together with the
 @code{^^} operator to unfill a region:
 
 @verbatim
 void unfill(picture pic=currentpicture, path g);
-void unfill(picture pic=currentpicture, path[] g);
 @end verbatim
 
 @page
@@ -4415,8 +4402,16 @@ key ends the definition of the path. More features will be added to
 this preliminary @acronym{GUI} soon.
 
 As @code{xasy} is written in the interactive scripting language
-Python/TK, it requires that both Python and the @code{tkinter} package be
-installed. To use @code{xasy}, one must first deconstruct
+@code{Python/TK}, it requires that both @code{Python} and the
+@code{tkinter} package be installed. Under @code{Fedora Core 4}, this
+may require installing several packages:
+@verbatim
+rpm -i tkinter-2.4.1-2.i386.rpm 
+rpm -U --nodeps tix-8.1.4-100.i386.rpm
+rpm -U --nodeps tk-8.4.9-3.i386.rpm 
+@end verbatim
+
+To use @code{xasy}, one must first deconstruct
 @code{Asymptote} pictures into transparent @acronym{GIF} images with the
 command @code{asy -xN}, where @code{N} denotes the magnification (say 2). 
 The command @code{asy -VxN} automatically invokes @code{xasy} once
