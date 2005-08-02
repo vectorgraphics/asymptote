@@ -37,10 +37,13 @@ int System(const char *command, bool quiet=false, bool wait=true,
 int System(const ostringstream& command, bool quiet=false, bool wait=true,
 	   int *pid=NULL, bool warn=true); 
   
-#if defined(__DECCXX_LIBCXX_RH70) || defined(__CYGWIN__)
+#if defined(__DECCXX_LIBCXX_RH70)
 extern "C" int kill(pid_t pid, int sig) throw();
 extern "C" char *strsignal(int sig);
-extern "C" int snprintf(char *str, size_t size, const  char  *format,...);
+#endif
+
+#if defined(__DECCXX_LIBCXX_RH70) || defined(__CYGWIN__)
+extern "C" int snprintf(char *str, size_t size, const char *format,...);
 extern "C" double asinh(double x);
 extern "C" double acosh(double x);
 extern "C" double atanh(double x);

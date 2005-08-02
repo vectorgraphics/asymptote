@@ -21,7 +21,14 @@ using namespace settings;
 
 namespace camp {
 
-const char *texready="(Please type a command or say `\\end')\n*";
+#ifdef MSDOS
+#define newline "\r\n"
+#else
+#define newline "\n"
+#endif
+  
+string texready=string("(Please type a command or say `\\end')")+newline+
+  string("*");
 iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
   
 picture::~picture()
@@ -129,7 +136,7 @@ void picture::texinit()
   TeXpipepreamble.clear();
 
   tex << "\n";
-  tex.wait(texready,"! ");
+  tex.wait(texready.c_str(),"! ");
   TeXinitialized=true;
 }
   
@@ -252,9 +259,14 @@ bool picture::postprocess(const string& epsname, const string& outname,
     if(epsformat || pdfformat) {
       static int pid=0;
       static string lastoutname;
+#if defined(MSDOS) || defined(__CYGWIN__)
+      static const string PSViewers[]={"gsview"};
+      static const string PDFViewers[]={"acroread"};
+#else
       static const string PSViewers[]={PSViewer,"gv","ggv","ghostview",
 				       "kghostview","gsview"};
       static const string PDFViewers[]={PDFViewer,"gv","acroread","xpdf"};
+#endif      
       static const size_t nPSViewers=sizeof(PSViewers)/sizeof(string);
       static const size_t nPDFViewers=sizeof(PDFViewers)/sizeof(string);
       const string *Viewers=pdfformat ? PDFViewers : PSViewers;

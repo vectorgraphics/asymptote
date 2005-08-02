@@ -13,7 +13,7 @@
 
 namespace camp {
   
-extern const char *texready;
+extern string texready;
 pen drawElement::lastpen;
 
 void drawLabel::labelwarning(const char *action) 
@@ -55,7 +55,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
     lastpen=Pentype;
     
     tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(label) << "}\n\n";
-    tex.wait(texready,"! ");
+    tex.wait(texready.c_str(),"! ");
     tex << "\\showthe\\wd\\ASYbox\n";
     tex >> texbuf;
     if(texbuf[0] == '>' && texbuf[1] == ' ')
