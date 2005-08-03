@@ -82,7 +82,7 @@ Programming
 
 Functions
 
-* Default arguments::           Default values can appear anyway
+* Default arguments::           Default values can appear anywhere
 * Named arguments::             Assigning function arguments by keyword
 * Rest arguments::              Functions with a variable number of arguments
 * Mathematical functions::      Standard libm functions
@@ -2276,11 +2276,11 @@ bound to a keyword.
 The overloading resolution in @code{Asymptote} is similar to the
 function matching rules used in C++. Every argument match is given a
 score.  Exact matches score better than matches with casting, and
-matches with formals score better than packing an argument into the
-rest array.  A candidate is maximal if all of the arguments score as
-well in it as with any other candidate.  If there is one unique
-maximal candidate, it is chosen; otherwise, there is an ambiguity
-error.
+matches with formals (regardless of casting) score better than packing
+an argument into the rest array.  A candidate is maximal if all of the
+arguments score as well in it as with any other candidate.  If there
+is one unique maximal candidate, it is chosen; otherwise, there is an
+ambiguity error.
 
 @verbatim
 int f(path g);
