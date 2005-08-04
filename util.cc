@@ -37,7 +37,12 @@ string stripext(const string& name, const string& ext)
 string buildname(string filename, string suffix, string aux) 
 {
   string name=filename;
-  size_t p=name.rfind('/');
+  size_t p;
+#ifdef __CYGWIN__  
+  p=name.rfind('\\');
+  if(p < string::npos) name.erase(0,p+1);
+#endif  
+  p=name.rfind('/');
   if(p < string::npos) name.erase(0,p+1);
   name = stripext(name,outformat);
 
@@ -103,40 +108,37 @@ char **args(const char *command)
   return argv;
 }
 
-int System(const char *command, bool quiet, bool wait, int *ppid, bool warn)
+int System(const char *command, bool quiet, bool wait, int *ppid)
 {
   int status;
 
-  if (!command) return 1;
+  if(!command) return 1;
   if(verbose > 1) cerr << command << endl;
 
   int pid = fork();
-  if (pid == -1)
+  if(pid == -1)
     camp::reportError("Cannot fork process");
+  
   char **argv=args(command);
-  if (pid == 0) {
+  if(pid == 0) {
     if(interact::interactive) signal(SIGINT,SIG_IGN);
     if(quiet) close(STDOUT_FILENO);
     if(argv) execvp(argv[0],argv);
-    ostringstream msg;
-    if(warn) {
-      msg <<  "Cannot execute " << argv[0];
-      camp::reportError(msg);
-    }
-    return -1;
+    cerr << "Cannot execute " << argv[0] << endl;
+    exit(-1);
   }
 
   if(ppid) *ppid=pid;
-  if(!wait) return 0;
   for(;;) {
-    if (waitpid(pid, &status, 0) == -1) {
-      if (errno == ECHILD) return 0;
-      if (errno != EINTR) {
+    if(waitpid(pid, &status, wait ? 0 : WNOHANG) == -1) {
+      if(errno == ECHILD) return 0;
+      if(errno != EINTR) {
         ostringstream msg;
         msg << "Command " << command << " failed";
         camp::reportError(msg);
       }
     } else {
+      if(!wait) return 0;
       if(WIFEXITED(status)) {
 	if(argv) {
 	  char **p=argv;
@@ -146,8 +148,7 @@ int System(const char *command, bool quiet, bool wait, int *ppid, bool warn)
 	  delete [] argv;
 	}
 	return WEXITSTATUS(status);
-      }
-      else {
+      } else {
         ostringstream msg;
         msg << "Command " << command << " exited abnormally";
         camp::reportError(msg);
@@ -156,10 +157,9 @@ int System(const char *command, bool quiet, bool wait, int *ppid, bool warn)
   }
 }
 
-int System(const ostringstream& command, bool quiet, bool wait, int *pid,
-	   bool warn) 
+int System(const ostringstream& command, bool quiet, bool wait, int *pid)
 {
-  return System(command.str().c_str(),quiet,wait,pid,warn);
+  return System(command.str().c_str(),quiet,wait,pid);
 }
 
 string stripblanklines(string& s)

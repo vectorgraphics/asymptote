@@ -31,12 +31,30 @@ const char PROGRAM[]=PACKAGE_NAME;
 const char VERSION[]=PACKAGE_VERSION;
 const char BUGREPORT[]=PACKAGE_BUGREPORT;
 
+#ifdef MSDOS
+int view=1; // Support drag and drop in MSWindows
+const string defaultPSViewer="c:/Progra~1/Ghostgum/gsview/gsview32.exe";
+const string defaultPDFViewer=
+  "c:/Progra~1/Adobe/Acroba~1.0/Reader/AcroRd32.exe";
+const string defaultGhostscript="c:/Progra~1/gs/gs8.51/bin/gswin32.exe";
+#undef ASYMPTOTE_SYSDIR
+#define ASYMPTOTE_SYSDIR "c:/Progra~1/Asymptote"
+#else  
+int view=0;
+const string defaultPSViewer="gv";
+const string defaultPDFViewer="gv";
+const string defaultGhostscript="gs";
+#endif  
+  
+string PSViewer;
+string PDFViewer;
+string Ghostscript;
+  
 string outformat="eps";
 int keep=0;
 int texprocess=1;
 int debug=0;
 int verbose=0;
-int view=0;
 int safe=1;
 int autoplain=1;
 int parseonly=0;
@@ -57,8 +75,6 @@ int laat=0;
 bool suppressStandard=false;
 
 int ShipoutNumber=0;
-string PSViewer;
-string PDFViewer;
 string paperType;
 double pageWidth;
 double pageHeight;
@@ -91,6 +107,7 @@ void options()
   cerr << endl;
   cerr << "Options: " << endl;
   cerr << "-V, -View\t View output file" << endl;
+  cerr << "-n, -noView\t Don't view output file" << endl;
   cerr << "-x magnification Deconstruct into transparent GIF objects" 
        << endl;
   cerr << "-c \t\t Clear GUI operations" << endl;
@@ -142,6 +159,7 @@ void setOptions(int argc, char *argv[])
     {"safe", 0, &safe, 1},
     {"unsafe", 0, &safe, 0},
     {"View", 0, &view, 1},
+    {"noView", 0, &view, 0},
     {"mask", 0, &trap, 0},
     {"nomask", 0, &trap, 1},
     {"bw", 0, &bwonly, 1},
@@ -155,7 +173,7 @@ void setOptions(int argc, char *argv[])
   errno=0;
   for(;;) {
     int c = getopt_long_only(argc,argv,
-			     "cdf:hiklLmo:pPsvVx:O:CBTZ",
+			     "cdf:hiklLmo:pPsvVnx:O:CBTZ",
 			     long_options,&option_index);
     if (c == -1) break;
 
@@ -206,6 +224,9 @@ void setOptions(int argc, char *argv[])
     case 'V':
       view=1;
       break;
+    case 'n':
+      view=0;
+      break;
     case 'x':
       try {
         deconstruct=lexical::cast<double>(optarg);
@@ -253,10 +274,10 @@ void setOptions(int argc, char *argv[])
   }
   
   if(numArgs() == 0 && !listonly) {
+    view=1;
     interact::interactive=true;
     if(trap == -1) trap=0;
     deconstruct=0;
-    view=1;
     cout << "Welcome to " << PROGRAM << " version " << VERSION << 
       " (interactive mode)" << endl;
   } else if(trap == -1) trap=1;
@@ -273,8 +294,11 @@ void setOptions(int argc, char *argv[])
   
   char *psviewer=getenv("ASYMPTOTE_PSVIEWER");
   char *pdfviewer=getenv("ASYMPTOTE_PDFVIEWER");
-  PSViewer=psviewer ? psviewer : "gv";
-  PDFViewer=pdfviewer ? pdfviewer : "gv";
+  char *ghostscript=getenv("ASYMPTOTE_GS");
+  
+  PSViewer=psviewer ? psviewer : defaultPSViewer;
+  PDFViewer=pdfviewer ? pdfviewer : defaultPDFViewer;
+  Ghostscript=ghostscript ? ghostscript : defaultGhostscript;
   
   char *papertype=getenv("ASYMPTOTE_PAPERTYPE");
   paperType=papertype ? papertype : "letter";

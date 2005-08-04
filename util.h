@@ -33,9 +33,9 @@ bool checkFormatString(const string& format);
 // Similar to the standard system call except allows interrupts and does
 // not invoke a shell.
 int System(const char *command, bool quiet=false, bool wait=true,
-	   int *pid=NULL, bool warn=true);
+	   int *pid=NULL);
 int System(const ostringstream& command, bool quiet=false, bool wait=true,
-	   int *pid=NULL, bool warn=true); 
+	   int *pid=NULL); 
   
 #if defined(__DECCXX_LIBCXX_RH70)
 extern "C" int kill(pid_t pid, int sig) throw();

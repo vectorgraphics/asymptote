@@ -123,8 +123,8 @@ Drawing commands
 @chapter Description
 @cindex description
 
-@code{Asymptote} is a powerful script-based vector graphics language that
-provides a natural coordinate-based framework for technical drawings.
+@code{Asymptote} is a powerful descriptive vector graphics language that
+provides a mathematical coordinate-based framework for technical drawings.
 Labels and equations are typeset with @code{LaTeX}, for overall document
 consistency, yielding the same high-quality level of typesetting that
 @code{LaTeX} provides for scientific text. By default it produces
@@ -198,11 +198,13 @@ as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
 @chapter Installation
 @cindex installation
 
-Here are the commands that the root user can use to install the binary
-distribution of version @code{x.xx} of @code{Asymptote} for a specific
-platform @code{ARCH} in @code{/usr/local}. The executable file will
-be @code{/usr/local/bin/asy} (the optional @code{texhash} and
-@code{install-info} commands install a LaTeX style file and man pages):
+Here are the commands that the root user can use to install the
+@code{linux i386} binary distribution of version @code{x.xx} of
+@code{Asymptote} for a specific platform @code{ARCH} in
+@code{/usr/local}. The executable file will be
+@code{/usr/local/bin/asy} (the optional @code{texhash} and
+@code{install-info} commands install a LaTeX style file and man
+pages):
 @verbatim
 tar -C / -zxf asymptote-x.xx.ARCH.tar.gz
 texhash
@@ -218,7 +220,56 @@ tar -zxvf asymptote-x.xx.ARCH.tar.gz | xargs rm
 texhash
 @end verbatim
 
-To compile and install @code{Asymptote} from a source release
+@noindent
+Debian users can install Hubert Chan's @code{Asymptote} package:
+@verbatim
+http://www.uhoreg.ca/programming/debian.text
+@end verbatim
+
+@noindent
+Users of the @code{Microsoft Windows} operating system can install the
+self-extracting Asymptote executable @code{asymptote-install-x.xx.exe}.
+A working @code{TeX} implementation (such as the one available at
+@code{www.miktex.org}) will be required to typeset labels.
+
+@cindex @code{-V}
+@cindex @code{ASYMPTOTE_PSVIEWER}
+@cindex @code{ASYMPTOTE_PDFVIEWER}
+@cindex @code{ASYMPTOTE_GS}
+In interactive mode, or when given the @code{-V} option (the default
+under @code{MSDOS}), @code{Asymptote} will automatically invoke the
+@code{PostScript} viewer @code{gv} (under
+@code{UNIX}) or @code{gsview} (under @code{MSDOS}) to display
+graphical output. These defaults may be overridden with the optional
+environment variable @code{ASYMPTOTE_PSVIEWER}. For @acronym{PDF}
+format output, the @code{ASYMPTOTE_GS} environment variable specifies the  
+location of the @code{PostScript}-to-@acronym{PDF} processor @code{gs} and
+@code{ASYMPTOTE_PDFVIEWER} specifies the location of the @acronym{PDF} viewer.
+Here are the default values of these environment variables:
+@verbatim
+UNIX:
+export ASYMPTOTE_PSVIEWER=gv
+export ASYMPTOTE_PDFVIEWER=gv
+export ASYMPTOTE_GS=gs
+
+MSDOS:
+set ASYMPTOTE_PSVIEWER=c:/Progra~1/Ghostgum/gsview/gsview32.exe
+set ASYMPTOTE_PDFVIEWER=c:/Progra~1/Adobe/Acroba~1.0/Reader/AcroRd32.exe
+set ASYMPTOTE_GS=c:/Progra~1/gs/gs8.51/bin/gswin32.exe
+@end verbatim
+
+To properly support interactive mode, the @code{PostScript} viewer
+should be capable of automatically redrawing whenever the output file is
+updated. The default @code{PostScript} viewer @code{gv} supports this
+(via a @code{SIGHUP} signal). Users of @code{ggv} will need to
+enable @code{Watch file} under @code{Edit/Postscript Viewer
+Preferences} and @code{gsview} users will need to enable
+@code{Options/AutoRedisplay} (however, under @code{MSDOS} it is still
+necessary to click on the @code{gsview} window and under @code{UNIX}
+one must manually redisplay by pressing the @code{r} key).  
+
+To compile and install a @code{UNIX} executable from
+a source release
 @code{x.xx}, first execute the commands:
 @verbatim
 tar -zxf asymptote-x.xx.tar.gz
@@ -246,12 +297,6 @@ use of the garbage collector by configuring with @code{./configure
 --disable-gc}. For a list of other configuration options, say
 @code{./configure --help}.
 
-@noindent
-Debian users can install Hubert Chan's @code{Asymptote} package:
-@verbatim
-http://www.uhoreg.ca/programming/debian.text
-@end verbatim
-
 If you are compiling @code{Asymptote} with @code{gcc}, you will need a
 relatively recent version (e.g. 3.2 or later).  If you get errors
 compiling @code{interact.cc}, try installing an up-to-date version of
@@ -277,30 +322,16 @@ current directory
 @cindex @code{ASYMPTOTE_DIR}
 @code{$ASYMPTOTE_DIR}
 @item
-system-wide directory (default: @code{/usr/local/share/asymptote})
+system-wide directory (default: @code{/usr/local/share/asymptote} under
+@code{UNIX} and @code{c:/Progra~1/Asymptote} under @code{MSDOS})
 @end enumerate
 
-@cindex @code{-V}
-@cindex @code{ASYMPTOTE_PSVIEWER}
-@cindex @code{ASYMPTOTE_PDFVIEWER}
-In interactive mode, or when given the @code{-V} option,
-@code{Asymptote} will attempt to open up a @code{PostScript} viewer
-by first trying to execute the program specified by the optional
-environment variable @code{ASYMPTOTE_PSVIEWER}, then @code{gv},
-@code{ggv}, @code{ghostview}, and finally @code{gsview}. To support interactive
-mode, the @code{PostScript} viewer must be able to redraw a file whenever
-it changes. The default @code{PostScript} viewer @code{gv}
-supports this automatically (via @code{SIGHUP}); users of @code{ggv} will need
-to enable @code{Watch file} under @code{Edit/Postscript Viewer Preferences}.
-For viewing PDF format output, there is an @code{ASYMPTOTE_PDFVIEWER}
-environment variable and a PDF viewer list @code{gv}, @code{acroread}, and
-@code{xpdf}.
-
 The patches supplied in the @code{patches} directory fix known bugs
-in @code{gv-3.5.8} and @code{gv-3.6.1}, most notably the
-backwards-incompatible command line options of @code{gv-3.6.1}. Another bug in 
-@code{gv-3.6.1} requires it to be explicitly configured with 
-@code{./configure --enable-signal-handle} for it to work properly with
+in the @code{UNIX} @code{PostScript} viewer @code{gv-3.5.8} and
+@code{gv-3.6.1} (most notably the backwards-incompatible command line
+options of @code{gv-3.6.1}). Another bug in  @code{gv-3.6.1} requires
+it to be explicitly configured with  @code{./configure
+--enable-signal-handle} for it to work properly with
 @code{Asymptote}'s interactive mode.
 
 @cindex @code{emacs}
@@ -2115,7 +2146,7 @@ segmentation fault, unless the @acronym{GNU} library @code{libsigsegv} is
 installed at configuration time). 
 
 @menu
-* Default arguments::           Default values can appear anyway
+* Default arguments::           Default values can appear anywhere
 * Named arguments::             Assigning function arguments by keyword
 * Rest arguments::              Functions with a variable number of arguments
 * Mathematical functions::      Standard libm functions
@@ -4237,7 +4268,8 @@ Usage: asy [options] [file ...]
 
 Options: 
 
--V, -View        View output file
+-V, -View        View output file (MSDOS default)
+-n, -noView      Don't view output file (UNIX default)
 -x magnification Deconstruct into transparent GIF objects
 -c               Clear GUI operations
 -i               Ignore GUI operations

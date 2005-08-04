@@ -21,6 +21,10 @@ extern const char PROGRAM[];
 extern const char VERSION[];
 extern const char BUGREPORT[];
 
+extern string PSViewer;    // Environment variable ASYMPTOTE_PSVIEWER
+extern string PDFViewer;   // Environment variable ASYMPTOTE_PDFVIEWER
+extern string Ghostscript; // Environment variable ASYMPTOTE_GS
+  
 extern string outformat;
 extern int keep;
 extern int texprocess;
@@ -57,8 +61,6 @@ extern std::list<string> *outnameStack;
 
 extern bool TeXinitialized; // Is LaTeX process initialized?
 
-extern string PSViewer; // Environment variable ASYMPTOTE_PSVIEWER
-extern string PDFViewer; // Environment variable ASYMPTOTE_PDFVIEWER
 extern string paperType;
 extern double pageWidth;
 extern double pageHeight;

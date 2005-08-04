@@ -234,7 +234,8 @@ bool picture::postprocess(const string& epsname, const string& outname,
   ostringstream cmd;
   
   if(!epsformat) {
-    if(pdfformat) cmd << "gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
+    if(pdfformat) cmd << Ghostscript
+		      << " -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
 		      << " -dDEVICEWIDTHPOINTS=" 
 		      << ceil(bpos.right-bpos.left+2.0)
 		      << " -dDEVICEHEIGHTPOINTS=" 
@@ -259,43 +260,23 @@ bool picture::postprocess(const string& epsname, const string& outname,
     if(epsformat || pdfformat) {
       static int pid=0;
       static string lastoutname;
-#if defined(MSDOS) || defined(__CYGWIN__)
-      static const string PSViewers[]={"gsview"};
-      static const string PDFViewers[]={"acroread"};
-#else
-      static const string PSViewers[]={PSViewer,"gv","ggv","ghostview",
-				       "kghostview","gsview"};
-      static const string PDFViewers[]={PDFViewer,"gv","acroread","xpdf"};
-#endif      
-      static const size_t nPSViewers=sizeof(PSViewers)/sizeof(string);
-      static const size_t nPDFViewers=sizeof(PDFViewers)/sizeof(string);
-      const string *Viewers=pdfformat ? PDFViewers : PSViewers;
-      const size_t nViewers=pdfformat ? nPDFViewers : nPSViewers;
-      size_t iViewer=0;
-      int status;
+      string Viewer=pdfformat ? PDFViewer : PSViewer;
       bool restart=false;
       if(interact::interactive && pid)
 	restart=(waitpid(pid, &status, WNOHANG) == pid);
 
       if (!interact::virtualEOF || outname != lastoutname || restart) {
 	if(!wait) lastoutname=outname;
-	status=-1;
-	while(status == -1 && iViewer < nViewers) {
-	  if(iViewer == 1 && Viewers[0] == Viewers[1]) {
-	    iViewer++;
-	    continue;
-	  }
-	  ostringstream cmd;
-	  cmd << Viewers[iViewer];
-	  if(Viewers[iViewer] == "gv" && interact::interactive)
-	    cmd << " -nowatch";
-	  cmd << " " << outname;
-	  status=System(cmd,false,wait,&pid,iViewer+1 == nViewers);
-	  if(status == -1) ++iViewer;
-	}
-	if(status) return false;
-	// Tell gv it should reread the file.
-      } else if(Viewers[iViewer] == "gv") kill(pid,SIGHUP);
+	ostringstream cmd;
+	cmd << Viewer;
+	if(Viewer == "gv" && interact::interactive)
+	  cmd << " -nowatch";
+	cmd << " " << outname;
+	int status=System(cmd,false,wait,&pid);
+	if(status != 0) return false;
+
+      // Tell gv it should reread the file.
+      } else if(Viewer == "gv") kill(pid,SIGHUP);
     } else {
       ostringstream cmd;
       cmd << "display " << outname;
