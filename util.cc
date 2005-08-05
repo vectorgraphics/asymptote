@@ -34,6 +34,25 @@ string stripext(const string& name, const string& ext)
   else return name;
 }
 
+void backslashToSlash(string& s) 
+{
+  size_t p;
+  while ((p=s.find('\\')) < string::npos)
+    s[p]='/';
+}
+
+string Getenv(const char *name, bool quote)
+{
+  char *s=getenv(name);
+  if(!s) return "";
+  string S=string(s);
+#ifdef __CYGWIN__
+  backslashToSlash(S);
+  if(quote) S="'"+S+"'";
+#endif
+  return S;
+}
+
 string buildname(string filename, string suffix, string aux) 
 {
   string name=filename;

@@ -274,9 +274,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	cmd << " " << outname;
 	int status=System(cmd,false,wait,&pid);
 	if(status != 0) return false;
-
-      // Tell gv it should reread the file.
-      } else if(Viewer == "gv") kill(pid,SIGHUP);
+      } else if(Viewer == "gv") kill(pid,SIGHUP); // Tell gv to reread file.
     } else {
       ostringstream cmd;
       cmd << "display " << outname;

@@ -199,7 +199,7 @@ as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
 @cindex installation
 
 Here are the commands that the root user can use to install the
-@code{linux i386} binary distribution of version @code{x.xx} of
+@code{Linux i386} binary distribution of version @code{x.xx} of
 @code{Asymptote} for a specific platform @code{ARCH} in
 @code{/usr/local}. The executable file will be
 @code{/usr/local/bin/asy} (the optional @code{texhash} and
@@ -239,7 +239,8 @@ A working @code{TeX} implementation (such as the one available at
 In interactive mode, or when given the @code{-V} option (the default
 under @code{MSDOS}), @code{Asymptote} will automatically invoke the
 @code{PostScript} viewer @code{gv} (under
-@code{UNIX}) or @code{gsview} (under @code{MSDOS}) to display
+@code{UNIX}) or @code{gsview} (under @code{MSDOS}; available from
+@code{http://www.cs.wisc.edu/~ghost/gsview/}) to display
 graphical output. These defaults may be overridden with the optional
 environment variable @code{ASYMPTOTE_PSVIEWER}. For @acronym{PDF}
 format output, the @code{ASYMPTOTE_GS} environment variable specifies the  
@@ -253,9 +254,10 @@ export ASYMPTOTE_PDFVIEWER=gv
 export ASYMPTOTE_GS=gs
 
 MSDOS:
-set ASYMPTOTE_PSVIEWER=c:/Progra~1/Ghostgum/gsview/gsview32.exe
-set ASYMPTOTE_PDFVIEWER=c:/Progra~1/Adobe/Acroba~1.0/Reader/AcroRd32.exe
-set ASYMPTOTE_GS=c:/Progra~1/gs/gs8.51/bin/gswin32.exe
+set ASYMPTOTE_PSVIEWER=c:\Program Files\Ghostgum\gsview\gsview32.exe
+set ASYMPTOTE_PDFVIEWER=
+              c:\Program Files\Adobe\Acrobat 7.0\Reader\AcroRd32.exe
+set ASYMPTOTE_GS=c:\Program Files\gs\gs8.51\bin\gswin32.exe
 @end verbatim
 
 To properly support interactive mode, the @code{PostScript} viewer
@@ -264,7 +266,7 @@ updated. The default @code{PostScript} viewer @code{gv} supports this
 (via a @code{SIGHUP} signal). Users of @code{ggv} will need to
 enable @code{Watch file} under @code{Edit/Postscript Viewer
 Preferences} and @code{gsview} users will need to enable
-@code{Options/AutoRedisplay} (however, under @code{MSDOS} it is still
+@code{Options/Auto Redisplay} (however, under @code{MSDOS} it is still
 necessary to click on the @code{gsview} window and under @code{UNIX}
 one must manually redisplay by pressing the @code{r} key).  
 
@@ -323,7 +325,7 @@ current directory
 @code{$ASYMPTOTE_DIR}
 @item
 system-wide directory (default: @code{/usr/local/share/asymptote} under
-@code{UNIX} and @code{c:/Progra~1/Asymptote} under @code{MSDOS})
+@code{UNIX} and @code{c:\Program Files\Asymptote} under @code{MSDOS})
 @end enumerate
 
 The patches supplied in the @code{patches} directory fix known bugs
@@ -4125,7 +4127,7 @@ and then draws in the boundary. One can specify separate pens for each
 operation:
 @verbatim
 void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
-	      pen drawpen=currentpen);
+              pen drawpen=currentpen);
 @end verbatim
 
 @cindex @code{fill}
@@ -4586,12 +4588,12 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  zxvf xargs cond polargraph xmin xmax plabel YZero labelling ln
 @c  LocalWords:  ymin ymax XZero xequals tickmin tickmax unlabelled se pq pena
 @c  LocalWords:  yequals Nobre Barbarosie Schwaiger nearearth conicurv Wiebusch
-@c  LocalWords:  unfill PAPERTYPE posterSize ngraph interpolatetype ctrl dt
+@c  LocalWords:  unfill PAPERTYPE posterSize ngraph interpolatetype ctrl dt pic
 @c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei putmark
 @c  LocalWords:  westnile minipage infectiousM ra penb paletteticks drawline
 @c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis
 @c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx XEquals YEquals
-@c  LocalWords:  treetest eetomumu fermi backend pstoedit drawtree xFF
+@c  LocalWords:  treetest eetomumu fermi backend pstoedit drawtree xFF MSDOS
 @c  LocalWords:  vimrc CFLAGS verbatiminclude online noindent bezier superpath
 @c  LocalWords:  evenodd squarecap roundcap extendcap miterjoin roundjoin NFSS
 @c  LocalWords:  beveljoin fillrule zerowinding insideness lineskip cmr pcrr Hx
@@ -4605,4 +4607,5 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  PaletteTicks defaultformat leastsquares bjam fprintf endgroup
 @c  LocalWords:  begingroup xmargin ymargin pbox labelbox labelellipse wget
 @c  LocalWords:  multithreaded newframe init emph nums concat xline yline zpart
-@c  LocalWords:  colatitude pticklabel labelxtick labelytick zscale
+@c  LocalWords:  colatitude pticklabel labelxtick labelytick zscale noView cosh
+@c  LocalWords:  nodeps

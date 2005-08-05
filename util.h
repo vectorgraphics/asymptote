@@ -66,4 +66,7 @@ char *startPath();
 char *getPath(char *p=currentpath);
 int setPath(const char *s);
 
+void backslashToSlash(string& s);
+string Getenv(const char *name, bool quote=true);
+
 #endif

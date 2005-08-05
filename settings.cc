@@ -33,12 +33,12 @@ const char BUGREPORT[]=PACKAGE_BUGREPORT;
 
 #ifdef MSDOS
 int view=1; // Support drag and drop in MSWindows
-const string defaultPSViewer="c:/Progra~1/Ghostgum/gsview/gsview32.exe";
+const string defaultPSViewer="'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe'";
 const string defaultPDFViewer=
-  "c:/Progra~1/Adobe/Acroba~1.0/Reader/AcroRd32.exe";
-const string defaultGhostscript="c:/Progra~1/gs/gs8.51/bin/gswin32.exe";
+  "'c:\\Program Files\\Adobe\\Acrobat 7.0\\Reader\\AcroRd32.exe'";
+const string defaultGhostscript="'c:\\Program Files\\gs\\gs8.51\\bin\\gswin32.exe'";
 #undef ASYMPTOTE_SYSDIR
-#define ASYMPTOTE_SYSDIR "c:/Progra~1/Asymptote"
+#define ASYMPTOTE_SYSDIR "c:\\Program Files\\Asymptote"
 #else  
 int view=0;
 const string defaultPSViewer="gv";
@@ -286,19 +286,19 @@ void setOptions(int argc, char *argv[])
   if(origin == ZERO) texprocess=0;
   
   searchPath.push_back(".");
-  char *asydir=getenv("ASYMPTOTE_DIR");
-  if(asydir) searchPath.push_back(asydir);
+  string asydir=Getenv("ASYMPTOTE_DIR",false);
+  if(asydir != "") searchPath.push_back(asydir);
 #ifdef ASYMPTOTE_SYSDIR
   searchPath.push_back(ASYMPTOTE_SYSDIR);
 #endif
   
-  char *psviewer=getenv("ASYMPTOTE_PSVIEWER");
-  char *pdfviewer=getenv("ASYMPTOTE_PDFVIEWER");
-  char *ghostscript=getenv("ASYMPTOTE_GS");
-  
-  PSViewer=psviewer ? psviewer : defaultPSViewer;
-  PDFViewer=pdfviewer ? pdfviewer : defaultPDFViewer;
-  Ghostscript=ghostscript ? ghostscript : defaultGhostscript;
+  string psviewer=Getenv("ASYMPTOTE_PSVIEWER");
+  string pdfviewer=Getenv("ASYMPTOTE_PDFVIEWER");
+  string ghostscript=Getenv("ASYMPTOTE_GS");
+
+  PSViewer=psviewer != "" ? psviewer : defaultPSViewer;
+  PDFViewer=pdfviewer != "" ? pdfviewer : defaultPDFViewer;
+  Ghostscript=ghostscript != "" ? ghostscript : defaultGhostscript;
   
   char *papertype=getenv("ASYMPTOTE_PAPERTYPE");
   paperType=papertype ? papertype : "letter";
