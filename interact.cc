@@ -201,6 +201,9 @@ size_t interactive_input(char *buf, size_t max_size)
   } else {
     stifle_history(nlines);
     write_history(historyfile);
+    camp::typein.close();
+    camp::typeout.close();
+    unlink(camp::asyinput.c_str());
     return 0;
   }
 }

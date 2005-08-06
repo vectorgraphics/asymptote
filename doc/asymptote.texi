@@ -398,7 +398,7 @@ To compile without optimization, use the command @code{make CFLAGS=-g}.
 @chapter Examples
 @cindex examples
 To draw a line from coordinate (0,0) to coordinate (100,100) using
-@code{Asymptote}'s interactive mode, type:
+@code{Asymptote}'s interactive mode, type at the command prompt:
 @verbatim
 asy
 draw((0,0)--(100,100));
@@ -422,10 +422,14 @@ file. To try this out, type
 @verbatiminclude diagonal.asy
 
 @noindent
-into a file, say test.asy. Then execute this file by typing
+into a file, say test.asy. Then execute this file by typing the command
 @verbatim
 asy -V test
 @end verbatim
+@noindent
+@code{MSDOS} users can drag and drop the file onto the
+Desktop @code{asy} icon or make @code{Asymptote} the
+default application for files with the extension @code{asy}.
 
 @noindent
 @cindex @code{-V}
@@ -4639,3 +4643,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  multithreaded newframe init emph nums concat xline yline zpart
 @c  LocalWords:  colatitude labelxtick labelytick zscale noView cosh nullpen
 @c  LocalWords:  nodeps Ghostgum beginlabel endlabel pTick ptick loggrid
+@c  LocalWords:  currentprojection

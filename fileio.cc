@@ -13,8 +13,9 @@ namespace camp {
 string tab="\t";
 string newline="\n";
 
+string asyinput=".asy_input";
+  
 ofile Stdout("");
-static string asyinput=".asy_input";  
 ofile typeout(asyinput);
 ifile typein(asyinput);
 

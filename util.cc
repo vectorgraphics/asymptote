@@ -41,17 +41,24 @@ void backslashToSlash(string& s)
     s[p]='/';
 }
 
+#ifdef __CYGWIN__
 string Getenv(const char *name, bool quote)
 {
   char *s=getenv(name);
   if(!s) return "";
   string S=string(s);
-#ifdef __CYGWIN__
   backslashToSlash(S);
   if(quote) S="'"+S+"'";
-#endif
   return S;
 }
+#else
+string Getenv(const char *name, bool)
+{
+  char *s=getenv(name);
+  if(!s) return "";
+  return string(s);
+}
+#endif
 
 string buildname(string filename, string suffix, string aux) 
 {

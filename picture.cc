@@ -272,13 +272,15 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	if(Viewer == "gv" && interact::interactive)
 	  cmd << " -nowatch";
 	cmd << " " << outname;
-	int status=System(cmd,false,wait,&pid);
+	status=System(cmd,false,wait,&pid);
 	if(status != 0) return false;
       } else if(Viewer == "gv") kill(pid,SIGHUP); // Tell gv to reread file.
     } else {
       ostringstream cmd;
+#ifndef MSDOS      
       cmd << "display " << outname;
       status=System(cmd,false,wait);
+#endif      
       if(status) return false;
     }
   }
