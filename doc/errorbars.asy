@@ -1,4 +1,3 @@
-
 import graph;
 
 picture pic;
@@ -26,8 +25,8 @@ draw(pic2,graph(f),mark);
 xaxis(pic2,"$x$",BottomTop,LeftTicks);
 yaxis(pic2,"$y$",LeftRight,RightTicks);
 
-xaxis(pic2,red+Dotted,YEquals(55.0,false));
-yaxis(pic2,red+Dotted,XEquals(70.0,false));
+yequals(pic2,55.0,red+Dotted);
+xequals(pic2,70.0,red+Dotted);
 
 // Fit pic to W of origin:
 add(pic.fit(W)); 

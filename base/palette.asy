@@ -11,21 +11,24 @@ void image(picture pic=currentpicture, real[][] data, pen[] palette,
 
 typedef ticks paletteticks(real Size);
 
-paletteticks PaletteTicks(bool begin=true, int N=0, real Step=0,
-			  string format=defaultformat, bool end=true)
+paletteticks PaletteTicks(int N=0, real Step=0,
+			  bool beginlabel=true, bool endlabel=true,
+			  string format=defaultformat,
+			  pen plabel=nullpen, pen pTick=nullpen)
 {
   return new ticks(real Size) {
-    return LeftTicks(begin,N,0,Step,0.0,Size,0.0,ticklabel(format),end);
+    return Ticks(false,false,-1,N,Step=Step,Size=Size,beginlabel,endlabel,
+	       ticklabel(format),plabel,pTick);
   };
 } 
 
 public paletteticks PaletteTicks=PaletteTicks();
 
 picture palette(real[][] data, real width=Ticksize,
-	     pen[] palette, string s="", real position=0.5,
-	     real angle=infinity, pair align=E, pair shift=0,
-	     pair side=right, pen plabel=currentpen, pen p=nullpen,
-	     pen pticklabel=nullpen, paletteticks ticks=PaletteTicks)
+		pen[] palette, string s="", real position=0.5,
+		real angle=infinity, pair align=E, pair shift=0,
+		pair side=right, pen plabel=currentpen, pen p=nullpen,
+		paletteticks ticks=PaletteTicks)
 {
   if(p == nullpen) p=plabel;
   picture pic;
@@ -35,17 +38,17 @@ picture palette(real[][] data, real width=Ticksize,
   pair z1=(0,finaly);
   
   pic.add(new void (frame f, transform t) {
-	    pair Z0=(0,(t*z0).y);
-	    pair Z1=(0,(t*z1).y);
-	    pair initial=Z0-width;
-	    image(f,new real[][] {sequence(palette.length-1)},palette,
-		  initial,Z1);
-	    draw(f,Z0--initial--Z1-width--Z1,p);
+    pair Z0=(0,(t*z0).y);
+    pair Z1=(0,(t*z1).y);
+    pair initial=Z0-width;
+    image(f,new real[][] {sequence(palette.length-1)},palette,
+	  initial,Z1);
+    draw(f,Z0--initial--Z1-width--Z1,p);
   });
   
   pic.addBox(z0,z1,(-width,0),(0,0));
   yaxis(pic,initialy,finaly,s,position,angle,align,shift,side,plabel,p,
-	pticklabel,ticks(width),Above);
+	ticks(width),Above);
   return pic;
 }
 

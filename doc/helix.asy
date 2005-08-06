@@ -1,16 +1,18 @@
 import three;
-size(200,0);
+import graph;
+import graph3;
+size(0,200);
 
-currentprojection=perspective((4,4,3));
+currentprojection=orthographic((4,4,3));
 
-triple f(path p, real position) {
-  pair z=point(p,position);
-  return (z.x,z.y,position/length(p));
-}
+real x(real t) {return cos(2pi*t);}
+real y(real t) {return sin(2pi*t);}
+real z(real t) {return t;}
 
-real r=1.5;
-draw("$x$",(0,0,0)--(r,0,0),1,red,Arrow);
-draw("$y$",(0,0,0)--(0,r,0),1,red,Arrow);
-draw("$z$",(0,0,0)--(0,0,r),1,red,Arrow);
-  
-draw(graph(f,E..N..W..S..E..N..W..S),blue);
+draw(graph(x,y,z,0,3),Arrow);
+
+draw("$x$",(0,0,0)--(2,0,0),1,red,Arrow);
+draw("$y$",(0,0,0)--(0,2,0),1,red,Arrow);
+draw("$z$",(0,0,0)--(0,0,4),1,red,Arrow);
+
+

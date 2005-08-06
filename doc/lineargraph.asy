@@ -1,4 +1,3 @@
-
 import graph;
 
 size(250,200,IgnoreAspect);

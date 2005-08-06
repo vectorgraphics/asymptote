@@ -168,14 +168,6 @@ bounds autoscale(real Min, real Max, scaleT scale=Linear)
 
 typedef real part(pair);
 
-typedef void ticks(frame, transform, string, real, real, pair, pair, pair, 
-		   path, pen, pen, pen, arrowbar, autoscaleT, part, bool,
-		   int[], real, real);
-
-private void ticks(frame, transform, string, real, real, pair, pair, pair,
-		   path, pen, pen, pen, arrowbar, autoscaleT, part, bool,
-		   int[], real, real) {};
-
 typedef string ticklabel(real);
 
 ticklabel ticklabel(string s) {
@@ -183,7 +175,6 @@ ticklabel ticklabel(string s) {
 }
 
 string defaultformat="$%.4g$";
-ticklabel ticklabel=ticklabel(defaultformat);
 ticklabel LogFormat=new string(real x) {
   return format("$10^{%d}$",round(x));
 };
@@ -230,79 +221,111 @@ pair ticklabelshift(pair align, pen p=currentpen)
 }
 
 pair labeltick(frame d, transform T, guide g, real pos, pair side,
-	       int sign, real Size, ticklabel ticklabel, pen pticklabel,
+	       int sign, real Size, ticklabel ticklabel, pen pTicklabel,
 	       part part, real norm=0)
 {
   locateT locate;
   locate.calc(T,g,pos);
   pair align=-side*I*locate.dir;
   pair shift=dot(align,I*sign*locate.dir) < 0 ? align*Size :
-    ticklabelshift(align,pticklabel);
+    ticklabelshift(align,pTicklabel);
   pair Z=locate.Z+shift;
   real v=part(locate.z);
   if(abs(v) < epsilon*norm) v=0;
   string s=ticklabel(v);
   s=baseline(s,align,"$10^4$");
-  label(d,s,Z,align,pticklabel);
+  label(d,s,Z,align,pTicklabel);
   return locate.dir;
 }  
 
 real axiscoverage(int N, transform T, path g, real Step, pair side, int sign,
-		  real Size, ticklabel ticklabel, pen pticklabel, part part,
+		  real Size, ticklabel ticklabel, pen pTicklabel, part part,
 		  real norm, real limit, real offset, real firstpos,
 		  real lastpos)
 {
   real coverage=0;
+  bool loop=cyclic(g);
   if(Size > 0) for(int i=0; i <= N; ++i) {
-    real iStep=i*Step;
-    real pos=iStep+offset;
-    if(cyclic(g) || (pos >= firstpos && pos <= lastpos)) {
+    real pos=i*Step;
+    if(loop || (pos >= firstpos && pos <= lastpos)) {
       frame d;
-      pair dir=labeltick(d,T,g,iStep,side,sign,Size,ticklabel,pticklabel,part,
-			 norm);
+      pair dir=labeltick(d,T,g,pos+offset,side,sign,Size,ticklabel,pTicklabel,
+			 part,norm);
       coverage += abs(dot(max(d)-min(d),dir));
+      if(coverage > limit) return coverage;
     }
-    if(coverage > limit) return coverage;
   }
   return coverage;
 }
 
-real logaxiscoverage(int N, transform T, path g, real initial, real factor, 
-		     pair side, int sign, real Size, ticklabel ticklabel,
-		     pen pticklabel, part part, real limit, int first,
-		     int last)
+real logaxiscoverage(int N, transform T, path g, real Step, real offset, 
+		     pair side, int sign, real Size, pen pTicklabel,
+		     part part, real limit, int first, int last,
+		     real firstpos, real lastpos)
 {
   real coverage=0;
-  for(int i=first; i <= last; i += N) {
+  for(int i=first-1; i <= last+1; i += N) {
     frame d;
-    pair dir=labeltick(d,T,g,(i-initial)*factor,side,sign,Size,ticklabel,
-		       pticklabel,part);
-    coverage += abs(dot(max(d)-min(d),dir));
-    if(coverage > limit) return coverage;
+    real pos=i*Step;
+    if(pos >= firstpos && pos <= lastpos) {
+      pair dir=labeltick(d,T,g,pos+offset,side,sign,Size,LogFormat,pTicklabel,
+			 part);
+      coverage += abs(dot(max(d)-min(d),dir));
+      if(coverage > limit) return coverage;
+    }
   }
   return coverage;
 }
 
-ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
-	    real step=0, real Size=0, real size=0,
-	    ticklabel ticklabel=ticklabel, bool end=true)
+void drawtick(frame f, transform T, path g, path g2, real pos, real Size,
+	      int sign, pen p, bool extend) 
 {
-  locateT locate;
+  locateT locate,locate2;
+  locate.calc(T,g,pos);
+  if(extend) {
+    locate2.calc(T,g2,pos);
+    draw(f,locate.Z--locate2.Z,p);
+  } else
+    draw(f,locate.Z--locate.Z-Size*I*sign*locate.dir,p);
+}
+
+typedef void ticks(frame, transform, string, real, real, pair, pair, pair, 
+		   path, path, pen, pen, arrowbar, autoscaleT, part, bool,
+		   int[], real, real);
+
+private void ticks(frame, transform, string, real, real, pair, pair, pair,
+		   path, path, pen, pen, arrowbar, autoscaleT, part, bool,
+		   int[], real, real) {};
+
+ticks Ticks(bool begin=true, bool end=true, int sign, int N, int n=0,
+	    real Step=0, real step=0, real Size=0, real size=0,
+	    bool beginlabel=true, bool endlabel=true,
+	    ticklabel ticklabel=ticklabel(defaultformat),
+	    pen pTicklabel=nullpen, bool extend=false,
+	    pen pTick=nullpen, pen ptick=nullpen)
+{
   return new void(frame f, transform T, string s, real position, real angle,
-		  pair align, pair shift, pair side, path G, pen plabel, pen p,
-		  pen pticklabel, arrowbar arrow, autoscaleT S, part part,
+		  pair align, pair shift, pair side, path G, path G2,
+		  pen plabel, pen p, arrowbar arrow, autoscaleT S, part part,
 		  bool opposite, int[] divisor, real tickmin, real tickmax) {
-    if(p == nullpen) p=plabel;
-    if(pticklabel == nullpen) pticklabel=plabel;
     // Use local copy of context variables:
     int sign=opposite ? -sign : sign;
     int N=N;
     int n=n;
     real Step=Step;
     real step=step;
+    pen pTicklabel=pTicklabel;
+    pen pTick=pTick;
+    pen ptick=ptick;
+    
+    if(p == nullpen) p=plabel;
+    if(pTicklabel == nullpen) pTicklabel=plabel;
+    if(pTick == nullpen) pTick=p;
+    if(ptick == nullpen) ptick=p;
     
     bool labels=false;
     guide g=inverse(T)*G;
+    guide g2=inverse(T)*G2;
     
     if(!logarithmic(S.scale)) {
       real a=part(point(g,0));
@@ -315,15 +338,15 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 	tickmax=S.T(arclength(g));
       real len=tickmax-tickmin;
       real norm=max(abs(a),abs(b));
-      real lastpos=S.T(b)-S.T(a);
-      real firstpos=-epsilon*lastpos;
+      real lastpos=S.T(b)-S.T(a)-offset;
+      real firstpos=-epsilon*lastpos-offset;
       if(Step == 0 && N == 0) {
 	if(divisor.length > 0) {
 	  real limit=axiscoverage*arclength(G);
 	  for(int d=divisor.length-1; d >= 0; --d) {
 	    N=divisor[d];
 	    Step=len/N;
-	    if(axiscoverage(N,T,g,Step,side,sign,Size,ticklabel,pticklabel,
+	    if(axiscoverage(N,T,g,Step,side,sign,Size,ticklabel,pTicklabel,
 			    part, norm,limit,offset,firstpos,lastpos) <= limit)
 	      {
 	      if(N == 1 && !(S.automin() && S.automax()) 
@@ -331,7 +354,7 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 		// Try using 2 ticks (otherwise 1);
 		int div=divisor[d+1];
 		singletick=true; Step=quotient(div,2)*len/div;
-		if(axiscoverage(2,T,g,Step,side,sign,Size,ticklabel,pticklabel,
+		if(axiscoverage(2,T,g,Step,side,sign,Size,ticklabel,pTicklabel,
 				part,norm,limit,offset,firstpos,lastpos) 
 		   <= limit) N=2;
 	      }
@@ -361,24 +384,35 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
       
       lastpos *= (1+epsilon);
       
+      int count;
+      if(cyclic(g)) {
+	count=N;
+	firstpos=-infinity;
+	lastpos=infinity;
+      } else count=Step > 0 ? floor(lastpos/Step)-ceil(firstpos/Step)+1 : 0;
+      
       begingroup(f);
       if(opposite) draw(f,G,p);
       else draw(f,G,p,arrow);
-      if(Size > 0) for(int i=0; i <= N; ++i) {
-	real pos=i*Step+offset;
-	if(cyclic(g) || (pos >= firstpos && pos <= lastpos)) {
-	  locate.calc(T,g,pos);
-	  draw(f,locate.Z--locate.Z-Size*I*sign*locate.dir,p);
+      
+      if(Size > 0) {
+	int c=0;
+	for(int i=0; i <= N; ++i) {
+	  real pos=i*Step;
+	  if(pos >= firstpos && pos <= lastpos) {
+	    ++c;
+	    if((begin || c > 1) && (end || c < count))
+	      drawtick(f,T,g,g2,pos+offset,Size,sign,pTick,extend);
+	  }
 	}
-	if(size > 0 && step > 0) {
-	  real iStep=i*Step;
-	  real jstop=(len-iStep)/step;
-	  iStep += offset;
-	  for(int j=1; j < n && j <= jstop; ++j) {
-	    real pos=iStep+j*step;
-	    if(cyclic(g) || (pos >= firstpos && pos <= lastpos)) {
-	      locate.calc(T,g,pos);
-	      draw(f,locate.Z--locate.Z-size*I*sign*locate.dir,p);
+	for(int i=0; i <= N; ++i) {
+	  if(size > 0 && step > 0) {
+	    real iStep=i*Step;
+	    real jstop=(len-iStep)/step;
+	    for(int j=1; j < n && j <= jstop; ++j) {
+	      real pos=iStep+j*step;
+	      if(pos >= firstpos && pos <= lastpos)
+		drawtick(f,T,g,g2,pos+offset,size,sign,ptick,extend);
 	    }
 	  }
 	}
@@ -386,11 +420,16 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
       endgroup(f);
     
       if(Size > 0 && !opposite) {
-	for(int i=(begin ? 0 : 1); i <= (end ? N : N-1); ++i) {
-	  labels=true;
-	  real pos=i*Step+offset;
-	  if(cyclic(g) || (pos >= firstpos && pos <= lastpos)) {
-	    labeltick(f,T,g,pos,side,sign,Size,ticklabel,pticklabel,part,norm);
+	int c=0;
+	for(int i=0; i <= N; ++i) {
+	  real pos=i*Step;
+	  if(pos >= firstpos && pos <= lastpos) {
+	    ++c;
+	    if((beginlabel || c > 1) && (endlabel || c < count)) {
+	      labels=true;
+	      labeltick(f,T,g,pos+offset,side,sign,Size,ticklabel,pTicklabel,
+			part,norm);
+	    }
 	  }
 	}
       }
@@ -402,51 +441,70 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
       int last=floor(final+epsilon);
       real len=arclength(g);
       real denom=final-initial;
-      real factor=denom != 0 ? len/denom : len;
+      Step=denom != 0 ? len/denom : len;
+      real offset=-initial*Step;
       real firstpos=-epsilon*len;
-      real lastpos=len-firstpos;
+      real lastpos=len-firstpos-offset;
+      firstpos -= offset;
     
       if(N == 0) {
 	real limit=axiscoverage*arclength(G);
 	N=1;
 	while(N <= last-first) {
-	  if(logaxiscoverage(N,T,g,initial,factor,side,sign,Size,LogFormat,
-			     pticklabel,part,limit,first,last) <= limit) break;
+	  if(logaxiscoverage(N,T,g,Step,offset,side,sign,Size,pTicklabel,part,
+			     limit,first,last,firstpos,lastpos) <= limit)
+	    break;
 	  ++N;
 	}
       }
       
       if(N <= 2 && n == 0) n=10;
       
+      int count=Step > 0 ? floor(lastpos/Step)-ceil(firstpos/Step)+1 : 0;
+      
       begingroup(f);
       if(opposite) draw(f,G,p);
       else draw(f,G,p,arrow);
-      if(N > 0) for(int i=first-1; i <= last+1; ++i) {
-	real pos=(i-initial)*factor;
-	if(pos >= firstpos && pos <= lastpos) {
-	  locate.calc(T,g,pos);
-	  real Size0=((i-first) % N == 0 || n != 0) ? Size : size;
-	  draw(f,locate.Z--locate.Z-Size0*I*sign*locate.dir,p);
+
+      if(N > 0) {
+	int c=0;
+	for(int i=first-1; i <= last+1; ++i) {
+	  real pos=i*Step;
+	  if(pos >= firstpos && pos <= lastpos) {
+	    ++c;
+	    if((begin || c > 1) && (end || c < count)) {
+	      real Size0=((i-first) % N == 0 || n != 0) ? Size : size;
+	      drawtick(f,T,g,g2,pos+offset,Size0,sign,pTick,extend);
+	    }
+	  }
 	}
-	if(n > 0) {
-	  for(int j=2; j < n; ++j) {
-	    real pos=(i-initial+1+log10(j/n))*factor;
-	    if(pos >= firstpos && pos <= lastpos) {
-	      locate.calc(T,g,pos);
-	      draw(f,locate.Z--locate.Z-size*I*sign*locate.dir,p);
+	for(int i=first-1; i <= last+1; ++i) {
+	  if(n > 0) {
+	    for(int j=2; j < n; ++j) {
+	      real pos=(i+1+log10(j/n))*Step;
+	      if(pos >= firstpos && pos <= lastpos) {
+		drawtick(f,T,g,g2,pos+offset,size,sign,ptick,extend);
+	      }
 	    }
 	  }
 	}
       }
       endgroup(f);
       
-      if(!opposite && N > 0)
-	for(int i=(begin ? first : ceil(initial+epsilon));
-	    i <= (end ? last : floor(final-epsilon)); i += N) {
-	  labels=true;
-	  labeltick(f,T,g,(i-initial)*factor,side,sign,Size,LogFormat,
-		    pticklabel,part);
+      if(!opposite && N > 0) {
+	int c=0;
+	for(int i=first-1; i <= last+1; i += N) {
+	  real pos=i*Step;
+	  if(pos >= firstpos && pos <= lastpos) {
+	    ++c;
+	    if((beginlabel || c > 1) && (endlabel || c < count)) {
+	      labels=true;
+	      labeltick(f,T,g,pos+offset,side,sign,Size,LogFormat,pTicklabel,
+			part);
+	    }
+	  }
 	}
+      }
     }
     
     if(s != "" && !opposite) 
@@ -456,18 +514,28 @@ ticks Ticks(bool begin=true, int sign, int N, int n=0, real Step=0,
 
 ticks Ticks(int sign, real[] Ticks, real[] ticks=new real[],
 	    real Size=Ticksize, real size=ticksize,
-	    ticklabel ticklabel=ticklabel)
+	    bool beginlabel=true, bool endlabel=true,
+	    ticklabel ticklabel=ticklabel(defaultformat),
+	    pen pTicklabel=nullpen, bool extend=false,
+	    pen pTick=nullpen, pen ptick=nullpen)
 {
-  locateT locate;
   return new void(frame f, transform T, string s, real position, real angle,
-		  pair align, pair shift, pair side, path G, pen plabel, pen p,
-		  pen pticklabel, arrowbar arrow, autoscaleT S, part part,
+		  pair align, pair shift, pair side, path G, path G2, 
+		  pen plabel, pen p, arrowbar arrow, autoscaleT S, part part,
 		  bool opposite, int[] divisor, real tickmin, real tickmax) {
-    if(p == nullpen) p=plabel;
-    if(pticklabel == nullpen) pticklabel=plabel;
     // Use local copy of context variables:
     int sign=opposite ? -sign : sign;
+    pen pTicklabel=pTicklabel;
+    pen pTick=pTick;
+    pen ptick=ptick;
+    
+    if(p == nullpen) p=plabel;
+    if(pTicklabel == nullpen) pTicklabel=plabel;
+    if(pTick == nullpen) pTick=p;
+    if(ptick == nullpen) ptick=p;
+    
     guide g=inverse(T)*G;
+    guide g2=inverse(T)*G2;
     
     real a=part(point(g,0));
     real b=part(point(g,length(g)));
@@ -481,21 +549,19 @@ ticks Ticks(int sign, real[] Ticks, real[] ticks=new real[],
     else draw(f,G,p,arrow);
     for(int i=0; i < Ticks.length; ++i) {
       real pos=S.T(Ticks[i])-a;
-      locate.calc(T,g,pos);
-      draw(f,locate.Z--locate.Z-Size*I*sign*locate.dir,p);
-      
+      drawtick(f,T,g,g2,pos,Size,sign,pTick,extend);
     }
     for(int i=0; i < ticks.length; ++i) {
       real pos=S.T(ticks[i])-a;
-      locate.calc(T,g,pos);
-      draw(f,locate.Z--locate.Z-size*I*sign*locate.dir,p);
+      drawtick(f,T,g,g2,pos,size,sign,ptick,extend);
     }
     endgroup(f);
     
     if(Size > 0 && !opposite) {
-      for(int i=0; i < Ticks.length; ++i) {
+      for(int i=(beginlabel ? 0 : 1);
+	  i < (endlabel ? Ticks.length : Ticks.length-1); ++i) {
 	real pos=S.T(Ticks[i])-a;
-	labeltick(f,T,g,pos,side,sign,Size,ticklabel,pticklabel,part,norm);
+	labeltick(f,T,g,pos,side,sign,Size,ticklabel,pTicklabel,part,norm);
       }
     }
     if(s != "" && !opposite) 
@@ -508,58 +574,46 @@ ticks NoTicks()
   return Ticks(1,-1);
 }
 
-ticks LeftTicks(bool begin=true, int N=0, int n=0, real Step=0, real step=0,
+ticks LeftTicks(bool begin=true, bool end=true, int N=0, int n=0,
+		real Step=0, real step=0,
 		real Size=Ticksize, real size=ticksize,
-		ticklabel ticklabel=ticklabel,
-		bool end=true)
+		bool beginlabel=true, bool endlabel=true,
+		string format=defaultformat, pen plabel=nullpen,
+		bool extend=false, pen pTick=nullpen, pen ptick=nullpen)
 {
-  return Ticks(begin,-1,N,n,Step,step,Size,size,ticklabel,end);
+  return Ticks(begin,end,-1,N,n,Step,step,Size,size,beginlabel,endlabel,
+	       ticklabel(format),plabel,extend,pTick,ptick);
 }
 
-ticks LeftTicks(bool begin=true, int N=0, int n=0, real Step=0, real step=0,
-		real Size=Ticksize, real size=ticksize, string format,
-		bool end=true)
-{
-  return Ticks(begin,-1,N,n,Step,step,Size,size,ticklabel(format),end);
-}
-
-ticks RightTicks(bool begin=true, int N=0, int n=0, real Step=0, real step=0,
+ticks RightTicks(bool begin=true, bool end=true, int N=0, int n=0,
+		 real Step=0, real step=0,
 		 real Size=Ticksize, real size=ticksize,
-		 ticklabel ticklabel=ticklabel, bool end=true)
+		 bool beginlabel=true, bool endlabel=true,
+		 string format=defaultformat, pen plabel=nullpen,
+		 bool extend=false, pen pTick=nullpen, pen ptick=nullpen)
 {
-  return Ticks(begin,1,N,n,Step,step,Size,size,ticklabel,end);
-}
-
-ticks RightTicks(bool begin=true, int N=0, int n=0, real Step=0, real step=0,
-		 real Size=Ticksize, real size=ticksize, string format,
-		 bool end=true)
-{
-  return Ticks(begin,1,N,n,Step,step,Size,size,ticklabel(format),end);
+  return Ticks(begin,end,1,N,n,Step,step,Size,size,beginlabel,endlabel,
+	       ticklabel(format),plabel,extend,pTick,ptick);
 }
 
 ticks LeftTicks(real[] Ticks, real[] ticks=new real[],
 		real Size=Ticksize, real size=ticksize,
-		ticklabel ticklabel=ticklabel)
+		bool beginlabel=true, bool endlabel=true, 
+		string format=defaultformat, pen plabel=nullpen,
+		bool extend=false, pen pTick=nullpen, pen ptick=nullpen)
 {
-  return Ticks(-1,Ticks,ticks,Size,size,ticklabel);
-}
-
-ticks LeftTicks(real[] Ticks, real[] ticks=new real[],
-		real Size=Ticksize, real size=ticksize, string format)
-{
-  return Ticks(-1,Ticks,ticks,Size,size,ticklabel(format));
+  return Ticks(-1,Ticks,ticks,Size,size,beginlabel,endlabel,
+	       ticklabel(format),plabel,extend,pTick,ptick);
 }
 
 ticks RightTicks(real[] Ticks, real[] ticks=new real[],
-		real Size=Ticksize, real size=ticksize)
+		 real Size=Ticksize, real size=ticksize,
+		 bool beginlabel=true, bool endlabel=true,
+		 string format=defaultformat, pen plabel=nullpen,
+		 bool extend=false, pen pTick=nullpen, pen ptick=nullpen)
 {
-  return Ticks(1,Ticks,ticks,Size,size,ticklabel);
-}
-
-ticks RightTicks(real[] Ticks, real[] ticks=new real[],
-		 real Size=Ticksize, real size=ticksize, string format)
-{
-  return Ticks(1,Ticks,ticks,Size,size,ticklabel(format));
+  return Ticks(1,Ticks,ticks,Size,size,beginlabel,endlabel,
+	       ticklabel(format),plabel,extend,pTick,ptick);
 }
 
 public ticks
@@ -571,8 +625,8 @@ void axis(picture pic=currentpicture, guide g,
 	  real tickmin=-infinity, real tickmax=infinity,
 	  string s="", real position=1, real angle=0, pair align=S,
 	  pair shift=0, pair side=right,
-	  pen plabel=currentpen, pen p=nullpen, pen pticklabel=nullpen,
-	  ticks ticks=NoTicks, arrowbar arrow=None, int[] divisor=new int[],
+	  pen plabel=currentpen, pen p=nullpen, ticks ticks=NoTicks, 
+	  arrowbar arrow=None, int[] divisor=new int[],
 	  bool logarithmic=false, scaleT scale=Linear, part part,
 	  bool put=Above, bool opposite=false) 
 {
@@ -581,8 +635,9 @@ void axis(picture pic=currentpicture, guide g,
   divisor=copy(divisor);
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
     frame d;
-    ticks(d,t,s,position,angle,align,shift,side,t*g,plabel,p,pticklabel,
-	  arrow,S,part,opposite,divisor,tickmin,tickmax);
+    guide G=t*g;
+    ticks(d,t,s,position,angle,align,shift,side,G,G,plabel,p,arrow,S,part,
+	  opposite,divisor,tickmin,tickmax);
     (put ? add : prepend)(f,t*T*inverse(t)*d);
   });
   
@@ -596,28 +651,32 @@ void axis(picture pic=currentpicture, guide g,
   }
 }
 
-void yaxisAt(picture pic=currentpicture, real x,
+void yaxisAt(picture pic=currentpicture, real x, real x2,
 	     real ymin=-infinity, real ymax=infinity, 
 	     real tickmin=-infinity, real tickmax=infinity,
 	     string s="", real position=1, real angle=0, pair align=W,
 	     pair shift=0, pair side=right,
-	     pen plabel=currentpen, pen p=nullpen, pen pticklabel=nullpen,
-	     ticks ticks=NoTicks, arrowbar arrow=None, int[] divisor=new int[],
+	     pen plabel=currentpen, pen p=nullpen, ticks ticks=NoTicks,
+	     arrowbar arrow=None, int[] divisor=new int[],
 	     bool put=Above, bool opposite=false)
 {
   divisor=copy(divisor);
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
     pair a=ymin == -infinity ? (xtrans(t,x),lb.y-min(p).y) : t*(x,ymin);
     pair b=ymax == infinity ? (xtrans(t,x),rt.y-max(p).y) : t*(x,ymax);
+    pair a2=ymin == -infinity ? (xtrans(t,x2),lb.y-min(p).y) : t*(x2,ymin);
+    pair b2=ymax == infinity ? (xtrans(t,x2),rt.y-max(p).y) : t*(x2,ymax);
     frame d;
-    ticks(d,t,s,position,angle,align,shift,side,a--b,plabel,p,pticklabel,
-	  arrow,pic.scale.y,new real(pair z) {return pic.scale.y.Label(z.y);},
+    ticks(d,t,s,position,angle,align,shift,side,a--b,a2--b2,plabel,p,arrow,
+	  pic.scale.y, new real(pair z) {return pic.scale.y.Label(z.y);},
 	  opposite,divisor,tickmin,tickmax);
     (put ? add : prepend)(f,t*T*inverse(t)*d);
   });
   
   pair a=(x,finite(ymin) ? ymin : pic.userMin.y);
   pair b=(x,finite(ymax) ? ymax : pic.userMax.y);
+  pair a2=(x2,finite(ymin) ? ymin : pic.userMin.y);
+  pair b2=(x2,finite(ymax) ? ymax : pic.userMax.y);
   
   pic.addFinite(a,min(p));
   pic.addFinite(a,max(p));
@@ -627,7 +686,7 @@ void yaxisAt(picture pic=currentpicture, real x,
   if(finite(a) && finite(b)) {
     frame d;
     ticks(d,identity(),s,position,angle,align,shift,side,
-	  (0,a.y)--(0,b.y),plabel,p,pticklabel,arrow,pic.scale.y,
+	  (0,a.y)--(0,b.y),(0,a2.y)--(0,b2.y),plabel,p,arrow,pic.scale.y,
 	  new real(pair z) {return pic.scale.y.Label(z.y);},
 	  opposite,divisor,tickmin,tickmax);
     frame f;
@@ -637,13 +696,12 @@ void yaxisAt(picture pic=currentpicture, real x,
   }
 }
 
-void xaxisAt(picture pic=currentpicture, real y,
+void xaxisAt(picture pic=currentpicture, real y, real y2,
 	     real xmin=-infinity, real xmax=infinity,
 	     real tickmin=-infinity, real tickmax=infinity,
 	     string s="", real position=1, real angle=0, pair align=S, 
 	     pair shift=0, pair side=left,
-	     pen plabel=currentpen, pen p=nullpen, pen pticklabel=nullpen,
-	     ticks ticks=NoTicks,
+	     pen plabel=currentpen, pen p=nullpen, ticks ticks=NoTicks,
 	     arrowbar arrow=None, int[] divisor=new int[],
 	     bool put=Above, bool opposite=false)
 {
@@ -651,16 +709,19 @@ void xaxisAt(picture pic=currentpicture, real y,
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
     pair a=xmin == -infinity ? (lb.x-min(p).x,ytrans(t,y)) : t*(xmin,y);
     pair b=xmax == infinity ? (rt.x-max(p).x,ytrans(t,y)) : t*(xmax,y);
+    pair a2=xmin == -infinity ? (lb.x-min(p).x,ytrans(t,y2)) : t*(xmin,y2);
+    pair b2=xmax == infinity ? (rt.x-max(p).x,ytrans(t,y2)) : t*(xmax,y2);
     frame d;
-    ticks(d,t,s,position,angle,align,shift,side,a--b,plabel,p,pticklabel,arrow,
-	  pic.scale.x,
-	  new real(pair z) {return pic.scale.x.Label(z.x);},
+    ticks(d,t,s,position,angle,align,shift,side,a--b,a2--b2,plabel,p,arrow,
+	  pic.scale.x,new real(pair z) {return pic.scale.x.Label(z.x);},
 	  opposite,divisor,tickmin,tickmax);
     (put ? add : prepend)(f,t*T*inverse(t)*d);
   });
 
   pair a=(finite(xmin) ? xmin : pic.userMin.x,y);
   pair b=(finite(xmax) ? xmax : pic.userMax.x,y);
+  pair a2=(finite(xmin) ? xmin : pic.userMin.x,y2);
+  pair b2=(finite(xmax) ? xmax : pic.userMax.x,y2);
   
   pic.addFinite(a,min(p));
   pic.addFinite(a,max(p));
@@ -670,7 +731,7 @@ void xaxisAt(picture pic=currentpicture, real y,
   if(finite(a) && finite(b)) {
     frame d;
     ticks(d,identity(),s,position,angle,align,shift,side,
-	  (a.x,0)--(b.x,0),plabel,p,pticklabel,arrow,pic.scale.x,
+	  (a.x,0)--(b.x,0),(a2.x,0)--(b2.x,0),plabel,p,arrow,pic.scale.x,
 	  new real(pair z) {return pic.scale.y.Label(z.x);},
 	  opposite,divisor,tickmin,tickmax);
     frame f;
@@ -941,9 +1002,9 @@ void checkaxis(picture pic, axis axis)
 
 void xaxis(picture pic=currentpicture,
 	   real xmin=-infinity, real xmax=infinity, string s="",
-	   real position=infinity, real angle=0, pair align=0, pair shift=0,
-	   pair side=0, pen plabel=currentpen, pen p=nullpen,
-	   pen pticklabel=nullpen, axis axis=YZero, ticks ticks=NoTicks,
+	   real position=infinity, real angle=0, pair align=0,
+	   pair shift=0, pair side=0, pen plabel=currentpen, pen p=nullpen,
+	   axis axis=YZero, ticks ticks=NoTicks,
 	   arrowbar arrow=None, bool put=Below)
 {
   bool newticks=false;
@@ -984,22 +1045,21 @@ void xaxis(picture pic=currentpicture,
   if(align == 0) align=axis.align;
   if(side == 0) side=axis.side;
   
-  xaxisAt(pic,axis.value.y,xmin,xmax,pic.scale.x.tickMin,
+  xaxisAt(pic,axis.value.y,axis.value2.y,xmin,xmax,pic.scale.x.tickMin,
 	  pic.scale.x.tickMax,s,position,angle,align,shift,side,plabel,p,
-	  pticklabel,ticks,arrow,axis.xdivisor,put);
+	  ticks,arrow,axis.xdivisor,put);
   if(axis.value2 != infinity)
-    xaxisAt(pic,axis.value2.y,xmin,xmax,pic.scale.x.tickMin,
+    xaxisAt(pic,axis.value2.y,axis.value2.y,xmin,xmax,pic.scale.x.tickMin,
 	    pic.scale.x.tickMax,s,position,angle,align,shift,side,plabel,p,
-	    pticklabel,ticks,arrow,axis.xdivisor,put,true);
+	    ticks,arrow,axis.xdivisor,put,true);
 }
 
 void yaxis(picture pic=currentpicture,
 	   real ymin=-infinity, real ymax=infinity, string s="",
 	   real position=infinity, real angle=infinity, pair align=0,
-	   pair shift=0, pair side=0,
-	   pen plabel=currentpen, pen p=nullpen, pen pticklabel=nullpen,
-	   axis axis=XZero, ticks ticks=NoTicks, arrowbar arrow=None,
-	   bool put=Below)
+	   pair shift=0, pair side=0, pen plabel=currentpen, pen p=nullpen,
+	   axis axis=XZero, ticks ticks=NoTicks,
+	   arrowbar arrow=None, bool put=Below)
 {
   bool newticks=false;
   if(ymin != -infinity) {
@@ -1045,13 +1105,13 @@ void yaxis(picture pic=currentpicture,
     angle=length(max(f)-min(f)) > ylabelwidth*fontsize(plabel) ? 90 : 0;
   }
   
-  yaxisAt(pic,axis.value.x,ymin,ymax,pic.scale.y.tickMin,
+  yaxisAt(pic,axis.value.x,axis.value2.x,ymin,ymax,pic.scale.y.tickMin,
 	  pic.scale.y.tickMax,s,position,angle,align,shift,side,plabel,p,
-	  pticklabel,ticks,arrow,axis.ydivisor,put);
+	  ticks,arrow,axis.ydivisor,put);
   if(axis.value2 != infinity)
-    yaxisAt(pic,axis.value2.x,ymin,ymax,pic.scale.y.tickMin,
+    yaxisAt(pic,axis.value2.x,axis.value2.x,ymin,ymax,pic.scale.y.tickMin,
 	    pic.scale.y.tickMax,s,position,angle,align,shift,side,plabel,p,
-	    pticklabel,ticks,arrow,axis.ydivisor,put,true);
+	    ticks,arrow,axis.ydivisor,put,true);
 }
 
 void axes(picture pic=currentpicture, pen p=currentpen, bool put=Below)
@@ -1064,10 +1124,9 @@ void xequals(picture pic=currentpicture, real x, bool extend=false,
 	     real ymin=-infinity, real ymax=infinity, string s="",
 	     real position=infinity, real angle=infinity, pair align=0,
 	     pair shift=0, pair side=0, pen plabel=currentpen, pen p=nullpen,
-	     pen pticklabel=nullpen, ticks ticks=NoTicks, bool put=Above,
-	     arrowbar arrow=None)
+	     ticks ticks=NoTicks, bool put=Above, arrowbar arrow=None)
 {
-  yaxis(pic,ymin,ymax,s,position,angle,align,shift,side,plabel,p,pticklabel,
+  yaxis(pic,ymin,ymax,s,position,angle,align,shift,side,plabel,p,
 	XEquals(x,extend),ticks,arrow,put);
 }
 
@@ -1075,10 +1134,9 @@ void yequals(picture pic=currentpicture, real y, bool extend=false,
 	     real xmin=-infinity, real xmax=infinity, string s="",
 	     real position=infinity, real angle=0, pair align=0,
 	     pair shift=0, pair side=0, pen plabel=currentpen, pen p=nullpen,
-	     pen pticklabel=nullpen, ticks ticks=NoTicks, bool put=Above,
-	     arrowbar arrow=None)
+	     ticks ticks=NoTicks, bool put=Above, arrowbar arrow=None)
 {
-  xaxis(pic,xmin,xmax,s,position,angle,align,shift,side,plabel,p,pticklabel,
+  xaxis(pic,xmin,xmax,s,position,angle,align,shift,side,plabel,p,
 	YEquals(y,extend),ticks,arrow,put);
 }
 

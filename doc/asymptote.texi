@@ -94,7 +94,7 @@ Import
 * simplex::                     Linear programming: simplex method
 * graph::                       2D linear & logarithmic graphs
 * three::                       Three-dimensional vector graphics
-* graph3d::                     3D linear & logarithmic graphs
+* graph3::                      3D linear & logarithmic graphs
 * featpost3D::                  Preliminary port of @code{featpost3d}
 * math::                        Extend @code{Asymptote}'s math capabilities
 * geometry::                    Geometry routines
@@ -2845,7 +2845,7 @@ void eval(string s);
 * simplex::                     Linear programming: simplex method
 * graph::                       2D linear & logarithmic graphs
 * three::                       Three-dimensional vector graphics
-* graph3d::                     3D linear & logarithmic graphs
+* graph3::                      3D linear & logarithmic graphs
 * featpost3D::                  Preliminary port of @code{featpost3d}
 * math::                        Extend @code{Asymptote}'s math capabilities
 * geometry::                    Geometry routines
@@ -3002,9 +3002,9 @@ void xaxis(picture pic=currentpicture,
            real xmin=-infinity, real xmax=infinity, string s="",
            real position=infinity, real angle=0, pair align=0,
            pair shift=0, pair side=0,
-           pen plabel=currentpen, pen p=plabel, pen pticklabel=plabel,
-           axis axis=YZero, ticks ticks=NoTicks, arrowbar arrow=None,
-           bool put=Below);
+           pen plabel=currentpen, pen p=plabel,
+           axis axis=YZero, ticks ticks=NoTicks,
+           arrowbar arrow=None, bool put=Below);
 @end verbatim
 
 Draw an @math{x} axis on picture @code{pic} from @math{x}=@code{xmin} to
@@ -3012,7 +3012,7 @@ Draw an @math{x} axis on picture @code{pic} from @math{x}=@code{xmin} to
 string @code{s} at relative location @code{position} (a real number from
 [0,1]) using angle @code{angle}, alignment @code{align} (user coordinates),
 true shift @code{shift} (postscript coordinates) on side @code{side}
-of the axis, and pens @code{plabel} and @code{pticklabel}.
+of the axis, and pen @code{plabel}.
 An infinite value of @code{xmin} or @code{xmax} specifies
 that the corresponding axis limit will be automatically determined from the
 picture limits. The axis placement is determined by one of the
@@ -3057,34 +3057,54 @@ The option @code{LeftTicks} (@code{RightTicks}) can be used to draw
 ticks on the left (right) of the path, relative to the direction in which
 the path is drawn. These tick routines accept a number of optional arguments:
 @verbatim
-ticks LeftTicks(bool begin=true, int N=0, int n=0, real Step=0,
-                real step=0, real Size=Ticksize, real size=ticksize,
-                string format, bool end=true);
+ticks LeftTicks(bool begin=true, bool end=true, int N=0, int n=0,
+                real Step=0, real step=0,
+                real Size=Ticksize, real size=ticksize,
+                bool beginlabel=true, bool endlabel=true,
+                string format=defaultformat, pen plabel=nullpen,
+                bool extend=false, pen pTick=nullpen, pen ptick=nullpen);
 @end verbatim
 
-If any of these parameters are omitted (or 0), reasonable defaults will
+If any of these parameters are omitted, reasonable defaults will
 be chosen:
 @table @code
-@item begin
-requests a big tick at the beginning of the axis;
-@item N
+@item bool begin
+include the first big tick;
+@item bool end
+include the last big tick;
+@item int N
 when automatic scaling is enabled (the default; @pxref{automatic scaling}),
 divide the arclength evenly into this many intervals, separated by big ticks;
-@item n
+@item int n
 divide each arclength interval into this many subintervals, separated by
 small ticks;
-@item Step
-represents the spacing (in user arclength coordinates) between big ticks
+@item real Step
+the spacing (in user arclength coordinates) between big ticks
 (if @code{N}=@code{0});
-@item step
-represents the spacing  (in user arclength coordinates) between small
+@item real step
+the spacing (in user arclength coordinates) between small
 ticks (if @code{n}=@code{0});
-@item format
-is a string used for formatting the tick values (@pxref{format}),
-normally beginning and ending with @code{$}) to enable the @code{LaTeX} math
-mode fonts;
-@item end
-requests a big tick at the end of the axis.
+@item real Size
+the size of the big ticks (in @code{PostScript} coordinates);
+@item real size
+the size of the small ticks (in @code{PostScript} coordinates);
+@item bool beginlabel
+include the first label;
+@item bool endlabel
+include the last label;
+@item string format
+used for formatting the tick values (@pxref{format}), normally
+beginning and ending with @code{$}) to enable the @code{LaTeX} math mode fonts;
+@item pen plabel
+an optional pen used to draw the tick labels;
+@item bool extend;
+extend the big ticks across the graph (useful for drawing a grid on
+the graph).
+@item pTick
+an optional pen used to draw the big ticks;
+@item ptick
+an optional pen used to draw the small ticks;
+
 @end table
 
 @cindex custom tick locations
@@ -3094,7 +3114,10 @@ arrays @code{Ticks} and (optionally) @code{ticks} containing the
 locations of the big and small ticks, respectively:
 @verbatim
 ticks LeftTicks(real[] Ticks, real[] ticks=new real[],
-                real Size=Ticksize, real size=ticksize, string format);
+                real Size=Ticksize, real size=ticksize,
+                bool beginlabel=true, bool endlabel=true, 
+                string format=defaultformat, pen plabel=nullpen,
+                bool extend=false, pen pTick=nullpen, pen ptick=nullpen);
 @end verbatim
 
 @item
@@ -3103,19 +3126,18 @@ void yaxis(picture pic=currentpicture,
            real ymin=-infinity, real ymax=infinity, string s="",
            real position=infinity, real angle=infinity, pair align=0,
            pair shift=0, pair side=0,
-           pen plabel=currentpen, pen p=plabel, pen pticklabel=plabel,
-           axis axis=XZero, ticks ticks=NoTicks, arrowbar arrow=None,
-           bool put=Below);
+           pen plabel=currentpen, pen p=plabel,
+           axis axis=XZero, ticks ticks=NoTicks,
+           arrowbar arrow=None, bool put=Below);
 @end verbatim
 
 Draw a @math{y} axis on picture @code{pic} from @math{y}=@code{ymin} to
 @math{y}=@code{ymax} using pen @code{p}, optionally labelling it with
 string @code{s} at relative location @code{position} (a real number from
 [0,1]) using angle @code{angle}, alignment @code{align}, true shift
-@code{shift} on side @code{side} of the axis, and pens
-@code{plabel} and @code{pticklabel}. The tick type is specified by
-@code{ticks} and the axis placement is determined by one of the
-following @code{axis} types:
+@code{shift} on side @code{side} of the axis, and pen @code{plabel}.
+The tick type is specified by @code{ticks} and the axis placement is
+determined by one of the following @code{axis} types:
 
 @table @code
 
@@ -3157,8 +3179,8 @@ For convenience, the functions
 void xequals(picture pic=currentpicture, real x, bool extend=false,
              real ymin=-infinity, real ymax=infinity, string s="",
              real position=infinity, real angle=infinity, pair align=0,
-             pair shift=0, pair side=0, 
-             pen plabel=currentpen, pen p=plabel, pen pticklabel=plabel,
+             pair shift=0, pair side=0,
+             pen plabel=currentpen, pen p=plabel,
              ticks ticks=NoTicks, bool put=Above, arrowbar arrow=None);
 @end verbatim
 and
@@ -3167,7 +3189,7 @@ void yequals(picture pic=currentpicture, real y, bool extend=false,
              real xmin=-infinity, real xmax=infinity, string s="",
              real position=infinity, real angle=0, pair align=0,
              pair shift=0, pair side=0,
-             pen plabel=currentpen, pen p=plabel, pen pticklabel=plabel,
+             pen plabel=currentpen, pen p=plabel,
              ticks ticks=NoTicks, bool put=Above, arrowbar arrow=None);
 @end verbatim
 can be respectively used to call @code{yaxis} and
@@ -3180,8 +3202,8 @@ or horizontal lines and axes at arbitrary locations.
 void axis(picture pic=currentpicture, guide g,
           real tickmin=-infinity, real tickmax=infinity,
           string s="", real position=1, real angle=0, pair align=S,
-          pair shift=0, pair side=right, pen plabel=currentpen,
-          pen p=plabel, pen pticklabel=plabel, ticks ticks=NoTicks,
+          pair shift=0, pair side=right,
+          pen plabel=currentpen, pen p=plabel, ticks ticks=NoTicks,
           arrowbar arrow=None, int[] divisor=new int[],
           bool logarithmic=false, scaleT scale=Linear, part part,
           bool put=Above, bool opposite=false);
@@ -3192,15 +3214,14 @@ on picture @code{pic} using pen @code{p}, based on an arbitrary
 path @code{g}, with ticks placed along its arclength (either evenly
 spaced or at custom locations).
 One may specify optional tick minimum and maximum values @code{tickmin} and
-@code{tickmax}, a tick label pen @code{pticklabel}, and
-optionally label the axis with string @code{s} at
+@code{tickmax}, and optionally label the axis with string @code{s} at
 relative location @code{position} (an @code{arctime} value from [0,1]),
 angle @code{angle}, alignment @code{align}, true shift
 @code{shift} on side @code{side} of the axis, and pen
 @code{plabel}. The tick type is specified by
 @code{ticks} and the integer array @code{divisor} specifies what tick
-divisors to try in the attempt to produce uncrowded tick labels. A
-@code{true} value for the flag @code{opposite} identifies an
+divisors to try in the attempt to produce uncrowded tick labels.
+A @code{true} value for the flag @code{opposite} identifies an
 unlabelled secondary axis (typically drawn opposite to a primary
 axis).  The axis is drawn on top of any existing objects in the
 current layer only if @code{put} is @code{Above}.
@@ -3369,6 +3390,11 @@ For example, to draw a log graph of a function, use @code{scale(Log,Log)}:
 @verbatiminclude loggraph.asy
 @image{loggraph}
 
+@cindex grid
+By extending the ticks, one can easily produce a logarithmic grid:
+@verbatiminclude loggrid.asy
+@image{loggrid}
+
 @cindex secondary axis
 @cindex @code{secondaryX}
 @cindex @code{secondaryY}
@@ -3436,10 +3462,10 @@ void image(picture pic=currentpicture, real[][] data, pen[] palette,
 An optionally labelled palette bar may be generated with the routine
 @verbatim
 picture palette(real[][] data, real width=Ticksize,
-             pen[] palette, string s="", real position=0.5,
-             real angle=infinity, pair align=E, pair shift=0,
-             pair side=right, pen plabel=currentpen, pen p=plabel,
-             pen pticklabel=plabel, paletteticks ticks=PaletteTicks)
+                pen[] palette, string s="", real position=0.5,
+                real angle=infinity, pair align=E, pair shift=0,
+                pair side=right, pen plabel=currentpen, pen p=plabel,
+                paletteticks ticks=PaletteTicks)
 @end verbatim
 
 The argument @code{paletteticks} is a special tick type (@pxref{ticks})
@@ -3491,7 +3517,7 @@ These projections to two dimensions are predefined:
 The point @code{(x,y,z)} is projected to @code{(x-0.5z,y-0.5z)}.
 If an optional real argument is given to @code{oblique}, the
 negative @math{z} axis is drawn at this angle in degrees measured
-counterclockwise from the positive @math{x} axis.
+counterclockwise from the positive @math{x} axis. 
 
 @item orthographic(triple camera)
 @cindex orthographic
@@ -3504,6 +3530,10 @@ This projects three dimensions onto two taking account of perspective,
 as seen from the location @code{camera}.
 
 @end table
+
+@cindex @code{currentprojection}
+The default projection, @code{currentprojection}, is initially set to
+@code{perspective((5,4,2))}.
 
 @cindex @code{transform}
 Three-dimensional objects may be transformed with one of the following
@@ -3529,7 +3559,7 @@ scales by @code{s} in the @math{x}, @math{y}, and @math{z} directions;
 rotates by @code{angle} in degrees about the axis @code{u--v};
 @end table
 
-Here is an example of a helix using perspective drawing:
+Here is an example of a helix using an orthographic projection:
 @anchor{helix}
 @verbatiminclude helix.asy
 @image{helix}
@@ -3542,9 +3572,9 @@ Here is an example of a surface plot:
 General hidden surface removal will be implemented by using a
 binary space partition and picture clipping in an upcoming release. 
 
-@node graph3d
-@subsection @code{graph3d}
-@cindex @code{graph3d}
+@node graph3
+@subsection @code{graph3}
+@cindex @code{graph3}
 @cindex 3D graphs
 This module will be developed into a full three-dimensional graphing
 package in the near future.
@@ -3552,7 +3582,7 @@ package in the near future.
 @node featpost3D
 @subsection @code{featpost3D}
 @cindex @code{featpost3D}
-Until a complete 3D graphics package (@pxref{graph3d}) is written, a
+Until a complete 3D graphics package (@pxref{graph3}) is written, a
 preliminary port of the @code{MetaPost} 3D package @code{featpost3D} 
 of L. Nobre G., C. Barbarosie and J. Schwaiger to @code{Asymptote}
 makes some 3D functionality already available, as illustrated by the
@@ -4605,7 +4635,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  dpx dpy dmx dmy barsize arrowheadsize BeginDotMargin DotMargin
 @c  LocalWords:  EndDotMargin DotMargins NColors BWRainbow colorspace labelled
 @c  LocalWords:  PaletteTicks defaultformat leastsquares bjam fprintf endgroup
-@c  LocalWords:  begingroup xmargin ymargin pbox labelbox labelellipse wget
+@c  LocalWords:  begingroup xmargin ymargin pbox labelbox labelellipse wget exe
 @c  LocalWords:  multithreaded newframe init emph nums concat xline yline zpart
-@c  LocalWords:  colatitude pticklabel labelxtick labelytick zscale noView cosh
-@c  LocalWords:  nodeps
+@c  LocalWords:  colatitude labelxtick labelytick zscale noView cosh nullpen
+@c  LocalWords:  nodeps Ghostgum beginlabel endlabel pTick ptick loggrid
