@@ -75,7 +75,7 @@ public:
   
   bool empty() {
     bounds();
-    return (b.right <= b.left && b.top <= b.bottom);
+    return null();
   }
 };
 

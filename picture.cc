@@ -345,7 +345,6 @@ bool picture::shipout(const picture& preamble, const string& prefix,
       }
   }
   
-  
   // Avoid negative bounding box coordinates
   bboxshift=origin == ZERO ? 0.0 : pair(-bpos.left,-bpos.bottom);
   if(!pdfformat) {

@@ -198,7 +198,7 @@ typedef void suffix(file);
 
 void write(file file=stdout, suffix s=endl) {s(file);}
 
-void write(file file, path[] g)
+void write(file file, explicit path[] g)
 {
   if(g.length > 0) write(file,g[0]);
   for(int i=1; i < g.length; ++i) {
@@ -217,8 +217,10 @@ void write(file file=stdout, string x, suffix s) {write(file,x); s(file);}
 void write(file file=stdout, guide x, suffix s) {write(file,x); s(file);}
 void write(file file=stdout, pen x, suffix s) {write(file,x); s(file);}
 void write(file file=stdout, transform x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, path[] x, suffix s) {write(file,x); s(file);}
-void write(path[] g) {write(stdout,g,endl);}
+void write(file file=stdout, explicit path[] x, suffix s) {
+  write(file,x); s(file);
+}
+void write(explicit path[] g) {write(stdout,g,endl);}
 
 void write(file file=stdout, string x, bool y)
 {
@@ -568,6 +570,14 @@ path[] operator cast(pair[] z) {
   path[] g=new path[z.length];
   for(int i=0; i < z.length; ++i) g[i]=z[i];
   return g;
+}
+
+path[] operator cast(path g) {
+  return new path[] {g};
+}
+
+path[] operator cast(guide g) {
+  return new path[] {(path) g};
 }
 
 static bool Above=true;
@@ -921,29 +931,29 @@ path[] operator ^^ (path p, path q)
   return new path[] {p,q};
 }
 
-path[] operator ^^ (path p, path[] q) 
+path[] operator ^^ (path p, explicit path[] q) 
 {
   return concat(new path[] {p},q);
 }
 
-path[] operator ^^ (path[] p, path q) 
+path[] operator ^^ (explicit path[] p, path q) 
 {
   return concat(p,new path[] {q});
 }
 
-path[] operator ^^ (path[] p, path[] q) 
+path[] operator ^^ (explicit path[] p, explicit path[] q) 
 {
   return concat(p,q);
 }
 
-path[] operator * (transform t, path[] p) 
+path[] operator * (transform t, explicit path[] p) 
 {
   path[] P;
   for(int i=0; i < p.length; ++i) P[i]=t*p[i];
   return P;
 }
 
-pair min(path[] g)
+pair min(explicit path[] g)
 {
   pair ming=(infinity,infinity);
   for(int i=0; i < g.length; ++i)
@@ -951,7 +961,7 @@ pair min(path[] g)
   return ming;
 }
 
-pair max(path[] g)
+pair max(explicit path[] g)
 {
   pair maxg=(-infinity,-infinity);
   for(int i=0; i < g.length; ++i)
@@ -1177,7 +1187,7 @@ void draw(frame f, path g)
   draw(f,g,currentpen);
 }
 
-void draw(frame f, path[] g, pen p=currentpen)
+void draw(frame f, explicit path[] g, pen p=currentpen)
 {
   for(int i=0; i < g.length; ++i) draw(f,g[i],p);
 }
@@ -1200,33 +1210,20 @@ void _draw(picture pic=currentpicture, path g, pen p=currentpen,
   pic.addPath(g,p);
 }
 
-void draw(picture pic=currentpicture, path[] g, pen p=currentpen)
+void draw(picture pic=currentpicture, explicit path[] g, pen p=currentpen)
 {
   for(int i=0; i < g.length; ++i) Draw(pic,g[i],p);
 }
 
-void fill(frame f, path g, pen p=currentpen)
+void fill(frame f, path[] g)
 {
-  fill(f,g,p,0,0,p,0,0);
+  fill(f,g,currentpen);
 }
 
-void fill(frame f, path[] g, pen p=currentpen)
-{
-  fill(f,g,p,0,0,p,0,0);
-}
-
-void filldraw(frame f, path g, pen p=currentpen)
+void filldraw(frame f, path[] g, pen p=currentpen)
 {
   fill(f,g,p);
   draw(f,g,p);
-}
-
-void fill(picture pic=currentpicture, path g, pen p=currentpen)
-{
-  pic.add(new void (frame f, transform t) {
-    fill(f,t*g,p);
-  });
-  pic.addPath(g);
 }
 
 void fill(picture pic=currentpicture, path[] g, pen p=currentpen)
@@ -1239,19 +1236,19 @@ void fill(picture pic=currentpicture, path[] g, pen p=currentpen)
     pic.addPath(g[i]);
 }
 
-// radial shading
-void fill(picture pic=currentpicture, path g, pen pena, pair a, real ra,
-	  pen penb, pair b, real rb)
+// axial shading
+void fill(picture pic=currentpicture, path[] g, pen pena, pair a,
+	  pen penb, pair b)
 {
+  g=copy(g);
   pic.add(new void (frame f, transform t) {
-    pair A=t*a, B=t*b;
-    real RA=abs(t*(a+ra)-A);
-    real RB=abs(t*(b+rb)-B);
-    fill(f,t*g,pena,A,RA,penb,B,RB);
+    fill(f,t*g,pena,t*a,penb,t*b);
   });
-  pic.addPath(g);
+  for(int i=0; i < g.length; ++i) 
+    pic.addPath(g[i]);
 }
 
+// radial shading
 void fill(picture pic=currentpicture, path[] g, pen pena, pair a, real ra,
 	  pen penb, pair b, real rb)
 {
@@ -1266,58 +1263,13 @@ void fill(picture pic=currentpicture, path[] g, pen pena, pair a, real ra,
     pic.addPath(g[i]);
 }
 
-// axial shading
-void fill(picture pic=currentpicture, path g, pen pena, pair a,
-	  pen penb, pair b)
-{
-  pic.add(new void (frame f, transform t) {
-    fill(f,t*g,pena,t*a,0,penb,t*b,0);
-  });
-  pic.addPath(g);
-}
-
-void fill(picture pic=currentpicture, path[] g, pen pena, pair a,
-	  pen penb, pair b)
-{
-  g=copy(g);
-  pic.add(new void (frame f, transform t) {
-    fill(f,t*g,pena,t*a,0,penb,t*b,0);
-  });
-  for(int i=0; i < g.length; ++i) 
-    pic.addPath(g[i]);
-}
-
-void fill(pair origin, picture pic=currentpicture, path g, pen p=currentpen)
+void fill(pair origin, picture pic=currentpicture, path[] g, pen p=currentpen)
 {
   picture opic;
   fill(opic,g,p);
   add(origin,pic,opic);
 }
   
-void fill(pair origin, picture pic=currentpicture, path g,
-	  pen pena, pair a, pen penb, pair b)
-{
-  picture opic;
-  fill(opic,g,pena,a,penb,b);
-  add(origin,pic,opic);
-}
-  
-void fill(pair origin, picture pic=currentpicture, path g,
-	  pen pena, pair a, real ra,
-	  pen penb, pair b, real rb)
-{
-  picture opic;
-  fill(opic,g,pena,a,ra,penb,b,rb);
-  add(origin,pic,opic);
-}
-  
-void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
-	      pen drawpen=currentpen)
-{
-  fill(pic,g,fillpen);
-  Draw(pic,g,drawpen);
-}
-
 void filldraw(picture pic=currentpicture, path[] g, pen fillpen=currentpen,
 	      pen drawpen=currentpen)
 {
@@ -1325,23 +1277,9 @@ void filldraw(picture pic=currentpicture, path[] g, pen fillpen=currentpen,
   draw(pic,g,drawpen);
 }
 
-void clip(frame f, path g)
-{
-  clip(f,g,currentpen);
-}
-
 void clip(frame f, path[] g)
 {
   clip(f,g,currentpen);
-}
-
-void clip(picture pic=currentpicture, path g, pen p=currentpen)
-{
-  pic.userMin=maxbound(pic.userMin,min(g));
-  pic.userMax=minbound(pic.userMax,max(g));
-  pic.clip(new void (frame f, transform t) {
-    clip(f,t*g,p);
-  });
 }
 
 void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
@@ -1354,21 +1292,9 @@ void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
   });
 }
 
-void unfill(frame f, path g)
-{
-  clip(f,box(min(f),max(f))^^g,evenodd);
-}
-
 void unfill(frame f, path[] g)
 {
   clip(f,box(min(f),max(f))^^g,evenodd);
-}
-
-void unfill(picture pic=currentpicture, path g)
-{
-  pic.clip(new void (frame f, transform t) {
-    unfill(f,t*g);
-  });
 }
 
 void unfill(picture pic=currentpicture, path[] g)
@@ -1733,17 +1659,10 @@ path[] cross(int n)
 
 path[] plus=(-1,0)--(1,0)^^(0,-1)--(0,1);
 
-void mark(picture pic=currentpicture, guide g, frame mark)
+void mark(picture pic=currentpicture, path g, frame mark)
 {
   for(int i=0; i <= length(g); ++i)
     add(point(g,i),pic,mark);
-}
-
-frame marker(path g, pen p=currentpen, filltype filltype=NoFill)
-{
-  frame f;
-  filltype(f,g,p);
-  return f;
 }
 
 frame marker(path[] g, pen p=currentpen, filltype filltype=NoFill)

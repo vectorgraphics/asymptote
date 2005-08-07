@@ -455,11 +455,15 @@ void base_venv(venv &ve)
   addOperators(ve);
   addGuideOperators(ve);
 
-  addFunc(ve,run::fillArray,primVoid(),"fill",primPicture(),pathArray(),
-	  primPen(),primPair(),primReal(),primPen(),primPair(),primReal());
-  addFunc(ve,run::clipArray,primVoid(),"clip",primPicture(),pathArray(),
+  addFunc(ve,run::fill,primVoid(),"fill",primPicture(),pathArray(),
 	  primPen());
-  addFunc(ve,run::beginClipArray,primVoid(),"beginclip",primPicture(),
+  addFunc(ve,run::axialShade,primVoid(),"fill",primPicture(),pathArray(),
+	  primPen(),primPair(),primPen(),primPair());
+  addFunc(ve,run::radialShade,primVoid(),"fill",primPicture(),pathArray(),
+	  primPen(),primPair(),primReal(),primPen(),primPair(),primReal());
+  addFunc(ve,run::clip,primVoid(),"clip",primPicture(),pathArray(),
+	  primPen());
+  addFunc(ve,run::beginClip,primVoid(),"beginclip",primPicture(),
 	  pathArray(),primPen());
   addFunc(ve,run::image,primVoid(),"image",primPicture(),realArray2(),
 	  penArray(),primPair(),primPair());

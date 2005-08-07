@@ -4122,9 +4122,6 @@ void draw(pair origin, picture pic=currentpicture, string s="", real angle=0,
 @end verbatim
 
 @cindex @code{fill}
-@anchor{gradient shading}
-@cindex gradient
-@cindex shading
 @node fill
 @section fill
 @verbatim
@@ -4134,6 +4131,10 @@ void fill(picture pic=currentpicture, path g, pen p=currentpen);
 Fill the interior region bounded by the cyclic path @code{g} on the picture
 @code{pic}, using the pen @code{p}. 
 
+@cindex shading
+@anchor{gradient shading}
+@cindex gradient shading
+@cindex axial shading
 Axial gradient shading varying smoothly from @code{pena} to @code{penb} in the
 direction of the line segment @code{a--b} can be achieved with
 @verbatim
@@ -4142,6 +4143,7 @@ void fill(picture pic=currentpicture, path g,
           pen penb, pair b);
 @end verbatim
 
+@cindex radial shading
 Radial gradient shading varying smoothly from smoothly from
 @code{pena} on the circle with center @code{a} and radius @code{ra} to
 @code{penb} on the circle with center @code{b} and radius @code{rb} 
@@ -4165,20 +4167,20 @@ void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
 @end verbatim
 
 @cindex @code{fill}
-@cindex @code{filldraw}
-Fixed-size versions of @code{fill} and @code{filldraw}
-allow one to fill an object described in @code{PostScript}
-coordinates about the user coordinate @code{origin}:
+This fixed-size version of @code{fill} allows one to fill an object
+described in @code{PostScript} coordinates about the user coordinate
+@code{origin}:
 @verbatim
 void fill(pair origin, picture pic=currentpicture, path g, pen p=currentpen);
-void fill(pair origin, picture pic=currentpicture, path g,
-          pen pena, pair a,
-          pen penb, pair b);
-void fill(pair origin, picture pic=currentpicture, path g,
-          pen pena, pair a, real ra,
-          pen penb, pair b, real rb);
 @end verbatim
 
+@noindent
+This is just a convenient abbreviation for the commands:
+@verbatim
+picture opic;
+fill(opic,g,p);
+add(origin,pic,opic);
+@end verbatim
 
 @cindex unfill
 The following routine uses @code{evenodd} clipping together with the
@@ -4608,7 +4610,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  RightTicks BottomTop LeftRight Ticksize UTF BufNewFile BufRead
 @c  LocalWords:  ticksize subintervals xlimits filetype plugin setlocal makeprg
 @c  LocalWords:  ylimits uncommented automin automax cp uninstall reals ecast
-@c  LocalWords:  scaleT Xautomin Xautomax Yautomin Yautomax unicode RightSide
+@c  LocalWords:  scaleT unicode RightSide
 @c  LocalWords:  arrowbar LeftSide EndBar BeginArrow lly featpost feynman isi
 @c  LocalWords:  EndArrow BeginArcArrow EndArcArrow ArcArrow ArcArrows NoFill
 @c  LocalWords:  filldraw fillpen drawpen errorformat bigsquare bezier darkblue

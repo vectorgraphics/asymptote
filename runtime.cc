@@ -1619,19 +1619,26 @@ void frameMin(stack *s)
 
 void fill(stack *s)
 {
-  double rb = pop<double>(s);
-  pair b = pop<pair>(s);
-  pen *penb = pop<pen*>(s);
-  double ra = pop<double>(s);
-  pair a = pop<pair>(s);
-  pen *pena = pop<pen*>(s);
-  path p = pop<path>(s);
+  pen *n = pop<pen*>(s);
+  array *p=copyArray(s);
   picture *pic = pop<picture*>(s);
-  drawFill *d = new drawFill(p,*pena,a,ra,*penb,b,rb);
-  pic->append(d);
+  checkArray(p);
+  pic->append(new drawFill(p,*n));
 }
  
-void fillArray(stack *s)
+void axialShade(stack *s)
+{
+  pair b = pop<pair>(s);
+  pen *penb = pop<pen*>(s);
+  pair a = pop<pair>(s);
+  pen *pena = pop<pen*>(s);
+  array *p=copyArray(s);
+  picture *pic = pop<picture*>(s);
+  checkArray(p);
+  pic->append(new drawAxialShade(p,*pena,a,*penb,b));
+}
+ 
+void radialShade(stack *s)
 {
   double rb = pop<double>(s);
   pair b = pop<pair>(s);
@@ -1642,11 +1649,12 @@ void fillArray(stack *s)
   array *p=copyArray(s);
   picture *pic = pop<picture*>(s);
   checkArray(p);
-  drawFill *d = new drawFill(p,*pena,a,ra,*penb,b,rb);
-  pic->append(d);
+  pic->append(new drawRadialShade(p,*pena,a,ra,*penb,b,rb));
 }
  
-void clipArray(stack *s)
+// Clip a picture to a superpath using the given fill rule.
+// Subsequent additions to the picture will not be affected by the path.
+void clip(stack *s)
 {
   pen *n = pop<pen*>(s);
   array *p=copyArray(s);
@@ -1655,7 +1663,7 @@ void clipArray(stack *s)
   pic->append(new drawClipEnd());
 }
   
-void beginClipArray(stack *s)
+void beginClip(stack *s)
 {
   pen *n = pop<pen*>(s);
   array *p=copyArray(s);

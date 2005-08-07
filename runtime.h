@@ -234,9 +234,11 @@ void newFrame(vm::stack *s);
 void boolNullFrame(vm::stack *s);
 void frameMax(vm::stack *s);
 void frameMin(vm::stack *s);
-void fillArray(vm::stack *s);
-void clipArray(vm::stack *s);
-void beginClipArray(vm::stack *s);
+void fill(vm::stack *s);
+void axialShade(vm::stack *s);
+void radialShade(vm::stack *s);
+void clip(vm::stack *s);
+void beginClip(vm::stack *s);
 
 void postscript(vm::stack *s);
 void tex(vm::stack *s);

@@ -157,9 +157,7 @@ public:
 // Base class for drawElements that involve paths and pens.
 class drawPathPenBase : public drawPathBase {
 protected:
-  vm::array *P;
   pen pentype;
-  size_t size;
 
   // The pen's transform;
   const transform *t()
@@ -171,49 +169,27 @@ protected:
     return camp::transformed(new transform(shiftless(t)),pentype);
   }
 
-  vm::array *transPath(const transform& t) const {
-    size_t size=(size_t) P->size();
-    vm::array *Pt=new vm::array(size);
-    for(size_t i=0; i < size; i++)
-      (*Pt)[i]=vm::read<path>(P,i).transformed(t);
-    return Pt;
-  }
-  
 public:
   drawPathPenBase(path p, pen pentype) : 
-    drawPathBase(p), P(NULL), pentype(pentype) {}
+    drawPathBase(p), pentype(pentype) {}
   
-  drawPathPenBase(vm::array *P, pen pentype) :
-    drawPathBase(), P(P), pentype(pentype), size(P->size()) {}
-
-  bool empty() {
-    if(P) {
-      for(size_t i=0; i < size; i++) 
-	if(vm::read<path>(P,i).size() != 0) return false;
-      return true;
-    } else return p.empty();
+  drawPathPenBase(pen pentype) :
+    pentype(pentype) {}
+  
+  virtual bool empty() {
+    return p.empty();
   }
   
-  bool cyclic() {
-    if(P) {
-      for(size_t i=0; i < size; i++) 
-	if(!vm::read<path>(P,i).cyclic()) return false;
-      return true;
-    } else return p.cyclic();
+  virtual bool cyclic() {
+    return p.cyclic();
   }
   
-  void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&) {
-    if(P) {
-      for(size_t i=0; i < size; i++)
-	b += vm::read<path>(P,i).bounds();
-    } else b += p.bounds();
+  virtual void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&) {
+    b += p.bounds();
   }
   
-  void writepath(psfile *out) {
-    if(P) {
-      for(size_t i=0; i < size; i++) 
-	out->write(vm::read<path>(P,i),i == 0);
-    } else out->write(p);
+  virtual void writepath(psfile *out) {
+    out->write(p);
   }
   
   virtual void penStart(psfile *out)
@@ -241,6 +217,46 @@ public:
   }
 };
   
+// Base class for drawElements that involve superpaths and pens.
+class drawSuperPathPenBase : public drawPathPenBase {
+protected:
+  vm::array *P;
+  size_t size;
+
+  vm::array *transpath(const transform& t) const {
+    vm::array *Pt=new vm::array(size);
+    for(size_t i=0; i < size; i++)
+      (*Pt)[i]=vm::read<path>(P,i).transformed(t);
+    return Pt;
+  }
+  
+public:
+  drawSuperPathPenBase(vm::array *P, pen pentype) :
+    drawPathPenBase(pentype), P(P), size(P->size()) {}
+
+  bool empty() {
+    for(size_t i=0; i < size; i++) 
+      if(vm::read<path>(P,i).size() != 0) return false;
+    return true;
+  }
+  
+  bool cyclic() {
+    for(size_t i=0; i < size; i++) 
+      if(!vm::read<path>(P,i).cyclic()) return false;
+    return true;
+  }
+  
+  void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&) {
+    for(size_t i=0; i < size; i++)
+      b += vm::read<path>(P,i).bounds();
+  }
+  
+  void writepath(psfile *out) {
+    for(size_t i=0; i < size; i++) 
+      out->write(vm::read<path>(P,i),i == 0);
+  }
+};
+ 
 }
 
 #endif

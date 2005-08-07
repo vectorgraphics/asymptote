@@ -14,20 +14,15 @@
 
 namespace camp {
 
-class drawClipBegin : public drawPathPenBase {
+class drawClipBegin : public drawSuperPathPenBase {
 bool gsave;
 public:
   void noncyclic() {
       reportError("cannot clip to non-cyclic path");
   }
   
-  drawClipBegin(path src, const pen& pentype, bool gsave=true)
-    : drawPathPenBase(src,pentype), gsave(gsave) {
-    if(!cyclic()) noncyclic();
-  }
-
   drawClipBegin(vm::array *src, const pen& pentype, bool gsave=true)
-    : drawPathPenBase(src,pentype), gsave(gsave) {
+    : drawSuperPathPenBase(src,pentype), gsave(gsave) {
     for(size_t i=0; i < size; i++)
       if(!cyclic()) noncyclic();
   }
@@ -38,7 +33,7 @@ public:
 	      bboxlist& bboxstack) {
     bboxstack.push_back(b);
     bbox bpath;
-    drawPathPenBase::bounds(bpath,iopipe,vbox,bboxstack);
+    drawSuperPathPenBase::bounds(bpath,iopipe,vbox,bboxstack);
     bboxstack.push_back(bpath);
   }
 
@@ -55,10 +50,7 @@ public:
 
   drawElement *transformed(const transform& t)
   {
-    if(P)
-      return new drawClipBegin(transPath(t),transpen(t));
-    else
-      return new drawClipBegin(transpath(t),transpen(t));
+    return new drawClipBegin(transpath(t),transpen(t));
   }
 
 };

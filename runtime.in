@@ -2,7 +2,7 @@
  * runtime.in
  * Tom Prince 2005/4/15
  *
- * Generated runtime functions.
+ * Generate runtime functions.
  *
  *****/
 
@@ -60,8 +60,7 @@ using namespace types;
 
 void _label (picture *pic, string *t, double r, pair z, pair a, pen *p)
 {
-  drawLabel *d = new drawLabel(*t,r,z,a,p);
-  pic->append(d);
+  pic->append(new drawLabel(*t,r,z,a,p));
 }
 
 pen *basealign(int n)
@@ -73,29 +72,7 @@ pen *basealign(int n)
 
 void draw(picture *pic, path p, pen *n)
 {
-  drawPath *d = new drawPath(p,*n);
-  pic->append(d);
-}
-
-void fill(picture *pic, path p,
-          pen *pena, pair a, double ra,
-          pen *penb, pair b, double rb)
-{
-  drawFill *d = new drawFill(p,*pena,a,ra,*penb,b,rb);
-  pic->append(d);
-}
-
-// Clip a picture to a path using the given fill rule.
-// Subsequent additions to the picture will not be affected by the path.
-void clip(picture *pic, path p, pen *n)
-{
-  pic->prepend(new drawClipBegin(p,*n));
-  pic->append(new drawClipEnd());
-}
-
-void beginclip(picture *pic, path p, pen *n)
-{
-  pic->append(new drawClipBegin(p,*n,false));
+  pic->append(new drawPath(p,*n));
 }
 
 void endclip(picture *pic)
@@ -103,12 +80,12 @@ void endclip(picture *pic)
   pic->append(new drawClipEnd(false));
 }
 
-void gsave (picture *pic)
+void gsave(picture *pic)
 {
   pic->append(new drawGsave());
 }
 
-void grestore (picture *pic)
+void grestore(picture *pic)
 {
   pic->append(new drawGrestore());
 }

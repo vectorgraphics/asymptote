@@ -560,8 +560,22 @@ path operator cast(guide3 g) {
   return project(g,currentprojection);
 }
 
+path[] operator cast(guide3 g) {
+  return new path[] {(path) g};
+}
+
 path[] operator cast(guide3[] g) {
   return project(g,currentprojection);
+}
+
+void draw(frame f, guide3[] g, pen p=currentpen)
+{
+  draw(f,(path[]) g,p);
+}
+
+void draw(picture pic=currentpicture, guide3[] g, pen p=currentpen)
+{
+  draw(pic,(path[]) g,p);
 }
 
 guide3[] operator ^^ (guide3 p, guide3 q) 
