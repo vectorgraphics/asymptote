@@ -11,8 +11,6 @@ namespace camp {
 
 void drawAxialShade::palette(psfile *out)
 {
-  colorspace=DEFCOLOR;
-  
   colorspace=(ColorSpace) max(pentype.colorspace(),penb.colorspace());
     
   switch(colorspace) {
@@ -45,20 +43,6 @@ void drawAxialShade::palette(psfile *out)
   out->gsave();
 }  
   
-void drawAxialShade::fill(psfile *out)
-{
-    out->clip(pentype.Fillrule());
-    out->shade(true,ColorDeviceSuffix[colorspace],pentype,a,0,penb,b,0);
-    out->grestore();
-}
-
-void drawRadialShade::fill(psfile *out)
-{
-    out->clip(pentype.Fillrule());
-    out->shade(false,ColorDeviceSuffix[colorspace],pentype,a,ra,penb,b,rb);
-    out->grestore();
-}
-
 bool drawFill::draw(psfile *out)
 {
   if(pentype.invisible() || empty()) return true;
@@ -77,7 +61,7 @@ drawElement *drawFill::transformed(const transform& t)
 drawElement *drawAxialShade::transformed(const transform& t)
 {
   pair A=t*a, B=t*b;
-  return new drawAxialShade(transpath(t),transpen(t),A,penb,B);
+  return new drawAxialShade(transpath(t),pentype,A,penb,B);
 }
   
 drawElement *drawRadialShade::transformed(const transform& t)
@@ -85,7 +69,17 @@ drawElement *drawRadialShade::transformed(const transform& t)
   pair A=t*a, B=t*b;
   double RA=length(t*(a+ra)-A);
   double RB=length(t*(b+rb)-B);
-  return new drawRadialShade(transpath(t),transpen(t),A,RA,penb,B,RB);
+  return new drawRadialShade(transpath(t),pentype,A,RA,penb,B,RB);
+}
+
+drawElement *drawGouraudShade::transformed(const transform& t)
+{
+  size_t size=vertices->size();
+  vm::array *Vertices=new vm::array(size);
+  for(size_t i=0; i < size; i++)
+    (*Vertices)[i]=t*vm::read<pair>(vertices,i);
+
+  return new drawGouraudShade(transpath(t),pentype,pens,Vertices,edges);
 }
 
 } // namespace camp

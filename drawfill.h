@@ -21,7 +21,8 @@ public:
       reportError("non-cyclic path cannot be filled");
   }
   
-  drawFill(vm::array *src, pen pentype) : drawSuperPathPenBase(src,pentype) {
+  drawFill(vm::array *src, pen pentype)
+    : drawSuperPathPenBase(src,pentype) {
     if(!cyclic()) noncyclic();
   }
 
@@ -41,18 +42,33 @@ public:
   drawElement *transformed(const transform& t);
 };
   
-class drawAxialShade : public drawFill {
+class drawShade : public drawFill {
+public:  
+  drawShade(vm::array *src, pen pentype)
+    : drawFill(src,pentype) {}
+
+  virtual void shade(psfile *out)=0;
+  void fill(psfile *out) {
+    out->clip(pentype.Fillrule());
+    shade(out);
+    out->grestore();
+  }
+};
+  
+class drawAxialShade : public drawShade {
 protected:
   pair a;
   pen penb;
   pair b;
   ColorSpace colorspace;
 public:  
-  drawAxialShade(vm::array *src, pen pentype, pair a, pen penb, pair b)
-    : drawFill(src,pentype), a(a), penb(penb), b(b) {}
+  drawAxialShade(vm::array *src, pen pentype, pair a, pen penb, pair b) 
+    : drawShade(src,pentype), a(a), penb(penb), b(b) {}
   
   void palette(psfile *out);
-  void fill(psfile *out);
+  void shade(psfile *out) {
+    out->shade(true,ColorDeviceSuffix[colorspace],pentype,a,0,penb,b,0);
+  }
   
   drawElement *transformed(const transform& t);
 };
@@ -66,7 +82,28 @@ public:
 	   pen pentype, pair a, double ra, pen penb, pair b, double rb)
     : drawAxialShade(src,pentype,a,penb,b), ra(ra), rb(rb) {}
   
-  void fill(psfile *out);
+  void shade(psfile *out) {
+    out->shade(false,ColorDeviceSuffix[colorspace],pentype,a,ra,penb,b,rb);
+  }
+  
+  drawElement *transformed(const transform& t);
+};
+  
+class drawGouraudShade : public drawShade {
+protected:
+  vm::array *pens,*vertices,*edges;
+public:  
+  drawGouraudShade(vm::array *src, pen pentype, vm::array *pens,
+		   vm::array *vertices, vm::array *edges)
+    : drawShade(src,pentype), pens(pens), vertices(vertices), edges(edges) {}
+  
+  void palette(psfile *out) {
+    out->gsave();
+  }
+  
+  void shade(psfile *out) {
+    out->shade(pens,vertices,edges);
+  }
   
   drawElement *transformed(const transform& t);
 };

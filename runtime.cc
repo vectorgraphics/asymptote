@@ -1734,8 +1734,22 @@ void radialShade(stack *s)
   pic->append(new drawRadialShade(p,*pena,a,ra,*penb,b,rb));
 }
  
+void gouraudShade(stack *s)
+{
+  array *edges=copyArray(s);
+  array *vertices=copyArray(s);
+  array *pens=copyArray(s);
+  pen *n = pop<pen*>(s);
+  array *p=copyArray(s);
+  picture *pic = pop<picture*>(s);
+  checkArray(p);
+  checkArrays(pens,vertices);
+  checkArrays(vertices,edges);
+  pic->append(new drawGouraudShade(p,*n,pens,vertices,edges));
+}
+ 
 // Clip a picture to a superpath using the given fill rule.
-// Subsequent additions to the picture will not be affected by the path.
+// Subsequent additions to the picture will not be affected by the clipping.
 void clip(stack *s)
 {
   pen *n = pop<pen*>(s);
@@ -1791,8 +1805,8 @@ void image(stack *s)
   array *a=copyArray2(s);
   picture *pic = pop<picture*>(s);
   pair size=final-initial;
-  drawImage *d = new drawImage(*a,*p,transform(initial.getx(),initial.gety(),
-					       size.getx(),0,0,size.gety()));
+  drawImage *d = new drawImage(a,p,transform(initial.getx(),initial.gety(),
+					     size.getx(),0,0,size.gety()));
   pic->append(d);
 }
   

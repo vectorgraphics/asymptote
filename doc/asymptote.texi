@@ -4112,32 +4112,6 @@ void fill(picture pic=currentpicture, path g, pen p=currentpen);
 Fill the interior region bounded by the cyclic path @code{g} on the picture
 @code{pic}, using the pen @code{p}. 
 
-@cindex shading
-@anchor{gradient shading}
-@cindex gradient shading
-@cindex axial shading
-Axial gradient shading varying smoothly from @code{pena} to @code{penb} in the
-direction of the line segment @code{a--b} can be achieved with
-@verbatim
-void fill(picture pic=currentpicture, path g,
-          pen pena, pair a,
-          pen penb, pair b);
-@end verbatim
-
-@cindex radial shading
-Radial gradient shading varying smoothly from smoothly from
-@code{pena} on the circle with center @code{a} and radius @code{ra} to
-@code{penb} on the circle with center @code{b} and radius @code{rb} 
-can be achieved with
-@verbatim
-void fill(picture pic=currentpicture, path g,
-          pen pena, pair a, real ra,
-          pen penb, pair b, real rb);
-@end verbatim
-@noindent
-An illustration of radial shading is provided in the example file
-@code{shade.asy}.
-
 @cindex @code{filldraw}
 There is also a convenient @code{filldraw} command, which fills the path
 and then draws in the boundary. One can specify separate pens for each
@@ -4162,6 +4136,44 @@ picture opic;
 fill(opic,g,p);
 add(origin,pic,opic);
 @end verbatim
+
+@cindex shading
+@anchor{gradient shading}
+@cindex gradient shading
+@cindex axial shading
+Axial gradient shading varying smoothly from @code{pena} to @code{penb} in the
+direction of the line segment @code{a--b} can be achieved with
+@verbatim
+void fill(picture pic=currentpicture, path g,
+          pen pena, pair a,
+          pen penb, pair b);
+@end verbatim
+
+@cindex radial shading
+Radial gradient shading varying smoothly from
+@code{pena} on the circle with center @code{a} and radius @code{ra} to
+@code{penb} on the circle with center @code{b} and radius @code{rb} 
+is similar:
+@verbatim
+void fill(picture pic=currentpicture, path g,
+          pen pena, pair a, real ra,
+          pen penb, pair b, real rb);
+@end verbatim
+@noindent
+Illustrations of radial shading are provided in the example files
+@code{shade.asy} and @code{ring.asy}.
+
+@cindex Gouraud shading
+Gouraud shading using fillrule @code{fillrule} and the vertex colors in the
+pen array @code{p} on a triangular lattice defined by the vertices
+@code{z} and edge flags @code{edges} is implemented with
+@verbatim
+void fill(picture pic=currentpicture, path g, pen fillrule=currentpen,
+	  pen[] p, pair[] z, int[] edges);
+@end verbatim
+@noindent
+An illustration of Gouraud shading is provided in the example file
+@code{Gouraud.asy}.
 
 @cindex unfill
 The following routine uses @code{evenodd} clipping together with the

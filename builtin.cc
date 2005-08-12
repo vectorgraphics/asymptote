@@ -462,6 +462,8 @@ void base_venv(venv &ve)
 	  primPen(),primPair(),primPen(),primPair());
   addFunc(ve,run::radialShade,primVoid(),"fill",primPicture(),pathArray(),
 	  primPen(),primPair(),primReal(),primPen(),primPair(),primReal());
+  addFunc(ve,run::gouraudShade,primVoid(),"fill",primPicture(),pathArray(),
+	  primPen(), penArray(),pairArray(),intArray());
   addFunc(ve,run::clip,primVoid(),"clip",primPicture(),pathArray(),
 	  primPen());
   addFunc(ve,run::beginClip,primVoid(),"beginclip",primPicture(),

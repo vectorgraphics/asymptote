@@ -15,10 +15,10 @@
 namespace camp {
 
 class drawImage : public drawElement {
-  vm::array image,palette;
+  vm::array *image,*palette;
   transform t;
 public:
-  drawImage(vm::array image, vm::array palette, const transform& t)
+  drawImage(vm::array *image, vm::array *palette, const transform& t)
     : image(image), palette(palette), t(t) {}
   
   virtual ~drawImage() {}
@@ -31,7 +31,7 @@ public:
   bool draw(psfile *out) {
     out->gsave();
     out->concat(t);
-    out->image(&image,&palette);
+    out->image(image,palette);
     out->grestore();
     
     return true;

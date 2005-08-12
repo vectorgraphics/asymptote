@@ -308,8 +308,6 @@ null               {
   adjust(); yylval.e= new nullExp(here()); return LIT; }
 newframe        {
   adjust(); yylval.e= new newPictureExp(here()); return LIT; }
-nullpath        {
-  adjust(); yylval.e= new nullPathExp(here()); return LIT; }
 
 operator           {adjust(); BEGIN opname; }
 <opname>{

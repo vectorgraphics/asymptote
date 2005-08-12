@@ -177,6 +177,29 @@ void psfile::shade(bool axial, const string& colorspace,
        << "shfill" << newl;
 }
   
+void psfile::shade(array *pens, array *vertices, array *edges)
+{
+  pen *p=read<pen *>(pens,0);
+  ColorSpace colorspace=p->colorspace();
+  size_t size=pens->size();
+  *out << "<< /ShadingType 4" << newl
+       << "/ColorSpace /Device" << ColorDeviceSuffix[colorspace] << newl
+       << "/DataSource [";
+  for(size_t i=0; i < size; i++) {
+    write(read<int>(edges,i));
+    write(read<pair>(vertices,i));
+    pen *p=read<pen *>(pens,i);
+    if(p->colorspace() != colorspace)
+      reportError("inconsistent shading colorspaces");
+    *out << " ";
+    write(*p);
+    *out << newl;
+  }
+  *out << "]" << newl
+       << ">>" << newl
+       << "shfill" << newl;
+}
+
 inline unsigned int byte(double r) // Map [0,1] to [0,255]
 {
   if(r < 0.0) r=0.0;

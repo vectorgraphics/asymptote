@@ -249,6 +249,7 @@ void frameMin(vm::stack *s);
 void fill(vm::stack *s);
 void axialShade(vm::stack *s);
 void radialShade(vm::stack *s);
+void gouraudShade(vm::stack *s);
 void clip(vm::stack *s);
 void beginClip(vm::stack *s);
 

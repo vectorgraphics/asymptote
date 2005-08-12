@@ -10,6 +10,7 @@ public bool shipped=false;
 public bool uptodate=true;
 static public pen currentpen;
 static pen nullpen=linewidth(0);
+static path nullpath;
 
 static real inches=72;
 static real inch=inches;
@@ -1096,6 +1097,13 @@ path[] operator * (transform t, explicit path[] p)
   return P;
 }
 
+pair[] operator * (transform t, pair[] z) 
+{
+  pair[] Z;
+  for(int i=0; i < z.length; ++i) Z[i]=t*z[i];
+  return Z;
+}
+
 pair min(explicit path[] g)
 {
   pair ming=(infinity,infinity);
@@ -1409,6 +1417,21 @@ void fill(picture pic=currentpicture, path[] g, pen pena, pair a, real ra,
     real RA=abs(t*(a+ra)-A);
     real RB=abs(t*(b+rb)-B);
     fill(f,t*g,pena,A,RA,penb,B,RB);
+  });
+  for(int i=0; i < g.length; ++i) 
+    pic.addPath(g[i]);
+}
+
+// Gouraud shading
+void fill(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
+	  pen[] p, pair[] z, int[] edges)
+{
+  g=copy(g);
+  p=copy(p);
+  z=copy(z);
+  edges=copy(edges);
+  pic.add(new void (frame f, transform t) {
+	    fill(f,t*g,fillrule,p,t*z,edges);
   });
   for(int i=0; i < g.length; ++i) 
     pic.addPath(g[i]);

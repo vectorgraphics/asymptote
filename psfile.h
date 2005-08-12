@@ -123,6 +123,8 @@ public:
 	     const pen& pena, const pair& a, double ra,
 	     const pen& penb, const pair& b, double rb);
   
+  void shade(vm::array *pens, vm::array *vertices, vm::array *edges);
+  
   void image(vm::array *a, vm::array *p);
 
   void gsave() {
