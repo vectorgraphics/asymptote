@@ -179,7 +179,6 @@ ticklabel ticklabel(string s) {
   return new string(real x) {return format(s,x);};
 }
 
-string defaultformat="$%.4g$";
 ticklabel LogFormat=new string(real x) {
   return format("$10^{%d}$",round(x));
 };

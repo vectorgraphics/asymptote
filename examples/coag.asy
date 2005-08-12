@@ -12,5 +12,5 @@ xtick("$T_g$",tg,N);
 label("$M(t)$",mt,2NE);
 labely("$M_0$",m0);
 
-xaxis("$t$",2S,Arrow);
+xaxis(Label("$t$",align=2S),Arrow);
 yaxis(Arrow);
