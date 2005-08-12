@@ -22,9 +22,9 @@ yaxis(Left,RightTicks);
 picture secondary=secondaryY(new void(picture pic) {
   scale(pic,Linear,Log);
   draw(pic,graph(pic,t,infectious,t >= 10 && t <= 15),red);
-  yaxis(pic,black,red,Right,LeftTicks);
+  yaxis(pic,red,Right,LeftTicks(black));
 });
 			     
 add(secondary);
 
-label("Proportion of crows",point(NW),E,5mm*N);
+label(shift(5mm*N)*"Proportion of crows",point(NW),E);

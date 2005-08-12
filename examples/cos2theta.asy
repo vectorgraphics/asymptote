@@ -9,7 +9,7 @@ xaxis("$x$");
 yaxis("$y$");
 draw(g);
 
-labeldot((1,0),NE);
-labeldot((0,1),NE);
+dot(Label,(1,0),NE);
+dot(Label,(0,1),NE);
 
 

@@ -21,7 +21,7 @@ fill(shift(c)*T*circle(0,-f(x)),red+white);
 draw(F(x)--c+(0,f(x)),dashed+red);
 draw(G(x)--c+(0,g(x)),dashed+red);
 
-labeldot((1,1));
+dot(Label,(1,1));
 arrow("$y=\sqrt{x}$",F(0.7),N);
 
 arrow((3,0.5*f(x)),W,1cm,red);

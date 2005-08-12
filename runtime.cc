@@ -462,6 +462,26 @@ void arrayPushHelper(stack *s)
   a->push(i);
 }
 
+// Returns the append method for an array.
+void arrayAppend(stack *s)
+{
+  array *a = pop<array*>(s);
+  checkArray(a);
+  s->push((callable*) new thunk(new bfunc(arrayAppendHelper),a));
+}
+
+// The helper function for the append method that appends b to a.
+void arrayAppendHelper(stack *s)
+{
+  array *a = pop<array*>(s);
+  array *b = pop<array*>(s);
+  checkArray(a);
+  checkArray(b);
+  size_t size=(size_t) b->size();
+  for(size_t i=0; i < size; i++)
+    a->push((*b)[i]);
+}
+
 // Returns the pop method for an array.
 void arrayPop(stack *s)
 {
@@ -470,7 +490,7 @@ void arrayPop(stack *s)
   s->push((callable*) new thunk(new bfunc(arrayPopHelper),a));
 }
 
-// The helper function for the pop method that does the actual operation.
+// The helper function for the pop method.
 void arrayPopHelper(stack *s)
 {
   array *a = pop<array*>(s);
@@ -1061,6 +1081,61 @@ void transformPow(stack *s)
   if(alloc) delete t;
 }
 
+void transformXPart(stack *s)
+{
+  s->push(pop<transform>(s).getx());
+}
+
+void transformYPart(stack *s)
+{
+  s->push(pop<transform>(s).gety());
+}
+
+void transformXXPart(stack *s)
+{
+  s->push(pop<transform>(s).getxx());
+}
+
+void transformXYPart(stack *s)
+{
+  s->push(pop<transform>(s).getxy());
+}
+  
+void transformYXPart(stack *s)
+{
+  s->push(pop<transform>(s).getyx());
+}
+  
+void transformYYPart(stack *s)
+{
+  s->push(pop<transform>(s).getyy());
+}
+  
+void real6ToTransform(stack *s)
+{
+  double yy = pop<double>(s);
+  double yx = pop<double>(s);
+  double xy = pop<double>(s);
+  double xx = pop<double>(s);
+  double y = pop<double>(s);
+  double x = pop<double>(s);
+  s->push(new transform(x,y,xx,xy,yx,yy));
+}
+
+void boolTransformEq(stack *s)
+{
+  transform *b = pop<transform*>(s);
+  transform *a = pop<transform*>(s);
+  s->push((*a) == (*b));
+}
+
+void boolTransformNeq(stack *s)
+{
+  transform *b = pop<transform*>(s);
+  transform *a = pop<transform*>(s);
+  s->push((*a) != (*b));
+}
+
 static string emptystring;
 void emptyString(stack *s)
 {
@@ -1559,6 +1634,13 @@ void boolPenEq(stack *s)
   s->push((*a) == (*b));
 }
 
+void boolPenNeq(stack *s)
+{
+  pen *b = pop<pen*>(s);
+  pen *a = pop<pen*>(s);
+  s->push((*a) != (*b));
+}
+
 void penPenPlus(stack *s)
 {
   pen *b = pop<pen*>(s);
@@ -1742,19 +1824,26 @@ void shipout(stack *s)
 	t=identity();
 	Delete=false;
       }
-      assert(*p);
       picture *group=new picture;
+// Ignore unclosed begingroups but not spurious endgroups.
+      const char *nobegin="endgroup without matching begingroup";
+      assert(*p);
+      if((*p)->endgroup()) error(nobegin);
       if((*p)->begingroup()) {
 	++level;
 	while(p != pic->nodes.end() && level) {
 	  drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
 	  group->append(e);
 	  ++p;
+	  if(p == pic->nodes.end()) break;
 	  assert(*p);
 	  if((*p)->begingroup()) ++level;
 	  if((*p)->endgroup()) if(level) --level;
+	  else error(nobegin);
 	}
       }
+      if(p == pic->nodes.end()) break;
+      assert(*p);
       drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
       group->append(e);
       if(!group->empty()) {

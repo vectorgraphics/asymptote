@@ -197,23 +197,10 @@ public:
     te.enter(name, desc);
   }
   
-//  void addVar(position pos, symbol *name, varEntry *desc, bool ignore=false)
-  void addVar(position, symbol *name, varEntry *desc, bool=false)
+  void addVar(position, symbol *name, varEntry *desc)
   {
-    // For now don't check for multiple variables, as this makes adding casts
-    // and initializers harder.  Figure out what to do about this.
-#if 0
-    signature *sig = desc->getSignature();
-    if (ve.lookInTopScope(name, sig)) {
-      if(ignore) return;
-      em->error(pos);
-      if (sig)
-        *em << "function variable \'" << *name << *sig
-            << "\' previously declared";
-      else
-        *em << "variable '" << *name <<  "' previously declared";
-    }
-#endif
+    // Don't check for multiple variables, as this makes adding casts
+    // and initializers harder.
     ve.enter(name, desc);
   }
 

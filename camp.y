@@ -461,6 +461,8 @@ exp:
                    { $$ = new pairExp($1, $2, $4); }
 | '(' exp ',' exp ',' exp ')'
                    { $$ = new tripleExp($1, $2, $4, $6); }
+| '(' exp ',' exp ',' exp ',' exp ',' exp ',' exp ')'
+                   { $$ = new transformExp($1, $2, $4, $6, $8, $10, $12); }
 | exp join exp %prec JOIN_PREC 
                    { $2->pushFront($1); $2->pushBack($3); $$ = $2; }
 | exp join CYCLE %prec JOIN_PREC

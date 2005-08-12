@@ -88,7 +88,7 @@ angline((0,0,pB.z), pB, (0,0,0), 0.15, "$\lambda$", N
 triple m = pB-(0.26,-0.4,0.28);
 
 real width=5;
-labeldot("$m$",rp(m),SE,linewidth(width));
+dot("$m$",rp(m),SE,linewidth(width));
 draw("$\vec{\rho}$",rp((0,0,0))--rp(m),Arrow,PenMargin(0,width));
 draw("$\vec{r}$",rp(pB)--rp(m),Arrow,PenMargin(0,width));
 
@@ -109,9 +109,9 @@ draw("$\vec{r}$",rp(pB)--rp(m),Arrow,PenMargin(0,width));
   i = unit(point_on_sphere((0,0,0),1,90+lambda,aux));
   k = unit(pB);
   j = ncrossprod(k,i);
-  draw("$x$",rp(pB)--rp(pB+0.2*i),1.0,2W,red,Arrow);
-  draw("$y$",rp(pB)--rp(pB+0.32*j),1.0,red,Arrow);
-  draw("$z$",rp(pB)--rp(pB+0.26*k),1.0,red,Arrow);
+  draw(Label("$x$",1),rp(pB)--rp(pB+0.2*i),2W,red,Arrow);
+  draw(Label("$y$",1),rp(pB)--rp(pB+0.32*j),red,Arrow);
+  draw(Label("$z$",1),rp(pB)--rp(pB+0.26*k),red,Arrow);
 }
 
 draw("$\omega\vec{K}$",circseg((0,0,0.9),0.2,(90,90),(-120,160)),N,Arrow);

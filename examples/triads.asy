@@ -22,9 +22,9 @@ void spectrum(pair l,pair m, pair s) {
   draw(p,c);
  
   d += 4.0;
-  labeldot("$p$",l,SW,d); 
-  labeldot("$q$",m,SW,d);
-  labeldot("$k$",s,SW,d);
+  dot("$p$",l,SW,d); 
+  dot("$q$",m,SW,d);
+  dot("$k$",s,SW,d);
 
   xaxis(0,"$k$");
   yaxis(0,"$E(k)$");

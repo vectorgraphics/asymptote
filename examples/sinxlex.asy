@@ -16,10 +16,10 @@ draw(B--E);
 
 draw("$x$",arc(C,A,B,0.7),RightSide,Arrow,PenMargin);
 
-labeldot("$A$",A,W);
-labeldot("$B$",B,NW);
-labeldot("$C$",C);
-labeldot("$D$",D);
-labeldot(("$E$"),E,S);
+dot("$A$",A,W);
+dot("$B$",B,NW);
+dot("$C$",C);
+dot("$D$",D);
+dot(("$E$"),E,S);
 label("$1$",A--B,LeftSide);
       

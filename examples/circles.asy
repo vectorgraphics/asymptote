@@ -26,9 +26,8 @@ pair D=intersectionpoint(c1,A--d);
 draw(A--B--C--cycle);
 draw(interp(A,D,-0.5)--interp(A,D,1.5),blue);
 
-labeldot("$O$",O,S,red);
-labeldot("$A$",A,dir(C--A,B--A),red);
-labeldot("$B$",B,dir(C--B,A--B),red);
-labeldot("$C$",C,dir(A--C,B--C),red);
-labeldot("$D$",D,red);
-
+dot("$O$",O,S,red);
+dot("$A$",A,dir(C--A,B--A),red);
+dot("$B$",B,dir(C--B,A--B),red);
+dot("$C$",C,dir(A--C,B--C),red);
+dot("$D$",D,red);

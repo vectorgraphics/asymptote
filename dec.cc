@@ -112,25 +112,23 @@ void arrayTy::addOps(coenv &e, types::ty* t, types::ty *ct)
   function *ftmap = mapType(t,ct);
   
   e.e.addVar(getPos(), symbol::trans("alias"),
-      new varEntry(ft,new bltinAccess(run::arrayAlias)),true);
+      new varEntry(ft,new bltinAccess(run::arrayAlias)));
 
   if(dims->size() == 1) {
     e.e.addVar(getPos(), symbol::trans("copy"),
-	       new varEntry(ftarray,new bltinAccess(run::arrayCopy)),true);
+	       new varEntry(ftarray,new bltinAccess(run::arrayCopy)));
     e.e.addVar(getPos(), symbol::trans("concat"),
-	       new varEntry(ftarray2,new bltinAccess(run::arrayConcat)),true);
+	       new varEntry(ftarray2,new bltinAccess(run::arrayConcat)));
     e.e.addVar(getPos(), symbol::trans("sequence"),
-	       new varEntry(ftsequence,new bltinAccess(run::arraySequence)),
-	       true);
+	       new varEntry(ftsequence,new bltinAccess(run::arraySequence)));
     e.e.addVar(getPos(), symbol::trans("map"),
-	       new varEntry(ftmap,new bltinAccess(run::arrayFunction)),true);
+	       new varEntry(ftmap,new bltinAccess(run::arrayFunction)));
   }
   if(dims->size() == 2) {
     e.e.addVar(getPos(), symbol::trans("copy"),
-	       new varEntry(ftarray,new bltinAccess(run::array2Copy)),true);
+	       new varEntry(ftarray,new bltinAccess(run::array2Copy)));
     e.e.addVar(getPos(), symbol::trans("transpose"),
-	       new varEntry(ftarray,new bltinAccess(run::array2Transpose)),
-	       true);
+	       new varEntry(ftarray,new bltinAccess(run::array2Transpose)));
   }
 }
 
@@ -697,9 +695,9 @@ void fundec::addOps(coenv &e, function *f)
 {
   function *ft = opType(f);
   e.e.addVar(getPos(), symbol::trans("=="),
-      new varEntry(ft, new bltinAccess(run::boolFuncEq)),true);
+      new varEntry(ft, new bltinAccess(run::boolFuncEq)));
   e.e.addVar(getPos(), symbol::trans("!="),
-      new varEntry(ft, new bltinAccess(run::boolFuncNeq)),true);
+      new varEntry(ft, new bltinAccess(run::boolFuncNeq)));
 }
 
 void fundec::trans(coenv &e)

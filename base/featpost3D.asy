@@ -387,17 +387,15 @@ public pen background = gray(0.987);
 	   return (path)returnp;
     }
 
-    void drawsegment( picture pic=currentpicture, string s="", real angle=0,
-      triple A, triple B, pair align=0, side side=RightSide, 
-      pen p=currentpen, arrowbar arrow=None, arrowbar bar=None,
-      string legend="") 
+    void drawsegment( picture pic=currentpicture, Label L="",
+		      triple A, triple B, pen p=currentpen, 
+		      arrowbar arrow=None, arrowbar bar=None,
+		      string legend="") 
     {
 	   if (SphericalDistortion) {
-	     draw( pic, s, angle, pathofstraightline( A, B ), align, side, p,
-              arrow, bar, legend);
+	     draw( pic, L, pathofstraightline( A, B ), p, arrow, bar, legend);
 	   } else {
-	     draw( pic, s, angle, rp(A)--rp(B), align, side, p,
-              arrow, bar, legend);
+	     draw( pic, L, rp(A)--rp(B), p, arrow, bar, legend);
       }
     }
 
@@ -1908,14 +1906,13 @@ public pen background = gray(0.987);
 
 // FillDraw a face
 
-    void face_invisible( picture pic=currentpicture, string s="", real angle=0,
-                         int Facen, pair align=0, side side=RightSide,
-                         pen p=currentpen, arrowbar arrow=None,
+    void face_invisible( picture pic=currentpicture, Label L="",
+                         int Facen, pen p=currentpen, arrowbar arrow=None,
 			 arrowbar bar=None, string legend="" ) {
       path ghost;
       ghost = facepath( Facen );
       unfill( ghost );
-      draw(pic,s,angle, ghost, align, side, p, arrow, bar, legend);
+      draw(pic, L, ghost, p, arrow, bar, legend);
     }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -2099,18 +2096,16 @@ public pen background = gray(0.987);
 
 // Don't use SphericalDistortion here.
     // TN
-    void fill_faces( picture pic=currentpicture, string s="", real angle=0,
-        pair align=0, side side=RightSide, 
-        pen p=currentpen, arrowbar arrow=None,
-        arrowbar bar=None, string legend="") 
+    void fill_faces( picture pic=currentpicture, Label L="",
+		     pen p=currentpen, arrowbar arrow=None,
+		     arrowbar bar=None, string legend="") 
     {
 	   if (ShadowOn) {
 	     for (int i=1; i <= NF; i += 1)
           fill(faceshadowpath( i ));
       }
       for (int i=1; i <= NF; i += 1)
-          face_invisible( pic, s, angle, i, align, side, p, arrow,
-                          bar, legend );
+          face_invisible( pic, L, i, p, arrow, bar, legend );
     }
 
   void doitnow() {

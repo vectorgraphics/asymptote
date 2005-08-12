@@ -26,5 +26,5 @@ draw(z1--z1+v1,Arrow);
 draw(z2--z2+v2,Arrow);
 draw(z3--z3+v1-v2,green,Arrow);
 
-labeldot("1",z1,S,blue);
-labeldot("2",z2,NW,blue);
+dot("1",z1,S,blue);
+dot("2",z2,NW,blue);

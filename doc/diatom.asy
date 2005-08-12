@@ -50,8 +50,8 @@ for(int taxon=0; taxon < n; ++taxon) {
   scale(pic,Linear(x),Linear(false,-1));
   filldraw(pic,(0,depthmin)--graph(pic,P,depth)--(0,depthmax)--cycle,
 	   gray(0.9));
-  xaxis(pic,Bottom,LeftTicks(false,0,2,"$%.2g$"),Above);
-  xaxis(pic,TeXify(taxa[taxon]),0.5,45,Top,NoTicks,Above);
+  xaxis(pic,Bottom,LeftTicks(beginlabel=false,0,2,"$%.2g$"),Above);
+  xaxis(pic,rotate(45)*Label(TeXify(taxa[taxon]),0.5),Top,Above);
   if(taxon == 0) yaxis(pic,depthlabel,Left,RightTicks(0,10),Above);
   if(taxon == final) yaxis(pic,Right,LeftTicks(0,10,""),Above);
   
@@ -63,5 +63,3 @@ for(int i=0; i < year.length; ++i)
   if(year[i] != 0) label((string) year[i],(location,-depth[i]),E);
 
 label("\%",(0.5*location,point(S).y),5*S);
-
-

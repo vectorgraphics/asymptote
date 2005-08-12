@@ -1031,7 +1031,7 @@ is returned).
 @item pair point(path p, real x)
 This returns the coordinates of the point between node @code{floor(x)}
 and @code{floor(x)+1} corresponding to the cubic spline parameter
-t=@code{x-floor(x)} (@pxref{Bezier}). If @code{x} lies outside the range
+@math{t=}@code{x-floor(x)} (@pxref{Bezier}). If @code{x} lies outside the range
 [0,@code{length(p)}], it is first reduced modulo @code{length(p)}
 in the case where @code{p} is cyclic or else converted to the corresponding
 endpoint of @code{p}.
@@ -1044,7 +1044,7 @@ node @code{n}. If the path contains only one point, (0,0) is returned.
 @item pair dir(path, real x)
 This returns the direction of the tangent to the path at the point
 between node @code{floor(x)} and @code{floor(x)+1} corresponding to the
-cubic spline parameter t=@code{x-floor(x)} (@pxref{Bezier}).
+cubic spline parameter @math{t=}@code{x-floor(x)} (@pxref{Bezier}).
 If the path contains only one point, (0,0) is returned.
 
 @cindex @code{precontrol}
@@ -1057,9 +1057,10 @@ This returns the postcontrol point of node @code{n}.
 
 @cindex @code{arclength}
 @item real arclength(path)
-This returns the length of the piecewise linear or cubic curve that the path
-represents.
+This returns the length (in user coordinates) of the piecewise linear
+or cubic curve that the path represents.
 
+@anchor{arctime}
 @cindex @code{arctime}
 @item real arctime(path, real L)
 This returns the path "time", a real number between 0 and the length of
@@ -1478,9 +1479,14 @@ pen default attributes to their initial values.
 @section Transforms
 
 @cindex @code{transform}
-@code{Asymptote} makes extensive use of affine transforms of the form
-@math{a+Mx}, where @math{a} is a pair and @math{M} is a @math{2x2}
-matrix. Transforms can be applied to pairs, guides, paths, pens,
+@code{Asymptote} makes extensive use of affine transforms. A pair
+@code{(x,y)} is transformed by the transform 
+@code{t=(t.x,t.y,t.xx,t.xy,t.yx,t.yy)} to @code{(x',y')}, where
+@verbatim
+x' = t.x + t.xx * x + t.xy * y
+y' = t.y + t.yx * x + t.yy * y
+@end verbatim
+Transforms can be applied to pairs, guides, paths, pens,
 transforms, frames, and pictures by multiplication (via the binary operator
 @code{*}) on the left (@pxref{circle} for an example).
 Transforms can be composed with one another and inverted with the
@@ -1550,7 +1556,7 @@ The @code{size} routine specifies the dimensions of the desired picture:
 @cindex @code{size}
 @verbatim
 void size(picture pic=currentpicture,
-          real xsize, real ysize=0, bool keepAspect=Aspect);
+          real xsize, real ysize, bool keepAspect=Aspect);
 @end verbatim
 
 If @code{xsize} and @code{ysize} are both 0, user coordinates will be
@@ -1569,6 +1575,12 @@ no more than @code{ysize}.
 If @code{keepAspect} is set to @code{IgnoreAspect} or @code{false},
 the picture will be scaled in both directions so that the final width
 is @code{xsize} and the height is @code{ysize}. 
+
+To ensure that each dimension is no more than @code{Size} (preserving
+the aspect ratio), use the routine 
+@verbatim
+void size(picture pic=currentpicture, real Size);
+@end verbatim
 
 A picture can be fit to a frame and converted into a @code{PostScript} image
 by calling the function @code{shipout}:
@@ -1638,18 +1650,12 @@ pen @code{p} with the function @code{bbox(p,Fill)}.
 To draw or fill a box or ellipse around a frame or label, use one of
 the routines (which for convenience also return the boundary as a guide):
 @verbatim
-guide box(frame f, real xmargin=0, real ymargin=infinity,
-          pen pbox=currentpen, filltype filltype=NoFill);
-guide ellipse(frame f, real xmargin=0, real ymargin=infinity,
-              pen pbox=currentpen, filltype filltype=NoFill);
-guide labelbox(frame f, real xmargin=0, real ymargin=infinity,
-               string s, real angle=0, pair position,
-               pair align=0, pen p=currentpen,
-               pen pbox=currentpen, filltype filltype=NoFill);
-guide labelellipse(frame f, real xmargin=0, real ymargin=infinity,
-                   string s, real angle=0, pair position,
-                   pair align=0, pen p=currentpen,
-                   pen pbox=currentpen, filltype filltype=NoFill);
+guide box(frame f, Label L="",
+          real xmargin=0, real ymargin=xmargin,
+          pen p=currentpen, filltype filltype=NoFill);
+guide ellipse(frame f, Label L="",
+              real xmargin=0, real ymargin=xmargin,
+              pen p=currentpen, filltype filltype=NoFill);
 @end verbatim
 
 @anchor{add}
@@ -2418,7 +2424,7 @@ and the integer @code{randMax()}. A Gaussian random number generator
 @section Arrays
 @cindex arrays
 
-Appending @code{[]} to any type (either built-in or user defined)
+Appending @code{[]} to a built-in or user-defined type
 produces an array (technically a vector) indexed by integers in the
 interval [0,@code{length}-1], where @code{length} represents the array length.
 For convenience, integer indices in [-@code{length},-1] are mapped to
@@ -2455,20 +2461,27 @@ Array assignment in @code{Asymptote} does a shallow copy: only
 the pointer is copied (if one copy if modified, the other will be too). 
 The @code{copy} function listed below provides a deep copy of an array.
 
-Every array @code{A} has three virtual members, @code{length},
-@code{push}, and @code{pop}.
-@code{A.length} evaluates to the length of the array @code{A},
-@code{A.push()} is a function that pushes its argument onto the end
-of the array, and @code{A.pop()} is a function that pops and returns the
-last element of the array. Like all functions in @code{Asymptote},
-@code{push} and @code{pop} can be "pulled off" of the array and used
-on their own:
+@cindex @code{length}
+@cindex @code{push}
+@cindex @code{pop}
+@cindex @code{append}
+Every array @code{A} of type @code{T[]} has four virtual members:
+@code{length}, @code{push(T)}, @code{append(T[])}, and @code{pop()}.
+Here @code{A.length} evaluates to the length of the array,
+@code{A.push} and @code{A.append} are functions that append their
+arguments onto the end of the array, and @code{A.pop()} pops and returns
+the last element of the array.
+Like all functions in @code{Asymptote}, 
+@code{push}, @code{pop}, and @code{append} can be "pulled off" of the
+array and used on their own:
 @verbatim
-int[] A={1,2,3};
+int[] A={1};
+A.push(2);         // A now contains {1,2}.
+A.append(A);       // A now contains {1,2,1,2}.
 void f(int)=A.push;
-f(7);              // A now contains {1,2,3,7}.
+f(3);              // A now contains {1,2,1,2,3}.
 int g()=A.pop;
-write(g());        // Outputs 7.
+write(g());        // Outputs 3.
 @end verbatim
 
 The @code{[]} suffix can also appear after the variable name; this
@@ -3003,25 +3016,19 @@ An axis can be drawn on a picture with one of the following commands:
 @item
 @verbatim
 void xaxis(picture pic=currentpicture,
-           real xmin=-infinity, real xmax=infinity, string s="",
-           real position=infinity, real angle=0, pair align=0,
-           pair shift=0, pair side=0,
-           pen plabel=currentpen, pen p=plabel,
-           axis axis=YZero, ticks ticks=NoTicks,
-           arrowbar arrow=None, bool put=Below);
+           real xmin=-infinity, real xmax=infinity,
+           Label L="", pen p=currentpen, axis axis=YZero,
+           ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below);
 @end verbatim
 
 Draw an @math{x} axis on picture @code{pic} from @math{x}=@code{xmin} to
 @math{x}=@code{xmax} using pen @code{p}, optionally labelling it with
-string @code{s} at relative location @code{position} (a real number from
-[0,1]) using angle @code{angle}, alignment @code{align} (user coordinates),
-true shift @code{shift} (postscript coordinates) on side @code{side}
-of the axis, and pen @code{plabel}.
-An infinite value of @code{xmin} or @code{xmax} specifies
-that the corresponding axis limit will be automatically determined from the
-picture limits. The axis placement is determined by one of the
-following @code{axis} types:
-
+Label @code{L}. The relative label location along the axis (a real number from
+[0,1]) defaults to 1 (@pxref{Label}), so that the label is drawn at the
+end of the axis. An infinite value of @code{xmin}
+or @code{xmax} specifies that the corresponding axis limit will be
+automatically determined from the picture limits. The axis placement
+is determined by one of the following @code{axis} types:
 @table @code
 
 @cindex @code{YZero}
@@ -3065,8 +3072,8 @@ ticks LeftTicks(bool begin=true, bool end=true, int N=0, int n=0,
                 real Step=0, real step=0,
                 real Size=Ticksize, real size=ticksize,
                 bool beginlabel=true, bool endlabel=true,
-                string format=defaultformat, pen plabel=nullpen,
-                bool extend=false, pen pTick=nullpen, pen ptick=nullpen);
+                Label format=defaultformat, bool extend=false,
+                pen pTick=nullpen, pen ptick=nullpen);
 @end verbatim
 
 If any of these parameters are omitted, reasonable defaults will
@@ -3096,18 +3103,18 @@ the size of the small ticks (in @code{PostScript} coordinates);
 include the first label;
 @item bool endlabel
 include the last label;
-@item string format
-used for formatting the tick values (@pxref{format}), normally
-beginning and ending with @code{$}) to enable the @code{LaTeX} math mode fonts;
-@item pen plabel
-an optional pen used to draw the tick labels;
+@item Label format
+used for overriding the default format, pen, and side (@code{LeftSide},
+@code{Center}, or @code{RightSide}, relative to the axis) of the tick
+labels (to enable the @code{LaTeX} math mode fonts, the format string
+should begin and end with @code{$} @pxref{format});
 @item bool extend;
 extend the big ticks across the graph (useful for drawing a grid on
-the graph).
-@item pTick
+the graph);
+@item pen pTick
 an optional pen used to draw the big ticks;
-@item ptick
-an optional pen used to draw the small ticks;
+@item pen ptick
+an optional pen used to draw the small ticks.
 
 @end table
 
@@ -3120,28 +3127,26 @@ locations of the big and small ticks, respectively:
 ticks LeftTicks(real[] Ticks, real[] ticks=new real[],
                 real Size=Ticksize, real size=ticksize,
                 bool beginlabel=true, bool endlabel=true, 
-                string format=defaultformat, pen plabel=nullpen,
-                bool extend=false, pen pTick=nullpen, pen ptick=nullpen);
+                Label format="", bool extend=false,
+                pen pTick=nullpen, pen ptick=nullpen);
 @end verbatim
 
 @item
 @verbatim
 void yaxis(picture pic=currentpicture,
-           real ymin=-infinity, real ymax=infinity, string s="",
-           real position=infinity, real angle=infinity, pair align=0,
-           pair shift=0, pair side=0,
-           pen plabel=currentpen, pen p=plabel,
-           axis axis=XZero, ticks ticks=NoTicks,
-           arrowbar arrow=None, bool put=Below);
+           real ymin=-infinity, real ymax=infinity,
+           Label L="", pen p=currentpen, axis axis=XZero,
+           ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below);
 @end verbatim
 
 Draw a @math{y} axis on picture @code{pic} from @math{y}=@code{ymin} to
 @math{y}=@code{ymax} using pen @code{p}, optionally labelling it with
-string @code{s} at relative location @code{position} (a real number from
-[0,1]) using angle @code{angle}, alignment @code{align}, true shift
-@code{shift} on side @code{side} of the axis, and pen @code{plabel}.
-The tick type is specified by @code{ticks} and the axis placement is
-determined by one of the following @code{axis} types:
+Label @code{L}. The relative location of the label (a real number from
+[0,1]) defaults to 1 (@pxref{Label}). An infinite value of @code{ymin}
+or @code{ymax} specifies that the corresponding axis limit will be
+automatically determined from the picture limits. The tick type is
+specified by @code{ticks} and the axis placement is determined by one
+of the following @code{axis} types:
 
 @table @code
 
@@ -3181,20 +3186,16 @@ drawn before any existing objects in the current layer.
 For convenience, the functions 
 @verbatim
 void xequals(picture pic=currentpicture, real x, bool extend=false,
-             real ymin=-infinity, real ymax=infinity, string s="",
-             real position=infinity, real angle=infinity, pair align=0,
-             pair shift=0, pair side=0,
-             pen plabel=currentpen, pen p=plabel,
-             ticks ticks=NoTicks, bool put=Above, arrowbar arrow=None);
+             real ymin=-infinity, real ymax=infinity, Label L="",
+             pen p=currentpen, ticks ticks=NoTicks, bool put=Above,
+             arrowbar arrow=None);
 @end verbatim
 and
 @verbatim
 void yequals(picture pic=currentpicture, real y, bool extend=false,
-             real xmin=-infinity, real xmax=infinity, string s="",
-             real position=infinity, real angle=0, pair align=0,
-             pair shift=0, pair side=0,
-             pen plabel=currentpen, pen p=plabel,
-             ticks ticks=NoTicks, bool put=Above, arrowbar arrow=None);
+             real xmin=-infinity, real xmax=infinity, Label L="",
+             pen p=currentpen, ticks ticks=NoTicks, bool put=Above,
+             arrowbar arrow=None);
 @end verbatim
 can be respectively used to call @code{yaxis} and
 @code{xaxis} with the appropriate axis types @code{XEquals(x,extend)} and
@@ -3205,9 +3206,7 @@ or horizontal lines and axes at arbitrary locations.
 @verbatim
 void axis(picture pic=currentpicture, guide g,
           real tickmin=-infinity, real tickmax=infinity,
-          string s="", real position=1, real angle=0, pair align=S,
-          pair shift=0, pair side=right,
-          pen plabel=currentpen, pen p=plabel, ticks ticks=NoTicks,
+          Label L="", pen p=currentpen, ticks ticks=NoTicks,
           arrowbar arrow=None, int[] divisor=new int[],
           bool logarithmic=false, scaleT scale=Linear, part part,
           bool put=Above, bool opposite=false);
@@ -3218,59 +3217,46 @@ on picture @code{pic} using pen @code{p}, based on an arbitrary
 path @code{g}, with ticks placed along its arclength (either evenly
 spaced or at custom locations).
 One may specify optional tick minimum and maximum values @code{tickmin} and
-@code{tickmax}, and optionally label the axis with string @code{s} at
-relative location @code{position} (an @code{arctime} value from [0,1]),
-angle @code{angle}, alignment @code{align}, true shift
-@code{shift} on side @code{side} of the axis, and pen
-@code{plabel}. The tick type is specified by
-@code{ticks} and the integer array @code{divisor} specifies what tick
-divisors to try in the attempt to produce uncrowded tick labels.
-A @code{true} value for the flag @code{opposite} identifies an
-unlabelled secondary axis (typically drawn opposite to a primary
-axis).  The axis is drawn on top of any existing objects in the
-current layer only if @code{put} is @code{Above}.
+@code{tickmax}, and optionally label the axis with Label @code{L}.
+The tick type is specified by @code{ticks} and the optional integer array
+@code{divisor} specifies what tick divisors to try in the attempt to
+produce uncrowded tick labels. A @code{true} value for the flag
+@code{opposite} identifies an unlabelled secondary axis (typically
+drawn opposite to a primary axis).  The axis is drawn on top of any
+existing objects in the current layer only if @code{put} is @code{Above}.
 
-@item These routines are useful for manually putting ticks and labels on axes:
+@item These routines are useful for manually putting ticks and labels on axes
+(if the special variable @code{Label} is given as the @code{Label}
+argument, the @code{format} argument will be used to format a string based on
+the tick location):
 @cindex xtick
 @cindex ytick
 @cindex labelx
 @cindex labely
-@cindex labelxtick
-@cindex labelytick
 @cindex tick
+@cindex Label
 @verbatim
-void xtick(picture pic=currentpicture, string s="", pair z,
-           pair dir=N, pair align=0, pair shift=infinity,
+void xtick(picture pic=currentpicture, Label L="", pair z,
+           pair dir=N, string format=defaultformat,
            real size=Ticksize, pen p=currentpen);
-void ytick(picture pic=currentpicture, string s="", explicit pair z,
-           pair dir=E, pair align=0, pair shift=infinity,
+void ytick(picture pic=currentpicture, Label L="", explicit pair z,
+           pair dir=E, string format=defaultformat,
            real size=Ticksize, pen p=currentpen);
-void ytick(picture pic=currentpicture, string s="", real y,
-           pair dir=E, pair align=0, pair shift=infinity,
+void ytick(picture pic=currentpicture, Label L="", real y,
+           pair dir=E, string format=defaultformat,
            real size=Ticksize, pen p=currentpen);
-void tick(picture pic=currentpicture, pair z, pair align,
-          real size=Ticksize, pen p=currentpen);
-void labelx(picture pic=currentpicture, string s="", pair z,
-            pair align=S, pair shift=infinity,
-            string format=defaultformat, pen p=currentpen);
-void labely(picture pic=currentpicture, string s="", explicit pair z,
-            pair align=W, pair shift=infinity,
-            string format=defaultformat, pen p=currentpen);
-void labely(picture pic=currentpicture, string s="", real y,
-            pair align=W, pair shift=infinity,
-            string format=defaultformat, pen p=currentpen);
-void labelxtick(picture pic=currentpicture, pair z,
-                pair align=S, pair shift=infinity,
-                string format=defaultformat, real size=Ticksize,
-                pen p=currentpen);
-void labelytick(picture pic=currentpicture, explicit pair z,
-                pair align=W, pair shift=infinity,
-                string format=defaultformat, real size=Ticksize,
-                pen p=currentpen);
-void labelytick(picture pic=currentpicture, real y,
-                pair align=W, pair shift=infinity,
-                string format=defaultformat, real size=Ticksize,
-                pen p=currentpen);
+void tick(picture pic=currentpicture, pair z,
+          pair dir, real size=Ticksize, pen p=currentpen);
+void labelx(picture pic=currentpicture, Label L="", pair z, pair align=S,
+            string format=defaultformat, pen p=nullpen);
+void labelx(picture pic=currentpicture, Label L,
+            string format=defaultformat, explicit pen p=currentpen);
+void labely(picture pic=currentpicture, Label L="", explicit pair z,
+            pair align=W, string format=defaultformat, pen p=nullpen);
+void labely(picture pic=currentpicture, Label L="", real y,
+            pair align=W, string format=defaultformat, pen p=nullpen);
+void labely(picture pic=currentpicture, Label L,
+            string format=defaultformat, explicit pen p=nullpen);
 @end verbatim
 @end itemize
 
@@ -3475,8 +3461,9 @@ picture palette(real[][] data, real width=Ticksize,
 The argument @code{paletteticks} is a special tick type (@pxref{ticks})
 that takes the following arguments:
 @verbatim
-paletteticks PaletteTicks(bool begin=true, int N=0, real Step=0,
-                          string format=defaultformat, bool end=true)
+paletteticks PaletteTicks(int N=0, real Step=0,
+                          bool beginlabel=true, bool endlabel=true,
+                          Label format=defaultformat, pen pTick=nullpen);
 @end verbatim
 
 The image and palette bar can be fit (and optionally aligned) to a frame 
@@ -3968,34 +3955,22 @@ currentpicture).
 @node draw
 @section draw
 @verbatim 
-void draw(picture pic=currentpicture, string s="", real angle=0,
-          path g, real position=0.5*length(g), pair align=0, pair shift=0,
-          side side=RightSide, pen plabel=currentpen, pen p=plabel,
+void draw(picture pic=currentpicture, Label L="", path g,
+          align align=NoAlign, pen p=currentpen,
           arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
-          string legend="", frame mark=nullframe, bool putmark=Above);
+          string legend="", frame mark=newframe, bool putmark=Above);
 @end verbatim
 
-Draw the path @code{g} on the picture @code{pic}, optionally labeled by
-string @code{s} writing at angle @code{angle} (in degrees) at position
-@code{position} and aligned using the pair @code{align} (or, if zero,
-aligned on side @code{side}) and true shift @code{shift}, using pen
-@code{plabel} for labelling and pen @code{p} for drawing, with
-optional drawing attributes (arrows, bars, margins, legend). Only one
-parameter, the path, is required. For convenience, the arguments
-@code{arrow} and @code{bar} may be specified in either order. The
-argument @code{legend} is a string to use in constructing an optional
-legend entry. An optional frame @code{mark} may be drawn at every
-node, on on top of (underneath) the path if @code{putmark}=@code{Above}
-(@code{putmark}=@code{Below}).
-
-@cindex @code{LeftSide}
-@cindex @code{Center}
-@cindex @code{RightSide}
-The possible values of @code{side} are @code{LeftSide}, @code{Center}, and
-@code{RightSide}. This parameter specifies the location of the path
-label relative to the direction in which the path is drawn. The value of
-@code{side} is ignored if @code{align} is nonzero or if @code{position}
-corresponds to an endpoint of the path @code{g}.
+Draw the path @code{g} on the picture @code{pic} using pen @code{p}
+for drawing, with optional drawing attributes (Label @code{L},
+explicit label alignment @code{align},
+arrows and bars @code{arrow} and @code{bar}, margins @code{margin},
+legend, and node markers). Only one parameter, the path, is 
+required. For convenience, the arguments @code{arrow} and @code{bar} may be
+specified in either order. The argument @code{legend} is a string to
+use in constructing an optional legend entry. An optional frame
+@code{mark} may be drawn at every node, on top of (underneath) the
+path if @code{putmark}=@code{Above} (@code{putmark}=@code{Below}).
 
 @cindex @code{None}
 @cindex @code{BeginBar}
@@ -4082,7 +4057,9 @@ The use of arrows, bars, and margins is illustrated by the examples
 The legend for a picture @code{pic} can be fit and aligned to a frame
 with the routine
 @verbatim
-frame legend(picture pic=currentpicture, pair dir=0);
+frame legend(picture pic=currentpicture, pair dir=0, 
+             real xmargin=legendmargin, real ymargin=infinity,
+             pen p=currentpen, filltype filltype=NoFill);
 @end verbatim
 @noindent
 this legend frame can then be added about the point @code{origin} to a
@@ -4098,12 +4075,19 @@ diameter given by either the default linewidth magnified by @code{dotfactor}
 (6 by default) or an explicit pen linewidth. If no pen argument is given,
 @code{currentpen}, with its linewidth magnified by @code{dotfactor}, is used:
 @verbatim
-void dot(picture pic=currentpicture, pair c);
-void dot(picture pic=currentpicture, pair c, pen p);
-void dot(picture pic=currentpicture, pair[] c, pen p=currentpen);
+void dot(picture pic=currentpicture, pair z);
+void dot(picture pic=currentpicture, pair z, pen p);
+void dot(picture pic=currentpicture, pair[] z, pen p=currentpen);
+void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
+	 string format=defaultformat, pen p=currentpen)
+void dot(picture pic=currentpicture, Label L, pen p=currentpen)
 @end verbatim
 
-The third routine draws a dot at every point of an pair array @code{c}.
+@cindex @code{Label}
+The third routine draws a dot at every point of a pair array @code{z}.
+If the special variable @code{Label} is given as the @code{Label}
+argument to the fourth routine, the @code{format} argument will be
+used to format a string based on the dot location.
 One can also draw a dot at every node of a path:
 @verbatim
 void dot(picture pic=currentpicture, guide g, pen p=currentpen);
@@ -4114,11 +4098,10 @@ To draw a fixed-sized object (in @code{PostScript} coordinates) about the user
 coordinate @code{origin}, use the routine
 @cindex @code{draw}
 @verbatim
-void draw(pair origin, picture pic=currentpicture, string s="", real angle=0,
-          path g, real position=0.5*length(g), pair align=0, pair shift=0,
-          side side=RightSide, pen plabel=currentpen, pen p=plabel,
-          arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
-          string legend="", frame mark=nullframe, bool putmark=Above);
+void draw(pair origin, picture pic=currentpicture, Label L="", path g,
+          align align=NoAlign, pen p=currentpen, arrowbar arrow=None,
+          arrowbar bar=None, margin margin=NoMargin, string legend="",
+          frame mark=newframe, bool putmark=Above);
 @end verbatim
 
 @cindex @code{fill}
@@ -4207,32 +4190,67 @@ For an illustration of picture clipping, see the first example in
 @node label
 @section label
 @verbatim
-void label(picture pic=currentpicture, string s, real angle=0,
-           pair position, pair align=0, pair shift=0, pen p=currentpen);
+void label(picture pic=currentpicture, Label L, pair position,
+           align align=NoAlign, pen p=nullpen)
 @end verbatim
 
-Draw label @code{s} on @code{pic}, writing at angle @code{angle} (in
-degrees), at user coordinate @code{position}, aligned with the vector
-(compass direction) @code{align} and @code{PostScript} coordinate
-translation @code{shift}, using pen @code{p}. If @code{align} is 0,
-the label will be centered at @code{position}; otherwise it will be
-aligned in the direction of @code{align} and displaced from
-the user coordinate @code{position} by the @code{PostScript} offset
-@code{align*labelmargin(p)}.
+Draw Label @code{L} on picture @code{pic} using pen @code{p}. If
+@code{align} is @code{NoAlign}, the label will be centered at at user
+coordinate @code{position}; otherwise it will be aligned in the
+direction of @code{align} and displaced from @code{position} by
+the @code{PostScript} offset @code{align*labelmargin(p)}.
+If the pen @code{p} is @code{nullpen}, the pen specified within the
+Label, which defaults to @code{currentpen}, will be used.
 
-A label with an arrow can be produced with one of the following routines:
+@anchor{Label}
+Here @code{Label} can either be a string or the structure obtained by calling
+one of the following functions:
+@verbatim
+Label Label(string s="", pair position, align align=NoAlign, pen p=nullpen);
+Label Label(explicit pair position, align align=NoAlign, pen p=nullpen);
+Label Label(string s="", align align=NoAlign, pen p=nullpen);
+Label Label(Label L, pair position, align align=NoAlign);
+Label Label(Label L, align align=NoAlign);
+@end verbatim
+The text of a Label can be rotated by an angle by
+multiplying by the left by a rotation (in degrees): @code{rotate(45)*L}.
+The final position of a Label can also be shifted by a
+@code{PostScript} coordinate translation like this: @code{shift(10,0)*L}.
+
+To add a label to a path, use
+@verbatim
+void label(picture pic=currentpicture, Label L, path g, align align=NoAlign,
+           pen p=currentpen)
+@end verbatim
+By default the label will be positioned at the midpoint of the path.
+An alternative label location (an @code{arctime} value between 0 and
+length(g) @pxref{arctime}) may be specified as real value for
+@code{position} in constructing the label.
+
+@cindex @code{LeftSide}
+@cindex @code{Center}
+@cindex @code{RightSide}
+Path labels are aligned in the direction @code{align}, which may
+be specified as a compass direction (pair) or as the @code{LeftSide},
+@code{Center}, or @code{RightSide} of the path, relative to the
+tangent at @code{point(g,position)} in the direction in which the path
+is drawn. A label can be moved further away from or closer to the path by 
+multiplying the side specifiers @code{LeftSide}, @code{Center},
+@code{RightSide} on the left by a real scaling factor. The value of
+@code{side} is ignored if @code{position} corresponds to an endpoint
+of the path @code{g}.
+
+A label with a fixed-size arrow of length @code{arrowlength} pointing
+to @code{b} from direction @code{dir} can be produced with the routine
 @cindex @code{arrow}
 @verbatim
-void arrow(picture pic=currentpicture, string s="", real angle=0,
-           pair b, pair align, real length=arrowlength, pair shift=0,
-           pen p=currentpen, real size=arrowsize(p), real Angle=arrowangle,
-           arrowhead arrowhead=Fill,margin margin=EndMargin);
-
-void arrow(picture pic=currentpicture, string s, real angle=0,
-           pair shift=0, path g, pen p=currentpen, real size=arrowsize(p),
-           real Angle=arrowangle, arrowhead arrowhead=Fill,
-           margin margin=NoMargin);
+void arrow(picture pic=currentpicture, Label L="", pair b, pair dir,
+           real length=arrowlength, align align=NoAlign,
+           pen p=currentpen, arrowbar arrow=Arrow, margin margin=EndMargin);
 @end verbatim
+If no alignment is specified (either in the Label or as an explicit
+argument), the optional Label will be aligned in the direction @code{dir},
+using margin @code{margin}.
 
 @cindex including images
 @cindex @code{include}
@@ -4500,28 +4518,17 @@ elements will individually deconstructed (@pxref{add}).
 
 @node PostScript to Asymptote
 @chapter @code{PostScript} to @code{Asymptote}
-An @code{Asymptote} backend to @code{pstoedit}
-(@code{http://pstoedit.net}) is provided in the file
-@code{pstoedit-3.40asy.patch} in the @code{patches} directory of the
-@code{Asymptote} source. Unlike virtually all other @code{pstoedit} backends,
-this driver includes native clipping, even-odd fill rule, and
-@code{PostScript} subpath support. To install @code{pstoedit} with
-this backend, do the following (denoting the location of the
-@code{Asymptote} source directory by @code{ASYMPTOTE_SOURCE}):
-
-@verbatim
-tar -zxf pstoedit-3.40.tar.gz
-cd pstoedit-3.40
-patch -p1 < ASYMPTOTE_SOURCE/patches/pstoedit-3.40asy.patch
-./configure --prefix=/usr
-make install
-@end verbatim
+The excellent @code{PostScript} editor @code{pstoedit} (version 3.41 or later; 
+available from @code{http://pstoedit.net}) includes an
+@code{Asymptote} backend. Unlike virtually all other @code{pstoedit}
+backends, this driver includes native clipping, even-odd fill rule,
+and @code{PostScript} subpath support. 
 
 @noindent
 For example, try:
 @verbatim
 asy -V /usr/local/share/doc/asymptote/venn.asy 
-pstoedit venn.eps test.asy
+pstoedit -f asy venn.eps test.asy
 asy -V test
 @end verbatim
 
@@ -4530,6 +4537,20 @@ If the line widths aren't quite correct, try giving @code{pstoedit} the
 @code{-dis} option.
 If the fonts aren't typeset correctly, try giving @code{pstoedit} the
 @code{-dt} option.
+
+Full image support can be added to the @code{Asymptote} backend
+with the patch @code{pstoedit-3.41asy.patch}. 
+Denoting the location of the @code{Asymptote} source directory by
+@code{ASYMPTOTE_SOURCE}, one can install this patch with the commands
+(as the @code{UNIX} root user):
+
+@verbatim
+tar -zxf pstoedit-3.41.tar.gz
+cd pstoedit-3.41
+patch -p1 < ASYMPTOTE_SOURCE/patches/pstoedit-3.41asy.patch
+./configure --prefix=/usr
+make install
+@end verbatim
 
 @node Help
 @chapter Help
@@ -4610,7 +4631,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  RightTicks BottomTop LeftRight Ticksize UTF BufNewFile BufRead
 @c  LocalWords:  ticksize subintervals xlimits filetype plugin setlocal makeprg
 @c  LocalWords:  ylimits uncommented automin automax cp uninstall reals ecast
-@c  LocalWords:  scaleT unicode RightSide
+@c  LocalWords:  scaleT unicode RightSide yx yy NoAlign legendmargin opic
 @c  LocalWords:  arrowbar LeftSide EndBar BeginArrow lly featpost feynman isi
 @c  LocalWords:  EndArrow BeginArcArrow EndArcArrow ArcArrow ArcArrows NoFill
 @c  LocalWords:  filldraw fillpen drawpen errorformat bigsquare bezier darkblue
@@ -4641,8 +4662,8 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  dpx dpy dmx dmy barsize arrowheadsize BeginDotMargin DotMargin
 @c  LocalWords:  EndDotMargin DotMargins NColors BWRainbow colorspace labelled
 @c  LocalWords:  PaletteTicks defaultformat leastsquares bjam fprintf endgroup
-@c  LocalWords:  begingroup xmargin ymargin pbox labelbox labelellipse wget exe
+@c  LocalWords:  begingroup xmargin ymargin pbox box ellipse wget exe
 @c  LocalWords:  multithreaded newframe init emph nums concat xline yline zpart
-@c  LocalWords:  colatitude labelxtick labelytick zscale noView cosh nullpen
+@c  LocalWords:  colatitude zscale noView cosh nullpen
 @c  LocalWords:  nodeps Ghostgum beginlabel endlabel pTick ptick loggrid
 @c  LocalWords:  currentprojection

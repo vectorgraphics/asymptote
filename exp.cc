@@ -787,6 +787,31 @@ types::ty *tripleExp::trans(coenv &e)
   return types::primTriple();
 }
 
+void transformExp::prettyprint(ostream &out, int indent)
+{
+  prettyname(out, "transformExp",indent);
+
+  x->prettyprint(out, indent+1);
+  y->prettyprint(out, indent+1);
+  xx->prettyprint(out, indent+1);
+  xy->prettyprint(out, indent+1);
+  yx->prettyprint(out, indent+1);
+  yy->prettyprint(out, indent+1);
+}
+
+types::ty *transformExp::trans(coenv &e)
+{
+  x->transToType(e, types::primReal());
+  y->transToType(e, types::primReal());
+  xx->transToType(e, types::primReal());
+  xy->transToType(e, types::primReal());
+  yx->transToType(e, types::primReal());
+  yy->transToType(e, types::primReal());
+
+  e.c.encode(inst::builtin, run::real6ToTransform);
+
+  return types::primTransform();
+}
 
 void dimensions::prettyprint(ostream &out, int indent)
 {

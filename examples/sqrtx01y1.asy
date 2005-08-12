@@ -19,16 +19,13 @@ xaxis("$x$");
 yaxis(0,1.25,"$y$",dashed);
 
 draw(q);
-
 arrow("$y=\sqrt{x}$",F(0.7),ESE);
-
 draw(graph(g,0,-1,operator ..)--(0,1),dotted);
-
 draw((0,0.74),yscale(0.5)*arc(0,0.25cm,-250,70),ArcArrow);
 
-labelxtick(-1);
+xtick(Label,-1);
 labelx(0);
-labelxtick(1);
+xtick(Label,1);
 
-labeldot((1,1));
+dot(Label,(1,1));
 

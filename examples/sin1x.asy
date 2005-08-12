@@ -1,5 +1,4 @@
 import graph;
-
 size(200,0);
 
 real f(real x) {return (x != 0) ? sin(1/x) : 0;}
@@ -15,4 +14,3 @@ draw(graph(f,a,-T(m),n)--graph(f,-m,-(m+n),n,T)--(0,f(0))--graph(f,m+n,m,n,T)--
      graph(f,T(m),b,n));
 
 label("$\sin\frac{1}{x}$",(b,f(b)),SW);
-

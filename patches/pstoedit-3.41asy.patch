@@ -1,0 +1,103 @@
+diff -ru pstoedit-3.41/src/drvasy.cpp pstoedit-3.41J/src/drvasy.cpp
+--- pstoedit-3.41/src/drvasy.cpp	2005-03-12 06:28:38.000000000 -0700
++++ pstoedit-3.41J/src/drvasy.cpp	2005-08-11 16:58:04.000000000 -0600
+@@ -58,13 +58,11 @@
+   clipmode(false),
+   evenoddmode(false),
+   firstpage(true),
+-  imgcount(0),
+-  tmpdir("pstoedit-temp"),
+-  outname(NULL)
++  imgcount(0)
+ {
+   // Output copyright information
+   outf << "// Converted from PostScript(TM) to Asymptote by pstoedit\n"
+-       << "// Asymptote 0.66 (or later) backend contributed by John Bowman\n"
++       << "// Asymptote 0.84 (or later) backend contributed by John Bowman\n"
+        << "// pstoedit is Copyright (C) 1993 - 2005 Wolfgang Glunz"
+        << " <wglunz34_AT_pstoedit.net>\n\n";
+ 	
+@@ -273,28 +271,23 @@
+ 
+ void drvASY::show_image(const PSImage & imageinfo)
+ {
+-  if(outBaseName) outname=outBaseName;
+-  else if (outname == NULL) {
+-#if defined(_WIN32)
++  if (outBaseName == NULL) {
+     errf << "images cannot be handled via standard output. Use an output file"
+ 	 << endl;
+     return;
+-#else
+-    mkdir(tmpdir.c_str(),0xFFFF);
+-  
+-    outname=strdup((tmpdir+"/XXXXXX").c_str());
+-    if(mkstemp(outname) == -1) {
+-      errf << "Cannot build temporary file prefix";
+-      exit(1);
+-    }
+-#endif
+   }
+ 
+   imgcount++;
+   
++  Point ll,ur;
++  imageinfo.getBoundingBox(ll,ur);
++  
+   ostringstream buf;
+-  buf << outname << "." << imgcount << ".eps";
+-  outf << "label(include(\"" << buf.str() << "\"),(0,0));" << endl;
++  buf << outBaseName << "." << imgcount << ".eps";
++  
++  outf << "label(include(\"" << buf.str() << "\"),("
++       << ll.x_ << "," << ll.y_ << "),align);" << endl;
++  outf << "layer();" << endl;
+   
+   ofstream outi(buf.str().c_str());
+   if (!outi) {
+@@ -303,6 +296,8 @@
+   }
+   
+   imageinfo.writeEPSImage(outi);
++  remove(imageinfo.FileName.value());
++
+   outi.close();
+ }
+ 
+@@ -362,7 +357,8 @@
+     prevFontAngle = textinfo.currentFontAngle;
+ 
+   // Output the text using macros defined in the constructor
+-  outf << "label (";
++  outf << "label(";
++  if(prevFontAngle != 0.0) outf << "rotate(" << prevFontAngle << ")*";
+   bool texify=false;
+   bool quote=false;
+   for (const char *c = textinfo.thetext.value(); *c; c++) {
+@@ -385,13 +381,12 @@
+ 	outf << "\"";
+ 	quote=true;
+       }
+-	outf << "\\char" << (int) *c;
++      outf << "\\char" << (int) *c;
+     }
+   }
+   if(quote) outf << "\"";
+   if(texify) outf << ")";
+-  outf << "," << prevFontAngle 
+-       << ",(" << textinfo.x << ',' << textinfo.y << "),align,textpen);" 
++  outf << ",(" << textinfo.x << ',' << textinfo.y << "),align,textpen);" 
+        << endl;
+ }
+ 
+@@ -511,8 +506,7 @@
+       true,	// if backend supports curves, else 0
+       false,	// if backend supports elements with fill and edges
+       true,	// if backend supports text, else 0
+-     // DriverDescription::memoryeps, // support for EPS file images
+-DriverDescription::eps,     
+-	 DriverDescription::normalopen, true, // supports multiple pages
++      DriverDescription::png, // support for PNG file images
++      DriverDescription::normalopen, true, // supports multiple pages
+       true  /*clipping */ 
+       );

@@ -29,13 +29,13 @@ draw(O--Bp);
 draw("4",C--O);
 draw(O--Cp);
 
-labeldot("$O$",O,1.5*dir(B--Bp,Cp--C),red);
-labeldot("$A$",A,1.5*dir(C--A,B--A),red);
-labeldot("$B$",B,NW,red);
-labeldot("$C$",C,dir(A--C,B--C),red);
-labeldot("$A'$",Ap,dir(A--Ap),red);
-labeldot("$B'$",Bp,dir(B--Bp),red);
-labeldot("$C'$",Cp,dir(C--Cp),red);
+dot("$O$",O,1.5*dir(B--Bp,Cp--C),red);
+dot("$A$",A,1.5*dir(C--A,B--A),red);
+dot("$B$",B,NW,red);
+dot("$C$",C,dir(A--C,B--C),red);
+dot("$A'$",Ap,dir(A--Ap),red);
+dot("$B'$",Bp,dir(B--Bp),red);
+dot("$C'$",Cp,dir(C--Cp),red);
 
 label(include("piicon.eps","width=2.5cm"),Ap,5ENE,red);
 

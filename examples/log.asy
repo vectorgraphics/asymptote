@@ -12,4 +12,3 @@ draw(graph(f,0.01,10,operator ..));
 
 labelx(1,SSE);
 label("$\log x$",F(7),SE);
-

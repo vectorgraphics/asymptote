@@ -21,10 +21,10 @@ draw(z--(z.x,0),dotted+red);
 draw((0,0)--(z.x,0),dotted+red);
 label("$r\cos\theta$",(0.5*z.x,0),0.5*S,red);
 label("$r\sin\theta$",(z.x,0.5*z.y),0.5*E,red);
-labeldot("$(x,y)$",z,N);
+dot("$(x,y)$",z,N);
 draw("r",(0,0)--z,0.5*unit(z)*I,blue,Arrow,DotMargin);
 
-labeldot("$(a,0)$",(1,0),NE);
-labeldot("$(2a,0)$",(2,0),NE);
+dot("$(a,0)$",(1,0),NE);
+dot("$(2a,0)$",(2,0),NE);
 
 

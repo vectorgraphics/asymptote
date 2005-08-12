@@ -129,7 +129,6 @@ trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
         static trans::varEntry v(primReal(), &a);
         return &v;
       }
-      //TODO: Add transform.
     case ty_triple:
       if (sig == 0 && id == symbol::trans("x")) {
         static trans::bltinAccess a(run::tripleXPart);
@@ -143,6 +142,37 @@ trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
       }
       if (sig == 0 && id == symbol::trans("z")) {
         static trans::bltinAccess a(run::tripleZPart);
+        static trans::varEntry v(primReal(), &a);
+        return &v;
+      }
+    case ty_transform:
+      if (sig == 0 && id == symbol::trans("x")) {
+        static trans::bltinAccess a(run::transformXPart);
+        static trans::varEntry v(primReal(), &a);
+        return &v;
+      }
+      if (sig == 0 && id == symbol::trans("y")) {
+        static trans::bltinAccess a(run::transformYPart);
+        static trans::varEntry v(primReal(), &a);
+        return &v;
+      }
+      if (sig == 0 && id == symbol::trans("xx")) {
+        static trans::bltinAccess a(run::transformXXPart);
+        static trans::varEntry v(primReal(), &a);
+        return &v;
+      }
+      if (sig == 0 && id == symbol::trans("xy")) {
+        static trans::bltinAccess a(run::transformXYPart);
+        static trans::varEntry v(primReal(), &a);
+        return &v;
+      }
+      if (sig == 0 && id == symbol::trans("yx")) {
+        static trans::bltinAccess a(run::transformYXPart);
+        static trans::varEntry v(primReal(), &a);
+        return &v;
+      }
+      if (sig == 0 && id == symbol::trans("yy")) {
+        static trans::bltinAccess a(run::transformYYPart);
         static trans::varEntry v(primReal(), &a);
         return &v;
       }
@@ -203,10 +233,22 @@ ty *array::popType()
   return poptype;
 }
 
+ty *array::appendType()
+{
+  if (appendtype == 0) {
+    function *ft = new function(primVoid());
+    ft->add(this);
+    appendtype = ft;
+  }
+
+  return appendtype;
+}
+
 ty *array::virtualFieldGetType(symbol *id)
 {
   return id == symbol::trans("push") ? pushType() : 
     id == symbol::trans("pop") ? popType() : 
+    id == symbol::trans("append") ? appendType() : 
      ty::virtualFieldGetType(id);
 }
 
@@ -233,6 +275,15 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
     static trans::bltinAccess a(run::arrayPop);
     // v needs to be dynamic, as the pop type differs among arrays.
     trans::varEntry *v = new trans::varEntry(popType(), &a);
+
+    return v;
+  }
+  if (id == symbol::trans("append") &&
+      equivalent(sig, appendType()->getSignature()))
+  {
+    static trans::bltinAccess a(run::arrayAppend);
+    // v needs to be dynamic, as the append type differs among arrays.
+    trans::varEntry *v = new trans::varEntry(appendType(), &a);
 
     return v;
   }

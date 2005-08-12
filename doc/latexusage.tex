@@ -1,4 +1,3 @@
-
 \documentclass[12pt]{article}
 \usepackage{asymptote}
 \begin{document}
@@ -39,8 +38,8 @@ pair z=(0,-2);
 real m=3;
 margin BigMargin=Margin(0,m*dot(unit(z1-z),unit(z0-z)));
 
-draw("$A\cap B$",conj(z)--z0,0,Arrow,BigMargin);
-draw("$A\cup B$",z--z0,0,Arrow,BigMargin);
+draw(Label("$A\cap B$",0),conj(z)--z0,Arrow,BigMargin);
+draw(Label("$A\cup B$",0),z--z0,Arrow,BigMargin);
 draw(z--z1,Arrow,Margin(0,m));
 draw(z--z2,Arrow,Margin(0,m));
 
@@ -88,7 +87,7 @@ fill(shift(c)*T*circle(0,-f(x)),red+white);
 draw(F(x)--c+(0,f(x)),dashed+red);
 draw(G(x)--c+(0,g(x)),dashed+red);
 
-labeldot((1,1));
+dot(Label,(1,1));
 arrow("$y=\sqrt{x}$",F(0.7),N);
 
 arrow((3,0.5*f(x)),W,1cm,red);

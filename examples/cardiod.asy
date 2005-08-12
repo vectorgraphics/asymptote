@@ -10,6 +10,6 @@ filldraw(g,pink+white);
 xaxis("$x$");
 yaxis("$y$");
 
-labeldot("$(a,0)$",(1,0),N);
-labeldot("$(2a,0)$",(2,0),N+E);
+dot("$(a,0)$",(1,0),N);
+dot("$(2a,0)$",(2,0),N+E);
 

@@ -9,9 +9,9 @@ real f(pair z) {return 0.5+exp(-abs(z)^2);}
 draw((-1,-1,0)--(1,-1,0)--(1,1,0)--(-1,1,0)--cycle3);
 
 real r=1.75;
-draw("$x$",(0,0,0)--(r,0,0),1,red,Arrow);
-draw("$y$",(0,0,0)--(0,r,0),1,red,Arrow);
-draw("$z$",(0,0,0)--(0,0,r),1,red,Arrow);
+draw(Label("$x$",1),(0,0,0)--(r,0,0),red,Arrow);
+draw(Label("$y$",1),(0,0,0)--(0,r,0),red,Arrow);
+draw(Label("$z$",1),(0,0,0)--(0,0,r),red,Arrow);
   
 draw((1,0,0){Y}..(0,1,0){-X}..(-1,0,0){-Y}..(0,-1,0){X}..cycle3,green);
   

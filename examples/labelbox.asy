@@ -1,7 +1,7 @@
 real margin=2mm;
 frame b1,b2;
-labelbox(b1,margin,"small box",(0,0));
-labelbox(b2,margin,"LARGER BOX",(0,-2cm));
+box(b1,Label("small box",(0,0)),margin);
+box(b2,Label("LARGER BOX",(0,-2cm)),margin);
 add(b1);
 add(b2);
 draw(point(b1,S)--point(b2,N),currentpen);

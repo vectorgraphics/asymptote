@@ -215,9 +215,11 @@ struct array : public ty {
   ty *celltype;
   ty *pushtype;
   ty *poptype;
+  ty *appendtype;
 
   array(ty *celltype)
-    : ty(ty_array), celltype(celltype), pushtype(0), poptype(0) {}
+    : ty(ty_array), celltype(celltype), pushtype(0), poptype(0), appendtype(0)
+  {}
 
   virtual bool isReference() {
     return true;
@@ -237,6 +239,7 @@ struct array : public ty {
 
   ty *pushType();
   ty *popType();
+  ty *appendType();
 
   // Initialize to an empty array by default.
   trans::access *initializer();

@@ -121,14 +121,15 @@ static public real dotfactor=6;
 
 static public real legendlinelength=50;
 static public real legendskip=1.5;
-static public pen legendboxpen=black;
 static public real legendmargin=10;
-static public real legendshift=legendmargin;
 
 static public string defaultfilename;
+static public string defaultformat="$%.4g$";
 
 // Reduced for tension atleast infinity
 static real infinity=sqrt(0.5*realMax());
+static pair Infinity=(infinity,infinity);
+
 static real epsilon=realEpsilon();
 
 // Define a.. tension t ..b to be equivalent to
@@ -192,6 +193,7 @@ file single(file file) {return single(file,true);}
 file stdin=input("");
 file stdout;
 
+void none(file file) {}
 void endl(file file) {write(file,'\n'); flush(file);}
 void tab(file file) {write(file,'\t');}
 typedef void suffix(file);
@@ -222,29 +224,40 @@ void write(file file=stdout, explicit path[] x, suffix s) {
 }
 void write(explicit path[] g) {write(stdout,g,endl);}
 
-void write(file file=stdout, string x, bool y)
+void write(file file=stdout, string x, bool y, suffix s=endl)
 {
-  write(file,x); write(file,y,endl);
+  write(file,x); write(file,y,s);
 }
 
-void write(file file=stdout, string x, real y)
+void write(file file=stdout, string x, real y, suffix s=endl)
 {
-  write(file,x); write(file,y,endl);
+  write(file,x); write(file,y,s);
 }
 
-void write(file file=stdout, string x, explicit pair y)
+void write(file file=stdout, string x, explicit pair y, suffix s=endl)
 {
-  write(file,x); write(file,y,endl);
+  write(file,x); write(file,y,s);
 }
 
-void write(file file=stdout, string x, triple y)
+void write(file file=stdout, string x, triple y, suffix s=endl)
 {
-  write(file,x); write(file,y,endl);
+  write(file,x); write(file,y,s);
 }
 
-void write(file file=stdout, string x, real y, string x2, real y2)
+void write(file file=stdout, string x, string y, suffix s=endl)
 {
-  write(file,x); write(file,y,tab); write(file,x2,y2);
+  write(file,x); write(file,y,s);
+}
+
+void write(file file=stdout, string x, pen y, suffix s=endl)
+{
+  write(file,x); write(file,y,s);
+}
+
+void write(file file=stdout, string x, real y, string x2, real y2,
+	   suffix s=endl)
+{
+  write(file,x); write(file,y,tab); write(file,x2,y2,s);
 }
 
 string ask(string prompt)
@@ -336,7 +349,8 @@ typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
 // coordinates.
   
 static struct coord {
-  public real user, truesize;
+  public real user,truesize;
+  public bool finite=true;
 
   // Build a coord.
   static coord build(real user, real truesize) {
@@ -358,14 +372,43 @@ static struct coord {
   }
 }
 
-void append(coord[] x, coord[] y, transform T, coord[] srcx, coord[] srcy)
+coord operator init() {return new coord;}
+  
+transform rotate(real angle) 
 {
-  for(int i=0; i < srcx.length; ++i) {
-    pair z=T*(srcx[i].user,srcy[i].user);
-    x.push(coord.build(z.x,srcx[i].truesize));
-    y.push(coord.build(z.y,srcy[i].truesize));
+  return rotate(angle,0);
+}
+
+transform shift(transform t)
+{
+  return (t.x,t.y,0,0,0,0);
+}
+
+transform shiftless(transform t)
+{
+  return (0,0,t.xx,t.xy,t.yx,t.yy);
+}
+
+void Transform(coord Cx, coord Cy, transform t, coord cx, coord cy) 
+{
+  pair tinf=shiftless(t)*((finite(cx.user) ? 0 : 1),(finite(cy.user) ? 0 : 1));
+  pair z=t*(cx.user,cy.user);
+  Cx.user=(tinf.x == 0 ? z.x : infinity);
+  Cy.user=(tinf.y == 0 ? z.y : infinity);
+  pair w=(cx.truesize,cy.truesize);
+  w=length(w)*unit(shiftless(t)*w);
+  Cx.truesize=w.x;
+  Cy.truesize=w.y;
+}
+  
+void append(coord[] X, coord[] Y, transform t, coord[] x, coord[] y)
+{
+  for(int i=0; i < x.length; ++i) {
+    coord cx,cy;
+    Transform(cx,cy,t,x[i],y[i]);
+    X.push(cx);
+    Y.push(cy);
   }
-  return;
 }
 
 bool operator <= (coord a, coord b)
@@ -389,11 +432,17 @@ coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
   coord[] c;
 
   int n=in.length;
-  if (n == 0)
+  
+  // Find the first finite restriction.
+  int first=0;
+  for(first=0; first < n; ++first)
+    if(finite(in[first].user)) break;
+	
+  if (first == n)
     return c;
   else {
     // Add the first coord without checking restrictions (as there are none).
-    best=in[0];
+    best=in[first];
     c.push(best);
   }
 
@@ -433,7 +482,7 @@ coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
 
   void add(coord x)
   {
-    if (x <= best)
+    if (x <= best || !finite(x.user))
       return;
     else {
       int i=dominator(x);
@@ -445,7 +494,7 @@ coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
   }
 
   for(int i=1; i < n; ++i)
-      add(in[i]);
+    add(in[i]);
 
   return c;
 }
@@ -560,39 +609,71 @@ pair point(frame f, pair dir)
   return min(f)+realmult(rectify(dir),max(f)-min(f));
 }
 
-guide[] operator cast(pair[] z) {
+guide[] operator cast(pair[] z)
+{
   guide[] g=new guide[z.length];
   for(int i=0; i < z.length; ++i) g[i]=z[i];
   return g;
 }
 
-path[] operator cast(pair[] z) {
+path[] operator cast(pair[] z)
+{
   path[] g=new path[z.length];
   for(int i=0; i < z.length; ++i) g[i]=z[i];
   return g;
 }
 
-path[] operator cast(path g) {
+path[] operator cast(path g)
+{
   return new path[] {g};
 }
 
-path[] operator cast(guide g) {
+path[] operator cast(guide g)
+{
   return new path[] {(path) g};
 }
 
+real min(... real[] a) {return min(a);}
+real max(... real[] a) {return max(a);}
+
 static bool Above=true;
 static bool Below=false;
+
+static bool Aspect=true;
+static bool IgnoreAspect=false;
 
 struct picture {
   // The functions to do the deferred drawing.
   drawerBound[] nodes;
   
   // The coordinates in flex space to be used in sizing the picture.
-  coord[] xcoords,ycoords;
+  struct bounds {
+    coord[] min;
+    coord[] max;
+    coord[] point;
+    void erase() {
+      min=new coord[];
+      max=new coord[];
+      point=new coord[];
+    }
+    // Only a shallow copy of the individual elements of min and max
+    // is needed since, once entered, they are never modified.
+    bounds copy() {
+      bounds b=new bounds;
+      b.min=copy(min);
+      b.max=copy(max);
+      b.point=copy(point);
+      return b;
+    }
+  }
+  
+  bounds operator init() {return new bounds;}
+  bounds xcoords,ycoords;
 
   // Transform to be applied to this picture.
   public transform T;
   
+  // Cached user-space bounding box
   public pair userMin,userMax;
   
   public ScaleT scale; // Needed by graph
@@ -601,7 +682,7 @@ struct picture {
   // The maximum sizes in the x and y directions; zero means no restriction.
   public real xsize=0, ysize=0;
   
-  // If true, the x and y must be scaled by the same amount.
+  // If true, the x and y directions must be scaled by the same amount.
   public bool keepAspect=false;
 
   void init() {
@@ -613,8 +694,8 @@ struct picture {
   // Erase the current picture, retaining any size specification.
   void erase() {
     nodes=new drawerBound[];
-    xcoords=new coord[];
-    ycoords=new coord[];
+    xcoords.erase();
+    ycoords.erase();
     T=identity();
     scale=new ScaleT;
     legend=new Legend[];
@@ -622,10 +703,10 @@ struct picture {
   }
   
   bool empty() {
-    pair Infinity=(infinity,infinity);
     return userMin == Infinity && userMax == -Infinity;
   }
 	      
+  // Cache the current user-space bounding box
   void userBox(pair min, pair max) {
     userMin=minbound(userMin,min);
     userMax=maxbound(userMax,max);
@@ -645,9 +726,15 @@ struct picture {
 
   void clip(drawer d) {
     if(interact()) uptodate=false;
-    for(int i=0; i < xcoords.length; ++i) {
-      xcoords[i].clip(userMin.x,userMax.x);
-      ycoords[i].clip(userMin.y,userMax.y);
+    for(int i=0; i < xcoords.min.length; ++i) {
+      xcoords.min[i].clip(userMin.x,userMax.x);
+      xcoords.max[i].clip(userMin.x,userMax.x);
+      ycoords.min[i].clip(userMin.y,userMax.y);
+      ycoords.max[i].clip(userMin.y,userMax.y);
+    }
+    for(int i=0; i < xcoords.point.length; ++i) {
+      xcoords.point[i].clip(userMin.x,userMax.x);
+      ycoords.point[i].clip(userMin.y,userMax.y);
     }
     nodes.push(new void (frame f, transform t, transform T, pair, pair) {
       d(f,t*T);
@@ -655,42 +742,36 @@ struct picture {
   }
 
   // Add a point to the sizing.
-  void addPoint(pair user, pair truesize=(0,0)) {
-    xcoords.push(coord.build(user.x,truesize.x));
-    ycoords.push(coord.build(user.y,truesize.y));
+  void addPoint(pair user, pair truesize=0) {
+    xcoords.point.push(coord.build(user.x,truesize.x));
+    ycoords.point.push(coord.build(user.y,truesize.y));
     userBox(user,user);
   }
   
-  // Add finite components of a pair to the sizing
-  void addFinite(pair user, pair truesize=(0,0)) {
-    if(abs(user.x) != infinity) xcoords.push(coord.build(user.x,truesize.x));
-    if(abs(user.y) != infinity) ycoords.push(coord.build(user.y,truesize.y));
-    userBox(user,user);
-  }
-  
-  // Add a box to the sizing.
-  void addBox(pair userMin, pair userMax,
-              pair trueMin=(0,0), pair trueMax=(0,0)) {
-    addPoint(userMin,trueMin);
-    addPoint(userMax,trueMax);
-  }
-
   // Add a point to the sizing, accounting also for the size of the pen.
-  void addPoint(pair user, pair truesize=(0,0), pen p) {
+  void addPoint(pair user, pair truesize=0, pen p) {
     addPoint(user,truesize+min(p));
     addPoint(user,truesize+max(p));
   }
   
+  // Add a box to the sizing.
+  void addBox(pair userMin, pair userMax, pair trueMin=0, pair trueMax=0) {
+    // Add in all 4 corner points, to handle rotations properly
+    xcoords.min.push(coord.build(userMin.x,trueMin.x));
+    xcoords.max.push(coord.build(userMax.x,trueMax.x));
+    ycoords.min.push(coord.build(userMin.y,trueMin.y));
+    ycoords.max.push(coord.build(userMax.y,trueMax.y));
+    userBox(userMin,userMax);
+  }
+
   // Add a (user space) path to the sizing.
   void addPath(path g) {
-    addPoint(min(g));
-    addPoint(max(g));
+    addBox(min(g),max(g));
   }
 
   // Add a path to the sizing with the additional padding of a pen.
   void addPath(path g, pen p) {
-    addPoint(min(g),min(p));
-    addPoint(max(g),max(p));
+    addBox(min(g),max(g),min(p),max(p));
   }
 
   void size(real x=0, real y=0, bool a=true) {
@@ -720,12 +801,11 @@ struct picture {
     if (c.length > 0) {
       real m=infinity;
       for (int i=0; i < c.length; ++i)
-	if(s.scale(c[i]) < m) m=s.scale(c[i]);
+	if (finite(c[i].user) && s.scale(c[i]) < m)
+	  m=s.scale(c[i]);
       return m;
     }
-    else
-      // I don't know...
-      return 0;
+    else return 0;
   }
  
   // Calculate the maximum point in scaling the coords.
@@ -733,33 +813,40 @@ struct picture {
     if (c.length > 0) {
       real M=-infinity;
       for (int i=0; i < c.length; ++i)
-        if (s.scale(c[i]) > M)
+        if (finite(c[i].user) && s.scale(c[i]) > M)
           M=s.scale(c[i]);
       return M;
-    }
-    else
-      // I don't know...
-      return 0;
+    } else return 0;
   }
 
   // Calculate the min for the final picture, given the transform of coords.
   pair min(transform t) {
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
-    scaling xs=scaling.build(a.x, b.x);
-    scaling ys=scaling.build(a.y, b.y);
-    return (min(xs,xcoords),min(ys,ycoords));
+    scaling xs=scaling.build(a.x,b.x);
+    scaling ys=scaling.build(a.y,b.y);
+    return (min(min(xs,xcoords.min),
+		min(xs,xcoords.max),
+		min(xs,xcoords.point)),
+	    min(min(ys,ycoords.min),
+		min(ys,ycoords.max),
+		min(ys,ycoords.point)));
   }
 
   // Calculate the max for the final picture, given the transform of coords.
   pair max(transform t) {
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
-    scaling xs=scaling.build(a.x, b.x);
-    scaling ys=scaling.build(a.y, b.y);
-    return (max(xs,xcoords),max(ys,ycoords));
+    scaling xs=scaling.build(a.x,b.x);
+    scaling ys=scaling.build(a.y,b.y);
+    return (max(max(xs,xcoords.min),
+		max(xs,xcoords.max),
+		max(xs,xcoords.point)),
+	    max(max(ys,ycoords.min),
+		max(ys,ycoords.max),
+		max(ys,ycoords.point)));
   }
 
   // Calculate the sizing constants for the given array and maximum size.
-  scaling calculateScaling(coord[] coords, real max) {
+  scaling calculateScaling(coord[] coords, real size) {
     import simplex;
     simplex.problem p;
    
@@ -768,8 +855,8 @@ struct picture {
       p.addRestriction(c.user,1,c.truesize);
     }
     void addMaxCoord(coord c) {
-      // (a*user + b) + truesize <= max:
-      p.addRestriction(-c.user,-1,max-c.truesize);
+      // (a*user + b) + truesize <= size:
+      p.addRestriction(-c.user,-1,size-c.truesize);
     }
 
     coord[] m=maxcoords(coords,operator >=);
@@ -790,31 +877,58 @@ struct picture {
     }
     else {
       write("warning: cannot fit picture to requested size...enlarging...");
-      return calculateScaling(coords,sqrt(2)*max);
+      return calculateScaling(coords,sqrt(2)*size);
     }
   }
 
+  void append(coord[] Xmin, coord[] Ymin, coord[] Xmax, coord[] Ymax,
+	      coord[] Xpoint, coord[] Ypoint,
+	      transform t, bounds xcoords, bounds ycoords) 
+  {
+    // Add the coord info to this picture.
+    if(t == identity()) {
+      Xmin.append(xcoords.min);
+      Ymin.append(ycoords.min);
+      Xmax.append(xcoords.max);
+      Ymax.append(ycoords.max);
+      Xpoint.append(xcoords.point);
+      Ypoint.append(ycoords.point);
+    } else {
+      append(Xpoint,Ypoint,t,xcoords.min,ycoords.min);
+      append(Xpoint,Ypoint,t,xcoords.min,ycoords.max);
+      append(Xpoint,Ypoint,t,xcoords.max,ycoords.min);
+      append(Xpoint,Ypoint,t,xcoords.max,ycoords.max);
+      append(Xpoint,Ypoint,t,xcoords.point,ycoords.point);
+    }
+  }
+  
   // Returns the transform for turning user-space pairs into true-space pairs.
   transform calculateTransform(real xsize, real ysize, bool keepAspect=true) {
     if (xsize == 0 && ysize == 0)
       return identity();
-    else if (ysize == 0) {
-      scaling sx=calculateScaling(xcoords,xsize);
+    
+    coord[] Xcoords,Ycoords;
+    
+    append(Xcoords,Ycoords,Xcoords,Ycoords,Xcoords,Ycoords,T,xcoords,ycoords);
+    
+    if (ysize == 0) {
+      scaling sx=calculateScaling(Xcoords,xsize);
       return scale(sx.a);
     }
-    else if (xsize == 0) {
-      scaling sy=calculateScaling(ycoords,ysize);
+    
+    if (xsize == 0) {
+      scaling sy=calculateScaling(Ycoords,ysize);
       return scale(sy.a);
     }
-    else {
-      scaling sx=calculateScaling(xcoords,xsize);
-      scaling sy=calculateScaling(ycoords,ysize);
-      if (keepAspect)
-        return scale(min(sx.a,sy.a));
-      else
-        return xscale(sx.a)*yscale(sy.a);
-    }
+    
+    scaling sx=calculateScaling(Xcoords,xsize);
+    scaling sy=calculateScaling(Ycoords,ysize);
+    if (keepAspect)
+      return scale(min(sx.a,sy.a));
+    else
+      return xscale(sx.a)*yscale(sy.a);
   }
+
 
   frame fit(transform t, transform T0=T, pair m, pair M) {
     frame f;
@@ -869,16 +983,16 @@ struct picture {
   picture copy() {
     picture dest=drawcopy();
 
-    dest.xcoords=copy(xcoords);
-    dest.ycoords=copy(ycoords);
+    dest.xcoords=xcoords.copy();
+    dest.ycoords=ycoords.copy();
+    
     dest.xsize=xsize; dest.ysize=ysize; dest.keepAspect=keepAspect;
-
     return dest;
   }
 
   // Add a picture to this picture, such that the user coordinates will be
   // scaled identically when fitted
-  void add(picture src, bool group=true, bool put=Above) {
+  void add(picture src, bool group=deconstruct, bool put=Above) {
     // Copy the picture.  Only the drawing function closures are needed, so we
     // only copy them.  This needs to be a deep copy, as src could later have
     // objects added to it that should not be included in this picture.
@@ -892,14 +1006,13 @@ struct picture {
       if(group) begingroup(f);
       (put ? add : prepend)(f,d);
       if(group) endgroup(f);
-      for(int i=0; i < src.legend.length; ++i)
-        legend.push(src.legend[i]);
+      legend.append(src.legend);
     });
     
     userBox(src.userMin,src.userMax);
-
-    // Add the coord info to this picture.
-    append(xcoords,ycoords,srcCopy.T,src.xcoords,src.ycoords);
+    
+    append(xcoords.min,ycoords.min,xcoords.max,ycoords.max,
+	   xcoords.point,ycoords.point,srcCopy.T,src.xcoords,src.ycoords);
   }
 }
 
@@ -909,8 +1022,12 @@ picture operator * (transform t, picture orig)
 {
   picture pic=orig.copy();
   pic.T=t*pic.T;
-  pic.userMin=t*pic.userMin;
-  pic.userMax=t*pic.userMax;
+  pair c00=t*pic.userMin;
+  pair c01=t*(pic.userMin.x,pic.userMax.y);
+  pair c10=t*(pic.userMax.x,pic.userMin.y);
+  pair c11=t*pic.userMax;
+  pic.userMin=(min(c00.x,c01.x,c10.x,c11.x),min(c00.y,c01.y,c10.y,c11.y));
+  pic.userMax=(max(c00.x,c01.x,c10.x,c11.x),max(c00.y,c01.y,c10.y,c11.y));
   return pic;
 }
 
@@ -970,9 +1087,15 @@ pair max(explicit path[] g)
 }
 
 void size(picture pic=currentpicture,
-          real xsize, real ysize=0, bool keepAspect=Aspect)
+          real xsize, real ysize, bool keepAspect=Aspect)
 {
   pic.size(xsize,ysize,keepAspect);
+}
+
+// Ensure that each dimension is no more than size, preserving aspect ratio.
+void size(picture pic=currentpicture, real Size)
+{
+  pic.size(Size,Size,Aspect);
 }
 
 pair size(frame f)
@@ -994,6 +1117,8 @@ void endgroup(picture pic=currentpicture)
   });
 }
 
+bool deconstruct=deconstruct();
+
 // Add frame dest to frame src with optional grouping (default false)
 void add(frame dest, frame src, bool group)
 {
@@ -1013,8 +1138,8 @@ void add(pair origin, frame dest, frame src, bool group=false)
 
 // Add frame src about origin to picture dest with optional grouping
 // (default true)
-void add(pair origin=(0,0), picture dest=currentpicture, frame src,
-	 bool group=true, bool put=Above)
+void add(pair origin=0, picture dest=currentpicture, frame src,
+	 bool group=deconstruct, bool put=Above)
 {
   dest.add(new void (frame f, transform t) {
     if(group) begingroup(f);
@@ -1025,8 +1150,8 @@ void add(pair origin=(0,0), picture dest=currentpicture, frame src,
 }
 
 // Like add(pair,picture,frame,bool) but extend picture to accommodate frame
-void attach(pair origin=(0,0), picture dest=currentpicture, frame src,
-	    bool group=true, bool put=Above)
+void attach(pair origin=0, picture dest=currentpicture, frame src,
+	    bool group=deconstruct, bool put=Above)
 {
   transform t=dest.calculateTransform(dest.xsize,dest.ysize,dest.keepAspect);
   add(origin,dest,src,group,put);
@@ -1037,12 +1162,12 @@ void attach(pair origin=(0,0), picture dest=currentpicture, frame src,
 
 // Add a picture to another such that user coordinates in both will be scaled
 // identically in the shipout.
-void add(picture dest, picture src, bool group=true, bool put=Above)
+void add(picture dest, picture src, bool group=deconstruct, bool put=Above)
 {
   dest.add(src,group,put);
 }
 
-void add(picture src, bool group=true, bool put=Above)
+void add(picture src, bool group=deconstruct, bool put=Above)
 {
   add(currentpicture,src,group,put);
 }
@@ -1050,13 +1175,13 @@ void add(picture src, bool group=true, bool put=Above)
 // Fit the picture src using the identity transformation (so user
 // coordinates and truesize coordinates agree) and add it about the point
 // origin to picture dest.
-void add(pair origin, picture dest, picture src, bool group=true,
+void add(pair origin, picture dest, picture src, bool group=deconstruct,
 	 bool put=Above)
 {
   add(origin,dest,src.fit(identity()),group,put);
 }
 
-void add(pair origin, picture src, bool group=true, bool put=Above)
+void add(pair origin, picture src, bool group=deconstruct, bool put=Above)
 {
   add(origin,currentpicture,src,group,put);
 }
@@ -1305,35 +1430,295 @@ void unfill(picture pic=currentpicture, path[] g)
   });
 }
 
-void label(frame f, string s, real angle=0, pair position,
-	   pair align=0, pen p=currentpen)
-{
-  _label(f,s,angle,position+align*labelmargin(p),align,p);
+struct side {
+  real factor;
+  void init(real factor) {
+    this.factor=factor;
+  }
+  pair align(pair align) {
+    return factor*align;
+  }
+  // Workaround invisibility of alias within other modules:
+  bool alias(side side) {
+    return alias(this,side);
+  }
 }
 
-void label(picture pic=currentpicture, string s, real angle=0, pair position,
-	   pair align=0, pair shift=0, pen p=currentpen)
-{
-  pic.add(new void (frame f, transform t) {
-    pair offset=t*0;
-    _label(f,s,degrees(t*dir(angle)-offset),
-	   t*position+align*labelmargin(p)+shift,
-	  length(align)*unit(t*align-offset),p);
-  });
-  frame f;
-  // Create a picture with label at the origin to extract its bbox truesize.
-  label(f,s,angle,(0,0),align,p);
-  pic.addBox(position,position,min(f),max(f));
+side operator init() {return new side;}
+side operator *(real a, side s) {
+  side S;
+  S.init(a*s.factor);
+  return S;
 }
+  
+side NoSide,LeftSide,Center,RightSide;
+LeftSide.init(-1);
+Center.init(0);
+RightSide.init(1);
+NoSide.init(0);
+
+struct align {
+  public pair dir;
+  public side side=NoSide;
+  bool default=true;
+  void init(pair dir=0, side side=NoSide, bool default=false) {
+    this.dir=dir;
+    this.side=side;
+    this.default=default;
+  }
+  align copy() {
+    align align=new align;
+    align.init(dir,side,default);
+    return align;
+  }
+  void align(align align) {
+    if(!align.default) init(align.dir,align.side);
+  }
+  void align(align align, align default) {
+    align(align);
+    if(this.default) init(default.dir,default.side,default.default);
+  }
+  void write(file file=stdout, suffix s=endl) {
+    if(!default) {
+      if(alias(side,NoSide))
+	write(file,dir,s);
+      else
+	write(file,(alias(side,LeftSide) ? "LeftSide" :
+		    alias(side,Center) ? "Center" : "RightSide"),s);
+    }
+  }
+}
+
+align operator init() {return new align;}
+align operator cast(pair dir) {align A; A.init(dir); return A;}
+align operator cast(side side) {align A; A.init(side); return A;}
+align NoAlign;
+
+void write(file file=stdout, align align, suffix s=endl)
+{
+  align.write(file,s);
+}
+
+struct Label {
+  public string s;
+  pair position;
+  bool defaultposition=true;
+  align align;
+  pen p;
+  real angle;
+  bool defaultangle=true;
+  pair shift;
+  
+  void init(string s="", pair position=0, bool defaultposition=true,
+	    align align=NoAlign, pen p=nullpen, 
+	    real angle=0, bool defaultangle=true, pair shift=0) {
+    this.s=s;
+    this.position=position;
+    this.align=align.copy();
+    this.p=p;
+    this.defaultposition=defaultposition;
+    this.angle=angle;
+    this.defaultangle=defaultangle;
+    this.shift=shift;
+  }
+  
+  void initalign(string s="", align align, pen p=nullpen) {
+    init();
+    this.s=s;
+    this.align=align.copy();
+    this.p=p;
+  }
+  
+  Label copy() {
+    Label L=new Label;
+    L.init(s,position,defaultposition,align,p,angle,defaultangle,shift);
+    return L;
+  }
+  
+  void angle(real a) {
+    this.angle=a;
+    defaultangle=false;
+  }
+  
+  void shift(pair a) {
+    this.shift=a;
+  }
+  
+  void position(pair z) {
+    this.position=z;
+    defaultposition=false;
+  }
+  
+  void align(align a) {
+    align.align(a);
+  }
+  void align(align a, align default) {
+    align.align(a,default);
+  }
+  
+  void p(pen p0) {
+    if(this.p == nullpen) this.p=p0;
+  }
+  
+  void label(frame f, string s, real angle=0, pair position,
+	     pair align=0, pen p=currentpen)
+  {
+    _label(f,s,angle,position+align*labelmargin(p),align,p);
+  }
+
+  void out(frame f) {
+    label(f,s,angle,position,align.dir,p);
+  }
+  
+  void label(picture pic=currentpicture, string s, real angle=0, pair position,
+	    pair align=0, pair shift=0, pen p=currentpen)
+  {
+    pic.add(new void (frame f, transform t) {
+      transform t0=shiftless(t);
+      _label(f,s,degrees(t0*dir(angle)),
+	     t*position+align*labelmargin(p)+shift,
+	     length(align)*unit(t0*align),p);
+      });
+    frame f;
+    // Create a picture with label at the origin to extract its bbox truesize.
+    label(f,s,angle,(0,0),align,p);
+    pic.addBox(position,position,min(f),max(f));
+  }
+
+  void out(picture pic=currentpicture) {
+    label(pic,s,angle,position,align.dir,shift,p == nullpen ? currentpen : p);
+  }
+  
+  void out(picture pic=currentpicture, path g) {
+    real position=position.x;
+    pair Align=align.dir;
+    side side=align.side;
+    real L=length(g);
+    if(defaultposition) position=0.5L;
+    if(align.default) side=RightSide;
+    if(!alias(side,NoSide) && !alias(side,Center))
+      Align=(position <= 0 ? -dir(g,0) : position >= L ? dir(g,L) :
+	     side.align(-I*dir(g,position)));
+    label(pic,s,angle,point(g,position),Align,shift,
+	  p == nullpen ? currentpen : p);
+  }
+  
+  void write(file file=stdout, suffix s=endl) {
+    write(file,"s=\"",s+"\"",none);
+    if(!defaultposition) write(file,", position=",position,none);
+    if(!align.default) write(file,", align=");
+    write(file,align,none);
+    if(p != nullpen) write(file,", pen=",p,none);
+    if(!defaultangle) write(file,", angle=",angle,none);
+    write(file,", shift=",shift,s);
+  }
+}
+
+Label operator init() {return new Label;}
+
+Label Label;
+
+void add(frame f, Label L)
+{
+  L.out(f);
+}
+  
+void add(picture pic=currentpicture, Label L)
+{
+  L.out(pic);
+}
+  
+Label operator * (transform t, Label L)
+{
+  Label tL=L.copy();
+  transform t0=shiftless(t);
+  tL.align.dir=length(L.align.dir)*unit(t0*L.align.dir);
+  tL.angle(degrees(t0*dir(L.angle)));
+  tL.shift(shift(t)*L.shift);
+  return tL;
+}
+
+Label Label(string s, explicit pair position, align align=NoAlign,
+	    pen p=nullpen)
+{
+  Label L;
+  L.init(s,position,false,align,p);
+  return L;
+}
+
+Label Label(string s, real position, align align=NoAlign, pen p=nullpen)
+{
+  return Label(s,(pair) position,align,p);
+}
+
+Label Label(explicit pair position, align align=NoAlign, pen p=nullpen)
+{
+  return Label((string) position,position,align,p);
+}
+
+Label Label(string s="", align align=NoAlign, pen p=nullpen)
+{
+  Label L;
+  L.initalign(s,align,p);
+  return L;
+}
+
+Label Label(Label L, pair position, align align=NoAlign)
+{
+  Label L=L.copy();
+  L.position(position);
+  L.align(align);
+  return L;
+}
+
+Label Label(Label L, align align=NoAlign)
+{
+  Label L=L.copy();
+  L.align(align);
+  return L;
+}
+
+void write(file file=stdout, Label L, suffix s=endl)
+{
+  L.write(file,s);
+}
+
+void label(frame f, string s, pair position, align align=NoAlign,
+	   pen p=currentpen)
+{
+  add(f,Label(s,position,align,p));
+}
+  
+void label(picture pic=currentpicture, Label L, pair position,
+	   align align=NoAlign, pen p=nullpen)
+{
+  Label L=L.copy();
+  L.position(position);
+  L.align(align);
+  L.p(p);
+  add(pic,L);
+}
+  
+void label(picture pic=currentpicture, Label L, align align=NoAlign,
+	   pen p=nullpen)
+{
+  label(pic,L,L.position,align,p);
+}
+  
+void label(picture pic=currentpicture, Label L, path g, align align=NoAlign,
+	   pen p=currentpen)
+{
+  Label L=L.copy();
+  L.align(align);
+  L.p(p);
+  L.out(pic,g);
+}
+
+Label operator cast(string s) {return Label(s);}
 
 pair point(picture pic=currentpicture, pair dir)
 {
   return pic.userMin+realmult(rectify(dir),pic.userMax-pic.userMin);
-}
-
-transform rotate(real angle) 
-{
-  return rotate(angle,0);
 }
 
 guide arrowhead(path g, real position=infinity, pen p=currentpen,
@@ -1486,8 +1871,6 @@ void newpage()
   layer();
 }
 
-static bool Aspect=true;
-static bool IgnoreAspect=false;
 static bool Wait=true;				
 static bool NoWait=false;
 
@@ -1524,58 +1907,55 @@ guide ellipse(frame f, real xmargin=0, real ymargin=infinity,
 }
 
 frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
-	  real xsize=infinity, real ysize=infinity, bool keepAspect,
-	   pen pbox=currentpen, filltype filltype=NoFill)
+	   real xsize=infinity, real ysize=infinity, bool keepAspect,
+	   pen p=currentpen, filltype filltype=NoFill)
 {
   if(ymargin == infinity) ymargin=xmargin;
   if(xsize == infinity) xsize=pic.xsize;
   if(ysize == infinity) ysize=pic.ysize;
   frame f=pic.fit(max(xsize-2*xmargin,0),max(ysize-2*ymargin,0),keepAspect);
-  box(f,xmargin,ymargin,pbox,filltype);
+  box(f,xmargin,ymargin,p,filltype);
   return f;
 }
 
 frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
-	   real xsize=infinity, real ysize=infinity, pen pbox=currentpen,
+	   real xsize=infinity, real ysize=infinity, pen p=currentpen,
 	   filltype filltype=NoFill)
 {
   return bbox(pic,xmargin,ymargin,xsize,ysize,
-	      pic.keepAspect ? Aspect : IgnoreAspect,pbox,filltype);
+	      pic.keepAspect ? Aspect : IgnoreAspect,p,filltype);
 }
 
-guide labelbox(frame f, real xmargin=0, real ymargin=infinity,
-	       string s, real angle=0, pair position,
-	       pair align=0, pen p=currentpen, pen pbox=currentpen,
-	       filltype filltype=NoFill)
+guide box(frame f, Label L, real xmargin=0, real ymargin=infinity,
+	  pen p=currentpen, filltype filltype=NoFill)
 {
-  label(f,s,angle,position,align,p);
-  return box(f,xmargin,ymargin,pbox,filltype);
+  add(f,L);
+  return box(f,xmargin,ymargin,p,filltype);
 }
 
-guide labelellipse(frame f, real xmargin=0, real ymargin=infinity,
-		   string s, real angle=0, pair position,
-		   pair align=0, pen p=currentpen, pen pbox=currentpen,
-		   filltype filltype=NoFill)
+guide ellipse(frame f, Label L, real xmargin=0, real ymargin=infinity,
+	      pen p=currentpen, filltype filltype=NoFill)
 {
-  label(f,s,angle,position,align,p);
-  return ellipse(f,xmargin,ymargin,pbox,filltype);
+  add(f,L);
+  return ellipse(f,xmargin,ymargin,p,filltype);
 }
 
-void labelbox(picture pic=currentpicture, real xmargin=0,
-	      real ymargin=infinity, string s, real angle=0, pair position,
-	      pair align=0, pair shift=0, pen p=currentpen,
-	      pen pbox=currentpen, filltype filltype=NoFill)
+void box(picture pic=currentpicture, Label L,
+	 real xmargin=0, real ymargin=infinity, pen p=currentpen,
+	 filltype filltype=NoFill)
 {
   pic.add(new void (frame f, transform t) {
-    pair offset=t*0;
-    _label(f,s,degrees(t*dir(angle)-offset),
-	   t*position+align*labelmargin(p)+shift,
-	   length(align)*unit(t*align-offset),p);
-    box(f,xmargin,ymargin,pbox,filltype);
+    transform t0=shiftless(t);
+    _label(f,L.s,degrees(t0*dir(L.angle)),
+	   t*L.position+L.align.dir*labelmargin(L.p)+L.shift,
+	   length(L.align.dir)*unit(t0*L.align.dir),L.p);
+    box(f,xmargin,ymargin,p,filltype);
   });
   frame f;
-  labelbox(f,xmargin,ymargin,s,angle,(0,0),align,p,pbox,filltype);
-  pic.addBox(position,position,min(f),max(f));
+  Label L0=L.copy();
+  L0.position(0);
+  box(f,L0,xmargin,ymargin,p,filltype);
+  pic.addBox(L.position,L.position,min(f),max(f));
 }
 
 real linewidth() 
@@ -1608,19 +1988,19 @@ pen interp(pen a, pen b, real c)
   return (1-c)*a+c*b;
 }
 
-void dot(picture pic=currentpicture, pair c)
+void dot(picture pic=currentpicture, pair z)
 {
-  Draw(pic,c,currentpen+dotsize());
+  Draw(pic,z,currentpen+dotsize());
 }
 
-void dot(picture pic=currentpicture, pair c, pen p)
+void dot(picture pic=currentpicture, pair z, pen p)
 {
-  Draw(pic,c,dotsize(p)+p);
+  Draw(pic,z,dotsize(p)+p);
 }
 
-void dot(picture pic=currentpicture, pair[] c, pen p=currentpen)
+void dot(picture pic=currentpicture, pair[] z, pen p=currentpen)
 {
-  for(int i=0; i < c.length; ++i) dot(pic,c[i],p);
+  for(int i=0; i < z.length; ++i) dot(pic,z[i],p);
 }
 
 void dot(picture pic=currentpicture, path g, pen p=currentpen)
@@ -1633,12 +2013,21 @@ void dot(picture pic=currentpicture, path[] g, pen p=currentpen)
   for(int i=0; i < g.length; ++i) dot(pic,g[i],p);
 }
 
-void labeldot(picture pic=currentpicture, string s="", real angle=0,
-	      pair c, pair align=E, pair shift=0, pen p=currentpen)
+void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
+	 string format=defaultformat, pen p=currentpen)
 {
-  if(s == "") s=(string) c;
-  dot(pic,c,p);
-  label(pic,s,angle,c,align,shift,p);
+  Label L=L.copy();
+  L.position(z);
+  if(L.s == "") L.s="("+format(format,z.x)+","+format(format,z.y)+")";
+  L.align(align,E);
+  L.p(p);
+  dot(pic,z,p);
+  add(pic,L);
+}
+
+void dot(picture pic=currentpicture, Label L, pen p=currentpen)
+{
+  dot(pic,L,L.position,p);
 }
 
 // Return a unit polygon with n sides
@@ -1711,12 +2100,13 @@ picture legend(Legend[] legend)
   return inset;
 }
   
-frame legend(picture pic=currentpicture, pair dir=0) 
+frame legend(picture pic=currentpicture, pair dir=0, 
+	     real xmargin=legendmargin, real ymargin=infinity,
+	     pen p=currentpen, filltype filltype=NoFill) 
 {
   frame F;
   if(pic.legend.length == 0) return F;
-  F=bbox(legend(pic.legend),legendmargin,legendmargin,0,0,IgnoreAspect,
-	 legendboxpen);
+  F=bbox(legend(pic.legend),xmargin,ymargin,0,0,IgnoreAspect,p,filltype);
   return shift(dir-point(F,-dir))*F;
 }
 
@@ -1795,7 +2185,7 @@ real ytrans(transform t, real y)
 }
 
 real cap(transform t, real x, real m, real M, real bottom, real top,
-                   real ct(transform,real))
+	 real ct(transform,real))
 {
   return x == infinity  ? M-top :
          x == -infinity ? m-bottom : cap(ct(t,x),m,M,bottom,top);
@@ -1803,50 +2193,13 @@ real cap(transform t, real x, real m, real M, real bottom, real top,
 
 pair cap(transform t, pair z, pair lb, pair rt, pen p=currentpen)
 {
-  if (finite(z.x) && finite(z.y))
+  if (finite(z))
     return cap(t*z, lb, rt, p);
   else
     return (cap(t,z.x,lb.x,rt.x,min(p).x,max(p).x,xtrans),
             cap(t,z.y,lb.y,rt.y,min(p).y,max(p).y,ytrans));
 }
   
-void label(picture pic=currentpicture, real angle=0, pair position,
-	   pair align=0, pair shift=0, pen p=currentpen)
-{
-  label(pic,(string) position,angle,position,align,shift,p);
-}
-
-pair LeftSide(pair align) {return -align;}
-pair Center(pair align) {return 0;}
-pair RightSide(pair align) {return align;}
-typedef pair side(pair);
-
-void label(picture pic=currentpicture, string s, real angle=0,
-	   path g, real position=infinity, pair align=0, pair shift=0,
-	   side side=RightSide, pen p=currentpen)
-{
-  real L=length(g);
-  if(position == infinity) position=0.5L;
-  if(align == 0) {
-    if(position <= 0) align=-dir(g,0);
-    else if(position >= L) align=dir(g,L);
-    else align=side(-dir(g,position)*I);
-  }
-  label(pic,s,angle,point(g,position),align,shift,p);
-}
-
-void arrow(picture pic=currentpicture, string s, real angle=0, pair shift=0,
-	   path g, pen plabel=currentpen, pen p=nullpen, real size=0,
-	   real Angle=arrowangle, filltype filltype=Fill,
-	   margin margin=NoMargin)
-{
-  if(p == nullpen) p=plabel;
-  add(pic,arrow(g,p,size,Angle,filltype,margin));
-  pair a=point(g,0);
-  pair b=point(g,1);
-  label(pic,s,angle,a,unit(a-b),shift,plabel);
-}
-
 static bool CCW=true;
 static bool CW=false;						  
 
@@ -2030,51 +2383,51 @@ void draw(frame f, path g, pen p=currentpen, arrowbar arrow)
   add(f,pic.fit());
 }
 
-void draw(picture pic=currentpicture, string s="", real angle=0,
-	  path g, real position=infinity, pair align=0, pair shift=0,
-	  side side=RightSide, pen plabel=currentpen, pen p=nullpen,
-	  arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
-	  string legend="", frame mark=newframe, bool putmark=Above)
+void draw(picture pic=currentpicture, Label L="", path g, align align=NoAlign,
+	  pen p=currentpen, arrowbar arrow=None, arrowbar bar=None,
+	  margin margin=NoMargin, string legend="", frame mark=newframe,
+	  bool putmark=Above)
 {
-  if(p == nullpen) p=plabel;
+  Label L=L.copy();
+  L.align(align);
+  L.p(p);
   if(!putmark && !empty(mark)) mark(pic,g,mark);
-  if(s != "") label(pic,s,angle,g,position,align,shift,side,plabel);
+  if(L.s != "") L.out(pic,g);
   bool drawpath=arrow(pic,g,p,margin);
   if(bar(pic,g,p,margin) && drawpath) _draw(pic,g,p,margin);
   if(legend != "") {
-    Legend L; L.init(legend,plabel,p,mark,putmark);
-    pic.legend.push(L);
+    Legend l; l.init(legend,L.p,p,mark,putmark);
+    pic.legend.push(l);
   }
   if(putmark && !empty(mark)) mark(pic,g,mark);
 }
 
 // Draw a fixed-size object about the user-coordinate 'origin'.
-void draw(pair origin, picture pic=currentpicture, string s="", real angle=0,
-	  path g, real position=infinity, pair align=0, pair shift=0, 
-	  side side=RightSide, pen plabel=currentpen, pen p=nullpen,
-	  arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
-	  string legend="", frame mark=newframe, bool putmark=Above)
+void draw(pair origin, picture pic=currentpicture, Label L="", path g,
+	  align align=NoAlign, pen p=currentpen, arrowbar arrow=None,
+	  arrowbar bar=None, margin margin=NoMargin, string legend="",
+	  frame mark=newframe, bool putmark=Above)
 {
   picture opic;
-  draw(opic,s,angle,g,position,align,shift,side,plabel,p,arrow,bar,margin,
-       legend,mark,putmark);
+  draw(opic,L,g,align,p,arrow,bar,margin,legend,mark,putmark);
   add(origin,pic,opic);
 }
 
-void arrow(picture pic=currentpicture, string s="", real angle=0,
-	   pair b, pair align, real length=arrowlength, real position=infinity,
-	   pair shift=0, pen plabel=currentpen, pen p=nullpen, real size=0,
-	   real Angle=arrowangle, filltype filltype=Fill,
-	   margin margin=EndMargin)
+// Align an arrow pointing to b from the direction dir. The arrow is
+// 'length' PostScript units long.
+void arrow(picture pic=currentpicture, Label L="", pair b, pair dir,
+	   real length=arrowlength, align align=NoAlign,
+	   pen p=currentpen, arrowbar arrow=Arrow, margin margin=EndMargin)
 {
-  if(p == nullpen) p=plabel;
-  if(position == infinity) position=0;
+  Label L=L.copy();
+  if(L.defaultposition) L.position(0);
+  L.align(L.align,dir);
+  L.p(p);
   marginT margin=margin(b--b,p); // Extract margin.begin and margin.end
-  pair a=(margin.begin+length+margin.end)*unit(align);
-  draw(b,pic,s,angle,a--(0,0),0.0,align,shift,plabel,p,
-	    Arrow(size,Angle,filltype),margin);
+  pair a=(margin.begin+length+margin.end)*unit(dir);
+  draw(b,pic,L,a--(0,0),align,p,arrow,margin);
 }
-
+  
 string substr(string s, int pos)
 {
   return substr(s,pos,-1);
@@ -2120,10 +2473,10 @@ string italic(string s)
   return "{\it "+s+"}";
 }
 
-string baseline(string s, pair align=S, string template="M") 
+string baseline(string s, align align=S, string template="M") 
 {
   if(s == "") return s;
-  return align.y <= -0.5*abs(align.x) ? 
+  return align.dir.y <= -0.5*abs(align.dir.x) ? 
     "\ASYbase{"+template+"}{"+s+"}" : s;
 }
 

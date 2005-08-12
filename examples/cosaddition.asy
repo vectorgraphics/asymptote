@@ -22,7 +22,6 @@ draw(Q--S,blue);
 perpendicular(S,(1,0),blue);
 
 dot(O);
-labeldot("$R=(1,0)$",R);
-labeldot("$P=(\cos A,\sin A)$",P,dir(O--P)+W);
-labeldot("$Q=(\cos B,\sin B)$",Q,dir(O--Q));
-      
+dot("$R=(1,0)$",R);
+dot("$P=(\cos A,\sin A)$",P,dir(O--P)+W);
+dot("$Q=(\cos B,\sin B)$",Q,dir(O--Q));

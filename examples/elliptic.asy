@@ -95,10 +95,10 @@ save();
 
 drawline(P,Q,dashed);
 drawline(c.neg(sum),sum,dashed);
-labeldot("$P$", P, NW);
-labeldot("$Q$", Q, SE);
+dot("$P$", P, NW);
+dot("$Q$", Q, SE);
 dot(c.neg(sum));
-labeldot("$P+Q$", sum, SW);
+dot("$P+Q$", sum, SW);
 
 add(output,currentpicture.fit(W));
 
@@ -108,9 +108,9 @@ save();
 
 drawline(P,c.neg(PP),dashed);
 drawline(c.neg(PP),PP,dashed);
-labeldot("$P$", P, NW);
+dot("$P$", P, NW);
 dot(c.neg(PP));
-labeldot("$2P$", PP, SW);
+dot("$2P$", PP, SW);
 
 add(output,currentpicture.fit(E));
 

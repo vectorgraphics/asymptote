@@ -410,6 +410,7 @@ void addOperators(venv &ve)
   addFunc(ve,run::realPenTimes,primPen(),"*",primReal(),primPen());
   addFunc(ve,run::penRealTimes,primPen(),"*",primPen(),primReal());
   addBooleanOperator(ve,run::boolPenEq,primPen(),"==");
+  addBooleanOperator(ve,run::boolPenNeq,primPen(),"!=");
 
   addFunc(ve,run::arrayBoolNegate,boolArray(),"!",boolArray());
   addBooleanOps<bool,run::And>(ve,boolArray(),"&&",primBoolean());
@@ -623,6 +624,8 @@ void base_venv(venv &ve)
 	  primPair());
   addFunc(ve,run::transformReflect,primTransform(),"reflect",primPair(),
 	  primPair());
+  addBooleanOperator(ve,run::boolTransformEq,primTransform(),"==");
+  addBooleanOperator(ve,run::boolTransformNeq,primTransform(),"!=");
   
   // I/O functions
 

@@ -30,10 +30,10 @@ TreeNode makeNode( TreeNode parent = null, frame f )
   return child;
 }
 
-TreeNode makeNode( TreeNode parent = null, string label )
+TreeNode makeNode( TreeNode parent = null, Label label )
 {
   frame f;
-  labelbox( f, label, (0,0) );
+  box( f, label);
   return makeNode( parent, f );
 }
 

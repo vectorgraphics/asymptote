@@ -20,7 +20,7 @@ draw(g);
 transform T=xscale(0.5);
 draw((1.04,0),T*arc(0,0.25cm,20,340),ArcArrow);
 
-labeldot((1,1));
+dot(Label,(1,1));
 
 real x=0.5;
 pair c=(3,0);
@@ -42,4 +42,3 @@ yaxis("$y$");
 draw("$r_{\rm in}$",S0*(c--c+f(x)*dir(-45)),dir(56),darkgreen,Arrow(6.0));
 draw("$r_{\rm out}$",S0*(c--c+(0,g(x))),blue,Arrow);
 dot(c);
-

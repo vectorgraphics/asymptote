@@ -529,6 +529,22 @@ public:
   types::ty *getType(coenv &) { return types::primTriple(); }
 };
 
+class transformExp : public exp {
+  exp *x;
+  exp *y;
+  exp *xx,*xy,*yx,*yy;
+
+public:
+  transformExp(position pos, exp *x, exp *y, exp *xx, exp *xy, exp *yx,
+	       exp *yy)
+    : exp(pos), x(x), y(y), xx(xx), xy(xy), yx(yx), yy(yy) {}
+
+  void prettyprint(ostream &out, int indent);
+
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primTransform(); }
+};
+
 class castExp : public exp {
   ty *target;
   exp *castee;

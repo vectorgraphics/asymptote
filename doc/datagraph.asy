@@ -8,4 +8,4 @@ real[] y=x^2;
 draw(graph(x,y),red,MarkFill[0]);
 
 xaxis("$x$",BottomTop,LeftTicks);
-yaxis("$y$",LeftRight,RightTicks(new real[]{0,4,9},fontsize(8)));
+yaxis("$y$",LeftRight,RightTicks(new real[]{0,4,9},Label(fontsize(8))));

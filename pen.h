@@ -549,6 +549,10 @@ public:
       && (p.t ? *p.t : identity()) == (q.t ? *q.t : identity());
   }
   
+  friend bool operator != (const pen& p, const pen& q) {
+    return !(p == q);
+  }
+  
   friend ostream& operator << (ostream& out, const pen& p) {
     out << "([" << p.line.pattern << "]";
     if(!p.line.scale)
