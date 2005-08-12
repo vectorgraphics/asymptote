@@ -935,13 +935,7 @@ void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
   if(crop) {
     pair userMin=pic.userMin;
     pair userMax=pic.userMax;
-    for(int i=0; i < pic.xcoords.min.length; ++i) {
-      pic.xcoords.min[i].clip(userMin.x,userMax.x);
-      pic.xcoords.max[i].clip(userMin.x,userMax.x);
-    }
-    for(int i=0; i < pic.xcoords.point.length; ++i)
-      pic.xcoords.point[i].clip(userMin.x,userMax.x);
-    
+    pic.bounds.xclip(userMin.x,userMax.x);
     pic.clip(new void (frame f, transform t) {
       clip(f,box(((t*userMin).x,min(f).y),((t*userMax).x,max(f).y)));
   });
@@ -971,13 +965,7 @@ void ylimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
   if(crop) {
     pair userMin=pic.userMin;
     pair userMax=pic.userMax;
-    for(int i=0; i < pic.ycoords.min.length; ++i) {
-      pic.ycoords.min[i].clip(userMin.y,userMax.y);
-      pic.ycoords.max[i].clip(userMin.y,userMax.y);
-    }
-    for(int i=0; i < pic.ycoords.point.length; ++i)
-      pic.ycoords.point[i].clip(userMin.y,userMax.y);
-    
+    pic.bounds.yclip(userMin.y,userMax.y);
     pic.clip(new void (frame f, transform t) {
       clip(f,box((min(f).x,(t*userMin).y),(max(f).x,(t*userMax).y)));
   });
@@ -1170,31 +1158,6 @@ void tick(picture pic=currentpicture, pair z, pair dir, real size=Ticksize,
   pic.addPoint(z,unit(dir)*size,p);
 }
 
-private void label(picture pic, Label L, pair z, real x, pair align,
-		   string format, pen p)
-{
-  Label L=L.copy();
-  L.position(z);
-  L.align(align);
-  L.p(p);
-  if(L.shift == 0) L.shift(ticklabelshift(L.align.dir,L.p));
-  if(L.s == "") L.s=format(format,x);
-  L.s=baseline(L.s,L.align,"$10^4$");
-  add(pic,L);
-}
-
-void labelx(picture pic=currentpicture, Label L="", pair z, pair align=S,
-	    string format=defaultformat, pen p=nullpen)
-{
-  label(pic,L,z,z.x,align,format,p);
-}
-
-void labelx(picture pic=currentpicture, Label L,
-	    string format=defaultformat, explicit pen p=currentpen)
-{
-  labelx(pic,L,L.position,format,p);
-}
-
 void xtick(picture pic=currentpicture, pair z, pair dir=N,
 	   real size=Ticksize, pen p=currentpen)=tick;
 
@@ -1212,24 +1175,6 @@ void xtick(picture pic=currentpicture, Label L, pair z, pair dir=N,
   if(L.s == "") L.s=format(format,z.x);
   add(pic,L);
   tick(pic,z,dir,size,p);
-}
-
-void labely(picture pic=currentpicture, Label L="", explicit pair z,
-	    pair align=W, string format=defaultformat, pen p=nullpen)
-{
-  label(pic,L,z,z.y,align,format,p);
-}
-
-void labely(picture pic=currentpicture, Label L="", real y,
-	    pair align=W, string format=defaultformat, pen p=nullpen)
-{
-  labely(pic,L,(0,y),align,format,p);
-}
-
-void labely(picture pic=currentpicture, Label L,
-	    string format=defaultformat, explicit pen p=nullpen)
-{
-  labely(pic,L,L.position,format,p);
 }
 
 void ytick(picture pic=currentpicture, Label L, explicit pair z, pair dir=E,
@@ -1251,6 +1196,49 @@ void ytick(picture pic=currentpicture, real y, pair dir=E,
 	   real size=Ticksize, pen p=currentpen)
 {
   tick(pic,(0,y),dir,size,p);
+}
+
+private void label(picture pic, Label L, pair z, real x, align align,
+		   string format, pen p)
+{
+  Label L=L.copy();
+  L.position(z);
+  L.align(align);
+  L.p(p);
+  if(L.shift == 0) L.shift(ticklabelshift(L.align.dir,L.p));
+  if(L.s == "") L.s=format(format,x);
+  L.s=baseline(L.s,L.align,"$10^4$");
+  add(pic,L);
+}
+
+void labelx(picture pic=currentpicture, Label L="", pair z, align align=S,
+	    string format=defaultformat, pen p=nullpen)
+{
+  label(pic,L,z,z.x,align,format,p);
+}
+
+void labelx(picture pic=currentpicture, Label L,
+	    string format=defaultformat, explicit pen p=currentpen)
+{
+  labelx(pic,L,L.position,format,p);
+}
+
+void labely(picture pic=currentpicture, Label L="", explicit pair z,
+	    align align=W, string format=defaultformat, pen p=nullpen)
+{
+  label(pic,L,z,z.y,align,format,p);
+}
+
+void labely(picture pic=currentpicture, Label L="", real y,
+	    align align=W, string format=defaultformat, pen p=nullpen)
+{
+  labely(pic,L,(0,y),align,format,p);
+}
+
+void labely(picture pic=currentpicture, Label L,
+	    string format=defaultformat, explicit pen p=nullpen)
+{
+  labely(pic,L,L.position,format,p);
 }
 
 private string noprimary="Primary axis must be drawn before secondary axis";

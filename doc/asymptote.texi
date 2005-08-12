@@ -3247,14 +3247,14 @@ void ytick(picture pic=currentpicture, Label L="", real y,
            real size=Ticksize, pen p=currentpen);
 void tick(picture pic=currentpicture, pair z,
           pair dir, real size=Ticksize, pen p=currentpen);
-void labelx(picture pic=currentpicture, Label L="", pair z, pair align=S,
+void labelx(picture pic=currentpicture, Label L="", pair z, align align=S,
             string format=defaultformat, pen p=nullpen);
 void labelx(picture pic=currentpicture, Label L,
             string format=defaultformat, explicit pen p=currentpen);
 void labely(picture pic=currentpicture, Label L="", explicit pair z,
-            pair align=W, string format=defaultformat, pen p=nullpen);
+            align align=W, string format=defaultformat, pen p=nullpen);
 void labely(picture pic=currentpicture, Label L="", real y,
-            pair align=W, string format=defaultformat, pen p=nullpen);
+            align align=W, string format=defaultformat, pen p=nullpen);
 void labely(picture pic=currentpicture, Label L,
             string format=defaultformat, explicit pen p=nullpen);
 @end verbatim
@@ -3452,9 +3452,7 @@ void image(picture pic=currentpicture, real[][] data, pen[] palette,
 An optionally labelled palette bar may be generated with the routine
 @verbatim
 picture palette(real[][] data, real width=Ticksize,
-                pen[] palette, string s="", real position=0.5,
-                real angle=infinity, pair align=E, pair shift=0,
-                pair side=right, pen plabel=currentpen, pen p=plabel,
+                pen[] palette, Label L, pen p=currentpen,
                 paletteticks ticks=PaletteTicks)
 @end verbatim
 
@@ -4271,7 +4269,7 @@ layer();
 @end verbatim
 
 @cindex @code{baseline}
-The @code{string baseline(string s, pair align=S, string template="M")} 
+The @code{string baseline(string s, align align=S, string template="M")} 
 function can be used to enlarge the bounding box of letters aligned
 below a horizontal line to match a given template, so that their
 baselines lie on a horizontal line. See @code{Pythagoras.asy} for an

@@ -338,6 +338,21 @@ void GUIop(int index, int filenum=0, transform T)
   GUIobj.Transform[index]=T*GUIobj.Transform[index];
 }
 
+transform rotate(real angle) 
+{
+  return rotate(angle,0);
+}
+
+transform shift(transform t)
+{
+  return (t.x,t.y,0,0,0,0);
+}
+
+transform shiftless(transform t)
+{
+  return (0,0,t.xx,t.xy,t.yx,t.yy);
+}
+
 // A function that draws an object to frame pic, given that the transform
 // from user coordinates to true-size coordinates is t.
 typedef void drawer(frame f, transform t);
@@ -374,42 +389,61 @@ static struct coord {
 
 coord operator init() {return new coord;}
   
-transform rotate(real angle) 
-{
-  return rotate(angle,0);
-}
-
-transform shift(transform t)
-{
-  return (t.x,t.y,0,0,0,0);
-}
-
-transform shiftless(transform t)
-{
-  return (0,0,t.xx,t.xy,t.yx,t.yy);
-}
-
-void Transform(coord Cx, coord Cy, transform t, coord cx, coord cy) 
-{
-  pair tinf=shiftless(t)*((finite(cx.user) ? 0 : 1),(finite(cy.user) ? 0 : 1));
-  pair z=t*(cx.user,cy.user);
-  Cx.user=(tinf.x == 0 ? z.x : infinity);
-  Cy.user=(tinf.y == 0 ? z.y : infinity);
-  pair w=(cx.truesize,cy.truesize);
-  w=length(w)*unit(shiftless(t)*w);
-  Cx.truesize=w.x;
-  Cy.truesize=w.y;
-}
-  
-void append(coord[] X, coord[] Y, transform t, coord[] x, coord[] y)
-{
-  for(int i=0; i < x.length; ++i) {
-    coord cx,cy;
-    Transform(cx,cy,t,x[i],y[i]);
-    X.push(cx);
-    Y.push(cy);
+struct coords2 {
+  coord[] x;
+  coord[] y;
+  void erase() {
+    x=new coord[];
+    y=new coord[];
+  }
+  // Only a shallow copy of the individual elements of x and y
+  // is needed since, once entered, they are never modified.
+  coords2 copy() {
+    coords2 c=new coords2;
+    c.x=copy(x);
+    c.y=copy(y);
+    return c;
+  }
+  void append(coords2 c) {
+    x.append(c.x);
+    y.append(c.y);
+  }
+  void push(pair user, pair truesize) {
+    x.push(coord.build(user.x,truesize.x));
+    y.push(coord.build(user.y,truesize.y));
+  }
+  void push(coord cx, coord cy) {
+    x.push(cx);
+    y.push(cy);
+  }
+  void push(transform t, coords2 c1, coords2 c2)
+  {
+    for(int i=0; i < c1.x.length; ++i) {
+      coord cx=c1.x[i], cy=c2.y[i];
+      pair tinf=shiftless(t)*((finite(cx.user) ? 0 : 1),
+			      (finite(cy.user) ? 0 : 1));
+      pair z=t*(cx.user,cy.user);
+      pair w=(cx.truesize,cy.truesize);
+      w=length(w)*unit(shiftless(t)*w);
+      coord Cx,Cy;
+      Cx.user=(tinf.x == 0 ? z.x : infinity);
+      Cy.user=(tinf.y == 0 ? z.y : infinity);
+      Cx.truesize=w.x;
+      Cy.truesize=w.y;
+      push(Cx,Cy);
+    }
+  }
+  void xclip(real min, real max) {
+    for(int i=0; i < x.length; ++i) 
+      x[i].clip(min,max);
+  }
+  void yclip(real min, real max) {
+    for(int i=0; i < y.length; ++i) 
+      y[i].clip(min,max);
   }
 }
+  
+coords2 operator init() {return new coords2;}
 
 bool operator <= (coord a, coord b)
 {
@@ -648,28 +682,39 @@ struct picture {
   
   // The coordinates in flex space to be used in sizing the picture.
   struct bounds {
-    coord[] min;
-    coord[] max;
-    coord[] point;
+    coords2 point,min,max;
     void erase() {
-      min=new coord[];
-      max=new coord[];
-      point=new coord[];
+      point.erase();
+      min.erase();
+      max.erase();
     }
-    // Only a shallow copy of the individual elements of min and max
-    // is needed since, once entered, they are never modified.
     bounds copy() {
       bounds b=new bounds;
-      b.min=copy(min);
-      b.max=copy(max);
-      b.point=copy(point);
+      b.point=point.copy();
+      b.min=min.copy();
+      b.max=max.copy();
       return b;
+    }
+    void xclip(real Min, real Max) {
+      point.xclip(Min,Max);
+      min.xclip(Min,Max);
+      max.xclip(Min,Max);
+    }
+    void yclip(real Min, real Max) {
+      point.yclip(Min,Max);
+      min.yclip(Min,Max);
+      max.yclip(Min,Max);
+    }
+    void clip(pair Min, pair Max) {
+      xclip(Min.x,Max.x);
+      yclip(Min.y,Max.y);
     }
   }
   
   bounds operator init() {return new bounds;}
-  bounds xcoords,ycoords;
-
+  
+  bounds bounds;
+    
   // Transform to be applied to this picture.
   public transform T;
   
@@ -694,8 +739,7 @@ struct picture {
   // Erase the current picture, retaining any size specification.
   void erase() {
     nodes=new drawerBound[];
-    xcoords.erase();
-    ycoords.erase();
+    bounds.erase();
     T=identity();
     scale=new ScaleT;
     legend=new Legend[];
@@ -726,16 +770,7 @@ struct picture {
 
   void clip(drawer d) {
     if(interact()) uptodate=false;
-    for(int i=0; i < xcoords.min.length; ++i) {
-      xcoords.min[i].clip(userMin.x,userMax.x);
-      xcoords.max[i].clip(userMin.x,userMax.x);
-      ycoords.min[i].clip(userMin.y,userMax.y);
-      ycoords.max[i].clip(userMin.y,userMax.y);
-    }
-    for(int i=0; i < xcoords.point.length; ++i) {
-      xcoords.point[i].clip(userMin.x,userMax.x);
-      ycoords.point[i].clip(userMin.y,userMax.y);
-    }
+    bounds.clip(userMin,userMax);
     nodes.push(new void (frame f, transform t, transform T, pair, pair) {
       d(f,t*T);
     });
@@ -743,8 +778,7 @@ struct picture {
 
   // Add a point to the sizing.
   void addPoint(pair user, pair truesize=0) {
-    xcoords.point.push(coord.build(user.x,truesize.x));
-    ycoords.point.push(coord.build(user.y,truesize.y));
+    bounds.point.push(user,truesize);
     userBox(user,user);
   }
   
@@ -756,11 +790,8 @@ struct picture {
   
   // Add a box to the sizing.
   void addBox(pair userMin, pair userMax, pair trueMin=0, pair trueMax=0) {
-    // Add in all 4 corner points, to handle rotations properly
-    xcoords.min.push(coord.build(userMin.x,trueMin.x));
-    xcoords.max.push(coord.build(userMax.x,trueMax.x));
-    ycoords.min.push(coord.build(userMin.y,trueMin.y));
-    ycoords.max.push(coord.build(userMax.y,trueMax.y));
+    bounds.min.push(userMin,trueMin);
+    bounds.max.push(userMax,trueMax);
     userBox(userMin,userMax);
   }
 
@@ -824,12 +855,12 @@ struct picture {
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
-    return (min(min(xs,xcoords.min),
-		min(xs,xcoords.max),
-		min(xs,xcoords.point)),
-	    min(min(ys,ycoords.min),
-		min(ys,ycoords.max),
-		min(ys,ycoords.point)));
+    return (min(min(xs,bounds.min.x),
+		min(xs,bounds.max.x),
+		min(xs,bounds.point.x)),
+	    min(min(ys,bounds.min.y),
+		min(ys,bounds.max.y),
+		min(ys,bounds.point.y)));
   }
 
   // Calculate the max for the final picture, given the transform of coords.
@@ -837,12 +868,12 @@ struct picture {
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
-    return (max(max(xs,xcoords.min),
-		max(xs,xcoords.max),
-		max(xs,xcoords.point)),
-	    max(max(ys,ycoords.min),
-		max(ys,ycoords.max),
-		max(ys,ycoords.point)));
+    return (max(max(xs,bounds.min.x),
+		max(xs,bounds.max.x),
+		max(xs,bounds.point.x)),
+	    max(max(ys,bounds.min.y),
+		max(ys,bounds.max.y),
+		max(ys,bounds.point.y)));
   }
 
   // Calculate the sizing constants for the given array and maximum size.
@@ -881,24 +912,21 @@ struct picture {
     }
   }
 
-  void append(coord[] Xmin, coord[] Ymin, coord[] Xmax, coord[] Ymax,
-	      coord[] Xpoint, coord[] Ypoint,
-	      transform t, bounds xcoords, bounds ycoords) 
+  void append(coords2 point, coords2 min, coords2 max, transform t,
+	      bounds bounds) 
   {
     // Add the coord info to this picture.
     if(t == identity()) {
-      Xmin.append(xcoords.min);
-      Ymin.append(ycoords.min);
-      Xmax.append(xcoords.max);
-      Ymax.append(ycoords.max);
-      Xpoint.append(xcoords.point);
-      Ypoint.append(ycoords.point);
+      point.append(bounds.point);
+      min.append(bounds.min);
+      max.append(bounds.max);
     } else {
-      append(Xpoint,Ypoint,t,xcoords.min,ycoords.min);
-      append(Xpoint,Ypoint,t,xcoords.min,ycoords.max);
-      append(Xpoint,Ypoint,t,xcoords.max,ycoords.min);
-      append(Xpoint,Ypoint,t,xcoords.max,ycoords.max);
-      append(Xpoint,Ypoint,t,xcoords.point,ycoords.point);
+      point.push(t,bounds.point,bounds.point);
+      // Add in all 4 corner points, to properly size rectangular pictures.
+      point.push(t,bounds.min,bounds.min);
+      point.push(t,bounds.min,bounds.max);
+      point.push(t,bounds.max,bounds.min);
+      point.push(t,bounds.max,bounds.max);
     }
   }
   
@@ -907,22 +935,22 @@ struct picture {
     if (xsize == 0 && ysize == 0)
       return identity();
     
-    coord[] Xcoords,Ycoords;
+    coords2 Coords;
     
-    append(Xcoords,Ycoords,Xcoords,Ycoords,Xcoords,Ycoords,T,xcoords,ycoords);
+    append(Coords,Coords,Coords,T,bounds);
     
     if (ysize == 0) {
-      scaling sx=calculateScaling(Xcoords,xsize);
+      scaling sx=calculateScaling(Coords.x,xsize);
       return scale(sx.a);
     }
     
     if (xsize == 0) {
-      scaling sy=calculateScaling(Ycoords,ysize);
+      scaling sy=calculateScaling(Coords.y,ysize);
       return scale(sy.a);
     }
     
-    scaling sx=calculateScaling(Xcoords,xsize);
-    scaling sy=calculateScaling(Ycoords,ysize);
+    scaling sx=calculateScaling(Coords.x,xsize);
+    scaling sy=calculateScaling(Coords.y,ysize);
     if (keepAspect)
       return scale(min(sx.a,sy.a));
     else
@@ -983,8 +1011,7 @@ struct picture {
   picture copy() {
     picture dest=drawcopy();
 
-    dest.xcoords=xcoords.copy();
-    dest.ycoords=ycoords.copy();
+    dest.bounds=bounds.copy();
     
     dest.xsize=xsize; dest.ysize=ysize; dest.keepAspect=keepAspect;
     return dest;
@@ -1011,8 +1038,7 @@ struct picture {
     
     userBox(src.userMin,src.userMax);
     
-    append(xcoords.min,ycoords.min,xcoords.max,ycoords.max,
-	   xcoords.point,ycoords.point,srcCopy.T,src.xcoords,src.ycoords);
+    append(bounds.point,bounds.min,bounds.max,srcCopy.T,src.bounds);
   }
 }
 

@@ -13,7 +13,7 @@ typedef ticks paletteticks(real Size);
 
 paletteticks PaletteTicks(int N=0, real Step=0,
 			  bool beginlabel=true, bool endlabel=true,
-			  Label format="", pen pTick=nullpen)
+			  Label format=defaultformat, pen pTick=nullpen)
 {
   return new ticks(real Size) {
     format.align(RightSide);
@@ -25,8 +25,7 @@ paletteticks PaletteTicks(int N=0, real Step=0,
 public paletteticks PaletteTicks=PaletteTicks();
 
 picture palette(real[][] data, real width=Ticksize, pen[] palette,
-		Label L, pair side=right, pen p=currentpen,
-		paletteticks ticks=PaletteTicks)
+		Label L, pen p=currentpen, paletteticks ticks=PaletteTicks)
 {
   Label L=L.copy();
   if(L.defaultposition) L.position(0.5);
