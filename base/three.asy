@@ -1,5 +1,6 @@
 import math;
 
+triple O=(0,0,0);
 triple X=(1,0,0), Y=(0,1,0), Z=(0,0,1);
 
 real[] operator ecast(triple v)
@@ -86,9 +87,21 @@ transform3 rotate(real angle, triple v)
 
 // A transformation representing rotation by an angle in degrees about
 // the line u--v (in the right-handed direction).
-transform3 rotate(real angle, triple v, triple u)
+transform3 rotate(real angle, triple u, triple v)
 {
   return shift(u)*rotate(angle,v)*shift(-u);
+}
+
+transform3 reflect(triple u, triple v, triple w)
+{
+  triple normal=cross(v-u,w-u);
+  if(normal == O)
+    abort("points determining plane to reflect about cannot be colinear");
+  transform3 basis=shift(u);
+  if(normal.x != 0 || normal.y != 0)
+    basis *= rotate(longitude(normal),Z)*rotate(colatitude(normal),Y);
+  
+  return basis*zscale3(-1)*inverse(basis);
 }
 
 // Transformation corresponding to moving the camera from the origin (looking

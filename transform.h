@@ -190,7 +190,7 @@ inline transform rotatearound(pair z, double theta)
 inline transform reflectabout(pair z, pair w)
 {
   if (z == w)
-    reportError("must reflect about line determined by two distinct points");
+    reportError("points determining line to reflect about must be distinct");
   
   // Also could be optimized.
   transform basis = shift(z) * scale(w-z);

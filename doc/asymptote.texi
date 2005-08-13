@@ -1516,9 +1516,9 @@ equivalent to multiplication by @code{z};
 maps @code{(x,y)} --> @code{(x+s*y,y)};
 @item rotate(real angle, pair z=(0,0))
 rotates by @code{angle} in degrees about @code{z};
-@item reflect(pair z, pair w)
+@item reflect(pair a, pair b)
 @cindex @code{reflect}
-reflects about the line @code{z--w}.
+reflects about the line @code{a--b}.
 @end table
 
 The implicit initializer for transforms is @code{identity()}.
@@ -3247,8 +3247,8 @@ void ytick(picture pic=currentpicture, Label L="", real y,
            real size=Ticksize, pen p=currentpen);
 void tick(picture pic=currentpicture, pair z,
           pair dir, real size=Ticksize, pen p=currentpen);
-void labelx(picture pic=currentpicture, Label L="", pair z, align align=S,
-            string format=defaultformat, pen p=nullpen);
+void labelx(picture pic=currentpicture, Label L="", pair z,
+            align align=S, string format=defaultformat, pen p=nullpen);
 void labelx(picture pic=currentpicture, Label L,
             string format=defaultformat, explicit pen p=currentpen);
 void labely(picture pic=currentpicture, Label L="", explicit pair z,
@@ -3544,8 +3544,12 @@ scales by @code{z} in the @math{z} direction;
 @item scale(real s)
 @cindex @code{scale}
 scales by @code{s} in the @math{x}, @math{y}, and @math{z} directions;
-@item rotate(real angle, triple v, triple u=(0,0,0))
+@item rotate(real angle, triple v)
+rotates by @code{angle} in degrees about an axis @code{v} through the origin;
+@item rotate(real angle, triple u, triple v)
 rotates by @code{angle} in degrees about the axis @code{u--v};
+@item reflect(triple u, triple v, triple w)
+reflects about the plane through @code{u}, @code{v}, and @code{w}.
 @end table
 
 Here is an example of a helix using an orthographic projection:
@@ -4077,7 +4081,7 @@ void dot(picture pic=currentpicture, pair z);
 void dot(picture pic=currentpicture, pair z, pen p);
 void dot(picture pic=currentpicture, pair[] z, pen p=currentpen);
 void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
-	 string format=defaultformat, pen p=currentpen)
+         string format=defaultformat, pen p=currentpen)
 void dot(picture pic=currentpicture, Label L, pen p=currentpen)
 @end verbatim
 
@@ -4169,7 +4173,7 @@ pen array @code{p} on a triangular lattice defined by the vertices
 @code{z} and edge flags @code{edges} is implemented with
 @verbatim
 void fill(picture pic=currentpicture, path g, pen fillrule=currentpen,
-	  pen[] p, pair[] z, int[] edges);
+          pen[] p, pair[] z, int[] edges);
 @end verbatim
 @noindent
 An illustration of Gouraud shading is provided in the example file
@@ -4205,11 +4209,11 @@ void label(picture pic=currentpicture, Label L, pair position,
 @end verbatim
 
 Draw Label @code{L} on picture @code{pic} using pen @code{p}. If
-@code{align} is @code{NoAlign}, the label will be centered at at user
+@code{align} is @code{NoAlign}, the label will be centered at user
 coordinate @code{position}; otherwise it will be aligned in the
 direction of @code{align} and displaced from @code{position} by
 the @code{PostScript} offset @code{align*labelmargin(p)}.
-If the pen @code{p} is @code{nullpen}, the pen specified within the
+If @code{p} is @code{nullpen}, the pen specified within the
 Label, which defaults to @code{currentpen}, will be used.
 
 @anchor{Label}
@@ -4223,9 +4227,11 @@ Label Label(Label L, pair position, align align=NoAlign);
 Label Label(Label L, align align=NoAlign);
 @end verbatim
 The text of a Label can be rotated by an angle by
-multiplying by the left by a rotation (in degrees): @code{rotate(45)*L}.
-The final position of a Label can also be shifted by a
-@code{PostScript} coordinate translation like this: @code{shift(10,0)*L}.
+multiplying on the left with a rotation (in degrees): for example,
+@code{rotate(45)*L} rotates @code{L} counterclockwise by 45
+degrees. The final position of a Label can also be shifted by a
+@code{PostScript} coordinate translation like this:
+@code{shift(10,0)*L}.
 
 To add a label to a path, use
 @verbatim
@@ -4672,7 +4678,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  dpx dpy dmx dmy barsize arrowheadsize BeginDotMargin DotMargin
 @c  LocalWords:  EndDotMargin DotMargins NColors BWRainbow colorspace labelled
 @c  LocalWords:  PaletteTicks defaultformat leastsquares bjam fprintf endgroup
-@c  LocalWords:  begingroup xmargin ymargin pbox box ellipse wget exe
+@c  LocalWords:  begingroup xmargin ymargin pbox box ellipse wget exe Gouraud
 @c  LocalWords:  multithreaded newframe init emph nums concat xline yline zpart
 @c  LocalWords:  colatitude zscale noView cosh nullpen
 @c  LocalWords:  nodeps Ghostgum beginlabel endlabel pTick ptick loggrid
