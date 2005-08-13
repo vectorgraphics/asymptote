@@ -96,7 +96,7 @@ static struct problem {
     // Find the lowest constant term in the equations.
     var lowest = 0;
     for (var i = 2; i < rows.length; ++i) {
-      if (rows[i].c < rows[lowest].c)
+      if (rows[i].c <= rows[lowest].c)
         lowest = i;
     }
 
@@ -183,7 +183,7 @@ static struct problem {
   int optimize()
   {
     // Put into a valid state to begin.
-    if (!valid())
+//    if (!valid())
       init();
 
     if (!valid())
