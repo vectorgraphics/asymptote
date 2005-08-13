@@ -1238,6 +1238,9 @@ Cyan,Magenta,Yellow,Black.
 
 @cindex @code{colors}
 The function @code{real[] colors(pen)} returns the color components of a pen.
+The functions @code{pen gray(pen)}, @code{pen rgb(pen)},  and
+@code{pen cmyk(pen)} return new pens obtained by converting their
+arguments to the respective color spaces. 
 
 @item Line types are specified with the function 
 @code{pen linetype(string s, bool scale=true)},
@@ -4141,9 +4144,22 @@ fill(opic,g,p);
 add(origin,pic,opic);
 @end verbatim
 
-@cindex shading
 @anchor{gradient shading}
 @cindex gradient shading
+
+@cindex shading
+@cindex lattice shading
+Lattice gradient shading varying smoothly over a two-dimensional
+array of pens @code{p}, using fillrule @code{fillrule}, can be produced with
+@verbatim
+void fill(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
+	  pen[][] p)
+@end verbatim
+The pens in @code{p} must belong to the same colour space. One can use the
+functions @code{rgb(pen)} or @code{cmyk(pen)} to promote pens to a
+higher colour space, as illustrated in the example file
+@code{latticeshading.asy}.
+
 @cindex axial shading
 Axial gradient shading varying smoothly from @code{pena} to @code{penb} in the
 direction of the line segment @code{a--b} can be achieved with
@@ -4176,6 +4192,7 @@ void fill(picture pic=currentpicture, path g, pen fillrule=currentpen,
           pen[] p, pair[] z, int[] edges);
 @end verbatim
 @noindent
+The pens in @code{p} must belong to the same colour space.
 An illustration of Gouraud shading is provided in the example file
 @code{Gouraud.asy}.
 

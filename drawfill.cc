@@ -58,6 +58,11 @@ drawElement *drawFill::transformed(const transform& t)
   return new drawFill(transpath(t),transpen(t));
 }
   
+drawElement *drawLatticeShade::transformed(const transform& t)
+{
+  return new drawLatticeShade(transpath(t),pentype,pens);
+}
+
 drawElement *drawAxialShade::transformed(const transform& t)
 {
   pair A=t*a, B=t*b;

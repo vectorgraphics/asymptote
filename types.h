@@ -285,6 +285,7 @@ ty *realArray2();
 ty *pairArray2();
 ty *tripleArray2();
 ty *stringArray2();
+ty *penArray2();
 
 ty *boolArray3();
 ty *intArray3();

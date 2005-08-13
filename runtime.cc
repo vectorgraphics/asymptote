@@ -1452,6 +1452,22 @@ void invisiblePen(stack *s)
   s->push(new pen(invisiblepen));
 }
 
+void grayPen(stack *s)
+{
+  pen p=*(pop<pen*>(s));
+  if(p.rgb()) p.rgbtogrey();
+  else if (p.cmyk()) p.cmyktogrey();
+  s->push(p);
+}
+
+void rgbPen(stack *s)
+{
+  pen p=*(pop<pen*>(s));
+  if(p.grayscale()) p.greytorgb();
+  else if (p.cmyk()) p.cmyktorgb();
+  s->push(p);
+}
+
 void rgb(stack *s)
 {
   double b = pop<double>(s);
@@ -1708,6 +1724,17 @@ void fill(stack *s)
   pic->append(new drawFill(p,*n));
 }
  
+void latticeShade(stack *s)
+{
+  array *pens=copyArray(s);
+  pen *n = pop<pen*>(s);
+  array *p=copyArray(s);
+  picture *pic = pop<picture*>(s);
+  checkArray(p);
+  checkArray(pens);
+  pic->append(new drawLatticeShade(p,*n,pens));
+}
+ 
 void axialShade(stack *s)
 {
   pair b = pop<pair>(s);
@@ -1804,9 +1831,7 @@ void image(stack *s)
   array *p=copyArray(s);
   array *a=copyArray2(s);
   picture *pic = pop<picture*>(s);
-  pair size=final-initial;
-  drawImage *d = new drawImage(a,p,transform(initial.getx(),initial.gety(),
-					     size.getx(),0,0,size.gety()));
+  drawImage *d = new drawImage(a,p,matrix(initial,final));
   pic->append(d);
 }
   

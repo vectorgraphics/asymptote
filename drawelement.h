@@ -222,6 +222,7 @@ class drawSuperPathPenBase : public drawPathPenBase {
 protected:
   vm::array *P;
   size_t size;
+  bbox bcache;
 
   vm::array *transpath(const transform& t) const {
     vm::array *Pt=new vm::array(size);
@@ -249,6 +250,7 @@ public:
   void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&) {
     for(size_t i=0; i < size; i++)
       b += vm::read<path>(P,i).bounds();
+    bcache=b;
   }
   
   void writepath(psfile *out) {

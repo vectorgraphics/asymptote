@@ -110,6 +110,10 @@ static pen lightblue=darkgreen+blue;
 static pen lavender=brown+darkgreen+blue;
 static pen pink=red+darkgreen+blue;
 
+pen cmyk(pen p) {
+  return p+cmyk;
+}
+
 // Global parameters:
 static public real labelmargin=0.3;
 static public real arrowlength=0.75cm;
@@ -1390,6 +1394,19 @@ void fill(picture pic=currentpicture, path[] g, pen p=currentpen)
   g=copy(g);
   pic.add(new void (frame f, transform t) {
     fill(f,t*g,p);
+  });
+  for(int i=0; i < g.length; ++i) 
+    pic.addPath(g[i]);
+}
+
+// lattice shading
+void fill(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
+	  pen[][] p)
+{
+  g=copy(g);
+  p=copy(p);
+  pic.add(new void (frame f, transform t) {
+    fill(f,t*g,fillrule,p);
   });
   for(int i=0; i < g.length; ++i) 
     pic.addPath(g[i]);

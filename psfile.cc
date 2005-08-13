@@ -13,6 +13,7 @@
 #include "psfile.h"
 #include "settings.h"
 #include "errormsg.h"
+#include "array.h"
 
 using std::ofstream;
 using std::setw;
@@ -149,6 +150,58 @@ void psfile::write(path p, bool newPath)
   }    
 }
 
+// Lattice shading
+void psfile::shade(array *a, const bbox& b)
+{
+  size_t n=a->size();
+  if(n == 0) return;
+  
+  array *a0=read<array *>(a,0);
+  size_t m=a0->size();
+
+  pen *p=read<pen *>(a0,0);
+  ColorSpace colorspace=p->colorspace();
+  unsigned ncomponents=ColorComponents[colorspace];
+  
+  *out << "<< /ShadingType 1" << newl
+       << "/Matrix ";
+
+  write(shift(Shift)*matrix(b.Min(),b.Max()));
+  *out << newl;
+  *out << "/ColorSpace /Device" << ColorDeviceSuffix[colorspace] << newl
+       << "/Function" << newl
+       << "<< /FunctionType 0" << newl
+       << "/Order 1" << newl
+       << "/Domain [0 1 0 1]" << newl
+       << "/Range [0 1 0 1 0 1]" << newl
+       << "/Decode [";
+  
+  for(unsigned i=0; i < ncomponents; ++i)
+    *out << "0 1 ";
+  
+  *out << "]" << newl;
+  *out << "/BitsPerSample 8" << newl;
+  *out << "/Size [" << m << " " << n << "]" << newl
+       << "/DataSource <" << newl;
+  for(size_t i=n; i > 0;) {
+    array *ai=read<array *>(a,--i);
+    checkArray(ai);
+    size_t aisize=ai->size();
+    if(aisize != m) reportError("shading matrix must be rectangular");
+    for(size_t j=0; j < m; j++) {
+	pen *p=read<pen *>(ai,j);
+	if(p->colorspace() != colorspace)
+	  reportError("inconsistent shading colorspaces");
+	writeHex(p,ncomponents);
+      }
+    }
+  *out << ">" << newl
+       << ">>" << newl
+       << ">>" << newl
+       << "shfill" << newl;
+}
+
+// Axial and radial shading
 void psfile::shade(bool axial, const string& colorspace,
 		   const pen& pena, const pair& a, double ra,
 		   const pen& penb, const pair& b, double rb)
@@ -177,14 +230,18 @@ void psfile::shade(bool axial, const string& colorspace,
        << "shfill" << newl;
 }
   
+// Gouraud shading
 void psfile::shade(array *pens, array *vertices, array *edges)
 {
+  size_t size=pens->size();
+  if(size == 0) return;
+  
   pen *p=read<pen *>(pens,0);
   ColorSpace colorspace=p->colorspace();
-  size_t size=pens->size();
+
   *out << "<< /ShadingType 4" << newl
        << "/ColorSpace /Device" << ColorDeviceSuffix[colorspace] << newl
-       << "/DataSource [";
+       << "/DataSource [" << newl;
   for(size_t i=0; i < size; i++) {
     write(read<int>(edges,i));
     write(read<pair>(vertices,i));
@@ -199,7 +256,7 @@ void psfile::shade(array *pens, array *vertices, array *edges)
        << ">>" << newl
        << "shfill" << newl;
 }
-
+ 
 inline unsigned int byte(double r) // Map [0,1] to [0,255]
 {
   if(r < 0.0) r=0.0;
@@ -209,15 +266,40 @@ inline unsigned int byte(double r) // Map [0,1] to [0,255]
   return a;
 }
 
+void psfile::writeHex(pen *p, int ncomponents) {
+  switch(ncomponents) {
+  case 0:
+    break;
+  case 1: 
+    writeHex(byte(p->gray())); 
+    *out << newl;
+    break;
+  case 3:
+    writeHex(byte(p->red())); 
+    writeHex(byte(p->green())); 
+    writeHex(byte(p->blue())); 
+    *out << newl;
+    break;
+  case 4:
+    writeHex(byte(p->cyan())); 
+    writeHex(byte(p->magenta())); 
+    writeHex(byte(p->yellow())); 
+    writeHex(byte(p->black())); 
+    *out << newl;
+  default:
+    break;
+  }
+}
+
 void psfile::image(array *a, array *P)
 {
-  size_t asize=(size_t) a->size();
-  size_t Psize=(size_t) P->size();
+  size_t asize=a->size();
+  size_t Psize=P->size();
   
   if(asize == 0 || Psize == 0) return;
   
   array *a0=read<array *>(a,0);
-  size_t a0size=(size_t) a0->size();
+  size_t a0size=a0->size();
   
   pen *p=read<pen *>(P,0);
   ColorSpace colorspace=p->colorspace();
@@ -259,31 +341,11 @@ void psfile::image(array *a, array *P)
     for(size_t j=0; j < a0size; j++) {
       double val=read<double>(ai,j);
       pen *p=read<pen *>(P,(int) ((val-min)*step+0.5));
+      
       if(p->colorspace() != colorspace)
 	reportError("inconsistent colorspaces in palette");
   
-      switch(ncomponents) {
-      case 0:
-	break;
-      case 1: 
-	writeHex(byte(p->gray())); 
-	*out << newl;
-	break;
-      case 3:
-	writeHex(byte(p->red())); 
-	writeHex(byte(p->green())); 
-	writeHex(byte(p->blue())); 
-	*out << newl;
-	break;
-      case 4:
-	writeHex(byte(p->cyan())); 
-	writeHex(byte(p->magenta())); 
-	writeHex(byte(p->yellow())); 
-	writeHex(byte(p->black())); 
-	*out << newl;
-      default:
-	break;
-      }
+      writeHex(p,ncomponents);
     }
   }
   

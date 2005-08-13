@@ -205,7 +205,11 @@ inline transform shiftless(transform t)
   return transform(0, 0, t.getxx(), t.getxy(), t.getyx(), t.getyy());
 } 
 
-
+inline transform matrix(pair lb, pair rt)
+{
+  pair size=rt-lb;
+  return transform(lb.getx(),lb.gety(),size.getx(),0,0,size.gety());
+}
 
 } //namespace camp
 

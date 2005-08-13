@@ -68,6 +68,8 @@ public:
     *out << " " << x;
   }
 
+  void writeHex(pen *p, int ncomponents);
+  
   void resetpen() {
     lastpen=pen(initialpen);
     lastpen.convert();
@@ -118,6 +120,8 @@ public:
   void clip(FillRule fillrule) {
     *out << (fillrule == EVENODD ? " eoclip" : " clip") << newl;
   }
+  
+  void shade(vm::array *a, const bbox& b);
   
   void shade(bool axial, const string& colorspace,
 	     const pen& pena, const pair& a, double ra,

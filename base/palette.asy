@@ -3,6 +3,8 @@ static import graph;
 void image(picture pic=currentpicture, real[][] data, pen[] palette,
 	   pair initial, pair final)
 {
+  data=copy(data);
+  palette=copy(palette);
   pic.add(new void (frame f, transform t) {
     image(f,data,palette,t*initial,t*final);
     });
@@ -27,6 +29,8 @@ public paletteticks PaletteTicks=PaletteTicks();
 picture palette(real[][] data, real width=Ticksize, pen[] palette,
 		Label L, pen p=currentpen, paletteticks ticks=PaletteTicks)
 {
+  data=copy(data);
+  palette=copy(palette);
   Label L=L.copy();
   if(L.defaultposition) L.position(0.5);
   L.align(E);

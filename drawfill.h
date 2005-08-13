@@ -13,8 +13,6 @@
 
 namespace camp {
 
-enum Shading {NONE,AXIAL,RADIAL,GOURAUD};
-  
 class drawFill : public drawSuperPathPenBase {
 public:
   void noncyclic() {
@@ -53,6 +51,24 @@ public:
     shade(out);
     out->grestore();
   }
+};
+  
+class drawLatticeShade : public drawShade {
+protected:
+  vm::array *pens;
+public:  
+  drawLatticeShade(vm::array *src, pen pentype, vm::array *pens)
+    : drawShade(src,pentype), pens(pens) {}
+  
+  void palette(psfile *out) {
+    out->gsave();
+  }
+  
+  void shade(psfile *out) {
+    out->shade(pens,bcache);
+  }
+  
+  drawElement *transformed(const transform& t);
 };
   
 class drawAxialShade : public drawShade {

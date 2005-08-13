@@ -123,10 +123,10 @@ pair intersectionpoint(path a, path b)
   return point(a,intersect(a,b).x);
 }
 
-// Compute normal vector to the plane defined by the first 3 vectors of p.
+// Compute normal vector to the plane defined by the first 3 elements of p.
 triple normal(triple[] p)
 {
-  if(p.length < 3) abort("3 vectors are required to define a plane");
+  if(p.length < 3) abort("3 points are required to define a plane");
   return cross(p[1]-p[0],p[2]-p[0]);
 }
 

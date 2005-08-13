@@ -9,7 +9,6 @@
 #ifndef RUNTIME_H
 #define RUNTIME_H
 
-#include "vm.h"
 #include "array.h"
 
 namespace vm {
@@ -208,6 +207,8 @@ void newPen(vm::stack *s);
 void resetdefaultPen(vm::stack *s);
 void setDefaultPen(vm::stack *s);
 void invisiblePen(vm::stack *s);
+void grayPen(vm::stack *s);
+void rgbPen(vm::stack *s);
 void rgb(vm::stack *s);
 void cmyk(vm::stack *s);
 void gray(vm::stack *s);
@@ -247,6 +248,7 @@ void boolNullFrame(vm::stack *s);
 void frameMax(vm::stack *s);
 void frameMin(vm::stack *s);
 void fill(vm::stack *s);
+void latticeShade(vm::stack *s);
 void axialShade(vm::stack *s);
 void radialShade(vm::stack *s);
 void gouraudShade(vm::stack *s);
@@ -308,24 +310,7 @@ void exitFunction(vm::stack *s);
 // Utils
 vm::array *copyArray(vm::stack *s);
 vm::array *copyArray2(vm::stack *s);
-
-inline bool checkArray(vm::array *a)
-{
-  if(a == 0) vm::error("dereference of null array");
-  return true;
-}
-
-inline size_t checkArrays(vm::array *a, vm::array *b) 
-{
-  checkArray(a);
-  checkArray(b);
-  
-  size_t asize=a->size();
-  if(asize != b->size())
-    vm::error("operation attempted on arrays of different lengths.");
-  return asize;
-}
-  
+ 
 } // namespace run
 
 #endif

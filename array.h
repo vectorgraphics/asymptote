@@ -8,6 +8,7 @@
 #ifndef ARRAY_H
 #define ARRAY_H
 
+#include "vm.h"
 #include "memory.h"
 #include "item.h"
 
@@ -45,6 +46,23 @@ inline T read(array *a, size_t i)
   return a->array::read<T>(i);
 }
 
+inline bool checkArray(vm::array *a)
+{
+  if(a == 0) vm::error("dereference of null array");
+  return true;
+}
+
+inline size_t checkArrays(vm::array *a, vm::array *b) 
+{
+  checkArray(a);
+  checkArray(b);
+  
+  size_t asize=a->size();
+  if(asize != b->size())
+    vm::error("operation attempted on arrays of different lengths.");
+  return asize;
+}
+ 
 } // namespace vm
 
 #endif // ARRAY_H

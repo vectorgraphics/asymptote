@@ -458,6 +458,8 @@ void base_venv(venv &ve)
 
   addFunc(ve,run::fill,primVoid(),"fill",primPicture(),pathArray(),
 	  primPen());
+  addFunc(ve,run::latticeShade,primVoid(),"fill",primPicture(),pathArray(),
+	  primPen(),penArray2());
   addFunc(ve,run::axialShade,primVoid(),"fill",primPicture(),pathArray(),
 	  primPen(),primPair(),primPen(),primPair());
   addFunc(ve,run::radialShade,primVoid(),"fill",primPicture(),pathArray(),
@@ -582,6 +584,8 @@ void base_venv(venv &ve)
   addFunc(ve,run::frameMin,primPair(),"min",primPicture());
   
   addFunc(ve,run::lineType,primPen(),"linetype",primString(),primBoolean());
+  addFunc(ve,run::grayPen,primPen(),"gray",primPen());
+  addFunc(ve,run::rgbPen,primPen(),"rgb",primPen());
   addFunc(ve,run::rgb,primPen(),"rgb",primReal(),primReal(),primReal());
   addFunc(ve,run::cmyk,primPen(),"cmyk",primReal(),primReal(),primReal(),
 	  primReal());
