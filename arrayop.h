@@ -40,7 +40,7 @@ void arrayOp(vm::stack *s)
   T b=pop<T>(s);
   array *a=pop<array*>(s);
   checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
       (*c)[i]=op<T>()(read<T>(a,i),b,i);
@@ -53,7 +53,7 @@ void opArray(vm::stack *s)
   array *a=pop<array*>(s);
   T b=pop<T>(s);
   checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
       (*c)[i]=op<T>()(b,read<T>(a,i),i);
@@ -65,7 +65,7 @@ void arrayNegate(vm::stack *s)
 {
   array *a=pop<array*>(s);
   checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
     (*c)[i]=-read<T>(a,i);
@@ -77,7 +77,7 @@ void sumArray(vm::stack *s)
 {
   array *a=pop<array*>(s);
   checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   T sum=0;
   for(size_t i=0; i < size; i++)
     sum += read<T>(a,i);
@@ -89,7 +89,7 @@ void maxArray(vm::stack *s)
 {
   array *a=pop<array*>(s);
   checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   if(size == 0) vm::error("cannot take max of empty array");
   T m=read<T>(a,0);
   for(size_t i=1; i < size; i++) {
@@ -104,7 +104,7 @@ void minArray(vm::stack *s)
 {
   array *a=pop<array*>(s);
   checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   if(size == 0) vm::error("cannot take min of empty array");
   T m=read<T>(a,0);
   for(size_t i=1; i < size; i++) {
@@ -136,8 +136,8 @@ struct compare2 {
   {
     array *a=vm::get<array*>(A);
     array *b=vm::get<array*>(B);
-    size_t size=(size_t) a->size();
-    if(size != (size_t) b->size()) return false;
+    size_t size=a->size();
+    if(size != b->size()) return false;
 
     for(size_t j=0; j < size; j++) {
       if(read<T>(a,j) < read<T>(b,j)) return true;
@@ -259,7 +259,7 @@ void showArray(vm::stack *s)
   if(settings::suppressStandard) return;
   camp::Stdout.resetlines();
   checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   for(size_t i=0; i < size; i++) {
     std::cout << i << ":\t";
     camp::Stdout.write(read<T>(a,i));
@@ -276,7 +276,7 @@ void writeArray(vm::stack *s)
   if(!f->isOpen()) return;
   if(f->Standard() && settings::suppressStandard) return;
   checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   for(size_t i=0; i < size; i++) {
     f->write(read<T>(a,i));
     if(f->text()) f->writeline();
@@ -289,11 +289,11 @@ void outArray2(camp::file *f, array *a)
 {
   if(f->Standard() && settings::suppressStandard) return;
   checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   for(size_t i=0; i < size; i++) {
     array *ai=read<array*>(a,i);
     checkArray(ai);
-    size_t aisize=(size_t) ai->size();
+    size_t aisize=ai->size();
     for(size_t j=0; j < aisize; j++) {
       if(j > 0 && f->text()) f->write(tab);
       f->write(read<T>(ai,j));
@@ -324,15 +324,15 @@ void outArray3(camp::file *f, array *a)
 {
   if(f->Standard() && settings::suppressStandard) return;
   checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   for(size_t i=0; i < size; i++) {
     array *ai=read<array*>(a,i);
     checkArray(ai);
-    size_t aisize=(size_t) ai->size();
+    size_t aisize=ai->size();
     for(size_t j=0; j < aisize; j++) {
       array *aij=read<array*>(ai,j);
       checkArray(aij);
-      size_t aijsize=(size_t) aij->size();
+      size_t aijsize=aij->size();
       for(size_t k=0; k < aijsize; k++) {
 	if(k > 0 && f->text()) f->write(tab);
 	f->write(read<T>(aij,k));
@@ -365,7 +365,7 @@ void realArrayFunc(vm::stack *s)
 {
   array *a=pop<array*>(s);
   checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   array *c=new array(size);
   for(size_t i=0; i < size; i++) {
     double x=read<double>(a,i);

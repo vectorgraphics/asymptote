@@ -477,7 +477,7 @@ void arrayAppendHelper(stack *s)
   array *b = pop<array*>(s);
   checkArray(a);
   checkArray(b);
-  size_t size=(size_t) b->size();
+  size_t size=b->size();
   for(size_t i=0; i < size; i++)
     a->push((*b)[i]);
 }
@@ -515,7 +515,7 @@ void arrayConditional(stack *s)
   array *c=pop<array*>(s);
   array *b=pop<array*>(s);
   array *a=pop<array*>(s);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   array *r=new array(size);
   if(b && c) {
     checkArrays(a,b);
@@ -545,8 +545,8 @@ void arrayIntArray(stack *s)
   array *a=pop<array*>(s);
   checkArray(a);
   checkArray(b);
-  size_t asize=(size_t) a->size();
-  size_t bsize=(size_t) b->size();
+  size_t asize=a->size();
+  size_t bsize=b->size();
   array *r=new array(bsize);
   for(size_t i=0; i < bsize; i++) {
     int index=read<int>(b,i);
@@ -591,7 +591,7 @@ void arrayFunction(stack *s)
   array *a=pop<array*>(s);
   callable* f = pop<callable*>(s);
   checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   array *b=new array(size);
   for(size_t i=0; i < size; ++i) {
     s->push((*a)[i]);
@@ -638,7 +638,7 @@ void arrayBoolNegate(stack *s)
 {
   array *a=pop<array*>(s);
   checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
     (*c)[i]=!read<bool>(a,i);
@@ -649,7 +649,7 @@ void arrayBoolSum(stack *s)
 {
   array *a=pop<array*>(s);
   checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   int sum=0;
   for(size_t i=0; i < size; i++)
     sum += read<bool>(a,i) ? 1 : 0;
@@ -667,8 +667,8 @@ void arrayConcat(stack *s)
   array *a=pop<array*>(s);
   checkArray(a);
   checkArray(b);
-  size_t asize=(size_t) a->size();
-  size_t bsize=(size_t) b->size();
+  size_t asize=a->size();
+  size_t bsize=b->size();
   array *c=new array(asize+bsize);
   for(size_t i=0; i < asize; i++) 
     (*c)[i]=(*a)[i];
@@ -686,14 +686,14 @@ void array2Transpose(stack *s)
 {
   array *a=pop<array*>(s);
   checkArray(a);
-  size_t asize=(size_t) a->size();
+  size_t asize=a->size();
   array *c=new array(0);
   for(size_t i=0; i < asize; i++) {
     size_t ip=i+1;
     array *ai=read<array*>(a,i);
     checkArray(ai);
-    size_t aisize=(size_t) ai->size();
-    size_t csize=(size_t) c->size();
+    size_t aisize=ai->size();
+    size_t csize=c->size();
     if(csize < aisize) {
       c->resize(aisize);
       for(size_t j=csize; j < aisize; j++) {
@@ -2186,7 +2186,7 @@ array *copyArray(stack *s)
 {
   array *a=pop<array*>(s);
   checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   array *c=new array(size);
   for(size_t i=0; i < size; i++) 
     (*c)[i]=(*a)[i];
@@ -2197,12 +2197,12 @@ array *copyArray2(stack *s)
 {
   array *a=pop<array*>(s);
   checkArray(a);
-  size_t size=(size_t) a->size();
+  size_t size=a->size();
   array *c=new array(size);
   for(size_t i=0; i < size; i++) {
     array *ai=read<array*>(a,i);
     checkArray(ai);
-    size_t aisize=(size_t) ai->size();
+    size_t aisize=ai->size();
     array *ci=new array(aisize);
     (*c)[i]=ci;
     for(size_t j=0; j < aisize; j++) 

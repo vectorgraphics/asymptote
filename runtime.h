@@ -320,8 +320,8 @@ inline size_t checkArrays(vm::array *a, vm::array *b)
   checkArray(a);
   checkArray(b);
   
-  size_t asize=(size_t) a->size();
-  if(asize != (size_t) b->size())
+  size_t asize=a->size();
+  if(asize != b->size())
     vm::error("operation attempted on arrays of different lengths.");
   return asize;
 }
