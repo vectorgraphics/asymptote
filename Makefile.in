@@ -47,6 +47,9 @@ export prefix exampledir mandir INSTALL ASYMPTOTE_DIR
 asy$(MAGIC): depend
 	$(MAKE) -f Compile asy
 
+msdos$(MAGIC): depend
+	$(MAKE) -f Compile CFLAGS="-g -O3 -DMSDOS" LFLAGS="-s -static" asy
+
 all:  	asy man
 
 $(GCLIBS): $(GC).tar.gz
