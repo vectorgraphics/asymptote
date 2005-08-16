@@ -17,6 +17,10 @@ static struct problem {
   static var VAR_A = 0;
   static var VAR_B = 1;
 
+  static int OPTIMAL = -1;
+  static var UNBOUNDED = -2;
+  static int INVALID = -3;
+
   struct row {
     public real c, t[];
   }
@@ -46,7 +50,7 @@ static struct problem {
   // Pivot the variable v[col] with vp.
   void pivot(int col, var vp)
   {
-    int vc=v[col];
+    var vc=v[col];
 
     // Recalculate rows v[col] and vp for the pivot-swap.
     row rvc = rows[vc], rvp = rows[vp];
@@ -58,8 +62,8 @@ static struct problem {
     rvc.t[col]=factor;
     rvp.t[col]=1;
     
-    int a=min(vc,vp);
-    int b=max(vc,vp);
+    var a=min(vc,vp);
+    var b=max(vc,vp);
     
     // Recalculate the rows other than the two used for the above pivot.
     for (var i = 0; i < a; ++i) {
@@ -88,6 +92,43 @@ static struct problem {
     v[col] = vp;
   }
 
+  // As b does not have a non-negativity condition, it must initially be pivoted
+  // out for a variable that does.  This selects the initial variable to pivot
+  // with b.  It also assumes that there is a valid solution with a==0 to the
+  // linear programming problem, and if so, it picks a pivot to get to that
+  // state.  In our case, a==0 corresponds to a picture with the user
+  // coordinates shrunk down to zero, and if that doesn't fit, nothing will.
+  var initVar()
+  {
+    real min=infinity, max=-infinity;
+    var argmin=0, argmax=0;
+
+    for (var i = 2; i < rows.length; ++i) {
+      row r=rows[i];
+      if (r.t[VAR_B]>0) {
+        real val=r.c/r.t[VAR_B];
+        if (val<min) {
+          min=val;
+          argmin=i;
+        }
+      }
+      else if (r.t[VAR_B]<0) {
+        real val=r.c/r.t[VAR_B];
+        if (val>max) {
+          max=val;
+          argmax=i;
+        }
+      }
+    }
+
+    // If b has a minimal value, choose a pivot that will give b its minimal
+    // value.  Otherwise, if b has maximal value, choose a pivot to give b its
+    // maximal value.
+    return argmin!=0 ? argmin :
+           argmax!=0 ? argmax :
+                       UNBOUNDED;
+  }
+
   // Initialize the linear program problem by moving into an acceptable state
   // this assumes that b is unrestrained and is the second variable.
   // NOTE: Works in limited cases, may be bug-ridden.
@@ -96,7 +137,7 @@ static struct problem {
     // Find the lowest constant term in the equations.
     var lowest = 0;
     for (var i = 2; i < rows.length; ++i) {
-      if (rows[i].c <= rows[lowest].c)
+      if (rows[i].c < rows[lowest].c)
         lowest = i;
     }
 
@@ -107,7 +148,6 @@ static struct problem {
 
   // Selects a column to pivot on.  Returns OPTIMAL if the current state is
   // optimal.  Assumes we are optimizing the first row.
-  static int OPTIMAL = -1;
   int selectColumn()
   {
     int i=find(rows[0].t > 0,1);
@@ -116,7 +156,6 @@ static struct problem {
 
   // Select the new variable associated with a pivot on the column given.
   // Returns UNBOUNDED if the space is unbounded.
-  static var UNBOUNDED = -2;
   var selectVar(int col)
   {
     // We assume that the first two vars (a and b) once swapped out, won't be
@@ -129,7 +168,7 @@ static struct problem {
     real max=-infinity;
     for (int i = 2; i < rows.length; ++i) {
       row r=rows[i];
-      if(r.c < max*r.t[col] && r.c >= 0) {
+      if(r.c < max*r.t[col]) {
 	max=r.c/r.t[col]; vp=i;
       }
     }
@@ -179,12 +218,13 @@ static struct problem {
 
   // Perform the algorithm to find the optimal solution.  Returns OPTIMAL,
   // UNBOUNDED, or INVALID (if no solution is possible).
-  static int INVALID = -3;
   int optimize()
   {
-    // Put into a valid state to begin.
-//    if (!valid())
-      init();
+    // Put into a valid state to begin and pivot b out.
+    var iv=initVar();
+    if (iv==UNBOUNDED)
+      return iv;
+    pivot(VAR_B, iv);
 
     if (!valid())
       return INVALID;
