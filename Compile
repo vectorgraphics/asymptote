@@ -4,4 +4,7 @@ include Makefile
 asy: $(FILES:=.o)
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) $(LIBS)
 
+msdos:	$(FILES:=.o) asy.o
+	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) asy.o $(LIBS)
+
 include $(FILES:=.d)

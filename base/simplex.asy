@@ -54,7 +54,7 @@ static struct problem {
 
     // Recalculate rows v[col] and vp for the pivot-swap.
     row rvc = rows[vc], rvp = rows[vp];
-    real factor=1/rvp.t[col]; // NOTE: Handle rvp.t[col]==0 case.
+    real factor=1/rvp.t[col]; // NOTE: Handle rvp.t[col] == 0 case.
     rvc.c=-rvp.c*factor;
     rvp.c=0;
     rvc.t=-rvp.t*factor;
@@ -92,12 +92,13 @@ static struct problem {
     v[col] = vp;
   }
 
-  // As b does not have a non-negativity condition, it must initially be pivoted
-  // out for a variable that does.  This selects the initial variable to pivot
-  // with b.  It also assumes that there is a valid solution with a==0 to the
-  // linear programming problem, and if so, it picks a pivot to get to that
-  // state.  In our case, a==0 corresponds to a picture with the user
-  // coordinates shrunk down to zero, and if that doesn't fit, nothing will.
+  // As b does not have a non-negativity condition, it must initially be
+  // pivoted out for a variable that does.  This selects the initial
+  // variable to pivot with b.  It also assumes that there is a valid
+  // solution with a == 0 to the linear programming problem, and if so, it
+  // picks a pivot to get to that state.  In our case, a == 0 corresponds to
+  // a picture with the user coordinates shrunk down to zero, and if that
+  // doesn't fit, nothing will.
   var initVar()
   {
     real min=infinity, max=-infinity;
@@ -105,16 +106,15 @@ static struct problem {
 
     for (var i = 2; i < rows.length; ++i) {
       row r=rows[i];
-      if (r.t[VAR_B]>0) {
+      if (r.t[VAR_B] > 0) {
         real val=r.c/r.t[VAR_B];
-        if (val<min) {
+        if (val < min) {
           min=val;
           argmin=i;
         }
-      }
-      else if (r.t[VAR_B]<0) {
+      } else if (r.t[VAR_B] < 0) {
         real val=r.c/r.t[VAR_B];
-        if (val>max) {
+        if (val > max) {
           max=val;
           argmax=i;
         }
@@ -124,8 +124,8 @@ static struct problem {
     // If b has a minimal value, choose a pivot that will give b its minimal
     // value.  Otherwise, if b has maximal value, choose a pivot to give b its
     // maximal value.
-    return argmin!=0 ? argmin :
-           argmax!=0 ? argmax :
+    return argmin != 0 ? argmin :
+           argmax != 0 ? argmax :
                        UNBOUNDED;
   }
 
@@ -198,7 +198,7 @@ static struct problem {
       if (rvc.c != 0)
         return false;
       for (int i = 0; i < n; ++i)
-        if (rvc.t[i] != (i==col ? 1 : 0))
+        if (rvc.t[i] != (i == col ? 1 : 0))
           return false;
       
       return true;
@@ -222,7 +222,7 @@ static struct problem {
   {
     // Put into a valid state to begin and pivot b out.
     var iv=initVar();
-    if (iv==UNBOUNDED)
+    if (iv == UNBOUNDED)
       return iv;
     pivot(VAR_B, iv);
 

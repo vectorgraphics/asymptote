@@ -48,7 +48,10 @@ asy$(MAGIC): depend
 	$(MAKE) -f Compile asy
 
 msdos$(MAGIC): depend
-	$(MAKE) -f Compile CFLAGS="-g -O3 -DMSDOS" LFLAGS="-s -static" asy
+	$(MAKE) -f Compile CFLAGS="-g -O3 -DMSDOS" LFLAGS="-s -static" msdos
+
+asy.o:	asy.rc Makefile
+	cat asy.rc | sed -e "s/VERSION/@VERSION@/" | windres -o asy.o
 
 all:  	asy man
 

@@ -11,14 +11,21 @@ test "$prefix" = NONE && prefix=/usr/local
 Datadir=$datadir
 test "$datadir" = '${prefix}/share' && Datadir=$prefix/share
 
-latexdir=/usr/share/texmf/tex/latex
 AC_ARG_WITH(latex,
 	[  --with-latex=PATH       specify path to LaTeX installation ],
                      [if test "x$withval" != "x" ; then
 			latexdir=$withval
 		      fi
-		     ])
+		     ],
+latexdir=$prefix/share/texmf/tex/latex
+AC_CHECK_FILE($latexdir/base/latex.ltx,,
+[latexdir=/usr/share/texmf/tex/latex
+AC_CHECK_FILE($latexdir/base/latex.ltx,,)])
+)
 latexdir=$latexdir/asymptote
+
+AC_MSG_NOTICE([Using $latexdir for LaTeX style file])
+
 AC_SUBST(latexdir)
 AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$Datadir/asymptote",
 	[System directory for global .asy files])
