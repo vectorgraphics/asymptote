@@ -50,7 +50,7 @@ asy$(MAGIC): depend
 msdos$(MAGIC): depend
 	$(MAKE) -f Compile CFLAGS="-g -O3 -DMSDOS" LFLAGS="-s -static" msdos
 
-asy.o:	asy.rc Makefile
+asy.o:	asy.rc asy.ico Makefile
 	cat asy.rc | sed -e "s/ASYMPTOTE_VERSION/@VERSION@/" | \
 	windres -o asy.o
 

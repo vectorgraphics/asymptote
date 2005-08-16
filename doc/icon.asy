@@ -1,13 +1,13 @@
 import graph;
 
-size(32,30,IgnoreAspect);
+size(30,30,IgnoreAspect);
 
 real f(real t) {return t < 0 ? -1/t : -0.5/t;}
 
 picture logo(pair s=0, pen q) 
 {
   picture pic;
-  pen p=linewidth(2.5)+q;
+  pen p=linewidth(3)+q;
   real a=-0.5;
   real b=1;
   real eps=0.1;
