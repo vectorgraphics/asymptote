@@ -13,8 +13,9 @@ BEGIN
             VALUE "FileDescription", "Vector Graphics Language\0"
             VALUE "OriginalFilename", "asy.exe\0"
             VALUE "LegalCopyright", "Copyright \251 2005 Andy Hammerlindl, John Bowman, Tom Prince\0"
+            VALUE "CompanyName", "Andy Hammerlindl, John Bowman, Tom Prince\0"
             VALUE "ProductName", "Asymptote\0"
-            VALUE "ProductVersion", "VERSION\0"
+            VALUE "ProductVersion", "ASYMPTOTE_VERSION\0"
 	    VALUE "GPL Copyleft", "Released under the GNU General Public License version 2\0"
         END
     END
