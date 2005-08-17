@@ -38,14 +38,14 @@ const string defaultPDFViewer=
   "'c:\\Program Files\\Adobe\\Acrobat 7.0\\Reader\\AcroRd32.exe'";
 const string defaultGhostscript="'c:\\Program Files\\gs\\gs8.51\\bin\\gswin32.exe'";
 #undef ASYMPTOTE_SYSDIR
-#undef ASYMPTOTE_DOCDIR
 #define ASYMPTOTE_SYSDIR "c:\\Program Files\\Asymptote"
-#define ASYMPTOTE_DOCDIR ASYMPTOTE_SYSDIR
+const string docdir=".";
 #else  
 int view=0;
 const string defaultPSViewer="gv";
 const string defaultPDFViewer="gv";
 const string defaultGhostscript="gs";
+const string docdir=ASYMPTOTE_DOCDIR;
 #endif  
   
 string PSViewer;

@@ -78,7 +78,7 @@ char *rl_gets(void)
       if(pid) restart=(waitpid(pid, &status, WNOHANG) == pid);
       if(restart) {
 	ostringstream cmd;
-	cmd << PDFViewer << " " << ASYMPTOTE_DOCDIR << "/asymptote.pdf";
+	cmd << PDFViewer << " " << docdir << "/asymptote.pdf";
 	status=System(cmd,false,false,"ASYMPTOTE_PDFVIEWER","pdf viewer",
 		      &pid);
       }

@@ -234,7 +234,7 @@ A working @code{TeX} implementation (such as the one available at
 
 Example code will be installed by default in
 @code{/usr/local/share/doc/asymptote} 
-(@code{c:\Program Files\Asymptote\doc\asymptote} on @code{MSDOS} systems).
+(@code{c:\Program Files\Asymptote\examples} on @code{MSDOS} systems).
 
 @cindex @code{-V}
 @cindex @code{ASYMPTOTE_PSVIEWER}
@@ -347,7 +347,7 @@ Users of @code{emacs} can edit @code{Asymptote} code with the mode
 @code{~/.emacs} initialization file, replacing @code{ASYDIR} with the
 location of the @code{Asymptote} example files (by default,
 @code{/usr/local/share/doc/asymptote} or 
-@code{c:\Program Files\Asymptote\doc\asymptote}):
+@code{c:\Program Files\Asymptote\examples}):
 @verbatim
 (autoload 'asy-mode "ASYDIR/asy-mode.el" "Asymptote major mode." t)
 (setq auto-mode-alist (cons (cons "\\.asy$" 'asy-mode) auto-mode-alist))

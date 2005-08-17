@@ -28,6 +28,7 @@ extern string ghostscript; // Environment variable ASYMPTOTE_GS
 extern string PSViewer;
 extern string PDFViewer;
 extern string Ghostscript;
+extern const string docdir;
   
 extern string outformat;
 extern int keep;
