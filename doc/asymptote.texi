@@ -384,7 +384,8 @@ make uninstall
 @end verbatim
 
 The following commands are needed to install the latest development version of
-@code{Asymptote} from cvs (when prompted for the CVS password, type enter): 
+@code{Asymptote} from cvs (when prompted for the @acronym{CVS}
+password, type enter):
 @verbatim
 cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote login
  
@@ -1568,7 +1569,7 @@ void size(picture pic=currentpicture,
 
 If @code{xsize} and @code{ysize} are both 0, user coordinates will be
 interpreted as @code{PostScript} coordinates. In this case, the transform
-mapping @code{pic} to the final output frame is @code{identity}.
+mapping @code{pic} to the final output frame is @code{identity()}.
 
 If exactly one of @code{xsize} or @code{ysize} is 0, no size restriction
 is imposed in that direction; it will be scaled the same as the other
@@ -4462,19 +4463,23 @@ The following special commands are supported only in interactive mode
 and must be entered immediately after the prompt:
 
 @table @code
+@cindex @code{help}
+@item help
+view the manual
 @cindex @code{quit}
+@cindex @code{exit}
 @item quit
-exits interactive mode (abbreviated as @code{q}).
+exit interactive mode (abbreviated as @code{q}; @code{exit} is a synonym).
 @cindex @code{redraw}
 @item redraw
-re-executes the previous commands
+re-execute the previous commands
 @cindex @code{reset}
 @item reset
-resets @code{Asymptote} to its initial state, except that a prior call
+reset @code{Asymptote} to its initial state, except that a prior call
 to @code{scroll} is respected (@pxref{scroll}).
 @cindex @code{input}
 @item input FILE
-directly inputs code from @code{FILE} into @code{Asymptote}.
+directly input code from @code{FILE} into @code{Asymptote}.
 Any existing @code{input} commands will automatically be
 cleared by first doing a @code{reset}, if necessary. For this reason,
 after a previous @code{input} command, first issue an explicit
@@ -4550,7 +4555,7 @@ void endgroup(picture pic=currentpicture);
 By default, the elements of a picture or frame will be grouped
 together on adding them to a picture. However, the elements of a frame
 added to another frame are not grouped together by default: their
-elements will individually deconstructed (@pxref{add}).
+elements will be individually deconstructed (@pxref{add}).
 
 @node PostScript to Asymptote
 @chapter @code{PostScript} to @code{Asymptote}
@@ -4600,7 +4605,7 @@ https://lists.sourceforge.net/lists/listinfo/asymptote-discuss
 
 @cindex bug reports
 If you find a bug in @code{Asymptote}, please check (if possible)
-whether the bug is still present in the latest CVS version before
+whether the bug is still present in the latest @acronym{CVS} version before
 submitting a bug report. New bugs can be submitted using the Bug
 Tracking System at
 @verbatim

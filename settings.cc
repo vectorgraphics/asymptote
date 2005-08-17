@@ -38,7 +38,9 @@ const string defaultPDFViewer=
   "'c:\\Program Files\\Adobe\\Acrobat 7.0\\Reader\\AcroRd32.exe'";
 const string defaultGhostscript="'c:\\Program Files\\gs\\gs8.51\\bin\\gswin32.exe'";
 #undef ASYMPTOTE_SYSDIR
+#undef ASYMPTOTE_DOCDIR
 #define ASYMPTOTE_SYSDIR "c:\\Program Files\\Asymptote"
+#define ASYMPTOTE_DOCDIR ASYMPTOTE_SYSDIR
 #else  
 int view=0;
 const string defaultPSViewer="gv";
@@ -49,6 +51,10 @@ const string defaultGhostscript="gs";
 string PSViewer;
 string PDFViewer;
 string Ghostscript;
+  
+string psviewer;
+string pdfviewer;
+string ghostscript;
   
 string outformat="eps";
 int keep=0;
@@ -280,6 +286,7 @@ void setOptions(int argc, char *argv[])
     deconstruct=0;
     cout << "Welcome to " << PROGRAM << " version " << VERSION << 
       " (interactive mode)" << endl;
+    cout << "           To view the manual, type help" << endl;
   } else if(trap == -1) trap=1;
 
   
@@ -292,9 +299,9 @@ void setOptions(int argc, char *argv[])
   searchPath.push_back(ASYMPTOTE_SYSDIR);
 #endif
   
-  string psviewer=Getenv("ASYMPTOTE_PSVIEWER");
-  string pdfviewer=Getenv("ASYMPTOTE_PDFVIEWER");
-  string ghostscript=Getenv("ASYMPTOTE_GS");
+  psviewer=Getenv("ASYMPTOTE_PSVIEWER");
+  pdfviewer=Getenv("ASYMPTOTE_PDFVIEWER");
+  ghostscript=Getenv("ASYMPTOTE_GS");
 
   PSViewer=psviewer != "" ? psviewer : defaultPSViewer;
   PDFViewer=pdfviewer != "" ? pdfviewer : defaultPDFViewer;

@@ -134,7 +134,8 @@ char **args(const char *command)
   return argv;
 }
 
-int System(const char *command, bool quiet, bool wait, int *ppid)
+int System(const char *command, bool quiet, bool wait,
+	   const char *hint, const char *application, int *ppid)
 {
   int status;
 
@@ -151,6 +152,9 @@ int System(const char *command, bool quiet, bool wait, int *ppid)
     if(quiet) close(STDOUT_FILENO);
     if(argv) execvp(argv[0],argv);
     cerr << "Cannot execute " << argv[0] << endl;
+    if(hint) 
+      cerr << "Please set the environment variable " << hint << endl
+	   << "to the location of " << application << endl;
     exit(-1);
   }
 
@@ -183,9 +187,10 @@ int System(const char *command, bool quiet, bool wait, int *ppid)
   }
 }
 
-int System(const ostringstream& command, bool quiet, bool wait, int *pid)
+int System(const ostringstream& command, bool quiet, bool wait,
+	   const char *hint, const char *application, int *pid)
 {
-  return System(command.str().c_str(),quiet,wait,pid);
+  return System(command.str().c_str(),quiet,wait,hint,application,pid);
 }
 
 string stripblanklines(string& s)

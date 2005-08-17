@@ -21,9 +21,13 @@ extern const char PROGRAM[];
 extern const char VERSION[];
 extern const char BUGREPORT[];
 
-extern string PSViewer;    // Environment variable ASYMPTOTE_PSVIEWER
-extern string PDFViewer;   // Environment variable ASYMPTOTE_PDFVIEWER
-extern string Ghostscript; // Environment variable ASYMPTOTE_GS
+extern string psviewer;    // Environment variable ASYMPTOTE_PSVIEWER
+extern string pdfviewer;   // Environment variable ASYMPTOTE_PDFVIEWER
+extern string ghostscript; // Environment variable ASYMPTOTE_GS
+  
+extern string PSViewer;
+extern string PDFViewer;
+extern string Ghostscript;
   
 extern string outformat;
 extern int keep;

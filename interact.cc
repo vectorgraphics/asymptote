@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
+#include <sys/wait.h>
 #include "interact.h"
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
@@ -15,12 +16,15 @@
 #include <csignal>
 #endif
 
+#include "settings.h"
+#include "util.h"
 #include "symbol.h"
 #include "locate.h"
 
 #include "fileio.h"
 
 using std::cout;
+using namespace settings;
 
 namespace interact {
 
@@ -68,6 +72,18 @@ char *rl_gets(void)
       else needreset=true;
       break;
     }
+    static int pid=0, status=0;
+    static bool restart=true;
+    if(strcmp(line_read,"help") == 0 || strcmp(line_read,"help;") == 0) {
+      if(pid) restart=(waitpid(pid, &status, WNOHANG) == pid);
+      if(restart) {
+	ostringstream cmd;
+	cmd << PDFViewer << " " << ASYMPTOTE_DOCDIR << "/asymptote.pdf";
+	status=System(cmd,false,false,"ASYMPTOTE_PDFVIEWER","pdf viewer",
+		      &pid);
+      }
+      continue;
+    }
     if(strcmp(line_read,"reset") != 0 && strcmp(line_read,"reset;") != 0)
       break;
     reset();
@@ -82,7 +98,9 @@ char *rl_gets(void)
   if(!line_read) cout << endl;
   else {
     if(strcmp(line_read,"q") == 0 || strcmp(line_read,"quit") == 0
-       || strcmp(line_read,"quit;") == 0)
+       || strcmp(line_read,"quit;") == 0
+       || strcmp(line_read,"exit") == 0
+       || strcmp(line_read,"exit;") == 0)
       return NULL;
     if(strcmp(line_read,"redraw") == 0 || strcmp(line_read,"redraw;") == 0) {
       redraw=true;
@@ -116,7 +134,7 @@ void add_input(char *&dest, const char *src, size_t& size, bool warn=false)
       src++;
     }
     src += name.length()+ninput;
-    const string iname=settings::locateFile(name);
+    const string iname=locateFile(name);
     std::filebuf filebuf;
     if(!filebuf.open(iname.c_str(),std::ios::in)) {
       if(warn) readerror(name);

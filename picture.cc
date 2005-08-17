@@ -251,7 +251,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
       else cmd << " " << outputformat;
       cmd << ":" << outname;
     }
-    System(cmd);
+    System(cmd,false,true,"ASYMPTOTE_GS","ghostscript");
     if(!keep) unlink(epsname.c_str());
   }
   
@@ -272,7 +272,10 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	if(Viewer == "gv" && interact::interactive)
 	  cmd << " -nowatch";
 	cmd << " " << outname;
-	status=System(cmd,false,wait,&pid);
+	status=System(cmd,false,wait,
+		      pdfformat ? "ASYMPTOTE_PDFVIEWER" : "ASYMPTOTE_PSVIEWER",
+		      pdfformat ? "your PDF viewer" : "your PostScript viewer",
+		      &pid);
 	if(status != 0) return false;
       } else if(Viewer == "gv") kill(pid,SIGHUP); // Tell gv to reread file.
     } else {
