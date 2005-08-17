@@ -132,7 +132,7 @@ static public string defaultfilename;
 static public string defaultformat="$%.4g$";
 
 // Reduced for tension atleast infinity
-static real infinity=sqrt(0.5*realMax());
+static real infinity=sqrt(0.25*realMax());
 static pair Infinity=(infinity,infinity);
 
 static real epsilon=realEpsilon();
