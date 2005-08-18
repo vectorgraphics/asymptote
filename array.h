@@ -16,9 +16,10 @@ namespace vm {
 
 // Arrays are vectors with push and pop functions.
 class array : public mem::deque<item>, public gc {
+bool cycle;  
 public:
   array(size_t n)
-    : mem::deque<item>(n)
+    : mem::deque<item>(n), cycle(false)
   {}
 
   void push(item i)
@@ -38,6 +39,14 @@ public:
   {
     return get<T>((*this)[i]);
   }
+  
+  void cyclic(bool b) {
+    cycle=b;
+  }
+  
+  bool cyclic() {
+    return cycle;
+  }
 };
 
 template <typename T>
@@ -46,11 +55,19 @@ inline T read(array *a, size_t i)
   return a->array::read<T>(i);
 }
 
+template <typename T>
+inline T read(array &a, size_t i)
+{
+  return a.array::read<T>(i);
+}
+
 inline bool checkArray(vm::array *a)
 {
   if(a == 0) vm::error("dereference of null array");
   return true;
 }
+
+extern const char *arraymismatch;
 
 inline size_t checkArrays(vm::array *a, vm::array *b) 
 {
@@ -59,7 +76,7 @@ inline size_t checkArrays(vm::array *a, vm::array *b)
   
   size_t asize=a->size();
   if(asize != b->size())
-    vm::error("operation attempted on arrays of different lengths.");
+    vm::error(arraymismatch);
   return asize;
 }
  

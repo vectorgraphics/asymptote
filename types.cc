@@ -246,12 +246,20 @@ ty *array::appendType()
   return appendtype;
 }
 
+ty *cyclicType() {
+  function *ft = new function(primVoid());
+  ft->add(primBoolean());
+  return ft;
+}
+
 ty *array::virtualFieldGetType(symbol *id)
 {
-  return id == symbol::trans("push") ? pushType() : 
+  return
+    id == symbol::trans("cyclic") ? cyclicType() : 
+    id == symbol::trans("push") ? pushType() : 
     id == symbol::trans("pop") ? popType() : 
     id == symbol::trans("append") ? appendType() : 
-     ty::virtualFieldGetType(id);
+    ty::virtualFieldGetType(id);
 }
 
 trans::varEntry *array::virtualField(symbol *id, signature *sig)
@@ -260,6 +268,13 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
   {
     static trans::bltinAccess a(run::arrayLength);
     static trans::varEntry v(primInt(), &a);
+    return &v;
+  }
+  if (id == symbol::trans("cyclic") &&
+      equivalent(sig, cyclicType()->getSignature()))
+  {
+    static trans::bltinAccess a(run::arrayCyclic);
+    static trans::varEntry v(cyclicType(), &a);
     return &v;
   }
   if (id == symbol::trans("push") &&

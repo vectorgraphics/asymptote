@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
 @setfilename asymptote.info
-@settitle asymptote
+@settitle Asymptote
 @include version.texi
 
 @copying
@@ -2432,17 +2432,14 @@ and the integer @code{randMax()}. A Gaussian random number generator
 @section Arrays
 @cindex arrays
 
-Appending @code{[]} to a built-in or user-defined type
-produces an array (technically a vector) indexed by integers in the
-interval [0,@code{length}-1], where @code{length} represents the array length.
-For convenience, integer indices in [-@code{length},-1] are mapped to
-[0,@code{length}-1]. Reading an array element with an index outside of these
-bounds generates an error. Assigning an array element with an 
-index less than -@code{length} generates an error; however, if the index
-is non-negative, the array is resized, as required, to accommodate the
-new element. One can also index an array @code{A} with an integer array
-@code{B}, to obtain the array formed by indexing array @code{A} with
-successive elements of array @code{B}.
+Appending @code{[]} to a built-in or user-defined type yields an array.
+By default, attempts to access or assign to an array element using a negative
+index generates an error. While reading an array element with an index
+beyond the length of the array also generates an error, assignment to such an
+element causes the array to be resized to accommodate the new element.
+One can also index an array @code{A} with an integer array @code{B},
+to obtain the array formed by indexing array @code{A} with successive
+elements of array @code{B}.
 
 The declaration
 @verbatim
@@ -2473,15 +2470,19 @@ The @code{copy} function listed below provides a deep copy of an array.
 @cindex @code{push}
 @cindex @code{pop}
 @cindex @code{append}
+@anchor{cyclic}
 Every array @code{A} of type @code{T[]} has four virtual members:
-@code{length}, @code{push(T)}, @code{append(T[])}, and @code{pop()}.
-Here @code{A.length} evaluates to the length of the array,
-@code{A.push} and @code{A.append} are functions that append their
-arguments onto the end of the array, and @code{A.pop()} pops and returns
-the last element of the array.
-Like all functions in @code{Asymptote}, 
-@code{push}, @code{pop}, and @code{append} can be "pulled off" of the
-array and used on their own:
+@code{length}, @code{cyclic(bool)}, @code{push(T)},
+@code{append(T[])}, and @code{pop()}.
+Here @code{A.length} evaluates to the length of the array.
+Setting @code{A.cyclic(true)} signifies that array indices should be reduced
+modulo the current array length; in this mode, array operations
+never lead to out-of-bounds errors or resizing.
+The functions @code{A.push} and @code{A.append} append their
+arguments onto the end of the array, while @code{A.pop()} pops and
+returns the last element. Like all @code{Asymptote} functions, 
+@code{cyclic}, @code{push}, @code{pop}, and @code{append} can be
+"pulled off" of the array and used on their own. For example,
 @verbatim
 int[] A={1};
 A.push(2);         // A now contains {1,2}.

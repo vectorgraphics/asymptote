@@ -558,6 +558,11 @@ void base_venv(venv &ve)
   addFunc(ve,run::tripleDot,primReal(),"dot",primTriple(),primTriple());
   addFunc(ve,run::tripleCross,primTriple(),"cross",primTriple(),primTriple());
   
+  addFunc(ve,run::tridiagonal,realArray(),"tridiagonal",primReal(),primReal(),
+	  realArray(),realArray(),realArray(),realArray());
+  addFunc(ve,run::tridiagonalp,realArray(),"tridiagonal",
+	  realArray(),realArray(),realArray(),realArray());
+  
   addFunc(ve,run::stringReplace,primString(),"replace",primString(),
 	  stringArray2());
   addFunc(ve,run::stringFormatReal,primString(),"format",primString(),

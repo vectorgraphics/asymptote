@@ -249,6 +249,11 @@ struct flatguide3 {
   public dir[] in,out;    // in and out directions for segment starting at node
   public bool[] straight; // true unless segment starting at node is a spline
   public bool cycles=false;
+  control.cyclic(true);
+  Tension.cyclic(true);
+  in.cyclic(true);
+  out.cyclic(true);
+  straight.cyclic(true);
 
   void node(triple v) {
     nodes.push(v);

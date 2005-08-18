@@ -62,6 +62,8 @@ void arrayRead(vm::stack *s);
 void arrayArrayRead(vm::stack *s);
 void arrayWrite(vm::stack *s);
 void arrayLength(vm::stack *s);
+void arrayCyclic(vm::stack *s);
+void arrayCyclicHelper(vm::stack *s);
 void arrayPush(vm::stack *s);
 void arrayPushHelper(vm::stack *s);
 void arrayPop(vm::stack *s);
@@ -82,7 +84,6 @@ void arrayCopy(vm::stack *s);
 void arrayConcat(vm::stack *s);
 void array2Copy(vm::stack *s);
 void array2Transpose(vm::stack *s);
-void pairArrayFFT(vm::stack *s);
 
 // Null operations
 void pushNullArray(vm::stack *s);
@@ -310,6 +311,11 @@ void exitFunction(vm::stack *s);
 // Utils
 vm::array *copyArray(vm::stack *s);
 vm::array *copyArray2(vm::stack *s);
+  
+// Math routines  
+void pairArrayFFT(vm::stack *s);
+void tridiagonal(vm::stack *s);
+void tridiagonalp(vm::stack *s);
  
 } // namespace run
 

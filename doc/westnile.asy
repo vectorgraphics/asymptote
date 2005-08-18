@@ -21,7 +21,7 @@ yaxis("Susceptible bird survival",Left,RightTicks);
 yaxis(Right);
 
 real a=number[0];
-real b=number[-1];
+real b=number[number.length-1];
 
 real S1=0.475;
 path h1=(a,S1)--(b,S1);

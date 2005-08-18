@@ -374,7 +374,7 @@ ticks Ticks(bool begin=true, bool end=true, int sign, int N, int n=0,
 	      }
 	      // Found a good divisor; now compute subtick divisor
 	      if(n == 0) {
-		n=quotient(divisor[-1],N);
+		n=quotient(divisor[divisor.length-1],N);
 		if(N == 1) n=(a*b >= 0) ? 2 : 1;
 		if(n == 1) n=2;
 	      }
