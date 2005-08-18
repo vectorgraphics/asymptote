@@ -860,10 +860,10 @@ void tridiagonalp(stack *s)
 		   read<double>(a,0)*read<double>(c,1));
     if(factor== 0.0) dividebyzero();
     factor=1.0/factor;
-    double temp=(read<double>(b,1)*read<double>(f,0)-
-		 read<double>(a,0)*read<double>(f,1))*factor;
-    u[0]=(read<double>(b,0)*read<double>(f,1)-
+    double temp=(read<double>(b,0)*read<double>(f,1)-
 	  read<double>(c,1)*read<double>(f,0))*factor;
+    u[0]=(read<double>(b,1)*read<double>(f,0)-
+	  read<double>(a,0)*read<double>(f,1))*factor;
     u[1]=temp;
     return;
   }
