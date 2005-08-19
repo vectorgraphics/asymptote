@@ -767,7 +767,7 @@ inline void CheckReallocate(double *& A, double *& B, size_t n, size_t& old)
 }
 
 // Solve the problem u=L\inv f, subject to the Dirichlet boundary
-// conditions u[-1]=um and u[n]=un, where f is an n vector and
+// conditions u[0]=u0 and u[n+1]=unp1, where f is an n vector and
 // L is the n x (n+2) matrix
 //
 // [a0 b0 c0                          ]
@@ -782,8 +782,8 @@ void tridiagonal(stack *s)
   array *c=pop<array*>(s);
   array *b=pop<array*>(s);
   array *a=pop<array*>(s);
-  double un=pop<double>(s);
-  double um=pop<double>(s);
+  double unp1=pop<double>(s);
+  double u0=pop<double>(s);
   
   checkArray(f);
   checkArray(c);
@@ -794,9 +794,9 @@ void tridiagonal(stack *s)
   if(n != b->size() || n != c->size() || n != f->size())
     vm::error(arraymismatch);
   
-  array *u0=new array(n);
-  s->push(u0);
-  array& u=*u0;
+  array *up=new array(n+2);
+  s->push(up);
+  array& u=*up;
 
   if(n == 0) return;
   
@@ -805,19 +805,24 @@ void tridiagonal(stack *s)
   
   CheckReallocate(work,n,size);
 	
+  u[0]=u0;
+  
   double temp=1.0/read<double>(b,0);
-  u[0]=(read<double>(f,0)-read<double>(a,0)*um)*temp;
+  u[1]=(read<double>(f,0)-read<double>(a,0)*u0)*temp;
   work[0]=-read<double>(c,0)*temp;
 	
   for(size_t i=1; i < n; i++) {
     double temp=1.0/(read<double>(b,i)+read<double>(a,i)*work[i-1]);
-    u[i]=(read<double>(f,i)-read<double>(a,i)*read<double>(u,i-1))*temp;
+    u[i+1]=(read<double>(f,i)-read<double>(a,i)*read<double>(u,i))*temp;
     work[i]=-read<double>(c,i)*temp;
   }
 
-  u[n-1]=read<double>(u,n-1)+work[n-1]*un;
-  for(int i=(int) n-2; i >= 0; i--)
-    u[i]=read<double>(u,i)+work[i]*read<double>(u,i+1);
+  u[n+1]=unp1;
+  u[n]=read<double>(u,n)+work[n-1]*unp1;
+  
+  for(int i=n-1; i >= 1; i--)
+    u[i]=read<double>(u,i)+work[i-1]*read<double>(u,i+1);
+  
 }
   
 // Solve the problem L\inv f, where f is an n vector and L is the n x n matrix
@@ -840,13 +845,13 @@ void tridiagonalp(stack *s)
   checkArray(b);
   checkArray(a);
   
- size_t n=a->size();
+  size_t n=a->size();
   if(n != b->size() || n != c->size() || n != f->size())
     vm::error(arraymismatch);
   
-  array *u0=new array(n);
-  s->push(u0);
-  array& u=*u0;
+  array *up=new array(n);
+  s->push(up);
+  array& u=*up;
 
   if(n == 0) return;
   
