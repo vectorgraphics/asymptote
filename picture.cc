@@ -236,6 +236,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
   if(!epsformat) {
     if(pdfformat) cmd << Ghostscript
 		      << " -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
+                      << " -dAutoRotatePages=/None "
 		      << " -dDEVICEWIDTHPOINTS=" 
 		      << ceil(bpos.right-bpos.left+2.0)
 		      << " -dDEVICEHEIGHTPOINTS=" 
