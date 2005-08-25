@@ -42,7 +42,7 @@ html:	$(FIGURES) $(ASYFILES:.asy=.png)
 	makeinfo --html asymptote
 
 clean: FORCE
-	rm -f *.eps *.png *.pdf latexusage.{asy,dvi,log,aux,ps,*.eps.pdf}
+	rm -f *.eps *.png *.pdf latexusage.{asy,dvi,log,aux,ps,*.eps}
 	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,ps,pdf,toc,tp,vr}
 	rm -rf asymptote
 
