@@ -1,6 +1,7 @@
 MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy)
-FIGURES = latexusage.eps latexusage.png version.texi $(ASYFILES:.asy=.eps) \
+FIGURES = latexusage.eps latexusage.png latexusage.pdf $(ASYFILES:.asy=.eps) \
+	$(ASYFILES:.asy=.png) $(ASYFILES:.asy=.pdf) version.texi 
 
 man:	asymptote.dvi asymptote.info asymptote.pdf html
 
@@ -17,12 +18,13 @@ latexusage.asy: latexusage.tex
 	latex latexusage
 	../asy latexusage
 
-latexusage.eps: latexusage.asy
+latexusage.dvi: latexusage.asy
 	latex latexusage
+
+latexusage.eps: latexusage.dvi
 	dvips -o latexusage.eps latexusage
 
-latexusage.pdf: latexusage.asy
-	latex latexusage
+latexusage.pdf: latexusage.dvi
 	dvipdf latexusage
 
 asymptote.dvi: asymptote.texi $(FIGURES)
@@ -40,7 +42,7 @@ html:	$(FIGURES) $(ASYFILES:.asy=.png)
 	makeinfo --html asymptote
 
 clean: FORCE
-	rm -f *.eps *.png *.png latexusage.{asy,dvi,log,aux,ps}
+	rm -f *.eps *.png *.pdf latexusage.{asy,dvi,log,aux,ps,*.eps.pdf}
 	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,ps,pdf,toc,tp,vr}
 	rm -rf asymptote
 
