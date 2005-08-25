@@ -17,13 +17,12 @@ latexusage.asy: latexusage.tex
 	latex latexusage
 	../asy latexusage
 
-latexusage.dvi: latexusage.asy
+latexusage.eps: latexusage.asy
 	latex latexusage
-
-latexusage.eps: latexusage.dvi
 	dvips -o latexusage.eps latexusage
 
-latexusage.pdf: latexusage.dvi
+latexusage.pdf: latexusage.asy
+	latex latexusage
 	dvipdf latexusage
 
 asymptote.dvi: asymptote.texi $(FIGURES)
