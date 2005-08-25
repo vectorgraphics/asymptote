@@ -281,10 +281,12 @@ bool picture::postprocess(const string& epsname, const string& outname,
       } else if(Viewer == "gv") kill(pid,SIGHUP); // Tell gv to reread file.
     } else {
       ostringstream cmd;
-#ifndef MSDOS      
+#ifdef MSDOS      
+      cmd << "imdisplay " << outname;
+#else      
       cmd << "display " << outname;
-      status=System(cmd,false,wait);
 #endif      
+      status=System(cmd,false,wait);
       if(status) return false;
     }
   }

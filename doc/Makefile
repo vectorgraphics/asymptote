@@ -1,9 +1,8 @@
 MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy)
-FIGURES = latexusage.eps latexusage.png $(ASYFILES:.asy=.eps) \
-	$(ASYFILES:.asy=.png) version.texi
+FIGURES = latexusage.eps latexusage.png version.texi $(ASYFILES:.asy=.eps) \
 
-man:	asymptote.info asymptote.ps asymptote.pdf html
+man:	asymptote.dvi asymptote.info asymptote.pdf html
 
 %.png:	%.eps
 	convert +antialias -density 288x288 -geometry 25%x $< $@
@@ -11,34 +10,38 @@ man:	asymptote.info asymptote.ps asymptote.pdf html
 %.eps:	%.asy
 	../asy $<
 
+%.pdf:	%.asy
+	../asy -f pdf $<
+
 latexusage.asy: latexusage.tex
 	latex latexusage
 	../asy latexusage
 
-latexusage.eps: latexusage.asy
+latexusage.dvi: latexusage.asy
 	latex latexusage
-	dvips -o latexusage.eps latexusage
-	rm -f latexusage.*.eps
 
-asymptote.info: asymptote.texi $(FIGURES)
-	makeinfo asymptote
+latexusage.eps: latexusage.dvi
+	dvips -o latexusage.eps latexusage
+
+latexusage.pdf: latexusage.dvi
+	dvipdf latexusage
 
 asymptote.dvi: asymptote.texi $(FIGURES)
 	texi2dvi asymptote.texi
 
-asymptote.ps: asymptote.dvi
-	dvips -o asymptote.ps asymptote
+asymptote.info: asymptote.texi $(FIGURES)
+	makeinfo asymptote
 
-asymptote.pdf: asymptote.ps
-	ps2pdf asymptote.ps
+asymptote.pdf: asymptote.texi $(FIGURES) $(ASYFILES:.asy=.pdf) 
+	texi2dvi --pdf asymptote.texi
 
-html:	$(FIGURES)
+html:	$(FIGURES) $(ASYFILES:.asy=.png)
 	mkdir -p asymptote
 	cp *.png asymptote
 	makeinfo --html asymptote
 
 clean: FORCE
-	rm -f *.eps *.png latexusage.{asy,dvi,log,aux,ps}
+	rm -f *.eps *.png *.png latexusage.{asy,dvi,log,aux,ps}
 	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,ps,pdf,toc,tp,vr}
 	rm -rf asymptote
 
