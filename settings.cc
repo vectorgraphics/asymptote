@@ -32,6 +32,7 @@ const char VERSION[]=PACKAGE_VERSION;
 const char BUGREPORT[]=PACKAGE_BUGREPORT;
 
 #ifdef MSDOS
+const char pathSeparator=';';
 int view=1; // Support drag and drop in MSWindows
 const string defaultPSViewer="'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe'";
 const string defaultPDFViewer=
@@ -41,6 +42,7 @@ const string defaultGhostscript="'c:\\Program Files\\gs\\gs8.51\\bin\\gswin32.ex
 #define ASYMPTOTE_SYSDIR "c:\\Program Files\\Asymptote"
 const string docdir=".";
 #else  
+const char pathSeparator=':';
 int view=0;
 const string defaultPSViewer="gv";
 const string defaultPDFViewer="gv";
@@ -293,7 +295,14 @@ void setOptions(int argc, char *argv[])
   
   searchPath.push_back(".");
   string asydir=Getenv("ASYMPTOTE_DIR",false);
-  if(asydir != "") searchPath.push_back(asydir);
+  if(asydir != "") {
+    size_t p,i=0;
+    while((p=asydir.find(pathSeparator,i)) < string::npos) {
+      if(p > i) searchPath.push_back(asydir.substr(i,p-i));
+      i=p+1;
+    }
+    if(i < asydir.length()) searchPath.push_back(asydir.substr(i));
+  }
 #ifdef ASYMPTOTE_SYSDIR
   searchPath.push_back(ASYMPTOTE_SYSDIR);
 #endif

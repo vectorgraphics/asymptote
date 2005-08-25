@@ -327,9 +327,12 @@ current directory
 @item
 @cindex @code{ASYMPTOTE_DIR}
 @code{$ASYMPTOTE_DIR}
+
+A list of one or more directories (separated by @code{:} under UNIX and
+@code{;} under @code{MSDOS}).
 @item
 system-wide directory (default: @code{/usr/local/share/asymptote} under
-@code{UNIX} and @code{c:\Program Files\Asymptote} under @code{MSDOS})
+@code{UNIX} and @code{c:\Program Files\Asymptote} under @code{MSDOS}).
 @end enumerate
 
 The patches supplied in the @code{patches} directory fix known bugs

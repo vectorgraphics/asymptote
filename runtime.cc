@@ -821,7 +821,7 @@ void tridiagonal(stack *s)
       work[i]=-read<double>(c,i)*temp;
     }
 
-    for(int i=n-1; i >= 1; i--)
+    for(size_t i=n-1; i >= 1; i--)
       u[i-1]=read<double>(u,i-1)+work[i-1]*read<double>(u,i);
     return;
   }
@@ -879,8 +879,8 @@ void tridiagonal(stack *s)
   u[n-1]=temp=(fn-beta*read<double>(u,n-2))/temp;
   u[n-2]=read<double>(u,n-2)-dnm1*temp;
 	
-  for(int i=(int) n-3; i >= 0; i--)
-    u[i]=read<double>(u,i)-gamma[i]*read<double>(u,i+1)-delta[i]*temp;
+  for(size_t i=n-2; i >= 1; i--)
+    u[i-1]=read<double>(u,i-1)-gamma[i-1]*read<double>(u,i)-delta[i-1]*temp;
 }
   
 // Null operations

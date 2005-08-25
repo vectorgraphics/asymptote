@@ -29,7 +29,7 @@ inline int imod(int x, int y)
   return portableMod<int>(x,y);
 }
 
-inline int imod(int i, unsigned int n) {
+inline int imod(int i, size_t n) {
   i %= (int) n;
   if(i < 0) i += (int) n;
   return i;
