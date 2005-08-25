@@ -15,6 +15,7 @@
   (make-local-variable 'c++-font-lock-extra-types)
   (setq c++-font-lock-extra-types (cons "real" c++-font-lock-extra-types))
   (setq c++-font-lock-extra-types (cons "pair" c++-font-lock-extra-types))
+  (setq c++-font-lock-extra-types (cons "triple" c++-font-lock-extra-types))
   (setq c++-font-lock-extra-types (cons "transform" c++-font-lock-extra-types))
   (setq c++-font-lock-extra-types (cons "guide" c++-font-lock-extra-types))
   (setq c++-font-lock-extra-types (cons "path" c++-font-lock-extra-types))

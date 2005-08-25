@@ -13,8 +13,8 @@ draw(Label("$x$",1),(0,0,0)--(r,0,0),red,Arrow);
 draw(Label("$y$",1),(0,0,0)--(0,r,0),red,Arrow);
 draw(Label("$z$",1),(0,0,0)--(0,0,r),red,Arrow);
   
-draw((1,0,0){Y}..(0,1,0){-X}..(-1,0,0){-Y}..(0,-1,0){X}..cycle3,green);
-  
+draw((1,0,0)..(0,1,0)..(-1,0,0)..(0,-1,0)..cycle3,green);
+
 label("$O$",(0,0,0),S,red);
   
 add(surface(f,(-1,-1),(1,1),n=10));

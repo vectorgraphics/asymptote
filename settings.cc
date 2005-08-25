@@ -284,9 +284,8 @@ void setOptions(int argc, char *argv[])
     interact::interactive=true;
     if(trap == -1) trap=0;
     deconstruct=0;
-    cout << "Welcome to " << PROGRAM << " version " << VERSION << 
-      " (interactive mode)" << endl;
-    cout << "           To view the manual, type help" << endl;
+    cout << "Welcome to " << PROGRAM << " version " << VERSION
+	 << " (to view the manual, type help)" << endl;
   } else if(trap == -1) trap=1;
 
   

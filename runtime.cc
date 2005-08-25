@@ -380,49 +380,47 @@ void newAppendedArray(stack *s)
 
 static void outOfBounds(const char *op, size_t len, int n)
 {
-    ostringstream buf;
-    buf << op << " array of length " << len << " with out-of-bounds index "
-	<< n;
-    error(buf.str().c_str());
+  ostringstream buf;
+  buf << op << " array of length " << len << " with out-of-bounds index "
+      << n;
+  error(buf.str().c_str());
 }
 
+item& arrayRead(stack *s, int n)  
+{
+  array *a = pop<array*>(s);
+  checkArray(a);
+  size_t len=a->size();
+  bool cyclic=a->cyclic();
+  if(cyclic && len > 0) n=imod(n,len);
+  else if(n < 0 || n >= (int) len) outOfBounds("reading",len,n);
+  return (*a)[(unsigned) n];
+}
+  
 // Read an element from an array. Checks for initialization & bounds.
 void arrayRead(stack *s)
 {
   int n = pop<int>(s);
-  int n0 = n;
-  array *a = pop<array*>(s);
-
-  checkArray(a);
-  size_t len=a->size();
-  if(a->cyclic()) n=imod(n,len);
-  else if(n < 0 || n >= (int) len) outOfBounds("reading",len,n0);
-  item i = (*a)[(unsigned) n];
+  item& i=arrayRead(s,n);
   if (i.empty()) {
     ostringstream buf;
-    buf << "read uninitialized value from array at index " << n0;
+    buf << "read uninitialized value from array at index " << n;
     error(buf.str().c_str());
   }
   s->push(i);
 }
 
-// Read an element from an array of arrays. Checks bounds and initialize
+// Read an element from an array of arrays. Check bounds and initialize
 // as necessary.
 void arrayArrayRead(stack *s)
 {
   int n = pop<int>(s);
-  array *a = pop<array*>(s);
-
-  checkArray(a);
-  size_t len=a->size();
-  if(a->cyclic()) n=imod(n,len);
-  else if(n < 0 || n >= (int) len) outOfBounds("reading",len,n);
-  item i = (*a)[(unsigned) n];
+  item& i=arrayRead(s,n);
   if (i.empty()) i=new array(0);
   s->push(i);
 }
 
-// Write an element to an array.  Increases size if necessary.
+// Write an element to an array.  Increase size if necessary.
 void arrayWrite(stack *s)
 {
   int n = pop<int>(s);
@@ -431,8 +429,10 @@ void arrayWrite(stack *s)
 
   checkArray(a);
   size_t len=a->size();
-  if(a->cyclic()) n=imod(n,len);
+  bool cyclic=a->cyclic();
+  if(cyclic && len > 0) n=imod(n,len);
   else {
+    if(cyclic) outOfBounds("writing cyclic",len,n);
     if(n < 0) outOfBounds("writing",len,n);
     if(a->size() <= (size_t) n)
       a->resize(n+1);
@@ -447,6 +447,14 @@ void arrayLength(stack *s)
   array *a = pop<array*>(s);
   checkArray(a);
   s->push((int)a->size());
+}
+
+// Return the cyclic flag for an array.
+void arrayCyclicFlag(stack *s)
+{
+  array *a = pop<array*>(s);
+  checkArray(a);
+  s->push(a->cyclic());
 }
 
 // Set the cyclic flag for an array.
@@ -766,74 +774,15 @@ inline void CheckReallocate(double *& A, double *& B, size_t n, size_t& old)
   if(n > old) {delete A; A=new double[n]; delete B; B=new double[n]; old=n;}
 }
 
-// Solve the problem u=L\inv f, subject to the Dirichlet boundary
-// conditions u[0]=u0 and u[n+1]=unp1, where f is an n vector and
-// L is the n x (n+2) matrix
-//
-// [a0 b0 c0                          ]
-// [   a1 b1 c1                       ]
-// [      a2 b2 c2                    ]
-// [                ...               ]
-// [              a{n-1} b{n-1} c{n-1}]
-
-void tridiagonal(stack *s)
-{
-  array *f=pop<array*>(s);
-  array *c=pop<array*>(s);
-  array *b=pop<array*>(s);
-  array *a=pop<array*>(s);
-  double unp1=pop<double>(s);
-  double u0=pop<double>(s);
-  
-  checkArray(f);
-  checkArray(c);
-  checkArray(b);
-  checkArray(a);
-  
-  size_t n=a->size();
-  if(n != b->size() || n != c->size() || n != f->size())
-    vm::error(arraymismatch);
-  
-  array *up=new array(n+2);
-  s->push(up);
-  array& u=*up;
-
-  if(n == 0) return;
-  
-  static double *work;
-  static size_t size=0;
-  
-  CheckReallocate(work,n,size);
-	
-  u[0]=u0;
-  
-  double temp=1.0/read<double>(b,0);
-  u[1]=(read<double>(f,0)-read<double>(a,0)*u0)*temp;
-  work[0]=-read<double>(c,0)*temp;
-	
-  for(size_t i=1; i < n; i++) {
-    double temp=1.0/(read<double>(b,i)+read<double>(a,i)*work[i-1]);
-    u[i+1]=(read<double>(f,i)-read<double>(a,i)*read<double>(u,i))*temp;
-    work[i]=-read<double>(c,i)*temp;
-  }
-
-  u[n+1]=unp1;
-  u[n]=read<double>(u,n)+work[n-1]*unp1;
-  
-  for(int i=n-1; i >= 1; i--)
-    u[i]=read<double>(u,i)+work[i-1]*read<double>(u,i+1);
-  
-}
-  
 // Solve the problem L\inv f, where f is an n vector and L is the n x n matrix
 //
-// [ b0 c0           a0     ]
-// [ a1 b1 c1               ]
-// [    a2 b2 c2            ]
-// [            ...         ]
-// [ c{n-1}   a{n-1} b{n-1} ]
+// [ b[0] c[0]           a[0]   ]
+// [ a[1] b[1] c[1]             ]
+// [      a[2] b[2] c[2]        ]
+// [                ...         ]
+// [       c[n-1] a[n-1] b[n-1] ]
 
-void tridiagonalp(stack *s)
+void tridiagonal(stack *s)
 {
   array *f=pop<array*>(s);
   array *c=pop<array*>(s);
@@ -855,11 +804,33 @@ void tridiagonalp(stack *s)
 
   if(n == 0) return;
   
-  double ainv=read<double>(b,0);
-  if(ainv == 0.0) dividebyzero();
-  ainv=1.0/ainv;
+  // Special case: Zero Dirichlet boundary conditions
+  if(read<double>(a,0) == 0.0 && read<double>(c,n-1) == 0.0) {
+    static double *work;
+    static size_t size=0;
   
-  if(n == 1) {u[0]=read<double>(f,0)*ainv; return;}
+    CheckReallocate(work,n,size);
+    
+    double temp=1.0/read<double>(b,0);
+    u[0]=read<double>(f,0)*temp;
+    work[0]=-read<double>(c,0)*temp;
+	
+    for(size_t i=1; i < n; i++) {
+      double temp=1.0/(read<double>(b,i)+read<double>(a,i)*work[i-1]);
+      u[i]=(read<double>(f,i)-read<double>(a,i)*read<double>(u,i-1))*temp;
+      work[i]=-read<double>(c,i)*temp;
+    }
+
+    for(int i=n-1; i >= 1; i--)
+      u[i-1]=read<double>(u,i-1)+work[i-1]*read<double>(u,i);
+    return;
+  }
+  
+  double binv=read<double>(b,0);
+  if(binv == 0.0) dividebyzero();
+  binv=1.0/binv;
+  
+  if(n == 1) {u[0]=read<double>(f,0)*binv; return;}
   if(n == 2) {
     double factor=(read<double>(b,0)*read<double>(b,1)-
 		   read<double>(a,0)*read<double>(c,1));
@@ -877,9 +848,9 @@ void tridiagonalp(stack *s)
   static size_t size=0;
   CheckReallocate(gamma,delta,n-2,size);
   
-  gamma[0]=read<double>(c,0)*ainv;
-  delta[0]=read<double>(a,0)*ainv;
-  u[0]=read<double>(f,0)*ainv;
+  gamma[0]=read<double>(c,0)*binv;
+  delta[0]=read<double>(a,0)*binv;
+  u[0]=read<double>(f,0)*binv;
   double beta=read<double>(c,n-1);
   double fn=read<double>(f,n-1)-beta*read<double>(u,0);
   double alpha=read<double>(b,n-1)-beta*delta[0];

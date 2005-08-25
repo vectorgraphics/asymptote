@@ -62,6 +62,7 @@ void arrayRead(vm::stack *s);
 void arrayArrayRead(vm::stack *s);
 void arrayWrite(vm::stack *s);
 void arrayLength(vm::stack *s);
+void arrayCyclicFlag(vm::stack *s);
 void arrayCyclic(vm::stack *s);
 void arrayCyclicHelper(vm::stack *s);
 void arrayPush(vm::stack *s);
@@ -315,7 +316,6 @@ vm::array *copyArray2(vm::stack *s);
 // Math routines  
 void pairArrayFFT(vm::stack *s);
 void tridiagonal(vm::stack *s);
-void tridiagonalp(vm::stack *s);
  
 } // namespace run
 

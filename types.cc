@@ -270,6 +270,12 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
     static trans::varEntry v(primInt(), &a);
     return &v;
   }
+  if (sig == 0 && id == symbol::trans("cyclicflag"))
+  {
+    static trans::bltinAccess a(run::arrayCyclicFlag);
+    static trans::varEntry v(primBoolean(), &a);
+    return &v;
+  }
   if (id == symbol::trans("cyclic") &&
       equivalent(sig, cyclicType()->getSignature()))
   {

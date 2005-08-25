@@ -126,7 +126,7 @@ public:
   eqn eqnIn (int j, knotlist& l, cvector<double>& d, cvector<double>& psi);
 
   void print(ostream& out) const {
-    out << "{dir(" << given << ")}";
+    out << "{dir(" << degrees(given) << ")}";
   }
 };
 

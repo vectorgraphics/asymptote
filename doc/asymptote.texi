@@ -635,7 +635,8 @@ produces the result 5. A synonym for @code{length(pair)} is @code{abs(pair)};
 
 @item real angle(pair z)
 @cindex @code{angle}
-returns the angle of @code{z} in radians;
+returns the angle of @code{z} in radians in the interval 
+[-@code{pi},@code{pi}];
 
 @item real degrees(pair z)
 @cindex @code{degrees}
@@ -907,6 +908,10 @@ with precontrol point @code{W}, are computed as the Bezier curve
 
 @image{bezier,,,(1-t)^3*z+3t(1-t)^2*Z+3t^2(1-t)*W+t^3*w for 0 <=t <= 1.}
 
+A good reference on Bezier curves and the algorithms that Asymptote
+uses to determine the control points is Donald Knuth's monograph,
+@code{The MetaFontbook}, chapters 3 and 14.
+
 This example draws an approximate quarter circle:
 @verbatiminclude quartercircle.asy
 @image{quartercircle}
@@ -1006,7 +1011,7 @@ filldraw(unitcircle^^reverse(g),yellow,black);
 @end verbatim
 
 The @code{^^} operator is used by the @code{box3d} function in
-@code{three.asy} to construct a 2D projection of the edges of a 3D
+@code{three.asy} to construct a two-dimensional projection of the edges of a 3D
 cube, without retracing steps:
 @verbatiminclude cube.asy
 @image{cube}
@@ -2467,17 +2472,19 @@ the pointer is copied (if one copy if modified, the other will be too).
 The @code{copy} function listed below provides a deep copy of an array.
 
 @cindex @code{length}
+@cindex @code{cyclic}
+@cindex @code{cyclicflag}
 @cindex @code{push}
 @cindex @code{pop}
 @cindex @code{append}
-@anchor{cyclic}
-Every array @code{A} of type @code{T[]} has four virtual members:
-@code{length}, @code{cyclic(bool)}, @code{push(T)},
+Every array @code{A} of type @code{T[]} has the virtual members
+@code{length}, @code{cyclic(bool)}, @code{cyclicflag}, @code{push(T)},
 @code{append(T[])}, and @code{pop()}.
-Here @code{A.length} evaluates to the length of the array.
+The member @code{A.length} evaluates to the length of the array.
 Setting @code{A.cyclic(true)} signifies that array indices should be reduced
-modulo the current array length; in this mode, array operations
-never lead to out-of-bounds errors or resizing.
+modulo the current array length. Reading from or writing to a nonempty
+cyclic array never leads to out-of-bounds errors or array resizing. The member
+@code{A.cyclicflag} returns the current setting of the @code{cyclic} flag.
 The functions @code{A.push} and @code{A.append} append their
 arguments onto the end of the array, while @code{A.pop()} pops and
 returns the last element. Like all @code{Asymptote} functions, 
@@ -2644,6 +2651,22 @@ f=fft(g,1);
 write();
 write(f/n);
 @end verbatim
+
+@anchor{tridiagonal}
+@cindex @code{tridiagonal}
+@item real[] tridiagonal(real[] a, real[] b, real[] c, real[] f);
+Solve the periodic tridiagonal problem @math{L^{-1}} @code{f}, where @code{f}
+is an @math{n} vector and @math{L} is the @math{n \times n} matrix
+@verbatim
+[ b[0] c[0]           a[0]   ]
+[ a[1] b[1] c[1]             ]
+[      a[2] b[2] c[2]        ]
+[                ...         ]
+[       c[n-1] a[n-1] b[n-1] ]
+@end verbatim
+For Dirichlet boundary conditions (denoted here by @code{u[-1]} and
+@code{u[n]}), replace @code{f[0]} by @code{f[0]-a[0]u[-1]} and
+@code{f[n-1]-c[n-1]u[n]}; then set @code{a[0]=c[n-1]=0}. 
 
 @end table
 
@@ -3496,17 +3519,21 @@ data in @code{diatom.csv} and @code{westnile.csv}.
 @cindex @code{three}
 @cindex @code{guide3}
 @cindex @code{cycle3}
+@cindex @code{curl3}
 @cindex @code{tension3}
 @cindex @code{controls}
 @cindex hidden surface removal
-This module extends the notion of a guide in @code{Asymptote}
+This module fully extends the notion of a guide in @code{Asymptote}
 to three dimensions, introducing the new type @code{guide3},
-along with the cycle terminator @code{cycle3} and tension operator
-@code{tension3}. A @code{guide3} will accept triple nodes, direction
-specifiers, and control points (using the usual @code{controls}
-operator). For the resulting spline to be invariant under 3D
-rotation, it is important to specify at least one direction specifier
-per node (or explicit control points).
+along with a three-dimensional cycle specifier @code{cycle3}, tension operator
+@code{tension3}, and curl operator @code{curl3}. Just as in two
+dimensions, the nodes within a @code{guide3} can be qualified with
+these operators and also with explicit directions and control points (using
+braces and @code{controls}, respectively).
+This generalization of John Hobby's spline algorithm is invariant to
+three-dimensional rotation, scaling, and shifting, and reduces in the planar
+case to the two-dimensional algorithm used in @code{Asymptote},
+@code{MetaPost}, and @code{MetaFont}.
 
 These projections to two dimensions are predefined:
 @table @code
@@ -3595,7 +3622,7 @@ examples @code{near_earth} and @code{conicurv}.
 @cindex @code{math}
 This package extends @code{Asymptote}'s mathematical capabilities with
 radian/degree conversion routines, point-in-polygon and intersection
-algorithms, 3D vectors, matrix arithmetic and inversion, and a linear
+algorithms, matrix arithmetic and inversion, and a linear
 equation solver (via Gauss-Jordan elimination).
 
 @cindex @code{implicit linear solver}
@@ -3655,6 +3682,8 @@ write(b); write();
 write(x); write();
 write(a*x);
 @end verbatim
+If the matrix @code{a} is tridiagonal, the routine @code{tridiagonal} provides
+a more efficient algorithm (@pxref{tridiagonal}).
 
 @cindex @code{solve}
 @item real[][] solve(real[][] a, real[][] b, bool overwrite=false)
@@ -4706,6 +4735,6 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  PaletteTicks defaultformat leastsquares bjam fprintf endgroup
 @c  LocalWords:  begingroup xmargin ymargin pbox box ellipse wget exe Gouraud
 @c  LocalWords:  multithreaded newframe init emph nums concat xline yline zpart
-@c  LocalWords:  colatitude zscale noView cosh nullpen
+@c  LocalWords:  colatitude zscale noView cosh nullpen MetaFontbook cyclicflag
 @c  LocalWords:  nodeps Ghostgum beginlabel endlabel pTick ptick loggrid
-@c  LocalWords:  currentprojection
+@c  LocalWords:  currentprojection latticeshading

@@ -264,15 +264,15 @@ struct eqnprop : public knotprop<eqn> {
 
     // Values based on the linear approximation of the curvature coming
     // into the knot with respect to theta[j-1] and theta[j].
-    double inDenom = thisBeta*thisBeta*d[j-1];
-    double A = lastAlpha/inDenom;
-    double B = (3.0 - lastAlpha)/inDenom;
+    double inFactor = 1.0/(thisBeta*thisBeta*d[j-1]);
+    double A = lastAlpha*inFactor;
+    double B = (3.0 - lastAlpha)*inFactor;
 
     // Values based on the linear approximation of the curvature going out of
     // the knot with respect to theta[j] and theta[j+1].
-    double outDenom = thisAlpha*thisAlpha*d[j];
-    double C = (3.0 - nextBeta)/outDenom;
-    double D = nextBeta/outDenom;
+    double outFactor = 1.0/(thisAlpha*thisAlpha*d[j]);
+    double C = (3.0 - nextBeta)*outFactor;
+    double D = nextBeta*outFactor;
 
     return eqn(A,B+C,D,-B*psi[j]-D*psi[j+1]);
   }

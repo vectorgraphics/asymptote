@@ -1,7 +1,7 @@
 " Vim syntax file
 " Language:	Asymptote
 " Maintainer:	Andy Hammerlindl
-" Last Change:	2004 Jul 26
+" Last Change:	2005 Aug 23
 
 " Hacked together from Bram Moolenaar's C syntax file, and Claudio Fleiner's
 " Java syntax file.
@@ -101,7 +101,7 @@ syntax match	asyCommentError	display "\*/"
 syntax match	asyCommentStartError display "/\*"me=e-1 contained
 
 syn keyword	asyType		void bool int real string
-syn keyword	asyType		pair transform guide path pen frame
+syn keyword	asyType		pair triple transform guide path pen frame
 syn keyword     asyType         picture
 
 syn keyword	asyStructure	struct typedef
@@ -113,7 +113,7 @@ syn keyword     asyConstant     true false
 syn keyword     asyConstant     null nullframe nullpath
 
 if exists("asy_syn_plain")
-  syn keyword	asyConstant	currentpicture currentpen
+  syn keyword	asyConstant	currentpicture currentpen currentprojection
   syn keyword	asyConstant	inch inches cm mm bp pt up down right left 
   syn keyword	asyConstant	E NE N NW W SW S SE
   syn keyword	asyConstant	ENE NNE NNW WNW WSW SSW SSE ESE

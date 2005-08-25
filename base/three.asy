@@ -72,9 +72,9 @@ transform3 zscale3(real s)
 
 // A transformation representing rotation by an angle in degrees about
 // an axis v through the origin (in the right-handed direction).
-// See http://www.cprogramming.com/tutorial/3d/rotation.html
 transform3 rotate(real angle, triple v)
 {
+  v=unit(v);
   real x=v.x, y=v.y, z=v.z;
   real s=Sin(angle), c=Cos(angle), t=1-c;
 
@@ -123,43 +123,61 @@ transform3 lookAt(triple from, triple to)
   return lookAtOrigin(from-to)*shift(-to);
 }
 
+typedef pair project(triple v);
+
+struct projection {
+  public triple camera;
+  public transform3 project;
+  void init(triple camera, transform3 project) {
+    this.camera=camera;
+    this.project=project;
+  }
+}
+
+projection operator init() {return new projection;}
+  
 // Uses the homogenous coordinate to perform perspective distortion.  When
 // combined with a projection to the XY plane, this effectively maps
 // points in three space to a plane at a distance d from the camera.
-transform3 perspective(triple camera)
+projection perspective(triple camera)
 {
   transform3 t=identity(4);
   real d=length(camera);
   t[3][2]=-1/d;
   t[3][3]=0;
-  return t*lookAtOrigin(camera);
+  projection P;
+  P.init(camera,t*lookAtOrigin(camera));
+  return P;
 }
 
-transform3 orthographic(triple camera)
+projection orthographic(triple camera)
 {
-  return lookAtOrigin(camera);
+  projection P;
+  P.init(camera,lookAtOrigin(camera));
+  return P;
 }
 
-transform3 oblique(real angle=45)
+projection oblique(real angle=45)
 {
   transform3 t=identity(4);
-  real x=Cos(angle)^2;
-  t[0][2]=-x;
-  t[1][2]=x-1;
+  real c2=Cos(angle)^2;
+  real s2=1-c2;
+  t[0][2]=-c2;
+  t[1][2]=-s2;
   t[2][2]=0;
-  return t;
+  projection P;
+  P.init((c2,s2,1),t);
+  return P;
 }
 
-transform3 oblique=oblique();
-
-typedef pair projection(triple a);
+projection oblique=oblique();
 
 pair projectXY(triple v)
 {
   return (v.x,v.y);
 }
 
-projection operator cast(transform3 t)
+project operator cast(transform3 t)
 {
   return new pair(triple v) {
     return projectXY(t*v);
@@ -190,7 +208,7 @@ control operator * (transform3 t, control c)
 
 void write(file file, control c)
 {
-  write(file,"..controls ");
+  write(file,".. controls ");
   write(file,c.post);
   write(file," and ");
   write(file,c.pre);
@@ -215,6 +233,7 @@ noTension.in=noTension.out=1;
 void write(file file, Tension t)
 {
   write(file,"..tension ");
+  if(t.atLeast) write(file,"atleast ");
   write(file,t.out);
   write(file," and ");
   write(file,t.in);
@@ -222,53 +241,82 @@ void write(file file, Tension t)
   
 struct dir {
   public triple dir;
-  public bool active=false;
+  public real gamma=1; // endpoint curl
+  public bool Curl;    // curl specified
+  bool active() {
+    return dir != O || Curl;
+  }
   void init(triple v) {
     this.dir=v;
-    active=true;
+  }
+  void init(real gamma) {
+    this.gamma=gamma;
+    this.Curl=true;
+  }
+  void init(dir d) {
+    dir=d.dir;
+    gamma=d.gamma;
+    Curl=d.Curl;
+  }
+  void default(triple v) {
+    if(!active()) init(v);
+  }
+  void default(dir d) {
+    if(!active()) init(d);
+  }
+  dir copy() {
+    dir d=new dir;
+    d.init(this);
+    return d;
   }
 }
 
+void write(file file, dir d)
+{
+  if(d.dir != O) {
+    write(file,"{"); write(file,unit(d.dir)); write(file,"}");
+  } else if(d.Curl) {
+    write(file,"{curl3 "); write(file,d.gamma); write(file,"}");
+  }
+}
+  
 dir operator init() {return new dir;}
-dir nodir;
+
+transform3 shiftless(transform3 t)
+{
+  transform3 T=copy(t);
+  T[0][3]=T[1][3]=T[2][3]=0;
+  return T;
+}
 
 dir operator * (transform3 t, dir d) 
 {
-  dir D;
-  D.dir=unit(t*d.dir-t*(0,0,0));
-  D.active=d.active;
+  dir D=d.copy();
+  D.init(unit(shiftless(t)*d.dir));
   return D;
 }
 
-// TODO: Relax the assumption that the cycle specifier is at the end.
-
 struct flatguide3 {
   public triple[] nodes;
+  public bool[] cyclic;     // true if node is really a cycle
   public control[] control; // control points for segment starting at node
   public Tension[] Tension; // Tension parameters for segment starting at node
   public dir[] in,out;    // in and out directions for segment starting at node
-  public bool[] straight; // true unless segment starting at node is a spline
-  public bool cycles=false;
-  control.cyclic(true);
-  Tension.cyclic(true);
-  in.cyclic(true);
-  out.cyclic(true);
-  straight.cyclic(true);
 
-  void node(triple v) {
+  void node(triple v, bool b=false) {
     nodes.push(v);
     control.push(nocontrol);
     Tension.push(noTension);
-    in.push(nodir);
-    out.push(nodir);
-    straight.push(false);
+    in.push(new dir);
+    out.push(new dir);
+    cyclic.push(b);
  }
 
   void control(triple post, triple pre) {
     if(control.length > 0) {
       control c;
       c.init(post,pre);
-      control[-1]=c;
+      control[control.length-1]=c;
     }
   }
 
@@ -276,63 +324,72 @@ struct flatguide3 {
     if(Tension.length > 0) {
       Tension t;
       t.init(out,in,atLeast);
-      Tension[-1]=t;
+      Tension[Tension.length-1]=t;
     }
   }
 
   void in(triple v) {
     if(in.length > 0) {
-      dir d;
-      d.init(v);
-      in[-1]=d;
+      in[in.length-1].init(v);
     }
   }
 
   void out(triple v) {
     if(out.length > 0) {
-      dir d;
-      d.init(v);
-      out[-1]=d;
+      out[out.length-1].init(v);
     }
   }
 
-  void straight(bool b) {
-    if(straight.length > 0) straight[-1]=b;
+  void in(real gamma) {
+    if(in.length > 0) {
+      in[in.length-1].init(gamma);
+    }
+  }
+
+  void out(real gamma) {
+    if(out.length > 0) {
+      out[out.length-1].init(gamma);
+    }
+  }
+
+  void cyclic() {
+    node(nodes[0],true);
+  }
+  
+  // Return true if outgoing direction at node i is known.
+  bool solved(int i) {
+    return out[i].active() || control[i].active;
   }
 }
 
 flatguide3 operator init() {return new flatguide3;}
   
-int size(explicit flatguide3 g) {return g.nodes.length;}
-triple point(explicit flatguide3 g, int k) {return g.nodes[k];}
-bool cyclic(explicit flatguide3 g) {return g.cycles;}
-int length(explicit flatguide3 g) {
-  return g.cycles ? g.nodes.length : g.nodes.length-1;
+bool cyclic(explicit flatguide3 g) {return g.cyclic[g.cyclic.length-1];}
+int size(explicit flatguide3 g) {
+  return cyclic(g) ? g.nodes.length-1 : g.nodes.length;
 }
+int length(explicit flatguide3 g) {return g.nodes.length-1;}
+triple point(explicit flatguide3 g, int k) {return g.nodes[k];}
 
 void write(file file, flatguide3 g)
 {
   if(size(g) == 0) {
     write("<nullguide3>");
-  if(cyclic(g) && g.straight.length > 0)
-      write(file,g.straight[0] ? " --" : " ..");
-  } else for(int i=0; i < size(g); ++i) {
-    write(file,g.nodes[i],endl);
-    if(g.out[i].active) {
-      write(file,"{"); write(file,g.out[i].dir); write(file,"}");
-    }
-    if(g.control[i].active)
+    if(cyclic(g)) write(file,"..");
+  } else for(int i=0; i < g.nodes.length; ++i) {
+    if(i > 0) write(file);
+    if(g.cyclic[i]) write(file,"cycle3");
+    else write(file,g.nodes[i]);
+
+    if(g.control[i].active) // Explicit control points trump other specifiers
       write(file,g.control[i]);
-    if(g.Tension[i].active)
-      write(file,g.Tension[i]);
-    if(i < length(g))
-      write(file,g.straight[i] ? " --" : " ..");
-    if(g.in[i].active) {
-      write(file,"{"); write(file,g.in[i].dir); write(file,"}");
+    else {
+      write(file,g.out[i]);
+      if(g.Tension[i].active) write(file,g.Tension[i]);
     }
+    if(i < length(g)) write(file,"..");
+    if(!g.control[i].active) write(file,g.in[i]);
   }
-  if(cyclic(g))
-    write(file,"cycle3");
 }
   
 void write(file file=stdout, flatguide3 x, suffix s) {write(file,x); s(file);}
@@ -377,8 +434,7 @@ guide3[] operator cast(triple[] v)
 
 void cycle3(flatguide3 f)
 {
-  f.straight.push(false);
-  f.cycles=true;
+  f.cyclic();
 }
 
 guide3 operator controls(triple post, triple pre) 
@@ -405,13 +461,32 @@ guide3 operator tension3(real t, bool atLeast)
   return operator tension3(t,t,atLeast);
 }
 
+guide3 operator curl3(real gamma, int p)
+{
+  return new void(flatguide3 f) {
+    if(p == 0) f.out(gamma);
+    else if(p == 1) f.in(gamma);
+  };
+}
+  
+guide3 operator spec(triple v, int p)
+{
+  return new void(flatguide3 f) {
+    if(p == 0) f.out(v);
+    else if(p == 1) f.in(v);
+  };
+}
+  
 guide3 operator -- (... guide3[] g)
 {
   return new void(flatguide3 f) {
-    // Apply the subguides in order.
-    for(int i=0; i < g.length; ++i) {
-      g[i](f);
-      f.straight(true);
+    if(g.length > 0) {
+      for(int i=0; i < g.length-1; ++i) {
+	g[i](f);
+	f.out(1);
+	f.in(1);
+      }
+      g[g.length-1](f);
     }
   };
 }
@@ -419,9 +494,8 @@ guide3 operator -- (... guide3[] g)
 guide3 operator .. (... guide3[] g)
 {
   return new void(flatguide3 f) {
-    for(int i=0; i < g.length; ++i) {
+    for(int i=0; i < g.length; ++i)
       g[i](f);
-    }
   };
 }
 
@@ -441,14 +515,6 @@ guide3 operator ---(... guide3[] a)
   return g;
 }
 
-guide3 operator spec(triple v, int p)
-{
-  return new void(flatguide3 f) {
-    if(p == 0) f.out(v);
-    else if(p == 1) f.in(v);
-  };
-}
-  
 flatguide3 operator cast(guide3 g)
 {
   flatguide3 f;
@@ -474,13 +540,12 @@ guide3 operator * (transform3 t, guide3 g)
     g(f);
     for(int i=0; i < f.nodes.length; ++i) {
       f.nodes[i]=t*f.nodes[i];
+      f.cyclic[i]=f.cyclic[i];
       f.control[i]=t*f.control[i];
       f.Tension[i]=f.Tension[i];
       f.in[i]=t*f.in[i];
       f.out[i]=t*f.out[i];
-      f.straight[i]=f.straight[i];
     }
-    f.cycles=f.cycles;
   };
 }
 
@@ -492,16 +557,27 @@ guide3[] operator * (transform3 t, guide3[] g)
   return G;
 }
 
+// A version of acos that tolerates numerical imprecision
+real acos1(real x) {
+  if(x < -1) x=-1;
+  if(x > 1) x=1;
+  return acos(x);
+}
+  
 struct Controls {
   triple c0,c1;
 
+// 3D extension of John Hobby's control point formula
+//  (The MetaFont Book, page 131).
   void init(triple v0, triple v1, triple d0, triple d1, real tout, real tin,
 	    bool atLeast) {
     triple v=v1-v0;
     triple u=unit(v);
     real L=length(v);
-    real theta=acos(dot(unit(d0),u));
-    real phi=acos(dot(unit(d1),u));
+    d0=unit(d0);
+    d1=unit(d1);
+    real theta=acos1(dot(d0,u));
+    real phi=acos1(dot(d1,u));
     if(dot(cross(d0,v),cross(v,d1)) < 0) phi=-phi;
     c0=v0+d0*L*relativedistance(theta,phi,tout,atLeast);
     c1=v1-d1*L*relativedistance(phi,theta,tin,atLeast);
@@ -510,29 +586,248 @@ struct Controls {
 
 Controls operator init() {return new Controls;}
   
-path project(flatguide3 g, projection P)
+private triple cross(triple d0, triple d1, triple camera)
 {
-  guide pg;
-  
-  // Propagate directions across nodes.
-  for(int i=0; i < length(g); ++i) {
-    int next=(i+1 == size(g)) ? 0 : i+1;
-    if(!g.in[i].active && g.out[next].active) {
-      g.in[i]=g.out[next];
-      g.in[i].active=true;
+  triple normal=cross(d0,d1);
+  return normal == O ? camera : normal;
+}
+					
+private triple dir(real theta, triple d0, triple d1, triple camera)
+{
+  triple normal=cross(d0,d1,camera);
+  return rotate(degrees(theta),dot(normal,camera) >= 0 ? normal : -normal)*d1;
+}
+
+private real angle(triple d0, triple d1, triple camera)
+{
+  real theta=acos1(dot(unit(d0),unit(d1)));
+  return dot(cross(d0,d1,camera),camera) >= 0 ? theta : -theta;
+}
+
+// 3D extension of John Hobby's angle formula (The MetaFont Book, page 131).
+// Notational differences: here psi[i] is the turning angle at z[i+1],
+// beta[i] is the tension for segment i, and in[i] is the incoming
+// direction for segment i (where segment i begins at node i).
+
+real[] theta(triple[] v, real[] alpha, real[] beta, 
+	     triple dir0, triple dirn, real g0, real gn, triple camera)
+{
+  real[] a,b,c,f,l,psi;
+  int n=alpha.length;
+  bool cyclic=v.cyclicflag;
+  for(int i=0; i < n; ++i)
+    l[i]=1/length(v[i+1]-v[i]);
+  int i0,in;
+  if(cyclic) {i0=0; in=n;}
+  else {i0=1; in=n-1;}
+  for(int i=0; i < in; ++i)
+    psi[i]=angle(v[i+1]-v[i],v[i+2]-v[i+1],camera);
+  if(cyclic) {
+    l.cyclic(true);
+    psi.cyclic(true);
+  } else {
+    psi[n-1]=0;
+    if(dir0 == O) {
+      real a0=alpha[0];
+      real b0=beta[0];
+      a[0]=0;
+      b[0]=g0*b0^3+a0^3*(3b0-1);
+      real C=g0*b0^3*(3a0-1)+a0^3;
+      c[0]=C;
+      f[0]=-C*psi[0];
+    } else {
+      a[0]=c[0]=0;
+      b[0]=1;
+      f[0]=angle(v[1]-v[0],dir0,camera);
     }
-    if(!g.out[next].active && g.in[i].active) {
-      g.out[next]=g.in[i];
-      g.out[next].active=true;
+    if(dirn == O) {
+      real an=alpha[n-1];
+      real bn=beta[n-1];
+      a[n]=bn^3+gn*an^3*(3bn-1);
+      real C=bn^3*(3an-1)+gn*an^3;
+      b[n]=C;
+      c[n]=f[n]=0;
+    } else {
+      a[n]=c[n]=0;
+      b[n]=1;
+      f[n]=angle(v[n]-v[n-1],dirn,camera);
     }
   }
   
-  // Compute missing control points in 3D when both directions are available.
-  for(int i=0; i < length(g); ++i) {
-    int next=(i+1 == size(g)) ? 0 : i+1;
-    if(!g.control[i].active && g.out[i].active && g.in[i].active) {
+  for(int i=i0; i < n; ++i) {
+    real in=beta[i-1]^2*l[i-1];
+    real A=in/alpha[i-1];
+    a[i]=A;
+    real B=3*in-A;
+    real out=alpha[i]^2*l[i];
+    real C=out/beta[i];
+    b[i]=B+3*out-C;
+    c[i]=C;
+    f[i]=-B*psi[i-1]-C*psi[i];
+  }
+  
+  return tridiagonal(a,b,c,f);
+}
+
+// Fill in missing directions for n cyclic nodes.
+void aim(flatguide3 g, int N, triple camera) 
+{
+  bool cyclic=true;
+  int start=0, end=0;
+  
+  // If the cycle contains one or more direction specifiers, break the loop.
+  for(int k=0; k < N; ++k)
+    if(g.solved(k)) {cyclic=false; end=k; break;}
+  for(int k=N-1; k >= 0; --k)
+    if(g.solved(k)) {cyclic=false; start=k; break;}
+  while(start < N && g.control[start].active) ++start;
+  
+  int n=N-(start-end);
+  if(n <= 1 || (cyclic && n <= 2)) return;
+
+  triple[] v=new triple[cyclic ? n : n+1];
+  real[] alpha=new real[n];
+  real[] beta=new real[n];
+  for(int k=0; k < n; ++k) {
+    int K=(start+k) % N;
+    v[k]=g.nodes[K];
+    alpha[k]=g.Tension[K].out;
+    beta[k]=g.Tension[K].in;
+  }
+  if(cyclic) {
+    v.cyclic(true);
+    alpha.cyclic(true);
+    beta.cyclic(true);
+  } else v[n]=g.nodes[(start+n) % N];
+  int final=(end-1) % N;
+  real[] theta=theta(v,alpha,beta,g.out[start].dir,g.in[final].dir,
+		     g.out[start].gamma,g.in[final].gamma,camera);
+  v.cyclic(true);
+  theta.cyclic(true);
+    
+  triple w;
+  for(int k=1; k < (cyclic ? n+1 : n); ++k) {
+    triple w=dir(theta[k],v[k]-v[k-1],v[k+1]-v[k],camera);
+    g.in[(start+k-1) % N].init(w);
+    g.out[(start+k) % N].init(w);
+  }
+  if(g.out[start].dir == O)
+    g.out[start].init(dir(theta[0],v[0]-g.nodes[(start-1) % N],v[1]-v[0],
+			  camera));
+  if(g.in[final].dir == O)
+    g.in[final].init(dir(theta[n],v[n-1]-v[n-2],v[n]-v[n-1],camera));
+}
+
+// Fill in missing directions for the sequence of nodes i...n.
+void aim(flatguide3 g, int i, int n, triple camera) 
+{
+  int j=n-i;
+  if(j > 1 || g.out[i].dir != O || g.in[i].dir != O) {
+    triple[] v=new triple[j+1];
+    real[] alpha=new real[j];
+    real[] beta=new real[j];
+    for(int k=0; k < j; ++k) {
+      v[k]=g.nodes[i+k];
+      alpha[k]=g.Tension[i+k].out;
+      beta[k]=g.Tension[i+k].in;
+    }
+    v[j]=g.nodes[n];
+    real[] theta=theta(v,alpha,beta,g.out[i].dir,g.in[n-1].dir,
+		       g.out[i].gamma,g.in[n-1].gamma,camera);
+    
+    for(int k=1; k < j; ++k) {
+      triple w=dir(theta[k],v[k]-v[k-1],v[k+1]-v[k],camera);
+      g.in[i+k-1].init(w);
+      g.out[i+k].init(w);
+    }
+    if(g.out[i].dir == O) {
+      triple w=dir(theta[0],g.in[i].dir,v[1]-v[0],camera);
+      if(i > 0) g.in[i-1].init(w);
+      g.out[i].init(w);
+     }
+    if(g.in[n-1].dir == O) {
+      triple w=dir(theta[j],g.out[n-1].dir,v[j]-v[j-1],camera);
+      g.in[n-1].init(w);
+      g.out[n].init(w);
+    }
+  }
+}
+
+path project(flatguide3 g, projection Q)
+{
+  project P=Q.project;
+  int n=length(g);
+
+  // If duplicate points occur consecutively, add dummy controls (if absent).
+  for(int i=1; i < n; ++i) {
+    if(g.nodes[i] == g.nodes[i+1] && !g.control[i].active) {
+      control c;
+      c.init(g.nodes[i],g.nodes[i]);
+      g.control[i]=c;
+    }
+  }  
+  
+  // Fill in empty direction specifiers inherited from explicit control points.
+  for(int i=0; i < n; ++i) {
+    if(g.control[i].active) {
+      g.out[i].default(g.control[i].post-g.nodes[i]);
+      g.in[i].default(g.nodes[i+1]-g.control[i].pre);
+    }
+  }  
+  
+  // Propagate directions across nodes.
+  for(int i=0; i < n; ++i) {
+    int next=g.cyclic[i+1] ? 0 : i+1;
+    if(g.out[next].active())
+      g.in[i].default(g.out[next]);
+    if(g.in[i].active()) {
+      g.out[next].default(g.in[i]);
+      g.out[i+1].default(g.in[i]);
+    }
+  }  
+    
+  // Compute missing 3D directions.
+  // First, resolve cycles
+  int i=find(g.cyclic);
+  if(i > 0) {
+    aim(g,i,Q.camera);
+    // All other cycles can now be reduced to sequences.
+    triple v=g.out[0].dir;
+    for(int j=i; j <= n; ++j) {
+      if(g.cyclic[j]) {
+	g.in[j-1].default(v);
+	g.out[j].default(v);
+	if(g.nodes[j-1] == g.nodes[j] && !g.control[j-1].active) {
+	  control c;
+	  c.init(g.nodes[j-1],g.nodes[j-1]);
+	  g.control[j-1]=c;
+	}
+      }
+    }
+  }
+    
+  // Next, resolve sequences.
+  int i=0;
+  int start=0;
+  while(i < n) {
+    // Look for a missing outgoing direction.
+    while(i <= n && g.solved(i)) {start=i; ++i;}
+    if(i > n) break;
+    // Look for the end of the sequence.
+    while(i < n && !g.solved(i)) ++i;
+    
+    while(start < i && g.control[start].active) ++start;
+    
+    if(start < i) 
+      aim(g,start,i,Q.camera);
+  }
+  
+  // Compute missing 3D control points.
+  for(int i=0; i < n; ++i) {
+    int next=g.cyclic[i+1] ? 0 : i+1;
+    if(!g.control[i].active && !(g.out[i].Curl && g.in[i].Curl)) {
       Controls C;
-      C.init(point(g,i),point(g,next),g.out[i].dir,g.in[i].dir,
+      C.init(g.nodes[i],g.nodes[next],g.out[i].dir,g.in[i].dir,
 	     g.Tension[i].out,g.Tension[i].in,g.Tension[i].atLeast);
       control c;
       c.init(C.c0,C.c1);
@@ -540,23 +835,25 @@ path project(flatguide3 g, projection P)
     }
   }
   
+  guide pg;
+  
   // Construct the path.
   for(int i=0; i < size(g); ++i) {
-    guide join(... guide[])=g.straight[i] ? operator -- : operator ..;
     if(g.control[i].active)
-      pg=join(pg,P(point(g,i))..controls P(g.control[i].post) and 
-	      P(g.control[i].pre)..nullpath);
-    else if(g.out[i].active)
-      pg=join(pg,P(point(g,i)){P(g.out[i].dir)}..nullpath);
-    else if(g.in[i].active)
-      pg=join(pg,P(point(g,i))..{P(g.in[i].dir)}nullpath);
-    else pg=join(pg,P(point(g,i)));
+      pg=pg..P(point(g,i))..
+	controls P(g.control[i].post) and P(g.control[i].pre)..nullpath;
+    else 
+      pg=pg..P(point(g,i))--nullpath;
   }
-  return cyclic(g) ? (g.straight[-1] ? pg--cycle : pg..cycle) : pg;
+  
+  if(cyclic(g)) pg=g.control[n-1].active ? pg..cycle : pg--cycle;
+  
+  return pg;
 }
 
 pair project(triple v, projection P)
 {
+  project P=P.project;
   return P(v);
 }
 
@@ -569,6 +866,10 @@ path[] project(flatguide3[] g, projection P)
 }
   
 public projection currentprojection=perspective((5,4,2));
+
+pair operator cast(triple v) {
+  return project(v,currentprojection);
+}
 
 path operator cast(triple v) {
   return project(v,currentprojection);

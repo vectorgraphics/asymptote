@@ -962,7 +962,18 @@ struct picture {
       return xscale(sx.a)*yscale(sy.a);
   }
 
+  transform calculateTransform() {
+    return calculateTransform(xsize,ysize,keepAspect);
+  }
 
+  pair min() {
+    return min(calculateTransform());
+  }
+  
+  pair max() {
+    return max(calculateTransform());
+  }
+  
   frame fit(transform t, transform T0=T, pair m, pair M) {
     frame f;
     for (int i=0; i < nodes.length; ++i)
@@ -1771,13 +1782,19 @@ void label(picture pic=currentpicture, Label L, align align=NoAlign,
   label(pic,L,L.position,align,p);
 }
   
-void label(picture pic=currentpicture, Label L, path g, align align=NoAlign,
-	   pen p=currentpen)
+void label(picture pic=currentpicture, Label L, explicit path g,
+	   align align=NoAlign, pen p=currentpen)
 {
   Label L=L.copy();
   L.align(align);
   L.p(p);
   L.out(pic,g);
+}
+
+void label(picture pic=currentpicture, Label L, explicit guide g,
+	   align align=NoAlign, pen p=currentpen)
+{
+  label(pic,L,(path) g,align,p);
 }
 
 Label operator cast(string s) {return Label(s);}
@@ -2069,7 +2086,7 @@ void dot(picture pic=currentpicture, pair[] z, pen p=currentpen)
   for(int i=0; i < z.length; ++i) dot(pic,z[i],p);
 }
 
-void dot(picture pic=currentpicture, path g, pen p=currentpen)
+void dot(picture pic=currentpicture, explicit path g, pen p=currentpen)
 {
   for(int i=0; i <= length(g); ++i) dot(pic,point(g,i),p);
 }
@@ -2468,7 +2485,7 @@ void draw(picture pic=currentpicture, Label L="", path g, align align=NoAlign,
   if(putmark && !empty(mark)) mark(pic,g,mark);
 }
 
-// Draw a fixed-size object about the user-coordinate 'origin'.
+// Draw a fixed-size line about the user-coordinate 'origin'.
 void draw(pair origin, picture pic=currentpicture, Label L="", path g,
 	  align align=NoAlign, pen p=currentpen, arrowbar arrow=None,
 	  arrowbar bar=None, margin margin=NoMargin, string legend="",
