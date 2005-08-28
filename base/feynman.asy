@@ -2,17 +2,9 @@
  * feynman.asy -- An Asymptote library for drawing Feynman diagrams.         *
  *                                                                           *
  * by:  Martin Wiebusch <martin.wiebusch@gmx.net>                            *
- * last change: 2005/06/20                                                   *
+ * last change: 2005/08/28                                                   *
  *****************************************************************************/
 
-
-// labels on paths are positioned with a certain offset to the path. The
-// direction of the offset can be specified as absolute direction or as
-// direction relative to the direction of the path. The functions
-// midLabelPoint, endLabelPoint and startLabelPoint use a boolean parameter to
-// select one of the two methods. The synonyms Absolute and Relative are
-// provided for convenience.
-bool Absolute = false, Relative = true;
 
 /* default parameters ********************************************************/
 
@@ -86,13 +78,6 @@ static public real vertexsize;
 
 // size (radius) of big vertices (drawVertexOX and drawVertexBoxX)
 static public real bigvertexsize;
-
-// offset of labels from paths. Used by the function labelPoint.
-static public real labeloffset;
-
-// default method for positioning labels on paths.
-static public bool labelpostype;
-
 
 /* defaults for momentum arrows **********************************************/
 
@@ -203,22 +188,6 @@ path photon(path p, real amp = photonamplitude, real width=-1)
     return g;
 }
 
-// generate arrows in the middle of paths. MidArrow() can be used as argument
-// to draw commands, in place of EndArrow etc.
-arrowbar MidArrow(real size=0, real angle=arrowangle, filltype filltype=Fill)
-{
-    return new bool(picture pic, path g, pen p, margin margin) {
-        if(size==0) size = arrowsize(p);
-        add(pic,arrow(g,p,size,angle,filltype,
-                      arctime(g,(arclength(g)+size)/2),margin));
-	return false;
-    };
-}
-
-// provide a middle arrow with default parameters
-
-public arrowbar MidArrow = MidArrow();
-
 // returns the path of a momentum arrow along path p, with length length,
 // an offset offset from the path p and at position position. position will
 // usually be one of the predefined pairs left or right. Making adjust
@@ -240,64 +209,6 @@ path momArrowPath(path p,
 
     return p1{v1}..{v2}p2;
 }
-
-// returns a label position near the middle of path p, with an offset offset
-// from the path, shifted in direction of pos. Making adjust nonzero shifts
-// the label point along the path. postype determines, whether the direction
-// of pos describes an absolute direction or a direction relative to the path
-// direction. The constants Relative and Absolute may be used here.
-pair midLabelPoint(path p,
-                   pair pos,
-                   real adjust = 0,
-                   real offset = labeloffset,
-                   bool postype = labelpostype)
-{
-    real pathlen = arclength(p);
-    real t = arctime(p, pathlen/2 + adjust);
-
-    if(postype == Relative) {
-        pair v = dir(p, t);
-        return point(p, t) + offset*unit(scale(pos)*rotate(-90)*v);
-    }
-
-    return point(p, t) + offset*unit(pos);
-}
-
-// returns a label position near the end of path p, with an offset offset
-// from the path, shifted in direction of pos. postype determines, whether the
-// direction of pos describes an absolute direction or a direction relative to
-// the path direction. The constants Relative and Absolute may be used here.
-pair endLabelPoint(path p,
-                   pair pos,
-                   real offset = labeloffset,
-                   bool postype = labelpostype)
-{
-    if(postype == Relative) {
-        pair v = dir(p, size(p));
-        return point(p, size(p)) + offset*unit(scale(pos)*rotate(-90)*v);
-    }
-
-    return point(p, size(p)) + offset*unit(pos);
-}
-
-// returns a label position near the begin of path p, with an offset offset
-// from the path, shifted in direction of pos. postype determines, whether the
-// direction of pos describes an absolute direction or a direction relative to
-// the path direction. The constants Relative and Absolute may be used here.
-pair initialLabelPoint(path p,
-                       pair pos,
-                       real offset = labeloffset,
-                       bool postype = labelpostype)
-{
-    if(postype == Relative) {
-        pair v = dir(p, 0);
-        return point(p, 0) + offset*unit(scale(pos)*rotate(-90)*v);
-    }
-
-    return point(p, 0) + offset*unit(pos);
-}
-
-
 
 /* drawing functions *********************************************************/
 
@@ -636,8 +547,6 @@ void fmdefaults()
     photonratio = 4;
     gluonamplitude = arrowsize/3;
     photonamplitude = arrowsize/4;
-    labeloffset = gluonamplitude;
-    labelpostype = Relative;
 
     backgroundpen = white;
     gluonpen = currentpen;
@@ -667,3 +576,39 @@ void fmdefaults()
 
 // We call fmdefaults once, when the module is loaded.
 fmdefaults();
+
+
+/* shipout *******************************************************************/
+
+bool YAlign = false;
+bool XYAlign = true;
+
+// texshipout("filename", pic) creates two files: filename.eps holding the
+// picture pic and filename.tex holding some LaTeX code that includes the
+// picture from filename.eps and shifts it vertically in such a way that the
+// the the point (0,0) lies on the baseline.
+void texshipout(string stem,
+                picture pic = currentpicture,
+                bool xalign = YAlign)
+{
+    file tf = output(stem + ".tex");
+    pair min=pic.min();
+    real depth = min.y;
+    real xoffset = min.x;
+    if(xalign) {
+        write(tf, "\makebox[0pt][l]{\kern");
+        write(tf, xoffset);
+        write(tf, "bp\relax");
+    }
+    write(tf, "\raisebox{");
+    write(tf, depth);
+    write(tf, "bp}{\includegraphics{");
+    write(tf, stem);
+    write(tf, ".eps}}");
+    if(xalign)
+        write(tf, "}");
+    close(tf);
+    shipout(stem + ".eps", pic);
+}
+
+

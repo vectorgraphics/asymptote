@@ -395,7 +395,7 @@ cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote login
 cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote co asymptote
 cd asymptote-x.xx
 ./autogen.sh
-wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.4.tar.gz
+wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.5.tar.gz
 ./configure
 make all
 make install
@@ -3139,10 +3139,10 @@ include the first label;
 @item bool endlabel
 include the last label;
 @item Label format
-used for overriding the default format, pen, and side (@code{LeftSide},
-@code{Center}, or @code{RightSide}, relative to the axis) of the tick
-labels (to enable the @code{LaTeX} math mode fonts, the format string
-should begin and end with @code{$} @pxref{format});
+used for overriding the default format, pen, and alignment (for
+example, @code{LeftSide}, @code{Center}, or @code{RightSide}) relative
+to the axis of the tick labels (to enable the @code{LaTeX} math mode
+fonts, the format string should begin and end with @code{$} @pxref{format});
 @item bool extend;
 extend the big ticks across the graph (useful for drawing a grid on
 the graph);
@@ -4032,6 +4032,7 @@ bar length is @code{barsize(p)}.
 @cindex @code{None}
 @cindex @code{Blank}
 @cindex @code{BeginArrow}
+@cindex @code{MidArrow}
 @cindex @code{EndArrow}
 @cindex @code{Arrow}
 @cindex @code{Arrows}
@@ -4042,20 +4043,21 @@ bar length is @code{barsize(p)}.
 @cindex @code{ArcArrow}
 @cindex @code{ArcArrows}
 The possible values of @code{arrow} are @code{None}, @code{Blank}
-(which draws no arrows or path), @code{BeginArrow}, @code{EndArrow}
-(or equivalently @code{Arrow}), and @code{Arrows} (which draws an
-arrow at both ends of the path).
-Each of these arrow specifiers (except for @code{None} and @code{Blank})
+(which draws no arrows or path), @code{BeginArrow}, @code{MidArrow},
+@code{EndArrow} (or equivalently @code{Arrow}),
+and @code{Arrows} (which draws an arrow at both ends of the path).
+These arrow specifiers (except for @code{None} and @code{Blank})
 may be given the optional arguments real
 @code{size} (arrowhead size in @code{PostScript} coordinates),
 real @code{angle} (arrowhead angle in degrees),
-@code{Fill} or @code{NoFill}, and a relative real @code{position}
+@code{Fill} or @code{NoFill}, and (except also for @code{MidArrow} and
+@code{Arrows}) a relative real @code{position}
 along the path (an @code{arctime}) where the tip of the arrow should
 be placed. The default arrowhead size is @code{arrowheadsize(p)}.
 There are also arrow versions with slightly modified
 default values of @code{size} and @code{angle} suitable for curved
 arrows: @code{BeginArcArrow}, @code{EndArcArrow} (or equivalently
-@code{ArcArrow}), and @code{ArcArrows}.
+@code{ArcArrow}), @code{MidArcArrow}, and @code{ArcArrows}.
 
 @cindex @code{NoMargin}
 @cindex @code{BeginMargin}
@@ -4272,10 +4274,9 @@ Label, which defaults to @code{currentpen}, will be used.
 
 @anchor{Label}
 Here @code{Label} can either be a string or the structure obtained by calling
-one of the following functions:
+one of the functions
 @verbatim
 Label Label(string s="", pair position, align align=NoAlign, pen p=nullpen);
-Label Label(explicit pair position, align align=NoAlign, pen p=nullpen);
 Label Label(string s="", align align=NoAlign, pen p=nullpen);
 Label Label(Label L, pair position, align align=NoAlign);
 Label Label(Label L, align align=NoAlign);
@@ -4292,23 +4293,27 @@ To add a label to a path, use
 void label(picture pic=currentpicture, Label L, path g, align align=NoAlign,
            pen p=currentpen)
 @end verbatim
+@cindex @code{Relative}
 By default the label will be positioned at the midpoint of the path.
 An alternative label location (an @code{arctime} value between 0 and
-length(g) @pxref{arctime}) may be specified as real value for
-@code{position} in constructing the label.
+@code{length(g)} @pxref{arctime}) may be specified as real value for
+@code{position} in constructing the Label. The position
+@code{Relative(real)} specifies a location relative to the total
+arclength of the path.
 
+@cindex @code{Relative}
 @cindex @code{LeftSide}
 @cindex @code{Center}
 @cindex @code{RightSide}
 Path labels are aligned in the direction @code{align}, which may
-be specified as a compass direction (pair) or as the @code{LeftSide},
-@code{Center}, or @code{RightSide} of the path, relative to the
-tangent at @code{point(g,position)} in the direction in which the path
-is drawn. A label can be moved further away from or closer to the path by 
-multiplying the side specifiers @code{LeftSide}, @code{Center},
-@code{RightSide} on the left by a real scaling factor. The value of
-@code{side} is ignored if @code{position} corresponds to an endpoint
-of the path @code{g}.
+be specified as an absolute compass direction (pair) or a direction
+@code{Relative(pair)} measured relative to a north axis
+in the local direction of the path. For convenience @code{LeftSide},
+@code{Center}, and @code{RightSide} are defined as @code{Relative(W)},
+@code{Relative((0,0))}, and @code{Relative(E)}, respectively.
+Multiplying @code{LeftSide}, @code{Center}, @code{RightSide} on the
+left by a real scaling factor will move the label further away from or
+closer to the path.
 
 A label with a fixed-size arrow of length @code{arrowlength} pointing
 to @code{b} from direction @code{dir} can be produced with the routine

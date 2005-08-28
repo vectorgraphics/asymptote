@@ -1,7 +1,6 @@
 MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy)
-FIGURES = latexusage.eps latexusage.png latexusage.pdf $(ASYFILES:.asy=.eps) \
-	$(ASYFILES:.asy=.png) $(ASYFILES:.asy=.pdf) version.texi 
+FIGURES = latexusage.eps latexusage.png latexusage.pdf version.texi 
 
 man:	asymptote.dvi asymptote.info asymptote.pdf html
 
@@ -27,16 +26,16 @@ latexusage.eps: latexusage.dvi
 latexusage.pdf: latexusage.dvi
 	dvipdf latexusage
 
-asymptote.dvi: asymptote.texi $(FIGURES)
+asymptote.dvi: asymptote.texi $(FIGURES) $(ASYFILES:.asy=.eps)
 	texi2dvi asymptote.texi
 
-asymptote.info: asymptote.texi $(FIGURES)
+asymptote.info: asymptote.texi $(FIGURES) $(ASYFILES:.asy=.eps)
 	makeinfo asymptote
 
-asymptote.pdf: asymptote.texi $(FIGURES) $(ASYFILES:.asy=.pdf) 
+asymptote.pdf: asymptote.texi $(FIGURES) $(ASYFILES:.asy=.pdf)
 	texi2dvi --pdf asymptote.texi
 
-html:	$(FIGURES) $(ASYFILES:.asy=.png)
+html:	$(FIGURES) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
 	mkdir -p asymptote
 	cp *.png asymptote
 	makeinfo --html asymptote

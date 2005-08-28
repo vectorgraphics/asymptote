@@ -1507,68 +1507,128 @@ void unfill(picture pic=currentpicture, path[] g)
   });
 }
 
-struct side {
-  real factor;
-  void init(real factor) {
-    this.factor=factor;
-  }
-  pair align(pair align) {
-    return factor*align;
-  }
-  // Workaround invisibility of alias within other modules:
-  bool alias(side side) {
-    return alias(this,side);
-  }
+pair dir(path g)
+{
+  return dir(g,length(g));
 }
 
-side operator init() {return new side;}
-side operator *(real a, side s) {
-  side S;
-  S.init(a*s.factor);
-  return S;
+pair dir(path g, path h)
+{
+  return 0.5*(dir(g)+dir(h));
 }
-  
-side NoSide,LeftSide,Center,RightSide;
-LeftSide.init(-1);
-Center.init(0);
-RightSide.init(1);
-NoSide.init(0);
+
+// return the point on path g at arclength L
+pair arcpoint(path g, real L)
+{
+    return point(g,arctime(g,L));
+}
+
+// return the direction on path g at arclength L
+pair arcdir(path g, real L)
+{
+    return dir(g,arctime(g,L));
+}
+
+// return the time on path g at the given relative fraction of its arclength
+real reltime(path g, real fraction)
+{
+  return arctime(g,fraction*arclength(g));
+}
+
+// return the point on path g at the given relative fraction of its arclength
+pair relpoint(path g, real l)
+{
+  return point(g,reltime(g,l));
+}
+
+// return the direction of path g at the given relative fraction of its
+// arclength
+pair reldir(path g, real l)
+{
+  return dir(g,reltime(g,l));
+}
+
+// return the initial point of path g
+pair beginpoint(path g)
+{
+    return point(g,0);
+}
+
+// return the point on path g at half of its arclength
+pair midpoint(path g)
+{
+    return relpoint(g,0.5);
+}
+
+// return the final point of path g
+pair endpoint(path g)
+{
+    return point(g,length(g));
+}
 
 struct align {
   public pair dir;
-  public side side=NoSide;
+  public bool relative=false;
   bool default=true;
-  void init(pair dir=0, side side=NoSide, bool default=false) {
+  void init(pair dir=0, bool relative=false, bool default=false) {
     this.dir=dir;
-    this.side=side;
+    this.relative=relative;
     this.default=default;
   }
   align copy() {
     align align=new align;
-    align.init(dir,side,default);
+    align.init(dir,relative,default);
     return align;
   }
   void align(align align) {
-    if(!align.default) init(align.dir,align.side);
+    if(!align.default) init(align.dir,align.relative);
   }
   void align(align align, align default) {
     align(align);
-    if(this.default) init(default.dir,default.side,default.default);
+    if(this.default) init(default.dir,default.relative,default.default);
   }
   void write(file file=stdout, suffix s=endl) {
     if(!default) {
-      if(alias(side,NoSide))
-	write(file,dir,s);
-      else
-	write(file,(alias(side,LeftSide) ? "LeftSide" :
-		    alias(side,Center) ? "Center" : "RightSide"),s);
+      if(relative) {
+	write(file,"Relative(");
+	write(file,dir);
+	write(file,")",s);
+      } else write(file,dir,s);
     }
+  }
+  bool Center() {
+    return relative && dir == 0;
   }
 }
 
+struct side {
+  public pair align;
+}
+
+side operator init() {return new side;}
+  
+side Relative(explicit pair align)
+{
+  side s;
+  s.align=align;
+  return s;
+}
+  
+side NoSide;
+side LeftSide=Relative(W);
+side Center=Relative((0,0));
+side RightSide=Relative(E);
+
+side operator * (real x, side s) 
+{
+  side S;
+  S.align=x*s.align;
+  return S;
+}
+
 align operator init() {return new align;}
-align operator cast(pair dir) {align A; A.init(dir); return A;}
-align operator cast(side side) {align A; A.init(side); return A;}
+align operator cast(pair dir) {align A; A.init(dir,false); return A;}
+align operator cast(side side) {align A; A.init(side.align,true); return A;}
 align NoAlign;
 
 void write(file file=stdout, align align, suffix s=endl)
@@ -1576,9 +1636,34 @@ void write(file file=stdout, align align, suffix s=endl)
   align.write(file,s);
 }
 
+struct position {
+  public pair position;
+  public bool relative;
+}
+
+position operator init() {return new position;}
+  
+position Relative(pair position)
+{
+  position p;
+  p.position=position;
+  p.relative=true;
+  return p;
+}
+  
+position BeginPoint=Relative(0);
+position MidPoint=Relative(0.5);
+position EndPoint=Relative(1);
+
+position operator cast(pair x) {position P; P.position=x; return P;}
+position operator cast(real x) {return (pair) x;}
+position operator cast(int x) {return (pair) x;}
+
+pair operator cast(position P) {return P.position;}
+
 struct Label {
   public string s;
-  pair position;
+  position position;
   bool defaultposition=true;
   align align;
   pen p;
@@ -1586,14 +1671,14 @@ struct Label {
   bool defaultangle=true;
   pair shift;
   
-  void init(string s="", pair position=0, bool defaultposition=true,
-	    align align=NoAlign, pen p=nullpen, 
-	    real angle=0, bool defaultangle=true, pair shift=0) {
+  void init(string s="", position position=0, bool defaultposition=true,
+	    align align=NoAlign, pen p=nullpen, real angle=0,
+	    bool defaultangle=true, pair shift=0) {
     this.s=s;
     this.position=position;
+    this.defaultposition=defaultposition;
     this.align=align.copy();
     this.p=p;
-    this.defaultposition=defaultposition;
     this.angle=angle;
     this.defaultangle=defaultangle;
     this.shift=shift;
@@ -1621,8 +1706,8 @@ struct Label {
     this.shift=a;
   }
   
-  void position(pair z) {
-    this.position=z;
+  void position(position pos) {
+    this.position=pos;
     defaultposition=false;
   }
   
@@ -1644,7 +1729,7 @@ struct Label {
   }
 
   void out(frame f) {
-    label(f,s,angle,position,align.dir,p);
+    label(f,s,angle,position.position,align.dir,p);
   }
   
   void label(picture pic=currentpicture, string s, real angle=0, pair position,
@@ -1663,32 +1748,40 @@ struct Label {
   }
 
   void out(picture pic=currentpicture) {
-    label(pic,s,angle,position,align.dir,shift,p == nullpen ? currentpen : p);
+    label(pic,s,angle,position.position,align.dir,shift,
+	  p == nullpen ? currentpen : p);
   }
   
   void out(picture pic=currentpicture, path g) {
-    real position=position.x;
+    bool relative=position.relative;
+    real position=position.position.x;
     pair Align=align.dir;
-    side side=align.side;
+    bool alignrelative=align.relative;
     real L=length(g);
     if(defaultposition) position=0.5L;
-    if(align.default) side=RightSide;
-    if(!alias(side,NoSide) && !alias(side,Center))
-      Align=(position <= 0 ? -dir(g,0) : position >= L ? dir(g,L) :
-	     side.align(-I*dir(g,position)));
-    label(pic,s,angle,point(g,position),Align,shift,
+    else if(relative) position=reltime(g,position);
+    if(align.default) {
+      alignrelative=true;
+      Align=position <= 0 ? S : position >= L ? N : E;
+    }
+    label(pic,s,angle,point(g,position),
+	  alignrelative ? Align*dir(g,position)/N : Align,shift,
 	  p == nullpen ? currentpen : p);
   }
   
   void write(file file=stdout, suffix s=endl) {
     write(file,"s=\"",s+"\"",none);
-    if(!defaultposition) write(file,", position=",position,none);
+    if(!defaultposition) write(file,", position=",position.position,none);
     if(!align.default) write(file,", align=");
     write(file,align,none);
     if(p != nullpen) write(file,", pen=",p,none);
     if(!defaultangle) write(file,", angle=",angle,none);
     write(file,", shift=",shift,s);
   }
+  
+  real relative() {
+    return position.position.x;
+  };
 }
 
 Label operator init() {return new Label;}
@@ -1715,7 +1808,7 @@ Label operator * (transform t, Label L)
   return tL;
 }
 
-Label Label(string s, explicit pair position, align align=NoAlign,
+Label Label(string s, explicit position position, align align=NoAlign,
 	    pen p=nullpen)
 {
   Label L;
@@ -1723,9 +1816,10 @@ Label Label(string s, explicit pair position, align align=NoAlign,
   return L;
 }
 
-Label Label(string s, real position, align align=NoAlign, pen p=nullpen)
+Label Label(string s, pair position, align align=NoAlign,
+	    pen p=nullpen)
 {
-  return Label(s,(pair) position,align,p);
+  return Label(s,(position) position,align,p);
 }
 
 Label Label(explicit pair position, align align=NoAlign, pen p=nullpen)
@@ -1733,14 +1827,14 @@ Label Label(explicit pair position, align align=NoAlign, pen p=nullpen)
   return Label((string) position,position,align,p);
 }
 
-Label Label(string s="", align align=NoAlign, pen p=nullpen)
+Label Label(string s="", align align=NoAlign, explicit pen p=nullpen)
 {
   Label L;
   L.initalign(s,align,p);
   return L;
 }
 
-Label Label(Label L, pair position, align align=NoAlign)
+Label Label(Label L, position position, align align=NoAlign)
 {
   Label L=L.copy();
   L.position(position);
@@ -1804,11 +1898,10 @@ pair point(picture pic=currentpicture, pair dir)
   return pic.userMin+realmult(rectify(dir),pic.userMax-pic.userMin);
 }
 
-guide arrowhead(path g, real position=infinity, pen p=currentpen,
+guide arrowhead(path g, real position, pen p=currentpen,
 		real size=0, real angle=arrowangle)
 {
   if(size == 0) size=arrowsize(p);
-  if(position == infinity) position=length(g);
   path r=subpath(g,position,0.0);
   pair x=point(r,0);
   real t=arctime(r,size);
@@ -1824,14 +1917,17 @@ guide arrowhead(path g, real position=infinity, pen p=currentpen,
     ..cycle;
 }
 
-void arrowheadbbox(picture pic=currentpicture, path g, real position=infinity,
+void arrowheadbbox(picture pic=currentpicture, path g,
+		   position position=EndPoint,
 		   pen p=currentpen, real size=0,
 		   real angle=arrowangle)
 {
   // Estimate the bounding box contribution using the local slope at endpoint
   // and ignoring margin.
   if(size == 0) size=arrowsize(p);
-  if(position == infinity) position=length(g);
+  bool relative=position.relative;
+  real position=position.position.x;
+  if(relative) position=reltime(g,position);
   path r=subpath(g,position,0.0);
   pair x=point(r,0);
   pair y=point(r,arctime(r,size))-x;
@@ -1867,12 +1963,18 @@ public Filltype
 
 void arrow(frame f, path G, pen p=currentpen, real size=0,
 	   real angle=arrowangle, filltype filltype=Fill,
-	   real position=infinity, bool forwards=true, margin margin=NoMargin)
+	   position position=EndPoint, bool forwards=true,
+	   margin margin=NoMargin)
 {
   if(size == 0) size=arrowsize(p);
-  if(position == infinity) position=length(G);
+  bool relative=position.relative;
+  real position=position.position.x;
+  if(relative) position=reltime(G,position);
   G=margin(G,p).g;
-  if(!forwards) G=reverse(G);
+  if(!forwards) {
+    G=reverse(G);
+    position=length(G)-position;
+  }
   path R=subpath(G,position,0.0);
   path S=subpath(G,position,length(G));
   size=min(arclength(G),size);
@@ -1891,15 +1993,15 @@ void arrow2(frame f, path G, pen p=currentpen, real size=0,
   path R=reverse(G);
   size=min(0.5*arclength(G),size);
   draw(f,subpath(R,arctime(R,size),length(R)-arctime(G,size)),p);
-  guide head=arrowhead(G,p,size,angle);
-  guide tail=arrowhead(R,p,size,angle);
+  guide head=arrowhead(G,length(G),p,size,angle);
+  guide tail=arrowhead(R,length(R),p,size,angle);
   filltype(f,head,p);
   filltype(f,tail,p);
 }
 
 picture arrow(path g, pen p=currentpen, real size=0,
 	      real angle=arrowangle, filltype filltype=Fill,
-	      real position=infinity, bool forwards=true,
+	      position position=EndPoint, bool forwards=true,
 	      margin margin=NoMargin)
 {
   picture pic;
@@ -2347,7 +2449,7 @@ arrowbar None()
 }
 
 arrowbar BeginArrow(real size=0, real angle=arrowangle,
-		    filltype filltype=Fill, real position=infinity)
+		    filltype filltype=Fill, position position=BeginPoint)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     add(pic,arrow(g,p,size,angle,filltype,position,false,margin));
@@ -2356,7 +2458,7 @@ arrowbar BeginArrow(real size=0, real angle=arrowangle,
 }
 
 arrowbar Arrow(real size=0, real angle=arrowangle,
-	       filltype filltype=Fill, real position=infinity)
+	       filltype filltype=Fill, position position=EndPoint)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     add(pic,arrow(g,p,size,angle,filltype,position,margin));
@@ -2365,10 +2467,19 @@ arrowbar Arrow(real size=0, real angle=arrowangle,
 }
 
 arrowbar EndArrow(real size=0, real angle=arrowangle,
-		  filltype filltype=Fill, real position=infinity)=Arrow;
+		  filltype filltype=Fill, position position=EndPoint)=Arrow;
 
-arrowbar Arrows(real size=0, real angle=arrowangle,
-		filltype filltype=Fill, real position=infinity)
+arrowbar MidArrow(real size=0, real angle=arrowangle, filltype filltype=Fill)
+{
+    return new bool(picture pic, path g, pen p, margin margin) {
+        if(size == 0) size=arrowsize(p);
+        add(pic,arrow(g,p,size,angle,filltype,
+                      arctime(g,(arclength(g)+size)/2),margin));
+        return false;
+    };
+}
+  
+arrowbar Arrows(real size=0, real angle=arrowangle, filltype filltype=Fill)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     add(pic,arrow2(g,p,size,angle,filltype,margin));
@@ -2377,7 +2488,7 @@ arrowbar Arrows(real size=0, real angle=arrowangle,
 }
 
 arrowbar BeginArcArrow(real size=0, real angle=arcarrowangle,
-		       filltype filltype=Fill, real position=infinity)
+		       filltype filltype=Fill, position position=BeginPoint)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     if(size == 0) size=arcarrowsize(p);
@@ -2387,7 +2498,7 @@ arrowbar BeginArcArrow(real size=0, real angle=arcarrowangle,
 }
 
 arrowbar ArcArrow(real size=0, real angle=arcarrowangle,
-		  filltype filltype=Fill, real position=infinity)
+		  filltype filltype=Fill, position position=EndPoint)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     if(size == 0) size=arcarrowsize(p);
@@ -2397,13 +2508,22 @@ arrowbar ArcArrow(real size=0, real angle=arcarrowangle,
 }
 
 arrowbar EndArcArrow(real size=0, real angle=arcarrowangle,
-		     filltype filltype=Fill, real position=infinity)
+		     filltype filltype=Fill,
+		     position position=EndPoint)=ArcArrow;
+  
+arrowbar MidArcArrow(real size=0, real angle=arcarrowangle,
+		     filltype filltype=Fill)
 {
-  return ArcArrow(size,angle,filltype,position);
+  return new bool(picture pic, path g, pen p, margin margin) {
+    if(size == 0) size=arcarrowsize(p);
+    add(pic,arrow(g,p,size,angle,filltype,
+		  arctime(g,(arclength(g)+size)/2),margin));
+    return false;
+  };
 }
   
 arrowbar ArcArrows(real size=0, real angle=arcarrowangle,
-		   filltype filltype=Fill, real position=infinity)
+		   filltype filltype=Fill)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     if(size == 0) size=arcarrowsize(p);
@@ -2447,10 +2567,12 @@ public arrowbar
   Blank=Blank(),
   None=None(),
   BeginArrow=BeginArrow(),
+  MidArrow=MidArrow(),
   Arrow=Arrow(),
   EndArrow=Arrow(),
   Arrows=Arrows(),
   BeginArcArrow=BeginArcArrow(),
+  MidArcArrow=MidArcArrow(),
   ArcArrow=ArcArrow(),
   EndArcArrow=ArcArrow(),
   ArcArrows=ArcArrows(),
@@ -2657,65 +2779,6 @@ slice lastcut(path g, path knife)
 
 string format(real x) {
   return format("$%.9g$",x);
-}
-
-pair dir(path g)
-{
-  return dir(g,length(g));
-}
-
-pair dir(path g, path h)
-{
-  return 0.5*(dir(g)+dir(h));
-}
-
-// return the point on path g at arclength L
-pair arcpoint(path g, real L)
-{
-    return point(g,arctime(g,L));
-}
-
-// return the direction on path g at arclength L
-pair arcdir(path g, real L)
-{
-    return dir(g,arctime(g,L));
-}
-
-// return the time on path g at the given relative fraction of its arclength
-real reltime(path g, real fraction)
-{
-  return arctime(g,fraction*arclength(g));
-}
-
-// return the point on path g at the given relative fraction of its arclength
-pair relpoint(path g, real l)
-{
-  return point(g,reltime(g,l));
-}
-
-// return the direction of path g at the given relative fraction of its
-// arclength
-pair reldir(path g, real l)
-{
-  return dir(g,reltime(g,l));
-}
-
-// return the initial point of path g
-pair beginpoint(path g)
-{
-    return point(g,0);
-}
-
-// return the point on path g at half of its arclength
-pair midpoint(path g)
-{
-    return relpoint(g,0.5);
-}
-
-// return the final point of path g
-pair endpoint(path g)
-{
-    return point(g,length(g));
 }
 
 pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,darkblue,

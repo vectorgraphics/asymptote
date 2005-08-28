@@ -186,10 +186,10 @@ ticklabel LogFormat=new string(real x) {
 void labelaxis(frame f, Label L, guide g, bool ticklabels=false)
 {
   Label L0=L.copy();
-  pair z=point(g,L0.position.x);
-  pair dir=dir(g,L0.position.x);
+  pair z=point(g,L0.relative());
+  pair dir=dir(g,L0.relative());
   pair align=L0.align.dir;
-  if(!L0.align.side.alias(NoSide)) align=L0.align.side.align(-I*dir);
+  if(L0.align.relative) align *= -I*dir;
   if(ticklabels) {
     pair minf=min(f);
     pair maxf=max(f);
@@ -206,8 +206,8 @@ void labelaxis(frame f, Label L, guide g, bool ticklabels=false)
   frame d;
   add(d,L0);
   pair width=0.5*dot(max(d)-min(d),dir)*dir;
-  if(L.position.x == 0) d=shift(width)*d;
-  if(L.position.x == length(g)) d=shift(-width)*d;
+  if(L.relative() == 0) d=shift(width)*d;
+  if(L.relative() == length(g)) d=shift(-width)*d;
   add(f,d);
 }
 
@@ -332,9 +332,8 @@ ticks Ticks(bool begin=true, bool end=true, int sign, int N, int n=0,
     if(ptick == nullpen) ptick=p;
     
     ticklabel ticklabel=ticklabel(F.s);
-    if(!F.align.side.alias(NoSide)) side=F.align.side.align((1,0));
-    if(side == 0 && !F.align.side.alias(Center))
-      side=(sign == 1) ? left : right;
+    if(F.align.dir != 0) side=F.align.dir;
+    else if(side == 0) side=(sign == 1) ? left : right;
     
     bool ticklabels=false;
     guide g=inverse(T)*G;
@@ -548,9 +547,8 @@ ticks Ticks(int sign, real[] Ticks, real[] ticks=new real[],
     if(ptick == nullpen) ptick=p;
     
     ticklabel ticklabel=ticklabel(F.s);
-    if(!F.align.side.alias(NoSide)) side=F.align.side.align((1,0));
-    if(side == 0 && !F.align.side.alias(Center))
-      side=(sign == 1) ? left : right;
+    if(F.align.dir != 0) side=F.align.dir;
+    else if(side == 0) side=(sign == 1) ? left : right;
     
     bool ticklabels=false;
     guide g=inverse(T)*G;
@@ -811,7 +809,7 @@ void axis(picture pic=currentpicture, guide g,
     Label L0=L.copy();
     L0.position(0);
     add(f,L0);
-    pair pos=point(g,L.position.x*length(g));
+    pair pos=point(g,L.relative()*length(g));
     pic.addBox(pos,pos,min(f),max(f));
   }
 }
@@ -859,7 +857,7 @@ void xaxisAt(picture pic=currentpicture,
       L0.position(0);
       add(f,L0);
     }
-    pair pos=a+L.position.x*(b-a);
+    pair pos=a+L.relative()*(b-a);
     pic.addBox(pos,pos,(min(f).x,min(d).y),(max(f).x,max(d).y));
   }
 }
@@ -907,7 +905,7 @@ void yaxisAt(picture pic=currentpicture,
       L0.position(0);
       add(f,L0);
     }
-    pair pos=a+L.position.x*(b-a);
+    pair pos=a+L.relative()*(b-a);
     pic.addBox(pos,pos,(min(d).x,min(f).y),(max(d).x,max(f).y));
   }
 }
@@ -1238,7 +1236,7 @@ void labely(picture pic=currentpicture, Label L="", real y,
 void labely(picture pic=currentpicture, Label L,
 	    string format=defaultformat, explicit pen p=nullpen)
 {
-  labely(pic,L,L.position,format,p);
+  labely(pic,L,L.position.position,format,p);
 }
 
 private string noprimary="Primary axis must be drawn before secondary axis";

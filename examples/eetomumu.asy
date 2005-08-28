@@ -38,17 +38,17 @@ drawVertex(zr);
 // draw momentum arrows and momentum labels
 
 drawMomArrow(xl--zl, left);
-label("$k'$", midLabelPoint(xl--zl, right), SE);
+label(Label("$k'$",2RightSide), xl--zl);
 
-label("$k$", midLabelPoint(xu--zl, left), NE);
+label(Label("$k$",2LeftSide), xu--zl);
 
 drawMomArrow(zl--zr, left);
-label("$q$", midLabelPoint(zl--zr, right), down);
+label(Label("$q$",2RightSide), zl--zr);
 
 drawMomArrow(zr--yu, right);
-label("$p'$", midLabelPoint(zr--yu, left), NW);
+label(Label("$p'$",2LeftSide), zr--yu);
 
-label("$p$", midLabelPoint(zr--yl, right), SW);
+label(Label("$p$",2RightSide), zr--yl);
 
 
 // draw particle labels
