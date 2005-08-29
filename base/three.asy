@@ -938,11 +938,12 @@ guide3 graph(real f(pair), path p, int n=10)
   return graph(new triple(pair z) {return (z.x,z.y,f(z));},p,n);
 }
 
-picture surface(real f(pair z), pair back, pair front, int n=20, int subn=1, 
+picture surface(real f(pair z), pair a, pair b, int n=20, int subn=1, 
 		pen surfacepen=lightgray, pen meshpen=currentpen,
 		projection P=currentprojection)
 {
   picture pic;
+  pair back,front;
 
   void drawcell(pair a, pair b) {
     guide3 g=graph(f,box(a,b),subn);
@@ -954,9 +955,26 @@ picture surface(real f(pair z), pair back, pair front, int n=20, int subn=1,
             interp(back.y,front.y,j/n));
   }
 
-  for(int i=0; i < n; ++i)
+  pair camera=(P.camera.x,P.camera.y);
+  pair z=b-a;
+  int sign=sgn(dot(camera,I*conj(z)));
+  
+  if(sign >= 0) {
+    back=a;
+    front=b;
+  } else {
+    back=b;
+    front=a;
+  }
+
+  if(sign*sgn(dot(camera,I*z)) >= 0)
     for(int j=0; j < n; ++j)
-      drawcell(sample(i,j),sample(i+1,j+1));
+      for(int i=0; i < n; ++i)
+	drawcell(sample(i,j),sample(i+1,j+1));
+  else
+    for(int i=0; i < n; ++i)
+      for(int j=0; j < n; ++j)
+	drawcell(sample(i,j),sample(i+1,j+1));
 
   return pic;
 }
