@@ -1643,7 +1643,7 @@ struct position {
 
 position operator init() {return new position;}
   
-position Relative(pair position)
+position Relative(real position)
 {
   position p;
   p.position=position;
@@ -1757,12 +1757,11 @@ struct Label {
     real position=position.position.x;
     pair Align=align.dir;
     bool alignrelative=align.relative;
-    real L=length(g);
-    if(defaultposition) position=0.5L;
-    else if(relative) position=reltime(g,position);
+    if(defaultposition) {relative=true; position=0.5;}
+    if(relative) position=reltime(g,position);
     if(align.default) {
       alignrelative=true;
-      Align=position <= 0 ? S : position >= L ? N : E;
+      Align=position <= 0 ? S : position >= length(g) ? N : E;
     }
     label(pic,s,angle,point(g,position),
 	  alignrelative ? Align*dir(g,position)/N : Align,shift,
