@@ -19,11 +19,6 @@ struct quad
   double t1,t2;
 };
 
-inline double quadratic(double a, double b, double c, double x)
-{
-  return a*x*x+b*x+c;
-}
-  
 // Accurate computation of sqrt(1+x)-1.
 inline double sqrt1pxm1(double x)
 {
@@ -340,7 +335,7 @@ bbox path::bounds() const
 
 static pair a,b,c;
 
-double ds(double t)
+static double ds(double t)
 {
   double dx=quadratic(a.getx(),b.getx(),c.getx(),t);
   double dy=quadratic(a.gety(),b.gety(),c.gety(),t);
@@ -366,7 +361,7 @@ double cubiclength(pair z0, pair z0p, pair z1m, pair z1, double goal=-1)
   return -t;
 }
 
-double path::arclength () const {
+double path::arclength() const {
   if (cached_length != -1) return cached_length;
 
   double L=0.0;
@@ -380,7 +375,7 @@ double path::arclength () const {
   return cached_length;
 }
 
-double path::arctime (double goal) const {
+double path::arctime(double goal) const {
   if (cycles) {
     if (goal == 0) return 0;
     if (goal < 0)  {
@@ -479,7 +474,7 @@ double path::directiontime(pair dir) const {
     t = cubicDir(this->nodes[i],(cycles && i==n-1) ? nodes[0]:nodes[i+1],rot);
     if (t >= 0) return i+t;
     i++;
-    if (cycles ||  i!=n-1) {
+    if (cycles || i != n-1) {
       pre = angle((point(i)-precontrol(i))*rot);
       post = angle((postcontrol(i)-point(i))*rot);
       if ((pre <= 0 && post >= 0 && pre >= post - PI) ||
@@ -516,13 +511,13 @@ pair intersectcubics(solvedKnot left1, solvedKnot right1,
     splitCubic(sn2,0.5,left2,right2);
     pair t;
     depth--;
-    if ((t=intersectcubics(sn1[0],sn1[1],sn2[0],sn2[1],depth))!=F)
+    if ((t=intersectcubics(sn1[0],sn1[1],sn2[0],sn2[1],depth)) != F)
       return t*0.5;
-    if ((t=intersectcubics(sn1[0],sn1[1],sn2[1],sn2[2],depth))!=F)
+    if ((t=intersectcubics(sn1[0],sn1[1],sn2[1],sn2[2],depth)) != F)
       return t*0.5+pair(0,1);
-    if ((t=intersectcubics(sn1[1],sn1[2],sn2[0],sn2[1],depth))!=F)
+    if ((t=intersectcubics(sn1[1],sn1[2],sn2[0],sn2[1],depth)) != F)
       return t*0.5+pair(1,0);
-    if ((t=intersectcubics(sn1[1],sn1[2],sn2[1],sn2[2],depth))!=F)
+    if ((t=intersectcubics(sn1[1],sn1[2],sn2[1],sn2[2],depth)) != F)
       return t*0.5+pair(1,1);
   }
   return F;

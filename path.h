@@ -226,4 +226,9 @@ path concat(path p1, path p2);
 path transformed(const transform& t, path p);
 }
 
+inline double quadratic(double a, double b, double c, double x)
+{
+  return a*x*x+b*x+c;
+}
+  
 #endif

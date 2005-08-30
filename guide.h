@@ -27,12 +27,12 @@ public:
     return path();
   }
 
-  // Add the information in the guide to the flatguide, so that it can be solved
-  // via the knotlist solving routines.
+  // Add the information in the guide to the flatguide, so that it can be
+  // solved via the knotlist solving routines.
   virtual void flatten(flatguide&) {}
 
   virtual void print(ostream& out) const {
-    out << "nullguide";
+    out << "nullpath";
   }
   
   // Needed so that multiguide can know where to put in ".." symbols.

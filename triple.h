@@ -138,6 +138,9 @@ public:
   
 };
 
+double cubiclength(triple z0, triple z0p, triple z1m, triple z1,
+		   double goal=-1);
+  
 } //namespace camp
 
 #endif

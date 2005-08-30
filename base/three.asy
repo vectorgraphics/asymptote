@@ -303,6 +303,12 @@ struct flatguide3 {
   public Tension[] Tension; // Tension parameters for segment starting at node
   public dir[] in,out;    // in and out directions for segment starting at node
 
+  bool cyclic() {return cyclic[cyclic.length-1];}
+  
+  int size() {
+    return cyclic() ? nodes.length-1 : nodes.length;
+  }
+  
   void node(triple v, bool b=false) {
     nodes.push(v);
     control.push(nocontrol);
@@ -364,19 +370,10 @@ struct flatguide3 {
 
 flatguide3 operator init() {return new flatguide3;}
   
-bool cyclic(explicit flatguide3 g) {return g.cyclic[g.cyclic.length-1];}
-int size(explicit flatguide3 g) {
-  return cyclic(g) ? g.nodes.length-1 : g.nodes.length;
-}
-int length(explicit flatguide3 g) {return g.nodes.length-1;}
-triple point(explicit flatguide3 g, int k) {return g.nodes[k];}
-
-void write(file file, flatguide3 g)
+void write(file file, explicit flatguide3 g)
 {
-  if(size(g) == 0) {
-    write("<nullguide3>");
-    if(cyclic(g)) write(file,"..");
-  } else for(int i=0; i < g.nodes.length; ++i) {
+  if(g.size() == 0) write("<nullpath>");
+  else for(int i=0; i < g.nodes.length; ++i) {
     if(i > 0) write(file);
     if(g.cyclic[i]) write(file,"cycle3");
     else write(file,g.nodes[i]);
@@ -387,13 +384,14 @@ void write(file file, flatguide3 g)
       write(file,g.out[i]);
       if(g.Tension[i].active) write(file,g.Tension[i]);
     }
-    if(i < length(g)) write(file,"..");
+    if(i < g.nodes.length-1) write(file,"..");
     if(!g.control[i].active) write(file,g.in[i]);
   }
 }
   
-void write(file file=stdout, flatguide3 x, suffix s) {write(file,x); s(file);}
-void write(flatguide3 g) {write(stdout,g,endl);}
+void write(file file=stdout, explicit flatguide3 x,
+	   suffix s) {write(file,x); s(file);}
+void write(explicit flatguide3 g) {write(stdout,g,endl);}
 
 void write(file file, flatguide3[] g)
 {
@@ -413,9 +411,9 @@ void write(file file=stdout, flatguide3[] x, suffix s)
 // A guide3 is most easily represented as something that modifies a flatguide3.
 typedef void guide3(flatguide3);
 
-void nullguide3(flatguide3) {};
+void nullpath(flatguide3) {};
 
-guide3 operator init() {return nullguide3;}
+guide3 operator init() {return nullpath;}
 
 guide3 operator cast(triple v)
 {
@@ -535,7 +533,6 @@ flatguide3[] operator cast(guide3[] g)
 
 guide3 operator * (transform3 t, guide3 g) 
 {
-  triple offset=t*(0,0,0);
   return new void(flatguide3 f) {
     g(f);
     for(int i=0; i < f.nodes.length; ++i) {
@@ -705,7 +702,6 @@ void aim(flatguide3 g, int N, triple camera)
   v.cyclic(true);
   theta.cyclic(true);
     
-  triple w;
   for(int k=1; k < (cyclic ? n+1 : n); ++k) {
     triple w=dir(theta[k],v[k]-v[k-1],v[k+1]-v[k],camera);
     g.in[(start+k-1) % N].init(w);
@@ -753,10 +749,140 @@ void aim(flatguide3 g, int i, int n, triple camera)
   }
 }
 
-path project(flatguide3 g, projection Q)
+struct path3 {
+  public triple[] nodes;
+  public control[] control;
+  public bool cyclic;
+  real cached_length=-1;
+  
+  int size() {return cyclic ? nodes.length-1 : nodes.length;}
+  
+  real arclength() {
+    if(cached_length != -1) return cached_length;
+    int n=size();
+    
+    real L=0.0;
+    for(int i = 0; i < n-1; ++i)
+      L += cubiclength(nodes[i],control[i].post,control[i].pre,nodes[i+1],-1);
+
+    if(cyclic) L += cubiclength(nodes[n-1],control[n-1].post,control[n-1].pre,
+				nodes[n],-1);
+    cached_length = L;
+    return L;
+  }
+  
+  path3 reverse() {
+    path3 p=new path3;
+    p.control=new control[nodes.length];
+    for(int i=0; i < nodes.length; ++i)
+      p.control[i]=new control;
+    for(int i=0, j=nodes.length-1; i < nodes.length; ++i, --j) {
+      if(i > 0) p.control[i-1].pre=control[j].post;
+      p.nodes[i]=nodes[j];
+      if(j > 0) {
+	p.control[i].post=control[j-1].pre;
+	p.control[i].active=control[j-1].active;
+      }
+    }
+    p.cyclic=cyclic;
+    p.cached_length=cached_length;
+    return p;
+  }
+  
+  real arctime(real goal) {
+    int n=size();
+    if(cyclic) {
+      if(goal == 0) return 0;
+      if(goal < 0)  {
+	path3 rp = reverse();
+	return -rp.arctime(-goal);
+      }
+      if(cached_length > 0 && goal >= cached_length) {
+	int loops = (int)(goal / cached_length);
+	goal -= loops*cached_length;
+	return loops*n+arctime(goal);
+      }      
+    } else {
+      if(goal <= 0)
+	return 0;
+      if(cached_length > 0 && goal >= cached_length)
+	return n-1;
+    }
+    
+    real l,L=0;
+    for(int i = 0; i < n-1; ++i) {
+      l = cubiclength(nodes[i],control[i].post,control[i].pre,nodes[i+1],goal);
+      if(l < 0)
+	return (-l+i);
+      else {
+	L += l;
+	goal -= l;
+	if (goal <= 0)
+	  return i+1;
+      }
+    }
+    if(cyclic) {
+      l = cubiclength(nodes[n-1],control[n-1].post,control[n-1].pre,nodes[n],
+		      goal);
+      if(l < 0)
+	return -l+n-1;
+      if(cached_length > 0 && cached_length != L+l) {
+	abort("arclength != length");
+      }
+      cached_length = L += l;
+      goal -= l;
+      return arctime(goal)+n;
+    }
+    else {
+      cached_length = L;
+      return nodes.length-1;
+    }
+  }
+  
+}
+
+path3 operator init() {return new path3;}
+  
+bool cyclic(explicit path3 p) {return p.cyclic;}
+int size(explicit path3 p) {return p.size();}
+int length(explicit path3 p) {return p.nodes.length-1;}
+triple point(explicit path3 p, int k) {return p.nodes[k];}
+triple postcontrol(explicit path3 p, int k) {return p.control[k].post;}
+triple precontrol(explicit path3 p, int k) {return p.control[k-1].pre;}
+
+path3 operator * (transform3 t, path3 p) 
+{
+  path3 P;
+  for(int i=0; i < p.nodes.length; ++i) {
+    P.nodes[i]=t*p.nodes[i];
+    P.control[i]=t*p.control[i];
+  }
+  P.cyclic=p.cyclic;
+  return P;
+}
+
+void write(file file, path3 g)
+{
+  if(size(g) == 0) write("<nullpath>");
+  else for(int i=0; i < g.nodes.length; ++i) {
+    write(file,g.nodes[i]);
+    write(file);
+
+    if(g.control[i].active) {
+      write(file,g.control[i]);
+      write(file,"..",endl);
+    } else if(i < length(g)) write(file,"--");
+  }
+}
+  
+void write(file file=stdout, path3 x, suffix s) {write(file,x); s(file);}
+void write(path3 g) {write(stdout,g,endl);}
+
+path3 solve(flatguide3 g, projection Q=currentprojection)
 {
   project P=Q.project;
-  int n=length(g);
+  int n=g.nodes.length-1;
+  path3 p;
 
   // If duplicate points occur consecutively, add dummy controls (if absent).
   for(int i=1; i < n; ++i) {
@@ -825,17 +951,42 @@ path project(flatguide3 g, projection Q)
   // Compute missing 3D control points.
   for(int i=0; i < n; ++i) {
     int next=g.cyclic[i+1] ? 0 : i+1;
-    if(!g.control[i].active && !(g.out[i].Curl && g.in[i].Curl)) {
-      Controls C;
-      C.init(g.nodes[i],g.nodes[next],g.out[i].dir,g.in[i].dir,
-	     g.Tension[i].out,g.Tension[i].in,g.Tension[i].atLeast);
+    if(!g.control[i].active) {
       control c;
-      c.init(C.c0,C.c1);
+      if(g.out[i].Curl && g.in[i].Curl) {
+	// Fill in control points for this segment
+	// (used by arclength but not by project).
+	triple delta=(g.nodes[i+1]-g.nodes[i])/3;
+	c.init(g.nodes[i]+delta,g.nodes[i+1]-delta);
+	c.active=false;
+      } else {
+	Controls C;
+	C.init(g.nodes[i],g.nodes[next],g.out[i].dir,g.in[i].dir,
+	       g.Tension[i].out,g.Tension[i].in,g.Tension[i].atLeast);
+	c.init(C.c0,C.c1);
+      }
       g.control[i]=c;
     }
   }
   
+  p.nodes=g.nodes;
+  p.control=g.control;
+  p.cyclic=g.cyclic[g.cyclic.length-1];
+  
+  return p;
+}
+
+bool cyclic(explicit flatguide3 g) {return g.cyclic[g.cyclic.length-1];}
+int size(explicit flatguide3 g) {
+  return cyclic(g) ? g.nodes.length-1 : g.nodes.length;
+}
+int length(explicit flatguide3 g) {return g.nodes.length-1;}
+triple point(explicit flatguide3 g, int k) {return g.nodes[k];}
+
+path project(explicit path3 g, projection Q=currentprojection)
+{
   guide pg;
+  project P=Q.project;
   
   // Construct the path.
   for(int i=0; i < size(g); ++i) {
@@ -846,18 +997,24 @@ path project(flatguide3 g, projection Q)
       pg=pg..P(point(g,i))--nullpath;
   }
   
-  if(cyclic(g)) pg=g.control[n-1].active ? pg..cycle : pg--cycle;
+  if(cyclic(g))
+    pg=g.control[g.control.length-1].active ? pg..cycle : pg--cycle;
   
   return pg;
 }
 
-pair project(triple v, projection P)
+path project(flatguide3 g, projection P=currentprojection)
+{
+  return project(solve(g,P),P);
+}
+
+pair project(triple v, projection P=currentprojection)
 {
   project P=P.project;
   return P(v);
 }
 
-path[] project(flatguide3[] g, projection P)
+path[] project(flatguide3[] g, projection P=currentprojection)
 {
   path[] p=new path[g.length];
   for(int i=0; i < g.length; ++i) 
@@ -868,15 +1025,23 @@ path[] project(flatguide3[] g, projection P)
 public projection currentprojection=perspective((5,4,2));
 
 pair operator cast(triple v) {
-  return project(v,currentprojection);
+  return project(v);
 }
 
 path operator cast(triple v) {
-  return project(v,currentprojection);
+  return project(v);
+}
+
+path3 operator cast(guide3 g) {
+  return solve(g);
+}
+
+path operator cast(path3 p) {
+  return project(p);
 }
 
 path operator cast(guide3 g) {
-  return project(g,currentprojection);
+  return project(solve(g));
 }
 
 path[] operator cast(guide3 g) {
@@ -884,7 +1049,37 @@ path[] operator cast(guide3 g) {
 }
 
 path[] operator cast(guide3[] g) {
-  return project(g,currentprojection);
+  return project(g);
+}
+
+real arclength(path3 p) 
+{
+  return p.arclength();
+}
+
+real arclength(guide3 g) 
+{
+  return arclength((path3) g);
+}
+
+real arctime(path3 p, real l) 
+{
+  return p.arctime(l);
+}
+
+real arctime(guide3 g, real l) 
+{
+  return arctime((path3) g,l);
+}
+
+path3 reverse(path3 p) 
+{
+  return p.reverse();
+}
+
+path3 reverse(guide3 g) 
+{
+  return reverse((path3) g);
 }
 
 void draw(frame f, guide3[] g, pen p=currentpen)
@@ -928,9 +1123,8 @@ guide3 graph(triple F(path, real), path p, int n=10)
 
 guide3 graph(triple F(pair), path p, int n=10) 
 {
-  return graph(new triple(path p, real position) {
-		 return F(point(p,position));
-	       },p,n);
+  return graph(new triple(path p, real position) 
+	       {return F(point(p,position));},p,n);
 }
 
 guide3 graph(real f(pair), path p, int n=10) 

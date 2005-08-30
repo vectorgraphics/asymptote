@@ -231,6 +231,11 @@ pair intersect(path x, path y)
   return intersectiontime(x,y);
 }
 
+double cubiclength(triple z0, triple z0p, triple z1m, triple z1, double goal)
+{
+  return cubiclength(z0,z0p,z1m,z1,goal);
+}
+
 int length(string *s)
 {
   return (int) s->length();
