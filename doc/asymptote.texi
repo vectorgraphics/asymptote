@@ -1615,6 +1615,7 @@ void shipout(string prefix=defaultfilename,
 A @code{shipout()} command is added implicitly at file exit if no
 previous @code{shipout} commands have been executed.
 
+@cindex subpictures
 @cindex @code{fit}
 @cindex @code{picture alignment}
 A picture @code{pic} can be explicitly fit to a frame by calling one
@@ -1631,12 +1632,11 @@ The first two forms use the @code{xsize}, @code{ysize}, and
 values of @code{0}, @code{0}, and @code{false}, respectively). The optional
 @code{dir} argument specifies a direction to use for aligning the
 frame, in a manner completely analogous to the @code{align} argument
-of @code{label} (@pxref{label}). Frame alignment is illustrated in the
-examples @ref{errorbars} and @ref{image}.
-
-@verbatim
-frame f=pic.fit(xsize,ysize,true);
-@end verbatim
+of @code{label} (@pxref{label}). Illustrations of frame alignment can
+be found in the examples @ref{errorbars} and @ref{image}. If you want
+to align 3 or more subpictures, group them two at a time:
+@verbatiminclude subpictures.asy
+@image{subpictures}
 
 @cindex portrait mode
 @cindex landscape mode
@@ -3507,16 +3507,17 @@ and added to picture @code{dest} at the location @code{origin} using
 @verbatiminclude image.asy
 @image{image}
 
-@page
 @item The following scientific graphs, which illustrate many features of
 @code{Asymptote}'s graphics routines, were generated from the examples
 @code{diatom.asy} and @code{westnile.asy}, using the comma-separated
 data in @code{diatom.csv} and @code{westnile.csv}.
+@page
 
 @image{diatom}
 @image{westnile,,7.5cm}
 @end enumerate
 
+@page
 @node three
 @subsection @code{three}
 @cindex @code{three}
@@ -3526,8 +3527,8 @@ data in @code{diatom.csv} and @code{westnile.csv}.
 @cindex @code{tension3}
 @cindex @code{controls}
 @cindex hidden surface removal
-This module fully extends the notion of a guide in @code{Asymptote}
-to three dimensions, introducing the new type @code{guide3},
+This module fully extends the notion of guides and paths in @code{Asymptote}
+to three dimensions, introducing the new types @code{guide3} and @code{path3},
 along with a three-dimensional cycle specifier @code{cycle3}, tension operator
 @code{tension3}, and curl operator @code{curl3}. Just as in two
 dimensions, the nodes within a @code{guide3} can be qualified with

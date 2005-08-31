@@ -26,5 +26,5 @@ picture secondary=secondaryY(new void(picture pic) {
 });
 			     
 add(secondary);
-
 label(shift(5mm*N)*"Proportion of crows",point(NW),E);
+

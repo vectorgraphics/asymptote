@@ -18,3 +18,4 @@ picture bar=palette(v,5mm,Palette,"$A$",PaletteTicks("$%+#.1f$"));
 
 add(plot.fit(250,250,W));
 add((1cm,0),bar.fit(0,250,E));
+

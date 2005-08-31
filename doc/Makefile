@@ -29,7 +29,7 @@ latexusage.pdf: latexusage.dvi
 asymptote.dvi: asymptote.texi $(FIGURES) $(ASYFILES:.asy=.eps)
 	texi2dvi asymptote.texi
 
-asymptote.info: asymptote.texi $(FIGURES) $(ASYFILES:.asy=.eps)
+asymptote.info: asymptote.texi $(FIGURES) $(ASYFILES:.asy=.png)
 	makeinfo asymptote
 
 asymptote.pdf: asymptote.texi $(FIGURES) $(ASYFILES:.asy=.pdf)

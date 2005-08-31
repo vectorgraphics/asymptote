@@ -776,12 +776,13 @@ node[] nodes(int n)
 }
 
 struct path3 {
-  node[] nodes;
-  bool cycles;
-  int n;
-  real cached_length=-1;
+  // Remove public qualifiers here once static function permissions are fixed.
+  public node[] nodes;
+  public bool cycles;
+  public int n;
+  public real cached_length=-1;
   
-  path3 path3(node[] nodes, bool cycles=false, real cached_length=-1) {
+  static path3 path3(node[] nodes, bool cycles=false, real cached_length=-1) {
     path3 p=new path3;
     p.nodes=nodes;
     p.cycles=cycles;
@@ -790,14 +791,14 @@ struct path3 {
     return p;
   }
   
-  path3 path3(triple v) {
+  static path3 path3(triple v) {
     node node;
     node.pre=node.point=node.post=v;
     node.straight=false;
     return path3(new node[] {node});
   }
   
-  path3 path3(node n1, node n2) {
+  static path3 path3(node n1, node n2) {
     node[] nodes=new node[2];
     nodes[0] = n1;
     nodes[1] = n2;
@@ -1103,7 +1104,7 @@ path3 operator * (transform3 t, path3 p)
     nodes[i].point=t*p.nodes[i].point;
     nodes[i].post=t*p.nodes[i].post;
   }
-  return p.path3(nodes,p.cycles);
+  return path3.path3(nodes,p.cycles);
 }
 
 void write(file file, path3 g)
@@ -1230,8 +1231,7 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
   nodes[g.nodes.length-1].point=g.nodes[g.nodes.length-1];
   nodes[g.nodes.length-1].post=g.control[g.nodes.length-1].post;
   
-  path3 p;
-  return p.path3(nodes,cyclic);
+  return path3.path3(nodes,cyclic);
 }
 
 bool cyclic(explicit flatguide3 g) {return g.cyclic[g.cyclic.length-1];}

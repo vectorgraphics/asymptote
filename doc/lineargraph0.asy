@@ -12,3 +12,5 @@ xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
 
 add(point(E),legend(20E));
+
+
