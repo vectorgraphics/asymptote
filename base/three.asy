@@ -749,49 +749,95 @@ void aim(flatguide3 g, int i, int n, triple camera)
   }
 }
 
+struct node {
+  public triple pre,point,post;
+  public bool straight;
+}
+  
+triple split(real t, triple x, triple y) { return x+(y-x)*t; }
+
+void splitCubic(node[] sn, real t, node left_, node right_)
+{
+  node left=sn[0]=left_, mid=sn[1], right=sn[2]=right_;
+  triple x=split(t,left.post,right.pre);
+  left.post=split(t,left.point,left.post);
+  right.pre=split(t,right.pre,right.point);
+  mid.pre=split(t,left.post,x);
+  mid.post=split(t,x,right.pre);
+  mid.point=split(t,mid.pre,mid.post);
+}
+
+node[] nodes(int n)
+{
+  node[] nodes=new node[n];
+  for(int i=0; i < n; ++i)
+    nodes[i]=new node;
+  return nodes;
+}
+
 struct path3 {
-  public triple[] nodes;
-  public control[] control;
-  public bool cyclic;
+  node[] nodes;
+  bool cycles;
+  int n;
   real cached_length=-1;
   
-  int size() {return cyclic ? nodes.length-1 : nodes.length;}
+  path3 path3(node[] nodes, bool cycles=false, real cached_length=-1) {
+    path3 p=new path3;
+    p.nodes=nodes;
+    p.cycles=cycles;
+    p.cached_length=cached_length;
+    p.n=cycles ? nodes.length-1 : nodes.length;
+    return p;
+  }
+  
+  path3 path3(triple v) {
+    node node;
+    node.pre=node.point=node.post=v;
+    node.straight=false;
+    return path3(new node[] {node});
+  }
+  
+  path3 path3(node n1, node n2) {
+    node[] nodes=new node[2];
+    nodes[0] = n1;
+    nodes[1] = n2;
+    nodes[0].pre = nodes[0].point;
+    nodes[1].post = nodes[1].point;
+    return path3(nodes);
+  }
+  
+  int size() {return n;}
+  int length() {return nodes.length-1;}
+  bool empty() {return n == 0;}
+  bool cyclic() {return cycles;}
   
   real arclength() {
     if(cached_length != -1) return cached_length;
-    int n=size();
     
     real L=0.0;
     for(int i = 0; i < n-1; ++i)
-      L += cubiclength(nodes[i],control[i].post,control[i].pre,nodes[i+1],-1);
+      L += cubiclength(nodes[i].point,nodes[i].post,nodes[i+1].pre,
+		       nodes[i+1].point,-1);
 
-    if(cyclic) L += cubiclength(nodes[n-1],control[n-1].post,control[n-1].pre,
-				nodes[n],-1);
+    if(cycles) L += cubiclength(nodes[n-1].point,nodes[n-1].post,
+				nodes[n].pre,nodes[n].point,-1);
     cached_length = L;
     return L;
   }
   
   path3 reverse() {
-    path3 p=new path3;
-    p.control=new control[nodes.length];
-    for(int i=0; i < nodes.length; ++i)
-      p.control[i]=new control;
+    node[] nodes=nodes(nodes.length);
     for(int i=0, j=nodes.length-1; i < nodes.length; ++i, --j) {
-      if(i > 0) p.control[i-1].pre=control[j].post;
-      p.nodes[i]=nodes[j];
-      if(j > 0) {
-	p.control[i].post=control[j-1].pre;
-	p.control[i].active=control[j-1].active;
-      }
+      nodes[i].pre = nodes[j].post;
+      nodes[i].point = nodes[j].point;
+      nodes[i].post = nodes[j].pre;
+      nodes[i].straight = nodes[j].straight;
     }
-    p.cyclic=cyclic;
-    p.cached_length=cached_length;
-    return p;
+    return path3(nodes,cycles,cached_length);
   }
   
   real arctime(real goal) {
-    int n=size();
-    if(cyclic) {
+    if(cycles) {
       if(goal == 0) return 0;
       if(goal < 0)  {
 	path3 rp = reverse();
@@ -811,7 +857,8 @@ struct path3 {
     
     real l,L=0;
     for(int i = 0; i < n-1; ++i) {
-      l = cubiclength(nodes[i],control[i].post,control[i].pre,nodes[i+1],goal);
+      l = cubiclength(nodes[i].point,nodes[i].post,nodes[i+1].pre,
+		      nodes[i+1].point,goal);
       if(l < 0)
 	return (-l+i);
       else {
@@ -821,9 +868,9 @@ struct path3 {
 	  return i+1;
       }
     }
-    if(cyclic) {
-      l = cubiclength(nodes[n-1],control[n-1].post,control[n-1].pre,nodes[n],
-		      goal);
+    if(cycles) {
+      l = cubiclength(nodes[n-1].point,nodes[n-1].post,nodes[n].pre,
+		      nodes[n].point,goal);
       if(l < 0)
 	return -l+n-1;
       if(cached_length > 0 && cached_length != L+l) {
@@ -839,39 +886,241 @@ struct path3 {
     }
   }
   
+  void emptyError() {
+    if(empty())
+      abort("nullpath has no points");
+  }
+  
+  triple point(int i) {
+    emptyError();
+    
+    if (cycles)
+      return nodes[i % n].point;
+    else if (i < 0)
+      return nodes[0].point;
+    else if (i >= n)
+      return nodes[n-1].point;
+    else
+      return nodes[i].point;
+  }
+
+  triple point(real t)
+  {
+    emptyError();
+    
+    int i = floor(t);
+    int iplus;
+    t = fmod(t,1);
+    if (t < 0) t += 1;
+
+    if (cycles) {
+      i = i % n;
+      iplus = (i+1) % n;
+    }
+    else if (i < 0)
+      return nodes[0].point;
+    else if (i >= n-1)
+      return nodes[n-1].point;
+    else
+      iplus = i+1;
+
+    real one_t = 1.0-t;
+
+    triple a = nodes[i].point,
+      b = nodes[i].post,
+      c = nodes[iplus].pre,
+      d = nodes[iplus].point,
+      ab   = one_t*a   + t*b,
+      bc   = one_t*b   + t*c,
+      cd   = one_t*c   + t*d,
+      abc  = one_t*ab  + t*bc,
+      bcd  = one_t*bc  + t*cd,
+      abcd = one_t*abc + t*bcd;
+
+    return abcd;
+  }
+  
+  bool straight(int i) {
+    if (cycles) return nodes[i % n].straight;
+    return (i < n) ? nodes[i].straight : false;
+  }
+  
+  triple precontrol(int i) {
+    emptyError();
+		       
+    if (cycles)
+      return nodes[i % n].pre;
+    else if (i < 0)
+      return nodes[0].pre;
+    else if (i >= n)
+      return nodes[n-1].pre;
+    else
+      return nodes[i].pre;
+  }
+
+  triple postcontrol(int i)
+  {
+    emptyError();
+		       
+    if (cycles)
+      return nodes[i % n].post;
+    else if (i < 0)
+      return nodes[0].post;
+    else if (i >= n)
+      return nodes[n-1].post;
+    else
+      return nodes[i].post;
+  }
+
+  path3 concat(path3 p1, path3 p2)
+  {
+    int n1 = p1.length(), n2 = p2.length();
+
+    if (n1 == 0) return p2;
+    if (n2 == 0) return p1;
+    if (p1.point(n1) != p2.point(0))
+      abort("path3s in concatenation do not meet");
+
+    node[] nodes = nodes(n1+n2+1);
+
+    int i = 0;
+    nodes[0].pre = p1.point(0);
+    for (int j = 0; j < n1; ++j) {
+      nodes[i].point = p1.point(j);
+      nodes[i].straight = p1.straight(j);
+      nodes[i].post = p1.postcontrol(j);
+      nodes[i+1].pre = p1.precontrol(j+1);
+      ++i;
+    }
+    for (int j = 0; j < n2; ++j) {
+      nodes[i].point = p2.point(j);
+      nodes[i].straight = p2.straight(j);
+      nodes[i].post = p2.postcontrol(j);
+      nodes[i+1].pre = p2.precontrol(j+1);
+      ++i;
+    }
+    nodes[i].point = nodes[i].post = p2.point(n2);
+
+    return path3(nodes);
+  }
+
+  path3 subpath(int start, int end) {
+    if(empty()) return new path3;
+
+    if (start > end) {
+      path3 rp = reverse();
+      path3 result = rp.subpath(length()-start, length()-end);
+      return result;
+    }
+
+    if (!cycles) {
+      if (start < 0)
+	start = 0;
+      if (end > n-1)
+	end = n-1;
+    }
+
+    int sn = end-start+1;
+    node[] nodes=nodes(sn);
+    for (int i = 0, j = start; j <= end; ++i, ++j) {
+      nodes[i].pre = precontrol(j);
+      nodes[i].point = point(j);
+      nodes[i].post = postcontrol(j);
+      nodes[i].straight = straight(j);
+    }
+    nodes[0].pre = nodes[0].point;
+    nodes[sn-1].post = nodes[sn-1].point;
+
+    return path3(nodes);
+  }
+  
+  path3 subpath(real start, real end)
+  {
+    if(empty()) return new path3;
+  
+    if (start > end) {
+      path3 rp = reverse();
+      path3 result = rp.subpath(length()-start, length()-end);
+      return result;
+    }
+
+    node startL, startR, endL, endR;
+    if (!cycles) {
+      if (start < 0)
+	start = 0;
+      if (end > n-1)
+	end = n-1;
+      startL = nodes[floor(start)];
+      startR = nodes[ceil(start)];
+      endL = nodes[floor(end)];
+      endR = nodes[ceil(end)];
+    } else {
+      startL = nodes[floor(start) % n];
+      startR = nodes[ceil(start) % n];
+      endL = nodes[floor(end) % n];
+      endR = nodes[ceil(end) % n];
+    }
+
+    if (start == end) {
+      return path3(point(start));
+    }
+    
+    node[] sn=nodes(3);
+    path3 p = subpath(ceil(start), floor(end));
+    if (start > floor(start)) {
+      if (end < ceil(start)) {
+	splitCubic(sn,start-floor(start),startL,startR);
+	splitCubic(sn,(end-start)/(ceil(end)-start),sn[1],sn[2]);
+	return path3(sn[0],sn[1]);
+      }
+      splitCubic(sn,start-floor(start),startL,startR);
+      p=concat(path3(sn[1],sn[2]),p);
+    }
+    if (ceil(end) > end) {
+      splitCubic(sn,end-floor(end),endL,endR);
+      p=concat(p,path3(sn[0],sn[1]));
+    }
+    return p;
+  }
 }
 
 path3 operator init() {return new path3;}
   
-bool cyclic(explicit path3 p) {return p.cyclic;}
+bool cyclic(explicit path3 p) {return p.cyclic();}
 int size(explicit path3 p) {return p.size();}
-int length(explicit path3 p) {return p.nodes.length-1;}
-triple point(explicit path3 p, int k) {return p.nodes[k];}
-triple postcontrol(explicit path3 p, int k) {return p.control[k].post;}
-triple precontrol(explicit path3 p, int k) {return p.control[k-1].pre;}
+int length(explicit path3 p) {return p.length();}
+triple point(explicit path3 p, int k) {return p.point(k);}
+triple point(explicit path3 p, real t) {return p.point(t);}
+triple postcontrol(explicit path3 p, int k) {return p.postcontrol(k);}
+triple precontrol(explicit path3 p, int k) {return p.precontrol(k);}
 
 path3 operator * (transform3 t, path3 p) 
 {
-  path3 P;
-  for(int i=0; i < p.nodes.length; ++i) {
-    P.nodes[i]=t*p.nodes[i];
-    P.control[i]=t*p.control[i];
+  int m=p.nodes.length;
+  node[] nodes=nodes(m);
+  for(int i=0; i < m; ++i) {
+    nodes[i].pre=t*p.nodes[i].pre;
+    nodes[i].point=t*p.nodes[i].point;
+    nodes[i].post=t*p.nodes[i].post;
   }
-  P.cyclic=p.cyclic;
-  return P;
+  return p.path3(nodes,p.cycles);
 }
 
 void write(file file, path3 g)
 {
   if(size(g) == 0) write("<nullpath>");
   else for(int i=0; i < g.nodes.length; ++i) {
-    write(file,g.nodes[i]);
-    write(file);
-
-    if(g.control[i].active) {
-      write(file,g.control[i]);
-      write(file,"..",endl);
-    } else if(i < length(g)) write(file,"--");
+    write(file,g.nodes[i].point,endl);
+    if(i < length(g)) {
+      if(g.nodes[i].straight) write(file,"--");
+      else {
+	write(file,".. controls ");
+	write(file,g.nodes[i].post);
+	write(file," and ");
+	write(file,g.nodes[i+1].pre);
+	write(file,"..",endl);
+      }
+    }
   }
 }
   
@@ -954,7 +1203,6 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
     if(!g.control[i].active) {
       control c;
       if(g.out[i].Curl && g.in[i].Curl) {
-	// Fill in control points for this segment
 	// (used by arclength but not by project).
 	triple delta=(g.nodes[i+1]-g.nodes[i])/3;
 	c.init(g.nodes[i]+delta,g.nodes[i+1]-delta);
@@ -969,11 +1217,21 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
     }
   }
   
-  p.nodes=g.nodes;
-  p.control=g.control;
-  p.cyclic=g.cyclic[g.cyclic.length-1];
+  // Convert to Knuth's format (control points stored with nodes)
+  node[] nodes=nodes(g.nodes.length);
+  bool cyclic=g.cyclic[g.cyclic.length-1];
+  if(cyclic) nodes[0].pre=g.control[nodes.length-2].pre;
+  for(int i=0; i < g.nodes.length-1; ++i) {
+    nodes[i].point=g.nodes[i];
+    nodes[i].post=g.control[i].post;
+    nodes[i+1].pre=g.control[i].pre;
+    nodes[i].straight=!g.control[i].active;
+  }
+  nodes[g.nodes.length-1].point=g.nodes[g.nodes.length-1];
+  nodes[g.nodes.length-1].post=g.control[g.nodes.length-1].post;
   
-  return p;
+  path3 p;
+  return p.path3(nodes,cyclic);
 }
 
 bool cyclic(explicit flatguide3 g) {return g.cyclic[g.cyclic.length-1];}
@@ -983,24 +1241,28 @@ int size(explicit flatguide3 g) {
 int length(explicit flatguide3 g) {return g.nodes.length-1;}
 triple point(explicit flatguide3 g, int k) {return g.nodes[k];}
 
-path project(explicit path3 g, projection Q=currentprojection)
+path project(explicit path3 p, projection Q=currentprojection)
 {
-  guide pg;
+  guide g;
   project P=Q.project;
   
+  int last=p.nodes.length-1;
+  
   // Construct the path.
-  for(int i=0; i < size(g); ++i) {
-    if(g.control[i].active)
-      pg=pg..P(point(g,i))..
-	controls P(g.control[i].post) and P(g.control[i].pre)..nullpath;
-    else 
-      pg=pg..P(point(g,i))--nullpath;
+  for(int i=0; i < last; ++i) {
+    if(p.nodes[i].straight)
+      g=g..P(p.nodes[i].point)--nullpath;
+    else {
+      g=g..P(p.nodes[i].point)..
+	controls P(p.nodes[i].post) and P(p.nodes[i+1].pre)..nullpath;
+    }
   }
+  g=g..P(p.nodes[last].point)--nullpath;
   
-  if(cyclic(g))
-    pg=g.control[g.control.length-1].active ? pg..cycle : pg--cycle;
+  if(p.cycles)
+    g=p.nodes[last].straight ? g--cycle : g..cycle;
   
-  return pg;
+  return g;
 }
 
 path project(flatguide3 g, projection P=currentprojection)
@@ -1080,6 +1342,26 @@ path3 reverse(path3 p)
 path3 reverse(guide3 g) 
 {
   return reverse((path3) g);
+}
+
+path3 subpath(path3 p, int start, int end) 
+{
+  return p.subpath(start,end);
+}
+
+path3 subpath(guide3 g, int start, int end) 
+{
+  return subpath((path3) g, start, end);
+}
+
+path3 subpath(path3 p, real start, real end) 
+{
+  return p.subpath(start,end);
+}
+
+path3 subpath(guide3 g, real start, real end) 
+{
+  return subpath((path3) g, start, end);
 }
 
 void draw(frame f, guide3[] g, pen p=currentpen)
