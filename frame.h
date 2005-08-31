@@ -18,13 +18,13 @@ namespace trans {
 
 class frame : public gc {
   frame *parent;
- 
   size_t numFormals;
   int numLocals;
+  frame *level;
 
 public:
-  frame(frame *parent, size_t numFormals)
-    : parent(parent), numFormals(numFormals), numLocals(0) {}
+  frame(frame *parent, size_t numFormals, frame *level=NULL)
+    : parent(parent), numFormals(numFormals), numLocals(0), level(level) {}
 
   size_t getNumFormals() {
     return numFormals;
@@ -56,6 +56,8 @@ public:
   {
     while (f != 0) {
       if (f == this)
+	return true;
+      if (f->level == this)
 	return true;
       f = f->parent;
     }

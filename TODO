@@ -4,9 +4,6 @@ Andy: implement "public import"
 
 Andy: implement private typedefs
 
-Andy: Fix permissions for static functions in structs.
-ex.  struct t { int x; static void f(t a) { write(a.x); } } 
-
 Andy and John: (if possible) automatically turn expressions with array
 sub-expressions into iteration over the array(s)
     

@@ -46,8 +46,8 @@ coder::coder(modifier sord)
 
 // Defines a new function environment.
 coder::coder(function *t, coder &parent, modifier sord, bool reframe)
-  : level(reframe ? new frame(parent.getFrame(), t->sig.getNumFormals()) :
-                    parent.getFrame()),
+  : level(reframe ? new frame(parent.getFrame(), t->sig.getNumFormals(),
+			      parent.level) : parent.getFrame()),
     recordLevel(parent.recordLevel),
     recordType(parent.recordType),
     l(new vm::lambda),
