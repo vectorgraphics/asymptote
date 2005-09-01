@@ -1331,26 +1331,25 @@ typedef guide interpolate(... guide[]);
 guide graph(picture pic=currentpicture, real f(real), real a, real b,
 	    int n=ngraph, interpolate join=operator --)
 {
-  return graph(join)(new pair (real x) {
+  return graph(join)(new pair(real x) {
     return (x,pic.scale.y.T(f(pic.scale.x.Tinv(x))));},
-			 pic.scale.x.T(a),pic.scale.x.T(b),n);
+		     pic.scale.x.T(a),pic.scale.x.T(b),n);
 }
 
 guide graph(picture pic=currentpicture, real x(real), real y(real), real a,
 	    real b, int n=ngraph, interpolate join=operator --)
 {
-  return graph(join)(new pair (real t) {return Scale(pic,(x(t),y(t)));},
-			   a,b,n);
+  return graph(join)(new pair(real t) {return Scale(pic,(x(t),y(t)));},
+		     a,b,n);
 }
 
 guide graph(picture pic=currentpicture, pair z(real), real a, real b,
 	    int n=ngraph, interpolate join=operator --)
 {
-  return graph(join)(new pair (real t) {return Scale(pic,z(t));},
-			   a,b,n);
+  return graph(join)(new pair(real t) {return Scale(pic,z(t));},a,b,n);
 }
 
-private int next(int i, bool[] cond)
+int next(int i, bool[] cond)
 {
   ++i;
   if(cond.length > 0) while(!cond[i]) ++i;
@@ -1371,12 +1370,12 @@ guide graph(picture pic=currentpicture, pair[] z, bool[] cond={},
 {
   int n=conditional(z,cond);
   int i=-1;
-  return graph(join)(new pair (real) {
+  return graph(join)(new pair(real) {
     i=next(i,cond);
     return Scale(pic,z[i]);},0,0,n);
 }
 
-private string differentlengths="attempt to graph arrays of different lengths";
+string differentlengths="attempt to graph arrays of different lengths";
 
 guide graph(picture pic=currentpicture, real[] x, real[] y, bool[] cond={},
 	    interpolate join=operator --)
@@ -1384,7 +1383,7 @@ guide graph(picture pic=currentpicture, real[] x, real[] y, bool[] cond={},
   if(x.length != y.length) abort(differentlengths);
   int n=conditional(x,cond);
   int i=-1;
-  return graph(join)(new pair (real) {
+  return graph(join)(new pair(real) {
     i=next(i,cond);
     return Scale(pic,(x[i],y[i]));},0,0,n);
 }
@@ -1392,7 +1391,7 @@ guide graph(picture pic=currentpicture, real[] x, real[] y, bool[] cond={},
 guide graph(real f(real), real a, real b, int n=ngraph,
 	    real T(real), interpolate join=operator --)
 {
-  return graph(join)(new pair (real x) {return (T(x),f(T(x)));},a,b,n);
+  return graph(join)(new pair(real x) {return (T(x),f(T(x)));},a,b,n);
 }
 
 pair polar(real r, real theta)
@@ -1403,7 +1402,7 @@ pair polar(real r, real theta)
 guide polargraph(real f(real), real a, real b, int n=ngraph,
 		 interpolate join=operator --)
 {
-  return graph(join)(new pair (real theta) {
+  return graph(join)(new pair(real theta) {
       return f(theta)*expi(theta);
     },a,b,n);
 }

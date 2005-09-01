@@ -1526,6 +1526,13 @@ guide3 operator cast(path3 p) {
 }
 
 pair operator cast(triple v) {return project(v);}
+pair[] operator cast(triple[] v) {
+  int n=v.length;
+  pair[] z=new pair[n];
+  for(int i=0; i < n; ++i)
+    z[i]=project(v[i]);
+  return z;
+}
 
 path3 operator cast(guide3 g) {return solve(g);}
 path operator cast(path3 p) {return project(p);}
@@ -1627,67 +1634,6 @@ guide3[] operator ^^ (guide3[] p, guide3 q)
 guide3[] operator ^^ (guide3[] p, guide3[] q) 
 {
   return concat(p,q);
-}
-
-// The graph of a function along a path.
-guide3 graph(triple F(path, real), path p, int n=10)
-{
-  guide3 g;
-  for(int i=0; i < n*length(p); ++i)
-    g=g--F(p,i/n);
-  return cyclic(p) ? g--cycle3 : g--F(p,length(p));
-}
-
-guide3 graph(triple F(pair), path p, int n=10) 
-{
-  return graph(new triple(path p, real position) 
-	       {return F(point(p,position));},p,n);
-}
-
-guide3 graph(real f(pair), path p, int n=10) 
-{
-  return graph(new triple(pair z) {return (z.x,z.y,f(z));},p,n);
-}
-
-picture surface(real f(pair z), pair a, pair b, int n=20, int subn=1, 
-		pen surfacepen=lightgray, pen meshpen=currentpen,
-		projection P=currentprojection)
-{
-  picture pic;
-  pair back,front;
-
-  void drawcell(pair a, pair b) {
-    guide3 g=graph(f,box(a,b),subn);
-    filldraw(pic,project(g,P),surfacepen,meshpen);
-  }
-
-  pair sample(int i, int j) {
-    return (interp(back.x,front.x,i/n),
-            interp(back.y,front.y,j/n));
-  }
-
-  pair camera=(P.camera.x,P.camera.y);
-  pair z=b-a;
-  int sign=sgn(dot(camera,I*conj(z)));
-  
-  if(sign >= 0) {
-    back=a;
-    front=b;
-  } else {
-    back=b;
-    front=a;
-  }
-
-  if(sign*sgn(dot(camera,I*z)) >= 0)
-    for(int j=0; j < n; ++j)
-      for(int i=0; i < n; ++i)
-	drawcell(sample(i,j),sample(i+1,j+1));
-  else
-    for(int i=0; i < n; ++i)
-      for(int j=0; j < n; ++j)
-	drawcell(sample(i,j),sample(i+1,j+1));
-
-  return pic;
 }
 
 guide3[] box(triple v1, triple v2)

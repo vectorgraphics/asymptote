@@ -1,4 +1,5 @@
 import three;
+import graph3;
 size(200,0);
 
 currentprojection=perspective((5,4,2));
@@ -16,6 +17,6 @@ draw((1,0,0)..(0,1,0)..(-1,0,0)..(0,-1,0)..cycle3,green);
 
 label("$O$",(0,0,0),S,red);
   
-add(surface(f,(-1,-1),(1,1),n=10));
+add(surface(f,(-1,-1),(1,1),10,4));
 
 draw(arc(0.12Z,0.2,90,60,90,15),ArcArrow);
