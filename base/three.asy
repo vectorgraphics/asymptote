@@ -830,6 +830,7 @@ struct path3 {
   bool cycles;
   int n;
   real cached_length=-1;
+  bbox3 box;
   
   static path3 path3(node[] nodes, bool cycles=false, real cached_length=-1) {
     path3 p=new path3;
@@ -934,8 +935,6 @@ struct path3 {
 
     real one_t = 1.0-t;
 
-    write(nodes[i].post,nodes[i+1].pre);
-    write();
     triple a = nodes[i].point,
       b = nodes[i].post,
       c = nodes[iplus].pre,
@@ -1261,6 +1260,50 @@ struct path3 {
     return F;  
   }
 
+  bbox3 bounds() {
+    if (empty()) {
+      // No bounds
+      return new bbox3;
+    }
+
+    if(!box.empty) return box;
+    
+    for (int i = 0; i < length(); ++i) {
+      box.add(point(i));
+      if(straight(i)) continue;
+    
+      triple z0=point(i);
+      triple z0p=postcontrol(i);
+      triple z1m=precontrol(i+1);
+      triple z1=point(i+1);
+      
+      triple a=z1-z0+3.0*(z0p-z1m);
+      triple b=2.0*(z0+z1m)-4.0*z0p;
+      triple c=z0p-z0;
+      
+      quad ret;
+    
+      // Check x coordinate
+      ret=solveQuadratic(a.x,b.x,c.x);
+      if(ret.roots != quad.NONE) box.add(point(i+ret.t1));
+      if(ret.roots == quad.DOUBLE) box.add(point(i+ret.t2));
+    
+      // Check y coordinate
+      ret=solveQuadratic(a.y,b.y,c.y);
+      if(ret.roots != quad.NONE) box.add(point(i+ret.t1));
+      if(ret.roots == quad.DOUBLE) box.add(point(i+ret.t2));
+    }
+    box.add(point(length()));
+    return box;
+  }
+  
+  triple max() {
+    return bounds().Max();
+  }
+  triple min() {
+    return bounds().Min();
+  }
+  
 }
 
 path3 operator init() {return new path3;}
@@ -1268,10 +1311,6 @@ path3 operator init() {return new path3;}
 bool cyclic(explicit path3 p) {return p.cyclic();}
 int size(explicit path3 p) {return p.size();}
 int length(explicit path3 p) {return p.length();}
-triple point(explicit path3 p, int k) {return p.point(k);}
-triple point(explicit path3 p, real t) {return p.point(t);}
-triple postcontrol(explicit path3 p, int k) {return p.postcontrol(k);}
-triple precontrol(explicit path3 p, int k) {return p.precontrol(k);}
 
 path3 operator * (transform3 t, path3 p) 
 {
@@ -1285,18 +1324,19 @@ path3 operator * (transform3 t, path3 p)
   return path3.path3(nodes,p.cycles);
 }
 
-void write(file file, path3 g)
+void write(file file, path3 p)
 {
-  if(size(g) == 0) write("<nullpath>");
-  else for(int i=0; i < g.nodes.length; ++i) {
-    write(file,g.nodes[i].point,endl);
-    if(i < length(g)) {
-      if(g.nodes[i].straight) write(file,"--");
+  if(size(p) == 0) write("<nullpath>");
+  else for(int i=0; i < p.nodes.length; ++i) {
+    if(i == p.nodes.length-1 && p.cycles) write(file,"cycle3");
+    else write(file,p.nodes[i].point,endl);
+    if(i < length(p)) {
+      if(p.nodes[i].straight) write(file,"--");
       else {
 	write(file,".. controls ");
-	write(file,g.nodes[i].post);
+	write(file,p.nodes[i].post);
 	write(file," and ");
-	write(file,g.nodes[i+1].pre);
+	write(file,p.nodes[i+1].pre);
 	write(file,"..",endl);
       }
     }
@@ -1382,7 +1422,7 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
     if(!g.control[i].active) {
       control c;
       if(g.out[i].Curl && g.in[i].Curl) {
-	// (used by arclength but not by project).
+	// fill in straight control points for path3 functions
 	triple delta=(g.nodes[i+1]-g.nodes[i])/3;
 	c.init(g.nodes[i]+delta,g.nodes[i+1]-delta);
 	c.active=false;
@@ -1417,7 +1457,6 @@ int size(explicit flatguide3 g) {
   return cyclic(g) ? g.nodes.length-1 : g.nodes.length;
 }
 int length(explicit flatguide3 g) {return g.nodes.length-1;}
-triple point(explicit flatguide3 g, int k) {return g.nodes[k];}
 
 path project(explicit path3 p, projection Q=currentprojection)
 {
@@ -1425,21 +1464,21 @@ path project(explicit path3 p, projection Q=currentprojection)
   project P=Q.project;
   
   int last=p.nodes.length-1;
+  if(last < 0) return g;
   
+  g=P(p.nodes[0].point);
   // Construct the path.
   for(int i=0; i < last; ++i) {
     if(p.nodes[i].straight)
-      g=g..P(p.nodes[i].point)--nullpath;
-    else {
-      g=g..P(p.nodes[i].point)..
-	controls P(p.nodes[i].post) and P(p.nodes[i+1].pre)..nullpath;
-    }
+      g=g--P(p.nodes[i+1].point);
+    else 
+      g=g..controls P(p.nodes[i].post) and P(p.nodes[i+1].pre)..
+      P(p.nodes[i+1].point);
   }
-  g=g..P(p.nodes[last].point)--nullpath;
   
   if(p.cycles)
     g=p.nodes[last].straight ? g--cycle : g..cycle;
-  
+
   return g;
 }
 
@@ -1464,110 +1503,98 @@ path[] project(flatguide3[] g, projection P=currentprojection)
   
 public projection currentprojection=perspective((5,4,2));
 
-pair operator cast(triple v) {
-  return project(v);
+guide3 operator cast(path3 p) {
+  guide3 g;
+  int last=p.nodes.length-1;
+  if(last < 0) return g;
+  
+  int i,stop=(p.cycles ? last-1 : last);
+  // Construct the path.
+  g=p.nodes[0].point;
+  for(i=0; i < stop; ++i) {
+    if(p.nodes[i].straight) g=g--p.nodes[i+1].point;
+    else g=g..controls p.nodes[i].post and p.nodes[i+1].pre..
+      p.nodes[i+1].point;
+  }
+  
+  if(p.cycles) {
+    if(p.nodes[i].straight) g=g--cycle3;
+    else g=g..controls p.nodes[i].post and p.nodes[i+1].pre..cycle3;
+  }
+  
+  return g;
 }
 
-path operator cast(triple v) {
-  return project(v);
+pair operator cast(triple v) {return project(v);}
+
+path3 operator cast(guide3 g) {return solve(g);}
+path operator cast(path3 p) {return project(p);}
+path operator cast(guide3 g) {return project(solve(g));}
+
+path[] operator cast(path3 g) {return new path[] {(path) g};}
+path[] operator cast(guide3 g) {return new path[] {(path) g};}
+path[] operator cast(guide3[] g) {return project(g);}
+
+bool straight(path3 p, int i) {return p.straight(i);}
+bool straight(explicit guide3 g, int i) {return ((path3) g).straight(i);}
+
+triple point(path3 p, int i) {return p.point(i);}
+triple point(explicit guide3 g, int i) {return ((path3) g).point(i);}
+triple point(path3 p, real t) {return p.point(t);}
+triple point(explicit guide3 g, real t) {return ((path3) g).point(t);}
+
+triple postcontrol(path3 p, int i) {return p.postcontrol(i);}
+triple postcontrol(explicit guide3 g, int i) {
+  return ((path3) g).postcontrol(i);
+}
+triple postcontrol(path3 p, real t) {return p.postcontrol(t);}
+triple postcontrol(explicit guide3 g, real t) {
+  return ((path3) g).postcontrol(t);
 }
 
-path3 operator cast(guide3 g) {
-  return solve(g);
+triple precontrol(path3 p, int i) {return p.precontrol(i);}
+triple precontrol(explicit guide3 g, int i) {
+  return ((path3) g).precontrol(i);
+}
+triple precontrol(path3 p, real t) {return p.precontrol(t);}
+triple precontrol(explicit guide3 g, real t) {
+  return ((path3) g).precontrol(t);
 }
 
-path operator cast(path3 p) {
-  return project(p);
-}
+triple dir(path3 p, int n) {return p.dir(n);}
+triple dir(explicit guide3 g, int n) {return ((path3) g).dir(n);}
+triple dir(path3 p, real t) {return p.dir(t);}
+triple dir(explicit guide3 g, real t) {return ((path3) g).dir(t);}
 
-path operator cast(guide3 g) {
-  return project(solve(g));
-}
+path3 reverse(path3 p) {return p.reverse();}
+path3 reverse(explicit guide3 g) {return ((path3) g).reverse();}
 
-path[] operator cast(guide3 g) {
-  return new path[] {(path) g};
-}
+real arclength(path3 p) {return p.arclength();}
+real arclength(explicit guide3 g) {return ((path3) g).arclength();}
 
-path[] operator cast(guide3[] g) {
-  return project(g);
-}
+real arctime(path3 p, real l) {return p.arctime(l);}
+real arctime(explicit guide3 g, real l) {return ((path3) g).arctime(l);}
 
-real arclength(path3 p) 
-{
-  return p.arclength();
-}
+triple max(path3 p) {return p.max();}
+triple max(explicit guide3 g) {return ((path3) g).max();}
 
-real arclength(guide3 g) 
-{
-  return ((path3) g).arclength();
-}
+triple min(path3 p) {return p.min();}
+triple min(explicit guide3 g) {return ((path3) g).min();}
 
-real arctime(path3 p, real l) 
-{
-  return p.arctime(l);
-}
-
-real arctime(guide3 g, real l) 
-{
-  return ((path3) g).arctime(l);
-}
-
-path3 reverse(path3 p) 
-{
-  return p.reverse();
-}
-
-path3 reverse(guide3 g) 
-{
-  return ((path3) g).reverse();
-}
-
-triple dir(path3 p, int n) 
-{
-  return p.dir(n);
-}
-
-triple dir(guide3 g, int n) 
-{
-  return ((path3) g).dir(n);
-}
-
-triple dir(path3 p, real t) 
-{
-  return p.dir(t);
-}
-
-triple dir(guide3 g, real t) 
-{
-  return ((path3) g).dir(t);
-}
-
-path3 subpath(path3 p, int start, int end) 
-{
-  return p.subpath(start,end);
-}
-
-path3 subpath(guide3 g, int start, int end) 
+path3 subpath(path3 p, int start, int end) {return p.subpath(start,end);}
+path3 subpath(explicit guide3 g, int start, int end)
 {
   return ((path3) g).subpath(start,end);
 }
 
-path3 subpath(path3 p, real start, real end) 
-{
-  return p.subpath(start,end);
-}
-
-path3 subpath(guide3 g, real start, real end) 
+path3 subpath(path3 p, real start, real end) {return p.subpath(start,end);}
+path3 subpath(explicit guide3 g, real start, real end) 
 {
   return ((path3) g).subpath(start,end);
 }
 
-pair intersect(path3 p, path3 q) 
-{
-  return path3.intersect(p,q);
-}
-
-pair intersect(guide3 p, guide3 q) 
+pair intersect(path3 p, path3 q) {return path3.intersect(p,q);}
+pair intersect(explicit guide3 p, explicit guide3 q)
 {
   return path3.intersect((path3) p,(path3) q);
 }
@@ -1688,12 +1715,12 @@ guide3[] unitcube=box((0,0,0),(1,1,1));
 
 path3 XYunitcircle=X..Y..-X..-Y..cycle3;
 
-// return an arc centered at c with radius r from c+(r,theta1,phi1) to
-// c+(r,theta2,phi2) in degrees, drawing in the given direction
+// return an arc centered at c with radius r from c+r*dir(theta1,phi1) to
+// c+r*dir(theta2,phi2) in degrees, drawing in the given direction
 // relative to the normal vector cross(dir(theta1,phi1),dir(theta2,phi2)).
 // The normal must be explicitly specified if c and the endpoints are colinear.
 path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
-	  triple normal=O, bool direction=CCW)
+	  triple normal=O, bool direction)
 {
   if(normal == O) {
     normal=cross(dir(theta1,phi1),dir(theta2,phi2));
@@ -1713,3 +1740,16 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
   return shift(c)*scale3(r)*T*subpath(XYunitcircle,t1,t2);
 }
 
+// return an arc centered at c with radius r from c+r*dir(theta1,phi1) to
+// c+r*dir(theta2,phi2) in degrees, drawing drawing counterclockwise
+// relative to the normal vector cross(dir(theta1,phi1),dir(theta2,phi2))
+// iff theta2 > theta1 or (theta2 == theta1 and phi2 >= phi1).
+// The normal must be explicitly specified if c and the endpoints are colinear.
+// If r < 0, draw the complementary arc of radius |r|.
+path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
+	  triple normal=O)
+{
+  bool pos=theta2 > theta1 || (theta2 == theta1 && phi2 >= phi1);
+  if(r > 0) return arc(c,r,theta1,phi1,theta2,phi2,normal,pos ? CCW : CW);
+  else return arc(c,-r,theta1,phi1,theta2,phi2,normal,pos ? CW : CCW);
+}

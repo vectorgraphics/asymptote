@@ -18,4 +18,4 @@ label("$O$",(0,0,0),S,red);
   
 add(surface(f,(-1,-1),(1,1),n=10));
 
-draw(arc(1.3Y,.1,160,0,95,180,CW),ArcArrow);
+draw(arc(0.12Z,0.2,90,60,90,15),ArcArrow);

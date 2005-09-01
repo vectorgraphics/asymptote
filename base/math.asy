@@ -497,4 +497,69 @@ real slope(path g, explicit pair z)
   return a.y/a.x;
 }
 
+struct quad 
+{
+  static int NONE=0;
+  static int SINGLE=1;
+  static int DOUBLE=2;
+  static int ANY=3;
+  public int roots;
+  public real t1,t2;
+};
+
+quad operator init() {return new quad;}
+
+quad quad; // Work around static problems with current import scheme.
+
+// Accurate computation of sqrt(1+x)-1.
+real sqrt1pxm1(real x)
+{
+  return x/(sqrt(1+x)+1);
+}
+  
+// Solve the quadratic equation ax^2+bx+c=0.
+quad solveQuadratic(real a, real b, real c)
+{
+  quad ret;
+  
+  if(a == 0) {
+    if(b != 0) {
+      ret.roots=quad.SINGLE;
+      ret.t1=-c/b;
+    } else if(c == 0) {
+      ret.roots=quad.ANY;
+      ret.t1=0;
+      } else
+      ret.roots=quad.NONE;
+  } else if(b == 0) {
+    real x=-c/a;
+    if(x >= 0) {
+      ret.roots=quad.DOUBLE;
+      ret.t2=sqrt(x);
+      ret.t1=-ret.t2;
+    } else
+      ret.roots=quad.NONE;
+  } else {
+    real factor=0.5*b/a;
+    real x=-2*c/(b*factor);
+    if(x > -1) {
+      ret.roots = quad.DOUBLE;
+      real sqrtm1=sqrt1pxm1(x);
+      real r2=factor*sqrtm1;
+      real r1=-r2-2*factor;
+      if(r1 <= r2) {
+	ret.t1=r1;
+	ret.t2=r2;
+      } else {
+	ret.t1=r2;
+	ret.t2=r1;
+      }
+    } else if(x == -1) {
+      ret.roots=quad.SINGLE;
+      ret.t1=ret.t2=-factor;
+    } else
+      ret.roots=quad.NONE;
+  }
+  return ret;
+}
 

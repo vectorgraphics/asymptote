@@ -919,12 +919,14 @@ This example draws an approximate quarter circle:
 @verbatiminclude quartercircle.asy
 @image{quartercircle}
 
-A general arc centered on @code{c} with radius @code{r} from
-@code{angle1} to @code{angle2} degrees (drawing counterclockwise if
-@code{angle2 >= angle1}) can be constructed with
+A circular arc consistent with the above approximation centered on
+@code{c} with radius @code{r} from @code{angle1} to @code{angle2}
+degrees, drawing counterclockwise if @code{angle2 >= angle1}, can be
+constructed with
 @verbatim
 guide arc(pair c, real r, real angle1, real angle2);
 @end verbatim
+If @code{r} < 0, the complementary arc of radius @code{|r|} is constructed.
 
 @cindex @code{controls}
 Instead of specifying the tangent directions before and after a node,
@@ -1041,10 +1043,10 @@ unless @code{n} < 0 (in which case @code{point(0)} is returned) or
 @code{n} > @code{length(p)} (in which case @code{point(length(p))}
 is returned).
 
-@item pair point(path p, real x)
-This returns the coordinates of the point between node @code{floor(x)}
-and @code{floor(x)+1} corresponding to the cubic spline parameter
-@math{t=}@code{x-floor(x)} (@pxref{Bezier}). If @code{x} lies outside the range
+@item pair point(path p, real t)
+This returns the coordinates of the point between node @code{floor(t)}
+and @code{floor(t)+1} corresponding to the cubic spline parameter
+@math{t=}@code{t-floor(t)} (@pxref{Bezier}). If @code{t} lies outside the range
 [0,@code{length(p)}], it is first reduced modulo @code{length(p)}
 in the case where @code{p} is cyclic or else converted to the corresponding
 endpoint of @code{p}.
@@ -1054,10 +1056,10 @@ endpoint of @code{p}.
 This returns the direction (as a pair) of the tangent to the path at
 node @code{n}. If the path contains only one point, (0,0) is returned.
 
-@item pair dir(path, real x)
+@item pair dir(path, real t)
 This returns the direction of the tangent to the path at the point
-between node @code{floor(x)} and @code{floor(x)+1} corresponding to the
-cubic spline parameter @math{t=}@code{x-floor(x)} (@pxref{Bezier}).
+between node @code{floor(t)} and @code{floor(t)+1} corresponding to the
+cubic spline parameter @math{t=}@code{t-floor(t)} (@pxref{Bezier}).
 If the path contains only one point, (0,0) is returned.
 
 @cindex @code{precontrol}
@@ -1067,6 +1069,14 @@ This returns the precontrol point of node @code{n}.
 @cindex @code{postcontrol}
 @item pair postcontrol(path, int n)
 This returns the postcontrol point of node @code{n}.
+
+@cindex @code{precontrol}
+@item pair precontrol(path, real t)
+This returns the effective precontrol direction at parameter @code{t}.
+
+@cindex @code{postcontrol}
+@item pair postcontrol(path, real t)
+This returns the effective postcontrol direction at parameter @code{t}.
 
 @cindex @code{arclength}
 @item real arclength(path)
@@ -3532,11 +3542,11 @@ along with a three-dimensional cycle specifier @code{cycle3}, tension operator
 @code{tension3}, and curl operator @code{curl3}. Just as in two
 dimensions, the nodes within a @code{guide3} can be qualified with
 these operators and also with explicit directions and control points (using
-braces and @code{controls}, respectively).
-This generalization of John Hobby's spline algorithm is invariant to
-three-dimensional rotation, scaling, and shifting, and reduces in the planar
-case to the two-dimensional algorithm used in @code{Asymptote},
-@code{MetaPost}, and @code{MetaFont}.
+braces and @code{controls}, respectively). This generalization of John
+Hobby's spline algorithm is shape-invariant under three-dimensional rotation,
+scaling, and shifting, and reduces in the planar case to the
+two-dimensional algorithm used in @code{Asymptote}, @code{MetaPost},
+and @code{MetaFont}.
 
 These projections to two dimensions are predefined:
 @table @code
@@ -3580,8 +3590,8 @@ scales by @code{y} in the @math{y} direction;
 @item zscale3(real z)
 @cindex @code{zscale3}
 scales by @code{z} in the @math{z} direction;
-@item scale(real s)
-@cindex @code{scale}
+@item scale3(real s)
+@cindex @code{scale3}
 scales by @code{s} in the @math{x}, @math{y}, and @math{z} directions;
 @item rotate(real angle, triple v)
 rotates by @code{angle} in degrees about an axis @code{v} through the origin;
@@ -3591,12 +3601,33 @@ rotates by @code{angle} in degrees about the axis @code{u--v};
 reflects about the plane through @code{u}, @code{v}, and @code{w}.
 @end table
 
-Here is an example of a helix using an orthographic projection:
+Three-dimensional versions of the path functions @code{length},
+@code{size}, @code{point}, @code{dir}, @code{precontrol}, @code{postcontrol}, 
+@code{arclength}, @code{arctime}, @code{reverse}, @code{subpath},
+@code{intersect}, @code{min}, @code{max}, @code{cyclic}, and
+@code{straight} are also defined in the module @code{three}.
+
+A circular arc centered at @code{c} with radius @code{r} from
+@code{c+r*dir(theta1,phi1)} to @code{c+r*dir(theta2,phi2)},
+drawing counterclockwise relative to the normal vector
+@code{cross(dir(theta1,phi1),dir(theta2,phi2))} if @code{theta2 > theta1}
+or if @code{theta2 == theta1} and @code{phi2 >= phi1}, can be constructed with
+@verbatim
+path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
+	  triple normal=O);
+@end verbatim
+The normal must be explicitly specified if @code{c} and the endpoints
+are colinear. If @code{r} < 0, the complementary arc of radius
+@code{|r|} is constructed.
+
+Here is an example of a helix and a path bounding box using
+orthographic projection:
 @anchor{helix}
 @verbatiminclude helix.asy
 @image{helix}
 
-Here is an example of a surface plot:
+This example shows a surface plot, a circle, and a three-dimensional
+circular arc:
 @anchor{surface}
 @verbatiminclude surface.asy
 @image{surface}
