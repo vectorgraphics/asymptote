@@ -776,11 +776,10 @@ node[] nodes(int n)
 }
 
 struct path3 {
-  // Remove public qualifiers here once static function permissions are fixed.
-  public node[] nodes;
-  public bool cycles;
-  public int n;
-  public real cached_length=-1;
+  node[] nodes;
+  bool cycles;
+  int n;
+  real cached_length=-1;
   
   static path3 path3(node[] nodes, bool cycles=false, real cached_length=-1) {
     path3 p=new path3;

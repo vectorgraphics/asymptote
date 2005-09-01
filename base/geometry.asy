@@ -25,10 +25,21 @@ void perpendicular(picture pic=currentpicture, pair z, path g,
 struct triangle {
   public pair A,B,C;
 
-  void SAS(real b, real alpha, real c, real angle=0, pair A=(0,0))   {
-    this.A=A;
-    B=A+c*dir(angle);
-    C=A+b*dir(angle+alpha);
+  static triangle SAS(real b, real alpha, real c, real angle=0, pair A=(0,0)) {
+    triangle T=new triangle;
+    T.A=A;
+    T.B=A+c*dir(angle);
+    T.C=A+b*dir(angle+alpha);
+    write(T.A,T.B,T.C);
+    return T;
+  }
+
+  static triangle vertices(pair A, pair B, pair C) {
+    triangle T=new triangle;
+    T.A=A;
+    T.B=B;
+    T.C=C;
+    return T;
   }
 
   real a() {return length(C-B);}
@@ -42,17 +53,13 @@ struct triangle {
   real beta()  {return degrees(acos((c()^2+a()^2-b()^2)/(2c()*a())));}
   real gamma() {return degrees(acos((a()^2+b()^2-c()^2)/(2a()*b())));}
   
-  void vertices(pair A, pair B, pair C) {
-    this.A=A;
-    this.B=B;
-    this.C=C;
-  }
-
   path Path() {return A--C--B--cycle;}
 }
 
 triangle operator init() {return new triangle;}
   
+triangle triangle; // Work around static problems with current import scheme.
+
 void draw(picture pic=currentpicture, triangle t, pen p=currentpen) 
 {
   draw(pic,t.Path(),p);
@@ -60,9 +67,7 @@ void draw(picture pic=currentpicture, triangle t, pen p=currentpen)
 
 triangle operator * (transform T, triangle t)
 {
-  triangle s;
-  s.vertices(T*t.A,T*t.B,T*t.C);
-  return s;
+  return triangle.vertices(T*t.A,T*t.B,T*t.C);
 }
 
 // Return an interior arc BAC of triangle ABC, given a radius r > 0.

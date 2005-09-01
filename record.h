@@ -36,8 +36,7 @@ struct record : public ty {
   tenv te;
   venv ve;
 
-  // The runtime representation of the record used by the virtual
-  // machine.
+  // The runtime representation of the record used by the virtual machine.
   vm::lambda *init;
 
 public:
@@ -91,7 +90,8 @@ public:
   }
 
   size_t hash() {
-    // Use the pointer, as two records are equivalent only if they are the same object.
+    // Use the pointer, as two records are equivalent only if they are the
+    // same object.
     return (size_t)this;
   }
 
