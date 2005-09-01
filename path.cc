@@ -117,7 +117,7 @@ pair path::precontrol(double t) const
   int i = ifloor(t);
   int iplus;
   t = fmod(t,1);
-  if (t<0) t += 1;
+  if (t < 0) t += 1;
 
   if (cycles) {
     i = imod(i,n);
@@ -135,13 +135,9 @@ pair path::precontrol(double t) const
   pair a = nodes[i].point,
        b = nodes[i].post,
        c = nodes[iplus].pre,
-       //d = nodes[iplus].point,
        ab   = one_t*a   + t*b,
        bc   = one_t*b   + t*c,
-       //cd   = one_t*c   + t*d,
        abc  = one_t*ab  + t*bc;
-       //bcd  = one_t*bc  + t*cd,
-       //abcd = one_t*abc + t*bcd;
 
   return abc;
 }
@@ -155,7 +151,7 @@ pair path::postcontrol(double t) const
   int i = ifloor(t);
   int iplus;
   t = fmod(t,1);
-  if (t<0) t += 1;
+  if (t < 0) t += 1;
 
   if (cycles) {
     i = imod(i,n);
@@ -170,16 +166,12 @@ pair path::postcontrol(double t) const
 
   double one_t = 1.0-t;
 
-  pair //a = nodes[i].point,
-       b = nodes[i].post,
+  pair b = nodes[i].post,
        c = nodes[iplus].pre,
        d = nodes[iplus].point,
-       //ab   = one_t*a   + t*b,
        bc   = one_t*b   + t*c,
        cd   = one_t*c   + t*d,
-       //abc  = one_t*ab  + t*bc,
        bcd  = one_t*bc  + t*cd;
-       //abcd = one_t*abc + t*bcd;
 
   return bcd;
 }
@@ -276,7 +268,7 @@ path path::subpath(double start, double end) const
 
   solvedKnot sn[3];
   path p = subpath(iceil(start), ifloor(end));
-  if (start>floor(start)) {
+  if (start > floor(start)) {
     if (end < ceil(start)) {
       splitCubic(sn,start-floor(start),startL,startR);
       splitCubic(sn,(end-start)/(ceil(end)-start),sn[1],sn[2]);
@@ -285,7 +277,7 @@ path path::subpath(double start, double end) const
     splitCubic(sn,start-floor(start),startL,startR);
     p=concat(path(sn[1],sn[2]),p);
   }
-  if (ceil(end)>end) {
+  if (ceil(end) > end) {
     splitCubic(sn,end-floor(end),endL,endR);
     p=concat(p,path(sn[0],sn[1]));
   }
@@ -501,10 +493,10 @@ pair intersectcubics(solvedKnot left1, solvedKnot right1,
   box1 += right1.pre;  box1 += right1.point;
   box2 += left2.point; box2 += left2.post;
   box2 += right2.pre;  box2 += right2.point;
-  if (box1.Max().getx()>=box2.Min().getx() &&
-      box1.Max().gety()>=box2.Min().gety() &&
-      box2.Max().getx()>=box1.Min().getx() &&
-      box2.Max().gety()>=box1.Min().gety()) {
+  if (box1.Max().getx() >= box2.Min().getx() &&
+      box1.Max().gety() >= box2.Min().gety() &&
+      box2.Max().getx() >= box1.Min().getx() &&
+      box2.Max().gety() >= box1.Min().gety()) {
     if (depth == 0) return pair(0,0);
     solvedKnot sn1[3], sn2[3];
     splitCubic(sn1,0.5,left1,right1);
@@ -527,13 +519,12 @@ pair intersectcubics(solvedKnot left1, solvedKnot right1,
 pair intersectiontime(path p1, path p2)
 {
   const pair F(-1,-1);
-  pair t;
   for (int i = 0; i < p1.length(); i++) {
     for (int j = 0; j < p2.length(); j++) {
-      t=intersectcubics(p1.nodes[i],(p1.cycles && i == p1.n-1) ?
-			p1.nodes[0] : p1.nodes[i+1],
-			p2.nodes[j],(p2.cycles && j == p2.n-1) ?
-			p2.nodes[0] : p2.nodes[j+1]);
+      pair t=intersectcubics(p1.nodes[i],(p1.cycles && i == p1.n-1) ?
+			     p1.nodes[0] : p1.nodes[i+1],
+			     p2.nodes[j],(p2.cycles && j == p2.n-1) ?
+			     p2.nodes[0] : p2.nodes[j+1]);
       if (t != F) return t*0.5 + pair(i,j);
     }
   }

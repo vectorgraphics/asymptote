@@ -12,7 +12,7 @@ Andy: give execute(string) read/write access to caller environment
 mode" where complete lines are individually added to the parse tree and
 executed as they are entered.) Make it look interpreted but still compile.
 
-Add missing 3d path functions: intersect,dir,dirtime,bounds
+Add missing 3d path functions: dirtime,bounds
 
 3d graphs
 
