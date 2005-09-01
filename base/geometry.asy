@@ -30,7 +30,6 @@ struct triangle {
     T.A=A;
     T.B=A+c*dir(angle);
     T.C=A+b*dir(angle+alpha);
-    write(T.A,T.B,T.C);
     return T;
   }
 
