@@ -1,4 +1,4 @@
-TESTDIRS = string arith
+TESTDIRS = string arith frames types
 
 test: $(TESTDIRS)
 
