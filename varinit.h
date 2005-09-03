@@ -2,7 +2,7 @@
  * varinit.h
  * Andy Hammerlindl 2005/07/01
  *
- * Variable initializer are syntax that finish code such as
+ * Variable initializers are syntax that finish code such as
  *   int var = ...
  * As such, they are translated to yield a certain type, the type of the
  * variable.  Expressions are a special case that can be translated without an

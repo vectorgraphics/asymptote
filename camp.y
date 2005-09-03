@@ -9,7 +9,10 @@
 #include "errormsg.h"
 #include "exp.h"
 #include "newexp.h"
+#include "dec.h"
+#include "fundec.h"
 #include "stm.h"
+#include "modifier.h"
 
 // Avoid error messages with unpatched bison-1.875:
 #ifndef __attribute__
@@ -57,11 +60,15 @@ using sym::symbol;
   absyntax::decidlist *dil;
   absyntax::decidstart *dis;
   absyntax::runnable *run;
-  absyntax::modifierList *ml;
   struct {
     position pos;
-    int keyword;
+    trans::permission val;
+  } perm;
+  struct {
+    position pos;
+    trans::modifier val;
   } mod;
+  absyntax::modifierList *ml;
   //absyntax::program *prog;
   absyntax::vardec *vd;
   //absyntax::vardecs *vds;
@@ -88,6 +95,8 @@ using sym::symbol;
              IF ELSE WHILE DO FOR BREAK CONTINUE RETURN_
              STATIC PUBLIC_TOK PRIVATE_TOK THIS EXPLICIT
 %token <e>   LIT
+%token <perm> PERM
+%token <mod> MODIFIER
 
 %left  LOOSE
 %right ASSIGN ADD SUBTRACT TIMES DIVIDE MOD EXPONENT
@@ -114,7 +123,6 @@ using sym::symbol;
 %type  <n>   name
 %type  <run> runnable
 %type  <ml>  modifiers
-%type  <mod> modifier
 %type  <d>   dec fundec typedec
 %type  <vd>  vardec barevardec 
 %type  <t>   type celltype
@@ -193,15 +201,12 @@ runnable:
 ;
 
 modifiers:
-  modifier         { $$ = new modifierList($1.pos); $$->add($1.keyword); }
-| modifiers modifier
-                   { $$ = $1; $$->add($2.keyword); }
-;
-
-modifier:
-  STATIC           { $$.pos = $1; $$.keyword = STATIC; }
-| PUBLIC_TOK       { $$.pos = $1; $$.keyword = PUBLIC_TOK; }
-| PRIVATE_TOK      { $$.pos = $1; $$.keyword = PRIVATE_TOK; }
+  MODIFIER         { $$ = new modifierList($1.pos); $$->add($1.val); }
+| PERM             { $$ = new modifierList($1.pos); $$->add($1.val); }
+| modifiers MODIFIER
+                   { $$ = $1; $$->add($2.val); }
+| modifiers PERM
+                   { $$ = $1; $$->add($2.val); }
 ;
 
 dec:

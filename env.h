@@ -104,29 +104,6 @@ public:
     return 0;
   }
 
-#if 0
-  varEntry *lookupExactVar(symbol *name, signature *sig)
-  {
-    // Search in local vars.
-    varEntry *v = ve.lookExact(name, sig);
-    if (v)
-      return v;
-
-    // Search in modules.
-    v = me.lookupExactVar(name, sig);
-    if (v)
-      return v;
-    
-    // Search module name.
-    import *i = me.look(name);
-    if (i)
-      return i->getVarEntry();
-
-    // No luck.
-    return 0;
-  }
-#endif
-
   varEntry *lookupVarByType(symbol *name, ty *t)
   {
     // Search in local vars.

@@ -160,11 +160,16 @@ public:
   }
 
   void transAsType(coenv &e, types::ty *target) {
-    value->varTrans(e, target);
+    value->varTrans(trans::READ, e, target);
   }
 
   types::ty *trans(coenv &e) {
     types::ty *t = value->varGetType(e);
+    if (t == 0) {
+      em->error(getPos());
+      *em << "no matching variable \'" << *value << "\'";
+      return types::primError();
+    }
     if (t->kind == types::ty_overloaded) {
       em->error(getPos());
       *em << "use of variable \'" << *value << "\' is ambiguous";
@@ -177,15 +182,16 @@ public:
   }
 
   types::ty *getType(coenv &e) {
-    return value->varGetType(e);
+    types::ty *t=value->varGetType(e);
+    return t ? t : types::primError();
   }
 
   void transWrite(coenv &e, types::ty *target) {
-    value->varTransWrite(e, target);
+    value->varTrans(trans::WRITE, e, target);
   }
   
   void transCall(coenv &e, types::ty *target) {
-    value->varTransCall(e, target);
+    value->varTrans(trans::CALL, e, target);
   }
 
   exp *evaluate(coenv &, types::ty *) {
@@ -196,17 +202,59 @@ public:
 
 // Most fields accessed are handled as parts of qualified names, but in cases
 // like f().x or (new t).x, a separate expression is needed.
-class fieldExp : public exp {
+class fieldExp : public nameExp {
   exp *object;
   symbol *field;
 
-  types::ty *getObject(coenv& e);
-  record *getRecord(types::ty *qt);
-  record *transRecord(coenv& e, types::ty *qt);
+  // fieldExp has a lot of common functionality with qualifiedName, so we
+  // essentially hack qualifiedName, by making our object expression look like a
+  // name.
+  class pseudoName : public name {
+    exp *object;
+
+  public:
+    pseudoName(position pos, exp *object)
+      : name(pos), object(object) {}
+
+    // As a variable:
+    void varTrans(trans::action act, coenv &e, types::ty *target) {
+      assert(act == trans::READ);
+      object->transToType(e, target);
+    }
+    types::ty *varGetType(coenv &e) {
+      return object->getType(e);
+    }
+
+    // As a type:
+    types::ty *typeTrans(coenv &e, bool tacit = false) {
+      if (!tacit) {
+        em->error(getPos());
+        *em << "expression is not a type";
+      }
+      return types::primError();
+    }
+    trans::import *typeGetImport(coenv &e) {
+      return 0;
+    }
+
+    void prettyprint(ostream &out, int indent);
+    void print(ostream& out) const {
+      out << "<exp>";
+    }
+    symbol *getName() {
+      return object->getName();
+    }
+  };
+
+  // Try to get this into qualifiedName somehow.
+  types::ty *getObject(coenv &e);
 
 public:
   fieldExp(position pos, exp *object, symbol *field)
-    : exp(pos), object(object), field(field) {}
+    : nameExp(pos, new qualifiedName(pos,
+                                     new pseudoName(object->getPos(), object),
+                                     field)),
+      object(object), field(field) {}
 
   void prettyprint(ostream &out, int indent);
 
@@ -215,15 +263,10 @@ public:
     return field;
   }
 
-  void transAsType(coenv &e, types::ty *target);
-  types::ty *trans(coenv &e);
-  types::ty *getType(coenv &e);
-  void transWrite(coenv &e, types::ty *target);
-  void transCall(coenv &e, types::ty *target);
-
   exp *evaluate(coenv &e, types::ty *) {
     // Evaluate the object.
-    return new fieldExp(getPos(), new tempExp(e, object, getObject(e)), field);
+    return new fieldExp(getPos(),
+                        new tempExp(e, object, getObject(e)), field);
   }
 };
 

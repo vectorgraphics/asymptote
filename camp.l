@@ -11,8 +11,10 @@
 #include <sstream>
 
 #include "util.h"
+#include "modifier.h"
 #include "exp.h"
 #include "stm.h"
+#include "fundec.h"
 #include "errormsg.h"
 #include "interact.h"
 #include "lexical.h"
@@ -83,6 +85,16 @@ void makeselfsymbol(bool op=true, string text = yytext)
   assert(text[text.length()-1] == '=');
   text.erase(text.length()-1);
   makesymbol(op,text);
+}
+
+void makemod(trans::modifier mod) {
+  yylval.mod.pos=here();
+  yylval.mod.val=mod;
+}
+
+void makeperm(trans::permission perm) {
+  yylval.perm.pos=here();
+  yylval.perm.val=perm;
 }
 
 void newline()
@@ -280,9 +292,10 @@ struct             {adjust(); return STRUCT; }
 typedef            {adjust(); return TYPEDEF; }
 new                {adjust(); return NEW; }
 import             {adjust(); return IMPORT; }
-static             {adjust(); return STATIC; }
-public             {adjust(); return PUBLIC_TOK; }
-private            {adjust(); return PRIVATE_TOK; }
+static             {adjust(); makemod(trans::EXPLICIT_STATIC);
+                              return MODIFIER; }
+public             {adjust(); makeperm(trans::PUBLIC); return PERM; }
+private            {adjust(); makeperm(trans::PRIVATE); return PERM; }
 this               {adjust(); return THIS; }
 explicit           {adjust(); return EXPLICIT; }
 

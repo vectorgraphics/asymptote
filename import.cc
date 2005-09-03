@@ -165,7 +165,8 @@ varEntry *menv::importedVarEntry(varEntry *ent, import *i)
                                i->getModule()->getLevel(),
 			       ent->getLocation());
   
-  varEntry *ient = new varEntry(ent->getType(), a);
+  varEntry *ient = new varEntry(ent->getType(), a,
+                                ent->getPermission(), ent->getRecord());
 
   return ient;
 }

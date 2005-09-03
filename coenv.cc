@@ -23,7 +23,7 @@ static inline bool accessCast(position pos, ty *target, ty *source,
                               access *a, coder& c)
 {
   if (a) {
-    a->encodeCall(pos, c);
+    a->encode(CALL, pos, c);
     return true;
   }
   else {

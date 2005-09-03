@@ -15,7 +15,6 @@
 #include "dec.h"
 #include "stm.h"
 #include "inst.h"
-#include "camp.tab.h"  // For the binary operator names
 
 namespace absyntax {
 
@@ -66,12 +65,12 @@ tempExp::tempExp(coenv &e, varinit *v, types::ty *t)
   : exp(v->getPos()), a(e.c.allocLocal()), t(t)
 {
   v->transToType(e, t);
-  a->encodeWrite(getPos(), e.c);
+  a->encode(WRITE, getPos(), e.c);
   e.c.encode(inst::pop);
 }
 
 types::ty *tempExp::trans(coenv &e) {
-  a->encodeRead(getPos(), e.c);
+  a->encode(READ, getPos(), e.c);
   return t;
 }
 
@@ -84,31 +83,21 @@ void nameExp::prettyprint(ostream &out, int indent)
 }
 
 
+void fieldExp::pseudoName::prettyprint(ostream &out, int indent)
+{
+  // This should never be called.
+  prettyindent(out, indent);
+  out << "pseudoName" << "\n";
+
+  object->prettyprint(out, indent+1);
+}
+
 void fieldExp::prettyprint(ostream &out, int indent)
 {
   prettyindent(out, indent);
   out << "fieldExp '" << *field << "'\n";
 
   object->prettyprint(out, indent+1);
-}
-
-record *fieldExp::getRecord(types::ty *t)
-{
-  if (t->kind == ty_overloaded) {
-    t = ((overloaded *)t)->signatureless();
-    if (!t) {
-      return 0;
-    }
-  }
-
-  switch(t->kind) {
-    case ty_record:
-      return (record *)t;
-    case ty_error:
-      return 0;
-    default:
-      return 0;
-  } 
 }
 
 types::ty *fieldExp::getObject(coenv& e)
@@ -119,162 +108,6 @@ types::ty *fieldExp::getObject(coenv& e)
     if(!t) return primError();
   }
   return t;
-}
-
-record *fieldExp::transRecord(coenv &e, types::ty *t)
-{
-  object->transAsType(e, t);
-
-  switch(t->kind) {
-    case ty_record:
-      return (record *)t;
-    case ty_error:
-      return 0;
-    default:
-      em->error(object->getPos());
-      *em << "type '" << *t << "' is not a structure";
-      return 0;
-  }
-}
-
-void fieldExp::transAsType(coenv &e, types::ty *target)
-{
-  types::ty *ot = getObject(e);
-  
-  varEntry *v = ot->virtualField(field, target->getSignature());
-  if (v) {
-    // Push object onto stack.
-    object->transAsType(e, ot);
-
-    // Call instead of reading as it is a virtual field.
-    v->getLocation()->encodeCall(getPos(), e.c);
-  }
-  else {
-    record *r = transRecord(e, ot);
-    if (!r)
-      return;
-
-    //varEntry *v = r->lookupExactVar(field, target->getSignature());
-    varEntry *v = r->lookupVarByType(field, target);
-    if (v)
-      v->getLocation()->encodeRead(getPos(), e.c, r->getLevel());
-    else {
-      em->error(getPos());
-      *em << "no matching field of name '" << *field
-          << "' in type '" << *r << "'";
-    }
-  }
-}
-
-types::ty *fieldExp::trans(coenv &e)
-{
-  trans::ty *t = cgetType(e);
-  if (!t) {
-    em->error(getPos());
-    *em << "no matching field of name '" << *field
-        << "' in type '"  << *getObject(e) << "'";
-    return primError();
-  }
-  else if (t->kind == ty_overloaded) {
-    em->error(getPos());
-    *em << "use of field '" << *field << "' is ambiguous"
-        << " in type '" << *getObject(e) << "'";
-    return primError();
-  }
-  else {
-    transAsType(e, t);
-    return t;
-  }
-}
-
-types::ty *fieldExp::getType(coenv &e)
-{
-  types::ty *ot = getObject(e);
-  if (ot->kind == ty_error) return primError();
-
-  types::ty *vt = ot->virtualFieldGetType(field);
-  if (vt)
-    return vt;
-
-  record *r = getRecord(ot);
-  if (r) {
-    types::ty *t = r->varGetType(field);
-    return t ? t : primError();
-  }
-  else
-    return primError();
-}
-
-void fieldExp::transWrite(coenv &e, types::ty *target)
-{
-  types::ty *ot = getObject(e);
-
-  // Look for virtual fields.
-  varEntry *v = ot->virtualField(field, target->getSignature());
-  if (v) {
-    // Push qualifier onto stack.
-    object->transAsType(e, ot);
-    
-    em->error(getPos());
-    *em << "virtual field '" << *field << "' of '" << *ot
-        << "' cannot be modified";
-  }
- 
-  record *r = transRecord(e, ot);
-  if (!r)
-    return;
-
-  //v = r->lookupExactVar(field, target->getSignature());
-  v = r->lookupVarByType(field, target);
-
-  if (v) {
-    access *loc = v->getLocation();
-    loc->encodeWrite(getPos(), e.c, r->getLevel());
-  }
-  else {
-    em->error(getPos());
-    *em << "no matching field of name '" << *field
-        << "' in type  '" << *r << "'";
-  }
-}
-
-void fieldExp::transCall(coenv &e, types::ty *target)
-{
-  types::ty *ot = object->cgetType(e);
-
-  // Look for virtual fields.
-  varEntry *v = ot->virtualField(field, target->getSignature());
-  if (v) {
-    // Push object onto stack.
-    object->transAsType(e, ot);
-    
-    // Call instead of reading as it is a virtual field.
-    v->getLocation()->encodeCall(getPos(), e.c);
-    e.implicitCast(getPos(), target, v->getType());
-
-    // In this case, the virtual field will construct a vm::func object
-    // and push it on the stack.
-    // Then, pop and call the function.
-    e.c.encode(inst::popcall);
-    return;
-  }
-
-  record *r = transRecord(e, ot);
-  if (!r)
-    return;
-
-  //v = r->lookupExactVar(field, target->getSignature());
-  v = r->lookupVarByType(field, target);
-
-  if (v) {
-    access *loc = v->getLocation();
-    loc->encodeCall(getPos(), e.c, r->getLevel());
-  }
-  else {
-    em->error(getPos());
-    *em << "no matching field of name '" << *field
-        << "' in type  '" << *r << "'";
-  }
 }
 
 
@@ -858,7 +691,7 @@ types::ty *castExp::tryCast(coenv &e, types::ty *t, types::ty *s,
 
     access *a=e.e.lookupCast(t, ss, csym);
     assert(a);
-    a->encodeCall(getPos(), e.c);
+    a->encode(CALL, getPos(), e.c);
     return ss;
   }
 }

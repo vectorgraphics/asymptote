@@ -20,15 +20,11 @@ namespace trans {
 class frame;
 class coder;
 
-// PUBLIC, PRIVATE, or READONLY - the permission tokens defined in
-// camp.y for accessing a variable outside of its lexically enclosing
-// record.
-enum permission {
-  READONLY,
-  PUBLIC,
-  PRIVATE
+enum action {
+  READ,
+  WRITE,
+  CALL
 };
-
 
 // These serves as the base class for the accesses.
 class access : public gc { 
@@ -44,31 +40,14 @@ protected:
 public:
   virtual ~access() = 0;
   
-  // Encode a read of the access when nothing is on the stack.
-  virtual void encodeRead(position pos, coder &)
+  // Encode a read/write/call of the access when nothing is on the stack.
+  virtual void encode(action act, position pos, coder &)
   {
     error(pos);
   }
-  // Encode a read of the access when the frame "top" is on top
+  // Encode a read/write/call of the access when the frame "top" is on top
   // of the stack.
-  virtual void encodeRead(position pos, coder &, frame *)
-  {
-    error(pos);
-  }
-
-  virtual void encodeWrite(position pos, coder &)
-  {
-    error(pos);
-  }
-  virtual void encodeWrite(position pos, coder &, frame *)
-  {
-    error(pos);
-  }
-  virtual void encodeCall(position pos, coder &)
-  {
-    error(pos);
-  }
-  virtual void encodeCall(position pos, coder &, frame *)
+  virtual void encode(action act, position pos, coder &, frame *)
   {
     error(pos);
   }
@@ -77,7 +56,7 @@ public:
 // This class represents identity conversions in casting.
 class identAccess : public access 
 {
-  virtual void encodeCall(position, coder&);
+  virtual void encode(action act, position, coder&);
 };
 
 // Represents a function that is implemented by a built-in C++ function.
@@ -88,11 +67,7 @@ public:
   bltinAccess(vm::bltin f)
     : f(f) {}
 
-  void encodeRead(position pos, coder &e);
-  void encodeRead(position pos, coder &e, frame *top);
-  void encodeWrite(position pos, coder &e);
-  void encodeWrite(position pos, coder &e, frame *top);
-  void encodeCall(position pos, coder &e);
+  void encode(action act, position pos, coder &e);
 };
 
 // An access that puts a frame on the top of the stack.
@@ -103,8 +78,8 @@ public:
   frameAccess(frame *f)
     : f(f) {}
   
-  void encodeRead(position pos, coder &e);
-  void encodeRead(position pos, coder &e, frame *top);
+  void encode(action act, position pos, coder &e);
+  void encode(action act, position pos, coder &e, frame *top);
 };
 
 // Represents the access of a local variable.
@@ -112,25 +87,12 @@ class localAccess : public access {
   int offset;
   frame *level;
 
-  permission perm;
-
-  /* In the case where we are not in the access's local scope, this
-   * checks if permissions are valid for a read/write/call.  Reports an
-   * error if such a thing is not allowed.
-   */
-  void permitRead(position pos);
-  void permitWrite(position pos);
-
 public:
-  localAccess(permission perm, int offset, frame *level)
-    : offset(offset), level(level), perm(perm) {}
+  localAccess(int offset, frame *level)
+    : offset(offset), level(level) {}
 
-  void encodeRead(position pos, coder &e);
-  void encodeRead(position pos, coder &e, frame *top);
-  void encodeWrite(position pos, coder &e);
-  void encodeWrite(position pos, coder &e, frame *top);
-  void encodeCall(position pos, coder &e);
-  void encodeCall(position pos, coder &e, frame *top);
+  void encode(action act, position pos, coder &e);
+  void encode(action act, position pos, coder &e, frame *top);
 };
 
 } // namespace trans

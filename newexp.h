@@ -11,25 +11,11 @@
 
 #include "exp.h"
 #include "dec.h"
+#include "fundec.h"
 
 namespace absyntax {
 
-class newFunctionExp : public exp {
-  fundef fun;
-
-public:
-  newFunctionExp(position pos, ty *result, formals *params, stm *body)
-    : exp(pos), fun(pos, result, params, body) {}
-
-  types::ty *trans(coenv &e) {
-    fun.trans(e);
-    return cgetType(e);
-  }
-
-  types::ty *getType(coenv &e) {
-    return fun.getType(e, true);
-  }
-};
+typedef fundef newFunctionExp;
 
 class newRecordExp : public exp {
   ty *result;

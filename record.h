@@ -112,11 +112,11 @@ public:
   }
 
   // Allocates a new dynamic field in the record.
-  trans::access *allocField(bool statically, trans::permission p)
+  trans::access *allocField(bool statically)
   {
     frame *underlevel = getLevel(statically);
     assert(underlevel);
-    return underlevel->allocLocal(p);
+    return underlevel->allocLocal();
   }
 
   // Create a statically enclosed record from this record.

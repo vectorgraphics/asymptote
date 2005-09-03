@@ -17,6 +17,10 @@
 namespace absyntax {
 using namespace types;
 using trans::access;
+using trans::action;
+using trans::READ;
+using trans::WRITE;
+using trans::CALL;
 using vm::inst;
 
 
@@ -44,86 +48,48 @@ types::ty *signatureless(types::ty *t) {
     return (t && !t->getSignature()) ? t : 0;
 }
 
-types::ty *simpleName::getType(coenv &e, bool tacit)
-{
-  types::ty *t=signatureless(e.e.varGetType(id));
 
-  if (t)
-    return t;
-  else {
-    types::ty *t = e.e.lookupType(id);
-    if (t) {
-      if (t->kind == types::ty_overloaded) {
-	if (!tacit) {
-	  em->error(getPos());
-	  *em << "type of name \'" << *id << "\' is ambiguous";
-	}
-	return primError();
-      }
-      return t;
-    }
-    else {
-      // NOTE: Should call getModule or something here.
-      if (!tacit) {
-        em->error(getPos());
-        *em << "no variable or type of name \'" << *id << "\'";
-      }
-      return primError();
-    }
+void name::forceEquivalency(action act, coenv &e,
+                            types::ty *target, types::ty *source)
+{
+  if (act == READ)
+    e.implicitCast(getPos(), target, source);
+  else if (!equivalent(target, source)) {
+    em->compiler(getPos());
+    *em << "type mismatch in variable: "
+      << *target
+      << " vs " << *source;
   }
 }
 
-void simpleName::varTrans(coenv &e, types::ty *target)
+frame *name::frameTrans(coenv &e)
+{
+  types::ty *t=signatureless(varGetType(e));
+
+  if (t && t->kind == types::ty_record) {
+    varTrans(READ, e, t);
+    return ((record *)t)->getLevel();
+  }
+  return 0;
+}
+
+types::ty *name::getType(coenv &e, bool tacit)
+{
+  types::ty *t=signatureless(varGetType(e));
+  return t ? t : typeTrans(e, tacit);
+}
+
+
+void simpleName::varTrans(action act, coenv &e, types::ty *target)
 {
   //varEntry *v = e.e.lookupExactVar(id, target->getSignature());
   varEntry *v = e.e.lookupVarByType(id, target);
   
   if (v) {
     if (checkAmbiguity(getPos(), id, v)) {
-      v->getLocation()->encodeRead(getPos(), e.c);
-      e.implicitCast(getPos(), target, v->getType());
-    }
-  }
-  else {
-    em->error(getPos());
-    *em << "no matching variable of name \'" << *id << "\'";
-  }
-}
-
-void simpleName::varTransWrite(coenv &e, types::ty *target)
-{
-  //varEntry *v = e.e.lookupExactVar(id, target->getSignature());
-  varEntry *v = e.e.lookupVarByType(id, target);
-
-  if (v) {
-    if (checkAmbiguity(getPos(), id, v)) {
-      v->getLocation()->encodeWrite(getPos(), e.c);
-      if (!equivalent(v->getType(), target)) {
-	em->compiler(getPos());
-	*em << "type mismatch in variable writing: "
-	    << *(v->getType())
-	    << " vs " << *target;
-      }
-    }
-  }
-  else {
-    em->error(getPos());
-    *em << "no matching variable of name \'" << *id << "\'";
-  }
-}
-
-void simpleName::varTransCall(coenv &e, types::ty *target)
-{
-  //varEntry *v = e.e.lookupExactVar(id, target->getSignature());
-  varEntry *v = e.e.lookupVarByType(id, target);
-
-  if (v) {
-    if (checkAmbiguity(getPos(), id, v)) {
-      v->getLocation()->encodeCall(getPos(), e.c);
-      if (!equivalent(v->getType(), target)) {
-	em->compiler(getPos());
-	*em << "type mismatch in variable call";
-      }
+      // TODO: Check permissions.
+      v->getLocation()->encode(act, getPos(), e.c);
+      forceEquivalency(act, e, target, v->getType());
     }
   }
   else {
@@ -134,8 +100,7 @@ void simpleName::varTransCall(coenv &e, types::ty *target)
 
 types::ty *simpleName::varGetType(coenv &e)
 {
-  types::ty *t = e.e.varGetType(id);
-  return t ? t : primError();
+  return e.e.varGetType(id);
 }
 
 types::ty *simpleName::typeTrans(coenv &e, bool tacit)
@@ -164,20 +129,6 @@ types::ty *simpleName::typeTrans(coenv &e, bool tacit)
 trans::import *simpleName::typeGetImport(coenv &e)
 {
   return e.e.lookupTypeImport(id);
-}
-
-frame *simpleName::frameTrans(coenv &e)
-{
-  types::ty *t=signatureless(e.e.varGetType(id));
-  //varEntry *v = e.e.lookupExactVar(id, 0);
-
-  if (t && t->kind == types::ty_record) {
-    varEntry *v = e.e.lookupVarByType(id, t);
-    assert(v);
-    v->getLocation()->encodeRead(getPos(), e.c);
-    return ((record *)t)->getLevel();
-  }
-  return 0;
 }
 
 void simpleName::prettyprint(ostream &out, int indent)
@@ -209,82 +160,56 @@ record *qualifiedName::getRecord(types::ty *t, bool tacit)
   }
 }
 
-types::ty *qualifiedName::getType(coenv &e, bool tacit)
+bool qualifiedName::varTransVirtual(action act, coenv &e,
+                                    types::ty *target, types::ty *qt)
 {
-  types::ty *qt = qualifier->getType(e, tacit);
-
-  // Look for virtual fields.
-  types::ty *vt = qt->virtualFieldGetType(id);
-  if (vt)
-    return vt;
- 
-  // Convert to a record. 
-  record *r = getRecord(qt, tacit);
-  if (!r)
-    return primError();
-
-  //varEntry *v = r->lookupExactVar(id, 0);
-
-  types::ty *t=signatureless(r->varGetType(id));
-  
-  if (t)
-    return t;
-  else {
-    types::ty *t = r->lookupType(id);
-    if (t) {
-      if (t->kind == types::ty_overloaded) {
-	if (!tacit) {
-	  em->error(getPos());
-	  *em << "type of name \'" << *id << "\' is ambiguous";
-	}
-	return primError();
-      }
-      return t;
-    }
-    else {
-      if (!tacit) {
-	em->error(getPos());
-	*em << "no matching field or type of name \'" << *id << "\' in \'"
-	    << *r << "\'";
-      }
-      return primError();
-    }
-  }
-}
-
-void qualifiedName::varTrans(coenv &e, types::ty *target)
-{
-  types::ty *qt = qualifier->getType(e);
-
-  // Look for virtual fields.
   varEntry *v = qt->virtualField(id, target->getSignature());
   if (v) {
     // Push qualifier onto stack.
-    qualifier->varTrans(e, qt);
+    qualifier->varTrans(READ, e, qt);
 
-    // Call instead of reading as it is a virtual field.
-    v->getLocation()->encodeCall(getPos(), e.c);
-    e.implicitCast(getPos(), target, v->getType());
-    return;
+    if (act == WRITE) {
+      em->error(getPos());
+      *em << "virtual field '" << *id << "' of '" << *qt
+          << "' cannot be modified";
+    }
+    else {
+      // Call instead of reading as it is a virtual field.
+      v->getLocation()->encode(CALL, getPos(), e.c);
+      e.implicitCast(getPos(), target, v->getType());
+
+      if (act == CALL)
+        // In this case, the virtual field will construct a vm::func object
+        // and push it on the stack.
+        // Then, pop and call the function.
+        e.c.encode(inst::popcall);
+    }
+
+    // A virtual field was used.
+    return true;
   }
 
-  record *r = getRecord(qt);
-  if (!r)
-    return;
+  // No virtual field.
+  return false;
+}
 
+void qualifiedName::varTransField(action act, coenv &e,
+                                  types::ty *target, record *r)
+{
   //v = r->lookupExactVar(id, target->getSignature());
-  v = r->lookupVarByType(id, target);
+  varEntry *v = r->lookupVarByType(id, target);
 
   if (v) {
+    // TODO: Add permission checking.
     access *loc = v->getLocation();
 
     frame *f = qualifier->frameTrans(e);
     if (f)
-      loc->encodeRead(getPos(), e.c, f);
+      loc->encode(act, getPos(), e.c, f);
     else
-      loc->encodeRead(getPos(), e.c);
+      loc->encode(act, getPos(), e.c);
 
-    e.implicitCast(getPos(), target, v->getType());
+    forceEquivalency(act, e, target, v->getType());
   }
   else {
     em->error(getPos());
@@ -292,96 +217,17 @@ void qualifiedName::varTrans(coenv &e, types::ty *target)
   }
 }
 
-void qualifiedName::varTransWrite(coenv &e, types::ty *target)
+void qualifiedName::varTrans(action act, coenv &e, types::ty *target)
 {
   types::ty *qt = qualifier->getType(e);
 
-  // Look for virtual fields.
-  varEntry *v = qt->virtualField(id, target->getSignature());
-  if (v) {
-    // Push qualifier onto stack.
-    qualifier->varTrans(e, qt);
-    
-    em->error(getPos());
-    *em << "virtual field '" << *id << "' of '" << *qt
-        << "' cannot be modified";
-  }
- 
-  record *r = getRecord(qt);
-  if (!r)
+  // Use virtual fields if applicable.
+  if (varTransVirtual(act, e, target, qt))
     return;
-
-  //v = r->lookupExactVar(id, target->getSignature());
-  v = r->lookupVarByType(id, target);
-
-  if (v) {
-    access *loc = v->getLocation();
-
-    frame *f = qualifier->frameTrans(e);
-    if (f)
-      loc->encodeWrite(getPos(), e.c, r->getLevel());
-    else
-      loc->encodeWrite(getPos(), e.c);
-
-    if (!equivalent(v->getType(), target)) {
-      em->compiler(getPos());
-      *em << "type mismatch in variable writing";
-    }
-  }
-  else {
-    em->error(getPos());
-    *em << "no matching field of name \'" << *id << "\' in \'"
-	<< *r << "\'";
-  }
-}
-
-void qualifiedName::varTransCall(coenv &e, types::ty *target)
-{
-  types::ty *qt = qualifier->getType(e);
-
-  // Look for virtual fields.
-  varEntry *v = qt->virtualField(id, target->getSignature());
-  if (v) {
-    // Push qualifier onto stack.
-    qualifier->varTrans(e, qt);
-    
-    // Call instead of reading as it is a virtual field.
-    v->getLocation()->encodeCall(getPos(), e.c);
-    e.implicitCast(getPos(), target, v->getType());
-
-    // In this case, the virtual field will construct a vm::func object
-    // and push it on the stack.
-    // Then, pop and call the function.
-    e.c.encode(inst::popcall);
-    return;
-  }
 
   record *r = getRecord(qt);
-  if (!r)
-    return;
-
-  //v = r->lookupExactVar(id, target->getSignature());
-  v = r->lookupVarByType(id, target);
-
-  if (v) {
-    access *loc = v->getLocation();
-    
-    frame *f = qualifier->frameTrans(e);
-    if (f)
-      loc->encodeCall(getPos(), e.c, f);
-    else
-      loc->encodeCall(getPos(), e.c);
-
-    if (!equivalent(v->getType(), target)) {
-      em->compiler(getPos());
-      *em << "type mismatch in variable call";
-    }
-  }
-  else {
-    em->error(getPos());
-    *em << "no matching field of name \'" << *id << "\' in \'"
-	<< *r << "\'";
-  }
+  if (r)
+    varTransField(act, e, target, r);
 }
 
 types::ty *qualifiedName::varGetType(coenv &e)
@@ -394,28 +240,16 @@ types::ty *qualifiedName::varGetType(coenv &e)
     return t;
 
   record *r = getRecord(qt, true);
-  if (r) {
-    types::ty *t = r->varGetType(id);
-    return t ? t : primError();
-  }
-  else
-    return primError();
+  return r ? r->varGetType(id) : 0;
 }
 
 types::ty *qualifiedName::typeTrans(coenv &e, bool tacit)
 {
   types::ty *rt = qualifier->typeTrans(e, tacit);
-  if (rt->kind == ty_error)
-    return rt;
-  else if (rt->kind != ty_record) {
-    if (!tacit) {
-      em->error(getPos());
-      *em << "type '" << *rt << "' is not a structure";
-    }
-    return primError();
-  }
 
-  record *r = (record *)rt;
+  record *r = getRecord(rt, tacit);
+  if (!r)
+    return primError();
 
   types::ty *t = r->lookupType(id);
   if (t) {
@@ -431,7 +265,7 @@ types::ty *qualifiedName::typeTrans(coenv &e, bool tacit)
   else {
     if (!tacit) {
       em->error(getPos());
-      *em << "no type of name \'" << *id << "\' in \'"
+      *em << "no matching field or type of name \'" << *id << "\' in \'"
           << *r << "\'";
     }
     return primError();
@@ -443,31 +277,6 @@ trans::import *qualifiedName::typeGetImport(coenv &e)
   return qualifier->typeGetImport(e);
 }
 
-frame *qualifiedName::frameTrans(coenv &e)
-{
-  types::ty *qt = qualifier->getType(e, true);
-  record *r = getRecord(qt, true);
-  if (!r)
-    return 0;
-
-  //varEntry *v = r->lookupExactVar(id, 0);
-  types::ty *t=signatureless(r->varGetType(id));
-
-  if (t && t->kind == types::ty_record) {
-    varEntry *v=r->lookupVarByType(id, t);
-    access *a = v->getLocation();
-    
-    frame *level = qualifier->frameTrans(e);
-    if (level)
-      a->encodeRead(getPos(), e.c, level);
-    else
-      a->encodeRead(getPos(), e.c);
-
-    return ((record *)t)->getLevel();
-  }
-  return 0;
-}
-
 void qualifiedName::prettyprint(ostream &out, int indent)
 {
   prettyindent(out, indent);
@@ -475,7 +284,5 @@ void qualifiedName::prettyprint(ostream &out, int indent)
 
   qualifier->prettyprint(out, indent+1);
 }
-
-
 
 } // namespace absyntax

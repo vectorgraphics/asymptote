@@ -20,11 +20,10 @@ class frame : public gc {
   frame *parent;
   size_t numFormals;
   int numLocals;
-  frame *level;
 
 public:
-  frame(frame *parent, size_t numFormals, frame *level=NULL)
-    : parent(parent), numFormals(numFormals), numLocals(0), level(level) {}
+  frame(frame *parent, size_t numFormals)
+    : parent(parent), numFormals(numFormals), numLocals(0) {}
 
   size_t getNumFormals() {
     return numFormals;
@@ -43,11 +42,11 @@ public:
 
   access *accessFormal(size_t index) {
     assert(index < numFormals);
-    return new localAccess(PRIVATE, (int) (1 + index), this);
+    return new localAccess((int) (1 + index), this);
   }
 
-  access *allocLocal(permission perm) {
-    return new localAccess(perm, (int) (1 + numFormals + numLocals++), this);
+  access *allocLocal() {
+    return new localAccess((int) (1 + numFormals + numLocals++), this);
   }
 
   // Checks if the frame f is a descendent of this frame.
@@ -56,8 +55,6 @@ public:
   {
     while (f != 0) {
       if (f == this)
-	return true;
-      if (f->level == this)
 	return true;
       f = f->parent;
     }

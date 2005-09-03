@@ -19,10 +19,17 @@ using std::endl;
 #include "frame.h"
 #include "table.h"
 #include "types.h"
+#include "modifier.h"
 
 using sym::symbol;
 using types::ty;
 using types::signature;
+
+// Forward declaration.
+namespace types {
+  class record;
+}
+using types::record;
 
 namespace trans {
 
@@ -34,9 +41,15 @@ class varEntry : public gc {
   ty *t;
   access *location;
 
+  permission perm;
+  record *r;  // The record the variable belongs to in the environment, ignores               // static and dynamic qualifiers.
+
 public:
   varEntry(ty *t, access *location)
-    : t(t), location(location) {}
+    : t(t), location(location), perm(PUBLIC), r(0) {}
+
+  varEntry(ty *t, access *location, permission perm, record *r)
+    : t(t), location(location), perm(perm), r(r) {}
 
   ty *getType()
     { return t; }
@@ -48,6 +61,19 @@ public:
 
   access *getLocation()
     { return location; }
+
+  permission getPermission()
+    { return perm; }
+
+  record *getRecord()
+    { return r; }
+
+  /* Checks if permissions are valid for a read or write of a variable.  Reports
+   * an error if such a thing is not allowed.  Assumes that this is done outside
+   * of the code of the record definition.
+   */
+  void basePermitRead(position pos);
+  void basePermitWrite(position pos);
 };
 
 #ifdef NOHASH //{{{

@@ -46,7 +46,7 @@ types::ty *newRecordExp::trans(coenv &e)
   import *imp = result->getImport(e);
   if (imp) {
     // Put the import frame on the stack.
-    imp->getLocation()->encodeRead(getPos(), e.c);
+    imp->getLocation()->encode(trans::READ, getPos(), e.c);
 
 #if 0
     std::cerr << *(r->getName()) << ": ";

@@ -21,6 +21,32 @@ using types::signature;
 
 namespace trans {
 
+void varEntry::basePermitRead(position pos)
+{
+  if (r != 0 && perm == PRIVATE) {
+    em->error(pos);
+    *em << "accessing private field outside of structure";
+  }
+}
+
+void varEntry::basePermitWrite(position pos)
+{
+  if (r != 0) {
+    switch (perm) {
+      case PRIVATE:
+        em->error(pos);
+        *em << "modifying private field outside of structure";
+        break;
+      case READONLY:
+        em->error(pos);
+        *em << "modifying non-public field outside of structure";
+        break;
+      case PUBLIC:
+        break;
+    }
+  }
+}
+
 #ifdef NOHASH //{{{
 venv::venv()
 {

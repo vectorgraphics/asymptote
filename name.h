@@ -14,6 +14,7 @@
 #include "absyn.h"
 #include "types.h"
 #include "frame.h"
+#include "access.h"
 
 namespace trans {
 class coenv;
@@ -26,6 +27,7 @@ class record;
 namespace absyntax {
 
 using trans::coenv;
+using trans::action;
 using types::record;
 using std::ostream;
 
@@ -33,6 +35,11 @@ class name : public absyn {
 public:
   name(position pos)
     : absyn(pos) {}
+
+  // Helper function - ensures target and source match up, using casting the
+  // case of a read.  Issues errors on failure.
+  void forceEquivalency(action act, coenv &e,
+                        types::ty *target, types::ty *source);
 
   // Used for determining the type when the context does not establish
   // the name as a variable or a type.
@@ -45,12 +52,13 @@ public:
   // Because this is used only on qualifiers, it does not look at
   // function variables.
   // Tacit means that no error messages will be reported to the user.
-  virtual types::ty *getType(coenv &e, bool tacit = false) = 0;
+  virtual types::ty *getType(coenv &e, bool tacit = false);
 
   // As a variable:
-  virtual void varTrans(coenv &e, types::ty *target) = 0;
-  virtual void varTransWrite(coenv &e, types::ty *target) = 0;
-  virtual void varTransCall(coenv &e, types::ty *target) = 0;
+  // Translates the name (much like an expression).
+  virtual void varTrans(action act, coenv &e, types::ty *target) = 0;
+  // Returns the possible variable types.  Unlike exp, returns 0 if none
+  // match.
   virtual types::ty *varGetType(coenv &e) = 0;
 
   // As a type:
@@ -59,7 +67,7 @@ public:
 
   // Pushes the highest level frame possible onto the stack.  Returning
   // the frame pushed.  If no frame can be pushed, returns 0.
-  virtual trans::frame *frameTrans(coenv &e) = 0;
+  virtual trans::frame *frameTrans(coenv &e);
 
   virtual void prettyprint(ostream &out, int indent) = 0;
   virtual void print(ostream& out) const {
@@ -81,20 +89,14 @@ public:
   simpleName(position pos, symbol *id)
     : name(pos), id(id) {}
 
-  types::ty *getType(coenv &e, bool tacit = false);
-
   // As a variable:
-  void varTrans(coenv &, types::ty *target);
-  void varTransWrite(coenv &, types::ty *target);
-  void varTransCall(coenv &, types::ty *target);
+  void varTrans(action act, coenv &e, types::ty *target);
   types::ty *varGetType(coenv &);
 
   // As a type:
   types::ty *typeTrans(coenv &e, bool tacit = false);
   trans::import *typeGetImport(coenv &e);
 
-  virtual trans::frame *frameTrans(coenv &e);
-  
   void prettyprint(ostream &out, int indent);
   void print(ostream& out) const {
     out << *id;
@@ -109,29 +111,30 @@ class qualifiedName : public name {
   name *qualifier;
   symbol *id;
 
-  // Gets the record type associated with the container, and reports an
-  // error and returns null if the qualifier is a variable or type of a
-  // record.
+  // Gets the record type associated with the qualifier. Reports an
+  // error and returns null if the type is not a record.
   record *getRecord(types::ty *t, bool tacit = false);
 
+  // Translates as a virtual field, if possible.  qt is the type of the
+  // qualifier.  Return true if there was a matching virtual field. 
+  bool varTransVirtual(action act, coenv &e,
+                       types::ty *target, types::ty *qt);
+  
+  // Translates as an ordinary (non-virtual) field of a record, r.
+  void varTransField(action act, coenv &e,
+                     types::ty *target, record *r);
 public:
   qualifiedName(position pos, name *qualifier, symbol *id)
     : name(pos), qualifier(qualifier), id(id) {}
 
-  types::ty *getType(coenv &e, bool tacit = false);
-
   // As a variable:
-  void varTrans(coenv &, types::ty *target);
-  void varTransWrite(coenv &, types::ty *target);
-  void varTransCall(coenv &, types::ty *target);
+  void varTrans(action act, coenv &, types::ty *target);
   types::ty *varGetType(coenv &);
 
   // As a type:
   types::ty *typeTrans(coenv &e, bool tacit = false);
   trans::import *typeGetImport(coenv &e);
 
-  virtual trans::frame *frameTrans(coenv &e);
-  
   void prettyprint(ostream &out, int indent);
   void print(ostream& out) const {
     out << *qualifier << "." << *id;

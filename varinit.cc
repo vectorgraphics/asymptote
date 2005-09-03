@@ -28,7 +28,7 @@ void definit::transToType(coenv &e, types::ty *target)
   access *a=e.e.lookupInitializer(target);
 
   if (a)
-    a->encodeCall(getPos(), e.c);
+    a->encode(CALL, getPos(), e.c);
   else {
     em->error(getPos());
     *em << "no default initializer for type '" << *target << "'";

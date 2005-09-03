@@ -20,6 +20,7 @@
 #include "program.h"
 #include "import.h"
 #include "util.h"
+#include "modifier.h"
 
 namespace trans {
 
@@ -31,13 +32,6 @@ using types::record;
 using vm::bltin;
 using vm::inst;
 using vm::item;
-
-enum modifier {
-  DEFAULT_STATIC,
-  DEFAULT_DYNAMIC,
-  EXPLICIT_STATIC,
-  EXPLICIT_DYNAMIC
-};
 
 class coder {
   // The frame of the function we are currently encoding.  This keeps
@@ -195,15 +189,31 @@ public:
       return level;
   }
 
-  // Allocates space in the function or record frame for a new local variable.
-  access *allocLocal(permission p)
-  {
-    return getFrame()->allocLocal(p);
+  // Tests if the function or record with the given frame is currently under
+  // translation (either by this coder or an ancestor).
+  bool inTranslation(frame *f) {
+    return f==level || (parent && parent->inTranslation(f));
+  }
+  // Checks if permissions can be ignored for a field because the enclosing
+  // record is still in translation, ie. we are inside the definition.
+  bool ignorePerm(varEntry *v) {
+    return inTranslation(v->getRecord()->getLevel());
   }
 
+  // Checks permissions, issuing an error if permissions are violated.
+  void permitRead(position pos, varEntry *v) {
+    if (!ignorePerm(v))
+      v->basePermitRead(pos);
+  }
+  void permitWrite(position pos, varEntry *v) {
+    if (!ignorePerm(v))
+      v->basePermitRead(pos);
+  }
+
+  // Allocates space in the function or record frame for a new local variable.
   access *allocLocal()
   {
-    return allocLocal(perm);
+    return getFrame()->allocLocal();
   }
 
   // Get the access in the frame for a specified formal parameter.
