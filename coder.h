@@ -194,21 +194,6 @@ public:
   bool inTranslation(frame *f) {
     return f==level || (parent && parent->inTranslation(f));
   }
-  // Checks if permissions can be ignored for a field because the enclosing
-  // record is still in translation, ie. we are inside the definition.
-  bool ignorePerm(varEntry *v) {
-    return inTranslation(v->getRecord()->getLevel());
-  }
-
-  // Checks permissions, issuing an error if permissions are violated.
-  void permitRead(position pos, varEntry *v) {
-    if (!ignorePerm(v))
-      v->basePermitRead(pos);
-  }
-  void permitWrite(position pos, varEntry *v) {
-    if (!ignorePerm(v))
-      v->basePermitRead(pos);
-  }
 
   // Allocates space in the function or record frame for a new local variable.
   access *allocLocal()

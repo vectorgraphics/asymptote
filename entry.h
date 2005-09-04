@@ -42,7 +42,8 @@ class varEntry : public gc {
   access *location;
 
   permission perm;
-  record *r;  // The record the variable belongs to in the environment, ignores               // static and dynamic qualifiers.
+  record *r;  // The record the variable belongs to in the environment, ignores
+              // static and dynamic qualifiers.
 
 public:
   varEntry(ty *t, access *location)
@@ -68,12 +69,11 @@ public:
   record *getRecord()
     { return r; }
 
-  /* Checks if permissions are valid for a read or write of a variable.  Reports
-   * an error if such a thing is not allowed.  Assumes that this is done outside
-   * of the code of the record definition.
-   */
-  void basePermitRead(position pos);
-  void basePermitWrite(position pos);
+  void varEntry::checkPerm(action act, position pos, coder &c);
+
+  // Encodes the access, but also checks permissions.
+  void encode(action act, position pos, coder &c);
+  void encode(action act, position pos, coder &c, frame *top);
 };
 
 #ifdef NOHASH //{{{

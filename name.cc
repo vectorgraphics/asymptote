@@ -87,8 +87,7 @@ void simpleName::varTrans(action act, coenv &e, types::ty *target)
   
   if (v) {
     if (checkAmbiguity(getPos(), id, v)) {
-      // TODO: Check permissions.
-      v->getLocation()->encode(act, getPos(), e.c);
+      v->encode(act, getPos(), e.c);
       forceEquivalency(act, e, target, v->getType());
     }
   }
@@ -175,7 +174,7 @@ bool qualifiedName::varTransVirtual(action act, coenv &e,
     }
     else {
       // Call instead of reading as it is a virtual field.
-      v->getLocation()->encode(CALL, getPos(), e.c);
+      v->encode(CALL, getPos(), e.c);
       e.implicitCast(getPos(), target, v->getType());
 
       if (act == CALL)
@@ -200,14 +199,11 @@ void qualifiedName::varTransField(action act, coenv &e,
   varEntry *v = r->lookupVarByType(id, target);
 
   if (v) {
-    // TODO: Add permission checking.
-    access *loc = v->getLocation();
-
     frame *f = qualifier->frameTrans(e);
     if (f)
-      loc->encode(act, getPos(), e.c, f);
+      v->encode(act, getPos(), e.c, f);
     else
-      loc->encode(act, getPos(), e.c);
+      v->encode(act, getPos(), e.c);
 
     forceEquivalency(act, e, target, v->getType());
   }
