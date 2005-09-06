@@ -3596,7 +3596,8 @@ scaling, and shifting, and reduces in the planar case to the
 two-dimensional algorithm used in @code{Asymptote}, @code{MetaPost},
 and @code{MetaFont}.
 
-For example, a unit circle in the @math{XY} plane may be drawn like this:
+For example, a unit circle in the @math{XY} plane may be filled and
+drawn like this:
 @verbatiminclude unitcircle3.asy
 @image{unitcircle3}
 @noindent
@@ -3764,12 +3765,16 @@ upcoming release.
 @node featpost3D
 @subsection @code{featpost3D}
 @cindex @code{featpost3D}
-To facilitate conversion of existing 3d MetaPost programs, a partial
-port of the @code{MetaPost} 3D package @code{featpost3D}  of L. Nobre
-G., C. Barbarosie and J. Schwaiger to @code{Asymptote} is provided
-with @code{Asymptote}. However, much (but not all) of this package is
-now obsoleted by the general package @code{three}, which fully extends
-the notion of a path to three-dimensions.
+To facilitate the conversion of existing MetaPost programs,
+this module contains a partial port of the @code{MetaPost} 3D package
+@code{featpost3D}  of L. Nobre G., C. Barbarosie, and J. Schwaiger to
+@code{Asymptote}. However, much (but not all) of the functionality of
+this port is now obsoleted by the general package @code{three},
+which fully extends the notion of a path to three-dimensions. The
+original package is documented at
+@verbatim
+http://matagalatlante.org/nobre/featpost/doc/featpost.html
+@end verbatim
 
 @node math
 @subsection @code{math}

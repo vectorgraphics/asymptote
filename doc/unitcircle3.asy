@@ -1,5 +1,4 @@
 import three;
 size(100);
-draw((1,0,0)..(0,1,0)..(-1,0,0)..(0,-1,0)..cycle3);
-dot(O,red);
-draw(O--Z,red,Arrow);
+filldraw((1,0,0)..(0,1,0)..(-1,0,0)..(0,-1,0)..cycle3,lightgrey);
+draw(O--Z,red,BeginBar,Arrow);
