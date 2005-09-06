@@ -1939,26 +1939,20 @@ void arrowheadbbox(picture pic=currentpicture, path g,
 
 typedef void filltype(frame, path, pen);
 void filltype(frame, path, pen) {}
-public filltype
-  Fill=new void(frame f, path g, pen p) {
-    p += solid;
-    fill(f,g,p);
-    draw(f,g,p);
-  },
-  NoFill=new void(frame f, path g, pen p) {
-    draw(f,g,p+solid);
-  };
 
-typedef void Filltype(picture, path, pen);
-public Filltype
-  Fill=new void(picture pic, path g, pen p) {
-    p += solid;
-    fill(pic,g,p);
-    Draw(pic,g,p);
-  },
-  NoFill=new void(picture pic, path g, pen p) {
-    Draw(pic,g,p);
+filltype Fill(pen p) {
+  return new void(frame f, path g, pen drawpen) {
+    drawpen += solid;
+    fill(f,g,p == nullpen ? drawpen : p+solid);
+    draw(f,g,drawpen);
+  };
+}
+
+public filltype NoFill=new void(frame f, path g, pen p) {
+  draw(f,g,p+solid);
 };
+
+public filltype Fill=Fill(nullpen);
 
 void arrow(frame f, path G, pen p=currentpen, real size=0,
 	   real angle=arrowangle, filltype filltype=Fill,
@@ -2091,23 +2085,13 @@ guide ellipse(frame f, real xmargin=0, real ymargin=infinity,
 }
 
 frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
-	   real xsize=infinity, real ysize=infinity, bool keepAspect,
 	   pen p=currentpen, filltype filltype=NoFill)
 {
   if(ymargin == infinity) ymargin=xmargin;
-  if(xsize == infinity) xsize=pic.xsize;
-  if(ysize == infinity) ysize=pic.ysize;
-  frame f=pic.fit(max(xsize-2*xmargin,0),max(ysize-2*ymargin,0),keepAspect);
+  frame f=pic.fit(max(pic.xsize-2*xmargin,0),max(pic.ysize-2*ymargin,0),
+		  pic.keepAspect);
   box(f,xmargin,ymargin,p,filltype);
   return f;
-}
-
-frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
-	   real xsize=infinity, real ysize=infinity, pen p=currentpen,
-	   filltype filltype=NoFill)
-{
-  return bbox(pic,xmargin,ymargin,xsize,ysize,
-	      pic.keepAspect ? Aspect : IgnoreAspect,p,filltype);
 }
 
 guide box(frame f, Label L, real xmargin=0, real ymargin=infinity,
@@ -2270,6 +2254,7 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
 picture legend(Legend[] legend)
 {
   picture inset;
+  size(inset,0,0,IgnoreAspect);
   if(legend.length > 0) {
     for(int i=0; i < legend.length; ++i) {
       Legend L=legend[i];
@@ -2290,7 +2275,7 @@ frame legend(picture pic=currentpicture, pair dir=0,
 {
   frame F;
   if(pic.legend.length == 0) return F;
-  F=bbox(legend(pic.legend),xmargin,ymargin,0,0,IgnoreAspect,p,filltype);
+  F=bbox(legend(pic.legend),xmargin,ymargin,p,filltype);
   return shift(dir-point(F,-dir))*F;
 }
 

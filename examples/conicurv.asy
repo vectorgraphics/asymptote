@@ -1,3 +1,7 @@
+// Original name : conicurv.mp 
+// Author : L. Nobre G.
+// Translators : J. Pienaar (2004) and John Bowman (2005)
+
 import three;
 import math;
 texpreamble("\usepackage{bm}");

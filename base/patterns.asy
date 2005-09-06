@@ -29,12 +29,14 @@ void add(frame preamble=patterns, string name, picture pic, pair lb=0,
 }
 
 picture tile(real Hx=5mm, real Hy=0, pen p=currentpen,
-	     Filltype filltype=NoFill)
+	     filltype filltype=NoFill)
 {
   picture tiling;
   if(Hy == 0) Hy=Hx;
   guide tile=box((0,0),(Hx,Hy));
-  filltype(tiling,tile,p);
+  tiling.add(new void (frame f, transform t) {
+    filltype(f,t*tile,p);
+  });
   clip(tiling,tile);
   return tiling;
 }

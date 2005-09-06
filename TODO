@@ -14,7 +14,9 @@ executed as they are entered.) Make it look interpreted but still compile.
 
 Andy: implement simplified "cut-and-paste like" import scheme
 
-3d graph axes
+John: 3d graph axes
+
+3d lighting
 
 pdf output including transparency & maybe function shading
 

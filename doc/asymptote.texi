@@ -1448,7 +1448,7 @@ To @code{fill} or @code{draw} using pattern @code{name}, use
 the pen @code{pattern("name")}. For example, rectangular tilings
 can be constructed using the routines 
 @code{picture tile(real Hx=5mm, real Hy=0, pen p=currentpen,
-Filltype filltype=NoFill)},
+filltype filltype=NoFill)},
 @code{picture checker(real Hx=5mm, real Hy=0, pen p=currentpen)}, and
 @code{picture brick(real Hx=5mm, real Hy=0, pen p=currentpen)} defined in
 @code{patterns.asy}:
@@ -1675,15 +1675,36 @@ To rotate in the other direction, replace @code{Landscape} with
 @code{Seascape}.
 
 @cindex @code{box}
-To draw a bounding box with a 0.25 cm margin around a picture, fit the
-picture into a frame using the @code{bbox} function (defined in
-@code{plain.asy}):
+To draw a bounding box with margins around a picture, fit the
+picture to a frame using the function
+@verbatim
+frame bbox(picture pic=currentpicture, real xmargin=0,
+           real ymargin=infinity, pen p=currentpen,
+           filltype filltype=NoFill);
+@end verbatim
+Here @code{ymargin=infinity} requests that @code{ymargin}=@code{xmargin}
+and @code{filltype} specifies one of the following fill types:
+@table @code
+@cindex @code{Fill}
+@item Fill
+Fill with the same pen used to draw the boundary.
+
+@item Fill(pen p=nullpen)
+If @code{p} is @code{nullpen}, fill with the same pen used to draw the
+boundary; otherwise fill with pen @code{p}.
+
+@cindex @code{NoFill}
+@item NoFill
+Do not fill; draw only the boundary.
+
+@end table
+
+@anchor{filltype}
+For example, to draw a bounding box around a picture with a 0.25 cm
+margin and output the resulting frame, use the command:
 @verbatim
 shipout(bbox(0.25cm));
 @end verbatim
-
-@cindex @code{Fill}
-@cindex @code{NoFill}
 A @code{picture} may be fit to a frame with the background color of
 pen @code{p} with the function @code{bbox(p,Fill)}. 
 
@@ -3342,8 +3363,11 @@ Here are some simple examples of two-dimensional graphs:
 
 
 @item The next example draws a scientific-style graph with a legend.
-The position of the legend can either be adjusted explicitly or by using the
-graphical user interface @code{xasy} (@pxref{GUI}).
+The position of the legend can be adjusted either explicitly or by using the
+graphical user interface @code{xasy} (@pxref{GUI}). If necessary, a
+@code{Fill(pen)} option to @code{legend} can be specified to obscure
+underlying curves.
+
 @cindex scientific graph
 @cindex @code{LeftTicks}
 @cindex @code{RightTicks}
@@ -3366,7 +3390,8 @@ the tick labels on the @math{y} axis.
 @item The next example draws two graphs of an array of coordinate pairs,
 using frame alignment and data markers. In the left-hand graph, the
 marker is constructed with the function @code{frame marker(path g,
-pen p=currentpen, filltype filltype=NoFill}) using the path @code{unitcircle}.
+pen p=currentpen, filltype filltype=NoFill}) using the path @code{unitcircle}
+(@pxref{filltype}).
 In the right-hand graph, the unit @math{n}-sided regular polygon 
 @code{polygon(int n)} and the unit @math{n}-point cross 
 @code{cross(int n)} are used to build a custom marker frame.
@@ -3573,11 +3598,13 @@ scaling, and shifting, and reduces in the planar case to the
 two-dimensional algorithm used in @code{Asymptote}, @code{MetaPost},
 and @code{MetaFont}.
 
-For example, a unit circle in the XY plane may be drawn like this:
-@verbatim
-draw((1,0,0)..(0,1,0)..(-1,0,0)..(0,-1,0)..cycle3);
-@end verbatim
+For example, a unit circle in the @math{XY} plane may be drawn like this:
+@verbatiminclude unitcircle3.asy
+@image{unitcircle3}
 @noindent
+Here @code{O} is the triple @code{(0,0,0)} and @code{X},
+@code{Y}, and @code{Z} are the triples @code{(1,0,0)},
+@code{(0,1,0)}, and @code{(0,0,1)}, respectively.
 A general circle can be drawn perpendicular to the direction
 @code{normal} with the routine
 @verbatim
@@ -3684,14 +3711,6 @@ Three-dimensional versions of the path functions @code{length},
 @code{intersect}, @code{min}, @code{max}, @code{cyclic}, and
 @code{straight} are also defined in the module @code{three}.
 
-Here is an example of a helix and a path3 bounding box using
-orthographic projection:
-@verbatiminclude helix.asy
-@image{helix}
-
-Further three-dimensional examples are found in the files
-@code{near_earth.asy} and @code{conicurv.asy}.
-
 @cindex hidden surface removal
 @cindex @code{face}
 General hidden surface removal is implemented with a binary space
@@ -3707,11 +3726,21 @@ Here is an example of three intersecting planes:
 @verbatiminclude planes.asy
 @image{planes}
 
+Further three-dimensional examples are found in the files
+@code{near_earth.asy} and @code{conicurv.asy}.
+
 @node graph3
 @subsection @code{graph3}
 @cindex @code{graph3}
 @cindex 3D graphs
-This module implements surface plots:
+This module implements three-dimensional versions of the @code{graph}
+functions in @code{graph.asy}.
+Here is an example of a helix and a path3 bounding box using
+orthographic projection:
+@verbatiminclude helix.asy
+@image{helix}
+
+Surface plots are also implemented:
 @anchor{surface}
 @verbatiminclude surface.asy
 @image{surface}
@@ -4224,7 +4253,7 @@ The use of arrows, bars, and margins is illustrated by the examples
 @code{Pythagoras.asy}, @code{sqrtx01.asy}, and @code{triads.asy}.
 
 The legend for a picture @code{pic} can be fit and aligned to a frame
-with the routine
+with the routine (@pxref{filltype})
 @verbatim
 frame legend(picture pic=currentpicture, pair dir=0, 
              real xmargin=legendmargin, real ymargin=infinity,
