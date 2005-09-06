@@ -69,7 +69,7 @@ public:
   record *getRecord()
     { return r; }
 
-  void varEntry::checkPerm(action act, position pos, coder &c);
+  void checkPerm(action act, position pos, coder &c);
 
   // Encodes the access, but also checks permissions.
   void encode(action act, position pos, coder &c);

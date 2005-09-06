@@ -1040,24 +1040,24 @@ Here are some useful functions for paths:
 @table @code
 
 @cindex @code{length}
-@item int length(path)
+@item int length(path);
 This is the number of (linear or cubic) segments in the path.
 If the path is cyclic, this is the same as the number of nodes in the path.
 
 @cindex @code{size}
-@item int size(path)
+@item int size(path);
 This is the number of nodes in the path.
 If the path is cyclic, this is the same as the path length.
 
 @cindex @code{point}
-@item pair point(path p, int n)
+@item pair point(path p, int n);
 If @code{p} is cyclic, return the coordinates of node @code{n} mod
 @code{length(p)}. Otherwise, return the coordinates of node @code{n},
 unless @code{n} < 0 (in which case @code{point(0)} is returned) or
 @code{n} > @code{length(p)} (in which case @code{point(length(p))}
 is returned).
 
-@item pair point(path p, real t)
+@item pair point(path p, real t);
 This returns the coordinates of the point between node @code{floor(t)}
 and @code{floor(t)+1} corresponding to the cubic spline parameter
 @math{t=}@code{t-floor(t)} (@pxref{Bezier}). If @code{t} lies outside the range
@@ -1066,67 +1066,65 @@ in the case where @code{p} is cyclic or else converted to the corresponding
 endpoint of @code{p}.
 
 @cindex @code{dir}
-@item pair dir(path, int n)
+@item pair dir(path, int n);
 This returns the direction (as a pair) of the tangent to the path at
 node @code{n}. If the path contains only one point, (0,0) is returned.
 
-@item pair dir(path, real t)
+@item pair dir(path, real t);
 This returns the direction of the tangent to the path at the point
 between node @code{floor(t)} and @code{floor(t)+1} corresponding to the
 cubic spline parameter @math{t=}@code{t-floor(t)} (@pxref{Bezier}).
 If the path contains only one point, (0,0) is returned.
 
 @cindex @code{precontrol}
-@item pair precontrol(path, int n)
+@item pair precontrol(path, int n);
 This returns the precontrol point of node @code{n}.
 
-@cindex @code{postcontrol}
-@item pair postcontrol(path, int n)
-This returns the postcontrol point of node @code{n}.
-
-@cindex @code{precontrol}
-@item pair precontrol(path, real t)
+@item pair precontrol(path, real t);
 This returns the effective precontrol direction at parameter @code{t}.
 
 @cindex @code{postcontrol}
-@item pair postcontrol(path, real t)
+@item pair postcontrol(path, int n);
+This returns the postcontrol point of node @code{n}.
+
+@item pair postcontrol(path, real t);
 This returns the effective postcontrol direction at parameter @code{t}.
 
 @cindex @code{arclength}
-@item real arclength(path)
+@item real arclength(path);
 This returns the length (in user coordinates) of the piecewise linear
 or cubic curve that the path represents.
 
 @anchor{arctime}
 @cindex @code{arctime}
-@item real arctime(path, real L)
+@item real arctime(path, real L);
 This returns the path "time", a real number between 0 and the length of
 the path in the sense of @code{point(path, real)}, at which the
 cumulative arclength (measured from the beginning of the path) equals @code{L}.
 
 @cindex @code{dirtime}
-@item real dirtime(path, pair z)
+@item real dirtime(path, pair z);
 This returns the first "time", a real number between 0 and the length of
 the path in the sense of @code{point(path, real)}, at which the tangent
 to the path has direction @code{z}, or -1 if the path never achieves
 direction @code{z}.
 
 @cindex @code{reverse}
-@item path reverse(path p)
+@item path reverse(path p);
 returns a path running backwards along p.
 
 @cindex @code{subpath}
-@item path subpath(path p, int n, int m)
+@item path subpath(path p, int n, int m);
 returns the subpath running from node @code{n} to node @code{m}.
 If @code{n} < @code{m}, the direction of the subpath is reversed.
 
-@item path subpath(path p, real a, real b)
+@item path subpath(path p, real a, real b);
 returns the subpath running from path time @code{a} to path time @code{b},
 in the sense of @code{point(path, real)}. If @code{a} < @code{b}, the
 direction of the subpath is reversed.
 
 @cindex @code{intersect}
-@item pair intersect(path p, path q)
+@item pair intersect(path p, path q);
 If @code{p} and @code{q} have at least one intersection point, return a
 pair of times (s,t) representing the respective path times along
 @code{p} and @code{q}, in the sense of @code{point(path, real)}, for
@@ -1135,7 +1133,7 @@ pair (-1,-1).
 
 @cindex @code{firstcut}
 @cindex @code{slice}
-@item slice firstcut(path p, path q)
+@item slice firstcut(path p, path q);
 Return the portions of path @code{p} before and after the first intersection
 of @code{p} with path @code{q} as a structure @code{slice} (if no such
 intersection exists, the entire path is considered to be `before' the
@@ -1151,7 +1149,7 @@ Note that @code{firstcut.after} plays the role of the @code{MetaPost}
 @code{cutbefore} command.
 
 @cindex @code{lastcut}
-@item slice lastcut(path p, path q)
+@item slice lastcut(path p, path q);
 Return the portions of path @code{p} before and after the last intersection
 of @code{p} with path @code{q} as a @code{slice} (if no such
 intersection exists, the entire path is considered to be `after' the
@@ -1161,20 +1159,20 @@ intersection).
 Note that @code{lastcut.before} plays the role of the @code{MetaPost}
 @code{cutafter} command.
 
-@cindex @code{max}
-@item pair max(path)
-returns the pair(right,top) for the path bounding box.
-
 @cindex @code{min}
-@item pair min(path)
+@item pair min(path);
 returns the pair(left,bottom) for the path bounding box.
 
+@cindex @code{max}
+@item pair max(path);
+returns the pair(right,top) for the path bounding box.
+
 @cindex @code{cyclic}
-@item bool cyclic(path)
+@item bool cyclic(path);
 returns @code{true} iff path is cyclic
 
 @cindex @code{straight}
-@item bool straight(path, int i)
+@item bool straight(path, int i);
 returns @code{true} iff the segment between node @code{i} and node @code{i+1}
 is straight.
 
@@ -1250,7 +1248,7 @@ This produces a @acronym{CMYK} color, where each of the cyan, magenta,
 yellow, and black intensities @code{c}, @code{m}, @code{y}, @code{k},
 lies in the interval [0,1].
 
-@item pen invisible()
+@item pen invisible();
 @cindex @code{invisible}
 This special pen writes in invisible ink, but adjusts the bounding
 box as if something had been drawn (like the @code{\phantom}
@@ -1536,27 +1534,27 @@ integer power with the @code{^} operator.
 The built-in transforms are:
 
 @table @code
-@item identity()
+@item identity();
 @cindex @code{identity}
 the identity transform;
-@item shift(pair z)
+@item shift(pair z);
 @cindex @code{shift}
 translates by the pair @code{z};
-@item xscale(real x)
+@item xscale(real x);
 @cindex @code{xscale}
 scales by @code{x} in the @math{x} direction;
-@item yscale(real y)
+@item yscale(real y);
 @cindex @code{yscale}
 scales by @code{y} in the @math{y} direction;
-@item scale(pair z)
+@item scale(pair z);
 @cindex @code{scale}
 equivalent to multiplication by @code{z};
-@item slant(real s)
+@item slant(real s);
 @cindex @code{slant}
 maps @code{(x,y)} --> @code{(x+s*y,y)};
-@item rotate(real angle, pair z=(0,0))
+@item rotate(real angle, pair z=(0,0));
 rotates by @code{angle} in degrees about @code{z};
-@item reflect(pair a, pair b)
+@item reflect(pair a, pair b);
 @cindex @code{reflect}
 reflects about the line @code{a--b}.
 @end table
@@ -3705,6 +3703,21 @@ rotates by @code{angle} in degrees about the axis @code{u--v};
 reflects about the plane through @code{u}, @code{v}, and @code{w}.
 @end table
 
+@cindex @code{length}
+@cindex @code{size}
+@cindex @code{point}
+@cindex @code{dir}
+@cindex @code{precontrol}
+@cindex @code{postcontrol}
+@cindex @code{arclength}
+@cindex @code{arctime}
+@cindex @code{reverse}
+@cindex @code{subpath}
+@cindex @code{intersect}
+@cindex @code{min}
+@cindex @code{max}
+@cindex @code{cyclic}
+@cindex @code{straight}
 Three-dimensional versions of the path functions @code{length},
 @code{size}, @code{point}, @code{dir}, @code{precontrol}, @code{postcontrol}, 
 @code{arclength}, @code{arctime}, @code{reverse}, @code{subpath},

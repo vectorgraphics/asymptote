@@ -41,13 +41,13 @@ public:
   virtual ~access() = 0;
   
   // Encode a read/write/call of the access when nothing is on the stack.
-  virtual void encode(action act, position pos, coder &)
+  virtual void encode(action, position pos, coder &)
   {
     error(pos);
   }
   // Encode a read/write/call of the access when the frame "top" is on top
   // of the stack.
-  virtual void encode(action act, position pos, coder &, frame *)
+  virtual void encode(action, position pos, coder &, frame *)
   {
     error(pos);
   }

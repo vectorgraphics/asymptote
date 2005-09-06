@@ -226,14 +226,14 @@ class fieldExp : public nameExp {
     }
 
     // As a type:
-    types::ty *typeTrans(coenv &e, bool tacit = false) {
+    types::ty *typeTrans(coenv &, bool tacit = false) {
       if (!tacit) {
         em->error(getPos());
         *em << "expression is not a type";
       }
       return types::primError();
     }
-    trans::import *typeGetImport(coenv &e) {
+    trans::import *typeGetImport(coenv &) {
       return 0;
     }
 
