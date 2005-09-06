@@ -548,6 +548,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::tripleYPart,primReal(),"ypart",primTriple());
   addFunc(ve,run::tripleZPart,primReal(),"zpart",primTriple());
   addFunc(ve,run::tripleLength,primReal(),"length",primTriple());
+  addFunc(ve,run::tripleLength,primReal(),"abs",primTriple());
   addFunc(ve,run::triplePolar,primReal(),"polar",primTriple());
   addFunc(ve,run::tripleAzimuth,primReal(),"azimuth",primTriple());
   addFunc(ve,run::tripleCoLatitude,primReal(),"colatitude",primTriple());

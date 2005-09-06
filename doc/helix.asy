@@ -3,7 +3,7 @@ import graph;
 import graph3;
 size(0,200);
 
-currentprojection=orthographic((4,6,3));
+currentprojection=orthographic(4,6,3);
 
 real x(real t) {return cos(2pi*t);}
 real y(real t) {return sin(2pi*t);}

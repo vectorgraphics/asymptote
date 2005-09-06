@@ -682,6 +682,8 @@ Here are the built-in functions for triples:
 @item real length(triple v)
 @cindex @code{length}
 returns the length @code{|v|} of the vector @code{v}. 
+A synonym for @code{length(triple)} is @code{abs(triple)};
+
 
 @item real polar(triple v)
 @cindex @code{polar}
@@ -702,6 +704,11 @@ returns the latitude of @code{v} measured from the @math{xy} plane in degrees;
 @item real longitude(triple v)
 @cindex @code{longitude}
 returns the longitude of @code{v} measured from the @math{x} axis in degrees;
+
+@item real Longitude(triple v)
+@cindex @code{Longitude}
+returns the longitude of @code{v} in degrees, or @code{0} if
+@code{v.x=v.y=0} rather than producing an error; 
 
 @item triple unit(triple v)
 @cindex @code{unit}
@@ -927,6 +934,13 @@ constructed with
 guide arc(pair c, real r, real angle1, real angle2);
 @end verbatim
 If @code{r} < 0, the complementary arc of radius @code{|r|} is constructed.
+For convenience, an arc centered at @code{c} from pair @code{z1} to
+@code{z2} (assuming @code{|z2-c|=|z1-c|}) in the direction CCW
+(counter-clockwise) or CW (clockwise) may also be constructed with
+@verbatim
+guide arc(pair c, explicit pair z1, explicit pair z2,
+          bool direction=CCW)
+@end verbatim
 
 @cindex @code{controls}
 Instead of specifying the tangent directions before and after a node,
@@ -1928,9 +1942,20 @@ T b=T.T(1);
 write(a.x);             // Outputs 0
 write(b.x);             // Outputs 1
 @end verbatim
-
+@noindent
 The name of the constructor need not be identical to the name of the structure;
 for example, see @code{triangle.SAS} in @code{geometry.asy}.
+
+Structure assignment does a shallow copy; a deep copy requires writing
+an explicit @code{copy()} member. The function @code{bool alias(T,T)} checks to
+see if two instances of the structure @code{T} are identical.
+The boolean operators @code{==} and @code{!=} are by default equivalent to
+@code{alias} and @code{!alias} respectively, but may be overwritten
+for a particular type do a deep comparison.
+
+When @code{a} is defined both as a variable and a type, the qualified
+name @code{a.b} refers to the variable instead of the type.
+
 Further examples of structures are @code{Legend} and @code{picture} in
 the default @code{Asymptote} base file @code{plain.asy}.
 
@@ -2490,15 +2515,16 @@ The @code{copy} function listed below provides a deep copy of an array.
 @cindex @code{pop}
 @cindex @code{append}
 Every array @code{A} of type @code{T[]} has the virtual members
-@code{length}, @code{cyclic(bool)}, @code{cyclicflag}, @code{push(T)},
-@code{append(T[])}, and @code{pop()}.
+@code{int length}, @code{void cyclic(bool)}, @code{bool cyclicflag},
+@code{T push(T)}, @code{void append(T[])}, and @code{T pop()}.
 The member @code{A.length} evaluates to the length of the array.
 Setting @code{A.cyclic(true)} signifies that array indices should be reduced
 modulo the current array length. Reading from or writing to a nonempty
 cyclic array never leads to out-of-bounds errors or array resizing. The member
 @code{A.cyclicflag} returns the current setting of the @code{cyclic} flag.
 The functions @code{A.push} and @code{A.append} append their
-arguments onto the end of the array, while @code{A.pop()} pops and
+arguments onto the end of the array (for convenience @code{A.push}
+also returns its argument), while @code{A.pop()} pops and
 returns the last element. Like all @code{Asymptote} functions, 
 @code{cyclic}, @code{push}, @code{pop}, and @code{append} can be
 "pulled off" of the array and used on their own. For example,
@@ -2506,7 +2532,7 @@ returns the last element. Like all @code{Asymptote} functions,
 int[] A={1};
 A.push(2);         // A now contains {1,2}.
 A.append(A);       // A now contains {1,2,1,2}.
-void f(int)=A.push;
+int f(int)=A.push;
 f(3);              // A now contains {1,2,1,2,3}.
 int g()=A.pop;
 write(g());        // Outputs 3.
@@ -2689,7 +2715,7 @@ element-by-element instructions are implemented in C++ code for speed. Given
 real[] a={1,2};
 real[] b={3,2};
 @end verbatim
-
+@noindent
 then @code{a == b} and @code{a >= 2} both evaluate to the vector
 @code{@{false, true@}}. 
 To test whether all components of @code{a} and @code{b} agree,
@@ -2752,7 +2778,7 @@ file fin=input("test.txt");
 real[][] A=dimension(fin,2,3);
 real[][][] B=dimension(fin,2,3,4);
 @end verbatim
-
+@noindent
 Again, an integer limit of zero means no restriction.
 
 @cindex @code{read1}
@@ -3535,7 +3561,6 @@ data in @code{diatom.csv} and @code{westnile.csv}.
 @cindex @code{curl3}
 @cindex @code{tension3}
 @cindex @code{controls}
-@cindex hidden surface removal
 This module fully extends the notion of guides and paths in @code{Asymptote}
 to three dimensions, introducing the new types @code{guide3} and @code{path3},
 along with a three-dimensional cycle specifier @code{cycle3}, tension operator
@@ -3548,6 +3573,55 @@ scaling, and shifting, and reduces in the planar case to the
 two-dimensional algorithm used in @code{Asymptote}, @code{MetaPost},
 and @code{MetaFont}.
 
+For example, a unit circle in the XY plane may be drawn like this:
+@verbatim
+draw((1,0,0)..(0,1,0)..(-1,0,0)..(0,-1,0)..cycle3);
+@end verbatim
+@noindent
+A general circle can be drawn perpendicular to the direction
+@code{normal} with the routine
+@verbatim
+path3 circle(triple c, real r, triple normal=Z);
+@end verbatim
+
+A circular arc centered at @code{c} with radius @code{r} from
+@code{c+r*dir(theta1,phi1)} to @code{c+r*dir(theta2,phi2)},
+drawing counterclockwise relative to the normal vector
+@code{cross(dir(theta1,phi1),dir(theta2,phi2))} if @code{theta2 > theta1}
+or if @code{theta2 == theta1} and @code{phi2 >= phi1}, can be constructed with
+@verbatim
+path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
+          triple normal=O);
+@end verbatim
+The normal must be explicitly specified if @code{c} and the endpoints
+are colinear. If @code{r} < 0, the complementary arc of radius
+@code{|r|} is constructed.
+For convenience, an arc centered at @code{c} from triple @code{v1} to
+@code{v2} (assuming @code{|v2-c|=|v1-c|}) in the direction CCW
+(counter-clockwise) or CW (clockwise) may also be constructed with
+@verbatim
+path3 arc(triple c, triple v1, triple v2, triple normal=O,
+          bool direction=CCW);
+@end verbatim
+@noindent
+See @ref{surface} for an example of a three-dimensional circular arc.
+
+A representation of the plane passing through triples @code{v1},
+@code{v2}, and @code{v3} is given by
+@verbatim
+path3 plane(triple v1, triple v2, triple v3);
+@end verbatim
+A three-dimensional box with opposite vertices at triples @code{v1}
+and @code{v2} may be drawn with the function
+@verbatim
+guide3[] box(triple v1, triple v2);
+@end verbatim
+@noindent
+For example, a unit cube is predefined as
+@verbatim
+guide3[] unitcube=box((0,0,0),(1,1,1));
+@end verbatim
+
 These projections to two dimensions are predefined:
 @table @code
 @item oblique
@@ -3558,20 +3632,23 @@ negative @math{z} axis is drawn at this angle in degrees measured
 counterclockwise from the positive @math{x} axis. 
 
 @item orthographic(triple camera)
+@item orthographic(real x, real y, real z)
 @cindex orthographic
 This projects three dimensions onto two using the view seen at the
-location @code{camera}. Parallel lines are projected to parallel lines.
+location @code{camera} or @code{(x,y,z)}, respectively.
+Parallel lines are projected to parallel lines.
 
 @item perspective(triple camera)
+@item perspective(real x, real y, real z)
 @cindex perspective
-This projects three dimensions onto two taking account of perspective,
-as seen from the location @code{camera}.
+These project three dimensions onto two taking account of perspective,
+as seen from the location @code{camera} or @code{(x,y,z)}, respectively.
 
 @end table
 
 @cindex @code{currentprojection}
 The default projection, @code{currentprojection}, is initially set to
-@code{perspective((5,4,2))}.
+@code{perspective(5,4,2)}.
 
 @cindex @code{transform}
 Three-dimensional objects may be transformed with one of the following
@@ -3607,49 +3684,50 @@ Three-dimensional versions of the path functions @code{length},
 @code{intersect}, @code{min}, @code{max}, @code{cyclic}, and
 @code{straight} are also defined in the module @code{three}.
 
-A circular arc centered at @code{c} with radius @code{r} from
-@code{c+r*dir(theta1,phi1)} to @code{c+r*dir(theta2,phi2)},
-drawing counterclockwise relative to the normal vector
-@code{cross(dir(theta1,phi1),dir(theta2,phi2))} if @code{theta2 > theta1}
-or if @code{theta2 == theta1} and @code{phi2 >= phi1}, can be constructed with
-@verbatim
-path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
-	  triple normal=O);
-@end verbatim
-The normal must be explicitly specified if @code{c} and the endpoints
-are colinear. If @code{r} < 0, the complementary arc of radius
-@code{|r|} is constructed.
-
-Here is an example of a helix and a path bounding box using
+Here is an example of a helix and a path3 bounding box using
 orthographic projection:
-@anchor{helix}
 @verbatiminclude helix.asy
 @image{helix}
 
-This example shows a surface plot, a circle, and a three-dimensional
-circular arc:
-@anchor{surface}
-@verbatiminclude surface.asy
-@image{surface}
+Further three-dimensional examples are found in the files
+@code{near_earth.asy} and @code{conicurv.asy}.
 
-General hidden surface removal will be implemented by using a
-binary space partition and picture clipping in an upcoming release. 
+@cindex hidden surface removal
+@cindex @code{face}
+General hidden surface removal is implemented with a binary space
+partition and picture clipping: planar paths are first converted to a
+struct @code{face}, which may be used in place of any picture argument.
+An array of faces may then be drawn to a picture, respecting hidden
+surfaces with the function
+@verbatim
+void add(picture pic=currentpicture, face[] faces,
+         projection P=currentprojection);
+@end verbatim
+Here is an example of three intersecting planes:
+@verbatiminclude planes.asy
+@image{planes}
 
 @node graph3
 @subsection @code{graph3}
 @cindex @code{graph3}
 @cindex 3D graphs
-This module will be developed into a full three-dimensional graphing
-package in the near future.
+This module implements surface plots:
+@anchor{surface}
+@verbatiminclude surface.asy
+@image{surface}
+
+Autoscaling and three-dimensional axes with ticks will be added in an
+upcoming release.
 
 @node featpost3D
 @subsection @code{featpost3D}
 @cindex @code{featpost3D}
-Until a complete 3D graphics package (@pxref{graph3}) is written, a
-preliminary port of the @code{MetaPost} 3D package @code{featpost3D} 
-of L. Nobre G., C. Barbarosie and J. Schwaiger to @code{Asymptote}
-makes some 3D functionality already available, as illustrated by the
-examples @code{near_earth} and @code{conicurv}.
+To facilitate conversion of existing 3d MetaPost programs, a partial
+port of the @code{MetaPost} 3D package @code{featpost3D}  of L. Nobre
+G., C. Barbarosie and J. Schwaiger to @code{Asymptote} is provided
+with @code{Asymptote}. However, much (but not all) of this package is
+now obsoleted by the general package @code{three}, which fully extends
+the notion of a path to three-dimensions.
 
 @node math
 @subsection @code{math}
@@ -3699,6 +3777,22 @@ Return any point on the intersection of the two planes with normals
 respectively. If the planes are parallel, return
 @code{(infinity,infinity,infinity)}.
 
+@cindex @code{solveQuadratic}
+@item @code{quad solveQuadratic(real a, real b, real c);}
+This numerically robust solver for the quadratic equation
+@code{ax^2+bx+c=0} returns a struct
+@verbatim
+struct quad 
+{
+  static int NONE=0;
+  static int SINGLE=1;
+  static int DOUBLE=2;
+  static int ANY=3;
+  public int roots;
+  public real t1,t2;
+};
+@end verbatim
+
 @cindex @code{solve}
 @item real[] solve(real[][] a, real[] b)
 Solve the linear equation @math{@code{a}x=@code{b}} 
@@ -3717,7 +3811,7 @@ write(x); write();
 write(a*x);
 @end verbatim
 If the matrix @code{a} is tridiagonal, the routine @code{tridiagonal} provides
-a more efficient algorithm (@pxref{tridiagonal}).
+a more efficient algorithm (@pxref{tridiagonal}). 
 
 @cindex @code{solve}
 @item real[][] solve(real[][] a, real[][] b, bool overwrite=false)
@@ -4741,7 +4835,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  RightTicks BottomTop LeftRight Ticksize UTF BufNewFile BufRead
 @c  LocalWords:  ticksize subintervals xlimits filetype plugin setlocal makeprg
 @c  LocalWords:  ylimits uncommented automin automax cp uninstall reals ecast
-@c  LocalWords:  scaleT unicode RightSide yx yy NoAlign legendmargin opic
+@c  LocalWords:  scaleT unicode RightSide yx yy NoAlign legendmargin opic CCW
 @c  LocalWords:  arrowbar LeftSide EndBar BeginArrow lly featpost feynman isi
 @c  LocalWords:  EndArrow BeginArcArrow EndArcArrow ArcArrow ArcArrows NoFill
 @c  LocalWords:  filldraw fillpen drawpen errorformat bigsquare bezier darkblue
@@ -4775,5 +4869,6 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  begingroup xmargin ymargin pbox box ellipse wget exe Gouraud
 @c  LocalWords:  multithreaded newframe init emph nums concat xline yline zpart
 @c  LocalWords:  colatitude zscale noView cosh nullpen MetaFontbook cyclicflag
-@c  LocalWords:  nodeps Ghostgum beginlabel endlabel pTick ptick loggrid
-@c  LocalWords:  currentprojection latticeshading
+@c  LocalWords:  nodeps Ghostgum beginlabel endlabel pTick ptick loggrid SAS
+@c  LocalWords:  currentprojection latticeshading subpictures colinear unitcube
+@c  LocalWords:  Autoscaling solveQuadratic MidArrow MidArcArrow

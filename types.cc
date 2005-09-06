@@ -217,7 +217,7 @@ trans::access *array::initializer()
 ty *array::pushType()
 {
   if (pushtype == 0) {
-    function *ft = new function(primVoid());
+    function *ft = new function(celltype);
     ft->add(celltype);
     pushtype = ft;
   }

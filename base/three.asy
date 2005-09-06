@@ -22,6 +22,12 @@ triple operator * (transform3 t, triple v)
   return (triple) (t*(real[]) v);
 }
 
+// Return the longitude of v, ignoring errors if v.x=v.y=0.
+real Longitude(triple v) {
+  if(v.x == 0 && v.y == 0) return 0;
+  return longitude(v);
+}
+
 // A translation in 3D space.
 transform3 shift(triple v)
 {
@@ -105,8 +111,8 @@ transform3 reflect(triple u, triple v, triple w)
 }
 
 // Transformation corresponding to moving the camera from the origin (looking
-// down the negative z axis) to sitting at the point "from" (looking at the
-// origin). Since, in actuality, we are transforming the points instead of
+// down the negative z axis) to the point 'from' (looking at the origin).
+// Since, in actuality, we are transforming the points instead of
 // the camera, we calculate the inverse matrix.
 transform3 lookAtOrigin(triple from)
 {
@@ -115,7 +121,7 @@ transform3 lookAtOrigin(triple from)
     rotate(-90,Z)*
     rotate(-colatitude(from),Y)*
     rotate(-longitude(from),Z);
-  return from.z >= 0 ? t : rotate(180,Y)*t;
+  return t;
 }
 
 transform3 lookAt(triple from, triple to)
@@ -150,11 +156,21 @@ projection perspective(triple camera)
   return P;
 }
 
+projection perspective(real x, real y, real z)
+{
+  return perspective((x,y,z));
+}
+
 projection orthographic(triple camera)
 {
   projection P;
   P.init(camera,lookAtOrigin(camera));
   return P;
+}
+
+projection orthographic(real x, real y, real z)
+{
+  return orthographic((x,y,z));
 }
 
 projection oblique(real angle=45)
@@ -171,6 +187,8 @@ projection oblique(real angle=45)
 }
 
 projection oblique=oblique();
+
+public projection currentprojection=perspective(5,4,2);
 
 pair projectXY(triple v)
 {
@@ -1285,13 +1303,13 @@ struct path3 {
     
       // Check x coordinate
       ret=solveQuadratic(a.x,b.x,c.x);
-      if(ret.roots != quad.NONE) box.add(point(i+ret.t1));
-      if(ret.roots == quad.DOUBLE) box.add(point(i+ret.t2));
+      if(ret.roots != quad.NONE) box.add(point(i+ret.x1));
+      if(ret.roots == quad.DOUBLE) box.add(point(i+ret.x2));
     
       // Check y coordinate
       ret=solveQuadratic(a.y,b.y,c.y);
-      if(ret.roots != quad.NONE) box.add(point(i+ret.t1));
-      if(ret.roots == quad.DOUBLE) box.add(point(i+ret.t2));
+      if(ret.roots != quad.NONE) box.add(point(i+ret.x1));
+      if(ret.roots == quad.DOUBLE) box.add(point(i+ret.x2));
     }
     box.add(point(length()));
     return box;
@@ -1421,7 +1439,8 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
     int next=g.cyclic[i+1] ? 0 : i+1;
     if(!g.control[i].active) {
       control c;
-      if(g.out[i].Curl && g.in[i].Curl) {
+      if((g.out[i].Curl && g.in[i].Curl) ||
+	 (g.out[i].dir == O && g.in[i].dir == O)) {
 	// fill in straight control points for path3 functions
 	triple delta=(g.nodes[i+1]-g.nodes[i])/3;
 	c.init(g.nodes[i]+delta,g.nodes[i+1]-delta);
@@ -1444,7 +1463,7 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
     nodes[i].point=g.nodes[i];
     nodes[i].post=g.control[i].post;
     nodes[i+1].pre=g.control[i].pre;
-    nodes[i].straight=!g.control[i].active;
+    nodes[i].straight=!g.control[i].active; // TODO: test control points here
   }
   nodes[g.nodes.length-1].point=g.nodes[g.nodes.length-1];
   nodes[g.nodes.length-1].post=g.control[g.nodes.length-1].post;
@@ -1501,8 +1520,6 @@ path[] project(flatguide3[] g, projection P=currentprojection)
   return p;
 }
   
-public projection currentprojection=perspective((5,4,2));
-
 guide3 operator cast(path3 p) {
   guide3 g;
   int last=p.nodes.length-1;
@@ -1536,6 +1553,7 @@ pair[] operator cast(triple[] v) {
 
 path3 operator cast(guide3 g) {return solve(g);}
 path operator cast(path3 p) {return project(p);}
+path operator cast(triple v) {return project(v);}
 path operator cast(guide3 g) {return project(solve(g));}
 
 path[] operator cast(path3 g) {return new path[] {(path) g};}
@@ -1659,7 +1677,14 @@ guide3[] box(triple v1, triple v2)
 
 guide3[] unitcube=box((0,0,0),(1,1,1));
 
-path3 XYunitcircle=X..Y..-X..-Y..cycle3;
+path3 unitcircle3=X..Y..-X..-Y..cycle3;
+
+path3 circle(triple c, real r, triple normal=Z)
+{
+  path3 p=shift(c)*scale3(r)*unitcircle3;
+  if(normal != Z) p=rotate(longitude(normal),Z)*rotate(colatitude(normal),Y)*p;
+  return p;
+}
 
 // return an arc centered at c with radius r from c+r*dir(theta1,phi1) to
 // c+r*dir(theta2,phi2) in degrees, drawing in the given direction
@@ -1678,12 +1703,12 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
   transform3 Tinv=inverse(T);
   triple v1=Tinv*dir(theta1,phi1);
   triple v2=Tinv*dir(theta2,phi2);
-  real t1=intersect(XYunitcircle,O--2*(v1.x,v1.y,0)).x;
-  real t2=intersect(XYunitcircle,O--2*(v2.x,v2.y,0)).x;
-  int n=length(XYunitcircle);
+  real t1=intersect(unitcircle3,O--2*(v1.x,v1.y,0)).x;
+  real t2=intersect(unitcircle3,O--2*(v2.x,v2.y,0)).x;
+  int n=length(unitcircle3);
   if(t1 >= t2 && direction) t1 -= n;
   if(t2 >= t1 && !direction) t2 -= n;
-  return shift(c)*scale3(r)*T*subpath(XYunitcircle,t1,t2);
+  return shift(c)*scale3(r)*T*subpath(unitcircle3,t1,t2);
 }
 
 // return an arc centered at c with radius r from c+r*dir(theta1,phi1) to
@@ -1699,3 +1724,236 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
   if(r > 0) return arc(c,r,theta1,phi1,theta2,phi2,normal,pos ? CCW : CW);
   else return arc(c,-r,theta1,phi1,theta2,phi2,normal,pos ? CW : CCW);
 }
+
+// return an arc centered at c from triple v1 to v2 (assuming |v2-c|=|v1-c|),
+// drawing in the given direction.
+path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
+{
+  v1 -= c; v2 -= c;
+  return arc(c,abs(v1),colatitude(v1),Longitude(v1),
+	     colatitude(v2),Longitude(v2),direction);
+}
+
+static public real epsilon=1000*realEpsilon();
+
+// Return a representation of the plane passing through v1, v2, and v3.
+path3 plane(triple v1, triple v2, triple v3)
+{
+  return v1--v2--v3--(v3+v1-v2)--cycle3;
+}
+
+// Return the unit normal vector to a planar path p.
+triple normal(path3 p, triple f(path3, int), triple normal=O) {
+  int n=size(p);
+  for(int i=0; i < size(p)-1; ++i) {
+    triple point=point(p,i);
+    triple v1=f(p,i)-point;
+    triple v2=f(p,i+1)-point;
+    triple n=cross(unit(v1),unit(v2));
+    if(abs(n) > epsilon) {
+      n=unit(n);
+      if(normal != O && abs(normal-n) > epsilon) abort("path is not planar");
+      normal=n;
+    }
+  }
+  return normal;
+}
+  
+triple normal(path3 p) {
+  triple normal=normal(p,precontrol);
+  normal=normal(p,postcontrol,-normal);
+  if(normal == O) abort("path is straight");
+  return normal;
+}
+
+// Routines for hidden surface removal (via binary space partition):
+
+struct face {
+  picture pic;
+  public transform t;
+  public frame fit;
+  public triple normal,point;
+  static face face(path3 p) {
+    face f=new face;
+    f.normal=normal(p);
+    f.point=point(p,0);
+    return f;
+  }
+  face copy() {
+    face f=new face;
+    f.pic=pic.copy();
+    f.t=t;
+    f.normal=normal;
+    f.point=point;
+    add(f.fit,fit);
+    return f;
+  }
+}
+
+face operator init() {return new face;}
+
+picture operator cast(face f) {return f.pic;}
+face operator cast(path3 p) {return face.face(p);}
+  
+struct line {
+  public triple point;
+  public triple dir;
+}
+
+line operator init() {return new line;}
+  
+line intersection(face a, face b) 
+{
+  line L;
+  L.point=intersectionpoint(a.normal,a.point,b.normal,b.point);
+  L.dir=unit(cross(a.normal,b.normal));
+  return L;
+}
+
+struct half {
+  pair[] left,right;
+  
+// Sort the points in the pair array z according to whether they lie on the
+// left or right side of the line L in the direction dir passing through P.
+// Points exactly on the L are considered to be on the right side.
+// Also push any points of intersection of L with the path operator --(... z)
+// onto each of the arrays left and right. 
+  static half split(pair dir, pair P ... pair[] z) {
+    half h=new half;
+    pair lastz,invdir=1.0/dir;
+    bool left,last;
+    for(int i=0; i < z.length; ++i) {
+      left=(invdir*z[i]).y > (invdir*P).y;
+      if(i > 0 && last != left) {
+	pair w=extension(P,P+dir,lastz,z[i]);
+	h.left.push(w);
+	h.right.push(w);
+      }
+      if(left) h.left.push(z[i]);
+      else h.right.push(z[i]);
+      last=left;
+      lastz=z[i];
+    }
+    return h;  
+  }
+}
+  
+half operator init() {return new half;}
+
+struct splitface {
+  public face back,front;
+}
+
+splitface operator init() {return new splitface;}
+  
+// Return the pieces obtained by splitting face a by face cut.
+splitface split(face a, face cut, projection P)
+{
+  splitface S;
+  triple camera=P.camera;
+
+  if(abs(a.normal-cut.normal) < epsilon ||
+     abs(a.normal+cut.normal) < epsilon) {
+    if(abs(dot(a.point-camera,a.normal)) > 
+       abs(dot(cut.point-camera,cut.normal))) {
+      S.back=a;
+      S.front=null;
+    } else {
+      S.back=null;
+      S.front=a;
+    }
+    return S;
+  }
+  
+  line L=intersection(a,cut);
+  pair point=a.t*project(L.point,P);
+  pair dir=a.t*project(L.point+L.dir,P)-point;
+  pair invdir=1.0/L.dir;
+  triple apoint=L.point+cross(L.dir,a.normal);
+  bool left=(invdir*(a.t*project(apoint,P))).y >= (invdir*point).y;
+  real t=intersection(apoint,camera,cut.normal,cut.point);
+  bool rightfront=left ^ (t <= 0 || t >= 1);
+  
+  face back,front;
+  back=a;
+  front=a.copy();
+  pair max=max(a.fit);
+  pair min=min(a.fit);
+  half h=half.split(dir,point,max,(min.x,max.y),min,(max.x,min.y),max);
+  if(h.right.length == 0) {
+    if(rightfront) front=null;
+    else back=null;
+  } else if(h.left.length == 0) {
+    if(rightfront) back=null;
+    else front=null;
+  }
+  if(front != null)
+    clip(front.fit,operator --(... rightfront ? h.right : h.left)--cycle);
+  if(back != null)
+    clip(back.fit,operator --(... rightfront ? h.left : h.right)--cycle);
+  S.back=back;
+  S.front=front;
+  return S;
+}
+
+// A binary space partition
+struct bsp
+{
+  bsp back;
+  bsp front;
+  face node;
+  
+  // Construct the bsp.
+  static bsp split(face[] faces, projection P) {
+    if(faces.length == 0) return null;
+    bsp bsp=new bsp;
+    bsp.node=faces.pop();
+    face[] front,back;
+    for(int i=0; i < faces.length; ++i) {
+      splitface split=split(faces[i],bsp.node,P);
+      if(split.front != null) front.push(split.front);
+      if(split.back != null) back.push(split.back);
+    }
+    bsp.front=bsp.split(front,P);
+    bsp.back=bsp.split(back,P);
+    return bsp;
+  }
+  
+  // Draw from back to front.
+  void add(frame f) {
+    if(back != null) back.add(f);
+    add(f,node.fit,group=true);
+    if(front != null) front.add(f);
+  }
+}
+
+bsp operator init() {return new bsp;}
+  
+void add(picture pic=currentpicture, face[] faces,
+	 projection P=currentprojection)
+{
+  int n=faces.length;
+  face[] Faces=new face[n];
+  for(int i=0; i < n; ++i)
+    Faces[i]=faces[i].copy();
+  
+  pic.nodes.push(new void (frame f, transform t, transform T,
+			   pair m, pair M) {
+// Fit all of the pictures so we know their exact sizes.	   
+   for(int i=0; i < n; ++i) {
+     face F=Faces[i];
+     F.t=t*T*F.pic.T;
+     F.fit=F.pic.fit(t,T*F.pic.T,m,M);
+   }
+    
+   bsp bsp;
+   bsp=bsp.split(Faces,P);
+   bsp.add(f);
+  });
+    
+  for(int i=0; i < n; ++i) {
+    picture F=Faces[i].pic;
+    pic.userBox(F.userMin,F.userMax);
+    pic.append(pic.bounds.point,pic.bounds.min,pic.bounds.max,F.T,F.bounds);
+  }
+}    

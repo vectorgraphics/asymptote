@@ -504,7 +504,7 @@ struct quad
   static int DOUBLE=2;
   static int ANY=3;
   public int roots;
-  public real t1,t2;
+  public real x1,x2;
 };
 
 quad operator init() {return new quad;}
@@ -525,18 +525,17 @@ quad solveQuadratic(real a, real b, real c)
   if(a == 0) {
     if(b != 0) {
       ret.roots=quad.SINGLE;
-      ret.t1=-c/b;
+      ret.x1=-c/b;
     } else if(c == 0) {
       ret.roots=quad.ANY;
-      ret.t1=0;
       } else
       ret.roots=quad.NONE;
   } else if(b == 0) {
     real x=-c/a;
     if(x >= 0) {
       ret.roots=quad.DOUBLE;
-      ret.t2=sqrt(x);
-      ret.t1=-ret.t2;
+      ret.x2=sqrt(x);
+      ret.x1=-ret.x2;
     } else
       ret.roots=quad.NONE;
   } else {
@@ -548,15 +547,15 @@ quad solveQuadratic(real a, real b, real c)
       real r2=factor*sqrtm1;
       real r1=-r2-2*factor;
       if(r1 <= r2) {
-	ret.t1=r1;
-	ret.t2=r2;
+	ret.x1=r1;
+	ret.x2=r2;
       } else {
-	ret.t1=r2;
-	ret.t2=r1;
+	ret.x1=r2;
+	ret.x2=r1;
       }
     } else if(x == -1) {
       ret.roots=quad.SINGLE;
-      ret.t1=ret.t2=-factor;
+      ret.x1=ret.x2=-factor;
     } else
       ret.roots=quad.NONE;
   }

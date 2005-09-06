@@ -1,95 +1,46 @@
-// Original name : conicurv.mp 
-// Author : L. Nobre G.
-// Translator : J. Pienaar (2004)
-// Y2K
+import three;
 import math;
-import featpost3D;
+texpreamble("\usepackage{bm}");
 
-//Removed, as these are not scalable fonts:
-texpreamble("
-%\usepackage{beton}
-%\usepackage{concmath}
-%\usepackage{ccfonts}
-");
+size(300,0);
 
-f = (10,-5,5.44);
-Spread = 30;
+currentprojection=perspective(10,-5,5.44); 
 
-real shortradius, longradius, theta, width, height;
-real updiff, refsize, vecsize, anglar, bord, totup;
-triple rn, fa, fc, pg, centre, speed, refx, refy;
-triple iplow, iphig, oplow,ophig, anglebase, central, refo;
-triple eplow, ephig, aplow,aphig;
+real theta=30, width=3, shortradius=2, bord=2, refsize=1, vecsize=2;
+real height=0.3, anglar=1.75, totup=3;
+real longradius=shortradius+width*Cos(theta), updiff=width*Sin(theta);
 
-theta = 30;
-width = 3;
-shortradius = 2;
-bord = 2;
-refsize = 1;
-vecsize = 2;
-height = 0.3;
-anglar = 1.75;
-totup = 3;
+triple iplow=(0,shortradius,0), iphig=(0,longradius,updiff);
+triple oplow=(-shortradius,0,0), ophig=(-longradius,0,updiff);
+triple aplow=-iplow, aphig=(0,-longradius,updiff);
+triple eplow=-oplow, ephig=(longradius,0,updiff);
+triple anglebase=(0,longradius,0), centre=interp(iplow,iphig,0.5)+(0,0,height);
+triple central=(0,0,centre.z), refo=(0,0.5*centre.y,centre.z);
+triple refx=refsize*(0,Cos(theta),Sin(theta));
+triple refy=refsize*(0,-Sin(theta),Cos(theta));
 
-longradius = shortradius + width*Cos(theta);
-updiff = width*Sin(theta);
+draw("$\theta$",arc(iplow,iplow+0.58*(iphig-iplow),anglebase),E);
 
-iplow = (0,shortradius,0);
-iphig = (0,longradius,updiff);
-oplow = (-shortradius,0,0);
-ophig = (-longradius,0,updiff);
-aplow = -iplow;
-aphig = (0,-longradius,updiff);
-eplow = -oplow;
-ephig = (longradius,0,updiff);
+draw(central,2bp);
+draw(iplow--iphig);
+draw(oplow--ophig);
+draw(aplow--aphig);
+draw(eplow--ephig);
+draw(iphig--anglebase--aplow,dashed);
+draw(oplow--eplow,dashed);
+draw(central--centre,dashed);
 
-anglebase = (0,longradius,0);
-centre = interp(iplow,iphig,0.5)+(0,0,height);
-central = (0,0,Z(centre));
+draw((0,0,-bord)--(0,longradius+bord,-bord)--(0,longradius+bord,totup)
+      --(0,0,totup)--cycle3);
+draw(Label("$y$",1),refo--refo+refy,SW,Arrow);
+draw(Label("$x$",1),refo--refo+refx,SE,Arrow);
 
-//	refo = (0,0,-shortradius*Sin(theta)/Cos(theta));
-refo = (0,0.5*Y(centre),Z(centre));
-refx = refsize*(0,Cos(theta),Sin(theta));
-refy = refsize*(0,-Sin(theta),Cos(theta));
+draw(Label("$\vec{R}_N$",1),centre--centre+vecsize*refy,E,Arrow);
+draw(Label("$\vec{F}_a$",1),centre--centre+vecsize*refx,N,Arrow);
+draw(Label("$\vec{F}_c$",1),centre--centre+vecsize*Y,NE,Arrow);
+draw(Label("$\vec{P}$",1),centre--centre-vecsize*Z,E,Arrow);
+draw(Label("$\vec{v}$",1),centre--centre+vecsize*X,E,Arrow);
+draw(centre,10pt+blue);
 
-//	anglinen( iplow, oplow, (0,0,0), shortradius, "", 0 );
-//	anglinen( iphig, ophig, (0,0,updiff), longradius, "", 0 );
-angline(iphig,anglebase,iplow,width/anglar,"$\theta$",E);
-draw(rp(central), linewidth(2));
-draw(rp(iplow)--rp(iphig));
-draw( rp(oplow)--rp(ophig));
-draw( rp(aplow)--rp(aphig));
-draw( rp(eplow)--rp(ephig));
-draw( rp(iphig)--rp(anglebase)--rp(aplow), dashed);
-draw( rp(oplow)--rp(eplow), dashed);
-draw( rp(central)--rp(centre), dashed);
-//	draw rp((0,-bord,-bord))--rp((0,longradius+bord,-bord))
-//	   --rp((0,longradius+bord,totup))--rp((0,-bord,totup))--cycle
-//	     withpen pencircle scaled 2pt;
-draw( rp((0,0,-bord))--rp((0,longradius+bord,-bord))
-    --rp((0,longradius+bord,totup))--rp((0,0,totup))--cycle);
-draw (rp(refo)..rp(refo+refy), Arrow);
-draw (rp(refo)..rp(refo+refx), Arrow);
-label("$y$", rp(refo+refy), SW);
-label("$x$", rp(refo+refx), SE);
-rn = centre+vecsize*refy;
-fa = centre+vecsize*refx;
-fc = centre+vecsize*(0,1,0);
-pg = centre+vecsize*(0,0,-1);
-speed = centre+vecsize*(1,0,0);
-draw( rp(centre)..rp(rn), Arrow);
-draw( rp(centre)..rp(fa), Arrow);
-draw( rp(centre)..rp(fc), Arrow);
-draw( rp(centre)..rp(pg), Arrow);
-draw( rp(centre)..rp(speed), Arrow);
-label("$\vec{R}_N$", rp(rn), E);
-label("$\vec{F}_a$", rp(fa), N);
-label("$\vec{F}_c$", rp(fc), NE);
-label("$\vec{P}$", rp(pg), E);
-label("$\vec{v}$", rp(speed), E);
-draw(rp(centre), linewidth(10pt)+blue);
-currentpen = linewidth(2pt);
-draw( rigorouscircle( (0,0,updiff), (0,0,1), longradius ) );
-draw( rigorouscircle( (0,0,0), (0,0,1), shortradius ) );
-
-
+draw(circle((0,0,updiff),longradius),2bp);
+draw(circle(O,shortradius),2bp);

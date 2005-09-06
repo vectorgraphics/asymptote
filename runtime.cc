@@ -134,6 +134,13 @@ void boolMemEq(stack *s)
   s->push(a == b);
 }
 
+void boolMemNeq(stack *s)
+{
+  frame* b = pop<frame*>(s);
+  frame* a = pop<frame*>(s);
+  s->push(a != b);
+}
+
 void boolFuncEq(stack *s)
 {
   callable *l=pop<callable*>(s);
@@ -488,6 +495,7 @@ void arrayPushHelper(stack *s)
   item i = pop(s);
   checkArray(a);
   a->push(i);
+  s->push(i);
 }
 
 // Returns the append method for an array.

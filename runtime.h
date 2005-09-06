@@ -25,6 +25,7 @@ void boolTrue(vm::stack *s);
 void boolNot(vm::stack *s);
 void boolXor(vm::stack *s);
 void boolMemEq(vm::stack *s);
+void boolMemNeq(vm::stack *s);
 void boolFuncEq(vm::stack *s);
 void boolFuncNeq(vm::stack *s);
 

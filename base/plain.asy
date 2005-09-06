@@ -1040,7 +1040,7 @@ struct picture {
     // only copy them.  This needs to be a deep copy, as src could later have
     // objects added to it that should not be included in this picture.
 
-    if(alias(src,this)) abort("cannot add picture to itself");
+    if(src == this) abort("cannot add picture to itself");
     
     picture srcCopy=src.drawcopy();
     // Draw by drawing the copied picture.
@@ -1729,7 +1729,7 @@ struct Label {
   }
 
   void out(frame f) {
-    label(f,s,angle,position.position,align.dir,p);
+    label(f,s,angle,position.position+shift,align.dir,p);
   }
   
   void label(picture pic=currentpicture, string s, real angle=0, pair position,

@@ -24,7 +24,7 @@ TreeNode makeNode( TreeNode parent = null, frame f )
 {
   TreeNode child = new TreeNode;
   child.content = f;
-  if( !alias(parent, null) ) {
+  if( parent != null ) {
     add( child, parent );
   }
   return child;
@@ -68,7 +68,7 @@ real layout( int level, TreeNode node )
 void drawAll( TreeNode node, frame f )
 {
   pair pos;
-  if( !alias(node.parent, null) )
+  if( node.parent != null )
     pos = (node.parent.pos.x+node.adjust, 0);
   else
     pos = (node.adjust, 0);
@@ -78,7 +78,7 @@ void drawAll( TreeNode node, frame f )
   add( f, node.content );
 
 
-  if( !alias(node.parent, null) ) {
+  if( node.parent != null ) {
     path p = point(node.content, N)--point(node.parent.content,S);
     draw( f, p, currentpen );
   }

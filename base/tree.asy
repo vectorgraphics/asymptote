@@ -15,16 +15,6 @@ struct tree
 
 tree operator init() {return new tree;}
   
-bool operator == (tree a, tree b)
-{
-  return alias(a,b);
-}
-
-bool operator != (tree a, tree b)
-{
-  return !alias(a,b);
-}
-
 tree newtree()
 {
   return null;
