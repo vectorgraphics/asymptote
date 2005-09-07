@@ -1984,6 +1984,11 @@ struct parent {
 
 parent operator init() {return new parent;}
   
+void write(parent p)
+{
+  write(p.x);
+}
+  
 struct child {
   parent parent;
   real y=2;
@@ -1995,6 +2000,7 @@ child operator init() {return new child;}
 
 child a;
 
+write(a);                       // Outputs 1;
 write(a.parent.x);              // Outputs 1;
 write(a.y);                     // Outputs 2;
 @end verbatim
