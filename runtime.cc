@@ -562,12 +562,12 @@ void arrayConditional(stack *s)
     r->clear();
     if(b) {
       checkArrays(a,b);
-    for(size_t i=0; i < size; i++)
-      if(read<bool>(a,i)) r->push((*b)[i]);
+      for(size_t i=0; i < size; i++)
+        if(read<bool>(a,i)) r->push((*b)[i]);
     } else if(c) {
       checkArrays(a,c);
       for(size_t i=0; i < size; i++)
-      if(!read<bool>(a,i)) r->push((*c)[i]);
+        if(!read<bool>(a,i)) r->push((*c)[i]);
     }
   }
   

@@ -42,15 +42,13 @@ public:
                         types::ty *target, types::ty *source);
 
   // Used for determining the type when the context does not establish
-  // the name as a variable or a type.
-  // First, the function looks for a non-function variable fitting the
-  // description.  If one fits, the type of the variable is returned.
-  // Failing that, the function looks for a fitting type and returns 
-  // that.  Finally, if no type matches, it looks to the environment to
-  // get a module from the name.  If nothing is found, an appropriate
-  // error is reported and ty_error is returned.
-  // Because this is used only on qualifiers, it does not look at
-  // function variables.
+  // the name as a variable or a type.  First, the function looks for a
+  // non-function variable fitting the description.  If one fits, the
+  // type of the variable is returned.  Failing that, the function looks
+  // for a fitting type and returns that.  If nothing is found, an
+  // appropriate error is reported and ty_error is returned.
+  // Because this is used only on qualifiers (ie. names to the left of a
+  // dot), it does not look at function variables.
   // Tacit means that no error messages will be reported to the user.
   virtual types::ty *getType(coenv &e, bool tacit = false);
 
