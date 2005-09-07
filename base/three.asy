@@ -1742,7 +1742,6 @@ path3 plane(triple v1, triple v2, triple v3)
   return v1--v2--v3--(v3+v1-v2)--cycle3;
 }
 
-// Return the unit normal vector to a planar path p.
 triple normal(path3 p, triple f(path3, int), triple normal=O) {
   int n=size(p);
   for(int i=0; i < size(p)-1; ++i) {
@@ -1759,6 +1758,7 @@ triple normal(path3 p, triple f(path3, int), triple normal=O) {
   return normal;
 }
   
+// Return the unit normal vector to a planar path p.
 triple normal(path3 p) {
   triple normal=normal(p,precontrol);
   normal=normal(p,postcontrol,-normal);

@@ -15,7 +15,5 @@ draw(Label("$y$",1),O--r*Y,red,Arrow);
 draw(Label("$z$",1),O--r*Z,red,Arrow);
 label("$O$",(0,0,0),S,red);
   
-draw((1,0,0)..(0,1,0)..(-1,0,0)..(0,-1,0)..cycle3,green);
-  
 add(surface(f,(-1,-1),(1,1),10,4));
 

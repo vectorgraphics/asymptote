@@ -133,7 +133,6 @@ static public string defaultformat="$%.4g$";
 
 // Reduced for tension atleast infinity
 static real infinity=sqrt(0.25*realMax());
-static pair Infinity=(infinity,infinity);
 
 static real epsilon=realEpsilon();
 
@@ -752,7 +751,7 @@ struct picture {
   }
   
   bool empty() {
-    return userMin == Infinity && userMax == -Infinity;
+    return !(finite(userMin) && finite(userMax));
   }
 	      
   // Cache the current user-space bounding box

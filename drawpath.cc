@@ -31,6 +31,7 @@ void drawPath::adjustdash(pen& pen0)
         istringstream buf(stroke);
         double l;
         while(buf >> l) {
+	  if(l < 0) l=0;
           pat.push_back(l);
         }
       }

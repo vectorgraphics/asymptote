@@ -3730,8 +3730,7 @@ Three-dimensional versions of the path functions @code{length},
 General hidden surface removal is implemented with a binary space
 partition and picture clipping: planar paths are first converted to a
 struct @code{face}, which may be used in place of any picture argument.
-An array of faces may then be drawn to a picture, respecting hidden
-surfaces with the function
+An array of faces may then be drawn, removing hidden surfaces, to a picture:
 @verbatim
 void add(picture pic=currentpicture, face[] faces,
          projection P=currentprojection);

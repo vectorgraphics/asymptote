@@ -124,7 +124,8 @@ bounds autoscale(real Min, real Max, scaleT scale=Linear)
     m.max=ceil(Max);
     return m;
   }
-  if(Min == infinity && Max == -infinity) {m.min=Min; m.max=Max; return m;}
+  if(!(finite(Min) && finite(Max)))
+    abort("autoscale requires finite limits");
   Min=scale.Tinv(Min);
   Max=scale.Tinv(Max);
   m.min=Min;
@@ -841,11 +842,16 @@ void xaxisAt(picture pic=currentpicture,
   pair a2=(finite(xmin) ? xmin : pic.userMin.x,y2);
   pair b2=(finite(xmax) ? xmax : pic.userMax.x,y2);
   
-  pic.addPoint(a,min(p));
-  pic.addPoint(a,max(p));
-  pic.addPoint(b,min(p));
-  pic.addPoint(b,max(p));
+  if(finite(a)) {
+    pic.addPoint(a,min(p));
+    pic.addPoint(a,max(p));
+  }
   
+  if(finite(b)) {
+    pic.addPoint(b,min(p));
+    pic.addPoint(b,max(p));
+  }
+
   if(finite(a) && finite(b)) {
     frame d;
     ticks(d,identity(),L,side,(a.x,0)--(b.x,0),(a2.x,0)--(b2.x,0),p,arrow,
@@ -889,10 +895,15 @@ void yaxisAt(picture pic=currentpicture,
   pair a2=(x2,finite(ymin) ? ymin : pic.userMin.y);
   pair b2=(x2,finite(ymax) ? ymax : pic.userMax.y);
   
-  pic.addPoint(a,min(p));
-  pic.addPoint(a,max(p));
-  pic.addPoint(b,min(p));
-  pic.addPoint(b,max(p));
+  if(finite(a)) {
+    pic.addPoint(a,min(p));
+    pic.addPoint(a,max(p));
+  }
+  
+  if(finite(b)) {
+    pic.addPoint(b,min(p));
+    pic.addPoint(b,max(p));
+  }
   
   if(finite(a) && finite(b)) {
     frame d;
@@ -1024,7 +1035,8 @@ void autoscale(picture pic=currentpicture, axis axis)
 void checkaxis(picture pic, axis axis) 
 {
   axis(pic,axis);
-  if(!axis.extend && pic.empty()) abort("unextended axis called before draw");
+  if(!axis.extend && pic.empty())
+    abort("unextended axis called on empty picture");
 }
 
 void xaxis(picture pic=currentpicture, real xmin=-infinity, real xmax=infinity,
@@ -1033,23 +1045,30 @@ void xaxis(picture pic=currentpicture, real xmin=-infinity, real xmax=infinity,
 {
   Label L=L.copy();
   bool newticks=false;
+  
   if(xmin != -infinity) {
-    pic.userMin=(xmin,pic.userMin.y);
+    pic.addPoint((xmin,pic.userMin.y));
     newticks=true;
   }
+  
   if(xmax != infinity) {
-    pic.userMax=(xmax,pic.userMax.y);
+    pic.addPoint((xmax,pic.userMax.y));
     newticks=true;
   }
   
   if(pic.scale.set && newticks) {
+    if(xmin == -infinity) xmin=pic.userMin.x;
+    if(xmax == infinity) xmax=pic.userMax.x;
     bounds mx=autoscale(xmin,xmax,pic.scale.x.scale);
     pic.scale.x.tickMin=mx.min;
     pic.scale.x.tickMax=mx.max;
     axis.xdivisor=mx.divisor;
-  } else autoscale(pic,axis);
+  } else {
+    if(xmin == -infinity || xmax == infinity) checkaxis(pic,axis);
+    autoscale(pic,axis);
+  }
   
-  checkaxis(pic,axis);
+  axis(pic,axis);
   if(axis.extend) put=Above;
   
   if(xmin == -infinity && !axis.extend) {
@@ -1078,23 +1097,30 @@ void yaxis(picture pic=currentpicture, real ymin=-infinity, real ymax=infinity,
 {
   Label L=L.copy();
   bool newticks=false;
+  
   if(ymin != -infinity) {
-    pic.userMin=(pic.userMin.x,ymin);
+    pic.addPoint((pic.userMin.x,ymin));
     newticks=true;
   }
+  
   if(ymax != infinity) {
-    pic.userMax=(pic.userMax.x,ymax);
+    pic.addPoint((pic.userMax.x,ymax));
     newticks=true;
   }
   
   if(pic.scale.set && newticks) {
+    if(ymin == -infinity) ymin=pic.userMin.y;
+    if(ymax == infinity) ymax=pic.userMax.y;
     bounds my=autoscale(ymin,ymax,pic.scale.y.scale);
     pic.scale.y.tickMin=my.min;
     pic.scale.y.tickMax=my.max;
     axis.ydivisor=my.divisor;
-  } else autoscale(pic,axis);
+  } else {
+    if(ymin == -infinity || ymax == infinity) checkaxis(pic,axis);
+    autoscale(pic,axis);
+  }
   
-  checkaxis(pic,axis);
+  axis(pic,axis);
   if(axis.extend) put=Above;
   
   if(ymin == -infinity && !axis.extend) {
