@@ -1958,8 +1958,8 @@ T operator init() {return new T;}
 T a;
 T b=T.T(1);
 
-write(a.x);             // Outputs 0
-write(b.x);             // Outputs 1
+write(a.x);                     // Outputs 0
+write(b.x);                     // Outputs 1
 @end verbatim
 @noindent
 The name of the constructor need not be identical to the name of the structure;
@@ -1974,6 +1974,30 @@ for a particular type do a deep comparison.
 
 When @code{a} is defined both as a variable and a type, the qualified
 name @code{a.b} refers to the variable instead of the type.
+
+Casting (@pxref{Casts}) provides for an elegant implementation of
+structure inheritance, much like in C++: 
+@verbatim
+struct parent {
+  real x=1;
+}
+
+parent operator init() {return new parent;}
+  
+struct child {
+  parent parent;
+  real y=2;
+}
+
+parent operator cast(child child) {return child.parent;}
+  
+child operator init() {return new child;}
+
+child a;
+
+write(a.parent.x);              // Outputs 1;
+write(a.y);                     // Outputs 2;
+@end verbatim
 
 Further examples of structures are @code{Legend} and @code{picture} in
 the default @code{Asymptote} base file @code{plain.asy}.
@@ -2242,13 +2266,13 @@ installed at configuration time).
 @code{Asymptote} supports a more flexible mechanism for default function
 arguments than C++: they may appear anywhere in the function prototype.
 Because certain data types are implicitly cast to more sophisticated
-types (see @ref{Casts}) one can often avoid ambiguities by ordering
+types (@pxref{Casts}) one can often avoid ambiguities by ordering
 function arguments from the simplest to the most complicated.
 For example, given
 @verbatim
 real f(int a=1, real b=0) {return a+b;}
 @end verbatim
-
+@noindent
 then @code{f(1)} returns 1.0, but @code{f(1.0)} returns 2.0.
 
 The value of a default argument is determined simply by evaluating the
