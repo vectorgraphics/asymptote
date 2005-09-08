@@ -6,7 +6,7 @@
 @copying
 This file documents @code{Asymptote}, version @value{VERSION}.
 
-http://asymptote.sourceforge.net
+@url{http://asymptote.sourceforge.net}
      
 Copyright @copyright{} 2004-5 Andy Hammerlindl, John Bowman, and Tom Prince.
      
@@ -156,9 +156,9 @@ Many of the features of @code{Asymptote} are written in the
 write @code{Asymptote} modules that tailor it to specific
 applications. A scientific graphing module has already been written
 (@pxref{graph}). Examples of @code{Asymptote} code and output are available at
-@verbatim
-        http://asymptote.sourceforge.net/gallery/
-@end verbatim
+@quotation
+@url{http://asymptote.sourceforge.net/gallery/}.
+@end quotation
 
 The @code{Asymptote} vector graphics language provides:
 
@@ -219,16 +219,20 @@ install-info --delete --infodir=/usr/local/info \
 tar -zxvf asymptote-x.xx.ARCH.tar.gz | xargs rm
 texhash
 @end verbatim
+@noindent
+We recommend subscribing to new release announcements at
+@quotation
+@url{http://freshmeat.net/subscribe/50750}
+@end quotation
 
 @noindent
 Debian users can install Hubert Chan's @code{Asymptote} package:
-@verbatim
-http://www.uhoreg.ca/programming/debian.text
-@end verbatim
-
+@quotation
+@url{http://www.uhoreg.ca/programming/debian.text}
+@end quotation
 @noindent
 Users of the @code{Microsoft Windows} operating system can install the
-self-extracting Asymptote executable @code{asymptote-install-x.xx.exe}.
+self-extracting @code{Asymptote} executable @code{asymptote-install-x.xx.exe}.
 A working @code{TeX} implementation (such as the one available at
 @code{www.miktex.org}) will be required to typeset labels.
 
@@ -244,7 +248,7 @@ In interactive mode, or when given the @code{-V} option (the default
 under @code{MSDOS}), @code{Asymptote} will automatically invoke the
 @code{PostScript} viewer @code{gv} (under
 @code{UNIX}) or @code{gsview} (under @code{MSDOS}; available from
-@code{http://www.cs.wisc.edu/~ghost/gsview/}) to display
+@url{http://www.cs.wisc.edu/~ghost/gsview/}) to display
 graphical output. These defaults may be overridden with the optional
 environment variable @code{ASYMPTOTE_PSVIEWER}. For @acronym{PDF}
 format output, the @code{ASYMPTOTE_GS} environment variable specifies the  
@@ -283,7 +287,7 @@ cd asymptote-x.xx
 @end verbatim
 
 @noindent Then put
-@code{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.5.tar.gz}
+@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.5.tar.gz}
 in the current directory and
 @verbatim
 ./configure
@@ -295,7 +299,7 @@ make install
 For a (default) system-wide installation, the last command should be
 done as root. The above steps will compile an optimized single-threaded static
 version of the Boehm garbage collector
-(@code{http://www.hpl.hp.com/personal/Hans_Boehm/gc/}).
+(@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/}).
 Alternatively, one can request use of a (presumably multithreaded and therefore
 slower) system version of the Boehm garbage collector by configuring
 instead with @code{./configure --enable-gc=system}. One can disable
@@ -485,7 +489,7 @@ coordinate, and an optional alignment direction:
 @image{labelsquare}
 
 See section @ref{graph} (or the online @code{Asymptote} gallery at
-@code{http://asymptote.sourceforge.net}) for further examples, including
+@url{http://asymptote.sourceforge.net}) for further examples, including
 two-dimensional scientific graphs.
 
 @node Programming
@@ -918,7 +922,7 @@ with precontrol point @code{W}, are computed as the Bezier curve
 
 @image{bezier,,,(1-t)^3*z+3t(1-t)^2*Z+3t^2(1-t)*W+t^3*w for 0 <=t <= 1.}
 
-A good reference on Bezier curves and the algorithms that Asymptote
+A good reference on Bezier curves and the algorithms that @code{Asymptote}
 uses to determine the control points is Donald Knuth's monograph,
 @code{The MetaFontbook}, chapters 3 and 14.
 
@@ -3801,9 +3805,9 @@ this module contains a partial port of the @code{MetaPost} 3D package
 this port is now obsoleted by the general package @code{three},
 which fully extends the notion of a path to three-dimensions. The
 original package is documented at
-@verbatim
-http://matagalatlante.org/nobre/featpost/doc/featpost.html
-@end verbatim
+@quotation
+@url{http://matagalatlante.org/nobre/featpost/doc/featpost.html}
+@end quotation
 
 @node math
 @subsection @code{math}
@@ -3962,9 +3966,9 @@ Import this package at the beginning of the file to instruct
 characters. You will also need to set up @code{LaTeX} support for
 @code{unicode} by unpacking in your @code{LaTeX} source directory
 (e.g. @code{/usr/share/texmf/tex/latex}) the file
-@verbatim
-http://www.unruh.de/DniQ/latex/unicode/unicode.tgz
-@end verbatim
+@quotation
+@url{http://www.unruh.de/DniQ/latex/unicode/unicode.tgz}
+@end quotation
 
 and then running the command 
 @verbatim
@@ -4799,7 +4803,7 @@ elements will be individually deconstructed (@pxref{add}).
 @node PostScript to Asymptote
 @chapter @code{PostScript} to @code{Asymptote}
 The excellent @code{PostScript} editor @code{pstoedit} (version 3.41 or later; 
-available from @code{http://pstoedit.net}) includes an
+available from @url{http://pstoedit.net}) includes an
 @code{Asymptote} backend. Unlike virtually all other @code{pstoedit}
 backends, this driver includes native clipping, even-odd fill rule,
 and @code{PostScript} subpath support. 
@@ -4835,28 +4839,47 @@ make install
 @node Help
 @chapter Help
 @cindex help
-@cindex mailing list
+@cindex forum
 Questions on installing and using @code{Asymptote} should be sent to the
-@code{Asymptote} mailing list:
-@verbatim
-https://lists.sourceforge.net/lists/listinfo/asymptote-discuss
-@end verbatim
-
+@code{Asymptote} forum:
+@quotation
+@url{http://sourceforge.net/forum/forum.php?forum_id=409349}
+@end quotation
+@noindent
+Contributions in the form of patches or @code{Asymptote} modules can be
+posted here:
+@quotation
+@url{http://sourceforge.net/tracker/?atid=685685&group_id=120000}
+@end quotation
+@noindent
+There is also an @code{Asymptote} mailing list, which will
+likely be phased out in the near future:
+@quotation
+@url{http://lists.sourceforge.net/lists/listinfo/asymptote-discuss}
+@end quotation
+@noindent
+In the past, this list was primarily used to announce new releases of
+@code{Asymptote}. To continue to receive announcements of upcoming releases,
+please subscribe to @code{Asymptote} at
+@quotation
+@url{http://freshmeat.net/subscribe/50750}
+@end quotation
 @cindex bug reports
+@noindent
 If you find a bug in @code{Asymptote}, please check (if possible)
 whether the bug is still present in the latest @acronym{CVS} version before
 submitting a bug report. New bugs can be submitted using the Bug
 Tracking System at
-@verbatim
-http://sourceforge.net/projects/asymptote
-@end verbatim
-
+@quotation
+@url{http://sourceforge.net/projects/asymptote}
+@end quotation
+@noindent
 @cindex stack overflow
 @cindex segmentation fault
 @cindex @code{libsigsegv}
 @code{Asymptote} can be configured with the optional @acronym{GNU} library
 @code{libsigsegv}, available from
-@code{http://libsigsegv.sourceforge.net}, which allows one to distinguish
+@url{http://libsigsegv.sourceforge.net}, which allows one to distinguish
 user-generated @code{Asymptote} stack overflows (@pxref{stack overflow})
 from true segmentation faults (due to internal C++ programming errors;
 please submit the @code{Asymptote} code that generates such segmentation
