@@ -19,7 +19,7 @@ draw("$A$",arc(R,O,P,0.3),blue,Arrow,PenMargin);
 draw("$B$",arc(R,O,Q,0.6),blue,Arrow,PenMargin);
 pair S=(Cos(B),0);
 draw(Q--S,blue);
-perpendicular(S,(1,0),blue);
+perpendicular(S,NE,blue);
 
 dot(O);
 dot("$R=(1,0)$",R);

@@ -1979,34 +1979,43 @@ for a particular type do a deep comparison.
 When @code{a} is defined both as a variable and a type, the qualified
 name @code{a.b} refers to the variable instead of the type.
 
-Casting (@pxref{Casts}) provides for an elegant implementation of
-structure inheritance, much like in C++: 
+@cindex inheritance
+@cindex virtual functions
+Much like in C++, casting (@pxref{Casts}) provides for an elegant
+implementation of structure inheritance, including virtual functions:
 @verbatim
 struct parent {
   real x=1;
+  public void virtual(int) {write (0);}
+  void f() {virtual(1);}
 }
 
 parent operator init() {return new parent;}
   
-void write(parent p)
-{
-  write(p.x);
-}
+void write(parent p) {write(p.x);}
   
 struct child {
   parent parent;
   real y=2;
+  void virtual(int x) {write (x);}
+  parent.virtual=virtual;
+  void f()=parent.f;
 }
 
 parent operator cast(child child) {return child.parent;}
   
 child operator init() {return new child;}
 
-child a;
+parent p;
+child c;
 
-write(a);                       // Outputs 1;
-write(a.parent.x);              // Outputs 1;
-write(a.y);                     // Outputs 2;
+write(c);                       // Outputs 1;
+
+p.f();				// Outputs 0;
+c.f();				// Outputs 1;
+
+write(c.parent.x);              // Outputs 1;
+write(c.y);                     // Outputs 2;
 @end verbatim
 
 Further examples of structures are @code{Legend} and @code{picture} in
@@ -3761,15 +3770,16 @@ Three-dimensional versions of the path functions @code{length},
 
 @cindex hidden surface removal
 @cindex @code{face}
-General hidden surface removal is implemented with a binary space
-partition and picture clipping: planar paths are first converted to a
-struct @code{face}, which may be used in place of any picture argument.
-An array of faces may then be drawn, removing hidden surfaces, to a picture:
+Planar hidden surface removal is implemented with a binary space
+partition and picture clipping. A planar path is first converted to a
+struct @code{face} derived from @code{picture}. A @code{face} may be given to
+a drawing routine in place of any @code{picture} argument.  An array
+of such faces may then be drawn, removing hidden surfaces:
 @verbatim
 void add(picture pic=currentpicture, face[] faces,
          projection P=currentprojection);
 @end verbatim
-Here is an example of three intersecting planes:
+Here is an example showing three orthogonal intersecting planes:
 @verbatiminclude planes.asy
 @image{planes}
 

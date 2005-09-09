@@ -2,24 +2,24 @@ import math;
 
 static public real perpfactor=arrowfactor;
 
-// Draw a perpendicular symbol at z going from w to I*w.
-void perpendicular(picture pic=currentpicture, pair z, pair w,
+// Draw a perpendicular symbol at z aligned in the direction align
+// relative to z.
+void perpendicular(picture pic=currentpicture, pair z, pair align,
 		   real size=0, pen p=currentpen) 
 {
   if(size == 0) size=perpfactor*linewidth(p);
   picture apic;
-  pair d1=size*w;
+  pair d1=size*align*dir(-45);
   pair d2=I*d1;
   _draw(apic,d1--d1+d2--d2,p);
   add(z,pic,apic);
 }
   
-// Draw a perpendicular symbol at z going from dir(g,0) to dir(g,0)+90
+// Draw a perpendicular symbol at z going from dir(g,0) to dir(g,0)+90.
 void perpendicular(picture pic=currentpicture, pair z, path g,
 		   real size=0, pen p=currentpen) 
 {
-  if(size == 0) size=perpfactor*linewidth(p);
-  perpendicular(pic,z,dir(g,0),size,p);
+  perpendicular(pic,z,dir(g,0)*dir(45),size,p);
 }
 
 struct triangle {

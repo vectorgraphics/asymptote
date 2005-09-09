@@ -1767,7 +1767,7 @@ triple normal(path3 p) {
 }
 
 // Routines for hidden surface removal (via binary space partition):
-
+// Structure face is derived from picture.
 struct face {
   picture pic;
   public transform t;
