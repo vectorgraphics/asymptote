@@ -2157,7 +2157,7 @@ pen interp(pen a, pen b, real c)
 
 void dot(picture pic=currentpicture, pair z)
 {
-  Draw(pic,z,currentpen+dotsize());
+  Draw(pic,z,dotsize()+currentpen);
 }
 
 void dot(picture pic=currentpicture, pair z, pen p)
@@ -2454,12 +2454,12 @@ arrowbar EndArrow(real size=0, real angle=arrowangle,
 
 arrowbar MidArrow(real size=0, real angle=arrowangle, filltype filltype=Fill)
 {
-    return new bool(picture pic, path g, pen p, margin margin) {
-        if(size == 0) size=arrowsize(p);
-        add(pic,arrow(g,p,size,angle,filltype,
-                      arctime(g,(arclength(g)+size)/2),margin));
-        return false;
-    };
+  return new bool(picture pic, path g, pen p, margin margin) {
+    real size=size == 0 ? arrowsize(p) : size;
+    add(pic,arrow(g,p,size,angle,filltype,
+		  arctime(g,(arclength(g)+size)/2),margin));
+    return false;
+  };
 }
   
 arrowbar Arrows(real size=0, real angle=arrowangle, filltype filltype=Fill)
@@ -2474,7 +2474,7 @@ arrowbar BeginArcArrow(real size=0, real angle=arcarrowangle,
 		       filltype filltype=Fill, position position=BeginPoint)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
-    if(size == 0) size=arcarrowsize(p);
+    real size=size == 0 ? arcarrowsize(p) : size;
     add(pic,arrow(g,p,size,angle,filltype,position,false,margin));
     return false;
   };
@@ -2484,7 +2484,7 @@ arrowbar ArcArrow(real size=0, real angle=arcarrowangle,
 		  filltype filltype=Fill, position position=EndPoint)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
-    if(size == 0) size=arcarrowsize(p);
+    real size=size == 0 ? arcarrowsize(p) : size;
     add(pic,arrow(g,p,size,angle,filltype,position,margin));
     return false;
   };
@@ -2498,7 +2498,7 @@ arrowbar MidArcArrow(real size=0, real angle=arcarrowangle,
 		     filltype filltype=Fill)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
-    if(size == 0) size=arcarrowsize(p);
+    real size=size == 0 ? arcarrowsize(p) : size;
     add(pic,arrow(g,p,size,angle,filltype,
 		  arctime(g,(arclength(g)+size)/2),margin));
     return false;
@@ -2509,7 +2509,7 @@ arrowbar ArcArrows(real size=0, real angle=arcarrowangle,
 		   filltype filltype=Fill)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
-    if(size == 0) size=arcarrowsize(p);
+    real size=size == 0 ? arcarrowsize(p) : size;
     add(pic,arrow2(g,p,size,angle,filltype,margin));
     return false;
   };
@@ -2518,7 +2518,7 @@ arrowbar ArcArrows(real size=0, real angle=arcarrowangle,
 arrowbar BeginBar(real size=0) 
 {
   return new bool(picture pic, path g, pen p, margin margin) {
-    if(size == 0) size=barsize(p);
+    real size=size == 0 ? barsize(p) : size;
     bar(pic,point(g,0),size*dir(g,0)*I,p);
     return true;
   };
@@ -2528,7 +2528,7 @@ arrowbar Bar(real size=0)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     int L=length(g);
-    if(size == 0) size=barsize(p);
+    real size=size == 0 ? barsize(p) : size;
     bar(pic,point(g,L),size*dir(g,L)*I,p);
     return true;
   };
@@ -2539,7 +2539,7 @@ arrowbar EndBar(real size=0)=Bar;
 arrowbar Bars(real size=0) 
 {
   return new bool(picture pic, path g, pen p, margin margin) {
-    if(size == 0) size=barsize(p);
+    real size=size == 0 ? barsize(p) : size;
     BeginBar(size)(pic,g,p,margin);
     EndBar(size)(pic,g,p,margin);
     return true;

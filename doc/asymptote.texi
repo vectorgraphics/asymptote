@@ -224,6 +224,10 @@ We recommend subscribing to new release announcements at
 @quotation
 @url{http://freshmeat.net/subscribe/50750}
 @end quotation
+Users may also wish to monitor the @code{Asymptote} forum:
+@quotation
+@url{http://sourceforge.net/forum/monitor.php?forum_id=409349}
+@end quotation
 
 @noindent
 Debian users can install Hubert Chan's @code{Asymptote} package:
@@ -4851,11 +4855,12 @@ make install
 @cindex help
 @cindex forum
 Questions on installing and using @code{Asymptote} should be sent to the
-@code{Asymptote} forum:
+@code{Asymptote} forum.
 @quotation
 @url{http://sourceforge.net/forum/forum.php?forum_id=409349}
 @end quotation
 @noindent
+
 Contributions in the form of patches or @code{Asymptote} modules can be
 posted here:
 @quotation
