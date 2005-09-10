@@ -627,8 +627,6 @@ void base_venv(venv &ve)
   addFunc(ve,run::transformXscale,primTransform(),"xscale",primReal());
   addFunc(ve,run::transformYscale,primTransform(),"yscale",primReal());
   addFunc(ve,run::transformScale,primTransform(),"scale",primReal());
-  addFunc(ve,run::transformScaleInt,primTransform(),"scale",primInt());
-  addFunc(ve,run::transformScalePair,primTransform(),"scale",primPair());
   addFunc(ve,run::transformSlant,primTransform(),"slant",primReal());
   addFunc(ve,run::transformRotate,primTransform(),"rotate",primReal(),
 	  primPair());

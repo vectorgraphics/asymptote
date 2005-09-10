@@ -139,8 +139,6 @@ void transformShift(vm::stack *s);
 void transformXscale(vm::stack *s);
 void transformYscale(vm::stack *s);
 void transformScale(vm::stack *s);
-void transformScaleInt(vm::stack *s);
-void transformScalePair(vm::stack *s);
 void transformSlant(vm::stack *s);
 void transformRotate(vm::stack *s);
 void transformReflect(vm::stack *s);

@@ -1153,18 +1153,6 @@ void transformScale(stack *s)
   s->push(new transform(scale(x)));
 }
 
-void transformScaleInt(stack *s)
-{
-  double x = (double) pop<int>(s);
-  s->push(new transform(scale(x)));
-}
-
-void transformScalePair(stack *s)
-{
-  pair z = pop<pair>(s);
-  s->push(new transform(scale(z)));
-}
-
 void transformSlant(stack *s)
 {
   double x = pop<double>(s);

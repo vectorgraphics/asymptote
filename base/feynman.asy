@@ -204,8 +204,8 @@ path momArrowPath(path p,
     real t2 = arctime(p, (pathlen+length)/2+ adjust);
     pair v2 = dir(p, t2);
 
-    pair p1 = point(p, t1) + offset*unit(scale(position)*rotate(-90)*v1);
-    pair p2 = point(p, t2) + offset*unit(scale(position)*rotate(-90)*v2);
+    pair p1 = point(p, t1) + offset*unit(position*(rotate(-90)*v1));
+    pair p2 = point(p, t2) + offset*unit(position*(rotate(-90)*v2));
 
     return p1{v1}..{v2}p2;
 }
@@ -338,9 +338,9 @@ void drawDoubleLine(picture pic = currentpicture,
     draw(pic, p, fgpen+2*htw);
     draw(pic, p, bgpen+(linewidth(dlspacing)));
     path rect = (-htw,-htw)--(-htw,htw)--(0,htw)--(0,-htw)--cycle;
-    fill(shift(point(p,0))*scale(unit(dir(p,0)))*rect, bgpen);
-    fill(shift(point(p,size(p)))*scale(-unit(dir(p,size(p))))*rect,
-         bgpen);
+    fill(shift(point(p,0))*rotate(degrees(dir(p,0)))*rect, bgpen);
+    fill(shift(point(p,size(p)))*scale(-1)*rotate(degrees(dir(p,size(p))))*
+	 rect,bgpen);
     draw(pic, p, invisible, arrow);
 }
 
