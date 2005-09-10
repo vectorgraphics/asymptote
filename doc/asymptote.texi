@@ -224,6 +224,7 @@ We recommend subscribing to new release announcements at
 @quotation
 @url{http://freshmeat.net/subscribe/50750}
 @end quotation
+@noindent
 Users may also wish to monitor the @code{Asymptote} forum:
 @quotation
 @url{http://sourceforge.net/forum/monitor.php?forum_id=409349}
@@ -298,6 +299,13 @@ in the current directory and
 make all
 make install
 @end verbatim
+@noindent
+If you get errors from a broken @code{pdftex} installation, simply put
+@quotation
+@url{http://asymptote.sourceforge.net/asymptote.pdf}
+@end quotation
+@noindent
+in the doc directory and repeat the command @code{make all}.
 
 @noindent
 For a (default) system-wide installation, the last command should be

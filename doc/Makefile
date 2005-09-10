@@ -2,7 +2,9 @@ MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy)
 FIGURES = latexusage.eps latexusage.png latexusage.pdf version.texi 
 
-man:	asymptote.dvi asymptote.info asymptote.pdf html
+doc:	asymptote.dvi asymptote.info asymptote.pdf html
+
+man:	asymptote.pdf
 
 %.png:	%.eps
 	convert +antialias -density 288x288 -geometry 25%x $< $@
@@ -45,12 +47,14 @@ clean: FORCE
 	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,ps,pdf,toc,tp,vr}
 	rm -rf asymptote
 
-install: man
+install-man: man
+	${INSTALL} -m 644 asymptote.pdf $(exampledir)
+	${INSTALL} -m 644 $(MANFILES) $(mandir)/man1
+
+install: doc install-man
 	${INSTALL} -d $(prefix)/info $(exampledir) $(mandir)/man1
 	${INSTALL} -m 644 asymptote.info $(prefix)/info
 	install-info --infodir=$(prefix)/info asymptote.info 
-	${INSTALL} -m 644 asymptote.pdf $(exampledir)
-	${INSTALL} -m 644 $(MANFILES) $(mandir)/man1
 
 uninstall:
 	-cd $(mandir)/man1; rm $(MANFILES)

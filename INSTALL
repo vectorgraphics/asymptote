@@ -9,3 +9,7 @@ in the current directory and
 ./configure
 make all
 make install
+
+If you get errors from a broken pdftex installation, simply put
+http://asymptote.sourceforge.net/asymptote.pdf in the doc
+directory and repeat the command make all.
