@@ -305,7 +305,7 @@ If you get errors from a broken @code{pdftex} installation, simply put
 @url{http://asymptote.sourceforge.net/asymptote.pdf}
 @end quotation
 @noindent
-in the doc directory and repeat the command @code{make all}.
+in the directory @code{doc} and repeat the command @code{make all}.
 
 @noindent
 For a (default) system-wide installation, the last command should be

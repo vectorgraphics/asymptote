@@ -4,8 +4,8 @@
  *
  * An application is a matching of arguments in a call expression to formal
  * parameters of a function.  Since the language allows default arguments,
- * keyword arguments, rest arguments, and anything else we think of, this is not
- * a simple mapping.
+ * keyword arguments, rest arguments, and anything else we think of, this
+ * is not a simple mapping.
  *****/
 
 #include "application.h"
@@ -19,8 +19,8 @@ using absyntax::arglist;
 
 namespace trans {
 
-// Lower scores are better.  Packed is added onto the other qualifiers so we may
-// score both exact and casted packed arguments.
+// Lower scores are better.  Packed is added onto the other qualifiers so
+// we may score both exact and casted packed arguments.
 const score FAIL=0, EXACT=1, CAST=2;
 const score PACKED=2;
 
@@ -124,7 +124,8 @@ void application::initRest() {
   types::formal& f=sig->getRest();
   if (f.t) {
     types::array *a=dynamic_cast<types::array *>(f.t);
-    assert(a);
+    if(!a)
+      vm::error("formal rest argument must be an array");
 
     rest=new arrayinit(position());
     rf=types::formal(a->celltype, 0, 0, f.xplicit);

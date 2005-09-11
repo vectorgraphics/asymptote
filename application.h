@@ -4,8 +4,8 @@
  *
  * An application is a matching of arguments in a call expression to formal
  * parameters of a function.  Since the language allows default arguments,
- * keyword arguments, rest arguments, and anything else we think of, this is not
- * a simple mapping.
+ * keyword arguments, rest arguments, and anything else we think of, this
+ * is not a simple mapping.
  *****/
 
 #ifndef APPLICATION_H
@@ -23,7 +23,7 @@ using absyntax::varinit;
 using absyntax::arrayinit;
 using absyntax::tempExp;
 
-// This is mid-way between trans an absyntax.
+// This is mid-way between trans and absyntax.
 namespace trans {
 
 using mem::vector;
@@ -207,8 +207,8 @@ class application : public gc {
   bool matchNamedArgument(env &e, types::formal& f,
                           varinit *a, size_t evalIndex);
 
-  // After all source formals have been matched, checks if the match is complete
-  // (filling in final default values if necessary).
+  // After all source formals have been matched, checks if the match is
+  // complete (filling in final default values if necessary).
   bool complete();
 
   // Match a rest argument in the calling expression.
@@ -228,8 +228,8 @@ public:
                             types::signature *source,
                             arglist &al);
 
-  // Translate the arguments so they appear in order on the stack in preparation
-  // for a call.
+  // Translate the arguments so they appear in order on the stack in
+  // preparation for a call.
   void transArgs(coenv &e);
 
   types::function *getType() {
