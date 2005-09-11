@@ -323,7 +323,7 @@ to the directory @code{base} (in the top level directory of the
 Users of the @code{Microsoft Windows} operating system can install the
 self-extracting @code{Asymptote} executable @code{asymptote-install-x.xx.exe}.
 A working @code{TeX} implementation (such as the one available at
-@code{www.miktex.org}) will be required to typeset labels.
+@url{http://www.miktex.org}) will be required to typeset labels.
 
 @noindent
 Example code will be installed by default in
@@ -332,16 +332,6 @@ Example code will be installed by default in
 @node Environment variables
 @section Environment variables
 @cindex environment variables
-
-To properly support interactive mode, the @code{PostScript} viewer
-should be capable of automatically redrawing whenever the output file is
-updated. The default @code{PostScript} viewer @code{gv} supports this
-(via a @code{SIGHUP} signal). Users of @code{ggv} will need to
-enable @code{Watch file} under @code{Edit/Postscript Viewer
-Preferences} and @code{gsview} users will need to enable
-@code{Options/Auto Redisplay} (however, under @code{MSDOS} it is still
-necessary to click on the @code{gsview} window; under @code{UNIX}
-one must manually redisplay by pressing the @code{r} key).  
 
 @cindex @code{-V}
 @cindex @code{ASYMPTOTE_PSVIEWER}
@@ -370,6 +360,16 @@ set ASYMPTOTE_PDFVIEWER=
               c:\Program Files\Adobe\Acrobat 7.0\Reader\AcroRd32.exe
 set ASYMPTOTE_GS=c:\Program Files\gs\gs8.51\bin\gswin32.exe
 @end verbatim
+
+To properly support interactive mode, the @code{PostScript} viewer
+should be capable of automatically redrawing whenever the output file is
+updated. The default @code{PostScript} viewer @code{gv} supports this
+(via a @code{SIGHUP} signal). Users of @code{ggv} will need to
+enable @code{Watch file} under @code{Edit/Postscript Viewer
+Preferences} and @code{gsview} users will need to enable
+@code{Options/Auto Redisplay} (however, under @code{MSDOS} it is still
+necessary to click on the @code{gsview} window; under @code{UNIX}
+one must manually redisplay by pressing the @code{r} key).  
 
 The patches supplied in the @code{patches} directory fix known bugs
 in the @code{UNIX} @code{PostScript} viewer @code{gv-3.5.8} and

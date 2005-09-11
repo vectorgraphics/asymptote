@@ -2,12 +2,12 @@ MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy)
 FIGURES = latexusage.eps latexusage.png latexusage.pdf version.texi 
 
-doc:	asymptote.dvi asymptote.info asymptote.pdf html
+doc:	man asymptote.dvi asymptote.info html
 
 man:	asymptote.pdf
 
-%.png:	%.eps
-	convert +antialias -density 288x288 -geometry 25%x $< $@
+%.png:	%.asy
+	../asy -f png $<
 
 %.eps:	%.asy
 	../asy $<
@@ -24,6 +24,9 @@ latexusage.dvi: latexusage.asy
 
 latexusage.eps: latexusage.dvi
 	dvips -o latexusage.eps latexusage
+
+latexusage.png: latexusage.dvi
+	dvipng -o latexusage.png latexusage
 
 latexusage.pdf: latexusage.dvi
 	dvipdf latexusage
