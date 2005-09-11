@@ -62,6 +62,17 @@ file LICENSE in the top-level source directory).
 @detailmenu
  --- The Detailed Node Listing ---
 
+Installation
+
+* UNIX binary distributions::   
+* Compiling from UNIX source::  
+* Microsoft Windows::           
+* Environment variables::       
+* Search paths::                
+* Editing modes::               
+* CVS::                         
+* Uninstall::                   
+
 Programming
 
 * Data types::                  void, bool, int, real, pair, triple, string
@@ -198,6 +209,35 @@ as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
 @chapter Installation
 @cindex installation
 
+@menu
+* UNIX binary distributions::   
+* Compiling from UNIX source::  
+* Microsoft Windows::           
+* Environment variables::       
+* Search paths::                
+* Editing modes::               
+* CVS::                         
+* Uninstall::                   
+@end menu
+
+@noindent
+We recommend subscribing to new release announcements at
+@quotation
+@url{http://freshmeat.net/subscribe/50750}
+@end quotation
+@noindent
+Users may also wish to monitor the @code{Asymptote} forum:
+@quotation
+@url{http://sourceforge.net/forum/monitor.php?forum_id=409349}
+@end quotation
+
+After following the instructions for your specific distribution,
+please see also @ref{Environment variables}.
+
+@node UNIX binary distributions
+@section UNIX binary distributions
+@cindex UNIX binary distributions
+
 Here are the commands that the root user can use to install the
 @code{Linux i386} binary distribution of version @code{x.xx} of
 @code{Asymptote} for a specific platform @code{ARCH} in
@@ -212,76 +252,18 @@ install-info --infodir=/usr/local/info /usr/local/info/asymptote.info
 @end verbatim
 
 @noindent
-To uninstall:
-@verbatim
-install-info --delete --infodir=/usr/local/info \
-  /usr/local/info/asymptote.info
-tar -zxvf asymptote-x.xx.ARCH.tar.gz | xargs rm
-texhash
-@end verbatim
-@noindent
-We recommend subscribing to new release announcements at
-@quotation
-@url{http://freshmeat.net/subscribe/50750}
-@end quotation
-@noindent
-Users may also wish to monitor the @code{Asymptote} forum:
-@quotation
-@url{http://sourceforge.net/forum/monitor.php?forum_id=409349}
-@end quotation
+Example code will be installed by default in
+@code{/usr/local/share/doc/asymptote}. 
 
 @noindent
-Debian users can install Hubert Chan's @code{Asymptote} package:
+Alternatively, Debian users can install Hubert Chan's @code{Asymptote} package:
 @quotation
 @url{http://www.uhoreg.ca/programming/debian.text}
 @end quotation
-@noindent
-Users of the @code{Microsoft Windows} operating system can install the
-self-extracting @code{Asymptote} executable @code{asymptote-install-x.xx.exe}.
-A working @code{TeX} implementation (such as the one available at
-@code{www.miktex.org}) will be required to typeset labels.
 
-Example code will be installed by default in
-@code{/usr/local/share/doc/asymptote} 
-(@code{c:\Program Files\Asymptote\examples} on @code{MSDOS} systems).
-
-@cindex @code{-V}
-@cindex @code{ASYMPTOTE_PSVIEWER}
-@cindex @code{ASYMPTOTE_PDFVIEWER}
-@cindex @code{ASYMPTOTE_GS}
-In interactive mode, or when given the @code{-V} option (the default
-under @code{MSDOS}), @code{Asymptote} will automatically invoke the
-@code{PostScript} viewer @code{gv} (under
-@code{UNIX}) or @code{gsview} (under @code{MSDOS}; available from
-@url{http://www.cs.wisc.edu/~ghost/gsview/}) to display
-graphical output. These defaults may be overridden with the optional
-environment variable @code{ASYMPTOTE_PSVIEWER}. For @acronym{PDF}
-format output, the @code{ASYMPTOTE_GS} environment variable specifies the  
-location of the @code{PostScript}-to-@acronym{PDF} processor @code{gs} and
-@code{ASYMPTOTE_PDFVIEWER} specifies the location of the @acronym{PDF} viewer.
-Here are the default values of these environment variables:
-@verbatim
-UNIX:
-export ASYMPTOTE_PSVIEWER=gv
-export ASYMPTOTE_PDFVIEWER=gv
-export ASYMPTOTE_GS=gs
-
-MSDOS:
-set ASYMPTOTE_PSVIEWER=c:\Program Files\Ghostgum\gsview\gsview32.exe
-set ASYMPTOTE_PDFVIEWER=
-              c:\Program Files\Adobe\Acrobat 7.0\Reader\AcroRd32.exe
-set ASYMPTOTE_GS=c:\Program Files\gs\gs8.51\bin\gswin32.exe
-@end verbatim
-
-To properly support interactive mode, the @code{PostScript} viewer
-should be capable of automatically redrawing whenever the output file is
-updated. The default @code{PostScript} viewer @code{gv} supports this
-(via a @code{SIGHUP} signal). Users of @code{ggv} will need to
-enable @code{Watch file} under @code{Edit/Postscript Viewer
-Preferences} and @code{gsview} users will need to enable
-@code{Options/Auto Redisplay} (however, under @code{MSDOS} it is still
-necessary to click on the @code{gsview} window; under @code{UNIX}
-one must manually redisplay by pressing the @code{r} key).  
+@node Compiling from UNIX source
+@section Compiling from UNIX source
+@cindex Compiling from UNIX source
 
 To compile and install a @code{UNIX} executable from
 a source release
@@ -333,10 +315,76 @@ If you don't want to install @code{Asymptote} system wide, just make
 sure the compiled binary @code{asy} and @acronym{GUI} script @code{xasy} are in
 your path and set the environment variable @code{ASYMPTOTE_DIR} to point
 to the directory @code{base} (in the top level directory of the
-@code{Asymptote} source code). In looking for @code{Asymptote} system
-files, @code{asy} will search the following paths, in the order listed:
+@code{Asymptote} source code). 
 
-@anchor{search paths}
+@node Microsoft Windows
+@section Microsoft Windows
+@cindex Microsoft Windows
+Users of the @code{Microsoft Windows} operating system can install the
+self-extracting @code{Asymptote} executable @code{asymptote-install-x.xx.exe}.
+A working @code{TeX} implementation (such as the one available at
+@code{www.miktex.org}) will be required to typeset labels.
+
+@noindent
+Example code will be installed by default in
+@code{c:\Program Files\Asymptote\examples}.
+
+@node Environment variables
+@section Environment variables
+@cindex environment variables
+
+To properly support interactive mode, the @code{PostScript} viewer
+should be capable of automatically redrawing whenever the output file is
+updated. The default @code{PostScript} viewer @code{gv} supports this
+(via a @code{SIGHUP} signal). Users of @code{ggv} will need to
+enable @code{Watch file} under @code{Edit/Postscript Viewer
+Preferences} and @code{gsview} users will need to enable
+@code{Options/Auto Redisplay} (however, under @code{MSDOS} it is still
+necessary to click on the @code{gsview} window; under @code{UNIX}
+one must manually redisplay by pressing the @code{r} key).  
+
+@cindex @code{-V}
+@cindex @code{ASYMPTOTE_PSVIEWER}
+@cindex @code{ASYMPTOTE_PDFVIEWER}
+@cindex @code{ASYMPTOTE_GS}
+In interactive mode, or when given the @code{-V} option (the default
+under @code{MSDOS}), @code{Asymptote} will automatically invoke the
+@code{PostScript} viewer @code{gv} (under
+@code{UNIX}) or @code{gsview} (under @code{MSDOS}; available from
+@url{http://www.cs.wisc.edu/~ghost/gsview/}) to display
+graphical output. These defaults may be overridden with the optional
+environment variable @code{ASYMPTOTE_PSVIEWER}. For @acronym{PDF}
+format output, the @code{ASYMPTOTE_GS} environment variable specifies the  
+location of the @code{PostScript}-to-@acronym{PDF} processor @code{gs} and
+@code{ASYMPTOTE_PDFVIEWER} specifies the location of the @acronym{PDF} viewer.
+Here are the default values of these environment variables:
+@verbatim
+UNIX:
+export ASYMPTOTE_PSVIEWER=gv
+export ASYMPTOTE_PDFVIEWER=gv
+export ASYMPTOTE_GS=gs
+
+MSDOS:
+set ASYMPTOTE_PSVIEWER=c:\Program Files\Ghostgum\gsview\gsview32.exe
+set ASYMPTOTE_PDFVIEWER=
+              c:\Program Files\Adobe\Acrobat 7.0\Reader\AcroRd32.exe
+set ASYMPTOTE_GS=c:\Program Files\gs\gs8.51\bin\gswin32.exe
+@end verbatim
+
+The patches supplied in the @code{patches} directory fix known bugs
+in the @code{UNIX} @code{PostScript} viewer @code{gv-3.5.8} and
+@code{gv-3.6.1} (most notably the backwards-incompatible command line
+options of @code{gv-3.6.1}). Another bug in  @code{gv-3.6.1} requires
+it to be explicitly configured with  @code{./configure
+--enable-signal-handle} for it to work properly with
+@code{Asymptote}'s interactive mode.
+
+@node Search paths
+@section Search paths
+@cindex search paths
+
+In looking for @code{Asymptote} system
+files, @code{asy} will search the following paths, in the order listed:
 @enumerate
 @item
 current directory
@@ -351,14 +399,9 @@ system-wide directory (default: @code{/usr/local/share/asymptote} under
 @code{UNIX} and @code{c:\Program Files\Asymptote} under @code{MSDOS}).
 @end enumerate
 
-The patches supplied in the @code{patches} directory fix known bugs
-in the @code{UNIX} @code{PostScript} viewer @code{gv-3.5.8} and
-@code{gv-3.6.1} (most notably the backwards-incompatible command line
-options of @code{gv-3.6.1}). Another bug in  @code{gv-3.6.1} requires
-it to be explicitly configured with  @code{./configure
---enable-signal-handle} for it to work properly with
-@code{Asymptote}'s interactive mode.
-
+@node Editing modes
+@section Editing modes
+@cindex Editing modes
 @cindex @code{emacs}
 @cindex @code{asy-mode}
 Users of @code{emacs} can edit @code{Asymptote} code with the mode
@@ -397,10 +440,9 @@ setlocal errorformat=%f:\ %l.%c:\ %m
 
 @end verbatim
 
-To uninstall all @code{Asymptote} files, type:
-@verbatim
-make uninstall
-@end verbatim
+@node CVS
+@section CVS
+@cindex CVS
 
 The following commands are needed to install the latest development version of
 @code{Asymptote} from cvs (when prompted for the @acronym{CVS}
@@ -418,6 +460,25 @@ make install
 @end verbatim
 
 To compile without optimization, use the command @code{make CFLAGS=-g}.
+
+@node Uninstall
+@section Uninstall
+@cindex Uninstall
+
+@noindent
+To uninstall a @code{UNIX} binary distribution, type
+@verbatim
+install-info --delete --infodir=/usr/local/info \
+  /usr/local/info/asymptote.info
+tar -zxvf asymptote-x.xx.ARCH.tar.gz | xargs rm
+texhash
+@end verbatim
+
+To uninstall all @code{Asymptote} files installed from a source
+distribution, use the command
+@verbatim
+make uninstall
+@end verbatim
 
 @node Examples
 @chapter Examples
@@ -2961,7 +3022,7 @@ import graph;
 @cindex modules
 Such @code{Asymptote} files are often called modules. 
 
-@code{Asymptote} searches the locations listed in @ref{search paths} for the
+@code{Asymptote} searches the locations listed in @ref{Search paths} for the
 matching file. If the file name contains nonalphanumeric characters,
 enclose it with quotation marks:
 @verbatim
