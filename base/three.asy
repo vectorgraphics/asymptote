@@ -1624,6 +1624,12 @@ pair intersect(explicit guide3 p, explicit guide3 q)
   return path3.intersect((path3) p,(path3) q);
 }
 
+path3 operator & (path3 p, path3 q) {return p.concat(p,q);}
+path3 operator & (explicit guide3 p, explicit guide3 q)
+{
+  return ((path3) p).concat(p,q);
+}
+
 void draw(frame f, guide3[] g, pen p=currentpen)
 {
   draw(f,(path[]) g,p);

@@ -1039,7 +1039,7 @@ draw((100,0)..tension atleast 1 ..(100,100)..(0,100));
 
 @cindex @code{MetaPost ...@ }
 @cindex @code{::}
-The @code{MetaPost ...} joiner, which requests, when possible, an
+The @code{MetaPost ...} path connector, which requests, when possible, an
 inflection-free curve confined to a triangle defined by the
 endpoints and directions, is implemented in @code{Asymptote} as the
 convenient abbreviation @code{::} for @code{..tension atleast 1 ..}
@@ -1053,10 +1053,10 @@ with
 @image{colons}
 
 @cindex @code{---}
-@cindex @code{MetaPost &}
-The @code{---} joiner is an abbreviation for @code{..tension atleast
-infinity..} and the functionality of the @code{Metapost &} joiner is
-provided by @code{--}, as illustrated in the following example:
+@cindex @code{&}
+The @code{---} connector is an abbreviation for @code{..tension atleast
+infinity..} and the @code{&} connector concatenates two paths which meet
+at a common point. Here is an example of all five path connectors:
 @verbatiminclude join.asy
 @image{join}
 

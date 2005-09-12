@@ -583,6 +583,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::pathSize,primInt(),"size",primPath());
   addFunc(ve,run::pathMax,primPair(),"max",primPath());
   addFunc(ve,run::pathMin,primPair(),"min",primPath());
+  addFunc(ve,run::pathConcat,primPath(),"&",primPath(),primPath());
   
   addFunc(ve,run::frameMax,primPair(),"max",primPicture());
   addFunc(ve,run::frameMin,primPair(),"min",primPicture());

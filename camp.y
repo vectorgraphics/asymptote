@@ -83,9 +83,9 @@ using sym::symbol;
 }  
 
 %token <ps> ID OP ADD SUBTRACT TIMES DIVIDE MOD EXPONENT
-            DOTS COLONS DASHES LONGDASH INCR
+            DOTS COLONS DASHES INCR LONGDASH
             CONTROLS TENSION ATLEAST CURL CYCLE
-            COR CAND EQ NEQ LT LE GT GE CARETS
+            COR CAND EQ NEQ LT LE GT GE CARETS AMPERSAND
             '+' '-' '*' '/' '%' '^' LOGNOT
             STRING
 %token <pos> LOOSE ASSIGN '?' ':'
@@ -107,6 +107,7 @@ using sym::symbol;
 %left  LT LE GT GE
 
 %left  CARETS
+%left  AMPERSAND
 %left  JOIN_PREC DOTS COLONS DASHES INCR LONGDASH
 %left  DIRTAG CONTROLS TENSION ATLEAST AND
 %left  CURL '{' '}'
@@ -429,6 +430,7 @@ exp:
 | exp CAND exp     { $$ = new andExp($2.pos, $1, $2.sym, $3); }
 | exp COR exp      { $$ = new orExp($2.pos, $1, $2.sym, $3); }
 | exp CARETS exp   { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
+| exp AMPERSAND exp{ $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | exp INCR exp     { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | NEW celltype
                    { $$ = new newRecordExp($1, $2); }
