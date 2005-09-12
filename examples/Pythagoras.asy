@@ -8,7 +8,7 @@ real c=hypot(a,b);
 pair z1=(0,b);
 pair z2=(a,0);
 pair z3=(a+b,0);
-perpendicular(z1,z1--z2,blue);
+perpendicular(z1,NE,z1--z2,blue);
 perpendicular(z3,NW,blue);
 draw(square((0,0),z3));
 draw(square(z1,z2));

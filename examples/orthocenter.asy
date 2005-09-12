@@ -14,9 +14,9 @@ pair Ap=extension(A,O,B,C);
 pair Bp=extension(B,O,C,A);
 pair Cp=extension(C,O,A,B);
 
-perpendicular(Ap,Ap--O,blue);
-perpendicular(Bp,Bp--C,blue);
-perpendicular(Cp,Cp--O,blue);
+perpendicular(Ap,NE,Ap--O,blue);
+perpendicular(Bp,NE,Bp--C,blue);
+perpendicular(Cp,NE,Cp--O,blue);
 
 draw(A--B--C--cycle);
 
