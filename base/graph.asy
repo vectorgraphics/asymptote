@@ -16,6 +16,8 @@ Linear.init(identity,identity);
 static scaleT Log;
 Log.init(log10,pow10);
 
+// A linear scale, with optional autoscaling of minimum and maximum values,
+// scaling factor s and intercept.
 public scaleT Linear(bool automin=true, bool automax=true, real s=1,
 		     real intercept=0)
 {
@@ -27,6 +29,8 @@ public scaleT Linear(bool automin=true, bool automax=true, real s=1,
   return scale;
 }
 
+// A logarithmic scale, with optional autoscaling of minimum and maximum
+// values.
 public scaleT Log(bool automin=true, bool automax=true)
 {
   scaleT scale;
@@ -70,6 +74,7 @@ struct scientific
 
 scientific operator init() {return new scientific;}
   
+// Convert x to scientific notation
 scientific scientific(real x) 
 {
     scientific s;
@@ -82,6 +87,7 @@ scientific scientific(real x)
     return s;
 }
 
+// Autoscale limits and tick divisor.
 struct bounds {
   public real min;
   public real max;
@@ -91,6 +97,7 @@ struct bounds {
 
 bounds operator init() {return new bounds;}
   
+// Compute tick divisors.
 int[] divisors(int a, int b)
 {
   int[] dlist;
@@ -116,6 +123,7 @@ real upscale(real b, real a)
   return b;
 }
 
+// Compute autoscale limits and tick divisor.
 bounds autoscale(real Min, real Max, scaleT scale=Linear)
 {
   bounds m;
@@ -184,6 +192,7 @@ ticklabel LogFormat=new string(real x) {
   return format("$10^{%d}$",round(x));
 };
 
+// Add axis label L to frame f.
 void labelaxis(frame f, Label L, guide g, bool ticklabels=false)
 {
   Label L0=L.copy();
@@ -213,8 +222,8 @@ void labelaxis(frame f, Label L, guide g, bool ticklabels=false)
 }
 
 private struct locateT {
-  pair z; // User location 
-  pair Z; // Frame location
+  pair z;   // User location 
+  pair Z;   // Frame location
   pair dir; // Frame direction
   bool calc(transform T, guide g, real pos) {
     real t=arctime(g,pos);
@@ -232,6 +241,7 @@ pair ticklabelshift(pair align, pen p=currentpen)
   return 0.25*unit(align)*labelmargin(p);
 }
 
+// Label a tick on a frame.
 pair labeltick(frame d, transform T, guide g, real pos, pair side,
 	       int sign, real Size, ticklabel ticklabel, pen pTicklabel,
 	       part part, real norm=0)
@@ -250,6 +260,7 @@ pair labeltick(frame d, transform T, guide g, real pos, pair side,
   return locate.dir;
 }  
 
+// Compute the fractional coverage of a linear axis.
 real axiscoverage(int N, transform T, path g, real Step, pair side, int sign,
 		  real Size, ticklabel ticklabel, pen pTicklabel, part part,
 		  real norm, real limit, real offset, real firstpos,
@@ -270,6 +281,7 @@ real axiscoverage(int N, transform T, path g, real Step, pair side, int sign,
   return coverage;
 }
 
+// Compute the fractional coverage of a logarithmic axis.
 real logaxiscoverage(int N, transform T, path g, real Step, real offset, 
 		     pair side, int sign, real Size, pen pTicklabel,
 		     part part, real limit, int first, int last,
@@ -307,6 +319,7 @@ typedef void ticks(frame, transform, Label, pair, path, path, pen, arrowbar,
 private void ticks(frame, transform, Label, pair, path, path, pen, arrowbar,
 		   autoscaleT, part, bool, int[], real, real) {};
 
+// Automatic tick construction routine.
 ticks Ticks(bool begin=true, bool end=true, int sign, int N, int n=0,
 	    real Step=0, real step=0, real Size=0, real size=0,
 	    bool beginlabel=true, bool endlabel=true,
@@ -526,6 +539,7 @@ ticks Ticks(bool begin=true, bool end=true, int sign, int N, int n=0,
   };
 }
 
+// Manual tick construction routine.
 ticks Ticks(int sign, real[] Ticks, real[] ticks=new real[],
 	    real Size=Ticksize, real size=ticksize,
 	    bool beginlabel=true, bool endlabel=true,
@@ -648,6 +662,8 @@ public ticks
   LeftTicks=LeftTicks(),
   RightTicks=RightTicks();
 
+					       
+// Structure used to communicate axis and autoscale settings to tick routines. 
 private struct axisT {
   public pair value;
   public real position;
@@ -786,6 +802,7 @@ public axis
   XZero=XZero(),
   YZero=YZero();
 
+// A general axis.
 void axis(picture pic=currentpicture, guide g,
 	  real tickmin=-infinity, real tickmax=infinity,
 	  Label L="", pen p=currentpen, ticks ticks=NoTicks,
@@ -815,6 +832,7 @@ void axis(picture pic=currentpicture, guide g,
   }
 }
 
+// An internal routine to draw an x axis at a particular y value.
 void xaxisAt(picture pic=currentpicture,
 	     real xmin=-infinity, real xmax=infinity, axis axis, Label L="",
 	     pen p=currentpen, ticks ticks=NoTicks, arrowbar arrow=None,
@@ -868,6 +886,7 @@ void xaxisAt(picture pic=currentpicture,
   }
 }
 
+// An internal routine to draw a y axis at a particular x value.
 void yaxisAt(picture pic=currentpicture,
 	     real ymin=-infinity, real ymax=infinity, axis axis, Label L="",
 	     pen p=currentpen, ticks ticks=NoTicks, arrowbar arrow=None,
@@ -921,6 +940,7 @@ void yaxisAt(picture pic=currentpicture,
   }
 }
 
+// Restrict the x limits of a picture.
 void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
 	     bool crop=Crop)
 {
@@ -951,6 +971,7 @@ void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
   }
 }
 
+// Restrict the y limits of a picture.
 void ylimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
 	     bool crop=Crop)
 {
@@ -981,6 +1002,7 @@ void ylimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
   }
 }
 
+// Crop a picture to the current user-space picture limits.
 void crop(picture pic=currentpicture) 
 {
   xlimits(pic,false);
@@ -989,12 +1011,14 @@ void crop(picture pic=currentpicture)
     clip(pic,box(pic.userMin,pic.userMax));
 }
 
+// Restrict the x and y limits to box(min,max).
 void limits(picture pic=currentpicture, pair min, pair max)
 {
   xlimits(pic,min.x,max.x);
   ylimits(pic,min.y,max.y);
 }
   
+// Internal routine to autoscale an axis.
 void autoscale(picture pic=currentpicture, axis axis)
 {
   if(!pic.scale.set) {
@@ -1039,6 +1063,7 @@ void checkaxis(picture pic, axis axis)
     abort("unextended axis called on empty picture");
 }
 
+// Draw an x axis.
 void xaxis(picture pic=currentpicture, real xmin=-infinity, real xmax=infinity,
 	   Label L="", pen p=currentpen, axis axis=YZero,
 	   ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below)
@@ -1091,6 +1116,7 @@ void xaxis(picture pic=currentpicture, real xmin=-infinity, real xmax=infinity,
     xaxisAt(pic,xmin,xmax,axis,L,p,ticks,arrow,put,true);
 }
 
+// Draw a y axis.
 void yaxis(picture pic=currentpicture, real ymin=-infinity, real ymax=infinity,
 	   Label L="", pen p=currentpen, axis axis=XZero,
 	   ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below)
@@ -1149,12 +1175,14 @@ void yaxis(picture pic=currentpicture, real ymin=-infinity, real ymax=infinity,
     yaxisAt(pic,ymin,ymax,axis,L,p,ticks,arrow,put,true);
 }
 
+// Draw x and y axes.
 void axes(picture pic=currentpicture, pen p=currentpen, bool put=Below)
 {
   xaxis(pic,p,put);
   yaxis(pic,p,put);
 }
 
+// Draw a yaxis at x.
 void xequals(picture pic=currentpicture, real x, bool extend=false,
 	     real ymin=-infinity, real ymax=infinity, Label L="",
 	     pen p=currentpen, ticks ticks=NoTicks, bool put=Above,
@@ -1163,6 +1191,7 @@ void xequals(picture pic=currentpicture, real x, bool extend=false,
   yaxis(pic,ymin,ymax,L,p,XEquals(x,extend),ticks,arrow,put);
 }
 
+// Draw an xaxis at y.
 void yequals(picture pic=currentpicture, real y, bool extend=false,
 	     real xmin=-infinity, real xmax=infinity, Label L="",
 	     pen p=currentpen, ticks ticks=NoTicks, bool put=Above,
@@ -1171,6 +1200,7 @@ void yequals(picture pic=currentpicture, real y, bool extend=false,
   xaxis(pic,xmin,xmax,L,p,YEquals(y,extend),ticks,arrow,put);
 }
 
+// Draw a tick of length size at pair z in direction dir using pen p.
 void tick(picture pic=currentpicture, pair z, pair dir, real size=Ticksize,
 	  pen p=currentpen)
 {
@@ -1235,6 +1265,7 @@ private void label(picture pic, Label L, pair z, real x, align align,
   add(pic,L);
 }
 
+// Label and draw an x tick.
 void labelx(picture pic=currentpicture, Label L="", pair z, align align=S,
 	    string format=defaultformat, pen p=nullpen)
 {
@@ -1247,6 +1278,7 @@ void labelx(picture pic=currentpicture, Label L,
   labelx(pic,L,L.position,format,p);
 }
 
+// Label and draw a y tick.
 void labely(picture pic=currentpicture, Label L="", explicit pair z,
 	    align align=W, string format=defaultformat, pen p=nullpen)
 {
