@@ -228,6 +228,9 @@ real[][] operator - (real[][] a, real[][] b)
   return m;
 }
 
+private string incommensurate=
+  "Multiplication of incommensurate matrices is undefined";
+
 real[][] operator * (real[][] a, real[][] b)
 {
   int n=a.length;
@@ -238,7 +241,7 @@ real[][] operator * (real[][] a, real[][] b)
     real[] ai=a[i];
     real[] mi=m[i];
     if(ai.length != nb) 
-      abort("Multiplication of incommensurate matrices is undefined");
+      abort(incommensurate);
     for(int j=0; j < nb0; ++j) {
       real sum;
       for(int k=0; k < nb; ++k)
@@ -251,12 +254,27 @@ real[][] operator * (real[][] a, real[][] b)
 
 real[] operator * (real[][] a, real[] b)
 {
-  return transpose(a*transpose(new real[][] {b}))[0];
+  int n=a.length;
+  real[] m=new real[n];
+  for(int i=0; i < n; ++i)
+    m[i]=sum(a[i]*b);
+  return m;
 }
 
 real[] operator * (real[] b, real[][] a)
 {
-  return (new real[][] {b}*a)[0];
+  int nb=b.length;
+  if(nb != a.length)
+    abort(incommensurate);
+  int na0=a[0].length;
+  real[] m=new real[na0];
+  for(int j=0; j < na0; ++j) {
+    real sum;
+    for(int k=0; k < nb; ++k)
+      sum += b[k]*a[k][j];
+    m[j]=sum;
+  }
+  return m;
 }
 
 real[][] operator * (real[][] a, real b)
