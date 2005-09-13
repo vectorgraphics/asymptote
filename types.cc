@@ -131,6 +131,7 @@ trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
         static trans::varEntry v(primReal(), &a);
         return &v;
       }
+      break;
     case ty_triple:
       if (sig == 0 && id == symbol::trans("x")) {
         static trans::bltinAccess a(run::tripleXPart);
@@ -147,6 +148,7 @@ trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
         static trans::varEntry v(primReal(), &a);
         return &v;
       }
+      break;
     case ty_transform:
       if (sig == 0 && id == symbol::trans("x")) {
         static trans::bltinAccess a(run::transformXPart);
@@ -179,8 +181,9 @@ trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
         return &v;
       }
     default:
-      return 0;
+      break;
   }
+  return 0;
 }
 
 ty *ty::virtualFieldGetType(symbol *id)
