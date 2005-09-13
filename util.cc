@@ -14,6 +14,7 @@
 #include <sys/wait.h>
 #include <sys/param.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "util.h"
 #include "settings.h"

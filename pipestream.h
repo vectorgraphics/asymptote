@@ -25,6 +25,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 #include <cerrno>
 #include <sstream>
 #include <unistd.h>
+#include <signal.h>
 
 #include "errormsg.h"
 #include "settings.h"
