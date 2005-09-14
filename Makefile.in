@@ -62,7 +62,7 @@ $(GCLIBS): $(GC).tar.gz
 	rm -f $(GC).tar
 	cd $(GC); \
 	./configure --disable-threads --disable-shared --enable-cplusplus; \
-	make check
+	$(MAKE) check
 
 doc:	asy
 	cd doc; $(MAKE) doc
@@ -128,7 +128,7 @@ clean:  FORCE
 cleaner: distclean
 distclean: FORCE clean
 	-if test -d $(GC); then \
-		make -C $(GC) distclean; \
+		$(MAKE) -C $(GC) distclean; \
 		rm -rf $(GC); \
 	fi
 	rm -f Makefile config.h config.log config.status; \
@@ -141,7 +141,7 @@ maintainer-clean: FORCE distclean
 
 check: asy FORCE
 	./wce
-	make -C tests
+	$(MAKE) -C tests
 
 .SUFFIXES: .c .cc .o .d
 .cc.o:
