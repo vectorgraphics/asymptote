@@ -390,7 +390,7 @@ flatguide3 operator init() {return new flatguide3;}
   
 void write(file file, explicit flatguide3 g)
 {
-  if(g.size() == 0) write("<nullpath>");
+  if(g.size() == 0) write("<nullpath3>");
   else for(int i=0; i < g.nodes.length; ++i) {
     if(i > 0) write(file);
     if(g.cyclic[i]) write(file,"cycle3");
@@ -429,9 +429,9 @@ void write(file file=stdout, flatguide3[] x, suffix s)
 // A guide3 is most easily represented as something that modifies a flatguide3.
 typedef void guide3(flatguide3);
 
-void nullpath(flatguide3) {};
+void nullpath3(flatguide3) {};
 
-guide3 operator init() {return nullpath;}
+guide3 operator init() {return nullpath3;}
 
 guide3 operator cast(triple v)
 {
@@ -801,6 +801,8 @@ node[] nodes(int n)
   return nodes;
 }
 
+node operator init() {return new node;}
+
 struct bbox3 {
   bool empty=true;
   real left,bottom,lower;
@@ -883,7 +885,7 @@ struct path3 {
   
   void emptyError() {
     if(empty())
-      abort("nullpath has no points");
+      abort("nullpath3 has no points");
   }
   
   bool straight(int i) {
@@ -1344,7 +1346,7 @@ path3 operator * (transform3 t, path3 p)
 
 void write(file file, path3 p)
 {
-  if(size(p) == 0) write("<nullpath>");
+  if(size(p) == 0) write("<nullpath3>");
   else for(int i=0; i < p.nodes.length; ++i) {
     if(i == p.nodes.length-1 && p.cycles) write(file,"cycle3");
     else write(file,p.nodes[i].point,endl);
@@ -1458,7 +1460,6 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
   // Convert to Knuth's format (control points stored with nodes)
   node[] nodes=nodes(g.nodes.length);
   bool cyclic=g.cyclic[g.cyclic.length-1];
-  if(cyclic) nodes[0].pre=g.control[nodes.length-2].pre;
   for(int i=0; i < g.nodes.length-1; ++i) {
     nodes[i].point=g.nodes[i];
     nodes[i].post=g.control[i].post;
@@ -1466,7 +1467,13 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
     nodes[i].straight=!g.control[i].active; // TODO: test control points here
   }
   nodes[g.nodes.length-1].point=g.nodes[g.nodes.length-1];
-  nodes[g.nodes.length-1].post=g.control[g.nodes.length-1].post;
+  if(cyclic) {
+    nodes[0].pre=g.control[nodes.length-2].pre;
+    nodes[g.nodes.length-1].post=g.control[nodes.length-1].post;
+  } else {
+    nodes[0].pre=nodes[0].point;
+    nodes[g.nodes.length-1].post=nodes[g.nodes.length-1].point;
+  }
   
   return path3.path3(nodes,cyclic);
 }
@@ -1487,16 +1494,18 @@ path project(explicit path3 p, projection Q=currentprojection)
   
   g=P(p.nodes[0].point);
   // Construct the path.
-  for(int i=0; i < last; ++i) {
+  for(int i=0; i < (p.cycles ? last-1 : last); ++i) {
     if(p.nodes[i].straight)
       g=g--P(p.nodes[i+1].point);
-    else 
+    else {
       g=g..controls P(p.nodes[i].post) and P(p.nodes[i+1].pre)..
       P(p.nodes[i+1].point);
+    }
   }
   
   if(p.cycles)
-    g=p.nodes[last].straight ? g--cycle : g..cycle;
+    g=p.nodes[last-1].straight ? g--cycle :
+      g..controls P(p.nodes[last-1].post) and P(p.nodes[last].pre)..cycle;
 
   return g;
 }
