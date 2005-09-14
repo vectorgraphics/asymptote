@@ -1320,6 +1320,7 @@ void stringFormatInt(stack *s)
   int x=pop<int>(s);
   string *format=pop<string*>(s);
   int size=snprintf(NULL,0,format->c_str(),x)+1;
+  if(size < 1) size=255; // Workaround for non-C99 compliant systems.
   char *buf=new char[size];
   snprintf(buf,size,format->c_str(),x);
   s->push<string>(buf);
@@ -1358,6 +1359,7 @@ void stringFormatReal(stack *s)
   const char *tail=p;
   string f=format->substr(start-p0,tail-start);
   int size=snprintf(NULL,0,f.c_str(),x)+1;
+  if(size < 1) size=255; // Workaround for non-C99 compliant systems.
   char *buf=new char[size];
   snprintf(buf,size,f.c_str(),x);
 
