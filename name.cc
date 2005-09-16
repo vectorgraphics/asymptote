@@ -76,6 +76,9 @@ frame *name::frameTrans(coenv &e)
 types::ty *name::getType(coenv &e, bool tacit)
 {
   types::ty *t=signatureless(varGetType(e));
+  if (!tacit && t && t->kind == ty_error)
+    // Report errors associated with regarding the name as a variable.
+    varTrans(trans::READ, e, t);
   return t ? t : typeTrans(e, tacit);
 }
 
