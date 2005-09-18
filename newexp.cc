@@ -13,7 +13,6 @@
 #include "inst.h"
 
 using namespace types;
-using trans::import;
 using trans::coder;
 using trans::coenv;
 using vm::inst;
@@ -43,34 +42,10 @@ types::ty *newRecordExp::trans(coenv &e)
 
   // Put the enclosing frame on the stack.
   record *r = (record *)t;
-  import *imp = result->getImport(e);
-  if (imp) {
-    // Put the import frame on the stack.
-    imp->getLocation()->encode(trans::READ, getPos(), e.c);
-
-#if 0
-    std::cerr << *(r->getName()) << ": ";
-    printFrame(r->getLevel());
-    std::cerr << std::endl;
-    std::cerr << *(imp->getModule()->getName()) << ": ";
-    printFrame(imp->getModule()->getLevel());
-    std::cerr << std::endl;
-#endif
-   
-    // Dig down to the record's parent's frame.
-    if (!e.c.encode(r->getLevel()->getParent(),
-		   imp->getModule()->getLevel())) {
-      em->error(getPos());
-      *em << "allocation of struct '" << *t << "' is not in a valid scope";
-      return primError();
-    }
-  }
-  else {
-    if (!e.c.encode(r->getLevel()->getParent())) {
-      em->error(getPos());
-      *em << "allocation of struct '" << *t << "' is not in a valid scope";
-      return primError();
-    }
+  if (!e.c.encode(r->getLevel()->getParent())) {
+    em->error(getPos());
+    *em << "allocation of struct '" << *t << "' is not in a valid scope";
+    return primError();
   }
  
   // Encode the allocation. 

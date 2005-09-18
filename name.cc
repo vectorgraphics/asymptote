@@ -128,11 +128,6 @@ types::ty *simpleName::typeTrans(coenv &e, bool tacit)
   }
 }
 
-trans::import *simpleName::typeGetImport(coenv &e)
-{
-  return e.e.lookupTypeImport(id);
-}
-
 void simpleName::prettyprint(ostream &out, int indent)
 {
   prettyindent(out, indent);
@@ -269,11 +264,6 @@ types::ty *qualifiedName::typeTrans(coenv &e, bool tacit)
     }
     return primError();
   }
-}
-
-trans::import *qualifiedName::typeGetImport(coenv &e)
-{
-  return qualifier->typeGetImport(e);
 }
 
 void qualifiedName::prettyprint(ostream &out, int indent)

@@ -13,7 +13,6 @@
 
 #include "builtin.h"
 #include "entry.h"
-#include "import.h"
 #include "runtime.h"
 #include "types.h"
 #include "pair.h"
@@ -572,8 +571,10 @@ void base_venv(venv &ve)
   
   addFunc(ve,run::atExit,primVoid(),"atexit",voidFunction());
   addFunc(ve,run::exitFunction,primVoid(),"exitfunction");
+#if 0
   addFunc(ve,run::execute,primVoid(),"execute",primString());
   addFunc(ve,run::eval,primVoid(),"eval",primString());
+#endif
   addFunc(ve,run::merge,primInt(),"merge",primString(),primString(),
 	  primBoolean());
   addFunc(ve,run::changeDirectory,primString(),"cd",primString());

@@ -2,8 +2,7 @@
  * stack.cc
  * Andy Hammerlindl 2002/06/27
  *
- * The general stack machine that will be used to run compiled camp
- * code.
+ * The general stack machine used to run compiled camp code.
  *****/
 
 #include "stack.h"
@@ -194,6 +193,21 @@ void stack::run(program *code, vars_t vars)
     error("Trying to use uninitialized value.");
   }
 }
+
+void stack::load(mem::string index) {
+  frame *inst=instMap[index];
+  if (inst)
+    push(inst);
+  else {
+    func f;
+    assert(initMap);
+    f.body=(*initMap)[index];
+    assert(f.body);
+    run(&f);
+    instMap[index]=get<frame *>(top());
+  }
+}
+
 
 #ifdef DEBUG_STACK
 #if __GNUC__

@@ -459,6 +459,7 @@ void vardec::transAsTypedefField(coenv &e, record *r)
   decs->transAsTypedefField(e, base->trans(e), r);
 }
 
+#if 0
 void importdec::initialize(coenv &e, record *m, access *a)
 {
   // Put the enclosing frame on the stack.
@@ -475,7 +476,6 @@ void importdec::initialize(coenv &e, record *m, access *a)
   a->encode(WRITE, getPos(), e.c);
   e.c.encode(inst::pop);
 }
-
 
 
 void importdec::prettyprint(ostream &out, int indent)
@@ -519,6 +519,7 @@ void importdec::transAsField(coenv &e, record *r)
   // Add the initializer for the record.
   initialize(e, m, a);
 }
+#endif
 
 
 void typedec::prettyprint(ostream &out, int indent)

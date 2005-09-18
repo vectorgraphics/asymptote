@@ -18,7 +18,6 @@
 #include "record.h"
 #include "frame.h"
 #include "program.h"
-#include "import.h"
 #include "util.h"
 #include "modifier.h"
 
@@ -87,19 +86,19 @@ class coder {
 
   // Current File Position
   position curPos;
-private:
-  // Define a new function coder.  Reframe gives the function its own frame,
-  // which is the usual (sensible) thing to do.  It is false for line-at-a-time
-  // codelet, where variables should be allocated in the lower frame.
-  coder(function *t, coder &parent, modifier sord = DEFAULT_DYNAMIC,
+
+public:
+  // Define a new function coder.  If reframe is true, this gives the function
+  // its own frame, which is the usual (sensible) thing to do.  It is set to
+  // false for a line-at-a-time codelet, where variables should be allocated in
+  // the lower frame.
+  coder(function *t, coder *parent, modifier sord = DEFAULT_DYNAMIC,
         bool reframe=true);
 
   // Start encoding the body of the record.  The function being encoded
   // is the record's initializer.
-  coder(record *t, coder &parent, modifier sord = DEFAULT_DYNAMIC);
+  coder(record *t, coder *parent, modifier sord = DEFAULT_DYNAMIC);
 
-public:
-  // Start encoding the body of a file-level record.
   coder(modifier sord = DEFAULT_DYNAMIC);
   
   coder(const coder&);

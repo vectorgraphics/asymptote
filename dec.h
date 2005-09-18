@@ -48,10 +48,12 @@ public:
   // needed to silence errors in this case.
   virtual types::ty *trans(coenv &e, bool tacit = false) = 0;
 
+#if 0
   // Finds the import that the type is imported from.
   // This necessary for record allocations.
   // Returns 0 if the type ultimately refers to no imports.
   virtual trans::import *getImport(coenv &e) = 0;
+#endif
 };
 
 class nameTy : public ty {
@@ -68,10 +70,12 @@ public:
 
   types::ty *trans(coenv &e, bool tacit = false);
 
+#if 0
   trans::import *getImport(coenv &e)
   {
     return id->typeGetImport(e);
   }
+#endif
 };
 
 class dimensions : public absyn {
@@ -116,10 +120,12 @@ public:
   
   types::ty *trans(coenv &e, bool tacit = false);
 
+#if 0
   trans::import *getImport(coenv &e)
   {
     return cell->getImport(e);
   }
+#endif
 };
 
 // Runnable is anything that can be executed by the program, including
@@ -346,6 +352,7 @@ public:
   virtual void transAsTypedefField(coenv &e, record *r);
 };
 
+#if 0
 class importdec : public dec {
   symbol *id;
 
@@ -367,6 +374,7 @@ public:
   bool allowPermissions()
     { return false; }
 };
+#endif
 
 // Types defined from others in typedef.
 class typedec : public dec {

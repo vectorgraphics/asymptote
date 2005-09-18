@@ -14,7 +14,13 @@ using namespace types;
 namespace trans {
 
 env::env(genv &ge)
-  : ge(ge), te(ge.te), ve(ge.ve), me(ge.me) {}
+  : ge(ge)
+{
+  // NOTE: May want to make this initial environment into a "builtin" module,
+  // and then import the builtin module.
+  base_tenv(te);
+  base_venv(ve);
+}
 
 // Instances of this class are passed to types::ty objects so that they can call
 // back to env when checking casting of subtypes.
@@ -122,15 +128,9 @@ ty *env::castSource(ty *target, ty *source, symbol *name) {
   return r.collect(target, source);
 } 
 
-record *env::getModule(symbol *id)
+record *env::getModule(symbol *id, std::string filename)
 {
-  record *m = ge.getModule(id);
-  if (m) {
-    return m;
-  }
-  else {
-    return ge.loadModule(id);
-  }
+  return ge.getModule(id, filename);
 }
 
 }

@@ -18,7 +18,6 @@
 
 namespace trans {
 class coenv;
-class import;
 }
 namespace types {
 class record;
@@ -61,7 +60,6 @@ public:
 
   // As a type:
   virtual types::ty *typeTrans(coenv &e, bool tacit = false) = 0;
-  virtual trans::import *typeGetImport(coenv &e) = 0;
 
   // Pushes the highest level frame possible onto the stack.  Returning
   // the frame pushed.  If no frame can be pushed, returns 0.
@@ -93,7 +91,6 @@ public:
 
   // As a type:
   types::ty *typeTrans(coenv &e, bool tacit = false);
-  trans::import *typeGetImport(coenv &e);
 
   void prettyprint(ostream &out, int indent);
   void print(ostream& out) const {
@@ -131,7 +128,6 @@ public:
 
   // As a type:
   types::ty *typeTrans(coenv &e, bool tacit = false);
-  trans::import *typeGetImport(coenv &e);
 
   void prettyprint(ostream &out, int indent);
   void print(ostream& out) const {

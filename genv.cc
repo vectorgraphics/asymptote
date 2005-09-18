@@ -32,15 +32,57 @@
 #include "locate.h"
 #include "interact.h"
 
-// Whether the module name should be visible like an import when translating
-// that module.
-#define SELF_IMPORT 1
-
 using namespace types;
-using vm::inst;
 
 namespace trans {
 
+record *genv::loadModule(symbol *id, std::string filename) {
+  // Get the abstract syntax tree.
+  absyntax::file *ast = parser::parseFile(filename);
+  em->sync();
+  
+  // Create the new module.
+  record *r = new record(id, new frame(0,0));
+
+  // Add it to the table of modules.
+  //modules.enter(id, r);
+
+  // Create coder and environment to translate the module.
+  // File-level modules have dynamic fields by default.
+  coder c(r, 0);
+  env e(*this);
+  coenv ce(c, e);
+
+  // Translate the abstract syntax.
+  ast->transAsRecordBody(ce, r);
+  em->sync();
+
+  // NOTE: Move this to a similar place as settings::translate.
+  if(settings::listonly)
+    r->list();
+  
+  return r;
+}
+
+
+record *genv::getModule(symbol *id, std::string filename) {
+  record *r=(*imap)[filename];
+  if (r)
+    return r;
+  else
+    return (*imap)[filename]=loadModule(id, filename);
+}
+
+genv::importInitMap *genv::getInitMap()
+{
+  // Take the initializer of each record.
+  importInitMap *initMap=new importInitMap;
+  for (importMap::iterator p=imap->begin(); p!=imap->end(); ++p)
+    (*initMap)[p->first]=p->second->getInit();
+  return initMap;
+}
+
+#if 0 //{{{
 genv::genv()
  : base_coder(),
    base_env(*this),
@@ -163,5 +205,6 @@ lambda *genv::trans(absyntax::runnable *r) {
 
   return c.close();
 }
+#endif //}}}
 
 } // namespace trans

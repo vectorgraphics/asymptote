@@ -233,9 +233,6 @@ class fieldExp : public nameExp {
       }
       return types::primError();
     }
-    trans::import *typeGetImport(coenv &) {
-      return 0;
-    }
 
     void prettyprint(ostream &out, int indent);
     void print(ostream& out) const {

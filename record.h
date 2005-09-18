@@ -40,7 +40,7 @@ struct record : public ty {
   vm::lambda *init;
 
 public:
-  record(symbol *name, frame *level, vm::lambda *init);
+  record(symbol *name, frame *level);
   ~record();
 
   void addType(symbol *name, ty *desc)

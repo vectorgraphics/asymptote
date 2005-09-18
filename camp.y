@@ -214,8 +214,10 @@ dec:
   vardec           { $$ = $1; }
 | fundec           { $$ = $1; }
 | typedec          { $$ = $1; }
+/*
 | IMPORT ID ';'    { $$ = new importdec($1, $2.sym); }
 | IMPORT STRING ';' { $$ = new importdec($1, $2.sym); }
+*/
 ;
 
 vardec:

@@ -2111,6 +2111,7 @@ void merge(stack *s)
   s->push(ret);
 }
 
+#if 0
 void execute(stack *s)
 {
   string Outname=outname;
@@ -2146,6 +2147,7 @@ void eval(stack *s)
     vm::run(l);
   }
 }
+#endif
 
 void changeDirectory(stack *s)
 {

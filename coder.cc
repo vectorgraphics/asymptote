@@ -45,14 +45,14 @@ coder::coder(modifier sord)
 }
 
 // Defines a new function environment.
-coder::coder(function *t, coder &parent, modifier sord, bool reframe)
-  : level(reframe ? new frame(parent.getFrame(), t->sig.getNumFormals()) :
-                    parent.getFrame()),
-    recordLevel(parent.recordLevel),
-    recordType(parent.recordType),
+coder::coder(function *t, coder *parent, modifier sord, bool reframe)
+  : level(reframe ? new frame(parent->getFrame(), t->sig.getNumFormals()) :
+                    parent->getFrame()),
+    recordLevel(parent->recordLevel),
+    recordType(parent->recordType),
     l(new vm::lambda),
     funtype(t),
-    parent(&parent),
+    parent(parent),
     sord(sord),
     perm(READONLY),
     program(new vm::program),
@@ -65,13 +65,13 @@ coder::coder(function *t, coder &parent, modifier sord, bool reframe)
 
 // Start encoding the body of the record.  The function being encoded
 // is the record's initializer.
-coder::coder(record *t, coder &parent, modifier sord)
+coder::coder(record *t, coder *parent, modifier sord)
   : level(t->getLevel()),
     recordLevel(t->getLevel()),
     recordType(t),
     l(t->getInit()),
     funtype(inittype()),
-    parent(&parent),
+    parent(parent),
     sord(sord),
     perm(READONLY),
     program(new vm::program),
@@ -84,12 +84,12 @@ coder::coder(record *t, coder &parent, modifier sord)
 
 coder coder::newFunction(function *t, modifier sord)
 {
-  return coder(t, *this, sord);
+  return coder(t, this, sord);
 }
 
 coder coder::newCodelet()
 {
-  return coder(new function(primVoid()), *this, DEFAULT_DYNAMIC, false);
+  return coder(new function(primVoid()), this, DEFAULT_DYNAMIC, false);
 }
 
 record *coder::newRecord(symbol *id)
@@ -98,16 +98,14 @@ record *coder::newRecord(symbol *id)
 
   frame *level = new frame(underlevel, 0);
   
-  vm::lambda *init = new vm::lambda;
-
-  record *r = new record(id, level, init);
+  record *r = new record(id, level);
 
   return r;
 }
 
 coder coder::newRecordInit(record *r, modifier sord)
 {
-  return coder(r, *this, sord);
+  return coder(r, this, sord);
 }
 
 

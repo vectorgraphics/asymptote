@@ -102,20 +102,20 @@ void purge()
 #endif
 }
 
-void doTranslate(genv& ge, record *m)
+void doPrint(genv& ge, record *m)
 {
-  lambda *l = ge.bootupModule(m);
   // NOTE: Should make it possible to show more code.
-  print(cout, l->code);
-  cout << "\n";
   print(cout, m->getInit()->code);
 }
 
-void doRun(genv& ge, record *m)
+// Run (an already translated)
+void doRun(genv& ge, std::string filename)
 {
-  lambda *l = ge.bootupModule(m);
-  setPath(startPath());
-  vm::run(l);
+  setPath(startPath()); // ???
+
+  vm::stack s;
+  s.setInitMap(ge.getInitMap());
+  s.load(filename);
 }
 
 void body(string filename) // TODO: Refactor
@@ -127,28 +127,28 @@ void body(string filename) // TODO: Refactor
     if(outname.empty()) 
       outname=(filename == "-") ? "out" : basename;
 
-    genv ge;
-    ge.autoloads(outname);
-    if(settings::listonly) {
-      ge.list();
-      if(filename == "") return;
-    }
-    
-    absyntax::file *tree = interactive ?
-      parser::parseInteractive() : parser::parseFile(filename);
-    em->sync();
-
     if (parseonly) {
+      absyntax::file *tree = parser::parseFile(filename);
+      em->sync();
+
       if (!em->errors())
         tree->prettyprint(cout, 0);
     } else {
-      record *m = ge.loadModule(symbol::trans(basename),tree);
-      if(listonly) return;
+      genv ge;
+#if 0 
+      ge.autoloads(outname);
+      if(settings::listonly) {
+        ge.list();
+        if(filename == "") return;
+      }
+#endif
+
+      record *m = ge.getModule(symbol::trans(basename),filename);
       if (!em->errors()) {
 	if (translate)
-	  doTranslate(ge,m);
+	  doPrint(ge,m);
 	else
-	  doRun(ge,m);
+	  doRun(ge,filename);
       }
     }
   } catch (std::bad_alloc&) {
@@ -182,17 +182,22 @@ void doInteractive()
 
 void doBatch()
 {
+#if 0
   if(listonly && numArgs() == 0) {
     init();
     body("");
     purge();
-  } else for(int ind=0; ind < numArgs() ; ind++) {
+  } else
+#endif
+
+  for(int ind=0; ind < numArgs() ; ind++) {
     init();
     body(getArg(ind));
     purge();
   }
 }
 
+#if 0
 typedef vm::interactiveStack istack;
 using absyntax::runnable;
 using absyntax::file;
@@ -238,6 +243,7 @@ void doIBatch()
     purge();
   }
 }
+#endif
 
 } // namespace loop
 
@@ -262,7 +268,8 @@ int main(int argc, char *argv[])
       loop::doInteractive();
     else if (laat) {
       cout << "laat = " << laat << endl;
-      loop::doIBatch();
+      cout << "not working right now\n";
+      //loop::doIBatch();
     }
     else
       loop::doBatch();

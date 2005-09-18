@@ -18,7 +18,6 @@
 #include "builtin.h"
 #include "types.h"
 #include "record.h"
-#include "import.h"
 #include "util.h"
 
 
@@ -37,11 +36,9 @@ class env {
   // The global environment - keeps track of modules.
   genv &ge;
 
-  // These tables keep track of type, variable definitions, and of
-  // imported modules.
-  tenv &te;
-  venv &ve;
-  menv &me;
+  // These tables keep track of type and variable definitions.
+  tenv te;
+  venv ve;
 
   access *baseLookupCast(ty *target, ty *source, symbol *name);
 
@@ -53,34 +50,19 @@ public:
   
   void beginScope()
   {
-    te.beginScope(); ve.beginScope(); me.beginScope();
+    te.beginScope(); ve.beginScope();
   }
   void endScope()
   {
-    te.endScope(); ve.endScope(); me.endScope();
+    te.endScope(); ve.endScope();
   }
 
   ty *lookupType(symbol *s)
   {
-    // Search in local types.
-    ty *t = te.look(s);
-    if (t)
-      return t;
-
-    // Search in modules.
-    t = me.lookupType(s);
-    if (t)
-      return t;
-    
-    // Search module names.
-    import *i = me.look(s);
-    if (i)
-      return i->getModule();
-    
-    // No luck.
-    return 0;
+    return te.look(s);
   }
 
+#if 0 //{{{
   // Returns the import in which the type is contained.
   import *lookupTypeImport(symbol *s)
   {
@@ -103,26 +85,12 @@ public:
     assert(False);
     return 0;
   }
+#endif //}}}
 
   varEntry *lookupVarByType(symbol *name, ty *t)
   {
     // Search in local vars.
-    varEntry *v = ve.lookByType(name, t);
-    if (v)
-      return v;
-
-    // Search in modules.
-    v = me.lookupVarByType(name, t);
-    if (v)
-      return v;
-    
-    // Search module name.
-    import *i = me.look(name);
-    if (i)
-      return i->getVarEntry();
-
-    // No luck.
-    return 0;
+    return ve.lookByType(name, t);
   }
 
   access *lookupInitializer(ty *t)
@@ -147,30 +115,11 @@ public:
 
   ty *varGetType(symbol *name)
   {
-    // NOTE: This overhead seems unnecessarily slow.
-    types::overloaded o;
-    
-    ty *t = ve.getType(name);
-    if (t)
-      o.add(t);
-
-    t = me.varGetType(name);
-    if (t)
-      o.addDistinct(t, name->special);
-
-    import *i = me.look(name);
-    if (i)
-      o.addDistinct(i->getModule(), name->special);
-
-    return o.simplify();
+    return ve.getType(name);
   }
 
   void addType(position pos, symbol *name, ty *desc)
   {
-    if (te.lookInTopScope(name)) {
-      em->error(pos);
-      *em <<  "type \'" << *name << "\' previously declared";
-    }
     te.enter(name, desc);
   }
   
@@ -181,6 +130,7 @@ public:
     ve.enter(name, desc);
   }
 
+#if 0 //{{{
   void enterImport(symbol *name, import *i)
   {
     me.enter(name, i);
@@ -197,8 +147,9 @@ public:
       std::cerr << "Importing " <<  *name << std::endl;
     enterImport(name, i);
   }
+#endif //}}}
 
-  record *getModule(symbol *id);
+  record *getModule(symbol *id, std::string filename);
 
 private: // Non-copyable
   void operator=(const env&);
