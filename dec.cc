@@ -459,6 +459,84 @@ void vardec::transAsTypedefField(coenv &e, record *r)
   decs->transAsTypedefField(e, base->trans(e), r);
 }
 
+// Helper class for imports.  This essentially evaluates to the run::loadModule
+// function.  However, that function returns different types of records
+// depending on the filename given to it, so we cannot add it to the environment
+// and explicit tell it what types::record it is returning for each use.
+class loadModuleExp : public exp {
+  record *imp;
+  function *ft;
+
+public:
+  loadModuleExp(position pos, record *imp)
+    : exp(pos), imp(imp), ft(new function(imp))
+  {
+    ft->add(primString());
+  }
+
+  types::ty *trans(coenv &e) {
+    em->compiler(getPos());
+    *em << "trans called for loadModuleExp";
+    return primError();
+  }
+
+  void transCall(coenv &e, types::ty *t) {
+    assert(equivalent(t, ft));
+    e.c.encode(inst::builtin, run::loadModule);
+  }
+
+  types::ty *getType(coenv &e) {
+    return ft;
+  }
+
+  exp *evaluate(coenv &, types::ty *) {
+    // Don't alias.
+    return this;
+  }
+};
+
+void importdec::prettyprint(ostream &out, int indent)
+{
+  prettyindent(out, indent);
+  out << "importdec (" << "'" << filename << "' as " << *id << ")\n";
+}
+
+void importdec::trans(coenv &e)
+{
+  transAsField(e,0);
+}
+
+void importdec::loadFailed(coenv &)
+{
+  em->warning(getPos());
+  *em << "could not load module of name '" << *id << "'";
+  em->sync();
+}
+
+void importdec::transAsField(coenv &e, record *r)
+{
+  record *imp=e.e.getModule(id, filename);
+  if (!imp) {
+    loadFailed(e);
+  }
+  else {
+    // Create a varinit that evaluates to the module.
+    // This is effectively the expression "loadModule(filename)".
+    callExp init(getPos(), new loadModuleExp(getPos(), imp),
+                           new stringExp(getPos(), filename));
+
+    // Add the variable to the environment.
+    // This is effectively a variable declaration of the form
+    //
+    // imp id=loadModule(filename);
+    //
+    // except that the type "imp" of the module is not in the type
+    // environment.
+    addVar(pos, e, r, id, imp, &init);
+  }
+}
+
+
 #if 0
 void importdec::initialize(coenv &e, record *m, access *a)
 {

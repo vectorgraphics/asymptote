@@ -352,6 +352,22 @@ public:
   virtual void transAsTypedefField(coenv &e, record *r);
 };
 
+class importdec : public dec {
+  symbol *id;
+  std::string filename;
+
+public:
+  importdec(position pos, symbol *id, std::string filename)
+    : dec(pos), id(id), filename(filename) {}
+
+  void prettyprint(ostream &out, int indent);
+  void loadFailed(coenv &e);
+
+  void trans(coenv &e);
+
+  void transAsField(coenv &e, record *r);
+};
+
 #if 0
 class importdec : public dec {
   symbol *id;

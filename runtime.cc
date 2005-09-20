@@ -2111,6 +2111,13 @@ void merge(stack *s)
   s->push(ret);
 }
 
+// Wrapper for the stack::load() method.
+void loadModule(stack *s)
+{
+  string *index= pop<string*>(s);
+  s->load(*index);
+}
+
 #if 0
 void execute(stack *s)
 {

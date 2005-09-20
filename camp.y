@@ -175,11 +175,6 @@ bareblock:
                    { $$ = $1; $$->add($2); }
 ;
 
-/*imports:
-  IMPORT name ';'
-| imports IMPORT name ';'
-;*/
-
 name:
   ID               { $$ = new simpleName($1.pos, $1.sym); }
 | name '.' ID      { $$ = new qualifiedName($2, $1, $3.sym); }
@@ -216,8 +211,8 @@ dec:
 | typedec          { $$ = $1; }
 /*
 | IMPORT ID ';'    { $$ = new importdec($1, $2.sym); }
-| IMPORT STRING ';' { $$ = new importdec($1, $2.sym); }
 */
+| IMPORT ID STRING ';' { $$ = new importdec($1, $2.sym, *$2.sym); }
 ;
 
 vardec:

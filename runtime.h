@@ -277,6 +277,7 @@ void scrollLines(vm::stack *s);
 void merge(vm::stack *s);
   
 // Execute an asymptote file
+void loadModule(vm::stack *s);
 void execute(vm::stack *s);
 void eval(vm::stack *s);
   
