@@ -51,7 +51,7 @@ AC_CHECK_HEADER(fftw3.h,
            AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
      AC_MSG_NOTICE([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
 
-GCVERSION=6.5
+GCVERSION=6.6
 
 AC_ARG_ENABLE(gc,
 	[  --enable-gc[[=VERSION]]   Use single-threaded Boehm garbage collector (default)]

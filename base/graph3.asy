@@ -7,7 +7,116 @@ import three;
 static public int nsub=4;
 static public int nmesh=10;
 
-// Under construction.
+typedef pair dirfcn(real);
+dirfcn perpendicular(guide3 G, triple normal, projection P=currentprojection)
+{
+  return new pair(real t) {
+    triple v=point(G,t);
+    return normal == O ? 0 :
+      project(v+cross(dir(G,t),normal),P)-project(v,P);};
+}
+
+// A general 3d axis.
+void axis(picture pic=currentpicture, guide3 G, Label L="", pen p=currentpen,
+	  ticks ticks, tickspec spec, arrowbar arrow=None,
+	  int[] divisor=new int[], bool put=Above, bool opposite=false,
+	  projection P=currentprojection) 
+{
+  divisor=copy(divisor);
+  spec=spec.copy();
+  path g=project(G,P);
+  pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
+    frame d;
+    ticks(d,t,L,0,g,g,p,arrow,spec,opposite,divisor);
+    (put ? add : prepend)(f,t*T*inverse(t)*d);
+  });
+  
+  pic.addPath(g,p);
+  
+  if(L.s != "") {
+    frame f;
+    Label L0=L.copy();
+    L0.position(0);
+    add(f,L0);
+    pair pos=point(g,L.relative()*length(g));
+    pic.addBox(pos,pos,min(f),max(f));
+  }
+}
+
+void xaxis(picture pic=currentpicture, triple min, triple max, triple dir=Y,
+	   Label L="", pen p=currentpen, ticks ticks=NoTicks,
+	   arrowbar arrow=None, bool put=Above,
+	   projection P=currentprojection) 
+{
+  real xmin=min.x;
+  real xmax=max.x;
+  bounds mx=autoscale(xmin,xmax,pic.scale.x.scale);
+  
+  guide3 G=min--max;
+  path g=project(G,P);
+  real factor=1.0/(xmax-xmin);
+  axis(pic,G,L,p,ticks,
+       tickspec(xmin,xmax,mx.min,mx.max,
+		new real(real v) {
+		  real T=(pic.scale.x.Tlog(v)-xmin)*factor;
+		  pair z=project(point(G,T),P);
+		  pair dir=project(dir(G,T),P);
+		  return intersect(g,z-I*dir--z+I*dir).x;
+		},new pair(real t) {
+		  triple v=point(G,t);
+		  return project(v+dir,P)-project(v,P);}),
+       arrow,mx.divisor,put,P);
+}
+
+void yaxis(picture pic=currentpicture, triple min, triple max, triple dir=X,
+	   Label L="", pen p=currentpen, ticks ticks=NoTicks,
+	   arrowbar arrow=None, bool put=Above,
+	   projection P=currentprojection) 
+{
+  real ymin=min.y;
+  real ymax=max.y;
+  bounds my=autoscale(ymin,ymax,pic.scale.y.scale);
+  
+  guide3 G=min--max;
+  path g=project(G,P);
+  real factor=1.0/(ymax-ymin);
+  axis(pic,G,L,p,ticks,
+       tickspec(ymin,ymax,my.min,my.max,
+		new real(real v) {
+		  real T=(pic.scale.y.Tlog(v)-ymin)*factor;
+		  pair z=project(point(G,T),P);
+		  pair dir=project(dir(G,T),P);
+		  return intersect(g,z-I*dir--z+I*dir).x;
+		},new pair(real t) {
+		  triple v=point(G,t);
+		  return project(v+dir,P)-project(v,P);}),
+       arrow,my.divisor,put,P);
+}
+
+void zaxis(picture pic=currentpicture, triple min, triple max, triple dir=X,
+	   Label L="", pen p=currentpen, ticks ticks=NoTicks,
+	   arrowbar arrow=None, bool put=Above,
+	   projection P=currentprojection) 
+{
+  real zmin=min.z;
+  real zmax=max.z;
+  bounds mz=autoscale(zmin,zmax,pic.scale.z.scale);
+  
+  guide3 G=min--max;
+  path g=project(G,P);
+  real factor=1.0/(zmax-zmin);
+  axis(pic,G,L,p,ticks,
+       tickspec(zmin,zmax,mz.min,mz.max,
+		new real(real v) {
+		  real T=(pic.scale.z.Tlog(v)-zmin)*factor;
+		  pair z=project(point(G,T),P);
+		  pair dir=project(dir(G,T),P);
+		  return intersect(g,z-I*dir--z+I*dir).x;
+		},new pair(real t) {
+		  triple v=point(G,t);
+		  return project(v+dir,P)-project(v,P);}),
+       arrow,mz.divisor,put,P);
+}
 
 typedef guide3 graph(triple F(real), real, real, int);
 

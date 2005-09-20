@@ -3,7 +3,7 @@ To compile and install Asymptote version x.xx from a source release:
 tar -zxf asymptote-x.xx.tar.gz
 cd asymptote-x.xx
 
-Put http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.5.tar.gz
+Put http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.6.tar.gz
 in the current directory and
 
 ./configure
@@ -13,3 +13,7 @@ make install
 If you get errors from a broken pdftex installation, simply put
 http://asymptote.sourceforge.net/asymptote.pdf in the doc
 directory and repeat the command make all.
+
+For a list of configure options, type
+
+configure --help

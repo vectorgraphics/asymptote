@@ -2091,7 +2091,11 @@ void merge(stack *s)
   
   ostringstream cmd,remove;
   cmd << "convert "+*args;
+#if MSDOS
+  remove << "del";
+#else  
   remove << "rm";
+#endif  
   while(!outnameStack->empty()) {
     string name=outnameStack->front();
     cmd << " " << name;

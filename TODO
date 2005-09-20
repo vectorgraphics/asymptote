@@ -14,7 +14,7 @@ executed as they are entered.) Make it look interpreted but still compile.
 
 Andy: implement simplified "cut-and-paste like" import scheme
 
-John: 3d graph axes
+Andy: Make real a[] also define the type real[], just like real[] a.
 
 3d lighting
 

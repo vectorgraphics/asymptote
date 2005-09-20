@@ -133,6 +133,7 @@ static public string defaultformat="$%.4g$";
 
 // Reduced for tension atleast infinity
 static real infinity=sqrt(0.25*realMax());
+static pair Infinity=(infinity,infinity);
 
 static real epsilon=realEpsilon();
 
@@ -539,37 +540,43 @@ coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
 
 public struct scaleT {
   typedef real scalefcn(real x);
-  scalefcn T,Tinv,Label;
-  T=Tinv=Label=identity;
-  bool automin=true, automax=true;
-  void init(scalefcn T, scalefcn Tinv, scalefcn Label=identity,
+  scalefcn T,Tinv;
+  bool logarithmic;
+  bool automin,automax;
+  void init(scalefcn T, scalefcn Tinv, bool logarithmic=false,
 	    bool automin=true, bool automax=true) {
     this.T=T;
     this.Tinv=Tinv;
-    this.Label=Label;
+    this.logarithmic=logarithmic;
     this.automin=automin;
     this.automax=automax;
   }
   scaleT copy() {
     scaleT dest=new scaleT;
-    dest.init(T,Tinv,Label,automin,automax);
+    dest.init(T,Tinv,logarithmic,automin,automax);
     return dest;
   }
 };
 
-scaleT operator init() {return new scaleT;}
+scaleT operator init()
+{
+  scaleT S=new scaleT;
+  S.init(identity,identity);
+  return S;
+}
 				  
 public struct autoscaleT {
   public scaleT scale;
   public scaleT postscale;
-  public real tickMin=infinity, tickMax=-infinity;
+  public real tickMin=-infinity, tickMax=infinity;
   public bool automin=true, automax=true;
   public bool automin() {return automin && scale.automin;}
   public bool automax() {return automax && scale.automax;}
   
   real T(real x) {return postscale.T(scale.T(x));}
+  real Tlog(real x) {return postscale.T(scale.logarithmic ? x : scale.T(x));}
   real Tinv(real x) {return scale.Tinv(postscale.Tinv(x));}
-  real Label(real x) {return scale.Label(postscale.Tinv(x));}
+  
   autoscaleT copy() {
     autoscaleT dest=new autoscaleT;
     dest.scale=scale.copy();
@@ -594,7 +601,6 @@ public struct ScaleT {
     dest.set=set;
     dest.x=x.copy();
     dest.y=y.copy();
-    dest.z=z.copy();
     return dest;
   }
 };
@@ -735,7 +741,7 @@ struct picture {
   public bool keepAspect=false;
 
   void init() {
-    userMin=(infinity,infinity);
+    userMin=Infinity;
     userMax=-userMin;
   }
   init();
@@ -1120,7 +1126,7 @@ pair[] operator * (transform t, pair[] z)
 
 pair min(explicit path[] g)
 {
-  pair ming=(infinity,infinity);
+  pair ming=Infinity;
   for(int i=0; i < g.length; ++i)
     ming=minbound(ming,min(g[i]));
   return ming;
@@ -1274,7 +1280,6 @@ private struct marginT {
 marginT operator init() {return new marginT;}
 
 typedef marginT margin(path, pen);
-private marginT margin(path, pen) {return new marginT;}
 
 path trim(path g, real begin, real end) {
   real a=arctime(g,begin);
@@ -1665,7 +1670,7 @@ struct Label {
   position position;
   bool defaultposition=true;
   align align;
-  pen p;
+  pen p=nullpen;
   real angle;
   bool defaultangle=true;
   pair shift;
@@ -1780,6 +1785,10 @@ struct Label {
   real relative() {
     return position.position.x;
   };
+  
+  real relative(path g) {
+    return position.relative ? reltime(g,relative()) : relative();
+  };
 }
 
 Label operator init() {return new Label;}
@@ -1832,18 +1841,20 @@ Label Label(string s="", align align=NoAlign, explicit pen p=nullpen)
   return L;
 }
 
-Label Label(Label L, position position, align align=NoAlign)
+Label Label(Label L, position position, align align=NoAlign, pen p=nullpen)
 {
   Label L=L.copy();
   L.position(position);
   L.align(align);
+  L.p(p);
   return L;
 }
 
-Label Label(Label L, align align=NoAlign)
+Label Label(Label L, align align=NoAlign, pen p=nullpen)
 {
   Label L=L.copy();
   L.align(align);
+  L.p(p);
   return L;
 }
 
@@ -1852,10 +1863,10 @@ void write(file file=stdout, Label L, suffix s=endl)
   L.write(file,s);
 }
 
-void label(frame f, string s, pair position, align align=NoAlign,
+void label(frame f, Label L, pair position, align align=NoAlign,
 	   pen p=currentpen)
 {
-  add(f,Label(s,position,align,p));
+  add(f,Label(L,position,align,p));
 }
   
 void label(picture pic=currentpicture, Label L, pair position,
@@ -2415,7 +2426,6 @@ picture bar(pair a, pair d, pen p=currentpen)
 }
 
 typedef bool arrowbar(picture, path, pen, margin);
-private bool arrowbar(picture, path, pen, margin) {return true;}
 
 arrowbar Blank()
 {

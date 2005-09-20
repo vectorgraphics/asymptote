@@ -274,7 +274,7 @@ cd asymptote-x.xx
 @end verbatim
 
 @noindent Then put
-@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.5.tar.gz}
+@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.6.tar.gz}
 in the current directory and
 @verbatim
 ./configure
@@ -453,7 +453,7 @@ cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote login
 cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote co asymptote
 cd asymptote-x.xx
 ./autogen.sh
-wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.5.tar.gz
+wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.6.tar.gz
 ./configure
 make all
 make install
@@ -3277,7 +3277,7 @@ ticks LeftTicks(bool begin=true, bool end=true, int N=0, int n=0,
                 real Step=0, real step=0,
                 real Size=Ticksize, real size=ticksize,
                 bool beginlabel=true, bool endlabel=true,
-                Label format=defaultformat, bool extend=false,
+                Label format="", bool extend=false,
                 pen pTick=nullpen, pen ptick=nullpen);
 @end verbatim
 
@@ -3309,10 +3309,12 @@ include the first label;
 @item bool endlabel
 include the last label;
 @item Label format
-used for overriding the default format, pen, and alignment (for
-example, @code{LeftSide}, @code{Center}, or @code{RightSide}) relative
-to the axis of the tick labels (to enable the @code{LaTeX} math mode
-fonts, the format string should begin and end with @code{$} @pxref{format});
+used for overriding the default format (@code{defaultformat}, initally
+"$%.4g$"), pen, and alignment (for example, @code{LeftSide}, @code{Center}, or
+@code{RightSide}) relative to the axis of the tick labels (to enable
+the @code{LaTeX} math mode fonts, the format string should begin and
+end with @code{$} @pxref{format}; if the format string is @code{"%"},
+the tick label will be suppressed);
 @item bool extend;
 extend the big ticks across the graph (useful for drawing a grid on
 the graph);
@@ -3442,26 +3444,26 @@ the tick location):
 @cindex Label
 @verbatim
 void xtick(picture pic=currentpicture, Label L="", pair z,
-           pair dir=N, string format=defaultformat,
+           pair dir=N, string format="",
            real size=Ticksize, pen p=currentpen);
 void ytick(picture pic=currentpicture, Label L="", explicit pair z,
-           pair dir=E, string format=defaultformat,
+           pair dir=E, string format="",
            real size=Ticksize, pen p=currentpen);
 void ytick(picture pic=currentpicture, Label L="", real y,
-           pair dir=E, string format=defaultformat,
+           pair dir=E, string format="",
            real size=Ticksize, pen p=currentpen);
 void tick(picture pic=currentpicture, pair z,
           pair dir, real size=Ticksize, pen p=currentpen);
 void labelx(picture pic=currentpicture, Label L="", pair z,
-            align align=S, string format=defaultformat, pen p=nullpen);
+            align align=S, string format="", pen p=nullpen);
 void labelx(picture pic=currentpicture, Label L,
-            string format=defaultformat, explicit pen p=currentpen);
+            string format="", explicit pen p=currentpen);
 void labely(picture pic=currentpicture, Label L="", explicit pair z,
-            align align=W, string format=defaultformat, pen p=nullpen);
+            align align=W, string format="", pen p=nullpen);
 void labely(picture pic=currentpicture, Label L="", real y,
-            align align=W, string format=defaultformat, pen p=nullpen);
+            align align=W, string format="", pen p=nullpen);
 void labely(picture pic=currentpicture, Label L,
-            string format=defaultformat, explicit pen p=nullpen);
+            string format="", explicit pen p=nullpen);
 @end verbatim
 @end itemize
 
@@ -3670,7 +3672,7 @@ that takes the following arguments:
 @verbatim
 paletteticks PaletteTicks(int N=0, real Step=0,
                           bool beginlabel=true, bool endlabel=true,
-                          Label format=defaultformat, pen pTick=nullpen);
+                          Label format="", pen pTick=nullpen);
 @end verbatim
 
 The image and palette bar can be fit (and optionally aligned) to a frame 
@@ -3874,9 +3876,6 @@ Surface plots are also implemented:
 @anchor{surface}
 @verbatiminclude surface.asy
 @image{surface}
-
-Autoscaling and three-dimensional axes with ticks will be added in an
-upcoming release.
 
 @node featpost3D
 @subsection @code{featpost3D}
@@ -4419,8 +4418,8 @@ void dot(picture pic=currentpicture, Label L, pen p=currentpen)
 The third routine draws a dot at every point of a pair array @code{z}.
 If the special variable @code{Label} is given as the @code{Label}
 argument to the fourth routine, the @code{format} argument will be
-used to format a string based on the dot location.
-One can also draw a dot at every node of a path:
+used to format a string based on the dot location (here @code{defaultformat}
+is @code{"$%.4g$"}). One can also draw a dot at every node of a path:
 @verbatim
 void dot(picture pic=currentpicture, guide g, pen p=currentpen);
 @end verbatim

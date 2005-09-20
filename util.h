@@ -33,10 +33,10 @@ bool checkFormatString(const string& format);
 // Similar to the standard system call except allows interrupts and does
 // not invoke a shell.
 int System(const char *command, bool quiet=false, bool wait=true,
-	   const char *hint="", const char *application="",
+	   const char *hint=NULL, const char *application="",
 	   int *pid=NULL);
 int System(const ostringstream& command, bool quiet=false, bool wait=true,
-	   const char *hint="", const char *application="",
+	   const char *hint=NULL, const char *application="",
 	   int *pid=NULL); 
   
 #if defined(__DECCXX_LIBCXX_RH70)
