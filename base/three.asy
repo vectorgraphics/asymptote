@@ -890,7 +890,7 @@ struct path3 {
   
   bool straight(int i) {
     if (cycles) return nodes[i % n].straight;
-    return (i < n) ? nodes[i].straight : false;
+    return (i >= 0 && i < n) ? nodes[i].straight : false;
   }
   
   triple point(int i) {
@@ -1095,7 +1095,7 @@ struct path3 {
       nodes[i].pre = postcontrol(j);
       nodes[i].point = point(j);
       nodes[i].post = precontrol(j);
-      nodes[i].straight = straight(j);
+      nodes[i].straight = straight(j-1);
     }
     return path3(nodes,cycles,cached_length);
   }

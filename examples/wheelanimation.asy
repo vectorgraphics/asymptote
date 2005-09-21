@@ -23,9 +23,9 @@ real t2=t1+2*pi;
 void initialpicture() {
   draw(circle((0,0),1));
   draw(wheel(t1,t2,100),linetype("0 2"));
-  yequals(-1,extend=true,Label("$y=-1$",1.0),linetype("4 4"));
-  xaxis(0,Label("$x$",align=3SW));
-  yaxis(0,1.15,"$y$");
+  yequals(Label("$y=-1$",1.0),-1,extend=true,linetype("4 4"));
+  xaxis(Label("$x$",align=3SW),0);
+  yaxis("$y$",0,1.15);
   pair z1=wheelpoint(t1);
   pair z2=wheelpoint(t2);
   dot(z1);

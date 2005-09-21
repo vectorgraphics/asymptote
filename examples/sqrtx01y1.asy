@@ -16,7 +16,7 @@ guide h=q--cycle;
 fill(h,lightgray);
 
 xaxis("$x$");
-yaxis(0,1.25,"$y$",dashed);
+yaxis("$y$",0,1.25,dashed);
 
 draw(q);
 arrow("$y=\sqrt{x}$",F(0.7),ESE);

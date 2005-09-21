@@ -19,7 +19,7 @@ paletteticks PaletteTicks(int N=0, real Step=0,
 {
   return new ticks(real Size) {
     format.align(RightSide);
-    return Ticks(false,false,-1,N,Step=Step,Size=Size,beginlabel,endlabel,
+    return Ticks(false,false,-1,N,-1,Step=Step,Size=Size,beginlabel,endlabel,
 		 format,pTick);
   };
 } 
@@ -50,7 +50,7 @@ picture palette(real[][] data, real width=Ticksize, pen[] palette,
   });
   
   pic.addBox(z0,z1,(-width,0),(0,0));
-  yaxis(pic,initialy,finaly,L,p,ticks(width),Above);
+  yaxis(pic,L,initialy,finaly,p,ticks(width),Above);
   return pic;
 }
 

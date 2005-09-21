@@ -538,8 +538,9 @@ coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
   return c;
 }
 
+typedef real scalefcn(real x);
+					      
 public struct scaleT {
-  typedef real scalefcn(real x);
   scalefcn T,Tinv;
   bool logarithmic;
   bool automin,automax;
@@ -574,7 +575,7 @@ public struct autoscaleT {
   public bool automax() {return automax && scale.automax;}
   
   real T(real x) {return postscale.T(scale.T(x));}
-  real Tlog(real x) {return postscale.T(scale.logarithmic ? x : scale.T(x));}
+  scalefcn T() {return scale.logarithmic ? postscale.T : T;}
   real Tinv(real x) {return scale.Tinv(postscale.Tinv(x));}
   
   autoscaleT copy() {
@@ -1783,7 +1784,7 @@ struct Label {
   }
   
   real relative() {
-    return position.position.x;
+    return defaultposition ? 0.5 : position.position.x;
   };
   
   real relative(path g) {
@@ -2166,12 +2167,12 @@ pen interp(pen a, pen b, real c)
   return (1-c)*a+c*b;
 }
 
-void dot(picture pic=currentpicture, pair z)
+void dot(frame f, pair z, pen p=currentpen)
 {
-  Draw(pic,z,dotsize()+currentpen);
+  draw(f,z,dotsize(p)+p);
 }
 
-void dot(picture pic=currentpicture, pair z, pen p)
+void dot(picture pic=currentpicture, pair z, pen p=currentpen)
 {
   Draw(pic,z,dotsize(p)+p);
 }

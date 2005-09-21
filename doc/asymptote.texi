@@ -2084,8 +2084,8 @@ child c;
 
 write(c);                       // Outputs 1;
 
-p.f();				// Outputs 0;
-c.f();				// Outputs 1;
+p.f();                          // Outputs 0;
+c.f();                          // Outputs 1;
 
 write(c.parent.x);              // Outputs 1;
 write(c.y);                     // Outputs 2;
@@ -3220,9 +3220,8 @@ An axis can be drawn on a picture with one of the following commands:
 
 @item
 @verbatim
-void xaxis(picture pic=currentpicture,
-           real xmin=-infinity, real xmax=infinity,
-           Label L="", pen p=currentpen, axis axis=YZero,
+void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
+           real xmin=-infinity, real xmax=infinity, pen p=currentpen, 
            ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below);
 @end verbatim
 
@@ -3340,9 +3339,8 @@ ticks LeftTicks(real[] Ticks, real[] ticks=new real[],
 
 @item
 @verbatim
-void yaxis(picture pic=currentpicture,
-           real ymin=-infinity, real ymax=infinity,
-           Label L="", pen p=currentpen, axis axis=XZero,
+void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
+           real ymin=-infinity, real ymax=infinity, pen p=currentpen,
            ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below);
 @end verbatim
 
@@ -3392,15 +3390,15 @@ drawn before any existing objects in the current layer.
 @cindex @code{yequals}
 For convenience, the functions 
 @verbatim
-void xequals(picture pic=currentpicture, real x, bool extend=false,
-             real ymin=-infinity, real ymax=infinity, Label L="",
+void xequals(picture pic=currentpicture, Label L="", real x,
+             bool extend=false, real ymin=-infinity, real ymax=infinity,
              pen p=currentpen, ticks ticks=NoTicks, bool put=Above,
              arrowbar arrow=None);
 @end verbatim
 and
 @verbatim
-void yequals(picture pic=currentpicture, real y, bool extend=false,
-             real xmin=-infinity, real xmax=infinity, Label L="",
+void yequals(picture pic=currentpicture, Label L="", real y,
+             bool extend=false, real xmin=-infinity, real xmax=infinity,
              pen p=currentpen, ticks ticks=NoTicks, bool put=Above,
              arrowbar arrow=None);
 @end verbatim
@@ -3411,21 +3409,17 @@ or horizontal lines and axes at arbitrary locations.
 
 @item
 @verbatim
-void axis(picture pic=currentpicture, guide g,
-          real tickmin=-infinity, real tickmax=infinity,
-          Label L="", pen p=currentpen, ticks ticks=NoTicks,
+void axis(picture pic=currentpicture, Label L="", guide g,
+          pen p=currentpen, ticks ticks, tickspec spec,
           arrowbar arrow=None, int[] divisor=new int[],
-          bool logarithmic=false, scaleT scale=Linear, part part,
           bool put=Above, bool opposite=false);
 @end verbatim
 
-This routine can be used to draw a general axis 
-on picture @code{pic} using pen @code{p}, based on an arbitrary
-path @code{g}, with ticks placed along its arclength (either evenly
-spaced or at custom locations).
-One may specify optional tick minimum and maximum values @code{tickmin} and
-@code{tickmax}, and optionally label the axis with Label @code{L}.
-The tick type is specified by @code{ticks} and the optional integer array
+This routine can be used to draw a general axis with ticks on picture
+@code{pic} using pen @code{p}, based on an arbitrary path @code{g}.
+One can optionally label the axis with Label @code{L}.
+The tick type and value specifier is given by @code{ticks} and
+@code{tickspec} and the optional integer array 
 @code{divisor} specifies what tick divisors to try in the attempt to
 produce uncrowded tick labels. A @code{true} value for the flag
 @code{opposite} identifies an unlabelled secondary axis (typically
@@ -3871,6 +3865,17 @@ Here is an example of a helix and a path3 bounding box using
 orthographic projection:
 @verbatiminclude helix.asy
 @image{helix}
+
+This example illustrates three-dimensional @math{x}, @math{y}, and
+@math{z} axes, with optional autoscaling:
+@cindex @code{axis}
+@verbatiminclude axis3.asy
+@image{axis3}
+
+One can also place ticks along a general three-dimensional axis:
+@cindex @code{axis}
+@verbatiminclude generalaxis3.asy
+@image{generalaxis3}
 
 Surface plots are also implemented:
 @anchor{surface}
@@ -4401,13 +4406,11 @@ add(pair origin=(0,0), picture dest=currentpicture, frame);
 
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.
-The @code{dot} command defined in @code{plain.asy} draws a dot with a
-diameter given by either the default linewidth magnified by @code{dotfactor}
-(6 by default) or an explicit pen linewidth. If no pen argument is given,
-@code{currentpen}, with its linewidth magnified by @code{dotfactor}, is used:
+The @code{dot} command defined in @code{plain.asy} draws a dot having a
+a diameter equal to an explicit pen linewidth or the default linewidth
+magnified by @code{dotfactor} (6 by default):
 @verbatim
-void dot(picture pic=currentpicture, pair z);
-void dot(picture pic=currentpicture, pair z, pen p);
+void dot(picture pic=currentpicture, pair z, pen p=currentpen);
 void dot(picture pic=currentpicture, pair[] z, pen p=currentpen);
 void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
          string format=defaultformat, pen p=currentpen)

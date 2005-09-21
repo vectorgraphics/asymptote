@@ -26,8 +26,8 @@ void spectrum(pair l,pair m, pair s) {
   dot("$q$",m,SW,d);
   dot("$k$",s,SW,d);
 
-  xaxis(0,"$k$");
-  yaxis(0,"$E(k)$");
+  xaxis("$k$",0);
+  yaxis("$E(k)$",0);
 }
 
 drawarrow(l,m,true,blue);

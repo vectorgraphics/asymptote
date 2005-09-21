@@ -5,15 +5,14 @@ size(0,100);
 
 path3 G=xscale3(1)*(yscale3(2)*unitcircle3);
 
-projection P=currentprojection;
-
-axis(G,LeftTicks(end=false,endlabel=false,8,"$%.0f$"),
+axis(Label("C",align=Relative(5E)),G,
+     LeftTicks(end=false,endlabel=false,8),
      tickspec(0,360,new real(real v) {
 		pair d=dir(v);
 		real T=intersect(G,O--abs(max(G)-min(G))*(d.x,d.y,0)).x;
-		pair z=project(point(G,T),P);
-		pair dir=project(dir(G,T),P);
+		triple v=point(G,T);
+		pair z=v;
+		pair dir=dir(v,dir(G,T));
 		path g=G;
-		return intersect(g,z-0.5I*dir--z+0.5I*dir).x;
+		return intersect(g,z-0.05I*dir--z+0.05I*dir).x;
 	      },perpendicular(G,Z)));
-

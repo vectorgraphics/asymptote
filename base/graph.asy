@@ -7,7 +7,7 @@ static public real axislabelmargin=1;
 static public real axiscoverage=0.9;
 static public int ngraph=100;
 
-static public real epsilon=1000*realEpsilon();
+static public real epsilon=10*realEpsilon();
 
 static bool Crop=true;
 static bool NoCrop=false;
@@ -181,42 +181,6 @@ ticklabel LogFormat=new string(real x) {
   return format("$10^{%d}$",round(x));
 };
 
-// Add axis label L to frame f.
-void labelaxis(frame f, Label L, guide g, bool ticklabels=false)
-{
-  Label L0=L.copy();
-  real t=L0.relative(g);
-  pair z=point(g,t);
-  pair dir=dir(g,t);
-  pair align=L0.align.dir;
-  if(L0.align.relative) align *= -I*dir;
-  bool straight=straight(g);
-  if(ticklabels) {
-    pair offset;
-    if(straight) {
-      pair minf=min(f);
-      pair maxf=max(f);
-      offset=(align.x >= 0 ? maxf.x : 
-		   (align.x < 0 ? minf.x : 0),
-		   align.y >= 0 ? maxf.y : 
-		   (align.y < 0 ? minf.y : 0))-z;
-      pair Idir=I*dir;
-      z += dot(offset,Idir)*Idir;
-    }
-    align=axislabelmargin*align;
-  }
-  L0.align(align);
-  L0.position(z);
-  frame d;
-  add(d,L0);
-  pair width=0.5*dot(max(d)-min(d),dir)*dir;
-  if(straight) {
-    if(L.relative() == 0) d=shift(width)*d;
-    if(L.relative() == length(g)) d=shift(-width)*d;
-  }
-  add(f,d);
-}
-
 // The default direction specifier.
 pair zero(real) {return 0;}
 
@@ -241,10 +205,21 @@ tickspec operator init() {return new tickspec;}
 
 autoscaleT defaultS;
   
+typedef real valuetime(real);
+real valuetime(real x) {return 0;}
+
+valuetime linear(picture pic=currentpicture, scalefcn S=identity,
+		 real Min, real Max)
+{
+  real factor=Max == Min ? 0.0 : 1.0/(Max-Min);
+  return new real(real v) {return (S(v)-Min)*factor;};
+}
+
 tickspec tickspec(real a, real b, autoscaleT S=defaultS,
 		  real tickmin=-infinity, real tickmax=infinity,
-		  real time(real), pair dir(real)=zero) 
+		  real time(real)=null, pair dir(real)=zero) 
 {
+  if(time == null) time=linear(S.T(),a,b);
   tickspec spec;
   spec.a=a;
   spec.b=b;
@@ -262,14 +237,16 @@ private struct locateT {
   pair pathdir; // path direction in frame coordinates
   pair dir;     // tick direction in frame coordinates
   
-// Locate the desired position of a tick along a path.
-  bool calc(transform T, guide g, tickspec spec, real val) {
-    t=spec.time(val);
-    Z=T*point(g,t);
+  void dir(transform T, guide g, tickspec spec, real t) {
     pathdir=unit(T*dir(g,t));
     pair Dir=spec.dir(t);
     dir=Dir == 0 ? -I*pathdir : unit(Dir);
-    return true;
+  }
+// Locate the desired position of a tick along a path.
+  void calc(transform T, guide g, tickspec spec, real val) {
+    t=spec.time(val);
+    Z=T*point(g,t);
+    dir(T,g,spec,t);
   }
 }
 
@@ -305,11 +282,56 @@ pair labeltick(frame d, transform T, guide g, tickspec spec, real val,
     ticklabelshift(align,F.p);
   pair Z=locate.Z+shift;
   if(abs(val) < epsilon*norm) val=0;
+  pair perp=I*locate.pathdir;
+  // Adjust tick label alignment
+  pair adjust=unit(align+0.5*unit(perp*sgn(dot(align,perp))));
+  // Project align onto adjusted direction.
+  align=adjust*dot(align,adjust);
   string s=ticklabel(val);
   s=baseline(s,align,"$10^4$");
   label(d,rotate(F.angle)*s,Z,align,F.p);
   return locate.pathdir;
 }  
+
+// Add axis label L to frame f.
+void labelaxis(frame f, transform T, Label L, guide g, 
+	       tickspec spec=null, int sign=1, bool ticklabels=false)
+{
+  Label L0=L.copy();
+  real t=L0.relative(g);
+  pair z=point(g,t);
+  pair dir=dir(g,t);
+  if(spec != null) {
+    locateT locate;
+    locate.dir(T,g,spec,t);
+    pair perp=I*dir;
+    L0.align(L0.align,unit(-sgn(dot(sign*locate.dir,perp))*perp));
+  }		     
+  pair align=L0.align.dir;
+  if(L0.align.relative) align *= -I*dir;
+  if(ticklabels) {
+    if(straight(g)) {
+      real angle=degrees(dir(g,t));
+      transform t=rotate(-angle,point(g,t));
+      frame F=t*f;
+      pair Z=t*z;
+      pair Align=rotate(-angle)*align;
+      real offset=(Align.y >= 0 ? max(F).y : (Align.y < 0 ? min(F).y : 0))-Z.y;
+      z += abs(offset)*unit(align);
+    }
+    align=axislabelmargin*align;
+  }
+  L0.align(align);
+  L0.position(z);
+  frame d;
+  add(d,L0);
+  pair width=0.5*(max(d)-min(d));
+  int n=length(g);
+  pair project(pair v, pair d) {return dot(v,d)*d;}
+  if(L.relative() == 0) d=shift(project(width,dir(g,0)))*d;
+  if(L.relative() == n) d=shift(project(-width,dir(g,n)))*d;
+  add(f,d);
+}
 
 // Compute the fractional coverage of a linear axis.
 real axiscoverage(int N, transform T, path g, tickspec spec, real Step,
@@ -355,6 +377,9 @@ real logaxiscoverage(int N, transform T, path g, tickspec spec, pair side,
 // Signature of routines that draw labelled paths with ticks and tick labels.
 typedef void ticks(frame, transform, Label, pair, path, path, pen, arrowbar,
 		   tickspec, bool opposite=false, int[]);
+					  
+private void ticks(frame, transform, Label, pair, path, path, pen, arrowbar,
+		   tickspec, bool opposite=false, int[]) {};
 
 // Automatic tick construction routine.
 ticks Ticks(bool begin=true, bool end=true, int sign, int N, int n=0,
@@ -373,6 +398,11 @@ ticks Ticks(bool begin=true, bool end=true, int sign, int N, int n=0,
     real step=step;
     pen pTick=pTick;
     pen ptick=ptick;
+    
+    real Size=Size;
+    real size=size;
+    if(Size == 0) Size=Ticksize;
+    if(size == 0) size=ticksize;
     
     Label L=L.copy();
     Label F=F.copy();
@@ -393,7 +423,7 @@ ticks Ticks(bool begin=true, bool end=true, int sign, int N, int n=0,
       real a=spec.S.Tinv(spec.a);
       real b=spec.S.Tinv(spec.b);
       if(a > b) {real temp=a; a=b; b=temp;}
-    
+      
       real tickmin=finite(spec.S.tickMin) ? spec.S.Tinv(spec.S.tickMin) : a;
       real tickmax=finite(spec.S.tickMax) ? spec.S.Tinv(spec.S.tickMax) : b;
       if(tickmin > tickmax) {real temp=tickmin; tickmin=tickmax; tickmax=temp;}
@@ -544,13 +574,13 @@ ticks Ticks(bool begin=true, bool end=true, int sign, int N, int n=0,
     }
     
     if(L.s != "" && !opposite) 
-      labelaxis(f,L,G,ticklabels);
+      labelaxis(f,T,L,G,spec,sign,ticklabels);
   };
 }
 
 // Tick construction routine for a user-specified array of tick values.
 ticks Ticks(int sign, real[] Ticks, real[] ticks=new real[],
-	    real Size=Ticksize, real size=ticksize,
+	    real Size=0, real size=0,
 	    bool beginlabel=true, bool endlabel=true, Label F="",
 	    bool extend=false, pen pTick=nullpen, pen ptick=nullpen)
 {
@@ -561,6 +591,11 @@ ticks Ticks(int sign, real[] Ticks, real[] ticks=new real[],
     int sign=opposite ? -sign : sign;
     pen pTick=pTick;
     pen ptick=ptick;
+    
+    real Size=Size;
+    real size=size;
+    if(Size == 0) Size=Ticksize;
+    if(size == 0) size=ticksize;
     
     Label L=L.copy();
     Label F=F.copy();
@@ -611,27 +646,27 @@ ticks Ticks(int sign, real[] Ticks, real[] ticks=new real[],
       }
     }
     if(L.s != "" && !opposite) 
-      labelaxis(f,L,G,ticklabels);
+      labelaxis(f,T,L,G,spec,sign,ticklabels);
   };
 }
 
 ticks NoTicks()
 {
-  return new void(frame f, transform t, Label L, pair, path g, path, pen p,
+  return new void(frame f, transform T, Label L, pair, path g, path, pen p,
 		  arrowbar arrow, tickspec, bool opposite, int[]) {
     if(opposite) draw(f,g,p);
     else {
-      path G=t*g;
+      path G=T*g;
       draw(f,G,p,arrow);
       if(L.s != "")
-	labelaxis(f,L,G);
+	labelaxis(f,T,L,G);
     }
   };
 }
 
 ticks LeftTicks(bool begin=true, bool end=true, int N=0, int n=0,
 		real Step=0, real step=0,
-		real Size=Ticksize, real size=ticksize,
+		real Size=0, real size=0,
 		bool beginlabel=true, bool endlabel=true,
 		Label format="", bool extend=false,
 		pen pTick=nullpen, pen ptick=nullpen)
@@ -642,7 +677,7 @@ ticks LeftTicks(bool begin=true, bool end=true, int N=0, int n=0,
 
 ticks RightTicks(bool begin=true, bool end=true, int N=0, int n=0,
 		 real Step=0, real step=0,
-		 real Size=Ticksize, real size=ticksize,
+		 real Size=0, real size=0,
 		 bool beginlabel=true, bool endlabel=true,
 		 Label format="", bool extend=false,
 		 pen pTick=nullpen, pen ptick=nullpen)
@@ -652,7 +687,7 @@ ticks RightTicks(bool begin=true, bool end=true, int N=0, int n=0,
 }
 
 ticks LeftTicks(real[] Ticks, real[] ticks=new real[],
-		real Size=Ticksize, real size=ticksize,
+		real Size=0, real size=0,
 		bool beginlabel=true, bool endlabel=true, 
 		Label format="", bool extend=false,
 		pen pTick=nullpen, pen ptick=nullpen)
@@ -662,7 +697,7 @@ ticks LeftTicks(real[] Ticks, real[] ticks=new real[],
 }
 
 ticks RightTicks(real[] Ticks, real[] ticks=new real[],
-		 real Size=Ticksize, real size=ticksize,
+		 real Size=0, real size=0,
 		 bool beginlabel=true, bool endlabel=true,
 		 Label format="", bool extend=false,
 		 pen pTick=nullpen, pen ptick=nullpen)
@@ -816,11 +851,14 @@ public axis
   XZero=XZero(),
   YZero=YZero();
 
-// A general axis.
-void axis(picture pic=currentpicture, guide g, Label L="", pen p=currentpen,
+// Draw a general axis.
+void axis(picture pic=currentpicture, Label L="", guide g, pen p=currentpen,
 	  ticks ticks, tickspec spec, arrowbar arrow=None,
 	  int[] divisor=new int[], bool put=Above, bool opposite=false) 
 {
+  Label L=L.copy();
+  real t=reltime(g,0.5);
+  if(L.defaultposition) L.position(t);
   divisor=copy(divisor);
   spec=spec.copy();
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
@@ -842,10 +880,10 @@ void axis(picture pic=currentpicture, guide g, Label L="", pen p=currentpen,
 }
 
 // An internal routine to draw an x axis at a particular y value.
-void xaxisAt(picture pic=currentpicture,
-	     real xmin=-infinity, real xmax=infinity, axis axis, Label L="",
-	     pen p=currentpen, ticks ticks=NoTicks, arrowbar arrow=None,
-	     bool put=Above, bool opposite=false)
+void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
+	     real xmin=-infinity, real xmax=infinity, pen p=currentpen,
+	     ticks ticks=NoTicks, arrowbar arrow=None, bool put=Above,
+	     bool opposite=false)
 {
   real y=opposite ? axis.value2.y : axis.value.y;
   real y2=axis.value2.y;
@@ -860,9 +898,7 @@ void xaxisAt(picture pic=currentpicture,
     pair b2=xmax == infinity ? tinv*(rt.x-max(p).x,ytrans(t,y2)) : (xmax,y2);
     frame d;
     ticks(d,t,L,side,a--b,finite(y2) ? a2--b2 : nullpath,p,arrow,
-	  tickspec(a.x,b.x,pic.scale.x,new real(real v) {
-		     return (pic.scale.x.Tlog(v)-a.x)/(b.x-a.x);
-		   }),opposite,divisor);
+	  tickspec(a.x,b.x,pic.scale.x),opposite,divisor);
     (put ? add : prepend)(f,t*T*tinv*d);
   });
 
@@ -884,9 +920,7 @@ void xaxisAt(picture pic=currentpicture,
   if(finite(a) && finite(b)) {
     frame d;
     ticks(d,identity(),L,side,(a.x,0)--(b.x,0),(a2.x,0)--(b2.x,0),p,arrow,
-	  tickspec(a.x,b.x,pic.scale.x,new real(real v) {
-		     return (pic.scale.x.Tlog(v)-a.x)/(b.x-a.x);
-		   }),opposite,divisor);
+	  tickspec(a.x,b.x,pic.scale.x),opposite,divisor);
     frame f;
     if(L.s != "") {
       Label L0=L.copy();
@@ -899,10 +933,10 @@ void xaxisAt(picture pic=currentpicture,
 }
 
 // An internal routine to draw a y axis at a particular x value.
-void yaxisAt(picture pic=currentpicture,
-	     real ymin=-infinity, real ymax=infinity, axis axis, Label L="",
-	     pen p=currentpen, ticks ticks=NoTicks, arrowbar arrow=None,
-	     bool put=Above, bool opposite=false)
+void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
+	     real ymin=-infinity, real ymax=infinity, pen p=currentpen,
+	     ticks ticks=NoTicks, arrowbar arrow=None, bool put=Above,
+	     bool opposite=false)
 {
   real x=opposite ? axis.value2.x : axis.value.x;
   real x2=axis.value2.x;
@@ -917,9 +951,7 @@ void yaxisAt(picture pic=currentpicture,
     pair b2=ymax == infinity ? tinv*(xtrans(t,x2),rt.y-max(p).y) : (x2,ymax);
     frame d;
     ticks(d,t,L,side,a--b,finite(x2) ? a2--b2 : nullpath,p,arrow,
-	  tickspec(a.y,b.y,pic.scale.y,new real(real v) {
-		     return (pic.scale.y.Tlog(v)-a.y)/(b.y-a.y);
-		   }),opposite,divisor);
+	  tickspec(a.y,b.y,pic.scale.y),opposite,divisor);
     (put ? add : prepend)(f,t*T*tinv*d);
   });
   
@@ -941,9 +973,7 @@ void yaxisAt(picture pic=currentpicture,
   if(finite(a) && finite(b)) {
     frame d;
     ticks(d,identity(),L,side,(0,a.y)--(0,b.y),(0,a2.y)--(0,b2.y),p,arrow,
-	  tickspec(a.y,b.y,pic.scale.y,new real(real v) {
-		     return (pic.scale.y.Tlog(v)-a.y)/(b.y-a.y);
-		   }),opposite,divisor);
+	  tickspec(a.y,b.y,pic.scale.y),opposite,divisor);
     frame f;
     if(L.s != "") {
       Label L0=L.copy();
@@ -1071,16 +1101,16 @@ void autoscale(picture pic=currentpicture, axis axis)
   }
 }
 
-void checkaxis(picture pic, axis axis) 
+void checkaxis(picture pic, axis axis, bool ticks) 
 {
   axis(pic,axis);
-  if(!axis.extend && pic.empty())
-    abort("unextended axis called on empty picture");
+  if((!axis.extend || ticks) && pic.empty())
+    abort("axis with ticks or unextended axis called on empty picture");
 }
 
 // Draw an x axis.
-void xaxis(picture pic=currentpicture, real xmin=-infinity, real xmax=infinity,
-	   Label L="", pen p=currentpen, axis axis=YZero,
+void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
+	   real xmin=-infinity, real xmax=infinity, pen p=currentpen,
 	   ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below)
 {
   Label L=L.copy();
@@ -1104,7 +1134,8 @@ void xaxis(picture pic=currentpicture, real xmin=-infinity, real xmax=infinity,
     pic.scale.x.tickMax=mx.max;
     axis.xdivisor=mx.divisor;
   } else {
-    if(xmin == -infinity || xmax == infinity) checkaxis(pic,axis);
+    if(xmin == -infinity || xmax == infinity)
+      checkaxis(pic,axis,ticks != NoTicks);
     autoscale(pic,axis);
   }
   
@@ -1126,14 +1157,14 @@ void xaxis(picture pic=currentpicture, real xmin=-infinity, real xmax=infinity,
   if(L.defaultposition) L.position(axis.position);
   L.align(L.align,axis.align);
   
-  xaxisAt(pic,xmin,xmax,axis,L,p,ticks,arrow,put);
+  xaxisAt(pic,L,axis,xmin,xmax,p,ticks,arrow,put);
   if(axis.value2 != Infinity)
-    xaxisAt(pic,xmin,xmax,axis,L,p,ticks,arrow,put,true);
+    xaxisAt(pic,L,axis,xmin,xmax,p,ticks,arrow,put,true);
 }
 
 // Draw a y axis.
-void yaxis(picture pic=currentpicture, real ymin=-infinity, real ymax=infinity,
-	   Label L="", pen p=currentpen, axis axis=XZero,
+void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
+	   real ymin=-infinity, real ymax=infinity, pen p=currentpen,
 	   ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below)
 {
   Label L=L.copy();
@@ -1157,7 +1188,8 @@ void yaxis(picture pic=currentpicture, real ymin=-infinity, real ymax=infinity,
     pic.scale.y.tickMax=my.max;
     axis.ydivisor=my.divisor;
   } else {
-    if(ymin == -infinity || ymax == infinity) checkaxis(pic,axis);
+    if(ymin == -infinity || ymax == infinity) 
+      checkaxis(pic,axis,ticks != NoTicks);
     autoscale(pic,axis);
   }
   
@@ -1185,34 +1217,36 @@ void yaxis(picture pic=currentpicture, real ymin=-infinity, real ymax=infinity,
     L.angle(length(max(f)-min(f)) > ylabelwidth*fontsize(L.p) ? 90 : 0);
   }
   
-  yaxisAt(pic,ymin,ymax,axis,L,p,ticks,arrow,put);
+  yaxisAt(pic,L,axis,ymin,ymax,p,ticks,arrow,put);
   if(axis.value2 != Infinity)
-    yaxisAt(pic,ymin,ymax,axis,L,p,ticks,arrow,put,true);
+    yaxisAt(pic,L,axis,ymin,ymax,p,ticks,arrow,put,true);
 }
 
 // Draw x and y axes.
-void axes(picture pic=currentpicture, pen p=currentpen, bool put=Below)
+void axes(picture pic=currentpicture, Label xLabel="", Label yLabel="",
+	  pen p=currentpen, ticks xticks=NoTicks, ticks yticks=NoTicks,
+	  arrowbar arrow=None, bool put=Below)
 {
-  xaxis(pic,p,put);
-  yaxis(pic,p,put);
+  xaxis(pic,xLabel,p,xticks,arrow,put);
+  yaxis(pic,yLabel,p,yticks,arrow,put);
 }
 
 // Draw a yaxis at x.
-void xequals(picture pic=currentpicture, real x, bool extend=false,
-	     real ymin=-infinity, real ymax=infinity, Label L="",
+void xequals(picture pic=currentpicture, Label L="", real x,
+	     bool extend=false, real ymin=-infinity, real ymax=infinity,
 	     pen p=currentpen, ticks ticks=NoTicks, bool put=Above,
 	     arrowbar arrow=None)
 {
-  yaxis(pic,ymin,ymax,L,p,XEquals(x,extend),ticks,arrow,put);
+  yaxis(pic,L,XEquals(x,extend),ymin,ymax,p,ticks,arrow,put);
 }
 
 // Draw an xaxis at y.
-void yequals(picture pic=currentpicture, real y, bool extend=false,
-	     real xmin=-infinity, real xmax=infinity, Label L="",
+void yequals(picture pic=currentpicture, Label L="", real y,
+	     bool extend=false, real xmin=-infinity, real xmax=infinity,
 	     pen p=currentpen, ticks ticks=NoTicks, bool put=Above,
 	     arrowbar arrow=None)
 {
-  xaxis(pic,xmin,xmax,L,p,YEquals(y,extend),ticks,arrow,put);
+  xaxis(pic,L,YEquals(y,extend),xmin,xmax,p,ticks,arrow,put);
 }
 
 // Draw a tick of length size at pair z in direction dir using pen p.
@@ -1412,8 +1446,7 @@ guide graph(picture pic=currentpicture, real f(real), real a, real b,
 guide graph(picture pic=currentpicture, real x(real), real y(real), real a,
 	    real b, int n=ngraph, interpolate join=operator --)
 {
-  return graph(join)(new pair(real t) {return Scale(pic,(x(t),y(t)));},
-		     a,b,n);
+  return graph(join)(new pair(real t) {return Scale(pic,(x(t),y(t)));},a,b,n);
 }
 
 guide graph(picture pic=currentpicture, pair z(real), real a, real b,
@@ -1475,9 +1508,8 @@ pair polar(real r, real theta)
 guide polargraph(real f(real), real a, real b, int n=ngraph,
 		 interpolate join=operator --)
 {
-  return graph(join)(new pair(real theta) {
-      return f(theta)*expi(theta);
-    },a,b,n);
+  return graph(join)(new pair(real theta) {return f(theta)*expi(theta);},
+		     a,b,n);
 }
 
 void errorbar(picture pic, pair z, pair dp, pair dm, pen p=currentpen,

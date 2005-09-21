@@ -3,6 +3,9 @@
  * Andy Hammerlindl 2002/05/16
  *
  * Stores a piecewise cubic spline with known control points.
+ *
+ * When changing the path algorithms, also update the corresponding 
+ * three-dimensional algorithms in three.asy.
  *****/
 
 #ifndef PATH_H
@@ -138,7 +141,7 @@ public:
   bool straight(int i) const
   {
     if (cycles) return nodes[imod(i,n)].straight;
-    return (i < n) ? nodes[i].straight : false;
+    return (i >= 0 && i < n) ? nodes[i].straight : false;
   }
   
   pair point(double t) const;

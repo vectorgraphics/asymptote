@@ -13,6 +13,6 @@ yaxis("$y$",dotted);
 draw(z1--2*z1,red);
 draw(z2--2*z2,red);
 
-yaxis(-2,2,XEquals(1));
-yaxis(-2,2,XEquals(-1));
+yaxis(XEquals(1),-2,2);
+yaxis(XEquals(-1),-2,2);
 

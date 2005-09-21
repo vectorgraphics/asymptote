@@ -27,7 +27,7 @@ arrow("$y=\sqrt{x}$",F(0.7),N);
 arrow((3,0.5*f(x)),W,1cm,red);
 arrow((3,-0.5*f(x)),W,1cm,red);
 
-xaxis(0,c.x,"$x$",dashed);
+xaxis("$x$",0,c.x,dashed);
 yaxis("$y$");
 
 draw("$r$",(x,0)--F(x),E,red,Arrows,BeginBar,PenMargins);

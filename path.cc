@@ -3,6 +3,9 @@
  * Andy Hammerlindl 2002/06/06
  *
  * Stores and returns information on a predefined path.
+ *
+ * When changing the path algorithms, also update the corresponding 
+ * three-dimensional algorithms in three.asy.
  *****/
 
 #include <cfloat>
@@ -184,7 +187,7 @@ path path::reverse() const
     nodes[i].pre = postcontrol(j);
     nodes[i].point = point(j);
     nodes[i].post = precontrol(j);
-    nodes[i].straight = straight(j);
+    nodes[i].straight = straight(j-1);
   }
   return path(nodes, n, cycles);
 }

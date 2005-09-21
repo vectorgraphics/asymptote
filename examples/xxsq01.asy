@@ -36,7 +36,7 @@ draw((x,f(x))--(x,g(x)),red);
 
 arrow((2,0.5*(f(x)+g(x))),W,1cm,red);
 
-xaxis(0,c.x,"$x$",dashed);
+xaxis("$x$",0,c.x,dashed);
 yaxis("$y$");
 
 draw("$r_{\rm in}$",S0*(c--c+f(x)*dir(-45)),dir(56),darkgreen,Arrow(6.0));

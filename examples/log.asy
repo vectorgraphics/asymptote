@@ -5,7 +5,7 @@ size(150,0);
 real f(real x) {return log(x);}
 pair F(real x) {return (x,f(x));}
 
-xaxis(0,"$x$");
+xaxis("$x$",0);
 yaxis("$y$");
 
 draw(graph(f,0.01,10,operator ..));

@@ -17,7 +17,7 @@ picture q=secondaryY(new void(picture pic) {
 		       scale(pic,Log,Linear);
 		       draw(pic,graph(pic,phas,0.01,10),red);
 		       ylimits(pic,-1.0,1.5);
-		       yaxis(pic,"$\Arg G/\pi$",red,Right,
+		       yaxis(pic,"$\Arg G/\pi$",Right,red,
 			     LeftTicks(false,false,"$% #.1f$"));
 		       yequals(pic,1,Dotted);
 		     });

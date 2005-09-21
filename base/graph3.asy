@@ -7,23 +7,63 @@ import three;
 static public int nsub=4;
 static public int nmesh=10;
 
-typedef pair dirfcn(real);
-dirfcn perpendicular(guide3 G, triple normal, projection P=currentprojection)
+typedef pair direction(real);
+
+pair dir(triple v, triple dir, projection P=currentprojection)
 {
-  return new pair(real t) {
-    triple v=point(G,t);
-    return normal == O ? 0 :
-      project(v+cross(dir(G,t),normal),P)-project(v,P);};
+  return unit(project(v+dir,P)-project(v,P));
 }
 
-// A general 3d axis.
-void axis(picture pic=currentpicture, guide3 G, Label L="", pen p=currentpen,
+direction dir(guide3 G, triple dir, projection P=currentprojection)
+{
+  return new pair(real t) {
+    return dir(point(G,t),dir,P);
+  };
+}
+
+direction perpendicular(guide3 G, triple normal,
+			projection P=currentprojection)
+{
+  return new pair(real t) {
+    return dir(point(G,t),cross(dir(G,t),normal),P);
+  };
+}
+
+real projecttime(guide3 G, real T, guide g, projection P=currentprojection)
+{
+  triple v=point(G,T);
+  pair z=project(v,P);
+  pair dir=dir(v,dir(G,T),P);
+  return intersect(g,z-I*dir--z+I*dir).x;
+}
+
+real projecttime(guide3 G, real T, projection P=currentprojection)
+{
+  return projecttime(G,T,project(G,P),P);
+}
+
+valuetime linear(picture pic=currentpicture, guide3 G, scalefcn S,
+		 real Min, real Max, projection P=currentprojection)
+{
+  real factor=Max == Min ? 0.0 : 1.0/(Max-Min);
+  path g=project(G,P);
+  return new real(real v) {
+    return projecttime(G,(S(v)-Min)*factor,g,P);
+  };
+}
+
+// Draw a general three-dimensional axis.
+void axis(picture pic=currentpicture, Label L="", guide3 G, pen p=currentpen,
 	  ticks ticks, tickspec spec, arrowbar arrow=None,
 	  int[] divisor=new int[], bool put=Above, bool opposite=false,
 	  projection P=currentprojection) 
 {
   divisor=copy(divisor);
   spec=spec.copy();
+  Label L=L.copy();
+  real t=0.5*length(G);
+  if(L.defaultposition) L.position(t);
+  
   path g=project(G,P);
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
     frame d;
@@ -43,79 +83,85 @@ void axis(picture pic=currentpicture, guide3 G, Label L="", pen p=currentpen,
   }
 }
 
-void xaxis(picture pic=currentpicture, triple min, triple max, triple dir=Y,
-	   Label L="", pen p=currentpen, ticks ticks=NoTicks,
+bounds autoscale(real min, real max, autoscaleT A)
+{
+  bounds m;
+  if(finite(A.tickMin) && finite(A.tickMax)) {
+    m.min=A.tickMin; m.max=A.tickMax;
+  } else m=autoscale(min,max,A.scale);
+  return m;
+}
+
+// Draw an x axis in three dimensions.
+void xaxis(picture pic=currentpicture, Label L="", triple min, triple max,
+	   pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
 	   arrowbar arrow=None, bool put=Above,
 	   projection P=currentprojection) 
 {
-  real xmin=min.x;
-  real xmax=max.x;
-  bounds mx=autoscale(xmin,xmax,pic.scale.x.scale);
-  
+  bounds mx=autoscale(min.x,max.x,pic.scale.x);
   guide3 G=min--max;
-  path g=project(G,P);
-  real factor=1.0/(xmax-xmin);
-  axis(pic,G,L,p,ticks,
-       tickspec(xmin,xmax,mx.min,mx.max,
-		new real(real v) {
-		  real T=(pic.scale.x.Tlog(v)-xmin)*factor;
-		  pair z=project(point(G,T),P);
-		  pair dir=project(dir(G,T),P);
-		  return intersect(g,z-I*dir--z+I*dir).x;
-		},new pair(real t) {
-		  triple v=point(G,t);
-		  return project(v+dir,P)-project(v,P);}),
+  valuetime t=linear(pic,G,pic.scale.x.T(),min.x,max.x,P);
+  axis(pic,L,G,p,ticks,tickspec(min.x,max.x,mx.min,mx.max,t,dir(G,dir,P)),
        arrow,mx.divisor,put,P);
 }
 
-void yaxis(picture pic=currentpicture, triple min, triple max, triple dir=X,
-	   Label L="", pen p=currentpen, ticks ticks=NoTicks,
-	   arrowbar arrow=None, bool put=Above,
+
+// Draw a y axis in three dimensions.
+void yaxis(picture pic=currentpicture, Label L="", triple min, triple max,
+	   pen p=currentpen, ticks ticks=NoTicks, triple dir=X,
+	   arrowbar arrow=None, bool put=Above, 
 	   projection P=currentprojection) 
 {
-  real ymin=min.y;
-  real ymax=max.y;
-  bounds my=autoscale(ymin,ymax,pic.scale.y.scale);
-  
+  bounds my=autoscale(min.y,max.y,pic.scale.y);
   guide3 G=min--max;
-  path g=project(G,P);
-  real factor=1.0/(ymax-ymin);
-  axis(pic,G,L,p,ticks,
-       tickspec(ymin,ymax,my.min,my.max,
-		new real(real v) {
-		  real T=(pic.scale.y.Tlog(v)-ymin)*factor;
-		  pair z=project(point(G,T),P);
-		  pair dir=project(dir(G,T),P);
-		  return intersect(g,z-I*dir--z+I*dir).x;
-		},new pair(real t) {
-		  triple v=point(G,t);
-		  return project(v+dir,P)-project(v,P);}),
+  valuetime t=linear(pic,G,pic.scale.y.T(),min.y,max.y,P);
+  axis(pic,L,G,p,ticks,tickspec(min.y,max.y,my.min,my.max,t,dir(G,dir,P)),
        arrow,my.divisor,put,P);
 }
 
-void zaxis(picture pic=currentpicture, triple min, triple max, triple dir=X,
-	   Label L="", pen p=currentpen, ticks ticks=NoTicks,
+// Draw a z axis in three dimensions.
+void zaxis(picture pic=currentpicture, Label L="", triple min, triple max,
+	   pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
 	   arrowbar arrow=None, bool put=Above,
 	   projection P=currentprojection) 
 {
-  real zmin=min.z;
-  real zmax=max.z;
-  bounds mz=autoscale(zmin,zmax,pic.scale.z.scale);
-  
+  bounds mz=autoscale(min.z,max.z,pic.scale.z);
   guide3 G=min--max;
-  path g=project(G,P);
-  real factor=1.0/(zmax-zmin);
-  axis(pic,G,L,p,ticks,
-       tickspec(zmin,zmax,mz.min,mz.max,
-		new real(real v) {
-		  real T=(pic.scale.z.Tlog(v)-zmin)*factor;
-		  pair z=project(point(G,T),P);
-		  pair dir=project(dir(G,T),P);
-		  return intersect(g,z-I*dir--z+I*dir).x;
-		},new pair(real t) {
-		  triple v=point(G,t);
-		  return project(v+dir,P)-project(v,P);}),
+  valuetime t=linear(pic,G,pic.scale.z.T(),min.z,max.z,P);
+  axis(pic,L,G,p,ticks,tickspec(min.z,max.z,mz.min,mz.max,t,dir(G,dir,P)),
        arrow,mz.divisor,put,P);
+}
+
+bounds autolimits(real min, real max, autoscaleT A)
+{
+  bounds m;
+  if(A.automin() || A.automax()) {
+    m=autoscale(min,max,A.scale);
+    if(A.automin()) min=m.min;
+    if(A.automax()) max=m.max;
+    A.tickMin=m.min;
+    A.tickMax=m.max;
+  } else {m.min=min; m.max=max;}
+  return m;
+}
+
+struct limits {
+  public triple O,X,Y,Z;
+}
+
+limits operator init() {return new limits;}
+  
+limits autolimits(picture pic=currentpicture, triple min, triple max) 
+{
+  limits L;
+  bounds mx=autolimits(min.x,max.x,pic.scale.x);
+  bounds my=autolimits(min.y,max.y,pic.scale.y);
+  bounds mz=autolimits(min.z,max.z,pic.scale.z);
+  L.O=(mx.min,my.min,mz.min);
+  L.X=(mx.max,my.min,mz.min);
+  L.Y=(mx.min,my.max,mz.min);
+  L.Z=(mx.min,my.min,mz.max);
+  return L;
 }
 
 typedef guide3 graph(triple F(real), real, real, int);
