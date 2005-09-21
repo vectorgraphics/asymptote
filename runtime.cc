@@ -2091,27 +2091,22 @@ void merge(stack *s)
   
   ostringstream cmd,remove;
   cmd << "convert "+*args;
-#if MSDOS
-  remove << "del";
-#else  
-  remove << "rm";
-#endif  
-  while(!outnameStack->empty()) {
-    string name=outnameStack->front();
-    cmd << " " << name;
-    remove << " " << name;
-    outnameStack->pop_front();
-  }
+  
+  for(std::list<std::string>::iterator p=outnameStack->begin();
+      p != outnameStack->end(); ++p)
+    cmd << " " << *p;
   
   string name=buildname(outname,format->c_str());
   cmd << " " << name;
   ret=System(cmd);
   
-  if(ret == 0) {
-    if(settings::verbose > 0) cout << "Wrote " << name << endl;
-    if(!keep && !settings::keep) System(remove);
-  }
+  if(ret == 0) if(settings::verbose > 0) cout << "Wrote " << name << endl;
   
+  if(!keep && !settings::keep)
+    for(std::list<std::string>::iterator p=outnameStack->begin();
+      p != outnameStack->end(); ++p)
+      unlink(p->c_str());
+    
   s->push(ret);
 }
 

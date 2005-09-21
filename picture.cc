@@ -433,11 +433,10 @@ bool picture::shipout(const picture& preamble, const string& prefix,
     if(labels) {
       tex->epilogue();
       status=texprocess(texname,epsname,prefix,bpos);
-      if(!keep) {
-	std::list<string>::iterator p;
-	for(p=psnameStack.begin(); p != psnameStack.end(); ++p)
+      if(!keep)
+	for(std::list<string>::iterator p=psnameStack.begin();
+	    p != psnameStack.end(); ++p)
 	  unlink(p->c_str());
-      }
     }
     if(status) status=postprocess(epsname,outname,outputformat,wait,bpos);
   }
