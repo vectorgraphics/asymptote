@@ -1223,12 +1223,11 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
 }
 
 // Draw x and y axes.
-void axes(picture pic=currentpicture, Label xLabel="", Label yLabel="",
-	  pen p=currentpen, ticks xticks=NoTicks, ticks yticks=NoTicks,
-	  arrowbar arrow=None, bool put=Below)
+void axes(picture pic=currentpicture, pen p=currentpen, arrowbar arrow=None,
+	  bool put=Below)
 {
-  xaxis(pic,xLabel,p,xticks,arrow,put);
-  yaxis(pic,yLabel,p,yticks,arrow,put);
+  xaxis(pic,p,arrow,put);
+  yaxis(pic,p,arrow,put);
 }
 
 // Draw a yaxis at x.
@@ -1561,6 +1560,22 @@ void errorbars(picture pic=currentpicture, real[] x, real[] y,
   errorbars(pic,x,y,0*x,dpy,cond,p,size);
 }
 
+// A path as a function of a relative position parameter.
+typedef path vector(real);
+
+void vectorfield(picture pic=currentpicture, path g, int n, 
+		 vector vector, real arrowsize=0, real arrowlength=0,
+		 pen p=currentpen) 
+{
+  if(arrowsize == 0) arrowsize=arrowsize(p);
+  if(n == 0) return;
+  for(int i=0; i <= n; ++i) {
+    real x=i/n;
+    pair z=relpoint(g,x);
+    draw(z,pic,vector(x),p,Arrow(arrowsize));
+  }
+}
+
 // True arc
 guide Arc(pair c, real r, real angle1, real angle2)
 {
@@ -1573,3 +1588,4 @@ guide Circle(pair c, real r)
 {
   return Arc(c,r,0,2pi)--cycle;
 }
+
