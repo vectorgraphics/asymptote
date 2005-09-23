@@ -2090,7 +2090,7 @@ void merge(stack *s)
   if(!checkFormatString(*format)) return;
   
   ostringstream cmd,remove;
-  cmd << "convert "+*args;
+  cmd << Convert << " "+*args;
   
   for(std::list<std::string>::iterator p=outnameStack->begin();
       p != outnameStack->end(); ++p)
@@ -2098,7 +2098,7 @@ void merge(stack *s)
   
   string name=buildname(outname,format->c_str());
   cmd << " " << name;
-  ret=System(cmd);
+  ret=System(cmd,false,true,"ASYMPTOTE_CONVERT","convert");
   
   if(ret == 0) if(settings::verbose > 0) cout << "Wrote " << name << endl;
   
