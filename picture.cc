@@ -130,9 +130,9 @@ void picture::texinit()
   }
   
   tex.open("latex");
-  texdocumentclass(tex);
+  texdocumentclass(tex,true);
   
-  texdefines(tex,TeXpipepreamble);
+  texdefines(tex,TeXpipepreamble,true);
   TeXpipepreamble.clear();
 
   tex << "\n";
@@ -297,7 +297,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
 bool picture::shipout(const picture& preamble, const string& prefix,
 		      const string& format, bool wait, bool Delete)
 {
-  if(settings::suppressStandard) return true;
+  if(suppressStandard) return true;
   
   checkFormatString(format);
   string outputformat=format.empty() ? outformat : format;
@@ -329,7 +329,10 @@ bool picture::shipout(const picture& preamble, const string& prefix,
       
   bbox bpos=b;
   
-  if(!labels && pdfformat) {
+  bool TeXmode=texmode && settings::texprocess;
+  bool Labels=labels || TeXmode;
+  
+  if(!Labels && pdfformat) {
     double fuzz=1.0;
     bpos.left -= fuzz;
     bpos.right += fuzz;
@@ -370,7 +373,7 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   texfile *tex=NULL;
   bool status = true;
   
-  if(labels) {
+  if(Labels) {
     tex=new texfile(texname,b);
     tex->prologue();
   }
@@ -383,12 +386,12 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   while(p != nodes.end()) {
     ostringstream buf;
     buf << prefix << "_" << layer;
-    string psname=labels ? buildname(buf.str(),"ps") : epsname;
+    string psname=Labels ? buildname(buf.str(),"ps") : epsname;
     psnameStack.push_back(psname);
     psfile out(psname,bpos,bboxshift);
     out.prologue();
   
-    if(labels) tex->beginlayer(psname);
+    if(Labels) tex->beginlayer(psname);
   
     // Postscript preamble.
     nodelist Nodes=preamble.nodes;
@@ -408,13 +411,13 @@ bool picture::shipout(const picture& preamble, const string& prefix,
     
     for(; p != nodes.end(); ++p) {
       assert(*p);
-      if(labels && (*p)->islayer()) break;
+      if(Labels && (*p)->islayer()) break;
       if(!(*p)->draw(&out))
 	status = false;
     }
     out.epilogue();
   
-    if(status && labels) {
+    if(status && Labels) {
       for (p=layerp; p != nodes.end(); ++p) {
 	if((*p)->islayer()) {
 	  tex->endlayer();
@@ -430,15 +433,19 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   }
   
   if(status) {
-    if(labels) {
-      tex->epilogue();
-      status=texprocess(texname,epsname,prefix,bpos);
-      if(!keep)
-	for(std::list<string>::iterator p=psnameStack.begin();
-	    p != psnameStack.end(); ++p)
-	  unlink(p->c_str());
+    if(TeXmode) {
+      if(verbose > 0) cout << "Wrote " << texname << endl;
+    } else {
+      if(labels) {
+	tex->epilogue();
+	status=texprocess(texname,epsname,prefix,bpos);
+	if(!keep)
+	  for(std::list<string>::iterator p=psnameStack.begin();
+	      p != psnameStack.end(); ++p)
+	    unlink(p->c_str());
+      }
+      if(status) status=postprocess(epsname,outname,outputformat,wait,bpos);
     }
-    if(status) status=postprocess(epsname,outname,outputformat,wait,bpos);
   }
   
   if(!status) reportError("shipout failed");

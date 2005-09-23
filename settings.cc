@@ -61,6 +61,7 @@ string ghostscript;
 string outformat="eps";
 int keep=0;
 int texprocess=1;
+int texmode=0;
 int debug=0;
 int verbose=0;
 int safe=1;
@@ -132,11 +133,14 @@ void options()
   cerr << "-v, -verbose\t Increase verbosity level" << endl;
   cerr << "-k\t\t Keep intermediate files" << endl;
   cerr << "-L\t\t Disable LaTeX label postprocessing" << endl;
+  cerr << "-t\t\t Produce LaTeX file for \\usepackage[inline]{asymptote}"
+       << endl;
   cerr << "-p\t\t Parse test" << endl;
   cerr << "-s\t\t Translate test" << endl;
   cerr << "-l\t\t List available global functions" << endl;
   cerr << "-m\t\t Mask fpu exceptions (default for interactive mode)" << endl;
-  cerr << "-nomask\t\t Don't mask fpu exceptions (default for batch mode)" << endl;
+  cerr << "-nomask\t\t Don't mask fpu exceptions (default for batch mode)" 
+       << endl;
   cerr << "-bw\t\t Convert all colors to black and white" << endl;
   cerr << "-gray\t\t Convert all colors to grayscale" << endl;
   cerr << "-rgb\t\t Convert cmyk colors to rgb" << endl;
@@ -181,7 +185,7 @@ void setOptions(int argc, char *argv[])
   errno=0;
   for(;;) {
     int c = getopt_long_only(argc,argv,
-			     "cdf:hiklLmo:pPsvVnx:O:CBTZ",
+			     "cdf:hiklLmo:pPstvVnx:O:CBTZ",
 			     long_options,&option_index);
     if (c == -1) break;
 
@@ -219,6 +223,9 @@ void setOptions(int argc, char *argv[])
       break;
     case 's':
       translate=1;
+      break;
+    case 't':
+      texmode=1;
       break;
     case 'l':
       listonly=1;

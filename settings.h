@@ -33,6 +33,7 @@ extern const string docdir;
 extern string outformat;
 extern int keep;
 extern int texprocess;
+extern int texmode;
 extern int debug;
 extern int verbose;
 extern int view;

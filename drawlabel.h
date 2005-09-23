@@ -26,6 +26,7 @@ private:
   bool suppress;
   double scale;
   pair Align;
+  pair texAlign;
   
 public:
   drawLabel(string label, double angle, pair position, pair align,
@@ -38,6 +39,8 @@ public:
 
   void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&);
   
+  void texbounds(iopipestream& tex);
+    
   bool islabel() {
     return true;
   }
@@ -47,7 +50,7 @@ public:
       reportError("drawLabel::write called before bounds");
     if(suppress || pentype->invisible()) return true;
     out->setpen(*pentype);
-    out->put(label,angle,position+Align);
+    out->put(label,angle,position,texAlign);
     return true;
   }
 

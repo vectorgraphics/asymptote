@@ -3,12 +3,20 @@
 %%% Modified by John Bowman
 %%% Adapted from comment.sty (Under GPL v2)
 
+\newif\ifinline
+\DeclareOption{inline}{\inlinetrue}
+\ProcessOptions*
+
+\ifinline
+\RequirePackage{graphicx,pstricks}
+\else
 \RequirePackage{graphics}
+\fi
 
 \def\makeinnocent#1{\catcode`#1=12 }
 \def\csarg#1#2{\expandafter#1\csname#2\endcsname}
 \newwrite\AsyStream
-\newread\EpsTestStream
+\newread\AsyTestStream
 \def\AsyFile{\jobname.asy}
 \immediate\openout\AsyStream=\AsyFile
 \newcounter{asy}
@@ -57,13 +65,25 @@
   \immediate\write\AsyStream{atexit(atexit);}%
   \immediate\write\AsyStream{exitfunction();}%
   \immediate\write\AsyStream{\@charrb}%
-  \openin\EpsTestStream= \jobname.\arabic{asy}.eps
-  \ifeof\EpsTestStream
-    \message{File \jobname.\arabic{asy}.eps does not exist.}%
-    \closein\EpsTestStream%
+  \ifinline
+  \openin\AsyTestStream=\jobname_\arabic{asy}_.tex
   \else
-    \closein\EpsTestStream
-    \includegraphics{\jobname.\arabic{asy}.eps}%
+  \openin\AsyTestStream=\jobname_\arabic{asy}.eps
+  \fi
+  \ifeof\AsyTestStream
+    \ifinline
+      \message{File \jobname_\arabic{asy}_.tex does not exist.}%
+    \else
+      \message{File \jobname_\arabic{asy}.eps does not exist.}%
+    \fi
+    \closein\AsyTestStream%
+  \else
+    \closein\AsyTestStream%
+    \ifinline
+    \input{\jobname_\arabic{asy}_.tex}%
+    \else
+    \includegraphics{\jobname_\arabic{asy}.eps}%
+    \fi
   \fi
   \relax%
   \endgroup}
@@ -75,7 +95,7 @@
   \def\@optarg{#1}%
    \immediate\write\AsyStream{\@charlb}%
    \immediate\write\AsyStream{static import plain;}%
-   \immediate\write\AsyStream{defaultfilename="\jobname.\arabic{asy}.eps";}%
+   \immediate\write\AsyStream{defaultfilename="\jobname_\arabic{asy}";}%
   \ifx\@optarg\empty
    \immediate\write\AsyStream{size(\ASYdefaultsize);}%
   \else

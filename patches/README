@@ -9,3 +9,7 @@ gv-3.6.1 must be explicitly configured with ./configure --enable-signal-handle
 
 A patch to provide full image support in the Asymptote backend to pstoedit
 (http://pstoedit.net), is provided in the file pstoedit-3.41asy.patch.
+
+A modified version of dvipdf that accepts the dvips -z hyperdvi option is
+included.
+

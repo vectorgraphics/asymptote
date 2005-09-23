@@ -4706,6 +4706,7 @@ Options:
 -v, -verbose     Increase verbosity level
 -k               Keep intermediate files
 -L               Disable LaTeX label postprocessing
+-t               Produce LaTeX file for \usepackage[inline]{asymptote}
 -p               Parse test
 -s               Translate test
 -l               List available global functions and variables.

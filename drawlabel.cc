@@ -22,16 +22,53 @@ void drawLabel::labelwarning(const char *action)
 	       << "\" " << action << " to avoid overwriting" << endl;
 }
   
+void drawLabel::texbounds(iopipestream& tex)
+{
+  string texbuf;
+  tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(label) << "}\n\n";
+  tex.wait(texready.c_str(),"! ");
+  tex << "\\showthe\\wd\\ASYbox\n";
+  tex >> texbuf;
+  if(texbuf[0] == '>' && texbuf[1] == ' ')
+    width=atof(texbuf.c_str()+2)*tex2ps;
+  else if(settings::texmode) {
+    tex << "\n";
+    tex.wait("\n*","! ");
+    return;
+  } else reportError("Can't read label width");
+  tex << "\n";
+  tex.wait("\n*","! ");
+  tex << "\\showthe\\ht\\ASYbox\n";
+  tex >> texbuf;
+  if(texbuf[0] == '>' && texbuf[1] == ' ')
+    height=atof(texbuf.c_str()+2)*tex2ps;
+  else reportError("Can't read label height");
+  tex << "\n";
+  tex.wait("\n*","! ");
+  tex << "\\showthe\\dp\\ASYbox\n";
+  tex >> texbuf;
+  if(texbuf[0] == '>' && texbuf[1] == ' ')
+    depth=atof(texbuf.c_str()+2)*tex2ps;
+  else reportError("Can't read label depth");
+  tex << "\n";
+  tex.wait("\n*","! ");
+     
+  width *= scale;
+  height *= scale;
+  depth *= scale;
+}   
+
+
 void drawLabel::bounds(bbox& b, iopipestream& tex,
 		       boxvector& labelbounds, bboxlist&)
 {
   if(!settings::texprocess) {b += position; return;}
-  string texbuf;
   pair rotation=expi(radians(angle));
   pen Pentype=*pentype;
   static const double fuzz=1.75;
   
   if(!havebounds) {
+    havebounds=true;
     if(Pentype.size() != lastpen.size() ||
        Pentype.Lineskip() != lastpen.Lineskip()) {
       tex <<  "\\fontsize{" << Pentype.size() << "}{" << Pentype.Lineskip()
@@ -54,44 +91,18 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
     
     lastpen=Pentype;
     
-    tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(label) << "}\n\n";
-    tex.wait(texready.c_str(),"! ");
-    tex << "\\showthe\\wd\\ASYbox\n";
-    tex >> texbuf;
-    if(texbuf[0] == '>' && texbuf[1] == ' ')
-      width=atof(texbuf.c_str()+2)*tex2ps;
-    else reportError("Can't read label width");
-    tex << "\n";
-    tex.wait("\n*","! ");
-    tex << "\\showthe\\ht\\ASYbox\n";
-    tex >> texbuf;
-    if(texbuf[0] == '>' && texbuf[1] == ' ')
-      height=atof(texbuf.c_str()+2)*tex2ps;
-    else reportError("Can't read label height");
-    tex << "\n";
-    tex.wait("\n*","! ");
-    tex << "\\showthe\\dp\\ASYbox\n";
-    tex >> texbuf;
-    if(texbuf[0] == '>' && texbuf[1] == ' ')
-      depth=atof(texbuf.c_str()+2)*tex2ps;
-    else reportError("Can't read label depth");
-    tex << "\n";
-    tex.wait("\n*","! ");
-     
-    width *= scale;
-    height *= scale;
-    depth *= scale;
+    texbounds(tex);
     
     Align=align/rotation;
     double scale0=max(fabs(Align.getx()),fabs(Align.gety()));
     if(scale0) Align *= 0.5/scale0;
     Align -= pair(0.5,0.5);
+    texAlign=Align;
     double Depth=(Pentype.Baseline() == NOBASEALIGN) ? depth : 0.0;
     Align.scale(width,height+Depth);
     Align += pair(0.0,Depth);
       
     Align *= rotation;
-    havebounds=true;
   }
 
   // alignment point
