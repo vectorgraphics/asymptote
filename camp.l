@@ -167,6 +167,7 @@ ESC \\
                     yyterminate();
                    }
 \r\n|\n|\r         {adjust(); newline(); append('\n'); continue; }
+{ESC}{ESC}         {adjust(); append('\\'); append('\\'); continue; }
 {ESC}\"            {adjust(); append('\"'); continue; }
 .                  {adjust(); append(*yytext); }
 }
