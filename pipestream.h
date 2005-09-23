@@ -46,32 +46,30 @@ protected:
   int pid;
   bool pipeopen;
 public:
-  void open(const char *command, int out_fileno=STDOUT_FILENO) {
+  void open(const char *command, const char *hint=NULL,
+	    const char *application="", int out_fileno=STDOUT_FILENO) {
     if(pipe(in) == -1) {
-      ostringstream buf;
-      buf << "in pipe failed: " << command;
-      camp::reportError(buf);
+      cerr << "in pipe failed: " << command << endl;
+      exit(-1);
     }
 
     if(pipe(out) == -1) {
       ostringstream buf;
-      buf << "out pipe failed: " << command;
-      camp::reportError(buf);
+      cerr << "out pipe failed: " << command << endl;
+      exit(-1);
     }
     
     int wrapperpid;
     // Portable way of forking that avoids zombie child processes
     if((wrapperpid=fork()) < 0) {
-      ostringstream buf;
-      buf << "fork failed: " << command;
-      camp::reportError(buf);
+      cerr << "fork failed: " << command << endl;
+      exit(-1);
     }
     
     if(wrapperpid == 0) {
       if((pid=fork()) < 0) {
-	ostringstream buf;
-	buf << "fork failed: " << command;
-	camp::reportError(buf);
+	cerr << "fork failed: " << command << endl;
+	exit(-1);
       }
     
       if(pid == 0) { 
@@ -84,9 +82,7 @@ public:
 	close(out[1]);
 	char **argv=args(command);
 	if(argv) execvp(argv[0],argv);
-	ostringstream buf;
-	buf << "exec failed: " << command << std::endl;
-	camp::reportError(buf);
+	execError(command,hint,application);
       }
       exit(0);
     } else {
@@ -99,15 +95,11 @@ public:
 
   iopipestream(): pid(0), pipeopen(false) {}
   
-  iopipestream(const char *command, int out_fileno=STDOUT_FILENO) :
-    pid(0), pipeopen(false) {open(command,out_fileno);}
-  
-  iopipestream(const string command, int out_fileno=STDOUT_FILENO) :
-    pid(0), pipeopen(false) {open(command.c_str(),out_fileno);}
-  
-  iopipestream(const std::ostringstream& command,
-	       int out_fileno=STDOUT_FILENO) :
-    pid(0), pipeopen(false) {open(command.str().c_str(),out_fileno);}
+  iopipestream(const char *command, const char *hint=NULL,
+	       const char *application="", int out_fileno=STDOUT_FILENO) :
+    pid(0), pipeopen(false) {
+    open(command,hint,application,out_fileno);
+  }
   
   void pipeclose() {
     if(pipeopen) {

@@ -71,4 +71,6 @@ int setPath(const char *s);
 void backslashToSlash(string& s);
 string Getenv(const char *name, bool quote=true);
 
+void execError(const char *command, const char *hint, const char *application);
+  
 #endif

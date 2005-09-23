@@ -361,6 +361,15 @@ set ASYMPTOTE_PDFVIEWER=
 set ASYMPTOTE_GS=c:\Program Files\gs\gs8.51\bin\gswin32.exe
 @end verbatim
 
+The following environment variables normally do not need to be adjusted:
+@verbatim
+ASYMPTOTE_LATEX
+ASYMPTOTE_DVIPS
+ASYMPTOTE_CONVERT
+ASYMPTOTE_DISPLAY
+ASYMPTOTE_XASY
+@end verbatim
+
 To properly support interactive mode, the @code{PostScript} viewer
 should be capable of automatically redrawing whenever the output file is
 updated. The default @code{PostScript} viewer @code{gv} supports this

@@ -38,6 +38,7 @@ const string defaultPSViewer="'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe
 const string defaultPDFViewer=
   "'c:\\Program Files\\Adobe\\Acrobat 7.0\\Reader\\AcroRd32.exe'";
 const string defaultGhostscript="'c:\\Program Files\\gs\\gs8.51\\bin\\gswin32.exe'";
+const string defaultDisplay="imdisplay";
 #undef ASYMPTOTE_SYSDIR
 #define ASYMPTOTE_SYSDIR "c:\\Program Files\\Asymptote"
 const string docdir=".";
@@ -47,16 +48,18 @@ int view=0;
 const string defaultPSViewer="gv";
 const string defaultPDFViewer="gv";
 const string defaultGhostscript="gs";
+const string defaultDisplay="display";
 const string docdir=ASYMPTOTE_DOCDIR;
 #endif  
   
 string PSViewer;
 string PDFViewer;
 string Ghostscript;
-  
-string psviewer;
-string pdfviewer;
-string ghostscript;
+string LaTeX;
+string Display;
+string Dvips;
+string Convert;
+string Xasy;
   
 string outformat="eps";
 int keep=0;
@@ -314,13 +317,23 @@ void setOptions(int argc, char *argv[])
   searchPath.push_back(ASYMPTOTE_SYSDIR);
 #endif
   
-  psviewer=Getenv("ASYMPTOTE_PSVIEWER");
-  pdfviewer=Getenv("ASYMPTOTE_PDFVIEWER");
-  ghostscript=Getenv("ASYMPTOTE_GS");
+  string psviewer=Getenv("ASYMPTOTE_PSVIEWER");
+  string pdfviewer=Getenv("ASYMPTOTE_PDFVIEWER");
+  string ghostscript=Getenv("ASYMPTOTE_GS");
+  string latex=Getenv("ASYMPTOTE_LATEX");
+  string dvips=Getenv("ASYMPTOTE_DVIPS");
+  string convert=Getenv("ASYMPTOTE_CONVERT");
+  string display=Getenv("ASYMPTOTE_DISPLAY");
+  string xasy=Getenv("ASYMPTOTE_XASY");
 
   PSViewer=psviewer != "" ? psviewer : defaultPSViewer;
   PDFViewer=pdfviewer != "" ? pdfviewer : defaultPDFViewer;
   Ghostscript=ghostscript != "" ? ghostscript : defaultGhostscript;
+  LaTeX=latex != "" ? latex : "latex";
+  Dvips=dvips != "" ? dvips : "dvips";
+  Convert=convert != "" ? convert : "convert";
+  Display=display != "" ? display : defaultDisplay;
+  Xasy=xasy != "" ? xasy : "xasy";
   
   char *papertype=getenv("ASYMPTOTE_PAPERTYPE");
   paperType=papertype ? papertype : "letter";

@@ -129,7 +129,7 @@ void picture::texinit()
     }
   }
   
-  tex.open("latex");
+  tex.open(LaTeX.c_str(),"ASYMPTOTE_LATEX","latex");
   texdocumentclass(tex,true);
   
   texdefines(tex,TeXpipepreamble,true);
@@ -150,11 +150,11 @@ bool picture::texprocess(const string& texname, const string& outname,
   if(outfile) {
     outfile.close();
     ostringstream cmd;
-    cmd << "latex \\scrollmode\\input " << texname;
+    cmd << LaTeX << " \\scrollmode\\input " << texname;
     bool quiet=verbose <= 1;
-    status=System(cmd,quiet);
+    status=System(cmd,quiet,true,"ASYMPTOTE_LATEX","latex");
     if(status) {
-      if(quiet) status=System(cmd);
+      if(quiet) status=System(cmd,true,"ASYMPTOTE_LATEX","latex");
       return false;
     }
     string dviname=auxname(prefix,"dvi");
@@ -180,11 +180,11 @@ bool picture::texprocess(const string& texname, const string& outname,
 
     string psname=auxname(prefix,"ps");
     ostringstream dcmd;
-    dcmd << "dvips -R -t " << paperType << "size -O " << hoffset << "bp,"
-	 << voffset << "bp";
+    dcmd << Dvips << " -R -t " << paperType 
+	 << "size -O " << hoffset << "bp," << voffset << "bp";
     if(verbose <= 1) dcmd << " -q";
     dcmd << " -o " << psname << " " << dviname;
-    status=System(dcmd);
+    status=System(dcmd,false,true,"ASYMPTOTE_DVIPS","dvips");
     
     bbox bcopy=bpos;
     double hfuzz=0.1;
@@ -234,25 +234,27 @@ bool picture::postprocess(const string& epsname, const string& outname,
   ostringstream cmd;
   
   if(!epsformat) {
-    if(pdfformat) cmd << Ghostscript
-		      << " -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
-                      << " -dAutoRotatePages=/None "
-		      << " -dDEVICEWIDTHPOINTS=" 
-		      << ceil(bpos.right-bpos.left+2.0)
-		      << " -dDEVICEHEIGHTPOINTS=" 
-		      << ceil(bpos.top-bpos.bottom+2.0)
-		      << " -sOutputFile=" << outname << " " << epsname;
-    else {
+    if(pdfformat) {
+      cmd << Ghostscript
+	  << " -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
+	  << " -dAutoRotatePages=/None "
+	  << " -dDEVICEWIDTHPOINTS=" 
+	  << ceil(bpos.right-bpos.left+2.0)
+	  << " -dDEVICEHEIGHTPOINTS=" 
+	  << ceil(bpos.top-bpos.bottom+2.0)
+	  << " -sOutputFile=" << outname << " " << epsname;
+      System(cmd,false,true,"ASYMPTOTE_GS","ghostscript");
+    } else {
       double expand=2.0;
       double res=(tgifformat ? deconstruct : expand)*72.0;
-      cmd << "convert -density " << res << "x" << res;
+      cmd << Convert << " -density " << res << "x" << res;
       if(!tgifformat) cmd << " +antialias -geometry " << 100.0/expand << "%x";
       cmd << " eps:" << epsname;
       if(tgifformat) cmd << " -transparent white gif";
       else cmd << " " << outputformat;
       cmd << ":" << outname;
+      System(cmd,false,true,"ASYMPTOTE_CONVERT","convert");
     }
-    System(cmd,false,true,"ASYMPTOTE_GS","ghostscript");
     if(!keep) unlink(epsname.c_str());
   }
   
@@ -281,12 +283,8 @@ bool picture::postprocess(const string& epsname, const string& outname,
       } else if(Viewer == "gv") kill(pid,SIGHUP); // Tell gv to reread file.
     } else {
       ostringstream cmd;
-#ifdef MSDOS      
-      cmd << "imdisplay " << outname;
-#else      
-      cmd << "display " << outname;
-#endif      
-      status=System(cmd,false,wait);
+      cmd << Display << " " << outname;
+      status=System(cmd,false,wait,"ASYMPTOTE_DISPLAY","display");
       if(status) return false;
     }
   }
@@ -319,9 +317,9 @@ bool picture::shipout(const picture& preamble, const string& prefix,
     if(bboxout) bboxout.close();
     if(view) {
       ostringstream cmd;
-      cmd << "xasy " << buildname(prefix) 
+      cmd << Xasy << " " << buildname(prefix) 
 	  << " " << ShipoutNumber << " " << buildname(settings::outname);
-      System(cmd,false,true);
+      System(cmd,false,true,"ASYMPTOTE_XASY","xasy");
     }
     ShipoutNumber++;
     return true;

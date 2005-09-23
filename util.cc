@@ -135,6 +135,15 @@ char **args(const char *command)
   return argv;
 }
 
+void execError(const char *command, const char *hint, const char *application)
+{
+    cerr << "Cannot execute " << command << endl;
+    if(hint) 
+      cerr << "Please set the environment variable " << hint << endl
+	   << "to the location of " << application << endl;
+    exit(-1);
+}
+						    
 int System(const char *command, bool quiet, bool wait,
 	   const char *hint, const char *application, int *ppid)
 {
@@ -152,11 +161,7 @@ int System(const char *command, bool quiet, bool wait,
     if(interact::interactive) signal(SIGINT,SIG_IGN);
     if(quiet) close(STDOUT_FILENO);
     if(argv) execvp(argv[0],argv);
-    cerr << "Cannot execute " << argv[0] << endl;
-    if(hint) 
-      cerr << "Please set the environment variable " << hint << endl
-	   << "to the location of " << application << endl;
-    exit(-1);
+    execError(argv[0],hint,application);
   }
 
   if(ppid) *ppid=pid;
