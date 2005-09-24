@@ -1696,9 +1696,9 @@ path3 unitcircle3=X..Y..-X..-Y..cycle3;
 
 path3 circle(triple c, real r, triple normal=Z)
 {
-  path3 p=shift(c)*scale3(r)*unitcircle3;
+  path3 p=scale3(r)*unitcircle3;
   if(normal != Z) p=rotate(longitude(normal),Z)*rotate(colatitude(normal),Y)*p;
-  return p;
+  return shift(c)*p;
 }
 
 // return an arc centered at c with radius r from c+r*dir(theta1,phi1) to
