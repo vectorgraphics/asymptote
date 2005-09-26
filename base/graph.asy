@@ -468,7 +468,7 @@ ticks Ticks(bool begin=true, bool end=true, int sign, int N, int n=0,
 	if(step != 0) n=ceil(Step/step);
       } else step=Step/n;
       
-      b *= (1+epsilon);
+      b += epsilon*norm;
       
       int count=Step > 0 ? floor(b/Step)-ceil(a/Step)+1 : 0;
       
