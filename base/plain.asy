@@ -358,6 +358,11 @@ transform shiftless(transform t)
   return (0,0,t.xx,t.xy,t.yx,t.yy);
 }
 
+pair intersect(path p1, path p2) 
+{
+  return intersect(p1,p2,0);
+}
+
 // A function that draws an object to frame pic, given that the transform
 // from user coordinates to true-size coordinates is t.
 typedef void drawer(frame f, transform t);
@@ -1257,6 +1262,8 @@ guide square(pair z1, pair z2)
 }
 
 guide unitcircle=E..N..W..S..cycle;
+
+static public real circleprecision=0.0006;
 
 guide circle(pair c, real r)
 {
@@ -2781,7 +2788,7 @@ pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,darkblue,
 pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,longdashdotted};
 
 transform invert=reflect((0,0),(1,0));
-real circlescale=0.85;
+static public real circlescale=0.85;
 
 frame[] Mark={
   scale(circlescale)*marker(unitcircle),

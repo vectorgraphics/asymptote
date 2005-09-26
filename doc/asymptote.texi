@@ -261,62 +261,6 @@ Alternatively, Debian users can install Hubert Chan's @code{Asymptote} package:
 @url{http://www.uhoreg.ca/programming/debian.text}
 @end quotation
 
-@node Compiling from UNIX source
-@section Compiling from UNIX source
-@cindex Compiling from UNIX source
-
-To compile and install a @code{UNIX} executable from
-a source release
-@code{x.xx}, first execute the commands:
-@verbatim
-tar -zxf asymptote-x.xx.tar.gz
-cd asymptote-x.xx
-@end verbatim
-
-@noindent Then put
-@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.6.tar.gz}
-in the current directory and
-@verbatim
-./configure
-make all
-make install
-@end verbatim
-@noindent
-If you get errors from a broken @code{pdftex} installation, simply put
-@quotation
-@url{http://asymptote.sourceforge.net/asymptote.pdf}
-@end quotation
-@noindent
-in the directory @code{doc} and repeat the command @code{make all}.
-
-@noindent
-For a (default) system-wide installation, the last command should be
-done as root. The above steps will compile an optimized single-threaded static
-version of the Boehm garbage collector
-(@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/}).
-Alternatively, one can request use of a (presumably multithreaded and therefore
-slower) system version of the Boehm garbage collector by configuring
-instead with @code{./configure --enable-gc=system}. One can disable
-use of the garbage collector by configuring with @code{./configure
---disable-gc}. For a list of other configuration options, say
-@code{./configure --help}.
-
-If you are compiling @code{Asymptote} with @code{gcc}, you will need a
-relatively recent version (e.g. 3.2 or later).  If you get errors
-compiling @code{interact.cc}, try installing an up-to-date version of
-the @acronym{GNU} @code{readline} library or else uncomment
-@code{HAVE_LIBREADLINE} in @code{config.h}.
-
-The @code{FFTW} library is only required if you want @code{Asymptote}
-to be able to take Fourier transforms of data (say, to compute an
-audio power spectrum).
-
-If you don't want to install @code{Asymptote} system wide, just make
-sure the compiled binary @code{asy} and @acronym{GUI} script @code{xasy} are in
-your path and set the environment variable @code{ASYMPTOTE_DIR} to point
-to the directory @code{base} (in the top level directory of the
-@code{Asymptote} source code). 
-
 @node Microsoft Windows
 @section Microsoft Windows
 @cindex Microsoft Windows
@@ -407,6 +351,62 @@ A list of one or more directories (separated by @code{:} under UNIX and
 system-wide directory (default: @code{/usr/local/share/asymptote} under
 @code{UNIX} and @code{c:\Program Files\Asymptote} under @code{MSDOS}).
 @end enumerate
+
+@node Compiling from UNIX source
+@section Compiling from UNIX source
+@cindex Compiling from UNIX source
+
+To compile and install a @code{UNIX} executable from
+a source release
+@code{x.xx}, first execute the commands:
+@verbatim
+tar -zxf asymptote-x.xx.tar.gz
+cd asymptote-x.xx
+@end verbatim
+
+@noindent Then put
+@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.6.tar.gz}
+in the current directory and
+@verbatim
+./configure
+make all
+make install
+@end verbatim
+@noindent
+If you get errors from a broken @code{pdftex} installation, simply put
+@quotation
+@url{http://asymptote.sourceforge.net/asymptote.pdf}
+@end quotation
+@noindent
+in the directory @code{doc} and repeat the command @code{make all}.
+
+@noindent
+For a (default) system-wide installation, the last command should be
+done as root. The above steps will compile an optimized single-threaded static
+version of the Boehm garbage collector
+(@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/}).
+Alternatively, one can request use of a (presumably multithreaded and therefore
+slower) system version of the Boehm garbage collector by configuring
+instead with @code{./configure --enable-gc=system}. One can disable
+use of the garbage collector by configuring with @code{./configure
+--disable-gc}. For a list of other configuration options, say
+@code{./configure --help}.
+
+If you are compiling @code{Asymptote} with @code{gcc}, you will need a
+relatively recent version (e.g. 3.2 or later).  If you get errors
+compiling @code{interact.cc}, try installing an up-to-date version of
+the @acronym{GNU} @code{readline} library or else uncomment
+@code{HAVE_LIBREADLINE} in @code{config.h}.
+
+The @code{FFTW} library is only required if you want @code{Asymptote}
+to be able to take Fourier transforms of data (say, to compute an
+audio power spectrum).
+
+If you don't want to install @code{Asymptote} system wide, just make
+sure the compiled binary @code{asy} and @acronym{GUI} script @code{xasy} are in
+your path and set the environment variable @code{ASYMPTOTE_DIR} to point
+to the directory @code{base} (in the top level directory of the
+@code{Asymptote} source code). 
 
 @node Editing modes
 @section Editing modes
@@ -799,6 +799,11 @@ returns the longitude of @code{v} in degrees, or @code{0} if
 @item triple unit(triple v)
 @cindex @code{unit}
 returns a unit triple in the direction of the triple @code{v};
+
+@item triple expi(real colatitude, real longitude)
+@cindex @code{expi}
+returns a unit triple in the direction @code{(colatitude,longitude)}
+measured in radians;
 
 @item triple dir(real colatitude, real longitude)
 @cindex @code{dir}
@@ -1210,12 +1215,15 @@ in the sense of @code{point(path, real)}. If @code{a} < @code{b}, the
 direction of the subpath is reversed.
 
 @cindex @code{intersect}
-@item pair intersect(path p, path q);
+@item pair intersect(path p, path q, real fuzz=0);
 If @code{p} and @code{q} have at least one intersection point, return a
-pair of times (s,t) representing the respective path times along
+pair of times representing the respective path times along
 @code{p} and @code{q}, in the sense of @code{point(path, real)}, for
-one such intersection point. If the paths do not intersect, return the
-pair (-1,-1).
+one such intersection point (as chosen by the algorithm described on
+page 137 of @code{The MetaFontbook}). 
+Perform the computations to the absolute error specified by @code{fuzz}, 
+or, if @code{fuzz} is 0, to machine precision. If the paths do not 
+intersect, return the pair (-1,-1).
 
 @cindex @code{firstcut}
 @cindex @code{slice}
@@ -1458,10 +1466,10 @@ be changed with @code{defaultpen(pen)}.
 @cindex @code{basealign}
 @anchor{basealign}
 @item A pen with a specific text alignment setting is returned on
-calling @code{baseline} with an integer argument:
+calling @code{basealign} with an integer argument:
 @verbatim
-pen nobasealign=baseline(0);
-pen basealign=baseline(1);
+pen nobasealign=basealign(0);
+pen basealign=basealign(1);
 @end verbatim
 
 @noindent
@@ -4686,7 +4694,7 @@ latex latexusage
 Here now is @code{latexusage.tex}:
 @verbatiminclude latexusage.tex
 @page
-@image{latexusage,,26cm}
+@image{latexusage,,25cm}
 
 @node Options
 @chapter Options
@@ -4897,7 +4905,7 @@ elements will be individually deconstructed (@pxref{add}).
 
 @node PostScript to Asymptote
 @chapter @code{PostScript} to @code{Asymptote}
-The excellent @code{PostScript} editor @code{pstoedit} (version 3.41 or later; 
+The excellent @code{PostScript} editor @code{pstoedit} (version 3.42 or later; 
 available from @url{http://pstoedit.net}) includes an
 @code{Asymptote} backend. Unlike virtually all other @code{pstoedit}
 backends, this driver includes native clipping, even-odd fill rule,
@@ -4918,15 +4926,16 @@ If the fonts aren't typeset correctly, try giving @code{pstoedit} the
 @code{-dt} option.
 
 Full image support can be added to the @code{Asymptote} backend
-with the patch @code{pstoedit-3.41asy.patch}. 
+with the patch @code{pstoedit-3.42asy.patch}. 
 Denoting the location of the @code{Asymptote} source directory by
 @code{ASYMPTOTE_SOURCE}, one can install this patch with the commands
 (as the @code{UNIX} root user):
 
 @verbatim
-tar -zxf pstoedit-3.41.tar.gz
-cd pstoedit-3.41
-patch -p1 < ASYMPTOTE_SOURCE/patches/pstoedit-3.41asy.patch
+tar -zxf pstoedit-3.42.tar.gz
+cd pstoedit-3.42
+patch -p1 < ASYMPTOTE_SOURCE/patches/pstoedit-3.42asy.patch
+autoconf
 ./configure --prefix=/usr
 make install
 @end verbatim

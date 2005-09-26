@@ -226,14 +226,26 @@ double dirtime(path p, pair z)
   return p.directiontime(z);
 }
 
-pair intersect(path x, path y)
+pair intersect(path x, path y, double fuzz)
 {
-  return intersectiontime(x,y);
+  return intersectiontime(x,y,fuzz);
 }
 
 double cubiclength(triple z0, triple z0p, triple z1m, triple z1, double goal)
 {
   return cubiclength(z0,z0p,z1m,z1,goal);
+}
+
+triple expi(double theta, double phi)
+{
+  return expi(theta,phi);
+  double sintheta=sin(theta);
+  return triple(sintheta*cos(phi),sintheta*sin(phi),cos(theta));
+}
+
+triple dir(double theta, double phi)
+{
+  return expi(radians(theta),radians(phi));
 }
 
 int length(string *s)

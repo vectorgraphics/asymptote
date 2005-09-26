@@ -1091,14 +1091,6 @@ void tripleUnit(stack *s)
   s->push(unit(pop<triple>(s)));
 }
 
-void tripleDir(stack *s)
-{
-  double phi=radians(pop<double>(s));
-  double theta=radians(pop<double>(s));
-  double sintheta=sin(theta);
-  s->push(triple(sintheta*cos(phi),sintheta*sin(phi),cos(theta)));
-}
-
 void tripleDot(stack *s)
 {
   triple b = pop<triple>(s);
@@ -1116,6 +1108,48 @@ void tripleCross(stack *s)
   s->push(c);
 }
 
+void intersectcubics(stack *s)
+{
+  double fuzz=pop<double>(s);
+  
+  array *post2=pop<array*>(s);
+  array *point2=pop<array*>(s);
+  array *pre2=pop<array*>(s);
+  
+  array *post1=pop<array*>(s);
+  array *point1=pop<array*>(s);
+  array *pre1=pop<array*>(s);
+  
+  size_t size1=pre1->size();
+  size_t size2=pre2->size();
+      
+  if(point1->size() != size1 || post1->size() != size1 ||
+     point2->size() != size2 || post2->size() != size2)
+    error("Mismatched array lengths");
+  
+  int single1=(size1 == 1);
+  int single2=(size2 == 1);
+  
+  size_t Size1=size1+single1;
+  size_t Size2=size2+single2;
+  
+  node *n1=new node[Size1];
+  node *n2=new node[Size2];
+      
+  for(size_t i=0; i < size1; ++i)
+    n1[i]=node(read<triple>(pre1,i),read<triple>(point1,i),
+	       read<triple>(post1,i));
+
+  for(size_t i=0; i < size2; ++i)
+    n2[i]=node(read<triple>(pre2,i),read<triple>(point2,i),
+	       read<triple>(post2,i));
+
+  if(single1) n1[1]=n1[0];
+  if(single2) n2[1]=n2[0];
+  
+  s->push(intersect((int) Size1-1,(int) Size2-1,n1,n2,fuzz));
+}
+  
 // Transforms
   
 void transformIdentity(stack *s)

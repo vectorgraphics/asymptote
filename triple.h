@@ -111,6 +111,13 @@ public:
     return triple(z.x*scale,z.y*scale,z.z*scale);
   }
   
+  // Returns a unit triple in the direction (theta,phi), in radians.
+  friend triple expi(double theta, double phi)
+  {
+    double sintheta=sin(theta);
+    return triple(sintheta*cos(phi),sintheta*sin(phi),cos(theta));
+  }
+  
   friend istream& operator >> (istream& s, triple& z)
   {
     char c;
@@ -138,8 +145,18 @@ public:
   
 };
 
+struct node {
+  triple pre,point,post;
+public:
+  node() {}
+  node(triple pre, triple point, triple post)
+    : pre(pre), point(point), post(post) {}
+};
+  
 double cubiclength(triple z0, triple z0p, triple z1m, triple z1,
 		   double goal=-1);
+  
+pair intersect(int L1, int L2, node n1[], node n2[], double fuzz);
   
 } //namespace camp
 

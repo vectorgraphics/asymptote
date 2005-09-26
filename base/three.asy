@@ -841,6 +841,10 @@ struct bbox3 {
   triple Max() {
     return (right,top,upper);
   }
+  
+  real diameter() {
+    return length(Max()-Min());
+  }
 }
 
 bbox3 operator init() {return new bbox3;}
@@ -1226,60 +1230,6 @@ struct path3 {
     return p;
   }
   
-  static pair intersectcubics(node left1, node right1,
-			      node left2, node right2,
-			      int depth = 48) {
-    pair F=(-1,-1);
-
-    node left1=left1.copy();
-    node right1=right1.copy();
-    node left2=left2.copy();
-    node right2=right2.copy();
-    
-    bbox3 box1, box2;
-    box1.add(left1.point); box1.add(left1.post);
-    box1.add(right1.pre);  box1.add(right1.point);
-    box2.add(left2.point); box2.add(left2.post);
-    box2.add(right2.pre);  box2.add(right2.point);
-    if (box1.Max().x >= box2.Min().x &&
-	box1.Max().y >= box2.Min().y &&
-	box1.Max().z >= box2.Min().z &&
-	box2.Max().x >= box1.Min().x &&
-	box2.Max().y >= box1.Min().y &&
-	box2.Max().z >= box1.Min().z
-	) {
-      if (depth == 0) return (0,0);
-      node[] sn1=nodes(3), sn2=nodes(3);
-      splitCubic(sn1,0.5,left1,right1);
-      splitCubic(sn2,0.5,left2,right2);
-      pair t;
-      --depth;
-      if ((t=intersectcubics(sn1[0],sn1[1],sn2[0],sn2[1],depth)) != F)
-	return t*0.5;
-      if ((t=intersectcubics(sn1[0],sn1[1],sn2[1],sn2[2],depth)) != F)
-	return t*0.5+(0,1);
-      if ((t=intersectcubics(sn1[1],sn1[2],sn2[0],sn2[1],depth)) != F)
-	return t*0.5+(1,0);
-      if ((t=intersectcubics(sn1[1],sn1[2],sn2[1],sn2[2],depth)) != F)
-	return t*0.5+(1,1);
-    }
-    return F;
-  }
-
-  static pair intersect(path3 p1, path3 p2) {
-    pair F=(-1,-1);
-    for (int i = 0; i < p1.length(); ++i) {
-      for (int j = 0; j < p2.length(); ++j) {
-	pair t=intersectcubics(p1.nodes[i],(p1.cycles && i == p1.n-1) ?
-			       p1.nodes[0] : p1.nodes[i+1],
-			       p2.nodes[j],(p2.cycles && j == p2.n-1) ?
-			       p2.nodes[0] : p2.nodes[j+1]);
-	if (t != F) return t*0.5 + (i,j);
-      }
-    }
-    return F;  
-  }
-
   bbox3 bounds() {
     if (empty()) {
       // No bounds
@@ -1459,6 +1409,7 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
   
   // Convert to Knuth's format (control points stored with nodes)
   node[] nodes=nodes(g.nodes.length);
+  if(g.nodes.length == 0) return new path3;
   bool cyclic=g.cyclic[g.cyclic.length-1];
   for(int i=0; i < g.nodes.length-1; ++i) {
     nodes[i].point=g.nodes[i];
@@ -1564,6 +1515,7 @@ path3 operator cast(guide3 g) {return solve(g);}
 path operator cast(path3 p) {return project(p);}
 path operator cast(triple v) {return project(v);}
 path operator cast(guide3 g) {return project(solve(g));}
+path3 operator cast(triple v) {return path3.path3(v);}
 
 path[] operator cast(path3 g) {return new path[] {(path) g};}
 path[] operator cast(guide3 g) {return new path[] {(path) g};}
@@ -1627,10 +1579,42 @@ path3 subpath(explicit guide3 g, real start, real end)
   return ((path3) g).subpath(start,end);
 }
 
-pair intersect(path3 p, path3 q) {return path3.intersect(p,q);}
-pair intersect(explicit guide3 p, explicit guide3 q)
+pair intersect(path3 p1, path3 p2, real fuzz=0)
 {
-  return path3.intersect((path3) p,(path3) q);
+  int L1=p1.length();
+  int L2=p2.length();
+  
+  node[] n1=p1.nodes;
+  node[] n2=p2.nodes;
+    
+  triple[] pre1=new triple[L1+1];
+  triple[] point1=new triple[L1+1];
+  triple[] post1=new triple[L1+1];
+    
+  triple[] pre2=new triple[L2+1];
+  triple[] point2=new triple[L2+1];
+  triple[] post2=new triple[L2+1];
+    
+  for(int i=0; i <= L1; ++i) {
+    pre1[i]=n1[i].pre;
+    point1[i]=n1[i].point;
+    post1[i]=n1[i].post;
+  }
+  for(int i=0; i <= L2; ++i) {
+    pre2[i]=n2[i].pre;
+    point2[i]=n2[i].point;
+    post2[i]=n2[i].post;
+  }
+  if(fuzz == 0.0) 
+    fuzz=realEpsilon()*max(max(max(length(p1.min()),length(p1.max())),
+			       length(p2.min())),length(p2.max()));
+  
+  return intersect(pre1,point1,post1,pre2,point2,post2,fuzz);
+}
+
+pair intersect(explicit guide3 p, explicit guide3 q, real fuzz=0)
+{
+  return intersect((path3) p,(path3) q,fuzz);
 }
 
 path3 operator & (path3 p, path3 q) {return p.concat(p,q);}

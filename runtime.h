@@ -128,10 +128,10 @@ void tripleCoLatitude(vm::stack *s);
 void tripleLatitude(vm::stack *s);
 void tripleLongitude(vm::stack *s);
 void tripleUnit(vm::stack *s);
-void tripleDir(vm::stack *s);
 void tripleDot(vm::stack *s);
 void tripleCross(vm::stack *s);
-  
+void intersectcubics(vm::stack *s);
+
 // Transform operations
 void transformIdentity(vm::stack *s);
 void transformInverse(vm::stack *s);
@@ -162,24 +162,6 @@ void boolTransformNeq(vm::stack *s);
 
 // Path operations
 void nullPath(vm::stack *s);
-void pathIntPoint(vm::stack *s);
-void pathRealPoint(vm::stack *s);
-void pathIntPrecontrol(vm::stack *s);
-void pathRealPrecontrol(vm::stack *s);
-void pathIntPostcontrol(vm::stack *s);
-void pathRealPostcontrol(vm::stack *s);
-void pathIntDirection(vm::stack *s);
-void pathRealDirection(vm::stack *s);
-void pathReverse(vm::stack *s);
-void pathSubPath(vm::stack *s);
-void pathSubPathReal(vm::stack *s);
-void pathLength(vm::stack *s);
-void pathCyclic(vm::stack *s);
-void pathStraight(vm::stack *s);
-void pathArcLength(vm::stack *s);
-void pathArcTimeOfLength(vm::stack *s);
-void pathDirectionTime(vm::stack *s);
-void pathIntersectionTime(vm::stack *s);
 void pathSize(vm::stack *s);
 void pathMax(vm::stack *s);
 void pathMin(vm::stack *s);

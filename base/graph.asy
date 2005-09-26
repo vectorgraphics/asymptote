@@ -1504,10 +1504,10 @@ pair polar(real r, real theta)
   return r*expi(theta);
 }
 
-guide polargraph(real f(real), real a, real b, int n=ngraph,
+guide polargraph(real r(real), real a, real b, int n=ngraph,
 		 interpolate join=operator --)
 {
-  return graph(join)(new pair(real theta) {return f(theta)*expi(theta);},
+  return graph(join)(new pair(real theta) {return polar(r(theta),theta);},
 		     a,b,n);
 }
 
@@ -1577,15 +1577,15 @@ void vectorfield(picture pic=currentpicture, path g, int n,
 }
 
 // True arc
-guide Arc(pair c, real r, real angle1, real angle2)
+guide Arc(pair c, real r, real angle1, real angle2, int ngraph=400)
 {
-  return shift(c)*polargraph(new real (real t){return r;},angle1,angle2,
-  operator ..);
+  return shift(c)*polargraph(new real(real t){return r;},angle1,angle2,ngraph,
+			     operator ..);
 }
 
 // True circle
-guide Circle(pair c, real r)
+guide Circle(pair c, real r, int ngraph=400)
 {
-  return Arc(c,r,0,2pi)--cycle;
+  return Arc(c,r,0,2pi,ngraph)--cycle;
 }
 

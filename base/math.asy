@@ -515,8 +515,7 @@ real slope(path g, explicit pair z)
   return a.y/a.x;
 }
 
-struct quad 
-{
+struct quad {
   static int NONE=0;
   static int SINGLE=1;
   static int DOUBLE=2;

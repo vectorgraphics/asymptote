@@ -34,7 +34,7 @@ real projecttime(guide3 G, real T, guide g, projection P=currentprojection)
   triple v=point(G,T);
   pair z=project(v,P);
   pair dir=dir(v,dir(G,T),P);
-  return intersect(g,z-I*dir--z+I*dir).x;
+  return intersect(g,z).x;
 }
 
 real projecttime(guide3 G, real T, projection P=currentprojection)
@@ -303,3 +303,34 @@ picture surface(real f(pair z), pair a, pair b, int n=nmesh, int nsub=nsub,
   return pic;
 }
 
+triple polar(real r, real theta, real phi)
+{
+  return r*expi(theta,phi);
+}
+
+guide3 polargraph(real r(real,real), real theta(real), real phi(real),
+		  int n=ngraph, interpolate join=operator --)
+{
+  return graph(join)(new triple(real t) {
+      return polar(r(theta(t),phi(t)),theta(t),phi(t));
+    },0,1,n);
+}
+
+// True arc
+path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
+	  int ngraph=400)
+{
+  return shift(c)*polargraph(new real(real theta, real phi){return r;},
+			     new real(real t){return interp(theta1,theta2,t);},
+			     new real(real t){return interp(phi1,phi2,t);},
+			     ngraph,operator ..);
+}
+
+// True circle
+path3 Circle(triple c, real r, triple normal=Z, int ngraph=400)
+{
+  path3 p=Arc(O,r,pi/2,0,pi/2,2pi,ngraph)--cycle3;
+  if(normal != Z) p=rotate(longitude(normal),Z)*rotate(colatitude(normal),Y)*p;
+  return shift(c)*p;
+
+}

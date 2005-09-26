@@ -16,8 +16,7 @@
 
 namespace camp {
 
-struct quad 
-{
+struct quad {
   enum { NONE, SINGLE, DOUBLE, ANY } roots;
   double t1,t2;
 };
@@ -303,7 +302,8 @@ bbox path::bounds() const
     return bbox(/* empty */);
   }
 
-  bbox box;
+  if(!box.empty) return box;
+  
   for (int i = 0; i < length(); i++) {
     box += point(i);
     if(straight(i)) continue;
@@ -484,10 +484,10 @@ double path::directiontime(pair dir) const {
 
 // {{{ Path Intersection Calculation
 
-// Algorithm stolen from Knuth's MetaFont
+// Algorithm derived from Knuth's MetaFont
 pair intersectcubics(solvedKnot left1, solvedKnot right1,
                      solvedKnot left2, solvedKnot right2,
-                     int depth = 48) 
+		     double fuzz, int depth=DBL_MANT_DIG)
 {
   const pair F(-1,-1);
 
@@ -496,38 +496,52 @@ pair intersectcubics(solvedKnot left1, solvedKnot right1,
   box1 += right1.pre;  box1 += right1.point;
   box2 += left2.point; box2 += left2.post;
   box2 += right2.pre;  box2 += right2.point;
-  if (box1.Max().getx() >= box2.Min().getx() &&
-      box1.Max().gety() >= box2.Min().gety() &&
-      box2.Max().getx() >= box1.Min().getx() &&
-      box2.Max().gety() >= box1.Min().gety()) {
-    if (depth == 0) return pair(0,0);
+  
+  double lambda=box1.diameter()+box2.diameter();
+  
+  if (box1.Max().getx()+fuzz >= box2.Min().getx() &&
+      box1.Max().gety()+fuzz >= box2.Min().gety() &&
+      box2.Max().getx()+fuzz >= box1.Min().getx() &&
+      box2.Max().gety()+fuzz >= box1.Min().gety()) {
+    if(lambda <= fuzz || depth == 0) return pair(0,0);
     solvedKnot sn1[3], sn2[3];
     splitCubic(sn1,0.5,left1,right1);
     splitCubic(sn2,0.5,left2,right2);
     pair t;
     depth--;
-    if ((t=intersectcubics(sn1[0],sn1[1],sn2[0],sn2[1],depth)) != F)
+    if ((t=intersectcubics(sn1[0],sn1[1],sn2[0],sn2[1],fuzz,depth)) != F)
       return t*0.5;
-    if ((t=intersectcubics(sn1[0],sn1[1],sn2[1],sn2[2],depth)) != F)
+    if ((t=intersectcubics(sn1[0],sn1[1],sn2[1],sn2[2],fuzz,depth)) != F)
       return t*0.5+pair(0,1);
-    if ((t=intersectcubics(sn1[1],sn1[2],sn2[0],sn2[1],depth)) != F)
+    if ((t=intersectcubics(sn1[1],sn1[2],sn2[0],sn2[1],fuzz,depth)) != F)
       return t*0.5+pair(1,0);
-    if ((t=intersectcubics(sn1[1],sn1[2],sn2[1],sn2[2],depth)) != F)
+    if ((t=intersectcubics(sn1[1],sn1[2],sn2[1],sn2[2],fuzz,depth)) != F)
       return t*0.5+pair(1,1);
   }
   return F;
 }
 
 // TODO: Handle corner cases. (Done I think)
-pair intersectiontime(path p1, path p2)
+pair intersectiontime(path p1, path p2, double fuzz=0.0)
 {
+  if(fuzz == 0.0) 
+    fuzz=DBL_EPSILON*max(max(max(length(p1.min()),length(p1.max())),
+			     length(p2.min())),length(p2.max()));
   const pair F(-1,-1);
-  for (int i = 0; i < p1.length(); i++) {
-    for (int j = 0; j < p2.length(); j++) {
-      pair t=intersectcubics(p1.nodes[i],(p1.cycles && i == p1.n-1) ?
-			     p1.nodes[0] : p1.nodes[i+1],
-			     p2.nodes[j],(p2.cycles && j == p2.n-1) ?
-			     p2.nodes[0] : p2.nodes[j+1]);
+  solvedKnot *n1=p1.Nodes();
+  solvedKnot *n2=p2.Nodes();
+  int L1=p1.length();
+  int L2=p2.length();
+  int icycle=p1.cyclic() ? p1.size()-1 : -1;
+  int jcycle=p2.cyclic() ? p2.size()-1 : -1;
+  if(p1.size() == 1) {L1=1; icycle=0;}
+  if(p2.size() == 1) {L2=1; jcycle=0;}
+  for (int i = 0; i < L1; i++) {
+    solvedKnot& left1=n1[i];
+    solvedKnot& right1=(i == icycle) ? n1[0] : n1[i+1];
+    for (int j = 0; j < L2; j++) {
+      pair t=intersectcubics(left1,right1,
+			     n2[j],(j == jcycle) ? n2[0] : n2[j+1],fuzz);
       if (t != F) return t*0.5 + pair(i,j);
     }
   }

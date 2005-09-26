@@ -555,9 +555,11 @@ void base_venv(venv &ve)
   addFunc(ve,run::tripleLatitude,primReal(),"latitude",primTriple());
   addFunc(ve,run::tripleLongitude,primReal(),"longitude",primTriple());
   addFunc(ve,run::tripleUnit,primTriple(),"unit",primTriple());
-  addFunc(ve,run::tripleDir,primTriple(),"dir",primReal(),primReal());
   addFunc(ve,run::tripleDot,primReal(),"dot",primTriple(),primTriple());
   addFunc(ve,run::tripleCross,primTriple(),"cross",primTriple(),primTriple());
+  addFunc(ve,run::intersectcubics,primPair(),"intersect",tripleArray(),
+	  tripleArray(),tripleArray(),tripleArray(),tripleArray(),
+	  tripleArray(),primReal());
   
   addFunc(ve,run::tridiagonal,realArray(),"tridiagonal",
 	  realArray(),realArray(),realArray(),realArray());

@@ -57,6 +57,7 @@ class path : public gc {
 
   solvedKnot *nodes;
   mutable double cached_length; // Cache length since path is immutable.
+  mutable bbox box;
 
 public:
   path()
@@ -91,7 +92,8 @@ public:
 
   // Copy constructor
   path(const path& p)
-    : cycles(p.cycles), n(p.n), nodes(p.nodes), cached_length(p.cached_length)
+    : cycles(p.cycles), n(p.n), nodes(p.nodes), cached_length(p.cached_length),
+      box(p.box)
   {}
 
   virtual ~path()
@@ -117,6 +119,10 @@ public:
   bool cyclic() const
   {
     return cycles;
+  }
+  
+  solvedKnot *Nodes() {
+    return nodes;
   }
   
   void emptyError() const {
@@ -218,15 +224,16 @@ public:
 
   // Transformation
   path transformed(const transform& t) const;
-
-  friend pair intersectiontime(path p1, path p2);
 };
 
+pair intersectiontime(path p1, path p2, double fuzz);
+  
 // Concatenates two paths into a new one.
 path concat(path p1, path p2);
 
 // Applies a transformation to the path
 path transformed(const transform& t, path p);
+  
 }
 
 inline double quadratic(double a, double b, double c, double x)
