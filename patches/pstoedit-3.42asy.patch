@@ -137,3 +137,23 @@ diff -ru pstoedit-3.42/src/psimage.cpp pstoedit-3.42J/src/psimage.cpp
  	outi << "%%Pages: 1" << endl;
  	outi << "%%EndComments" << endl << endl;
  	outi << "%%Page: 1 1" << endl << endl;
+diff -ru pstoedit-3.42/src/drvasy.cpp pstoedit-3.42J/src/drvasy.cpp
+--- pstoedit-3.42/src/drvasy.cpp	2005-08-23 13:50:24.000000000 -0600
++++ pstoedit-3.42J/src/drvasy.cpp	2005-09-26 23:18:17.000000000 -0600
+@@ -358,7 +358,7 @@
+ 
+   // Output the text using macros defined in the constructor
+   outf << "label(";
+-  if(prevFontAngle != 0.0) outf << "rotate(" << prevFontAngle << ")*";
++  if(prevFontAngle != 0.0) outf << "rotate(" << prevFontAngle << ")*(";
+   bool texify=false;
+   bool quote=false;
+   for (const char *c = textinfo.thetext.value(); *c; c++) {
+@@ -386,6 +386,7 @@
+   }
+   if(quote) outf << "\"";
+   if(texify) outf << ")";
++  if(prevFontAngle != 0.0) outf << ")";
+   outf << ",(" << textinfo.x << ',' << textinfo.y << "),align,textpen);" 
+        << endl;
+ }
