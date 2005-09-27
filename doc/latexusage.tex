@@ -4,14 +4,6 @@
 \usepackage{asymptote}
 
 % Use this with 'asy -t latexusage' to include inline LaTeX code.
-% This makes LaTeX symbols visible to \begin{asy}...\end{asy} environments.
-% In this mode, Asymptote correctly aligns LaTeX symbols defined
-% outside of  \begin{asy}...\end{asy}, but treats their size as zero.
-% Labels might not show up in dvi viewers that cannot handle raw postscript
-% code; use dvips/dvipdf to produce PS/PDF output.
-% We recommend using the modified version of dvipdf in the Asymptote
-% patches directory, which accepts the dvips -z hyperdvi option.
-%
 %\usepackage[inline]{asymptote}
 
 % Enable this line to produce pdf hyperlinks
@@ -27,6 +19,7 @@ Here is a venn diagram
 produced with Asymptote, drawn to width 5cm:
 
 \def\A{A}
+\def\B{B}
 
 %\begin{figure}
 \begin{center}
@@ -53,9 +46,10 @@ add(intersection);
 draw(c1);
 draw(c2);
 
-//label("$\A$",z1);           // Works only with [inline] package option.
-label("$A$",z1);              // Works with in either mode.
-label("$B$",z2);
+//box(Label("$\A$",z1));              // Requires [inline] package option.
+//box(Label("$\B$","$B$",z2));        // Requires [inline] package option.
+box(Label("$A$",z1));             
+box(Label("$B$",z2));
 
 pair z=(0,-2);
 real m=3;

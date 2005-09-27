@@ -16,7 +16,7 @@ namespace camp {
   
 class drawLabel : public drawElement {
 private:
-  string label;
+  string label,size;
   double angle;
   pair position;
   pair align;
@@ -29,9 +29,9 @@ private:
   pair texAlign;
   
 public:
-  drawLabel(string label, double angle, pair position, pair align,
+  drawLabel(string label, string size, double angle, pair position, pair align,
 	    pen *pentype)
-    : label(label), angle(angle), position(position), align(align),
+    : label(label), size(size), angle(angle), position(position), align(align),
       pentype(pentype), width(0.0), height(0.0), depth(0.0),
       havebounds(false), suppress(false), scale(1.0) {} 
   
@@ -39,7 +39,7 @@ public:
 
   void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&);
   
-  void texbounds(iopipestream& tex);
+  bool texbounds(iopipestream& tex, string& s, bool warn);
     
   bool islabel() {
     return true;

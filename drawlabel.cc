@@ -22,20 +22,27 @@ void drawLabel::labelwarning(const char *action)
 	       << "\" " << action << " to avoid overwriting" << endl;
 }
   
-void drawLabel::texbounds(iopipestream& tex)
+bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn)
 {
   string texbuf;
-  tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(label) << "}\n\n";
+  tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(s) << "}\n\n";
   tex.wait(texready.c_str(),"! ");
   tex << "\\showthe\\wd\\ASYbox\n";
   tex >> texbuf;
   if(texbuf[0] == '>' && texbuf[1] == ' ')
     width=atof(texbuf.c_str()+2)*tex2ps;
-  else if(settings::texmode) {
-    tex << "\n";
-    tex.wait("\n*","! ");
-    return;
-  } else reportError("Can't read label width");
+  else {
+    if(settings::texmode) {
+      if(settings::debug && warn) {
+	ostringstream buf;
+	buf << "Cannot determine size of label \"" << s << "\"";
+	reportWarning(buf);
+      }
+      tex << "\n";
+      tex.wait("\n*","! ");
+      return false;
+    } else reportError("Can't read label width");
+  }
   tex << "\n";
   tex.wait("\n*","! ");
   tex << "\\showthe\\ht\\ASYbox\n";
@@ -56,11 +63,12 @@ void drawLabel::texbounds(iopipestream& tex)
   width *= scale;
   height *= scale;
   depth *= scale;
+  return true;
 }   
 
 
-void drawLabel::bounds(bbox& b, iopipestream& tex,
-		       boxvector& labelbounds, bboxlist&)
+void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
+		       bboxlist&)
 {
   if(!settings::texprocess) {b += position; return;}
   pair rotation=expi(radians(angle));
@@ -91,7 +99,9 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
     
     lastpen=Pentype;
     
-    texbounds(tex);
+    bool nullsize=size == "";
+    if(!texbounds(tex,label,nullsize) && !nullsize)
+      texbounds(tex,size,false);
     
     Align=align/rotation;
     double scale0=max(fabs(Align.getx()),fabs(Align.gety()));
@@ -157,7 +167,7 @@ drawElement *drawLabel::transformed(const transform& t)
 {
   static const pair origin=pair(0,0);
   pair offset=t*origin;
-  return new drawLabel(label,
+  return new drawLabel(label,size,
 		       degrees((t*expi(radians(angle))-offset).angle()),
 		       t*position,length(align)*unit(t*align-offset),pentype);
 }

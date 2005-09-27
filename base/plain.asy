@@ -1680,7 +1680,7 @@ position operator cast(int x) {return (pair) x;}
 pair operator cast(position P) {return P.position;}
 
 struct Label {
-  public string s;
+  public string s,size;
   position position;
   bool defaultposition=true;
   align align;
@@ -1689,10 +1689,12 @@ struct Label {
   bool defaultangle=true;
   pair shift;
   
-  void init(string s="", position position=0, bool defaultposition=true,
+  void init(string s="", string size="", position position=0, 
+	    bool defaultposition=true,
 	    align align=NoAlign, pen p=nullpen, real angle=0,
 	    bool defaultangle=true, pair shift=0) {
     this.s=s;
+    this.size=size;
     this.position=position;
     this.defaultposition=defaultposition;
     this.align=align.copy();
@@ -1702,16 +1704,17 @@ struct Label {
     this.shift=shift;
   }
   
-  void initalign(string s="", align align, pen p=nullpen) {
+  void initalign(string s="", string size="", align align, pen p=nullpen) {
     init();
     this.s=s;
+    this.size=size;
     this.align=align.copy();
     this.p=p;
   }
   
   Label copy() {
     Label L=new Label;
-    L.init(s,position,defaultposition,align,p,angle,defaultangle,shift);
+    L.init(s,size,position,defaultposition,align,p,angle,defaultangle,shift);
     return L;
   }
   
@@ -1740,33 +1743,33 @@ struct Label {
     if(this.p == nullpen) this.p=p0;
   }
   
-  void label(frame f, string s, real angle=0, pair position,
+  void label(frame f, real angle=0, pair position,
 	     pair align=0, pen p=currentpen)
   {
-    _label(f,s,angle,position+align*labelmargin(p),align,p);
+    _label(f,s,size,angle,position+align*labelmargin(p),align,p);
   }
 
   void out(frame f) {
-    label(f,s,angle,position.position+shift,align.dir,p);
+    label(f,angle,position.position+shift,align.dir,p);
   }
   
-  void label(picture pic=currentpicture, string s, real angle=0, pair position,
+  void label(picture pic=currentpicture, real angle=0, pair position,
 	    pair align=0, pair shift=0, pen p=currentpen)
   {
     pic.add(new void (frame f, transform t) {
       transform t0=shiftless(t);
-      _label(f,s,degrees(t0*dir(angle)),
+      _label(f,s,size,degrees(t0*dir(angle)),
 	     t*position+align*labelmargin(p)+shift,
 	     length(align)*unit(t0*align),p);
       });
     frame f;
     // Create a picture with label at the origin to extract its bbox truesize.
-    label(f,s,angle,(0,0),align,p);
+    label(f,angle,(0,0),align,p);
     pic.addBox(position,position,min(f),max(f));
   }
 
   void out(picture pic=currentpicture) {
-    label(pic,s,angle,position.position,align.dir,shift,
+    label(pic,angle,position.position,align.dir,shift,
 	  p == nullpen ? currentpen : p);
   }
   
@@ -1781,7 +1784,7 @@ struct Label {
       alignrelative=true;
       Align=position <= 0 ? S : position >= length(g) ? N : E;
     }
-    label(pic,s,angle,point(g,position),
+    label(pic,angle,point(g,position),
 	  alignrelative ? Align*dir(g,position)/N : Align,shift,
 	  p == nullpen ? currentpen : p);
   }
@@ -1829,18 +1832,18 @@ Label operator * (transform t, Label L)
   return tL;
 }
 
-Label Label(string s, explicit position position, align align=NoAlign,
-	    pen p=nullpen)
+Label Label(string s, string size="", explicit position position,
+	    align align=NoAlign, pen p=nullpen)
 {
   Label L;
-  L.init(s,position,false,align,p);
+  L.init(s,size,position,false,align,p);
   return L;
 }
 
-Label Label(string s, pair position, align align=NoAlign,
+Label Label(string s, string size="", pair position, align align=NoAlign,
 	    pen p=nullpen)
 {
-  return Label(s,(position) position,align,p);
+  return Label(s,size,(position) position,align,p);
 }
 
 Label Label(explicit pair position, align align=NoAlign, pen p=nullpen)
@@ -1848,10 +1851,11 @@ Label Label(explicit pair position, align align=NoAlign, pen p=nullpen)
   return Label((string) position,position,align,p);
 }
 
-Label Label(string s="", align align=NoAlign, explicit pen p=nullpen)
+Label Label(string s="", string size="", align align=NoAlign,
+	    explicit pen p=nullpen)
 {
   Label L;
-  L.initalign(s,align,p);
+  L.initalign(s,size,align,p);
   return L;
 }
 
@@ -2138,10 +2142,12 @@ void box(picture pic=currentpicture, Label L,
 {
   pic.add(new void (frame f, transform t) {
     transform t0=shiftless(t);
-    _label(f,L.s,degrees(t0*dir(L.angle)),
+    frame d;
+    _label(d,L.s,L.size,degrees(t0*dir(L.angle)),
 	   t*L.position+L.align.dir*labelmargin(L.p)+L.shift,
 	   length(L.align.dir)*unit(t0*L.align.dir),L.p);
-    box(f,xmargin,ymargin,p,filltype);
+    box(d,xmargin,ymargin,p,filltype);
+    add(f,d);
   });
   frame f;
   Label L0=L.copy();

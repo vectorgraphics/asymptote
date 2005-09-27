@@ -58,9 +58,10 @@ using namespace types;
 }
 
 
-void _label (picture *pic, string *t, double r, pair z, pair a, pen *p)
+void _label(picture *pic, string *s, string *size, double r, pair z, pair a,
+     	    pen *p)
 {
-  pic->append(new drawLabel(*t,r,z,a,p));
+  pic->append(new drawLabel(*s,*size,r,z,a,p));
 }
 
 pen *basealign(int n)

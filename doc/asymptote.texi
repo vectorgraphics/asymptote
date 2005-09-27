@@ -4689,15 +4689,30 @@ One can prevent labels from overwriting one another with the
 @code{Asymptote}-aware. Entering @code{Asymptote} code
 directly into the @code{LaTeX} source file, at the point where it is
 needed, keeps figures organized and avoids the need to invent new file
-names for each figure.
+names for each figure. 
 
-For example, the sample @code{LaTeX} file below, named
-@code{latexusage.tex}, can be run as follows:
+The sample @code{LaTeX} file below, named @code{latexusage.tex}, can
+be run as follows:
 @verbatim
 latex latexusage
 asy latexusage
 latex latexusage
 @end verbatim
+
+If the @code{[inline]} package option is given to
+@code{asymptote.sty}, and the @code{-t} option is given to @code{asy},
+inline @code{LaTeX} code is generated instead of @code{EPS} files.
+This makes LaTeX symbols visible to the
+@code{\begin@{asy@}...\end@{asy@}} environment.  In this mode,
+Asymptote correctly aligns LaTeX symbols defined outside of
+@code{\begin@{asy@}...\end@{asy@}}, but treats their size as zero; an
+optional second string can be given to @code{Label} to provide an
+estimate of the unknown label size. Note that labels might not show up in dvi
+viewers that cannot handle raw @code{PostScript} code; use
+@code{dvips}/@code{dvipdf} to produce @code{PostScript}/@acronym{PDF}
+output. We recommend using the modified version of @code{dvipdf} in
+the @code{Asymptote} patches directory, which accepts the @code{dvips
+-z} hyperdvi option. 
 
 Here now is @code{latexusage.tex}:
 @verbatiminclude latexusage.tex
