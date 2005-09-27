@@ -187,7 +187,13 @@ transform shift(real x, real y)
 
 // I/O operations
 
-file input(string name) {return input(name,true);}
+static public string commentchar="#";
+
+file input(string name, bool check=true)
+{
+  return input(name,check,commentchar);
+}
+file input(string name, string comment) {return input(name,true,commentchar);}
 file xinput(string name) {return xinput(name,true);}
 file output(string name) {return output(name,false);}
 file xoutput(string name) {return xoutput(name,false);}

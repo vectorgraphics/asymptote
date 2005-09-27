@@ -1896,7 +1896,8 @@ void texpreamble(string s);
 value) files and portable @acronym{XDR} (External Data Representation)
 binary files.
 
-An input file must first be opened with @code{input(string, bool check=true)};
+An input file must first be opened with 
+@code{input(string, bool check=true, string commentchar="#")};
 reading is then done by assignment:
 @cindex open
 @cindex @code{input}
@@ -1911,7 +1912,14 @@ real a=fin;
 @cindex directory
 If the optional boolean argument @code{check} is @code{false}, no check will
 be made that the file exists. If the file does not exist or is not
-readable, the function  @code{bool error(file)} will return @code{true}.
+readable, the function @code{bool error(file)} will return @code{true}.
+The string @code{commentchar} specifies a comment character
+(the default comment character @code{#} is actually determined by the variable
+@code{commentchar} in @code{plain.asy}). If this character is
+encountered in a data file, the remainder of the line is ignored. When
+reading strings, the comment character must be in the first column
+(otherwise it will treated as an ordinary character).
+
 One can change the current working directory with the
 @code{string cd(string)} function, which returns the new working directory.
 

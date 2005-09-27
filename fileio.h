@@ -140,9 +140,13 @@ public:
 class ifile : public file {
   istream *stream;
   std::ifstream fstream;
+  bool first;
+  char comment;
+  mem::string whitespace;
   
 public:
-  ifile(const string& name, bool check=true) : file(name,check) {
+  ifile(const string& name, bool check=true, char comment=0)
+    : file(name,check), comment(comment) {
       stream=&std::cin;
   }
   
@@ -156,6 +160,7 @@ public:
       stream=&fstream;
       if(checkappend) Check();
     }
+    first=true;
   }
   
   void seek(size_t pos) {
@@ -166,14 +171,8 @@ public:
   
   void csv();
   
-  bool eol() {
-    int c;
-    while(isspace(c=stream->peek())) {
-      stream->ignore();
-      if(c == '\n') return true;
-    }
-    return false;
-  }
+  void ignoreComment();
+  bool eol();
   
   bool text() {return true;}
   bool eof() {return stream->eof();}
@@ -183,23 +182,25 @@ public:
   
 public:
 
-  string getcsvline();
+  mem::string getcsvline();
   
   // Skip over white space
-  void readwhite(string& val) {val=string(); *stream >> val; csv();}
+  void readwhite(string& val) {val=string(); *stream >> val;}
   
-  void Read(bool &val) {string t; readwhite(t); val=(t == "true"); csv();}
-  void Read(int& val) {val=0; *stream >> val; csv();}
-  void Read(double& val) {val=0.0; *stream >> val; csv();}
-  void Read(pair& val) {val=0.0; *stream >> val; csv();}
-  void Read(triple& val) {val=0.0; *stream >> val; csv();}
-  void Read(char& val) {val=char(); stream->get(val); csv();}
+  void Read(bool &val) {string t; readwhite(t); val=(t == "true");}
+  void Read(int& val) {val=0; *stream >> val;}
+  void Read(double& val) {val=0.0; *stream >> val;}
+  void Read(pair& val) {val=0.0; *stream >> val;}
+  void Read(triple& val) {val=0.0; *stream >> val;}
+  void Read(char& val) {val=char(); stream->get(val);}
   void Read(mem::string& val) {
-    val=mem::string();
     if(csvmode) {
-      val=getcsvline();
-      csv();
-    } else getline(*stream,val);
+      val=whitespace+getcsvline();
+    } else {
+      mem::string s=mem::string();
+      getline(*stream,s);
+      val=whitespace+s;
+    }
   }
   
   template<class T>
@@ -349,7 +350,10 @@ void ifile::iread(T& val)
   if(errorstream::interrupt) throw interrupted();
   if(settings::suppressStandard && standard) typein.Read(val);
   else {
+    ignoreComment();
     Read(val);
+    csv();
+    whitespace="";
     if(interact::interactive && standard) {
       typeout.write(val);
       typeout.write(newline);

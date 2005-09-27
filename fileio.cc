@@ -19,7 +19,38 @@ ofile Stdout("");
 ofile typeout(asyinput);
 ifile typein(asyinput);
 
-void ifile::csv() {
+void ifile::ignoreComment()
+{
+  if(comment == 0) return;
+  int c;
+  if(stream->peek() == '\n') return;
+  while(true) {
+    while(isspace(c=stream->peek())) {
+      stream->ignore();
+      whitespace += c;
+    }
+    if(c == comment) {
+      whitespace="";
+      while((c=stream->peek()) != '\n' && c != EOF)
+	stream->ignore();
+      if(c == '\n') stream->ignore();
+    } else return;
+  }
+}
+  
+bool ifile::eol()
+{
+  int c;
+  while(isspace(c=stream->peek())) {
+    stream->ignore();
+    if(c == '\n') return true;
+    else whitespace += c;
+  }
+  return false;
+}
+  
+void ifile::csv()
+{
   if(!csvmode || stream->eof()) return;
   std::ios::iostate rdstate=stream->rdstate();
   if(stream->fail()) stream->clear();
@@ -28,7 +59,7 @@ void ifile::csv() {
   else stream->clear(rdstate);
 }
   
-string ifile::getcsvline() 
+mem::string ifile::getcsvline() 
 {
   string s="";
   bool quote=false;
@@ -36,7 +67,11 @@ string ifile::getcsvline()
     int c=stream->peek();
     if(c == '"') {quote=!quote; stream->ignore(); continue;}
     if(!quote && (c == ',' || c == '\n')) {
-      if(c == '\n' && !linemode) stream->ignore();
+      if(c == '\n') {
+	ignoreComment();
+	if(!linemode)
+	  stream->ignore();
+      }
       return s;
     }
     s += (char) stream->get();
