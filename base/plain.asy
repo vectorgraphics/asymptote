@@ -2938,16 +2938,16 @@ atexit(atexit);
 
 guide operator ::(... guide[] a)
 {
-  guide g;
-  for(int i=0; i < a.length; ++i)
+  guide g=(a.length > 0) ? a[0] : nullpath;
+  for(int i=1; i < a.length; ++i)
     g=g..operator tension(1,true)..a[i];
   return g;
 }
 
 guide operator ---(... guide[] a)
 {
-  guide g;
-  for(int i=0; i < a.length; ++i)
+  guide g=(a.length > 0) ? a[0] : nullpath;
+  for(int i=1; i < a.length; ++i)
     g=g..operator tension(infinity,true)..a[i];
   return g;
 }

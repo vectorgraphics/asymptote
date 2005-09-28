@@ -23,5 +23,3 @@ pdf output including transparency & maybe function shading
 Document scoping and lifetime issues with the virtual machine, especially as
 compared to C/C++ as opposed to lisp.
 
-allow users to examine the structure of guides (to allow user functions that
-produce new guides from guides)

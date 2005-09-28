@@ -517,16 +517,16 @@ guide3 operator .. (... guide3[] g)
 
 guide3 operator ::(... guide3[] a)
 {
-  guide3 g;
-  for(int i=0; i < a.length; ++i)
+  guide3 g=(a.length > 0) ? a[0] : nullpath3;
+  for(int i=1; i < a.length; ++i)
     g=g..operator tension3(1,true)..a[i];
   return g;
 }
 
 guide3 operator ---(... guide3[] a)
 {
-  guide3 g;
-  for(int i=0; i < a.length; ++i)
+  guide3 g=(a.length > 0) ? a[0] : nullpath3;
+  for(int i=1; i < a.length; ++i)
     g=g..operator tension3(infinity,true)..a[i];
   return g;
 }
@@ -804,47 +804,57 @@ node[] nodes(int n)
 node operator init() {return new node;}
 
 struct bbox3 {
-  bool empty=true;
-  real left,bottom,lower;
-  real right,top,upper;
+  public bool empty=true;
+  public triple min,max;
   
   void add(triple v) {
-    real x=v.x; 
-    real y=v.y;
-    real z=v.z;
-    
     if(empty) {
-      left=right=x;
-      bottom=top=y;
-      lower=upper=z;
+      min=max=v;
       empty=false;
     } else {
-      if (x < left)
+      real x=v.x; 
+      real y=v.y;
+      real z=v.z;
+      
+      real left=min.x;
+      real bottom=min.y;
+      real lower=min.z;
+      
+      real right=max.x;
+      real top=max.y;
+      real upper=max.z;
+      
+      if(x < left)
 	left = x;  
-      if (x > right)
+      if(x > right)
 	right = x;  
-      if (y < bottom)
+      if(y < bottom)
 	bottom = y;
-      if (y > top)
+      if(y > top)
 	top = y;
-      if (z < lower)
+      if(z < lower)
 	lower = z;
-      if (z > upper)
+      if(z > upper)
 	upper = z;
+      
+      min=(left,bottom,lower);
+      max=(right,top,upper);	   
     }
   }
 
-  triple Min() {
-    return (left,bottom,lower);
-  }
-  
-  triple Max() {
-    return (right,top,upper);
+  void add(triple min, triple max) {
+    add(min);
+    add(max);
   }
   
   real diameter() {
-    return length(Max()-Min());
+    return length(max-min);
   }
+  
+  triple O() {return min;}
+  triple X() {return (max.x,min.y,min.z);}
+  triple Y() {return (min.x,max.y,min.z);}
+  triple Z() {return (min.x,min.y,max.z);}
 }
 
 bbox3 operator init() {return new bbox3;}
@@ -1268,10 +1278,10 @@ struct path3 {
   }
   
   triple max() {
-    return bounds().Max();
+    return bounds().max;
   }
   triple min() {
-    return bounds().Min();
+    return bounds().min;
   }
   
 }
@@ -1608,7 +1618,6 @@ pair intersect(path3 p1, path3 p2, real fuzz=0)
   if(fuzz == 0.0) 
     fuzz=realEpsilon()*max(max(max(length(p1.min()),length(p1.max())),
 			       length(p2.min())),length(p2.max()));
-  
   return intersect(pre1,point1,post1,pre2,point2,post2,fuzz);
 }
 

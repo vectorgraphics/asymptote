@@ -12,5 +12,4 @@ path p=z[0]..z[1]---z[2]::{up}z[3]
 
 draw(p,grey+linewidth(4mm));
 
-for(int n=0; n <= 9; ++n)
-  dot(z[n]);
+dot(z);

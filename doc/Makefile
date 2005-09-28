@@ -2,7 +2,7 @@ MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy)
 FIGURES = latexusage.eps latexusage.png latexusage.pdf version.texi 
 
-doc:	man asymptote.dvi asymptote.info html
+doc:	asymptote.dvi asymptote.info html man
 
 man:	asymptote.pdf
 

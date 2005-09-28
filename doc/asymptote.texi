@@ -64,14 +64,14 @@ file LICENSE in the top-level source directory).
 
 Installation
 
-* UNIX binary distributions::   
-* Compiling from UNIX source::  
-* Microsoft Windows::           
-* Environment variables::       
-* Search paths::                
-* Editing modes::               
-* CVS::                         
-* Uninstall::                   
+* UNIX binary distributions::   Prebuilt @code{UNIX} binaries
+* Microsoft Windows::           Prebuilt @code{Microsoft Windows} binary
+* Environment variables::       Configuring @code{Asymptote} for your system
+* Search paths::                Where @code{Asymptote} looks for your files
+* Compiling from UNIX source::  Building @code{Asymptote} from scratch
+* Editing modes::               Convenient @code{emacs} and @code{vim} modes
+* CVS::                         Latest development version
+* Uninstall::                   Goodbye, @code{Asymptote}!
 
 Programming
 
@@ -82,14 +82,19 @@ Programming
 * Frames and pictures::         Canvases for immediate and deferred drawing
 * Files::                       Reading and writing your data
 * Structures::                  Organize your data
-* Arithmetic & logical::        Standard binary operators
-* Self & prefix operators::     Self operators, increment, and decrement
+* Operators::                   Arithmetic and logical operators
 * Implicit scaling::            Avoiding those ugly *s
 * Functions::                   Traditional and high-order functions
 * Arrays::                      Dynamic vectors
 * Casts::                       Implicit and explicit casts
 * Import::                      Importing external @code{Asymptote} packages
 * Static::                      Where to allocate your variable?
+
+Operators
+
+* Arithmetic & logical::        Basic mathematical operators
+* Self & prefix operators::     Increment and decrement
+* User-defined operators::      Overloading operators
 
 Functions
 
@@ -210,14 +215,14 @@ as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
 @cindex installation
 
 @menu
-* UNIX binary distributions::   
-* Compiling from UNIX source::  
-* Microsoft Windows::           
-* Environment variables::       
-* Search paths::                
-* Editing modes::               
-* CVS::                         
-* Uninstall::                   
+* UNIX binary distributions::   Prebuilt @code{UNIX} binaries
+* Microsoft Windows::           Prebuilt @code{Microsoft Windows} binary
+* Environment variables::       Configuring @code{Asymptote} for your system
+* Search paths::                Where @code{Asymptote} looks for your files
+* Compiling from UNIX source::  Building @code{Asymptote} from scratch
+* Editing modes::               Convenient @code{emacs} and @code{vim} modes
+* CVS::                         Latest development version
+* Uninstall::                   Goodbye, @code{Asymptote}!
 @end menu
 
 @noindent
@@ -637,8 +642,7 @@ many features beyond the ones found in those languages.
 * Frames and pictures::         Canvases for immediate and deferred drawing
 * Files::                       Reading and writing your data
 * Structures::                  Organize your data
-* Arithmetic & logical::        Standard binary operators
-* Self & prefix operators::     Self operators, increment, and decrement
+* Operators::                   Arithmetic and logical operators
 * Implicit scaling::            Avoiding those ugly *s
 * Functions::                   Traditional and high-order functions
 * Arrays::                      Dynamic vectors
@@ -997,6 +1001,12 @@ guide circle(pair c, real r)
   return shift(c)*scale(r)*unitcircle;
 }
 @end verbatim
+If high accuracy is needed, a true circle may be produced with this
+routine, defined in the module @code{graph.asy}:
+@verbatim
+guide Circle(pair c, real r, int ngraph=400);
+@end verbatim
+
 
 @anchor{Bezier}
 Each interior node of a cubic spline may be given a
@@ -1031,6 +1041,13 @@ For convenience, an arc centered at @code{c} from pair @code{z1} to
 @verbatim
 guide arc(pair c, explicit pair z1, explicit pair z2,
           bool direction=CCW)
+@end verbatim
+
+If high accuracy is needed, a true arc may be produced with this
+routine, defined in the module @code{graph.asy}:
+@verbatim
+guide Arc(pair c, real r, real angle1, real angle2,
+          int ngraph=400);
 @end verbatim
 
 @cindex @code{controls}
@@ -1907,9 +1924,8 @@ file fin=input("test.txt");
 real a=fin;
 @end verbatim
 
+@cindex comment character
 @cindex @code{error}
-@cindex @code{cd}
-@cindex directory
 If the optional boolean argument @code{check} is @code{false}, no check will
 be made that the file exists. If the file does not exist or is not
 readable, the function @code{bool error(file)} will return @code{true}.
@@ -1920,6 +1936,8 @@ encountered in a data file, the remainder of the line is ignored. When
 reading strings, the comment character must be in the first column
 (otherwise it will treated as an ordinary character).
 
+@cindex @code{cd}
+@cindex directory
 One can change the current working directory with the
 @code{string cd(string)} function, which returns the new working directory.
 
@@ -2019,7 +2037,6 @@ creating a function @code{S operator init()}. This can be used to
 initialize each instance of @code{S} with @code{new S} (which creates
 a new anonymous instance of @code{S}).
 
-@cindex @code{operator}
 @cindex @code{operator init}
 @cindex @code{new}
 @verbatim
@@ -2119,8 +2136,18 @@ write(c.y);                     // Outputs 2;
 Further examples of structures are @code{Legend} and @code{picture} in
 the default @code{Asymptote} base file @code{plain.asy}.
 
+@node Operators
+@section Operators
+@cindex operators
+
+@menu
+* Arithmetic & logical::        Basic mathematical operators
+* Self & prefix operators::     Increment and decrement
+* User-defined operators::      Overloading operators
+@end menu
+
 @node Arithmetic & logical
-@section Arithmetic & logical operators
+@subsection Arithmetic & logical operators
 @cindex arithmetic operators
 @cindex binary operators
 @cindex boolean operators
@@ -2199,8 +2226,9 @@ not
 bool positive=(pi >= 0) ? true : false;
 @end verbatim
 
+
 @node Self & prefix operators
-@section Self & prefix operators
+@subsection Self & prefix operators
 @cindex self operators
 @cindex prefix operators
 @cindex @code{+=}
@@ -2237,6 +2265,40 @@ However, postfix operators like @code{i++} and @code{i--} are not defined
 path-joining operator). In the rare instances where @code{i++} 
 and @code{i--} are really needed, one can substitute the expressions
 @code{(++i-1)} and @code{(--i+1)}, respectively.
+
+@node User-defined operators
+@subsection User-defined operators
+@cindex user-defined operators
+@cindex @code{operator}
+The following symbols may be used with @code{operator} to define or redefine
+operators on structures and builtin types:
+@verbatim
+- + * / % ^ ! < > == != <= >= & && || ^^ .. :: -- --- ++
+@end verbatim
+
+Guide operators like @code{..} may be overloaded, say, to write
+a user function that produces a new guide from a given guide:
+@verbatim
+guide dots(...guide[] g)=operator ..;
+
+guide operator ..(...guide[] g) {
+  guide G;
+  if(g.length > 0) {
+    write(g[0]);
+    G=g[0];
+  }
+  for(int i=1; i < g.length; ++i) {
+    write(g[i]);
+    write();
+    G=dots(G,g[i]);
+  }
+  return G;
+}
+
+guide g=(0,0){up}..{SW}(100,100){NE}..{curl 3}(50,50)..(10,10);
+write("g=",none);
+write(g);
+@end verbatim
 
 @node Implicit scaling
 @section Implicit scaling
@@ -3435,21 +3497,34 @@ or horizontal lines and axes at arbitrary locations.
 @item
 @verbatim
 void axis(picture pic=currentpicture, Label L="", guide g,
-          pen p=currentpen, ticks ticks, tickspec spec,
+          pen p=currentpen, ticks ticks, ticklocate locate,
           arrowbar arrow=None, int[] divisor=new int[],
           bool put=Above, bool opposite=false);
 @end verbatim
 
-This routine can be used to draw a general axis with ticks on picture
-@code{pic} using pen @code{p}, based on an arbitrary path @code{g}.
-One can optionally label the axis with Label @code{L}.
-The tick type and value specifier is given by @code{ticks} and
-@code{tickspec} and the optional integer array 
-@code{divisor} specifies what tick divisors to try in the attempt to
-produce uncrowded tick labels. A @code{true} value for the flag
-@code{opposite} identifies an unlabelled secondary axis (typically
-drawn opposite to a primary axis).  The axis is drawn on top of any
-existing objects in the current layer only if @code{put} is @code{Above}.
+This routine can be used to draw on picture @code{pic} a general axis
+based on an arbitrary path @code{g}, using pen @code{p}. 
+One can optionally label the axis with Label @code{L} and add an arrow
+@code{arrow}. The tick type is given by @code{ticks}. 
+The optional integer array @code{divisor} specifies what tick divisors
+to try in the attempt to produce uncrowded tick labels. A @code{true}
+value for the flag @code{opposite} identifies an unlabelled secondary
+axis (typically drawn opposite a primary axis).  The axis is drawn
+on top of any existing objects in the current layer only if @code{put}
+is @code{Above}. The tick locater @code{ticklocate} is
+constructed by the routine
+@verbatim
+ticklocate ticklocate(real a, real b, autoscaleT S=defaultS,
+		      real tickmin=-infinity, real tickmax=infinity,
+		      real time(real)=null, pair dir(real)=zero);
+@end verbatim
+@noindent
+where @code{a} and @code{b} specify the respective tick values at
+@code{point(g,0)} and @code{point(g,length(g))}, @code{S} specifies
+the autoscaling transformation, the function @code{real time(real v)}
+returns the time corresponding to the value @code{v}, and
+@code{pair dir(real t)} returns the absolute tick direction as a
+function of @code{t} (zero means draw the tick perpendicular to the axis).
 
 @item These routines are useful for manually putting ticks and labels on axes
 (if the special variable @code{Label} is given as the @code{Label}
@@ -3738,6 +3813,12 @@ drawn like this:
 @verbatiminclude unitcircle3.asy
 @image{unitcircle3}
 @noindent
+and then distorted into a saddle:
+@verbatiminclude saddle.asy
+@image{saddle}
+@noindent
+
+
 Here @code{O} is the triple @code{(0,0,0)} and @code{X},
 @code{Y}, and @code{Z} are the triples @code{(1,0,0)},
 @code{(0,1,0)}, and @code{(0,0,1)}, respectively.
@@ -3767,6 +3848,8 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O,
           bool direction=CCW);
 @end verbatim
 @noindent
+When high accuracy is needed, the routines @code{Circle} and
+@code{Arc} defined in @code{graph3} may be used instead.
 See @ref{surface} for an example of a three-dimensional circular arc.
 
 A representation of the plane passing through triples @code{v1},
@@ -3877,6 +3960,10 @@ Here is an example showing three orthogonal intersecting planes:
 @verbatiminclude planes.asy
 @image{planes}
 
+Here is an example showing all five three-dimensional path connectors:
+@verbatiminclude join3.asy
+@image{join3}
+
 Further three-dimensional examples are found in the files
 @code{near_earth.asy} and @code{conicurv.asy}.
 
@@ -3884,15 +3971,52 @@ Further three-dimensional examples are found in the files
 @subsection @code{graph3}
 @cindex @code{graph3}
 @cindex 3D graphs
-This module implements three-dimensional versions of the @code{graph}
-functions in @code{graph.asy}.
-Here is an example of a helix and a path3 bounding box using
+This module implements three-dimensional versions of the
+functions in @code{graph.asy}. They work much like their
+two-dimensional counterparts, except that the user has to keep track
+of the three-dimensional axes limits (which in two dimension are stored in
+the picture) in a @code{bbox3} bounding box. The
+following functions make this convenient:
+@verbatim
+bbox3 limits(picture pic=currentpicture, triple min, triple max);
+bbox3 autolimits(picture pic=currentpicture, triple min, triple max);
+
+void xlimits(bbox3 b, real min, real max);
+void ylimits(bbox3 b, real min, real max);
+void zlimits(bbox3 b, real min, real max);
+void limits(bbox3 b, triple min, triple max);
+@end verbatim
+
+To draw an @math{x} axis in three dimensions from triple @code{min} to
+triple @code{max} with ticks in the direction @code{dir}, use the routine
+@verbatim
+void xaxis(picture pic=currentpicture, Label L="", triple min, triple max,
+	   pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
+	   arrowbar arrow=None, bool put=Above,
+	   projection P=currentprojection, bool opposite=false);
+@end verbatim
+To draw an @math{x} axis in three dimensions using @code{bbox3 b}
+with ticks in the direction @code{dir}, use the routine
+@verbatim
+void xaxis(picture pic=currentpicture, Label L="", bool all=false,
+           bbox3 b, pen p=currentpen, ticks ticks=NoTicks,
+           triple dir=Y, arrowbar arrow=None, bool put=Above,
+	   projection P=currentprojection);
+@end verbatim
+@noindent
+If @code{all=true}, also draw opposing edges of the three-dimensional
+bounding box.
+@noindent
+Analgous routines can be used to draw @code{y} and @code{z} axes in
+three dimensions.
+
+Here is an example of a helix and bounding box axes, using
 orthographic projection:
 @verbatiminclude helix.asy
 @image{helix}
 
 This example illustrates three-dimensional @math{x}, @math{y}, and
-@math{z} axes, with optional autoscaling:
+@math{z} axes, with autoscaling of the upper @math{z} limit disabled:
 @cindex @code{axis}
 @verbatiminclude axis3.asy
 @image{axis3}
