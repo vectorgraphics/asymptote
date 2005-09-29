@@ -2018,9 +2018,9 @@ previous I/O error with @code{clear(file)}, and close the file with
 The routines
 @verbatim
 string getstring(string name, string default="", string prompt="",
-		 string prefix=getstringprefix, bool save=true);
+                 string prefix=getstringprefix, bool save=true);
 real getreal(string name, real default=0, string prompt="",
-	     string prefix=getstringprefix, bool save=true);
+             string prefix=getstringprefix, bool save=true);
 @end verbatim
 @noindent
 defined in @code{plain.asy} may be used to read a value from @code{stdin}.
@@ -2286,7 +2286,7 @@ and @code{i--} are really needed, one can substitute the expressions
 @cindex user-defined operators
 @cindex @code{operator}
 The following symbols may be used with @code{operator} to define or redefine
-operators on structures and builtin types:
+operators on structures and built-in types:
 @verbatim
 - + * / % ^ ! < > == != <= >= & && || ^^ .. :: -- --- ++
 @end verbatim
@@ -3410,7 +3410,7 @@ include the first label;
 @item bool endlabel
 include the last label;
 @item Label format
-used for overriding the default format (@code{defaultformat}, initally
+used for overriding the default format (@code{defaultformat}, initially
 "$%.4g$"), pen, and alignment (for example, @code{LeftSide}, @code{Center}, or
 @code{RightSide}) relative to the axis of the tick labels (to enable
 the @code{LaTeX} math mode fonts, the format string should begin and
@@ -3530,8 +3530,8 @@ is @code{Above}. The tick locater @code{ticklocate} is
 constructed by the routine
 @verbatim
 ticklocate ticklocate(real a, real b, autoscaleT S=defaultS,
-		      real tickmin=-infinity, real tickmax=infinity,
-		      real time(real)=null, pair dir(real)=zero);
+                      real tickmin=-infinity, real tickmax=infinity,
+                      real time(real)=null, pair dir(real)=zero);
 @end verbatim
 @noindent
 where @code{a} and @code{b} specify the respective tick values at
@@ -3741,8 +3741,8 @@ from [0,1] and use
 typedef path vector(real);
 
 void vectorfield(picture pic=currentpicture, path g, int n, 
-		 vector vector, real arrowsize=0, real arrowlength=0,
-		 pen p=currentpen);
+                 vector vector, real arrowsize=0, real arrowlength=0,
+                 pen p=currentpen);
 @end verbatim
 Here is a simple example of a flow field:
 @verbatiminclude flow.asy
@@ -4021,9 +4021,9 @@ To draw an @math{x} axis in three dimensions from triple @code{min} to
 triple @code{max} with ticks in the direction @code{dir}, use the routine
 @verbatim
 void xaxis(picture pic=currentpicture, Label L="", triple min, triple max,
-	   pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
-	   arrowbar arrow=None, bool put=Above,
-	   projection P=currentprojection, bool opposite=false);
+           pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
+           arrowbar arrow=None, bool put=Above,
+           projection P=currentprojection, bool opposite=false);
 @end verbatim
 To draw an @math{x} axis in three dimensions using @code{bbox3 b}
 with ticks in the direction @code{dir}, use the routine
@@ -4031,13 +4031,13 @@ with ticks in the direction @code{dir}, use the routine
 void xaxis(picture pic=currentpicture, Label L="", bool all=false,
            bbox3 b, pen p=currentpen, ticks ticks=NoTicks,
            triple dir=Y, arrowbar arrow=None, bool put=Above,
-	   projection P=currentprojection);
+           projection P=currentprojection);
 @end verbatim
 @noindent
 If @code{all=true}, also draw opposing edges of the three-dimensional
 bounding box.
 @noindent
-Analgous routines can be used to draw @code{y} and @code{z} axes in
+Analogous routines can be used to draw @code{y} and @code{z} axes in
 three dimensions.
 
 Here is an example of a helix and bounding box axes, using
@@ -4861,8 +4861,8 @@ This makes LaTeX symbols visible to the
 Asymptote correctly aligns LaTeX symbols defined outside of
 @code{\begin@{asy@}...\end@{asy@}}, but treats their size as zero; an
 optional second string can be given to @code{Label} to provide an
-estimate of the unknown label size. Note that labels might not show up in dvi
-viewers that cannot handle raw @code{PostScript} code; use
+estimate of the unknown label size. Note that labels might not show up
+in @acronym{DVI} viewers that cannot handle raw @code{PostScript} code; use
 @code{dvips}/@code{dvipdf} to produce @code{PostScript}/@acronym{PDF}
 output. We recommend using the modified version of @code{dvipdf} in
 the @code{Asymptote} patches directory, which accepts the @code{dvips
@@ -5252,4 +5252,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  colatitude zscale noView cosh nullpen MetaFontbook cyclicflag
 @c  LocalWords:  nodeps Ghostgum beginlabel endlabel pTick ptick loggrid SAS
 @c  LocalWords:  currentprojection latticeshading subpictures colinear unitcube
-@c  LocalWords:  Autoscaling solveQuadratic MidArrow MidArcArrow
+@c  LocalWords:  Autoscaling solveQuadratic MidArrow MidArcArrow Prebuilt url
+@c  LocalWords:  pdftex commentchar getstring getstringprefix getreal defaultS
+@c  LocalWords:  ticklocate autoscaleT autoscaling vectorfield autolimits dvi
+@c  LocalWords:  zlimits inline dvipdf hyperdvi autoconf

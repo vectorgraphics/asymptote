@@ -17,7 +17,6 @@ real alpha=1;
 real f(real x) {return alpha/x;}
 
 real epsilon=0.5;
-
 path p=graph(f,epsilon,1/epsilon);
 
 int n=2;
