@@ -2214,7 +2214,7 @@ void fileOpenIn(stack *s)
   string *comment=pop<string*>(s);
   bool check=pop<bool>(s);
   string *filename=pop<string*>(s);
-  char c=*comment == "" ? 0 : (*comment)[0];
+  char c=*comment == "" ? (char) 0 : (*comment)[0];
   file *f=new ifile(*filename,check,c);
   f->open();
   s->push(f);

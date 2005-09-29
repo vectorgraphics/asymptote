@@ -24,10 +24,10 @@ void ifile::ignoreComment()
   if(comment == 0) return;
   int c;
   if(stream->peek() == '\n') return;
-  while(true) {
+  for(;;) {
     while(isspace(c=stream->peek())) {
       stream->ignore();
-      whitespace += c;
+      whitespace += (char) c;
     }
     if(c == comment) {
       whitespace="";
@@ -44,7 +44,7 @@ bool ifile::eol()
   while(isspace(c=stream->peek())) {
     stream->ignore();
     if(c == '\n') return true;
-    else whitespace += c;
+    else whitespace += (char) c;
   }
   return false;
 }

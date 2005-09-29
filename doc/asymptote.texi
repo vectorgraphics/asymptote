@@ -2015,6 +2015,21 @@ previous I/O error with @code{clear(file)}, and close the file with
 @code{close(file)}. To set the number of digits of output precision, use
 @code{precision(file,int)}.
 
+The routines
+@verbatim
+string getstring(string name, string default="", string prompt="",
+		 string prefix=getstringprefix, bool save=true);
+real getreal(string name, real default=0, string prompt="",
+	     string prefix=getstringprefix, bool save=true);
+@end verbatim
+@noindent
+defined in @code{plain.asy} may be used to read a value from @code{stdin}.
+If @code{save=true}, the value is saved to the file named
+@code{prefix+name}, to provide the default value for subsequent runs.
+The default value (initially @code{default}) is displayed after @code{prompt}.
+The initial value of @code{getstringprefix} is ".asy_".
+
+
 @node Structures
 @section Structures
 @cindex @code{struct}
@@ -3717,6 +3732,21 @@ A secondary logarithmic @math{y} axis can be drawn like this:
 @cindex @code{axis}
 @verbatiminclude generalaxis.asy
 @image{generalaxis}
+
+@item To draw a vector field along a path, first define a routine
+that returns a path as a function of a relative position parameter
+from [0,1] and use
+@cindex @code{vector field}
+@verbatim
+typedef path vector(real);
+
+void vectorfield(picture pic=currentpicture, path g, int n, 
+		 vector vector, real arrowsize=0, real arrowlength=0,
+		 pen p=currentpen);
+@end verbatim
+Here is a simple example of a flow field:
+@verbatiminclude flow.asy
+@image{flow}
 
 @anchor{images}
 @item @code{Asymptote} can also generate color density images

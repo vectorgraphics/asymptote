@@ -277,7 +277,7 @@ string ask(string prompt)
   return stdin;
 }
 
-string getstringprefix=".asy_";
+static public string getstringprefix=".asy_";
 
 void savestring(string name, string value, string prefix=getstringprefix)
 {
@@ -287,7 +287,7 @@ void savestring(string name, string value, string prefix=getstringprefix)
 }
 
 string getstring(string name, string default="", string prompt="",
-		 string prefix=getstringprefix,bool save=true)
+		 string prefix=getstringprefix, bool save=true)
 {
   string value;
   file in=input(prefix+name,false);

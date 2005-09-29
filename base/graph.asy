@@ -579,7 +579,7 @@ ticks Ticks(bool begin=true, bool end=true, int sign, int N, int n=0,
       
       if(!opposite && N > 0) {
 	int c=0;
-	for(int i=first-1; i <= last+1; i += N) {
+	for(int i=first-N; i <= last+N; i += N) {
 	  if(i >= a && i <= b) {
 	    ++c;
 	    if((beginlabel || c > 1) && (endlabel || c < count)) {

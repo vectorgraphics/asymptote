@@ -1,9 +1,9 @@
 import graph;
 defaultpen(1.0);
 
-size(0,200,IgnoreAspect);
+size(0,150,IgnoreAspect);
 
-real arrowsize=6mm;
+real arrowsize=4mm;
 real arrowlength=2arrowsize;
 
 // Return a vector interpolated linearly between a and b.
@@ -26,6 +26,8 @@ xaxis("$x$");
 yaxis("$y$");
 
 vectorfield(p,n,vector(W,W),arrowsize);
-vectorfield((0,0)--(currentpicture.userMax.x,0),n,vector(NE,NW),arrowsize);
-vectorfield((0,0)--(0,currentpicture.userMax.y),n,vector(NE,NE),arrowsize);
+vectorfield((0,0)--(currentpicture.userMax.x,0),n,vector(NE,NW),
+	    arrowsize);
+vectorfield((0,0)--(0,currentpicture.userMax.y),n,vector(NE,NE),
+	    arrowsize);
 
