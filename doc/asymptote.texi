@@ -5141,15 +5141,8 @@ posted here:
 @url{http://sourceforge.net/tracker/?atid=685685&group_id=120000}
 @end quotation
 @noindent
-There is also an @code{Asymptote} mailing list, which will
-likely be phased out in the near future:
-@quotation
-@url{http://lists.sourceforge.net/lists/listinfo/asymptote-discuss}
-@end quotation
-@noindent
-In the past, this list was primarily used to announce new releases of
-@code{Asymptote}. To continue to receive announcements of upcoming releases,
-please subscribe to @code{Asymptote} at
+To receive announcements of upcoming releases, please subscribe to
+@code{Asymptote} at
 @quotation
 @url{http://freshmeat.net/subscribe/50750}
 @end quotation

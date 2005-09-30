@@ -384,7 +384,7 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   while(p != nodes.end()) {
     ostringstream buf;
     buf << prefix << "_" << layer;
-    string psname=Labels ? buildname(buf.str(),"ps") : epsname;
+    string psname=Labels ? buildname(buf.str(),"eps") : epsname;
     psnameStack.push_back(psname);
     psfile out(psname,bpos,bboxshift);
     out.prologue();
