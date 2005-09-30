@@ -1023,13 +1023,14 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
 }
 
 // Restrict the x limits of a picture.
-void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
+void xlimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
 	     bool crop=Crop)
 {
+  if(min > max) return;
   if(!(finite(pic.userMin.x) && finite(pic.userMax.x))) return;
   
-  pic.scale.x.automin=Min <= -infinity;
-  pic.scale.x.automax=Max >= infinity;
+  pic.scale.x.automin=min <= -infinity;
+  pic.scale.x.automax=max >= infinity;
   
   bounds mx;
   if(pic.scale.x.automin() || pic.scale.x.automax())
@@ -1037,11 +1038,11 @@ void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
   
   if(pic.scale.x.automin) {
     if(pic.scale.x.automin()) pic.userMin=(mx.min,pic.userMin.y);
-  } else pic.userMin=(pic.scale.x.T(Min),pic.userMin.y);
+  } else pic.userMin=(pic.scale.x.T(min),pic.userMin.y);
   
   if(pic.scale.x.automax) {
     if(pic.scale.x.automax()) pic.userMax=(mx.max,pic.userMax.y);
-  } else pic.userMax=(pic.scale.x.T(Max),pic.userMax.y);
+  } else pic.userMax=(pic.scale.x.T(max),pic.userMax.y);
   
   if(crop) {
     pair userMin=pic.userMin;
@@ -1054,13 +1055,14 @@ void xlimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
 }
 
 // Restrict the y limits of a picture.
-void ylimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
+void ylimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
 	     bool crop=Crop)
 {
+  if(min > max) return;
   if(!(finite(pic.userMin.y) && finite(pic.userMax.y))) return;
   
-  pic.scale.y.automin=Min <= -infinity;
-  pic.scale.y.automax=Max >= infinity;
+  pic.scale.y.automin=min <= -infinity;
+  pic.scale.y.automax=max >= infinity;
   
   bounds my;
   if(pic.scale.y.automin() || pic.scale.y.automax())
@@ -1068,11 +1070,11 @@ void ylimits(picture pic=currentpicture, real Min=-infinity, real Max=infinity,
   
   if(pic.scale.y.automin) {
     if(pic.scale.y.automin()) pic.userMin=(pic.userMin.x,my.min);
-  } else pic.userMin=(pic.userMin.x,pic.scale.y.T(Min));
+  } else pic.userMin=(pic.userMin.x,pic.scale.y.T(min));
   
   if(pic.scale.y.automax) {
     if(pic.scale.y.automax()) pic.userMax=(pic.userMax.x,my.max);
-  } else pic.userMax=(pic.userMax.x,pic.scale.y.T(Max));
+  } else pic.userMax=(pic.userMax.x,pic.scale.y.T(max));
   
   if(crop) {
     pair userMin=pic.userMin;
@@ -1100,7 +1102,7 @@ void limits(picture pic=currentpicture, pair min, pair max)
   ylimits(pic,min.y,max.y);
 }
   
-// Internal routine to autoscale an axis.
+// Internal routine to autoscale the user limits of a picture.
 void autoscale(picture pic=currentpicture, axis axis)
 {
   if(!pic.scale.set) {
@@ -1109,10 +1111,12 @@ void autoscale(picture pic=currentpicture, axis axis)
     
     if(finite(pic.userMin.x) && finite(pic.userMax.x)) {
       mx=autoscale(pic.userMin.x,pic.userMax.x,pic.scale.x.scale);
-      if(pic.scale.x.scale.logarithmic && 
+      if(pic.scale.x.scale.logarithmic &&
 	 floor(pic.userMin.x) == floor(pic.userMax.x)) {
-	pic.userMin=(floor(pic.userMin.x),pic.userMin.y);
-	pic.userMax=(ceil(pic.userMax.x),pic.userMax.y);
+	if(pic.scale.x.automin())
+	  pic.userMin=(floor(pic.userMin.x),pic.userMin.y);
+	if(pic.scale.x.automax())
+	  pic.userMax=(ceil(pic.userMax.x),pic.userMax.y);
       }
     } else {mx.min=mx.max=0; pic.scale.set=false;}
     
@@ -1120,8 +1124,10 @@ void autoscale(picture pic=currentpicture, axis axis)
       my=autoscale(pic.userMin.y,pic.userMax.y,pic.scale.y.scale);
       if(pic.scale.y.scale.logarithmic && 
 	 floor(pic.userMin.y) == floor(pic.userMax.y)) {
-	pic.userMin=(pic.userMin.x,floor(pic.userMin.y));
-	pic.userMax=(pic.userMax.x,ceil(pic.userMax.y));
+	if(pic.scale.y.automin())
+	  pic.userMin=(pic.userMin.x,floor(pic.userMin.y));
+	if(pic.scale.y.automax())
+	  pic.userMax=(pic.userMax.x,ceil(pic.userMax.y));
       }
     } else {my.min=my.max=0; pic.scale.set=false;}
     
@@ -1150,15 +1156,19 @@ void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
 	   real xmin=-infinity, real xmax=infinity, pen p=currentpen,
 	   ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below)
 {
+  if(xmin > xmax) return;
+  
   Label L=L.copy();
   bool newticks=false;
   
   if(xmin != -infinity) {
+    xmin=pic.scale.x.T(xmin);
     pic.addPoint((xmin,pic.userMin.y));
     newticks=true;
   }
   
   if(xmax != infinity) {
+    xmax=pic.scale.x.T(xmax);
     pic.addPoint((xmax,pic.userMax.y));
     newticks=true;
   }
@@ -1204,15 +1214,19 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
 	   real ymin=-infinity, real ymax=infinity, pen p=currentpen,
 	   ticks ticks=NoTicks, arrowbar arrow=None, bool put=Below)
 {
+  if(ymin > ymax) return;
+  
   Label L=L.copy();
   bool newticks=false;
   
   if(ymin != -infinity) {
+    ymin=pic.scale.y.T(ymin);
     pic.addPoint((pic.userMin.x,ymin));
     newticks=true;
   }
   
   if(ymax != infinity) {
+    ymax=pic.scale.y.T(ymax);
     pic.addPoint((pic.userMax.x,ymax));
     newticks=true;
   }
