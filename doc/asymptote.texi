@@ -3374,48 +3374,51 @@ The option @code{LeftTicks} (@code{RightTicks}) can be used to draw
 ticks on the left (right) of the path, relative to the direction in which
 the path is drawn. These tick routines accept a number of optional arguments:
 @verbatim
-ticks LeftTicks(bool begin=true, bool end=true, int N=0, int n=0,
-                real Step=0, real step=0,
-                real Size=Ticksize, real size=ticksize,
-                bool beginlabel=true, bool endlabel=true,
-                Label format="", bool extend=false,
-                pen pTick=nullpen, pen ptick=nullpen);
+ticks LeftTicks(Label format="", ticklabel ticklabel=null,
+		bool beginlabel=true, bool endlabel=true,
+		int N=0, int n=0, real Step=0, real step=0,
+		bool begin=true, bool end=true,
+		real Size=0, real size=0, bool extend=false,
+		pen pTick=nullpen, pen ptick=nullpen);
 @end verbatim
 
 If any of these parameters are omitted, reasonable defaults will
 be chosen:
 @table @code
-@item bool begin
-include the first big tick;
-@item bool end
-include the last big tick;
-@item int N
-when automatic scaling is enabled (the default; @pxref{automatic scaling}),
-divide the arclength evenly into this many intervals, separated by big ticks;
-@item int n
-divide each arclength interval into this many subintervals, separated by
-small ticks;
-@item real Step
-the spacing (in user arclength coordinates) between big ticks
-(if @code{N}=@code{0});
-@item real step
-the spacing (in user arclength coordinates) between small
-ticks (if @code{n}=@code{0});
-@item real Size
-the size of the big ticks (in @code{PostScript} coordinates);
-@item real size
-the size of the small ticks (in @code{PostScript} coordinates);
+@item Label format
+override the default tick label format (@code{defaultformat}, initially
+"$%.4g$"), rotation, pen, and alignment (for example, @code{LeftSide},
+@code{Center}, or @code{RightSide}) relative to the axis. To enable
+@code{LaTeX} math mode fonts, the format string should begin and
+end with @code{$} @pxref{format}; if the format string is @code{"%"},
+the tick label will be suppressed;
+@item ticklabel
+is a function @code{string(real x)} returning the label (by default,
+format(format.s,x)) for each tick value @code{x};
 @item bool beginlabel
 include the first label;
 @item bool endlabel
 include the last label;
-@item Label format
-used for overriding the default format (@code{defaultformat}, initially
-"$%.4g$"), pen, and alignment (for example, @code{LeftSide}, @code{Center}, or
-@code{RightSide}) relative to the axis of the tick labels (to enable
-the @code{LaTeX} math mode fonts, the format string should begin and
-end with @code{$} @pxref{format}; if the format string is @code{"%"},
-the tick label will be suppressed);
+@item int N
+when automatic scaling is enabled (the default; @pxref{automatic scaling}),
+divide the values evenly into this many intervals, separated by big ticks;
+@item int n
+divide each value interval into this many subintervals, separated by
+small ticks;
+@item real Step
+the tick value spacing between big ticks
+(if @code{N}=@code{0});
+@item real step
+the tick value spacing between small
+ticks (if @code{n}=@code{0});
+@item bool begin
+include the first big tick;
+@item bool end
+include the last big tick;
+@item real Size
+the size of the big ticks (in @code{PostScript} coordinates);
+@item real size
+the size of the small ticks (in @code{PostScript} coordinates);
 @item bool extend;
 extend the big ticks across the graph (useful for drawing a grid on
 the graph);
@@ -3432,11 +3435,11 @@ It is also possible to specify custom tick locations with
 arrays @code{Ticks} and (optionally) @code{ticks} containing the
 locations of the big and small ticks, respectively:
 @verbatim
-ticks LeftTicks(real[] Ticks, real[] ticks=new real[],
-                real Size=Ticksize, real size=ticksize,
-                bool beginlabel=true, bool endlabel=true, 
-                Label format="", bool extend=false,
-                pen pTick=nullpen, pen ptick=nullpen);
+ticks LeftTicks(Label format="", ticklabel ticklabel=null, 
+		bool beginlabel=true, bool endlabel=true, 
+		real[] Ticks, real[] ticks=new real[],
+		real Size=0, real size=0, bool extend=false,
+		pen pTick=nullpen, pen ptick=nullpen)
 @end verbatim
 
 @item

@@ -6,7 +6,7 @@ size(0,100);
 path3 G=xscale3(1)*(yscale3(2)*unitcircle3);
 
 axis(Label("C",align=Relative(5E)),G,
-     LeftTicks(end=false,endlabel=false,8),
+     LeftTicks(endlabel=false,8,end=false),
      ticklocate(0,360,new real(real v) {
 		  path g=G;
 		  path h=O--max(abs(max(G)),abs(min(G)))*dir(90,v);

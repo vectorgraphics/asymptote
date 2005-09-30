@@ -13,14 +13,14 @@ void image(picture pic=currentpicture, real[][] data, pen[] palette,
 
 typedef ticks paletteticks(real Size);
 
-paletteticks PaletteTicks(int N=0, real Step=0,
+paletteticks PaletteTicks(Label format=defaultformat, ticklabel ticklabel=null,
 			  bool beginlabel=true, bool endlabel=true,
-			  Label format=defaultformat, pen pTick=nullpen)
+			  int N=0, real Step=0, pen pTick=nullpen)
 {
   return new ticks(real Size) {
     format.align(RightSide);
-    return Ticks(false,false,-1,N,-1,Step=Step,Size=Size,beginlabel,endlabel,
-		 format,pTick);
+    return Ticks(-1,format,beginlabel,endlabel,N,-1,Step,false,false,Size,
+		 pTick);
   };
 } 
 

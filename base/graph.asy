@@ -175,13 +175,14 @@ bounds autoscale(real Min, real Max, scaleT scale=Linear)
 }
 
 typedef string ticklabel(real);
+private string ticklabel(real) {return "";}
 
-ticklabel ticklabel(string s) {
+public ticklabel Format(string s) {
   return new string(real x) {return format(s,x);};
 }
 
-ticklabel LogFormat=new string(real x) {
-  return format("$10^{%d}$",round(x));
+static public ticklabel LogFormat=new string(real x) {
+  return format("$10^{%g}$",x);
 };
 
 // The default direction specifier.
@@ -398,10 +399,12 @@ private void ticks(frame, transform, Label, pair, path, path, pen, arrowbar,
 		   ticklocate, int[], bool opposite=false) {};
 
 // Automatic tick construction routine.
-ticks Ticks(bool begin=true, bool end=true, int sign, int N, int n=0,
-	    real Step=0, real step=0, real Size=0, real size=0,
-	    bool beginlabel=true, bool endlabel=true, Label F="",
-	    bool extend=false, pen pTick=nullpen, pen ptick=nullpen)
+ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
+	    bool beginlabel=true, bool endlabel=true,
+	    int N, int n=0, real Step=0, real step=0,
+	    bool begin=true, bool end=true,
+	    real Size=0, real size=0, bool extend=false,
+	    pen pTick=nullpen, pen ptick=nullpen)
 {
   return new void(frame f, transform T, Label L, pair side, path g, path g2,
 		  pen p, arrowbar arrow, ticklocate locate, int[] divisor,
@@ -427,7 +430,8 @@ ticks Ticks(bool begin=true, bool end=true, int sign, int N, int n=0,
     if(pTick == nullpen) pTick=p;
     if(ptick == nullpen) ptick=p;
     
-    ticklabel ticklabel=ticklabel(F.s == "" ? defaultformat : F.s);
+    if(ticklabel == null) 
+      ticklabel=Format(F.s == "" ? defaultformat : F.s);
     if(F.align.dir != 0) side=F.align.dir;
     else if(side == 0) side=rotate(F.angle)*((sign == 1) ? left : right);
     
@@ -597,10 +601,11 @@ ticks Ticks(bool begin=true, bool end=true, int sign, int N, int n=0,
 }
 
 // Tick construction routine for a user-specified array of tick values.
-ticks Ticks(int sign, real[] Ticks, real[] ticks=new real[],
-	    real Size=0, real size=0,
-	    bool beginlabel=true, bool endlabel=true, Label F="",
-	    bool extend=false, pen pTick=nullpen, pen ptick=nullpen)
+ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
+	    bool beginlabel=true, bool endlabel=true,
+	    real[] Ticks, real[] ticks=new real[],
+	    real Size=0, real size=0, bool extend=false,
+	    pen pTick=nullpen, pen ptick=nullpen)
 {
   return new void(frame f, transform T, Label L, pair side, path g, path g2, 
 		  pen p, arrowbar arrow, ticklocate locate, int[] divisor,
@@ -622,7 +627,6 @@ ticks Ticks(int sign, real[] Ticks, real[] ticks=new real[],
     if(pTick == nullpen) pTick=p;
     if(ptick == nullpen) ptick=p;
     
-    ticklabel ticklabel=ticklabel(F.s == "" ? defaultformat : F.s);
     if(F.align.dir != 0) side=F.align.dir;
     else if(side == 0) side=rotate(F.angle)*((sign == 1) ? left : right);
     
@@ -630,24 +634,36 @@ ticks Ticks(int sign, real[] Ticks, real[] ticks=new real[],
     guide G=T*g;
     guide G2=T*g2;
     
-    real a=locate.a;
-    real b=locate.b;
+    real a,b;
+    if(locate.S.scale.logarithmic) {
+      a=locate.S.postscale.Tinv(locate.a);
+      b=locate.S.postscale.Tinv(locate.b);
+    } else {
+      a=locate.S.Tinv(locate.a);
+      b=locate.S.Tinv(locate.b);
+    }
+    
+    if(a > b) {real temp=a; a=b; b=temp;}
 
     real norm=max(abs(a),abs(b));
-    if(locate.S.scale.logarithmic) ticklabel=new string(real x) {
-      return format("$10^{%g}$",x);
-    };
+    
+    string format=F.s == "" ? defaultformat : F.s;
+    
+    if(ticklabel == null)
+      ticklabel=locate.S.scale.logarithmic ? 
+	new string(real x) {return format(format,locate.S.scale.Tinv(x));} :
+    Format(format);
 
     begingroup(f);
     if(opposite) draw(f,G,p);
     else draw(f,G,p,arrow);
     for(int i=0; i < Ticks.length; ++i) {
-      real val=Ticks[i];
+      real val=locate.S.scale.T(Ticks[i]);
       if(val >= a && val <= b)
 	drawtick(f,T,g,g2,locate,val,Size,sign,pTick,extend);
     }
     for(int i=0; i < ticks.length; ++i) {
-      real val=ticks[i];
+      real val=locate.S.scale.T(ticks[i]);
       if(val >= a && val <= b)
       drawtick(f,T,g,g2,locate,val,size,sign,ptick,extend);
     }
@@ -656,7 +672,7 @@ ticks Ticks(int sign, real[] Ticks, real[] ticks=new real[],
     if(Size > 0 && !opposite) {
       for(int i=(beginlabel ? 0 : 1);
 	  i < (endlabel ? Ticks.length : Ticks.length-1); ++i) {
-	real val=Ticks[i];
+	real val=locate.S.scale.T(Ticks[i]);
 	if(val >= a && val <= b) {
 	  ticklabels=true;
 	  labeltick(f,T,g,locate,val,side,sign,Size,ticklabel,F,norm);
@@ -684,46 +700,46 @@ ticks NoTicks()
   };
 }
 
-ticks LeftTicks(bool begin=true, bool end=true, int N=0, int n=0,
-		real Step=0, real step=0,
-		real Size=0, real size=0,
+ticks LeftTicks(Label format="", ticklabel ticklabel=null,
 		bool beginlabel=true, bool endlabel=true,
-		Label format="", bool extend=false,
+		int N=0, int n=0, real Step=0, real step=0,
+		bool begin=true, bool end=true,
+		real Size=0, real size=0, bool extend=false,
 		pen pTick=nullpen, pen ptick=nullpen)
 {
-  return Ticks(begin,end,-1,N,n,Step,step,Size,size,beginlabel,endlabel,format,
-	       extend,pTick,ptick);
+  return Ticks(-1,format,ticklabel,beginlabel,endlabel,N,n,Step,step,
+	       begin,end,Size,size,extend,pTick,ptick);
 }
 
-ticks RightTicks(bool begin=true, bool end=true, int N=0, int n=0,
-		 real Step=0, real step=0,
-		 real Size=0, real size=0,
+ticks RightTicks(Label format="", ticklabel ticklabel=null,
 		 bool beginlabel=true, bool endlabel=true,
-		 Label format="", bool extend=false,
+		 int N=0, int n=0, real Step=0, real step=0,
+		 bool begin=true, bool end=true, 
+		 real Size=0, real size=0, bool extend=false,
 		 pen pTick=nullpen, pen ptick=nullpen)
 {
-  return Ticks(begin,end,1,N,n,Step,step,Size,size,beginlabel,endlabel,format,
-	       extend,pTick,ptick);
+  return Ticks(1,format,ticklabel,beginlabel,endlabel,N,n,Step,step,
+	       begin,end,Size,size,extend,pTick,ptick);
 }
 
-ticks LeftTicks(real[] Ticks, real[] ticks=new real[],
-		real Size=0, real size=0,
+ticks LeftTicks(Label format="", ticklabel ticklabel=null, 
 		bool beginlabel=true, bool endlabel=true, 
-		Label format="", bool extend=false,
+		real[] Ticks, real[] ticks=new real[],
+		real Size=0, real size=0, bool extend=false,
 		pen pTick=nullpen, pen ptick=nullpen)
 {
-  return Ticks(-1,Ticks,ticks,Size,size,beginlabel,endlabel,format,
-	       extend,pTick,ptick);
+  return Ticks(-1,format,ticklabel,beginlabel,endlabel,
+	       Ticks,ticks,Size,size,extend,pTick,ptick);
 }
 
-ticks RightTicks(real[] Ticks, real[] ticks=new real[],
-		 real Size=0, real size=0,
-		 bool beginlabel=true, bool endlabel=true,
-		 Label format="", bool extend=false,
+ticks RightTicks(Label format="", ticklabel ticklabel=null, 
+		 bool beginlabel=true, bool endlabel=true, 
+		 real[] Ticks, real[] ticks=new real[],
+		 real Size=0, real size=0, bool extend=false,
 		 pen pTick=nullpen, pen ptick=nullpen)
 {
-  return Ticks(1,Ticks,ticks,Size,size,beginlabel,endlabel,format,
-	       extend,pTick,ptick);
+  return Ticks(1,format,ticklabel,beginlabel,endlabel,
+	       Ticks,ticks,Size,size,extend,pTick,ptick);
 }
 
 public ticks

@@ -2790,8 +2790,9 @@ slice lastcut(path g, path knife)
   return s;
 }
 
-string format(real x) {
-  return format("$%.9g$",x);
+string format(real x)
+{
+  return format(defaultformat,x);
 }
 
 pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,darkblue,
