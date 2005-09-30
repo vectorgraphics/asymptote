@@ -1305,8 +1305,7 @@ void xtick(picture pic=currentpicture, Label L, pair z, pair dir=N,
 {
   Label L=L.copy();
   if(L.defaultposition) L.position(z);
-  if(L.align.default)
-    L.align(-dir);
+  L.align(L.align,-dir);
   if(L.shift == 0) 
     L.shift(dot(dir,L.align.dir) > 0 ? dir*size :
 	    ticklabelshift(L.align.dir,p));

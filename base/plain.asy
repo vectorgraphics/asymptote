@@ -328,7 +328,7 @@ GUIop[] GUIlist;
 // Delete item
 void GUIop(int index, int filenum=0, DELETET)
 {
-  if(GUIlist.length <= filenum) GUIlist[filenum];
+  if(GUIlist.length <= filenum) GUIlist[filenum]=new GUIop;
   GUIop GUIobj=GUIlist[filenum];
   while(GUIobj.Transform.length <= index) {
     GUIobj.Transform.push(identity());
@@ -340,7 +340,7 @@ void GUIop(int index, int filenum=0, DELETET)
 // Transform item
 void GUIop(int index, int filenum=0, transform T)
 {
-  if(GUIlist.length <= filenum) GUIlist[filenum];
+  if(GUIlist.length <= filenum) GUIlist[filenum]=new GUIop;
   GUIop GUIobj=GUIlist[filenum];
   while(GUIobj.Transform.length <= index) {
     GUIobj.Transform.push(identity());
