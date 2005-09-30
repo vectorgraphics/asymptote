@@ -352,7 +352,7 @@ void labelaxis(frame f, transform T, Label L, guide g,
 
 // Compute the fractional coverage of a linear axis.
 real axiscoverage(int N, transform T, path g, ticklocate locate, real Step,
-		  pair side, int sign, real Size, ticklabel ticklabel, Label F,
+		  pair side, int sign, real Size, Label F, ticklabel ticklabel,
 		  real norm, real limit)
 {
   real coverage=0;
@@ -374,8 +374,8 @@ real axiscoverage(int N, transform T, path g, ticklocate locate, real Step,
 
 // Compute the fractional coverage of a logarithmic axis.
 real logaxiscoverage(int N, transform T, path g, ticklocate locate, pair side,
-		     int sign, real Size, Label F, real limit,
-		     int first, int last)
+		     int sign, real Size, Label F, ticklabel ticklabel, 
+		     real limit, int first, int last)
 {
   real coverage=0;
   real a=locate.a;
@@ -383,7 +383,7 @@ real logaxiscoverage(int N, transform T, path g, ticklocate locate, pair side,
   for(int i=first-1; i <= last+1; i += N) {
     if(i >= a && i <= b) {
       frame d;
-      pair dir=labeltick(d,T,g,locate,i,side,sign,Size,LogFormat,F);
+      pair dir=labeltick(d,T,g,locate,i,side,sign,Size,ticklabel,F);
       coverage += abs(dot(max(d)-min(d),dir));
       if(coverage > limit) return coverage;
     }
@@ -430,8 +430,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     if(pTick == nullpen) pTick=p;
     if(ptick == nullpen) ptick=p;
     
-    if(ticklabel == null) 
-      ticklabel=Format(F.s == "" ? defaultformat : F.s);
+    string format=F.s == "" ? defaultformat : F.s;
     if(F.align.dir != 0) side=F.align.dir;
     else if(side == 0) side=rotate(F.angle)*((sign == 1) ? left : right);
     
@@ -440,6 +439,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     guide G2=T*g2;
     
     if(!locate.S.scale.logarithmic) {
+      if(ticklabel == null) ticklabel=Format(format);
       real a=locate.S.Tinv(locate.a);
       real b=locate.S.Tinv(locate.b);
       if(a > b) {real temp=a; a=b; b=temp;}
@@ -459,14 +459,14 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
 	  for(int d=divisor.length-1; d >= 0; --d) {
 	    N=divisor[d];
 	    Step=len/N;
-	    if(axiscoverage(N,T,g,locate,Step,side,sign,Size,ticklabel,F,norm,
+	    if(axiscoverage(N,T,g,locate,Step,side,sign,Size,F,ticklabel,norm,
 			    limit) <= limit) {
 	      if(N == 1 && !(locate.S.automin && locate.S.automax) 
 		 && d < divisor.length-1) {
 		// Try using 2 ticks (otherwise 1);
 		int div=divisor[d+1];
 		singletick=true; Step=quotient(div,2)*len/div;
-		if(axiscoverage(2,T,g,locate,Step,side,sign,Size,ticklabel,F,
+		if(axiscoverage(2,T,g,locate,Step,side,sign,Size,F,ticklabel,
 				norm,limit) <= limit) N=2;
 	      }
 	      // Found a good divisor; now compute subtick divisor
@@ -535,6 +535,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
       }
 
     } else { // Logarithmic
+      if(ticklabel == null) ticklabel=LogFormat;
       real a=locate.S.postscale.Tinv(locate.a);
       real b=locate.S.postscale.Tinv(locate.b);
       if(a > b) {real temp=a; a=b; b=temp;}
@@ -546,8 +547,8 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
 	real limit=axiscoverage*arclength(G);
 	N=1;
 	while(N <= last-first) {
-	  if(logaxiscoverage(N,T,g,locate,side,sign,Size,F,limit,first,last)
-	     <= limit) break;
+	  if(logaxiscoverage(N,T,g,locate,side,sign,Size,F,ticklabel,limit,
+			     first,last) <= limit) break;
 	  ++N;
 	}
       }
@@ -588,7 +589,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
 	    ++c;
 	    if((beginlabel || c > 1) && (endlabel || c < count)) {
 	      ticklabels=true;
-	      labeltick(f,T,g,locate,i,side,sign,Size,LogFormat,F);
+	      labeltick(f,T,g,locate,i,side,sign,Size,ticklabel,F);
 	    }
 	  }
 	}

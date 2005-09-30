@@ -3708,6 +3708,10 @@ By extending the ticks, one can easily produce a logarithmic grid:
 @verbatiminclude loggrid.asy
 @image{loggrid}
 
+One can also specify tick custom locations and formats for logarithmic axes:
+@verbatiminclude logticks.asy
+@image{logticks}
+
 @cindex secondary axis
 @cindex @code{secondaryX}
 @cindex @code{secondaryY}
