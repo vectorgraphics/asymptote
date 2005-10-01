@@ -1685,7 +1685,9 @@ with frames directly is occasionally necessary for constructing deferred
 drawing routines, pictures are usually more convenient to work with.
 The implicit initializer for frames is @code{newframe}. The function
 @code{bool empty(frame f)} returns @code{true} only if the frame @code{f}
-is empty.
+is empty. The functions @code{min(frame f)} and @code{max(frame f)} return the
+(left,bottom) and (right,top) coordinates of the frame bounding box,
+respectively.
 
 @item picture
 @cindex @code{picture}
