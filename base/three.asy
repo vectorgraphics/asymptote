@@ -1632,6 +1632,11 @@ path3 operator & (explicit guide3 p, explicit guide3 q)
   return ((path3) p).concat(p,q);
 }
 
+transform rotate(explicit triple dir)
+{
+  return rotate((pair) dir);
+} 
+
 void draw(frame f, guide3[] g, pen p=currentpen)
 {
   draw(f,(path[]) g,p);

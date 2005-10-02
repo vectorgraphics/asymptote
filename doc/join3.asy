@@ -2,7 +2,7 @@ import three;
 import graph;
 import graph3;
 
-size(300,0);
+size(0,175);
 
 currentprojection=orthographic(500,-500,500);
 

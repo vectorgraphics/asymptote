@@ -292,8 +292,10 @@ pair labeltick(frame d, transform T, guide g, ticklocate locate, real val,
   // Project align onto adjusted direction.
   align=adjust*dot(align,adjust);
   string s=ticklabel(val);
-  s=baseline(s,align,"$10^4$");
-  label(d,rotate(F.angle)*s,Z,align,F.p);
+  if(s != "") {
+    s=baseline(s,align,"$10^4$");
+    label(d,rotate(F.angle)*s,Z,align,F.p);
+  }
   return locate1.pathdir;
 }  
 
@@ -317,12 +319,12 @@ void labelaxis(frame f, transform T, Label L, guide g,
   if(ticklabels) {
     if(straight(g)) {
       real angle=degrees(dir(g,t));
-      transform t=rotate(-angle,point(g,t));
-      frame F=t*f;
-      pair Z=t*z;
+      transform S=rotate(-angle,point(g,t));
+      frame F=S*f;
+      pair Z=S*z;
       pair Align=rotate(-angle)*align;
       offset=abs((Align.y >= 0 ? max(F).y : (Align.y < 0 ? min(F).y : 0))-Z.y)*
-	unit(align);
+	unit(align-locate.dir(t));
     }
     align=axislabelmargin*align;
   }
@@ -431,6 +433,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     if(ptick == nullpen) ptick=p;
     
     string format=F.s == "" ? defaultformat : F.s;
+    if(F.s == "%") F.s="";
     if(F.align.dir != 0) side=F.align.dir;
     else if(side == 0) side=rotate(F.angle)*((sign == 1) ? left : right);
     
@@ -649,7 +652,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     real norm=max(abs(a),abs(b));
     
     string format=F.s == "" ? defaultformat : F.s;
-    
+    if(F.s == "%") F.s="";
     if(ticklabel == null)
       ticklabel=locate.S.scale.logarithmic ? 
 	new string(real x) {return format(format,locate.S.scale.Tinv(x));} :

@@ -61,7 +61,9 @@ void texdefines(T& out, stringlist& preamble=TeXpreamble, bool pipe=false)
       << "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl
       << "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{\\setbox\\ASYbox=\\hbox{#6}%"
       << newl
-      << "\\rput[lB]{#5}(#1,#2){\\kern#3\\wd\\ASYbox\\raise#4\\ht\\ASYbox\\box\\ASYbox}}"
+      << "\\rput[lB]{#5}(#1,#2){\\ASYdimen=\\ht\\ASYbox%" << newl
+      << "\\advance\\ASYdimen by\\dp\\ASYbox\\kern#3\\wd\\ASYbox"
+      << "\\raise#4\\ASYdimen\\box\\ASYbox}}"
       << newl;
   
   if(pipe || !settings::texmode)

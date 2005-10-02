@@ -15,9 +15,8 @@ defaultpen(overwrite(SuppressQuiet));
 path3 p=graph(x,y,z,0,2.7,Spline);
 bbox3 b=autolimits(min(p),max(p));
 
-xaxis("$x$",all=true,b,red,RightTicks(2,2));
-yaxis("$y$",all=true,b,red,RightTicks(2,2));
+xaxis(rotate(X)*"$x$",all=true,b,red,RightTicks(rotate(X)*Label,2,2));
+yaxis(rotate(Y)*"$y$",all=true,b,red,RightTicks(rotate(Y)*Label,2,2));
 zaxis("$z$",all=true,b,red,RightTicks);
 
 draw(p,Arrow);
-

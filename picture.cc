@@ -98,10 +98,7 @@ bbox picture::bounds()
     }
   }
   
-  if(labels) {
-    drawElement::lastpen=pen(initialpen);
-    texinit();
-  }
+  if(labels) texinit();
   
   p=nodes.begin();
   for(size_t i=0; i < lastnumber; ++i) ++p;
@@ -116,6 +113,7 @@ bbox picture::bounds()
 
 void picture::texinit()
 {
+  drawElement::lastpen=pen(initialpen);
   // Output any new texpreamble commands
   if(TeXinitialized) {
     if(TeXpipepreamble.empty()) return;

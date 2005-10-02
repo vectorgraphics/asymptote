@@ -73,7 +73,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
   if(!settings::texprocess) {b += position; return;}
   pair rotation=expi(radians(angle));
   pen Pentype=*pentype;
-  static const double fuzz=1.75;
+  static const double fuzz=1.0+Pentype.size()/24.0;
   
   if(!havebounds) {
     havebounds=true;
@@ -111,27 +111,32 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
     texAlign=Align;
     if(Depth > 0) texAlign += pair(0.0,Depth/(height+Depth));
     Align.scale(width,height+Depth);
-    Align += pair(0.0,Depth);
+    Align += pair(0.0,Depth-depth);
     Align *= rotation;
   }
 
   // alignment point
-  pair p=position+Align+pair(0,-depth)*rotation;
+  pair p=position+Align;
   pair A=p+pair(-fuzz,-fuzz)*rotation;
   pair B=p+pair(-fuzz,height+depth+fuzz)*rotation;
   pair C=p+pair(width+fuzz,height+depth+fuzz)*rotation;
   pair D=p+pair(width+fuzz,-fuzz)*rotation;
   
-  if(pentype->Overwrite() != ALLOW) {
+  if(pentype->Overwrite() != ALLOW && label != "") {
     size_t n=labelbounds.size();
     box Box=box(A,B,C,D);
     for(size_t i=0; i < n; i++) {
       if(labelbounds[i].intersect(Box)) {
-	if(pentype->Overwrite() == SUPPRESS || 
-	   pentype->Overwrite() == SUPPRESSQUIET) {
+	switch(pentype->Overwrite()) {
+	case SUPPRESS:
+	  labelwarning("suppressed");
+	case SUPPRESSQUIET:
 	  suppress=true; 
-	  if(pentype->Overwrite() == SUPPRESS) labelwarning("suppressed");
 	  return;
+	case MOVE:
+	  labelwarning("moved");
+	default:
+	  break;
 	}
 
 	pair Align=(align == pair(0,0)) ? pair(1,0) : unit(align);
@@ -142,14 +147,12 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
 	if(Align.gety() > 0.1) dy=labelbounds[i].ymax()-Box.ymin()+s;
 	if(Align.gety() < -0.1) dy=labelbounds[i].ymin()-Box.ymax()-s;
 	pair offset=pair(dx,dy);
-	p += offset;
 	position += offset;
 	A += offset;
 	B += offset;
 	C += offset;
 	D += offset;
 	Box=box(A,B,C,D);
-	if(pentype->Overwrite() == MOVE) labelwarning("moved");
 	i=0;
       }
     }

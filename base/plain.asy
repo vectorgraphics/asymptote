@@ -114,6 +114,13 @@ pen cmyk(pen p) {
   return p+cmyk;
 }
 
+// Options for handling label overwriting
+static int Allow=0;
+static int Suppress=1;
+static int SuppressQuiet=2;
+static int Move=3;
+static int MoveQuiet=4;
+
 // Global parameters:
 static public real labelmargin=0.3;
 static public real arrowlength=0.75cm;
@@ -353,6 +360,15 @@ transform rotate(real angle)
 {
   return rotate(angle,0);
 }
+
+// A rotation in the direction dir limited to [-90,90]
+// This is useful for rotating text along a line in the direction dir.
+transform rotate(explicit pair dir)
+{
+  real angle=degrees(dir);
+  if(angle > 90 && angle < 270) angle -= 180;
+  return rotate(angle);
+} 
 
 transform shift(transform t)
 {
@@ -1968,7 +1984,8 @@ void arrowheadbbox(picture pic=currentpicture, path g,
 typedef void filltype(frame, path, pen);
 void filltype(frame, path, pen) {}
 
-filltype Fill(pen p) {
+filltype Fill(pen p)
+{
   return new void(frame f, path g, pen drawpen) {
     drawpen += solid;
     fill(f,g,p == nullpen ? drawpen : p+solid);
@@ -2101,11 +2118,9 @@ guide ellipse(frame f, real xmargin=0, real ymargin=infinity,
   pair M=max(f);
   pair D=M-m;
   static real factor=0.5*sqrt(2);
-  real a=factor*D.x;
-  real b=factor*D.y;
   int sign=filltype == Fill ? -1 : 1;
-  guide g=ellipse(0.5*(M+m),a+0.5*sign*max(p).x+xmargin,
-		  b+0.5*sign*max(p).y+ymargin);
+  guide g=ellipse(0.5*(M+m),factor*D.x+0.5*sign*max(p).x+xmargin,
+		  factor*D.y+0.5*sign*max(p).y+ymargin);
   frame F;
   filltype(F,g,p);
   prepend(f,F);
@@ -2149,9 +2164,10 @@ void box(picture pic=currentpicture, Label L,
     box(d,xmargin,ymargin,p,filltype);
     add(f,d);
   });
-  frame f;
   Label L0=L.copy();
   L0.position(0);
+  L0.p(p+overwrite(Allow));
+  frame f;
   box(f,L0,xmargin,ymargin,p,filltype);
   pic.addBox(L.position,L.position,min(f),max(f));
 }
@@ -2757,13 +2773,6 @@ void pause(string w="Hit enter to continue")
   write(w);
   w=stdin;
 }
-
-// Options for handling label overwriting
-static int Allow=0;
-static int Suppress=1;
-static int SuppressQuiet=2;
-static int Move=3;
-static int MoveQuiet=4;
 
 struct slice {
   public path before,after;

@@ -1490,7 +1490,7 @@ pen basealign=basealign(1);
 @end verbatim
 
 @noindent
-The default setting, @code{nobasealign}, which may be changed with
+The default setting, @code{nobasealign},which may be changed with
 @code{defaultpen(pen)}, causes the label alignment routines to use the
 full label bounding box for alignment. In contrast, @code{basealign}
 requests that the @TeX{} baseline be respected.
@@ -4049,8 +4049,8 @@ bounding box.
 Analogous routines can be used to draw @code{y} and @code{z} axes in
 three dimensions.
 
-Here is an example of a helix and bounding box axes, using
-orthographic projection:
+Here is an example of a helix and bounding box axes with rotated tick
+and axis labels, using orthographic projection:
 @verbatiminclude helix.asy
 @image{helix}
 
