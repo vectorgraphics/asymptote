@@ -1615,9 +1615,9 @@ pair intersect(path3 p1, path3 p2, real fuzz=0)
     point2[i]=n2[i].point;
     post2[i]=n2[i].post;
   }
-  if(fuzz == 0.0) 
-    fuzz=realEpsilon()*max(max(max(length(p1.min()),length(p1.max())),
-			       length(p2.min())),length(p2.max()));
+  
+  fuzz=max(fuzz,10*realEpsilon()*(length(p1.max()-p1.min())+
+				  length(p2.max()-p2.min())));
   return intersect(pre1,point1,post1,pre2,point2,post2,fuzz);
 }
 

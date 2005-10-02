@@ -112,7 +112,7 @@ inline void splitCubic(node sn[], double t, node left_, node right_)
 }
 
 pair intersectcubics(node left1, node right1, node left2, node right2,
-		     double fuzz, int depth=DBL_MANT_DIG)
+		     double fuzz)
 {
   const pair F(-1,-1);
 
@@ -130,19 +130,18 @@ pair intersectcubics(node left1, node right1, node left2, node right2,
       box2.Max().getx()+fuzz >= box1.Min().getx() &&
       box2.Max().gety()+fuzz >= box1.Min().gety() &&
       box2.Max().getz()+fuzz >= box1.Min().getz()) {
-    if(lambda <= fuzz || depth == 0) return pair(0,0);
+    if(lambda <= fuzz) return pair(0,0);
     node sn1[3], sn2[3];
     splitCubic(sn1,0.5,left1,right1);
     splitCubic(sn2,0.5,left2,right2);
     pair t;
-    depth--;
-    if ((t=intersectcubics(sn1[0],sn1[1],sn2[0],sn2[1],fuzz,depth)) != F)
+    if ((t=intersectcubics(sn1[0],sn1[1],sn2[0],sn2[1],fuzz)) != F)
       return t*0.5;
-    if ((t=intersectcubics(sn1[0],sn1[1],sn2[1],sn2[2],fuzz,depth)) != F)
+    if ((t=intersectcubics(sn1[0],sn1[1],sn2[1],sn2[2],fuzz)) != F)
       return t*0.5+pair(0,1);
-    if ((t=intersectcubics(sn1[1],sn1[2],sn2[0],sn2[1],fuzz,depth)) != F)
+    if ((t=intersectcubics(sn1[1],sn1[2],sn2[0],sn2[1],fuzz)) != F)
       return t*0.5+pair(1,0);
-    if ((t=intersectcubics(sn1[1],sn1[2],sn2[1],sn2[2],fuzz,depth)) != F)
+    if ((t=intersectcubics(sn1[1],sn1[2],sn2[1],sn2[2],fuzz)) != F)
       return t*0.5+pair(1,1);
   }
   return F;
