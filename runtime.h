@@ -92,6 +92,10 @@ void pushNullArray(vm::stack *s);
 void pushNullRecord(vm::stack *s);
 void pushNullFunction(vm::stack *s);
 
+// Default operations
+void pushDefault(vm::stack *s);
+void isDefault(vm::stack *s);
+
 // Casts
 void pairToGuide(vm::stack *s);
 void pathToGuide(vm::stack *s);

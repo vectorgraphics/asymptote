@@ -83,6 +83,47 @@ function *formals::getType(types::ty *result, coenv &e,
   return ft;
 }
 
+// Another helper class. Does an assignment, but relying only on the destination
+// for the type.
+class basicAssignExp : public exp {
+  exp *dest;
+  varinit *value;
+public:
+  basicAssignExp(position pos, exp *dest, varinit *value) 
+    : exp(pos), dest(dest), value(value) {}
+
+  types::ty *getType(coenv &e) {
+    return dest->getType(e);
+  }
+
+  types::ty *trans(coenv &e) {
+    // This doesn't handle overloaded types for the destination.
+    value->transToType(e, getType(e));
+    dest->transWrite(e, getType(e));
+    return getType(e);
+  }
+};
+  
+void transDefault(coenv &e, position pos, varEntry *v, varinit *init) {
+  // This roughly translates into the expression
+  //   if (isDefault(x))
+  //     x=init;
+  // where x is the variable in v, an isDefault is a function that tests if x is
+  // the default argument token.
+  varEntryExp vee(pos, v);
+  ifStm is(pos,
+           new callExp(pos,
+               new varEntryExp(pos,
+                   new function(primBoolean(), v->getType()),
+                   run::isDefault),
+               &vee),
+           new expStm(pos,
+               new basicAssignExp(pos,
+                   &vee,
+                   init)));
+  is.trans(e);                                        
+}
+
 void formal::transAsVar(coenv &e, int index) {
   symbol *name = getName();
   if (name) {
@@ -95,6 +136,9 @@ void formal::transAsVar(coenv &e, int index) {
     varEntry *v = new varEntry(t, a);
 
     e.e.addVar(getPos(), name, v);
+
+    if (defval)
+      transDefault(e, getPos(), v, defval);
   }
 }
 

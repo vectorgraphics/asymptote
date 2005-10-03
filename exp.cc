@@ -75,6 +75,35 @@ types::ty *tempExp::trans(coenv &e) {
 }
 
 
+varEntryExp::varEntryExp(position pos, types::ty *t, access *a)
+  : exp(pos), v(new trans::varEntry(t, a)) {}
+varEntryExp::varEntryExp(position pos, types::ty *t, vm::bltin f)
+  : exp(pos), v(new trans::varEntry(t, new bltinAccess(f))) {}
+
+types::ty *varEntryExp::getType(coenv &) {
+  return v->getType();
+}
+
+types::ty *varEntryExp::trans(coenv &e) {
+  v->encode(READ, getPos(), e.c);
+  return getType(e);
+}
+
+void varEntryExp::transAct(action act, coenv &e, types::ty *target) {
+  assert(equivalent(getType(e),target));
+  v->encode(act, getPos(), e.c);
+}
+void varEntryExp::transAsType(coenv &e, types::ty *target) {
+  transAct(READ, e, target);
+}
+void varEntryExp::transWrite(coenv &e, types::ty *target) {
+  transAct(WRITE, e, target);
+}
+void varEntryExp::transCall(coenv &e, types::ty *target) {
+  transAct(CALL, e, target);
+}
+
+
 void nameExp::prettyprint(ostream &out, int indent)
 {
   prettyname(out, "nameExp",indent);
@@ -942,12 +971,13 @@ void assignExp::transAsType(coenv &e, types::ty *target)
 
 types::ty *assignExp::trans(coenv &e)
 {
-  types::ty *lt = dest->cgetType(e), *rt = ultimateValue(dest)->cgetType(e);
+  exp *uvalue=ultimateValue(dest);
+  types::ty *lt = dest->cgetType(e), *rt = uvalue->cgetType(e);
 
   if (lt->kind == ty_error)
     return dest->trans(e);
   if (rt->kind == ty_error)
-    return value->trans(e);
+    return uvalue->trans(e);
 
   types::ty *t = e.e.castTarget(lt, rt, symbol::castsym);
   if (!t) {

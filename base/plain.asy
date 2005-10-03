@@ -773,6 +773,8 @@ static bool Below=false;
 static bool Aspect=true;
 static bool IgnoreAspect=false;
 
+bool deconstruct=deconstruct();
+
 struct picture {
   // The functions to do the deferred drawing.
   drawerBound[] nodes;
@@ -1257,8 +1259,6 @@ void endgroup(picture pic=currentpicture)
     endgroup(f);
   });
 }
-
-bool deconstruct=deconstruct();
 
 // Add frame dest to frame src with optional grouping (default false)
 void add(frame dest, frame src, bool group)
@@ -3021,3 +3021,21 @@ guide operator ---(... guide[] a)
     g=g..operator tension(infinity,true)..a[i];
   return g;
 }
+
+// Three-dimensional projections (move back to three.asy once new import
+// scheme is functional):
+
+typedef real[][] transform3;
+
+static struct projection {
+  public triple camera;
+  public transform3 project;
+  void init(triple camera, transform3 project) {
+    this.camera=camera;
+    this.project=project;
+  }
+}
+
+projection operator init() {return new projection;}
+  
+public projection currentprojection;

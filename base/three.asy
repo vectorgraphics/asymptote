@@ -131,17 +131,6 @@ transform3 lookAt(triple from, triple to)
 
 typedef pair project(triple v);
 
-struct projection {
-  public triple camera;
-  public transform3 project;
-  void init(triple camera, transform3 project) {
-    this.camera=camera;
-    this.project=project;
-  }
-}
-
-projection operator init() {return new projection;}
-  
 // Uses the homogenous coordinate to perform perspective distortion.  When
 // combined with a projection to the XY plane, this effectively maps
 // points in three space to a plane at a distance d from the camera.
@@ -188,7 +177,7 @@ projection oblique(real angle=45)
 
 projection oblique=oblique();
 
-public projection currentprojection=perspective(5,4,2);
+currentprojection=perspective(5,4,2);
 
 pair projectXY(triple v)
 {

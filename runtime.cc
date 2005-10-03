@@ -908,6 +908,32 @@ void pushNullFunction(stack *s)
   s->push(nullfunc::instance());
 }
 
+// Default operations
+
+// This serves as the object for representing a default argument.
+struct default_t {};
+default_t def;
+
+// Put the default value token on the stack (in place of an argument when making
+// a function call).
+void pushDefault(stack *s)
+{
+  s->push(&def);
+}
+
+// Test if the value on the stack is the default value token.
+void isDefault(stack *s)
+{
+  try {
+    // This assumes that the item is popped before an exception is thrown.
+    s->pop<default_t *>();
+    s->push(true);
+  }
+  catch (bad_item_value&) {
+    s->push(false);
+  }
+}
+
 // Casts
 
 void pairToGuide(stack *s) {

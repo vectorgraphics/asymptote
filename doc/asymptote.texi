@@ -2472,9 +2472,9 @@ real f(int a=1, real b=0) {return a+b;}
 @noindent
 then @code{f(1)} returns 1.0, but @code{f(1.0)} returns 2.0.
 
-The value of a default argument is determined simply by evaluating the
-given @code{Asymptote} expression (effectively using a "cut and paste"
-operation to substitute the default value). 
+The value of a default argument is determined by evaluating the
+given @code{Asymptote} expression in the scope where the called
+function is defined.
 
 @node Named arguments
 @subsection Named arguments
