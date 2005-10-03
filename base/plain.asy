@@ -212,70 +212,129 @@ file stdin=input("");
 file stdout;
 
 void none(file file) {}
-void endl(file file) {write(file,'\n'); flush(file);}
-void tab(file file) {write(file,'\t');}
+void endl(file file) {_write(file,'\n'); flush(file);}
+void tab(file file) {_write(file,'\t');}
 typedef void suffix(file);
 
-void write(file file=stdout, suffix s=endl) {s(file);}
+void write(file file=stdout, suffix e=endl) {e(file);}
 
-void write(file file, explicit path[] g)
+void write(file file=stdout, string s="", bool x, suffix e)
 {
-  if(g.length > 0) write(file,g[0]);
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=stdout, string s="", int x, suffix e) 
+{
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=stdout, string s="", real x, suffix e)
+{
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=stdout, string s="", pair x, suffix e)
+{
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=stdout, string s="", triple x, suffix e)
+{
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=stdout, string s="", pen x, suffix e)
+{
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=stdout, string s="", transform x, suffix e)
+{
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=stdout, string s="", guide x, suffix e)
+{
+  _write(file,s); _write(file,x); e(file);
+}
+
+void write(file file=stdout, string x, suffix e)
+{
+  _write(file,x); e(file);
+}
+
+void write(file file=null, string x ... string[] a)
+{
+  if(file == null) {write(stdout,x...a); endl(stdout); return;}
+  _write(file,x);
+  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
+}
+
+void write(file file=null, string s="", bool x ... bool[] a)
+{
+  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
+  _write(file,s); _write(file,x);
+  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
+}
+
+void write(file file=null, string s="", int x ... int[] a)
+{
+  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
+  write(file,s,x,none);
+  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
+}
+
+void write(file file=null, string s="", real x ... real[] a)
+{
+  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
+  write(file,s,x,none);
+  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
+}
+
+void write(file file=null, string s="", pair x ... pair[] a)
+{
+  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
+  write(file,s,x,none);
+  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
+}
+
+void write(file file=null, string s="", triple x ... triple[] a)
+{
+  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
+  write(file,s,x,none);
+  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
+}
+
+void write(file file=null, string s="", pen x ... pen[] a)
+{
+  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
+  write(file,s,x,none);
+  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
+}
+
+void write(file file=null, string s="", transform x ... transform[] a)
+{
+  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
+  write(file,s,x,none);
+  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
+}
+
+void write(file file=null, string s="", guide x)
+{
+  if(file == null) {write(stdout,s,x); endl(stdout); return;}
+  write(file,s,x,none);
+}
+
+void _write(file file, path[] g)
+{
+  if(g.length > 0) _write(file,g[0]);
   for(int i=1; i < g.length; ++i) {
     write(file);
-    write(file," ^^");
-    write(file,g[i]);
+    _write(file," ^^");
+    _write(file,g[i]);
   }
 }
-
-void write(file file=stdout, bool x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, int x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, real x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, pair x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, triple x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, string x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, guide x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, pen x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, transform x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, explicit path[] x, suffix s) {
-  write(file,x); s(file);
-}
-void write(explicit path[] g) {write(stdout,g,endl);}
-
-void write(file file=stdout, string x, bool y, suffix s=endl)
+void write(file file=stdout, string s="", explicit path[] x, suffix e)
 {
-  write(file,x); write(file,y,s);
+  _write(file,s); _write(file,x); e(file);
 }
-
-void write(file file=stdout, string x, real y, suffix s=endl)
+void write(file file=null, string s="", explicit path[] x)
 {
-  write(file,x); write(file,y,s);
-}
-
-void write(file file=stdout, string x, explicit pair y, suffix s=endl)
-{
-  write(file,x); write(file,y,s);
-}
-
-void write(file file=stdout, string x, triple y, suffix s=endl)
-{
-  write(file,x); write(file,y,s);
-}
-
-void write(file file=stdout, string x, string y, suffix s=endl)
-{
-  write(file,x); write(file,y,s);
-}
-
-void write(file file=stdout, string x, pen y, suffix s=endl)
-{
-  write(file,x); write(file,y,s);
-}
-
-void write(file file=stdout, string x, real y, string x2, real y2,
-	   suffix s=endl)
-{
-  write(file,x); write(file,y,tab); write(file,x2,y2,s);
+  if(file == null) {write(stdout,s,x); endl(stdout); return;}
+  write(file,s); _write(file,x);
 }
 
 string ask(string prompt)
@@ -1621,13 +1680,13 @@ struct align {
     align(align);
     if(this.default) init(default.dir,default.relative,default.default);
   }
-  void write(file file=stdout, suffix s=endl) {
+  void write(file file=stdout, suffix e=endl) {
     if(!default) {
       if(relative) {
 	write(file,"Relative(");
 	write(file,dir);
-	write(file,")",s);
-      } else write(file,dir,s);
+	write(file,")",e);
+      } else write(file,dir,e);
     }
   }
   bool Center() {
@@ -1665,9 +1724,9 @@ align operator cast(pair dir) {align A; A.init(dir,false); return A;}
 align operator cast(side side) {align A; A.init(side.align,true); return A;}
 align NoAlign;
 
-void write(file file=stdout, align align, suffix s=endl)
+void write(file file=stdout, align align, suffix e=endl)
 {
-  align.write(file,s);
+  align.write(file,e);
 }
 
 struct position {
@@ -1805,14 +1864,15 @@ struct Label {
 	  p == nullpen ? currentpen : p);
   }
   
-  void write(file file=stdout, suffix s=endl) {
-    write(file,"s=\"",s+"\"",none);
-    if(!defaultposition) write(file,", position=",position.position,none);
+  void write(file file=stdout, suffix e=endl) {
+    write(file,"s=\""+s+"\"");
+    if(!defaultposition) write(file,", position=",position.position);
     if(!align.default) write(file,", align=");
-    write(file,align,none);
-    if(p != nullpen) write(file,", pen=",p,none);
-    if(!defaultangle) write(file,", angle=",angle,none);
-    write(file,", shift=",shift,s);
+    write(file,align);
+    if(p != nullpen) write(file,", pen=",p);
+    if(!defaultangle) write(file,", angle=",angle);
+    if(shift != 0) write(file,", shift=",shift);
+    plain.write(file,e);
   }
   
   real relative() {
@@ -1892,9 +1952,9 @@ Label Label(Label L, align align=NoAlign, pen p=nullpen)
   return L;
 }
 
-void write(file file=stdout, Label L, suffix s=endl)
+void write(file file=stdout, Label L, suffix e=endl)
 {
-  L.write(file,s);
+  L.write(file,e);
 }
 
 void label(frame f, Label L, pair position, align align=NoAlign,

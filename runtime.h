@@ -263,7 +263,7 @@ void execute(vm::stack *s);
 void eval(vm::stack *s);
   
 // I/O Routines
-void newFile(vm::stack *s);
+void standardOut(vm::stack *s);
 void fileOpenOut(vm::stack *s);
 void fileOpenIn(vm::stack *s);
 void fileOpenXOut(vm::stack *s);
@@ -285,6 +285,9 @@ void fileSingleMode(vm::stack *s);
 void fileArray1(vm::stack *s);
 void fileArray2(vm::stack *s);
 void fileArray3(vm::stack *s);
+void boolFileEq(vm::stack *s);
+void boolFileNeq(vm::stack *s);
+void nullFile(vm::stack *s);
 
 void readChar(vm::stack *s);
 

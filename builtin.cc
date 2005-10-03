@@ -179,7 +179,7 @@ void addInitializers(venv &ve)
   addInitializer(ve, primPath(), run::nullPath);
   addInitializer(ve, primPen(), run::newPen);
   addInitializer(ve, primPicture(), run::newFrame);
-  addInitializer(ve, primFile(), run::newFile);
+  addInitializer(ve, primFile(), run::standardOut);
 }
 
 void addCasts(venv &ve)
@@ -206,40 +206,19 @@ void addCasts(venv &ve)
 
   addCast(ve, primPen(), primReal(), run::lineWidth);
   
-  addCast(ve, primBoolean(), primFile(), run::read<bool>);
-  addCast(ve, primInt(), primFile(), run::read<int>);
-  addCast(ve, primReal(), primFile(), run::read<double>);
-  addCast(ve, primPair(), primFile(), run::read<pair>);
-  addCast(ve, primTriple(), primFile(), run::read<triple>);
+  addCast(ve, primFile(), primNull(), run::nullFile);
   addCast(ve, primString(), primFile(), run::read<string>);
 
   // Vectorized casts.
   addExplicitCast(ve, intArray(), realArray(), run::arrayToArray<double,int>);
   
+  addCast(ve, stringArray(), primFile(), run::readArray<string>);
+  addCast(ve, stringArray2(), primFile(), run::readArray<string>);
+  addCast(ve, stringArray3(), primFile(), run::readArray<string>);
+
   addCast(ve, realArray(), intArray(), run::arrayToArray<int,double>);
   addCast(ve, pairArray(), intArray(), run::arrayToArray<int,pair>);
   addCast(ve, pairArray(), realArray(), run::arrayToArray<double,pair>);
-  
-  addCast(ve, boolArray(), primFile(), run::readArray<bool>);
-  addCast(ve, intArray(), primFile(), run::readArray<int>);
-  addCast(ve, realArray(), primFile(), run::readArray<double>);
-  addCast(ve, pairArray(), primFile(), run::readArray<pair>);
-  addCast(ve, tripleArray(), primFile(), run::readArray<triple>);
-  addCast(ve, stringArray(), primFile(), run::readArray<string>);
-  
-  addCast(ve, boolArray2(), primFile(), run::readArray<bool>);
-  addCast(ve, intArray2(), primFile(), run::readArray<int>);
-  addCast(ve, realArray2(), primFile(), run::readArray<double>);
-  addCast(ve, pairArray2(), primFile(), run::readArray<pair>);
-  addCast(ve, tripleArray2(), primFile(), run::readArray<triple>);
-  addCast(ve, stringArray2(), primFile(), run::readArray<string>);
-  
-  addCast(ve, boolArray3(), primFile(), run::readArray<bool>);
-  addCast(ve, intArray3(), primFile(), run::readArray<int>);
-  addCast(ve, realArray3(), primFile(), run::readArray<double>);
-  addCast(ve, pairArray3(), primFile(), run::readArray<pair>);
-  addCast(ve, tripleArray3(), primFile(), run::readArray<triple>);
-  addCast(ve, stringArray3(), primFile(), run::readArray<string>);
 }
 
 void addGuideOperators(venv &ve)
@@ -304,14 +283,16 @@ inline void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   addBooleanOps<T,run::equals>(ve,t1,"==",t2);
   addBooleanOps<T,run::notequals>(ve,t1,"!=",t2);
   
-  addFunc(ve,run::writen<T>,primVoid(),"write",t2);
-  addFunc(ve,run::write2<T>,primVoid(),"write",t2,t2);
-  addFunc(ve,run::write3<T>,primVoid(),"write",t2,t2,t2);
+  addCast(ve,t2,primFile(),run::read<T>);
+  addCast(ve,t1,primFile(),run::readArray<T>);
+  addCast(ve,t3,primFile(),run::readArray<T>);
+  addCast(ve,t4,primFile(),run::readArray<T>);
+  
   addFunc(ve,run::showArray<T>,primVoid(),"write",t1);
   addFunc(ve,run::showArray2<T>,primVoid(),"write",t3);
   addFunc(ve,run::showArray3<T>,primVoid(),"write",t4);
   
-  addFunc(ve,run::write<T>,primVoid(),"write",primFile(),t2);
+  addFunc(ve,run::write<T>,primVoid(),"_write",primFile(),t2);
   addFunc(ve,run::writeArray<T>,primVoid(),"write",primFile(),t1);
   addFunc(ve,run::writeArray2<T>,primVoid(),"write",primFile(),t3);
   addFunc(ve,run::writeArray3<T>,primVoid(),"write",primFile(),t4);
@@ -668,13 +649,12 @@ void base_venv(venv &ve)
   addFunc(ve,run::fileArray3,primFile(),"read3",primFile());
   addFunc(ve,run::readChar,primString(),"getc",primFile());
 
-  addFunc(ve,run::writen<pen>,primVoid(),"write",primPen());
-  addFunc(ve,run::write<pen>,primVoid(),"write",primFile(),primPen());
-  addFunc(ve,run::writen<transform>,primVoid(),"write",primTransform());
-  addFunc(ve,run::write<transform>,primVoid(),"write",primFile(),
+  addFunc(ve,run::write<pen>,primVoid(),"_write",primFile(),primPen());
+  addFunc(ve,run::write<transform>,primVoid(),"_write",primFile(),
 	  primTransform());
-  addFunc(ve,run::writenP<guide>,primVoid(),"write",primGuide());
-  addFunc(ve,run::writeP<guide>,primVoid(),"write",primFile(),primGuide());
+  addFunc(ve,run::writeP<guide>,primVoid(),"_write",primFile(),primGuide());
+  addBooleanOperator(ve,run::boolFileEq,primFile(),"==");
+  addBooleanOperator(ve,run::boolFileNeq,primFile(),"!=");
   
   // Array functions
   

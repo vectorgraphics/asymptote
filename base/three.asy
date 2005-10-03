@@ -388,9 +388,9 @@ struct flatguide3 {
 
 flatguide3 operator init() {return new flatguide3;}
   
-void write(file file, explicit flatguide3 g)
+void _write(file file, explicit flatguide3 g)
 {
-  if(g.size() == 0) write("<nullpath3>");
+  if(g.size() == 0) write(file,"<nullpath3>");
   else for(int i=0; i < g.nodes.length; ++i) {
     if(i > 0) write(file);
     if(g.cyclic[i]) write(file,"cycle3");
@@ -406,24 +406,33 @@ void write(file file, explicit flatguide3 g)
     if(!g.control[i].active) write(file,g.in[i]);
   }
 }
-  
-void write(file file=stdout, explicit flatguide3 x,
-	   suffix s) {write(file,x); s(file);}
-void write(explicit flatguide3 g) {write(stdout,g,endl);}
-
-void write(file file, flatguide3[] g)
+void write(file file=stdout, string s="", flatguide3 x, suffix e)
 {
-  if(g.length > 0) write(file,g[0]);
-  for(int i=1; i < g.length; ++i) {
-    write(file);
-    write(file," ^^");
-    write(file,g[i]);
-  }
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=null, string s="", flatguide3 x)
+{
+  if(file == null) {write(stdout,s,x); endl(stdout); return;}
+  _write(file,s); _write(file,x);
 }
 
-void write(file file=stdout, flatguide3[] x, suffix s)
+void _write(file file, flatguide3[] g)
 {
-  write(file,x); s(file);
+  if(g.length > 0) _write(file,g[0]);
+  for(int i=1; i < g.length; ++i) {
+    write(file);
+    _write(file," ^^");
+    _write(file,g[i]);
+  }
+}
+void write(file file=stdout, string s="", flatguide3[] x, suffix e)
+{
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=null, string s="", flatguide3[] x)
+{
+  if(file == null) {write(stdout,s,x); endl(stdout); return;}
+  _write(file,s); _write(file,x);
 }
 
 // A guide3 is most easily represented as something that modifies a flatguide3.
@@ -1304,12 +1313,12 @@ path3 operator * (transform3 t, path3 p)
   return path3.path3(nodes,p.cycles);
 }
 
-void write(file file, path3 p)
+void _write(file file, explicit path3 p)
 {
   if(size(p) == 0) write("<nullpath3>");
   else for(int i=0; i < p.nodes.length; ++i) {
     if(i == p.nodes.length-1 && p.cycles) write(file,"cycle3");
-    else write(file,p.nodes[i].point,endl);
+    else write(file,p.nodes[i].point);
     if(i < length(p)) {
       if(p.nodes[i].straight) write(file,"--");
       else {
@@ -1322,9 +1331,15 @@ void write(file file, path3 p)
     }
   }
 }
-  
-void write(file file=stdout, path3 x, suffix s) {write(file,x); s(file);}
-void write(path3 g) {write(stdout,g,endl);}
+void write(file file=stdout, string s="", explicit path3 x, suffix e)
+{
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=null, string s="", explicit path3 x)
+{
+  if(file == null) {write(stdout,s,x); endl(stdout); return;}
+  _write(file,s); _write(file,x);
+}
 
 path3 solve(flatguide3 g, projection Q=currentprojection)
 {

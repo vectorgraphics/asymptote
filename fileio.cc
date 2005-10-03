@@ -15,6 +15,7 @@ string newline="\n";
 
 string asyinput=".asy_input";
   
+ofile nullfile("");
 ofile Stdout("");
 ofile typeout(asyinput);
 ifile typein(asyinput);

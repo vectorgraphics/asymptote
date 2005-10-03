@@ -1953,44 +1953,45 @@ as a string.
 @cindex @code{output}
 @cindex @code{append}
 @cindex @code{write}
-Writing is implemented using the function call 
-@code{file output(string name,bool append=false)},
-which opens a file @code{name} for output, appending to an
-existing file only if @code{append} is @code{true}:
+A file named @code{name} can be open for output with
 @verbatim
-real a=1, b=2, c=3;
-file fout=output("test.txt");
-write(fout,a);
+file output(string name, bool append=false);
 @end verbatim
+@noindent
+data will be appended to an existing file only if the file is opened with
+@code{append=true}.
+Data of type @code{T} can be written to an output file by calling one
+of the following functions
+@verbatim
+write(string s="", T x, suffix e=endl);
+write(file fout, string s="", T x, suffix e=none);
+write(string s="" ... T[] x);
+write(file fout, string s="" ... T[] x);
+write(file fout=stdout, suffix e=endl);
+@end verbatim
+@cindex @code{none}
+@cindex @code{endl}
+@cindex @code{tab}
+If the @code{fout} is not specified, @code{stdout} is used and
+terminated with a newline. If specified, the optional
+identifying string @code{s} is written before the data @code{x}.
+Except when writing objects that may generate multiple lines of
+output (like arrays or guides), an arbitrary number of data values may
+be given. The suffix @code{e} may be one of the following:
+@code{none} (do nothing), @code{endl} (terminate with a newline), or
+@code{tab} (terminate with a tab). Here is a simple example of data output:
+@verbatim
+file fout=output("test.txt");
+write(fout,1);                  // Writes "1"
+write(fout);                    // Writes a new line
+write(fout,"List: ",1,2,3);     // Writes "List: 1     2     3"
+@end verbatim
+@noindent
 
 @cindex @code{stdin}
 @cindex @code{stdout}
 There are two special files: @code{stdin}, which reads from the keyboard,
 and @code{stdout}, which writes to the terminal.
-
-@cindex @code{endl}
-@cindex @code{tab}
-A final optional @code{endl} argument to @code{write} causes a newline
-to be written after writing the data. Alternatively, a final @code{tab}
-argument writes a tab instead. The file argument to @code{write} is also
-optional; when omitted the write is done to @code{stdout} and terminated
-by a newline. In this case, the write may include up to 3 data
-arguments, which will be output to @code{stdout}, separated by tabs. That is, 
-@verbatim
-write();
-write(a);
-write(a,b);
-write(a,b,c);
-@end verbatim
-
-is equivalent to 
-@verbatim
-write(stdout,endl);
-write(stdout,a,endl);
-write(stdout,a,tab); write(stdout,b,endl);
-write(stdout,a,tab); write(stdout,b,tab); write(stdout,c,endl);
-@end verbatim
-
 
 @cindex @code{xinput}
 @cindex @code{xoutput}

@@ -2203,9 +2203,15 @@ void scrollLines(stack *s)
 
 // I/O Operations
 
-void newFile(stack *s)
+void standardOut(stack *s)
 {
   file *f=&camp::Stdout;
+  s->push(f);
+}
+
+void nullFile(stack *s)
+{
+  file *f=&camp::nullfile;
   s->push(f);
 }
 
@@ -2383,6 +2389,20 @@ void fileArray3(stack *s)
   file *f = pop<file*>(s);
   f->dimension(-2,-2,-2);
   s->push(f);
+}
+
+void boolFileEq(stack *s)
+{
+  file* b = pop<file*>(s);
+  file* a = pop<file*>(s);
+  s->push(a == b);
+}
+
+void boolFileNeq(stack *s)
+{
+  file* b = pop<file*>(s);
+  file* a = pop<file*>(s);
+  s->push(a != b);
 }
 
 // Utilities

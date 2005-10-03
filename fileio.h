@@ -338,7 +338,7 @@ public:
 #endif
 
 extern ofile Stdout;
-
+extern ofile nullfile;
 extern ofile typeout;
 extern ifile typein;
 extern string asyinput;
