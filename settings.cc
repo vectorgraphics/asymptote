@@ -34,11 +34,13 @@ const char BUGREPORT[]=PACKAGE_BUGREPORT;
 #ifdef MSDOS
 const char pathSeparator=';';
 int view=1; // Support drag and drop in MSWindows
-const string defaultPSViewer="'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe'";
+const string defaultPSViewer=
+  "'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe'";
 const string defaultPDFViewer=
   "'c:\\Program Files\\Adobe\\Acrobat 7.0\\Reader\\AcroRd32.exe'";
-const string defaultGhostscript="'c:\\Program Files\\gs\\gs8.51\\bin\\gswin32.exe'";
-const string defaultPython="'c:\\Python2.4\\python.exe'";
+const string defaultGhostscript=
+  "'c:\\Program Files\\gs\\gs8.51\\bin\\gswin32.exe'";
+const string defaultPython="'c:\\Python24\\python.exe'";
 const string defaultDisplay="imdisplay";
 #undef ASYMPTOTE_SYSDIR
 #define ASYMPTOTE_SYSDIR "c:\\Program Files\\Asymptote"

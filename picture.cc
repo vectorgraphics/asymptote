@@ -316,11 +316,12 @@ bool picture::shipout(const picture& preamble, const string& prefix,
     if(bboxout) bboxout.close();
     if(view) {
       ostringstream cmd;
-      cmd << Python << " " << Xasy << " " << buildname(prefix) 
+      if(Python != "") cmd << Python << " ";
+      cmd << Xasy << " " << buildname(prefix) 
 	  << " " << ShipoutNumber << " " << buildname(settings::outname);
       System(cmd,false,true,
-	     "ASYMPTOTE_PYTHON and ASYMPTOTE_XASY",
-	     "python and xasy, respectively");
+	     Python != "" ? "ASYMPTOTE_PYTHON" : "ASYMPTOTE_XASY",
+	     Python != "" ? "python" : "xasy");
     }
     ShipoutNumber++;
     return true;
