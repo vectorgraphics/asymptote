@@ -773,8 +773,6 @@ static bool Below=false;
 static bool Aspect=true;
 static bool IgnoreAspect=false;
 
-bool deconstruct=deconstruct();
-
 struct picture {
   // The functions to do the deferred drawing.
   drawerBound[] nodes;
@@ -1129,7 +1127,7 @@ struct picture {
 
   // Add a picture to this picture, such that the user coordinates will be
   // scaled identically when fitted
-  void add(picture src, bool group=deconstruct, bool put=Above) {
+  void add(picture src, bool group=true, bool put=Above) {
     // Copy the picture.  Only the drawing function closures are needed, so we
     // only copy them.  This needs to be a deep copy, as src could later have
     // objects added to it that should not be included in this picture.
@@ -1280,7 +1278,7 @@ void add(pair origin, frame dest, frame src, bool group=false)
 // Add frame src about origin to picture dest with optional grouping
 // (default true)
 void add(pair origin=0, picture dest=currentpicture, frame src,
-	 bool group=deconstruct, bool put=Above)
+	 bool group=true, bool put=Above)
 {
   dest.add(new void (frame f, transform t) {
     if(group) begingroup(f);
@@ -1292,7 +1290,7 @@ void add(pair origin=0, picture dest=currentpicture, frame src,
 
 // Like add(pair,picture,frame,bool) but extend picture to accommodate frame
 void attach(pair origin=0, picture dest=currentpicture, frame src,
-	    bool group=deconstruct, bool put=Above)
+	    bool group=true, bool put=Above)
 {
   transform t=dest.calculateTransform(dest.xsize,dest.ysize,dest.keepAspect);
   add(origin,dest,src,group,put);
@@ -1303,12 +1301,12 @@ void attach(pair origin=0, picture dest=currentpicture, frame src,
 
 // Add a picture to another such that user coordinates in both will be scaled
 // identically in the shipout.
-void add(picture dest, picture src, bool group=deconstruct, bool put=Above)
+void add(picture dest, picture src, bool group=true, bool put=Above)
 {
   dest.add(src,group,put);
 }
 
-void add(picture src, bool group=deconstruct, bool put=Above)
+void add(picture src, bool group=true, bool put=Above)
 {
   add(currentpicture,src,group,put);
 }
@@ -1316,13 +1314,13 @@ void add(picture src, bool group=deconstruct, bool put=Above)
 // Fit the picture src using the identity transformation (so user
 // coordinates and truesize coordinates agree) and add it about the point
 // origin to picture dest.
-void add(pair origin, picture dest, picture src, bool group=deconstruct,
+void add(pair origin, picture dest, picture src, bool group=true,
 	 bool put=Above)
 {
   add(origin,dest,src.fit(identity()),group,put);
 }
 
-void add(pair origin, picture src, bool group=deconstruct, bool put=Above)
+void add(pair origin, picture src, bool group=true, bool put=Above)
 {
   add(origin,currentpicture,src,group,put);
 }
