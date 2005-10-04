@@ -290,3 +290,9 @@ string erase(string s, int pos, int n)
     return s.erase(pos,n);
   return s; 
 }
+
+void gui(double x)
+{ 
+  settings::deconstruct=(x > 0 ? x : 0);
+}
+

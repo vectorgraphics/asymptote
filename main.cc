@@ -124,7 +124,7 @@ void body(string filename) // TODO: Refactor
   try {
     if (verbose) cout << "Processing " << basename << endl;
     
-    if(outname.empty()) 
+    if(outname.empty())
       outname=(filename == "-") ? "out" : basename;
 
     genv ge;

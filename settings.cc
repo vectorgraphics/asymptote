@@ -38,6 +38,7 @@ const string defaultPSViewer="'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe
 const string defaultPDFViewer=
   "'c:\\Program Files\\Adobe\\Acrobat 7.0\\Reader\\AcroRd32.exe'";
 const string defaultGhostscript="'c:\\Program Files\\gs\\gs8.51\\bin\\gswin32.exe'";
+const string defaultPython="'c:\\Python2.4\\python.exe'";
 const string defaultDisplay="imdisplay";
 #undef ASYMPTOTE_SYSDIR
 #define ASYMPTOTE_SYSDIR "c:\\Program Files\\Asymptote"
@@ -49,6 +50,7 @@ const string defaultPSViewer="gv";
 const string defaultPDFViewer="gv";
 const string defaultGhostscript="gs";
 const string defaultDisplay="display";
+const string defaultPython="";
 const string docdir=ASYMPTOTE_DOCDIR;
 #endif  
   
@@ -60,6 +62,7 @@ string Dvips;
 string Convert;
 string Display;
 string Animate;
+string Python;
 string Xasy;
   
 string outformat="eps";
@@ -296,7 +299,6 @@ void setOptions(int argc, char *argv[])
     view=1;
     interact::interactive=true;
     if(trap == -1) trap=0;
-    deconstruct=0;
     cout << "Welcome to " << PROGRAM << " version " << VERSION
 	 << " (to view the manual, type help)" << endl;
   } else if(trap == -1) trap=1;
@@ -326,6 +328,7 @@ void setOptions(int argc, char *argv[])
   string convert=Getenv("ASYMPTOTE_CONVERT");
   string display=Getenv("ASYMPTOTE_DISPLAY");
   string animate=Getenv("ASYMPTOTE_ANIMATE");
+  string python=Getenv("ASYMPTOTE_PYTHON");
   string xasy=Getenv("ASYMPTOTE_XASY");
 
   PSViewer=psviewer != "" ? psviewer : defaultPSViewer;
@@ -336,6 +339,7 @@ void setOptions(int argc, char *argv[])
   Convert=convert != "" ? convert : "convert";
   Display=display != "" ? display : defaultDisplay;
   Animate=animate != "" ? animate : "animate";
+  Python=python != "" ? python : defaultPython;
   Xasy=xasy != "" ? xasy : "xasy";
   
   char *papertype=getenv("ASYMPTOTE_PAPERTYPE");

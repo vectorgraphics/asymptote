@@ -33,6 +33,7 @@ extern string Dvips;
 extern string Convert;
 extern string Display;
 extern string Animate;
+extern string Python;
 extern string Xasy;
 extern const string docdir;
   

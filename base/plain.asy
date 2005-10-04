@@ -1167,14 +1167,14 @@ picture operator * (transform t, picture orig)
 
 public picture currentpicture;
 
-public frame gui[];
+public frame GUI[];
 
-frame gui(int index) {
-  while(gui.length <= index) {
+frame GUI(int index) {
+  while(GUI.length <= index) {
     frame f;
-    gui.push(f);
+    GUI.push(f);
   }
-  return gui[index];
+  return GUI[index];
 }
 
 path[] operator ^^ (path p, path q) 
@@ -2340,11 +2340,11 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
   bool Transform=GUIFilenum < GUIlist.length;
   static transform[] noTransforms;
   static bool[] noDeletes;
-  if(gui.length > 0) {
+  if(GUI.length > 0) {
     frame F;
     add(F,f);
-    for(int i=0; i < gui.length; ++i)
-      add(F,gui(i));
+    for(int i=0; i < GUI.length; ++i)
+      add(F,GUI(i));
     f=F;
   }
   shipout(prefix,f,preamble,format,wait,quiet,
@@ -2995,6 +2995,8 @@ real max(real[][][] a) {
   for(int i=0; i < a.length; ++i) max=max(max,max(a[i]));
   return max;
 }
+
+void gui() {gui(1);}
 
 void atexit()
 {

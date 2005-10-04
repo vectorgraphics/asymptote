@@ -70,17 +70,20 @@ void genv::loadPlain()
 
 void genv::loadGUI(const string& outname) 
 {
+  static bool first=true;
   string GUIname=buildname(outname,"gui");
   std::ifstream exists(GUIname.c_str());
   if(exists) {
-    if(settings::clearGUI) unlink(GUIname.c_str());
+    if((settings::clearGUI && !interact::interactive) ||
+       (first && interact::interactive)) unlink(GUIname.c_str());
     else {
       absyntax::importdec igui(position::nullPos(),
-                               symbol::trans(GUIname.c_str()));
+			       symbol::trans(GUIname.c_str()));
       igui.trans(base_coenv);
       me.beginScope(); // NOTE: This is unmatched.
     }
   }
+  first=false;
 }
 
 // If a module is already loaded, this will return it.  Otherwise, it
