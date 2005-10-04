@@ -152,6 +152,8 @@ int System(const char *command, bool quiet, bool wait,
   if(!command) return 1;
   if(verbose > 1) cerr << command << endl;
 
+  cout.flush(); // Flush stdout to avoid duplicate output.
+    
   int pid = fork();
   if(pid == -1)
     camp::reportError("Cannot fork process");

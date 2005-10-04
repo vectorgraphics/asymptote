@@ -59,7 +59,10 @@ public:
       exit(-1);
     }
     
+    cout.flush(); // Flush stdout to avoid duplicate output.
+    
     int wrapperpid;
+    
     // Portable way of forking that avoids zombie child processes
     if((wrapperpid=fork()) < 0) {
       cerr << "fork failed: " << command << endl;
