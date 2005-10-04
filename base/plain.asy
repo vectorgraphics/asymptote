@@ -2335,7 +2335,7 @@ frame marker(path[] g, pen p=currentpen, filltype filltype=NoFill)
 }
 
 void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
-	     string format="", bool wait=NoWait)
+	     string format="", bool wait=NoWait, bool quiet=false)
 {
   bool Transform=GUIFilenum < GUIlist.length;
   static transform[] noTransforms;
@@ -2347,7 +2347,7 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
       add(F,gui(i));
     f=F;
   }
-  shipout(prefix,f,preamble,format,wait,
+  shipout(prefix,f,preamble,format,wait,quiet,
   	  Transform ? GUIlist[GUIFilenum].Transform : noTransforms,
 	  Transform ? GUIlist[GUIFilenum].Delete : noDeletes);
   ++GUIFilenum;
@@ -2390,15 +2390,15 @@ typedef frame orientation(frame);
 
 void shipout(string prefix=defaultfilename, picture pic,
 	     frame preamble=patterns, orientation orientation=Portrait,
-	     string format="", bool wait=NoWait)
+	     string format="", bool wait=NoWait, bool quiet=false)
 {
-  shipout(prefix,orientation(pic.fit()),preamble,format,wait);
+  shipout(prefix,orientation(pic.fit()),preamble,format,wait,quiet);
 }
 
 void shipout(string prefix=defaultfilename, orientation orientation=Portrait,
-	     string format="", bool wait=NoWait)
+	     string format="", bool wait=NoWait, bool quiet=false)
 {
-  shipout(prefix,currentpicture,orientation,format,wait);
+  shipout(prefix,currentpicture,orientation,format,wait,quiet);
 }
 
 void erase(picture pic=currentpicture)

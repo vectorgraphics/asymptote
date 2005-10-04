@@ -29,9 +29,10 @@ extern string PSViewer;
 extern string PDFViewer;
 extern string Ghostscript;
 extern string LaTeX;
-extern string Display;
 extern string Dvips;
 extern string Convert;
+extern string Display;
+extern string Animate;
 extern string Xasy;
 extern const string docdir;
   

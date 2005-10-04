@@ -56,9 +56,10 @@ string PSViewer;
 string PDFViewer;
 string Ghostscript;
 string LaTeX;
-string Display;
 string Dvips;
 string Convert;
+string Display;
+string Animate;
 string Xasy;
   
 string outformat="eps";
@@ -324,6 +325,7 @@ void setOptions(int argc, char *argv[])
   string dvips=Getenv("ASYMPTOTE_DVIPS");
   string convert=Getenv("ASYMPTOTE_CONVERT");
   string display=Getenv("ASYMPTOTE_DISPLAY");
+  string animate=Getenv("ASYMPTOTE_ANIMATE");
   string xasy=Getenv("ASYMPTOTE_XASY");
 
   PSViewer=psviewer != "" ? psviewer : defaultPSViewer;
@@ -333,6 +335,7 @@ void setOptions(int argc, char *argv[])
   Dvips=dvips != "" ? dvips : "dvips";
   Convert=convert != "" ? convert : "convert";
   Display=display != "" ? display : defaultDisplay;
+  Animate=animate != "" ? animate : "animate";
   Xasy=xasy != "" ? xasy : "xasy";
   
   char *papertype=getenv("ASYMPTOTE_PAPERTYPE");

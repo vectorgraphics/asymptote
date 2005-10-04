@@ -2044,6 +2044,7 @@ void shipout(stack *s)
 {
   array *GUIdelete=pop<array*>(s);
   array *GUItransform=pop<array*>(s);
+  bool quiet = pop<bool>(s);
   bool wait = pop<bool>(s);
   string *format = pop<string*>(s);
   const picture *preamble = pop<picture*>(s);
@@ -2094,7 +2095,7 @@ void shipout(stack *s)
 	if(settings::deconstruct) {
 	  ostringstream buf;
 	  buf << prefix << "_" << i;
-	  group->shipout(*preamble,buf.str(),"tgif",false,Delete);
+	  group->shipout(*preamble,buf.str(),"tgif",false,true,Delete);
 	}
 	++i;
       }
@@ -2103,7 +2104,7 @@ void shipout(stack *s)
     if(size) pic=result;
   }
 
-  pic->shipout(*preamble,prefix,*format,wait);
+  pic->shipout(*preamble,prefix,*format,wait,quiet);
 }
 
 // System commands
@@ -2160,7 +2161,14 @@ void merge(stack *s)
   cmd << " " << name;
   ret=System(cmd,false,true,"ASYMPTOTE_CONVERT","convert");
   
-  if(ret == 0) if(settings::verbose > 0) cout << "Wrote " << name << endl;
+  if(ret == 0) {
+    if(settings::verbose > 0) cout << "Wrote " << name << endl;
+    if(settings::view) {
+      ostringstream cmd;
+      cmd << Animate << " " << name;
+      System(cmd,false,true,"ASYMPTOTE_ANIMATE","your animated GIF viewer");
+    }
+  }
   
   if(!keep && !settings::keep)
     for(std::list<std::string>::iterator p=outnameStack->begin();

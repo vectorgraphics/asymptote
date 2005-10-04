@@ -316,6 +316,7 @@ ASYMPTOTE_LATEX
 ASYMPTOTE_DVIPS
 ASYMPTOTE_CONVERT
 ASYMPTOTE_DISPLAY
+ASYMPTOTE_ANIMATE
 ASYMPTOTE_XASY
 @end verbatim
 
@@ -1741,10 +1742,10 @@ by calling the function @code{shipout}:
 void shipout(string prefix=defaultfilename, picture pic,
              frame preamble=patterns,
              orientation orientation=Portrait,
-             string format="", bool wait=NoWait);
+             string format="", bool wait=NoWait, bool quiet=false);
 void shipout(string prefix=defaultfilename,
              orientation orientation=Portrait,
-             string format="", bool wait=NoWait);
+             string format="", bool wait=NoWait, bool quiet=false);
 @end verbatim
 @noindent
 A @code{shipout()} command is added implicitly at file exit if no
@@ -4936,10 +4937,7 @@ If multiple files are specified, they are treated as separate
 
 An alternative output format may be produced by using the @code{-f format}
 option. This supports any format supported by the @code{ImageMagick}
-@code{convert} program (a relatively recent version of which must be
-installed). @code{ImageMagick} should be configured with @code{--enable-lzw} to
-produce @acronym{LZW}-compressed @acronym{GIF}s (the @acronym{Unisys LZW}
-patent expired on June 20, 2003).
+@code{convert} program (version 6.2.5 or later recommended).
 
 If the option @code{-unsafe} is given, @code{Asymptote} runs
 in unsafe mode. This enables the @code{int system(string)} call, allowing one
@@ -5228,7 +5226,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  loggraph generalaxis texhash arrowsize arrowangle arrowlength
 @c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config PSVIEWER PDFVIEWER
 @c  LocalWords:  ghostview gsview SIGHUP PDF acroread xpdf nullframe cutbefore
-@c  LocalWords:  libsigsegv intersectionpoint dotfactor lzw GIFS vv firstcut pq
+@c  LocalWords:  libsigsegv intersectionpoint dotfactor vv firstcut pq
 @c  LocalWords:  Unisys dvips vvv vvvv vvvvv traceback lastcut cutafter infodir
 @c  LocalWords:  zxvf xargs cond polargraph xmin xmax plabel YZero labelling ln
 @c  LocalWords:  ymin ymax XZero xequals tickmin tickmax unlabelled se pq pena

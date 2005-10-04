@@ -225,7 +225,7 @@ bool picture::texprocess(const string& texname, const string& outname,
 }
 
 bool picture::postprocess(const string& epsname, const string& outname,
-			  const string& outputformat, bool wait,
+			  const string& outputformat, bool wait, bool quiet,
 			  const bbox& bpos)
 {
   int status=0;
@@ -257,7 +257,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
   }
   
   if(verbose > (tgifformat ? 1 : 0)) cout << "Wrote " << outname << endl;
-  if(view && !deconstruct) {
+  if(view && !quiet) {
     if(epsformat || pdfformat) {
       static int pid=0;
       static string lastoutname;
@@ -282,7 +282,8 @@ bool picture::postprocess(const string& epsname, const string& outname,
     } else {
       ostringstream cmd;
       cmd << Display << " " << outname;
-      status=System(cmd,false,wait,"ASYMPTOTE_DISPLAY","display");
+      string application="your "+outputformat+" viewer";
+      status=System(cmd,false,wait,"ASYMPTOTE_DISPLAY",application.c_str());
       if(status) return false;
     }
   }
@@ -291,7 +292,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
 }
 
 bool picture::shipout(const picture& preamble, const string& prefix,
-		      const string& format, bool wait, bool Delete)
+		      const string& format, bool wait, bool quiet, bool Delete)
 {
   if(suppressStandard) return true;
   
@@ -440,7 +441,8 @@ bool picture::shipout(const picture& preamble, const string& prefix,
 	      p != psnameStack.end(); ++p)
 	    unlink(p->c_str());
       }
-      if(status) status=postprocess(epsname,outname,outputformat,wait,bpos);
+      if(status)
+	status=postprocess(epsname,outname,outputformat,wait,quiet,bpos);
     }
   }
   

@@ -25,7 +25,7 @@ void initialpicture() {
   draw(wheel(t1,t2,100),linetype("0 2"));
   yequals(Label("$y=-1$",1.0),-1,extend=true,linetype("4 4"));
   xaxis(Label("$x$",align=3SW),0);
-  yaxis("$y$",0,1.15);
+  yaxis("$y$",0,1.2);
   pair z1=wheelpoint(t1);
   pair z2=wheelpoint(t2);
   dot(z1);
@@ -42,7 +42,7 @@ for(int i=0; i <= n; ++i) {
   real t=t1+dt*i;
   draw(circle((t,0),1),red);
   dot(wheelpoint(t));
-  shipout(prefix+(string) i,"gif");
+  shipout(prefix+(string) i,"gif",quiet=true);
 }
 
 gifmerge(10);

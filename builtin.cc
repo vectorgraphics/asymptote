@@ -455,8 +455,8 @@ void base_venv(venv &ve)
 	  penArray(),primPair(),primPair());
   
   addFunc(ve,run::shipout,primVoid(),"shipout",primString(),primPicture(),
-	  primPicture(),primString(),primBoolean(),transformArray(),
-	  boolArray());
+	  primPicture(),primString(),primBoolean(),primBoolean(),
+	  transformArray(),boolArray());
   
   addFunc(ve,run::postscript,primVoid(),"postscript",primPicture(),
 	  primString());
