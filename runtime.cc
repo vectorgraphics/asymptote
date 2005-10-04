@@ -2161,20 +2161,20 @@ void merge(stack *s)
   cmd << " " << name;
   ret=System(cmd,false,true,"ASYMPTOTE_CONVERT","convert");
   
-  if(ret == 0) {
+  if(ret == 0)
     if(settings::verbose > 0) cout << "Wrote " << name << endl;
-    if(settings::view) {
-      ostringstream cmd;
-      cmd << Animate << " " << name;
-      System(cmd,false,true,"ASYMPTOTE_ANIMATE","your animated GIF viewer");
-    }
-  }
   
   if(!keep && !settings::keep)
     for(std::list<std::string>::iterator p=outnameStack->begin();
       p != outnameStack->end(); ++p)
       unlink(p->c_str());
     
+  if(ret == 0 && settings::view) {
+    ostringstream cmd;
+    cmd << Animate << " " << name;
+    System(cmd,false,true,"ASYMPTOTE_ANIMATE","your animated GIF viewer");
+  }
+  
   s->push(ret);
 }
 
