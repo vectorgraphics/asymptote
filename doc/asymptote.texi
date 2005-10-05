@@ -273,6 +273,8 @@ Users of the @code{Microsoft Windows} operating system can install the
 self-extracting @code{Asymptote} executable @code{asymptote-install-x.xx.exe}.
 A working @code{TeX} implementation (such as the one available at
 @url{http://www.miktex.org}) will be required to typeset labels.
+The @code{Python} interpretor from @url{http://www.python.org} is only required
+if you wish to try out the graphical user interface (under construction).
 
 @noindent
 Example code will be installed by default in
@@ -311,7 +313,7 @@ set ASYMPTOTE_PSVIEWER=c:\Program Files\Ghostgum\gsview\gsview32.exe
 set ASYMPTOTE_PDFVIEWER=
               c:\Program Files\Adobe\Acrobat 7.0\Reader\AcroRd32.exe
 set ASYMPTOTE_GS=c:\Program Files\gs\gs8.51\bin\gswin32.exe
-set ASYMPTOTE_PYTHON=c:\Python2.4\python.exe
+set ASYMPTOTE_PYTHON=c:\Python24\python.exe
 @end verbatim
 
 The following environment variables normally do not need to be adjusted:
@@ -4060,7 +4062,8 @@ and axis labels, using orthographic projection:
 @verbatiminclude helix.asy
 @image{helix}
 
-This example illustrates three-dimensional @math{x}, @math{y}, and
+@page
+The next example illustrates three-dimensional @math{x}, @math{y}, and
 @math{z} axes, with autoscaling of the upper @math{z} limit disabled:
 @cindex @code{axis}
 @verbatiminclude axis3.asy
@@ -4931,7 +4934,8 @@ Options:
 @end verbatim
 
 If no arguments are given, @code{Asymptote} runs in interactive mode
-(@pxref{Interactive mode}).
+(@pxref{Interactive mode}). In this case, the default output file
+is @code{out.eps}.
 
 If @code{-} is given as the file argument, @code{Asymptote} reads from
 standard input. 
@@ -5239,7 +5243,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  loggraph generalaxis texhash arrowsize arrowangle arrowlength
 @c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config PSVIEWER PDFVIEWER
 @c  LocalWords:  ghostview gsview SIGHUP PDF acroread xpdf nullframe cutbefore
-@c  LocalWords:  libsigsegv intersectionpoint dotfactor vv firstcut pq
+@c  LocalWords:  libsigsegv intersectionpoint dotfactor vv firstcut pq logticks
 @c  LocalWords:  Unisys dvips vvv vvvv vvvvv traceback lastcut cutafter infodir
 @c  LocalWords:  zxvf xargs cond polargraph xmin xmax plabel YZero labelling ln
 @c  LocalWords:  ymin ymax XZero xequals tickmin tickmax unlabelled se pq pena
@@ -5269,4 +5273,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  Autoscaling solveQuadratic MidArrow MidArcArrow Prebuilt url
 @c  LocalWords:  pdftex commentchar getstring getstringprefix getreal defaultS
 @c  LocalWords:  ticklocate autoscaleT autoscaling vectorfield autolimits dvi
-@c  LocalWords:  zlimits inline dvipdf hyperdvi autoconf
+@c  LocalWords:  zlimits inline dvipdf hyperdvi autoconf gui
