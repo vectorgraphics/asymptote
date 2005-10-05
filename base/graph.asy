@@ -419,6 +419,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     real step=step;
     pen pTick=pTick;
     pen ptick=ptick;
+    ticklabel ticklabel=ticklabel;
     
     real Size=Size;
     real size=size;
@@ -618,6 +619,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     int sign=opposite ? -sign : sign;
     pen pTick=pTick;
     pen ptick=ptick;
+    ticklabel ticklabel=ticklabel;
     
     real Size=Size;
     real size=size;
@@ -697,6 +699,7 @@ ticks NoTicks()
     else {
       draw(f,G,p,arrow);
       if(L.s != "") {
+	Label L=L.copy();
 	L.p(p);
 	labelaxis(f,T,L,G);
       }
