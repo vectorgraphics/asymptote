@@ -1227,16 +1227,16 @@ pair max(explicit path[] g)
   return maxg;
 }
 
-void size(picture pic=currentpicture,
-          real xsize, real ysize, bool keepAspect=Aspect)
+void size(picture pic=currentpicture, real xsize, real ysize,
+	  bool keepAspect=Aspect)
 {
   pic.size(xsize,ysize,keepAspect);
 }
 
-// Ensure that each dimension is no more than size, preserving aspect ratio.
-void size(picture pic=currentpicture, real Size)
+// Ensure that each dimension is no more than size.
+void size(picture pic=currentpicture, real Size, bool keepAspect=Aspect)
 {
-  pic.size(Size,Size,Aspect);
+  pic.size(Size,Size,keepAspect);
 }
 
 pair size(frame f)

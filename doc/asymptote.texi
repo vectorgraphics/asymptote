@@ -1734,10 +1734,9 @@ If @code{keepAspect} is set to @code{IgnoreAspect} or @code{false},
 the picture will be scaled in both directions so that the final width
 is @code{xsize} and the height is @code{ysize}. 
 
-To ensure that each dimension is no more than @code{Size} (preserving
-the aspect ratio), use the routine 
+To ensure that each dimension is no more than @code{Size}, use the routine 
 @verbatim
-void size(picture pic=currentpicture, real Size);
+void size(picture pic=currentpicture, real Size, bool keepAspect=Aspect);
 @end verbatim
 
 A picture can be fit to a frame and converted into a @code{PostScript} image
