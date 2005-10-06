@@ -204,8 +204,6 @@ void addCasts(venv &ve)
   addCast(ve, primGuide(), primPath(), run::pathToGuide);
   addCast(ve, primPath(), primGuide(), run::guideToPath);
 
-  addCast(ve, primPen(), primReal(), run::lineWidth);
-  
   addCast(ve, primFile(), primNull(), run::nullFile);
   addCast(ve, primString(), primFile(), run::read<string>);
 
@@ -523,7 +521,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::realDir,primPair(),"dir",primReal());
   addFunc(ve,run::pairExpi,primPair(),"expi",primReal());
   addFunc(ve,run::pairConj,primPair(),"conj",primPair());
-  addFunc(ve,run::pairDot,primReal(),"dot",primPair(),primPair());
+  addFunc(ve,run::pairDot,primReal(),"_dot",primPair(),primPair());
 
   addFunc(ve,run::tripleXPart,primReal(),"xpart",primTriple());
   addFunc(ve,run::tripleYPart,primReal(),"ypart",primTriple());

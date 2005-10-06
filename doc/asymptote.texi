@@ -1428,12 +1428,18 @@ The default linetype is @code{solid}; this may be changed with
 @item The pen line width is specified in @code{PostScript} units with
 @code{pen linewidth(real)}. The default line width is 0.5 bp; this value
 may be changed with @code{defaultpen(pen)}. 
-Note that @code{real} (but not @code{int}) values are implicitly cast to
-pens of the specified line width: 
+For convenience, in @code{plain.asy} we define
 @verbatim
-pen double=1bp;
-pen equivalent=1.0;
+static void defaultpen(real w) {defaultpen(linewidth(w));}
+static pen operator +(pen p, real w) {return p+linewidth(w);}
+static pen operator +(real w, pen p) {return linewidth(w)+p;}
 @end verbatim
+so that one may set the linewidth like this:
+@verbatim
+defaultpen(2);
+pen p=red+0.5;
+@end verbatim
+
 
 @cindex @code{linecap}
 @cindex @code{squarecap}

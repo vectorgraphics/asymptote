@@ -57,6 +57,10 @@ static pen longdashed=linetype("24 8");
 static pen dashdotted=linetype("8 8 0 8");
 static pen longdashdotted=linetype("24 8 0 8");
 
+static void defaultpen(real w) {defaultpen(linewidth(w));}
+static pen operator +(pen p, real w) {return p+linewidth(w);}
+static pen operator +(real w, pen p) {return linewidth(w)+p;}
+
 static pen Dotted=dotted+1.0;
 static pen Dotted(pen p) {return dotted+2*linewidth(p);}
 
@@ -1930,8 +1934,7 @@ Label Label(explicit pair position, align align=NoAlign, pen p=nullpen)
   return Label((string) position,position,align,p);
 }
 
-Label Label(string s="", string size="", align align=NoAlign,
-	    explicit pen p=nullpen)
+Label Label(string s="", string size="", align align=NoAlign, pen p=nullpen)
 {
   Label L;
   L.initalign(s,size,align,p);
@@ -2263,6 +2266,12 @@ triple interp(triple a, triple b, real c)
 pen interp(pen a, pen b, real c) 
 {
   return (1-c)*a+c*b;
+}
+
+// To avoid confusion, a dot product requires explicit pair arguments.
+real dot(explicit pair a, explicit pair b)
+{
+  return _dot(a,b);
 }
 
 void dot(frame f, pair z, pen p=currentpen)

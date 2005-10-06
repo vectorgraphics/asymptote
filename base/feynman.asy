@@ -336,7 +336,7 @@ void drawDoubleLine(picture pic = currentpicture,
 
     real htw = linewidth(fgpen)+dlspacing/2;
     draw(pic, p, fgpen+2*htw);
-    draw(pic, p, bgpen+(linewidth(dlspacing)));
+    draw(pic, p, bgpen+dlspacing);
     path rect = (-htw,-htw)--(-htw,htw)--(0,htw)--(0,-htw)--cycle;
     fill(shift(point(p,0))*rotate(degrees(dir(p,0)))*rect, bgpen);
     fill(shift(point(p,size(p)))*scale(-1)*rotate(degrees(dir(p,size(p))))*

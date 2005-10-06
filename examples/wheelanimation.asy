@@ -1,6 +1,7 @@
 import graph;
 
-defaultpen(2.0);
+defaultpen(2);
+dotfactor=5;
 
 pair wheelpoint(real t)
 {
