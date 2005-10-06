@@ -274,7 +274,7 @@ self-extracting @code{Asymptote} executable @code{asymptote-install-x.xx.exe}.
 A working @code{TeX} implementation (such as the one available at
 @url{http://www.miktex.org}) will be required to typeset labels.
 The @code{Python} interpretor from @url{http://www.python.org} is only required
-if you wish to try out the graphical user interface (under construction).
+if you wish to try out the graphical user interface (@pxref{GUI}).
 
 @noindent
 Example code will be installed by default in
@@ -571,8 +571,8 @@ may be replaced with the predefined variable
 One can also specify the size in @code{pt} (1 @code{pt} = 1/72.27 @code{inch}),
 @code{cm}, @code{mm}, or @code{inches}. 
 If 0 is given as a size argument, no restriction is made in that direction;
-the overall scaling will be determined by the other direction:
-@xref{size}.
+the overall scaling will be determined by the other direction
+(@pxref{size}):
 @verbatiminclude bigsquare.asy
 @image{bigsquare}
 
@@ -1713,30 +1713,31 @@ The @code{size} routine specifies the dimensions of the desired picture:
 @anchor{size}
 @cindex @code{size}
 @verbatim
-void size(picture pic=currentpicture,
-          real xsize, real ysize, bool keepAspect=Aspect);
+void size(picture pic=currentpicture, real x, real y,
+          bool keepAspect=Aspect);
 @end verbatim
 
-If @code{xsize} and @code{ysize} are both 0, user coordinates will be
+If the @code{x} and @code{y} sizes are both 0, user coordinates will be
 interpreted as @code{PostScript} coordinates. In this case, the transform
 mapping @code{pic} to the final output frame is @code{identity()}.
 
-If exactly one of @code{xsize} or @code{ysize} is 0, no size restriction
+If exactly one of @code{x} or @code{y} is 0, no size restriction
 is imposed in that direction; it will be scaled the same as the other
 direction.
 
 If @code{keepAspect} is set to @code{Aspect} or @code{true},
 the picture will be scaled with its aspect ratio preserved such that
-the final width is no more than @code{xsize} and the final height is
-no more than @code{ysize}.
+the final width is no more than @code{x} and the final height is
+no more than @code{y}.
 
 If @code{keepAspect} is set to @code{IgnoreAspect} or @code{false},
 the picture will be scaled in both directions so that the final width
-is @code{xsize} and the height is @code{ysize}. 
+is @code{x} and the height is @code{y}. 
 
-To ensure that each dimension is no more than @code{Size}, use the routine 
+To ensure that each dimension is no more than @code{size}, use the routine 
 @verbatim
-void size(picture pic=currentpicture, real Size, bool keepAspect=Aspect);
+void size(picture pic=currentpicture, real size,
+          bool keepAspect=Aspect);
 @end verbatim
 
 A picture can be fit to a frame and converted into a @code{PostScript} image
@@ -1768,14 +1769,14 @@ frame pic.fit(real xsize, real ysize, bool keepAspect=true);
 frame pic.fit(real xsize, real ysize, bool keepAspect=true,
               pair dir);
 @end verbatim
-The first two forms use the @code{xsize}, @code{ysize}, and
-@code{keepAspect} values set by the @code{size} command (or the default
-values of @code{0}, @code{0}, and @code{false}, respectively). The optional
-@code{dir} argument specifies a direction to use for aligning the
-frame, in a manner completely analogous to the @code{align} argument
-of @code{label} (@pxref{label}). Illustrations of frame alignment can
-be found in the examples @ref{errorbars} and @ref{image}. If you want
-to align 3 or more subpictures, group them two at a time:
+The first two forms use the size and aspect ratio settings given to the
+@code{size} command (or the default values of @code{0}, @code{0}, and
+@code{false}, respectively). The optional @code{dir} argument
+specifies a direction to use for aligning the frame, in a manner
+completely analogous to the @code{align} argument of @code{label}
+(@pxref{label}). Illustrations of frame alignment can be found in the
+examples @ref{errorbars} and @ref{image}. If you want to align 3 or
+more subpictures, group them two at a time:
 @verbatiminclude subpictures.asy
 @image{subpictures}
 
@@ -3744,6 +3745,12 @@ A secondary logarithmic @math{y} axis can be drawn like this:
 @verbatiminclude histogram.asy
 @image{histogram}
 
+@item Here is an example of reading column data in from a file and a
+least-squares fit, using the @code{stats} module. 
+@cindex @code{leastsquares}
+@verbatiminclude leastsquares.asy
+@image{leastsquares}
+
 @item Here is an example that illustrates the general @code{axis} routine.
 @cindex @code{axis}
 @verbatiminclude generalaxis.asy
@@ -5222,8 +5229,8 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  boolean initializer expi dir xpart ypart STL substring rfind
 @c  LocalWords:  pos substr strftime typedef pxref unitcircle yscale Bezier iff
 @c  LocalWords:  postcontrol precontrol atleast nullpath arclength arctime rgb
-@c  LocalWords:  dirtime currentpen colorspaces grayscale cmyk defaultpen xsize
-@c  LocalWords:  linetype longdashed dashdotted longdashdotted linewidth ysize
+@c  LocalWords:  dirtime currentpen colorspaces grayscale cmyk defaultpen x
+@c  LocalWords:  linetype longdashed dashdotted longdashdotted linewidth y
 @c  LocalWords:  fontsize defaultfilename keepAspect IgnoreAspect ise flushleft
 @c  LocalWords:  NoWait src dest XDR txt getc fout stdin stdout endl xinput eof
 @c  LocalWords:  xoutput Microsystem's eol struct exponentials postfix sayhi th

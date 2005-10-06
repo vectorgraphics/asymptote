@@ -902,10 +902,16 @@ struct picture {
     addBox(min(g),max(g),min(p),max(p));
   }
 
-  void size(real x=0, real y=0, bool a=true) {
+  void size(real x, real y, bool keepAspect=Aspect) {
     xsize=x;
     ysize=y;
-    keepAspect=a;
+    this.keepAspect=keepAspect;
+  }
+
+  void size(real size, bool keepAspect=Aspect) {
+    xsize=size;
+    ysize=size;
+    this.keepAspect=keepAspect;
   }
 
   // The scaling in one dimension:  x --> a*x + b
@@ -1227,16 +1233,15 @@ pair max(explicit path[] g)
   return maxg;
 }
 
-void size(picture pic=currentpicture, real xsize, real ysize,
-	  bool keepAspect=Aspect)
+void size(picture pic=currentpicture, real x, real y, bool keepAspect=Aspect)
 {
-  pic.size(xsize,ysize,keepAspect);
+  pic.size(x,y,keepAspect);
 }
 
 // Ensure that each dimension is no more than size.
-void size(picture pic=currentpicture, real Size, bool keepAspect=Aspect)
+void size(picture pic=currentpicture, real size, bool keepAspect=Aspect)
 {
-  pic.size(Size,Size,keepAspect);
+  pic.size(size,size,keepAspect);
 }
 
 pair size(frame f)
