@@ -627,11 +627,11 @@ for(int i=0; i < 10; ++i) {
 @cindex @code{convert}
 @cindex animation
 @cindex @code{ImageMagick}
-Another example of a loop, together with user-defined functions, is
-provided in the file @code{wheelanimation.asy} in the examples
-directory. Here, the @code{gifmerge} command is used to @code{merge}
-multiple images into a gif animation, using the @code{ImageMagick}
-@code{convert} program.
+Example of loops, together with user-defined functions are
+provided in the files @code{wheel.asy} and @code{cube.asy} in the
+animations subdirectory of the examples directory. Here, the 
+@code{gifmerge} command is used to @code{merge} multiple images into a
+gif animation, using the @code{ImageMagick} @code{convert} program.
 
 @cindex @code{while}
 @cindex @code{do}
@@ -4023,8 +4023,9 @@ Here is an example showing all five three-dimensional path connectors:
 @verbatiminclude join3.asy
 @image{join3}
 
-Further three-dimensional examples are found in the files
-@code{near_earth.asy} and @code{conicurv.asy}.
+Further three-dimensional examples are provided in the files
+@code{near_earth.asy}, @code{conicurv.asy}, and (in the animations
+subdirectory) @code{cube.asy}.
 
 @node graph3
 @subsection @code{graph3}
@@ -5231,7 +5232,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
 @c  LocalWords:  vskip filll insertcopying ifnottex detailmenu alist augroup PQ
 @c  LocalWords:  bool behaviour facto zxf cvs login Debian dev filetypedetect
-@c  LocalWords:  FFTW bp readline gv eps gifmerge wheelanimation args Boehm gc
+@c  LocalWords:  FFTW bp readline gv eps gifmerge args Boehm gc
 @c  LocalWords:  boolean initializer expi dir xpart ypart STL substring rfind
 @c  LocalWords:  pos substr strftime typedef pxref unitcircle yscale Bezier iff
 @c  LocalWords:  postcontrol precontrol atleast nullpath arclength arctime rgb

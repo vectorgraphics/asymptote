@@ -12,22 +12,22 @@ void snapshot(transform3 t)
   static int count=-1;
 
   picture pic;
-  size(pic,400,400);
+  size(pic,100,100);
   
   face[] faces;
   int j=-1;
   transform3 T=t*s;
   for(int k=0; k < 2; ++k) {
-    face(faces,T*plane((k,0,0),(k,0,1),(k,1,0)),++j);
-    face(faces,T*plane((0,k,0),(0,k,1),(1,k,0)),++j); 
-    face(faces,T*plane((0,0,k),(0,1,k),(1,0,k)),++j);
+    face(faces,T*plane((0,0,1),(0,1,0),(k,0,0)),++j);
+    face(faces,T*plane((0,0,1),(1,0,0),(0,k,0)),++j); 
+    face(faces,T*plane((0,1,0),(1,0,0),(0,0,k)),++j);
   }
   add(pic,faces);
   draw(pic,box((-1,-1),(1,1)),invisible);
   shipout(fileprefix()+(string) ++count,pic,"gif",quiet=true);
 }
 
-int n=50;
+int n=100;
 
 real step=360/n;
 for(int i=0; i < n; ++i)
@@ -37,4 +37,4 @@ for(int i=0; i < n; ++i)
 for(int i=0; i < n; ++i)
   snapshot(rotate(i*step,Z));
 
-gifmerge(10,20);
+gifmerge(10,5);

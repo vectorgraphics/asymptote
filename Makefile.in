@@ -37,6 +37,7 @@ mandir = @mandir@
 datadir = @datadir@
 asydir = $(datadir)/asymptote
 exampledir = $(datadir)/doc/asymptote
+animationsdir = $(exampledir)/animations
 latexdir = @latexdir@
 INSTALL = @INSTALL@
 ASYMPTOTE_DIR = ../base
@@ -91,12 +92,14 @@ install: install-asy install-man
 install-all: install-asy install-doc
 
 install-asy: asy
-	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(latexdir)
+	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir) \
+			$(latexdir)
 	${INSTALL} -s $(NAME) $(bindir)
 	${INSTALL} $(XNAME) $(bindir)
 	${INSTALL} -m644 base/*.asy $(asydir)
 	${INSTALL} -m644 examples/*.asy base/asy* \
 		doc/*.asy doc/*.csv doc/latexusage.tex $(exampledir)
+	${INSTALL} -m644 examples/animations/*.asy $(animationsdir)
 	${INSTALL} -m644 doc/asymptote.sty $(latexdir)
 	texhash
 
@@ -111,6 +114,8 @@ uninstall: uninstall-all
 uninstall-all: uninstall-man uninstall-asy
 
 uninstall-asy:
+	-cd $(animationsdir); rm -f *.asy
+	-rmdir $(animationsdir)
 	-cd $(exampledir); rm -f *.asy *.csv asy* latexusage.tex
 	-rmdir $(exampledir)
 	-cd $(asydir); rm -f *.asy
