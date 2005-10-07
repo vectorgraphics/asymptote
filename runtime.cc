@@ -2172,7 +2172,7 @@ void merge(stack *s)
   if(ret == 0 && settings::view) {
     ostringstream cmd;
     cmd << Animate << " " << name;
-    System(cmd,false,true,"ASYMPTOTE_ANIMATE","your animated GIF viewer");
+    System(cmd,false,false,"ASYMPTOTE_ANIMATE","your animated GIF viewer");
   }
   
   s->push(ret);

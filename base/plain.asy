@@ -2879,7 +2879,10 @@ string format(real x)
 pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,darkblue,
 		darkgreen,chartreuse,fuchsia,salmon,lightblue,black,lavender,
 		pink,yellow,gray};
+colorPen.cyclic(true);
+
 pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,longdashdotted};
+monoPen.cyclic(true);
 
 transform invert=reflect((0,0),(1,0));
 static public real circlescale=0.85;
@@ -2899,14 +2902,9 @@ frame[] MarkFill={
 
 public bool mono=false;
 
-pen monoPen(int n) 
-{
-  return monoPen[n % monoPen.length];
-}
-
 pen Pen(int n) 
 {
-  return mono ? monoPen(n) : colorPen[n % colorPen.length];
+  return mono ? monoPen[n] : colorPen[n];
 }
 
 frame Mark(int n) 

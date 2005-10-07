@@ -35,7 +35,6 @@ void initialpicture() {
 
 int n=25;
 real dt=(t2-t1)/n;
-string prefix=fileprefix();
 for(int i=0; i <= n; ++i) {
   currentpicture.erase();
   size(0,200);
@@ -43,7 +42,7 @@ for(int i=0; i <= n; ++i) {
   real t=t1+dt*i;
   draw(circle((t,0),1),red);
   dot(wheelpoint(t));
-  shipout(prefix+(string) i,"gif",quiet=true);
+  shipout(fileprefix()+(string) i,"gif",quiet=true);
 }
 
 gifmerge(10);

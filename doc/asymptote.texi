@@ -4957,7 +4957,7 @@ If multiple files are specified, they are treated as separate
 
 An alternative output format may be produced by using the @code{-f format}
 option. This supports any format supported by the @code{ImageMagick}
-@code{convert} program (version 6.2.5 or later recommended).
+@code{convert} program (version 6.2.4 or later recommended).
 
 If the option @code{-unsafe} is given, @code{Asymptote} runs
 in unsafe mode. This enables the @code{int system(string)} call, allowing one

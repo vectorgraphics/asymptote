@@ -1753,10 +1753,10 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
 
 static public real epsilon=1000*realEpsilon();
 
-// Return a representation of the plane passing through v1, v2, and v3.
-path3 plane(triple v1, triple v2, triple v3)
+// Return a representation of the plane passing through v0, v1, and v2.
+path3 plane(triple v0, triple v1, triple v2)
 {
-  return v1--v2--v3--(v3+v1-v2)--cycle3;
+  return v1--v0--v2--(v1+v2-v0)--cycle3;
 }
 
 triple normal(path3 p, triple f(path3, int), triple normal=O) {
