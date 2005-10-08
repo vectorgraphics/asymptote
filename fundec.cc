@@ -135,10 +135,12 @@ void formal::transAsVar(coenv &e, int index) {
     types::ty *t = getType(e, true);
     varEntry *v = new varEntry(t, a);
 
-    e.e.addVar(getPos(), name, v);
-
+    // Translate the default argument before adding the formal to the
+    // environment, consistent with the initializers of variables.
     if (defval)
       transDefault(e, getPos(), v, defval);
+
+    e.e.addVar(getPos(), name, v);
   }
 }
 
