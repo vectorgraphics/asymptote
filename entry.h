@@ -33,10 +33,6 @@ using types::record;
 
 namespace trans {
 
-// The type environment.
-class tenv : public sym::table<ty *>
-{};
-
 class varEntry : public gc {
   ty *t;
   access *location;
@@ -75,6 +71,22 @@ public:
   void encode(action act, position pos, coder &c);
   void encode(action act, position pos, coder &c, frame *top);
 };
+
+// As looked-up types can be allocated in a new expression, we need to know what
+// frame they should be allocated on.  Type entries store this extra information
+// along with the type.
+class tyEntry : public gc {
+public:
+  ty *t;
+  varEntry *v;  // NOTE: Name isn't very descriptive.
+
+  tyEntry(ty *t, varEntry *v=0)
+    : t(t), v(v) {}
+};
+
+// The type environment.
+class tenv : public sym::table<tyEntry *>
+{};
 
 #ifdef NOHASH //{{{
 class venv : public sym::table<varEntry*> {

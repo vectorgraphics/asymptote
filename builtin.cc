@@ -36,24 +36,29 @@ using vm::bltin;
 using run::divide;
 using mem::string;
 
-// The base environments for built-in types and functions
-void base_tenv(tenv &ret)
+void addType(tenv &te, char *name, ty *t)
 {
-  ret.enter(symbol::trans("void"), primVoid());
-  ret.enter(symbol::trans("bool"), primBoolean());
-  ret.enter(symbol::trans("int"), primInt());
-  ret.enter(symbol::trans("real"), primReal());
-  ret.enter(symbol::trans("string"), primString());
-  
-  ret.enter(symbol::trans("pair"), primPair());
-  ret.enter(symbol::trans("triple"), primTriple());
-  ret.enter(symbol::trans("transform"), primTransform());
-  ret.enter(symbol::trans("guide"), primGuide());
-  ret.enter(symbol::trans("path"), primPath());
-  ret.enter(symbol::trans("pen"), primPen());
-  ret.enter(symbol::trans("frame"), primPicture());
+  te.enter(symbol::trans(name), new tyEntry(t,0));
+}
 
-  ret.enter(symbol::trans("file"), primFile());
+// The base environments for built-in types and functions
+void base_tenv(tenv &te)
+{
+  addType(te, "void", primVoid());
+  addType(te, "bool", primBoolean());
+  addType(te, "int", primInt());
+  addType(te, "real", primReal());
+  addType(te, "string", primString());
+  
+  addType(te, "pair", primPair());
+  addType(te, "triple", primTriple());
+  addType(te, "transform", primTransform());
+  addType(te, "guide", primGuide());
+  addType(te, "path", primPath());
+  addType(te, "pen", primPen());
+  addType(te, "frame", primPicture());
+
+  addType(te, "file", primFile());
 }
 
 // Macro to make a function.

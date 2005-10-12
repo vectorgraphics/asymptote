@@ -12,6 +12,7 @@
 #include "exp.h"
 #include "dec.h"
 #include "fundec.h"
+#include "entry.h"
 
 namespace absyntax {
 
@@ -20,6 +21,7 @@ typedef fundef newFunctionExp;
 class newRecordExp : public exp {
   ty *result;
 
+  bool encodeLevel(coenv &e, trans::tyEntry *ent);
 public:
   newRecordExp(position pos, ty *result)
     : exp(pos), result(result) {}

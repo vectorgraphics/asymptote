@@ -21,6 +21,13 @@ namespace absyntax {
 using namespace trans;
 using namespace types;
 
+
+trans::tyEntry *ty::transAsTyEntry(coenv &e)
+{
+  return new trans::tyEntry(trans(e, false), 0);
+}
+
+
 void nameTy::prettyprint(ostream &out, int indent)
 {
   prettyname(out, "nameTy",indent);
@@ -31,6 +38,11 @@ void nameTy::prettyprint(ostream &out, int indent)
 types::ty *nameTy::trans(coenv &e, bool tacit)
 {
   return id->typeTrans(e, tacit);
+}
+
+trans::tyEntry *nameTy::transAsTyEntry(coenv &e)
+{
+  return id->tyEntryTrans(e);
 }
 
 
@@ -112,23 +124,23 @@ void arrayTy::addOps(coenv &e, types::ty* t, types::ty *ct)
   function *ftsequence = sequenceType(t,ct);
   function *ftmap = mapType(t,ct);
   
-  e.e.addVar(getPos(), symbol::trans("alias"),
+  e.e.addVar(symbol::trans("alias"),
       new varEntry(ft,new bltinAccess(run::arrayAlias)));
 
   if(dims->size() == 1) {
-    e.e.addVar(getPos(), symbol::trans("copy"),
+    e.e.addVar(symbol::trans("copy"),
 	       new varEntry(ftarray,new bltinAccess(run::arrayCopy)));
-    e.e.addVar(getPos(), symbol::trans("concat"),
+    e.e.addVar(symbol::trans("concat"),
 	       new varEntry(ftarray2,new bltinAccess(run::arrayConcat)));
-    e.e.addVar(getPos(), symbol::trans("sequence"),
+    e.e.addVar(symbol::trans("sequence"),
 	       new varEntry(ftsequence,new bltinAccess(run::arraySequence)));
-    e.e.addVar(getPos(), symbol::trans("map"),
+    e.e.addVar(symbol::trans("map"),
 	       new varEntry(ftmap,new bltinAccess(run::arrayFunction)));
   }
   if(dims->size() == 2) {
-    e.e.addVar(getPos(), symbol::trans("copy"),
+    e.e.addVar(symbol::trans("copy"),
 	       new varEntry(ftarray,new bltinAccess(run::array2Copy)));
-    e.e.addVar(getPos(), symbol::trans("transpose"),
+    e.e.addVar(symbol::trans("transpose"),
 	       new varEntry(ftarray,new bltinAccess(run::array2Transpose)));
   }
 }
@@ -270,6 +282,12 @@ types::ty *decidstart::getType(types::ty *base, coenv &, bool)
   return dims ? dims->truetype(base) : base;
 }
 
+trans::tyEntry *decidstart::getTyEntry(trans::tyEntry *base, coenv &e)
+{
+  return dims ? new trans::tyEntry(getType(base->t,e,false), 0) :
+                base;
+}
+
 
 void fundecidstart::prettyprint(ostream &out, int indent)
 {
@@ -295,6 +313,10 @@ types::ty *fundecidstart::getType(types::ty *base, coenv &e, bool tacit)
   }
 }
 
+trans::tyEntry *fundecidstart::getTyEntry(trans::tyEntry *base, coenv &e)
+{
+  return new trans::tyEntry(getType(base->t,e,false), 0);
+}
 
 void decid::prettyprint(ostream &out, int indent)
 {
@@ -325,7 +347,7 @@ void addVar(position pos, coenv &e, record *r,
   // record definition.
   if (r)
     r->addVar(id, ent);
-  e.e.addVar(pos, id, ent);
+  e.e.addVar(id, ent);
   
   if (init)
     init->transToType(e, t);
@@ -360,7 +382,7 @@ void addVarOutOfOrder(position pos, coenv &e, record *r,
   // record definition.
   if (r)
     r->addVar(id, ent);
-  e.e.addVar(pos, id, ent);
+  e.e.addVar(id, ent);
   
   a->encode(WRITE, pos, e.c);
   e.c.encode(inst::pop);
@@ -378,24 +400,15 @@ void decid::transAsField(coenv &e, record *r, types::ty *base)
   addVarOutOfOrder(getPos(), e, r, start->getName(), t, init);
 }
 
-void decid::transAsTypedef(coenv &e, types::ty *base)
+void decid::transAsTypedef(coenv &e, trans::tyEntry *base)
 {
-  types::ty *t = start->getType(base, e);
-  assert(t);
-
-  if (init) {
-    em->error(getPos());
-    *em << "type definition cannot have initializer";
-  }
-   
-  // Add to type environment.
-  e.e.addType(getPos(), start->getName(), t);
+  transAsTypedefField(e, base, 0);
 }
 
-void decid::transAsTypedefField(coenv &e, types::ty *base, record *r)
+void decid::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
 {
-  types::ty *t = start->getType(base, e);
-  assert(t);
+  trans::tyEntry *ent = start->getTyEntry(base, e);
+  assert(ent && ent->t);
 
   if (init) {
     em->error(getPos());
@@ -403,8 +416,9 @@ void decid::transAsTypedefField(coenv &e, types::ty *base, record *r)
   }
    
   // Add to type to record and environment.
-  r->addType(start->getName(), t);
-  e.e.addType(getPos(), start->getName(), t);
+  if (r)
+    r->addType(start->getName(), ent);
+  e.e.addType(start->getName(), ent);
 }
 
 
@@ -428,13 +442,13 @@ void decidlist::transAsField(coenv &e, record *r, types::ty *base)
     (*p)->transAsField(e, r, base);
 }
 
-void decidlist::transAsTypedef(coenv &e, types::ty *base)
+void decidlist::transAsTypedef(coenv &e, trans::tyEntry *base)
 {
   for (list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
     (*p)->transAsTypedef(e, base);
 }
 
-void decidlist::transAsTypedefField(coenv &e, types::ty *base, record *r)
+void decidlist::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
 {
   for (list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
     (*p)->transAsTypedefField(e, base, r);
@@ -451,12 +465,12 @@ void vardec::prettyprint(ostream &out, int indent)
 
 void vardec::transAsTypedef(coenv &e)
 {
-  decs->transAsTypedef(e, base->trans(e));
+  decs->transAsTypedef(e, base->transAsTyEntry(e));
 }
 
 void vardec::transAsTypedefField(coenv &e, record *r)
 {
-  decs->transAsTypedefField(e, base->trans(e), r);
+  decs->transAsTypedefField(e, base->transAsTyEntry(e), r);
 }
 
 // Helper class for imports.  This essentially evaluates to the run::loadModule
@@ -630,9 +644,9 @@ void recorddec::addOps(coenv &e, record *r)
 {
   function *ft = opType(r);
   varEntry *ve=new varEntry(ft, new bltinAccess(run::boolMemEq));
-  e.e.addVar(getPos(), symbol::trans("alias"), ve);
-  e.e.addVar(getPos(), symbol::trans("=="), ve);
-  e.e.addVar(getPos(), symbol::trans("!="),
+  e.e.addVar(symbol::trans("alias"), ve);
+  e.e.addVar(symbol::trans("=="), ve);
+  e.e.addVar(symbol::trans("!="),
       new varEntry(ft, new bltinAccess(run::boolMemNeq)));
 }
 
@@ -646,9 +660,11 @@ void recorddec::transAsField(coenv &e, record *parent)
   record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
                        e.c.newRecord(id);
                      
+  tyEntry *ent = new trans::tyEntry(r,0);
+
   if (parent)
-    parent->addType(id, r);
-  e.e.addType(getPos(), id, r);
+    parent->addType(id, ent);
+  e.e.addType(id, ent);
   addOps(e,r);
 
   // Start translating the initializer.

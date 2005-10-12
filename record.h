@@ -21,6 +21,7 @@ using trans::frame;
 using trans::venv;
 using trans::tenv;
 using trans::varEntry;
+using trans::tyEntry;
 
 namespace types {
 
@@ -43,7 +44,7 @@ public:
   record(symbol *name, frame *level);
   ~record();
 
-  void addType(symbol *name, ty *desc)
+  void addType(symbol *name, tyEntry *desc)
   {
     te.enter(name, desc);
   }
@@ -58,9 +59,15 @@ public:
     ve.list();
   }
 
-  ty *lookupType(symbol *s)
+  tyEntry *lookupTypeEntry(symbol *s)
   {
     return te.look(s);
+  }
+
+  ty *lookupType(symbol *s)
+  {
+    tyEntry *ent=lookupTypeEntry(s);
+    return ent ? ent->t : 0;
   }
 
 #if 0 

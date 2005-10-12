@@ -234,6 +234,18 @@ class fieldExp : public nameExp {
       return types::primError();
     }
 
+    trans::varEntry *getVarEntry(coenv &e) {
+      em->compiler(getPos());
+      *em << "expression cannot be used as part of a type";
+      return 0;
+    }
+
+    trans::tyEntry *tyEntryTrans(coenv &e) {
+      em->compiler(getPos());
+      *em << "expression cannot be used as part of a type";
+      return 0;
+    }
+
     void prettyprint(ostream &out, int indent);
     void print(ostream& out) const {
       out << "<exp>";

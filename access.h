@@ -95,6 +95,19 @@ public:
   void encode(action act, position pos, coder &e, frame *top);
 };
 
+class qualifiedAccess : public access {
+  access *qualifier;
+  frame *qualifierLevel;  
+  access *field;
+
+public:
+  qualifiedAccess(access *qualifier, frame *qualifierLevel, access *field)
+    : qualifier(qualifier), qualifierLevel(qualifierLevel), field(field) {}
+
+  void encode(action act, position pos, coder &e);
+  void encode(action act, position pos, coder &e, frame *top);
+};
+
 } // namespace trans
 
 #endif // ACCESS_H

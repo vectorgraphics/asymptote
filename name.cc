@@ -17,6 +17,7 @@
 namespace absyntax {
 using namespace types;
 using trans::access;
+using trans::qualifiedAccess;
 using trans::action;
 using trans::READ;
 using trans::WRITE;
@@ -83,6 +84,12 @@ types::ty *name::getType(coenv &e, bool tacit)
 }
 
 
+varEntry *simpleName::getVarEntry(coenv &e)
+{
+  types::ty *t=signatureless(varGetType(e));
+  return t ? e.e.lookupVarByType(id, t) : 0;
+}
+  
 void simpleName::varTrans(action act, coenv &e, types::ty *target)
 {
   //varEntry *v = e.e.lookupExactVar(id, target->getSignature());
@@ -128,6 +135,11 @@ types::ty *simpleName::typeTrans(coenv &e, bool tacit)
   }
 }
 
+tyEntry *simpleName::tyEntryTrans(coenv &e)
+{
+  return new tyEntry(typeTrans(e),0);
+}
+
 void simpleName::prettyprint(ostream &out, int indent)
 {
   prettyindent(out, indent);
@@ -135,7 +147,7 @@ void simpleName::prettyprint(ostream &out, int indent)
 }
 
 
-record *qualifiedName::getRecord(types::ty *t, bool tacit)
+record *qualifiedName::castToRecord(types::ty *t, bool tacit)
 {
   switch (t->kind) {
     case ty_overloaded:
@@ -219,7 +231,7 @@ void qualifiedName::varTrans(action act, coenv &e, types::ty *target)
   if (varTransVirtual(act, e, target, qt))
     return;
 
-  record *r = getRecord(qt);
+  record *r = castToRecord(qt);
   if (r)
     varTransField(act, e, target, r);
 }
@@ -233,15 +245,47 @@ types::ty *qualifiedName::varGetType(coenv &e)
   if (t)
     return t;
 
-  record *r = getRecord(qt, true);
+  record *r = castToRecord(qt, true);
   return r ? r->varGetType(id) : 0;
+}
+
+varEntry *mergeEntries(varEntry *qv, varEntry *v)
+{
+  if (qv) {
+    if (v) {
+      frame *f=dynamic_cast<record *>(qv->getType())->getLevel();
+      return new varEntry(v->getType(),
+                          new qualifiedAccess(qv->getLocation(),
+                                              f,
+                                              v->getLocation()));
+    }
+    else
+      return qv;
+  }
+  else
+    return v;
+}
+
+trans::varEntry *qualifiedName::getVarEntry(coenv &e)
+{
+  varEntry *qv = qualifier->getVarEntry(e);
+
+  types::ty *qt = qualifier->getType(e, true);
+  record *r = castToRecord(qt, true);
+  if (r) {
+    types::ty *t = signatureless(r->varGetType(id));
+    varEntry *v = t ? r->lookupVarByType(id, t) : 0;
+    return mergeEntries(qv,v);
+  }
+  else
+    return qv;
 }
 
 types::ty *qualifiedName::typeTrans(coenv &e, bool tacit)
 {
-  types::ty *rt = qualifier->typeTrans(e, tacit);
+  types::ty *rt = qualifier->getType(e, tacit);
 
-  record *r = getRecord(rt, tacit);
+  record *r = castToRecord(rt, tacit);
   if (!r)
     return primError();
 
@@ -266,6 +310,10 @@ types::ty *qualifiedName::typeTrans(coenv &e, bool tacit)
   }
 }
 
+tyEntry *qualifiedName::tyEntryTrans(coenv &e)
+{
+  return new tyEntry(typeTrans(e), qualifier->getVarEntry(e));
+}
 void qualifiedName::prettyprint(ostream &out, int indent)
 {
   prettyindent(out, indent);

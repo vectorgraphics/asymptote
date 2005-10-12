@@ -18,6 +18,8 @@
 
 namespace trans {
 class coenv;
+class varEntry;
+class tyEntry;
 }
 namespace types {
 class record;
@@ -35,7 +37,7 @@ public:
   name(position pos)
     : absyn(pos) {}
 
-  // Helper function - ensures target and source match up, using casting the
+  // Helper function - ensures target and source match up, using casting in the
   // case of a read.  Issues errors on failure.
   void forceEquivalency(action act, coenv &e,
                         types::ty *target, types::ty *source);
@@ -51,6 +53,10 @@ public:
   // Tacit means that no error messages will be reported to the user.
   virtual types::ty *getType(coenv &e, bool tacit = false);
 
+  // Constructs the varEntry part of the tyEntry for the name.  Like getType,
+  // this is called on the qualifier, instead of the full name.
+  virtual trans::varEntry *getVarEntry(coenv &e) = 0;
+
   // As a variable:
   // Translates the name (much like an expression).
   virtual void varTrans(action act, coenv &e, types::ty *target) = 0;
@@ -59,10 +65,15 @@ public:
   virtual types::ty *varGetType(coenv &e) = 0;
 
   // As a type:
+  // Determines the type, as used in a variable declaration.
   virtual types::ty *typeTrans(coenv &e, bool tacit = false) = 0;
+  // Constructs the tyEntry of the name, needed so that we know the parent frame
+  // for allocating new objects of that type.
+  virtual trans::tyEntry *tyEntryTrans(coenv &e) = 0;
 
   // Pushes the highest level frame possible onto the stack.  Returning
   // the frame pushed.  If no frame can be pushed, returns 0.
+  // NOTE: This duplicates some functionality with getVarEntry.
   virtual trans::frame *frameTrans(coenv &e);
 
   virtual void prettyprint(ostream &out, int indent) = 0;
@@ -85,12 +96,15 @@ public:
   simpleName(position pos, symbol *id)
     : name(pos), id(id) {}
 
+  trans::varEntry *getVarEntry(coenv &e);
+
   // As a variable:
   void varTrans(action act, coenv &e, types::ty *target);
   types::ty *varGetType(coenv &);
 
   // As a type:
   types::ty *typeTrans(coenv &e, bool tacit = false);
+  virtual trans::tyEntry *tyEntryTrans(coenv &e);
 
   void prettyprint(ostream &out, int indent);
   void print(ostream& out) const {
@@ -108,7 +122,7 @@ class qualifiedName : public name {
 
   // Gets the record type associated with the qualifier. Reports an
   // error and returns null if the type is not a record.
-  record *getRecord(types::ty *t, bool tacit = false);
+  record *castToRecord(types::ty *t, bool tacit = false);
 
   // Translates as a virtual field, if possible.  qt is the type of the
   // qualifier.  Return true if there was a matching virtual field. 
@@ -122,12 +136,16 @@ public:
   qualifiedName(position pos, name *qualifier, symbol *id)
     : name(pos), qualifier(qualifier), id(id) {}
 
+  trans::varEntry *getVarEntry(coenv &e);
+
   // As a variable:
   void varTrans(action act, coenv &, types::ty *target);
   types::ty *varGetType(coenv &);
 
   // As a type:
   types::ty *typeTrans(coenv &e, bool tacit = false);
+
+  trans::tyEntry *tyEntryTrans(coenv &e);
 
   void prettyprint(ostream &out, int indent);
   void print(ostream& out) const {

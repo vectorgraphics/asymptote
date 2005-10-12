@@ -29,9 +29,44 @@ void printFrame(frame *f) {
   }
 }
 
+bool newRecordExp::encodeLevel(coenv &e, trans::tyEntry *ent)
+{
+  record *r = dynamic_cast<record *>(ent->t);
+  assert(r);
+
+  // The level needed on which to allocate the record.
+  frame *level = r->getLevel()->getParent();
+
+  if (ent->v) {
+    // Put the record on the stack.  For instance, in code like
+    //   import imp;
+    //   new imp.t;
+    // we are putting the instance of imp on the stack, so we can use it to
+    // allocate an instance of imp.t.
+    ent->v->getLocation()->encode(trans::READ, getPos(), e.c);
+
+    // Adjust to the right frame.  For instance, in the last new in
+    //   struct A {
+    //     struct B {
+    //       static struct C {}
+    //     }
+    //     B b=new B;
+    //   }
+    //   A a=new A;
+    //   new a.b.C;
+    // we push a.b onto the stack, but need a as the enclosing frame for
+    // allocating an instance of C.
+    record *q = dynamic_cast<record *>(ent->v->getType());
+    return e.c.encode(level, q->getLevel());
+  }
+  else
+    return e.c.encode(level);
+}
+
 types::ty *newRecordExp::trans(coenv &e)
 {
-  types::ty *t = result->trans(e);
+  trans::tyEntry *ent = result->transAsTyEntry(e);
+  types::ty *t = ent->t;
   if (t->kind == ty_error)
     return t;
   else if (t->kind != ty_record) {
@@ -41,13 +76,15 @@ types::ty *newRecordExp::trans(coenv &e)
   }
 
   // Put the enclosing frame on the stack.
-  record *r = (record *)t;
-  if (!e.c.encode(r->getLevel()->getParent())) {
+  if (!encodeLevel(e, ent)) {
     em->error(getPos());
     *em << "allocation of struct '" << *t << "' is not in a valid scope";
     return primError();
   }
- 
+
+  record *r = dynamic_cast<record *>(t);
+  assert(r);
+
   // Encode the allocation. 
   e.c.encode(inst::makefunc,r->getInit());
   e.c.encode(inst::popcall);

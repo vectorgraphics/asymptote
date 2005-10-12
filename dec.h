@@ -44,16 +44,11 @@ public:
   virtual void prettyprint(ostream &out, int indent) = 0;
 
   // Returns the internal representation of the type.  This method can
-  // be called by stm::getType which does not report errors, so tacit is
+  // be called by exp::getType which does not report errors, so tacit is
   // needed to silence errors in this case.
   virtual types::ty *trans(coenv &e, bool tacit = false) = 0;
 
-#if 0
-  // Finds the import that the type is imported from.
-  // This necessary for record allocations.
-  // Returns 0 if the type ultimately refers to no imports.
-  virtual trans::import *getImport(coenv &e) = 0;
-#endif
+  virtual trans::tyEntry *transAsTyEntry(coenv &e);
 };
 
 class nameTy : public ty {
@@ -69,13 +64,7 @@ public:
   void prettyprint(ostream &out, int indent);
 
   types::ty *trans(coenv &e, bool tacit = false);
-
-#if 0
-  trans::import *getImport(coenv &e)
-  {
-    return id->typeGetImport(e);
-  }
-#endif
+  trans::tyEntry *transAsTyEntry(coenv &e);
 };
 
 class dimensions : public absyn {
@@ -211,7 +200,7 @@ public:
   trans::permission getPermission();
 };
 
-// Mpdifiers of static or dynamic can change the way declarations and
+// Modifiers of static or dynamic can change the way declarations and
 // statements are encoded.
 class modifiedRunnable : public runnable {
   modifierList *mods;
@@ -243,6 +232,7 @@ public:
   virtual void prettyprint(ostream &out, int indent);
 
   virtual types::ty *getType(types::ty *base, coenv &, bool = false);
+  virtual trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e);
 
   virtual symbol *getName()
     { return id; }
@@ -264,6 +254,7 @@ public:
   void prettyprint(ostream &out, int indent);
 
   types::ty *getType(types::ty *base, coenv &e, bool tacit = false);
+  virtual trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e);
 };
 
 class decid : public absyn {
@@ -284,8 +275,8 @@ public:
   virtual void transAsField(coenv &e, record *r, types::ty *base);
 
   // Translate, but add the names in as types rather than variables. 
-  virtual void transAsTypedef(coenv &e, types::ty *base);
-  virtual void transAsTypedefField(coenv &e, types::ty *base, record *r);
+  virtual void transAsTypedef(coenv &e, trans::tyEntry *base);
+  virtual void transAsTypedefField(coenv &e, trans::tyEntry *base, record *r);
 };
 
 class decidlist : public absyn {
@@ -308,8 +299,8 @@ public:
   virtual void transAsField(coenv &e, record *r, types::ty *base);
 
   // Translate, but add the names in as types rather than variables. 
-  virtual void transAsTypedef(coenv &e, types::ty *base);
-  virtual void transAsTypedefField(coenv &e, types::ty *base, record *r);
+  virtual void transAsTypedef(coenv &e, trans::tyEntry *base);
+  virtual void transAsTypedefField(coenv &e, trans::tyEntry *base, record *r);
 };
 
 class dec : public runnable {

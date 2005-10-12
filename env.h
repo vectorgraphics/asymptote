@@ -57,9 +57,15 @@ public:
     te.endScope(); ve.endScope();
   }
 
-  ty *lookupType(symbol *s)
+  tyEntry *lookupTypeEntry(symbol *s)
   {
     return te.look(s);
+  }
+
+  ty *lookupType(symbol *s)
+  {
+    tyEntry *ent=lookupTypeEntry(s);
+    return ent ? ent->t : 0;
   }
 
 #if 0 //{{{
@@ -118,12 +124,12 @@ public:
     return ve.getType(name);
   }
 
-  void addType(position pos, symbol *name, ty *desc)
+  void addType(symbol *name, tyEntry *desc)
   {
     te.enter(name, desc);
   }
   
-  void addVar(position, symbol *name, varEntry *desc)
+  void addVar(symbol *name, varEntry *desc)
   {
     // Don't check for multiple variables, as this makes adding casts
     // and initializers harder.
