@@ -461,8 +461,9 @@ void vardec::transAsTypedefField(coenv &e, record *r)
 
 // Helper class for imports.  This essentially evaluates to the run::loadModule
 // function.  However, that function returns different types of records
-// depending on the filename given to it, so we cannot add it to the environment
-// and explicit tell it what types::record it is returning for each use.
+// depending on the filename given to it, so we cannot add it to the
+// environment.  Instead, we explicitly tell it what types::record it is
+// returning for each use.
 class loadModuleExp : public exp {
   record *imp;
   function *ft;
