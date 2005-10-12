@@ -906,13 +906,13 @@ struct picture {
     addBox(min(g),max(g),min(p),max(p));
   }
 
-  void size(real x, real y, bool keepAspect=Aspect) {
+  void size(real x, real y, bool keepAspect=this.keepAspect) {
     xsize=x;
     ysize=y;
     this.keepAspect=keepAspect;
   }
 
-  void size(real size, bool keepAspect=Aspect) {
+  void size(real size, bool keepAspect=this.keepAspect) {
     xsize=size;
     ysize=size;
     this.keepAspect=keepAspect;
@@ -1090,25 +1090,18 @@ struct picture {
   }
 
   // Returns the picture fit to the wanted size.
-  frame fit(real xsize, real ysize, bool keepAspect=true) {
+  frame fit(real xsize=this.xsize, real ysize=this.ysize,
+	    bool keepAspect=this.keepAspect) {
     return fit(calculateTransform(xsize,ysize,keepAspect));
   }
 
-  frame fit() {
-    return fit(xsize,ysize,keepAspect);
-  }
-  
   // Returns the picture fit to the wanted size, aligned in direction dir
-  frame fit(real xsize, real ysize, bool keepAspect=true, pair dir) {
+  frame fit(real xsize=this.xsize, real ysize=this.ysize,
+	    bool keepAspect=this.keepAspect, pair dir) {
     frame f=fit(xsize,ysize,keepAspect);
     return shift(dir)*shift(-point(f,-dir))*f;
   }
 
-  frame fit(pair dir) {
-    frame f=fit();
-    return shift(dir)*shift(-point(f,-dir))*f;
-  }
-  
   // Copies the drawing information, but not the sizing information into a new
   // picture. Warning: "fitting" this picture will not scale as a normal
   // picture would.
@@ -1237,13 +1230,15 @@ pair max(explicit path[] g)
   return maxg;
 }
 
-void size(picture pic=currentpicture, real x, real y, bool keepAspect=Aspect)
+void size(picture pic=currentpicture, real x, real y, 
+	  bool keepAspect=pic.keepAspect)
 {
   pic.size(x,y,keepAspect);
 }
 
 // Ensure that each dimension is no more than size.
-void size(picture pic=currentpicture, real size, bool keepAspect=Aspect)
+void size(picture pic=currentpicture, real size,
+	  bool keepAspect=pic.keepAspect)
 {
   pic.size(size,size,keepAspect);
 }
