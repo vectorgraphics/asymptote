@@ -151,14 +151,16 @@ public:
 // A specifier with a control point.  All information for this portion of the
 // curve has been determined.
 class controlSpec : public spec {
-  pair cz;
 public:
-  controlSpec(pair cz)
-    : cz(cz) {}
+  pair cz;
+  bool straight;
+
+  controlSpec(pair cz, bool straight=true) 
+    : cz(cz), straight(straight) {}
     
   bool open() { return false; }
   bool controlled() { return true; }
-  pair control() { return cz; }
+  //pair control() { return cz; }
 
   // The partner spec will be a dirSpec in the same direction the specifier
   // takes the path, unless the velocity is zero, then it uses a curl

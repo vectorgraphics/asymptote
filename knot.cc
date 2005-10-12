@@ -683,8 +683,9 @@ int nextBreakpoint(knotlist& l, int a)
 void writeControls(protopath& p, int a, knotlist& l)
 {
   // By convention, the first point will already be encoded.
-  p.post(a)=dynamic_cast<controlSpec *>(l[a].out)->control();
-  p.pre(a+1)=dynamic_cast<controlSpec *>(l[a+1].in)->control();
+  p.straight(a)=dynamic_cast<controlSpec *>(l[a].out)->straight;
+  p.post(a)=dynamic_cast<controlSpec *>(l[a].out)->cz;
+  p.pre(a+1)=dynamic_cast<controlSpec *>(l[a+1].in)->cz;
   p.point(a+1)=l[a+1].z;
 }
 

@@ -13,7 +13,7 @@ namespace camp {
 
 void flatguide::addPre(path& p, int j)
 {
-  setSpec(new controlSpec(p.precontrol(j)),IN);
+  setSpec(new controlSpec(p.precontrol(j),p.straight(j-1)),IN);
 }
 void flatguide::addPoint(path& p, int j)
 {
@@ -21,7 +21,7 @@ void flatguide::addPoint(path& p, int j)
 }
 void flatguide::addPost(path& p, int j)
 {
-  setSpec(new controlSpec(p.postcontrol(j)),OUT);
+  setSpec(new controlSpec(p.postcontrol(j),p.straight(j)),OUT);
 }
 
 void flatguide::uncheckedAdd(path p)
