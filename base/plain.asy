@@ -829,7 +829,7 @@ struct picture {
   public real xsize=0, ysize=0;
   
   // If true, the x and y directions must be scaled by the same amount.
-  public bool keepAspect=false;
+  public bool keepAspect=true;
 
   void init() {
     userMin=Infinity;
