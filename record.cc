@@ -15,8 +15,8 @@ record::record(symbol *name, frame *level)
   : ty(ty_record),
     name(name),
     level(level),
-    te(), ve(),
-    init(new vm::lambda)
+    init(new vm::lambda),
+    e()
 {
   assert(init);
 }

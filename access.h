@@ -96,8 +96,11 @@ public:
 };
 
 class qualifiedAccess : public access {
+  // The location and frame of the record.
   access *qualifier;
   frame *qualifierLevel;  
+
+  // The location of the field relative to the record.
   access *field;
 
 public:

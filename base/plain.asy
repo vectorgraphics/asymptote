@@ -3,7 +3,6 @@
  * Andy Hammerlindl and John Bowman 2004/08/19
  *
  * A package for general purpose drawing, with automatic sizing of pictures.
- *
  *****/
 
 public bool shipped=false;
@@ -882,7 +881,7 @@ struct picture {
 
   // Calculate the sizing constants for the given array and maximum size.
   scaling calculateScaling(coord[] coords, real size) {
-    import simplex;
+    import simplex "simplex.asy";
     simplex.problem p;
    
     void addMinCoord(coord c) {

@@ -59,7 +59,7 @@ record *genv::loadModule(symbol *id, std::string filename) {
 
   // NOTE: Move this to a similar place as settings::translate.
   if(settings::listonly)
-    r->list();
+    r->e.list();
   
   return r;
 }

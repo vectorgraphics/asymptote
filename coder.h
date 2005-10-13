@@ -180,7 +180,7 @@ public:
 
   frame *getFrame()
   {
-    if (isStatic()) {
+    if (isStatic() && parent) {
       assert(parent->getFrame());
       return parent->getFrame();
     }
@@ -214,7 +214,7 @@ private:
     i.pos = curPos;
     // Static code is put into the enclosing coder, unless we are translating a
     // codelet.
-    if (isStatic() && parent->getFrame() != level) {  
+    if (isStatic() && parent && parent->getFrame() != level) {  
       assert(parent);
       parent->encode(i);
     }
@@ -259,7 +259,7 @@ public:
   }
 
   // Puts the 'dest' frame on the stack, assuming the frame 'top' is on
-  // top of the stack.  If 'dest' is not a ancestor frame of 'top',
+  // top of the stack.  If 'dest' is not an ancestor frame of 'top',
   // false is returned.
   bool encode(frame *dest, frame *top);
 
@@ -273,7 +273,7 @@ public:
   int defLabel(int label);
 
   // Encodes the address pointed to by the handle label into the
-  // sequence of instructions.  This is useful for jump instruction to
+  // sequence of instructions.  This is useful for a jump instruction to
   // jump to where a label was defined.
   void useLabel(inst::opcode op, int label);
 
@@ -317,7 +317,7 @@ public:
   // used to print positions at runtime.
   void markPos(position pos);
 
-  // When translating the function is finished, this ties up loose ends
+  // When translation of the function is finished, this ties up loose ends
   // and returns the lambda.
   vm::lambda *close();
 

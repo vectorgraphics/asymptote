@@ -17,9 +17,11 @@
 #include "entry.h"
 #include "builtin.h"
 #include "types.h"
-#include "record.h"
 #include "util.h"
 
+namespace types {
+class record;
+}
 
 namespace trans {
 
@@ -32,10 +34,11 @@ using types::record;
 
 class genv;
 
-class env {
-  // The global environment - keeps track of modules.
-  genv &ge;
-
+// Keeps track of the name bindings of variables and types.  This is used for
+// the fields of a record, whereas the derived class env is used for unqualified
+// names in translation.
+class protoenv {
+protected:
   // These tables keep track of type and variable definitions.
   tenv te;
   venv ve;
@@ -44,9 +47,9 @@ class env {
 
 public:
   // Start an environment for a file-level module.
-  env(genv &ge);
+  protoenv() {}
 
-  env(const env&);
+  protoenv(const protoenv&);
   
   void beginScope()
   {
@@ -67,31 +70,6 @@ public:
     tyEntry *ent=lookupTypeEntry(s);
     return ent ? ent->t : 0;
   }
-
-#if 0 //{{{
-  // Returns the import in which the type is contained.
-  import *lookupTypeImport(symbol *s)
-  {
-    // If the typename is in the local environment, it is not imported.
-    if (te.look(s))
-      return 0;
-
-    // Search in modules.
-    import *i = me.lookupTypeImport(s);
-    if (i)
-      return i;
-
-    // Search the module name, if it is module, it is its own import?
-    // NOTE: Types in this fashion should not be allocated!
-    i = me.look(s);
-    if (i)
-      return i;
-
-    // Error!
-    assert(False);
-    return 0;
-  }
-#endif //}}}
 
   varEntry *lookupVarByType(symbol *name, ty *t)
   {
@@ -136,29 +114,26 @@ public:
     ve.enter(name, desc);
   }
 
-#if 0 //{{{
-  void enterImport(symbol *name, import *i)
+  void list()
   {
-    me.enter(name, i);
+    ve.list();
   }
-    
-  void addImport(position pos, symbol *name, import *i)
-  {
-    if (me.lookInTopScope(name)) {
-      em->error(pos);
-      *em << "multiple imports under name '" << *name << "'";
-      return;
-    }
-    if(settings::verbose > 1)
-      std::cerr << "Importing " <<  *name << std::endl;
-    enterImport(name, i);
-  }
-#endif //}}}
-
-  record *getModule(symbol *id, std::string filename);
 
 private: // Non-copyable
-  void operator=(const env&);
+  void operator=(const protoenv&);
+};
+
+// Environment used in translating statements and expressions at all scopes.  As
+// opposed to protoenv which is suitable for keeping track of the fields of
+// records, this also keeps track of the global env, for loading modules.
+class env : public protoenv {
+  // The global environment - keeps track of modules.
+  genv &ge;
+public:
+  // Start an environment for a file-level module.
+  env(genv &ge);
+
+  record *getModule(symbol *id, std::string filename);
 };
 
 } // namespace trans

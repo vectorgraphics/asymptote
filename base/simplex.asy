@@ -12,7 +12,7 @@
  * assumption may in fact be incorrect.
  *****/
 
-static struct problem {
+struct problem {
   typedef int var;
   static var VAR_A = 0;
   static var VAR_B = 1;
@@ -101,7 +101,7 @@ static struct problem {
   // doesn't fit, nothing will.
   var initVar()
   {
-    real min=infinity, max=-infinity;
+    real min=realMax(), max=-realMax();
     var argmin=0, argmax=0;
 
     for (var i = 2; i < rows.length; ++i) {
@@ -165,7 +165,7 @@ static struct problem {
     // t[col] is negative, all c/t[col] will be negative, so we are finding
     // the smallest in magnitude.
     var vp=UNBOUNDED;
-    real max=-infinity;
+    real max=-realMax();
     for (int i = 2; i < rows.length; ++i) {
       row r=rows[i];
       if(r.c < max*r.t[col]) {

@@ -346,7 +346,7 @@ void addVar(position pos, coenv &e, record *r,
   // environment so it can be accessed unqualified in the scope of the
   // record definition.
   if (r)
-    r->addVar(id, ent);
+    r->e.addVar(id, ent);
   e.e.addVar(id, ent);
   
   if (init)
@@ -381,7 +381,7 @@ void addVarOutOfOrder(position pos, coenv &e, record *r,
   // environment so it can be accessed unqualified in the scope of the
   // record definition.
   if (r)
-    r->addVar(id, ent);
+    r->e.addVar(id, ent);
   e.e.addVar(id, ent);
   
   a->encode(WRITE, pos, e.c);
@@ -417,7 +417,7 @@ void decid::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
    
   // Add to type to record and environment.
   if (r)
-    r->addType(start->getName(), ent);
+    r->e.addType(start->getName(), ent);
   e.e.addType(start->getName(), ent);
 }
 
@@ -663,7 +663,7 @@ void recorddec::transAsField(coenv &e, record *parent)
   tyEntry *ent = new trans::tyEntry(r,0);
 
   if (parent)
-    parent->addType(id, ent);
+    parent->e.addType(id, ent);
   e.e.addType(id, ent);
   addOps(e,r);
 
