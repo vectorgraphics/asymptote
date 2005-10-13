@@ -231,8 +231,8 @@ class fieldExp : public nameExp {
     exp *object;
 
   public:
-    pseudoName(position pos, exp *object)
-      : name(pos), object(object) {}
+    pseudoName(exp *object)
+      : name(object->getPos()), object(object) {}
 
     // As a variable:
     void varTrans(trans::action act, coenv &e, types::ty *target) {
@@ -270,7 +270,7 @@ class fieldExp : public nameExp {
 public:
   fieldExp(position pos, exp *object, symbol *field)
     : nameExp(pos, new qualifiedName(pos,
-                                     new pseudoName(object->getPos(), object),
+                                     new pseudoName(object),
                                      field)),
       object(object), field(field) {}
 
@@ -284,7 +284,8 @@ public:
   exp *evaluate(coenv &e, types::ty *) {
     // Evaluate the object.
     return new fieldExp(getPos(),
-                        new tempExp(e, object, getObject(e)), field);
+                        new tempExp(e, object, getObject(e)),
+                        field);
   }
 };
 

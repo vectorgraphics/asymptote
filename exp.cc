@@ -926,7 +926,7 @@ types::ty *andExp::baseTrans(coenv &e)
 
 void joinExp::prettyprint(ostream &out, int indent)
 {
-  prettyindent(out,indent);
+  prettyname(out, "joinExp",indent);
 
   callee->prettyprint(out, indent+1);
   args->prettyprint(out, indent+1);
