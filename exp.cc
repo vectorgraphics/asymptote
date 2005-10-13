@@ -37,8 +37,14 @@ void exp::transToType(coenv &e, types::ty *target)
 {
   types::ty *source=e.e.castSource(target, cgetType(e), symbol::castsym);
   if (source==0) {
+    types::ty *sources=cgetType(e);
     em->error(getPos());
-    *em << "cannot cast expression to '" << *target << "'";
+    *em << "cannot cast ";
+    if (sources->kind==ty_overloaded)
+      *em << "expression";
+    else
+      *em << "'" << *sources << "'";
+    *em << " to '" << *target << "'";
   }
   else if (source->kind==ty_overloaded) {
     em->error(getPos());
