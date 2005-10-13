@@ -155,7 +155,7 @@ public:
   pair cz;
   bool straight;
 
-  controlSpec(pair cz, bool straight=true) 
+  controlSpec(pair cz, bool straight=false) 
     : cz(cz), straight(straight) {}
     
   bool open() { return false; }
