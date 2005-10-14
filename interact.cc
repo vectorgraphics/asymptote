@@ -8,6 +8,7 @@
 #include <cassert>
 #include <iostream>
 #include <sys/wait.h>
+#include <unistd.h>
 #include "interact.h"
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)

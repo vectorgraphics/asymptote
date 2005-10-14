@@ -6,7 +6,7 @@ pair l=point(p,3.5);
 pair m=point(p,4.5);
 pair s=point(p,4.9);
 
-pen c=1.5;
+pen c=linewidth(1.5);
 pair o=(m.x,0.5(m.x+l.y));
 
 pen d=c+darkgreen;
@@ -26,8 +26,8 @@ void spectrum(pair l,pair m, pair s) {
   dot("$q$",m,SW,d);
   dot("$k$",s,SW,d);
 
-  xaxis(0,"$k$");
-  yaxis(0,"$E(k)$");
+  xaxis("$k$",0);
+  yaxis("$E(k)$",0);
 }
 
 drawarrow(l,m,true,blue);

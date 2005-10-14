@@ -49,8 +49,10 @@ static const string OverwriteTag[]={"Allow","Suppress","SupressQuiet",
 					 "Move","MoveQuiet"};
 const int nOverwrite=sizeof(OverwriteTag)/sizeof(string);
   
-enum FillRule {DEFFILL=-1,ZEROWINDING,EVENODD};
-static const string FillRuleTag[]={"ZeroWinding","EvenOdd"};
+enum FillRule {DEFFILL=-1,ZEROWINDING,EVENODD,
+	       ZEROWINDINGOVERLAP,EVENODDOVERLAP};
+static const string FillRuleTag[]={"ZeroWinding","EvenOdd",
+				   "ZeroWindingMarginal","EvenOddMarginal"};
 const int nFill=sizeof(FillRuleTag)/sizeof(string);
   
 enum BaseLine {DEFBASE=-1,NOBASEALIGN,BASEALIGN};
@@ -301,6 +303,18 @@ public:
   
   FillRule Fillrule() const {
     return fillrule == DEFFILL ? defaultpen.fillrule : fillrule;
+  }
+  
+  bool evenodd() const {
+    return fillrule == EVENODD || fillrule == EVENODDOVERLAP;
+  }
+  
+  bool overlap() const {
+    return fillrule == ZEROWINDINGOVERLAP || fillrule == EVENODDOVERLAP;
+  }
+  
+  bool inside(int count) const {
+    return evenodd() ? count % 2 : count != 0;
   }
   
   BaseLine Baseline() const {

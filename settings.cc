@@ -34,10 +34,14 @@ const char BUGREPORT[]=PACKAGE_BUGREPORT;
 #ifdef MSDOS
 const char pathSeparator=';';
 int view=1; // Support drag and drop in MSWindows
-const string defaultPSViewer="'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe'";
+const string defaultPSViewer=
+  "'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe'";
 const string defaultPDFViewer=
   "'c:\\Program Files\\Adobe\\Acrobat 7.0\\Reader\\AcroRd32.exe'";
-const string defaultGhostscript="'c:\\Program Files\\gs\\gs8.51\\bin\\gswin32.exe'";
+const string defaultGhostscript=
+  "'c:\\Program Files\\gs\\gs8.51\\bin\\gswin32.exe'";
+const string defaultPython="'c:\\Python24\\python.exe'";
+const string defaultDisplay="imdisplay";
 #undef ASYMPTOTE_SYSDIR
 #define ASYMPTOTE_SYSDIR "c:\\Program Files\\Asymptote"
 const string docdir=".";
@@ -47,20 +51,26 @@ int view=0;
 const string defaultPSViewer="gv";
 const string defaultPDFViewer="gv";
 const string defaultGhostscript="gs";
+const string defaultDisplay="display";
+const string defaultPython="";
 const string docdir=ASYMPTOTE_DOCDIR;
 #endif  
   
 string PSViewer;
 string PDFViewer;
 string Ghostscript;
-  
-string psviewer;
-string pdfviewer;
-string ghostscript;
+string LaTeX;
+string Dvips;
+string Convert;
+string Display;
+string Animate;
+string Python;
+string Xasy;
   
 string outformat="eps";
 int keep=0;
 int texprocess=1;
+int texmode=0;
 int debug=0;
 int verbose=0;
 int safe=1;
@@ -132,11 +142,14 @@ void options()
   cerr << "-v, -verbose\t Increase verbosity level" << endl;
   cerr << "-k\t\t Keep intermediate files" << endl;
   cerr << "-L\t\t Disable LaTeX label postprocessing" << endl;
+  cerr << "-t\t\t Produce LaTeX file for \\usepackage[inline]{asymptote}"
+       << endl;
   cerr << "-p\t\t Parse test" << endl;
   cerr << "-s\t\t Translate test" << endl;
   cerr << "-l\t\t List available global functions" << endl;
   cerr << "-m\t\t Mask fpu exceptions (default for interactive mode)" << endl;
-  cerr << "-nomask\t\t Don't mask fpu exceptions (default for batch mode)" << endl;
+  cerr << "-nomask\t\t Don't mask fpu exceptions (default for batch mode)" 
+       << endl;
   cerr << "-bw\t\t Convert all colors to black and white" << endl;
   cerr << "-gray\t\t Convert all colors to grayscale" << endl;
   cerr << "-rgb\t\t Convert cmyk colors to rgb" << endl;
@@ -181,7 +194,7 @@ void setOptions(int argc, char *argv[])
   errno=0;
   for(;;) {
     int c = getopt_long_only(argc,argv,
-			     "cdf:hiklLmo:pPsvVnx:O:CBTZ",
+			     "cdf:hiklLmo:pPstvVnx:O:CBTZ",
 			     long_options,&option_index);
     if (c == -1) break;
 
@@ -219,6 +232,9 @@ void setOptions(int argc, char *argv[])
       break;
     case 's':
       translate=1;
+      break;
+    case 't':
+      texmode=1;
       break;
     case 'l':
       listonly=1;
@@ -285,7 +301,6 @@ void setOptions(int argc, char *argv[])
     view=1;
     interact::interactive=true;
     if(trap == -1) trap=0;
-    deconstruct=0;
     cout << "Welcome to " << PROGRAM << " version " << VERSION
 	 << " (to view the manual, type help)" << endl;
   } else if(trap == -1) trap=1;
@@ -307,13 +322,27 @@ void setOptions(int argc, char *argv[])
   searchPath.push_back(ASYMPTOTE_SYSDIR);
 #endif
   
-  psviewer=Getenv("ASYMPTOTE_PSVIEWER");
-  pdfviewer=Getenv("ASYMPTOTE_PDFVIEWER");
-  ghostscript=Getenv("ASYMPTOTE_GS");
+  string psviewer=Getenv("ASYMPTOTE_PSVIEWER");
+  string pdfviewer=Getenv("ASYMPTOTE_PDFVIEWER");
+  string ghostscript=Getenv("ASYMPTOTE_GS");
+  string latex=Getenv("ASYMPTOTE_LATEX");
+  string dvips=Getenv("ASYMPTOTE_DVIPS");
+  string convert=Getenv("ASYMPTOTE_CONVERT");
+  string display=Getenv("ASYMPTOTE_DISPLAY");
+  string animate=Getenv("ASYMPTOTE_ANIMATE");
+  string python=Getenv("ASYMPTOTE_PYTHON");
+  string xasy=Getenv("ASYMPTOTE_XASY");
 
   PSViewer=psviewer != "" ? psviewer : defaultPSViewer;
   PDFViewer=pdfviewer != "" ? pdfviewer : defaultPDFViewer;
   Ghostscript=ghostscript != "" ? ghostscript : defaultGhostscript;
+  LaTeX=latex != "" ? latex : "latex";
+  Dvips=dvips != "" ? dvips : "dvips";
+  Convert=convert != "" ? convert : "convert";
+  Display=display != "" ? display : defaultDisplay;
+  Animate=animate != "" ? animate : "animate";
+  Python=python != "" ? python : defaultPython;
+  Xasy=xasy != "" ? xasy : "xasy";
   
   char *papertype=getenv("ASYMPTOTE_PAPERTYPE");
   paperType=papertype ? papertype : "letter";

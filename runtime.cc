@@ -220,37 +220,14 @@ void intAbs(stack *s)
   s->push(abs(pop<int>(s)));
 }  
 
-static inline int round(double x) 
+inline int sgn(double x) 
 {
-  return int(x+((x >= 0) ? 0.5 : -0.5));
+  return (x > 0.0 ? 1 : (x < 0.0 ? -1 : 0));
 }
-
-void intCeil(stack *s)
-{ 
-  double x = pop<double>(s);
-  int sx = round(ceil(x));
-  s->push(sx);
-}  
-
-void intFloor(stack *s)
-{ 
-  double x = pop<double>(s);
-  int sx = round(floor(x));
-  s->push(sx);
-}  
-
-void intRound(stack *s)
-{ 
-  double x = pop<double>(s);
-  int sx = round(x);
-  s->push(sx);
-}  
 
 void intSgn(stack *s)
 { 
-  double x = pop<double>(s);
-  int sx = (x == 0.0 ? 0 : (x > 0.0 ? 1 : -1));
-  s->push(sx);
+  s->push(sgn(pop<double>(s)));
 }  
 
 void intRand(stack *s)
@@ -602,7 +579,7 @@ void arraySequence(stack *s)
   if(n < 0) n=0;
   array *a=new array(n);
   for(int i=0; i < n; ++i) {
-    s->push<int>(i);
+    s->push(i);
     f->call(s);
     (*a)[i]=pop(s);
   }
@@ -891,6 +868,32 @@ void tridiagonal(stack *s)
     u[i-1]=read<double>(u,i-1)-gamma[i-1]*read<double>(u,i)-delta[i-1]*temp;
 }
   
+void quadraticRoots(stack *s)
+{
+  double c = pop<double>(s);
+  double b = pop<double>(s);
+  double a = pop<double>(s);
+  quadraticroots q(a,b,c);
+  array *roots=new array(q.roots);
+  if(q.roots >= 1) (*roots)[0]=q.t1;
+  if(q.roots == 2) (*roots)[1]=q.t2;
+  s->push(roots);
+}
+  
+void cubicRoots(stack *s)
+{
+  double d = pop<double>(s);
+  double c = pop<double>(s);
+  double b = pop<double>(s);
+  double a = pop<double>(s);
+  cubicroots q(a,b,c,d);
+  array *roots=new array(q.roots);
+  if(q.roots >= 1) (*roots)[0]=q.t1;
+  if(q.roots >= 2) (*roots)[1]=q.t2;
+  if(q.roots == 3) (*roots)[2]=q.t3;
+  s->push(roots);
+}
+  
 // Null operations
 
 void pushNullArray(stack *s)
@@ -906,6 +909,32 @@ void pushNullRecord(stack *s)
 void pushNullFunction(stack *s)
 {
   s->push(nullfunc::instance());
+}
+
+// Default operations
+
+// This serves as the object for representing a default argument.
+struct default_t {};
+default_t def;
+
+// Put the default value token on the stack (in place of an argument when making
+// a function call).
+void pushDefault(stack *s)
+{
+  s->push(&def);
+}
+
+// Test if the value on the stack is the default value token.
+void isDefault(stack *s)
+{
+  try {
+    // This assumes that the item is popped before an exception is thrown.
+    s->pop<default_t *>();
+    s->push(true);
+  }
+  catch (bad_item_value&) {
+    s->push(false);
+  }
 }
 
 // Casts
@@ -1091,14 +1120,6 @@ void tripleUnit(stack *s)
   s->push(unit(pop<triple>(s)));
 }
 
-void tripleDir(stack *s)
-{
-  double phi=radians(pop<double>(s));
-  double theta=radians(pop<double>(s));
-  double sintheta=sin(theta);
-  s->push(triple(sintheta*cos(phi),sintheta*sin(phi),cos(theta)));
-}
-
 void tripleDot(stack *s)
 {
   triple b = pop<triple>(s);
@@ -1116,6 +1137,48 @@ void tripleCross(stack *s)
   s->push(c);
 }
 
+void intersectcubics(stack *s)
+{
+  double fuzz=pop<double>(s);
+  
+  array *post2=pop<array*>(s);
+  array *point2=pop<array*>(s);
+  array *pre2=pop<array*>(s);
+  
+  array *post1=pop<array*>(s);
+  array *point1=pop<array*>(s);
+  array *pre1=pop<array*>(s);
+  
+  size_t size1=pre1->size();
+  size_t size2=pre2->size();
+      
+  if(point1->size() != size1 || post1->size() != size1 ||
+     point2->size() != size2 || post2->size() != size2)
+    error("Mismatched array lengths");
+  
+  int single1=(size1 == 1);
+  int single2=(size2 == 1);
+  
+  size_t Size1=size1+single1;
+  size_t Size2=size2+single2;
+  
+  node *n1=new node[Size1];
+  node *n2=new node[Size2];
+      
+  for(size_t i=0; i < size1; ++i)
+    n1[i]=node(read<triple>(pre1,i),read<triple>(point1,i),
+	       read<triple>(post1,i));
+
+  for(size_t i=0; i < size2; ++i)
+    n2[i]=node(read<triple>(pre2,i),read<triple>(point2,i),
+	       read<triple>(post2,i));
+
+  if(single1) n1[1]=n1[0];
+  if(single2) n2[1]=n2[0];
+  
+  s->push(intersect((int) Size1-1,(int) Size2-1,n1,n2,fuzz));
+}
+  
 // Transforms
   
 void transformIdentity(stack *s)
@@ -1927,8 +1990,7 @@ void clip(stack *s)
   pen *n = pop<pen*>(s);
   array *p=copyArray(s);
   picture *pic = pop<picture*>(s);
-  pic->prepend(new drawClipBegin(p,*n));
-  pic->append(new drawClipEnd());
+  pic->enclose(new drawClipBegin(p,*n),new drawClipEnd());
 }
   
 void beginClip(stack *s)
@@ -1939,6 +2001,19 @@ void beginClip(stack *s)
   pic->append(new drawClipBegin(p,*n,false));
 }
 
+void inside(stack *s)
+{
+  pen *n = pop<pen*>(s);
+  pair z = pop<pair>(s);
+  array *p=copyArray(s);
+  checkArray(p);
+  size_t size=p->size();
+  int count=0;
+  for(size_t i=0; i < size; i++) 
+    count += read<path *>(p,i)->inside(z);
+  s->push(n->inside(count));
+}
+ 
 void postscript(stack *s)
 {
   string *t = pop<string*>(s);
@@ -1984,6 +2059,7 @@ void shipout(stack *s)
 {
   array *GUIdelete=pop<array*>(s);
   array *GUItransform=pop<array*>(s);
+  bool quiet = pop<bool>(s);
   bool wait = pop<bool>(s);
   string *format = pop<string*>(s);
   const picture *preamble = pop<picture*>(s);
@@ -2034,7 +2110,7 @@ void shipout(stack *s)
 	if(settings::deconstruct) {
 	  ostringstream buf;
 	  buf << prefix << "_" << i;
-	  group->shipout(*preamble,buf.str(),"tgif",false,Delete);
+	  group->shipout(*preamble,buf.str(),"tgif",false,true,Delete);
 	}
 	++i;
       }
@@ -2043,7 +2119,7 @@ void shipout(stack *s)
     if(size) pic=result;
   }
 
-  pic->shipout(*preamble,prefix,*format,wait);
+  pic->shipout(*preamble,prefix,*format,wait,quiet);
 }
 
 // System commands
@@ -2090,22 +2166,28 @@ void merge(stack *s)
   if(!checkFormatString(*format)) return;
   
   ostringstream cmd,remove;
-  cmd << "convert "+*args;
-  remove << "rm";
-  while(!outnameStack->empty()) {
-    string name=outnameStack->front();
-    cmd << " " << name;
-    remove << " " << name;
-    outnameStack->pop_front();
-  }
+  cmd << Convert << " "+*args;
+  
+  for(std::list<std::string>::iterator p=outnameStack->begin();
+      p != outnameStack->end(); ++p)
+    cmd << " " << *p;
   
   string name=buildname(outname,format->c_str());
   cmd << " " << name;
-  ret=System(cmd);
+  ret=System(cmd,false,true,"ASYMPTOTE_CONVERT","convert");
   
-  if(ret == 0) {
+  if(ret == 0)
     if(settings::verbose > 0) cout << "Wrote " << name << endl;
-    if(!keep && !settings::keep) System(remove);
+  
+  if(!keep && !settings::keep)
+    for(std::list<std::string>::iterator p=outnameStack->begin();
+      p != outnameStack->end(); ++p)
+      unlink(p->c_str());
+    
+  if(ret == 0 && settings::view) {
+    ostringstream cmd;
+    cmd << Animate << " " << name;
+    System(cmd,false,false,"ASYMPTOTE_ANIMATE","your animated GIF viewer");
   }
   
   s->push(ret);
@@ -2179,17 +2261,25 @@ void scrollLines(stack *s)
 
 // I/O Operations
 
-void newFile(stack *s)
+void standardOut(stack *s)
 {
   file *f=&camp::Stdout;
   s->push(f);
 }
 
+void nullFile(stack *s)
+{
+  file *f=&camp::nullfile;
+  s->push(f);
+}
+
 void fileOpenIn(stack *s)
 {
+  string *comment=pop<string*>(s);
   bool check=pop<bool>(s);
   string *filename=pop<string*>(s);
-  file *f=new ifile(*filename,check);
+  char c=*comment == "" ? (char) 0 : (*comment)[0];
+  file *f=new ifile(*filename,check,c);
   f->open();
   s->push(f);
 }
@@ -2357,6 +2447,20 @@ void fileArray3(stack *s)
   file *f = pop<file*>(s);
   f->dimension(-2,-2,-2);
   s->push(f);
+}
+
+void boolFileEq(stack *s)
+{
+  file* b = pop<file*>(s);
+  file* a = pop<file*>(s);
+  s->push(a == b);
+}
+
+void boolFileNeq(stack *s)
+{
+  file* b = pop<file*>(s);
+  file* a = pop<file*>(s);
+  s->push(a != b);
 }
 
 // Utilities

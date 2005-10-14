@@ -159,8 +159,11 @@ linefit leastsquares(real[] x, real[] y)
   L.b=(sy-L.m*sx)/n;
   if(n > 2) {
     real syy=n*sum(y^2)-sy^2;
-    real s=sqrt((syy-sxy^2/sxx)/(n-2));
+    if(sxx == 0 || syy == 0) return L;
     L.r=sxy/sqrt(sxx*syy);
+    real arg=syy-sxy^2/sxx;
+    if(arg <= 0) return L;
+    real s=sqrt(arg/(n-2));
     L.dm=s*sqrt(1/sxx);
     L.db=s*sqrt(1+sx^2/sxx)/n;
   }  

@@ -56,6 +56,10 @@ static pen longdashed=linetype("24 8");
 static pen dashdotted=linetype("8 8 0 8");
 static pen longdashdotted=linetype("24 8 0 8");
 
+static void defaultpen(real w) {defaultpen(linewidth(w));}
+static pen operator +(pen p, real w) {return p+linewidth(w);}
+static pen operator +(real w, pen p) {return linewidth(w)+p;}
+
 static pen Dotted=dotted+1.0;
 static pen Dotted(pen p) {return dotted+2*linewidth(p);}
 
@@ -69,6 +73,8 @@ static pen beveljoin=linejoin(2);
 
 static pen zerowinding=fillrule(0);
 static pen evenodd=fillrule(1);
+static pen zerowindingoverlap=fillrule(2);
+static pen evenoddoverlap=fillrule(3);
 
 static pen nobasealign=basealign(0);
 static pen basealign=basealign(1);
@@ -113,6 +119,13 @@ pen cmyk(pen p) {
   return p+cmyk;
 }
 
+// Options for handling label overwriting
+static int Allow=0;
+static int Suppress=1;
+static int SuppressQuiet=2;
+static int Move=3;
+static int MoveQuiet=4;
+
 // Global parameters:
 static public real labelmargin=0.3;
 static public real arrowlength=0.75cm;
@@ -130,10 +143,13 @@ static public real legendmargin=10;
 static public string defaultfilename;
 static public string defaultformat="$%.4g$";
 
-// Reduced for tension atleast infinity
-static real infinity=sqrt(0.25*realMax());
-
+static int intMax=intMax();
+static real realMax=realMax();
 static real epsilon=realEpsilon();
+
+// Reduced for tension atleast infinity
+static real infinity=sqrt(0.25*realMax);
+static pair Infinity=(infinity,infinity);
 
 // Define a.. tension t ..b to be equivalent to
 //        a.. tension t and t ..b
@@ -185,7 +201,13 @@ transform shift(real x, real y)
 
 // I/O operations
 
-file input(string name) {return input(name,true);}
+static public string commentchar="#";
+
+file input(string name, bool check=true)
+{
+  return input(name,check,commentchar);
+}
+file input(string name, string comment) {return input(name,true,commentchar);}
 file xinput(string name) {return xinput(name,true);}
 file output(string name) {return output(name,false);}
 file xoutput(string name) {return xoutput(name,false);}
@@ -197,70 +219,129 @@ file stdin=input("");
 file stdout;
 
 void none(file file) {}
-void endl(file file) {write(file,'\n'); flush(file);}
-void tab(file file) {write(file,'\t');}
+void endl(file file) {_write(file,'\n'); flush(file);}
+void tab(file file) {_write(file,'\t');}
 typedef void suffix(file);
 
-void write(file file=stdout, suffix s=endl) {s(file);}
+void write(file file=stdout, suffix e=endl) {e(file);}
 
-void write(file file, explicit path[] g)
+void write(file file=stdout, string s="", bool x, suffix e)
 {
-  if(g.length > 0) write(file,g[0]);
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=stdout, string s="", int x, suffix e) 
+{
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=stdout, string s="", real x, suffix e)
+{
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=stdout, string s="", pair x, suffix e)
+{
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=stdout, string s="", triple x, suffix e)
+{
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=stdout, string s="", pen x, suffix e)
+{
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=stdout, string s="", transform x, suffix e)
+{
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=stdout, string s="", guide x, suffix e)
+{
+  _write(file,s); _write(file,x); e(file);
+}
+
+void write(file file=stdout, string x, suffix e)
+{
+  _write(file,x); e(file);
+}
+
+void write(file file=null, string x ... string[] a)
+{
+  if(file == null) {write(stdout,x...a); endl(stdout); return;}
+  _write(file,x);
+  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
+}
+
+void write(file file=null, string s="", bool x ... bool[] a)
+{
+  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
+  _write(file,s); _write(file,x);
+  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
+}
+
+void write(file file=null, string s="", int x ... int[] a)
+{
+  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
+  write(file,s,x,none);
+  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
+}
+
+void write(file file=null, string s="", real x ... real[] a)
+{
+  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
+  write(file,s,x,none);
+  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
+}
+
+void write(file file=null, string s="", pair x ... pair[] a)
+{
+  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
+  write(file,s,x,none);
+  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
+}
+
+void write(file file=null, string s="", triple x ... triple[] a)
+{
+  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
+  write(file,s,x,none);
+  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
+}
+
+void write(file file=null, string s="", pen x ... pen[] a)
+{
+  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
+  write(file,s,x,none);
+  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
+}
+
+void write(file file=null, string s="", transform x ... transform[] a)
+{
+  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
+  write(file,s,x,none);
+  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
+}
+
+void write(file file=null, string s="", guide x)
+{
+  if(file == null) {write(stdout,s,x); endl(stdout); return;}
+  write(file,s,x,none);
+}
+
+void _write(file file, path[] g)
+{
+  if(g.length > 0) _write(file,g[0]);
   for(int i=1; i < g.length; ++i) {
     write(file);
-    write(file," ^^");
-    write(file,g[i]);
+    _write(file," ^^");
+    _write(file,g[i]);
   }
 }
-
-void write(file file=stdout, bool x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, int x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, real x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, pair x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, triple x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, string x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, guide x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, pen x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, transform x, suffix s) {write(file,x); s(file);}
-void write(file file=stdout, explicit path[] x, suffix s) {
-  write(file,x); s(file);
-}
-void write(explicit path[] g) {write(stdout,g,endl);}
-
-void write(file file=stdout, string x, bool y, suffix s=endl)
+void write(file file=stdout, string s="", explicit path[] x, suffix e)
 {
-  write(file,x); write(file,y,s);
+  _write(file,s); _write(file,x); e(file);
 }
-
-void write(file file=stdout, string x, real y, suffix s=endl)
+void write(file file=null, string s="", explicit path[] x)
 {
-  write(file,x); write(file,y,s);
-}
-
-void write(file file=stdout, string x, explicit pair y, suffix s=endl)
-{
-  write(file,x); write(file,y,s);
-}
-
-void write(file file=stdout, string x, triple y, suffix s=endl)
-{
-  write(file,x); write(file,y,s);
-}
-
-void write(file file=stdout, string x, string y, suffix s=endl)
-{
-  write(file,x); write(file,y,s);
-}
-
-void write(file file=stdout, string x, pen y, suffix s=endl)
-{
-  write(file,x); write(file,y,s);
-}
-
-void write(file file=stdout, string x, real y, string x2, real y2,
-	   suffix s=endl)
-{
-  write(file,x); write(file,y,tab); write(file,x2,y2,s);
+  if(file == null) {write(stdout,s,x); endl(stdout); return;}
+  write(file,s); _write(file,x);
 }
 
 string ask(string prompt)
@@ -269,7 +350,7 @@ string ask(string prompt)
   return stdin;
 }
 
-string getstringprefix=".asy_";
+static public string getstringprefix=".asy_";
 
 void savestring(string name, string value, string prefix=getstringprefix)
 {
@@ -279,7 +360,7 @@ void savestring(string name, string value, string prefix=getstringprefix)
 }
 
 string getstring(string name, string default="", string prompt="",
-		 string prefix=getstringprefix,bool save=true)
+		 string prefix=getstringprefix, bool save=true)
 {
   string value;
   file in=input(prefix+name,false);
@@ -320,7 +401,7 @@ GUIop[] GUIlist;
 // Delete item
 void GUIop(int index, int filenum=0, DELETET)
 {
-  if(GUIlist.length <= filenum) GUIlist[filenum];
+  if(GUIlist.length <= filenum) GUIlist[filenum]=new GUIop;
   GUIop GUIobj=GUIlist[filenum];
   while(GUIobj.Transform.length <= index) {
     GUIobj.Transform.push(identity());
@@ -332,7 +413,7 @@ void GUIop(int index, int filenum=0, DELETET)
 // Transform item
 void GUIop(int index, int filenum=0, transform T)
 {
-  if(GUIlist.length <= filenum) GUIlist[filenum];
+  if(GUIlist.length <= filenum) GUIlist[filenum]=new GUIop;
   GUIop GUIobj=GUIlist[filenum];
   while(GUIobj.Transform.length <= index) {
     GUIobj.Transform.push(identity());
@@ -346,6 +427,15 @@ transform rotate(real angle)
   return rotate(angle,0);
 }
 
+// A rotation in the direction dir limited to [-90,90]
+// This is useful for rotating text along a line in the direction dir.
+transform rotate(explicit pair dir)
+{
+  real angle=degrees(dir);
+  if(angle > 90 && angle < 270) angle -= 180;
+  return rotate(angle);
+} 
+
 transform shift(transform t)
 {
   return (t.x,t.y,0,0,0,0);
@@ -354,6 +444,11 @@ transform shift(transform t)
 transform shiftless(transform t)
 {
   return (0,0,t.xx,t.xy,t.yx,t.yy);
+}
+
+pair intersect(path p1, path p2) 
+{
+  return intersect(p1,p2,0);
 }
 
 // A function that draws an object to frame pic, given that the transform
@@ -536,39 +631,46 @@ coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
   return c;
 }
 
+typedef real scalefcn(real x);
+					      
 public struct scaleT {
-  typedef real scalefcn(real x);
-  scalefcn T,Tinv,Label;
-  T=Tinv=Label=identity;
-  bool automin=true, automax=true;
-  void init(scalefcn T, scalefcn Tinv, scalefcn Label=identity,
+  scalefcn T,Tinv;
+  bool logarithmic;
+  bool automin,automax;
+  void init(scalefcn T, scalefcn Tinv, bool logarithmic=false,
 	    bool automin=true, bool automax=true) {
     this.T=T;
     this.Tinv=Tinv;
-    this.Label=Label;
+    this.logarithmic=logarithmic;
     this.automin=automin;
     this.automax=automax;
   }
   scaleT copy() {
     scaleT dest=new scaleT;
-    dest.init(T,Tinv,Label,automin,automax);
+    dest.init(T,Tinv,logarithmic,automin,automax);
     return dest;
   }
 };
 
-scaleT operator init() {return new scaleT;}
+scaleT operator init()
+{
+  scaleT S=new scaleT;
+  S.init(identity,identity);
+  return S;
+}
 				  
 public struct autoscaleT {
   public scaleT scale;
   public scaleT postscale;
-  public real tickMin=infinity, tickMax=-infinity;
+  public real tickMin=-infinity, tickMax=infinity;
   public bool automin=true, automax=true;
   public bool automin() {return automin && scale.automin;}
   public bool automax() {return automax && scale.automax;}
   
   real T(real x) {return postscale.T(scale.T(x));}
+  scalefcn T() {return scale.logarithmic ? postscale.T : T;}
   real Tinv(real x) {return scale.Tinv(postscale.Tinv(x));}
-  real Label(real x) {return scale.Label(postscale.Tinv(x));}
+  
   autoscaleT copy() {
     autoscaleT dest=new autoscaleT;
     dest.scale=scale.copy();
@@ -593,7 +695,6 @@ public struct ScaleT {
     dest.set=set;
     dest.x=x.copy();
     dest.y=y.copy();
-    dest.z=z.copy();
     return dest;
   }
 };
@@ -731,10 +832,10 @@ struct picture {
   public real xsize=0, ysize=0;
   
   // If true, the x and y directions must be scaled by the same amount.
-  public bool keepAspect=false;
+  public bool keepAspect=true;
 
   void init() {
-    userMin=(infinity,infinity);
+    userMin=Infinity;
     userMax=-userMin;
   }
   init();
@@ -808,10 +909,16 @@ struct picture {
     addBox(min(g),max(g),min(p),max(p));
   }
 
-  void size(real x=0, real y=0, bool a=true) {
+  void size(real x, real y, bool keepAspect=this.keepAspect) {
     xsize=x;
     ysize=y;
-    keepAspect=a;
+    this.keepAspect=keepAspect;
+  }
+
+  void size(real size, bool keepAspect=this.keepAspect) {
+    xsize=size;
+    ysize=size;
+    this.keepAspect=keepAspect;
   }
 
   // The scaling in one dimension:  x --> a*x + b
@@ -986,25 +1093,18 @@ struct picture {
   }
 
   // Returns the picture fit to the wanted size.
-  frame fit(real xsize, real ysize, bool keepAspect=true) {
+  frame fit(real xsize=this.xsize, real ysize=this.ysize,
+	    bool keepAspect=this.keepAspect) {
     return fit(calculateTransform(xsize,ysize,keepAspect));
   }
 
-  frame fit() {
-    return fit(xsize,ysize,keepAspect);
-  }
-  
   // Returns the picture fit to the wanted size, aligned in direction dir
-  frame fit(real xsize, real ysize, bool keepAspect=true, pair dir) {
+  frame fit(real xsize=this.xsize, real ysize=this.ysize,
+	    bool keepAspect=this.keepAspect, pair dir) {
     frame f=fit(xsize,ysize,keepAspect);
     return shift(dir)*shift(-point(f,-dir))*f;
   }
 
-  frame fit(pair dir) {
-    frame f=fit();
-    return shift(dir)*shift(-point(f,-dir))*f;
-  }
-  
   // Copies the drawing information, but not the sizing information into a new
   // picture. Warning: "fitting" this picture will not scale as a normal
   // picture would.
@@ -1033,7 +1133,7 @@ struct picture {
 
   // Add a picture to this picture, such that the user coordinates will be
   // scaled identically when fitted
-  void add(picture src, bool group=deconstruct, bool put=Above) {
+  void add(picture src, bool group=true, bool put=Above) {
     // Copy the picture.  Only the drawing function closures are needed, so we
     // only copy them.  This needs to be a deep copy, as src could later have
     // objects added to it that should not be included in this picture.
@@ -1073,14 +1173,14 @@ picture operator * (transform t, picture orig)
 
 public picture currentpicture;
 
-public frame gui[];
+public frame GUI[];
 
-frame gui(int index) {
-  while(gui.length <= index) {
+frame GUI(int index) {
+  while(GUI.length <= index) {
     frame f;
-    gui.push(f);
+    GUI.push(f);
   }
-  return gui[index];
+  return GUI[index];
 }
 
 path[] operator ^^ (path p, path q) 
@@ -1119,7 +1219,7 @@ pair[] operator * (transform t, pair[] z)
 
 pair min(explicit path[] g)
 {
-  pair ming=(infinity,infinity);
+  pair ming=Infinity;
   for(int i=0; i < g.length; ++i)
     ming=minbound(ming,min(g[i]));
   return ming;
@@ -1133,16 +1233,17 @@ pair max(explicit path[] g)
   return maxg;
 }
 
-void size(picture pic=currentpicture,
-          real xsize, real ysize, bool keepAspect=Aspect)
+void size(picture pic=currentpicture, real x, real y, 
+	  bool keepAspect=pic.keepAspect)
 {
-  pic.size(xsize,ysize,keepAspect);
+  pic.size(x,y,keepAspect);
 }
 
-// Ensure that each dimension is no more than size, preserving aspect ratio.
-void size(picture pic=currentpicture, real Size)
+// Ensure that each dimension is no more than size.
+void size(picture pic=currentpicture, real size,
+	  bool keepAspect=pic.keepAspect)
 {
-  pic.size(Size,Size,Aspect);
+  pic.size(size,size,keepAspect);
 }
 
 pair size(frame f)
@@ -1164,8 +1265,6 @@ void endgroup(picture pic=currentpicture)
   });
 }
 
-bool deconstruct=deconstruct();
-
 // Add frame dest to frame src with optional grouping (default false)
 void add(frame dest, frame src, bool group)
 {
@@ -1186,7 +1285,7 @@ void add(pair origin, frame dest, frame src, bool group=false)
 // Add frame src about origin to picture dest with optional grouping
 // (default true)
 void add(pair origin=0, picture dest=currentpicture, frame src,
-	 bool group=deconstruct, bool put=Above)
+	 bool group=true, bool put=Above)
 {
   dest.add(new void (frame f, transform t) {
     if(group) begingroup(f);
@@ -1198,7 +1297,7 @@ void add(pair origin=0, picture dest=currentpicture, frame src,
 
 // Like add(pair,picture,frame,bool) but extend picture to accommodate frame
 void attach(pair origin=0, picture dest=currentpicture, frame src,
-	    bool group=deconstruct, bool put=Above)
+	    bool group=true, bool put=Above)
 {
   transform t=dest.calculateTransform(dest.xsize,dest.ysize,dest.keepAspect);
   add(origin,dest,src,group,put);
@@ -1209,12 +1308,12 @@ void attach(pair origin=0, picture dest=currentpicture, frame src,
 
 // Add a picture to another such that user coordinates in both will be scaled
 // identically in the shipout.
-void add(picture dest, picture src, bool group=deconstruct, bool put=Above)
+void add(picture dest, picture src, bool group=true, bool put=Above)
 {
   dest.add(src,group,put);
 }
 
-void add(picture src, bool group=deconstruct, bool put=Above)
+void add(picture src, bool group=true, bool put=Above)
 {
   add(currentpicture,src,group,put);
 }
@@ -1222,20 +1321,20 @@ void add(picture src, bool group=deconstruct, bool put=Above)
 // Fit the picture src using the identity transformation (so user
 // coordinates and truesize coordinates agree) and add it about the point
 // origin to picture dest.
-void add(pair origin, picture dest, picture src, bool group=deconstruct,
+void add(pair origin, picture dest, picture src, bool group=true,
 	 bool put=Above)
 {
   add(origin,dest,src.fit(identity()),group,put);
 }
 
-void add(pair origin, picture src, bool group=deconstruct, bool put=Above)
+void add(pair origin, picture src, bool group=true, bool put=Above)
 {
   add(origin,currentpicture,src,group,put);
 }
 
 guide box(pair a, pair b)
 {
-  return a--(a.x,b.y)--b--(b.x,a.y)--cycle;
+  return a--(b.x,a.y)--b--(a.x,b.y)--cycle;
 }
 
 guide unitsquare=box((0,0),(1,1));
@@ -1249,6 +1348,8 @@ guide square(pair z1, pair z2)
 }
 
 guide unitcircle=E..N..W..S..cycle;
+
+static public real circleprecision=0.0006;
 
 guide circle(pair c, real r)
 {
@@ -1273,7 +1374,6 @@ private struct marginT {
 marginT operator init() {return new marginT;}
 
 typedef marginT margin(path, pen);
-private marginT margin(path, pen) {return new marginT;}
 
 path trim(path g, real begin, real end) {
   real a=arctime(g,begin);
@@ -1392,10 +1492,13 @@ void fill(frame f, path[] g)
   fill(f,g,currentpen);
 }
 
-void filldraw(frame f, path[] g, pen p=currentpen)
+void filldraw(frame f, path[] g, pen fillpen=currentpen,
+	      pen drawpen=currentpen)
 {
-  fill(f,g,p);
-  draw(f,g,p);
+  begingroup(f);
+  fill(f,g,fillpen);
+  draw(f,g,drawpen);
+  endgroup(f);
 }
 
 void fill(picture pic=currentpicture, path[] g, pen p=currentpen)
@@ -1473,8 +1576,10 @@ void fill(pair origin, picture pic=currentpicture, path[] g, pen p=currentpen)
 void filldraw(picture pic=currentpicture, path[] g, pen fillpen=currentpen,
 	      pen drawpen=currentpen)
 {
+  begingroup(pic);
   fill(pic,g,fillpen);
   draw(pic,g,drawpen);
+  endgroup(pic);
 }
 
 void clip(frame f, path[] g)
@@ -1503,6 +1608,12 @@ void unfill(picture pic=currentpicture, path[] g)
   pic.clip(new void (frame f, transform t) {
     unfill(f,t*g);
   });
+}
+
+bool inside(path[] g, pair z) 
+{
+//  return inside(g,z,currentpen);
+  return true;
 }
 
 pair dir(path g)
@@ -1585,13 +1696,13 @@ struct align {
     align(align);
     if(this.default) init(default.dir,default.relative,default.default);
   }
-  void write(file file=stdout, suffix s=endl) {
+  void write(file file=stdout, suffix e=endl) {
     if(!default) {
       if(relative) {
 	write(file,"Relative(");
 	write(file,dir);
-	write(file,")",s);
-      } else write(file,dir,s);
+	write(file,")",e);
+      } else write(file,dir,e);
     }
   }
   bool Center() {
@@ -1629,9 +1740,9 @@ align operator cast(pair dir) {align A; A.init(dir,false); return A;}
 align operator cast(side side) {align A; A.init(side.align,true); return A;}
 align NoAlign;
 
-void write(file file=stdout, align align, suffix s=endl)
+void write(file file=stdout, align align, suffix e=endl)
 {
-  align.write(file,s);
+  align.write(file,e);
 }
 
 struct position {
@@ -1660,19 +1771,21 @@ position operator cast(int x) {return (pair) x;}
 pair operator cast(position P) {return P.position;}
 
 struct Label {
-  public string s;
+  public string s,size;
   position position;
   bool defaultposition=true;
   align align;
-  pen p;
+  pen p=nullpen;
   real angle;
   bool defaultangle=true;
   pair shift;
   
-  void init(string s="", position position=0, bool defaultposition=true,
+  void init(string s="", string size="", position position=0, 
+	    bool defaultposition=true,
 	    align align=NoAlign, pen p=nullpen, real angle=0,
 	    bool defaultangle=true, pair shift=0) {
     this.s=s;
+    this.size=size;
     this.position=position;
     this.defaultposition=defaultposition;
     this.align=align.copy();
@@ -1682,16 +1795,17 @@ struct Label {
     this.shift=shift;
   }
   
-  void initalign(string s="", align align, pen p=nullpen) {
+  void initalign(string s="", string size="", align align, pen p=nullpen) {
     init();
     this.s=s;
+    this.size=size;
     this.align=align.copy();
     this.p=p;
   }
   
   Label copy() {
     Label L=new Label;
-    L.init(s,position,defaultposition,align,p,angle,defaultangle,shift);
+    L.init(s,size,position,defaultposition,align,p,angle,defaultangle,shift);
     return L;
   }
   
@@ -1720,33 +1834,33 @@ struct Label {
     if(this.p == nullpen) this.p=p0;
   }
   
-  void label(frame f, string s, real angle=0, pair position,
+  void label(frame f, real angle=0, pair position,
 	     pair align=0, pen p=currentpen)
   {
-    _label(f,s,angle,position+align*labelmargin(p),align,p);
+    _label(f,s,size,angle,position+align*labelmargin(p),align,p);
   }
 
   void out(frame f) {
-    label(f,s,angle,position.position+shift,align.dir,p);
+    label(f,angle,position.position+shift,align.dir,p);
   }
   
-  void label(picture pic=currentpicture, string s, real angle=0, pair position,
+  void label(picture pic=currentpicture, real angle=0, pair position,
 	    pair align=0, pair shift=0, pen p=currentpen)
   {
     pic.add(new void (frame f, transform t) {
       transform t0=shiftless(t);
-      _label(f,s,degrees(t0*dir(angle)),
+      _label(f,s,size,degrees(t0*dir(angle)),
 	     t*position+align*labelmargin(p)+shift,
 	     length(align)*unit(t0*align),p);
       });
     frame f;
     // Create a picture with label at the origin to extract its bbox truesize.
-    label(f,s,angle,(0,0),align,p);
+    label(f,angle,(0,0),align,p);
     pic.addBox(position,position,min(f),max(f));
   }
 
   void out(picture pic=currentpicture) {
-    label(pic,s,angle,position.position,align.dir,shift,
+    label(pic,angle,position.position,align.dir,shift,
 	  p == nullpen ? currentpen : p);
   }
   
@@ -1761,23 +1875,28 @@ struct Label {
       alignrelative=true;
       Align=position <= 0 ? S : position >= length(g) ? N : E;
     }
-    label(pic,s,angle,point(g,position),
+    label(pic,angle,point(g,position),
 	  alignrelative ? Align*dir(g,position)/N : Align,shift,
 	  p == nullpen ? currentpen : p);
   }
   
-  void write(file file=stdout, suffix s=endl) {
-    write(file,"s=\"",s+"\"",none);
-    if(!defaultposition) write(file,", position=",position.position,none);
+  void write(file file=stdout, suffix e=endl) {
+    write(file,"s=\""+s+"\"");
+    if(!defaultposition) write(file,", position=",position.position);
     if(!align.default) write(file,", align=");
-    write(file,align,none);
-    if(p != nullpen) write(file,", pen=",p,none);
-    if(!defaultangle) write(file,", angle=",angle,none);
-    write(file,", shift=",shift,s);
+    write(file,align);
+    if(p != nullpen) write(file,", pen=",p);
+    if(!defaultangle) write(file,", angle=",angle);
+    if(shift != 0) write(file,", shift=",shift);
+    write(file,"",e);
   }
   
   real relative() {
-    return position.position.x;
+    return defaultposition ? 0.5 : position.position.x;
+  };
+  
+  real relative(path g) {
+    return position.relative ? reltime(g,relative()) : relative();
   };
 }
 
@@ -1805,18 +1924,18 @@ Label operator * (transform t, Label L)
   return tL;
 }
 
-Label Label(string s, explicit position position, align align=NoAlign,
-	    pen p=nullpen)
+Label Label(string s, string size="", explicit position position,
+	    align align=NoAlign, pen p=nullpen)
 {
   Label L;
-  L.init(s,position,false,align,p);
+  L.init(s,size,position,false,align,p);
   return L;
 }
 
-Label Label(string s, pair position, align align=NoAlign,
+Label Label(string s, string size="", pair position, align align=NoAlign,
 	    pen p=nullpen)
 {
-  return Label(s,(position) position,align,p);
+  return Label(s,size,(position) position,align,p);
 }
 
 Label Label(explicit pair position, align align=NoAlign, pen p=nullpen)
@@ -1824,37 +1943,39 @@ Label Label(explicit pair position, align align=NoAlign, pen p=nullpen)
   return Label((string) position,position,align,p);
 }
 
-Label Label(string s="", align align=NoAlign, explicit pen p=nullpen)
+Label Label(string s="", string size="", align align=NoAlign, pen p=nullpen)
 {
   Label L;
-  L.initalign(s,align,p);
+  L.initalign(s,size,align,p);
   return L;
 }
 
-Label Label(Label L, position position, align align=NoAlign)
+Label Label(Label L, position position, align align=NoAlign, pen p=nullpen)
 {
   Label L=L.copy();
   L.position(position);
   L.align(align);
+  L.p(p);
   return L;
 }
 
-Label Label(Label L, align align=NoAlign)
+Label Label(Label L, align align=NoAlign, pen p=nullpen)
 {
   Label L=L.copy();
   L.align(align);
+  L.p(p);
   return L;
 }
 
-void write(file file=stdout, Label L, suffix s=endl)
+void write(file file=stdout, Label L, suffix e=endl)
 {
-  L.write(file,s);
+  L.write(file,e);
 }
 
-void label(frame f, string s, pair position, align align=NoAlign,
+void label(frame f, Label L, pair position, align align=NoAlign,
 	   pen p=currentpen)
 {
-  add(f,Label(s,position,align,p));
+  add(f,Label(L,position,align,p));
 }
   
 void label(picture pic=currentpicture, Label L, pair position,
@@ -1938,11 +2059,11 @@ void arrowheadbbox(picture pic=currentpicture, path g,
 typedef void filltype(frame, path, pen);
 void filltype(frame, path, pen) {}
 
-filltype Fill(pen p) {
+filltype Fill(pen p)
+{
   return new void(frame f, path g, pen drawpen) {
     drawpen += solid;
-    fill(f,g,p == nullpen ? drawpen : p+solid);
-    draw(f,g,drawpen);
+    filldraw(f,g,p == nullpen ? drawpen : p+solid,drawpen);
   };
 }
 
@@ -2071,11 +2192,9 @@ guide ellipse(frame f, real xmargin=0, real ymargin=infinity,
   pair M=max(f);
   pair D=M-m;
   static real factor=0.5*sqrt(2);
-  real a=factor*D.x;
-  real b=factor*D.y;
   int sign=filltype == Fill ? -1 : 1;
-  guide g=ellipse(0.5*(M+m),a+0.5*sign*max(p).x+xmargin,
-		  b+0.5*sign*max(p).y+ymargin);
+  guide g=ellipse(0.5*(M+m),factor*D.x+0.5*sign*max(p).x+xmargin,
+		  factor*D.y+0.5*sign*max(p).y+ymargin);
   frame F;
   filltype(F,g,p);
   prepend(f,F);
@@ -2112,14 +2231,17 @@ void box(picture pic=currentpicture, Label L,
 {
   pic.add(new void (frame f, transform t) {
     transform t0=shiftless(t);
-    _label(f,L.s,degrees(t0*dir(L.angle)),
+    frame d;
+    _label(d,L.s,L.size,degrees(t0*dir(L.angle)),
 	   t*L.position+L.align.dir*labelmargin(L.p)+L.shift,
 	   length(L.align.dir)*unit(t0*L.align.dir),L.p);
-    box(f,xmargin,ymargin,p,filltype);
+    box(d,xmargin,ymargin,p,filltype);
+    add(f,d);
   });
-  frame f;
   Label L0=L.copy();
   L0.position(0);
+  L0.p(p+overwrite(Allow));
+  frame f;
   box(f,L0,xmargin,ymargin,p,filltype);
   pic.addBox(L.position,L.position,min(f),max(f));
 }
@@ -2154,12 +2276,18 @@ pen interp(pen a, pen b, real c)
   return (1-c)*a+c*b;
 }
 
-void dot(picture pic=currentpicture, pair z)
+// To avoid confusion, a dot product requires explicit pair arguments.
+real dot(explicit pair a, explicit pair b)
 {
-  Draw(pic,z,dotsize()+currentpen);
+  return _dot(a,b);
 }
 
-void dot(picture pic=currentpicture, pair z, pen p)
+void dot(frame f, pair z, pen p=currentpen)
+{
+  draw(f,z,dotsize(p)+p);
+}
+
+void dot(picture pic=currentpicture, pair z, pen p=currentpen)
 {
   Draw(pic,z,dotsize(p)+p);
 }
@@ -2229,19 +2357,19 @@ frame marker(path[] g, pen p=currentpen, filltype filltype=NoFill)
 }
 
 void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
-	     string format="", bool wait=NoWait)
+	     string format="", bool wait=NoWait, bool quiet=false)
 {
   bool Transform=GUIFilenum < GUIlist.length;
   static transform[] noTransforms;
   static bool[] noDeletes;
-  if(gui.length > 0) {
+  if(GUI.length > 0) {
     frame F;
     add(F,f);
-    for(int i=0; i < gui.length; ++i)
-      add(F,gui(i));
+    for(int i=0; i < GUI.length; ++i)
+      add(F,GUI(i));
     f=F;
   }
-  shipout(prefix,f,preamble,format,wait,
+  shipout(prefix,f,preamble,format,wait,quiet,
   	  Transform ? GUIlist[GUIFilenum].Transform : noTransforms,
 	  Transform ? GUIlist[GUIFilenum].Delete : noDeletes);
   ++GUIFilenum;
@@ -2284,15 +2412,15 @@ typedef frame orientation(frame);
 
 void shipout(string prefix=defaultfilename, picture pic,
 	     frame preamble=patterns, orientation orientation=Portrait,
-	     string format="", bool wait=NoWait)
+	     string format="", bool wait=NoWait, bool quiet=false)
 {
-  shipout(prefix,orientation(pic.fit()),preamble,format,wait);
+  shipout(prefix,orientation(pic.fit()),preamble,format,wait,quiet);
 }
 
 void shipout(string prefix=defaultfilename, orientation orientation=Portrait,
-	     string format="", bool wait=NoWait)
+	     string format="", bool wait=NoWait, bool quiet=false)
 {
-  shipout(prefix,currentpicture,orientation,format,wait);
+  shipout(prefix,currentpicture,orientation,format,wait,quiet);
 }
 
 void erase(picture pic=currentpicture)
@@ -2414,7 +2542,6 @@ picture bar(pair a, pair d, pen p=currentpen)
 }
 
 typedef bool arrowbar(picture, path, pen, margin);
-private bool arrowbar(picture, path, pen, margin) {return true;}
 
 arrowbar Blank()
 {
@@ -2727,13 +2854,6 @@ void pause(string w="Hit enter to continue")
   w=stdin;
 }
 
-// Options for handling label overwriting
-static int Allow=0;
-static int Suppress=1;
-static int SuppressQuiet=2;
-static int Move=3;
-static int MoveQuiet=4;
-
 struct slice {
   public path before,after;
 }
@@ -2759,17 +2879,21 @@ slice lastcut(path g, path knife)
   return s;
 }
 
-string format(real x) {
-  return format("$%.9g$",x);
+string format(real x)
+{
+  return format(defaultformat,x);
 }
 
 pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,darkblue,
 		darkgreen,chartreuse,fuchsia,salmon,lightblue,black,lavender,
 		pink,yellow,gray};
+colorPen.cyclic(true);
+
 pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,longdashdotted};
+monoPen.cyclic(true);
 
 transform invert=reflect((0,0),(1,0));
-real circlescale=0.85;
+static public real circlescale=0.85;
 
 frame[] Mark={
   scale(circlescale)*marker(unitcircle),
@@ -2786,14 +2910,9 @@ frame[] MarkFill={
 
 public bool mono=false;
 
-pen monoPen(int n) 
-{
-  return monoPen[n % monoPen.length];
-}
-
 pen Pen(int n) 
 {
-  return mono ? monoPen(n) : colorPen[n % colorPen.length];
+  return mono ? monoPen[n] : colorPen[n];
 }
 
 frame Mark(int n) 
@@ -2897,6 +3016,8 @@ real max(real[][][] a) {
   return max;
 }
 
+void gui() {gui(1);}
+
 void atexit()
 {
   if(interact()) {
@@ -2907,16 +3028,34 @@ atexit(atexit);
 
 guide operator ::(... guide[] a)
 {
-  guide g;
-  for(int i=0; i < a.length; ++i)
+  guide g=(a.length > 0) ? a[0] : nullpath;
+  for(int i=1; i < a.length; ++i)
     g=g..operator tension(1,true)..a[i];
   return g;
 }
 
 guide operator ---(... guide[] a)
 {
-  guide g;
-  for(int i=0; i < a.length; ++i)
+  guide g=(a.length > 0) ? a[0] : nullpath;
+  for(int i=1; i < a.length; ++i)
     g=g..operator tension(infinity,true)..a[i];
   return g;
 }
+
+// Three-dimensional projections (move back to three.asy once new import
+// scheme is functional):
+
+typedef real[][] transform3;
+
+static struct projection {
+  public triple camera;
+  public transform3 project;
+  void init(triple camera, transform3 project) {
+    this.camera=camera;
+    this.project=project;
+  }
+}
+
+projection operator init() {return new projection;}
+  
+public projection currentprojection;

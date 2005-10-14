@@ -41,7 +41,7 @@ void emptyStm::prettyprint(ostream &out, int indent)
 void blockStm::prettystms(ostream &out, int indent)
 {
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p)
-    (*p)->prettyprint(out, indent+1);
+    (*p)->prettyprint(out, indent);
 }
 
 void blockStm::prettyprint(ostream &out, int indent)

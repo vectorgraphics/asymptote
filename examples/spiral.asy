@@ -5,8 +5,8 @@ real f(real t) {return exp(-t/(2pi));}
 
 draw(polargraph(f,0,20*pi,operator ..));
 
-xaxis(-infinity,1.3,"$x$");
-yaxis(-infinity,1,"$y$");
+xaxis("$x$",-infinity,1.3);
+yaxis("$y$",-infinity,1);
 
 labelx(1);
 labelx("$e^{-1}$",1.0/exp(1),SE);

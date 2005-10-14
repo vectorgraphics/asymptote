@@ -295,8 +295,8 @@ bool homogeneous(vector<eqn>& e)
   return true;
 }
 
-// Checks the equation being solved will be solve as a straight path from the
-// first point to the second.
+// Checks whether the equation being solved will be solved as a straight
+// path from the first point to the second.
 bool straightSection(cvector<eqn>& e)
 {
   return e.size()==2 && e.front().aug==0 && e.back().aug==0;
@@ -632,7 +632,7 @@ void solveSection(protopath& p, int k, knotlist& l)
     INFO(e);
 
     if (straightSection(e))
-      // Handle striaght section as special case.
+      // Handle straight section as special case.
       encodeStraight(p,k,l);
     else {
       cvector<double> theta = solveThetas(l,e);
@@ -683,8 +683,9 @@ int nextBreakpoint(knotlist& l, int a)
 void writeControls(protopath& p, int a, knotlist& l)
 {
   // By convention, the first point will already be encoded.
-  p.post(a)=dynamic_cast<controlSpec *>(l[a].out)->control();
-  p.pre(a+1)=dynamic_cast<controlSpec *>(l[a+1].in)->control();
+  p.straight(a)=dynamic_cast<controlSpec *>(l[a].out)->straight;
+  p.post(a)=dynamic_cast<controlSpec *>(l[a].out)->cz;
+  p.pre(a+1)=dynamic_cast<controlSpec *>(l[a+1].in)->cz;
   p.point(a+1)=l[a+1].z;
 }
 

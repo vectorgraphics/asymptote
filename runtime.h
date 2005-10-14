@@ -38,9 +38,6 @@ void realJ(vm::stack *s);
 void realY(vm::stack *s);
 void intQuotient(vm::stack *s);
 void intAbs(vm::stack *s);
-void intCeil(vm::stack *s);
-void intFloor(vm::stack *s);
-void intRound(vm::stack *s);
 void intSgn(vm::stack *s);
 void intRand(vm::stack *s);
 void intSrand(vm::stack *s);
@@ -92,6 +89,10 @@ void pushNullArray(vm::stack *s);
 void pushNullRecord(vm::stack *s);
 void pushNullFunction(vm::stack *s);
 
+// Default operations
+void pushDefault(vm::stack *s);
+void isDefault(vm::stack *s);
+
 // Casts
 void pairToGuide(vm::stack *s);
 void pathToGuide(vm::stack *s);
@@ -128,10 +129,10 @@ void tripleCoLatitude(vm::stack *s);
 void tripleLatitude(vm::stack *s);
 void tripleLongitude(vm::stack *s);
 void tripleUnit(vm::stack *s);
-void tripleDir(vm::stack *s);
 void tripleDot(vm::stack *s);
 void tripleCross(vm::stack *s);
-  
+void intersectcubics(vm::stack *s);
+
 // Transform operations
 void transformIdentity(vm::stack *s);
 void transformInverse(vm::stack *s);
@@ -162,24 +163,6 @@ void boolTransformNeq(vm::stack *s);
 
 // Path operations
 void nullPath(vm::stack *s);
-void pathIntPoint(vm::stack *s);
-void pathRealPoint(vm::stack *s);
-void pathIntPrecontrol(vm::stack *s);
-void pathRealPrecontrol(vm::stack *s);
-void pathIntPostcontrol(vm::stack *s);
-void pathRealPostcontrol(vm::stack *s);
-void pathIntDirection(vm::stack *s);
-void pathRealDirection(vm::stack *s);
-void pathReverse(vm::stack *s);
-void pathSubPath(vm::stack *s);
-void pathSubPathReal(vm::stack *s);
-void pathLength(vm::stack *s);
-void pathCyclic(vm::stack *s);
-void pathStraight(vm::stack *s);
-void pathArcLength(vm::stack *s);
-void pathArcTimeOfLength(vm::stack *s);
-void pathDirectionTime(vm::stack *s);
-void pathIntersectionTime(vm::stack *s);
 void pathSize(vm::stack *s);
 void pathMax(vm::stack *s);
 void pathMin(vm::stack *s);
@@ -255,6 +238,7 @@ void radialShade(vm::stack *s);
 void gouraudShade(vm::stack *s);
 void clip(vm::stack *s);
 void beginClip(vm::stack *s);
+void inside(vm::stack *s);
 
 void postscript(vm::stack *s);
 void tex(vm::stack *s);
@@ -282,7 +266,7 @@ void execute(vm::stack *s);
 void eval(vm::stack *s);
   
 // I/O Routines
-void newFile(vm::stack *s);
+void standardOut(vm::stack *s);
 void fileOpenOut(vm::stack *s);
 void fileOpenIn(vm::stack *s);
 void fileOpenXOut(vm::stack *s);
@@ -304,6 +288,9 @@ void fileSingleMode(vm::stack *s);
 void fileArray1(vm::stack *s);
 void fileArray2(vm::stack *s);
 void fileArray3(vm::stack *s);
+void boolFileEq(vm::stack *s);
+void boolFileNeq(vm::stack *s);
+void nullFile(vm::stack *s);
 
 void readChar(vm::stack *s);
 
@@ -316,6 +303,8 @@ vm::array *copyArray2(vm::stack *s);
 // Math routines  
 void pairArrayFFT(vm::stack *s);
 void tridiagonal(vm::stack *s);
+void quadraticRoots(vm::stack *s);  
+void cubicRoots(vm::stack *s);  
  
 } // namespace run
 

@@ -26,9 +26,22 @@ void reportError(const string& desc)
   throw handled_error(); 
 }
 
+// Used internally to report a warning in an operation.
+void reportWarning(const string& desc)
+{
+  em->runtime(vm::getPos());
+  *em << "warning: " << desc;
+  em->sync();
+}
+
 void reportError(const std::ostringstream& desc)
 {
   reportError(desc.str());
+}
+  
+void reportWarning(const std::ostringstream& desc)
+{
+  reportWarning(desc.str());
 }
   
 } // namespace camp

@@ -193,45 +193,6 @@ void write(vm::stack *s)
 }
 
 template<class T>
-void writen(vm::stack *s)
-{
-  T val = pop<T>(s);
-  if(settings::suppressStandard) return;
-  camp::Stdout.resetlines();
-  camp::Stdout.write(val);
-  camp::Stdout.writeline();
-}
-
-template<class T>
-void write2(vm::stack *s)
-{
-  T val2 = pop<T>(s);
-  T val1 = pop<T>(s);
-  if(settings::suppressStandard) return;
-  camp::Stdout.resetlines();
-  camp::Stdout.write(val1);
-  camp::Stdout.write(tab);
-  camp::Stdout.write(val2);
-  camp::Stdout.writeline();
-}
-
-template<class T>
-void write3(vm::stack *s)
-{
-  T val3 = pop<T>(s);
-  T val2 = pop<T>(s);
-  T val1 = pop<T>(s);
-  if(settings::suppressStandard) return;
-  camp::Stdout.resetlines();
-  camp::Stdout.write(val1);
-  camp::Stdout.write(tab);
-  camp::Stdout.write(val2);
-  camp::Stdout.write(tab);
-  camp::Stdout.write(val3);
-  camp::Stdout.writeline();
-}
-
-template<class T>
 void writeP(vm::stack *s)
 {
   const T& val = *(pop<T*>(s));
@@ -241,16 +202,6 @@ void writeP(vm::stack *s)
   f->write(val);
 }
   
-template<class T>
-void writenP(vm::stack *s)
-{
-  const T& val = *(pop<T*>(s));
-  if(settings::suppressStandard) return;
-  camp::Stdout.resetlines();
-  camp::Stdout.write(val);
-  camp::Stdout.writeline();
-}
-
 // write an array to stdout, with indices
 template<class T>
 void showArray(vm::stack *s)

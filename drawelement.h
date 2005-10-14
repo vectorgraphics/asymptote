@@ -257,6 +257,10 @@ public:
     for(size_t i=0; i < size; i++) 
       out->write(vm::read<path>(P,i),i == 0);
   }
+  
+  void clip(texfile *out, const pen& p) {
+    out->beginclip(new clipper(P,p));
+  }
 };
  
 }

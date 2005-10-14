@@ -41,6 +41,9 @@ typedef vector<score> score_vector;
 // temporary.
 typedef vector<tempExp *> temp_vector;
 
+// Forward declaration.
+struct arg;
+
 struct arg : public gc {
   virtual ~arg() {}
   varinit *v;
@@ -52,6 +55,12 @@ struct arg : public gc {
   virtual void trans(coenv &e, temp_vector &) {
     v->transToType(e, t);
   }
+};
+
+// Pushes a default argument token on the stack as a placeholder for the
+// argument.
+struct defaultArg : public arg {
+  defaultArg(types::ty *t);
 };
 
 // This class generates sequenced args, args whose side-effects occur in order

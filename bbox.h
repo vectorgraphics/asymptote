@@ -164,6 +164,10 @@ struct bbox {
     return pair(right,top);
   }
   
+  double diameter() {
+    return (Max()-Min()).length();
+  }
+  
   bbox LowRes() const
   {
     return bbox(floor(left),floor(bottom),ceil(right),ceil(top));

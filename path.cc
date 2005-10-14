@@ -3,6 +3,9 @@
  * Andy Hammerlindl 2002/06/06
  *
  * Stores and returns information on a predefined path.
+ *
+ * When changing the path algorithms, also update the corresponding 
+ * three-dimensional algorithms in path3.cc and three.asy.
  *****/
 
 #include <cfloat>
@@ -11,13 +14,9 @@
 #include "angle.h"
 #include "camperror.h"
 
+static double Fuzz=10.0*DBL_EPSILON;
+  
 namespace camp {
-
-struct quad 
-{
-  enum { NONE, SINGLE, DOUBLE, ANY } roots;
-  double t1,t2;
-};
 
 // Accurate computation of sqrt(1+x)-1.
 inline double sqrt1pxm1(double x)
@@ -25,58 +24,132 @@ inline double sqrt1pxm1(double x)
   return x/(sqrt(1.0+x)+1.0);
 }
   
-// Solve the quadratic equation ax^2+bx+c=0.
-inline quad solveQuadratic(double a, double b, double c)
+// Solve for the real roots of the quadratic equation ax^2+bx+c=0.
+quadraticroots::quadraticroots(double a, double b, double c)
 {
-  quad ret;
-  
   if(a == 0.0) {
     if(b != 0.0) {
-      ret.roots=quad::SINGLE;
-      ret.t1=-c/b;
+      distinct=quadraticroots::ONE;
+      roots=1;
+      t1=-c/b;
     } else if(c == 0.0) {
-      ret.roots=quad::ANY;
-      ret.t1=0.0;
-      } else
-      ret.roots=quad::NONE;
+      distinct=quadraticroots::MANY;
+      roots=1;
+      t1=0.0;
+    } else {
+      distinct=quadraticroots::NONE;
+      roots=0;
+    }
   } else if(b == 0.0) {
     double x=-c/a;
     if(x >= 0.0) {
-      ret.roots=quad::DOUBLE;
-      ret.t2=sqrt(x);
-      ret.t1=-ret.t2;
-    } else
-      ret.roots=quad::NONE;
+      distinct=quadraticroots::TWO;
+      roots=2;
+      t2=sqrt(x);
+      t1=-t2;
+    } else {
+      distinct=quadraticroots::NONE;
+      roots=0;
+    }
   } else {
     double factor=0.5*b/a;
     double x=-2.0*c/(b*factor);
     if(x > -1.0) {
-      ret.roots = quad::DOUBLE;
+      distinct = quadraticroots::TWO;
+      roots=2;
       double sqrtm1=sqrt1pxm1(x);
       double r2=factor*sqrtm1;
       double r1=-r2-2.0*factor;
       if(r1 <= r2) {
-	ret.t1=r1;
-	ret.t2=r2;
+	t1=r1;
+	t2=r2;
       } else {
-	ret.t1=r2;
-	ret.t2=r1;
+	t1=r2;
+	t2=r1;
       }
     } else if(x == -1.0) {
-      ret.roots=quad::SINGLE;
-      ret.t1=ret.t2=-factor;
-    } else
-      ret.roots=quad::NONE;
+      distinct=quadraticroots::ONE;
+      roots=2;
+      t1=t2=-factor;
+    } else {
+      distinct=quadraticroots::NONE;
+      roots=0;
+    }
   }
-  return ret;
 }
 
+// Accurate computation of cbrt(sqrt(1+x)+1)-cbrt(sqrt(1+x)-1).
+inline double cbrtsqrt1pxm(double x)
+{
+  double s=sqrt1pxm1(x);
+  return 2.0/(cbrt(x+2.0*(sqrt(1.0+x)+1.0))+cbrt(x)+cbrt(s*s));
+}
+  
+// Taylor series of cos((atan(1.0/w)+pi)/3.0).
+static inline double costhetapi3(double w)
+{
+  static const double c1=1.0/3.0;
+  static const double c3=-19.0/162.0;
+  static const double c5=425.0/5832.0;
+  static const double c7=-16829.0/314928.0;
+  double w2=w*w;
+  double w3=w2*w;
+  double w5=w3*w2;
+  return c1*w+c3*w3+c5*w5+c7*w5*w2;
+}
+      
+// Solve for the real roots of the cubic equation ax^3+bx^2+cx+d=0.
+cubicroots::cubicroots(double a, double b, double c, double d) 
+{
+  static const double third=1.0/3.0;
+  static const double ninth=1.0/9.0;
+  static const double fiftyfourth=1.0/54.0;
+  
+  // Remove roots at numerical infinity.
+  if(fabs(a) <= Fuzz*(fabs(b)+fabs(c)*Fuzz+fabs(d)*Fuzz*Fuzz)) {
+    quadraticroots q(b,c,d);
+    roots=q.roots;
+    if(q.roots >= 1) t1=q.t1;
+    if(q.roots == 2) t2=q.t2;
+    return;
+  }
+  
+  double ainv=1.0/a;
+  b *= ainv; c *= ainv; d *= ainv;
+  
+  double b2=b*b;
+  double Q=(3.0*c-b2)*ninth;
+  double Q3=Q*Q*Q;
+  double R=(9.0*b*c-27.0*d-2.0*b2*b)*fiftyfourth;
+  double R2=R*R;
+  double D=Q3+R2;
+  double mthirdb=-b*third;
+  double x=Q3/R2;
+  
+  if(D > 0.0) {
+    roots=1;
+    t1=mthirdb;
+    if(R != 0.0) t1 += cbrt(R)*cbrtsqrt1pxm(x);
+  } else {
+    roots=3;
+    double u=-x-1;
+    double v=u >= 0.0 ? sqrt(u) : 0.0;
+    double theta=atan(v);
+    double factor=2*cbrt(sqrt(-x)*R);
+      
+    t1=mthirdb+factor*cos(third*theta);
+    t2=mthirdb-factor*cos(third*(theta-PI));
+    t3=mthirdb-factor*
+      ((v < 100.0) ? cos(third*(theta+PI)) : costhetapi3(1/v)); 
+  }
+}
+  
 pair path::point(double t) const
 {
   emptyError();
     
   // NOTE: there may be better methods, but let's not split hairs, yet.
-  int i = ifloor(t);
+  int i = Floor(t);
   int iplus;
   t = fmod(t,1);
   if (t < 0) t += 1;
@@ -108,13 +181,17 @@ pair path::point(double t) const
   return abcd;
 }
 
+static inline bool degenerate(pair a, pair b) 
+{
+  return a.getx() == b.getx() || a.gety() == b.gety();
+}
 
 pair path::precontrol(double t) const
 {
   emptyError();
 		     
   // NOTE: may be better methods, but let's not split hairs, yet.
-  int i = ifloor(t);
+  int i = Floor(t);
   int iplus;
   t = fmod(t,1);
   if (t < 0) t += 1;
@@ -139,7 +216,7 @@ pair path::precontrol(double t) const
        bc   = one_t*b   + t*c,
        abc  = one_t*ab  + t*bc;
 
-  return abc;
+  return (abc == a) ? nodes[i].pre : abc;
 }
         
  
@@ -148,7 +225,7 @@ pair path::postcontrol(double t) const
   emptyError();
   
   // NOTE: may be better methods, but let's not split hairs, yet.
-  int i = ifloor(t);
+  int i = Floor(t);
   int iplus;
   t = fmod(t,1);
   if (t < 0) t += 1;
@@ -165,7 +242,7 @@ pair path::postcontrol(double t) const
     iplus = i+1;
 
   double one_t = 1.0-t;
-
+  
   pair b = nodes[i].post,
        c = nodes[iplus].pre,
        d = nodes[iplus].point,
@@ -173,7 +250,7 @@ pair path::postcontrol(double t) const
        cd   = one_t*c   + t*d,
        bcd  = one_t*bc  + t*cd;
 
-  return bcd;
+  return (bcd == d) ? nodes[iplus].post : bcd;
 }
 
 
@@ -184,7 +261,7 @@ path path::reverse() const
     nodes[i].pre = postcontrol(j);
     nodes[i].point = point(j);
     nodes[i].post = precontrol(j);
-    nodes[i].straight = straight(j);
+    nodes[i].straight = straight(j-1);
   }
   return path(nodes, n, cycles);
 }
@@ -267,7 +344,7 @@ path path::subpath(double start, double end) const
   if (start == end) return path(point(start));
 
   solvedKnot sn[3];
-  path p = subpath(iceil(start), ifloor(end));
+  path p = subpath(Ceil(start), Floor(end));
   if (start > floor(start)) {
     if (end < ceil(start)) {
       splitCubic(sn,start-floor(start),startL,startR);
@@ -300,24 +377,24 @@ bbox path::bounds() const
     return bbox(/* empty */);
   }
 
-  bbox box;
+  if(!box.empty) return box;
+  
   for (int i = 0; i < length(); i++) {
     box += point(i);
     if(straight(i)) continue;
     
     pair a,b,c;
     derivative(a,b,c,point(i),postcontrol(i),precontrol(i+1),point(i+1));
-    quad ret;
     
     // Check x coordinate
-    ret=solveQuadratic(a.getx(),b.getx(),c.getx());
-    if(ret.roots != quad::NONE) box += point(i+ret.t1);
-    if(ret.roots == quad::DOUBLE) box += point(i+ret.t2);
+    quadraticroots x(a.getx(),b.getx(),c.getx());
+    if(x.distinct != quadraticroots::NONE) box += point(i+x.t1);
+    if(x.distinct == quadraticroots::TWO) box += point(i+x.t2);
     
     // Check y coordinate
-    ret=solveQuadratic(a.gety(),b.gety(),c.gety());
-    if(ret.roots != quad::NONE) box += point(i+ret.t1);
-    if(ret.roots == quad::DOUBLE) box += point(i+ret.t2);
+    quadraticroots y(a.gety(),b.gety(),c.gety());
+    if(y.distinct != quadraticroots::NONE) box += point(i+y.t1);
+    if(y.distinct == quadraticroots::TWO) box += point(i+y.t2);
   }
   box += point(length());
   return box;
@@ -434,21 +511,21 @@ inline double cubicDir(const solvedKnot& left, const solvedKnot& right,
   derivative(a,b,c,left.point,left.post,right.pre,right.point);
   a *= rot; b *= rot; c *= rot;
   
-  quad ret = solveQuadratic(a.gety(),b.gety(),c.gety());
-  switch(ret.roots) {
-    case quad::ANY:
-    case quad::SINGLE:
+  quadraticroots ret(a.gety(),b.gety(),c.gety());
+  switch(ret.distinct) {
+    case quadraticroots::MANY:
+    case quadraticroots::ONE:
       {
       if(goodroot(a.getx(),b.getx(),c.getx(),ret.t1)) return ret.t1;
       } break;
 
-    case quad::DOUBLE:
+    case quadraticroots::TWO:
       {
       if(goodroot(a.getx(),b.getx(),c.getx(),ret.t1)) return ret.t1;
       if(goodroot(a.getx(),b.getx(),c.getx(),ret.t2)) return ret.t2;
       } break;
 
-    case quad::NONE:
+    case quadraticroots::NONE:
       break;
   }
 
@@ -481,10 +558,10 @@ double path::directiontime(pair dir) const {
 
 // {{{ Path Intersection Calculation
 
-// Algorithm stolen from Knuth's MetaFont
+// Algorithm derived from Knuth's MetaFont
 pair intersectcubics(solvedKnot left1, solvedKnot right1,
                      solvedKnot left2, solvedKnot right2,
-                     int depth = 48) 
+		     double fuzz, int depth=DBL_MANT_DIG)
 {
   const pair F(-1,-1);
 
@@ -493,38 +570,51 @@ pair intersectcubics(solvedKnot left1, solvedKnot right1,
   box1 += right1.pre;  box1 += right1.point;
   box2 += left2.point; box2 += left2.post;
   box2 += right2.pre;  box2 += right2.point;
-  if (box1.Max().getx() >= box2.Min().getx() &&
-      box1.Max().gety() >= box2.Min().gety() &&
-      box2.Max().getx() >= box1.Min().getx() &&
-      box2.Max().gety() >= box1.Min().gety()) {
-    if (depth == 0) return pair(0,0);
+  
+  double lambda=box1.diameter()+box2.diameter();
+  
+  if (box1.Max().getx()+fuzz >= box2.Min().getx() &&
+      box1.Max().gety()+fuzz >= box2.Min().gety() &&
+      box2.Max().getx()+fuzz >= box1.Min().getx() &&
+      box2.Max().gety()+fuzz >= box1.Min().gety()) {
+    if(lambda <= fuzz || depth == 0) return pair(0,0);
     solvedKnot sn1[3], sn2[3];
     splitCubic(sn1,0.5,left1,right1);
     splitCubic(sn2,0.5,left2,right2);
     pair t;
     depth--;
-    if ((t=intersectcubics(sn1[0],sn1[1],sn2[0],sn2[1],depth)) != F)
+    if ((t=intersectcubics(sn1[0],sn1[1],sn2[0],sn2[1],fuzz,depth)) != F)
       return t*0.5;
-    if ((t=intersectcubics(sn1[0],sn1[1],sn2[1],sn2[2],depth)) != F)
+    if ((t=intersectcubics(sn1[0],sn1[1],sn2[1],sn2[2],fuzz,depth)) != F)
       return t*0.5+pair(0,1);
-    if ((t=intersectcubics(sn1[1],sn1[2],sn2[0],sn2[1],depth)) != F)
+    if ((t=intersectcubics(sn1[1],sn1[2],sn2[0],sn2[1],fuzz,depth)) != F)
       return t*0.5+pair(1,0);
-    if ((t=intersectcubics(sn1[1],sn1[2],sn2[1],sn2[2],depth)) != F)
+    if ((t=intersectcubics(sn1[1],sn1[2],sn2[1],sn2[2],fuzz,depth)) != F)
       return t*0.5+pair(1,1);
   }
   return F;
 }
 
 // TODO: Handle corner cases. (Done I think)
-pair intersectiontime(path p1, path p2)
+pair intersectiontime(path p1, path p2, double fuzz=0.0)
 {
+  fuzz=max(fuzz,Fuzz*(length(p1.max()-p1.min())+
+		      length(p2.max()-p2.min())));
   const pair F(-1,-1);
-  for (int i = 0; i < p1.length(); i++) {
-    for (int j = 0; j < p2.length(); j++) {
-      pair t=intersectcubics(p1.nodes[i],(p1.cycles && i == p1.n-1) ?
-			     p1.nodes[0] : p1.nodes[i+1],
-			     p2.nodes[j],(p2.cycles && j == p2.n-1) ?
-			     p2.nodes[0] : p2.nodes[j+1]);
+  solvedKnot *n1=p1.Nodes();
+  solvedKnot *n2=p2.Nodes();
+  int L1=p1.length();
+  int L2=p2.length();
+  int icycle=p1.cyclic() ? p1.size()-1 : -1;
+  int jcycle=p2.cyclic() ? p2.size()-1 : -1;
+  if(p1.size() == 1) {L1=1; icycle=0;}
+  if(p2.size() == 1) {L2=1; jcycle=0;}
+  for (int i = 0; i < L1; i++) {
+    solvedKnot& left1=n1[i];
+    solvedKnot& right1=(i == icycle) ? n1[0] : n1[i+1];
+    for (int j = 0; j < L2; j++) {
+      pair t=intersectcubics(left1,right1,
+			     n2[j],(j == jcycle) ? n2[0] : n2[j+1],fuzz);
       if (t != F) return t*0.5 + pair(i,j);
     }
   }
@@ -599,6 +689,87 @@ path concat(path p1, path p2)
   nodes[i].point = nodes[i].post = p2.point(n2);
 
   return path(nodes, i+1);
+}
+
+// Increment count if the path has a vertical component at t.
+bool path::Count(int& count, double t) const
+{
+  pair z=point(t);
+  double pre=unit(z-precontrol(t)).gety();
+  double post=unit(postcontrol(t)-z).gety();
+  if(pre == 0.0) pre=post;
+  if(post == 0.0) post=pre;
+  int incr=(pre*post > Fuzz) ? sgn1(pre) : 0;
+  count += incr;
+  return incr != 0.0;
+}
+  
+// Count if t is in (begin,end] and z lies to the left of point(i+t).
+void path::countleft(int& count, double x, int i, double t, double begin,
+		     double end, double& mint, double& maxt) const 
+{
+  if(begin < t && t <= end && x < point(i+t).getx() && Count(count,i+t)) {
+    if(t > maxt) maxt=t;
+    if(t < mint) mint=t;
+  }
+}
+
+// Return the insideness count for the point z relative to the region
+// bounded by the (cyclic) path.
+int path::inside(const pair& z) const
+{
+  if(!cycles)
+    reportError("path is not cyclic");
+  int count=0;
+  
+  double x=z.getx();
+  double y=z.gety();
+  
+  double begin=-Fuzz;
+  double end=1.0+Fuzz;
+      
+  double bottom=bounds().bottom;
+  double top=bounds().top;
+  
+  for(int i=0; i < n; ++i) {
+    if(z.gety() >= bottom && z.gety() <= top) {
+      pair a=point(i);
+      pair d=point(i+1);
+      
+      double mint=1.0;
+      double maxt=0.0;
+      double stop=(i < n-1) ? 1.0+Fuzz : end;
+      
+      if(straight(i)) {
+	double denom=d.gety()-a.gety();
+	if(denom != 0.0)
+	  countleft(count,x,i,(z.gety()-a.gety())/denom,begin,stop,mint,maxt);
+      } else {
+	pair b=postcontrol(i);
+	pair c=precontrol(i+1);
+    
+	double A=-a.gety()+3.0*(b.gety()-c.gety())+d.gety();
+	double B=3.0*(a.gety()-2.0*b.gety()+c.gety());
+	double C=3.0*(-a.gety()+b.gety());
+	double D=a.gety()-y;
+    
+	cubicroots r(A,B,C,D);
+
+	if(r.roots >= 1) countleft(count,x,i,r.t1,begin,stop,mint,maxt);
+	if(r.roots >= 2) countleft(count,x,i,r.t2,begin,stop,mint,maxt);
+	if(r.roots >= 3) countleft(count,x,i,r.t3,begin,stop,mint,maxt);
+      }
+      
+      // Avoid double-counting endpoint roots.      
+      if(i == 0)
+	end=camp::min(mint-Fuzz,Fuzz)+1.0;
+      if(mint <= maxt)
+	begin=camp::max(maxt+Fuzz-1.0,-Fuzz); 
+      else // no root found
+	begin=-Fuzz;
+    }
+  }
+  return count;
 }
 
 path path::transformed(const transform& t) const

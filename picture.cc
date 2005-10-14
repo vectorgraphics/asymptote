@@ -35,23 +35,30 @@ picture::~picture()
 {
 }
 
-// Find beginning of current layer.
-nodelist::iterator picture::layerstart()
+void picture::enclose(drawElement *begin, drawElement *end)
 {
-  nodelist::iterator p;
-  for(p=nodes.end(); p != nodes.begin();) {
-    --p;
+  assert(begin);
+  assert(end);
+  lastnumber=0;
+  nodes.push_front(begin);
+  for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    if((*p)->islayer()) {++p; break;}
+    if((*p)->islayer()) {
+      nodes.insert(p,end);
+      ++p;
+     while(p != nodes.end() && (*p)->islayer()) ++p;
+     if(p == nodes.end()) return;
+     nodes.insert(p,begin);
+    }
   }
-  return p;
+  nodes.push_back(end);
 }
 
-// Insert at beginning of current layer.
-void picture::prepend(drawElement *P)
+// Insert at beginning of picture.
+void picture::prepend(drawElement *p)
 {
-  assert(P);
-  nodes.insert(layerstart(),P);
+  assert(p);
+  nodes.push_front(p);
   lastnumber=0;
 }
 
@@ -69,13 +76,29 @@ void picture::add(picture &pic)
   copy(pic.nodes.begin(), pic.nodes.end(), back_inserter(nodes));
 }
 
-// Insert picture pic at beginning of current layer.
+// Insert picture pic at beginning of picture.
 void picture::prepend(picture &pic)
 {
   if (&pic == this) return;
   
-  copy(pic.nodes.begin(), pic.nodes.end(), inserter(nodes, layerstart()));
+  copy(pic.nodes.begin(), pic.nodes.end(), inserter(nodes, nodes.begin()));
   lastnumber=0;
+}
+
+bool picture::havelabels()
+{
+  size_t n=nodes.size();
+  if(n > lastnumber && !labels && settings::texprocess) {
+    // Check to see if there are any labels yet
+    nodelist::iterator p=nodes.begin();
+    for(size_t i=0; i < lastnumber; ++i) ++p;
+    for(; p != nodes.end(); ++p) {
+      assert(*p);
+      if((*p)->islabel())
+        labels=true;
+    }
+  }
+  return labels;
 }
 
 bbox picture::bounds()
@@ -85,25 +108,9 @@ bbox picture::bounds()
   
   if(lastnumber == 0) b=bbox();
   
-  nodelist::iterator p;
+  if(havelabels()) texinit();
   
-  if(!labels && settings::texprocess) {
-    // Check to see if there are any labels yet
-    p=nodes.begin();
-    for(size_t i=0; i < lastnumber; ++i) ++p;
-    for(; p != nodes.end(); ++p) {
-      assert(*p);
-      if((*p)->islabel())
-        labels=true;
-    }
-  }
-  
-  if(labels) {
-    drawElement::lastpen=pen(initialpen);
-    texinit();
-  }
-  
-  p=nodes.begin();
+  nodelist::iterator p=nodes.begin();
   for(size_t i=0; i < lastnumber; ++i) ++p;
   for(; p != nodes.end(); ++p) {
     assert(*p);
@@ -116,6 +123,7 @@ bbox picture::bounds()
 
 void picture::texinit()
 {
+  drawElement::lastpen=pen(initialpen);
   // Output any new texpreamble commands
   if(TeXinitialized) {
     if(TeXpipepreamble.empty()) return;
@@ -129,10 +137,10 @@ void picture::texinit()
     }
   }
   
-  tex.open("latex");
-  texdocumentclass(tex);
+  tex.open(LaTeX.c_str(),"ASYMPTOTE_LATEX","latex");
+  texdocumentclass(tex,true);
   
-  texdefines(tex,TeXpipepreamble);
+  texdefines(tex,TeXpipepreamble,true);
   TeXpipepreamble.clear();
 
   tex << "\n";
@@ -150,11 +158,11 @@ bool picture::texprocess(const string& texname, const string& outname,
   if(outfile) {
     outfile.close();
     ostringstream cmd;
-    cmd << "latex \\scrollmode\\input " << texname;
+    cmd << LaTeX << " \\scrollmode\\input " << texname;
     bool quiet=verbose <= 1;
-    status=System(cmd,quiet);
+    status=System(cmd,quiet,true,"ASYMPTOTE_LATEX","latex");
     if(status) {
-      if(quiet) status=System(cmd);
+      if(quiet) status=System(cmd,true,"ASYMPTOTE_LATEX","latex");
       return false;
     }
     string dviname=auxname(prefix,"dvi");
@@ -180,11 +188,11 @@ bool picture::texprocess(const string& texname, const string& outname,
 
     string psname=auxname(prefix,"ps");
     ostringstream dcmd;
-    dcmd << "dvips -R -t " << paperType << "size -O " << hoffset << "bp,"
-	 << voffset << "bp";
+    dcmd << Dvips << " -R -t " << paperType 
+	 << "size -O " << hoffset << "bp," << voffset << "bp";
     if(verbose <= 1) dcmd << " -q";
     dcmd << " -o " << psname << " " << dviname;
-    status=System(dcmd);
+    status=System(dcmd,false,true,"ASYMPTOTE_DVIPS","dvips");
     
     bbox bcopy=bpos;
     double hfuzz=0.1;
@@ -227,37 +235,39 @@ bool picture::texprocess(const string& texname, const string& outname,
 }
 
 bool picture::postprocess(const string& epsname, const string& outname,
-			  const string& outputformat, bool wait,
+			  const string& outputformat, bool wait, bool quiet,
 			  const bbox& bpos)
 {
   int status=0;
   ostringstream cmd;
   
   if(!epsformat) {
-    if(pdfformat) cmd << Ghostscript
-		      << " -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
-                      << " -dAutoRotatePages=/None "
-		      << " -dDEVICEWIDTHPOINTS=" 
-		      << ceil(bpos.right-bpos.left+2.0)
-		      << " -dDEVICEHEIGHTPOINTS=" 
-		      << ceil(bpos.top-bpos.bottom+2.0)
-		      << " -sOutputFile=" << outname << " " << epsname;
-    else {
+    if(pdfformat) {
+      cmd << Ghostscript
+	  << " -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
+	  << " -dAutoRotatePages=/None "
+	  << " -dDEVICEWIDTHPOINTS=" 
+	  << ceil(bpos.right-bpos.left+2.0)
+	  << " -dDEVICEHEIGHTPOINTS=" 
+	  << ceil(bpos.top-bpos.bottom+2.0)
+	  << " -sOutputFile=" << outname << " " << epsname;
+      System(cmd,false,true,"ASYMPTOTE_GS","ghostscript");
+    } else {
       double expand=2.0;
       double res=(tgifformat ? deconstruct : expand)*72.0;
-      cmd << "convert -density " << res << "x" << res;
+      cmd << Convert << " -density " << res << "x" << res;
       if(!tgifformat) cmd << " +antialias -geometry " << 100.0/expand << "%x";
       cmd << " eps:" << epsname;
       if(tgifformat) cmd << " -transparent white gif";
       else cmd << " " << outputformat;
       cmd << ":" << outname;
+      System(cmd,false,true,"ASYMPTOTE_CONVERT","convert");
     }
-    System(cmd,false,true,"ASYMPTOTE_GS","ghostscript");
     if(!keep) unlink(epsname.c_str());
   }
   
   if(verbose > (tgifformat ? 1 : 0)) cout << "Wrote " << outname << endl;
-  if(view && !deconstruct) {
+  if(view && !quiet) {
     if(epsformat || pdfformat) {
       static int pid=0;
       static string lastoutname;
@@ -281,12 +291,9 @@ bool picture::postprocess(const string& epsname, const string& outname,
       } else if(Viewer == "gv") kill(pid,SIGHUP); // Tell gv to reread file.
     } else {
       ostringstream cmd;
-#ifdef MSDOS      
-      cmd << "imdisplay " << outname;
-#else      
-      cmd << "display " << outname;
-#endif      
-      status=System(cmd,false,wait);
+      cmd << Display << " " << outname;
+      string application="your "+outputformat+" viewer";
+      status=System(cmd,false,wait,"ASYMPTOTE_DISPLAY",application.c_str());
       if(status) return false;
     }
   }
@@ -295,9 +302,9 @@ bool picture::postprocess(const string& epsname, const string& outname,
 }
 
 bool picture::shipout(const picture& preamble, const string& prefix,
-		      const string& format, bool wait, bool Delete)
+		      const string& format, bool wait, bool quiet, bool Delete)
 {
-  if(settings::suppressStandard) return true;
+  if(suppressStandard) return true;
   
   checkFormatString(format);
   string outputformat=format.empty() ? outformat : format;
@@ -319,9 +326,12 @@ bool picture::shipout(const picture& preamble, const string& prefix,
     if(bboxout) bboxout.close();
     if(view) {
       ostringstream cmd;
-      cmd << "xasy " << buildname(prefix) 
+      if(Python != "") cmd << Python << " ";
+      cmd << Xasy << " " << buildname(prefix) 
 	  << " " << ShipoutNumber << " " << buildname(settings::outname);
-      System(cmd,false,true);
+      System(cmd,false,true,
+	     Python != "" ? "ASYMPTOTE_PYTHON" : "ASYMPTOTE_XASY",
+	     Python != "" ? "python" : "xasy");
     }
     ShipoutNumber++;
     return true;
@@ -329,7 +339,10 @@ bool picture::shipout(const picture& preamble, const string& prefix,
       
   bbox bpos=b;
   
-  if(!labels && pdfformat) {
+  bool TeXmode=texmode && settings::texprocess;
+  bool Labels=labels || TeXmode;
+  
+  if(!Labels && pdfformat) {
     double fuzz=1.0;
     bpos.left -= fuzz;
     bpos.right += fuzz;
@@ -370,7 +383,7 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   texfile *tex=NULL;
   bool status = true;
   
-  if(labels) {
+  if(Labels) {
     tex=new texfile(texname,b);
     tex->prologue();
   }
@@ -383,12 +396,12 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   while(p != nodes.end()) {
     ostringstream buf;
     buf << prefix << "_" << layer;
-    string psname=labels ? buildname(buf.str(),"ps") : epsname;
+    string psname=Labels ? buildname(buf.str(),"eps") : epsname;
     psnameStack.push_back(psname);
     psfile out(psname,bpos,bboxshift);
     out.prologue();
   
-    if(labels) tex->beginlayer(psname);
+    if(Labels) tex->beginlayer(psname);
   
     // Postscript preamble.
     nodelist Nodes=preamble.nodes;
@@ -408,13 +421,13 @@ bool picture::shipout(const picture& preamble, const string& prefix,
     
     for(; p != nodes.end(); ++p) {
       assert(*p);
-      if(labels && (*p)->islayer()) break;
+      if(Labels && (*p)->islayer()) break;
       if(!(*p)->draw(&out))
 	status = false;
     }
     out.epilogue();
   
-    if(status && labels) {
+    if(status && Labels) {
       for (p=layerp; p != nodes.end(); ++p) {
 	if((*p)->islayer()) {
 	  tex->endlayer();
@@ -430,16 +443,20 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   }
   
   if(status) {
-    if(labels) {
-      tex->epilogue();
-      status=texprocess(texname,epsname,prefix,bpos);
-      if(!keep) {
-	std::list<string>::iterator p;
-	for(p=psnameStack.begin(); p != psnameStack.end(); ++p)
-	  unlink(p->c_str());
+    if(TeXmode) {
+      if(verbose > 0) cout << "Wrote " << texname << endl;
+    } else {
+      if(labels) {
+	tex->epilogue();
+	status=texprocess(texname,epsname,prefix,bpos);
+	if(!keep)
+	  for(std::list<string>::iterator p=psnameStack.begin();
+	      p != psnameStack.end(); ++p)
+	    unlink(p->c_str());
       }
+      if(status)
+	status=postprocess(epsname,outname,outputformat,wait,quiet,bpos);
     }
-    if(status) status=postprocess(epsname,outname,outputformat,wait,bpos);
   }
   
   if(!status) reportError("shipout failed");

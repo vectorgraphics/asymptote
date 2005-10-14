@@ -131,17 +131,6 @@ transform3 lookAt(triple from, triple to)
 
 typedef pair project(triple v);
 
-struct projection {
-  public triple camera;
-  public transform3 project;
-  void init(triple camera, transform3 project) {
-    this.camera=camera;
-    this.project=project;
-  }
-}
-
-projection operator init() {return new projection;}
-  
 // Uses the homogenous coordinate to perform perspective distortion.  When
 // combined with a projection to the XY plane, this effectively maps
 // points in three space to a plane at a distance d from the camera.
@@ -188,7 +177,7 @@ projection oblique(real angle=45)
 
 projection oblique=oblique();
 
-public projection currentprojection=perspective(5,4,2);
+currentprojection=perspective(5,4,2);
 
 pair projectXY(triple v)
 {
@@ -388,9 +377,9 @@ struct flatguide3 {
 
 flatguide3 operator init() {return new flatguide3;}
   
-void write(file file, explicit flatguide3 g)
+void _write(file file, explicit flatguide3 g)
 {
-  if(g.size() == 0) write("<nullpath3>");
+  if(g.size() == 0) write(file,"<nullpath3>");
   else for(int i=0; i < g.nodes.length; ++i) {
     if(i > 0) write(file);
     if(g.cyclic[i]) write(file,"cycle3");
@@ -406,24 +395,33 @@ void write(file file, explicit flatguide3 g)
     if(!g.control[i].active) write(file,g.in[i]);
   }
 }
-  
-void write(file file=stdout, explicit flatguide3 x,
-	   suffix s) {write(file,x); s(file);}
-void write(explicit flatguide3 g) {write(stdout,g,endl);}
-
-void write(file file, flatguide3[] g)
+void write(file file=stdout, string s="", flatguide3 x, suffix e)
 {
-  if(g.length > 0) write(file,g[0]);
-  for(int i=1; i < g.length; ++i) {
-    write(file);
-    write(file," ^^");
-    write(file,g[i]);
-  }
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=null, string s="", flatguide3 x)
+{
+  if(file == null) {write(stdout,s,x); endl(stdout); return;}
+  _write(file,s); _write(file,x);
 }
 
-void write(file file=stdout, flatguide3[] x, suffix s)
+void _write(file file, flatguide3[] g)
 {
-  write(file,x); s(file);
+  if(g.length > 0) _write(file,g[0]);
+  for(int i=1; i < g.length; ++i) {
+    write(file);
+    _write(file," ^^");
+    _write(file,g[i]);
+  }
+}
+void write(file file=stdout, string s="", flatguide3[] x, suffix e)
+{
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=null, string s="", flatguide3[] x)
+{
+  if(file == null) {write(stdout,s,x); endl(stdout); return;}
+  _write(file,s); _write(file,x);
 }
 
 // A guide3 is most easily represented as something that modifies a flatguide3.
@@ -517,16 +515,16 @@ guide3 operator .. (... guide3[] g)
 
 guide3 operator ::(... guide3[] a)
 {
-  guide3 g;
-  for(int i=0; i < a.length; ++i)
+  guide3 g=(a.length > 0) ? a[0] : nullpath3;
+  for(int i=1; i < a.length; ++i)
     g=g..operator tension3(1,true)..a[i];
   return g;
 }
 
 guide3 operator ---(... guide3[] a)
 {
-  guide3 g;
-  for(int i=0; i < a.length; ++i)
+  guide3 g=(a.length > 0) ? a[0] : nullpath3;
+  for(int i=1; i < a.length; ++i)
     g=g..operator tension3(infinity,true)..a[i];
   return g;
 }
@@ -804,43 +802,57 @@ node[] nodes(int n)
 node operator init() {return new node;}
 
 struct bbox3 {
-  bool empty=true;
-  real left,bottom,lower;
-  real right,top,upper;
+  public bool empty=true;
+  public triple min,max;
   
   void add(triple v) {
-    real x=v.x; 
-    real y=v.y;
-    real z=v.z;
-    
     if(empty) {
-      left=right=x;
-      bottom=top=y;
-      lower=upper=z;
+      min=max=v;
       empty=false;
     } else {
-      if (x < left)
+      real x=v.x; 
+      real y=v.y;
+      real z=v.z;
+      
+      real left=min.x;
+      real bottom=min.y;
+      real lower=min.z;
+      
+      real right=max.x;
+      real top=max.y;
+      real upper=max.z;
+      
+      if(x < left)
 	left = x;  
-      if (x > right)
+      if(x > right)
 	right = x;  
-      if (y < bottom)
+      if(y < bottom)
 	bottom = y;
-      if (y > top)
+      if(y > top)
 	top = y;
-      if (z < lower)
+      if(z < lower)
 	lower = z;
-      if (z > upper)
+      if(z > upper)
 	upper = z;
+      
+      min=(left,bottom,lower);
+      max=(right,top,upper);	   
     }
   }
 
-  triple Min() {
-    return (left,bottom,lower);
+  void add(triple min, triple max) {
+    add(min);
+    add(max);
   }
   
-  triple Max() {
-    return (right,top,upper);
+  real diameter() {
+    return length(max-min);
   }
+  
+  triple O() {return min;}
+  triple X() {return (max.x,min.y,min.z);}
+  triple Y() {return (min.x,max.y,min.z);}
+  triple Z() {return (min.x,min.y,max.z);}
 }
 
 bbox3 operator init() {return new bbox3;}
@@ -890,7 +902,7 @@ struct path3 {
   
   bool straight(int i) {
     if (cycles) return nodes[i % n].straight;
-    return (i < n) ? nodes[i].straight : false;
+    return (i >= 0 && i < n) ? nodes[i].straight : false;
   }
   
   triple point(int i) {
@@ -937,7 +949,7 @@ struct path3 {
   {
     emptyError();
     
-    int i = floor(t);
+    int i = Floor(t);
     int iplus;
     t = fmod(t,1);
     if (t < 0) t += 1;
@@ -972,7 +984,7 @@ struct path3 {
   triple precontrol(real t) {
     emptyError();
 		     
-    int i = floor(t);
+    int i = Floor(t);
     int iplus;
     t = fmod(t,1);
     if (t < 0) t += 1;
@@ -1005,7 +1017,7 @@ struct path3 {
     emptyError();
   
     // NOTE: may be better methods, but let's not split hairs, yet.
-    int i = floor(t);
+    int i = Floor(t);
     int iplus;
     t = fmod(t,1);
     if (t < 0) t += 1;
@@ -1095,7 +1107,7 @@ struct path3 {
       nodes[i].pre = postcontrol(j);
       nodes[i].point = point(j);
       nodes[i].post = precontrol(j);
-      nodes[i].straight = straight(j);
+      nodes[i].straight = straight(j-1);
     }
     return path3(nodes,cycles,cached_length);
   }
@@ -1198,18 +1210,18 @@ struct path3 {
       endL = nodes[floor(end)];
       endR = nodes[ceil(end)];
     } else {
+      if(fabs(start) > intMax || fabs(end) > intMax)
+	abort("invalid path index");
       startL = nodes[floor(start) % n];
       startR = nodes[ceil(start) % n];
       endL = nodes[floor(end) % n];
       endR = nodes[ceil(end) % n];
     }
 
-    if (start == end) {
-      return path3(point(start));
-    }
+    if (start == end) return path3(point(start));
     
     node[] sn=nodes(3);
-    path3 p = subpath(ceil(start), floor(end));
+    path3 p = subpath(Ceil(start), Floor(end));
     if (start > floor(start)) {
       if (end < ceil(start)) {
 	splitCubic(sn,start-floor(start),startL,startR);
@@ -1226,60 +1238,6 @@ struct path3 {
     return p;
   }
   
-  static pair intersectcubics(node left1, node right1,
-			      node left2, node right2,
-			      int depth = 48) {
-    pair F=(-1,-1);
-
-    node left1=left1.copy();
-    node right1=right1.copy();
-    node left2=left2.copy();
-    node right2=right2.copy();
-    
-    bbox3 box1, box2;
-    box1.add(left1.point); box1.add(left1.post);
-    box1.add(right1.pre);  box1.add(right1.point);
-    box2.add(left2.point); box2.add(left2.post);
-    box2.add(right2.pre);  box2.add(right2.point);
-    if (box1.Max().x >= box2.Min().x &&
-	box1.Max().y >= box2.Min().y &&
-	box1.Max().z >= box2.Min().z &&
-	box2.Max().x >= box1.Min().x &&
-	box2.Max().y >= box1.Min().y &&
-	box2.Max().z >= box1.Min().z
-	) {
-      if (depth == 0) return (0,0);
-      node[] sn1=nodes(3), sn2=nodes(3);
-      splitCubic(sn1,0.5,left1,right1);
-      splitCubic(sn2,0.5,left2,right2);
-      pair t;
-      --depth;
-      if ((t=intersectcubics(sn1[0],sn1[1],sn2[0],sn2[1],depth)) != F)
-	return t*0.5;
-      if ((t=intersectcubics(sn1[0],sn1[1],sn2[1],sn2[2],depth)) != F)
-	return t*0.5+(0,1);
-      if ((t=intersectcubics(sn1[1],sn1[2],sn2[0],sn2[1],depth)) != F)
-	return t*0.5+(1,0);
-      if ((t=intersectcubics(sn1[1],sn1[2],sn2[1],sn2[2],depth)) != F)
-	return t*0.5+(1,1);
-    }
-    return F;
-  }
-
-  static pair intersect(path3 p1, path3 p2) {
-    pair F=(-1,-1);
-    for (int i = 0; i < p1.length(); ++i) {
-      for (int j = 0; j < p2.length(); ++j) {
-	pair t=intersectcubics(p1.nodes[i],(p1.cycles && i == p1.n-1) ?
-			       p1.nodes[0] : p1.nodes[i+1],
-			       p2.nodes[j],(p2.cycles && j == p2.n-1) ?
-			       p2.nodes[0] : p2.nodes[j+1]);
-	if (t != F) return t*0.5 + (i,j);
-      }
-    }
-    return F;  
-  }
-
   bbox3 bounds() {
     if (empty()) {
       // No bounds
@@ -1301,27 +1259,25 @@ struct path3 {
       triple b=2.0*(z0+z1m)-4.0*z0p;
       triple c=z0p-z0;
       
-      quad ret;
-    
       // Check x coordinate
-      ret=solveQuadratic(a.x,b.x,c.x);
-      if(ret.roots != quad.NONE) box.add(point(i+ret.x1));
-      if(ret.roots == quad.DOUBLE) box.add(point(i+ret.x2));
+      real[] roots=quadraticroots(a.x,b.x,c.x);
+      if(roots.length > 0) box.add(point(i+roots[0]));
+      if(roots.length > 1) box.add(point(i+roots[1]));
     
       // Check y coordinate
-      ret=solveQuadratic(a.y,b.y,c.y);
-      if(ret.roots != quad.NONE) box.add(point(i+ret.x1));
-      if(ret.roots == quad.DOUBLE) box.add(point(i+ret.x2));
+      roots=quadraticroots(a.y,b.y,c.y);
+      if(roots.length > 0) box.add(point(i+roots[0]));
+      if(roots.length > 1) box.add(point(i+roots[1]));
     }
     box.add(point(length()));
     return box;
   }
   
   triple max() {
-    return bounds().Max();
+    return bounds().max;
   }
   triple min() {
-    return bounds().Min();
+    return bounds().min;
   }
   
 }
@@ -1344,12 +1300,12 @@ path3 operator * (transform3 t, path3 p)
   return path3.path3(nodes,p.cycles);
 }
 
-void write(file file, path3 p)
+void _write(file file, explicit path3 p)
 {
   if(size(p) == 0) write("<nullpath3>");
   else for(int i=0; i < p.nodes.length; ++i) {
     if(i == p.nodes.length-1 && p.cycles) write(file,"cycle3");
-    else write(file,p.nodes[i].point,endl);
+    else write(file,p.nodes[i].point);
     if(i < length(p)) {
       if(p.nodes[i].straight) write(file,"--");
       else {
@@ -1362,9 +1318,15 @@ void write(file file, path3 p)
     }
   }
 }
-  
-void write(file file=stdout, path3 x, suffix s) {write(file,x); s(file);}
-void write(path3 g) {write(stdout,g,endl);}
+void write(file file=stdout, string s="", explicit path3 x, suffix e)
+{
+  _write(file,s); _write(file,x); e(file);
+}
+void write(file file=null, string s="", explicit path3 x)
+{
+  if(file == null) {write(stdout,s,x); endl(stdout); return;}
+  _write(file,s); _write(file,x);
+}
 
 path3 solve(flatguide3 g, projection Q=currentprojection)
 {
@@ -1459,6 +1421,7 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
   
   // Convert to Knuth's format (control points stored with nodes)
   node[] nodes=nodes(g.nodes.length);
+  if(g.nodes.length == 0) return new path3;
   bool cyclic=g.cyclic[g.cyclic.length-1];
   for(int i=0; i < g.nodes.length-1; ++i) {
     nodes[i].point=g.nodes[i];
@@ -1564,6 +1527,7 @@ path3 operator cast(guide3 g) {return solve(g);}
 path operator cast(path3 p) {return project(p);}
 path operator cast(triple v) {return project(v);}
 path operator cast(guide3 g) {return project(solve(g));}
+path3 operator cast(triple v) {return path3.path3(v);}
 
 path[] operator cast(path3 g) {return new path[] {(path) g};}
 path[] operator cast(guide3 g) {return new path[] {(path) g};}
@@ -1627,10 +1591,41 @@ path3 subpath(explicit guide3 g, real start, real end)
   return ((path3) g).subpath(start,end);
 }
 
-pair intersect(path3 p, path3 q) {return path3.intersect(p,q);}
-pair intersect(explicit guide3 p, explicit guide3 q)
+pair intersect(path3 p1, path3 p2, real fuzz=0)
 {
-  return path3.intersect((path3) p,(path3) q);
+  int L1=p1.length();
+  int L2=p2.length();
+  
+  node[] n1=p1.nodes;
+  node[] n2=p2.nodes;
+    
+  triple[] pre1=new triple[L1+1];
+  triple[] point1=new triple[L1+1];
+  triple[] post1=new triple[L1+1];
+    
+  triple[] pre2=new triple[L2+1];
+  triple[] point2=new triple[L2+1];
+  triple[] post2=new triple[L2+1];
+    
+  for(int i=0; i <= L1; ++i) {
+    pre1[i]=n1[i].pre;
+    point1[i]=n1[i].point;
+    post1[i]=n1[i].post;
+  }
+  for(int i=0; i <= L2; ++i) {
+    pre2[i]=n2[i].pre;
+    point2[i]=n2[i].point;
+    post2[i]=n2[i].post;
+  }
+  
+  fuzz=max(fuzz,10*realEpsilon()*(length(p1.max()-p1.min())+
+				  length(p2.max()-p2.min())));
+  return intersect(pre1,point1,post1,pre2,point2,post2,fuzz);
+}
+
+pair intersect(explicit guide3 p, explicit guide3 q, real fuzz=0)
+{
+  return intersect((path3) p,(path3) q,fuzz);
 }
 
 path3 operator & (path3 p, path3 q) {return p.concat(p,q);}
@@ -1638,6 +1633,11 @@ path3 operator & (explicit guide3 p, explicit guide3 q)
 {
   return ((path3) p).concat(p,q);
 }
+
+transform rotate(explicit triple dir)
+{
+  return rotate((pair) dir);
+} 
 
 void draw(frame f, guide3[] g, pen p=currentpen)
 {
@@ -1696,9 +1696,9 @@ path3 unitcircle3=X..Y..-X..-Y..cycle3;
 
 path3 circle(triple c, real r, triple normal=Z)
 {
-  path3 p=shift(c)*scale3(r)*unitcircle3;
+  path3 p=scale3(r)*unitcircle3;
   if(normal != Z) p=rotate(longitude(normal),Z)*rotate(colatitude(normal),Y)*p;
-  return p;
+  return shift(c)*p;
 }
 
 // return an arc centered at c with radius r from c+r*dir(theta1,phi1) to
@@ -1751,13 +1751,14 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
 
 static public real epsilon=1000*realEpsilon();
 
-// Return a representation of the plane passing through v1, v2, and v3.
-path3 plane(triple v1, triple v2, triple v3)
+// Return a representation of the plane through point O with normal cross(u,v).
+path3 plane(triple u, triple v, triple O=O)
 {
-  return v1--v2--v3--(v3+v1-v2)--cycle3;
+  return O--O+u--O+u+v--O+v--cycle3;
 }
 
-triple normal(path3 p, triple f(path3, int), triple normal=O) {
+triple normal(path3 p, triple f(path3, int), triple normal=O)
+{
   int n=size(p);
   for(int i=0; i < size(p)-1; ++i) {
     triple point=point(p,i);
@@ -1903,9 +1904,11 @@ splitface split(face a, face cut, projection P)
     else front=null;
   }
   if(front != null)
-    clip(front.fit,operator --(... rightfront ? h.right : h.left)--cycle);
+    clip(front.fit,operator --(... rightfront ? h.right : h.left)--cycle,
+	 zerowinding);
   if(back != null)
-    clip(back.fit,operator --(... rightfront ? h.left : h.right)--cycle);
+    clip(back.fit,operator --(... rightfront ? h.left : h.right)--cycle,
+	 zerowinding);
   S.back=back;
   S.front=front;
   return S;
@@ -1938,6 +1941,7 @@ struct bsp
   void add(frame f) {
     if(back != null) back.add(f);
     add(f,node.fit,group=true);
+    if(labels(node.fit)) layer(f); // Draw over any existing TeX layers.
     if(front != null) front.add(f);
   }
 }

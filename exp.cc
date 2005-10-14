@@ -37,8 +37,14 @@ void exp::transToType(coenv &e, types::ty *target)
 {
   types::ty *source=e.e.castSource(target, cgetType(e), symbol::castsym);
   if (source==0) {
+    types::ty *sources=cgetType(e);
     em->error(getPos());
-    *em << "cannot cast expression to '" << *target << "'";
+    *em << "cannot cast ";
+    if (sources->kind==ty_overloaded)
+      *em << "expression";
+    else
+      *em << "'" << *sources << "'";
+    *em << " to '" << *target << "'";
   }
   else if (source->kind==ty_overloaded) {
     em->error(getPos());
@@ -72,6 +78,35 @@ tempExp::tempExp(coenv &e, varinit *v, types::ty *t)
 types::ty *tempExp::trans(coenv &e) {
   a->encode(READ, getPos(), e.c);
   return t;
+}
+
+
+varEntryExp::varEntryExp(position pos, types::ty *t, access *a)
+  : exp(pos), v(new trans::varEntry(t, a)) {}
+varEntryExp::varEntryExp(position pos, types::ty *t, vm::bltin f)
+  : exp(pos), v(new trans::varEntry(t, new bltinAccess(f))) {}
+
+types::ty *varEntryExp::getType(coenv &) {
+  return v->getType();
+}
+
+types::ty *varEntryExp::trans(coenv &e) {
+  v->encode(READ, getPos(), e.c);
+  return getType(e);
+}
+
+void varEntryExp::transAct(action act, coenv &e, types::ty *target) {
+  assert(equivalent(getType(e),target));
+  v->encode(act, getPos(), e.c);
+}
+void varEntryExp::transAsType(coenv &e, types::ty *target) {
+  transAct(READ, e, target);
+}
+void varEntryExp::transWrite(coenv &e, types::ty *target) {
+  transAct(WRITE, e, target);
+}
+void varEntryExp::transCall(coenv &e, types::ty *target) {
+  transAct(CALL, e, target);
 }
 
 
@@ -891,7 +926,7 @@ types::ty *andExp::baseTrans(coenv &e)
 
 void joinExp::prettyprint(ostream &out, int indent)
 {
-  prettyindent(out,indent);
+  prettyname(out, "joinExp",indent);
 
   callee->prettyprint(out, indent+1);
   args->prettyprint(out, indent+1);
@@ -942,12 +977,13 @@ void assignExp::transAsType(coenv &e, types::ty *target)
 
 types::ty *assignExp::trans(coenv &e)
 {
-  types::ty *lt = dest->cgetType(e), *rt = ultimateValue(dest)->cgetType(e);
+  exp *uvalue=ultimateValue(dest);
+  types::ty *lt = dest->cgetType(e), *rt = uvalue->cgetType(e);
 
   if (lt->kind == ty_error)
     return dest->trans(e);
   if (rt->kind == ty_error)
-    return value->trans(e);
+    return uvalue->trans(e);
 
   types::ty *t = e.e.castTarget(lt, rt, symbol::castsym);
   if (!t) {

@@ -13,6 +13,7 @@
 using std::ofstream;
 using std::fixed;
 using std::setprecision;
+using settings::texmode;
   
 namespace camp {
 
@@ -41,24 +42,25 @@ texfile::~texfile()
 void texfile::prologue()
 {
   texdefines(*out);
-  *out << "\\usepackage{pstricks}" << newl
-       << "\\psset{unit=1pt}" << newl
-       << "\\pagestyle{empty}" << newl
-       << "\\textheight=2048pt" << newl
-       << "\\textwidth=\\textheight" << newl
-       << "\\begin{document}" << newl;
+  if(!texmode)
+    *out << "\\usepackage{pstricks}" << newl
+         << "\\pagestyle{empty}" << newl
+	 << "\\textheight=2048pt" << newl
+	 << "\\textwidth=\\textheight" << newl
+	 << "\\begin{document}" << newl;
+  *out << "\\psset{unit=1pt}" << newl;
 }
     
 void texfile::beginlayer(const string& psname)
 {
-  *out << "\\setbox\\ASYbox=\\hbox{\\includegraphics{" << psname << "}}%"
+  *out << "\\setbox\\ASYpsbox=\\hbox{\\includegraphics{" << psname << "}}%"
        << newl
        << "\\includegraphics{" << psname << "}%" << newl;
 }
 
 void texfile::endlayer()
 {
-  *out << "\\kern-\\wd\\ASYbox%" << newl;
+  *out << "\\kern-\\wd\\ASYpsbox%" << newl;
 }
   
 
@@ -103,18 +105,35 @@ void texfile::setpen(pen p)
   lastpen=p;
 }
    
-void texfile::put(const string& label, double angle, pair z)
+void texfile::put(const string& label, double angle, const pair& z,
+		  const pair& align, const bbox& Box)
 {
   if(label.empty()) return;
-  *out << "\\rput[lB]{" << setprecision(2) << fixed << angle
-       << "}(" << (z.getx()-offset.getx())*ps2tex
+  
+  for(cliplist::iterator p=clipstack.begin(); p != clipstack.end(); ++p) {
+    assert(*p);
+    if((*p)->rule.overlap()) {
+      if(!(*p)->inside(0.5*(Box.Min()+Box.Max()))) return;
+    } else {
+      if(!(*p)->inside(pair(Box.left,Box.bottom))) return;
+      if(!(*p)->inside(pair(Box.right,Box.bottom))) return;
+      if(!(*p)->inside(pair(Box.left,Box.top))) return;
+      if(!(*p)->inside(pair(Box.right,Box.top))) return;
+    }
+  }
+    
+  *out << "\\ASYalign" << fixed
+       << "(" << (z.getx()-offset.getx())*ps2tex
        << "," << (z.gety()-offset.gety())*ps2tex
-       << "){" << label << "}" << newl;
-}
+       << ")(" << align.getx()
+       << "," << align.gety()
+       << "){" << setprecision(2) << angle
+       << "}{" << label << "}" << newl;
+}	
 
 void texfile::epilogue()
 {
-  *out << "\\end{document}" << newl;
+  if(!texmode) *out << "\\end{document}" << newl;
   out->flush();
 }
 

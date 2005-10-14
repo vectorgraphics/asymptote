@@ -25,7 +25,7 @@ triple refy=refsize*(0,-Sin(theta),Cos(theta));
 
 draw("$\theta$",arc(iplow,iplow+0.58*(iphig-iplow),anglebase),E);
 
-draw(central,2bp);
+draw(central,linewidth(2bp));
 draw(iplow--iphig);
 draw(oplow--ophig);
 draw(aplow--aphig);
@@ -46,5 +46,5 @@ draw(Label("$\vec{P}$",1),centre--centre-vecsize*Z,E,Arrow);
 draw(Label("$\vec{v}$",1),centre--centre+vecsize*X,E,Arrow);
 draw(centre,10pt+blue);
 
-draw(circle((0,0,updiff),longradius),2bp);
-draw(circle(O,shortradius),2bp);
+draw(circle((0,0,updiff),longradius),linewidth(2bp));
+draw(circle(O,shortradius),linewidth(2bp));

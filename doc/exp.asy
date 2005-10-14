@@ -5,7 +5,7 @@ real f(real x) {return exp(x);}
 pair F(real x) {return (x,f(x));}
 
 xaxis("$x$");
-yaxis(0,"$y$");
+yaxis("$y$",0);
 
 draw(graph(f,-4,2,operator ..),red);
 

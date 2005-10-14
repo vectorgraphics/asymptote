@@ -11,6 +11,7 @@
 #include "application.h"
 #include "exp.h"
 #include "coenv.h"
+#include "runtime.h"
 
 using namespace types;
 using absyntax::varinit;
@@ -35,38 +36,13 @@ score castScore(env &e, formal& target, formal& source) {
           e.castable(target.t,source.t, symbol::castsym)) ? CAST : FAIL;
 }
 
-#if 0 //{{{
-bool castable(env &e, signature *target, signature *source)
-{
-  // Handle null signature
-  if (target == 0)
-    return source == 0;
-  else if (source == 0)
-    return false;
-
-#if 0
-  unsigned int m = (unsigned int)target->formals.size();
-  unsigned int n = (unsigned int)source->formals.size();
-  if (n > m || n+target->ndefault < m) return false;
-#endif
-
-  formal_vector::iterator t    =target->formals.begin(),
-                          t_end=target->formals.end(),
-                          s    =source->formals.begin(),
-                          s_end=source->formals.end();
-  for (; t!=t_end; ++t)
-    // Try to match with a given argument.
-    if (s!=s_end && castable(e, *t, *s))
-      ++s;
-    // Failing that, try to match with a default value.
-    else if (!t->defval)
-      return false;
-  
-  // No more args can be left to match.
-  return s==s_end;
-}
-
-#endif //}}}
+defaultArg::defaultArg(types::ty *t)
+  : arg(new absyntax::callExp(position(), 
+            new absyntax::varEntryExp(position(),
+                new function(t),
+                run::pushDefault)),
+        t)
+{}
 
 class maximizer {
   app_list l;
@@ -149,7 +125,7 @@ bool application::matchDefault() {
   else {
     formal &target=getTarget();
     if (target.defval) {
-      args[index]=new arg(target.defval, target.t);
+      args[index]=new defaultArg(target.t);
       advanceIndex();
       return true;
     }

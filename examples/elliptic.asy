@@ -96,9 +96,9 @@ save();
 drawline(P,Q,dashed);
 drawline(c.neg(sum),sum,dashed);
 dot("$P$", P, NW);
-dot("$Q$", Q, SE);
+dot("$Q$", Q, SSE);
 dot(c.neg(sum));
-dot("$P+Q$", sum, SW);
+dot("$P+Q$", sum, 2SW);
 
 add(output,currentpicture.fit(W));
 

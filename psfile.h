@@ -113,12 +113,12 @@ public:
     *out << " stroke" << newl;
   }
   
-  void fill(FillRule fillrule) {
-    *out << (fillrule == EVENODD ? " eofill" : " fill") << newl;
+  void fill(const pen &p) {
+    *out << (p.evenodd() ? " eofill" : " fill") << newl;
   }
   
-  void clip(FillRule fillrule) {
-    *out << (fillrule == EVENODD ? " eoclip" : " clip") << newl;
+  void clip(const pen &p) {
+    *out << (p.evenodd() ? " eoclip" : " clip") << newl;
   }
   
   void shade(vm::array *a, const bbox& b);

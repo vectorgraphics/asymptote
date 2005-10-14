@@ -1,12 +1,27 @@
 \documentclass[12pt]{article}
+
+% Use this with 'asy latexusage' to include eps files:
 \usepackage{asymptote}
+
+% Use this with 'asy -t latexusage' to include inline LaTeX code.
+%\usepackage[inline]{asymptote}
+
+% Enable this line to produce pdf hyperlinks
+%\usepackage[hypertex]{hyperref}
+
 \begin{document}
 \begin{asydef}
 // Global definitions can be put here.
 \end{asydef}
 
-Here is a figure produced with Asymptote, drawn to width 5cm:
+Here is a venn diagram
+%(Figure~\ref{venn})
+produced with Asymptote, drawn to width 5cm:
 
+\def\A{A}
+\def\B{B}
+
+%\begin{figure}
 \begin{center}
 \begin{asy}
 size(5cm,0);
@@ -31,8 +46,10 @@ add(intersection);
 draw(c1);
 draw(c2);
 
-label("$A$",z1);
-label("$B$",z2);
+//box(Label("$\A$",z1));              // Requires [inline] package option.
+//box(Label("$\B$","$B$",z2));        // Requires [inline] package option.
+box(Label("$A$",z1));             
+box(Label("$B$",z2));
 
 pair z=(0,-2);
 real m=3;
@@ -45,7 +62,9 @@ draw(z--z2,Arrow,Margin(0,m));
 
 shipout(bbox(0.25cm));
 \end{asy}
+%\caption{Venn diagram}\label{venn}
 \end{center}
+%\end{figure}
 
 Each graph is drawn in its own environment. One can specify the width
 and height to \LaTeX\ explicitly:
@@ -93,7 +112,7 @@ arrow("$y=\sqrt{x}$",F(0.7),N);
 arrow((3,0.5*f(x)),W,1cm,red);
 arrow((3,-0.5*f(x)),W,1cm,red);
 
-xaxis(0,c.x,"$x$",dashed);
+xaxis("$x$",0,c.x,dashed);
 yaxis("$y$");
 
 draw("$r$",(x,0)--F(x),E,red,Arrows,BeginBar,PenMargins);

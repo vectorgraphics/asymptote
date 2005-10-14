@@ -58,9 +58,15 @@ using namespace types;
 }
 
 
-void _label (picture *pic, string *t, double r, pair z, pair a, pen *p)
+void _label(picture *pic, string *s, string *size, double r, pair z, pair a,
+     	    pen *p)
 {
-  pic->append(new drawLabel(*t,r,z,a,p));
+  pic->append(new drawLabel(*s,*size,r,z,a,p));
+}
+
+bool labels(picture *pic)
+{
+  return pic->havelabels();
 }
 
 pen *basealign(int n)
@@ -226,16 +232,30 @@ double dirtime(path p, pair z)
   return p.directiontime(z);
 }
 
-pair intersect(path x, path y)
+pair intersect(path x, path y, double fuzz)
 {
-  return intersectiontime(x,y);
+  return intersectiontime(x,y,fuzz);
 }
 
+// Triple operations
 double cubiclength(triple z0, triple z0p, triple z1m, triple z1, double goal)
 {
   return cubiclength(z0,z0p,z1m,z1,goal);
 }
 
+triple expi(double theta, double phi)
+{
+  return expi(theta,phi);
+  double sintheta=sin(theta);
+  return triple(sintheta*cos(phi),sintheta*sin(phi),cos(theta));
+}
+
+triple dir(double theta, double phi)
+{
+  return expi(radians(theta),radians(phi));
+}
+
+// String operations
 int length(string *s)
 {
   return (int) s->length();
@@ -276,4 +296,40 @@ string erase(string s, int pos, int n)
   if ((size_t)pos < s.length())
     return s.erase(pos,n);
   return s; 
+}
+
+void gui(double x)
+{ 
+  settings::deconstruct=(x > 0 ? x : 0);
+}
+
+// Math
+int ceil(double x)
+{ 
+  return (int) ceil(x);
+}
+
+int floor(double x)
+{ 
+  return (int) floor(x);
+}
+
+int round(double x)
+{ 
+  return (int) round(x);
+}
+
+int Ceil(double x)
+{ 
+  return Ceil(x);
+}
+
+int Floor(double x)
+{ 
+  return Floor(x);
+}
+
+int Round(double x)
+{ 
+  return (int) round(intcap(x));
 }

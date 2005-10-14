@@ -37,7 +37,11 @@ public:
     return true;
   }
 
-  friend class drawClipBegin;
+  bool write(texfile *out) {
+    out->endclip();
+    return true;
+  }
+
 };
 
 }

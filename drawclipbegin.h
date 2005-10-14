@@ -44,10 +44,15 @@ public:
     if (empty()) return true;
     
     writepath(out);
-    out->clip(pentype.Fillrule());
+    out->clip(pentype);
     return true;
   }
 
+  bool write(texfile *out) {
+    clip(out,pentype);
+    return true;
+  }
+  
   drawElement *transformed(const transform& t)
   {
     return new drawClipBegin(transpath(t),transpen(t));

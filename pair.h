@@ -202,6 +202,7 @@ inline pair pow(const pair& z, const pair& w)
 {
   double u=w.getx();
   double v=w.gety();
+  if(z == 0.0) return w == 0.0 ? 1.0 : 0.0;
   double logr=0.5*log(z.abs2());
   double th=z.angle();
   return exp(logr*u-th*v)*expi(logr*v+th*u);

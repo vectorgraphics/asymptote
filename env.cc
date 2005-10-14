@@ -46,10 +46,7 @@ access *protoenv::baseLookupCast(ty *target, ty *source, symbol *name) {
   else if (equivalent(target,source))
     return &id;
   else {
-    function *ct=new function(target);
-    ct->add(source);
-
-    varEntry *v=lookupVarByType(name,ct);
+    varEntry *v=lookupVarByType(name,new function(target,source));
     return v ? v->getLocation() : 0;
   }
 }

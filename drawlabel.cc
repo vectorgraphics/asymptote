@@ -22,16 +22,61 @@ void drawLabel::labelwarning(const char *action)
 	       << "\" " << action << " to avoid overwriting" << endl;
 }
   
-void drawLabel::bounds(bbox& b, iopipestream& tex,
-		       boxvector& labelbounds, bboxlist&)
+bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn)
+{
+  string texbuf;
+  tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(s) << "}\n\n";
+  tex.wait(texready.c_str(),"! ");
+  tex << "\\showthe\\wd\\ASYbox\n";
+  tex >> texbuf;
+  if(texbuf[0] == '>' && texbuf[1] == ' ')
+    width=atof(texbuf.c_str()+2)*tex2ps;
+  else {
+    if(settings::texmode) {
+      if(settings::debug && warn) {
+	ostringstream buf;
+	buf << "Cannot determine size of label \"" << s << "\"";
+	reportWarning(buf);
+      }
+      tex << "\n";
+      tex.wait("\n*","! ");
+      return false;
+    } else reportError("Can't read label width");
+  }
+  tex << "\n";
+  tex.wait("\n*","! ");
+  tex << "\\showthe\\ht\\ASYbox\n";
+  tex >> texbuf;
+  if(texbuf[0] == '>' && texbuf[1] == ' ')
+    height=atof(texbuf.c_str()+2)*tex2ps;
+  else reportError("Can't read label height");
+  tex << "\n";
+  tex.wait("\n*","! ");
+  tex << "\\showthe\\dp\\ASYbox\n";
+  tex >> texbuf;
+  if(texbuf[0] == '>' && texbuf[1] == ' ')
+    depth=atof(texbuf.c_str()+2)*tex2ps;
+  else reportError("Can't read label depth");
+  tex << "\n";
+  tex.wait("\n*","! ");
+     
+  width *= scale;
+  height *= scale;
+  depth *= scale;
+  return true;
+}   
+
+
+void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
+		       bboxlist&)
 {
   if(!settings::texprocess) {b += position; return;}
-  string texbuf;
   pair rotation=expi(radians(angle));
   pen Pentype=*pentype;
-  static const double fuzz=1.75;
+  static const double fuzz=1.0+Pentype.size()/24.0;
   
   if(!havebounds) {
+    havebounds=true;
     if(Pentype.size() != lastpen.size() ||
        Pentype.Lineskip() != lastpen.Lineskip()) {
       tex <<  "\\fontsize{" << Pentype.size() << "}{" << Pentype.Lineskip()
@@ -54,63 +99,44 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
     
     lastpen=Pentype;
     
-    tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(label) << "}\n\n";
-    tex.wait(texready.c_str(),"! ");
-    tex << "\\showthe\\wd\\ASYbox\n";
-    tex >> texbuf;
-    if(texbuf[0] == '>' && texbuf[1] == ' ')
-      width=atof(texbuf.c_str()+2)*tex2ps;
-    else reportError("Can't read label width");
-    tex << "\n";
-    tex.wait("\n*","! ");
-    tex << "\\showthe\\ht\\ASYbox\n";
-    tex >> texbuf;
-    if(texbuf[0] == '>' && texbuf[1] == ' ')
-      height=atof(texbuf.c_str()+2)*tex2ps;
-    else reportError("Can't read label height");
-    tex << "\n";
-    tex.wait("\n*","! ");
-    tex << "\\showthe\\dp\\ASYbox\n";
-    tex >> texbuf;
-    if(texbuf[0] == '>' && texbuf[1] == ' ')
-      depth=atof(texbuf.c_str()+2)*tex2ps;
-    else reportError("Can't read label depth");
-    tex << "\n";
-    tex.wait("\n*","! ");
-     
-    width *= scale;
-    height *= scale;
-    depth *= scale;
+    bool nullsize=size == "";
+    if(!texbounds(tex,label,nullsize) && !nullsize)
+      texbounds(tex,size,false);
     
     Align=align/rotation;
     double scale0=max(fabs(Align.getx()),fabs(Align.gety()));
     if(scale0) Align *= 0.5/scale0;
     Align -= pair(0.5,0.5);
     double Depth=(Pentype.Baseline() == NOBASEALIGN) ? depth : 0.0;
+    texAlign=Align;
+    if(Depth > 0) texAlign += pair(0.0,Depth/(height+Depth));
     Align.scale(width,height+Depth);
-    Align += pair(0.0,Depth);
-      
+    Align += pair(0.0,Depth-depth);
     Align *= rotation;
-    havebounds=true;
   }
 
   // alignment point
-  pair p=position+Align+pair(0,-depth)*rotation;
+  pair p=position+Align;
   pair A=p+pair(-fuzz,-fuzz)*rotation;
   pair B=p+pair(-fuzz,height+depth+fuzz)*rotation;
   pair C=p+pair(width+fuzz,height+depth+fuzz)*rotation;
   pair D=p+pair(width+fuzz,-fuzz)*rotation;
   
-  if(pentype->Overwrite() != ALLOW) {
+  if(pentype->Overwrite() != ALLOW && label != "") {
     size_t n=labelbounds.size();
     box Box=box(A,B,C,D);
     for(size_t i=0; i < n; i++) {
       if(labelbounds[i].intersect(Box)) {
-	if(pentype->Overwrite() == SUPPRESS || 
-	   pentype->Overwrite() == SUPPRESSQUIET) {
+	switch(pentype->Overwrite()) {
+	case SUPPRESS:
+	  labelwarning("suppressed");
+	case SUPPRESSQUIET:
 	  suppress=true; 
-	  if(pentype->Overwrite() == SUPPRESS) labelwarning("suppressed");
 	  return;
+	case MOVE:
+	  labelwarning("moved");
+	default:
+	  break;
 	}
 
 	pair Align=(align == pair(0,0)) ? pair(1,0) : unit(align);
@@ -121,14 +147,12 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
 	if(Align.gety() > 0.1) dy=labelbounds[i].ymax()-Box.ymin()+s;
 	if(Align.gety() < -0.1) dy=labelbounds[i].ymin()-Box.ymax()-s;
 	pair offset=pair(dx,dy);
-	p += offset;
 	position += offset;
 	A += offset;
 	B += offset;
 	C += offset;
 	D += offset;
 	Box=box(A,B,C,D);
-	if(pentype->Overwrite() == MOVE) labelwarning("moved");
 	i=0;
       }
     }
@@ -136,17 +160,19 @@ void drawLabel::bounds(bbox& b, iopipestream& tex,
     labelbounds[n]=Box;
   }
   
-  b += A;
-  b += B;
-  b += C;
-  b += D;
+  Box=A;
+  Box += B;
+  Box += C;
+  Box += D;
+  
+  b += Box;
 }
 
 drawElement *drawLabel::transformed(const transform& t)
 {
   static const pair origin=pair(0,0);
   pair offset=t*origin;
-  return new drawLabel(label,
+  return new drawLabel(label,size,
 		       degrees((t*expi(radians(angle))-offset).angle()),
 		       t*position,length(align)*unit(t*align-offset),pentype);
 }

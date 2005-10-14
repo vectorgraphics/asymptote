@@ -84,7 +84,7 @@ public:
   //      getType() (or one of the subtypes in case of a superposition)
   //      or any type not implicitly castable from the above must report an
   //      error.
-  virtual types::ty *getType(coenv &) { return types::primError(); }
+  virtual types::ty *getType(coenv &) = 0;
 
   // Same result as getType, but caches the result, so that subsequent call are
   // faster.  For this to work correctly, the expression should only be used in
@@ -140,6 +140,24 @@ public:
   types::ty *getType(coenv &) {
     return t;
   }
+};
+
+// Wrap a varEntry so that it can be used as an expression.
+class varEntryExp : public exp {
+  trans::varEntry *v;
+public:
+  varEntryExp(position pos, trans::varEntry *v) 
+    : exp(pos), v(v) {}
+  varEntryExp(position pos, types::ty *t, access *a);
+  varEntryExp(position pos, types::ty *t, vm::bltin f);
+
+  types::ty *getType(coenv &);
+  types::ty *trans(coenv &e);
+  
+  void transAct(action act, coenv &e, types::ty *target);
+  void transAsType(coenv &e, types::ty *target);
+  void transWrite(coenv &e, types::ty *target);
+  void transCall(coenv &e, types::ty *target);
 };
 
 class nameExp : public exp {
@@ -213,8 +231,8 @@ class fieldExp : public nameExp {
     exp *object;
 
   public:
-    pseudoName(position pos, exp *object)
-      : name(pos), object(object) {}
+    pseudoName(exp *object)
+      : name(object->getPos()), object(object) {}
 
     // As a variable:
     void varTrans(trans::action act, coenv &e, types::ty *target) {
@@ -261,7 +279,7 @@ class fieldExp : public nameExp {
 public:
   fieldExp(position pos, exp *object, symbol *field)
     : nameExp(pos, new qualifiedName(pos,
-                                     new pseudoName(object->getPos(), object),
+                                     new pseudoName(object),
                                      field)),
       object(object), field(field) {}
 
@@ -275,7 +293,8 @@ public:
   exp *evaluate(coenv &e, types::ty *) {
     // Evaluate the object.
     return new fieldExp(getPos(),
-                        new tempExp(e, object, getObject(e)), field);
+                        new tempExp(e, object, getObject(e)),
+                        field);
   }
 };
 

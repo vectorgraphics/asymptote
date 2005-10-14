@@ -39,19 +39,20 @@ public:
   // Destroy all of the owned picture objects.
   ~picture();
 
-  // Find beginning of current layer.
-  nodelist::iterator layerstart();
-  
   // Prepend an object to the picture.
   void prepend(drawElement *p);
   
   // Append an object to the picture.
   void append(drawElement *p);
 
+  // Enclose each layer with begin and end.
+  void enclose(drawElement *begin, drawElement *end);
+  
   // Add the content of another picture.
   void add(picture &pic);
   void prepend(picture &pic);
   
+  bool havelabels();
   bbox bounds();
 
   void texinit();
@@ -60,12 +61,12 @@ public:
 		  const string& prefix, const bbox& bpos); 
     
   bool postprocess(const string& epsname, const string& outname, 
-		   const string& outputformat, bool wait,
+		   const string& outputformat, bool wait, bool quiet,
 		   const bbox& bpos);
     
   // Ship the picture out to PostScript & TeX files.
   bool shipout(const picture& preamble, const string& prefix,
-	       const string& format, bool wait, bool Delete=false);
+	       const string& format, bool wait, bool quiet, bool Delete=false);
  
   picture *transformed(const transform& t);
   

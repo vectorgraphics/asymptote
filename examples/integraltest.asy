@@ -16,8 +16,8 @@ void subinterval(real a, real b)
 
 int a=1, b=9;
   
-xaxis(0,b,"$x$"); 
-yaxis(0,"$y$"); 
+xaxis("$x$",0,b); 
+yaxis("$y$",0); 
  
 draw(graph(f,a,b,operator ..),red);
  
