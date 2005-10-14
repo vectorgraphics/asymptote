@@ -4,6 +4,7 @@ import three;
 void face(face[] faces, path3 p, int j) {
   picture pic=faces.push(p);
   filldraw(pic,p,Pen(j));
+  label(pic,(string) j,0.5*(min(p)+max(p)));
 }
 
 void snapshot(transform3 t)
@@ -27,7 +28,7 @@ void snapshot(transform3 t)
   shipout(fileprefix()+(string) ++count,pic,"gif",quiet=true);
 }
 
-int n=100;
+int n=50;
 
 real step=360/n;
 for(int i=0; i < n; ++i)
@@ -37,4 +38,4 @@ for(int i=0; i < n; ++i)
 for(int i=0; i < n; ++i)
   snapshot(rotate(i*step,Z));
 
-gifmerge(10,5);
+gifmerge(10,10);

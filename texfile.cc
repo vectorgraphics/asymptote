@@ -105,17 +105,31 @@ void texfile::setpen(pen p)
   lastpen=p;
 }
    
-void texfile::put(const string& label, double angle, pair z, pair align)
+void texfile::put(const string& label, double angle, const pair& z,
+		  const pair& align, const bbox& Box)
 {
   if(label.empty()) return;
-    *out << "\\ASYalign" << fixed
-	 << "(" << (z.getx()-offset.getx())*ps2tex
-	 << "," << (z.gety()-offset.gety())*ps2tex
-	 << ")(" << align.getx()
-	 << "," << align.gety()
-	 << "){" << setprecision(2) << angle
-	 << "}{" << label << "}" << newl;
-}
+  
+  for(cliplist::iterator p=clipstack.begin(); p != clipstack.end(); ++p) {
+    assert(*p);
+    if((*p)->rule.overlap()) {
+      if(!(*p)->inside(0.5*(Box.Min()+Box.Max()))) return;
+    } else {
+      if(!(*p)->inside(pair(Box.left,Box.bottom))) return;
+      if(!(*p)->inside(pair(Box.right,Box.bottom))) return;
+      if(!(*p)->inside(pair(Box.left,Box.top))) return;
+      if(!(*p)->inside(pair(Box.right,Box.top))) return;
+    }
+  }
+    
+  *out << "\\ASYalign" << fixed
+       << "(" << (z.getx()-offset.getx())*ps2tex
+       << "," << (z.gety()-offset.gety())*ps2tex
+       << ")(" << align.getx()
+       << "," << align.gety()
+       << "){" << setprecision(2) << angle
+       << "}{" << label << "}" << newl;
+}	
 
 void texfile::epilogue()
 {

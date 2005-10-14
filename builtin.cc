@@ -449,6 +449,9 @@ void base_venv(venv &ve)
 	  primPen());
   addFunc(ve,run::beginClip,primVoid(),"beginclip",primPicture(),
 	  pathArray(),primPen());
+  addFunc(ve,run::inside,primBoolean(),"inside",pathArray(),primPair(),
+	  primPen());
+  
   addFunc(ve,run::image,primVoid(),"image",primPicture(),realArray2(),
 	  penArray(),primPair(),primPair());
   
@@ -502,10 +505,7 @@ void base_venv(venv &ve)
   
   addFunc(ve,run::intQuotient,primInt(),"quotient",primInt(),primInt());
   addFunc(ve,run::intAbs,primInt(),"abs",primInt());
-  addFunc(ve,run::intCeil,primInt(),"ceil",primReal());
-  addFunc(ve,run::intFloor,primInt(),"floor",primReal());
   addFunc(ve,run::intSgn,primInt(),"sgn",primReal());
-  addFunc(ve,run::intRound,primInt(),"round",primReal());
   
   addFunc(ve,run::intRand,primInt(),"rand");
   addFunc(ve,run::intSrand,primVoid(),"srand",primInt());
@@ -542,6 +542,10 @@ void base_venv(venv &ve)
   
   addFunc(ve,run::tridiagonal,realArray(),"tridiagonal",
 	  realArray(),realArray(),realArray(),realArray());
+  addFunc(ve,run::quadraticRoots,realArray(),"quadraticroots",
+	  primReal(),primReal(),primReal());
+  addFunc(ve,run::cubicRoots,realArray(),"cubicroots",
+	  primReal(),primReal(),primReal(),primReal());
   
   addFunc(ve,run::stringReplace,primString(),"replace",primString(),
 	  stringArray2());

@@ -247,13 +247,11 @@ Here are the commands that the root user can use to install the
 @code{Linux i386} binary distribution of version @code{x.xx} of
 @code{Asymptote} for a specific platform @code{ARCH} in
 @code{/usr/local}. The executable file will be
-@code{/usr/local/bin/asy} (the optional @code{texhash} and
-@code{install-info} commands install a LaTeX style file and man
-pages):
+@code{/usr/local/bin/asy} (the optional @code{texhash} command
+installs a LaTeX style file):
 @verbatim
 tar -C / -zxf asymptote-x.xx.ARCH.tar.gz
 texhash
-install-info --infodir=/usr/local/info /usr/local/info/asymptote.info 
 @end verbatim
 
 @noindent
@@ -489,8 +487,6 @@ To compile without optimization, use the command @code{make CFLAGS=-g}.
 @noindent
 To uninstall a @code{UNIX} binary distribution, type
 @verbatim
-install-info --delete --infodir=/usr/local/info \
-  /usr/local/info/asymptote.info
 tar -zxvf asymptote-x.xx.ARCH.tar.gz | xargs rm
 texhash
 @end verbatim
@@ -1121,22 +1117,23 @@ c{up}..nullpath..d;
 e{down}..nullpath..{up}f;
 @end verbatim
 
-@cindex @code{PostScript subpath}
+@cindex @code{PostScript} subpath
 @cindex @code{^^}
 @cindex @code{path[]}
+@cindex superpath
 An @code{Asymptote} path, being connected, is equivalent to a
 @code{Postscript subpath}. The @code{^^} binary operator, which
 requests that the pen be moved (without drawing or affecting
 endpoint curvatures) from the final point of the left-hand path to the
 initial point of the right-hand path, may be used to group several
 @code{Asymptote} paths into a @code{path[]} array (equivalent to a
-@code{PostScript path}):
+@code{PostScript} path):
 @verbatiminclude superpath.asy
 @image{superpath}
 
 @cindex evenodd
 The @code{PostScript} even-odd fill rule here specifies that only the
-region bounded between the two unit circles is filled.
+region bounded between the two unit circles is filled (@pxref{fillrule}).
 In this example, the same effect can be achieved by using the default
 zero winding number fill rule, if one is careful to alternate the
 orientation of the paths:
@@ -1196,14 +1193,14 @@ If the path contains only one point, (0,0) is returned.
 This returns the precontrol point of node @code{n}.
 
 @item pair precontrol(path, real t);
-This returns the effective precontrol direction at parameter @code{t}.
+This returns the effective precontrol point at parameter @code{t}.
 
 @cindex @code{postcontrol}
 @item pair postcontrol(path, int n);
 This returns the postcontrol point of node @code{n}.
 
 @item pair postcontrol(path, real t);
-This returns the effective postcontrol direction at parameter @code{t}.
+This returns the effective postcontrol point at parameter @code{t}.
 
 @cindex @code{arclength}
 @item real arclength(path);
@@ -1293,6 +1290,12 @@ returns @code{true} iff path is cyclic
 @item bool straight(path, int i);
 returns @code{true} iff the segment between node @code{i} and node @code{i+1}
 is straight.
+
+@cindex @code{inside}
+@item bool inside(path g, pair z, pen p=currentpen);
+returns @code{true} iff the point @code{z} is inside the region bounded
+by the cyclic path @code{g} according to the fillrule of pen @code{p}
+(@pxref{fillrule}). 
 
 @end table
 
@@ -1478,18 +1481,35 @@ The default join style, @code{roundjoin}, may be changed with
 @cindex @code{fillrule}
 @cindex @code{zerowinding}
 @cindex @code{evenodd}
+@cindex @code{zerowindingoverlap}
+@cindex @code{evenoddoverlap}
 @anchor{fillrule}
 @item A pen with a specific @code{PostScript} fill rule is returned on
 calling @code{fillrule} with an integer argument:
 @verbatim
 pen zerowinding=fillrule(0);
 pen evenodd=fillrule(1);
+pen zerowindingoverlap=fillrule(2);
+pen evenoddoverlap=fillrule(3);
 @end verbatim
 
 @noindent
 The fill rule, which identifies the algorithm used to determine the
-insideness of a path or array of paths, only affects @code{clip} and
-@code{fill} commands. The default fill rule, @code{zerowinding}, may
+insideness of a path or array of paths, only affects the @code{clip},
+@code{fill}, and @code{inside} functions. For the @code{zerowinding}
+fill rule, a point @code{z} is outside the region bounded by a path if
+the number of upward intersections of the path with the horizontal
+line @code{z--z+infinity} minus the number of downward intersections
+is zero. For the @code{evenodd} fill rule, @code{z} is considered to
+be outside the region if the total number of such intersections is even.
+A label is considered to be inside the region only if all four
+corners of its (possibly rotated) bounding box are within the region.
+The fill rules @code{zerowindingoverlap} and @code{evenoddoverlap}
+are respectively identical to @code{zerowinding} and @code{evenodd},
+except that a label is considered to be inside the region whenever
+its center is within the region. While this allows labels to
+extend beyond the clipping region, any actual overlap is ignored when
+determining picture bounds. The default fill rule, @code{zerowinding}, may
 be changed with @code{defaultpen(pen)}.
 
 @cindex @code{nobasealign}
@@ -1700,7 +1720,15 @@ The implicit initializer for frames is @code{newframe}. The function
 @code{bool empty(frame f)} returns @code{true} only if the frame @code{f}
 is empty. The functions @code{min(frame f)} and @code{max(frame f)} return the
 (left,bottom) and (right,top) coordinates of the frame bounding box,
-respectively.
+respectively. The contents of frame @code{src} may be appended to
+frame @code{dest} with the command
+@verbatim
+void add(frame dest, frame src);
+@end verbatim
+or prepended with
+@verbatim
+void prepend(frame dest, frame src);
+@end verbatim
 
 @item picture
 @cindex @code{picture}
@@ -1769,15 +1797,12 @@ previous @code{shipout} commands have been executed.
 A picture @code{pic} can be explicitly fit to a frame by calling one
 of these member functions:
 @verbatim
-frame pic.fit();
-frame pic.fit(pair dir);
-frame pic.fit(real xsize, real ysize, bool keepAspect=true);
-frame pic.fit(real xsize, real ysize, bool keepAspect=true,
-              pair dir);
+frame pic.fit(real xsize=pic.xsize, real ysize=pic.ysize,
+              bool keepAspect=pic.keepAspect, pair dir=0);
 @end verbatim
-The first two forms use the size and aspect ratio settings given to the
-@code{size} command (or the default values of @code{0}, @code{0}, and
-@code{false}, respectively). The optional @code{dir} argument
+The default size and aspect ratio settings are those given to the
+@code{size} command (which default to @code{0}, @code{0}, and
+@code{true}, respectively). The optional @code{dir} argument
 specifies a direction to use for aligning the frame, in a manner
 completely analogous to the @code{align} argument of @code{label}
 (@pxref{label}). Illustrations of frame alignment can be found in the
@@ -2696,15 +2721,20 @@ the first kind @code{J(int n, real)} and the second kind
 The standard real(real, real) functions @code{atan2}, @code{hypot},
 @code{fmod}, @code{remainder} are also included.
 
-@cindex @code{ceil}
 @cindex @code{floor}
+@cindex @code{ceil}
 @cindex @code{round}
 @cindex @code{sgn}
-The functions @code{ceil}, @code{floor}, and @code{round} differ from
-their usual definitions in that they all return an @code{int} value rather than
-a real (since that is normally what one wants). We also define a
-function @code{sgn}, which returns the sign of its real argument as an
-integer (-1, 0, or 1).
+The functions @code{floor}, @code{ceil}, and @code{round} differ from
+their usual definitions in that they all return an int value rather than
+a real (since that is normally what one wants).
+The functions @code{Floor}, @code{Ceil}, and @code{Round} are
+respectively similar, except that if the result cannot be converted
+to a valid int, they return @code{intMax()} 
+for positive arguments and @code{-intMax()} for negative arguments,
+rather than generating a floating point exception.
+We also define a function @code{sgn}, which returns the sign of its
+real argument as an integer (-1, 0, or 1).
 
 @cindex @code{abs}
 There is an @code{abs(int)} function, as well as an @code{abs(real)} function
@@ -2958,6 +2988,16 @@ is an @math{n} vector and @math{L} is the @math{n \times n} matrix
 For Dirichlet boundary conditions (denoted here by @code{u[-1]} and
 @code{u[n]}), replace @code{f[0]} by @code{f[0]-a[0]u[-1]} and
 @code{f[n-1]-c[n-1]u[n]}; then set @code{a[0]=c[n-1]=0}. 
+
+@cindex @code{quadraticroots}
+@item @code{real[] quadraticroots(real a, real b, real c);}
+This numerically robust solver returns the real roots of the
+quadratic equation @code{ax^2+bx+c=0}.
+
+@cindex @code{cubicroots}
+@item @code{real[] cubicroots(real a, real b, real c, real d);}
+This numerically robust solver returns the real roots of the
+cubic equation @code{ax^3+bx^2+cx+d=0}.
 
 @end table
 
@@ -3355,8 +3395,8 @@ is determined by one of the following @code{axis} types:
 
 @cindex @code{YZero}
 @item YZero(bool extend=true)
-Request an @math{x} axis at @math{y}=0 extending to the full dimensions
-of the picture, unless @code{extend}=false.
+Request an @math{x} axis at @math{y}=0 (or @math{y}=1 on a logarithmic axis)
+extending to the full dimensions of the picture, unless @code{extend}=false.
 
 @cindex @code{YEquals}
 @item YEquals(real Y, bool extend=true)
@@ -3380,7 +3420,7 @@ Request a bottom and top axis.
 The optional @code{arrow} argument takes the same values as in the
 @code{draw} command (@pxref{arrows}). If @code{put}=@code{Below} and
 the @code{extend} flag for @code{axis} is @code{false}, the axis is
-drawn before any existing objects in the current layer.
+drawn before any existing objects in the current picture.
 
 @anchor{ticks}
 @cindex @code{ticks}
@@ -3478,8 +3518,8 @@ of the following @code{axis} types:
 
 @cindex @code{XZero}
 @item XZero(bool extend=true)
-Request a @math{y} axis at @math{x}=0 extending to the full dimensions
-of the picture, unless @code{extend}=false.
+Request a @math{y} axis at @math{x}=0 (or @math{x}=1 on a logarithmic axis)
+extending to the full dimensions of the picture, unless @code{extend}=false.
 
 @cindex @code{XEquals}
 @item XEquals(real X, bool extend=true)
@@ -3503,7 +3543,7 @@ Request a left and right axis.
 The optional @code{arrow} argument takes the same values as in the
 @code{draw} command (@pxref{arrows}). If @code{put}=@code{Below} and
 the @code{extend} flag for @code{axis} is @code{false}, the axis is
-drawn before any existing objects in the current layer.
+drawn before any existing objects in the current picture.
 
 @item
 
@@ -3544,7 +3584,7 @@ The optional integer array @code{divisor} specifies what tick divisors
 to try in the attempt to produce uncrowded tick labels. A @code{true}
 value for the flag @code{opposite} identifies an unlabelled secondary
 axis (typically drawn opposite a primary axis).  The axis is drawn
-on top of any existing objects in the current layer only if @code{put}
+on top of any existing objects in the current picture only if @code{put}
 is @code{Above}. The tick locater @code{ticklocate} is
 constructed by the routine
 @verbatim
@@ -3911,10 +3951,10 @@ When high accuracy is needed, the routines @code{Circle} and
 @code{Arc} defined in @code{graph3} may be used instead.
 See @ref{surface} for an example of a three-dimensional circular arc.
 
-A representation of the plane passing through triples @code{v1},
-@code{v2}, and @code{v3} is given by
+A representation of the plane passing through point O with normal cross(u,v)
+is given by
 @verbatim
-path3 plane(triple v1, triple v2, triple v3);
+path3 plane(triple u, triple v, triple O=O);
 @end verbatim
 A three-dimensional box with opposite vertices at triples @code{v1}
 and @code{v2} may be drawn with the function
@@ -3998,6 +4038,7 @@ reflects about the plane through @code{u}, @code{v}, and @code{w}.
 @cindex @code{max}
 @cindex @code{cyclic}
 @cindex @code{straight}
+@cindex @code{inside}
 Three-dimensional versions of the path functions @code{length},
 @code{size}, @code{point}, @code{dir}, @code{precontrol}, @code{postcontrol}, 
 @code{arclength}, @code{arctime}, @code{reverse}, @code{subpath},
@@ -4153,22 +4194,6 @@ Return any point on the intersection of the two planes with normals
 @code{n0} and @code{n1} passing through points @code{P0} and @code{P1},
 respectively. If the planes are parallel, return
 @code{(infinity,infinity,infinity)}.
-
-@cindex @code{solveQuadratic}
-@item @code{quad solveQuadratic(real a, real b, real c);}
-This numerically robust solver for the quadratic equation
-@code{ax^2+bx+c=0} returns a struct
-@verbatim
-struct quad 
-{
-  static int NONE=0;
-  static int SINGLE=1;
-  static int DOUBLE=2;
-  static int ANY=3;
-  public int roots;
-  public real t1,t2;
-};
-@end verbatim
 
 @cindex @code{solve}
 @item real[] solve(real[][] a, real[] b)
@@ -4691,7 +4716,7 @@ add(origin,pic,opic);
 Lattice gradient shading varying smoothly over a two-dimensional
 array of pens @code{p}, using fillrule @code{fillrule}, can be produced with
 @verbatim
-void fill(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
+void fill(picture pic=currentpicture, path g, pen fillrule=currentpen,
           pen[][] p)
 @end verbatim
 The pens in @code{p} must belong to the same color space. One can use the
@@ -5232,11 +5257,11 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
 @c  LocalWords:  vskip filll insertcopying ifnottex detailmenu alist augroup PQ
 @c  LocalWords:  bool behaviour facto zxf cvs login Debian dev filetypedetect
-@c  LocalWords:  FFTW bp readline gv eps gifmerge args Boehm gc
+@c  LocalWords:  FFTW bp readline gv eps gifmerge args Boehm gc evenoddoverlap
 @c  LocalWords:  boolean initializer expi dir xpart ypart STL substring rfind
 @c  LocalWords:  pos substr strftime typedef pxref unitcircle yscale Bezier iff
 @c  LocalWords:  postcontrol precontrol atleast nullpath arclength arctime rgb
-@c  LocalWords:  dirtime currentpen colorspaces grayscale cmyk defaultpen x
+@c  LocalWords:  dirtime currentpen colorspaces grayscale cmyk defaultpen x cx
 @c  LocalWords:  linetype longdashed dashdotted longdashdotted linewidth y
 @c  LocalWords:  fontsize defaultfilename keepAspect IgnoreAspect ise flushleft
 @c  LocalWords:  NoWait src dest XDR txt getc fout stdin stdout endl xinput eof
@@ -5286,4 +5311,6 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  Autoscaling solveQuadratic MidArrow MidArcArrow Prebuilt url
 @c  LocalWords:  pdftex commentchar getstring getstringprefix getreal defaultS
 @c  LocalWords:  ticklocate autoscaleT autoscaling vectorfield autolimits dvi
-@c  LocalWords:  zlimits inline dvipdf hyperdvi autoconf gui
+@c  LocalWords:  zlimits inline dvipdf hyperdvi autoconf gui zerowindingoverlap
+@c  LocalWords:  prepended intMax quadraticroots cubicroots filltype prepend
+@c  LocalWords:  ticklabel

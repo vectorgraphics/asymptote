@@ -10,9 +10,16 @@ in the current directory and
 make all
 make install
 
+Or, if you are compiling from CVS:
+
+./autogen.sh
+./configure
+make all
+make install
+
 If you get errors from a broken pdftex installation, simply put
 http://asymptote.sourceforge.net/asymptote.pdf in the doc
-directory and repeat the command make all.
+directory and repeat the commands make all and make install.
 
 For a list of configure options, type
 

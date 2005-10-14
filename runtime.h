@@ -38,9 +38,6 @@ void realJ(vm::stack *s);
 void realY(vm::stack *s);
 void intQuotient(vm::stack *s);
 void intAbs(vm::stack *s);
-void intCeil(vm::stack *s);
-void intFloor(vm::stack *s);
-void intRound(vm::stack *s);
 void intSgn(vm::stack *s);
 void intRand(vm::stack *s);
 void intSrand(vm::stack *s);
@@ -241,6 +238,7 @@ void radialShade(vm::stack *s);
 void gouraudShade(vm::stack *s);
 void clip(vm::stack *s);
 void beginClip(vm::stack *s);
+void inside(vm::stack *s);
 
 void postscript(vm::stack *s);
 void tex(vm::stack *s);
@@ -304,6 +302,8 @@ vm::array *copyArray2(vm::stack *s);
 // Math routines  
 void pairArrayFFT(vm::stack *s);
 void tridiagonal(vm::stack *s);
+void quadraticRoots(vm::stack *s);  
+void cubicRoots(vm::stack *s);  
  
 } // namespace run
 

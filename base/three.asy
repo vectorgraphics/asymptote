@@ -949,7 +949,7 @@ struct path3 {
   {
     emptyError();
     
-    int i = floor(t);
+    int i = Floor(t);
     int iplus;
     t = fmod(t,1);
     if (t < 0) t += 1;
@@ -984,7 +984,7 @@ struct path3 {
   triple precontrol(real t) {
     emptyError();
 		     
-    int i = floor(t);
+    int i = Floor(t);
     int iplus;
     t = fmod(t,1);
     if (t < 0) t += 1;
@@ -1017,7 +1017,7 @@ struct path3 {
     emptyError();
   
     // NOTE: may be better methods, but let's not split hairs, yet.
-    int i = floor(t);
+    int i = Floor(t);
     int iplus;
     t = fmod(t,1);
     if (t < 0) t += 1;
@@ -1210,18 +1210,18 @@ struct path3 {
       endL = nodes[floor(end)];
       endR = nodes[ceil(end)];
     } else {
+      if(fabs(start) > intMax || fabs(end) > intMax)
+	abort("invalid path index");
       startL = nodes[floor(start) % n];
       startR = nodes[ceil(start) % n];
       endL = nodes[floor(end) % n];
       endR = nodes[ceil(end) % n];
     }
 
-    if (start == end) {
-      return path3(point(start));
-    }
+    if (start == end) return path3(point(start));
     
     node[] sn=nodes(3);
-    path3 p = subpath(ceil(start), floor(end));
+    path3 p = subpath(Ceil(start), Floor(end));
     if (start > floor(start)) {
       if (end < ceil(start)) {
 	splitCubic(sn,start-floor(start),startL,startR);
@@ -1259,17 +1259,15 @@ struct path3 {
       triple b=2.0*(z0+z1m)-4.0*z0p;
       triple c=z0p-z0;
       
-      quad ret;
-    
       // Check x coordinate
-      ret=solveQuadratic(a.x,b.x,c.x);
-      if(ret.roots != quad.NONE) box.add(point(i+ret.x1));
-      if(ret.roots == quad.DOUBLE) box.add(point(i+ret.x2));
+      real[] roots=quadraticroots(a.x,b.x,c.x);
+      if(roots.length > 0) box.add(point(i+roots[0]));
+      if(roots.length > 1) box.add(point(i+roots[1]));
     
       // Check y coordinate
-      ret=solveQuadratic(a.y,b.y,c.y);
-      if(ret.roots != quad.NONE) box.add(point(i+ret.x1));
-      if(ret.roots == quad.DOUBLE) box.add(point(i+ret.x2));
+      roots=quadraticroots(a.y,b.y,c.y);
+      if(roots.length > 0) box.add(point(i+roots[0]));
+      if(roots.length > 1) box.add(point(i+roots[1]));
     }
     box.add(point(length()));
     return box;
@@ -1753,13 +1751,14 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
 
 static public real epsilon=1000*realEpsilon();
 
-// Return a representation of the plane with normal cross(u,v) through O.
-path3 plane(triple u, triple v, triple O=three.O)
+// Return a representation of the plane through point O with normal cross(u,v).
+path3 plane(triple u, triple v, triple O=O)
 {
-  return O+u--O--O+v--O+u+v--cycle3;
+  return O--O+u--O+u+v--O+v--cycle3;
 }
 
-triple normal(path3 p, triple f(path3, int), triple normal=O) {
+triple normal(path3 p, triple f(path3, int), triple normal=O)
+{
   int n=size(p);
   for(int i=0; i < size(p)-1; ++i) {
     triple point=point(p,i);
@@ -1905,9 +1904,11 @@ splitface split(face a, face cut, projection P)
     else front=null;
   }
   if(front != null)
-    clip(front.fit,operator --(... rightfront ? h.right : h.left)--cycle);
+    clip(front.fit,operator --(... rightfront ? h.right : h.left)--cycle,
+	 zerowinding);
   if(back != null)
-    clip(back.fit,operator --(... rightfront ? h.left : h.right)--cycle);
+    clip(back.fit,operator --(... rightfront ? h.left : h.right)--cycle,
+	 zerowinding);
   S.back=back;
   S.front=front;
   return S;
@@ -1940,6 +1941,7 @@ struct bsp
   void add(frame f) {
     if(back != null) back.add(f);
     add(f,node.fit,group=true);
+    if(labels(node.fit)) layer(f); // Draw over any existing TeX layers.
     if(front != null) front.add(f);
   }
 }

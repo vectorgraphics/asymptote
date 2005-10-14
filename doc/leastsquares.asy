@@ -36,11 +36,9 @@ for(int i=0; i <= n; ++i) {
   
   if(logt.length < 2) break;
   
+  // Fit to the line logt=L.m*logrho+L.b:
   linefit L=leastsquares(logt,logrho);
     
-//  write(stdout,L.m); write(" +/- ",L.dm);
-//  write(stdout,L.b); write(" +/- ",L.db);
-  
   T.push(first);
   xi.push(L.m);
   dxi.push(L.dm);

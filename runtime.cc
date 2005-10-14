@@ -220,37 +220,14 @@ void intAbs(stack *s)
   s->push(abs(pop<int>(s)));
 }  
 
-static inline int round(double x) 
+inline int sgn(double x) 
 {
-  return int(x+((x >= 0) ? 0.5 : -0.5));
+  return (x > 0.0 ? 1 : (x < 0.0 ? -1 : 0));
 }
-
-void intCeil(stack *s)
-{ 
-  double x = pop<double>(s);
-  int sx = round(ceil(x));
-  s->push(sx);
-}  
-
-void intFloor(stack *s)
-{ 
-  double x = pop<double>(s);
-  int sx = round(floor(x));
-  s->push(sx);
-}  
-
-void intRound(stack *s)
-{ 
-  double x = pop<double>(s);
-  int sx = round(x);
-  s->push(sx);
-}  
 
 void intSgn(stack *s)
 { 
-  double x = pop<double>(s);
-  int sx = (x == 0.0 ? 0 : (x > 0.0 ? 1 : -1));
-  s->push(sx);
+  s->push(sgn(pop<double>(s)));
 }  
 
 void intRand(stack *s)
@@ -602,7 +579,7 @@ void arraySequence(stack *s)
   if(n < 0) n=0;
   array *a=new array(n);
   for(int i=0; i < n; ++i) {
-    s->push<int>(i);
+    s->push(i);
     f->call(s);
     (*a)[i]=pop(s);
   }
@@ -889,6 +866,32 @@ void tridiagonal(stack *s)
 	
   for(size_t i=n-2; i >= 1; i--)
     u[i-1]=read<double>(u,i-1)-gamma[i-1]*read<double>(u,i)-delta[i-1]*temp;
+}
+  
+void quadraticRoots(stack *s)
+{
+  double c = pop<double>(s);
+  double b = pop<double>(s);
+  double a = pop<double>(s);
+  quadraticroots q(a,b,c);
+  array *roots=new array(q.roots);
+  if(q.roots >= 1) (*roots)[0]=q.t1;
+  if(q.roots == 2) (*roots)[1]=q.t2;
+  s->push(roots);
+}
+  
+void cubicRoots(stack *s)
+{
+  double d = pop<double>(s);
+  double c = pop<double>(s);
+  double b = pop<double>(s);
+  double a = pop<double>(s);
+  cubicroots q(a,b,c,d);
+  array *roots=new array(q.roots);
+  if(q.roots >= 1) (*roots)[0]=q.t1;
+  if(q.roots >= 2) (*roots)[1]=q.t2;
+  if(q.roots == 3) (*roots)[2]=q.t3;
+  s->push(roots);
 }
   
 // Null operations
@@ -1987,8 +1990,7 @@ void clip(stack *s)
   pen *n = pop<pen*>(s);
   array *p=copyArray(s);
   picture *pic = pop<picture*>(s);
-  pic->prepend(new drawClipBegin(p,*n));
-  pic->append(new drawClipEnd());
+  pic->enclose(new drawClipBegin(p,*n),new drawClipEnd());
 }
   
 void beginClip(stack *s)
@@ -1999,6 +2001,19 @@ void beginClip(stack *s)
   pic->append(new drawClipBegin(p,*n,false));
 }
 
+void inside(stack *s)
+{
+  pen *n = pop<pen*>(s);
+  pair z = pop<pair>(s);
+  array *p=copyArray(s);
+  checkArray(p);
+  size_t size=p->size();
+  int count=0;
+  for(size_t i=0; i < size; i++) 
+    count += read<path *>(p,i)->inside(z);
+  s->push(n->inside(count));
+}
+ 
 void postscript(stack *s)
 {
   string *t = pop<string*>(s);

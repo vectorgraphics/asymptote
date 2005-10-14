@@ -74,6 +74,8 @@ static pen beveljoin=linejoin(2);
 
 static pen zerowinding=fillrule(0);
 static pen evenodd=fillrule(1);
+static pen zerowindingoverlap=fillrule(2);
+static pen evenoddoverlap=fillrule(3);
 
 static pen nobasealign=basealign(0);
 static pen basealign=basealign(1);
@@ -142,11 +144,13 @@ static public real legendmargin=10;
 static public string defaultfilename;
 static public string defaultformat="$%.4g$";
 
-// Reduced for tension atleast infinity
-static real infinity=sqrt(0.25*realMax());
-static pair Infinity=(infinity,infinity);
-
+static int intMax=intMax();
+static real realMax=realMax();
 static real epsilon=realEpsilon();
+
+// Reduced for tension atleast infinity
+static real infinity=sqrt(0.25*realMax);
+static pair Infinity=(infinity,infinity);
 
 // Define a.. tension t ..b to be equivalent to
 //        a.. tension t and t ..b
@@ -1331,7 +1335,7 @@ void add(pair origin, picture src, bool group=true, bool put=Above)
 
 guide box(pair a, pair b)
 {
-  return a--(a.x,b.y)--b--(b.x,a.y)--cycle;
+  return a--(b.x,a.y)--b--(a.x,b.y)--cycle;
 }
 
 guide unitsquare=box((0,0),(1,1));
@@ -1489,10 +1493,13 @@ void fill(frame f, path[] g)
   fill(f,g,currentpen);
 }
 
-void filldraw(frame f, path[] g, pen p=currentpen)
+void filldraw(frame f, path[] g, pen fillpen=currentpen,
+	      pen drawpen=currentpen)
 {
-  fill(f,g,p);
-  draw(f,g,p);
+  begingroup(f);
+  fill(f,g,fillpen);
+  draw(f,g,drawpen);
+  endgroup(f);
 }
 
 void fill(picture pic=currentpicture, path[] g, pen p=currentpen)
@@ -1570,8 +1577,10 @@ void fill(pair origin, picture pic=currentpicture, path[] g, pen p=currentpen)
 void filldraw(picture pic=currentpicture, path[] g, pen fillpen=currentpen,
 	      pen drawpen=currentpen)
 {
+  begingroup(pic);
   fill(pic,g,fillpen);
   draw(pic,g,drawpen);
+  endgroup(pic);
 }
 
 void clip(frame f, path[] g)
@@ -1600,6 +1609,12 @@ void unfill(picture pic=currentpicture, path[] g)
   pic.clip(new void (frame f, transform t) {
     unfill(f,t*g);
   });
+}
+
+bool inside(path[] g, pair z) 
+{
+//  return inside(g,z,currentpen);
+  return true;
 }
 
 pair dir(path g)
@@ -2049,8 +2064,7 @@ filltype Fill(pen p)
 {
   return new void(frame f, path g, pen drawpen) {
     drawpen += solid;
-    fill(f,g,p == nullpen ? drawpen : p+solid);
-    draw(f,g,drawpen);
+    filldraw(f,g,p == nullpen ? drawpen : p+solid,drawpen);
   };
 }
 

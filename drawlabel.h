@@ -27,6 +27,7 @@ private:
   double scale;
   pair Align;
   pair texAlign;
+  bbox Box;
   
 public:
   drawLabel(string label, string size, double angle, pair position, pair align,
@@ -50,7 +51,7 @@ public:
       reportError("drawLabel::write called before bounds");
     if(suppress || pentype->invisible()) return true;
     out->setpen(*pentype);
-    out->put(label,angle,position,texAlign);
+    out->put(label,angle,position,texAlign,Box);
     return true;
   }
 

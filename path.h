@@ -5,7 +5,7 @@
  * Stores a piecewise cubic spline with known control points.
  *
  * When changing the path algorithms, also update the corresponding 
- * three-dimensional algorithms in three.asy.
+ * three-dimensional algorithms in path3.cc and three.asy.
  *****/
 
 #ifndef PATH_H
@@ -25,9 +25,12 @@ inline double intcap(double t) {
     return t;
 }
   
-inline int ifloor(double t) {return (int) floor(intcap(t));}
-  
-inline int iceil(double t) {return (int) ceil(intcap(t));}
+// The are like floor and ceil, except they return an integer;
+// if the argument cannot be converted to a valid integer, they return
+// INT_MAX (for positive arguments) or -INT_MAX (for negative arguments).
+
+inline int Floor(double t) {return (int) floor(intcap(t));}
+inline int Ceil(double t) {return (int) ceil(intcap(t));}
 
 bool simpson(double& integral, double (*)(double), double a, double b,
 	     double acc, double dxmax);
@@ -222,8 +225,25 @@ public:
   // Debugging output
   friend ostream& operator<< (ostream& out, const path p);
 
+  int sgn1(double x) const
+  {
+    return x > 0.0 ? 1 : -1;
+  }
+
+// Increment count if the path has a vertical component at t.
+  bool Count(int& count, double t) const;
+  
+// Count if t is in (begin,end] and z lies to the left of point(i+t).
+  void countleft(int& count, double x, int i, double t,
+		 double begin, double end, double& mint, double& maxt) const;
+
+// Return the insideness count for the point z relative to the region
+// bounded by the (cyclic) path.
+  int inside(const pair& z) const;
+
   // Transformation
   path transformed(const transform& t) const;
+  
 };
 
 pair intersectiontime(path p1, path p2, double fuzz);
@@ -234,11 +254,28 @@ path concat(path p1, path p2);
 // Applies a transformation to the path
 path transformed(const transform& t, path p);
   
-}
-
 inline double quadratic(double a, double b, double c, double x)
 {
   return a*x*x+b*x+c;
 }
   
+class quadraticroots {
+public:
+  enum {NONE=0, ONE=1, TWO=2, MANY} distinct; // Number of distinct roots.
+  unsigned int roots; // Total number of real roots.
+  double t1,t2;
+  
+  quadraticroots(double a, double b, double c);
+};
+
+class cubicroots {
+public:  
+  unsigned int roots; // Total number of real roots.
+  double t1,t2,t3;
+  cubicroots(double a, double b, double c, double d);
+};
+
+  
+}
+
 #endif

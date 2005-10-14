@@ -35,23 +35,30 @@ picture::~picture()
 {
 }
 
-// Find beginning of current layer.
-nodelist::iterator picture::layerstart()
+void picture::enclose(drawElement *begin, drawElement *end)
 {
-  nodelist::iterator p;
-  for(p=nodes.end(); p != nodes.begin();) {
-    --p;
+  assert(begin);
+  assert(end);
+  lastnumber=0;
+  nodes.push_front(begin);
+  for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
-    if((*p)->islayer()) {++p; break;}
+    if((*p)->islayer()) {
+      nodes.insert(p,end);
+      ++p;
+     while(p != nodes.end() && (*p)->islayer()) ++p;
+     if(p == nodes.end()) return;
+     nodes.insert(p,begin);
+    }
   }
-  return p;
+  nodes.push_back(end);
 }
 
-// Insert at beginning of current layer.
-void picture::prepend(drawElement *P)
+// Insert at beginning of picture.
+void picture::prepend(drawElement *p)
 {
-  assert(P);
-  nodes.insert(layerstart(),P);
+  assert(p);
+  nodes.push_front(p);
   lastnumber=0;
 }
 
@@ -69,13 +76,29 @@ void picture::add(picture &pic)
   copy(pic.nodes.begin(), pic.nodes.end(), back_inserter(nodes));
 }
 
-// Insert picture pic at beginning of current layer.
+// Insert picture pic at beginning of picture.
 void picture::prepend(picture &pic)
 {
   if (&pic == this) return;
   
-  copy(pic.nodes.begin(), pic.nodes.end(), inserter(nodes, layerstart()));
+  copy(pic.nodes.begin(), pic.nodes.end(), inserter(nodes, nodes.begin()));
   lastnumber=0;
+}
+
+bool picture::havelabels()
+{
+  size_t n=nodes.size();
+  if(n > lastnumber && !labels && settings::texprocess) {
+    // Check to see if there are any labels yet
+    nodelist::iterator p=nodes.begin();
+    for(size_t i=0; i < lastnumber; ++i) ++p;
+    for(; p != nodes.end(); ++p) {
+      assert(*p);
+      if((*p)->islabel())
+        labels=true;
+    }
+  }
+  return labels;
 }
 
 bbox picture::bounds()
@@ -85,22 +108,9 @@ bbox picture::bounds()
   
   if(lastnumber == 0) b=bbox();
   
-  nodelist::iterator p;
+  if(havelabels()) texinit();
   
-  if(!labels && settings::texprocess) {
-    // Check to see if there are any labels yet
-    p=nodes.begin();
-    for(size_t i=0; i < lastnumber; ++i) ++p;
-    for(; p != nodes.end(); ++p) {
-      assert(*p);
-      if((*p)->islabel())
-        labels=true;
-    }
-  }
-  
-  if(labels) texinit();
-  
-  p=nodes.begin();
+  nodelist::iterator p=nodes.begin();
   for(size_t i=0; i < lastnumber; ++i) ++p;
   for(; p != nodes.end(); ++p) {
     assert(*p);

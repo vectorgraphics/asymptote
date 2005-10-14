@@ -74,7 +74,7 @@ scientific scientific(real x)
     scientific s;
     s.sign=sgn(x);
     x=abs(x);
-    if(x == 0) {s.mantissa=0; s.exponent=-intMax(); return s;}
+    if(x == 0) {s.mantissa=0; s.exponent=-intMax; return s;}
     real logx=log10(x);
     s.exponent=floor(logx);
     s.mantissa=s.scale(x,s.exponent);
@@ -864,7 +864,7 @@ axis XEquals(real x, bool extend=true)
 
 axis YEquals(real y, bool extend=true)
 {
-    return new void(picture pic, axisT axis) {
+  return new void(picture pic, axisT axis) {
     axis.value=I*pic.scale.y.T(y);
     axis.position=1;
     axis.side=right;
@@ -876,12 +876,28 @@ axis YEquals(real y, bool extend=true)
 
 axis XZero(bool extend=true)
 {
-  return XEquals(0,extend);
+  return new void(picture pic, axisT axis) {
+    real x=pic.scale.x.scale.logarithmic ? 1 : 0;
+    axis.value=pic.scale.x.T(x);
+    axis.position=1;
+    axis.side=left;
+    axis.align=W;
+    axis.value2=Infinity;
+    axis.extend=extend;
+  };
 }
 
 axis YZero(bool extend=true)
 {
-  return YEquals(0,extend);
+  return new void(picture pic, axisT axis) {
+    real y=pic.scale.x.scale.logarithmic ? 1 : 0;
+    axis.value=I*pic.scale.y.T(y);
+    axis.position=1;
+    axis.side=right;
+    axis.align=S;
+    axis.value2=Infinity;
+    axis.extend=extend;
+  };
 }
 
 public axis
@@ -1484,7 +1500,7 @@ public graph graph(guide join(... guide[]))
 guide Straight(... guide[])=operator --;
 guide Spline(... guide[])=operator ..;
 
-pair Scale(picture pic, pair z)
+pair Scale(picture pic=currentpicture, pair z)
 {
   return (pic.scale.x.T(z.x),pic.scale.y.T(z.y));
 }

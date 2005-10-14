@@ -33,7 +33,7 @@ public:
     penTranslate(out);
   }
   virtual void fill(psfile *out) {
-    out->fill(pentype.Fillrule());
+    out->fill(pentype);
     penEnd(out);
   };
 

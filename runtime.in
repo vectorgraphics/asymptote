@@ -64,6 +64,11 @@ void _label(picture *pic, string *s, string *size, double r, pair z, pair a,
   pic->append(new drawLabel(*s,*size,r,z,a,p));
 }
 
+bool labels(picture *pic)
+{
+  return pic->havelabels();
+}
+
 pen *basealign(int n)
 {
   return new pen(n >= 0 && n < nBaseLine 
@@ -232,6 +237,7 @@ pair intersect(path x, path y, double fuzz)
   return intersectiontime(x,y,fuzz);
 }
 
+// Triple operations
 double cubiclength(triple z0, triple z0p, triple z1m, triple z1, double goal)
 {
   return cubiclength(z0,z0p,z1m,z1,goal);
@@ -249,6 +255,7 @@ triple dir(double theta, double phi)
   return expi(radians(theta),radians(phi));
 }
 
+// String operations
 int length(string *s)
 {
   return (int) s->length();
@@ -295,4 +302,34 @@ void gui(double x)
 { 
   settings::deconstruct=(x > 0 ? x : 0);
 }
-
+
+// Math
+int ceil(double x)
+{ 
+  return (int) ceil(x);
+}
+
+int floor(double x)
+{ 
+  return (int) floor(x);
+}
+
+int round(double x)
+{ 
+  return (int) round(x);
+}
+
+int Ceil(double x)
+{ 
+  return Ceil(x);
+}
+
+int Floor(double x)
+{ 
+  return Floor(x);
+}
+
+int Round(double x)
+{ 
+  return (int) round(intcap(x));
+}

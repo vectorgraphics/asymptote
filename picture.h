@@ -39,19 +39,20 @@ public:
   // Destroy all of the owned picture objects.
   ~picture();
 
-  // Find beginning of current layer.
-  nodelist::iterator layerstart();
-  
   // Prepend an object to the picture.
   void prepend(drawElement *p);
   
   // Append an object to the picture.
   void append(drawElement *p);
 
+  // Enclose each layer with begin and end.
+  void enclose(drawElement *begin, drawElement *end);
+  
   // Add the content of another picture.
   void add(picture &pic);
   void prepend(picture &pic);
   
+  bool havelabels();
   bbox bounds();
 
   void texinit();

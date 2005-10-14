@@ -295,8 +295,8 @@ bool homogeneous(vector<eqn>& e)
   return true;
 }
 
-// Checks the equation being solved will be solve as a straight path from the
-// first point to the second.
+// Checks whether the equation being solved will be solved as a straight
+// path from the first point to the second.
 bool straightSection(cvector<eqn>& e)
 {
   return e.size()==2 && e.front().aug==0 && e.back().aug==0;
@@ -632,7 +632,7 @@ void solveSection(protopath& p, int k, knotlist& l)
     INFO(e);
 
     if (straightSection(e))
-      // Handle striaght section as special case.
+      // Handle straight section as special case.
       encodeStraight(p,k,l);
     else {
       cvector<double> theta = solveThetas(l,e);

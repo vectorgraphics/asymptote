@@ -160,10 +160,12 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
     labelbounds[n]=Box;
   }
   
-  b += A;
-  b += B;
-  b += C;
-  b += D;
+  Box=A;
+  Box += B;
+  Box += C;
+  Box += D;
+  
+  b += Box;
 }
 
 drawElement *drawLabel::transformed(const transform& t)

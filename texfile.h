@@ -19,12 +19,34 @@
 #include "pen.h"
 #include "util.h"
 #include "interact.h"
+#include "path.h"
+#include "array.h"
 
 using std::string;
 
 namespace camp {
 
+class clipper : public gc {
+public: 
+  vm::array *p;
+  pen rule;
+  clipper(vm::array *p, const pen& rule) : p(p), rule(rule) {}
+  
+  // Return true if z is within clipping bounds.
+  bool inside(const pair& z) {
+    checkArray(p);
+    size_t size=p->size();
+    int count=0;
+    for(size_t i=0; i < size; i++)
+      count += vm::read<path *>(p,i)->inside(z);
+    return rule.inside(count);
+  }
+
+};
+  
+typedef mem::list<clipper *> cliplist;
 typedef std::list<string> stringlist;
+  
 extern stringlist TeXpipepreamble, TeXpreamble;
 
 const double tex2ps=72.0/72.27;
@@ -75,6 +97,7 @@ class texfile : public gc {
   pair offset;
   bbox box;
   pen lastpen;
+  cliplist clipstack;
 
 public:
   texfile(const string& texname, const bbox& box);
@@ -86,8 +109,19 @@ public:
 
   void setpen(pen p);
   
+  void beginclip(clipper *c) {
+    clipstack.push_back(c);
+  }
+  
+  void endclip() {
+    if(clipstack.size() < 1)
+      reportError("endclip without matching beginclip");
+    clipstack.pop_back();
+  }
+  
   // Draws label rotated by angle (relative to the horizontal) at position z.
-  void put(const string& label, double angle, pair z, pair Align);
+  void put(const string& label, double angle, const pair& z, const pair& Align,
+	   const bbox& Box);
 
   void beginlayer(const string& psname);
   void endlayer();
