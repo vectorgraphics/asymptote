@@ -1613,8 +1613,7 @@ void unfill(picture pic=currentpicture, path[] g)
 
 bool inside(path[] g, pair z) 
 {
-//  return inside(g,z,currentpen);
-  return true;
+  return inside(g,z,currentpen);
 }
 
 pair dir(path g)
