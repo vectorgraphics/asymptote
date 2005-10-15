@@ -286,6 +286,9 @@ pair labeltick(frame d, transform T, guide g, ticklocate locate, real val,
     ticklabelshift(align,F.p);
   pair Z=locate1.Z+shift;
   if(abs(val) < epsilon*norm) val=0;
+  // Fix epsilon errors at +/-1e-4
+  // default format changes to scientific notation here
+  if(abs(abs(val)-1e-4) < epsilon) val=sgn(val)*1e-4;
   pair perp=I*locate1.pathdir;
   // Adjust tick label alignment
   pair adjust=unit(align+0.5*unit(perp*sgn(dot(align,perp))));
