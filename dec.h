@@ -21,14 +21,16 @@ class coenv;
 class access;
 }
 
-namespace types
-{
+namespace types {
 class ty;
 class formal;
 class signature;
 class function;
 }
 
+namespace vm {
+class lambda;
+}
 namespace absyntax {
 
 using mem::list;
@@ -143,6 +145,8 @@ public:
     // By default, translate as normal.
     trans(e);
   }
+
+  virtual vm::lambda *transAsCodelet(coenv &e);
 
   // For functions that return a value, we must guarantee that they end
   // with a return statement.  This checks for that condition.

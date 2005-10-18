@@ -26,6 +26,10 @@ class stack {
 public:
   typedef frame* vars_t;
 
+  struct importInitMap {
+    virtual lambda *operator[](mem::string) = 0;
+  };
+
 private:
   // stack for operands
   typedef mem::deque<item> stack_t;
@@ -39,7 +43,6 @@ private:
   void marshall(size_t args, vars_t vars);
 
   // The initializer functions for imports, indexed by name.
-  typedef mem::map<mem::string,lambda *> importInitMap;
   importInitMap *initMap;
 
   // The stack stores a map of initialized imported modules by name, so that

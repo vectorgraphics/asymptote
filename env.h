@@ -88,7 +88,8 @@ public:
   }
 
   // Find the function that handles casting between the types.
-  // The name is "cast" for implicitCasting and "ecast" for explicit (for now).
+  // The name is "operator cast" for implicitCasting and "operator ecast" for
+  // explicit.
   access *lookupCast(ty *target, ty *source, symbol *name);
   bool castable(ty *target, ty *source, symbol *name);
 

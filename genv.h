@@ -21,6 +21,7 @@
 #include "absyn.h"
 #include "access.h"
 #include "coenv.h"
+#include "stack.h"
 
 using types::record;
 using vm::lambda;
@@ -30,22 +31,21 @@ namespace trans {
 class genv : public gc {
   // The initializer functions for imports, indexed by filename.
   typedef mem::map<std::string,record *> importMap;
-  typedef mem::map<mem::string,lambda *> importInitMap;
-  importMap *imap;
+  importMap imap;
 
   // Translate a module to build the record type.
   record *loadModule(symbol *name, std::string s);
 
 public:
   genv()
-    : imap(new importMap) {}
+    : imap() {}
 
   // Get an imported module, translating if necessary.
   record *getModule(symbol *name, std::string s);
 
   // Uses the filename->record map to build a filename->initializer map to be
   // used at runtime.
-  importInitMap *getInitMap();
+  vm::stack::importInitMap *getInitMap();
 };
 
 } // namespace trans

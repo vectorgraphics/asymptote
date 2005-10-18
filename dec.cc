@@ -158,6 +158,14 @@ types::ty *arrayTy::trans(coenv &e, bool tacit)
   return t;
 }
 
+vm::lambda *runnable::transAsCodelet(coenv &e)
+{
+  coder c=e.c.newCodelet();
+  coenv ce(c, e.e);
+  trans(ce);
+  return c.close();
+}
+
 
 void dec::prettyprint(ostream &out, int indent)
 {

@@ -31,6 +31,9 @@ using std::list;
 
 using absyntax::file;
 using trans::genv;
+using trans::coenv;
+using trans::env;
+using trans::coder;
 using types::record;
 
 errorstream *em;
@@ -109,7 +112,7 @@ void doPrint(genv& ge, record *m)
   print(cout, m->getInit()->code);
 }
 
-// Run (an already translated)
+// Run (an already translated) module of the given filename.
 void doRun(genv& ge, std::string filename)
 {
   setPath(startPath()); // ???
@@ -199,30 +202,36 @@ void doBatch()
   }
 }
 
-#if 0
 typedef vm::interactiveStack istack;
 using absyntax::runnable;
 using absyntax::file;
 
-void doIRunnable(absyntax::runnable *r, genv &ge, istack &s) {
-  lambda *codelet=ge.trans(r);
-  print(cout, codelet->code);
-  cout << "\n";
-  s.run(codelet);
+void doIRunnable(absyntax::runnable *r, coenv &e, istack &s) {
+  lambda *codelet=r->transAsCodelet(e);
+  em->sync();
+  if (!em->errors()) {
+    print(cout, codelet->code);
+    cout << "\n";
+    s.run(codelet);
+  }
+  else {
+    delete em;
+    em = new errorstream();
+  }
 }
 
-void doITree(file *ast, genv &ge, istack &s) {
+void doITree(file *ast, coenv &e, istack &s) {
   for (list<runnable *>::iterator r=ast->stms.begin();
        r!=ast->stms.end();
        ++r)
-    doIRunnable(*r, ge, s);
+    doIRunnable(*r, e, s);
 }
 
-void doIFile(const char *name,  genv &ge, istack &s) {
+void doIFile(const char *name, coenv &e, istack &s) {
   cout << "ifile: " << name << endl;
   file *ast=parser::parseFile(name);
   assert(ast);
-  doITree(ast, ge, s);
+  doITree(ast, e, s);
 }
 
 void doIBatch()
@@ -237,15 +246,19 @@ void doIBatch()
     init();
 
     genv ge;
+    env base_env(ge);
+    coder base_coder;
+    coenv e(base_coder,base_env);
+
     vm::interactiveStack s;
+    s.setInitMap(ge.getInitMap());
 
     for(int ind=0; ind < numArgs() ; ind++)
-      doIFile(getArg(ind), ge, s);
+      doIFile(getArg(ind), e, s);
 
     purge();
   }
 }
-#endif
 
 } // namespace loop
 
@@ -270,8 +283,7 @@ int main(int argc, char *argv[])
       loop::doInteractive();
     else if (laat) {
       cout << "laat = " << laat << endl;
-      cout << "not working right now\n";
-      //loop::doIBatch();
+      loop::doIBatch();
     }
     else
       loop::doBatch();
