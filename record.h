@@ -42,44 +42,6 @@ public:
   record(symbol *name, frame *level);
   ~record();
 
-#if 0 //{{{
-  void addType(symbol *name, tyEntry *desc)
-  {
-    te.enter(name, desc);
-  }
-
-  void addVar(symbol *name, varEntry *desc)
-  {
-    ve.enter(name, desc);
-  }
-
-  void list()
-  {
-    ve.list();
-  }
-
-  tyEntry *lookupTypeEntry(symbol *s)
-  {
-    return te.look(s);
-  }
-
-  ty *lookupType(symbol *s)
-  {
-    tyEntry *ent=lookupTypeEntry(s);
-    return ent ? ent->t : 0;
-  }
-
-  varEntry *lookupVarByType(symbol *name, ty *t)
-  {
-    return ve.lookByType(name, t);
-  }
-
-  ty *varGetType(symbol *name)
-  {
-    return ve.getType(name);
-  }
-#endif //}}}
-
   symbol *getName()
   {
     return name;

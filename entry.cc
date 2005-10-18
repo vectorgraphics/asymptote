@@ -45,6 +45,52 @@ void varEntry::encode(action act, position pos, coder &c, frame *top) {
   getLocation()->encode(act, pos, c, top);
 }
 
+varEntry *qualifyVarEntry(access *qa, frame *qlevel, varEntry *v)
+{
+  return new varEntry(v->getType(),
+                      new qualifiedAccess(qa,
+                                          qlevel,
+                                          v->getLocation()),
+                      v->getPermission(),
+                      v->getRecord());
+}
+
+varEntry *qualifyVarEntry(varEntry *qv, varEntry *v)
+{
+  if (qv)
+    if (v) {
+      record *r=dynamic_cast<record *>(qv->getType());
+      assert(r);
+      return qualifyVarEntry(qv->getLocation(), r->getLevel(), v);
+    }
+    else return qv;
+  else return v;
+}
+
+tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent)
+{
+  // Records need a varEntry that refers back to the qualifier qv.  Ie. in
+  // the last new of the code
+  //   struct A {
+  //     struct B {}
+  //   }
+  //   A a=new A;
+  //   use a;
+  //   new B;
+  // we need to put a's frame on the stack before allocating an instance of
+  // B.
+  // NOTE: A possible optimization could be to only qualify the varEntry if
+  // the type is a record, as other types don't use the varEntry.
+  return new tyEntry(ent->t, qualifyVarEntry(qv, ent->v));
+}
+
+void tenv::add(tenv& source, varEntry *qualifier)
+{
+  // Enter each distinct (unshadowed) name,type pair.
+  for(names_t::iterator p = source.names.begin(); p != source.names.end(); ++p)
+    if (!p->second.empty())
+    enter(p->first, qualifyTyEntry(qualifier, p->second.front()));
+}
 
 #ifdef NOHASH //{{{
 venv::venv()
@@ -135,8 +181,8 @@ bool venv::keyeq::operator()(const key k, const key l) const {
 #endif
   return k.name==l.name &&
     (k.name->special ? equivalent(k.t, l.t) :
-     equivalent(k.t->getSignature(),
-       l.t->getSignature()));
+                       equivalent(k.t->getSignature(),
+                                  l.t->getSignature()));
 }
 #endif
 
@@ -181,6 +227,13 @@ void venv::enter(symbol *name, varEntry *v) {
   all[k]=val;
   scopes.top().insert(keymultimap::value_type(k,val));
   names[k.name].push_front(val);
+}
+
+void venv::add(venv& source, varEntry *qualifier)
+{
+  // Enter each distinct (unshadowed) name,type pair.
+  for(keymap::iterator p = source.all.begin(); p != source.all.end(); ++p)
+    enter(p->first.name, qualifyVarEntry(qualifier, p->second->v));
 }
 
 ty *venv::getType(symbol *name)

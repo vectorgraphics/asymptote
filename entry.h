@@ -72,6 +72,8 @@ public:
   void encode(action act, position pos, coder &c, frame *top);
 };
 
+varEntry *qualifyVarEntry(varEntry *qv, varEntry *v);
+
 // As looked-up types can be allocated in a new expression, we need to know what
 // frame they should be allocated on.  Type entries store this extra information
 // along with the type.
@@ -84,9 +86,15 @@ public:
     : t(t), v(v) {}
 };
 
+tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent);
+
 // The type environment.
-class tenv : public sym::table<tyEntry *>
-{};
+class tenv : public sym::table<tyEntry *> {
+public:
+  // Add the entries in one environment to another, if qualifier is non-null, it
+  // is a record and the source environment is its types.
+  void add(tenv& source, varEntry *qualifier);
+};
 
 #ifdef NOHASH //{{{
 class venv : public sym::table<varEntry*> {
@@ -204,6 +212,10 @@ public:
 
   void enter(symbol *name, varEntry *v);
 
+  // Add the entries in one environment to another, if qualifier is non-null, it
+  // is a record and the source environment are its fields.
+  void add(venv& source, varEntry *qualifier);
+
   bool lookInTopScope(key k) {
     return scopes.top().find(k)!=scopes.top().end();
   }
@@ -213,7 +225,7 @@ public:
     return lookInTopScope(key(name, t));
   }
 
-  varEntry * lookByType(key k) {
+  varEntry *lookByType(key k) {
     keymap::const_iterator p=all.find(k);
     return p!=all.end() ? p->second->v : 0;
   }

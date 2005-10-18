@@ -108,13 +108,6 @@ public:
   void addOps(coenv &e, types::ty* t, types::ty *ct);
   
   types::ty *trans(coenv &e, bool tacit = false);
-
-#if 0
-  trans::import *getImport(coenv &e)
-  {
-    return cell->getImport(e);
-  }
-#endif
 };
 
 // Runnable is anything that can be executed by the program, including
@@ -359,29 +352,21 @@ public:
   void transAsField(coenv &e, record *r);
 };
 
-#if 0
-class importdec : public dec {
-  symbol *id;
-
-  void initialize(coenv &e, record *m, access *a);
+// A use declaration dumps all of the fields and types of a record into the
+// local scope.
+class usedec : public dec {
+  name *id;
 
 public:
-  importdec(position pos, symbol *id)
+  usedec(position pos, name *id)
     : dec(pos), id(id) {}
 
   void prettyprint(ostream &out, int indent);
-  void loadFailed(coenv &e);
 
   void trans(coenv &e);
 
   void transAsField(coenv &e, record *r);
-
-  // PUBLIC and PRIVATE modifiers are meaningless to imports, so we do
-  // not allow them.
-  bool allowPermissions()
-    { return false; }
 };
-#endif
 
 // Types defined from others in typedef.
 class typedec : public dec {

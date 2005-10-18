@@ -24,6 +24,7 @@
 #include "fileio.h"
 
 #include "stack.h"
+#include "runtime.h"
 
 using namespace settings;
 using std::list;
@@ -116,6 +117,7 @@ void doRun(genv& ge, std::string filename)
   vm::stack s;
   s.setInitMap(ge.getInitMap());
   s.load(filename);
+  run::exitFunction(&s);
 }
 
 void body(string filename) // TODO: Refactor

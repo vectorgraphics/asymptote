@@ -7,6 +7,7 @@
  *****/
 
 #include "env.h"
+#include "record.h"
 #include "genv.h"
 
 using namespace types;
@@ -115,7 +116,6 @@ ty *protoenv::castSource(ty *target, ty *source, symbol *name) {
   resolver r(*this, name);
   return r.collect(target, source);
 } 
-
 
 env::env(genv &ge)
   : ge(ge)

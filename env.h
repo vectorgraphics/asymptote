@@ -60,14 +60,14 @@ public:
     te.endScope(); ve.endScope();
   }
 
-  tyEntry *lookupTypeEntry(symbol *s)
+  tyEntry *lookupTyEntry(symbol *s)
   {
     return te.look(s);
   }
 
   ty *lookupType(symbol *s)
   {
-    tyEntry *ent=lookupTypeEntry(s);
+    tyEntry *ent=lookupTyEntry(s);
     return ent ? ent->t : 0;
   }
 
@@ -113,6 +113,16 @@ public:
     // and initializers harder.
     ve.enter(name, desc);
   }
+
+  // Add another environment, say from a record.
+  void add(protoenv &source, varEntry *qualifier)
+  {
+    te.add(source.te, qualifier);
+    ve.add(source.ve, qualifier);
+  }
+
+  // Add the fields and types of the record given in v to the local environment.
+  void useRecord(varEntry *v);
 
   void list()
   {

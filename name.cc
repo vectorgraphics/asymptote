@@ -126,7 +126,6 @@ types::ty *simpleName::typeTrans(coenv &e, bool tacit)
     return t;
   }
   else {
-    // NOTE: Could call getModule here.
     if (!tacit) {
       em->error(getPos());
       *em << "no type of name \'" << *id << "\'";
@@ -137,7 +136,13 @@ types::ty *simpleName::typeTrans(coenv &e, bool tacit)
 
 tyEntry *simpleName::tyEntryTrans(coenv &e)
 {
-  return new tyEntry(typeTrans(e,false),0);
+  tyEntry *ent = e.e.lookupTyEntry(id);
+  if (!ent) {
+    em->error(getPos());
+    *em << "no type of name \'" << *id << "\'";
+    return new tyEntry(primError(), 0);
+  }
+  return ent;
 }
 
 void simpleName::prettyprint(ostream &out, int indent)
@@ -248,23 +253,6 @@ types::ty *qualifiedName::varGetType(coenv &e)
   return r ? r->e.varGetType(id) : 0;
 }
 
-varEntry *mergeEntries(varEntry *qv, varEntry *v)
-{
-  if (qv) {
-    if (v) {
-      frame *f=dynamic_cast<record *>(qv->getType())->getLevel();
-      return new varEntry(v->getType(),
-                          new qualifiedAccess(qv->getLocation(),
-                                              f,
-                                              v->getLocation()));
-    }
-    else
-      return qv;
-  }
-  else
-    return v;
-}
-
 trans::varEntry *qualifiedName::getVarEntry(coenv &e)
 {
   varEntry *qv = qualifier->getVarEntry(e);
@@ -274,7 +262,7 @@ trans::varEntry *qualifiedName::getVarEntry(coenv &e)
   if (r) {
     types::ty *t = signatureless(r->e.varGetType(id));
     varEntry *v = t ? r->e.lookupVarByType(id, t) : 0;
-    return mergeEntries(qv,v);
+    return trans::qualifyVarEntry(qv,v);
   }
   else
     return qv;
@@ -311,7 +299,21 @@ types::ty *qualifiedName::typeTrans(coenv &e, bool tacit)
 
 tyEntry *qualifiedName::tyEntryTrans(coenv &e)
 {
-  return new tyEntry(typeTrans(e,false), qualifier->getVarEntry(e));
+  types::ty *rt = qualifier->getType(e, false);
+
+  record *r = castToRecord(rt, false);
+  if (!r)
+    return new tyEntry(primError(), 0);
+
+  tyEntry *ent = r->e.lookupTyEntry(id);
+  if (!ent) {
+    em->error(getPos());
+    *em << "no matching type of name \'" << *id << "\' in \'"
+        << *r << "\'";
+    return new tyEntry(primError(), 0);
+  }
+
+  return trans::qualifyTyEntry(qualifier->getVarEntry(e), ent);
 }
 
 frame *qualifiedName::frameTrans(coenv &e)

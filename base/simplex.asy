@@ -12,6 +12,8 @@
  * assumption may in fact be incorrect.
  *****/
 
+private real infinity=sqrt(0.25*realMax());
+
 struct problem {
   typedef int var;
   static var VAR_A = 0;
@@ -101,7 +103,7 @@ struct problem {
   // doesn't fit, nothing will.
   var initVar()
   {
-    real min=realMax(), max=-realMax();
+    real min=infinity, max=-infinity;
     var argmin=0, argmax=0;
 
     for (var i = 2; i < rows.length; ++i) {
@@ -165,7 +167,7 @@ struct problem {
     // t[col] is negative, all c/t[col] will be negative, so we are finding
     // the smallest in magnitude.
     var vp=UNBOUNDED;
-    real max=-realMax();
+    real max=-infinity;
     for (int i = 2; i < rows.length; ++i) {
       row r=rows[i];
       if(r.c < max*r.t[col]) {

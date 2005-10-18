@@ -91,7 +91,7 @@ using sym::symbol;
 %token <pos> LOOSE ASSIGN '?' ':'
              DIRTAG JOIN_PREC AND
              '{' '}' '(' ')' '.' ','  '[' ']' ';' ELLIPSIS
-             IMPORT STRUCT TYPEDEF NEW
+             IMPORT USE STRUCT TYPEDEF NEW
              IF ELSE WHILE DO FOR BREAK CONTINUE RETURN_
              STATIC PUBLIC_TOK PRIVATE_TOK THIS EXPLICIT
 %token <e>   LIT
@@ -213,6 +213,7 @@ dec:
 | IMPORT ID ';'    { $$ = new importdec($1, $2.sym); }
 */
 | IMPORT ID STRING ';' { $$ = new importdec($1, $2.sym, *$2.sym); }
+| USE name ';'     { $$ = new usedec($1, $2); }
 ;
 
 vardec:

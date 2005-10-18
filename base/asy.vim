@@ -18,7 +18,7 @@ endif
 syn keyword	asyStatement	break return continue
 syn keyword	asyConditional	if else
 syn keyword	asyRepeat	while for do
-syn keyword     asyExternal     import
+syn keyword     asyExternal     import use
 syn keyword     asyOperator     new operator
 
 syn keyword	asyTodo		contained TODO FIXME XXX

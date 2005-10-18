@@ -989,7 +989,7 @@ struct picture {
   // Calculate the sizing constants for the given array and maximum size.
   scaling calculateScaling(coord[] coords, real size) {
     import simplex "simplex.asy";
-    simplex.problem p;
+    simplex.problem p=new simplex.problem;
    
     void addMinCoord(coord c) {
       // (a*user + b) + truesize >= 0:

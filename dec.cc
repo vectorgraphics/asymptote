@@ -552,6 +552,33 @@ void importdec::transAsField(coenv &e, record *r)
 }
 
 
+void usedec::prettyprint(ostream &out, int indent)
+{
+  prettyname(out, "usedec", indent);
+  id->prettyprint(out, indent+1);
+}
+
+void usedec::trans(coenv &e)
+{
+  transAsField(e,0);
+}
+
+void usedec::transAsField(coenv &e, record *r)
+{
+  record *qualifier=dynamic_cast<record *>(id->getType(e, false));
+  if (!qualifier) {
+    em->error(getPos());
+    *em << "'" << *(id->getName()) << "' is not a record";
+  }
+  else {
+    varEntry *v=id->getVarEntry(e);
+    if (r)
+      r->e.add(qualifier->e, v);
+    e.e.add(qualifier->e, v);
+  }
+}
+
+
 #if 0
 void importdec::initialize(coenv &e, record *m, access *a)
 {
