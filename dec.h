@@ -343,6 +343,8 @@ class importdec : public dec {
 public:
   importdec(position pos, symbol *id, std::string filename)
     : dec(pos), id(id), filename(filename) {}
+  importdec(position pos, symbol *id)
+    : dec(pos), id(id), filename(*id) {}
 
   void prettyprint(ostream &out, int indent);
   void loadFailed(coenv &e);

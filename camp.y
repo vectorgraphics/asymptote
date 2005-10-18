@@ -178,8 +178,10 @@ bareblock:
 name:
   ID               { $$ = new simpleName($1.pos, $1.sym); }
 | name '.' ID      { $$ = new qualifiedName($2, $1, $3.sym); }
+/*
 | STRING '.' ID    { $$ = new qualifiedName($2, new simpleName($2, $1.sym),
 					    $3.sym); }
+*/
 ;
 
 /*runnables:
@@ -209,10 +211,9 @@ dec:
   vardec           { $$ = $1; }
 | fundec           { $$ = $1; }
 | typedec          { $$ = $1; }
-/*
 | IMPORT ID ';'    { $$ = new importdec($1, $2.sym); }
-*/
-| IMPORT ID STRING ';' { $$ = new importdec($1, $2.sym, *$2.sym); }
+| IMPORT ID STRING ';'
+                   { $$ = new importdec($1, $2.sym, *$3.sym); }
 | USE name ';'     { $$ = new usedec($1, $2); }
 ;
 

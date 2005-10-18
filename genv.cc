@@ -44,9 +44,6 @@ record *genv::loadModule(symbol *id, std::string filename) {
   // Create the new module.
   record *r = new record(id, new frame(0,0));
 
-  // Add it to the table of modules.
-  //modules.enter(id, r);
-
   // Create coder and environment to translate the module.
   // File-level modules have dynamic fields by default.
   coder c(r, 0);

@@ -115,7 +115,7 @@ absyntax::file *parseFile(string filename)
   }
   
   yy::sbuf = &filebuf;
-  return doParse(yy::stream_input,filename);
+  return doParse(yy::stream_input,file);
 }
 
 absyntax::file *parseString(string code)
