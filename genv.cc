@@ -54,10 +54,6 @@ record *genv::loadModule(symbol *id, std::string filename) {
   ast->transAsRecordBody(ce, r);
   em->sync();
 
-  // NOTE: Move this to a similar place as settings::translate.
-  if(settings::listonly)
-    r->e.list();
-  
   return r;
 }
 

@@ -38,39 +38,13 @@ void emptyStm::prettyprint(ostream &out, int indent)
 }
 
 
-void blockStm::prettystms(ostream &out, int indent)
-{
-  for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p)
-    (*p)->prettyprint(out, indent);
-}
-
 void blockStm::prettyprint(ostream &out, int indent)
 {
   prettyname(out,"blockStm",indent);
-  prettystms(out, indent+1);
+
+  base->prettyprint(out, indent+1);
 }
 
-void blockStm::trans(coenv &e)
-{
-  e.e.beginScope();
-  for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
-    (*p)->markTrans(e);
-  }
-  e.e.endScope();
-}
-
-void blockStm::transAsRecordBody(coenv &e, record *r)
-{
-  e.e.beginScope();
-  for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
-    (*p)->markTransAsField(e, r);
-  }
-  e.e.endScope();
-
-  // Put record into finished state.
-  e.c.encode(inst::pushclosure);
-  e.c.close();
-}
 
 void expStm::prettyprint(ostream &out, int indent)
 {

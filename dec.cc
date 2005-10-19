@@ -167,6 +167,56 @@ vm::lambda *runnable::transAsCodelet(coenv &e)
 }
 
 
+void block::prettystms(ostream &out, int indent)
+{
+  for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p)
+    (*p)->prettyprint(out, indent);
+}
+
+void block::prettyprint(ostream &out, int indent)
+{
+  prettyname(out,"block",indent);
+  prettystms(out, indent+1);
+}
+
+void block::trans(coenv &e)
+{
+  if (scope) e.e.beginScope();
+  for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
+    (*p)->markTrans(e);
+  }
+  if (scope) e.e.endScope();
+}
+
+void block::transAsField(coenv &e, record *r)
+{
+  if (scope) e.e.beginScope();
+  for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p) {
+    (*p)->markTransAsField(e, r);
+  }
+  if (scope) e.e.endScope();
+}
+
+void block::transAsRecordBody(coenv &e, record *r)
+{
+  transAsField(e, r);
+
+  // Put record into finished state.
+  e.c.encode(inst::pushclosure);
+  e.c.close();
+}
+
+bool block::returns() {
+  // Search for a returning runnable, starting at the end for efficiency.
+  for (list<runnable *>::reverse_iterator p=stms.rbegin();
+       p != stms.rend();
+       ++p)
+    if ((*p)->returns())
+      return true;
+  return false;
+}
+  
+
 void dec::prettyprint(ostream &out, int indent)
 {
   prettyname(out, "dec", indent);
@@ -560,18 +610,18 @@ void importdec::transAsField(coenv &e, record *r)
 }
 
 
-void usedec::prettyprint(ostream &out, int indent)
+void explodedec::prettyprint(ostream &out, int indent)
 {
-  prettyname(out, "usedec", indent);
+  prettyname(out, "explodedec", indent);
   id->prettyprint(out, indent+1);
 }
 
-void usedec::trans(coenv &e)
+void explodedec::trans(coenv &e)
 {
   transAsField(e,0);
 }
 
-void usedec::transAsField(coenv &e, record *r)
+void explodedec::transAsField(coenv &e, record *r)
 {
   record *qualifier=dynamic_cast<record *>(id->getType(e, false));
   if (!qualifier) {
@@ -709,5 +759,4 @@ void recorddec::transAsField(coenv &e, record *parent)
   body->transAsRecordBody(re, r);
 }  
 
-  
 } // namespace absyntax

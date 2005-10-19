@@ -52,9 +52,9 @@ class exp;
 class runnable;
 class stm;
 class dec;
-class blockStm;
+class block;
 
-typedef blockStm file;
+typedef block file;
 
 // This is the abstract syntax tree of a file, assigned to when running
 // yyparse.

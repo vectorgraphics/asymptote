@@ -46,36 +46,24 @@ public:
   void trans(coenv &) {}
 };
 
+// Wrapper around a block to use it as a statement.
 class blockStm : public stm {
-public: // NOTE: For interactive codelet.  Fix this.
-  list<runnable *> stms;
-
-protected:
-  void prettystms(ostream &out, int indent);
+  block *base;
 
 public:
-  blockStm(position pos)
-    : stm(pos) {}
-
-  // To ensure list deallocates properly.
-  virtual ~blockStm() {}
-
-  void add(runnable *r) {
-    stms.push_back(r);
-  }
+  blockStm(position pos, block *base)
+    : stm(pos), base(base) {}
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(coenv &e);
-
-  void transAsRecordBody(coenv &e, record *r);
+  void trans(coenv &e) {
+    return base->trans(e);
+  }
 
   // A block is guaranteed to return iff its last statement is
   // guaranteed to return. 
   bool returns() {
-    if (stms.empty())
-      return false;
-    return stms.back()->returns();
+    return base->returns();
   }
     
 };

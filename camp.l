@@ -293,6 +293,7 @@ typedef            {adjust(); return TYPEDEF; }
 new                {adjust(); return NEW; }
 import             {adjust(); return IMPORT; }
 use                {adjust(); return USE; }
+explode            {adjust(); return EXPLODE; }
 static             {adjust(); makemod(trans::EXPLICIT_STATIC);
                               return MODIFIER; }
 public             {adjust(); makeperm(trans::PUBLIC); return PERM; }

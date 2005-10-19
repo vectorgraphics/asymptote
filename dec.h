@@ -159,6 +159,49 @@ public:
     { return false; }
 }; 
 
+class block : public runnable {
+public: // NOTE: For interactive codelet.  Fix this.
+  list<runnable *> stms;
+
+  // If the runnables should be interpreted in their own scope.
+  bool scope;
+
+protected:
+  void prettystms(ostream &out, int indent);
+
+public:
+  block(position pos, bool scope=true)
+    : runnable(pos), scope(scope) {}
+
+  // To ensure list deallocates properly.
+  virtual ~block() {}
+
+  void add(runnable *r) {
+    stms.push_back(r);
+  }
+
+  void prettyprint(ostream &out, int indent);
+
+  void trans(coenv &e);
+
+  void transAsField(coenv &e, record *r);
+
+  void transAsRecordBody(coenv &e, record *r);
+
+  // A block is guaranteed to return iff one of the runnables is guaranteed to
+  // return.
+  // This is conservative in that
+  //
+  // int f(int x)
+  // {
+  //   if (x==1) return 0;
+  //   if (x!=1) return 1;
+  // }
+  //
+  // is not guaranteed to return.
+  bool returns();
+};
+
 class modifierList : public absyn {
   list<trans::permission> perms;
   list<trans::modifier> mods;
@@ -358,13 +401,13 @@ public:
   void transAsField(coenv &e, record *r);
 };
 
-// A use declaration dumps all of the fields and types of a record into the
+// An explode declaration dumps all of the fields and types of a record into the
 // local scope.
-class usedec : public dec {
+class explodedec : public dec {
   name *id;
 
 public:
-  usedec(position pos, name *id)
+  explodedec(position pos, name *id)
     : dec(pos), id(id) {}
 
   void prettyprint(ostream &out, int indent);
@@ -372,6 +415,31 @@ public:
   void trans(coenv &e);
 
   void transAsField(coenv &e, record *r);
+};
+
+class usedec : public dec {
+  block base;
+
+public:
+  usedec(position pos, symbol *id, std::string filename)
+    : dec(pos), base(pos, false) {
+    base.add(new importdec(pos, id, filename));
+    base.add(new explodedec(pos, new simpleName(pos, id)));
+  }
+
+  usedec(position pos, symbol *id)
+    : dec(pos), base(pos, false) {
+    base.add(new importdec(pos, id));
+    base.add(new explodedec(pos, new simpleName(pos, id)));
+  }
+
+  void trans(coenv &e) {
+    base.trans(e);
+  }
+
+  void transAsField(coenv &e, record *r) {
+    base.transAsField(e, r);
+  }
 };
 
 // Types defined from others in typedef.
@@ -396,13 +464,13 @@ public:
 // A struct declaration.
 class recorddec : public dec {
   symbol *id;
-  blockStm *body;
+  block *body;
 
   types::function *opType(record *r);
   void addOps(coenv &e, record *r);
 
 public:
-  recorddec(position pos, symbol *id, blockStm *body)
+  recorddec(position pos, symbol *id, block *body)
     : dec(pos), id(id), body(body) {}
 
   virtual ~recorddec()
@@ -414,7 +482,6 @@ public:
 
   void transAsField(coenv &e, record *parent);
 };
-
 
 } // namespace absyntax
 
