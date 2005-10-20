@@ -11,6 +11,6 @@ draw(graph(Cos,0,1),blue,"$\cos(2\pi x)$");
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
 
+label("LABEL",point(0),UnFill(1mm));
+
 add(point(E),legend(20E));
-
-

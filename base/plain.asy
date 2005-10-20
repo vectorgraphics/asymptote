@@ -144,6 +144,12 @@ static public real legendmargin=10;
 static public string defaultfilename;
 static public string defaultformat="$%.4g$";
 
+static bool Above=true;
+static bool Below=false;
+
+static bool Aspect=true;
+static bool IgnoreAspect=false;
+
 static int intMax=intMax();
 static real realMax=realMax();
 static real epsilon=realEpsilon();
@@ -198,6 +204,64 @@ bool finite(pair z)
 transform shift(real x, real y)
 {
   return shift((x,y));
+}
+
+guide[] operator cast(pair[] z)
+{
+  guide[] g=new guide[z.length];
+  for(int i=0; i < z.length; ++i) g[i]=z[i];
+  return g;
+}
+
+path[] operator cast(pair[] z)
+{
+  path[] g=new path[z.length];
+  for(int i=0; i < z.length; ++i) g[i]=z[i];
+  return g;
+}
+
+path[] operator cast(path g)
+{
+  return new path[] {g};
+}
+
+path[] operator cast(guide g)
+{
+  return new path[] {(path) g};
+}
+
+path[] operator ^^ (path p, path q) 
+{
+  return new path[] {p,q};
+}
+
+path[] operator ^^ (path p, explicit path[] q) 
+{
+  return concat(new path[] {p},q);
+}
+
+path[] operator ^^ (explicit path[] p, path q) 
+{
+  return concat(p,new path[] {q});
+}
+
+path[] operator ^^ (explicit path[] p, explicit path[] q) 
+{
+  return concat(p,q);
+}
+
+path[] operator * (transform t, explicit path[] p) 
+{
+  path[] P;
+  for(int i=0; i < p.length; ++i) P[i]=t*p[i];
+  return P;
+}
+
+pair[] operator * (transform t, pair[] z) 
+{
+  pair[] Z;
+  for(int i=0; i < z.length; ++i) Z[i]=t*z[i];
+  return Z;
 }
 
 // I/O operations
@@ -326,7 +390,7 @@ void write(file file=null, string s="", guide x)
   write(file,s,x,none);
 }
 
-void _write(file file, path[] g)
+void _write(file file, explicit path[] g)
 {
   if(g.length > 0) _write(file,g[0]);
   for(int i=1; i < g.length; ++i) {
@@ -447,9 +511,154 @@ transform shiftless(transform t)
   return (0,0,t.xx,t.xy,t.yx,t.yy);
 }
 
-pair intersect(path p1, path p2) 
+pair intersect(path p, path q) 
 {
-  return intersect(p1,p2,0);
+  return intersect(p,q,0);
+}
+
+pair intersectionpoint(path p, path q, real fuzz=0)
+{
+  return point(p,intersect(p,q,fuzz).x);
+}
+
+guide box(pair a, pair b)
+{
+  return a--(b.x,a.y)--b--(a.x,b.y)--cycle;
+}
+
+guide unitsquare=box((0,0),(1,1));
+
+guide square(pair z1, pair z2)
+{
+  pair v=z2-z1;
+  pair z3=z2+I*v;
+  pair z4=z3-v;
+  return z1--z2--z3--z4--cycle;
+}
+
+guide unitcircle=E..N..W..S..cycle;
+
+static public real circleprecision=0.0006;
+
+guide circle(pair c, real r)
+{
+  return shift(c)*scale(r)*unitcircle;
+}
+
+guide ellipse(pair c, real a, real b)
+{
+  return shift(c)*xscale(a)*yscale(b)*unitcircle;
+}
+
+void draw(frame f, path g)
+{
+  draw(f,g,currentpen);
+}
+
+void draw(frame f, explicit path[] g, pen p=currentpen)
+{
+  for(int i=0; i < g.length; ++i) draw(f,g[i],p);
+}
+
+void fill(frame f, path[] g)
+{
+  fill(f,g,currentpen);
+}
+
+void filldraw(frame f, path[] g, pen fillpen=currentpen,
+	      pen drawpen=currentpen)
+{
+  begingroup(f);
+  fill(f,g,fillpen);
+  draw(f,g,drawpen);
+  endgroup(f);
+}
+
+void unfill(frame f, path[] g)
+{
+  clip(f,box(min(f),max(f))^^g,evenodd);
+}
+
+typedef void filltype(frame, path, pen);
+void filltype(frame, path, pen) {}
+
+filltype Fill(pen p)
+{
+  return new void(frame f, path g, pen drawpen) {
+    drawpen += solid;
+    filldraw(f,g,p == nullpen ? drawpen : p+solid,drawpen);
+  };
+}
+
+public filltype NoFill=new void(frame f, path g, pen p) {
+  draw(f,g,p+solid);
+};
+
+public filltype Fill=Fill(nullpen);
+
+filltype UnFill(real xmargin=0, real ymargin=xmargin)
+{
+  return new void(frame f, path g, pen p) {
+    if(xmargin != 0 || ymargin != 0) {
+      pair M=max(g);
+      pair m=min(g);
+      real width=M.x-m.x;
+      real height=M.y-m.y;
+      real xfactor=(width+2xmargin)/width;
+      real yfactor=(height+2ymargin)/height;
+      g=xscale(xfactor)*yscale(yfactor)*g;
+      g=shift(0.5*(M+m)-0.5*(max(g)+min(g)))*g;
+    }
+    unfill(f,g);
+  };
+}
+
+public filltype UnFill=UnFill();
+
+// Fill the region in frame dest underneath frame src and return the
+// boundary of src.
+guide fill(frame dest, frame src, pen p=currentpen, filltype filltype=NoFill, 
+	     real xmargin=0, real ymargin=xmargin)
+{
+  pair z=(xmargin,ymargin);
+  guide g=box(min(src)-0.5*min(p)-z,max(src)-0.5*max(p)+z);
+  filltype(dest,g,p);
+  return g;
+}
+
+// Add frame dest to frame src with optional grouping and background fill.
+void add(frame dest, frame src, bool group, filltype filltype=NoFill,
+	 bool put=Above)
+{
+  if(put) {
+    if(filltype != NoFill) fill(dest,src,filltype);
+    if(group) begingroup(dest);
+    add(dest,src);
+    if(group) endgroup(dest);
+  } else {
+    if(group) {
+      frame f;
+      endgroup(f);
+      prepend(dest,f);
+    }
+    prepend(dest,src);
+    if(group) {
+      frame f;
+      begingroup(f);
+      prepend(dest,f);
+    }
+    if(filltype != NoFill) {
+      frame f;
+      fill(f,src,filltype);
+      prepend(dest,f);
+    }
+  }
+}
+
+void add(frame dest, frame src, filltype filltype, bool put=Above)
+{
+  if(filltype != NoFill) fill(dest,src,filltype);
+  (put ? add : prepend)(dest,src);
 }
 
 // A function that draws an object to frame pic, given that the transform
@@ -748,38 +957,8 @@ pair point(frame f, pair dir)
   return min(f)+realmult(rectify(dir),max(f)-min(f));
 }
 
-guide[] operator cast(pair[] z)
-{
-  guide[] g=new guide[z.length];
-  for(int i=0; i < z.length; ++i) g[i]=z[i];
-  return g;
-}
-
-path[] operator cast(pair[] z)
-{
-  path[] g=new path[z.length];
-  for(int i=0; i < z.length; ++i) g[i]=z[i];
-  return g;
-}
-
-path[] operator cast(path g)
-{
-  return new path[] {g};
-}
-
-path[] operator cast(guide g)
-{
-  return new path[] {(path) g};
-}
-
 real min(... real[] a) {return min(a);}
 real max(... real[] a) {return max(a);}
-
-static bool Above=true;
-static bool Below=false;
-
-static bool Aspect=true;
-static bool IgnoreAspect=false;
 
 struct picture {
   // The functions to do the deferred drawing.
@@ -1134,7 +1313,8 @@ struct picture {
 
   // Add a picture to this picture, such that the user coordinates will be
   // scaled identically when fitted
-  void add(picture src, bool group=true, bool put=Above) {
+  void add(picture src, bool group=true, filltype filltype=NoFill,
+	   bool put=Above) {
     // Copy the picture.  Only the drawing function closures are needed, so we
     // only copy them.  This needs to be a deep copy, as src could later have
     // objects added to it that should not be included in this picture.
@@ -1145,9 +1325,7 @@ struct picture {
     // Draw by drawing the copied picture.
     nodes.push(new void (frame f, transform t, transform T, pair m, pair M) {
       frame d=srcCopy.fit(t,T*srcCopy.T,m,M);
-      if(group) begingroup(f);
-      (put ? add : prepend)(f,d);
-      if(group) endgroup(f);
+      add(f,d,put,filltype,group);
       legend.append(src.legend);
     });
     
@@ -1182,40 +1360,6 @@ frame GUI(int index) {
     GUI.push(f);
   }
   return GUI[index];
-}
-
-path[] operator ^^ (path p, path q) 
-{
-  return new path[] {p,q};
-}
-
-path[] operator ^^ (path p, explicit path[] q) 
-{
-  return concat(new path[] {p},q);
-}
-
-path[] operator ^^ (explicit path[] p, path q) 
-{
-  return concat(p,new path[] {q});
-}
-
-path[] operator ^^ (explicit path[] p, explicit path[] q) 
-{
-  return concat(p,q);
-}
-
-path[] operator * (transform t, explicit path[] p) 
-{
-  path[] P;
-  for(int i=0; i < p.length; ++i) P[i]=t*p[i];
-  return P;
-}
-
-pair[] operator * (transform t, pair[] z) 
-{
-  pair[] Z;
-  for(int i=0; i < z.length; ++i) Z[i]=t*z[i];
-  return Z;
 }
 
 pair min(explicit path[] g)
@@ -1264,102 +1408,6 @@ void endgroup(picture pic=currentpicture)
   pic.add(new void (frame f, transform) {
     endgroup(f);
   });
-}
-
-// Add frame dest to frame src with optional grouping (default false)
-void add(frame dest, frame src, bool group)
-{
-  if(group) begingroup(dest);
-  add(dest,src);
-  if(group) endgroup(dest);
-}
-
-// Add frame dest about origin to frame src with optional grouping
-// (default false)
-void add(pair origin, frame dest, frame src, bool group=false)
-{
-  if(group) begingroup(dest);
-  add(dest,shift(origin)*src);
-  if(group) endgroup(dest);
-}
-
-// Add frame src about origin to picture dest with optional grouping
-// (default true)
-void add(pair origin=0, picture dest=currentpicture, frame src,
-	 bool group=true, bool put=Above)
-{
-  dest.add(new void (frame f, transform t) {
-    if(group) begingroup(f);
-    (put ? add : prepend)(f,shift(t*origin)*src);
-    if(group) endgroup(f);
-  });
-  dest.addBox(origin,origin,min(src),max(src));
-}
-
-// Like add(pair,picture,frame,bool) but extend picture to accommodate frame
-void attach(pair origin=0, picture dest=currentpicture, frame src,
-	    bool group=true, bool put=Above)
-{
-  transform t=dest.calculateTransform(dest.xsize,dest.ysize,dest.keepAspect);
-  add(origin,dest,src,group,put);
-  pair s=size(dest.fit(t));
-  size(dest,dest.xsize != 0 ? s.x : 0,dest.ysize != 0 ? s.y : 0,
-       dest.keepAspect);
-}
-
-// Add a picture to another such that user coordinates in both will be scaled
-// identically in the shipout.
-void add(picture dest, picture src, bool group=true, bool put=Above)
-{
-  dest.add(src,group,put);
-}
-
-void add(picture src, bool group=true, bool put=Above)
-{
-  add(currentpicture,src,group,put);
-}
-
-// Fit the picture src using the identity transformation (so user
-// coordinates and truesize coordinates agree) and add it about the point
-// origin to picture dest.
-void add(pair origin, picture dest, picture src, bool group=true,
-	 bool put=Above)
-{
-  add(origin,dest,src.fit(identity()),group,put);
-}
-
-void add(pair origin, picture src, bool group=true, bool put=Above)
-{
-  add(origin,currentpicture,src,group,put);
-}
-
-guide box(pair a, pair b)
-{
-  return a--(b.x,a.y)--b--(a.x,b.y)--cycle;
-}
-
-guide unitsquare=box((0,0),(1,1));
-
-guide square(pair z1, pair z2)
-{
-  pair v=z2-z1;
-  pair z3=z2+I*v;
-  pair z4=z3-v;
-  return z1--z2--z3--z4--cycle;
-}
-
-guide unitcircle=E..N..W..S..cycle;
-
-static public real circleprecision=0.0006;
-
-guide circle(pair c, real r)
-{
-  return shift(c)*scale(r)*unitcircle;
-}
-
-guide ellipse(pair c, real a, real b)
-{
-  return shift(c)*xscale(a)*yscale(b)*unitcircle;
 }
 
 real labelmargin(pen p=currentpen)
@@ -1455,16 +1503,6 @@ public margin
   EndDotMargin=DotMargin,
   DotMargins=DotMargin(0.5,0.5);
 
-void draw(frame f, path g)
-{
-  draw(f,g,currentpen);
-}
-
-void draw(frame f, explicit path[] g, pen p=currentpen)
-{
-  for(int i=0; i < g.length; ++i) draw(f,g[i],p);
-}
-
 void Draw(picture pic=currentpicture, path g, pen p=currentpen)
 {
   pic.add(new void (frame f, transform t) {
@@ -1486,20 +1524,6 @@ void _draw(picture pic=currentpicture, path g, pen p=currentpen,
 void draw(picture pic=currentpicture, explicit path[] g, pen p=currentpen)
 {
   for(int i=0; i < g.length; ++i) Draw(pic,g[i],p);
-}
-
-void fill(frame f, path[] g)
-{
-  fill(f,g,currentpen);
-}
-
-void filldraw(frame f, path[] g, pen fillpen=currentpen,
-	      pen drawpen=currentpen)
-{
-  begingroup(f);
-  fill(f,g,fillpen);
-  draw(f,g,drawpen);
-  endgroup(f);
 }
 
 void fill(picture pic=currentpicture, path[] g, pen p=currentpen)
@@ -1567,13 +1591,6 @@ void fill(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
     pic.addPath(g[i]);
 }
 
-void fill(pair origin, picture pic=currentpicture, path[] g, pen p=currentpen)
-{
-  picture opic;
-  fill(opic,g,p);
-  add(origin,pic,opic);
-}
-  
 void filldraw(picture pic=currentpicture, path[] g, pen fillpen=currentpen,
 	      pen drawpen=currentpen)
 {
@@ -1598,11 +1615,6 @@ void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
   });
 }
 
-void unfill(frame f, path[] g)
-{
-  clip(f,box(min(f),max(f))^^g,evenodd);
-}
-
 void unfill(picture pic=currentpicture, path[] g)
 {
   g=copy(g);
@@ -1616,6 +1628,69 @@ bool inside(path[] g, pair z)
   return inside(g,z,currentpen);
 }
 
+// Add frame dest about origin to frame src with optional grouping
+void add(pair origin, frame dest, frame src, bool group=true,
+	 filltype filltype=NoFill, bool put=Above)
+{
+  add(dest,shift(origin)*src,group,filltype,put);
+}
+
+// Add frame src about origin to picture dest with optional grouping
+void add(pair origin=0, picture dest=currentpicture, frame src,
+	 bool group=true, filltype filltype=NoFill, bool put=Above)
+{
+  dest.add(new void (frame f, transform t) {
+    add(f,shift(t*origin)*src,group,filltype,put);
+  });
+  dest.addBox(origin,origin,min(src),max(src));
+}
+
+// Like add(pair,picture,frame,bool) but extend picture to accommodate frame
+void attach(pair origin=0, picture dest=currentpicture, frame src,
+	    bool group=true, filltype filltype=NoFill, bool put=Above)
+{
+  transform t=dest.calculateTransform();
+  add(origin,dest,src,group,filltype,put);
+  pair s=size(dest.fit(t));
+  size(dest,dest.xsize != 0 ? s.x : 0,dest.ysize != 0 ? s.y : 0);
+}
+
+// Add a picture to another such that user coordinates in both will be scaled
+// identically in the shipout.
+void add(picture dest, picture src, bool group=true, filltype filltype=NoFill,
+	 bool put=Above)
+{
+  dest.add(src,group,filltype,put);
+}
+
+void add(picture src, bool group=true, filltype filltype=NoFill,
+	 bool put=Above)
+{
+  add(currentpicture,src,group,filltype,put);
+}
+
+// Fit the picture src using the identity transformation (so user
+// coordinates and truesize coordinates agree) and add it about the point
+// origin to picture dest.
+void add(pair origin, picture dest, picture src, bool group=true,
+	 filltype filltype=NoFill, bool put=Above)
+{
+  add(origin,dest,src.fit(identity()),group,filltype,put);
+}
+
+void add(pair origin, picture src, bool group=true, filltype filltype=NoFill,
+	 bool put=Above)
+{
+  add(origin,currentpicture,src,group,filltype,put);
+}
+
+void fill(pair origin, picture pic=currentpicture, path[] g, pen p=currentpen)
+{
+  picture opic;
+  fill(opic,g,p);
+  add(origin,pic,opic);
+}
+  
 pair dir(path g)
 {
   return dir(g,length(g));
@@ -1779,11 +1854,14 @@ struct Label {
   real angle;
   bool defaultangle=true;
   pair shift;
+  filltype filltype=NoFill;
   
+  // TODO: Remove these default values.
   void init(string s="", string size="", position position=0, 
 	    bool defaultposition=true,
 	    align align=NoAlign, pen p=nullpen, real angle=0,
-	    bool defaultangle=true, pair shift=0) {
+	    bool defaultangle=true, pair shift=0,
+	    filltype filltype=NoFill) {
     this.s=s;
     this.size=size;
     this.position=position;
@@ -1793,19 +1871,23 @@ struct Label {
     this.angle=angle;
     this.defaultangle=defaultangle;
     this.shift=shift;
+    this.filltype=filltype;
   }
   
-  void initalign(string s="", string size="", align align, pen p=nullpen) {
+  void initalign(string s="", string size="", align align, pen p=nullpen,
+		 filltype filltype=NoFill) {
     init();
     this.s=s;
     this.size=size;
     this.align=align.copy();
     this.p=p;
+    this.filltype=filltype;
   }
   
   Label copy() {
     Label L=new Label;
-    L.init(s,size,position,defaultposition,align,p,angle,defaultangle,shift);
+    L.init(s,size,position,defaultposition,align,p,angle,defaultangle,shift,
+	   filltype);
     return L;
   }
   
@@ -1834,25 +1916,45 @@ struct Label {
     if(this.p == nullpen) this.p=p0;
   }
   
+  void filltype(filltype filltype0) {
+    if(this.filltype == NoFill) this.filltype=filltype0;
+  }
+  
   void label(frame f, real angle=0, pair position,
 	     pair align=0, pen p=currentpen)
   {
     _label(f,s,size,angle,position+align*labelmargin(p),align,p);
   }
 
-  void out(frame f) {
+  void label(frame f) {
     label(f,angle,position.position+shift,align.dir,p);
   }
   
+  void out(frame f) {
+    if(filltype == NoFill) label(f);
+    else {
+      frame d;
+      label(d);
+      add(f,d,filltype);
+    }
+  }
+  
   void label(picture pic=currentpicture, real angle=0, pair position,
-	    pair align=0, pair shift=0, pen p=currentpen)
-  {
+	     pair align=0, pair shift=0, pen p=currentpen,
+	     filltype filltype=NoFill) {
     pic.add(new void (frame f, transform t) {
       transform t0=shiftless(t);
-      _label(f,s,size,degrees(t0*dir(angle)),
-	     t*position+align*labelmargin(p)+shift,
-	     length(align)*unit(t0*align),p);
-      });
+      real angle=degrees(t0*dir(angle));
+      pair position=t*position+align*labelmargin(p)+shift;
+      pair align=length(align)*unit(t0*align);
+      if(filltype == NoFill)
+	_label(f,s,size,angle,position,align,p);
+      else {
+	frame d;
+	_label(d,s,size,angle,position,align,p);
+	add(f,d,filltype);
+      }
+    });
     frame f;
     // Create a picture with label at the origin to extract its bbox truesize.
     label(f,angle,(0,0),align,p);
@@ -1861,7 +1963,7 @@ struct Label {
 
   void out(picture pic=currentpicture) {
     label(pic,angle,position.position,align.dir,shift,
-	  p == nullpen ? currentpen : p);
+	  p == nullpen ? currentpen : p, filltype);
   }
   
   void out(picture pic=currentpicture, path g) {
@@ -1877,7 +1979,7 @@ struct Label {
     }
     label(pic,angle,point(g,position),
 	  alignrelative ? Align*dir(g,position)/N : Align,shift,
-	  p == nullpen ? currentpen : p);
+	  p == nullpen ? currentpen : p,filltype);
   }
   
   void write(file file=stdout, suffix e=endl) {
@@ -1925,45 +2027,51 @@ Label operator * (transform t, Label L)
 }
 
 Label Label(string s, string size="", explicit position position,
-	    align align=NoAlign, pen p=nullpen)
+	    align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
 {
   Label L;
-  L.init(s,size,position,false,align,p);
+  L.init(s,size,position,false,align,p,filltype);
   return L;
 }
 
 Label Label(string s, string size="", pair position, align align=NoAlign,
-	    pen p=nullpen)
+	    pen p=nullpen, filltype filltype=NoFill)
 {
-  return Label(s,size,(position) position,align,p);
+  return Label(s,size,(position) position,align,p,filltype);
 }
 
-Label Label(explicit pair position, align align=NoAlign, pen p=nullpen)
+Label Label(explicit pair position, align align=NoAlign, pen p=nullpen,
+	    filltype filltype=NoFill)
 {
-  return Label((string) position,position,align,p);
+  return Label((string) position,position,align,p,filltype);
 }
 
-Label Label(string s="", string size="", align align=NoAlign, pen p=nullpen)
+Label Label(string s="", string size="", align align=NoAlign, pen p=nullpen,
+	    filltype filltype=NoFill)
 {
   Label L;
-  L.initalign(s,size,align,p);
+  L.initalign(s,size,align,p,filltype);
   return L;
 }
 
-Label Label(Label L, position position, align align=NoAlign, pen p=nullpen)
+Label Label(Label L, position position, align align=NoAlign, pen p=nullpen,
+	    filltype filltype=NoFill)
 {
   Label L=L.copy();
   L.position(position);
   L.align(align);
   L.p(p);
+  L.filltype(filltype);
   return L;
 }
 
-Label Label(Label L, align align=NoAlign, pen p=nullpen)
+Label Label(Label L, align align=NoAlign, pen p=nullpen,
+	    filltype filltype=NoFill)
 {
   Label L=L.copy();
   L.align(align);
   L.p(p);
+  L.filltype(filltype);
   return L;
 }
 
@@ -1973,40 +2081,42 @@ void write(file file=stdout, Label L, suffix e=endl)
 }
 
 void label(frame f, Label L, pair position, align align=NoAlign,
-	   pen p=currentpen)
+	   pen p=currentpen, filltype filltype=NoFill)
 {
-  add(f,Label(L,position,align,p));
+  add(f,Label(L,position,align,p,filltype));
 }
   
 void label(picture pic=currentpicture, Label L, pair position,
-	   align align=NoAlign, pen p=nullpen)
+	   align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
 {
   Label L=L.copy();
   L.position(position);
   L.align(align);
   L.p(p);
+  L.filltype(filltype);
   add(pic,L);
 }
   
 void label(picture pic=currentpicture, Label L, align align=NoAlign,
-	   pen p=nullpen)
+	   pen p=nullpen, filltype filltype=NoFill)
 {
-  label(pic,L,L.position,align,p);
+  label(pic,L,L.position,align,p,filltype);
 }
   
 void label(picture pic=currentpicture, Label L, explicit path g,
-	   align align=NoAlign, pen p=currentpen)
+	   align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
 {
   Label L=L.copy();
   L.align(align);
   L.p(p);
+  L.filltype(filltype);
   L.out(pic,g);
 }
 
 void label(picture pic=currentpicture, Label L, explicit guide g,
-	   align align=NoAlign, pen p=currentpen)
+	   align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
 {
-  label(pic,L,(path) g,align,p);
+  label(pic,L,(path) g,align,p,filltype);
 }
 
 Label operator cast(string s) {return Label(s);}
@@ -2055,23 +2165,6 @@ void arrowheadbbox(picture pic=currentpicture, path g,
   pic.addPoint(x,dz1,p);
   pic.addPoint(x,dz2,p);
 }
-
-typedef void filltype(frame, path, pen);
-void filltype(frame, path, pen) {}
-
-filltype Fill(pen p)
-{
-  return new void(frame f, path g, pen drawpen) {
-    drawpen += solid;
-    filldraw(f,g,p == nullpen ? drawpen : p+solid,drawpen);
-  };
-}
-
-public filltype NoFill=new void(frame f, path g, pen p) {
-  draw(f,g,p+solid);
-};
-
-public filltype Fill=Fill(nullpen);
 
 void arrow(frame f, path G, pen p=currentpen, real size=0,
 	   real angle=arrowangle, filltype filltype=Fill,
@@ -2171,63 +2264,60 @@ void newpage()
 static bool Wait=true;				
 static bool NoWait=false;
 
-guide box(frame f, real xmargin=0, real ymargin=infinity,
-	  pen p=currentpen, filltype filltype=NoFill)
+// Draw and/or fill a box on frame dest using the dimensions of frame src.
+guide box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
+	  pen p=currentpen, filltype filltype=NoFill,
+  	  bool put=filltype == UnFill ? Above : Below)
 {
-  if(ymargin == infinity) ymargin=xmargin;
   pair z=(xmargin,ymargin);
-  int sign=filltype == Fill ? -1 : 1;
-  guide g=box(min(f)+0.5*sign*min(p)-z,max(f)+0.5*sign*max(p)+z);
+  int sign=filltype == NoFill ? 1 : -1;
+  guide g=box(min(src)+0.5*sign*min(p)-z,max(src)+0.5*sign*max(p)+z);
   frame F;
-  filltype(F,g,p);
-  prepend(f,F);
+  if(put == Below) {
+    filltype(F,g,p);
+    prepend(dest,F);
+  } else filltype(dest,g,p);
   return g;
 }
 
-guide ellipse(frame f, real xmargin=0, real ymargin=infinity,
-	      pen p=currentpen, filltype filltype=NoFill)
+guide ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
+	      pen p=currentpen, filltype filltype=NoFill,
+  	  bool put=filltype == UnFill ? Above : Below)
 {
-  if(ymargin == infinity) ymargin=xmargin;
-  pair m=min(f);
-  pair M=max(f);
+  pair m=min(src);
+  pair M=max(src);
   pair D=M-m;
   static real factor=0.5*sqrt(2);
-  int sign=filltype == Fill ? -1 : 1;
+  int sign=filltype == NoFill ? 1 : -1;
   guide g=ellipse(0.5*(M+m),factor*D.x+0.5*sign*max(p).x+xmargin,
 		  factor*D.y+0.5*sign*max(p).y+ymargin);
   frame F;
-  filltype(F,g,p);
-  prepend(f,F);
+  if(put == Below) {
+    filltype(F,g,p);
+    prepend(dest,F);
+  } else filltype(dest,g,p);
   return g;
 }
 
-frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=infinity,
-	   pen p=currentpen, filltype filltype=NoFill)
-{
-  if(ymargin == infinity) ymargin=xmargin;
-  frame f=pic.fit(max(pic.xsize-2*xmargin,0),max(pic.ysize-2*ymargin,0),
-		  pic.keepAspect);
-  box(f,xmargin,ymargin,p,filltype);
-  return f;
-}
-
-guide box(frame f, Label L, real xmargin=0, real ymargin=infinity,
-	  pen p=currentpen, filltype filltype=NoFill)
+guide box(frame f, Label L, real xmargin=0, real ymargin=xmargin,
+	  pen p=currentpen, filltype filltype=NoFill,
+  	  bool put=filltype == UnFill ? Above : Below)
 {
   add(f,L);
-  return box(f,xmargin,ymargin,p,filltype);
+  return box(f,xmargin,ymargin,p,filltype,put);
 }
 
-guide ellipse(frame f, Label L, real xmargin=0, real ymargin=infinity,
-	      pen p=currentpen, filltype filltype=NoFill)
+guide ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
+	      pen p=currentpen, filltype filltype=NoFill,
+	      bool put=filltype == UnFill ? Above : Below)
 {
   add(f,L);
-  return ellipse(f,xmargin,ymargin,p,filltype);
+  return ellipse(f,xmargin,ymargin,p,filltype,put);
 }
 
 void box(picture pic=currentpicture, Label L,
-	 real xmargin=0, real ymargin=infinity, pen p=currentpen,
-	 filltype filltype=NoFill)
+	 real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+	 filltype filltype=NoFill, bool put=filltype == UnFill ? Above : Below)
 {
   pic.add(new void (frame f, transform t) {
     transform t0=shiftless(t);
@@ -2235,7 +2325,7 @@ void box(picture pic=currentpicture, Label L,
     _label(d,L.s,L.size,degrees(t0*dir(L.angle)),
 	   t*L.position+L.align.dir*labelmargin(L.p)+L.shift,
 	   length(L.align.dir)*unit(t0*L.align.dir),L.p);
-    box(d,xmargin,ymargin,p,filltype);
+    box(f,d,xmargin,ymargin,p,filltype,put);
     add(f,d);
   });
   Label L0=L.copy();
@@ -2244,6 +2334,14 @@ void box(picture pic=currentpicture, Label L,
   frame f;
   box(f,L0,xmargin,ymargin,p,filltype);
   pic.addBox(L.position,L.position,min(f),max(f));
+}
+
+frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=xmargin,
+	   pen p=currentpen, filltype filltype=NoFill)
+{
+  frame f=pic.fit(max(pic.xsize-2*xmargin,0),max(pic.ysize-2*ymargin,0));
+  box(f,xmargin,ymargin,p,filltype);
+  return f;
 }
 
 real linewidth() 
@@ -2396,12 +2494,14 @@ picture legend(Legend[] legend)
 }
   
 frame legend(picture pic=currentpicture, pair dir=0, 
-	     real xmargin=legendmargin, real ymargin=infinity,
+	     real xmargin=legendmargin, real ymargin=xmargin,
 	     pen p=currentpen, filltype filltype=NoFill) 
 {
   frame F;
   if(pic.legend.length == 0) return F;
-  F=bbox(legend(pic.legend),xmargin,ymargin,p,filltype);
+//  F=bbox(legend(pic.legend),xmargin,ymargin,p,filltype);
+  F=legend(pic.legend).fit();
+  box(F,xmargin,ymargin,p,filltype);
   return shift(dir-point(F,-dir))*F;
 }
 
@@ -2428,6 +2528,23 @@ void erase(picture pic=currentpicture)
   pic.erase();
 }
 
+// Three-dimensional projections
+
+typedef real[][] transform3;
+
+static struct projection {
+  public triple camera;
+  public transform3 project;
+  void init(triple camera, transform3 project) {
+    this.camera=camera;
+    this.project=project;
+  }
+}
+
+projection operator init() {return new projection;}
+  
+public projection currentprojection;
+
 // A restore thunk is a function, that when called, restores the graphics state
 // to what it was when the restore thunk was created.
 typedef void restoreThunk();
@@ -2441,10 +2558,12 @@ void restore()
 restoreThunk buildRestoreThunk() {
   pen p=currentpen;
   picture pic=currentpicture.copy();
+  projection P=currentprojection;
   restoreThunk r=restore;
   return new void () {
     currentpen=p;
     currentpicture=pic;
+    currentprojection=P;
     restore=r;
     uptodate=false;
   };
@@ -3042,20 +3161,3 @@ guide operator ---(... guide[] a)
   return g;
 }
 
-// Three-dimensional projections (move back to three.asy once new import
-// scheme is functional):
-
-typedef real[][] transform3;
-
-static struct projection {
-  public triple camera;
-  public transform3 project;
-  void init(triple camera, transform3 project) {
-    this.camera=camera;
-    this.project=project;
-  }
-}
-
-projection operator init() {return new projection;}
-  
-public projection currentprojection;

@@ -1628,6 +1628,16 @@ pair intersect(explicit guide3 p, explicit guide3 q, real fuzz=0)
   return intersect((path3) p,(path3) q,fuzz);
 }
 
+pair intersectionpoint(path3 p, path3 q, real fuzz=0)
+{
+  return point(p,intersect(p,q,fuzz).x);
+}
+
+pair intersectionpoint(explicit guide3 p, explicit guide3 q, real fuzz=0)
+{
+  return point(p,intersect(p,q,fuzz).x);
+}
+
 path3 operator & (path3 p, path3 q) {return p.concat(p,q);}
 path3 operator & (explicit guide3 p, explicit guide3 q)
 {
@@ -1887,7 +1897,7 @@ splitface split(face a, face cut, projection P)
   pair invdir=1.0/L.dir;
   triple apoint=L.point+cross(L.dir,a.normal);
   bool left=(invdir*(a.t*project(apoint,P))).y >= (invdir*point).y;
-  real t=intersection(apoint,camera,cut.normal,cut.point);
+  real t=intersect(apoint,camera,cut.normal,cut.point);
   bool rightfront=left ^ (t <= 0 || t >= 1);
   
   face back,front;

@@ -39,8 +39,8 @@ void picture::enclose(drawElement *begin, drawElement *end)
 {
   assert(begin);
   assert(end);
-  lastnumber=0;
   nodes.push_front(begin);
+  lastnumber=0;
   for(nodelist::iterator p=nodes.begin(); p != nodes.end(); ++p) {
     assert(*p);
     if((*p)->islayer()) {
@@ -106,7 +106,11 @@ bbox picture::bounds()
   size_t n=nodes.size();
   if(n == lastnumber) return b;
   
-  if(lastnumber == 0) b=bbox();
+  if(lastnumber == 0) { // Maybe these should be put into a structure.
+    b=bbox();
+    labelbounds.clear();
+    bboxstack.clear();
+  }
   
   if(havelabels()) texinit();
   

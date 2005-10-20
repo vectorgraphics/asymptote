@@ -171,7 +171,8 @@ Many of the features of @code{Asymptote} are written in the
 @code{Asymptote} is designed for mathematics typesetting needs, one can
 write @code{Asymptote} modules that tailor it to specific
 applications. A scientific graphing module has already been written
-(@pxref{graph}). Examples of @code{Asymptote} code and output are available at
+(@pxref{graph}). Examples of @code{Asymptote} code and output,
+including animations, are available at
 @quotation
 @url{http://asymptote.sourceforge.net/gallery/}.
 @end quotation
@@ -314,7 +315,16 @@ set ASYMPTOTE_GS=c:\Program Files\gs\gs8.51\bin\gswin32.exe
 set ASYMPTOTE_PYTHON=c:\Python24\python.exe
 @end verbatim
 
-The following environment variables normally do not need to be adjusted:
+To set environment variables under @code{Microsoft Windows XP}:
+@enumerate
+@item Click on the @code{Start} button.
+@item Right-click on @code{My Computer}. 
+@item Choose @code{Properties} from the popup menu.
+@item Click the @code{Advanced} tab. 
+@item Click the @code{Environment Variables} button.
+@end enumerate
+
+The following environment variables normally do not require adjustment:
 @verbatim
 ASYMPTOTE_LATEX
 ASYMPTOTE_DVIPS
@@ -623,10 +633,10 @@ for(int i=0; i < 10; ++i) {
 @cindex @code{convert}
 @cindex animation
 @cindex @code{ImageMagick}
-Example of loops, together with user-defined functions are
-provided in the files @code{wheel.asy} and @code{cube.asy} in the
-animations subdirectory of the examples directory. Here, the 
-@code{gifmerge} command is used to @code{merge} multiple images into a
+Loops, together with user-defined functions, are illustrated
+in the files @code{wheel.asy} and @code{cube.asy} in the
+animations subdirectory of the examples directory. These examples use the
+@code{gifmerge} command to @code{merge} multiple images into a
 gif animation, using the @code{ImageMagick} @code{convert} program.
 
 @cindex @code{while}
@@ -833,7 +843,7 @@ returns @code{v.z};
 @cindex @code{dot}
 returns the dot product @code{a.x*b.x+a.y*b.y+a.z*b.z};
 
-@item real cross(triple a,triple b)
+@item triple cross(triple a,triple b)
 @cindex @code{cross}
 returns the cross product
 
@@ -1244,7 +1254,12 @@ one such intersection point (as chosen by the algorithm described on
 page 137 of @code{The MetaFontbook}). 
 Perform the computations to the absolute error specified by @code{fuzz}, 
 or, if @code{fuzz} is 0, to machine precision. If the paths do not 
-intersect, return the pair (-1,-1).
+intersect, return the pair @code{(-1,-1)}.
+
+@cindex @code{intersectionpoint}
+@item pair intersectionpoint(path p, path q, real fuzz=0);
+This returns @code{point(p,intersect(p,q,fuzz).x)}, the actual point
+of intersection.
 
 @cindex @code{firstcut}
 @cindex @code{slice}
@@ -1828,27 +1843,34 @@ To draw a bounding box with margins around a picture, fit the
 picture to a frame using the function
 @verbatim
 frame bbox(picture pic=currentpicture, real xmargin=0,
-           real ymargin=infinity, pen p=currentpen,
+           real ymargin=xmargin, pen p=currentpen,
            filltype filltype=NoFill);
 @end verbatim
-Here @code{ymargin=infinity} requests that @code{ymargin}=@code{xmargin}
-and @code{filltype} specifies one of the following fill types:
+@anchor{filltype}
+Here @code{filltype} specifies one of the following fill types:
 @table @code
 @cindex @code{Fill}
 @item Fill
-Fill with the same pen used to draw the boundary.
+Fill with the pen used to draw the boundary.
 
 @item Fill(pen p=nullpen)
-If @code{p} is @code{nullpen}, fill with the same pen used to draw the
+If @code{p} is @code{nullpen}, fill with the pen used to draw the
 boundary; otherwise fill with pen @code{p}.
 
 @cindex @code{NoFill}
 @item NoFill
 Do not fill; draw only the boundary.
 
+@cindex @code{UnFill}
+@item UnFill
+Clip the region.
+
+@cindex @code{UnFill(real xmargin=0, real ymargin=xmargin}
+@item UnFill
+Clip the region and surrounding margins @code{xmargin} and @code{ymargin}.
+
 @end table
 
-@anchor{filltype}
 For example, to draw a bounding box around a picture with a 0.25 cm
 margin and output the resulting frame, use the command:
 @verbatim
@@ -1857,41 +1879,34 @@ shipout(bbox(0.25cm));
 A @code{picture} may be fit to a frame with the background color of
 pen @code{p} with the function @code{bbox(p,Fill)}. 
 
-To draw or fill a box or ellipse around a frame or label, use one of
-the routines (which for convenience also return the boundary as a guide):
-@verbatim
-guide box(frame f, Label L="",
-          real xmargin=0, real ymargin=xmargin,
-          pen p=currentpen, filltype filltype=NoFill);
-guide ellipse(frame f, Label L="",
-              real xmargin=0, real ymargin=xmargin,
-              pen p=currentpen, filltype filltype=NoFill);
-@end verbatim
-
 @anchor{add}
 Sometimes it is useful to draw objects on separate pictures and add one
 picture to another using the @code{add} function:
 @cindex @code{add}
 @verbatim
-void add(picture src, bool group=true);
-void add(picture dest, picture src, bool group=true);
+void add(picture src, bool group=true,
+         filltype filltype=NoFill, bool put=Above);
+void add(picture dest, picture src, bool group=true,
+         filltype filltype=NoFill, bool put=Above);
 @end verbatim
 
 The first example adds @code{src} to @code{currentpicture}; the second
 one adds @code{src} to @code{dest}. 
 The @code{group} option specifies whether or not the graphical user
 interface @code{xasy} should treat all of the elements of @code{src}
-as a single entity (@pxref{GUI}).
+as a single entity (@pxref{GUI}), @code{filltype} requests optional
+background filling or clipping, and @code{put} specifies
+whether to add @code{src} above or below existing objects.
 
 There are also routines to add a picture or frame @code{src} specified
 in postscript coordinates to another picture about the user coordinate
 @code{origin}:
 @cindex @code{add}
 @verbatim
-void add(pair origin, picture dest, picture src, bool group=true);
-void add(pair origin, picture src, bool group=true);
-void add(pair origin=(0,0), picture dest=currentpicture,
-         frame src, bool group=true);
+void add(pair origin, picture dest, picture src, bool group=true,
+         filltype filltype=NoFill, bool put=Above);
+void add(pair origin, picture src, bool group=true,
+         filltype filltype=NoFill, bool put=Above);
 @end verbatim
 
 Alternatively, one can use @code{attach} to automatically increase the
@@ -1899,7 +1914,26 @@ size of picture @code{dest} to accommodate adding a frame @code{src}
 about the user coordinate @code{origin}:
 @verbatim
 void attach(pair origin=(0,0), picture dest=currentpicture,
-            frame src, bool group=true);
+           frame src, bool group=true,
+           filltype filltype=NoFill, bool put=Above);
+@end verbatim
+
+To draw or fill a box or ellipse around a label, frame, or picture,
+use one of the routines (the first two routines for convenience also
+return the boundary as a guide):
+@verbatim
+guide box(frame f, Label L="", real xmargin=0,
+          real ymargin=xmargin, pen p=currentpen,
+          filltype filltype=NoFill,
+  	  bool put=filltype == UnFill ? Above : Below);
+guide ellipse(frame f, Label L="", real xmargin=0,
+              real ymargin=xmargin, pen p=currentpen,
+              filltype filltype=NoFill,
+              bool put=filltype == UnFill ? Above : Below);
+void box(picture pic=currentpicture, Label L,
+         real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+         filltype filltype=NoFill,
+         bool put=filltype == UnFill ? Above : Below);
 @end verbatim
 
 @cindex @code{erase}
@@ -1910,12 +1944,12 @@ void erase(picture pic=currentpicture);
 @end verbatim
 
 @cindex @code{save}
-To save a snapshot of @code{currentpicture} and @code{currentpen} use
-the function @code{save()}.
+To save a snapshot of @code{currentpicture}, @code{currentpen}, and
+@code{currentprojection}, use the function @code{save()}.
 
 @cindex @code{restore}
-To restore a snapshot of @code{currentpicture} and @code{currentpen} use
-the function @code{restore()}.
+To restore a snapshot of @code{currentpicture}, @code{currentpen}, and
+@code{currentprojection}, use the function @code{restore()}.
 
 Many further examples of picture and frame operations are provided in
 the base file @code{plain.asy}.
@@ -3431,11 +3465,11 @@ ticks on the left (right) of the path, relative to the direction in which
 the path is drawn. These tick routines accept a number of optional arguments:
 @verbatim
 ticks LeftTicks(Label format="", ticklabel ticklabel=null,
-		bool beginlabel=true, bool endlabel=true,
-		int N=0, int n=0, real Step=0, real step=0,
-		bool begin=true, bool end=true,
-		real Size=0, real size=0, bool extend=false,
-		pen pTick=nullpen, pen ptick=nullpen);
+                bool beginlabel=true, bool endlabel=true,
+                int N=0, int n=0, real Step=0, real step=0,
+                bool begin=true, bool end=true,
+                real Size=0, real size=0, bool extend=false,
+                pen pTick=nullpen, pen ptick=nullpen);
 @end verbatim
 
 If any of these parameters are omitted, reasonable defaults will
@@ -3492,10 +3526,10 @@ arrays @code{Ticks} and (optionally) @code{ticks} containing the
 locations of the big and small ticks, respectively:
 @verbatim
 ticks LeftTicks(Label format="", ticklabel ticklabel=null, 
-		bool beginlabel=true, bool endlabel=true, 
-		real[] Ticks, real[] ticks=new real[],
-		real Size=0, real size=0, bool extend=false,
-		pen pTick=nullpen, pen ptick=nullpen)
+                bool beginlabel=true, bool endlabel=true, 
+                real[] Ticks, real[] ticks=new real[],
+                real Size=0, real size=0, bool extend=false,
+                pen pTick=nullpen, pen ptick=nullpen)
 @end verbatim
 
 @item
@@ -3648,9 +3682,11 @@ Here are some simple examples of two-dimensional graphs:
 
 @item The next example draws a scientific-style graph with a legend.
 The position of the legend can be adjusted either explicitly or by using the
-graphical user interface @code{xasy} (@pxref{GUI}). If necessary, a
-@code{Fill(pen)} option to @code{legend} can be specified to obscure
-underlying curves.
+graphical user interface @code{xasy} (@pxref{GUI}). If necessary, an
+@code{UnFill(real xmargin=0, real ymargin=xmargin)} or
+@code{Fill(pen)} option to @code{legend} can be
+specified to obscure underlying objects. This example illustrates
+how one can clip the portion of the picture covered by a label:
 
 @cindex scientific graph
 @cindex @code{LeftTicks}
@@ -3659,7 +3695,7 @@ underlying curves.
 @image{lineargraph0}
 
 @cindex @code{attach}
-To specify a fixed size for the graph proper, use @code{attach}:
+To specify a fixed size for the graph proper, use @code{attach}.
 @verbatiminclude lineargraph.asy
 
 @item This example draws a graph of one array versus another (both of
@@ -4034,6 +4070,7 @@ reflects about the plane through @code{u}, @code{v}, and @code{w}.
 @cindex @code{reverse}
 @cindex @code{subpath}
 @cindex @code{intersect}
+@cindex @code{intersectpoint}
 @cindex @code{min}
 @cindex @code{max}
 @cindex @code{cyclic}
@@ -4042,8 +4079,9 @@ reflects about the plane through @code{u}, @code{v}, and @code{w}.
 Three-dimensional versions of the path functions @code{length},
 @code{size}, @code{point}, @code{dir}, @code{precontrol}, @code{postcontrol}, 
 @code{arclength}, @code{arctime}, @code{reverse}, @code{subpath},
-@code{intersect}, @code{min}, @code{max}, @code{cyclic}, and
-@code{straight} are also defined in the module @code{three}.
+@code{intersect}, @code{intersectionpoint},
+@code{min}, @code{max}, @code{cyclic}, and @code{straight} are also
+defined in the module @code{three}.
 
 @cindex hidden surface removal
 @cindex @code{face}
@@ -4183,8 +4221,8 @@ draw the visible portion of the (infinite) line going through
 @code{P} and @code{Q}, without altering the size of picture @code{pic},
 using pen @code{p}.
 
-@cindex @code{intersection}
-@item real intersection(triple P, triple Q, triple n, triple Z);
+@cindex @code{intersect}
+@item real intersect(triple P, triple Q, triple n, triple Z);
 Return the intersection time of the extension of the line segment @code{PQ}
 with the plane perpendicular to @code{n} and passing through @code{Z}.
 
@@ -4295,6 +4333,14 @@ characters. You will also need to set up @code{LaTeX} support for
 and then running the command 
 @verbatim
 texhash
+@end verbatim
+
+@cindex Cyrillic
+To use cyrillic fonts, you will need to change the font encoding:
+@verbatim
+import unicode;
+texpreamble("\usepackage[russian]{babel}");
+defaultpen(font("T2A","cmr"));
 @end verbatim
 
 @node latin1
@@ -4629,7 +4675,7 @@ The legend for a picture @code{pic} can be fit and aligned to a frame
 with the routine (@pxref{filltype})
 @verbatim
 frame legend(picture pic=currentpicture, pair dir=0, 
-             real xmargin=legendmargin, real ymargin=infinity,
+             real xmargin=legendmargin, real ymargin=xmargin,
              pen p=currentpen, filltype filltype=NoFill);
 @end verbatim
 @noindent
@@ -4899,7 +4945,13 @@ One can prevent labels from overwriting one another with the
 @code{Asymptote}-aware. Entering @code{Asymptote} code
 directly into the @code{LaTeX} source file, at the point where it is
 needed, keeps figures organized and avoids the need to invent new file
-names for each figure. 
+names for each figure. Simply add the line
+@code{\usepackage@{asymptote@}} at the beginning of your file
+and enclose your @code{Asymptote} code within a
+@code{\begin@{asy@}...\end@{asy@}} environment. As with the
+@code{LaTeX} @code{comment} environment, the @code{\end@{asy@}} command
+must appear on a line by itself, with no leading spaces or trailing
+commands/comments.
 
 The sample @code{LaTeX} file below, named @code{latexusage.tex}, can
 be run as follows:
