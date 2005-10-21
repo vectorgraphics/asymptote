@@ -11,7 +11,7 @@ yscreen=600
 
 L=len(sys.argv)
 if L < 2 or L > 4 :
-    print "Usage: xasy prefix"
+    print "Usage: xasy prefix [filenum] [outname]"
     sys.exit(1)
 
 prefix=sys.argv[1]

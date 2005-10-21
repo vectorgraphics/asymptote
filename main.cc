@@ -125,7 +125,7 @@ void body(string filename) // TODO: Refactor
     if (verbose) cout << "Processing " << basename << endl;
     
     if(outname.empty())
-      outname=(filename == "-") ? "out" : basename;
+      outname=(filename == "-") ? "out" : stripDir(basename);
 
     genv ge;
     ge.autoloads(outname);
