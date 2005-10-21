@@ -617,12 +617,12 @@ public filltype UnFill=UnFill();
 
 // Fill the region in frame dest underneath frame src and return the
 // boundary of src.
-guide fill(frame dest, frame src, pen p=currentpen, filltype filltype=NoFill, 
+guide fill(frame dest, frame src, filltype filltype=NoFill, 
 	     real xmargin=0, real ymargin=xmargin)
 {
   pair z=(xmargin,ymargin);
-  guide g=box(min(src)-0.5*min(p)-z,max(src)-0.5*max(p)+z);
-  filltype(dest,g,p);
+  guide g=box(min(src)-0.5*min(invisible)-z,max(src)-0.5*max(invisible)+z);
+  filltype(dest,g,invisible);
   return g;
 }
 
@@ -1629,7 +1629,7 @@ bool inside(path[] g, pair z)
 }
 
 // Add frame dest about origin to frame src with optional grouping
-void add(pair origin, frame dest, frame src, bool group=true,
+void add(pair origin, frame dest, frame src, bool group=false,
 	 filltype filltype=NoFill, bool put=Above)
 {
   add(dest,shift(origin)*src,group,filltype,put);
@@ -1856,7 +1856,6 @@ struct Label {
   pair shift;
   filltype filltype=NoFill;
   
-  // TODO: Remove these default values.
   void init(string s="", string size="", position position=0, 
 	    bool defaultposition=true,
 	    align align=NoAlign, pen p=nullpen, real angle=0,
@@ -2495,13 +2494,12 @@ picture legend(Legend[] legend)
   
 frame legend(picture pic=currentpicture, pair dir=0, 
 	     real xmargin=legendmargin, real ymargin=xmargin,
-	     pen p=currentpen, filltype filltype=NoFill) 
+	     pen p=currentpen) 
 {
   frame F;
   if(pic.legend.length == 0) return F;
-//  F=bbox(legend(pic.legend),xmargin,ymargin,p,filltype);
   F=legend(pic.legend).fit();
-  box(F,xmargin,ymargin,p,filltype);
+  box(F,xmargin,ymargin,p);
   return shift(dir-point(F,-dir))*F;
 }
 

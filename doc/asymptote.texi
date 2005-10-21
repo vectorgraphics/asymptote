@@ -1901,6 +1901,7 @@ whether to add @code{src} above or below existing objects.
 There are also routines to add a picture or frame @code{src} specified
 in postscript coordinates to another picture about the user coordinate
 @code{origin}:
+@anchor{add about}
 @cindex @code{add}
 @verbatim
 void add(pair origin, picture dest, picture src, bool group=true,
@@ -3682,11 +3683,11 @@ Here are some simple examples of two-dimensional graphs:
 
 @item The next example draws a scientific-style graph with a legend.
 The position of the legend can be adjusted either explicitly or by using the
-graphical user interface @code{xasy} (@pxref{GUI}). If necessary, an
+graphical user interface @code{xasy} (@pxref{GUI}). If an
 @code{UnFill(real xmargin=0, real ymargin=xmargin)} or
-@code{Fill(pen)} option to @code{legend} can be
-specified to obscure underlying objects. This example illustrates
-how one can clip the portion of the picture covered by a label:
+@code{Fill(pen)} option is specified to @code{add}, the legend will obscure
+any underlying objects. Similarly, one can clip the portion of the picture
+covered by a label:
 
 @cindex scientific graph
 @cindex @code{LeftTicks}
@@ -4676,14 +4677,11 @@ with the routine (@pxref{filltype})
 @verbatim
 frame legend(picture pic=currentpicture, pair dir=0, 
              real xmargin=legendmargin, real ymargin=xmargin,
-             pen p=currentpen, filltype filltype=NoFill);
+             pen p=currentpen);
 @end verbatim
 @noindent
 this legend frame can then be added about the point @code{origin} to a
-picture @code{dest}:
-@verbatim
-add(pair origin=(0,0), picture dest=currentpicture, frame);
-@end verbatim
+picture @code{dest} using @code{add} or @code{attach} (@pxref{add about}).
 
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.
@@ -4832,7 +4830,7 @@ For an illustration of picture clipping, see the first example in
 @section label
 @verbatim
 void label(picture pic=currentpicture, Label L, pair position,
-           align align=NoAlign, pen p=nullpen)
+           align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
 @end verbatim
 
 Draw Label @code{L} on picture @code{pic} using pen @code{p}. If
@@ -4847,10 +4845,14 @@ Label, which defaults to @code{currentpen}, will be used.
 Here @code{Label} can either be a string or the structure obtained by calling
 one of the functions
 @verbatim
-Label Label(string s="", pair position, align align=NoAlign, pen p=nullpen);
-Label Label(string s="", align align=NoAlign, pen p=nullpen);
-Label Label(Label L, pair position, align align=NoAlign);
-Label Label(Label L, align align=NoAlign);
+Label Label(string s="", pair position, align align=NoAlign,
+            pen p=nullpen, filltype filltype=NoFill);
+Label Label(string s="", align align=NoAlign,
+            pen p=nullpen, filltype filltype=NoFill);
+Label Label(Label L, pair position, align align=NoAlign,
+            pen p=nullpen, filltype filltype=NoFill);
+Label Label(Label L, align align=NoAlign,
+            pen p=nullpen, filltype filltype=NoFill);
 @end verbatim
 The text of a Label can be rotated by an angle by
 multiplying on the left with a rotation (in degrees): for example,
@@ -4862,7 +4864,7 @@ degrees. The final position of a Label can also be shifted by a
 To add a label to a path, use
 @verbatim
 void label(picture pic=currentpicture, Label L, path g, align align=NoAlign,
-           pen p=currentpen)
+           pen p=nullpen, filltype filltype=NoFill);
 @end verbatim
 @cindex @code{Relative}
 By default the label will be positioned at the midpoint of the path.
