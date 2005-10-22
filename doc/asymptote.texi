@@ -2508,8 +2508,8 @@ g(true);
 @end enumerate
 
 @code{Asymptote} is the only language we know of that treats functions
-as variables, but allows overloading by distinguishing variables by their
-signatures.  
+as variables, but allows overloading by distinguishing variables
+based on their signatures.  
 
 @cindex @code{libsigsegv}
 @anchor{stack overflow}
@@ -3686,8 +3686,8 @@ The position of the legend can be adjusted either explicitly or by using the
 graphical user interface @code{xasy} (@pxref{GUI}). If an
 @code{UnFill(real xmargin=0, real ymargin=xmargin)} or
 @code{Fill(pen)} option is specified to @code{add}, the legend will obscure
-any underlying objects. Similarly, one can clip the portion of the picture
-covered by a label:
+any underlying objects. Here we illustrate how to clip the portion of
+the picture covered by a label:
 
 @cindex scientific graph
 @cindex @code{LeftTicks}
@@ -3708,15 +3708,30 @@ the tick labels on the @math{y} axis.
 @cindex @code{polygon}
 @cindex @code{cross}
 @cindex @code{errorbars}
+@cindex @code{marker}
+@cindex @code{marknodes}
+@cindex @code{markuniform}
+@anchor{markers}
 @item The next example draws two graphs of an array of coordinate pairs,
 using frame alignment and data markers. In the left-hand graph, the
-marker is constructed with the function @code{frame marker(path g,
-pen p=currentpen, filltype filltype=NoFill}) using the path @code{unitcircle}
-(@pxref{filltype}).
+markers are constructed with
+@verbatim
+marker marker(path g, pen p=currentpen,
+              markroutine markroutine=marknodes,
+	      filltype filltype=NoFill, bool put=Above);
+@end verbatim
+using the path @code{unitcircle} (@pxref{filltype}).
+A frame can be converted to a marker, using the routine
+@verbatim
+marker marker(frame f, markroutine markroutine=marknodes,
+              bool put=Above);
+@end verbatim
 In the right-hand graph, the unit @math{n}-sided regular polygon 
 @code{polygon(int n)} and the unit @math{n}-point cross 
-@code{cross(int n)} are used to build a custom marker frame.
-This example also illustrates the @code{errorbar} routines:
+@code{cross(int n)} are used to build a custom marker frame, 
+The routine @code{markuniform(int n)} adds this frame at @code{n}
+points uniformly spaced along the arclength of the path. This example also
+illustrates the @code{errorbar} routines:
 
 @verbatim
 void errorbars(picture pic=currentpicture, pair[] z, pair[] dp,
@@ -4340,7 +4355,7 @@ texhash
 To use cyrillic fonts, you will need to change the font encoding:
 @verbatim
 import unicode;
-texpreamble("\usepackage[russian]{babel}");
+texpreamble("\usepackage{mathtext} \usepackage[russian]{babel}");
 defaultpen(font("T2A","cmr"));
 @end verbatim
 
@@ -4575,19 +4590,17 @@ currentpicture).
 void draw(picture pic=currentpicture, Label L="", path g,
           align align=NoAlign, pen p=currentpen,
           arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
-          string legend="", frame mark=newframe, bool putmark=Above);
+          string legend="", marker marker=nomarker);
 @end verbatim
 
 Draw the path @code{g} on the picture @code{pic} using pen @code{p}
 for drawing, with optional drawing attributes (Label @code{L},
 explicit label alignment @code{align},
 arrows and bars @code{arrow} and @code{bar}, margins @code{margin},
-legend, and node markers). Only one parameter, the path, is 
+legend, and markers @code{marker}). Only one parameter, the path, is 
 required. For convenience, the arguments @code{arrow} and @code{bar} may be
 specified in either order. The argument @code{legend} is a string to
-use in constructing an optional legend entry. An optional frame
-@code{mark} may be drawn at every node, on top of (underneath) the
-path if @code{putmark}=@code{Above} (@code{putmark}=@code{Below}).
+use in constructing an optional legend entry.
 
 @cindex @code{None}
 @cindex @code{BeginBar}
@@ -4705,7 +4718,7 @@ is @code{"$%.4g$"}). One can also draw a dot at every node of a path:
 @verbatim
 void dot(picture pic=currentpicture, guide g, pen p=currentpen);
 @end verbatim
-See section @ref{draw} for a more general way of marking path nodes.
+See @ref{markers} for a more general way of marking path nodes.
 
 To draw a fixed-sized object (in @code{PostScript} coordinates) about the user
 coordinate @code{origin}, use the routine
@@ -4714,7 +4727,7 @@ coordinate @code{origin}, use the routine
 void draw(pair origin, picture pic=currentpicture, Label L="", path g,
           align align=NoAlign, pen p=currentpen, arrowbar arrow=None,
           arrowbar bar=None, margin margin=NoMargin, string legend="",
-          frame mark=newframe, bool putmark=Above);
+          marker marker=nomarker);
 @end verbatim
 
 @cindex @code{fill}
@@ -5316,7 +5329,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  pos substr strftime typedef pxref unitcircle yscale Bezier iff
 @c  LocalWords:  postcontrol precontrol atleast nullpath arclength arctime rgb
 @c  LocalWords:  dirtime currentpen colorspaces grayscale cmyk defaultpen x cx
-@c  LocalWords:  linetype longdashed dashdotted longdashdotted linewidth y
+@c  LocalWords:  linetype longdashed dashdotted longdashdotted linewidth y XP
 @c  LocalWords:  fontsize defaultfilename keepAspect IgnoreAspect ise flushleft
 @c  LocalWords:  NoWait src dest XDR txt getc fout stdin stdout endl xinput eof
 @c  LocalWords:  xoutput Microsystem's eol struct exponentials postfix sayhi th
@@ -5341,7 +5354,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  ymin ymax XZero xequals tickmin tickmax unlabelled se pq pena
 @c  LocalWords:  yequals Nobre Barbarosie Schwaiger nearearth conicurv Wiebusch
 @c  LocalWords:  unfill PAPERTYPE posterSize ngraph interpolatetype ctrl dt pic
-@c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei putmark
+@c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei
 @c  LocalWords:  westnile minipage infectiousM ra penb paletteticks drawline
 @c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis
 @c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx XEquals YEquals
@@ -5367,4 +5380,5 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  ticklocate autoscaleT autoscaling vectorfield autolimits dvi
 @c  LocalWords:  zlimits inline dvipdf hyperdvi autoconf gui zerowindingoverlap
 @c  LocalWords:  prepended intMax quadraticroots cubicroots filltype prepend
-@c  LocalWords:  ticklabel
+@c  LocalWords:  ticklabel popup UnFill markroutine marknodes markuniform
+@c  LocalWords:  intersectpoint cyrillic mathtext russian
