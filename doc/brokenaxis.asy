@@ -15,6 +15,6 @@ draw(graph(x,y),red,MarkFill[0]);
 xaxis("$x$",BottomTop,LeftTicks(new real[]{0,1,2,9,10}));
 yaxis("$y$",LeftRight,RightTicks);
 
-label(rotate(90)*Break,(a,currentpicture.userMin.x));
+label(rotate(90)*Break,(a,currentpicture.userMin.y));
 label(rotate(90)*Break,(a,currentpicture.userMax.y));
 
