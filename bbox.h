@@ -10,8 +10,6 @@
 
 #include "pair.h"
 
-extern "C" double round(double x);
-  
 namespace camp {
 
 inline double min(double a, double b)

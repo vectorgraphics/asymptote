@@ -57,6 +57,11 @@ namespace trans {
 using namespace types;
 }
 
+static inline int Round(double x) 
+{
+  return int(x+((x >= 0) ? 0.5 : -0.5));
+}
+
 
 void _label(picture *pic, string *s, string *size, double r, pair z, pair a,
      	    pen *p)
@@ -316,7 +321,7 @@ int floor(double x)
 
 int round(double x)
 { 
-  return (int) round(x);
+  return Round(x);
 }
 
 int Ceil(double x)
@@ -331,5 +336,5 @@ int Floor(double x)
 
 int Round(double x)
 { 
-  return (int) round(intcap(x));
+  return Round(intcap(x));
 }
