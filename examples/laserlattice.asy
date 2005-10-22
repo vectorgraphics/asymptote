@@ -37,7 +37,8 @@ picture q=make_field(80,80);
 picture r=make_field(16,80);
 picture s=make_field(2,80);
 
-add(p.fit(1cm*NW));
-add(q.fit(1cm*NE));
-add(r.fit(1cm*SW));
-add(s.fit(1cm*SE));
+real margin=1cm;
+add(p.fit(),margin*NW);
+add(q.fit(),margin*NE);
+add(r.fit(),margin*SW);
+add(s.fit(),margin*SE);

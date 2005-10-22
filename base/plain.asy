@@ -916,14 +916,14 @@ struct Legend {
   public pen plabel;
   public pen p;
   public frame mark;
-  public bool putmark;
+  public bool put;
   void init(string label, pen plabel=currentpen, pen p=nullpen,
-	    frame mark=newframe, bool putmark=false) {
+	    frame mark=newframe, bool put=Above) {
     this.label=label;
     this.plabel=plabel;
     this.p=(p == nullpen) ? plabel : p;
     this.mark=mark;
-    this.putmark=putmark;
+    this.put=put;
   }
 }
 
@@ -959,6 +959,12 @@ pair point(frame f, pair dir)
 
 real min(... real[] a) {return min(a);}
 real max(... real[] a) {return max(a);}
+
+// Returns a copy of frame f aligned in the direction dir
+frame align(frame f, pair dir) 
+{
+  return shift(dir)*shift(-point(f,-dir))*f;
+}
 
 struct picture {
   // The functions to do the deferred drawing.
@@ -1276,13 +1282,6 @@ struct picture {
   frame fit(real xsize=this.xsize, real ysize=this.ysize,
 	    bool keepAspect=this.keepAspect) {
     return fit(calculateTransform(xsize,ysize,keepAspect));
-  }
-
-  // Returns the picture fit to the wanted size, aligned in direction dir
-  frame fit(real xsize=this.xsize, real ysize=this.ysize,
-	    bool keepAspect=this.keepAspect, pair dir) {
-    frame f=fit(xsize,ysize,keepAspect);
-    return shift(dir)*shift(-point(f,-dir))*f;
   }
 
   // Copies the drawing information, but not the sizing information into a new
@@ -1645,7 +1644,7 @@ void add(pair origin=0, picture dest=currentpicture, frame src,
   dest.addBox(origin,origin,min(src),max(src));
 }
 
-// Like add(pair,picture,frame,bool) but extend picture to accommodate frame
+// Like add(pair,picture,frame) but extend picture to accommodate frame
 void attach(pair origin=0, picture dest=currentpicture, frame src,
 	    bool group=true, filltype filltype=NoFill, bool put=Above)
 {
@@ -1653,6 +1652,20 @@ void attach(pair origin=0, picture dest=currentpicture, frame src,
   add(origin,dest,src,group,filltype,put);
   pair s=size(dest.fit(t));
   size(dest,dest.xsize != 0 ? s.x : 0,dest.ysize != 0 ? s.y : 0);
+}
+
+// Like add(pair,picture,frame) but align frame in direction dir.
+void add(pair origin=0, picture dest=currentpicture, frame src, pair dir,
+	 bool group=true, filltype filltype=NoFill, bool put=Above)
+{
+  add(origin,dest,align(src,dir),group,filltype,put);
+}
+
+// Like attach(pair,picture,frame) but align frame in direction dir.
+void attach(pair origin=0, picture dest=currentpicture, frame src, pair dir,
+	    bool group=true, filltype filltype=NoFill, bool put=Above)
+{
+  attach(origin,dest,align(src,dir),group,filltype,put);
 }
 
 // Add a picture to another such that user coordinates in both will be scaled
@@ -2439,20 +2452,6 @@ path[] cross(int n)
 
 path[] plus=(-1,0)--(1,0)^^(0,-1)--(0,1);
 
-void mark(picture pic=currentpicture, path g, frame mark)
-{
-  for(int i=0; i <= length(g); ++i)
-    add(point(g,i),pic,mark);
-}
-
-frame marker(path[] g, pen p=currentpen, filltype filltype=NoFill)
-{
-  frame f;
-  if(filltype == Fill) fill(f,g,p);
-  else draw(f,g,p);
-  return f;
-}
-
 void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
 	     string format="", bool wait=NoWait, bool quiet=false)
 {
@@ -2474,6 +2473,28 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
   uptodate=true;
 }
 
+
+typedef void markroutine(picture pic=currentpicture, path g, frame f);
+
+// On picture pic, add to every node of path g the frame f.
+void marknodes(picture pic=currentpicture, path g, frame f) {
+  for(int i=0; i <= length(g); ++i)
+    add(point(g,i),pic,f);
+}
+
+// On picture pic, add to path g the frame f, evenly spaced in arclength.
+markroutine markuniform(int n) {
+  return new void(picture pic=currentpicture, path g, frame f) {
+    if(n == 0) return;
+    if(n == 1) add(relpoint(g,0.5),pic,f);
+    else {
+      real width=1/(n-1);
+      for(int i=0; i < n; ++i)
+	add(relpoint(g,i*width),pic,f);
+    }
+  };
+}
+
 picture legend(Legend[] legend)
 {
   picture inset;
@@ -2483,10 +2504,10 @@ picture legend(Legend[] legend)
       Legend L=legend[i];
       pair z1=legendmargin-i*I*legendskip*fontsize(L.p);
       pair z2=z1+legendlinelength;
-      if(!L.putmark && !empty(L.mark)) mark(inset,interp(z1,z2,0.5),L.mark);
+      if(!L.put && !empty(L.mark)) marknodes(inset,interp(z1,z2,0.5),L.mark);
       Draw(inset,z1--z2,L.p);
       label(inset,L.label,z2,E,L.plabel);
-      if(L.putmark && !empty(L.mark)) mark(inset,interp(z1,z2,0.5),L.mark);
+      if(L.put && !empty(L.mark)) marknodes(inset,interp(z1,z2,0.5),L.mark);
     }
   }
   return inset;
@@ -2814,33 +2835,63 @@ void draw(frame f, path g, pen p=currentpen, arrowbar arrow)
   add(f,pic.fit());
 }
 
+struct marker {
+  public frame f;
+  public bool put=Above;
+  public markroutine markroutine=marknodes;
+  void mark(picture pic, path g) {
+    markroutine(pic,g,f);
+  };
+}
+  
+marker operator init() {return new marker;}
+  
+marker marker(frame f, markroutine markroutine=marknodes, bool put=Above) 
+{
+  marker m=new marker;
+  m.f=f;
+  m.put=put;
+  m.markroutine=markroutine;
+  return m;
+}
+
+marker marker(path[] g, markroutine markroutine=marknodes, pen p=currentpen,
+	      filltype filltype=NoFill, bool put=Above)
+{
+  frame f;
+  if(filltype == Fill) fill(f,g,p);
+  else draw(f,g,p);
+  return marker(f,markroutine,put);
+}
+
+marker nomarker;
+
 void draw(picture pic=currentpicture, Label L="", path g, align align=NoAlign,
 	  pen p=currentpen, arrowbar arrow=None, arrowbar bar=None,
-	  margin margin=NoMargin, string legend="", frame mark=newframe,
-	  bool putmark=Above)
+	  margin margin=NoMargin, string legend="", marker marker=nomarker)
 {
   Label L=L.copy();
   L.align(align);
   L.p(p);
-  if(!putmark && !empty(mark)) mark(pic,g,mark);
+  if(marker != nomarker && !marker.put) marker.mark(pic,g);
   if(L.s != "") L.out(pic,g);
   bool drawpath=arrow(pic,g,p,margin);
   if(bar(pic,g,p,margin) && drawpath) _draw(pic,g,p,margin);
   if(legend != "") {
-    Legend l; l.init(legend,L.p,p,mark,putmark);
+    Legend l; l.init(legend,L.p,p,marker.f,marker.put);
     pic.legend.push(l);
   }
-  if(putmark && !empty(mark)) mark(pic,g,mark);
+  if(marker != nomarker && marker.put) marker.mark(pic,g);
 }
 
 // Draw a fixed-size line about the user-coordinate 'origin'.
 void draw(pair origin, picture pic=currentpicture, Label L="", path g,
 	  align align=NoAlign, pen p=currentpen, arrowbar arrow=None,
 	  arrowbar bar=None, margin margin=NoMargin, string legend="",
-	  frame mark=newframe, bool putmark=Above)
+	  marker marker=nomarker)
 {
   picture opic;
-  draw(opic,L,g,align,p,arrow,bar,margin,legend,mark,putmark);
+  draw(opic,L,g,align,p,arrow,bar,margin,legend,marker);
   add(origin,pic,opic);
 }
 
@@ -3012,15 +3063,15 @@ monoPen.cyclic(true);
 transform invert=reflect((0,0),(1,0));
 static public real circlescale=0.85;
 
-frame[] Mark={
-  scale(circlescale)*marker(unitcircle),
+marker[] Mark={
+  marker(scale(circlescale)*unitcircle),
   marker(polygon(3)),marker(polygon(4)),
   marker(polygon(5)),marker(invert*polygon(3)),
   marker(cross(4)),marker(cross(6))
 };
 
-frame[] MarkFill={
-  scale(circlescale)*marker(unitcircle,Fill),marker(polygon(3),Fill),
+marker[] MarkFill={
+  marker(scale(circlescale)*unitcircle,Fill),marker(polygon(3),Fill),
   marker(polygon(4),Fill),marker(polygon(5),Fill),
   marker(invert*polygon(3),Fill)
 };
@@ -3032,7 +3083,7 @@ pen Pen(int n)
   return mono ? monoPen[n] : colorPen[n];
 }
 
-frame Mark(int n) 
+marker Mark(int n) 
 {
   n=n % (Mark.length+MarkFill.length);
   if(n < Mark.length) return Mark[n];

@@ -1744,6 +1744,12 @@ or prepended with
 @verbatim
 void prepend(frame dest, frame src);
 @end verbatim
+A frame obtained by aligning frame @code{f} in the direction
+@code{dir}, in a manner analogous to the @code{align} argument of
+@code{label} (@pxref{label}), is returned by
+@verbatim
+frame align(frame f, pair dir);
+@end verbatim
 
 @item picture
 @cindex @code{picture}
@@ -1809,22 +1815,14 @@ previous @code{shipout} commands have been executed.
 @cindex subpictures
 @cindex @code{fit}
 @cindex @code{picture alignment}
-A picture @code{pic} can be explicitly fit to a frame by calling one
-of these member functions:
+A picture @code{pic} can be explicitly fit to a frame by calling
 @verbatim
 frame pic.fit(real xsize=pic.xsize, real ysize=pic.ysize,
-              bool keepAspect=pic.keepAspect, pair dir=0);
+              bool keepAspect=pic.keepAspect);
 @end verbatim
 The default size and aspect ratio settings are those given to the
 @code{size} command (which default to @code{0}, @code{0}, and
-@code{true}, respectively). The optional @code{dir} argument
-specifies a direction to use for aligning the frame, in a manner
-completely analogous to the @code{align} argument of @code{label}
-(@pxref{label}). Illustrations of frame alignment can be found in the
-examples @ref{errorbars} and @ref{image}. If you want to align 3 or
-more subpictures, group them two at a time:
-@verbatiminclude subpictures.asy
-@image{subpictures}
+@code{true}, respectively).
 
 @cindex portrait mode
 @cindex landscape mode
@@ -1879,6 +1877,18 @@ shipout(bbox(0.25cm));
 A @code{picture} may be fit to a frame with the background color of
 pen @code{p} with the function @code{bbox(p,Fill)}. 
 
+The function 
+@verbatim
+pair point(picture pic=currentpicture, pair dir);
+@end verbatim
+is a convenient way of determining the point on the boundary of the
+user-coordinate bounding box of @code{pic} in the direction @code{dir}
+relative to its center.
+
+The member functions @code{pic.min()} and @code{pic.max()} calculate
+the @code{PostScript} bounds that picture @code{pic} would have if it were
+currently fit to a frame using its default size specification.
+
 @anchor{add}
 Sometimes it is useful to draw objects on separate pictures and add one
 picture to another using the @code{add} function:
@@ -1908,15 +1918,34 @@ void add(pair origin, picture dest, picture src, bool group=true,
          filltype filltype=NoFill, bool put=Above);
 void add(pair origin, picture src, bool group=true,
          filltype filltype=NoFill, bool put=Above);
+void add(pair origin=0, picture dest=currentpicture, frame src,
+         bool group=true, filltype filltype=NoFill,
+         bool put=Above);
+void add(pair origin=0, picture dest=currentpicture, frame src,
+         pair dir, bool group=true, filltype filltype=NoFill,
+         bool put=Above);
 @end verbatim
+
+The @code{dir} argument in the last form specifies a direction to use
+for aligning the frame, in a manner analogous to the @code{align}
+argument of @code{label} (@pxref{label}). 
+Illustrations of frame alignment can be found in the
+examples @ref{errorbars} and @ref{image}. If you want to align 3 or
+more subpictures, group them two at a time:
+
+@verbatiminclude subpictures.asy
+@image{subpictures}
 
 Alternatively, one can use @code{attach} to automatically increase the
 size of picture @code{dest} to accommodate adding a frame @code{src}
 about the user coordinate @code{origin}:
 @verbatim
-void attach(pair origin=(0,0), picture dest=currentpicture,
+void attach(pair origin=0, picture dest=currentpicture,
            frame src, bool group=true,
            filltype filltype=NoFill, bool put=Above);
+void attach(pair origin=0, picture dest=currentpicture, frame src,
+            pair dir, bool group=true, filltype filltype=NoFill,
+            bool put=Above);
 @end verbatim
 
 To draw or fill a box or ellipse around a label, frame, or picture,
@@ -1926,7 +1955,7 @@ return the boundary as a guide):
 guide box(frame f, Label L="", real xmargin=0,
           real ymargin=xmargin, pen p=currentpen,
           filltype filltype=NoFill,
-  	  bool put=filltype == UnFill ? Above : Below);
+          bool put=filltype == UnFill ? Above : Below);
 guide ellipse(frame f, Label L="", real xmargin=0,
               real ymargin=xmargin, pen p=currentpen,
               filltype filltype=NoFill,
@@ -3714,23 +3743,23 @@ the tick labels on the @math{y} axis.
 @anchor{markers}
 @item The next example draws two graphs of an array of coordinate pairs,
 using frame alignment and data markers. In the left-hand graph, the
-markers are constructed with
+markers, constructed with
 @verbatim
 marker marker(path g, pen p=currentpen,
               markroutine markroutine=marknodes,
-	      filltype filltype=NoFill, bool put=Above);
+              filltype filltype=NoFill, bool put=Above);
 @end verbatim
-using the path @code{unitcircle} (@pxref{filltype}).
-A frame can be converted to a marker, using the routine
+using the path @code{unitcircle} (@pxref{filltype}), are drawn
+below each node. Any frame can be converted to a marker, using
 @verbatim
 marker marker(frame f, markroutine markroutine=marknodes,
               bool put=Above);
 @end verbatim
 In the right-hand graph, the unit @math{n}-sided regular polygon 
 @code{polygon(int n)} and the unit @math{n}-point cross 
-@code{cross(int n)} are used to build a custom marker frame, 
-The routine @code{markuniform(int n)} adds this frame at @code{n}
-points uniformly spaced along the arclength of the path. This example also
+@code{cross(int n)} are used to build a custom marker frame. 
+Here @code{markuniform(int n)} adds this frame at @code{n}
+uniformly spaced points along the arclength of the path. This example also
 illustrates the @code{errorbar} routines:
 
 @verbatim
@@ -3922,7 +3951,7 @@ paletteticks PaletteTicks(int N=0, real Step=0,
 
 The image and palette bar can be fit (and optionally aligned) to a frame 
 and added to picture @code{dest} at the location @code{origin} using
-@code{add(pair origin=(0,0), picture dest=currentpicture, frame)}:
+@code{add(pair origin=0, picture dest=currentpicture, frame)}:
 
 @anchor{image}
 @verbatiminclude image.asy
@@ -5354,7 +5383,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  ymin ymax XZero xequals tickmin tickmax unlabelled se pq pena
 @c  LocalWords:  yequals Nobre Barbarosie Schwaiger nearearth conicurv Wiebusch
 @c  LocalWords:  unfill PAPERTYPE posterSize ngraph interpolatetype ctrl dt pic
-@c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei
+@c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei nomarker
 @c  LocalWords:  westnile minipage infectiousM ra penb paletteticks drawline
 @c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis
 @c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx XEquals YEquals
