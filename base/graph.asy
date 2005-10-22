@@ -42,7 +42,28 @@ public scaleT Log(bool automin=true, bool automax=true)
   return scale;
 }
 
-void scale(picture pic=currentpicture, scaleT x, scaleT y, scaleT z=Linear)
+// A "broken" linear axis omitting the segment [a,b].
+public scaleT Broken(real a, real b, bool automin=true, bool automax=true)
+{
+  real skip=b-a;
+  scaleT scale;
+  real T(real x) {
+    if(x <= a) return x;
+    if(x <= b) return a; 
+    return x-skip;
+  }
+  real Tinv(real x) {
+    if(x <= a) return x; 
+    return x+skip; 
+  }
+  scale.init(T,Tinv,logarithmic=false,automin,automax);
+  return scale;
+}
+
+Label Break=Label("$\approx$",UnFill);
+
+void scale(picture pic=currentpicture, scaleT x, scaleT y=Linear,
+	   scaleT z=Linear)
 {
   pic.scale.x.scale=x;
   pic.scale.y.scale=y;
@@ -643,13 +664,17 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     guide G=T*g;
     guide G2=T*g2;
     
+    scalefcn T;
+    
     real a,b;
     if(locate.S.scale.logarithmic) {
       a=locate.S.postscale.Tinv(locate.a);
       b=locate.S.postscale.Tinv(locate.b);
+      T=locate.S.scale.T;
     } else {
       a=locate.S.Tinv(locate.a);
       b=locate.S.Tinv(locate.b);
+      T=identity;
     }
     
     if(a > b) {real temp=a; a=b; b=temp;}
@@ -667,12 +692,12 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     if(opposite) draw(f,G,p);
     else draw(f,G,p,arrow);
     for(int i=0; i < Ticks.length; ++i) {
-      real val=locate.S.scale.T(Ticks[i]);
+      real val=T(Ticks[i]);
       if(val >= a && val <= b)
 	drawtick(f,T,g,g2,locate,val,Size,sign,pTick,extend);
     }
     for(int i=0; i < ticks.length; ++i) {
-      real val=locate.S.scale.T(ticks[i]);
+      real val=T(ticks[i]);
       if(val >= a && val <= b)
       drawtick(f,T,g,g2,locate,val,size,sign,ptick,extend);
     }
@@ -681,7 +706,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     if(Size > 0 && !opposite) {
       for(int i=(beginlabel ? 0 : 1);
 	  i < (endlabel ? Ticks.length : Ticks.length-1); ++i) {
-	real val=locate.S.scale.T(Ticks[i]);
+	real val=T(Ticks[i]);
 	if(val >= a && val <= b) {
 	  ticklabels=true;
 	  labeltick(f,T,g,locate,val,side,sign,Size,ticklabel,F,norm);

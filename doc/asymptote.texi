@@ -3849,6 +3849,12 @@ One can also specify custom tick locations and formats for logarithmic axes:
 @verbatiminclude logticks.asy
 @image{logticks}
 
+@cindex broken axis
+Here is an example of a "broken" linear @math{x} axis that omits the
+segment [3,8]:
+@verbatiminclude brokenaxis.asy
+@image{brokenaxis}
+
 @cindex secondary axis
 @cindex @code{secondaryX}
 @cindex @code{secondaryY}
