@@ -221,7 +221,7 @@ def writetransform(event):
         if line != 0:
             coords=line.getcoords()
             coords.reverse()
-            f.write("draw(gui("+str(filenum)+"),")
+            f.write("draw(GUI("+str(filenum)+"),")
             writepair(f,coords)
             while len(coords):
                 f.write("--")
