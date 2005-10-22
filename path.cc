@@ -11,6 +11,7 @@
 #include <cfloat>
 
 #include "path.h"
+#include "util.h"
 #include "angle.h"
 #include "camperror.h"
 
@@ -179,11 +180,6 @@ pair path::point(double t) const
        abcd = one_t*abc + t*bcd;
 
   return abcd;
-}
-
-static inline bool degenerate(pair a, pair b) 
-{
-  return a.getx() == b.getx() || a.gety() == b.gety();
 }
 
 pair path::precontrol(double t) const
