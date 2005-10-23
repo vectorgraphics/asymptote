@@ -2235,7 +2235,7 @@ void changeDirectory(stack *s)
   int rc=setPath(d->c_str());
   if(rc != 0) {
     ostringstream buf;
-    buf << "Cannot change to directory '" << d << "'";
+    buf << "Cannot change to directory '" << *d << "'";
     error(buf.str().c_str());
   }
   char *p=getPath();
