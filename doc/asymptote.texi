@@ -4153,6 +4153,17 @@ Here is an example showing all five three-dimensional path connectors:
 @verbatiminclude join3.asy
 @image{join3}
 
+@cindex @code{bbox3}
+@cindex @code{aspect}
+A three-dimensional bounding box structure is returned by calling 
+@code{bbox3(triple min, triple max)} with the opposite corners
+@code{min} and @code{max}. This can be used to adjust the aspect ratio
+(see the example helix.asy):
+@verbatim
+void aspect(picture pic=currentpicture, bbox3 b,
+            real x=0, real y=0, real z=0);
+@end verbatim
+
 Further three-dimensional examples are provided in the files
 @code{near_earth.asy}, @code{conicurv.asy}, and (in the animations
 subdirectory) @code{cube.asy}.
@@ -4165,18 +4176,34 @@ This module implements three-dimensional versions of the
 functions in @code{graph.asy}. They work much like their
 two-dimensional counterparts, except that the user has to keep track
 of the three-dimensional axes limits (which in two dimension are stored in
-the picture) in a @code{bbox3} bounding box. The
-following functions make this convenient:
+the picture) in a @code{bbox3} bounding box. The function
+@cindex @code{bbox3}
+@cindex @code{autolimits}
+@verbatim
+bbox3 autolimits(picture pic=currentpicture, triple min, triple max);
+@end verbatim
+@noindent
+can be used to determine ``nice'' values for the bounding box corners.
+A user-space bounding box that takes into account of the axes scalings
+for picture @code{pic} is returned by
+@cindex @code{limits}
 @verbatim
 bbox3 limits(picture pic=currentpicture, triple min, triple max);
-bbox3 autolimits(picture pic=currentpicture, triple min, triple max);
+@end verbatim
 
+To crop a bounding box to a given interval use:
+@cindex @code{xlimits}
+@cindex @code{ylimits}
+@cindex @code{zlimits}
+@cindex @code{limits}
+@verbatim
 void xlimits(bbox3 b, real min, real max);
 void ylimits(bbox3 b, real min, real max);
 void zlimits(bbox3 b, real min, real max);
 void limits(bbox3 b, triple min, triple max);
 @end verbatim
 
+@cindex @code{xaxis}
 To draw an @math{x} axis in three dimensions from triple @code{min} to
 triple @code{max} with ticks in the direction @code{dir}, use the routine
 @verbatim
@@ -4205,7 +4232,6 @@ and axis labels, using orthographic projection:
 @verbatiminclude helix.asy
 @image{helix}
 
-@page
 The next example illustrates three-dimensional @math{x}, @math{y}, and
 @math{z} axes, with autoscaling of the upper @math{z} limit disabled:
 @cindex @code{axis}
@@ -5416,4 +5442,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  zlimits inline dvipdf hyperdvi autoconf gui zerowindingoverlap
 @c  LocalWords:  prepended intMax quadraticroots cubicroots filltype prepend
 @c  LocalWords:  ticklabel popup UnFill markroutine marknodes markuniform
-@c  LocalWords:  intersectpoint cyrillic mathtext russian
+@c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis

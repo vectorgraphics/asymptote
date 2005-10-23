@@ -594,8 +594,8 @@ pair intersectcubics(solvedKnot left1, solvedKnot right1,
 // TODO: Handle corner cases. (Done I think)
 pair intersectiontime(path p1, path p2, double fuzz=0.0)
 {
-  fuzz=max(fuzz,Fuzz*(length(p1.max()-p1.min())+
-		      length(p2.max()-p2.min())));
+  fuzz=max(fuzz,Fuzz*max(max(length(p1.max()),length(p1.min())),
+			 max(length(p2.max()),length(p2.min()))));
   const pair F(-1,-1);
   solvedKnot *n1=p1.Nodes();
   solvedKnot *n2=p2.Nodes();
