@@ -21,9 +21,13 @@ using std::string;
 
 string stripext(const string& name, const string& suffix);
   
+// Strip the directory from a filename.
+string& stripDir(string& name);
+  
 // Construct a filename from the original, adding aux at the end, and
 // changing the suffix.
-string buildname(string filename, string suffix="", string aux="");
+string buildname(string filename, string suffix="", string aux="",
+		 bool stripdir=true);
 
 // Construct an alternate filename for a temporary file.
 string auxname(string filename, string suffix="");

@@ -6,6 +6,7 @@
  *****/
 
 #include <ctime>
+#include <cfloat>
 
 #include "texfile.h"
 #include "errormsg.h"
@@ -115,13 +116,17 @@ void texfile::put(const string& label, double angle, const pair& z,
     if((*p)->rule.overlap()) {
       if(!(*p)->inside(0.5*(Box.Min()+Box.Max()))) return;
     } else {
-      if(!(*p)->inside(pair(Box.left,Box.bottom))) return;
-      if(!(*p)->inside(pair(Box.right,Box.bottom))) return;
-      if(!(*p)->inside(pair(Box.left,Box.top))) return;
-      if(!(*p)->inside(pair(Box.right,Box.top))) return;
+      // Include labels exactly on boundary.
+      static const double fuzz=10.0*DBL_EPSILON;
+      double xfuzz=fuzz*max(fabs(Box.left),fabs(Box.right));
+      double yfuzz=fuzz*max(fabs(Box.bottom),fabs(Box.top));
+      if(!(*p)->inside(pair(Box.left+xfuzz,Box.bottom+yfuzz))) return;
+      if(!(*p)->inside(pair(Box.right-xfuzz,Box.bottom+yfuzz))) return;
+      if(!(*p)->inside(pair(Box.left+xfuzz,Box.top-yfuzz))) return;
+      if(!(*p)->inside(pair(Box.right-xfuzz,Box.top-yfuzz))) return;
     }
   }
-    
+
   *out << "\\ASYalign" << fixed
        << "(" << (z.getx()-offset.getx())*ps2tex
        << "," << (z.gety()-offset.gety())*ps2tex

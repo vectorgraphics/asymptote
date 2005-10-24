@@ -160,7 +160,8 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
     labelbounds[n]=Box;
   }
   
-  Box=A;
+  Box=bbox();
+  Box += A;
   Box += B;
   Box += C;
   Box += D;

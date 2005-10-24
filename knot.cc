@@ -69,10 +69,10 @@ double velocity(double theta, double phi, tension t)
   double st = sin(theta), ct = cos(theta),
          sf = sin(phi),   cf = cos(phi);
 
-  // NOTE: Have to deal with degenerate condition theta = phi = -pi
+  double denom = t.val * (3.0 + c*ct + d*cf);
 
-  double r =  (2.0 + a*(st - b*sf)*(sf - b*st)*(ct-cf)) /
-              (t.val * (3.0 + c*ct + d*cf));
+  double r = denom != 0.0 ? (2.0 + a*(st - b*sf)*(sf - b*st)*(ct-cf)) / denom 
+    : VELOCITY_BOUND;
 
   //cerr << " velocity(" << theta << "," << phi <<")= " << r << endl;
   if (r >  VELOCITY_BOUND)

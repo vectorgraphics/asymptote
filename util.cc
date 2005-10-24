@@ -61,9 +61,8 @@ string Getenv(const char *name, bool)
 }
 #endif
 
-string buildname(string filename, string suffix, string aux) 
+string& stripDir(string& name)
 {
-  string name=filename;
   size_t p;
 #ifdef __CYGWIN__  
   p=name.rfind('\\');
@@ -71,8 +70,14 @@ string buildname(string filename, string suffix, string aux)
 #endif  
   p=name.rfind('/');
   if(p < string::npos) name.erase(0,p+1);
-  name = stripext(name,outformat);
+  return name;
+}
 
+string buildname(string name, string suffix, string aux, bool stripdir) 
+{
+  if(stripdir) stripDir(name);
+    
+  name = stripext(name,outformat);
   name += aux;
   if(!suffix.empty()) name += "."+suffix;
   return name;

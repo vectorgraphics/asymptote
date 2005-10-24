@@ -130,7 +130,7 @@ void body(string filename) // TODO: Refactor
     if (verbose) cout << "Processing " << basename << endl;
     
     if(outname.empty())
-      outname=(filename == "-") ? "out" : basename;
+      outname=(filename == "-") ? "out" : stripDir(basename);
 
     if (parseonly) {
       absyntax::file *tree = parser::parseFile(filename);

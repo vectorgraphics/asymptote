@@ -12,8 +12,9 @@ size(pic3,size);
 fill(pic3,unitsquare,blue);
 
 picture pic;
-add(pic,pic1.fit(N));
-add(pic,pic2.fit(10S));
-add(pic.fit(N));
-add(pic3.fit(10S));
+add(pic,pic1.fit(),N);
+add(pic,pic2.fit(),10S);
+
+add(pic.fit(),N);
+add(pic3.fit(),10S);
 

@@ -141,7 +141,7 @@ projection perspective(triple camera)
   t[3][2]=-1/d;
   t[3][3]=0;
   projection P;
-  P.init(camera,t*lookAtOrigin(camera));
+  P.init(camera,t*lookAtOrigin(camera),identity(4));
   return P;
 }
 
@@ -153,7 +153,7 @@ projection perspective(real x, real y, real z)
 projection orthographic(triple camera)
 {
   projection P;
-  P.init(camera,lookAtOrigin(camera));
+  P.init(camera,lookAtOrigin(camera),identity(4));
   return P;
 }
 
@@ -171,13 +171,18 @@ projection oblique(real angle=45)
   t[1][2]=-s2;
   t[2][2]=0;
   projection P;
-  P.init((c2,s2,1),t);
+  P.init((c2,s2,1),t,identity(4));
   return P;
 }
 
 projection oblique=oblique();
 
 currentprojection=perspective(5,4,2);
+
+void scale(projection dest=currentprojection, real x, real y, real z)
+{
+  dest.aspect=xscale3(x)*yscale3(y)*zscale3(z);
+}
 
 pair projectXY(triple v)
 {
@@ -857,6 +862,13 @@ struct bbox3 {
 
 bbox3 operator init() {return new bbox3;}
   
+bbox3 bbox3(triple min, triple max) 
+{
+  bbox3 b;
+  b.add(min,max);
+  return b;
+}
+
 struct path3 {
   node[] nodes;
   bool cycles;
@@ -1328,9 +1340,14 @@ void write(file file=null, string s="", explicit path3 x)
   _write(file,s); _write(file,x);
 }
 
+project aspect(projection P)
+{
+  return P.project*P.aspect;
+}
+
 path3 solve(flatguide3 g, projection Q=currentprojection)
 {
-  project P=Q.project;
+  project P=aspect(Q);
   int n=g.nodes.length-1;
   path3 p;
 
@@ -1450,7 +1467,7 @@ int length(explicit flatguide3 g) {return g.nodes.length-1;}
 path project(explicit path3 p, projection Q=currentprojection)
 {
   guide g;
-  project P=Q.project;
+  project P=aspect(Q);
   
   int last=p.nodes.length-1;
   if(last < 0) return g;
@@ -1480,7 +1497,7 @@ path project(flatguide3 g, projection P=currentprojection)
 
 pair project(triple v, projection P=currentprojection)
 {
-  project P=P.project;
+  project P=aspect(P);
   return P(v);
 }
 
@@ -1618,14 +1635,25 @@ pair intersect(path3 p1, path3 p2, real fuzz=0)
     post2[i]=n2[i].post;
   }
   
-  fuzz=max(fuzz,10*realEpsilon()*(length(p1.max()-p1.min())+
-				  length(p2.max()-p2.min())));
+  static real Fuzz=10.0*realEpsilon();
+  fuzz=max(fuzz,Fuzz*max(max(length(p1.max()),length(p1.min())),
+			 max(length(p2.max()),length(p2.min()))));
   return intersect(pre1,point1,post1,pre2,point2,post2,fuzz);
 }
 
 pair intersect(explicit guide3 p, explicit guide3 q, real fuzz=0)
 {
   return intersect((path3) p,(path3) q,fuzz);
+}
+
+pair intersectionpoint(path3 p, path3 q, real fuzz=0)
+{
+  return point(p,intersect(p,q,fuzz).x);
+}
+
+pair intersectionpoint(explicit guide3 p, explicit guide3 q, real fuzz=0)
+{
+  return point(p,intersect(p,q,fuzz).x);
 }
 
 path3 operator & (path3 p, path3 q) {return p.concat(p,q);}
@@ -1782,6 +1810,21 @@ triple normal(path3 p) {
   return normal;
 }
 
+// Adjust the aspect ratio.
+void aspect(projection P=currentprojection, bbox3 b,
+	    real x=0, real y=0, real z=0)
+{
+  triple L=b.max-b.min;
+  if(z != 0) {
+    real s=L.z/z;
+    scale(P,x == 0 ? 1 : s*x/L.x, y == 0 ? 1 : s*y/L.y,1);
+  } else if (y != 0) {
+    real s=L.y/y;
+    scale(P,x == 0 ? 1 : s*x/L.x,1,1);
+  }
+  else scale(P,1,1,1);
+}
+  
 // Routines for hidden surface removal (via binary space partition):
 // Structure face is derived from picture.
 struct face {
@@ -1887,7 +1930,7 @@ splitface split(face a, face cut, projection P)
   pair invdir=1.0/L.dir;
   triple apoint=L.point+cross(L.dir,a.normal);
   bool left=(invdir*(a.t*project(apoint,P))).y >= (invdir*point).y;
-  real t=intersection(apoint,camera,cut.normal,cut.point);
+  real t=intersect(apoint,camera,cut.normal,cut.point);
   bool rightfront=left ^ (t <= 0 || t >= 1);
   
   face back,front;

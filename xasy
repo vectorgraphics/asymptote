@@ -11,7 +11,7 @@ yscreen=600
 
 L=len(sys.argv)
 if L < 2 or L > 4 :
-    print "Usage: xasy prefix"
+    print "Usage: xasy prefix [filenum] [outname]"
     sys.exit(1)
 
 prefix=sys.argv[1]
@@ -221,7 +221,7 @@ def writetransform(event):
         if line != 0:
             coords=line.getcoords()
             coords.reverse()
-            f.write("draw(gui("+str(filenum)+"),")
+            f.write("draw(GUI("+str(filenum)+"),")
             writepair(f,coords)
             while len(coords):
                 f.write("--")

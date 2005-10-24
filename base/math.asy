@@ -75,11 +75,6 @@ pair extension(pair P, pair Q, pair p, pair q)
   return P+(conj(p-P)*bd).y*ac/det;
 }
 
-pair intersectionpoint(path a, path b)
-{
-  return point(a,intersect(a,b).x);
-}
-
 // Compute normal vector to the plane defined by the first 3 elements of p.
 triple normal(triple[] p)
 {
@@ -94,7 +89,7 @@ triple unitnormal(triple[] p)
 
 // Return the intersection time of the extension of the line segment PQ
 // with the plane perpendicular to n and passing through Z.
-real intersection(triple P, triple Q, triple n, triple Z)
+real intersect(triple P, triple Q, triple n, triple Z)
 {
   real d=n.x*Z.x+n.y*Z.y+n.z*Z.z;
   real denom=n.x*(Q.x-P.x)+n.y*(Q.y-P.y)+n.z*(Q.z-P.z);
