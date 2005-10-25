@@ -25,8 +25,9 @@ latexusage.dvi: latexusage.asy
 latexusage.eps: latexusage.dvi
 	dvips -o latexusage.eps latexusage
 
-latexusage.png: latexusage.dvi
-	dvipng -o latexusage.png latexusage
+latexusage.png: latexusage.eps
+	convert -density 144x144 +antialias -geometry 50%x \
+		latexusage.eps latexusage.png
 
 latexusage.pdf: latexusage.dvi
 	dvipdf latexusage
@@ -46,8 +47,8 @@ html:	$(FIGURES) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
 	makeinfo --html asymptote
 
 clean: FORCE
-	rm -f *.eps *.png *.pdf latexusage.{asy,dvi,log,aux,ps,*.eps}
-	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,ps,pdf,toc,tp,vr}
+	rm -f *.eps *.png *.pdf latexusage.{asy,dvi,eps,png,log,aux,*.eps}
+	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,pdf,toc,tp,vr}
 	rm -rf asymptote
 
 install-man: man

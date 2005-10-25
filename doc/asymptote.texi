@@ -259,10 +259,11 @@ texhash
 Example code will be installed by default in
 @code{/usr/local/share/doc/asymptote}. 
 
+@cindex Debian
 @noindent
 Alternatively, Debian users can install Hubert Chan's @code{Asymptote} package:
 @quotation
-@url{http://www.uhoreg.ca/programming/debian.text}
+@url{http://www.uhoreg.ca/programming/debian/}
 @end quotation
 
 @node Microsoft Windows
@@ -1954,16 +1955,13 @@ return the boundary as a guide):
 @verbatim
 guide box(frame f, Label L="", real xmargin=0,
           real ymargin=xmargin, pen p=currentpen,
-          filltype filltype=NoFill,
-          bool put=filltype == UnFill ? Above : Below);
+          filltype filltype=NoFill, bool put=Above);
 guide ellipse(frame f, Label L="", real xmargin=0,
               real ymargin=xmargin, pen p=currentpen,
-              filltype filltype=NoFill,
-              bool put=filltype == UnFill ? Above : Below);
+              filltype filltype=NoFill, bool put=Above);
 void box(picture pic=currentpicture, Label L,
          real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-         filltype filltype=NoFill,
-         bool put=filltype == UnFill ? Above : Below);
+         filltype filltype=NoFill, bool put=Above);
 @end verbatim
 
 @cindex @code{erase}

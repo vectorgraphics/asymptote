@@ -2278,8 +2278,7 @@ static bool NoWait=false;
 
 // Draw and/or fill a box on frame dest using the dimensions of frame src.
 guide box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
-	  pen p=currentpen, filltype filltype=NoFill,
-  	  bool put=filltype == UnFill ? Above : Below)
+	  pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   pair z=(xmargin,ymargin);
   int sign=filltype == NoFill ? 1 : -1;
@@ -2293,8 +2292,7 @@ guide box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
 }
 
 guide ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
-	      pen p=currentpen, filltype filltype=NoFill,
-  	  bool put=filltype == UnFill ? Above : Below)
+	      pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   pair m=min(src);
   pair M=max(src);
@@ -2312,16 +2310,14 @@ guide ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
 }
 
 guide box(frame f, Label L, real xmargin=0, real ymargin=xmargin,
-	  pen p=currentpen, filltype filltype=NoFill,
-  	  bool put=filltype == UnFill ? Above : Below)
+	  pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   add(f,L);
   return box(f,xmargin,ymargin,p,filltype,put);
 }
 
 guide ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
-	      pen p=currentpen, filltype filltype=NoFill,
-	      bool put=filltype == UnFill ? Above : Below)
+	      pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   add(f,L);
   return ellipse(f,xmargin,ymargin,p,filltype,put);
@@ -2329,7 +2325,7 @@ guide ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
 
 void box(picture pic=currentpicture, Label L,
 	 real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-	 filltype filltype=NoFill, bool put=filltype == UnFill ? Above : Below)
+	 filltype filltype=NoFill, bool put=Above)
 {
   pic.add(new void (frame f, transform t) {
     transform t0=shiftless(t);
@@ -2352,7 +2348,7 @@ frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=xmargin,
 	   pen p=currentpen, filltype filltype=NoFill)
 {
   frame f=pic.fit(max(pic.xsize-2*xmargin,0),max(pic.ysize-2*ymargin,0));
-  box(f,xmargin,ymargin,p,filltype);
+  box(f,xmargin,ymargin,p,filltype,Below);
   return f;
 }
 
