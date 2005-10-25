@@ -80,7 +80,7 @@ void interruptHandler(int)
   if(em) em->Interrupt(true);
 }
 
-int status = 0;
+bool status=true;
 
 namespace loop {
 
@@ -141,6 +141,7 @@ void body(string filename) // TODO: Refactor
     if (parseonly) {
       if (!em->errors())
         tree->prettyprint(cout, 0);
+      else status=false;
     } else {
       record *m = ge.loadModule(symbol::trans(basename),tree);
       if(listonly) return;
@@ -149,13 +150,13 @@ void body(string filename) // TODO: Refactor
 	  doTranslate(ge,m);
 	else
 	  doRun(ge,m);
-      }
+      } else status=false;
     }
   } catch (std::bad_alloc&) {
     cerr << "error: out of memory" << endl;
-    ++status;
+    status=false;
   } catch (handled_error) {
-    ++status;
+    status=false;
   }
 }
 
@@ -268,7 +269,8 @@ int main(int argc, char *argv[])
       loop::doBatch();
   } catch (...) {
     cerr << "error: exception thrown.\n";
-    ++status;
+    status=false;
   }
-  return status;
+    
+  return status ? 0 : 1;
 }
