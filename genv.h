@@ -30,7 +30,7 @@ namespace trans {
 
 class genv : public gc {
   // The initializer functions for imports, indexed by filename.
-  typedef mem::map<std::string,record *> importMap;
+  typedef mem::map<const std::string,record *> importMap;
   importMap imap;
 
   // Translate a module to build the record type.
