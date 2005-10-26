@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
+#include <sstream>
 #include <sys/wait.h>
 #include <unistd.h>
 #include "interact.h"
@@ -17,12 +18,8 @@
 #include <csignal>
 #endif
 
-#include "settings.h"
 #include "util.h"
-#include "symbol.h"
-#include "locate.h"
-
-#include "fileio.h"
+#include "errormsg.h"
 
 using std::cout;
 using namespace settings;
