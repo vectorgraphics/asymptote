@@ -39,7 +39,6 @@ using types::record;
 errorstream *em;
 using interact::interactive;
 using interact::virtualEOF;
-using interact::rejectline;
 
 #ifdef HAVE_LIBSIGSEGV
 void stackoverflow_handler (int, stackoverflow_context_t)
@@ -115,7 +114,7 @@ void doPrint(genv& ge, record *m)
 // Run (an already translated) module of the given filename.
 void doRun(genv& ge, std::string filename)
 {
-  setPath(startPath()); // ???
+  setPath(startPath());
 
   vm::stack s;
   s.setInitMap(ge.getInitMap());
@@ -164,27 +163,6 @@ void body(string filename) // TODO: Refactor
   }
 }
 
-void doInteractive()
-{
-  while (virtualEOF) {
-    virtualEOF=false;
-    init();
-    try {
-      body("-");
-    } catch (interrupted&) {
-      if(em) em->Interrupt(false);
-      cerr << endl;
-      run::cleanup();
-    }
-    rejectline=em->warnings();
-    if(rejectline) {
-      virtualEOF=true;
-      run::cleanup();
-    }
-    purge();
-  }
-}
-
 void doBatch()
 {
 #if 0
@@ -221,9 +199,7 @@ void doIRunnable(absyntax::runnable *r, coenv &e, istack &s) {
 }
 
 void doITree(file *ast, coenv &e, istack &s) {
-  for (list<runnable *>::iterator r=ast->stms.begin();
-       r!=ast->stms.end();
-       ++r)
+  for(list<runnable *>::iterator r=ast->stms.begin(); r!=ast->stms.end(); ++r)
     doIRunnable(*r, e, s);
 }
 
@@ -253,9 +229,22 @@ void doIBatch()
     vm::interactiveStack s;
     s.setInitMap(ge.getInitMap());
 
-    for(int ind=0; ind < numArgs() ; ind++)
-      doIFile(getArg(ind), e, s);
-
+    if(interactive) {
+      while (virtualEOF) {
+	virtualEOF=false;
+	try {
+	  file *ast = parser::parseInteractive();
+	  assert(ast);
+	  doITree(ast, e, s);
+	} catch (interrupted&) {
+	  if(em) em->Interrupt(false);
+	  cerr << endl;
+	}
+      }
+    } else {
+      for(int ind=0; ind < numArgs() ; ind++)
+	doIFile(getArg(ind), e, s);
+    }
     purge();
   }
 }
@@ -279,10 +268,8 @@ int main(int argc, char *argv[])
   cout.precision(DBL_DIG);
 
   try {
-    if (interactive)
-      loop::doInteractive();
-    else if (laat) {
-      cout << "laat = " << laat << endl;
+    if (laat || interactive) {
+//      cout << "laat = " << laat << endl;
       loop::doIBatch();
     }
     else

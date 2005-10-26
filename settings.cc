@@ -90,8 +90,6 @@ camp::pair postscriptOffset=0.0;
 int origin=CENTER;
 int laat=0;
   
-bool suppressStandard=false;
-
 int ShipoutNumber=0;
 string paperType;
 double pageWidth;
@@ -176,7 +174,7 @@ void setOptions(int argc, char *argv[])
   {
     {"verbose", 0, 0, 'v'},
     {"help", 0, 0, 'h'},
-    {"laat", 0, &laat, 1}, // Disabled (under construction)
+    {"laat", 0, &laat, 1},
     {"safe", 0, &safe, 1},
     {"unsafe", 0, &safe, 0},
     {"View", 0, &view, 1},

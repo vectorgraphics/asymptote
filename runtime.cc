@@ -2161,8 +2161,6 @@ void merge(stack *s)
   string *format = pop<string*>(s);
   string *args = pop<string*>(s);
   
-  if(settings::suppressStandard) {s->push(0); return;}
-  
   if(!checkFormatString(*format)) return;
   
   ostringstream cmd,remove;
@@ -2248,7 +2246,7 @@ void changeDirectory(stack *s)
     error(buf.str().c_str());
   }
   char *p=getPath();
-  if(p && interact::interactive && !settings::suppressStandard) 
+  if(p && interact::interactive) 
     cout << p << endl;
   s->push<string>(p);
 }

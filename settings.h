@@ -62,8 +62,6 @@ enum origin {CENTER,BOTTOM,TOP,ZERO};
 extern int origin;
 extern int laat; // Temporary, for testing line-at-a-time capabilities.
   
-extern bool suppressStandard;
-
 extern int ShipoutNumber;
   
 extern const string suffix;
