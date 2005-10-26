@@ -226,6 +226,9 @@ as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
 * Uninstall::                   Goodbye, @code{Asymptote}!
 @end menu
 
+After following the instructions for your specific distribution,
+please see also @ref{Environment variables}.
+
 @noindent
 We recommend subscribing to new release announcements at
 @quotation
@@ -236,9 +239,11 @@ Users may also wish to monitor the @code{Asymptote} forum:
 @quotation
 @url{http://sourceforge.net/forum/monitor.php?forum_id=409349}
 @end quotation
-
-After following the instructions for your specific distribution,
-please see also @ref{Environment variables}.
+@noindent
+and provide guidance to others by rating the @code{Asymptote} project:
+@quotation
+@url{http://freshmeat.net/projects/asy}
+@end quotation
 
 @node UNIX binary distributions
 @section UNIX binary distributions
@@ -3743,9 +3748,9 @@ the tick labels on the @math{y} axis.
 using frame alignment and data markers. In the left-hand graph, the
 markers, constructed with
 @verbatim
-marker marker(path g, pen p=currentpen,
-              markroutine markroutine=marknodes,
-              filltype filltype=NoFill, bool put=Above);
+marker marker(path g, markroutine markroutine=marknodes, 
+              pen p=currentpen, filltype filltype=NoFill,
+              bool put=Above);
 @end verbatim
 using the path @code{unitcircle} (@pxref{filltype}), are drawn
 below each node. Any frame can be converted to a marker, using
