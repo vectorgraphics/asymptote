@@ -34,12 +34,9 @@ int interactive=false;
   
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 
-bool redraw=false;
+//bool redraw=false;
 
 static const char *historyfile=".asy_history";
-  
-static const char *input="input "; 
-static size_t ninput=strlen(input);
   
 /* Read a string, and return a pointer to it. Returns NULL on EOF. */
 char *rl_gets(void)
@@ -77,10 +74,10 @@ char *rl_gets(void)
        || strcmp(line_read,"exit") == 0
        || strcmp(line_read,"exit;") == 0)
       return NULL;
-    if(strcmp(line_read,"redraw") == 0 || strcmp(line_read,"redraw;") == 0) {
-      redraw=true;
-      *line_read=0;
-    }
+//    if(strcmp(line_read,"redraw") == 0 || strcmp(line_read,"redraw;") == 0) {
+//      redraw=true;
+//      *line_read=0;
+//    }
   }
   
   /* If the line has any text in it, save it on the history. */
