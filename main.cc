@@ -83,7 +83,7 @@ void interruptHandler(int)
   if(em) em->Interrupt(true);
 }
 
-int status = 0;
+bool status=true;
 
 namespace loop {
 
@@ -137,6 +137,7 @@ void body(string filename) // TODO: Refactor
 
       if (!em->errors())
         tree->prettyprint(cout, 0);
+      else status=false;
     } else {
       genv ge;
 #if 0 
@@ -153,13 +154,13 @@ void body(string filename) // TODO: Refactor
 	  doPrint(ge,m);
 	else
 	  doRun(ge,filename);
-      }
+      } else status=false;
     }
   } catch (std::bad_alloc&) {
     cerr << "error: out of memory" << endl;
-    ++status;
+    status=false;
   } catch (handled_error) {
-    ++status;
+    status=false;
   }
 }
 
@@ -191,8 +192,8 @@ void doIRunnable(absyntax::runnable *r, coenv &e, istack &s) {
     print(cout, codelet->code);
     cout << "\n";
     s.run(codelet);
-  }
-  else {
+  } else {
+    status=false;
     delete em;
     em = new errorstream();
   }
@@ -239,6 +240,8 @@ void doIBatch()
 	} catch (interrupted&) {
 	  if(em) em->Interrupt(false);
 	  cerr << endl;
+	} catch (...) {
+	  status=false;
 	}
       }
     } else {
@@ -276,7 +279,7 @@ int main(int argc, char *argv[])
       loop::doBatch();
   } catch (...) {
     cerr << "error: exception thrown.\n";
-    ++status;
+    status=false;
   }
-  return status;
+  return status ? 0 : 1;
 }
