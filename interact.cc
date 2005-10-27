@@ -28,10 +28,9 @@ namespace interact {
 
 bool virtualEOF=true;
 int interactive=false;
-  
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+bool uptodate=true;
 
-//bool redraw=false;
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 
 static const char *historyfile=".asy_history";
   
@@ -71,10 +70,6 @@ char *rl_gets(void)
        || strcmp(line_read,"exit") == 0
        || strcmp(line_read,"exit;") == 0)
       return NULL;
-//    if(strcmp(line_read,"redraw") == 0 || strcmp(line_read,"redraw;") == 0) {
-//      redraw=true;
-//      *line_read=0;
-//    }
   }
   
   /* If the line has any text in it, save it on the history. */
@@ -107,25 +102,31 @@ size_t interactive_input(char *buf, size_t max_size)
 {
   static int nlines=1000;
   static bool first=true;
+  assert(max_size > 0);
+  size_t size=max_size-1;
+  char *to=buf;
+    
   if(first) {
     first=false;
     read_history(historyfile);
     rl_bind_key('\t',rl_insert); // Turn off tab completion
+    add_input(to,"use plain;",size); // Remove once autoplain is reimplemented.
   }
 
   if(virtualEOF) return 0;
+  
+  if(!uptodate) {
+    errorstream::interrupt=false;
+    add_input(to,"shipout();",size);
+    virtualEOF=true;
+    return to-buf;
+  }
   
   char *line;
 
   if((line=rl_gets())) {
     errorstream::interrupt=false;
-    char *to=buf;
-    assert(max_size > 0);
-    size_t size=max_size-1;
-    
-//    cout << "[" << line << "]" << endl;
     add_input(to,line,size);
-    
     virtualEOF=true;
     return to-buf;
   } else {
@@ -138,4 +139,3 @@ size_t interactive_input(char *buf, size_t max_size)
 #endif
 
 } // namespace interact
-

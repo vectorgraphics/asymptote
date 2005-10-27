@@ -6,7 +6,6 @@
  *****/
 
 public bool shipped=false;
-public bool uptodate=true;
 static public pen currentpen;
 static pen nullpen=linewidth(0);
 static path nullpath;
@@ -1046,19 +1045,19 @@ struct picture {
   }
   
   void add(drawerBound d) {
-    if(interact()) uptodate=false;
+    uptodate(false);
     nodes.push(d);
   }
 
   void add(drawer d) {
-    if(interact()) uptodate=false;
+    uptodate(false);
     nodes.push(new void (frame f, transform t, transform T, pair, pair) {
       d(f,t*T);
     });
   }
 
   void clip(drawer d) {
-    if(interact()) uptodate=false;
+    uptodate(false);
     bounds.clip(userMin,userMax);
     nodes.push(new void (frame f, transform t, transform T, pair, pair) {
       d(f,t*T);
@@ -2469,7 +2468,7 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
 	  Transform ? GUIlist[GUIFilenum].Delete : noDeletes);
   ++GUIFilenum;
   shipped=true;
-  uptodate=true;
+  uptodate(true);
 }
 
 
@@ -2590,7 +2589,7 @@ restoreThunk buildRestoreThunk() {
     currentpicture=pic;
     currentprojection=P;
     restore=r;
-    uptodate=false;
+    uptodate(false);
   };
 }
 
@@ -3195,7 +3194,7 @@ void gui() {gui(1);}
 void atexit()
 {
   if(interact()) {
-    if(!uptodate) shipout();
+    if(!uptodate()) shipout();
   } else if(!shipped) shipout();
 }
 atexit(atexit);

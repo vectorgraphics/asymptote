@@ -132,6 +132,16 @@ bool interact()
   return interact::interactive;
 }
 
+void uptodate(bool b)
+{
+  interact::uptodate=b;
+}
+
+bool uptodate()
+{
+  return interact::uptodate;
+}
+
 // System commands
 int system(string *str)
 {
