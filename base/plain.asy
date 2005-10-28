@@ -2542,6 +2542,7 @@ void shipout(string prefix=defaultfilename, orientation orientation=Portrait,
 
 void erase(picture pic=currentpicture)
 {
+  uptodate(false);
   pic.erase();
 }
 

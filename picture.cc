@@ -317,9 +317,16 @@ bool picture::shipout(const picture& preamble, const string& prefix,
     buildname(prefix,outputformat,"",false);
   string epsname=epsformat ? outname : auxname(prefix,"eps");
   
-  if(empty()) {
-    unlink(outname.c_str());
-    return false;
+  bounds();
+  
+  if(null()) { // Output a null file
+    bbox b;
+    b.left=b.bottom=0;
+    b.right=b.top=1;
+    psfile out(epsname,b,0);
+    out.prologue();
+    out.epilogue();
+    return postprocess(epsname,outname,outputformat,wait,quiet,b);
   }
   
   static ofstream bboxout;
@@ -381,9 +388,10 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   }
   bpos.shift(bboxshift);
   
+  bool status = true;
+  
   string texname=auxname(prefix,"tex");
   texfile *tex=NULL;
-  bool status = true;
   
   if(Labels) {
     tex=new texfile(texname,b);
