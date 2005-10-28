@@ -42,6 +42,8 @@ protected:
 
   scopes_t scopes;
   names_t names;
+
+  void remove(symbol *key);
 public :
   table();
 
@@ -99,15 +101,18 @@ inline void table<B>::beginScope()
 }
 
 template <class B>
+inline void table<B>::remove(symbol *key)
+{
+  if (!names[key].empty())
+    names[key].pop_front();
+}
+
+template <class B>
 inline void table<B>::endScope()
 {
   scope_t &scope = scopes.front();
-  for (scope_iterator p = scope.begin();
-       p != scope.end();
-       ++p) {
-    if (!names[p->first].empty())
-      names[p->first].pop_front();
-  };
+  for (scope_iterator p = scope.begin(); p != scope.end(); ++p)
+    remove(p->first);
   scopes.pop_front();
 }
 

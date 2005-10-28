@@ -110,7 +110,7 @@ size_t interactive_input(char *buf, size_t max_size)
     first=false;
     read_history(historyfile);
     rl_bind_key('\t',rl_insert); // Turn off tab completion
-    add_input(to,"use plain;",size); // Remove once autoplain is reimplemented.
+    //add_input(to,"use plain;",size); // Remove once autoplain is reimplemented.
   }
 
   if(virtualEOF) return 0;

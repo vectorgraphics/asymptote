@@ -186,6 +186,7 @@ using absyntax::runnable;
 using absyntax::file;
 
 void doIRunnable(absyntax::runnable *r, coenv &e, istack &s) {
+  e.e.beginScope();
   lambda *codelet=r->transAsCodelet(e);
   em->sync();
   if (!em->errors()) {
@@ -193,6 +194,7 @@ void doIRunnable(absyntax::runnable *r, coenv &e, istack &s) {
     cout << "\n";
     s.run(codelet);
   } else {
+    e.e.endScope(); // Remove any changes to the environment.
     status=false;
     delete em;
     em = new errorstream();
