@@ -40,7 +40,6 @@ psfile::~psfile()
 
 void psfile::prologue()
 {
-  //*out << "%!PS" << newl;
   *out << "%!PS-Adobe-3.0 EPSF-3.0" << newl;
   BoundingBox(*out,box);
   *out << "%%Creator: " << settings::PROGRAM << " " << settings::VERSION

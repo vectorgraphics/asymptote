@@ -10,6 +10,7 @@ AC_SUBST(VERSION)
 test "$prefix" = NONE && prefix=/usr/local
 Datadir=$datadir
 test "$datadir" = '${prefix}/share' && Datadir=$prefix/share
+AC_SUBST(Datadir)
 
 AC_ARG_WITH(latex,
 	[  --with-latex=PATH       specify path to LaTeX installation ],

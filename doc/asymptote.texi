@@ -374,7 +374,7 @@ current directory
 A list of one or more directories (separated by @code{:} under UNIX and
 @code{;} under @code{MSDOS}).
 @item
-system-wide directory (default: @code{/usr/local/share/asymptote} under
+system-wide directory (default: @code{@value{Datadir}/asymptote} under
 @code{UNIX} and @code{c:\Program Files\Asymptote} under @code{MSDOS}).
 @end enumerate
 
@@ -443,7 +443,7 @@ Users of @code{emacs} can edit @code{Asymptote} code with the mode
 @code{asy-mode}, after enabling it by putting these two lines in the
 @code{~/.emacs} initialization file, replacing @code{ASYDIR} with the
 location of the @code{Asymptote} example files (by default,
-@code{/usr/local/share/doc/asymptote} or 
+@code{@value{Datadir}/doc/asymptote} or 
 @code{c:\Program Files\Asymptote\examples}):
 @verbatim
 (autoload 'asy-mode "ASYDIR/asy-mode.el" "Asymptote major mode." t)
@@ -453,12 +453,13 @@ location of the @code{Asymptote} example files (by default,
 
 @cindex @code{vim}
 @cindex @code{asy.vim}
-Fans of @code{vim} can customize @code{vim} for @code{Asymptote}:
-@verbatim 
-cp /usr/local/share/doc/asymptote/asy.vim ~/.vim/syntax/asy.vim
-@end verbatim 
+Fans of @code{vim} can customize @code{vim} for @code{Asymptote} with
 
-and add the following to their @code{~/.vimrc} file: 
+@noindent
+@code{cp @value{Datadir}/doc/asymptote/asy.vim ~/.vim/syntax/asy.vim}
+
+@noindent
+and add the following to their @code{~/.vimrc} file:
 @verbatim
 augroup filetypedetect
 au BufNewFile,BufRead *.asy     setf asy
@@ -3250,9 +3251,9 @@ Such @code{Asymptote} files are often called modules.
 @code{Asymptote} searches the locations listed in @ref{Search paths} for the
 matching file. If the file name contains nonalphanumeric characters,
 enclose it with quotation marks:
-@verbatim
-import "/usr/local/share/asymptote/graph.asy";
-@end verbatim
+
+@noindent
+@code{import "@value{Datadir}/asymptote/graph.asy";}
 
 A variable @code{var} from a module named @code{module} can be
 distinguished from a local variable of the same name by prefixing it
@@ -5284,8 +5285,11 @@ and @code{PostScript} subpath support.
 
 @noindent
 For example, try:
+
+@noindent
+@code{asy -V @value{Datadir}/doc/asymptote/venn.asy}
+@noindent
 @verbatim
-asy -V /usr/local/share/doc/asymptote/venn.asy 
 pstoedit -f asy venn.eps test.asy
 asy -V test
 @end verbatim
@@ -5321,7 +5325,6 @@ Questions on installing and using @code{Asymptote} should be sent to the
 @url{http://sourceforge.net/forum/forum.php?forum_id=409349}
 @end quotation
 @noindent
-
 Contributions in the form of patches or @code{Asymptote} modules can be
 posted here:
 @quotation
