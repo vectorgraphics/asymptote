@@ -233,6 +233,11 @@ void doIBatch()
     s.setInitMap(ge.getInitMap());
 
     if(interactive) {
+      if (settings::autoplain) {
+        absyntax::usedec ap(position(), symbol::trans("plain"));
+        doIRunnable(&ap, e, s);
+      }
+
       while (virtualEOF) {
 	virtualEOF=false;
 	try {
