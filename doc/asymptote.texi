@@ -2399,6 +2399,12 @@ operators on structures and built-in types:
 @verbatim
 - + * / % ^ ! < > == != <= >= & && || ^^ .. :: -- --- ++
 @end verbatim
+One can form additional operator symbols by enclosing any combination
+of letters (including the underscore character) in colons:
+@verbatim
+real operator :add: (real a, real b) {return a+b;}
+write(2 :add: 3);
+@end verbatim
 
 Guide operators like @code{..} may be overloaded, say, to write
 a user function that produces a new guide from a given guide:

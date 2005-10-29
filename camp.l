@@ -265,6 +265,7 @@ ESC \\
 "--"               {makesymbol(); return DASHES; }
 "---"              {makesymbol(); return LONGDASH; }
 "&"                {makesymbol(); return AMPERSAND; }
+":"({LETTER})*":"  {makesymbol(); return OPERATOR; }
 
 "+="               {makeselfsymbol(); return ADD; }
 "-="               {makeselfsymbol(); return SUBTRACT; }
@@ -339,7 +340,7 @@ operator           {adjust(); BEGIN opname; }
                      BEGIN INITIAL;
                      return ID;
                    }
-[-+*/%^!<>]|==|!=|<=|>=|&|&&|\|\||\^\^|\.\.|::|--|---|\+\+ {
+[-+*/%^!<>]|==|!=|<=|>=|&|&&|\|\||\^\^|\.\.|::|--|---|\+\+|:({LETTER})*: {
   makesymbol();
   BEGIN INITIAL;
   return ID;}
