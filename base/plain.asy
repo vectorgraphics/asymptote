@@ -618,7 +618,7 @@ public filltype UnFill=UnFill();
 // Fill the region in frame dest underneath frame src and return the
 // boundary of src.
 guide fill(frame dest, frame src, filltype filltype=NoFill, 
-	     real xmargin=0, real ymargin=xmargin)
+	   real xmargin=0, real ymargin=xmargin)
 {
   pair z=(xmargin,ymargin);
   guide g=box(min(src)-0.5*min(invisible)-z,max(src)-0.5*max(invisible)+z);
