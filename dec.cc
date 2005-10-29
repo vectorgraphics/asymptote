@@ -206,6 +206,16 @@ void block::transAsRecordBody(coenv &e, record *r)
   e.c.close();
 }
 
+void block::transAsFile(coenv &e, record *r)
+{
+  if (settings::autoplain) {
+    usedec ap(position(), symbol::trans("plain"));
+    ap.transAsField(e, r);
+  }
+
+  transAsRecordBody(e, r);
+}
+  
 bool block::returns() {
   // Search for a returning runnable, starting at the end for efficiency.
   for (list<runnable *>::reverse_iterator p=stms.rbegin();

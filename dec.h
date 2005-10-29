@@ -188,6 +188,8 @@ public:
 
   void transAsRecordBody(coenv &e, record *r);
 
+  void transAsFile(coenv &e, record *r);
+
   // A block is guaranteed to return iff one of the runnables is guaranteed to
   // return.
   // This is conservative in that

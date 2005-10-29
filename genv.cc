@@ -36,6 +36,19 @@ using namespace types;
 
 namespace trans {
 
+genv::genv()
+  : imap()
+{
+  if(settings::autoplain) {
+    settings::autoplain=false;
+
+    // Translate plain without autoplain.
+    getModule(symbol::trans("plain"), "plain");
+
+    settings::autoplain=true;
+  }
+}
+
 record *genv::loadModule(symbol *id, std::string filename) {
   // Get the abstract syntax tree.
   absyntax::file *ast = parser::parseFile(filename);
@@ -51,7 +64,7 @@ record *genv::loadModule(symbol *id, std::string filename) {
   coenv ce(c, e);
 
   // Translate the abstract syntax.
-  ast->transAsRecordBody(ce, r);
+  ast->transAsFile(ce, r);
   em->sync();
 
   return r;
@@ -62,8 +75,15 @@ record *genv::getModule(symbol *id, std::string filename) {
   record *r=imap[filename];
   if (r)
     return r;
-  else
-    return imap[filename]=loadModule(id, filename);
+  else {
+    record *r=loadModule(id, filename);
+    
+    // Don't add an erroneous module to the dictionary in interactive mode, as
+    // the user may try to load it again.
+    if (!interact::interactive || !em->errors())
+      imap[filename]=r;
+    return r;
+  }
 }
 
 typedef vm::stack::importInitMap importInitMap;

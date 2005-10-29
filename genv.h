@@ -37,8 +37,7 @@ class genv : public gc {
   record *loadModule(symbol *name, std::string s);
 
 public:
-  genv()
-    : imap() {}
+  genv();
 
   // Get an imported module, translating if necessary.
   record *getModule(symbol *name, std::string s);
