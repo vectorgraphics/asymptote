@@ -28,7 +28,6 @@ namespace interact {
 
 int interactive=false;
 bool virtualEOF=true;
-bool rejectline=false;
 bool uptodate=true;
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
@@ -115,10 +114,11 @@ size_t interactive_input(char *buf, size_t max_size)
 
   if(virtualEOF) return 0;
   
-  if(rejectline) {
+  if(em->errors()) {
     virtualEOF=true;
     return 0;
   }
+  
   
   if(!uptodate) {
     errorstream::interrupt=false;
