@@ -521,7 +521,10 @@ dir:
 | '{' exp '}'      { $$ = new specExp($1, symbol::opTrans("spec"), $2); }
 | '{' exp ',' exp '}'
                    { $$ = new specExp($1, symbol::opTrans("spec"),
-                                          new pairExp($3, $2, $4)); }
+				      new pairExp($3, $2, $4)); }
+| '{' exp ',' exp ',' exp '}'
+                   { $$ = new specExp($1, symbol::opTrans("spec"),
+				      new tripleExp($3, $2, $4, $6)); }
 ;
 
 basicjoin:
