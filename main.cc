@@ -39,6 +39,7 @@ using types::record;
 errorstream *em;
 using interact::interactive;
 using interact::virtualEOF;
+using interact::rejectline;
 
 #ifdef HAVE_LIBSIGSEGV
 void stackoverflow_handler (int, stackoverflow_context_t)
@@ -250,6 +251,7 @@ void doIBatch()
 	} catch (...) {
 	  status=false;
 	}
+	rejectline=em->warnings();
       }
     } else {
       for(int ind=0; ind < numArgs() ; ind++)

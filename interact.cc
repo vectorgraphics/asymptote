@@ -26,8 +26,9 @@ using namespace settings;
 
 namespace interact {
 
-bool virtualEOF=true;
 int interactive=false;
+bool virtualEOF=true;
+bool rejectline=false;
 bool uptodate=true;
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
@@ -110,10 +111,14 @@ size_t interactive_input(char *buf, size_t max_size)
     first=false;
     read_history(historyfile);
     rl_bind_key('\t',rl_insert); // Turn off tab completion
-    //add_input(to,"use plain;",size); // Remove once autoplain is reimplemented.
   }
 
   if(virtualEOF) return 0;
+  
+  if(rejectline) {
+    virtualEOF=true;
+    return 0;
+  }
   
   if(!uptodate) {
     errorstream::interrupt=false;
