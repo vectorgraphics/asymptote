@@ -15,6 +15,7 @@
 #include "exp.h"
 #include "modifier.h"
 #include "runtime.h"
+#include "parser.h"
 
 namespace absyntax {
 
@@ -647,67 +648,32 @@ void explodedec::transAsField(coenv &e, record *r)
 }
 
 
-#if 0
-void importdec::initialize(coenv &e, record *m, access *a)
-{
-  // Put the enclosing frame on the stack.
-  if (!e.c.encode(m->getLevel()->getParent())) {
-    em->error(getPos());
-    *em << "import of struct '" << *m << "' is not in a valid scope";
-  }
- 
-  // Encode the allocation. 
-  e.c.encode(inst::makefunc,m->getInit());
-  e.c.encode(inst::popcall);
-
-  // Put the module into its memory location.
-  a->encode(WRITE, getPos(), e.c);
-  e.c.encode(inst::pop);
-}
-
-
-void importdec::prettyprint(ostream &out, int indent)
+void includedec::prettyprint(ostream &out, int indent)
 {
   prettyindent(out, indent);
-  out << "importdec (" << *id << ")\n";
+  out << "includedec ('" << filename << "')\n";
 }
 
-void importdec::loadFailed(coenv &)
-{
-  em->warning(getPos());
-  *em << "could not load module of name '" << *id << "'";
-  em->sync();
-}
-
-void importdec::trans(coenv &e)
+void includedec::trans(coenv &e)
 {
   transAsField(e,0);
 }
 
-void importdec::transAsField(coenv &e, record *r)
+void includedec::loadFailed(coenv &)
 {
-  record *m = e.e.getModule(id);
-  if (m == 0) {
-    loadFailed(e);
-    return;
-  }
-
-  // PRIVATE as only the body of a record, may refer to an imported record.
-  access *a = r ? r->allocField(e.c.isStatic()) :
-                  e.c.allocLocal();
-
-  import *i = new import(m, a);
-
-  // While the import is allocated as a field of the record, it is
-  // only accessible inside the initializer of the record (and
-  // nested functions and initializers), so there is no need to add it
-  // to the environment maintained by the record.
-  e.e.addImport(getPos(), id, i);
-
-  // Add the initializer for the record.
-  initialize(e, m, a);
+  em->warning(getPos());
+  *em << "could not parse file of name '" << filename << "'";
+  em->sync();
 }
-#endif
+
+void includedec::transAsField(coenv &e, record *r)
+{
+  file *ast = parser::parseFile(filename);
+  em->sync();
+
+  // The runnables will be run, one at a time, without any additional scoping.
+  ast->transAsField(e, r);
+}
 
 
 void typedec::prettyprint(ostream &out, int indent)

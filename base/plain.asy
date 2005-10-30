@@ -2974,7 +2974,7 @@ string math(string s)
   return "$"+s+"$";
 }
 
-string include(string name, string options="")
+string includegraphics(string name, string options="")
 {
   if(options != "") options="["+options+"]";
   return "\includegraphics"+options+"{"+name+"}";

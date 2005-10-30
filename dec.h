@@ -444,6 +444,25 @@ public:
   }
 };
 
+// Parses the file given, and translates the resulting runnables as if they
+// occured at this place in the code.
+class includedec : public dec {
+  std::string filename;
+
+public:
+  includedec(position pos, std::string filename)
+    : dec(pos), filename(filename) {}
+  includedec(position pos, symbol *id)
+    : dec(pos), filename(*id) {}
+
+  void prettyprint(ostream &out, int indent);
+  void loadFailed(coenv &e);
+
+  void trans(coenv &e);
+
+  void transAsField(coenv &e, record *r);
+};
+
 // Types defined from others in typedef.
 class typedec : public dec {
   vardec *body;
