@@ -217,7 +217,8 @@ dec:
 | USE ID STRING ';'
                    { $$ = new usedec($1, $2.sym, *$3.sym); }
 | INCLUDE ID ';'   { $$ = new includedec($1, $2.sym); }                   
-| INCLUDE STRING   { $$ = new includedec($1, *$2.sym); }                   
+| INCLUDE STRING ';'
+                   { $$ = new includedec($1, *$2.sym); }                   
 ;
 
 vardec:
