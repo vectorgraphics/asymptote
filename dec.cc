@@ -321,8 +321,8 @@ void modifiedRunnable::transAsField(coenv &e, record *r)
 
   permission p = mods->getPermission();
   if (p != READONLY && (!r || !body->allowPermissions())) {
-    em->error(pos);
-    *em << "invalid permission modifier";
+    em->warning(pos);
+    *em << "permission modifier is meaningless";
   }
   e.c.setPermission(p);
 
