@@ -1,4 +1,4 @@
-use plain;
+import plain;
 
 // Asymptote mathematics routines
 

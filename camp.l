@@ -291,9 +291,9 @@ continue           {adjust(); return CONTINUE; }
 struct             {adjust(); return STRUCT; }
 typedef            {adjust(); return TYPEDEF; }
 new                {adjust(); return NEW; }
-import             {adjust(); return IMPORT; }
-use                {adjust(); return USE; }
-explode            {adjust(); return EXPLODE; }
+access             {adjust(); return IMPORT; }
+import             {adjust(); return USE; }
+unravel            {adjust(); return EXPLODE; }
 include            {adjust(); return INCLUDE; }
 static             {adjust(); makemod(trans::EXPLICIT_STATIC);
                               return MODIFIER; }

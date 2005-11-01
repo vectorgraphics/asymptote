@@ -1172,7 +1172,7 @@ struct picture {
 
   // Calculate the sizing constants for the given array and maximum size.
   scaling calculateScaling(coord[] coords, real size) {
-    import simplex "simplex.asy";
+    import simplex;
     simplex.problem p=new simplex.problem;
    
     void addMinCoord(coord c) {
@@ -3196,7 +3196,7 @@ void atexit()
 {
   if(interact()) {
     if(!uptodate()) shipout();
-  } else if(!shipped) shipout();
+  } else if(!shipped && !currentpicture.empty()) shipout();
 }
 atexit(atexit);
 
@@ -3215,4 +3215,3 @@ guide operator ---(... guide[] a)
     g=g..operator tension(infinity,true)..a[i];
   return g;
 }
-
