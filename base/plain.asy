@@ -1035,9 +1035,9 @@ struct picture {
   }
   
   bool empty() {
-    return !(finite(userMin) && finite(userMax));
+    return nodes.length == 0;
   }
-	      
+  
   // Cache the current user-space bounding box
   void userBox(pair min, pair max) {
     userMin=minbound(userMin,min);
