@@ -116,9 +116,9 @@ size_t interactive_input(char *buf, size_t max_size)
   
   if(em->errors()) {
     virtualEOF=true;
+    em->clear();
     return 0;
   }
-  
   
   if(!uptodate) {
     errorstream::interrupt=false;

@@ -246,7 +246,7 @@ void doIBatch()
 	  doITree(ast, e, s);
 	} catch (interrupted&) {
 	  if(em) em->Interrupt(false);
-	  cerr << endl;
+	  cout << endl;
 	} catch (...) {
 	  status=false;
 	}
