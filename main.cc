@@ -220,42 +220,45 @@ void doIBatch()
     init();
     body("");
     purge();
-  }
-  else {
-    init();
+  } else {
+    try {
+      init();
 
-    genv ge;
-    env base_env(ge);
-    coder base_coder;
-    coenv e(base_coder,base_env);
+      genv ge;
+      env base_env(ge);
+      coder base_coder;
+      coenv e(base_coder,base_env);
 
-    vm::interactiveStack s;
-    s.setInitMap(ge.getInitMap());
+      vm::interactiveStack s;
+      s.setInitMap(ge.getInitMap());
 
-    if(interactive) {
-      if (settings::autoplain) {
-        absyntax::usedec ap(position(), symbol::trans("plain"));
-        doIRunnable(&ap, e, s);
-      }
-
-      while (virtualEOF) {
-	virtualEOF=false;
-	try {
-	  file *ast = parser::parseInteractive();
-	  assert(ast);
-	  doITree(ast, e, s);
-	} catch (interrupted&) {
-	  if(em) em->Interrupt(false);
-	  cout << endl;
-	} catch (...) {
-	  status=false;
+      if(interactive) {
+	if (settings::autoplain) {
+	  absyntax::usedec ap(position(), symbol::trans("plain"));
+	  doIRunnable(&ap, e, s);
 	}
+
+	while (virtualEOF) {
+	  virtualEOF=false;
+	  try {
+	    file *ast = parser::parseInteractive();
+	    assert(ast);
+	    doITree(ast, e, s);
+	  } catch (interrupted&) {
+	    if(em) em->Interrupt(false);
+	    cout << endl;
+	  } catch (...) {
+	    status=false;
+	  }
+	}
+      } else {
+	for(int ind=0; ind < numArgs() ; ind++)
+	  doIFile(getArg(ind), e, s);
       }
-    } else {
-      for(int ind=0; ind < numArgs() ; ind++)
-	doIFile(getArg(ind), e, s);
+      purge();
+    } catch(...) {
+      status=false;
     }
-    purge();
   }
 }
 
