@@ -213,34 +213,7 @@ void doIFile(const char *name, coenv &e, istack &s) {
   doITree(ast, e, s);
 }
 
-void doEval(const string& str)
-{
-  try {
-    init();
-
-    genv ge;
-    env base_env(ge);
-    coder base_coder;
-    coenv e(base_coder,base_env);
-
-    vm::interactiveStack s;
-    s.setInitMap(ge.getInitMap());
-
-    if (settings::autoplain) {
-      absyntax::usedec ap(position(), symbol::trans("plain"));
-      doIRunnable(&ap, e, s);
-    }
-    
-    file *ast = parser::parseString(str);
-    assert(ast);
-    doITree(ast, e, s);
-    run::exitFunction(&s);
-  } catch(...) {
-    status=false;
-  }
-}
-
-void doIBatch()
+void doIBatch(const mem::string *str)
 {
   cout << "ibatch\n";
   if(listonly && numArgs() == 0) {
@@ -259,11 +232,17 @@ void doIBatch()
       vm::interactiveStack s;
       s.setInitMap(ge.getInitMap());
 
-      if(interactive) {
-	if (settings::autoplain) {
-	  absyntax::usedec ap(position(), symbol::trans("plain"));
-	  doIRunnable(&ap, e, s);
-	}
+      if (settings::autoplain) {
+	absyntax::usedec ap(position(), symbol::trans("plain"));
+	doIRunnable(&ap, e, s);
+      }
+      
+      if(str) {
+	file *ast = parser::parseString(*str);
+	assert(ast);
+	doITree(ast, e, s);
+	run::exitFunction(&s);
+      } else {
 	while (virtualEOF) {
 	  virtualEOF=false;
 	  try {
@@ -277,11 +256,8 @@ void doIBatch()
 	    status=false;
 	  }
 	}
-      } else {
-	for(int ind=0; ind < numArgs() ; ind++)
-	  doIFile(getArg(ind), e, s);
+	purge();
       }
-      purge();
     } catch(...) {
       status=false;
     }
@@ -307,10 +283,8 @@ int main(int argc, char *argv[])
   cout.precision(DBL_DIG);
 
   try {
-    if (laat || interactive) {
-//      cout << "laat = " << laat << endl;
+    if (interactive)
       loop::doIBatch();
-    }
     else
       loop::doBatch();
   } catch (...) {

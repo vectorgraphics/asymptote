@@ -16,7 +16,7 @@ class stack;
 }
 
 namespace loop {
-  void doEval(const string& str);
+  void doIBatch(const mem::string *str=NULL);
 }
   
 namespace run {
