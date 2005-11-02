@@ -242,7 +242,7 @@ void doIBatch(const mem::string *str)
 	assert(ast);
 	doITree(ast, e, s);
 	run::exitFunction(&s);
-      } else {
+      } else if(interactive) {
 	while (virtualEOF) {
 	  virtualEOF=false;
 	  try {
@@ -256,8 +256,11 @@ void doIBatch(const mem::string *str)
 	    status=false;
 	  }
 	}
-	purge();
+      } else {
+	for(int ind=0; ind < numArgs() ; ind++)
+	  doIFile(getArg(ind), e, s);
       }
+      purge();
     } catch(...) {
       status=false;
     }
@@ -283,7 +286,7 @@ int main(int argc, char *argv[])
   cout.precision(DBL_DIG);
 
   try {
-    if (interactive)
+    if (laat || interactive)
       loop::doIBatch();
     else
       loop::doBatch();
