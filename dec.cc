@@ -320,10 +320,12 @@ void modifiedRunnable::transAsField(coenv &e, record *r)
     e.c.pushModifier(mods->getModifier());
 
   permission p = mods->getPermission();
+#if 0 // This is innocuous 
   if (p != READONLY && (!r || !body->allowPermissions())) {
     em->warning(pos);
     *em << "permission modifier is meaningless";
   }
+#endif  
   e.c.setPermission(p);
 
   if (r)

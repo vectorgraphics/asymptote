@@ -2583,14 +2583,16 @@ void restore()
 restoreThunk buildRestoreThunk() {
   pen p=currentpen;
   picture pic=currentpicture.copy();
-  projection P=currentprojection;
+  projection P=currentprojection.copy();
+  bool s=shipped;
   restoreThunk r=restore;
-  return new void () {
+  return new void() {
     currentpen=p;
     currentpicture=pic;
     currentprojection=P;
-    restore=r;
+    shipped=s;
     uptodate(false);
+    restore=r;
   };
 }
 
@@ -3214,4 +3216,9 @@ guide operator ---(... guide[] a)
   for(int i=1; i < a.length; ++i)
     g=g..operator tension(infinity,true)..a[i];
   return g;
+}
+
+void execute(string s)
+{
+  eval("include \""+s+"\";");
 }

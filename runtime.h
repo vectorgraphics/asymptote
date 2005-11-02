@@ -15,6 +15,10 @@ namespace vm {
 class stack;
 }
 
+namespace loop {
+  void doEval(const string& str);
+}
+  
 namespace run {
   
 // Math

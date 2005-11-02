@@ -213,6 +213,33 @@ void doIFile(const char *name, coenv &e, istack &s) {
   doITree(ast, e, s);
 }
 
+void doEval(const string& str)
+{
+  try {
+    init();
+
+    genv ge;
+    env base_env(ge);
+    coder base_coder;
+    coenv e(base_coder,base_env);
+
+    vm::interactiveStack s;
+    s.setInitMap(ge.getInitMap());
+
+    if (settings::autoplain) {
+      absyntax::usedec ap(position(), symbol::trans("plain"));
+      doIRunnable(&ap, e, s);
+    }
+    
+    file *ast = parser::parseString(str);
+    assert(ast);
+    doITree(ast, e, s);
+    run::exitFunction(&s);
+  } catch(...) {
+    status=false;
+  }
+}
+
 void doIBatch()
 {
   cout << "ibatch\n";
@@ -237,7 +264,6 @@ void doIBatch()
 	  absyntax::usedec ap(position(), symbol::trans("plain"));
 	  doIRunnable(&ap, e, s);
 	}
-
 	while (virtualEOF) {
 	  virtualEOF=false;
 	  try {

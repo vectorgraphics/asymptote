@@ -2198,43 +2198,10 @@ void loadModule(stack *s)
   s->load(*index);
 }
 
-#if 0
-void execute(stack *s)
-{
-  string Outname=outname;
-  string *str = pop<string*>(s);
-  outname = stripext(*str,suffix);
-
-  trans::genv ge;
-  ge.autoloads(outname);
-
-  absyntax::file *tree = parser::parseFile(*str);
-  trans::record *m = ge.loadModule(symbol::trans(outname),tree);
-  if (!em->errors()) {
-    lambda *l = ge.bootupModule(m);
-    assert(l);
-    vm::run(l);
-  }
-  outname=Outname;
-}
-
 void eval(stack *s)
 {
-  string *str = pop<string*>(s);
-  symbol *id = symbol::trans(*str);
-  absyntax::file *tree = parser::parseString(*str);
-  
-  trans::genv ge;
-  ge.autoloads("");
-  
-  trans::record *m = ge.loadModule(id,tree);
-  if (!em->errors()) {
-    lambda *l = ge.bootupModule(m);
-    assert(l);
-    vm::run(l);
-  }
+  loop::doEval(*pop<string*>(s));
 }
-#endif
 
 void changeDirectory(stack *s)
 {
