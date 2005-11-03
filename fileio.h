@@ -142,11 +142,12 @@ class ifile : public file {
   std::ifstream fstream;
   bool first;
   char comment;
+  bool comma,nullfield; // Used to detect a final null field in cvs+line mode.
   mem::string whitespace;
   
 public:
   ifile(const string& name, bool check=true, char comment=0)
-    : file(name,check), comment(comment) {
+    : file(name,check), comment(comment), comma(false), nullfield(false) {
       stream=&std::cin;
   }
   
@@ -188,11 +189,11 @@ public:
   void readwhite(string& val) {val=string(); *stream >> val;}
   
   void Read(bool &val) {string t; readwhite(t); val=(t == "true");}
-  void Read(int& val) {val=0; *stream >> val;}
-  void Read(double& val) {val=0.0; *stream >> val;}
-  void Read(pair& val) {val=0.0; *stream >> val;}
-  void Read(triple& val) {val=0.0; *stream >> val;}
-  void Read(char& val) {val=char(); stream->get(val);}
+  void Read(int& val) {*stream >> val;}
+  void Read(double& val) {*stream >> val;}
+  void Read(pair& val) {*stream >> val;}
+  void Read(triple& val) {*stream >> val;}
+  void Read(char& val) {stream->get(val);}
   void Read(mem::string& val) {
     if(csvmode) {
       val=whitespace+getcsvline();
@@ -348,10 +349,15 @@ void ifile::iread(T& val)
 {
   if(standard) clear();
   if(errorstream::interrupt) throw interrupted();
-  if(settings::suppressStandard && standard) typein.Read(val);
+  if(settings::suppressStandard && standard) {
+    val=T();
+    typein.Read(val);
+  }
   else {
     ignoreComment();
-    Read(val);
+    val=T();
+    if(!nullfield)
+      Read(val);
     csv();
     whitespace="";
     if(interact::interactive && standard) {
