@@ -2200,7 +2200,7 @@ void loadModule(stack *s)
 
 void eval(stack *s)
 {
-  loop::doIBatch(pop<string*>(s));
+  loop::doIBatch("",pop<string*>(s));
 }
 
 void changeDirectory(stack *s)

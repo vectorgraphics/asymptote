@@ -2584,13 +2584,13 @@ restoreThunk buildRestoreThunk() {
   pen p=currentpen;
   picture pic=currentpicture.copy();
   projection P=currentprojection.copy();
-  bool s=shipped;
+//  bool s=shipped;
   restoreThunk r=restore;
   return new void() {
     currentpen=p;
     currentpicture=pic;
     currentprojection=P;
-    shipped=s;
+//    shipped=s;
     uptodate(false);
     restore=r;
   };

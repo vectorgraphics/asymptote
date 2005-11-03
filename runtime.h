@@ -16,7 +16,7 @@ class stack;
 }
 
 namespace loop {
-  void doIBatch(const mem::string *str=NULL);
+  void doIBatch(const string& filename="", const mem::string *str=NULL);
 }
   
 namespace run {

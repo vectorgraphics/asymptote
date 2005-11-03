@@ -190,8 +190,8 @@ void doIRunnable(absyntax::runnable *r, coenv &e, istack &s) {
   lambda *codelet=r->transAsCodelet(e);
   em->sync();
   if (!em->errors()) {
-    print(cout, codelet->code);
-    cout << "\n";
+//    print(cout, codelet->code);
+//    cout << "\n";
     s.run(codelet);
   } else {
     e.e.endScope(); // Remove any changes to the environment.
@@ -206,16 +206,16 @@ void doITree(file *ast, coenv &e, istack &s) {
     doIRunnable(*r, e, s);
 }
 
-void doIFile(const char *name, coenv &e, istack &s) {
-  cout << "ifile: " << name << endl;
+void doIFile(const string& name, coenv &e, istack &s) {
+//  cout << "ifile: " << name << endl;
   file *ast=parser::parseFile(name);
   assert(ast);
   doITree(ast, e, s);
 }
 
-void doIBatch(const mem::string *str)
+void doIBatch(const string& filename, const mem::string *str)
 {
-  cout << "ibatch\n";
+//  cout << "ibatch\n";
   if(listonly && numArgs() == 0) {
     init();
     body("");
@@ -223,7 +223,6 @@ void doIBatch(const mem::string *str)
   } else {
     try {
       init();
-
       genv ge;
       env base_env(ge);
       coder base_coder;
@@ -242,25 +241,32 @@ void doIBatch(const mem::string *str)
 	assert(ast);
 	doITree(ast, e, s);
 	run::exitFunction(&s);
-      } else if(interactive) {
-	while (virtualEOF) {
-	  virtualEOF=false;
-	  try {
-	    file *ast = parser::parseInteractive();
-	    assert(ast);
-	    doITree(ast, e, s);
-	  } catch (interrupted&) {
-	    if(em) em->Interrupt(false);
-	    cout << endl;
-	  } catch (...) {
-	    status=false;
-	  }
-	}
       } else {
-	for(int ind=0; ind < numArgs() ; ind++)
-	  doIFile(getArg(ind), e, s);
+	if(interactive) {
+	  outname="out";
+	  while (virtualEOF) {
+	    virtualEOF=false;
+	    try {
+	      file *ast = parser::parseInteractive();
+	      assert(ast);
+	      doITree(ast, e, s);
+	    } catch (interrupted&) {
+	      if(em) em->Interrupt(false);
+	      cout << endl;
+	    } catch (...) {
+	      status=false;
+	    }
+	  }
+	} else {
+	  string basename = stripext(filename,suffix);
+	  if(outname.empty())
+	    outname=stripDir(basename);
+      
+	  doIFile(filename, e, s);
+	  run::exitFunction(&s);
+	}
+	purge();
       }
-      purge();
     } catch(...) {
       status=false;
     }
@@ -286,10 +292,11 @@ int main(int argc, char *argv[])
   cout.precision(DBL_DIG);
 
   try {
-    if (laat || interactive)
+    if (interactive)
       loop::doIBatch();
     else
-      loop::doBatch();
+      for(int ind=0; ind < numArgs() ; ind++)
+	loop::doIBatch(string(getArg(ind)));
   } catch (...) {
     cerr << "error: exception thrown.\n";
     status=false;
