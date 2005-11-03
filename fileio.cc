@@ -53,7 +53,9 @@ bool ifile::eol()
       return false;
     }
     stream->ignore();
-    if(c == '\n') return true;
+    if(c == '\n') {
+      return true;
+    }
     else whitespace += (char) c;
   }
   return false;
@@ -68,7 +70,7 @@ void ifile::csv()
   int c=stream->peek();
   if(c == ',' || (c == '\n' && !linemode)) stream->ignore();
   else stream->clear(rdstate);
-  if(c == ',' && linemode) comma=true;
+//  if(c == ',' && linemode) comma=true;
 }
   
 mem::string ifile::getcsvline() 
