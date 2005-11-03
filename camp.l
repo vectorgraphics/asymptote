@@ -137,6 +137,7 @@ void getstring(void)
 
 LETTER [_A-Za-z]
 ESC \\
+EXTRAOPS <<|>>|@|@@|$|$$|#|##
 
 %%
 
@@ -265,6 +266,7 @@ ESC \\
 "--"               {makesymbol(); return DASHES; }
 "---"              {makesymbol(); return LONGDASH; }
 "&"                {makesymbol(); return AMPERSAND; }
+{EXTRAOPS}         {makesymbol(); return OPERATOR; }
 
 "+="               {makeselfsymbol(); return ADD; }
 "-="               {makeselfsymbol(); return SUBTRACT; }
@@ -339,7 +341,7 @@ operator           {adjust(); BEGIN opname; }
                      BEGIN INITIAL;
                      return ID;
                    }
-[-+*/%^!<>]|==|!=|<=|>=|&|&&|\|\||\^\^|\.\.|::|--|---|\+\+ {
+[-+*/%^!<>]|==|!=|<=|>=|&|&&|\|\||\^\^|\.\.|::|--|---|\+\+|{EXTRAOPS} {
   makesymbol();
   BEGIN INITIAL;
   return ID;}

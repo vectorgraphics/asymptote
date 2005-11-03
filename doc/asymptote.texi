@@ -1560,7 +1560,7 @@ the function @code{pen fontsize(real size, real baselineskip=1.2*size)}.
 The default font size, 12pt, may be changed with @code{defaultpen(pen)}.
 Nonstandard font sizes may require inserting
 @verbatim
-texpreamble("\usepackage{type1cm}");
+import fontsize;
 @end verbatim
 at the beginning of the file.
 
@@ -2398,7 +2398,11 @@ The following symbols may be used with @code{operator} to define or redefine
 operators on structures and built-in types:
 @verbatim
 - + * / % ^ ! < > == != <= >= & && || ^^ .. :: -- --- ++
+<< >> @ @@ $ $$ # ##
 @end verbatim
+@noindent
+The operators on the second line have precedence one higher than the
+boolean operators @code{<}, @code{>}, @code{<=}, and @code{>=}.
 
 Guide operators like @code{..} may be overloaded, say, to write
 a user function that produces a new guide from a given guide:
