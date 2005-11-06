@@ -90,7 +90,7 @@ using sym::symbol;
 %token <pos> LOOSE ASSIGN '?' ':'
              DIRTAG JOIN_PREC AND
              '{' '}' '(' ')' '.' ','  '[' ']' ';' ELLIPSIS
-             IMPORT EXPLODE USE INCLUDE STRUCT TYPEDEF NEW
+             IMPORT EXPLODE USE INCLUDE QUOTE STRUCT TYPEDEF NEW
              IF ELSE WHILE DO FOR BREAK CONTINUE RETURN_
              STATIC PUBLIC_TOK PRIVATE_TOK THIS EXPLICIT
 %token <e>   LIT
@@ -500,6 +500,7 @@ exp:
 | exp MOD exp      { $$ = new selfExp($2.pos, $1, $2.sym, $3); }
 | exp EXPONENT exp
                    { $$ = new selfExp($2.pos, $1, $2.sym, $3); }
+| QUOTE runnable   { $$ = new quoteExp($1, $2); }
 ;
 
 // This verbose definition is because leaving empty as an expansion for dir

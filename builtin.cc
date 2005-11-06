@@ -59,6 +59,7 @@ void base_tenv(tenv &te)
   addType(te, "frame", primPicture());
 
   addType(te, "file", primFile());
+  addType(te, "code", primCode());
 }
 
 // Macro to make a function.
@@ -561,7 +562,8 @@ void base_venv(venv &ve)
   
   addFunc(ve,run::atExit,primVoid(),"atexit",voidFunction());
   addFunc(ve,run::exitFunction,primVoid(),"exitfunction");
-  addFunc(ve,run::eval,primVoid(),"eval",primString());
+  addFunc(ve,run::evalString,primVoid(),"eval",primString());
+  addFunc(ve,run::evalAst,primVoid(),"eval",primCode());
   addFunc(ve,run::merge,primInt(),"merge",primString(),primString(),
 	  primBoolean());
   addFunc(ve,run::changeDirectory,primString(),"cd",primString());

@@ -1,5 +1,3 @@
-import plain;
-
 // Asymptote mathematics routines
 
 real radians(real degrees)

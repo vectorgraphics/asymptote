@@ -15,10 +15,6 @@ namespace vm {
 class stack;
 }
 
-namespace loop {
-  void doIBatch(const string& filename="", const mem::string *str=NULL);
-}
-  
 namespace run {
   
 // Math
@@ -267,7 +263,8 @@ void merge(vm::stack *s);
 // Execute an asymptote file
 void loadModule(vm::stack *s);
 void execute(vm::stack *s);
-void eval(vm::stack *s);
+void evalString(vm::stack *s);
+void evalAst(vm::stack *s);
   
 // I/O Routines
 void standardOut(vm::stack *s);

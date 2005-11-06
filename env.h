@@ -116,10 +116,10 @@ public:
   }
 
   // Add another environment, say from a record.
-  void add(protoenv &source, varEntry *qualifier)
+  void add(protoenv &source, varEntry *qualifier, coder &c)
   {
-    te.add(source.te, qualifier);
-    ve.add(source.ve, qualifier);
+    te.add(source.te, qualifier, c);
+    ve.add(source.ve, qualifier, c);
   }
 
   // Add the fields and types of the record given in v to the local environment.

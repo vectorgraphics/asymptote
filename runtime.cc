@@ -61,6 +61,8 @@ using std::ostringstream;
 #include "pipestream.h"
 #include "parser.h"
 
+#include "dec.h"
+
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
 #endif
@@ -76,6 +78,11 @@ const char *arraymismatch=
   "operation attempted on arrays of different lengths.";
 }
 
+namespace loop {
+  void doIRunnable(absyntax::runnable *r);
+  void doITree(absyntax::block *tree);
+}
+  
 namespace run {
   
 using vm::stack;
@@ -2198,9 +2205,16 @@ void loadModule(stack *s)
   s->load(*index);
 }
 
-void eval(stack *s)
+void evalString(stack *s)
 {
-  loop::doIBatch("",pop<string*>(s));
+  mem::string *str=pop<string *>(s);
+  absyntax::block *ast = parser::parseString(*str);
+  loop::doITree(ast);
+}
+
+void evalAst(stack *s)
+{
+  loop::doIRunnable(pop<absyntax::runnable *>(s));
 }
 
 void changeDirectory(stack *s)

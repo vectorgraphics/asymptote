@@ -252,6 +252,11 @@ public:
   modifiedRunnable(position pos, modifierList *mods, runnable *body)
     : runnable(pos), mods(mods), body(body)  {}
 
+  modifiedRunnable(position pos, trans::permission perm, runnable *body)
+    : runnable(pos), mods(new modifierList(pos)), body(body) {
+    mods->add(perm);
+  }
+
   void prettyprint(ostream &out, int indent);
 
   void trans(coenv &e);
@@ -503,6 +508,9 @@ public:
 
   void transAsField(coenv &e, record *parent);
 };
+
+// Returns a runnable that facilitate the autoplain feature.
+runnable *autoplainRunnable();
 
 } // namespace absyntax
 

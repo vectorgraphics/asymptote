@@ -1,4 +1,4 @@
-static import graph;
+private import graph;
 
 real mean(real A[])
 {

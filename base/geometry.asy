@@ -1,4 +1,4 @@
-import math;
+private import math;
 
 static public real perpfactor=arrowfactor;
 

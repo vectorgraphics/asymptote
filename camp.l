@@ -295,6 +295,7 @@ access             {adjust(); return IMPORT; }
 import             {adjust(); return USE; }
 unravel            {adjust(); return EXPLODE; }
 include            {adjust(); return INCLUDE; }
+quote              {adjust(); return QUOTE; }
 static             {adjust(); makemod(trans::EXPLICIT_STATIC);
                               return MODIFIER; }
 public             {adjust(); makeperm(trans::PUBLIC); return PERM; }

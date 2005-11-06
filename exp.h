@@ -432,6 +432,19 @@ public:
   types::ty *getType(coenv &) { return types::primNull(); }
 };
 
+class quoteExp : public exp {
+  runnable *value;
+
+public:
+  quoteExp(position pos, runnable *value)
+    : exp(pos), value(value) {}
+
+  void prettyprint(ostream &out, int indent);
+
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primCode(); }
+};
+
 // A list of expressions used in a function call.
 class explist : public absyn {
   typedef mem::vector<exp *> expvector;

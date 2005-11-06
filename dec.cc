@@ -210,8 +210,7 @@ void block::transAsRecordBody(coenv &e, record *r)
 void block::transAsFile(coenv &e, record *r)
 {
   if (settings::autoplain) {
-    usedec ap(position(), symbol::trans("plain"));
-    ap.transAsField(e, r);
+    autoplainRunnable()->transAsField(e, r);
   }
 
   transAsRecordBody(e, r);
@@ -644,8 +643,8 @@ void explodedec::transAsField(coenv &e, record *r)
   else {
     varEntry *v=id->getVarEntry(e);
     if (r)
-      r->e.add(qualifier->e, v);
-    e.e.add(qualifier->e, v);
+      r->e.add(qualifier->e, v, e.c);
+    e.e.add(qualifier->e, v, e.c);
   }
 }
 
@@ -736,5 +735,13 @@ void recorddec::transAsField(coenv &e, record *parent)
   
   body->transAsRecordBody(re, r);
 }  
+
+runnable *autoplainRunnable() {
+  // Private import plain;
+  static usedec ap(position(), symbol::trans("plain"));
+  static modifiedRunnable mr(position(), trans::PRIVATE, &ap);
+
+  return &mr;
+}
 
 } // namespace absyntax

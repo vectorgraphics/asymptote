@@ -56,6 +56,7 @@ enum ty_kind {
   ty_pen,
   ty_picture,	// "frame" in Asymptote language
   ty_file,
+  ty_code,
   ty_array
 };
 
@@ -267,6 +268,7 @@ ty *primPath();
 ty *primPen();
 ty *primPicture();
 ty *primFile();
+ty *primCode();
   
 ty *boolArray();
 ty *intArray();

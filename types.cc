@@ -49,6 +49,8 @@ primitiveTy pPicture(ty_picture);
 ty *primPicture() { return &pPicture; }
 primitiveTy pFile(ty_file);
 ty *primFile() { return &pFile; }
+primitiveTy pCode(ty_code);
+ty *primCode() { return &pCode; }
   
 array boolArray_(primBoolean());
 ty *boolArray() { return &boolArray_; }
@@ -105,7 +107,7 @@ const char *names[] = {
   "bool", "int", "real",
   "string",
   "pair", "triple", "transform", "guide", "path", "pen", "frame",
-  "file",
+  "file", "code",
   "<array>"
 };
 

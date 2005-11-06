@@ -29,6 +29,10 @@ public:
   // Otherwise, an appropriate error message will be printed.
   bool implicitCast(position pos, ty *target, ty *source);
   bool explicitCast(position pos, ty *target, ty *source);
+
+  void add(protoenv &source, varEntry *qualifier) {
+    e.add(source, qualifier, c);
+  }
 };
 
 } // namespace trans

@@ -1,4 +1,4 @@
-import math;
+private import math;
 
 static public real ticksize=1mm;
 static public real Ticksize=2*ticksize;

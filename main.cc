@@ -91,15 +91,17 @@ void init()
 {
   ShipoutNumber=0;
   outnameStack=new list<string>;
-  em = new errorstream();
+  if (!em)
+    em = new errorstream();
 }
 
 void purge()
 {
-  delete em; em = 0;
+  //delete em; em = 0;
+  em->clear();
   delete outnameStack; outnameStack = 0;
   outname="";
-//  camp::file::free();
+
 #ifdef USEGC
   GC_gcollect();
 #endif
@@ -183,36 +185,130 @@ void doBatch()
 
 typedef vm::interactiveStack istack;
 using absyntax::runnable;
-using absyntax::file;
+using absyntax::block;
 
-void doIRunnable(absyntax::runnable *r, coenv &e, istack &s) {
-  e.e.beginScope();
-  lambda *codelet=r->transAsCodelet(e);
-  em->sync();
-  if (!em->errors()) {
-//    print(cout, codelet->code);
-//    cout << "\n";
-    s.run(codelet);
-  } else {
-    e.e.endScope(); // Remove any changes to the environment.
+// Abstract base class for the core object being run in line-at-a-time mode, it
+// may be a runnable, block, file, or interactive prompt.
+struct icore {
+  virtual void run(coenv &e, istack &s) = 0;
+};
+
+struct irunnable : public icore {
+  runnable *r;
+
+  irunnable(runnable *r)
+    : r(r) {}
+
+  void run(coenv &e, istack &s) {
+    e.e.beginScope();
+    lambda *codelet=r->transAsCodelet(e);
+    em->sync();
+    if (!em->errors()) {
+      s.run(codelet);
+    } else {
+      e.e.endScope(); // Remove any changes to the environment.
+      status=false;
+#if 0
+      delete em;
+      em = new errorstream();
+#endif
+      em->clear();
+    }
+  }
+};
+
+struct itree : public icore {
+  absyntax::block *ast;
+
+  itree(absyntax::block *ast)
+    : ast(ast) {}
+
+  void run(coenv &e, istack &s) {
+    for(list<runnable *>::iterator r=ast->stms.begin(); r!=ast->stms.end(); ++r)
+      irunnable(*r).run(e, s);
+  }
+};
+
+struct iprompt : public icore {
+  void run(coenv &e, istack &s) {
+    while (virtualEOF) {
+      virtualEOF=false;
+      try {
+        file *ast = parser::parseInteractive();
+        assert(ast);
+        itree(ast).run(e, s);
+      } catch (interrupted&) {
+        if(em) em->Interrupt(false);
+        cout << endl;
+      } catch (...) {
+        status=false;
+      }
+    }
+  }
+};
+
+void doICore(icore &i) {
+  try {
+    assert(em && !em->errors());
+
+    genv ge;
+    env base_env(ge);
+    coder base_coder;
+    coenv e(base_coder,base_env);
+
+    vm::interactiveStack s;
+    s.setInitMap(ge.getInitMap());
+
+    if (settings::autoplain) {
+      irunnable(absyntax::autoplainRunnable()).run(e, s);
+    }
+
+    // Now that everything is set up, run the core.
+    i.run(e, s);
+
+    run::exitFunction(&s);
+
+    em->clear();
+  } catch(...) {
     status=false;
-    delete em;
-    em = new errorstream();
   }
 }
-
-void doITree(file *ast, coenv &e, istack &s) {
-  for(list<runnable *>::iterator r=ast->stms.begin(); r!=ast->stms.end(); ++r)
-    doIRunnable(*r, e, s);
+      
+void doIRunnable(runnable *r) {
+  assert(r);
+  irunnable i(r);
+  doICore(i);
 }
 
-void doIFile(const string& name, coenv &e, istack &s) {
-//  cout << "ifile: " << name << endl;
-  file *ast=parser::parseFile(name);
-  assert(ast);
-  doITree(ast, e, s);
+void doITree(block *tree) {
+  assert(tree);
+  itree i(tree);
+  doICore(i);
 }
 
+void doIFile(const string& filename) {
+  init();
+
+  string basename = stripext(filename,suffix);
+  if(outname.empty())
+    outname=stripDir(basename);
+
+  doITree(parser::parseFile(filename));
+
+  purge();
+}
+
+void doIPrompt() {
+  init();
+  outname="out";
+  
+  iprompt i;
+  doICore(i);
+
+  purge();
+}
+
+#if 0
 void doIBatch(const string& filename, const mem::string *str)
 {
 //  cout << "ibatch\n";
@@ -221,49 +317,10 @@ void doIBatch(const string& filename, const mem::string *str)
     body("");
     purge();
   } else {
-    try {
-      init();
-      genv ge;
-      env base_env(ge);
-      coder base_coder;
-      coenv e(base_coder,base_env);
-
-      vm::interactiveStack s;
-      s.setInitMap(ge.getInitMap());
-
-      if (settings::autoplain) {
-	absyntax::usedec ap(position(), symbol::trans("plain"));
-	doIRunnable(&ap, e, s);
-      }
-      
       if(str) {
-	file *ast = parser::parseString(*str);
-	assert(ast);
-	doITree(ast, e, s);
-	run::exitFunction(&s);
       } else {
 	if(interactive) {
-	  outname="out";
-	  while (virtualEOF) {
-	    virtualEOF=false;
-	    try {
-	      file *ast = parser::parseInteractive();
-	      assert(ast);
-	      doITree(ast, e, s);
-	    } catch (interrupted&) {
-	      if(em) em->Interrupt(false);
-	      cout << endl;
-	    } catch (...) {
-	      status=false;
-	    }
-	  }
 	} else {
-	  string basename = stripext(filename,suffix);
-	  if(outname.empty())
-	    outname=stripDir(basename);
-      
-	  doIFile(filename, e, s);
-	  run::exitFunction(&s);
 	}
 	purge();
       }
@@ -272,6 +329,7 @@ void doIBatch(const string& filename, const mem::string *str)
     }
   }
 }
+#endif
 
 } // namespace loop
 
@@ -293,10 +351,10 @@ int main(int argc, char *argv[])
 
   try {
     if (interactive)
-      loop::doIBatch();
+      loop::doIPrompt();
     else
       for(int ind=0; ind < numArgs() ; ind++)
-	loop::doIBatch(string(getArg(ind)));
+	loop::doIFile(string(getArg(ind)));
   } catch (...) {
     cerr << "error: exception thrown.\n";
     status=false;
