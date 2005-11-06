@@ -47,7 +47,7 @@ extern int view;
 extern int safe;
 extern int autoplain;
 extern int parseonly;
-extern int listonly;
+extern int listvariables;
 extern int translate;
 extern int bwonly;
 extern int grayonly;
@@ -67,7 +67,6 @@ extern const string suffix;
 extern const string guisuffix;
   
 extern string outname; 
-extern std::list<string> *outnameStack;
 
 extern bool TeXinitialized; // Is LaTeX process initialized?
 

@@ -45,6 +45,16 @@ public:
   // Uses the filename->record map to build a filename->initializer map to be
   // used at runtime.
   vm::stack::importInitMap *getInitMap();
+  
+  void listValues(const std::string name, record* &vals) {
+    vals->e.list();
+  }
+  
+  void list() {
+    for(importMap::iterator i = imap.begin(); i != imap.end(); ++i)
+      listValues(i->first, i->second);
+  }
+  
 };
 
 } // namespace trans

@@ -77,7 +77,7 @@ int safe=1;
 int autoplain=1;
 int parseonly=0;
 int translate=0;
-int listonly=0;
+int listvariables=0;
 int bwonly=0;
 int grayonly=0;
 int rgbonly=0;
@@ -100,7 +100,6 @@ const string suffix="asy";
 const string guisuffix="gui";
   
 string outname;
-std::list<string> *outnameStack;
 
 bool TeXinitialized=false;
 
@@ -233,7 +232,7 @@ void setOptions(int argc, char *argv[])
       texmode=1;
       break;
     case 'l':
-      listonly=1;
+      listvariables=1;
       break;
     case 'd':
       debug=1;
@@ -293,7 +292,7 @@ void setOptions(int argc, char *argv[])
     exit(1);
   }
   
-  if(numArgs() == 0 && !listonly) {
+  if(numArgs() == 0 && !listvariables) {
     view=1;
     interact::interactive=true;
     if(trap == -1) trap=0;

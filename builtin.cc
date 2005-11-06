@@ -561,11 +561,12 @@ void base_venv(venv &ve)
   addFunc(ve,run::stringTime,primString(),"time",primString());
   
   addFunc(ve,run::atExit,primVoid(),"atexit",voidFunction());
+  addFunc(ve,run::getAtExit,voidFunction(),"atexit");
   addFunc(ve,run::exitFunction,primVoid(),"exitfunction");
-  addFunc(ve,run::evalString,primVoid(),"eval",primString());
-  addFunc(ve,run::evalAst,primVoid(),"eval",primCode());
-  addFunc(ve,run::merge,primInt(),"merge",primString(),primString(),
-	  primBoolean());
+  addFunc(ve,run::evalString,primVoid(),"_eval",primString());
+  addFunc(ve,run::evalAst,primVoid(),"_eval",primCode());
+  addFunc(ve,run::merge,primInt(),"merge",stringArray(),
+	  primString(),primString(),primBoolean());
   addFunc(ve,run::changeDirectory,primString(),"cd",primString());
   addFunc(ve,run::scrollLines,primVoid(),"scroll",primInt());
   addFunc(ve,run::boolDeconstruct,primBoolean(),"deconstruct");
@@ -593,6 +594,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::penBaseLine,primInt(),"basealign",primPen());
   addFunc(ve,run::resetdefaultPen,primVoid(),"defaultpen");
   addFunc(ve,run::setDefaultPen,primVoid(),"defaultpen",primPen());
+  addFunc(ve,run::getDefaultPen,primPen(),"getdefaultpen");
   addFunc(ve,run::invisiblePen,primPen(),"invisible");
   addFunc(ve,run::lineCap,primPen(),"linecap",primInt());
   addFunc(ve,run::penLineCap,primInt(),"linecap",primPen());

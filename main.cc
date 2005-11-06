@@ -90,16 +90,13 @@ namespace loop {
 void init()
 {
   ShipoutNumber=0;
-  outnameStack=new list<string>;
   if (!em)
     em = new errorstream();
 }
 
 void purge()
 {
-  //delete em; em = 0;
   em->clear();
-  delete outnameStack; outnameStack = 0;
   outname="";
 
 #ifdef USEGC
@@ -142,14 +139,6 @@ void body(string filename) // TODO: Refactor
       else status=false;
     } else {
       genv ge;
-#if 0 
-      ge.autoloads(outname);
-      if(settings::listonly) {
-        ge.list();
-        if(filename == "") return;
-      }
-#endif
-
       record *m = ge.getModule(symbol::trans(basename),filename);
       if (!em->errors()) {
 	if (translate)
@@ -168,14 +157,6 @@ void body(string filename) // TODO: Refactor
 
 void doBatch()
 {
-#if 0
-  if(listonly && numArgs() == 0) {
-    init();
-    body("");
-    purge();
-  } else
-#endif
-
   for(int ind=0; ind < numArgs() ; ind++) {
     init();
     body(getArg(ind));
@@ -190,6 +171,7 @@ using absyntax::block;
 // Abstract base class for the core object being run in line-at-a-time mode, it
 // may be a runnable, block, file, or interactive prompt.
 struct icore {
+  virtual ~icore() {}
   virtual void run(coenv &e, istack &s) = 0;
 };
 
@@ -208,10 +190,6 @@ struct irunnable : public icore {
     } else {
       e.e.endScope(); // Remove any changes to the environment.
       status=false;
-#if 0
-      delete em;
-      em = new errorstream();
-#endif
       em->clear();
     }
   }
@@ -259,13 +237,15 @@ void doICore(icore &i) {
     vm::interactiveStack s;
     s.setInitMap(ge.getInitMap());
 
-    if (settings::autoplain) {
+    if (settings::autoplain)
       irunnable(absyntax::autoplainRunnable()).run(e, s);
-    }
 
     // Now that everything is set up, run the core.
     i.run(e, s);
 
+    if(settings::listvariables)
+      base_env.list();
+    
     run::exitFunction(&s);
 
     em->clear();
@@ -290,10 +270,12 @@ void doIFile(const string& filename) {
   init();
 
   string basename = stripext(filename,suffix);
+  if (verbose) cout << "Processing " << basename << endl;
   if(outname.empty())
     outname=stripDir(basename);
 
-  doITree(parser::parseFile(filename));
+  doITree((filename == "" ? parser::parseString 
+	   : parser::parseFile)(filename));
 
   purge();
 }
@@ -307,29 +289,6 @@ void doIPrompt() {
 
   purge();
 }
-
-#if 0
-void doIBatch(const string& filename, const mem::string *str)
-{
-//  cout << "ibatch\n";
-  if(listonly && numArgs() == 0) {
-    init();
-    body("");
-    purge();
-  } else {
-      if(str) {
-      } else {
-	if(interactive) {
-	} else {
-	}
-	purge();
-      }
-    } catch(...) {
-      status=false;
-    }
-  }
-}
-#endif
 
 } // namespace loop
 
@@ -353,7 +312,9 @@ int main(int argc, char *argv[])
     if (interactive)
       loop::doIPrompt();
     else
-      for(int ind=0; ind < numArgs() ; ind++)
+      if(numArgs() == 0) {
+	loop::doIFile("");
+      } else for(int ind=0; ind < numArgs() ; ind++)
 	loop::doIFile(string(getArg(ind)));
   } catch (...) {
     cerr << "error: exception thrown.\n";

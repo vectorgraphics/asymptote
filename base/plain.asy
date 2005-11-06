@@ -3,6 +3,7 @@
  * Andy Hammerlindl and John Bowman 2004/08/19
  *
  * A package for general purpose drawing, with automatic sizing of pictures.
+ *
  *****/
 
 public bool shipped=false;
@@ -616,7 +617,7 @@ public filltype UnFill=UnFill();
 // Fill the region in frame dest underneath frame src and return the
 // boundary of src.
 guide fill(frame dest, frame src, filltype filltype=NoFill, 
-	     real xmargin=0, real ymargin=xmargin)
+	   real xmargin=0, real ymargin=xmargin)
 {
   pair z=(xmargin,ymargin);
   guide g=box(min(src)-0.5*min(invisible)-z,max(src)-0.5*max(invisible)+z);
@@ -2570,6 +2571,17 @@ projection operator init() {return new projection;}
   
 public projection currentprojection;
 
+typedef void exitfcn();
+static void nullexitfcn();
+
+void exitfunction()
+{
+  if(interact()) {
+    if(!uptodate()) shipout();
+  } else if(!shipped && !currentpicture.empty()) shipout();
+}
+atexit(exitfunction);
+
 // A restore thunk is a function, that when called, restores the graphics state
 // to what it was when the restore thunk was created.
 typedef void restoreThunk();
@@ -2581,16 +2593,16 @@ void restore()
 }
 
 restoreThunk buildRestoreThunk() {
+  pen defaultpen=getdefaultpen();
   pen p=currentpen;
   picture pic=currentpicture.copy();
   projection P=currentprojection.copy();
-//  bool s=shipped;
   restoreThunk r=restore;
   return new void() {
+    defaultpen(defaultpen);
     currentpen=p;
     currentpicture=pic;
     currentprojection=P;
-//    shipped=s;
     uptodate(false);
     restore=r;
   };
@@ -2600,6 +2612,36 @@ restoreThunk buildRestoreThunk() {
 restoreThunk save() 
 {
   return restore=buildRestoreThunk();
+}
+
+void restoredefaults()
+{
+  write("warning: restoredefaults called with no matching savedefaults");
+}
+
+restoreThunk buildRestoreDefaults() {
+  pen defaultpen=getdefaultpen();
+  defaultpen();
+  exitfcn atexit=atexit();
+  restoreThunk r=restoredefaults;
+  return new void() {
+    defaultpen(defaultpen);
+    atexit(atexit);
+    restoredefaults=r;
+  };
+}
+
+// Save the current state, so that restore will put things back in that state.
+restoreThunk savedefaults() 
+{
+  return restoredefaults=buildRestoreDefaults();
+}
+
+void initdefaults()
+{
+  savedefaults();
+  defaultpen();
+  atexit(nullexitfcn);
 }
 
 real cap(real x, real m, real M, real bottom, real top)
@@ -2992,15 +3034,6 @@ string math(real x)
   return math((string) x);
 }
 
-static bool Keep=true;
-static bool Purge=false;			  
-
-// delay is in units of 0.01s
-int gifmerge(int loops=0, int delay=50, bool keep=Purge)
-{
-  return merge("-loop " +(string) loops+" -delay "+(string)delay,"gif",keep);
-}
-
 // Return the sequence 0,1,...n-1
 int[] sequence(int n) {return sequence(new int(int x){return x;},n);}
 // Return the sequence n,...m
@@ -3194,14 +3227,6 @@ real max(real[][][] a) {
 
 void gui() {gui(1);}
 
-void atexit()
-{
-  if(interact()) {
-    if(!uptodate()) shipout();
-  } else if(!shipped && !currentpicture.empty()) shipout();
-}
-atexit(atexit);
-
 guide operator ::(... guide[] a)
 {
   guide g=(a.length > 0) ? a[0] : nullpath;
@@ -3216,6 +3241,20 @@ guide operator ---(... guide[] a)
   for(int i=1; i < a.length; ++i)
     g=g..operator tension(infinity,true)..a[i];
   return g;
+}
+
+void eval(string s)
+{
+  initdefaults();
+  _eval(s);
+  restoredefaults();
+}
+
+void eval(code s)
+{
+  initdefaults();
+  _eval(s);
+  restoredefaults();
 }
 
 void execute(string s)

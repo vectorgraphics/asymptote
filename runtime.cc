@@ -1662,6 +1662,11 @@ void setDefaultPen(stack *s)
   defaultpen=pen(resolvepen,*p);
 }
 
+void getDefaultPen(stack *s)
+{
+  s->push(defaultpen);
+}
+
 void invisiblePen(stack *s)
 {
   s->push(new pen(invisiblepen));
@@ -2160,6 +2165,11 @@ void atExit(stack *s)
   atExitFunction=pop<callable*>(s);
 }
   
+void getAtExit(stack *s)
+{
+  s->push(atExitFunction);
+}
+  
 // Merge output files  
 void merge(stack *s)
 {
@@ -2167,15 +2177,18 @@ void merge(stack *s)
   bool keep = pop<bool>(s);
   string *format = pop<string*>(s);
   string *args = pop<string*>(s);
+  array *files=pop<array*>(s);
+  
+  checkArray(files);
+  size_t size=files->size();
   
   if(!checkFormatString(*format)) return;
   
   ostringstream cmd,remove;
   cmd << Convert << " "+*args;
   
-  for(std::list<std::string>::iterator p=outnameStack->begin();
-      p != outnameStack->end(); ++p)
-    cmd << " " << *p;
+  for(size_t i=0; i < size; i++) 
+    cmd << " " << read<string>(files,i);
   
   string name=buildname(outname,format->c_str());
   cmd << " " << name;
@@ -2185,9 +2198,8 @@ void merge(stack *s)
     if(settings::verbose > 0) cout << "Wrote " << name << endl;
   
   if(!keep && !settings::keep)
-    for(std::list<std::string>::iterator p=outnameStack->begin();
-      p != outnameStack->end(); ++p)
-      unlink(p->c_str());
+    for(size_t i=0; i < size; i++) 
+      unlink(read<string>(files,i).c_str());
     
   if(ret == 0 && settings::view) {
     ostringstream cmd;
