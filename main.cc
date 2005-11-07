@@ -121,12 +121,10 @@ void doRun(genv& ge, std::string filename)
   run::exitFunction(&s);
 }
 
-void body(string filename) // TODO: Refactor
+void body(string filename)
 {
   string basename = stripext(filename,suffix);
   try {
-    if (verbose) cout << "Processing " << basename << endl;
-    
     if(outname.empty())
       outname=(filename == "-") ? "out" : stripDir(basename);
 
@@ -168,11 +166,29 @@ typedef vm::interactiveStack istack;
 using absyntax::runnable;
 using absyntax::block;
 
+mem::list<coenv*> estack;
+mem::list<vm::interactiveStack*> sstack;
+
 // Abstract base class for the core object being run in line-at-a-time mode, it
 // may be a runnable, block, file, or interactive prompt.
 struct icore {
   virtual ~icore() {}
+  
   virtual void run(coenv &e, istack &s) = 0;
+  
+  // Wrapper for run used to execute eval within the current environment.
+  void wrapper(coenv &e, istack &s) {
+    estack.push_back(&e);
+    sstack.push_back(&s);
+    run(e,s);
+    estack.pop_back();
+    sstack.pop_back();
+  }
+  
+  void embedded() {
+    assert(estack.size() && sstack.size());
+    run(*(estack.back()),*(sstack.back()));
+  };
 };
 
 struct irunnable : public icore {
@@ -202,8 +218,9 @@ struct itree : public icore {
     : ast(ast) {}
 
   void run(coenv &e, istack &s) {
-    for(list<runnable *>::iterator r=ast->stms.begin(); r!=ast->stms.end(); ++r)
-      irunnable(*r).run(e, s);
+    for(list<runnable *>::iterator r=ast->stms.begin(); r != ast->stms.end();
+	++r)
+      irunnable(*r).wrapper(e, s);
   }
 };
 
@@ -214,7 +231,7 @@ struct iprompt : public icore {
       try {
         file *ast = parser::parseInteractive();
         assert(ast);
-        itree(ast).run(e, s);
+        itree(ast).wrapper(e, s);
       } catch (interrupted&) {
         if(em) em->Interrupt(false);
         cout << endl;
@@ -225,45 +242,48 @@ struct iprompt : public icore {
   }
 };
 
-void doICore(icore &i) {
+void doICore(icore &i, bool autonomous=true) {
   try {
     assert(em && !em->errors());
+    if(autonomous) {
+      genv ge;
+      env base_env(ge);
+      coder base_coder;
+      coenv e(base_coder,base_env);
 
-    genv ge;
-    env base_env(ge);
-    coder base_coder;
-    coenv e(base_coder,base_env);
+      vm::interactiveStack s;
+      s.setInitMap(ge.getInitMap());
 
-    vm::interactiveStack s;
-    s.setInitMap(ge.getInitMap());
+      if (settings::autoplain)
+	irunnable(absyntax::autoplainRunnable()).wrapper(e, s);
 
-    if (settings::autoplain)
-      irunnable(absyntax::autoplainRunnable()).run(e, s);
+      // Now that everything is set up, run the core.
+      i.wrapper(e, s);
 
-    // Now that everything is set up, run the core.
-    i.run(e, s);
-
-    if(settings::listvariables)
-      base_env.list();
+      if(settings::listvariables)
+	base_env.list();
     
-    run::exitFunction(&s);
-
-    em->clear();
-  } catch(...) {
+      run::exitFunction(&s);
+      em->clear();
+    } else i.embedded();
+  } catch (std::bad_alloc&) {
+    cerr << "error: out of memory" << endl;
+    status=false;
+  } catch(handled_error) {
     status=false;
   }
 }
       
-void doIRunnable(runnable *r) {
+void doIRunnable(runnable *r, bool autonomous=true) {
   assert(r);
   irunnable i(r);
-  doICore(i);
+  doICore(i,autonomous);
 }
 
-void doITree(block *tree) {
+void doITree(block *tree, bool autonomous=true) {
   assert(tree);
   itree i(tree);
-  doICore(i);
+  doICore(i,autonomous);
 }
 
 void doIFile(const string& filename) {

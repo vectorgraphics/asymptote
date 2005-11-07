@@ -563,8 +563,8 @@ void base_venv(venv &ve)
   addFunc(ve,run::atExit,primVoid(),"atexit",voidFunction());
   addFunc(ve,run::getAtExit,voidFunction(),"atexit");
   addFunc(ve,run::exitFunction,primVoid(),"exitfunction");
-  addFunc(ve,run::evalString,primVoid(),"_eval",primString());
-  addFunc(ve,run::evalAst,primVoid(),"_eval",primCode());
+  addFunc(ve,run::evalString,primVoid(),"_eval",primString(),primBoolean());
+  addFunc(ve,run::evalAst,primVoid(),"_eval",primCode(),primBoolean());
   addFunc(ve,run::merge,primInt(),"merge",stringArray(),
 	  primString(),primString(),primBoolean());
   addFunc(ve,run::changeDirectory,primString(),"cd",primString());
