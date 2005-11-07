@@ -242,10 +242,11 @@ struct iprompt : public icore {
   }
 };
 
-void doICore(icore &i, bool autonomous=true) {
+void doICore(icore &i, bool embedded=false) {
   try {
     assert(em && !em->errors());
-    if(autonomous) {
+    if(embedded) i.embedded();
+    else {
       genv ge;
       env base_env(ge);
       coder base_coder;
@@ -265,7 +266,7 @@ void doICore(icore &i, bool autonomous=true) {
     
       run::exitFunction(&s);
       em->clear();
-    } else i.embedded();
+    }
   } catch (std::bad_alloc&) {
     cerr << "error: out of memory" << endl;
     status=false;
@@ -274,16 +275,16 @@ void doICore(icore &i, bool autonomous=true) {
   }
 }
       
-void doIRunnable(runnable *r, bool autonomous=true) {
+void doIRunnable(runnable *r, bool embedded=false) {
   assert(r);
   irunnable i(r);
-  doICore(i,autonomous);
+  doICore(i,embedded);
 }
 
-void doITree(block *tree, bool autonomous=true) {
+void doITree(block *tree, bool embedded=false) {
   assert(tree);
   itree i(tree);
-  doICore(i,autonomous);
+  doICore(i,embedded);
 }
 
 void doIFile(const string& filename) {

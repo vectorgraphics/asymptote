@@ -62,9 +62,7 @@
   }}
 
 \def\AfterasyAsymptote{%
-  \immediate\write\AsyStream{atexit(atexit);}%
-  \immediate\write\AsyStream{exitfunction();}%
-  \immediate\write\AsyStream{\@charrb}%
+  \immediate\write\AsyStream{\@charrb);}%
   \ifinline
   \openin\AsyTestStream=\jobname_\arabic{asy}_.tex
   \else
@@ -93,8 +91,7 @@
   \let\par\empty
   \stepcounter{asy}%
   \def\@optarg{#1}%
-   \immediate\write\AsyStream{\@charlb}%
-   \immediate\write\AsyStream{static import plain;}%
+   \immediate\write\AsyStream{eval(quote\@charlb}%
    \immediate\write\AsyStream{defaultfilename="\jobname_\arabic{asy}";}%
   \ifx\@optarg\empty
    \immediate\write\AsyStream{size(\ASYdefaultsize);}%

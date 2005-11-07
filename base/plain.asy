@@ -3243,17 +3243,17 @@ guide operator ---(... guide[] a)
   return g;
 }
 
-void eval(string s, bool autonomous=true)
+void eval(string s, bool embedded=false)
 {
   initdefaults();
-  _eval(s,autonomous);
+  _eval(s,embedded);
   restoredefaults();
 }
 
-void eval(code s, bool autonomous=true)
+void eval(code s, bool embedded=false)
 {
   initdefaults();
-  _eval(s,autonomous);
+  _eval(s,embedded);
   restoredefaults();
 }
 

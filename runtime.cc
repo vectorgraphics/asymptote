@@ -79,8 +79,8 @@ const char *arraymismatch=
 }
 
 namespace loop {
-  void doIRunnable(absyntax::runnable *r, bool autonomous=true);
-  void doITree(absyntax::block *tree, bool autonomous=true);
+  void doIRunnable(absyntax::runnable *r, bool embedded=false);
+  void doITree(absyntax::block *tree, bool embedded=false);
 }
   
 namespace run {
@@ -2219,16 +2219,16 @@ void loadModule(stack *s)
 
 void evalString(stack *s)
 {
-  bool autonomous=pop<bool>(s);
+  bool embedded=pop<bool>(s);
   mem::string *str=pop<string *>(s);
   absyntax::block *ast = parser::parseString(*str);
-  loop::doITree(ast,autonomous);
+  loop::doITree(ast,embedded);
 }
 
 void evalAst(stack *s)
 {
-  bool autonomous=pop<bool>(s);
-  loop::doIRunnable(pop<absyntax::runnable *>(s),autonomous);
+  bool embedded=pop<bool>(s);
+  loop::doIRunnable(pop<absyntax::runnable *>(s),embedded);
 }
 
 void changeDirectory(stack *s)
