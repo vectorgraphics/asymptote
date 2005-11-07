@@ -2,8 +2,7 @@
  * stack.h
  * Andy Hammerlindl 2002/06/27
  * 
- * The general stack machine that will be used to run compiled camp
- * code.
+ * The general stack machine  used to run compiled camp code.
  *****/
 
 #ifndef STACK_H
@@ -21,10 +20,16 @@ namespace vm {
 class func;
 class program;
 class lambda;
+class importInitMap;
 
 class stack {
 public:
   typedef frame* vars_t;
+
+  struct importInitMap {
+    virtual ~importInitMap() {}
+    virtual lambda *operator[](mem::string) = 0;
+  };
 
 private:
   // stack for operands
@@ -37,15 +42,33 @@ private:
 
   // Move arguments from stack to frame.
   void marshall(size_t args, vars_t vars);
+
+  // The initializer functions for imports, indexed by name.
+  importInitMap *initMap;
+
+  // The stack stores a map of initialized imported modules by name, so that
+  // each module is initialized only once and each import refers to the same
+  // instance.
+  typedef mem::map<const mem::string,frame *> importInstanceMap;
+  importInstanceMap instMap;
+  
 public:
   stack();
   ~stack();
+
+  void setInitMap(importInitMap *i) {
+    initMap=i;
+  }
 
   // Runs the instruction listed in code, with vars as frame of variables.
   void run(program *code, vars_t vars);
 
   // Executes a function on top of the stack.
   void run(func *f);
+
+  // Put an import (indexed by name) on top of the stack, initializing it if
+  // necessary.
+  void load(mem::string index);
 
   // These are so that built-in functions can easily manipulate the stack
   void push(item next) {

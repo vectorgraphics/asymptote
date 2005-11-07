@@ -61,6 +61,8 @@ using std::ostringstream;
 #include "pipestream.h"
 #include "parser.h"
 
+#include "dec.h"
+
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
 #endif
@@ -76,6 +78,11 @@ const char *arraymismatch=
   "operation attempted on arrays of different lengths.";
 }
 
+namespace loop {
+  void doIRunnable(absyntax::runnable *r, bool embedded=false);
+  void doITree(absyntax::block *tree, bool embedded=false);
+}
+  
 namespace run {
   
 using vm::stack;
@@ -1655,6 +1662,11 @@ void setDefaultPen(stack *s)
   defaultpen=pen(resolvepen,*p);
 }
 
+void getDefaultPen(stack *s)
+{
+  s->push(defaultpen);
+}
+
 void invisiblePen(stack *s)
 {
   s->push(new pen(invisiblepen));
@@ -2153,6 +2165,11 @@ void atExit(stack *s)
   atExitFunction=pop<callable*>(s);
 }
   
+void getAtExit(stack *s)
+{
+  s->push(atExitFunction);
+}
+  
 // Merge output files  
 void merge(stack *s)
 {
@@ -2160,17 +2177,18 @@ void merge(stack *s)
   bool keep = pop<bool>(s);
   string *format = pop<string*>(s);
   string *args = pop<string*>(s);
+  array *files=pop<array*>(s);
   
-  if(settings::suppressStandard) {s->push(0); return;}
+  checkArray(files);
+  size_t size=files->size();
   
   if(!checkFormatString(*format)) return;
   
   ostringstream cmd,remove;
   cmd << Convert << " "+*args;
   
-  for(std::list<std::string>::iterator p=outnameStack->begin();
-      p != outnameStack->end(); ++p)
-    cmd << " " << *p;
+  for(size_t i=0; i < size; i++) 
+    cmd << " " << read<string>(files,i);
   
   string name=buildname(outname,format->c_str());
   cmd << " " << name;
@@ -2180,9 +2198,8 @@ void merge(stack *s)
     if(settings::verbose > 0) cout << "Wrote " << name << endl;
   
   if(!keep && !settings::keep)
-    for(std::list<std::string>::iterator p=outnameStack->begin();
-      p != outnameStack->end(); ++p)
-      unlink(p->c_str());
+    for(size_t i=0; i < size; i++) 
+      unlink(read<string>(files,i).c_str());
     
   if(ret == 0 && settings::view) {
     ostringstream cmd;
@@ -2193,40 +2210,25 @@ void merge(stack *s)
   s->push(ret);
 }
 
-void execute(stack *s)
+// Wrapper for the stack::load() method.
+void loadModule(stack *s)
 {
-  string Outname=outname;
-  string *str = pop<string*>(s);
-  outname = stripext(*str,suffix);
-
-  trans::genv ge;
-  ge.autoloads(outname);
-
-  absyntax::file *tree = parser::parseFile(*str);
-  trans::record *m = ge.loadModule(symbol::trans(outname),tree);
-  if (!em->errors()) {
-    lambda *l = ge.bootupModule(m);
-    assert(l);
-    vm::run(l);
-  }
-  outname=Outname;
+  string *index= pop<string*>(s);
+  s->load(*index);
 }
 
-void eval(stack *s)
+void evalString(stack *s)
 {
-  string *str = pop<string*>(s);
-  symbol *id = symbol::trans(*str);
-  absyntax::file *tree = parser::parseString(*str);
-  
-  trans::genv ge;
-  ge.autoloads("");
-  
-  trans::record *m = ge.loadModule(id,tree);
-  if (!em->errors()) {
-    lambda *l = ge.bootupModule(m);
-    assert(l);
-    vm::run(l);
-  }
+  bool embedded=pop<bool>(s);
+  mem::string *str=pop<string *>(s);
+  absyntax::block *ast = parser::parseString(*str);
+  loop::doITree(ast,embedded);
+}
+
+void evalAst(stack *s)
+{
+  bool embedded=pop<bool>(s);
+  loop::doIRunnable(pop<absyntax::runnable *>(s),embedded);
 }
 
 void changeDirectory(stack *s)
@@ -2239,7 +2241,7 @@ void changeDirectory(stack *s)
     error(buf.str().c_str());
   }
   char *p=getPath();
-  if(p && interact::interactive && !settings::suppressStandard) 
+  if(p && interact::interactive) 
     cout << p << endl;
   s->push<string>(p);
 }

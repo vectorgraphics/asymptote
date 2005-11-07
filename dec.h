@@ -21,14 +21,16 @@ class coenv;
 class access;
 }
 
-namespace types
-{
+namespace types {
 class ty;
 class formal;
 class signature;
 class function;
 }
 
+namespace vm {
+class lambda;
+}
 namespace absyntax {
 
 using mem::list;
@@ -44,14 +46,11 @@ public:
   virtual void prettyprint(ostream &out, int indent) = 0;
 
   // Returns the internal representation of the type.  This method can
-  // be called by stm::getType which does not report errors, so tacit is
+  // be called by exp::getType which does not report errors, so tacit is
   // needed to silence errors in this case.
   virtual types::ty *trans(coenv &e, bool tacit = false) = 0;
 
-  // Finds the import that the type is imported from.
-  // This necessary for record allocations.
-  // Returns 0 if the type ultimately refers to no imports.
-  virtual trans::import *getImport(coenv &e) = 0;
+  virtual trans::tyEntry *transAsTyEntry(coenv &e);
 };
 
 class nameTy : public ty {
@@ -67,11 +66,7 @@ public:
   void prettyprint(ostream &out, int indent);
 
   types::ty *trans(coenv &e, bool tacit = false);
-
-  trans::import *getImport(coenv &e)
-  {
-    return id->typeGetImport(e);
-  }
+  trans::tyEntry *transAsTyEntry(coenv &e);
 };
 
 class dimensions : public absyn {
@@ -115,11 +110,6 @@ public:
   void addOps(coenv &e, types::ty* t, types::ty *ct);
   
   types::ty *trans(coenv &e, bool tacit = false);
-
-  trans::import *getImport(coenv &e)
-  {
-    return cell->getImport(e);
-  }
 };
 
 // Runnable is anything that can be executed by the program, including
@@ -156,6 +146,8 @@ public:
     trans(e);
   }
 
+  virtual vm::lambda *transAsCodelet(coenv &e);
+
   // For functions that return a value, we must guarantee that they end
   // with a return statement.  This checks for that condition.
   virtual bool returns()
@@ -166,6 +158,51 @@ public:
   virtual bool allowPermissions()
     { return false; }
 }; 
+
+class block : public runnable {
+public: // NOTE: For interactive codelet.  Fix this.
+  list<runnable *> stms;
+
+  // If the runnables should be interpreted in their own scope.
+  bool scope;
+
+protected:
+  void prettystms(ostream &out, int indent);
+
+public:
+  block(position pos, bool scope=true)
+    : runnable(pos), scope(scope) {}
+
+  // To ensure list deallocates properly.
+  virtual ~block() {}
+
+  void add(runnable *r) {
+    stms.push_back(r);
+  }
+
+  void prettyprint(ostream &out, int indent);
+
+  void trans(coenv &e);
+
+  void transAsField(coenv &e, record *r);
+
+  void transAsRecordBody(coenv &e, record *r);
+
+  void transAsFile(coenv &e, record *r);
+
+  // A block is guaranteed to return iff one of the runnables is guaranteed to
+  // return.
+  // This is conservative in that
+  //
+  // int f(int x)
+  // {
+  //   if (x==1) return 0;
+  //   if (x!=1) return 1;
+  // }
+  //
+  // is not guaranteed to return.
+  bool returns();
+};
 
 class modifierList : public absyn {
   list<trans::permission> perms;
@@ -205,7 +242,7 @@ public:
   trans::permission getPermission();
 };
 
-// Mpdifiers of static or dynamic can change the way declarations and
+// Modifiers of static or dynamic can change the way declarations and
 // statements are encoded.
 class modifiedRunnable : public runnable {
   modifierList *mods;
@@ -214,6 +251,11 @@ class modifiedRunnable : public runnable {
 public:
   modifiedRunnable(position pos, modifierList *mods, runnable *body)
     : runnable(pos), mods(mods), body(body)  {}
+
+  modifiedRunnable(position pos, trans::permission perm, runnable *body)
+    : runnable(pos), mods(new modifierList(pos)), body(body) {
+    mods->add(perm);
+  }
 
   void prettyprint(ostream &out, int indent);
 
@@ -237,6 +279,7 @@ public:
   virtual void prettyprint(ostream &out, int indent);
 
   virtual types::ty *getType(types::ty *base, coenv &, bool = false);
+  virtual trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e);
 
   virtual symbol *getName()
     { return id; }
@@ -258,6 +301,7 @@ public:
   void prettyprint(ostream &out, int indent);
 
   types::ty *getType(types::ty *base, coenv &e, bool tacit = false);
+  virtual trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e);
 };
 
 class decid : public absyn {
@@ -278,8 +322,8 @@ public:
   virtual void transAsField(coenv &e, record *r, types::ty *base);
 
   // Translate, but add the names in as types rather than variables. 
-  virtual void transAsTypedef(coenv &e, types::ty *base);
-  virtual void transAsTypedefField(coenv &e, types::ty *base, record *r);
+  virtual void transAsTypedef(coenv &e, trans::tyEntry *base);
+  virtual void transAsTypedefField(coenv &e, trans::tyEntry *base, record *r);
 };
 
 class decidlist : public absyn {
@@ -302,8 +346,8 @@ public:
   virtual void transAsField(coenv &e, record *r, types::ty *base);
 
   // Translate, but add the names in as types rather than variables. 
-  virtual void transAsTypedef(coenv &e, types::ty *base);
-  virtual void transAsTypedefField(coenv &e, types::ty *base, record *r);
+  virtual void transAsTypedef(coenv &e, trans::tyEntry *base);
+  virtual void transAsTypedefField(coenv &e, trans::tyEntry *base, record *r);
 };
 
 class dec : public runnable {
@@ -348,12 +392,13 @@ public:
 
 class importdec : public dec {
   symbol *id;
-
-  void initialize(coenv &e, record *m, access *a);
+  std::string filename;
 
 public:
+  importdec(position pos, symbol *id, std::string filename)
+    : dec(pos), id(id), filename(filename) {}
   importdec(position pos, symbol *id)
-    : dec(pos), id(id) {}
+    : dec(pos), id(id), filename(*id) {}
 
   void prettyprint(ostream &out, int indent);
   void loadFailed(coenv &e);
@@ -361,11 +406,66 @@ public:
   void trans(coenv &e);
 
   void transAsField(coenv &e, record *r);
+};
 
-  // PUBLIC and PRIVATE modifiers are meaningless to imports, so we do
-  // not allow them.
-  bool allowPermissions()
-    { return false; }
+// An explode declaration dumps all of the fields and types of a record into the
+// local scope.
+class explodedec : public dec {
+  name *id;
+
+public:
+  explodedec(position pos, name *id)
+    : dec(pos), id(id) {}
+
+  void prettyprint(ostream &out, int indent);
+
+  void trans(coenv &e);
+
+  void transAsField(coenv &e, record *r);
+};
+
+class usedec : public dec {
+  block base;
+
+public:
+  usedec(position pos, symbol *id, std::string filename)
+    : dec(pos), base(pos, false) {
+    base.add(new importdec(pos, id, filename));
+    base.add(new explodedec(pos, new simpleName(pos, id)));
+  }
+
+  usedec(position pos, symbol *id)
+    : dec(pos), base(pos, false) {
+    base.add(new importdec(pos, id));
+    base.add(new explodedec(pos, new simpleName(pos, id)));
+  }
+
+  void trans(coenv &e) {
+    base.trans(e);
+  }
+
+  void transAsField(coenv &e, record *r) {
+    base.transAsField(e, r);
+  }
+};
+
+// Parses the file given, and translates the resulting runnables as if they
+// occured at this place in the code.
+class includedec : public dec {
+  std::string filename;
+
+public:
+  includedec(position pos, std::string filename)
+    : dec(pos), filename(filename) {}
+  includedec(position pos, symbol *id)
+    : dec(pos), filename(*id) {}
+
+  void prettyprint(ostream &out, int indent);
+  void loadFailed(coenv &e);
+
+  void trans(coenv &e);
+
+  void transAsField(coenv &e, record *r);
 };
 
 // Types defined from others in typedef.
@@ -390,13 +490,13 @@ public:
 // A struct declaration.
 class recorddec : public dec {
   symbol *id;
-  blockStm *body;
+  block *body;
 
   types::function *opType(record *r);
   void addOps(coenv &e, record *r);
 
 public:
-  recorddec(position pos, symbol *id, blockStm *body)
+  recorddec(position pos, symbol *id, block *body)
     : dec(pos), id(id), body(body) {}
 
   virtual ~recorddec()
@@ -409,6 +509,8 @@ public:
   void transAsField(coenv &e, record *parent);
 };
 
+// Returns a runnable that facilitate the autoplain feature.
+runnable *autoplainRunnable();
 
 } // namespace absyntax
 

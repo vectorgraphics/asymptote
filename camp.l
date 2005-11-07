@@ -279,10 +279,8 @@ and                {adjust(); return AND; }
 cycle              {makesymbol(); return CYCLE; }
 controls           {makesymbol(); return CONTROLS; }
 tension            {makesymbol(); return TENSION; }
-tension3           {makesymbol(); return TENSION; }
 atleast            {makesymbol(); return ATLEAST; }
 curl               {makesymbol(); return CURL; }
-curl3              {makesymbol(); return CURL; }
 
 if                 {adjust(); return IF; }
 else               {adjust(); return ELSE; }
@@ -295,7 +293,11 @@ continue           {adjust(); return CONTINUE; }
 struct             {adjust(); return STRUCT; }
 typedef            {adjust(); return TYPEDEF; }
 new                {adjust(); return NEW; }
-import             {adjust(); return IMPORT; }
+access             {adjust(); return IMPORT; }
+import             {adjust(); return USE; }
+unravel            {adjust(); return EXPLODE; }
+include            {adjust(); return INCLUDE; }
+quote              {adjust(); return QUOTE; }
 static             {adjust(); makemod(trans::EXPLICIT_STATIC);
                               return MODIFIER; }
 public             {adjust(); makeperm(trans::PUBLIC); return PERM; }

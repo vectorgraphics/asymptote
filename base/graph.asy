@@ -1,4 +1,4 @@
-import math;
+private import math;
 
 static public real ticksize=1mm;
 static public real Ticksize=2*ticksize;
@@ -1194,10 +1194,16 @@ void autoscale(picture pic=currentpicture, axis axis)
   }
 }
 
+bool finite(picture pic=currentpicture) 
+{
+  return finite(pic.userMin) && finite(pic.userMax);
+}
+	      
+
 void checkaxis(picture pic, axis axis, bool ticks) 
 {
   axis(pic,axis);
-  if((!axis.extend || ticks) && pic.empty())
+  if((!axis.extend || ticks) && !finite(pic))
     abort("axis with ticks or unextended axis called on empty picture");
 }
 
@@ -1454,7 +1460,7 @@ picture secondaryX(picture primary=currentpicture, void f(picture))
   if(!primary.scale.set) abort(noprimary);
   picture pic;
   f(pic);
-  if(pic.empty()) abort("empty secondaryX picture");
+  if(!finite(pic)) abort("empty secondaryX picture");
   bounds a=autoscale(pic.userMin.x,pic.userMax.x,pic.scale.x.scale);
   real bmin=pic.scale.x.automin() ? a.min : pic.userMin.x;
   real bmax=pic.scale.x.automax() ? a.max : pic.userMax.x;
@@ -1485,7 +1491,7 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
   if(!primary.scale.set) abort(noprimary);
   picture pic;
   f(pic);
-  if(pic.empty()) abort("empty secondaryY picture");
+  if(!finite(pic)) abort("empty secondaryY picture");
   bounds a=autoscale(pic.userMin.y,pic.userMax.y,pic.scale.y.scale);
   real bmin=pic.scale.y.automin() ? a.min : pic.userMin.y;
   real bmax=pic.scale.y.automax() ? a.max : pic.userMax.y;

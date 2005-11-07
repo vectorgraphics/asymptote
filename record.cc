@@ -11,14 +11,13 @@
 
 namespace types {
 
-record::record(symbol *name, frame *level, vm::lambda *init)
+record::record(symbol *name, frame *level)
   : ty(ty_record),
     name(name),
     level(level),
-    te(), ve(),
-    init(init)
+    init(new vm::lambda),
+    e()
 {
-  assert(level);
   assert(init);
 }
 
@@ -32,9 +31,7 @@ record *record::newRecord(symbol *id, bool statically)
     
   frame *level = new frame(underlevel, 0);
 
-  vm::lambda *init = new vm::lambda;
-
-  record *r = new record(id, level, init);
+  record *r = new record(id, level);
   return r;
 }
 

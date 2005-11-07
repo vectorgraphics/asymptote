@@ -77,7 +77,7 @@ int safe=1;
 int autoplain=1;
 int parseonly=0;
 int translate=0;
-int listonly=0;
+int listvariables=0;
 int bwonly=0;
 int grayonly=0;
 int rgbonly=0;
@@ -88,10 +88,7 @@ int clearGUI=0;
 int ignoreGUI=0;
 camp::pair postscriptOffset=0.0;
 int origin=CENTER;
-int laat=0;
   
-bool suppressStandard=false;
-
 int ShipoutNumber=0;
 string paperType;
 double pageWidth;
@@ -103,7 +100,6 @@ const string suffix="asy";
 const string guisuffix="gui";
   
 string outname;
-std::list<string> *outnameStack;
 
 bool TeXinitialized=false;
 
@@ -176,7 +172,6 @@ void setOptions(int argc, char *argv[])
   {
     {"verbose", 0, 0, 'v'},
     {"help", 0, 0, 'h'},
-//    {"laat", 0, &laat, 1}, // Disabled (under construction)
     {"safe", 0, &safe, 1},
     {"unsafe", 0, &safe, 0},
     {"View", 0, &view, 1},
@@ -237,7 +232,7 @@ void setOptions(int argc, char *argv[])
       texmode=1;
       break;
     case 'l':
-      listonly=1;
+      listvariables=1;
       break;
     case 'd':
       debug=1;
@@ -297,7 +292,7 @@ void setOptions(int argc, char *argv[])
     exit(1);
   }
   
-  if(numArgs() == 0 && !listonly) {
+  if(numArgs() == 0 && !listvariables) {
     view=1;
     interact::interactive=true;
     if(trap == -1) trap=0;

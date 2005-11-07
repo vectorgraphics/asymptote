@@ -190,6 +190,7 @@ void stringTime(vm::stack *s);
 void newPen(vm::stack *s);
 void resetdefaultPen(vm::stack *s);
 void setDefaultPen(vm::stack *s);
+void getDefaultPen(vm::stack *s);
 void invisiblePen(vm::stack *s);
 void grayPen(vm::stack *s);
 void rgbPen(vm::stack *s);
@@ -254,6 +255,7 @@ void stringFilePrefix(vm::stack *s);
 void system(vm::stack *s);
 void abort(vm::stack *s);
 void atExit(vm::stack *s);
+void getAtExit(vm::stack *s);
 void changeDirectory(vm::stack *s);
 void scrollLines(vm::stack *s);
   
@@ -261,8 +263,10 @@ void scrollLines(vm::stack *s);
 void merge(vm::stack *s);
   
 // Execute an asymptote file
+void loadModule(vm::stack *s);
 void execute(vm::stack *s);
-void eval(vm::stack *s);
+void evalString(vm::stack *s);
+void evalAst(vm::stack *s);
   
 // I/O Routines
 void standardOut(vm::stack *s);

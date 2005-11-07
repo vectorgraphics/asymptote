@@ -17,6 +17,7 @@
 namespace absyntax {
 using namespace types;
 using trans::access;
+using trans::qualifiedAccess;
 using trans::action;
 using trans::READ;
 using trans::WRITE;
@@ -83,6 +84,12 @@ types::ty *name::getType(coenv &e, bool tacit)
 }
 
 
+varEntry *simpleName::getVarEntry(coenv &e)
+{
+  types::ty *t=signatureless(varGetType(e));
+  return t ? e.e.lookupVarByType(id, t) : 0;
+}
+  
 void simpleName::varTrans(action act, coenv &e, types::ty *target)
 {
   //varEntry *v = e.e.lookupExactVar(id, target->getSignature());
@@ -119,7 +126,6 @@ types::ty *simpleName::typeTrans(coenv &e, bool tacit)
     return t;
   }
   else {
-    // NOTE: Could call getModule here.
     if (!tacit) {
       em->error(getPos());
       *em << "no type of name \'" << *id << "\'";
@@ -128,9 +134,15 @@ types::ty *simpleName::typeTrans(coenv &e, bool tacit)
   }
 }
 
-trans::import *simpleName::typeGetImport(coenv &e)
+tyEntry *simpleName::tyEntryTrans(coenv &e)
 {
-  return e.e.lookupTypeImport(id);
+  tyEntry *ent = e.e.lookupTyEntry(id);
+  if (!ent) {
+    em->error(getPos());
+    *em << "no type of name \'" << *id << "\'";
+    return new tyEntry(primError(), 0);
+  }
+  return ent;
 }
 
 void simpleName::prettyprint(ostream &out, int indent)
@@ -140,7 +152,7 @@ void simpleName::prettyprint(ostream &out, int indent)
 }
 
 
-record *qualifiedName::getRecord(types::ty *t, bool tacit)
+record *qualifiedName::castToRecord(types::ty *t, bool tacit)
 {
   switch (t->kind) {
     case ty_overloaded:
@@ -198,8 +210,7 @@ bool qualifiedName::varTransVirtual(action act, coenv &e,
 void qualifiedName::varTransField(action act, coenv &e,
                                   types::ty *target, record *r)
 {
-  //v = r->lookupExactVar(id, target->getSignature());
-  varEntry *v = r->lookupVarByType(id, target);
+  varEntry *v = r->e.lookupVarByType(id, target);
 
   if (v) {
     frame *f = qualifier->frameTrans(e);
@@ -224,7 +235,7 @@ void qualifiedName::varTrans(action act, coenv &e, types::ty *target)
   if (varTransVirtual(act, e, target, qt))
     return;
 
-  record *r = getRecord(qt);
+  record *r = castToRecord(qt);
   if (r)
     varTransField(act, e, target, r);
 }
@@ -238,19 +249,34 @@ types::ty *qualifiedName::varGetType(coenv &e)
   if (t)
     return t;
 
-  record *r = getRecord(qt, true);
-  return r ? r->varGetType(id) : 0;
+  record *r = castToRecord(qt, true);
+  return r ? r->e.varGetType(id) : 0;
+}
+
+trans::varEntry *qualifiedName::getVarEntry(coenv &e)
+{
+  varEntry *qv = qualifier->getVarEntry(e);
+
+  types::ty *qt = qualifier->getType(e, true);
+  record *r = castToRecord(qt, true);
+  if (r) {
+    types::ty *t = signatureless(r->e.varGetType(id));
+    varEntry *v = t ? r->e.lookupVarByType(id, t) : 0;
+    return trans::qualifyVarEntry(qv,v);
+  }
+  else
+    return qv;
 }
 
 types::ty *qualifiedName::typeTrans(coenv &e, bool tacit)
 {
-  types::ty *rt = qualifier->typeTrans(e, tacit);
+  types::ty *rt = qualifier->getType(e, tacit);
 
-  record *r = getRecord(rt, tacit);
+  record *r = castToRecord(rt, tacit);
   if (!r)
     return primError();
 
-  types::ty *t = r->lookupType(id);
+  types::ty *t = r->e.lookupType(id);
   if (t) {
     if (t->kind == types::ty_overloaded) {
       if (!tacit) {
@@ -271,9 +297,38 @@ types::ty *qualifiedName::typeTrans(coenv &e, bool tacit)
   }
 }
 
-trans::import *qualifiedName::typeGetImport(coenv &e)
+tyEntry *qualifiedName::tyEntryTrans(coenv &e)
 {
-  return qualifier->typeGetImport(e);
+  types::ty *rt = qualifier->getType(e, false);
+
+  record *r = castToRecord(rt, false);
+  if (!r)
+    return new tyEntry(primError(), 0);
+
+  tyEntry *ent = r->e.lookupTyEntry(id);
+  if (!ent) {
+    em->error(getPos());
+    *em << "no matching type of name \'" << *id << "\' in \'"
+        << *r << "\'";
+    return new tyEntry(primError(), 0);
+  }
+
+  return trans::qualifyTyEntry(qualifier->getVarEntry(e), ent);
+}
+
+frame *qualifiedName::frameTrans(coenv &e)
+{
+  types::ty *t=signatureless(varGetType(e));
+
+  if (t)
+    if (t->kind == types::ty_record) {
+      varTrans(READ, e, t);
+      return ((record *)t)->getLevel();
+    }
+    else 
+      return 0;
+  else
+    return qualifier->frameTrans(e);
 }
 
 void qualifiedName::prettyprint(ostream &out, int indent)

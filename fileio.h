@@ -349,10 +349,6 @@ void ifile::iread(T& val)
 {
   if(standard) clear();
   if(errorstream::interrupt) throw interrupted();
-  if(settings::suppressStandard && standard) {
-    val=T();
-    typein.Read(val);
-  }
   else {
     ignoreComment();
     val=T();

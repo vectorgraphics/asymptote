@@ -24,18 +24,21 @@
 #include "fileio.h"
 
 #include "stack.h"
+#include "runtime.h"
 
 using namespace settings;
 using std::list;
 
 using absyntax::file;
 using trans::genv;
+using trans::coenv;
+using trans::env;
+using trans::coder;
 using types::record;
 
 errorstream *em;
 using interact::interactive;
 using interact::virtualEOF;
-using interact::rejectline;
 
 #ifdef HAVE_LIBSIGSEGV
 void stackoverflow_handler (int, stackoverflow_context_t)
@@ -87,38 +90,38 @@ namespace loop {
 void init()
 {
   ShipoutNumber=0;
-  outnameStack=new list<string>;
-  em = new errorstream();
+  if (!em)
+    em = new errorstream();
 }
 
 void purge()
 {
-  delete em; em = 0;
-  delete outnameStack; outnameStack = 0;
+  em->clear();
   outname="";
-//  camp::file::free();
+
 #ifdef USEGC
   GC_gcollect();
 #endif
 }
 
-void doTranslate(genv& ge, record *m)
+void doPrint(genv& ge, record *m)
 {
-  lambda *l = ge.bootupModule(m);
   // NOTE: Should make it possible to show more code.
-  print(cout, l->code);
-  cout << "\n";
   print(cout, m->getInit()->code);
 }
 
-void doRun(genv& ge, record *m)
+// Run (an already translated) module of the given filename.
+void doRun(genv& ge, std::string filename)
 {
-  lambda *l = ge.bootupModule(m);
   setPath(startPath());
-  vm::run(l);
+
+  vm::stack s;
+  s.setInitMap(ge.getInitMap());
+  s.load(filename);
+  run::exitFunction(&s);
 }
 
-void body(string filename) // TODO: Refactor
+void body(string filename)
 {
   string basename = stripext(filename,suffix);
   try {
@@ -127,29 +130,21 @@ void body(string filename) // TODO: Refactor
     if(outname.empty())
       outname=(filename == "-") ? "out" : stripDir(basename);
 
-    genv ge;
-    ge.autoloads(outname);
-    if(settings::listonly) {
-      ge.list();
-      if(filename == "") return;
-    }
-    
-    absyntax::file *tree = interactive ?
-      parser::parseInteractive() : parser::parseFile(filename);
-    em->sync();
-
     if (parseonly) {
+      absyntax::file *tree = parser::parseFile(filename);
+      em->sync();
+
       if (!em->errors())
         tree->prettyprint(cout, 0);
       else status=false;
     } else {
-      record *m = ge.loadModule(symbol::trans(basename),tree);
-      if(listonly) return;
+      genv ge;
+      record *m = ge.getModule(symbol::trans(basename),filename);
       if (!em->errors()) {
 	if (translate)
-	  doTranslate(ge,m);
+	  doPrint(ge,m);
 	else
-	  doRun(ge,m);
+	  doRun(ge,filename);
       } else status=false;
     }
   } catch (std::bad_alloc&) {
@@ -160,34 +155,9 @@ void body(string filename) // TODO: Refactor
   }
 }
 
-void doInteractive()
-{
-  while (virtualEOF) {
-    virtualEOF=false;
-    init();
-    try {
-      body("-");
-    } catch (interrupted&) {
-      if(em) em->Interrupt(false);
-      cerr << endl;
-      run::cleanup();
-    }
-    rejectline=em->warnings();
-    if(rejectline) {
-      virtualEOF=true;
-      run::cleanup();
-    }
-    purge();
-  }
-}
-
 void doBatch()
 {
-  if(listonly && numArgs() == 0) {
-    init();
-    body("");
-    purge();
-  } else for(int ind=0; ind < numArgs() ; ind++) {
+  for(int ind=0; ind < numArgs() ; ind++) {
     init();
     body(getArg(ind));
     purge();
@@ -196,48 +166,151 @@ void doBatch()
 
 typedef vm::interactiveStack istack;
 using absyntax::runnable;
-using absyntax::file;
+using absyntax::block;
 
-void doIRunnable(absyntax::runnable *r, genv &ge, istack &s) {
-  lambda *codelet=ge.trans(r);
-  print(cout, codelet->code);
-  cout << "\n";
-  s.run(codelet);
-}
+mem::list<coenv*> estack;
+mem::list<vm::interactiveStack*> sstack;
 
-void doITree(file *ast, genv &ge, istack &s) {
-  for (list<runnable *>::iterator r=ast->stms.begin();
-       r!=ast->stms.end();
-       ++r)
-    doIRunnable(*r, ge, s);
-}
-
-void doIFile(const char *name,  genv &ge, istack &s) {
-  cout << "ifile: " << name << endl;
-  file *ast=parser::parseFile(name);
-  assert(ast);
-  doITree(ast, ge, s);
-}
-
-void doIBatch()
-{
-  cout << "ibatch\n";
-  if(listonly && numArgs() == 0) {
-    init();
-    body("");
-    purge();
+// Abstract base class for the core object being run in line-at-a-time mode, it
+// may be a runnable, block, file, or interactive prompt.
+struct icore {
+  virtual ~icore() {}
+  
+  virtual void run(coenv &e, istack &s) = 0;
+  
+  // Wrapper for run used to execute eval within the current environment.
+  void wrapper(coenv &e, istack &s) {
+    estack.push_back(&e);
+    sstack.push_back(&s);
+    run(e,s);
+    estack.pop_back();
+    sstack.pop_back();
   }
-  else {
-    init();
+  
+  void embedded() {
+    assert(estack.size() && sstack.size());
+    run(*(estack.back()),*(sstack.back()));
+  };
+};
 
-    genv ge;
-    vm::interactiveStack s;
+struct irunnable : public icore {
+  runnable *r;
 
-    for(int ind=0; ind < numArgs() ; ind++)
-      doIFile(getArg(ind), ge, s);
+  irunnable(runnable *r)
+    : r(r) {}
 
-    purge();
+  void run(coenv &e, istack &s) {
+    e.e.beginScope();
+    lambda *codelet=r->transAsCodelet(e);
+    em->sync();
+    if (!em->errors()) {
+      s.run(codelet);
+    } else {
+      e.e.endScope(); // Remove any changes to the environment.
+      status=false;
+      em->clear();
+    }
   }
+};
+
+struct itree : public icore {
+  absyntax::block *ast;
+
+  itree(absyntax::block *ast)
+    : ast(ast) {}
+
+  void run(coenv &e, istack &s) {
+    for(list<runnable *>::iterator r=ast->stms.begin(); r != ast->stms.end();
+	++r)
+      irunnable(*r).wrapper(e, s);
+  }
+};
+
+struct iprompt : public icore {
+  void run(coenv &e, istack &s) {
+    while (virtualEOF) {
+      virtualEOF=false;
+      try {
+        file *ast = parser::parseInteractive();
+        assert(ast);
+        itree(ast).wrapper(e, s);
+      } catch (interrupted&) {
+        if(em) em->Interrupt(false);
+        cout << endl;
+      } catch (...) {
+        status=false;
+      }
+    }
+  }
+};
+
+void doICore(icore &i, bool embedded=false) {
+  try {
+    assert(em && !em->errors());
+    if(embedded) i.embedded();
+    else {
+      genv ge;
+      env base_env(ge);
+      coder base_coder;
+      coenv e(base_coder,base_env);
+
+      vm::interactiveStack s;
+      s.setInitMap(ge.getInitMap());
+
+      if (settings::autoplain)
+	irunnable(absyntax::autoplainRunnable()).wrapper(e, s);
+
+      // Now that everything is set up, run the core.
+      i.wrapper(e, s);
+
+      if(settings::listvariables)
+	base_env.list();
+    
+      run::exitFunction(&s);
+      em->clear();
+    }
+  } catch (std::bad_alloc&) {
+    cerr << "error: out of memory" << endl;
+    status=false;
+  } catch(handled_error) {
+    status=false;
+  }
+}
+      
+void doIRunnable(runnable *r, bool embedded=false) {
+  assert(r);
+  irunnable i(r);
+  doICore(i,embedded);
+}
+
+void doITree(block *tree, bool embedded=false) {
+  assert(tree);
+  itree i(tree);
+  doICore(i,embedded);
+}
+
+void doIFile(const string& filename) {
+  init();
+
+  string basename = stripext(filename,suffix);
+  if (verbose) cout << "Processing " << basename << endl;
+  if(outname.empty())
+    outname=stripDir(basename);
+
+  doITree((filename == "" ? parser::parseString 
+	   : parser::parseFile)(filename));
+
+  purge();
+}
+
+void doIPrompt() {
+  init();
+  outname="out";
+  
+  iprompt i;
+  doICore(i);
+
+  purge();
 }
 
 } // namespace loop
@@ -260,17 +333,15 @@ int main(int argc, char *argv[])
 
   try {
     if (interactive)
-      loop::doInteractive();
-    else if (laat) {
-      cout << "laat = " << laat << endl;
-      loop::doIBatch();
-    }
+      loop::doIPrompt();
     else
-      loop::doBatch();
+      if(numArgs() == 0) {
+	loop::doIFile("");
+      } else for(int ind=0; ind < numArgs() ; ind++)
+	loop::doIFile(string(getArg(ind)));
   } catch (...) {
     cerr << "error: exception thrown.\n";
     status=false;
   }
-    
   return status ? 0 : 1;
 }

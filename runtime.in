@@ -127,21 +127,24 @@ string fileprefix()
 }
 
 // Interactive mode
-void interact(bool interaction)
-{
-  if(interact::interactive) settings::suppressStandard=!interaction;
-}
-
 bool interact()
 {
-  return interact::interactive && !settings::suppressStandard;
+  return interact::interactive;
+}
+
+void uptodate(bool b)
+{
+  interact::uptodate=b;
+}
+
+bool uptodate()
+{
+  return interact::uptodate;
 }
 
 // System commands
 int system(string *str)
 {
-  if(settings::suppressStandard) return 0;
-  
   if(safe) error("system() call disabled; override with option -unsafe");
   else return System(str->c_str());
 }

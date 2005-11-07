@@ -7,7 +7,6 @@
  *****/
 
 public bool shipped=false;
-public bool uptodate=true;
 static public pen currentpen;
 static pen nullpen=linewidth(0);
 static path nullpath;
@@ -1037,9 +1036,9 @@ struct picture {
   }
   
   bool empty() {
-    return !(finite(userMin) && finite(userMax));
+    return nodes.length == 0;
   }
-	      
+  
   // Cache the current user-space bounding box
   void userBox(pair min, pair max) {
     userMin=minbound(userMin,min);
@@ -1047,19 +1046,19 @@ struct picture {
   }
   
   void add(drawerBound d) {
-    if(interact()) uptodate=false;
+    uptodate(false);
     nodes.push(d);
   }
 
   void add(drawer d) {
-    if(interact()) uptodate=false;
+    uptodate(false);
     nodes.push(new void (frame f, transform t, transform T, pair, pair) {
       d(f,t*T);
     });
   }
 
   void clip(drawer d) {
-    if(interact()) uptodate=false;
+    uptodate(false);
     bounds.clip(userMin,userMax);
     nodes.push(new void (frame f, transform t, transform T, pair, pair) {
       d(f,t*T);
@@ -1175,7 +1174,7 @@ struct picture {
   // Calculate the sizing constants for the given array and maximum size.
   scaling calculateScaling(coord[] coords, real size) {
     import simplex;
-    simplex.problem p;
+    simplex.problem p=new simplex.problem;
    
     void addMinCoord(coord c) {
       // (a*user + b) + truesize >= 0:
@@ -2002,7 +2001,7 @@ struct Label {
     if(p != nullpen) write(file,", pen=",p);
     if(!defaultangle) write(file,", angle=",angle);
     if(shift != 0) write(file,", shift=",shift);
-    plain.write(file,e);
+    write(file,"",e);
   }
   
   real relative() {
@@ -2278,7 +2277,8 @@ static bool NoWait=false;
 
 // Draw and/or fill a box on frame dest using the dimensions of frame src.
 guide box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
-	  pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+	  pen p=currentpen, filltype filltype=NoFill,
+  	  bool put=filltype == UnFill ? Above : Below)
 {
   pair z=(xmargin,ymargin);
   int sign=filltype == NoFill ? 1 : -1;
@@ -2292,7 +2292,8 @@ guide box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
 }
 
 guide ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
-	      pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+	      pen p=currentpen, filltype filltype=NoFill,
+  	  bool put=filltype == UnFill ? Above : Below)
 {
   pair m=min(src);
   pair M=max(src);
@@ -2310,14 +2311,16 @@ guide ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
 }
 
 guide box(frame f, Label L, real xmargin=0, real ymargin=xmargin,
-	  pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+	  pen p=currentpen, filltype filltype=NoFill,
+  	  bool put=filltype == UnFill ? Above : Below)
 {
   add(f,L);
   return box(f,xmargin,ymargin,p,filltype,put);
 }
 
 guide ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
-	      pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+	      pen p=currentpen, filltype filltype=NoFill,
+	      bool put=filltype == UnFill ? Above : Below)
 {
   add(f,L);
   return ellipse(f,xmargin,ymargin,p,filltype,put);
@@ -2325,7 +2328,7 @@ guide ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
 
 void box(picture pic=currentpicture, Label L,
 	 real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-	 filltype filltype=NoFill, bool put=Above)
+	 filltype filltype=NoFill, bool put=filltype == UnFill ? Above : Below)
 {
   pic.add(new void (frame f, transform t) {
     transform t0=shiftless(t);
@@ -2348,7 +2351,7 @@ frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=xmargin,
 	   pen p=currentpen, filltype filltype=NoFill)
 {
   frame f=pic.fit(max(pic.xsize-2*xmargin,0),max(pic.ysize-2*ymargin,0));
-  box(f,xmargin,ymargin,p,filltype,Below);
+  box(f,xmargin,ymargin,p,filltype);
   return f;
 }
 
@@ -2466,7 +2469,29 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
 	  Transform ? GUIlist[GUIFilenum].Delete : noDeletes);
   ++GUIFilenum;
   shipped=true;
-  uptodate=true;
+  uptodate(true);
+}
+
+
+typedef void markroutine(picture pic=currentpicture, path g, frame f);
+
+// On picture pic, add to every node of path g the frame f.
+void marknodes(picture pic=currentpicture, path g, frame f) {
+  for(int i=0; i <= length(g); ++i)
+    add(point(g,i),pic,f);
+}
+
+// On picture pic, add to path g the frame f, evenly spaced in arclength.
+markroutine markuniform(int n) {
+  return new void(picture pic=currentpicture, path g, frame f) {
+    if(n == 0) return;
+    if(n == 1) add(relpoint(g,0.5),pic,f);
+    else {
+      real width=1/(n-1);
+      for(int i=0; i < n; ++i)
+	add(relpoint(g,i*width),pic,f);
+    }
+  };
 }
 
 
@@ -2540,6 +2565,7 @@ void shipout(string prefix=defaultfilename, orientation orientation=Portrait,
 
 void erase(picture pic=currentpicture)
 {
+  uptodate(false);
   pic.erase();
 }
 
@@ -2567,6 +2593,17 @@ projection operator init() {return new projection;}
   
 public projection currentprojection;
 
+typedef void exitfcn();
+static void nullexitfcn();
+
+void exitfunction()
+{
+  if(interact()) {
+    if(!uptodate()) shipout();
+  } else if(!shipped && !currentpicture.empty()) shipout();
+}
+atexit(exitfunction);
+
 // A restore thunk is a function, that when called, restores the graphics state
 // to what it was when the restore thunk was created.
 typedef void restoreThunk();
@@ -2578,16 +2615,18 @@ void restore()
 }
 
 restoreThunk buildRestoreThunk() {
+  pen defaultpen=getdefaultpen();
   pen p=currentpen;
   picture pic=currentpicture.copy();
-  projection P=currentprojection;
+  projection P=currentprojection.copy();
   restoreThunk r=restore;
-  return new void () {
+  return new void() {
+    defaultpen(defaultpen);
     currentpen=p;
     currentpicture=pic;
     currentprojection=P;
+    uptodate(false);
     restore=r;
-    uptodate=false;
   };
 }
 
@@ -2595,6 +2634,36 @@ restoreThunk buildRestoreThunk() {
 restoreThunk save() 
 {
   return restore=buildRestoreThunk();
+}
+
+void restoredefaults()
+{
+  write("warning: restoredefaults called with no matching savedefaults");
+}
+
+restoreThunk buildRestoreDefaults() {
+  pen defaultpen=getdefaultpen();
+  defaultpen();
+  exitfcn atexit=atexit();
+  restoreThunk r=restoredefaults;
+  return new void() {
+    defaultpen(defaultpen);
+    atexit(atexit);
+    restoredefaults=r;
+  };
+}
+
+// Save the current state, so that restore will put things back in that state.
+restoreThunk savedefaults() 
+{
+  return restoredefaults=buildRestoreDefaults();
+}
+
+void initdefaults()
+{
+  savedefaults();
+  defaultpen();
+  atexit(nullexitfcn);
 }
 
 real cap(real x, real m, real M, real bottom, real top)
@@ -2971,7 +3040,7 @@ string math(string s)
   return "$"+s+"$";
 }
 
-string include(string name, string options="")
+string includegraphics(string name, string options="")
 {
   if(options != "") options="["+options+"]";
   return "\includegraphics"+options+"{"+name+"}";
@@ -2985,15 +3054,6 @@ string minipage(string s, real width=100pt)
 string math(real x)
 {
   return math((string) x);
-}
-
-static bool Keep=true;
-static bool Purge=false;			  
-
-// delay is in units of 0.01s
-int gifmerge(int loops=0, int delay=50, bool keep=Purge)
-{
-  return merge("-loop " +(string) loops+" -delay "+(string)delay,"gif",keep);
 }
 
 // Return the sequence 0,1,...n-1
@@ -3189,14 +3249,6 @@ real max(real[][][] a) {
 
 void gui() {gui(1);}
 
-void atexit()
-{
-  if(interact()) {
-    if(!uptodate) shipout();
-  } else if(!shipped) shipout();
-}
-atexit(atexit);
-
 guide operator ::(... guide[] a)
 {
   guide g=(a.length > 0) ? a[0] : nullpath;
@@ -3213,3 +3265,21 @@ guide operator ---(... guide[] a)
   return g;
 }
 
+void eval(string s, bool embedded=false)
+{
+  initdefaults();
+  _eval(s,embedded);
+  restoredefaults();
+}
+
+void eval(code s, bool embedded=false)
+{
+  initdefaults();
+  _eval(s,embedded);
+  restoredefaults();
+}
+
+void execute(string s)
+{
+  eval("include \""+s+"\";");
+}

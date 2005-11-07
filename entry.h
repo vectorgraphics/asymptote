@@ -33,24 +33,55 @@ using types::record;
 
 namespace trans {
 
-// The type environment.
-class tenv : public sym::table<ty *>
-{};
+// An entry is associated to a name in the (variable or type) environment, and
+// has permission based on the enclosing records where it was defined or
+// imported.
+class entry : public gc {
+  struct pr {
+    permission perm;
+    record *r;
 
-class varEntry : public gc {
+    pr(permission perm, record *r)
+      : perm(perm), r(r) {}
+
+    // Returns true if the permission allows access in this context.
+    bool check(action act, coder &c);
+
+    // Reports an error if permission is not allowed.
+    void report(action act, position pos, coder &c);
+  };
+  
+  mem::list<pr> perms;
+
+public:
+  entry() {}
+  entry(permission perm, record *r) {
+    // Only store restrictive permissions.
+    if (perm != PUBLIC && r)
+      perms.push_back(pr(perm,r));
+  }
+
+  // (Non-destructively) merges two entries, appending permission lists.
+  entry(entry &e1, entry &e2);
+
+  bool checkPerm(action act, coder &c);
+  void reportPerm(action act, position pos, coder &c);
+
+};
+    
+class varEntry : public entry {
   ty *t;
   access *location;
 
-  permission perm;
-  record *r;  // The record the variable belongs to in the environment, ignores
-              // static and dynamic qualifiers.
-
 public:
   varEntry(ty *t, access *location)
-    : t(t), location(location), perm(PUBLIC), r(0) {}
+    : t(t), location(location) {}
 
   varEntry(ty *t, access *location, permission perm, record *r)
-    : t(t), location(location), perm(perm), r(r) {}
+    : entry(perm, r), t(t), location(location) {}
+
+  // (Non-destructively) merges two varEntries, created a qualified varEntry.
+  varEntry(varEntry &qv, varEntry &v);
 
   ty *getType()
     { return t; }
@@ -63,17 +94,34 @@ public:
   access *getLocation()
     { return location; }
 
-  permission getPermission()
-    { return perm; }
-
-  record *getRecord()
-    { return r; }
-
-  void checkPerm(action act, position pos, coder &c);
-
   // Encodes the access, but also checks permissions.
   void encode(action act, position pos, coder &c);
   void encode(action act, position pos, coder &c, frame *top);
+};
+
+varEntry *qualifyVarEntry(varEntry *qv, varEntry *v);
+
+// As looked-up types can be allocated in a new expression, we need to know what
+// frame they should be allocated on.  Type entries store this extra information
+// along with the type.
+class tyEntry : public entry {
+public:
+  ty *t;
+  varEntry *v;  // NOTE: Name isn't very descriptive.
+
+  tyEntry(ty *t, varEntry *v=0)
+    : t(t), v(v) {}
+};
+
+tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent);
+
+// The type environment.
+class tenv : public sym::table<tyEntry *> {
+public:
+  // Add the entries in one environment to another, if qualifier is non-null, it
+  // is a record and the source environment is its types.  The coder is used to
+  // see which entries are accessible and should be added.
+  void add(tenv& source, varEntry *qualifier, coder &c);
 };
 
 #ifdef NOHASH //{{{
@@ -192,6 +240,11 @@ public:
 
   void enter(symbol *name, varEntry *v);
 
+  // Add the entries in one environment to another, if qualifier is non-null, it
+  // is a record and the source environment are its fields.  The coder is
+  // necessary to check which variables are accessible and should be added.
+  void add(venv& source, varEntry *qualifier, coder &c);
+
   bool lookInTopScope(key k) {
     return scopes.top().find(k)!=scopes.top().end();
   }
@@ -201,7 +254,7 @@ public:
     return lookInTopScope(key(name, t));
   }
 
-  varEntry * lookByType(key k) {
+  varEntry *lookByType(key k) {
     keymap::const_iterator p=all.find(k);
     return p!=all.end() ? p->second->v : 0;
   }

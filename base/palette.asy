@@ -1,4 +1,4 @@
-static import graph;
+private import graph;
 
 void image(picture pic=currentpicture, real[][] data, pen[] palette,
 	   pair initial, pair final)

@@ -13,7 +13,6 @@
 
 #include "builtin.h"
 #include "entry.h"
-#include "import.h"
 #include "runtime.h"
 #include "types.h"
 #include "pair.h"
@@ -37,24 +36,30 @@ using vm::bltin;
 using run::divide;
 using mem::string;
 
-// The base environments for built-in types and functions
-void base_tenv(tenv &ret)
+void addType(tenv &te, char *name, ty *t)
 {
-  ret.enter(symbol::trans("void"), primVoid());
-  ret.enter(symbol::trans("bool"), primBoolean());
-  ret.enter(symbol::trans("int"), primInt());
-  ret.enter(symbol::trans("real"), primReal());
-  ret.enter(symbol::trans("string"), primString());
-  
-  ret.enter(symbol::trans("pair"), primPair());
-  ret.enter(symbol::trans("triple"), primTriple());
-  ret.enter(symbol::trans("transform"), primTransform());
-  ret.enter(symbol::trans("guide"), primGuide());
-  ret.enter(symbol::trans("path"), primPath());
-  ret.enter(symbol::trans("pen"), primPen());
-  ret.enter(symbol::trans("frame"), primPicture());
+  te.enter(symbol::trans(name), new tyEntry(t,0));
+}
 
-  ret.enter(symbol::trans("file"), primFile());
+// The base environments for built-in types and functions
+void base_tenv(tenv &te)
+{
+  addType(te, "void", primVoid());
+  addType(te, "bool", primBoolean());
+  addType(te, "int", primInt());
+  addType(te, "real", primReal());
+  addType(te, "string", primString());
+  
+  addType(te, "pair", primPair());
+  addType(te, "triple", primTriple());
+  addType(te, "transform", primTransform());
+  addType(te, "guide", primGuide());
+  addType(te, "path", primPath());
+  addType(te, "pen", primPen());
+  addType(te, "frame", primPicture());
+
+  addType(te, "file", primFile());
+  addType(te, "code", primCode());
 }
 
 // Macro to make a function.
@@ -556,11 +561,12 @@ void base_venv(venv &ve)
   addFunc(ve,run::stringTime,primString(),"time",primString());
   
   addFunc(ve,run::atExit,primVoid(),"atexit",voidFunction());
+  addFunc(ve,run::getAtExit,voidFunction(),"atexit");
   addFunc(ve,run::exitFunction,primVoid(),"exitfunction");
-  addFunc(ve,run::execute,primVoid(),"execute",primString());
-  addFunc(ve,run::eval,primVoid(),"eval",primString());
-  addFunc(ve,run::merge,primInt(),"merge",primString(),primString(),
-	  primBoolean());
+  addFunc(ve,run::evalString,primVoid(),"_eval",primString(),primBoolean());
+  addFunc(ve,run::evalAst,primVoid(),"_eval",primCode(),primBoolean());
+  addFunc(ve,run::merge,primInt(),"merge",stringArray(),
+	  primString(),primString(),primBoolean());
   addFunc(ve,run::changeDirectory,primString(),"cd",primString());
   addFunc(ve,run::scrollLines,primVoid(),"scroll",primInt());
   addFunc(ve,run::boolDeconstruct,primBoolean(),"deconstruct");
@@ -588,6 +594,7 @@ void base_venv(venv &ve)
   addFunc(ve,run::penBaseLine,primInt(),"basealign",primPen());
   addFunc(ve,run::resetdefaultPen,primVoid(),"defaultpen");
   addFunc(ve,run::setDefaultPen,primVoid(),"defaultpen",primPen());
+  addFunc(ve,run::getDefaultPen,primPen(),"getdefaultpen");
   addFunc(ve,run::invisiblePen,primPen(),"invisible");
   addFunc(ve,run::lineCap,primPen(),"linecap",primInt());
   addFunc(ve,run::penLineCap,primInt(),"linecap",primPen());

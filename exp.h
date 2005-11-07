@@ -251,7 +251,16 @@ class fieldExp : public nameExp {
       }
       return types::primError();
     }
-    trans::import *typeGetImport(coenv &) {
+
+    trans::varEntry *getVarEntry(coenv &e) {
+      em->compiler(getPos());
+      *em << "expression cannot be used as part of a type";
+      return 0;
+    }
+
+    trans::tyEntry *tyEntryTrans(coenv &e) {
+      em->compiler(getPos());
+      *em << "expression cannot be used as part of a type";
       return 0;
     }
 
@@ -421,6 +430,19 @@ public:
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primNull(); }
+};
+
+class quoteExp : public exp {
+  runnable *value;
+
+public:
+  quoteExp(position pos, runnable *value)
+    : exp(pos), value(value) {}
+
+  void prettyprint(ostream &out, int indent);
+
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primCode(); }
 };
 
 // A list of expressions used in a function call.

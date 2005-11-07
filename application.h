@@ -82,17 +82,6 @@ class sequencer {
   typedef vector<sequencedArg *> sa_vector;
   sa_vector args;
 
-#if 0
-  // This is used during the translation to store temporary expresssions for
-  // arguments that need to be translated but used later.  The invariant
-  // maintained is that if the vector has n elements, then the side-effects for
-  // the first n arguments have been translated.  Null is pushed onto the
-  // vector to indicate that the expression was evaluated directly onto the
-  // stack, without the use of a temporary.
-  typedef vector<tempExp *> temp_vector;
-  temp_vector temps;
-#endif
-
   // Makes a temporary for the next argument in the sequence.
   void alias(coenv &e, temp_vector &temps) {
     size_t n=temps.size();
@@ -141,7 +130,7 @@ class application : public gc {
   types::signature *sig;
   types::function *t;
 
-  // Sequencer to ensure given argument are evaluated in the proper order.  Use
+  // Sequencer to ensure given arguments are evaluated in the proper order.  Use
   // of this sequencer means that transArgs can only be called once.
   sequencer seq;
 
@@ -156,7 +145,7 @@ class application : public gc {
   // of the first unmatched formal.
   size_t index;
 
-  // To resolve which is best of application in case multiple matches of
+  // To resolve which is the best application in case of multiple matches of
   // overloaded functions, a score is kept for every source argument matched,
   // and an application with higher-scoring matches is chosen.
   score_vector scores;

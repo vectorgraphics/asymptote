@@ -47,7 +47,7 @@ extern int view;
 extern int safe;
 extern int autoplain;
 extern int parseonly;
-extern int listonly;
+extern int listvariables;
 extern int translate;
 extern int bwonly;
 extern int grayonly;
@@ -60,17 +60,13 @@ extern int ignoreGUI;
 extern camp::pair postscriptOffset;
 enum origin {CENTER,BOTTOM,TOP,ZERO};
 extern int origin;
-extern int laat; // Temporary, for testing line-at-a-time capabilities.
   
-extern bool suppressStandard;
-
 extern int ShipoutNumber;
   
 extern const string suffix;
 extern const string guisuffix;
   
 extern string outname; 
-extern std::list<string> *outnameStack;
 
 extern bool TeXinitialized; // Is LaTeX process initialized?
 

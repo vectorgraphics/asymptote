@@ -20,7 +20,7 @@ namespace interact {
 
 extern int interactive;
 extern bool virtualEOF;
-extern bool rejectline;
+extern bool uptodate;
 
 size_t interactive_input(char *buf, size_t max_size);
   

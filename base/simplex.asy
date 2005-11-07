@@ -12,7 +12,9 @@
  * assumption may in fact be incorrect.
  *****/
 
-static struct problem {
+private real infinity=sqrt(0.25*realMax());
+
+struct problem {
   typedef int var;
   static var VAR_A = 0;
   static var VAR_B = 1;

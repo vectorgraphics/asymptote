@@ -21,57 +21,40 @@
 #include "absyn.h"
 #include "access.h"
 #include "coenv.h"
+#include "stack.h"
 
 using types::record;
 using vm::lambda;
 
 namespace trans {
 
-class genv {
-  // The collection of loaded modules.
-  sym::table<record *> modules;
+class genv : public gc {
+  // The initializer functions for imports, indexed by filename.
+  typedef mem::map<const std::string,record *> importMap;
+  importMap imap;
 
-  // Base environment for allocating global variables and encoding
-  // static code of file-level modules.
-  friend class env;
-  coder base_coder;
-  env base_env;
-  coenv base_coenv;
-  
-  tenv te;
-  venv ve;
-  menv me;
+  // Translate a module to build the record type.
+  record *loadModule(symbol *name, std::string s);
+
 public:
   genv();
 
-  void autoloads(const string& outname);
-  void loadPlain();
-  void loadGUI(const string& outname);
+  // Get an imported module, translating if necessary.
+  record *getModule(symbol *name, std::string s);
 
-  void list() {
-    ve.list();
+  // Uses the filename->record map to build a filename->initializer map to be
+  // used at runtime.
+  vm::stack::importInitMap *getInitMap();
+  
+  void listValues(const std::string name, record* &vals) {
+    vals->e.list();
   }
   
-  // If a module is already loaded, this will return it.  Otherwise, it
-  // returns null.
-  record *getModule(symbol *id);
-
-  // Loads a module from the corresponding file and adds it to the table
-  // of loaded modules.  If a module of the same name was already
-  // loaded, it will be shadowed by the new one.
-  // If the module could not be loaded, returns null.
-  record *loadModule(symbol *id, absyntax::file *ast = 0);
-
-  // Returns a function that statically initializes all loaded modules.
-  // Then runs the dynamic initializer of r.
-  // This should be the lowest-level function run by the stack.
-  // loadModule() should not be called after calling this function.
-  lambda *bootupModule(record *r);
-
-  // Translate a runnable "line" into a function that can be run to execute it.
-  // Any variable declaration go into the existing environment and frame, so
-  // that the variable is usable in late statements.
-  lambda *trans(absyntax::runnable *r);
+  void list() {
+    for(importMap::iterator i = imap.begin(); i != imap.end(); ++i)
+      listValues(i->first, i->second);
+  }
+  
 };
 
 } // namespace trans

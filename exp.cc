@@ -386,6 +386,20 @@ types::ty *nullExp::trans(coenv &)
   return types::primNull();  
 }
 
+
+void quoteExp::prettyprint(ostream &out, int indent)
+{
+  prettyname(out, "quoteExp", indent);
+  value->prettyprint(out, indent+1);
+}
+
+types::ty *quoteExp::trans(coenv &e)
+{
+  e.c.encode(inst::constpush,(item)value);
+  
+  return types::primCode();  
+}
+
 void explist::prettyprint(ostream &out, int indent)
 {
   prettyname(out, "explist",indent);

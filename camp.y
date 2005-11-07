@@ -74,12 +74,11 @@ using sym::symbol;
   //absyntax::vardecs *vds;
   absyntax::dec *d;
   absyntax::stm *s;
-  absyntax::blockStm *bs;
+  absyntax::block *b;
   absyntax::stmExpList *sel;
   //absyntax::funheader *fh;
   absyntax::formal *fl;
   absyntax::formals *fls;
-  absyntax::file *fil;
 }  
 
 %token <ps> ID OP ADD SUBTRACT TIMES DIVIDE MOD EXPONENT
@@ -91,7 +90,7 @@ using sym::symbol;
 %token <pos> LOOSE ASSIGN '?' ':'
              DIRTAG JOIN_PREC AND
              '{' '}' '(' ')' '.' ','  '[' ']' ';' ELLIPSIS
-             IMPORT STRUCT TYPEDEF NEW
+             IMPORT EXPLODE USE INCLUDE QUOTE STRUCT TYPEDEF NEW
              IF ELSE WHILE DO FOR BREAK CONTINUE RETURN_
              STATIC PUBLIC_TOK PRIVATE_TOK THIS EXPLICIT
 %token <e>   LIT
@@ -120,8 +119,7 @@ using sym::symbol;
 %right '^'
 %left  LOGNOT
 
-%type  <fil> file fileblock
-%type  <bs>  block bareblock
+%type  <b>   fileblock bareblock block
 %type  <n>   name
 %type  <run> runnable
 %type  <ml>  modifiers
@@ -143,7 +141,7 @@ using sym::symbol;
 %type  <se>  dir
 %type  <elist> dimexps
 %type  <alist> arglist basearglist
-%type  <s>   stm stmexp
+%type  <s>   stm stmexp blockstm
 %type  <run> forinit
 %type  <sel> forupdate stmexplist
 
@@ -165,27 +163,24 @@ file:
 ;
 
 fileblock:
-  /* empty */      { $$ = new file(lexerPos()); }
+  /* empty */      { $$ = new file(lexerPos(), false); }
 | fileblock runnable
                    { $$ = $1; $$->add($2); }
 ;
 
 bareblock:
-  /* empty */      { $$ = new blockStm(lexerPos()); }
+  /* empty */      { $$ = new block(lexerPos(), true); }
 | bareblock runnable
                    { $$ = $1; $$->add($2); }
 ;
 
-/*imports:
-  IMPORT name ';'
-| imports IMPORT name ';'
-;*/
-
 name:
   ID               { $$ = new simpleName($1.pos, $1.sym); }
 | name '.' ID      { $$ = new qualifiedName($2, $1, $3.sym); }
+/*
 | STRING '.' ID    { $$ = new qualifiedName($2, new simpleName($2, $1.sym),
 					    $3.sym); }
+*/
 ;
 
 /*runnables:
@@ -198,7 +193,7 @@ runnable:
 | stm              { $$ = $1; }
 | modifiers dec
                    { $$ = new modifiedRunnable($1->getPos(), $1, $2); }
-| modifiers block
+| modifiers stm
                    { $$ = new modifiedRunnable($1->getPos(), $1, $2); }
 ;
 
@@ -216,7 +211,15 @@ dec:
 | fundec           { $$ = $1; }
 | typedec          { $$ = $1; }
 | IMPORT ID ';'    { $$ = new importdec($1, $2.sym); }
-| IMPORT STRING ';' { $$ = new importdec($1, $2.sym); }
+| IMPORT ID STRING ';'
+                   { $$ = new importdec($1, $2.sym, *$3.sym); }
+| EXPLODE name ';' { $$ = new explodedec($1, $2); }
+| USE ID ';'       { $$ = new usedec($1, $2.sym); }
+| USE ID STRING ';'
+                   { $$ = new usedec($1, $2.sym, *$3.sym); }
+| INCLUDE ID ';'   { $$ = new includedec($1, $2.sym); }                   
+| INCLUDE STRING ';'
+                   { $$ = new includedec($1, *$2.sym); }                   
 ;
 
 vardec:
@@ -334,11 +337,11 @@ formal:
 ;
 
 fundec:
-  type ID '(' ')' block
+  type ID '(' ')' blockstm
                    { $$ = new fundec($3, $1, $2.sym, new formals($3), $5); }
-| type ID '(' formals ')' block
+| type ID '(' formals ')' blockstm
                    { $$ = new fundec($3, $1, $2.sym, $4, $6); }
-| type OP '(' formals ')' block
+| type OP '(' formals ')' blockstm
                    { $$ = new fundec($3, $1, $2.sym, $4, $6); }
 ;
 
@@ -448,16 +451,16 @@ exp:
                    { $$ = new newArrayExp($1, $2, 0, $3, 0); }
 | NEW celltype dims arrayinit
                    { $$ = new newArrayExp($1, $2, 0, $3, $4); }
-| NEW celltype '(' ')' block
+| NEW celltype '(' ')' blockstm
                    { $$ = new newFunctionExp($1, $2, new formals($3), $5); }
-| NEW celltype dims '(' ')' block
+| NEW celltype dims '(' ')' blockstm
                    { $$ = new newFunctionExp($1,
                                              new arrayTy($2->getPos(), $2, $3),
                                              new formals($4),
                                              $6); }
-| NEW celltype '(' formals ')' block
+| NEW celltype '(' formals ')' blockstm
                    { $$ = new newFunctionExp($1, $2, $4, $6); }
-| NEW celltype dims '(' formals ')' block
+| NEW celltype dims '(' formals ')' blockstm
                    { $$ = new newFunctionExp($1,
                                              new arrayTy($2->getPos(), $2, $3),
                                              $5,
@@ -499,6 +502,7 @@ exp:
 | exp MOD exp      { $$ = new selfExp($2.pos, $1, $2.sym, $3); }
 | exp EXPONENT exp
                    { $$ = new selfExp($2.pos, $1, $2.sym, $3); }
+| QUOTE runnable   { $$ = new quoteExp($1, $2); }
 ;
 
 // This verbose definition is because leaving empty as an expansion for dir
@@ -561,7 +565,7 @@ controls:
 
 stm:
   ';'              { $$ = new emptyStm($1); }
-| block            { $$ = $1; }
+| blockstm         { $$ = $1; }
 | stmexp ';'       { $$ = $1; }
 | IF '(' exp ')' stm
                    { $$ = new ifStm($1, $3, $5); }
@@ -581,6 +585,10 @@ stm:
 
 stmexp:
   exp              { $$ = new expStm($1->getPos(), $1); }
+;
+
+blockstm:
+  block            { $$ = new blockStm($1->getPos(), $1); }
 ;
 
 forinit:

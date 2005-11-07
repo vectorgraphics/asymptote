@@ -121,4 +121,16 @@ void localAccess::encode(action act, position pos, coder &e, frame *top)
   }
 }
 
+
+void qualifiedAccess::encode(action act, position pos, coder &e)
+{
+  qualifier->encode(READ, pos, e);
+  field->encode(act, pos, e, qualifierLevel);
+}
+
+void qualifiedAccess::encode(action act, position pos, coder &e, frame *top)
+{
+  qualifier->encode(READ, pos, e, top);
+  field->encode(act, pos, e, qualifierLevel);
+}
 } // namespace trans

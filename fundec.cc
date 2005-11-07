@@ -140,7 +140,7 @@ void formal::transAsVar(coenv &e, int index) {
     if (defval)
       transDefault(e, getPos(), v, defval);
 
-    e.e.addVar(getPos(), name, v);
+    e.e.addVar(name, v);
   }
 }
 
@@ -231,9 +231,9 @@ function *fundec::opType(function *f)
 void fundec::addOps(coenv &e, function *f)
 {
   function *ft = opType(f);
-  e.e.addVar(getPos(), symbol::trans("=="),
+  e.e.addVar(symbol::trans("=="),
       new varEntry(ft, new bltinAccess(run::boolFuncEq)));
-  e.e.addVar(getPos(), symbol::trans("!="),
+  e.e.addVar(symbol::trans("!="),
       new varEntry(ft, new bltinAccess(run::boolFuncNeq)));
 }
 

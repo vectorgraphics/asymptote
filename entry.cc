@@ -22,8 +22,15 @@ using types::signature;
 
 namespace trans {
 
-void varEntry::checkPerm(action act, position pos, coder &c) {
-  if (r && !c.inTranslation(r->getLevel())) {
+bool entry::pr::check(action act, coder &c) {
+  // We assume PUBLIC permissions and one's without an associated record are not
+  // stored.
+  return c.inTranslation(r->getLevel()) ||
+         (perm == READONLY && act != WRITE);
+}
+
+void entry::pr::report(action act, position pos, coder &c) {
+  if (!c.inTranslation(r->getLevel())) {
     if (perm == PRIVATE) {
       em->error(pos);
       *em << "accessing private field outside of structure";
@@ -35,16 +42,74 @@ void varEntry::checkPerm(action act, position pos, coder &c) {
   }
 }
 
+entry::entry(entry &e1, entry &e2) {
+  perms.insert(perms.end(), e1.perms.begin(), e1.perms.end());
+  perms.insert(perms.end(), e2.perms.begin(), e2.perms.end());
+}
+
+bool entry::checkPerm(action act, coder &c) {
+  for (mem::list<pr>::iterator p=perms.begin(); p != perms.end(); ++p)
+    if (!p->check(act, c))
+      return false;
+  return true;
+}
+
+void entry::reportPerm(action act, position pos, coder &c) {
+  for (mem::list<pr>::iterator p=perms.begin(); p != perms.end(); ++p)
+    p->report(act, pos, c);
+}
+
+
+varEntry::varEntry(varEntry &qv, varEntry &v)
+  : entry(qv,v), t(v.t)
+{
+  record *r=dynamic_cast<record *>(qv.t);
+  assert(r);
+  location = new qualifiedAccess(qv.location, r->getLevel(), v.location);
+}
+
 void varEntry::encode(action act, position pos, coder &c) {
-  checkPerm(act, pos, c);
+  reportPerm(act, pos, c);
   getLocation()->encode(act, pos, c);
 }
 
 void varEntry::encode(action act, position pos, coder &c, frame *top) {
-  checkPerm(act, pos, c);
+  reportPerm(act, pos, c);
   getLocation()->encode(act, pos, c, top);
 }
 
+varEntry *qualifyVarEntry(varEntry *qv, varEntry *v)
+{
+  return qv ? (v ? new varEntry(*qv,*v) : qv) : v;
+}
+
+tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent)
+{
+  // Records need a varEntry that refers back to the qualifier qv.  Ie. in
+  // the last new of the code
+  //   struct A {
+  //     struct B {}
+  //   }
+  //   A a=new A;
+  //   use a;
+  //   new B;
+  // we need to put a's frame on the stack before allocating an instance of
+  // B.
+  // NOTE: A possible optimization could be to only qualify the varEntry if
+  // the type is a record, as other types don't use the varEntry.
+  return new tyEntry(ent->t, qualifyVarEntry(qv, ent->v));
+}
+
+void tenv::add(tenv& source, varEntry *qualifier, coder &c)
+{
+  // Enter each distinct (unshadowed) name,type pair.
+  for(names_t::iterator p = source.names.begin(); p != source.names.end(); ++p)
+    if (!p->second.empty()) {
+      tyEntry *ent=p->second.front();
+      if (ent->checkPerm(READ, c))
+        enter(p->first, qualifyTyEntry(qualifier, ent));
+    }
+}
 
 #ifdef NOHASH //{{{
 venv::venv()
@@ -135,8 +200,8 @@ bool venv::keyeq::operator()(const key k, const key l) const {
 #endif
   return k.name==l.name &&
     (k.name->special ? equivalent(k.t, l.t) :
-     equivalent(k.t->getSignature(),
-       l.t->getSignature()));
+                       equivalent(k.t->getSignature(),
+                                  l.t->getSignature()));
 }
 #endif
 
@@ -181,6 +246,16 @@ void venv::enter(symbol *name, varEntry *v) {
   all[k]=val;
   scopes.top().insert(keymultimap::value_type(k,val));
   names[k.name].push_front(val);
+}
+
+void venv::add(venv& source, varEntry *qualifier, coder &c)
+{
+  // Enter each distinct (unshadowed) name,type pair.
+  for(keymap::iterator p = source.all.begin(); p != source.all.end(); ++p) {
+    varEntry *v=p->second->v;
+    if (v->checkPerm(READ, c))
+      enter(p->first.name, qualifyVarEntry(qualifier, p->second->v));
+  }
 }
 
 ty *venv::getType(symbol *name)
