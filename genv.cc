@@ -50,6 +50,9 @@ genv::genv()
 }
 
 record *genv::loadModule(symbol *id, std::string filename) {
+  if(settings::verbose > 1)
+    std::cerr << "Loading " <<  filename << std::endl;
+    
   // Get the abstract syntax tree.
   absyntax::file *ast = parser::parseFile(filename);
   em->sync();

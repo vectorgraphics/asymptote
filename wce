@@ -1,9 +1,10 @@
 #!/bin/sh
-echo "should be 52:"
-./asy -noplain errortest 2>&1 | wc -l
-
-if [ -e errors ]; then
-  ./asy -noplain errortest 2> errors.temp
-  diff errors errors.temp
-  rm errors.temp
+echo -n "Testing errors..."
+./asy -noplain errortest 2> errors.temp
+result=`diff errors.temp errors`
+if [ "$result" == "" ]; then
+echo PASSED.
+else
+echo FAILED.
+echo "$result"
 fi
