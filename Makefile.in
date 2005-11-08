@@ -36,13 +36,14 @@ bindir = @bindir@
 mandir = @mandir@
 datadir = @datadir@
 asydir = $(datadir)/asymptote
-exampledir = $(datadir)/doc/asymptote
+docdir = $(datadir)/doc/asymptote
+exampledir = $(docdir)
 animationsdir = $(exampledir)/animations
 latexdir = @latexdir@
 INSTALL = @INSTALL@
 ASYMPTOTE_DIR = ../base
 
-export prefix exampledir mandir INSTALL ASYMPTOTE_DIR 
+export prefix docdir exampledir mandir INSTALL ASYMPTOTE_DIR 
 
 # $(MAGIC) is here for when we include Makefile again from Compile
 asy$(MAGIC): depend

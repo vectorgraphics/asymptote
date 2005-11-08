@@ -52,17 +52,19 @@ clean: FORCE
 	rm -rf asymptote
 
 install-man: man
-	${INSTALL} -m 644 asymptote.pdf $(exampledir)
+	${INSTALL} -d $(docdir)
+	${INSTALL} -m 644 asymptote.pdf $(docdir)
 	${INSTALL} -m 644 $(MANFILES) $(mandir)/man1
 
 install: doc install-man
-	${INSTALL} -d $(prefix)/info $(exampledir) $(mandir)/man1
+	${INSTALL} -d $(prefix)/info $(docdir) $(mandir)/man1
 	${INSTALL} -m 644 asymptote.info $(prefix)/info
 	install-info --infodir=$(prefix)/info asymptote.info 
 
 uninstall:
 	-cd $(mandir)/man1; rm $(MANFILES)
-	-rm -f $(exampledir)/asymptote.pdf
+	-rm -f $(docdir)/asymptote.pdf
+	-rmdir $(docdir)
 	-install-info --delete --infodir=$(prefix)/info doc/asymptote.info
 	-rm -f $(prefix)/info/asymptote.info
 
