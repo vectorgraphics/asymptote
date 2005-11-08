@@ -2588,7 +2588,7 @@ void restore()
 }
 
 restoreThunk buildRestoreThunk() {
-  pen defaultpen=getdefaultpen();
+  pen defaultpen=defaultpen();
   pen p=currentpen;
   picture pic=currentpicture.copy();
   projection P=currentprojection.copy();
@@ -2615,8 +2615,7 @@ void restoredefaults()
 }
 
 restoreThunk buildRestoreDefaults() {
-  pen defaultpen=getdefaultpen();
-  defaultpen();
+  pen defaultpen=defaultpen();
   exitfcn atexit=atexit();
   restoreThunk r=restoredefaults;
   return new void() {
@@ -2635,7 +2634,7 @@ restoreThunk savedefaults()
 void initdefaults()
 {
   savedefaults();
-  defaultpen();
+  resetdefaultpen();
   atexit(nullexitfcn);
 }
 

@@ -1676,8 +1676,10 @@ coordinates) it could result in a larger figure than requested.
 @end itemize
 
 @cindex @code{defaultpen}
-Calling the routine @code{defaultpen()} without arguments resets all
-pen default attributes to their initial values.
+@cindex @code{resetdefaultpen}
+The routine @code{defaultpen()} returns the current default pen attributes.
+Calling the routine @code{resetdefaultpen()} resets all pen default
+attributes to their initial values.
 
 @node Transforms
 @section Transforms

@@ -592,9 +592,9 @@ void base_venv(venv &ve)
   addFunc(ve,run::fillRule,primPen(),"fillrule",primInt());
   addFunc(ve,run::penFillRule,primInt(),"fillrule",primPen());
   addFunc(ve,run::penBaseLine,primInt(),"basealign",primPen());
-  addFunc(ve,run::resetdefaultPen,primVoid(),"defaultpen");
+  addFunc(ve,run::resetdefaultPen,primVoid(),"resetdefaultpen");
   addFunc(ve,run::setDefaultPen,primVoid(),"defaultpen",primPen());
-  addFunc(ve,run::getDefaultPen,primPen(),"getdefaultpen");
+  addFunc(ve,run::getDefaultPen,primPen(),"defaultpen");
   addFunc(ve,run::invisiblePen,primPen(),"invisible");
   addFunc(ve,run::lineCap,primPen(),"linecap",primInt());
   addFunc(ve,run::penLineCap,primInt(),"linecap",primPen());
