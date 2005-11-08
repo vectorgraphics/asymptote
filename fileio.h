@@ -340,8 +340,6 @@ public:
 
 extern ofile Stdout;
 extern ofile nullfile;
-extern ofile typeout;
-extern ifile typein;
 extern string asyinput;
 
 template<class T>
@@ -356,11 +354,6 @@ void ifile::iread(T& val)
       Read(val);
     csv();
     whitespace="";
-    if(interact::interactive && standard) {
-      typeout.write(val);
-      typeout.write(newline);
-      typeout.flush();
-    }
   }
 }
 

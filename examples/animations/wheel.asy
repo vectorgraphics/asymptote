@@ -1,13 +1,16 @@
 import graph;
+import animate;
 
-defaultpen(2);
-dotfactor=5;
+size(0,200);
+
+defaultpen(3);
+dotfactor=4;
 
 pair wheelpoint(real t)
 {
   return (t+cos(t),-sin(t));
 }
-  
+
 guide wheel(guide g=nullpath, real a, real b, int n)
 {
   real width=(b-a)/n;
@@ -21,28 +24,29 @@ guide wheel(guide g=nullpath, real a, real b, int n)
 real t1=0; 
 real t2=t1+2*pi;
 
-void initialpicture() {
-  draw(circle((0,0),1));
-  draw(wheel(t1,t2,100),linetype("0 2"));
-  yequals(Label("$y=-1$",1.0),-1,extend=true,linetype("4 4"));
-  xaxis(Label("$x$",align=3SW),0);
-  yaxis("$y$",0,1.2);
-  pair z1=wheelpoint(t1);
-  pair z2=wheelpoint(t2);
-  dot(z1);
-  dot(z2);
-}
+draw(circle((0,0),1));
+draw(wheel(t1,t2,100),linetype("0 2"));
+yequals(Label("$y=-1$",1.0),-1,extend=true,linetype("4 4"));
+xaxis(Label("$x$",align=3SW),0);
+yaxis("$y$",0,1.2);
+pair z1=wheelpoint(t1);
+pair z2=wheelpoint(t2);
+dot(z1);
+dot(z2);
+
+animation a;
 
 int n=25;
 real dt=(t2-t1)/n;
 for(int i=0; i <= n; ++i) {
-  currentpicture.erase();
-  size(0,200);
-  initialpicture();
+  save();
+  
   real t=t1+dt*i;
   draw(circle((t,0),1),red);
   dot(wheelpoint(t));
-  shipout(fileprefix()+(string) i,"gif",quiet=true);
+
+  a.shipout(); // Ships out currentpicture and keeps track of it in a.
+  restore();
 }
 
-gifmerge(10);
+a.merge(10); // Produce the final merged gif.

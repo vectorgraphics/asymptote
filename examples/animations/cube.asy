@@ -1,5 +1,10 @@
 import math;
 import three;
+import animate;
+
+size(100,100);
+
+animation a;
 
 void face(face[] faces, path3 p, int j) {
   picture pic=faces.push(p);
@@ -10,10 +15,7 @@ void face(face[] faces, path3 p, int j) {
 void snapshot(transform3 t)
 {
   static transform3 s=shift(-0.5*(X+Y+Z));
-  static int count=-1;
-
-  picture pic;
-  size(pic,100,100);
+  save();
   
   face[] faces;
   int j=-1;
@@ -23,9 +25,11 @@ void snapshot(transform3 t)
     face(faces,T*plane((0,0,1),(1,0,0),(0,k,0)),++j); 
     face(faces,T*plane((0,1,0),(1,0,0),(0,0,k)),++j);
   }
-  add(pic,faces);
-  draw(pic,box((-1,-1),(1,1)),invisible);
-  shipout(fileprefix()+(string) ++count,pic,"gif",quiet=true);
+  add(faces);
+  draw(box((-1,-1),(1,1)),invisible);
+  
+  a.shipout();
+  restore();
 }
 
 int n=50;
@@ -38,4 +42,4 @@ for(int i=0; i < n; ++i)
 for(int i=0; i < n; ++i)
   snapshot(rotate(i*step,Z));
 
-gifmerge(10,10);
+a.merge(10,10);
