@@ -89,6 +89,7 @@ namespace loop {
 
 void init()
 {
+  setPath(startPath());
   ShipoutNumber=0;
   if (!em)
     em = new errorstream();
@@ -113,55 +114,10 @@ void doPrint(genv& ge, record *m)
 // Run (an already translated) module of the given filename.
 void doRun(genv& ge, std::string filename)
 {
-  setPath(startPath());
-
   vm::stack s;
   s.setInitMap(ge.getInitMap());
   s.load(filename);
   run::exitFunction(&s);
-}
-
-void body(string filename)
-{
-  string basename = stripext(filename,suffix);
-  try {
-    if (verbose) cout << "Processing " << basename << endl;
-    
-    if(outname.empty())
-      outname=(filename == "-") ? "out" : stripDir(basename);
-
-    if (parseonly) {
-      absyntax::file *tree = parser::parseFile(filename);
-      em->sync();
-
-      if (!em->errors())
-        tree->prettyprint(cout, 0);
-      else status=false;
-    } else {
-      genv ge;
-      record *m = ge.getModule(symbol::trans(basename),filename);
-      if (!em->errors()) {
-	if (translate)
-	  doPrint(ge,m);
-	else
-	  doRun(ge,filename);
-      } else status=false;
-    }
-  } catch (std::bad_alloc&) {
-    cerr << "error: out of memory" << endl;
-    status=false;
-  } catch (handled_error) {
-    status=false;
-  }
-}
-
-void doBatch()
-{
-  for(int ind=0; ind < numArgs() ; ind++) {
-    init();
-    body(getArg(ind));
-    purge();
-  }
 }
 
 typedef vm::interactiveStack istack;
@@ -247,6 +203,7 @@ struct iprompt : public icore {
 void doICore(icore &i, bool embedded=false) {
   try {
     assert(em && !em->errors());
+    
     if(embedded) i.embedded();
     else {
       genv ge;
@@ -294,13 +251,28 @@ void doIFile(const string& filename) {
 
   string basename = stripext(filename,suffix);
   if (verbose) cout << "Processing " << basename << endl;
-  if(outname.empty())
-    outname=stripDir(basename);
+  
+  if (parseonly) {
+    absyntax::file *tree = parser::parseFile(filename);
+    em->sync();
+    if (!em->errors())
+      tree->prettyprint(cout, 0);
+    else status=false;
+  } else {
+    if(translate) {
+      genv ge;
+      record *m = ge.getModule(symbol::trans(basename),filename);
+      if(!em->errors())
+	doPrint(ge,m);
+    } else {
+      if(outname.empty())
+	outname=(filename == "-") ? "out" : stripDir(basename);
 
-  doITree((filename == "" ? parser::parseString 
-	   : parser::parseFile)(filename));
-
-  purge();
+      doITree((filename == "" ? parser::parseString 
+	       : parser::parseFile)(filename));
+      purge();
+    }
+  }
 }
 
 void doIPrompt() {
@@ -341,7 +313,6 @@ int main(int argc, char *argv[])
 	loop::doIFile(string(getArg(ind)));
   }
   catch (handled_error) {
-//    cerr << "error: exception thrown.\n";
     status=false;
   }
   return status ? 0 : 1;
