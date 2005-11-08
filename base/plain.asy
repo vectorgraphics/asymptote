@@ -1174,7 +1174,7 @@ struct picture {
   // Calculate the sizing constants for the given array and maximum size.
   scaling calculateScaling(coord[] coords, real size) {
     import simplex;
-    simplex.problem p=new simplex.problem;
+    simplex.problem p;
    
     void addMinCoord(coord c) {
       // (a*user + b) + truesize >= 0:
@@ -2277,8 +2277,7 @@ static bool NoWait=false;
 
 // Draw and/or fill a box on frame dest using the dimensions of frame src.
 guide box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
-	  pen p=currentpen, filltype filltype=NoFill,
-  	  bool put=filltype == UnFill ? Above : Below)
+	  pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   pair z=(xmargin,ymargin);
   int sign=filltype == NoFill ? 1 : -1;
@@ -2292,8 +2291,7 @@ guide box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
 }
 
 guide ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
-	      pen p=currentpen, filltype filltype=NoFill,
-  	  bool put=filltype == UnFill ? Above : Below)
+	      pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   pair m=min(src);
   pair M=max(src);
@@ -2311,16 +2309,14 @@ guide ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
 }
 
 guide box(frame f, Label L, real xmargin=0, real ymargin=xmargin,
-	  pen p=currentpen, filltype filltype=NoFill,
-  	  bool put=filltype == UnFill ? Above : Below)
+	  pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   add(f,L);
   return box(f,xmargin,ymargin,p,filltype,put);
 }
 
 guide ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
-	      pen p=currentpen, filltype filltype=NoFill,
-	      bool put=filltype == UnFill ? Above : Below)
+	      pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   add(f,L);
   return ellipse(f,xmargin,ymargin,p,filltype,put);
@@ -2328,7 +2324,7 @@ guide ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
 
 void box(picture pic=currentpicture, Label L,
 	 real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-	 filltype filltype=NoFill, bool put=filltype == UnFill ? Above : Below)
+	 filltype filltype=NoFill, bool put=Above)
 {
   pic.add(new void (frame f, transform t) {
     transform t0=shiftless(t);
@@ -2351,7 +2347,7 @@ frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=xmargin,
 	   pen p=currentpen, filltype filltype=NoFill)
 {
   frame f=pic.fit(max(pic.xsize-2*xmargin,0),max(pic.ysize-2*ymargin,0));
-  box(f,xmargin,ymargin,p,filltype);
+  box(f,xmargin,ymargin,p,filltype,Below);
   return f;
 }
 
@@ -2471,29 +2467,6 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
   shipped=true;
   uptodate(true);
 }
-
-
-typedef void markroutine(picture pic=currentpicture, path g, frame f);
-
-// On picture pic, add to every node of path g the frame f.
-void marknodes(picture pic=currentpicture, path g, frame f) {
-  for(int i=0; i <= length(g); ++i)
-    add(point(g,i),pic,f);
-}
-
-// On picture pic, add to path g the frame f, evenly spaced in arclength.
-markroutine markuniform(int n) {
-  return new void(picture pic=currentpicture, path g, frame f) {
-    if(n == 0) return;
-    if(n == 1) add(relpoint(g,0.5),pic,f);
-    else {
-      real width=1/(n-1);
-      for(int i=0; i < n; ++i)
-	add(relpoint(g,i*width),pic,f);
-    }
-  };
-}
-
 
 typedef void markroutine(picture pic=currentpicture, path g, frame f);
 

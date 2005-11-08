@@ -279,8 +279,10 @@ and                {adjust(); return AND; }
 cycle              {makesymbol(); return CYCLE; }
 controls           {makesymbol(); return CONTROLS; }
 tension            {makesymbol(); return TENSION; }
+tension3           {makesymbol(); return TENSION; }
 atleast            {makesymbol(); return ATLEAST; }
 curl               {makesymbol(); return CURL; }
+curl3              {makesymbol(); return CURL; }
 
 if                 {adjust(); return IF; }
 else               {adjust(); return ELSE; }

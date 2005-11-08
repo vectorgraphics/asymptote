@@ -4985,7 +4985,7 @@ using margin @code{margin}.
 @cindex including images
 @cindex @code{include}
 @cindex @acronym{EPS}
-The function @code{string include(string name, string options="")}
+The function @code{string includegraphics(string name, string options="")}
 returns a string that can be used to include an encapsulated
 @code{PostScript} (@acronym{EPS}) file. Here, @code{name} is the name
 of the file to include and @code{options} is a string containing a
@@ -4996,7 +4996,7 @@ rotation (@code{angle=value}), scaling (@code{scale=factor}), clipping
 @code{layer()} function can be used to force future objects to be
 drawn on top of the included image:
 @verbatim
-label(include("file.eps","width=1cm"),(0,0),NE);
+label(includegraphics("file.eps","width=1cm"),(0,0),NE);
 layer();
 @end verbatim
 
