@@ -5162,15 +5162,9 @@ Also output @code{Asymptote} traceback diagnostics.
 @node Interactive mode
 @chapter Interactive mode
 @cindex interactive mode
-Because @code{Asymptote} as currently designed does not natively support
-a line-at-a-time mode, interactive mode is currently simulated by
-rerunning all previous commands in a new module as each line is entered.
-This emulation will eventually become unnecessary, once
-@code{Asymptote}'s module handling is redesigned to support
-incremental input.
-
-In interactive mode, it is not necessary to type a semicolon at the end
-of each line; one will automatically be appended.
+Interactive mode is entered by executing the command @code{asy} with
+no file arguments. Each line must be a complete @code{Asymptote} statement;
+however, it is not necessary to terminate each line with a semicolon.
 
 The following special commands are supported only in interactive mode
 and must be entered immediately after the prompt:
@@ -5179,26 +5173,16 @@ and must be entered immediately after the prompt:
 @cindex @code{help}
 @item help
 view the manual
+@item input FILE
+equivalent to @code{erase(); include FILE}. If the file name @code{FILE}
+contains nonalphanumeric characters, enclose it with quotation marks.
 @cindex @code{quit}
 @cindex @code{exit}
 @item quit
 exit interactive mode (abbreviated as @code{q}; @code{exit} is a synonym).
-@cindex @code{redraw}
-@item redraw
-re-execute the previous commands
-@cindex @code{reset}
-@item reset
-reset @code{Asymptote} to its initial state, except that a prior call
-to @code{scroll} is respected (@pxref{scroll}).
+A history of the most recent @code{1000} previous commands will be retained
+in the file @code{.asy_history} in the current directory.
 @cindex @code{input}
-@item input FILE
-directly input code from @code{FILE} into @code{Asymptote}.
-Any existing @code{input} commands will automatically be
-cleared by first doing a @code{reset}, if necessary. For this reason,
-after a previous @code{input} command, first issue an explicit
-@code{reset} before entering any code that you want to execute before
-a new @code{input} command. For convenience, a trailing semi-colon
-followed by optional @code{Asymptote} commands may be entered on the same line.
 @end table
 
 Typing @code{ctrl-C} interrupts the execution of @code{Asymptote} code

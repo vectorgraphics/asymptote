@@ -237,7 +237,7 @@ struct iprompt : public icore {
       } catch (interrupted&) {
         if(em) em->Interrupt(false);
         cout << endl;
-      } catch (...) {
+      } catch (handled_error) {
         status=false;
       }
     }
@@ -257,7 +257,7 @@ void doICore(icore &i, bool embedded=false) {
       vm::interactiveStack s;
       s.setInitMap(ge.getInitMap());
 
-      if (settings::autoplain)
+      if (settings::autoplain && !embedded)
 	irunnable(absyntax::autoplainRunnable()).wrapper(e, s);
 
       // Now that everything is set up, run the core.
@@ -339,8 +339,9 @@ int main(int argc, char *argv[])
 	loop::doIFile("");
       } else for(int ind=0; ind < numArgs() ; ind++)
 	loop::doIFile(string(getArg(ind)));
-  } catch (...) {
-    cerr << "error: exception thrown.\n";
+  }
+  catch (handled_error) {
+//    cerr << "error: exception thrown.\n";
     status=false;
   }
   return status ? 0 : 1;

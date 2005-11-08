@@ -85,6 +85,7 @@ void overflow()
 
 void add_input(char *&dest, const char *src, size_t& size)
 {
+  
   size_t len=strlen(src);
   if(len == 0) return;
   
@@ -98,6 +99,11 @@ void add_input(char *&dest, const char *src, size_t& size)
   dest += len;
 }
  
+static const char *input="input "; 
+static const char *inputexpand="erase(); include ";
+static size_t ninput=strlen(input);
+static size_t ninputexpand=strlen(inputexpand);
+  
 size_t interactive_input(char *buf, size_t max_size)
 {
   static int nlines=1000;
@@ -131,6 +137,13 @@ size_t interactive_input(char *buf, size_t max_size)
 
   if((line=rl_gets())) {
     errorstream::interrupt=false;
+    
+    if(strncmp(line,input,ninput) == 0) {
+      line += ninput;
+      strcpy(to,inputexpand);
+      to += ninputexpand;
+    }
+    
     add_input(to,line,size);
     virtualEOF=true;
     return to-buf;

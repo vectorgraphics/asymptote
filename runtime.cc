@@ -2141,7 +2141,7 @@ static callable *atExitFunction=NULL;
 void cleanup()
 {
   defaultpen=camp::pen::startupdefaultpen();
-  if(!interact::interactive) settings::scrollLines=0;
+  settings::scrollLines=0;
   
   if(TeXinitialized && TeXcontaminated) {
     camp::TeXpipepreamble.clear();

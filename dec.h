@@ -408,8 +408,8 @@ public:
   void transAsField(coenv &e, record *r);
 };
 
-// An explode declaration dumps all of the fields and types of a record into the
-// local scope.
+// An explode declaration dumps all of the fields and types of a record
+// into the local scope.
 class explodedec : public dec {
   name *id;
 
@@ -509,7 +509,7 @@ public:
   void transAsField(coenv &e, record *parent);
 };
 
-// Returns a runnable that facilitate the autoplain feature.
+// Returns a runnable that facilitates the autoplain feature.
 runnable *autoplainRunnable();
 
 } // namespace absyntax
