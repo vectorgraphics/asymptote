@@ -22,7 +22,7 @@ frame mark;
 filldraw(mark,scale(0.8mm)*polygon(6),green);
 draw(mark,scale(0.8mm)*cross(6),blue);
 
-draw(pic2,graph(f),marker(mark,markuniform(5)));
+draw(pic2,graph(pic2,f),marker(mark,markuniform(5)));
 
 xaxis(pic2,"$x$",BottomTop,LeftTicks);
 yaxis(pic2,"$y$",LeftRight,RightTicks);
