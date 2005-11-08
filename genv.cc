@@ -73,20 +73,36 @@ record *genv::loadModule(symbol *id, std::string filename) {
   return r;
 }
 
+void genv::checkRecursion(std::string filename) {
+  if (find(inTranslation.begin(), inTranslation.end(), filename) !=
+         inTranslation.end()) {
+    em->sync();
+    *em << "error: recursive loading of module '" << filename << "'\n";
+    em->sync();
+    throw handled_error();
+  }
+}
 
 record *genv::getModule(symbol *id, std::string filename) {
+  checkRecursion(filename);
+
   record *r=imap[filename];
   if (r)
     return r;
   else {
+    inTranslation.push_front(filename);
+
     record *r=loadModule(id, filename);
-    
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
     if (!interact::interactive || !em->errors())
       imap[filename]=r;
+
+    inTranslation.remove(filename);
+
     return r;
   }
+
 }
 
 typedef vm::stack::importInitMap importInitMap;

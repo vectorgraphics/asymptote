@@ -16,6 +16,7 @@
 #ifndef GENV_H
 #define GENV_H
 
+#include "memory.h"
 #include "table.h"
 #include "record.h"
 #include "absyn.h"
@@ -32,6 +33,14 @@ class genv : public gc {
   // The initializer functions for imports, indexed by filename.
   typedef mem::map<const std::string,record *> importMap;
   importMap imap;
+
+  // List of modules in translation.  Used to detect and prevent infinite
+  // recursion in loading modules.
+  mem::list<std::string> inTranslation;
+
+  // Checks for recursion in loading, reporting an error and throwing an
+  // exception if it occurs.
+  void checkRecursion(std::string filename);
 
   // Translate a module to build the record type.
   record *loadModule(symbol *name, std::string s);

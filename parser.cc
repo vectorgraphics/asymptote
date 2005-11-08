@@ -51,6 +51,7 @@ void debug(bool state)
 namespace {
 void error(string filename)
 {
+  em->sync();
   *em << "error: could not load module '" << filename << "'\n";
   em->sync();
   throw handled_error();

@@ -163,7 +163,7 @@ vm::lambda *runnable::transAsCodelet(coenv &e)
 {
   coder c=e.c.newCodelet();
   coenv ce(c, e.e);
-  trans(ce);
+  markTrans(ce);
   return c.close();
 }
 
