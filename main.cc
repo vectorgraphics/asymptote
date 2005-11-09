@@ -135,10 +135,11 @@ struct icore {
   virtual void run(coenv &e, istack &s) = 0;
   
   // Wrapper for run used to execute eval within the current environment.
-  void wrapper(coenv &e, istack &s) {
+  void wrapper(coenv &e, istack &s, bool exit=false) {
     estack.push_back(&e);
     sstack.push_back(&s);
     run(e,s);
+    if(exit) run::exitFunction(&s);
     estack.pop_back();
     sstack.pop_back();
   }
@@ -217,12 +218,11 @@ void doICore(icore &i, bool embedded=false) {
 	irunnable(absyntax::autoplainRunnable()).wrapper(e,s);
 
       // Now that everything is set up, run the core.
-      i.wrapper(e,s);
+      i.wrapper(e,s,true);
 
       if(settings::listvariables)
 	base_env.list();
     
-      run::exitFunction(&s);
       em->clear();
     }
   } catch (std::bad_alloc&) {
