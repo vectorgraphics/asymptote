@@ -25,12 +25,6 @@ void stm::prettyprint(ostream &out, int indent)
   prettyname(out,"stm",indent);
 }
 
-void stm::trans(coenv &)
-{
-  em->compiler(getPos());
-  *em <<  "base stm in abstract syntax";
-}
-
 
 void emptyStm::prettyprint(ostream &out, int indent)
 {

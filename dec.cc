@@ -308,11 +308,6 @@ void modifiedRunnable::prettyprint(ostream &out, int indent)
   body->prettyprint(out, indent+1);
 }
 
-void modifiedRunnable::trans(coenv &e)
-{
-  transAsField(e,0);
-}
-
 void modifiedRunnable::transAsField(coenv &e, record *r)
 {
   if (mods->staticSet())
@@ -327,10 +322,7 @@ void modifiedRunnable::transAsField(coenv &e, record *r)
 #endif  
   e.c.setPermission(p);
 
-  if (r)
-    body->transAsField(e,r);
-  else
-    body->trans(e);
+  body->transAsField(e,r);
 
   e.c.clearPermission();
   if (mods->staticSet())
@@ -397,28 +389,29 @@ void decid::prettyprint(ostream &out, int indent)
     init->prettyprint(out, indent+1);
 }
 
-void decid::trans(coenv &e, types::ty *base)
-{
-  transAsField(e,0,base);
-}
 
-void addVar(position pos, coenv &e, record *r,
-            symbol *id, types::ty *t, varinit *init)
+varEntry *makeVarEntry(coenv &e, record *r, types::ty *t)
 {
-  // give the field a location.
   access *a = r ? r->allocField(e.c.isStatic()) :
                   e.c.allocLocal();
 
-  varEntry *ent = r ? new varEntry(t, a, e.c.getPermission(), r) :
-                      new varEntry(t, a);
+  return r ? new varEntry(t, a, e.c.getPermission(), r) :
+             new varEntry(t, a);
+}
 
+void addVar(coenv &e, record *r, varEntry *v, symbol *id)
+{
   // Add to the record so it can be accessed when qualified; add to the
   // environment so it can be accessed unqualified in the scope of the
   // record definition.
   if (r)
-    r->e.addVar(id, ent);
-  e.e.addVar(id, ent);
-  
+    r->e.addVar(id, v);
+  e.e.addVar(id, v);
+}
+
+void initializeVar(position pos, coenv &e, record *r,
+                   varEntry *v, types::ty *t, varinit *init)
+{
   if (init)
     init->transToType(e, t);
   else {
@@ -426,37 +419,26 @@ void addVar(position pos, coenv &e, record *r,
     d.transToType(e, t);
   }
   
-  a->encode(WRITE, pos, e.c);
+  v->getLocation()->encode(WRITE, pos, e.c);
   e.c.encode(inst::pop);
 }
 
-void addVarOutOfOrder(position pos, coenv &e, record *r,
-                      symbol *id, types::ty *t, varinit *init)
+void createVar(position pos, coenv &e, record *r,
+               symbol *id, types::ty *t, varinit *init)
 {
-  // give the field a location.
-  access *a = r ? r->allocField(e.c.isStatic()) :
-                  e.c.allocLocal();
-
-  varEntry *ent = r ? new varEntry(t, a, e.c.getPermission(), r) :
-                      new varEntry(t, a);
-
-  if (init)
-    init->transToType(e, t);
-  else {
-    definit d(pos);
-    d.transToType(e, t);
-  }
-  
-  // Add to the record so it can be accessed when qualified; add to the
-  // environment so it can be accessed unqualified in the scope of the
-  // record definition.
-  if (r)
-    r->e.addVar(id, ent);
-  e.e.addVar(id, ent);
-  
-  a->encode(WRITE, pos, e.c);
-  e.c.encode(inst::pop);
+  varEntry *v=makeVarEntry(e, r, t);
+  addVar(e, r, v, id);
+  initializeVar(pos, e, r, v, t, init);
 }
+
+void createVarOutOfOrder(position pos, coenv &e, record *r,
+                         symbol *id, types::ty *t, varinit *init)
+{
+  varEntry *v=makeVarEntry(e, r, t);
+  initializeVar(pos, e, r, v, t, init);
+  addVar(e, r, v, id);
+}
+
 
 void decid::transAsField(coenv &e, record *r, types::ty *base)
 {
@@ -467,12 +449,7 @@ void decid::transAsField(coenv &e, record *r, types::ty *base)
     *em << "can't declare variable of type void";
   }
 
-  addVarOutOfOrder(getPos(), e, r, start->getName(), t, init);
-}
-
-void decid::transAsTypedef(coenv &e, trans::tyEntry *base)
-{
-  transAsTypedefField(e, base, 0);
+  createVarOutOfOrder(getPos(), e, r, start->getName(), t, init);
 }
 
 void decid::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
@@ -500,22 +477,10 @@ void decidlist::prettyprint(ostream &out, int indent)
     (*p)->prettyprint(out, indent+1);
 }
 
-void decidlist::trans(coenv &e, types::ty *base)
-{
-  for (list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
-    (*p)->trans(e, base);
-}
-
 void decidlist::transAsField(coenv &e, record *r, types::ty *base)
 {
   for (list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
     (*p)->transAsField(e, r, base);
-}
-
-void decidlist::transAsTypedef(coenv &e, trans::tyEntry *base)
-{
-  for (list<decid *>::iterator p = decs.begin(); p != decs.end(); ++p)
-    (*p)->transAsTypedef(e, base);
 }
 
 void decidlist::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
@@ -531,11 +496,6 @@ void vardec::prettyprint(ostream &out, int indent)
 
   base->prettyprint(out, indent+1);
   decs->prettyprint(out, indent+1);
-}
-
-void vardec::transAsTypedef(coenv &e)
-{
-  decs->transAsTypedef(e, base->transAsTyEntry(e));
 }
 
 void vardec::transAsTypedefField(coenv &e, record *r)
@@ -580,72 +540,144 @@ public:
   }
 };
 
-void importdec::prettyprint(ostream &out, int indent)
+// Creates a local variable to hold the import and translate the accessing of
+// the import, but doesn't add the import to the environment.
+varEntry *accessModule(position pos, coenv &e, record *r, symbol *id)
 {
-  prettyindent(out, indent);
-  out << "importdec (" << "'" << filename << "' as " << *id << ")\n";
-}
-
-void importdec::trans(coenv &e)
-{
-  transAsField(e,0);
-}
-
-void importdec::loadFailed(coenv &)
-{
-  em->warning(getPos());
-  *em << "could not load module of name '" << *id << "'";
-  em->sync();
-}
-
-void importdec::transAsField(coenv &e, record *r)
-{
-  record *imp=e.e.getModule(id, filename);
+  record *imp=e.e.getModule(id, *id);
   if (!imp) {
-    loadFailed(e);
+    em->error(pos);
+    *em << "could not load module of name '" << *id << "'";
+    em->sync();
+    return 0;
   }
   else {
     // Create a varinit that evaluates to the module.
     // This is effectively the expression "loadModule(filename)".
-    callExp init(getPos(), new loadModuleExp(getPos(), imp),
-                           new stringExp(getPos(), filename));
+    callExp init(pos, new loadModuleExp(pos, imp),
+                      new stringExp(pos, *id));
 
-    // Add the variable to the environment.
-    // This is effectively a variable declaration of the form
-    //
-    // imp id=loadModule(filename);
-    //
-    // except that the type "imp" of the module is not in the type
-    // environment.
-    addVar(pos, e, r, id, imp, &init);
+    varEntry *v=makeVarEntry(e, r, imp);
+    initializeVar(pos, e, r, v, imp, &init);
+    return v;
   }
 }
 
 
-void explodedec::prettyprint(ostream &out, int indent)
+void idpair::prettyprint(ostream &out, int indent)
 {
-  prettyname(out, "explodedec", indent);
-  id->prettyprint(out, indent+1);
+  prettyindent(out, indent);
+  out << "idpair (" << "'" << *src << "' as " << *dest << ")\n";
 }
 
-void explodedec::trans(coenv &e)
+void idpair::transAsAccess(coenv &e, record *r)
 {
-  transAsField(e,0);
+  varEntry *v=accessModule(getPos(), e, r, src);
+  if (v)
+    addVar(e, r, v, dest);
 }
 
-void explodedec::transAsField(coenv &e, record *r)
+void idpair::transAsUnravel(coenv &e, record *r,
+                            protoenv &source, varEntry *qualifier)
 {
-  record *qualifier=dynamic_cast<record *>(id->getType(e, false));
-  if (!qualifier) {
+  if (r)
+    r->e.add(src, dest, source, qualifier, e.c);
+  if (!e.e.add(src, dest, source, qualifier, e.c)) {
     em->error(getPos());
-    *em << "'" << *(id->getName()) << "' is not a record";
+    *em << "no matching types or fields of name '" << *src << "'";
   }
-  else {
-    varEntry *v=id->getVarEntry(e);
-    if (r)
-      r->e.add(qualifier->e, v, e.c);
-    e.e.add(qualifier->e, v, e.c);
+}
+
+
+void idpairlist::prettyprint(ostream &out, int indent)
+{
+  for (mem::list<idpair *>::iterator p=base.begin();
+       p != base.end();
+       ++p)
+    (*p)->prettyprint(out, indent);
+}
+
+void idpairlist::transAsAccess(coenv &e, record *r)
+{
+  for (mem::list<idpair *>::iterator p=base.begin();
+       p != base.end();
+       ++p)
+    (*p)->transAsAccess(e,r);
+}
+
+void idpairlist::transAsUnravel(coenv &e, record *r,
+                                protoenv &source, varEntry *qualifier)
+{
+  for (mem::list<idpair *>::iterator p=base.begin();
+       p != base.end();
+       ++p)
+    (*p)->transAsUnravel(e,r,source,qualifier);
+}
+
+idpairlist * const WILDCARD = 0;
+
+void accessdec::prettyprint(ostream &out, int indent)
+{
+  prettyname(out, "accessdec", indent);
+
+  base->prettyprint(out, indent+1);
+}
+
+
+void fromdec::prettyprint(ostream &out, int indent)
+{
+  prettyname(out, "fromdec", indent);
+  fields->prettyprint(out, indent+1);
+}
+
+void fromdec::transAsField(coenv &e, record *r)
+{
+  varEntry *v=getQualifier(e,r);
+  if (v) {
+    record *qt=dynamic_cast<record *>(v->getType());
+    if (!qt) {
+      em->error(getPos());
+      *em << "qualifier is not a record";
+    }
+    else {
+      if (fields==WILDCARD) {
+        if (r)
+          r->e.add(qt->e, v, e.c);
+        e.e.add(qt->e, v, e.c);
+      }
+      else
+        fields->transAsUnravel(e, r, qt->e, v);
+    }
   }
+}
+
+
+void unraveldec::prettyprint(ostream &out, int indent)
+{
+  prettyname(out, "unraveldec", indent);
+  id->prettyprint(out, indent+1);
+  this->fields->prettyprint(out, indent+1);
+}
+
+varEntry *unraveldec::getQualifier(coenv &e, record *)
+{
+  // To report errors.
+  id->getType(e, false);
+
+  return id->getVarEntry(e);
+}
+
+
+void importdec::prettyprint(ostream &out, int indent)
+{
+  prettyindent(out, indent);
+  out << "importdec '" << *id << "'\n";
+  this->fields->prettyprint(out, indent+1);
+}
+
+varEntry *importdec::getQualifier(coenv &e, record *r)
+{
+  return accessModule(getPos(), e, r, id);
 }
 
 
@@ -653,11 +685,6 @@ void includedec::prettyprint(ostream &out, int indent)
 {
   prettyindent(out, indent);
   out << "includedec ('" << filename << "')\n";
-}
-
-void includedec::trans(coenv &e)
-{
-  transAsField(e,0);
 }
 
 void includedec::loadFailed(coenv &)
@@ -712,11 +739,6 @@ void recorddec::addOps(coenv &e, record *r)
       new varEntry(ft, new bltinAccess(run::boolMemNeq)));
 }
 
-void recorddec::trans(coenv &e)
-{
-  transAsField(e,0);
-}  
-
 void recorddec::transAsField(coenv &e, record *parent)
 {
   record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
@@ -738,7 +760,7 @@ void recorddec::transAsField(coenv &e, record *parent)
 
 runnable *autoplainRunnable() {
   // Private import plain;
-  static usedec ap(position(), symbol::trans("plain"));
+  static importdec ap(position(), symbol::trans("plain"), WILDCARD);
   static modifiedRunnable mr(position(), trans::PRIVATE, &ap);
 
   return &mr;

@@ -249,7 +249,7 @@ void fundec::transAsField(coenv &e, record *r)
 
   addOps(e,ft);
   
-  addVar(getPos(), e, r, id, ft, &fun);
+  createVar(getPos(), e, r, id, ft, &fun);
 } 
 
 } // namespace absyntax

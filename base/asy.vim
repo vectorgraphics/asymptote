@@ -15,10 +15,10 @@ elseif exists("b:current_syntax")
 endif
 
 " A bunch of useful C keywords
-syn keyword	asyStatement	break return continue explode
+syn keyword	asyStatement	break return continue unravel
 syn keyword	asyConditional	if else
 syn keyword	asyRepeat	while for do
-syn keyword     asyExternal     import use
+syn keyword     asyExternal     access from import include
 syn keyword     asyOperator     new operator
 
 syn keyword	asyTodo		contained TODO FIXME XXX

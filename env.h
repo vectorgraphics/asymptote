@@ -122,6 +122,15 @@ public:
     ve.add(source.ve, qualifier, c);
   }
 
+  // Add variables and types of name src from another environment under the
+  // name dest in this environment.
+  bool add(symbol *src, symbol *dest,
+           protoenv &source, varEntry *qualifier, coder &c)
+  {
+    return te.add(src, dest, source.te, qualifier, c) | 
+           ve.add(src, dest, source.ve, qualifier, c);
+  }
+
   // Add the fields and types of the record given in v to the local environment.
   void useRecord(varEntry *v);
 

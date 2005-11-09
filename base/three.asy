@@ -114,19 +114,19 @@ transform3 reflect(triple u, triple v, triple w)
 // down the negative z axis) to the point 'from' (looking at the origin).
 // Since, in actuality, we are transforming the points instead of
 // the camera, we calculate the inverse matrix.
-transform3 lookAtOrigin(triple from)
+transform3 lookAtOrigin(triple eye)
 {
-  transform3 t=(from.x == 0 && from.y == 0) ? shift(-from) : 
-    shift((0,0,-length(from)))*
+  transform3 t=(eye.x == 0 && eye.y == 0) ? shift(-eye) : 
+    shift((0,0,-length(eye)))*
     rotate(-90,Z)*
-    rotate(-colatitude(from),Y)*
-    rotate(-longitude(from),Z);
+    rotate(-colatitude(eye),Y)*
+    rotate(-longitude(eye),Z);
   return t;
 }
 
-transform3 lookAt(triple from, triple to)
+transform3 lookAt(triple eye, triple target)
 {
-  return lookAtOrigin(from-to)*shift(-to);
+  return lookAtOrigin(eye-target)*shift(-target);
 }
 
 typedef pair project(triple v);

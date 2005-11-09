@@ -295,9 +295,10 @@ continue           {adjust(); return CONTINUE; }
 struct             {adjust(); return STRUCT; }
 typedef            {adjust(); return TYPEDEF; }
 new                {adjust(); return NEW; }
-access             {adjust(); return IMPORT; }
-import             {adjust(); return USE; }
-unravel            {adjust(); return EXPLODE; }
+access             {adjust(); return ACCESS; }
+import             {adjust(); return IMPORT; }
+unravel            {adjust(); return UNRAVEL; }
+from               {adjust(); return FROM; }
 include            {adjust(); return INCLUDE; }
 quote              {adjust(); return QUOTE; }
 static             {adjust(); makemod(trans::EXPLICIT_STATIC);

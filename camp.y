@@ -73,6 +73,8 @@ using sym::symbol;
   absyntax::vardec *vd;
   //absyntax::vardecs *vds;
   absyntax::dec *d;
+  absyntax::idpair *ip;
+  absyntax::idpairlist *ipl;
   absyntax::stm *s;
   absyntax::block *b;
   absyntax::stmExpList *sel;
@@ -90,7 +92,7 @@ using sym::symbol;
 %token <pos> LOOSE ASSIGN '?' ':'
              DIRTAG JOIN_PREC AND
              '{' '}' '(' ')' '.' ','  '[' ']' ';' ELLIPSIS
-             IMPORT EXPLODE USE INCLUDE QUOTE STRUCT TYPEDEF NEW
+             ACCESS UNRAVEL IMPORT INCLUDE FROM QUOTE STRUCT TYPEDEF NEW
              IF ELSE WHILE DO FOR BREAK CONTINUE RETURN_
              STATIC PUBLIC_TOK PRIVATE_TOK THIS EXPLICIT
 %token <e>   LIT
@@ -124,6 +126,9 @@ using sym::symbol;
 %type  <run> runnable
 %type  <ml>  modifiers
 %type  <d>   dec fundec typedec
+%type  <ps>  strid
+%type  <ip>  idpair stridpair
+%type  <ipl> idpairlist stridpairlist
 %type  <vd>  vardec barevardec 
 %type  <t>   type celltype
 %type  <dim> dims
@@ -210,18 +215,50 @@ dec:
   vardec           { $$ = $1; }
 | fundec           { $$ = $1; }
 | typedec          { $$ = $1; }
-| IMPORT ID ';'    { $$ = new importdec($1, $2.sym); }
-| IMPORT ID STRING ';'
-                   { $$ = new importdec($1, $2.sym, *$3.sym); }
-| EXPLODE name ';' { $$ = new explodedec($1, $2); }
-| USE ID ';'       { $$ = new usedec($1, $2.sym); }
-| USE ID STRING ';'
-                   { $$ = new usedec($1, $2.sym, *$3.sym); }
-| USE STRING ';'
-                   { $$ = new usedec($1, $2.sym); }
+| ACCESS stridpairlist ';'
+                   { $$ = new accessdec($1, $2); }
+| FROM name UNRAVEL idpairlist ';'
+                   { $$ = new unraveldec($1, $2, $4); }
+| FROM name UNRAVEL '*' ';'
+                   { $$ = new unraveldec($1, $2, WILDCARD); }
+| UNRAVEL name ';' { $$ = new unraveldec($1, $2, WILDCARD); }
+| FROM strid ACCESS idpairlist ';'
+                   { $$ = new importdec($1, $2.sym, $4); }
+| FROM strid ACCESS '*' ';'
+                   { $$ = new importdec($1, $2.sym, WILDCARD); }
+| IMPORT strid ';' { $$ = new importdec($1, $2.sym, WILDCARD); }
 | INCLUDE ID ';'   { $$ = new includedec($1, $2.sym); }                   
 | INCLUDE STRING ';'
                    { $$ = new includedec($1, *$2.sym); }                   
+;
+
+idpair:
+  ID               { $$ = new idpair($1.pos, $1.sym); }
+/* ID 'as' ID */
+| ID ID ID         { $$ = new idpair($1.pos, $1.sym, $2.sym , $3.sym); }
+;
+
+idpairlist:
+  idpair           { $$ = new idpairlist(); $$->add($1); }
+| idpairlist ',' idpair
+                   { $$ = $1; $$->add($3); }
+;
+
+strid:
+  STRING           { $$ = $1; }
+| ID               { $$ = $1; }
+;
+
+stridpair:
+  ID               { $$ = new idpair($1.pos, $1.sym); }
+/* strid 'as' ID */
+| strid ID ID      { $$ = new idpair($1.pos, $1.sym, $2.sym , $3.sym); }
+;
+
+stridpairlist:
+  stridpair        { $$ = new idpairlist(); $$->add($1); }
+| stridpairlist ',' stridpair
+                   { $$ = $1; $$->add($3); }
 ;
 
 vardec:

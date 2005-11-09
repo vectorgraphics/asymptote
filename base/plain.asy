@@ -1135,8 +1135,8 @@ struct picture {
 
   // Calculate the sizing constants for the given array and maximum size.
   scaling calculateScaling(coord[] coords, real size) {
-    import simplex;
-    simplex.problem p;
+    access simplex;
+    simplex.problem p=new simplex.problem;
    
     void addMinCoord(coord c) {
       // (a*user + b) + truesize >= 0:
@@ -2979,11 +2979,11 @@ int rfind(string s, string t)
   return rfind(s,t,-1);
 }
 
-// returns a string with all occurrences of string 'from' in string 's'
+// returns a string with all occurrences of string 'orig' in string 's'
 // changed to string 'to'
-string replace(string s, string from, string to) 
+string replace(string s, string orig, string to) 
 {
-  return replace(s,new string[][] {{from,to}});
+  return replace(s,new string[][] {{orig,to}});
 }
 
 // Like texify but don't convert embedded TeX commands: \${}

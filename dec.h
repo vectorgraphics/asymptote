@@ -18,6 +18,8 @@
 
 namespace trans {
 class coenv;
+class protoenv;
+class varEntry;
 class access;
 }
 
@@ -35,6 +37,8 @@ namespace absyntax {
 
 using mem::list;
 using trans::coenv;
+using trans::protoenv;
+using trans::varEntry;
 using trans::access;
 using sym::symbol;
 
@@ -128,7 +132,9 @@ public:
   }
   
   /* Translates the stm or dec as if it were in a function definition. */
-  virtual void trans(coenv &e) = 0;
+  virtual void trans(coenv &e) {
+    transAsField(e, 0);
+  }
 
   void markTransAsField(coenv &e, record *r)
   {
@@ -136,15 +142,12 @@ public:
     transAsField(e,r);
   }
 
-  /* Translate the runnable as a in the lowest lexical scope of a record 
+  /* Translate the runnable as in the lowest lexical scope of a record
    * definition.  If it is simply a statement, it will be added to the
    * record's initializer.  A declaration, however, will also have to
    * add a new type or field to the record.
    */
-  virtual void transAsField(coenv &e, record *) {
-    // By default, translate as normal.
-    trans(e);
-  }
+  virtual void transAsField(coenv &e, record *) = 0;
 
   virtual vm::lambda *transAsCodelet(coenv &e);
 
@@ -160,7 +163,7 @@ public:
 }; 
 
 class block : public runnable {
-public: // NOTE: For interactive codelet.  Fix this.
+public:
   list<runnable *> stms;
 
   // If the runnables should be interpreted in their own scope.
@@ -259,7 +262,6 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(coenv &e);
   void transAsField(coenv &e, record *r);
 
   bool returns()
@@ -317,12 +319,9 @@ public:
 
   virtual void prettyprint(ostream &out, int indent);
 
-  virtual void trans(coenv &e, types::ty *base);
-
   virtual void transAsField(coenv &e, record *r, types::ty *base);
 
   // Translate, but add the names in as types rather than variables. 
-  virtual void transAsTypedef(coenv &e, trans::tyEntry *base);
   virtual void transAsTypedefField(coenv &e, trans::tyEntry *base, record *r);
 };
 
@@ -341,12 +340,9 @@ public:
 
   virtual void prettyprint(ostream &out, int indent);
 
-  virtual void trans(coenv &e, types::ty *base);
-
   virtual void transAsField(coenv &e, record *r, types::ty *base);
 
   // Translate, but add the names in as types rather than variables. 
-  virtual void transAsTypedef(coenv &e, trans::tyEntry *base);
   virtual void transAsTypedefField(coenv &e, trans::tyEntry *base, record *r);
 };
 
@@ -362,8 +358,8 @@ public:
     { return true; }
 };
 
-void addVar(position pos, coenv &e, record *r,
-            symbol *id, types::ty *t, varinit *init);
+void createVar(position pos, coenv &e, record *r,
+               symbol *id, types::ty *t, varinit *init);
 
 class vardec : public dec {
   ty *base;
@@ -375,55 +371,121 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(coenv &e)
-  {
-    decs->trans(e, base->trans(e));
-  }
-
   void transAsField(coenv &e, record *r)
   {
     decs->transAsField(e, r, base->trans(e));
   }
 
   // Translate, but add the names in as types rather than variables. 
-  virtual void transAsTypedef(coenv &e);
   virtual void transAsTypedefField(coenv &e, record *r);
 };
 
-class importdec : public dec {
-  symbol *id;
-  std::string filename;
+struct idpair : public absyn {
+  symbol *src; // The name of the module to access.
+  symbol *dest;  // What to call it in the local environment.
 
-public:
-  importdec(position pos, symbol *id, std::string filename)
-    : dec(pos), id(id), filename(filename) {}
-  importdec(position pos, symbol *id)
-    : dec(pos), id(id), filename(*id) {}
+  idpair(position pos, symbol *id)
+    : absyn(pos), src(id), dest(id) {}
+
+  idpair(position pos, symbol *src, symbol *as, symbol *dest)
+    : absyn(pos), src(src), dest(dest)
+  {
+    if (as!=symbol::trans("as")) {
+      em->error(getPos());
+      *em << "expected 'as'";
+    }
+  }
 
   void prettyprint(ostream &out, int indent);
-  void loadFailed(coenv &e);
 
-  void trans(coenv &e);
+  // Translates as: import src as dest;
+  void transAsAccess(coenv &e, record *r);
+  
+  // Translates as: from _ unravel src as dest;
+  // where _ is the qualifier record with source as its fields and types.
+  void transAsUnravel(coenv &e, record *r,
+                      protoenv &source, varEntry *qualifier);
+};
+
+struct idpairlist : public gc {
+  mem::list<idpair *> base;
+
+  void add(idpair *x) {
+    base.push_back(x);
+  }
+
+  void prettyprint(ostream &out, int indent);
+
+  void transAsAccess(coenv &e, record *r);
+
+  void transAsUnravel(coenv &e, record *r,
+                      protoenv &source, varEntry *qualifier);
+};
+
+extern idpairlist * const WILDCARD;
+
+
+class accessdec : public dec {
+  idpairlist *base;
+
+public:
+  accessdec(position pos, idpairlist *base)
+    : dec(pos), base(base) {}
+
+  void prettyprint(ostream &out, int indent);
+
+  void transAsField(coenv &e, record *r) {
+    base->transAsAccess(e,r);
+  }
+};
+
+// Abstract base class for
+//   from _ access _;  (importdec)
+// and
+//   from _ unravel _;  (unraveldec)
+class fromdec : public dec {
+protected:
+  // Return the record from which the fields are taken.  If this returns 0, it
+  // is assumed that an error occured and was reported.
+  virtual varEntry *getQualifier(coenv &e, record *r) = 0;
+  idpairlist *fields;
+
+public:
+  fromdec(position pos, idpairlist *fields)
+    : dec(pos), fields(fields) {}
+
+  void prettyprint(ostream &out, int indent);
 
   void transAsField(coenv &e, record *r);
 };
 
-// An explode declaration dumps all of the fields and types of a record
-// into the local scope.
-class explodedec : public dec {
+// An unravel declaration dumps fields and types of a record into the local
+// scope.
+class unraveldec : public fromdec {
   name *id;
 
+  varEntry *getQualifier(coenv &e, record *);
 public:
-  explodedec(position pos, name *id)
-    : dec(pos), id(id) {}
+  unraveldec(position pos, name *id, idpairlist *fields)
+    : fromdec(pos, fields), id(id) {}
 
   void prettyprint(ostream &out, int indent);
-
-  void trans(coenv &e);
-
-  void transAsField(coenv &e, record *r);
 };
 
+// An import declaration dumps fields and types of a module into the local
+// scope.  It does not add the module as a variable in the local scope.
+class importdec : public fromdec {
+  symbol *id;
+
+  varEntry *getQualifier(coenv &e, record *r);
+public:
+  importdec(position pos, symbol *id, idpairlist *fields)
+    : fromdec(pos, fields), id(id) {}
+
+  void prettyprint(ostream &out, int indent);
+};
+
+#if 0
 class usedec : public dec {
   block base;
 
@@ -440,14 +502,11 @@ public:
     base.add(new explodedec(pos, new simpleName(pos, id)));
   }
 
-  void trans(coenv &e) {
-    base.trans(e);
-  }
-
   void transAsField(coenv &e, record *r) {
     base.transAsField(e, r);
   }
 };
+#endif
 
 // Parses the file given, and translates the resulting runnables as if they
 // occured at this place in the code.
@@ -463,8 +522,6 @@ public:
   void prettyprint(ostream &out, int indent);
   void loadFailed(coenv &e);
 
-  void trans(coenv &e);
-
   void transAsField(coenv &e, record *r);
 };
 
@@ -478,9 +535,6 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(coenv &e) {
-    body->transAsTypedef(e);
-  }
   void transAsField(coenv &e, record *r) {
     body->transAsTypedefField(e,r);
   }
@@ -503,8 +557,6 @@ public:
     {}
 
   void prettyprint(ostream &out, int indent);
-
-  void trans(coenv &e);
 
   void transAsField(coenv &e, record *parent);
 };

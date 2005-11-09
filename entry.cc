@@ -100,15 +100,32 @@ tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent)
   return new tyEntry(ent->t, qualifyVarEntry(qv, ent->v));
 }
 
-void tenv::add(tenv& source, varEntry *qualifier, coder &c)
+bool tenv::add(symbol *dest,
+               names_t::value_type &x, varEntry *qualifier, coder &c)
 {
+  if (!x.second.empty()) {
+    tyEntry *ent=x.second.front();
+    if (ent->checkPerm(READ, c)) {
+      enter(dest, qualifyTyEntry(qualifier, ent));
+      return true;
+    }
+  }
+  return false;
+}
+
+void tenv::add(tenv& source, varEntry *qualifier, coder &c) {
   // Enter each distinct (unshadowed) name,type pair.
   for(names_t::iterator p = source.names.begin(); p != source.names.end(); ++p)
-    if (!p->second.empty()) {
-      tyEntry *ent=p->second.front();
-      if (ent->checkPerm(READ, c))
-        enter(p->first, qualifyTyEntry(qualifier, ent));
-    }
+    add(p->first, *p, qualifier, c);
+}
+
+bool tenv::add(symbol *src, symbol *dest,
+               tenv& source, varEntry *qualifier, coder &c) {
+  names_t::iterator p = source.names.find(src);
+  if (p != source.names.end())
+    return add(dest, *p, qualifier, c);
+  else
+    return false;
 }
 
 #ifdef NOHASH //{{{
@@ -210,9 +227,7 @@ void venv::remove(key k) {
   value *&val=all[k];
   assert(val);
   if (val->next) {
-#if SHADOWING
     val->next->shadowed=false;
-#endif
     val=val->next;
   }
   else
@@ -238,10 +253,8 @@ void venv::enter(symbol *name, varEntry *v) {
 #endif
   
   val->next=all[k];
-#if SHADOWING
   if (val->next)
     val->next->shadowed=true;
-#endif
 
   all[k]=val;
   scopes.top().insert(keymultimap::value_type(k,val));
@@ -254,9 +267,28 @@ void venv::add(venv& source, varEntry *qualifier, coder &c)
   for(keymap::iterator p = source.all.begin(); p != source.all.end(); ++p) {
     varEntry *v=p->second->v;
     if (v->checkPerm(READ, c))
-      enter(p->first.name, qualifyVarEntry(qualifier, p->second->v));
+      enter(p->first.name, qualifyVarEntry(qualifier, v));
   }
 }
+
+bool venv::add(symbol *src, symbol *dest,
+               venv& source, varEntry *qualifier, coder &c)
+{
+  bool added=false;
+  values &list=source.names[src];
+
+  for (values::iterator p=list.begin(); p!=list.end(); ++p)
+    if (!(*p)->shadowed) {
+      varEntry *v=(*p)->v;
+      if (v->checkPerm(READ, c)) {
+        enter(dest, qualifyVarEntry(qualifier, v));
+        added=true;
+      }
+    }
+
+  return added;
+}
+
 
 ty *venv::getType(symbol *name)
 {
@@ -264,14 +296,9 @@ ty *venv::getType(symbol *name)
   types::overloaded set;
   values &list=names[name];
 
-  for (values::iterator p=list.begin(); p!=list.end(); ++p) {
-#if SHADOWING
+  for (values::iterator p=list.begin(); p!=list.end(); ++p)
     if (!(*p)->shadowed)
       set.add((*p)->v->getType());
-#else
-    set.addDistinct((*p)->v->getType());
-#endif
-  }
 
   return set.simplify();
 }

@@ -1,4 +1,4 @@
-TESTDIRS = string arith frames types
+TESTDIRS = string arith frames types imp
 
 test: $(TESTDIRS)
 

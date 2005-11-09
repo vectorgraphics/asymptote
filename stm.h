@@ -33,7 +33,12 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  void trans(coenv &e);
+  void transAsField(coenv &e, record *) {
+    // Ignore the record.
+    trans(e);
+  }
+
+  void trans(coenv &e) = 0;
 };
 
 class emptyStm : public stm {
@@ -183,12 +188,12 @@ public:
 
 
 // Used at the start of for loops.
-class stmExpList : public runnable {
+class stmExpList : public stm {
   list <stm *> stms;
 
 public:
   stmExpList(position pos) 
-    : runnable(pos) {}
+    : stm(pos) {}
 
   // To ensure list deallocates properly.
   virtual ~stmExpList() {}

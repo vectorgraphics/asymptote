@@ -117,11 +117,17 @@ tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent);
 
 // The type environment.
 class tenv : public sym::table<tyEntry *> {
+  bool add(symbol *dest, names_t::value_type &x, varEntry *qualifier, coder &c);
 public:
   // Add the entries in one environment to another, if qualifier is non-null, it
   // is a record and the source environment is its types.  The coder is used to
   // see which entries are accessible and should be added.
   void add(tenv& source, varEntry *qualifier, coder &c);
+
+  // Adds entries of the name src in source as the name dest, returning true if
+  // any were added.
+  bool add(symbol *src, symbol *dest,
+           tenv& source, varEntry *qualifier, coder &c);
 };
 
 #ifdef NOHASH //{{{
@@ -152,9 +158,8 @@ public:
 
 //}}}
 #else //{{{
-#define SHADOWING 1
 
-// venv implemented with a hash table.  Will replace venv soon...
+// venv implemented with a hash table.
 class venv {
 public:
   struct key : public gc {
@@ -244,6 +249,11 @@ public:
   // is a record and the source environment are its fields.  The coder is
   // necessary to check which variables are accessible and should be added.
   void add(venv& source, varEntry *qualifier, coder &c);
+
+  // Add all unshadowed variables from source of the name src as variables named
+  // dest.  Returns true if at least one was added.
+  bool add(symbol *src, symbol *dest,
+           venv& source, varEntry *qualifier, coder &c);
 
   bool lookInTopScope(key k) {
     return scopes.top().find(k)!=scopes.top().end();
