@@ -91,7 +91,7 @@ void init()
 {
   setPath(startPath());
   ShipoutNumber=0;
-  if (!em)
+  if(!em)
     em = new errorstream();
 }
 
@@ -159,12 +159,11 @@ struct irunnable : public icore {
     e.e.beginScope();
     lambda *codelet=r->transAsCodelet(e);
     em->sync();
-    if (!em->errors()) {
+    if(!em->errors()) {
       s.run(codelet);
     } else {
       e.e.endScope(); // Remove any changes to the environment.
       status=false;
-      em->clear();
     }
   }
 };
@@ -178,7 +177,7 @@ struct itree : public icore {
   void run(coenv &e, istack &s) {
     for(list<runnable *>::iterator r=ast->stms.begin(); r != ast->stms.end();
 	++r)
-      irunnable(*r).wrapper(e, s);
+      irunnable(*r).wrapper(e,s);
   }
 };
 
@@ -189,7 +188,7 @@ struct iprompt : public icore {
       try {
         file *ast = parser::parseInteractive();
         assert(ast);
-        itree(ast).wrapper(e, s);
+        itree(ast).wrapper(e,s);
       } catch (interrupted&) {
         if(em) em->Interrupt(false);
         cout << endl;
@@ -214,11 +213,11 @@ void doICore(icore &i, bool embedded=false) {
       vm::interactiveStack s;
       s.setInitMap(ge.getInitMap());
 
-      if (settings::autoplain && !embedded)
-	irunnable(absyntax::autoplainRunnable()).wrapper(e, s);
+      if(settings::autoplain)
+	irunnable(absyntax::autoplainRunnable()).wrapper(e,s);
 
       // Now that everything is set up, run the core.
-      i.wrapper(e, s);
+      i.wrapper(e,s);
 
       if(settings::listvariables)
 	base_env.list();
@@ -250,28 +249,28 @@ void doIFile(const string& filename) {
   init();
 
   string basename = stripext(filename,suffix);
-  if (verbose) cout << "Processing " << basename << endl;
+  if(verbose) cout << "Processing " << basename << endl;
   
-  if (parseonly) {
+  if(parseonly) {
     absyntax::file *tree = parser::parseFile(filename);
     em->sync();
-    if (!em->errors())
+    if(!em->errors())
       tree->prettyprint(cout, 0);
     else status=false;
+  } else if(translate) {
+    genv ge;
+    record *m = ge.getModule(symbol::trans(basename),filename);
+    if(!em->errors())
+      doPrint(ge,m);
   } else {
-    if(translate) {
-      genv ge;
-      record *m = ge.getModule(symbol::trans(basename),filename);
-      if(!em->errors())
-	doPrint(ge,m);
-    } else {
+    if(filename == "")
+      doITree(parser::parseString(""));
+    else {
       if(outname.empty())
 	outname=(filename == "-") ? "out" : stripDir(basename);
-
-      doITree((filename == "" ? parser::parseString 
-	       : parser::parseFile)(filename));
-      purge();
+      doITree(parser::parseFile(filename));
     }
+    purge();
   }
 }
 
@@ -304,7 +303,7 @@ int main(int argc, char *argv[])
   cout.precision(DBL_DIG);
 
   try {
-    if (interactive)
+    if(interactive)
       loop::doIPrompt();
     else
       if(numArgs() == 0) {

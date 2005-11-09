@@ -319,6 +319,8 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   
   bounds();
   
+  static ofstream bboxout;
+  
   if(null()) { // Output a null file
     bbox b;
     b.left=b.bottom=0;
@@ -326,10 +328,13 @@ bool picture::shipout(const picture& preamble, const string& prefix,
     psfile out(epsname,b,0);
     out.prologue();
     out.epilogue();
+    if(deconstruct && !tgifformat) {
+      if(bboxout) bboxout.close();
+      ShipoutNumber++;
+      return true;
+    }
     return postprocess(epsname,outname,outputformat,wait,quiet,b);
   }
-  
-  static ofstream bboxout;
   
   if(deconstruct && !tgifformat) {
     if(bboxout) bboxout.close();

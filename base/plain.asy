@@ -446,45 +446,7 @@ real getreal(string name, real default=0, string prompt="",
   return x;
 }
 
-static private int GUIFilenum=0;
 static public frame patterns;
-
-private struct DELETET {}
-static public DELETET DELETE=null;
-
-struct GUIop
-{
-  public transform[] Transform;
-  public bool[] Delete;
-}
-
-GUIop operator init() {return new GUIop;}
-  
-GUIop[] GUIlist;
-
-// Delete item
-void GUIop(int index, int filenum=0, DELETET)
-{
-  if(GUIlist.length <= filenum) GUIlist[filenum]=new GUIop;
-  GUIop GUIobj=GUIlist[filenum];
-  while(GUIobj.Transform.length <= index) {
-    GUIobj.Transform.push(identity());
-    GUIobj.Delete.push(false);
-  }
-  GUIobj.Delete[index]=true;
-}
-
-// Transform item
-void GUIop(int index, int filenum=0, transform T)
-{
-  if(GUIlist.length <= filenum) GUIlist[filenum]=new GUIop;
-  GUIop GUIobj=GUIlist[filenum];
-  while(GUIobj.Transform.length <= index) {
-    GUIobj.Transform.push(identity());
-    GUIobj.Delete.push(false);
-  }
-  GUIobj.Transform[index]=T*GUIobj.Transform[index];
-}
 
 transform rotate(real angle) 
 {
@@ -1349,16 +1311,6 @@ picture operator * (transform t, picture orig)
 }
 
 public picture currentpicture;
-
-public frame GUI[];
-
-frame GUI(int index) {
-  while(GUI.length <= index) {
-    frame f;
-    GUI.push(f);
-  }
-  return GUI[index];
-}
 
 pair min(explicit path[] g)
 {
@@ -2447,9 +2399,67 @@ path[] cross(int n)
 
 path[] plus=(-1,0)--(1,0)^^(0,-1)--(0,1);
 
+struct GUIop
+{
+  public transform[] Transform;
+  public bool[] Delete;
+}
+
+GUIop operator init() {return new GUIop;}
+  
+frame GUI[];
+  
+frame GUI(int index) {
+  while(GUI.length <= index) {
+    frame f;
+    GUI.push(f);
+  }
+  return GUI[index];
+}
+						   
+private struct DELETET {}
+static public DELETET DELETE=null;
+
+GUIop[] GUIlist;
+
+// Delete item
+void GUIop(int index, int filenum=0, DELETET)
+{
+  if(GUIlist.length <= filenum) GUIlist[filenum]=new GUIop;
+  GUIop GUIobj=GUIlist[filenum];
+  while(GUIobj.Transform.length <= index) {
+    GUIobj.Transform.push(identity());
+    GUIobj.Delete.push(false);
+  }
+  GUIobj.Delete[index]=true;
+}
+
+// Transform item
+void GUIop(int index, int filenum=0, transform T)
+{
+  if(GUIlist.length <= filenum) GUIlist[filenum]=new GUIop;
+  GUIop GUIobj=GUIlist[filenum];
+  while(GUIobj.Transform.length <= index) {
+    GUIobj.Transform.push(identity());
+    GUIobj.Delete.push(false);
+  }
+  GUIobj.Transform[index]=T*GUIobj.Transform[index];
+}
+
+static private int GUIFilenum;
+
+void GUIreset()
+{
+  GUIFilenum=0;
+  GUI=new frame[];
+  GUIlist=new GUIop[];
+}
+
 void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
 	     string format="", bool wait=NoWait, bool quiet=false)
 {
+  GUIreset();
+  readGUI();
   bool Transform=GUIFilenum < GUIlist.length;
   static transform[] noTransforms;
   static bool[] noDeletes;
@@ -3239,16 +3249,16 @@ guide operator ---(... guide[] a)
 
 void eval(string s, bool embedded=false)
 {
-  initdefaults();
+  if(!embedded) initdefaults();
   _eval(s,embedded);
-  restoredefaults();
+  if(!embedded) restoredefaults();
 }
 
 void eval(code s, bool embedded=false)
 {
-  initdefaults();
+  if(!embedded) initdefaults();
   _eval(s,embedded);
-  restoredefaults();
+  if(!embedded) restoredefaults();
 }
 
 void execute(string s)

@@ -65,7 +65,7 @@ absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
   absyntax::file *root = yyparse() == 0 ? absyntax::root : 0;
   absyntax::root = 0;
   yy::sbuf = 0;
-  if (!root) {
+  if(!root) {
     em->error(position::nullPos());
     if(!interact::interactive)
       error(filename);
@@ -84,19 +84,18 @@ absyntax::file *parseStdin()
 
 absyntax::file *parseFile(string filename)
 {
-  if (filename == "-")
+  if(filename == "-")
     return parseStdin();
   
   string file = settings::locateFile(filename);
 
-  if (file.empty())
+  if(file.empty())
     error(filename);
-
 
   debug(false); 
 
   std::filebuf filebuf;
-  if (!filebuf.open(file.c_str(),std::ios::in))
+  if(!filebuf.open(file.c_str(),std::ios::in))
     error(file);
   
 #ifdef HAVE_SYS_STAT_H

@@ -132,6 +132,7 @@ size_t interactive_input(char *buf, size_t max_size)
     virtualEOF=true;
     return to-buf;
   }
+  ShipoutNumber=0;
   
   char *line;
 

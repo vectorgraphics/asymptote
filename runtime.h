@@ -262,11 +262,12 @@ void scrollLines(vm::stack *s);
 // Merge output files  
 void merge(vm::stack *s);
   
-// Execute an asymptote file
+// Execute an Asymptote file
 void loadModule(vm::stack *s);
 void execute(vm::stack *s);
 void evalString(vm::stack *s);
 void evalAst(vm::stack *s);
+void readGUI(vm::stack *s);
   
 // I/O Routines
 void standardOut(vm::stack *s);

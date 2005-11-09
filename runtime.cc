@@ -2231,6 +2231,25 @@ void evalAst(stack *s)
   loop::doIRunnable(pop<absyntax::runnable *>(s),embedded);
 }
 
+void readGUI(stack *s)
+{
+  static bool first=true;
+  string name=buildname(outname,"gui");
+  std::ifstream exists(name.c_str());
+  if(exists) {
+    if((settings::clearGUI && !interact::interactive) ||
+       (first && interact::interactive)) unlink(name.c_str());
+    else {
+      if (!settings::ignoreGUI) {
+	string cmd=string("include \"")+name+string("\";");
+	absyntax::block *ast = parser::parseString(cmd);
+	loop::doITree(ast,true);
+      }
+    }
+  }
+  first=false;
+}
+
 void changeDirectory(stack *s)
 {
   string *d=pop<string*>(s);
