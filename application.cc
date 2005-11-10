@@ -46,7 +46,6 @@ defaultArg::defaultArg(types::ty *t)
 
 class maximizer {
   app_list l;
-  env &e;
 
   // Tests if x is as good (or better) an application as y.
   bool asgood(application *x, application *y) {
@@ -82,8 +81,7 @@ class maximizer {
   }
 
 public:
-  maximizer(env &e)
-    : e(e) {}
+  maximizer() {}
 
   void add(application *x) {
     if (maximal(x))
@@ -146,6 +144,22 @@ bool application::matchArgumentToRest(env &e, formal &source, varinit *a) {
   return false;
 }
 
+bool application::matchAtSpot(size_t spot, env &e, formal &source,
+                              varinit *a, size_t evalIndex)
+{
+  formal &target=sig->getFormal(spot);
+  score s=castScore(e, target, source);
+  if (s!=FAIL) {
+    // The argument matches.
+    args[spot]=seq.addArg(a, target.t, evalIndex);
+    if (spot==index)
+      advanceIndex();
+    scores.push_back(s);
+    return true;
+  }
+  else
+    return false;
+}
 
 bool application::matchArgument(env &e, formal &source,
                                 varinit *a, size_t evalIndex)
@@ -155,23 +169,11 @@ bool application::matchArgument(env &e, formal &source,
   if (index==args.size())
     // Try to pack into the rest array.
     return matchArgumentToRest(e, source, a);
-  else {
-    formal &target=getTarget();
-    score s=castScore(e, target, source);
-    if (s!=FAIL) {
-      // The argument matches.
-      args[index]=seq.addArg(a, target.t, evalIndex);
-      advanceIndex();
-      scores.push_back(s);
-      return true;
-    }
-    else if (matchDefault())
-      // Try again, now that we've used a default argument.
-      return matchArgument(e, source, a, evalIndex);
-    else
-      // Nothing to do in this position.
-      return false;
-  }
+  else
+    // Match here, or failing that use a default and try to match at the next
+    // spot.
+    return matchAtSpot(index, e, source, a, evalIndex) ||
+           (matchDefault() && matchArgument(e, source, a, evalIndex));
 }
 
 bool application::matchNamedArgument(env &e, formal &source,
@@ -180,22 +182,7 @@ bool application::matchNamedArgument(env &e, formal &source,
   assert(source.name!=0);
 
   int spot=find(source.name);
-  if (spot==NOMATCH)
-    return false;
-  else {
-    formal &target=sig->getFormal(spot);
-    score s=castScore(e, target, source);
-    if (s!=FAIL) {
-      // The argument matches.
-      args[spot]=seq.addArg(a, target.t, evalIndex);
-      if ((size_t)spot==index)
-        advanceIndex();
-      scores.push_back(s);
-      return true;
-    }
-    else
-      return false;
-  }
+  return spot!=NOMATCH && matchAtSpot(spot, e, source, a, evalIndex);
 }
 
 bool application::complete() {
@@ -300,7 +287,7 @@ app_list multimatch(env &e,
 
   if (l.size() > 1) {
     // Return the most specific candidates.
-    maximizer m(e);
+    maximizer m;
     for (app_list::iterator x=l.begin(); x!=l.end(); ++x) {
       assert(*x);
       m.add(*x);

@@ -33,7 +33,7 @@ typedef int score;
 typedef vector<score> score_vector;
 
 // This is used during the translation of arguments to store temporary
-// expresssions for arguments that need to be translated for side-effects at a
+// expressions for arguments that need to be translated for side-effects at a
 // certain point but used later on.  The invariant maintained is that if the
 // vector has n elements, then the side-effects for the first n arguments have
 // been translated.  Null is pushed onto the vector to indicate that the
@@ -192,17 +192,21 @@ class application : public gc {
   // Match the formal at index to its default argument (if it has one).
   bool matchDefault();
 
+  // Match the argument to the formal indexed by spot.
+  bool matchAtSpot(size_t spot, env &e, types::formal &source,
+                   varinit *a, size_t evalIndex);
+
   // Match the argument to be packed into the rest array, if possible.
-  bool matchArgumentToRest(env &e, types::formal& f, varinit *a);
+  bool matchArgumentToRest(env &e, types::formal& source, varinit *a);
 
   // Matches the argument to a formal in the target signature (possibly causing
   // other formals in the target to be matched to default values), and updates
   // the matchpoint accordingly. 
-  bool matchArgument(env &e, types::formal& f,
+  bool matchArgument(env &e, types::formal& source,
                      varinit *a, size_t evalIndex);
 
   // Match an argument bound to a name, as in f(index=7). 
-  bool matchNamedArgument(env &e, types::formal& f,
+  bool matchNamedArgument(env &e, types::formal& source,
                           varinit *a, size_t evalIndex);
 
   // After all source formals have been matched, checks if the match is
