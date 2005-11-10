@@ -120,13 +120,10 @@ size_t interactive_input(char *buf, size_t max_size)
 
   if(virtualEOF) return 0;
   
-  if(em->errors()) {
-    virtualEOF=true;
+  if(em->errors())
     em->clear();
-    return 0;
-  }
   
-  if(!uptodate) {
+  if(!uptodate) { // Maybe replace this with a call to an atdraw function.
     errorstream::interrupt=false;
     add_input(to,"shipout();",size);
     virtualEOF=true;
