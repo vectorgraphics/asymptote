@@ -1,6 +1,6 @@
 import drawtree;
 
-drawtree.treeLevelStep = 2cm;
+treeLevelStep = 2cm;
 
 TreeNode root = makeNode( "Root" );
 TreeNode child1 = makeNode( root, "Child\_1" );
