@@ -44,6 +44,7 @@ input_f yy_input = NULL;
 
 void setlexer(input_f input, string filename) 
 {
+  YY_FLUSH_BUFFER;
   yywrap();
   fi = new fileinfo(filename);
   yy_input = input;
