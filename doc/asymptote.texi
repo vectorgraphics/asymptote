@@ -4845,8 +4845,8 @@ add(origin,pic,opic);
 Lattice gradient shading varying smoothly over a two-dimensional
 array of pens @code{p}, using fillrule @code{fillrule}, can be produced with
 @verbatim
-void fill(picture pic=currentpicture, path g, pen fillrule=currentpen,
-          pen[][] p)
+void latticeshade(picture pic=currentpicture, path g, pen fillrule=currentpen,
+                  pen[][] p)
 @end verbatim
 The pens in @code{p} must belong to the same color space. One can use the
 functions @code{rgb(pen)} or @code{cmyk(pen)} to promote pens to a
@@ -4857,9 +4857,9 @@ higher color space, as illustrated in the example file
 Axial gradient shading varying smoothly from @code{pena} to @code{penb} in the
 direction of the line segment @code{a--b} can be achieved with
 @verbatim
-void fill(picture pic=currentpicture, path g,
-          pen pena, pair a,
-          pen penb, pair b);
+void axialshade(picture pic=currentpicture, path g,
+                pen pena, pair a,
+                pen penb, pair b);
 @end verbatim
 
 @cindex radial shading
@@ -4868,9 +4868,9 @@ Radial gradient shading varying smoothly from
 @code{penb} on the circle with center @code{b} and radius @code{rb} 
 is similar:
 @verbatim
-void fill(picture pic=currentpicture, path g,
-          pen pena, pair a, real ra,
-          pen penb, pair b, real rb);
+void radialshade(picture pic=currentpicture, path g,
+                 pen pena, pair a, real ra,
+                 pen penb, pair b, real rb);
 @end verbatim
 @noindent
 Illustrations of radial shading are provided in the example files
@@ -4881,8 +4881,8 @@ Gouraud shading using fillrule @code{fillrule} and the vertex colors in the
 pen array @code{p} on a triangular lattice defined by the vertices
 @code{z} and edge flags @code{edges} is implemented with
 @verbatim
-void fill(picture pic=currentpicture, path g, pen fillrule=currentpen,
-          pen[] p, pair[] z, int[] edges);
+void gouraudshade(picture pic=currentpicture, path g, pen fillrule=currentpen,
+                  pen[] p, pair[] z, int[] edges);
 @end verbatim
 @noindent
 The pens in @code{p} must belong to the same color space.
@@ -5439,4 +5439,6 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  zlimits inline dvipdf hyperdvi autoconf gui zerowindingoverlap
 @c  LocalWords:  prepended intMax quadraticroots cubicroots filltype prepend
 @c  LocalWords:  ticklabel popup UnFill markroutine marknodes markuniform
-@c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis
+@c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis Datadir
+@c  LocalWords:  resetdefaultpen latticeshade axialshade radialshade
+@c  LocalWords:  gouraudshade includegraphics

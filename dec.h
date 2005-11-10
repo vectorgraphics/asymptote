@@ -446,7 +446,7 @@ public:
 class fromdec : public dec {
 protected:
   // Return the record from which the fields are taken.  If this returns 0, it
-  // is assumed that an error occured and was reported.
+  // is assumed that an error occurred and was reported.
   virtual varEntry *getQualifier(coenv &e, record *r) = 0;
   idpairlist *fields;
 
@@ -509,7 +509,7 @@ public:
 #endif
 
 // Parses the file given, and translates the resulting runnables as if they
-// occured at this place in the code.
+// occurred at this place in the code.
 class includedec : public dec {
   std::string filename;
 

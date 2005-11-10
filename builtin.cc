@@ -442,14 +442,15 @@ void base_venv(venv &ve)
 
   addFunc(ve,run::fill,primVoid(),"fill",primPicture(),pathArray(),
 	  primPen());
-  addFunc(ve,run::latticeShade,primVoid(),"fill",primPicture(),pathArray(),
-	  primPen(),penArray2());
-  addFunc(ve,run::axialShade,primVoid(),"fill",primPicture(),pathArray(),
+  addFunc(ve,run::latticeShade,primVoid(),"latticeshade",primPicture(),
+	  pathArray(),primPen(),penArray2());
+  addFunc(ve,run::axialShade,primVoid(),"axialshade",primPicture(),pathArray(),
 	  primPen(),primPair(),primPen(),primPair());
-  addFunc(ve,run::radialShade,primVoid(),"fill",primPicture(),pathArray(),
-	  primPen(),primPair(),primReal(),primPen(),primPair(),primReal());
-  addFunc(ve,run::gouraudShade,primVoid(),"fill",primPicture(),pathArray(),
-	  primPen(), penArray(),pairArray(),intArray());
+  addFunc(ve,run::radialShade,primVoid(),"radialshade",primPicture(),
+	  pathArray(),primPen(),primPair(),primReal(),primPen(),primPair(),
+	  primReal());
+  addFunc(ve,run::gouraudShade,primVoid(),"gouraudshade",primPicture(),
+	  pathArray(),primPen(), penArray(),pairArray(),intArray());
   addFunc(ve,run::clip,primVoid(),"clip",primPicture(),pathArray(),
 	  primPen());
   addFunc(ve,run::beginClip,primVoid(),"beginclip",primPicture(),

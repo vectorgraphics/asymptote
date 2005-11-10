@@ -1486,56 +1486,52 @@ void fill(picture pic=currentpicture, path[] g, pen p=currentpen)
     pic.addPath(g[i]);
 }
 
-// lattice shading
-void fill(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
-	  pen[][] p)
+void latticeshade(picture pic=currentpicture, path[] g,
+		  pen fillrule=currentpen, pen[][] p)
 {
   g=copy(g);
   p=copy(p);
   pic.add(new void (frame f, transform t) {
-    fill(f,t*g,fillrule,p);
+    latticeshade(f,t*g,fillrule,p);
   });
   for(int i=0; i < g.length; ++i) 
     pic.addPath(g[i]);
 }
 
-// axial shading
-void fill(picture pic=currentpicture, path[] g, pen pena, pair a,
-	  pen penb, pair b)
+void axialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
+		pen penb, pair b)
 {
   g=copy(g);
   pic.add(new void (frame f, transform t) {
-    fill(f,t*g,pena,t*a,penb,t*b);
+    axialshade(f,t*g,pena,t*a,penb,t*b);
   });
   for(int i=0; i < g.length; ++i) 
     pic.addPath(g[i]);
 }
 
-// radial shading
-void fill(picture pic=currentpicture, path[] g, pen pena, pair a, real ra,
-	  pen penb, pair b, real rb)
+void radialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
+		 real ra, pen penb, pair b, real rb)
 {
   g=copy(g);
   pic.add(new void (frame f, transform t) {
     pair A=t*a, B=t*b;
     real RA=abs(t*(a+ra)-A);
     real RB=abs(t*(b+rb)-B);
-    fill(f,t*g,pena,A,RA,penb,B,RB);
+    radialshade(f,t*g,pena,A,RA,penb,B,RB);
   });
   for(int i=0; i < g.length; ++i) 
     pic.addPath(g[i]);
 }
 
-// Gouraud shading
-void fill(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
-	  pen[] p, pair[] z, int[] edges)
+void gouraudshade(picture pic=currentpicture, path[] g,
+		  pen fillrule=currentpen, pen[] p, pair[] z, int[] edges)
 {
   g=copy(g);
   p=copy(p);
   z=copy(z);
   edges=copy(edges);
   pic.add(new void (frame f, transform t) {
-	    fill(f,t*g,fillrule,p,t*z,edges);
+	    gouraudshade(f,t*g,fillrule,p,t*z,edges);
   });
   for(int i=0; i < g.length; ++i) 
     pic.addPath(g[i]);

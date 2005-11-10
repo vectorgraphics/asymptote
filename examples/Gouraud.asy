@@ -3,7 +3,7 @@ size(200);
 pen[] p={red,green,blue,magenta};
 pair[] z={(-1,0),(0,0),(0,1),(1,0)};
 int[] edges={0,0,0,1};
-fill(z[0]--z[2]--z[3]--cycle,p,z,edges);
+gouraudshade(z[0]--z[2]--z[3]--cycle,p,z,edges);
 
 draw(z[0]--z[1]--z[2]--cycle);
 draw(z[1]--z[3]--z[2],dashed);
