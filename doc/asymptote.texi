@@ -932,15 +932,16 @@ string @code{s});
 @item string reverse(string s)
 return the string formed by reversing string @code{s};
 
-@item string replace(string s, string from, string to) 
+@item string replace(string s, string before, string after) 
 @cindex @code{replace}
-returns a string with all occurrences of the string @code{from} in the
-string @code{s} changed to the string @code{to};
+returns a string with all occurrences of the string @code{before} in the
+string @code{s} changed to the string @code{after};
 
 @item string replace(string s, string[][] table)
 returns a string constructed by translating in string @code{s} all
-occurrences of the string @code{from} in an array @code{table} of string pairs
-@{@code{from},@code{to}@} to the corresponding string @code{to};
+occurrences of the string @code{before} in an array @code{table} of
+string pairs @{@code{before},@code{after}@} to the corresponding
+string @code{after};
 
 @anchor{format}
 @item string format(string s, int n) 

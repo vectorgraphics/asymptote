@@ -2979,11 +2979,11 @@ int rfind(string s, string t)
   return rfind(s,t,-1);
 }
 
-// returns a string with all occurrences of string 'orig' in string 's'
-// changed to string 'to'
-string replace(string s, string orig, string to) 
+// returns a string with all occurrences of string 'before' in string 's'
+// changed to string 'after'
+string replace(string s, string before, string after) 
 {
-  return replace(s,new string[][] {{orig,to}});
+  return replace(s,new string[][] {{before,after}});
 }
 
 // Like texify but don't convert embedded TeX commands: \${}

@@ -111,7 +111,7 @@ transform3 reflect(triple u, triple v, triple w)
 }
 
 // Transformation corresponding to moving the camera from the origin (looking
-// down the negative z axis) to the point 'from' (looking at the origin).
+// down the negative z axis) to the point 'eye' (looking at the origin).
 // Since, in actuality, we are transforming the points instead of
 // the camera, we calculate the inverse matrix.
 transform3 lookAtOrigin(triple eye)
