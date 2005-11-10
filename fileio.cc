@@ -52,6 +52,13 @@ bool ifile::eol()
     }
     stream->ignore();
     if(c == '\n') {
+      while(isspace(c=stream->peek())) {
+	if(c == '\n') {nullfield=true; return true;}
+        else {
+	  stream->ignore();
+	  whitespace += (char) c;
+	}
+      }
       return true;
     }
     else whitespace += (char) c;
@@ -62,13 +69,14 @@ bool ifile::eol()
 void ifile::csv()
 {
   comma=false;
+  nullfield=false;
   if(!csvmode || stream->eof()) return;
   std::ios::iostate rdstate=stream->rdstate();
   if(stream->fail()) stream->clear();
   int c=stream->peek();
   if(c == ',' || (c == '\n' && !linemode)) stream->ignore();
   else stream->clear(rdstate);
-//  if(c == ',' && linemode) comma=true;
+  if(c == ',') comma=true;
 }
   
 mem::string ifile::getcsvline() 
@@ -79,11 +87,7 @@ mem::string ifile::getcsvline()
     int c=stream->peek();
     if(c == '"') {quote=!quote; stream->ignore(); continue;}
     if(!quote && (c == ',' || c == '\n')) {
-      if(c == '\n') {
-	ignoreComment();
-	if(!linemode)
-	  stream->ignore();
-      }
+      if(c == '\n') ignoreComment();
       return s;
     }
     s += (char) stream->get();
