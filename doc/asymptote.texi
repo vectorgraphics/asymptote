@@ -309,7 +309,7 @@ location. Here are the default values of these environment variables:
 @verbatim
 UNIX:
 export ASYMPTOTE_PSVIEWER=gv
-export ASYMPTOTE_PDFVIEWER=gv
+export ASYMPTOTE_PDFVIEWER=acroread
 export ASYMPTOTE_GS=gs
 export ASYMPTOTE_PYTHON=
 

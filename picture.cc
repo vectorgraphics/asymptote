@@ -251,9 +251,9 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	  << " -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
 	  << " -dAutoRotatePages=/None "
 	  << " -dDEVICEWIDTHPOINTS=" 
-	  << ceil(bpos.right-bpos.left+2.0)
+	  << bpos.right-bpos.left+1.0
 	  << " -dDEVICEHEIGHTPOINTS=" 
-	  << ceil(bpos.top-bpos.bottom+2.0)
+	  << bpos.top-bpos.bottom+1.0
 	  << " -sOutputFile=" << outname << " " << epsname;
       System(cmd,false,true,"ASYMPTOTE_GS","ghostscript");
     } else {
@@ -355,14 +355,6 @@ bool picture::shipout(const picture& preamble, const string& prefix,
   
   bool TeXmode=texmode && settings::texprocess;
   bool Labels=labels || TeXmode;
-  
-  if(!Labels && pdfformat) {
-    double fuzz=1.0;
-    bpos.left -= fuzz;
-    bpos.right += fuzz;
-    bpos.bottom -= fuzz;
-    bpos.top += fuzz;
-  }
   
   if(deconstruct) {
       if(!bboxout.is_open()) {
