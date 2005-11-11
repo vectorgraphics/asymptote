@@ -171,7 +171,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     }
     
     string dviname=auxname(prefix,"dvi");
-    string psname=outname == "-" ? outname : auxname(prefix,"ps");
+    string psname=auxname(prefix,"ps");
     
     double height=bpos.top-bpos.bottom;
     double width=bpos.right-bpos.left;
@@ -215,18 +215,25 @@ bool picture::texprocess(const string& texname, const string& outname,
     bcopy.top += vfuzz;
     
     ifstream fin(psname.c_str());
-    ofstream fout(outname.c_str());
+    ostream *fout;
+    ofstream *Fout=NULL;
+    if(outname == "-")
+      fout=&cout;
+    else {
+      fout=Fout=new ofstream(outname.c_str());
+    }
+    
     string s;
     bool first=true;
     while(getline(fin,s)) {
       if(s.find("%%DocumentPaperSizes:") == 0) continue;
       if(first && s.find("%%BoundingBox:") == 0) {
 	if(verbose > 2) BoundingBox(cout,bpos);
-	BoundingBox(fout,bcopy);
+	BoundingBox(*fout,bcopy);
 	first=false;
-      } else fout << s << endl;
+      } else *fout << s << endl;
     }
-    fout.close();
+    if(Fout) Fout->close();
     
     if(!keep) { // Delete temporary files.
       unlink("texput.log");
