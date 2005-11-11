@@ -169,8 +169,12 @@ bool picture::texprocess(const string& texname, const string& outname,
       if(quiet) status=System(cmd,true,"ASYMPTOTE_LATEX","latex");
       return false;
     }
+    
     string dviname=auxname(prefix,"dvi");
+    string psname=outname == "-" ? outname : auxname(prefix,"ps");
+    
     double height=bpos.top-bpos.bottom;
+    double width=bpos.right-bpos.left;
     
     // Magic dvips offsets:
     double hoffset=-128.0;
@@ -178,10 +182,10 @@ bool picture::texprocess(const string& texname, const string& outname,
     
     if(origin != ZERO) {
       if(pdfformat || origin == BOTTOM) {
-	voffset += max(pageHeight-(bpos.top-bpos.bottom+1.0),0.0);
+	voffset += max(pageHeight-(height+1.0),0.0);
       } else if(origin == CENTER) {
-	hoffset += 0.5*max(pageWidth-(bpos.right-bpos.left+1.0),0.0);
-	voffset += 0.5*max(pageHeight-(bpos.top-bpos.bottom+1.0),0.0);
+	hoffset += 0.5*max(pageWidth-(width+1.0),0.0);
+	voffset += 0.5*max(pageHeight-(height+1.0),0.0);
       }
     }
     
@@ -190,7 +194,6 @@ bool picture::texprocess(const string& texname, const string& outname,
       voffset -= postscriptOffset.gety();
     }
 
-    string psname=auxname(prefix,"ps");
     ostringstream dcmd;
     dcmd << Dvips << " -R -t " << paperType 
 	 << "size -O " << hoffset << "bp," << voffset << "bp";
@@ -305,17 +308,19 @@ bool picture::postprocess(const string& epsname, const string& outname,
   return true;
 }
 
-bool picture::shipout(const picture& preamble, const string& prefix,
+bool picture::shipout(const picture& preamble, const string& Prefix,
 		      const string& format, bool wait, bool quiet, bool Delete)
 {
+  bool stdout=Prefix == "-";
+  string prefix=stdout ? "out" : Prefix;
   checkFormatString(format);
   string outputformat=format.empty() ? outformat : format;
   epsformat=outputformat.empty() || outputformat == "eps";
   pdfformat=outputformat == "pdf";
   tgifformat=outputformat == "tgif";
   string outname=tgifformat ? "."+buildname(prefix,"gif") :
-    buildname(prefix,outputformat,"",false);
-  string epsname=epsformat ? outname : auxname(prefix,"eps");
+    (stdout ? "-" : buildname(prefix,outputformat,"",false));
+  string epsname=epsformat ? (stdout ? "-" : outname) : auxname(prefix,"eps");
   
   bounds();
   

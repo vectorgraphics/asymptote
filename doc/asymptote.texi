@@ -5084,7 +5084,7 @@ Options:
 -c               Clear GUI operations
 -i               Ignore GUI operations
 -f format        Convert each output file to specified format
--o name          (First) output file name
+-o name          (First) output file name (- denotes standard output)
 -h, -help        Show summary of options
 -O pair          PostScript offset
 -C               Center on page (default)
@@ -5115,7 +5115,7 @@ If no arguments are given, @code{Asymptote} runs in interactive mode
 is @code{out.eps}.
 
 If @code{-} is given as the file argument, @code{Asymptote} reads from
-standard input. 
+standard input.
 
 If multiple files are specified, they are treated as separate
 @code{Asymptote} runs.
