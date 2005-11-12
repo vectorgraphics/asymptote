@@ -248,7 +248,7 @@ EXTRAOPS <<|>>|$|$$|@|@@
 "/"                {makesymbol(); return '/'; }
 "%"                {makesymbol(); return '%'; }
 "^"                {makesymbol(); return '^'; }
-"**"               {makesymbol("^"); return '^'; }
+"**"               {makesymbol(true,"^"); return '^'; }
 "?"                {adjust(); return '?'; }
 "="                {adjust(); return ASSIGN; }
 "=="               {makesymbol(); return EQ; }
