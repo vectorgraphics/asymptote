@@ -2782,6 +2782,9 @@ i(3,4); // ambiguous; the first candidate is better for the first argument,
 @cindex @code{identity}
 @cindex @code{J}
 @cindex @code{Y}
+@cindex @code{gamma}
+@cindex @code{erf}
+@cindex @code{erfc}
 @cindex @code{atan2}
 @cindex @code{hypot}
 @cindex @code{fmod}
@@ -2792,11 +2795,12 @@ real(real) functions @code{sin}, @code{cos}, @code{tan}, @code{asin},
 @code{log10}, @code{sinh}, @code{cosh}, @code{tanh}, @code{asinh},
 @code{acosh}, @code{atanh}, @code{sqrt}, @code{cbrt}, @code{fabs},
 as well as the identity function @code{identity}. 
-@code{Asymptote} also defines the Bessel function of order @code{n} of
-the first kind @code{J(int n, real)} and the second kind
-@code{Y(int n, real)}.
-The standard real(real, real) functions @code{atan2}, @code{hypot},
-@code{fmod}, @code{remainder} are also included.
+@code{Asymptote} also defines the order @code{n} Bessel functions of
+the first kind @code{J(int n, real)} and second kind
+@code{Y(int n, real)}, as well as the gamma function @code{gamma},
+the error function @code{erf}, and the complementary error function
+@code{erfc}. The standard real(real, real) functions @code{atan2},
+@code{hypot}, @code{fmod}, @code{remainder} are also included.
 
 @cindex @code{floor}
 @cindex @code{ceil}
