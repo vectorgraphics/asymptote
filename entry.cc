@@ -133,6 +133,38 @@ venv::venv()
 {
 }
 
+void venv::add(venv& source, varEntry *qualifier, coder &c)
+{
+  // Enter each distinct (unshadowed) name,type pair.
+  for(names_t::iterator p = source.names.begin();
+      p != source.names.end();
+      ++p)
+    add(p->first, p->first, source, qualifier, c);
+}
+
+bool venv::add(symbol *src, symbol *dest,
+               venv& source, varEntry *qualifier, coder &c)
+{
+  bool added=false;
+  name_t &list=source.names[src];
+  types::overloaded set; // To keep track of what is shadowed.
+
+  for(name_iterator p = list.begin();
+      p != list.end();
+      ++p) {
+    varEntry *v=*p;
+    if (!equivalent(v->getType(), &set)) {
+      set.addDistinct(v->getType(), src->special);
+      if (v->checkPerm(READ, c)) {
+        enter(dest, qualifyVarEntry(qualifier, v));
+        added=true;
+      }
+    }
+  }
+  
+  return added;
+}
+
 varEntry *venv::lookByType(symbol *name, ty *t)
 {
   // Find first applicable function.

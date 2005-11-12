@@ -37,7 +37,7 @@ namespace trans {
 // has permission based on the enclosing records where it was defined or
 // imported.
 class entry : public gc {
-  struct pr {
+  struct pr : public gc {
     permission perm;
     record *r;
 
@@ -139,6 +139,16 @@ public:
   // Look for a function that exactly matches the signature given.
   varEntry *lookExact(symbol *name, signature *key);
 #endif
+
+  // Add the entries in one environment to another, if qualifier is non-null, it
+  // is a record and the source environment are its fields.  The coder is
+  // necessary to check which variables are accessible and should be added.
+  void add(venv& source, varEntry *qualifier, coder &c);
+
+  // Add all unshadowed variables from source of the name src as variables named
+  // dest.  Returns true if at least one was added.
+  bool add(symbol *src, symbol *dest,
+           venv& source, varEntry *qualifier, coder &c);
 
   // Look for a function that exactly matches the type given.
   varEntry *lookByType(symbol *name, ty *t);
