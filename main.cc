@@ -215,8 +215,10 @@ void doICore(icore &i, bool embedded=false) {
       vm::interactiveStack s;
       s.setInitMap(ge.getInitMap());
 
-      if(settings::autoplain)
-	irunnable(absyntax::autoplainRunnable()).wrapper(e,s);
+      if(settings::autoplain) {
+	absyntax::runnable *r=absyntax::autoplainRunnable();
+	irunnable(r).wrapper(e,s);
+      }
 
       // Now that everything is set up, run the core.
       i.wrapper(e,s,true);
