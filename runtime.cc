@@ -219,7 +219,8 @@ void intQuotient(stack *s)
   int y = pop<int>(s);
   int x = pop<int>(s);
   if (y == 0) dividebyzero();
-  s->push(div(x,y).quot);
+// Implementation-independent definition of integer division: round down
+  s->push((x-portableMod(x,y))/y);
 }  
 
 void intAbs(stack *s)

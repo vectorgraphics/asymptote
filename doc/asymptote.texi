@@ -2286,8 +2286,8 @@ the default @code{Asymptote} base file @code{plain.asy}.
 However, when one integer is divided by another, both arguments are
 converted to real values before dividing and a real quotient is
 returned (since this is usually what is intended). The function
-@code{int quotient(int x, int y)} returns the integer part of
-@code{x/y}, rounded toward 0. In all other cases both operands are
+@code{int quotient(int x, int y)} returns the greatest integer less
+than or equal to @code{x/y}. In all other cases both operands are
 promoted to the same type, which will also be the type of the result:
 @table @code
 @cindex @code{+}
@@ -2305,6 +2305,8 @@ division
 @cindex @code{%}
 @item %
 modulo; the result always has the same sign as the divisor. 
+In particular, this makes @code{q*quotient(p,q)+p%q == p} for all
+integers @code{p} and nonzero integers @code{q}.
 @cindex @code{^}
 @item ^
 @cindex @code{**}
