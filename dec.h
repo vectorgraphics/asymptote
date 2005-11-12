@@ -383,14 +383,16 @@ public:
 struct idpair : public absyn {
   symbol *src; // The name of the module to access.
   symbol *dest;  // What to call it in the local environment.
+  bool valid; // If it parsed properly.
 
   idpair(position pos, symbol *id)
-    : absyn(pos), src(id), dest(id) {}
+    : absyn(pos), src(id), dest(id), valid(true) {}
 
   idpair(position pos, symbol *src, symbol *as, symbol *dest)
-    : absyn(pos), src(src), dest(dest)
-  {
-    if (as!=symbol::trans("as")) {
+    : absyn(pos), src(src), dest(dest), valid(as==symbol::trans("as")) {}
+
+  void checkValidity() {
+    if (!valid) {
       em->error(getPos());
       *em << "expected 'as'";
     }
@@ -511,10 +513,10 @@ public:
 // Parses the file given, and translates the resulting runnables as if they
 // occurred at this place in the code.
 class includedec : public dec {
-  std::string filename;
+  mem::string filename;
 
 public:
-  includedec(position pos, std::string filename)
+  includedec(position pos, mem::string filename)
     : dec(pos), filename(filename) {}
   includedec(position pos, symbol *id)
     : dec(pos), filename(*id) {}

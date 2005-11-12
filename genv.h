@@ -31,31 +31,31 @@ namespace trans {
 
 class genv : public gc {
   // The initializer functions for imports, indexed by filename.
-  typedef mem::map<const std::string,record *> importMap;
+  typedef mem::map<const mem::string,record *> importMap;
   importMap imap;
 
   // List of modules in translation.  Used to detect and prevent infinite
   // recursion in loading modules.
-  mem::list<std::string> inTranslation;
+  mem::list<mem::string> inTranslation;
 
   // Checks for recursion in loading, reporting an error and throwing an
   // exception if it occurs.
-  void checkRecursion(std::string filename);
+  void checkRecursion(mem::string filename);
 
   // Translate a module to build the record type.
-  record *loadModule(symbol *name, std::string s);
+  record *loadModule(symbol *name, mem::string s);
 
 public:
   genv();
 
   // Get an imported module, translating if necessary.
-  record *getModule(symbol *name, std::string s);
+  record *getModule(symbol *name, mem::string s);
 
   // Uses the filename->record map to build a filename->initializer map to be
   // used at runtime.
   vm::stack::importInitMap *getInitMap();
   
-  void listValues(const std::string name, record* &vals) {
+  void listValues(const mem::string name, record* &vals) {
     vals->e.list();
   }
   

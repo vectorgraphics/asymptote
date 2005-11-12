@@ -201,10 +201,11 @@ struct iprompt : public icore {
 };
 
 void doICore(icore &i, bool embedded=false) {
+  assert(em && !em->errors());
+
   try {
-    assert(em && !em->errors());
-    
-    if(embedded) i.embedded();
+    if(embedded)
+      i.embedded();
     else {
       genv ge;
       env base_env(ge);
@@ -223,7 +224,6 @@ void doICore(icore &i, bool embedded=false) {
       if(settings::listvariables)
 	base_env.list();
     
-      em->clear();
     }
   } catch (std::bad_alloc&) {
     cerr << "error: out of memory" << endl;
@@ -231,6 +231,8 @@ void doICore(icore &i, bool embedded=false) {
   } catch(handled_error) {
     status=false;
   }
+
+  em->clear();
 }
       
 void doIRunnable(runnable *r, bool embedded=false) {

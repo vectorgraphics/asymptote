@@ -49,7 +49,7 @@ genv::genv()
   }
 }
 
-record *genv::loadModule(symbol *id, std::string filename) {
+record *genv::loadModule(symbol *id, mem::string filename) {
   if(settings::verbose > 1)
     std::cerr << "Loading " <<  filename << std::endl;
     
@@ -73,7 +73,7 @@ record *genv::loadModule(symbol *id, std::string filename) {
   return r;
 }
 
-void genv::checkRecursion(std::string filename) {
+void genv::checkRecursion(mem::string filename) {
   if (find(inTranslation.begin(), inTranslation.end(), filename) !=
          inTranslation.end()) {
     em->sync();
@@ -83,7 +83,7 @@ void genv::checkRecursion(std::string filename) {
   }
 }
 
-record *genv::getModule(symbol *id, std::string filename) {
+record *genv::getModule(symbol *id, mem::string filename) {
   checkRecursion(filename);
 
   record *r=imap[filename];

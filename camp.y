@@ -229,7 +229,7 @@ dec:
 | IMPORT strid ';' { $$ = new importdec($1, $2.sym, WILDCARD); }
 | INCLUDE ID ';'   { $$ = new includedec($1, $2.sym); }                   
 | INCLUDE STRING ';'
-                   { $$ = new includedec($1, *$2.sym); }                   
+                   { $$ = new includedec($1, (mem::string)*$2.sym); }                   
 ;
 
 idpair:

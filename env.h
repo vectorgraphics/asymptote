@@ -153,7 +153,7 @@ public:
   // Start an environment for a file-level module.
   env(genv &ge);
 
-  record *getModule(symbol *id, std::string filename);
+  record *getModule(symbol *id, mem::string filename);
 };
 
 } // namespace trans

@@ -544,7 +544,7 @@ public:
 // the import, but doesn't add the import to the environment.
 varEntry *accessModule(position pos, coenv &e, record *r, symbol *id)
 {
-  record *imp=e.e.getModule(id, *id);
+  record *imp=e.e.getModule(id, (mem::string)*id);
   if (!imp) {
     em->error(pos);
     *em << "could not load module of name '" << *id << "'";
@@ -572,6 +572,8 @@ void idpair::prettyprint(ostream &out, int indent)
 
 void idpair::transAsAccess(coenv &e, record *r)
 {
+  checkValidity();
+
   varEntry *v=accessModule(getPos(), e, r, src);
   if (v)
     addVar(e, r, v, dest);
@@ -580,6 +582,8 @@ void idpair::transAsAccess(coenv &e, record *r)
 void idpair::transAsUnravel(coenv &e, record *r,
                             protoenv &source, varEntry *qualifier)
 {
+  checkValidity();
+
   if (r)
     r->e.add(src, dest, source, qualifier, e.c);
   if (!e.e.add(src, dest, source, qualifier, e.c)) {

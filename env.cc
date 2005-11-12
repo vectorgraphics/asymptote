@@ -126,7 +126,7 @@ env::env(genv &ge)
   base_venv(ve);
 }
 
-record *env::getModule(symbol *id, std::string filename)
+record *env::getModule(symbol *id, mem::string filename)
 {
   return ge.getModule(id, filename);
 }

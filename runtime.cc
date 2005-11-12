@@ -2153,7 +2153,7 @@ void cleanup()
 
 void exitFunction(stack *s)
 {
-  if(atExitFunction) {
+  if(atExitFunction && !nullfunc::instance()->compare(atExitFunction)) {
     atExitFunction->call(s);
     atExitFunction=NULL;
   }
