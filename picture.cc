@@ -215,13 +215,9 @@ bool picture::texprocess(const string& texname, const string& outname,
     bcopy.top += vfuzz;
     
     ifstream fin(psname.c_str());
-    ostream *fout;
     ofstream *Fout=NULL;
-    if(outname == "-")
-      fout=&cout;
-    else {
-      fout=Fout=new ofstream(outname.c_str());
-    }
+    ostream *fout=(outname == "-") ? &cout :
+      Fout=new ofstream(outname.c_str());
     
     string s;
     bool first=true;
@@ -233,7 +229,7 @@ bool picture::texprocess(const string& texname, const string& outname,
 	first=false;
       } else *fout << s << endl;
     }
-    if(Fout) Fout->close();
+    if(Fout) delete Fout;
     
     if(!keep) { // Delete temporary files.
       unlink("texput.log");
