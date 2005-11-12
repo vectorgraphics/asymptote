@@ -764,8 +764,9 @@ void recorddec::transAsField(coenv &e, record *parent)
 
 runnable *autoplainRunnable() {
   // Private import plain;
-  static importdec ap(position(), symbol::trans("plain"), WILDCARD);
-  static modifiedRunnable mr(position(), trans::PRIVATE, &ap);
+  position pos=position();
+  static importdec ap(pos, symbol::trans("plain"), WILDCARD);
+  static modifiedRunnable mr(pos, trans::PRIVATE, &ap);
 
   return &mr;
 }
