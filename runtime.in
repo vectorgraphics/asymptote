@@ -44,6 +44,7 @@ picture* => primPicture()
 #include "pipestream.h"
 #include "parser.h"
 #include "stack.h"
+#include "util.h"
   
 using namespace vm;
 using namespace camp;

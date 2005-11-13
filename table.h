@@ -24,12 +24,6 @@ class table;
 template <class B>
 std::ostream& operator<< (std::ostream& out, const table<B>& t);
 
-#if defined(__DECCXX_LIBCXX_RH70)
-#define CONST
-#else
-#define CONST const  
-#endif
-  
 template <class B>
 class table {
 protected:

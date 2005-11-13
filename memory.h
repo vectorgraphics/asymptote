@@ -18,6 +18,12 @@
 #include <ext/hash_map>
 #endif
 
+#if defined(__DECCXX_LIBCXX_RH70)
+#define CONST
+#else
+#define CONST const  
+#endif
+  
 #ifdef USEGC
 
 #include <gc.h>

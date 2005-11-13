@@ -2232,7 +2232,7 @@ void evalAst(stack *s)
   loop::doIRunnable(pop<absyntax::runnable *>(s),embedded);
 }
 
-void readGUI(stack *s)
+void readGUI(stack *)
 {
   static bool first=true;
   string name=buildname(outname,"gui");

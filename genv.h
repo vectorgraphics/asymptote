@@ -31,7 +31,7 @@ namespace trans {
 
 class genv : public gc {
   // The initializer functions for imports, indexed by filename.
-  typedef mem::map<const mem::string,record *> importMap;
+  typedef mem::map<CONST mem::string,record *> importMap;
   importMap imap;
 
   // List of modules in translation.  Used to detect and prevent infinite
@@ -55,7 +55,7 @@ public:
   // used at runtime.
   vm::stack::importInitMap *getInitMap();
   
-  void listValues(const mem::string name, record* &vals) {
+  void listValues(const mem::string, record* &vals) {
     vals->e.list();
   }
   

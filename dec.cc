@@ -409,7 +409,7 @@ void addVar(coenv &e, record *r, varEntry *v, symbol *id)
   e.e.addVar(id, v);
 }
 
-void initializeVar(position pos, coenv &e, record *r,
+void initializeVar(position pos, coenv &e, record *,
                    varEntry *v, types::ty *t, varinit *init)
 {
   if (init)
@@ -519,7 +519,7 @@ public:
     ft->add(primString());
   }
 
-  types::ty *trans(coenv &e) {
+  types::ty *trans(coenv &) {
     em->compiler(getPos());
     *em << "trans called for loadModuleExp";
     return primError();
@@ -530,7 +530,7 @@ public:
     e.c.encode(inst::builtin, run::loadModule);
   }
 
-  types::ty *getType(coenv &e) {
+  types::ty *getType(coenv &) {
     return ft;
   }
 

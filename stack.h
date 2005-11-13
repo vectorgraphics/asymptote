@@ -49,7 +49,7 @@ private:
   // The stack stores a map of initialized imported modules by name, so that
   // each module is initialized only once and each import refers to the same
   // instance.
-  typedef mem::map<const mem::string,frame *> importInstanceMap;
+  typedef mem::map<CONST mem::string,frame *> importInstanceMap;
   importInstanceMap instMap;
   
 public:

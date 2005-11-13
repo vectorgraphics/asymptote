@@ -36,7 +36,7 @@ using vm::bltin;
 using run::divide;
 using mem::string;
 
-void addType(tenv &te, char *name, ty *t)
+void addType(tenv &te, const char *name, ty *t)
 {
   te.enter(symbol::trans(name), new tyEntry(t,0));
 }

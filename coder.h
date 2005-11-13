@@ -225,12 +225,12 @@ private:
 public:
   void encode(inst::opcode op)
   {
-    inst i; i.op = op;
+    inst i; i.op = op; i.pos = position::nullPos();
     encode(i);
   }
   void encode(inst::opcode op, item it)
   {
-    inst i; i.op = op; i.ref = it;
+    inst i; i.op = op; i.pos = position::nullPos(); i.ref = it;
     encode(i);
   }
 

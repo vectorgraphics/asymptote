@@ -105,7 +105,7 @@ void purge()
 #endif
 }
 
-void doPrint(genv& ge, record *m)
+void doPrint(genv&, record *m)
 {
   // NOTE: Should make it possible to show more code.
   print(cout, m->getInit()->code);
