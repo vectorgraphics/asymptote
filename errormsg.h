@@ -49,8 +49,6 @@ class position {
   size_t column;
 
 public:
-  position() : file(NULL), line(0), column(0) {}
-    
   void init(fileinfo *f, int p) {
     file = f;
     if (file) {
