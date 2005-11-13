@@ -97,9 +97,6 @@ void init()
 
 void purge()
 {
-  em->clear();
-  outname="";
-
 #ifdef USEGC
   GC_gcollect();
 #endif
@@ -207,6 +204,8 @@ void doICore(icore &i, bool embedded=false) {
     if(embedded)
       i.embedded();
     else {
+      purge();
+      
       genv ge;
       env base_env(ge);
       coder base_coder;
@@ -273,8 +272,8 @@ void doIFile(const string& filename) {
       if(outname.empty())
 	outname=(filename == "-") ? "out" : stripDir(basename);
       doITree(parser::parseFile(filename));
+      outname="";
     }
-    purge();
   }
 }
 
@@ -284,8 +283,7 @@ void doIPrompt() {
   
   iprompt i;
   doICore(i);
-
-  purge();
+  outname="";
 }
 
 } // namespace loop
@@ -318,5 +316,6 @@ int main(int argc, char *argv[])
   catch (handled_error) {
     status=false;
   }
+  loop::purge();
   return status ? 0 : 1;
 }
