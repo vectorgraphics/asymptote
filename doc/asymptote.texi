@@ -3254,36 +3254,81 @@ Explicit casts are implemented similarly, with @code{operator ecast}.
 @node Import
 @section Import
 @cindex @code{import}
-One can import other @code{Asymptote} files with the @code{import} command:
+@code{Asymptote} provides a lot of features by default, but specialized features
+may be needed to draw a specific figure.  Modules provide these specialized
+features.  For instance, when drawing a two-dimensional graph, the lines
+
 @verbatim
-import graph;
+access graph;
+graph.axes();
 @end verbatim
-@cindex modules
-Such @code{Asymptote} files are often called modules. 
+
+draw the @math{x}- and @math{y}-axes for the graph.  Here, the @code{access}
+command looks up the module under the name @code{graph} in a global dictionary
+of modules and puts it in a new variable named @code{graph}.  The module is a
+structure, and we can refer to its fields as we usually would with a structure.
+
+Of course, it would nice to be able to refer to functions in a module, without
+always specifying the name of the module.  The code
+
+@verbatim
+from graph access axes;
+@end verbatim
+
+adds the @code{axes} field of @code{graph} into the local namespace, so one can
+just write @code{axes()} subsequently.  If the given name is overloaded,
+all types and variables of that name are added.  To add more than one name, just
+use a comma-separated list:
+
+@verbatim
+from graph access axes, xaxis, yaxis, labelx, labely;
+@end verbatim
+
+Wildcard notation can be used to add all non-private fields and types of a
+module:
+
+@verbatim
+from graph access *;
+@end verbatim
+
+The @code{import} keyword is an abbreviation for this, so the above command is
+equivalent to @code{import graph;}.
+Wildcard importing will work fine in most cases, but one does not usually know
+all of the types and variables defined in a module, which can also change as the
+module-writer adds or changes features of the module.  As such, it is prudent to
+add @code{import} lines at the start of an @code{Asymptote} file, so that
+imported names won't shadow locally defined functions.  Still, imported names
+may shadow other imported names, depending on the order they were imported, and
+imported functions may cause problems with overloading resolution if they are of
+the same name as local functions defined later.
+
+To rename modules or fields when adding them to the local environment, use
+@code{as}:
+
+@verbatim
+access foo as bar;
+from graph access xaxis as xline, yaxis as yline;
+@end verbatim
+
+Currently, all modules are implemented by @code{Asymptote} files.  When looking
+up a module that has not yet been loaded, the file corresponding to that name is
+read and the code within is interpreted as the body of a structure definition to
+define the module.
 
 @code{Asymptote} searches the locations listed in @ref{Search paths} for the
 matching file. If the file name contains nonalphanumeric characters,
 enclose it with quotation marks:
 
 @noindent
+@code{access "@value{Datadir}/asymptote/graph.asy" as graph;}
+
+@noindent
+@code{from "@value{Datadir}/asymptote/graph.asy" access axes;}
+
+@noindent
 @code{import "@value{Datadir}/asymptote/graph.asy";}
 
-A variable @code{var} from a module named @code{module} can be
-distinguished from a local variable of the same name by prefixing it
-with the module name and a period: @code{module.var}. 
-
-Imports within an imported module are not seen outside of that module:
-even though @code{plain} imports @code{simplex}, the @code{simplex}
-module will not be accessible to the file-level module, unless it is
-explicitly imported. An error will be issued if one attempts to import
-a module multiple times.
-
-@cindex @code{libsigsegv}
-@cindex stack overflow
-Modules are allowed to import themselves recursively. Infinite
-nested importing will generate a stack overflow (reported as a
-segmentation fault, unless the @acronym{GNU} library @code{libsigsegv} is
-installed at configuration time). 
+It is an error if modules import themselves, or import each other in a cycle.
 
 Currently, the module name to be imported must be known at compile time.
 However, you can execute an @code{Asymptote} file determined at runtime in an
@@ -3329,12 +3374,12 @@ void eval(string s);
 This is the default @code{Asymptote} base file, which defines key parts of the
 drawing language (such as the @code{picture} structure).
 
-By default, the top-level module automatically imports @code{plain};
-use the @code{-noplain} command-line option to disable this feature.
-In any case, no error message will be issued if one tries to explicitly
-@code{import plain} (if other imported packages depend implicitly
-on the presence of @code{plain}, it may be necessary to allocate it in a higher
-enclosing scope by declaring the import @code{static}; @pxref{Static}).
+By default, an implicit @code{private import plain;} occurs before translating a
+file and before the first command given in interactive mode.  This also applies
+when translating files for module definitions (except when translating
+@code{plain}, of course).  This means that the types and functions defined in
+@code{plain} are accessible in almost all @code{Asymptote} code.
+Use the @code{-noplain} command-line option to disable this feature.
 
 @node simplex
 @subsection @code{simplex}
