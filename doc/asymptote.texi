@@ -361,7 +361,7 @@ it to be explicitly configured with  @code{./configure
 @node Search paths
 @section Search paths
 @cindex search paths
-
+o
 In looking for @code{Asymptote} system
 files, @code{asy} will search the following paths, in the order listed:
 @enumerate
@@ -3254,54 +3254,61 @@ Explicit casts are implemented similarly, with @code{operator ecast}.
 @node Import
 @section Import
 @cindex @code{import}
-@code{Asymptote} provides a lot of features by default, but specialized features
-may be needed to draw a specific figure.  Modules provide these specialized
-features.  For instance, when drawing a two-dimensional graph, the lines
-
+@cindex @code{access}
+While @code{Asymptote} provides many features by default,
+some applications require specialized features contained in
+external @code{Asymptote} modules. For instance, the lines
 @verbatim
 access graph;
 graph.axes();
 @end verbatim
-
-draw the @math{x}- and @math{y}-axes for the graph.  Here, the @code{access}
+@noindent
+draw @math{x} and @math{y} axes on a two-dimensional graph.  Here, the
 command looks up the module under the name @code{graph} in a global dictionary
-of modules and puts it in a new variable named @code{graph}.  The module is a
-structure, and we can refer to its fields as we usually would with a structure.
+of modules and puts it in a new variable named @code{graph}.
+The module is a structure, and we can refer to its fields as we usually
+would with a structure.
 
-Of course, it would nice to be able to refer to functions in a module, without
-always specifying the name of the module.  The code
-
+@cindex @code{from}
+Often, one wants to use module functions without having to specify the
+the module name.  The code 
 @verbatim
 from graph access axes;
 @end verbatim
-
-adds the @code{axes} field of @code{graph} into the local namespace, so one can
-just write @code{axes()} subsequently.  If the given name is overloaded,
-all types and variables of that name are added.  To add more than one name, just
-use a comma-separated list:
+@noindent
+adds the @code{axes} field of @code{graph} into the local name space,
+so that subsequently, one can just write @code{axes()}.  If the given name
+is overloaded, all types and variables of that name are added.  To add
+more than one name, just use a comma-separated list:
 
 @verbatim
 from graph access axes, xaxis, yaxis, labelx, labely;
 @end verbatim
-
-Wildcard notation can be used to add all non-private fields and types of a
-module:
+@noindent
+Wild card notation can be used to add all non-private fields and types of a
+module to the local name space:
 
 @verbatim
 from graph access *;
 @end verbatim
 
-The @code{import} keyword is an abbreviation for this, so the above command is
-equivalent to @code{import graph;}.
-Wildcard importing will work fine in most cases, but one does not usually know
-all of the types and variables defined in a module, which can also change as the
-module-writer adds or changes features of the module.  As such, it is prudent to
-add @code{import} lines at the start of an @code{Asymptote} file, so that
-imported names won't shadow locally defined functions.  Still, imported names
-may shadow other imported names, depending on the order they were imported, and
-imported functions may cause problems with overloading resolution if they are of
-the same name as local functions defined later.
+The @code{import} keyword provides a convenient abbreviation for the
+above command:
+@verbatim
+import graph;
+@end verbatim
 
+Wild card importing will work fine in most cases, but one does not usually know
+all of the internal types and variables of a module, which can also
+change as the module-writer adds or changes features of the module.
+As such, it is prudent to add @code{import} commands at the start of an
+@code{Asymptote} file, so that imported names won't shadow locally
+defined functions.  Still, imported names may shadow other imported
+names, depending on the order in which they were imported, and
+imported functions may cause overloading resolution problems if they
+have the same name as local functions defined later.
+
+@cindex @code{as}
 To rename modules or fields when adding them to the local environment, use
 @code{as}:
 
@@ -3310,14 +3317,37 @@ access foo as bar;
 from graph access xaxis as xline, yaxis as yline;
 @end verbatim
 
-Currently, all modules are implemented by @code{Asymptote} files.  When looking
-up a module that has not yet been loaded, the file corresponding to that name is
-read and the code within is interpreted as the body of a structure definition to
-define the module.
+@cindex @code{unravel}
+Similarly, one can add fields and types of a structure to the local
+environment with the @code{unravel} keyword:
 
-@code{Asymptote} searches the locations listed in @ref{Search paths} for the
-matching file. If the file name contains nonalphanumeric characters,
-enclose it with quotation marks:
+@verbatim
+struct matrix { 
+  real a,b,c,d; 
+} 
+ 
+real det(matrix m) { 
+  unravel m; 
+  return a*d-b*c; 
+} 
+@end verbatim
+Alternatively, one can unravel selective fields:
+@verbatim
+real det(matrix m) { 
+  from m unravel a,b,c,d;
+  return a*d-b*c; 
+} 
+@end verbatim
+
+Currently, all modules are implemented as @code{Asymptote} files.
+When looking up a module that has not yet been loaded,
+@code{Asymptote} searches the standard search paths (@pxref{Search
+paths}) for the matching file.  The file corresponding to that name is
+read and the code within it is interpreted as the body of a structure
+defining the module.
+
+If the file name contains
+nonalphanumeric characters, enclose it with quotation marks:
 
 @noindent
 @code{access "@value{Datadir}/asymptote/graph.asy" as graph;}
@@ -3328,21 +3358,50 @@ enclose it with quotation marks:
 @noindent
 @code{import "@value{Datadir}/asymptote/graph.asy";}
 
-It is an error if modules import themselves, or import each other in a cycle.
+It is an error if modules import themselves (or each other in a cycle).
 
-Currently, the module name to be imported must be known at compile time.
-However, you can execute an @code{Asymptote} file determined at runtime in an
-independent process with the function
+The module name to be imported must be known at compile time.
+However, you can execute an @code{Asymptote} file determined at runtime in
+a new @code{Asymptote} environment with the function
 @cindex execute
 @verbatim
-void execute(string file);
+void execute(string s, bool embedded=false);
 @end verbatim
-You can also evaluate an asymptote expression (without any return
+One can evaluate an @code{Asymptote} expression (without any return
 value, however) contained in the string @code{s} with:
 @cindex eval
 @verbatim
-void eval(string s);
+void eval(string s, bool embedded=false);
 @end verbatim
+If @code{embedded} is @code{true}, the string @code{s} will be evaluated 
+at the top level of the current environment instead of in an independent
+environment.
+
+One can evaluate arbitrary @code{Asymptote} code (which may
+contain unescaped quotation marks) with the command
+@verbatim
+void eval(code s, bool embedded=false);
+@end verbatim
+Here @code{code} is a special type used with @code{quote @{@}}
+to enclose @code{Asymptote code} like this:
+@verbatim
+real a=1;
+code s=quote {
+  write(a);
+};
+eval(s,true);        // Outputs 1
+@end verbatim
+
+To include the contents of a module @code{graph} verbatim (as if the
+contents of the file were inserted at that point), use one of the forms:
+@verbatim
+include graph
+@end verbatim
+
+@noindent
+@code{include "@value{Datadir}/asymptote/graph.asy";}
+
+
 
 @code{Asymptote} currently ships with the following base modules:
 
@@ -4990,11 +5049,13 @@ Label Label(Label L, pair position, align align=NoAlign,
 Label Label(Label L, align align=NoAlign,
             pen p=nullpen, filltype filltype=NoFill);
 @end verbatim
-The text of a Label can be rotated by an angle by
-multiplying on the left with a rotation (in degrees): for example,
-@code{rotate(45)*L} rotates @code{L} counterclockwise by 45
-degrees. The final position of a Label can also be shifted by a
-@code{PostScript} coordinate translation like this:
+The text of a Label can be scaled horizontally and/or vertically
+by multiplying on the left with @code{xscale(real)},
+@code{yscale(real)}, or @code{scale(real)}.
+A Label can be rotated by an angle by multiplying on the left with a
+rotation (in degrees): for example, @code{rotate(45)*L} rotates
+@code{L} counterclockwise by 45 degrees. The final position of a Label
+can also be shifted by a @code{PostScript} coordinate translation like this:
 @code{shift(10,0)*L}.
 
 To add a label to a path, use
@@ -5489,7 +5550,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  ticklocate autoscaleT autoscaling vectorfield autolimits dvi
 @c  LocalWords:  zlimits inline dvipdf hyperdvi autoconf gui zerowindingoverlap
 @c  LocalWords:  prepended intMax quadraticroots cubicroots filltype prepend
-@c  LocalWords:  ticklabel popup UnFill markroutine marknodes markuniform
+@c  LocalWords:  ticklabel popup UnFill markroutine marknodes markuniform erf
 @c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis Datadir
-@c  LocalWords:  resetdefaultpen latticeshade axialshade radialshade
+@c  LocalWords:  resetdefaultpen latticeshade axialshade radialshade erfc
 @c  LocalWords:  gouraudshade includegraphics
