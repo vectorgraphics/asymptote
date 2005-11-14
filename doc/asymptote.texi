@@ -3313,7 +3313,7 @@ To rename modules or fields when adding them to the local environment, use
 @code{as}:
 
 @verbatim
-access foo as bar;
+access graph as graph2d;
 from graph access xaxis as xline, yaxis as yline;
 @end verbatim
 
@@ -3334,8 +3334,8 @@ real det(matrix m) {
 Alternatively, one can unravel selective fields:
 @verbatim
 real det(matrix m) { 
-  from m unravel a,b,c,d;
-  return a*d-b*c; 
+  from m unravel a,b,c as C,d;
+  return a*d-b*C; 
 } 
 @end verbatim
 
@@ -5552,5 +5552,5 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  prepended intMax quadraticroots cubicroots filltype prepend
 @c  LocalWords:  ticklabel popup UnFill markroutine marknodes markuniform erf
 @c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis Datadir
-@c  LocalWords:  resetdefaultpen latticeshade axialshade radialshade erfc
-@c  LocalWords:  gouraudshade includegraphics
+@c  LocalWords:  resetdefaultpen latticeshade axialshade radialshade erfc det
+@c  LocalWords:  gouraudshade includegraphics unescaped
