@@ -3392,10 +3392,10 @@ code s=quote {
 eval(s,true);        // Outputs 1
 @end verbatim
 
-To include the contents of a module @code{graph} verbatim (as if the
+To include the contents of a file @code{graph} verbatim (as if the
 contents of the file were inserted at that point), use one of the forms:
 @verbatim
-include graph
+include graph;
 @end verbatim
 
 @noindent
