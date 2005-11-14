@@ -3318,8 +3318,8 @@ from graph access xaxis as xline, yaxis as yline;
 @end verbatim
 
 @cindex @code{unravel}
-Similarly, one can add fields and types of a structure to the local
-environment with the @code{unravel} keyword:
+Similarly, one can add the non-private fields and types of a structure
+to the local environment with the @code{unravel} keyword:
 
 @verbatim
 struct matrix { 
