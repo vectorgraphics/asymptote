@@ -97,7 +97,8 @@ inline void checkint(double x, int i)
 template<>
 struct plus<int> {
   int operator() (int x, int y, size_t i=0) {
-    checkint((double) x+(double) y,i); 
+    if((y > 0 && x > INT_MAX-y) || (y < 0 && x < -INT_MAX-y))
+      integeroverflow(i);
     return x+y;
   }
 };
@@ -105,8 +106,7 @@ struct plus<int> {
 template<>
 struct minus<int> {
   int operator() (int x, int y, size_t i=0) {
-    checkint((double) x-(double) y,i); 
-    return x-y;
+    return x+(-y);
   }
 };
 
