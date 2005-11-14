@@ -198,8 +198,10 @@ struct iprompt : public icore {
 };
 
 void doICore(icore &i, bool embedded=false) {
-  assert(em && !em->errors());
-
+  assert(em);
+  em->sync();
+  if(em->errors()) return;
+  
   try {
     if(embedded)
       i.embedded();
