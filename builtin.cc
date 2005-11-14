@@ -198,7 +198,7 @@ void addCasts(venv &ve)
   addExplicitCast(ve, primPair(), primString(), run::castString<pair>);
   addExplicitCast(ve, primTriple(), primString(), run::castString<triple>);
 
-  addExplicitCast(ve, primInt(), primReal(), run::cast<double,int>);
+  addExplicitCast(ve, primInt(), primReal(), run::castDoubleInt);
 
   addCast(ve, primReal(), primInt(), run::cast<int,double>);
   addCast(ve, primPair(), primInt(), run::cast<int,pair>);

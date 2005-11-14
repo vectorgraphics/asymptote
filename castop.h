@@ -14,6 +14,7 @@
 #include "stack.h"
 #include "fileio.h"
 #include "lexical.h"
+#include "mathop.h"
 
 namespace run {
 
@@ -25,6 +26,13 @@ template<class T, class S>
 void cast(vm::stack *s)
 {
   s->push((S) pop<T>(s));
+}
+
+void castDoubleInt(vm::stack *s)
+{
+  double x=pop<double>(s);
+  checkint(x,0);
+  s->push((int) x);
 }
 
 template<class T>

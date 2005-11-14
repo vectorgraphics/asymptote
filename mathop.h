@@ -15,6 +15,7 @@
 #include "mod.h"
 #include "pow.h"
 
+
 namespace run {
 
 template <typename T>
@@ -78,6 +79,7 @@ struct times {
 };
 
 extern void dividebyzero(size_t i=0);  
+extern void integeroverflow(size_t i=0);  
   
 template <typename T>
 struct divide {
@@ -87,9 +89,38 @@ struct divide {
   }
 };
 
+inline void checkint(double x, int i)
+{
+  if(fabs(x) > INT_MAX) integeroverflow(i);
+}
+  
+template<>
+struct plus<int> {
+  int operator() (int x, int y, size_t i=0) {
+    checkint((double) x+(double) y,i); 
+    return x+y;
+  }
+};
+
+template<>
+struct minus<int> {
+  int operator() (int x, int y, size_t i=0) {
+    checkint((double) x-(double) y,i); 
+    return x-y;
+  }
+};
+
+template<>
+struct times<int> {
+  int operator() (int x, int y, size_t i=0) {
+    checkint((double) x*(double) y,i); 
+    return x*y;
+  }
+};
+
 template<>
 struct divide<int> {
-  double operator() (int x, int y,  size_t i=0) {
+  double operator() (int x, int y, size_t i=0) {
     if(y == 0) dividebyzero(i);
     return ((double) x)/(double) y;
   }
@@ -103,6 +134,7 @@ struct power {
 template <>
 struct power<int> {
   int operator() (int x, int y,  size_t i=0) {
+    checkint(pow((double) x,(double) y),i); 
     if (y < 0 && !(x == 1 || x == -1)) {
       std::ostringstream buf;
       if(i > 0) buf << "array element " << i << ": ";

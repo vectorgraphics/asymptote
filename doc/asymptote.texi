@@ -2813,7 +2813,7 @@ The functions @code{Floor}, @code{Ceil}, and @code{Round} are
 respectively similar, except that if the result cannot be converted
 to a valid int, they return @code{intMax()} 
 for positive arguments and @code{-intMax()} for negative arguments,
-rather than generating a floating point exception.
+rather than generating an integer overflow.
 We also define a function @code{sgn}, which returns the sign of its
 real argument as an integer (-1, 0, or 1).
 

@@ -45,6 +45,7 @@ picture* => primPicture()
 #include "parser.h"
 #include "stack.h"
 #include "util.h"
+#include "mathop.h"
   
 using namespace vm;
 using namespace camp;
@@ -315,16 +316,21 @@ void gui(double x)
 // Math
 int ceil(double x)
 { 
-  return (int) ceil(x);
+  double y=ceil(x);
+  checkint(y,0);
+  return (int) y;
 }
 
 int floor(double x)
 { 
-  return (int) floor(x);
+  double y=floor(x);
+  checkint(y,0);
+  return (int) y;
 }
 
 int round(double x)
 { 
+  if(fabs(x) >= INT_MAX+0.5) integeroverflow(0);
   return Round(x);
 }
 

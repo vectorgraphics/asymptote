@@ -102,6 +102,14 @@ void dividebyzero(size_t i=0)
   error(buf.str().c_str());
 }
   
+void integeroverflow(size_t i=0)
+{
+  std::ostringstream buf;
+  if(i > 0) buf << "array element " << i << ": ";
+  buf << "Integer overflow";
+  error(buf.str().c_str());
+}
+  
 void intZero(stack *s)
 {
   s->push(0);
