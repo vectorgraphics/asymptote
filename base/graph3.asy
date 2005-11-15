@@ -366,43 +366,87 @@ guide3 graph(real f(pair), path p, int n=nsub, real T(pair),
 	       join);
 }
 
+struct grid {
+  pair back,front;
+  int n;
+  bool reverse;
+  
+  pair sample(int i, int j) {
+    return (interp(back.x,front.x,i/n),
+            interp(back.y,front.y,j/n));
+  }
+
+  static grid set(pair a, pair b, int n, int m=n, 
+		  projection P=currentprojection) {
+    grid g=new grid;
+    g.n=n;
+    pair camera=(P.camera.x,P.camera.y);
+    pair z=b-a;
+    int sign=sgn(dot(camera,I*conj(z)));
+    g.reverse=sign*sgn(dot(camera,I*z)) >= 0;
+  
+    if(sign >= 0) {
+      g.back=a;
+      g.front=b;
+    } else {
+      g.back=b;
+      g.front=a;
+    }
+    return g;
+  }
+}
+
 picture surface(real f(pair z), pair a, pair b, int n=nmesh, int nsub=nsub,
 		pen surfacepen=lightgray, pen meshpen=currentpen,
 		projection P=currentprojection)
 {
   picture pic;
-  pair back,front;
 
   void drawcell(pair a, pair b) {
     guide3 g=graph(f,box(a,b),nsub);
     filldraw(pic,project(g,P),surfacepen,meshpen);
   }
 
-  pair sample(int i, int j) {
-    return (interp(back.x,front.x,i/n),
-            interp(back.y,front.y,j/n));
-  }
-
-  pair camera=(P.camera.x,P.camera.y);
-  pair z=b-a;
-  int sign=sgn(dot(camera,I*conj(z)));
+  grid g=grid.set(a,b,n,P);
   
-  if(sign >= 0) {
-    back=a;
-    front=b;
-  } else {
-    back=b;
-    front=a;
-  }
-
-  if(sign*sgn(dot(camera,I*z)) >= 0)
+  if(g.reverse)
     for(int j=0; j < n; ++j)
       for(int i=0; i < n; ++i)
-	drawcell(sample(i,j),sample(i+1,j+1));
+	drawcell(g.sample(i,j),g.sample(i+1,j+1));
   else
     for(int i=0; i < n; ++i)
       for(int j=0; j < n; ++j)
-	drawcell(sample(i,j),sample(i+1,j+1));
+	drawcell(g.sample(i,j),g.sample(i+1,j+1));
+
+  return pic;
+}
+
+picture surface(real[][] f, pair a, pair b,
+		pen surfacepen=lightgray, pen meshpen=currentpen,
+		projection P=currentprojection)
+{
+  picture pic;
+  int n=f.length-1;
+  int m=f[0].length-1;
+  
+  if(!rectangular(f)) abort("matrix is not rectangular");
+
+  void drawcell(int i, int j, pair a, pair b) {
+    guide3 g=(a.x,a.y,f[i][j])--(a.x,b.y,f[i][j+1])--
+      (b.x,b.y,f[i+1][j+1])--(b.x,a.y,f[i+1][j])--cycle3;
+    filldraw(pic,project(g,P),surfacepen,meshpen);
+  }
+
+  grid g=grid.set(a,b,n,m,P);
+
+  if(g.reverse)
+    for(int j=0; j < m; ++j)
+      for(int i=0; i < n; ++i)
+	drawcell(i,j,g.sample(i,j),g.sample(i+1,j+1));
+  else
+    for(int i=0; i < n; ++i)
+      for(int j=0; j < m; ++j)
+	drawcell(i,j,g.sample(i,j),g.sample(i+1,j+1));
 
   return pic;
 }

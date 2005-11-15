@@ -261,6 +261,15 @@ bool square(real[][] m)
   return true;
 }
 
+bool rectangular(real[][] m)
+{
+  int n=m.length;
+  int m0=m[0].length;
+  for(int i=1; i < n; ++i)
+    if(m[i].length != m0) return false;
+  return true;
+}
+
 real determinant(real[][] m)
 {
   int n=m.length;
