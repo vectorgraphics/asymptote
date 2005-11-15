@@ -81,9 +81,9 @@ void texdefines(T& out, stringlist& preamble=TeXpreamble, bool pipe=false)
       << "\\ASYdimen=\\ht\\ASYbox%"
       << newl
       << "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl
-      << "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{\\setbox\\ASYbox=\\hbox{#6}%"
-      << newl
-      << "\\rput[lB]{#5}(#1,#2){\\ASYdimen=\\ht\\ASYbox%" << newl
+      << "\\def\\ASYalign(#1,#2)(#3,#4)(#5,#6)#7#8{%" << newl
+      << "\\setbox\\ASYbox=\\hbox{\\scalebox{#5}[#6]{#8}}%" << newl
+      << "\\rput[lB]{#7}(#1,#2){\\ASYdimen=\\ht\\ASYbox%" << newl
       << "\\advance\\ASYdimen by\\dp\\ASYbox\\kern#3\\wd\\ASYbox"
       << "\\raise#4\\ASYdimen\\box\\ASYbox}}"
       << newl;
@@ -121,7 +121,7 @@ public:
   
   // Draws label rotated by angle (relative to the horizontal) at position z.
   void put(const string& label, double angle, const pair& z, const pair& Align,
-	   const bbox& Box);
+	   const pair& scale, const bbox& Box);
 
   void beginlayer(const string& psname);
   void endlayer();

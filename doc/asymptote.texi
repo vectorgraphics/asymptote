@@ -4955,8 +4955,8 @@ add(origin,pic,opic);
 Lattice gradient shading varying smoothly over a two-dimensional
 array of pens @code{p}, using fillrule @code{fillrule}, can be produced with
 @verbatim
-void latticeshade(picture pic=currentpicture, path g, pen fillrule=currentpen,
-                  pen[][] p)
+void latticeshade(picture pic=currentpicture, path g,
+                  pen fillrule=currentpen, pen[][] p)
 @end verbatim
 The pens in @code{p} must belong to the same color space. One can use the
 functions @code{rgb(pen)} or @code{cmyk(pen)} to promote pens to a
@@ -4991,8 +4991,9 @@ Gouraud shading using fillrule @code{fillrule} and the vertex colors in the
 pen array @code{p} on a triangular lattice defined by the vertices
 @code{z} and edge flags @code{edges} is implemented with
 @verbatim
-void gouraudshade(picture pic=currentpicture, path g, pen fillrule=currentpen,
-                  pen[] p, pair[] z, int[] edges);
+void gouraudshade(picture pic=currentpicture, path g,
+                  pen fillrule=currentpen, pen[] p, pair[] z,
+                  int[] edges);
 @end verbatim
 @noindent
 The pens in @code{p} must belong to the same color space.
@@ -5035,9 +5036,8 @@ direction of @code{align} and displaced from @code{position} by
 the @code{PostScript} offset @code{align*labelmargin(p)}.
 If @code{p} is @code{nullpen}, the pen specified within the
 Label, which defaults to @code{currentpen}, will be used.
-
 @anchor{Label}
-Here @code{Label} can either be a string or the structure obtained by calling
+The Label @code{L} can either be a string or the structure obtained by calling
 one of the functions
 @verbatim
 Label Label(string s="", pair position, align align=NoAlign,
@@ -5050,13 +5050,14 @@ Label Label(Label L, align align=NoAlign,
             pen p=nullpen, filltype filltype=NoFill);
 @end verbatim
 The text of a Label can be scaled horizontally and/or vertically
-by multiplying on the left with @code{xscale(real)},
+by multiplying it on the left with @code{xscale(real)},
 @code{yscale(real)}, or @code{scale(real)}.
-A Label can be rotated by an angle by multiplying on the left with a
-rotation (in degrees): for example, @code{rotate(45)*L} rotates
-@code{L} counterclockwise by 45 degrees. The final position of a Label
-can also be shifted by a @code{PostScript} coordinate translation like this:
-@code{shift(10,0)*L}.
+After optionally scaling a Label, it can be rotated by an angle by
+multiplying it on the left with a rotation (in degrees): for example,
+@code{rotate(45)*xscale(2)*L} first scales @code{L} in the @math{x}
+direction and then rotates it counterclockwise by 45 degrees.
+The final position of a Label can also be shifted by a
+@code{PostScript} coordinate translation like this: @code{shift(10,0)*L}.
 
 To add a label to a path, use
 @verbatim

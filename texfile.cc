@@ -44,8 +44,8 @@ void texfile::prologue()
 {
   texdefines(*out);
   if(!texmode)
-    *out << "\\usepackage{pstricks}" << newl
-         << "\\pagestyle{empty}" << newl
+    *out << "\\usepackage{pstricks,color}" << newl
+	 << "\\pagestyle{empty}" << newl
 	 << "\\textheight=2048pt" << newl
 	 << "\\textwidth=\\textheight" << newl
 	 << "\\begin{document}" << newl;
@@ -75,21 +75,21 @@ void texfile::setpen(pen p)
 		   p.magenta() != lastpen.magenta() || 
 		   p.yellow() != lastpen.yellow() ||
 		   p.black() != lastpen.black()))) {
-    *out << "\\newcmykcolor{ASYcolor}{" 
-	 << p.cyan() << " " << p.magenta() << " " << p.yellow() << " " 
-	 << p.black() << "}\\ASYcolor" << newl;
+    *out << "\\definecolor{ASYcolor}{cmyk}{" 
+	 << p.cyan() << "," << p.magenta() << "," << p.yellow() << "," 
+	 << p.black() << "}\\color{ASYcolor}" << newl;
   } else if(p.rgb() && (!lastpen.rgb() ||
 			(p.red() != lastpen.red() ||
 			 p.green() != lastpen.green() || 
 			 p.blue() != lastpen.blue()))) {
-    *out << "\\newrgbcolor{ASYcolor}{" 
-	 << p.red() << " " << p.green() << " " << p.blue()
-	 << "}\\ASYcolor" << newl;
+    *out << "\\definecolor{ASYcolor}{rgb}{" 
+	 << p.red() << "," << p.green() << "," << p.blue()
+	 << "}\\color{ASYcolor}" << newl;
   } else if(p.grayscale() && (!lastpen.grayscale() || 
 			      p.gray() != lastpen.gray())) {
-    *out << "\\newgray{ASYcolor}{" 
+    *out << "\\definecolor{ASYcolor}{gray}{" 
 	 << p.gray()
-	 << "}\\ASYcolor" << newl;
+	 << "}\\color{ASYcolor}" << newl;
   }
   
   if(p.size() != lastpen.size() || p.Lineskip() != lastpen.Lineskip()) {
@@ -107,7 +107,7 @@ void texfile::setpen(pen p)
 }
    
 void texfile::put(const string& label, double angle, const pair& z,
-		  const pair& align, const bbox& Box)
+		  const pair& align, const pair& scale, const bbox& Box)
 {
   if(label.empty()) return;
   
@@ -127,12 +127,14 @@ void texfile::put(const string& label, double angle, const pair& z,
     }
   }
 
-  *out << "\\ASYalign" << fixed
+  *out << "\\ASYalign" << fixed << setprecision(6)
        << "(" << (z.getx()-offset.getx())*ps2tex
        << "," << (z.gety()-offset.gety())*ps2tex
        << ")(" << align.getx()
        << "," << align.gety()
-       << "){" << setprecision(2) << angle
+       << ")(" << scale.getx()
+       << "," << scale.gety()
+       << "){" << angle
        << "}{" << label << "}" << newl;
 }	
 

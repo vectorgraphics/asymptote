@@ -472,6 +472,12 @@ transform shiftless(transform t)
   return (0,0,t.xx,t.xy,t.yx,t.yy);
 }
 
+transform scale(transform t)
+{
+  transform t0=shiftless(t);
+  return rotate(-degrees(t0*(1,0)))*t0;
+}
+
 pair intersect(path p, path q) 
 {
   return intersect(p,q,0);
@@ -1814,12 +1820,13 @@ struct Label {
   real angle;
   bool defaultangle=true;
   pair shift;
+  pair scale=(1,1);
   filltype filltype=NoFill;
   
   void init(string s="", string size="", position position=0, 
 	    bool defaultposition=true,
 	    align align=NoAlign, pen p=nullpen, real angle=0,
-	    bool defaultangle=true, pair shift=0,
+	    bool defaultangle=true, pair shift=0, pair scale=(1,1),
 	    filltype filltype=NoFill) {
     this.s=s;
     this.size=size;
@@ -1830,6 +1837,7 @@ struct Label {
     this.angle=angle;
     this.defaultangle=defaultangle;
     this.shift=shift;
+    this.scale=scale;
     this.filltype=filltype;
   }
   
@@ -1846,7 +1854,7 @@ struct Label {
   Label copy() {
     Label L=new Label;
     L.init(s,size,position,defaultposition,align,p,angle,defaultangle,shift,
-	   filltype);
+	   scale,filltype);
     return L;
   }
   
@@ -1857,6 +1865,10 @@ struct Label {
   
   void shift(pair a) {
     this.shift=a;
+  }
+  
+  void scale(pair a) {
+    this.scale=a;
   }
   
   void position(position pos) {
@@ -1879,50 +1891,46 @@ struct Label {
     if(this.filltype == NoFill) this.filltype=filltype0;
   }
   
-  void label(frame f, real angle=0, pair position,
-	     pair align=0, pen p=currentpen)
-  {
-    _label(f,s,size,angle,position+align*labelmargin(p),align,p);
+  void label(frame f, transform t=identity(), pair position, pair align) {
+    pen p0=p == nullpen ? currentpen : p;
+    if(t == identity()) {
+      _label(f,s,size,angle,position+align*labelmargin(p0)+shift,align,scale,
+	     p0);
+    } else {
+      transform t0=shiftless(t);
+      real angle=degrees(t0*dir(angle));
+      pair position=t*position+align*labelmargin(p0)+shift;
+      _label(f,s,size,angle,position,length(align)*unit(t0*align),scale,p0);
+    }
   }
 
-  void label(frame f) {
-    label(f,angle,position.position+shift,align.dir,p);
-  }
-  
-  void out(frame f) {
-    if(filltype == NoFill) label(f);
+  void out(frame f, transform t=identity()) {
+    if(filltype == NoFill) label(f,t,position.position,align.dir);
     else {
       frame d;
-      label(d);
+      label(d,t,position.position,align.dir);
       add(f,d,filltype);
     }
   }
   
-  void label(picture pic=currentpicture, real angle=0, pair position,
-	     pair align=0, pair shift=0, pen p=currentpen,
-	     filltype filltype=NoFill) {
+  void label(picture pic=currentpicture, pair position, pair align) {
     pic.add(new void (frame f, transform t) {
-      transform t0=shiftless(t);
-      real angle=degrees(t0*dir(angle));
-      pair position=t*position+align*labelmargin(p)+shift;
-      pair align=length(align)*unit(t0*align);
       if(filltype == NoFill)
-	_label(f,s,size,angle,position,align,p);
+	label(f,t,position,align);
       else {
 	frame d;
-	_label(d,s,size,angle,position,align,p);
+	label(d,t,position,align);
 	add(f,d,filltype);
       }
     });
     frame f;
     // Create a picture with label at the origin to extract its bbox truesize.
-    label(f,angle,(0,0),align,p);
+    label(f,(0,0),align);
     pic.addBox(position,position,min(f),max(f));
   }
 
   void out(picture pic=currentpicture) {
-    label(pic,angle,position.position,align.dir,shift,
-	  p == nullpen ? currentpen : p, filltype);
+    label(pic,position.position,align.dir);
   }
   
   void out(picture pic=currentpicture, path g) {
@@ -1936,9 +1944,8 @@ struct Label {
       alignrelative=true;
       Align=position <= 0 ? S : position >= length(g) ? N : E;
     }
-    label(pic,angle,point(g,position),
-	  alignrelative ? Align*dir(g,position)/N : Align,shift,
-	  p == nullpen ? currentpen : p,filltype);
+    label(pic,point(g,position),
+	  alignrelative ? Align*dir(g,position)/N : Align);
   }
   
   void write(file file=stdout, suffix e=endl) {
@@ -1965,9 +1972,9 @@ Label operator init() {return new Label;}
 
 Label Label;
 
-void add(frame f, Label L)
+void add(frame f, transform t=identity(), Label L)
 {
-  L.out(f);
+  L.out(f,t);
 }
   
 void add(picture pic=currentpicture, Label L)
@@ -1982,6 +1989,7 @@ Label operator * (transform t, Label L)
   tL.align.dir=length(L.align.dir)*unit(t0*L.align.dir);
   tL.angle(degrees(t0*dir(L.angle)));
   tL.shift(shift(t)*L.shift);
+  tL.scale(scale(t)*L.scale);
   return tL;
 }
 
@@ -2275,11 +2283,8 @@ void box(picture pic=currentpicture, Label L,
 	 filltype filltype=NoFill, bool put=Above)
 {
   pic.add(new void (frame f, transform t) {
-    transform t0=shiftless(t);
     frame d;
-    _label(d,L.s,L.size,degrees(t0*dir(L.angle)),
-	   t*L.position+L.align.dir*labelmargin(L.p)+L.shift,
-	   length(L.align.dir)*unit(t0*L.align.dir),L.p);
+    add(d,t,L);
     box(f,d,xmargin,ymargin,p,filltype,put);
     add(f,d);
   });
@@ -3257,7 +3262,7 @@ void eval(code s, bool embedded=false)
   if(!embedded) restoredefaults();
 }
 
-void execute(string s)
+void execute(string s, bool embedded=false)
 {
-  eval("include \""+s+"\";");
+  eval("include \""+s+"\";",embedded);
 }

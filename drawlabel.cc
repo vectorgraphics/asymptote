@@ -60,9 +60,9 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn)
   tex << "\n";
   tex.wait("\n*","! ");
      
-  width *= scale;
-  height *= scale;
-  depth *= scale;
+  width *= fontscale;
+  height *= fontscale;
+  depth *= fontscale;
   return true;
 }   
 
@@ -86,12 +86,12 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
     
     string font=Pentype.Font();
     if(font != lastpen.Font()) {
-      scale=1.0;
+      fontscale=1.0;
       string scaled=" scaled";
       size_t p=font.find(scaled);
       if(p < string::npos) {
 	p += scaled.length();
-	scale=atof(font.substr(p,string::npos).c_str())/1000.0;
+	fontscale=atof(font.substr(p,string::npos).c_str())/1000.0;
       }
       tex <<  font << "\n";
       tex.wait("\n*","! ");
@@ -175,7 +175,8 @@ drawElement *drawLabel::transformed(const transform& t)
   pair offset=t*origin;
   return new drawLabel(label,size,
 		       degrees((t*expi(radians(angle))-offset).angle()),
-		       t*position,length(align)*unit(t*align-offset),pentype);
+		       t*position,length(align)*unit(t*align-offset),scale,
+		       pentype);
 }
 
 } //namespace camp
