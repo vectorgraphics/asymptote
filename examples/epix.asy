@@ -1,4 +1,3 @@
-import three;
 import graph3;
 
 size(200,200,IgnoreAspect);

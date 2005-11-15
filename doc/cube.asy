@@ -1,6 +1,6 @@
-size(0,100);
-import math;
 import three;
+
+size(0,100);
 
 currentprojection=oblique;
 

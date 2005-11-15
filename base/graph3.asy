@@ -1,8 +1,8 @@
 // Three-dimensional graphing routines
 
 private import math;
-private import graph;
-private import three;
+import graph;
+import three;
 
 static public int nsub=4;
 static public int nmesh=10;

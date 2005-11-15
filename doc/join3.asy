@@ -1,5 +1,3 @@
-import three;
-import graph;
 import graph3;
 
 size(0,175);

@@ -1,6 +1,5 @@
-import graph;
-import three;
 import graph3;
+
 size(0,100);
 
 path3 G=xscale3(1)*(yscale3(2)*unitcircle3);
