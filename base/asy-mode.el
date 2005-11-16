@@ -24,6 +24,7 @@
   (setq c++-font-lock-extra-types (cons "frame" c++-font-lock-extra-types))
   (setq c++-font-lock-extra-types (cons "import" c++-font-lock-extra-types))
   (setq c++-font-lock-extra-types (cons "access" c++-font-lock-extra-types))
+  (setq c++-font-lock-extra-types (cons "unravel" c++-font-lock-extra-types))
   (setq c++-font-lock-extra-types (cons "from" c++-font-lock-extra-types))
   (setq c++-font-lock-extra-types (cons "include" c++-font-lock-extra-types))
 )
