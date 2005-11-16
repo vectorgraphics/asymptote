@@ -44,7 +44,7 @@ void texfile::prologue()
 {
   texdefines(*out);
   if(!texmode)
-    *out << "\\usepackage{pstricks,color}" << newl
+    *out << "\\usepackage{pstricks}" << newl
 	 << "\\pagestyle{empty}" << newl
 	 << "\\textheight=2048pt" << newl
 	 << "\\textwidth=\\textheight" << newl
@@ -75,21 +75,21 @@ void texfile::setpen(pen p)
 		   p.magenta() != lastpen.magenta() || 
 		   p.yellow() != lastpen.yellow() ||
 		   p.black() != lastpen.black()))) {
-    *out << "\\definecolor{ASYcolor}{cmyk}{" 
-	 << p.cyan() << "," << p.magenta() << "," << p.yellow() << "," 
-	 << p.black() << "}\\color{ASYcolor}" << newl;
+    *out << "\\newcmykcolor{ASYcolor}{" 
+	 << p.cyan() << " " << p.magenta() << " " << p.yellow() << " " 
+	 << p.black() << "}\\ASYcolor" << newl;
   } else if(p.rgb() && (!lastpen.rgb() ||
 			(p.red() != lastpen.red() ||
 			 p.green() != lastpen.green() || 
 			 p.blue() != lastpen.blue()))) {
-    *out << "\\definecolor{ASYcolor}{rgb}{" 
-	 << p.red() << "," << p.green() << "," << p.blue()
-	 << "}\\color{ASYcolor}" << newl;
+    *out << "\\newrgbcolor{ASYcolor}{" 
+	 << p.red() << " " << p.green() << " " << p.blue()
+	 << "}\\ASYcolor" << newl;
   } else if(p.grayscale() && (!lastpen.grayscale() || 
 			      p.gray() != lastpen.gray())) {
-    *out << "\\definecolor{ASYcolor}{gray}{" 
+    *out << "\\newgray{ASYcolor}{" 
 	 << p.gray()
-	 << "}\\color{ASYcolor}" << newl;
+	 << "}\\ASYcolor" << newl;
   }
   
   if(p.size() != lastpen.size() || p.Lineskip() != lastpen.Lineskip()) {
