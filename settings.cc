@@ -8,6 +8,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <cerrno>
+#include <vector>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -25,6 +26,8 @@
 #include "interact.h"
 #include "locate.h"
 #include "lexical.h"
+
+using std::vector;
 
 namespace settings {
 const char PROGRAM[]=PACKAGE_NAME;
@@ -163,7 +166,7 @@ char **argList = 0;
 int numArgs() { return argCount; }
 char *getArg(int n) { return argList[n]; }
 
-void setOptions(int argc, char *argv[])
+void getOptions(int argc, char *argv[])
 {
   int syntax=0;
   int option_index = 0;
@@ -186,7 +189,7 @@ void setOptions(int argc, char *argv[])
     {0, 0, 0, 0}
   };
 
-  errno=0;
+ errno=0;
   for(;;) {
     int c = getopt_long_only(argc,argv,
 			     "cdf:hiklLmo:pPstvVnx:O:CBTZ",
@@ -276,14 +279,9 @@ void setOptions(int argc, char *argv[])
     default:
       syntax=1;
     }
-  }
-
   errno=0;
-
-  // Set variables for the normal arguments.
-  argCount = argc - optind;
-  argList = argv + optind;
-
+  }
+  
   if (syntax) {
     cerr << endl;
     usage(argv[0]);
@@ -291,7 +289,40 @@ void setOptions(int argc, char *argv[])
 	 << " -h' for a descriptions of options." << endl;
     exit(1);
   }
+}
+
+void setOptions(int argc, char *argv[])
+{
+  std::ifstream finit;
+  string homedir=Getenv("HOME",false);
+  finit.open((homedir+"/.asyrc").c_str());
+	
+  if(finit) {
+    string s;
+    ostringstream buf;
+    vector<string> Args;
+    while(finit >> s)
+      Args.push_back(strdup(s.c_str()));
+    finit.close();
+    
+    int Argc=Args.size()+1;
+    char* Argv[Argc];
+    Argv[0]=argv[0];
+    int i=1;
+    
+    for(vector<string>::iterator p=Args.begin(); p != Args.end(); ++p)
+      Argv[i++]=strdup(p->c_str());
+    
+    getOptions(Argc,Argv);
+  }
   
+  optind=0;
+  getOptions(argc,argv);
+  
+  // Set variables for the normal arguments.
+  argCount = argc - optind;
+  argList = argv + optind;
+
   if(numArgs() == 0 && !listvariables) {
     view=1;
     interact::interactive=true;
