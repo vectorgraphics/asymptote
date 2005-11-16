@@ -129,7 +129,7 @@ AC_TYPE_SIGNAL
 
 # Checks for library functions.
 AC_FUNC_FORK
-AC_CHECK_FUNCS([dup2 floor memset pow sqrt strchr])
+AC_CHECK_FUNCS([dup2 floor memset pow sqrt strchr tgamma])
 AC_FUNC_STRFTIME
 AC_FUNC_ERROR_AT_LINE
 AC_FUNC_MALLOC

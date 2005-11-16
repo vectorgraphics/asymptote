@@ -361,7 +361,12 @@ double erfc(double x)
 
 double gamma(double x)
 {
+#ifdef HAVE_TGAMMA
   return tgamma(x);
+#else
+ double lg = lgamma(x);
+ return signgam*exp(lg);
+#endif
 }
 
 string VERSION()
