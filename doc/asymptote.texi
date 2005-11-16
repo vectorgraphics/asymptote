@@ -5222,7 +5222,7 @@ Options:
 -t               Produce LaTeX file for \usepackage[inline]{asymptote}
 -p               Parse test
 -s               Translate test
--l               List available global functions and variables.
+-l               List available global functions and variables
 -m               Mask fpu exceptions (default for interactive mode)
 -nomask          Don't mask fpu exceptions (default for batch mode)
 -bw              Convert colors to black and white
@@ -5231,7 +5231,9 @@ Options:
 -cmyk            Convert rgb colors to cmyk
 -safe            Disable system call (default)
 -unsafe          Enable system call
+-localhistory    Use a local interactive history file
 -noplain         Disable automatic importing of plain
+
 @end verbatim
 
 If no arguments are given, @code{Asymptote} runs in interactive mode
@@ -5286,6 +5288,11 @@ Also output knot solver diagnostics.
 Also output @code{Asymptote} traceback diagnostics.
 @end table
 
+Default values for these options may also be entered in the file
+@code{.asy/options} in the user's home directory (in the same format
+as on the command line, except that the options may be distributed
+over multiple lines). Command-line options override these defaults.
+
 @node Interactive mode
 @chapter Interactive mode
 @cindex interactive mode
@@ -5308,7 +5315,10 @@ contains nonalphanumeric characters, enclose it with quotation marks.
 @item quit
 exit interactive mode (abbreviated as @code{q}; @code{exit} is a synonym).
 A history of the most recent @code{1000} previous commands will be retained
-in the file @code{.asy_history} in the current directory.
+in the file @code{.asy/history} in the user's home directory (unless
+the command line option @code{-localhistory} was specified, in which case
+the history will be stored in the file @code{.asy_history} in the
+current directory).
 @cindex @code{input}
 @end table
 

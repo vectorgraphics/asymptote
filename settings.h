@@ -46,6 +46,7 @@ extern int verbose;
 extern int view;
 extern int safe;
 extern int autoplain;
+extern int localhistory;
 extern int parseonly;
 extern int listvariables;
 extern int translate;
@@ -69,6 +70,7 @@ extern const string guisuffix;
 extern string outname; 
 
 extern bool TeXinitialized; // Is LaTeX process initialized?
+extern string initdir;
 
 extern string paperType;
 extern double pageWidth;

@@ -4,7 +4,7 @@
 asy \- Asymptote: a script-based vector graphics language
 .SH SYNOPSIS
 .B asy
-.RI [ options ] " files" ...
+.RI [ options ] [ file ... ]
 .SH DESCRIPTION
 \fBAsymptote\fP is a powerful script-based vector graphics language for
 technical drawings, inspired by MetaPost but with an improved C++\-like syntax.
@@ -102,11 +102,16 @@ Disable system call. (default)
 .B -unsafe
 Enable system call.
 .TP
+.B -localhistory
+Use a local interactive history file.
+.TP
 .B -noplain
 Disable automatic importing of plain.
 
 .SH SEE ALSO
 Asymptote is documented fully in the asymptote Info page.
+The manual can also be accessed in interactive mode with the "help" command.
+
 .SH AUTHOR
 Asymptote was written by Andy Hammerlindl, John Bowman, and Tom Prince.
 .PP

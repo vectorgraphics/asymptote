@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include <vector>
+#include <sys/stat.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -30,6 +31,7 @@
 using std::vector;
 
 namespace settings {
+  
 const char PROGRAM[]=PACKAGE_NAME;
 const char VERSION[]=PACKAGE_VERSION;
 const char BUGREPORT[]=PACKAGE_BUGREPORT;
@@ -78,6 +80,7 @@ int debug=0;
 int verbose=0;
 int safe=1;
 int autoplain=1;
+int localhistory=0;
 int parseonly=0;
 int translate=0;
 int listvariables=0;
@@ -105,6 +108,7 @@ const string guisuffix="gui";
 string outname;
 
 bool TeXinitialized=false;
+string initdir;
 
 camp::pen defaultpen=camp::pen::startupdefaultpen();
   
@@ -145,7 +149,7 @@ void options()
        << endl;
   cerr << "-p\t\t Parse test" << endl;
   cerr << "-s\t\t Translate test" << endl;
-  cerr << "-l\t\t List available global functions" << endl;
+  cerr << "-l\t\t List available global functions and variables" << endl;
   cerr << "-m\t\t Mask fpu exceptions (default for interactive mode)" << endl;
   cerr << "-nomask\t\t Don't mask fpu exceptions (default for batch mode)" 
        << endl;
@@ -155,6 +159,8 @@ void options()
   cerr << "-cmyk\t\t Convert rgb colors to cmyk" << endl;
   cerr << "-safe\t\t Disable system call (default)" << endl;
   cerr << "-unsafe\t\t Enable system call" << endl;
+  cerr << "-localhistory\t Use a local interactive history file"
+       << endl;
   cerr << "-noplain\t Disable automatic importing of plain" << endl;
 }
 
@@ -186,6 +192,7 @@ void getOptions(int argc, char *argv[])
     {"rgb", 0, &rgbonly, 1},
     {"cmyk", 0, &cmykonly, 1},
     {"noplain", 0, &autoplain, 0},
+    {"localhistory", 0, &localhistory, 1},
     {0, 0, 0, 0}
   };
 
@@ -294,8 +301,10 @@ void getOptions(int argc, char *argv[])
 void setOptions(int argc, char *argv[])
 {
   std::ifstream finit;
-  string homedir=Getenv("HOME",false);
-  finit.open((homedir+"/.asyrc").c_str());
+  initdir=Getenv("HOME",false)+"/.asy";
+  mkdir(initdir.c_str(),0xFFFF);
+  initdir += "/";
+  finit.open((initdir+"options").c_str());
 	
   if(finit) {
     string s;
@@ -314,9 +323,9 @@ void setOptions(int argc, char *argv[])
       Argv[i++]=strdup(p->c_str());
     
     getOptions(Argc,Argv);
+    optind=0;
   }
   
-  optind=0;
   getOptions(argc,argv);
   
   // Set variables for the normal arguments.
