@@ -137,7 +137,7 @@ AC_FUNC_REALLOC
 
 AC_CONFIG_HEADERS(config.h)
 
-AC_CONFIG_FILES([Makefile doc/version.texi])
+AC_CONFIG_FILES([Makefile doc/version.texi base/version.asy])
 AC_OUTPUT
 
 if test "x$GCDIR" != "x" ; then

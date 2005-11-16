@@ -363,4 +363,8 @@ double gamma(double x)
 {
   return tgamma(x);
 }
-
+
+string VERSION()
+{
+  return VERSION;
+}

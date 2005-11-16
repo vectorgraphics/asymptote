@@ -6,6 +6,15 @@
  *
  *****/
 
+file stdout;
+
+access version;		    
+if(version.VERSION != VERSION()) {
+  _write(stdout,"Warning: using version "+version.VERSION+
+	 " of plain.asy; this may be incompatible"+'\n');
+  _write(stdout,"with Asymptote version "+VERSION()+""+'\n');
+}
+   
 public bool shipped=false;
 public pen currentpen;
 pen nullpen=linewidth(0);
@@ -280,7 +289,6 @@ file line(file file) {return line(file,true);}
 file single(file file) {return single(file,true);}
 
 file stdin=input("");
-file stdout;
 
 void none(file file) {}
 void endl(file file) {_write(file,'\n'); flush(file);}
