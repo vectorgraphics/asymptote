@@ -121,8 +121,8 @@ typedef vm::interactiveStack istack;
 using absyntax::runnable;
 using absyntax::block;
 
-mem::list<coenv*> estack;
-mem::list<vm::interactiveStack*> sstack;
+mem::vector<coenv*> estack;
+mem::vector<vm::interactiveStack*> sstack;
 
 // Abstract base class for the core object being run in line-at-a-time mode, it
 // may be a runnable, block, file, or interactive prompt.
