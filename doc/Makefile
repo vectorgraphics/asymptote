@@ -52,7 +52,7 @@ clean: FORCE
 	rm -rf asymptote
 
 install-man: man
-	${INSTALL} -d $(docdir)
+	${INSTALL} -d $(docdir) $(mandir)/man1
 	${INSTALL} -m 644 asymptote.pdf $(docdir)
 	${INSTALL} -m 644 $(MANFILES) $(mandir)/man1
 
