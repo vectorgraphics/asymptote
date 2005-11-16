@@ -89,7 +89,7 @@ struct divide {
   }
 };
 
-inline void checkint(double x, int i)
+inline void checkint(double x, size_t i)
 {
   if(fabs(x) > INT_MAX) integeroverflow(i);
 }
@@ -105,7 +105,7 @@ struct plus<int> {
 
 template<>
 struct minus<int> {
-  int operator() (int x, int y, size_t i=0) {
+  int operator() (int x, int y, size_t=0) {
     return x+(-y);
   }
 };
