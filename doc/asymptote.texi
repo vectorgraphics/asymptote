@@ -3363,13 +3363,13 @@ It is an error if modules import themselves (or each other in a cycle).
 The module name to be imported must be known at compile time.
 However, you can execute an @code{Asymptote} file determined at runtime in
 a new @code{Asymptote} environment with the function
-@cindex execute
+@cindex @code{execute}
 @verbatim
 void execute(string s, bool embedded=false);
 @end verbatim
 One can evaluate an @code{Asymptote} expression (without any return
 value, however) contained in the string @code{s} with:
-@cindex eval
+@cindex @code{eval}
 @verbatim
 void eval(string s, bool embedded=false);
 @end verbatim
@@ -5575,4 +5575,5 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  ticklabel popup UnFill markroutine marknodes markuniform erf
 @c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis Datadir
 @c  LocalWords:  resetdefaultpen latticeshade axialshade radialshade erfc det
-@c  LocalWords:  gouraudshade includegraphics unescaped
+@c  LocalWords:  gouraudshade includegraphics unescaped nmesh nsub surfacepen
+@c  LocalWords:  lightgray meshpen localhistory
