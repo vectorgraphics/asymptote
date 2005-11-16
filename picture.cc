@@ -314,16 +314,17 @@ bool picture::postprocess(const string& epsname, const string& outname,
 bool picture::shipout(const picture& preamble, const string& Prefix,
 		      const string& format, bool wait, bool quiet, bool Delete)
 {
-  bool stdout=Prefix == "-";
-  string prefix=stdout ? "out" : Prefix;
+  bool standardout=Prefix == "-";
+  string prefix=standardout ? "out" : Prefix;
   checkFormatString(format);
   string outputformat=format.empty() ? outformat : format;
   epsformat=outputformat.empty() || outputformat == "eps";
   pdfformat=outputformat == "pdf";
   tgifformat=outputformat == "tgif";
   string outname=tgifformat ? "."+buildname(prefix,"gif") :
-    (stdout ? "-" : buildname(prefix,outputformat,"",false));
-  string epsname=epsformat ? (stdout ? "-" : outname) : auxname(prefix,"eps");
+    (standardout ? "-" : buildname(prefix,outputformat,"",false));
+  string epsname=epsformat ? (standardout ? "-" : outname) :
+    auxname(prefix,"eps");
   
   bounds();
   
