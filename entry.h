@@ -37,7 +37,7 @@ namespace trans {
 // has permission based on the enclosing records where it was defined or
 // imported.
 class entry : public gc {
-  struct pr : public gc {
+  struct pr {
     permission perm;
     record *r;
 
