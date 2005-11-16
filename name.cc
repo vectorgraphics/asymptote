@@ -65,14 +65,18 @@ void name::forceEquivalency(action act, coenv &e,
 
 frame *name::frameTrans(coenv &e)
 {
-  types::ty *t=signatureless(varGetType(e));
-
-  if (t && t->kind == types::ty_record) {
-    varTrans(READ, e, t);
-    return ((record *)t)->getLevel();
+  if (types::ty *t=signatureless(varGetType(e))) {
+    if (t->kind == types::ty_record) {
+      varTrans(READ, e, t);
+      return ((record *)t)->getLevel();
+    }
+    else
+      return 0;
   }
-  return 0;
+  else
+    return tyFrameTrans(e);
 }
+    
 
 types::ty *name::getType(coenv &e, bool tacit)
 {
@@ -143,6 +147,17 @@ tyEntry *simpleName::tyEntryTrans(coenv &e)
     return new tyEntry(primError(), 0);
   }
   return ent;
+}
+
+frame *simpleName::tyFrameTrans(coenv &e)
+{
+  tyEntry *ent = e.e.lookupTyEntry(id);
+  if (ent && ent->t->kind==types::ty_record && ent->v) {
+    ent->v->encode(READ, getPos(), e.c);
+    return ent->v->getLevel();
+  }
+  else 
+    return 0;
 }
 
 void simpleName::prettyprint(ostream &out, int indent)
@@ -316,19 +331,19 @@ tyEntry *qualifiedName::tyEntryTrans(coenv &e)
   return trans::qualifyTyEntry(qualifier->getVarEntry(e), ent);
 }
 
-frame *qualifiedName::frameTrans(coenv &e)
+frame *qualifiedName::tyFrameTrans(coenv &e)
 {
-  types::ty *t=signatureless(varGetType(e));
-
-  if (t)
-    if (t->kind == types::ty_record) {
-      varTrans(READ, e, t);
-      return ((record *)t)->getLevel();
-    }
-    else 
-      return 0;
-  else
-    return qualifier->frameTrans(e);
+  frame *f=qualifier->frameTrans(e);
+  tyEntry *ent = e.e.lookupTyEntry(id);
+  if (ent && ent->t->kind==types::ty_record && ent->v) {
+    if (f)
+      ent->v->encode(READ, getPos(), e.c, f);
+    else
+      ent->v->encode(READ, getPos(), e.c);
+    return ent->v->getLevel();
+  }
+  else 
+    return f;
 }
 
 void qualifiedName::prettyprint(ostream &out, int indent)

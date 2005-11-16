@@ -78,6 +78,8 @@ public:
   // the frame pushed.  If no frame can be pushed, returns 0.
   // NOTE: This duplicates some functionality with getVarEntry.
   virtual trans::frame *frameTrans(coenv &e);
+  // Helper function for the case where the name is known to be a type.
+  virtual trans::frame *tyFrameTrans(coenv &e) = 0;
 
   virtual void prettyprint(ostream &out, int indent) = 0;
   virtual void print(ostream& out) const {
@@ -108,6 +110,7 @@ public:
   // As a type:
   types::ty *typeTrans(coenv &e, bool tacit = false);
   virtual trans::tyEntry *tyEntryTrans(coenv &e);
+  trans::frame *tyFrameTrans(coenv &e);
 
   void prettyprint(ostream &out, int indent);
   void print(ostream& out) const {
@@ -147,10 +150,8 @@ public:
 
   // As a type:
   types::ty *typeTrans(coenv &e, bool tacit = false);
-
   trans::tyEntry *tyEntryTrans(coenv &e);
-
-  trans::frame *frameTrans(coenv &e);
+  trans::frame *tyFrameTrans(coenv &e);
 
   void prettyprint(ostream &out, int indent);
   void print(ostream& out) const {

@@ -264,6 +264,10 @@ class fieldExp : public nameExp {
       return 0;
     }
 
+    trans::frame *tyFrameTrans(coenv &) {
+      return 0;
+    }
+
     void prettyprint(ostream &out, int indent);
     void print(ostream& out) const {
       out << "<exp>";

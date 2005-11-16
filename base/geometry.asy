@@ -58,8 +58,6 @@ struct triangle {
 
 triangle operator init() {return new triangle;}
   
-triangle triangle; // Work around static problems with current import scheme.
-
 void draw(picture pic=currentpicture, triangle t, pen p=currentpen) 
 {
   draw(pic,t.Path(),p);

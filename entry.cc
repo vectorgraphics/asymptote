@@ -68,6 +68,11 @@ varEntry::varEntry(varEntry &qv, varEntry &v)
   location = new qualifiedAccess(qv.location, r->getLevel(), v.location);
 }
 
+frame *varEntry::getLevel() {
+  assert(t->kind==types::ty_record);
+  return ((record *)t)->getLevel();
+}
+
 void varEntry::encode(action act, position pos, coder &c) {
   reportPerm(act, pos, c);
   getLocation()->encode(act, pos, c);

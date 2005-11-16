@@ -94,6 +94,8 @@ public:
   access *getLocation()
     { return location; }
 
+  frame *getLevel();
+
   // Encodes the access, but also checks permissions.
   void encode(action act, position pos, coder &c);
   void encode(action act, position pos, coder &c, frame *top);
