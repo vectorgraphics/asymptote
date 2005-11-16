@@ -44,8 +44,7 @@ void texfile::prologue()
 {
   texdefines(*out);
   if(!texmode)
-    *out << "\\usepackage{pstricks}" << newl
-	 << "\\pagestyle{empty}" << newl
+    *out << "\\pagestyle{empty}" << newl
 	 << "\\textheight=2048pt" << newl
 	 << "\\textwidth=\\textheight" << newl
 	 << "\\begin{document}" << newl;

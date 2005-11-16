@@ -86,6 +86,7 @@ void texdefines(T& out, stringlist& preamble=TeXpreamble, bool pipe=false)
       << "\\rput[lB]{#7}(#1,#2){\\ASYdimen=\\ht\\ASYbox%" << newl
       << "\\advance\\ASYdimen by\\dp\\ASYbox\\kern#3\\wd\\ASYbox"
       << "\\raise#4\\ASYdimen\\box\\ASYbox}}"
+      << "\\usepackage{pstricks}" << newl
       << newl;
   
   if(pipe || !settings::texmode)
