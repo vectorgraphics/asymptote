@@ -61,16 +61,13 @@ void entry::reportPerm(action act, position pos, coder &c) {
 
 
 varEntry::varEntry(varEntry &qv, varEntry &v)
-  : entry(qv,v), t(v.t)
-{
-  record *r=dynamic_cast<record *>(qv.t);
-  assert(r);
-  location = new qualifiedAccess(qv.location, r->getLevel(), v.location);
-}
+  : entry(qv,v), t(v.t),
+    location(new qualifiedAccess(qv.location, qv.getLevel(), v.location)) {}
 
 frame *varEntry::getLevel() {
-  assert(t->kind==types::ty_record);
-  return ((record *)t)->getLevel();
+  record *r=dynamic_cast<record *>(t);
+  assert(r);
+  return r->getLevel();
 }
 
 void varEntry::encode(action act, position pos, coder &c) {
