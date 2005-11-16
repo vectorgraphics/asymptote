@@ -85,12 +85,10 @@ void texdefines(T& out, stringlist& preamble=TeXpreamble, bool pipe=false)
       << "\\setbox\\ASYbox=\\hbox{\\scalebox{#5}[#6]{#8}}%" << newl
       << "\\rput[lB]{#7}(#1,#2){\\ASYdimen=\\ht\\ASYbox%" << newl
       << "\\advance\\ASYdimen by\\dp\\ASYbox\\kern#3\\wd\\ASYbox"
-      << "\\raise#4\\ASYdimen\\box\\ASYbox}}"
-      << "\\usepackage{pstricks}" << newl
-      << newl;
+      << "\\raise#4\\ASYdimen\\box\\ASYbox}}" << newl;
   
   if(pipe || !settings::texmode)
-    out << "\\usepackage{graphicx}" << newl;
+    out << "\\usepackage{pstricks,graphicx}" << newl;
 }
   
 class texfile : public gc {
