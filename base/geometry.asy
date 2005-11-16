@@ -1,6 +1,6 @@
 private import math;
 
-static public real perpfactor=arrowfactor;
+public real perpfactor=arrowfactor;
 
 // Draw a perpendicular symbol at z aligned in the direction align
 // relative to the path z--z+dir.

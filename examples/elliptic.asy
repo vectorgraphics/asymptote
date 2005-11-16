@@ -1,4 +1,4 @@
-static struct curve {
+struct curve {
   public real a=0;
   public real b=8;
 

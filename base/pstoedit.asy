@@ -1,5 +1,5 @@
-static public pen textpen=basealign;
-static public pair align=1e-10*NE; 
+public pen textpen=basealign;
+public pair align=1e-10*NE; 
 
 // Compatibility routines for the pstoedit (version 3.42 or later) backend.
 // These do not clip picture size data (pstoedit doesn't use automatic sizing). 

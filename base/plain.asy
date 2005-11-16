@@ -7,155 +7,155 @@
  *****/
 
 public bool shipped=false;
-static public pen currentpen;
-static pen nullpen=linewidth(0);
-static path nullpath;
+public pen currentpen;
+pen nullpen=linewidth(0);
+path nullpath;
 
-static real inches=72;
-static real inch=inches;
-static real cm=inches/2.540005;
-static real mm=0.1cm;
-static real bp=1;	   // A PostScript point.
-static real pt=72.0/72.27; // A TeX pt; slightly smaller than a PostScript bp.
-static pair I=(0,1);
-static real pi=pi();
+real inches=72;
+real inch=inches;
+real cm=inches/2.540005;
+real mm=0.1cm;
+real bp=1;	   // A PostScript point.
+real pt=72.0/72.27; // A TeX pt; slightly smaller than a PostScript bp.
+pair I=(0,1);
+real pi=pi();
 
-static pair up=(0,1);
-static pair down=(0,-1);
-static pair right=(1,0);
-static pair left=(-1,0);
+pair up=(0,1);
+pair down=(0,-1);
+pair right=(1,0);
+pair left=(-1,0);
 
-static pair E=(1,0);
-static pair N=(0,1);
-static pair W=(-1,0);
-static pair S=(0,-1);
+pair E=(1,0);
+pair N=(0,1);
+pair W=(-1,0);
+pair S=(0,-1);
 
-static pair NE=unit(N+E);
-static pair NW=unit(N+W);
-static pair SW=unit(S+W);
-static pair SE=unit(S+E);
+pair NE=unit(N+E);
+pair NW=unit(N+W);
+pair SW=unit(S+W);
+pair SE=unit(S+E);
 
-static pair ENE=unit(E+NE);
-static pair NNE=unit(N+NE);
-static pair NNW=unit(N+NW);
-static pair WNW=unit(W+NW);
-static pair WSW=unit(W+SW);
-static pair SSW=unit(S+SW);
-static pair SSE=unit(S+SE);
-static pair ESE=unit(E+SE);
+pair ENE=unit(E+NE);
+pair NNE=unit(N+NE);
+pair NNW=unit(N+NW);
+pair WNW=unit(W+NW);
+pair WSW=unit(W+SW);
+pair SSW=unit(S+SW);
+pair SSE=unit(S+SE);
+pair ESE=unit(E+SE);
   
-static pen linetype(string s) 
+pen linetype(string s) 
 {
   return linetype(s,true);
 }
 
-static pen solid=linetype("");
-static pen dotted=linetype("0 4");
-static pen dashed=linetype("8 8");
-static pen longdashed=linetype("24 8");
-static pen dashdotted=linetype("8 8 0 8");
-static pen longdashdotted=linetype("24 8 0 8");
+pen solid=linetype("");
+pen dotted=linetype("0 4");
+pen dashed=linetype("8 8");
+pen longdashed=linetype("24 8");
+pen dashdotted=linetype("8 8 0 8");
+pen longdashdotted=linetype("24 8 0 8");
 
-static void defaultpen(real w) {defaultpen(linewidth(w));}
-static pen operator +(pen p, real w) {return p+linewidth(w);}
-static pen operator +(real w, pen p) {return linewidth(w)+p;}
+void defaultpen(real w) {defaultpen(linewidth(w));}
+pen operator +(pen p, real w) {return p+linewidth(w);}
+pen operator +(real w, pen p) {return linewidth(w)+p;}
 
-static pen Dotted=dotted+1.0;
-static pen Dotted(pen p) {return dotted+2*linewidth(p);}
+pen Dotted=dotted+1.0;
+pen Dotted(pen p) {return dotted+2*linewidth(p);}
 
-static pen squarecap=linecap(0);
-static pen roundcap=linecap(1);
-static pen extendcap=linecap(2);
+pen squarecap=linecap(0);
+pen roundcap=linecap(1);
+pen extendcap=linecap(2);
 
-static pen miterjoin=linejoin(0);
-static pen roundjoin=linejoin(1);
-static pen beveljoin=linejoin(2);
+pen miterjoin=linejoin(0);
+pen roundjoin=linejoin(1);
+pen beveljoin=linejoin(2);
 
-static pen zerowinding=fillrule(0);
-static pen evenodd=fillrule(1);
-static pen zerowindingoverlap=fillrule(2);
-static pen evenoddoverlap=fillrule(3);
+pen zerowinding=fillrule(0);
+pen evenodd=fillrule(1);
+pen zerowindingoverlap=fillrule(2);
+pen evenoddoverlap=fillrule(3);
 
-static pen nobasealign=basealign(0);
-static pen basealign=basealign(1);
+pen nobasealign=basealign(0);
+pen basealign=basealign(1);
 
-static pen invisible=invisible();
-static pen black=gray(0);
-static pen lightgray=gray(0.9);
-static pen lightgrey=lightgray;
-static pen gray=gray(0.5);
-static pen grey=gray;
-static pen white=gray(1);
+pen invisible=invisible();
+pen black=gray(0);
+pen lightgray=gray(0.9);
+pen lightgrey=lightgray;
+pen gray=gray(0.5);
+pen grey=gray;
+pen white=gray(1);
 
-static pen red=rgb(1,0,0);
-static pen green=rgb(0,1,0);
-static pen blue=rgb(0,0,1);
+pen red=rgb(1,0,0);
+pen green=rgb(0,1,0);
+pen blue=rgb(0,0,1);
 
-static pen cmyk=cmyk(0,0,0,0);
-static pen Cyan=cmyk(1,0,0,0);
-static pen Magenta=cmyk(0,1,0,0);
-static pen Yellow=cmyk(0,0,1,0);
-static pen Black=cmyk(0,0,0,1);
+pen cmyk=cmyk(0,0,0,0);
+pen Cyan=cmyk(1,0,0,0);
+pen Magenta=cmyk(0,1,0,0);
+pen Yellow=cmyk(0,0,1,0);
+pen Black=cmyk(0,0,0,1);
 
-static pen yellow=red+green;
-static pen magenta=red+blue;
-static pen cyan=blue+green;
+pen yellow=red+green;
+pen magenta=red+blue;
+pen cyan=blue+green;
 
-static pen brown=red+black;
-static pen darkgreen=green+black;
-static pen darkblue=blue+black;
+pen brown=red+black;
+pen darkgreen=green+black;
+pen darkblue=blue+black;
 
-static pen orange=red+yellow;
-static pen purple=magenta+blue;
+pen orange=red+yellow;
+pen purple=magenta+blue;
 
-static pen chartreuse=brown+green;
-static pen fuchsia=red+darkblue;
-static pen salmon=red+darkgreen+darkblue;
-static pen lightblue=darkgreen+blue;
-static pen lavender=brown+darkgreen+blue;
-static pen pink=red+darkgreen+blue;
+pen chartreuse=brown+green;
+pen fuchsia=red+darkblue;
+pen salmon=red+darkgreen+darkblue;
+pen lightblue=darkgreen+blue;
+pen lavender=brown+darkgreen+blue;
+pen pink=red+darkgreen+blue;
 
 pen cmyk(pen p) {
   return p+cmyk;
 }
 
 // Options for handling label overwriting
-static int Allow=0;
-static int Suppress=1;
-static int SuppressQuiet=2;
-static int Move=3;
-static int MoveQuiet=4;
+int Allow=0;
+int Suppress=1;
+int SuppressQuiet=2;
+int Move=3;
+int MoveQuiet=4;
 
 // Global parameters:
-static public real labelmargin=0.3;
-static public real arrowlength=0.75cm;
-static public real arrowfactor=15;
-static public real arrowangle=15;
-static public real arcarrowfactor=0.5*arrowfactor;
-static public real arcarrowangle=2*arrowangle;
-static public real barfactor=arrowfactor;
-static public real dotfactor=6;
+public real labelmargin=0.3;
+public real arrowlength=0.75cm;
+public real arrowfactor=15;
+public real arrowangle=15;
+public real arcarrowfactor=0.5*arrowfactor;
+public real arcarrowangle=2*arrowangle;
+public real barfactor=arrowfactor;
+public real dotfactor=6;
 
-static public real legendlinelength=50;
-static public real legendskip=1.5;
-static public real legendmargin=10;
+public real legendlinelength=50;
+public real legendskip=1.5;
+public real legendmargin=10;
 
-static public string defaultfilename;
-static public string defaultformat="$%.4g$";
+public string defaultfilename;
+public string defaultformat="$%.4g$";
 
-static bool Above=true;
-static bool Below=false;
+bool Above=true;
+bool Below=false;
 
-static bool Aspect=true;
-static bool IgnoreAspect=false;
+bool Aspect=true;
+bool IgnoreAspect=false;
 
-static int intMax=intMax();
-static real realMax=realMax();
-static real epsilon=realEpsilon();
+int intMax=intMax();
+real realMax=realMax();
+real epsilon=realEpsilon();
 
 // Reduced for tension atleast infinity
-static real infinity=sqrt(0.25*realMax);
-static pair Infinity=(infinity,infinity);
+real infinity=sqrt(0.25*realMax);
+pair Infinity=(infinity,infinity);
 
 // Define a.. tension t ..b to be equivalent to
 //        a.. tension t and t ..b
@@ -265,7 +265,7 @@ pair[] operator * (transform t, pair[] z)
 
 // I/O operations
 
-static public string commentchar="#";
+public string commentchar="#";
 
 file input(string name, bool check=true)
 {
@@ -414,7 +414,7 @@ string ask(string prompt)
   return stdin;
 }
 
-static public string getstringprefix=".asy_";
+public string getstringprefix=".asy_";
 
 void savestring(string name, string value, string prefix=getstringprefix)
 {
@@ -446,7 +446,7 @@ real getreal(string name, real default=0, string prompt="",
   return x;
 }
 
-static public frame patterns;
+public frame patterns;
 
 transform rotate(real angle) 
 {
@@ -505,7 +505,7 @@ guide square(pair z1, pair z2)
 
 guide unitcircle=E..N..W..S..cycle;
 
-static public real circleprecision=0.0006;
+public real circleprecision=0.0006;
 
 guide circle(pair c, real r)
 {
@@ -638,7 +638,7 @@ typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
 // A coordinate in "flex space." A linear combination of user and true-size
 // coordinates.
   
-static struct coord {
+struct coord {
   public real user,truesize;
   public bool finite=true;
 
@@ -2228,8 +2228,8 @@ void newpage()
   layer();
 }
 
-static bool Wait=true;				
-static bool NoWait=false;
+bool Wait=true;				
+bool NoWait=false;
 
 // Draw and/or fill a box on frame dest using the dimensions of frame src.
 guide box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
@@ -2419,7 +2419,7 @@ frame GUI(int index) {
 }
 						   
 private struct DELETET {}
-static public DELETET DELETE=null;
+public DELETET DELETE=null;
 
 GUIop[] GUIlist;
 
@@ -2447,7 +2447,7 @@ void GUIop(int index, int filenum=0, transform T)
   GUIobj.Transform[index]=T*GUIobj.Transform[index];
 }
 
-static private int GUIFilenum;
+private int GUIFilenum;
 
 void GUIreset()
 {
@@ -2557,7 +2557,7 @@ void erase(picture pic=currentpicture)
 
 typedef real[][] transform3;
 
-static struct projection {
+struct projection {
   public triple camera;
   public transform3 project;
   public transform3 aspect;
@@ -2578,7 +2578,7 @@ projection operator init() {return new projection;}
 public projection currentprojection;
 
 typedef void exitfcn();
-static void nullexitfcn();
+void nullexitfcn();
 
 void exitfunction()
 {
@@ -2688,8 +2688,8 @@ pair cap(transform t, pair z, pair lb, pair rt, pen p=currentpen)
             cap(t,z.y,lb.y,rt.y,min(p).y,max(p).y,ytrans));
 }
   
-static bool CCW=true;
-static bool CW=false;						  
+bool CCW=true;
+bool CW=false;						  
 
 // return an arc centered at c with radius r from angle1 to angle2 in degrees,
 // drawing in the given direction.
@@ -3107,7 +3107,7 @@ pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,longdashdotted};
 monoPen.cyclic(true);
 
 transform invert=reflect((0,0),(1,0));
-static public real circlescale=0.85;
+public real circlescale=0.85;
 
 marker[] Mark={
   marker(scale(circlescale)*unitcircle),

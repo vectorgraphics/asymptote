@@ -1,22 +1,22 @@
 private import math;
 
-static public real ticksize=1mm;
-static public real Ticksize=2*ticksize;
-static public real ylabelwidth=2.0;
-static public real axislabelmargin=1;
-static public real axislabelfactor=1.5;
-static public real axiscoverage=0.8;
-static public int ngraph=100;
+public real ticksize=1mm;
+public real Ticksize=2*ticksize;
+public real ylabelwidth=2.0;
+public real axislabelmargin=1;
+public real axislabelfactor=1.5;
+public real axiscoverage=0.8;
+public int ngraph=100;
 
-static public real epsilon=10*realEpsilon();
+public real epsilon=10*realEpsilon();
 
-static bool Crop=true;
-static bool NoCrop=false;
+bool Crop=true;
+bool NoCrop=false;
 
-static scaleT Linear;
+scaleT Linear;
 
-static scaleT Log;
-static scaleT Logarithmic;
+scaleT Log;
+scaleT Logarithmic;
 Log.init(log10,pow10,logarithmic=true);
 Logarithmic=Log;
 
@@ -202,7 +202,7 @@ public ticklabel Format(string s) {
   return new string(real x) {return format(s,x);};
 }
 
-static public ticklabel LogFormat=new string(real x) {
+public ticklabel LogFormat=new string(real x) {
   return format("$10^{%g}$",x);
 };
 

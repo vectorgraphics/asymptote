@@ -1777,7 +1777,7 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
 	     colatitude(v2),Longitude(v2),direction);
 }
 
-static public real epsilon=1000*realEpsilon();
+public real epsilon=1000*realEpsilon();
 
 // Return a representation of the plane through point O with normal cross(u,v).
 path3 plane(triple u, triple v, triple O=O)
