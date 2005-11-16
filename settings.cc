@@ -311,18 +311,19 @@ void setOptions(int argc, char *argv[])
     ostringstream buf;
     vector<string> Args;
     while(finit >> s)
-      Args.push_back(strdup(s.c_str()));
+      Args.push_back(s);
     finit.close();
     
-    int Argc=Args.size()+1;
-    char* Argv[Argc];
+    int Argc=(int) Args.size()+1;
+    char** Argv=new char*[Argc];
     Argv[0]=argv[0];
     int i=1;
     
     for(vector<string>::iterator p=Args.begin(); p != Args.end(); ++p)
-      Argv[i++]=strdup(p->c_str());
+      Argv[i++]=strcpy(new char[p->size()+1],p->c_str());
     
     getOptions(Argc,Argv);
+    delete[] Argv;
     optind=0;
   }
   
