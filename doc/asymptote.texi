@@ -3332,7 +3332,7 @@ module name.
 
 Wild card importing will work fine in most cases, but one does not usually know
 all of the internal types and variables of a module, which can also
-change as the module-writer adds or changes features of the module.
+change as the module writer adds or changes features of the module.
 As such, it is prudent to add @code{import} commands at the start of an
 @code{Asymptote} file, so that imported names won't shadow locally
 defined functions.  Still, imported names may shadow other imported
@@ -4665,26 +4665,6 @@ int pow(int n, int k) {
 @noindent
 there is one instance of @code{x} for each call to @code{pow}, so this
 is an ugly implementation of exponentiation.
-
-A file-level module is really just a structure, so a file @code{stuff.asy}
-containing
-@verbatim
-import other;
-public int x=5;
-int y=x*4;
-int sqr(int x) {return x*x;}
-@end verbatim
-
-@noindent
-is in some way equivalent to
-@verbatim
-struct stuff {
-  import other;
-  public int x=5;
-  int y=x*4;
-  int sqr(int x) { return x*x; }
-}
-@end verbatim
 
 @node Drawing commands
 @chapter Drawing commands
