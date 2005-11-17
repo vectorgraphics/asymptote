@@ -442,7 +442,7 @@ public:
 };
 
 // Abstract base class for
-//   from _ access _;  (importdec)
+//   from _ access _;  (fromaccessdec)
 // and
 //   from _ unravel _;  (unraveldec)
 class fromdec : public dec {
@@ -474,41 +474,43 @@ public:
   void prettyprint(ostream &out, int indent);
 };
 
-// An import declaration dumps fields and types of a module into the local
+// A fromaccess declaration dumps fields and types of a module into the local
 // scope.  It does not add the module as a variable in the local scope.
-class importdec : public fromdec {
+class fromaccessdec : public fromdec {
   symbol *id;
 
   varEntry *getQualifier(coenv &e, record *r);
 public:
-  importdec(position pos, symbol *id, idpairlist *fields)
+  fromaccessdec(position pos, symbol *id, idpairlist *fields)
     : fromdec(pos, fields), id(id) {}
 
   void prettyprint(ostream &out, int indent);
 };
 
-#if 0
-class usedec : public dec {
+// An import declaration dumps fields and types of a module into the local
+// scope.  It also adds the module as a variable in the local scope.
+class importdec : public dec {
   block base;
 
 public:
-  usedec(position pos, symbol *id, std::string filename)
+  importdec(position pos, idpair *id)
     : dec(pos), base(pos, false) {
-    base.add(new importdec(pos, id, filename));
-    base.add(new explodedec(pos, new simpleName(pos, id)));
+    idpairlist *i=new idpairlist;
+    i->add(id);
+    base.add(new accessdec(pos, i));
+    base.add(new unraveldec(pos, new simpleName(pos, id->dest), WILDCARD));
   }
 
-  usedec(position pos, symbol *id)
-    : dec(pos), base(pos, false) {
-    base.add(new importdec(pos, id));
-    base.add(new explodedec(pos, new simpleName(pos, id)));
+  void trans(coenv &e) {
+    base.trans(e);
   }
 
   void transAsField(coenv &e, record *r) {
     base.transAsField(e, r);
   }
+  
+  void prettyprint(ostream &out, int indent);
 };
-#endif
 
 // Parses the file given, and translates the resulting runnables as if they
 // occurred at this place in the code.

@@ -3253,7 +3253,6 @@ Explicit casts are implemented similarly, with @code{operator ecast}.
 
 @node Import
 @section Import
-@cindex @code{import}
 @cindex @code{access}
 While @code{Asymptote} provides many features by default,
 some applications require specialized features contained in
@@ -3270,7 +3269,7 @@ The module is a structure, and we can refer to its fields as we usually
 would with a structure.
 
 @cindex @code{from}
-Often, one wants to use module functions without having to specify the
+Often, one wants to use module functions without having to specify
 the module name.  The code 
 @verbatim
 from graph access axes;
@@ -3282,7 +3281,7 @@ is overloaded, all types and variables of that name are added.  To add
 more than one name, just use a comma-separated list:
 
 @verbatim
-from graph access axes, xaxis, yaxis, labelx, labely;
+from graph access axes, xaxis, yaxis;
 @end verbatim
 @noindent
 Wild card notation can be used to add all non-private fields and types of a
@@ -3290,31 +3289,6 @@ module to the local name space:
 
 @verbatim
 from graph access *;
-@end verbatim
-
-The @code{import} keyword provides a convenient abbreviation for the
-above command:
-@verbatim
-import graph;
-@end verbatim
-
-Wild card importing will work fine in most cases, but one does not usually know
-all of the internal types and variables of a module, which can also
-change as the module-writer adds or changes features of the module.
-As such, it is prudent to add @code{import} commands at the start of an
-@code{Asymptote} file, so that imported names won't shadow locally
-defined functions.  Still, imported names may shadow other imported
-names, depending on the order in which they were imported, and
-imported functions may cause overloading resolution problems if they
-have the same name as local functions defined later.
-
-@cindex @code{as}
-To rename modules or fields when adding them to the local environment, use
-@code{as}:
-
-@verbatim
-access graph as graph2d;
-from graph access xaxis as xline, yaxis as yline;
 @end verbatim
 
 @cindex @code{unravel}
@@ -3339,6 +3313,52 @@ real det(matrix m) {
 } 
 @end verbatim
 
+@cindex @code{import}
+The command
+@verbatim
+import graph;
+@end verbatim
+is a convenient abbreviation for the commands
+@verbatim
+access graph;
+unravel graph;
+@end verbatim
+That is, @code{import graph} first loads a module into a structure called
+@code{graph} and then adds its non-private fields and types to the
+local environment. This way, if a member variable (or function) is
+overwritten with a local variable (or function of the same signature),
+the original one can still be accessed by qualifying it with the
+module name.
+
+Wild card importing will work fine in most cases, but one does not usually know
+all of the internal types and variables of a module, which can also
+change as the module-writer adds or changes features of the module.
+As such, it is prudent to add @code{import} commands at the start of an
+@code{Asymptote} file, so that imported names won't shadow locally
+defined functions.  Still, imported names may shadow other imported
+names, depending on the order in which they were imported, and
+imported functions may cause overloading resolution problems if they
+have the same name as local functions defined later.
+
+@cindex @code{as}
+To rename modules or fields when adding them to the local environment, use
+@code{as}:
+
+@verbatim
+access graph as graph2d;
+from graph access xaxis as xline, yaxis as yline;
+@end verbatim
+
+The command
+@verbatim
+import graph as graph2d;
+@end verbatim
+is a convenient abbreviation for the commands
+@verbatim
+access graph as graph2d;
+unravel graph2d;
+@end verbatim
+
 Currently, all modules are implemented as @code{Asymptote} files.
 When looking up a module that has not yet been loaded,
 @code{Asymptote} searches the standard search paths (@pxref{Search
@@ -3356,7 +3376,7 @@ nonalphanumeric characters, enclose it with quotation marks:
 @code{from "@value{Datadir}/asymptote/graph.asy" access axes;}
 
 @noindent
-@code{import "@value{Datadir}/asymptote/graph.asy";}
+@code{import "@value{Datadir}/asymptote/graph.asy" as graph;}
 
 It is an error if modules import themselves (or each other in a cycle).
 
@@ -3433,12 +3453,13 @@ include graph;
 This is the default @code{Asymptote} base file, which defines key parts of the
 drawing language (such as the @code{picture} structure).
 
-By default, an implicit @code{private import plain;} occurs before translating a
-file and before the first command given in interactive mode.  This also applies
-when translating files for module definitions (except when translating
-@code{plain}, of course).  This means that the types and functions defined in
-@code{plain} are accessible in almost all @code{Asymptote} code.
-Use the @code{-noplain} command-line option to disable this feature.
+By default, an implicit @code{private import plain;} occurs before
+translating a file and before the first command given in interactive
+mode.  This also applies when translating files for module definitions
+(except when translating @code{plain}, of course).  This means that
+the types and functions defined in @code{plain} are accessible in
+almost all @code{Asymptote} code. Use the @code{-noplain} command-line
+option to disable this feature.
 
 @node simplex
 @subsection @code{simplex}
@@ -4664,74 +4685,6 @@ struct stuff {
   int sqr(int x) { return x*x; }
 }
 @end verbatim
-
-@cindex @code{import}
-When you @code{import} a module, it is like creating a new instance of
-the struct. That is,
-@verbatim
-int cube(int x) {
-  import stuff;
-  return x*sqr(x);
-}
-@end verbatim
-
-is essentially equivalent to
-@verbatim
-int cube(int x) {
-  stuff s=new stuff;
-  return x*s.sqr(x);
-}
-@end verbatim
-
-If you use static functions and variables from a module, then every
-import is referring to the same data. But every import of a module gets
-a different instance of its dynamic variables.
-
-Declarations are dynamic by default. Suppose @code{X.asy} contains
-@verbatim
-public int x=0;
-@end verbatim
-
-@noindent
-and @code{inc.asy} contains
-@verbatim
-import X;
-void inc() {++x;}
-@end verbatim
-
-Then the file @code{test.asy}:
-@verbatim
-import X;
-import inc;
-write(x);
-inc();
-write(x);
-@end verbatim
-
-@noindent
-should write 0 twice, because the variable @code{x} imported in
-@code{inc.asy} is distinct from the variable @code{x} imported directly
-from @code{X.asy}.
-
-If @code{inc.asy} were to contain only
-@verbatim
-void inc() {++x;}
-@end verbatim
-
-@noindent
-then, in order for it to be able to access the variable @code{x} in
-@code{X.asy}, one needs to allocate @code{X.asy} in a higher
-enclosing block by making its import @code{static} in @code{test.asy}:
-@verbatim
-static import x;
-import inc;
-write(x);
-inc();
-write(x);
-@end verbatim
-
-@noindent
-This writes first 0 and then 1.
 
 @node Drawing commands
 @chapter Drawing commands

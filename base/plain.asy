@@ -10,9 +10,8 @@ file stdout;
 
 access version;		    
 if(version.VERSION != VERSION()) {
-  _write(stdout,"Warning: using version "+version.VERSION+
-	 " of plain.asy; this may be incompatible"+'\n');
-  _write(stdout,"with Asymptote version "+VERSION()+""+'\n');
+  _write(stdout,"Warning: using possibly incompatible version "+
+	 version.VERSION+" of plain.asy"+'\n');
 }
    
 public bool shipped=false;

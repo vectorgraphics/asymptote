@@ -623,7 +623,6 @@ idpairlist * const WILDCARD = 0;
 void accessdec::prettyprint(ostream &out, int indent)
 {
   prettyname(out, "accessdec", indent);
-
   base->prettyprint(out, indent+1);
 }
 
@@ -671,19 +670,23 @@ varEntry *unraveldec::getQualifier(coenv &e, record *)
   return id->getVarEntry(e);
 }
 
-
-void importdec::prettyprint(ostream &out, int indent)
+void fromaccessdec::prettyprint(ostream &out, int indent)
 {
   prettyindent(out, indent);
-  out << "importdec '" << *id << "'\n";
+  out << "fromaccessdec '" << *id << "'\n";
   this->fields->prettyprint(out, indent+1);
 }
 
-varEntry *importdec::getQualifier(coenv &e, record *r)
+varEntry *fromaccessdec::getQualifier(coenv &e, record *r)
 {
   return accessModule(getPos(), e, r, id);
 }
 
+void importdec::prettyprint(ostream &out, int indent)
+{
+  prettyname(out, "importdec", indent);
+  base.prettyprint(out, indent+1);
+}
 
 void includedec::prettyprint(ostream &out, int indent)
 {
@@ -765,7 +768,7 @@ void recorddec::transAsField(coenv &e, record *parent)
 runnable *autoplainRunnable() {
   // Private import plain;
   position pos=position();
-  static importdec ap(pos, symbol::trans("plain"), WILDCARD);
+  static importdec ap(pos, new idpair(pos, symbol::trans("plain")));
   static modifiedRunnable mr(pos, trans::PRIVATE, &ap);
 
   return &mr;

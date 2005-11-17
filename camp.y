@@ -223,13 +223,14 @@ dec:
                    { $$ = new unraveldec($1, $2, WILDCARD); }
 | UNRAVEL name ';' { $$ = new unraveldec($1, $2, WILDCARD); }
 | FROM strid ACCESS idpairlist ';'
-                   { $$ = new importdec($1, $2.sym, $4); }
+                   { $$ = new fromaccessdec($1, $2.sym, $4); }
 | FROM strid ACCESS '*' ';'
-                   { $$ = new importdec($1, $2.sym, WILDCARD); }
-| IMPORT strid ';' { $$ = new importdec($1, $2.sym, WILDCARD); }
+                   { $$ = new fromaccessdec($1, $2.sym, WILDCARD); }
+| IMPORT stridpair ';'
+                   { $$ = new importdec($1, $2); }
 | INCLUDE ID ';'   { $$ = new includedec($1, $2.sym); }                   
 | INCLUDE STRING ';'
-                   { $$ = new includedec($1, (mem::string)*$2.sym); }                   
+                   { $$ = new includedec($1, (mem::string)*$2.sym); }
 ;
 
 idpair:
