@@ -19,6 +19,7 @@
 \newread\AsyTestStream
 \def\AsyFile{\jobname.asy}
 \immediate\openout\AsyStream=\AsyFile
+\immediate\write\AsyStream{quiet(true);}%
 \newcounter{asy}
 
 \def\ProcessAsymptote#1% start it all off

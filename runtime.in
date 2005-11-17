@@ -373,3 +373,8 @@ string VERSION()
 {
   return VERSION;
 }
+
+void quiet(bool v)
+{
+  settings::view=!v;
+}
