@@ -39,6 +39,7 @@ using types::record;
 errorstream *em;
 using interact::interactive;
 using interact::virtualEOF;
+using interact::resetenv;
 
 #ifdef HAVE_LIBSIGSEGV
 void stackoverflow_handler (int, stackoverflow_context_t)
@@ -181,7 +182,7 @@ struct itree : public icore {
 
 struct iprompt : public icore {
   void run(coenv &e, istack &s) {
-    while (virtualEOF) {
+    while (virtualEOF && !resetenv) {
       virtualEOF=false;
       try {
         file *ast = parser::parseInteractive();
@@ -284,7 +285,10 @@ void doIPrompt() {
   outname="out";
   
   iprompt i;
-  doICore(i);
+  do {
+    resetenv=false;
+    doICore(i);
+  } while(resetenv);
   outname="";
 }
 

@@ -28,6 +28,7 @@ namespace interact {
 
 int interactive=false;
 bool virtualEOF=true;
+bool resetenv;
 bool uptodate=true;
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
@@ -145,6 +146,7 @@ size_t interactive_input(char *buf, size_t max_size)
       line += ninput;
       strcpy(to,inputexpand);
       to += ninputexpand;
+      resetenv=true;
     }
     
     add_input(to,line,size);

@@ -5241,8 +5241,9 @@ and must be entered immediately after the prompt:
 @item help
 view the manual
 @item input FILE
-equivalent to @code{erase(); include FILE}. If the file name @code{FILE}
-contains nonalphanumeric characters, enclose it with quotation marks.
+resets the environment and does an @code{erase(); include FILE}. If
+the file name @code{FILE} contains nonalphanumeric characters, enclose
+it with quotation marks.
 @cindex @code{quit}
 @cindex @code{exit}
 @item quit
