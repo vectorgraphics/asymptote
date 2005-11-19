@@ -294,12 +294,17 @@ void doIPrompt() {
 
 } // namespace loop
 
+#ifdef USEGC
+void no_GCwarn(char *, GC_word) {}
+#endif
+
 int main(int argc, char *argv[])
 {
 #ifdef USEGC
   GC_free_space_divisor = 2;
   GC_dont_expand = 0;
   GC_INIT();
+  GC_set_warn_proc(no_GCwarn);
 #endif  
 
   setOptions(argc,argv);
