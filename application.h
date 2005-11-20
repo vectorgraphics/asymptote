@@ -44,7 +44,7 @@ typedef vector<tempExp *> temp_vector;
 // Forward declaration.
 struct arg;
 
-struct arg : public gc {
+struct arg {
   virtual ~arg() {}
   varinit *v;
   types::ty *t;
@@ -59,7 +59,7 @@ struct arg : public gc {
 
 // Pushes a default argument token on the stack as a placeholder for the
 // argument.
-struct defaultArg : public arg {
+  struct defaultArg : public arg, public gc {
   defaultArg(types::ty *t);
 };
 
@@ -68,7 +68,7 @@ struct defaultArg : public arg {
 // used to ensure left-to-right order of evaluation of keyword arguments, even
 // if they are given out of the order specified in the declaration.
 class sequencer : public gc {
-  struct sequencedArg : public arg {
+  struct sequencedArg : public arg, public gc {
     sequencer &parent;
     size_t i;
     sequencedArg(varinit *v, types::ty *t, sequencer &parent, size_t i)
@@ -134,7 +134,7 @@ class application : public gc {
   // of this sequencer means that transArgs can only be called once.
   sequencer seq;
 
-  typedef mem::vector<arg *> arg_vector;
+  typedef vector<arg *> arg_vector;
   arg_vector args;
   arrayinit *rest;
 
