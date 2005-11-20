@@ -26,11 +26,9 @@ using absyntax::tempExp;
 // This is mid-way between trans and absyntax.
 namespace trans {
 
-using mem::vector;
-  
 typedef int score;
 
-typedef vector<score> score_vector;
+typedef mem::vector<score> score_vector;
 
 // This is used during the translation of arguments to store temporary
 // expressions for arguments that need to be translated for side-effects at a
@@ -39,12 +37,12 @@ typedef vector<score> score_vector;
 // been translated.  Null is pushed onto the vector to indicate that the
 // expression was evaluated directly onto the stack, without the use of a
 // temporary.
-typedef vector<tempExp *> temp_vector;
+typedef mem::vector<tempExp *> temp_vector;
 
 // Forward declaration.
 struct arg;
 
-struct arg {
+struct arg : public gc {
   virtual ~arg() {}
   varinit *v;
   types::ty *t;
@@ -59,7 +57,7 @@ struct arg {
 
 // Pushes a default argument token on the stack as a placeholder for the
 // argument.
-  struct defaultArg : public arg, public gc {
+  struct defaultArg : public arg {
   defaultArg(types::ty *t);
 };
 
@@ -67,8 +65,8 @@ struct arg {
 // according to their index, regardless of the order they are called.  This is
 // used to ensure left-to-right order of evaluation of keyword arguments, even
 // if they are given out of the order specified in the declaration.
-class sequencer : public gc {
-  struct sequencedArg : public arg, public gc {
+class sequencer {
+  struct sequencedArg : public arg {
     sequencer &parent;
     size_t i;
     sequencedArg(varinit *v, types::ty *t, sequencer &parent, size_t i)
@@ -79,7 +77,7 @@ class sequencer : public gc {
     }
   };
 
-  typedef vector<sequencedArg *> sa_vector;
+  typedef mem::vector<sequencedArg *> sa_vector;
   sa_vector args;
 
   // Makes a temporary for the next argument in the sequence.
@@ -130,11 +128,11 @@ class application : public gc {
   types::signature *sig;
   types::function *t;
 
-  // Sequencer to ensure given arguments are evaluated in the proper order.  Use
-  // of this sequencer means that transArgs can only be called once.
+  // Sequencer to ensure given arguments are evaluated in the proper order.
+  // Use of this sequencer means that transArgs can only be called once.
   sequencer seq;
 
-  typedef vector<arg *> arg_vector;
+  typedef mem::vector<arg *> arg_vector;
   arg_vector args;
   arrayinit *rest;
 
@@ -239,7 +237,7 @@ public:
   }
 };
 
-typedef list<application *> app_list;
+typedef mem::list<application *> app_list;
 
 // Given an overloaded list of types, determines which type to call.  If none
 // are applicable, returns an empty vector, if there is ambiguity, several will
