@@ -67,7 +67,7 @@ struct defaultArg : public arg {
 // according to their index, regardless of the order they are called.  This is
 // used to ensure left-to-right order of evaluation of keyword arguments, even
 // if they are given out of the order specified in the declaration.
-class sequencer {
+class sequencer : public gc {
   struct sequencedArg : public arg {
     sequencer &parent;
     size_t i;
