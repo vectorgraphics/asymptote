@@ -125,17 +125,20 @@ void texfile::put(const string& label, double angle, const pair& z,
       if(!(*p)->inside(pair(Box.right-xfuzz,Box.top-yfuzz))) return;
     }
   }
-
-  *out << "\\ASYalign" << fixed << setprecision(6)
+  
+  static pair unscaled=pair(1.0,1.0);
+  bool scaled=(scale != unscaled);
+  *out << "\\ASY" << (scaled ? "scale" : "align") << fixed << setprecision(6)
        << "(" << (z.getx()-offset.getx())*ps2tex
        << "," << (z.gety()-offset.gety())*ps2tex
        << ")(" << align.getx()
-       << "," << align.gety()
-       << ")(" << scale.getx()
-       << "," << scale.gety()
-       << "){" << angle
+       << "," << align.gety();
+  if(scaled)
+    *out << ")(" << scale.getx()
+	 << "," << scale.gety();
+  *out << "){" << angle
        << "}{" << label << "}" << newl;
-}	
+}
 
 void texfile::epilogue()
 {

@@ -81,11 +81,13 @@ void texdefines(T& out, stringlist& preamble=TeXpreamble, bool pipe=false)
       << "\\ASYdimen=\\ht\\ASYbox%"
       << newl
       << "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl
-      << "\\def\\ASYalign(#1,#2)(#3,#4)(#5,#6)#7#8{%" << newl
-      << "\\setbox\\ASYbox=\\hbox{\\scalebox{#5}[#6]{#8}}%" << newl
-      << "\\rput[lB]{#7}(#1,#2){\\ASYdimen=\\ht\\ASYbox%" << newl
+      << "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{%" << newl
+      << "\\setbox\\ASYbox=\\hbox{#6}%" << newl
+      << "\\rput[lB]{#5}(#1,#2){\\ASYdimen=\\ht\\ASYbox%" << newl
       << "\\advance\\ASYdimen by\\dp\\ASYbox\\kern#3\\wd\\ASYbox"
-      << "\\raise#4\\ASYdimen\\box\\ASYbox}}" << newl;
+      << "\\raise#4\\ASYdimen\\box\\ASYbox}}" << newl
+      << "\\def\\ASYscale(#1,#2)(#3,#4)(#5,#6)#7#8{%" << newl
+      << "\\ASYalign(#1,#2)(#3,#4){#7}{\\scalebox{#5}[#6]{#8}}}%" << newl;
   
   if(pipe || !settings::texmode)
     out << "\\usepackage{pstricks,graphicx}" << newl;
