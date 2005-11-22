@@ -5324,6 +5324,7 @@ As @code{xasy} is written in the interactive scripting language
 @verbatim
 yum install tkinter
 @end verbatim
+@noindent
 or manually install the individual packages:
 @verbatim
 rpm -i tkinter-2.4.1-2.i386.rpm 
