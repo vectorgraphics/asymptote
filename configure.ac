@@ -17,12 +17,19 @@ AC_ARG_WITH(latex,
                      [if test "x$withval" != "x" ; then
 			latexdir=$withval
 		      fi
-		     ],
-latexdir=$prefix/share/texmf/tex/latex
-AC_CHECK_FILE($latexdir/base/latex.ltx,,
-[latexdir=/usr/share/texmf/tex/latex
-AC_CHECK_FILE($latexdir/base/latex.ltx,,)])
-)
+		     ],[
+AC_CHECK_PROG(kpsewhich,kpsewhich,true)
+if test "x$kpsewhich" = "xtrue"; then
+  latexdir=`kpsewhich base/latex.ltx`
+  latexdir=`echo $latexdir | sed -e 's;/base/latex.ltx;;'`
+else
+  latexdir=$prefix/share/texmf/tex/latex
+  AC_CHECK_FILE($latexdir/base/latex.ltx,,
+  [latexdir=/usr/share/texmf/tex/latex
+  AC_CHECK_FILE($latexdir/base/latex.ltx,,)])
+fi
+])
+
 latexdir=$latexdir/asymptote
 
 AC_MSG_NOTICE([Using $latexdir for LaTeX style file])
