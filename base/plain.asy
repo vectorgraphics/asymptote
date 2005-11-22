@@ -1477,7 +1477,6 @@ void Draw(picture pic=currentpicture, path g, pen p=currentpen)
 
 void _draw(picture pic=currentpicture, path g, pen p=currentpen,
 	   margin margin=NoMargin)
- 
 {
   pic.add(new void (frame f, transform t) {
     draw(f,margin(t*g,p).g,p);

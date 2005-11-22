@@ -784,7 +784,7 @@ public ticks
 
 					       
 // Structure used to communicate axis and autoscale settings to tick routines. 
-private struct axisT {
+struct axisT {
   public pair value;
   public real position;
   public pair side;
@@ -804,7 +804,8 @@ public axisT axis;
 typedef void axis(picture, axisT);
 void axis(picture, axisT) {};
 
-axis Bottom(bool extend=false) {
+public axis Bottom(bool extend=false)
+{
   return new void(picture pic, axisT axis) {
     axis.value=pic.scale.y.automin() ?
       (pic.scale.x.tickMin,pic.scale.y.tickMin) : axis.userMin;
@@ -816,7 +817,8 @@ axis Bottom(bool extend=false) {
   };
 }
 
-axis Top(bool extend=false) {
+public axis Top(bool extend=false)
+{
   return new void(picture pic, axisT axis) {
     axis.value=pic.scale.y.automax() ?
     (pic.scale.x.tickMax,pic.scale.y.tickMax) : axis.userMax;
@@ -828,7 +830,8 @@ axis Top(bool extend=false) {
   };
 }
 
-axis BottomTop(bool extend=false) {
+public axis BottomTop(bool extend=false)
+{
   return new void(picture pic, axisT axis) {
     axis.value=pic.scale.y.automin() ?
     (pic.scale.x.tickMin,pic.scale.y.tickMin) : axis.userMin;
@@ -841,7 +844,8 @@ axis BottomTop(bool extend=false) {
   };
 }
 
-axis Left(bool extend=false) {
+public axis Left(bool extend=false)
+{
   return new void(picture pic, axisT axis) {
     axis.value=pic.scale.x.automin() ? 
     (pic.scale.x.tickMin,pic.scale.y.tickMin) : axis.userMin;
@@ -853,7 +857,8 @@ axis Left(bool extend=false) {
   };
 }
 
-axis Right(bool extend=false) {
+public axis Right(bool extend=false)
+{
   return new void(picture pic, axisT axis) {
     axis.value=pic.scale.x.automax() ?
     (pic.scale.x.tickMax,pic.scale.y.tickMax) : axis.userMax;
@@ -865,7 +870,8 @@ axis Right(bool extend=false) {
   };
 }
 
-axis LeftRight(bool extend=false) {
+public axis LeftRight(bool extend=false) 
+{
   return new void(picture pic, axisT axis) {
     axis.value=pic.scale.x.automin() ?
       (pic.scale.x.tickMin,pic.scale.y.tickMin) : axis.userMin;
@@ -878,7 +884,7 @@ axis LeftRight(bool extend=false) {
   };
 }
 
-axis XEquals(real x, bool extend=true)
+public axis XEquals(real x, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.value=pic.scale.x.T(x);
@@ -890,7 +896,7 @@ axis XEquals(real x, bool extend=true)
   };
 }
 
-axis YEquals(real y, bool extend=true)
+public axis YEquals(real y, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.value=I*pic.scale.y.T(y);
@@ -902,7 +908,7 @@ axis YEquals(real y, bool extend=true)
   };
 }
 
-axis XZero(bool extend=true)
+public axis XZero(bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     real x=pic.scale.x.scale.logarithmic ? 1 : 0;
@@ -915,7 +921,7 @@ axis XZero(bool extend=true)
   };
 }
 
-axis YZero(bool extend=true)
+public axis YZero(bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     real y=pic.scale.x.scale.logarithmic ? 1 : 0;
@@ -1219,13 +1225,11 @@ void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
   
   if(xmin != -infinity) {
     xmin=pic.scale.x.T(xmin);
-    pic.addPoint((xmin,pic.userMin.y));
     newticks=true;
   }
   
   if(xmax != infinity) {
     xmax=pic.scale.x.T(xmax);
-    pic.addPoint((xmax,pic.userMax.y));
     newticks=true;
   }
   
@@ -1277,13 +1281,11 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
   
   if(ymin != -infinity) {
     ymin=pic.scale.y.T(ymin);
-    pic.addPoint((pic.userMin.x,ymin));
     newticks=true;
   }
   
   if(ymax != infinity) {
     ymax=pic.scale.y.T(ymax);
-    pic.addPoint((pic.userMax.x,ymax));
     newticks=true;
   }
   
