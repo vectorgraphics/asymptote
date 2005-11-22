@@ -40,6 +40,7 @@ errorstream *em;
 using interact::interactive;
 using interact::virtualEOF;
 using interact::resetenv;
+using interact::uptodate;
 
 #ifdef HAVE_LIBSIGSEGV
 void stackoverflow_handler (int, stackoverflow_context_t)
@@ -188,6 +189,8 @@ struct iprompt : public icore {
         file *ast = parser::parseInteractive();
         assert(ast);
         itree(ast).wrapper(e,s);
+	if(!uptodate)
+	  run::updateFunction(&s);
       } catch (interrupted&) {
         if(em) em->Interrupt(false);
         cout << endl;
@@ -195,6 +198,7 @@ struct iprompt : public icore {
         status=false;
       }
     }
+    run::cleanup();
   }
 };
 

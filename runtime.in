@@ -17,6 +17,7 @@ pair     => primPair()
 triple   => primTriple()
 path     => primPath()
 picture* => primPicture()
+callable* => voidFunction()
 
 #include "angle.h"
 #include "pair.h"
@@ -46,6 +47,7 @@ picture* => primPicture()
 #include "stack.h"
 #include "util.h"
 #include "mathop.h"
+#include "callable.h"
   
 using namespace vm;
 using namespace camp;
@@ -54,14 +56,22 @@ using namespace settings;
 namespace run {
 using camp::pair;
 using mem::string;
+
+callable *atExitFunction=NULL;
+callable *atDrawFunction=NULL;
 }
-namespace trans {
+
 using namespace types;
-}
 
 static inline int Round(double x) 
 {
   return int(x+((x >= 0) ? 0.5 : -0.5));
+}
+
+function *voidFunction()
+{
+  function *ft = new function(primVoid());
+  return ft;
 }
 
 
@@ -378,3 +388,15 @@ void quiet(bool v)
 {
   settings::view=!v;
 }
+
+void atexit(callable *f)
+{
+  atExitFunction=f;
+}
+
+callable *atexit()
+{
+  return atExitFunction;
+}
+
+  

@@ -248,14 +248,15 @@ void layer(vm::stack *s);
 void image(vm::stack *s);
 void overwrite(vm::stack *s);
 
+// Shipout
 void shipout(vm::stack *s);
+void exitFunction(vm::stack *s);
+void updateFunction(vm::stack *s);
 void stringFilePrefix(vm::stack *s);
 
 // System commands
 void system(vm::stack *s);
 void abort(vm::stack *s);
-void atExit(vm::stack *s);
-void getAtExit(vm::stack *s);
 void changeDirectory(vm::stack *s);
 void scrollLines(vm::stack *s);
   
@@ -297,8 +298,6 @@ void boolFileNeq(vm::stack *s);
 void nullFile(vm::stack *s);
 
 void readChar(vm::stack *s);
-
-void exitFunction(vm::stack *s);
 
 // Utils
 vm::array *copyArray(vm::stack *s);

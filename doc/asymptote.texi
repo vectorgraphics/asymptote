@@ -1363,8 +1363,8 @@ default pen used by the drawing routines is called
 @cindex @code{*}
 Pens may be added together with the binary operator @code{+}.
 This will mix the colors of the two pens.
-All other non-default attributes of the right most pen will
-override those of the left most pen. Thus, one can obtain a yellow
+All other non-default attributes of the rightmost pen will
+override those of the leftmost pen. Thus, one can obtain a yellow
 dashed pen by saying @code{dashed+red+green} or @code{red+green+dashed}
 or @code{red+dashed+green}. The binary operator @code{*}
 can be used to scale the color of a pen by a real number, until it
@@ -5240,10 +5240,14 @@ and must be entered immediately after the prompt:
 @cindex @code{help}
 @item help
 view the manual
+@item reset
+reset @code{Asymptote} to its initial state, except that a prior call
+to @code{scroll} is respected (@pxref{scroll}).
 @item input FILE
 resets the environment and does an @code{erase(); include FILE}. If
 the file name @code{FILE} contains nonalphanumeric characters, enclose
-it with quotation marks.
+it with quotation marks. For convenience, a trailing semi-colon 
+followed by optional @code{Asymptote} commands may be entered on the same line.
 @cindex @code{quit}
 @cindex @code{exit}
 @item quit
@@ -5258,6 +5262,10 @@ current directory).
 
 Typing @code{ctrl-C} interrupts the execution of @code{Asymptote} code
 and returns control to the interactive prompt.
+
+Interactive mode is implemented with the GNU readline library.
+To customize the key bindings, see:
+@url{http://cnswww.cns.cwru.edu/php/chet/readline/readline.html}
 
 @node GUI
 @chapter Graphical User Interface

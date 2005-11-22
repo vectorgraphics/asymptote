@@ -111,7 +111,8 @@ size_t interactive_input(char *buf, size_t max_size)
   static int nlines=1000;
   static bool first=true;
   static string historyfile;
-  
+  static bool inputmode=false;
+    
   assert(max_size > 0);
   size_t size=max_size-1;
   char *to=buf;
@@ -126,31 +127,39 @@ size_t interactive_input(char *buf, size_t max_size)
 
   if(virtualEOF) return 0;
   
+  static char *line;
+
+  if(inputmode) {
+    inputmode=false;  
+    virtualEOF=true;
+    line += ninput;
+    strcpy(to,inputexpand);
+    to += ninputexpand;
+    add_input(to,line,size);
+    return to-buf;
+  }
+  
   if(em->errors())
     em->clear();
   
-  if(!uptodate) { // Maybe replace this with a call to an atdraw function.
-    errorstream::interrupt=false;
-    add_input(to,"shipout();",size);
-    virtualEOF=true;
-    return to-buf;
-  }
   ShipoutNumber=0;
   
-  char *line;
-
   if((line=rl_gets())) {
     errorstream::interrupt=false;
+    virtualEOF=true;
     
     if(strncmp(line,input,ninput) == 0) {
-      line += ninput;
-      strcpy(to,inputexpand);
-      to += ninputexpand;
+      inputmode=true;
       resetenv=true;
+      return 0;
+    }
+    
+    if(strcmp(line,"reset") == 0 || strcmp(line,"reset;") == 0) {
+      resetenv=true;
+      return 0;
     }
     
     add_input(to,line,size);
-    virtualEOF=true;
     return to-buf;
   } else {
     stifle_history(nlines);

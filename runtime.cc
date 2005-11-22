@@ -2145,12 +2145,10 @@ void shipout(stack *s)
 
 // System commands
 
-static callable *atExitFunction=NULL;
-
 void cleanup()
 {
   defaultpen=camp::pen::startupdefaultpen();
-  settings::scrollLines=0;
+  if(!interact::interactive) settings::scrollLines=0;
   
   if(TeXinitialized && TeXcontaminated) {
     camp::TeXpipepreamble.clear();
@@ -2159,6 +2157,9 @@ void cleanup()
     TeXinitialized=camp::TeXcontaminated=false;
   }
 }
+
+extern callable *atExitFunction;
+extern callable *atDrawFunction; // Screen update (interactive mode)
 
 void exitFunction(stack *s)
 {
@@ -2169,14 +2170,10 @@ void exitFunction(stack *s)
   cleanup();
 }
   
-void atExit(stack *s)
+void updateFunction(stack *s)
 {
-  atExitFunction=pop<callable*>(s);
-}
-  
-void getAtExit(stack *s)
-{
-  s->push(atExitFunction);
+  if(atExitFunction && !nullfunc::instance()->compare(atExitFunction))
+    atExitFunction->call(s);
 }
   
 // Merge output files  

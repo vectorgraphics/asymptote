@@ -343,12 +343,6 @@ inline void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool divide=true)
   addOps<T,run::power>(ve,t1,"^",t2);
 }
 
-function *voidFunction()
-{
-  function *ft = new function(primVoid());
-  return ft;
-}
-
 function *intRealFunction()
 {
   function *ft = new function(primInt());
@@ -561,9 +555,6 @@ void base_venv(venv &ve)
 	  primInt());
   addFunc(ve,run::stringTime,primString(),"time",primString());
   
-  addFunc(ve,run::atExit,primVoid(),"atexit",voidFunction());
-  addFunc(ve,run::getAtExit,voidFunction(),"atexit");
-  addFunc(ve,run::exitFunction,primVoid(),"exitfunction");
   addFunc(ve,run::evalString,primVoid(),"_eval",primString(),primBoolean());
   addFunc(ve,run::evalAst,primVoid(),"_eval",primCode(),primBoolean());
   addFunc(ve,run::readGUI,primVoid(),"readGUI");

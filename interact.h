@@ -13,7 +13,7 @@ extern bool TeXcontaminated;
 }
 
 namespace run {
-extern void cleanup();
+  void cleanup();
 }
 
 namespace interact {

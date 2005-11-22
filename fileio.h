@@ -262,7 +262,8 @@ public:
   void writeline() {
     if(standard && settings::scrollLines) {
       if(lines > 0 && lines % settings::scrollLines == 0) {
-	while(std::cin.get() != '\n') continue;
+	while(std::cin.good() && std::cin.get() != '\n') continue;
+	if(!std::cin.good()) *stream << newline;
       } else *stream << newline;
       ++lines;
     } else *stream << newline;
