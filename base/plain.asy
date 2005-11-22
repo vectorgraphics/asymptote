@@ -1299,8 +1299,9 @@ struct picture {
     nodes.push(new void (frame f, transform t, transform T, pair m, pair M) {
       frame d=srcCopy.fit(t,T*srcCopy.T,m,M);
       add(f,d,put,filltype,group);
-      legend.append(src.legend);
     });
+    
+    legend.append(src.legend);
     
     userBox(src.userMin,src.userMax);
     
