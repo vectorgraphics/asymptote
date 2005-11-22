@@ -55,6 +55,9 @@ record *genv::loadModule(symbol *id, mem::string filename) {
     
   // Get the abstract syntax tree.
   absyntax::file *ast = parser::parseFile(filename);
+  
+  inTranslation.push_front(filename);
+
   em->sync();
   
   // Create the new module.
@@ -69,6 +72,8 @@ record *genv::loadModule(symbol *id, mem::string filename) {
   // Translate the abstract syntax.
   ast->transAsFile(ce, r);
   em->sync();
+  
+  inTranslation.remove(filename);
 
   return r;
 }
@@ -90,15 +95,11 @@ record *genv::getModule(symbol *id, mem::string filename) {
   if (r)
     return r;
   else {
-    inTranslation.push_front(filename);
-
     record *r=loadModule(id, filename);
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
     if (!interact::interactive || !em->errors())
       imap[filename]=r;
-
-    inTranslation.remove(filename);
 
     return r;
   }
