@@ -263,6 +263,7 @@ void doIFile(const string& filename) {
   
   if(parseonly) {
     absyntax::file *tree = parser::parseFile(filename);
+    assert(tree);
     em->sync();
     if(!em->errors())
       tree->prettyprint(cout, 0);

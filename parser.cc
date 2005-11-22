@@ -96,14 +96,14 @@ absyntax::file *parseFile(string filename)
 
   std::filebuf filebuf;
   if(!filebuf.open(file.c_str(),std::ios::in))
-    error(file);
+    error(filename);
   
 #ifdef HAVE_SYS_STAT_H
   // Check that the file is not a directory.
   static struct stat buf;
   if(stat(file.c_str(),&buf) == 0) {
     if(S_ISDIR(buf.st_mode))
-      error(file);
+      error(filename);
   }
 #endif
   
@@ -111,7 +111,7 @@ absyntax::file *parseFile(string filename)
   try {
     filebuf.sgetc();
   } catch (...) {
-    error(file);
+    error(filename);
   }
   
   yy::sbuf = &filebuf;
