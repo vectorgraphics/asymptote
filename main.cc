@@ -133,16 +133,6 @@ struct icore {
   
   virtual void run(coenv &e, istack &s) = 0;
   
-  // Wrapper for run used to execute eval within the current environment.
-  void wrapper(coenv &e, istack &s, bool exit=false) {
-    estack.push_back(&e);
-    sstack.push_back(&s);
-    run(e,s);
-    if(exit) run::exitFunction(&s);
-    estack.pop_back();
-    sstack.pop_back();
-  }
-  
   void embedded() {
     assert(estack.size() && sstack.size());
     run(*(estack.back()),*(sstack.back()));
@@ -175,9 +165,9 @@ struct itree : public icore {
     : ast(ast) {}
 
   void run(coenv &e, istack &s) {
-    for(list<runnable *>::iterator r=ast->stms.begin(); r != ast->stms.end();
-	++r)
-      irunnable(*r).wrapper(e,s);
+    for(list<runnable *>::iterator r=ast->stms.begin();
+	r != ast->stms.end(); ++r)
+      irunnable(*r).run(e,s);
   }
 };
 
@@ -188,7 +178,7 @@ struct iprompt : public icore {
       try {
         file *ast = parser::parseInteractive();
         assert(ast);
-        itree(ast).wrapper(e,s);
+        itree(ast).run(e,s);
 	if(!uptodate)
 	  run::updateFunction(&s);
       } catch (interrupted&) {
@@ -217,18 +207,26 @@ void doICore(icore &i, bool embedded=false) {
       env base_env(ge);
       coder base_coder;
       coenv e(base_coder,base_env);
-
+      
       vm::interactiveStack s;
       s.setInitMap(ge.getInitMap());
 
+      estack.push_back(&e);
+      sstack.push_back(&s);
+
       if(settings::autoplain) {
 	absyntax::runnable *r=absyntax::autoplainRunnable();
-	irunnable(r).wrapper(e,s);
+	irunnable(r).run(e,s);
       }
 
       // Now that everything is set up, run the core.
-      i.wrapper(e,s,true);
+      i.run(e,s);
+      
+      run::exitFunction(&s);
 
+      estack.pop_back();
+      sstack.pop_back();
+      
       if(settings::listvariables)
 	base_env.list();
     
@@ -238,6 +236,7 @@ void doICore(icore &i, bool embedded=false) {
     status=false;
   } catch(handled_error) {
     status=false;
+    run::cleanup();
   }
 
   em->clear();
