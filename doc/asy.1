@@ -21,8 +21,11 @@ For a complete description, see the Info files.
 .B -V, -View
 View output file (MSDOS default).
 .TP
-.B -n, -noView
+.B -nV, -nView
 Don't view output file (UNIX default).
+.TP
+.B -n, -no
+Negate next option.
 .TP
 .B -x magnification
 Deconstruct into transparent GIF objects.
@@ -78,10 +81,10 @@ Translate test.
 .B -l
 List available global functions and variables.
 .TP
-.B -m
+.B -m, -mask
 Mask fpu exceptions. (default for interactive mode)
 .TP
-.B -nomask
+.B -nm, -nmask
 Don't mask fpu exceptions. (default for batch mode)
 .TP
 .B -bw

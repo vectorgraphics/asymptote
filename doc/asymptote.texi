@@ -5156,7 +5156,8 @@ Usage: asy [options] [file ...]
 Options: 
 
 -V, -View        View output file (MSDOS default)
--n, -noView      Don't view output file (UNIX default)
+-nV, -nView      Don't view output file (UNIX default)
+-n, -no          Negate next option
 -x magnification Deconstruct into transparent GIF objects
 -c               Clear GUI operations
 -i               Ignore GUI operations
@@ -5176,14 +5177,14 @@ Options:
 -p               Parse test
 -s               Translate test
 -l               List available global functions and variables
--m               Mask fpu exceptions (default for interactive mode)
--nomask          Don't mask fpu exceptions (default for batch mode)
+-m, -mask        Mask fpu exceptions (default for interactive mode)
+-nm, -nmask      Don't mask fpu exceptions (default for batch mode)
 -bw              Convert colors to black and white
 -gray            Convert colors to grayscale
 -rgb             Convert cmyk colors to rgb
 -cmyk            Convert rgb colors to cmyk
--safe            Disable system call (default)
--unsafe          Enable system call
+-safe            Disable system call (default, negation ignored)
+-unsafe          Enable system call (negation ignored)
 -localhistory    Use a local interactive history file
 -noplain         Disable automatic importing of plain
 
@@ -5207,6 +5208,10 @@ If the option @code{-unsafe} is given, @code{Asymptote} runs
 in unsafe mode. This enables the @code{int system(string)} call, allowing one
 to execute arbitrary shell commands. The default mode, @code{-safe},
 disables this call. 
+
+The @code{-n} option can be used to negate the meaning of a following
+option (except for the meanings of @code{-unsafe}, @code{-safe}, and
+@code{-n} itself).
 
 @cindex @code{ASYMPTOTE_PAPERTYPE}
 By default, @code{Asymptote} attempts to center the figure on the

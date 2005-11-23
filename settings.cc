@@ -128,7 +128,8 @@ void options()
   cerr << endl;
   cerr << "Options: " << endl;
   cerr << "-V, -View\t View output file" << endl;
-  cerr << "-n, -noView\t Don't view output file" << endl;
+  cerr << "-nV, -nView\t Don't view output file" << endl;
+  cerr << "-n, -no\t\t Negate next option" << endl;
   cerr << "-x magnification Deconstruct into transparent GIF objects" 
        << endl;
   cerr << "-c \t\t Clear GUI operations" << endl;
@@ -150,15 +151,16 @@ void options()
   cerr << "-p\t\t Parse test" << endl;
   cerr << "-s\t\t Translate test" << endl;
   cerr << "-l\t\t List available global functions and variables" << endl;
-  cerr << "-m\t\t Mask fpu exceptions (default for interactive mode)" << endl;
-  cerr << "-nomask\t\t Don't mask fpu exceptions (default for batch mode)" 
+  cerr << "-m, -mask\t Mask fpu exceptions (default for interactive mode)"
+       << endl;
+  cerr << "-nm, -nmask\t Don't mask fpu exceptions (default for batch mode)" 
        << endl;
   cerr << "-bw\t\t Convert all colors to black and white" << endl;
   cerr << "-gray\t\t Convert all colors to grayscale" << endl;
   cerr << "-rgb\t\t Convert cmyk colors to rgb" << endl;
   cerr << "-cmyk\t\t Convert rgb colors to cmyk" << endl;
-  cerr << "-safe\t\t Disable system call (default)" << endl;
-  cerr << "-unsafe\t\t Enable system call" << endl;
+  cerr << "-safe\t\t Disable system call (default, negation ignored)" << endl;
+  cerr << "-unsafe\t\t Enable system call (negation ignored)" << endl;
   cerr << "-localhistory\t Use a local interactive history file"
        << endl;
   cerr << "-noplain\t Disable automatic importing of plain" << endl;
@@ -172,27 +174,35 @@ char **argList = 0;
 int numArgs() { return argCount; }
 char *getArg(int n) { return argList[n]; }
 
+int no=0;
+  
+int set() {
+  if(no) {no=0; return 0;}
+  return 1;
+}
+  
 void getOptions(int argc, char *argv[])
 {
   int syntax=0;
   int option_index = 0;
 
+  enum Options {BW=257,GRAY,RGB,CMYK,NOPLAIN,LOCALHISTORY};
+  
   static struct option long_options[] =
   {
     {"verbose", 0, 0, 'v'},
     {"help", 0, 0, 'h'},
+    {"View", 0, 0, 'V'},
+    {"mask", 0, 0, 'm'},
+    {"no", 0, 0, 'n'},
+    {"bw", 0, 0, BW},
+    {"gray", 0, 0, GRAY},
+    {"rgb", 0, 0, RGB},
+    {"cmyk", 0, 0, CMYK},
+    {"noplain", 0, 0, NOPLAIN},
+    {"localhistory", 0, 0, LOCALHISTORY},
     {"safe", 0, &safe, 1},
     {"unsafe", 0, &safe, 0},
-    {"View", 0, &view, 1},
-    {"noView", 0, &view, 0},
-    {"mask", 0, &trap, 0},
-    {"nomask", 0, &trap, 1},
-    {"bw", 0, &bwonly, 1},
-    {"gray", 0, &grayonly, 1},
-    {"rgb", 0, &rgbonly, 1},
-    {"cmyk", 0, &cmykonly, 1},
-    {"noplain", 0, &autoplain, 0},
-    {"localhistory", 0, &localhistory, 1},
     {0, 0, 0, 0}
   };
 
@@ -207,7 +217,7 @@ void getOptions(int argc, char *argv[])
     case 0:
       break;
     case 'c':
-      clearGUI=1;
+      clearGUI=set();
       break;
     case 'f':
       outformat=string(optarg);
@@ -218,43 +228,43 @@ void getOptions(int argc, char *argv[])
       cerr << endl;
       exit(0);
     case 'i':
-      ignoreGUI=1;
+      ignoreGUI=set();
       break;
     case 'k':
-      keep=1;
+      keep=set();
       break;
     case 'L':
-      texprocess=0;
+      texprocess=!set();
       break;
     case 'm': 
-      trap=0;
+      trap=!set();
       break;
     case 'p':
-      parseonly=1;
+      parseonly=set();
       break;
     case 'o':
       outname=string(optarg);
       break;
     case 's':
-      translate=1;
+      translate=set();
       break;
     case 't':
-      texmode=1;
+      texmode=set();
       break;
     case 'l':
-      listvariables=1;
+      listvariables=set();
       break;
     case 'd':
-      debug=1;
+      debug=set();
       break;
     case 'v':
-      verbose++;
+      verbose += set() ? 1 : -1;
       break;
     case 'V':
-      view=1;
+      view=set();
       break;
     case 'n':
-      view=0;
+      no=1;
       break;
     case 'x':
       try {
@@ -282,6 +292,24 @@ void getOptions(int argc, char *argv[])
       break;
     case 'Z':
       origin=ZERO;
+      break;
+    case BW:
+      bwonly=set();
+      break;
+    case GRAY:
+      grayonly=set();
+      break;
+    case RGB:
+      rgbonly=set();
+      break;
+    case CMYK:
+      cmykonly=set();
+      break;
+    case NOPLAIN:
+      autoplain=!set();
+      break;
+    case LOCALHISTORY:
+      localhistory=set();
       break;
     default:
       syntax=1;
