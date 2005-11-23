@@ -659,7 +659,8 @@ void unraveldec::prettyprint(ostream &out, int indent)
 {
   prettyname(out, "unraveldec", indent);
   id->prettyprint(out, indent+1);
-  this->fields->prettyprint(out, indent+1);
+  idpairlist *f=this->fields;
+  if(f) f->prettyprint(out, indent+1);
 }
 
 varEntry *unraveldec::getQualifier(coenv &e, record *)
@@ -674,7 +675,8 @@ void fromaccessdec::prettyprint(ostream &out, int indent)
 {
   prettyindent(out, indent);
   out << "fromaccessdec '" << *id << "'\n";
-  this->fields->prettyprint(out, indent+1);
+  idpairlist *f=this->fields;
+  if(f) f->prettyprint(out, indent+1);
 }
 
 varEntry *fromaccessdec::getQualifier(coenv &e, record *r)
