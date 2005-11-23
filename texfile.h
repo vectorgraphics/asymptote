@@ -62,12 +62,8 @@ void texdocumentclass(T& out, bool pipe=false)
 template<class T>
 void texpreamble(T& out, stringlist& preamble=TeXpreamble)
 {
-  stringlist::iterator p=preamble.begin();
-  if(p != preamble.end()) {
-    TeXcontaminated=true;
-    for (; p != preamble.end(); ++p)
-      out << stripblanklines(*p);
-  }
+  for(stringlist::iterator p=preamble.begin(); p != preamble.end(); ++p)
+    out << stripblanklines(*p);
 }
   
 template<class T>

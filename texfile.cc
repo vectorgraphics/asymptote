@@ -18,7 +18,6 @@ using settings::texmode;
   
 namespace camp {
 
-bool TeXcontaminated=false;
 stringlist TeXpipepreamble, TeXpreamble;
   
 texfile::texfile(const string& texname, const bbox& box) :
@@ -30,7 +29,6 @@ texfile::texfile(const string& texname, const bbox& box) :
     throw handled_error();
   }
   texdocumentclass(*out);
-  TeXcontaminated=false;
   lastpen=pen(initialpen);
   lastpen.convert(); 
 }

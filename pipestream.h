@@ -154,7 +154,6 @@ public:
       len=readbuffer();
       if(abort) {
 	if(strncmp(buffer,abort,alen) == 0) {
-	  camp::TeXcontaminated=true;
 	  if(settings::texmode) return;
 	  camp::reportError(buffer);
 	}

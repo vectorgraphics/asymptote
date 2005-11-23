@@ -2150,11 +2150,11 @@ void cleanup()
   defaultpen=camp::pen::startupdefaultpen();
   if(!interact::interactive) settings::scrollLines=0;
   
-  if(TeXinitialized && TeXcontaminated) {
+  if(TeXinitialized) {
     camp::TeXpipepreamble.clear();
     camp::TeXpreamble.clear();
     camp::tex.pipeclose();
-    TeXinitialized=camp::TeXcontaminated=false;
+    TeXinitialized=false;
   }
 }
 

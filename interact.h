@@ -8,10 +8,6 @@
 #include "config.h"
 #endif
 
-namespace camp {
-extern bool TeXcontaminated;
-}
-
 namespace run {
   void cleanup();
 }

@@ -131,14 +131,9 @@ void picture::texinit()
   // Output any new texpreamble commands
   if(TeXinitialized) {
     if(TeXpipepreamble.empty()) return;
-    if(TeXcontaminated) { // add on to existing texpreamble
-      texpreamble(tex,TeXpipepreamble);
-      TeXpipepreamble.clear();
-      return;
-    } else { // texpreamble should appear before any other commands
-      tex.pipeclose();
-      TeXinitialized=TeXcontaminated=false;
-    }
+    texpreamble(tex,TeXpipepreamble);
+    TeXpipepreamble.clear();
+    return;
   }
   
   tex.open(LaTeX.c_str(),"ASYMPTOTE_LATEX","latex");
