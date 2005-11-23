@@ -5315,6 +5315,8 @@ real number, say 2). The command @code{asy -VxN} automatically invokes
 turn on the @code{-xN} option in interactive mode or from within a module
 using the function @code{gui()} or @code{gui(N)}. One can turn GUI
 mode off again with @code{gui(0)}.
+Deconstruction requires that the @code{ImageMagick} @code{convert}
+utility be installed.
 
 The modified layout can be written to disk with the @code{w} key in a form
 readable to @code{Asymptote}.
