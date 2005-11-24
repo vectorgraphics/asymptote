@@ -98,8 +98,8 @@ install-asy: asy
 	${INSTALL} -s $(NAME) $(bindir)
 	${INSTALL} $(XNAME) $(bindir)
 	${INSTALL} -m644 base/*.asy $(asydir)
-	${INSTALL} -m644 examples/*.asy base/asy* \
-		doc/*.asy doc/*.csv doc/latexusage.tex $(exampledir)
+	${INSTALL} -m644 examples/*.asy examples/piicon.eps base/asy* \
+		doc/*.asy doc/*.csv doc/*.dat doc/latexusage.tex $(exampledir)
 	${INSTALL} -m644 examples/animations/*.asy $(animationsdir)
 	${INSTALL} -m644 doc/asymptote.sty $(latexdir)
 	texhash
@@ -117,7 +117,8 @@ uninstall-all: uninstall-man uninstall-asy
 uninstall-asy:
 	-cd $(animationsdir); rm -f *.asy
 	-rmdir $(animationsdir)
-	-cd $(exampledir); rm -f *.asy *.csv asy* latexusage.tex
+	-cd $(exampledir); rm -f *.asy *.csv *.dat asy* piicon.eps \
+		latexusage.tex
 	-rmdir $(exampledir)
 	-cd $(asydir); rm -f *.asy
 	-rmdir $(asydir)
