@@ -38,7 +38,7 @@ const char BUGREPORT[]=PACKAGE_BUGREPORT;
 
 #ifdef MSDOS
 const char pathSeparator=';';
-int view=1; // Support drag and drop in MSWindows
+int view=-1; // Support drag and drop in MSWindows
 const string defaultPSViewer=
   "'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe'";
 const string defaultPDFViewer=
@@ -369,6 +369,7 @@ void setOptions(int argc, char *argv[])
 	 << " (to view the manual, type help)" << endl;
   } else if(trap == -1) trap=1;
 
+  if(view == -1) view=(numArgs() == 1) ? 1 : 0; 
   
   if(origin == ZERO) texprocess=0;
   
