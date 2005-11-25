@@ -2541,17 +2541,20 @@ frame Landscape(frame f) {return rotate(90)*f;};
 frame Seascape(frame f) {return rotate(-90)*f;};
 typedef frame orientation(frame);
 
-void shipout(string prefix=defaultfilename, picture pic,
+void shipout(string prefix=defaultfilename, picture pic, real unitsize=0,
 	     frame preamble=patterns, orientation orientation=Portrait,
 	     string format="", bool wait=NoWait, bool quiet=false)
 {
-  shipout(prefix,orientation(pic.fit()),preamble,format,wait,quiet);
+  shipout(prefix,
+	  orientation(unitsize == 0 ? pic.fit() : pic.fit(scale(unitsize))),
+	  preamble,format,wait,quiet);
 }
 
 void shipout(string prefix=defaultfilename, orientation orientation=Portrait,
-	     string format="", bool wait=NoWait, bool quiet=false)
+	     real unitsize=0, string format="", bool wait=NoWait,
+	     bool quiet=false)
 {
-  shipout(prefix,currentpicture,orientation,format,wait,quiet);
+  shipout(prefix,currentpicture,unitsize,orientation,format,wait,quiet);
 }
 
 void erase(picture pic=currentpicture)
@@ -2589,9 +2592,7 @@ void nullexitfcn();
 
 void exitfunction()
 {
-  if(interact()) {
-    if(!uptodate()) shipout();
-  } else if(!shipped && !currentpicture.empty()) shipout();
+  if(interact() || (!shipped && !currentpicture.empty())) shipout();
 }
 atexit(exitfunction);
 

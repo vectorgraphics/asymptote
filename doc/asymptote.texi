@@ -589,6 +589,15 @@ the overall scaling will be determined by the other direction
 @verbatiminclude bigsquare.asy
 @image{bigsquare}
 
+@cindex user coodrinates
+@cindex @code{unitsize}
+To make the user coordinates represent multiples of exactly
+@code{1cm}, fit the picture like this:
+@verbatim 
+draw(unitsquare);
+shipout(unitsize=1cm);
+@end verbatim 
+
 Adding labels is easy in @code{Asymptote}; one specifies the
 label as a double-quoted @code{LaTeX} string, a
 coordinate, and an optional alignment direction:
@@ -1811,10 +1820,10 @@ by calling the function @code{shipout}:
 @cindex @code{shipout}
 @verbatim
 void shipout(string prefix=defaultfilename, picture pic,
-             frame preamble=patterns,
+             real unitsize=0, frame preamble=patterns,
              orientation orientation=Portrait,
              string format="", bool wait=NoWait, bool quiet=false);
-void shipout(string prefix=defaultfilename,
+void shipout(string prefix=defaultfilename, real unitsize=0, 
              orientation orientation=Portrait,
              string format="", bool wait=NoWait, bool quiet=false);
 @end verbatim

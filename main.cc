@@ -222,7 +222,7 @@ void doICore(icore &i, bool embedded=false) {
       // Now that everything is set up, run the core.
       i.run(e,s);
       
-      run::exitFunction(&s);
+      if(!interactive) run::exitFunction(&s);
 
       estack.pop_back();
       sstack.pop_back();
