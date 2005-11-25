@@ -303,7 +303,7 @@ environment variable @code{ASYMPTOTE_PSVIEWER}. For @acronym{PDF}
 format output, the @code{ASYMPTOTE_GS} environment variable specifies the  
 location of the @code{PostScript}-to-@acronym{PDF} processor @code{gs} and
 @code{ASYMPTOTE_PDFVIEWER} specifies the location of the @acronym{PDF} viewer.
-The graphical user interface may also required setting the variable
+The graphical user interface may also require setting the variable
 @code{ASYMPTOTE_PYTHON} if @code{python} is installed in a nonstandard
 location. Here are the default values of these environment variables:
 @verbatim
@@ -330,6 +330,9 @@ To set environment variables under @code{Microsoft Windows XP}:
 @item Click the @code{Environment Variables} button.
 @end enumerate
 
+The environment variable @code{ASYMPTOTE_DIR} can be used to adjust the
+search path (@pxref{Search paths}).
+
 The following environment variables normally do not require adjustment:
 @verbatim
 ASYMPTOTE_LATEX
@@ -353,28 +356,40 @@ one must manually redisplay by pressing the @code{r} key).
 The patches supplied in the @code{patches} directory fix known bugs
 in the @code{UNIX} @code{PostScript} viewer @code{gv-3.5.8} and
 @code{gv-3.6.1} (most notably the backwards-incompatible command line
-options of @code{gv-3.6.1}). Another bug in  @code{gv-3.6.1} requires
+options of @code{gv-3.6.1}). Another bug in @code{gv-3.6.1} requires
 it to be explicitly configured with  @code{./configure
 --enable-signal-handle} for it to work properly with
-@code{Asymptote}'s interactive mode.
+@code{Asymptote}'s interactive mode (these patches will be in the
+next release of @code{gv}). 
+
+After downloading @code{gv-3.6.1} from @code{http://ftp.gnu.org/gnu/gv/}
+and denoting the location of the @code{Asymptote} source directory by
+@code{ASYMPTOTE_SOURCE}, here are the steps to install a properly
+working @code{gv} (as the @code{UNIX} root user): 
+@verbatim
+tar -zxf gv-3.6.1.tar.gz
+cd gv-3.6.1
+cat ASYMPTOTE_SOURCE/patches/gv-3.6.1-*.patch | patch -p1
+./configure --enable-signal-handle
+make install
+@end verbatim
 
 @node Search paths
 @section Search paths
 @cindex search paths
-o
+
 In looking for @code{Asymptote} system
 files, @code{asy} will search the following paths, in the order listed:
 @enumerate
 @item
-current directory
+The current directory;
 @item
 @cindex @code{ASYMPTOTE_DIR}
-@code{$ASYMPTOTE_DIR}
-
-A list of one or more directories (separated by @code{:} under UNIX and
-@code{;} under @code{MSDOS}).
+A list of one or more directories specified by the environment
+variable @code{ASYMPTOTE_DIR} (separated by @code{:} under UNIX and
+@code{;} under @code{MSDOS});
 @item
-system-wide directory (default: @code{@value{Datadir}/asymptote} under
+The system directory (default: @code{@value{Datadir}/asymptote} under
 @code{UNIX} and @code{c:\Program Files\Asymptote} under @code{MSDOS}).
 @end enumerate
 
