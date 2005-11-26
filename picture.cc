@@ -318,7 +318,7 @@ bool picture::shipout(const picture& preamble, const string& Prefix,
   tgifformat=outputformat == "tgif";
   string outname=tgifformat ? "."+buildname(prefix,"gif") :
     (standardout ? "-" : buildname(prefix,outputformat,"",false));
-  string epsname=epsformat ? (standardout ? "-" : outname) :
+  string epsname=epsformat ? (standardout ? "" : outname) :
     auxname(prefix,"eps");
   
   bounds();

@@ -5224,9 +5224,15 @@ standard input.
 If multiple files are specified, they are treated as separate
 @code{Asymptote} runs.
 
-An alternative output format may be produced by using the @code{-f format}
-option. This supports any format supported by the @code{ImageMagick}
-@code{convert} program (version 6.2.4 or later recommended).
+An alternative output format (without antialiasing) may be produced by
+using the @code{-f format} option. This supports any format supported
+by the @code{ImageMagick} @code{convert} program (version 6.2.4 or
+later recommended). To give specific options to the @code{convert}
+program, call convert manually. This example enables antialiasing and 
+produces a @code{tiff} format at double the usual size:
+@verbatim
+asy -o - venn | convert -density 288x288 -geometry 100%x eps:- venn.tiff
+@end verbatim
 
 If the option @code{-unsafe} is given, @code{Asymptote} runs
 in unsafe mode. This enables the @code{int system(string)} call, allowing one
