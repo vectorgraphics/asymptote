@@ -1806,7 +1806,6 @@ triple normal(path3 p, triple f(path3, int), triple normal=O)
 triple normal(path3 p) {
   triple normal=normal(p,precontrol);
   normal=normal(p,postcontrol,-normal);
-  if(normal == O) abort("path is straight");
   return normal;
 }
 
@@ -1835,6 +1834,7 @@ struct face {
   static face face(path3 p) {
     face f=new face;
     f.normal=normal(p);
+    if(f.normal == O) abort("path is linear");
     f.point=point(p,0);
     return f;
   }
@@ -1933,9 +1933,7 @@ splitface split(face a, face cut, projection P)
   real t=intersect(apoint,camera,cut.normal,cut.point);
   bool rightfront=left ^ (t <= 0 || t >= 1);
   
-  face back,front;
-  back=a;
-  front=a.copy();
+  face back=a, front=a.copy();
   pair max=max(a.fit);
   pair min=min(a.fit);
   half h=half.split(dir,point,max,(min.x,max.y),min,(max.x,min.y),max);
@@ -2010,7 +2008,7 @@ void add(picture pic=currentpicture, face[] faces,
     
    bsp bsp;
    bsp=bsp.split(Faces,P);
-   bsp.add(f);
+   if(bsp != null) bsp.add(f);
   });
     
   for(int i=0; i < n; ++i) {
