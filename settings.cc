@@ -61,6 +61,8 @@ const string defaultPython="";
 const string docdir=ASYMPTOTE_DOCDIR;
 #endif  
   
+string newline="\n";  
+  
 string PSViewer;
 string PDFViewer;
 string Ghostscript;
@@ -408,6 +410,10 @@ void setOptions(int argc, char *argv[])
   Animate=animate != "" ? animate : "animate";
   Python=python != "" ? python : defaultPython;
   Xasy=xasy != "" ? xasy : "xasy";
+  
+#ifdef MSDOS
+  if(!Getenv(CYGWIN)) newline="\r\n";
+#endif
   
   char *papertype=getenv("ASYMPTOTE_PAPERTYPE");
   paperType=papertype ? papertype : "letter";

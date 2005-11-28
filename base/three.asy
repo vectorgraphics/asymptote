@@ -1874,7 +1874,7 @@ struct half {
   
 // Sort the points in the pair array z according to whether they lie on the
 // left or right side of the line L in the direction dir passing through P.
-// Points exactly on the L are considered to be on the right side.
+// Points exactly on L are considered to be on the right side.
 // Also push any points of intersection of L with the path operator --(... z)
 // onto each of the arrays left and right. 
   static half split(pair dir, pair P ... pair[] z) {
@@ -1987,8 +1987,6 @@ struct bsp
   }
 }
 
-bsp operator init() {return new bsp;}
-  
 void add(picture pic=currentpicture, face[] faces,
 	 projection P=currentprojection)
 {
@@ -2006,8 +2004,7 @@ void add(picture pic=currentpicture, face[] faces,
      F.fit=F.pic.fit(t,T*F.pic.T,m,M);
    }
     
-   bsp bsp;
-   bsp=bsp.split(Faces,P);
+   bsp bsp=bsp.split(Faces,P);
    if(bsp != null) bsp.add(f);
   });
     

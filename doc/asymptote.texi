@@ -111,6 +111,7 @@ Import
 * graph::                       2D linear & logarithmic graphs
 * three::                       Three-dimensional vector graphics
 * graph3::                      3D linear & logarithmic graphs
+* light::                       3D lighting effects
 * featpost3D::                  Preliminary port of @code{featpost3d}
 * math::                        Extend @code{Asymptote}'s math capabilities
 * geometry::                    Geometry routines
@@ -3455,6 +3456,7 @@ include graph;
 * graph::                       2D linear & logarithmic graphs
 * three::                       Three-dimensional vector graphics
 * graph3::                      3D linear & logarithmic graphs
+* light::                       3D lighting effects
 * featpost3D::                  Preliminary port of @code{featpost3d}
 * math::                        Extend @code{Asymptote}'s math capabilities
 * geometry::                    Geometry routines
@@ -4445,6 +4447,13 @@ Here is an example of a Gaussian surface:
 @verbatiminclude surface.asy
 @image{surface}
 
+@node light
+@subsection @code{light}
+@cindex @code{light}
+This module provides a simple implementation of three-dimensional
+lighting effects. An illustration is provided in the example file
+@code{sphere.asy}.
+
 @node featpost3D
 @subsection @code{featpost3D}
 @cindex @code{featpost3D}
@@ -4985,8 +4994,8 @@ void gouraudshade(picture pic=currentpicture, path g,
 @end verbatim
 @noindent
 The pens in @code{p} must belong to the same color space.
-An illustration of Gouraud shading is provided in the example file
-@code{Gouraud.asy}.
+Illustrations of Gouraud shading are provided in the example files
+@code{Gouraud.asy} and @code{sphere.asy}.
 
 @cindex unfill
 The following routine uses @code{evenodd} clipping together with the
@@ -5224,6 +5233,11 @@ standard input.
 If multiple files are specified, they are treated as separate
 @code{Asymptote} runs.
 
+@cindex @code{convert}
+@cindex @code{format}
+@cindex @code{ImageMagick}
+@cindex @code{antialiasing}
+@cindex @code{size}
 An alternative output format (without antialiasing) may be produced by
 using the @code{-f format} option. This supports any format supported
 by the @code{ImageMagick} @code{convert} program (version 6.2.4 or

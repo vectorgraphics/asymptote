@@ -21,12 +21,6 @@ using namespace settings;
 
 namespace camp {
 
-#ifdef MSDOS
-#define newline "\r\n"
-#else
-#define newline "\n"
-#endif
-  
 string texready=string("(Please type a command or say `\\end')")+newline+
   string("*");
 iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
