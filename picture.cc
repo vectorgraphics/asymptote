@@ -205,7 +205,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     
     ifstream fin(psname.c_str());
     ofstream *Fout=NULL;
-    ostream *fout=(outname == "-") ? &cout :
+    ostream *fout=(outname == "") ? &cout :
       Fout=new ofstream(outname.c_str());
     
     string s;
