@@ -123,20 +123,11 @@ typedef vm::interactiveStack istack;
 using absyntax::runnable;
 using absyntax::block;
 
-mem::vector<coenv*> estack;
-mem::vector<vm::interactiveStack*> sstack;
-
 // Abstract base class for the core object being run in line-at-a-time mode, it
 // may be a runnable, block, file, or interactive prompt.
 struct icore {
   virtual ~icore() {}
-  
   virtual void run(coenv &e, istack &s) = 0;
-  
-  void embedded() {
-    assert(estack.size() && sstack.size());
-    run(*(estack.back()),*(sstack.back()));
-  };
 };
 
 struct irunnable : public icore {
@@ -198,9 +189,12 @@ void doICore(icore &i, bool embedded=false) {
   if(em->errors()) return;
   
   try {
-    if(embedded)
-      i.embedded();
-    else {
+    static mem::vector<coenv*> estack;
+    static mem::vector<vm::interactiveStack*> sstack;
+    if(embedded) {
+      assert(estack.size() && sstack.size());
+      i.run(*(estack.back()),*(sstack.back()));
+    } else {
       purge();
       
       genv ge;
