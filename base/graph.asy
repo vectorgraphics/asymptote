@@ -318,7 +318,7 @@ pair labeltick(frame d, transform T, guide g, ticklocate locate, real val,
   string s=ticklabel(val);
   if(s != "") {
     s=baseline(s,align,"$10^4$");
-    label(d,rotate(F.angle)*s,Z,align,F.p);
+    label(d,rotate(F.angle)*s,Z,align,F.p,F.filltype);
   }
   return locate1.pathdir;
 }  
