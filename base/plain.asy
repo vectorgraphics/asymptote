@@ -502,6 +502,8 @@ guide box(pair a, pair b)
 
 guide unitsquare=box((0,0),(1,1));
 
+pen squarepen=makepen(shift(-0.5,-0.5)*unitsquare);
+
 guide square(pair z1, pair z2)
 {
   pair v=z2-z1;
@@ -522,6 +524,26 @@ guide circle(pair c, real r)
 guide ellipse(pair c, real a, real b)
 {
   return shift(c)*xscale(a)*yscale(b)*unitcircle;
+}
+
+void draw(frame f, path g, pen p)
+{
+  if(size(nib(p)) == 0) _draw(f,g,p);
+  else {
+    path n=nib(p);
+    if(size(g) == 1) fill(f,shift(point(g,0))*n,p);
+    int N=length(n);
+    int M=length(g);
+    for(int j=0; j < M; ++j) {
+      pair g0=point(g,j);
+      pair g0p=postcontrol(g,j);
+      pair g1m=precontrol(g,j+1);
+      pair g1=point(g,j+1);
+      for(int i=0; i < N; ++i)
+	fill(f,g0+point(n,i)--shift(point(n,i+1))*subpath(g,j,j+1)--
+	     g1+point(n,i)--shift(point(n,i))*subpath(g,j+1,j)--cycle,p);
+    }
+  }
 }
 
 void draw(frame f, path g)

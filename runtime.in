@@ -88,12 +88,22 @@ bool labels(picture *pic)
 
 pen *basealign(int n)
 {
-  return new pen(n >= 0 && n < nBaseLine 
-                   ? (BaseLine) n
-                   : DEFBASE);
+  return new pen(n >= 0 && n < nBaseLine ? (BaseLine) n : DEFBASE);
 }
 
-void draw(picture *pic, path p, pen *n)
+path nib(pen *p)
+{
+  static path nullpath;
+  path* g=p->Path();
+  return g ? *g : nullpath;
+}
+
+pen *makepen(path p)
+{
+  return p.size() == 0 ? new pen() : new pen(new path(p));
+}
+
+void _draw(picture *pic, path p, pen *n)
 {
   pic->append(new drawPath(p,*n));
 }

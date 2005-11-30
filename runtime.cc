@@ -2159,7 +2159,6 @@ void cleanup()
 }
 
 extern callable *atExitFunction;
-extern callable *atDrawFunction; // Screen update (interactive mode)
 
 void exitFunction(stack *s)
 {
