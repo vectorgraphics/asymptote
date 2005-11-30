@@ -170,7 +170,7 @@ struct iprompt : public icore {
         file *ast = parser::parseInteractive();
         assert(ast);
         itree(ast).run(e,s);
-	if(!uptodate)
+	if(!uptodate && virtualEOF)
 	  run::updateFunction(&s);
       } catch (interrupted&) {
         if(em) em->Interrupt(false);
@@ -178,6 +178,7 @@ struct iprompt : public icore {
       } catch (handled_error) {
         status=false;
       }
+      purge(); // Close any files that have gone out of scope.
     }
     run::cleanup();
   }
@@ -223,7 +224,6 @@ void doICore(icore &i, bool embedded=false) {
       
       if(settings::listvariables)
 	base_env.list();
-    
     }
   } catch (std::bad_alloc&) {
     cerr << "error: out of memory" << endl;
