@@ -532,11 +532,12 @@ void draw(frame f, path g, pen p)
   else {
     path n=nib(p);
     if(size(g) == 1) fill(f,shift(point(g,0))*n,p);
+    int M=length(g);
     int N=length(n);
-    int M=cyclic(g) ? length(g)+1 : length(g);
     for(int i=0; i < N; ++i)
-      fill(f,shift(point(n,i))*g--point(g,M)+point(n,i)--
-	   shift(point(n,i+1))*reverse(g)--point(g,0)+point(n,i)--cycle,p);
+      for(int j=0; j < M; ++j)
+	fill(f,shift(point(n,i+1))*subpath(g,j,j+1)--
+	     shift(point(n,i))*subpath(g,j+1,j)--cycle,p);
   }
 }
 
