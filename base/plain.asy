@@ -534,10 +534,13 @@ void draw(frame f, path g, pen p)
     if(size(g) == 1) fill(f,shift(point(g,0))*n,p);
     int M=length(g);
     int N=length(n);
-    for(int i=0; i < N; ++i)
-      for(int j=0; j < M; ++j)
-	fill(f,shift(point(n,i+1))*subpath(g,j,j+1)--
-	     shift(point(n,i))*subpath(g,j+1,j)--cycle,p);
+    fill(f,shift(point(g,0))*n,p);
+    for(int j=0; j < M; ++j) {
+      path gp=subpath(g,j,j+1);
+      path gm=reverse(gp);
+      for(int i=0; i < N; ++i)
+	fill(f,shift(point(n,i+1))*gp--shift(point(n,i))*gm--cycle,p);
+    }
   }
 }
 
