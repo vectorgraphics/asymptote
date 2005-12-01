@@ -540,8 +540,8 @@ double path::directiontime(pair dir) const {
     if (t >= 0) return i+t;
     i++;
     if (cycles || i != n-1) {
-      pre = angle((point(i)-precontrol(i))*rot);
-      post = angle((postcontrol(i)-point(i))*rot);
+      pre = angle0((point(i)-precontrol(i))*rot);
+      post = angle0((postcontrol(i)-point(i))*rot);
       if ((pre <= 0 && post >= 0 && pre >= post - PI) ||
           (pre >= 0 && post <= 0 && pre <= post + PI))
         return i;
@@ -621,34 +621,37 @@ pair intersectiontime(path p1, path p2, double fuzz=0.0)
 ostream& operator<< (ostream& out, const path p)
 {
   size_t oldPrec = out.precision(6);
- 
+  
   int n = p.n;
   switch(n) {
   case 0:
     out << "<nullpath>";
-    return out;
+    break;
+    
   case 1:
     out << p.point(0);
-    return out;
+    break;
+
+  default:
+    out << p.point(0) << ".. controls " << p.postcontrol(0) << " and ";
+
+    for (int i = 1; i < n-1; i++) {
+      out << p.precontrol(i) << newl;
+
+      out << " .." << p.point(i);
+
+      out << ".. controls " << p.postcontrol(i) << " and ";
+    }
+    
+    out << p.precontrol(n-1) << newl
+	<< " .." << p.point(n-1);
+
+    if (p.cycles) 
+      out << ".. controls " << p.postcontrol(n-1) << " and "
+	  << p.precontrol(0) << newl
+	  << " ..cycle";
+    break;
   }
-
-  out << p.point(0) << ".. controls " << p.postcontrol(0) << " and ";
-
-  for (int i = 1; i < n-1; i++)
-  {
-    out << p.precontrol(i) << newl;
-
-    out << " .." << p.point(i);
-
-    out << ".. controls " << p.postcontrol(i) << " and ";
-  }
-  out << p.precontrol(n-1) << newl
-      << " .." << p.point(n-1);
-
-  if (p.cycles) 
-    out << ".. controls " << p.postcontrol(n-1) << " and "
-        << p.precontrol(0) << newl
-	<< " ..cycle";
 
   out.precision(oldPrec);
 

@@ -142,9 +142,19 @@ public:
     return camp::angle(x,y);
   }
   
+  double angle0() const
+  {
+    return atan2(y,x);
+  }
+  
   friend double angle(const pair& z)
   {
     return z.angle();
+  }
+  
+  friend double angle0(const pair& z)
+  {
+    return z.angle0();
   }
   
   friend pair unit(const pair& z)

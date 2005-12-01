@@ -1,7 +1,7 @@
 size(400);
 
 pen convex=makepen(scale(10)*polygon(8));
-draw((0.2,0),convex);
+draw((0.4,0.16),convex);
 draw((0,0)---(1,1)..(2,0)--cycle,convex);
 
 pen nonconvex=scale(10)*

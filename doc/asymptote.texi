@@ -1261,8 +1261,7 @@ cumulative arclength (measured from the beginning of the path) equals @code{L}.
 @item real dirtime(path, pair z);
 This returns the first "time", a real number between 0 and the length of
 the path in the sense of @code{point(path, real)}, at which the tangent
-to the path has direction @code{z}, or -1 if the path never achieves
-direction @code{z}.
+to the path has the direction of pair @code{z}, or -1 if this never happens.
 
 @cindex @code{reverse}
 @item path reverse(path p);

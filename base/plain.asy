@@ -526,21 +526,47 @@ guide ellipse(pair c, real a, real b)
   return shift(c)*xscale(a)*yscale(b)*unitcircle;
 }
 
+// Draw path g on frame f with user-constructed pen p.
+void makedraw(frame f, path g, pen p)
+{
+  path n=nib(p);
+  if(size(g) == 1) fill(f,shift(point(g,0))*n,p);
+  static real epsilon=1000*realEpsilon();
+  real stop=length(g)-epsilon;
+  int N=length(n);
+  pair n0=point(n,0);
+  for(int i=0; i < N; ++i) {
+    pair n1=point(n,i+1);
+    pair dir=n1-n0;
+    real tm=dirtime(g,-dir);
+    real tp=dirtime(g,dir);
+    if(tm > epsilon && tm < stop) {
+      makedraw(f,subpath(g,0,tm),p);
+      makedraw(f,subpath(g,tm,length(g)),p);
+      return;
+    }	
+    if(tp > epsilon && tp < stop) {
+      makedraw(f,subpath(g,0,tp),p);
+      makedraw(f,subpath(g,tp,length(g)),p);
+      return;
+    }
+    n0=n1;
+  }
+  pair n0=point(n,0);
+  for(int i=0; i < N; ++i) {
+    pair n1=point(n,i+1);
+    fill(f,shift(n0)*g--shift(n1)*reverse(g)--cycle,p);
+    n0=n1;
+  }
+}
+
 void draw(frame f, path g, pen p)
 {
   if(size(nib(p)) == 0) _draw(f,g,p);
   else {
-    path n=nib(p);
-    if(size(g) == 1) fill(f,shift(point(g,0))*n,p);
-    int M=length(g);
-    int N=length(n);
-    fill(f,shift(point(g,0))*n,p);
-    for(int j=0; j < M; ++j) {
-      path gp=subpath(g,j,j+1);
-      path gm=reverse(gp);
-      for(int i=0; i < N; ++i)
-	fill(f,shift(point(n,i+1))*gp--shift(point(n,i))*gm--cycle,p);
-    }
+    begingroup(f);
+    makedraw(f,g,p);
+    endgroup(f);
   }
 }
 
