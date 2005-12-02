@@ -2189,12 +2189,17 @@ void arrowheadbbox(picture pic=currentpicture, path g,
 void arrow(frame f, path G, pen p=currentpen, real size=0,
 	   real angle=arrowangle, filltype filltype=Fill,
 	   position position=EndPoint, bool forwards=true,
-	   margin margin=NoMargin)
+	   margin margin=NoMargin, bool center=false)
 {
   if(size == 0) size=arrowsize(p);
   bool relative=position.relative;
   real position=position.position.x;
-  if(relative) position=reltime(G,position);
+  if(relative) {
+    position *= arclength(G);
+    if(center) position += 0.5*size;
+    position=arctime(G,position);
+  } else if(center) 
+    position=arctime(G,arclength(subpath(G,0,position))+0.5*size);
   G=margin(G,p).g;
   if(!forwards) {
     G=reverse(G);
@@ -2227,31 +2232,15 @@ void arrow2(frame f, path G, pen p=currentpen, real size=0,
 picture arrow(path g, pen p=currentpen, real size=0,
 	      real angle=arrowangle, filltype filltype=Fill,
 	      position position=EndPoint, bool forwards=true,
-	      margin margin=NoMargin)
+	      margin margin=NoMargin, bool center=false)
 {
   picture pic;
   pic.add(new void (frame f, transform t) {
-    arrow(f,t*g,p,size,angle,filltype,position,forwards,margin);
+    arrow(f,t*g,p,size,angle,filltype,position,forwards,margin,center);
   });
   
   pic.addPath(g,p);
   arrowheadbbox(pic,forwards ? g : reverse(g),position,p,size,angle);
-  return pic;
-}
-
-picture midarrow(path g, pen p=currentpen, real size=0,
-		 real angle=arrowangle, filltype filltype=Fill,
-		 bool forwards=true, margin margin=NoMargin)
-{
-  picture pic;
-  pic.add(new void (frame f, transform t) {
-	    path G=t*g;
-	    arrow(f,G,p,size,angle,filltype,arctime(G,0.5(arclength(G)+size)),
-		  forwards,margin);
-  });
-  
-  pic.addPath(g,p);
-  arrowheadbbox(pic,forwards ? g : reverse(g),MidPoint,p,size,angle);
   return pic;
 }
 
@@ -2845,7 +2834,7 @@ arrowbar MidArrow(real size=0, real angle=arrowangle, filltype filltype=Fill)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     real size=size == 0 ? arrowsize(p) : size;
-    add(pic,midarrow(g,p,size,angle,filltype,margin));
+    add(pic,arrow(g,p,size,angle,filltype,MidPoint,margin,true));
     return false;
   };
 }
@@ -2887,7 +2876,7 @@ arrowbar MidArcArrow(real size=0, real angle=arcarrowangle,
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     real size=size == 0 ? arcarrowsize(p) : size;
-    add(pic,midarrow(g,p,size,angle,filltype,margin));
+    add(pic,arrow(g,p,size,angle,filltype,MidPoint,margin,true));
     return false;
   };
 }
