@@ -2239,6 +2239,22 @@ picture arrow(path g, pen p=currentpen, real size=0,
   return pic;
 }
 
+picture midarrow(path g, pen p=currentpen, real size=0,
+		 real angle=arrowangle, filltype filltype=Fill,
+		 bool forwards=true, margin margin=NoMargin)
+{
+  picture pic;
+  pic.add(new void (frame f, transform t) {
+	    path G=t*g;
+	    arrow(f,G,p,size,angle,filltype,arctime(G,0.5(arclength(G)+size)),
+		  forwards,margin);
+  });
+  
+  pic.addPath(g,p);
+  arrowheadbbox(pic,forwards ? g : reverse(g),MidPoint,p,size,angle);
+  return pic;
+}
+
 picture arrow2(path g, pen p=currentpen, real size=0,
 	       real angle=arrowangle, filltype filltype=Fill,
 	       margin margin=NoMargin)
@@ -2829,8 +2845,7 @@ arrowbar MidArrow(real size=0, real angle=arrowangle, filltype filltype=Fill)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     real size=size == 0 ? arrowsize(p) : size;
-    add(pic,arrow(g,p,size,angle,filltype,
-		  arctime(g,(arclength(g)+size)/2),margin));
+    add(pic,midarrow(g,p,size,angle,filltype,margin));
     return false;
   };
 }
@@ -2872,8 +2887,7 @@ arrowbar MidArcArrow(real size=0, real angle=arcarrowangle,
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     real size=size == 0 ? arcarrowsize(p) : size;
-    add(pic,arrow(g,p,size,angle,filltype,
-		  arctime(g,(arclength(g)+size)/2),margin));
+    add(pic,midarrow(g,p,size,angle,filltype,margin));
     return false;
   };
 }
