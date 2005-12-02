@@ -108,11 +108,6 @@ Import
 
 * plain::                       Default @code{Asymptote} base file
 * simplex::                     Linear programming: simplex method
-* graph::                       2D linear & logarithmic graphs
-* three::                       Three-dimensional vector graphics
-* graph3::                      3D linear & logarithmic graphs
-* light::                       3D lighting effects
-* featpost3D::                  Preliminary port of @code{featpost3d}
 * math::                        Extend @code{Asymptote}'s math capabilities
 * geometry::                    Geometry routines
 * stats::                       Statistics routines and histograms
@@ -121,10 +116,16 @@ Import
 * tree::                        Dynamic binary search tree
 * drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
+* roundedpath::                 Round the sharp corners of paths
 * MetaPost::                    @code{MetaPost} compatibility routines
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Implement @code{LaTeX} @code{babel} package
+* graph::                       2D linear & logarithmic graphs
+* three::                       Three-dimensional vector graphics
+* graph3::                      3D linear & logarithmic graphs
+* light::                       3D lighting effects
+* featpost3D::                  Preliminary port of @code{featpost3d}
 
 Drawing commands
 
@@ -3452,11 +3453,6 @@ include graph;
 @menu
 * plain::                       Default @code{Asymptote} base file
 * simplex::                     Linear programming: simplex method
-* graph::                       2D linear & logarithmic graphs
-* three::                       Three-dimensional vector graphics
-* graph3::                      3D linear & logarithmic graphs
-* light::                       3D lighting effects
-* featpost3D::                  Preliminary port of @code{featpost3d}
 * math::                        Extend @code{Asymptote}'s math capabilities
 * geometry::                    Geometry routines
 * stats::                       Statistics routines and histograms
@@ -3465,10 +3461,16 @@ include graph;
 * tree::                        Dynamic binary search tree
 * drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
+* roundedpath::                 Round the sharp corners of paths
 * MetaPost::                    @code{MetaPost} compatibility routines
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Implement @code{LaTeX} @code{babel} package
+* graph::                       2D linear & logarithmic graphs
+* three::                       Three-dimensional vector graphics
+* graph3::                      3D linear & logarithmic graphs
+* light::                       3D lighting effects
+* featpost3D::                  Preliminary port of @code{featpost3d}
 @end menu
 
 @node plain
@@ -3492,6 +3494,188 @@ option to disable this feature.
 
 This package solves the two-variable linear programming problem using the
 simplex method. It is used by @code{plain} for automatic sizing of pictures.
+
+@node math
+@subsection @code{math}
+@cindex @code{math}
+This package extends @code{Asymptote}'s mathematical capabilities with
+radian/degree conversion routines, point-in-polygon and intersection
+algorithms, matrix arithmetic and inversion, and a linear
+equation solver (via Gauss-Jordan elimination).
+
+@cindex @code{implicit linear solver}
+@cindex @code{MetaPost whatever}
+@cindex @code{extension}
+Unlike @code{MetaPost}, @code{Asymptote} does not implicitly solve
+linear equations and therefore does not have the notion of a
+@code{whatever} unknown. The following routine provides a useful
+replacement for a common use of @code{whatever}: finding the
+intersection point of the lines through @code{P}, @code{Q}
+and @code{p}, @code{q}, respectively:
+
+@table @code
+
+@item pair extension(pair P, pair Q, pair p, pair q);
+Return the intersection point of the extensions of the line segments 
+@code{PQ} and @code{pq}.
+
+@end table
+
+Here are some additional routines provided in the @code{math} package:
+
+@table @code
+
+@cindex @code{drawline}
+@item void drawline(picture pic=currentpicture, pair P, pair Q, pen p=currentpen);
+draw the visible portion of the (infinite) line going through
+@code{P} and @code{Q}, without altering the size of picture @code{pic},
+using pen @code{p}.
+
+@cindex @code{intersect}
+@item real intersect(triple P, triple Q, triple n, triple Z);
+Return the intersection time of the extension of the line segment @code{PQ}
+with the plane perpendicular to @code{n} and passing through @code{Z}.
+
+@cindex @code{intersection}
+@item triple intersectionpoint(triple n0, triple P0, triple n1, triple P1);
+Return any point on the intersection of the two planes with normals
+@code{n0} and @code{n1} passing through points @code{P0} and @code{P1},
+respectively. If the planes are parallel, return
+@code{(infinity,infinity,infinity)}.
+
+@cindex @code{solve}
+@item real[] solve(real[][] a, real[] b)
+Solve the linear equation @math{@code{a}x=@code{b}} 
+by Gauss-Jordan elimination, returning
+the solution @math{x}, where @code{a} is an @math{n \times n} matrix and
+@code{b} is an array of length @math{n}. 
+For example:
+@verbatim
+import math;
+real[][] a={{1,-2,3,0},{4,-5,6,2},{-7,-8,10,5},{1,50,1,-2}};
+real[] b={7,19,33,3};
+real[] x=solve(a,b);
+write(a); write();
+write(b); write();
+write(x); write();
+write(a*x);
+@end verbatim
+If the matrix @code{a} is tridiagonal, the routine @code{tridiagonal} provides
+a more efficient algorithm (@pxref{tridiagonal}). 
+
+@cindex @code{solve}
+@item real[][] solve(real[][] a, real[][] b, bool overwrite=false)
+Solve the linear equation @math{@code{a}x=@code{b}} returning the
+solution @math{x}, where @code{a} is an @math{n \times n} matrix and
+@code{b} is an @math{n \times m} matrix. If overwrite=true, @math{b} is
+replaced by @code{x}.
+
+@cindex @code{straight}
+@item bool straight(path p)
+returns @code{true} iff the path @code{p} is straight.
+
+@end table
+
+@node geometry
+@subsection @code{geometry}
+@cindex @code{geometry}
+@cindex @code{triangle}
+@cindex @code{perpendicular}
+This module provides the beginnings of a geometry package.
+It currently includes a triangle structure and functions to draw
+interior arcs of triangles and perpendicular symbols.
+
+@node stats
+@subsection @code{stats}
+@cindex @code{stats}
+@cindex @code{leastsquares}
+This package implements a Gaussian random number generator
+and a collection of statistics routines, including @code{histogram}
+and @code{leastsquares}.
+
+@node patterns
+@subsection @code{patterns}
+@cindex @code{patterns}
+This package implements @code{Postscript} tiling patterns and includes
+several convenient pattern generation routines.
+
+@node palette
+@subsection @code{palette}
+@cindex @code{palette}
+This package implements color density images and palette bars,
+along with several predefined palettes (@pxref{images}).
+
+@node tree
+@subsection @code{tree}
+@cindex @code{tree}
+This package implements an example of a dynamic binary search tree.
+
+@node drawtree
+@subsection @code{drawtree}
+@cindex @code{drawtree}
+This is a simple tree drawing module used by the example @code{treetest.asy}.
+
+@node feynman
+@subsection @code{feynman}
+@cindex @code{feynman}
+This package, contributed by Martin Wiebusch, is useful for drawing
+Feynman diagrams, as illustrated by the examples @code{eetomumu.asy}
+and @code{fermi.asy}.
+
+@node roundedpath
+@subsection @code{roundedpath}
+@cindex @code{roundedpath}
+This package, contributed by Stefan Knorr, is useful for rounding the
+sharp corners of paths, as illustrated in the example file @code{roundpath.asy}.
+
+@node MetaPost
+@subsection @code{MetaPost}
+@cindex @code{MetaPost}
+This package provides some useful routines to help @code{MetaPost} users
+migrate old @code{MetaPost} code to @code{Asymptote}.
+
+@node unicode
+@subsection @code{unicode}
+@cindex @code{unicode}
+Import this package at the beginning of the file to instruct
+@code{LaTeX} to accept @code{unicode} (UTF-8) standardized international
+characters. You will also need to set up @code{LaTeX} support for
+@code{unicode} by unpacking in your @code{LaTeX} source directory
+(e.g. @code{/usr/share/texmf/tex/latex}) the file
+@quotation
+@url{http://www.unruh.de/DniQ/latex/unicode/unicode.tgz}
+@end quotation
+
+and then running the command 
+@verbatim
+texhash
+@end verbatim
+
+@cindex Cyrillic
+To use cyrillic fonts, you will need to change the font encoding:
+@verbatim
+import unicode;
+texpreamble("\usepackage{mathtext} \usepackage[russian]{babel}");
+defaultpen(font("T2A","cmr"));
+@end verbatim
+
+@node latin1
+@subsection @code{latin1}
+@cindex @code{latin1}
+If you don't have @code{LaTeX} support for @code{unicode} installed,
+you can enable support for Western European languages (ISO 8859-1) by
+importing the module @code{latin1}. This module can be used as a
+template for providing support for other ISO 8859 alphabets.
+
+@node babel
+@subsection @code{babel}
+@cindex @code{babel}
+This module implements the @code{LaTeX} @code{babel} package in
+@code{Asymptote}. For example:
+@verbatim
+import babel;
+babel("german");
+@end verbatim
 
 @node graph
 @subsection @code{graph}
@@ -4466,182 +4650,6 @@ original package is documented at
 @quotation
 @url{http://matagalatlante.org/nobre/featpost/doc/featpost.html}
 @end quotation
-
-@node math
-@subsection @code{math}
-@cindex @code{math}
-This package extends @code{Asymptote}'s mathematical capabilities with
-radian/degree conversion routines, point-in-polygon and intersection
-algorithms, matrix arithmetic and inversion, and a linear
-equation solver (via Gauss-Jordan elimination).
-
-@cindex @code{implicit linear solver}
-@cindex @code{MetaPost whatever}
-@cindex @code{extension}
-Unlike @code{MetaPost}, @code{Asymptote} does not implicitly solve
-linear equations and therefore does not have the notion of a
-@code{whatever} unknown. The following routine provides a useful
-replacement for a common use of @code{whatever}: finding the
-intersection point of the lines through @code{P}, @code{Q}
-and @code{p}, @code{q}, respectively:
-
-@table @code
-
-@item pair extension(pair P, pair Q, pair p, pair q);
-Return the intersection point of the extensions of the line segments 
-@code{PQ} and @code{pq}.
-
-@end table
-
-Here are some additional routines provided in the @code{math} package:
-
-@table @code
-
-@cindex @code{drawline}
-@item void drawline(picture pic=currentpicture, pair P, pair Q, pen p=currentpen);
-draw the visible portion of the (infinite) line going through
-@code{P} and @code{Q}, without altering the size of picture @code{pic},
-using pen @code{p}.
-
-@cindex @code{intersect}
-@item real intersect(triple P, triple Q, triple n, triple Z);
-Return the intersection time of the extension of the line segment @code{PQ}
-with the plane perpendicular to @code{n} and passing through @code{Z}.
-
-@cindex @code{intersection}
-@item triple intersectionpoint(triple n0, triple P0, triple n1, triple P1);
-Return any point on the intersection of the two planes with normals
-@code{n0} and @code{n1} passing through points @code{P0} and @code{P1},
-respectively. If the planes are parallel, return
-@code{(infinity,infinity,infinity)}.
-
-@cindex @code{solve}
-@item real[] solve(real[][] a, real[] b)
-Solve the linear equation @math{@code{a}x=@code{b}} 
-by Gauss-Jordan elimination, returning
-the solution @math{x}, where @code{a} is an @math{n \times n} matrix and
-@code{b} is an array of length @math{n}. 
-For example:
-@verbatim
-import math;
-real[][] a={{1,-2,3,0},{4,-5,6,2},{-7,-8,10,5},{1,50,1,-2}};
-real[] b={7,19,33,3};
-real[] x=solve(a,b);
-write(a); write();
-write(b); write();
-write(x); write();
-write(a*x);
-@end verbatim
-If the matrix @code{a} is tridiagonal, the routine @code{tridiagonal} provides
-a more efficient algorithm (@pxref{tridiagonal}). 
-
-@cindex @code{solve}
-@item real[][] solve(real[][] a, real[][] b, bool overwrite=false)
-Solve the linear equation @math{@code{a}x=@code{b}} returning the
-solution @math{x}, where @code{a} is an @math{n \times n} matrix and
-@code{b} is an @math{n \times m} matrix. If overwrite=true, @math{b} is
-replaced by @code{x}.
-
-@cindex @code{straight}
-@item bool straight(path p)
-returns @code{true} iff the path @code{p} is straight.
-
-@end table
-
-@node geometry
-@subsection @code{geometry}
-@cindex @code{geometry}
-@cindex @code{triangle}
-@cindex @code{perpendicular}
-This module provides the beginnings of a geometry package.
-It currently includes a triangle structure and functions to draw
-interior arcs of triangles and perpendicular symbols.
-
-@node stats
-@subsection @code{stats}
-@cindex @code{stats}
-@cindex @code{leastsquares}
-This package implements a Gaussian random number generator
-and a collection of statistics routines, including @code{histogram}
-and @code{leastsquares}.
-
-@node patterns
-@subsection @code{patterns}
-@cindex @code{patterns}
-This package implements @code{Postscript} tiling patterns and includes
-several convenient pattern generation routines.
-
-@node palette
-@subsection @code{palette}
-@cindex @code{palette}
-This package implements color density images and palette bars,
-along with several predefined palettes (@pxref{images}).
-
-@node tree
-@subsection @code{tree}
-@cindex @code{tree}
-This package implements an example of a dynamic binary search tree.
-
-@node drawtree
-@subsection @code{drawtree}
-@cindex @code{drawtree}
-This is a simple tree drawing module used by the example @code{treetest.asy}.
-
-@node feynman
-@subsection @code{feynman}
-@cindex @code{feynman}
-This package, contributed by Martin Wiebusch, is useful for drawing
-Feynman diagrams, as illustrated by the examples @code{eetomumu.asy}
-and @code{fermi.asy}.
-
-@node MetaPost
-@subsection @code{MetaPost}
-@cindex @code{MetaPost}
-This package provides some useful routines to help @code{MetaPost} users
-migrate old @code{MetaPost} code to @code{Asymptote}.
-
-@node unicode
-@subsection @code{unicode}
-@cindex @code{unicode}
-Import this package at the beginning of the file to instruct
-@code{LaTeX} to accept @code{unicode} (UTF-8) standardized international
-characters. You will also need to set up @code{LaTeX} support for
-@code{unicode} by unpacking in your @code{LaTeX} source directory
-(e.g. @code{/usr/share/texmf/tex/latex}) the file
-@quotation
-@url{http://www.unruh.de/DniQ/latex/unicode/unicode.tgz}
-@end quotation
-
-and then running the command 
-@verbatim
-texhash
-@end verbatim
-
-@cindex Cyrillic
-To use cyrillic fonts, you will need to change the font encoding:
-@verbatim
-import unicode;
-texpreamble("\usepackage{mathtext} \usepackage[russian]{babel}");
-defaultpen(font("T2A","cmr"));
-@end verbatim
-
-@node latin1
-@subsection @code{latin1}
-@cindex @code{latin1}
-If you don't have @code{LaTeX} support for @code{unicode} installed,
-you can enable support for Western European languages (ISO 8859-1) by
-importing the module @code{latin1}. This module can be used as a
-template for providing support for other ISO 8859 alphabets.
-
-@node babel
-@subsection @code{babel}
-@cindex @code{babel}
-This module implements the @code{LaTeX} @code{babel} package in
-@code{Asymptote}. For example:
-@verbatim
-import babel;
-babel("german");
-@end verbatim
 
 @node Static
 @section Static

@@ -2362,29 +2362,29 @@ real linewidth()
   return linewidth(currentpen);
 }
 
-real interp(int a, int b, real c)
+real interp(int a, int b, real t)
 {
-  return a+c*(b-a);
+  return a+t*(b-a);
 }
 
-real interp(real a, real b, real c)
+real interp(real a, real b, real t)
 {
-  return a+c*(b-a);
+  return a+t*(b-a);
 }
 
-pair interp(pair a, pair b, real c)
+pair interp(pair a, pair b, real t)
 {
-  return a+c*(b-a);
+  return a+t*(b-a);
 }
 
-triple interp(triple a, triple b, real c)
+triple interp(triple a, triple b, real t)
 {
-  return a+c*(b-a);
+  return a+t*(b-a);
 }
 
-pen interp(pen a, pen b, real c) 
+pen interp(pen a, pen b, real t) 
 {
-  return (1-c)*a+c*b;
+  return (1-t)*a+t*b;
 }
 
 // To avoid confusion, a dot product requires explicit pair arguments.
