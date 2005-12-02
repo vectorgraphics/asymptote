@@ -540,11 +540,16 @@ double path::directiontime(pair dir) const {
     if (t >= 0) return i+t;
     i++;
     if (cycles || i != n-1) {
-      pre = angle0((point(i)-precontrol(i))*rot);
-      post = angle0((postcontrol(i)-point(i))*rot);
-      if ((pre <= 0 && post >= 0 && pre >= post - PI) ||
-          (pre >= 0 && post <= 0 && pre <= post + PI))
-        return i;
+      pair Pre = (point(i)-precontrol(i))*rot;
+      pair Post = (postcontrol(i)-point(i))*rot;
+      static pair zero(0.0,0.0);
+      if(Pre != zero && Post != zero) {
+	pre = angle(Pre);
+	post = angle(Post);
+	if ((pre <= 0 && post >= 0 && pre >= post - PI) ||
+	    (pre >= 0 && post <= 0 && pre <= post + PI))
+	  return i;
+      }
     }
   }
   
