@@ -2833,7 +2833,6 @@ arrowbar EndArrow(real size=0, real angle=arrowangle,
 arrowbar MidArrow(real size=0, real angle=arrowangle, filltype filltype=Fill)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
-    real size=size == 0 ? arrowsize(p) : size;
     add(pic,arrow(g,p,size,angle,filltype,MidPoint,margin,true));
     return false;
   };
