@@ -606,7 +606,7 @@ the overall scaling will be determined by the other direction
 @verbatiminclude bigsquare.asy
 @image{bigsquare}
 
-@cindex user coodrinates
+@cindex user coordinates
 @cindex @code{unitsize}
 To make the user coordinates represent multiples of exactly
 @code{1cm}, fit the picture like this:
@@ -1593,6 +1593,7 @@ at the beginning of the file.
 @cindex @code{font}
 @cindex @code{LaTeX fonts}
 @cindex @code{NFSS}
+@cindex @code{font command}
 @item A pen using a specific @code{LaTeX} @code{NFSS} font is returned
 by calling the function @code{pen font(string encoding, string family,
 string series="m", string shape="n")}. The default setting,
@@ -1605,6 +1606,10 @@ Alternatively, one may select a fixed-size @code{TeX} font (on which
 Roman) or @code{"pcrr"} (Courier) using the function @code{pen font(string
 name)}. An optional size argument can also be given to scale the font
 to the requested size: @code{pen font(string name, real size)}.
+
+@cindex @code{fontcommand}
+A nonstandard font command can be generated with
+@code{pen fontcommand(string)}.
 
 @cindex @code{PostScript fonts}
 A convenient interface to the following standard @code{PostScript}
@@ -1664,6 +1669,18 @@ even incorporate shading (@pxref{gradient shading}), as illustrated
 in this example (not included in the manual because not all printers support
 @code{PostScript} 3):
 @verbatiminclude shadedtiling.asy
+
+@anchor{makepen}
+@cindex @code{makepen}
+@item One can specify a custom pen nib as an arbitrary polygonal path
+with @code{pen makepen(path)}; this path represents the mark to be
+drawn for paths containing a single point. This pen nib path can be
+recovered from a pen with @code{path nib(pen)}; the value
+@code{nullpath} represents  a circular pen nib (the default). Unlike
+in @code{MetaPost}, the path need not be convex: 
+
+@verbatiminclude makepen.asy
+@image{makepen}
 
 @anchor{overwrite}
 @cindex @code{overwrite}
@@ -2826,6 +2843,17 @@ the first kind @code{J(int n, real)} and second kind
 the error function @code{erf}, and the complementary error function
 @code{erfc}. The standard real(real, real) functions @code{atan2},
 @code{hypot}, @code{fmod}, @code{remainder} are also included.
+
+@cindex @code{Sin}
+@cindex @code{Cos}
+@cindex @code{Tan}
+@cindex @code{aSin}
+@cindex @code{aCos}
+@cindex @code{aTan}
+For convenience, the module @code{math.asy} defines variants
+@code{Sin}, @code{Cos}, @code{Tan}, @code{aSin}, @code{aCos}, and
+@code{aTan} of the standard trigonometric functions using degrees
+rather than radians.
 
 @cindex @code{floor}
 @cindex @code{ceil}
@@ -5576,7 +5604,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  yequals Nobre Barbarosie Schwaiger nearearth conicurv Wiebusch
 @c  LocalWords:  unfill PAPERTYPE posterSize ngraph interpolatetype ctrl dt pic
 @c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei nomarker
-@c  LocalWords:  westnile minipage infectiousM ra penb paletteticks drawline
+@c  LocalWords:  westnile minipage infectiousM ra penb paletteticks drawline nV
 @c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis
 @c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx XEquals YEquals
 @c  LocalWords:  treetest eetomumu fermi backend pstoedit drawtree xFF MSDOS
@@ -5605,4 +5633,6 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis Datadir
 @c  LocalWords:  resetdefaultpen latticeshade axialshade radialshade erfc det
 @c  LocalWords:  gouraudshade includegraphics unescaped nmesh nsub surfacepen
-@c  LocalWords:  lightgray meshpen localhistory axisT
+@c  LocalWords:  lightgray meshpen localhistory axisT roundedpath unitsize aSin
+@c  LocalWords:  fontcommand makepen aCos aTan Knorr roundpath BeginPoint nView
+@c  LocalWords:  MidPoint EndPoint nmask antialiasing
