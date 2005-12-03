@@ -5074,7 +5074,15 @@ An alternative label location (an @code{arctime} value between 0 and
 @code{length(g)} @pxref{arctime}) may be specified as real value for
 @code{position} in constructing the Label. The position
 @code{Relative(real)} specifies a location relative to the total
-arclength of the path.
+arclength of the path. These convenient abbreviations are predefined:
+@cindex @code{BeginPoint}
+@cindex @code{MidPoint}
+@cindex @code{EndPoint}
+@verbatim
+position BeginPoint=Relative(0);
+position MidPoint=Relative(0.5);
+position EndPoint=Relative(1);
+@end verbatim
 
 @cindex @code{Relative}
 @cindex @code{LeftSide}
