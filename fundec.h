@@ -18,18 +18,6 @@ class formal : public absyn {
   ty *base;
   decidstart *start;
   bool xplicit;
-  // NOTE: expressions used in default values are translated into vm
-  // code at the call location, not the function definition location.
-  // This should be changed, using codelets or small helper functions.
-  // Tom: Or not. The most common use of default arguments is to pass
-  // a standard value like currentpicture to a function. The current
-  // implementation allows one to do something like
-  // {
-  //   picture currentpicture;
-  //   // Drawing Code
-  // }
-  // and have all the drawing calls draw on the just declared picture
-  // rather than the global currentpicture.
   varinit *defval;
 
 public:
