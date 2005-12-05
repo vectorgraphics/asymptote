@@ -50,7 +50,7 @@ public:
 
   void resetlines() {lines=0;}
   
-  bool Standard() {resetlines(); return standard;}
+  bool Standard() {return standard;}
   
   void dimension(int Nx=-1, int Ny=-1, int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
   

@@ -929,12 +929,10 @@ void pushNullFunction(stack *s)
 
 // Default operations
 
-// This serves as the object for representing a default argument.
-struct default_t {};
 default_t def;
 
-// Put the default value token on the stack (in place of an argument when making
-// a function call).
+// Put the default value token on the stack (in place of an argument when
+// making a function call).
 void pushDefault(stack *s)
 {
   s->push(&def);
@@ -943,14 +941,7 @@ void pushDefault(stack *s)
 // Test if the value on the stack is the default value token.
 void isDefault(stack *s)
 {
-  try {
-    // This assumes that the item is popped before an exception is thrown.
-    s->pop<default_t *>();
-    s->push(true);
-  }
-  catch (bad_item_value&) {
-    s->push(false);
-  }
+  s->push(isdefault(pop(s)));
 }
 
 // Casts
@@ -1358,7 +1349,7 @@ void boolTransformNeq(stack *s)
   s->push((*a) != (*b));
 }
 
-static string emptystring;
+string emptystring;
 void emptyString(stack *s)
 {
   s->push(&emptystring);
@@ -1570,7 +1561,8 @@ void dotsGuide(stack *s)
   array *a=pop<array*>(s);
 
   guidevector v;
-  for (size_t i=0; i < a->size(); ++i)
+  size_t size=a->size();
+  for (size_t i=0; i < size; ++i)
     v.push_back(a->read<guide*>(i));
 
   s->push((guide *) new multiguide(v));
@@ -2385,6 +2377,23 @@ void readChar(stack *s)
   static char str[1];
   str[0]=c;
   s->push<string>(str);
+}
+
+void writestring(stack *s)
+{
+  callable *suffix=pop<callable *>(s,NULL);
+  string S=pop<string>(s);
+  vm::item it=pop(s);
+  bool defaultfile=isdefault(it);
+  camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
+  if(!f->isOpen()) return;
+  if(S != "") f->write(S);
+  if(f->text()) {
+    if(suffix) {
+      s->push(f);
+      suffix->call(s);
+    } else if(defaultfile) f->writeline();
+  }
 }
 
 // Set file dimensions

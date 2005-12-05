@@ -10,7 +10,7 @@ file stdout;
 
 access version;		    
 if(version.VERSION != VERSION()) {
-  _write(stdout,"Warning: using possibly incompatible version "+
+  write(stdout,"Warning: using possibly incompatible version "+
 	 version.VERSION+" of plain.asy"+'\n');
 }
    
@@ -290,129 +290,27 @@ file single(file file) {return single(file,true);}
 file stdin=input("");
 
 void none(file file) {}
-void endl(file file) {_write(file,'\n'); flush(file);}
-void tab(file file) {_write(file,'\t');}
+void endl(file file) {write(file,'\n'); flush(file);}
+void tab(file file) {write(file,'\t');}
 typedef void suffix(file);
 
 void write(file file=stdout, suffix e=endl) {e(file);}
 
-void write(file file=stdout, string s="", bool x, suffix e)
+void write(file file, string s="", explicit path[] g, suffix e=none)
 {
-  _write(file,s); _write(file,x); e(file);
-}
-void write(file file=stdout, string s="", int x, suffix e) 
-{
-  _write(file,s); _write(file,x); e(file);
-}
-void write(file file=stdout, string s="", real x, suffix e)
-{
-  _write(file,s); _write(file,x); e(file);
-}
-void write(file file=stdout, string s="", pair x, suffix e)
-{
-  _write(file,s); _write(file,x); e(file);
-}
-void write(file file=stdout, string s="", triple x, suffix e)
-{
-  _write(file,s); _write(file,x); e(file);
-}
-void write(file file=stdout, string s="", pen x, suffix e)
-{
-  _write(file,s); _write(file,x); e(file);
-}
-void write(file file=stdout, string s="", transform x, suffix e)
-{
-  _write(file,s); _write(file,x); e(file);
-}
-void write(file file=stdout, string s="", guide x, suffix e)
-{
-  _write(file,s); _write(file,x); e(file);
-}
-
-void write(file file=stdout, string x, suffix e)
-{
-  _write(file,x); e(file);
-}
-
-void write(file file=null, string x ... string[] a)
-{
-  if(file == null) {write(stdout,x...a); endl(stdout); return;}
-  _write(file,x);
-  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
-}
-
-void write(file file=null, string s="", bool x ... bool[] a)
-{
-  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
-  _write(file,s); _write(file,x);
-  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
-}
-
-void write(file file=null, string s="", int x ... int[] a)
-{
-  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
-  write(file,s,x,none);
-  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
-}
-
-void write(file file=null, string s="", real x ... real[] a)
-{
-  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
-  write(file,s,x,none);
-  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
-}
-
-void write(file file=null, string s="", pair x ... pair[] a)
-{
-  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
-  write(file,s,x,none);
-  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
-}
-
-void write(file file=null, string s="", triple x ... triple[] a)
-{
-  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
-  write(file,s,x,none);
-  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
-}
-
-void write(file file=null, string s="", pen x ... pen[] a)
-{
-  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
-  write(file,s,x,none);
-  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
-}
-
-void write(file file=null, string s="", transform x ... transform[] a)
-{
-  if(file == null) {write(stdout,s,x...a); endl(stdout); return;}
-  write(file,s,x,none);
-  for(int i=0; i < a.length; ++i) {tab(file); _write(file,a[i]);}
-}
-
-void write(file file=null, string s="", guide x)
-{
-  if(file == null) {write(stdout,s,x); endl(stdout); return;}
-  write(file,s,x,none);
-}
-
-void _write(file file, explicit path[] g)
-{
-  if(g.length > 0) _write(file,g[0]);
+  write(file,s);
+  if(g.length > 0) write(file,g[0]);
   for(int i=1; i < g.length; ++i) {
     write(file);
-    _write(file," ^^");
-    _write(file,g[i]);
+    write(file," ^^");
+    write(file,g[i]);
   }
+  write(file,e);
 }
-void write(file file=stdout, string s="", explicit path[] x, suffix e)
+
+void write(string s="", explicit path[] g, suffix e=endl) 
 {
-  _write(file,s); _write(file,x); e(file);
-}
-void write(file file=null, string s="", explicit path[] x)
-{
-  if(file == null) {write(stdout,s,x); endl(stdout); return;}
-  write(file,s); _write(file,x);
+  write(stdout,s,g,e);
 }
 
 string ask(string prompt)

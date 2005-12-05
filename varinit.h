@@ -41,7 +41,7 @@ public:
 
 // A default initializer.  For example:
 //   int a;
-// is in some since equivalent to
+// is in some sense equivalent to
 //   int a=0;
 // where the definit for int is a function that returns 0.
 class definit : public varinit {

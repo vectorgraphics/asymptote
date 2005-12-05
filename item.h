@@ -59,6 +59,8 @@ public:
   template<typename T>
   friend inline T get(const item&);
 
+  friend inline bool isdefault(const item&);
+  
   const std::type_info &type() const
   { return *kind; }
 private:
@@ -147,6 +149,14 @@ inline bool get<bool>(const item& it)
     return it.b;
   throw vm::bad_item_value();
 }
+
+// This serves as the object for representing a default argument.
+struct default_t {};
+  
+inline bool isdefault(const item& it)
+{
+  return *it.kind == typeid(default_t);
+} 
 
 } // namespace vm
 

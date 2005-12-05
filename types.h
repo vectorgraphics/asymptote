@@ -31,6 +31,7 @@ class varEntry;
 }
 namespace absyntax {
 class varinit;
+extern varinit *Default;
 }
 
 namespace types {
@@ -61,7 +62,7 @@ enum ty_kind {
 };
 
 // Forward declarations.
-struct ty;
+class ty;
 struct signature;
 
 // Checks if two types are equal in the sense of the language.
@@ -330,7 +331,8 @@ struct signature : public gc {
 
   virtual ~signature() {}
 
-  void add(formal f) {
+  void add(formal f, bool optional=false) {
+    if(optional) f.defval=absyntax::Default;
     formals.push_back(f);
   }
 
@@ -382,8 +384,8 @@ struct function : public ty {
   }
   virtual ~function() {}
 
-  void add(formal f) {
-    sig.add(f);
+  void add(formal f, bool optional=false) {
+    sig.add(f,optional);
   }
 
   void addRest(formal f) {

@@ -2126,8 +2126,7 @@ write(file fout=stdout, suffix e=endl);
 If the @code{fout} is not specified, @code{stdout} is used and
 terminated with a newline. If specified, the optional
 identifying string @code{s} is written before the data @code{x}.
-Except when writing objects that may generate multiple lines of
-output (like arrays or guides), an arbitrary number of data values may
+Except when writing arrays, an arbitrary number of data values may
 be given. The suffix @code{e} may be one of the following:
 @code{none} (do nothing), @code{endl} (terminate with a newline), or
 @code{tab} (terminate with a tab). Here is a simple example of data output:

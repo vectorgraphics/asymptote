@@ -104,6 +104,13 @@ inline T pop(stack* s)
   return get<T>(pop(s));
 }
   
+template <typename T>
+inline T pop(stack* s, T defval)
+{
+  item it=pop(s);
+  return isdefault(it) ? defval : get<T>(it);
+}
+  
 class interactiveStack : public stack {
   vars_t globals;
 public:

@@ -298,6 +298,7 @@ void boolFileNeq(vm::stack *s);
 void nullFile(vm::stack *s);
 
 void readChar(vm::stack *s);
+void writestring(vm::stack *s);
 
 // Utils
 vm::array *copyArray(vm::stack *s);
@@ -308,7 +309,7 @@ void pairArrayFFT(vm::stack *s);
 void tridiagonal(vm::stack *s);
 void quadraticRoots(vm::stack *s);  
 void cubicRoots(vm::stack *s);  
- 
+  
 } // namespace run
 
 #endif

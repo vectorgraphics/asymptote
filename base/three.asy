@@ -382,8 +382,9 @@ struct flatguide3 {
 
 flatguide3 operator init() {return new flatguide3;}
   
-void _write(file file, explicit flatguide3 g)
+void write(file file, string s="", explicit flatguide3 g, suffix e=none)
 {
+  write(file,s);
   if(g.size() == 0) write(file,"<nullpath3>");
   else for(int i=0; i < g.nodes.length; ++i) {
     if(i > 0) write(file);
@@ -399,34 +400,29 @@ void _write(file file, explicit flatguide3 g)
     if(i < g.nodes.length-1) write(file,"..");
     if(!g.control[i].active) write(file,g.in[i]);
   }
-}
-void write(file file=stdout, string s="", flatguide3 x, suffix e)
-{
-  _write(file,s); _write(file,x); e(file);
-}
-void write(file file=null, string s="", flatguide3 x)
-{
-  if(file == null) {write(stdout,s,x); endl(stdout); return;}
-  _write(file,s); _write(file,x);
+  write(file,e);
 }
 
-void _write(file file, flatguide3[] g)
+void write(string s="", flatguide3 x, suffix e=endl)
 {
-  if(g.length > 0) _write(file,g[0]);
+  write(stdout,s,x,e);
+}
+
+void write(file file, string s="", flatguide3[] g, suffix e=none)
+{
+  write(file,s);
+  if(g.length > 0) write(file,g[0]);
   for(int i=1; i < g.length; ++i) {
     write(file);
-    _write(file," ^^");
-    _write(file,g[i]);
+    write(file," ^^");
+    write(file,g[i]);
   }
+  write(file,e);
 }
-void write(file file=stdout, string s="", flatguide3[] x, suffix e)
+
+void write(string s="", flatguide3[] x, suffix e=endl)
 {
-  _write(file,s); _write(file,x); e(file);
-}
-void write(file file=null, string s="", flatguide3[] x)
-{
-  if(file == null) {write(stdout,s,x); endl(stdout); return;}
-  _write(file,s); _write(file,x);
+  write(stdout,s,x,e);
 }
 
 // A guide3 is most easily represented as something that modifies a flatguide3.
@@ -1312,8 +1308,9 @@ path3 operator * (transform3 t, path3 p)
   return path3.path3(nodes,p.cycles);
 }
 
-void _write(file file, explicit path3 p)
+void write(file file, string s="", explicit path3 p, suffix e=none)
 {
+  write(file,s);
   if(size(p) == 0) write("<nullpath3>");
   else for(int i=0; i < p.nodes.length; ++i) {
     if(i == p.nodes.length-1 && p.cycles) write(file,"cycle3");
@@ -1329,15 +1326,12 @@ void _write(file file, explicit path3 p)
       }
     }
   }
+  write(file,e);
 }
-void write(file file=stdout, string s="", explicit path3 x, suffix e)
+
+void write(string s="", explicit path3 x, suffix e=endl)
 {
-  _write(file,s); _write(file,x); e(file);
-}
-void write(file file=null, string s="", explicit path3 x)
-{
-  if(file == null) {write(stdout,s,x); endl(stdout); return;}
-  _write(file,s); _write(file,x);
+  write(stdout,s,x,e);
 }
 
 project aspect(projection P)

@@ -17,6 +17,8 @@ namespace absyntax {
 using namespace trans;
 using namespace types;
 
+varinit *Default=new definit(position::nullPos());
+  
 void formal::prettyprint(ostream &out, int indent)
 {
   prettyname(out, "formal",indent);
@@ -83,8 +85,8 @@ function *formals::getType(types::ty *result, coenv &e,
   return ft;
 }
 
-// Another helper class. Does an assignment, but relying only on the destination
-// for the type.
+// Another helper class. Does an assignment, but relying only on the
+// destination for the type.
 class basicAssignExp : public exp {
   exp *dest;
   varinit *value;
@@ -108,8 +110,8 @@ void transDefault(coenv &e, position pos, varEntry *v, varinit *init) {
   // This roughly translates into the expression
   //   if (isDefault(x))
   //     x=init;
-  // where x is the variable in v, an isDefault is a function that tests if x is
-  // the default argument token.
+  // where x is the variable in v and isDefault is a function that tests
+  // whether x is the default argument token.
   varEntryExp vee(pos, v);
   ifStm is(pos,
            new callExp(pos,

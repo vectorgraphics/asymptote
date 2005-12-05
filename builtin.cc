@@ -25,6 +25,9 @@
 #include "genrun.h"
 #include "vm.h"
 
+#include "coder.h"
+#include "exp.h"
+
 using namespace types;
 using namespace camp;
 
@@ -98,21 +101,47 @@ void addFunc(venv &ve, bltin f, ty *result, const char *name,
   addFunc(ve, a, result, name, t1, t2, t3, t4, t5, t6, t7, t8);
 }
   
-inline void addRestFunc(venv &ve, access *a, ty *result, symbol *name,
-		        ty *trest) {
+// Add a function with one or more default arguments.
+void addFunc(venv &ve, bltin f, ty *result, const char *name, 
+	     ty *t1, bool d1,
+	     ty *t2=0, bool d2=false,
+	     ty *t3=0, bool d3=false,
+	     ty *t4=0, bool d4=false)
+{
+  access *a = new bltinAccess(f);
   function *fun = new function(result);
 
+  if (t1) fun->add(t1,d1);
+  if (t2) fun->add(t2,d2);
+  if (t3) fun->add(t3,d3);
+  if (t4) fun->add(t4,d4);
+
+  varEntry *ent = new varEntry(fun, a);
+  
+  ve.enter(symbol::trans(name), ent);
+}
+  
+// Add a rest function with zero or more default arguments.
+inline void addRestFunc(venv &ve, bltin f, ty *result, const char *name,
+		        ty *trest, 
+			ty *t1=0, bool d1=false,
+			ty *t2=0, bool d2=false,
+			ty *t3=0, bool d3=false,
+			ty *t4=0, bool d4=false)
+{
+  access *a = new bltinAccess(f);
+  function *fun = new function(result);
+
+  if (t1) fun->add(t1,d1);
+  if (t2) fun->add(t2,d2);
+  if (t3) fun->add(t3,d3);
+  if (t4) fun->add(t4,d4);
+  
   if (trest) fun->addRest(trest);
 
   varEntry *ent = new varEntry(fun, a);
 
-  ve.enter(name, ent);
-}
-
-inline void addRestFunc(venv &ve, bltin f, ty *result, const char *name,
-		        ty *trest) {
-  access *a = new bltinAccess(f);
-  addRestFunc(ve, a, result, symbol::trans(name), trest);
+  ve.enter(symbol::trans(name), ent);
 }
 
 void addRealFunc0(venv &ve, bltin fcn, const char *name)
@@ -170,6 +199,30 @@ void addCast(venv &ve, ty *target, ty *source, bltin f) {
 // operation, and no functions are called.
 identAccess id;
 
+function *intRealFunction()
+{
+  function *ft = new function(primInt());
+  ft->add(primReal());
+
+  return ft;
+}
+
+function *realPairFunction()
+{
+  function *ft = new function(primReal());
+  ft->add(primPair());
+
+  return ft;
+}
+
+function *voidFileFunction()
+{
+  function *ft = new function(primVoid());
+  ft->add(primFile());
+
+  return ft;
+}
+
 void addInitializers(venv &ve)
 {
   addInitializer(ve, primBoolean(), run::boolFalse);
@@ -226,8 +279,8 @@ void addCasts(venv &ve)
 
 void addGuideOperators(venv &ve)
 {
-  // The guide operators .. and -- take an array of guides, and turn them into a
-  // single guide.
+  // The guide operators .. and -- take an array of guides, and turn them
+  // into a single guide.
   addRestFunc(ve, run::dotsGuide, primGuide(), "..", guideArray());
   addRestFunc(ve, run::dashesGuide, primGuide(), "--", guideArray());
 
@@ -244,7 +297,7 @@ void addGuideOperators(venv &ve)
           primReal(), primReal(), primReal(), primBoolean());
 }
 
-/* To avoid typing the same type three times. */
+/* Avoid typing the same type three times. */
 void addSimpleOperator(venv &ve, access *a, ty *t, const char *name)
 {
   addFunc(ve, a, t, name, t, t);
@@ -281,6 +334,13 @@ inline void addBooleanOps(venv &ve, ty *t1, const char *name, ty *t2)
 }
 
 template<class T>
+inline void addWrite(venv &ve, ty *t1, ty *t2)
+{
+  addRestFunc(ve,run::write<T>,primVoid(),"write",t1,primFile(),true,
+	      primString(),true,t2,false,voidFileFunction(),true);
+}
+
+template<class T>
 inline void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
 {
   addBooleanOps<T,run::equals>(ve,t1,"==",t2);
@@ -291,14 +351,10 @@ inline void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   addCast(ve,t3,primFile(),run::readArray<T>);
   addCast(ve,t4,primFile(),run::readArray<T>);
   
-  addFunc(ve,run::showArray<T>,primVoid(),"write",t1);
-  addFunc(ve,run::showArray2<T>,primVoid(),"write",t3);
-  addFunc(ve,run::showArray3<T>,primVoid(),"write",t4);
-  
-  addFunc(ve,run::write<T>,primVoid(),"_write",primFile(),t2);
-  addFunc(ve,run::writeArray<T>,primVoid(),"write",primFile(),t1);
-  addFunc(ve,run::writeArray2<T>,primVoid(),"write",primFile(),t3);
-  addFunc(ve,run::writeArray3<T>,primVoid(),"write",primFile(),t4);
+  addWrite<T>(ve,t1,t2);
+  addFunc(ve,run::writeArray<T>,primVoid(),"write",primFile(),true,t1);
+  addFunc(ve,run::writeArray2<T>,primVoid(),"write",primFile(),true,t3);
+  addFunc(ve,run::writeArray3<T>,primVoid(),"write",primFile(),true,t4);
 }
 
 template<class T>
@@ -341,22 +397,6 @@ inline void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool divide=true)
   addOps<T,run::times>(ve,t1,"*",t2);
   if(divide) addOps<T,run::divide>(ve,t1,"/",t2);
   addOps<T,run::power>(ve,t1,"^",t2);
-}
-
-function *intRealFunction()
-{
-  function *ft = new function(primInt());
-  ft->add(primReal());
-
-  return ft;
-}
-
-function *realPairFunction()
-{
-  function *ft = new function(primReal());
-  ft->add(primPair());
-
-  return ft;
 }
 
 void addOperators(venv &ve) 
@@ -651,10 +691,14 @@ void base_venv(venv &ve)
   addFunc(ve,run::fileArray3,primFile(),"read3",primFile());
   addFunc(ve,run::readChar,primString(),"getc",primFile());
 
-  addFunc(ve,run::write<pen>,primVoid(),"_write",primFile(),primPen());
-  addFunc(ve,run::write<transform>,primVoid(),"_write",primFile(),
-	  primTransform());
-  addFunc(ve,run::writeP<guide>,primVoid(),"_write",primFile(),primGuide());
+  addFunc(ve,run::writestring,primVoid(),"write",primFile(),true,
+	  primString(),false,voidFileFunction(),true);
+  addWrite<pen>(ve,penArray(),primPen());
+  addWrite<transform>(ve,transformArray(),primTransform());
+  addRestFunc(ve,run::writeP<guide>,primVoid(),"write",guideArray(),
+	      primFile(),true,primString(),true,primGuide(),false,
+	      voidFileFunction(),true);
+
   addBooleanOperator(ve,run::boolFileEq,primFile(),"==");
   addBooleanOperator(ve,run::boolFileNeq,primFile(),"!=");
   

@@ -14,6 +14,7 @@
 #include "array.h"
 #include "types.h"
 #include "fileio.h"
+#include "callable.h"
 
 namespace run {
 
@@ -182,49 +183,80 @@ void searchArray(vm::stack *s)
   s->push(0);
 }
 
+extern mem::string emptystring;
+  
 template<class T>
 void write(vm::stack *s)
 {
-  T val = pop<T>(s);
-  camp::file *f = pop<camp::file*>(s);
+  array *a=pop<array*>(s);
+  vm::callable *suffix=pop<vm::callable *>(s,NULL);
+  T first=pop<T>(s);
+  mem::string S=pop<mem::string>(s,emptystring);
+  vm::item it=pop(s);
+  bool defaultfile=isdefault(it);
+  camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
+  
+  checkArray(a);
+  size_t size=a->size();
   if(!f->isOpen()) return;
-  f->write(val);
+  if(S != "") f->write(S);
+  f->write(first);
+  for(size_t i=0; i < size; ++i) {
+    f->write(tab);
+    f->write(read<T>(a,i));
+  }
+  if(f->text()) {
+    if(suffix) {
+      s->push(f);
+      suffix->call(s);
+    } else if(defaultfile) f->writeline();
+  }
 }
 
 template<class T>
 void writeP(vm::stack *s)
 {
-  const T& val = *(pop<T*>(s));
-  camp::file *f = pop<camp::file*>(s);
-  if(!f->isOpen()) return;
-  f->write(val);
-}
-  
-// write an array to stdout, with indices
-template<class T>
-void showArray(vm::stack *s)
-{
   array *a=pop<array*>(s);
-  camp::Stdout.resetlines();
+  vm::callable *suffix=pop<vm::callable *>(s,NULL);
+  const T& first=*pop<T*>(s);
+  mem::string S=pop<mem::string>(s,emptystring);
+  vm::item it=pop(s);
+  bool defaultfile=isdefault(it);
+  camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
+  
   checkArray(a);
   size_t size=a->size();
-  for(size_t i=0; i < size; i++) {
-    std::cout << i << ":\t";
-    camp::Stdout.write(read<T>(a,i));
-    camp::Stdout.writeline();
+  if(!f->isOpen()) return;
+  if(S != "") f->write(S);
+  f->write(first);
+  
+  for(size_t i=0; i < size; ++i) {
+    f->write(tab);
+    f->write(*read<T*>(a,i));
   }
-  flush(std::cout);
+  if(f->text()) {
+    if(suffix) {
+      s->push(f);
+      suffix->call(s);
+    } else if(defaultfile) f->writeline();
+  }
 }
 
 template<class T>
 void writeArray(vm::stack *s)
 {
   array *a=pop<array*>(s);
-  camp::file *f = pop<camp::file*>(s);
-  if(!f->isOpen()) return;
+  vm::item it=pop(s);
+  bool defaultfile=isdefault(it);
+  camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
+  
   checkArray(a);
   size_t size=a->size();
+  if(f->Standard()) camp::Stdout.resetlines();
+  else if(!f->isOpen()) return;
+  
   for(size_t i=0; i < size; i++) {
+    if(defaultfile) std::cout << i << ":\t";
     f->write(read<T>(a,i));
     if(f->text()) f->writeline();
   }
@@ -232,10 +264,16 @@ void writeArray(vm::stack *s)
 }
 
 template<class T>
-void outArray2(camp::file *f, array *a)
+void writeArray2(vm::stack *s)
 {
+  array *a=pop<array*>(s);
+  camp::file *f=pop<camp::file*>(s,&camp::Stdout);
+  
   checkArray(a);
   size_t size=a->size();
+  if(f->Standard()) camp::Stdout.resetlines();
+  else if(!f->isOpen()) return;
+  
   for(size_t i=0; i < size; i++) {
     array *ai=read<array*>(a,i);
     checkArray(ai);
@@ -250,26 +288,16 @@ void outArray2(camp::file *f, array *a)
 }
 
 template<class T>
-void showArray2(vm::stack *s)
+void writeArray3(vm::stack *s)
 {
   array *a=pop<array*>(s);
-  outArray2<T>(&camp::Stdout,a);
-}
-
-template<class T>
-void writeArray2(vm::stack *s)
-{
-  array *a=pop<array*>(s);
-  camp::file *f = pop<camp::file*>(s);
-  if(!f->isOpen()) return;
-  outArray2<T>(f,a);
-}
-
-template<class T>
-void outArray3(camp::file *f, array *a)
-{
+  camp::file *f=pop<camp::file*>(s,&camp::Stdout);
+  
   checkArray(a);
   size_t size=a->size();
+  if(f->Standard()) camp::Stdout.resetlines();
+  else if(!f->isOpen()) return;
+  
   for(size_t i=0; i < size; i++) {
     array *ai=read<array*>(a,i);
     checkArray(ai);
@@ -287,22 +315,6 @@ void outArray3(camp::file *f, array *a)
     if(f->text()) f->writeline();
   }
   f->flush();
-}
-
-template<class T>
-void showArray3(vm::stack *s)
-{
-  array *a=pop<array*>(s);
-  outArray3<T>(&camp::Stdout,a);
-}
-
-template<class T>
-void writeArray3(vm::stack *s)
-{
-  array *a=pop<array*>(s);
-  camp::file *f = pop<camp::file*>(s);
-  if(!f->isOpen()) return;
-  outArray3<T>(f,a);
 }
 
 template <double (*func)(double)>
