@@ -104,12 +104,6 @@ void purge()
 #endif
 }
 
-void doPrint(genv&, record *m)
-{
-  // NOTE: Should make it possible to show more code.
-  print(cout, m->getInit()->code);
-}
-
 // Run (an already translated) module of the given filename.
 void doRun(genv& ge, std::string filename)
 {
@@ -141,6 +135,7 @@ struct irunnable : public icore {
     lambda *codelet=r->transAsCodelet(e);
     em->sync();
     if(!em->errors()) {
+      if(translate) print(cout,codelet->code);
       s.run(codelet);
     } else {
       e.e.endScope(); // Remove any changes to the environment.
@@ -261,11 +256,6 @@ void doIFile(const string& filename) {
     if(!em->errors())
       tree->prettyprint(cout, 0);
     else status=false;
-  } else if(translate) {
-    genv ge;
-    record *m = ge.getModule(symbol::trans(basename),filename);
-    if(!em->errors())
-      doPrint(ge,m);
   } else {
     if(filename == "")
       doITree(parser::parseString(""));
