@@ -44,6 +44,25 @@ defaultArg::defaultArg(types::ty *t)
         t)
 {}
 
+void restArg::transMaker(coenv &e, int size, bool rest) {
+  // Push the number of cells and call the array maker.
+  e.c.encode(inst::intpush, size);
+  e.c.encode(inst::builtin, rest ? run::newAppendedArray :
+                                   run::newInitializedArray);
+}
+
+void restArg::trans(coenv &e, temp_vector &temps)
+{
+  // Push the values on the stack.
+  for (list<arg *>::iterator p = inits.begin(); p != inits.end(); ++p)
+    (*p)->trans(e, temps);
+
+  if (rest)
+    rest->trans(e, temps);
+  
+  transMaker(e, (int)inits.size(), (bool)rest);
+}
+
 class maximizer {
   app_list l;
 
@@ -101,7 +120,7 @@ void application::initRest() {
     if(!a)
       vm::error("formal rest argument must be an array");
 
-    rest=new arrayinit(position());
+    rest=new restArg();
     rf=types::formal(a->celltype, 0, 0, f.xplicit);
   }
 }
@@ -132,11 +151,13 @@ bool application::matchDefault() {
   }
 }
 
-bool application::matchArgumentToRest(env &e, formal &source, varinit *a) {
+bool application::matchArgumentToRest(env &e, formal &source,
+                                      varinit *a, size_t evalIndex)
+{
   if (rest) {
     score s=castScore(e, rf, source);
     if (s!=FAIL) {
-      rest->add(a);
+      rest->add(seq.addArg(a, rf.t, evalIndex));
       scores.push_back(s+PACKED);
       return true;
     }
@@ -168,7 +189,7 @@ bool application::matchArgument(env &e, formal &source,
 
   if (index==args.size())
     // Try to pack into the rest array.
-    return matchArgumentToRest(e, source, a);
+    return matchArgumentToRest(e, source, a, evalIndex);
   else
     // Match here, or failing that use a default and try to match at the next
     // spot.
@@ -198,9 +219,10 @@ bool application::matchRest(env &e, formal &source, varinit *a) {
   if (index==args.size())
     // Match rest to rest.
     if (rest) {
-      score s=castScore(e, sig->getRest(), source);
+      formal &target=sig->getRest();
+      score s=castScore(e, target, source);
       if (s!=FAIL) {
-        rest->addRest(a);
+        rest->addRest(new arg(a, target.t));
         scores.push_back(s);
         return true;
       }
@@ -257,15 +279,11 @@ application *application::match(env &e, function *t, signature *source,
 void application::transArgs(coenv &e) {
   temp_vector temps;
 
-  assert(args.size()==sig->formals.size());
-  arg_vector::iterator     a=args.begin();
-  formal_vector::iterator f=sig->formals.begin();
-  for(; a != args.end(); ++a, ++f)
-    //(*a)->transToType(e, f->t);
+  for(arg_vector::iterator a=args.begin(); a != args.end(); ++a)
     (*a)->trans(e,temps);
 
   if (rest)
-    rest->transToType(e, sig->getRest().t);
+    rest->trans(e,temps);
 }
 
 app_list multimatch(env &e,

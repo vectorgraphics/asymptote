@@ -57,9 +57,37 @@ struct arg : public gc {
 
 // Pushes a default argument token on the stack as a placeholder for the
 // argument.
-  struct defaultArg : public arg {
+struct defaultArg : public arg {
   defaultArg(types::ty *t);
 };
+
+// Handles translation of all the arguments matched to the rest formal.
+// NOTE: This code duplicates a lot of arrayinit.
+struct restArg : public gc {
+  list<arg *> inits;
+
+  arg *rest;
+public:
+  restArg()
+    : rest(0) {}
+
+  virtual ~restArg() 
+    {}
+
+  // Encodes the instructions to make an array from size elements on the stack.
+  static void transMaker(coenv &e, int size, bool rest);
+
+  void trans(coenv &e, temp_vector &temps);
+
+  void add(arg *init) {
+    inits.push_back(init);
+  }
+
+  void addRest(arg *init) {
+    rest=init;
+  }
+};
+
 
 // This class generates sequenced args, args whose side-effects occur in order
 // according to their index, regardless of the order they are called.  This is
@@ -85,6 +113,7 @@ class sequencer {
     size_t n=temps.size();
     assert(n < args.size());
     sequencedArg *sa=args[n];
+    assert(sa);
 
     temps.push_back(new tempExp(e, sa->v, sa->t));
   }
@@ -115,10 +144,9 @@ class sequencer {
   }
 
 public:
-  sequencer(size_t size)
-    : args(size) {}
-
   arg *addArg(varinit *v, types::ty *t, size_t i) {
+    if (args.size() <= i)
+      args.resize(i+1);
     return args[i]=new sequencedArg(v, t, *this, i);
   }
 };
@@ -134,7 +162,7 @@ class application : public gc {
 
   typedef mem::vector<arg *> arg_vector;
   arg_vector args;
-  arrayinit *rest;
+  restArg *rest;
 
   // Target formal to match with arguments to be packed into the rest array.
   types::formal rf;
@@ -153,7 +181,7 @@ class application : public gc {
   application(types::signature *sig)
     : sig(sig),
       t(0),
-      seq(sig->formals.size()),
+      //seq(sig->formals.size()),
       args(sig->formals.size()),
       rest(0),
       rf(0),
@@ -163,7 +191,7 @@ class application : public gc {
   application(types::function *t)
     : sig(t->getSignature()),
       t(t),
-      seq(sig->formals.size()),
+      //seq(sig->formals.size()),
       args(sig->formals.size()),
       rest(0),
       rf(0),
@@ -195,7 +223,8 @@ class application : public gc {
                    varinit *a, size_t evalIndex);
 
   // Match the argument to be packed into the rest array, if possible.
-  bool matchArgumentToRest(env &e, types::formal& source, varinit *a);
+  bool matchArgumentToRest(env &e, types::formal& source,
+                           varinit *a, size_t evalIndex);
 
   // Matches the argument to a formal in the target signature (possibly causing
   // other formals in the target to be matched to default values), and updates
