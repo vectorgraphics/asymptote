@@ -585,8 +585,8 @@ types::ty *callExp::trans(coenv &e)
   if (!a)
     return primError();
 
-  // To simulate left-to-right order of evaluation, produce the side-effects for
-  // the callee.
+  // To simulate left-to-right order of evaluation, produce the
+  // side-effects for the callee.
   assert(a);
   function *t=a->getType();
   assert(t);

@@ -116,12 +116,12 @@ public:
   // to evaluate().
   //
   // The methods transAsType, transWrite, and transCall of the evaluation must
-  // be called with the same target type as the original call to evaluate.  When
-  // evaluate() is called during the translation of a function, that function
-  // must still be in translation when the evaluation is translated.
+  // be called with the same target type as the original call to evaluate.
+  // When evaluate() is called during the translation of a function, that
+  // function must still be in translation when the evaluation is translated.
   // 
-  // The base implementation uses a tempExp (see below).  This is sufficient for
-  // most expressions.
+  // The base implementation uses a tempExp (see below).  This is
+  // sufficient for most expressions.
   virtual exp *evaluate(coenv &e, types::ty *target);
 
   // NOTE: could add a "side-effects" method which says if the expression has
@@ -225,8 +225,8 @@ class fieldExp : public nameExp {
   symbol *field;
 
   // fieldExp has a lot of common functionality with qualifiedName, so we
-  // essentially hack qualifiedName, by making our object expression look like a
-  // name.
+  // essentially hack qualifiedName, by making our object expression look
+  // like a name.
   class pseudoName : public name {
     exp *object;
 
@@ -486,8 +486,8 @@ struct argument {
 
   void prettyprint(ostream &out, int indent);
 
-  // Tests if a named argument could be mistaken for an assignment, and prints a
-  // warning if so.
+  // Tests if a named argument could be mistaken for an assignment, and
+  // prints a warning if so.
   void assignAmbiguity(coenv &e);
 };
 
@@ -674,7 +674,8 @@ class scaleExp : public binaryExp {
 
 public:
   scaleExp(position pos, exp *left, exp *right)
-    : binaryExp(pos, left, symbol::trans("*"), right), left(left), right(right) {}
+    : binaryExp(pos, left, symbol::trans("*"), right), left(left),
+      right(right) {}
 
   void prettyprint(ostream &out, int indent);
 
