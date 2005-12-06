@@ -2112,12 +2112,10 @@ file output(string name, bool append=false);
 data will be appended to an existing file only if the file is opened with
 @code{append=true}.
 Data of type @code{T} can be written to an output file by calling one
-of the following functions
+of the functions
 @verbatim
-write(string s="", T x, suffix e=endl);
-write(file fout, string s="", T x, suffix e=none);
-write(string s="" ... T[] x);
-write(file fout, string s="" ... T[] x);
+write(string s="", T x, suffix e=endl ... T[]);
+write(file fout, string s="", T x, suffix e=none ... T[]);
 write(file fout=stdout, suffix e=endl);
 @end verbatim
 @cindex @code{none}

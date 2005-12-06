@@ -331,7 +331,8 @@ struct signature : public gc {
 
   virtual ~signature() {}
 
-  void add(formal f, bool optional=false) {
+  void add(formal f, const char *name="", bool optional=false) {
+    if(*name) f.name=symbol::trans(name);
     if(optional) f.defval=absyntax::Default;
     formals.push_back(f);
   }
@@ -384,8 +385,8 @@ struct function : public ty {
   }
   virtual ~function() {}
 
-  void add(formal f, bool optional=false) {
-    sig.add(f,optional);
+  void add(formal f, const char *name="", bool optional=false) {
+    sig.add(f,name,optional);
   }
 
   void addRest(formal f) {
