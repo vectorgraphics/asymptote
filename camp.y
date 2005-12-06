@@ -542,7 +542,8 @@ exp:
 | exp MOD exp      { $$ = new selfExp($2.pos, $1, $2.sym, $3); }
 | exp EXPONENT exp
                    { $$ = new selfExp($2.pos, $1, $2.sym, $3); }
-| QUOTE runnable   { $$ = new quoteExp($1, $2); }
+| QUOTE '{' fileblock '}'
+                   { $$ = new quoteExp($1, $3); }
 ;
 
 // This verbose definition is because leaving empty as an expansion for dir
