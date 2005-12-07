@@ -72,7 +72,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
 {
   if(!settings::texprocess) {b += position; return;}
   pair rotation=expi(radians(angle));
-  pen Pentype=*pentype;
+  pen Pentype=pentype;
   static const double fuzz=1.0+Pentype.size()/24.0;
   
   if(!havebounds) {
@@ -122,12 +122,12 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
   pair C=p+pair(width+fuzz,height+depth+fuzz)*rotation;
   pair D=p+pair(width+fuzz,-fuzz)*rotation;
   
-  if(pentype->Overwrite() != ALLOW && label != "") {
+  if(pentype.Overwrite() != ALLOW && label != "") {
     size_t n=labelbounds.size();
     box Box=box(A,B,C,D);
     for(size_t i=0; i < n; i++) {
       if(labelbounds[i].intersect(Box)) {
-	switch(pentype->Overwrite()) {
+	switch(pentype.Overwrite()) {
 	case SUPPRESS:
 	  labelwarning("suppressed");
 	case SUPPRESSQUIET:
@@ -140,7 +140,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
 	}
 
 	pair Align=(align == pair(0,0)) ? pair(1,0) : unit(align);
-	double s=0.1*pentype->size();
+	double s=0.1*pentype.size();
 	double dx=0, dy=0;
 	if(Align.getx() > 0.1) dx=labelbounds[i].xmax()-Box.xmin()+s;
 	if(Align.getx() < -0.1) dx=labelbounds[i].xmin()-Box.xmax()-s;

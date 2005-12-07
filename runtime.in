@@ -12,13 +12,16 @@ bool     => primBoolean()
 double   => primReal()
 string*  => primString()
 string   => primString() 
-pen*     => primPen()
+pen      => primPen()
 pair     => primPair()
 triple   => primTriple()
 path     => primPath()
 picture* => primPicture()
+transform => primTransform()
 callable* => voidFunction()
+item     => realArray()
 
+#include <cfloat>
 #include "angle.h"
 #include "pair.h"
 #include "triple.h"
@@ -52,10 +55,10 @@ callable* => voidFunction()
 using namespace vm;
 using namespace camp;
 using namespace settings;
-
 namespace run {
 using camp::pair;
 using mem::string;
+using vm::array;
 
 callable *atExitFunction=NULL;
 callable *atDrawFunction=NULL;
@@ -76,7 +79,7 @@ function *voidFunction()
 
 
 void _label(picture *pic, string *s, string *size, double r, pair z, pair a,
-     	    pair scale, pen *p)
+     	    pair scale, pen p)
 {
   pic->append(new drawLabel(*s,*size,r,z,a,scale,p));
 }
@@ -86,26 +89,207 @@ bool labels(picture *pic)
   return pic->havelabels();
 }
 
-pen *basealign(int n)
+// Pen operations
+// Reset the meaning of pen default attributes.
+void resetdefaultpen()
 {
-  return new pen(n >= 0 && n < nBaseLine ? (BaseLine) n : DEFBASE);
+  defaultpen=camp::pen::startupdefaultpen();
 }
 
-path nib(pen *p)
+void defaultpen(pen p)
+{
+  defaultpen=pen(resolvepen,p);
+}
+
+pen defaultpen()
+{
+  return defaultpen;
+}
+
+pen invisible()
+{
+  return pen(invisiblepen);
+}
+
+pen gray(pen p)
+{
+  if(p.rgb()) p.rgbtogrey();
+  else if (p.cmyk()) p.cmyktogrey();
+  return p;
+}
+
+pen rgb(pen p)
+{
+  if(p.grayscale()) p.greytorgb();
+  else if (p.cmyk()) p.cmyktorgb();
+  return p;
+}
+
+pen rgb(double r, double g, double b)
+{
+  return pen(r,g,b);
+}
+
+pen cmyk(double c, double m, double y, double k)
+{
+  return pen(c,m,y,k);  
+}
+
+pen gray(double gray)
+{
+  return pen(gray);
+}
+
+item colors(pen p)
+{  
+  int n=ColorComponents[p.colorspace()];
+  array *a=new array(n);
+  
+  switch(n) {
+  case 0:
+    break;
+  case 1: 
+    (*a)[0]=p.gray(); 
+    break;
+  case 3:
+    (*a)[0]=p.red(); 
+    (*a)[1]=p.green(); 
+    (*a)[2]=p.blue(); 
+    break;
+  case 4:
+    (*a)[0]=p.cyan();
+    (*a)[1]=p.magenta(); 
+    (*a)[2]=p.yellow(); 
+    (*a)[3]=p.black();
+    break;
+  default:
+    break;
+  }
+  return a;
+}
+
+pen pattern(string *s)
+{
+  return pen(setpattern,*s);
+}
+
+string pattern(pen p)
+{
+  return p.fillpattern();  
+}
+
+pen fillrule(int n)
+{
+  return pen(n >= 0 && n < nFill ? (FillRule) n : DEFFILL);
+}
+
+int fillrule(pen p)
+{
+  return p.Fillrule();  
+}
+
+pen linetype(string *s, bool scale)
+{
+  return pen(LineType(*s,scale)); 
+}
+
+string linetype(pen p)
+{
+  return p.stroke();  
+}
+
+pen linecap(int n)
+{
+  return pen(setlinecap,n >= 0 && n < nCap ? n : DEFCAP);
+}
+
+int linecap(pen p)
+{
+  return p.cap();  
+}
+
+pen linejoin(int n)
+{
+  return pen(setlinejoin,n >= 0 && n < nJoin ? n : DEFJOIN);
+}
+
+int linejoin(pen p)
+{
+  return p.join();  
+}
+
+pen linewidth(double x)
+{
+  return pen(setlinewidth,x >= 0.0 ? x : DEFWIDTH);
+}
+
+double linewidth(pen p)
+{
+  return p.width();  
+}
+
+pen fontcommand(string *s)
+{
+  return pen(setfont,*s);
+}
+
+string font(pen p)
+{
+  return p.Font();
+}
+
+pen fontsize(double size, double skip)
+{
+  return pen(setfontsize,size > 0.0 ? size : 0.0,
+	     skip > 0.0 ? skip : 0.0);
+}
+
+double fontsize(pen p)
+{
+  return p.size();
+}
+
+double lineskip(pen p)
+{
+  return p.Lineskip();  
+}
+
+pen overwrite(int n)
+{
+  return pen(setoverwrite,n >= 0 && n < nOverwrite ? (overwrite_t) n :
+	     DEFWRITE);
+}
+
+int overwrite(pen p)
+{
+  return p.Overwrite();  
+}
+
+pen basealign(int n)
+{
+  return pen(n >= 0 && n < nBaseLine ? (BaseLine) n : DEFBASE);
+}
+
+int basealign(pen p)
+{
+  return p.Baseline();
+}
+
+path nib(pen p)
 {
   static path nullpath;
-  path* g=p->Path();
+  path *g=p.Path();
   return g ? *g : nullpath;
 }
 
-pen *makepen(path p)
+pen makepen(path p)
 {
-  return p.size() == 0 ? new pen() : new pen(new path(p));
+  return p.size() == 0 ? pen() : pen(new path(p));
 }
 
-void _draw(picture *pic, path p, pen *n)
+void _draw(picture *pic, path p, pen n)
 {
-  pic->append(new drawPath(p,*n));
+  pic->append(new drawPath(p,n));
 }
 
 void endclip(picture *pic)
@@ -408,5 +592,194 @@ callable *atexit()
 {
   return atExitFunction;
 }
-
-  
+
+// Transforms
+transform identity()
+{
+  return identity();
+}
+
+transform inverse(transform t)
+{
+  return inverse(t);
+}
+
+transform shift(pair z)
+{
+  return shift(z);
+}
+
+transform xscale(double x)
+{
+  return xscale(x);
+}
+
+transform yscale(double y)
+{
+  return yscale(y);
+}
+
+transform scale(double x)
+{
+  return scale(x);
+}
+
+transform slant(double s)
+{
+  return slant(s);
+}
+
+transform rotate(double angle, pair z=0)
+{
+  return rotatearound(z,radians(angle));
+}
+
+transform reflect(pair a, pair b)
+{
+  return reflectabout(a,b);
+}
+
+// Pair operations
+double length(pair z)
+{
+  return z.length();
+}
+
+double abs(pair z)
+{
+  return z.length();
+}
+
+double angle(pair z)
+{
+  return z.angle();
+}
+
+// Return the angle of z in degrees in the interval [0,360).
+double degrees(pair z)
+{
+  double deg=degrees(z.angle());
+  if(deg < 0) deg += 360; 
+  return deg;
+}
+
+pair unit(pair z)
+{
+  return unit(z);
+}
+
+pair dir(double theta)
+{
+  return expi(radians(theta));
+}
+
+pair expi(double theta)
+{
+  return expi(theta);
+}
+
+pair conj(pair z)
+{
+  return conj(z);
+}
+
+double _dot(pair u, pair v) 
+{
+  return u.getx()*v.getx()+u.gety()*v.gety();
+}
+
+// Triple operations
+double length(triple v)
+{
+  return v.length();
+}
+
+double abs(triple v)
+{
+  return v.length();
+}
+
+double polar(triple v) 
+{
+  return v.polar();
+}
+
+double azimuth(triple v) 
+{
+  return v.azimuth();
+}
+
+double colatitude(triple v) 
+{
+  return degrees(v.polar());
+}
+
+double latitude(triple v) 
+{
+  return 90.0-degrees(v.polar());
+}
+
+double longitude(triple v) 
+{
+  double deg=degrees(v.azimuth());
+  if(deg < 0) deg += 360; 
+  return deg;
+}
+
+triple unit(triple v) 
+{
+  return unit(v);
+}
+
+double dot(triple u, triple v) 
+{
+  return u.getx()*v.getx()+u.gety()*v.gety()+u.getz()*v.getz();
+}
+
+triple cross(triple u, triple v) 
+{
+  return triple(u.gety()*v.getz()-u.getz()*v.gety(),
+		u.getz()*v.getx()-u.getx()*v.getz(),
+		u.getx()*v.gety()-v.getx()*u.gety());
+}
+// Constants
+
+double pi()
+{ 
+  return PI;
+}
+
+int intMax()
+{ 
+  return INT_MAX;
+}
+
+double infinity()
+{ 
+  return HUGE_VAL;
+}  
+
+double realMax()
+{ 
+  return DBL_MAX;
+}
+
+double realMin()
+{ 
+  return DBL_MIN;
+}  
+
+double realEpsilon()
+{ 
+  return DBL_EPSILON;
+}  
+
+double randMax()
+{ 
+  return RAND_MAX;
+}
+
+double relativedistance(double theta, double phi, double t, bool atleast)
+{
+  return camp::velocity(theta,phi,tension(t,atleast));
+}

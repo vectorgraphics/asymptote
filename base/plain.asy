@@ -353,11 +353,6 @@ real getreal(string name, real default=0, string prompt="",
 
 public frame patterns;
 
-transform rotate(real angle) 
-{
-  return rotate(angle,0);
-}
-
 // A rotation in the direction dir limited to [-90,90]
 // This is useful for rotating text along a line in the direction dir.
 transform rotate(explicit pair dir)

@@ -104,9 +104,13 @@ void addFunc(venv &ve, bltin f, ty *result, const char *name,
 // Add a function with one or more default arguments.
 void addFunc(venv &ve, bltin f, ty *result, const char *name, 
 	     ty *t1, const char *s1, bool d1,
-	     ty *t2=0, const char *s2="", bool d2=false,
-	     ty *t3=0, const char *s3="", bool d3=false,
-	     ty *t4=0, const char *s4="", bool d4=false)
+	     ty *t2, const char *s2, bool d2,
+	     ty *t3, const char *s3, bool d3,
+	     ty *t4, const char *s4, bool d4,
+	     ty *t5, const char *s5, bool d5,
+	     ty *t6, const char *s6, bool d6,
+	     ty *t7, const char *s7, bool d7,
+	     ty *t8, const char *s8, bool d8)
 {
   access *a = new bltinAccess(f);
   function *fun = new function(result);
@@ -115,6 +119,10 @@ void addFunc(venv &ve, bltin f, ty *result, const char *name,
   if (t2) fun->add(t2,s2,d2);
   if (t3) fun->add(t3,s3,d3);
   if (t4) fun->add(t4,s4,d4);
+  if (t5) fun->add(t5,s5,d5);
+  if (t6) fun->add(t6,s6,d6);
+  if (t7) fun->add(t7,s7,d7);
+  if (t8) fun->add(t8,s8,d8);
 
   varEntry *ent = new varEntry(fun, a);
   
@@ -293,8 +301,6 @@ void addGuideOperators(venv &ve)
           primReal(), primReal(), primBoolean());
   addFunc(ve, run::pairPairControls, primGuide(), "operator controls",
           primPair(), primPair());
-  addFunc(ve, run::relativeDistance, primReal(), "relativedistance",
-          primReal(), primReal(), primReal(), primBoolean());
 }
 
 /* Avoid typing the same type three times. */
@@ -511,13 +517,6 @@ void base_venv(venv &ve)
   addFunc(ve,run::texPreamble,primVoid(),"texpreamble",primString());
   addFunc(ve,run::layer,primVoid(),"layer",primPicture());
   
-  addFunc(ve,run::intIntMax,primInt(),"intMax");
-  addRealFunc0(ve,run::realPi,"pi");
-  addRealFunc0(ve,run::realInfinity,"Infinity");
-  addRealFunc0(ve,run::realRealMax,"realMax");
-  addRealFunc0(ve,run::realRealMin,"realMin");
-  addRealFunc0(ve,run::realRealEpsilon,"realEpsilon");
-
   addRealFunc(sin);
   addRealFunc(cos);
   addRealFunc(tan);
@@ -555,33 +554,13 @@ void base_venv(venv &ve)
   
   addFunc(ve,run::intRand,primInt(),"rand");
   addFunc(ve,run::intSrand,primVoid(),"srand",primInt());
-  addFunc(ve,run::intRandMax,primInt(),"randMax");
   
   addFunc(ve,run::pairXPart,primReal(),"xpart",primPair());
   addFunc(ve,run::pairYPart,primReal(),"ypart",primPair());
-  addFunc(ve,run::pairLength,primReal(),"length",primPair());
-  addFunc(ve,run::pairLength,primReal(),"abs",primPair());
-  addFunc(ve,run::pairAngle,primReal(),"angle",primPair());
-  addFunc(ve,run::pairDegrees,primReal(),"degrees",primPair());
-  addFunc(ve,run::pairUnit,primPair(),"unit",primPair());
-  addFunc(ve,run::realDir,primPair(),"dir",primReal());
-  addFunc(ve,run::pairExpi,primPair(),"expi",primReal());
-  addFunc(ve,run::pairConj,primPair(),"conj",primPair());
-  addFunc(ve,run::pairDot,primReal(),"_dot",primPair(),primPair());
 
   addFunc(ve,run::tripleXPart,primReal(),"xpart",primTriple());
   addFunc(ve,run::tripleYPart,primReal(),"ypart",primTriple());
   addFunc(ve,run::tripleZPart,primReal(),"zpart",primTriple());
-  addFunc(ve,run::tripleLength,primReal(),"length",primTriple());
-  addFunc(ve,run::tripleLength,primReal(),"abs",primTriple());
-  addFunc(ve,run::triplePolar,primReal(),"polar",primTriple());
-  addFunc(ve,run::tripleAzimuth,primReal(),"azimuth",primTriple());
-  addFunc(ve,run::tripleCoLatitude,primReal(),"colatitude",primTriple());
-  addFunc(ve,run::tripleLatitude,primReal(),"latitude",primTriple());
-  addFunc(ve,run::tripleLongitude,primReal(),"longitude",primTriple());
-  addFunc(ve,run::tripleUnit,primTriple(),"unit",primTriple());
-  addFunc(ve,run::tripleDot,primReal(),"dot",primTriple(),primTriple());
-  addFunc(ve,run::tripleCross,primTriple(),"cross",primTriple(),primTriple());
   addFunc(ve,run::intersectcubics,primPair(),"intersect",tripleArray(),
 	  tripleArray(),tripleArray(),tripleArray(),tripleArray(),
 	  tripleArray(),primReal());
@@ -618,52 +597,11 @@ void base_venv(venv &ve)
   addFunc(ve,run::frameMax,primPair(),"max",primPicture());
   addFunc(ve,run::frameMin,primPair(),"min",primPicture());
   
-  addFunc(ve,run::lineType,primPen(),"linetype",primString(),primBoolean());
-  addFunc(ve,run::grayPen,primPen(),"gray",primPen());
-  addFunc(ve,run::rgbPen,primPen(),"rgb",primPen());
-  addFunc(ve,run::rgb,primPen(),"rgb",primReal(),primReal(),primReal());
-  addFunc(ve,run::cmyk,primPen(),"cmyk",primReal(),primReal(),primReal(),
-	  primReal());
-  addFunc(ve,run::gray,primPen(),"gray",primReal());
-  addFunc(ve,run::colors,realArray(),"colors",primPen());
-  addFunc(ve,run::pattern,primPen(),"pattern",primString());
-  addFunc(ve,run::penPattern,primString(),"pattern",primPen());
-  addFunc(ve,run::fillRule,primPen(),"fillrule",primInt());
-  addFunc(ve,run::penFillRule,primInt(),"fillrule",primPen());
-  addFunc(ve,run::penBaseLine,primInt(),"basealign",primPen());
-  addFunc(ve,run::resetdefaultPen,primVoid(),"resetdefaultpen");
-  addFunc(ve,run::setDefaultPen,primVoid(),"defaultpen",primPen());
-  addFunc(ve,run::getDefaultPen,primPen(),"defaultpen");
-  addFunc(ve,run::invisiblePen,primPen(),"invisible");
-  addFunc(ve,run::lineCap,primPen(),"linecap",primInt());
-  addFunc(ve,run::penLineCap,primInt(),"linecap",primPen());
-  addFunc(ve,run::lineJoin,primPen(),"linejoin",primInt());
-  addFunc(ve,run::penLineJoin,primInt(),"linejoin",primPen());
-  addFunc(ve,run::lineWidth,primPen(),"linewidth",primReal());
-  addFunc(ve,run::penLineWidth,primReal(),"linewidth",primPen());
-  addFunc(ve,run::font,primPen(),"fontcommand",primString());
-  addFunc(ve,run::penFont,primString(),"font",primPen());
-  addFunc(ve,run::fontSize,primPen(),"fontsize",primReal(),primReal());
-  addFunc(ve,run::penFontSize,primReal(),"fontsize",primPen());
-  addFunc(ve,run::penLineSkip,primReal(),"lineskip",primPen());
-  addFunc(ve,run::overWrite,primPen(),"overwrite",primInt());
-  addFunc(ve,run::penOverWrite,primInt(),"overwrite",primPen());
   addFunc(ve,run::penMax,primPair(),"max",primPen());
   addFunc(ve,run::penMin,primPair(),"min",primPen());
   
-  // Transform creation
+  // Transform operations
   
-  addFunc(ve,run::transformIdentity,primTransform(),"identity");
-  addFunc(ve,run::transformInverse,primTransform(),"inverse",primTransform());
-  addFunc(ve,run::transformShift,primTransform(),"shift",primPair());
-  addFunc(ve,run::transformXscale,primTransform(),"xscale",primReal());
-  addFunc(ve,run::transformYscale,primTransform(),"yscale",primReal());
-  addFunc(ve,run::transformScale,primTransform(),"scale",primReal());
-  addFunc(ve,run::transformSlant,primTransform(),"slant",primReal());
-  addFunc(ve,run::transformRotate,primTransform(),"rotate",primReal(),
-	  primPair());
-  addFunc(ve,run::transformReflect,primTransform(),"reflect",primPair(),
-	  primPair());
   addBooleanOperator(ve,run::boolTransformEq,primTransform(),"==");
   addBooleanOperator(ve,run::boolTransformNeq,primTransform(),"!=");
   

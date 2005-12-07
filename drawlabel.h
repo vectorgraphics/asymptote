@@ -21,7 +21,7 @@ private:
   pair position;
   pair align;
   pair scale;
-  pen *pentype;
+  pen pentype;
   double width,height,depth;
   bool havebounds;
   bool suppress;
@@ -32,7 +32,7 @@ private:
   
 public:
   drawLabel(string label, string size, double angle, pair position, pair align,
-	    pair scale, pen *pentype)
+	    pair scale, pen pentype)
     : label(label), size(size), angle(angle), position(position), align(align),
       scale(scale), pentype(pentype), width(0.0), height(0.0), depth(0.0),
       havebounds(false), suppress(false), fontscale(1.0) {} 
@@ -50,8 +50,8 @@ public:
   bool write(texfile *out) {
     if(!havebounds) 
       reportError("drawLabel::write called before bounds");
-    if(suppress || pentype->invisible()) return true;
-    out->setpen(*pentype);
+    if(suppress || pentype.invisible()) return true;
+    out->setpen(pentype);
     out->put(label,angle,position,texAlign,scale,Box);
     return true;
   }

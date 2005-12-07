@@ -28,6 +28,16 @@ void addFunc(venv &ve, vm::bltin f, types::ty *result, const char *name,
              types::ty *t4 = 0, types::ty *t5 = 0, types::ty *t6 = 0,
              types::ty *t7 = 0, types::ty *t8 = 0);
 
+void addFunc(venv &ve, vm::bltin f, types::ty *result, const char *name, 
+	     types::ty *t1, const char *s1, bool d1,
+	     types::ty *t2=0, const char *s2="", bool d2=false,
+	     types::ty *t3=0, const char *s3="", bool d3=false,
+	     types::ty *t4=0, const char *s4="", bool d4=false,
+	     types::ty *t5=0, const char *s5="", bool d5=false,
+	     types::ty *t6=0, const char *s6="", bool d6=false,
+	     types::ty *t7=0, const char *s7="", bool d7=false,
+	     types::ty *t8=0, const char *s8="", bool d8=false);
+  
 } //namespace trans
 
 #endif //BUILTIN_H

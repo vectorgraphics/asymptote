@@ -17,7 +17,7 @@
 
 namespace vm {
 
-class func;
+struct func;
 class program;
 class lambda;
 class importInitMap;

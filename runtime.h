@@ -41,12 +41,6 @@ void intAbs(vm::stack *s);
 void intSgn(vm::stack *s);
 void intRand(vm::stack *s);
 void intSrand(vm::stack *s);
-void realPi(vm::stack *s);
-void intIntMax(vm::stack *s);
-void realInfinity(vm::stack *s);
-void realRealMax(vm::stack *s);
-void realRealMin(vm::stack *s);
-void realRealEpsilon(vm::stack *s);
 void intRandMax(vm::stack *s);
 void boolDeconstruct(vm::stack *s);
 
@@ -104,14 +98,6 @@ void realRealToPair(vm::stack *s);
 void pairNegate(vm::stack *s);
 void pairXPart(vm::stack *s);
 void pairYPart(vm::stack *s);
-void pairLength(vm::stack *s);
-void pairAngle(vm::stack *s);
-void pairDegrees(vm::stack *s);
-void pairUnit(vm::stack *s);
-void realDir(vm::stack *s);
-void pairExpi(vm::stack *s);
-void pairConj(vm::stack *s);
-void pairDot(vm::stack *s);
 
 // Triple operations
 void tripleZero(vm::stack *s);
@@ -122,28 +108,11 @@ void tripleZPart(vm::stack *s);
 void realTripleMult(vm::stack *s);
 void tripleRealMult(vm::stack *s);
 void tripleRealDivide(vm::stack *s);
-void tripleLength(vm::stack *s);
-void triplePolar(vm::stack *s);
-void tripleAzimuth(vm::stack *s);
-void tripleCoLatitude(vm::stack *s);
-void tripleLatitude(vm::stack *s);
-void tripleLongitude(vm::stack *s);
-void tripleUnit(vm::stack *s);
-void tripleDot(vm::stack *s);
-void tripleCross(vm::stack *s);
+
 void intersectcubics(vm::stack *s);
 
-// Transform operations
+// Transform operations  
 void transformIdentity(vm::stack *s);
-void transformInverse(vm::stack *s);
-void transformShift(vm::stack *s);
-void transformXscale(vm::stack *s);
-void transformYscale(vm::stack *s);
-void transformScale(vm::stack *s);
-void transformSlant(vm::stack *s);
-void transformRotate(vm::stack *s);
-void transformReflect(vm::stack *s);
-  
 void transformTransformMult(vm::stack *s);
 void transformTransformMult(vm::stack *s);
 void transformPairMult(vm::stack *s);
@@ -177,7 +146,6 @@ void dirSpec(vm::stack *s);
 void curlSpec(vm::stack *s);
 void realRealTension(vm::stack *s);
 void pairPairControls(vm::stack *s);
-void relativeDistance(vm::stack *s);
 
 // String operations
 void emptyString(vm::stack *s);
@@ -188,37 +156,6 @@ void stringTime(vm::stack *s);
   
 // Pen operations
 void newPen(vm::stack *s);
-void resetdefaultPen(vm::stack *s);
-void setDefaultPen(vm::stack *s);
-void getDefaultPen(vm::stack *s);
-void invisiblePen(vm::stack *s);
-void grayPen(vm::stack *s);
-void rgbPen(vm::stack *s);
-void rgb(vm::stack *s);
-void cmyk(vm::stack *s);
-void gray(vm::stack *s);
-void colors(vm::stack *s);
-void pattern(vm::stack *s);
-void penPattern(vm::stack *s);
-void fillRule(vm::stack *s);
-void penFillRule(vm::stack *s);
-void baseLine(vm::stack *s);
-void penBaseLine(vm::stack *s);
-void lineType(vm::stack *s);
-void penLineType(vm::stack *s);
-void lineCap(vm::stack *s);
-void penLineCap(vm::stack *s);
-void lineJoin(vm::stack *s);
-void penLineJoin(vm::stack *s);
-void lineWidth(vm::stack *s);
-void penLineWidth(vm::stack *s);
-void font(vm::stack *s);
-void penFont(vm::stack *s);
-void fontSize(vm::stack *s);
-void penFontSize(vm::stack *s);
-void penLineSkip(vm::stack *s);
-void overWrite(vm::stack *s);
-void penOverWrite(vm::stack *s);
 void boolPenEq(vm::stack *s);
 void boolPenNeq(vm::stack *s);
 void penPenPlus(vm::stack *s);

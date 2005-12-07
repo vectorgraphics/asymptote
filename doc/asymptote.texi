@@ -1738,34 +1738,35 @@ y' = t.y + t.yx * x + t.yy * y
 Transforms can be applied to pairs, guides, paths, pens,
 transforms, frames, and pictures by multiplication (via the binary operator
 @code{*}) on the left (@pxref{circle} for an example).
+@cindex @code{inverse}
 Transforms can be composed with one another and inverted with the
-function @code{transform inverse(transform)}; they can also be raised to any
+function @code{transform inverse(transform t)}; they can also be raised to any
 integer power with the @code{^} operator.
 
 The built-in transforms are:
 
 @table @code
-@item identity();
+@item transform identity();
 @cindex @code{identity}
 the identity transform;
-@item shift(pair z);
+@item transform shift(pair z);
 @cindex @code{shift}
 translates by the pair @code{z};
-@item xscale(real x);
+@item transform xscale(real x);
 @cindex @code{xscale}
 scales by @code{x} in the @math{x} direction;
-@item yscale(real y);
+@item transform yscale(real y);
 @cindex @code{yscale}
 scales by @code{y} in the @math{y} direction;
-@item scale(real s);
+@item transform scale(real s);
 @cindex @code{scale}
 scale by @code{s} in both @math{x} and @math{y} directions;
-@item slant(real s);
+@item transform slant(real s);
 @cindex @code{slant}
 maps @code{(x,y)} --> @code{(x+s*y,y)};
-@item rotate(real angle, pair z=(0,0));
+@item transform rotate(real angle, pair z=(0,0));
 rotates by @code{angle} in degrees about @code{z};
-@item reflect(pair a, pair b);
+@item transform reflect(pair a, pair b);
 @cindex @code{reflect}
 reflects about the line @code{a--b}.
 @end table
