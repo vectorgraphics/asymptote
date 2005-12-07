@@ -57,14 +57,14 @@ struct arg : public gc {
 
 // Pushes a default argument token on the stack as a placeholder for the
 // argument.
-struct defaultArg : public arg {
+  struct defaultArg : public arg {
   defaultArg(types::ty *t);
 };
 
 // Handles translation of all the arguments matched to the rest formal.
 // NOTE: This code duplicates a lot of arrayinit.
 struct restArg : public gc {
-  list<arg *> inits;
+  mem::list<arg *> inits;
 
   arg *rest;
 public:
