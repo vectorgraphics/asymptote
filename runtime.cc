@@ -1760,85 +1760,12 @@ void updateFunction(stack *s)
   if(atExitFunction && !nullfunc::instance()->compare(atExitFunction))
     atExitFunction->call(s);
 }
-  
-// Merge output files  
-void merge(stack *s)
-{
-  int ret;
-  bool keep = pop<bool>(s);
-  string *format = pop<string*>(s);
-  string *args = pop<string*>(s);
-  array *files=pop<array*>(s);
-  
-  checkArray(files);
-  size_t size=files->size();
-  
-  if(!checkFormatString(*format)) return;
-  
-  ostringstream cmd,remove;
-  cmd << Convert << " "+*args;
-  
-  for(size_t i=0; i < size; i++) 
-    cmd << " " << read<string>(files,i);
-  
-  string name=buildname(outname,format->c_str());
-  cmd << " " << name;
-  ret=System(cmd,false,true,"ASYMPTOTE_CONVERT","convert");
-  
-  if(ret == 0)
-    if(settings::verbose > 0) cout << "Wrote " << name << endl;
-  
-  if(!keep && !settings::keep)
-    for(size_t i=0; i < size; i++) 
-      unlink(read<string>(files,i).c_str());
-    
-  if(ret == 0 && settings::view) {
-    ostringstream cmd;
-    cmd << Animate << " " << name;
-    System(cmd,false,false,"ASYMPTOTE_ANIMATE","your animated GIF viewer");
-  }
-  
-  s->push(ret);
-}
 
 // Wrapper for the stack::load() method.
 void loadModule(stack *s)
 {
   string *index= pop<string*>(s);
   s->load(*index);
-}
-
-void evalString(stack *s)
-{
-  bool embedded=pop<bool>(s);
-  mem::string *str=pop<string *>(s);
-  absyntax::block *ast = parser::parseString(*str);
-  loop::doITree(ast,embedded);
-}
-
-void evalAst(stack *s)
-{
-  bool embedded=pop<bool>(s);
-  loop::doIRunnable(pop<absyntax::runnable *>(s),embedded);
-}
-
-void readGUI(stack *)
-{
-  static bool first=true;
-  string name=buildname(outname,"gui");
-  std::ifstream exists(name.c_str());
-  if(exists) {
-    if((settings::clearGUI && !interact::interactive) ||
-       (first && interact::interactive)) unlink(name.c_str());
-    else {
-      if (!settings::ignoreGUI) {
-	string cmd=string("include \"")+name+string("\";");
-	absyntax::block *ast = parser::parseString(cmd);
-	loop::doITree(ast,true);
-      }
-    }
-  }
-  first=false;
 }
 
 void changeDirectory(stack *s)

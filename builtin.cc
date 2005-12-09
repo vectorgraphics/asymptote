@@ -580,11 +580,6 @@ void base_venv(venv &ve)
 	  primInt());
   addFunc(ve,run::stringTime,primString(),"time",primString());
   
-  addFunc(ve,run::evalString,primVoid(),"_eval",primString(),primBoolean());
-  addFunc(ve,run::evalAst,primVoid(),"_eval",primCode(),primBoolean());
-  addFunc(ve,run::readGUI,primVoid(),"readGUI");
-  addFunc(ve,run::merge,primInt(),"merge",stringArray(),
-	  primString(),primString(),primBoolean());
   addFunc(ve,run::changeDirectory,primString(),"cd",primString());
   addFunc(ve,run::scrollLines,primVoid(),"scroll",primInt());
   addFunc(ve,run::boolDeconstruct,primBoolean(),"deconstruct");
