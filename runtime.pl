@@ -7,6 +7,8 @@
 #
 ##### 
 
+$stack = "Stack";
+
 sub clean_type {
     for (@_) {
         s/\s//g;
@@ -49,7 +51,7 @@ sub c_params {
               (\w*(?:\s*\*)?)
               \s*
               (\w*)(=*)(\w*)|xs;
-       $_ = "  $type $name = vm::pop<$type>(gen_theStack" . ($default ? "," . $value : "") . ");\n";
+       $_ = "  $type $name = vm::pop" . ($type =~ /^item$/ ? "" : "<$type>") . "($stack" . ($default ? "," . $value : "") . ");\n";
    }
    reverse @params;
 }
@@ -72,38 +74,41 @@ read_types($types);
 my @builtins;
 my $count = 0;
 while (<>) {
-  my ($comments,$type,$name,$params,$code) = 
+  my ($comments,$type,$name,$cname,$params,$code) = 
     m|^((?:\s*//.*\n)*) # comment lines
       \s*
-      (\w*(?:\s*\*)?) # return type
+      (\w*(?:\s*\*)?)   # return type
       \s*
-      (\w*)           # function name
+      ([^(:]*)\:*([^(]*) # function name
       \s*
-      \(([\w\s*,=]*)\) # parameters
+      \(([\w\s*,=]*)\)  # parameters
       \s*
-      \{(.*)}         # body
+      \{(.*)}           # body
       |xs;
 
   # Unique C++ function name
-  $cname = "gen${count}_$name";
+  if(!$cname) {$cname="gen${count}";}
   
   clean_type($type);
   
   my @params = split m/,\s*/, $params;
 
   # Build addFunc call for asymptote
+  if($name) {
   push @builtin, "  addFunc(ve, run::" . $cname 
       . ", " . $type_map{$type}
       . ", " . '"' . $name . '"'
       . ( @params ? ", " . join(", ",asy_params(@params))
                    : "" )
       . ");\n";
+  }
 
   # Handle marshalling of values to/from stack
-  $code =~ s/\breturn ([^;]*);/{ gen_theStack->push<$type>($1); return; }/g;
+  $qualifier = ($type =~ /^item$/ ? "" : "<$type>");
+  $code =~ s/\breturn ([^;]*);/{$stack->push$qualifier($1); return;}/g;
   $args = join("",c_params(@params));
 
-  print $comments . "void $cname(vm::stack *gen_theStack)\n{\n$args$code}\n\f\n";
+  print $comments . "void $cname(vm::stack *$stack)\n{\n$args$code}\n\f\n";
   
   ++$count;
 }

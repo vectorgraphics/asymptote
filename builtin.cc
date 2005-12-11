@@ -413,14 +413,6 @@ inline void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool divide=true)
 
 void addOperators(venv &ve) 
 {
-  addFunc(ve,run::realIntPow,primReal(),"^",primReal(),primInt());
-
-  addFunc(ve,run::boolNot,primBoolean(),"!",primBoolean());
-  addBooleanOperator(ve,run::boolXor,primBoolean(),"^");
-
-  addBooleanOperator(ve,run::boolTrue,primNull(),"==");
-  addBooleanOperator(ve,run::intZero,primNull(),"!=");
-
   addSimpleOperator(ve,run::binaryOp<string,run::plus>,primString(),"+");
   
   addSimpleOperator(ve,run::transformTransformMult,primTransform(),"*");
@@ -442,7 +434,6 @@ void addOperators(venv &ve)
   addBooleanOperator(ve,run::boolPenEq,primPen(),"==");
   addBooleanOperator(ve,run::boolPenNeq,primPen(),"!=");
 
-  addFunc(ve,run::arrayBoolNegate,boolArray(),"!",boolArray());
   addBooleanOps<bool,run::And>(ve,boolArray(),"&&",primBoolean());
   addBooleanOps<bool,run::Or>(ve,boolArray(),"||",primBoolean());
   addBooleanOps<bool,run::Xor>(ve,boolArray(),"^",primBoolean());
@@ -540,30 +531,12 @@ void base_venv(venv &ve)
   addRealFunc(pow10);
   addRealFunc(identity);
   
-  addFunc(ve,run::realJ,primReal(),"J",primInt(),primReal());
-  addFunc(ve,run::realY,primReal(),"Y",primInt(),primReal());
-  
-  addRealFunc2(ve,run::realAtan2,"atan2");
-  addRealFunc2(ve,run::realHypot,"hypot");
-  addRealFunc2(ve,run::realFmod,"fmod");
-  addRealFunc2(ve,run::realRemainder,"remainder");
-  
-  addFunc(ve,run::intQuotient,primInt(),"quotient",primInt(),primInt());
-  addFunc(ve,run::intAbs,primInt(),"abs",primInt());
-  addFunc(ve,run::intSgn,primInt(),"sgn",primReal());
-  
-  addFunc(ve,run::intRand,primInt(),"rand");
-  addFunc(ve,run::intSrand,primVoid(),"srand",primInt());
-  
   addFunc(ve,run::pairXPart,primReal(),"xpart",primPair());
   addFunc(ve,run::pairYPart,primReal(),"ypart",primPair());
 
   addFunc(ve,run::tripleXPart,primReal(),"xpart",primTriple());
   addFunc(ve,run::tripleYPart,primReal(),"ypart",primTriple());
   addFunc(ve,run::tripleZPart,primReal(),"zpart",primTriple());
-  addFunc(ve,run::intersectcubics,primPair(),"intersect",tripleArray(),
-	  tripleArray(),tripleArray(),tripleArray(),tripleArray(),
-	  tripleArray(),primReal());
   
   addFunc(ve,run::tridiagonal,realArray(),"tridiagonal",
 	  realArray(),realArray(),realArray(),realArray());
@@ -596,9 +569,6 @@ void base_venv(venv &ve)
   addFunc(ve,run::penMin,primPair(),"min",primPen());
   
   // Transform operations
-  
-  addBooleanOperator(ve,run::boolTransformEq,primTransform(),"==");
-  addBooleanOperator(ve,run::boolTransformNeq,primTransform(),"!=");
   
   // I/O functions
 
@@ -639,9 +609,6 @@ void base_venv(venv &ve)
 	      primGuide(),"x",false,
 	      voidFileFunction(),"suffix",true);
 
-  addBooleanOperator(ve,run::boolFileEq,primFile(),"==");
-  addBooleanOperator(ve,run::boolFileNeq,primFile(),"!=");
-  
   // Array functions
   
   addFunc(ve,run::arrayFunction,realArray(),"map",realPairFunction(),
@@ -649,10 +616,8 @@ void base_venv(venv &ve)
   addFunc(ve,run::arrayFunction,intArray(),"map",intRealFunction(),
 	  realArray());
   
-  addFunc(ve,run::arrayAll,primBoolean(),"all",boolArray());
   addFunc(ve,run::arrayBoolSum,primInt(),"sum",boolArray());
   
-  addFunc(ve,run::intSequence,intArray(),"sequence",primInt());
   addFunc(ve,run::arrayFind,primInt(),"find",boolArray(),primInt());
 #ifdef HAVE_LIBFFTW3
   addFunc(ve,run::pairArrayFFT,pairArray(),"fft",pairArray(),primInt());

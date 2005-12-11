@@ -16,12 +16,17 @@ pen      => primPen()
 pair     => primPair()
 triple   => primTriple()
 path     => primPath()
+file*    => primFile()
 picture* => primPicture()
 transform => primTransform()
 callable* => voidFunction()
 runnable* => primCode()
+array* => array()  
+intarray* => intArray()
 realarray* => realArray()
+boolarray* => boolArray()
 stringarray* => stringArray()
+triplearray* => tripleArray()
 
 #include <cfloat>
 #include "angle.h"
@@ -62,33 +67,185 @@ namespace run {
 using camp::pair;
 using mem::string;
 using vm::array;
+using vm::frame;
 using absyntax::runnable;
 
 callable *atExitFunction=NULL;
 callable *atDrawFunction=NULL;
+  
+typedef array intarray;
+typedef array realarray;
+typedef array boolarray;
+typedef array stringarray;
+typedef array triplearray;
 }
 
-using namespace types;
-
-typedef vm::array stringarray;
-typedef vm::array realarray;
-
-static inline int Round(double x) 
-{
-  return int(x+((x >= 0) ? 0.5 : -0.5));
-}
-
-function *voidFunction()
-{
-  function *ft = new function(primVoid());
-  return ft;
-}
+using vm::array;
+using types::function;
+using types::primVoid;
+using types::primBoolean;
+using types::primInt;
+using types::primReal;
+using types::primPair;
+using types::primTriple;
+using types::primPen;
+using types::primPath;
+using types::primPicture;
+using types::primString;
+using types::primCode;
+using types::primFile;
+using types::primTransform;
+using types::boolArray;
+using types::intArray;
+using types::realArray;
+using types::tripleArray;
+using types::stringArray;
 
 namespace loop {
   void doIRunnable(absyntax::runnable *r, bool embedded=false);
   void doITree(absyntax::block *tree, bool embedded=false);
 }
   
+function *voidFunction()
+{
+  function *ft = new function(primVoid());
+  return ft;
+}
+
+namespace run {
+  
+static inline int Round(double x) 
+{
+  return int(x+((x >= 0) ? 0.5 : -0.5));
+}
+
+inline int sgn(double x) 
+{
+  return (x > 0.0 ? 1 : (x < 0.0 ? -1 : 0));
+}
+
+inline void CheckReallocate(double *& A, size_t n, size_t& old)
+{
+  if(n > old) {delete A; A=new double[n]; old=n;}
+}
+
+inline void CheckReallocate(double *& A, double *& B, size_t n, size_t& old)
+{
+  if(n > old) {delete A; A=new double[n]; delete B; B=new double[n]; old=n;}
+}
+
+void outOfBounds(const char *op, size_t len, int n)
+{
+  ostringstream buf;
+  buf << op << " array of length " << len << " with out-of-bounds index "
+      << n;
+  error(buf.str().c_str());
+}
+
+array *copyArray(array *a)
+{
+  checkArray(a);
+  size_t size=a->size();
+  array *c=new array(size);
+  for(size_t i=0; i < size; i++) 
+    (*c)[i]=(*a)[i];
+  return c;
+}
+
+array *copyArray2(array *a)
+{
+  checkArray(a);
+  size_t size=a->size();
+  array *c=new array(size);
+  for(size_t i=0; i < size; i++) {
+    array *ai=read<array*>(a,i);
+    checkArray(ai);
+    size_t aisize=ai->size();
+    array *ci=new array(aisize);
+    (*c)[i]=ci;
+    for(size_t j=0; j < aisize; j++) 
+      (*ci)[j]=(*ai)[j];
+  }
+  return c;
+}
+
+item& arrayRead(array *a, int n)  
+{
+  checkArray(a);
+  size_t len=a->size();
+  bool cyclic=a->cyclic();
+  if(cyclic && len > 0) n=imod(n,len);
+  else if(n < 0 || n >= (int) len) outOfBounds("reading",len,n);
+  return (*a)[(unsigned) n];
+}
+}
+
+
+// Initializers
+int :intZero()
+{
+  return 0;
+}
+
+double :realZero()
+{
+  return 0.0;
+}
+
+bool :boolFalse()
+{
+  return false;
+}
+
+bool !(bool b)
+{
+  return !b;
+}
+
+bool ^(bool a, bool b)
+{
+  return a^b ? true : false;
+}
+
+bool ==(file *a, file *b)
+{
+  return a == b;
+}
+
+bool !=(file *a, file *b)
+{
+  return a != b;
+}
+
+bool ==(transform a, transform b)
+{
+  return a == b;
+}
+
+bool !=(transform a, transform b)
+{
+  return a != b;
+}
+
+bool :boolMemEq(frame *a, frame *b)
+{
+  return a == b;
+}
+
+bool :boolMemNeq(frame *a, frame *b)
+{
+  return a != b;
+}
+
+bool :boolFuncEq(callable *a, callable *b)
+{
+  return a->compare(b);
+}
+
+bool :boolFuncNeq(callable *a, callable *b)
+{
+  return !(a->compare(b));
+}
 
 void _label(picture *pic, string *s, string *size, double r, pair z, pair a,
      	    pair scale, pen p)
@@ -564,6 +721,43 @@ void gui(double x)
 }
 
 // Math
+double ^(double x, int y)
+{
+  return pow(x,y);
+}
+
+int quotient(int x, int y)
+{ 
+  if (y == 0) dividebyzero();
+// Implementation-independent definition of integer division: round down
+  return (x-portableMod(x,y))/y;
+}  
+
+int abs(int x)
+{ 
+  return abs(x);
+}  
+
+int sgn(double x)
+{ 
+  return sgn(x);
+}  
+
+int rand()
+{ 
+  return rand();
+}  
+
+void srand(int seed)
+{ 
+  srand(seed);
+}  
+
+void srand(int seed)
+{ 
+  srand(seed);
+}  
+
 int ceil(double x)
 { 
   double y=ceil(x);
@@ -597,6 +791,37 @@ int Floor(double x)
 int Round(double x)
 { 
   return Round(intcap(x));
+}
+
+double fmod(double x, double y)
+{
+  if (y == 0.0) dividebyzero();
+  return fmod(x,y);
+}
+
+double atan2(double y, double x)
+{ 
+  return atan2(y,x);
+}  
+
+double hypot(double x, double y)
+{ 
+  return hypot(x,y);
+}  
+
+double remainder(double x, double y)
+{ 
+  return remainder(x,y);
+}  
+
+double J(int n, double x)
+{
+  return jn(n,x);
+}
+
+double Y(int n, double x)
+{
+  return yn(n,x);
 }
 
 double erf(double x)
@@ -788,6 +1013,40 @@ triple cross(triple u, triple v)
 		u.getz()*v.getx()-u.getx()*v.getz(),
 		u.getx()*v.gety()-v.getx()*u.gety());
 }
+
+pair intersect(triplearray* pre1, triplearray* point1, triplearray* post1,
+               triplearray* pre2, triplearray* point2, triplearray* post2,
+	       double fuzz)
+{
+  size_t size1=pre1->size();
+  size_t size2=pre2->size();
+      
+  if(point1->size() != size1 || post1->size() != size1 ||
+     point2->size() != size2 || post2->size() != size2)
+    error("Mismatched array lengths");
+  
+  int single1=(size1 == 1);
+  int single2=(size2 == 1);
+  
+  size_t Size1=size1+single1;
+  size_t Size2=size2+single2;
+  
+  node *n1=new node[Size1];
+  node *n2=new node[Size2];
+      
+  for(size_t i=0; i < size1; ++i)
+    n1[i]=node(read<triple>(pre1,i),read<triple>(point1,i),
+	       read<triple>(post1,i));
+
+  for(size_t i=0; i < size2; ++i)
+    n2[i]=node(read<triple>(pre2,i),read<triple>(point2,i),
+	       read<triple>(post2,i));
+
+  if(single1) n1[1]=n1[0];
+  if(single2) n2[1]=n2[0];
+  
+  return intersect((int) Size1-1,(int) Size2-1,n1,n2,fuzz);
+}
 // Constants
 
 double pi()
@@ -825,6 +1084,7 @@ double randMax()
   return RAND_MAX;
 }
 
+// System routines
 // Merge output files  
 int merge(stringarray *files, string *args, string *format, bool keep)
 {
@@ -859,4 +1119,266 @@ int merge(stringarray *files, string *args, string *format, bool keep)
   }
   
   return ret;
+}
+
+// Array operations
+// Create an empty array.
+array* :emptyArray()
+{
+  return new array(0);
+}
+
+// Read an element from an array. Checks for initialization & bounds.
+item :arrayRead(array *a, int n)
+{
+  item& i=arrayRead(a,n);
+  if (i.empty()) {
+    ostringstream buf;
+    buf << "read uninitialized value from array at index " << n;
+    error(buf.str().c_str());
+  }
+  return i;
+}
+
+// Read an element from an array of arrays. Check bounds and initialize
+// as necessary.
+item :arrayArrayRead(array *a, int n)
+{
+  item& i=arrayRead(a,n);
+  if (i.empty()) i=new array(0);
+  return i;
+}
+
+// Write an element to an array.  Increase size if necessary.
+item :arrayWrite(item value, array *a, int n)
+{
+  checkArray(a);
+  size_t len=a->size();
+  bool cyclic=a->cyclic();
+  if(cyclic && len > 0) n=imod(n,len);
+  else {
+    if(cyclic) outOfBounds("writing cyclic",len,n);
+    if(n < 0) outOfBounds("writing",len,n);
+    if(a->size() <= (size_t) n)
+      a->resize(n+1);
+  }
+  (*a)[n] = value;
+  return value;
+}
+
+// Returns the length of an array.
+int :arrayLength(array *a)
+{
+  checkArray(a);
+  return a->size();
+}
+
+// Return the cyclic flag for an array.
+bool :arrayCyclicFlag(array *a)
+{
+  checkArray(a);
+  return a->cyclic();
+}
+
+// The helper function for the cyclic method that sets the cyclic flag.
+void :arrayCyclicHelper(bool b, array *a)
+{
+  checkArray(a);
+  a->cyclic(b);
+}
+
+// Set the cyclic flag for an array.
+callable* :arrayCyclic(array *a)
+{
+  checkArray(a);
+  return new thunk(new bfunc(arrayCyclicHelper),a);
+}
+
+// The helper function for the push method that does the actual operation.
+item :arrayPushHelper(item i, array *a)
+{
+  checkArray(a);
+  a->push(i);
+  return i;
+}
+
+// Returns the push method for an array.
+callable* :arrayPush(array *a)
+{
+  checkArray(a);
+  return new thunk(new bfunc(arrayPushHelper),a);
+}
+
+// The helper function for the append method that appends b to a.
+void :arrayAppendHelper(array *b, array *a)
+{
+  checkArray(a);
+  checkArray(b);
+  size_t size=b->size();
+  for(size_t i=0; i < size; i++)
+    a->push((*b)[i]);
+}
+
+// Returns the append method for an array.
+callable* :arrayAppend(array *a)
+{
+  checkArray(a);
+  return new thunk(new bfunc(arrayAppendHelper),a);
+}
+
+// The helper function for the pop method.
+item :arrayPopHelper(array *a)
+{
+  checkArray(a);
+  if(a->size() == 0) 
+    error("cannot pop element from empty array");
+  return a->pop();
+}
+
+// Returns the pop method for an array.
+callable* :arrayPop(array *a)
+{
+  checkArray(a);
+  return new thunk(new bfunc(arrayPopHelper),a);
+}
+
+bool :arrayAlias(array *a, array *b)
+{
+  return a==b;
+}
+
+// Return array formed by indexing array a with elements of integer array b
+array* :arrayIntArray(array *a, array *b)
+{
+  checkArray(a);
+  checkArray(b);
+  size_t asize=a->size();
+  size_t bsize=b->size();
+  array *r=new array(bsize);
+  for(size_t i=0; i < bsize; i++) {
+    int index=read<int>(b,i);
+    if(index < 0) index += (int) asize;
+    if(index < 0 || index >= (int) asize)
+      error("reading out-of-bounds index from array");
+    (*r)[i]=(*a)[index];
+  }
+  return r;
+}
+
+// Generate the sequence {f_i : i=0,1,...n-1} given a function f and integer n
+intarray* :arraySequence(callable *f, int n)
+{
+  if(n < 0) n=0;
+  array *a=new array(n);
+  for(int i=0; i < n; ++i) {
+    Stack->push(i);
+    f->call(Stack);
+    (*a)[i]=pop(Stack);
+  }
+  return a;
+}
+
+// Return the array {0,1,...n-1}
+intarray *sequence(int n)
+{
+  if(n < 0) n=0;
+  array *a=new array(n);
+  for(int i=0; i < n; ++i) {
+    (*a)[i]=i;
+  }
+  return a;
+}
+
+// Apply a function to each element of an array
+array* :arrayFunction(callable *f, array *a)
+{
+  checkArray(a);
+  size_t size=a->size();
+  array *b=new array(size);
+  for(size_t i=0; i < size; ++i) {
+    Stack->push((*a)[i]);
+    f->call(Stack);
+    (*b)[i]=pop(Stack);
+  }
+  return b;
+}
+
+bool all(boolarray *a)
+{
+  checkArray(a);
+  unsigned int size=(unsigned int) a->size();
+  bool c=true;
+  for(unsigned i=0; i < size; i++)
+    if(!get<bool>((*a)[i])) {c=false; break;}
+  return c;
+}
+
+boolarray* !(boolarray* a)
+{
+  checkArray(a);
+  size_t size=a->size();
+  array *c=new array(size);
+  for(size_t i=0; i < size; i++)
+    (*c)[i]=!read<bool>(a,i);
+  return c;
+}
+
+int :arrayBoolSum(boolarray *a)
+{
+  checkArray(a);
+  size_t size=a->size();
+  int sum=0;
+  for(size_t i=0; i < size; i++)
+    sum += read<bool>(a,i) ? 1 : 0;
+  return sum;
+}
+
+array* :arrayCopy(array *a)
+{
+  return copyArray(a);
+}
+
+array* :arrayConcat(array *a, array *b)
+{
+  checkArray(a);
+  checkArray(b);
+  size_t asize=a->size();
+  size_t bsize=b->size();
+  array *c=new array(asize+bsize);
+  for(size_t i=0; i < asize; i++) 
+    (*c)[i]=(*a)[i];
+  for(size_t i=0; i < bsize; i++, asize++) 
+    (*c)[asize]=(*b)[i];
+  return c;
+}
+
+array* :array2Copy(array *a)
+{
+  return copyArray2(a);
+}
+
+array* :array2Transpose(array *a)
+{
+  checkArray(a);
+  size_t asize=a->size();
+  array *c=new array(0);
+  for(size_t i=0; i < asize; i++) {
+    size_t ip=i+1;
+    array *ai=read<array*>(a,i);
+    checkArray(ai);
+    size_t aisize=ai->size();
+    size_t csize=c->size();
+    if(csize < aisize) {
+      c->resize(aisize);
+      for(size_t j=csize; j < aisize; j++) {
+	(*c)[j]=new array(ip);
+      }
+    }
+    for(size_t j=0; j < aisize; j++) {
+    array *cj=read<array*>(c,j);
+    if(cj->size() < ip) cj->resize(ip);
+    (*cj)[i]=(*ai)[j];
+    }
+  }
+  return c;
 }

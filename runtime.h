@@ -238,8 +238,8 @@ void readChar(vm::stack *s);
 void writestring(vm::stack *s);
 
 // Utils
-vm::array *copyArray(vm::stack *s);
-vm::array *copyArray2(vm::stack *s);
+vm::array *copyArray(vm::array *a);
+vm::array *copyArray2(vm::array *a);
   
 // Math routines  
 void pairArrayFFT(vm::stack *s);

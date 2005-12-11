@@ -126,7 +126,7 @@ struct compare {
 template<class T>
 void sortArray(vm::stack *s)
 {
-  array *c=copyArray(s);
+  array *c=copyArray(pop<array*>(s));
   sort(c->begin(),c->end(),compare<T>());
   s->push(c);
 }
@@ -153,7 +153,7 @@ struct compare2 {
 template<class T>
 void sortArray2(vm::stack *s)
 {
-  array *c=copyArray(s);
+  array *c=copyArray(pop<array*>(s));
   stable_sort(c->begin(),c->end(),compare2<T>());
   s->push(c);
 }

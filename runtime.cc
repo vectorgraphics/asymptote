@@ -110,162 +110,9 @@ void integeroverflow(size_t i=0)
   error(buf.str().c_str());
 }
   
-void intZero(stack *s)
-{
-  s->push(0);
-}
-
-void realZero(stack *s)
-{
-  s->push(0.0);
-}
-
-void boolFalse(stack *s)
-{
-  s->push(false);  
-}
-
-void boolTrue(stack *s)
-{
-  s->push(true);  
-}
-
-void boolNot(stack *s)
-{
-  s->push(!pop<bool>(s));
-}
-
-void boolXor(stack *s)
-{
-  bool b=pop<bool>(s);
-  bool a=pop<bool>(s);
-  s->push(a^b ? true : false);  
-}
-
-void boolMemEq(stack *s)
-{
-  frame* b = pop<frame*>(s);
-  frame* a = pop<frame*>(s);
-  s->push(a == b);
-}
-
-void boolMemNeq(stack *s)
-{
-  frame* b = pop<frame*>(s);
-  frame* a = pop<frame*>(s);
-  s->push(a != b);
-}
-
-void boolFuncEq(stack *s)
-{
-  callable *l=pop<callable*>(s);
-  callable *r=pop<callable*>(s);
-  s->push(l->compare(r));
-}
-
-void boolFuncNeq(stack *s)
-{
-  callable *l=pop<callable*>(s);
-  callable *r=pop<callable*>(s);
-  s->push(!(l->compare(r)));
-}
-
-void realFmod(stack *s)
-{
-  double y = pop<double>(s);
-  double x = pop<double>(s);
-  if (y == 0.0) dividebyzero();
-  double val = fmod(x,y);
-  s->push(val);
-}
-
-void realIntPow(stack *s)
-{
-  int y = pop<int>(s);
-  double x = pop<double>(s);
-  s->push(pow(x,y));
-}
-
-void realAtan2(stack *s)
-{ 
-  s->push(atan2(pop<double>(s),pop<double>(s)));
-}  
-
-void realHypot(stack *s)
-{ 
-  double y = pop<double>(s);
-  double x = pop<double>(s);
-  
-  double sx;
-  sx = hypot(x,y);
-  s->push(sx);
-}  
-
-void realRemainder(stack *s)
-{ 
-  double y = pop<double>(s);
-  double x = pop<double>(s);
-  s->push(remainder(x,y));
-}  
-
-void realJ(stack *s)
-{
-  double x = pop<double>(s);
-  int n = pop<int>(s);
-  s->push(jn(n,x));
-}
-
-void realY(stack *s)
-{
-  double x = pop<double>(s);
-  int n = pop<int>(s);
-  s->push(yn(n,x));
-}
-
-void intQuotient(stack *s)
-{ 
-  int y = pop<int>(s);
-  int x = pop<int>(s);
-  if (y == 0) dividebyzero();
-// Implementation-independent definition of integer division: round down
-  s->push((x-portableMod(x,y))/y);
-}  
-
-void intAbs(stack *s)
-{ 
-  s->push(abs(pop<int>(s)));
-}  
-
-inline int sgn(double x) 
-{
-  return (x > 0.0 ? 1 : (x < 0.0 ? -1 : 0));
-}
-
-void intSgn(stack *s)
-{ 
-  s->push(sgn(pop<double>(s)));
-}  
-
-void intRand(stack *s)
-{ 
-  s->push(rand());
-}  
-
-void intSrand(stack *s)
-{ 
-  int seed = pop<int>(s);
-  srand(seed);
-}  
-
 void boolDeconstruct(stack *s)
 { 
   s->push(settings::deconstruct != 0.0);
-}
-
-// Create an empty array.
-void emptyArray(stack *s)
-{
-  s->push(new array(0));
 }
 
 // Helper function to create deep arrays.
@@ -287,8 +134,7 @@ static array* deepArray(int depth, int *dims)
     return a;
   }
 }
- 
-
+  
 // Create a new array (technically a vector).
 // This array will be multidimensional.  First the number of dimensions
 // is popped off the stack, followed by each dimension in reverse order.
@@ -343,165 +189,6 @@ void newAppendedArray(stack *s)
   s->push(a);
 }
 
-static void outOfBounds(const char *op, size_t len, int n)
-{
-  ostringstream buf;
-  buf << op << " array of length " << len << " with out-of-bounds index "
-      << n;
-  error(buf.str().c_str());
-}
-
-item& arrayRead(stack *s, int n)  
-{
-  array *a = pop<array*>(s);
-  checkArray(a);
-  size_t len=a->size();
-  bool cyclic=a->cyclic();
-  if(cyclic && len > 0) n=imod(n,len);
-  else if(n < 0 || n >= (int) len) outOfBounds("reading",len,n);
-  return (*a)[(unsigned) n];
-}
-  
-// Read an element from an array. Checks for initialization & bounds.
-void arrayRead(stack *s)
-{
-  int n = pop<int>(s);
-  item& i=arrayRead(s,n);
-  if (i.empty()) {
-    ostringstream buf;
-    buf << "read uninitialized value from array at index " << n;
-    error(buf.str().c_str());
-  }
-  s->push(i);
-}
-
-// Read an element from an array of arrays. Check bounds and initialize
-// as necessary.
-void arrayArrayRead(stack *s)
-{
-  int n = pop<int>(s);
-  item& i=arrayRead(s,n);
-  if (i.empty()) i=new array(0);
-  s->push(i);
-}
-
-// Write an element to an array.  Increase size if necessary.
-void arrayWrite(stack *s)
-{
-  int n = pop<int>(s);
-  array *a = pop<array*>(s);
-  item value = pop(s);
-
-  checkArray(a);
-  size_t len=a->size();
-  bool cyclic=a->cyclic();
-  if(cyclic && len > 0) n=imod(n,len);
-  else {
-    if(cyclic) outOfBounds("writing cyclic",len,n);
-    if(n < 0) outOfBounds("writing",len,n);
-    if(a->size() <= (size_t) n)
-      a->resize(n+1);
-  }
-  (*a)[n] = value;
-  s->push(value);
-}
-
-// Returns the length of an array.
-void arrayLength(stack *s)
-{
-  array *a = pop<array*>(s);
-  checkArray(a);
-  s->push((int)a->size());
-}
-
-// Return the cyclic flag for an array.
-void arrayCyclicFlag(stack *s)
-{
-  array *a = pop<array*>(s);
-  checkArray(a);
-  s->push(a->cyclic());
-}
-
-// Set the cyclic flag for an array.
-void arrayCyclic(stack *s)
-{
-  array *a = pop<array*>(s);
-  checkArray(a);
-  s->push((callable*) new thunk(new bfunc(arrayCyclicHelper),a));
-}
-
-// The helper function for the cyclic method that sets the cyclic flag.
-void arrayCyclicHelper(stack *s)
-{
-  array *a = pop<array*>(s);
-  checkArray(a);
-  a->cyclic(pop<bool>(s));
-}
-
-// Returns the push method for an array.
-void arrayPush(stack *s)
-{
-  array *a = pop<array*>(s);
-  checkArray(a);
-  s->push((callable*) new thunk(new bfunc(arrayPushHelper),a));
-}
-
-// The helper function for the push method that does the actual operation.
-void arrayPushHelper(stack *s)
-{
-  array *a = pop<array*>(s);
-  item i = pop(s);
-  checkArray(a);
-  a->push(i);
-  s->push(i);
-}
-
-// Returns the append method for an array.
-void arrayAppend(stack *s)
-{
-  array *a = pop<array*>(s);
-  checkArray(a);
-  s->push((callable*) new thunk(new bfunc(arrayAppendHelper),a));
-}
-
-// The helper function for the append method that appends b to a.
-void arrayAppendHelper(stack *s)
-{
-  array *a = pop<array*>(s);
-  array *b = pop<array*>(s);
-  checkArray(a);
-  checkArray(b);
-  size_t size=b->size();
-  for(size_t i=0; i < size; i++)
-    a->push((*b)[i]);
-}
-
-// Returns the pop method for an array.
-void arrayPop(stack *s)
-{
-  array *a = pop<array*>(s);
-  checkArray(a);
-  s->push((callable*) new thunk(new bfunc(arrayPopHelper),a));
-}
-
-// The helper function for the pop method.
-void arrayPopHelper(stack *s)
-{
-  array *a = pop<array*>(s);
-  checkArray(a);
-  if(a->size() == 0) 
-    error("cannot pop element from empty array");
-  item i=a->pop();
-  s->push(i);
-}
-
-void arrayAlias(stack *s)
-{
-  array *b=pop<array*>(s);
-  array *a=pop<array*>(s);
-  s->push(a==b);
-}
-
 // construct vector obtained by replacing those elements of b for which the
 // corresponding elements of a are false by the corresponding element of c.
 void arrayConditional(stack *s)
@@ -532,69 +219,6 @@ void arrayConditional(stack *s)
   s->push(r);
 }
   
-// Return array formed by indexing array a with elements of integer array b
-void arrayIntArray(stack *s)
-{
-  array *b=pop<array*>(s);
-  array *a=pop<array*>(s);
-  checkArray(a);
-  checkArray(b);
-  size_t asize=a->size();
-  size_t bsize=b->size();
-  array *r=new array(bsize);
-  for(size_t i=0; i < bsize; i++) {
-    int index=read<int>(b,i);
-    if(index < 0) index += (int) asize;
-    if(index < 0 || index >= (int) asize)
-      error("reading out-of-bounds index from array");
-    (*r)[i]=(*a)[index];
-  }
-  s->push(r);
-}
-
-// Generate the sequence {f_i : i=0,1,...n-1} given a function f and integer n
-void arraySequence(stack *s)
-{
-  int n=pop<int>(s);
-  callable* f = pop<callable*>(s);
-  if(n < 0) n=0;
-  array *a=new array(n);
-  for(int i=0; i < n; ++i) {
-    s->push(i);
-    f->call(s);
-    (*a)[i]=pop(s);
-  }
-  s->push(a);
-}
-
-// Return the array {0,1,...n-1}
-void intSequence(stack *s)
-{
-  int n=pop<int>(s);
-  if(n < 0) n=0;
-  array *a=new array(n);
-  for(int i=0; i < n; ++i) {
-    (*a)[i]=i;
-  }
-  s->push(a);
-}
-
-// Apply a function to each element of an array
-void arrayFunction(stack *s)
-{
-  array *a=pop<array*>(s);
-  callable* f = pop<callable*>(s);
-  checkArray(a);
-  size_t size=a->size();
-  array *b=new array(size);
-  for(size_t i=0; i < size; ++i) {
-    s->push((*a)[i]);
-    f->call(s);
-    (*b)[i]=pop(s);
-  }
-  s->push(b);
-}
-
 // In a boolean array, find the index of the nth true value or -1 if not found
 // If n is negative, search backwards.
 void arrayFind(stack *s)
@@ -615,92 +239,6 @@ void arrayFind(stack *s)
 	n++; if(n == 0) {j=i; break;}
       }
   s->push(j);
-}
-
-void arrayAll(stack *s)
-{
-  array *a = pop<array*>(s);
-  checkArray(a);
-  unsigned int size=(unsigned int) a->size();
-  bool c=true;
-  for(unsigned i=0; i < size; i++)
-    if(!get<bool>((*a)[i])) {c=false; break;}
-  s->push(c);
-}
-
-void arrayBoolNegate(stack *s)
-{
-  array *a=pop<array*>(s);
-  checkArray(a);
-  size_t size=a->size();
-  array *c=new array(size);
-  for(size_t i=0; i < size; i++)
-    (*c)[i]=!read<bool>(a,i);
-  s->push(c);
-}
-
-void arrayBoolSum(stack *s)
-{
-  array *a=pop<array*>(s);
-  checkArray(a);
-  size_t size=a->size();
-  int sum=0;
-  for(size_t i=0; i < size; i++)
-    sum += read<bool>(a,i) ? 1 : 0;
-  s->push(sum);
-}
-
-void arrayCopy(stack *s)
-{
-  s->push(copyArray(s));
-}
-
-void arrayConcat(stack *s)
-{
-  array *b=pop<array*>(s);
-  array *a=pop<array*>(s);
-  checkArray(a);
-  checkArray(b);
-  size_t asize=a->size();
-  size_t bsize=b->size();
-  array *c=new array(asize+bsize);
-  for(size_t i=0; i < asize; i++) 
-    (*c)[i]=(*a)[i];
-  for(size_t i=0; i < bsize; i++, asize++) 
-    (*c)[asize]=(*b)[i];
-  s->push(c);
-}
-
-void array2Copy(stack *s)
-{
-  s->push(copyArray2(s));
-}
-
-void array2Transpose(stack *s)
-{
-  array *a=pop<array*>(s);
-  checkArray(a);
-  size_t asize=a->size();
-  array *c=new array(0);
-  for(size_t i=0; i < asize; i++) {
-    size_t ip=i+1;
-    array *ai=read<array*>(a,i);
-    checkArray(ai);
-    size_t aisize=ai->size();
-    size_t csize=c->size();
-    if(csize < aisize) {
-      c->resize(aisize);
-      for(size_t j=csize; j < aisize; j++) {
-	(*c)[j]=new array(ip);
-      }
-    }
-    for(size_t j=0; j < aisize; j++) {
-    array *cj=read<array*>(c,j);
-    if(cj->size() < ip) cj->resize(ip);
-    (*cj)[i]=(*ai)[j];
-    }
-  }
-  s->push(c);
 }
 
 #ifdef HAVE_LIBFFTW3
@@ -1010,48 +548,6 @@ void tripleRealDivide(stack *s)
   s->push(v/x);
 }
 
-void intersectcubics(stack *s)
-{
-  double fuzz=pop<double>(s);
-  
-  array *post2=pop<array*>(s);
-  array *point2=pop<array*>(s);
-  array *pre2=pop<array*>(s);
-  
-  array *post1=pop<array*>(s);
-  array *point1=pop<array*>(s);
-  array *pre1=pop<array*>(s);
-  
-  size_t size1=pre1->size();
-  size_t size2=pre2->size();
-      
-  if(point1->size() != size1 || post1->size() != size1 ||
-     point2->size() != size2 || post2->size() != size2)
-    error("Mismatched array lengths");
-  
-  int single1=(size1 == 1);
-  int single2=(size2 == 1);
-  
-  size_t Size1=size1+single1;
-  size_t Size2=size2+single2;
-  
-  node *n1=new node[Size1];
-  node *n2=new node[Size2];
-      
-  for(size_t i=0; i < size1; ++i)
-    n1[i]=node(read<triple>(pre1,i),read<triple>(point1,i),
-	       read<triple>(post1,i));
-
-  for(size_t i=0; i < size2; ++i)
-    n2[i]=node(read<triple>(pre2,i),read<triple>(point2,i),
-	       read<triple>(post2,i));
-
-  if(single1) n1[1]=n1[0];
-  if(single2) n2[1]=n2[0];
-  
-  s->push(intersect((int) Size1-1,(int) Size2-1,n1,n2,fuzz));
-}
-  
 // Transforms
   
 void transformIdentity(stack *s)
@@ -1149,20 +645,6 @@ void real6ToTransform(stack *s)
   double y = pop<double>(s);
   double x = pop<double>(s);
   s->push(new transform(x,y,xx,xy,yx,yy));
-}
-
-void boolTransformEq(stack *s)
-{
-  transform *b = pop<transform*>(s);
-  transform *a = pop<transform*>(s);
-  s->push((*a) == (*b));
-}
-
-void boolTransformNeq(stack *s)
-{
-  transform *b = pop<transform*>(s);
-  transform *a = pop<transform*>(s);
-  s->push((*a) != (*b));
 }
 
 string emptystring;
@@ -1533,7 +1015,7 @@ void frameMin(stack *s)
 void fill(stack *s)
 {
   pen *n = pop<pen*>(s);
-  array *p=copyArray(s);
+  array *p=copyArray(pop<array*>(s));
   picture *pic = pop<picture*>(s);
   checkArray(p);
   pic->append(new drawFill(p,*n));
@@ -1541,9 +1023,9 @@ void fill(stack *s)
  
 void latticeShade(stack *s)
 {
-  array *pens=copyArray(s);
+  array *pens=copyArray(pop<array*>(s));
   pen *n = pop<pen*>(s);
-  array *p=copyArray(s);
+  array *p=copyArray(pop<array*>(s));
   picture *pic = pop<picture*>(s);
   checkArray(p);
   checkArray(pens);
@@ -1556,7 +1038,7 @@ void axialShade(stack *s)
   pen *penb = pop<pen*>(s);
   pair a = pop<pair>(s);
   pen *pena = pop<pen*>(s);
-  array *p=copyArray(s);
+  array *p=copyArray(pop<array*>(s));
   picture *pic = pop<picture*>(s);
   checkArray(p);
   pic->append(new drawAxialShade(p,*pena,a,*penb,b));
@@ -1570,7 +1052,7 @@ void radialShade(stack *s)
   double ra = pop<double>(s);
   pair a = pop<pair>(s);
   pen *pena = pop<pen*>(s);
-  array *p=copyArray(s);
+  array *p=copyArray(pop<array*>(s));
   picture *pic = pop<picture*>(s);
   checkArray(p);
   pic->append(new drawRadialShade(p,*pena,a,ra,*penb,b,rb));
@@ -1578,11 +1060,11 @@ void radialShade(stack *s)
  
 void gouraudShade(stack *s)
 {
-  array *edges=copyArray(s);
-  array *vertices=copyArray(s);
-  array *pens=copyArray(s);
+  array *edges=copyArray(pop<array*>(s));
+  array *vertices=copyArray(pop<array*>(s));
+  array *pens=copyArray(pop<array*>(s));
   pen *n = pop<pen*>(s);
-  array *p=copyArray(s);
+  array *p=copyArray(pop<array*>(s));
   picture *pic = pop<picture*>(s);
   checkArray(p);
   checkArrays(pens,vertices);
@@ -1595,7 +1077,7 @@ void gouraudShade(stack *s)
 void clip(stack *s)
 {
   pen *n = pop<pen*>(s);
-  array *p=copyArray(s);
+  array *p=copyArray(pop<array*>(s));
   picture *pic = pop<picture*>(s);
   pic->enclose(new drawClipBegin(p,*n),new drawClipEnd());
 }
@@ -1603,7 +1085,7 @@ void clip(stack *s)
 void beginClip(stack *s)
 {
   pen *n = pop<pen*>(s);
-  array *p=copyArray(s);
+  array *p=copyArray(pop<array*>(s));
   picture *pic = pop<picture*>(s);
   pic->append(new drawClipBegin(p,*n,false));
 }
@@ -1612,7 +1094,7 @@ void inside(stack *s)
 {
   pen *n = pop<pen*>(s);
   pair z = pop<pair>(s);
-  array *p=copyArray(s);
+  array *p=copyArray(pop<array*>(s));
   checkArray(p);
   size_t size=p->size();
   int count=0;
@@ -1655,8 +1137,8 @@ void image(stack *s)
 {
   pair final = pop<pair>(s);
   pair initial = pop<pair>(s);
-  array *p=copyArray(s);
-  array *a=copyArray2(s);
+  array *p=copyArray(pop<array*>(s));
+  array *a=copyArray2(pop<array*>(s));
   picture *pic = pop<picture*>(s);
   drawImage *d = new drawImage(a,p,matrix(initial,final));
   pic->append(d);
@@ -1996,50 +1478,8 @@ void fileArray3(stack *s)
   s->push(f);
 }
 
-void boolFileEq(stack *s)
-{
-  file* b = pop<file*>(s);
-  file* a = pop<file*>(s);
-  s->push(a == b);
-}
-
-void boolFileNeq(stack *s)
-{
-  file* b = pop<file*>(s);
-  file* a = pop<file*>(s);
-  s->push(a != b);
-}
-
 // Utilities
 
-array *copyArray(stack *s)
-{
-  array *a=pop<array*>(s);
-  checkArray(a);
-  size_t size=a->size();
-  array *c=new array(size);
-  for(size_t i=0; i < size; i++) 
-    (*c)[i]=(*a)[i];
-  return c;
-}
-
-array *copyArray2(stack *s)
-{
-  array *a=pop<array*>(s);
-  checkArray(a);
-  size_t size=a->size();
-  array *c=new array(size);
-  for(size_t i=0; i < size; i++) {
-    array *ai=read<array*>(a,i);
-    checkArray(ai);
-    size_t aisize=ai->size();
-    array *ci=new array(aisize);
-    (*c)[i]=ci;
-    for(size_t j=0; j < aisize; j++) 
-      (*ci)[j]=(*ai)[j];
-  }
-  return c;
-}
 
 
 } // namespace run
