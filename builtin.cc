@@ -415,17 +415,6 @@ void addOperators(venv &ve)
 {
   addSimpleOperator(ve,run::binaryOp<string,run::plus>,primString(),"+");
   
-  addSimpleOperator(ve,run::transformTransformMult,primTransform(),"*");
-  addFunc(ve,run::transformPairMult,primPair(),"*",primTransform(),
-	  primPair());
-  addFunc(ve,run::transformPathMult,primPath(),"*",primTransform(),
-	  primPath());
-  addFunc(ve,run::transformPenMult,primPen(),"*",primTransform(),
-	  primPen());
-  addFunc(ve,run::transformFrameMult,primPicture(),"*",primTransform(),
-	  primPicture());
-  addFunc(ve,run::transformPow,primTransform(),"^",primTransform(),
-	  primInt());
   addFunc(ve,run::boolNullFrame,primBoolean(),"empty",primPicture());
 
   addSimpleOperator(ve,run::penPenPlus,primPen(),"+");
@@ -460,10 +449,6 @@ void addOperators(venv &ve)
   
   addOps<int,run::mod>(ve,intArray(),"%",primInt());
   addOps<double,run::mod>(ve,realArray(),"%",primReal());
-  
-  addFunc(ve,run::realTripleMult,primTriple(),"*",primReal(),primTriple());
-  addFunc(ve,run::tripleRealMult,primTriple(),"*",primTriple(),primReal());
-  addFunc(ve,run::tripleRealDivide,primTriple(),"/",primTriple(),primReal());
 }
 
 double identity(double x) {return x;}
@@ -531,18 +516,6 @@ void base_venv(venv &ve)
   addRealFunc(pow10);
   addRealFunc(identity);
   
-  addFunc(ve,run::pairXPart,primReal(),"xpart",primPair());
-  addFunc(ve,run::pairYPart,primReal(),"ypart",primPair());
-
-  addFunc(ve,run::tripleXPart,primReal(),"xpart",primTriple());
-  addFunc(ve,run::tripleYPart,primReal(),"ypart",primTriple());
-  addFunc(ve,run::tripleZPart,primReal(),"zpart",primTriple());
-  
-  addFunc(ve,run::quadraticRoots,realArray(),"quadraticroots",
-	  primReal(),primReal(),primReal());
-  addFunc(ve,run::cubicRoots,realArray(),"cubicroots",
-	  primReal(),primReal(),primReal(),primReal());
-  
   addFunc(ve,run::stringReplace,primString(),"replace",primString(),
 	  stringArray2());
   addFunc(ve,run::stringFormatReal,primString(),"format",primString(),
@@ -565,8 +538,6 @@ void base_venv(venv &ve)
   
   addFunc(ve,run::penMax,primPair(),"max",primPen());
   addFunc(ve,run::penMin,primPair(),"min",primPen());
-  
-  // Transform operations
   
   // I/O functions
 

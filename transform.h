@@ -29,7 +29,7 @@ class transform : public gc {
 
 public:
   transform()
-    : x(0.0), y(0.0), xx(0.0), xy(0.0), yx(0.0), yy(0.0) {}
+    : x(0.0), y(0.0), xx(1.0), xy(0.0), yx(0.0), yy(1.0) {}
 
   transform(double x, double y,
             double xx, double xy,
@@ -139,7 +139,7 @@ public:
 // The common transforms
 inline transform identity()
 {
-  return transform (0.0, 0.0, 1.0, 0.0, 0.0, 1.0);
+  return transform();
 }
 
 inline transform shift(pair z)

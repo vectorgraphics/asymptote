@@ -101,6 +101,7 @@ while (<>) {
 
   # Build addFunc call for asymptote
   if($name) {
+  $name =~ s/operator\s*//;
   push @builtin, "  addFunc(ve, run::" . $cname 
       . ", " . $type_map{$type}
       . ", " . '"' . $name . '"'
@@ -110,7 +111,7 @@ while (<>) {
   }
 
   # Handle marshalling of values to/from stack
-  $qualifier = ($type =~ /^item$/ ? "" : "<$type>");
+  $qualifier = ($type eq "item" ? "" : "<$type>");
   $code =~ s/\breturn ([^;]*);/{$stack->push$qualifier($1); return;}/g;
   $args = join("",c_params(@params));
 
