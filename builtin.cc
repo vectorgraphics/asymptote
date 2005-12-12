@@ -538,8 +538,6 @@ void base_venv(venv &ve)
   addFunc(ve,run::tripleYPart,primReal(),"ypart",primTriple());
   addFunc(ve,run::tripleZPart,primReal(),"zpart",primTriple());
   
-  addFunc(ve,run::tridiagonal,realArray(),"tridiagonal",
-	  realArray(),realArray(),realArray(),realArray());
   addFunc(ve,run::quadraticRoots,realArray(),"quadraticroots",
 	  primReal(),primReal(),primReal());
   addFunc(ve,run::cubicRoots,realArray(),"cubicroots",

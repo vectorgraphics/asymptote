@@ -63,6 +63,7 @@ triplearray* => tripleArray()
 using namespace vm;
 using namespace camp;
 using namespace settings;
+
 namespace run {
 using camp::pair;
 using mem::string;
@@ -181,7 +182,9 @@ item& arrayRead(array *a, int n)
 }
 
 
+
 // Initializers
+
 int :intZero()
 {
   return 0;
@@ -258,7 +261,9 @@ bool labels(picture *pic)
   return pic->havelabels();
 }
 
+
 // Pen operations
+
 // Reset the meaning of pen default attributes.
 void resetdefaultpen()
 {
@@ -501,7 +506,9 @@ string fileprefix()
   return outname;
 }
 
+
 // Interactive mode
+
 bool interact()
 {
   return interact::interactive;
@@ -517,7 +524,9 @@ bool uptodate()
   return interact::uptodate;
 }
 
+
 // System commands
+
 int system(string *str)
 {
   if(safe) error("system() call disabled; override with option -unsafe");
@@ -558,7 +567,9 @@ void readGUI()
   first=false;
 }
 
+
 // Path operations
+
 pair point(path p, int n)
 {
   return p.point(n);
@@ -654,7 +665,9 @@ double relativedistance(double theta, double phi, double t, bool atleast)
   return camp::velocity(theta,phi,tension(t,atleast));
 }
 
+
 // Triple operations
+
 double cubiclength(triple z0, triple z0p, triple z1m, triple z1, double goal)
 {
   return cubiclength(z0,z0p,z1m,z1,goal);
@@ -672,7 +685,9 @@ triple dir(double theta, double phi)
   return expi(radians(theta),radians(phi));
 }
 
+
 // String operations
+
 int length(string *s)
 {
   return (int) s->length();
@@ -720,7 +735,9 @@ void gui(double x)
   settings::deconstruct=(x > 0 ? x : 0);
 }
 
+
 // Math
+
 double ^(double x, int y)
 {
   return pow(x,y);
@@ -864,7 +881,9 @@ callable *atexit()
   return atExitFunction;
 }
 
+
 // Transforms
+
 transform identity()
 {
   return identity();
@@ -910,7 +929,9 @@ transform reflect(pair a, pair b)
   return reflectabout(a,b);
 }
 
+
 // Pair operations
+
 double length(pair z)
 {
   return z.length();
@@ -959,7 +980,9 @@ double _dot(pair u, pair v)
   return u.getx()*v.getx()+u.gety()*v.gety();
 }
 
+
 // Triple operations
+
 double length(triple v)
 {
   return v.length();
@@ -1047,7 +1070,9 @@ pair intersect(triplearray* pre1, triplearray* point1, triplearray* post1,
   
   return intersect((int) Size1-1,(int) Size2-1,n1,n2,fuzz);
 }
+
 // Constants
+
 
 double pi()
 { 
@@ -1084,7 +1109,9 @@ double randMax()
   return RAND_MAX;
 }
 
+
 // System routines
+
 // Merge output files  
 int merge(stringarray *files, string *args, string *format, bool keep)
 {
@@ -1121,7 +1148,9 @@ int merge(stringarray *files, string *args, string *format, bool keep)
   return ret;
 }
 
+
 // Array operations
+
 // Create an empty array.
 array* :emptyArray()
 {
@@ -1381,4 +1410,154 @@ array* :array2Transpose(array *a)
     }
   }
   return c;
+}
+
+// In a boolean array, find the index of the nth true value or -1 if not found
+// If n is negative, search backwards.
+int :arrayFind(array *a, int n)
+{
+  checkArray(a);
+  int size=(int) a->size();
+  int j=-1;
+  if(n > 0)
+    for(int i=0; i < size; i++)
+      if(read<bool>(a,i)) {
+	n--; if(n == 0) {j=i; break;}
+      }
+  if(n < 0)
+    for(int i=size-1; i >= 0; i--)
+      if(read<bool>(a,i)) {
+	n++; if(n == 0) {j=i; break;}
+      }
+  return j;
+}
+
+// construct vector obtained by replacing those elements of b for which the
+// corresponding elements of a are false by the corresponding element of c.
+array* :arrayConditional(array *a, array *b, array *c)
+{
+  size_t size=a->size();
+  array *r=new array(size);
+  if(b && c) {
+    checkArrays(a,b);
+    checkArrays(b,c);
+    for(size_t i=0; i < size; i++)
+      (*r)[i]=read<bool>(a,i) ? (*b)[i] : (*c)[i];
+  } else {
+    r->clear();
+    if(b) {
+      checkArrays(a,b);
+      for(size_t i=0; i < size; i++)
+        if(read<bool>(a,i)) r->push((*b)[i]);
+    } else if(c) {
+      checkArrays(a,c);
+      for(size_t i=0; i < size; i++)
+        if(!read<bool>(a,i)) r->push((*c)[i]);
+    }
+  }
+  return r;
+}
+
+// Solve the problem L\inv f, where f is an n vector and L is the n x n matrix
+//
+// [ b[0] c[0]           a[0]   ]
+// [ a[1] b[1] c[1]             ]
+// [      a[2] b[2] c[2]        ]
+// [                ...         ]
+// [       c[n-1] a[n-1] b[n-1] ]
+realarray *tridiagonal(realarray *a, realarray *b, realarray *c, realarray *f)
+{
+  checkArray(f);
+  checkArray(c);
+  checkArray(b);
+  checkArray(a);
+  
+  size_t n=a->size();
+  if(n != b->size() || n != c->size() || n != f->size())
+    vm::error(arraymismatch);
+  
+  array *up=new array(n);
+  array& u=*up;
+
+  if(n == 0) return up;
+  
+  // Special case: Zero Dirichlet boundary conditions
+  if(read<double>(a,0) == 0.0 && read<double>(c,n-1) == 0.0) {
+    static double *work;
+    static size_t size=0;
+  
+    CheckReallocate(work,n,size);
+    
+    double temp=1.0/read<double>(b,0);
+    u[0]=read<double>(f,0)*temp;
+    work[0]=-read<double>(c,0)*temp;
+	
+    for(size_t i=1; i < n; i++) {
+      double temp=1.0/(read<double>(b,i)+read<double>(a,i)*work[i-1]);
+      u[i]=(read<double>(f,i)-read<double>(a,i)*read<double>(u,i-1))*temp;
+      work[i]=-read<double>(c,i)*temp;
+    }
+
+    for(size_t i=n-1; i >= 1; i--)
+      u[i-1]=read<double>(u,i-1)+work[i-1]*read<double>(u,i);
+    return up;
+  }
+  
+  double binv=read<double>(b,0);
+  if(binv == 0.0) dividebyzero();
+  binv=1.0/binv;
+  
+  if(n == 1) {u[0]=read<double>(f,0)*binv; return up;}
+  if(n == 2) {
+    double factor=(read<double>(b,0)*read<double>(b,1)-
+		   read<double>(a,0)*read<double>(c,1));
+    if(factor== 0.0) dividebyzero();
+    factor=1.0/factor;
+    double temp=(read<double>(b,0)*read<double>(f,1)-
+	  read<double>(c,1)*read<double>(f,0))*factor;
+    u[0]=(read<double>(b,1)*read<double>(f,0)-
+	  read<double>(a,0)*read<double>(f,1))*factor;
+    u[1]=temp;
+    return up;
+  }
+	
+  static double *gamma,*delta;
+  static size_t size=0;
+  CheckReallocate(gamma,delta,n-2,size);
+  
+  gamma[0]=read<double>(c,0)*binv;
+  delta[0]=read<double>(a,0)*binv;
+  u[0]=read<double>(f,0)*binv;
+  double beta=read<double>(c,n-1);
+  double fn=read<double>(f,n-1)-beta*read<double>(u,0);
+  double alpha=read<double>(b,n-1)-beta*delta[0];
+
+  for(size_t i=1; i <= n-3; i++) {
+    double alphainv=read<double>(b,i)-read<double>(a,i)*gamma[i-1];
+    if(alphainv == 0.0) dividebyzero();
+    alphainv=1.0/alphainv;
+    beta *= -gamma[i-1];
+    gamma[i]=read<double>(c,i)*alphainv;
+    u[i]=(read<double>(f,i)-read<double>(a,i)*read<double>(u,i-1))*alphainv;
+    fn -= beta*read<double>(u,i);
+    delta[i]=-read<double>(a,i)*delta[i-1]*alphainv;
+    alpha -= beta*delta[i];
+  }
+	
+  double alphainv=read<double>(b,n-2)-read<double>(a,n-2)*gamma[n-3];
+  if(alphainv == 0.0) dividebyzero();
+  alphainv=1.0/alphainv;
+  u[n-2]=(read<double>(f,n-2)-read<double>(a,n-2)*read<double>(u,n-3))
+    *alphainv;
+  beta=read<double>(a,n-1)-beta*gamma[n-3];
+  double dnm1=(read<double>(c,n-2)-read<double>(a,n-2)*delta[n-3])*alphainv;
+  double temp=alpha-beta*dnm1;
+  if(temp == 0.0) dividebyzero();
+  u[n-1]=temp=(fn-beta*read<double>(u,n-2))/temp;
+  u[n-2]=read<double>(u,n-2)-dnm1*temp;
+	
+  for(size_t i=n-2; i >= 1; i--)
+    u[i-1]=read<double>(u,i-1)-gamma[i-1]*read<double>(u,i)-delta[i-1]*temp;
+  
+  return up;
 }
