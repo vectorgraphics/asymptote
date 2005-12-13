@@ -95,9 +95,8 @@ while (<>) {
       \{(.*)}           # body
       |xs;
 
-  # Unique C++ function name
   if($cname) {push @header, "void $cname(vm::stack *);\n";}
-  else {$cname="gen${count}";}
+  else {$cname="gen${count}";}  # Unique C++ function name
   
   clean_type($type);
   
@@ -125,7 +124,9 @@ while (<>) {
     clean_params($prototype);
     print "// $prototype\n";
   }
-  print "void $cname(vm::stack *$stack)\n{\n$args$code}\n\n";
+  print "void $cname(stack *";
+  if($type ne "void" or $params ne "") {print $stack;}
+  print ")\n{\n$args$code}\n\n";
   
   ++$count;
 }

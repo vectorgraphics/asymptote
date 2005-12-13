@@ -86,6 +86,8 @@ using camp::pair;
 using mem::string;
 using vm::array;
 using vm::frame;
+using vm::stack;
+using camp::transform;
 using absyntax::runnable;
 
 callable *atExitFunction=NULL;
@@ -280,6 +282,21 @@ void cleanup()
     camp::tex.pipeclose();
     TeXinitialized=false;
   }
+}
+
+void exitFunction(stack *Stack)
+{
+  if(atExitFunction && !nullfunc::instance()->compare(atExitFunction)) {
+    atExitFunction->call(Stack);
+    atExitFunction=NULL;
+  }
+  cleanup();
+}
+
+void updateFunction(stack *Stack)
+{
+  if(atExitFunction && !nullfunc::instance()->compare(atExitFunction))
+    atExitFunction->call(Stack);
 }
 
 default_t def;
@@ -892,21 +909,6 @@ void _eval(runnable *s, bool embedded=false)
   loop::doIRunnable(s,embedded);
 }
 
-void :exitFunction()
-{
-  if(atExitFunction && !nullfunc::instance()->compare(atExitFunction)) {
-    atExitFunction->call(Stack);
-    atExitFunction=NULL;
-  }
-  cleanup();
-}
-
-void :updateFunction()
-{
-  if(atExitFunction && !nullfunc::instance()->compare(atExitFunction))
-    atExitFunction->call(Stack);
-}
-
 void gui(double x)
 { 
   settings::deconstruct=(x > 0 ? x : 0);
@@ -1367,13 +1369,15 @@ string format(string *format, double x)
 
 string time(string *format)
 {
-  static const size_t n=256;
-  static char Time[n]="";
 #ifdef HAVE_STRFTIME
+  static const size_t n=256;
+  static char Time[n];
   const time_t bintime=time(NULL);
   strftime(Time,n,format->c_str(),localtime(&bintime));
-#endif  
   return Time;
+#else  
+  return *format;
+#endif  
 }
 
 
@@ -2076,7 +2080,7 @@ item :arrayWrite(item value, array *a, int n)
 int :arrayLength(array *a)
 {
   checkArray(a);
-  return a->size();
+  return (int) a->size();
 }
 
 // Return the cyclic flag for an array.

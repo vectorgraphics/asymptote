@@ -8,10 +8,6 @@
 #include "config.h"
 #endif
 
-namespace run {
-  void cleanup();
-}
-
 namespace interact {
 
 extern int interactive;

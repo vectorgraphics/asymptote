@@ -26,6 +26,12 @@
 #include "stack.h"
 #include "runtime.h"
 
+namespace run {
+  void cleanup();
+  void exitFunction(vm::stack *Stack);
+  void updateFunction(vm::stack *Stack);
+}
+
 using namespace settings;
 using std::list;
 
