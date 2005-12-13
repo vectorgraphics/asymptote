@@ -8,9 +8,7 @@
 #define BUILTIN_H
 
 #include "vm.h"
-namespace types {
-class ty;
-}
+#include "types.h"
 
 namespace trans {
 
@@ -23,13 +21,9 @@ void base_tenv(tenv &);
 void base_venv(venv &);
 void base_menv(menv &);
 
+// Add a function with one or more default arguments.
 void addFunc(venv &ve, vm::bltin f, types::ty *result, const char *name, 
-             types::ty *t1 = 0, types::ty *t2 = 0, types::ty *t3 = 0,
-             types::ty *t4 = 0, types::ty *t5 = 0, types::ty *t6 = 0,
-             types::ty *t7 = 0, types::ty *t8 = 0);
-
-void addFunc(venv &ve, vm::bltin f, types::ty *result, const char *name, 
-	     types::ty *t1, const char *s1, bool d1,
+	     types::ty *t1=0, const char *s1="", bool d1=false,
 	     types::ty *t2=0, const char *s2="", bool d2=false,
 	     types::ty *t3=0, const char *s3="", bool d3=false,
 	     types::ty *t4=0, const char *s4="", bool d4=false,

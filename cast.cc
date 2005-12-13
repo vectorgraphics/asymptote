@@ -12,7 +12,6 @@
 #include "cast.h"
 #include "runtime.h"
 #include "access.h"
-#include "builtin.h"
 #include "castop.h"
 
 using namespace trans;

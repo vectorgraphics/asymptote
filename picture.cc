@@ -300,7 +300,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
   return true;
 }
 
-bool picture::shipout(const picture& preamble, const string& Prefix,
+bool picture::shipout(picture *preamble, const string& Prefix,
 		      const string& format, bool wait, bool quiet, bool Delete)
 {
   bool standardout=Prefix == "-";
@@ -408,20 +408,21 @@ bool picture::shipout(const picture& preamble, const string& Prefix,
   
     if(Labels) tex->beginlayer(psname);
   
-    // Postscript preamble.
-    nodelist Nodes=preamble.nodes;
-    nodelist::iterator P=Nodes.begin();
-    if(P != Nodes.end()) {
-      out.resetpen();
-      for(; P != Nodes.end(); ++P) {
-	assert(*P);
-	out.raw(true);
-	if(!(*P)->draw(&out))
-	  status = false;
-	out.raw(false);
+    if(preamble) {
+      // Postscript preamble.
+      nodelist Nodes=preamble->nodes;
+      nodelist::iterator P=Nodes.begin();
+      if(P != Nodes.end()) {
+	out.resetpen();
+	for(; P != Nodes.end(); ++P) {
+	  assert(*P);
+	  out.raw(true);
+	  if(!(*P)->draw(&out))
+	    status = false;
+	  out.raw(false);
+	}
       }
     }
-    
     out.resetpen();
     
     for(; p != nodes.end(); ++p) {

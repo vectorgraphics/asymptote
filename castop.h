@@ -15,6 +15,7 @@
 #include "fileio.h"
 #include "lexical.h"
 #include "mathop.h"
+#include "array.h"
 
 namespace run {
 

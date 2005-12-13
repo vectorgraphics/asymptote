@@ -3089,7 +3089,7 @@ length, returns an array composed of the maximum of the corresponding elements
 of @code{A} and @code{B}.
 
 @cindex @code{fft}
-@item pair[] fft(pair[] A, int sign)
+@item pair[] fft(pair[] A, int sign=1)
 returns the Fast Fourier Transform of @code{A} (if the optional
 @code{FFTW} package is installed), using the given @code{sign}. Here
 is a simple example:

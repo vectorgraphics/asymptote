@@ -65,7 +65,7 @@ public:
 		   const bbox& bpos);
     
   // Ship the picture out to PostScript & TeX files.
-  bool shipout(const picture& preamble, const string& prefix,
+  bool shipout(picture* preamble, const string& prefix,
 	       const string& format, bool wait, bool quiet, bool Delete=false);
  
   picture *transformed(const transform& t);

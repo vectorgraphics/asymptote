@@ -9,6 +9,7 @@
 #include "env.h"
 #include "record.h"
 #include "genv.h"
+#include "builtin.h"
 
 using namespace types;
 

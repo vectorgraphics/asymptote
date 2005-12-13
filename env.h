@@ -15,7 +15,6 @@
 
 #include "errormsg.h"
 #include "entry.h"
-#include "builtin.h"
 #include "types.h"
 #include "util.h"
 

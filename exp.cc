@@ -357,7 +357,7 @@ void newPictureExp::prettyprint(ostream &out, int indent)
 
 types::ty *newPictureExp::trans(coenv &e)
 {
-  e.c.encode(inst::builtin, run::newFrame);
+  e.c.encode(inst::builtin, run::newPicture);
   
   return types::primPicture();  
 }

@@ -273,20 +273,6 @@ pair[] operator * (transform t, pair[] z)
 
 // I/O operations
 
-public string commentchar="#";
-
-file input(string name, bool check=true)
-{
-  return input(name,check,commentchar);
-}
-file input(string name, string comment) {return input(name,true,commentchar);}
-file xinput(string name) {return xinput(name,true);}
-file output(string name) {return output(name,false);}
-file xoutput(string name) {return xoutput(name,false);}
-file csv(file file) {return csv(file,true);}
-file line(file file) {return line(file,true);}
-file single(file file) {return single(file,true);}
-
 file stdin=input("");
 
 void none(file file) {}
@@ -2413,8 +2399,6 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
   GUIreset();
   readGUI();
   bool Transform=GUIFilenum < GUIlist.length;
-  static transform[] noTransforms;
-  static bool[] noDeletes;
   if(GUI.length > 0) {
     frame F;
     add(F,f);
@@ -2423,8 +2407,8 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
     f=F;
   }
   shipout(prefix,f,preamble,format,wait,quiet,
-  	  Transform ? GUIlist[GUIFilenum].Transform : noTransforms,
-	  Transform ? GUIlist[GUIFilenum].Delete : noDeletes);
+  	  Transform ? GUIlist[GUIFilenum].Transform : null,
+	  Transform ? GUIlist[GUIFilenum].Delete : null);
   ++GUIFilenum;
   shipped=true;
   uptodate(true);

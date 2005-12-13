@@ -11,7 +11,7 @@
 
 #include "entry.h"
 #include "types.h"
-#include "runtime.h" // For arrayLength().
+#include "runtime.h"
 #include "access.h"
 
 using std::cout;

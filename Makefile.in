@@ -9,12 +9,12 @@ LIBS = $(LFLAGS) @LIBS@ $(GCLIBS)
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
        guide flatguide knot drawfill path3
-FILES = $(CAMP) env genv main runtime stm dec errormsg callable name \
+FILES = $(CAMP) runtime env genv main stm dec errormsg callable name \
 	symbol types entry exp newexp stack camp.tab lex.yy access \
 	absyn record interact fileio builtin fftw++ simpson coder coenv \
-	@getopt@ locate parser genrun program application varinit fundec
+	@getopt@ locate parser program application varinit fundec
 
-DIST = camp.tab.h camp.tab.cc lex.yy.cc genrun.cc
+DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc
 CLEAN = camp.output
 NAME = asy
 XNAME = x$(NAME)
@@ -72,9 +72,9 @@ doc:	asy
 man:	asy
 	cd doc; $(MAKE) man
 
-depend: $(GCLIBS) camp.tab.h genrun.cc $(FILES:=.d)
+depend: $(GCLIBS) camp.tab.h runtime.cc $(FILES:=.d)
 
-genrun.cc: runtime.pl runtime.in
+runtime.cc: runtime.pl runtime.in
 	./runtime.pl
 
 camp.tab.h: camp.tab.cc

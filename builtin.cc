@@ -22,7 +22,6 @@
 #include "mathop.h"
 #include "arrayop.h"
 #include "pow.h"
-#include "genrun.h"
 #include "vm.h"
 
 #include "coder.h"
@@ -38,6 +37,8 @@ using camp::transform;
 using vm::bltin;
 using run::divide;
 using mem::string;
+
+void gen_base_venv(venv &ve);
 
 void addType(tenv &te, const char *name, ty *t)
 {
@@ -65,42 +66,6 @@ void base_tenv(tenv &te)
   addType(te, "code", primCode());
 }
 
-// Macro to make a function.
-inline void addFunc(venv &ve, access *a, ty *result, symbol *name,
-		    ty *t1 = 0, ty *t2 = 0, ty *t3 = 0, ty* t4 = 0,
-		    ty *t5 = 0, ty *t6 = 0, ty *t7 = 0, ty *t8 = 0)
-{
-  function *fun = new function(result);
-
-  if (t1) fun->add(t1);
-  if (t2) fun->add(t2);
-  if (t3) fun->add(t3);
-  if (t4) fun->add(t4);
-  if (t5) fun->add(t5);
-  if (t6) fun->add(t6);
-  if (t7) fun->add(t7);
-  if (t8) fun->add(t8);
-
-  varEntry *ent = new varEntry(fun, a);
-
-  ve.enter(name, ent);
-}
-
-inline void addFunc(venv &ve, access *a, ty *result, const char *name, 
-		    ty *t1 = 0, ty *t2 = 0, ty *t3 = 0, ty* t4 = 0,
-		    ty *t5 = 0, ty *t6 = 0, ty *t7 = 0, ty *t8 = 0)
-{
-  addFunc(ve, a, result, symbol::trans(name), t1, t2, t3, t4, t5, t6, t7, t8);
-}
-
-void addFunc(venv &ve, bltin f, ty *result, const char *name, 
-             ty *t1, ty *t2, ty *t3, ty* t4,
-             ty *t5, ty *t6, ty *t7, ty *t8)
-{
-  access *a = new bltinAccess(f);
-  addFunc(ve, a, result, name, t1, t2, t3, t4, t5, t6, t7, t8);
-}
-  
 // Add a function with one or more default arguments.
 void addFunc(venv &ve, bltin f, ty *result, const char *name, 
 	     ty *t1, const char *s1, bool d1,
@@ -129,13 +94,28 @@ void addFunc(venv &ve, bltin f, ty *result, const char *name,
   ve.enter(symbol::trans(name), ent);
 }
   
+void addFunc(venv &ve, access *a, ty *result, symbol *id,
+	     ty *t1=0, const char *s1="", bool d1=false) 
+{
+  function *fun = new function(result);
+  if (t1) fun->add(t1,s1,d1);
+  varEntry *ent = new varEntry(fun, a);
+  ve.enter(id, ent);
+}
+
+void addFunc(venv &ve, access *a, ty *result, const char *name,
+	     ty *t1=0, const char *s1="", bool d1=false) 
+{
+  addFunc(ve,a,result,symbol::trans(name),t1,s1,d1);
+}
+
 // Add a rest function with zero or more default arguments.
-inline void addRestFunc(venv &ve, bltin f, ty *result, const char *name,
-		        ty *trest, 
-			ty *t1=0, const char *s1="", bool d1=false,
-			ty *t2=0, const char *s2="", bool d2=false,
-			ty *t3=0, const char *s3="", bool d3=false,
-			ty *t4=0, const char *s4="", bool d4=false)
+void addRestFunc(venv &ve, bltin f, ty *result, const char *name,
+		 ty *trest, 
+		 ty *t1=0, const char *s1="", bool d1=false,
+		 ty *t2=0, const char *s2="", bool d2=false,
+		 ty *t3=0, const char *s3="", bool d3=false,
+		 ty *t4=0, const char *s4="", bool d4=false)
 {
   access *a = new bltinAccess(f);
   function *fun = new function(result);
@@ -168,7 +148,7 @@ void addRealFunc(venv &ve, const char* name)
 
 void addRealFunc2(venv &ve, bltin fcn, const char *name)
 {
-  addFunc(ve, fcn, primReal(), name, primReal(), primReal());
+  addFunc(ve,fcn,primReal(),name,primReal(),"a=",false,primReal(),"b=",false);
 }
 
 void addInitializer(venv &ve, ty *t, access *a)
@@ -244,7 +224,7 @@ void addInitializers(venv &ve)
   addInitializer(ve, primGuide(), run::nullGuide);
   addInitializer(ve, primPath(), run::nullPath);
   addInitializer(ve, primPen(), run::newPen);
-  addInitializer(ve, primPicture(), run::newFrame);
+  addInitializer(ve, primPicture(), run::newPicture);
   addInitializer(ve, primFile(), run::standardOut);
 }
 
@@ -291,42 +271,24 @@ void addGuideOperators(venv &ve)
   // into a single guide.
   addRestFunc(ve, run::dotsGuide, primGuide(), "..", guideArray());
   addRestFunc(ve, run::dashesGuide, primGuide(), "--", guideArray());
-
-  addFunc(ve, run::cycleGuide, primGuide(), "operator cycle");
-  addFunc(ve, run::dirSpec, primGuide(), "operator spec",
-          primPair(), primInt());
-  addFunc(ve, run::curlSpec, primGuide(), "operator curl",
-          primReal(), primInt());
-  addFunc(ve, run::realRealTension, primGuide(), "operator tension",
-          primReal(), primReal(), primBoolean());
-  addFunc(ve, run::pairPairControls, primGuide(), "operator controls",
-          primPair(), primPair());
 }
 
 /* Avoid typing the same type three times. */
-void addSimpleOperator(venv &ve, access *a, ty *t, const char *name)
-{
-  addFunc(ve, a, t, name, t, t);
-}
 void addSimpleOperator(venv &ve, bltin f, ty *t, const char *name)
 {
-  addFunc(ve, f, t, name, t, t);
-}
-void addBooleanOperator(venv &ve, access *a, ty *t, const char *name)
-{
-  addFunc(ve, a, primBoolean(), name, t, t);
+  addFunc(ve, f, t, name, t, "a=", false, t, "b=", false);
 }
 void addBooleanOperator(venv &ve, bltin f, ty *t, const char *name)
 {
-  addFunc(ve, f, primBoolean(), name, t, t);
+  addFunc(ve, f, primBoolean(), name, t, "a=", false, t, "b=", false);
 }
 
 template<class T, template <class S> class op>
 inline void addOps(venv &ve, ty *t1, const char *name, ty *t2)
 {
   addSimpleOperator(ve,run::binaryOp<T,op>,t2,name);
-  addFunc(ve,run::arrayOp<T,op>,t1,name,t1,t2);
-  addFunc(ve,run::opArray<T,op>,t1,name,t2,t1);
+  addFunc(ve,run::arrayOp<T,op>,t1,name,t1,"a=",false,t2,"b=",false);
+  addFunc(ve,run::opArray<T,op>,t1,name,t2,"a=",false,t1,"b=",false);
   addSimpleOperator(ve,run::arrayArrayOp<T,op>,t1,name);
 }
 
@@ -334,9 +296,10 @@ template<class T, template <class S> class op>
 inline void addBooleanOps(venv &ve, ty *t1, const char *name, ty *t2)
 {
   addBooleanOperator(ve,run::binaryOp<T,op>,t2,name);
-  addFunc(ve,run::arrayOp<T,op>,boolArray(),name,t1,t2);
-  addFunc(ve,run::opArray<T,op>,boolArray(),name,t2,t1);
-  addFunc(ve,run::arrayArrayOp<T,op>,boolArray(),name,t1,t1);
+  addFunc(ve,run::arrayOp<T,op>,boolArray(),name,t1,"a=",false,t2,"b=",false);
+  addFunc(ve,run::opArray<T,op>,boolArray(),name,t2,"a=",false,t1,"b=",false);
+  addFunc(ve,run::arrayArrayOp<T,op>,boolArray(),name,t1,"a=",false,
+	  t1,"b=",false);
 }
 
 template<class T>
@@ -377,11 +340,12 @@ inline void addOrderedOps(venv &ve, ty *t1, ty *t2, ty *t3)
   addBooleanOps<T,run::greaterequals>(ve,t1,">=",t2);
   addBooleanOps<T,run::greater>(ve,t1,">",t2);
   
-  addFunc(ve,run::minArray<T>,t2,"min",t1);
-  addFunc(ve,run::maxArray<T>,t2,"max",t1);
-  addFunc(ve,run::sortArray<T>,t1,"sort",t1);
-  addFunc(ve,run::sortArray2<T>,t3,"sort",t3);
-  addFunc(ve,run::searchArray<T>,primInt(),"search",t1,t2);
+  addFunc(ve,run::minArray<T>,t2,"min",t1,"a=",false);
+  addFunc(ve,run::maxArray<T>,t2,"max",t1,"a=",false);
+  addFunc(ve,run::sortArray<T>,t1,"sort",t1,"a=",false);
+  addFunc(ve,run::sortArray2<T>,t3,"sort",t3,"a=",false);
+  addFunc(ve,run::searchArray<T>,primInt(),"search",t1,"a=",false,t2,
+	  "b=",false);
   
   addOps<T,run::min>(ve,t1,"min",t2);
   addOps<T,run::max>(ve,t1,"max",t2);
@@ -393,12 +357,12 @@ inline void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   addOps<T,run::plus>(ve,t1,"+",t2);
   addOps<T,run::minus>(ve,t1,"-",t2);
   
-  addFunc(ve,&id,t1,"+",t1);
-  addFunc(ve,&id,t2,"+",t2);
-  addFunc(ve,run::arrayNegate<T>,t1,"-",t1);
-  addFunc(ve,run::Negate<T>,t2,"-",t2);
+  addFunc(ve,&id,t1,"+",t1,"a=",false);
+  addFunc(ve,&id,t2,"+",t2,"a=",false);
+  addFunc(ve,run::arrayNegate<T>,t1,"-",t1,"a=",false);
+  addFunc(ve,run::Negate<T>,t2,"-",t2,"a=",false);
   
-  addFunc(ve,run::sumArray<T>,t2,"sum",t1);
+  addFunc(ve,run::sumArray<T>,t2,"sum",t1,"a=",false);
   addUnorderedOps<T>(ve,t1,t2,t3,t4);
 }
 
@@ -415,14 +379,6 @@ void addOperators(venv &ve)
 {
   addSimpleOperator(ve,run::binaryOp<string,run::plus>,primString(),"+");
   
-  addFunc(ve,run::boolNullFrame,primBoolean(),"empty",primPicture());
-
-  addSimpleOperator(ve,run::penPenPlus,primPen(),"+");
-  addFunc(ve,run::realPenTimes,primPen(),"*",primReal(),primPen());
-  addFunc(ve,run::penRealTimes,primPen(),"*",primPen(),primReal());
-  addBooleanOperator(ve,run::boolPenEq,primPen(),"==");
-  addBooleanOperator(ve,run::boolPenNeq,primPen(),"!=");
-
   addBooleanOps<bool,run::And>(ve,boolArray(),"&&",primBoolean());
   addBooleanOps<bool,run::Or>(ve,boolArray(),"||",primBoolean());
   addBooleanOps<bool,run::Xor>(ve,boolArray(),"^",primBoolean());
@@ -437,11 +393,14 @@ void addOperators(venv &ve)
   addUnorderedOps<string>(ve,stringArray(),primString(),stringArray2(),
 			  stringArray3());
   
-  addFunc(ve,run::binaryOp<int,divide>,primReal(),"/",primInt(),primInt());
-  addFunc(ve,run::arrayOp<int,divide>,realArray(),"/",intArray(),primInt());
-  addFunc(ve,run::opArray<int,divide>,realArray(),"/",primInt(),intArray());
-  addFunc(ve,run::arrayArrayOp<int,divide>,realArray(),"/",intArray(),
-	  intArray());
+  addFunc(ve,run::binaryOp<int,divide>,primReal(),"/",
+	  primInt(),"a=",false,primInt(),"b=",false);
+  addFunc(ve,run::arrayOp<int,divide>,realArray(),"/",
+	  intArray(),"a=",false,primInt(),"b=",false);
+  addFunc(ve,run::opArray<int,divide>,realArray(),"/",
+	  primInt(),"a=",false,intArray(),"b=",false);
+  addFunc(ve,run::arrayArrayOp<int,divide>,realArray(),"/",
+	  intArray(),"a=",false,intArray(),"b=",false);
   
   addOrderedOps<int>(ve,intArray(),primInt(),intArray2());
   addOrderedOps<double>(ve,realArray(),primReal(),realArray2());
@@ -461,37 +420,6 @@ void base_venv(venv &ve)
   addCasts(ve);
   addOperators(ve);
   addGuideOperators(ve);
-
-  addFunc(ve,run::fill,primVoid(),"fill",primPicture(),pathArray(),
-	  primPen());
-  addFunc(ve,run::latticeShade,primVoid(),"latticeshade",primPicture(),
-	  pathArray(),primPen(),penArray2());
-  addFunc(ve,run::axialShade,primVoid(),"axialshade",primPicture(),pathArray(),
-	  primPen(),primPair(),primPen(),primPair());
-  addFunc(ve,run::radialShade,primVoid(),"radialshade",primPicture(),
-	  pathArray(),primPen(),primPair(),primReal(),primPen(),primPair(),
-	  primReal());
-  addFunc(ve,run::gouraudShade,primVoid(),"gouraudshade",primPicture(),
-	  pathArray(),primPen(), penArray(),pairArray(),intArray());
-  addFunc(ve,run::clip,primVoid(),"clip",primPicture(),pathArray(),
-	  primPen());
-  addFunc(ve,run::beginClip,primVoid(),"beginclip",primPicture(),
-	  pathArray(),primPen());
-  addFunc(ve,run::inside,primBoolean(),"inside",pathArray(),primPair(),
-	  primPen());
-  
-  addFunc(ve,run::image,primVoid(),"image",primPicture(),realArray2(),
-	  penArray(),primPair(),primPair());
-  
-  addFunc(ve,run::shipout,primVoid(),"shipout",primString(),primPicture(),
-	  primPicture(),primString(),primBoolean(),primBoolean(),
-	  transformArray(),boolArray());
-  
-  addFunc(ve,run::postscript,primVoid(),"postscript",primPicture(),
-	  primString());
-  addFunc(ve,run::tex,primVoid(),"tex",primPicture(),primString());
-  addFunc(ve,run::texPreamble,primVoid(),"texpreamble",primString());
-  addFunc(ve,run::layer,primVoid(),"layer",primPicture());
   
   addRealFunc(sin);
   addRealFunc(cos);
@@ -516,59 +444,6 @@ void base_venv(venv &ve)
   addRealFunc(pow10);
   addRealFunc(identity);
   
-  addFunc(ve,run::stringReplace,primString(),"replace",primString(),
-	  stringArray2());
-  addFunc(ve,run::stringFormatReal,primString(),"format",primString(),
-	  primReal());
-  addFunc(ve,run::stringFormatInt,primString(),"format",primString(),
-	  primInt());
-  addFunc(ve,run::stringTime,primString(),"time",primString());
-  
-  addFunc(ve,run::changeDirectory,primString(),"cd",primString());
-  addFunc(ve,run::scrollLines,primVoid(),"scroll",primInt());
-  addFunc(ve,run::boolDeconstruct,primBoolean(),"deconstruct");
-  
-  addFunc(ve,run::pathSize,primInt(),"size",primPath());
-  addFunc(ve,run::pathMax,primPair(),"max",primPath());
-  addFunc(ve,run::pathMin,primPair(),"min",primPath());
-  addFunc(ve,run::pathConcat,primPath(),"&",primPath(),primPath());
-  
-  addFunc(ve,run::frameMax,primPair(),"max",primPicture());
-  addFunc(ve,run::frameMin,primPair(),"min",primPicture());
-  
-  addFunc(ve,run::penMax,primPair(),"max",primPen());
-  addFunc(ve,run::penMin,primPair(),"min",primPen());
-  
-  // I/O functions
-
-  addFunc(ve,run::fileOpenOut,primFile(),"output",primString(),primBoolean());
-  addFunc(ve,run::fileOpenIn,primFile(),"input",primString(),primBoolean(),
-	  primString());
-  addFunc(ve,run::fileOpenXOut,primFile(),"xoutput",primString(),
-	  primBoolean());
-  addFunc(ve,run::fileOpenXIn,primFile(),"xinput",primString(),primBoolean());
-
-  addFunc(ve,run::fileEol,primBoolean(),"eol",primFile());
-  addFunc(ve,run::fileEof,primBoolean(),"eof",primFile());
-  addFunc(ve,run::fileError,primBoolean(),"error",primFile());
-  addFunc(ve,run::fileClear,primVoid(),"clear",primFile());
-  addFunc(ve,run::fileClose,primVoid(),"close",primFile());
-  addFunc(ve,run::filePrecision,primVoid(),"precision",primFile(),primInt());
-  addFunc(ve,run::fileFlush,primVoid(),"flush",primFile());
-
-  addFunc(ve,run::fileDimension1,primFile(),"dimension",primFile(),primInt());
-  addFunc(ve,run::fileDimension2,primFile(),"dimension",primFile(),primInt(),
-	  primInt());
-  addFunc(ve,run::fileDimension3,primFile(),"dimension",primFile(),primInt(),
-	  primInt(),primInt());
-  addFunc(ve,run::fileCSVMode,primFile(),"csv",primFile(),primBoolean());
-  addFunc(ve,run::fileLineMode,primFile(),"line",primFile(),primBoolean());
-  addFunc(ve,run::fileSingleMode,primFile(),"single",primFile(),primBoolean());
-  addFunc(ve,run::fileArray1,primFile(),"read1",primFile());
-  addFunc(ve,run::fileArray2,primFile(),"read2",primFile());
-  addFunc(ve,run::fileArray3,primFile(),"read3",primFile());
-  addFunc(ve,run::readChar,primString(),"getc",primFile());
-
   addFunc(ve,run::writestring,primVoid(),"write",primFile(),"file",true,
 	  primString(),"s",false,voidFileFunction(),"suffix",true);
   addWrite<pen>(ve,penArray(),primPen());
@@ -578,18 +453,16 @@ void base_venv(venv &ve)
 	      primGuide(),"x",false,
 	      voidFileFunction(),"suffix",true);
 
-  // Array functions
+  addFunc(ve,run::arrayFunction,realArray(),"map",
+	  realPairFunction(),"f=",false,
+	  pairArray(),"a=",false);
+  addFunc(ve,run::arrayFunction,intArray(),"map",
+	  intRealFunction(),"f=",false,
+	  realArray(),"a=",false);
   
-  addFunc(ve,run::arrayFunction,realArray(),"map",realPairFunction(),
-	  pairArray());
-  addFunc(ve,run::arrayFunction,intArray(),"map",intRealFunction(),
-	  realArray());
-  
-  addFunc(ve,run::arrayBoolSum,primInt(),"sum",boolArray());
-  
-  addFunc(ve,run::arrayFind,primInt(),"find",boolArray(),primInt());
 #ifdef HAVE_LIBFFTW3
-  addFunc(ve,run::pairArrayFFT,pairArray(),"fft",pairArray(),primInt());
+  addFunc(ve,run::pairArrayFFT,pairArray(),"fft",pairArray(),"",false,
+	  primInt(),"sign",true);
 #endif
 
   gen_base_venv(ve);

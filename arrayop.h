@@ -23,6 +23,9 @@ using vm::read;
 using vm::array;
 using camp::tab;
 
+vm::array *copyArray(vm::array *a);
+vm::array *copyArray2(vm::array *a);
+  
 template<class T, template <class S> class op>
 void arrayArrayOp(vm::stack *s)
 {
@@ -184,6 +187,8 @@ void searchArray(vm::stack *s)
 }
 
 extern mem::string emptystring;
+  
+void writestring(vm::stack *s);
   
 template<class T>
 void write(vm::stack *s)
