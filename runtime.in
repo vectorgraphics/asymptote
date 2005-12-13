@@ -1144,7 +1144,7 @@ guide* :dashesGuide(guidearray *a)
 
 guide* operator cycle()
 {
-  return (guide*) new cycletokguide();
+  return new cycletokguide();
 }
 
 guide* operator spec(pair z, int p)
@@ -2024,7 +2024,7 @@ array* :newInitializedArray(int n)
 
 // Similar to newInitializedArray, but after the n elements, append another
 // array to it.
-array* :newAppendedArray(int n, array* tail)
+array* :newAppendedArray(array* tail, int n)
 {
   assert(n >= 0);
 
