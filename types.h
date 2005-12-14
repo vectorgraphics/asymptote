@@ -301,13 +301,13 @@ struct formal {
   ty *t;
   symbol *name;
   absyntax::varinit *defval;
-  bool xplicit; // since explicit is a C++ keyword
+  bool Explicit;
   
   formal(ty *t,
          symbol *name=0,
          absyntax::varinit *defval=0,
-         bool xplicit=false)
-    : t(t), name(name), defval(defval), xplicit(xplicit) {}
+         bool Explicit=false)
+    : t(t), name(name), defval(defval), Explicit(Explicit) {}
 
   friend ostream& operator<< (ostream& out, const formal& f);
 };
@@ -331,14 +331,12 @@ struct signature : public gc {
 
   virtual ~signature() {}
 
-  void add(formal f, const char *name="", bool optional=false) {
-    if(*name) f.name=symbol::trans(name);
-    if(optional) f.defval=absyntax::Default;
+  void add(formal f) {
     formals.push_back(f);
   }
 
   void addRest(formal f) {
-    rest = f;
+    rest=f;
   }
 
   bool hasRest() {
@@ -385,14 +383,26 @@ struct function : public ty {
   }
   virtual ~function() {}
 
-  void add(formal f, const char *name="", bool optional=false) {
-    sig.add(f,name,optional);
+  void add(formal f) {
+    sig.add(f);
   }
 
+  void add(formal f, bool Explicit, const char *name="", bool optional=false) {
+    if(*name) f.name=symbol::trans(name);
+    if(optional) f.defval=absyntax::Default;
+    f.Explicit=Explicit;
+    sig.add(f);
+  }
+    
   void addRest(formal f) {
     sig.addRest(f);
   }
 
+  void addRest(formal f, bool Explicit) {
+    f.Explicit=Explicit;
+    sig.addRest(f);
+  }
+  
   virtual bool isReference() {
     return true;
   }

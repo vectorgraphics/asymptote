@@ -76,14 +76,14 @@ void addFunc(venv &ve, bltin f, ty *result, const char *name,
   access *a = new bltinAccess(f);
   function *fun = new function(result);
 
-  if (t1) fun->add(t1,s1,d1);
-  if (t2) fun->add(t2,s2,d2);
-  if (t3) fun->add(t3,s3,d3);
-  if (t4) fun->add(t4,s4,d4);
-  if (t5) fun->add(t5,s5,d5);
-  if (t6) fun->add(t6,s6,d6);
-  if (t7) fun->add(t7,s7,d7);
-  if (t8) fun->add(t8,s8,d8);
+  if (t1) fun->add(t1,false,s1,d1);
+  if (t2) fun->add(t2,false,s2,d2);
+  if (t3) fun->add(t3,false,s3,d3);
+  if (t4) fun->add(t4,false,s4,d4);
+  if (t5) fun->add(t5,false,s5,d5);
+  if (t6) fun->add(t6,false,s6,d6);
+  if (t7) fun->add(t7,false,s7,d7);
+  if (t8) fun->add(t8,false,s8,d8);
 
   varEntry *ent = new varEntry(fun, a);
   
@@ -94,7 +94,7 @@ void addFunc(venv &ve, access *a, ty *result, symbol *id,
 	     ty *t1=0, const char *s1="", bool d1=false) 
 {
   function *fun = new function(result);
-  if (t1) fun->add(t1,s1,d1);
+  if (t1) fun->add(t1,false,s1,d1);
   varEntry *ent = new varEntry(fun, a);
   ve.enter(id, ent);
 }
@@ -105,23 +105,24 @@ void addFunc(venv &ve, access *a, ty *result, const char *name,
   addFunc(ve,a,result,symbol::trans(name),t1,s1,d1);
 }
 
-// Add a rest function with zero or more default arguments.
+// Add a rest function with zero or more default/explicit arguments.
 void addRestFunc(venv &ve, bltin f, ty *result, const char *name,
-		 ty *trest, 
-		 ty *t1=0, const char *s1="", bool d1=false,
-		 ty *t2=0, const char *s2="", bool d2=false,
-		 ty *t3=0, const char *s3="", bool d3=false,
-		 ty *t4=0, const char *s4="", bool d4=false)
+		 ty *trest, bool erest=false,
+		 ty *t1=0, const char *s1="", bool d1=false, bool e1=false,
+		 ty *t2=0, const char *s2="", bool d2=false, bool e2=false,
+		 ty *t3=0, const char *s3="", bool d3=false, bool e3=false,
+		 ty *t4=0, const char *s4="", bool d4=false, bool e4=false)
+//                   type              name        default        explicit
 {
   access *a = new bltinAccess(f);
   function *fun = new function(result);
 
-  if (t1) fun->add(t1,s1,d1);
-  if (t2) fun->add(t2,s2,d2);
-  if (t3) fun->add(t3,s3,d3);
-  if (t4) fun->add(t4,s4,d4);
+  if (t1) fun->add(t1,e1,s1,d1);
+  if (t2) fun->add(t2,e2,s2,d2);
+  if (t3) fun->add(t3,e3,s3,d3);
+  if (t4) fun->add(t4,e4,s4,d4);
   
-  if (trest) fun->addRest(trest);
+  if (trest) fun->addRest(trest,erest);
 
   varEntry *ent = new varEntry(fun, a);
 
@@ -280,7 +281,7 @@ void addBooleanOperator(venv &ve, bltin f, ty *t, const char *name)
 }
 
 template<class T, template <class S> class op>
-inline void addOps(venv &ve, ty *t1, const char *name, ty *t2)
+void addOps(venv &ve, ty *t1, const char *name, ty *t2)
 {
   addSimpleOperator(ve,run::binaryOp<T,op>,t2,name);
   addFunc(ve,run::arrayOp<T,op>,t1,name,t1,"a=",false,t2,"b=",false);
@@ -289,7 +290,7 @@ inline void addOps(venv &ve, ty *t1, const char *name, ty *t2)
 }
 
 template<class T, template <class S> class op>
-inline void addBooleanOps(venv &ve, ty *t1, const char *name, ty *t2)
+void addBooleanOps(venv &ve, ty *t1, const char *name, ty *t2)
 {
   addBooleanOperator(ve,run::binaryOp<T,op>,t2,name);
   addFunc(ve,run::arrayOp<T,op>,boolArray(),name,t1,"a=",false,t2,"b=",false);
@@ -298,18 +299,15 @@ inline void addBooleanOps(venv &ve, ty *t1, const char *name, ty *t2)
 	  t1,"b=",false);
 }
 
-template<class T>
-inline void addWrite(venv &ve, ty *t1, ty *t2)
+void addWrite(venv &ve, bltin f, ty *t1, ty *t2)
 {
-  addRestFunc(ve,run::write<T>,primVoid(),"write",t1,
-	      primFile(),"file",true,
-	      primString(),"s",true,
-	      t2,"x",false,
-	      voidFileFunction(),"suffix",true);
+  addRestFunc(ve,f,primVoid(),"write",t1,false,primFile(),"file",true,false,
+	      primString(),"s",true,false,t2,"x",false,false,
+	      voidFileFunction(),"suffix",true,false);
 }
 
 template<class T>
-inline void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
+void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
 {
   addBooleanOps<T,run::equals>(ve,t1,"==",t2);
   addBooleanOps<T,run::notequals>(ve,t1,"!=",t2);
@@ -319,17 +317,16 @@ inline void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   addCast(ve,t3,primFile(),run::readArray<T>);
   addCast(ve,t4,primFile(),run::readArray<T>);
   
-  addWrite<T>(ve,t1,t2);
-  addFunc(ve,run::writeArray<T>,primVoid(),"write",primFile(),"file",true,
-	  t1);
-  addFunc(ve,run::writeArray2<T>,primVoid(),"write",primFile(),"file",true,
-	  t3);
-  addFunc(ve,run::writeArray3<T>,primVoid(),"write",primFile(),"file",true,
-	  t4);
+  addWrite(ve,run::write<T>,t1,t2);
+  addRestFunc(ve,run::writeArray<T>,primVoid(),"write",t3,false,
+	      primFile(),"file",true,false,primString(),"s",true,false,
+	      t1,"a",false,true);
+  addFunc(ve,run::writeArray2<T>,primVoid(),"write",primFile(),"file",true,t3);
+  addFunc(ve,run::writeArray3<T>,primVoid(),"write",primFile(),"file",true,t4);
 }
 
 template<class T>
-inline void addOrderedOps(venv &ve, ty *t1, ty *t2, ty *t3)
+void addOrderedOps(venv &ve, ty *t1, ty *t2, ty *t3)
 {
   addBooleanOps<T,run::less>(ve,t1,"<",t2);
   addBooleanOps<T,run::lessequals>(ve,t1,"<=",t2);
@@ -348,7 +345,7 @@ inline void addOrderedOps(venv &ve, ty *t1, ty *t2, ty *t3)
 }
 
 template<class T>
-inline void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
+void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
 {
   addOps<T,run::plus>(ve,t1,"+",t2);
   addOps<T,run::minus>(ve,t1,"-",t2);
@@ -363,7 +360,7 @@ inline void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
 }
 
 template<class T>
-inline void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool divide=true)
+void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool divide=true)
 {
   addBasicOps<T>(ve,t1,t2,t3,t4);
   addOps<T,run::times>(ve,t1,"*",t2);
@@ -442,12 +439,10 @@ void base_venv(venv &ve)
   
   addFunc(ve,run::writestring,primVoid(),"write",primFile(),"file",true,
 	  primString(),"s",false,voidFileFunction(),"suffix",true);
-  addWrite<pen>(ve,penArray(),primPen());
-  addWrite<transform>(ve,transformArray(),primTransform());
-  addRestFunc(ve,run::writeP<guide>,primVoid(),"write",guideArray(),
-	      primFile(),"file",true,primString(),"s",true,
-	      primGuide(),"x",false,
-	      voidFileFunction(),"suffix",true);
+  
+  addWrite(ve,run::write<pen>,penArray(),primPen());
+  addWrite(ve,run::write<transform>,transformArray(),primTransform());
+  addWrite(ve,run::writeP<guide>,guideArray(),primGuide());
 
   addFunc(ve,run::arrayFunction,realArray(),"map",
 	  realPairFunction(),"f=",false,

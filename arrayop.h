@@ -242,23 +242,51 @@ void writeP(vm::stack *s)
 template<class T>
 void writeArray(vm::stack *s)
 {
+  array *A=pop<array*>(s);
   array *a=pop<array*>(s);
+  mem::string S=pop<mem::string>(s,emptystring);
   vm::item it=pop(s);
   bool defaultfile=isdefault(it);
   camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
   
-  size_t size=checkArray(a);
+  size_t asize=checkArray(a);
+  size_t Asize=checkArray(A);
   if(f->Standard()) camp::Stdout.resetlines();
   else if(!f->isOpen()) return;
+  if(S != "") {f->write(S); f->writeline();}
   
-  for(size_t i=0; i < size; i++) {
-    if(defaultfile) std::cout << i << ":\t";
-    f->write(read<T>(a,i));
-    if(f->text()) f->writeline();
+  size_t i=0;
+  bool cont=true;
+  while(cont) {
+    cont=false;
+    bool first=true;
+    if(i < asize) {
+      if(defaultfile) std::cout << i << ":\t";
+      f->write(read<T>(a,i)); cont=true;
+      first=false;
+    }
+    unsigned count=0;
+    for(size_t j=0; j < Asize; ++j) {
+      array *Aj=read<array*>(A,j);
+      size_t Ajsize=checkArray(Aj);
+      if(i < Ajsize) {
+	if(f->text()) {
+	  if(first && defaultfile) std::cout << i << ":\t";
+	  for(unsigned k=0; k <= count; ++k)
+	    f->write(tab);
+	  count=0;
+	}
+	f->write(read<T>(Aj,i));
+	first=false;
+	cont=true;
+      } else count++;
+    }
+    ++i;
+    if(cont && f->text()) f->writeline();
   }
   f->flush();
 }
-
+  
 template<class T>
 void writeArray2(vm::stack *s)
 {

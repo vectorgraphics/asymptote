@@ -2112,11 +2112,14 @@ file output(string name, bool append=false);
 @noindent
 data will be appended to an existing file only if the file is opened with
 @code{append=true}.
-Data of type @code{T} can be written to an output file by calling one
+Data of a builtin type @code{T} can be written to an output file by calling one
 of the functions
 @verbatim
 write(string s="", T x, suffix e=endl ... T[]);
 write(file fout, string s="", T x, suffix e=none ... T[]);
+write(file fout=stdout, string s="", explicit T[] x ... T[][]);
+write(file fout=stdout, T[][]);
+write(file fout=stdout, T[][][]);
 write(file fout=stdout, suffix e=endl);
 @end verbatim
 @cindex @code{none}
@@ -2125,8 +2128,8 @@ write(file fout=stdout, suffix e=endl);
 If the @code{fout} is not specified, @code{stdout} is used and
 terminated with a newline. If specified, the optional
 identifying string @code{s} is written before the data @code{x}.
-Except when writing arrays, an arbitrary number of data values may
-be given. The suffix @code{e} may be one of the following:
+An arbitrary number of data values may be listed when writing scalars
+or one-dimensional arrays. The suffix @code{e} may be one of the following:
 @code{none} (do nothing), @code{endl} (terminate with a newline), or
 @code{tab} (terminate with a tab). Here is a simple example of data output:
 @verbatim

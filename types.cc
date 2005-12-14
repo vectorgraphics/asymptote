@@ -321,7 +321,7 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
 
 std::ostream& operator<< (std::ostream& out, const formal& f)
 {
-  if (f.xplicit)
+  if (f.Explicit)
     out << "explicit ";
   if (f.name)
     f.t->printVar(out,f.name);

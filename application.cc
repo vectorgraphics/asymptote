@@ -26,13 +26,13 @@ const score FAIL=0, EXACT=1, CAST=2;
 const score PACKED=2;
 
 bool castable(env &e, formal& target, formal& source) {
-  return target.xplicit ? equivalent(target.t,source.t)
-                        : e.castable(target.t,source.t, symbol::castsym);
+  return target.Explicit ? equivalent(target.t,source.t)
+    : e.castable(target.t,source.t, symbol::castsym);
 }
 
 score castScore(env &e, formal& target, formal& source) {
   return equivalent(target.t,source.t) ? EXACT :
-         (!target.xplicit &&
+         (!target.Explicit &&
           e.castable(target.t,source.t, symbol::castsym)) ? CAST : FAIL;
 }
 
@@ -121,7 +121,7 @@ void application::initRest() {
       vm::error("formal rest argument must be an array");
 
     rest=new restArg();
-    rf=types::formal(a->celltype, 0, 0, f.xplicit);
+    rf=types::formal(a->celltype, 0, 0, f.Explicit);
   }
 }
 

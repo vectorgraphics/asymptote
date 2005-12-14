@@ -17,13 +17,13 @@ namespace absyntax {
 class formal : public absyn {
   ty *base;
   decidstart *start;
-  bool xplicit;
+  bool Explicit;
   varinit *defval;
 
 public:
   formal(position pos, ty *base, decidstart *start=0, varinit *defval=0,
-	 bool xplicit= false)
-    : absyn(pos), base(base), start(start), xplicit(xplicit),
+	 bool Explicit= false)
+    : absyn(pos), base(base), start(start), Explicit(Explicit),
       defval(defval) {}
 
   virtual void prettyprint(ostream &out, int indent);
@@ -58,7 +58,7 @@ public:
   }
 
   bool getExplicit() {
-    return xplicit;
+    return Explicit;
   }
 };
 
