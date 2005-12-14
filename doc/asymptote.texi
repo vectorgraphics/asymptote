@@ -296,10 +296,11 @@ Example code will be installed by default in
 @cindex @code{ASYMPTOTE_PDFVIEWER}
 @cindex @code{ASYMPTOTE_GS}
 In interactive mode, or when given the @code{-V} option (the default
-under @code{MSDOS}), @code{Asymptote} will automatically invoke the
-@code{PostScript} viewer @code{gv} (under
-@code{UNIX}) or @code{gsview} (under @code{MSDOS}; available from
-@url{http://www.cs.wisc.edu/~ghost/gsview/}) to display
+when running @code{Asymptote} on a single file under @code{MSDOS}),
+@code{Asymptote} will automatically invoke the @code{PostScript}
+viewer @code{gv} (under @code{UNIX}) or @code{gsview} (under
+@code{MSDOS}; available from
+@url{http://www.cs.wisc.edu/~ghost/gsview/}) to display 
 graphical output. These defaults may be overridden with the optional
 environment variable @code{ASYMPTOTE_PSVIEWER}. For @acronym{PDF}
 format output, the @code{ASYMPTOTE_GS} environment variable specifies the  
