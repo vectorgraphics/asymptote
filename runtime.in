@@ -2283,12 +2283,12 @@ int find(boolarray *a, int n)
   if(n > 0)
     for(size_t i=0; i < size; i++)
       if(read<bool>(a,i)) {
-	n--; if(n == 0) {j=i; break;}
+	n--; if(n == 0) {j=(int) i; break;}
       }
   if(n < 0)
     for(size_t i=size; i > 0;)
       if(read<bool>(a,--i)) {
-	n++; if(n == 0) {j=i; break;}
+	n++; if(n == 0) {j=(int) i; break;}
       }
   return j;
 }
