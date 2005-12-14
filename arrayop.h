@@ -43,8 +43,7 @@ void arrayOp(vm::stack *s)
 {
   T b=pop<T>(s);
   array *a=pop<array*>(s);
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
       (*c)[i]=op<T>()(read<T>(a,i),b,i);
@@ -56,8 +55,7 @@ void opArray(vm::stack *s)
 {
   array *a=pop<array*>(s);
   T b=pop<T>(s);
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
       (*c)[i]=op<T>()(b,read<T>(a,i),i);
@@ -68,8 +66,7 @@ template<class T>
 void arrayNegate(vm::stack *s)
 {
   array *a=pop<array*>(s);
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
     (*c)[i]=-read<T>(a,i);
@@ -80,8 +77,7 @@ template<class T>
 void sumArray(vm::stack *s)
 {
   array *a=pop<array*>(s);
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   T sum=0;
   for(size_t i=0; i < size; i++)
     sum += read<T>(a,i);
@@ -92,8 +88,7 @@ template<class T>
 void maxArray(vm::stack *s)
 {
   array *a=pop<array*>(s);
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   if(size == 0) vm::error("cannot take max of empty array");
   T m=read<T>(a,0);
   for(size_t i=1; i < size; i++) {
@@ -107,8 +102,7 @@ template<class T>
 void minArray(vm::stack *s)
 {
   array *a=pop<array*>(s);
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   if(size == 0) vm::error("cannot take min of empty array");
   T m=read<T>(a,0);
   for(size_t i=1; i < size; i++) {
@@ -201,8 +195,7 @@ void write(vm::stack *s)
   bool defaultfile=isdefault(it);
   camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
   
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   if(!f->isOpen()) return;
   if(S != "") f->write(S);
   f->write(first);
@@ -229,8 +222,7 @@ void writeP(vm::stack *s)
   bool defaultfile=isdefault(it);
   camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
   
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   if(!f->isOpen()) return;
   if(S != "") f->write(S);
   f->write(first);
@@ -255,8 +247,7 @@ void writeArray(vm::stack *s)
   bool defaultfile=isdefault(it);
   camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
   
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   if(f->Standard()) camp::Stdout.resetlines();
   else if(!f->isOpen()) return;
   
@@ -274,15 +265,13 @@ void writeArray2(vm::stack *s)
   array *a=pop<array*>(s);
   camp::file *f=pop<camp::file*>(s,&camp::Stdout);
   
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   if(f->Standard()) camp::Stdout.resetlines();
   else if(!f->isOpen()) return;
   
   for(size_t i=0; i < size; i++) {
     array *ai=read<array*>(a,i);
-    checkArray(ai);
-    size_t aisize=ai->size();
+    size_t aisize=checkArray(ai);
     for(size_t j=0; j < aisize; j++) {
       if(j > 0 && f->text()) f->write(tab);
       f->write(read<T>(ai,j));
@@ -298,19 +287,16 @@ void writeArray3(vm::stack *s)
   array *a=pop<array*>(s);
   camp::file *f=pop<camp::file*>(s,&camp::Stdout);
   
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   if(f->Standard()) camp::Stdout.resetlines();
   else if(!f->isOpen()) return;
   
   for(size_t i=0; i < size; i++) {
     array *ai=read<array*>(a,i);
-    checkArray(ai);
-    size_t aisize=ai->size();
+    size_t aisize=checkArray(ai);
     for(size_t j=0; j < aisize; j++) {
       array *aij=read<array*>(ai,j);
-      checkArray(aij);
-      size_t aijsize=aij->size();
+      size_t aijsize=checkArray(aij);
       for(size_t k=0; k < aijsize; k++) {
 	if(k > 0 && f->text()) f->write(tab);
 	f->write(read<T>(aij,k));
@@ -326,8 +312,7 @@ template <double (*func)(double)>
 void realArrayFunc(vm::stack *s) 
 {
   array *a=pop<array*>(s);
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   array *c=new array(size);
   for(size_t i=0; i < size; i++) {
     double x=read<double>(a,i);

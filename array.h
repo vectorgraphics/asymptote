@@ -61,21 +61,18 @@ inline T read(array &a, size_t i)
   return a.array::read<T>(i);
 }
 
-inline bool checkArray(vm::array *a)
+inline size_t checkArray(vm::array *a)
 {
   if(a == 0) vm::error("dereference of null array");
-  return true;
+  return a->size();
 }
 
 extern const char *arraymismatch;
 
 inline size_t checkArrays(vm::array *a, vm::array *b) 
 {
-  checkArray(a);
-  checkArray(b);
-  
-  size_t asize=a->size();
-  if(asize != b->size())
+  size_t asize=checkArray(a);
+  if(asize != checkArray(b))
     vm::error(arraymismatch);
   return asize;
 }

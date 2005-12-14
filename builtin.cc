@@ -15,13 +15,10 @@
 #include "entry.h"
 #include "runtime.h"
 #include "types.h"
-#include "pair.h"
-#include "triple.h"
 
 #include "castop.h"
 #include "mathop.h"
 #include "arrayop.h"
-#include "pow.h"
 #include "vm.h"
 
 #include "coder.h"
@@ -31,9 +28,8 @@ using namespace types;
 using namespace camp;
 
 namespace trans {
-using camp::pair;
-using camp::triple;
 using camp::transform;
+using camp::pair;
 using vm::bltin;
 using run::divide;
 using mem::string;

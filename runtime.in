@@ -183,8 +183,7 @@ void outOfBounds(const char *op, size_t len, int n)
 
 item& arrayRead(array *a, int n)  
 {
-  checkArray(a);
-  size_t len=a->size();
+  size_t len=checkArray(a);
   bool cyclic=a->cyclic();
   if(cyclic && len > 0) n=imod(n,len);
   else if(n < 0 || n >= (int) len) outOfBounds("reading",len,n);
@@ -213,8 +212,7 @@ static array* deepArray(int depth, int *dims)
   
 array *copyArray(array *a)
 {
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   array *c=new array(size);
   for(size_t i=0; i < size; i++) 
     (*c)[i]=(*a)[i];
@@ -223,13 +221,11 @@ array *copyArray(array *a)
 
 array *copyArray2(array *a)
 {
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   array *c=new array(size);
   for(size_t i=0; i < size; i++) {
     array *ai=read<array*>(a,i);
-    checkArray(ai);
-    size_t aisize=ai->size();
+    size_t aisize=checkArray(ai);
     array *ci=new array(aisize);
     (*c)[i]=ci;
     for(size_t j=0; j < aisize; j++) 
@@ -1108,7 +1104,7 @@ guide* :nullGuide()
 guide* :dotsGuide(guidearray *a)
 {
   guidevector v;
-  size_t size=a->size();
+  size_t size=checkArray(a);
   for (size_t i=0; i < size; ++i)
     v.push_back(a->read<guide*>(i));
 
@@ -1121,7 +1117,7 @@ guide* :dashesGuide(guidearray *a)
   static specguide curlout(&curly, camp::OUT);
   static specguide curlin(&curly, camp::IN);
 
-  size_t n=a->size();
+  size_t n=checkArray(a);
 
   // a--b is equivalent to a{curl 1}..{curl 1}b
   guidevector v;
@@ -1230,8 +1226,7 @@ string erase(string s, int pos, int n)
 // from in an array of string pairs {from,to} to the string to in string s.
 string replace(string *S, stringarray2 *translate)
 {
-  checkArray(translate);
-  size_t size=translate->size();
+  size_t size=checkArray(translate);
   for(size_t i=0; i < size; i++) {
     array *a=read<array*>(translate,i);
     checkArray(a);
@@ -1851,12 +1846,11 @@ pair intersect(triplearray* pre1, triplearray* point1, triplearray* post1,
                triplearray* pre2, triplearray* point2, triplearray* post2,
 	       double fuzz)
 {
-  size_t size1=pre1->size();
-  size_t size2=pre2->size();
+  size_t size1=checkArrays(pre1,point1);
+  size_t size2=checkArrays(pre2,point2);
       
-  if(point1->size() != size1 || post1->size() != size1 ||
-     point2->size() != size2 || post2->size() != size2)
-    error("Mismatched array lengths");
+  if(checkArray(post1) != size1 || checkArray(post2) != size2)
+    vm::error(arraymismatch);
   
   int single1=(size1 == 1);
   int single2=(size2 == 1);
@@ -1948,8 +1942,7 @@ int merge(stringarray *files, string *args, string *format, bool keep)
 {
   int ret;
   
-  checkArray(files);
-  size_t size=files->size();
+  size_t size=checkArray(files);
   
   if(!checkFormatString(*format)) return;
   
@@ -2062,8 +2055,7 @@ item :arrayArrayRead(array *a, int n)
 // Write an element to an array.  Increase size if necessary.
 item :arrayWrite(item value, array *a, int n)
 {
-  checkArray(a);
-  size_t len=a->size();
+  size_t len=checkArray(a);
   bool cyclic=a->cyclic();
   if(cyclic && len > 0) n=imod(n,len);
   else {
@@ -2079,8 +2071,7 @@ item :arrayWrite(item value, array *a, int n)
 // Returns the length of an array.
 int :arrayLength(array *a)
 {
-  checkArray(a);
-  return (int) a->size();
+  return (int) checkArray(a);
 }
 
 // Return the cyclic flag for an array.
@@ -2123,8 +2114,7 @@ callable* :arrayPush(array *a)
 void :arrayAppendHelper(array *b, array *a)
 {
   checkArray(a);
-  checkArray(b);
-  size_t size=b->size();
+  size_t size=checkArray(b);
   for(size_t i=0; i < size; i++)
     a->push((*b)[i]);
 }
@@ -2160,10 +2150,8 @@ bool :arrayAlias(array *a, array *b)
 // Return array formed by indexing array a with elements of integer array b
 array* :arrayIntArray(array *a, array *b)
 {
-  checkArray(a);
-  checkArray(b);
-  size_t asize=a->size();
-  size_t bsize=b->size();
+  size_t asize=checkArray(a);
+  size_t bsize=checkArray(b);
   array *r=new array(bsize);
   for(size_t i=0; i < bsize; i++) {
     int index=read<int>(b,i);
@@ -2202,8 +2190,7 @@ intarray *sequence(int n)
 // Apply a function to each element of an array
 array* :arrayFunction(callable *f, array *a)
 {
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   array *b=new array(size);
   for(size_t i=0; i < size; ++i) {
     Stack->push((*a)[i]);
@@ -2215,18 +2202,16 @@ array* :arrayFunction(callable *f, array *a)
 
 bool all(boolarray *a)
 {
-  checkArray(a);
-  unsigned int size=(unsigned int) a->size();
+  size_t size=checkArray(a);
   bool c=true;
-  for(unsigned i=0; i < size; i++)
+  for(size_t i=0; i < size; i++)
     if(!get<bool>((*a)[i])) {c=false; break;}
   return c;
 }
 
 boolarray* !(boolarray* a)
 {
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   array *c=new array(size);
   for(size_t i=0; i < size; i++)
     (*c)[i]=!read<bool>(a,i);
@@ -2235,8 +2220,7 @@ boolarray* !(boolarray* a)
 
 int sum(boolarray *a)
 {
-  checkArray(a);
-  size_t size=a->size();
+  size_t size=checkArray(a);
   int sum=0;
   for(size_t i=0; i < size; i++)
     sum += read<bool>(a,i) ? 1 : 0;
@@ -2250,10 +2234,8 @@ array* :arrayCopy(array *a)
 
 array* :arrayConcat(array *a, array *b)
 {
-  checkArray(a);
-  checkArray(b);
-  size_t asize=a->size();
-  size_t bsize=b->size();
+  size_t asize=checkArray(a);
+  size_t bsize=checkArray(b);
   array *c=new array(asize+bsize);
   for(size_t i=0; i < asize; i++) 
     (*c)[i]=(*a)[i];
@@ -2269,14 +2251,12 @@ array* :array2Copy(array *a)
 
 array* :array2Transpose(array *a)
 {
-  checkArray(a);
-  size_t asize=a->size();
+  size_t asize=checkArray(a);
   array *c=new array(0);
   for(size_t i=0; i < asize; i++) {
     size_t ip=i+1;
     array *ai=read<array*>(a,i);
-    checkArray(ai);
-    size_t aisize=ai->size();
+    size_t aisize=checkArray(ai);
     size_t csize=c->size();
     if(csize < aisize) {
       c->resize(aisize);
@@ -2297,17 +2277,17 @@ array* :array2Transpose(array *a)
 // If n is negative, search backwards.
 int find(boolarray *a, int n)
 {
-  checkArray(a);
-  int size=(int) a->size();
+  
+  size_t size=checkArray(a);
   int j=-1;
   if(n > 0)
-    for(int i=0; i < size; i++)
+    for(size_t i=0; i < size; i++)
       if(read<bool>(a,i)) {
 	n--; if(n == 0) {j=i; break;}
       }
   if(n < 0)
-    for(int i=size-1; i >= 0; i--)
-      if(read<bool>(a,i)) {
+    for(size_t i=size; i > 0;)
+      if(read<bool>(a,--i)) {
 	n++; if(n == 0) {j=i; break;}
       }
   return j;
@@ -2348,13 +2328,8 @@ array* :arrayConditional(array *a, array *b, array *c)
 // [       c[n-1] a[n-1] b[n-1] ]
 realarray *tridiagonal(realarray *a, realarray *b, realarray *c, realarray *f)
 {
-  checkArray(f);
-  checkArray(c);
-  checkArray(b);
-  checkArray(a);
-  
-  size_t n=a->size();
-  if(n != b->size() || n != c->size() || n != f->size())
+  size_t n=checkArrays(a,b);
+  if(n != checkArray(c) || n != checkArray(f))
     vm::error(arraymismatch);
   
   array *up=new array(n);
@@ -2446,8 +2421,7 @@ realarray *tridiagonal(realarray *a, realarray *b, realarray *c, realarray *f)
 // Compute the fast Fourier transform of a pair array
 pairarray* :pairArrayFFT(pairarray *a, int sign=1)
 {
-  checkArray(a);
-  unsigned n=(unsigned) a->size();
+  unsigned n=(unsigned) checkArray(a);
   array *c=new array(n);
 #ifdef HAVE_LIBFFTW3
   Complex *f=FFTWComplex(n);
@@ -2464,6 +2438,8 @@ pairarray* :pairArrayFFT(pairarray *a, int sign=1)
     (*c)[i]=pair(z.real(),z.imag());
   }
   FFTWdelete(f);
+#else
+  assert(sign); // Avoid unused variable warning message
 #endif //  HAVE_LIBFFTW3
   return c;
 }
