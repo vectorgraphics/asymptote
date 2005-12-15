@@ -364,11 +364,6 @@ transform scale(transform t)
   return rotate(-degrees(t0*(1,0)))*t0;
 }
 
-pair intersect(path p, path q) 
-{
-  return intersect(p,q,0);
-}
-
 pair intersectionpoint(path p, path q, real fuzz=0)
 {
   return point(p,intersect(p,q,fuzz).x);
@@ -439,7 +434,7 @@ void makedraw(frame f, path g, pen p)
   }
 }
 
-void draw(frame f, path g, pen p)
+void draw(frame f, path g, pen p=currentpen)
 {
   if(size(nib(p)) == 0) _draw(f,g,p);
   else {
@@ -447,11 +442,6 @@ void draw(frame f, path g, pen p)
     makedraw(f,g,p);
     endgroup(f);
   }
-}
-
-void draw(frame f, path g)
-{
-  draw(f,g,currentpen);
 }
 
 void draw(frame f, explicit path[] g, pen p=currentpen)
@@ -1826,13 +1816,13 @@ struct Label {
   void label(frame f, transform t=identity(), pair position, pair align) {
     pen p0=p == nullpen ? currentpen : p;
     if(t == identity()) {
-      _label(f,s,size,angle,position+align*labelmargin(p0)+shift,align,scale,
-	     p0);
+      label(f,s,size,angle,position+align*labelmargin(p0)+shift,align,scale,
+	    p0);
     } else {
       transform t0=shiftless(t);
       real angle=degrees(t0*dir(angle));
       pair position=t*position+align*labelmargin(p0)+shift;
-      _label(f,s,size,angle,position,length(align)*unit(t0*align),scale,p0);
+      label(f,s,size,angle,position,length(align)*unit(t0*align),scale,p0);
     }
   }
 
@@ -2269,12 +2259,6 @@ triple interp(triple a, triple b, real t)
 pen interp(pen a, pen b, real t) 
 {
   return (1-t)*a+t*b;
-}
-
-// To avoid confusion, a dot product requires explicit pair arguments.
-real dot(explicit pair a, explicit pair b)
-{
-  return _dot(a,b);
 }
 
 void dot(frame f, pair z, pen p=currentpen)
@@ -2898,21 +2882,6 @@ void arrow(picture pic=currentpicture, Label L="", pair b, pair dir,
   draw(b,pic,L,a--(0,0),align,p,arrow,margin);
 }
   
-string substr(string s, int pos)
-{
-  return substr(s,pos,-1);
-}
-
-int find(string s, string t)
-{
-  return find(s,t,0);
-}
-
-int rfind(string s, string t)
-{
-  return rfind(s,t,-1);
-}
-
 // returns a string with all occurrences of string 'before' in string 's'
 // changed to string 'after'
 string replace(string s, string before, string after) 
@@ -2983,8 +2952,6 @@ int[] reverse(int[] a) {return a[reverse(a.length)];}
 real[] reverse(real[] a) {return a[reverse(a.length)];}
 pair[] reverse(pair[] a) {return a[reverse(a.length)];}
 string[] reverse(string[] a) {return a[reverse(a.length)];}
-
-int find(bool[] a) {return find(a,1);}
 
 // Transform coordinate in [0,1]x[0,1] to current user coordinates.
 pair relative(picture pic=currentpicture, pair z)

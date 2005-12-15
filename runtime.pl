@@ -38,14 +38,15 @@ sub read_types {
 sub asy_params {
     my @params = @_;
     for (@params) {
-        my ($type, $name, $default) = 
+        my ($explicit, $type, $name, $default) = 
             m|^\s*
-              (\w*(?:\s*\*)?)
+              (explicit)*\s*(\w*(?:\s*\*)?)
               \s*
               (\w*)(=*)|xs;
         clean_type($type);
         $_ = $type_map{$type} . ", \"" . lc($name) . "\"" . ", " . 
-	    ($default ? "true" : "false") ;
+	    ($default ? "true" : "false") . ", " . 
+	    ($explicit ? "true" : "false") ;
     }
     return @params;
 }
@@ -53,11 +54,11 @@ sub asy_params {
 sub c_params {
    my @params = @_;
    for (@params) {
-       my ($type, $name, $default, $value) = 
+       my ($explicit, $type, $name, $default, $value) = 
             m|^\s*
-              (\w*(?:\s*\*)?)
+              (explicit)*\s*(\w*(?:\s*\*)?)
               \s*
-              (\w*)(=*)(\w*)|xs;
+              (\w*)(=*)([\w.+\-]*)|xs;
        $_ = "  $type $name = vm::pop" . ($type =~ /^item$/ ? "" : "<$type>") .
 	   "($stack" . ($default ? "," . $value : "") . ");\n";
    }
@@ -90,7 +91,7 @@ while (<>) {
       \s*
       ([^(:]*)\:*([^(]*) # function name
       \s*
-      \(([\w\s*,=]*)\)  # parameters
+      \(([\w\s*,=.+\-]*)\)  # parameters
       \s*
       \{(.*)}           # body
       |xs;

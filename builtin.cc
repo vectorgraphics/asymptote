@@ -63,27 +63,28 @@ void base_tenv(tenv &te)
 }
 
 // Add a function with one or more default arguments.
+//             type            name  default explicit
 void addFunc(venv &ve, bltin f, ty *result, const char *name, 
-	     ty *t1, const char *s1, bool d1,
-	     ty *t2, const char *s2, bool d2,
-	     ty *t3, const char *s3, bool d3,
-	     ty *t4, const char *s4, bool d4,
-	     ty *t5, const char *s5, bool d5,
-	     ty *t6, const char *s6, bool d6,
-	     ty *t7, const char *s7, bool d7,
-	     ty *t8, const char *s8, bool d8)
+	     ty *t1, const char *s1, bool d1, bool e1,
+	     ty *t2, const char *s2, bool d2, bool e2,
+	     ty *t3, const char *s3, bool d3, bool e3,
+	     ty *t4, const char *s4, bool d4, bool e4,
+	     ty *t5, const char *s5, bool d5, bool e5,
+	     ty *t6, const char *s6, bool d6, bool e6,
+	     ty *t7, const char *s7, bool d7, bool e7,
+	     ty *t8, const char *s8, bool d8, bool e8)
 {
   access *a = new bltinAccess(f);
   function *fun = new function(result);
 
-  if (t1) fun->add(t1,s1,d1);
-  if (t2) fun->add(t2,s2,d2);
-  if (t3) fun->add(t3,s3,d3);
-  if (t4) fun->add(t4,s4,d4);
-  if (t5) fun->add(t5,s5,d5);
-  if (t6) fun->add(t6,s6,d6);
-  if (t7) fun->add(t7,s7,d7);
-  if (t8) fun->add(t8,s8,d8);
+  if (t1) fun->add(t1,e1,s1,d1);
+  if (t2) fun->add(t2,e2,s2,d2);
+  if (t3) fun->add(t3,e3,s3,d3);
+  if (t4) fun->add(t4,e4,s4,d4);
+  if (t5) fun->add(t5,e5,s5,d5);
+  if (t6) fun->add(t6,e6,s6,d6);
+  if (t7) fun->add(t7,e7,s7,d7);
+  if (t8) fun->add(t8,e8,s8,d8);
 
   varEntry *ent = new varEntry(fun, a);
   
@@ -91,18 +92,18 @@ void addFunc(venv &ve, bltin f, ty *result, const char *name,
 }
   
 void addFunc(venv &ve, access *a, ty *result, symbol *id,
-	     ty *t1=0, const char *s1="", bool d1=false) 
+	     ty *t1=0, const char *s1="", bool d1=false, bool e1=false) 
 {
   function *fun = new function(result);
-  if (t1) fun->add(t1,s1,d1);
+  if (t1) fun->add(t1,e1,s1,d1);
   varEntry *ent = new varEntry(fun, a);
   ve.enter(id, ent);
 }
 
 void addFunc(venv &ve, access *a, ty *result, const char *name,
-	     ty *t1=0, const char *s1="", bool d1=false) 
+	     ty *t1=0, const char *s1="", bool d1=false, bool e1=false) 
 {
-  addFunc(ve,a,result,symbol::trans(name),t1,s1,d1);
+  addFunc(ve,a,result,symbol::trans(name),t1,s1,d1,e1);
 }
 
 // Add a rest function with zero or more default/explicit arguments.
@@ -112,7 +113,6 @@ void addRestFunc(venv &ve, bltin f, ty *result, const char *name,
 		 ty *t2=0, const char *s2="", bool d2=false, bool e2=false,
 		 ty *t3=0, const char *s3="", bool d3=false, bool e3=false,
 		 ty *t4=0, const char *s4="", bool d4=false, bool e4=false)
-//                   type              name        default        explicit
 {
   access *a = new bltinAccess(f);
   function *fun = new function(result);
@@ -145,7 +145,8 @@ void addRealFunc(venv &ve, const char* name)
 
 void addRealFunc2(venv &ve, bltin fcn, const char *name)
 {
-  addFunc(ve,fcn,primReal(),name,primReal(),"a",false,primReal(),"b",false);
+  addFunc(ve,fcn,primReal(),name,primReal(),"a",false,false,
+	  primReal(),"b",false,false);
 }
 
 void addInitializer(venv &ve, ty *t, access *a)
@@ -268,19 +269,19 @@ void addGuideOperators(venv &ve)
 /* Avoid typing the same type three times. */
 void addSimpleOperator(venv &ve, bltin f, ty *t, const char *name)
 {
-  addFunc(ve, f, t, name, t, "a", false, t, "b", false);
+  addFunc(ve,f,t,name,t,"a",false,false,t,"b",false,false);
 }
 void addBooleanOperator(venv &ve, bltin f, ty *t, const char *name)
 {
-  addFunc(ve, f, primBoolean(), name, t, "a", false, t, "b", false);
+  addFunc(ve,f,primBoolean(),name,t,"a",false,false,t,"b",false,false);
 }
 
 template<class T, template <class S> class op>
 void addOps(venv &ve, ty *t1, const char *name, ty *t2)
 {
   addSimpleOperator(ve,run::binaryOp<T,op>,t2,name);
-  addFunc(ve,run::arrayOp<T,op>,t1,name,t1,"a",false,t2,"b",false);
-  addFunc(ve,run::opArray<T,op>,t1,name,t2,"a",false,t1,"b",false);
+  addFunc(ve,run::arrayOp<T,op>,t1,name,t1,"a",false,false,t2,"b",false,false);
+  addFunc(ve,run::opArray<T,op>,t1,name,t2,"a",false,false,t1,"b",false,false);
   addSimpleOperator(ve,run::arrayArrayOp<T,op>,t1,name);
 }
 
@@ -288,17 +289,19 @@ template<class T, template <class S> class op>
 void addBooleanOps(venv &ve, ty *t1, const char *name, ty *t2)
 {
   addBooleanOperator(ve,run::binaryOp<T,op>,t2,name);
-  addFunc(ve,run::arrayOp<T,op>,boolArray(),name,t1,"a",false,t2,"b",false);
-  addFunc(ve,run::opArray<T,op>,boolArray(),name,t2,"a",false,t1,"b",false);
-  addFunc(ve,run::arrayArrayOp<T,op>,boolArray(),name,t1,"a",false,
-	  t1,"b",false);
+  addFunc(ve,run::arrayOp<T,op>,boolArray(),name,t1,"a",false,false,
+	  t2,"b",false,false);
+  addFunc(ve,run::opArray<T,op>,boolArray(),name,t2,"a",false,false,
+	  t1,"b",false,false);
+  addFunc(ve,run::arrayArrayOp<T,op>,boolArray(),name,t1,"a",false,false,
+	  t1,"b",false,false);
 }
 
 void addWrite(venv &ve, bltin f, ty *t1, ty *t2)
 {
-  addRestFunc(ve,f,primVoid(),"write",t1,false,primFile(),"file",true,false,
-	      primString(),"s",true,false,t2,"x",false,false,
-	      voidFileFunction(),"suffix",true,false);
+  addRestFunc(ve,f,primVoid(),"write",t1,false,
+	      primFile(),"file",true,false,primString(),"s",true,false,
+	      t2,"x",false,false,voidFileFunction(),"suffix",true,false);
 }
 
 template<class T>
@@ -316,8 +319,10 @@ void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   addRestFunc(ve,run::writeArray<T>,primVoid(),"write",t3,false,
 	      primFile(),"file",true,false,primString(),"s",true,false,
 	      t1,"a",false,true);
-  addFunc(ve,run::writeArray2<T>,primVoid(),"write",primFile(),"file",true,t3);
-  addFunc(ve,run::writeArray3<T>,primVoid(),"write",primFile(),"file",true,t4);
+  addFunc(ve,run::writeArray2<T>,primVoid(),"write",primFile(),
+	  "file",true,false,t3);
+  addFunc(ve,run::writeArray3<T>,primVoid(),"write",primFile(),
+	  "file",true,false,t4);
 }
 
 template<class T>
@@ -328,12 +333,12 @@ void addOrderedOps(venv &ve, ty *t1, ty *t2, ty *t3)
   addBooleanOps<T,run::greaterequals>(ve,t1,">=",t2);
   addBooleanOps<T,run::greater>(ve,t1,">",t2);
   
-  addFunc(ve,run::minArray<T>,t2,"min",t1,"a",false);
-  addFunc(ve,run::maxArray<T>,t2,"max",t1,"a",false);
-  addFunc(ve,run::sortArray<T>,t1,"sort",t1,"a",false);
-  addFunc(ve,run::sortArray2<T>,t3,"sort",t3,"a",false);
-  addFunc(ve,run::searchArray<T>,primInt(),"search",t1,"a",false,t2,
-	  "key",false);
+  addFunc(ve,run::minArray<T>,t2,"min",t1,"a",false,false);
+  addFunc(ve,run::maxArray<T>,t2,"max",t1,"a",false,false);
+  addFunc(ve,run::sortArray<T>,t1,"sort",t1,"a",false,false);
+  addFunc(ve,run::sortArray2<T>,t3,"sort",t3,"a",false,false);
+  addFunc(ve,run::searchArray<T>,primInt(),"search",t1,"a",false,false,
+	  t2,"key",false,false);
   
   addOps<T,run::min>(ve,t1,"min",t2);
   addOps<T,run::max>(ve,t1,"max",t2);
@@ -345,12 +350,12 @@ void addBasicOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   addOps<T,run::plus>(ve,t1,"+",t2);
   addOps<T,run::minus>(ve,t1,"-",t2);
   
-  addFunc(ve,&id,t1,"+",t1,"a",false);
-  addFunc(ve,&id,t2,"+",t2,"a",false);
-  addFunc(ve,run::arrayNegate<T>,t1,"-",t1,"a",false);
-  addFunc(ve,run::Negate<T>,t2,"-",t2,"a",false);
+  addFunc(ve,&id,t1,"+",t1,"a",false,false);
+  addFunc(ve,&id,t2,"+",t2,"a",false,false);
+  addFunc(ve,run::arrayNegate<T>,t1,"-",t1,"a",false,false);
+  addFunc(ve,run::Negate<T>,t2,"-",t2,"a",false,false);
   
-  addFunc(ve,run::sumArray<T>,t2,"sum",t1,"a",false);
+  addFunc(ve,run::sumArray<T>,t2,"sum",t1,"a",false,false);
   addUnorderedOps<T>(ve,t1,t2,t3,t4);
 }
 
@@ -382,13 +387,13 @@ void addOperators(venv &ve)
 			  stringArray3());
   
   addFunc(ve,run::binaryOp<int,divide>,primReal(),"/",
-	  primInt(),"a",false,primInt(),"b",false);
+	  primInt(),"a",false,false,primInt(),"b",false,false);
   addFunc(ve,run::arrayOp<int,divide>,realArray(),"/",
-	  intArray(),"a",false,primInt(),"b",false);
+	  intArray(),"a",false,false,primInt(),"b",false,false);
   addFunc(ve,run::opArray<int,divide>,realArray(),"/",
-	  primInt(),"a",false,intArray(),"b",false);
+	  primInt(),"a",false,false,intArray(),"b",false,false);
   addFunc(ve,run::arrayArrayOp<int,divide>,realArray(),"/",
-	  intArray(),"a",false,intArray(),"b",false);
+	  intArray(),"a",false,false,intArray(),"b",false,false);
   
   addOrderedOps<int>(ve,intArray(),primInt(),intArray2());
   addOrderedOps<double>(ve,realArray(),primReal(),realArray2());
@@ -432,23 +437,23 @@ void base_venv(venv &ve)
   addRealFunc(pow10);
   addRealFunc(identity);
   
-  addFunc(ve,run::writestring,primVoid(),"write",primFile(),"file",true,
-	  primString(),"s",false,voidFileFunction(),"suffix",true);
+  addFunc(ve,run::writestring,primVoid(),"write",primFile(),"file",true,false,
+	  primString(),"s",false,false,voidFileFunction(),"suffix",true,false);
   
   addWrite(ve,run::write<pen>,penArray(),primPen());
   addWrite(ve,run::write<transform>,transformArray(),primTransform());
   addWrite(ve,run::writeP<guide>,guideArray(),primGuide());
 
   addFunc(ve,run::arrayFunction,realArray(),"map",
-	  realPairFunction(),"f",false,
-	  pairArray(),"a",false);
+	  realPairFunction(),"f",false,false,
+	  pairArray(),"a",false,false);
   addFunc(ve,run::arrayFunction,intArray(),"map",
-	  intRealFunction(),"f",false,
-	  realArray(),"a",false);
+	  intRealFunction(),"f",false,false,
+	  realArray(),"a",false,false);
   
 #ifdef HAVE_LIBFFTW3
-  addFunc(ve,run::pairArrayFFT,pairArray(),"fft",pairArray(),"a",false,
-	  primInt(),"sign",true);
+  addFunc(ve,run::pairArrayFFT,pairArray(),"fft",pairArray(),"a",false,false,
+	  primInt(),"sign",true,false);
 #endif
 
   gen_base_venv(ve);

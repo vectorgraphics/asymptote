@@ -429,8 +429,8 @@ pair min(picture *f)
   return f->bounds().Min();
 }
 
-void _label(picture *f, string *s, string *size, double angle, pair position,
-	    pair align, pair scale, pen p)
+void label(picture *f, string *s, string *size, double angle, pair position,
+	   pair align, pair scale, pen p)
 {
   f->append(new drawLabel(*s,*size,angle,position,align,scale,p));
 }
@@ -890,12 +890,12 @@ void abort(string *msg)
   error(msg->c_str());
 }
 
-void _eval(string *s, bool embedded=false)
+void _eval(string *s, bool embedded)
 {
   loop::doITree(parser::parseString(*s),embedded);
 }
 
-void _eval(runnable *s, bool embedded=false)
+void _eval(runnable *s, bool embedded)
 {
   loop::doIRunnable(s,embedded);
 }
@@ -1048,7 +1048,7 @@ double dirtime(path p, pair z)
   return p.directiontime(z);
 }
 
-pair intersect(path x, path y, double fuzz)
+pair intersect(path x, path y, double fuzz=0)
 {
   return intersectiontime(x,y,fuzz);
 }
@@ -1180,14 +1180,14 @@ int length(string *s)
   return (int) s->length();
 }
 
-int find(string *s, string *sub, int pos)
+int find(string *s, string t, int pos=0)
 {
-  return (int) s->find(*sub,pos);
+  return (int) s->find(t,pos);
 }
 
-int rfind(string *s, string *sub, int pos)
+int rfind(string *s, string t, int pos=-1)
 {
-  return (int) s->rfind(*sub,pos);
+  return (int) s->rfind(t,pos);
 }
 
 string reverse(string s)
@@ -1196,14 +1196,14 @@ string reverse(string s)
   return s;
 }
 
-string insert(string s, int pos, string *sub)
+string insert(string s, int pos, string t)
 {
   if ((size_t)pos < s.length())
-    return s.insert(pos,*sub);
+    return s.insert(pos,t);
   return s;
 }
 
-string substr(string* s, int pos, int n)
+string substr(string* s, int pos, int n=-1)
 {
   if ((size_t)pos < s->length())
     return s->substr(pos,n);
@@ -1712,7 +1712,8 @@ pair conj(pair z)
   return conj(z);
 }
 
-double _dot(pair u, pair v) 
+// To avoid confusion, a dot product requires explicit pair arguments.
+double dot(explicit pair u, explicit pair v) 
 {
   return u.getx()*v.getx()+u.gety()*v.gety();
 }
@@ -2265,7 +2266,7 @@ array* :array2Transpose(array *a)
 
 // In a boolean array, find the index of the nth true value or -1 if not found
 // If n is negative, search backwards.
-int find(boolarray *a, int n)
+int find(boolarray *a, int n=1)
 {
   
   size_t size=checkArray(a);
