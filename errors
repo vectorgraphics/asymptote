@@ -36,7 +36,7 @@ errortest.asy: 160.4: cannot call 'void f(int)' without parameters
 errortest.asy: 168.7: no matching function 'operator +(point)'
 errortest.asy: 173.10: types in conditional expression do not match
 errortest.asy: 178.10: type of conditional expression is ambiguous
-errortest.asy: 183.5: cannot convert 'int ()' to 'int' in assignment
+errortest.asy: 183.5: cannot convert 'int()' to 'int' in assignment
 errortest.asy: 188.5: assignment is ambiguous
 errortest.asy: 194.24: function must return a value
 errortest.asy: 200.11: type 'int' is not a structure

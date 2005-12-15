@@ -2934,8 +2934,8 @@ The @code{copy} function listed below provides a deep copy of an array.
 @cindex @code{pop}
 @cindex @code{append}
 Every array @code{A} of type @code{T[]} has the virtual members
-@code{int length}, @code{void cyclic(bool)}, @code{bool cyclicflag},
-@code{T push(T)}, @code{void append(T[])}, and @code{T pop()}.
+@code{int length}, @code{void cyclic(bool b)}, @code{bool cyclicflag},
+@code{T push(T x)}, @code{void append(T[] a)}, and @code{T pop()}.
 The member @code{A.length} evaluates to the length of the array.
 Setting @code{A.cyclic(true)} signifies that array indices should be reduced
 modulo the current array length. Reading from or writing to a nonempty
@@ -3016,32 +3016,32 @@ If @code{n} is negative, search backwards from the end of the array for the
 @code{-n}th value; 
 
 @cindex @code{search}
-@item int search(T[], T key)
-For ordered types @code{T}, searches a sorted ordered array of
+@item int search(T[] a, T key)
+For ordered types @code{T}, searches a sorted ordered array @code{a} of
 @code{n} elements to find an interval containing @code{key}, returning
 @code{-1} if @code{key} is less than the first element, @code{n-1} if
 @code{key} is greater than or equal to the last element, and otherwise
 the index corresponding to the left-hand (smaller) endpoint.
 
 @cindex @code{copy}
-@item T[] copy(T[] A)
-returns a deep copy of the array @code{A};
+@item T[] copy(T[] a)
+returns a deep copy of the array @code{a};
 
 @cindex @code{concat}
-@item T[] concat(T[] A, T[] B)
-returns a new array formed by concatenating arrays @code{A} and @code{B};
+@item T[] concat(T[] a, T[] b)
+returns a new array formed by concatenating arrays @code{a} and @code{b};
 
 @cindex @code{alias}
-@item bool alias(T[] A, T[] B)
-returns @code{true} if the arrays @code{A} and @code{B} are identical;
+@item bool alias(T[] a, T[] b)
+returns @code{true} if the arrays @code{a} and @code{b} are identical;
 
 @cindex @code{sort}
-@item T[] sort(T[] A)
-For ordered types @code{T}, returns a copy of @code{A} sorted in
+@item T[] sort(T[] a)
+For ordered types @code{T}, returns a copy of @code{a} sorted in
 ascending order;
 
-@item T[][] sort(T[][] A)
-For ordered types @code{T}, returns a copy of @code{A} with the rows
+@item T[][] sort(T[][] a)
+For ordered types @code{T}, returns a copy of @code{a} with the rows
 sorted by the first column, breaking ties with successively higher
 columns. For example:
 @verbatim
@@ -3060,41 +3060,41 @@ pete    7
 @end verbatim
 
 @cindex @code{transpose}
-@item T[][] transpose(T[][] A)
-returns the transpose of @code{A}.
+@item T[][] transpose(T[][] a)
+returns the transpose of @code{a}.
 
 @cindex @code{sum}
-@item T sum(T[] A)
-For arithmetic types @code{T}, returns the sum of @code{A}.
+@item T sum(T[] a)
+For arithmetic types @code{T}, returns the sum of @code{a}.
 
 @cindex @code{min}
-@item T min(T[] A)
-For ordered types @code{T}, returns the minimum element of @code{A}.
+@item T min(T[] a)
+For ordered types @code{T}, returns the minimum element of @code{a}.
 
 @cindex @code{max}
-@item T max(T[] A)
-For ordered types @code{T}, returns the maximum element of @code{A}.
+@item T max(T[] a)
+For ordered types @code{T}, returns the maximum element of @code{a}.
 
 @cindex @code{map}
-@item map(f(T), T[] A)
+@item map(f(T), T[] a)
 returns the array obtained by applying the function @code{f} to each
-element of the array @code{A}.
+element of the array @code{a}.
 
 @cindex @code{min}
-@item T[] min(T[] A, T[] B)
-For ordered types @code{T}, and arrays @code{A} and @code{B} of the same
+@item T[] min(T[] a, T[] b)
+For ordered types @code{T}, and arrays @code{a} and @code{b} of the same
 length, returns an array composed of the minimum of the corresponding
-elements of @code{A} and @code{B}.
+elements of @code{a} and @code{b}.
 
 @cindex @code{max}
-@item T[] max(T[] A, T[] B)
-For ordered types @code{T}, and arrays @code{A} and @code{B} of the same
+@item T[] max(T[] a, T[] b)
+For ordered types @code{T}, and arrays @code{a} and @code{b} of the same
 length, returns an array composed of the maximum of the corresponding elements
-of @code{A} and @code{B}.
+of @code{a} and @code{b}.
 
 @cindex @code{fft}
-@item pair[] fft(pair[] A, int sign=1)
-returns the Fast Fourier Transform of @code{A} (if the optional
+@item pair[] fft(pair[] a, int sign=1)
+returns the Fast Fourier Transform of @code{a} (if the optional
 @code{FFTW} package is installed), using the given @code{sign}. Here
 is a simple example:
 @verbatim

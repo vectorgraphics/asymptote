@@ -387,11 +387,15 @@ struct function : public ty {
     sig.add(f);
   }
 
-  void add(formal f, bool Explicit, const char *name="", bool optional=false) {
+  void add(formal f, const char *name, bool optional=false) {
     if(*name) f.name=symbol::trans(name);
     if(optional) f.defval=absyntax::Default;
-    f.Explicit=Explicit;
     sig.add(f);
+  }
+    
+  void add(formal f, bool Explicit, const char *name="", bool optional=false) {
+    f.Explicit=Explicit;
+    add(f,name,optional);
   }
     
   void addRest(formal f) {
@@ -422,7 +426,7 @@ struct function : public ty {
   }
 
   void print(ostream& out) const
-    { out << *result << ' ' << sig; }
+    { out << *result << sig; }
 
   void printVar (ostream& out, symbol *name) const {
     result->printVar(out,name);

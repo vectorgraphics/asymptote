@@ -58,8 +58,8 @@ void arrayTy::prettyprint(ostream &out, int indent)
 function *arrayTy::opType(types::ty* t)
 {
   function *ft = new function(primBoolean());
-  ft->add(t);
-  ft->add(t);
+  ft->add(t,"a");
+  ft->add(t,"b");
 
   return ft;
 }
@@ -67,7 +67,7 @@ function *arrayTy::opType(types::ty* t)
 function *arrayTy::arrayType(types::ty* t)
 {
   function *ft = new function(t);
-  ft->add(t);
+  ft->add(t,"a");
 
   return ft;
 }
@@ -75,8 +75,8 @@ function *arrayTy::arrayType(types::ty* t)
 function *arrayTy::array2Type(types::ty* t)
 {
   function *ft = new function(t);
-  ft->add(t);
-  ft->add(t);
+  ft->add(t,"a");
+  ft->add(t,"b");
 
   return ft;
 }
@@ -93,8 +93,8 @@ function *arrayTy::sequenceType(types::ty* t, types::ty *ct)
 {
   function *ft = new function(t);
   function *fc = cellIntType(ct);
-  ft->add(fc);
-  ft->add(primInt());
+  ft->add(fc,"f");
+  ft->add(primInt(),"n");
 
   return ft;
 }
@@ -111,8 +111,8 @@ function *arrayTy::mapType(types::ty* t, types::ty *ct)
 {
   function *ft = new function(t);
   function *fc = cellTypeType(ct);
-  ft->add(fc);
-  ft->add(t);
+  ft->add(fc,"f");
+  ft->add(t,"a");
 
   return ft;
 }
@@ -516,7 +516,7 @@ public:
   loadModuleExp(position pos, record *imp)
     : exp(pos), imp(imp), ft(new function(imp))
   {
-    ft->add(primString());
+    ft->add(primString(),"s");
   }
 
   types::ty *trans(coenv &) {
@@ -732,8 +732,8 @@ void recorddec::prettyprint(ostream &out, int indent)
 function *recorddec::opType(record *r)
 {
   function *ft = new function(primBoolean());
-  ft->add(r);
-  ft->add(r);
+  ft->add(r,"a");
+  ft->add(r,"b");
 
   return ft;
 }

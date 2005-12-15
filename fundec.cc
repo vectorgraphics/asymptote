@@ -224,8 +224,8 @@ void fundec::prettyprint(ostream &out, int indent)
 function *fundec::opType(function *f)
 {
   function *ft = new function(primBoolean());
-  ft->add(f);
-  ft->add(f);
+  ft->add(f,"a");
+  ft->add(f,"b");
 
   return ft;
 }

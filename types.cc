@@ -223,7 +223,7 @@ ty *array::pushType()
 {
   if (pushtype == 0) {
     function *ft = new function(celltype);
-    ft->add(celltype);
+    ft->add(celltype,"x");
     pushtype = ft;
   }
 
@@ -244,7 +244,7 @@ ty *array::appendType()
 {
   if (appendtype == 0) {
     function *ft = new function(primVoid());
-    ft->add(this);
+    ft->add(this,"a");
     appendtype = ft;
   }
 
@@ -253,7 +253,7 @@ ty *array::appendType()
 
 ty *cyclicType() {
   function *ft = new function(primVoid());
-  ft->add(primBoolean());
+  ft->add(primBoolean(),"b");
   return ft;
 }
 

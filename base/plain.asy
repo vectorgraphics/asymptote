@@ -2972,8 +2972,6 @@ string math(real x)
   return math((string) x);
 }
 
-// Return the sequence 0,1,...n-1
-int[] sequence(int n) {return sequence(new int(int x){return x;},n);}
 // Return the sequence n,...m
 int[] sequence(int n, int m) {
   return sequence(new int(int x){return x;},m-n+1)+n;

@@ -366,11 +366,6 @@ bool !(bool b)
   return !b;
 }
 
-bool ^(bool a, bool b)
-{
-  return a^b ? true : false;
-}
-
 bool :boolMemEq(frame *a, frame *b)
 {
   return a == b;
@@ -1403,11 +1398,6 @@ int sgn(double x)
 int rand()
 { 
   return rand();
-}  
-
-void srand(int seed)
-{ 
-  srand(seed);
 }  
 
 void srand(int seed)
