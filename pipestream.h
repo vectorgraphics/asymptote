@@ -145,6 +145,19 @@ public:
     return *this;
   }
   
+  bool tailequals(const char *buf, size_t len, const char *prompt,
+		  size_t plen) {
+    const char *a=buf+len;
+    const char *b=prompt+plen;
+    while(b >= prompt) {
+      if(a < buf) return false;
+      if(*a != *b) return false;
+      if(*a == '\n' && *(a-1) == '\r') --a; // Handle MSDOS incompatibility
+      --a; --b;
+    }
+    return true;
+  }
+  
   void wait(const char *prompt, const char *abort=NULL) {
     ssize_t len;
     size_t plen=strlen(prompt);
@@ -164,7 +177,7 @@ public:
 	    camp::reportError(buffer);
 	}
       }
-    } while (strcmp(buffer+len-plen,prompt) != 0);
+    } while (!tailequals(buffer,len,prompt,plen));
   }
 
   int wait() {

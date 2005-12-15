@@ -37,8 +37,6 @@ extern string Python;
 extern string Xasy;
 extern const string docdir;
   
-extern string newline;  
-  
 extern string outformat;
 extern int keep;
 extern int texprocess;

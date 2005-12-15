@@ -21,8 +21,7 @@ using namespace settings;
 
 namespace camp {
 
-string texready=string("(Please type a command or say `\\end')")+newline+
-  string("*");
+string texready=string("(Please type a command or say `\\end')\n*");
 iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
   
 picture::~picture()
