@@ -661,10 +661,10 @@ public:
     return b;
   }
 
-  friend pen transformed(const transform* t, const pen& p) {
+  friend pen transformed(const transform& t, pen p) {
     pen ret = p;
-    if(p.P) ret.P=new path(p.P->transformed(*t));
-    ret.t = p.t ? new transform((*t)*(*p.t)) : t;
+    if(p.P) ret.P=new path(p.P->transformed(t));
+    ret.t = new transform(p.t ? t*(*p.t) : t);
     return ret;
   }
 

@@ -1540,7 +1540,7 @@ path Operator *(transform t, path g)
 
 pen Operator *(transform t, pen p)
 {
-  return transformed(&t,p);
+  return transformed(t,p);
 }
 
 picture * Operator *(transform t, picture *f)
