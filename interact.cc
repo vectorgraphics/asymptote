@@ -106,10 +106,12 @@ static const char *inputexpand="erase(); include ";
 static size_t ninput=strlen(input);
 static size_t ninputexpand=strlen(inputexpand);
   
-int MSDOS_startup_hook()
+int readline_startup_hook()
 {
+#ifdef MSDOS
   rl_set_key("\\M-[3~",rl_delete,rl_get_keymap());
   rl_set_key("\\M-[2~",rl_overwrite_mode,rl_get_keymap());
+#endif    
   return 0;
 }
 
@@ -131,7 +133,7 @@ size_t interactive_input(char *buf, size_t max_size)
     read_history(historyfile.c_str());
     rl_bind_key('\t',rl_insert); // Turn off tab completion
 #ifdef MSDOS
-    rl_startup_hook=MSDOS_startup_hook;
+    rl_startup_hook=readline_startup_hook;
 #endif    
   }
 
