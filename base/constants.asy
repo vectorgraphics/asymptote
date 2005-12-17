@@ -80,7 +80,7 @@ void endl(file file) {write(file,'\n'); flush(file);}
 void tab(file file) {write(file,'\t');}
 typedef void suffix(file);
 
-void write(file file=stdout, suffix e=endl) {e(file);}
+void write(file file=stdout, suffix suffix=endl) {suffix(file);}
 
 pair minbound(pair z, pair w) 
 {
@@ -98,4 +98,8 @@ guide box(pair a, pair b)
 }
 
 guide unitsquare=box((0,0),(1,1));
+
+guide unitcircle=E..N..W..S..cycle;
+public real circleprecision=0.0006;
+
 

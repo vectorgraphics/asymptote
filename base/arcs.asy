@@ -1,10 +1,6 @@
 bool CCW=true;
 bool CW=false;						  
 
-guide unitcircle=E..N..W..S..cycle;
-
-public real circleprecision=0.0006;
-
 guide circle(pair c, real r)
 {
   return shift(c)*scale(r)*unitcircle;

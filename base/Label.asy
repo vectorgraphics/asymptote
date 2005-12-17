@@ -19,13 +19,13 @@ struct align {
     align(align);
     if(this.default) init(default.dir,default.relative,default.default);
   }
-  void write(file file=stdout, suffix e=endl) {
+  void write(file file=stdout, suffix suffix=endl) {
     if(!default) {
       if(relative) {
 	write(file,"Relative(");
 	write(file,dir);
-	write(file,")",e);
-      } else write(file,dir,e);
+	write(file,")",suffix);
+      } else write(file,dir,suffix);
     }
   }
   bool Center() {
@@ -63,9 +63,9 @@ align operator cast(pair dir) {align A; A.init(dir,false); return A;}
 align operator cast(side side) {align A; A.init(side.align,true); return A;}
 align NoAlign;
 
-void write(file file=stdout, align align, suffix e=endl)
+void write(file file=stdout, align align, suffix suffix=endl)
 {
-  align.write(file,e);
+  align.write(file,suffix);
 }
 
 struct position {
@@ -230,7 +230,7 @@ struct Label {
 	  alignrelative ? Align*dir(g,position)/N : Align);
   }
   
-  void write(file file=stdout, suffix e=endl) {
+  void write(file file=stdout, suffix suffix=endl) {
     write(file,"s=\""+s+"\"");
     if(!defaultposition) write(file,", position=",position.position);
     if(!align.default) write(file,", align=");
@@ -238,7 +238,7 @@ struct Label {
     if(p != nullpen) write(file,", pen=",p);
     if(!defaultangle) write(file,", angle=",angle);
     if(shift != 0) write(file,", shift=",shift);
-    write(file,"",e);
+    write(file,"",suffix);
   }
   
   real relative() {
@@ -324,9 +324,9 @@ Label Label(Label L, align align=NoAlign, pen p=nullpen,
   return L;
 }
 
-void write(file file=stdout, Label L, suffix e=endl)
+void write(file file=stdout, Label L, suffix suffix=endl)
 {
-  L.write(file,e);
+  L.write(file,suffix);
 }
 
 void label(frame f, Label L, pair position, align align=NoAlign,

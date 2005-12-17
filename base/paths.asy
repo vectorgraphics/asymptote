@@ -70,21 +70,21 @@ pair[] operator * (transform t, pair[] z)
   return Z;
 }
 
-void write(file file, string s="", explicit path[] g, suffix e=none)
+void write(file file, string s="", explicit path[] x, suffix suffix=none)
 {
   write(file,s);
-  if(g.length > 0) write(file,g[0]);
-  for(int i=1; i < g.length; ++i) {
+  if(x.length > 0) write(file,x[0]);
+  for(int i=1; i < x.length; ++i) {
     write(file);
     write(file," ^^");
-    write(file,g[i]);
+    write(file,x[i]);
   }
-  write(file,e);
+  write(file,suffix);
 }
 
-void write(string s="", explicit path[] g, suffix e=endl) 
+void write(string s="", explicit path[] x, suffix suffix=endl) 
 {
-  write(stdout,s,g,e);
+  write(stdout,s,x,suffix);
 }
 
 pair min(explicit path[] g)

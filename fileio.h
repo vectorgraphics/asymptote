@@ -119,7 +119,7 @@ public:
   virtual void write(const triple&) {nowrite("triple");}
   virtual void write(const mem::string&) {nowrite("string");}
   virtual void write(const pen&) {nowrite("pen");}
-  virtual void write(const guide&) {nowrite("guide");}
+  virtual void write(guide *) {nowrite("guide");}
   virtual void write(const transform&) {nowrite("transform");}
   virtual void writeline() {nowrite("string");}
   
@@ -257,7 +257,7 @@ public:
   void write(const triple& val) {*stream << val;}
   void write(const mem::string& val) {*stream << val;}
   void write(const pen& val) {*stream << val;}
-  void write(const guide& val) {*stream << val;}
+  void write(guide *val) {*stream << *val;}
   void write(const transform& val) {*stream << val;}
   void writeline() {
     if(standard && settings::scrollLines) {

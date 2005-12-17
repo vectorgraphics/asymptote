@@ -382,47 +382,47 @@ struct flatguide3 {
 
 flatguide3 operator init() {return new flatguide3;}
   
-void write(file file, string s="", explicit flatguide3 g, suffix e=none)
+void write(file file, string s="", explicit flatguide3 x, suffix suffix=none)
 {
   write(file,s);
-  if(g.size() == 0) write(file,"<nullpath3>");
-  else for(int i=0; i < g.nodes.length; ++i) {
+  if(x.size() == 0) write(file,"<nullpath3>");
+  else for(int i=0; i < x.nodes.length; ++i) {
     if(i > 0) write(file);
-    if(g.cyclic[i]) write(file,"cycle3");
-    else write(file,g.nodes[i]);
+    if(x.cyclic[i]) write(file,"cycle3");
+    else write(file,x.nodes[i]);
 
-    if(g.control[i].active) // Explicit control points trump other specifiers
-      write(file,g.control[i]);
+    if(x.control[i].active) // Explicit control points trump other specifiers
+      write(file,x.control[i]);
     else {
-      write(file,g.out[i]);
-      if(g.Tension[i].active) write(file,g.Tension[i]);
+      write(file,x.out[i]);
+      if(x.Tension[i].active) write(file,x.Tension[i]);
     }
-    if(i < g.nodes.length-1) write(file,"..");
-    if(!g.control[i].active) write(file,g.in[i]);
+    if(i < x.nodes.length-1) write(file,"..");
+    if(!x.control[i].active) write(file,x.in[i]);
   }
-  write(file,e);
+  write(file,suffix);
 }
 
-void write(string s="", flatguide3 x, suffix e=endl)
+void write(string s="", flatguide3 x, suffix suffix=endl)
 {
-  write(stdout,s,x,e);
+  write(stdout,s,x,suffix);
 }
 
-void write(file file, string s="", flatguide3[] g, suffix e=none)
+void write(file file, string s="", flatguide3[] x, suffix suffix=none)
 {
   write(file,s);
-  if(g.length > 0) write(file,g[0]);
-  for(int i=1; i < g.length; ++i) {
+  if(x.length > 0) write(file,x[0]);
+  for(int i=1; i < x.length; ++i) {
     write(file);
     write(file," ^^");
-    write(file,g[i]);
+    write(file,x[i]);
   }
-  write(file,e);
+  write(file,suffix);
 }
 
-void write(string s="", flatguide3[] x, suffix e=endl)
+void write(string s="", flatguide3[] x, suffix suffix=endl)
 {
-  write(stdout,s,x,e);
+  write(stdout,s,x,suffix);
 }
 
 // A guide3 is most easily represented as something that modifies a flatguide3.
@@ -1308,30 +1308,30 @@ path3 operator * (transform3 t, path3 p)
   return path3.path3(nodes,p.cycles);
 }
 
-void write(file file, string s="", explicit path3 p, suffix e=none)
+void write(file file, string s="", explicit path3 x, suffix suffix=none)
 {
   write(file,s);
-  if(size(p) == 0) write("<nullpath3>");
-  else for(int i=0; i < p.nodes.length; ++i) {
-    if(i == p.nodes.length-1 && p.cycles) write(file,"cycle3");
-    else write(file,p.nodes[i].point);
-    if(i < length(p)) {
-      if(p.nodes[i].straight) write(file,"--");
+  if(size(x) == 0) write("<nullpath3>");
+  else for(int i=0; i < x.nodes.length; ++i) {
+    if(i == x.nodes.length-1 && x.cycles) write(file,"cycle3");
+    else write(file,x.nodes[i].point);
+    if(i < length(x)) {
+      if(x.nodes[i].straight) write(file,"--");
       else {
 	write(file,".. controls ");
-	write(file,p.nodes[i].post);
+	write(file,x.nodes[i].post);
 	write(file," and ");
-	write(file,p.nodes[i+1].pre);
+	write(file,x.nodes[i+1].pre);
 	write(file,"..",endl);
       }
     }
   }
-  write(file,e);
+  write(file,suffix);
 }
 
-void write(string s="", explicit path3 x, suffix e=endl)
+void write(string s="", explicit path3 x, suffix suffix=endl)
 {
-  write(stdout,s,x,e);
+  write(stdout,s,x,suffix);
 }
 
 project aspect(projection P)

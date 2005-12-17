@@ -254,34 +254,6 @@ void write(vm::stack *s)
 }
 
 template<class T>
-void writeP(vm::stack *s)
-{
-  array *a=pop<array*>(s);
-  vm::callable *suffix=pop<vm::callable *>(s,NULL);
-  const T& first=*pop<T*>(s);
-  mem::string S=pop<mem::string>(s,emptystring);
-  vm::item it=pop(s);
-  bool defaultfile=isdefault(it);
-  camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
-  
-  size_t size=checkArray(a);
-  if(!f->isOpen()) return;
-  if(S != "") f->write(S);
-  f->write(first);
-  
-  for(size_t i=0; i < size; ++i) {
-    f->write(tab);
-    f->write(*read<T*>(a,i));
-  }
-  if(f->text()) {
-    if(suffix) {
-      s->push(f);
-      suffix->call(s);
-    } else if(defaultfile) f->writeline();
-  }
-}
-
-template<class T>
 void writeArray(vm::stack *s)
 {
   array *A=pop<array*>(s);

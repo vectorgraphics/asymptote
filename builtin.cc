@@ -446,7 +446,7 @@ void base_venv(venv &ve)
   
   addWrite(ve,write<pen>,primPen(),penArray());
   addWrite(ve,write<transform>,primTransform(),transformArray());
-  addWrite(ve,writeP<guide>,primGuide(),guideArray());
+  addWrite(ve,write<guide *>,primGuide(),guideArray());
 
   addFunc(ve,arrayFunction,realArray(),"map",
 	  formal(realPairFunction(),"f"),

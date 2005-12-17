@@ -159,7 +159,8 @@ struct itree : public icore {
   void run(coenv &e, istack &s) {
     for(list<runnable *>::iterator r=ast->stms.begin();
 	r != ast->stms.end(); ++r)
-      irunnable(*r).run(e,s);
+      if(!em->errors()) 
+	irunnable(*r).run(e,s);
   }
 };
 
