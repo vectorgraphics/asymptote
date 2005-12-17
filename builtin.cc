@@ -32,6 +32,10 @@ using camp::transform;
 using camp::pair;
 using vm::bltin;
 using run::divide;
+using run::less;
+using run::greater;
+using run::plus;
+using run::minus;
 using mem::string;
 
 using namespace run;  

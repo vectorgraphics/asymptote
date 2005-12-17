@@ -311,7 +311,7 @@ struct formal {
       defval(optional ? absyntax::Default : 0), Explicit(Explicit) {}
 
   formal(ty *t,
-         char *name,
+         const char *name,
          bool optional=false,
          bool Explicit=false)
     : t(t), name(symbol::trans(name)),
