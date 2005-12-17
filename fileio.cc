@@ -22,7 +22,8 @@ void ifile::ignoreComment()
 {
   if(comment == 0) return;
   int c;
-  if(stream->peek() == '\n') return;
+  bool eol=(stream->peek() == '\n');
+  if(eol && nullfield) return;
   for(;;) {
     while(isspace(c=stream->peek())) {
       stream->ignore();
@@ -33,7 +34,7 @@ void ifile::ignoreComment()
       while((c=stream->peek()) != '\n' && c != EOF)
 	stream->ignore();
       if(c == '\n') stream->ignore();
-    } else return;
+    } else {if(eol) stream->unget(); return;}
   }
 }
   
