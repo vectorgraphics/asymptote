@@ -44,9 +44,9 @@ sub asy_params {
               \s*
               (\w*)(=*)|xs;
         clean_type($type);
-        $_ = $type_map{$type} . ", \"" . lc($name) . "\"" . ", " . 
+        $_ = "formal(" . $type_map{$type} . ", \"" . lc($name) . "\"" . ", " . 
 	    ($default ? "true" : "false") . ", " . 
-	    ($explicit ? "true" : "false") ;
+	    ($explicit ? "true" : "false") . ")";
     }
     return @params;
 }

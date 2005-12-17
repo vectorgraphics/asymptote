@@ -1,6 +1,12 @@
-private import math;
-
 public real perpfactor=arrowfactor;
+
+guide square(pair z1, pair z2)
+{
+  pair v=z2-z1;
+  pair z3=z2+I*v;
+  pair z4=z3-v;
+  return z1--z2--z3--z4--cycle;
+}
 
 // Draw a perpendicular symbol at z aligned in the direction align
 // relative to the path z--z+dir.

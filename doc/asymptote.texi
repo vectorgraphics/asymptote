@@ -3069,10 +3069,14 @@ For arithmetic types @code{T}, returns the sum of @code{a}.
 
 @cindex @code{min}
 @item T min(T[] a)
+@item T min(T[][] a)
+@item T min(T[][][] a)
 For ordered types @code{T}, returns the minimum element of @code{a}.
 
 @cindex @code{max}
 @item T max(T[] a)
+@item T max(T[][] a)
+@item T max(T[][][] a)
 For ordered types @code{T}, returns the maximum element of @code{a}.
 
 @cindex @code{map}

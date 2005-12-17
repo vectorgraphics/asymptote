@@ -221,40 +221,30 @@ trans::access *array::initializer()
 
 ty *array::pushType()
 {
-  if (pushtype == 0) {
-    function *ft = new function(celltype);
-    ft->add(celltype,"x");
-    pushtype = ft;
-  }
+  if (pushtype == 0)
+    pushtype = new function(celltype,formal(celltype,"x"));
 
   return pushtype;
 }
 
 ty *array::popType()
 {
-  if (poptype == 0) {
-    function *ft = new function(celltype);
-    poptype = ft;
-  }
+  if (poptype == 0)
+    poptype = new function(celltype);
 
   return poptype;
 }
 
 ty *array::appendType()
 {
-  if (appendtype == 0) {
-    function *ft = new function(primVoid());
-    ft->add(this,"a");
-    appendtype = ft;
-  }
+  if (appendtype == 0)
+    appendtype = new function(primVoid(),formal(this,"a"));
 
   return appendtype;
 }
 
 ty *cyclicType() {
-  function *ft = new function(primVoid());
-  ft->add(primBoolean(),"b");
-  return ft;
+  return new function(primVoid(),formal(primBoolean(),"b"));
 }
 
 ty *array::virtualFieldGetType(symbol *id)

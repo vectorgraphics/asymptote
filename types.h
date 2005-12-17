@@ -305,9 +305,17 @@ struct formal {
   
   formal(ty *t,
          symbol *name=0,
-         absyntax::varinit *defval=0,
+         bool optional=false,
          bool Explicit=false)
-    : t(t), name(name), defval(defval), Explicit(Explicit) {}
+    : t(t), name(name),
+      defval(optional ? absyntax::Default : 0), Explicit(Explicit) {}
+
+  formal(ty *t,
+         char *name,
+         bool optional=false,
+         bool Explicit=false)
+    : t(t), name(symbol::trans(name)),
+      defval(optional ? absyntax::Default : 0), Explicit(Explicit) {}
 
   friend ostream& operator<< (ostream& out, const formal& f);
 };
@@ -387,26 +395,10 @@ struct function : public ty {
     sig.add(f);
   }
 
-  void add(formal f, const char *name, bool optional=false) {
-    if(*name) f.name=symbol::trans(name);
-    if(optional) f.defval=absyntax::Default;
-    sig.add(f);
-  }
-    
-  void add(formal f, bool Explicit, const char *name="", bool optional=false) {
-    f.Explicit=Explicit;
-    add(f,name,optional);
-  }
-    
   void addRest(formal f) {
     sig.addRest(f);
   }
 
-  void addRest(formal f, bool Explicit) {
-    f.Explicit=Explicit;
-    sig.addRest(f);
-  }
-  
   virtual bool isReference() {
     return true;
   }

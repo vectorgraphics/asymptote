@@ -21,8 +21,7 @@ namespace absyntax {
 
 using namespace trans;
 using namespace types;
-
-
+  
 trans::tyEntry *ty::transAsTyEntry(coenv &e)
 {
   return new trans::tyEntry(trans(e, false), 0);
@@ -57,64 +56,39 @@ void arrayTy::prettyprint(ostream &out, int indent)
 
 function *arrayTy::opType(types::ty* t)
 {
-  function *ft = new function(primBoolean());
-  ft->add(t,"a");
-  ft->add(t,"b");
-
-  return ft;
+  return new function(primBoolean(),types::formal(t,"a"),types::formal(t,"b"));
 }
 
 function *arrayTy::arrayType(types::ty* t)
 {
-  function *ft = new function(t);
-  ft->add(t,"a");
-
-  return ft;
+  return new function(t,types::formal(t,"a"));
 }
 
 function *arrayTy::array2Type(types::ty* t)
 {
-  function *ft = new function(t);
-  ft->add(t,"a");
-  ft->add(t,"b");
-
-  return ft;
+  return new function(t,types::formal(t,"a"),types::formal(t,"b"));
 }
 
 function *arrayTy::cellIntType(types::ty* t)
 {
-  function *ft = new function(t);
-  ft->add(primInt());
-  
-  return ft;
+  return new function(t,primInt());
 }
   
 function *arrayTy::sequenceType(types::ty* t, types::ty *ct)
 {
-  function *ft = new function(t);
-  function *fc = cellIntType(ct);
-  ft->add(fc,"f");
-  ft->add(primInt(),"n");
-
-  return ft;
+  return new function(t,types::formal(cellIntType(ct),"f"),
+		      types::formal(primInt(),"n"));
 }
 
 function *arrayTy::cellTypeType(types::ty* t)
 {
-  function *ft = new function(t);
-  ft->add(t);
-  
-  return ft;
+  return new function(t,t);
 }
   
 function *arrayTy::mapType(types::ty* t, types::ty *ct)
 {
-  function *ft = new function(t);
-  function *fc = cellTypeType(ct);
-  ft->add(fc,"f");
-  ft->add(t,"a");
-
-  return ft;
+  return new function(t,types::formal(cellTypeType(ct),"f"),
+		      types::formal(t,"a"));
 }
 
 void arrayTy::addOps(coenv &e, types::ty* t, types::ty *ct)
@@ -514,10 +488,7 @@ class loadModuleExp : public exp {
 
 public:
   loadModuleExp(position pos, record *imp)
-    : exp(pos), imp(imp), ft(new function(imp))
-  {
-    ft->add(primString(),"s");
-  }
+    : exp(pos), imp(imp), ft(new function(imp,primString())) {}
 
   types::ty *trans(coenv &) {
     em->compiler(getPos());
@@ -731,21 +702,18 @@ void recorddec::prettyprint(ostream &out, int indent)
 
 function *recorddec::opType(record *r)
 {
-  function *ft = new function(primBoolean());
-  ft->add(r,"a");
-  ft->add(r,"b");
-
-  return ft;
+  return new function(primBoolean(),types::formal(r,"a"),
+		      types::formal(r,"b"));
 }
 
-void recorddec::addOps(coenv &e, record *r)
+void recorddec::addOps(coenv &e, record *parent, record *r)
 {
   function *ft = opType(r);
   varEntry *ve=new varEntry(ft, new bltinAccess(run::boolMemEq));
-  e.e.addVar(symbol::trans("alias"), ve);
-  e.e.addVar(symbol::trans("=="), ve);
-  e.e.addVar(symbol::trans("!="),
-      new varEntry(ft, new bltinAccess(run::boolMemNeq)));
+  addVar(e,parent,ve,symbol::trans("alias"));
+  addVar(e,parent,ve,symbol::trans("=="));
+  addVar(e,parent,new varEntry(ft, new bltinAccess(run::boolMemNeq)),
+	 symbol::trans("!="));
 }
 
 void recorddec::transAsField(coenv &e, record *parent)
@@ -758,7 +726,7 @@ void recorddec::transAsField(coenv &e, record *parent)
   if (parent)
     parent->e.addType(id, ent);
   e.e.addType(id, ent);
-  addOps(e,r);
+  addOps(e,parent,r);
 
   // Start translating the initializer.
   coder c=e.c.newRecordInit(r);

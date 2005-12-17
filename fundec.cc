@@ -31,7 +31,7 @@ void formal::prettyprint(ostream &out, int indent)
 types::formal formal::trans(coenv &e, bool encodeDefVal, bool tacit) {
   return types::formal(getType(e,tacit),
                        getName(),
-                       encodeDefVal ? getDefaultValue() : 0,
+                       encodeDefVal ? (bool) getDefaultValue() : 0,
                        getExplicit());
 }
 
@@ -223,20 +223,17 @@ void fundec::prettyprint(ostream &out, int indent)
 
 function *fundec::opType(function *f)
 {
-  function *ft = new function(primBoolean());
-  ft->add(f,"a");
-  ft->add(f,"b");
+  return new function(primBoolean(),types::formal(f,"a"),types::formal(f,"b"));
 
-  return ft;
 }
 
-void fundec::addOps(coenv &e, function *f)
+void fundec::addOps(coenv &e, record *r, function *f)
 {
   function *ft = opType(f);
-  e.e.addVar(symbol::trans("=="),
-      new varEntry(ft, new bltinAccess(run::boolFuncEq)));
-  e.e.addVar(symbol::trans("!="),
-      new varEntry(ft, new bltinAccess(run::boolFuncNeq)));
+  addVar(e,r,new varEntry(ft, new bltinAccess(run::boolFuncEq)),
+	 symbol::trans("=="));
+  addVar(e,r,new varEntry(ft, new bltinAccess(run::boolFuncNeq)),
+	 symbol::trans("!="));
 }
 
 void fundec::trans(coenv &e)
@@ -249,7 +246,7 @@ void fundec::transAsField(coenv &e, record *r)
   function *ft = fun.transType(e, true);
   assert(ft);
 
-  addOps(e,ft);
+  addOps(e,r,ft);
   
   createVar(getPos(), e, r, id, ft, &fun);
 } 

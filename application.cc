@@ -121,7 +121,8 @@ void application::initRest() {
       vm::error("formal rest argument must be an array");
 
     rest=new restArg();
-    rf=types::formal(a->celltype, 0, 0, f.Explicit);
+    static symbol *null=0;
+    rf=types::formal(a->celltype, null, false, f.Explicit);
   }
 }
 

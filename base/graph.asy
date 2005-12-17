@@ -244,7 +244,7 @@ ticklocate ticklocate(real a, real b, autoscaleT S=defaultS,
 		      real tickmin=-infinity, real tickmax=infinity,
 		      real time(real)=null, pair dir(real)=zero) 
 {
-  if(time == null) time=linear(S.T(),a,b);
+  if((valuetime) time == null) time=linear(S.T(),a,b);
   ticklocate locate;
   locate.a=a;
   locate.b=b;

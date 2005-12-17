@@ -21,16 +21,14 @@ void base_tenv(tenv &);
 void base_venv(venv &);
 void base_menv(menv &);
 
+extern const types::formal noformal;
+  
 // Add a function with one or more default arguments.
 void addFunc(venv &ve, vm::bltin f, types::ty *result, const char *name, 
-	     types::ty *t1=0, const char *s1="", bool d1=false, bool e1=false,
-	     types::ty *t2=0, const char *s2="", bool d2=false, bool e2=false,
-	     types::ty *t3=0, const char *s3="", bool d3=false, bool e3=false,
-	     types::ty *t4=0, const char *s4="", bool d4=false, bool e4=false,
-	     types::ty *t5=0, const char *s5="", bool d5=false, bool e5=false,
-	     types::ty *t6=0, const char *s6="", bool d6=false, bool e6=false,
-	     types::ty *t7=0, const char *s7="", bool d7=false, bool e7=false,
-	     types::ty *t8=0, const char *s8="", bool d8=false, bool e8=false);
+	     types::formal f1=noformal, types::formal f2=noformal,
+	     types::formal f3=noformal, types::formal f4=noformal,
+	     types::formal f5=noformal, types::formal f6=noformal,
+	     types::formal f7=noformal, types::formal f8=noformal);
   
 } //namespace trans
 

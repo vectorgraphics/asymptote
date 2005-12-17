@@ -49,17 +49,12 @@ void bltinAccess::encode(action act, position pos, coder &e)
   }
 }
 
-#if 0 // When do these occur?
-void bltinAccess::encodeRead(position, coder &e, frame *)
+void bltinAccess::encode(action act, position pos, coder &e, frame *)
 {
-  e.encode(inst::constpush,(item)(vm::callable*)new vm::bfunc(f));
+  e.encode(inst::pop);
+  encode(act, pos, e);
 }
-
-void bltinAccess::encodeWrite(position pos, coder &, frame *)
-{
-  bltinError(pos);
-}
-#endif
+  
 
 /* frameAccess */
 void frameAccess::encode(action act, position pos, coder &e)

@@ -185,6 +185,15 @@ void binaryOp(vm::stack *s)
   s->push(op<T>()(a,b));
 }
 
+template <class T>
+void interp(vm::stack *s)
+{
+  double t=vm::pop<double>(s);
+  T b=vm::pop<T>(s);
+  T a=vm::pop<T>(s);
+  s->push(a+t*(b-a));
+}
+
 } // namespace run
 
 #endif //MATHOP_H

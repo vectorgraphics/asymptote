@@ -138,7 +138,7 @@ public:
   void prettyprint(ostream &out, int indent);
 
   types::function *opType(types::function *f);
-  void addOps(coenv &e, types::function *f);
+  void addOps(coenv &e, record *parent, types::function *f);
   
   void trans(coenv &e);
 

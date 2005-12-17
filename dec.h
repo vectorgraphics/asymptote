@@ -551,7 +551,7 @@ class recorddec : public dec {
   block *body;
 
   types::function *opType(record *r);
-  void addOps(coenv &e, record *r);
+  void addOps(coenv &e, record *parent, record *r);
 
 public:
   recorddec(position pos, symbol *id, block *body)
@@ -568,6 +568,8 @@ public:
 // Returns a runnable that facilitates the autoplain feature.
 runnable *autoplainRunnable();
 
+void addVar(coenv &e, record *r, varEntry *v, symbol *id);
+  
 } // namespace absyntax
 
 #endif

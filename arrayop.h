@@ -84,31 +84,73 @@ void sumArray(vm::stack *s)
   s->push(sum);
 }
 
-template<class T>
-void maxArray(vm::stack *s)
+extern const char *arraymin, *arraymax;
+  
+template<class T, template <class S> class op>
+void binopArray(vm::stack *s)
 {
   array *a=pop<array*>(s);
   size_t size=checkArray(a);
-  if(size == 0) vm::error("cannot take max of empty array");
+  if(size == 0) vm::error(arraymin);
   T m=read<T>(a,0);
   for(size_t i=1; i < size; i++) {
     T val=read<T>(a,i);
-    if(val > m) m=val;
+    if(op<T>()(val,m)) m=val;
   }
   s->push(m);
 }
 
-template<class T>
-void minArray(vm::stack *s)
+template<class T, template <class S> class op>
+void binopArray2(vm::stack *s)
 {
   array *a=pop<array*>(s);
   size_t size=checkArray(a);
-  if(size == 0) vm::error("cannot take min of empty array");
-  T m=read<T>(a,0);
-  for(size_t i=1; i < size; i++) {
-    T val=read<T>(a,i);
-    if(val < m) m=val;
+  bool empty=true;
+  T m=0;
+  for(size_t i=0; i < size; i++) {
+    array *ai=read<array*>(a,i);
+    size_t aisize=checkArray(ai);
+    if(aisize) {
+      if(empty) {
+	m=read<T>(ai,0);
+	empty=false;
+      }
+      for(size_t j=0; j < aisize; j++) {
+	T val=read<T>(ai,j);
+        if(op<T>()(val,m)) m=val;
+      }
+    }
   }
+  if(empty) vm::error(arraymin);
+  s->push(m);
+}
+
+template<class T, template <class S> class op>
+void binopArray3(vm::stack *s)
+{
+  array *a=pop<array*>(s);
+  size_t size=checkArray(a);
+  bool empty=true;
+  T m=0;
+  for(size_t i=0; i < size; i++) {
+    array *ai=read<array*>(a,i);
+    size_t aisize=checkArray(ai);
+    for(size_t j=0; j < aisize; j++) {
+      array *aij=read<array*>(ai,j);
+      size_t aijsize=checkArray(aij);
+      if(aijsize) {
+	if(empty) {
+	  m=read<T>(aij,0);
+	  empty=false;
+	}
+	for(size_t k=0; k < aijsize; k++) {
+	  T val=read<T>(aij,k);
+	  if(op<T>()(val,m)) m=val;
+	}
+      }
+    }
+  }
+  if(empty) vm::error(arraymin);
   s->push(m);
 }
 

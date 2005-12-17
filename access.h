@@ -68,6 +68,7 @@ public:
     : f(f) {}
 
   void encode(action act, position pos, coder &e);
+  void encode(action act, position pos, coder &e, frame *);
 };
 
 // An access that puts a frame on the top of the stack.
