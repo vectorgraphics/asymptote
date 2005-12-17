@@ -1,5 +1,3 @@
-include fonts;
-			  
 public pen currentpen;
 
 pen nullpen=linewidth(0);
@@ -139,6 +137,71 @@ real labelmargin(pen p=currentpen)
 pen interp(pen a, pen b, real t) 
 {
   return (1-t)*a+t*b;
+}
+
+pen font(string name) 
+{
+  return fontcommand("\font\ASYfont="+name+"\ASYfont");
+}
+
+pen font(string name, real size) 
+{
+  // Extract size of requested TeX font
+  string basesize;
+  for(int i=0; i < length(name); ++i) {
+    string c=substr(name,i,1);
+    if(c >= "0" && c <= "9") basesize += c;
+    else if(basesize != "") break;
+  }
+  return basesize == "" ? font(name) :
+    font(name+" scaled "+(string) (1000*size/(int) basesize)); 
+}
+
+pen font(string encoding, string family, string series="m", string shape="n") 
+{
+  return fontcommand("\usefont{"+encoding+"}{"+family+"}{"+series+"}{"+shape+
+		     "}");
+}
+
+pen AvantGarde(string series="m", string shape="n")
+{
+  return font("OT1","pag",series,shape);
+}
+pen Bookman(string series="m", string shape="n")
+{
+  return font("OT1","pbk",series,shape);
+}
+pen Courier(string series="m", string shape="n")
+{
+  return font("OT1","pcr",series,shape);
+}
+pen Helvetica(string series="m", string shape="n")
+{
+  return font("OT1","phv",series,shape);
+}
+pen NewCenturySchoolBook(string series="m", string shape="n")
+{
+  return font("OT1","pnc",series,shape);
+}
+pen Palatino(string series="m", string shape="n")
+{
+  return font("OT1","ppl",series,shape);
+}
+pen TimesRoman(string series="m", string shape="n")
+{
+  return font("OT1","ptm",series,shape);
+}
+pen ZapfChancery(string series="m", string shape="n")
+{
+  return font("OT1","pzc",series,shape);
+}
+pen Symbol(string series="m", string shape="n")
+{
+  return font("OT1","psy",series,shape);
+}
+pen ZapfDingbats(string series="m", string shape="n")
+{
+  return font("OT1","pzd",series,shape);
 }
 
 pen squarepen=makepen(shift(-0.5,-0.5)*unitsquare);
