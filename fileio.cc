@@ -23,7 +23,7 @@ void ifile::ignoreComment()
   if(comment == 0) return;
   int c;
   bool eol=(stream->peek() == '\n');
-  if(eol && nullfield) return;
+  if(eol && csvmode && nullfield) return;
   for(;;) {
     while(isspace(c=stream->peek())) {
       stream->ignore();
