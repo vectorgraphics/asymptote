@@ -172,7 +172,7 @@ public:
   
   void csv();
   
-  void ignoreComment();
+  void ignoreComment(bool readstring=false);
   bool eol();
   
   bool text() {return true;}
@@ -349,7 +349,7 @@ void ifile::iread(T& val)
   if(standard) clear();
   if(errorstream::interrupt) throw interrupted();
   else {
-    ignoreComment();
+    ignoreComment(typeid(T)==typeid(mem::string));
     val=T();
     if(!nullfield)
       Read(val);

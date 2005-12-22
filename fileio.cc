@@ -18,12 +18,12 @@ string asyinput=".asy_input";
 ofile nullfile("");
 ofile Stdout("");
 
-void ifile::ignoreComment()
+void ifile::ignoreComment(bool readstring)
 {
   if(comment == 0) return;
   int c;
   bool eol=(stream->peek() == '\n');
-  if(eol && csvmode && nullfield) return;
+  if(eol && (readstring || (csvmode && nullfield))) return;
   for(;;) {
     while(isspace(c=stream->peek())) {
       stream->ignore();
@@ -88,7 +88,7 @@ mem::string ifile::getcsvline()
     int c=stream->peek();
     if(c == '"') {quote=!quote; stream->ignore(); continue;}
     if(!quote && (c == ',' || c == '\n')) {
-      if(c == '\n') ignoreComment();
+      if(c == '\n') ignoreComment(true);
       return s;
     }
     s += (char) stream->get();
