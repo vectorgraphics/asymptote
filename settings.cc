@@ -28,7 +28,25 @@
 #include "locate.h"
 #include "lexical.h"
 
+#include "memory.h"
+#include "record.h"
+#include "env.h"
+#include "item.h"
+#include "refaccess.h"
+
+#ifdef MSDOS
+const bool msdos=true;
+#else
+const bool msdos=false;
+#endif
+
 using std::vector;
+using vm::item;
+
+using trans::itemRefAccess;
+using trans::refAccess;
+using trans::varEntry;
+
 
 namespace settings {
   
@@ -36,81 +54,286 @@ const char PROGRAM[]=PACKAGE_NAME;
 const char VERSION[]=PACKAGE_VERSION;
 const char BUGREPORT[]=PACKAGE_BUGREPORT;
 
-#ifdef MSDOS
-const char pathSeparator=';';
-int view=-1; // Support drag and drop in MSWindows
-const string defaultPSViewer=
-  "'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe'";
-const string defaultPDFViewer=
-  "'c:\\Program Files\\Adobe\\Acrobat 7.0\\Reader\\AcroRd32.exe'";
-const string defaultGhostscript=
-  "'c:\\Program Files\\gs\\gs8.51\\bin\\gswin32.exe'";
-const string defaultPython="'c:\\Python24\\python.exe'";
-const string defaultDisplay="imdisplay";
-#undef ASYMPTOTE_SYSDIR
-#define ASYMPTOTE_SYSDIR "c:\\Program Files\\Asymptote"
-const string docdir=".";
-#else  
-const char pathSeparator=':';
-int view=0;
-const string defaultPSViewer="gv";
-const string defaultPDFViewer="acroread";
-const string defaultGhostscript="gs";
-const string defaultDisplay="display";
-const string defaultPython="";
-const string docdir=ASYMPTOTE_DOCDIR;
-#endif  
-  
-string PSViewer;
-string PDFViewer;
-string Ghostscript;
-string LaTeX;
-string Dvips;
-string Convert;
-string Display;
-string Animate;
-string Python;
-string Xasy;
-  
-string outformat="eps";
-int keep=0;
-int texprocess=1;
-int texmode=0;
-int debug=0;
-int verbose=0;
-int safe=1;
-int autoplain=1;
-int localhistory=0;
-int parseonly=0;
-int translate=0;
-int listvariables=0;
-int bwonly=0;
-int grayonly=0;
-int rgbonly=0;
-int cmykonly=0;
-int trap=-1;
-double deconstruct=0;
-int clearGUI=0;
-int ignoreGUI=0;
-camp::pair postscriptOffset=0.0;
-int origin=CENTER;
-  
-int ShipoutNumber=0;
-string paperType;
-double pageWidth;
-double pageHeight;
+// The name of the program (as called).  Used when displaying help info.
+char *argv0;
 
-int scrollLines=0;
-  
-const string suffix="asy";
-const string guisuffix="gui";
-  
-string outname;
+typedef ::option c_option;
 
-bool TeXinitialized=false;
-string initdir;
+types::dummyRecord settingsModule(symbol::trans("settings"));
 
-camp::pen defaultpen=camp::pen::startupdefaultpen();
+types::record *getSettingsModule() {
+  return &settingsModule;
+}
+
+struct option : public gc {
+  mem::string name;
+  char code;  // For the command line, ie. 'V' for -V.
+  bool argument;  // If it takes an argument on the command line.
+
+  mem::string desc; // One line description of what the option does.
+
+  option(mem::string name, char code, bool argument, mem::string desc)
+    : name(name), code(code), argument(argument), desc(desc) {}
+
+  virtual ~option() {}
+
+  // Builds this option's contribution to the optstring argument of get_opt().
+  virtual mem::string optstring() {
+    if (code) {
+      mem::string base;
+      base.push_back(code);
+      return argument ? base+":" : base;
+    }
+    else return "";
+  }
+
+  // Sets the contribution to the longopt array.
+  virtual void longopt(c_option &o) {
+    o.name=name.c_str();
+    o.has_arg=argument ? 1 : 0;
+    o.flag=0;
+    o.val=0;
+  }
+
+  // Set the option from the command-line argument.
+  virtual void getOption() = 0;
+};
+
+struct setting : public option {
+  types::ty *t;
+
+  setting(mem::string name, char code, bool argument, mem::string desc,
+          types::ty *t)
+      : option(name, code, argument, desc), t(t) {}
+
+  virtual void reset() = 0;
+
+  virtual trans::access *buildAccess() = 0;
+
+  varEntry *buildVarEntry() {
+    return new varEntry(t, buildAccess());
+  }
+};
+
+struct itemSetting : public setting {
+  item defaultValue;
+  item value;
+
+  itemSetting(mem::string name, char code, bool argument, mem::string desc,
+              types::ty *t, item defaultValue)
+      : setting(name, code, argument, desc, t), defaultValue(defaultValue) {
+    reset();
+  }
+
+  void reset() {
+    value=defaultValue;
+  }
+
+  trans::access *buildAccess() {
+    return new itemRefAccess(&(value));
+  }
+};
+
+struct boolSetting : public itemSetting {
+  boolSetting(mem::string name, char code, mem::string desc,
+              bool defaultValue=false)
+    : itemSetting(name, code, false, desc,
+              types::primBoolean(), (item)defaultValue) {}
+
+  static bool negate;
+  struct negateOption : public option {
+    negateOption()
+      : option("no", 'n', false, "Negate next option") {}
+
+    void getOption() {
+      negate=true;
+    }
+  };
+
+  void getOption() {
+    if (negate) {
+      value=(item)false;
+      negate=false;
+    }
+    else
+      value=(item)true;
+  }
+
+  // Set several related boolean options at once.  Used for view and trap which
+  // have batch and interactive settings.
+  struct multiOption : public option {
+    typedef mem::list<boolSetting *> setlist;
+    setlist set;
+    multiOption(mem::string name, char code, mem::string desc)
+      : option(name, code, false, desc) {}
+
+    void add(boolSetting *s) {
+      set.push_back(s);
+    }
+
+    void setValue(bool value) {
+      for (setlist::iterator s=set.begin(); s!=set.end(); ++s)
+        (*s)->value=(item)value;
+    }
+
+    void getOption() {
+      if (negate) {
+        setValue(false);
+        negate=false;
+      }
+      else
+        setValue(true);
+    }
+  };
+};
+
+bool boolSetting::negate=false;
+typedef boolSetting::multiOption multiOption;
+
+struct stringSetting : public itemSetting {
+  stringSetting(mem::string name, char code,
+                mem::string /*argname*/, mem::string desc,
+                mem::string defaultValue)
+    : itemSetting(name, code, true, desc,
+              types::primString(), (item)defaultValue) {}
+
+  void getOption() {
+    value=(item)(mem::string)optarg;
+  }
+};
+
+struct realSetting : public itemSetting {
+  realSetting(mem::string name, char code,
+              mem::string /*argname*/, mem::string desc,
+              double defaultValue)
+    : itemSetting(name, code, true, desc,
+                  types::primReal(), (item)defaultValue) {}
+
+  void getOption() {
+    try {
+      value=(item)lexical::cast<double>(optarg);
+    } catch (lexical::bad_cast&) {
+      cerr << "Setting '" << name << "' is a real number." << endl;
+    }
+  }
+};
+
+struct pairSetting : public itemSetting {
+  pairSetting(mem::string name, char code,
+              mem::string /*argname*/, mem::string desc,
+              camp::pair defaultValue=0.0)
+    : itemSetting(name, code, true, desc,
+                  types::primPair(), (item)defaultValue) {}
+
+  void getOption() {
+    try {
+      value=(item)lexical::cast<camp::pair>(optarg);
+    } catch (lexical::bad_cast&) {
+      cerr << "Setting '" << name << "' is a pair." << endl;
+    }
+  }
+};
+
+// For setting the position of a figure on the page.
+struct positionSetting : public itemSetting {
+  positionSetting(mem::string name, char code,
+                  mem::string /*argname*/, mem::string desc,
+                  int defaultValue=CENTER)
+    : itemSetting(name, code, true, desc,
+                  types::primInt(), (item)defaultValue) {}
+
+  void getOption() {
+    mem::string str=optarg;
+    if (str=="C")
+      value=(int)CENTER;
+    else if (str=="T")
+      value=(int)TOP;
+    else if (str=="B")
+      value=(int)BOTTOM;
+    else if (str=="Z") {
+      value=(int)ZERO;
+      getSetting("tex")=false;
+    }
+    else 
+      cerr << "Invalid argument for setting " << name << "." << endl;
+  }
+};
+
+template <class T>
+struct refSetting : public setting {
+  T *ref;
+  T defaultValue;
+
+  refSetting(mem::string name, char code, bool argument, mem::string desc,
+          types::ty *t, T *ref, T defaultValue)
+      : setting(name, code, argument, desc, t),
+        ref(ref), defaultValue(defaultValue) {
+    reset();
+  }
+
+  virtual void reset() {
+    *ref=defaultValue;
+  }
+
+  trans::access *buildAccess() {
+    return new refAccess<T>(ref);
+  }
+};
+
+#if INTV
+struct incrementSetting : public refSetting<int> {
+  incrementSetting(mem::string name, char code, mem::string desc, int *ref)
+    : refSetting<int>(name, code, false, desc,
+              types::primInt(), ref, 0) {}
+
+  void getOption() {
+    // Increment the value.
+    ++(*ref);
+  }
+};
+#else
+struct incrementSetting : public itemSetting {
+  incrementSetting(mem::string name, char code, mem::string desc)
+    : itemSetting(name, code, false, desc,
+              types::primInt(), (item)0) {}
+
+  void getOption() {
+    // Increment the value in the item.
+    int n=vm::get<int>(value);
+    value=(item)(n+1);
+  }
+};
+#endif
+
+typedef mem::map<const mem::string, option *> optionsMap_t;
+optionsMap_t optionsMap;
+typedef mem::map<const char, option *> codeMap_t;
+codeMap_t codeMap;
+  
+void addOption(option *o) {
+  optionsMap[o->name]=o;
+  if (o->code)
+    codeMap[o->code]=o;
+}
+
+void addSetting(setting *s) {
+  addOption(s);
+
+  settingsModule.e.addVar(symbol::trans(s->name), s->buildVarEntry());
+}
+
+void addMultiOption(multiOption *m) {
+  addOption(m);
+
+  for (multiOption::setlist::iterator s=m->set.begin(); s!=m->set.end(); ++s)
+    addSetting(*s);
+}
+
+item &getSetting(string name) {
+  itemSetting *s=dynamic_cast<itemSetting *>(optionsMap[name]);
+  assert(s);
+  return s->value;
+}
   
 void usage(const char *program)
 {
@@ -123,15 +346,22 @@ void usage(const char *program)
        << endl;
 }
 
-void options()
+void reportSyntax() {
+  cerr << endl;
+  usage(argv0);
+  cerr << endl << "Type '" << argv0
+    << " -h' for a descriptions of options." << endl;
+  exit(1);
+}
+
+void displayOptions()
 {
   cerr << endl;
   cerr << "Options: " << endl;
   cerr << "-V, -View\t View output file" << endl;
   cerr << "-nV, -nView\t Don't view output file" << endl;
   cerr << "-n, -no\t\t Negate next option" << endl;
-  cerr << "-x magnification Deconstruct into transparent GIF objects" 
-       << endl;
+  cerr << "-x magnification Deconstruct into transparent GIF objects" << endl;
   cerr << "-c \t\t Clear GUI operations" << endl;
   cerr << "-i \t\t Ignore GUI operations" << endl;
   cerr << "-f format\t Convert each output file to specified format" << endl;
@@ -166,168 +396,270 @@ void options()
   cerr << "-noplain\t Disable automatic importing of plain" << endl;
 }
 
+struct helpOption : public option {
+  helpOption(mem::string name, char code, mem::string desc)
+    : option(name, code, false, desc) {}
+
+  void getOption() {
+    usage(argv0);
+    displayOptions();
+    cerr << endl;
+    exit(0);
+  }
+};
+
+// For security reasons, safe isn't a field of the settings module.
+struct safeOption : public option {
+  bool value;
+
+  safeOption(mem::string name, char code, mem::string desc, bool value)
+    : option(name, code, false, desc), value(value) {}
+
+  void getOption() {
+    safe=value;
+  }
+};
+
+
+mem::string build_optstring() {
+  mem::string s;
+  for (codeMap_t::iterator p=codeMap.begin(); p !=codeMap.end(); ++p)
+    s +=p->second->optstring();
+
+  return s;
+}
+
+c_option *build_longopts() {
+  int n=optionsMap.size();
+
+#ifdef USEGC
+  c_option *longopts=new (GC) c_option[n];
+#else
+  c_option *longopts=new c_option[n];
+#endif
+
+  int i=0;
+  for (optionsMap_t::iterator p=optionsMap.begin();
+       p !=optionsMap.end();
+       ++p, ++i)
+    p->second->longopt(longopts[i]);
+
+  return longopts;
+}
+
+void getOptions(int argc, char *argv[])
+{
+  bool syntax=false;
+
+  mem::string optstring=build_optstring();
+  //cerr << "optstring: " << optstring << endl;
+  c_option *longopts=build_longopts();
+  int long_index = 0;
+
+  errno=0;
+  for(;;) {
+    int c = getopt_long_only(argc,argv,
+                             optstring.c_str(), longopts, &long_index);
+    if (c == -1)
+      break;
+
+    if (c == 0) {
+      const char *name=longopts[long_index].name;
+      //cerr << "long option: " << name << endl;
+      optionsMap[name]->getOption();
+    }
+    else if (codeMap.find(c) != codeMap.end()) {
+      //cerr << "char option: " << (char)c << endl;
+      codeMap[c]->getOption();
+    }
+    else {
+      syntax=true;
+    }
+
+    errno=0;
+  }
+  
+  if (syntax)
+    reportSyntax();
+}
+
+// The verbosity setting, a global variable.
+#if INTV
+int verbose=0;
+#else
+item *verboseItem=0;
+#endif
+
+item *debugItem=0;
+
+void initSettings() {
+  multiOption *view=new multiOption("View", 'V', "View output file");
+  view->add(new boolSetting("batchView", 0,
+                     "View output files in batch mode", false));
+  view->add(new boolSetting("interactiveView", 0,
+                     "View output in interactive mode", true));
+  view->add(new boolSetting("oneFileView", 0,
+                     "View output of one file (for drag-and-drop)", msdos));
+  addMultiOption(view);
+  //cerr << "-nV, -nView\t Don't view output file" << endl;
+
+  addOption(new boolSetting::negateOption);
+
+  addSetting(new realSetting("deconstruct", 'x', "magnification",
+                     "Deconstruct into transparent GIF objects", 0.0));
+  addSetting(new boolSetting("clearGUI", 'c', "Clear GUI operations"));
+  addSetting(new boolSetting("ignoreGUI", 'i', "Ignore GUI operations"));
+  addSetting(new stringSetting("outformat", 'f', "format",
+                     "Convert each output file to specified format", "eps"));
+  addSetting(new stringSetting("outname", 'o', "name",
+                     "(First) output file name", ""));
+  addOption(new helpOption("help", 'h', "Show summary of options"));
+
+  addSetting(new pairSetting("offset", 'O', "pair", "PostScript offset"));
+  addSetting(new positionSetting("position", 'P', "[CBTZ]",
+                     "Position of the figure on the page (Z implies -L)."));
+  
+  addSetting(new boolSetting("debug", 'd', "Enable debugging messages"));
+  debugItem=&getSetting("debug");
+
+#if INTV
+  addSetting(new incrementSetting("verbose", 'v',
+                     "Increase verbosity level", &verbose));
+#else
+  addSetting(new incrementSetting("verbose", 'v',
+                     "Increase verbosity level"));
+  verboseItem=&getSetting("verbose");
+#endif
+
+  addSetting(new boolSetting("keep", 'k', "Keep intermediate files"));
+  addSetting(new boolSetting("tex", 0,
+                     "Enable LaTeX label postprocessing (default)", true));
+  //cerr << "-L\t\t Disable LaTeX label postprocessing" << endl;
+  addSetting(new boolSetting("texmode", 't',
+                     "Produce LaTeX file for \\usepackage[inline]{asymptote}"));
+  addSetting(new boolSetting("parseonly", 'p', "Parse test"));
+  addSetting(new boolSetting("translate", 's', "Translate test"));
+  addSetting(new boolSetting("listvariables", 'l',
+                     "List available global functions and variables"));
+  
+  multiOption *mask=new multiOption("mask", 'm',
+                        "Mask fpu exceptions");
+  mask->add(new boolSetting("batchMask", 0,
+                     "Mask fpu exceptions in batch mode", false));
+  mask->add(new boolSetting("interactiveMask", 0,
+                     "Mask fpu exceptions in interactive mode", true));
+  addMultiOption(mask);
+
+  addSetting(new boolSetting("bw", 0,
+                     "Convert all colors to black and white"));
+  addSetting(new boolSetting("gray", 0, "Convert all colors to grayscale"));
+  addSetting(new boolSetting("rgb", 0, "Convert cmyk colors to rgb"));
+  addSetting(new boolSetting("cmyk", 0, "Convert rgb colors to cmyk"));
+
+  addOption(new safeOption("safe", 0,
+                    "Disable system call (default, negation ignored)", true));
+  addOption(new safeOption("unsafe", 0,
+                    "Enable system call (negation ignored)", false));
+
+  addSetting(new boolSetting("localhistory", 0, 
+                     "Use a local interactive history file"));
+  addSetting(new boolSetting("autoplain", 0,
+                     "Enable automatic importing of plain (default)", true));
+  //cerr << "-noplain\t Disable automatic importing of plain" << endl;
+}
+
+
+
+#ifdef MSDOS
+const char pathSeparator=';';
+//int view=-1; // Support drag and drop in MSWindows
+const string defaultPSViewer=
+  "'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe'";
+const string defaultPDFViewer=
+  "'c:\\Program Files\\Adobe\\Acrobat 7.0\\Reader\\AcroRd32.exe'";
+const string defaultGhostscript=
+  "'c:\\Program Files\\gs\\gs8.51\\bin\\gswin32.exe'";
+const string defaultPython="'c:\\Python24\\python.exe'";
+const string defaultDisplay="imdisplay";
+#undef ASYMPTOTE_SYSDIR
+#define ASYMPTOTE_SYSDIR "c:\\Program Files\\Asymptote"
+const string docdir=".";
+#else  
+const char pathSeparator=':';
+//int view=0;
+const string defaultPSViewer="gv";
+const string defaultPDFViewer="acroread";
+const string defaultGhostscript="gs";
+const string defaultDisplay="display";
+const string defaultPython="";
+const string docdir=ASYMPTOTE_DOCDIR;
+#endif  
+  
+string PSViewer;
+string PDFViewer;
+string Ghostscript;
+string LaTeX;
+string Dvips;
+string Convert;
+string Display;
+string Animate;
+string Python;
+string Xasy;
+  
+int safe=1;
+  
+int ShipoutNumber=0;
+string paperType;
+double pageWidth;
+double pageHeight;
+
+int scrollLines=0;
+  
+const string suffix="asy";
+const string guisuffix="gui";
+  
+
+bool TeXinitialized=false;
+string initdir;
+
+camp::pen defaultpen=camp::pen::startupdefaultpen();
+  
+
 // Local versions of the argument list.
 int argCount = 0;
 char **argList = 0;
   
-  // Access the arguments once options have been parsed.
+// Access the arguments once options have been parsed.
 int numArgs() { return argCount; }
 char *getArg(int n) { return argList[n]; }
 
-int no=0;
-  
-int set() {
-  if(no) {no=0; return 0;}
-  return 1;
-}
-  
-void getOptions(int argc, char *argv[])
-{
-  int syntax=0;
-  int option_index = 0;
+void setInteractive() {
+  if(numArgs() == 0 && !getSetting<bool>("listvariables")) {
+    interact::interactive=true;
 
-  enum Options {BW=257,GRAY,RGB,CMYK,NOPLAIN,LOCALHISTORY};
-  
-  static struct option long_options[] =
-  {
-    {"verbose", 0, 0, 'v'},
-    {"help", 0, 0, 'h'},
-    {"View", 0, 0, 'V'},
-    {"mask", 0, 0, 'm'},
-    {"no", 0, 0, 'n'},
-    {"bw", 0, 0, BW},
-    {"gray", 0, 0, GRAY},
-    {"rgb", 0, 0, RGB},
-    {"cmyk", 0, 0, CMYK},
-    {"noplain", 0, 0, NOPLAIN},
-    {"localhistory", 0, 0, LOCALHISTORY},
-    {"safe", 0, &safe, 1},
-    {"unsafe", 0, &safe, 0},
-    {0, 0, 0, 0}
-  };
-
- errno=0;
-  for(;;) {
-    int c = getopt_long_only(argc,argv,
-			     "cdf:hiklLmo:pPstvVnx:O:CBTZ",
-			     long_options,&option_index);
-    if (c == -1) break;
-
-    switch (c) {
-    case 0:
-      break;
-    case 'c':
-      clearGUI=set();
-      break;
-    case 'f':
-      outformat=string(optarg);
-      break;
-    case 'h':
-      usage(argv[0]);
-      options();
-      cerr << endl;
-      exit(0);
-    case 'i':
-      ignoreGUI=set();
-      break;
-    case 'k':
-      keep=set();
-      break;
-    case 'L':
-      texprocess=!set();
-      break;
-    case 'm': 
-      trap=!set();
-      break;
-    case 'p':
-      parseonly=set();
-      break;
-    case 'o':
-      outname=string(optarg);
-      break;
-    case 's':
-      translate=set();
-      break;
-    case 't':
-      texmode=set();
-      break;
-    case 'l':
-      listvariables=set();
-      break;
-    case 'd':
-      debug=set();
-      break;
-    case 'v':
-      verbose += set() ? 1 : -1;
-      break;
-    case 'V':
-      view=set();
-      break;
-    case 'n':
-      no=1;
-      break;
-    case 'x':
-      try {
-        deconstruct=lexical::cast<double>(optarg);
-      } catch (lexical::bad_cast&) {
-        syntax=1;
-      }
-      if(deconstruct < 0) syntax=1;
-      break;
-    case 'O':
-      try {
-        postscriptOffset=lexical::cast<camp::pair>(optarg);
-      } catch (lexical::bad_cast&) {
-        syntax=1;
-      }
-      break;
-    case 'C':
-      origin=CENTER;
-      break;
-    case 'B':
-      origin=BOTTOM;
-      break;
-    case 'T':
-      origin=TOP;
-      break;
-    case 'Z':
-      origin=ZERO;
-      break;
-    case BW:
-      bwonly=set();
-      break;
-    case GRAY:
-      grayonly=set();
-      break;
-    case RGB:
-      rgbonly=set();
-      break;
-    case CMYK:
-      cmykonly=set();
-      break;
-    case NOPLAIN:
-      autoplain=!set();
-      break;
-    case LOCALHISTORY:
-      localhistory=set();
-      break;
-    default:
-      syntax=1;
-    }
-  errno=0;
-  }
-  
-  if (syntax) {
-    cerr << endl;
-    usage(argv[0]);
-    cerr << endl << "Type '" << argv[0]
-	 << " -h' for a descriptions of options." << endl;
-    exit(1);
+    // NOTE: Move this greeting to the start of the interactive prompt.  It has
+    // nothing to do with settings.
+    cout << "Welcome to " << PROGRAM << " version " << VERSION
+	 << " (to view the manual, type help)" << endl;
   }
 }
 
-void setOptions(int argc, char *argv[])
-{
+bool view() {
+  if (interact::interactive)
+    return getSetting<bool>("interactiveView");
+  else
+    return getSetting<bool>("batchView") ||
+           (numArgs()==1 && getSetting<bool>("oneFileView"));
+}
+
+bool trap() {
+  if (interact::interactive)
+    return !getSetting<bool>("interactiveMask");
+  else
+    return !getSetting<bool>("batchMask");
+}
+
+void setOptionsFromFile() {
   std::ifstream finit;
   initdir=Getenv("HOME",false)+"/.asy";
   mkdir(initdir.c_str(),0xFFFF);
@@ -344,7 +676,7 @@ void setOptions(int argc, char *argv[])
     
     int Argc=(int) Args.size()+1;
     char** Argv=new char*[Argc];
-    Argv[0]=argv[0];
+    Argv[0]=argv0;
     int i=1;
     
     for(vector<string>::iterator p=Args.begin(); p != Args.end(); ++p)
@@ -354,25 +686,9 @@ void setOptions(int argc, char *argv[])
     delete[] Argv;
     optind=0;
   }
-  
-  getOptions(argc,argv);
-  
-  // Set variables for the normal arguments.
-  argCount = argc - optind;
-  argList = argv + optind;
+}
 
-  if(numArgs() == 0 && !listvariables) {
-    view=1;
-    interact::interactive=true;
-    if(trap == -1) trap=0;
-    cout << "Welcome to " << PROGRAM << " version " << VERSION
-	 << " (to view the manual, type help)" << endl;
-  } else if(trap == -1) trap=1;
-
-  if(view == -1) view=(numArgs() == 1) ? 1 : 0; 
-  
-  if(origin == ZERO) texprocess=0;
-  
+void setPath() {
   searchPath.push_back(".");
   string asydir=Getenv("ASYMPTOTE_DIR",false);
   if(asydir != "") {
@@ -386,7 +702,9 @@ void setOptions(int argc, char *argv[])
 #ifdef ASYMPTOTE_SYSDIR
   searchPath.push_back(ASYMPTOTE_SYSDIR);
 #endif
-  
+}
+
+void setApplicationNames() {
   string psviewer=Getenv("ASYMPTOTE_PSVIEWER");
   string pdfviewer=Getenv("ASYMPTOTE_PDFVIEWER");
   string ghostscript=Getenv("ASYMPTOTE_GS");
@@ -408,7 +726,9 @@ void setOptions(int argc, char *argv[])
   Animate=animate != "" ? animate : "animate";
   Python=python != "" ? python : defaultPython;
   Xasy=xasy != "" ? xasy : "xasy";
-  
+}
+
+void setPaperType() {
   char *papertype=getenv("ASYMPTOTE_PAPERTYPE");
   paperType=papertype ? papertype : "letter";
 
@@ -424,6 +744,39 @@ void setOptions(int argc, char *argv[])
       paperType="a4";
     }
   }
+}
+
+void setOptions(int argc, char *argv[])
+{
+  argv0=argv[0];
+
+  // Build settings module.
+  initSettings();
+  
+  // Set options given in $HOME/.asy/options
+  setOptionsFromFile();
+  
+  getOptions(argc,argv);
+  
+  // Set variables for the normal arguments.
+  argCount = argc - optind;
+  argList = argv + optind;
+
+#if 0
+  if(origin == ZERO)
+    getSetting("texprocess")=false;
+#endif
+  
+  setPath();
+  setApplicationNames();
+
+#ifdef MSDOS
+  if(!Getenv(CYGWIN)) newline="\r\n";
+#endif
+  
+  setPaperType();
+
+  setInteractive();
 }
 
 }

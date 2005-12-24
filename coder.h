@@ -321,6 +321,9 @@ public:
   // and returns the lambda.
   vm::lambda *close();
 
+  // Finishes translating the initializer of a record.
+  void closeRecord();
+
 private: // Non-copyable
   void operator=(const coder&);
 };

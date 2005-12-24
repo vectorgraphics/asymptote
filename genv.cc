@@ -32,24 +32,30 @@
 #include "interact.h"
 
 using namespace types;
+using settings::getSetting;
 
 namespace trans {
 
 genv::genv()
   : imap()
 {
-  if(settings::autoplain) {
-    settings::autoplain=false;
+  // Add settings as a module.  This is so that the init file ~/.asy/config.asy
+  // can set settings.
+  imap["settings"]=settings::getSettingsModule();
+
+  // Translate plain in advance, if we're using autoplain.
+  if(getSetting<bool>("autoplain")) {
+    getSetting("autoplain")=false;
 
     // Translate plain without autoplain.
     getModule(symbol::trans("plain"), "plain");
 
-    settings::autoplain=true;
+    getSetting("autoplain")=true;
   }
 }
 
 record *genv::loadModule(symbol *id, mem::string filename) {
-  if(settings::verbose > 1)
+  if(VERBOSE > 1)
     std::cerr << "Loading " <<  filename << std::endl;
     
   // Get the abstract syntax tree.

@@ -80,7 +80,7 @@ void stack::run(program *code, vars_t vars)
   /* start the new function */
   program::label ip = code->begin();
 
-  em->Pending(settings::verbose > 4);
+  em->Pending(VERBOSE > 4);
   
   try {
     for (;;) {

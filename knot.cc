@@ -20,7 +20,7 @@ namespace camp {
 template <typename T>
 ostream& info(ostream& o, string name, cvector<T>& v)
 {
-  if (settings::verbose > 3) {
+  if (VERBOSE > 3) {
     o << name << ":\n\n";
 
     for(int i=0; i < (int) v.size(); ++i)
@@ -33,7 +33,7 @@ ostream& info(ostream& o, string name, cvector<T>& v)
 
 ostream& info(ostream& o, string name, knotlist& l)
 {
-  if (settings::verbose > 3) {
+  if (VERBOSE > 3) {
     o << name << ":\n\n";
 
     for(int i=0; i < (int) l.size(); ++i)

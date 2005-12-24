@@ -17,6 +17,7 @@
 #include "genv.h"
 #include "stm.h"
 #include "settings.h"
+#include "locate.h"
 #include "vm.h"
 #include "program.h"
 #include "interact.h"
@@ -141,7 +142,7 @@ struct irunnable : public icore {
     lambda *codelet=r->transAsCodelet(e);
     em->sync();
     if(!em->errors()) {
-      if(translate) print(cout,codelet->code);
+      if(getSetting<bool>("translate")) print(cout,codelet->code);
       s.run(codelet);
     } else {
       e.e.endScope(); // Remove any changes to the environment.
@@ -211,7 +212,7 @@ void doICore(icore &i, bool embedded=false) {
       estack.push_back(&e);
       sstack.push_back(&s);
 
-      if(settings::autoplain) {
+      if(settings::getSetting<bool>("autoplain")) {
 	absyntax::runnable *r=absyntax::autoplainRunnable();
 	irunnable(r).run(e,s);
       }
@@ -224,7 +225,7 @@ void doICore(icore &i, bool embedded=false) {
       estack.pop_back();
       sstack.pop_back();
       
-      if(settings::listvariables)
+      if(settings::getSetting<bool>("listvariables"))
 	base_env.list();
     }
   } catch (std::bad_alloc&) {
@@ -254,9 +255,9 @@ void doIFile(const string& filename) {
   init();
 
   string basename = stripext(filename,suffix);
-  if(verbose) cout << "Processing " << basename << endl;
+  if(VERBOSE) cout << "Processing " << basename << endl;
   
-  if(parseonly) {
+  if(getSetting<bool>("parseonly")) {
     absyntax::file *tree = parser::parseFile(filename);
     assert(tree);
     em->sync();
@@ -267,24 +268,33 @@ void doIFile(const string& filename) {
     if(filename == "")
       doITree(parser::parseString(""));
     else {
-      if(outname.empty())
-	outname=(filename == "-") ? "out" : stripDir(basename);
+      if(getSetting<mem::string>("outname").empty())
+	getSetting("outname")=
+            (mem::string)((filename == "-") ? "out" : stripDir(basename));
       doITree(parser::parseFile(filename));
-      outname="";
+      getSetting("outname")=(mem::string)"";
     }
   }
 }
 
 void doIPrompt() {
   init();
-  outname="out";
+  getSetting<mem::string>("outname")="out";
   
   iprompt i;
   do {
     resetenv=false;
     doICore(i);
   } while(resetenv);
-  outname="";
+  getSetting<mem::string>("outname")="";
+}
+
+// Run the $HOME/.asy/config.asy file.
+void doConfig() {
+  string initdir=Getenv("HOME",false)+"/.asy";
+  string filename=initdir+"/config.asy";
+  if (settings::fs::exists(filename))
+    doIFile(filename);
 }
 
 } // namespace loop
@@ -297,14 +307,16 @@ int main(int argc, char *argv[])
 {
   setOptions(argc,argv);
 
+  loop::doConfig();
+
 #ifdef USEGC
   GC_free_space_divisor = 2;
   GC_dont_expand = 0;
   GC_INIT();
-  if(!debug) GC_set_warn_proc(no_GCwarn);
+  if(!getSetting<bool>("debug")) GC_set_warn_proc(no_GCwarn);
 #endif  
 
-  fpu_trap(trap);
+  fpu_trap(trap());
   setsignal(signalHandler);
   if(interactive) signal(SIGINT,interruptHandler);
 

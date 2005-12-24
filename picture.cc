@@ -81,7 +81,7 @@ void picture::prepend(picture &pic)
 bool picture::havelabels()
 {
   size_t n=nodes.size();
-  if(n > lastnumber && !labels && settings::texprocess) {
+  if(n > lastnumber && !labels && settings::getSetting<bool>("tex")) {
     // Check to see if there are any labels yet
     nodelist::iterator p=nodes.begin();
     for(size_t i=0; i < lastnumber; ++i) ++p;
@@ -151,7 +151,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     outfile.close();
     ostringstream cmd;
     cmd << LaTeX << " \\scrollmode\\input " << texname;
-    bool quiet=verbose <= 1;
+    bool quiet=VERBOSE <= 1;
     status=System(cmd,quiet,true,"ASYMPTOTE_LATEX","latex");
     if(status) {
       if(quiet) status=System(cmd,true,"ASYMPTOTE_LATEX","latex");
@@ -168,6 +168,8 @@ bool picture::texprocess(const string& texname, const string& outname,
     double hoffset=-128.0;
     double voffset=(height < 11.0) ? -137.0+height : -126.0;
     
+    int origin=getSetting<int>("position");
+
     if(origin != ZERO) {
       if(pdfformat || origin == BOTTOM) {
 	voffset += max(pageHeight-(height+1.0),0.0);
@@ -178,14 +180,14 @@ bool picture::texprocess(const string& texname, const string& outname,
     }
     
     if(!pdfformat) {
-      hoffset += postscriptOffset.getx();
-      voffset -= postscriptOffset.gety();
+      hoffset += getSetting<pair>("offset").getx();
+      voffset -= getSetting<pair>("offset").gety();
     }
 
     ostringstream dcmd;
     dcmd << Dvips << " -R -t " << paperType 
 	 << "size -O " << hoffset << "bp," << voffset << "bp";
-    if(verbose <= 1) dcmd << " -q";
+    if(VERBOSE <= 1) dcmd << " -q";
     dcmd << " -o " << psname << " " << dviname;
     status=System(dcmd,false,true,"ASYMPTOTE_DVIPS","dvips");
     
@@ -212,14 +214,14 @@ bool picture::texprocess(const string& texname, const string& outname,
     while(getline(fin,s)) {
       if(s.find("%%DocumentPaperSizes:") == 0) continue;
       if(first && s.find("%%BoundingBox:") == 0) {
-	if(verbose > 2) BoundingBox(cout,bpos);
+	if(VERBOSE > 2) BoundingBox(cout,bpos);
 	BoundingBox(*fout,bcopy);
 	first=false;
       } else *fout << s << endl;
     }
     if(Fout) delete Fout;
     
-    if(!keep) { // Delete temporary files.
+    if(!getSetting<bool>("keep")) { // Delete temporary files.
       unlink("texput.log");
       unlink(texname.c_str());
       unlink(dviname.c_str());
@@ -252,7 +254,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
       System(cmd,false,true,"ASYMPTOTE_GS","ghostscript");
     } else {
       double expand=2.0;
-      double res=(tgifformat ? deconstruct : expand)*72.0;
+      double res=(tgifformat ? getSetting<double>("deconstruct") : expand)*72.0;
       cmd << Convert << " -density " << res << "x" << res;
       if(!tgifformat) cmd << " +antialias -geometry " << 100.0/expand << "%x";
       cmd << " eps:" << epsname;
@@ -261,11 +263,11 @@ bool picture::postprocess(const string& epsname, const string& outname,
       cmd << ":" << outname;
       System(cmd,false,true,"ASYMPTOTE_CONVERT","convert");
     }
-    if(!keep) unlink(epsname.c_str());
+    if(!getSetting<bool>("keep")) unlink(epsname.c_str());
   }
   
-  if(verbose > (tgifformat ? 1 : 0)) cout << "Wrote " << outname << endl;
-  if(view && !quiet) {
+  if(VERBOSE > (tgifformat ? 1 : 0)) cout << "Wrote " << outname << endl;
+  if(settings::view() && !quiet) {
     if(epsformat || pdfformat) {
       static int pid=0;
       static string lastoutname;
@@ -305,7 +307,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   bool standardout=Prefix == "-";
   string prefix=standardout ? "out" : Prefix;
   checkFormatString(format);
-  string outputformat=format.empty() ? outformat : format;
+  string outputformat=format.empty() ? (string)getSetting<mem::string>("outformat") :
+                                       format;
   epsformat=outputformat.empty() || outputformat == "eps";
   pdfformat=outputformat == "pdf";
   tgifformat=outputformat == "tgif";
@@ -313,6 +316,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     (standardout ? "-" : buildname(prefix,outputformat,"",false));
   string epsname=epsformat ? (standardout ? "" : outname) :
     auxname(prefix,"eps");
+  double deconstruct=getSetting<double>("deconstruct");
   
   bounds();
   
@@ -335,11 +339,11 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   if(deconstruct && !tgifformat) {
     if(bboxout) bboxout.close();
-    if(view) {
+    if(settings::view()) {
       ostringstream cmd;
       if(Python != "") cmd << Python << " ";
       cmd << Xasy << " " << buildname(prefix) 
-	  << " " << ShipoutNumber << " " << buildname(settings::outname);
+	  << " " << ShipoutNumber << " " << buildname(settings::getSetting<mem::string>("outname"));
       System(cmd,false,true,
 	     Python != "" ? "ASYMPTOTE_PYTHON" : "ASYMPTOTE_XASY",
 	     Python != "" ? "python" : "xasy");
@@ -350,7 +354,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       
   bbox bpos=b;
   
-  bool TeXmode=texmode && settings::texprocess;
+  bool TeXmode=getSetting<bool>("texmode") && settings::getSetting<bool>("tex");
   bool Labels=labels || TeXmode;
   
   if(deconstruct) {
@@ -368,9 +372,10 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   }
   
   // Avoid negative bounding box coordinates
+  int origin=getSetting<int>("position");
   bboxshift=origin == ZERO ? 0.0 : pair(-bpos.left,-bpos.bottom);
   if(!pdfformat) {
-    bboxshift += postscriptOffset;
+    bboxshift += getSetting<pair>("offset");
     if(!(origin == BOTTOM || origin == ZERO)) {
       double yexcess=max(pageHeight-(bpos.top-bpos.bottom),0.0);
       if(origin == TOP) bboxshift += pair(0.5,yexcess-0.5);
@@ -449,12 +454,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   if(status) {
     if(TeXmode) {
-      if(verbose > 0) cout << "Wrote " << texname << endl;
+      if(VERBOSE > 0) cout << "Wrote " << texname << endl;
     } else {
       if(labels) {
 	tex->epilogue();
 	status=texprocess(texname,epsname,prefix,bpos);
-	if(!keep)
+	if(!getSetting<bool>("keep"))
 	  for(std::list<string>::iterator p=psnameStack.begin();
 	      p != psnameStack.end(); ++p)
 	    unlink(p->c_str());

@@ -242,6 +242,13 @@ vm::lambda *coder::close() {
   return l;
 }
 
+void coder::closeRecord()
+{
+  // Put record into finished state.
+  encode(inst::pushclosure);
+  close();
+}
+
 bool coder::isRecord()
 {
   return (funtype==inittype());

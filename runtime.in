@@ -519,12 +519,12 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 	     string format=emptystring, bool wait=0, bool quiet=0,
 	     transformarray *GUItransform, boolarray *GUIdelete)
 {
-  if(prefix.empty()) prefix=outname;
+  if(prefix.empty()) prefix=getSetting<mem::string>("outname");
   
   size_t size=GUItransform && GUIdelete ?
     checkArrays(GUItransform,GUIdelete) : 0;
  
-  if(settings::deconstruct || size) {
+  if(getSetting<double>("deconstruct") || size) {
     picture *result=new picture;
     unsigned level=0;
     unsigned i=0;
@@ -562,7 +562,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
       drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
       group->append(e);
       if(!group->empty()) {
-	if(settings::deconstruct) {
+	if(getSetting<double>("deconstruct")) {
 	  ostringstream buf;
 	  buf << prefix << "_" << i;
 	  group->shipout(preamble,buf.str(),"tgif",false,true,Delete);
@@ -859,7 +859,7 @@ void prepend(picture *dest, picture *src)
 
 string fileprefix()
 {
-  return outname;
+  return getSetting<mem::string>("outname");
 }
 
 
@@ -906,24 +906,24 @@ void _eval(runnable *s, bool embedded)
 
 void gui(double x=1)
 { 
-  settings::deconstruct=(x > 0 ? x : 0);
+  getSetting("deconstruct")=(x > 0.0 ? x : 0.0);
 }
 
 bool deconstruct()
 { 
-  return settings::deconstruct;
+  return getSetting<double>("deconstruct");
 }
 
 void readGUI()
 {
   static bool first=true;
-  string name=buildname(outname,"gui");
+  string name=buildname(getSetting<mem::string>("outname"),"gui");
   std::ifstream exists(name.c_str());
   if(exists) {
-    if((settings::clearGUI && !interact::interactive) ||
+    if((getSetting<bool>("clearGUI") && !interact::interactive) ||
        (first && interact::interactive)) unlink(name.c_str());
     else {
-      if (!settings::ignoreGUI) {
+      if (!getSetting<bool>("ignoreGUI")) {
 	string cmd=string("include \"")+name+string("\";");
 	absyntax::block *ast = parser::parseString(cmd);
 	loop::doITree(ast,true);
@@ -1918,7 +1918,9 @@ string VERSION()
 
 void quiet(bool v)
 {
-  settings::view=!v;
+  getSetting("interactiveView")=
+    getSetting("batchView")=
+    getSetting("oneFileView")=!v;
 }
 
 void atexit(callable *f)
@@ -1947,18 +1949,18 @@ int merge(stringarray *files, string *args, string *format, bool keep)
   for(size_t i=0; i < size; i++) 
     cmd << " " << read<string>(files,i);
   
-  string name=buildname(outname,format->c_str());
+  string name=buildname(getSetting<mem::string>("outname"),format->c_str());
   cmd << " " << name;
   ret=System(cmd,false,true,"ASYMPTOTE_CONVERT","convert");
   
   if(ret == 0)
-    if(settings::verbose > 0) cout << "Wrote " << name << endl;
+    if(VERBOSE > 0) cout << "Wrote " << name << endl;
   
-  if(!keep && !settings::keep)
+  if(!keep && !getSetting<bool>("keep"))
     for(size_t i=0; i < size; i++) 
       unlink(read<string>(files,i).c_str());
     
-  if(ret == 0 && settings::view) {
+  if(ret == 0 && settings::view()) {
     ostringstream cmd;
     cmd << Animate << " " << name;
     System(cmd,false,false,"ASYMPTOTE_ANIMATE","your animated GIF viewer");

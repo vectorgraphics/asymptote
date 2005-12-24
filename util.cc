@@ -77,7 +77,7 @@ string buildname(string name, string suffix, string aux, bool stripdir)
 {
   if(stripdir) stripDir(name);
     
-  name = stripext(name,outformat);
+  name = stripext(name,getSetting<mem::string>("outformat"));
   name += aux;
   if(!suffix.empty()) name += "."+suffix;
   return name;
@@ -155,7 +155,7 @@ int System(const char *command, bool quiet, bool wait,
   int status;
 
   if(!command) return 1;
-  if(verbose > 1) cerr << command << endl;
+  if(VERBOSE > 1) cerr << command << endl;
 
   cout.flush(); // Flush stdout to avoid duplicate output.
     

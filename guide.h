@@ -196,7 +196,7 @@ public:
     : v(v) {}
 
   path solve() {
-    if (settings::verbose>3) {
+    if (VERBOSE>3) {
       cerr << "solving guide:\n";
       print(cerr); cerr << "\n\n";
     }
@@ -205,7 +205,7 @@ public:
     this->flatten(g);
     path p=g.solve(false);
 
-    if (settings::verbose>3)
+    if (VERBOSE>3)
       cerr << "solved as:\n" << p << "\n\n";
 
     return p;
@@ -235,7 +235,7 @@ public:
   }
 
   path solve() {
-    if (settings::verbose>3) {
+    if (VERBOSE>3) {
       cerr << "solving guide:\n";
       print(cerr); cerr << "\n\n";
     }
@@ -244,7 +244,7 @@ public:
     core->flatten(g);
     path p=g.solve(true);
 
-    if (settings::verbose>3)
+    if (VERBOSE>3)
       cerr << "solved as:\n" << p << "\n\n";
 
     return p;

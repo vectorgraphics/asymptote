@@ -55,7 +55,7 @@ const double ps2tex=1.0/tex2ps;
 template<class T>
 void texdocumentclass(T& out, bool pipe=false)
 {
-  if(pipe || !settings::texmode)
+  if(pipe || !settings::getSetting<bool>("texmode"))
     out << "\\documentclass[12pt]{article}" << newl;
 }
   
@@ -85,7 +85,7 @@ void texdefines(T& out, stringlist& preamble=TeXpreamble, bool pipe=false)
       << "\\def\\ASYscale(#1,#2)(#3,#4)(#5,#6)#7#8{%" << newl
       << "\\ASYalign(#1,#2)(#3,#4){#7}{\\scalebox{#5}[#6]{#8}}}%" << newl;
   
-  if(pipe || !settings::texmode)
+  if(pipe || !settings::getSetting<bool>("texmode"))
     out << "\\usepackage{pstricks,graphicx}" << newl;
 }
   

@@ -11,6 +11,8 @@
 #include "coder.h"
 #include "callable.h"
 
+using vm::item;
+
 namespace trans {
 
 /* access */

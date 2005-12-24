@@ -103,6 +103,14 @@ public:
   }
 };
 
+// A record that is being used just for its fields and types, and has no real
+// initializer.  This is for modules such as settings that are built into the
+// language.
+class dummyRecord : public record {
+public:
+  dummyRecord(symbol *name);
+};
+
 } //namespace types
 
 #endif  

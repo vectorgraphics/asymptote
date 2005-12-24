@@ -128,7 +128,7 @@ size_t interactive_input(char *buf, size_t max_size)
     
   if(first) {
     first=false;
-    historyfile=localhistory ? localhistoryname : (initdir+historyname);
+    historyfile=getSetting<bool>("localhistory") ? localhistoryname : (initdir+historyname);
     
     read_history(historyfile.c_str());
     rl_bind_key('\t',rl_insert); // Turn off tab completion

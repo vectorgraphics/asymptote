@@ -22,6 +22,13 @@ extern file_list_t searchPath;
 // directory given in settings, and finally the global system directory.
 std::string locateFile(std::string id);
 
+namespace fs {
+
+// Check to see if a file of given name exists.
+bool exists(std::string filename);
+
+}
+
 } // namespace settings
 
 #endif // LOCATE_H

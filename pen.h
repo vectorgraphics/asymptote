@@ -427,13 +427,14 @@ public:
   }
   
   void convert() {
-    if(settings::grayonly || settings::bwonly) {
+    if (settings::getSetting<bool>("gray") ||
+        settings::getSetting<bool>("bw")) {
       if(rgb()) rgbtogrey();
       else if(cmyk()) cmyktogrey();
-      if(settings::bwonly) {grey=(grey == 1.0) ? 1.0 : 0.0;}
+      if(settings::getSetting<bool>("bw")) {grey=(grey == 1.0) ? 1.0 : 0.0;}
     }
-    else if(settings::rgbonly && cmyk()) cmyktorgb();
-    else if(settings::cmykonly && rgb()) rgbtocmyk();
+    else if(settings::getSetting<bool>("rgb") && cmyk()) cmyktorgb();
+    else if(settings::getSetting<bool>("cmyk") && rgb()) rgbtocmyk();
   }    
   
   friend pen operator * (double x, const pen& q) {

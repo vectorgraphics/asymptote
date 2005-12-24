@@ -32,8 +32,8 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn)
   if(texbuf[0] == '>' && texbuf[1] == ' ')
     width=atof(texbuf.c_str()+2)*tex2ps;
   else {
-    if(settings::texmode) {
-      if(settings::debug && warn) {
+    if(settings::getSetting<bool>("texmode")) {
+      if(settings::getSetting<bool>("debug") && warn) {
 	ostringstream buf;
 	buf << "Cannot determine size of label \"" << s << "\"";
 	reportWarning(buf);
@@ -70,7 +70,7 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn)
 void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
 		       bboxlist&)
 {
-  if(!settings::texprocess) {b += position; return;}
+  if(!settings::getSetting<bool>("tex")) {b += position; return;}
   pair rotation=expi(radians(angle));
   pen Pentype=pentype;
   static const double fuzz=1.0+Pentype.size()/24.0;

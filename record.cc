@@ -8,6 +8,7 @@
 #include "record.h"
 #include "inst.h"
 #include "runtime.h"
+#include "coder.h"
 
 namespace types {
 
@@ -39,6 +40,15 @@ record *record::newRecord(symbol *id, bool statically)
 trans::access *record::initializer() {
   static trans::bltinAccess a(run::pushNullRecord);
   return &a;
+}
+
+dummyRecord::dummyRecord(symbol *name) 
+  : record(name, new frame(0,0))
+{
+  // Encode the instructions to put an placeholder instance of the record on the
+  // stack.
+  trans::coder c(this, 0);
+  c.closeRecord();
 }
 
 } // namespace types

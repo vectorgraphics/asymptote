@@ -14,7 +14,7 @@
 using std::ofstream;
 using std::fixed;
 using std::setprecision;
-using settings::texmode;
+using settings::getSetting;
   
 namespace camp {
 
@@ -41,7 +41,7 @@ texfile::~texfile()
 void texfile::prologue()
 {
   texdefines(*out);
-  if(!texmode)
+  if(!getSetting<bool>("texmode"))
     *out << "\\pagestyle{empty}" << newl
 	 << "\\textheight=2048pt" << newl
 	 << "\\textwidth=\\textheight" << newl
@@ -140,7 +140,7 @@ void texfile::put(const string& label, double angle, const pair& z,
 
 void texfile::epilogue()
 {
-  if(!texmode) *out << "\\end{document}" << newl;
+  if(!getSetting<bool>("texmode")) *out << "\\end{document}" << newl;
   out->flush();
 }
 

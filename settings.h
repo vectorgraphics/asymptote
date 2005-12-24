@@ -13,8 +13,21 @@
 #include <fstream>
 
 #include "pair.h"
+#include "item.h"
 
 using std::string;
+
+// For testing various form of implementing verbose.
+#define INTV 1
+#if INTV
+  #define VERBOSE (settings::verbose)
+#else
+  #define VERBOSE (settings::verbose())
+#endif
+
+namespace types {
+  class record;
+}
 
 namespace settings {
 extern const char PROGRAM[];
@@ -37,38 +50,17 @@ extern string Python;
 extern string Xasy;
 extern const string docdir;
   
-extern string outformat;
-extern int keep;
-extern int texprocess;
-extern int texmode;
-extern int debug;
-extern int verbose;
-extern int view;
+extern string newline;  
+  
 extern int safe;
-extern int autoplain;
-extern int localhistory;
-extern int parseonly;
-extern int listvariables;
-extern int translate;
-extern int bwonly;
-extern int grayonly;
-extern int rgbonly;
-extern int cmykonly;
-extern int trap;
-extern double deconstruct;
-extern int clearGUI;
-extern int ignoreGUI;
-extern camp::pair postscriptOffset;
 enum origin {CENTER,BOTTOM,TOP,ZERO};
-extern int origin;
+//extern int origin;
   
 extern int ShipoutNumber;
   
 extern const string suffix;
 extern const string guisuffix;
   
-extern string outname; 
-
 extern bool TeXinitialized; // Is LaTeX process initialized?
 extern string initdir;
 
@@ -78,6 +70,33 @@ extern double pageHeight;
   
 extern int scrollLines;
   
+types::record *getSettingsModule();
+
+vm::item &getSetting(string name);
+  
+template <typename T>
+inline T getSetting(string name)
+{
+  return vm::get<T>(getSetting(name));
+}
+
+#if INTV
+extern int verbose;
+#else
+extern vm::item *verboseItem;
+inline int verbose() {
+  return vm::get<int>(*verboseItem);
+}
+#endif
+
+extern vm::item *debugItem;
+inline bool debug() {
+  return vm::get<bool>(*debugItem);
+}
+
+bool view();
+bool trap();
+
 void setOptions(int argc, char *argv[]);
 
 // Access the arguments once options have been parsed.

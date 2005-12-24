@@ -13,6 +13,7 @@
 #include <cassert>
 
 #include "errormsg.h"
+#include "item.h"
 #include "vm.h"
 
 namespace trans {

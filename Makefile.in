@@ -12,7 +12,7 @@ CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
 FILES = $(CAMP) runtime env genv main stm dec errormsg callable name \
 	symbol types entry exp newexp stack camp.tab lex.yy access \
 	absyn record interact fileio builtin fftw++ simpson coder coenv \
-	@getopt@ locate parser program application varinit fundec
+	@getopt@ locate parser program application varinit fundec refaccess
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc
 CLEAN = camp.output

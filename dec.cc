@@ -175,15 +175,12 @@ void block::transAsField(coenv &e, record *r)
 void block::transAsRecordBody(coenv &e, record *r)
 {
   transAsField(e, r);
-
-  // Put record into finished state.
-  e.c.encode(inst::pushclosure);
-  e.c.close();
+  e.c.closeRecord();
 }
 
 void block::transAsFile(coenv &e, record *r)
 {
-  if (settings::autoplain) {
+  if (settings::getSetting<bool>("autoplain")) {
     autoplainRunnable()->transAsField(e, r);
   }
 
