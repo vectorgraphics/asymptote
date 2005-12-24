@@ -6,6 +6,7 @@
  *****/
 
 #include <iostream>
+#include <iomanip>
 #include <cstdlib>
 #include <cerrno>
 #include <vector>
@@ -68,12 +69,15 @@ types::record *getSettingsModule() {
 struct option : public gc {
   mem::string name;
   char code;  // For the command line, ie. 'V' for -V.
-  bool argument;  // If it takes an argument on the command line.
-
+  bool argument;  // If it takes an argument on the command line.  This is set
+                  // based on whether argname is empty.
+  
+  mem::string argname; // The name of the argument for printing the description.
   mem::string desc; // One line description of what the option does.
 
-  option(mem::string name, char code, bool argument, mem::string desc)
-    : name(name), code(code), argument(argument), desc(desc) {}
+  option(mem::string name, char code, mem::string argname, mem::string desc)
+    : name(name), code(code), argument(!argname.empty()),
+      argname(argname), desc(desc) {}
 
   virtual ~option() {}
 
@@ -95,16 +99,49 @@ struct option : public gc {
     o.val=0;
   }
 
-  // Set the option from the command-line argument.
-  virtual void getOption() = 0;
+  // Set the option from the command-line argument.  Return true if the option
+  // was correctly parsed.
+  virtual bool getOption() = 0;
+
+  void error(string msg) {
+    cerr << argv0 << ": " << msg << " -- ";
+    if (code)
+      cerr << code << ", ";
+    cerr << name << endl;
+  }
+
+  // The "-f -outformat format" part of the option.
+  virtual mem::string describeStart() {
+    ostringstream ss;
+    if (code)
+      ss << "-" << code << ", ";
+    ss << "-" << name;
+    if (argument)
+      ss << " " << argname;
+    return ss.str();
+  }
+
+  // Outputs description of the command for the -help option.
+  virtual void describe() {
+    const unsigned int WIDTH=20;
+    mem::string start=describeStart();
+    cerr << std::left << std::setw(WIDTH) << start;
+    if (start.size() >= WIDTH) {
+      cerr << endl;
+      cerr << std::left << std::setw(WIDTH) << "";
+    }
+    cerr << desc << endl;
+  }
 };
+
+const mem::string noarg;
 
 struct setting : public option {
   types::ty *t;
 
-  setting(mem::string name, char code, bool argument, mem::string desc,
+  setting(mem::string name, char code, mem::string argname, mem::string desc,
           types::ty *t)
-      : option(name, code, argument, desc), t(t) {}
+      : option(name, code, argname, desc), t(t) {}
 
   virtual void reset() = 0;
 
@@ -119,9 +156,10 @@ struct itemSetting : public setting {
   item defaultValue;
   item value;
 
-  itemSetting(mem::string name, char code, bool argument, mem::string desc,
+  itemSetting(mem::string name, char code,
+              mem::string argname, mem::string desc,
               types::ty *t, item defaultValue)
-      : setting(name, code, argument, desc, t), defaultValue(defaultValue) {
+      : setting(name, code, argname, desc, t), defaultValue(defaultValue) {
     reset();
   }
 
@@ -137,26 +175,28 @@ struct itemSetting : public setting {
 struct boolSetting : public itemSetting {
   boolSetting(mem::string name, char code, mem::string desc,
               bool defaultValue=false)
-    : itemSetting(name, code, false, desc,
+    : itemSetting(name, code, noarg, desc,
               types::primBoolean(), (item)defaultValue) {}
 
   static bool negate;
   struct negateOption : public option {
     negateOption()
-      : option("no", 'n', false, "Negate next option") {}
+      : option("no", 'n', noarg, "Negate next option") {}
 
-    void getOption() {
+    bool getOption() {
       negate=true;
+      return true;
     }
   };
 
-  void getOption() {
+  bool getOption() {
     if (negate) {
       value=(item)false;
       negate=false;
     }
     else
       value=(item)true;
+    return true;
   }
 
   // Set several related boolean options at once.  Used for view and trap which
@@ -165,7 +205,7 @@ struct boolSetting : public itemSetting {
     typedef mem::list<boolSetting *> setlist;
     setlist set;
     multiOption(mem::string name, char code, mem::string desc)
-      : option(name, code, false, desc) {}
+      : option(name, code, noarg, desc) {}
 
     void add(boolSetting *s) {
       set.push_back(s);
@@ -176,13 +216,14 @@ struct boolSetting : public itemSetting {
         (*s)->value=(item)value;
     }
 
-    void getOption() {
+    bool getOption() {
       if (negate) {
         setValue(false);
         negate=false;
       }
       else
         setValue(true);
+      return true;
     }
   };
 };
@@ -190,59 +231,74 @@ struct boolSetting : public itemSetting {
 bool boolSetting::negate=false;
 typedef boolSetting::multiOption multiOption;
 
-struct stringSetting : public itemSetting {
-  stringSetting(mem::string name, char code,
-                mem::string /*argname*/, mem::string desc,
-                mem::string defaultValue)
-    : itemSetting(name, code, true, desc,
-              types::primString(), (item)defaultValue) {}
-
-  void getOption() {
-    value=(item)(mem::string)optarg;
+struct argumentSetting : public itemSetting {
+  argumentSetting(mem::string name, char code,
+                  mem::string argname, mem::string desc,
+                  types::ty *t, item defaultValue)
+    : itemSetting(name, code, argname, desc, t, defaultValue) 
+  {
+    assert(!argname.empty());
   }
 };
 
-struct realSetting : public itemSetting {
+struct stringSetting : public argumentSetting {
+  stringSetting(mem::string name, char code,
+                mem::string argname, mem::string desc,
+                mem::string defaultValue)
+    : argumentSetting(name, code, argname, desc,
+              types::primString(), (item)defaultValue) {}
+
+  bool getOption() {
+    value=(item)(mem::string)optarg;
+    return true;
+  }
+};
+
+struct realSetting : public argumentSetting {
   realSetting(mem::string name, char code,
-              mem::string /*argname*/, mem::string desc,
+              mem::string argname, mem::string desc,
               double defaultValue)
-    : itemSetting(name, code, true, desc,
+    : argumentSetting(name, code, argname, desc,
                   types::primReal(), (item)defaultValue) {}
 
-  void getOption() {
+  bool getOption() {
     try {
       value=(item)lexical::cast<double>(optarg);
     } catch (lexical::bad_cast&) {
-      cerr << "Setting '" << name << "' is a real number." << endl;
+      error("option requires a real number as an argument");
+      return false;
     }
+    return true;
   }
 };
 
-struct pairSetting : public itemSetting {
+struct pairSetting : public argumentSetting {
   pairSetting(mem::string name, char code,
-              mem::string /*argname*/, mem::string desc,
+              mem::string argname, mem::string desc,
               camp::pair defaultValue=0.0)
-    : itemSetting(name, code, true, desc,
+    : argumentSetting(name, code, argname, desc,
                   types::primPair(), (item)defaultValue) {}
 
-  void getOption() {
+  bool getOption() {
     try {
       value=(item)lexical::cast<camp::pair>(optarg);
     } catch (lexical::bad_cast&) {
-      cerr << "Setting '" << name << "' is a pair." << endl;
+      error("option requires a pair as an argument");
+      return false;
     }
+    return true;
   }
 };
 
 // For setting the position of a figure on the page.
-struct positionSetting : public itemSetting {
+struct positionSetting : public argumentSetting {
   positionSetting(mem::string name, char code,
-                  mem::string /*argname*/, mem::string desc,
+                  mem::string argname, mem::string desc,
                   int defaultValue=CENTER)
-    : itemSetting(name, code, true, desc,
+    : argumentSetting(name, code, argname, desc,
                   types::primInt(), (item)defaultValue) {}
 
-  void getOption() {
+  bool getOption() {
     mem::string str=optarg;
     if (str=="C")
       value=(int)CENTER;
@@ -254,8 +310,11 @@ struct positionSetting : public itemSetting {
       value=(int)ZERO;
       getSetting("tex")=false;
     }
-    else 
-      cerr << "Invalid argument for setting " << name << "." << endl;
+    else {
+      error("invalid argument for option");
+      return false;
+    }
+    return true;
   }
 };
 
@@ -264,9 +323,9 @@ struct refSetting : public setting {
   T *ref;
   T defaultValue;
 
-  refSetting(mem::string name, char code, bool argument, mem::string desc,
+  refSetting(mem::string name, char code, mem::string argname, mem::string desc,
           types::ty *t, T *ref, T defaultValue)
-      : setting(name, code, argument, desc, t),
+      : setting(name, code, argname, desc, t),
         ref(ref), defaultValue(defaultValue) {
     reset();
   }
@@ -283,24 +342,26 @@ struct refSetting : public setting {
 #if INTV
 struct incrementSetting : public refSetting<int> {
   incrementSetting(mem::string name, char code, mem::string desc, int *ref)
-    : refSetting<int>(name, code, false, desc,
+    : refSetting<int>(name, code, noarg, desc,
               types::primInt(), ref, 0) {}
 
-  void getOption() {
+  bool getOption() {
     // Increment the value.
     ++(*ref);
+    return true;
   }
 };
 #else
 struct incrementSetting : public itemSetting {
   incrementSetting(mem::string name, char code, mem::string desc)
-    : itemSetting(name, code, false, desc,
+    : itemSetting(name, code, noarg, desc,
               types::primInt(), (item)0) {}
 
-  void getOption() {
+  bool getOption() {
     // Increment the value in the item.
     int n=vm::get<int>(value);
     value=(item)(n+1);
+    return true;
   }
 };
 #endif
@@ -358,53 +419,24 @@ void displayOptions()
 {
   cerr << endl;
   cerr << "Options: " << endl;
-  cerr << "-V, -View\t View output file" << endl;
-  cerr << "-nV, -nView\t Don't view output file" << endl;
-  cerr << "-n, -no\t\t Negate next option" << endl;
-  cerr << "-x magnification Deconstruct into transparent GIF objects" << endl;
-  cerr << "-c \t\t Clear GUI operations" << endl;
-  cerr << "-i \t\t Ignore GUI operations" << endl;
-  cerr << "-f format\t Convert each output file to specified format" << endl;
-  cerr << "-o name\t\t (First) output file name" << endl;
-  cerr << "-h, -help\t Show summary of options" << endl;
-  cerr << "-O pair\t\t PostScript offset" << endl; 
-  cerr << "-C\t\t Center on page (default)" << endl;
-  cerr << "-B\t\t Align to bottom-left corner of page" << endl;
-  cerr << "-T\t\t Align to top-left corner of page" << endl;
-  cerr << "-Z\t\t Position origin at (0,0) (implies -L)" << endl;
-  cerr << "-d\t\t Enable debugging messages" << endl;
-  cerr << "-v, -verbose\t Increase verbosity level" << endl;
-  cerr << "-k\t\t Keep intermediate files" << endl;
-  cerr << "-L\t\t Disable LaTeX label postprocessing" << endl;
-  cerr << "-t\t\t Produce LaTeX file for \\usepackage[inline]{asymptote}"
-       << endl;
-  cerr << "-p\t\t Parse test" << endl;
-  cerr << "-s\t\t Translate test" << endl;
-  cerr << "-l\t\t List available global functions and variables" << endl;
-  cerr << "-m, -mask\t Mask fpu exceptions (default for interactive mode)"
-       << endl;
-  cerr << "-nm, -nmask\t Don't mask fpu exceptions (default for batch mode)" 
-       << endl;
-  cerr << "-bw\t\t Convert all colors to black and white" << endl;
-  cerr << "-gray\t\t Convert all colors to grayscale" << endl;
-  cerr << "-rgb\t\t Convert cmyk colors to rgb" << endl;
-  cerr << "-cmyk\t\t Convert rgb colors to cmyk" << endl;
-  cerr << "-safe\t\t Disable system call (default, negation ignored)" << endl;
-  cerr << "-unsafe\t\t Enable system call (negation ignored)" << endl;
-  cerr << "-localhistory\t Use a local interactive history file"
-       << endl;
-  cerr << "-noplain\t Disable automatic importing of plain" << endl;
+  for (optionsMap_t::iterator opt=optionsMap.begin();
+       opt!=optionsMap.end();
+       ++opt)
+    opt->second->describe();
 }
 
 struct helpOption : public option {
   helpOption(mem::string name, char code, mem::string desc)
-    : option(name, code, false, desc) {}
+    : option(name, code, noarg, desc) {}
 
-  void getOption() {
+  bool getOption() {
     usage(argv0);
     displayOptions();
     cerr << endl;
     exit(0);
+
+    // Unreachable code.
+    return true;
   }
 };
 
@@ -413,10 +445,11 @@ struct safeOption : public option {
   bool value;
 
   safeOption(mem::string name, char code, mem::string desc, bool value)
-    : option(name, code, false, desc), value(value) {}
+    : option(name, code, noarg, desc), value(value) {}
 
-  void getOption() {
+  bool getOption() {
     safe=value;
+    return true;
   }
 };
 
@@ -466,11 +499,13 @@ void getOptions(int argc, char *argv[])
     if (c == 0) {
       const char *name=longopts[long_index].name;
       //cerr << "long option: " << name << endl;
-      optionsMap[name]->getOption();
+      if (!optionsMap[name]->getOption())
+        syntax=true;
     }
     else if (codeMap.find(c) != codeMap.end()) {
       //cerr << "char option: " << (char)c << endl;
-      codeMap[c]->getOption();
+      if (!codeMap[c]->getOption())
+        syntax=true;
     }
     else {
       syntax=true;
