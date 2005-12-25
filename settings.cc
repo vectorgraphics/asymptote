@@ -66,6 +66,13 @@ types::record *getSettingsModule() {
   return &settingsModule;
 }
 
+// The dictionaries of long options and short options.
+class option;
+typedef mem::map<const mem::string, option *> optionsMap_t;
+optionsMap_t optionsMap;
+typedef mem::map<const char, option *> codeMap_t;
+codeMap_t codeMap;
+  
 struct option : public gc {
   mem::string name;
   char code;  // For the command line, ie. 'V' for -V.
@@ -99,6 +106,13 @@ struct option : public gc {
     o.val=0;
   }
 
+  // Add to the dictionaries of options.
+  virtual void add() {
+    optionsMap[name]=this;
+    if (code)
+      codeMap[code]=this;
+  }
+
   // Set the option from the command-line argument.  Return true if the option
   // was correctly parsed.
   virtual bool getOption() = 0;
@@ -123,14 +137,17 @@ struct option : public gc {
 
   // Outputs description of the command for the -help option.
   virtual void describe() {
-    const unsigned int WIDTH=20;
-    mem::string start=describeStart();
-    cerr << std::left << std::setw(WIDTH) << start;
-    if (start.size() >= WIDTH) {
-      cerr << endl;
-      cerr << std::left << std::setw(WIDTH) << "";
+    // Don't show the option if it has no desciption.
+    if (!desc.empty()) {
+      const unsigned int WIDTH=20;
+      mem::string start=describeStart();
+      cerr << std::left << std::setw(WIDTH) << start;
+      if (start.size() >= WIDTH) {
+        cerr << endl;
+        cerr << std::left << std::setw(WIDTH) << "";
+      }
+      cerr << desc << endl;
     }
-    cerr << desc << endl;
   }
 };
 
@@ -146,6 +163,13 @@ struct setting : public option {
   virtual void reset() = 0;
 
   virtual trans::access *buildAccess() = 0;
+
+  // Add to the dictionaries of options and to the settings module.
+  virtual void add() {
+    option::add();
+
+    settingsModule.e.addVar(symbol::trans(name), buildVarEntry());
+  }
 
   varEntry *buildVarEntry() {
     return new varEntry(t, buildAccess());
@@ -178,25 +202,33 @@ struct boolSetting : public itemSetting {
     : itemSetting(name, code, noarg, desc,
               types::primBoolean(), (item)defaultValue) {}
 
-  static bool negate;
-  struct negateOption : public option {
-    negateOption()
-      : option("no", 'n', noarg, "Negate next option") {}
-
-    bool getOption() {
-      negate=true;
-      return true;
-    }
-  };
-
   bool getOption() {
-    if (negate) {
-      value=(item)false;
-      negate=false;
-    }
-    else
-      value=(item)true;
+    value=(item)true;
     return true;
+  }
+
+  option *negation(mem::string name) {
+    struct negOption : public option {
+      boolSetting &base;
+
+      negOption(boolSetting &base, mem::string name)
+        : option(name, 0, noarg, ""), base(base) {}
+
+      bool getOption() {
+        base.value=(item)false;
+        return true;
+      }
+    };
+    return new negOption(*this, name);
+  }
+
+  void add() {
+    setting::add();
+    negation("no"+name)->add();
+    if (code) {
+      mem::string nocode="no"; nocode.push_back(code);
+      negation(nocode)->add();
+    }
   }
 
   // Set several related boolean options at once.  Used for view and trap which
@@ -217,18 +249,39 @@ struct boolSetting : public itemSetting {
     }
 
     bool getOption() {
-      if (negate) {
-        setValue(false);
-        negate=false;
-      }
-      else
-        setValue(true);
+      setValue(true);
       return true;
+    }
+
+    option *negation(mem::string name) {
+      struct negOption : public option {
+        multiOption &base;
+
+        negOption(multiOption &base, mem::string name)
+          : option(name, 0, noarg, ""), base(base) {}
+
+        bool getOption() {
+          base.setValue(false);
+          return true;
+        }
+      };
+      return new negOption(*this, name);
+    }
+
+    void add() {
+      option::add();
+      negation("no"+name)->add();
+      if (code) {
+        mem::string nocode="no"; nocode.push_back(code);
+        negation(nocode)->add();
+      }
+
+      for (multiOption::setlist::iterator s=set.begin(); s!=set.end(); ++s)
+        (*s)->add();
     }
   };
 };
 
-bool boolSetting::negate=false;
 typedef boolSetting::multiOption multiOption;
 
 struct argumentSetting : public itemSetting {
@@ -366,28 +419,8 @@ struct incrementSetting : public itemSetting {
 };
 #endif
 
-typedef mem::map<const mem::string, option *> optionsMap_t;
-optionsMap_t optionsMap;
-typedef mem::map<const char, option *> codeMap_t;
-codeMap_t codeMap;
-  
 void addOption(option *o) {
-  optionsMap[o->name]=o;
-  if (o->code)
-    codeMap[o->code]=o;
-}
-
-void addSetting(setting *s) {
-  addOption(s);
-
-  settingsModule.e.addVar(symbol::trans(s->name), s->buildVarEntry());
-}
-
-void addMultiOption(multiOption *m) {
-  addOption(m);
-
-  for (multiOption::setlist::iterator s=m->set.begin(); s!=m->set.end(); ++s)
-    addSetting(*s);
+  o->add();
 }
 
 item &getSetting(string name) {
@@ -535,46 +568,44 @@ void initSettings() {
                      "View output in interactive mode", true));
   view->add(new boolSetting("oneFileView", 0,
                      "View output of one file (for drag-and-drop)", msdos));
-  addMultiOption(view);
+  addOption(view);
   //cerr << "-nV, -nView\t Don't view output file" << endl;
 
-  addOption(new boolSetting::negateOption);
-
-  addSetting(new realSetting("deconstruct", 'x', "magnification",
+  addOption(new realSetting("deconstruct", 'x', "magnification",
                      "Deconstruct into transparent GIF objects", 0.0));
-  addSetting(new boolSetting("clearGUI", 'c', "Clear GUI operations"));
-  addSetting(new boolSetting("ignoreGUI", 'i', "Ignore GUI operations"));
-  addSetting(new stringSetting("outformat", 'f', "format",
+  addOption(new boolSetting("clearGUI", 'c', "Clear GUI operations"));
+  addOption(new boolSetting("ignoreGUI", 'i', "Ignore GUI operations"));
+  addOption(new stringSetting("outformat", 'f', "format",
                      "Convert each output file to specified format", "eps"));
-  addSetting(new stringSetting("outname", 'o', "name",
+  addOption(new stringSetting("outname", 'o', "name",
                      "(First) output file name", ""));
   addOption(new helpOption("help", 'h', "Show summary of options"));
 
-  addSetting(new pairSetting("offset", 'O', "pair", "PostScript offset"));
-  addSetting(new positionSetting("position", 'P', "[CBTZ]",
+  addOption(new pairSetting("offset", 'O', "pair", "PostScript offset"));
+  addOption(new positionSetting("position", 'P', "[CBTZ]",
                      "Position of the figure on the page (Z implies -L)."));
   
-  addSetting(new boolSetting("debug", 'd', "Enable debugging messages"));
+  addOption(new boolSetting("debug", 'd', "Enable debugging messages"));
   debugItem=&getSetting("debug");
 
 #if INTV
-  addSetting(new incrementSetting("verbose", 'v',
+  addOption(new incrementSetting("verbose", 'v',
                      "Increase verbosity level", &verbose));
 #else
-  addSetting(new incrementSetting("verbose", 'v',
+  addOption(new incrementSetting("verbose", 'v',
                      "Increase verbosity level"));
   verboseItem=&getSetting("verbose");
 #endif
 
-  addSetting(new boolSetting("keep", 'k', "Keep intermediate files"));
-  addSetting(new boolSetting("tex", 0,
+  addOption(new boolSetting("keep", 'k', "Keep intermediate files"));
+  addOption(new boolSetting("tex", 0,
                      "Enable LaTeX label postprocessing (default)", true));
   //cerr << "-L\t\t Disable LaTeX label postprocessing" << endl;
-  addSetting(new boolSetting("texmode", 't',
+  addOption(new boolSetting("texmode", 't',
                      "Produce LaTeX file for \\usepackage[inline]{asymptote}"));
-  addSetting(new boolSetting("parseonly", 'p', "Parse test"));
-  addSetting(new boolSetting("translate", 's', "Translate test"));
-  addSetting(new boolSetting("listvariables", 'l',
+  addOption(new boolSetting("parseonly", 'p', "Parse test"));
+  addOption(new boolSetting("translate", 's', "Translate test"));
+  addOption(new boolSetting("listvariables", 'l',
                      "List available global functions and variables"));
   
   multiOption *mask=new multiOption("mask", 'm',
@@ -583,22 +614,22 @@ void initSettings() {
                      "Mask fpu exceptions in batch mode", false));
   mask->add(new boolSetting("interactiveMask", 0,
                      "Mask fpu exceptions in interactive mode", true));
-  addMultiOption(mask);
+  addOption(mask);
 
-  addSetting(new boolSetting("bw", 0,
+  addOption(new boolSetting("bw", 0,
                      "Convert all colors to black and white"));
-  addSetting(new boolSetting("gray", 0, "Convert all colors to grayscale"));
-  addSetting(new boolSetting("rgb", 0, "Convert cmyk colors to rgb"));
-  addSetting(new boolSetting("cmyk", 0, "Convert rgb colors to cmyk"));
+  addOption(new boolSetting("gray", 0, "Convert all colors to grayscale"));
+  addOption(new boolSetting("rgb", 0, "Convert cmyk colors to rgb"));
+  addOption(new boolSetting("cmyk", 0, "Convert rgb colors to cmyk"));
 
   addOption(new safeOption("safe", 0,
                     "Disable system call (default, negation ignored)", true));
   addOption(new safeOption("unsafe", 0,
                     "Enable system call (negation ignored)", false));
 
-  addSetting(new boolSetting("localhistory", 0, 
+  addOption(new boolSetting("localhistory", 0, 
                      "Use a local interactive history file"));
-  addSetting(new boolSetting("autoplain", 0,
+  addOption(new boolSetting("autoplain", 0,
                      "Enable automatic importing of plain (default)", true));
   //cerr << "-noplain\t Disable automatic importing of plain" << endl;
 }
