@@ -782,6 +782,15 @@ public ticks
   LeftTicks=LeftTicks(),
   RightTicks=RightTicks();
 
+pair tickMin(picture pic)
+{
+  return minbound(pic.userMin,(pic.scale.x.tickMin,pic.scale.y.tickMin));
+}
+  
+pair tickMax(picture pic)
+{
+  return maxbound(pic.userMax,(pic.scale.x.tickMax,pic.scale.y.tickMax));
+}
 					       
 // Structure used to communicate axis and autoscale settings to tick routines. 
 struct axisT {
@@ -807,8 +816,7 @@ void axis(picture, axisT) {};
 public axis Bottom(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
-    axis.value=pic.scale.y.automin() ?
-      (pic.scale.x.tickMin,pic.scale.y.tickMin) : axis.userMin;
+    axis.value=pic.scale.y.automin() ? tickMin(pic) : axis.userMin;
     axis.position=0.5;
     axis.side=right;
     axis.align=S;
@@ -820,8 +828,7 @@ public axis Bottom(bool extend=false)
 public axis Top(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
-    axis.value=pic.scale.y.automax() ?
-    (pic.scale.x.tickMax,pic.scale.y.tickMax) : axis.userMax;
+    axis.value=pic.scale.y.automax() ? tickMax(pic) : axis.userMax;
     axis.position=0.5;
     axis.side=left;
     axis.align=N;
@@ -833,13 +840,11 @@ public axis Top(bool extend=false)
 public axis BottomTop(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
-    axis.value=pic.scale.y.automin() ?
-    (pic.scale.x.tickMin,pic.scale.y.tickMin) : axis.userMin;
+    axis.value=pic.scale.y.automin() ? tickMin(pic) : axis.userMin;
     axis.position=0.5;
     axis.side=right;
     axis.align=S;
-    axis.value2=pic.scale.y.automax() ?
-    (pic.scale.x.tickMax,pic.scale.y.tickMax) : axis.userMax;
+    axis.value2=pic.scale.y.automax() ? tickMax(pic) : axis.userMax;
     axis.extend=extend;
   };
 }
@@ -847,8 +852,7 @@ public axis BottomTop(bool extend=false)
 public axis Left(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
-    axis.value=pic.scale.x.automin() ? 
-    (pic.scale.x.tickMin,pic.scale.y.tickMin) : axis.userMin;
+    axis.value=pic.scale.x.automin() ? tickMin(pic) : axis.userMin;
     axis.position=0.5;
     axis.side=left;
     axis.align=W;
@@ -860,8 +864,7 @@ public axis Left(bool extend=false)
 public axis Right(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
-    axis.value=pic.scale.x.automax() ?
-    (pic.scale.x.tickMax,pic.scale.y.tickMax) : axis.userMax;
+    axis.value=pic.scale.x.automax() ? tickMax(pic) : axis.userMax;
     axis.position=0.5;
     axis.side=right;
     axis.align=E;
@@ -873,13 +876,11 @@ public axis Right(bool extend=false)
 public axis LeftRight(bool extend=false) 
 {
   return new void(picture pic, axisT axis) {
-    axis.value=pic.scale.x.automin() ?
-      (pic.scale.x.tickMin,pic.scale.y.tickMin) : axis.userMin;
+    axis.value=pic.scale.x.automin() ? tickMin(pic) : axis.userMin;
     axis.position=0.5;
     axis.side=left;
     axis.align=W;
-    axis.value2=pic.scale.x.automax() ?
-      (pic.scale.x.tickMax,pic.scale.y.tickMax) : axis.userMax;
+    axis.value2=pic.scale.x.automax() ? tickMax(pic) : axis.userMax;
     axis.extend=extend;
   };
 }
@@ -1205,7 +1206,6 @@ bool finite(picture pic=currentpicture)
   return finite(pic.userMin) && finite(pic.userMax);
 }
 	      
-
 void checkaxis(picture pic, axis axis, bool ticks) 
 {
   axis(pic,axis);
@@ -1220,6 +1220,11 @@ void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
 {
   if(xmin > xmax) return;
   
+  if(!pic.scale.set) {
+    checkaxis(pic,axis,ticks != NoTicks);
+    autoscale(pic,axis);
+  }
+  
   Label L=L.copy();
   bool newticks=false;
   
@@ -1233,17 +1238,13 @@ void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
     newticks=true;
   }
   
-  if(pic.scale.set && newticks) {
+  if(newticks && finite(pic) && ticks != NoTicks) {
     if(xmin == -infinity) xmin=pic.userMin.x;
     if(xmax == infinity) xmax=pic.userMax.x;
     bounds mx=autoscale(xmin,xmax,pic.scale.x.scale);
     pic.scale.x.tickMin=mx.min;
     pic.scale.x.tickMax=mx.max;
     axis.xdivisor=mx.divisor;
-  } else {
-    if(xmin == -infinity || xmax == infinity)
-      checkaxis(pic,axis,ticks != NoTicks);
-    autoscale(pic,axis);
   }
   
   axis(pic,axis);
@@ -1276,6 +1277,11 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
 {
   if(ymin > ymax) return;
   
+  if(!pic.scale.set) {
+    checkaxis(pic,axis,ticks != NoTicks);
+    autoscale(pic,axis);
+  }
+  
   Label L=L.copy();
   bool newticks=false;
   
@@ -1289,17 +1295,13 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
     newticks=true;
   }
   
-  if(pic.scale.set && newticks) {
+  if(newticks && finite(pic) && ticks != NoTicks) {
     if(ymin == -infinity) ymin=pic.userMin.y;
     if(ymax == infinity) ymax=pic.userMax.y;
     bounds my=autoscale(ymin,ymax,pic.scale.y.scale);
     pic.scale.y.tickMin=my.min;
     pic.scale.y.tickMax=my.max;
     axis.ydivisor=my.divisor;
-  } else {
-    if(ymin == -infinity || ymax == infinity) 
-      checkaxis(pic,axis,ticks != NoTicks);
-    autoscale(pic,axis);
   }
   
   axis(pic,axis);

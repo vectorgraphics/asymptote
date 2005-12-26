@@ -279,11 +279,13 @@ public struct ScaleT {
   public autoscaleT x;
   public autoscaleT y;
   public autoscaleT z;
+  
   ScaleT copy() {
     ScaleT dest=new ScaleT;
     dest.set=set;
     dest.x=x.copy();
     dest.y=y.copy();
+    dest.z=z.copy();
     return dest;
   }
 };
