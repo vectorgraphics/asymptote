@@ -96,7 +96,7 @@ struct option : public gc {
   bool argument;  // If it takes an argument on the command line.  This is set
                   // based on whether argname is empty.
   
-  mem::string argname; // The name of the argument for printing the description.
+  mem::string argname; // The argument name for printing the description.
   mem::string desc; // One line description of what the option does.
 
   option(mem::string name, char code, mem::string argname, mem::string desc)
@@ -360,9 +360,9 @@ struct pairSetting : public argumentSetting {
   }
 };
 
-// For setting the position of a figure on the page.
-struct positionSetting : public argumentSetting {
-  positionSetting(mem::string name, char code,
+// For setting the alignment of a figure on the page.
+struct alignSetting : public argumentSetting {
+  alignSetting(mem::string name, char code,
                   mem::string argname, mem::string desc,
                   int defaultValue=CENTER)
     : argumentSetting(name, code, argname, desc,
@@ -583,9 +583,9 @@ int verbose;
 void initSettings() {
   multiOption *view=new multiOption("View", 'V', "View output files");
   view->add(new boolSetting("batchView", 0,
-                     "View output files in batch mode", false));
+			    "View output files in batch mode", false));
   view->add(new boolSetting("interactiveView", 0,
-                     "View output files in interactive mode", true));
+			    "View output files in interactive mode", true));
   view->add(new boolSetting("oneFileView", 0, "", msdos));
   addOption(view);
 
@@ -595,48 +595,50 @@ void initSettings() {
   addOption(new boolSetting("clearGUI", 'c', "Clear GUI operations"));
   addOption(new boolSetting("ignoreGUI", 'i', "Ignore GUI operations"));
   addOption(new stringSetting("outformat", 'f', "format",
-                     "Convert each output file to specified format", "eps"));
+			      "Convert each output file to specified format",
+			      "eps"));
   addOption(new stringSetting("outname", 'o', "name",
-                     "(First) output file name", ""));
+			      "(First) output file name", ""));
   addOption(new helpOption("help", 'h', "Show summary of options"));
 
   addOption(new pairSetting("offset", 'O', "pair", "PostScript offset"));
-  addOption(new positionSetting("position", 'P', "C|B|T|Z",
-                     "Position of the figure on the page (Z implies -L)."));
+  addOption(new alignSetting("align", 'a', "C|B|T|Z",
+		"Center, Bottom, Top or Zero page alignment; Z => -notex"));
   
   addOption(new boolSetting("debug", 'd', "Enable debugging messages"));
   addOption(new incrementSetting("verbose", 'v',
-                     "Increase verbosity level", &verbose));
+				 "Increase verbosity level", &verbose));
   addOption(new boolSetting("keep", 'k', "Keep intermediate files"));
   addOption(new boolSetting("tex", 0,
-                     "Enable LaTeX label postprocessing (default)", true));
+			    "Enable LaTeX label postprocessing (default)",
+			    true));
   addOption(new boolSetting("inlinetex", 0, ""));
   addOption(new boolSetting("parseonly", 'p', "Parse test"));
   addOption(new boolSetting("translate", 's', "Translate test"));
   addOption(new boolSetting("listvariables", 'l',
-                     "List available global functions and variables"));
+			    "List available global functions and variables"));
   
   multiOption *mask=new multiOption("mask", 'm',
-                        "Mask fpu exceptions");
+				    "Mask fpu exceptions");
   mask->add(new boolSetting("batchMask", 0,
-                     "Mask fpu exceptions in batch mode", false));
+			    "Mask fpu exceptions in batch mode", false));
   mask->add(new boolSetting("interactiveMask", 0,
-                     "Mask fpu exceptions in interactive mode", true));
+			    "Mask fpu exceptions in interactive mode", true));
   addOption(mask);
 
   addOption(new boolSetting("bw", 0,
-                     "Convert all colors to black and white"));
+			    "Convert all colors to black and white"));
   addOption(new boolSetting("gray", 0, "Convert all colors to grayscale"));
   addOption(new boolSetting("rgb", 0, "Convert cmyk colors to rgb"));
   addOption(new boolSetting("cmyk", 0, "Convert rgb colors to cmyk"));
 
   addOption(new safeOption("safe", 0,
-                    "Disable system call (default)", true));
+			   "Disable system call (default)", true));
   addOption(new safeOption("unsafe", 0,
-                    "Enable system call", false));
+			   "Enable system call", false));
 
   addOption(new boolSetting("localhistory", 0, 
-                     "Use a local interactive history file"));
+			    "Use a local interactive history file"));
   addOption(new boolSetting("autoplain", 0,
 			    "Enable automatic importing of plain (default)",
 			    true));
@@ -706,36 +708,11 @@ bool trap() {
     return !getSetting<bool>("batchMask");
 }
 
-void setOptionsFromFile() {
-  std::ifstream finit;
+void setPath() {
+  // Make settings/localhistory directory
   initdir=Getenv("HOME",false)+"/.asy";
   mkdir(initdir.c_str(),0xFFFF);
-  initdir += "/";
-  finit.open((initdir+"options").c_str());
-	
-  if(finit) {
-    string s;
-    ostringstream buf;
-    vector<string> Args;
-    while(finit >> s)
-      Args.push_back(s);
-    finit.close();
-    
-    int Argc=(int) Args.size()+1;
-    char** Argv=new char*[Argc];
-    Argv[0]=argv0;
-    int i=1;
-    
-    for(vector<string>::iterator p=Args.begin(); p != Args.end(); ++p)
-      Argv[i++]=strcpy(new char[p->size()+1],p->c_str());
-    
-    getOptions(Argc,Argv);
-    delete[] Argv;
-    optind=0;
-  }
-}
-
-void setPath() {
+  
   searchPath.push_back(".");
   string asydir=Getenv("ASYMPTOTE_DIR",false);
   if(asydir != "") {
@@ -799,9 +776,6 @@ void setOptions(int argc, char *argv[])
 
   // Build settings module.
   initSettings();
-  
-  // Set options given in $HOME/.asy/options
-  setOptionsFromFile();
   
   getOptions(argc,argv);
   

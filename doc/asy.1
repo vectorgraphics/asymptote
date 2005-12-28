@@ -15,101 +15,108 @@ If no arguments are given, Asymptote runs in interactive mode.
 .PP
 If "-" is given as the file argument, Asymptote reads from standard input.
 .PP
-A summary of options is included below.
-For a complete description, see the Info files.
+A summary of options is included below. The effect of most options
+can be negated by prepending 
+.B no
+to the option name. 
+Default values for most options may also be entered in the 
+file 
+.B .asy/config.asy
+in the user's home directory using the long form:
+.PP
+import settings;
+.PP
+batchView=true;
+.PP
+For a complete
+description, see the Info files.
 .TP
 .B -V, -View
-View output file (MSDOS default).
+View output file.
 .TP
-.B -nV, -nView
-Don't view output file (UNIX default).
+.B -a, -align C|B|T|Z
+Center, Bottom, Top or Zero page alignment; Z => -notex.
 .TP
-.B -n, -no
-Negate next option.
+.B -autoplain
+Enable automatic importing of plain (default).
 .TP
-.B -x magnification
-Deconstruct into transparent GIF objects.
+.B -batchMask
+Mask fpu exceptions in batch mode.
 .TP
-.B -c
-Clear GUI operations.
-.TP
-.B -i
-Ignore GUI operations.
-.TP
-.B -f format
-Convert each output file to specified format.
-.TP
-.B -o name
-(First) output file name.
-.TP
-.B -h, -help
-Show summary of options.
-.TP
-.B -O pair
-PostScript offset.
-.TP
-.B -B
-Align to bottom-left corner of page.
-.TP
-.B -T
-Align to top-left corner of page.
-.TP
-.B -Z
-Position origin at (0,0) (implies -L).
-.TP
-.B -d
-Enable debugging messages.
-.TP
-.B -v, -verbose
-Increase verbosity level.
-.TP
-.B -k
-Keep intermediate files.
-.TP
-.B -L
-Disable LaTeX label postprocessing.
-.TP
-.B -t
-Produce LaTeX file for \\usepackage[inline]{asymptote}
-.TP
-.B -p
-Parse test.
-.TP
-.B -s
-Translate test.
-.TP
-.B -l
-List available global functions and variables.
-.TP
-.B -m, -mask
-Mask fpu exceptions. (default for interactive mode)
-.TP
-.B -nm, -nmask
-Don't mask fpu exceptions. (default for batch mode)
+.B -batchView
+View output files in batch mode.
 .TP
 .B -bw
-Convert colors to black and white.
+Convert all colors to black and white.
 .TP
-.B -gray
-Convert colors to grayscale.
-.TP
-.B -rgb
-Convert cmyk colors to rgb.
+.B -c, -clearGUI
+Clear GUI operations.
 .TP
 .B -cmyk
 Convert rgb colors to cmyk.
 .TP
-.B -safe
-Disable system call. (default)
+.B -d, -debug
+Enable debugging messages.
 .TP
-.B -unsafe
-Enable system call.
+.B -x, -deconstruct X
+Deconstruct into transparent GIF objects magnified by X.
+.TP
+.B -gray
+Convert all colors to grayscale.
+.TP
+.B -h, -help
+Show summary of options.
+.TP
+.B -i, -ignoreGUI
+Ignore GUI operations.
+.TP
+.B -interactiveMask
+Mask fpu exceptions in interactive mode.
+.TP
+.B -interactiveView
+View output files in interactive mode.
+.TP
+.B -k, -keep
+Keep intermediate files.
+.TP
+.B -l, -listvariables
+List available global functions and variables.
 .TP
 .B -localhistory
 Use a local interactive history file.
 .TP
-.B -noplain
-Disable automatic importing of plain.
+.B -m, -mask
+Mask fpu exceptions.
+.TP
+.B -O,-offset pair
+PostScript offset.
+.TP
+.B -f, -outformat format
+Convert each output file to specified format.
+.TP
+.B -o, -outname name
+(First) output file name.
+.TP
+.B -p, -parseonly
+Parse test.
+.TP
+.B -rgb
+Convert cmyk colors to rgb.
+.TP
+.B -safe
+Disable system call (default).
+.TP
+.B -tex
+Enable LaTeX label postprocessing (default).
+.TP
+.B -s, -translate
+Translate test.
+.TP
+.B -unsafe
+Enable system call.
+.TP
+.B -v, -verbose
+Increase verbosity level.
 
 .SH SEE ALSO
 Asymptote is documented fully in the asymptote Info page.

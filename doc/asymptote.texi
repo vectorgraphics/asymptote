@@ -5235,41 +5235,47 @@ supported by @code{Asymptote}:
 Usage: asy [options] [file ...]
 
 Options: 
-
--V, -View        View output file (MSDOS default)
--nV, -nView      Don't view output file (UNIX default)
--n, -no          Negate next option
--x magnification Deconstruct into transparent GIF objects
--c               Clear GUI operations
--i               Ignore GUI operations
--f format        Convert each output file to specified format
--o name          (First) output file name (- denotes standard output)
--h, -help        Show summary of options
--O pair          PostScript offset
--C               Center on page (default)
--B               Align to bottom-left corner of page
--T               Align to top-left corner of page
--Z               Position origin at (0,0) (implies -L)
--d               Enable debugging messages
--v, -verbose     Increase verbosity level
--k               Keep intermediate files
--L               Disable LaTeX label postprocessing
--t               Produce LaTeX file for \usepackage[inline]{asymptote}
--p               Parse test
--s               Translate test
--l               List available global functions and variables
--m, -mask        Mask fpu exceptions (default for interactive mode)
--nm, -nmask      Don't mask fpu exceptions (default for batch mode)
--bw              Convert colors to black and white
--gray            Convert colors to grayscale
--rgb             Convert cmyk colors to rgb
--cmyk            Convert rgb colors to cmyk
--safe            Disable system call (default, negation ignored)
--unsafe          Enable system call (negation ignored)
--localhistory    Use a local interactive history file
--noplain         Disable automatic importing of plain
+-V,-View              View output files
+-a,-align C|B|T|Z     Center, Bottom, Top or Zero page alignment; Z => -notex
+-autoplain            Enable automatic importing of plain (default)
+-batchMask            Mask fpu exceptions in batch mode
+-batchView            View output files in batch mode
+-bw                   Convert all colors to black and white
+-c,-clearGUI          Clear GUI operations
+-cmyk                 Convert rgb colors to cmyk
+-d,-debug             Enable debugging messages
+-x,-deconstruct X     Deconstruct into transparent GIF objects magnified by X
+-gray                 Convert all colors to grayscale
+-h,-help              Show summary of options
+-i,-ignoreGUI         Ignore GUI operations
+-interactiveMask      Mask fpu exceptions in interactive mode
+-interactiveView      View output files in interactive mode
+-k,-keep              Keep intermediate files
+-l,-listvariables     List available global functions and variables
+-localhistory         Use a local interactive history file
+-m,-mask              Mask fpu exceptions
+-O,-offset pair       PostScript offset
+-f,-outformat format  Convert each output file to specified format
+-o,-outname name      (First) output file name
+-p,-parseonly         Parse test
+-rgb                  Convert cmyk colors to rgb
+-safe                 Disable system call (default)
+-tex                  Enable LaTeX label postprocessing (default)
+-s,-translate         Translate test
+-unsafe               Enable system call
+-v,-verbose           Increase verbosity level
 
 @end verbatim
+
+The effect of most options (but not @code{-unsafe} or @code{-safe})
+can be negated by prepending @code{no} to the option name. Default values
+for most options may also be entered in the file
+@code{.asy/config.asy} in the user's home directory using the long name:
+@verbatim
+import settings;
+batchView=true;
+@end verbatim
+Command-line options override these defaults.
 
 If no arguments are given, @code{Asymptote} runs in interactive mode
 (@pxref{Interactive mode}). In this case, the default output file
@@ -5301,10 +5307,6 @@ in unsafe mode. This enables the @code{int system(string)} call, allowing one
 to execute arbitrary shell commands. The default mode, @code{-safe},
 disables this call. 
 
-The @code{-n} option can be used to negate the meaning of a following
-option (except for the meanings of @code{-unsafe}, @code{-safe}, and
-@code{-n} itself).
-
 @cindex @code{ASYMPTOTE_PAPERTYPE}
 By default, @code{Asymptote} attempts to center the figure on the
 page, assuming that the paper type is @code{letter}. The default paper
@@ -5328,7 +5330,7 @@ Additional debugging output is produced with each additional @code{-v} option:
 @item -v
 Display top-level module and final output file names.
 @item -vv
-Also display imported module names and final @code{LaTeX} and
+Also display imported and included module names and final @code{LaTeX} and
 @code{dvips} processing information.
 @item -vvv
 Also output @code{LaTeX} bidirectional pipe diagnostics.
@@ -5337,11 +5339,6 @@ Also output knot solver diagnostics.
 @item -vvvvv
 Also output @code{Asymptote} traceback diagnostics.
 @end table
-
-Default values for these options may also be entered in the file
-@code{.asy/options} in the user's home directory (in the same format
-as on the command line, except that the options may be distributed
-over multiple lines). Command-line options override these defaults.
 
 @node Interactive mode
 @chapter Interactive mode

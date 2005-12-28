@@ -34,7 +34,7 @@ bool uptodate=true;
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 
 static string historyname="history";
-static string localhistoryname=".asy_history";
+static string localhistoryname=".asy_"+historyname;
   
 /* Read a string, and return a pointer to it. Returns NULL on EOF. */
 char *rl_gets(void)
@@ -128,7 +128,8 @@ size_t interactive_input(char *buf, size_t max_size)
     
   if(first) {
     first=false;
-    historyfile=getSetting<bool>("localhistory") ? localhistoryname : (initdir+historyname);
+    historyfile=getSetting<bool>("localhistory") ? 
+      localhistoryname : (initdir+"/"+historyname);
     
     read_history(historyfile.c_str());
     rl_bind_key('\t',rl_insert); // Turn off tab completion

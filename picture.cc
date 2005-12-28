@@ -168,7 +168,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     double hoffset=-128.0;
     double voffset=(height < 11.0) ? -137.0+height : -126.0;
     
-    int origin=getSetting<int>("position");
+    int origin=getSetting<int>("align");
 
     if(origin != ZERO) {
       if(pdfformat || origin == BOTTOM) {
@@ -373,7 +373,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   }
   
   // Avoid negative bounding box coordinates
-  int origin=getSetting<int>("position");
+  int origin=getSetting<int>("align");
   bboxshift=origin == ZERO ? 0.0 : pair(-bpos.left,-bpos.bottom);
   if(!pdfformat) {
     bboxshift += getSetting<pair>("offset");

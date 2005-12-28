@@ -673,6 +673,9 @@ void includedec::loadFailed(coenv &)
 
 void includedec::transAsField(coenv &e, record *r)
 {
+  if(settings::verbose > 1)
+    std::cerr << "Including " <<  filename << std::endl;
+  
   file *ast = parser::parseFile(filename);
   em->sync();
 

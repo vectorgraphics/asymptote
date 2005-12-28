@@ -291,10 +291,13 @@ void doIPrompt() {
 
 // Run the $HOME/.asy/config.asy file.
 void doConfig() {
-  string initdir=Getenv("HOME",false)+"/.asy";
   string filename=initdir+"/config.asy";
-  if (settings::fs::exists(filename))
+  if(settings::fs::exists(filename)) {
+    bool autoplain=getSetting<bool>("autoplain");
+    if(autoplain) getSetting("autoplain")=false; // Turn off for speed.
     doIFile(filename);
+    if(autoplain) getSetting("autoplain")=true;
+  }
 }
 
 } // namespace loop
