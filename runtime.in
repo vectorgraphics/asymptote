@@ -1954,7 +1954,7 @@ int merge(stringarray *files, string *args, string *format, bool keep)
   ret=System(cmd,false,true,"ASYMPTOTE_CONVERT","convert");
   
   if(ret == 0)
-    if(VERBOSE > 0) cout << "Wrote " << name << endl;
+    if(verbose > 0) cout << "Wrote " << name << endl;
   
   if(!keep && !getSetting<bool>("keep"))
     for(size_t i=0; i < size; i++) 
