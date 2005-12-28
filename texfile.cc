@@ -41,7 +41,7 @@ texfile::~texfile()
 void texfile::prologue()
 {
   texdefines(*out);
-  if(!getSetting<bool>("texmode"))
+  if(!getSetting<bool>("inlinetex"))
     *out << "\\pagestyle{empty}" << newl
 	 << "\\textheight=2048pt" << newl
 	 << "\\textwidth=\\textheight" << newl
@@ -140,7 +140,7 @@ void texfile::put(const string& label, double angle, const pair& z,
 
 void texfile::epilogue()
 {
-  if(!getSetting<bool>("texmode")) *out << "\\end{document}" << newl;
+  if(!getSetting<bool>("inlinetex")) *out << "\\end{document}" << newl;
   out->flush();
 }
 

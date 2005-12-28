@@ -20,6 +20,9 @@
 \def\AsyFile{\jobname.asy}
 \immediate\openout\AsyStream=\AsyFile
 \immediate\write\AsyStream{quiet(true);}%
+\ifinline
+\immediate\write\AsyStream{access settings; settings.inlinetex=true;}%
+\fi
 \newcounter{asy}
 
 \def\ProcessAsymptote#1% start it all off

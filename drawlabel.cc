@@ -32,7 +32,7 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn)
   if(texbuf[0] == '>' && texbuf[1] == ' ')
     width=atof(texbuf.c_str()+2)*tex2ps;
   else {
-    if(settings::getSetting<bool>("texmode")) {
+    if(settings::getSetting<bool>("inlinetex")) {
       if(settings::getSetting<bool>("debug") && warn) {
 	ostringstream buf;
 	buf << "Cannot determine size of label \"" << s << "\"";

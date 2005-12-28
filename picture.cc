@@ -81,7 +81,7 @@ void picture::prepend(picture &pic)
 bool picture::havelabels()
 {
   size_t n=nodes.size();
-  if(n > lastnumber && !labels && settings::getSetting<bool>("tex")) {
+  if(n > lastnumber && !labels && getSetting<bool>("tex")) {
     // Check to see if there are any labels yet
     nodelist::iterator p=nodes.begin();
     for(size_t i=0; i < lastnumber; ++i) ++p;
@@ -151,7 +151,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     outfile.close();
     ostringstream cmd;
     cmd << LaTeX << " \\scrollmode\\input " << texname;
-    bool quiet=VERBOSE <= 1;
+    bool quiet=verbose <= 1;
     status=System(cmd,quiet,true,"ASYMPTOTE_LATEX","latex");
     if(status) {
       if(quiet) status=System(cmd,true,"ASYMPTOTE_LATEX","latex");
@@ -187,7 +187,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     ostringstream dcmd;
     dcmd << Dvips << " -R -t " << paperType 
 	 << "size -O " << hoffset << "bp," << voffset << "bp";
-    if(VERBOSE <= 1) dcmd << " -q";
+    if(verbose <= 1) dcmd << " -q";
     dcmd << " -o " << psname << " " << dviname;
     status=System(dcmd,false,true,"ASYMPTOTE_DVIPS","dvips");
     
@@ -214,7 +214,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     while(getline(fin,s)) {
       if(s.find("%%DocumentPaperSizes:") == 0) continue;
       if(first && s.find("%%BoundingBox:") == 0) {
-	if(VERBOSE > 2) BoundingBox(cout,bpos);
+	if(verbose > 2) BoundingBox(cout,bpos);
 	BoundingBox(*fout,bcopy);
 	first=false;
       } else *fout << s << endl;
@@ -266,8 +266,8 @@ bool picture::postprocess(const string& epsname, const string& outname,
     if(!getSetting<bool>("keep")) unlink(epsname.c_str());
   }
   
-  if(VERBOSE > (tgifformat ? 1 : 0)) cout << "Wrote " << outname << endl;
-  if(settings::view() && !quiet) {
+  if(verbose > (tgifformat ? 1 : 0)) cout << "Wrote " << outname << endl;
+  if(view() && !quiet) {
     if(epsformat || pdfformat) {
       static int pid=0;
       static string lastoutname;
@@ -339,11 +339,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   if(deconstruct && !tgifformat) {
     if(bboxout) bboxout.close();
-    if(settings::view()) {
+    if(view()) {
       ostringstream cmd;
       if(Python != "") cmd << Python << " ";
       cmd << Xasy << " " << buildname(prefix) 
-	  << " " << ShipoutNumber << " " << buildname(settings::getSetting<mem::string>("outname"));
+	  << " " << ShipoutNumber << " " << 
+	buildname(getSetting<mem::string>("outname"));
       System(cmd,false,true,
 	     Python != "" ? "ASYMPTOTE_PYTHON" : "ASYMPTOTE_XASY",
 	     Python != "" ? "python" : "xasy");
@@ -354,7 +355,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       
   bbox bpos=b;
   
-  bool TeXmode=getSetting<bool>("texmode") && settings::getSetting<bool>("tex");
+  bool TeXmode=getSetting<bool>("inlinetex") && getSetting<bool>("tex");
   bool Labels=labels || TeXmode;
   
   if(deconstruct) {
@@ -454,7 +455,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   if(status) {
     if(TeXmode) {
-      if(VERBOSE > 0) cout << "Wrote " << texname << endl;
+      if(verbose > 0) cout << "Wrote " << texname << endl;
     } else {
       if(labels) {
 	tex->epilogue();

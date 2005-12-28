@@ -28,18 +28,11 @@
 #include "interact.h"
 #include "locate.h"
 #include "lexical.h"
-
 #include "memory.h"
 #include "record.h"
 #include "env.h"
 #include "item.h"
 #include "refaccess.h"
-
-#ifdef MSDOS
-const bool msdos=true;
-#else
-const bool msdos=false;
-#endif
 
 using std::vector;
 using vm::item;
@@ -48,9 +41,33 @@ using trans::itemRefAccess;
 using trans::refAccess;
 using trans::varEntry;
 
-
 namespace settings {
   
+#ifdef MSDOS
+const bool msdos=true;
+const char pathSeparator=';';
+const string defaultPSViewer=
+  "'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe'";
+const string defaultPDFViewer=
+  "'c:\\Program Files\\Adobe\\Acrobat 7.0\\Reader\\AcroRd32.exe'";
+const string defaultGhostscript=
+  "'c:\\Program Files\\gs\\gs8.51\\bin\\gswin32.exe'";
+const string defaultPython="'c:\\Python24\\python.exe'";
+const string defaultDisplay="imdisplay";
+#undef ASYMPTOTE_SYSDIR
+#define ASYMPTOTE_SYSDIR "c:\\Program Files\\Asymptote"
+const string docdir=".";
+#else  
+const bool msdos=false;
+const char pathSeparator=':';
+const string defaultPSViewer="gv";
+const string defaultPDFViewer="acroread";
+const string defaultGhostscript="gs";
+const string defaultDisplay="display";
+const string defaultPython="";
+const string docdir=ASYMPTOTE_DOCDIR;
+#endif  
+
 const char PROGRAM[]=PACKAGE_NAME;
 const char VERSION[]=PACKAGE_VERSION;
 const char BUGREPORT[]=PACKAGE_BUGREPORT;
@@ -75,7 +92,7 @@ codeMap_t codeMap;
   
 struct option : public gc {
   mem::string name;
-  char code;  // For the command line, ie. 'V' for -V.
+  char code;      // Command line option, i.e. 'V' for -V.
   bool argument;  // If it takes an argument on the command line.  This is set
                   // based on whether argname is empty.
   
@@ -118,17 +135,17 @@ struct option : public gc {
   virtual bool getOption() = 0;
 
   void error(string msg) {
-    cerr << argv0 << ": " << msg << " -- ";
+    cerr << endl << argv0 << ": ";
     if (code)
-      cerr << code << ", ";
-    cerr << name << endl;
+      cerr << "-" << code << " ";
+    cerr << "(-" << name << ") " << msg << endl;
   }
 
-  // The "-f -outformat format" part of the option.
+  // The "-f,-outformat format" part of the option.
   virtual mem::string describeStart() {
     ostringstream ss;
     if (code)
-      ss << "-" << code << ", ";
+      ss << "-" << code << ",";
     ss << "-" << name;
     if (argument)
       ss << " " << argname;
@@ -139,7 +156,7 @@ struct option : public gc {
   virtual void describe() {
     // Don't show the option if it has no desciption.
     if (!desc.empty()) {
-      const unsigned int WIDTH=20;
+      const unsigned int WIDTH=22;
       mem::string start=describeStart();
       cerr << std::left << std::setw(WIDTH) << start;
       if (start.size() >= WIDTH) {
@@ -200,7 +217,7 @@ struct boolSetting : public itemSetting {
   boolSetting(mem::string name, char code, mem::string desc,
               bool defaultValue=false)
     : itemSetting(name, code, noarg, desc,
-              types::primBoolean(), (item)defaultValue) {}
+                  types::primBoolean(), (item)defaultValue) {}
 
   bool getOption() {
     value=(item)true;
@@ -376,8 +393,8 @@ struct refSetting : public setting {
   T *ref;
   T defaultValue;
 
-  refSetting(mem::string name, char code, mem::string argname, mem::string desc,
-          types::ty *t, T *ref, T defaultValue)
+  refSetting(mem::string name, char code, mem::string argname,
+             mem::string desc, types::ty *t, T *ref, T defaultValue)
       : setting(name, code, argname, desc, t),
         ref(ref), defaultValue(defaultValue) {
     reset();
@@ -392,7 +409,6 @@ struct refSetting : public setting {
   }
 };
 
-#if INTV
 struct incrementSetting : public refSetting<int> {
   incrementSetting(mem::string name, char code, mem::string desc, int *ref)
     : refSetting<int>(name, code, noarg, desc,
@@ -403,21 +419,31 @@ struct incrementSetting : public refSetting<int> {
     ++(*ref);
     return true;
   }
-};
-#else
-struct incrementSetting : public itemSetting {
-  incrementSetting(mem::string name, char code, mem::string desc)
-    : itemSetting(name, code, noarg, desc,
-              types::primInt(), (item)0) {}
+  
+  option *negation(mem::string name) {
+    struct negOption : public option {
+      incrementSetting &base;
 
-  bool getOption() {
-    // Increment the value in the item.
-    int n=vm::get<int>(value);
-    value=(item)(n+1);
-    return true;
+      negOption(incrementSetting &base, mem::string name)
+        : option(name, 0, noarg, ""), base(base) {}
+
+      bool getOption() {
+        if(*base.ref) --(*base.ref);
+        return true;
+      }
+    };
+    return new negOption(*this, name);
+  }
+
+  void add() {
+    setting::add();
+    negation("no"+name)->add();
+    if (code) {
+      mem::string nocode="no"; nocode.push_back(code);
+      negation(nocode)->add();
+    }
   }
 };
-#endif
 
 void addOption(option *o) {
   o->add();
@@ -434,7 +460,7 @@ void usage(const char *program)
   cerr << PROGRAM << " version " << VERSION
        << " [(C) 2004 Andy Hammerlindl, John C. Bowman, Tom Prince]" 
        << endl
-       << "\t\t\t" << "http://sourceforge.net/projects/asymptote/"
+       << "\t\t\t" << "http://asymptote.sourceforge.net/"
        << endl
        << "Usage: " << program << " [options] [file ...]"
        << endl;
@@ -444,7 +470,7 @@ void reportSyntax() {
   cerr << endl;
   usage(argv0);
   cerr << endl << "Type '" << argv0
-    << " -h' for a descriptions of options." << endl;
+    << " -h' for a description of options." << endl;
   exit(1);
 }
 
@@ -552,27 +578,20 @@ void getOptions(int argc, char *argv[])
 }
 
 // The verbosity setting, a global variable.
-#if INTV
-int verbose=0;
-#else
-item *verboseItem=0;
-#endif
-
-item *debugItem=0;
+int verbose;
 
 void initSettings() {
-  multiOption *view=new multiOption("View", 'V', "View output file");
+  multiOption *view=new multiOption("View", 'V', "View output files");
   view->add(new boolSetting("batchView", 0,
                      "View output files in batch mode", false));
   view->add(new boolSetting("interactiveView", 0,
-                     "View output in interactive mode", true));
-  view->add(new boolSetting("oneFileView", 0,
-                     "View output of one file (for drag-and-drop)", msdos));
+                     "View output files in interactive mode", true));
+  view->add(new boolSetting("oneFileView", 0, "", msdos));
   addOption(view);
-  //cerr << "-nV, -nView\t Don't view output file" << endl;
 
-  addOption(new realSetting("deconstruct", 'x', "magnification",
-                     "Deconstruct into transparent GIF objects", 0.0));
+  addOption(new realSetting("deconstruct", 'x', "X",
+                     "Deconstruct into transparent GIF objects magnified by X",
+			    0.0));
   addOption(new boolSetting("clearGUI", 'c', "Clear GUI operations"));
   addOption(new boolSetting("ignoreGUI", 'i', "Ignore GUI operations"));
   addOption(new stringSetting("outformat", 'f', "format",
@@ -582,27 +601,16 @@ void initSettings() {
   addOption(new helpOption("help", 'h', "Show summary of options"));
 
   addOption(new pairSetting("offset", 'O', "pair", "PostScript offset"));
-  addOption(new positionSetting("position", 'P', "[CBTZ]",
+  addOption(new positionSetting("position", 'P', "C|B|T|Z",
                      "Position of the figure on the page (Z implies -L)."));
   
   addOption(new boolSetting("debug", 'd', "Enable debugging messages"));
-  debugItem=&getSetting("debug");
-
-#if INTV
   addOption(new incrementSetting("verbose", 'v',
                      "Increase verbosity level", &verbose));
-#else
-  addOption(new incrementSetting("verbose", 'v',
-                     "Increase verbosity level"));
-  verboseItem=&getSetting("verbose");
-#endif
-
   addOption(new boolSetting("keep", 'k', "Keep intermediate files"));
   addOption(new boolSetting("tex", 0,
                      "Enable LaTeX label postprocessing (default)", true));
-  //cerr << "-L\t\t Disable LaTeX label postprocessing" << endl;
-  addOption(new boolSetting("texmode", 't',
-                     "Produce LaTeX file for \\usepackage[inline]{asymptote}"));
+  addOption(new boolSetting("inlinetex", 0, ""));
   addOption(new boolSetting("parseonly", 'p', "Parse test"));
   addOption(new boolSetting("translate", 's', "Translate test"));
   addOption(new boolSetting("listvariables", 'l',
@@ -623,44 +631,17 @@ void initSettings() {
   addOption(new boolSetting("cmyk", 0, "Convert rgb colors to cmyk"));
 
   addOption(new safeOption("safe", 0,
-                    "Disable system call (default, negation ignored)", true));
+                    "Disable system call (default)", true));
   addOption(new safeOption("unsafe", 0,
-                    "Enable system call (negation ignored)", false));
+                    "Enable system call", false));
 
   addOption(new boolSetting("localhistory", 0, 
                      "Use a local interactive history file"));
   addOption(new boolSetting("autoplain", 0,
-                     "Enable automatic importing of plain (default)", true));
-  //cerr << "-noplain\t Disable automatic importing of plain" << endl;
+			    "Enable automatic importing of plain (default)",
+			    true));
 }
 
-
-
-#ifdef MSDOS
-const char pathSeparator=';';
-//int view=-1; // Support drag and drop in MSWindows
-const string defaultPSViewer=
-  "'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe'";
-const string defaultPDFViewer=
-  "'c:\\Program Files\\Adobe\\Acrobat 7.0\\Reader\\AcroRd32.exe'";
-const string defaultGhostscript=
-  "'c:\\Program Files\\gs\\gs8.51\\bin\\gswin32.exe'";
-const string defaultPython="'c:\\Python24\\python.exe'";
-const string defaultDisplay="imdisplay";
-#undef ASYMPTOTE_SYSDIR
-#define ASYMPTOTE_SYSDIR "c:\\Program Files\\Asymptote"
-const string docdir=".";
-#else  
-const char pathSeparator=':';
-//int view=0;
-const string defaultPSViewer="gv";
-const string defaultPDFViewer="acroread";
-const string defaultGhostscript="gs";
-const string defaultDisplay="display";
-const string defaultPython="";
-const string docdir=ASYMPTOTE_DOCDIR;
-#endif  
-  
 string PSViewer;
 string PDFViewer;
 string Ghostscript;
@@ -828,18 +809,8 @@ void setOptions(int argc, char *argv[])
   argCount = argc - optind;
   argList = argv + optind;
 
-#if 0
-  if(origin == ZERO)
-    getSetting("texprocess")=false;
-#endif
-  
   setPath();
   setApplicationNames();
-
-#ifdef MSDOS
-  if(!Getenv(CYGWIN)) newline="\r\n";
-#endif
-  
   setPaperType();
 
   setInteractive();

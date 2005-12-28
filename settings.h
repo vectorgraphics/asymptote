@@ -17,14 +17,6 @@
 
 using std::string;
 
-// For testing various form of implementing verbose.
-#define INTV 1
-#if INTV
-  #define VERBOSE (settings::verbose)
-#else
-  #define VERBOSE (settings::verbose())
-#endif
-
 namespace types {
   class record;
 }
@@ -49,8 +41,6 @@ extern string Animate;
 extern string Python;
 extern string Xasy;
 extern const string docdir;
-  
-extern string newline;  
   
 extern int safe;
 enum origin {CENTER,BOTTOM,TOP,ZERO};
@@ -80,19 +70,7 @@ inline T getSetting(string name)
   return vm::get<T>(getSetting(name));
 }
 
-#if INTV
 extern int verbose;
-#else
-extern vm::item *verboseItem;
-inline int verbose() {
-  return vm::get<int>(*verboseItem);
-}
-#endif
-
-extern vm::item *debugItem;
-inline bool debug() {
-  return vm::get<bool>(*debugItem);
-}
 
 bool view();
 bool trap();

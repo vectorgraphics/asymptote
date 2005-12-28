@@ -255,7 +255,7 @@ void doIFile(const string& filename) {
   init();
 
   string basename = stripext(filename,suffix);
-  if(VERBOSE) cout << "Processing " << basename << endl;
+  if(settings::verbose) cout << "Processing " << basename << endl;
   
   if(getSetting<bool>("parseonly")) {
     absyntax::file *tree = parser::parseFile(filename);

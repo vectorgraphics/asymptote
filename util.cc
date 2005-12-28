@@ -155,7 +155,7 @@ int System(const char *command, bool quiet, bool wait,
   int status;
 
   if(!command) return 1;
-  if(VERBOSE > 1) cerr << command << endl;
+  if(settings::verbose > 1) cerr << command << endl;
 
   cout.flush(); // Flush stdout to avoid duplicate output.
     
