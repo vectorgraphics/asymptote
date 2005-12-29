@@ -41,6 +41,10 @@ using trans::itemRefAccess;
 using trans::refAccess;
 using trans::varEntry;
 
+namespace loop {
+  void doConfig();
+}
+
 namespace settings {
   
 #ifdef MSDOS
@@ -50,7 +54,7 @@ const string defaultPSViewer=
   "'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe'";
 const string defaultPDFViewer=
   "'c:\\Program Files\\Adobe\\Acrobat 7.0\\Reader\\AcroRd32.exe'";
-const string defaultGhostscript=
+const string defaultGhostScript=
   "'c:\\Program Files\\gs\\gs8.51\\bin\\gswin32.exe'";
 const string defaultPython="'c:\\Python24\\python.exe'";
 const string defaultDisplay="imdisplay";
@@ -62,7 +66,7 @@ const bool msdos=false;
 const char pathSeparator=':';
 const string defaultPSViewer="gv";
 const string defaultPDFViewer="acroread";
-const string defaultGhostscript="gs";
+const string defaultGhostScript="gs";
 const string defaultDisplay="display";
 const string defaultPython="";
 const string docdir=ASYMPTOTE_DOCDIR;
@@ -322,6 +326,16 @@ struct stringSetting : public argumentSetting {
     value=(item)(mem::string)optarg;
     return true;
   }
+};
+
+mem::string GetEnv(mem::string s, mem::string Default) {
+  mem::string t=mem::string(Getenv(("ASYMPTOTE_"+s).c_str()));
+  return t != "" ? t : Default;
+}
+  
+struct envSetting : public stringSetting {
+  envSetting(mem::string name, mem::string Default)
+    : stringSetting(name, 0, " ", "", GetEnv(name,Default)) {}
 };
 
 struct realSetting : public argumentSetting {
@@ -642,19 +656,19 @@ void initSettings() {
   addOption(new boolSetting("autoplain", 0,
 			    "Enable automatic importing of plain (default)",
 			    true));
+  
+  addOption(new envSetting("PDFVIEWER", defaultPDFViewer));
+  addOption(new envSetting("PSVIEWER", defaultPSViewer));
+  addOption(new envSetting("GS", defaultGhostScript));
+  addOption(new envSetting("LATEX", "latex"));
+  addOption(new envSetting("DVIPS", "dvips"));
+  addOption(new envSetting("CONVERT", "convert"));
+  addOption(new envSetting("DISPLAY", defaultDisplay));
+  addOption(new envSetting("ANIMATE", "animate"));
+  addOption(new envSetting("PYTHON", defaultPython));
+  addOption(new envSetting("XASY", "xasy"));
 }
 
-string PSViewer;
-string PDFViewer;
-string Ghostscript;
-string LaTeX;
-string Dvips;
-string Convert;
-string Display;
-string Animate;
-string Python;
-string Xasy;
-  
 int safe=1;
   
 int ShipoutNumber=0;
@@ -667,7 +681,6 @@ int scrollLines=0;
 const string suffix="asy";
 const string guisuffix="gui";
   
-
 bool TeXinitialized=false;
 string initdir;
 
@@ -728,30 +741,6 @@ void setPath() {
 #endif
 }
 
-void setApplicationNames() {
-  string psviewer=Getenv("ASYMPTOTE_PSVIEWER");
-  string pdfviewer=Getenv("ASYMPTOTE_PDFVIEWER");
-  string ghostscript=Getenv("ASYMPTOTE_GS");
-  string latex=Getenv("ASYMPTOTE_LATEX");
-  string dvips=Getenv("ASYMPTOTE_DVIPS");
-  string convert=Getenv("ASYMPTOTE_CONVERT");
-  string display=Getenv("ASYMPTOTE_DISPLAY");
-  string animate=Getenv("ASYMPTOTE_ANIMATE");
-  string python=Getenv("ASYMPTOTE_PYTHON");
-  string xasy=Getenv("ASYMPTOTE_XASY");
-
-  PSViewer=psviewer != "" ? psviewer : defaultPSViewer;
-  PDFViewer=pdfviewer != "" ? pdfviewer : defaultPDFViewer;
-  Ghostscript=ghostscript != "" ? ghostscript : defaultGhostscript;
-  LaTeX=latex != "" ? latex : "latex";
-  Dvips=dvips != "" ? dvips : "dvips";
-  Convert=convert != "" ? convert : "convert";
-  Display=display != "" ? display : defaultDisplay;
-  Animate=animate != "" ? animate : "animate";
-  Python=python != "" ? python : defaultPython;
-  Xasy=xasy != "" ? xasy : "xasy";
-}
-
 void setPaperType() {
   char *papertype=getenv("ASYMPTOTE_PAPERTYPE");
   paperType=papertype ? papertype : "letter";
@@ -776,15 +765,16 @@ void setOptions(int argc, char *argv[])
 
   // Build settings module.
   initSettings();
+  setPath();
   
+  loop::doConfig();
+
   getOptions(argc,argv);
   
   // Set variables for the normal arguments.
   argCount = argc - optind;
   argList = argv + optind;
 
-  setPath();
-  setApplicationNames();
   setPaperType();
 
   setInteractive();

@@ -310,8 +310,6 @@ int main(int argc, char *argv[])
 {
   setOptions(argc,argv);
 
-  loop::doConfig();
-
 #ifdef USEGC
   GC_free_space_divisor = 2;
   GC_dont_expand = 0;

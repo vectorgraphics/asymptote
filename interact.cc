@@ -56,7 +56,8 @@ char *rl_gets(void)
       if(pid) restart=(waitpid(pid, &status, WNOHANG) == pid);
       if(restart) {
 	ostringstream cmd;
-	cmd << PDFViewer << " " << docdir << "/asymptote.pdf";
+	cmd << getSetting<mem::string>("PDFViewer") << " " 
+	    << docdir << "/asymptote.pdf";
 	status=System(cmd,false,false,"ASYMPTOTE_PDFVIEWER","pdf viewer",
 		      &pid);
       }

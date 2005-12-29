@@ -129,7 +129,7 @@ void picture::texinit()
     return;
   }
   
-  tex.open(LaTeX.c_str(),"ASYMPTOTE_LATEX","latex");
+  tex.open(getSetting<mem::string>("LATEX").c_str(),"ASYMPTOTE_LATEX","latex");
   texdocumentclass(tex,true);
   
   texdefines(tex,TeXpipepreamble,true);
@@ -150,7 +150,8 @@ bool picture::texprocess(const string& texname, const string& outname,
   if(outfile) {
     outfile.close();
     ostringstream cmd;
-    cmd << LaTeX << " \\scrollmode\\input " << texname;
+    cmd << getSetting<mem::string>("LATEX") 
+	<< " \\scrollmode\\input " << texname;
     bool quiet=verbose <= 1;
     status=System(cmd,quiet,true,"ASYMPTOTE_LATEX","latex");
     if(status) {
@@ -185,7 +186,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     }
 
     ostringstream dcmd;
-    dcmd << Dvips << " -R -t " << paperType 
+    dcmd << getSetting<mem::string>("DVIPS") << " -R -t " << paperType 
 	 << "size -O " << hoffset << "bp," << voffset << "bp";
     if(verbose <= 1) dcmd << " -q";
     dcmd << " -o " << psname << " " << dviname;
@@ -243,7 +244,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
   
   if(!epsformat) {
     if(pdfformat) {
-      cmd << Ghostscript
+      cmd << getSetting<mem::string>("GS")
 	  << " -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
 	  << " -dAutoRotatePages=/None "
 	  << " -dDEVICEWIDTHPOINTS=" 
@@ -255,7 +256,8 @@ bool picture::postprocess(const string& epsname, const string& outname,
     } else {
       double expand=2.0;
       double res=(tgifformat ? getSetting<double>("deconstruct") : expand)*72.0;
-      cmd << Convert << " -density " << res << "x" << res;
+      cmd << getSetting<mem::string>("CONVERT") 
+	  << " -density " << res << "x" << res;
       if(!tgifformat) cmd << " +antialias -geometry " << 100.0/expand << "%x";
       cmd << " eps:" << epsname;
       if(tgifformat) cmd << " -transparent white gif";
@@ -271,7 +273,8 @@ bool picture::postprocess(const string& epsname, const string& outname,
     if(epsformat || pdfformat) {
       static int pid=0;
       static string lastoutname;
-      string Viewer=pdfformat ? PDFViewer : PSViewer;
+      string Viewer=pdfformat ? getSetting<mem::string>("PDFVIEWER") :
+	getSetting<mem::string>("PSVIEWER");
       bool restart=false;
       if(interact::interactive && pid)
 	restart=(waitpid(pid, &status, WNOHANG) == pid);
@@ -291,7 +294,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
       } else if(Viewer == "gv") kill(pid,SIGHUP); // Tell gv to reread file.
     } else {
       ostringstream cmd;
-      cmd << Display << " " << outname;
+      cmd << getSetting<mem::string>("DISPLAY") << " " << outname;
       string application="your "+outputformat+" viewer";
       status=System(cmd,false,wait,"ASYMPTOTE_DISPLAY",application.c_str());
       if(status) return false;
@@ -341,8 +344,9 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     if(bboxout) bboxout.close();
     if(view()) {
       ostringstream cmd;
+      string Python=getSetting<mem::string>("PYTHON");
       if(Python != "") cmd << Python << " ";
-      cmd << Xasy << " " << buildname(prefix) 
+      cmd << getSetting<mem::string>("XASY") << " " << buildname(prefix) 
 	  << " " << ShipoutNumber << " " << 
 	buildname(getSetting<mem::string>("outname"));
       System(cmd,false,true,

@@ -26,20 +26,6 @@ extern const char PROGRAM[];
 extern const char VERSION[];
 extern const char BUGREPORT[];
 
-extern string psviewer;    // Environment variable ASYMPTOTE_PSVIEWER
-extern string pdfviewer;   // Environment variable ASYMPTOTE_PDFVIEWER
-extern string ghostscript; // Environment variable ASYMPTOTE_GS
-  
-extern string PSViewer;
-extern string PDFViewer;
-extern string Ghostscript;
-extern string LaTeX;
-extern string Dvips;
-extern string Convert;
-extern string Display;
-extern string Animate;
-extern string Python;
-extern string Xasy;
 extern const string docdir;
   
 extern int safe;
