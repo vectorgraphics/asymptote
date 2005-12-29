@@ -159,11 +159,12 @@ int System(const char *command, bool quiet, bool wait,
 
   cout.flush(); // Flush stdout to avoid duplicate output.
     
+  char **argv=args(command);
+
   int pid = fork();
   if(pid == -1)
     camp::reportError("Cannot fork process");
   
-  char **argv=args(command);
   if(pid == 0) {
     if(interact::interactive) signal(SIGINT,SIG_IGN);
     if(quiet) close(STDOUT_FILENO);
