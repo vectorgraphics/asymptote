@@ -23,10 +23,15 @@
 
 #include "coder.h"
 #include "exp.h"
+#include "refaccess.h"
 
 using namespace types;
 using namespace camp;
 
+namespace settings {
+extern types::record *getSettingsModule();
+};
+  
 namespace trans {
 using camp::transform;
 using camp::pair;
@@ -183,6 +188,15 @@ void addExplicitCast(venv &ve, ty *target, ty *source, bltin f) {
 
 void addCast(venv &ve, ty *target, ty *source, bltin f) {
   addCast(ve, target, source, new bltinAccess(f));
+}
+
+template<class T>
+void addConstant(venv &ve, T value, ty *t, char *name) {
+  T* ref=new T;
+  *ref=value;
+  access *a = new refAccess<T>(ref);
+  varEntry *ent = new varEntry(t, a, READONLY, settings::getSettingsModule());
+  ve.enter(symbol::trans(name), ent);
 }
 
 // The identity access, i.e. no instructions are encoded for a cast or
@@ -459,6 +473,8 @@ void base_venv(venv &ve)
   addFunc(ve,pairArrayFFT,pairArray(),"fft",formal(pairArray(),"a"),
 	  formal(primInt(),"sign",true));
 #endif
+
+  addConstant<double>(ve, PI, primReal(), "pi");
 
   gen_base_venv(ve);
 }

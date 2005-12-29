@@ -1873,11 +1873,6 @@ pair intersect(triplearray* pre1, triplearray* point1, triplearray* post1,
 // Constants
 
 
-double pi()
-{ 
-  return PI;
-}
-
 int intMax()
 { 
   return INT_MAX;

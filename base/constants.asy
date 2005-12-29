@@ -13,7 +13,6 @@ real mm=0.1cm;
 real bp=1;	   // A PostScript point.
 real pt=72.0/72.27; // A TeX pt; slightly smaller than a PostScript bp.
 pair I=(0,1);
-real pi=pi();
 
 pair up=(0,1);
 pair down=(0,-1);
