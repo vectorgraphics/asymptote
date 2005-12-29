@@ -652,7 +652,8 @@ struct picture {
   // Returns the picture fit to the wanted size.
   frame fit(real xsize=this.xsize, real ysize=this.ysize,
 	    bool keepAspect=this.keepAspect) {
-    return fit(calculateTransform(xsize,ysize,keepAspect));
+    return empty() ? newframe :
+      fit(calculateTransform(xsize,ysize,keepAspect));
   }
 
   // Copies the drawing information, but not the sizing information into a new
