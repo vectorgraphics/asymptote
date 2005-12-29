@@ -324,7 +324,26 @@ set ASYMPTOTE_GS=c:\Program Files\gs\gs8.51\bin\gswin32.exe
 set ASYMPTOTE_PYTHON=c:\Python24\python.exe
 @end verbatim
 
-To set environment variables under @code{Microsoft Windows XP}:
+@cindex configuration file
+@cindex @code{ASYMPTOTE_CONFIG}
+Environment variables may be set as regular @code{Asymptote}
+variables, omitting the prefix @code{ASYMPTOTE_},
+in the file @code{.asy/config.asy} in the user's home directory (the location
+of this configuration file may be changed with the environment variable
+@code{ASYMPTOTE_CONFIG}):
+@verbatim
+import settings;
+PSVIEWER=gsview;
+@end verbatim
+
+Environment variables may also be set or overwritten with a command
+line option:
+@verbatim
+asy -PSVIEWER=gsview -V venn
+@end verbatim
+
+Alternatively, environment variables may be set in the conventional way. For
+example, under @code{Microsoft Windows XP}:
 @enumerate
 @item Click on the @code{Start} button.
 @item Right-click on @code{My Computer}. 
@@ -335,6 +354,14 @@ To set environment variables under @code{Microsoft Windows XP}:
 
 The environment variable @code{ASYMPTOTE_DIR} can be used to adjust the
 search path (@pxref{Search paths}).
+
+@cindex @code{ASYMPTOTE_PAPERTYPE}
+By default, @code{Asymptote} attempts to center the figure on the
+page, assuming that the paper type is @code{letter}. The default paper
+type may be changed to @code{a4} with the environment variable
+@code{ASYMPTOTE_PAPERTYPE}. Currently, only these two paper types are
+defined (the addition of a new paper type, say @code{poster}, will also
+require defining @code{posterSize} in the dvips configuration file).
 
 The following environment variables normally do not require adjustment:
 @verbatim
@@ -2865,8 +2892,8 @@ their usual definitions in that they all return an int value rather than
 a real (since that is normally what one wants).
 The functions @code{Floor}, @code{Ceil}, and @code{Round} are
 respectively similar, except that if the result cannot be converted
-to a valid int, they return @code{intMax()} 
-for positive arguments and @code{-intMax()} for negative arguments,
+to a valid int, they return @code{intMax} 
+for positive arguments and @code{-intMax} for negative arguments,
 rather than generating an integer overflow.
 We also define a function @code{sgn}, which returns the sign of its
 real argument as an integer (-1, 0, or 1).
@@ -2883,7 +2910,7 @@ There is an @code{abs(int)} function, as well as an @code{abs(real)} function
 @cindex @code{histogram}
 Random numbers can be seeded with @code{srand(int)} and generated with
 the @code{int rand()} function, which returns a random integer between 0
-and the integer @code{randMax()}. A Gaussian random number generator
+and the integer @code{randMax}. A Gaussian random number generator
 @code{Gaussrand} and a collection of statistics routines, including
 @code{histogram}, are provided in the base file @code{stats.asy}.
 
@@ -5267,15 +5294,18 @@ Options:
 
 @end verbatim
 
-The effect of most options (but not @code{-unsafe} or @code{-safe})
-can be negated by prepending @code{no} to the option name. Default values
-for most options may also be entered in the file
-@code{.asy/config.asy} in the user's home directory using the long name:
+All boolean options, except for @code{-unsafe} and @code{-safe}, can
+be negated by prepending @code{no} to the option name, Default option
+values may be entered as @code{Asymptote} code in the file
+@code{.asy/config.asy} in the user's home directory, using the full
+option names:
 @verbatim
 import settings;
-batchView=true;
+View=true;
 @end verbatim
 Command-line options override these defaults.
+The location of this configuration file may be changed with the
+environment variable @code{ASYMPTOTE_CONFIG}.
 
 If no arguments are given, @code{Asymptote} runs in interactive mode
 (@pxref{Interactive mode}). In this case, the default output file
@@ -5306,14 +5336,6 @@ If the option @code{-unsafe} is given, @code{Asymptote} runs
 in unsafe mode. This enables the @code{int system(string)} call, allowing one
 to execute arbitrary shell commands. The default mode, @code{-safe},
 disables this call. 
-
-@cindex @code{ASYMPTOTE_PAPERTYPE}
-By default, @code{Asymptote} attempts to center the figure on the
-page, assuming that the paper type is @code{letter}. The default paper
-type may be changed to @code{a4} with the environment variable
-@code{ASYMPTOTE_PAPERTYPE}. Currently only these two paper types are
-supported. Note that adding a new type, say @code{poster}, will also
-require defining @code{posterSize} in the dvips configuration file.
 
 @cindex offset
 A @code{PostScript} offset may be specified as a pair (in bp units) with the
@@ -5637,4 +5659,6 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  gouraudshade includegraphics unescaped nmesh nsub surfacepen
 @c  LocalWords:  lightgray meshpen localhistory axisT roundedpath unitsize aSin
 @c  LocalWords:  fontcommand makepen aCos aTan Knorr roundpath BeginPoint nView
-@c  LocalWords:  MidPoint EndPoint nmask antialiasing
+@c  LocalWords:  MidPoint EndPoint nmask antialiasing notex autoplain batchMask
+@c  LocalWords:  batchView clearGUI ignoreGUI interactiveMask interactiveView
+@c  LocalWords:  listvariables outformat outname parseonly prepending

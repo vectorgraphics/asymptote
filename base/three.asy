@@ -1629,7 +1629,7 @@ pair intersect(path3 p1, path3 p2, real fuzz=0)
     post2[i]=n2[i].post;
   }
   
-  static real Fuzz=10.0*realEpsilon();
+  static real Fuzz=10.0*realEpsilon;
   fuzz=max(fuzz,Fuzz*max(max(length(p1.max()),length(p1.min())),
 			 max(length(p2.max()),length(p2.min()))));
   return intersect(pre1,point1,post1,pre2,point2,post2,fuzz);
@@ -1771,7 +1771,7 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
 	     colatitude(v2),Longitude(v2),direction);
 }
 
-public real epsilon=1000*realEpsilon();
+public real epsilon=1000*realEpsilon;
 
 // Return a representation of the plane through point O with normal cross(u,v).
 path3 plane(triple u, triple v, triple O=O)

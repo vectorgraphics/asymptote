@@ -12,7 +12,7 @@
  * assumption may in fact be incorrect.
  *****/
 
-private real infinity=sqrt(0.25*realMax());
+private real infinity=sqrt(0.25*realMax);
 
 struct problem {
   typedef int var;

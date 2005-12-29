@@ -42,7 +42,7 @@ using trans::refAccess;
 using trans::varEntry;
 
 namespace loop {
-  void doConfig();
+  void doConfig(string filename);
 }
 
 namespace settings {
@@ -553,9 +553,14 @@ c_option *build_longopts() {
   return longopts;
 }
 
+void resetOptions() {
+  verbose=0;
+}
+  
 void getOptions(int argc, char *argv[])
 {
   bool syntax=false;
+  optind=0;
 
   mem::string optstring=build_optstring();
   //cerr << "optstring: " << optstring << endl;
@@ -657,6 +662,7 @@ void initSettings() {
 			    "Enable automatic importing of plain (default)",
 			    true));
   
+  addOption(new envSetting("CONFIG",initdir+"/config.asy"));
   addOption(new envSetting("PDFVIEWER", defaultPDFViewer));
   addOption(new envSetting("PSVIEWER", defaultPSViewer));
   addOption(new envSetting("GS", defaultGhostScript));
@@ -668,6 +674,8 @@ void initSettings() {
   addOption(new envSetting("PYTHON", defaultPython));
   addOption(new envSetting("XASY", "xasy"));
   addOption(new envSetting("PAPERTYPE", "letter"));
+  addOption(new envSetting("DIR", ""));
+  
 }
 
 int safe=1;
@@ -710,13 +718,14 @@ bool trap() {
     return !getSetting<bool>("batchMask");
 }
 
-void setPath() {
-  // Make configuration and history directory
+void initDir() {
   initdir=Getenv("HOME",false)+"/.asy";
   mkdir(initdir.c_str(),0xFFFF);
+}
   
+void setPath() {
   searchPath.push_back(".");
-  string asydir=Getenv("ASYMPTOTE_DIR",false);
+  string asydir=getSetting<mem::string>("DIR");
   if(asydir != "") {
     size_t p,i=0;
     while((p=asydir.find(pathSeparator,i)) < string::npos) {
@@ -751,12 +760,21 @@ void setOptions(int argc, char *argv[])
 {
   argv0=argv[0];
 
+  // Make configuration and history directory
+  initDir();
+  
   // Build settings module.
   initSettings();
-  setPath();
   
-  loop::doConfig();
+  // Read command-line options initially to obtain CONFIG and DIR.
+  getOptions(argc,argv);
+  resetOptions();
+  
+  // Read user configuration file.
+  setPath();
+  loop::doConfig(getSetting<mem::string>("CONFIG"));
 
+  // Read command-line options again to override configuration file defaults.
   getOptions(argc,argv);
   
   // Set variables for the normal arguments.

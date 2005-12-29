@@ -293,8 +293,7 @@ void doIPrompt() {
 }
 
 // Run the $HOME/.asy/config.asy file.
-void doConfig() {
-  string filename=initdir+"/config.asy";
+void doConfig(string filename) {
   if(settings::fs::exists(filename)) {
     bool autoplain=getSetting<bool>("autoplain");
     if(autoplain) getSetting("autoplain")=false; // Turn off for speed.

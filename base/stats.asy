@@ -107,7 +107,7 @@ void histogram(picture pic=currentpicture, real[] bins, real[] count,
 // return a random number uniformly distributed in the unit interval [0,1]
 real unitrand()
 {			  
-  return ((real) rand())/randMax();
+  return rand()/randMax;
 }
 
 // return a pair of central Gaussian random numbers with unit variance

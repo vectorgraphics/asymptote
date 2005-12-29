@@ -471,6 +471,12 @@ void base_venv(venv &ve)
 	  formal(primInt(),"sign",true));
 #endif
 
+  addConstant<int>(ve, INT_MAX, primInt(), "intMax");
+  addConstant<double>(ve, HUGE_VAL, primReal(), "inf");
+  addConstant<double>(ve, DBL_MAX, primReal(), "realMax");
+  addConstant<double>(ve, DBL_MIN, primReal(), "realMin");
+  addConstant<double>(ve, DBL_EPSILON, primReal(), "realEpsilon");
+  addConstant<double>(ve, RAND_MAX, primReal(), "randMax");
   addConstant<double>(ve, PI, primReal(), "pi");
 
   gen_base_venv(ve);

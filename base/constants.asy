@@ -1,7 +1,3 @@
-int intMax=intMax();
-real realMax=realMax();
-real epsilon=realEpsilon();
-
 // Reduced for tension atleast infinity
 real infinity=sqrt(0.25*realMax);
 pair Infinity=(infinity,infinity);

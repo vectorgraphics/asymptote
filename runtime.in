@@ -1869,39 +1869,6 @@ pair intersect(triplearray* pre1, triplearray* point1, triplearray* post1,
   
   return intersect((int) Size1-1,(int) Size2-1,n1,n2,fuzz);
 }
-
-// Constants
-
-
-int intMax()
-{ 
-  return INT_MAX;
-}
-
-double infinity()
-{ 
-  return HUGE_VAL;
-}  
-
-double realMax()
-{ 
-  return DBL_MAX;
-}
-
-double realMin()
-{ 
-  return DBL_MIN;
-}  
-
-double realEpsilon()
-{ 
-  return DBL_EPSILON;
-}  
-
-double randMax()
-{ 
-  return RAND_MAX;
-}
 
 
 // System routines

@@ -3,7 +3,7 @@ void makedraw(frame f, path g, pen p)
 {
   path n=nib(p);
   if(size(g) == 1) fill(f,shift(point(g,0))*n,p);
-  static real epsilon=1000*realEpsilon();
+  static real epsilon=1000*realEpsilon;
   real stop=length(g)-epsilon;
   int N=length(n);
   pair n0=point(n,0);

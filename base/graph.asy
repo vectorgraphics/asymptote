@@ -8,7 +8,7 @@ public real axislabelfactor=1.5;
 public real axiscoverage=0.8;
 public int ngraph=100;
 
-public real epsilon=10*realEpsilon();
+public real epsilon=10*realEpsilon;
 
 bool Crop=true;
 bool NoCrop=false;
