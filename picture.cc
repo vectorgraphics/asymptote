@@ -19,6 +19,8 @@ using std::ofstream;
 
 using namespace settings;
 
+double pageWidth, pageHeight;
+
 namespace camp {
 
 string texready=string("(Please type a command or say `\\end')\n*");
@@ -186,7 +188,8 @@ bool picture::texprocess(const string& texname, const string& outname,
     }
 
     ostringstream dcmd;
-    dcmd << getSetting<mem::string>("DVIPS") << " -R -t " << paperType 
+    dcmd << getSetting<mem::string>("DVIPS") << " -R -t " 
+	 << getSetting<mem::string>("PAPERTYPE") 
 	 << "size -O " << hoffset << "bp," << voffset << "bp";
     if(verbose <= 1) dcmd << " -q";
     dcmd << " -o " << psname << " " << dviname;
@@ -375,6 +378,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 	return false;
       }
   }
+  
+  GetPageDimensions(pageWidth,pageHeight);
   
   // Avoid negative bounding box coordinates
   int origin=getSetting<int>("align");

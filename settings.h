@@ -39,11 +39,9 @@ extern const string guisuffix;
   
 extern bool TeXinitialized; // Is LaTeX process initialized?
 extern string initdir;
-
-extern string paperType;
-extern double pageWidth;
-extern double pageHeight;
   
+void GetPageDimensions(double& pageWidth, double& pageHeight);
+
 extern int scrollLines;
   
 types::record *getSettingsModule();

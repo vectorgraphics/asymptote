@@ -24,14 +24,11 @@
 #include "coder.h"
 #include "exp.h"
 #include "refaccess.h"
+#include "settings.h"
 
 using namespace types;
 using namespace camp;
 
-namespace settings {
-extern types::record *getSettingsModule();
-};
-  
 namespace trans {
 using camp::transform;
 using camp::pair;

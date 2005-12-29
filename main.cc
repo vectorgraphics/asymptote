@@ -278,6 +278,9 @@ void doIFile(const string& filename) {
 }
 
 void doIPrompt() {
+  cout << "Welcome to " << PROGRAM << " version " << VERSION
+       << " (to view the manual, type help)" << endl;
+  
   init();
   getSetting<mem::string>("outname")="out";
   

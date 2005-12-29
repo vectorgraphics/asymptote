@@ -329,8 +329,8 @@ struct stringSetting : public argumentSetting {
 };
 
 mem::string GetEnv(mem::string s, mem::string Default) {
-  mem::string t=mem::string(Getenv(("ASYMPTOTE_"+s).c_str()));
-  return t != "" ? t : Default;
+  string t=Getenv(("ASYMPTOTE_"+s).c_str());
+  return t != "" ? mem::string(t) : Default;
 }
   
 struct envSetting : public stringSetting {
@@ -667,15 +667,11 @@ void initSettings() {
   addOption(new envSetting("ANIMATE", "animate"));
   addOption(new envSetting("PYTHON", defaultPython));
   addOption(new envSetting("XASY", "xasy"));
+  addOption(new envSetting("PAPERTYPE", "letter"));
 }
 
 int safe=1;
-  
 int ShipoutNumber=0;
-string paperType;
-double pageWidth;
-double pageHeight;
-
 int scrollLines=0;
   
 const string suffix="asy";
@@ -686,7 +682,6 @@ string initdir;
 
 camp::pen defaultpen=camp::pen::startupdefaultpen();
   
-
 // Local versions of the argument list.
 int argCount = 0;
 char **argList = 0;
@@ -696,14 +691,8 @@ int numArgs() { return argCount; }
 char *getArg(int n) { return argList[n]; }
 
 void setInteractive() {
-  if(numArgs() == 0 && !getSetting<bool>("listvariables")) {
+  if(numArgs() == 0 && !getSetting<bool>("listvariables"))
     interact::interactive=true;
-
-    // NOTE: Move this greeting to the start of the interactive prompt.  It has
-    // nothing to do with settings.
-    cout << "Welcome to " << PROGRAM << " version " << VERSION
-	 << " (to view the manual, type help)" << endl;
-  }
 }
 
 bool view() {
@@ -722,7 +711,7 @@ bool trap() {
 }
 
 void setPath() {
-  // Make settings/localhistory directory
+  // Make configuration and history directory
   initdir=Getenv("HOME",false)+"/.asy";
   mkdir(initdir.c_str(),0xFFFF);
   
@@ -741,9 +730,8 @@ void setPath() {
 #endif
 }
 
-void setPaperType() {
-  char *papertype=getenv("ASYMPTOTE_PAPERTYPE");
-  paperType=papertype ? papertype : "letter";
+void GetPageDimensions(double& pageWidth, double& pageHeight) {
+  string paperType=getSetting<mem::string>("PAPERTYPE");
 
   if(paperType == "letter") {
     pageWidth=72.0*8.5;
@@ -754,7 +742,7 @@ void setPaperType() {
     if(paperType != "a4") {
       cerr << "Unknown paper size \'" << paperType << "\'; assuming a4." 
 	   << endl;
-      paperType="a4";
+      getSetting("PAPERTYPE")=mem::string("a4");
     }
   }
 }
@@ -774,8 +762,6 @@ void setOptions(int argc, char *argv[])
   // Set variables for the normal arguments.
   argCount = argc - optind;
   argList = argv + optind;
-
-  setPaperType();
 
   setInteractive();
 }
