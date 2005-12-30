@@ -5234,8 +5234,8 @@ latex latexusage
 @end verbatim
 
 If the @code{[inline]} package option is given to
-@code{asymptote.sty}, and the @code{-t} option is given to @code{asy},
-inline @code{LaTeX} code is generated instead of @code{EPS} files.
+@code{asymptote.sty}, inline @code{LaTeX} code is generated instead of
+@code{EPS} files.
 This makes LaTeX symbols visible to the
 @code{\begin@{asy@}...\end@{asy@}} environment.  In this mode,
 Asymptote correctly aligns LaTeX symbols defined outside of
@@ -5245,8 +5245,8 @@ estimate of the unknown label size. Note that labels might not show up
 in @acronym{DVI} viewers that cannot handle raw @code{PostScript} code; use
 @code{dvips}/@code{dvipdf} to produce @code{PostScript}/@acronym{PDF}
 output. We recommend using the modified version of @code{dvipdf} in
-the @code{Asymptote} patches directory, which accepts the @code{dvips
--z} hyperdvi option. 
+the @code{Asymptote} patches directory, which accepts the @code{dvips -z}
+hyperdvi option. 
 
 Here now is @code{latexusage.tex}:
 @verbatiminclude latexusage.tex
