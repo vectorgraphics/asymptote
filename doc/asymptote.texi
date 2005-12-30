@@ -65,6 +65,7 @@ file LICENSE in the top-level source directory).
 Installation
 
 * UNIX binary distributions::   Prebuilt @code{UNIX} binaries
+* MacOS X binary distributions::  
 * Microsoft Windows::           Prebuilt @code{Microsoft Windows} binary
 * Configuring::                 Configuring @code{Asymptote} for your system
 * Search paths::                Where @code{Asymptote} looks for your files
@@ -219,6 +220,7 @@ as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
 
 @menu
 * UNIX binary distributions::   Prebuilt @code{UNIX} binaries
+* MacOS X binary distributions::  
 * Microsoft Windows::           Prebuilt @code{Microsoft Windows} binary
 * Configuring::                 Configuring @code{Asymptote} for your system
 * Search paths::                Where @code{Asymptote} looks for your files
@@ -268,10 +270,19 @@ Example code will be installed by default in
 
 @cindex Debian
 @noindent
-Alternatively, Debian users can install Hubert Chan's @code{Asymptote} package:
+Alternatively, Debian users can install Hubert Chan's @code{Asymptote}
+prebuilt binary:
 @quotation
 @url{http://www.uhoreg.ca/programming/debian/}
 @end quotation
+
+@node MacOS X binary distributions
+@section MacOS X binary distributions
+@cindex MacOS X binary distributions
+MacOS users can either compile directly from the @code{UNIX} source
+or install the contributed @code{Asymptote} binary available at
+
+@url{http://www.hmug.org/pub/MacOS_X/BSD/Applications/Publishing/asymptote/}
 
 @node Microsoft Windows
 @section Microsoft Windows

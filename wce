@@ -1,6 +1,6 @@
 #!/bin/sh
 echo -n "Testing errors..."
-./asy -noplain errortest 2> errors.temp
+./asy -noautoplain -debug errortest 2> errors.temp
 result=`diff errors.temp errors`
 if [ "$result" == "" ]; then
 echo PASSED.
