@@ -5308,21 +5308,6 @@ Options:
 All boolean options, except for @code{-unsafe} and @code{-safe}, can
 be negated by prepending @code{no} to the option name. 
 
-@anchor{configuration file}
-@cindex @code{ASYMPTOTE_CONFIG}
-Default option values may be entered as @code{Asymptote} code in a
-configuration file.  The default configuration file is 
-@code{.asy/config.asy} in the user's home directory (or the file
-specified by the environment variable
-@code{ASYMPTOTE_CONFIG} or @code{-config} option). If that file doesn't exist,
-@code{Asymptote} looks for a file called @code{config.asy} in its
-usual search path.  Configuration variables have the long option names:
-@verbatim
-import settings;
-View=true;
-@end verbatim
-Command-line options override these defaults.
-
 If no arguments are given, @code{Asymptote} runs in interactive mode
 (@pxref{Interactive mode}). In this case, the default output file
 is @code{out.eps}.
@@ -5332,6 +5317,22 @@ standard input.
 
 If multiple files are specified, they are treated as separate
 @code{Asymptote} runs.
+
+@anchor{configuration file}
+@cindex @code{ASYMPTOTE_CONFIG}
+Default option values may be entered as @code{Asymptote} code in a
+configuration file.  The default configuration file is 
+@code{.asy/config.asy} in the user's home directory (or the file
+specified by the environment variable
+@code{ASYMPTOTE_CONFIG} or @code{-config} option). If that file doesn't exist,
+@code{Asymptote} looks for a file @code{config.asy} in its usual search path.
+Configuration variables are known by the long option names:
+@verbatim
+import settings;
+View=true;
+@end verbatim
+Command-line options override these defaults. Configuration
+variables may also be changed at runtime. 
 
 @cindex @code{convert}
 @cindex @code{format}
