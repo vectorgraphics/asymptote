@@ -66,7 +66,7 @@ Installation
 
 * UNIX binary distributions::   Prebuilt @code{UNIX} binaries
 * Microsoft Windows::           Prebuilt @code{Microsoft Windows} binary
-* Environment variables::       Configuring @code{Asymptote} for your system
+* Configuring::                 Configuring @code{Asymptote} for your system
 * Search paths::                Where @code{Asymptote} looks for your files
 * Compiling from UNIX source::  Building @code{Asymptote} from scratch
 * Editing modes::               Convenient @code{emacs} and @code{vim} modes
@@ -220,7 +220,7 @@ as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
 @menu
 * UNIX binary distributions::   Prebuilt @code{UNIX} binaries
 * Microsoft Windows::           Prebuilt @code{Microsoft Windows} binary
-* Environment variables::       Configuring @code{Asymptote} for your system
+* Configuring::                 Configuring @code{Asymptote} for your system
 * Search paths::                Where @code{Asymptote} looks for your files
 * Compiling from UNIX source::  Building @code{Asymptote} from scratch
 * Editing modes::               Convenient @code{emacs} and @code{vim} modes
@@ -229,7 +229,7 @@ as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
 @end menu
 
 After following the instructions for your specific distribution,
-please see also @ref{Environment variables}.
+please see also @ref{Configuring}.
 
 @noindent
 We recommend subscribing to new release announcements at
@@ -287,91 +287,101 @@ if you wish to try out the graphical user interface (@pxref{GUI}).
 Example code will be installed by default in
 @code{c:\Program Files\Asymptote\examples}.
 
-@node Environment variables
-@section Environment variables
-@cindex environment variables
+@node Configuring
+@section Configuring
+@cindex configuring
+@cindex settings
 
 @cindex @code{-V}
-@cindex @code{ASYMPTOTE_PSVIEWER}
-@cindex @code{ASYMPTOTE_PDFVIEWER}
-@cindex @code{ASYMPTOTE_GS}
+@cindex @code{psviewer}
+@cindex @code{pdfviewer}
+@cindex @code{gs}
 In interactive mode, or when given the @code{-V} option (the default
 when running @code{Asymptote} on a single file under @code{MSDOS}),
 @code{Asymptote} will automatically invoke the @code{PostScript}
 viewer @code{gv} (under @code{UNIX}) or @code{gsview} (under
 @code{MSDOS}; available from
 @url{http://www.cs.wisc.edu/~ghost/gsview/}) to display 
-graphical output. These defaults may be overridden with the optional
-environment variable @code{ASYMPTOTE_PSVIEWER}. For @acronym{PDF}
-format output, the @code{ASYMPTOTE_GS} environment variable specifies the  
-location of the @code{PostScript}-to-@acronym{PDF} processor @code{gs} and
-@code{ASYMPTOTE_PDFVIEWER} specifies the location of the @acronym{PDF} viewer.
-The graphical user interface may also require setting the variable
-@code{ASYMPTOTE_PYTHON} if @code{python} is installed in a nonstandard
-location. Here are the default values of these environment variables:
-@verbatim
-UNIX:
-export ASYMPTOTE_PSVIEWER=gv
-export ASYMPTOTE_PDFVIEWER=acroread
-export ASYMPTOTE_GS=gs
-export ASYMPTOTE_PYTHON=
-
-MSDOS:
-set ASYMPTOTE_PSVIEWER=c:\Program Files\Ghostgum\gsview\gsview32.exe
-set ASYMPTOTE_PDFVIEWER=
-              c:\Program Files\Adobe\Acrobat 7.0\Reader\AcroRd32.exe
-set ASYMPTOTE_GS=c:\Program Files\gs\gs8.51\bin\gswin32.exe
-set ASYMPTOTE_PYTHON=c:\Python24\python.exe
-@end verbatim
+graphical output. These defaults may be overridden with the
+configuration variable @code{psviewer}. 
 
 @cindex configuration file
-@cindex @code{ASYMPTOTE_CONFIG}
-Environment variables may be set as regular @code{Asymptote}
-variables, omitting the prefix @code{ASYMPTOTE_},
-in the file @code{.asy/config.asy} in the user's home directory (the location
-of this configuration file may be changed with the environment variable
-@code{ASYMPTOTE_CONFIG}):
+Configuration variables are most easily set as @code{Asymptote}
+variables in the configuration file (by default @code{.asy/config.asy} in the 
+user's home directory; @pxref{configuration file}):
 @verbatim
 import settings;
-PSVIEWER=gsview;
+psviewer="gsview";
 @end verbatim
 
-Environment variables may also be set or overwritten with a command
-line option:
+Here are the default values of several important configuration variables:
 @verbatim
-asy -PSVIEWER=gsview -V venn
+UNIX:
+psviewer="gv":
+pdfviewer="acroread";
+gs="gs";
+python="";
+
+MSDOS:
+psviewer="c:\Program Files\Ghostgum\gsview\gsview32.exe";
+pdfviewer="c:\Program Files\Adobe\Acrobat 7.0\Reader\AcroRd32.exe";
+gs="c:\Program Files\gs\gs8.51\bin\gswin32.exe";
+python="c:\Python24\python.exe";
 @end verbatim
 
-Alternatively, environment variables may be set in the conventional way. For
-example, under @code{Microsoft Windows XP}:
-@enumerate
-@item Click on the @code{Start} button.
-@item Right-click on @code{My Computer}. 
-@item Choose @code{Properties} from the popup menu.
-@item Click the @code{Advanced} tab. 
-@item Click the @code{Environment Variables} button.
-@end enumerate
+For @acronym{PDF} format output, the @code{gs} setting specifies the
+location of the @code{PostScript}-to-@acronym{PDF} processor @code{gs}
+and @code{pdfviewer} specifies the location of the @acronym{PDF}
+viewer.  The graphical user interface may also require setting the
+variable @code{python} if @code{Python} is installed in a nonstandard
+location.
 
-The environment variable @code{ASYMPTOTE_DIR} can be used to adjust the
+The configuration variable @code{dir} can be used to adjust the
 search path (@pxref{Search paths}).
 
-@cindex @code{ASYMPTOTE_PAPERTYPE}
+@cindex @code{papertype}
 By default, @code{Asymptote} attempts to center the figure on the
 page, assuming that the paper type is @code{letter}. The default paper
-type may be changed to @code{a4} with the environment variable
-@code{ASYMPTOTE_PAPERTYPE}. Currently, only these two paper types are
+type may be changed to @code{a4} with the configuration variable
+@code{papertype}. Currently, only these two paper types are
 defined (the addition of a new paper type, say @code{poster}, will also
 require defining @code{posterSize} in the dvips configuration file).
 
-The following environment variables normally do not require adjustment:
+The following configuration variables normally do not require adjustment:
 @verbatim
-ASYMPTOTE_LATEX
-ASYMPTOTE_DVIPS
-ASYMPTOTE_CONVERT
-ASYMPTOTE_DISPLAY
-ASYMPTOTE_ANIMATE
-ASYMPTOTE_XASY
+latex
+dvips
+convert
+display
+animate
+xasy
 @end verbatim
+
+@cindex command-line options
+Configuration variables may also be set or overwritten with a command
+line option:
+@verbatim
+asy -psviewer=gsview -V venn
+@end verbatim
+
+@cindex environment variables
+Alternatively, system environment versions of these configuration
+variables may be set in the conventional way. The corresponding
+environment variable name is obtained by converting the configuration
+variable name to upper case  and prepending @code{ASYMPTOTE_}:
+For example, to set the environment variable
+@verbatim
+ASYMPTOTE_PSVIEWER="c:\Program Files\Ghostgum\gsview\gsview32.exe";
+@end verbatim
+@noindent
+under @code{Microsoft Windows XP}:
+@enumerate
+@item Click on the @code{Start} button;
+@item Right-click on @code{My Computer}; 
+@item Choose @code{Properties} from the popup menu;
+@item Click the @code{Advanced} tab; 
+@item Click the @code{Environment Variables} button.
+@end enumerate
 
 To properly support interactive mode, the @code{PostScript} viewer
 should be capable of automatically redrawing whenever the output file is
@@ -394,12 +404,12 @@ next release of @code{gv}).
 
 After downloading @code{gv-3.6.1} from @code{http://ftp.gnu.org/gnu/gv/}
 and denoting the location of the @code{Asymptote} source directory by
-@code{ASYMPTOTE_SOURCE}, here are the steps to install a properly
+@code{SOURCE}, here are the steps to install a properly
 working @code{gv} (as the @code{UNIX} root user): 
 @verbatim
 tar -zxf gv-3.6.1.tar.gz
 cd gv-3.6.1
-cat ASYMPTOTE_SOURCE/patches/gv-3.6.1-*.patch | patch -p1
+cat SOURCE/patches/gv-3.6.1-*.patch | patch -p1
 ./configure --enable-signal-handle
 make install
 @end verbatim
@@ -414,9 +424,9 @@ files, @code{asy} will search the following paths, in the order listed:
 @item
 The current directory;
 @item
-@cindex @code{ASYMPTOTE_DIR}
-A list of one or more directories specified by the environment
-variable @code{ASYMPTOTE_DIR} (separated by @code{:} under UNIX and
+@cindex @code{dir}
+A list of one or more directories specified by the configuration
+variable @code{dir} (separated by @code{:} under UNIX and
 @code{;} under @code{MSDOS});
 @item
 The system directory (default: @code{@value{Datadir}/asymptote} under
@@ -475,7 +485,7 @@ audio power spectrum).
 
 If you don't want to install @code{Asymptote} system wide, just make
 sure the compiled binary @code{asy} and @acronym{GUI} script @code{xasy} are in
-your path and set the environment variable @code{ASYMPTOTE_DIR} to point
+your path and set the configuration variable @code{dir} to point
 to the directory @code{base} (in the top level directory of the
 @code{Asymptote} source code). 
 
@@ -4678,11 +4688,11 @@ One can also place ticks along a general three-dimensional axis:
 Surface plots of functions and matrices are also implemented:
 @verbatim
 picture surface(real f(pair z), pair a, pair b, int n=nmesh, int nsub=nsub,
-		pen surfacepen=lightgray, pen meshpen=currentpen,
-		projection P=currentprojection);
+                pen surfacepen=lightgray, pen meshpen=currentpen,
+                projection P=currentprojection);
 picture surface(real[][] f, pair a, pair b,
-		pen surfacepen=lightgray, pen meshpen=currentpen,
-		projection P=currentprojection);
+                pen surfacepen=lightgray, pen meshpen=currentpen,
+                projection P=currentprojection);
 @end verbatim
 @noindent
 Here is an example of a Gaussian surface:
@@ -5256,6 +5266,7 @@ Here now is @code{latexusage.tex}:
 @node Options
 @chapter Options
 @cindex options
+@cindex command-line options
 Type @code{asy -h} to see the full list of command line options
 supported by @code{Asymptote}:
 @verbatim
@@ -5295,17 +5306,22 @@ Options:
 @end verbatim
 
 All boolean options, except for @code{-unsafe} and @code{-safe}, can
-be negated by prepending @code{no} to the option name, Default option
-values may be entered as @code{Asymptote} code in the file
-@code{.asy/config.asy} in the user's home directory, using the full
-option names:
+be negated by prepending @code{no} to the option name. 
+
+@anchor{configuration file}
+@cindex @code{ASYMPTOTE_CONFIG}
+Default option values may be entered as @code{Asymptote} code in a
+configuration file.  The default configuration file is 
+@code{.asy/config.asy} in the user's home directory (or the file
+specified by the environment variable
+@code{ASYMPTOTE_CONFIG} or @code{-config} option). If that file doesn't exist,
+@code{Asymptote} looks for a file called @code{config.asy} in its
+usual search path.  Configuration variables have the long option names:
 @verbatim
 import settings;
 View=true;
 @end verbatim
 Command-line options override these defaults.
-The location of this configuration file may be changed with the
-environment variable @code{ASYMPTOTE_CONFIG}.
 
 If no arguments are given, @code{Asymptote} runs in interactive mode
 (@pxref{Interactive mode}). In this case, the default output file
@@ -5509,13 +5525,13 @@ If the fonts aren't typeset correctly, try giving @code{pstoedit} the
 Full image support can be added to the @code{Asymptote} backend
 with the patch @code{pstoedit-3.42asy.patch}. 
 Denoting the location of the @code{Asymptote} source directory by
-@code{ASYMPTOTE_SOURCE}, one can install this patch with the commands
+@code{SOURCE}, one can install this patch with the commands
 (as the @code{UNIX} root user):
 
 @verbatim
 tar -zxf pstoedit-3.42.tar.gz
 cd pstoedit-3.42
-patch -p1 < ASYMPTOTE_SOURCE/patches/pstoedit-3.42asy.patch
+patch -p1 < SOURCE/patches/pstoedit-3.42asy.patch
 autoconf
 ./configure --prefix=/usr
 make install
@@ -5619,14 +5635,14 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  quartercircle darkgreen lightblue urx ury texpreamble sgn texi
 @c  LocalWords:  lineargraph datagraph vertices parametricgraph uncomment ggv
 @c  LocalWords:  loggraph generalaxis texhash arrowsize arrowangle arrowlength
-@c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config PSVIEWER PDFVIEWER
+@c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config 
 @c  LocalWords:  ghostview gsview SIGHUP PDF acroread xpdf nullframe cutbefore
 @c  LocalWords:  libsigsegv intersectionpoint dotfactor vv firstcut pq logticks
 @c  LocalWords:  Unisys dvips vvv vvvv vvvvv traceback lastcut cutafter infodir
 @c  LocalWords:  zxvf xargs cond polargraph xmin xmax plabel YZero labelling ln
 @c  LocalWords:  ymin ymax XZero xequals tickmin tickmax unlabelled se pq pena
 @c  LocalWords:  yequals Nobre Barbarosie Schwaiger nearearth conicurv Wiebusch
-@c  LocalWords:  unfill PAPERTYPE posterSize ngraph interpolatetype ctrl dt pic
+@c  LocalWords:  unfill posterSize ngraph interpolatetype ctrl dt pic
 @c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei nomarker
 @c  LocalWords:  westnile minipage infectiousM ra penb paletteticks drawline nV
 @c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis
@@ -5661,4 +5677,5 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  fontcommand makepen aCos aTan Knorr roundpath BeginPoint nView
 @c  LocalWords:  MidPoint EndPoint nmask antialiasing notex autoplain batchMask
 @c  LocalWords:  batchView clearGUI ignoreGUI interactiveMask interactiveView
-@c  LocalWords:  listvariables outformat outname parseonly prepending
+@c  LocalWords:  listvariables outformat outname parseonly prepending psviewer
+@c  LocalWords:  pdfviewer papertype

@@ -1906,14 +1906,14 @@ int merge(stringarray *files, string *args, string *format, bool keep)
   if(!checkFormatString(*format)) return;
   
   ostringstream cmd,remove;
-  cmd << getSetting<mem::string>("CONVERT") << " "+*args;
+  cmd << getSetting<mem::string>("convert") << " "+*args;
   
   for(size_t i=0; i < size; i++) 
     cmd << " " << read<string>(files,i);
   
   string name=buildname(getSetting<mem::string>("outname"),format->c_str());
   cmd << " " << name;
-  ret=System(cmd,false,true,"ASYMPTOTE_CONVERT","convert");
+  ret=System(cmd,false,true,"convert");
   
   if(ret == 0)
     if(verbose > 0) cout << "Wrote " << name << endl;
@@ -1924,8 +1924,8 @@ int merge(stringarray *files, string *args, string *format, bool keep)
     
   if(ret == 0 && settings::view()) {
     ostringstream cmd;
-    cmd << getSetting<mem::string>("ANIMATE") << " " << name;
-    System(cmd,false,false,"ASYMPTOTE_ANIMATE","your animated GIF viewer");
+    cmd << getSetting<mem::string>("animate") << " " << name;
+    System(cmd,false,false,"animate","your animated GIF viewer");
   }
   
   return ret;

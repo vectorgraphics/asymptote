@@ -143,9 +143,18 @@ char **args(const char *command)
 void execError(const char *command, const char *hint, const char *application)
 {
     cerr << "Cannot execute " << command << endl;
+    if(application == "") application=hint;
+    string s=string(hint);
+    transform(s.begin(), s.end(), s.begin(), toupper);        
     if(hint) 
-      cerr << "Please set the environment variable " << hint << endl
-	   << "to the location of " << application << endl;
+      cerr << "Please put in " << getSetting<mem::string>("config")
+	   << ": " << endl << endl
+	   << "import settings;" << endl
+           << "psviewer=\"replace with the correct path to " 
+	   << application << "\";" << endl << endl
+	   << "Alternatively, set the environment variable ASYMPTOTE_" << s 
+	   << endl << "to the correct path to " << application << "." 
+	   << endl << endl;
     exit(-1);
 }
 						    

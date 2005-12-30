@@ -54,7 +54,7 @@ const string defaultPSViewer=
   "'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe'";
 const string defaultPDFViewer=
   "'c:\\Program Files\\Adobe\\Acrobat 7.0\\Reader\\AcroRd32.exe'";
-const string defaultGhostScript=
+const string defaultGhostscript=
   "'c:\\Program Files\\gs\\gs8.51\\bin\\gswin32.exe'";
 const string defaultPython="'c:\\Python24\\python.exe'";
 const string defaultDisplay="imdisplay";
@@ -66,7 +66,7 @@ const bool msdos=false;
 const char pathSeparator=':';
 const string defaultPSViewer="gv";
 const string defaultPDFViewer="acroread";
-const string defaultGhostScript="gs";
+const string defaultGhostscript="gs";
 const string defaultDisplay="display";
 const string defaultPython="";
 const string docdir=ASYMPTOTE_DOCDIR;
@@ -335,6 +335,7 @@ struct stringSetting : public argumentSetting {
 };
 
 mem::string GetEnv(mem::string s, mem::string Default) {
+  transform(s.begin(), s.end(), s.begin(), toupper);        
   string t=Getenv(("ASYMPTOTE_"+s).c_str());
   return t != "" ? mem::string(t) : Default;
 }
@@ -662,19 +663,19 @@ void initSettings() {
 			    "Enable automatic importing of plain (default)",
 			    true));
   
-  addOption(new envSetting("CONFIG",initdir+"/config.asy"));
-  addOption(new envSetting("PDFVIEWER", defaultPDFViewer));
-  addOption(new envSetting("PSVIEWER", defaultPSViewer));
-  addOption(new envSetting("GS", defaultGhostScript));
-  addOption(new envSetting("LATEX", "latex"));
-  addOption(new envSetting("DVIPS", "dvips"));
-  addOption(new envSetting("CONVERT", "convert"));
-  addOption(new envSetting("DISPLAY", defaultDisplay));
-  addOption(new envSetting("ANIMATE", "animate"));
-  addOption(new envSetting("PYTHON", defaultPython));
-  addOption(new envSetting("XASY", "xasy"));
-  addOption(new envSetting("PAPERTYPE", "letter"));
-  addOption(new envSetting("DIR", ""));
+  addOption(new envSetting("config",initdir+"/config.asy"));
+  addOption(new envSetting("pdfviewer", defaultPDFViewer));
+  addOption(new envSetting("psviewer", defaultPSViewer));
+  addOption(new envSetting("gs", defaultGhostscript));
+  addOption(new envSetting("latex", "latex"));
+  addOption(new envSetting("dvips", "dvips"));
+  addOption(new envSetting("convert", "convert"));
+  addOption(new envSetting("display", defaultDisplay));
+  addOption(new envSetting("animate", "animate"));
+  addOption(new envSetting("python", defaultPython));
+  addOption(new envSetting("xasy", "xasy"));
+  addOption(new envSetting("papertype", "letter"));
+  addOption(new envSetting("dir", ""));
   
 }
 
@@ -725,7 +726,7 @@ void initDir() {
   
 void setPath() {
   searchPath.push_back(".");
-  string asydir=getSetting<mem::string>("DIR");
+  string asydir=getSetting<mem::string>("dir");
   if(asydir != "") {
     size_t p,i=0;
     while((p=asydir.find(pathSeparator,i)) < string::npos) {
@@ -740,7 +741,7 @@ void setPath() {
 }
 
 void GetPageDimensions(double& pageWidth, double& pageHeight) {
-  string paperType=getSetting<mem::string>("PAPERTYPE");
+  string paperType=getSetting<mem::string>("papertype");
 
   if(paperType == "letter") {
     pageWidth=72.0*8.5;
@@ -751,7 +752,7 @@ void GetPageDimensions(double& pageWidth, double& pageHeight) {
     if(paperType != "a4") {
       cerr << "Unknown paper size \'" << paperType << "\'; assuming a4." 
 	   << endl;
-      Setting("PAPERTYPE")=mem::string("a4");
+      Setting("papertype")=mem::string("a4");
     }
   }
 }
@@ -772,7 +773,7 @@ void setOptions(int argc, char *argv[])
   
   // Read user configuration file.
   setPath();
-  loop::doConfig(getSetting<mem::string>("CONFIG"));
+  loop::doConfig(getSetting<mem::string>("config"));
 
   // Read command-line options again to override configuration file defaults.
   getOptions(argc,argv);

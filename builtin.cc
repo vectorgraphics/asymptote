@@ -189,9 +189,9 @@ void addCast(venv &ve, ty *target, ty *source, bltin f) {
 
 template<class T>
 void addConstant(venv &ve, T value, ty *t, const char *name) {
-  T* ref=new T;
+  item* ref=new item;
   *ref=value;
-  access *a = new refAccess<T>(ref);
+  access *a = new itemRefAccess(ref);
   varEntry *ent = new varEntry(t, a, READONLY, settings::getSettingsModule());
   ve.enter(symbol::trans(name), ent);
 }

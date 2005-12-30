@@ -44,7 +44,7 @@ public:
 template <class T>
 void pointerRead(vm::stack *s) {
   T *ptr=vm::pop<T *>(s);
-  s->push<T>(*ptr);
+  s->push(*ptr);
 }
 
 template <class T>
@@ -52,7 +52,7 @@ void pointerWrite(vm::stack *s) {
   T *ptr=vm::pop<T *>(s);
   T value=vm::pop<T>(s);
   *ptr=value;
-  s->push<T>(value);
+  s->push(value);
 }
 
 template <class T>

@@ -131,7 +131,7 @@ void picture::texinit()
     return;
   }
   
-  tex.open(getSetting<mem::string>("LATEX").c_str(),"ASYMPTOTE_LATEX","latex");
+  tex.open(getSetting<mem::string>("latex").c_str(),"latex","latex");
   texdocumentclass(tex,true);
   
   texdefines(tex,TeXpipepreamble,true);
@@ -152,12 +152,12 @@ bool picture::texprocess(const string& texname, const string& outname,
   if(outfile) {
     outfile.close();
     ostringstream cmd;
-    cmd << getSetting<mem::string>("LATEX") 
+    cmd << getSetting<mem::string>("latex") 
 	<< " \\scrollmode\\input " << texname;
     bool quiet=verbose <= 1;
-    status=System(cmd,quiet,true,"ASYMPTOTE_LATEX","latex");
+    status=System(cmd,quiet,true,"latex");
     if(status) {
-      if(quiet) status=System(cmd,true,"ASYMPTOTE_LATEX","latex");
+      if(quiet) status=System(cmd,true,"latex");
       return false;
     }
     
@@ -188,12 +188,12 @@ bool picture::texprocess(const string& texname, const string& outname,
     }
 
     ostringstream dcmd;
-    dcmd << getSetting<mem::string>("DVIPS") << " -R -t " 
-	 << getSetting<mem::string>("PAPERTYPE") 
+    dcmd << getSetting<mem::string>("dvips") << " -R -t " 
+	 << getSetting<mem::string>("papertype") 
 	 << "size -O " << hoffset << "bp," << voffset << "bp";
     if(verbose <= 1) dcmd << " -q";
     dcmd << " -o " << psname << " " << dviname;
-    status=System(dcmd,false,true,"ASYMPTOTE_DVIPS","dvips");
+    status=System(dcmd,false,true,"dvips");
     
     bbox bcopy=bpos;
     double hfuzz=0.1;
@@ -247,7 +247,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
   
   if(!epsformat) {
     if(pdfformat) {
-      cmd << getSetting<mem::string>("GS")
+      cmd << getSetting<mem::string>("gs")
 	  << " -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
 	  << " -dAutoRotatePages=/None "
 	  << " -dDEVICEWIDTHPOINTS=" 
@@ -255,18 +255,18 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	  << " -dDEVICEHEIGHTPOINTS=" 
 	  << bpos.top-bpos.bottom+1.0
 	  << " -sOutputFile=" << outname << " " << epsname;
-      System(cmd,false,true,"ASYMPTOTE_GS","ghostscript");
+      System(cmd,false,true,"gs","Ghostscript");
     } else {
       double expand=2.0;
       double res=(tgifformat ? getSetting<double>("deconstruct") : expand)*72.0;
-      cmd << getSetting<mem::string>("CONVERT") 
+      cmd << getSetting<mem::string>("convert") 
 	  << " -density " << res << "x" << res;
       if(!tgifformat) cmd << " +antialias -geometry " << 100.0/expand << "%x";
       cmd << " eps:" << epsname;
       if(tgifformat) cmd << " -transparent white gif";
       else cmd << " " << outputformat;
       cmd << ":" << outname;
-      System(cmd,false,true,"ASYMPTOTE_CONVERT","convert");
+      System(cmd,false,true,"convert");
     }
     if(!getSetting<bool>("keep")) unlink(epsname.c_str());
   }
@@ -276,8 +276,8 @@ bool picture::postprocess(const string& epsname, const string& outname,
     if(epsformat || pdfformat) {
       static int pid=0;
       static string lastoutname;
-      string Viewer=pdfformat ? getSetting<mem::string>("PDFVIEWER") :
-	getSetting<mem::string>("PSVIEWER");
+      string Viewer=pdfformat ? getSetting<mem::string>("pdfviewer") :
+	getSetting<mem::string>("psviewer");
       bool restart=false;
       if(interact::interactive && pid)
 	restart=(waitpid(pid, &status, WNOHANG) == pid);
@@ -290,16 +290,16 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	  cmd << " -nowatch";
 	cmd << " " << outname;
 	status=System(cmd,false,wait,
-		      pdfformat ? "ASYMPTOTE_PDFVIEWER" : "ASYMPTOTE_PSVIEWER",
+		      pdfformat ? "pdfviewer" : "psviewer",
 		      pdfformat ? "your PDF viewer" : "your PostScript viewer",
 		      &pid);
 	if(status != 0) return false;
       } else if(Viewer == "gv") kill(pid,SIGHUP); // Tell gv to reread file.
     } else {
       ostringstream cmd;
-      cmd << getSetting<mem::string>("DISPLAY") << " " << outname;
+      cmd << getSetting<mem::string>("display") << " " << outname;
       string application="your "+outputformat+" viewer";
-      status=System(cmd,false,wait,"ASYMPTOTE_DISPLAY",application.c_str());
+      status=System(cmd,false,wait,"display",application.c_str());
       if(status) return false;
     }
   }
@@ -347,14 +347,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     if(bboxout) bboxout.close();
     if(view()) {
       ostringstream cmd;
-      string Python=getSetting<mem::string>("PYTHON");
+      string Python=getSetting<mem::string>("python");
       if(Python != "") cmd << Python << " ";
-      cmd << getSetting<mem::string>("XASY") << " " << buildname(prefix) 
+      cmd << getSetting<mem::string>("xasy") << " " << buildname(prefix) 
 	  << " " << ShipoutNumber << " " << 
 	buildname(getSetting<mem::string>("outname"));
-      System(cmd,false,true,
-	     Python != "" ? "ASYMPTOTE_PYTHON" : "ASYMPTOTE_XASY",
-	     Python != "" ? "python" : "xasy");
+      System(cmd,false,true,Python != "" ? "python" : "xasy");
     }
     ShipoutNumber++;
     return true;
