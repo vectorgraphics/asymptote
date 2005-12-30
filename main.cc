@@ -316,12 +316,15 @@ void no_GCwarn(char *, GC_word) {}
 
 int main(int argc, char *argv[])
 {
-  setOptions(argc,argv);
-
 #ifdef USEGC
   GC_free_space_divisor = 2;
   GC_dont_expand = 0;
   GC_INIT();
+#endif  
+  
+  setOptions(argc,argv);
+
+#ifdef USEGC
   if(!getSetting<bool>("debug")) GC_set_warn_proc(no_GCwarn);
 #endif  
 
