@@ -906,7 +906,7 @@ void _eval(runnable *s, bool embedded)
 
 void gui(double x=1)
 { 
-  getSetting("deconstruct")=(x > 0.0 ? x : 0.0);
+  Setting("deconstruct")=(x > 0.0 ? x : 0.0);
 }
 
 bool deconstruct()
@@ -1880,9 +1880,9 @@ string VERSION()
 
 void quiet(bool v)
 {
-  getSetting("interactiveView")=
-    getSetting("batchView")=
-    getSetting("oneFileView")=!v;
+  Setting("interactiveView")=
+    Setting("batchView")=
+    Setting("oneFileView")=!v;
 }
 
 void atexit(callable *f)

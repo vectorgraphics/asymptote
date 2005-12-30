@@ -269,10 +269,10 @@ void doIFile(const string& filename) {
       doITree(parser::parseString(""));
     else {
       if(getSetting<mem::string>("outname").empty())
-	getSetting("outname")=
+	Setting("outname")=
             (mem::string)((filename == "-") ? "out" : stripDir(basename));
       doITree(parser::parseFile(filename));
-      getSetting("outname")=(mem::string)"";
+      Setting("outname")=(mem::string)"";
     }
   }
 }
@@ -282,23 +282,23 @@ void doIPrompt() {
        << " (to view the manual, type help)" << endl;
   
   init();
-  getSetting<mem::string>("outname")="out";
+  Setting("outname")=(mem::string)"out";
   
   iprompt i;
   do {
     resetenv=false;
     doICore(i);
   } while(resetenv);
-  getSetting<mem::string>("outname")="";
+  Setting("outname")=(mem::string)"";
 }
 
 // Run the $HOME/.asy/config.asy file.
 void doConfig(string filename) {
   if(settings::fs::exists(filename)) {
     bool autoplain=getSetting<bool>("autoplain");
-    if(autoplain) getSetting("autoplain")=false; // Turn off for speed.
+    if(autoplain) Setting("autoplain")=false; // Turn off for speed.
     doIFile(filename);
-    if(autoplain) getSetting("autoplain")=true;
+    if(autoplain) Setting("autoplain")=true;
   }
 }
 

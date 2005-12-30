@@ -7,11 +7,12 @@
 
 #include "refaccess.h"
 
+namespace trans {
+  
 using vm::item;
 using vm::stack;
 using vm::pop;
 
-namespace trans {
 /* itemRefAccess */
 void itemPointerRead(stack *s) {
   item *p=pop<item *>(s);
@@ -25,7 +26,7 @@ void itemPointerWrite(stack *s) {
   s->push(value);
 }
 
-void itemRefAccess::encode(action act, position pos, coder &e)
+void itemRefAccess::encode(action act, position, coder &e)
 {
   e.encode(inst::constpush, (item)ref);
 

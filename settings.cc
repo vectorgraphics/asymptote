@@ -89,9 +89,9 @@ types::record *getSettingsModule() {
 
 // The dictionaries of long options and short options.
 class option;
-typedef mem::map<const mem::string, option *> optionsMap_t;
+typedef mem::map<CONST mem::string, option *> optionsMap_t;
 optionsMap_t optionsMap;
-typedef mem::map<const char, option *> codeMap_t;
+typedef mem::map<CONST char, option *> codeMap_t;
 codeMap_t codeMap;
   
 struct option : public gc {
@@ -217,6 +217,12 @@ struct itemSetting : public setting {
   }
 };
 
+item& Setting(string name) {
+  itemSetting *s=dynamic_cast<itemSetting *>(optionsMap[name]);
+  assert(s);
+  return s->value;
+}
+  
 struct boolSetting : public itemSetting {
   boolSetting(mem::string name, char code, mem::string desc,
               bool defaultValue=false)
@@ -392,7 +398,7 @@ struct alignSetting : public argumentSetting {
       value=(int)BOTTOM;
     else if (str=="Z") {
       value=(int)ZERO;
-      getSetting("tex")=false;
+      Setting("tex")=false;
     }
     else {
       error("invalid argument for option");
@@ -463,12 +469,6 @@ void addOption(option *o) {
   o->add();
 }
 
-item &getSetting(string name) {
-  itemSetting *s=dynamic_cast<itemSetting *>(optionsMap[name]);
-  assert(s);
-  return s->value;
-}
-  
 void usage(const char *program)
 {
   cerr << PROGRAM << " version " << VERSION
@@ -536,7 +536,7 @@ mem::string build_optstring() {
 }
 
 c_option *build_longopts() {
-  int n=optionsMap.size();
+  size_t n=optionsMap.size();
 
 #ifdef USEGC
   c_option *longopts=new (GC) c_option[n];
@@ -580,9 +580,9 @@ void getOptions(int argc, char *argv[])
       if (!optionsMap[name]->getOption())
         syntax=true;
     }
-    else if (codeMap.find(c) != codeMap.end()) {
+    else if (codeMap.find((char)c) != codeMap.end()) {
       //cerr << "char option: " << (char)c << endl;
-      if (!codeMap[c]->getOption())
+      if (!codeMap[(char)c]->getOption())
         syntax=true;
     }
     else {
@@ -751,7 +751,7 @@ void GetPageDimensions(double& pageWidth, double& pageHeight) {
     if(paperType != "a4") {
       cerr << "Unknown paper size \'" << paperType << "\'; assuming a4." 
 	   << endl;
-      getSetting("PAPERTYPE")=mem::string("a4");
+      Setting("PAPERTYPE")=mem::string("a4");
     }
   }
 }

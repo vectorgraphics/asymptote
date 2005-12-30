@@ -33,6 +33,7 @@
 
 using namespace types;
 using settings::getSetting;
+using settings::Setting;
 
 namespace trans {
 
@@ -45,12 +46,12 @@ genv::genv()
 
   // Translate plain in advance, if we're using autoplain.
   if(getSetting<bool>("autoplain")) {
-    getSetting("autoplain")=false;
+    Setting("autoplain")=false;
 
     // Translate plain without autoplain.
     getModule(symbol::trans("plain"), "plain");
 
-    getSetting("autoplain")=true;
+    Setting("autoplain")=true;
   }
 }
 

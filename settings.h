@@ -46,12 +46,12 @@ extern int scrollLines;
   
 types::record *getSettingsModule();
 
-vm::item &getSetting(string name);
+vm::item& Setting(string name);
   
 template <typename T>
 inline T getSetting(string name)
 {
-  return vm::get<T>(getSetting(name));
+  return vm::get<T>(Setting(name));
 }
 
 extern int verbose;

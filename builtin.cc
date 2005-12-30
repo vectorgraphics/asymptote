@@ -188,7 +188,7 @@ void addCast(venv &ve, ty *target, ty *source, bltin f) {
 }
 
 template<class T>
-void addConstant(venv &ve, T value, ty *t, char *name) {
+void addConstant(venv &ve, T value, ty *t, const char *name) {
   T* ref=new T;
   *ref=value;
   access *a = new refAccess<T>(ref);
