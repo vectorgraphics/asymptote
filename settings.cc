@@ -114,7 +114,8 @@ struct option : public gc {
     if (code) {
       mem::string base;
       base.push_back(code);
-      return argument ? base+(mem::string) ":" : base;
+      if(argument) base.push_back(':');
+      return base;
     }
     else return "";
   }
