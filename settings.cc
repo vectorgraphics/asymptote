@@ -81,10 +81,10 @@ char *argv0;
 
 typedef ::option c_option;
 
-types::dummyRecord settingsModule(symbol::trans("settings"));
+types::dummyRecord *settingsModule;
 
 types::record *getSettingsModule() {
-  return &settingsModule;
+  return settingsModule;
 }
 
 // The dictionaries of long options and short options.
@@ -189,7 +189,7 @@ struct setting : public option {
   virtual void add() {
     option::add();
 
-    settingsModule.e.addVar(symbol::trans(name), buildVarEntry());
+    settingsModule->e.addVar(symbol::trans(name), buildVarEntry());
   }
 
   varEntry *buildVarEntry() {
@@ -601,6 +601,8 @@ void getOptions(int argc, char *argv[])
 int verbose;
 
 void initSettings() {
+  settingsModule=new types::dummyRecord(symbol::trans("settings"));
+  
   multiOption *view=new multiOption("View", 'V', "View output files");
   view->add(new boolSetting("batchView", 0,
 			    "View output files in batch mode", false));
@@ -676,7 +678,6 @@ void initSettings() {
   addOption(new envSetting("xasy", "xasy"));
   addOption(new envSetting("papertype", "letter"));
   addOption(new envSetting("dir", ""));
-  
 }
 
 int safe=1;
