@@ -65,7 +65,7 @@ file LICENSE in the top-level source directory).
 Installation
 
 * UNIX binary distributions::   Prebuilt @code{UNIX} binaries
-* MacOS X binary distributions::  
+* MacOS X binary distributions::  Prebuilt @code{MacOS X} binaries  
 * Microsoft Windows::           Prebuilt @code{Microsoft Windows} binary
 * Configuring::                 Configuring @code{Asymptote} for your system
 * Search paths::                Where @code{Asymptote} looks for your files
@@ -220,7 +220,7 @@ as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
 
 @menu
 * UNIX binary distributions::   Prebuilt @code{UNIX} binaries
-* MacOS X binary distributions::  
+* MacOS X binary distributions::  Prebuilt @code{MacOS X} binaries  
 * Microsoft Windows::           Prebuilt @code{Microsoft Windows} binary
 * Configuring::                 Configuring @code{Asymptote} for your system
 * Search paths::                Where @code{Asymptote} looks for your files
@@ -279,7 +279,8 @@ prebuilt binary:
 @node MacOS X binary distributions
 @section MacOS X binary distributions
 @cindex MacOS X binary distributions
-MacOS users can either compile directly from the @code{UNIX} source
+MacOS users can either compile the @code{UNIX} source code
+(@pxref{Compiling from UNIX source})
 or install the contributed @code{Asymptote} binary available at
 
 @url{http://www.hmug.org/pub/MacOS_X/BSD/Applications/Publishing/asymptote/}
@@ -5647,7 +5648,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  quartercircle darkgreen lightblue urx ury texpreamble sgn texi
 @c  LocalWords:  lineargraph datagraph vertices parametricgraph uncomment ggv
 @c  LocalWords:  loggraph generalaxis texhash arrowsize arrowangle arrowlength
-@c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config 
+@c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config  MacOS prebuilt
 @c  LocalWords:  ghostview gsview SIGHUP PDF acroread xpdf nullframe cutbefore
 @c  LocalWords:  libsigsegv intersectionpoint dotfactor vv firstcut pq logticks
 @c  LocalWords:  Unisys dvips vvv vvvv vvvvv traceback lastcut cutafter infodir
