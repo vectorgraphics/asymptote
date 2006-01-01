@@ -52,7 +52,7 @@ using interact::uptodate;
 #ifdef HAVE_LIBSIGSEGV
 void stackoverflow_handler (int, stackoverflow_context_t)
 {
-  em->runtime(vm::getPos());
+  if(em) em->runtime(vm::getPos());
   cout << "Stack overflow" << endl;
   abort();
 }
@@ -60,7 +60,7 @@ void stackoverflow_handler (int, stackoverflow_context_t)
 int sigsegv_handler (void *, int emergency)
 {
   if(!emergency) return 0; // Really a stack overflow
-  em->runtime(vm::getPos());
+  if(em) em->runtime(vm::getPos());
   cout << "Segmentation fault" << endl;
   cout << "Please report this programming error to" << endl 
        << BUGREPORT << endl;
@@ -322,6 +322,9 @@ int main(int argc, char *argv[])
   GC_INIT();
 #endif  
   
+  cout.precision(DBL_DIG);
+  setsignal(signalHandler);
+
   setOptions(argc,argv);
 
 #ifdef USEGC
@@ -329,10 +332,7 @@ int main(int argc, char *argv[])
 #endif  
 
   fpu_trap(trap());
-  setsignal(signalHandler);
   if(interactive) signal(SIGINT,interruptHandler);
-
-  cout.precision(DBL_DIG);
 
   try {
     if(interactive)
