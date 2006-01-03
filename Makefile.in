@@ -80,8 +80,6 @@ runtime.cc: runtime.pl runtime.in
 	-diff -q runtime.h runtime.hold && mv runtime.hold runtime.h
 	-rm -f runtime.hold
 
-camp.tab.h: camp.tab.cc
-
 camp.tab.cc: camp.y
 	$(BISON) -dvt -b camp camp.y
 	mv camp.tab.c camp.tab.cc
