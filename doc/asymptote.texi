@@ -2239,7 +2239,8 @@ saved to the file @code{".asy_"+name} (@pxref{history}). The most
 recent value in the history will be used to provide a default value
 for subsequent runs.  The default value (initially @code{default}) is
 displayed after @code{prompt}. These routines are based on the
-following interface to @code{readline}, which prompts for a string and
+following interface to @code{readline}, which prompts the user with
+the default value formatted according to @code{prompt} and 
 saves the local history under the name @code{".asy_"+history}, unless
 the string @code{history} begins with a linefeed (@code{'\n'}):
 @cindex @code{readline}
@@ -3073,9 +3074,9 @@ if @code{n >= 1} returns the array @code{@{n-1,n-2,...,0@}} (otherwise
 returns a null array);
 
 @cindex @code{complement}
-@item int[] complement(int[] a, T[] b)
+@item int[] complement(int[] a, int n)
 returns the complement of the integer array @code{a} in
-@code{@{1,2,...,b.length@}}, so that @code{b[complement(a,b)]} yields the
+@code{@{1,2,...,n@}}, so that @code{b[complement(a,b.length)]} yields the
 complement of @code{b[a]}.
 
 @cindex @code{find}

@@ -2187,20 +2187,19 @@ array* :arrayIntArray(array *a, array *b)
   return r;
 }
 
-// returns the complement of the integer array a in {1,2,...,b.length},
-// so that b[complement(a,b)] yields the complement of b[a].
-intarray* complement(intarray *a, array *b)
+// returns the complement of the integer array a in {1,2,...,n},
+// so that b[complement(a,b.length)] yields the complement of b[a].
+intarray* complement(intarray *a, int n)
 {
   size_t asize=checkArray(a);
-  int bsize=(int) checkArray(b);
   array *r=new array(0);
-  bool *keep=new bool(bsize);
-  for(int i=0; i < bsize; ++i) keep[i]=true;
+  bool *keep=new bool(n);
+  for(int i=0; i < n; ++i) keep[i]=true;
   for(size_t i=0; i < asize; ++i) {
     int j=read<int>(a,i);
-    if(j >= 0 && j < bsize) keep[j]=false;
+    if(j >= 0 && j < n) keep[j]=false;
   }
-  for(int i=0; i < bsize; i++)
+  for(int i=0; i < n; i++)
     if(keep[i]) r->push(i);
   
   delete[] keep;
