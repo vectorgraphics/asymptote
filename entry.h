@@ -103,9 +103,9 @@ public:
 
 varEntry *qualifyVarEntry(varEntry *qv, varEntry *v);
 
-// As looked-up types can be allocated in a new expression, we need to know what
-// frame they should be allocated on.  Type entries store this extra information
-// along with the type.
+// As looked-up types can be allocated in a new expression, we need to know
+// what frame they should be allocated on.  Type entries store this extra
+// information along with the type.
 class tyEntry : public entry {
 public:
   ty *t;
@@ -119,11 +119,12 @@ tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent);
 
 // The type environment.
 class tenv : public sym::table<tyEntry *> {
-  bool add(symbol *dest, names_t::value_type &x, varEntry *qualifier, coder &c);
+  bool add(symbol *dest, names_t::value_type &x, varEntry *qualifier,
+	   coder &c);
 public:
-  // Add the entries in one environment to another, if qualifier is non-null, it
-  // is a record and the source environment is its types.  The coder is used to
-  // see which entries are accessible and should be added.
+  // Add the entries in one environment to another, if qualifier is
+  // non-null, it is a record and the source environment is its types.  The
+  // coder is used to see which entries are accessible and should be added.
   void add(tenv& source, varEntry *qualifier, coder &c);
 
   // Adds entries of the name src in source as the name dest, returning true if
@@ -142,13 +143,14 @@ public:
   varEntry *lookExact(symbol *name, signature *key);
 #endif
 
-  // Add the entries in one environment to another, if qualifier is non-null, it
-  // is a record and the source environment are its fields.  The coder is
-  // necessary to check which variables are accessible and should be added.
+  // Add the entries in one environment to another, if qualifier is
+  // non-null, it is a record and the source environment are its fields.
+  // The coder is necessary to check which variables are accessible and
+  // should be added.
   void add(venv& source, varEntry *qualifier, coder &c);
 
-  // Add all unshadowed variables from source of the name src as variables named
-  // dest.  Returns true if at least one was added.
+  // Add all unshadowed variables from source of the name src as variables
+  // named dest.  Returns true if at least one was added.
   bool add(symbol *src, symbol *dest,
            venv& source, varEntry *qualifier, coder &c);
 
@@ -239,8 +241,8 @@ public:
   mapstack scopes;
 
   // A hash table indexed solely on the name, storing for each name the list of
-  // all values of that name.  Used to get the (possibly overloaded) type of the
-  // name.
+  // all values of that name.  Used to get the (possibly overloaded) type
+  // of the name.
   typedef mem::list<value *> values;
   typedef mem::hash_map<symbol *, values, namehash, nameeq> namemap;
   namemap names;
@@ -257,13 +259,14 @@ public:
 
   void enter(symbol *name, varEntry *v);
 
-  // Add the entries in one environment to another, if qualifier is non-null, it
-  // is a record and the source environment are its fields.  The coder is
-  // necessary to check which variables are accessible and should be added.
+  // Add the entries in one environment to another, if qualifier is
+  // non-null, it is a record and the source environment are its fields.
+  // The coder is necessary to check which variables are accessible and
+  // should be added.
   void add(venv& source, varEntry *qualifier, coder &c);
 
-  // Add all unshadowed variables from source of the name src as variables named
-  // dest.  Returns true if at least one was added.
+  // Add all unshadowed variables from source of the name src as variables
+  // named dest.  Returns true if at least one was added.
   bool add(symbol *src, symbol *dest,
            venv& source, varEntry *qualifier, coder &c);
 
