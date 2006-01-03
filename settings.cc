@@ -36,7 +36,6 @@
 
 using std::vector;
 using vm::item;
-using camp::pair;
 
 using trans::itemRefAccess;
 using trans::refAccess;
@@ -47,6 +46,8 @@ namespace loop {
 }
 
 namespace settings {
+  
+using camp::pair;
   
 #ifdef MSDOS
 const bool msdos=true;
