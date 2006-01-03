@@ -36,11 +36,12 @@
 
 using std::vector;
 using vm::item;
+using camp::pair;
 
 using trans::itemRefAccess;
 using trans::refAccess;
 using trans::varEntry;
-
+  
 namespace loop {
   void doConfig(string filename);
 }
@@ -79,6 +80,26 @@ const char BUGREPORT[]=PACKAGE_BUGREPORT;
 // The name of the program (as called).  Used when displaying help info.
 char *argv0;
 
+// The verbosity setting, a global variable.
+int verbose;
+int safe=1;
+  
+int ShipoutNumber=0;
+int scrollLines=0;
+  
+const string suffix="asy";
+const string guisuffix="gui";
+  
+bool TeXinitialized=false;
+string initdir;
+mem::string historyname;
+
+camp::pen defaultpen=camp::pen::startupdefaultpen();
+  
+// Local versions of the argument list.
+int argCount = 0;
+char **argList = 0;
+  
 typedef ::option c_option;
 
 types::dummyRecord *settingsModule;
@@ -346,42 +367,47 @@ struct envSetting : public stringSetting {
     : stringSetting(name, 0, " ", "", GetEnv(name,Default)) {}
 };
 
-struct realSetting : public argumentSetting {
+template<class T>
+struct dataSetting : public argumentSetting {
+  string text;
+  dataSetting(const char *text, mem::string name, char code,
+	      mem::string argname, mem::string desc, types::ty *type,
+	      T defaultValue)
+    : argumentSetting(name, code, argname, desc,
+		      type, (item)defaultValue), text(text) {}
+
+  bool getOption() {
+    try {
+      value=(item)lexical::cast<T>(optarg);
+    } catch (lexical::bad_cast&) {
+      error("option requires" + text + " as an argument");
+      return false;
+    }
+    return true;
+  }
+};
+
+struct intSetting : public dataSetting<int> {
+  intSetting(mem::string name, char code,
+	     mem::string argname, mem::string desc, int defaultValue=0)
+    : dataSetting<int>("an int", name, code, argname, desc,
+		       types::primInt(), defaultValue) {}
+};
+  
+struct realSetting : public dataSetting<double> {
   realSetting(mem::string name, char code,
-              mem::string argname, mem::string desc,
-              double defaultValue)
-    : argumentSetting(name, code, argname, desc,
-                  types::primReal(), (item)defaultValue) {}
-
-  bool getOption() {
-    try {
-      value=(item)lexical::cast<double>(optarg);
-    } catch (lexical::bad_cast&) {
-      error("option requires a real number as an argument");
-      return false;
-    }
-    return true;
-  }
+	     mem::string argname, mem::string desc, double defaultValue=0.0)
+    : dataSetting<double>("a real", name, code, argname, desc,
+		       types::primReal(), defaultValue) {}
 };
-
-struct pairSetting : public argumentSetting {
+  
+struct pairSetting : public dataSetting<pair> {
   pairSetting(mem::string name, char code,
-              mem::string argname, mem::string desc,
-              camp::pair defaultValue=0.0)
-    : argumentSetting(name, code, argname, desc,
-                  types::primPair(), (item)defaultValue) {}
-
-  bool getOption() {
-    try {
-      value=(item)lexical::cast<camp::pair>(optarg);
-    } catch (lexical::bad_cast&) {
-      error("option requires a pair as an argument");
-      return false;
-    }
-    return true;
-  }
+	     mem::string argname, mem::string desc, pair defaultValue=0.0)
+    : dataSetting<pair>("a pair", name, code, argname, desc,
+		       types::primPair(), defaultValue) {}
 };
-
+  
 // For setting the alignment of a figure on the page.
 struct alignSetting : public argumentSetting {
   alignSetting(mem::string name, char code,
@@ -598,9 +624,6 @@ void getOptions(int argc, char *argv[])
     reportSyntax();
 }
 
-// The verbosity setting, a global variable.
-int verbose;
-
 void initSettings() {
   settingsModule=new types::dummyRecord(symbol::trans("settings"));
   
@@ -662,6 +685,8 @@ void initSettings() {
 
   addOption(new boolSetting("localhistory", 0, 
 			    "Use a local interactive history file"));
+  addOption(new intSetting("historylines", 0, "n", 
+			   "Retain n lines of history (default 1000)",1000));
   addOption(new boolSetting("autoplain", 0,
 			    "Enable automatic importing of plain (default)",
 			    true));
@@ -681,22 +706,6 @@ void initSettings() {
   addOption(new envSetting("dir", ""));
 }
 
-int safe=1;
-int ShipoutNumber=0;
-int scrollLines=0;
-  
-const string suffix="asy";
-const string guisuffix="gui";
-  
-bool TeXinitialized=false;
-string initdir;
-
-camp::pen defaultpen=camp::pen::startupdefaultpen();
-  
-// Local versions of the argument list.
-int argCount = 0;
-char **argList = 0;
-  
 // Access the arguments once options have been parsed.
 int numArgs() { return argCount; }
 char *getArg(int n) { return argList[n]; }
@@ -704,6 +713,8 @@ char *getArg(int n) { return argList[n]; }
 void setInteractive() {
   if(numArgs() == 0 && !getSetting<bool>("listvariables"))
     interact::interactive=true;
+  historyname=getSetting<bool>("localhistory") ? ".asy_history" 
+    : (initdir+"/history");
 }
 
 bool view() {

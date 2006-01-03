@@ -51,6 +51,8 @@ primitiveTy pFile(ty_file);
 ty *primFile() { return &pFile; }
 primitiveTy pCode(ty_code);
 ty *primCode() { return &pCode; }
+primitiveTy primArray_(ty_array);
+ty *primArray() { return &primArray_; }
   
 array boolArray_(primBoolean());
 ty *boolArray() { return &boolArray_; }

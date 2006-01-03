@@ -14,7 +14,7 @@ FILES = $(CAMP) runtime env genv main stm dec errormsg callable name \
 	absyn record interact fileio builtin fftw++ simpson coder coenv \
 	@getopt@ locate parser program application varinit fundec refaccess
 
-DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.cc
+DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc
 CLEAN = camp.output
 NAME = asy
 XNAME = x$(NAME)
@@ -75,7 +75,10 @@ man:	asy
 depend: $(GCLIBS) camp.tab.h runtime.cc $(FILES:=.d)
 
 runtime.cc: runtime.pl runtime.in
+	-mv runtime.h runtime.hold
 	./runtime.pl
+	-diff -q runtime.h runtime.hold && mv runtime.hold runtime.h
+	-rm -f runtime.hold
 
 camp.tab.h: camp.tab.cc
 

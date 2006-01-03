@@ -599,7 +599,7 @@ The units here are @code{PostScript} "big points"
 At this point you can type in further draw commands, which will be added
 to the displayed figure, or type @code{quit} to exit interactive mode.
 You can use the arrow keys in interactive mode to edit previous lines
-(assuming that you have support for the @acronym{GNU} readline library
+(assuming that you have support for the @acronym{GNU} @code{readline} library
 enabled). Further commands specific to interactive mode are described
 in @ref{Interactive mode}.
 
@@ -1085,13 +1085,12 @@ guide unitcircle=E..N..W..S..cycle;
 This example uses the standard compass directions @code{E=(1,0)},
 @code{N=(0,1)}, @code{NE=unit(N+E)}, and @code{ENE=unit(E+NE)}, etc.,
 which along with the directions @code{up}, @code{down}, @code{right},
-and @code{left} are defined as pairs in the default @code{Asymptote} base file
-@code{plain.asy}.
+and @code{left} are defined as pairs in the @code{Asymptote} base
+module @code{plain}.
 @cindex @code{circle}
 @anchor{circle}
-The routine @code{circle(pair c, real r)} in @code{plain.asy}
-constructs a circle of radius @code{r} centered on @code{c} by
-transforming unitcircle:
+The routine @code{circle(pair c, real r)} constructs a circle of
+radius @code{r} centered on @code{c} by transforming unitcircle:
 @verbatim
 guide circle(pair c, real r)
 {
@@ -1477,8 +1476,8 @@ command in @TeX{}).
 
 @cindex @code{defaultpen}
 The default color is @code{black}; this may be changed with the routine
-@code{defaultpen(pen)}. A number of named rgb colors are defined near
-the top of the default base file @code{plain.asy}:
+@code{defaultpen(pen)}. A number of named rgb colors are defined
+in the module @code{plain}:
 @verbatim
 black,gray,white,red,green,blue,yellow,magenta,cyan,brown,darkgreen,
 darkblue,orange,purple,chartreuse,fuchsia,salmon,lightblue,lavender,pink,
@@ -1529,7 +1528,7 @@ The default linetype is @code{solid}; this may be changed with
 @item The pen line width is specified in @code{PostScript} units with
 @code{pen linewidth(real)}. The default line width is 0.5 bp; this value
 may be changed with @code{defaultpen(pen)}. 
-For convenience, in @code{plain.asy} we define
+For convenience, in the module @code{plain} we define
 @verbatim
 static void defaultpen(real w) {defaultpen(linewidth(w));}
 static pen operator +(pen p, real w) {return p+linewidth(w);}
@@ -1857,7 +1856,7 @@ frame align(frame f, pair dir);
 @item picture
 @cindex @code{picture}
 Pictures are high-level structures (@pxref{Structures}) defined in
-@code{plain.asy} that provide canvases for drawing in user coordinates. 
+the module @code{plain} that provide canvases for drawing in user coordinates. 
 The default picture is called @code{currentpicture}. A new picture
 can be created like this:
 @verbatim
@@ -2082,7 +2081,7 @@ To restore a snapshot of @code{currentpicture}, @code{currentpen}, and
 @code{currentprojection}, use the function @code{restore()}.
 
 Many further examples of picture and frame operations are provided in
-the base file @code{plain.asy}.
+the base module @code{plain}.
 
 @cindex verbatim
 @cindex @code{postscript}
@@ -2220,18 +2219,34 @@ previous I/O error with @code{clear(file)}, and close the file with
 @code{precision(file,int)}.
 
 The routines
+@cindex @code{getstring}
+@cindex @code{getreal}
 @verbatim
 string getstring(string name, string default="", string prompt="",
-                 string prefix=getstringprefix, bool save=true);
+                 bool save=true);
+int getint(string name, int default=0, string prompt="",
+           bool save=true);
 real getreal(string name, real default=0, string prompt="",
-             string prefix=getstringprefix, bool save=true);
+             bool save=true);
+pair getpair(string name, pair default=0, string prompt="",
+             bool save=true)
 @end verbatim
 @noindent
-defined in @code{plain.asy} may be used to read a value from @code{stdin}.
-If @code{save=true}, the value is saved to the file named
-@code{prefix+name}, to provide the default value for subsequent runs.
-The default value (initially @code{default}) is displayed after @code{prompt}.
-The initial value of @code{getstringprefix} is ".asy_".
+defined in the module @code{plain} may be used to prompt for a value from
+@code{stdin} using the @acronym{GNU} @code{readline} library.
+If @code{save=true}, the history of values for @code{name} is
+saved to the file @code{".asy_"+name} (@pxref{history}). The most
+recent value in the history will be used to provide a default value
+for subsequent runs.  The default value (initially @code{default}) is
+displayed after @code{prompt}. These routines are based on the
+following interface to @code{readline}, which prompts for a string and
+saves the local history under the name @code{".asy_"+history}, unless
+the string @code{history} begins with a linefeed (@code{'\n'}):
+@cindex @code{readline}
+@verbatim
+string readline(string prompt, string history=emptystring,
+                string initial=emptystring);
+@end verbatim
 
 
 @node Structures
@@ -2353,7 +2368,7 @@ write(c.y);                     // Outputs 2;
 @end verbatim
 
 Further examples of structures are @code{Legend} and @code{picture} in
-the default @code{Asymptote} base file @code{plain.asy}.
+the @code{Asymptote} base module @code{plain}.
 
 @node Operators
 @section Operators
@@ -3012,12 +3027,12 @@ of the same type:
 real a,A[];
 @end verbatim
 This declares @code{a} to be @code{real} and implicitly declares @code{A} to
-be of type @code{real[]}. But beware that this alternative syntax does
-not construct certain internal type-dependent functions that take
-@code{real[]} as an argument: @code{alias}, @code{copy}, @code{concat},
-@code{sequence}, @code{map}, and @code{transpose} for type
-@code{real[]} won't be defined until the type @code{real[]} is used
-explicitly somewhere.
+be of type @code{real[]}. But beware that this alternative syntax
+currently does not construct certain internal type-dependent functions
+that take @code{real[]} as an argument: @code{alias}, @code{copy},
+@code{concat}, @code{sequence}, @code{map}, and @code{transpose} for
+type @code{real[]} won't be defined until the type @code{real[]} is
+explicitly used.
 
 In the following list of built-in array functions, @code{T} represents a
 generic type.
@@ -3057,6 +3072,12 @@ null array);
 if @code{n >= 1} returns the array @code{@{n-1,n-2,...,0@}} (otherwise
 returns a null array);
 
+@cindex @code{complement}
+@item int[] complement(int[] a, T[] b)
+returns the complement of the integer array @code{a} in
+@code{@{1,2,...,b.length@}}, so that @code{b[complement(a,b)]} yields the
+complement of @code{b[a]}.
+
 @cindex @code{find}
 @item int find(bool[], int n=1)
 returns the index of the @code{n}th @code{true} value or -1 if not found.
@@ -3065,11 +3086,12 @@ If @code{n} is negative, search backwards from the end of the array for the
 
 @cindex @code{search}
 @item int search(T[] a, T key)
-For ordered types @code{T}, searches a sorted ordered array @code{a} of
-@code{n} elements to find an interval containing @code{key}, returning
-@code{-1} if @code{key} is less than the first element, @code{n-1} if
-@code{key} is greater than or equal to the last element, and otherwise
-the index corresponding to the left-hand (smaller) endpoint.
+For built-in ordered types @code{T}, searches a sorted ordered array
+@code{a} of @code{n} elements to find an interval containing
+@code{key}, returning @code{-1} if @code{key} is less than the first
+element, @code{n-1} if @code{key} is greater than or equal to the last
+element, and otherwise the index corresponding to the left-hand
+(smaller) endpoint.
 
 @cindex @code{copy}
 @item T[] copy(T[] a)
@@ -3085,11 +3107,11 @@ returns @code{true} if the arrays @code{a} and @code{b} are identical;
 
 @cindex @code{sort}
 @item T[] sort(T[] a)
-For ordered types @code{T}, returns a copy of @code{a} sorted in
+For built-in ordered types @code{T}, returns a copy of @code{a} sorted in
 ascending order;
 
 @item T[][] sort(T[][] a)
-For ordered types @code{T}, returns a copy of @code{a} with the rows
+For built-in ordered types @code{T}, returns a copy of @code{a} with the rows
 sorted by the first column, breaking ties with successively higher
 columns. For example:
 @verbatim
@@ -3119,13 +3141,13 @@ For arithmetic types @code{T}, returns the sum of @code{a}.
 @item T min(T[] a)
 @item T min(T[][] a)
 @item T min(T[][][] a)
-For ordered types @code{T}, returns the minimum element of @code{a}.
+For built-in ordered types @code{T}, returns the minimum element of @code{a}.
 
 @cindex @code{max}
 @item T max(T[] a)
 @item T max(T[][] a)
 @item T max(T[][][] a)
-For ordered types @code{T}, returns the maximum element of @code{a}.
+For built-in ordered types @code{T}, returns the maximum element of @code{a}.
 
 @cindex @code{map}
 @item map(f(T), T[] a)
@@ -3134,15 +3156,15 @@ element of the array @code{a}.
 
 @cindex @code{min}
 @item T[] min(T[] a, T[] b)
-For ordered types @code{T}, and arrays @code{a} and @code{b} of the same
-length, returns an array composed of the minimum of the corresponding
-elements of @code{a} and @code{b}.
+For built-in ordered types @code{T}, and arrays @code{a} and @code{b}
+of the same length, returns an array composed of the minimum of the
+corresponding elements of @code{a} and @code{b}.
 
 @cindex @code{max}
 @item T[] max(T[] a, T[] b)
-For ordered types @code{T}, and arrays @code{a} and @code{b} of the same
-length, returns an array composed of the maximum of the corresponding elements
-of @code{a} and @code{b}.
+For built-in ordered types @code{T}, and arrays @code{a} and @code{b}
+of the same length, returns an array composed of the maximum of the
+corresponding elements of @code{a} and @code{b}.
 
 @cindex @code{fft}
 @item pair[] fft(pair[] a, int sign=1)
@@ -3567,7 +3589,7 @@ translating a file and before the first command given in interactive
 mode.  This also applies when translating files for module definitions
 (except when translating @code{plain}, of course).  This means that
 the types and functions defined in @code{plain} are accessible in
-almost all @code{Asymptote} code. Use the @code{-noplain} command-line
+almost all @code{Asymptote} code. Use the @code{-noautoplain} command-line
 option to disable this feature.
 
 @node simplex
@@ -3575,7 +3597,8 @@ option to disable this feature.
 @cindex @code{simplex}
 
 This package solves the two-variable linear programming problem using the
-simplex method. It is used by @code{plain} for automatic sizing of pictures.
+simplex method. It is used by the module @code{plain} for automatic
+sizing of pictures.
 
 @node math
 @subsection @code{math}
@@ -3649,7 +3672,7 @@ a more efficient algorithm (@pxref{tridiagonal}).
 @item real[][] solve(real[][] a, real[][] b, bool overwrite=false)
 Solve the linear equation @math{@code{a}x=@code{b}} returning the
 solution @math{x}, where @code{a} is an @math{n \times n} matrix and
-@code{b} is an @math{n \times m} matrix. If overwrite=true, @math{b} is
+@code{b} is an @math{n \times m} matrix. If @code{overwrite=true}, @math{b} is
 replaced by @code{x}.
 
 @cindex @code{straight}
@@ -4966,9 +4989,9 @@ picture @code{dest} using @code{add} or @code{attach} (@pxref{add about}).
 
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.
-The @code{dot} command defined in @code{plain.asy} draws a dot having a
-a diameter equal to an explicit pen linewidth or the default linewidth
-magnified by @code{dotfactor} (6 by default):
+The @code{dot} command defined in the module @code{plain} draws a
+dot having a a diameter equal to an explicit pen linewidth or the
+default linewidth magnified by @code{dotfactor} (6 by default):
 @verbatim
 void dot(picture pic=currentpicture, pair z, pen p=currentpen);
 void dot(picture pic=currentpicture, pair[] z, pen p=currentpen);
@@ -5297,6 +5320,7 @@ Options:
 -x,-deconstruct X     Deconstruct into transparent GIF objects magnified by X
 -gray                 Convert all colors to grayscale
 -h,-help              Show summary of options
+-historylines n       Retain n lines of history (default 1000)
 -i,-ignoreGUI         Ignore GUI operations
 -interactiveMask      Mask fpu exceptions in interactive mode
 -interactiveView      View output files in interactive mode
@@ -5415,9 +5439,11 @@ it with quotation marks. For convenience, a trailing semi-colon
 followed by optional @code{Asymptote} commands may be entered on the same line.
 @cindex @code{quit}
 @cindex @code{exit}
+@anchor{history}
 @item quit
 exit interactive mode (abbreviated as @code{q}; @code{exit} is a synonym).
-A history of the most recent @code{1000} previous commands will be retained
+A history of the most recent 1000 (can be changed with the
+@code{historylines} command-line option) previous commands will be retained
 in the file @code{.asy/history} in the user's home directory (unless
 the command line option @code{-localhistory} was specified, in which case
 the history will be stored in the file @code{.asy_history} in the
@@ -5428,7 +5454,7 @@ current directory).
 Typing @code{ctrl-C} interrupts the execution of @code{Asymptote} code
 and returns control to the interactive prompt.
 
-Interactive mode is implemented with the GNU readline library.
+Interactive mode is implemented with the @acronym{GNU} @code{readline} library.
 To customize the key bindings, see:
 @url{http://cnswww.cns.cwru.edu/php/chet/readline/readline.html}
 

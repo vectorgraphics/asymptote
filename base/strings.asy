@@ -4,36 +4,26 @@ string ask(string prompt)
   return stdin;
 }
 
-public string getstringprefix=".asy_";
-
-void savestring(string name, string value, string prefix=getstringprefix)
-{
-  file out=output(prefix+name);
-  write(out,value);
-  close(out);
-}
-
 string getstring(string name, string default="", string prompt="",
-		 string prefix=getstringprefix, bool save=true)
+		 bool save=true)
 {
-  string value;
-  file in=input(prefix+name,false);
-  if(error(in)) value=default;
-  else value=in;
-  if(prompt == "") prompt=name+"? ["+value+"] ";
-  string input=ask(prompt);
-  if(input != "") value=input;
-  if(save) savestring(name,value);
-  return value;
+  return readline(prompt == "" ? name+"? [%s] " : prompt,
+		  save ? name : '\012'+name,default);
 }
 
-real getreal(string name, real default=0, string prompt="",
-	     string prefix=getstringprefix, bool save=true)
+int getint(string name, int default=0, string prompt="", bool save=true)
 {
-  string value=getstring(name,(string) default,prompt,getstringprefix,false);
-  real x=(real) value;
-  if(save) savestring(name,value);
-  return x;
+  return (int) getstring(name,(string) default,prompt,save);
+}
+
+real getreal(string name, real default=0, string prompt="", bool save=true)
+{
+  return (real) getstring(name,(string) default,prompt,save);
+}
+
+pair getpair(string name, pair default=0, string prompt="", bool save=true)
+{
+  return (pair) getstring(name,(string) default,prompt,save);
 }
 
 // returns a string with all occurrences of string 'before' in string 's'

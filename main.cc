@@ -281,6 +281,8 @@ void doIPrompt() {
   cout << "Welcome to " << PROGRAM << " version " << VERSION
        << " (to view the manual, type help)" << endl;
   
+  interact::init_interactive();
+  
   init();
   Setting("outname")=(mem::string)"out";
   

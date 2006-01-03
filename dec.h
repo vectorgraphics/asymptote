@@ -111,6 +111,7 @@ public:
   types::function *sequenceType(types::ty* t, types::ty *ct);
   types::function *cellTypeType(types::ty* t);
   types::function *mapType(types::ty* t, types::ty *ct);
+  
   void addOps(coenv &e, types::ty* t, types::ty *ct);
   
   types::ty *trans(coenv &e, bool tacit = false);

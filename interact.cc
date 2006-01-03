@@ -24,6 +24,10 @@
 using std::cout;
 using namespace settings;
 
+namespace run {
+  void init_readline();
+}
+
 namespace interact {
 
 int interactive=false;
@@ -31,13 +35,18 @@ bool virtualEOF=true;
 bool resetenv;
 bool uptodate=true;
 
+void init_interactive() 
+{
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+  run::init_readline();
+  read_history(historyname.c_str());
+#endif  
+}
+  
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 
-static string historyname="history";
-static string localhistoryname=".asy_"+historyname;
-  
 /* Read a string, and return a pointer to it. Returns NULL on EOF. */
-char *rl_gets(void)
+char *rl_gets()
 {
   static char *line_read=NULL;
   /* If the buffer has already been allocated,
@@ -106,38 +115,14 @@ static const char *inputexpand="erase(); include ";
 static size_t ninput=strlen(input);
 static size_t ninputexpand=strlen(inputexpand);
   
-int readline_startup_hook()
-{
-#ifdef MSDOS
-  rl_set_key("\\M-[3~",rl_delete,rl_get_keymap());
-  rl_set_key("\\M-[2~",rl_overwrite_mode,rl_get_keymap());
-#endif    
-  return 0;
-}
-
 size_t interactive_input(char *buf, size_t max_size)
 {
-  static int nlines=1000;
-  static bool first=true;
-  static string historyfile;
   static bool inputmode=false;
     
   assert(max_size > 0);
   size_t size=max_size-1;
   char *to=buf;
     
-  if(first) {
-    first=false;
-    historyfile=getSetting<bool>("localhistory") ? 
-      localhistoryname : (initdir+"/"+historyname);
-    
-    read_history(historyfile.c_str());
-    rl_bind_key('\t',rl_insert); // Turn off tab completion
-#ifdef MSDOS
-    rl_startup_hook=readline_startup_hook;
-#endif    
-  }
-
   if(virtualEOF) return 0;
   
   static char *line;
@@ -175,8 +160,8 @@ size_t interactive_input(char *buf, size_t max_size)
     add_input(to,line,size);
     return to-buf;
   } else {
-    stifle_history(nlines);
-    write_history(historyfile.c_str());
+    stifle_history(getSetting<int>("historylines"));
+    write_history(historyname.c_str());
     return 0;
   }
 }

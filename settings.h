@@ -38,7 +38,7 @@ extern const string suffix;
 extern const string guisuffix;
   
 extern bool TeXinitialized; // Is LaTeX process initialized?
-extern string initdir;
+extern mem::string historyname;
   
 void GetPageDimensions(double& pageWidth, double& pageHeight);
 
