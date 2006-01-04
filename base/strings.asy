@@ -4,24 +4,24 @@ string ask(string prompt)
   return stdin;
 }
 
-string getstring(string name, string default="", string prompt="",
+string getstring(string name="", string default="", string prompt="",
 		 bool save=true)
 {
   return readline(prompt == "" ? name+"? [%s] " : prompt,
 		  save ? name : '\012'+name,default);
 }
 
-int getint(string name, int default=0, string prompt="", bool save=true)
+int getint(string name="", int default=0, string prompt="", bool save=true)
 {
   return (int) getstring(name,(string) default,prompt,save);
 }
 
-real getreal(string name, real default=0, string prompt="", bool save=true)
+real getreal(string name="", real default=0, string prompt="", bool save=true)
 {
   return (real) getstring(name,(string) default,prompt,save);
 }
 
-pair getpair(string name, pair default=0, string prompt="", bool save=true)
+pair getpair(string name="", pair default=0, string prompt="", bool save=true)
 {
   return (pair) getstring(name,(string) default,prompt,save);
 }

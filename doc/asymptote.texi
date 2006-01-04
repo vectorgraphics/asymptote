@@ -2222,13 +2222,13 @@ The routines
 @cindex @code{getstring}
 @cindex @code{getreal}
 @verbatim
-string getstring(string name, string default="", string prompt="",
+string getstring(string name="", string default="", string prompt="",
                  bool save=true);
-int getint(string name, int default=0, string prompt="",
+int getint(string name="", int default=0, string prompt="",
            bool save=true);
-real getreal(string name, real default=0, string prompt="",
+real getreal(string name="", real default=0, string prompt="",
              bool save=true);
-pair getpair(string name, pair default=0, string prompt="",
+pair getpair(string name="", pair default=0, string prompt="",
              bool save=true)
 @end verbatim
 @noindent
@@ -2245,8 +2245,8 @@ saves the local history under the name @code{".asy_"+history}, unless
 the string @code{history} begins with a linefeed (@code{'\n'}):
 @cindex @code{readline}
 @verbatim
-string readline(string prompt, string history=emptystring,
-                string initial=emptystring);
+string readline(string prompt="", string history="", string initial="",
+                bool tabcompletion=false);
 @end verbatim
 
 

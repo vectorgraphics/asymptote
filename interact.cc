@@ -25,7 +25,7 @@ using std::cout;
 using namespace settings;
 
 namespace run {
-  void init_readline();
+  void init_readline(bool);
 }
 
 namespace interact {
@@ -38,7 +38,7 @@ bool uptodate=true;
 void init_interactive() 
 {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-  run::init_readline();
+  run::init_readline(false);
   read_history(historyname.c_str());
 #endif  
 }
@@ -74,17 +74,19 @@ char *rl_gets()
     break;
   }
      
-  if(!line_read) cout << endl;
-  else {
+  if(line_read) {
     if(strcmp(line_read,"q") == 0 || strcmp(line_read,"quit") == 0
        || strcmp(line_read,"quit;") == 0
        || strcmp(line_read,"exit") == 0
        || strcmp(line_read,"exit;") == 0)
       return NULL;
-  }
   
-  /* If the line has any text in it, save it on the history. */
-  if(line_read && *line_read) add_history(line_read);
+    /* If the line has any text in it, save it on the history. */
+    if(*line_read) add_history(line_read);
+  } else {
+    cout << endl;
+    return "\n";
+  }
   
   return line_read;
 }

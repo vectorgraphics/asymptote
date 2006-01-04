@@ -314,16 +314,16 @@ int readline_startup_hook()
   return 0;
 }
 
-void init_readline() 
+void init_readline(bool tabcompletion=true) 
 {
   static bool first=true;
   if(first) {
     first=false;
-    rl_bind_key('\t',rl_insert); // Turn off tab completion
 #ifdef MSDOS
     rl_startup_hook=readline_startup_hook;
 #endif    
   }
+  rl_bind_key('\t',tabcompletion ? rl_complete : rl_insert);
 }
  
 #endif
@@ -2653,11 +2653,11 @@ file* read3(file *File)
 // Prompt for a string using the GNU readline library and a local history.
 // On exit, save this local history under the name historyfilename(history),
 // unless history begins with an underscore character.
-string readline(string *prompt, string history=emptystring,
-		string initial=emptystring)
+string readline(string prompt=emptystring, string history=emptystring,
+		string initial=emptystring, bool tabcompletion=false)
 {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-  init_readline(); 
+  init_readline(tabcompletion);
   
   store_history(&history_save);
   bool newhistory=historyMap.find(history) == historyMap.end();
@@ -2676,10 +2676,10 @@ string readline(string *prompt, string history=emptystring,
      
   HIST_ENTRY *last=history_get(history_length);
   const char *Default=last ? last->line : initial.c_str();
-  int size=snprintf(NULL,0,prompt->c_str(),Default)+1;
+  int size=snprintf(NULL,0,prompt.c_str(),Default)+1;
   if(size < 1) size=255; // Workaround for non-C99 compliant systems.
   char *buf=new char[size];
-  snprintf(buf,size,prompt->c_str(),Default);
+  snprintf(buf,size,prompt.c_str(),Default);
   
   /* Get a line from the user. */
   line_read=readline(buf);
@@ -2695,7 +2695,7 @@ string readline(string *prompt, string history=emptystring,
   
   return line_read ? string(*line_read ? line_read : Default) : emptystring;
 #else
-  Stdout.write(*prompt);
+  Stdout.write(prompt);
   static ifile Stdin("");
   string s;
   Stdin.read(s);
