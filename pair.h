@@ -171,7 +171,7 @@ public:
     bool paren=s.peek() == '('; // parenthesis are optional
     if(paren) s >> c;
     s >> z.x >> ws;
-    if(s.peek() == ',') s >> c >> z.y;
+    if(!s.eof() && s.peek() == ',') s >> c >> z.y;
     else z.y=0.0;
     if(paren) {
       s >> ws;
