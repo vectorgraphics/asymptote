@@ -5323,6 +5323,7 @@ Options:
 -h,-help              Show summary of options
 -historylines n       Retain n lines of history (default 1000)
 -i,-ignoreGUI         Ignore GUI operations
+-inlinetex            Generate inline tex code
 -interactiveMask      Mask fpu exceptions in interactive mode
 -interactiveView      View output files in interactive mode
 -k,-keep              Keep intermediate files

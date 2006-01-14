@@ -659,7 +659,7 @@ void initSettings() {
   addOption(new boolSetting("tex", 0,
 			    "Enable LaTeX label postprocessing (default)",
 			    true));
-  addOption(new boolSetting("inlinetex", 0, ""));
+  addOption(new boolSetting("inlinetex", 0, "Generate inline tex code"));
   addOption(new boolSetting("parseonly", 'p', "Parse test"));
   addOption(new boolSetting("translate", 's', "Translate test"));
   addOption(new boolSetting("listvariables", 'l',
