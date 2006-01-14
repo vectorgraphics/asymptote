@@ -2,7 +2,7 @@
  * feynman.asy -- An Asymptote library for drawing Feynman diagrams.         *
  *                                                                           *
  * by:  Martin Wiebusch <martin.wiebusch@gmx.net>                            *
- * last change: 2005/08/28                                                   *
+ * last change: 2006/01/14                                                   *
  *****************************************************************************/
 
 
@@ -160,31 +160,28 @@ path gluon(path p, real amp = gluonamplitude, real width=-1)
 // set to amp*photonratio
 path photon(path p, real amp = photonamplitude, real width=-1)
 {
-    if(width < 0) width = abs(photonratio*amp);
+    if(width < 0)
+        width = abs(photonratio*amp)/2;
+    else
+        width = width/2;
 
     real pathlen = arclength(p);
     int ncurls = floor(pathlen/width);
-    real firstlen = (pathlen - width*(ncurls-1))/2;
-    real firstt = arctime(p, firstlen);
-    pair firstv = dir(p, firstt);
-    guide g =   point(p, 0){dir(p, 0)}
-              ..{firstv}( point(p, firstt)+amp*unit(rotate(90)*firstv));
+    real firstlen = (pathlen - width*ncurls)/2;
+    real firstt = arctime(p, firstlen+width);
+    guide g =   point(p, 0){unit(point(p, firstt)-point(p, 0))};
 
-    real t1;
-    pair v1;
-    real t2;
-    pair v2;
+    real t;
+    pair v;
     pathlen -= firstlen;
-    for(real len = firstlen+width/2; len < pathlen; len += width) {
-        t1 = arctime(p, len);
-        v1 = dir(p, t1);
-        t2 = arctime(p, len + width/2);
-        v2 = dir(p, t2);
+    for(real len = firstlen+width; len < pathlen; len += width) {
+        t = arctime(p, len);
+        v = dir(p, t);
 
-        g=g..{+v1}(point(p, t1)+amp*unit(rotate(-90)*v1))
-           ..{+v2}(point(p, t2)+amp*unit(rotate(+90)*v2));
+        g=g..{v}(point(p, t)+amp*unit(rotate(90)*v));
+        amp = -amp;
     }
-    g = g..{dir(p, size(p))}point(p, size(p));
+    g = g..{unit(point(p, size(p))-point(p, t))}point(p, size(p));
     return g;
 }
 
@@ -193,22 +190,41 @@ path photon(path p, real amp = photonamplitude, real width=-1)
 // usually be one of the predefined pairs left or right. Making adjust
 // nonzero shifts the momentum arrow along the path.
 path momArrowPath(path p,
-                  pair position,
-                  real adjust = 0,
+                  align align,
+                  position pos,
                   real offset = momarrowoffset,
                   real length = momarrowlength)
 {
     real pathlen = arclength(p);
-    real t1 = arctime(p, (pathlen-length)/2 + adjust);
+
+    real t1, t2;
+    if(pos.relative) {
+        t1 = arctime(p, (pathlen-length)*pos.position.x);
+        t2 = arctime(p, (pathlen-length)*pos.position.x+length);
+    } else {
+        t1 = arctime(p, (pathlen-length)/2 + pos.position.x);
+        t2 = arctime(p, (pathlen+length)/2+ pos.position.x);
+    }
+
     pair v1 = dir(p, t1);
-    real t2 = arctime(p, (pathlen+length)/2+ adjust);
     pair v2 = dir(p, t2);
 
-    pair p1 = point(p, t1) + offset*unit(position*(rotate(-90)*v1));
-    pair p2 = point(p, t2) + offset*unit(position*(rotate(-90)*v2));
+    pair p1, p2;
+    if(align.relative) {
+        p1 = point(p, t1) +  offset*abs(align.dir)
+                            *unit(rotate(degrees(align.dir)-90)*v1);
+        p2 = point(p, t2) +  offset*abs(align.dir)
+                            *unit(rotate(degrees(align.dir)-90)*v2);
+    } else {
+        p1 = point(p, t1) + offset*align.dir;
+        p2 = point(p, t2) + offset*align.dir;
+    }
 
     return p1{v1}..{v2}p2;
 }
+
+
+
 
 /* drawing functions *********************************************************/
 
@@ -336,7 +352,7 @@ void drawDoubleLine(picture pic = currentpicture,
 
     real htw = linewidth(fgpen)+dlspacing/2;
     draw(pic, p, fgpen+2*htw);
-    draw(pic, p, bgpen+dlspacing);
+    draw(pic, p, bgpen+(linewidth(dlspacing)));
     path rect = (-htw,-htw)--(-htw,htw)--(0,htw)--(0,-htw)--cycle;
     fill(shift(point(p,0))*rotate(degrees(dir(p,0)))*rect, bgpen);
     fill(shift(point(p,size(p)))*scale(-1)*rotate(degrees(dir(p,size(p))))*
@@ -489,8 +505,8 @@ void drawVertexBoxX(picture pic = currentpicture,
 // arrow does not overdraw the particle line.
 void drawMomArrow(picture pic = currentpicture,
                   path p,
-                  pair position,
-                  real adjust = 0,
+                  align align,
+                  position pos = MidPoint,
                   real offset = momarrowoffset,
                   real length = momarrowlength,
                   pen fgpen = momarrowpen,
@@ -499,35 +515,10 @@ void drawMomArrow(picture pic = currentpicture,
                   pen bgpen = backgroundpen,
                   real margin = momarrowmargin)
 {
-    path momarrow = momArrowPath(p, position, adjust, offset, length);
+    path momarrow = momArrowPath(p, align, pos, offset, length);
     if(erasebg) do_overpaint(pic, momarrow, bgpen, 
                              linewidth(fgpen)+margin, 90);
     draw(pic, momarrow, fgpen, arrow);
-}
-
-// draw a reverse momentum arrow on picture pic, along path p, at position
-// position (use one of the predefined pairs left or right), with an offset
-// offset from the path, a length length, a pen fgpen and an arrowhead arrow.
-// Making adjust nonzero shifts the momentum arrow along the path.
-// If erasebg is true, the background is erased inside a margin margin around
-// the momentum arrow. Make sure that offset and margin are chosen in such
-// a way that the momentum arrow does not overdraw the particle line.
-void drawReverseMomArrow(picture pic = currentpicture,
-                         path p,
-                         pair position,
-                         real adjust = 0,
-                         real offset = momarrowoffset,
-                         real length = momarrowlength,
-                         pen fgpen = momarrowpen,
-                         arrowbar arrow = currentmomarrow,
-                         bool erasebg = overpaint,
-                         pen bgpen = backgroundpen,
-                         real margin = momarrowmargin)
-{
-    path momarrow = momArrowPath(p, position, adjust, offset, length);
-    if(erasebg) do_overpaint(pic, reverse(momarrow), bgpen, 
-                             linewidth(fgpen)+margin, 90);
-    draw(pic, reverse(momarrow), fgpen, arrow);
 }
 
 
