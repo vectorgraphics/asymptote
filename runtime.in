@@ -307,7 +307,7 @@ string historyfilename(const string &name)
 
 int readline_startup_hook()
 {
-#ifdef MSDOS
+#ifdef __CYGWIN__
   rl_set_key("\\M-[3~",rl_delete,rl_get_keymap());
   rl_set_key("\\M-[2~",rl_overwrite_mode,rl_get_keymap());
 #endif    
@@ -319,7 +319,7 @@ void init_readline(bool tabcompletion=true)
   static bool first=true;
   if(first) {
     first=false;
-#ifdef MSDOS
+#ifdef __CYGWIN__
     rl_startup_hook=readline_startup_hook;
 #endif    
   }

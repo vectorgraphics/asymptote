@@ -45,12 +45,11 @@ ASYMPTOTE_DIR = ../base
 
 export prefix docdir exampledir mandir INSTALL ASYMPTOTE_DIR 
 
-# $(MAGIC) is here for when we include Makefile again from Compile
-asy$(MAGIC): depend
-	$(MAKE) -f Compile asy
+asy: $(FILES:=.o) $(GCLIBS)
+	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) $(LIBS)
 
-msdos$(MAGIC): depend
-	$(MAKE) -f Compile CFLAGS="-g -O3 -DMSDOS" LFLAGS="-s -static" msdos
+msdos: $(FILES:=.o) asy.o $(GCLIBS)
+	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) asy.o $(LIBS) -s -static
 
 asy.o:	asy.rc asy.ico Makefile
 	cat asy.rc | sed -e "s/ASYMPTOTE_VERSION/@VERSION@/" | \
@@ -71,8 +70,6 @@ doc:	asy
 
 man:	asy
 	cd doc; $(MAKE) man
-
-depend: $(GCLIBS) camp.tab.h runtime.cc $(FILES:=.d)
 
 runtime.cc: runtime.pl runtime.in
 	./runtime.pl
@@ -152,9 +149,21 @@ check: asy FORCE
 .cc.o:
 	$(CXX) $(OPTS) $(INCL) -o $@ -c $<
 .cc.d:
-	$(CXX) $(MAKEDEPEND) $(INCL) $(MDOPTS) $< > $@
+	@echo Creating $@; \
+	rm -f $@; \
+	${CXX} $(MAKEDEPEND) $(INCL) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
 .c.d:
-	$(CC) $(MAKEDEPEND) $(INCL) $(MDOPTS) $< > $@
+	@echo Creating $@; \
+	rm -f $@; \
+	${CC} $(MAKEDEPEND) $(INCL) $(MDOPTS) $< > $@.$$$$ 2>/dev/null && \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+ifeq (,$(findstring clean,${MAKECMDGOALS}))
+-include $(FILES:=.d)
+endif
 
 FORCE:
 

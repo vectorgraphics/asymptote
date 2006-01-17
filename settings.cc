@@ -49,7 +49,7 @@ namespace settings {
   
 using camp::pair;
   
-#ifdef MSDOS
+#ifdef __CYGWIN__
 const bool msdos=true;
 const char pathSeparator=';';
 const string defaultPSViewer=
