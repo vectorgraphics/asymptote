@@ -46,7 +46,7 @@ void init_interactive()
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 
 /* Read a string, and return a pointer to it. Returns NULL on EOF. */
-char *rl_gets()
+const char *rl_gets()
 {
   static char *line_read=NULL;
   /* If the buffer has already been allocated,
@@ -127,7 +127,7 @@ size_t interactive_input(char *buf, size_t max_size)
     
   if(virtualEOF) return 0;
   
-  static char *line;
+  static const char *line;
 
   if(inputmode) {
     inputmode=false;  
