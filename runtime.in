@@ -386,7 +386,7 @@ void checkformat(const char *ptr, bool intformat)
     else { /* We've got a format specifier. */
       ptr++;
       
-      while(strchr ("-+ #0", *ptr)) /* Move past flags.  */
+      while(*ptr && strchr ("-+ #0", *ptr)) /* Move past flags.  */
 	*ptr++;
 
       if(*ptr == '*')
@@ -402,40 +402,44 @@ void checkformat(const char *ptr, bool intformat)
 	  while(isdigit(*ptr)) /* Handle explicit numeric value.  */
 	    *ptr++;
       }
-      while(strchr ("hlL", *ptr))
+      while(*ptr && strchr ("hlL", *ptr))
 	*ptr++;
 	  
       if(*ptr == '%') ++ptr;
-      else if(intformat) {
-	switch(*ptr) {
-	case 'd':
-	case 'i':
-	case 'o':
-	case 'u':
-	case 'x':
-	case 'X':
-	case 'c':
-	  break;
-	default:
-	  ostringstream buf;
-	  buf << "Invalid format for type " << types::names[types::ty_int];
-	  error(buf.str().c_str());
-	  break;
-	}
-      } else {
+      else if(*ptr != '\0') {
+	if(intformat) {
 	  switch(*ptr) {
-	    case 'f':
-	    case 'e':
-	    case 'E':
-	    case 'g':
-	    case 'G':
+	  case 'd':
+	  case 'i':
+	  case 'o':
+	  case 'u':
+	  case 'x':
+	  case 'X':
+	  case 'c':
 	    break;
 	  default:
 	    ostringstream buf;
-	    buf << "Invalid format for type " << types::names[types::ty_real];
+	    buf << "Invalid format '" << *ptr << "' for type " 
+		<< types::names[types::ty_int];
 	    error(buf.str().c_str());
 	    break;
 	  }
+	} else {
+	  switch(*ptr) {
+	  case 'f':
+	  case 'e':
+	  case 'E':
+	  case 'g':
+	  case 'G':
+	    break;
+	  default:
+	    ostringstream buf;
+	    buf << "Invalid format '" << *ptr << "' for type "
+		<< types::names[types::ty_real];
+	    error(buf.str().c_str());
+	    break;
+	  }
+	}
       }
     } /* End of else statement */
   }
