@@ -1954,6 +1954,7 @@ Here @code{filltype} specifies one of the following fill types:
 Fill with the pen used to draw the boundary.
 
 @item Fill(pen p=nullpen)
+@cindex @code{nullpen}
 If @code{p} is @code{nullpen}, fill with the pen used to draw the
 boundary; otherwise fill with pen @code{p}.
 
@@ -2459,6 +2460,9 @@ not
 @end table
 
 @code{Asymptote} also supports the C-like conditional syntax:
+@cindex @code{:}
+@cindex @code{?}
+@cindex conditional
 @verbatim
 bool positive=(pi >= 0) ? true : false;
 @end verbatim
@@ -3877,6 +3881,7 @@ spaced in [@code{a},@code{b}], with the given interpolation type.
 
 @item
 @verbatim
+@cindex @code{polargraph}
 guide polargraph(real f(real), real a, real b, int n=ngraph,
                  interpolate join=operator --);
 @end verbatim
@@ -5144,6 +5149,7 @@ Draw Label @code{L} on picture @code{pic} using pen @code{p}. If
 coordinate @code{position}; otherwise it will be aligned in the
 direction of @code{align} and displaced from @code{position} by
 the @code{PostScript} offset @code{align*labelmargin(p)}.
+@cindex @code{nullpen}
 If @code{p} is @code{nullpen}, the pen specified within the
 Label, which defaults to @code{currentpen}, will be used.
 @anchor{Label}
