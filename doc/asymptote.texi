@@ -5300,6 +5300,9 @@ output. We recommend using the modified version of @code{dvipdf} in
 the @code{Asymptote} patches directory, which accepts the @code{dvips -z}
 hyperdvi option. 
 
+An excellent tutorial by Dario Teixeira on integrating @code{Asymptote} and
+@code{LaTeX} is available at @url{http://dario.dse.nl/projects/asylatex/}.
+
 Here now is @code{latexusage.tex}:
 @verbatiminclude latexusage.tex
 @page
