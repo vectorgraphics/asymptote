@@ -223,7 +223,14 @@ bool picture::texprocess(const string& texname, const string& outname,
 	first=false;
       } else *fout << s << endl;
     }
-    if(Fout) delete Fout;
+    if(Fout) {
+      if(!Fout->good()) {
+	ostringstream msg;
+	msg << "Cannot write to " << outname.c_str();
+	reportError(msg);
+      }
+      delete Fout;
+    }
     
     if(!getSetting<bool>("keep")) { // Delete temporary files.
       unlink("texput.log");
@@ -255,10 +262,11 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	  << " -dDEVICEHEIGHTPOINTS=" 
 	  << bpos.top-bpos.bottom+1.0
 	  << " -sOutputFile=" << outname << " " << epsname;
-      System(cmd,false,true,"gs","Ghostscript");
+      status=System(cmd,false,true,"gs","Ghostscript");
     } else {
       double expand=2.0;
-      double res=(tgifformat ? getSetting<double>("deconstruct") : expand)*72.0;
+      double res=(tgifformat ? getSetting<double>("deconstruct") : expand)*
+	72.0;
       cmd << getSetting<mem::string>("convert") 
 	  << " -density " << res << "x" << res;
       if(!tgifformat) cmd << " +antialias -geometry " << 100.0/expand << "%x";
@@ -266,12 +274,14 @@ bool picture::postprocess(const string& epsname, const string& outname,
       if(tgifformat) cmd << " -transparent white gif";
       else cmd << " " << outputformat;
       cmd << ":" << outname;
-      System(cmd,false,true,"convert");
+      status=System(cmd,false,true,"convert");
     }
     if(!getSetting<bool>("keep")) unlink(epsname.c_str());
   }
+  if(status != 0) return false;
   
-  if(verbose > (tgifformat ? 1 : 0)) cout << "Wrote " << outname << endl;
+  if(verbose > (tgifformat ? 1 : 0)) 
+    cout << "Wrote " << outname << endl;
   if(view() && !quiet) {
     if(epsformat || pdfformat) {
       static int pid=0;
@@ -300,7 +310,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
       cmd << getSetting<mem::string>("display") << " " << outname;
       string application="your "+outputformat+" viewer";
       status=System(cmd,false,wait,"display",application.c_str());
-      if(status) return false;
+      if(status != 0) return false;
     }
   }
   
@@ -313,8 +323,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   bool standardout=Prefix == "-";
   string prefix=standardout ? "out" : Prefix;
   checkFormatString(format);
-  string outputformat=format.empty() ? (string)getSetting<mem::string>("outformat") :
-                                       format;
+  string outputformat=format.empty() ? 
+    (string)getSetting<mem::string>("outformat") : format;
   epsformat=outputformat.empty() || outputformat == "eps";
   pdfformat=outputformat == "pdf";
   tgifformat=outputformat == "tgif";
@@ -352,7 +362,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       cmd << getSetting<mem::string>("xasy") << " " << buildname(prefix) 
 	  << " " << ShipoutNumber << " " << 
 	buildname(getSetting<mem::string>("outname"));
-      System(cmd,false,true,Python != "" ? "python" : "xasy");
+      int status=System(cmd,false,true,Python != "" ? "python" : "xasy");
+      if(status != 0) return false;
     }
     ShipoutNumber++;
     return true;

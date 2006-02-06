@@ -21,7 +21,7 @@ namespace camp {
 void reportError(const string& desc)
 {
   em->runtime(vm::getPos());
-  *em << "camp: " << desc;
+  *em << desc;
   em->sync();
   throw handled_error(); 
 }
