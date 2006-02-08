@@ -72,13 +72,12 @@ void filltype(frame, path, pen) {}
 filltype Fill(pen p)
 {
   return new void(frame f, path g, pen drawpen) {
-    drawpen += solid;
-    filldraw(f,g,p == nullpen ? drawpen : p+solid,drawpen);
+    filldraw(f,g, p == nullpen ? drawpen : p, drawpen);
   };
 }
 
 public filltype NoFill=new void(frame f, path g, pen p) {
-  draw(f,g,p+solid);
+  draw(f,g,p);
 };
 
 public filltype Fill=Fill(nullpen);
