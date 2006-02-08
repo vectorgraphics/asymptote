@@ -1800,12 +1800,12 @@ pair :pairNegate(pair z)
   return -z;
 }
 
-double :pairXPart(pair z)
+double xpart:pairXPart(pair z)
 {
   return z.getx();
 }
 
-double :pairYPart(pair z)
+double ypart:pairYPart(pair z)
 {
   return z.gety();
 }
