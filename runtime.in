@@ -1873,17 +1873,17 @@ triple :realRealRealToTriple(double x, double y, double z)
   return triple(x,y,z);
 }
 
-double :tripleXPart(triple v)
+double xpart:tripleXPart(triple v)
 {
   return v.getx();
 }
 
-double :tripleYPart(triple v)
+double ypart:tripleYPart(triple v)
 {
   return v.gety();
 }
 
-double :tripleZPart(triple v)
+double zpart:tripleZPart(triple v)
 {
   return v.getz();
 }
