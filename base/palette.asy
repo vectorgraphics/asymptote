@@ -7,7 +7,7 @@ void image(picture pic=currentpicture, real[][] data, pen[] palette,
   palette=copy(palette);
   pic.add(new void (frame f, transform t) {
     image(f,data,palette,t*initial,t*final);
-    });
+  });
   pic.addBox(initial,final);
 }
 
@@ -45,7 +45,8 @@ picture palette(real[][] data, real width=Ticksize, pen[] palette,
     pair Z0=(0,(t*z0).y);
     pair Z1=(0,(t*z1).y);
     pair initial=Z0-width;
-    image(f,new real[][] {sequence(palette.length-1)},palette,initial,Z1);
+    image(f,transpose(new real[][] {sequence(palette.length-1)}),palette,
+	  initial,Z1);
     draw(f,Z0--initial--Z1-width--Z1,p);
   });
   

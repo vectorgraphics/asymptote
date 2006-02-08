@@ -308,8 +308,8 @@ void psfile::image(array *a, array *P)
        << newl
        << "<<" << newl
        << "/ImageType 1" << newl
-       << "/Width " << asize << newl
-       << "/Height " << a0size << newl
+       << "/Width " << a0size << newl
+       << "/Height " << asize << newl
        << "/BitsPerComponent 8" << newl
        << "/Decode [";
   
@@ -317,7 +317,7 @@ void psfile::image(array *a, array *P)
     *out << "0 1 ";
   
   *out << "]" << newl
-       << "/ImageMatrix [" << asize << " 0 0 " << a0size << " 0 0]" << newl
+       << "/ImageMatrix [" << a0size << " 0 0 " << asize << " 0 0]" << newl
        << "/DataSource currentfile /ASCIIHexDecode filter" << newl
        << ">>" << newl
        << "image" << newl;
