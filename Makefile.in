@@ -83,7 +83,7 @@ camp.tab.cc: camp.y
 lex.yy.cc: camp.l
 	$(LEX) -d -olex.yy.cc camp.l
 
-lex.yy.d: lex.yy.cc camp.tab.h
+lex.yy.d: lex.yy.cc camp.tab.h $(GCLIBS)
 
 install: install-asy install-man
 
