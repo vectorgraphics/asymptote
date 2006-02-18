@@ -139,7 +139,7 @@ struct power<int> {
       std::ostringstream buf;
       if(i > 0) buf << "array element " << i << ": ";
       buf << "Only 1 and -1 can be raised to negative exponents as integers.";
-      vm::error(buf.str().c_str());
+      vm::error(buf);
     }
     return pow(x,y);
   }

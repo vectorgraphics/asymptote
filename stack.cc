@@ -5,6 +5,7 @@
  * The general stack machine used to run compiled camp code.
  *****/
 
+#include <sstream>
 #include "stack.h"
 #include "program.h"
 #include "callable.h"
@@ -281,6 +282,11 @@ void error(const char* message)
   *em << message;
   em->sync();
   throw handled_error();
+}
+  
+void error(const std::ostringstream& message)
+{
+  error(message.str().c_str());
 }
 
 interactiveStack::interactiveStack()

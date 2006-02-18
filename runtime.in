@@ -195,7 +195,7 @@ void outOfBounds(const char *op, size_t len, int n)
   ostringstream buf;
   buf << op << " array of length " << len << " with out-of-bounds index "
       << n;
-  error(buf.str().c_str());
+  error(buf);
 }
 
 item& arrayRead(array *a, int n)  
@@ -273,7 +273,7 @@ void dividebyzero(size_t i)
   std::ostringstream buf;
   if(i > 0) buf << "array element " << i << ": ";
   buf << "Divide by zero";
-  error(buf.str().c_str());
+  error(buf);
 }
   
 void integeroverflow(size_t i)
@@ -281,7 +281,7 @@ void integeroverflow(size_t i)
   std::ostringstream buf;
   if(i > 0) buf << "array element " << i << ": ";
   buf << "Integer overflow";
-  error(buf.str().c_str());
+  error(buf);
 }
   
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
@@ -421,7 +421,7 @@ void checkformat(const char *ptr, bool intformat)
 	    ostringstream buf;
 	    buf << "Invalid format '" << *ptr << "' for type " 
 		<< types::names[types::ty_int];
-	    error(buf.str().c_str());
+	    error(buf);
 	    break;
 	  }
 	} else {
@@ -436,7 +436,7 @@ void checkformat(const char *ptr, bool intformat)
 	    ostringstream buf;
 	    buf << "Invalid format '" << *ptr << "' for type "
 		<< types::names[types::ty_real];
-	    error(buf.str().c_str());
+	    error(buf);
 	    break;
 	  }
 	}
@@ -1076,7 +1076,7 @@ string cd(string *d)
   if(rc != 0) {
     ostringstream buf;
     buf << "Cannot change to directory '" << *d << "'";
-    error(buf.str().c_str());
+    error(buf);
   }
   char *p=getPath();
   if(p && interact::interactive) 
@@ -2134,7 +2134,7 @@ item :arrayRead(array *a, int n)
   if (i.empty()) {
     ostringstream buf;
     buf << "read uninitialized value from array at index " << n;
-    error(buf.str().c_str());
+    error(buf);
   }
   return i;
 }
@@ -2605,7 +2605,10 @@ file* xinput(string name, bool check=true)
   file *f=new ixfile(name,check);
   return f;
 #else  
-  error("XDR support not enabled");
+  ostringstream buf;
+  buf << name << ": XDR read support not enabled";
+  error(buf);
+  if(check) return; // Never reached; suppress unused variable warning
 #endif
 }
 
@@ -2615,7 +2618,10 @@ file* xoutput(string name, bool append=false)
   file *f=new oxfile(name,append);
   return f;
 #else  
-  error("XDR support not enabled");
+  ostringstream buf;
+  buf << name << ": XDR write support not enabled";
+  error(buf);
+  if(append) return; // Never reached; suppress unused variable warning
 #endif
 }
 

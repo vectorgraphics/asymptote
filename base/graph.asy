@@ -1081,7 +1081,7 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
 
 // Restrict the x limits of a picture.
 void xlimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
-	     bool crop=Crop)
+	     bool crop=NoCrop)
 {
   if(!(finite(pic.userMin.x) && finite(pic.userMax.x)))
     abort("xlimits called on empty picture");
@@ -1114,7 +1114,7 @@ void xlimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
 
 // Restrict the y limits of a picture.
 void ylimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
-	     bool crop=Crop)
+	     bool crop=NoCrop)
 {
   if(!(finite(pic.userMin.y) && finite(pic.userMax.y)))
     abort("ylimits called on empty picture");

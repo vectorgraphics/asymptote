@@ -337,7 +337,7 @@ python="";
 MSDOS:
 psviewer="c:\Program Files\Ghostgum\gsview\gsview32.exe";
 pdfviewer="c:\Program Files\Adobe\Acrobat 7.0\Reader\AcroRd32.exe";
-gs="c:\Program Files\gs\gs8.51\bin\gswin32.exe";
+gs="c:\Program Files\gs\gs8.53\bin\gswin32.exe";
 python="c:\Python24\python.exe";
 @end verbatim
 
@@ -1882,11 +1882,13 @@ If exactly one of @code{x} or @code{y} is 0, no size restriction
 is imposed in that direction; it will be scaled the same as the other
 direction.
 
+@cindex @code{Aspect}
 If @code{keepAspect} is set to @code{Aspect} or @code{true},
 the picture will be scaled with its aspect ratio preserved such that
 the final width is no more than @code{x} and the final height is
 no more than @code{y}.
 
+@cindex @code{IgnoreAspect}
 If @code{keepAspect} is set to @code{IgnoreAspect} or @code{false},
 the picture will be scaled in both directions so that the final width
 is @code{x} and the height is @code{y}. 
@@ -2962,13 +2964,15 @@ and the integer @code{randMax}. A Gaussian random number generator
 @cindex arrays
 
 Appending @code{[]} to a built-in or user-defined type yields an array.
+The array element @code{i} of an array @code{A} can be accessed as @code{A[i]}.
 By default, attempts to access or assign to an array element using a negative
-index generates an error. While reading an array element with an index
-beyond the length of the array also generates an error, assignment to such an
-element causes the array to be resized to accommodate the new element.
-One can also index an array @code{A} with an integer array @code{B},
-to obtain the array formed by indexing array @code{A} with successive
-elements of array @code{B}.
+index generates an error. Reading an array element with an index
+beyond the length of the array also generates an error; however,
+assignment to an element beyond the length of the array causes the
+array to be resized to accommodate the new element. 
+One can also index an array @code{A} with an integer array @code{B}:
+the array @code{A[B]} is formed by indexing array @code{A} with
+successive elements of array @code{B}.
 
 The declaration
 @verbatim
@@ -3122,7 +3126,7 @@ columns. For example:
 @verbatim
 string[][] a={{"bob","9"},{"alice","5"},{"pete","7"},
               {"alice","4"}};
-write("Row sort (by column 0, using column 1 to break ties):");
+// Row sort (by column 0, using column 1 to break ties):
 write(stdout,sort(a));
 @end verbatim
 
@@ -4283,11 +4287,9 @@ specified @code{min} and @code{max} values (alternatively, the function
 @code{limits(pair, pair)} can be used to limit the axes to the
 box having opposite vertices at the given pairs).
 Existing objects in picture @code{pic} will be cropped to lie
-within the given limits unless @code{crop}=@code{NoCrop}. For example, if
-@code{xlimits} or @code{ylimits} are called with no arguments,
-existing objects in @code{currentpicture} will be cropped to the current
-graph limits. The function @code{crop(picture pic)} is equivalent
-to calling both @code{xlimits()} and @code{ylimits()}.
+within the given limits if @code{crop}=@code{Crop}. The function
+@code{crop(picture pic)} is equivalent to calling both
+@code{xlimits(Crop)} and @code{ylimits(Crop)}.
 @verbatiminclude parametricgraph.asy
 @image{parametricgraph}
 

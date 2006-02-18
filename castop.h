@@ -86,7 +86,7 @@ inline void reportEof(camp::file *f, int count)
   std::ostringstream buf;
   buf << "EOF after reading " << count
       << " values from file '" << f->filename() << "'.";
-  vm::error(buf.str().c_str());
+  vm::error(buf);
 }
 
 template<class T>
