@@ -74,6 +74,8 @@ man:	asy
 runtime.cc: runtime.pl runtime.in
 	./runtime.pl
 
+camp.tab.h: camp.tab.cc
+
 camp.tab.cc: camp.y
 	$(BISON) -dvt -b camp camp.y
 	mv camp.tab.c camp.tab.cc
