@@ -63,7 +63,7 @@ void arrow(frame f, path G, pen p=currentpen, real size=0,
   draw(f,subpath(R,arctime(R,size),length(R)),p);
   draw(f,S,p);
   guide head=arrowhead(G,position,p,size,angle);
-  filltype(f,head,p);
+  filltype(f,head,p+solid);
 }
 
 void arrow2(frame f, path G, pen p=currentpen, real size=0,
@@ -77,8 +77,8 @@ void arrow2(frame f, path G, pen p=currentpen, real size=0,
   draw(f,subpath(R,arctime(R,size),length(R)-arctime(G,size)),p);
   guide head=arrowhead(G,length(G),p,size,angle);
   guide tail=arrowhead(R,length(R),p,size,angle);
-  filltype(f,head,p);
-  filltype(f,tail,p);
+  filltype(f,head,p+solid);
+  filltype(f,tail,p+solid);
 }
 
 picture arrow(path g, pen p=currentpen, real size=0,
