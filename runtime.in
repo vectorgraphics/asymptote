@@ -90,6 +90,10 @@ using namespace vm;
 using namespace camp;
 using namespace settings;
 
+namespace settings {
+extern pen *initialdefaultpen;
+}
+
 namespace run {
 using camp::pair;
 using mem::string;
@@ -330,7 +334,7 @@ void init_readline(bool tabcompletion=true)
 
 void cleanup()
 {
-  defaultpen=camp::pen::startupdefaultpen();
+  if(initialdefaultpen) defaultpen=*initialdefaultpen;
   if(!interact::interactive) scrollLines=0;
   
   if(TeXinitialized) {
@@ -759,7 +763,7 @@ pair min(pen p)
 // Reset the meaning of pen default attributes.
 void resetdefaultpen()
 {
-  defaultpen=camp::pen::startupdefaultpen();
+  if(initialdefaultpen) defaultpen=*initialdefaultpen;
 }
 
 void defaultpen(pen p)

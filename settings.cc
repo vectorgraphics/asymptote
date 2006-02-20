@@ -95,6 +95,7 @@ bool TeXinitialized=false;
 string initdir;
 mem::string historyname;
 
+camp::pen *initialdefaultpen=NULL;
 camp::pen defaultpen=camp::pen::startupdefaultpen();
   
 // Local versions of the argument list.
@@ -692,7 +693,7 @@ void initSettings() {
 			    "Enable automatic importing of plain (default)",
 			    true));
   
-  addOption(new envSetting("config",initdir+"/config.asy"));
+  addOption(new envSetting("config","config.asy"));
   addOption(new envSetting("pdfviewer", defaultPDFViewer));
   addOption(new envSetting("psviewer", defaultPSViewer));
   addOption(new envSetting("gs", defaultGhostscript));
@@ -740,6 +741,7 @@ void initDir() {
   
 void setPath() {
   searchPath.push_back(".");
+  searchPath.push_back(initdir);
   string asydir=getSetting<mem::string>("dir");
   if(asydir != "") {
     size_t p,i=0;
@@ -788,6 +790,9 @@ void setOptions(int argc, char *argv[])
   // Read user configuration file.
   setPath();
   loop::doConfig(getSetting<mem::string>("config"));
+  
+    // Remember any changes to the defaultpen.
+  initialdefaultpen=new camp::pen(defaultpen);
 
   // Read command-line options again to override configuration file defaults.
   getOptions(argc,argv);

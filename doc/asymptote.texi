@@ -436,6 +436,12 @@ files, @code{asy} will search the following paths, in the order listed:
 @item
 The current directory;
 @item
+@cindex @code{ASYMPTOTE_CONFIG}
+@cindex @code{config}
+The configuration directory specified by the configuration variable
+@code{config} (by default the directory @code{.asy} in the user's home
+directory);
+@item
 @cindex @code{dir}
 A list of one or more directories specified by the configuration
 variable @code{dir} (separated by @code{:} under UNIX and
@@ -5369,6 +5375,7 @@ If multiple files are specified, they are treated as separate
 
 @anchor{configuration file}
 @cindex @code{ASYMPTOTE_CONFIG}
+@cindex @code{config}
 Default option values may be entered as @code{Asymptote} code in a
 configuration file.  The default configuration file is 
 @code{.asy/config.asy} in the user's home directory (or the file

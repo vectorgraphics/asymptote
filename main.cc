@@ -294,19 +294,14 @@ void doIPrompt() {
   Setting("outname")=(mem::string)"";
 }
 
-void runConfig(string filename) {
-  bool autoplain=getSetting<bool>("autoplain");
-  if(autoplain) Setting("autoplain")=false; // Turn off for speed.
-  doIFile(filename);
-  if(autoplain) Setting("autoplain")=true;
-}
-
-// Run the $HOME/.asy/config.asy or other config.asy file.
+// Run the config file.
 void doConfig(string filename) {
-  if(settings::fs::exists(filename)) runConfig(filename);
-  else {
-    string file = settings::locateFile("config.asy");
-    if(!file.empty()) runConfig(file);
+  string file = settings::locateFile(filename);
+  if(!file.empty()) {
+    bool autoplain=getSetting<bool>("autoplain");
+    if(autoplain) Setting("autoplain")=false; // Turn off for speed.
+    doIFile(file);
+    if(autoplain) Setting("autoplain")=true;
   }
 }
 
