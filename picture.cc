@@ -1,3 +1,4 @@
+
 /*****
  * picture.cc
  * Andy Hammerlindl 2002/06/06
@@ -155,9 +156,9 @@ bool picture::texprocess(const string& texname, const string& outname,
     cmd << getSetting<mem::string>("latex") 
 	<< " \\scrollmode\\input " << texname;
     bool quiet=verbose <= 1;
-    status=System(cmd,quiet,true,"latex");
+    status=System(cmd,quiet,"latex");
     if(status) {
-      if(quiet) status=System(cmd,true,"latex");
+      if(quiet) status=System(cmd,false,"latex");
       return false;
     }
     

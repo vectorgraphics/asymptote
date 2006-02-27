@@ -87,6 +87,7 @@ void texdefines(T& out, stringlist& preamble=TeXpreamble, bool pipe=false)
   
   if(pipe || !settings::getSetting<bool>("inlinetex"))
     out << "\\usepackage{pstricks,graphicx}" << newl;
+  if(pipe) out << "\\begin{document}" << newl;
 }
   
 class texfile : public gc {

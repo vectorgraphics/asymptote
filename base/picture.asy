@@ -574,7 +574,11 @@ struct picture {
       return scaling.build(1,0);
     }
     else {
-      write("warning: cannot fit picture to requested size...enlarging...");
+      for(int i=0; i < coords.length; ++i)
+	if(!finite(coords[i].user) || !finite(coords[i].truesize))
+	  abort("unbounded picture");
+      write("warning: cannot fit picture to size "+
+	    (string) size+"...enlarging...");
       return calculateScaling(coords,sqrt(2)*size);
     }
   }

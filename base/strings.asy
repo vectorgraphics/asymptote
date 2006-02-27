@@ -69,13 +69,13 @@ string math(string s)
   return "$"+s+"$";
 }
 
-string includegraphics(string name, string options="")
+string graphic(string name, string options="")
 {
   if(options != "") options="["+options+"]";
   return "\includegraphics"+options+"{"+name+"}";
 }
 
-string minipage(string s, real width=100pt)
+string minipage(string s, real width=100bp)
 {
   return "\begin{minipage}{"+(string) (width*pt)+"pt}"+s+"\end{minipage}";
 }

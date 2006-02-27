@@ -122,11 +122,12 @@ Import
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Implement @code{LaTeX} @code{babel} package
+* embed::                       Embedding movies, sounds, and 3D objects
 * graph::                       2D linear & logarithmic graphs
-* three::                       Three-dimensional vector graphics
+* three::                       3D vector graphics
 * graph3::                      3D linear & logarithmic graphs
 * light::                       3D lighting effects
-* featpost3D::                  Preliminary port of @code{featpost3d}
+* featpost3D::                  Partial port of @code{featpost3d}
 
 Drawing commands
 
@@ -724,9 +725,10 @@ for(int i=0; i < 10; ++i) {
 @cindex @code{ImageMagick}
 Loops, together with user-defined functions, are illustrated
 in the files @code{wheel.asy} and @code{cube.asy} in the
-animations subdirectory of the examples directory. These examples use the
-@code{gifmerge} command to @code{merge} multiple images into a
-gif animation, using the @code{ImageMagick} @code{convert} program.
+@code{animations} subdirectory of the examples directory. These
+examples use the @code{gifmerge} command to @code{merge} multiple
+images into a gif animation, using the @code{ImageMagick}
+@code{convert} program.
 
 @cindex @code{while}
 @cindex @code{do}
@@ -3585,11 +3587,12 @@ include graph;
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Implement @code{LaTeX} @code{babel} package
+* embed::                       Embedding movies, sounds, and 3D objects
 * graph::                       2D linear & logarithmic graphs
-* three::                       Three-dimensional vector graphics
+* three::                       3D vector graphics
 * graph3::                      3D linear & logarithmic graphs
 * light::                       3D lighting effects
-* featpost3D::                  Preliminary port of @code{featpost3d}
+* featpost3D::                  Partial port of @code{featpost3d}
 @end menu
 
 @node plain
@@ -3796,6 +3799,23 @@ This module implements the @code{LaTeX} @code{babel} package in
 import babel;
 babel("german");
 @end verbatim
+
+@node embed
+@subsection @code{embed}
+@cindex @code{embed}
+This module provides an interface to the @code{LaTeX} package
+(included with @code{MikTeX}) 
+@quotation
+@url{http://www.tug.org/tex-archive/macros/latex/contrib/movie15}
+@end quotation
+@noindent
+for embedding movies, sounds, and 3D objects into a @acronym{PDF} document.
+Note that Adobe unfortunately has not yet made available the required
+plugins for the Linux version of @code{Adobe Reader}.
+
+An example of this interface is provided in the file
+@code{embeddedmovie.asy} in the @code{animations} subdirectory of the
+examples directory.
 
 @node graph
 @subsection @code{graph}
@@ -4639,7 +4659,7 @@ Here is an example showing three orthogonal intersecting planes:
 @verbatiminclude planes.asy
 @image{planes}
 
-Here is an example showing all five three-dimensional path connectors:
+Here is an example showing all five 3D path connectors:
 @verbatiminclude join3.asy
 @image{join3}
 
@@ -4655,7 +4675,7 @@ void aspect(picture pic=currentpicture, bbox3 b,
 @end verbatim
 
 Further three-dimensional examples are provided in the files
-@code{near_earth.asy}, @code{conicurv.asy}, and (in the animations
+@code{near_earth.asy}, @code{conicurv.asy}, and (in the @code{animations}
 subdirectory) @code{cube.asy}.
 
 @node graph3
@@ -5233,7 +5253,7 @@ using margin @code{margin}.
 @cindex including images
 @cindex @code{include}
 @cindex @acronym{EPS}
-The function @code{string includegraphics(string name, string options="")}
+The function @code{string graphic(string name, string options="")}
 returns a string that can be used to include an encapsulated
 @code{PostScript} (@acronym{EPS}) file. Here, @code{name} is the name
 of the file to include and @code{options} is a string containing a
@@ -5244,7 +5264,7 @@ rotation (@code{angle=value}), scaling (@code{scale=factor}), clipping
 @code{layer()} function can be used to force future objects to be
 drawn on top of the included image:
 @verbatim
-label(includegraphics("file.eps","width=1cm"),(0,0),NE);
+label(graphic("file.eps","width=1cm"),(0,0),NE);
 layer();
 @end verbatim
 
@@ -5701,7 +5721,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  zxvf xargs cond polargraph xmin xmax plabel YZero labelling ln
 @c  LocalWords:  ymin ymax XZero xequals tickmin tickmax unlabelled se pq pena
 @c  LocalWords:  yequals Nobre Barbarosie Schwaiger nearearth conicurv Wiebusch
-@c  LocalWords:  unfill posterSize ngraph interpolatetype ctrl dt pic
+@c  LocalWords:  unfill posterSize ngraph interpolatetype ctrl dt pic getint
 @c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei nomarker
 @c  LocalWords:  westnile minipage infectiousM ra penb paletteticks drawline nV
 @c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis
@@ -5731,10 +5751,11 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  ticklabel popup UnFill markroutine marknodes markuniform erf
 @c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis Datadir
 @c  LocalWords:  resetdefaultpen latticeshade axialshade radialshade erfc det
-@c  LocalWords:  gouraudshade includegraphics unescaped nmesh nsub surfacepen
+@c  LocalWords:  gouraudshade unescaped nmesh nsub surfacepen getpair MikTeX
 @c  LocalWords:  lightgray meshpen localhistory axisT roundedpath unitsize aSin
 @c  LocalWords:  fontcommand makepen aCos aTan Knorr roundpath BeginPoint nView
 @c  LocalWords:  MidPoint EndPoint nmask antialiasing notex autoplain batchMask
 @c  LocalWords:  batchView clearGUI ignoreGUI interactiveMask interactiveView
 @c  LocalWords:  listvariables outformat outname parseonly prepending psviewer
-@c  LocalWords:  pdfviewer papertype
+@c  LocalWords:  pdfviewer papertype tabcompletion noautoplain plugins Teixeira
+@c  LocalWords:  embeddedmovie historylines inlinetex
