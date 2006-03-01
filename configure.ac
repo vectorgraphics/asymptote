@@ -79,6 +79,7 @@ if test "x$ac_cv_use_gc" != "xno" ; then
    OPTIONS=$OPTIONS"-DUSEGC "
    if test "x$ac_cv_use_gc" = "xsystem"; then
       AC_CHECK_HEADER(gc.h,
+        INCL="-I $prefix/include/gc" 
 	AC_CHECK_LIB([gc],[GC_malloc],[
 	  LIBS=$LIBS"-lgccpp -lgc"
 	  AC_MSG_NOTICE([enabling system $GCNAME])],[
