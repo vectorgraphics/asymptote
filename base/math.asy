@@ -303,18 +303,22 @@ real[][] solve(real[][] a, real[][] b, bool overwrite=false)
   int[] pivot=sequence(new int(int){return 0;},n);
   
   int col=0, row=0;
-  for(int i=0; i < n; ++i) {
+    for(int i=0; i < n; ++i) {
+    // This is the main loop over the columns to be reduced.
     real big=0.0;
     for(int j=0; j < n; ++j) {
-      real[] aj=abs(a[j]);
-      // Search for a pivot element.
-      if(find(pivot > 1) >= 0) abort("Singular matrix");
+      real[] aj=a[j];
+      // This is the outer loop of the search for a pivot element.
       if(pivot[j] != 1) {
-	real M=max(pivot == 0 ? aj : null);
-	if(M >= big) {
-	  big=M;
-	  row=j;
-	  col=find(aj == M);
+	for(int k=0; k < n; ++k) {
+	  if(pivot[k] == 0) {
+	    real temp=abs(aj[k]);
+	    if(temp >= big) {
+	      big=temp;
+	      row=j;
+	      col=k;
+	    }
+	  } else if(pivot[k] > 1) abort("Singular matrix");
 	}
       }
     }
