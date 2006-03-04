@@ -104,7 +104,7 @@ public:
     open(command,hint,application,out_fileno);
   }
   
-  void pipeclose() {
+  virtual void pipeclose() {
     if(pipeopen) {
       close(in[1]);
 //      close(out[0]);
@@ -112,7 +112,7 @@ public:
     }
   }
   
-  ~iopipestream() {
+  virtual ~iopipestream() {
     pipeclose();
   }
     

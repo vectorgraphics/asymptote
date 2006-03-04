@@ -17,7 +17,11 @@
 
 namespace camp {
 
-extern iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
+class texstream : public iopipestream {
+public:
+  void pipeclose();
+};
+extern texstream tex; // Bi-directional pipe to latex (to find label bbox)
 
 typedef mem::list<drawElement*> nodelist;
   

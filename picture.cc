@@ -25,8 +25,16 @@ double pageWidth, pageHeight;
 namespace camp {
 
 string texready=string("(Please type a command or say `\\end')\n*");
-iopipestream tex; // Bi-directional pipe to latex (to find label bbox)
-  
+texstream tex; // Bi-directional pipe to latex (to find label bbox)
+
+void texstream::pipeclose() {
+  iopipestream::pipeclose();
+  if (!getSetting<bool>("keep")) {
+    unlink("texput.log");
+    unlink("texput.aux");
+  }
+}
+
 picture::~picture()
 {
 }
@@ -234,7 +242,6 @@ bool picture::texprocess(const string& texname, const string& outname,
     }
     
     if(!getSetting<bool>("keep")) { // Delete temporary files.
-      unlink("texput.log");
       unlink(texname.c_str());
       unlink(dviname.c_str());
       unlink(psname.c_str());
