@@ -14,10 +14,15 @@ $(TESTS:=.ref) $(TESTS:=.out): %:
 	@rm -rf $@
 	@mkdir $@
 	@cd $@; \
-	asy -inlinetex ../$(basename $@)
+	asy -v -v -keep ../$(basename $@) \
+	    >$(basename $@).stdout 2>$(basename $@).stderr; \
+	rm -f *.dvi *.pdf *.gif *.jpg *.jpeg *.png
 
+# Ignore lines with timestamps of the form hh:mm, since the time changes between
+# runs.  This regex is fairly broad and it may need to be narrowed.  Also ignore
+# binary files, the types of which a listed in ignore.in.
 $(TESTS:=.diff): %.diff: %.out
-	diff -I CreationDate -u $(@:.diff=.ref) $(@:.diff=.out)
+	diff -I "[0-9][0-9]:[0-9][0-9]" -u $(@:.diff=.ref) $(@:.diff=.out)
 
 clean:
 	rm -rf *.out
