@@ -138,17 +138,24 @@ while (<>) {
   $code =~ s/\breturn ([^;]*);/{$stack->push$qualifier($1); return;}/g;
   $args = join("",c_params(@params));
 
-  print "#line $source_line \"runtime.in\"\n";
   print $comments;
+  $ncomments = ($comments =~ tr/\n//);
+  $source_line += $ncomments;
+  print "#line $source_line \"runtime.in\"\n";
+  my $prototype=$type . " " . $name . "(" . $params . ");";
+  $nprototype = ($prototype =~ tr/\n//)+1;
+  $source_line += $nprototype;
   if($name) {
-    my $prototype=$type . " " . $name . "(" . $params . ");";
     clean_params($prototype);
     print "// $prototype\n";
   }
   print "void $cname(stack *";
   if($type ne "void" or $params ne "") {print $stack;}
-  print ")\n{\n$args$code}\n\n";
+  print ")\n{\n$args";
+  print "#line $source_line \"runtime.in\"";
+  print "$code}\n\n";
   
+  $source_line -= $ncomments+$nprototype;
   $source_line += ($_ =~ tr/\n//);
   ++$count;
 }
