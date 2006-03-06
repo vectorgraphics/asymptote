@@ -51,6 +51,7 @@ file LICENSE in the top-level source directory).
 * Programming::                 The @code{Asymptote} vector graphics language
 * Drawing commands::            Four primitive graphics commands
 * LaTeX usage::                 Embedding @code{Asymptote} commands within @code{LaTeX}
+* Base modules::                Base modules shipped with @code{Asymptote}
 * Options::                     Command line options
 * Interactive mode::            Typing @code{Asymptote} commands interactively
 * GUI::                         Graphical user interface
@@ -105,7 +106,14 @@ Functions
 * Mathematical functions::      Standard libm functions
 
 
-Import
+Drawing commands
+
+* draw::                        Draw a path on a picture or frame
+* fill::                        Fill a cyclic path on a picture or frame
+* clip::                        Clip a picture or frame to a cyclic path
+* label::                       Label a point on a picture
+
+Base modules
 
 * plain::                       Default @code{Asymptote} base file
 * simplex::                     Linear programming: simplex method
@@ -129,12 +137,6 @@ Import
 * light::                       3D lighting effects
 * featpost3D::                  Partial port of @code{featpost3d}
 
-Drawing commands
-
-* draw::                        Draw a path on a picture or frame
-* fill::                        Fill a cyclic path on a picture or frame
-* clip::                        Clip a picture or frame to a cyclic path
-* label::                       Label a point on a picture
 
 @end detailmenu
 @end menu
@@ -3578,7 +3580,558 @@ include graph;
 @noindent
 @code{include "@value{Datadir}/asymptote/graph.asy";}
 
+@node Static
+@section Static
+@cindex @code{static}
 
+Static qualifiers allocate the memory address of a variable in a higher 
+enclosing scope.
+
+For a function body, the variable is allocated in the block where the
+function is defined; so in the code
+@verbatim
+struct s {
+  int count() {
+    static int c=0;
+    ++c;
+    return c;
+  }
+}
+@end verbatim
+
+@noindent
+there is one instance of the variable @code{c} for each
+object @code{s} (as opposed for each call of @code{count}). 
+
+Similarly, in
+@verbatim
+int factorial(int n) {
+  int helper(int k) {
+    static int x=1;
+    x *= k;
+    return k == 1 ? x : helper(k-1);
+  }
+  return helper(n);
+}
+@end verbatim
+
+@noindent
+there is one instance of @code{x} for every call to
+@code{factorial} (and not for every call to @code{helper}), so this is
+a correct, but ugly, implementation of factorial.
+
+Similarly, a static variable declared within a structure is allocated in
+the block where the structure is defined. Thus,
+@verbatim
+struct A {
+  struct B {
+    static pair z;
+  }
+}
+@end verbatim
+
+@noindent 
+creates one object @code{z} for each object of type @code{A} created.
+
+In this example,
+@verbatim
+int pow(int n, int k) {
+  struct A {
+    static int x=1;
+    void helper() {
+      x *= n;
+    }
+  }
+  A operator init() {return new A;}
+  for (int i=0; i < k; ++i) {
+    A a;
+    a.helper();
+  }
+  return A.x;
+}
+@end verbatim
+
+@noindent
+there is one instance of @code{x} for each call to @code{pow}, so this
+is an ugly implementation of exponentiation.
+
+@node Drawing commands
+@chapter Drawing commands
+@cindex drawing commands
+
+All of @code{Asymptote}'s graphical capabilities are based on four primitive
+commands. The three @code{PostScript} drawing commands @code{draw},
+@code{fill}, and @code{clip} add objects to a picture in the order in
+which they are executed, with the most recently drawn object appearing on top.
+The labeling command @code{label} can be used to add text
+labels and external @acronym{EPS} images, which will appear on top of the
+@code{PostScript} objects (since this is normally what one wants), but
+again in the relative order in which they were executed. After drawing
+objects on a picture, the picture can be output with the
+@code{shipout} function (@pxref{shipout}).
+
+@cindex @code{layer}
+If you wish to draw @code{PostScript} objects on top of labels (or verbatim
+@code{tex} commands; @pxref{tex}), the @code{layer} command may be
+used to start a
+new @code{PostScript/LaTeX} layer:
+@verbatim
+void layer(picture pic=currentpicture);
+@end verbatim
+
+The @code{layer} function gives one full control over the order in which
+objects are drawn. Layers are drawn sequentially, with the most recent
+layer appearing on top. Within each layer, labels, images, and
+verbatim @code{tex} commands are always drawn after the
+@code{PostScript} objects in that layer.
+
+While some of these drawing commands take many options, they all have sensible
+default values (for example, the picture argument defaults to
+currentpicture).
+
+@cindex legend
+@cindex @code{draw}
+@cindex @code{arrow}
+@menu
+* draw::                        Draw a path on a picture or frame
+* fill::                        Fill a cyclic path on a picture or frame
+* clip::                        Clip a picture or frame to a cyclic path
+* label::                       Label a point on a picture
+@end menu
+
+@node draw
+@section draw
+@verbatim 
+void draw(picture pic=currentpicture, Label L="", path g,
+          align align=NoAlign, pen p=currentpen,
+          arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
+          Label legend="", marker marker=nomarker);
+@end verbatim
+
+Draw the path @code{g} on the picture @code{pic} using pen @code{p}
+for drawing, with optional drawing attributes (Label @code{L},
+explicit label alignment @code{align},
+arrows and bars @code{arrow} and @code{bar}, margins @code{margin},
+legend, and markers @code{marker}). Only one parameter, the path, is 
+required. For convenience, the arguments @code{arrow} and @code{bar} may be
+specified in either order. The argument @code{legend} is a Label to
+use in constructing an optional legend entry. 
+
+@cindex @code{None}
+@cindex @code{BeginBar}
+@cindex @code{EndBar}
+@cindex @code{Bar}
+@cindex @code{Bars}
+Bars are useful for indicating dimensions. The possible values of
+@code{bar} are @code{None}, @code{BeginBar}, @code{EndBar} (or
+equivalently @code{Bar}), and @code{Bars} (which draws a bar at both
+ends of the path). Each of these bar specifiers (except for
+@code{None}) will accept an optional real argument that denotes the
+length of the bar in @code{PostScript} coordinates. The default
+bar length is @code{barsize(p)}.
+
+@anchor{arrows}
+@cindex @code{None}
+@cindex @code{Blank}
+@cindex @code{BeginArrow}
+@cindex @code{MidArrow}
+@cindex @code{EndArrow}
+@cindex @code{Arrow}
+@cindex @code{Arrows}
+@cindex @code{Fill}
+@cindex @code{NoFill}
+@cindex @code{BeginArcArrow}
+@cindex @code{EndArcArrow}
+@cindex @code{ArcArrow}
+@cindex @code{ArcArrows}
+The possible values of @code{arrow} are @code{None}, @code{Blank}
+(which draws no arrows or path), @code{BeginArrow}, @code{MidArrow},
+@code{EndArrow} (or equivalently @code{Arrow}),
+and @code{Arrows} (which draws an arrow at both ends of the path).
+These arrow specifiers (except for @code{None} and @code{Blank})
+may be given the optional arguments real
+@code{size} (arrowhead size in @code{PostScript} coordinates),
+real @code{angle} (arrowhead angle in degrees),
+@code{Fill} or @code{NoFill}, and (except also for @code{MidArrow} and
+@code{Arrows}) a relative real @code{position}
+along the path (an @code{arctime}) where the tip of the arrow should
+be placed. The default arrowhead size is @code{arrowheadsize(p)}.
+There are also arrow versions with slightly modified
+default values of @code{size} and @code{angle} suitable for curved
+arrows: @code{BeginArcArrow}, @code{EndArcArrow} (or equivalently
+@code{ArcArrow}), @code{MidArcArrow}, and @code{ArcArrows}.
+
+@cindex @code{NoMargin}
+@cindex @code{BeginMargin}
+@cindex @code{EndMargin}
+@cindex @code{Margin}
+@cindex @code{Margins}
+@cindex @code{BeginPenMargin}
+@cindex @code{EndPenMargin}
+@cindex @code{PenMargin}
+@cindex @code{PenMargins}
+@cindex @code{BeginDotMargin}
+@cindex @code{EndDotMargin}
+@cindex @code{DotMargin}
+@cindex @code{DotMargins}
+@cindex @code{Margin}
+@cindex @code{TrueMargin}
+Margins can be used to shrink the visible portion of a path by
+@code{labelmargin(p)} to avoid overlap with other drawn objects.
+Typical values of @code{margin} 
+are @code{NoMargin}, @code{BeginMargin}, @code{EndMargin} (or
+equivalently @code{Margin}), and @code{Margins} (which leaves a margin
+at both ends of the path). One may use @code{Margin(real begin, real end)}
+to specify the size of the beginning and ending margin, respectively,
+in multiples of the units @code{labelmargin(p)} used for aligning labels.
+Alternatively, @code{BeginPenMargin}, @code{EndPenMargin}
+(or equivalently @code{PenMargin}), @code{PenMargins},
+@code{PenMargin(real begin, real end)} specify a margin in units of
+the pen linewidth, taking account of the pen linewidth when drawing
+the path or arrow. For example, use @code{DotMargin}, an
+abbreviation for @code{PenMargin(-0.5,0.5*dotfactor)},
+to draw from the usual beginning point just up to the boundary of an
+end dot of width @code{dotfactor*linewidth(p)}.  The qualifiers
+@code{BeginDotMargin}, @code{EndDotMargin}, and @code{DotMargins} work
+similarly. The qualifier @code{TrueMargin(real begin, real end)} allows one to
+specify a margin directly in @code{PostScript} units, independent of
+the pen linewidth.
+
+The use of arrows, bars, and margins is illustrated by the examples
+@code{Pythagoras.asy}, @code{sqrtx01.asy}, and @code{triads.asy}.
+
+The legend for a picture @code{pic} can be fit and aligned to a frame
+with the routine (@pxref{filltype})
+@verbatim
+frame legend(picture pic=currentpicture, pair dir=0, 
+	     real xmargin=legendmargin, real ymargin=xmargin,
+	     real length=legendlinelength, real skip=legendskip,
+	     pen p=currentpen);
+@end verbatim
+@noindent
+Here @code{length} specifies the length of the path lines and 
+@code{skip} specifies the line skip, in units of the legend label fontsize.
+The legend frame can then be added about the point @code{origin} to a
+picture @code{dest} using @code{add} or @code{attach} (@pxref{add about}).
+
+@cindex @code{dot}
+To draw a dot, simply draw a path containing a single point.
+The @code{dot} command defined in the module @code{plain} draws a
+dot having a a diameter equal to an explicit pen linewidth or the
+default linewidth magnified by @code{dotfactor} (6 by default):
+@verbatim
+void dot(picture pic=currentpicture, pair z, pen p=currentpen);
+void dot(picture pic=currentpicture, pair[] z, pen p=currentpen);
+void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
+         string format=defaultformat, pen p=currentpen)
+void dot(picture pic=currentpicture, Label L, pen p=currentpen)
+@end verbatim
+
+@cindex @code{Label}
+The third routine draws a dot at every point of a pair array @code{z}.
+If the special variable @code{Label} is given as the @code{Label}
+argument to the fourth routine, the @code{format} argument will be
+used to format a string based on the dot location (here @code{defaultformat}
+is @code{"$%.4g$"}). One can also draw a dot at every node of a path:
+@verbatim
+void dot(picture pic=currentpicture, guide g, pen p=currentpen);
+@end verbatim
+See @ref{markers} for a more general way of marking path nodes.
+
+To draw a fixed-sized object (in @code{PostScript} coordinates) about the user
+coordinate @code{origin}, use the routine
+@cindex @code{draw}
+@verbatim
+void draw(pair origin, picture pic=currentpicture, Label L="", path g,
+          align align=NoAlign, pen p=currentpen, arrowbar arrow=None,
+          arrowbar bar=None, margin margin=NoMargin, Label legend="",
+          marker marker=nomarker);
+@end verbatim
+
+@cindex @code{fill}
+@node fill
+@section fill
+@verbatim
+void fill(picture pic=currentpicture, path g, pen p=currentpen);
+@end verbatim
+
+Fill the interior region bounded by the cyclic path @code{g} on the picture
+@code{pic}, using the pen @code{p}. 
+
+@cindex @code{filldraw}
+There is also a convenient @code{filldraw} command, which fills the path
+and then draws in the boundary. One can specify separate pens for each
+operation:
+@verbatim
+void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
+              pen drawpen=currentpen);
+@end verbatim
+
+@cindex @code{fill}
+This fixed-size version of @code{fill} allows one to fill an object
+described in @code{PostScript} coordinates about the user coordinate
+@code{origin}:
+@verbatim
+void fill(pair origin, picture pic=currentpicture, path g, pen p=currentpen);
+@end verbatim
+
+@noindent
+This is just a convenient abbreviation for the commands:
+@verbatim
+picture opic;
+fill(opic,g,p);
+add(origin,pic,opic);
+@end verbatim
+
+@anchor{gradient shading}
+@cindex gradient shading
+
+@cindex shading
+@cindex lattice shading
+Lattice gradient shading varying smoothly over a two-dimensional
+array of pens @code{p}, using fillrule @code{fillrule}, can be produced with
+@verbatim
+void latticeshade(picture pic=currentpicture, path g,
+                  pen fillrule=currentpen, pen[][] p)
+@end verbatim
+The pens in @code{p} must belong to the same color space. One can use the
+functions @code{rgb(pen)} or @code{cmyk(pen)} to promote pens to a
+higher color space, as illustrated in the example file
+@code{latticeshading.asy}.
+
+@cindex axial shading
+Axial gradient shading varying smoothly from @code{pena} to @code{penb} in the
+direction of the line segment @code{a--b} can be achieved with
+@verbatim
+void axialshade(picture pic=currentpicture, path g,
+                pen pena, pair a,
+                pen penb, pair b);
+@end verbatim
+
+@cindex radial shading
+Radial gradient shading varying smoothly from
+@code{pena} on the circle with center @code{a} and radius @code{ra} to
+@code{penb} on the circle with center @code{b} and radius @code{rb} 
+is similar:
+@verbatim
+void radialshade(picture pic=currentpicture, path g,
+                 pen pena, pair a, real ra,
+                 pen penb, pair b, real rb);
+@end verbatim
+@noindent
+Illustrations of radial shading are provided in the example files
+@code{shade.asy} and @code{ring.asy}.
+
+@cindex Gouraud shading
+Gouraud shading using fillrule @code{fillrule} and the vertex colors in the
+pen array @code{p} on a triangular lattice defined by the vertices
+@code{z} and edge flags @code{edges} is implemented with
+@verbatim
+void gouraudshade(picture pic=currentpicture, path g,
+                  pen fillrule=currentpen, pen[] p, pair[] z,
+                  int[] edges);
+@end verbatim
+@noindent
+The pens in @code{p} must belong to the same color space.
+Illustrations of Gouraud shading are provided in the example files
+@code{Gouraud.asy} and @code{sphere.asy}.
+
+@cindex unfill
+The following routine uses @code{evenodd} clipping together with the
+@code{^^} operator to unfill a region:
+
+@verbatim
+void unfill(picture pic=currentpicture, path g);
+@end verbatim
+
+@page
+@cindex @code{clip}
+@node clip
+@section clip
+@verbatim 
+void clip(picture pic=currentpicture, path g, pen p=currentpen);
+@end verbatim
+
+Clip the current contents of picture @code{pic} to the region bounded
+by the path @code{g}, using fillrule @code{p} (@pxref{fillrule}).
+For an illustration of picture clipping, see the first example in
+@ref{LaTeX usage}.
+
+@cindex @code{label}
+@node label
+@section label
+@verbatim
+void label(picture pic=currentpicture, Label L, pair position,
+           align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
+@end verbatim
+
+Draw Label @code{L} on picture @code{pic} using pen @code{p}. If
+@code{align} is @code{NoAlign}, the label will be centered at user
+coordinate @code{position}; otherwise it will be aligned in the
+direction of @code{align} and displaced from @code{position} by
+the @code{PostScript} offset @code{align*labelmargin(p)}.
+@cindex @code{nullpen}
+If @code{p} is @code{nullpen}, the pen specified within the
+Label, which defaults to @code{currentpen}, will be used.
+@anchor{Label}
+The Label @code{L} can either be a string or the structure obtained by calling
+one of the functions
+@verbatim
+Label Label(string s="", pair position, align align=NoAlign,
+            pen p=nullpen, filltype filltype=NoFill);
+Label Label(string s="", align align=NoAlign,
+            pen p=nullpen, filltype filltype=NoFill);
+Label Label(Label L, pair position, align align=NoAlign,
+            pen p=nullpen, filltype filltype=NoFill);
+Label Label(Label L, align align=NoAlign,
+            pen p=nullpen, filltype filltype=NoFill);
+@end verbatim
+The text of a Label can be scaled horizontally and/or vertically
+by multiplying it on the left with @code{xscale(real)},
+@code{yscale(real)}, or @code{scale(real)}.
+After optionally scaling a Label, it can be rotated by an angle by
+multiplying it on the left with a rotation (in degrees): for example,
+@code{rotate(45)*xscale(2)*L} first scales @code{L} in the @math{x}
+direction and then rotates it counterclockwise by 45 degrees.
+The final position of a Label can also be shifted by a
+@code{PostScript} coordinate translation like this: @code{shift(10,0)*L}.
+
+To add a label to a path, use
+@verbatim
+void label(picture pic=currentpicture, Label L, path g, align align=NoAlign,
+           pen p=nullpen, filltype filltype=NoFill);
+@end verbatim
+@cindex @code{Relative}
+By default the label will be positioned at the midpoint of the path.
+An alternative label location (an @code{arctime} value between 0 and
+@code{length(g)} @pxref{arctime}) may be specified as real value for
+@code{position} in constructing the Label. The position
+@code{Relative(real)} specifies a location relative to the total
+arclength of the path. These convenient abbreviations are predefined:
+@cindex @code{BeginPoint}
+@cindex @code{MidPoint}
+@cindex @code{EndPoint}
+@verbatim
+position BeginPoint=Relative(0);
+position MidPoint=Relative(0.5);
+position EndPoint=Relative(1);
+@end verbatim
+
+@cindex @code{Relative}
+@cindex @code{LeftSide}
+@cindex @code{Center}
+@cindex @code{RightSide}
+Path labels are aligned in the direction @code{align}, which may
+be specified as an absolute compass direction (pair) or a direction
+@code{Relative(pair)} measured relative to a north axis
+in the local direction of the path. For convenience @code{LeftSide},
+@code{Center}, and @code{RightSide} are defined as @code{Relative(W)},
+@code{Relative((0,0))}, and @code{Relative(E)}, respectively.
+Multiplying @code{LeftSide}, @code{Center}, @code{RightSide} on the
+left by a real scaling factor will move the label further away from or
+closer to the path.
+
+A label with a fixed-size arrow of length @code{arrowlength} pointing
+to @code{b} from direction @code{dir} can be produced with the routine
+@cindex @code{arrow}
+@verbatim
+void arrow(picture pic=currentpicture, Label L="", pair b, pair dir,
+           real length=arrowlength, align align=NoAlign,
+           pen p=currentpen, arrowbar arrow=Arrow, margin margin=EndMargin);
+@end verbatim
+If no alignment is specified (either in the Label or as an explicit
+argument), the optional Label will be aligned in the direction @code{dir},
+using margin @code{margin}.
+
+@cindex including images
+@cindex @code{include}
+@cindex @acronym{EPS}
+The function @code{string graphic(string name, string options="")}
+returns a string that can be used to include an encapsulated
+@code{PostScript} (@acronym{EPS}) file. Here, @code{name} is the name
+of the file to include and @code{options} is a string containing a
+comma-separated list of optional bounding box (@code{bb=llx lly urx
+ury}), width (@code{width=value}), height (@code{height=value}),
+rotation (@code{angle=value}), scaling (@code{scale=factor}), clipping
+(@code{clip=bool}), and draft mode (@code{draftx=bool}) parameters. The
+@code{layer()} function can be used to force future objects to be
+drawn on top of the included image:
+@verbatim
+label(graphic("file.eps","width=1cm"),(0,0),NE);
+layer();
+@end verbatim
+
+@cindex @code{baseline}
+The @code{string baseline(string s, align align=S, string template="M")} 
+function can be used to enlarge the bounding box of letters aligned
+below a horizontal line to match a given template, so that their
+baselines lie on a horizontal line. See @code{Pythagoras.asy} for an
+example.
+
+@cindex @code{minipage}
+The @code{string minipage(string s, width=100pt)} function can be used
+to format string @code{s} into a paragraph of width @code{width}, as
+illustrated in the following example:
+@verbatiminclude mosquito.asy
+
+@image{mosquito}
+
+One can prevent labels from overwriting one another with the
+@code{overwrite} pen attribute (@pxref{overwrite}).
+
+
+@node LaTeX usage
+@chapter @code{LaTeX} usage
+@cindex @code{LaTeX} usage
+@cindex @code{asymptote.sty}
+
+@code{Asymptote} comes with a convenient @code{LaTeX} style file
+@code{asymptote.sty} that makes @code{LaTeX}
+@code{Asymptote}-aware. Entering @code{Asymptote} code
+directly into the @code{LaTeX} source file, at the point where it is
+needed, keeps figures organized and avoids the need to invent new file
+names for each figure. Simply add the line
+@code{\usepackage@{asymptote@}} at the beginning of your file
+and enclose your @code{Asymptote} code within a
+@code{\begin@{asy@}...\end@{asy@}} environment. As with the
+@code{LaTeX} @code{comment} environment, the @code{\end@{asy@}} command
+must appear on a line by itself, with no leading spaces or trailing
+commands/comments.
+
+The sample @code{LaTeX} file below, named @code{latexusage.tex}, can
+be run as follows:
+@verbatim
+latex latexusage
+asy latexusage
+latex latexusage
+@end verbatim
+
+If the @code{[inline]} package option is given to
+@code{asymptote.sty}, inline @code{LaTeX} code is generated instead of
+@code{EPS} files.
+This makes LaTeX symbols visible to the
+@code{\begin@{asy@}...\end@{asy@}} environment.  In this mode,
+Asymptote correctly aligns LaTeX symbols defined outside of
+@code{\begin@{asy@}...\end@{asy@}}, but treats their size as zero; an
+optional second string can be given to @code{Label} to provide an
+estimate of the unknown label size. Note that labels might not show up
+in @acronym{DVI} viewers that cannot handle raw @code{PostScript} code; use
+@code{dvips}/@code{dvipdf} to produce @code{PostScript}/@acronym{PDF}
+output. We recommend using the modified version of @code{dvipdf} in
+the @code{Asymptote} patches directory, which accepts the @code{dvips -z}
+hyperdvi option. 
+
+An excellent tutorial by Dario Teixeira on integrating @code{Asymptote} and
+@code{LaTeX} is available at @url{http://dario.dse.nl/projects/asylatex/}.
+
+Here now is @code{latexusage.tex}:
+@verbatiminclude latexusage.tex
+@page
+@image{latexusage,,25cm}
+
+@node Base modules
+@chapter Base modules
+@cindex base modules
 
 @code{Asymptote} currently ships with the following base modules:
 
@@ -3604,10 +4157,11 @@ include graph;
 * graph3::                      3D linear & logarithmic graphs
 * light::                       3D lighting effects
 * featpost3D::                  Partial port of @code{featpost3d}
+
 @end menu
 
 @node plain
-@subsection @code{plain}
+@section @code{plain}
 @cindex @code{plain}
 
 This is the default @code{Asymptote} base file, which defines key parts of the
@@ -3622,7 +4176,7 @@ almost all @code{Asymptote} code. Use the @code{-noautoplain} command-line
 option to disable this feature.
 
 @node simplex
-@subsection @code{simplex}
+@section @code{simplex}
 @cindex @code{simplex}
 
 This package solves the two-variable linear programming problem using the
@@ -3630,7 +4184,7 @@ simplex method. It is used by the module @code{plain} for automatic
 sizing of pictures.
 
 @node math
-@subsection @code{math}
+@section @code{math}
 @cindex @code{math}
 This package extends @code{Asymptote}'s mathematical capabilities with
 radian/degree conversion routines, point-in-polygon and intersection
@@ -3709,7 +4263,7 @@ returns @code{true} iff the path @code{p} is straight.
 @end table
 
 @node geometry
-@subsection @code{geometry}
+@section @code{geometry}
 @cindex @code{geometry}
 @cindex @code{triangle}
 @cindex @code{perpendicular}
@@ -3718,7 +4272,7 @@ It currently includes a triangle structure and functions to draw
 interior arcs of triangles and perpendicular symbols.
 
 @node stats
-@subsection @code{stats}
+@section @code{stats}
 @cindex @code{stats}
 @cindex @code{leastsquares}
 This package implements a Gaussian random number generator
@@ -3726,48 +4280,48 @@ and a collection of statistics routines, including @code{histogram}
 and @code{leastsquares}.
 
 @node patterns
-@subsection @code{patterns}
+@section @code{patterns}
 @cindex @code{patterns}
 This package implements @code{Postscript} tiling patterns and includes
 several convenient pattern generation routines.
 
 @node palette
-@subsection @code{palette}
+@section @code{palette}
 @cindex @code{palette}
 This package implements color density images and palette bars,
 along with several predefined palettes (@pxref{images}).
 
 @node tree
-@subsection @code{tree}
+@section @code{tree}
 @cindex @code{tree}
 This package implements an example of a dynamic binary search tree.
 
 @node drawtree
-@subsection @code{drawtree}
+@section @code{drawtree}
 @cindex @code{drawtree}
 This is a simple tree drawing module used by the example @code{treetest.asy}.
 
 @node feynman
-@subsection @code{feynman}
+@section @code{feynman}
 @cindex @code{feynman}
 This package, contributed by Martin Wiebusch, is useful for drawing
 Feynman diagrams, as illustrated by the examples @code{eetomumu.asy}
 and @code{fermi.asy}.
 
 @node roundedpath
-@subsection @code{roundedpath}
+@section @code{roundedpath}
 @cindex @code{roundedpath}
 This package, contributed by Stefan Knorr, is useful for rounding the
 sharp corners of paths, as illustrated in the example file @code{roundpath.asy}.
 
 @node MetaPost
-@subsection @code{MetaPost}
+@section @code{MetaPost}
 @cindex @code{MetaPost}
 This package provides some useful routines to help @code{MetaPost} users
 migrate old @code{MetaPost} code to @code{Asymptote}.
 
 @node unicode
-@subsection @code{unicode}
+@section @code{unicode}
 @cindex @code{unicode}
 Import this package at the beginning of the file to instruct
 @code{LaTeX} to accept @code{unicode} (UTF-8) standardized international
@@ -3792,7 +4346,7 @@ defaultpen(font("T2A","cmr"));
 @end verbatim
 
 @node latin1
-@subsection @code{latin1}
+@section @code{latin1}
 @cindex @code{latin1}
 If you don't have @code{LaTeX} support for @code{unicode} installed,
 you can enable support for Western European languages (ISO 8859-1) by
@@ -3800,7 +4354,7 @@ importing the module @code{latin1}. This module can be used as a
 template for providing support for other ISO 8859 alphabets.
 
 @node babel
-@subsection @code{babel}
+@section @code{babel}
 @cindex @code{babel}
 This module implements the @code{LaTeX} @code{babel} package in
 @code{Asymptote}. For example:
@@ -3810,7 +4364,7 @@ babel("german");
 @end verbatim
 
 @node embed
-@subsection @code{embed}
+@section @code{embed}
 @cindex @code{embed}
 This module provides an interface to the @code{LaTeX} package
 (included with @code{MikTeX}) 
@@ -3827,7 +4381,7 @@ An example of this interface is provided in the file
 examples directory.
 
 @node graph
-@subsection @code{graph}
+@section @code{graph}
 @cindex @code{graph}
 @cindex 2D graphs
 This package implements two-dimensional linear and logarithmic graphs,
@@ -4494,7 +5048,7 @@ data in @code{diatom.csv} and @code{westnile.csv}.
 
 @page
 @node three
-@subsection @code{three}
+@section @code{three}
 @cindex @code{three}
 @cindex @code{guide3}
 @cindex @code{cycle3}
@@ -4688,7 +5242,7 @@ Further three-dimensional examples are provided in the files
 subdirectory) @code{cube.asy}.
 
 @node graph3
-@subsection @code{graph3}
+@section @code{graph3}
 @cindex @code{graph3}
 @cindex 3D graphs
 This module implements three-dimensional versions of the
@@ -4779,14 +5333,14 @@ Here is an example of a Gaussian surface:
 @image{surface}
 
 @node light
-@subsection @code{light}
+@section @code{light}
 @cindex @code{light}
 This module provides a simple implementation of three-dimensional
 lighting effects. An illustration is provided in the example file
 @code{sphere.asy}.
 
 @node featpost3D
-@subsection @code{featpost3D}
+@section @code{featpost3D}
 @cindex @code{featpost3D}
 To facilitate the conversion of existing MetaPost programs,
 this module contains a partial port of the @code{MetaPost} 3D package
@@ -4798,555 +5352,6 @@ original package is documented at
 @quotation
 @url{http://matagalatlante.org/nobre/featpost/doc/featpost.html}
 @end quotation
-
-@node Static
-@section Static
-@cindex @code{static}
-
-Static qualifiers allocate the memory address of a variable in a higher 
-enclosing scope.
-
-For a function body, the variable is allocated in the block where the
-function is defined; so in the code
-@verbatim
-struct s {
-  int count() {
-    static int c=0;
-    ++c;
-    return c;
-  }
-}
-@end verbatim
-
-@noindent
-there is one instance of the variable @code{c} for each
-object @code{s} (as opposed for each call of @code{count}). 
-
-Similarly, in
-@verbatim
-int factorial(int n) {
-  int helper(int k) {
-    static int x=1;
-    x *= k;
-    return k == 1 ? x : helper(k-1);
-  }
-  return helper(n);
-}
-@end verbatim
-
-@noindent
-there is one instance of @code{x} for every call to
-@code{factorial} (and not for every call to @code{helper}), so this is
-a correct, but ugly, implementation of factorial.
-
-Similarly, a static variable declared within a structure is allocated in
-the block where the structure is defined. Thus,
-@verbatim
-struct A {
-  struct B {
-    static pair z;
-  }
-}
-@end verbatim
-
-@noindent 
-creates one object @code{z} for each object of type @code{A} created.
-
-In this example,
-@verbatim
-int pow(int n, int k) {
-  struct A {
-    static int x=1;
-    void helper() {
-      x *= n;
-    }
-  }
-  A operator init() {return new A;}
-  for (int i=0; i < k; ++i) {
-    A a;
-    a.helper();
-  }
-  return A.x;
-}
-@end verbatim
-
-@noindent
-there is one instance of @code{x} for each call to @code{pow}, so this
-is an ugly implementation of exponentiation.
-
-@node Drawing commands
-@chapter Drawing commands
-@cindex drawing commands
-
-All of @code{Asymptote}'s graphical capabilities are based on four primitive
-commands. The three @code{PostScript} drawing commands @code{draw},
-@code{fill}, and @code{clip} add objects to a picture in the order in
-which they are executed, with the most recently drawn object appearing on top.
-The labeling command @code{label} can be used to add text
-labels and external @acronym{EPS} images, which will appear on top of the
-@code{PostScript} objects (since this is normally what one wants), but
-again in the relative order in which they were executed. After drawing
-objects on a picture, the picture can be output with the
-@code{shipout} function (@pxref{shipout}).
-
-@cindex @code{layer}
-If you wish to draw @code{PostScript} objects on top of labels (or verbatim
-@code{tex} commands; @pxref{tex}), the @code{layer} command may be
-used to start a
-new @code{PostScript/LaTeX} layer:
-@verbatim
-void layer(picture pic=currentpicture);
-@end verbatim
-
-The @code{layer} function gives one full control over the order in which
-objects are drawn. Layers are drawn sequentially, with the most recent
-layer appearing on top. Within each layer, labels, images, and
-verbatim @code{tex} commands are always drawn after the
-@code{PostScript} objects in that layer.
-
-While some of these drawing commands take many options, they all have sensible
-default values (for example, the picture argument defaults to
-currentpicture).
-
-@cindex legend
-@cindex @code{draw}
-@cindex @code{arrow}
-@menu
-* draw::                        Draw a path on a picture or frame
-* fill::                        Fill a cyclic path on a picture or frame
-* clip::                        Clip a picture or frame to a cyclic path
-* label::                       Label a point on a picture
-@end menu
-
-@node draw
-@section draw
-@verbatim 
-void draw(picture pic=currentpicture, Label L="", path g,
-          align align=NoAlign, pen p=currentpen,
-          arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
-          Label legend="", marker marker=nomarker);
-@end verbatim
-
-Draw the path @code{g} on the picture @code{pic} using pen @code{p}
-for drawing, with optional drawing attributes (Label @code{L},
-explicit label alignment @code{align},
-arrows and bars @code{arrow} and @code{bar}, margins @code{margin},
-legend, and markers @code{marker}). Only one parameter, the path, is 
-required. For convenience, the arguments @code{arrow} and @code{bar} may be
-specified in either order. The argument @code{legend} is a Label to
-use in constructing an optional legend entry. 
-
-@cindex @code{None}
-@cindex @code{BeginBar}
-@cindex @code{EndBar}
-@cindex @code{Bar}
-@cindex @code{Bars}
-Bars are useful for indicating dimensions. The possible values of
-@code{bar} are @code{None}, @code{BeginBar}, @code{EndBar} (or
-equivalently @code{Bar}), and @code{Bars} (which draws a bar at both
-ends of the path). Each of these bar specifiers (except for
-@code{None}) will accept an optional real argument that denotes the
-length of the bar in @code{PostScript} coordinates. The default
-bar length is @code{barsize(p)}.
-
-@anchor{arrows}
-@cindex @code{None}
-@cindex @code{Blank}
-@cindex @code{BeginArrow}
-@cindex @code{MidArrow}
-@cindex @code{EndArrow}
-@cindex @code{Arrow}
-@cindex @code{Arrows}
-@cindex @code{Fill}
-@cindex @code{NoFill}
-@cindex @code{BeginArcArrow}
-@cindex @code{EndArcArrow}
-@cindex @code{ArcArrow}
-@cindex @code{ArcArrows}
-The possible values of @code{arrow} are @code{None}, @code{Blank}
-(which draws no arrows or path), @code{BeginArrow}, @code{MidArrow},
-@code{EndArrow} (or equivalently @code{Arrow}),
-and @code{Arrows} (which draws an arrow at both ends of the path).
-These arrow specifiers (except for @code{None} and @code{Blank})
-may be given the optional arguments real
-@code{size} (arrowhead size in @code{PostScript} coordinates),
-real @code{angle} (arrowhead angle in degrees),
-@code{Fill} or @code{NoFill}, and (except also for @code{MidArrow} and
-@code{Arrows}) a relative real @code{position}
-along the path (an @code{arctime}) where the tip of the arrow should
-be placed. The default arrowhead size is @code{arrowheadsize(p)}.
-There are also arrow versions with slightly modified
-default values of @code{size} and @code{angle} suitable for curved
-arrows: @code{BeginArcArrow}, @code{EndArcArrow} (or equivalently
-@code{ArcArrow}), @code{MidArcArrow}, and @code{ArcArrows}.
-
-@cindex @code{NoMargin}
-@cindex @code{BeginMargin}
-@cindex @code{EndMargin}
-@cindex @code{Margin}
-@cindex @code{Margins}
-@cindex @code{BeginPenMargin}
-@cindex @code{EndPenMargin}
-@cindex @code{PenMargin}
-@cindex @code{PenMargins}
-@cindex @code{BeginDotMargin}
-@cindex @code{EndDotMargin}
-@cindex @code{DotMargin}
-@cindex @code{DotMargins}
-@cindex @code{Margin}
-@cindex @code{TrueMargin}
-Margins can be used to shrink the visible portion of a path by
-@code{labelmargin(p)} to avoid overlap with other drawn objects.
-Typical values of @code{margin} 
-are @code{NoMargin}, @code{BeginMargin}, @code{EndMargin} (or
-equivalently @code{Margin}), and @code{Margins} (which leaves a margin
-at both ends of the path). One may use @code{Margin(real begin, real end)}
-to specify the size of the beginning and ending margin, respectively,
-in multiples of the units @code{labelmargin(p)} used for aligning labels.
-Alternatively, @code{BeginPenMargin}, @code{EndPenMargin}
-(or equivalently @code{PenMargin}), @code{PenMargins},
-@code{PenMargin(real begin, real end)} specify a margin in units of
-the pen linewidth, taking account of the pen linewidth when drawing
-the path or arrow. For example, use @code{DotMargin}, an
-abbreviation for @code{PenMargin(-0.5,0.5*dotfactor)},
-to draw from the usual beginning point just up to the boundary of an
-end dot of width @code{dotfactor*linewidth(p)}.  The qualifiers
-@code{BeginDotMargin}, @code{EndDotMargin}, and @code{DotMargins} work
-similarly. The qualifier @code{TrueMargin(real begin, real end)} allows one to
-specify a margin directly in @code{PostScript} units, independent of
-the pen linewidth.
-
-The use of arrows, bars, and margins is illustrated by the examples
-@code{Pythagoras.asy}, @code{sqrtx01.asy}, and @code{triads.asy}.
-
-The legend for a picture @code{pic} can be fit and aligned to a frame
-with the routine (@pxref{filltype})
-@verbatim
-frame legend(picture pic=currentpicture, pair dir=0, 
-	     real xmargin=legendmargin, real ymargin=xmargin,
-	     real length=legendlinelength, real skip=legendskip,
-	     pen p=currentpen);
-@end verbatim
-@noindent
-Here @code{length} specifies the length of the path lines and 
-@code{skip} specifies the line skip, in units of the legend label fontsize.
-The legend frame can then be added about the point @code{origin} to a
-picture @code{dest} using @code{add} or @code{attach} (@pxref{add about}).
-
-@cindex @code{dot}
-To draw a dot, simply draw a path containing a single point.
-The @code{dot} command defined in the module @code{plain} draws a
-dot having a a diameter equal to an explicit pen linewidth or the
-default linewidth magnified by @code{dotfactor} (6 by default):
-@verbatim
-void dot(picture pic=currentpicture, pair z, pen p=currentpen);
-void dot(picture pic=currentpicture, pair[] z, pen p=currentpen);
-void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
-         string format=defaultformat, pen p=currentpen)
-void dot(picture pic=currentpicture, Label L, pen p=currentpen)
-@end verbatim
-
-@cindex @code{Label}
-The third routine draws a dot at every point of a pair array @code{z}.
-If the special variable @code{Label} is given as the @code{Label}
-argument to the fourth routine, the @code{format} argument will be
-used to format a string based on the dot location (here @code{defaultformat}
-is @code{"$%.4g$"}). One can also draw a dot at every node of a path:
-@verbatim
-void dot(picture pic=currentpicture, guide g, pen p=currentpen);
-@end verbatim
-See @ref{markers} for a more general way of marking path nodes.
-
-To draw a fixed-sized object (in @code{PostScript} coordinates) about the user
-coordinate @code{origin}, use the routine
-@cindex @code{draw}
-@verbatim
-void draw(pair origin, picture pic=currentpicture, Label L="", path g,
-          align align=NoAlign, pen p=currentpen, arrowbar arrow=None,
-          arrowbar bar=None, margin margin=NoMargin, Label legend="",
-          marker marker=nomarker);
-@end verbatim
-
-@cindex @code{fill}
-@node fill
-@section fill
-@verbatim
-void fill(picture pic=currentpicture, path g, pen p=currentpen);
-@end verbatim
-
-Fill the interior region bounded by the cyclic path @code{g} on the picture
-@code{pic}, using the pen @code{p}. 
-
-@cindex @code{filldraw}
-There is also a convenient @code{filldraw} command, which fills the path
-and then draws in the boundary. One can specify separate pens for each
-operation:
-@verbatim
-void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
-              pen drawpen=currentpen);
-@end verbatim
-
-@cindex @code{fill}
-This fixed-size version of @code{fill} allows one to fill an object
-described in @code{PostScript} coordinates about the user coordinate
-@code{origin}:
-@verbatim
-void fill(pair origin, picture pic=currentpicture, path g, pen p=currentpen);
-@end verbatim
-
-@noindent
-This is just a convenient abbreviation for the commands:
-@verbatim
-picture opic;
-fill(opic,g,p);
-add(origin,pic,opic);
-@end verbatim
-
-@anchor{gradient shading}
-@cindex gradient shading
-
-@cindex shading
-@cindex lattice shading
-Lattice gradient shading varying smoothly over a two-dimensional
-array of pens @code{p}, using fillrule @code{fillrule}, can be produced with
-@verbatim
-void latticeshade(picture pic=currentpicture, path g,
-                  pen fillrule=currentpen, pen[][] p)
-@end verbatim
-The pens in @code{p} must belong to the same color space. One can use the
-functions @code{rgb(pen)} or @code{cmyk(pen)} to promote pens to a
-higher color space, as illustrated in the example file
-@code{latticeshading.asy}.
-
-@cindex axial shading
-Axial gradient shading varying smoothly from @code{pena} to @code{penb} in the
-direction of the line segment @code{a--b} can be achieved with
-@verbatim
-void axialshade(picture pic=currentpicture, path g,
-                pen pena, pair a,
-                pen penb, pair b);
-@end verbatim
-
-@cindex radial shading
-Radial gradient shading varying smoothly from
-@code{pena} on the circle with center @code{a} and radius @code{ra} to
-@code{penb} on the circle with center @code{b} and radius @code{rb} 
-is similar:
-@verbatim
-void radialshade(picture pic=currentpicture, path g,
-                 pen pena, pair a, real ra,
-                 pen penb, pair b, real rb);
-@end verbatim
-@noindent
-Illustrations of radial shading are provided in the example files
-@code{shade.asy} and @code{ring.asy}.
-
-@cindex Gouraud shading
-Gouraud shading using fillrule @code{fillrule} and the vertex colors in the
-pen array @code{p} on a triangular lattice defined by the vertices
-@code{z} and edge flags @code{edges} is implemented with
-@verbatim
-void gouraudshade(picture pic=currentpicture, path g,
-                  pen fillrule=currentpen, pen[] p, pair[] z,
-                  int[] edges);
-@end verbatim
-@noindent
-The pens in @code{p} must belong to the same color space.
-Illustrations of Gouraud shading are provided in the example files
-@code{Gouraud.asy} and @code{sphere.asy}.
-
-@cindex unfill
-The following routine uses @code{evenodd} clipping together with the
-@code{^^} operator to unfill a region:
-
-@verbatim
-void unfill(picture pic=currentpicture, path g);
-@end verbatim
-
-@page
-@cindex @code{clip}
-@node clip
-@section clip
-@verbatim 
-void clip(picture pic=currentpicture, path g, pen p=currentpen);
-@end verbatim
-
-Clip the current contents of picture @code{pic} to the region bounded
-by the path @code{g}, using fillrule @code{p} (@pxref{fillrule}).
-For an illustration of picture clipping, see the first example in
-@ref{LaTeX usage}.
-
-@cindex @code{label}
-@node label
-@section label
-@verbatim
-void label(picture pic=currentpicture, Label L, pair position,
-           align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
-@end verbatim
-
-Draw Label @code{L} on picture @code{pic} using pen @code{p}. If
-@code{align} is @code{NoAlign}, the label will be centered at user
-coordinate @code{position}; otherwise it will be aligned in the
-direction of @code{align} and displaced from @code{position} by
-the @code{PostScript} offset @code{align*labelmargin(p)}.
-@cindex @code{nullpen}
-If @code{p} is @code{nullpen}, the pen specified within the
-Label, which defaults to @code{currentpen}, will be used.
-@anchor{Label}
-The Label @code{L} can either be a string or the structure obtained by calling
-one of the functions
-@verbatim
-Label Label(string s="", pair position, align align=NoAlign,
-            pen p=nullpen, filltype filltype=NoFill);
-Label Label(string s="", align align=NoAlign,
-            pen p=nullpen, filltype filltype=NoFill);
-Label Label(Label L, pair position, align align=NoAlign,
-            pen p=nullpen, filltype filltype=NoFill);
-Label Label(Label L, align align=NoAlign,
-            pen p=nullpen, filltype filltype=NoFill);
-@end verbatim
-The text of a Label can be scaled horizontally and/or vertically
-by multiplying it on the left with @code{xscale(real)},
-@code{yscale(real)}, or @code{scale(real)}.
-After optionally scaling a Label, it can be rotated by an angle by
-multiplying it on the left with a rotation (in degrees): for example,
-@code{rotate(45)*xscale(2)*L} first scales @code{L} in the @math{x}
-direction and then rotates it counterclockwise by 45 degrees.
-The final position of a Label can also be shifted by a
-@code{PostScript} coordinate translation like this: @code{shift(10,0)*L}.
-
-To add a label to a path, use
-@verbatim
-void label(picture pic=currentpicture, Label L, path g, align align=NoAlign,
-           pen p=nullpen, filltype filltype=NoFill);
-@end verbatim
-@cindex @code{Relative}
-By default the label will be positioned at the midpoint of the path.
-An alternative label location (an @code{arctime} value between 0 and
-@code{length(g)} @pxref{arctime}) may be specified as real value for
-@code{position} in constructing the Label. The position
-@code{Relative(real)} specifies a location relative to the total
-arclength of the path. These convenient abbreviations are predefined:
-@cindex @code{BeginPoint}
-@cindex @code{MidPoint}
-@cindex @code{EndPoint}
-@verbatim
-position BeginPoint=Relative(0);
-position MidPoint=Relative(0.5);
-position EndPoint=Relative(1);
-@end verbatim
-
-@cindex @code{Relative}
-@cindex @code{LeftSide}
-@cindex @code{Center}
-@cindex @code{RightSide}
-Path labels are aligned in the direction @code{align}, which may
-be specified as an absolute compass direction (pair) or a direction
-@code{Relative(pair)} measured relative to a north axis
-in the local direction of the path. For convenience @code{LeftSide},
-@code{Center}, and @code{RightSide} are defined as @code{Relative(W)},
-@code{Relative((0,0))}, and @code{Relative(E)}, respectively.
-Multiplying @code{LeftSide}, @code{Center}, @code{RightSide} on the
-left by a real scaling factor will move the label further away from or
-closer to the path.
-
-A label with a fixed-size arrow of length @code{arrowlength} pointing
-to @code{b} from direction @code{dir} can be produced with the routine
-@cindex @code{arrow}
-@verbatim
-void arrow(picture pic=currentpicture, Label L="", pair b, pair dir,
-           real length=arrowlength, align align=NoAlign,
-           pen p=currentpen, arrowbar arrow=Arrow, margin margin=EndMargin);
-@end verbatim
-If no alignment is specified (either in the Label or as an explicit
-argument), the optional Label will be aligned in the direction @code{dir},
-using margin @code{margin}.
-
-@cindex including images
-@cindex @code{include}
-@cindex @acronym{EPS}
-The function @code{string graphic(string name, string options="")}
-returns a string that can be used to include an encapsulated
-@code{PostScript} (@acronym{EPS}) file. Here, @code{name} is the name
-of the file to include and @code{options} is a string containing a
-comma-separated list of optional bounding box (@code{bb=llx lly urx
-ury}), width (@code{width=value}), height (@code{height=value}),
-rotation (@code{angle=value}), scaling (@code{scale=factor}), clipping
-(@code{clip=bool}), and draft mode (@code{draftx=bool}) parameters. The
-@code{layer()} function can be used to force future objects to be
-drawn on top of the included image:
-@verbatim
-label(graphic("file.eps","width=1cm"),(0,0),NE);
-layer();
-@end verbatim
-
-@cindex @code{baseline}
-The @code{string baseline(string s, align align=S, string template="M")} 
-function can be used to enlarge the bounding box of letters aligned
-below a horizontal line to match a given template, so that their
-baselines lie on a horizontal line. See @code{Pythagoras.asy} for an
-example.
-
-@cindex @code{minipage}
-The @code{string minipage(string s, width=100pt)} function can be used
-to format string @code{s} into a paragraph of width @code{width}, as
-illustrated in the following example:
-@verbatiminclude mosquito.asy
-
-@image{mosquito}
-
-One can prevent labels from overwriting one another with the
-@code{overwrite} pen attribute (@pxref{overwrite}).
-
-
-@node LaTeX usage
-@chapter @code{LaTeX} usage
-@cindex @code{LaTeX} usage
-@cindex @code{asymptote.sty}
-
-@code{Asymptote} comes with a convenient @code{LaTeX} style file
-@code{asymptote.sty} that makes @code{LaTeX}
-@code{Asymptote}-aware. Entering @code{Asymptote} code
-directly into the @code{LaTeX} source file, at the point where it is
-needed, keeps figures organized and avoids the need to invent new file
-names for each figure. Simply add the line
-@code{\usepackage@{asymptote@}} at the beginning of your file
-and enclose your @code{Asymptote} code within a
-@code{\begin@{asy@}...\end@{asy@}} environment. As with the
-@code{LaTeX} @code{comment} environment, the @code{\end@{asy@}} command
-must appear on a line by itself, with no leading spaces or trailing
-commands/comments.
-
-The sample @code{LaTeX} file below, named @code{latexusage.tex}, can
-be run as follows:
-@verbatim
-latex latexusage
-asy latexusage
-latex latexusage
-@end verbatim
-
-If the @code{[inline]} package option is given to
-@code{asymptote.sty}, inline @code{LaTeX} code is generated instead of
-@code{EPS} files.
-This makes LaTeX symbols visible to the
-@code{\begin@{asy@}...\end@{asy@}} environment.  In this mode,
-Asymptote correctly aligns LaTeX symbols defined outside of
-@code{\begin@{asy@}...\end@{asy@}}, but treats their size as zero; an
-optional second string can be given to @code{Label} to provide an
-estimate of the unknown label size. Note that labels might not show up
-in @acronym{DVI} viewers that cannot handle raw @code{PostScript} code; use
-@code{dvips}/@code{dvipdf} to produce @code{PostScript}/@acronym{PDF}
-output. We recommend using the modified version of @code{dvipdf} in
-the @code{Asymptote} patches directory, which accepts the @code{dvips -z}
-hyperdvi option. 
-
-An excellent tutorial by Dario Teixeira on integrating @code{Asymptote} and
-@code{LaTeX} is available at @url{http://dario.dse.nl/projects/asylatex/}.
-
-Here now is @code{latexusage.tex}:
-@verbatiminclude latexusage.tex
-@page
-@image{latexusage,,25cm}
 
 @node Options
 @chapter Options
@@ -5770,4 +5775,5 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  batchView clearGUI ignoreGUI interactiveMask interactiveView
 @c  LocalWords:  listvariables outformat outname parseonly prepending psviewer
 @c  LocalWords:  pdfviewer papertype tabcompletion noautoplain plugins Teixeira
-@c  LocalWords:  embeddedmovie historylines inlinetex
+@c  LocalWords:  embeddedmovie historylines inlinetex RadialShade penc penr
+@c  LocalWords:  legendlinelength legendskip
