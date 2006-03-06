@@ -41,6 +41,19 @@ void ifile::ignoreComment(bool readstring)
 bool ifile::eol()
 {
   int c;
+  while(isspace(c=stream->peek())) {
+    if(c == '\n') return true;
+    else {
+      stream->ignore();
+      whitespace += (char) c;
+    }
+  }
+  return false;
+}
+  
+bool ifile::nexteol()
+{
+  int c;
   if(nullfield) {
     nullfield=false;
     return true;

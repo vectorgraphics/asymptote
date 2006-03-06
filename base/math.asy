@@ -253,6 +253,14 @@ bool square2(real[][] m)
   return m[0].length == m.length && m[1].length == m.length;
 }
 
+bool square3(real[][] m)
+{
+  return
+    m[0].length == m.length &&
+    m[1].length == m.length &&
+    m[2].length == m.length;
+}
+
 bool square(real[][] m)
 {
   int n=m.length;
@@ -270,84 +278,33 @@ bool rectangular(real[][] m)
   return true;
 }
 
+void nonsquare() 
+{
+  abort("attempt to take a determinant of a nonsquare matrix");
+}
+
 real determinant(real[][] m)
 {
   int n=m.length;
-  if(n == 2 && square2(m)) return m[0][0]*m[1][1]-m[0][1]*m[1][0];
   
-  if(!square(m)) 
-    abort("attempted to take the determinant of a nonsquare matrix");
-  
-  if(n != 3) abort("determinant of a general matrix is not yet implemented");
-  
-  return
-     m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])
-    -m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])
-    +m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
-}
-
-// Solve the linear equation ax=b by Gauss-Jordan elimination, returning
-// the solution x, where a is an n x n matrix and b is an n x m matrix.
-// If overwrite=true, b is replaced by x.
-
-real[][] solve(real[][] a, real[][] b, bool overwrite=false)
-{
-  a=copy(a);
-  if(!overwrite) b=copy(b);
-  int n=a.length;
-  int m=b[0].length;
-  
-  if(n != a[0].length) abort("First matrix is not square");
-  if(n != b.length) abort("Cannot solve incommensurate matrices");
-	
-  int[] pivot=sequence(new int(int){return 0;},n);
-  
-  int col=0, row=0;
-    for(int i=0; i < n; ++i) {
-    // This is the main loop over the columns to be reduced.
-    real big=0.0;
-    for(int j=0; j < n; ++j) {
-      real[] aj=a[j];
-      // This is the outer loop of the search for a pivot element.
-      if(pivot[j] != 1) {
-	for(int k=0; k < n; ++k) {
-	  if(pivot[k] == 0) {
-	    real temp=abs(aj[k]);
-	    if(temp >= big) {
-	      big=temp;
-	      row=j;
-	      col=k;
-	    }
-	  } else if(pivot[k] > 1) abort("Singular matrix");
-	}
-      }
-    }
-    ++(pivot[col]);
-    // Interchange rows, if needed, to put the pivot element on the diagonal.
-    if(row != col) {
-      real[] temp;
-      temp=a[row]; a[row]=a[col]; a[col]=temp;
-      temp=b[row]; b[row]=b[col]; b[col]=temp;
-    }
-    // Divide the pivot row by the pivot element.
-    real denom=a[col][col];
-    if(denom == 0.0) abort("Singular matrix");
-    
-    real pivinv=1.0/denom;
-    a[col] *= pivinv;
-    b[col] *= pivinv;
-    for(int i=0; i < n; ++i) {
-      // Reduce all rows except for the pivoted one.
-      if(i != col) {
-	real dum=a[i][col];
-	a[i][col]=0.0;
-	a[i] -= a[col]*dum;
-	b[i] -= b[col]*dum;
-      }
-    }
+  if(n == 2) {
+    if(square2(m)) return m[0][0]*m[1][1]-m[0][1]*m[1][0];
+    nonsquare();
   }
   
-  return b;
+  if(n == 3) {
+    if(square3(m)) return
+      m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])-
+      m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])+
+      m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+    nonsquare();
+  }
+  
+  if(square(m)) 
+    abort("determinant of a general matrix is not yet implemented");
+  else
+    nonsquare();
+  return 0;
 }
 
 // Solve the linear equation ax=b, returning the solution x, where a is
@@ -355,32 +312,12 @@ real[][] solve(real[][] a, real[][] b, bool overwrite=false)
 
 real[] solve(real[][] a, real[] b)
 {
-  return transpose(solve(a,transpose(new real[][]{b}),true))[0];
+  return transpose(solve(a,transpose(new real[][]{b})))[0];
 }
 
 real[][] inverse(real[][] m)
 {
-  int n=m.length;
-  
-  if(n == 2 && square2(m))
-    return new real[][] {{m[1][1],-m[0][1]},{-m[1][0],m[0][0]}}/determinant(m);
-  if(!square(m)) abort("attempted to invert a non-square matrix");
-  
-  if(n == 3) {
-    return new real[][] {
-      {    m[1][1]*m[2][2]-m[1][2]*m[2][1],
-	  -m[0][1]*m[2][2]+m[0][2]*m[2][1],
-	   m[0][1]*m[1][2]-m[0][2]*m[1][1]},	
-      {   -m[1][0]*m[2][2]+m[1][2]*m[2][0],
-	   m[0][0]*m[2][2]-m[0][2]*m[2][0],
-	  -m[0][0]*m[1][2]+m[0][2]*m[1][0]},
-      {    m[1][0]*m[2][1]-m[1][1]*m[2][0],
-	  -m[0][0]*m[2][1]+m[0][1]*m[2][0],
-	   m[0][0]*m[1][1]-m[0][1]*m[1][0]}
-    }/determinant(m);
-  }
-  
-  return solve(m,identity(n),true);
+  return solve(m);
 }
 
 // draw the (infinite) line going through P and Q, without altering the

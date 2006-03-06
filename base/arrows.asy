@@ -280,17 +280,18 @@ void draw(frame f, path g, pen p=currentpen, arrowbar arrow)
 
 void draw(picture pic=currentpicture, Label L="", path g, align align=NoAlign,
 	  pen p=currentpen, arrowbar arrow=None, arrowbar bar=None,
-	  margin margin=NoMargin, string legend="", marker marker=nomarker)
+	  margin margin=NoMargin, Label legend="", marker marker=nomarker)
 {
   Label L=L.copy();
   L.align(align);
   L.p(p);
+  legend.p(p);
   if(marker != nomarker && !marker.put) marker.mark(pic,g);
   if(L.s != "") L.out(pic,g);
   bool drawpath=arrow(pic,g,p,margin);
   if(bar(pic,g,p,margin) && drawpath) _draw(pic,g,p,margin);
   if(legend != "") {
-    Legend l; l.init(legend,L.p,p,marker.f,marker.put);
+    Legend l; l.init(legend.s,legend.p,p,marker.f,marker.put);
     pic.legend.push(l);
   }
   if(marker != nomarker && marker.put) marker.mark(pic,g);
@@ -299,7 +300,7 @@ void draw(picture pic=currentpicture, Label L="", path g, align align=NoAlign,
 // Draw a fixed-size line about the user-coordinate 'origin'.
 void draw(pair origin, picture pic=currentpicture, Label L="", path g,
 	  align align=NoAlign, pen p=currentpen, arrowbar arrow=None,
-	  arrowbar bar=None, margin margin=NoMargin, string legend="",
+	  arrowbar bar=None, margin margin=NoMargin, Label legend="",
 	  marker marker=nomarker)
 {
   picture opic;

@@ -184,16 +184,6 @@ inline int sgn(double x)
   return (x > 0.0 ? 1 : (x < 0.0 ? -1 : 0));
 }
 
-inline void CheckReallocate(double *& A, size_t n, size_t& old)
-{
-  if(n > old) {delete A; A=new double[n]; old=n;}
-}
-
-inline void CheckReallocate(double *& A, double *& B, size_t n, size_t& old)
-{
-  if(n > old) {delete A; A=new double[n]; delete B; B=new double[n]; old=n;}
-}
-
 void outOfBounds(const char *op, size_t len, int n)
 {
   ostringstream buf;
@@ -332,6 +322,26 @@ void init_readline(bool tabcompletion=true)
  
 #endif
 
+static int *pivot,*Row,*Col;
+static void solveAllocate(int n, int m)
+{
+  pivot=new int[n];
+  if(m == 0) {
+    Row=new int[n];
+    Col=new int[n];
+  } else {
+    Row=NULL;
+    Col=NULL;
+  }
+}
+
+static void solveDeallocate()
+{
+  delete[] pivot;
+  if(Row) delete[] Row;
+  if(Col) delete[] Col;
+}
+
 void cleanup()
 {
   if(initialdefaultpen) defaultpen=*initialdefaultpen;
@@ -374,6 +384,7 @@ void updateFunction(stack *Stack)
 
 default_t def;
 string emptystring;
+transform Identity;
 string commentchar="#";
 
 }
@@ -649,10 +660,10 @@ void layer(picture *f)
 }
 
 void image(picture *f, realarray2 *data, penarray *palette, 
-	   pair initial, pair final)
+	   pair initial, pair final, transform t=Identity)
 {
   f->append(new drawImage(copyArray2(data),copyArray(palette),
-			  matrix(initial,final)));
+			  t*matrix(initial,final)));
 }
 
 void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
@@ -1394,7 +1405,7 @@ string format(string *format, int x)
   char *buf=new char[size];
   snprintf(buf,size,f,x);
   string s=string(buf);
-  delete [] buf;
+  delete[] buf;
   return s;
 }
 
@@ -1498,7 +1509,7 @@ string format(string *format, double x)
   while(*tail != 0) 
     out << *(tail++);
   
-  delete [] buf;
+  delete[] buf;
   return out.str();
 }
 
@@ -2096,7 +2107,7 @@ array* :newDeepArray(int depth)
     dims[index] = pop<int>(Stack);
 
   array *a=deepArray(depth, dims);
-  delete [] dims;
+  delete[] dims;
   return a;
 }
 
@@ -2440,6 +2451,136 @@ array* :arrayConditional(array *a, array *b, array *c)
   return r;
 }
 
+// Solve the linear equation ax=b by Gauss-Jordan elimination, returning
+// the solution x, where a is an n x n matrix and b is an n x m matrix.
+// If b is omitted or nm=0, return the inverse of a.
+// TODO: Use LU decomposition for linear solve and specialize this routine
+// for computing matrix inverses only.
+realarray2 *solve(realarray2 *a, realarray2 *b=NULL)
+{
+  a=copyArray2(a);
+  size_t n=a->size();
+  size_t bsize=b ? b->size() : 0;
+  
+  for(size_t i=0; i < n; i++)
+    if(read<array*>(a,i)->size() != n)
+      error("matrix a must be square");
+    
+  size_t m;
+  if(bsize) {
+    b=copyArray2(b);
+    if(bsize != n) error("Incommensurate matrices");
+    m=read<array*>(b,0)->size();
+    for(size_t i=0; i < n; i++)
+      if(read<array*>(b,i)->size() != m)
+	error("matrix b must be rectangular");
+  } else m=0;
+  
+  solveAllocate(n,m);
+  
+  for(size_t i=0; i < n; i++)
+    pivot[i]=0;
+
+  const char *singular="Singular matrix";
+  
+  size_t col=0, row=0;
+  // This is the main loop over the columns to be reduced.
+  for(size_t i=0; i < n; i++) {
+    double big=0.0;
+    // This is the outer loop of the search for a pivot element.
+    for(size_t j=0; j < n; j++) {
+      array *aj=read<array*>(a,j);
+      if(pivot[j] != 1) {
+	for(size_t k=0; k < n; k++) {
+	  if(pivot[k] == 0) {
+	    double temp=fabs(read<double>(aj,k));
+	    if(temp >= big) {
+	      big=temp;
+	      row=j;
+	      col=k;
+	    }
+	  } else if(pivot[k] > 1) {
+	    solveDeallocate();
+	    error(singular);
+	  }
+	}
+      }
+    }
+    ++(pivot[col]);
+    
+    // Interchange rows, if needed, to put the pivot element on the diagonal.
+    array *acol=read<array*>(a,col);
+    array *bcol=m ? read<array*>(b,col) : 0;
+    if(row != col) {
+      array *arow=read<array*>(a,row);
+      for(size_t l=0; l < n; l++) {
+	double temp=read<double>(arow,l);
+	(*arow)[l]=read<double>(acol,l);
+	(*acol)[l]=temp;
+      }
+      if(m) {
+	array *brow=read<array*>(b,row);
+	for(size_t l=0; l < m; l++) {
+	  double temp=read<double>(brow,l);
+	  (*brow)[l]=read<double>(bcol,l);
+	  (*bcol)[l]=temp;
+	}
+      }
+    }
+    
+    if(m == 0) {
+      Row[i]=row; 
+      Col[i]=col;
+    }
+    // Divide the pivot row by the pivot element.
+    double denom=read<double>(acol,col);
+    if(denom == 0.0) {
+      solveDeallocate();
+      error(singular);
+    }
+    double pivinv=1.0/denom;
+    (*acol)[col]=1.0;
+    for(size_t l=0; l < n; l++) 
+      (*acol)[l]=read<double>(acol,l)*pivinv;
+    for(size_t l=0; l < m; l++)
+      (*bcol)[l]=read<double>(bcol,l)*pivinv;
+    
+    // Reduce all rows except for the pivoted one.
+    for(size_t k=0; k < n; k++) {
+      if(k != col) { 
+	array *ak=read<array*>(a,k);
+	double dum=read<double>(ak,col);
+	(*ak)[col]=0.0;
+	for(size_t l=0; l < n; l++)
+	  (*ak)[l]=read<double>(ak,l)-read<double>(acol,l)*dum;
+	array *bk=m ? read<array*>(b,k) : 0;
+	for(size_t l=0; l < m; l++)
+	  (*bk)[l]=read<double>(bk,l)-read<double>(bcol,l)*dum;
+      }
+    }
+  }
+  
+  if(m == 0) {
+    // Unscramble the inverse matrix in view of the column interchanges.
+    for(size_t l=n; l > 0;) {
+      l--;
+      size_t r=Row[l];
+      size_t c=Col[l];
+      if(r != c) {
+	for(size_t k=0; k < n; k++) {
+	  array *ak=read<array*>(a,k);
+	  double temp=read<double>(ak,r);
+	  (*ak)[r]=read<double>(ak,c);
+	  (*ak)[c]=temp;
+	}
+      }
+    }
+    b=a;
+  }
+  solveDeallocate();
+  return b;
+}
+
 // Solve the problem L\inv f, where f is an n vector and L is the n x n matrix
 //
 // [ b[0] c[0]           a[0]   ]
@@ -2458,25 +2599,28 @@ realarray *tridiagonal(realarray *a, realarray *b, realarray *c, realarray *f)
 
   if(n == 0) return up;
   
-  // Special case: Zero Dirichlet boundary conditions
+  // Special case: zero Dirichlet boundary conditions
   if(read<double>(a,0) == 0.0 && read<double>(c,n-1) == 0.0) {
-    static double *work;
-    static size_t size=0;
-  
-    CheckReallocate(work,n,size);
+    double temp=read<double>(b,0);
+    if(temp == 0.0) dividebyzero();
+    temp=1.0/temp;
     
-    double temp=1.0/read<double>(b,0);
+    double *work=new double[n];
     u[0]=read<double>(f,0)*temp;
     work[0]=-read<double>(c,0)*temp;
 	
     for(size_t i=1; i < n; i++) {
-      double temp=1.0/(read<double>(b,i)+read<double>(a,i)*work[i-1]);
+      double temp=(read<double>(b,i)+read<double>(a,i)*work[i-1]);
+      if(temp == 0.0) {delete[] work; dividebyzero();}
+      temp=1.0/temp;
       u[i]=(read<double>(f,i)-read<double>(a,i)*read<double>(u,i-1))*temp;
       work[i]=-read<double>(c,i)*temp;
     }
 
     for(size_t i=n-1; i >= 1; i--)
       u[i-1]=read<double>(u,i-1)+work[i-1]*read<double>(u,i);
+    
+    delete[] work;
     return up;
   }
   
@@ -2498,9 +2642,8 @@ realarray *tridiagonal(realarray *a, realarray *b, realarray *c, realarray *f)
     return up;
   }
 	
-  static double *gamma,*delta;
-  static size_t size=0;
-  CheckReallocate(gamma,delta,n-2,size);
+  double *gamma=new double[n-2];
+  double *delta=new double[n-2];
   
   gamma[0]=read<double>(c,0)*binv;
   delta[0]=read<double>(a,0)*binv;
@@ -2511,7 +2654,7 @@ realarray *tridiagonal(realarray *a, realarray *b, realarray *c, realarray *f)
 
   for(size_t i=1; i <= n-3; i++) {
     double alphainv=read<double>(b,i)-read<double>(a,i)*gamma[i-1];
-    if(alphainv == 0.0) dividebyzero();
+    if(alphainv == 0.0) {delete[] gamma; delete[] delta; dividebyzero();}
     alphainv=1.0/alphainv;
     beta *= -gamma[i-1];
     gamma[i]=read<double>(c,i)*alphainv;
@@ -2522,19 +2665,22 @@ realarray *tridiagonal(realarray *a, realarray *b, realarray *c, realarray *f)
   }
 	
   double alphainv=read<double>(b,n-2)-read<double>(a,n-2)*gamma[n-3];
-  if(alphainv == 0.0) dividebyzero();
+  if(alphainv == 0.0) {delete[] gamma; delete[] delta; dividebyzero();}
   alphainv=1.0/alphainv;
   u[n-2]=(read<double>(f,n-2)-read<double>(a,n-2)*read<double>(u,n-3))
     *alphainv;
   beta=read<double>(a,n-1)-beta*gamma[n-3];
   double dnm1=(read<double>(c,n-2)-read<double>(a,n-2)*delta[n-3])*alphainv;
   double temp=alpha-beta*dnm1;
-  if(temp == 0.0) dividebyzero();
+  if(temp == 0.0) {delete[] gamma; delete[] delta; dividebyzero();}
   u[n-1]=temp=(fn-beta*read<double>(u,n-2))/temp;
   u[n-2]=read<double>(u,n-2)-dnm1*temp;
 	
   for(size_t i=n-2; i >= 1; i--)
     u[i-1]=read<double>(u,i-1)-gamma[i-1]*read<double>(u,i)-delta[i-1]*temp;
+  
+  delete[] gamma;
+  delete[] delta;
   
   return up;
 }
@@ -2673,6 +2819,16 @@ string getc(file *File)
   return string(str);
 }
 
+int tell(file *File)
+{
+  return File->tell();
+}
+
+void seek(file *File, int pos)
+{
+  File->seek(pos);
+}
+
 // Set file dimensions
 file* dimension(file *File, int nx) 
 {
@@ -2767,7 +2923,7 @@ string readline(string prompt=emptystring, string history=emptystring,
   
   /* Get a line from the user. */
   line_read=readline(buf);
-  delete [] buf;
+  delete[] buf;
      
   if(line_read) {
   /* If the line has any text in it, save it on the history. */

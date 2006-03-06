@@ -90,15 +90,15 @@ marker Mark(int n)
   else return MarkFill[n-Mark.length];
 }
 
-picture legend(Legend[] legend)
+picture legend(Legend[] legend, real length, real skip)
 {
   picture inset;
   size(inset,0,0,IgnoreAspect);
   if(legend.length > 0) {
     for(int i=0; i < legend.length; ++i) {
       Legend L=legend[i];
-      pair z1=legendmargin-i*I*legendskip*fontsize(L.p);
-      pair z2=z1+legendlinelength;
+      pair z1=-i*I*skip*fontsize(L.plabel);
+      pair z2=z1+length;
       if(!L.put && !empty(L.mark)) marknodes(inset,interp(z1,z2,0.5),L.mark);
       Draw(inset,z1--z2,L.p);
       label(inset,L.label,z2,E,L.plabel);
@@ -110,11 +110,12 @@ picture legend(Legend[] legend)
   
 frame legend(picture pic=currentpicture, pair dir=0, 
 	     real xmargin=legendmargin, real ymargin=xmargin,
+	     real length=legendlinelength, real skip=legendskip,
 	     pen p=currentpen) 
 {
   frame F;
   if(pic.legend.length == 0) return F;
-  F=legend(pic.legend).fit();
+  F=legend(pic.legend,length,skip).fit();
   box(F,xmargin,ymargin,p);
   return shift(dir-point(F,-dir))*F;
 }

@@ -122,8 +122,8 @@ void readArray(vm::stack *s)
 		  ci->push(cij);
 		}
 		cij->push(v);
-		if(f->LineMode() && f->eol()) {
-		  if(f->eol()) break2=true;
+		if(f->LineMode() && f->nexteol()) {
+		  if(f->nexteol()) break2=true;
 		  break;
 		}
 	      }
@@ -137,7 +137,7 @@ void readArray(vm::stack *s)
 	      }
 	      if(j == 0) c->push(ci);
 	      ci->push(v);
-	      if(f->LineMode() && f->eol()) break;
+	      if(f->LineMode() && f->nexteol()) break;
 	    }
 	  }
 	} else {
@@ -148,7 +148,7 @@ void readArray(vm::stack *s)
 	    return;
 	  }
 	  c->push(v);
-	  if(f->LineMode() && f->eol()) break;
+	  if(f->LineMode() && f->nexteol()) break;
 	}
       }
     } else {
@@ -156,7 +156,7 @@ void readArray(vm::stack *s)
 	f->read(v);
 	if(f->error()) break;
 	c->push(v);
-	if(f->LineMode() && f->eol()) break;
+	if(f->LineMode() && f->nexteol()) break;
       }
     }
   }

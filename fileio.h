@@ -84,6 +84,7 @@ public:
 		
   string filename() {return name;}
   virtual bool eol() {return false;}
+  virtual bool nexteol() {return false;}
   virtual bool text() {return false;}
   virtual bool eof()=0;
   virtual bool error()=0;
@@ -91,6 +92,8 @@ public:
   virtual void clear()=0;
   virtual void precision(int) {}
   virtual void flush() {}
+  virtual size_t tell() {return 0;}
+  virtual void seek(size_t) {}
   
   void unsupported(const char *rw, const char *type) {
     std::ostringstream buf;
@@ -168,12 +171,17 @@ public:
     if(!standard && !closed) fstream.seekg(pos);
   }
   
+  size_t tell() {
+    return fstream.tellg();
+  }
+  
   const char* Mode() {return "input";}
   
   void csv();
   
   void ignoreComment(bool readstring=false);
   bool eol();
+  bool nexteol();
   
   bool text() {return true;}
   bool eof() {return stream->eof();}

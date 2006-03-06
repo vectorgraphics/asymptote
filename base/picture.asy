@@ -837,7 +837,7 @@ void gouraudshade(picture pic=currentpicture, path[] g,
   z=copy(z);
   edges=copy(edges);
   pic.add(new void (frame f, transform t) {
-	    gouraudshade(f,t*g,fillrule,p,t*z,edges);
+    gouraudshade(f,t*g,fillrule,p,t*z,edges);
   });
   for(int i=0; i < g.length; ++i) 
     pic.addPath(g[i]);

@@ -2222,12 +2222,18 @@ back to read doubles again. The default initializer for file is @code{stdout}.
 @cindex @code{flush}
 @cindex @code{clear}
 @cindex @code{precision}
+@cindex @code{seek}
+@cindex @code{tell}
+@cindex rewind
 One can test a file for end-of-file with the boolean function @code{eof(file)},
 end-of-line with @code{eol(file)}, and for I/O errors with @code{error(file)}.
 One can flush the output buffers with @code{flush(file)}, clear a
 previous I/O error with @code{clear(file)}, and close the file with
 @code{close(file)}. To set the number of digits of output precision, use
-@code{precision(file,int)}.
+@code{precision(file,int)}. The function @code{int tell(file)} returns
+the current position in an input file relative to the beginning.
+The function @code{seek(file, int)} can be used to change this
+position; for example, to rewind a file, use the command @code{seek(file,0)}.
 
 The routines
 @cindex @code{getstring}
@@ -3668,10 +3674,9 @@ respectively. If the planes are parallel, return
 
 @cindex @code{solve}
 @item real[] solve(real[][] a, real[] b)
-Solve the linear equation @math{@code{a}x=@code{b}} 
-by Gauss-Jordan elimination, returning
-the solution @math{x}, where @code{a} is an @math{n \times n} matrix and
-@code{b} is an array of length @math{n}. 
+Solve the linear equation @math{@code{a}x=@code{b}} by Gauss-Jordan
+elimination, returning the solution @math{x}, where @code{a} is an
+@math{n \times n} matrix and @code{b} is an array of length @math{n}. 
 For example:
 @verbatim
 import math;
@@ -3687,11 +3692,10 @@ If the matrix @code{a} is tridiagonal, the routine @code{tridiagonal} provides
 a more efficient algorithm (@pxref{tridiagonal}). 
 
 @cindex @code{solve}
-@item real[][] solve(real[][] a, real[][] b, bool overwrite=false)
+@item real[][] solve(real[][] a, real[][] b)
 Solve the linear equation @math{@code{a}x=@code{b}} returning the
 solution @math{x}, where @code{a} is an @math{n \times n} matrix and
-@code{b} is an @math{n \times m} matrix. If @code{overwrite=true}, @math{b} is
-replaced by @code{x}.
+@code{b} is an @math{n \times m} matrix.
 
 @cindex @code{straight}
 @item bool straight(path p)
@@ -4915,7 +4919,7 @@ currentpicture).
 void draw(picture pic=currentpicture, Label L="", path g,
           align align=NoAlign, pen p=currentpen,
           arrowbar arrow=None, arrowbar bar=None, margin margin=NoMargin,
-          string legend="", marker marker=nomarker);
+          Label legend="", marker marker=nomarker);
 @end verbatim
 
 Draw the path @code{g} on the picture @code{pic} using pen @code{p}
@@ -4924,8 +4928,8 @@ explicit label alignment @code{align},
 arrows and bars @code{arrow} and @code{bar}, margins @code{margin},
 legend, and markers @code{marker}). Only one parameter, the path, is 
 required. For convenience, the arguments @code{arrow} and @code{bar} may be
-specified in either order. The argument @code{legend} is a string to
-use in constructing an optional legend entry.
+specified in either order. The argument @code{legend} is a Label to
+use in constructing an optional legend entry. 
 
 @cindex @code{None}
 @cindex @code{BeginBar}
@@ -5014,11 +5018,14 @@ The legend for a picture @code{pic} can be fit and aligned to a frame
 with the routine (@pxref{filltype})
 @verbatim
 frame legend(picture pic=currentpicture, pair dir=0, 
-             real xmargin=legendmargin, real ymargin=xmargin,
-             pen p=currentpen);
+	     real xmargin=legendmargin, real ymargin=xmargin,
+	     real length=legendlinelength, real skip=legendskip,
+	     pen p=currentpen);
 @end verbatim
 @noindent
-this legend frame can then be added about the point @code{origin} to a
+Here @code{length} specifies the length of the path lines and 
+@code{skip} specifies the line skip, in units of the legend label fontsize.
+The legend frame can then be added about the point @code{origin} to a
 picture @code{dest} using @code{add} or @code{attach} (@pxref{add about}).
 
 @cindex @code{dot}
@@ -5051,7 +5058,7 @@ coordinate @code{origin}, use the routine
 @verbatim
 void draw(pair origin, picture pic=currentpicture, Label L="", path g,
           align align=NoAlign, pen p=currentpen, arrowbar arrow=None,
-          arrowbar bar=None, margin margin=NoMargin, string legend="",
+          arrowbar bar=None, margin margin=NoMargin, Label legend="",
           marker marker=nomarker);
 @end verbatim
 
@@ -5450,7 +5457,7 @@ Also display imported and included module names and final @code{LaTeX} and
 @item -vvv
 Also output @code{LaTeX} bidirectional pipe diagnostics.
 @item -vvvv
-Also output knot solver diagnostics.
+Also output knot guide solver diagnostics.
 @item -vvvvv
 Also output @code{Asymptote} traceback diagnostics.
 @end table
