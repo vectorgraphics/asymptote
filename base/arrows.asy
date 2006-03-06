@@ -290,7 +290,7 @@ void draw(picture pic=currentpicture, Label L="", path g, align align=NoAlign,
   if(L.s != "") L.out(pic,g);
   bool drawpath=arrow(pic,g,p,margin);
   if(bar(pic,g,p,margin) && drawpath) _draw(pic,g,p,margin);
-  if(legend != "") {
+  if(legend.s != "") {
     Legend l; l.init(legend.s,legend.p,p,marker.f,marker.put);
     pic.legend.push(l);
   }
