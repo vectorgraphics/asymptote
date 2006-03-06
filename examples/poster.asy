@@ -24,12 +24,4 @@ label("Registration and abstract submission online.",(0,-0.15));
 label("\tt http://www.pims.math.ca/science/2006/06yrc/",1.1*point(S),W,
       black+fontsize(18));
 
-filltype RadialShade(pen penc, pen penr)
-{
-  return new void(frame f, path g, pen) {
-    pair c=(min(g)+max(g))/2;
-    radialshade(f,g,penc,c,0,penr,c,abs(max(g)-min(g))/2);
-  };
-}
-
 shipout(Landscape(bbox(RadialShade(yellow,0.6*yellow+red))));

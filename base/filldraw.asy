@@ -101,6 +101,16 @@ filltype UnFill(real xmargin=0, real ymargin=xmargin)
 
 public filltype UnFill=UnFill();
 
+// Fill varying radially from penc at the center of the bounding box to
+// penr at the edge.
+filltype RadialShade(pen penc, pen penr)
+{
+  return new void(frame f, path g, pen) {
+    pair c=(min(g)+max(g))/2;
+    radialshade(f,g,penc,c,0,penr,c,abs(max(g)-min(g))/2);
+  };
+}
+
 // Fill the region in frame dest underneath frame src and return the
 // boundary of src.
 guide fill(frame dest, frame src, filltype filltype=NoFill, 
