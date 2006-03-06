@@ -1083,8 +1083,6 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
 void xlimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
 	     bool crop=NoCrop)
 {
-  if(!(finite(pic.userMin.x) && finite(pic.userMax.x)))
-    abort("xlimits called on empty picture");
   if(min > max) return;
   
   pic.scale.x.automin=min <= -infinity;
@@ -1116,8 +1114,6 @@ void xlimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
 void ylimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
 	     bool crop=NoCrop)
 {
-  if(!(finite(pic.userMin.y) && finite(pic.userMax.y)))
-    abort("ylimits called on empty picture");
   if(min > max) return;
   
   pic.scale.y.automin=min <= -infinity;
