@@ -42,11 +42,13 @@ picture palette(real[][] data, real width=Ticksize, pen[] palette,
   pair z1=(0,finaly);
   
   pic.add(new void (frame f, transform t) {
-    pair Z0=(0,(t*z0).y);
-    pair Z1=(0,(t*z1).y);
+    pair z0=(0,z0.y);
+    pair z1=(0,z1.y);
+    pair Z0=t*z0;
+    pair Z1=t*z1;
     pair initial=Z0-width;
     image(f,transpose(new real[][] {sequence(palette.length-1)}),palette,
-	  initial,Z1,t);
+	  inverse(t)*initial,z1,t);
     draw(f,Z0--initial--Z1-width--Z1,p);
   });
   
