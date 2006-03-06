@@ -322,13 +322,13 @@ void init_readline(bool tabcompletion=true)
  
 #endif
 
-static int *pivot,*Row,*Col;
-static void solveAllocate(int n, int m)
+static size_t *pivot,*Row,*Col;
+static void solveAllocate(size_t n, size_t m)
 {
-  pivot=new int[n];
+  pivot=new size_t[n];
   if(m == 0) {
-    Row=new int[n];
-    Col=new int[n];
+    Row=new size_t[n];
+    Col=new size_t[n];
   } else {
     Row=NULL;
     Col=NULL;
@@ -2821,7 +2821,7 @@ string getc(file *File)
 
 int tell(file *File)
 {
-  return File->tell();
+  return (int) File->tell();
 }
 
 void seek(file *File, int pos)
