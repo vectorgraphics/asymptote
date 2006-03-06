@@ -111,9 +111,9 @@ AC_SUBST(OPTIONS)
 AC_CHECK_LIB([curses], [tparm])
 AC_CHECK_LIB([m], [sqrt])
 AC_CHECK_LIB([readline], [readline])
-AC_CHECK_LIB([readline], [remove_history],
-			 AC_DEFINE(HAVE_REMOVE_HISTORY, 1,
-	   [Define if your readline library includes remove_history]))
+AC_CHECK_LIB([readline], [history_set_history_state],
+			 AC_DEFINE(HAVE_HISTORY_STATE, 1,
+   [Define if your readline library includes history_set_history_state]))
 AC_CHECK_LIB([sigsegv], [stackoverflow_install_handler])
 
 # Checks for header files.

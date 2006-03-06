@@ -278,7 +278,7 @@ void integeroverflow(size_t i)
   error(buf);
 }
   
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_HISTORY_STATE) && defined(HAVE_LIBCURSES)
 typedef mem::map<CONST string, HISTORY_STATE> historyMap_t;
 historyMap_t historyMap;
 static HISTORY_STATE history_save;
@@ -298,7 +298,9 @@ string historyfilename(const string &name)
 {
   return historyname+"_"+name;
 }
+#endif
 
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 int readline_startup_hook()
 {
 #ifdef __CYGWIN__
@@ -319,7 +321,6 @@ void init_readline(bool tabcompletion=true)
   }
   rl_bind_key('\t',tabcompletion ? rl_complete : rl_insert);
 }
- 
 #endif
 
 static size_t *pivot,*Row,*Col;
@@ -354,7 +355,7 @@ void cleanup()
     TeXinitialized=false;
   }
 
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_HISTORY_STATE) && defined(HAVE_LIBCURSES)
   store_history(&history_save);
   int nlines=getSetting<int>("historylines");
   for(historyMap_t::iterator h=historyMap.begin(); h != historyMap.end(); 
@@ -2896,7 +2897,7 @@ file* read3(file *File)
 string readline(string prompt=emptystring, string history=emptystring,
 		string initial=emptystring, bool tabcompletion=false)
 {
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+#if defined(HAVE_HISTORY_STATE) && defined(HAVE_LIBCURSES)
   init_readline(tabcompletion);
   
   store_history(&history_save);
@@ -2939,6 +2940,7 @@ string readline(string prompt=emptystring, string history=emptystring,
   static ifile Stdin("");
   string s;
   Stdin.read(s);
+  if(tabcompletion) return s; // Avoid unused variable warning message.
   return s;
 #endif
 }
