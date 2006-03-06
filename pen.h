@@ -655,7 +655,7 @@ public:
     }
 
     bbox b;
-    pair z = width() * pair(maxx,maxy);
+    pair z=0.5*width()*pair(maxx,maxy);
     b += z + shift;
     b += -z + shift;
 
