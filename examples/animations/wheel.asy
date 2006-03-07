@@ -51,4 +51,4 @@ for(int i=0; i <= n; ++i) {
 }
 
 // Produce the final merged gif, etc.
-a.merge(10,outformat == "eps" ? "gif" : outformat); 
+a.merge(10,outformat == "eps" || outformat == "pdf" ? "gif" : outformat); 
