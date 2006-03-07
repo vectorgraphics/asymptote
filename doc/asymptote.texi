@@ -5320,7 +5320,7 @@ One can also place ticks along a general three-dimensional axis:
 Surface plots of functions and matrices are also implemented:
 @verbatim
 picture surface(real f(pair z), pair a, pair b, int n=nmesh, int nsub=nsub,
-                pen surfacepen=lightgray, pen meshpen=currentpen,
+                int m=n, pen surfacepen=lightgray, pen meshpen=currentpen,
                 projection P=currentprojection);
 picture surface(real[][] f, pair a, pair b,
                 pen surfacepen=lightgray, pen meshpen=currentpen,

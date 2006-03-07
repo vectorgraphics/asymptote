@@ -368,24 +368,26 @@ guide3 graph(real f(pair), path p, int n=nsub, real T(pair),
 
 struct grid {
   pair back,front;
-  int n;
+  int n,m;
   bool reverse;
+  int sign;
   
   pair sample(int i, int j) {
     return (interp(back.x,front.x,i/n),
-            interp(back.y,front.y,j/n));
+            interp(back.y,front.y,j/m));
   }
 
   static grid set(pair a, pair b, int n, int m=n, 
 		  projection P=currentprojection) {
     grid g=new grid;
     g.n=n;
+    g.m=m;
     pair camera=(P.camera.x,P.camera.y);
     pair z=b-a;
-    int sign=sgn(dot(camera,I*conj(z)));
-    g.reverse=sign*sgn(dot(camera,I*z)) >= 0;
+    g.sign=sgn(dot(camera,I*conj(z)));
+    g.reverse=g.sign*sgn(dot(camera,I*z)) >= 0;
   
-    if(sign >= 0) {
+    if(g.sign >= 0) {
       g.back=a;
       g.front=b;
     } else {
@@ -397,7 +399,7 @@ struct grid {
 }
 
 picture surface(real f(pair z), pair a, pair b, int n=nmesh, int nsub=nsub,
-		pen surfacepen=lightgray, pen meshpen=currentpen,
+		int m=n, pen surfacepen=lightgray, pen meshpen=currentpen,
 		projection P=currentprojection)
 {
   picture pic;
@@ -407,15 +409,15 @@ picture surface(real f(pair z), pair a, pair b, int n=nmesh, int nsub=nsub,
     filldraw(pic,project(g,P),surfacepen,meshpen);
   }
 
-  grid g=grid.set(a,b,n,P);
+  grid g=grid.set(a,b,n,m,P);
   
   if(g.reverse)
-    for(int j=0; j < n; ++j)
+    for(int j=0; j < m; ++j)
       for(int i=0; i < n; ++i)
 	drawcell(g.sample(i,j),g.sample(i+1,j+1));
   else
     for(int i=0; i < n; ++i)
-      for(int j=0; j < n; ++j)
+      for(int j=0; j < m; ++j)
 	drawcell(g.sample(i,j),g.sample(i+1,j+1));
 
   return pic;
@@ -439,15 +441,24 @@ picture surface(real[][] f, pair a, pair b,
 
   grid g=grid.set(a,b,n,m,P);
 
-  if(g.reverse)
-    for(int j=0; j < m; ++j)
-      for(int i=0; i < n; ++i)
-	drawcell(i,j,g.sample(i,j),g.sample(i+1,j+1));
-  else
-    for(int i=0; i < n; ++i)
+  if(g.sign >= 0)
+    if(g.reverse)
       for(int j=0; j < m; ++j)
-	drawcell(i,j,g.sample(i,j),g.sample(i+1,j+1));
-
+	for(int i=0; i < n; ++i)
+	  drawcell(i,j,g.sample(i,j),g.sample(i+1,j+1));
+    else
+      for(int i=0; i < n; ++i)
+	for(int j=0; j < m; ++j)
+	  drawcell(i,j,g.sample(i,j),g.sample(i+1,j+1));
+  else
+    if(g.reverse)
+      for(int j=0; j < m; ++j)
+	for(int i=0; i < n; ++i)
+	  drawcell(n-1-i,m-1-j,g.sample(i+1,j+1),g.sample(i,j));
+    else
+      for(int i=0; i < n; ++i)
+	for(int j=0; j < m; ++j)
+	  drawcell(n-1-i,m-1-j,g.sample(i+1,j+1),g.sample(i,j));
   return pic;
 }
 
