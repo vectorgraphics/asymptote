@@ -322,22 +322,25 @@ configuration variable @code{psviewer}.
 
 @cindex configuration file
 Configuration variables are most easily set as @code{Asymptote}
-variables in the configuration file (by default @code{.asy/config.asy} in the 
-user's home directory; @pxref{configuration file}):
+variables in the configuration file (by default, @code{.asy/config.asy} in the 
+user's home directory or @code{%USERPROFILE%/.asy} under @code{MSDOS});
+@pxref{configuration file}.
+Here are the default values of several important configuration variables.
+
+@noindent
+Under @code{UNIX:}
 @verbatim
 import settings;
-psviewer="gsview";
-@end verbatim
-
-Here are the default values of several important configuration variables:
-@verbatim
-UNIX:
 psviewer="gv":
 pdfviewer="acroread";
 gs="gs";
 python="";
+@end verbatim
 
-MSDOS:
+@noindent
+Under @code{MSDOS:}
+@verbatim
+import settings;
 psviewer="c:\Program Files\Ghostgum\gsview\gsview32.exe";
 pdfviewer="c:\Program Files\Adobe\Acrobat 7.0\Reader\AcroRd32.exe";
 gs="c:\Program Files\gs\gs8.53\bin\gswin32.exe";
@@ -400,7 +403,8 @@ under @code{Microsoft Windows XP}:
 
 To properly support interactive mode, the @code{PostScript} viewer
 should be capable of automatically redrawing whenever the output file is
-updated. The default @code{PostScript} viewer @code{gv} supports this
+updated. The default @code{UNIX} @code{PostScript} viewer @code{gv}
+supports this
 (via a @code{SIGHUP} signal). Users of @code{ggv} will need to
 enable @code{Watch file} under @code{Edit/Postscript Viewer
 Preferences} and @code{gsview} users will need to enable
@@ -439,11 +443,9 @@ files, @code{asy} will search the following paths, in the order listed:
 @item
 The current directory;
 @item
-@cindex @code{ASYMPTOTE_CONFIG}
-@cindex @code{config}
-The configuration directory specified by the configuration variable
-@code{config} (by default the directory @code{.asy} in the user's home
-directory);
+@cindex @code{.asy}
+The directory @code{.asy} in the user's home directory 
+(@code{%USERPROFILE%/.asy} under @code{MSDOS});
 @item
 @cindex @code{dir}
 A list of one or more directories specified by the configuration
@@ -5414,12 +5416,13 @@ If multiple files are specified, they are treated as separate
 @cindex @code{ASYMPTOTE_CONFIG}
 @cindex @code{config}
 Default option values may be entered as @code{Asymptote} code in a
-configuration file.  The default configuration file is 
-@code{.asy/config.asy} in the user's home directory (or the file
-specified by the environment variable
-@code{ASYMPTOTE_CONFIG} or @code{-config} option). If that file doesn't exist,
-@code{Asymptote} looks for a file @code{config.asy} in its usual search path.
-Configuration variables are known by the long option names:
+configuration file named @code{config.asy} (or the file specified by
+the environment variable @code{ASYMPTOTE_CONFIG} or @code{-config} option).
+@code{Asymptote} will look for this file in its usual search path.
+Typically the configuration file is placed in the
+@code{.asy} directory in the user's home directory
+(@code{%USERPROFILE%/.asy} under @code{MSDOS}).
+Configuration variables are accessed using the long form of the option names:
 @verbatim
 import settings;
 View=true;
