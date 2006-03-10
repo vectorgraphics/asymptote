@@ -5,6 +5,7 @@ POLL = poll
 
 GC = @GCDIR@
 GCLIBS = @GCLIBS@
+LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @LIBS@ $(GCLIBS)
 
 CAMP = camperror path drawpath drawlabel picture psfile texfile util settings \
@@ -90,16 +91,16 @@ install: install-asy install-man
 install-all: install-asy install-doc
 
 install-asy: asy
-	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir) \
-			$(latexdir)
+	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
+	-${INSTALL} -d $(latexdir)
 	${INSTALL} -s $(NAME) $(bindir)
 	${INSTALL} $(XNAME) $(bindir)
 	${INSTALL} -m644 base/*.asy $(asydir)
 	${INSTALL} -m644 examples/*.asy examples/piicon.eps base/asy* \
 		doc/*.asy doc/*.csv doc/*.dat doc/latexusage.tex $(exampledir)
 	${INSTALL} -m644 examples/animations/*.asy $(animationsdir)
-	${INSTALL} -m644 doc/asymptote.sty $(latexdir)
-	texhash
+	-${INSTALL} -m644 doc/asymptote.sty $(latexdir)
+	-texhash
 
 install-doc: doc
 	cd doc; $(MAKE) install

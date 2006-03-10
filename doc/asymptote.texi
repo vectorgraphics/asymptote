@@ -323,8 +323,8 @@ configuration variable @code{psviewer}.
 @cindex configuration file
 Configuration variables are most easily set as @code{Asymptote}
 variables in the configuration file (by default, @code{.asy/config.asy} in the 
-user's home directory or @code{%USERPROFILE%/.asy} under @code{MSDOS});
-@pxref{configuration file}.
+user's home directory or @code{%USERPROFILE%/.asy/config.asy} under
+@code{MSDOS}); @pxref{configuration file}.
 Here are the default values of several important configuration variables.
 
 @noindent
@@ -486,7 +486,11 @@ in the directory @code{doc} and repeat the command @code{make all}.
 
 @noindent
 For a (default) system-wide installation, the last command should be
-done as root. The above steps will compile an optimized single-threaded static
+done as root. To install without root privileges:
+@verbatim
+./configure --prefix=$HOME/asymptote
+@end verbatim
+The above steps will compile an optimized single-threaded static
 version of the Boehm garbage collector
 (@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/}).
 Alternatively, one can request use of a (presumably multithreaded and therefore
@@ -494,7 +498,11 @@ slower) system version of the Boehm garbage collector by configuring
 instead with @code{./configure --enable-gc=system}. One can disable
 use of the garbage collector by configuring with @code{./configure
 --disable-gc}. For a list of other configuration options, say
-@code{./configure --help}.
+@code{./configure --help}. For example, one can tell configure to look
+for header files and libraries in nonstandard locations:
+@verbatim
+./configure CFLAGS=-I/opt/usr/include LDFLAGS=-L/opt/usr/lib
+@end verbatim
 
 If you are compiling @code{Asymptote} with @code{gcc}, you will need a
 relatively recent version (e.g. 3.2 or later).  If you get errors
