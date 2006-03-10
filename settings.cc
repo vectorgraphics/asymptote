@@ -51,6 +51,7 @@ using camp::pair;
   
 #ifdef __CYGWIN__
 const bool msdos=true;
+const char *HOME="USERPROFILE";
 const char pathSeparator=';';
 const string defaultPSViewer=
   "'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe'";
@@ -65,6 +66,7 @@ const string defaultDisplay="imdisplay";
 const string docdir=".";
 #else  
 const bool msdos=false;
+const char *HOME="HOME";
 const char pathSeparator=':';
 const string defaultPSViewer="gv";
 const string defaultPDFViewer="acroread";
@@ -735,11 +737,12 @@ bool trap() {
 }
 
 void initDir() {
-  initdir=Getenv("HOME",false)+"/.asy";
+  initdir=Getenv(HOME,false)+"/.asy";
   mkdir(initdir.c_str(),0xFFFF);
 }
   
 void setPath() {
+  searchPath.clear();
   searchPath.push_back(".");
   searchPath.push_back(initdir);
   string asydir=getSetting<mem::string>("dir");
@@ -791,7 +794,7 @@ void setOptions(int argc, char *argv[])
   setPath();
   loop::doConfig(getSetting<mem::string>("config"));
   
-    // Remember any changes to the defaultpen.
+  // Remember any changes to the defaultpen.
   initialdefaultpen=new camp::pen(defaultpen);
 
   // Read command-line options again to override configuration file defaults.
@@ -801,6 +804,9 @@ void setOptions(int argc, char *argv[])
   argCount = argc - optind;
   argList = argv + optind;
 
+  // Recompute search path.
+  setPath();
+  
   setInteractive();
 }
 

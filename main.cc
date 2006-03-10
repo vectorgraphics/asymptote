@@ -233,6 +233,7 @@ void doICore(icore &i, bool embedded=false) {
     status=false;
   } catch(handled_error) {
     status=false;
+    cout << "hi" << endl;
     run::cleanup();
   }
 
@@ -257,23 +258,27 @@ void doIFile(const string& filename) {
   string basename = stripext(filename,suffix);
   if(settings::verbose) cout << "Processing " << basename << endl;
   
-  if(getSetting<bool>("parseonly")) {
-    absyntax::file *tree = parser::parseFile(filename);
-    assert(tree);
-    em->sync();
-    if(!em->errors())
-      tree->prettyprint(cout, 0);
-    else status=false;
-  } else {
-    if(filename == "")
-      doITree(parser::parseString(""));
-    else {
-      if(getSetting<mem::string>("outname").empty())
-	Setting("outname")=
+  try {
+    if(getSetting<bool>("parseonly")) {
+      absyntax::file *tree = parser::parseFile(filename);
+      assert(tree);
+      em->sync();
+      if(!em->errors())
+	tree->prettyprint(cout, 0);
+      else status=false;
+    } else {
+      if(filename == "")
+	doITree(parser::parseString(""));
+      else {
+	if(getSetting<mem::string>("outname").empty())
+	  Setting("outname")=
             (mem::string)((filename == "-") ? "out" : stripDir(basename));
-      doITree(parser::parseFile(filename));
-      Setting("outname")=(mem::string)"";
+	doITree(parser::parseFile(filename));
+	Setting("outname")=(mem::string)"";
+      }
     }
+  } catch(handled_error) {
+    status=false;
   }
 }
 
