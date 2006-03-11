@@ -5606,11 +5606,11 @@ elements will be individually deconstructed (@pxref{add}).
 
 @node PostScript to Asymptote
 @chapter @code{PostScript} to @code{Asymptote}
-The excellent @code{PostScript} editor @code{pstoedit} (version 3.43 or later; 
+The excellent @code{PostScript} editor @code{pstoedit} (version 3.44 or later; 
 available from @url{http://pstoedit.net}) includes an
 @code{Asymptote} backend. Unlike virtually all other @code{pstoedit}
 backends, this driver includes native clipping, even-odd fill rule,
-and @code{PostScript} subpath support. 
+@code{PostScript} subpath, and full image support.
 
 @noindent
 For example, try:
@@ -5628,21 +5628,6 @@ If the line widths aren't quite correct, try giving @code{pstoedit} the
 @code{-dis} option.
 If the fonts aren't typeset correctly, try giving @code{pstoedit} the
 @code{-dt} option.
-
-Full image support can be added to the @code{Asymptote} backend
-with the patch @code{pstoedit-3.43asy.patch}. 
-Denoting the location of the @code{Asymptote} source directory by
-@code{SOURCE}, one can install this patch with the commands
-(as the @code{UNIX} root user):
-
-@verbatim
-tar -zxf pstoedit-3.43.tar.gz
-cd pstoedit-3.43
-patch -p1 < SOURCE/patches/pstoedit-3.43asy.patch
-autoconf
-./configure --prefix=/usr
-make install
-@end verbatim
 
 @node Help
 @chapter Help
