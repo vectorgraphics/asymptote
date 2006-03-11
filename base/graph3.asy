@@ -3,8 +3,8 @@
 private import math;
 import graph;
 import three;
+public import light;
 
-public int nsub=4;
 public int nmesh=10;
 
 triple Scale(picture pic, triple v)
@@ -337,7 +337,7 @@ guide3 graph(picture pic=currentpicture, real[] x, real[] y, real[] z,
 }
 
 // The graph of a function along a path.
-guide3 graph(triple F(path, real), path p, int n=nsub,
+guide3 graph(triple F(path, real), path p, int n=1,
 	     interpolate join=operator --)
 {
   guide3 g;
@@ -346,20 +346,20 @@ guide3 graph(triple F(path, real), path p, int n=nsub,
   return cyclic(p) ? join(g,cycle3) : join(g,F(p,length(p)));
 }
 
-guide3 graph(triple F(pair), path p, int n=nsub, interpolate join=operator --)
+guide3 graph(triple F(pair), path p, int n=1, interpolate join=operator --)
 {
   return graph(new triple(path p, real position) 
 	       {return F(point(p,position));},p,n,join);
 }
 
-guide3 graph(picture pic=currentpicture, real f(pair), path p, int n=nsub,
+guide3 graph(picture pic=currentpicture, real f(pair), path p, int n=1,
 	     interpolate join=operator --) 
 {
   return graph(new triple(pair z) {return Scale(pic,(z.x,z.y,f(z)));},p,n,
 	       join);
 }
 
-guide3 graph(real f(pair), path p, int n=nsub, real T(pair),
+guide3 graph(real f(pair), path p, int n=1, real T(pair),
 	     interpolate join=operator --)
 {
   return graph(new triple(pair z) {pair w=T(z); return (w.x,w.y,f(w));},p,n,
@@ -398,48 +398,53 @@ struct grid {
   }
 }
 
-picture surface(real f(pair z), pair a, pair b, int n=nmesh, int nsub=nsub,
-		int m=n, pen surfacepen=lightgray, pen meshpen=currentpen,
-		projection P=currentprojection)
-{
-  picture pic;
-
-  void drawcell(pair a, pair b) {
-    guide3 g=graph(f,box(a,b),nsub);
-    filldraw(pic,project(g,P),surfacepen,meshpen);
-  }
-
-  grid g=grid.set(a,b,n,m,P);
-  
-  if(g.reverse)
-    for(int j=0; j < m; ++j)
-      for(int i=0; i < n; ++i)
-	drawcell(g.sample(i,j),g.sample(i+1,j+1));
-  else
-    for(int i=0; i < n; ++i)
-      for(int j=0; j < m; ++j)
-	drawcell(g.sample(i,j),g.sample(i+1,j+1));
-
-  return pic;
-}
-
+// draw the surface described by a matrix f, with lighting
 picture surface(real[][] f, pair a, pair b,
-		pen surfacepen=lightgray, pen meshpen=currentpen,
-		projection P=currentprojection)
+		pen surfacepen=lightgray, pen meshpen=nullpen,
+		light light=currentlight, projection P=currentprojection)
 {
   picture pic;
+
+  if(!rectangular(f)) abort("matrix is not rectangular");
+  
+  if(light.source == O && meshpen == nullpen) meshpen=currentpen;
+  
   int n=f.length-1;
   int m=f[0].length-1;
   
-  if(!rectangular(f)) abort("matrix is not rectangular");
+  grid g=grid.set(a,b,n,m);
 
-  void drawcell(int i, int j, pair a, pair b) {
-    guide3 g=(a.x,a.y,f[i][j])--(a.x,b.y,f[i][j+1])--
-      (b.x,b.y,f[i+1][j+1])--(b.x,a.y,f[i+1][j])--cycle3;
-    filldraw(pic,project(g,P),surfacepen,meshpen);
+  pair z0=g.sample(0,0);
+  real dx=g.sample(1,0).x-z0.x;
+  real dy=g.sample(0,1).y-z0.y;
+  
+// calculate colors at each point
+  pen color(int i, int j) {
+    real dfx,dfy;
+    if(i == 0) dfx=f[1][j]-f[0][j];
+    else if(i == n) dfx=f[n][j]-f[n-1][j];
+    else dfx=0.5(f[i+1][j]-f[i-1][j]);
+    if(j == 0) dfy=f[i][1]-f[i][0];
+    else if(j == m) dfy=f[i][m]-f[i][m-1];
+    else dfy=0.5(f[i][j+1]-f[i][j-1]);
+    return light.intensity(cross((dx,0,dfx),(0,dy,dfy)))*surfacepen;
   }
 
-  grid g=grid.set(a,b,n,m,P);
+  int[] edges={0,0,0,2};
+  void drawcell(int i, int j, pair a, pair b) {
+    pair[] v={project((a.x,a.y,f[i][j]),P),
+	      project((a.x,b.y,f[i][j+1]),P),
+	      project((b.x,b.y,f[i+1][j+1]),P),
+	      project((b.x,a.y,f[i+1][j]),P)};
+    guide g=v[0]--v[1]--v[2]--v[3]--cycle;
+    if(light.source == O)
+      filldraw(pic,g,surfacepen,meshpen);
+    else {
+      pen[] pcell={color(i,j),color(i,j+1),color(i+1,j+1),color(i+1,j)};
+      gouraudshade(pic,g,pcell,v,edges);
+      if(meshpen != nullpen) draw(pic,g,meshpen);
+    }
+  }
 
   if(g.sign >= 0)
     if(g.reverse)
@@ -459,6 +464,49 @@ picture surface(real[][] f, pair a, pair b,
       for(int i=0; i < n; ++i)
 	for(int j=0; j < m; ++j)
 	  drawcell(n-1-i,m-1-j,g.sample(i+1,j+1),g.sample(i,j));
+  
+  return pic;
+}
+
+// draw the surface described by a function f, with lighting
+picture surface(real f(pair z), pair a, pair b, int n=nmesh, int m=n,
+		pen surfacepen=lightgray, pen meshpen=nullpen,
+		light light=currentlight, projection P=currentprojection)
+{
+  grid g=grid.set(a,b,n,m);
+
+  real[][] z=new real[n+1][m+1];
+
+  for(int i=0; i <= n; ++i)
+    for(int j=0; j <= m; ++j)
+      z[i][j]=f(g.sample(i,j));
+
+  return surface(z,a,b,surfacepen,meshpen,light,P);
+}
+
+// draw the surface described by f, subsampling nsub times along cell edges
+picture surface(real f(pair z), int nsub, pair a, pair b, int n=nmesh, int m=n,
+		pen surfacepen=lightgray, pen meshpen=currentpen,
+		projection P=currentprojection)
+{
+  picture pic;
+
+  grid g=grid.set(a,b,n,m,P);
+  
+  void drawcell(int i, int j) {
+    guide3 g=graph(f,box(g.sample(i,j),g.sample(i+1,j+1)),nsub);
+    filldraw(pic,project(g,P),surfacepen,meshpen);
+  }
+
+  if(g.reverse)
+    for(int j=0; j < m; ++j)
+      for(int i=0; i < n; ++i)
+	drawcell(i,j);
+  else
+    for(int i=0; i < n; ++i)
+      for(int j=0; j < m; ++j)
+	drawcell(i,j);
+
   return pic;
 }
 

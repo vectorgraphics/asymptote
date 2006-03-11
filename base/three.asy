@@ -187,7 +187,7 @@ void scale(projection dest=currentprojection, real x, real y, real z)
   dest.aspect=xscale3(x)*yscale3(y)*zscale3(z);
 }
 
-pair projectXY(triple v)
+pair xypart(triple v)
 {
   return (v.x,v.y);
 }
@@ -195,7 +195,7 @@ pair projectXY(triple v)
 project operator cast(transform3 t)
 {
   return new pair(triple v) {
-    return projectXY(t*v);
+    return xypart(t*v);
   };
 }
 
@@ -855,8 +855,12 @@ struct bbox3 {
   
   triple O() {return min;}
   triple X() {return (max.x,min.y,min.z);}
+  triple XY() {return (max.x,max.y,min.z);}
   triple Y() {return (min.x,max.y,min.z);}
+  triple YZ() {return (min.x,max.y,max.z);}
   triple Z() {return (min.x,min.y,max.z);}
+  triple ZX() {return (max.x,min.y,max.z);}
+  triple XYZ() {return max;}
 }
 
 bbox3 operator init() {return new bbox3;}

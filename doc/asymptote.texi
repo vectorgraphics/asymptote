@@ -133,8 +133,8 @@ Base modules
 * embed::                       Embedding movies, sounds, and 3D objects
 * graph::                       2D linear & logarithmic graphs
 * three::                       3D vector graphics
-* graph3::                      3D linear & logarithmic graphs
 * light::                       3D lighting effects
+* graph3::                      3D linear & logarithmic graphs
 * featpost3D::                  Partial port of @code{featpost3d}
 
 
@@ -4164,8 +4164,8 @@ Here now is @code{latexusage.tex}:
 * embed::                       Embedding movies, sounds, and 3D objects
 * graph::                       2D linear & logarithmic graphs
 * three::                       3D vector graphics
-* graph3::                      3D linear & logarithmic graphs
 * light::                       3D lighting effects
+* graph3::                      3D linear & logarithmic graphs
 * featpost3D::                  Partial port of @code{featpost3d}
 
 @end menu
@@ -5251,6 +5251,13 @@ Further three-dimensional examples are provided in the files
 @code{near_earth.asy}, @code{conicurv.asy}, and (in the @code{animations}
 subdirectory) @code{cube.asy}.
 
+@node light
+@section @code{light}
+@cindex @code{light}
+This module provides a simple implementation of three-dimensional
+lighting effects. An illustration is provided in the example file
+@code{sphere.asy}.
+
 @node graph3
 @section @code{graph3}
 @cindex @code{graph3}
@@ -5327,27 +5334,30 @@ One can also place ticks along a general three-dimensional axis:
 @image{generalaxis3}
 
 @page
-Surface plots of functions and matrices are also implemented:
+Surface plots of functions and matrices over the region
+@code{box(a,b)} in the @math{XY} plane are also implemented: 
 @verbatim
-picture surface(real f(pair z), pair a, pair b, int n=nmesh, int nsub=nsub,
-                int m=n, pen surfacepen=lightgray, pen meshpen=currentpen,
-                projection P=currentprojection);
+// draw the surface described by a matrix f, with lighting
 picture surface(real[][] f, pair a, pair b,
-                pen surfacepen=lightgray, pen meshpen=currentpen,
-                projection P=currentprojection);
+		pen surfacepen=lightgray, pen meshpen=nullpen,
+		light light=currentlight, projection P=currentprojection);
+
+// draw the surface described by a function f, with lighting
+picture surface(real f(pair z), pair a, pair b, int n=nmesh, int m=n,
+                pen surfacepen=lightgray, pen meshpen=nullpen,
+		light light=currentlight, projection P=currentprojection)
+
+// draw the surface described by f, subsampling nsub times along cell edges
+picture surface(real f(pair z), int nsub, pair a, pair b, int n=nmesh, 
+		int m=n, pen surfacepen=lightgray, pen meshpen=currentpen,
+		projection P=currentprojection);
 @end verbatim
 @noindent
-Here is an example of a Gaussian surface:
+Here is an example of a Gaussian surface subsampled 4 times:
 @anchor{surface}
 @verbatiminclude surface.asy
 @image{surface}
-
-@node light
-@section @code{light}
-@cindex @code{light}
-This module provides a simple implementation of three-dimensional
-lighting effects. An illustration is provided in the example file
-@code{sphere.asy}.
+Surface lighting is illustrated in the example file @code{sinc.asy}.
 
 @node featpost3D
 @section @code{featpost3D}

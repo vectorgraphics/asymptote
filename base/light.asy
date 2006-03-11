@@ -17,20 +17,23 @@ struct light {
   public triple source;
   public shadefcn shade;
   
-  static light init(triple source, shadefcn shade=defaultshade) {
-    light L=new light;
-    L.source=source;
-    L.shade=shade;
-    return L;
-  }
-  
-  static light init(real x, real y , real z, shadefcn shade=defaultshade) {
-    return init((x,y,z),shade);
-  }
-    
   real intensity(triple v) {
-    return shade(0.5(dot(v,source)+1));
+    if(source == O) return 1.0;
+    return shade(0.5(dot(unit(v),source)+1));
   }
 }
 
-light currentlight=light.init(0.25,-0.25,1);
+light operator init() {return new light;}
+  
+light light(triple source, shadefcn shade=defaultshade)
+{
+  light L;
+  L.source=unit(source);
+  L.shade=shade;
+  return L;
+}
+
+light operator cast(triple v) {return light(v);}
+
+public light currentlight=(0.25,-0.25,1);
+light nolight=(0,0,0);

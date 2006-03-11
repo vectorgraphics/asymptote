@@ -10,7 +10,7 @@ draw((-1,-1,0)--(1,-1,0)--(1,1,0)--(-1,1,0)--cycle3);
 
 draw(arc(0.12Z,0.2,90,60,90,15),ArcArrow);
 
-picture surface=surface(f,(-1,-1),(1,1),10,4);
+picture surface=surface(f,4,(-1,-1),(1,1),10);
   
 bbox3 b=limits(O,1.75(1,1,1));
 
