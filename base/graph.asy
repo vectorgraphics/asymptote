@@ -342,13 +342,13 @@ void labelaxis(frame f, transform T, Label L, guide g,
   pair offset;
   if(ticklabels) {
     if(straight(g)) {
-      real angle=degrees(dir(g,t));
+      real angle=degrees(dir);
       transform S=rotate(-angle,point(g,t));
       frame F=S*f;
       pair Z=S*z;
       pair Align=rotate(-angle)*align;
-      offset=abs((Align.y >= 0 ? max(F).y : (Align.y < 0 ? min(F).y : 0))-Z.y)*
-	unit(align-locate.dir(t));
+      offset=unit(align-sign*locate.dir(t))*
+	abs((Align.y >= 0 ? max(F).y : (Align.y < 0 ? min(F).y : 0))-Z.y);
     }
     align=axislabelmargin*align;
   }
