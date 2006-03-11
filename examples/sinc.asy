@@ -13,10 +13,9 @@ currentlight=(1,-1,0.5);
 
 aspect(b,1,1,1);
 
-xaxis(rotate(X)*"$x$",b,RightTicks(rotate(X)*Label(fontsize(10pt))));
-yaxis(rotate(Y)*"$y$",b.X(),b.XY(),
-      LeftTicks(rotate(Y)*Label(fontsize(10pt))));
-zaxis("$z$",b,RightTicks(Label(fontsize(10pt))));
+xaxis(rotate(X)*"$x$",b,RightTicks(rotate(X)*Label));
+yaxis(rotate(Y)*"$y$",b.X(),b.XY(),LeftTicks(rotate(Y)*Label));
+zaxis("$z$",b,RightTicks());
 
 layer();
 
