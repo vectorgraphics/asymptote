@@ -54,12 +54,12 @@ const bool msdos=true;
 const char *HOME="USERPROFILE";
 const char pathSeparator=';';
 const string defaultPSViewer=
-  "'c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe'";
+  "c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe";
 const string defaultPDFViewer=
-  "'c:\\Program Files\\Adobe\\Acrobat 7.0\\Reader\\AcroRd32.exe'";
+  "c:\\Program Files\\Adobe\\Acrobat 7.0\\Reader\\AcroRd32.exe";
 const string defaultGhostscript=
-  "'c:\\Program Files\\gs\\gs8.53\\bin\\gswin32.exe'";
-const string defaultPython="'c:\\Python24\\python.exe'";
+  "c:\\Program Files\\gs\\gs8.53\\bin\\gswin32.exe";
+const string defaultPython="c:\\Python24\\python.exe";
 const string defaultDisplay="imdisplay";
 #undef ASYMPTOTE_SYSDIR
 #define ASYMPTOTE_SYSDIR "c:\\Program Files\\Asymptote"

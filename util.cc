@@ -24,6 +24,12 @@
 
 using namespace settings;
 
+#ifdef __CYGWIN__
+#define CERR cout
+#else
+#define CERR cerr
+#endif  
+
 bool False=false;
 
 string stripext(const string& name, const string& ext)
@@ -142,19 +148,20 @@ char **args(const char *command)
 
 void execError(const char *command, const char *hint, const char *application)
 {
-    cerr << "Cannot execute " << command << endl;
+    CERR << "Cannot execute " << command << endl;
     if(application == "") application=hint;
     string s=string(hint);
     transform(s.begin(), s.end(), s.begin(), toupper);        
     if(hint) 
-      cerr << "Please put in " << getSetting<mem::string>("config")
+      CERR << "Please put in " << getSetting<mem::string>("config")
 	   << ": " << endl << endl
 	   << "import settings;" << endl
-           << "psviewer=\"replace with the correct path to " 
-	   << application << "\";" << endl << endl
+           << hint << "=\"PATH\";" << endl << endl
+	   << "where PATH denotes the correct path to " 
+	   << application << "." << endl << endl
 	   << "Alternatively, set the environment variable ASYMPTOTE_" << s 
-	   << endl << "to the correct path to " << application << "." 
-	   << endl << endl;
+	   << endl << "or use the command line option -" << hint 
+	   << "=\"PATH\"" << endl;
     exit(-1);
 }
 						    

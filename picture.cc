@@ -161,7 +161,7 @@ bool picture::texprocess(const string& texname, const string& outname,
   if(outfile) {
     outfile.close();
     ostringstream cmd;
-    cmd << getSetting<mem::string>("latex") 
+    cmd << "'" << getSetting<mem::string>("latex") << "'"
 	<< " \\scrollmode\\input " << texname;
     bool quiet=verbose <= 1;
     status=System(cmd,quiet,"latex");
@@ -197,7 +197,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     }
 
     ostringstream dcmd;
-    dcmd << getSetting<mem::string>("dvips") << " -R -t " 
+    dcmd << "'" << getSetting<mem::string>("dvips") << "' -R -t " 
 	 << getSetting<mem::string>("papertype") 
 	 << "size -O " << hoffset << "bp," << voffset << "bp";
     if(verbose <= 1) dcmd << " -q";
@@ -262,8 +262,8 @@ bool picture::postprocess(const string& epsname, const string& outname,
   
   if(!epsformat) {
     if(pdfformat) {
-      cmd << getSetting<mem::string>("gs")
-	  << " -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
+      cmd << "'" << getSetting<mem::string>("gs")
+	  << "' -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
 	  << " -dAutoRotatePages=/None "
 	  << " -dDEVICEWIDTHPOINTS=" 
 	  << bpos.right-bpos.left+1.0
@@ -275,8 +275,8 @@ bool picture::postprocess(const string& epsname, const string& outname,
       double expand=2.0;
       double res=(tgifformat ? getSetting<double>("deconstruct") : expand)*
 	72.0;
-      cmd << getSetting<mem::string>("convert") 
-	  << " -density " << res << "x" << res;
+      cmd << "'" << getSetting<mem::string>("convert") 
+	  << "' -density " << res << "x" << res;
       if(!tgifformat) cmd << " +antialias -geometry " << 100.0/expand << "%x";
       cmd << " eps:" << epsname;
       if(tgifformat) cmd << " -transparent white gif";
@@ -303,7 +303,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
       if (!interact::virtualEOF || outname != lastoutname || restart) {
 	if(!wait) lastoutname=outname;
 	ostringstream cmd;
-	cmd << Viewer;
+	cmd << "'" << Viewer << "'";
 	if(Viewer == "gv" && interact::interactive)
 	  cmd << " -nowatch";
 	cmd << " " << outname;
@@ -315,7 +315,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
       } else if(Viewer == "gv") kill(pid,SIGHUP); // Tell gv to reread file.
     } else {
       ostringstream cmd;
-      cmd << getSetting<mem::string>("display") << " " << outname;
+      cmd << "'" << getSetting<mem::string>("display") << "' " << outname;
       string application="your "+outputformat+" viewer";
       status=System(cmd,false,wait,"display",application.c_str());
       if(status != 0) return false;
@@ -366,10 +366,10 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     if(view()) {
       ostringstream cmd;
       string Python=getSetting<mem::string>("python");
-      if(Python != "") cmd << Python << " ";
-      cmd << getSetting<mem::string>("xasy") << " " << buildname(prefix) 
-	  << " " << ShipoutNumber << " " << 
-	buildname(getSetting<mem::string>("outname"));
+      if(Python != "") cmd << "'" << Python << "' ";
+      cmd << "'" << getSetting<mem::string>("xasy") << "' " 
+	  << buildname(prefix) << " " << ShipoutNumber << " "
+	  << buildname(getSetting<mem::string>("outname"));
       int status=System(cmd,false,true,Python != "" ? "python" : "xasy");
       if(status != 0) return false;
     }

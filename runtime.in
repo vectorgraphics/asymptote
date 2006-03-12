@@ -2061,7 +2061,7 @@ int merge(stringarray *files, string *args, string *format)
   if(!checkFormatString(*format)) return;
   
   ostringstream cmd,remove;
-  cmd << getSetting<string>("convert") << " "+*args;
+  cmd << "'" << getSetting<string>("convert") << "' "+*args;
   
   for(size_t i=0; i < size; i++) 
     cmd << " " << read<string>(files,i);
@@ -2079,7 +2079,7 @@ int merge(stringarray *files, string *args, string *format)
     
   if(ret == 0 && view()) {
     ostringstream cmd;
-    cmd << getSetting<string>("animate") << " " << name;
+    cmd << "'" << getSetting<string>("animate") << "' " << name;
     System(cmd,false,false,"animate","your animated GIF viewer");
   }
   

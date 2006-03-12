@@ -65,7 +65,7 @@ const char *rl_gets()
       if(pid) restart=(waitpid(pid, &status, WNOHANG) == pid);
       if(restart) {
 	ostringstream cmd;
-	cmd << getSetting<mem::string>("pdfviewer") << " " 
+	cmd << "'" << getSetting<mem::string>("pdfviewer") << "' " 
 	    << docdir << "/asymptote.pdf";
 	status=System(cmd,false,false,"pdfviewer","your PDF viewer",&pid);
       }
