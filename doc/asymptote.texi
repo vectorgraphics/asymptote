@@ -293,6 +293,16 @@ or install the contributed @code{Asymptote} binary available at
 @cindex Microsoft Windows
 Users of the @code{Microsoft Windows} operating system can install the
 self-extracting @code{Asymptote} executable @code{asymptote-install-x.xx.exe}.
+The recommended installation directory is @code{c:\Program Files\Asymptote}.
+If you wish to install @code{Asymptote} in another directory, say
+@code{d:\Asymptote}, you can tell @code{Asymptote} where to find
+@code{plain.asy} and its other base modules by creating a file
+@code{%USERPROFILE%/.asy/config.asy} containing the lines
+@verbatim
+import settings;
+dir="d:\Asymptote";
+@end verbatim
+
 A working @code{TeX} implementation (such as the one available at
 @url{http://www.miktex.org}) will be required to typeset labels.
 The @code{Python} interpretor from @url{http://www.python.org} is only required
@@ -331,7 +341,7 @@ Here are the default values of several important configuration variables.
 Under @code{UNIX:}
 @verbatim
 import settings;
-psviewer="gv":
+psviewer="gv";
 pdfviewer="acroread";
 gs="gs";
 python="";
