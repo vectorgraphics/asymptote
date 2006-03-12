@@ -16,6 +16,7 @@ $(TESTS:=.ref) $(TESTS:=.out): %:
 	@cd $@; \
 	asy -v -v -keep ../$(basename $@) \
 	    >$(basename $@).stdout 2>$(basename $@).stderr; \
+	ls >$(basename $@).ls; \
 	rm -f *.dvi *.pdf *.gif *.jpg *.jpeg *.png
 
 # Ignore lines with timestamps of the form hh:mm, since the time changes between
