@@ -233,7 +233,6 @@ void doICore(icore &i, bool embedded=false) {
     status=false;
   } catch(handled_error) {
     status=false;
-    cout << "hi" << endl;
     run::cleanup();
   }
 

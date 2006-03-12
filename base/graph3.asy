@@ -412,7 +412,7 @@ picture surface(real[][] f, pair a, pair b,
   int n=f.length-1;
   int m=f[0].length-1;
   
-  grid g=grid.set(a,b,n,m);
+  grid g=grid.set(a,b,n,m,P);
 
   pair z0=g.sample(0,0);
   real dx=g.sample(1,0).x-z0.x;
@@ -431,7 +431,10 @@ picture surface(real[][] f, pair a, pair b,
   }
 
   int[] edges={0,0,0,2};
-  void drawcell(int i, int j, pair a, pair b) {
+  
+  void drawcell(int i, int j, int i1, int j1, int i2, int j2) {
+    pair a=g.sample(i1,j1);
+    pair b=g.sample(i2,j2);
     pair[] v={project((a.x,a.y,f[i][j]),P),
 	      project((a.x,b.y,f[i][j+1]),P),
 	      project((b.x,b.y,f[i+1][j+1]),P),
@@ -440,7 +443,7 @@ picture surface(real[][] f, pair a, pair b,
     if(light.source == O)
       filldraw(pic,g,surfacepen,meshpen);
     else {
-      pen[] pcell={color(i,j),color(i,j+1),color(i+1,j+1),color(i+1,j)};
+      pen[] pcell={color(i1,j1),color(i1,j2),color(i2,j2),color(i2,j1)}; 
       gouraudshade(pic,g,pcell,v,edges);
       if(meshpen != nullpen) draw(pic,g,meshpen);
     }
@@ -450,20 +453,20 @@ picture surface(real[][] f, pair a, pair b,
     if(g.reverse)
       for(int j=0; j < m; ++j)
 	for(int i=0; i < n; ++i)
-	  drawcell(i,j,g.sample(i,j),g.sample(i+1,j+1));
+	  drawcell(i,j,i,j,i+1,j+1);
     else
       for(int i=0; i < n; ++i)
 	for(int j=0; j < m; ++j)
-	  drawcell(i,j,g.sample(i,j),g.sample(i+1,j+1));
+	  drawcell(i,j,i,j,i+1,j+1);
   else
     if(g.reverse)
       for(int j=0; j < m; ++j)
 	for(int i=0; i < n; ++i)
-	  drawcell(n-1-i,m-1-j,g.sample(i+1,j+1),g.sample(i,j));
+	  drawcell(n-1-i,m-1-j,i+1,j+1,i,j);
     else
       for(int i=0; i < n; ++i)
 	for(int j=0; j < m; ++j)
-	  drawcell(n-1-i,m-1-j,g.sample(i+1,j+1),g.sample(i,j));
+	  drawcell(n-1-i,m-1-j,i+1,j+1,i,j);
   
   return pic;
 }
@@ -473,14 +476,12 @@ picture surface(real f(pair z), pair a, pair b, int n=nmesh, int m=n,
 		pen surfacepen=lightgray, pen meshpen=nullpen,
 		light light=currentlight, projection P=currentprojection)
 {
-  grid g=grid.set(a,b,n,m);
-
   real[][] z=new real[n+1][m+1];
 
   for(int i=0; i <= n; ++i)
     for(int j=0; j <= m; ++j)
-      z[i][j]=f(g.sample(i,j));
-
+      z[i][j]=f((interp(a.x,b.x,i/n),interp(a.y,b.y,j/m)));
+  
   return surface(z,a,b,surfacepen,meshpen,light,P);
 }
 
