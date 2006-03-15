@@ -1647,12 +1647,12 @@ pair intersect(explicit guide3 p, explicit guide3 q, real fuzz=0)
   return intersect((path3) p,(path3) q,fuzz);
 }
 
-pair intersectionpoint(path3 p, path3 q, real fuzz=0)
+triple intersectionpoint(path3 p, path3 q, real fuzz=0)
 {
   return point(p,intersect(p,q,fuzz).x);
 }
 
-pair intersectionpoint(explicit guide3 p, explicit guide3 q, real fuzz=0)
+triple intersectionpoint(explicit guide3 p, explicit guide3 q, real fuzz=0)
 {
   return point(p,intersect(p,q,fuzz).x);
 }
