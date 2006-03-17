@@ -674,6 +674,7 @@ public:
   }
 };
   
+pen transformed(const transform& t, pen p);
 }
 
 #endif

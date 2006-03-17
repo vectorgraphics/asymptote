@@ -145,6 +145,8 @@ public:
   
 };
 
+triple expi(double theta, double phi);
+  
 struct node {
   triple pre,point,post;
 public:
