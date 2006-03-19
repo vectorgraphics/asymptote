@@ -577,7 +577,7 @@ setlocal errorformat=%f:\ %l.%c:\ %m
 @cindex CVS
 
 The following commands are needed to install the latest development version of
-@code{Asymptote} from cvs (when prompted for the @acronym{CVS}
+@code{Asymptote} from @acronym{CVS} (when prompted for the @acronym{CVS}
 password, type enter):
 @verbatim
 cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/asymptote login
@@ -5393,37 +5393,37 @@ supported by @code{Asymptote}:
 Usage: asy [options] [file ...]
 
 Options: 
--V,-View              View output files
--a,-align C|B|T|Z     Center, Bottom, Top or Zero page alignment; Z => -notex
--autoplain            Enable automatic importing of plain (default)
--batchMask            Mask fpu exceptions in batch mode
--batchView            View output files in batch mode
--bw                   Convert all colors to black and white
--c,-clearGUI          Clear GUI operations
--cmyk                 Convert rgb colors to cmyk
--d,-debug             Enable debugging messages
--x,-deconstruct X     Deconstruct into transparent GIF objects magnified by X
--gray                 Convert all colors to grayscale
--h,-help              Show summary of options
--historylines n       Retain n lines of history (default 1000)
--i,-ignoreGUI         Ignore GUI operations
--inlinetex            Generate inline tex code
--interactiveMask      Mask fpu exceptions in interactive mode
--interactiveView      View output files in interactive mode
--k,-keep              Keep intermediate files
--l,-listvariables     List available global functions and variables
--localhistory         Use a local interactive history file
--m,-mask              Mask fpu exceptions
--O,-offset pair       PostScript offset
--f,-outformat format  Convert each output file to specified format
--o,-outname name      (First) output file name
--p,-parseonly         Parse test
--rgb                  Convert cmyk colors to rgb
--safe                 Disable system call (default)
--tex                  Enable LaTeX label postprocessing (default)
--s,-translate         Translate test
--unsafe               Enable system call
--v,-verbose           Increase verbosity level
+-V,-View             View output files
+-a,-align C|B|T|Z    Center, Bottom, Top, or Zero page alignment; Z => -notex
+-autoplain           Enable automatic importing of plain (default)
+-batchMask           Mask fpu exceptions in batch mode
+-batchView           View output files in batch mode
+-bw                  Convert all colors to black and white
+-c,-clearGUI         Clear GUI operations
+-cmyk                Convert rgb colors to cmyk
+-d,-debug            Enable debugging messages
+-x,-deconstruct X    Deconstruct into transparent GIF objects magnified by X
+-gray                Convert all colors to grayscale
+-h,-help             Show summary of options
+-historylines n      Retain n lines of history (default 1000)
+-i,-ignoreGUI        Ignore GUI operations
+-inlinetex           Generate inline tex code
+-interactiveMask     Mask fpu exceptions in interactive mode
+-interactiveView     View output files in interactive mode
+-k,-keep             Keep intermediate files
+-l,-listvariables    List available global functions and variables
+-localhistory        Use a local interactive history file
+-m,-mask             Mask fpu exceptions
+-O,-offset pair      PostScript offset
+-f,-outformat format Convert each output file to specified format
+-o,-outname name     (First) output file name
+-p,-parseonly        Parse test
+-rgb                 Convert cmyk colors to rgb
+-safe                Disable system call (default)
+-tex                 Enable LaTeX label postprocessing (default)
+-s,-translate        Translate test
+-unsafe              Enable system call
+-v,-verbose          Increase verbosity level
 
 @end verbatim
 
@@ -5673,13 +5673,20 @@ To receive announcements of upcoming releases, please subscribe to
 @cindex bug reports
 @noindent
 If you find a bug in @code{Asymptote}, please check (if possible)
-whether the bug is still present in the latest @acronym{CVS} version before
-submitting a bug report. New bugs can be submitted using the Bug
+whether the bug is still present in the latest @acronym{CVS} version
+before submitting a bug report. New bugs can be submitted using the Bug
 Tracking System at
 @quotation
 @url{http://sourceforge.net/projects/asymptote}
 @end quotation
 @noindent
+To see if the bug has already been fixed,
+check bugs with Status @code{Closed} and recent lines in
+@quotation
+@url{http://asymptote.sourceforge.net/ChangeLog}
+@end quotation
+@noindent
+
 @cindex stack overflow
 @cindex segmentation fault
 @cindex @code{libsigsegv}
@@ -5724,7 +5731,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  MetaPost MetaFont Hammerlindl Healy texinfo autoload setq setf
 @c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
 @c  LocalWords:  vskip filll insertcopying ifnottex detailmenu alist augroup PQ
-@c  LocalWords:  bool behaviour facto zxf cvs login Debian dev filetypedetect
+@c  LocalWords:  bool behaviour facto zxf login Debian dev filetypedetect CVS
 @c  LocalWords:  FFTW bp readline gv eps gifmerge args Boehm gc evenoddoverlap
 @c  LocalWords:  boolean initializer expi dir xpart ypart STL substring rfind
 @c  LocalWords:  pos substr strftime typedef pxref unitcircle yscale Bezier iff
@@ -5747,7 +5754,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  quartercircle darkgreen lightblue urx ury texpreamble sgn texi
 @c  LocalWords:  lineargraph datagraph vertices parametricgraph uncomment ggv
 @c  LocalWords:  loggraph generalaxis texhash arrowsize arrowangle arrowlength
-@c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config  MacOS prebuilt
+@c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config MacOS prebuilt cvs
 @c  LocalWords:  ghostview gsview SIGHUP PDF acroread xpdf nullframe cutbefore
 @c  LocalWords:  libsigsegv intersectionpoint dotfactor vv firstcut pq logticks
 @c  LocalWords:  Unisys dvips vvv vvvv vvvvv traceback lastcut cutafter infodir
@@ -5792,4 +5799,5 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  listvariables outformat outname parseonly prepending psviewer
 @c  LocalWords:  pdfviewer papertype tabcompletion noautoplain plugins Teixeira
 @c  LocalWords:  embeddedmovie historylines inlinetex RadialShade penc penr
-@c  LocalWords:  legendlinelength legendskip
+@c  LocalWords:  legendlinelength legendskip USERPROFILE LDFLAGS currentlight
+@c  LocalWords:  subsampling subsampled sinc

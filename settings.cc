@@ -653,7 +653,7 @@ void initSettings() {
 
   addOption(new pairSetting("offset", 'O', "pair", "PostScript offset"));
   addOption(new alignSetting("align", 'a', "C|B|T|Z",
-		"Center, Bottom, Top or Zero page alignment; Z => -notex"));
+		"Center, Bottom, Top, or Zero page alignment; Z => -notex"));
   
   addOption(new boolSetting("debug", 'd', "Enable debugging messages"));
   addOption(new incrementSetting("verbose", 'v',
