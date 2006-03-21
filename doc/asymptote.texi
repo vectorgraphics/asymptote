@@ -274,8 +274,10 @@ Example code will be installed by default in
 @cindex Debian
 @noindent
 Alternatively, Debian users can install Hubert Chan's @code{Asymptote}
-prebuilt binary:
+prebuilt binary from either of the following sites:
 @quotation
+@url{http://packages.debian.org/asymptote}
+
 @url{http://www.uhoreg.ca/programming/debian/}
 @end quotation
 

@@ -289,8 +289,11 @@ void store_history(HISTORY_STATE *dest)
 {
   HISTORY_STATE *src=history_get_history_state();
   *dest=*src;
-  for(int i=0; i < src->length; ++i)
-    dest->entries[i]=src->entries[i];
+  if(src) {
+    for(int i=0; i < src->length; ++i)
+      dest->entries[i]=src->entries[i];
+    free(src);
+  }
 }
 
 const char nosave='\n';

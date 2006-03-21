@@ -129,12 +129,7 @@ absyntax::file *parseString(string code)
 absyntax::file *parseInteractive()
 {
   debug(false);
-  
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   return doParse(interact::interactive_input,"-");
-#else
-  return parseStdin();
-#endif
 }
 
 } // namespace parser

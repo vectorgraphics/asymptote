@@ -110,7 +110,7 @@ char **args(const char *command)
 {
   if(command == NULL) return NULL;
   
-  int n=0;
+  size_t n=0;
   char **argv=NULL;  
   for(int pass=0; pass < 2; ++pass) {
     if(pass) argv=new char*[n+1];
@@ -184,8 +184,10 @@ int System(const char *command, bool quiet, bool wait,
   if(pid == 0) {
     if(interact::interactive) signal(SIGINT,SIG_IGN);
     if(quiet) close(STDOUT_FILENO);
-    if(argv) execvp(argv[0],argv);
-    execError(argv[0],hint,application);
+    if(argv) {
+      execvp(argv[0],argv);
+      execError(argv[0],hint,application);
+    }
   }
 
   if(ppid) *ppid=pid;
@@ -194,7 +196,7 @@ int System(const char *command, bool quiet, bool wait,
       if(errno == ECHILD) return 0;
       if(errno != EINTR) {
         ostringstream msg;
-        msg << "Command " << command << " failed";
+        msg << "Command failed: " << command;
         camp::reportError(msg);
       }
     } else {
@@ -210,7 +212,7 @@ int System(const char *command, bool quiet, bool wait,
 	return WEXITSTATUS(status);
       } else {
         ostringstream msg;
-        msg << "Command " << command << " exited abnormally";
+        msg << "Command exited abnormally: " << command;
         camp::reportError(msg);
       }
     }

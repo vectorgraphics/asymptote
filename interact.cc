@@ -43,8 +43,15 @@ void init_interactive()
 #endif  
 }
   
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-
+#if !defined(HAVE_LIBREADLINE) || !defined(HAVE_LIBCURSES)
+char *readline(const char *prompt) {
+  std::cout << prompt;
+  string s;
+  getline(std::cin,s);
+  return strdup(s.c_str());
+}
+#endif  
+  
 /* Read a string, and return a pointer to it. Returns NULL on EOF. */
 const char *rl_gets()
 {
@@ -82,7 +89,9 @@ const char *rl_gets()
       return NULL;
   
     /* If the line has any text in it, save it on the history. */
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
     if(*line_read) add_history(line_read);
+#endif    
   } else {
     cout << endl;
     return "\n";
@@ -162,12 +171,12 @@ size_t interactive_input(char *buf, size_t max_size)
     add_input(to,line,size);
     return to-buf;
   } else {
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
     stifle_history(getSetting<int>("historylines"));
     write_history(historyname.c_str());
+#endif    
     return 0;
   }
 }
-
-#endif
 
 } // namespace interact

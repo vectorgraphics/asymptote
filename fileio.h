@@ -312,7 +312,8 @@ public:
   void read(triple& val) {
     double x=0.0, y=0.0, z=0.0;
     stream >> x >> y >> z;
-    val=triple(x,y,z);}
+    val=triple(x,y,z);
+  }
 };
 
 class oxfile : public file {

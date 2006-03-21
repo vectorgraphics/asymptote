@@ -187,16 +187,18 @@ transform3 aspect(projection P)
   return P.project*P.aspect;
 }
 
-// Map v onto (x,y,z) by inverting the projection P onto a constant z plane. 
-triple invert(pair v, real z, projection P=currentprojection)
+// Map pair z onto a triple by inverting the projection P onto the 
+// plane perpendicular to normal and passing through point.
+triple invert(pair z, triple normal, triple point,
+	      projection P=currentprojection)
 {
   transform3 t=aspect(P);
-  real[][] A={{t[0][0]-v.x*t[3][0],t[0][1]-v.x*t[3][1]},
-	      {t[1][0]-v.y*t[3][0],t[1][1]-v.y*t[3][1]}};
-  real[] b={v.x*(t[3][2]*z+t[3][3])-t[0][2]*z-t[0][3],
-	    v.y*(t[3][2]*z+t[3][3])-t[1][2]*z-t[1][3]};
+  real[][] A={{t[0][0]-z.x*t[3][0],t[0][1]-z.x*t[3][1],t[0][2]-z.x*t[3][2]},
+	      {t[1][0]-z.y*t[3][0],t[1][1]-z.y*t[3][1],t[1][2]-z.y*t[3][2]},
+	      {normal.x,normal.y,normal.z}};
+  real[] b={z.x*t[3][3],z.y*t[3][3],dot(normal,point)};
   real[] x=solve(A,b);
-  return (x[0],x[1],z);
+  return (x[0],x[1],x[2]);
 }
 
 void scale(projection dest=currentprojection, real x, real y, real z)
