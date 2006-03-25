@@ -1670,6 +1670,8 @@ Nonstandard font sizes may require inserting
 import fontsize;
 @end verbatim
 at the beginning of the file.
+The font size of a pen can be examine with the routine 
+@code{real fontsize(pen p=currentpen)}.
 
 @cindex @code{font}
 @cindex @code{LaTeX fonts}
@@ -1679,7 +1681,9 @@ at the beginning of the file.
 by calling the function @code{pen font(string encoding, string family,
 string series="m", string shape="n")}. The default setting,
 @code{font("OT1","cmr","m","n")}, corresponds to 12pt Computer Modern Roman;
-this may be changed with @code{defaultpen(pen)}. 
+this may be changed with @code{defaultpen(pen)}. Support for
+standardized international characters is provided by the
+@code{unicode} package (@pxref{unicode}).
 
 @cindex @code{TeX fonts}
 Alternatively, one may select a fixed-size @code{TeX} font (on which
@@ -4345,6 +4349,7 @@ migrate old @code{MetaPost} code to @code{Asymptote}.
 @node unicode
 @section @code{unicode}
 @cindex @code{unicode}
+@cindex international characters
 Import this package at the beginning of the file to instruct
 @code{LaTeX} to accept @code{unicode} (UTF-8) standardized international
 characters. You will also need to set up @code{LaTeX} support for
@@ -4360,11 +4365,29 @@ texhash
 @end verbatim
 
 @cindex Cyrillic
-To use cyrillic fonts, you will need to change the font encoding:
+@cindex Russian
+To use Cyrillic fonts, you will need to change the font encoding:
 @verbatim
 import unicode;
-texpreamble("\usepackage{mathtext} \usepackage[russian]{babel}");
+texpreamble("\usepackage{mathtext}\usepackage[russian]{babel}");
 defaultpen(font("T2A","cmr"));
+@end verbatim
+
+@cindex Chinese
+@cindex Japanese
+@cindex Korean
+@cindex CJK
+Chinese (or other CJK) fonts can be produced like this:
+@verbatim
+texpreamble("\usepackage{CJK}
+\AtBeginDocument{\begin{CJK*}{GBK}{song}}
+\AtEndDocument{\clearpage\end{CJK*}}");
+
+// This will make CJK song the default font:
+defaultpen(fontcommand("\CJKfamily{song}"));
+
+// To switch to a family other than song:
+defaultpen(fontcommand("\CJKfamily{kai}"));
 @end verbatim
 
 @node latin1

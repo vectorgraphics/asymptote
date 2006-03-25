@@ -129,6 +129,11 @@ pen fontsize(real size)
   return fontsize(size,1.2*size);
 }
 
+real fontsize() 
+{
+  return fontsize(currentpen);
+}
+
 real labelmargin(pen p=currentpen)
 {
   return labelmargin*fontsize(p);
