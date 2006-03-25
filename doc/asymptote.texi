@@ -4377,17 +4377,18 @@ defaultpen(font("T2A","cmr"));
 @cindex Japanese
 @cindex Korean
 @cindex CJK
-Chinese (or other CJK) fonts can be produced like this:
+Support for Chinese, Japanese, and Korean fonts is provided by the
+CJK package: 
+@quotation
+@url{http://www.tug.org/tex-archive/languages/chinese/CJK/}
+@end quotation
+The following commands enable the CJK song family (within a label, you
+can also temporarily switch to another family, say kai, by prepending
+@code{"\CJKfamily@{kai@}"} to the label string):
 @verbatim
 texpreamble("\usepackage{CJK}
 \AtBeginDocument{\begin{CJK*}{GBK}{song}}
 \AtEndDocument{\clearpage\end{CJK*}}");
-
-// This will make CJK song the default font:
-defaultpen(fontcommand("\CJKfamily{song}"));
-
-// To switch to a family other than song:
-defaultpen(fontcommand("\CJKfamily{kai}"));
 @end verbatim
 
 @node latin1
