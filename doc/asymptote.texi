@@ -4382,6 +4382,7 @@ CJK package:
 @quotation
 @url{http://www.tug.org/tex-archive/languages/chinese/CJK/}
 @end quotation
+@noindent
 The following commands enable the CJK song family (within a label, you
 can also temporarily switch to another family, say kai, by prepending
 @code{"\CJKfamily@{kai@}"} to the label string):
