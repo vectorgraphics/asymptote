@@ -154,9 +154,13 @@ struct irunnable : public icore {
 struct itree : public icore {
   absyntax::block *ast;
 
+  itree() : ast(0) {}
+  
   itree(absyntax::block *ast)
     : ast(ast) {}
 
+  void set(block *a) {ast=a;}
+  
   void run(coenv &e, istack &s) {
     for(list<runnable *>::iterator r=ast->stms.begin();
 	r != ast->stms.end(); ++r)
@@ -165,25 +169,31 @@ struct itree : public icore {
   }
 };
 
-struct iprompt : public icore {
+struct iprompt : public itree {
+  iprompt() : itree() {}
+  
+  iprompt(absyntax::block *ast)
+    : itree(ast) {}
+  
   void run(coenv &e, istack &s) {
-    while (virtualEOF && !resetenv) {
-      virtualEOF=false;
-      try {
-        file *ast = parser::parseInteractive();
-        assert(ast);
-        itree(ast).run(e,s);
-	if(!uptodate && virtualEOF)
-	  run::updateFunction(&s);
-      } catch (interrupted&) {
-        if(em) em->Interrupt(false);
-        cout << endl;
-      } catch (handled_error) {
-        status=false;
+    virtualEOF=true;
+    while (virtualEOF) {
+      if(!ast) {
+	virtualEOF=false;
+	set(parser::parseInteractive());
+	if(resetenv) {purge(); break;}
       }
+      try {
+	itree::run(e,s);
+      } catch (interrupted&) {
+	if(em) em->Interrupt(false);
+	cout << endl;
+      }
+      ast=0;
+      if(!uptodate && virtualEOF)
+	run::updateFunction(&s);
       purge(); // Close any files that have gone out of scope.
     }
-    run::cleanup();
   }
 };
 
@@ -220,8 +230,12 @@ void doICore(icore &i, bool embedded=false) {
       // Now that everything is set up, run the core.
       i.run(e,s);
       
-      if(!interactive) run::exitFunction(&s);
-
+      if(interactive) {
+	interactive=false;
+	run::exitFunction(&s);
+	interactive=true;
+      } else run::exitFunction(&s);
+      
       estack.pop_back();
       sstack.pop_back();
       
@@ -287,14 +301,21 @@ void doIPrompt() {
   
   interact::init_interactive();
   
-  init();
   Setting("outname")=(mem::string)"out";
   
   iprompt i;
   do {
-    resetenv=false;
-    doICore(i);
-  } while(resetenv);
+    try {
+      init();
+      virtualEOF=false;
+      i.set(parser::parseInteractive());
+      resetenv=false;
+      if(virtualEOF)
+	doICore(i);
+    } catch(handled_error) {
+      status=false;
+    }
+  } while(virtualEOF);
   Setting("outname")=(mem::string)"";
 }
 

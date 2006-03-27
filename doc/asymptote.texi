@@ -5546,7 +5546,8 @@ and must be entered immediately after the prompt:
 view the manual
 @item reset
 reset @code{Asymptote} to its initial state, except that a prior call
-to @code{scroll} is respected (@pxref{scroll}).
+to @code{scroll} (@pxref{scroll}) and any changes to the setting
+@code{outname} are respected.
 @item input FILE
 resets the environment and does an @code{erase(); include FILE}. If
 the file name @code{FILE} contains nonalphanumeric characters, enclose
