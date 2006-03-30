@@ -192,7 +192,7 @@ void outOfBounds(const char *op, size_t len, int n)
   error(buf);
 }
 
-item& arrayRead(array *a, int n)  
+inline item& arrayRead(array *a, int n)  
 {
   size_t len=checkArray(a);
   bool cyclic=a->cyclic();
@@ -328,7 +328,7 @@ void init_readline(bool tabcompletion=true)
 #endif
 
 static size_t *pivot,*Row,*Col;
-static void solveAllocate(size_t n, size_t m)
+static inline void solveAllocate(size_t n, size_t m)
 {
   pivot=new size_t[n];
   if(m == 0) {
@@ -340,7 +340,7 @@ static void solveAllocate(size_t n, size_t m)
   }
 }
 
-static void solveDeallocate()
+static inline void solveDeallocate()
 {
   delete[] pivot;
   if(Row) delete[] Row;
@@ -466,6 +466,23 @@ void checkformat(const char *ptr, bool intformat)
   }
 }
   
+// Return an angle in the interval [0,360).
+inline double principalBranch(double deg)
+{
+  if(deg < 0) deg += 360; 
+  return deg;
+}
+
+inline double Min(double a, double b)
+{
+  return (a < b) ? a : b;
+}
+
+inline double Max(double a, double b)
+{
+  return (a > b) ? a : b;
+}
+
 // Auto-generated routines:
 
 
@@ -1849,9 +1866,14 @@ double angle(pair z)
 // Return the angle of z in degrees in the interval [0,360).
 double degrees(pair z)
 {
-  double deg=degrees(z.angle());
-  if(deg < 0) deg += 360; 
-  return deg;
+  return principalBranch(degrees(z.angle()));
+}
+
+// Return the angle of z in degrees in the interval [0,360), ignoring errors.
+double Degrees(pair z)
+{
+  if(z.getx() == 0.0 && z.gety() == 0.0) return 0.0;
+  return principalBranch(degrees(z.angle()));
 }
 
 pair unit(pair z)
@@ -1880,6 +1902,17 @@ double dot(explicit pair u, explicit pair v)
   return u.getx()*v.getx()+u.gety()*v.gety();
 }
 
+pair minbound(pair z, pair w) 
+{
+  return pair(Min(z.getx(),w.getx()),Min(z.gety(),w.gety()));
+}
+
+pair maxbound(pair z, pair w) 
+{
+  return pair(Max(z.getx(),w.getx()),Max(z.gety(),w.gety()));
+}
+
+
 
 // Triple operations
 
@@ -1954,11 +1987,17 @@ double latitude(triple v)
   return 90.0-degrees(v.polar());
 }
 
+// Return the longitude of v in [0,360).
 double longitude(triple v) 
 {
-  double deg=degrees(v.azimuth());
-  if(deg < 0) deg += 360; 
-  return deg;
+  return principalBranch(degrees(v.azimuth()));
+}
+
+// Return the longitude of v in [0,360), ignoring errors.
+double Longitude(triple v) 
+{
+  if(v.getx() == 0.0 && v.gety() == 0.0) return 0.0;
+  return principalBranch(degrees(v.azimuth()));
 }
 
 triple unit(triple v) 
@@ -1988,6 +2027,18 @@ triple expi(double theta, double phi)
 triple dir(double theta, double phi)
 {
   return expi(radians(theta),radians(phi));
+}
+
+triple minbound(triple u, triple v)
+{
+  return triple(Min(u.getx(),v.getx()),Min(u.gety(),v.gety()),
+		Min(u.getz(),v.getz()));
+}
+
+triple maxbound(triple u, triple v)
+{
+  return triple(Max(u.getx(),v.getx()),Max(u.gety(),v.gety()),
+		Max(u.getz(),v.getz()));
 }
 
 double cubiclength(triple z0, triple z0p, triple z1m, triple z1, double goal)

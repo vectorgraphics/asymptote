@@ -101,6 +101,14 @@ void xaxis(picture pic=currentpicture, Label L="", triple min, triple max,
        arrow,m.divisor,put,P,opposite);
 }
 
+void xaxis(picture pic=currentpicture, Label L="", triple min, real max,
+	   pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
+	   arrowbar arrow=None, bool put=Above,
+	   projection P=currentprojection, bool opposite=false) 
+{
+  xaxis(pic,L,min,(max,min.y,min.z),p,ticks,dir,arrow,put,P,opposite);
+}
+
 // Draw a y axis in three dimensions.
 void yaxis(picture pic=currentpicture, Label L="", triple min, triple max,
 	   pen p=currentpen, ticks ticks=NoTicks, triple dir=X,
@@ -115,6 +123,14 @@ void yaxis(picture pic=currentpicture, Label L="", triple min, triple max,
        arrow,m.divisor,put,P,opposite);
 }
 
+void yaxis(picture pic=currentpicture, Label L="", triple min, real max,
+	   pen p=currentpen, ticks ticks=NoTicks, triple dir=X,
+	   arrowbar arrow=None, bool put=Above, 
+	   projection P=currentprojection, bool opposite=false) 
+{
+  yaxis(pic,L,min,(min.x,max,min.z),p,ticks,dir,arrow,put,P,opposite);
+}
+
 // Draw a z axis in three dimensions.
 void zaxis(picture pic=currentpicture, Label L="", triple min, triple max,
 	   pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
@@ -127,6 +143,14 @@ void zaxis(picture pic=currentpicture, Label L="", triple min, triple max,
   axis(pic,L,G,p,ticks,
        ticklocate(min.z,max.z,pic.scale.z,m.min,m.max,t,dir(G,dir,P)),
        arrow,m.divisor,put,P,opposite);
+}
+
+void zaxis(picture pic=currentpicture, Label L="", triple min, real max,
+	   pen p=currentpen, ticks ticks=NoTicks, triple dir=Y,
+	   arrowbar arrow=None, bool put=Above,
+	   projection P=currentprojection, bool opposite=false) 
+{
+  zaxis(pic,L,min,(min.x,min.y,max),p,ticks,dir,arrow,put,P,opposite);
 }
 
 // Draw an x axis.

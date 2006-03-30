@@ -25,12 +25,6 @@ triple operator * (transform3 t, triple v)
   return (triple) (t*(real[]) v);
 }
 
-// Return the longitude of v, ignoring errors if v.x=v.y=0.
-real Longitude(triple v) {
-  if(v.x == 0 && v.y == 0) return 0;
-  return longitude(v);
-}
-
 // A translation in 3D space.
 transform3 shift(triple v)
 {
@@ -1710,6 +1704,22 @@ guide3[] operator ^^ (guide3[] p, guide3 q)
 guide3[] operator ^^ (guide3[] p, guide3[] q) 
 {
   return concat(p,q);
+}
+
+triple min(explicit guide3[] g)
+{
+  triple ming=(infinity,infinity,infinity);
+  for(int i=0; i < g.length; ++i)
+    ming=minbound(ming,min(g[i]));
+  return ming;
+}
+
+triple max(explicit guide3[] g)
+{
+  triple maxg=(-infinity,-infinity,-infinity);
+  for(int i=0; i < g.length; ++i)
+    maxg=maxbound(maxg,max(g[i]));
+  return maxg;
 }
 
 guide3[] box(triple v1, triple v2)

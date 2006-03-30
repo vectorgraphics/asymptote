@@ -77,16 +77,6 @@ typedef void suffix(file);
 
 void write(file file=stdout, suffix suffix=endl) {suffix(file);}
 
-pair minbound(pair z, pair w) 
-{
-  return (min(z.x,w.x),min(z.y,w.y));
-}
-
-pair maxbound(pair z, pair w) 
-{
-  return (max(z.x,w.x),max(z.y,w.y));
-}
-
 guide box(pair a, pair b)
 {
   return a--(b.x,a.y)--b--(a.x,b.y)--cycle;
