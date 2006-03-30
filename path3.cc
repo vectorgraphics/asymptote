@@ -111,8 +111,11 @@ inline void splitCubic(node sn[], double t, node left_, node right_)
   mid.point=split(t,mid.pre,mid.post);
 }
 
+static unsigned count;  
+extern unsigned maxIntersectCount;
+  
 pair intersectcubics(node left1, node right1, node left2, node right2,
-		     double fuzz, int depth=DBL_MANT_DIG)
+		     double fuzz, unsigned depth=DBL_MANT_DIG)
 {
   const pair F(-1,-1);
 
@@ -130,12 +133,14 @@ pair intersectcubics(node left1, node right1, node left2, node right2,
       box2.Max().getx()+fuzz >= box1.Min().getx() &&
       box2.Max().gety()+fuzz >= box1.Min().gety() &&
       box2.Max().getz()+fuzz >= box1.Min().getz()) {
-    if(lambda <= fuzz || depth == 0) return pair(0,0);
+    if(lambda <= fuzz || depth == 0 || count == 0)
+      return pair(0,0);
+    --depth;
+    --count;
     node sn1[3], sn2[3];
     splitCubic(sn1,0.5,left1,right1);
     splitCubic(sn2,0.5,left2,right2);
     pair t;
-    depth--;
     if ((t=intersectcubics(sn1[0],sn1[1],sn2[0],sn2[1],fuzz,depth)) != F)
       return t*0.5;
     if ((t=intersectcubics(sn1[0],sn1[1],sn2[1],sn2[2],fuzz,depth)) != F)
@@ -155,6 +160,7 @@ pair intersect(int L1, int L2, node n1[], node n2[], double fuzz=0.0)
     node left1=n1[i];
     node right1=n1[i+1];
     for (int j=0; j < L2; ++j) {
+      count=maxIntersectCount;
       pair t=intersectcubics(left1,right1,n2[j],n2[j+1],fuzz);
       if (t != F) return t*0.5 + pair(i,j);
     }

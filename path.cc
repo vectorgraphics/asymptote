@@ -559,10 +559,13 @@ double path::directiontime(pair dir) const {
 
 // {{{ Path Intersection Calculation
 
+static unsigned count;  
+unsigned maxIntersectCount=100000;
+
 // Algorithm derived from Knuth's MetaFont
 pair intersectcubics(solvedKnot left1, solvedKnot right1,
                      solvedKnot left2, solvedKnot right2,
-		     double fuzz, int depth=DBL_MANT_DIG)
+		     double fuzz, unsigned depth=DBL_MANT_DIG)
 {
   const pair F(-1,-1);
 
@@ -578,12 +581,14 @@ pair intersectcubics(solvedKnot left1, solvedKnot right1,
       box1.Max().gety()+fuzz >= box2.Min().gety() &&
       box2.Max().getx()+fuzz >= box1.Min().getx() &&
       box2.Max().gety()+fuzz >= box1.Min().gety()) {
-    if(lambda <= fuzz || depth == 0) return pair(0,0);
+    if(lambda <= fuzz || depth == 0 || count == 0)
+      return pair(0,0);
+    --depth;
+    --count;
     solvedKnot sn1[3], sn2[3];
     splitCubic(sn1,0.5,left1,right1);
     splitCubic(sn2,0.5,left2,right2);
     pair t;
-    depth--;
     if ((t=intersectcubics(sn1[0],sn1[1],sn2[0],sn2[1],fuzz,depth)) != F)
       return t*0.5;
     if ((t=intersectcubics(sn1[0],sn1[1],sn2[1],sn2[2],fuzz,depth)) != F)
@@ -614,6 +619,7 @@ pair intersectiontime(path p1, path p2, double fuzz=0.0)
     solvedKnot& left1=n1[i];
     solvedKnot& right1=(i == icycle) ? n1[0] : n1[i+1];
     for (int j = 0; j < L2; j++) {
+      count=maxIntersectCount;
       pair t=intersectcubics(left1,right1,
 			     n2[j],(j == jcycle) ? n2[0] : n2[j+1],fuzz);
       if (t != F) return t*0.5 + pair(i,j);
