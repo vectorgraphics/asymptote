@@ -29,7 +29,7 @@
   (setq c++-font-lock-extra-types (cons "include" c++-font-lock-extra-types))
 )
 
-(global-font-lock-mode t)
+(unless (featurep 'xemacs) (progn (global-font-lock-mode t)))
 (column-number-mode t)
 
 
