@@ -544,7 +544,7 @@ struct picture {
   }
 
   // Calculate the sizing constants for the given array and maximum size.
-  scaling calculateScaling(coord[] coords, real size) {
+  scaling calculateScaling(string dir, coord[] coords, real size) {
     access simplex;
     simplex.problem p=new simplex.problem;
    
@@ -574,12 +574,16 @@ struct picture {
       return scaling.build(1,0);
     }
     else {
-      for(int i=0; i < coords.length; ++i)
+      bool userzero=true;
+      for(int i=0; i < coords.length; ++i) {
+	if(coords[i].user != 0) userzero=false;
 	if(!finite(coords[i].user) || !finite(coords[i].truesize))
 	  abort("unbounded picture");
-      write("warning: cannot fit picture to size "+
-	    (string) size+"...enlarging...");
-      return calculateScaling(coords,sqrt(2)*size);
+      }
+      if(userzero) return scaling.build(1,0);
+      write("warning: cannot fit picture to "+dir+"size "+(string) size
+	    +"...enlarging...");
+      return calculateScaling(dir,coords,sqrt(2)*size);
     }
   }
 
@@ -611,17 +615,17 @@ struct picture {
     append(Coords,Coords,Coords,T,bounds);
     
     if (ysize == 0) {
-      scaling sx=calculateScaling(Coords.x,xsize);
+      scaling sx=calculateScaling("x",Coords.x,xsize);
       return scale(sx.a);
     }
     
     if (xsize == 0) {
-      scaling sy=calculateScaling(Coords.y,ysize);
+      scaling sy=calculateScaling("y",Coords.y,ysize);
       return scale(sy.a);
     }
     
-    scaling sx=calculateScaling(Coords.x,xsize);
-    scaling sy=calculateScaling(Coords.y,ysize);
+    scaling sx=calculateScaling("x",Coords.x,xsize);
+    scaling sy=calculateScaling("y",Coords.y,ysize);
     if (keepAspect)
       return scale(min(sx.a,sy.a));
     else
@@ -632,12 +636,14 @@ struct picture {
     return calculateTransform(xsize,ysize,keepAspect);
   }
 
-  pair min() {
-    return min(calculateTransform());
+  pair min(real xsize=this.xsize, real ysize=this.ysize,
+	    bool keepAspect=this.keepAspect) {
+    return min(calculateTransform(xsize,ysize,keepAspect));
   }
   
-  pair max() {
-    return max(calculateTransform());
+  pair max(real xsize=this.xsize, real ysize=this.ysize,
+	    bool keepAspect=this.keepAspect) {
+    return max(calculateTransform(xsize,ysize,keepAspect));
   }
   
   frame fit(transform t, transform T0=T, pair m, pair M) {
@@ -746,6 +752,14 @@ pair size(frame f)
   return max(f)-min(f);
 }
 				     
+pair min(picture pic=currentpicture) {
+  return pic.min();
+}
+  
+pair max(picture pic=currentpicture) {
+  return pic.max();
+}
+  
 void begingroup(picture pic=currentpicture)
 {
   pic.add(new void (frame f, transform) {
@@ -981,6 +995,13 @@ void layer(picture pic=currentpicture)
 pair point(picture pic=currentpicture, pair dir)
 {
   return pic.userMin+realmult(rectify(dir),pic.userMax-pic.userMin);
+}
+
+pair truepoint(picture pic=currentpicture, pair dir)
+{
+  pair m=pic.min();
+  pair M=pic.max();
+  return m+realmult(rectify(dir),M-m);
 }
 
 // Transform coordinate in [0,1]x[0,1] to current user coordinates.
