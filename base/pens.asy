@@ -89,12 +89,13 @@ int SuppressQuiet=2;
 int Move=3;
 int MoveQuiet=4;
 
-pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,darkblue,
-		darkgreen,chartreuse,fuchsia,salmon,lightblue,black,lavender,
-		pink,yellow,gray};
+public pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,
+		       darkblue,darkgreen,chartreuse,fuchsia,salmon,
+		       lightblue,black,lavender,pink,yellow,gray};
 colorPen.cyclic(true);
 
-pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,longdashdotted};
+public pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,
+		      longdashdotted};
 monoPen.cyclic(true);
 
 public bool mono=false;
