@@ -1,5 +1,4 @@
 #include <iostream>
-#include <cfloat>
 #include <csignal>
 #include <cstdlib>
 
@@ -332,10 +331,6 @@ void doConfig(string filename) {
 
 } // namespace loop
 
-#ifdef USEGC
-void no_GCwarn(char *, GC_word) {}
-#endif
-
 int main(int argc, char *argv[])
 {
 #ifdef USEGC
@@ -344,14 +339,9 @@ int main(int argc, char *argv[])
   GC_INIT();
 #endif  
   
-  cout.precision(DBL_DIG);
   setsignal(signalHandler);
 
   setOptions(argc,argv);
-
-#ifdef USEGC
-  if(!getSetting<bool>("debug")) GC_set_warn_proc(no_GCwarn);
-#endif  
 
   fpu_trap(trap());
   if(interactive) signal(SIGINT,interruptHandler);

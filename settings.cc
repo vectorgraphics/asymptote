@@ -11,6 +11,8 @@
 #include <cerrno>
 #include <vector>
 #include <sys/stat.h>
+#include <cfloat>
+#include <locale.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -124,13 +126,15 @@ struct option : public gc {
   char code;      // Command line option, i.e. 'V' for -V.
   bool argument;  // If it takes an argument on the command line.  This is set
                   // based on whether argname is empty.
-  
   mem::string argname; // The argument name for printing the description.
   mem::string desc; // One line description of what the option does.
+  bool cmdlineonly; // If it is only available on the command line.
+  mem::string Default; // A string containing an optional default value.
 
-  option(mem::string name, char code, mem::string argname, mem::string desc)
-    : name(name), code(code), argument(!argname.empty()),
-      argname(argname), desc(desc) {}
+  option(mem::string name, char code, mem::string argname, mem::string desc,
+	 bool cmdlineonly=false, mem::string Default="")
+    : name(name), code(code), argument(!argname.empty()), argname(argname),
+      desc(desc), cmdlineonly(cmdlineonly), Default(Default) {}
 
   virtual ~option() {}
 
@@ -193,7 +197,10 @@ struct option : public gc {
         cerr << endl;
         cerr << std::left << std::setw(WIDTH) << "";
       }
-      cerr << desc << endl;
+      cerr << desc;
+      if(cmdlineonly) cerr << "; command-line only";
+      if(Default != "") cerr << " [" << Default << "]";
+      cerr << endl;
     }
   }
 };
@@ -204,8 +211,8 @@ struct setting : public option {
   types::ty *t;
 
   setting(mem::string name, char code, mem::string argname, mem::string desc,
-          types::ty *t)
-      : option(name, code, argname, desc), t(t) {}
+          types::ty *t, mem::string Default)
+    : option(name, code, argname, desc, false,Default), t(t) {}
 
   virtual void reset() = 0;
 
@@ -229,10 +236,9 @@ struct itemSetting : public setting {
 
   itemSetting(mem::string name, char code,
               mem::string argname, mem::string desc,
-              types::ty *t, item defaultValue)
-      : setting(name, code, argname, desc, t), defaultValue(defaultValue) {
-    reset();
-  }
+              types::ty *t, item defaultValue, mem::string Default="")
+    : setting(name, code, argname, desc, t, Default),
+      defaultValue(defaultValue) {reset();}
 
   void reset() {
     value=defaultValue;
@@ -253,7 +259,8 @@ struct boolSetting : public itemSetting {
   boolSetting(mem::string name, char code, mem::string desc,
               bool defaultValue=false)
     : itemSetting(name, code, noarg, desc,
-                  types::primBoolean(), (item)defaultValue) {}
+                  types::primBoolean(), (item)defaultValue,
+		  defaultValue ? "true" : "false") {}
 
   bool getOption() {
     value=(item)true;
@@ -290,7 +297,7 @@ struct boolSetting : public itemSetting {
     typedef mem::list<boolSetting *> setlist;
     setlist set;
     multiOption(mem::string name, char code, mem::string desc)
-      : option(name, code, noarg, desc) {}
+      : option(name, code, noarg, desc, true) {}
 
     void add(boolSetting *s) {
       set.push_back(s);
@@ -447,8 +454,8 @@ struct refSetting : public setting {
 
   refSetting(mem::string name, char code, mem::string argname,
              mem::string desc, types::ty *t, T *ref, T defaultValue)
-      : setting(name, code, argname, desc, t),
-        ref(ref), defaultValue(defaultValue) {
+    : setting(name, code, argname, desc, t, "0"),
+      ref(ref), defaultValue(defaultValue) {
     reset();
   }
 
@@ -532,7 +539,7 @@ void displayOptions()
 
 struct helpOption : public option {
   helpOption(mem::string name, char code, mem::string desc)
-    : option(name, code, noarg, desc) {}
+    : option(name, code, noarg, desc, true) {}
 
   bool getOption() {
     usage(argv0);
@@ -550,7 +557,8 @@ struct safeOption : public option {
   bool value;
 
   safeOption(mem::string name, char code, mem::string desc, bool value)
-    : option(name, code, noarg, desc), value(value) {}
+    : option(name, code, noarg, desc, true, value ? "true" : "false"),
+      value(value) {}
 
   bool getOption() {
     safe=value;
@@ -571,7 +579,7 @@ c_option *build_longopts() {
   size_t n=optionsMap.size();
 
 #ifdef USEGC
-  c_option *longopts=new (GC) c_option[n];
+  c_option *longopts=new (UseGC) c_option[n];
 #else
   c_option *longopts=new c_option[n];
 #endif
@@ -628,6 +636,10 @@ void getOptions(int argc, char *argv[])
     reportSyntax();
 }
 
+#ifdef USEGC
+void no_GCwarn(char *, GC_word) {}
+#endif
+
 void initSettings() {
   settingsModule=new types::dummyRecord(symbol::trans("settings"));
   
@@ -645,22 +657,24 @@ void initSettings() {
   addOption(new boolSetting("clearGUI", 'c', "Clear GUI operations"));
   addOption(new boolSetting("ignoreGUI", 'i', "Ignore GUI operations"));
   addOption(new stringSetting("outformat", 'f', "format",
-			      "Convert each output file to specified format",
+		      "Convert each output file to specified format [eps]",
 			      "eps"));
   addOption(new stringSetting("outname", 'o', "name",
-			      "(First) output file name", ""));
+			      "Alternative output name for first file",
+			      ""));
   addOption(new helpOption("help", 'h', "Show summary of options"));
 
-  addOption(new pairSetting("offset", 'O', "pair", "PostScript offset"));
+  addOption(new pairSetting("offset", 'O', "pair",
+			    "PostScript offset [(0,0)]"));
   addOption(new alignSetting("align", 'a', "C|B|T|Z",
-		"Center, Bottom, Top, or Zero page alignment; Z => -notex"));
+		"[Center], Bottom, Top, or Zero page alignment; Z => -notex"));
   
   addOption(new boolSetting("debug", 'd', "Enable debugging messages"));
   addOption(new incrementSetting("verbose", 'v',
 				 "Increase verbosity level", &verbose));
   addOption(new boolSetting("keep", 'k', "Keep intermediate files"));
   addOption(new boolSetting("tex", 0,
-			    "Enable LaTeX label postprocessing (default)",
+			    "Enable LaTeX label postprocessing",
 			    true));
   addOption(new boolSetting("inlinetex", 0, "Generate inline tex code"));
   addOption(new boolSetting("parseonly", 'p', "Parse test"));
@@ -683,16 +697,16 @@ void initSettings() {
   addOption(new boolSetting("cmyk", 0, "Convert rgb colors to cmyk"));
 
   addOption(new safeOption("safe", 0,
-			   "Disable system call (default)", true));
+			   "Disable system call", true));
   addOption(new safeOption("unsafe", 0,
 			   "Enable system call", false));
 
   addOption(new boolSetting("localhistory", 0, 
 			    "Use a local interactive history file"));
   addOption(new intSetting("historylines", 0, "n", 
-			   "Retain n lines of history (default 1000)",1000));
+			   "Retain n lines of history [1000]",1000));
   addOption(new boolSetting("autoplain", 0,
-			    "Enable automatic importing of plain (default)",
+			    "Enable automatic importing of plain",
 			    true));
   
   addOption(new envSetting("config","config.asy"));
@@ -780,6 +794,12 @@ void setOptions(int argc, char *argv[])
 {
   argv0=argv[0];
 
+  if(setlocale (LC_ALL, "") == NULL) {
+    perror("setlocale");
+    exit(-1);
+  }
+  cout.precision(DBL_DIG);
+  
   // Make configuration and history directory
   initDir();
   
@@ -800,6 +820,10 @@ void setOptions(int argc, char *argv[])
   // Read command-line options again to override configuration file defaults.
   getOptions(argc,argv);
   
+#ifdef USEGC
+  if(!getSetting<bool>("debug")) GC_set_warn_proc(no_GCwarn);
+#endif  
+
   // Set variables for the normal arguments.
   argCount = argc - optind;
   argList = argv + optind;

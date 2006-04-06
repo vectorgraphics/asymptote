@@ -275,11 +275,11 @@ Example code will be installed by default in
 @cindex Debian
 @noindent
 Alternatively, Debian users can install Hubert Chan's @code{Asymptote}
-prebuilt binary from either of the following sites:
+prebuilt binary from one of the following sites:
 @quotation
-@url{http://packages.debian.org/asymptote}
+@url{http://www.uhoreg.ca/programming/debian/pool/main/a/asymptote}
 
-@url{http://www.uhoreg.ca/programming/debian/}
+@url{http://packages.debian.org/asymptote}
 @end quotation
 
 @node MacOS X binary distributions
@@ -1783,12 +1783,15 @@ in this example (not included in the manual because not all printers support
 @item One can specify a custom pen nib as an arbitrary polygonal path
 with @code{pen makepen(path)}; this path represents the mark to be
 drawn for paths containing a single point. This pen nib path can be
-recovered from a pen with @code{path nib(pen)}; the value
-@code{nullpath} represents  a circular pen nib (the default). Unlike
-in @code{MetaPost}, the path need not be convex: 
+recovered from a pen with @code{path nib(pen)}. Unlike in
+@code{MetaPost}, the path need not be convex:
 
 @verbatiminclude makepen.asy
 @image{makepen}
+
+The value @code{nullpath} represents a circular pen nib (the default);
+an elliptical pen can be achieved simply by multiplying the pen by a
+transform: @code{yscale(2)*currentpen}.
 
 @anchor{overwrite}
 @cindex @code{overwrite}
@@ -1894,10 +1897,10 @@ with frames directly is occasionally necessary for constructing deferred
 drawing routines, pictures are usually more convenient to work with.
 The implicit initializer for frames is @code{newframe}. The function
 @code{bool empty(frame f)} returns @code{true} only if the frame @code{f}
-is empty. The functions @code{min(frame f)} and @code{max(frame f)} return the
-(left,bottom) and (right,top) coordinates of the frame bounding box,
-respectively. The contents of frame @code{src} may be appended to
-frame @code{dest} with the command
+is empty. The functions @code{pair min(frame f)} and @code{pair
+max(frame f)} return the (left,bottom) and (right,top) coordinates of
+the frame bounding box, respectively. The contents of frame @code{src}
+may be appended to frame @code{dest} with the command
 @verbatim
 void add(frame dest, frame src);
 @end verbatim
@@ -2046,17 +2049,27 @@ shipout(bbox(0.25cm));
 A @code{picture} may be fit to a frame with the background color of
 pen @code{p} with the function @code{bbox(p,Fill)}. 
 
+The functions 
+@verbatim
+pair min(picture pic=currentpicture);
+pair max(picture pic=currentpicture);
+@end verbatim 
+calculate the @code{PostScript} bounds that picture @code{pic} would
+have if it were currently fit to a frame using its default size specification.
+
 The function 
 @verbatim
 pair point(picture pic=currentpicture, pair dir);
 @end verbatim
 is a convenient way of determining the point on the boundary of the
 user-coordinate bounding box of @code{pic} in the direction @code{dir}
-relative to its center.
-
-The member functions @code{pic.min()} and @code{pic.max()} calculate
-the @code{PostScript} bounds that picture @code{pic} would have if it were
-currently fit to a frame using its default size specification.
+relative to its center. The function
+@verbatim
+pair truepoint(picture pic=currentpicture, pair dir);
+@end verbatim
+works similarly, except the result is a point on the true picture
+bounding box that picture @code{pic} would have if it were currently
+fit to a frame using its default size specification.
 
 @anchor{add}
 Sometimes it is useful to draw objects on separate pictures and add one
@@ -5473,42 +5486,42 @@ supported by @code{Asymptote}:
 Usage: asy [options] [file ...]
 
 Options: 
--V,-View             View output files
+-V,-View             View output files; command-line only
 -a,-align C|B|T|Z    Center, Bottom, Top, or Zero page alignment; Z => -notex
--autoplain           Enable automatic importing of plain (default)
--batchMask           Mask fpu exceptions in batch mode
--batchView           View output files in batch mode
--bw                  Convert all colors to black and white
--c,-clearGUI         Clear GUI operations
--cmyk                Convert rgb colors to cmyk
--d,-debug            Enable debugging messages
+-autoplain           Enable automatic importing of plain [true]
+-batchMask           Mask fpu exceptions in batch mode [false]
+-batchView           View output files in batch mode [false]
+-bw                  Convert all colors to black and white [false]
+-c,-clearGUI         Clear GUI operations [false]
+-cmyk                Convert rgb colors to cmyk [false]
+-d,-debug            Enable debugging messages [false]
 -x,-deconstruct X    Deconstruct into transparent GIF objects magnified by X
--gray                Convert all colors to grayscale
--h,-help             Show summary of options
--historylines n      Retain n lines of history (default 1000)
--i,-ignoreGUI        Ignore GUI operations
--inlinetex           Generate inline tex code
--interactiveMask     Mask fpu exceptions in interactive mode
--interactiveView     View output files in interactive mode
--k,-keep             Keep intermediate files
--l,-listvariables    List available global functions and variables
--localhistory        Use a local interactive history file
--m,-mask             Mask fpu exceptions
--O,-offset pair      PostScript offset
--f,-outformat format Convert each output file to specified format
--o,-outname name     (First) output file name
--p,-parseonly        Parse test
--rgb                 Convert cmyk colors to rgb
--safe                Disable system call (default)
--tex                 Enable LaTeX label postprocessing (default)
--s,-translate        Translate test
--unsafe              Enable system call
--v,-verbose          Increase verbosity level
+-gray                Convert all colors to grayscale [false]
+-h,-help             Show summary of options; command-line only
+-historylines n      Retain n lines of history [1000]
+-i,-ignoreGUI        Ignore GUI operations [false]
+-inlinetex           Generate inline tex code [false]
+-interactiveMask     Mask fpu exceptions in interactive mode [true]
+-interactiveView     View output files in interactive mode [true]
+-k,-keep             Keep intermediate files [false]
+-l,-listvariables    List available global functions and variables [false]
+-localhistory        Use a local interactive history file [false]
+-m,-mask             Mask fpu exceptions; command-line only
+-O,-offset pair      PostScript offset [(0,0)]
+-f,-outformat format Convert each output file to specified format [eps]
+-o,-outname name     Alternative output name for first file
+-p,-parseonly        Parse test [false]
+-rgb                 Convert cmyk colors to rgb [false]
+-safe                Disable system call; command-line only [true]
+-tex                 Enable LaTeX label postprocessing [true]
+-s,-translate        Translate test [false]
+-unsafe              Enable system call; command-line only [false]
+-v,-verbose          Increase verbosity level [0]
 
 @end verbatim
 
-All boolean options, except for @code{-unsafe} and @code{-safe}, can
-be negated by prepending @code{no} to the option name. 
+All boolean options, except for @code{-unsafe}, @code{-safe}, and
+@code{help}, can be negated by prepending @code{no} to the option name. 
 
 If no arguments are given, @code{Asymptote} runs in interactive mode
 (@pxref{Interactive mode}). In this case, the default output file
@@ -5533,9 +5546,13 @@ Typically the configuration file is placed in the
 Configuration variables are accessed using the long form of the option names:
 @verbatim
 import settings;
-View=true;
+outformat="pdf";
+batchView=false;
+interactiveView=true;
+batchMask=false;
+interactiveMask=true;
 @end verbatim
-Command-line options override these defaults. Configuration
+Command-line options override these defaults. Most configuration
 variables may also be changed at runtime. 
 
 @cindex @code{convert}
@@ -5559,6 +5576,7 @@ to execute arbitrary shell commands. The default mode, @code{-safe},
 disables this call. 
 
 @cindex offset
+@cindex @code{align}
 A @code{PostScript} offset may be specified as a pair (in bp units) with the
 @code{-O} option:
 @verbatim
@@ -5566,7 +5584,8 @@ asy -O 0,0 file
 @end verbatim
 
 The default offset is zero. The offset is adjusted if it would result in
-a negative vertical bounding box coordinate.
+a negative vertical bounding box coordinate. The default value of the
+page alignment setting @code{align} is @code{Center}.
 
 Additional debugging output is produced with each additional @code{-v} option:
 @table @code

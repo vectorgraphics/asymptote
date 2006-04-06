@@ -407,7 +407,7 @@ void checkformat(const char *ptr, bool intformat)
     else { /* We've got a format specifier. */
       ptr++;
       
-      while(*ptr && strchr ("-+ #0", *ptr)) /* Move past flags.  */
+      while(*ptr && strchr ("-+ #0'I", *ptr)) /* Move past flags.  */
 	*ptr++;
 
       if(*ptr == '*')
@@ -448,6 +448,7 @@ void checkformat(const char *ptr, bool intformat)
 	} else {
 	  switch(*ptr) {
 	  case 'f':
+	  case 'F':
 	  case 'e':
 	  case 'E':
 	  case 'g':
