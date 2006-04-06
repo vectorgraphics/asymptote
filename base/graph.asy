@@ -1013,7 +1013,8 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
 
   if(finite(a) && finite(b)) {
     frame d;
-    ticks(d,identity(),L,side,(a.x,0)--(b.x,0),(a2.x,0)--(b2.x,0),p,arrow,
+    ticks(d,pic.calculateTransform(),L,side,
+	  (a.x,0)--(b.x,0),(a2.x,0)--(b2.x,0),p,arrow,
 	  ticklocate(a.x,b.x,pic.scale.x),divisor,opposite);
     frame f;
     if(L.s != "") {
@@ -1066,7 +1067,8 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
   
   if(finite(a) && finite(b)) {
     frame d;
-    ticks(d,identity(),L,side,(0,a.y)--(0,b.y),(0,a2.y)--(0,b2.y),p,arrow,
+    ticks(d,pic.calculateTransform(),L,side,
+	  (0,a.y)--(0,b.y),(0,a2.y)--(0,b2.y),p,arrow,
 	  ticklocate(a.y,b.y,pic.scale.y),divisor,opposite);
     frame f;
     if(L.s != "") {
