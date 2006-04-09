@@ -544,7 +544,8 @@ struct picture {
   }
 
   // Calculate the sizing constants for the given array and maximum size.
-  scaling calculateScaling(string dir, coord[] coords, real size) {
+  scaling calculateScaling(string dir, coord[] coords, real size,
+			   bool warn=true) {
     access simplex;
     simplex.problem p=new simplex.problem;
    
@@ -568,12 +569,11 @@ struct picture {
     int status=p.optimize();
     if (status == simplex.problem.OPTIMAL) {
       return scaling.build(p.a(),p.b());
-    }
-    else if (status == simplex.problem.UNBOUNDED) {
-      write("warning: scaling in picture unbounded");
+    } else if (status == simplex.problem.UNBOUNDED) {
+      if(warn) write("warning: "+dir+" scaling in picture unbounded");
       return scaling.build(1,0);
-    }
-    else {
+    } else {
+      if(!warn) return scaling.build(1,0);
       bool userzero=true;
       for(int i=0; i < coords.length; ++i) {
 	if(coords[i].user != 0) userzero=false;
@@ -583,7 +583,7 @@ struct picture {
       if(userzero) return scaling.build(1,0);
       write("warning: cannot fit picture to "+dir+"size "+(string) size
 	    +"...enlarging...");
-      return calculateScaling(dir,coords,sqrt(2)*size);
+      return calculateScaling(dir,coords,sqrt(2)*size,warn);
     }
   }
 
@@ -606,7 +606,8 @@ struct picture {
   }
   
   // Returns the transform for turning user-space pairs into true-space pairs.
-  transform calculateTransform(real xsize, real ysize, bool keepAspect=true) {
+  transform calculateTransform(real xsize, real ysize, bool keepAspect=true,
+			       bool warn=true) {
     if (xsize == 0 && ysize == 0)
       return identity();
     
@@ -615,25 +616,25 @@ struct picture {
     append(Coords,Coords,Coords,T,bounds);
     
     if (ysize == 0) {
-      scaling sx=calculateScaling("x",Coords.x,xsize);
+      scaling sx=calculateScaling("x",Coords.x,xsize,warn);
       return scale(sx.a);
     }
     
     if (xsize == 0) {
-      scaling sy=calculateScaling("y",Coords.y,ysize);
+      scaling sy=calculateScaling("y",Coords.y,ysize,warn);
       return scale(sy.a);
     }
     
-    scaling sx=calculateScaling("x",Coords.x,xsize);
-    scaling sy=calculateScaling("y",Coords.y,ysize);
+    scaling sx=calculateScaling("x",Coords.x,xsize,warn);
+    scaling sy=calculateScaling("y",Coords.y,ysize,warn);
     if (keepAspect)
       return scale(min(sx.a,sy.a));
     else
       return xscale(sx.a)*yscale(sy.a);
   }
 
-  transform calculateTransform() {
-    return calculateTransform(xsize,ysize,keepAspect);
+  transform calculateTransform(bool warn=true) {
+    return calculateTransform(xsize,ysize,keepAspect,warn);
   }
 
   pair min(real xsize=this.xsize, real ysize=this.ysize,
