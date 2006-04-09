@@ -48,7 +48,8 @@ char *readline(const char *prompt) {
   std::cout << prompt;
   string s;
   getline(std::cin,s);
-  return strdup(s.c_str());
+  char *p=(char *) malloc(s.size()+1);
+  return strcpy(p,s.c_str());
 }
 #endif  
   
