@@ -99,3 +99,8 @@ void shipout(string prefix=defaultfilename, orientation orientation=Portrait,
   shipout(prefix,currentpicture,unitsize,orientation,format,wait,quiet);
 }
 
+void newpage() 
+{
+  tex("\newpage");
+  layer();
+}

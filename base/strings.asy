@@ -86,12 +86,6 @@ void pause(string w="Hit enter to continue")
   w=stdin;
 }
 
-void newpage() 
-{
-  tex("\newpage");
-  layer();
-}
-
 string math(real x)
 {
   return math((string) x);
