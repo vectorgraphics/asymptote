@@ -131,7 +131,7 @@ AC_CHECK_HEADER(gsl/gsl_sf.h,
    AC_CHECK_LIB([gsl], gsl_sf_Si, [AC_DEFINE(HAVE_LIBGSL, 1,
    [Define to 1 if you have the 'gsl' library (-lgsl). ]) LIBS=$LIBS"-lgsl -lgslcblas"],
            AC_MSG_NOTICE([*** Could not find libgsl: will compile without optional special functions. ***]),[-lgslcblas]),
-     AC_MSG_NOTICE([*** Header file gls_sf_expint.h not found: will compile without optional special functions. ***]))
+     AC_MSG_NOTICE([*** Header file gls_sf.h not found: will compile without optional special functions. ***]))
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_PID_T
