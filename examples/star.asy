@@ -6,7 +6,7 @@ path p;
 
 int i=0;
 do {
-  p=p--zeta(n,i);
+  p=p--unityroot(n,i);
   i=(i+2) % n;
 } while(i != 0);
 

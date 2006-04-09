@@ -23,8 +23,8 @@ int quadrant(real degrees)
   return floor(degrees/90) % 4;
 }
 
-// Roots of unity. 
-pair zeta(int n, int k = 1)
+// Roots of unity.
+pair unityroot(int n, int k = 1)
 {
   return expi(2pi*k/n);
 }
