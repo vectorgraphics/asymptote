@@ -3041,6 +3041,47 @@ and the integer @code{randMax}. A Gaussian random number generator
 @code{Gaussrand} and a collection of statistics routines, including
 @code{histogram}, are provided in the base file @code{stats.asy}.
 
+@cindex GNU Scientific Library
+@cindex GSL
+@cindex Airy
+@cindex Bessel
+@cindex @code{Ai}
+@cindex @code{Bi}
+@cindex @code{Ai_deriv}
+@cindex @code{Bi_deriv}
+@cindex @code{zero_Ai}
+@cindex @code{zero_Bi}
+@cindex @code{zero_Ai_deriv}
+@cindex @code{zero_Bi_deriv}
+@cindex @code{J}
+@cindex @code{Y}
+@cindex @code{I}
+@cindex @code{K}
+@cindex @code{i_scaled(int, real)}
+@cindex @code{k_scaled(int, real)}
+@cindex @code{zero_J}
+@cindex @code{F}
+@cindex @code{E}
+@cindex @code{P}
+@cindex @code{Ei}
+@cindex @code{Si}
+@cindex @code{Ci}
+@cindex @code{Pl}
+@cindex @code{zeta}
+If compiled with the GNU Scientific Library
+(@url{http://www.gnu.org/software/gsl/}),
+the airy functions @code{Ai(real)}, @code{Bi(real)},
+@code{Ai_deriv(real)}, @code{Bi_deriv(real)},
+@code{zero_Ai(int)}, @code{zero_Bi(int)},
+@code{zero_Ai_deriv(int)}, @code{zero_Bi_deriv(int)}, the Bessel functions
+@code{I(int, real)}, @code{K(int, real)}, @code{j(int, real)},
+@code{y(int, real)}, @code{i_scaled(int, real)}, @code{k_scaled(int, real)},
+@code{J(real, real)}, @code{Y(real, real)}, @code{I(real, real)},
+@code{K(real, real)}, @code{zero_J(real, int)}, the elliptic functions 
+@code{F(real, real)}, @code{E(real, real)}, and @code{P(real, real)}, 
+the exponential/trigonometric integrals @code{Ei}, @code{Si}, and @code{Ci},
+the Legendre polynomials @code{Pl(int, real)}, and the Riemann zeta
+function @code{zeta(real)} are also defined.
 
 @node Arrays
 @section Arrays

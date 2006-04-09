@@ -276,11 +276,16 @@ position getPos() {
   return curPos;
 }
 
-void error(const char* message)
+void errornothrow(const char* message)
 {
   em->error(curPos);
   *em << message;
   em->sync();
+}
+  
+void error(const char* message)
+{
+  errornothrow(message);
   throw handled_error();
 }
   

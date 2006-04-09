@@ -26,6 +26,11 @@
 #include "refaccess.h"
 #include "settings.h"
 
+#ifdef HAVE_LIBGSL  
+#include <gsl/gsl_sf.h>
+#include <gsl/gsl_errno.h>
+#endif
+  
 using namespace types;
 using namespace camp;
 
@@ -143,18 +148,149 @@ template<double (*fcn)(double)>
 void addRealFunc(venv &ve, const char* name)
 {
   addFunc(ve, realReal<fcn>, primReal(), name, formal(primReal(),"x"));
-  addFunc(ve, realArrayFunc<fcn>, realArray(), name, 
-	  formal(realArray(),"a"));
+  addFunc(ve, realArrayFunc<fcn>, realArray(), name, formal(realArray(),"a"));
 }
 
 #define addRealFunc(fcn) addRealFunc<fcn>(ve, #fcn);
-
+  
 void addRealFunc2(venv &ve, bltin fcn, const char *name)
 {
   addFunc(ve,fcn,primReal(),name,formal(primReal(),"a"),
 	  formal(primReal(),"b"));
 }
 
+#ifdef HAVE_LIBGSL  
+bool GSLerror=false;
+  
+inline void checkGSLerror()
+{
+  if(GSLerror) {
+    GSLerror=false;
+    throw handled_error();
+  }
+}
+  
+template <double (*func)(double)>
+void realRealGSL(vm::stack *s) 
+{
+  double x=vm::pop<double>(s);
+  s->push(func(x));
+  checkGSLerror();
+}
+
+template <double (*func)(double, gsl_mode_t)>
+void realRealDOUBLE(vm::stack *s) 
+{
+  double x=vm::pop<double>(s);
+  s->push(func(x,GSL_PREC_DOUBLE));
+  checkGSLerror();
+}
+
+template <double (*func)(double, double, gsl_mode_t)>
+void realRealRealDOUBLE(vm::stack *s) 
+{
+  double y=vm::pop<double>(s);
+  double x=vm::pop<double>(s);
+  s->push(func(x,y,GSL_PREC_DOUBLE));
+  checkGSLerror();
+}
+
+template <double (*func)(unsigned int)>
+void realIntGSL(vm::stack *s) 
+{
+  int n=vm::pop<int>(s);
+  if(n < 0) n=0;
+  s->push(func(n));
+  checkGSLerror();
+}
+
+template <double (*func)(int, double)>
+void realIntRealGSL(vm::stack *s) 
+{
+  double x=vm::pop<double>(s);
+  int n=vm::pop<int>(s);
+  s->push(func(n,x));
+  checkGSLerror();
+}
+
+template <double (*func)(double, double)>
+void realRealRealGSL(vm::stack *s) 
+{
+  double x=vm::pop<double>(s);
+  double n=vm::pop<double>(s);
+  s->push(func(n,x));
+  checkGSLerror();
+}
+
+template <double (*func)(double, unsigned int)>
+void realRealIntGSL(vm::stack *s) 
+{
+  int n=vm::pop<int>(s);
+  double x=vm::pop<double>(s);
+  if(n < 0) n=0;
+  s->push(func(x,n));
+  checkGSLerror();
+}
+
+// Add a GSL special function from the GNU GSL library
+template<double (*fcn)(double)>
+void addGSLRealFunc(venv &ve, const char* name)
+{
+  addFunc(ve, realRealGSL<fcn>, primReal(), name, formal(primReal(),"x"));
+}
+
+// Add a GSL_PREC_DOUBLE GSL special function.
+template<double (*fcn)(double, gsl_mode_t)>
+void addGSLDOUBLEFunc(venv &ve, const char* name)
+{
+  addFunc(ve, realRealDOUBLE<fcn>, primReal(), name, formal(primReal(),"x"));
+}
+
+template<double (*fcn)(double, double, gsl_mode_t)>
+void addGSLDOUBLE2Func(venv &ve, const char* name)
+{
+  addFunc(ve, realRealRealDOUBLE<fcn>, primReal(), name, 
+	  formal(primReal(),"phi"), formal(primReal(),"k"));
+}
+
+template<double (*fcn)(unsigned int)>
+void addGSLIntFunc(venv &ve, const char* name)
+{
+  addFunc(ve, realIntGSL<fcn>, primReal(), name, formal(primInt(),"s"));
+}
+
+template<double (*fcn)(int, double)>
+void addGSLIntRealFunc(venv &ve, const char* name, const char *arg1="n")
+{
+  addFunc(ve, realIntRealGSL<fcn>, primReal(), name, formal(primInt(),arg1),
+	  formal(primReal(),"x"));
+}
+
+template<double (*fcn)(double, double)>
+void addGSLRealRealFunc(venv &ve, const char* name)
+{
+  addFunc(ve, realRealRealGSL<fcn>, primReal(), name, formal(primReal(),"nu"),
+	  formal(primReal(),"x"));
+}
+
+template<double (*fcn)(double, unsigned int)>
+void addGSLRealIntFunc(venv &ve, const char* name)
+{
+  addFunc(ve, realRealIntGSL<fcn>, primReal(), name, formal(primReal(),"nu"),
+	  formal(primInt(),"s"));
+}
+
+// Handle GSL errors gracefully.
+void GSLerrorhandler(const char *reason, const char *file, int line,
+		     int gsl_errno) 
+{
+  if(!GSLerror) {
+    vm::errornothrow(reason);
+    GSLerror=true;
+  }
+}
+#endif
+  
 void addInitializer(venv &ve, ty *t, access *a)
 {
   addFunc(ve, a, t, symbol::initsym);
@@ -449,6 +585,43 @@ void base_venv(venv &ve)
 
   addRealFunc(pow10);
   addRealFunc(identity);
+  
+#ifdef HAVE_LIBGSL  
+  gsl_set_error_handler(GSLerrorhandler);
+  
+  addGSLDOUBLEFunc<gsl_sf_airy_Ai>(ve,"Ai");
+  addGSLDOUBLEFunc<gsl_sf_airy_Bi>(ve,"Bi");
+  addGSLDOUBLEFunc<gsl_sf_airy_Ai_deriv>(ve,"Ai_deriv");
+  addGSLDOUBLEFunc<gsl_sf_airy_Bi_deriv>(ve,"Bi_deriv");
+  addGSLIntFunc<gsl_sf_airy_zero_Ai>(ve,"zero_Ai");
+  addGSLIntFunc<gsl_sf_airy_zero_Bi>(ve,"zero_Bi");
+  addGSLIntFunc<gsl_sf_airy_zero_Ai_deriv>(ve,"zero_Ai_deriv");
+  addGSLIntFunc<gsl_sf_airy_zero_Bi_deriv>(ve,"zero_Bi_deriv");
+  
+  addGSLIntRealFunc<gsl_sf_bessel_In>(ve,"I");
+  addGSLIntRealFunc<gsl_sf_bessel_Kn>(ve,"K");
+  addGSLIntRealFunc<gsl_sf_bessel_jl>(ve,"j","l");
+  addGSLIntRealFunc<gsl_sf_bessel_yl>(ve,"y","l");
+  addGSLIntRealFunc<gsl_sf_bessel_il_scaled>(ve,"i_scaled","l");
+  addGSLIntRealFunc<gsl_sf_bessel_kl_scaled>(ve,"k_scaled","l");
+  addGSLRealRealFunc<gsl_sf_bessel_Jnu>(ve,"J");
+  addGSLRealRealFunc<gsl_sf_bessel_Ynu>(ve,"Y");
+  addGSLRealRealFunc<gsl_sf_bessel_Inu>(ve,"I");
+  addGSLRealRealFunc<gsl_sf_bessel_Knu>(ve,"K");
+  addGSLRealIntFunc<gsl_sf_bessel_zero_Jnu>(ve,"zero_J");
+  
+  addGSLDOUBLE2Func<gsl_sf_ellint_E>(ve,"F");
+  addGSLDOUBLE2Func<gsl_sf_ellint_E>(ve,"E");
+  addGSLDOUBLE2Func<gsl_sf_ellint_E>(ve,"P");
+  
+  addGSLRealFunc<gsl_sf_expint_Ei>(ve,"Ei");
+  addGSLRealFunc<gsl_sf_Si>(ve,"Si");
+  addGSLRealFunc<gsl_sf_Ci>(ve,"Ci");
+  
+  addGSLIntRealFunc<gsl_sf_legendre_Pl>(ve,"Pl","l");
+  
+  addGSLRealFunc<gsl_sf_zeta>(ve,"zeta");
+#endif
   
   addFunc(ve,writestring,primVoid(),"write",
 	  formal(primFile(),"file",true),

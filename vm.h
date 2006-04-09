@@ -17,6 +17,7 @@ typedef void (*bltin)(stack *s);
 
 void run(lambda *l);
 position getPos();
+void errornothrow(const char* message);
 void error(const char* message);
 void error(const std::ostringstream& message);
 
