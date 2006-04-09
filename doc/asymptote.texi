@@ -1582,7 +1582,8 @@ The default linetype is @code{solid}; this may be changed with
 @cindex @code{defaultpen}
 @item The pen line width is specified in @code{PostScript} units with
 @code{pen linewidth(real)}. The default line width is 0.5 bp; this value
-may be changed with @code{defaultpen(pen)}. 
+may be changed with @code{defaultpen(pen)}. The line width of a pen
+is returned by @code{real linewidth(pen p=currentpen);}.
 For convenience, in the module @code{plain} we define
 @verbatim
 static void defaultpen(real w) {defaultpen(linewidth(w));}
@@ -1682,19 +1683,18 @@ requests that the @TeX{} baseline be respected.
 
 @cindex @code{fontsize}
 @cindex @code{lineskip}
-@cindex @code{baselineskip}
 @cindex @code{defaultpen}
 @cindex @code{type1cm}
 @item The font size is specified in @TeX{} points (1 pt = 1/72.27 inches) with
-the function @code{pen fontsize(real size, real baselineskip=1.2*size)}.
+the function @code{pen fontsize(real size, real lineskip=1.2*size)}.
 The default font size, 12pt, may be changed with @code{defaultpen(pen)}.
 Nonstandard font sizes may require inserting
 @verbatim
 import fontsize;
 @end verbatim
-at the beginning of the file.
-The font size of a pen can be examine with the routine 
-@code{real fontsize(pen p=currentpen)}.
+at the beginning of the file. The font size and line skip of a pen can
+be examined with the routines @code{real fontsize(pen p=currentpen)} and 
+@code{real lineskip(pen p=currentpen)}, respectively.
 
 @cindex @code{font}
 @cindex @code{LaTeX fonts}
@@ -4106,7 +4106,7 @@ argument), the optional Label will be aligned in the direction @code{dir},
 using margin @code{margin}.
 
 @cindex including images
-@cindex @code{include}
+@cindex @code{graphic}
 @cindex @acronym{EPS}
 The function @code{string graphic(string name, string options="")}
 returns a string that can be used to include an encapsulated
@@ -4557,8 +4557,8 @@ of the function @code{f} on the interval
 spaced in [@code{a},@code{b}], with the given interpolation type.
 
 @item
-@verbatim
 @cindex @code{polargraph}
+@verbatim
 guide polargraph(real f(real), real a, real b, int n=ngraph,
                  interpolate join=operator --);
 @end verbatim
@@ -4649,10 +4649,14 @@ YZero=YZero();
 @anchor{ticks}
 @cindex @code{ticks}
 @cindex @code{NoTicks}
+@cindex @code{LeftTicks}
+@cindex @code{RightTicks}
+@cindex @code{Ticks}
 The default tick option is @code{NoTicks}. 
-The option @code{LeftTicks} (@code{RightTicks}) can be used to draw
-ticks on the left (right) of the path, relative to the direction in which
-the path is drawn. These tick routines accept a number of optional arguments:
+The options @code{LeftTicks}, @code{RightTicks}, or @code{Ticks} can be
+used to draw ticks on the left, right, or both sides of the path,
+relative to the direction in which the path is drawn. 
+These tick routines accept a number of optional arguments:
 @verbatim
 ticks LeftTicks(Label format="", ticklabel ticklabel=null,
                 bool beginlabel=true, bool endlabel=true,
@@ -4710,8 +4714,11 @@ an optional pen used to draw the small ticks.
 @end table
 
 @cindex custom tick locations
+@cindex @code{LeftTicks}
+@cindex @code{RightTicks}
+@cindex @code{Ticks}
 It is also possible to specify custom tick locations with
-@code{LeftTicks} and @code{RightTicks} by passing explicit real
+@code{LeftTicks}, @code{RightTicks}, and @code{Ticks} by passing explicit real
 arrays @code{Ticks} and (optionally) @code{ticks} containing the
 locations of the big and small ticks, respectively:
 @verbatim
@@ -4769,7 +4776,6 @@ Request a left and right axis.
 @end table
 
 @item
-
 @cindex @code{xequals}
 @cindex @code{yequals}
 For convenience, the functions 
@@ -4792,7 +4798,7 @@ can be respectively used to call @code{yaxis} and
 or horizontal lines and axes at arbitrary locations. 
 
 @item
-@verbatim
+@verbatim 
 void axis(picture pic=currentpicture, Label L="", guide g,
           pen p=currentpen, ticks ticks, ticklocate locate,
           arrowbar arrow=None, int[] divisor=new int[],
@@ -4878,8 +4884,6 @@ any underlying objects. Here we illustrate how to clip the portion of
 the picture covered by a label:
 
 @cindex scientific graph
-@cindex @code{LeftTicks}
-@cindex @code{RightTicks}
 @verbatiminclude lineargraph0.asy
 @image{lineargraph0}
 
@@ -5870,7 +5874,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  vimrc CFLAGS verbatiminclude online noindent bezier superpath
 @c  LocalWords:  evenodd squarecap roundcap extendcap miterjoin roundjoin NFSS
 @c  LocalWords:  beveljoin fillrule zerowinding insideness lineskip cmr pcrr Hx
-@c  LocalWords:  baselineskip AvantGarde Bookman Helvetica NewCenturySchoolBook
+@c  LocalWords:  AvantGarde Bookman Helvetica NewCenturySchoolBook minbound pdf
 @c  LocalWords:  Palatino TimesRoman ZapfChancery ZapfDingbats german basealign
 @c  LocalWords:  nondeconstructed backends usr venn labelsquare nobasealign dp
 @c  LocalWords:  NoMargin BeginMargin EndMargin BeginPenMargin EndPenMargin dm
@@ -5901,4 +5905,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  embeddedmovie historylines inlinetex RadialShade penc penr CJK
 @c  LocalWords:  legendlinelength legendskip USERPROFILE LDFLAGS currentlight
 @c  LocalWords:  subsampling subsampled sinc kai AtBeginDocument GBK clearpage
-@c  LocalWords:  AtEndDocument zaxis
+@c  LocalWords:  AtEndDocument zaxis maxbound truepoint

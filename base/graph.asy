@@ -291,7 +291,10 @@ void drawtick(frame f, transform T, path g, path g2, ticklocate locate,
     locate2.calc(T,g2,locate,val);
     draw(f,locate1.Z--locate2.Z,p);
   } else
-    draw(f,locate1.Z--locate1.Z+Size*sign*locate1.dir,p);
+    if(sign == 0) 
+      draw(f,locate1.Z-Size*locate1.dir--locate1.Z+Size*locate1.dir,p);
+    else
+      draw(f,locate1.Z--locate1.Z+Size*sign*locate1.dir,p);
 }
 
 // Label a tick on a frame.
@@ -303,7 +306,7 @@ pair labeltick(frame d, transform T, guide g, ticklocate locate, real val,
   locate1.calc(T,g,locate,val);
   pair rot=dir(-F.angle);
   pair align=rot*side*locate1.dir;
-  pair shift=dot(align,-sign*locate1.dir) < 0 ? align*Size :
+  pair shift=dot(align,-sign*locate1.dir) <= 0 ? align*Size :
     ticklabelshift(align,F.p);
   pair Z=locate1.Z+shift;
   if(abs(val) < epsilon*norm) val=0;
@@ -757,6 +760,17 @@ ticks RightTicks(Label format="", ticklabel ticklabel=null,
 	       begin,end,Size,size,extend,pTick,ptick);
 }
 
+ticks Ticks(Label format="", ticklabel ticklabel=null,
+	    bool beginlabel=true, bool endlabel=true,
+	    int N=0, int n=0, real Step=0, real step=0,
+	    bool begin=true, bool end=true,
+	    real Size=0, real size=0, bool extend=false,
+	    pen pTick=nullpen, pen ptick=nullpen)
+{
+  return Ticks(0,format,ticklabel,beginlabel,endlabel,N,n,Step,step,
+	       begin,end,Size,size,extend,pTick,ptick);
+}
+
 ticks LeftTicks(Label format="", ticklabel ticklabel=null, 
 		bool beginlabel=true, bool endlabel=true, 
 		real[] Ticks, real[] ticks=new real[],
@@ -777,10 +791,21 @@ ticks RightTicks(Label format="", ticklabel ticklabel=null,
 	       Ticks,ticks,Size,size,extend,pTick,ptick);
 }
 
+ticks Ticks(Label format="", ticklabel ticklabel=null, 
+	    bool beginlabel=true, bool endlabel=true, 
+	    real[] Ticks, real[] ticks=new real[],
+	    real Size=0, real size=0, bool extend=false,
+	    pen pTick=nullpen, pen ptick=nullpen)
+{
+  return Ticks(0,format,ticklabel,beginlabel,endlabel,
+	       Ticks,ticks,Size,size,extend,pTick,ptick);
+}
+
 public ticks
   NoTicks=NoTicks(),
   LeftTicks=LeftTicks(),
-  RightTicks=RightTicks();
+  RightTicks=RightTicks(),
+  Ticks=Ticks();
 
 pair tickMin(picture pic)
 {
