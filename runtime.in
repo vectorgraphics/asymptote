@@ -943,10 +943,10 @@ string font(pen p)
   return p.Font();
 }
 
-pen fontsize(double size, double skip)
+pen fontsize(double size, double lineskip)
 {
   return pen(setfontsize,size > 0.0 ? size : 0.0,
-	     skip > 0.0 ? skip : 0.0);
+	     lineskip > 0.0 ? lineskip : 0.0);
 }
 
 double fontsize(pen p)
