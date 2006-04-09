@@ -53,12 +53,12 @@ clean: FORCE
 
 install-man: man
 	${INSTALL} -d $(docdir) $(mandir)/man1
-	${INSTALL} -m 644 asymptote.pdf $(docdir)
-	${INSTALL} -m 644 $(MANFILES) $(mandir)/man1
+	${INSTALL} -p -m 644 asymptote.pdf $(docdir)
+	${INSTALL} -p -m 644 $(MANFILES) $(mandir)/man1
 
 install: doc install-man
 	${INSTALL} -d $(prefix)/info $(docdir) $(mandir)/man1
-	${INSTALL} -m 644 asymptote.info $(prefix)/info
+	${INSTALL} -p -m 644 asymptote.info $(prefix)/info
 	install-info --infodir=$(prefix)/info asymptote.info 
 
 uninstall:
