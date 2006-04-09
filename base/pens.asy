@@ -82,6 +82,11 @@ real linewidth()
   return linewidth(currentpen);
 }
 
+real lineskip() 
+{
+  return lineskip(currentpen);
+}
+
 // Options for handling label overwriting
 int Allow=0;
 int Suppress=1;
