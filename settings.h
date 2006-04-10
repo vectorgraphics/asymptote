@@ -40,7 +40,7 @@ extern const string guisuffix;
 extern bool TeXinitialized; // Is LaTeX process initialized?
 extern mem::string historyname;
   
-void GetPageDimensions(double& pageWidth, double& pageHeight);
+void SetPageDimensions();
 
 extern int scrollLines;
   

@@ -14,7 +14,6 @@ if(version.VERSION != VERSION()) {
 	 version.VERSION+" of plain.asy"+'\n');
 }
    
-include transforms;
 include pens;
 include paths;
 include filldraw;
@@ -122,6 +121,11 @@ void initdefaults()
   savedefaults();
   resetdefaultpen();
   atexit(nullexitfcn);
+}
+
+void usepackage(string s)
+{
+  texpreamble("\usepackage{"+s+"}");
 }
 
 // Return the sequence n,...m

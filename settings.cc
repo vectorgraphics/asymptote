@@ -709,6 +709,9 @@ void initSettings() {
 			    "Enable automatic importing of plain",
 			    true));
   
+  addOption(new realSetting("pagewidth", 0, "bp", ""));
+  addOption(new realSetting("pageheight", 0, "bp", ""));
+  
   addOption(new envSetting("config","config.asy"));
   addOption(new envSetting("pdfviewer", defaultPDFViewer));
   addOption(new envSetting("psviewer", defaultPSViewer));
@@ -773,15 +776,23 @@ void setPath() {
 #endif
 }
 
-void GetPageDimensions(double& pageWidth, double& pageHeight) {
+void SetPageDimensions() {
   string paperType=getSetting<mem::string>("papertype");
 
+  if(paperType == "" &&
+     getSetting<double>("pagewidth") != 0.0 &&
+     getSetting<double>("pageheight") != 0.0) return;
+  
+  const double inches=72;
+  const double cm=inches/2.540005;
+  
   if(paperType == "letter") {
-    pageWidth=72.0*8.5;
-    pageHeight=72.0*11.0;
+    Setting("pagewidth")=8.5*inches;
+    Setting("pageheight")=11.0*inches;
   } else {
-    pageWidth=72.0*21.0/2.54;
-    pageHeight=72.0*29.7/2.54;
+    Setting("pagewidth")=21.0*cm;
+    Setting("pageheight")=29.7*cm;
+    
     if(paperType != "a4") {
       cerr << "Unknown paper size \'" << paperType << "\'; assuming a4." 
 	   << endl;
@@ -830,6 +841,12 @@ void setOptions(int argc, char *argv[])
 
   // Recompute search path.
   setPath();
+  
+  if(getSetting<double>("pagewidth") != 0.0 && 
+     getSetting<double>("pageheight") != 0.0)
+    Setting("papertype")=mem::string("");
+  
+  SetPageDimensions();
   
   setInteractive();
 }

@@ -371,12 +371,13 @@ The configuration variable @code{dir} can be used to adjust the
 search path (@pxref{Search paths}).
 
 @cindex @code{papertype}
+@cindex @code{paperwidth}
+@cindex @code{paperheight}
 By default, @code{Asymptote} attempts to center the figure on the
 page, assuming that the paper type is @code{letter}. The default paper
 type may be changed to @code{a4} with the configuration variable
-@code{papertype}. Currently, only these two paper types are
-defined (the addition of a new paper type, say @code{poster}, will also
-require defining @code{posterSize} in the dvips configuration file).
+@code{papertype}. Other paper sizes can be achieved by setting the
+configuration variables @code{paperwidth} and @code{paperheight}.
 
 The following configuration variables normally do not require adjustment:
 @verbatim
@@ -1863,6 +1864,9 @@ the identity transform;
 @item transform shift(pair z);
 @cindex @code{shift}
 translates by the pair @code{z};
+@item transform shift(real x, real y);
+@cindex @code{shift}
+translates by the pair @code{(x,y)};
 @item transform xscale(real x);
 @cindex @code{xscale}
 scales by @code{x} in the @math{x} direction;
@@ -1882,7 +1886,13 @@ rotates by @code{angle} in degrees about @code{z};
 reflects about the line @code{a--b}.
 @end table
 
+@cindex @code{shift}
+@cindex @code{shiftless}
 The implicit initializer for transforms is @code{identity()}.
+The routines @code{shift(transform t)} and @code{shiftless(transform t)}
+return the transforms @code{transform(t.x,t.y,0,0,0,0)} and
+@code{transform(0,0,t.xx,t.xy,t.yx,t.yy)} respectively.
+
 
 @node Frames and pictures
 @section Frames and pictures
@@ -1968,10 +1978,10 @@ by calling the function @code{shipout}:
 @verbatim
 void shipout(string prefix=defaultfilename, picture pic,
              real unitsize=0, frame preamble=patterns,
-             orientation orientation=Portrait,
+             orientation orientation=orientation,
              string format="", bool wait=NoWait, bool quiet=false);
 void shipout(string prefix=defaultfilename, real unitsize=0, 
-             orientation orientation=Portrait,
+             orientation orientation=orientation,
              string format="", bool wait=NoWait, bool quiet=false);
 @end verbatim
 @noindent
@@ -1990,15 +2000,17 @@ The default size and aspect ratio settings are those given to the
 @code{size} command (which default to @code{0}, @code{0}, and
 @code{true}, respectively).
 
-@cindex portrait mode
-@cindex landscape mode
-@cindex seascape mode
-The default page orientation is @code{Portrait}. To output in landscape
+@cindex @code{orientation}
+@cindex @code{Landscape}
+@cindex @code{Portrait}
+The default page orientation is @code{Portrait}; this may be modified
+by changing the variable @code{orientation}. To output in landscape
 mode, simply replace the call to @code{shipout()} with:
 @verbatim
 shipout(Landscape);
 @end verbatim
 
+@cindex @code{Seascape}
 To rotate in the other direction, replace @code{Landscape} with
 @code{Seascape}.
 

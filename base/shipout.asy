@@ -82,9 +82,10 @@ frame Portrait(frame f) {return f;};
 frame Landscape(frame f) {return rotate(90)*f;};
 frame Seascape(frame f) {return rotate(-90)*f;};
 typedef frame orientation(frame);
+public orientation orientation=Portrait;
 
 void shipout(string prefix=defaultfilename, picture pic, real unitsize=0,
-	     frame preamble=patterns, orientation orientation=Portrait,
+	     frame preamble=patterns, orientation orientation=orientation,
 	     string format="", bool wait=NoWait, bool quiet=false)
 {
   shipout(prefix,
@@ -92,7 +93,8 @@ void shipout(string prefix=defaultfilename, picture pic, real unitsize=0,
 	  preamble,format,wait,quiet);
 }
 
-void shipout(string prefix=defaultfilename, orientation orientation=Portrait,
+void shipout(string prefix=defaultfilename,
+	     orientation orientation=orientation,
 	     real unitsize=0, string format="", bool wait=NoWait,
 	     bool quiet=false)
 {

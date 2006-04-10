@@ -20,8 +20,6 @@ using std::ofstream;
 
 using namespace settings;
 
-double pageWidth, pageHeight;
-
 namespace camp {
 
 string texready=string("(Please type a command or say `\\end')\n*");
@@ -181,6 +179,8 @@ bool picture::texprocess(const string& texname, const string& outname,
     double voffset=(height < 11.0) ? -137.0+height : -126.0;
     
     int origin=getSetting<int>("align");
+    double pageWidth=getSetting<double>("pagewidth");
+    double pageHeight=getSetting<double>("pageheight");
 
     if(origin != ZERO) {
       if(pdfformat || origin == BOTTOM) {
@@ -197,9 +197,12 @@ bool picture::texprocess(const string& texname, const string& outname,
     }
 
     ostringstream dcmd;
-    dcmd << "'" << getSetting<mem::string>("dvips") << "' -R -t " 
-	 << getSetting<mem::string>("papertype") 
-	 << "size -O " << hoffset << "bp," << voffset << "bp";
+    mem::string paperType=getSetting<mem::string>("papertype");
+    dcmd << "'" << getSetting<mem::string>("dvips") << "' -R "
+	 << " -O " << hoffset << "bp," << voffset << "bp";
+    if(paperType == "") 
+      dcmd << " -T " << pageWidth << "bp," << pageHeight << "bp";
+    else dcmd << " -t " << paperType << "size";
     if(verbose <= 1) dcmd << " -q";
     dcmd << " -o " << psname << " " << dviname;
     status=System(dcmd,false,true,"dvips");
@@ -396,8 +399,11 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       }
   }
   
-  GetPageDimensions(pageWidth,pageHeight);
+  SetPageDimensions();
   
+  double pageWidth=getSetting<double>("pagewidth");
+  double pageHeight=getSetting<double>("pageheight");
+    
   // Avoid negative bounding box coordinates
   int origin=getSetting<int>("align");
   bboxshift=origin == ZERO ? 0.0 : pair(-bpos.left,-bpos.bottom);

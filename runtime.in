@@ -1703,6 +1703,11 @@ bool !=(transform a, transform b)
   return a != b;
 }
 
+transform operator +(transform a, transform b)
+{
+  return a+b;
+}
+
 transform Operator *(transform a, transform b)
 {
   return a*b;
@@ -1775,6 +1780,16 @@ transform :real6ToTransform(double x, double y, double xx, double xy,
   return transform(x,y,xx,xy,yx,yy);
 }
 
+transform shift(transform t)
+{
+  return transform(t.getx(),t.gety(),0,0,0,0);
+}
+
+transform shiftless(transform t)
+{
+  return transform(0,0,t.getxx(),t.getxy(),t.getyx(),t.getyy());
+}
+
 transform identity:transformIdentity()
 {
   return identity();
@@ -1788,6 +1803,11 @@ transform inverse(transform t)
 transform shift(pair z)
 {
   return shift(z);
+}
+
+transform shift(double x, double y)
+{
+  return shift(pair(x,y));
 }
 
 transform xscale(double x)

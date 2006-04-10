@@ -1,3 +1,18 @@
+// A rotation in the direction dir limited to [-90,90]
+// This is useful for rotating text along a line in the direction dir.
+transform rotate(explicit pair dir)
+{
+  real angle=degrees(dir);
+  if(angle > 90 && angle < 270) angle -= 180;
+  return rotate(angle);
+} 
+
+transform scale(transform t)
+{
+  transform t0=shiftless(t);
+  return rotate(-degrees(t0*(1,0)))*t0;
+}
+
 struct align {
   public pair dir;
   public bool relative=false;
