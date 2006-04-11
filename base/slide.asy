@@ -64,17 +64,6 @@ void nextpage(pen p=pagenumberpen)
   firststep=true;
 }
 
-void step()
-{
-  if(!stepping) return;
-  lastnode.push(currentpicture.nodes.length-1);
-  nextpage(steppagenumberpen);
-  for(int i=0; i < firstnode.length; ++i)
-    for(int j=firstnode[i]; j <= lastnode[i]; ++j)
-      currentpicture.add(currentpicture.nodes[j]);
-  firstnode.push(currentpicture.nodes.length-1);
-}
-
 void newslide() 
 {
   nextpage();
@@ -84,16 +73,36 @@ void newslide()
   lastnode=new int[];
 }
 
+bool checkposition()
+{
+  if(abs(currentposition.x) > 1 || abs(currentposition.y) > 1) {
+    newslide();
+    return false;
+  }
+  return true;
+}
+
+void step()
+{
+  if(!stepping) return;
+  if(!checkposition()) return;
+  lastnode.push(currentpicture.nodes.length-1);
+  nextpage(steppagenumberpen);
+  for(int i=0; i < firstnode.length; ++i)
+    for(int j=firstnode[i]; j <= lastnode[i]; ++j)
+      currentpicture.add(currentpicture.nodes[j]);
+  firstnode.push(currentpicture.nodes.length-1);
+}
+
 void incrementposition(pair z)
 {
-  if(abs(currentposition.x) > 1 || abs(currentposition.y) > 1)
-    abort("Overfull slide on page "+(string) page);
   currentposition += z;
 }
 
 void title(string s, pair position=N, pair align=titlealign,
 	   pen p=titlepen) 
 {
+  checkposition();
   frame f;
   label(f,s,(0,0),align,p);
   add(position,f,labelmargin(p)*align);
@@ -103,6 +112,7 @@ void title(string s, pair position=N, pair align=titlealign,
 
 void remark(string s, pen p=itempen, real indent=0)
 {
+  checkposition();
   frame f;
   label(f,minipage(s,0.75*pagewidth),(indent,0),SE,p);
   add(currentposition,f);
@@ -134,6 +144,11 @@ void item(string s, pen p=itempen, bool step=itemstep)
   real bulletwidth=max(b).x-min(b).x;
   remark(bullet+"\hangindent"+(string) bulletwidth+"pt$\,$"+s,p,
 	 -bulletwidth*pt);
+}
+
+void subitem(string s, pen p=itempen, bool step=itemstep)
+{
+  remark("\quad -- "+s,p);
 }
 
 void titlepage(string title, string author, string date="", string url="")
