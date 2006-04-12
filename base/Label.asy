@@ -350,6 +350,12 @@ void label(frame f, Label L, pair position, align align=NoAlign,
   add(f,Label(L,position,align,p,filltype));
 }
   
+void label(frame f, Label L, align align=NoAlign,
+	   pen p=currentpen, filltype filltype=NoFill)
+{
+  add(f,Label(L,L.position,align,p,filltype));
+}
+  
 void label(picture pic=currentpicture, Label L, pair position,
 	   align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
 {
