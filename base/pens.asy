@@ -55,23 +55,67 @@ pen Magenta=cmyk(0,1,0,0);
 pen Yellow=cmyk(0,0,1,0);
 pen Black=cmyk(0,0,0,1);
 
-pen yellow=red+green;
-pen magenta=red+blue;
-pen cyan=blue+green;
+pen cyan=rgb(0,1,1);
+pen magenta=rgb(1,0,1);
+pen yellow=rgb(1,1,0);
 
-pen brown=red+black;
-pen darkgreen=green+black;
-pen darkblue=blue+black;
+pen palered=rgb(1,0.75,0.75);
+pen palegreen=rgb(0.75,1,0.75);
+pen paleblue=rgb(0.75,0.75,1);
+pen palecyan=rgb(0.75,1,1);
+pen palemagenta=rgb(1,0.75,1);
+pen paleyellow=rgb(1,1,0.75);
 
-pen orange=red+yellow;
-pen purple=magenta+blue;
+pen lightred=rgb(1,0.5,0.5);
+pen lightgreen=rgb(0.5,1,0.5);
+pen lightblue=rgb(0.5,0.5,1);
+pen lightcyan=rgb(0.5,1,1);
+pen lightmagenta=rgb(1,0.5,1);
+pen lightyellow=rgb(1,1,0.5);
 
-pen chartreuse=brown+green;
-pen fuchsia=red+darkblue;
-pen salmon=red+darkgreen+darkblue;
-pen lightblue=darkgreen+blue;
-pen lavender=brown+darkgreen+blue;
-pen pink=red+darkgreen+blue;
+pen mediumred=rgb(1,0.25,0.25);
+pen mediumgreen=rgb(0.25,1,0.25);
+pen mediumblue=rgb(0.25,0.25,1);
+pen mediumcyan=rgb(0.25,1,1);
+pen mediummagenta=rgb(1,0.25,1);
+pen mediumyellow=rgb(1,1,0.25);
+
+pen strongred=rgb(0.75,0,0);
+pen stronggreen=rgb(0,0.75,0);
+pen strongblue=rgb(0,0,0.75);
+pen strongcyan=rgb(0,0.75,0.75);
+pen strongmagenta=rgb(0.75,0,0.75);
+pen lightolive=rgb(0.75,0.75,0);
+
+pen deepred=rgb(0.5,0,0);
+pen deepgreen=rgb(0,0.5,0);
+pen deepblue=rgb(0,0,0.5);
+pen deepcyan=rgb(0,0.5,0.5);
+pen deepmagenta=rgb(0.5,0,0.5);
+pen olive=rgb(0.5,0.5,0);
+
+pen darkred=rgb(0.25,0,0);
+pen darkgreen=rgb(0,0.25,0);
+pen darkblue=rgb(0,0,0.25);
+pen darkcyan=rgb(0,0.25,0.25);
+pen darkmagenta=rgb(0.25,0,0.25);
+pen darkolive=rgb(0.25,0.25,0);
+
+pen orange=rgb(1,0.5,0);
+pen fuchsia=rgb(1,0,0.5);
+
+pen chartreuse=rgb(0.5,1,0);
+pen springgreen=rgb(0,1,0.5);
+
+pen purple=rgb(0.5,0,1);
+pen royalblue=rgb(0,0.5,1);
+
+// Synonyms:
+
+pen brown=deepred;
+pen darkbrown=darkred;
+pen pink=palemagenta;
+pen salmon=lightred;
 
 pen cmyk(pen p) {
   return p+cmyk;
@@ -95,8 +139,9 @@ int Move=3;
 int MoveQuiet=4;
 
 public pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,
-		       darkblue,darkgreen,chartreuse,fuchsia,salmon,
-		       lightblue,black,lavender,pink,yellow,gray};
+		       deepblue,deepgreen,chartreuse,fuchsia,salmon,
+		       lightblue,black,pink,yellow,gray};
+
 colorPen.cyclic(true);
 
 public pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,

@@ -1532,24 +1532,18 @@ command in @TeX{}).
 
 @cindex @code{defaultpen}
 The default color is @code{black}; this may be changed with the routine
-@code{defaultpen(pen)}. A number of named rgb colors are defined
-in the module @code{plain}:
-@verbatim
-black,gray,white,red,green,blue,yellow,magenta,cyan,brown,darkgreen,
-darkblue,orange,purple,chartreuse,fuchsia,salmon,lightblue,lavender,pink,
-@end verbatim
-
-@noindent
-along with the primitive cmyk colors:
-@verbatim
-Cyan,Magenta,Yellow,Black.
-@end verbatim
+@code{defaultpen(pen)}. 
 
 @cindex @code{colors}
 The function @code{real[] colors(pen)} returns the color components of a pen.
 The functions @code{pen gray(pen)}, @code{pen rgb(pen)},  and
 @code{pen cmyk(pen)} return new pens obtained by converting their
 arguments to the respective color spaces. 
+
+@page
+These named colors are defined in the module @code{plain}:
+
+@image{colors}
 
 @item Line types are specified with the function 
 @code{pen linetype(string s, bool scale=true)},
