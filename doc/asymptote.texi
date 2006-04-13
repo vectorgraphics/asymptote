@@ -1541,7 +1541,13 @@ The functions @code{pen gray(pen)}, @code{pen rgb(pen)},  and
 arguments to the respective color spaces. 
 
 @page
-These named colors are defined in the module @code{plain}:
+Various shades and mixtures of the grayscale primary colors
+@code{black} and @code{white}, @acronym{RGB} primary colors
+@code{red}, @code{green}, and @code{blue}, and
+@acronym{RGB} secondary colors @code{cyan}, @code{magenta}, and @code{yellow}
+are defined as named colours, along with the @acronym{CMYK} primary
+colors @code{Cyan}, @code{Magenta}, @code{Yellow}, and @code{Black}, in
+the module @code{plain}:
 
 @image{colors}
 
@@ -2615,9 +2621,9 @@ boolean operators @code{<}, @code{>}, @code{<=}, and @code{>=}.
 Guide operators like @code{..} may be overloaded, say, to write
 a user function that produces a new guide from a given guide:
 @verbatim
-guide dots(...guide[] g)=operator ..;
+guide dots(... guide[] g)=operator ..;
 
-guide operator ..(...guide[] g) {
+guide operator ..(... guide[] g) {
   guide G;
   if(g.length > 0) {
     write(g[0]);
