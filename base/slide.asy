@@ -207,6 +207,7 @@ void exitfunction()
 {
   if(havepagenumber) numberpage();
   frame f=currentpicture.fit(t);
-  if(interact() || (!shipped && !currentpicture.empty())) shipout(f);
+  if(interact() || (!shipped && !currentpicture.empty())) 
+    shipout(orientation(f));
 }
 atexit(exitfunction);
