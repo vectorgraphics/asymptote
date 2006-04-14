@@ -524,9 +524,12 @@ compiling @code{interact.cc}, try installing an up-to-date version of
 the @acronym{GNU} @code{readline} library or else uncomment
 @code{HAVE_LIBREADLINE} in @code{config.h}.
 
+@cindex @code{FFTW}
+@cindex @code{GSL}
 The @code{FFTW} library is only required if you want @code{Asymptote}
 to be able to take Fourier transforms of data (say, to compute an
-audio power spectrum).
+audio power spectrum). The @code{GSL} library is only required if you
+require the special functions that it supports.
 
 If you don't want to install @code{Asymptote} system wide, just make
 sure the compiled binary @code{asy} and @acronym{GUI} script @code{xasy} are in
@@ -3054,9 +3057,14 @@ and the integer @code{randMax}. A Gaussian random number generator
 @code{histogram}, are provided in the base file @code{stats.asy}.
 
 @cindex GNU Scientific Library
-@cindex GSL
+@cindex @code{GSL}
 @cindex Airy
 @cindex Bessel
+@cindex Legendre
+@cindex elliptic functions
+@cindex exponential integral
+@cindex trigonometric integrals
+@cindex Riemann zeta function
 @cindex @code{Ai}
 @cindex @code{Bi}
 @cindex @code{Ai_deriv}

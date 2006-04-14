@@ -566,7 +566,8 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
       }
 
     } else { // Logarithmic
-      if(ticklabel == null) ticklabel=LogFormat;
+      if(ticklabel == null)
+	ticklabel=format == "%" ? new string(real x) {return "";} : LogFormat;
       real a=locate.S.postscale.Tinv(locate.a);
       real b=locate.S.postscale.Tinv(locate.b);
       if(a > b) {real temp=a; a=b; b=temp;}
