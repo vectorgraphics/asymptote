@@ -149,7 +149,7 @@ int Move=3;
 int MoveQuiet=4;
 
 public pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,
-		       deepblue,deepgreen,chartreuse,fuchsia,salmon,
+		       deepblue,deepgreen,chartreuse,fuchsia,lightred,
 		       lightblue,black,pink,yellow,gray};
 
 colorPen.cyclic(true);

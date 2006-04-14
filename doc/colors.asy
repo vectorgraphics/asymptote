@@ -22,7 +22,7 @@ void col(bool fill=false ... string[] s) {
 }
 
 col("palered");
-col("salmon");
+col("lightred");
 col("mediumred");
 col("red");
 col("heavyred");
