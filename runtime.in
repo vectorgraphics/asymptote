@@ -1330,10 +1330,7 @@ guide* operator curl(double gamma, int p)
 
 guide* operator tension(double tout, double tin, bool atleast)
 {
-  tension Tin(tin, atleast),
-         Tout(tout, atleast);
-
-  return new tensionguide(tout, tin);
+  return new tensionguide(tension(tout,atleast),tension(tin,atleast));
 }
 
 guide* operator controls(pair zout, pair zin)
