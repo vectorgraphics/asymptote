@@ -53,6 +53,13 @@ public:
   // Tacit means that no error messages will be reported to the user.
   virtual types::ty *getType(coenv &e, bool tacit = false);
 
+  // Pushes the highest level frame possible onto the stack.  Returning
+  // the frame pushed.  If no frame can be pushed, returns 0.
+  // NOTE: This duplicates some functionality with getVarEntry.
+  virtual trans::frame *frameTrans(coenv &e);
+  // Helper function for the case where the name is known to be a type.
+  virtual trans::frame *tyFrameTrans(coenv &e) = 0;
+
   // Constructs the varEntry part of the tyEntry for the name.  Like
   // getType, this is called on the qualifier, instead of the full name.
   // This reports no errors, and returns 0 if there is no varEntry to
@@ -73,13 +80,6 @@ public:
   // parent frame for allocating new objects of that type.  Reports
   // errors as typeTrans() does with tacit=false.
   virtual trans::tyEntry *tyEntryTrans(coenv &e) = 0;
-
-  // Pushes the highest level frame possible onto the stack.  Returning
-  // the frame pushed.  If no frame can be pushed, returns 0.
-  // NOTE: This duplicates some functionality with getVarEntry.
-  virtual trans::frame *frameTrans(coenv &e);
-  // Helper function for the case where the name is known to be a type.
-  virtual trans::frame *tyFrameTrans(coenv &e) = 0;
 
   virtual void prettyprint(ostream &out, int indent) = 0;
   virtual void print(ostream& out) const {

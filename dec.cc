@@ -402,6 +402,18 @@ void createVar(position pos, coenv &e, record *r,
   initializeVar(pos, e, r, v, t, init);
 }
 
+void addTypeWithPermission(coenv &e, record *r, tyEntry *base, symbol *id)
+{
+  // Only bother encoding permissions for private types.
+  tyEntry *ent = (r && e.c.getPermission()==PRIVATE) ?
+                     new trans::tyEntry(base, PRIVATE, r) :
+                     base;
+
+  if (r)
+    r->e.addType(id, ent);
+  e.e.addType(id, ent);
+}
+
 void createVarOutOfOrder(position pos, coenv &e, record *r,
                          symbol *id, types::ty *t, varinit *init)
 {
@@ -409,7 +421,6 @@ void createVarOutOfOrder(position pos, coenv &e, record *r,
   initializeVar(pos, e, r, v, t, init);
   addVar(e, r, v, id);
 }
-
 
 void decid::transAsField(coenv &e, record *r, types::ty *base)
 {
@@ -433,10 +444,7 @@ void decid::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
     *em << "type definition cannot have initializer";
   }
    
-  // Add to type to record and environment.
-  if (r)
-    r->e.addType(start->getName(), ent);
-  e.e.addType(start->getName(), ent);
+  addTypeWithPermission(e, r, ent, start->getName());
 }
 
 
@@ -721,11 +729,7 @@ void recorddec::transAsField(coenv &e, record *parent)
   record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
                        e.c.newRecord(id);
                      
-  tyEntry *ent = new trans::tyEntry(r,0);
-
-  if (parent)
-    parent->e.addType(id, ent);
-  e.e.addType(id, ent);
+  addTypeWithPermission(e, parent, new trans::tyEntry(r,0), id);
   addOps(e,parent,r);
 
   // Start translating the initializer.
@@ -736,7 +740,8 @@ void recorddec::transAsField(coenv &e, record *parent)
 }  
 
 runnable *autoplainRunnable() {
-  // Private import plain;
+  // Abstract syntax for the code:
+  //   private import plain;
   position pos=position();
   static importdec ap(pos, new idpair(pos, symbol::trans("plain")));
   static modifiedRunnable mr(pos, trans::PRIVATE, &ap);

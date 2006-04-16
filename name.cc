@@ -25,23 +25,6 @@ using trans::CALL;
 using vm::inst;
 
 
-// Checks if a varEntry returned from coenv::lookupExactVar is ambiguous,
-// an reports an error if it is.
-static bool checkAmbiguity(position pos, symbol *s, varEntry *v)
-{
-  types::ty *t = v->getType();
-  assert(t);
-
-  if (t->kind == types::ty_overloaded) {
-    em->error(pos);
-    *em << "variable of name \'" << *s << "\' is ambiguous";
-    return false;
-  }
-  else
-    // All is well
-    return true;
-}
-
 types::ty *signatureless(types::ty *t) {
   if (overloaded *o=dynamic_cast<overloaded *>(t))
     return o->signatureless();
@@ -96,14 +79,11 @@ varEntry *simpleName::getVarEntry(coenv &e)
   
 void simpleName::varTrans(action act, coenv &e, types::ty *target)
 {
-  //varEntry *v = e.e.lookupExactVar(id, target->getSignature());
   varEntry *v = e.e.lookupVarByType(id, target);
   
   if (v) {
-    if (checkAmbiguity(getPos(), id, v)) {
-      v->encode(act, getPos(), e.c);
-      forceEquivalency(act, e, target, v->getType());
-    }
+    v->encode(act, getPos(), e.c);
+    forceEquivalency(act, e, target, v->getType());
   }
   else {
     em->error(getPos());
@@ -120,13 +100,6 @@ types::ty *simpleName::typeTrans(coenv &e, bool tacit)
 {
   types::ty *t = e.e.lookupType(id);
   if (t) {
-    if (t->kind == types::ty_overloaded) {
-      if (!tacit) {
-	em->error(getPos());
-	*em << "type of name \'" << *id << "\' is ambiguous";
-      }
-      return primError();
-    }
     return t;
   }
   else {
@@ -291,16 +264,11 @@ types::ty *qualifiedName::typeTrans(coenv &e, bool tacit)
   if (!r)
     return primError();
 
-  types::ty *t = r->e.lookupType(id);
-  if (t) {
-    if (t->kind == types::ty_overloaded) {
-      if (!tacit) {
-	em->error(getPos());
-	*em << "type of name \'" << *id << "\' is ambiguous";
-      }
-      return primError();
-    }
-    return t;
+  tyEntry *ent = r->e.lookupTyEntry(id);
+  if (ent) {
+    if (!tacit)
+      ent->reportPerm(READ, getPos(), e.c);
+    return ent->t;
   }
   else {
     if (!tacit) {
@@ -327,6 +295,7 @@ tyEntry *qualifiedName::tyEntryTrans(coenv &e)
         << *r << "\'";
     return new tyEntry(primError(), 0);
   }
+  ent->reportPerm(READ, getPos(), e.c);
 
   return trans::qualifyTyEntry(qualifier->getVarEntry(e), ent);
 }

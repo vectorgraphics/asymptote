@@ -53,16 +53,23 @@ class entry : public gc {
   
   mem::list<pr> perms;
 
-public:
-  entry() {}
-  entry(permission perm, record *r) {
+  void addPerm(permission perm, record *r) {
     // Only store restrictive permissions.
     if (perm != PUBLIC && r)
       perms.push_back(pr(perm,r));
   }
 
+public:
+  entry() {}
+  entry(permission perm, record *r) {
+    addPerm(perm, r);
+  }
+
   // (Non-destructively) merges two entries, appending permission lists.
   entry(entry &e1, entry &e2);
+  
+  // Create an entry with one more permission in the list.
+  entry(entry &base, permission perm, record *r);
 
   bool checkPerm(action act, coder &c);
   void reportPerm(action act, position pos, coder &c);
@@ -113,6 +120,9 @@ public:
 
   tyEntry(ty *t, varEntry *v=0)
     : t(t), v(v) {}
+
+  tyEntry(tyEntry *base, permission perm, record *r)
+    : entry(*base, perm, r), t(base->t), v(base->v) {}
 };
 
 tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent);

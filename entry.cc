@@ -25,6 +25,7 @@ namespace trans {
 bool entry::pr::check(action act, coder &c) {
   // We assume PUBLIC permissions and one's without an associated record are not
   // stored.
+  assert(perm!=PUBLIC && r!=0);
   return c.inTranslation(r->getLevel()) ||
          (perm == READONLY && act != WRITE);
 }
@@ -45,6 +46,11 @@ void entry::pr::report(action act, position pos, coder &c) {
 entry::entry(entry &e1, entry &e2) {
   perms.insert(perms.end(), e1.perms.begin(), e1.perms.end());
   perms.insert(perms.end(), e2.perms.begin(), e2.perms.end());
+}
+
+entry::entry(entry &base, permission perm, record *r) {
+  perms.insert(perms.end(), base.perms.begin(), base.perms.end());
+  addPerm(perm, r);
 }
 
 bool entry::checkPerm(action act, coder &c) {
