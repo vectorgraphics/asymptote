@@ -63,7 +63,7 @@ void filldraw(frame f, path[] g, pen fillpen=currentpen,
 
 void unfill(frame f, path[] g)
 {
-  clip(f,box(min(f),max(f))^^g,evenodd);
+  clip(f,box(min(f),max(f))^^g,evenoddoverlap);
 }
 
 typedef void filltype(frame, path, pen);
