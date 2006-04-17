@@ -409,12 +409,15 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   bboxshift=origin == ZERO ? 0.0 : pair(-bpos.left,-bpos.bottom);
   if(!pdfformat) {
     bboxshift += getSetting<pair>("offset");
-    if(!(origin == BOTTOM || origin == ZERO)) {
-      double yexcess=max(pageHeight-(bpos.top-bpos.bottom),0.0);
-      if(origin == TOP) bboxshift += pair(0.5,yexcess-0.5);
+    if(origin != ZERO) {
+      if(origin == BOTTOM) bboxshift += pair(0.125,0.0);
       else {
-	double xexcess=max(pageWidth-(bpos.right-bpos.left),0.0);
-	bboxshift += 0.5*pair(xexcess,yexcess);
+	double yexcess=max(pageHeight-(bpos.top-bpos.bottom),0.0);
+	if(origin == TOP) bboxshift += pair(0.25,(int)(yexcess+0.5));
+	else {
+	  double xexcess=max(pageWidth-(bpos.right-bpos.left),0.0);
+	  bboxshift += pair((int)(0.5*xexcess)+0.125,(int)(0.5*yexcess+0.5));
+	}
       }
     }
   }
