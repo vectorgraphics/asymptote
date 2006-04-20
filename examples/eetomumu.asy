@@ -37,15 +37,15 @@ drawVertex(zr);
 
 // draw momentum arrows and momentum labels
 
-drawMomArrow(xl--zl, left);
+drawMomArrow(xl--zl, Relative(left));
 label(Label("$k'$",2RightSide), xl--zl);
 
 label(Label("$k$",2LeftSide), xu--zl);
 
-drawMomArrow(zl--zr, left);
+drawMomArrow(zl--zr, Relative(left));
 label(Label("$q$",2RightSide), zl--zr);
 
-drawMomArrow(zr--yu, right);
+drawMomArrow(zr--yu, Relative(right));
 label(Label("$p'$",2LeftSide), zr--yu);
 
 label(Label("$p$",2RightSide), zr--yl);
