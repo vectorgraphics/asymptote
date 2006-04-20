@@ -115,7 +115,7 @@ void bar(picture pic, pair a, pair d, pen p=currentpen)
 {
   picture opic;
   Draw(opic,-0.5d--0.5d,p+solid);
-  add(a,pic,opic);
+  add(pic,opic,a);
 }
 						      
 picture bar(pair a, pair d, pen p=currentpen)
@@ -305,7 +305,7 @@ void draw(pair origin, picture pic=currentpicture, Label L="", path g,
 {
   picture opic;
   draw(opic,L,g,align,p,arrow,bar,margin,legend,marker);
-  add(origin,pic,opic);
+  add(pic,opic,origin);
 }
 
 // Align an arrow pointing to b from the direction dir. The arrow is

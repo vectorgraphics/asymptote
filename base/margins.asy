@@ -1,4 +1,4 @@
-private struct marginT {
+struct marginT {
   public path g;
   public real begin,end;
 };

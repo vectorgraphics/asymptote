@@ -21,18 +21,18 @@ typedef void markroutine(picture pic=currentpicture, path g, frame f);
 // On picture pic, add to every node of path g the frame f.
 void marknodes(picture pic=currentpicture, path g, frame f) {
   for(int i=0; i <= length(g); ++i)
-    add(point(g,i),pic,f);
+    add(pic,f,point(g,i));
 }
 
 // On picture pic, add to path g the frame f, evenly spaced in arclength.
 markroutine markuniform(int n) {
   return new void(picture pic=currentpicture, path g, frame f) {
     if(n == 0) return;
-    if(n == 1) add(relpoint(g,0.5),pic,f);
+    if(n == 1) add(pic,f,relpoint(g,0.5));
     else {
       real width=1/(n-1);
       for(int i=0; i < n; ++i)
-	add(relpoint(g,i*width),pic,f);
+	add(pic,f,relpoint(g,i*width));
     }
   };
 }
@@ -108,16 +108,16 @@ picture legend(Legend[] legend, real length, real skip)
   return inset;
 }
   
-frame legend(picture pic=currentpicture, pair dir=0, 
+frame legend(picture pic=currentpicture,
 	     real xmargin=legendmargin, real ymargin=xmargin,
 	     real length=legendlinelength, real skip=legendskip,
-	     pen p=currentpen) 
+	     pen p=currentpen)
 {
   frame F;
   if(pic.legend.length == 0) return F;
   F=legend(pic.legend,length,skip).fit();
   box(F,xmargin,ymargin,p);
-  return shift(dir-point(F,-dir))*F;
+  return F;
 }
 
 void dot(frame f, pair z, pen p=currentpen)

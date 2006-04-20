@@ -96,5 +96,5 @@ void draw( TreeNode root, pair pos )
 
   drawAll( root, f );
 
-  add(pos,f);
+  add(f,pos);
 }

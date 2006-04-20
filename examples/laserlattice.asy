@@ -38,7 +38,7 @@ picture r=make_field(16,80);
 picture s=make_field(2,80);
 
 real margin=1cm;
-add(p.fit(),margin*NW);
-add(q.fit(),margin*NE);
-add(r.fit(),margin*SW);
-add(s.fit(),margin*SE);
+add(p.fit(),(0,0),margin*NW);
+add(q.fit(),(0,0),margin*NE);
+add(r.fit(),(0,0),margin*SW);
+add(s.fit(),(0,0),margin*SE);

@@ -18,7 +18,7 @@ void perpendicular(picture pic=currentpicture, pair z, pair align,
   pair d1=size*align*unit(dir)*dir(-45);
   pair d2=I*d1;
   _draw(apic,d1--d1+d2--d2,p);
-  add(z,pic,apic);
+  add(pic,apic,z);
 }
   
 // Draw a perpendicular symbol at z aligned in the direction align

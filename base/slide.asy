@@ -117,7 +117,7 @@ void title(string s, pair position=N, pair align=titlealign,
   checkposition();
   frame f;
   label(f,minipage("\center "+s,minipagewidth),(0,0),align,p);
-  add(position,f,labelmargin(p)*align);
+  add(f,labelmargin(p)*align,position);
   currentposition=(currentposition.x,position.y+
 		   (tinv*(min(f)-titleskip*I*lineskip(p)*pt)).y);
 }
@@ -155,7 +155,7 @@ void remark(bool center=false, string s, pair align=0, pen p=itempen,
     } else toohigh();
   }
 
-  add(offset,f);
+  add(f,offset);
   incrementposition((0,(tinv*(min(f)-itemskip*I*lineskip(p)*pt)).y));
 }
 

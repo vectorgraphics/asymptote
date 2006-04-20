@@ -8,7 +8,7 @@ This file documents @code{Asymptote}, version @value{VERSION}.
 
 @url{http://asymptote.sourceforge.net}
      
-Copyright @copyright{} 2004-5 Andy Hammerlindl, John Bowman, and Tom Prince.
+Copyright @copyright{} 2004-6 Andy Hammerlindl, John Bowman, and Tom Prince.
      
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1922,10 +1922,10 @@ or prepended with
 void prepend(frame dest, frame src);
 @end verbatim
 A frame obtained by aligning frame @code{f} in the direction
-@code{dir}, in a manner analogous to the @code{align} argument of
+@code{align}, in a manner analogous to the @code{align} argument of
 @code{label} (@pxref{label}), is returned by
 @verbatim
-frame align(frame f, pair dir);
+frame align(frame f, pair align);
 @end verbatim
 
 @item picture
@@ -2111,24 +2111,24 @@ in postscript coordinates to another picture about the user coordinate
 @anchor{add about}
 @cindex @code{add}
 @verbatim
-void add(pair origin, picture dest, picture src, bool group=true,
+void add(picture dest, picture src, pair position, bool group=true,
          filltype filltype=NoFill, bool put=Above);
-void add(pair origin, picture src, bool group=true,
+void add(picture src, bool group=true, pair position,
          filltype filltype=NoFill, bool put=Above);
-void add(pair origin=0, picture dest=currentpicture, frame src,
+void add(picture dest=currentpicture, frame src, pair position=0,
          bool group=true, filltype filltype=NoFill,
          bool put=Above);
-void add(pair origin=0, picture dest=currentpicture, frame src,
-         pair dir, bool group=true, filltype filltype=NoFill,
+void add(picture dest=currentpicture, frame src, pair position,
+         pair align, bool group=true, filltype filltype=NoFill,
          bool put=Above);
 @end verbatim
 
 The @code{dir} argument in the last form specifies a direction to use
 for aligning the frame, in a manner analogous to the @code{align}
-argument of @code{label} (@pxref{label}). 
-Illustrations of frame alignment can be found in the
-examples @ref{errorbars} and @ref{image}. If you want to align 3 or
-more subpictures, group them two at a time:
+argument of @code{label} (@pxref{label}). However, unlike labels, frames and
+pictures are not centered by default. Illustrations of frame alignment
+can be found in the examples @ref{errorbars} and @ref{image}. If you
+want to align 3 or more subpictures, group them two at a time:
 
 @verbatiminclude subpictures.asy
 @image{subpictures}
@@ -2137,11 +2137,10 @@ Alternatively, one can use @code{attach} to automatically increase the
 size of picture @code{dest} to accommodate adding a frame @code{src}
 about the user coordinate @code{origin}:
 @verbatim
-void attach(pair origin=0, picture dest=currentpicture,
-           frame src, bool group=true,
-           filltype filltype=NoFill, bool put=Above);
-void attach(pair origin=0, picture dest=currentpicture, frame src,
-            pair dir, bool group=true, filltype filltype=NoFill,
+void attach(picture dest=currentpicture, frame src, pair position=0, 
+           bool group=true, filltype filltype=NoFill, bool put=Above);
+void attach(picture dest=currentpicture, frame src, pair position=0,
+            pair align, bool group=true, filltype filltype=NoFill,
             bool put=Above);
 @end verbatim
 
@@ -3926,16 +3925,18 @@ The use of arrows, bars, and margins is illustrated by the examples
 The legend for a picture @code{pic} can be fit and aligned to a frame
 with the routine (@pxref{filltype})
 @verbatim
-frame legend(picture pic=currentpicture, pair dir=0, 
+frame legend(picture pic=currentpicture,
              real xmargin=legendmargin, real ymargin=xmargin,
              real length=legendlinelength, real skip=legendskip,
              pen p=currentpen);
 @end verbatim
 @noindent
-Here @code{length} specifies the length of the path lines and 
-@code{skip} specifies the line skip, in units of the legend label fontsize.
-The legend frame can then be added about the point @code{origin} to a
-picture @code{dest} using @code{add} or @code{attach} (@pxref{add about}).
+Here @code{xmargin} and @code{ymargin} specify the surrounding @math{x}
+and @math{y} margins, @code{length} specifies the length of the path
+lines, @code{skip} specifies the line skip in units of the legend
+label fontsize, and @code{p} specifies the pen used to draw the
+bounding box. The legend frame can then be added and aligned about a point
+on a picture @code{dest} using @code{add} or @code{attach} (@pxref{add about}).
 
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.
@@ -4003,7 +4004,7 @@ This is just a convenient abbreviation for the commands:
 @verbatim
 picture opic;
 fill(opic,g,p);
-add(origin,pic,opic);
+add(pic,opic,origin);
 @end verbatim
 
 @anchor{gradient shading}
@@ -5179,7 +5180,7 @@ paletteticks PaletteTicks(int N=0, real Step=0,
 
 The image and palette bar can be fit (and optionally aligned) to a frame 
 and added to picture @code{dest} at the location @code{origin} using
-@code{add(pair origin=0, picture dest=currentpicture, frame)}:
+@code{add(picture dest=currentpicture, frame, pair position=0)}:
 
 @anchor{image}
 @verbatiminclude image.asy

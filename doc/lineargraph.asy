@@ -13,4 +13,4 @@ yaxis("$y$",LeftRight,RightTicks);
 
 label("LABEL",point(0),UnFill(1mm));
 
-attach(point(E),legend(20E),UnFill);
+attach(legend(),point(E),20E,UnFill);

@@ -13,7 +13,7 @@ draw(pic,graph(pic,f),"legend",
 
 xaxis(pic,"$x$",BottomTop,LeftTicks);
 yaxis(pic,"$y$",LeftRight,RightTicks);
-add(point(pic,NW),pic,legend(pic,20SE),UnFill);
+add(pic,legend(pic),point(pic,NW),20SE,UnFill);
 
 picture pic2;
 size(pic2,xsize,ysize,IgnoreAspect);
@@ -31,7 +31,7 @@ yequals(pic2,55.0,red+Dotted);
 xequals(pic2,70.0,red+Dotted);
 
 // Fit pic to W of origin:
-add(pic.fit(),W);
+add(pic.fit(),(0,0),W);
 
 // Fit pic2 to E of (5mm,0):
-add((5mm,0),pic2.fit(),E);
+add(pic2.fit(),(5mm,0),E);

@@ -331,10 +331,10 @@ pair point(frame f, pair dir)
 real min(... real[] a) {return min(a);}
 real max(... real[] a) {return max(a);}
 
-// Returns a copy of frame f aligned in the direction dir
-frame align(frame f, pair dir) 
+// Returns a copy of frame f aligned in the direction align
+frame align(frame f, pair align) 
 {
-  return shift(dir)*shift(-point(f,-dir))*f;
+  return shift(align-point(f,-align))*f;
 }
 
 struct picture {
@@ -895,45 +895,45 @@ bool inside(path[] g, pair z)
   return inside(g,z,currentpen);
 }
 
-// Add frame dest about origin to frame src with optional grouping
-void add(pair origin, frame dest, frame src, bool group=false,
+// Add frame dest about position to frame src with optional grouping
+void add(frame dest, frame src, pair position, bool group=false,
 	 filltype filltype=NoFill, bool put=Above)
 {
-  add(dest,shift(origin)*src,group,filltype,put);
+  add(dest,shift(position)*src,group,filltype,put);
 }
 
-// Add frame src about origin to picture dest with optional grouping
-void add(pair origin=0, picture dest=currentpicture, frame src,
+// Add frame src about position to picture dest with optional grouping
+void add(picture dest=currentpicture, frame src, pair position=0,
 	 bool group=true, filltype filltype=NoFill, bool put=Above)
 {
   dest.add(new void (frame f, transform t) {
-    add(f,shift(t*origin)*src,group,filltype,put);
+    add(f,shift(t*position)*src,group,filltype,put);
   });
-  dest.addBox(origin,origin,min(src),max(src));
+  dest.addBox(position,position,min(src),max(src));
 }
 
 // Like add(pair,picture,frame) but extend picture to accommodate frame
-void attach(pair origin=0, picture dest=currentpicture, frame src,
+void attach(picture dest=currentpicture, frame src, pair position=0,
 	    bool group=true, filltype filltype=NoFill, bool put=Above)
 {
   transform t=dest.calculateTransform();
-  add(origin,dest,src,group,filltype,put);
+  add(dest,src,position,group,filltype,put);
   pair s=size(dest.fit(t));
   size(dest,dest.xsize != 0 ? s.x : 0,dest.ysize != 0 ? s.y : 0);
 }
 
-// Like add(pair,picture,frame) but align frame in direction dir.
-void add(pair origin=0, picture dest=currentpicture, frame src, pair dir,
+// Like add(picture,frame,pair) but align frame in direction align.
+void add(picture dest=currentpicture, frame src, pair position, pair align,
 	 bool group=true, filltype filltype=NoFill, bool put=Above)
 {
-  add(origin,dest,align(src,dir),group,filltype,put);
+  add(dest,align(src,align),position,group,filltype,put);
 }
 
-// Like attach(pair,picture,frame) but align frame in direction dir.
-void attach(pair origin=0, picture dest=currentpicture, frame src, pair dir,
+// Like attach(picture,frame,pair) but align frame in direction align.
+void attach(picture dest=currentpicture, frame src, pair position, pair align,
 	    bool group=true, filltype filltype=NoFill, bool put=Above)
 {
-  attach(origin,dest,align(src,dir),group,filltype,put);
+  attach(dest,align(src,align),position,group,filltype,put);
 }
 
 // Add a picture to another such that user coordinates in both will be scaled
@@ -952,24 +952,25 @@ void add(picture src, bool group=true, filltype filltype=NoFill,
 
 // Fit the picture src using the identity transformation (so user
 // coordinates and truesize coordinates agree) and add it about the point
-// origin to picture dest.
-void add(pair origin, picture dest, picture src, bool group=true,
+// position to picture dest.
+void add(picture dest, picture src, pair position, bool group=true,
 	 filltype filltype=NoFill, bool put=Above)
 {
-  add(origin,dest,src.fit(identity()),group,filltype,put);
+  add(dest,src.fit(identity()),position,group,filltype,put);
 }
 
-void add(pair origin, picture src, bool group=true, filltype filltype=NoFill,
+void add(picture src, pair position, bool group=true, filltype filltype=NoFill,
 	 bool put=Above)
 {
-  add(origin,currentpicture,src,group,filltype,put);
+  add(currentpicture,src,position,group,filltype,put);
 }
 
+// Fill a region about the user-coordinate 'origin'.
 void fill(pair origin, picture pic=currentpicture, path[] g, pen p=currentpen)
 {
   picture opic;
   fill(opic,g,p);
-  add(origin,pic,opic);
+  add(pic,opic,origin);
 }
 
 void postscript(picture pic=currentpicture, string s)

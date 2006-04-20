@@ -162,4 +162,4 @@ transform trialtrans=shift(0,-1.5)*shift(piccenter)*yscale(scalefactor)*
 clip(trialtrans*unitsquare);
 
 // add the calendar at a suitable position
-add(interp(point(S),point(N),1/13),kalender.fit(0.75*outputwidth)); 
+add(kalender.fit(0.75*outputwidth),interp(point(S),point(N),1/13)); 
