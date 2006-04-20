@@ -176,8 +176,9 @@ bool picture::texprocess(const string& texname, const string& outname,
     
     // Magic dvips offsets:
     double hoffset=-128.0;
-    double voffset=(height < 11.0) ? -137.0+height : -126.0;
-    
+//    double voffset=(height < 11.0) ? -137.0+height : -126.0;
+    double voffset=(height < 12.0) ? -137.5+height : -125.5;
+
     int origin=getSetting<int>("align");
     double pageWidth=getSetting<double>("pagewidth");
     double pageHeight=getSetting<double>("pageheight");
@@ -207,19 +208,6 @@ bool picture::texprocess(const string& texname, const string& outname,
     dcmd << " -o " << psname << " " << dviname;
     status=System(dcmd,false,true,"dvips");
     
-    bbox bcopy=bpos;
-    double hfuzz=0.1;
-    double vfuzz=0.2;
-    if(origin == CENTER || origin == TOP) {
-      hfuzz *= 2.0; vfuzz *= 2.0;
-    }
-    
-    bcopy.left -= hfuzz;
-    bcopy.right += hfuzz;
-    
-    bcopy.bottom -= vfuzz;
-    bcopy.top += vfuzz;
-    
     ifstream fin(psname.c_str());
     ofstream *Fout=NULL;
     ostream *fout=(outname == "") ? &cout :
@@ -231,7 +219,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       if(s.find("%%DocumentPaperSizes:") == 0) continue;
       if(first && s.find("%%BoundingBox:") == 0) {
 	if(verbose > 2) BoundingBox(cout,bpos);
-	BoundingBox(*fout,bcopy);
+	BoundingBox(*fout,bpos);
 	first=false;
       } else *fout << s << endl;
     }
@@ -269,9 +257,9 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	  << "' -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
 	  << " -dAutoRotatePages=/None "
 	  << " -dDEVICEWIDTHPOINTS=" 
-	  << bpos.right-bpos.left+1.0
+	  << bpos.right-bpos.left+1
 	  << " -dDEVICEHEIGHTPOINTS=" 
-	  << bpos.top-bpos.bottom+1.0
+	  << bpos.top-bpos.bottom+1
 	  << " -sOutputFile=" << outname << " " << epsname;
       status=System(cmd,false,true,"gs","Ghostscript");
     } else {
@@ -409,15 +397,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   bboxshift=origin == ZERO ? 0.0 : pair(-bpos.left,-bpos.bottom);
   if(!pdfformat) {
     bboxshift += getSetting<pair>("offset");
-    if(origin != ZERO) {
-      if(origin == BOTTOM) bboxshift += pair(0.125,0.0);
+    if(origin != ZERO && origin != BOTTOM) {
+      double yexcess=max(pageHeight-(bpos.top-bpos.bottom+1.0),0.0);
+      if(origin == TOP) bboxshift += pair(0.0,yexcess);
       else {
-	double yexcess=max(pageHeight-(bpos.top-bpos.bottom),0.0);
-	if(origin == TOP) bboxshift += pair(0.25,(int)(yexcess+0.5));
-	else {
-	  double xexcess=max(pageWidth-(bpos.right-bpos.left),0.0);
-	  bboxshift += pair((int)(0.5*xexcess)+0.125,(int)(0.5*yexcess+0.5));
-	}
+	double xexcess=max(pageWidth-(bpos.right-bpos.left+1.0),0.0);
+	bboxshift += pair(0.5*xexcess,0.5*yexcess);
       }
     }
   }
@@ -429,7 +414,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   texfile *tex=NULL;
   
   if(Labels) {
-    tex=new texfile(texname,b);
+    tex=new texfile(texname,b,bpos);
     tex->prologue();
   }
   

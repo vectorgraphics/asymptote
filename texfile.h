@@ -71,7 +71,6 @@ void texdefines(T& out, stringlist& preamble=TeXpreamble, bool pipe=false)
 {
   texpreamble(out,preamble);
   out << "\\newbox\\ASYbox" << newl
-      << "\\newbox\\ASYpsbox" << newl
       << "\\newdimen\\ASYdimen" << newl
       << "\\def\\ASYbase#1#2{\\setbox\\ASYbox=\\hbox{#1}"
       << "\\ASYdimen=\\ht\\ASYbox%"
@@ -94,11 +93,12 @@ class texfile : public gc {
   ostream *out;
   pair offset;
   bbox box;
+  bbox boxpos;
   pen lastpen;
   cliplist clipstack;
 
 public:
-  texfile(const string& texname, const bbox& box);
+  texfile(const string& texname, const bbox& box, const bbox& boxpos);
   ~texfile();
 
   void prologue();

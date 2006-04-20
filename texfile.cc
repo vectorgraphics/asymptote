@@ -12,22 +12,22 @@
 #include "errormsg.h"
 
 using std::ofstream;
-using std::fixed;
-using std::setprecision;
 using settings::getSetting;
   
 namespace camp {
 
 stringlist TeXpipepreamble, TeXpreamble;
   
-texfile::texfile(const string& texname, const bbox& box) :
-    box(box)
+texfile::texfile(const string& texname, const bbox& box,
+		 const bbox& boxpos) : box(box), boxpos(boxpos)
 {
   out=new ofstream(texname.c_str());
   if(!out || !*out) {
     std::cerr << "Can't write to " << texname << std::endl;
     throw handled_error();
   }
+  out->setf(std::ios::fixed);
+  out->precision(6);
   texdocumentclass(*out);
   lastpen=pen(initialpen);
   lastpen.convert(); 
@@ -51,16 +51,15 @@ void texfile::prologue()
     
 void texfile::beginlayer(const string& psname)
 {
-  *out << "\\setbox\\ASYpsbox=\\hbox{\\includegraphics{" << psname << "}}%"
-       << newl
-       << "\\includegraphics{" << psname << "}%" << newl;
+  *out << "\\includegraphics[bb="
+       << boxpos.left << " " << boxpos.bottom << " "
+       << boxpos.right << " " << boxpos.top << "]{" << psname << "}%" << newl;
 }
 
 void texfile::endlayer()
 {
-  *out << "\\kern-\\wd\\ASYpsbox%" << newl;
+  *out << "\\kern-" << (boxpos.right-boxpos.left)*ps2tex << "pt%" << endl;
 }
-  
 
 void texfile::setpen(pen p)
 {
@@ -126,7 +125,7 @@ void texfile::put(const string& label, double angle, const pair& z,
   
   static pair unscaled=pair(1.0,1.0);
   bool scaled=(scale != unscaled);
-  *out << "\\ASY" << (scaled ? "scale" : "align") << fixed << setprecision(6)
+  *out << "\\ASY" << (scaled ? "scale" : "align")
        << "(" << (z.getx()-offset.getx())*ps2tex
        << "," << (z.gety()-offset.gety())*ps2tex
        << ")(" << align.getx()

@@ -73,7 +73,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
   if(!settings::getSetting<bool>("tex")) {b += position; return;}
   pair rotation=expi(radians(angle));
   pen Pentype=pentype;
-  static const double fuzz=1.0+Pentype.size()/24.0;
+  static const double fuzz=0.3+Pentype.size()/24.0;
   
   if(!havebounds) {
     havebounds=true;
