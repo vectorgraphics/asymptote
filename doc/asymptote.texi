@@ -1548,7 +1548,7 @@ Various shades and mixtures of the grayscale primary colors
 @code{black} and @code{white}, @acronym{RGB} primary colors
 @code{red}, @code{green}, and @code{blue}, and
 @acronym{RGB} secondary colors @code{cyan}, @code{magenta}, and @code{yellow}
-are defined as named colours, along with the @acronym{CMYK} primary
+are defined as named colors, along with the @acronym{CMYK} primary
 colors @code{Cyan}, @code{Magenta}, @code{Yellow}, and @code{Black}, in
 the module @code{plain}:
 
@@ -2107,7 +2107,7 @@ whether to add @code{src} above or below existing objects.
 
 There are also routines to add a picture or frame @code{src} specified
 in postscript coordinates to another picture about the user coordinate
-@code{origin}:
+@code{position}:
 @anchor{add about}
 @cindex @code{add}
 @verbatim
@@ -2123,25 +2123,28 @@ void add(picture dest=currentpicture, frame src, pair position,
          bool put=Above);
 @end verbatim
 
-The @code{dir} argument in the last form specifies a direction to use
-for aligning the frame, in a manner analogous to the @code{align}
-argument of @code{label} (@pxref{label}). However, unlike labels, frames and
-pictures are not centered by default. Illustrations of frame alignment
-can be found in the examples @ref{errorbars} and @ref{image}. If you
-want to align 3 or more subpictures, group them two at a time:
+The optional @code{align} argument in the last form specifies a
+direction to use for aligning the frame, in a manner analogous to the
+@code{align} argument of @code{label} (@pxref{label}). However, one key
+difference is that when @code{align} is not specified, labels are
+centered, whereas frames and pictures are aligned so that their origin is
+at @code{position}. Illustrations of frame alignment can be found in
+the examples @ref{errorbars} and @ref{image}. If you want to align 3
+or more subpictures, group them two at a time:
 
 @verbatiminclude subpictures.asy
 @image{subpictures}
 
 Alternatively, one can use @code{attach} to automatically increase the
 size of picture @code{dest} to accommodate adding a frame @code{src}
-about the user coordinate @code{origin}:
+about the user coordinate @code{position}:
 @verbatim
-void attach(picture dest=currentpicture, frame src, pair position=0, 
-           bool group=true, filltype filltype=NoFill, bool put=Above);
-void attach(picture dest=currentpicture, frame src, pair position=0,
-            pair align, bool group=true, filltype filltype=NoFill,
-            bool put=Above);
+void attach(picture dest=currentpicture, frame src,
+            pair position=0, bool group=true,
+            filltype filltype=NoFill, bool put=Above);
+void attach(picture dest=currentpicture, frame src,
+            pair position=0, pair align, bool group=true,
+            filltype filltype=NoFill, bool put=Above);
 @end verbatim
 
 To draw or fill a box or ellipse around a label, frame, or picture,
@@ -3962,8 +3965,8 @@ void dot(picture pic=currentpicture, guide g, pen p=currentpen);
 @end verbatim
 See @ref{markers} for a more general way of marking path nodes.
 
-To draw a fixed-sized object (in @code{PostScript} coordinates) about the user
-coordinate @code{origin}, use the routine
+To draw a fixed-sized object (in @code{PostScript} coordinates) about
+the user coordinate @code{origin}, use the routine
 @cindex @code{draw}
 @verbatim
 void draw(pair origin, picture pic=currentpicture, Label L="", path g,
@@ -5045,12 +5048,22 @@ void scale(picture pic=currentpicture, scaleT x, scaleT y);
 
 This sets the scalings for picture @code{pic}. The @code{graph} routines
 accept an optional @code{picture} argument for determining the appropriate
-scalings to use; if none is given, it uses those set for @code{currentpicture}.
-All path coordinates (and any call to @code{limits}, etc.)
-refer to scaled data. Two frequently used scaling routines
+scalings to use; if none is given, it uses those set for
+@code{currentpicture}.
+
+Two frequently used scaling routines
 @code{Linear} and @code{Log} are predefined in @code{graph}.
 
-Scaling routines can be given two optional boolean arguments:
+All picture coordinates (including those in paths and those given
+to @code{label} and @code{limits}) are always treated as linear
+(post-scaled) coordinates. Use
+@cindex @code{Scale}
+@verbatim
+pair Scale(picture pic=currentpicture, pair z);
+@end verbatim
+to convert a graph coordinate into a scaled picture coordinate.
+
+The predefined scaling routines can be given two optional boolean arguments:
 @code{automin} and @code{automax}. These default to @code{true}, but can
 be respectively set to @code{false} to disable automatic selection of
 "nice" axis minimum and maximum values. @code{Linear}
@@ -5179,7 +5192,7 @@ paletteticks PaletteTicks(int N=0, real Step=0,
 @end verbatim
 
 The image and palette bar can be fit (and optionally aligned) to a frame 
-and added to picture @code{dest} at the location @code{origin} using
+and added to picture @code{dest} at the location @code{position} using
 @code{add(picture dest=currentpicture, frame, pair position=0)}:
 
 @anchor{image}
@@ -5360,8 +5373,7 @@ reflects about the plane through @code{u}, @code{v}, and @code{w}.
 @cindex @code{straight}
 @cindex @code{inside}
 Three-dimensional versions of the path functions @code{length},
-@code{size}, @code{point}, @code{dir}, @code{precontrol}, @code{postcontrol}, 
-@code{arclength}, @code{arctime}, @code{reverse}, @code{subpath},
+@code{size}, @code{point}, @code{dir}, @code{precontrol}, @code{postcontrol}, @code{arclength}, @code{arctime}, @code{reverse}, @code{subpath},
 @code{intersect}, @code{intersectionpoint},
 @code{min}, @code{max}, @code{cyclic}, and @code{straight} are also
 defined in the module @code{three}.
@@ -5927,7 +5939,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  zxvf xargs cond polargraph xmin xmax plabel YZero labelling ln
 @c  LocalWords:  ymin ymax XZero xequals tickmin tickmax unlabelled se pq pena
 @c  LocalWords:  yequals Nobre Barbarosie Schwaiger nearearth conicurv Wiebusch
-@c  LocalWords:  unfill posterSize ngraph interpolatetype ctrl dt pic getint
+@c  LocalWords:  unfill posterSize ngraph interpolatetype ctrl dt pic getint Ai
 @c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei nomarker
 @c  LocalWords:  westnile minipage infectiousM ra penb paletteticks drawline nV
 @c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis
@@ -5967,4 +5979,5 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  embeddedmovie historylines inlinetex RadialShade penc penr CJK
 @c  LocalWords:  legendlinelength legendskip USERPROFILE LDFLAGS currentlight
 @c  LocalWords:  subsampling subsampled sinc kai AtBeginDocument GBK clearpage
-@c  LocalWords:  AtEndDocument zaxis maxbound truepoint
+@c  LocalWords:  AtEndDocument zaxis maxbound truepoint paperwidth paperheight
+@c  LocalWords:  GSL deriv
