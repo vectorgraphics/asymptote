@@ -1554,6 +1554,19 @@ the module @code{plain}:
 
 @image{colors}
 
+The standard 140 @acronym{RGB} @code{X11} colors can be imported with
+the command
+@verbatim
+import x11colors;
+@end verbatim
+and the standard 68 @acronym{CMYK} @TeX{} colors can be imported with
+the command
+@verbatim
+import texcolors;
+@end verbatim
+Note that there is some overlap between these two standards
+and the definitions of some colors (e.g. @code{Green}) actually disagree.
+
 @item Line types are specified with the function 
 @code{pen linetype(string s, bool scale=true, bool adjust=true)},
 @cindex @code{solid}
