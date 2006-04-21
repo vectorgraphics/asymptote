@@ -95,9 +95,19 @@ picture legend(Legend[] legend, real length, real skip)
   picture inset;
   size(inset,0,0,IgnoreAspect);
   if(legend.length > 0) {
+    frame f;
+    real height=0;
     for(int i=0; i < legend.length; ++i) {
       Legend L=legend[i];
-      pair z1=-i*I*skip*fontsize(L.plabel);
+      frame f;
+      draw(f,(0,0),L.p);
+      label(f,L.label,(0,0),L.plabel);
+      if(!empty(L.mark)) add(f,L.mark,(0,0));
+      height=max(height,max(f).y-min(f).y);
+    }
+    for(int i=0; i < legend.length; ++i) {
+      Legend L=legend[i];
+      pair z1=(0,-i*height*skip);
       pair z2=z1+length;
       if(!L.put && !empty(L.mark)) marknodes(inset,interp(z1,z2,0.5),L.mark);
       Draw(inset,z1--z2,L.p);

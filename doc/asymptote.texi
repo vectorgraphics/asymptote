@@ -3950,10 +3950,11 @@ frame legend(picture pic=currentpicture,
 @noindent
 Here @code{xmargin} and @code{ymargin} specify the surrounding @math{x}
 and @math{y} margins, @code{length} specifies the length of the path
-lines, @code{skip} specifies the line skip in units of the legend
-label fontsize, and @code{p} specifies the pen used to draw the
-bounding box. The legend frame can then be added and aligned about a point
-on a picture @code{dest} using @code{add} or @code{attach} (@pxref{add about}).
+lines, @code{skip} specifies the line skip as a multiple of the
+maximum legend entry height, and @code{p} specifies the
+pen used to draw the bounding box. The legend frame can then be added
+and aligned about a point on a picture @code{dest} using @code{add} or
+@code{attach} (@pxref{add about}).
 
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.
@@ -5608,6 +5609,7 @@ Options:
 -tex                 Enable LaTeX label postprocessing [true]
 -s,-translate        Translate test [false]
 -unsafe              Enable system call; command-line only [false]
+-u,-user x           General purpose real user variable [0]
 -v,-verbose          Increase verbosity level [0]
 
 @end verbatim
