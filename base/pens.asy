@@ -2,11 +2,6 @@ public pen currentpen;
 
 pen nullpen=linewidth(0);
 
-pen linetype(string s) 
-{
-  return linetype(s,true);
-}
-
 pen solid=linetype("");
 pen dotted=linetype("0 4");
 pen dashed=linetype("8 8");

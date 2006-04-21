@@ -18,11 +18,36 @@ using std::istringstream;
 
 namespace camp {
 
+double PatternLength(double arclength, std::vector<double>& pat,
+		     const pen& pen0, const path& p)
+{
+  double sum=0.0;
+  double penwidth=pen0.linetype().scale ? pen0.width() : 1.0;
+      
+  size_t n=pat.size();
+  for(unsigned i=0; i < n; i ++) {
+    pat[i] *= penwidth;
+    sum += pat[i];
+  }
+  if(sum == 0.0) return 0.0;
+  
+  if(n % 2 == 1) sum *= 2.0; // On/off pattern repeats after 2 cycles.
+      
+  // Fix bounding box resolution problem. Example:
+  // asy -f pdf testlinetype; gv -scale -2 testlinetype.pdf
+  if(!p.cyclic() && pat[0] == 0) sum += 1.0e-3*penwidth;
+      
+  double terminator=((p.cyclic() && arclength >= 0.5*sum) ? 0.0 : pat[0]);
+  int ncycle=(int)((arclength-terminator)/sum+0.5);
+
+  return ncycle > 0 ? ncycle*sum+terminator : 0.0;
+}
+
 void drawPath::adjustdash(pen& pen0)
 {
   // Adjust dash sizes to fit arclength; also compensate for linewidth.
   string stroke=pen0.stroke();
-  if(!stroke.empty()) {
+  if(!stroke.empty() && pen0.linetype().adjust) {
     double arclength=p.arclength();
     
     if(arclength) {
@@ -36,29 +61,19 @@ void drawPath::adjustdash(pen& pen0)
         }
       }
       
-      size_t n=pat.size();
-      double sum=0.0;
-      double penwidth=pen0.scalestroke() ? pen0.width() : 1.0;
-      for(unsigned int i=0; i < n; i ++) {
-	pat[i] *= penwidth;
-	sum += pat[i];
-      }
-      if(sum == 0.0) return; // Otherwise, we know n > 0.
+      double denom=PatternLength(arclength,pat,pen0,p);
       
-      // Fix bounding box resolution problem. Example:
-      // asy -f pdf testlinetype; gv -scale -2 testlinetype.pdf
-      if(!p.cyclic() && pat[0] == 0) sum += 1.0e-3*penwidth;
+      if(denom == 0.0) return; // Otherwise, we know n > 0.
       
-      int ncycle=max((int)(arclength/sum+0.5),1);
-
-      double factor=arclength/(ncycle*sum+(p.cyclic() ? 0.0 : pat[0]));
+      double factor=denom != 0.0 ? arclength/denom : 1.0;
       ostringstream buf;
+      size_t n=pat.size();
       for(unsigned int i=0; i < n; i++) buf << pat[i]*factor << " ";
       pen0.setstroke(buf.str());
     }
   }
-}  
-
+}
+  
 void drawPath::bounds(bbox& b, iopipestream&, boxvector&, bboxlist&)
 {
   b += pad(p.bounds(),pentype.bounds());

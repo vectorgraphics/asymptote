@@ -893,9 +893,9 @@ int fillrule(pen p)
   return p.Fillrule();  
 }
 
-pen linetype(string *s, bool scale)
+pen linetype(string *s, bool scale=true, bool adjust=true)
 {
-  return pen(LineType(*s,scale)); 
+  return pen(LineType(*s,scale,adjust)); 
 }
 
 string linetype(pen p)

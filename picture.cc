@@ -176,7 +176,6 @@ bool picture::texprocess(const string& texname, const string& outname,
     
     // Magic dvips offsets:
     double hoffset=-128.0;
-//    double voffset=(height < 11.0) ? -137.0+height : -126.0;
     double voffset=(height < 12.0) ? -137.5+height : -125.5;
 
     int origin=getSetting<int>("align");

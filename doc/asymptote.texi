@@ -1555,7 +1555,7 @@ the module @code{plain}:
 @image{colors}
 
 @item Line types are specified with the function 
-@code{pen linetype(string s, bool scale=true)},
+@code{pen linetype(string s, bool scale=true, bool adjust=true)},
 @cindex @code{solid}
 @cindex @code{dashed}
 @cindex @code{dotted}
@@ -1566,8 +1566,9 @@ where @code{s} is a string of integer or real numbers separated by spaces.
 The first number specifies how far (if @code{scale} is @code{true}, in
 units of the pen linewidth; otherwise in @code{PostScript} units) to draw 
 with the pen on, the second number specifies how far to draw with the pen off,
-and so on (these spacings are automatically adjusted by @code{Asymptote}
-to fit the arclength of the path). Here are the predefined line types:
+and so on. If @code{adjust} is @code{true}, these spacings are
+automatically adjusted by @code{Asymptote} to fit the arclength of the
+path. Here are the predefined line types:
 @verbatim
 pen solid=linetype("");
 pen dotted=linetype("0 4");
@@ -5055,7 +5056,7 @@ Two frequently used scaling routines
 @code{Linear} and @code{Log} are predefined in @code{graph}.
 
 All picture coordinates (including those in paths and those given
-to @code{label} and @code{limits}) are always treated as linear
+to the @code{label} and @code{limits} functions) are always treated as linear
 (post-scaled) coordinates. Use
 @cindex @code{Scale}
 @verbatim

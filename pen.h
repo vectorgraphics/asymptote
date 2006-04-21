@@ -72,14 +72,16 @@ class LineType
 public:  
   mem::string pattern;	// The string for the PostScript style line pattern.
   bool scale;		// Scale the line type values by the pen width?
+  bool adjust;		// Adjust the line type values to fit the arclength?
   
-  LineType(string pattern, bool scale) : pattern(pattern), scale(scale) {}
+  LineType(string pattern, bool scale, bool adjust) : 
+    pattern(pattern), scale(scale), adjust(adjust) {}
 };
   
-static const LineType DEFLINE("default",true);
+static const LineType DEFLINE("default",true,true);
   
 inline bool operator == (LineType a, LineType b) {
-  return a.pattern == b.pattern && a.scale == b.scale;
+  return a.pattern == b.pattern && a.scale == b.scale && a.adjust == b.adjust;
 }
   
 class pen : public gc { 
@@ -262,8 +264,8 @@ public:
   
   // Construct one pen from another, resolving defaults
   pen(resolvepen_t, const pen& p) : 
-    line(LineType(p.stroke(),p.scalestroke())), linewidth(p.width()), 
-    P(p.Path()),
+    line(LineType(p.stroke(),p.line.scale,p.line.adjust)),
+    linewidth(p.width()), P(p.Path()),
     font(p.Font()), fontsize(p.size()), lineskip(p.Lineskip()),
     color(p.colorspace()),
     r(p.red()), g(p.green()), b(p.blue()), grey(p.gray()),
@@ -271,7 +273,7 @@ public:
     linecap(p.cap()), linejoin(p.join()),overwrite(p.Overwrite()), t(p.t) {}
   
   static pen startupdefaultpen() {
-    return pen(LineType("",true),0.5,0,DEFFONT,12.0,12.0*1.2,
+    return pen(LineType("",true,true),0.5,0,DEFFONT,12.0,12.0*1.2,
 	       GRAYSCALE,
 	       0.0,0.0,0.0,0.0,"",ZEROWINDING,NOBASEALIGN,1,1,ALLOW,0);
   }
@@ -307,8 +309,8 @@ public:
     return line == DEFLINE ? defaultpen.line.pattern : line.pattern;
   }
   
-  bool scalestroke() const {
-    return line.scale;
+  LineType linetype() const {
+    return line;
   }
   
   void setstroke(const string& s) {line.pattern=s;}
@@ -561,8 +563,9 @@ public:
   }
 
   friend bool operator == (const pen& p, const pen& q) {
-    return p.stroke() == q.stroke() 
-      && p.scalestroke() == q.scalestroke() 
+    return  p.stroke() == q.stroke() 
+      && p.line.scale == q.line.scale 
+      && p.line.adjust == q.line.adjust 
       && p.width() == q.width() 
       && p.Path() == q.Path()
       && p.colorspace() == q.colorspace()
@@ -590,6 +593,8 @@ public:
     out << "([" << p.line.pattern << "]";
     if(!p.line.scale)
       out << " bp";
+    if(!p.line.adjust)
+      out << " fixed";
     if(p.linewidth != DEFWIDTH)
       out << ", linewidth=" << p.linewidth;
     if(p.P)
