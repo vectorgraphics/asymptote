@@ -2217,6 +2217,13 @@ To issue a global @TeX{} command (such as a @TeX{} macro definition) in the
 void texpreamble(string s);
 @end verbatim
 
+The @TeX{} environment can be reset to its initial state, clearing all
+macro definitions, with the function
+@cindex @code{texreset}
+@verbatim
+void texreset();
+@end verbatim
+
 @end table
 
 @node Files

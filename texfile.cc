@@ -51,13 +51,16 @@ void texfile::prologue()
     
 void texfile::beginlayer(const string& psname)
 {
-  *out << "\\includegraphics[bb="
-       << boxpos.left << " " << boxpos.bottom << " "
-       << boxpos.right << " " << boxpos.top << "]{" << psname << "}%" << newl;
+  if(boxpos.right > boxpos.left && boxpos.top > boxpos.bottom)
+    *out << "\\includegraphics[bb="
+	 << boxpos.left << " " << boxpos.bottom << " "
+	 << boxpos.right << " " << boxpos.top << "]{" << psname << "}%"
+	 << newl;
 }
 
 void texfile::endlayer()
 {
+  if(boxpos.right > boxpos.left && boxpos.top > boxpos.bottom)
   *out << "\\kern-" << (boxpos.right-boxpos.left)*ps2tex << "pt%" << endl;
 }
 

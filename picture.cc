@@ -171,12 +171,12 @@ bool picture::texprocess(const string& texname, const string& outname,
     string dviname=auxname(prefix,"dvi");
     string psname=auxname(prefix,"ps");
     
-    double height=bpos.top-bpos.bottom;
-    double width=bpos.right-bpos.left;
+    double height=bpos.top-bpos.bottom+1.0;
+    double width=bpos.right-bpos.left+1.0;
     
     // Magic dvips offsets:
-    double hoffset=-128.0;
-    double voffset=(height < 12.0) ? -137.5+height : -125.5;
+    double hoffset=-128.4;
+    double voffset=(height < 13.0) ? -137.8+height : -124.8;
 
     int origin=getSetting<int>("align");
     double pageWidth=getSetting<double>("pagewidth");
@@ -184,10 +184,10 @@ bool picture::texprocess(const string& texname, const string& outname,
 
     if(origin != ZERO) {
       if(pdfformat || origin == BOTTOM) {
-	voffset += max(pageHeight-(height+1.0),0.0);
+	voffset += max(pageHeight-height,0.0);
       } else if(origin == CENTER) {
-	hoffset += 0.5*max(pageWidth-(width+1.0),0.0);
-	voffset += 0.5*max(pageHeight-(height+1.0),0.0);
+	hoffset += 0.5*max(pageWidth-width,0.0);
+	voffset += 0.5*max(pageHeight-height,0.0);
       }
     }
     
@@ -207,6 +207,15 @@ bool picture::texprocess(const string& texname, const string& outname,
     dcmd << " -o " << psname << " " << dviname;
     status=System(dcmd,false,true,"dvips");
     
+    bbox bcopy=bpos;
+    const double fuzz=0.05;
+    
+    bcopy.left -= fuzz;
+    bcopy.right += fuzz;
+    
+    bcopy.bottom -= fuzz;
+    bcopy.top += fuzz;
+    
     ifstream fin(psname.c_str());
     ofstream *Fout=NULL;
     ostream *fout=(outname == "") ? &cout :
@@ -217,8 +226,8 @@ bool picture::texprocess(const string& texname, const string& outname,
     while(getline(fin,s)) {
       if(s.find("%%DocumentPaperSizes:") == 0) continue;
       if(first && s.find("%%BoundingBox:") == 0) {
-	if(verbose > 2) BoundingBox(cout,bpos);
-	BoundingBox(*fout,bpos);
+	if(verbose > 2) BoundingBox(cout,bcopy);
+	BoundingBox(*fout,bcopy);
 	first=false;
       } else *fout << s << endl;
     }
@@ -256,9 +265,9 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	  << "' -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
 	  << " -dAutoRotatePages=/None "
 	  << " -dDEVICEWIDTHPOINTS=" 
-	  << bpos.right-bpos.left+1
+	  << bpos.right-bpos.left
 	  << " -dDEVICEHEIGHTPOINTS=" 
-	  << bpos.top-bpos.bottom+1
+	  << bpos.top-bpos.bottom
 	  << " -sOutputFile=" << outname << " " << epsname;
       status=System(cmd,false,true,"gs","Ghostscript");
     } else {
@@ -369,9 +378,6 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       
   bbox bpos=b;
   
-  bool TeXmode=getSetting<bool>("inlinetex") && getSetting<bool>("tex");
-  bool Labels=labels || TeXmode;
-  
   if(deconstruct) {
       if(!bboxout.is_open()) {
 	bboxout.open(("."+buildname(prefix,"box")).c_str());	
@@ -409,10 +415,15 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   bool status = true;
   
-  string texname=auxname(prefix,"tex");
+  string texname;
   texfile *tex=NULL;
   
+  bool TeXmode=getSetting<bool>("inlinetex") && getSetting<bool>("tex");
+  bool Labels=(labels || TeXmode) && 
+    (bpos.right > bpos.left && bpos.top > bpos.bottom);
+  
   if(Labels) {
+    texname=auxname(prefix,"tex");
     tex=new texfile(texname,b,bpos);
     tex->prologue();
   }
@@ -474,9 +485,9 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   if(status) {
     if(TeXmode) {
-      if(verbose > 0) cout << "Wrote " << texname << endl;
+      if(Labels && verbose > 0) cout << "Wrote " << texname << endl;
     } else {
-      if(labels) {
+      if(Labels) {
 	tex->epilogue();
 	status=texprocess(texname,epsname,prefix,bpos);
 	if(!getSetting<bool>("keep"))

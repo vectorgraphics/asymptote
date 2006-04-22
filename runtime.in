@@ -347,17 +347,22 @@ static inline void solveDeallocate()
   if(Col) delete[] Col;
 }
 
-void cleanup()
+void clearTeX()
 {
-  if(initialdefaultpen) defaultpen=*initialdefaultpen;
-  if(!interact::interactive) scrollLines=0;
-  
   if(TeXinitialized) {
     camp::TeXpipepreamble.clear();
     camp::TeXpreamble.clear();
     camp::tex.pipeclose();
     TeXinitialized=false;
   }
+}
+
+void cleanup()
+{
+  if(initialdefaultpen) defaultpen=*initialdefaultpen;
+  if(!interact::interactive) scrollLines=0;
+  
+  clearTeX();
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_HISTORY_STATE) && \
     defined(HAVE_LIBCURSES)
@@ -676,6 +681,11 @@ void texpreamble(string s)
   string t=s+"\n";
   camp::TeXpipepreamble.push_back(t);
   camp::TeXpreamble.push_back(t);
+}
+
+void texreset()
+{
+  clearTeX();
 }
 
 void layer(picture *f)
