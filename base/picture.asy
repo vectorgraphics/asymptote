@@ -328,9 +328,6 @@ pair point(frame f, pair dir)
   return min(f)+realmult(rectify(dir),max(f)-min(f));
 }
 
-real min(... real[] a) {return min(a);}
-real max(... real[] a) {return max(a);}
-
 // Returns a copy of frame f aligned in the direction align
 frame align(frame f, pair align) 
 {
@@ -391,6 +388,10 @@ struct picture {
   // If true, the x and y directions must be scaled by the same amount.
   public bool keepAspect=true;
 
+  // A fixed scaling transform.
+  public bool fixed=false;
+  public transform fixedscaling;
+  
   void init() {
     userMin=Infinity;
     userMax=-userMin;
@@ -660,9 +661,22 @@ struct picture {
     return fit(t,min(t),max(t));
   }
 
+  frame scaled() {
+    frame f=fit(fixedscaling);
+    pair d=max(f)-min(f);
+    if(d.x > xsize) 
+      write("warning: frame exceeds xlimit: "+(string) d.x+" > "+
+	    (string) xsize);
+    if(d.y > ysize)
+      write("warning: frame exceeds ylimit: "+(string) d.y+" > "+
+	    (string) ysize);
+    return f;
+  }
+  
   // Returns the picture fit to the wanted size.
   frame fit(real xsize=this.xsize, real ysize=this.ysize,
 	    bool keepAspect=this.keepAspect) {
+    if(fixed) return scaled();
     return empty() ? newframe :
       fit(calculateTransform(xsize,ysize,keepAspect));
   }
@@ -690,6 +704,8 @@ struct picture {
     dest.bounds=bounds.copy();
     
     dest.xsize=xsize; dest.ysize=ysize; dest.keepAspect=keepAspect;
+    dest.fixed=fixed; dest.fixedscaling=fixedscaling;
+    
     return dest;
   }
 
@@ -753,11 +769,13 @@ pair size(frame f)
   return max(f)-min(f);
 }
 				     
-pair min(picture pic=currentpicture) {
+pair min(picture pic)
+{
   return pic.min();
 }
   
-pair max(picture pic=currentpicture) {
+pair max(picture pic)
+{
   return pic.max();
 }
   
@@ -893,6 +911,17 @@ void unfill(picture pic=currentpicture, path[] g)
 bool inside(path[] g, pair z) 
 {
   return inside(g,z,currentpen);
+}
+
+// Use a fixed scaling to map user coordinates in box(min,max) to the 
+// desired picture size.
+transform fixedscaling(picture pic=currentpicture, pair min, pair max,
+		       pen p=currentpen)
+{
+  Draw(pic,min,p+invisible);
+  Draw(pic,max,p+invisible);
+  pic.fixed=true;
+  return pic.fixedscaling=pic.calculateTransform();
 }
 
 // Add frame dest about position to frame src with optional grouping

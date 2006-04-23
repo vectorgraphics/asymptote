@@ -373,10 +373,12 @@ search path (@pxref{Search paths}).
 @cindex @code{papertype}
 @cindex @code{paperwidth}
 @cindex @code{paperheight}
+@cindex @code{letter}
+@cindex @code{a4}
 By default, @code{Asymptote} attempts to center the figure on the
 page, assuming that the paper type is @code{letter}. The default paper
 type may be changed to @code{a4} with the configuration variable
-@code{papertype}. Other paper sizes can be achieved by setting the
+@code{papertype}. Alignment to other paper sizes can be obtained by setting the
 configuration variables @code{paperwidth} and @code{paperheight}.
 
 The following configuration variables normally do not require adjustment:
@@ -2018,18 +2020,20 @@ The default size and aspect ratio settings are those given to the
 @code{true}, respectively).
 
 @cindex @code{orientation}
-@cindex @code{Landscape}
 @cindex @code{Portrait}
+@cindex @code{Landscape}
+@cindex @code{UpsideDown}
 The default page orientation is @code{Portrait}; this may be modified
 by changing the variable @code{orientation}. To output in landscape
-mode, simply replace the call to @code{shipout()} with:
+mode, simply set @code{orientation=Landscape} or issue the command
 @verbatim
 shipout(Landscape);
 @end verbatim
 
 @cindex @code{Seascape}
-To rotate in the other direction, replace @code{Landscape} with
-@code{Seascape}.
+To rotate the page in the other direction, use the orientation Seascape.
+@cindex @code{UpsideDown}
+To rotate the page by 180 degrees, use the orientation UpsideDown.
 
 @cindex @code{box}
 To draw a bounding box with margins around a picture, fit the
@@ -2080,8 +2084,8 @@ pen @code{p} with the function @code{bbox(p,Fill)}.
 
 The functions 
 @verbatim
-pair min(picture pic=currentpicture);
-pair max(picture pic=currentpicture);
+pair min(picture pic);
+pair max(picture pic);
 @end verbatim 
 calculate the @code{PostScript} bounds that picture @code{pic} would
 have if it were currently fit to a frame using its default size specification.

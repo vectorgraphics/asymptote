@@ -80,6 +80,7 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
 
 frame Portrait(frame f) {return f;};
 frame Landscape(frame f) {return rotate(90)*f;};
+frame UpsideDown(frame f) {return rotate(180)*f;};
 frame Seascape(frame f) {return rotate(-90)*f;};
 typedef frame orientation(frame);
 public orientation orientation=Portrait;

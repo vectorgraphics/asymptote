@@ -3,9 +3,9 @@ usepackage("colordvi");
 
 access settings;
 orientation=Landscape;
-public real margin=1cm;
-public real pagewidth=settings.pageheight-margin;
-public real pageheight=settings.pagewidth-margin;
+public real margin=0.5cm;
+public real pagewidth=settings.pageheight-2margin;
+public real pageheight=settings.pagewidth-2margin;
 size(pagewidth,pageheight,IgnoreAspect);
 
 real minipagemargin=1inch;
@@ -14,11 +14,7 @@ real minipagewidth=pagewidth-2minipagemargin;
 texpreamble("\hyphenpenalty=5000\tolerance=1000");
 texpreamble("\let\bulletcolor\Red");
 
-draw((-1,-1),invisible);
-draw((1,1),invisible);
-
-transform t=currentpicture.calculateTransform();
-transform tinv=inverse(t);
+public transform tinv=inverse(fixedscaling((-1,-1),(1,1)));
   
 public pen itempen=fontsize(24pt);
 public real itemskip=0.5;
@@ -35,7 +31,6 @@ public pen authorpen=fontsize(36pt)+blue;
 public pen datepen=urlpen;
 public pair dateskip=(0,0.05);
 
-//public string bullet="{\newcmykcolor{ASYcolor}{0 1 1 0}\ASYcolor$\bullet$}";
 public string bullet="\bulletcolor{$\bullet$}";
 					      
 public pair pagenumberposition=S+E;
@@ -117,7 +112,7 @@ void title(string s, pair position=N, pair align=titlealign,
   checkposition();
   frame f;
   label(f,minipage("\center "+s,minipagewidth),(0,0),align,p);
-  add(f,labelmargin(p)*align,position);
+  add(f,position,labelmargin(p)*align);
   currentposition=(currentposition.x,position.y+
 		   (tinv*(min(f)-titleskip*I*lineskip(p)*pt)).y);
 }
@@ -191,7 +186,8 @@ void subitem(string s, pen p=itempen, bool step=itemstep)
   remark("\quad -- "+s,p);
 }
 
-void titlepage(string title, string author, string date="", string url="")
+void titlepage(string title, string author, string date="", string url="",
+	       bool newslide=true)
 {
   currentposition=titleposition;
   center(title,titlepagepen);
@@ -200,14 +196,13 @@ void titlepage(string title, string author, string date="", string url="")
   if(date != "") center(date,datepen);
   currentposition -= urlskip;
   if(url != "") center("{\tt "+url+"}",urlpen);
-  newslide();
+  if(newslide) newslide();
 }
 
 void exitfunction()
 {
   if(havepagenumber) numberpage();
-  frame f=currentpicture.fit(t);
-  if(interact() || (!shipped && !currentpicture.empty())) 
-    shipout(orientation(f));
+  plain.exitfunction();
 }
+
 atexit(exitfunction);

@@ -199,10 +199,8 @@ bool picture::texprocess(const string& texname, const string& outname,
     ostringstream dcmd;
     mem::string paperType=getSetting<mem::string>("papertype");
     dcmd << "'" << getSetting<mem::string>("dvips") << "' -R "
-	 << " -O " << hoffset << "bp," << voffset << "bp";
-    if(paperType == "") 
-      dcmd << " -T " << pageWidth << "bp," << pageHeight << "bp";
-    else dcmd << " -t " << paperType << "size";
+	 << " -O " << hoffset << "bp," << voffset << "bp"
+         << " -T " << pageWidth << "bp," << pageHeight << "bp";
     if(verbose <= 1) dcmd << " -q";
     dcmd << " -o " << psname << " " << dviname;
     status=System(dcmd,false,true,"dvips");
@@ -212,9 +210,16 @@ bool picture::texprocess(const string& texname, const string& outname,
     
     bcopy.left -= fuzz;
     bcopy.right += fuzz;
-    
     bcopy.bottom -= fuzz;
     bcopy.top += fuzz;
+
+    if(origin == BOTTOM) {
+      bcopy.bottom=max(bcopy.bottom,0.0);
+      bcopy.left=max(bcopy.left,0.0);
+    }
+    
+    if(origin == TOP)
+      bcopy.left=max(bcopy.left,0.0);
     
     ifstream fin(psname.c_str());
     ofstream *Fout=NULL;

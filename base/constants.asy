@@ -57,6 +57,9 @@ bool IgnoreAspect=false;
 bool Above=true;
 bool Below=false;
 
+real min(... real[] a) {return min(a);}
+real max(... real[] a) {return max(a);}
+
 bool finite(real x)
 {
   return abs(x) < infinity;
