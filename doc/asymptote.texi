@@ -5694,7 +5694,7 @@ Options:
 -tex                 Enable LaTeX label postprocessing [true]
 -s,-translate        Translate test [false]
 -unsafe              Enable system call; command-line only [false]
--u,-user x           General purpose real user variable [0]
+-u,-user x           General purpose user string [""]
 -v,-verbose          Increase verbosity level [0]
 
 @end verbatim
@@ -5765,6 +5765,16 @@ asy -O 0,0 file
 The default offset is zero. The offset is adjusted if it would result in
 a negative vertical bounding box coordinate. The default value of the
 page alignment setting @code{align} is @code{Center}.
+
+The @code{-u} option may be used to specify arbitrary @code{Asymptote}
+code on the command line as a string. Command line code like @code{-u
+"x=sqrt(2);"} can then be executed within a module:
+@verbatim
+real x;
+access settings;
+eval(setting.user,true);
+write(x);
+@end verbatim
 
 Additional debugging output is produced with each additional @code{-v} option:
 @table @code

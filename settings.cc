@@ -708,8 +708,8 @@ void initSettings() {
   addOption(new boolSetting("autoplain", 0,
 			    "Enable automatic importing of plain",
 			    true));
-  addOption(new realSetting("user", 'u', "x",
-                     "General purpose real user variable [0]", 0.0));
+  addOption(new stringSetting("user", 'u', "x",
+                     "General purpose user string  [\"\"]", ""));
   
   addOption(new realSetting("pagewidth", 0, "bp", ""));
   addOption(new realSetting("pageheight", 0, "bp", ""));
