@@ -80,6 +80,11 @@ string minipage(string s, real width=100bp)
   return "\begin{minipage}{"+(string) (width*pt)+"pt}"+s+"\end{minipage}";
 }
 
+void usepackage(string s)
+{
+  texpreamble("\usepackage{"+s+"}");
+}
+
 void pause(string w="Hit enter to continue") 
 {
   write(w);

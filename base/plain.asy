@@ -123,11 +123,6 @@ void initdefaults()
   atexit(nullexitfcn);
 }
 
-void usepackage(string s)
-{
-  texpreamble("\usepackage{"+s+"}");
-}
-
 // Return the sequence n,...m
 int[] sequence(int n, int m)
 {

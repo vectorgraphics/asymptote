@@ -2,10 +2,19 @@ import fontsize;
 usepackage("colordvi");
 
 access settings;
-orientation=Landscape;
+
 public real margin=0.5cm;
-public real pagewidth=settings.pageheight-2margin;
-public real pageheight=settings.pagewidth-2margin;
+public real pagewidth=-2margin;
+public real pageheight=-2margin;
+
+if(orientation == Portrait || orientation == UpsideDown) {
+  pagewidth += settings.pagewidth;
+  pageheight += settings.pageheight;
+} else {
+  pagewidth += settings.pageheight;
+  pageheight += settings.pagewidth;
+}
+
 size(pagewidth,pageheight,IgnoreAspect);
 
 real minipagemargin=1inch;
@@ -42,6 +51,8 @@ public pair titleposition=(-0.8,0.4);
 public pair startposition=(-0.8,0.9);
 public pair currentposition=startposition;
 
+public picture background;
+
 defaultpen(itempen);
 
 public bool stepping=false;
@@ -54,6 +65,14 @@ bool firststep=true;
 public int page=1;
 bool havepagenumber=false;
 
+void background() 
+{
+  if(!background.empty()) {
+    add(background);
+    layer();  
+  }
+}
+
 void numberpage(pen p=pagenumberpen)
 {
   label((string) page,pagenumberposition,pagenumberalign,p);
@@ -64,6 +83,7 @@ void nextpage(pen p=pagenumberpen)
 {
   numberpage(p);
   newpage();
+  background();
   firststep=true;
 }
 
@@ -164,10 +184,23 @@ void equation(string s, pen p=itempen)
   remark(center=true,"{$\displaystyle "+s+"$}",p,minipage=false);
 }
 
-void figure(string s, string options="", string caption="", pair align=S)
+void figure(string s, string options="", string caption="", pair align=S,
+	    pen p=itempen)
 {
   remark(center=true,graphic(s,options),align,minipage=false);
-  if(caption != "") remark(center=true,caption,align);
+  if(caption != "") center(caption,p);
+}
+
+void figure(string[] s, string options="", string caption="", pair align=S,
+	    real margin=50bp,pen p=itempen)
+{
+  string S;
+  if(s.length == 0) return;
+  S=graphic(s[0],options);
+  for(int i=1; i < s.length; ++i)
+    S += "\kern "+(string) (margin/pt)+"pt "+graphic(s[i],options);
+  remark(center=true,S,align,minipage=false);
+  if(caption != "") center(caption,p);
 }
 
 void item(string s, pen p=itempen, bool step=itemstep)
@@ -186,9 +219,15 @@ void subitem(string s, pen p=itempen, bool step=itemstep)
   remark("\quad -- "+s,p);
 }
 
+void skip(real n=1)
+{
+  incrementposition((0,(tinv*(-n*itemskip*I*lineskip(itempen)*pt)).y));
+}
+
 void titlepage(string title, string author, string date="", string url="",
 	       bool newslide=true)
 {
+  background();
   currentposition=titleposition;
   center(title,titlepagepen);
   center(author,authorpen);

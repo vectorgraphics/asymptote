@@ -126,6 +126,7 @@ Base modules
 * drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
 * roundedpath::                 Round the sharp corners of paths
+* slide::                       Making presentations with @code{Asymptote}
 * MetaPost::                    @code{MetaPost} compatibility routines
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
@@ -1990,6 +1991,15 @@ void size(picture pic=currentpicture, real size,
           bool keepAspect=Aspect);
 @end verbatim
 
+Alternatively, calling the routine
+@cindex @code{fixedscaling}
+@verbatim
+transform fixedscaling(picture pic=currentpicture, pair min,
+                       pair max, pen p=currentpen);
+@end verbatim
+will cause picture @code{pic} to use a fixed scaling to map user
+coordinates in @code{box(min,max)} to the (already specified) picture size.
+
 A picture can be fit to a frame and converted into a @code{PostScript} image
 by calling the function @code{shipout}:
 @anchor{shipout}
@@ -2009,7 +2019,6 @@ previous @code{shipout} commands have been executed.
 
 @cindex subpictures
 @cindex @code{fit}
-@cindex @code{picture alignment}
 A picture @code{pic} can be explicitly fit to a frame by calling
 @verbatim
 frame pic.fit(real xsize=pic.xsize, real ysize=pic.ysize,
@@ -2128,6 +2137,7 @@ in postscript coordinates to another picture about the user coordinate
 @code{position}:
 @anchor{add about}
 @cindex @code{add}
+@cindex picture alignment
 @verbatim
 void add(picture dest, picture src, pair position, bool group=true,
          filltype filltype=NoFill, bool put=Above);
@@ -2227,6 +2237,14 @@ macro definitions, with the function
 @verbatim
 void texreset();
 @end verbatim
+
+@cindex @code{usepackage}
+The routine
+@verbatim
+void usepackage(string s);
+@end verbatim
+is a convenient abbreviation for @code{texpreamble("\usepackage@{"+s+"@}");}
+that can be used for importing @code{LaTeX} packages.
 
 @end table
 
@@ -4221,6 +4239,9 @@ below a horizontal line to match a given template, so that their
 baselines lie on a horizontal line. See @code{Pythagoras.asy} for an
 example.
 
+One can prevent labels from overwriting one another with the
+@code{overwrite} pen attribute (@pxref{overwrite}).
+
 @cindex @code{minipage}
 The @code{string minipage(string s, width=100pt)} function can be used
 to format string @code{s} into a paragraph of width @code{width}, as
@@ -4229,8 +4250,10 @@ illustrated in the following example:
 
 @image{mosquito}
 
-One can prevent labels from overwriting one another with the
-@code{overwrite} pen attribute (@pxref{overwrite}).
+Here is another example, @code{flowchart.asy}, showing variable box
+and ellipse sizes:
+
+@image{flowchart}
 
 
 @node LaTeX usage
@@ -4300,6 +4323,7 @@ Here now is @code{latexusage.tex}:
 * drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
 * roundedpath::                 Round the sharp corners of paths
+* slide::                       Making presentations with @code{Asymptote}
 * MetaPost::                    @code{MetaPost} compatibility routines
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
@@ -4467,6 +4491,55 @@ and @code{fermi.asy}.
 @cindex @code{roundedpath}
 This package, contributed by Stefan Knorr, is useful for rounding the
 sharp corners of paths, as illustrated in the example file @code{roundpath.asy}.
+@node slide
+@section @code{slide}
+@cindex @code{slide}
+This package provides a very easy and high-quality facility for making
+presentation slides. An example is provided in the file @code{slidedemo.asy}:
+
+@verbatim
+orientation=Landscape;
+
+import slide;
+import x11colors;
+
+fill(background,box((-1,-1),(1,1)),Azure);
+
+stepping=true;
+
+titlepage("Slides with {\tt Asymptote}: A Demo","John C. Bowman","\today",
+          "http://asymptote.sf.net");
+
+title("Slide title");
+
+item("First item.");
+remark("A remark.");
+item("Second item.");
+equation("c^2=a^2+b^2.");
+item("Third item.");
+subitem("First subitem.");
+subitem("Second subitem.");
+item("Set {\tt stepping=false} for posting on WWW or printing.");
+newslide();
+
+item("The slide title can be omitted.");
+figure("logo.eps","height=12cm","The {\tt Asymptote} logo.");
+newslide();
+
+item("Single skip:");
+skip();
+item("Double skip:");
+skip(2);
+figure(new string[] {"loggraph.eps","lineargraph.eps"},
+       "height=8cm","Examples of {\tt Asymptote} graphs.");
+newslide();
+
+item("It's easy to draw on a slide, reserving the aspect ratio:");
+step();
+picture pic;
+draw(pic,unitcircle);
+add(pic.fit(15cm));
+@end verbatim
 
 @node MetaPost
 @section @code{MetaPost}
@@ -5970,7 +6043,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  unfill posterSize ngraph interpolatetype ctrl dt pic getint Ai
 @c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei nomarker
 @c  LocalWords:  westnile minipage infectiousM ra penb paletteticks drawline nV
-@c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis
+@c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis tt
 @c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx XEquals YEquals
 @c  LocalWords:  treetest eetomumu fermi backend pstoedit drawtree xFF MSDOS
 @c  LocalWords:  vimrc CFLAGS verbatiminclude online noindent bezier superpath
@@ -6008,4 +6081,5 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  legendlinelength legendskip USERPROFILE LDFLAGS currentlight
 @c  LocalWords:  subsampling subsampled sinc kai AtBeginDocument GBK clearpage
 @c  LocalWords:  AtEndDocument zaxis maxbound truepoint paperwidth paperheight
-@c  LocalWords:  GSL deriv
+@c  LocalWords:  GSL deriv texcolors fixedscaling UpsideDown texreset slidedemo
+@c  LocalWords:  subitem newslide
