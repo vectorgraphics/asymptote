@@ -18,7 +18,7 @@ if(orientation == Portrait || orientation == UpsideDown) {
 size(pagewidth,pageheight,IgnoreAspect);
 
 real minipagemargin=1inch;
-real minipagewidth=pagewidth-2minipagemargin;
+public real minipagewidth=pagewidth-2minipagemargin;
 
 texpreamble("\hyphenpenalty=5000\tolerance=1000");
 texpreamble("\let\bulletcolor\Red");
@@ -52,6 +52,7 @@ public pair startposition=(-0.8,0.9);
 public pair currentposition=startposition;
 
 public picture background;
+size(background,pagewidth,pageheight,IgnoreAspect);
 
 defaultpen(itempen);
 

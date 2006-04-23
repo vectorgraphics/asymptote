@@ -23,19 +23,21 @@ item("Set {\tt stepping=false} for posting on WWW or printing.");
 newslide();
 
 item("The slide title can be omitted.");
-figure("logo.eps","height=12cm","The {\tt Asymptote} logo.");
+figure("Pythagoras.eps","height=12cm","A simple proof of Pythagoras' Theorem.");
 newslide();
 
 item("Single skip:");
 skip();
 item("Double skip:");
 skip(2);
-figure(new string[] {"loggraph.eps","lineargraph.eps"},
-       "height=8cm","Examples of {\tt Asymptote} graphs.");
+figure(new string[] {"tan.eps","near_earth.eps"},
+       "height=12cm","Examples of {\tt Asymptote} graphs.");
 newslide();
 
-item("It's easy to draw on a slide, reserving the aspect ratio:");
-step();
-picture pic;
+title("Can draw on a slide, preserving the aspect ratio:");
+picture pic,pic2;
 draw(pic,unitcircle);
 add(pic.fit(15cm));
+step();
+fill(pic2,unitcircle,paleblue);
+add(pic2.fit(15cm));
