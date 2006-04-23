@@ -206,7 +206,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     status=System(dcmd,false,true,"dvips");
     
     bbox bcopy=bpos;
-    const double fuzz=0.05;
+    const double fuzz=0.06;
     
     bcopy.left -= fuzz;
     bcopy.right += fuzz;
