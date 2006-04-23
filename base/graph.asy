@@ -1121,12 +1121,12 @@ void xlimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
     mx=autoscale(pic.userMin.x,pic.userMax.x,pic.scale.x.scale);
   
   if(pic.scale.x.automin) {
-    if(pic.scale.x.automin()) pic.userMin=(mx.min,pic.userMin.y);
-  } else pic.userMin=(pic.scale.x.T(min),pic.userMin.y);
+    if(pic.scale.x.automin()) pic.userMinx(mx.min);
+  } else pic.userMinx(pic.scale.x.T(min));
   
   if(pic.scale.x.automax) {
-    if(pic.scale.x.automax()) pic.userMax=(mx.max,pic.userMax.y);
-  } else pic.userMax=(pic.scale.x.T(max),pic.userMax.y);
+    if(pic.scale.x.automax()) pic.userMaxx(mx.max);
+  } else pic.userMaxx(pic.scale.x.T(max));
   
   if(crop) {
     pair userMin=pic.userMin;
@@ -1152,12 +1152,12 @@ void ylimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
     my=autoscale(pic.userMin.y,pic.userMax.y,pic.scale.y.scale);
   
   if(pic.scale.y.automin) {
-    if(pic.scale.y.automin()) pic.userMin=(pic.userMin.x,my.min);
-  } else pic.userMin=(pic.userMin.x,pic.scale.y.T(min));
+    if(pic.scale.y.automin()) pic.userMiny(my.min);
+  } else pic.userMiny(pic.scale.y.T(min));
   
   if(pic.scale.y.automax) {
-    if(pic.scale.y.automax()) pic.userMax=(pic.userMax.x,my.max);
-  } else pic.userMax=(pic.userMax.x,pic.scale.y.T(max));
+    if(pic.scale.y.automax()) pic.userMaxy(my.max);
+  } else pic.userMaxy(pic.scale.y.T(max));
   
   if(crop) {
     pair userMin=pic.userMin;
@@ -1174,7 +1174,7 @@ void crop(picture pic=currentpicture)
 {
   xlimits(pic,false);
   ylimits(pic,false);
-  if(finite(pic.userMin) && finite(pic.userMax))
+  if(pic.userSetx && pic.userSety)
     clip(pic,box(pic.userMin,pic.userMax));
 }
 
@@ -1192,25 +1192,25 @@ void autoscale(picture pic=currentpicture, axis axis)
     bounds mx,my;
     pic.scale.set=true;
     
-    if(finite(pic.userMin.x) && finite(pic.userMax.x)) {
+    if(pic.userSetx) {
       mx=autoscale(pic.userMin.x,pic.userMax.x,pic.scale.x.scale);
       if(pic.scale.x.scale.logarithmic &&
 	 floor(pic.userMin.x) == floor(pic.userMax.x)) {
 	if(pic.scale.x.automin())
-	  pic.userMin=(floor(pic.userMin.x),pic.userMin.y);
+	  pic.userMinx(floor(pic.userMin.x));
 	if(pic.scale.x.automax())
-	  pic.userMax=(ceil(pic.userMax.x),pic.userMax.y);
+	  pic.userMaxx(ceil(pic.userMax.x));
       }
     } else {mx.min=mx.max=0; pic.scale.set=false;}
     
-    if(finite(pic.userMin.y) && finite(pic.userMax.y)) {
+    if(pic.userSety) {
       my=autoscale(pic.userMin.y,pic.userMax.y,pic.scale.y.scale);
       if(pic.scale.y.scale.logarithmic && 
 	 floor(pic.userMin.y) == floor(pic.userMax.y)) {
 	if(pic.scale.y.automin())
-	  pic.userMin=(pic.userMin.x,floor(pic.userMin.y));
+	  pic.userMiny(floor(pic.userMin.y));
 	if(pic.scale.y.automax())
-	  pic.userMax=(pic.userMax.x,ceil(pic.userMax.y));
+	  pic.userMaxy(ceil(pic.userMax.y));
       }
     } else {my.min=my.max=0; pic.scale.set=false;}
     
@@ -1227,15 +1227,10 @@ void autoscale(picture pic=currentpicture, axis axis)
   }
 }
 
-bool finite(picture pic=currentpicture) 
-{
-  return finite(pic.userMin) && finite(pic.userMax);
-}
-	      
 void checkaxis(picture pic, axis axis, bool ticks) 
 {
   axis(pic,axis);
-  if((!axis.extend || ticks) && !finite(pic))
+  if((!axis.extend || ticks) && !(pic.userSetx && pic.userSety))
     abort("axis with ticks or unextended axis called on empty picture");
 }
 
@@ -1264,7 +1259,7 @@ void xaxis(picture pic=currentpicture, Label L="", axis axis=YZero,
     newticks=true;
   }
   
-  if(newticks && finite(pic) && ticks != NoTicks) {
+  if(newticks && pic.userSetx && ticks != NoTicks) {
     if(xmin == -infinity) xmin=pic.userMin.x;
     if(xmax == infinity) xmax=pic.userMax.x;
     bounds mx=autoscale(xmin,xmax,pic.scale.x.scale);
@@ -1321,7 +1316,7 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
     newticks=true;
   }
   
-  if(newticks && finite(pic) && ticks != NoTicks) {
+  if(newticks && pic.userSety && ticks != NoTicks) {
     if(ymin == -infinity) ymin=pic.userMin.y;
     if(ymax == infinity) ymax=pic.userMax.y;
     bounds my=autoscale(ymin,ymax,pic.scale.y.scale);
@@ -1490,7 +1485,7 @@ picture secondaryX(picture primary=currentpicture, void f(picture))
   if(!primary.scale.set) abort(noprimary);
   picture pic;
   f(pic);
-  if(!finite(pic)) abort("empty secondaryX picture");
+  if(!pic.userSetx) abort("empty secondaryX picture");
   bounds a=autoscale(pic.userMin.x,pic.userMax.x,pic.scale.x.scale);
   real bmin=pic.scale.x.automin() ? a.min : pic.userMin.x;
   real bmax=pic.scale.x.automax() ? a.max : pic.userMax.x;
@@ -1510,8 +1505,7 @@ picture secondaryX(picture primary=currentpicture, void f(picture))
     axis.xdivisor=a.divisor;
     f(pic);
   }
-  pic.userMin=primary.userMin;
-  pic.userMax=primary.userMax;
+  pic.userCopy(primary);
   return pic;
 }
 
@@ -1521,7 +1515,7 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
   if(!primary.scale.set) abort(noprimary);
   picture pic;
   f(pic);
-  if(!finite(pic)) abort("empty secondaryY picture");
+  if(!pic.userSety) abort("empty secondaryY picture");
   bounds a=autoscale(pic.userMin.y,pic.userMax.y,pic.scale.y.scale);
   real bmin=pic.scale.y.automin() ? a.min : pic.userMin.y;
   real bmax=pic.scale.y.automax() ? a.max : pic.userMax.y;
@@ -1541,8 +1535,7 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
     axis.ydivisor=a.divisor;
     f(pic);
   }
-  pic.userMin=primary.userMin;
-  pic.userMax=primary.userMax;
+  pic.userCopy(primary);
   return pic;
 }
 

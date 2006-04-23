@@ -1,5 +1,5 @@
 public frame patterns;
-public bool shipped=false;
+public bool shipped;
 
 real cap(real x, real m, real M, real bottom, real top)
 {
@@ -275,7 +275,7 @@ public struct autoscaleT {
 autoscaleT operator init() {return new autoscaleT;}
 				  
 public struct ScaleT {
-  public bool set=false;
+  public bool set;
   public autoscaleT x;
   public autoscaleT y;
   public autoscaleT z;
@@ -377,7 +377,8 @@ struct picture {
   public transform T;
   
   // Cached user-space bounding box
-  public pair userMin,userMax;
+  pair userMin,userMax;
+  bool userSetx,userSety;
   
   public ScaleT scale; // Needed by graph
   public Legend[] legend;
@@ -389,12 +390,12 @@ struct picture {
   public bool keepAspect=true;
 
   // A fixed scaling transform.
-  public bool fixed=false;
+  public bool fixed;
   public transform fixedscaling;
   
   void init() {
-    userMin=Infinity;
-    userMax=-userMin;
+    userMin=userMax=0;
+    userSetx=userSety=false;
   }
   init();
   
@@ -412,10 +413,76 @@ struct picture {
     return nodes.length == 0;
   }
   
+  void userMinx(real x) {
+    userMin=(x,userMin.y);
+    userSetx=true;
+  }
+  
+  void userMiny(real y) {
+    userMin=(userMin.x,y);
+    userSety=true;
+  }
+  
+  void userMaxx(real x) {
+    userMax=(x,userMax.y);
+    userSetx=true;
+  }
+  
+  void userMaxy(real y) {
+    userMax=(userMax.x,y);
+    userSety=true;
+  }
+  
+  void userCorners(pair c00, pair c01, pair c10, pair c11) {
+    userMin=(min(c00.x,c01.x,c10.x,c11.x),min(c00.y,c01.y,c10.y,c11.y));
+    userMax=(max(c00.x,c01.x,c10.x,c11.x),max(c00.y,c01.y,c10.y,c11.y));
+  }
+  
+  void userCopy(picture pic) {
+    userMin=pic.userMin;
+    userMax=pic.userMax;
+    userSetx=pic.userSetx;
+    userSety=pic.userSety;
+  }
+  
   // Cache the current user-space bounding box
   void userBox(pair min, pair max) {
-    userMin=minbound(userMin,min);
-    userMax=maxbound(userMax,max);
+    if(userSetx && userSety) {
+      userMin=minbound(userMin,min);
+      userMax=maxbound(userMax,max);
+    } else {
+      if(userSetx) {
+	userMin=(min(userMin.x,min.x),min.y);
+	userMax=(max(userMax.x,max.x),max.y);
+      } else if(userSety) {
+	userMin=(min.x,min(userMin.y,min.y));
+	userMax=(max.x,max(userMax.y,max.y));
+      } else {
+	userMin=min;
+	userMax=max;
+	userSetx=userSety=true;
+      }
+    }
+  }
+  
+  // Clip the current user-space bounding box
+  void userClip(pair min, pair max) {
+    if(userSetx && userSety) {
+      userMin=maxbound(userMin,min);
+      userMax=minbound(userMax,max);
+    } else {
+      if(userSetx) {
+	userMin=(max(userMin.x,min.x),min.y);
+	userMax=(min(userMax.x,max.x),max.y);
+      } else if(userSety) {
+	userMin=(min.x,max(userMin.y,min.y));
+	userMax=(max.x,min(userMax.y,max.y));
+      } else {
+	userMin=min;
+	userMax=max;
+	userSetx=userSety=true;
+      }
+    }
   }
   
   void add(drawerBound d) {
@@ -688,8 +755,7 @@ struct picture {
     picture dest=new picture;
     dest.nodes=copy(nodes);
     dest.T=T;
-    dest.userMin=userMin;
-    dest.userMax=userMax;
+    dest.userCopy(this);
     dest.scale=scale.copy();
     dest.legend=copy(legend);
 
@@ -740,12 +806,10 @@ picture operator * (transform t, picture orig)
 {
   picture pic=orig.copy();
   pic.T=t*pic.T;
-  pair c00=t*pic.userMin;
-  pair c01=t*(pic.userMin.x,pic.userMax.y);
-  pair c10=t*(pic.userMax.x,pic.userMin.y);
-  pair c11=t*pic.userMax;
-  pic.userMin=(min(c00.x,c01.x,c10.x,c11.x),min(c00.y,c01.y,c10.y,c11.y));
-  pic.userMax=(max(c00.x,c01.x,c10.x,c11.x),max(c00.y,c01.y,c10.y,c11.y));
+  pic.userCorners(t*pic.userMin,
+		  t*(pic.userMin.x,pic.userMax.y),
+		  t*(pic.userMax.x,pic.userMin.y),
+		  t*pic.userMax);
   return pic;
 }
 
@@ -893,8 +957,7 @@ void clip(frame f, path[] g)
 void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
 {
   g=copy(g);
-  pic.userMin=maxbound(pic.userMin,min(g));
-  pic.userMax=minbound(pic.userMax,max(g));
+  pic.userClip(min(g),max(g));
   pic.clip(new void (frame f, transform t) {
     clip(f,t*g,p);
   });

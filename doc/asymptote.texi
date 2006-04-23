@@ -2031,9 +2031,9 @@ shipout(Landscape);
 @end verbatim
 
 @cindex @code{Seascape}
-To rotate the page in the other direction, use the orientation Seascape.
+To rotate the page by @math{-90} degrees, use the orientation @code{Seascape}.
 @cindex @code{UpsideDown}
-To rotate the page by 180 degrees, use the orientation UpsideDown.
+To rotate the page by 180 degrees, use the orientation @code{UpsideDown}.
 
 @cindex @code{box}
 To draw a bounding box with margins around a picture, fit the
@@ -5098,8 +5098,9 @@ factor (e.g. for a depth axis, @code{Linear(-1)} requests axis reversal).
 
 @cindex logarithmic graph
 @cindex log-log graph
-For example, to draw a log graph of a function, use @code{scale(Log,Log)}:
+For example, to draw a log/log graph of a function, use @code{scale(Log,Log)}:
 @verbatiminclude loggraph.asy
+@page
 @image{loggraph}
 
 @cindex grid

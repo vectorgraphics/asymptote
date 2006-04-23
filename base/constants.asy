@@ -45,7 +45,7 @@ public real barfactor=arrowfactor;
 public real dotfactor=6;
 
 public real legendlinelength=50;
-public real legendskip=1.1;
+public real legendskip=1.2;
 public real legendmargin=10;
 
 public string defaultfilename;

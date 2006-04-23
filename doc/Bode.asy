@@ -8,7 +8,7 @@ real phas(real x) {return -atan(x)/pi;}
 
 scale(Log,Log);
 draw(graph(ampl,0.01,10));
-ylimits(.001,100);
+ylimits(0.001,100);
 
 xaxis("$\omega\tau_0$",BottomTop,LeftTicks);
 yaxis("$|G(\omega\tau_0)|$",Left,RightTicks);
