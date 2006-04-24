@@ -1361,7 +1361,7 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
   path3 p;
 
   // If duplicate points occur consecutively, add dummy controls (if absent).
-  for(int i=1; i < n; ++i) {
+  for(int i=0; i < n; ++i) {
     if(g.nodes[i] == g.nodes[i+1] && !g.control[i].active) {
       control c;
       c.init(g.nodes[i],g.nodes[i]);
