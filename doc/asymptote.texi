@@ -4723,9 +4723,9 @@ type. These parametric versions also accept an arbitrary sampling
 function:
 @verbatim
 guide graph(real x(real), real y(real), real a, real b, int n=ngraph,
-	    real T(real), interpolate join=operator --);
+            real T(real), interpolate join=operator --);
 guide graph(pair z(real), real a, real b, int n=ngraph,
-	    real T(real), interpolate join=operator --)
+            real T(real), interpolate join=operator --)
 @end verbatim
 
 @item
