@@ -1,5 +1,5 @@
 errortest.asy: 12.4: no matching variable 'x.y'
-errortest.asy: 16.11: no matching variable of name 'y'
+errortest.asy: 16.11: no matching variable of name 'z'
 errortest.asy: 20.3: no matching variable 'x'
 errortest.asy: 27.3: no type of name 'x'
 errortest.asy: 27.5: no default initializer for type '<error>'

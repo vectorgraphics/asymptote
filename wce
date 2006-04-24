@@ -7,4 +7,5 @@ echo PASSED.
 else
 echo FAILED.
 echo "$result"
+exit 1
 fi

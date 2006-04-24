@@ -13,7 +13,7 @@
 }
 {
   // line 50
-  int x = y;
+  int x = z;
 }
 {
   // line 67
