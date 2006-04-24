@@ -197,7 +197,6 @@ bool picture::texprocess(const string& texname, const string& outname,
     }
 
     ostringstream dcmd;
-    mem::string paperType=getSetting<mem::string>("papertype");
     dcmd << "'" << getSetting<mem::string>("dvips") << "' -R "
 	 << " -O " << hoffset << "bp," << voffset << "bp"
          << " -T " << pageWidth << "bp," << pageHeight << "bp";
