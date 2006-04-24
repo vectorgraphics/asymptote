@@ -281,8 +281,7 @@ void addGSLRealIntFunc(venv &ve, const char* name)
 }
 
 // Handle GSL errors gracefully.
-void GSLerrorhandler(const char *reason, const char *file, int line,
-		     int gsl_errno) 
+void GSLerrorhandler(const char *reason, const char *, int, int) 
 {
   if(!GSLerror) {
     vm::errornothrow(reason);
