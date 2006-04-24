@@ -1629,6 +1629,18 @@ guide graph(real f(real), real a, real b, int n=ngraph,
   return graph(join)(new pair(real x) {return (T(x),f(T(x)));},a,b,n);
 }
 
+guide graph(real x(real), real y(real), real a, real b, int n=ngraph,
+	    real T(real), interpolate join=operator --)
+{
+  return graph(join)(new pair(real t) {return (x(T(t)),y(T(t)));},a,b,n);
+}
+
+guide graph(pair z(real), real a, real b, int n=ngraph,
+	    real T(real), interpolate join=operator --)
+{
+  return graph(join)(new pair(real t) {return z(T(t));},a,b,n);
+}
+
 pair polar(real r, real theta)
 {
   return r*expi(theta);

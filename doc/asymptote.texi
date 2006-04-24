@@ -4718,7 +4718,15 @@ guide graph(real f(real), real a, real b, int n=ngraph, real T(real),
 Returns a graph using the scaling information for picture @code{pic}
 of the function @code{f} on the interval
 [@code{T}(@code{a}),@code{T}(@code{b})], sampling at @code{n} points evenly
-spaced in [@code{a},@code{b}], with the given interpolation type.
+spaced in [@code{a},@code{b}], with the given interpolation
+type. These parametric versions also accept an arbitrary sampling
+function:
+@verbatim
+guide graph(real x(real), real y(real), real a, real b, int n=ngraph,
+	    real T(real), interpolate join=operator --);
+guide graph(pair z(real), real a, real b, int n=ngraph,
+	    real T(real), interpolate join=operator --)
+@end verbatim
 
 @item
 @cindex @code{polargraph}
