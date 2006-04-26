@@ -62,7 +62,7 @@ public:
   void texinit();
 
   bool texprocess(const string& texname, const string& tempname,
-		  const string& prefix, const bbox& bpos); 
+		  const string& prefix, bbox& bpos); 
     
   bool postprocess(const string& epsname, const string& outname, 
 		   const string& outputformat, bool wait, bool quiet,

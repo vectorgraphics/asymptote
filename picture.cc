@@ -1,4 +1,3 @@
-
 /*****
  * picture.cc
  * Andy Hammerlindl 2002/06/06
@@ -150,7 +149,7 @@ void picture::texinit()
 }
   
 bool picture::texprocess(const string& texname, const string& outname,
-			 const string& prefix, const bbox& bpos) 
+			 const string& prefix, bbox& bpos) 
 {
   int status=0;
   ifstream outfile;
@@ -204,21 +203,20 @@ bool picture::texprocess(const string& texname, const string& outname,
     dcmd << " -o " << psname << " " << dviname;
     status=System(dcmd,false,true,"dvips");
     
-    bbox bcopy=bpos;
     const double fuzz=0.06;
     
-    bcopy.left -= fuzz;
-    bcopy.right += fuzz;
-    bcopy.bottom -= fuzz;
-    bcopy.top += fuzz;
+    bpos.left -= fuzz;
+    bpos.right += fuzz;
+    bpos.bottom -= fuzz;
+    bpos.top += fuzz;
 
-    if(origin == BOTTOM) {
-      bcopy.bottom=max(bcopy.bottom,0.0);
-      bcopy.left=max(bcopy.left,0.0);
+    if(pdfformat || origin == BOTTOM) {
+      bpos.bottom=max(bpos.bottom,0.0);
+      bpos.left=max(bpos.left,0.0);
     }
     
     if(origin == TOP)
-      bcopy.left=max(bcopy.left,0.0);
+      bpos.left=max(bpos.left,0.0);
     
     ifstream fin(psname.c_str());
     ofstream *Fout=NULL;
@@ -230,8 +228,8 @@ bool picture::texprocess(const string& texname, const string& outname,
     while(getline(fin,s)) {
       if(s.find("%%DocumentPaperSizes:") == 0) continue;
       if(first && s.find("%%BoundingBox:") == 0) {
-	if(verbose > 2) BoundingBox(cout,bcopy);
-	BoundingBox(*fout,bcopy);
+	if(verbose > 2) BoundingBox(cout,bpos);
+	BoundingBox(*fout,bpos);
 	first=false;
       } else *fout << s << endl;
     }
