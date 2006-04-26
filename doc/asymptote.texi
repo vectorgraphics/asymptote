@@ -2141,7 +2141,7 @@ in postscript coordinates to another picture about the user coordinate
 @verbatim
 void add(picture dest, picture src, pair position, bool group=true,
          filltype filltype=NoFill, bool put=Above);
-void add(picture src, bool group=true, pair position,
+void add(picture src, pair position, bool group=true,
          filltype filltype=NoFill, bool put=Above);
 void add(picture dest=currentpicture, frame src, pair position=0,
          bool group=true, filltype filltype=NoFill,
