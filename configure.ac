@@ -54,11 +54,6 @@ AC_PROG_CC
 AC_PROG_MAKE_SET
 AC_PROG_YACC
 
-AC_CHECK_HEADER(fftw3.h,
-   AC_CHECK_LIB([fftw3], fftw_execute,,
-           AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
-     AC_MSG_NOTICE([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
-
 GCVERSION=6.7
 
 AC_ARG_ENABLE(gc,
@@ -81,7 +76,7 @@ if test "x$ac_cv_use_gc" != "xno" ; then
       AC_CHECK_HEADER(gc.h,
         INCL="-I $prefix/include/gc" 
 	AC_CHECK_LIB([gc],[GC_malloc],[
-	  LIBS=$LIBS"-lgccpp -lgc"
+	  LIBS=$LIBS"-lgccpp -lgc "
 	  AC_MSG_NOTICE([enabling system $GCNAME])],[
 	AC_MSG_ERROR($GCNAME library not found)]),
       AC_MSG_ERROR($GCNAME header file not found))
@@ -127,9 +122,14 @@ AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include "xstream.h"]),
 		   [Define if you have a working <rpc/rpc.h> header file])],
    AC_MSG_WARN([*** Broken rpc headers; XDR support disabled ***]))
 
+AC_CHECK_HEADER(fftw3.h,
+   AC_CHECK_LIB([fftw3], fftw_execute,,
+           AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
+     AC_MSG_NOTICE([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
+
 AC_CHECK_HEADER(gsl/gsl_sf.h,
    AC_CHECK_LIB([gsl], gsl_sf_Si, [AC_DEFINE(HAVE_LIBGSL, 1,
-   [Define to 1 if you have the 'gsl' library (-lgsl). ]) LIBS=$LIBS"-lgsl -lgslcblas"],
+   [Define to 1 if you have the 'gsl' library (-lgsl). ]) LIBS=$LIBS"-lgsl -lgslcblas "],
            AC_MSG_NOTICE([*** Could not find libgsl: will compile without optional special functions. ***]),[-lgslcblas]),
      AC_MSG_NOTICE([*** Header file gls_sf.h not found: will compile without optional special functions. ***]))
 
