@@ -54,6 +54,11 @@ AC_PROG_CC
 AC_PROG_MAKE_SET
 AC_PROG_YACC
 
+AC_CHECK_HEADER(fftw3.h,
+   AC_CHECK_LIB([fftw3], fftw_execute,,
+           AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
+     AC_MSG_NOTICE([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
+
 GCVERSION=6.7
 
 AC_ARG_ENABLE(gc,
@@ -121,11 +126,6 @@ AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include "xstream.h"]),
 		    AC_DEFINE(HAVE_RPC_RPC_H, 1,
 		   [Define if you have a working <rpc/rpc.h> header file])],
    AC_MSG_WARN([*** Broken rpc headers; XDR support disabled ***]))
-
-AC_CHECK_HEADER(fftw3.h,
-   AC_CHECK_LIB([fftw3], fftw_execute,,
-           AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
-     AC_MSG_NOTICE([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
 
 AC_CHECK_HEADER(gsl/gsl_sf.h,
    AC_CHECK_LIB([gsl], gsl_sf_Si, [AC_DEFINE(HAVE_LIBGSL, 1,
