@@ -2,12 +2,12 @@ import three;
 
 size(0,100);
 
-currentprojection=oblique;
+currentprojection=obliqueX;
 
 draw(unitcube);
 dot(unitcube,red);
 
 label("$O$",(0,0,0),NW);
-label("(1,0,0)",(1,0,0),E);
-label("(0,1,0)",(0,1,0),N);
-label("(0,0,1)",(0,0,1),S);
+label("(1,0,0)",(1,0,0),S);
+label("(0,1,0)",(0,1,0),E);
+label("(0,0,1)",(0,0,1),N);

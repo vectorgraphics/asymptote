@@ -172,7 +172,23 @@ projection oblique(real angle=45)
   return P;
 }
 
-projection oblique=oblique();
+projection obliqueX(real angle=45)
+{
+  transform3 t=identity(4);
+  real c2=Cos(angle)^2;
+  real s2=1-c2;
+  t[0][0]=-c2;
+  t[1][0]=-s2;
+  t[1][1]=0;
+  t[0][1]=1;
+  t[1][2]=1;
+  t[2][2]=0;
+  projection P;
+  P.init((c2,s2,1),t,identity(4));
+  return P;
+}
+
+projection oblique=oblique(), obliqueX=obliqueX();
 
 currentprojection=perspective(5,4,2);
 

@@ -5401,22 +5401,29 @@ guide3[] unitcube=box((0,0,0),(1,1,1));
 These projections to two dimensions are predefined:
 @table @code
 @item oblique
-@cindex oblique
+@item oblique(real angle)
+@cindex @code{oblique}
 The point @code{(x,y,z)} is projected to @code{(x-0.5z,y-0.5z)}.
 If an optional real argument is given to @code{oblique}, the
-negative @math{z} axis is drawn at this angle in degrees measured
-counterclockwise from the positive @math{x} axis. 
+negative @math{z} axis is drawn at this angle in degrees.
+
+@item obliqueX
+@item obliqueX(real angle)
+@cindex @code{obliqueX}
+The point @code{(x,y,z)} is projected to @code{(y-0.5x,z-0.5x)}.
+If an optional real argument is given to @code{obliqueX}, the
+negative @math{x} axis is drawn at this angle in degrees.
 
 @item orthographic(triple camera)
 @item orthographic(real x, real y, real z)
-@cindex orthographic
+@cindex @code{orthographic}
 This projects three dimensions onto two using the view seen at the
 location @code{camera} or @code{(x,y,z)}, respectively.
 Parallel lines are projected to parallel lines.
 
 @item perspective(triple camera)
 @item perspective(real x, real y, real z)
-@cindex perspective
+@cindex @code{perspective}
 These project three dimensions onto two taking account of perspective,
 as seen from the location @code{camera} or @code{(x,y,z)}, respectively.
 
