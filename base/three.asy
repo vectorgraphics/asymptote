@@ -92,7 +92,7 @@ transform3 rotate(real angle, triple v)
 // the line u--v (in the right-handed direction).
 transform3 rotate(real angle, triple u, triple v)
 {
-  return shift(u)*rotate(angle,v)*shift(-u);
+  return shift(u)*rotate(angle,v-u)*shift(-u);
 }
 
 transform3 reflect(triple u, triple v, triple w)
