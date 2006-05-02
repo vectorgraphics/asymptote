@@ -578,13 +578,11 @@ guide* :pairToGuide(pair z)
   return new pairguide(z);
 }
 
-
 guide* :pathToGuide(path p) 
 {
   return new pathguide(p);
 }
 
-
 path :guideToPath(guide *g) 
 {
   return g->solve();
@@ -1542,6 +1540,14 @@ string format(string *format, double x)
   
   delete[] buf;
   return out.str();
+}
+
+string string(double x, int digits)
+{
+  std::ostringstream buf;
+  buf.precision(digits);
+  buf << x;
+  return buf.str();
 }
 
 string time(string *format)
