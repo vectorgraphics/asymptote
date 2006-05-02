@@ -30,10 +30,12 @@ private:
   bool labels;
   size_t lastnumber;
   bbox b;
-  pair bboxshift;
-  bool epsformat,pdfformat,tgifformat;
   boxvector labelbounds;
   bboxlist bboxstack;
+  
+  static bool epsformat,pdfformat,tgifformat;
+  static double paperWidth,paperHeight;
+  static int origin;
 
 public:
   nodelist nodes;

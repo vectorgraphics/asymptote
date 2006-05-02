@@ -530,7 +530,8 @@ void reportSyntax() {
 void displayOptions()
 {
   cerr << endl;
-  cerr << "Options: " << endl;
+  cerr << "Options (negate by replacing - with -no): " 
+       << endl << endl;
   for (optionsMap_t::iterator opt=optionsMap.begin();
        opt!=optionsMap.end();
        ++opt)
@@ -643,12 +644,14 @@ void no_GCwarn(char *, GC_word) {}
 void initSettings() {
   settingsModule=new types::dummyRecord(symbol::trans("settings"));
   
-  multiOption *view=new multiOption("View", 'V', "View output files");
-  view->add(new boolSetting("batchView", 0,
-			    "View output files in batch mode", false));
+  multiOption *view=new multiOption("View", 'V', "View output");
+  view->add(new boolSetting("batchView", 0, "View output in batch mode",
+			    msdos));
+  view->add(new boolSetting("multipleView", 0,
+			    "View output from multiple batch-mode files",
+			    false));
   view->add(new boolSetting("interactiveView", 0,
-			    "View output files in interactive mode", true));
-  view->add(new boolSetting("oneFileView", 0, "", msdos));
+			    "View output in interactive mode", true));
   addOption(view);
 
   addOption(new realSetting("deconstruct", 'x', "X",
@@ -711,8 +714,8 @@ void initSettings() {
   addOption(new stringSetting("user", 'u', "x",
                      "General purpose user string  [\"\"]", ""));
   
-  addOption(new realSetting("pagewidth", 0, "bp", ""));
-  addOption(new realSetting("pageheight", 0, "bp", ""));
+  addOption(new realSetting("paperwidth", 0, "bp", ""));
+  addOption(new realSetting("paperheight", 0, "bp", ""));
   
   addOption(new envSetting("config","config.asy"));
   addOption(new envSetting("pdfviewer", defaultPDFViewer));
@@ -744,8 +747,8 @@ bool view() {
   if (interact::interactive)
     return getSetting<bool>("interactiveView");
   else
-    return getSetting<bool>("batchView") ||
-           (numArgs()==1 && getSetting<bool>("oneFileView"));
+    return getSetting<bool>("batchView") && 
+      (numArgs() == 1 || getSetting<bool>("multipleView"));
 }
 
 bool trap() {
@@ -782,18 +785,18 @@ void SetPageDimensions() {
   string paperType=getSetting<mem::string>("papertype");
 
   if(paperType == "" &&
-     getSetting<double>("pagewidth") != 0.0 &&
-     getSetting<double>("pageheight") != 0.0) return;
+     getSetting<double>("paperwidth") != 0.0 &&
+     getSetting<double>("paperheight") != 0.0) return;
   
   const double inches=72;
   const double cm=inches/2.540005;
   
   if(paperType == "letter") {
-    Setting("pagewidth")=8.5*inches;
-    Setting("pageheight")=11.0*inches;
+    Setting("paperwidth")=8.5*inches;
+    Setting("paperheight")=11.0*inches;
   } else {
-    Setting("pagewidth")=21.0*cm;
-    Setting("pageheight")=29.7*cm;
+    Setting("paperwidth")=21.0*cm;
+    Setting("paperheight")=29.7*cm;
     
     if(paperType != "a4") {
       cerr << "Unknown paper size \'" << paperType << "\'; assuming a4." 
@@ -844,8 +847,8 @@ void setOptions(int argc, char *argv[])
   // Recompute search path.
   setPath();
   
-  if(getSetting<double>("pagewidth") != 0.0 && 
-     getSetting<double>("pageheight") != 0.0)
+  if(getSetting<double>("paperwidth") != 0.0 && 
+     getSetting<double>("paperheight") != 0.0)
     Setting("papertype")=mem::string("");
   
   SetPageDimensions();

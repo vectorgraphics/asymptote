@@ -5695,7 +5695,7 @@ Options:
 -a,-align C|B|T|Z    Center, Bottom, Top, or Zero page alignment; Z => -notex
 -autoplain           Enable automatic importing of plain [true]
 -batchMask           Mask fpu exceptions in batch mode [false]
--batchView           View output files in batch mode [false]
+-batchView           View output in batch mode [false]
 -bw                  Convert all colors to black and white [false]
 -c,-clearGUI         Clear GUI operations [false]
 -cmyk                Convert rgb colors to cmyk [false]
@@ -5707,11 +5707,12 @@ Options:
 -i,-ignoreGUI        Ignore GUI operations [false]
 -inlinetex           Generate inline tex code [false]
 -interactiveMask     Mask fpu exceptions in interactive mode [true]
--interactiveView     View output files in interactive mode [true]
+-interactiveView     View output in interactive mode [true]
 -k,-keep             Keep intermediate files [false]
 -l,-listvariables    List available global functions and variables [false]
 -localhistory        Use a local interactive history file [false]
 -m,-mask             Mask fpu exceptions; command-line only
+-multipleView        View output from multiple batch-mode files [false]
 -O,-offset pair      PostScript offset [(0,0)]
 -f,-outformat format Convert each output file to specified format [eps]
 -o,-outname name     Alternative output name for first file

@@ -8,11 +8,11 @@ public real pagewidth=-2margin;
 public real pageheight=-2margin;
 
 if(orientation == Portrait || orientation == UpsideDown) {
-  pagewidth += settings.pagewidth;
-  pageheight += settings.pageheight;
+  pagewidth += settings.paperwidth;
+  pageheight += settings.paperheight;
 } else {
-  pagewidth += settings.pageheight;
-  pageheight += settings.pagewidth;
+  pagewidth += settings.paperheight;
+  pageheight += settings.paperwidth;
 }
 
 size(pagewidth,pageheight,IgnoreAspect);

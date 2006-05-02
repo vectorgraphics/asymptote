@@ -36,6 +36,10 @@ picture::~picture()
 {
 }
 
+bool picture::epsformat,picture::pdfformat,picture::tgifformat;
+double picture::paperWidth,picture::paperHeight;
+int picture::origin;
+  
 void picture::enclose(drawElement *begin, drawElement *end)
 {
   assert(begin);
@@ -177,17 +181,14 @@ bool picture::texprocess(const string& texname, const string& outname,
     double hoffset=-128.4;
     double voffset=(height < 13.0) ? -137.8+height : -124.8;
 
-    int origin=getSetting<int>("align");
-    double pageWidth=getSetting<double>("pagewidth");
-    double pageHeight=getSetting<double>("pageheight");
-
+    double yexcess=paperHeight-height;
     if(origin != ZERO) {
       if(pdfformat || origin == BOTTOM) {
-	voffset += max(pageHeight-height,0.0);
+	voffset += yexcess;
       } else if(origin == CENTER) {
-	hoffset += 0.5*max(pageWidth-width,0.0);
-	voffset += 0.5*max(pageHeight-height,0.0);
-      }
+	hoffset += 0.5*max(paperWidth-width,0.0);
+	voffset += yexcess-0.5*max(yexcess,0.0);
+      } else voffset += min(yexcess,0.0);
     }
     
     if(!pdfformat) {
@@ -198,7 +199,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     ostringstream dcmd;
     dcmd << "'" << getSetting<mem::string>("dvips") << "' -R "
 	 << " -O " << hoffset << "bp," << voffset << "bp"
-         << " -T " << pageWidth << "bp," << pageHeight << "bp";
+         << " -T " << paperWidth << "bp," << paperHeight << "bp";
     if(verbose <= 1) dcmd << " -q";
     dcmd << " -o " << psname << " " << dviname;
     status=System(dcmd,false,true,"dvips");
@@ -266,6 +267,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
       cmd << "'" << getSetting<mem::string>("gs")
 	  << "' -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
 	  << " -dAutoRotatePages=/None "
+	  << " -g" << paperWidth << "x" << paperHeight
 	  << " -dDEVICEWIDTHPOINTS=" 
 	  << bpos.right-bpos.left
 	  << " -dDEVICEHEIGHTPOINTS=" 
@@ -396,19 +398,19 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   SetPageDimensions();
   
-  double pageWidth=getSetting<double>("pagewidth");
-  double pageHeight=getSetting<double>("pageheight");
+  paperWidth=getSetting<double>("paperwidth");
+  paperHeight=getSetting<double>("paperheight");
+  origin=getSetting<int>("align");
     
   // Avoid negative bounding box coordinates
-  int origin=getSetting<int>("align");
-  bboxshift=origin == ZERO ? 0.0 : pair(-bpos.left,-bpos.bottom);
+  pair bboxshift=origin == ZERO ? 0.0 : pair(-bpos.left,-bpos.bottom);
   if(!pdfformat) {
     bboxshift += getSetting<pair>("offset");
     if(origin != ZERO && origin != BOTTOM) {
-      double yexcess=max(pageHeight-(bpos.top-bpos.bottom+1.0),0.0);
+      double yexcess=max(paperHeight-(bpos.top-bpos.bottom+1.0),0.0);
       if(origin == TOP) bboxshift += pair(0.0,yexcess);
       else {
-	double xexcess=max(pageWidth-(bpos.right-bpos.left+1.0),0.0);
+	double xexcess=max(paperWidth-(bpos.right-bpos.left+1.0),0.0);
 	bboxshift += pair(0.5*xexcess,0.5*yexcess);
       }
     }
