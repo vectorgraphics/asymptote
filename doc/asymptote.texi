@@ -5416,15 +5416,22 @@ These projections to two dimensions are predefined:
 @item oblique(real angle)
 @cindex @code{oblique}
 The point @code{(x,y,z)} is projected to @code{(x-0.5z,y-0.5z)}.
-If an optional real argument is given to @code{oblique}, the
+If an optional real argument is given, the
 negative @math{z} axis is drawn at this angle in degrees.
 
 @item obliqueX
 @item obliqueX(real angle)
 @cindex @code{obliqueX}
 The point @code{(x,y,z)} is projected to @code{(y-0.5x,z-0.5x)}.
-If an optional real argument is given to @code{obliqueX}, the
+If an optional real argument is given, the
 negative @math{x} axis is drawn at this angle in degrees.
+
+@item obliqueY
+@item obliqueY(real angle)
+@cindex @code{obliqueY}
+The point @code{(x,y,z)} is projected to @code{(x+0.5y,z+0.5y)}.
+If an optional real argument is given, the
+positive @math{y} axis is drawn at this angle in degrees.
 
 @item orthographic(triple camera)
 @item orthographic(real x, real y, real z)
