@@ -18,6 +18,7 @@ void     => primVoid()
 int      => primInt()
 bool     => primBoolean()
 double   => primReal()
+real     => primReal()
 string*  => primString()
 string   => primString() 
 pen      => primPen()
@@ -106,6 +107,8 @@ using absyntax::runnable;
 callable *atExitFunction=NULL;
 callable *atDrawFunction=NULL;
   
+typedef double real;
+
 typedef array boolarray;
 typedef array intarray;
 typedef array realarray;
@@ -500,7 +503,7 @@ int :intZero()
   return 0;
 }
 
-double :realZero()
+real :realZero()
 {
   return 0.0;
 }
@@ -611,7 +614,7 @@ pair min(picture *f)
   return f->bounds().Min();
 }
 
-void label(picture *f, string *s, string *size, double angle, pair position,
+void label(picture *f, string *s, string *size, real angle, pair position,
 	   pair align, pair scale, pen p)
 {
   f->append(new drawLabel(*s,*size,angle,position,align,scale,p));
@@ -637,8 +640,8 @@ void axialshade(picture *f, patharray *g, pen pena, pair a, pen penb, pair b)
   f->append(new drawAxialShade(copyArray(g),pena,a,penb,b));
 }
 
-void radialshade(picture *f, patharray *g, pen pena, pair a, double ra,
-		 pen penb, pair b, double rb)
+void radialshade(picture *f, patharray *g, pen pena, pair a, real ra,
+		 pen penb, pair b, real rb)
 {
   f->append(new drawRadialShade(copyArray(g),pena,a,ra,penb,b,rb));
 }
@@ -707,7 +710,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
   size_t size=GUItransform && GUIdelete ?
     checkArrays(GUItransform,GUIdelete) : 0;
  
-  if(getSetting<double>("deconstruct") || size) {
+  if(getSetting<real>("deconstruct") || size) {
     picture *result=new picture;
     unsigned level=0;
     unsigned i=0;
@@ -745,7 +748,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
       drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
       group->append(e);
       if(!group->empty()) {
-	if(getSetting<double>("deconstruct")) {
+	if(getSetting<real>("deconstruct")) {
 	  ostringstream buf;
 	  buf << prefix << "_" << i;
 	  group->shipout(preamble,buf.str(),"tgif",false,true,Delete);
@@ -783,12 +786,12 @@ pen +(pen a, pen b)
   return a+b;
 }
 
-pen Operator *(double a, pen b)
+pen Operator *(real a, pen b)
 {
   return a*b;
 }
 
-pen Operator *(pen a, double b)
+pen Operator *(pen a, real b)
 {
   return b*a;
 }
@@ -838,17 +841,17 @@ pen rgb(pen p)
   return p;
 }
 
-pen rgb(double r, double g, double b)
+pen rgb(real r, real g, real b)
 {
   return pen(r,g,b);
 }
 
-pen cmyk(double c, double m, double y, double k)
+pen cmyk(real c, real m, real y, real k)
 {
   return pen(c,m,y,k);  
 }
 
-pen gray(double gray)
+pen gray(real gray)
 {
   return pen(gray);
 }
@@ -931,12 +934,12 @@ int linejoin(pen p)
   return p.join();  
 }
 
-pen linewidth(double x)
+pen linewidth(real x)
 {
   return pen(setlinewidth,x >= 0.0 ? x : DEFWIDTH);
 }
 
-double linewidth(pen p)
+real linewidth(pen p)
 {
   return p.width();  
 }
@@ -951,18 +954,18 @@ string font(pen p)
   return p.Font();
 }
 
-pen fontsize(double size, double lineskip)
+pen fontsize(real size, real lineskip)
 {
   return pen(setfontsize,size > 0.0 ? size : 0.0,
 	     lineskip > 0.0 ? lineskip : 0.0);
 }
 
-double fontsize(pen p)
+real fontsize(pen p)
 {
   return p.size();
 }
 
-double lineskip(pen p)
+real lineskip(pen p)
 {
   return p.Lineskip();  
 }
@@ -1082,14 +1085,14 @@ void _eval(runnable *s, bool embedded)
   loop::doIRunnable(s,embedded);
 }
 
-void gui(double x=1)
+void gui(real x=1)
 { 
   Setting("deconstruct")=(x > 0.0 ? x : 0.0);
 }
 
 bool deconstruct()
 { 
-  return getSetting<double>("deconstruct");
+  return getSetting<real>("deconstruct");
 }
 
 void readGUI()
@@ -1150,7 +1153,7 @@ pair point(path p, int n)
   return p.point(n);
 }
 
-pair point(path p, double t)
+pair point(path p, real t)
 {
   return p.point(t);
 }
@@ -1160,7 +1163,7 @@ pair precontrol(path p, int n)
   return p.precontrol(n);
 }
 
-pair precontrol(path p, double t)
+pair precontrol(path p, real t)
 {
   return p.precontrol(t);
 }
@@ -1170,7 +1173,7 @@ pair postcontrol(path p, int n)
   return p.postcontrol(n);
 }
 
-pair postcontrol(path p, double t)
+pair postcontrol(path p, real t)
 {
   return p.postcontrol(t);
 }
@@ -1180,7 +1183,7 @@ pair dir(path p, int n)
   return unit(p.direction(n));
 }
 
-pair dir(path p, double t)
+pair dir(path p, real t)
 {
   return unit(p.direction(t));
 }
@@ -1195,7 +1198,7 @@ path subpath(path p, int b, int e)
   return p.subpath(b,e);
 }
 
-path subpath(path p, double b, double e)
+path subpath(path p, real b, real e)
 {
   return p.subpath(b,e);
 }
@@ -1215,22 +1218,22 @@ bool straight(path p, int i)
   return p.straight(i);
 }
 
-double arclength(path p)
+real arclength(path p)
 {
   return p.arclength();
 }
 
-double arctime(path p, double dval)
+real arctime(path p, real dval)
 {
   return p.arctime(dval);
 }
 
-double dirtime(path p, pair z)
+real dirtime(path p, pair z)
 {
   return p.directiontime(z);
 }
 
-pair intersect(path x, path y, double fuzz=0)
+pair intersect(path x, path y, real fuzz=0)
 {
   return intersectiontime(x,y,fuzz);
 }
@@ -1255,7 +1258,7 @@ pair max(path p)
   return p.bounds().Max();
 }
 
-double relativedistance(double theta, double phi, double t, bool atleast)
+real relativedistance(real theta, real phi, real t, bool atleast)
 {
   return camp::velocity(theta,phi,tension(t,atleast));
 }
@@ -1328,7 +1331,7 @@ guide* operator spec(pair z, int p)
   return new specguide(sp,d);
 }
 
-guide* operator curl(double gamma, int p)
+guide* operator curl(real gamma, int p)
 {
   camp::side d=(camp::side) p;
   camp::curlSpec *sp=new camp::curlSpec(gamma);
@@ -1336,7 +1339,7 @@ guide* operator curl(double gamma, int p)
   return new specguide(sp,d);
 }
 
-guide* operator tension(double tout, double tin, bool atleast)
+guide* operator tension(real tout, real tin, bool atleast)
 {
   return new tensionguide(tension(tout,atleast),tension(tin,atleast));
 }
@@ -1438,7 +1441,7 @@ string format(string *format, int x)
   return s;
 }
 
-string format(string *format, double x) 
+string format(string *format, real x) 
 {
   ostringstream out;
   
@@ -1542,7 +1545,7 @@ string format(string *format, double x)
   return out.str();
 }
 
-string string(double x, int digits)
+string string(real x, int digits)
 {
   std::ostringstream buf;
   buf.precision(digits);
@@ -1566,7 +1569,7 @@ string time(string *format)
 
 // Math
 
-double ^(double x, int y)
+real ^(real x, int y)
 {
   return pow(x,y);
 }
@@ -1583,7 +1586,7 @@ int abs(int x)
   return abs(x);
 }  
 
-int sgn(double x)
+int sgn(real x)
 { 
   return sgn(x);
 }  
@@ -1598,93 +1601,93 @@ void srand(int seed)
   srand(seed);
 }  
 
-int ceil(double x)
+int ceil(real x)
 { 
-  double y=ceil(x);
+  real y=ceil(x);
   checkint(y,0);
   return (int) y;
 }
 
-int floor(double x)
+int floor(real x)
 { 
-  double y=floor(x);
+  real y=floor(x);
   checkint(y,0);
   return (int) y;
 }
 
-int round(double x)
+int round(real x)
 { 
   if(fabs(x) >= INT_MAX+0.5) integeroverflow(0);
   return Round(x);
 }
 
-int Ceil(double x)
+int Ceil(real x)
 { 
   return Ceil(x);
 }
 
-int Floor(double x)
+int Floor(real x)
 { 
   return Floor(x);
 }
 
-int Round(double x)
+int Round(real x)
 { 
   return Round(intcap(x));
 }
 
-double fmod(double x, double y)
+real fmod(real x, real y)
 {
   if (y == 0.0) dividebyzero();
   return fmod(x,y);
 }
 
-double atan2(double y, double x)
+real atan2(real y, real x)
 { 
   return atan2(y,x);
 }  
 
-double hypot(double x, double y)
+real hypot(real x, real y)
 { 
   return hypot(x,y);
 }  
 
-double remainder(double x, double y)
+real remainder(real x, real y)
 { 
   return remainder(x,y);
 }  
 
-double J(int n, double x)
+real J(int n, real x)
 {
   return jn(n,x);
 }
 
-double Y(int n, double x)
+real Y(int n, real x)
 {
   return yn(n,x);
 }
 
-double erf(double x)
+real erf(real x)
 {
   return erf(x);
 }
 
-double erfc(double x)
+real erfc(real x)
 {
   return erfc(x);
 }
 
-double gamma(double x)
+real gamma(real x)
 {
 #ifdef HAVE_TGAMMA
   return tgamma(x);
 #else
- double lg = lgamma(x);
+ real lg = lgamma(x);
  return signgam*exp(lg);
 #endif
 }
 
-realarray *quadraticroots(double a, double b, double c)
+realarray *quadraticroots(real a, real b, real c)
 {
   quadraticroots q(a,b,c);
   array *roots=new array(q.roots);
@@ -1693,7 +1696,7 @@ realarray *quadraticroots(double a, double b, double c)
   return roots;
 }
 
-realarray *cubicroots(double a, double b, double c, double d)
+realarray *cubicroots(real a, real b, real c, real d)
 {
   cubicroots q(a,b,c,d);
   array *roots=new array(q.roots);
@@ -1757,38 +1760,38 @@ transform ^(transform t, int n)
   return T;
 }
 
-double :transformXPart(transform t)
+real :transformXPart(transform t)
 {
   return t.getx();
 }
 
-double :transformYPart(transform t)
+real :transformYPart(transform t)
 {
   return t.gety();
 }
 
-double :transformXXPart(transform t)
+real :transformXXPart(transform t)
 {
   return t.getxx();
 }
 
-double :transformXYPart(transform t)
+real :transformXYPart(transform t)
 {
   return t.getxy();
 }
 
-double :transformYXPart(transform t)
+real :transformYXPart(transform t)
 {
   return t.getyx();
 }
 
-double :transformYYPart(transform t)
+real :transformYYPart(transform t)
 {
   return t.getyy();
 }
 
-transform :real6ToTransform(double x, double y, double xx, double xy,
-			    double yx, double yy)
+transform :real6ToTransform(real x, real y, real xx, real xy,
+			    real yx, real yy)
 {
   return transform(x,y,xx,xy,yx,yy);
 }
@@ -1818,32 +1821,32 @@ transform shift(pair z)
   return shift(z);
 }
 
-transform shift(double x, double y)
+transform shift(real x, real y)
 {
   return shift(pair(x,y));
 }
 
-transform xscale(double x)
+transform xscale(real x)
 {
   return xscale(x);
 }
 
-transform yscale(double y)
+transform yscale(real y)
 {
   return yscale(y);
 }
 
-transform scale(double x)
+transform scale(real x)
 {
   return scale(x);
 }
 
-transform slant(double s)
+transform slant(real s)
 {
   return slant(s);
 }
 
-transform rotate(double angle, pair z=0)
+transform rotate(real angle, pair z=0)
 {
   return rotatearound(z,radians(angle));
 }
@@ -1862,7 +1865,7 @@ pair :pairZero()
   return zero;
 }
 
-pair :realRealToPair(double x, double y)
+pair :realRealToPair(real x, real y)
 {
   return pair(x,y);
 }
@@ -1872,42 +1875,86 @@ pair :pairNegate(pair z)
   return -z;
 }
 
-double xpart:pairXPart(pair z)
+real xpart:pairXPart(pair z)
 {
   return z.getx();
 }
 
-double ypart:pairYPart(pair z)
+real ypart:pairYPart(pair z)
 {
   return z.gety();
 }
 
-double length(pair z)
+real length(pair z)
 {
   return z.length();
 }
 
-double abs(pair z)
+real abs(pair z)
 {
   return z.length();
 }
 
-double angle(pair z)
+// Return the angle of z in radians.
+real angle(pair z, bool warn=true)
 {
+  if(!warn && z.getx() == 0.0 && z.gety() == 0.0) return 0.0;
   return z.angle();
 }
 
 // Return the angle of z in degrees in the interval [0,360).
-double degrees(pair z)
+real degrees(pair z, bool warn=true)
 {
+  if(!warn && z.getx() == 0.0 && z.gety() == 0.0) return 0.0;
   return principalBranch(degrees(z.angle()));
 }
 
-// Return the angle of z in degrees in the interval [0,360), ignoring errors.
-double Degrees(pair z)
+// Convert degrees to radians.
+real radians(real degrees)
 {
-  if(z.getx() == 0.0 && z.gety() == 0.0) return 0.0;
-  return principalBranch(degrees(z.angle()));
+  return radians(degrees);
+}
+
+// Convert radians to degrees.
+real degrees(real radians) 
+{
+  return degrees(radians);
+}
+
+// Convert radians to degrees in [0,360).
+real Degrees(real radians) 
+{
+  return principalBranch(degrees(radians));
+}
+
+real Sin(real deg)
+{
+  return sin(radians(deg));
+}
+
+real Cos(real deg)
+{
+  return cos(radians(deg));
+}
+
+real Tan(real deg)
+{
+  return tan(radians(deg));
+}
+
+real aSin(real x)
+{
+  return degrees(asin(x));
+}
+
+real aCos(real x)
+{
+  return degrees(acos(x));
+}
+
+real aTan(real x)
+{
+  return degrees(atan(x));
 }
 
 pair unit(pair z)
@@ -1915,12 +1962,12 @@ pair unit(pair z)
   return unit(z);
 }
 
-pair dir(double theta)
+pair dir(real theta)
 {
   return expi(radians(theta));
 }
 
-pair expi(double theta)
+pair expi(real theta)
 {
   return expi(theta);
 }
@@ -1931,7 +1978,7 @@ pair conj(pair z)
 }
 
 // To avoid confusion, a dot product requires explicit pair arguments.
-double dot(explicit pair u, explicit pair v) 
+real dot(explicit pair u, explicit pair v) 
 {
   return u.getx()*v.getx()+u.gety()*v.gety();
 }
@@ -1956,81 +2003,75 @@ triple :tripleZero()
   return zero;
 }
 
-triple :realRealRealToTriple(double x, double y, double z)
+triple :realRealRealToTriple(real x, real y, real z)
 {
   return triple(x,y,z);
 }
 
-double xpart:tripleXPart(triple v)
+real xpart:tripleXPart(triple v)
 {
   return v.getx();
 }
 
-double ypart:tripleYPart(triple v)
+real ypart:tripleYPart(triple v)
 {
   return v.gety();
 }
 
-double zpart:tripleZPart(triple v)
+real zpart:tripleZPart(triple v)
 {
   return v.getz();
 }
 
-triple Operator *(double x, triple v)
+triple Operator *(real x, triple v)
 {
   return x*v;
 }
 
-triple Operator *(triple v, double x)
+triple Operator *(triple v, real x)
 {
   return x*v;
 }
 
-triple /(triple v, double x)
+triple /(triple v, real x)
 {
   return v/x;
 }
 
-double length(triple v)
+real length(triple v)
 {
   return v.length();
 }
 
-double abs(triple v)
+real abs(triple v)
 {
   return v.length();
 }
 
-double polar(triple v) 
+real polar(triple v) 
 {
   return v.polar();
 }
 
-double azimuth(triple v) 
+real azimuth(triple v) 
 {
   return v.azimuth();
 }
 
-double colatitude(triple v) 
+real colatitude(triple v) 
 {
   return degrees(v.polar());
 }
 
-double latitude(triple v) 
+real latitude(triple v) 
 {
   return 90.0-degrees(v.polar());
 }
 
 // Return the longitude of v in [0,360).
-double longitude(triple v) 
+real longitude(triple v, bool warn=true) 
 {
-  return principalBranch(degrees(v.azimuth()));
-}
-
-// Return the longitude of v in [0,360), ignoring errors.
-double Longitude(triple v) 
-{
-  if(v.getx() == 0.0 && v.gety() == 0.0) return 0.0;
+  if(!warn && v.getx() == 0.0 && v.gety() == 0.0) return 0.0;
   return principalBranch(degrees(v.azimuth()));
 }
 
@@ -2039,7 +2080,7 @@ triple unit(triple v)
   return unit(v);
 }
 
-double dot(triple u, triple v) 
+real dot(triple u, triple v) 
 {
   return u.getx()*v.getx()+u.gety()*v.gety()+u.getz()*v.getz();
 }
@@ -2051,14 +2092,14 @@ triple cross(triple u, triple v)
 		u.getx()*v.gety()-v.getx()*u.gety());
 }
 
-triple expi(double theta, double phi)
+triple expi(real theta, real phi)
 {
   return expi(theta,phi);
-  double sintheta=sin(theta);
+  real sintheta=sin(theta);
   return triple(sintheta*cos(phi),sintheta*sin(phi),cos(theta));
 }
 
-triple dir(double theta, double phi)
+triple dir(real theta, real phi)
 {
   return expi(radians(theta),radians(phi));
 }
@@ -2075,14 +2116,14 @@ triple maxbound(triple u, triple v)
 		Max(u.getz(),v.getz()));
 }
 
-double cubiclength(triple z0, triple z0p, triple z1m, triple z1, double goal)
+real cubiclength(triple z0, triple z0p, triple z1m, triple z1, real goal)
 {
   return cubiclength(z0,z0p,z1m,z1,goal);
 }
 
 pair intersect(triplearray* pre1, triplearray* point1, triplearray* post1,
                triplearray* pre2, triplearray* point2, triplearray* post2,
-	       double fuzz)
+	       real fuzz)
 {
   size_t size1=checkArrays(pre1,point1);
   size_t size2=checkArrays(pre2,point2);
@@ -2577,14 +2618,14 @@ realarray2 *solve(realarray2 *a, realarray2 *b=NULL)
   size_t col=0, row=0;
   // This is the main loop over the columns to be reduced.
   for(size_t i=0; i < n; i++) {
-    double big=0.0;
+    real big=0.0;
     // This is the outer loop of the search for a pivot element.
     for(size_t j=0; j < n; j++) {
       array *aj=read<array*>(a,j);
       if(pivot[j] != 1) {
 	for(size_t k=0; k < n; k++) {
 	  if(pivot[k] == 0) {
-	    double temp=fabs(read<double>(aj,k));
+	    real temp=fabs(read<real>(aj,k));
 	    if(temp >= big) {
 	      big=temp;
 	      row=j;
@@ -2605,15 +2646,15 @@ realarray2 *solve(realarray2 *a, realarray2 *b=NULL)
     if(row != col) {
       array *arow=read<array*>(a,row);
       for(size_t l=0; l < n; l++) {
-	double temp=read<double>(arow,l);
-	(*arow)[l]=read<double>(acol,l);
+	real temp=read<real>(arow,l);
+	(*arow)[l]=read<real>(acol,l);
 	(*acol)[l]=temp;
       }
       if(m) {
 	array *brow=read<array*>(b,row);
 	for(size_t l=0; l < m; l++) {
-	  double temp=read<double>(brow,l);
-	  (*brow)[l]=read<double>(bcol,l);
+	  real temp=read<real>(brow,l);
+	  (*brow)[l]=read<real>(bcol,l);
 	  (*bcol)[l]=temp;
 	}
       }
@@ -2624,29 +2665,29 @@ realarray2 *solve(realarray2 *a, realarray2 *b=NULL)
       Col[i]=col;
     }
     // Divide the pivot row by the pivot element.
-    double denom=read<double>(acol,col);
+    real denom=read<real>(acol,col);
     if(denom == 0.0) {
       solveDeallocate();
       error(singular);
     }
-    double pivinv=1.0/denom;
+    real pivinv=1.0/denom;
     (*acol)[col]=1.0;
     for(size_t l=0; l < n; l++) 
-      (*acol)[l]=read<double>(acol,l)*pivinv;
+      (*acol)[l]=read<real>(acol,l)*pivinv;
     for(size_t l=0; l < m; l++)
-      (*bcol)[l]=read<double>(bcol,l)*pivinv;
+      (*bcol)[l]=read<real>(bcol,l)*pivinv;
     
     // Reduce all rows except for the pivoted one.
     for(size_t k=0; k < n; k++) {
       if(k != col) { 
 	array *ak=read<array*>(a,k);
-	double dum=read<double>(ak,col);
+	real dum=read<real>(ak,col);
 	(*ak)[col]=0.0;
 	for(size_t l=0; l < n; l++)
-	  (*ak)[l]=read<double>(ak,l)-read<double>(acol,l)*dum;
+	  (*ak)[l]=read<real>(ak,l)-read<real>(acol,l)*dum;
 	array *bk=m ? read<array*>(b,k) : 0;
 	for(size_t l=0; l < m; l++)
-	  (*bk)[l]=read<double>(bk,l)-read<double>(bcol,l)*dum;
+	  (*bk)[l]=read<real>(bk,l)-read<real>(bcol,l)*dum;
       }
     }
   }
@@ -2660,8 +2701,8 @@ realarray2 *solve(realarray2 *a, realarray2 *b=NULL)
       if(r != c) {
 	for(size_t k=0; k < n; k++) {
 	  array *ak=read<array*>(a,k);
-	  double temp=read<double>(ak,r);
-	  (*ak)[r]=read<double>(ak,c);
+	  real temp=read<real>(ak,r);
+	  (*ak)[r]=read<real>(ak,c);
 	  (*ak)[c]=temp;
 	}
       }
@@ -2691,84 +2732,84 @@ realarray *tridiagonal(realarray *a, realarray *b, realarray *c, realarray *f)
   if(n == 0) return up;
   
   // Special case: zero Dirichlet boundary conditions
-  if(read<double>(a,0) == 0.0 && read<double>(c,n-1) == 0.0) {
-    double temp=read<double>(b,0);
+  if(read<real>(a,0) == 0.0 && read<real>(c,n-1) == 0.0) {
+    real temp=read<real>(b,0);
     if(temp == 0.0) dividebyzero();
     temp=1.0/temp;
     
-    double *work=new double[n];
-    u[0]=read<double>(f,0)*temp;
-    work[0]=-read<double>(c,0)*temp;
+    real *work=new real[n];
+    u[0]=read<real>(f,0)*temp;
+    work[0]=-read<real>(c,0)*temp;
 	
     for(size_t i=1; i < n; i++) {
-      double temp=(read<double>(b,i)+read<double>(a,i)*work[i-1]);
+      real temp=(read<real>(b,i)+read<real>(a,i)*work[i-1]);
       if(temp == 0.0) {delete[] work; dividebyzero();}
       temp=1.0/temp;
-      u[i]=(read<double>(f,i)-read<double>(a,i)*read<double>(u,i-1))*temp;
-      work[i]=-read<double>(c,i)*temp;
+      u[i]=(read<real>(f,i)-read<real>(a,i)*read<real>(u,i-1))*temp;
+      work[i]=-read<real>(c,i)*temp;
     }
 
     for(size_t i=n-1; i >= 1; i--)
-      u[i-1]=read<double>(u,i-1)+work[i-1]*read<double>(u,i);
+      u[i-1]=read<real>(u,i-1)+work[i-1]*read<real>(u,i);
     
     delete[] work;
     return up;
   }
   
-  double binv=read<double>(b,0);
+  real binv=read<real>(b,0);
   if(binv == 0.0) dividebyzero();
   binv=1.0/binv;
   
-  if(n == 1) {u[0]=read<double>(f,0)*binv; return up;}
+  if(n == 1) {u[0]=read<real>(f,0)*binv; return up;}
   if(n == 2) {
-    double factor=(read<double>(b,0)*read<double>(b,1)-
-		   read<double>(a,0)*read<double>(c,1));
+    real factor=(read<real>(b,0)*read<real>(b,1)-
+		   read<real>(a,0)*read<real>(c,1));
     if(factor== 0.0) dividebyzero();
     factor=1.0/factor;
-    double temp=(read<double>(b,0)*read<double>(f,1)-
-	  read<double>(c,1)*read<double>(f,0))*factor;
-    u[0]=(read<double>(b,1)*read<double>(f,0)-
-	  read<double>(a,0)*read<double>(f,1))*factor;
+    real temp=(read<real>(b,0)*read<real>(f,1)-
+	  read<real>(c,1)*read<real>(f,0))*factor;
+    u[0]=(read<real>(b,1)*read<real>(f,0)-
+	  read<real>(a,0)*read<real>(f,1))*factor;
     u[1]=temp;
     return up;
   }
 	
-  double *gamma=new double[n-2];
-  double *delta=new double[n-2];
+  real *gamma=new real[n-2];
+  real *delta=new real[n-2];
   
-  gamma[0]=read<double>(c,0)*binv;
-  delta[0]=read<double>(a,0)*binv;
-  u[0]=read<double>(f,0)*binv;
-  double beta=read<double>(c,n-1);
-  double fn=read<double>(f,n-1)-beta*read<double>(u,0);
-  double alpha=read<double>(b,n-1)-beta*delta[0];
+  gamma[0]=read<real>(c,0)*binv;
+  delta[0]=read<real>(a,0)*binv;
+  u[0]=read<real>(f,0)*binv;
+  real beta=read<real>(c,n-1);
+  real fn=read<real>(f,n-1)-beta*read<real>(u,0);
+  real alpha=read<real>(b,n-1)-beta*delta[0];
 
   for(size_t i=1; i <= n-3; i++) {
-    double alphainv=read<double>(b,i)-read<double>(a,i)*gamma[i-1];
+    real alphainv=read<real>(b,i)-read<real>(a,i)*gamma[i-1];
     if(alphainv == 0.0) {delete[] gamma; delete[] delta; dividebyzero();}
     alphainv=1.0/alphainv;
     beta *= -gamma[i-1];
-    gamma[i]=read<double>(c,i)*alphainv;
-    u[i]=(read<double>(f,i)-read<double>(a,i)*read<double>(u,i-1))*alphainv;
-    fn -= beta*read<double>(u,i);
-    delta[i]=-read<double>(a,i)*delta[i-1]*alphainv;
+    gamma[i]=read<real>(c,i)*alphainv;
+    u[i]=(read<real>(f,i)-read<real>(a,i)*read<real>(u,i-1))*alphainv;
+    fn -= beta*read<real>(u,i);
+    delta[i]=-read<real>(a,i)*delta[i-1]*alphainv;
     alpha -= beta*delta[i];
   }
 	
-  double alphainv=read<double>(b,n-2)-read<double>(a,n-2)*gamma[n-3];
+  real alphainv=read<real>(b,n-2)-read<real>(a,n-2)*gamma[n-3];
   if(alphainv == 0.0) {delete[] gamma; delete[] delta; dividebyzero();}
   alphainv=1.0/alphainv;
-  u[n-2]=(read<double>(f,n-2)-read<double>(a,n-2)*read<double>(u,n-3))
+  u[n-2]=(read<real>(f,n-2)-read<real>(a,n-2)*read<real>(u,n-3))
     *alphainv;
-  beta=read<double>(a,n-1)-beta*gamma[n-3];
-  double dnm1=(read<double>(c,n-2)-read<double>(a,n-2)*delta[n-3])*alphainv;
-  double temp=alpha-beta*dnm1;
+  beta=read<real>(a,n-1)-beta*gamma[n-3];
+  real dnm1=(read<real>(c,n-2)-read<real>(a,n-2)*delta[n-3])*alphainv;
+  real temp=alpha-beta*dnm1;
   if(temp == 0.0) {delete[] gamma; delete[] delta; dividebyzero();}
-  u[n-1]=temp=(fn-beta*read<double>(u,n-2))/temp;
-  u[n-2]=read<double>(u,n-2)-dnm1*temp;
+  u[n-1]=temp=(fn-beta*read<real>(u,n-2))/temp;
+  u[n-2]=read<real>(u,n-2)-dnm1*temp;
 	
   for(size_t i=n-2; i >= 1; i--)
-    u[i-1]=read<double>(u,i-1)-gamma[i-1]*read<double>(u,i)-delta[i-1]*temp;
+    u[i-1]=read<real>(u,i-1)-gamma[i-1]*read<real>(u,i)-delta[i-1]*temp;
   
   delete[] gamma;
   delete[] delta;

@@ -1,4 +1,3 @@
-import math;
 import graph;
 size(0,100);
 

@@ -26,7 +26,6 @@
 % GNU General Public License for more details.
 */
 
-private import math;
 private import metapost;
 
 public pen background = gray(0.987);

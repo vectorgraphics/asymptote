@@ -24,3 +24,13 @@ directory and repeat the commands make all and make install.
 For a list of configure options, type
 
 configure --help
+
+Optional packages:
+
+* Fast Fourier Transform library
+  http://www.fftw.org/
+
+  Version requirement >= 3.0
+
+* The GNU Scientific Library for numerical analysis:
+  http://www.gnu.org/software/gsl/

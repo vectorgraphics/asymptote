@@ -1,5 +1,4 @@
 size(250);
-import math;
 
 real a=3;
 real b=4;

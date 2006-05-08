@@ -31,14 +31,14 @@ CFLAGS = @CPPFLAGS@ @CFLAGS@
 OPTS = $(DEFS) $(CFLAGS)
 INCL = -I . @INCL@
 
-prefix = $(DESTDIR)@prefix@
+prefix = @prefix@
 exec_prefix = @exec_prefix@
-bindir = @bindir@
-mandir = @mandir@
-datadir = @datadir@
+bindir = $(DESTDIR)@bindir@
+mandir = $(DESTDIR)@mandir@
+datadir = $(DESTDIR)@datadir@
 asydir = $(datadir)/asymptote
-docdir = $(datadir)/doc/asymptote
-exampledir = $(docdir)
+docdir = $(datadir)/doc/asymptote-@VERSION@
+exampledir = $(docdir)/examples
 animationsdir = $(exampledir)/animations
 latexdir = $(DESTDIR)@latexdir@
 INSTALL = @INSTALL@
@@ -93,7 +93,7 @@ install-all: install-asy install-doc
 install-asy: asy
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
 	-${INSTALL} -d $(latexdir)
-	${INSTALL} -p -m 755 -s $(NAME) $(bindir)
+	${INSTALL} -p -m 755 $(NAME) $(bindir)
 	${INSTALL} -p -m 755 $(XNAME) $(bindir)
 	${INSTALL} -p -m 644 base/*.asy $(asydir)
 	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps base/asy* \

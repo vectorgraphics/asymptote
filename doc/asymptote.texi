@@ -271,7 +271,7 @@ texhash
 
 @noindent
 Example code will be installed by default in
-@code{/usr/local/share/doc/asymptote}. 
+@code{@value{Datadir}/doc/asymptote-x.xx/examples}. 
 
 @cindex Debian
 @noindent
@@ -549,7 +549,7 @@ Users of @code{emacs} can edit @code{Asymptote} code with the mode
 @code{asy-mode}, after enabling it by putting these two lines in the
 @code{~/.emacs} initialization file, replacing @code{ASYDIR} with the
 location of the @code{Asymptote} example files (by default,
-@code{@value{Datadir}/doc/asymptote} or 
+@code{@value{Datadir}/doc/asymptote-@value{VERSION}/examples} or 
 @code{c:\Program Files\Asymptote\examples}):
 @verbatim
 (autoload 'asy-mode "ASYDIR/asy-mode.el" "Asymptote major mode." t)
@@ -562,7 +562,7 @@ location of the @code{Asymptote} example files (by default,
 Fans of @code{vim} can customize @code{vim} for @code{Asymptote} with
 
 @noindent
-@code{cp @value{Datadir}/doc/asymptote/asy.vim ~/.vim/syntax/asy.vim}
+@code{cp @value{Datadir}/doc/asymptote-@value{VERSION}/asy.vim ~/.vim/syntax/asy.vim}
 
 @noindent
 and add the following to their @code{~/.vimrc} file:
@@ -875,14 +875,11 @@ produces the result 5. A synonym for @code{length(pair)} is @code{abs(pair)};
 returns the angle of @code{z} in radians in the interval 
 [-@code{pi},@code{pi}];
 
-@item real degrees(pair z)
+@item real degrees(pair z, bool warn=true)
 @cindex @code{degrees}
-returns the angle of @code{z} in degrees in the interval [0,360);
-
-@item real Degrees(pair z)
-@cindex @code{degrees}
-returns the angle of @code{z} in degrees in the interval [0,360),
-or @code{0} if @code{z.x=z.y=0} (rather than producing an error); 
+returns the angle of @code{z} in degrees in the interval [0,360)
+or @code{0} if @code{warn} is false and @code{z.x=z.y=0} (rather than
+producing an error);
 
 @item pair unit(pair z)
 @cindex @code{unit}
@@ -948,14 +945,11 @@ returns the colatitude of @code{v} measured from the @math{z} axis in degrees;
 @cindex @code{latitude}
 returns the latitude of @code{v} measured from the @math{xy} plane in degrees;
 
-@item real longitude(triple v)
+@item real longitude(triple v, bool warn=true)
 @cindex @code{longitude}
-returns the longitude of @code{v} measured from the @math{x} axis in degrees;
-
-@item real Longitude(triple v)
-@cindex @code{Longitude}
-returns the longitude of @code{v} in degrees, or @code{0} if
-@code{v.x=v.y=0} (rather than producing an error); 
+returns the longitude of @code{v} measured from the @math{x} axis
+or @code{0} if @code{warn} is false and @code{v.x=v.y=0} (rather than
+producing an error);
 
 @item triple unit(triple v)
 @cindex @code{unit}
@@ -3071,16 +3065,22 @@ the error function @code{erf}, and the complementary error function
 @code{erfc}. The standard real(real, real) functions @code{atan2},
 @code{hypot}, @code{fmod}, @code{remainder} are also included.
 
+@cindex @code{degrees}
+@cindex @code{radians}
+@cindex @code{Degrees}
+The functions @code{degrees(real radians)} and @code{radians(real degrees)}
+can be used to convert between radians and degrees. The function
+@code{Degrees(real radians)} returns the angle in degrees in the
+interval [0,360).
 @cindex @code{Sin}
 @cindex @code{Cos}
 @cindex @code{Tan}
 @cindex @code{aSin}
 @cindex @code{aCos}
 @cindex @code{aTan}
-For convenience, the module @code{math.asy} defines variants
-@code{Sin}, @code{Cos}, @code{Tan}, @code{aSin}, @code{aCos}, and
-@code{aTan} of the standard trigonometric functions using degrees
-rather than radians.
+For convenience, @code{Asymptote} defines variants @code{Sin},
+@code{Cos}, @code{Tan}, @code{aSin}, @code{aCos}, and @code{aTan} of
+the standard trigonometric functions using degrees rather than radians.
 
 @cindex @code{floor}
 @cindex @code{ceil}
@@ -4377,9 +4377,8 @@ sizing of pictures.
 @section @code{math}
 @cindex @code{math}
 This package extends @code{Asymptote}'s mathematical capabilities with
-radian/degree conversion routines, point-in-polygon and intersection
-algorithms, matrix arithmetic and inversion, and a linear
-equation solver (via Gauss-Jordan elimination).
+point-in-polygon and intersection algorithms, matrix arithmetic and
+inversion, and a linear equation solver (via Gauss-Jordan elimination).
 
 @cindex @code{implicit linear solver}
 @cindex @code{MetaPost whatever}
@@ -5960,7 +5959,7 @@ backends, this driver includes native clipping, even-odd fill rule,
 For example, try:
 
 @noindent
-@code{asy -V @value{Datadir}/doc/asymptote/venn.asy}
+@code{asy -V @value{Datadir}/doc/asymptote-@value{VERSION}/venn.asy}
 @noindent
 @verbatim
 pstoedit -f asy venn.eps test.asy

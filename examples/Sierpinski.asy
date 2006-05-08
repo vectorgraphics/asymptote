@@ -1,11 +1,9 @@
 size(10cm);
 
-static pair z=(1,sqrt(2));
-
 // Draw Sierpinski triangle with top vertex A, side s, and depth q.
 void Sierpinski(pair A, real s, int q, bool top=true)
 {
-  pair B=A-z*s/2;
+  pair B=A-(1,sqrt(2))*s/2;
   pair C=B+s;
   if(top) draw(A--B--C--cycle);
   draw((A+B)/2--(B+C)/2--(A+C)/2--cycle);

@@ -24,7 +24,7 @@ guide3[] cylinder(guide3 base, real h, triple axis=Z,
     triple a=O;
     for(int i=0; i < n; ++i) {
       pair z=project(a+axis,P)-project(a,P);
-      real angle=Degrees(z)-90;
+      real angle=degrees(z,warn=false)-90;
       path g=rotate(-angle)*face;
       pair M=max(g);
       pair m=min(g);

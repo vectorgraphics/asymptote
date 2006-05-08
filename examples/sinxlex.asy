@@ -1,4 +1,3 @@
-import math;
 import geometry;
 
 size(0,100);

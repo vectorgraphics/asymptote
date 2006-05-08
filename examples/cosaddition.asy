@@ -1,5 +1,4 @@
 size(0,200);
-import math;
 import geometry;
 
 real A=130;

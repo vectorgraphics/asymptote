@@ -1,23 +1,5 @@
 // Asymptote mathematics routines
 
-real radians(real degrees)
-{
-  return degrees*pi/180;
-}
-
-real degrees(real radians) 
-{
-  return radians*180/pi;
-}
-
-// Convert radians to degrees in [0,360).
-real Degrees(real radians) 
-{
-  real deg=degrees(radians);
-  if(deg < 0) deg += 360; 
-  return deg;
-}
-
 int quadrant(real degrees)
 {
   return floor(degrees/90) % 4;
@@ -29,12 +11,6 @@ pair unityroot(int n, int k = 1)
   return expi(2pi*k/n);
 }
 
-real Sin(real deg) {return sin(radians(deg));}
-real Cos(real deg) {return cos(radians(deg));}
-real Tan(real deg) {return tan(radians(deg));}
-real aSin(real x) {return degrees(asin(x));}
-real aCos(real x) {return degrees(acos(x));}
-real aTan(real x) {return degrees(atan(x));}
 real csc(real x) {return 1/sin(x);}
 real sec(real x) {return 1/cos(x);}
 real cot(real x) {return tan(pi/2-x);}

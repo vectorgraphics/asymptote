@@ -1828,8 +1828,8 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
 path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
 {
   v1 -= c; v2 -= c;
-  return arc(c,abs(v1),colatitude(v1),Longitude(v1),
-	     colatitude(v2),Longitude(v2),direction);
+  return arc(c,abs(v1),colatitude(v1),longitude(v1,warn=false),
+	     colatitude(v2),longitude(v2,warn=false),direction);
 }
 
 public real epsilon=1000*realEpsilon;
