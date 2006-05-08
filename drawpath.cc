@@ -40,13 +40,15 @@ double PatternLength(double arclength, std::vector<double>& pat,
   double terminator=((p.cyclic() && arclength >= 0.5*sum) ? 0.0 : pat[0]);
   int ncycle=(int)((arclength-terminator)/sum+0.5);
 
-  return ncycle > 0 ? ncycle*sum+terminator : 0.0;
+  return (ncycle >= 1 || terminator >= 0.75*arclength) ? 
+    ncycle*sum+terminator : 0.0;
 }
 
 void drawPath::adjustdash(pen& pen0)
 {
   // Adjust dash sizes to fit arclength; also compensate for linewidth.
   string stroke=pen0.stroke();
+  
   if(!stroke.empty() && pen0.linetype().adjust) {
     double arclength=p.arclength();
     
@@ -61,13 +63,13 @@ void drawPath::adjustdash(pen& pen0)
         }
       }
       
-      double denom=PatternLength(arclength,pat,pen0,p);
+      size_t n=pat.size();
+      if(n == 0) return;
       
-      if(denom == 0.0) return; // Otherwise, we know n > 0.
+      double denom=PatternLength(arclength,pat,pen0,p);
       
       double factor=denom != 0.0 ? arclength/denom : 1.0;
       ostringstream buf;
-      size_t n=pat.size();
       for(unsigned int i=0; i < n; i++) buf << pat[i]*factor << " ";
       pen0.setstroke(buf.str());
     }
