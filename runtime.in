@@ -2165,8 +2165,7 @@ string VERSION()
 void quiet(bool v)
 {
   Setting("interactiveView")=
-    Setting("batchView")=
-    Setting("oneFileView")=!v;
+    Setting("batchView")=!v;
 }
 
 void atexit(callable *f)

@@ -251,7 +251,10 @@ struct itemSetting : public setting {
 
 item& Setting(string name) {
   itemSetting *s=dynamic_cast<itemSetting *>(optionsMap[name]);
-  assert(s);
+  if(!s) {
+    cerr << "Cannot find setting named '" << name << "'" << endl;
+    exit(-1);
+  }
   return s->value;
 }
   
