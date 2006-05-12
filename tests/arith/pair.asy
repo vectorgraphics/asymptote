@@ -1,0 +1,20 @@
+import TestLib;
+
+StartTest("complex addition");
+Assert((1,0)+(0,1)==(1,1));
+EndTest();
+StartTest("complex subtraction");
+Assert((1,0)-(0,1)==(1,-1));
+EndTest();
+StartTest("complex multiplication");
+Assert((1,2)*(2,1)==(0,5));
+EndTest();
+StartTest("complex division");
+Assert((0,5)/(2,1)==(1,2));
+EndTest();
+StartTest("length(pair)");
+Assert(length((0.0,1.0)) == 1.0);
+EndTest();
+StartTest("conj()");
+Assert(conj((0.0,1.0))==(0.0, -1.0));
+EndTest();

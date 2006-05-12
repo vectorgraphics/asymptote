@@ -1,0 +1,11 @@
+import TestLib;
+triple t = (1,0,0);
+StartTest("polar()");
+Assert(polar(t) == (pi / 2.0) );
+EndTest();
+StartTest("azimuth()");
+Assert(azimuth(t) < realEpsilon);
+EndTest();
+StartTest("unit()");
+Assert(length(t-unit(t)) < realEpsilon);
+EndTest();
