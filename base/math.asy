@@ -261,8 +261,14 @@ void nonsquare()
 
 real determinant(real[][] m)
 {
+  real epsilon=10*realEpsilon;
   int n=m.length;
   
+  if(n == 1) {
+    if(square(m)) return m[0][0];
+    else nonsquare();
+  }
+
   if(n == 2) {
     if(square2(m)) return m[0][0]*m[1][1]-m[0][1]*m[1][0];
     nonsquare();
@@ -276,8 +282,56 @@ real determinant(real[][] m)
     nonsquare();
   }
   
-  if(square(m)) 
-    abort("determinant of a general matrix is not yet implemented");
+  //general case. LU decomposition (doolittle).
+  if(square(m)) {    
+    real[][] lu=new real[n][n];   //container for L and U
+
+    //vector with row numbers (for pivoting)
+    int[] row=new int[n];
+    for (int q=0; q < n; ++q) row[q]=q;
+    
+    int swap=1;           //swap counter for -1 multiplier
+
+    //lu decomposition.
+    for(int i=0; i < n-1; ++i){
+       
+      //pivoting
+      for (int k=i+1; k < n; ++k) { 
+        if ( fabs(m[row[k]][i]) > fabs(m[row[i]][i]) ) {
+          int t=row[i];
+          row[i]=row[k];
+          row[k]=t;
+          swap *= -1;
+        }
+      }
+
+      //row of U
+      for(int j=i; j < n; ++j){
+        real s=0;
+        for(int k=0; k < i; ++k) s += lu[row[k]][j]*lu[row[i]][k]; 
+        lu[row[i]][j]=m[row[i]][j]-s;
+      }
+
+      //column of L
+      for(int j=i+1; j < n; ++j){
+        real s=0;
+        for(int k=0; k < i; ++k) s += lu[row[j]][k]*lu[row[k]][i];
+        if (fabs(lu[row[i]][i]) < epsilon) return 0; //singular
+        lu[row[j]][i]=(m[row[j]][i]-s)/lu[row[i]][i];
+      }
+    }
+   
+    //last entry of U
+    real s=0;
+    for(int k=0; k < n-1; ++k) s += lu[row[k]][n-1]*lu[row[n-1]][k]; 
+    lu[row[n-1]][n-1]=m[row[n-1]][n-1]-s;
+
+    //computing determinant
+    real det=swap;
+    for (int i=0; i < n; ++i) det *= lu[row[i]][i];
+
+    return det;
+  }       
   else
     nonsquare();
   return 0;
