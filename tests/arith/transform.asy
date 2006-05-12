@@ -1,0 +1,25 @@
+import TestLib;
+pair x = (1, 2);
+StartTest("identity transform");
+Assert(identity()*x == x);
+EndTest();
+StartTest("shift transform");
+Assert(shift((1,1))*x == (2, 3));
+Assert(shift(1,1)*x == (2, 3));
+EndTest();
+StartTest("scaling transforms");
+Assert(xscale(2)*x == (2, 2));
+Assert(yscale(2)*x == (1, 4));
+Assert(scale(2)*x == (2, 4));
+EndTest();
+StartTest("slant transform");
+Assert(slant(1)*x == (3, 2));
+EndTest();
+StartTest("rotation transform");
+Assert(length((rotate(90)*x) - (-2,1)) <= realEpsilon);
+Assert(rotate(90, x)*x == x);
+EndTest();
+StartTest("reflect transform");
+Assert(reflect((-1, -1), (1, 1))*x == (2, 1));
+EndTest();
+
