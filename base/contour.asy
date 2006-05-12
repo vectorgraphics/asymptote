@@ -97,14 +97,16 @@ private void checktriangle (picture pic, pen penn, pair[] pts, real[] vls)
 
 /* contouring using a triangle mesh
 *  pic         - picture
-*  penn        - pen
 *  func        - function for which we are finding contours
 *  cl          - contour level
 *  x0,x1,y0,y1 - vertices of rectangle on which we work
 *  xn,yn       - cuts on each axis (i.e. accuracy)
 *  drawgrid    - whether or not to draw the grid (!!TO DECIDE - rectangles, or triangles, or not include at all?)
+*  p            - pen
 */
-public void contour(picture pic=currentpicture, pen penn=currentpen, real func(real, real), real cl, real x0, real x1, real y0, real y1, int xn=xndefault, int yn=yndefault, bool drawgrid=griddflt)
+void contour(picture pic=currentpicture, real func(real, real), real cl,
+	     real x0, real x1, real y0, real y1, int xn=xndefault,
+	     int yn=yndefault, bool drawgrid=griddflt, pen p=currentpen)
 {    
   //check if boundaries are good
   if( (x0 == x1) || (y0 == y1) ) abort("bad area of contouring - give distinct points on each axis");
@@ -150,10 +152,10 @@ public void contour(picture pic=currentpicture, pen penn=currentpen, real func(r
       pair middle=(x0+(x1-x0)*(col+1/2)/xn,y0+(y1-y0)*(row+1/2)/yn);
 
       //go through the triangles
-      checktriangle(pic,penn,new pair[]{tleft, tright, middle},new real[]{vertdat[2],vertdat[3],vertdat[4]});
-      checktriangle(pic,penn,new pair[]{tright, bright, middle},new real[]{vertdat[3],vertdat[1],vertdat[4]});
-      checktriangle(pic,penn,new pair[]{bright, bleft, middle},new real[]{vertdat[1],vertdat[0],vertdat[4]});
-      checktriangle(pic,penn,new pair[]{bleft, tleft, middle},new real[]{vertdat[0],vertdat[2],vertdat[4]});
+      checktriangle(pic,p,new pair[]{tleft, tright, middle},new real[]{vertdat[2],vertdat[3],vertdat[4]});
+      checktriangle(pic,p,new pair[]{tright, bright, middle},new real[]{vertdat[3],vertdat[1],vertdat[4]});
+      checktriangle(pic,p,new pair[]{bright, bleft, middle},new real[]{vertdat[1],vertdat[0],vertdat[4]});
+      checktriangle(pic,p,new pair[]{bleft, tleft, middle},new real[]{vertdat[0],vertdat[2],vertdat[4]});
 
       //if flag is on, draw grid
       if(drawgrid){
