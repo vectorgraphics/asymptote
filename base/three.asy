@@ -102,7 +102,8 @@ transform3 reflect(triple u, triple v, triple w)
     abort("points determining plane to reflect about cannot be colinear");
   transform3 basis=shift(u);
   if(normal.x != 0 || normal.y != 0)
-    basis *= rotate(longitude(normal),Z)*rotate(colatitude(normal),Y);
+    basis *= rotate(longitude(normal,warn=false),Z)*
+      rotate(colatitude(normal),Y);
   
   return basis*zscale3(-1)*inverse(basis);
 }
@@ -172,6 +173,8 @@ projection oblique(real angle=45)
   return P;
 }
 
+projection obliqueZ(real angle=45) {return oblique(angle);}
+
 projection obliqueX(real angle=45)
 {
   transform3 t=identity(4);
@@ -184,7 +187,7 @@ projection obliqueX(real angle=45)
   t[1][2]=1;
   t[2][2]=0;
   projection P;
-  P.init((c2,s2,1),t,identity(4));
+  P.init((1,c2,s2),t,identity(4));
   return P;
 }
 
@@ -198,11 +201,12 @@ projection obliqueY(real angle=45)
   t[1][2]=1;
   t[2][2]=0;
   projection P;
-  P.init((c2,s2,1),t,identity(4));
+  P.init((c2,-1,s2),t,identity(4));
   return P;
 }
 
-projection oblique=oblique(), obliqueX=obliqueX(), obliqueY=obliqueY();
+projection oblique=oblique();
+projection obliqueX=obliqueX(), obliqueY=obliqueY(), obliqueZ=obliqueZ();
 
 currentprojection=perspective(5,4,2);
 
@@ -1780,7 +1784,8 @@ path3 unitcircle3=X..Y..-X..-Y..cycle3;
 path3 circle(triple c, real r, triple normal=Z)
 {
   path3 p=scale3(r)*unitcircle3;
-  if(normal != Z) p=rotate(longitude(normal),Z)*rotate(colatitude(normal),Y)*p;
+  if(normal != Z) 
+    p=rotate(longitude(normal,warn=false),Z)*rotate(colatitude(normal),Y)*p;
   return shift(c)*p;
 }
 
@@ -1825,11 +1830,12 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
 
 // return an arc centered at c from triple v1 to v2 (assuming |v2-c|=|v1-c|),
 // drawing in the given direction.
+// The normal must be explicitly specified if c and the endpoints are colinear.
 path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
 {
   v1 -= c; v2 -= c;
   return arc(c,abs(v1),colatitude(v1),longitude(v1,warn=false),
-	     colatitude(v2),longitude(v2,warn=false),direction);
+	     colatitude(v2),longitude(v2,warn=false),normal,direction);
 }
 
 public real epsilon=1000*realEpsilon;
