@@ -2162,12 +2162,6 @@ string VERSION()
   return VERSION;
 }
 
-void quiet(bool v)
-{
-  Setting("interactiveView")=
-    Setting("batchView")=!v;
-}
-
 void atexit(callable *f)
 {
   atExitFunction=f;
