@@ -544,8 +544,8 @@ guide3 polargraph(real r(real,real), real theta(real), real phi(real),
 		  int n=ngraph, interpolate join=operator --)
 {
   return graph(join)(new triple(real t) {
-      return polar(r(theta(t),phi(t)),theta(t),phi(t));
-    },0,1,n);
+    return polar(r(theta(t),phi(t)),theta(t),phi(t));
+  },0,1,n);
 }
 
 // True arc
@@ -553,16 +553,19 @@ path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
 	  int ngraph=400)
 {
   return shift(c)*polargraph(new real(real theta, real phi){return r;},
-			     new real(real t){return interp(theta1,theta2,t);},
-			     new real(real t){return interp(phi1,phi2,t);},
+			     new real(real t){
+			       return radians(interp(theta1,theta2,t));},
+			     new real(real t){
+			       return radians(interp(phi1,phi2,t));},
 			     ngraph,operator ..);
 }
 
 // True circle
 path3 Circle(triple c, real r, triple normal=Z, int ngraph=400)
 {
-  path3 p=Arc(O,r,pi/2,0,pi/2,2pi,ngraph)..cycle3;
-  if(normal != Z) p=rotate(longitude(normal),Z)*rotate(colatitude(normal),Y)*p;
+  path3 p=Arc(O,r,90,0,90,360,ngraph)..cycle3;
+  if(normal != Z)
+    p=rotate(longitude(normal,warn=false),Z)*rotate(colatitude(normal),Y)*p;
   return shift(c)*p;
 
 }

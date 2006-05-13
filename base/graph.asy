@@ -1721,13 +1721,13 @@ void vectorfield(picture pic=currentpicture, path g, int n,
 // True arc
 guide Arc(pair c, real r, real angle1, real angle2, int ngraph=400)
 {
-  return shift(c)*polargraph(new real(real t){return r;},angle1,angle2,ngraph,
-			     operator ..);
+  return shift(c)*polargraph(new real(real t){return r;},radians(angle1),
+			     radians(angle2),ngraph,operator ..);
 }
 
 // True circle
 guide Circle(pair c, real r, int ngraph=400)
 {
-  return Arc(c,r,0,2pi,ngraph)..cycle;
+  return Arc(c,r,0,360,ngraph)..cycle;
 }
 
