@@ -838,7 +838,7 @@ public:
 };
 
 // Postfix expresions are illegal. This is caught here as we can give a
-// more meaningmore error message to the user, rather than a "parse
+// more meaningful error message to the user, rather than a "parse
 // error."
 class postfixExp : public exp {
   exp *dest;
