@@ -37,7 +37,7 @@ bindir = $(DESTDIR)@bindir@
 mandir = $(DESTDIR)@mandir@
 datadir = $(DESTDIR)@datadir@
 asydir = $(datadir)/asymptote
-docdir = $(datadir)/doc/asymptote-@VERSION@
+docdir = $(datadir)/doc/asymptote
 exampledir = $(docdir)/examples
 animationsdir = $(exampledir)/animations
 latexdir = $(DESTDIR)@latexdir@
@@ -95,8 +95,8 @@ install-asy: asy
 	-${INSTALL} -d $(latexdir)
 	${INSTALL} -p -m 755 $(NAME) $(bindir)
 	${INSTALL} -p -m 755 $(XNAME) $(bindir)
-	${INSTALL} -p -m 644 base/*.asy $(asydir)
-	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps base/asy* \
+	${INSTALL} -p -m 644 base/*.asy base/asy* $(asydir)
+	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps \
 		doc/*.asy doc/*.csv doc/*.dat doc/latexusage.tex $(exampledir)
 	${INSTALL} -p -m 644 examples/animations/*.asy $(animationsdir)
 	-${INSTALL} -p -m 644 doc/asymptote.sty $(latexdir)
@@ -120,7 +120,8 @@ uninstall-asy:
 	-cd $(exampledir); rm -f *.asy *.csv *.dat asy* piicon.eps \
 		latexusage.tex
 	-rmdir $(exampledir)
-	-cd $(asydir); rm -f *.asy
+	-rmdir $(docdir)
+	-cd $(asydir); rm -f *.asy asy*
 	-rmdir $(asydir)
 	-rm -f $(latexdir)/asymptote.sty
 	-rmdir $(latexdir)

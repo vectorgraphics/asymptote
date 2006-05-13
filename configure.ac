@@ -37,7 +37,7 @@ AC_MSG_NOTICE([Using $latexdir for LaTeX style file])
 AC_SUBST(latexdir)
 AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$Datadir/asymptote",
 	[System directory for global .asy files])
-AC_DEFINE_UNQUOTED(ASYMPTOTE_DOCDIR,"$Datadir/doc/asymptote-$VERSION",
+AC_DEFINE_UNQUOTED(ASYMPTOTE_DOCDIR,"$Datadir/doc/asymptote",
 	[Directory for documentation])
 
 AC_CONFIG_SRCDIR([absyn.cc])
