@@ -539,6 +539,8 @@ application *callExp::getApplication(coenv &e)
     for (size_t i = 0; i < args->size(); i++) {
       (*args)[i].val->trans(e);
     }
+    if (args->rest.val)
+      args->rest.val->trans(e);
     return 0;
   }
 
