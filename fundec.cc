@@ -221,21 +221,6 @@ void fundec::prettyprint(ostream &out, int indent)
   fun.prettyprint(out, indent);
 }
 
-function *fundec::opType(function *f)
-{
-  return new function(primBoolean(),types::formal(f,"a"),types::formal(f,"b"));
-
-}
-
-void fundec::addOps(coenv &e, record *r, function *f)
-{
-  function *ft = opType(f);
-  addVar(e,r,new varEntry(ft, new bltinAccess(run::boolFuncEq)),
-	 symbol::trans("=="));
-  addVar(e,r,new varEntry(ft, new bltinAccess(run::boolFuncNeq)),
-	 symbol::trans("!="));
-}
-
 void fundec::trans(coenv &e)
 {
   transAsField(e,0);
@@ -246,7 +231,9 @@ void fundec::transAsField(coenv &e, record *r)
   function *ft = fun.transType(e, true);
   assert(ft);
 
-  addOps(e,r,ft);
+  e.e.addFunctionOps(ft);
+  if (r)
+    r->e.addFunctionOps(ft);
   
   createVar(getPos(), e, r, id, ft, &fun);
 } 

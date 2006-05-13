@@ -46,6 +46,29 @@ trans::tyEntry *nameTy::transAsTyEntry(coenv &e)
 }
 
 
+void dimensions::prettyprint(ostream &out, int indent)
+{
+  prettyindent(out, indent);
+  out << "dimensions (" << depth << ")\n";
+}
+
+types::array *dimensions::truetype(types::ty *base)
+{
+  if (base->kind == ty_void) {
+    em->compiler(getPos());
+    *em << "can't declare array of type void";
+  }
+
+  assert(depth >= 1);
+  size_t d=depth;
+  types::array *a=new types::array(base); d--;
+  for (; d > 0; d--) {
+    a = new types::array(a);
+  }
+  return a;
+}
+
+
 void arrayTy::prettyprint(ostream &out, int indent)
 {
   prettyname(out, "arrayTy",indent);
@@ -54,84 +77,19 @@ void arrayTy::prettyprint(ostream &out, int indent)
   dims->prettyprint(out, indent+1);
 }
 
-function *arrayTy::opType(types::ty* t)
-{
-  return new function(primBoolean(),types::formal(t,"a"),types::formal(t,"b"));
-}
-
-function *arrayTy::arrayType(types::ty* t)
-{
-  return new function(t,types::formal(t,"a"));
-}
-
-function *arrayTy::array2Type(types::ty* t)
-{
-  return new function(t,types::formal(t,"a"),types::formal(t,"b"));
-}
-
-function *arrayTy::cellIntType(types::ty* t)
-{
-  return new function(t,primInt());
-}
-  
-function *arrayTy::sequenceType(types::ty* t, types::ty *ct)
-{
-  return new function(t,types::formal(cellIntType(ct),"f"),
-		      types::formal(primInt(),"n"));
-}
-
-function *arrayTy::cellTypeType(types::ty* t)
-{
-  return new function(t,t);
-}
-  
-function *arrayTy::mapType(types::ty* t, types::ty *ct)
-{
-  return new function(t,types::formal(cellTypeType(ct),"f"),
-		      types::formal(t,"a"));
-}
-
-void arrayTy::addOps(coenv &e, types::ty* t, types::ty *ct)
-{
-  function *ft = opType(t);
-  function *ftarray = arrayType(t);
-  function *ftarray2 = array2Type(t);
-  function *ftsequence = sequenceType(t,ct);
-  function *ftmap = mapType(t,ct);
-  
-  e.e.addVar(symbol::trans("alias"),
-      new varEntry(ft,new bltinAccess(run::arrayAlias)));
-
-  if(dims->size() == 1) {
-    e.e.addVar(symbol::trans("copy"),
-	       new varEntry(ftarray,new bltinAccess(run::arrayCopy)));
-    e.e.addVar(symbol::trans("concat"),
-	       new varEntry(ftarray2,new bltinAccess(run::arrayConcat)));
-    e.e.addVar(symbol::trans("sequence"),
-	       new varEntry(ftsequence,new bltinAccess(run::arraySequence)));
-    e.e.addVar(symbol::trans("map"),
-	       new varEntry(ftmap,new bltinAccess(run::arrayFunction)));
-  }
-  if(dims->size() == 2) {
-    e.e.addVar(symbol::trans("copy"),
-	       new varEntry(ftarray,new bltinAccess(run::array2Copy)));
-    e.e.addVar(symbol::trans("transpose"),
-	       new varEntry(ftarray,new bltinAccess(run::array2Transpose)));
-  }
-}
-
 types::ty *arrayTy::trans(coenv &e, bool tacit)
 {
   types::ty *ct = cell->trans(e, tacit);
   assert(ct);
 
-  types::ty *t = dims->truetype(ct);
+  types::array *t = dims->truetype(ct);
   assert(t);
   
-  addOps(e,t,ct);
+  e.e.addArrayOps(t);
   
   return t;
 }
+
 
 vm::lambda *runnable::transAsCodelet(coenv &e)
 {
@@ -708,29 +666,15 @@ void recorddec::prettyprint(ostream &out, int indent)
   body->prettyprint(out, indent+1);
 }
 
-function *recorddec::opType(record *r)
-{
-  return new function(primBoolean(),types::formal(r,"a"),
-		      types::formal(r,"b"));
-}
-
-void recorddec::addOps(coenv &e, record *parent, record *r)
-{
-  function *ft = opType(r);
-  varEntry *ve=new varEntry(ft, new bltinAccess(run::boolMemEq));
-  addVar(e,parent,ve,symbol::trans("alias"));
-  addVar(e,parent,ve,symbol::trans("=="));
-  addVar(e,parent,new varEntry(ft, new bltinAccess(run::boolMemNeq)),
-	 symbol::trans("!="));
-}
-
 void recorddec::transAsField(coenv &e, record *parent)
 {
   record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
                        e.c.newRecord(id);
                      
   addTypeWithPermission(e, parent, new trans::tyEntry(r,0), id);
-  addOps(e,parent,r);
+  e.e.addRecordOps(r);
+  if (parent)
+    parent->e.addRecordOps(r);
 
   // Start translating the initializer.
   coder c=e.c.newRecordInit(r);

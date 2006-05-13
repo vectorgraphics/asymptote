@@ -88,7 +88,7 @@ public:
     return depth;
   }
 
-  types::ty *truetype(types::ty *base);
+  types::array *truetype(types::ty *base);
 };
 
 class arrayTy : public ty {

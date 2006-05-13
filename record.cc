@@ -51,4 +51,21 @@ dummyRecord::dummyRecord(symbol *name)
   c.closeRecord();
 }
 
+dummyRecord::dummyRecord(string s)
+  : record (symbol::trans(s), new frame(0,0))
+{
+  // Encode the instructions to put an placeholder instance of the record on the
+  // stack.
+  trans::coder c(this, 0);
+  c.closeRecord();
+}
+
+void dummyRecord::add(string name, ty *t, trans::access *a) {
+  e.addVar(symbol::trans(name), new trans::varEntry(t, a)); 
+}
+
+void dummyRecord::add(string name, function *t, vm::bltin f) {
+  add(name, t, new trans::bltinAccess(f));
+}
+
 } // namespace types

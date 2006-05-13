@@ -236,6 +236,13 @@ struct array : public ty {
     return 1007 * celltype->hash();
   }
 
+  int depth() {
+    if (array *cell=dynamic_cast<array *>(celltype))
+      return cell->depth() + 1;
+    else
+      return 1;
+  }
+
   void print(ostream& out) const
     { out << *celltype << "[]"; }
 

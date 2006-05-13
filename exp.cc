@@ -702,26 +702,6 @@ types::ty *transformExp::trans(coenv &e)
   return types::primTransform();
 }
 
-void dimensions::prettyprint(ostream &out, int indent)
-{
-  prettyindent(out, indent);
-  out << "dimensions (" << depth << ")\n";
-}
-
-types::ty *dimensions::truetype(types::ty *base)
-{
-  if (base->kind == ty_void) {
-    em->compiler(getPos());
-    *em << "can't declare array of type void";
-    return primError();
-  }
-  for (size_t d = depth; d > 0; d--) {
-    base = new types::array(base);
-  }
-  return base;
-}
-
-
 void castExp::prettyprint(ostream &out, int indent)
 {
   prettyname(out, "castExp",indent);

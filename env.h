@@ -37,7 +37,8 @@ class genv;
 // the fields of a record, whereas the derived class env is used for unqualified
 // names in translation.
 class protoenv {
-protected:
+//protected:
+public:
   // These tables keep track of type and variable definitions.
   tenv te;
   venv ve;
@@ -129,6 +130,11 @@ public:
     return te.add(src, dest, source.te, qualifier, c) | 
            ve.add(src, dest, source.ve, qualifier, c);
   }
+
+  // Add the standard functions for a new type.
+  void addArrayOps(types::array *t);
+  void addRecordOps(types::record *r);
+  void addFunctionOps(types::function *f);
 
   // Add the fields and types of the record given in v to the local environment.
   void useRecord(varEntry *v);

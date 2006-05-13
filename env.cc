@@ -118,6 +118,21 @@ ty *protoenv::castSource(ty *target, ty *source, symbol *name) {
   return r.collect(target, source);
 } 
 
+void protoenv::addArrayOps(array *a)
+{
+  trans::addArrayOps(ve, a);
+}
+
+void protoenv::addRecordOps(record *r)
+{
+  trans::addRecordOps(ve, r);
+}
+
+void protoenv::addFunctionOps(function *f)
+{
+  trans::addFunctionOps(ve, f);
+}
+
 env::env(genv &ge)
   : ge(ge)
 {

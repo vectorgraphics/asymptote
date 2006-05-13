@@ -109,6 +109,11 @@ public:
 class dummyRecord : public record {
 public:
   dummyRecord(symbol *name);
+  dummyRecord(string s);
+
+  // Convenient functions for adding fields.
+  void add(string name, ty *t, trans::access *a);
+  void add(string name, function *t, vm::bltin f);
 };
 
 } //namespace types

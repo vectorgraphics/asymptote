@@ -323,11 +323,12 @@ void addCast(venv &ve, ty *target, ty *source, bltin f) {
 }
 
 template<class T>
-void addConstant(venv &ve, T value, ty *t, const char *name) {
+void addConstant(venv &ve, T value, ty *t, const char *name,
+                 record *module=settings::getSettingsModule()) {
   item* ref=new item;
   *ref=value;
   access *a = new itemRefAccess(ref);
-  varEntry *ent = new varEntry(t, a, READONLY, settings::getSettingsModule());
+  varEntry *ent = new varEntry(t, a, READONLY, module);
   ve.enter(symbol::trans(name), ent);
 }
 
@@ -515,6 +516,52 @@ void addOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, bool divide=true)
   addOps<T,power>(ve,t1,"^",t2);
 }
 
+
+// Adds standard functions for a newly added array type.
+void addArrayOps(venv &ve, types::array *t)
+{
+  ty *ct = t->celltype;
+  
+  addFunc(ve, run::arrayAlias,
+          primBoolean(), "alias", formal(t, "a"), formal(t, "b"));
+
+  switch (t->depth()) {
+  case 1:
+    addFunc(ve, run::arrayCopy, t, "copy", formal(t, "a"));
+    addFunc(ve, run::arrayConcat, t, "concat", formal(t, "a"), formal(t, "b"));
+    addFunc(ve, run::arraySequence,
+            t, "sequence", formal(new function(ct, primInt()), "f"),
+                           formal(primInt(), "n"));
+    addFunc(ve, run::arrayFunction,
+            t, "map", formal(new function(ct, ct), "f"), formal(t, "a"));
+    break;
+  case 2:
+    addFunc(ve, run::array2Copy, t, "copy", formal(t, "a"));
+    addFunc(ve, run::array2Transpose, t, "transpose", formal(t, "a"));
+    break;
+  default:
+    break;
+  }
+}
+
+void addRecordOps(venv &ve, record *r)
+{
+  addFunc(ve, run::boolMemEq, primBoolean(), "alias", types::formal(r, "a"),
+          types::formal(r, "b"));
+  addFunc(ve, run::boolMemEq, primBoolean(), "==", types::formal(r, "a"),
+          types::formal(r, "b"));
+  addFunc(ve, run::boolMemNeq, primBoolean(), "!=", types::formal(r, "a"),
+          types::formal(r, "b"));
+}
+
+void addFunctionOps(venv &ve, function *f)
+{
+  addFunc(ve, run::boolFuncEq, primBoolean(), "==", types::formal(f, "a"),
+          types::formal(f, "b"));
+  addFunc(ve, run::boolFuncNeq, primBoolean(), "!=", types::formal(f, "a"),
+          types::formal(f, "b"));
+}
+
 void addOperators(venv &ve) 
 {
   addSimpleOperator(ve,binaryOp<string,plus>,primString(),"+");
@@ -549,6 +596,14 @@ void addOperators(venv &ve)
   
   addOps<int,mod>(ve,primInt(),"%",intArray());
   addOps<double,mod>(ve,primReal(),"%",realArray());
+}
+
+dummyRecord *createDummyRecord(venv &ve, const char *name)
+{
+  dummyRecord *r=new dummyRecord(name);
+  addConstant(ve, new vm::frame(0), r, name);
+  addRecordOps(ve, r);
+  return r;
 }
 
 double identity(double x) {return x;}

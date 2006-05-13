@@ -222,12 +222,17 @@ struct setting : public option {
   virtual void add() {
     option::add();
 
+#if 0
     settingsModule->e.addVar(symbol::trans(name), buildVarEntry());
+#endif
+    settingsModule->add(name, t, buildAccess());
   }
 
+#if 0
   varEntry *buildVarEntry() {
     return new varEntry(t, buildAccess());
   }
+#endif
 };
 
 struct itemSetting : public setting {

@@ -30,6 +30,11 @@ void addFunc(venv &ve, vm::bltin f, types::ty *result, const char *name,
 	     types::formal f5=noformal, types::formal f6=noformal,
 	     types::formal f7=noformal, types::formal f8=noformal);
   
+// Adds standard functions for a newly added types.
+void addArrayOps(venv &ve, types::array *t);
+void addRecordOps(venv &ve, types::record *r);
+void addFunctionOps(venv &ve, types::function *f);
+
 } //namespace trans
 
 #endif //BUILTIN_H
