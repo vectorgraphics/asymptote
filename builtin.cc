@@ -241,7 +241,7 @@ void realRealIntGSL(vm::stack *s)
 
 // Add a GSL special function from the GNU GSL library
 template<double (*fcn)(double)>
-void addGSLRealFunc(venv &ve, const char* name)
+void addGSLRealFunc(const char* name)
 {
   addFunc(GSLModule->e.ve, realRealGSL<fcn>, primReal(), name,
 	  formal(primReal(),"x"));
@@ -249,42 +249,42 @@ void addGSLRealFunc(venv &ve, const char* name)
 
 // Add a GSL_PREC_DOUBLE GSL special function.
 template<double (*fcn)(double, gsl_mode_t)>
-void addGSLDOUBLEFunc(venv &ve, const char* name)
+void addGSLDOUBLEFunc(const char* name)
 {
   addFunc(GSLModule->e.ve, realRealDOUBLE<fcn>, primReal(), name,
 	  formal(primReal(),"x"));
 }
 
 template<double (*fcn)(double, double, gsl_mode_t)>
-void addGSLDOUBLE2Func(venv &ve, const char* name)
+void addGSLDOUBLE2Func(const char* name)
 {
   addFunc(GSLModule->e.ve, realRealRealDOUBLE<fcn>, primReal(), name, 
 	  formal(primReal(),"phi"), formal(primReal(),"k"));
 }
 
 template<double (*fcn)(unsigned int)>
-void addGSLIntFunc(venv &ve, const char* name)
+void addGSLIntFunc(const char* name)
 {
   addFunc(GSLModule->e.ve, realIntGSL<fcn>, primReal(), name,
 	  formal(primInt(),"s"));
 }
 
 template<double (*fcn)(int, double)>
-void addGSLIntRealFunc(venv &ve, const char* name, const char *arg1="n")
+void addGSLIntRealFunc(const char* name, const char *arg1="n")
 {
   addFunc(GSLModule->e.ve, realIntRealGSL<fcn>, primReal(), name,
 	  formal(primInt(),arg1), formal(primReal(),"x"));
 }
 
 template<double (*fcn)(double, double)>
-void addGSLRealRealFunc(venv &ve, const char* name)
+void addGSLRealRealFunc(const char* name)
 {
   addFunc(GSLModule->e.ve, realRealRealGSL<fcn>, primReal(), name,
 	  formal(primReal(),"nu"), formal(primReal(),"x"));
 }
 
 template<double (*fcn)(double, unsigned int)>
-void addGSLRealIntFunc(venv &ve, const char* name)
+void addGSLRealIntFunc(const char* name)
 {
   addFunc(GSLModule->e.ve, realRealIntGSL<fcn>, primReal(), name, 
 	  formal(primReal(),"nu"), formal(primInt(),"s"));
@@ -654,38 +654,38 @@ void base_venv(venv &ve)
   GSLModule=new types::dummyRecord(symbol::trans("gsl"));
   gsl_set_error_handler(GSLerrorhandler);
   
-  addGSLDOUBLEFunc<gsl_sf_airy_Ai>(ve,"Ai");
-  addGSLDOUBLEFunc<gsl_sf_airy_Bi>(ve,"Bi");
-  addGSLDOUBLEFunc<gsl_sf_airy_Ai_deriv>(ve,"Ai_deriv");
-  addGSLDOUBLEFunc<gsl_sf_airy_Bi_deriv>(ve,"Bi_deriv");
-  addGSLIntFunc<gsl_sf_airy_zero_Ai>(ve,"zero_Ai");
-  addGSLIntFunc<gsl_sf_airy_zero_Bi>(ve,"zero_Bi");
-  addGSLIntFunc<gsl_sf_airy_zero_Ai_deriv>(ve,"zero_Ai_deriv");
-  addGSLIntFunc<gsl_sf_airy_zero_Bi_deriv>(ve,"zero_Bi_deriv");
+  addGSLDOUBLEFunc<gsl_sf_airy_Ai>("Ai");
+  addGSLDOUBLEFunc<gsl_sf_airy_Bi>("Bi");
+  addGSLDOUBLEFunc<gsl_sf_airy_Ai_deriv>("Ai_deriv");
+  addGSLDOUBLEFunc<gsl_sf_airy_Bi_deriv>("Bi_deriv");
+  addGSLIntFunc<gsl_sf_airy_zero_Ai>("zero_Ai");
+  addGSLIntFunc<gsl_sf_airy_zero_Bi>("zero_Bi");
+  addGSLIntFunc<gsl_sf_airy_zero_Ai_deriv>("zero_Ai_deriv");
+  addGSLIntFunc<gsl_sf_airy_zero_Bi_deriv>("zero_Bi_deriv");
   
-  addGSLIntRealFunc<gsl_sf_bessel_In>(ve,"I");
-  addGSLIntRealFunc<gsl_sf_bessel_Kn>(ve,"K");
-  addGSLIntRealFunc<gsl_sf_bessel_jl>(ve,"j","l");
-  addGSLIntRealFunc<gsl_sf_bessel_yl>(ve,"y","l");
-  addGSLIntRealFunc<gsl_sf_bessel_il_scaled>(ve,"i_scaled","l");
-  addGSLIntRealFunc<gsl_sf_bessel_kl_scaled>(ve,"k_scaled","l");
-  addGSLRealRealFunc<gsl_sf_bessel_Jnu>(ve,"J");
-  addGSLRealRealFunc<gsl_sf_bessel_Ynu>(ve,"Y");
-  addGSLRealRealFunc<gsl_sf_bessel_Inu>(ve,"I");
-  addGSLRealRealFunc<gsl_sf_bessel_Knu>(ve,"K");
-  addGSLRealIntFunc<gsl_sf_bessel_zero_Jnu>(ve,"zero_J");
+  addGSLIntRealFunc<gsl_sf_bessel_In>("I");
+  addGSLIntRealFunc<gsl_sf_bessel_Kn>("K");
+  addGSLIntRealFunc<gsl_sf_bessel_jl>("j","l");
+  addGSLIntRealFunc<gsl_sf_bessel_yl>("y","l");
+  addGSLIntRealFunc<gsl_sf_bessel_il_scaled>("i_scaled","l");
+  addGSLIntRealFunc<gsl_sf_bessel_kl_scaled>("k_scaled","l");
+  addGSLRealRealFunc<gsl_sf_bessel_Jnu>("J");
+  addGSLRealRealFunc<gsl_sf_bessel_Ynu>("Y");
+  addGSLRealRealFunc<gsl_sf_bessel_Inu>("I");
+  addGSLRealRealFunc<gsl_sf_bessel_Knu>("K");
+  addGSLRealIntFunc<gsl_sf_bessel_zero_Jnu>("zero_J");
   
-  addGSLDOUBLE2Func<gsl_sf_ellint_E>(ve,"F");
-  addGSLDOUBLE2Func<gsl_sf_ellint_E>(ve,"E");
-  addGSLDOUBLE2Func<gsl_sf_ellint_E>(ve,"P");
+  addGSLDOUBLE2Func<gsl_sf_ellint_E>("F");
+  addGSLDOUBLE2Func<gsl_sf_ellint_E>("E");
+  addGSLDOUBLE2Func<gsl_sf_ellint_E>("P");
   
-  addGSLRealFunc<gsl_sf_expint_Ei>(ve,"Ei");
-  addGSLRealFunc<gsl_sf_Si>(ve,"Si");
-  addGSLRealFunc<gsl_sf_Ci>(ve,"Ci");
+  addGSLRealFunc<gsl_sf_expint_Ei>("Ei");
+  addGSLRealFunc<gsl_sf_Si>("Si");
+  addGSLRealFunc<gsl_sf_Ci>("Ci");
   
-  addGSLIntRealFunc<gsl_sf_legendre_Pl>(ve,"Pl","l");
+  addGSLIntRealFunc<gsl_sf_legendre_Pl>("Pl","l");
   
-  addGSLRealFunc<gsl_sf_zeta>(ve,"zeta");
+  addGSLRealFunc<gsl_sf_zeta>("zeta");
 #endif
   
   addFunc(ve,writestring,primVoid(),"write",
