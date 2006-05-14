@@ -162,6 +162,13 @@ void addRealFunc2(venv &ve, bltin fcn, const char *name)
 #ifdef HAVE_LIBGSL  
 bool GSLerror=false;
   
+types::dummyRecord *GSLModule;
+
+types::record *getGSLModule()
+{
+  return GSLModule;
+}
+
 inline void checkGSLerror()
 {
   if(GSLerror) {
@@ -236,48 +243,51 @@ void realRealIntGSL(vm::stack *s)
 template<double (*fcn)(double)>
 void addGSLRealFunc(venv &ve, const char* name)
 {
-  addFunc(ve, realRealGSL<fcn>, primReal(), name, formal(primReal(),"x"));
+  addFunc(GSLModule->e.ve, realRealGSL<fcn>, primReal(), name,
+	  formal(primReal(),"x"));
 }
 
 // Add a GSL_PREC_DOUBLE GSL special function.
 template<double (*fcn)(double, gsl_mode_t)>
 void addGSLDOUBLEFunc(venv &ve, const char* name)
 {
-  addFunc(ve, realRealDOUBLE<fcn>, primReal(), name, formal(primReal(),"x"));
+  addFunc(GSLModule->e.ve, realRealDOUBLE<fcn>, primReal(), name,
+	  formal(primReal(),"x"));
 }
 
 template<double (*fcn)(double, double, gsl_mode_t)>
 void addGSLDOUBLE2Func(venv &ve, const char* name)
 {
-  addFunc(ve, realRealRealDOUBLE<fcn>, primReal(), name, 
+  addFunc(GSLModule->e.ve, realRealRealDOUBLE<fcn>, primReal(), name, 
 	  formal(primReal(),"phi"), formal(primReal(),"k"));
 }
 
 template<double (*fcn)(unsigned int)>
 void addGSLIntFunc(venv &ve, const char* name)
 {
-  addFunc(ve, realIntGSL<fcn>, primReal(), name, formal(primInt(),"s"));
+  addFunc(GSLModule->e.ve, realIntGSL<fcn>, primReal(), name,
+	  formal(primInt(),"s"));
 }
 
 template<double (*fcn)(int, double)>
 void addGSLIntRealFunc(venv &ve, const char* name, const char *arg1="n")
 {
-  addFunc(ve, realIntRealGSL<fcn>, primReal(), name, formal(primInt(),arg1),
-	  formal(primReal(),"x"));
+  addFunc(GSLModule->e.ve, realIntRealGSL<fcn>, primReal(), name,
+	  formal(primInt(),arg1), formal(primReal(),"x"));
 }
 
 template<double (*fcn)(double, double)>
 void addGSLRealRealFunc(venv &ve, const char* name)
 {
-  addFunc(ve, realRealRealGSL<fcn>, primReal(), name, formal(primReal(),"nu"),
-	  formal(primReal(),"x"));
+  addFunc(GSLModule->e.ve, realRealRealGSL<fcn>, primReal(), name,
+	  formal(primReal(),"nu"), formal(primReal(),"x"));
 }
 
 template<double (*fcn)(double, unsigned int)>
 void addGSLRealIntFunc(venv &ve, const char* name)
 {
-  addFunc(ve, realRealIntGSL<fcn>, primReal(), name, formal(primReal(),"nu"),
-	  formal(primInt(),"s"));
+  addFunc(GSLModule->e.ve, realRealIntGSL<fcn>, primReal(), name, 
+	  formal(primReal(),"nu"), formal(primInt(),"s"));
 }
 
 // Handle GSL errors gracefully.
@@ -641,6 +651,7 @@ void base_venv(venv &ve)
   addRealFunc(identity);
   
 #ifdef HAVE_LIBGSL  
+  GSLModule=new types::dummyRecord(symbol::trans("gsl"));
   gsl_set_error_handler(GSLerrorhandler);
   
   addGSLDOUBLEFunc<gsl_sf_airy_Ai>(ve,"Ai");

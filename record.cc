@@ -45,8 +45,8 @@ trans::access *record::initializer() {
 dummyRecord::dummyRecord(symbol *name) 
   : record(name, new frame(0,0))
 {
-  // Encode the instructions to put an placeholder instance of the record on the
-  // stack.
+  // Encode the instructions to put an placeholder instance of the record
+  // on the stack.
   trans::coder c(this, 0);
   c.closeRecord();
 }
@@ -54,8 +54,8 @@ dummyRecord::dummyRecord(symbol *name)
 dummyRecord::dummyRecord(string s)
   : record (symbol::trans(s), new frame(0,0))
 {
-  // Encode the instructions to put an placeholder instance of the record on the
-  // stack.
+  // Encode the instructions to put an placeholder instance of the record
+  // on the stack.
   trans::coder c(this, 0);
   c.closeRecord();
 }

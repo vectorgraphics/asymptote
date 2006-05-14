@@ -35,6 +35,8 @@ void addArrayOps(venv &ve, types::array *t);
 void addRecordOps(venv &ve, types::record *r);
 void addFunctionOps(venv &ve, types::function *f);
 
+types::record *getGSLModule();
+  
 } //namespace trans
 
 #endif //BUILTIN_H

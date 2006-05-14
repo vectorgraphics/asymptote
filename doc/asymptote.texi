@@ -3115,7 +3115,7 @@ and the integer @code{randMax}. A Gaussian random number generator
 @code{histogram}, are provided in the base file @code{stats.asy}.
 
 @cindex GNU Scientific Library
-@cindex @code{GSL}
+@cindex @code{gsl}
 @cindex Airy
 @cindex Bessel
 @cindex Legendre
@@ -3146,10 +3146,11 @@ and the integer @code{randMax}. A Gaussian random number generator
 @cindex @code{Ci}
 @cindex @code{Pl}
 @cindex @code{zeta}
-If compiled with the GNU Scientific Library
-(@url{http://www.gnu.org/software/gsl/}),
-the airy functions @code{Ai(real)}, @code{Bi(real)},
-@code{Ai_deriv(real)}, @code{Bi_deriv(real)},
+When configured with the GNU Scientific Library (GSL), available from
+@url{http://www.gnu.org/software/gsl/},
+@code{Asymptote} contains an internal module @code{gsl} that
+defines the airy functions @code{Ai(real)}, 
+@code{Bi(real)}, @code{Ai_deriv(real)}, @code{Bi_deriv(real)},
 @code{zero_Ai(int)}, @code{zero_Bi(int)},
 @code{zero_Ai_deriv(int)}, @code{zero_Bi_deriv(int)}, the Bessel functions
 @code{I(int, real)}, @code{K(int, real)}, @code{j(int, real)},
@@ -3159,7 +3160,12 @@ the airy functions @code{Ai(real)}, @code{Bi(real)},
 @code{F(real, real)}, @code{E(real, real)}, and @code{P(real, real)}, 
 the exponential/trigonometric integrals @code{Ei}, @code{Si}, and @code{Ci},
 the Legendre polynomials @code{Pl(int, real)}, and the Riemann zeta
-function @code{zeta(real)} are also defined.
+function @code{zeta(real)}. For example, to compute the sine integral
+@code{Si} of 1.0:
+@verbatim
+import gsl;
+write(Si(1.0));
+@end verbatim
 
 @node Arrays
 @section Arrays
@@ -4001,7 +4007,7 @@ and aligned about a point on a picture @code{dest} using @code{add} or
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.
 The @code{dot} command defined in the module @code{plain} draws a
-dot having a a diameter equal to an explicit pen linewidth or the
+dot having a diameter equal to an explicit pen linewidth or the
 default linewidth magnified by @code{dotfactor} (6 by default):
 @verbatim
 void dot(picture pic=currentpicture, pair z, pen p=currentpen);
