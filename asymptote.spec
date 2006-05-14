@@ -40,8 +40,6 @@ that LaTeX does for scientific text.
 
 
 %build
-aclocal
-autoconf
 %configure --enable-gc=system
 make %{?_smp_mflags}
 
