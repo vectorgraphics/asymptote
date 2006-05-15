@@ -18,17 +18,15 @@ using std::istringstream;
 
 namespace camp {
 
-double PatternLength(double arclength, std::vector<double>& pat,
-		     const pen& pen0, const path& p)
+double PatternLength(double arclength, const std::vector<double>& pat,
+		     const pen& pen0, const path& p, double penwidth)
 {
   double sum=0.0;
-  double penwidth=pen0.linetype().scale ? pen0.width() : 1.0;
       
   size_t n=pat.size();
-  for(unsigned i=0; i < n; i ++) {
-    pat[i] *= penwidth;
-    sum += pat[i];
-  }
+  for(unsigned i=0; i < n; i ++)
+    sum += pat[i]*penwidth;
+  
   if(sum == 0.0) return 0.0;
   
   if(n % 2 == 1) sum *= 2.0; // On/off pattern repeats after 2 cycles.
@@ -37,7 +35,8 @@ double PatternLength(double arclength, std::vector<double>& pat,
   // asy -f pdf testlinetype; gv -scale -2 testlinetype.pdf
   if(!p.cyclic() && pat[0] == 0) sum += 1.0e-3*penwidth;
       
-  double terminator=((p.cyclic() && arclength >= 0.5*sum) ? 0.0 : pat[0]);
+  double terminator=((p.cyclic() && arclength >= 0.5*sum) ? 0.0 : 
+		     pat[0]*penwidth);
   int ncycle=(int)((arclength-terminator)/sum+0.5);
 
   return (ncycle >= 1 || terminator >= 0.75*arclength) ? 
@@ -49,30 +48,36 @@ void drawPath::adjustdash(pen& pen0)
   // Adjust dash sizes to fit arclength; also compensate for linewidth.
   string stroke=pen0.stroke();
   
-  if(!stroke.empty() && pen0.linetype().adjust) {
-    double arclength=p.arclength();
+  if(!stroke.empty()) {
+    double penwidth=pen0.linetype().scale ? pen0.width() : 1.0;
+    double factor=penwidth;
     
-    if(arclength) {
-      std::vector<double> pat;
-      {
-        istringstream buf(stroke);
-        double l;
-        while(buf >> l) {
-	  if(l < 0) l=0;
-          pat.push_back(l);
-        }
-      }
-      
-      size_t n=pat.size();
-      if(n == 0) return;
-      
-      double denom=PatternLength(arclength,pat,pen0,p);
-      
-      double factor=denom != 0.0 ? arclength/denom : 1.0;
-      ostringstream buf;
-      for(unsigned int i=0; i < n; i++) buf << pat[i]*factor << " ";
-      pen0.setstroke(buf.str());
+    std::vector<double> pat;
+    
+    istringstream ibuf(stroke);
+    double l;
+    while(ibuf >> l) {
+      if(l < 0) l=0;
+      pat.push_back(l);
     }
+      
+    size_t n=pat.size();
+    
+    if(pen0.linetype().adjust) {
+      double arclength=p.arclength();
+      if(arclength) {
+	if(n == 0) return;
+      
+	double denom=PatternLength(arclength,pat,pen0,p,penwidth);
+	if(denom != 0.0) factor *= arclength/denom;
+      }
+    }
+    
+    ostringstream buf;
+    for(unsigned int i=0; i < n; i++)
+      buf << pat[i]*factor << " ";
+    pen0.setstroke(buf.str());
+    pen0.setoffset(pen0.linetype().offset*factor);
   }
 }
   

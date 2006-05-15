@@ -1578,7 +1578,8 @@ Note that there is some overlap between these two standards
 and the definitions of some colors (e.g. @code{Green}) actually disagree.
 
 @item Line types are specified with the function 
-@code{pen linetype(string s, bool scale=true, bool adjust=true)},
+@code{pen linetype(string s, real offset=0, bool scale=true,
+ bool adjust=true)},
 @cindex @code{solid}
 @cindex @code{dashed}
 @cindex @code{dotted}
@@ -1586,12 +1587,14 @@ and the definitions of some colors (e.g. @code{Green}) actually disagree.
 @cindex @code{dashdotted}
 @cindex @code{longdashdotted}
 where @code{s} is a string of integer or real numbers separated by spaces.
-The first number specifies how far (if @code{scale} is @code{true}, in
-units of the pen linewidth; otherwise in @code{PostScript} units) to draw 
-with the pen on, the second number specifies how far to draw with the pen off,
-and so on. If @code{adjust} is @code{true}, these spacings are
-automatically adjusted by @code{Asymptote} to fit the arclength of the
-path. Here are the predefined line types:
+The optional parameter @code{offset} specifies where in the pattern
+to begin. The first number specifies how far (if @code{scale} is
+@code{true}, in units of the pen linewidth; otherwise in
+@code{PostScript} units) to draw with the pen on, the second number
+specifies how far to draw with the pen off, and so on. If
+@code{adjust} is @code{true}, these spacings are automatically
+adjusted by @code{Asymptote} to fit the arclength of the path. Here
+are the predefined line types:
 @verbatim
 pen solid=linetype("");
 pen dotted=linetype("0 4");
