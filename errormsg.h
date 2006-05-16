@@ -120,6 +120,7 @@ public:
   // NOTE: May later make it do automatic line breaking for long messages.
   template<class T>
   errorstream& operator << (const T& x) {
+    flush(out);
     out << x;
     return *this;
   }
