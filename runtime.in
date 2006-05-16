@@ -1075,6 +1075,12 @@ void abort(string *msg)
   error(msg->c_str());
 }
 
+void assert(bool b)
+{
+  flush(cout);
+  if(!b) error("assert FAILED.");
+}
+
 void _eval(string *s, bool embedded)
 {
   loop::doITree(parser::parseString(*s),embedded);
