@@ -125,23 +125,25 @@ cubicroots::cubicroots(double a, double b, double c, double d)
   double R2=R*R;
   double D=Q3+R2;
   double mthirdb=-b*third;
-  double x=Q3/R2;
   
   if(D > 0.0) {
     roots=1;
     t1=mthirdb;
-    if(R != 0.0) t1 += cbrt(R)*cbrtsqrt1pxm(x);
+    if(R2 != 0.0) t1 += cbrt(R)*cbrtsqrt1pxm(Q3/R2);
   } else {
     roots=3;
-    double u=-x-1;
-    double v=u >= 0.0 ? sqrt(u) : 0.0;
-    double theta=atan(v);
-    double factor=2*cbrt(sqrt(-x)*R);
+    double v=0.0,theta;
+    if(R2 > 0.0) {
+      v=sqrt(-D/R2);
+      theta=atan(v);
+    } else theta=0.5*PI;
+    double factor=2.0*sqrt(-Q)*(R >= 0 ? 1 : -1);
       
     t1=mthirdb+factor*cos(third*theta);
     t2=mthirdb-factor*cos(third*(theta-PI));
-    t3=mthirdb-factor*
-      ((v < 100.0) ? cos(third*(theta+PI)) : costhetapi3(1/v)); 
+    t3=mthirdb;
+    if(R2 > 0.0)
+      t3 -= factor*((v < 100.0) ? cos(third*(theta+PI)) : costhetapi3(1.0/v)); 
   }
 }
   
