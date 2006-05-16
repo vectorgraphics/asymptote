@@ -11,7 +11,7 @@ struct T {
 }
 
 T t=new T;
-Assert(t.x==0);
+assert(t.x==0);
 T.f(t);
-Assert(t.x==2);
+assert(t.x==2);
 EndTest();

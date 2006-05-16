@@ -8,10 +8,10 @@ StartTest("unravel");
 
   A a=new A;
   unravel a;
-  Assert(x==1);
-  Assert(y==2);
-  Assert(z==3);
-  Assert(y()==7);
+  assert(x==1);
+  assert(y==2);
+  assert(z==3);
+  assert(y()==7);
 }
 {
   struct A {
@@ -23,9 +23,9 @@ StartTest("unravel");
   int x=5;
   A a=new A;
   unravel a;
-  Assert(x==5);
-  Assert(y==2);
-  Assert(z==3);
+  assert(x==5);
+  assert(y==2);
+  assert(z==3);
 }
 {
   struct A {
@@ -37,10 +37,10 @@ StartTest("unravel");
   int z=5;
   A a=new A;
   from a unravel x,y;
-  Assert(x==1);
-  Assert(y==2);
-  Assert(z==5);
-  Assert(y()==7);
+  assert(x==1);
+  assert(y==2);
+  assert(z==5);
+  assert(y()==7);
 }
 {
   struct A {
@@ -53,10 +53,10 @@ StartTest("unravel");
   int z=5;
   A a=new A;
   from a unravel x,y as blah;
-  Assert(x==1);
-  Assert(y==4);
-  Assert(blah==2);
-  Assert(z==5);
-  Assert(blah()==7);
+  assert(x==1);
+  assert(y==4);
+  assert(blah==2);
+  assert(z==5);
+  assert(blah()==7);
 }
 EndTest();

@@ -1,6 +1,6 @@
 import TestLib;
 StartTest("length");
-Assert(length("") == 0);
-Assert(length("abc") == 3);
-Assert(length("abcdef") == 6);
+assert(length("") == 0);
+assert(length("abc") == 3);
+assert(length("abcdef") == 6);
 EndTest();

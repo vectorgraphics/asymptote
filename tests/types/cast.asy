@@ -9,5 +9,5 @@ A operator cast(int x) {
   return a;
 }
 A a=7;
-Assert(a.x==7);
+assert(a.x==7);
 EndTest();
