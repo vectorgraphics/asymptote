@@ -1,7 +1,5 @@
 Andy: public:/private: default qualifiers
 
-Andy: Make real a[] also define the type real[], just like real[] a.
-
 Andy and John: (if possible) automatically turn expressions with array
 sub-expressions into iteration over the array(s)
     
