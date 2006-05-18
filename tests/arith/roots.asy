@@ -1,10 +1,5 @@
 // Roots.
 
-bool close(real a, real b) 
-{
-  return abs(a-b) <= 10*realEpsilon*max(abs(a),abs(b));
-}
-
 import TestLib;
 real x;
 real[] r;
