@@ -1,5 +1,4 @@
-// Reduced for tension atleast infinity
-real infinity=sqrt(0.25*realMax);
+real infinity=cbrt(realMax); // Reduced for tension atleast infinity
 pair Infinity=(infinity,infinity);
 
 real inches=72;
