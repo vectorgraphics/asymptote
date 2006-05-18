@@ -70,10 +70,11 @@ void scale(picture pic=currentpicture, scaleT x, scaleT y=Linear,
   pic.scale.z.scale=z;
 }
 
-void scale(picture pic=currentpicture, bool autoscale=true)
+void scale(picture pic=currentpicture, bool xautoscale=true,
+	   bool yautoscale=xautoscale, bool zautoscale=yautoscale)
 {
-  scale(pic,Linear(autoscale,autoscale),Linear(autoscale,autoscale),
-	Linear(autoscale,autoscale));
+  scale(pic,Linear(xautoscale,xautoscale),Linear(yautoscale,yautoscale),
+	Linear(zautoscale,zautoscale));
 }
 
 struct scientific 
