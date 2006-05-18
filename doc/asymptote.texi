@@ -3247,13 +3247,9 @@ of the same type:
 @verbatim
 real a,A[];
 @end verbatim
+@noindent
 This declares @code{a} to be @code{real} and implicitly declares @code{A} to
-be of type @code{real[]}. But beware that this alternative syntax
-currently does not construct certain internal type-dependent functions
-that take @code{real[]} as an argument: @code{alias}, @code{copy},
-@code{concat}, @code{sequence}, @code{map}, and @code{transpose} for
-type @code{real[]} won't be defined until the type @code{real[]} is
-explicitly used.
+be of type @code{real[]}.
 
 In the following list of built-in array functions, @code{T} represents a
 generic type.
