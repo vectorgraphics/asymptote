@@ -19,7 +19,7 @@ item("figure");
 item("draw");
 newslide();
 
-usersetting(); // Allow user to enable stepping from command line.
+usersetting(); // Allow user to enable stepping with -u stepping=true
 
 title("Slide title");
 item("First item.");
