@@ -104,16 +104,6 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  types::function *opType(types::ty* t);
-  types::function *arrayType(types::ty* t);
-  types::function *array2Type(types::ty* t);
-  types::function *cellIntType(types::ty* t);
-  types::function *sequenceType(types::ty* t, types::ty *ct);
-  types::function *cellTypeType(types::ty* t);
-  types::function *mapType(types::ty* t, types::ty *ct);
-  
-  void addOps(coenv &e, types::ty* t, types::ty *ct);
-  
   types::ty *trans(coenv &e, bool tacit = false);
 };
 
@@ -284,6 +274,10 @@ public:
   virtual types::ty *getType(types::ty *base, coenv &, bool = false);
   virtual trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e);
 
+  // If a new type is formed by adding dimensions (or a function signature)
+  // after the id, this will add the standard functions for that new type.
+  virtual void addOps(types::ty *base, coenv &e);
+
   virtual symbol *getName()
     { return id; }
 };
@@ -304,7 +298,8 @@ public:
   void prettyprint(ostream &out, int indent);
 
   types::ty *getType(types::ty *base, coenv &e, bool tacit = false);
-  virtual trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e);
+  trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e);
+  void addOps(types::ty *base, coenv &e);
 };
 
 class decid : public absyn {
@@ -550,9 +545,6 @@ public:
 class recorddec : public dec {
   symbol *id;
   block *body;
-
-  types::function *opType(record *r);
-  void addOps(coenv &e, record *parent, record *r);
 
 public:
   recorddec(position pos, symbol *id, block *body)

@@ -36,6 +36,7 @@ public:
   virtual void transAsVar(coenv &e, int index);
 
   types::ty *getType(coenv &e, bool tacit=false);
+  void addOps(coenv &e);
 
   varinit *getDefaultValue() {
     return defval;
@@ -137,9 +138,6 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  types::function *opType(types::function *f);
-  void addOps(coenv &e, record *parent, types::function *f);
-  
   void trans(coenv &e);
 
   void transAsField(coenv &e, record *r);

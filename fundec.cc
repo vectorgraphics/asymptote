@@ -36,16 +36,22 @@ types::formal formal::trans(coenv &e, bool encodeDefVal, bool tacit) {
 }
 
 types::ty *formal::getType(coenv &e, bool tacit) {
-  types::ty *t = start ? start->getType(base->trans(e), e, tacit)
-    : base->trans(e, tacit);
+  types::ty *bt = base->trans(e, tacit);
+  types::ty *t = start ? start->getType(bt, e, tacit) : bt;
   if (t->kind == ty_void && !tacit) {
     em->compiler(getPos());
     *em << "can't declare parameters of type void";
     return primError();
   }
+
   return t;
 }
   
+void formal::addOps(coenv &e) {
+  if (start)
+    start->addOps(base->trans(e, true), e);
+} 
+
 void formals::prettyprint(ostream &out, int indent)
 {
   prettyname(out, "formals",indent);
@@ -136,6 +142,11 @@ void formal::transAsVar(coenv &e, int index) {
     // when the formals are translated to yield the type earlier.
     types::ty *t = getType(e, true);
     varEntry *v = new varEntry(t, a);
+
+    // Add operations if a new array type is formed.  This will add to the
+    // environment at the start of the function, when the formals are also added
+    // to the environment.
+    addOps(e);
 
     // Translate the default argument before adding the formal to the
     // environment, consistent with the initializers of variables.

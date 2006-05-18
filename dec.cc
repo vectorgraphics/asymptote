@@ -279,6 +279,12 @@ trans::tyEntry *decidstart::getTyEntry(trans::tyEntry *base, coenv &e)
                 base;
 }
 
+void decidstart::addOps(types::ty *base, coenv &e)
+{
+  if (dims)
+    e.e.addArrayOps(dims->truetype(base));
+}
+
 
 void fundecidstart::prettyprint(ostream &out, int indent)
 {
@@ -308,6 +314,16 @@ trans::tyEntry *fundecidstart::getTyEntry(trans::tyEntry *base, coenv &e)
 {
   return new trans::tyEntry(getType(base->t,e,false), 0);
 }
+
+void fundecidstart::addOps(types::ty *base, coenv &e)
+{
+  decidstart::addOps(base, e);
+
+  types::function *ft=dynamic_cast<types::function *>(getType(base, e, true));
+  assert(ft);
+  e.e.addFunctionOps(ft);
+}
+
 
 void decid::prettyprint(ostream &out, int indent)
 {
@@ -389,6 +405,8 @@ void decid::transAsField(coenv &e, record *r, types::ty *base)
     *em << "can't declare variable of type void";
   }
 
+  start->addOps(base, e);
+
   createVarOutOfOrder(getPos(), e, r, start->getName(), t, init);
 }
 
@@ -402,6 +420,8 @@ void decid::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
     *em << "type definition cannot have initializer";
   }
    
+  start->addOps(base->t, e);
+
   addTypeWithPermission(e, r, ent, start->getName());
 }
 
