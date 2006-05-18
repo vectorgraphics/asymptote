@@ -1,0 +1,24 @@
+size(12cm,0); 
+ 
+void distance(picture pic=currentpicture, pair A, pair B, Label L="", real n=0,
+	      pen p=currentpen) 
+{
+  real d=3mm;
+  guide g=A--B;
+  transform T=shift(-n*d*unit(B-A)*I);
+  pic.add(new void (frame f, transform t) {
+    picture opic;
+    guide G=T*t*g;
+    draw(opic,G,p,Arrows(NoFill),Bars,PenMargins); 
+    label(opic,L,midpoint(G),UnFill(1)); 
+    add(opic,(0,0));
+  });
+  pic.addPath(T*g,p);
+} 
+ 
+pair A=(0,0), B=(3,3); 
+ 
+dot(A); 
+dot(B); 
+ 
+distance(A,B,"$\ell$",1); 
