@@ -4516,11 +4516,11 @@ sharp corners of paths, as illustrated in the example file @code{roundpath.asy}.
 @node slide
 @section @code{slide}
 @cindex @code{slide}
-This package provides a very easy and high-quality facility for making
+This package provides a simple yet high-quality facility for making
 presentation slides. An example is provided in the file
 @code{slidedemo.asy}:
 
-@verbatiminclude slidedemo.asy
+@verbatiminclude ../examples/slidedemo.asy
 
 @node MetaPost
 @section @code{MetaPost}

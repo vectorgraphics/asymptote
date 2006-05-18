@@ -33,7 +33,8 @@ item("Set {\tt stepping=false} for posting on WWW or printing.");
 newslide();
 
 item("The slide title can be omitted.");
-figure("Pythagoras.eps","height=12cm","A simple proof of Pythagoras' Theorem.");
+figure("Pythagoras.eps","height=12cm",
+       "A simple proof of Pythagoras' Theorem.");
 newslide();
 
 item("Single skip:");
