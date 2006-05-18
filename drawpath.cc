@@ -19,7 +19,7 @@ using std::istringstream;
 namespace camp {
 
 double PatternLength(double arclength, const std::vector<double>& pat,
-		     const pen& pen0, const path& p, double penwidth)
+		     const path& p, double penwidth)
 {
   double sum=0.0;
       
@@ -68,7 +68,7 @@ void drawPath::adjustdash(pen& pen0)
       if(arclength) {
 	if(n == 0) return;
       
-	double denom=PatternLength(arclength,pat,pen0,p,penwidth);
+	double denom=PatternLength(arclength,pat,p,penwidth);
 	if(denom != 0.0) factor *= arclength/denom;
       }
     }
