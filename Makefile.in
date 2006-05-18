@@ -18,7 +18,8 @@ FILES = $(CAMP) runtime env genv main stm dec errormsg callable name \
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc
 CLEAN = camp.output
 NAME = asy
-XNAME = x$(NAME)
+EXTRABIN = x$(NAME)
+EXTRA = asy-mode.el asy.vim asymptote.py
 
 CXX = @CXX@ -Wall -ansi
 CC = @CC@ -Wall -ansi
@@ -93,9 +94,8 @@ install-all: install-asy install-doc
 install-asy: asy
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
 	-${INSTALL} -d $(latexdir)
-	${INSTALL} -p -m 755 $(NAME) $(bindir)
-	${INSTALL} -p -m 755 $(XNAME) $(bindir)
-	${INSTALL} -p -m 644 base/*.asy base/asy* $(asydir)
+	${INSTALL} -p -m 755 $(NAME) $(EXTRABIN) $(bindir)
+	cd base; ${INSTALL} -p -m 644 *.asy $(EXTRA) $(asydir)
 	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps \
 		doc/*.asy doc/*.csv doc/*.dat doc/latexusage.tex $(exampledir)
 	${INSTALL} -p -m 644 examples/animations/*.asy $(animationsdir)
@@ -125,7 +125,7 @@ uninstall-asy:
 	-rmdir $(asydir)
 	-rm -f $(latexdir)/asymptote.sty
 	-rmdir $(latexdir)
-	-rm -f $(bindir)/$(NAME) $(bindir)/$(XNAME) 
+	-cd $(bindir); rm -f $(NAME) $(EXTRABIN) 
 
 uninstall-man: 
 	cd doc; $(MAKE) uninstall

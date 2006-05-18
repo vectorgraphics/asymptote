@@ -35,11 +35,10 @@ if __name__=="__main__":
 	g = asy()
 	g.size(200)
 	g.draw("unitcircle")
-	g.send("draw(unitsquare);")
+	g.send("draw(unitsquare)")
 	g.fill("unitsquare, blue")
 	g.clip("unitcircle")
 	g.label("\"$O$\", (0,0), SW")
 	raw_input("press ENTER to continue")
 	g.erase()
 	del g
-

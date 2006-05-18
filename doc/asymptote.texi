@@ -5849,6 +5849,25 @@ Interactive mode is implemented with the @acronym{GNU} @code{readline} library.
 To customize the key bindings, see:
 @url{http://cnswww.cns.cwru.edu/php/chet/readline/readline.html}
 
+@cindex @code{Python} usage
+The file @code{asymptote.py} in the @code{Asymptote} system directory
+provides an alternative way of entering @code{Asymptote} commands
+interactively, coupled with the full power of @code{Python}. Copy this
+file to your @code{Python path} and then execute from within
+@code{Python} the commands 
+@verbatim
+from asymptote import *
+g=asy()
+g.size(200)
+g.draw("unitcircle")
+g.send("draw(unitsquare)")
+g.fill("unitsquare, blue")
+g.clip("unitcircle")
+g.label("\"$O$\", (0,0), SW")
+@end verbatim
+
+
+
 @node GUI
 @chapter Graphical User Interface
 @cindex graphical user interface

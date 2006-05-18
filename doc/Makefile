@@ -19,7 +19,7 @@ latexusage.asy: latexusage.tex
 	latex latexusage
 	../asy latexusage
 
-latexusage.dvi: latexusage.asy
+latexusage.dvi: latexusage.asy ../examples/slidedemo.asy
 	latex latexusage
 
 latexusage.eps: latexusage.dvi
