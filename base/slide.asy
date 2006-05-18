@@ -1,12 +1,15 @@
 import fontsize;
 usepackage("colordvi");
 
-access settings;
+public bool stepping=false; // Set to true to enable stepping
+public bool itemstep=true;  // Set to false to disable stepping on each item
 
 public real margin=0.5cm;
 public real pagewidth=-2margin;
 public real pageheight=-2margin;
 
+access settings;
+								 
 if(orientation == Portrait || orientation == UpsideDown) {
   pagewidth += settings.paperwidth;
   pageheight += settings.paperheight;
@@ -55,9 +58,6 @@ public picture background;
 size(background,pagewidth,pageheight,IgnoreAspect);
 
 defaultpen(itempen);
-
-public bool stepping=false;
-public bool itemstep=true;
 
 int[] firstnode=new int[] {currentpicture.nodes.length};
 int[] lastnode=new int[];

@@ -139,7 +139,7 @@ string[] reverse(string[] a) {return a[reverse(a.length)];}
 void eval(string s, bool embedded=false)
 {
   if(!embedded) initdefaults();
-  _eval(s,embedded);
+  _eval(s+";",embedded);
   if(!embedded) restoredefaults();
 }
 
@@ -148,6 +148,13 @@ void eval(code s, bool embedded=false)
   if(!embedded) initdefaults();
   _eval(s,embedded);
   if(!embedded) restoredefaults();
+}
+
+// Evaluate user command line option.
+void usersetting()
+{
+  access settings;
+  eval(settings.user,true);
 }
 
 void execute(string s, bool embedded=false)

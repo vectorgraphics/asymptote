@@ -1,3 +1,6 @@
+// Slide demo. To enable stepping from the command line:
+// asy -u stepping=true 
+
 orientation=Landscape;
 
 import slide;
@@ -5,13 +8,20 @@ import x11colors;
 
 fill(background,box((-1,-1),(1,1)),Azure);
 
-stepping=true;
-
 titlepage("Slides with {\tt Asymptote}: A Demo","John C. Bowman","\today",
 	  "http://asymptote.sf.net");
 
-title("Slide title");
+title("Outline");
+item("item");
+subitem("subitem");
+remark("remark");
+item("figure");
+item("draw");
+newslide();
 
+usersetting(); // Allow user to enable stepping from command line.
+
+title("Slide title");
 item("First item.");
 remark("A remark.");
 item("Second item.");
