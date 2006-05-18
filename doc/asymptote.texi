@@ -832,7 +832,7 @@ is assumed. The maximum integer is @code{intMax}.
 @cindex @code{realDigits}.
 a real number; this should be set to the highest-precision native
 floating-point type on the architecture. The implicit initializer for
-type real is @code{0.0}. Real numbers have precision
+reals is @code{0.0}. Real numbers have precision
 @code{realEpsilon}, with @code{realDigits} significant digits.
 The smallest positive real number is @code{realMin} and the largest
 positive real number is @code{realMax}.
@@ -843,7 +843,7 @@ complex number, that is, an ordered pair of real components @code{(x,y)}.
 The real and imaginary parts of a pair @code{z} can read as @code{z.x}
 and @code{z.y}. We say that @code{x} and @code{y} are virtual members of
 the data element pair; they cannot be directly modified, however.
-The implicit initializer for type pair is @code{(0.0,0.0)}.
+The implicit initializer for pairs is @code{(0.0,0.0)}.
 
 There are a number of ways to take the complex conjugate of a pair:
 @example
@@ -921,6 +921,7 @@ returns @code{(max(z.x,w.x),max(z.y,w.y))}.
 an ordered triple of real components @code{(x,y,z)} used for
 three-dimensional drawings. The respective components of a triple
 @code{v} can read as @code{v.x}, @code{v.y}, and @code{v.z}. 
+The implicit initializer for triples is @code{(0.0,0.0,0.0)}.
 
 Here are the built-in functions for triples:
 @table @code
@@ -1031,7 +1032,7 @@ character strings in ANSI @code{C}:
 @item \x0-\xFF map to corresponding hexadecimal byte
 @end itemize
 
-The implicit initializer for type string is the empty string @code{""}.
+The implicit initializer for strings is the empty string @code{""}.
 In the following string functions, position 0 denotes the start of the string.
 
 @table @code
@@ -3744,7 +3745,7 @@ void eval(string s, bool embedded=false);
 @end verbatim
 If @code{embedded} is @code{true}, the string @code{s} will be evaluated 
 at the top level of the current environment instead of in an independent
-environment.
+environment. It is not necessary to terminate the string with a semicolon.
 
 One can evaluate arbitrary @code{Asymptote} code (which may
 contain unescaped quotation marks) with the command
@@ -5090,6 +5091,10 @@ the tick labels on the @math{y} axis.
 @verbatiminclude datagraph.asy
 @image{datagraph}
 
+@item This example shows how to label an axis with arbitrary strings.
+@verbatiminclude monthaxis.asy
+@image{monthaxis}
+
 @cindex @code{polygon}
 @cindex @code{cross}
 @cindex @code{errorbars}
@@ -5169,9 +5174,12 @@ within the given limits if @code{crop}=@code{Crop}. The function
 @cindex @code{Log}
 @cindex automatic scaling
 Axis scaling can be requested and/or automatic selection of the
-axis limits can be inhibited with the @code{scale} routine:
+axis limits can be inhibited with one of these @code{scale} routines:
 @verbatim
 void scale(picture pic=currentpicture, scaleT x, scaleT y);
+
+void scale(picture pic=currentpicture, bool xautoscale=true,
+	   bool yautoscale=xautoscale, bool zautoscale=yautoscale);
 @end verbatim
 
 This sets the scalings for picture @code{pic}. The @code{graph} routines
@@ -5818,7 +5826,7 @@ code on the command line as a string. Command line code like @code{-u
 @verbatim
 real x;
 access settings;
-eval(setting.user,true);
+eval(settings.user,true);
 write(x);
 @end verbatim
 
