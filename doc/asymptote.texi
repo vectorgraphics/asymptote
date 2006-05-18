@@ -2083,8 +2083,8 @@ Do not fill; draw only the boundary.
 @item UnFill
 Clip the region.
 
-@cindex @code{UnFill(real xmargin=0, real ymargin=xmargin}
-@item UnFill
+@cindex @code{UnFill}
+@item UnFill(real xmargin=0, real ymargin=xmargin
 Clip the region and surrounding margins @code{xmargin} and @code{ymargin}.
 
 @cindex @code{RadialShade(pen penc, pen penr)}
@@ -3139,8 +3139,8 @@ and the integer @code{randMax}. A Gaussian random number generator
 @cindex @code{Y}
 @cindex @code{I}
 @cindex @code{K}
-@cindex @code{i_scaled(int, real)}
-@cindex @code{k_scaled(int, real)}
+@cindex @code{i_scaled}
+@cindex @code{k_scaled}
 @cindex @code{zero_J}
 @cindex @code{F}
 @cindex @code{E}
@@ -5646,11 +5646,15 @@ Surface lighting is illustrated in the example file @code{sinc.asy}.
 @node solids
 @section @code{solids}
 @cindex @code{solids}
-This is the beginnings of a solid geometry package. The following example
+This solid geometry package defines a struct @code{revolution} that
+can be used to fill and draw surfaces of revolution. The following example
 uses it to display the outline of a circular cylinder of radius 1 and
 height 1.5 aligned in the direction @code{(0,1,1)} with perspective projection:
-@verbatiminclude cylinder.asy
-@image{cylinder}
+@verbatiminclude cylinderoutline.asy
+@image{cylinderoutline}
+
+Further illustrations are provided in the example files @code{cylinder.asy},
+@code{cones.asy}, and @code{torus.asy}.
 
 @node featpost3D
 @section @code{featpost3D}

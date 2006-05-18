@@ -1071,7 +1071,7 @@ struct path3 {
       bc   = one_t*b   + t*c,
       abc  = one_t*ab  + t*bc;
 
-    return abc;
+    return (abc == a) ? nodes[i].pre : abc;
   }
         
  
@@ -1104,7 +1104,7 @@ struct path3 {
       cd   = one_t*c   + t*d,
       bcd  = one_t*bc  + t*cd;
 
-    return bcd;
+    return (bcd == d) ? nodes[iplus].post : bcd;
   }
 
   triple dir(int i)
@@ -1705,6 +1705,74 @@ path3 operator & (explicit guide3 p, explicit guide3 q)
   return ((path3) p).concat(p,q);
 }
 
+// return the point on path3 g at arclength L
+triple arcpoint(path3 g, real L)
+{
+    return point(g,arctime(g,L));
+}
+
+// return the point on guide3 g at arclength L
+triple arcpoint(explicit guide3 g, real L)
+{
+    return point(g,arctime(g,L));
+}
+
+// return the direction on path3 g at arclength L
+triple arcdir(path3 g, real L)
+{
+    return dir(g,arctime(g,L));
+}
+
+// return the direction on guide3 g at arclength L
+triple arcdir(explicit guide3 g, real L)
+{
+    return dir(g,arctime(g,L));
+}
+
+// return the time on path3 g at the given relative fraction of its arclength
+real reltime(path3 g, real fraction)
+{
+  return arctime(g,fraction*arclength(g));
+}
+
+// return the time on guide3 g at the given relative fraction of its arclength
+real reltime(explicit guide3 g, real fraction)
+{
+  return arctime(g,fraction*arclength(g));
+}
+
+// return the point on path3 g at the given relative fraction of its arclength
+triple relpoint(path3 g, real l)
+{
+  return point(g,reltime(g,l));
+}
+
+// return the point on guide3 g at the given relative fraction of its arclength
+triple relpoint(explicit guide3 g, real l)
+{
+  return point(g,reltime(g,l));
+}
+
+// return the direction of path3 g at the given relative fraction of its
+// arclength
+triple reldir(path3 g, real l)
+{
+  return dir(g,reltime(g,l));
+}
+
+// return the direction of guide3 g at the given relative fraction of its
+// arclength
+triple reldir(explicit guide3 g, real l)
+{
+  return dir(g,reltime(g,l));
+}
+
+// return a rotation that maps u to Z.
+transform3 align(triple u) 
+{
+  return rotate(colatitude(u),cross(u,Z));
+}
+
 transform rotate(explicit triple dir)
 {
   return rotate((pair) dir);
@@ -1800,18 +1868,15 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
     normal=cross(dir(theta1,phi1),dir(theta2,phi2));
     if(normal == O) abort("explicit normal required for these endpoints");
   }
-  transform3 T=identity(4);
-  if(normal.x != 0 || normal.y != 0)
-    T=rotate(colatitude(normal),cross(Z,normal));
-  transform3 Tinv=inverse(T);
-  triple v1=Tinv*dir(theta1,phi1);
-  triple v2=Tinv*dir(theta2,phi2);
+  transform3 T=(normal.x == 0 && normal.y == 0) ? identity(4) : align(normal); 
+  triple v1=T*dir(theta1,phi1);
+  triple v2=T*dir(theta2,phi2);
   real t1=intersect(unitcircle3,O--2*(v1.x,v1.y,0)).x;
   real t2=intersect(unitcircle3,O--2*(v2.x,v2.y,0)).x;
   int n=length(unitcircle3);
   if(t1 >= t2 && direction) t1 -= n;
   if(t2 >= t1 && !direction) t2 -= n;
-  return shift(c)*scale3(r)*T*subpath(unitcircle3,t1,t2);
+  return shift(c)*scale3(r)*inverse(T)*subpath(unitcircle3,t1,t2);
 }
 
 // return an arc centered at c with radius r from c+r*dir(theta1,phi1) to
@@ -1846,27 +1911,38 @@ path3 plane(triple u, triple v, triple O=O)
   return O--O+u--O+u+v--O+v--cycle3;
 }
 
-triple normal(path3 p, triple f(path3, int), triple normal=O)
+// Return the unit normal vector to a planar path p.
+triple normal(path3 p)
 {
-  int n=size(p);
-  for(int i=0; i < size(p)-1; ++i) {
-    triple point=point(p,i);
-    triple v1=f(p,i)-point;
-    triple v2=f(p,i+1)-point;
-    triple n=cross(unit(v1),unit(v2));
-    if(abs(n) > epsilon) {
+  triple normal;
+  real abspoint,absnext;
+  
+  void check(triple n) {
+    if(abs(n) > epsilon*max(abspoint,absnext)) {
       n=unit(n);
       if(normal != O && abs(normal-n) > epsilon) abort("path is not planar");
       normal=n;
     }
   }
-  return normal;
-}
+
+  int L=length(p);
+  triple nextpre=precontrol(p,0);
+  triple nextpoint=point(p,0);
+  absnext=abs(nextpoint);
   
-// Return the unit normal vector to a planar path p.
-triple normal(path3 p) {
-  triple normal=normal(p,precontrol);
-  normal=normal(p,postcontrol,-normal);
+  for(int i=0; i < L; ++i) {
+    triple pre=nextpre;
+    triple point=nextpoint;
+    triple post=postcontrol(p,i);
+    nextpre=precontrol(p,i+1);
+    nextpoint=point(p,i+1);
+    
+    abspoint=abs(point);
+    absnext=abs(nextpoint);
+    
+    check(cross(point-pre,post-point));
+    check(cross(post-point,nextpoint-nextpre));
+  }
   return normal;
 }
 
