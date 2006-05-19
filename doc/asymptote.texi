@@ -258,8 +258,10 @@ and provide guidance to others by rating the @code{Asymptote} project:
 @section UNIX binary distributions
 @cindex UNIX binary distributions
 
-Here are the commands that the root user can use to install the
-@code{Linux i386} binary distribution of version @code{x.xx} of
+@cindex @acronym{RPM}
+We now release both @acronym{RPM} and @code{tar.gz} binary distributions of
+@code{Asymptote}. Here are the commands that the root user can use to
+install the @code{Linux i386} binary distribution of version @code{x.xx} of
 @code{Asymptote} for a specific platform @code{ARCH} in
 @code{/usr/local}. The executable file will be
 @code{/usr/local/bin/asy} (the optional @code{texhash} command
@@ -4123,8 +4125,8 @@ void gouraudshade(picture pic=currentpicture, path g,
 @end verbatim
 @noindent
 The pens in @code{p} must belong to the same color space.
-Illustrations of Gouraud shading are provided in the example files
-@code{Gouraud.asy} and @code{sphere.asy}.
+Illustrations of Gouraud shading are provided in the example file
+@code{Gouraud.asy} and in the solid geometry module @code{solid.asy}.
 
 @cindex unfill
 The following routine uses @code{evenodd} clipping together with the
@@ -5524,8 +5526,8 @@ subdirectory) @code{cube.asy}.
 @section @code{light}
 @cindex @code{light}
 This module provides a simple implementation of three-dimensional
-lighting effects. An illustration is provided in the example file
-@code{sphere.asy}.
+lighting effects. An illustration is provided in the solid geometry
+package @code{solids.asy}.
 
 @node graph3
 @section @code{graph3}
@@ -5646,11 +5648,12 @@ This solid geometry package defines a struct @code{revolution} that
 can be used to fill and draw surfaces of revolution. The following example
 uses it to display the outline of a circular cylinder of radius 1 and
 height 1.5 aligned in the direction @code{(0,1,1)} with perspective projection:
-@verbatiminclude cylinderoutline.asy
-@image{cylinderoutline}
+@verbatiminclude cylinderskeleton.asy
+@image{cylinderskeleton}
 
 Further illustrations are provided in the example files @code{cylinder.asy},
-@code{cones.asy}, and @code{torus.asy}.
+@code{sphere.asy}, @code{cones.asy}, @code{hyperboloid.asy}, and
+@code{torus.asy}.
 
 @node featpost3D
 @section @code{featpost3D}

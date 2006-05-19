@@ -1920,7 +1920,8 @@ triple normal(path3 p)
   void check(triple n) {
     if(abs(n) > epsilon*max(abspoint,absnext)) {
       n=unit(n);
-      if(normal != O && abs(normal-n) > epsilon) abort("path is not planar");
+      if(normal != O && abs(normal-n) > epsilon && abs(normal+n) > epsilon)
+	abort("path is not planar");
       normal=n;
     }
   }

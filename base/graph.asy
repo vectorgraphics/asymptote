@@ -1731,4 +1731,3 @@ guide Circle(pair c, real r, int ngraph=400)
 {
   return Arc(c,r,0,360,ngraph)..cycle;
 }
-
