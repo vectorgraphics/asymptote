@@ -39,7 +39,7 @@ public pen urlpen=fontsize(20pt);
 public pair urlskip=(0,0.3);
 
 public pen titlepagepen=fontsize(36pt)+red;
-public pen authorpen=fontsize(36pt)+blue;
+public pen authorpen=fontsize(24pt)+blue;
 public pen datepen=urlpen;
 public pair dateskip=(0,0.05);
 
