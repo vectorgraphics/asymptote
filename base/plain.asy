@@ -157,7 +157,17 @@ void usersetting()
   eval(settings.user,true);
 }
 
-void execute(string s, bool embedded=false)
+// Conditionally process each file name in array s in a new environment.
+void asy(bool overwrite=false ... string[] s)
 {
-  eval("include \""+s+"\";",embedded);
+  access settings;
+  for(int i=0; i < s.length; ++i) {
+    string f=s[i];
+    int n=rfind(f,".asy");
+    if(n != -1) f=erase(f,n,-1);
+    if(overwrite || error(input(f+"."+settings.outformat,check=false))) {
+      string F="\""+f+"\"";
+      eval("import "+F+" as dummy; shipout("+F+",view=false)"); 
+    }
+  }
 }

@@ -67,12 +67,13 @@ public:
 		  const string& prefix, bbox& bpos); 
     
   bool postprocess(const string& epsname, const string& outname, 
-		   const string& outputformat, bool wait, bool quiet,
+		   const string& outputformat, bool wait, bool view,
 		   const bbox& bpos);
     
   // Ship the picture out to PostScript & TeX files.
   bool shipout(picture* preamble, const string& prefix,
-	       const string& format, bool wait, bool quiet, bool Delete=false);
+	       const string& format, bool wait, bool view=true,
+	       bool Delete=false);
  
   picture *transformed(const transform& t);
   

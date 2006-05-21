@@ -702,7 +702,7 @@ void image(picture *f, realarray2 *data, penarray *palette,
 }
 
 void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
-	     string format=emptystring, bool wait=0, bool quiet=0,
+	     string format=emptystring, bool wait=false, bool view=true,
 	     transformarray *GUItransform, boolarray *GUIdelete)
 {
   if(prefix.empty()) prefix=getSetting<string>("outname");
@@ -751,7 +751,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 	if(getSetting<real>("deconstruct")) {
 	  ostringstream buf;
 	  buf << prefix << "_" << i;
-	  group->shipout(preamble,buf.str(),"tgif",false,true,Delete);
+	  group->shipout(preamble,buf.str(),"tgif",false,false,Delete);
 	}
 	++i;
       }
@@ -760,7 +760,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
     if(size) f=result;
   }
 
-  f->shipout(preamble,prefix,format,wait,quiet);
+  f->shipout(preamble,prefix,format,wait,view);
 }
 
 

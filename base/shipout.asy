@@ -58,7 +58,7 @@ void GUIreset()
 }
 
 void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
-	     string format="", bool wait=NoWait, bool quiet=false)
+	     string format="", bool wait=NoWait, bool view=true)
 {
   GUIreset();
   readGUI();
@@ -70,7 +70,7 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
       add(F,GUI(i));
     f=F;
   }
-  shipout(prefix,f,preamble,format,wait,quiet,
+  shipout(prefix,f,preamble,format,wait,view,
   	  Transform ? GUIlist[GUIFilenum].Transform : null,
 	  Transform ? GUIlist[GUIFilenum].Delete : null);
   ++GUIFilenum;
@@ -87,19 +87,19 @@ public orientation orientation=Portrait;
 
 void shipout(string prefix=defaultfilename, picture pic, real unitsize=0,
 	     frame preamble=patterns, orientation orientation=orientation,
-	     string format="", bool wait=NoWait, bool quiet=false)
+	     string format="", bool wait=NoWait, bool view=true)
 {
   shipout(prefix,
 	  orientation(unitsize == 0 ? pic.fit() : pic.fit(scale(unitsize))),
-	  preamble,format,wait,quiet);
+	  preamble,format,wait,view);
 }
 
 void shipout(string prefix=defaultfilename,
 	     orientation orientation=orientation,
 	     real unitsize=0, string format="", bool wait=NoWait,
-	     bool quiet=false)
+	     bool view=true)
 {
-  shipout(prefix,currentpicture,unitsize,orientation,format,wait,quiet);
+  shipout(prefix,currentpicture,unitsize,orientation,format,wait,view);
 }
 
 void newpage() 

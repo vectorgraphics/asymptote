@@ -2,6 +2,9 @@
 
 orientation=Landscape;
 
+// Generated needed files if they don't already exist.
+asy(overwrite=false,"Pythagoras","near_earth","tanh");
+
 import slide;
 import x11colors;
 

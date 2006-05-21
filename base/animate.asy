@@ -27,7 +27,7 @@ struct animation {
   void shipout(frame f) {
     string name=nextname();
     string format="eps";
-    shipout(name,f,format=format,quiet=true);
+    shipout(name,f,format=format,view=false);
     files.push(name+"."+format);
   }
 

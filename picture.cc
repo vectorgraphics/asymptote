@@ -258,7 +258,7 @@ bool picture::texprocess(const string& texname, const string& outname,
 }
 
 bool picture::postprocess(const string& epsname, const string& outname,
-			  const string& outputformat, bool wait, bool quiet,
+			  const string& outputformat, bool wait, bool view,
 			  const bbox& bpos)
 {
   int status=0;
@@ -295,7 +295,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
   
   if(verbose > (tgifformat ? 1 : 0)) 
     cout << "Wrote " << outname << endl;
-  if(view() && !quiet) {
+  if(settings::view() && view) {
     if(epsformat || pdfformat) {
       static int pid=0;
       static string lastoutname;
@@ -331,7 +331,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
 }
 
 bool picture::shipout(picture *preamble, const string& Prefix,
-		      const string& format, bool wait, bool quiet, bool Delete)
+		      const string& format, bool wait, bool view, bool Delete)
 {
   bool standardout=Prefix == "-";
   string prefix=standardout ? "out" : Prefix;
@@ -363,12 +363,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       ShipoutNumber++;
       return true;
     }
-    return postprocess(epsname,outname,outputformat,wait,quiet,b);
+    return postprocess(epsname,outname,outputformat,wait,view,b);
   }
   
   if(deconstruct && !tgifformat) {
     if(bboxout) bboxout.close();
-    if(view()) {
+    if(settings::view() && view) {
       ostringstream cmd;
       string Python=getSetting<mem::string>("python");
       if(Python != "") cmd << "'" << Python << "' ";
@@ -502,7 +502,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 	    unlink(p->c_str());
       }
       if(status)
-	status=postprocess(epsname,outname,outputformat,wait,quiet,bpos);
+	status=postprocess(epsname,outname,outputformat,wait,view,bpos);
     }
   }
   

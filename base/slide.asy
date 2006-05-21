@@ -215,8 +215,8 @@ void equation(string s, pen p=itempen)
   remark(center=true,"{$\displaystyle "+s+"$}",p,minipage=false);
 }
 
-void figure(string[] s, string options="", string caption="", pair align=S,
-	    real margin=50bp, pen p=itempen)
+void figure(string[] s, string options="", real margin=50bp, 
+	    string caption="", pair align=S, pen p=itempen)
 {
   string S;
   if(s.length == 0) return;
