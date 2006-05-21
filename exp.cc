@@ -415,7 +415,7 @@ void argument::prettyprint(ostream &out, int indent)
   out << "explist";
   if (name)
     out << " '" << *name << "'";
-  out << endl;
+  out << '\n';
 
   val->prettyprint(out, indent+1);
 }
@@ -940,7 +940,7 @@ void specExp::prettyprint(ostream &out, int indent)
   out << "specExp '" << *op << "' " 
       << (s==camp::OUT ? "out" :
           s==camp::IN  ? "in" :
-                         "invalid side") << endl;
+	  "invalid side") << '\n';
 
   arg->prettyprint(out, indent+1);
 }

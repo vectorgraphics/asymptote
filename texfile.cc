@@ -61,7 +61,7 @@ void texfile::beginlayer(const string& psname)
 void texfile::endlayer()
 {
   if(boxpos.right > boxpos.left && boxpos.top > boxpos.bottom)
-  *out << "\\kern-" << (boxpos.right-boxpos.left)*ps2tex << "pt%" << endl;
+    *out << "\\kern-" << (boxpos.right-boxpos.left)*ps2tex << "pt%" << newl;
 }
 
 void texfile::setpen(pen p)

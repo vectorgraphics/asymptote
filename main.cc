@@ -52,7 +52,7 @@ using interact::uptodate;
 void stackoverflow_handler (int, stackoverflow_context_t)
 {
   if(em) em->runtime(vm::getPos());
-  cout << "Stack overflow" << endl;
+  cerr << "Stack overflow" << endl;
   abort();
 }
 
@@ -60,8 +60,8 @@ int sigsegv_handler (void *, int emergency)
 {
   if(!emergency) return 0; // Really a stack overflow
   if(em) em->runtime(vm::getPos());
-  cout << "Segmentation fault" << endl;
-  cout << "Please report this programming error to" << endl 
+  cerr << "Segmentation fault" << endl;
+  cerr << "Please report this programming error to" << endl 
        << BUGREPORT << endl;
   abort();
 }

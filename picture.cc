@@ -232,8 +232,10 @@ bool picture::texprocess(const string& texname, const string& outname,
 	if(verbose > 2) BoundingBox(cout,bpos);
 	BoundingBox(*fout,bpos);
 	first=false;
-      } else *fout << s << endl;
+      } else *fout << s << newl;
     }
+    flush(*fout);
+    
     if(Fout) {
       if(!Fout->good()) {
 	ostringstream msg;
@@ -267,7 +269,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
       cmd << "'" << getSetting<mem::string>("gs")
 	  << "' -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
 	  << " -dAutoRotatePages=/None "
-	  << " -g" << paperWidth << "x" << paperHeight
+	  << " -g" << ceil(paperWidth) << "x" << ceil(paperHeight)
 	  << " -dDEVICEWIDTHPOINTS=" 
 	  << bpos.right-bpos.left
 	  << " -dDEVICEHEIGHTPOINTS=" 
@@ -385,11 +387,11 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   if(deconstruct) {
       if(!bboxout.is_open()) {
 	bboxout.open(("."+buildname(prefix,"box")).c_str());	
-	bboxout << deconstruct << endl;
+	bboxout << deconstruct << newl;
       }
       bbox bscaled=b;
       bscaled *= deconstruct;
-      bboxout << bscaled << endl;
+      bboxout << bscaled << newl;
       if(Delete) {
 	unlink(outname.c_str());
 	return false;
