@@ -201,9 +201,10 @@ void doICore(icore &i, bool embedded=false) {
   em->sync();
   if(em->errors()) return;
   
+  static mem::vector<coenv*> estack;
+  static mem::vector<vm::interactiveStack*> sstack;
+  
   try {
-    static mem::vector<coenv*> estack;
-    static mem::vector<vm::interactiveStack*> sstack;
     if(embedded) {
       assert(estack.size() && sstack.size());
       i.run(*(estack.back()),*(sstack.back()));
@@ -235,9 +236,6 @@ void doICore(icore &i, bool embedded=false) {
 	interactive=true;
       } else run::exitFunction(&s);
       
-      estack.pop_back();
-      sstack.pop_back();
-      
       if(settings::getSetting<bool>("listvariables"))
 	base_env.list();
     }
@@ -249,6 +247,11 @@ void doICore(icore &i, bool embedded=false) {
     run::cleanup();
   }
 
+  if(!embedded) {
+    estack.pop_back();
+    sstack.pop_back();
+  }
+  
   em->clear();
 }
       
