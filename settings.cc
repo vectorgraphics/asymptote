@@ -71,7 +71,11 @@ const bool msdos=false;
 const char *HOME="HOME";
 const char pathSeparator=':';
 const string defaultPSViewer="gv";
+#ifdef __APPLE__
+const string defaultPDFViewer="open";
+#else  
 const string defaultPDFViewer="acroread";
+#endif  
 const string defaultGhostscript="gs";
 const string defaultDisplay="display";
 const string defaultPython="";
@@ -371,6 +375,21 @@ struct stringSetting : public argumentSetting {
 
   bool getOption() {
     value=(item)(mem::string)optarg;
+    return true;
+  }
+};
+
+struct userSetting : public argumentSetting {
+  userSetting(mem::string name, char code,
+	      mem::string argname, mem::string desc,
+	      mem::string defaultValue)
+    : argumentSetting(name, code, argname, desc,
+		      types::primString(), (item)defaultValue) {}
+
+  bool getOption() {
+    mem::string s=vm::get<mem::string>(value)+mem::string(optarg);
+    s.push_back(';');
+    value=(item) s;
     return true;
   }
 };
@@ -719,8 +738,8 @@ void initSettings() {
   addOption(new boolSetting("autoplain", 0,
 			    "Enable automatic importing of plain",
 			    true));
-  addOption(new stringSetting("user", 'u', "x",
-                     "General purpose user string  [\"\"]", ""));
+  addOption(new userSetting("user", 'u', "x",
+			    "General purpose user string  [\"\"]", ""));
   
   addOption(new realSetting("paperwidth", 0, "bp", ""));
   addOption(new realSetting("paperheight", 0, "bp", ""));
