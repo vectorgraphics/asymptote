@@ -138,7 +138,7 @@ Base modules
 * graph3::                      3D linear & logarithmic graphs
 * solids::                      3D solid geometry package
 * featpost3D::                  Partial port of @code{featpost3d}
-
+* flowchart::			Flowchart drawing routines
 
 @end detailmenu
 @end menu
@@ -4383,6 +4383,7 @@ Here now is @code{latexusage.tex}:
 * graph3::                      3D linear & logarithmic graphs
 * solids::                      3D solid geometry package
 * featpost3D::                  Partial port of @code{featpost3d}
+* flowchart::			Flowchart drawing routines
 
 @end menu
 
@@ -5695,6 +5696,135 @@ original package is documented at
 @quotation
 @url{http://matagalatlante.org/nobre/featpost/doc/featpost.html}
 @end quotation
+
+@node flowchart
+@section @code{flowchart}
+@cindex @code{flowchart}
+This package provides routines to assist in drawing flowcharts. The primary
+@code{struct} is @code{flowblock}, representing a single block on the
+chart.
+
+@verbatim
+pair flowblock.bound
+@end verbatim 
+@cindex @code{flowblock.bound}
+The upper right corner of the block relative to its lower left corner.
+
+@verbatim
+pair flowblock.llcorner
+@end verbatim
+@cindex @code{flowblock.llcorner}
+The absolute lower left corner of the block.
+
+@verbatim
+pair flowblock.centre()
+void flowblock.centre(pair loc)
+@end verbatim
+@cindex @code{flowblock.centre}
+Returns the current absolute centre of the block, or sets the absolute
+centre of the block.
+
+@verbatim
+pair flowblock.position(real x)
+@end verbatim
+@cindex @code{flowblock.position}
+Returns an absolute position along the border path of the block.
+
+@verbatim
+pair flowblock.top()
+pair flowblock.left()
+pair flowblock.right()
+pair flowblock.bottom()
+pair flowblock.topleft()
+pair flowblock.topright()
+pair flowblock.bottomleft()
+pair flowblock.bottomright()
+@end verbatim
+@cindex @code{flowblock.top}
+@cindex @code{flowblock.left}
+@cindex @code{flowblock.right}
+@cindex @code{flowblock.bottom}
+@cindex @code{flowblock.topleft}
+@cindex @code{flowblock.topright}
+@cindex @code{flowblock.bottomleft}
+@cindex @code{flowblock.bottomright}
+These eight methods return an absolute position on the appropriate edge
+of the block.
+
+@code{picture flowblock.draw(pen p=currentpen)}
+@cindex @code{flowblock.draw}
+Returns a picture representing the flowblock.
+
+@cindex @code{text_to_pic}
+@verbatim
+picture text_to_pic(string text, real dy=0.2cm,
+                    real angle=0, pair align=0, pen p=currentpen)
+@end verbatim
+Converts the given string into a picture; used to pass text as pictures
+into the various flowblock generation routines.
+
+@cindex @code{flowrectangle}
+@verbatim
+flowblock flowrectangle(picture header, picture body,
+                        pen header_colour = gray(.8),
+                        pen body_colour = currentpen,
+                        pair centre = (0,0), real dx = 3)
+flowblock flowrectangle(picture body,
+                        pen header_colour = gray(.8),
+                        pen body_colour = currentpen,
+                        pair centre = (0,0), real dx = 3)
+@end verbatim
+Creates a rectangular flow chartblock with the given header (if specified)
+and body.  @code{dx} is the amount of padding around the header and body. 
+
+@cindex @code{flowdiamond}
+@verbatim
+flowblock flowdiamond(picture pic, pair centre=(0,0),
+                      real ds = 5, real dw = 1,
+                      real height = 20, real dh = 0)
+@end verbatim
+Creates a diamond-shaped flowchart block.
+
+@cindex @code{flowcircle}
+@verbatim
+flowblock flowcircle(picture pic, pair centre=(0,0), real dr = 0)
+@end verbatim
+Creates a circular flowchart block.
+
+@cindex @code{flowroundrectangle}
+@verbatim
+flowblock flowroundrectangle(picture pic, pair centre=(0,0),
+                             real ds = 5, real dw = 0)
+@end verbatim
+Creates a rectangular flowchart block with rounded corners.
+
+@cindex @code{flowbevel}
+@verbatim
+flowblock flowbevel(picture pic, pair centre=(0,0),
+                    real dh = 5, real dw = 5)
+@end verbatim 
+Creates a rectangular flowchart block with beveled edges.
+
+@cindex @code{flowpath}
+@verbatim
+path flowpath(pair point[], bool horizontal[])
+@end verbatim
+Draws paths joining the pairs in @code{point} with right-angled lines.
+Each entry in @code{horizontal} corresponds with an entry in @code{point}
+and if set to true makes the line between it and the next point start
+with a horizontal segment (as opposed to a vertical segment).
+
+@cindex @code{drawflow}
+@verbatim
+void drawflow(picture pic = currentpicture, path flow,
+              picture text = new picture, real pos=0.5,
+              pair align=(0,0), pen p=currentpen)
+@end verbatim
+Draws a path (usually a flowpath) with an optional label along its length.
+@code{text} represents the label, @code{pos} its position along the line,
+and @code{align} its alignment relative to that position on the line.
+
+It is also possible to use @code{draw} directly on flowblocks.
 
 @node Options
 @chapter Options
