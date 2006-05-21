@@ -20,6 +20,7 @@ CLEAN = camp.output
 NAME = asy
 EXTRABIN = x$(NAME)
 EXTRA = asy-mode.el asy.vim asymptote.py
+LATEXFILES = asymptote.sty asycolors.sty
 
 CXX = @CXX@ -Wall -ansi
 CC = @CC@ -Wall -ansi
@@ -99,7 +100,7 @@ install-asy: asy
 	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps \
 		doc/*.asy doc/*.csv doc/*.dat doc/latexusage.tex $(exampledir)
 	${INSTALL} -p -m 644 examples/animations/*.asy $(animationsdir)
-	-${INSTALL} -p -m 644 doc/asymptote.sty $(latexdir)
+	-cd doc; ${INSTALL} -p -m 644 $(LATEXFILES) $(latexdir)
 	-if test -z "$(DESTDIR)"; then \
 	  texhash; \
 	fi
@@ -123,7 +124,7 @@ uninstall-asy:
 	-rmdir $(docdir)
 	-cd $(asydir); rm -f *.asy asy*
 	-rmdir $(asydir)
-	-rm -f $(latexdir)/asymptote.sty
+	-cd $(latexdir); rm -f $(LATEXFILES)
 	-rmdir $(latexdir)
 	-cd $(bindir); rm -f $(NAME) $(EXTRABIN) 
 
