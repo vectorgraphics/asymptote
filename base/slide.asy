@@ -1,8 +1,11 @@
 import fontsize;
 usepackage("colordvi");
 
+public bool reverse=false; // Set to true to enable reverse video
 public bool stepping=false; // Set to true to enable stepping
 public bool itemstep=true;  // Set to false to disable stepping on each item
+
+public bool allowstepping=false; // Allow stepping for current slide.
 
 public real margin=0.5cm;
 public real pagewidth=-2margin;
@@ -23,9 +26,6 @@ size(pagewidth,pageheight,IgnoreAspect);
 real minipagemargin=1inch;
 public real minipagewidth=pagewidth-2minipagemargin;
 
-texpreamble("\hyphenpenalty=5000\tolerance=1000");
-texpreamble("\let\bulletcolor\Red");
-
 public transform tinv=inverse(fixedscaling((-1,-1),(1,1)));
   
 public pen itempen=fontsize(24pt);
@@ -43,6 +43,8 @@ public pen authorpen=fontsize(24pt)+blue;
 public pen datepen=urlpen;
 public pair dateskip=(0,0.05);
 
+public string oldbulletcolor="Black";
+public string newbulletcolor="Red";
 public string bullet="\bulletcolor{$\bullet$}";
 					      
 public pair pagenumberposition=S+E;
@@ -50,9 +52,15 @@ public pair pagenumberalign=4NW;
 public pen pagenumberpen=fontsize(12);
 public pen steppagenumberpen=pagenumberpen+red;
 
+public real figureborder=0.25cm;
+public pen figuremattpen=invisible;
+
 public pair titleposition=(-0.8,0.4);
 public pair startposition=(-0.8,0.9);
 public pair currentposition=startposition;
+
+texpreamble("\hyphenpenalty=10000\tolerance=1000");
+texpreamble("\let\bulletcolor"+'\\'+newbulletcolor);
 
 public picture background;
 size(background,pagewidth,pageheight,IgnoreAspect);
@@ -70,7 +78,27 @@ void background()
 {
   if(!background.empty()) {
     add(background);
-    layer();  
+    layer();
+  }
+}
+
+// Evaluate user command line option.
+void usersetting()
+{
+  plain.usersetting();
+  if(reverse) { // Black background
+    fill(background,box((-1,-1),(1,1)),black);
+    itempen=white;
+    defaultpen(itempen);
+    oldbulletcolor="White";
+    pagenumberpen=fontsize(pagenumberpen)+white;
+    steppagenumberpen=pagenumberpen+mediumblue;
+    authorpen=fontsize(authorpen)+paleblue;
+    figuremattpen=white;
+    usepackage("asycolors");
+    texpreamble("\def\Blue#1{{\paleblue #1}}");
+  } else { // White background
+    texpreamble("\let\Green\OliveGreen");
   }
 }
 
@@ -88,8 +116,9 @@ void nextpage(pen p=pagenumberpen)
   firststep=true;
 }
 
-void newslide() 
+void newslide(bool stepping=true) 
 {
+  allowstepping=stepping;
   nextpage();
   ++page;
   currentposition=startposition;
@@ -108,18 +137,18 @@ bool checkposition()
 
 void step()
 {
-  if(!stepping) return;
+  if(!stepping || !allowstepping) return;
   if(!checkposition()) return;
   lastnode.push(currentpicture.nodes.length-1);
   nextpage(steppagenumberpen);
   for(int i=0; i < firstnode.length; ++i) {
     for(int j=firstnode[i]; j <= lastnode[i]; ++j) {
-      tex("\let\bulletcolor\Black");
+      tex("\let\bulletcolor"+'\\'+oldbulletcolor);
       currentpicture.add(currentpicture.nodes[j]);
     }
   }
   firstnode.push(currentpicture.nodes.length-1);
-  tex("\let\bulletcolor\Red");
+  tex("\let\bulletcolor"+'\\'+newbulletcolor);
 }
 
 void incrementposition(pair z)
@@ -128,8 +157,9 @@ void incrementposition(pair z)
 }
 
 void title(string s, pair position=N, pair align=titlealign,
-	   pen p=titlepen) 
+	   pen p=titlepen, bool newslide=true)
 {
+  if(newslide && !currentpicture.empty()) newslide();
   checkposition();
   frame f;
   label(f,minipage("\center "+s,minipagewidth),(0,0),align,p);
@@ -139,7 +169,7 @@ void title(string s, pair position=N, pair align=titlealign,
 }
 
 void remark(bool center=false, string s, pair align=0, pen p=itempen,
-	    real indent=0, bool minipage=true) 
+	    real indent=0, bool minipage=true, filltype filltype=NoFill) 
 {
   checkposition();
   if(minipage) s=minipage(s,minipagewidth);
@@ -154,7 +184,7 @@ void remark(bool center=false, string s, pair align=0, pen p=itempen,
   }
   
   frame f;
-  label(f,s,(indent,0),align,p);
+  label(f,s,(indent,0),align,p,filltype);
   pair m=tinv*min(f);
   pair M=tinv*min(f);
   
@@ -185,23 +215,22 @@ void equation(string s, pen p=itempen)
   remark(center=true,"{$\displaystyle "+s+"$}",p,minipage=false);
 }
 
-void figure(string s, string options="", string caption="", pair align=S,
-	    pen p=itempen)
-{
-  remark(center=true,graphic(s,options),align,minipage=false);
-  if(caption != "") center(caption,p);
-}
-
 void figure(string[] s, string options="", string caption="", pair align=S,
-	    real margin=50bp,pen p=itempen)
+	    real margin=50bp, pen p=itempen)
 {
   string S;
   if(s.length == 0) return;
   S=graphic(s[0],options);
   for(int i=1; i < s.length; ++i)
     S += "\kern "+(string) (margin/pt)+"pt "+graphic(s[i],options);
-  remark(center=true,S,align,minipage=false);
+  remark(center=true,S,align,minipage=false,Fill(figureborder,figuremattpen));
   if(caption != "") center(caption,p);
+}
+
+void figure(string s, string options="", string caption="", pair align=S,
+	    pen p=itempen)
+{
+  figure(new string[] {s},options,caption,align,p);
 }
 
 void item(string s, pen p=itempen, bool step=itemstep)
@@ -226,8 +255,9 @@ void skip(real n=1)
 }
 
 void titlepage(string title, string author, string date="", string url="",
-	       bool newslide=true)
+	       bool newslide=false)
 {
+  if(newslide && !currentpicture.empty()) newslide();
   background();
   currentposition=titleposition;
   center(title,titlepagepen);
@@ -236,7 +266,6 @@ void titlepage(string title, string author, string date="", string url="",
   if(date != "") center(date,datepen);
   currentposition -= urlskip;
   if(url != "") center("{\tt "+url+"}",urlpen);
-  if(newslide) newslide();
 }
 
 void exitfunction()

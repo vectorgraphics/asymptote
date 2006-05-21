@@ -1580,6 +1580,19 @@ import texcolors;
 Note that there is some overlap between these two standards
 and the definitions of some colors (e.g. @code{Green}) actually disagree.
 
+@code{Asymptote} also comes with a @code{asycolors.sty} @code{LaTeX} package
+that defines to @code{LaTeX} @acronym{CMYK} versions of
+@code{Asymptote}'s predefined colors, so that they can be used
+directly within @code{LaTeX} strings. Normally, such colors are
+passed to @code{LaTeX} via a pen argument; however, to change the
+color of only a portion of a string, say for a slide presentation,
+(@pxref{slide}) it may be desirable to specify the color directly to
+@code{LaTeX}. This file can be passed to @code{LaTeX} with the
+@code{Asymptote} command
+@verbatim
+usepackage("asycolors");
+@end verbatim
+
 @item Line types are specified with the function 
 @code{pen linetype(string s, real offset=0, bool scale=true,
  bool adjust=true)},
@@ -2072,10 +2085,15 @@ Here @code{filltype} specifies one of the following fill types:
 @item Fill
 Fill with the pen used to draw the boundary.
 
-@item Fill(pen p=nullpen)
+@item Fill(real xmargin=0, real margin=0)
+Fill with the pen used to draw the boundary, adding an optional
+margin of @code{xmargin} and @code{ymargin}.
+
+@item Fill(real xmargin=0, real ymargin=xmargin, pen p)
 @cindex @code{nullpen}
 If @code{p} is @code{nullpen}, fill with the pen used to draw the
-boundary; otherwise fill with pen @code{p}.
+boundary; otherwise fill with pen @code{p}. An optional margin of
+@code{xmargin} and @code{ymargin} can be specified.
 
 @cindex @code{NoFill}
 @item NoFill
@@ -5784,8 +5802,9 @@ page alignment setting @code{align} is @code{Center}.
 
 The @code{-u} option may be used to specify arbitrary @code{Asymptote}
 code on the command line as a string. It is not necessary to terminate
-the string with a semicolon. Command-line code like 
-@code{-u x=sqrt(2)} can be executed within a module like this: 
+the string with a semicolon. Multiple @code{-u} options are executed
+in the order they are given. Command-line code like @code{-u
+x=sqrt(2)} can be executed within a module like this:
 @verbatim
 real x;
 access settings;
