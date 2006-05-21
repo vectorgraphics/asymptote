@@ -122,7 +122,8 @@ pen heavygrey=gray;
 pen deepgrey=deepgray;
 pen darkgrey=darkgray;
 
-pen cmyk(pen p) {
+pen cmyk(pen p) 
+{
   return p+cmyk;
 }
 

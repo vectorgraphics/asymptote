@@ -70,10 +70,25 @@ void unfill(frame f, path[] g)
 typedef void filltype(frame, path, pen);
 void filltype(frame, path, pen) {}
 
-filltype Fill(pen p)
+path margin(path g, real xmargin, real ymargin) 
+{
+  if(xmargin != 0 || ymargin != 0) {
+    pair M=max(g);
+    pair m=min(g);
+    real width=M.x-m.x;
+    real height=M.y-m.y;
+    real xfactor=(width+2xmargin)/width;
+    real yfactor=(height+2ymargin)/height;
+    g=xscale(xfactor)*yscale(yfactor)*g;
+    g=shift(0.5*(M+m)-0.5*(max(g)+min(g)))*g;
+  }   
+  return g;
+}
+
+filltype Fill(real xmargin=0, real ymargin=xmargin, pen p)
 {
   return new void(frame f, path g, pen drawpen) {
-    filldraw(f,g, p == nullpen ? drawpen : p, drawpen);
+    filldraw(f,margin(g,xmargin,ymargin),p == nullpen ? drawpen : p,drawpen);
   };
 }
 
@@ -81,22 +96,17 @@ public filltype NoFill=new void(frame f, path g, pen p) {
   draw(f,g,p);
 };
 
+filltype Fill(real xmargin=0, real ymargin=0)
+{
+  return Fill(xmargin,ymargin,nullpen);
+}
+
 public filltype Fill=Fill(nullpen);
 
 filltype UnFill(real xmargin=0, real ymargin=xmargin)
 {
   return new void(frame f, path g, pen p) {
-    if(xmargin != 0 || ymargin != 0) {
-      pair M=max(g);
-      pair m=min(g);
-      real width=M.x-m.x;
-      real height=M.y-m.y;
-      real xfactor=(width+2xmargin)/width;
-      real yfactor=(height+2ymargin)/height;
-      g=xscale(xfactor)*yscale(yfactor)*g;
-      g=shift(0.5*(M+m)-0.5*(max(g)+min(g)))*g;
-    }
-    unfill(f,g);
+    unfill(f,margin(g,xmargin,ymargin));
   };
 }
 
