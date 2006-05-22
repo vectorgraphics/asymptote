@@ -138,7 +138,8 @@ Base modules
 * graph3::                      3D linear & logarithmic graphs
 * solids::                      3D solid geometry package
 * featpost3D::                  Partial port of @code{featpost3d}
-* flowchart::			Flowchart drawing routines
+* flowchart::                   Flowchart drawing routines
+
 
 @end detailmenu
 @end menu
@@ -4301,10 +4302,10 @@ illustrated in the following example:
 
 @image{mosquito}
 
-Here is another example, @code{flowchart.asy}, showing variable box
+Here is another example, @code{advection.asy}, showing variable box
 and ellipse sizes:
 
-@image{flowchart}
+@image{advection}
 
 
 @node LaTeX usage
@@ -4386,7 +4387,7 @@ Here now is @code{latexusage.tex}:
 * graph3::                      3D linear & logarithmic graphs
 * solids::                      3D solid geometry package
 * featpost3D::                  Partial port of @code{featpost3d}
-* flowchart::			Flowchart drawing routines
+* flowchart::                   Flowchart drawing routines
 
 @end menu
 
@@ -5167,7 +5168,7 @@ axis limits can be inhibited with one of these @code{scale} routines:
 void scale(picture pic=currentpicture, scaleT x, scaleT y);
 
 void scale(picture pic=currentpicture, bool xautoscale=true,
-	   bool yautoscale=xautoscale, bool zautoscale=yautoscale);
+           bool yautoscale=xautoscale, bool zautoscale=yautoscale);
 @end verbatim
 
 This sets the scalings for picture @code{pic}. The @code{graph} routines
@@ -5720,12 +5721,12 @@ pair flowblock.llcorner
 The absolute lower left corner of the block.
 
 @verbatim
-pair flowblock.centre()
-void flowblock.centre(pair loc)
+pair flowblock.center()
+void flowblock.center(pair loc)
 @end verbatim
-@cindex @code{flowblock.centre}
-Returns the current absolute centre of the block, or sets the absolute
-centre of the block.
+@cindex @code{flowblock.center}
+Returns the current absolute center of the block, or sets the absolute
+center of the block.
 
 @verbatim
 pair flowblock.position(real x)
@@ -5758,10 +5759,10 @@ of the block.
 @cindex @code{flowblock.draw}
 Returns a picture representing the flowblock.
 
-@cindex @code{text_to_pic}
+@cindex @code{picture}
 @verbatim
-picture text_to_pic(string text, real dy=0.2cm,
-                    real angle=0, pair align=0, pen p=currentpen)
+picture picture(string text, real dy=0.2cm,
+                real angle=0, pair align=0, pen p=currentpen)
 @end verbatim
 Converts the given string into a picture; used to pass text as pictures
 into the various flowblock generation routines.
@@ -5769,42 +5770,42 @@ into the various flowblock generation routines.
 @cindex @code{flowrectangle}
 @verbatim
 flowblock flowrectangle(picture header, picture body,
-                        pen header_colour = gray(.8),
-                        pen body_colour = currentpen,
-                        pair centre = (0,0), real dx = 3)
+                        pen headercolor=mediumgray,
+                        pen bodycolor=currentpen,
+                        pair center=(0,0), real dx=3)
 flowblock flowrectangle(picture body,
-                        pen header_colour = gray(.8),
-                        pen body_colour = currentpen,
-                        pair centre = (0,0), real dx = 3)
+                        pen headercolor=mediumgray,
+                        pen bodycolor=currentpen,
+                        pair center=(0,0), real dx=3)
 @end verbatim
 Creates a rectangular flow chartblock with the given header (if specified)
-and body.  @code{dx} is the amount of padding around the header and body. 
+and body. Here @code{dx} is the amount of padding around the header and body. 
 
 @cindex @code{flowdiamond}
 @verbatim
-flowblock flowdiamond(picture pic, pair centre=(0,0),
-                      real ds = 5, real dw = 1,
-                      real height = 20, real dh = 0)
+flowblock flowdiamond(picture pic, pair center=(0,0),
+                      real ds=5, real dw=1,
+                      real height=20, real dh=0)
 @end verbatim
 Creates a diamond-shaped flowchart block.
 
 @cindex @code{flowcircle}
 @verbatim
-flowblock flowcircle(picture pic, pair centre=(0,0), real dr = 0)
+flowblock flowcircle(picture pic, pair center=(0,0), real dr=0)
 @end verbatim
 Creates a circular flowchart block.
 
 @cindex @code{flowroundrectangle}
 @verbatim
-flowblock flowroundrectangle(picture pic, pair centre=(0,0),
-                             real ds = 5, real dw = 0)
+flowblock flowroundrectangle(picture pic, pair center=(0,0),
+                             real ds=5, real dw=0)
 @end verbatim
 Creates a rectangular flowchart block with rounded corners.
 
 @cindex @code{flowbevel}
 @verbatim
-flowblock flowbevel(picture pic, pair centre=(0,0),
-                    real dh = 5, real dw = 5)
+flowblock flowbevel(picture pic, pair center=(0,0),
+                    real dh=5, real dw=5)
 @end verbatim 
 Creates a rectangular flowchart block with beveled edges.
 
@@ -5819,15 +5820,19 @@ with a horizontal segment (as opposed to a vertical segment).
 
 @cindex @code{drawflow}
 @verbatim
-void drawflow(picture pic = currentpicture, path flow,
-              picture text = new picture, real pos=0.5,
+void drawflow(picture pic=currentpicture, path flow,
+              picture text=new picture, real pos=0.5,
               pair align=(0,0), pen p=currentpen)
 @end verbatim
 Draws a path (usually a flowpath) with an optional label along its length.
 @code{text} represents the label, @code{pos} its position along the line,
 and @code{align} its alignment relative to that position on the line.
 
-It is also possible to use @code{draw} directly on flowblocks.
+It is also possible to use @code{draw} directly on flowblocks. Here
+is a simple flowchart example:
+
+@verbatiminclude flowchartdemo.asy
+@image{flowchartdemo}
 
 @node Options
 @chapter Options
@@ -6252,7 +6257,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  westnile minipage infectiousM ra penb paletteticks drawline nV
 @c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis tt
 @c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx XEquals YEquals
-@c  LocalWords:  treetest eetomumu fermi backend pstoedit drawtree xFF MSDOS
+@c  LocalWords:  treetest eetomumu fermi backend pstoedit drawtree xFF MSDOS gz
 @c  LocalWords:  vimrc CFLAGS verbatiminclude online noindent bezier superpath
 @c  LocalWords:  evenodd squarecap roundcap extendcap miterjoin roundjoin NFSS
 @c  LocalWords:  beveljoin fillrule zerowinding insideness lineskip cmr pcrr Hx
@@ -6267,17 +6272,17 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  begingroup xmargin ymargin pbox box ellipse wget exe Gouraud
 @c  LocalWords:  multithreaded newframe init emph nums concat xline yline zpart
 @c  LocalWords:  colatitude zscale noView cosh nullpen MetaFontbook cyclicflag
-@c  LocalWords:  nodeps Ghostgum beginlabel endlabel pTick ptick loggrid SAS
+@c  LocalWords:  nodeps Ghostgum beginlabel endlabel pTick ptick loggrid SAS dy
 @c  LocalWords:  currentprojection latticeshading subpictures colinear unitcube
 @c  LocalWords:  Autoscaling solveQuadratic MidArrow MidArcArrow Prebuilt url
 @c  LocalWords:  pdftex commentchar getstring getstringprefix getreal defaultS
 @c  LocalWords:  ticklocate autoscaleT autoscaling vectorfield autolimits dvi
 @c  LocalWords:  zlimits inline dvipdf hyperdvi autoconf gui zerowindingoverlap
-@c  LocalWords:  prepended intMax quadraticroots cubicroots filltype prepend
+@c  LocalWords:  prepended intMax quadraticroots cubicroots filltype prepend dx
 @c  LocalWords:  ticklabel popup UnFill markroutine marknodes markuniform erf
-@c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis Datadir
+@c  LocalWords:  intersectpoint cyrillic mathtext russian brokenaxis Datadir ds
 @c  LocalWords:  resetdefaultpen latticeshade axialshade radialshade erfc det
-@c  LocalWords:  gouraudshade unescaped nmesh nsub surfacepen getpair MikTeX
+@c  LocalWords:  gouraudshade unescaped nmesh nsub surfacepen getpair MikTeX dw
 @c  LocalWords:  lightgray meshpen localhistory axisT roundedpath unitsize aSin
 @c  LocalWords:  fontcommand makepen aCos aTan Knorr roundpath BeginPoint nView
 @c  LocalWords:  MidPoint EndPoint nmask antialiasing notex autoplain batchMask
@@ -6289,5 +6294,10 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  subsampling subsampled sinc kai AtBeginDocument GBK clearpage
 @c  LocalWords:  AtEndDocument zaxis maxbound truepoint paperwidth paperheight
 @c  LocalWords:  GSL deriv texcolors fixedscaling UpsideDown texreset slidedemo
-@c  LocalWords:  subitem newslide realMin realMax realEpsilon realDigits
-@c  LocalWords:  obliqueX
+@c  LocalWords:  subitem newslide realMin realMax realEpsilon realDigits gsl dh
+@c  LocalWords:  obliqueX asycolors monthaxis xautoscale yautoscale zautoscale
+@c  LocalWords:  obliqueZ obliqueY cylinderskeleton flowblock llcorner dr py
+@c  LocalWords:  loc topleft topright bottomleft bottomright flowrectangle
+@c  LocalWords:  headercolor bodycolor chartblock flowdiamond flowcircle
+@c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow flowblocks
+@c  LocalWords:  multipleView usersetting
