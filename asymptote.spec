@@ -68,7 +68,8 @@ texhash >/dev/null 2>&1 || :
 %{_bindir}/*
 %{_datadir}/%{name}/*.asy
 %{_datadir}/%{name}/asy*
-%{texpkgdir}/{asymptote.sty,asycolors.sty}
+%{texpkgdir}/asymptote.sty
+%{texpkgdir}/asycolors.sty
 %{_mandir}/man1/*.1*
 
 
