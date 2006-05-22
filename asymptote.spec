@@ -1,7 +1,7 @@
 %{!?_texmf: %define _texmf %(eval "echo `kpsewhich -expand-var '$TEXMFMAIN'`")}
 
 Name:           asymptote
-Version:        1.05
+Version:        1.06
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 
@@ -68,11 +68,14 @@ texhash >/dev/null 2>&1 || :
 %{_bindir}/*
 %{_datadir}/%{name}/*.asy
 %{_datadir}/%{name}/asy*
-%{texpkgdir}/asymptote.sty
+%{texpkgdir}/{asymptote.sty,asycolors.sty}
 %{_mandir}/man1/*.1*
 
 
 %changelog
+* Sun May 21 2006 John Bowman <> - 1.06-1
+- Update to 1.06.
+
 * Mon May  8 2006 John Bowman <> - 1.05-1
 - Update to 1.05.
 
