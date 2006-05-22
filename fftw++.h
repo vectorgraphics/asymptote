@@ -18,7 +18,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 #ifndef __fftwpp_h__
 #define __fftwpp_h__ 1
 
-#define __FFTWPP_H_VERSION__ 1.01
+#define __FFTWPP_H_VERSION__ 1.02
 
 #include <fstream>
 #include <iostream>
@@ -164,18 +164,21 @@ public:
   
   inline void CheckAlign(Complex *p, const char *s) {
     if((size_t) p % sizeof(Complex) == 0) return;
-    cerr << "ERROR: " << s << " array is not " << sizeof(Complex) 
-	 << "-byte aligned" << endl;
-    exit(1);
+    cerr << "WARNING: " << s << " array is not " << sizeof(Complex) 
+	 << "-byte aligned: address " << p << endl;
   }
   
   void Setup(Complex *in, Complex *out=NULL) {
     if(!Wise) LoadWisdom();
     bool alloc=!in;
     if(alloc) in=FFTWComplex(size);
+#ifndef NO_CHECK_ALIGN    
     CheckAlign(in,"constructor input");
     if(out) CheckAlign(out,"constructor output");
     else out=in;
+#else
+    if(!out) out=in;
+#endif    
     inplace=(out==in);
     plan=Plan(in,out);
     if(!plan) {
@@ -208,9 +211,13 @@ public:
   }
     
   void Setout(Complex *in, Complex *&out) {
+#ifndef NO_CHECK_ALIGN    
     CheckAlign(in,"input");
     if(out) CheckAlign(out,"output");
     else out=in;
+#else
+    if(!out) out=in;
+#endif    
     if(inplace ^ (out == in)) {
       cerr << "ERROR: fft constructor and call must be either both in place or out of place" << endl; 
       exit(1);
