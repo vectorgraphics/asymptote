@@ -45,9 +45,8 @@ public:
 };
   
 typedef mem::list<clipper *> cliplist;
-typedef std::list<string> stringlist;
   
-extern stringlist TeXpipepreamble, TeXpreamble;
+extern std::list<string> TeXpipepreamble, TeXpreamble;
 
 const double tex2ps=72.0/72.27;
 const double ps2tex=1.0/tex2ps;
@@ -60,14 +59,15 @@ void texdocumentclass(T& out, bool pipe=false)
 }
   
 template<class T>
-void texpreamble(T& out, stringlist& preamble=TeXpreamble)
+void texpreamble(T& out, std::list<string>& preamble=TeXpreamble)
 {
-  for(stringlist::iterator p=preamble.begin(); p != preamble.end(); ++p)
+  for(std::list<string>::iterator p=preamble.begin(); p != preamble.end(); ++p)
     out << stripblanklines(*p);
 }
   
 template<class T>
-void texdefines(T& out, stringlist& preamble=TeXpreamble, bool pipe=false) 
+void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
+		bool pipe=false) 
 {
   texpreamble(out,preamble);
   out << "\\newbox\\ASYbox" << newl

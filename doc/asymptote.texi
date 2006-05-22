@@ -3768,9 +3768,12 @@ value, however) contained in the string @code{s} with:
 @verbatim
 void eval(string s, bool embedded=false);
 @end verbatim
-If @code{embedded} is @code{true}, the string @code{s} will be evaluated 
-at the top level of the current environment instead of in an independent
-environment. It is not necessary to terminate the string with a semicolon.
+It is not necessary to terminate the string @code{s} with a semicolon.
+If @code{embedded} is @code{true}, the string will be evaluated 
+at the top level of the current environment.
+If @code{embedded} is @code{false} (the default), the string
+will be evaluated in an independent environment, sharing the same
+@code{settings} module. 
 
 One can evaluate arbitrary @code{Asymptote} code (which may
 contain unescaped quotation marks) with the command

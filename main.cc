@@ -25,6 +25,7 @@
 
 #include "stack.h"
 #include "runtime.h"
+#include "texfile.h"
 
 namespace run {
   void cleanup();
@@ -222,6 +223,11 @@ void doICore(icore &i, bool embedded=false) {
       estack.push_back(&e);
       sstack.push_back(&s);
 
+      std::list<string> TeXpipepreamble_save=
+	std::list<string>(camp::TeXpipepreamble);
+      std::list<string> TeXpreamble_save=
+	std::list<string>(camp::TeXpreamble);
+      
       if(settings::getSetting<bool>("autoplain")) {
 	absyntax::runnable *r=absyntax::autoplainRunnable();
 	irunnable(r).run(e,s);
@@ -235,6 +241,9 @@ void doICore(icore &i, bool embedded=false) {
 	run::exitFunction(&s);
 	interactive=true;
       } else run::exitFunction(&s);
+      
+      camp::TeXpipepreamble=TeXpipepreamble_save;
+      camp::TeXpreamble=TeXpreamble_save;
       
       if(settings::getSetting<bool>("listvariables"))
 	base_env.list();
@@ -358,8 +367,10 @@ int main(int argc, char *argv[])
     else
       if(numArgs() == 0) {
 	loop::doIFile("");
-      } else for(int ind=0; ind < numArgs() ; ind++)
+      } else for(int ind=0; ind < numArgs() ; ind++) {
 	loop::doIFile(string(getArg(ind)));
+	if(ind < numArgs()-1) setOptions(argc,argv);
+      }
   }
   catch (handled_error) {
     status=false;

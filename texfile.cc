@@ -16,7 +16,7 @@ using settings::getSetting;
   
 namespace camp {
 
-stringlist TeXpipepreamble, TeXpreamble;
+std::list<string> TeXpipepreamble, TeXpreamble;
   
 texfile::texfile(const string& texname, const bbox& box,
 		 const bbox& boxpos) : box(box), boxpos(boxpos)
