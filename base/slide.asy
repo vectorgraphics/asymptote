@@ -216,6 +216,7 @@ void equation(string s, pen p=itempen)
 }
 
 void figure(string[] s, string options="", real margin=50bp, 
+	    pen figuremattpen=figuremattpen,
 	    string caption="", pair align=S, pen p=itempen)
 {
   string S;
@@ -227,10 +228,11 @@ void figure(string[] s, string options="", real margin=50bp,
   if(caption != "") center(caption,p);
 }
 
-void figure(string s, string options="", string caption="", pair align=S,
-	    pen p=itempen)
+void figure(string s, string options="", real margin=50bp,
+	    pen figuremattpen=figuremattpen,
+	    string caption="", pair align=S, pen p=itempen)
 {
-  figure(new string[] {s},options,caption,align,p);
+  figure(new string[] {s},options,margin,figuremattpen,caption,align,p);
 }
 
 void item(string s, pen p=itempen, bool step=itemstep)
