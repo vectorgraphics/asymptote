@@ -194,9 +194,10 @@ void venv::list()
     name_t &list=names[s];
     for(name_iterator p = list.begin(); p != list.end(); ++p) {
       (*p)->getType()->printVar(std::cout, s);
-      std::cout << ";" << std::endl;
+      std::cout << ";\n";
     }
   }
+  flush(cout);
 }
 
 varEntry *venv::lookInTopScope(symbol *name, ty *t)
@@ -350,8 +351,9 @@ void venv::listValues(symbol *name, values &vals) {
     if ((*p)->shadowed)
       out << "  <shadowed> ";
     (*p)->v->getType()->printVar(out, name);
-    out << ";" << std::endl;
+    out << ";\n";
   }
+  flush(out);
 }
 
 void venv::list()
