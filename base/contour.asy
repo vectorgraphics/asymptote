@@ -39,19 +39,16 @@ private guide case3(pair[] pts, real[] vls)
 
 // Check if a line passes through a triangle, and draw the required line.
 private guide checktriangle(pair[] pts, real[] vls)
-{
-  // default segment to return in empty cases
-  guide dflt=nullpath;  
-
+{  
   if(vls[0] < 0) {
     if(vls[1] < 0) {
-      if(vls[2] < 0) return dflt;          // nothing to do
-      else if(vls[2] == 0) return dflt;  // nothing to do
+      if(vls[2] < 0) return nullpath;          // nothing to do
+      else if(vls[2] == 0) return nullpath;  // nothing to do
       else return case3(new pair[] {pts[0],pts[2],pts[1]},
 		 new real[] {vls[0],vls[2],vls[1]}); // case 3
     }
     else if(vls[1] == 0) {
-      if(vls[2] < 0) return dflt;       // nothing to do
+      if(vls[2] < 0) return nullpath;       // nothing to do
       else if(vls[2] == 0) return case1(pts[1],pts[2]); // case 1
       else return case2(new pair[] {pts[1],pts[0],pts[2]},
 		 new real[] {vls[1],vls[0],vls[2]}); // case 2
@@ -68,21 +65,21 @@ private guide checktriangle(pair[] pts, real[] vls)
   }
   else if(vls[0] == 0) {
     if(vls[1] < 0) {
-      if(vls[2] < 0) return dflt; // nothing to do
+      if(vls[2] < 0) return nullpath; // nothing to do
       else if(vls[2] == 0) return case1(pts[0],pts[2]); // case 1
       else return case2(new pair[] {pts[0],pts[1],pts[2]},
 		 new real[] {vls[0],vls[1],vls[2]}); // case 2
     }
     else if(vls[1] == 0) {
       if(vls[2] < 0) return case1(pts[0],pts[1]); // case 1
-      else if(vls[2] == 0) return dflt; // special case-use finer partitioning.      
+      else if(vls[2] == 0) return nullpath; // special case-use finer partitioning.      
       else return case1(pts[0],pts[1]); // case 1
     }
     else {
       if(vls[2] < 0) return case2(new pair[] {pts[0],pts[1],pts[2]},
 			   new real[] {vls[0],vls[1],vls[2]}); // case 2
       else if(vls[2] == 0) return case1(pts[0],pts[2]); // case 1
-      else return dflt; // nothing to do
+      else return nullpath; // nothing to do
     } 
   }
   else {
@@ -99,13 +96,13 @@ private guide checktriangle(pair[] pts, real[] vls)
       if(vls[2] < 0) return case2(new pair[] {pts[1],pts[0],pts[2]},
 			   new real[] {vls[1],vls[0],vls[2]}); // case 2
       else if(vls[2] == 0) return case1(pts[1],pts[2]); // case 1
-      else return dflt; // nothing to do
+      else return nullpath; // nothing to do
     }
     else {
       if(vls[2] < 0) return case3(new pair[] {pts[0],pts[2],pts[1]},
 			   new real[] {vls[0],vls[2],vls[1]}); // case 3
-      else if(vls[2] == 0) return dflt; // nothing to do
-      else return dflt; // nothing to do
+      else if(vls[2] == 0) return nullpath; // nothing to do
+      else return nullpath; // nothing to do
     } 
   }      
 }
@@ -132,27 +129,27 @@ private void addseg(guide seg, cgd[] gds)
   int  i;  
   for (i=0; i < gds.length; ++i) {
     if(!gds[i].actv) continue;
-    if     (length(point(gds[i].g,0)-point(seg,0)) < eps) {
-      gds[i].g=reverse(seg)--gds[i].g;
-      gds[i].exnd=true;
-      break;
-    }
-    else if(length(point(gds[i].g,0)-point(seg,size(seg))) < eps) {
+    if(length(point(gds[i].g,0)-point(seg,size(seg))) < eps) {
       gds[i].g=seg--gds[i].g;
       gds[i].exnd=true; 
-      break;
-    }
-    else if(length(point(gds[i].g,size(gds[i].g))-point(seg,0)) < eps) {   
-      gds[i].g=gds[i].g--seg;
-      gds[i].exnd=true; 
-      break;
+      return;
     }
     else if(length(point(gds[i].g,size(gds[i].g))-
 			point(seg,size(seg))) < eps) {
       gds[i].g=gds[i].g--reverse(seg); 
       gds[i].exnd=true; 
-      break;
-    } 
+      return;
+    }
+    else if(length(point(gds[i].g,0)-point(seg,0)) < eps) {
+      gds[i].g=reverse(seg)--gds[i].g;
+      gds[i].exnd=true;
+      return;
+    }
+    else if(length(point(gds[i].g,size(gds[i].g))-point(seg,0)) < eps) {  
+      gds[i].g=gds[i].g--seg;
+      gds[i].exnd=true; 
+      return;
+    }
   }
  
   // in case nothing is found
@@ -169,7 +166,7 @@ private void addseg(guide seg, cgd[] gds)
  *ll,ur:       lower left and upper right vertices of rectangle
  *xn,yn:       cuts on each axis (i.e. accuracy)
  */
-guide[][] contour(real func(real, real), real[] cl,
+guide[][] contourguides(real func(real, real), real[] cl,
 	     pair ll, pair ur, int xn=xndefault,
 	     int yn=yndefault)
 {    
@@ -309,7 +306,7 @@ void contour(picture pic=currentpicture, Label L="", real func(real, real), real
 	     int yn=yndefault, pen[] p)
 {
   guide[][] g;
-  g=contour(func,cl,ll,ur,xn,yn);
+  g=contourguides(func,cl,ll,ur,xn,yn);
   for(int cnt=0; cnt < cl.length; ++cnt) {
     for(int i=0; i < g[cnt].length; ++i)
       draw(pic,L,g[cnt][i],p[cnt]);
