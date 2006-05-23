@@ -300,7 +300,7 @@ revolution cylinder(triple c=O, real r, real h, triple axis=Z)
   return revolution(c,C-axis--C+axis,axis);
 }
 
-// Return a circular cylinder of radius r and height h centered at c and
+// Return a circular cone of radius r and height h centered at c and
 // aligned with axis.
 revolution cone(triple c=O, real r, real h, triple axis=Z)
 {
