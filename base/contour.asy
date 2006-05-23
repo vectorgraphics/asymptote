@@ -8,12 +8,13 @@ private struct cgd
   public bool actv=true;  // is guide active
   public bool exnd=true;  // has the guide been extended
 }
+  
 cgd operator init(){return new cgd;}
 
 // Case 1: line passes through two vertices of a triangle
 private guide case1(pair pt1, pair pt2)
 {
-  // WILL cause a bug due to repetition; luckily case1 is very rare
+  // Will cause a duplicate guide; luckily case1 is very rare
   return pt1--pt2;
 }
 
