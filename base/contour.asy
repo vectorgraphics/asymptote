@@ -303,6 +303,35 @@ guide[][] contourguides(real func(real, real), real[] cl,
   return result;
 }
 
+guide[][] spline(guide[][] g)
+{
+  guide result[][]=new guide[g.length][0];
+  for(int c1=0; c1 < g.length; ++c1){
+    for(int c2=0; c2 < g[c1].length; ++c2){
+      guide cur=point(g[c1][c2],0);
+      for(int i=1; i <= size(g[c1][c2])/2; ++i){
+        cur=cur..point(g[c1][c2],2*i);
+      }
+      if(cyclic(g[c1][c2]))cur..cycle;
+      result[c1].push(cur);
+    }
+  }
+  return result;
+}
+
+void contourspl(picture pic=currentpicture, Label L="", real func(real, real),
+	     real[] cl, pair ll, pair ur, int xn=xndefault,
+	     int yn=yndefault, pen[] p)
+{
+  guide[][] g;
+  g=contourguides(func,cl,ll,ur,xn,yn);
+  g=spline(g);
+  for(int cnt=0; cnt < cl.length; ++cnt) {
+    for(int i=0; i < g[cnt].length; ++i)
+      draw(pic,L,g[cnt][i],p[cnt]);
+  }
+  return;
+}
 
 void contour(picture pic=currentpicture, Label L="", real func(real, real),
 	     real[] cl, pair ll, pair ur, int xn=xndefault,
