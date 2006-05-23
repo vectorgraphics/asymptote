@@ -72,7 +72,7 @@ private guide checktriangle(pair[] pts, real[] vls)
     }
     else if(vls[1] == 0) {
       if(vls[2] < 0) return case1(pts[0],pts[1]); // case 1
-      else if(vls[2] == 0) return nullpath; // special case-use finer partitioning.      
+      else if(vls[2] == 0) return nullpath; // use finer partitioning.
       else return case1(pts[0],pts[1]); // case 1
     }
     else {
@@ -167,8 +167,8 @@ private void addseg(guide seg, cgd[] gds)
  *xn,yn:       cuts on each axis (i.e. accuracy)
  */
 guide[][] contourguides(real func(real, real), real[] cl,
-	     pair ll, pair ur, int xn=xndefault,
-	     int yn=yndefault)
+			pair ll, pair ur, int xn=xndefault,
+			int yn=yndefault)
 {    
   // check if boundaries are good
   if(ur.x <= ll.x || ur.y <= ll.y) {
@@ -209,15 +209,17 @@ guide[][] contourguides(real func(real, real), real[] cl,
 	   (count[2] == 3 && count[1] == 1)) continue;
 
         // evaluates point at middle of rectangle(to set up triangles)
-        real midpt=func(ll.x+(ur.x-ll.x)*(col+1/2)/xn,ll.y+(ur.y-ll.y)*(row+1/2)/yn); 
+        real midpt=func(ll.x+(ur.x-ll.x)*(col+1/2)/xn,ll.y+
+			(ur.y-ll.y)*(row+1/2)/yn);
 	vertdat[4]=(midpt-cl[cnt]);                      // midpoint  
       
         // define points
-        pair bleft=(ll.x+(ur.x-ll.x)*col/xn,       ll.y+(ur.y-ll.y)*row/yn);
-        pair bright=(ll.x+(ur.x-ll.x)*(col+1)/xn,  ll.y+(ur.y-ll.y)*row/yn);
-        pair tleft=(ll.x+(ur.x-ll.x)*col/xn,       ll.y+(ur.y-ll.y)*(row+1)/yn);
-        pair tright=(ll.x+(ur.x-ll.x)*(col+1)/xn,  ll.y+(ur.y-ll.y)*(row+1)/yn);
-        pair middle=(ll.x+(ur.x-ll.x)*(col+1/2)/xn,ll.y+(ur.y-ll.y)*(row+1/2)/yn);
+        pair bleft=(ll.x+(ur.x-ll.x)*col/xn,ll.y+(ur.y-ll.y)*row/yn);
+        pair bright=(ll.x+(ur.x-ll.x)*(col+1)/xn,ll.y+(ur.y-ll.y)*row/yn);
+        pair tleft=(ll.x+(ur.x-ll.x)*col/xn,ll.y+(ur.y-ll.y)*(row+1)/yn);
+        pair tright=(ll.x+(ur.x-ll.x)*(col+1)/xn,ll.y+(ur.y-ll.y)*(row+1)/yn);
+        pair middle=(ll.x+(ur.x-ll.x)*(col+1/2)/xn,
+		     ll.y+(ur.y-ll.y)*(row+1/2)/yn);
    
         guide curseg;
      
@@ -283,7 +285,8 @@ guide[][] contourguides(real func(real, real), real[] cl,
   // closes cyclic guides
   for(int cnt=0; cnt < cl.length; ++cnt) {
     for(int i=0; i < gds[cnt].length; ++i) {
-      if(length(point(gds[cnt][i].g,0)-point(gds[cnt][i].g,size(gds[cnt][i].g))) < eps)
+      if(length(point(gds[cnt][i].g,0)-
+		point(gds[cnt][i].g,size(gds[cnt][i].g))) < eps)
         gds[cnt][i].g=gds[cnt][i].g--cycle;
     }
   }
@@ -301,8 +304,8 @@ guide[][] contourguides(real func(real, real), real[] cl,
 }
 
 
-void contour(picture pic=currentpicture, Label L="", real func(real, real), real[] cl,
-	     pair ll, pair ur, int xn=xndefault,
+void contour(picture pic=currentpicture, Label L="", real func(real, real),
+	     real[] cl, pair ll, pair ur, int xn=xndefault,
 	     int yn=yndefault, pen[] p)
 {
   guide[][] g;
@@ -315,8 +318,8 @@ void contour(picture pic=currentpicture, Label L="", real func(real, real), real
 }
 
  
-void contour(picture pic=currentpicture, Label L="", real func(real, real), real[] cl,
-	     pair ll, pair ur, int xn=xndefault,
+void contour(picture pic=currentpicture, Label L="", real func(real, real),
+	     real[] cl, pair ll, pair ur, int xn=xndefault,
 	     int yn=yndefault, pen p=currentpen)
 {
   pen[] pp=new pen[cl.length];
@@ -325,8 +328,8 @@ void contour(picture pic=currentpicture, Label L="", real func(real, real), real
 }
 
 
-void contour(picture pic=currentpicture, Label L="", real func(real, real), real cl,
-	     pair ll, pair ur, int xn=xndefault,
+void contour(picture pic=currentpicture, Label L="", real func(real, real),
+	     real cl, pair ll, pair ur, int xn=xndefault,
 	     int yn=yndefault, pen p=currentpen)
 {
   contour(pic,L,func,new real[] {cl},ll,ur,xn,yn,new pen[]{p});
