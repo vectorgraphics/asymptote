@@ -72,7 +72,7 @@ Installation
 * Search paths::                Where @code{Asymptote} looks for your files
 * Compiling from UNIX source::  Building @code{Asymptote} from scratch
 * Editing modes::               Convenient @code{emacs} and @code{vim} modes
-* CVS::                         Latest development version
+* Subversion::                  Latest development version
 * Uninstall::                   Goodbye, @code{Asymptote}!
 
 Programming
@@ -232,7 +232,7 @@ as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
 * Search paths::                Where @code{Asymptote} looks for your files
 * Compiling from UNIX source::  Building @code{Asymptote} from scratch
 * Editing modes::               Convenient @code{emacs} and @code{vim} modes
-* CVS::                         Latest development version
+* Subversion::                  Latest development version
 * Uninstall::                   Goodbye, @code{Asymptote}!
 @end menu
 
@@ -586,18 +586,17 @@ setlocal errorformat=%f:\ %l.%c:\ %m
 
 @end verbatim
 
-@node CVS
-@section CVS
-@cindex CVS
+@node Subversion
+@section Subversion
+@cindex Subversion
+@cindex SVN
 
 The following commands are needed to install the latest development version of
-@code{Asymptote} from @acronym{CVS} (when prompted for the @acronym{CVS}
-password, type enter):
+@code{Asymptote} using @acronym{Subversion}:
 @verbatim
-cvs -d:pserver:anonymous@asymptote.cvs.sourceforge.net:/cvsroot/asymptote login
+svn co https://svn.sourceforge.net/svnroot/asymptote/trunk/asymptote
  
-cvs -d:pserver:anonymous@asymptote.cvs.sourceforge.net:/cvsroot/asymptote co asymptote
-cd asymptote-x.xx
+cd asymptote
 ./autogen.sh
 wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.7.tar.gz
 ./configure
@@ -6164,7 +6163,7 @@ To receive announcements of upcoming releases, please subscribe to
 @cindex bug reports
 @noindent
 If you find a bug in @code{Asymptote}, please check (if possible)
-whether the bug is still present in the latest @acronym{CVS} version
+whether the bug is still present in the latest @acronym{Subversion} code
 before submitting a bug report. New bugs can be submitted using the Bug
 Tracking System at
 @quotation
@@ -6222,7 +6221,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  MetaPost MetaFont Hammerlindl Healy texinfo autoload setq setf
 @c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
 @c  LocalWords:  vskip filll insertcopying ifnottex detailmenu alist augroup PQ
-@c  LocalWords:  bool behaviour facto zxf login Debian dev filetypedetect CVS
+@c  LocalWords:  bool behaviour facto zxf login Debian dev filetypedetect SVN
 @c  LocalWords:  FFTW bp readline gv eps gifmerge args Boehm gc evenoddoverlap
 @c  LocalWords:  boolean initializer expi dir xpart ypart STL substring rfind
 @c  LocalWords:  pos substr strftime typedef pxref unitcircle yscale Bezier iff
@@ -6245,7 +6244,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  quartercircle darkgreen lightblue urx ury texpreamble sgn texi
 @c  LocalWords:  lineargraph datagraph vertices parametricgraph uncomment ggv
 @c  LocalWords:  loggraph generalaxis texhash arrowsize arrowangle arrowlength
-@c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config MacOS prebuilt cvs
+@c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config MacOS prebuilt svn
 @c  LocalWords:  ghostview gsview SIGHUP PDF acroread xpdf nullframe cutbefore
 @c  LocalWords:  libsigsegv intersectionpoint dotfactor vv firstcut pq logticks
 @c  LocalWords:  Unisys dvips vvv vvvv vvvvv traceback lastcut cutafter infodir
@@ -6300,4 +6299,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  loc topleft topright bottomleft bottomright flowrectangle
 @c  LocalWords:  headercolor bodycolor chartblock flowdiamond flowcircle
 @c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow flowblocks
-@c  LocalWords:  multipleView usersetting
+@c  LocalWords:  multipleView usersetting mediumgray flowchartdemo
