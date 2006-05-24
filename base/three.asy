@@ -1265,10 +1265,16 @@ struct path3 {
 
     node startL, startR, endL, endR;
     if (!cycles) {
-      if (start < 0)
+      if (start < 0) {
 	start = 0;
-      if (end > n-1)
+	if (end < 0)
+	  end = 0;
+      }
+      if (end > n-1) {
 	end = n-1;
+	if (start > n-1)
+	  start = n-1;
+      }
       startL = nodes[floor(start)];
       startR = nodes[ceil(start)];
       endL = nodes[floor(end)];

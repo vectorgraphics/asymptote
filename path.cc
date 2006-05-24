@@ -325,10 +325,16 @@ path path::subpath(double start, double end) const
 
   solvedKnot startL, startR, endL, endR;
   if (!cycles) {
-    if (start < 0)
+    if (start < 0) {
       start = 0;
-    if (end > n-1)
+      if (end < 0)
+	end = 0;
+    }	
+    if (end > n-1) {
       end = n-1;
+      if (start > n-1)
+	start = n-1;
+    }
     startL = nodes[(int)floor(start)];
     startR = nodes[(int)ceil(start)];
     endL = nodes[(int)floor(end)];
