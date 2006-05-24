@@ -255,7 +255,8 @@ pair path::postcontrol(double t) const
 path path::reverse() const
 {
   solvedKnot *nodes = new solvedKnot[n];
-  for (int i = 0, j = length(); i < n; i++, j--) {
+  int len=length();
+  for (int i = 0, j = len; i < n; i++, j--) {
     nodes[i].pre = postcontrol(j);
     nodes[i].point = point(j);
     nodes[i].post = precontrol(j);
@@ -270,7 +271,8 @@ path path::subpath(int start, int end) const
 
   if (start > end) {
     const path &rp = reverse();
-    path result = rp.subpath(length()-start, length()-end);
+    int len=length();
+    path result = rp.subpath(len-start, len-end);
     return result;
   }
 
@@ -316,7 +318,8 @@ path path::subpath(double start, double end) const
   
   if (start > end) {
     const path &rp = reverse();
-    path result = rp.subpath(length()-start, length()-end);
+    int len=length();
+    path result = rp.subpath(len-start, len-end);
     return result;
   }
 
@@ -377,7 +380,8 @@ bbox path::bounds() const
 
   if(!box.empty) return box;
   
-  for (int i = 0; i < length(); i++) {
+  int len=length();
+  for (int i = 0; i < len; i++) {
     box += point(i);
     if(straight(i)) continue;
     
@@ -394,7 +398,7 @@ bbox path::bounds() const
     if(y.distinct != quadraticroots::NONE) box += point(i+y.t1);
     if(y.distinct == quadraticroots::TWO) box += point(i+y.t2);
   }
-  box += point(length());
+  box += point(len);
   return box;
 }
 
