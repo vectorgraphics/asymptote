@@ -134,6 +134,7 @@ bool[] reverse(bool[] a) {return a[reverse(a.length)];}
 int[] reverse(int[] a) {return a[reverse(a.length)];}
 real[] reverse(real[] a) {return a[reverse(a.length)];}
 pair[] reverse(pair[] a) {return a[reverse(a.length)];}
+triple[] reverse(triple[] a) {return a[reverse(a.length)];}
 string[] reverse(string[] a) {return a[reverse(a.length)];}
 
 void eval(string s, bool embedded=false)
