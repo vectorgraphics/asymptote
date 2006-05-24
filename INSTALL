@@ -10,7 +10,7 @@ in the current directory and
 make all
 make install
 
-Or, if you are compiling from CVS:
+Or, if you are compiling Subversion developmental source code:
 
 ./autogen.sh
 ./configure
