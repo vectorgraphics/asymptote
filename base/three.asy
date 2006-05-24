@@ -566,7 +566,8 @@ guide3 operator .. (... guide3[] g)
 
 guide3 operator ::(... guide3[] a)
 {
-  guide3 g=(a.length > 0) ? a[0] : nullpath3;
+  if(a.length == 0) return nullpath3;
+  guide3 g=a[0];
   for(int i=1; i < a.length; ++i)
     g=g..operator tension3(1,true)..a[i];
   return g;
@@ -574,7 +575,8 @@ guide3 operator ::(... guide3[] a)
 
 guide3 operator ---(... guide3[] a)
 {
-  guide3 g=(a.length > 0) ? a[0] : nullpath3;
+  if(a.length == 0) return nullpath3;
+  guide3 g=a[0];
   for(int i=1; i < a.length; ++i)
     g=g..operator tension3(infinity,true)..a[i];
   return g;
