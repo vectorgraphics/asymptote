@@ -168,6 +168,13 @@ void title(string s, pair position=N, pair align=titlealign,
 		   (tinv*(min(f)-titleskip*I*lineskip(p)*pt)).y);
 }
 
+void outline(string s="Outline", pair position=N, pair align=titlealign,
+	     pen p=titlepen)
+{
+  newslide(stepping=false);
+  title(s,position,align,p,newslide=false);
+}
+
 void remark(bool center=false, string s, pair align=0, pen p=itempen,
 	    real indent=0, bool minipage=true, filltype filltype=NoFill) 
 {

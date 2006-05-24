@@ -6,7 +6,6 @@ orientation=Landscape;
 asy(overwrite=false,"Pythagoras","log","near_earth");
 
 import slide;
-import x11colors;
 
 // Allow user to enable stepping and/or reverse video:
 // asy -u stepping=true -u reverse=true
@@ -14,20 +13,20 @@ import x11colors;
 usersetting();
 
 // Optional background color:
+// import x11colors;
 // fill(background,box((-1,-1),(1,1)),Azure);
 
 titlepage("Slides with {\tt Asymptote}: A Demo","John C. Bowman","\today",
 	  "http://asymptote.sf.net");
 
-title("Outline");
+outline();
 item("item");
 subitem("subitem");
 remark("remark");
 item("draw");
 item("figure");
 
-newslide(stepping=false);
-title("Outline",newslide=false);
+title("Items");
 item("First item.");
 remark("A remark.");
 item("Second item.");
