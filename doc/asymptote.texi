@@ -951,7 +951,7 @@ returns the latitude of @code{v} measured from the @math{xy} plane in degrees;
 
 @item real longitude(triple v, bool warn=true)
 @cindex @code{longitude}
-returns the longitude of @code{v} measured from the @math{x} axis
+returns the longitude of @code{v} measured from the @math{x} axis in degrees;
 or @code{0} if @code{warn} is false and @code{v.x=v.y=0} (rather than
 producing an error);
 
@@ -4166,7 +4166,6 @@ The following routine uses @code{evenodd} clipping together with the
 void unfill(picture pic=currentpicture, path g);
 @end verbatim
 
-@page
 @cindex @code{clip}
 @node clip
 @section clip
@@ -5629,6 +5628,16 @@ bounding box.
 @noindent
 Analogous routines @code{yaxis} and @code{zaxis} can be used to draw
 @math{y} and @math{z} axes in three dimensions.
+There are also some convenient routines for drawing all three axis:
+@verbatim
+void axes(Label xlabel="$x$", Label ylabel="$y$", Label zlabel="$z$", 
+	  triple min, triple max, pen p=currentpen, arrowbar arrow=None,
+	  bool put=Below, projection P=currentprojection);
+
+void axes(Label xlabel="$x$", Label ylabel="$y$", Label zlabel="$z$", 
+	  bbox3 b, pen p=currentpen, arrowbar arrow=None,
+	  bool put=Below, projection P=currentprojection);
+@end verbatim
 
 Here is an example of a helix and bounding box axes with rotated tick
 and axis labels, using orthographic projection:
@@ -5646,7 +5655,6 @@ One can also place ticks along a general three-dimensional axis:
 @verbatiminclude generalaxis3.asy
 @image{generalaxis3}
 
-@page
 Surface plots of functions and matrices over the region
 @code{box(a,b)} in the @math{XY} plane are also implemented: 
 @verbatim
@@ -6163,9 +6171,9 @@ To receive announcements of upcoming releases, please subscribe to
 @cindex bug reports
 @noindent
 If you find a bug in @code{Asymptote}, please check (if possible)
-whether the bug is still present in the latest @acronym{Subversion} code
-before submitting a bug report. New bugs can be submitted using the Bug
-Tracking System at
+whether the bug is still present in the latest developmental code
+available via @acronym{Subversion} before submitting a bug report. New bugs can
+be submitted using the Bug Tracking System at
 @quotation
 @url{http://sourceforge.net/projects/asymptote}
 @end quotation

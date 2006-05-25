@@ -296,6 +296,22 @@ void limits(bbox3 b, triple min, triple max)
   zlimits(b,min.z,max.z);
 }
   
+void axes(Label xlabel="$x$", Label ylabel="$y$", Label zlabel="$z$", 
+	  bbox3 b, pen p=currentpen, arrowbar arrow=None,
+	  bool put=Below, projection P=currentprojection)
+{
+  xaxis(xlabel,b,p,arrow,put,P);
+  yaxis(ylabel,b,p,arrow,put,P);
+  zaxis(zlabel,b,p,arrow,put,P);
+}
+
+void axes(Label xlabel="$x$", Label ylabel="$y$", Label zlabel="$z$", 
+	  triple min, triple max, pen p=currentpen, arrowbar arrow=None,
+	  bool put=Below, projection P=currentprojection)
+{
+  axes(xlabel,ylabel,zlabel,limits(min,max),p,arrow,put,P);
+}
+
 typedef guide3 graph(triple F(real), real, real, int);
 
 public graph graph(guide3 join(... guide3[]))
