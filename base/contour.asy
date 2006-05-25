@@ -319,7 +319,7 @@ guide[][] contourguides(real f(real, real), real[] c,
       for(int j=1; j < pts.length; ++j)
       	gd=join(gd,pts[j]);
       if(length(pts[0]-pts[pts.length-1]) < eps)
-        gd=join(gd,point(gd,0));
+        gd=gd--cycle;
       result[cnt][i]=gd;
     }
   }
@@ -329,7 +329,7 @@ guide[][] contourguides(real f(real, real), real[] c,
 
 void contour(picture pic=currentpicture, Label L="", real f(real, real),
 	     real[] c, pair a, pair b, int xn=xndefault,
-	     int yn=yndefault, interpolate join=operator --, pen[] p)
+	     int yn=yndefault, interpolate join=operator.., pen[] p)
 {
   guide[][] g;
   g=contourguides(f,c,a,b,xn,yn,join);
@@ -343,7 +343,7 @@ void contour(picture pic=currentpicture, Label L="", real f(real, real),
  
 void contour(picture pic=currentpicture, Label L="", real f(real, real),
 	     real[] c, pair a, pair b, int xn=xndefault,
-	     int yn=yndefault, interpolate join=operator --, pen p=currentpen)
+	     int yn=yndefault, interpolate join=operator.., pen p=currentpen)
 {
   pen[] pp=new pen[c.length];
   for(int i=0; i < c.length; ++i) pp[i]=p;
@@ -353,7 +353,7 @@ void contour(picture pic=currentpicture, Label L="", real f(real, real),
 
 void contour(picture pic=currentpicture, Label L="", real f(real, real),
 	     real c, pair a, pair b, int xn=xndefault,
-	     int yn=yndefault, interpolate join=operator --, pen p=currentpen)
+	     int yn=yndefault, interpolate join=operator.., pen p=currentpen)
 {
   contour(pic,L,f,new real[] {c},a,b,xn,yn,join,new pen[]{p});
 }
