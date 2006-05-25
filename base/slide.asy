@@ -74,11 +74,19 @@ bool firststep=true;
 public int page=1;
 bool havepagenumber=false;
 
+int preamblenodes=2;
+
+bool empty()
+{
+  return currentpicture.nodes.length <= preamblenodes;
+}
+
 void background() 
 {
   if(!background.empty()) {
     add(background);
     layer();
+    preamblenodes += 2;
   }
 }
 
@@ -159,7 +167,7 @@ void incrementposition(pair z)
 void title(string s, pair position=N, pair align=titlealign,
 	   pen p=titlepen, bool newslide=true)
 {
-  if(newslide && !currentpicture.empty()) newslide();
+  if(newslide && !empty()) newslide();
   checkposition();
   frame f;
   label(f,minipage("\center "+s,minipagewidth),(0,0),align,p);
@@ -266,7 +274,7 @@ void skip(real n=1)
 void titlepage(string title, string author, string date="", string url="",
 	       bool newslide=false)
 {
-  if(newslide && !currentpicture.empty()) newslide();
+  if(newslide && !empty()) newslide();
   background();
   currentposition=titleposition;
   center(title,titlepagepen);
