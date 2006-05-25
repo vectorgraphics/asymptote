@@ -5219,6 +5219,11 @@ One can also specify custom tick locations and formats for logarithmic axes:
 @verbatiminclude logticks.asy
 @image{logticks}
 
+@cindex @code{log2} graph
+It is easy to draw logarithmic graphs with respect to other bases:
+@verbatiminclude log2graph.asy
+@image{log2graph}
+
 @cindex broken axis
 Here is an example of a "broken" linear @math{x} axis that omits the
 segment [3,8]:
