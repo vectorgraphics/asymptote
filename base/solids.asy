@@ -20,7 +20,6 @@ real[] tangent(path p, path q, bool side)
 
   static real epsilon=sqrt(realEpsilon);
   
-  transform T;
   for(int i=0; i < 100; ++i) {
     real ta=time(p);
     real tb=time(q);
@@ -28,11 +27,9 @@ real[] tangent(path p, path q, bool side)
     pair b=point(q,tb);
     real angle=angle(b-a,warn=false);
     if(abs(angle) <= epsilon || abs(abs(0.5*angle)-pi) <= epsilon) {
-      transform Tinv=inverse(T);
       return new real[] {ta,tb};
     }
     transform t=rotate(-degrees(angle));
-    T *= t;
     p=t*p;
     q=t*q;
   }
@@ -168,7 +165,7 @@ struct revolution {
     static real epsilon=sqrt(realEpsilon);
     int N=size(g);
     int n=(m == 0) ? N : m;
-    real factor=1/(m-1);
+    real factor=m == 1 ? 0 : 1/(m-1);
     for(int i=0; i < n; ++i) {
       real t=(m == 0) ? i : reltime(g,i*factor);
       path3 S=slice(t,ngraph);
@@ -185,9 +182,10 @@ struct revolution {
 	if(t1.length > 1 && t2.length > 1) {
 	  real t1=t1[0];
 	  real t2=t2[0];
-	  if(t2 < t1) t2 += length(S);
+	  int len=length(S);
+	  if(t2 < t1) t2 += len;
 	  path3 p1=subpath(S,t1,t2);
-	  path3 p2=subpath(S,t2,t1+length(S));
+	  path3 p2=subpath(S,t2,t1+len);
 	  if(dot(point(p1,0.5*length(p1))-c,P.camera) >= 0) {
 	    s.front.push(p1);
 	    s.back.push(p2);
@@ -211,7 +209,6 @@ struct revolution {
 	d=r;
       }
     }
-
     triple v=point(g,t);
     path3 S=slice(t,ngraph);
     path3 Sm=slice(t+epsilon,ngraph);
@@ -220,14 +217,14 @@ struct revolution {
     path sm=project(Sm,P);
     real[] t1=tangent(sp,sm,true);
     real[] t2=tangent(sp,sm,false);
-    transform3 t=align(axis);
-    real ref=longitude(t*v-c,warn=false);
+    transform3 T=align(axis);
+    real ref=longitude(T*(v-c),warn=false);
+    real angle(real t) {return longitude(T*(point(S,t)-c),warn=false)-ref;}
     if(t1.length > 1)
-      s.longitudinal.push(rotate(longitude(t*point(S,t1[0])-c,warn=false)-ref,
-				 c,c+axis)*g);
+      s.longitudinal.push(rotate(angle(t1[0]),c,c+axis)*g);
     if(t2.length > 1)
-      s.longitudinal.push(rotate(longitude(t*point(S,t2[0])-c,warn=false)-ref,
-				 c,c+axis)*g);
+      s.longitudinal.push(rotate(angle(t2[0]),c,c+axis)*g);
+    
     return s;
   }
   
