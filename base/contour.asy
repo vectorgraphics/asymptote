@@ -4,10 +4,11 @@ public int yndefault=25;       // cuts on y axis
 
 private struct cgd
 {
-  public pair[] g;				//nodes
+  public pair[] g;	  // nodes
   public bool actv=true;  // is guide active
   public bool exnd=true;  // has the guide been extended
 }
+  
 cgd operator init() {return new cgd;}
 
 private struct segment
@@ -15,12 +16,13 @@ private struct segment
   public pair a;
   public pair b;
 }
-segment operator init(){return new segment;}
+  
+segment operator init() {return new segment;}
 
 // Case 1: line passes through two vertices of a triangle
 private segment case1(pair pt1, pair pt2)
 {
-  // WILL cause a bug due to repetition; luckily case1 is very rare
+  // Will cause a duplicate guide; luckily case1 is very rare
   segment rtrn;
   rtrn.a=pt1;
   rtrn.b=pt2;
@@ -64,22 +66,22 @@ private segment checktriangle(pair[] pts, real[] vls)
       if(vls[2] < 0) return dflt;          // nothing to do
       else if(vls[2] == 0) return dflt;  // nothing to do
       else return case3(new pair[] {pts[0],pts[2],pts[1]},
-		 new real[] {vls[0],vls[2],vls[1]}); // case 3
+			new real[] {vls[0],vls[2],vls[1]}); // case 3
     }
     else if(vls[1] == 0) {
       if(vls[2] < 0) return dflt;       // nothing to do
       else if(vls[2] == 0) return case1(pts[1],pts[2]); // case 1
       else return case2(new pair[] {pts[1],pts[0],pts[2]},
-		 new real[] {vls[1],vls[0],vls[2]}); // case 2
+			new real[] {vls[1],vls[0],vls[2]}); // case 2
     }
     else {
       if(vls[2] < 0) return case3(new pair[] {pts[0],pts[1],pts[2]},
-			   new real[] {vls[0],vls[1],vls[2]}); // case 3
+				  new real[] {vls[0],vls[1],vls[2]}); // case 3
       else if(vls[2] == 0) 
 	return case2(new pair[] {pts[2],pts[0],pts[1]},
-	      new real[] {vls[2],vls[0],vls[1]}); // case 2
+		     new real[] {vls[2],vls[0],vls[1]}); // case 2
       else return case3(new pair[] {pts[2],pts[0],pts[1]},
-		 new real[] {vls[2],vls[0],vls[1]}); // case 3
+			new real[] {vls[2],vls[0],vls[1]}); // case 3
     } 
   }
   else if(vls[0] == 0) {
@@ -87,7 +89,7 @@ private segment checktriangle(pair[] pts, real[] vls)
       if(vls[2] < 0) return dflt; // nothing to do
       else if(vls[2] == 0) return case1(pts[0],pts[2]); // case 1
       else return case2(new pair[] {pts[0],pts[1],pts[2]},
-		 new real[] {vls[0],vls[1],vls[2]}); // case 2
+			new real[] {vls[0],vls[1],vls[2]}); // case 2
     }
     else if(vls[1] == 0) {
       if(vls[2] < 0) return case1(pts[0],pts[1]); // case 1
@@ -96,7 +98,7 @@ private segment checktriangle(pair[] pts, real[] vls)
     }
     else {
       if(vls[2] < 0) return case2(new pair[] {pts[0],pts[1],pts[2]},
-			   new real[] {vls[0],vls[1],vls[2]}); // case 2
+				  new real[] {vls[0],vls[1],vls[2]}); // case 2
       else if(vls[2] == 0) return case1(pts[0],pts[2]); // case 1
       else return dflt; // nothing to do
     } 
@@ -104,22 +106,22 @@ private segment checktriangle(pair[] pts, real[] vls)
   else {
     if(vls[1] < 0) {
       if(vls[2] < 0) return case3(new pair[] {pts[2],pts[0],pts[1]},
-			   new real[] {vls[2],vls[0],vls[1]}); // case 3
+				  new real[] {vls[2],vls[0],vls[1]}); // case 3
       else if(vls[2] == 0)
 	return case2(new pair[] {pts[2],pts[0],pts[1]},
-	      new real[] {vls[2],vls[0],vls[1]}); // case 2
+		     new real[] {vls[2],vls[0],vls[1]}); // case 2
       else return case3(new pair[] {pts[0],pts[1],pts[2]},
-		 new real[] {vls[0],vls[1],vls[2]}); // case 3
+			new real[] {vls[0],vls[1],vls[2]}); // case 3
     }
     else if(vls[1] == 0) {
       if(vls[2] < 0) return case2(new pair[] {pts[1],pts[0],pts[2]},
-			   new real[] {vls[1],vls[0],vls[2]}); // case 2
+				  new real[] {vls[1],vls[0],vls[2]}); // case 2
       else if(vls[2] == 0) return case1(pts[1],pts[2]); // case 1
       else return dflt; // nothing to do
     }
     else {
       if(vls[2] < 0) return case3(new pair[] {pts[0],pts[2],pts[1]},
-			   new real[] {vls[0],vls[2],vls[1]}); // case 3
+				  new real[] {vls[0],vls[2],vls[1]}); // case 3
       else if(vls[2] == 0) return dflt; // nothing to do
       else return dflt; // nothing to do
     } 
@@ -131,7 +133,6 @@ private void pop(cgd[] gds, int idx)
 {
   for(int i=idx+1; i < gds.length; ++i) gds[i-1]=gds[i];
   gds.pop();
-  return;
 }
 
 
@@ -149,9 +150,9 @@ private void addseg(segment seg, cgd[] gds)
   int  i;  
   for (i=0; i < gds.length; ++i) {
     if(!gds[i].actv) continue;
-		pair[] gd=gds[i].g;
+    pair[] gd=gds[i].g;
     if(length(gd[0]-seg.b) < eps) {
-			pair[] toadd=new pair[]{seg.a};
+      pair[] toadd=new pair[]{seg.a};
       toadd.append(gd);
       gds[i].g=toadd;
       gds[i].exnd=true; 
@@ -179,8 +180,6 @@ private void addseg(segment seg, cgd[] gds)
   // in case nothing is found
   cgd segm; segm.g.push(seg.a); segm.g.push(seg.b); 
   gds.push(segm); 
-
-  return;
 }
 
 /* contouring using a triangle mesh returns guides
@@ -248,16 +247,16 @@ guide[][] contourguides(real func(real, real), real[] cl,
      
         // go through the triangles
         curseg=checktriangle(new pair[] {tleft,tright,middle},
-		      new real[] {vertdat[2],vertdat[3],vertdat[4]});
+			     new real[] {vertdat[2],vertdat[3],vertdat[4]});
         if(length(curseg.a-curseg.b) > eps) addseg(curseg, gds[cnt]);
         curseg=checktriangle(new pair[] {tright,bright,middle},
-		      new real[] {vertdat[3],vertdat[1],vertdat[4]});
+			     new real[] {vertdat[3],vertdat[1],vertdat[4]});
         if(length(curseg.a-curseg.b) > eps) addseg(curseg, gds[cnt]);
         curseg=checktriangle(new pair[] {bright,bleft,middle},
-		      new real[] {vertdat[1],vertdat[0],vertdat[4]});
+			     new real[] {vertdat[1],vertdat[0],vertdat[4]});
         if(length(curseg.a-curseg.b) > eps) addseg(curseg, gds[cnt]);
         curseg=checktriangle(new pair[] {bleft,tleft,middle},
-		      new real[] {vertdat[0],vertdat[2],vertdat[4]});
+			     new real[] {vertdat[0],vertdat[2],vertdat[4]});
         if(length(curseg.a-curseg.b) > eps) addseg(curseg, gds[cnt]);
       }
     }
@@ -277,36 +276,36 @@ guide[][] contourguides(real func(real, real), real[] cl,
         pair[] gi=gds[cnt][i].g;
         pair[] gj=gds[cnt][j].g;
         if     (length(gi[0]-gj[0]) < eps) { 
-					pair[] np;
+	  pair[] np;
           for(int q=gj.length-1; q > 0; --q)
-						np.push(gj[q]);
-					np.append(gi);
+	    np.push(gj[q]);
+	  np.append(gi);
           gds[cnt][j].g=np;
           pop(gds[cnt],i); 
           --i; 
           break;
         }
         else if(length(gi[0]-gj[gj.length-1]) < eps) { 
-					for(int q=1; q < gi.length; ++q)
-						gj.push(gi[q]);
+	  for(int q=1; q < gi.length; ++q)
+	    gj.push(gi[q]);
           gds[cnt][j].g=gj;
           pop(gds[cnt],i);
           --i;
           break;
         }
         else if(length(gi[gi.length-1]-gj[0]) < eps) { 
-					for(int q=1; q < gj.length; ++q)
-						gi.push(gj[q]);
+	  for(int q=1; q < gj.length; ++q)
+	    gi.push(gj[q]);
           gds[cnt][j].g=gi;
           pop(gds[cnt],i);
           --i;
           break;
         }
         else if(length(gi[gi.length-1]-gj[gj.length-1]) < eps) { 
-					pair[] np;
+	  pair[] np;
           for(int q=gj.length-2; q > -1; --q)
-						np.push(gj[q]);      
-					gi.append(np);  
+	    np.push(gj[q]);      
+	  gi.append(np);  
           gds[cnt][j].g=gi;
           pop(gds[cnt],i);
           --i;
@@ -325,7 +324,7 @@ guide[][] contourguides(real func(real, real), real[] cl,
       guide gd=pts[0];
       for(int j=1; j < pts.length; ++j)
       	gd=gd..pts[j];
-	    if(length(pts[0]-pts[pts.length-1]) < eps)
+      if(length(pts[0]-pts[pts.length-1]) < eps)
         gd=gd..cycle;
       result[cnt][i]=gd;
     }
@@ -343,9 +342,8 @@ void contour(picture pic=currentpicture, Label L="", real func(real, real),
   for(int cnt=0; cnt < cl.length; ++cnt) {
     for(int i=0; i < g[cnt].length; ++i){
       draw(pic,L,g[cnt][i],p[cnt]);
-		}
+    }
   }
-  return;
 }
 
  
