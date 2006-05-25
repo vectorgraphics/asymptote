@@ -319,8 +319,7 @@ path path::subpath(double start, double end) const
   if (start > end) {
     const path &rp = reverse();
     int len=length();
-    path result = rp.subpath(len-start, len-end);
-    return result;
+    return rp.subpath(len-start, len-end);
   }
 
   solvedKnot startL, startR, endL, endR;

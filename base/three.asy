@@ -1231,7 +1231,8 @@ struct path3 {
 
     if (start > end) {
       path3 rp = reverse();
-      path3 result = rp.subpath(length()-start, length()-end);
+      int len=length();
+      path3 result = rp.subpath(len-start, len-end);
       return result;
     }
 
@@ -1260,8 +1261,10 @@ struct path3 {
   {
     if(empty()) return new path3;
   
-    if (start > end)
-      return reverse().subpath(length()-start, length()-end);
+    if (start > end) {
+      int len=length();
+      return reverse().subpath(len-start, len-end);
+    }
 
     node startL, startR, endL, endR;
     if (!cycles) {
@@ -1316,7 +1319,8 @@ struct path3 {
 
     if(!box.empty) return box;
     
-    for (int i = 0; i < length(); ++i) {
+    int len=length();
+    for (int i = 0; i < len; ++i) {
       box.add(point(i));
       if(straight(i)) continue;
     
