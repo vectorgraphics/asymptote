@@ -123,7 +123,7 @@ public:
   
   void shade(vm::array *a, const bbox& b);
   
-  void shade(bool axial, const string& colorspace,
+  void shade(bool axial, const ColorSpace& colorspace,
 	     const pen& pena, const pair& a, double ra,
 	     const pen& penb, const pair& b, double rb);
   

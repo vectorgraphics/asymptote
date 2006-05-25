@@ -22,6 +22,20 @@ using vm::read;
   
 namespace camp {
 
+void checkColorSpace(ColorSpace colorspace)
+{
+  switch(colorspace) {
+  case DEFCOLOR:
+  case INVISIBLE:
+    reportError("Cannot shade with invisible pen");
+  case PATTERN:
+    reportError("Cannot shade with pattern");
+    break;
+  default:
+    break;
+  }
+}
+    
 psfile::psfile(const string& filename, const bbox& box, const pair& Shift)
   : filename(filename), box(box), Shift(Shift), rawmode(false)
 {
@@ -161,6 +175,8 @@ void psfile::shade(array *a, const bbox& b)
 
   pen *p=read<pen *>(a0,0);
   ColorSpace colorspace=p->colorspace();
+  checkColorSpace(colorspace);
+  
   unsigned ncomponents=ColorComponents[colorspace];
   
   *out << "<< /ShadingType 1" << newl
@@ -202,12 +218,14 @@ void psfile::shade(array *a, const bbox& b)
 }
 
 // Axial and radial shading
-void psfile::shade(bool axial, const string& colorspace,
+void psfile::shade(bool axial, const ColorSpace &colorspace,
 		   const pen& pena, const pair& a, double ra,
 		   const pen& penb, const pair& b, double rb)
 {
+  checkColorSpace(colorspace);
+  
   *out << "<< /ShadingType " << (axial ? "2" : "3") << newl
-       << "/ColorSpace /Device" << colorspace << newl
+       << "/ColorSpace /Device" << ColorDeviceSuffix[colorspace] << newl
        << "/Coords [";
   write(a);
   if(!axial) write(ra);
@@ -238,6 +256,7 @@ void psfile::shade(array *pens, array *vertices, array *edges)
   
   pen *p=read<pen *>(pens,0);
   ColorSpace colorspace=p->colorspace();
+  checkColorSpace(colorspace);
 
   *out << "<< /ShadingType 4" << newl
        << "/ColorSpace /Device" << ColorDeviceSuffix[colorspace] << newl
@@ -303,6 +322,7 @@ void psfile::image(array *a, array *P)
   
   pen *p=read<pen *>(P,0);
   ColorSpace colorspace=p->colorspace();
+  checkColorSpace(colorspace);
   unsigned ncomponents=ColorComponents[colorspace];
   
   *out << "/Device" << ColorDeviceSuffix[colorspace] << " setcolorspace" 

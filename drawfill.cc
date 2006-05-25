@@ -12,16 +12,8 @@ namespace camp {
 void drawAxialShade::palette(psfile *out)
 {
   colorspace=(ColorSpace) max(pentype.colorspace(),penb.colorspace());
-    
+  
   switch(colorspace) {
-  case PATTERN:
-    reportError("Cannot shade with pattern");
-  case INVISIBLE:
-    reportError("Cannot shade with invisible pen");
-  case DEFCOLOR:
-  case GRAYSCALE:
-    break;
-
   case RGB:
     {
       if (pentype.grayscale()) pentype.greytorgb();
@@ -38,6 +30,8 @@ void drawAxialShade::palette(psfile *out)
       else if (penb.rgb()) penb.rgbtocmyk();
       break;
     }
+  default:
+    break;
   }
   
   out->gsave();

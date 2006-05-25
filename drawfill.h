@@ -83,7 +83,7 @@ public:
   
   void palette(psfile *out);
   void shade(psfile *out) {
-    out->shade(true,ColorDeviceSuffix[colorspace],pentype,a,0,penb,b,0);
+    out->shade(true,colorspace,pentype,a,0,penb,b,0);
   }
   
   drawElement *transformed(const transform& t);
@@ -99,7 +99,7 @@ public:
     : drawAxialShade(src,pentype,a,penb,b), ra(ra), rb(rb) {}
   
   void shade(psfile *out) {
-    out->shade(false,ColorDeviceSuffix[colorspace],pentype,a,ra,penb,b,rb);
+    out->shade(false,colorspace,pentype,a,ra,penb,b,rb);
   }
   
   drawElement *transformed(const transform& t);
