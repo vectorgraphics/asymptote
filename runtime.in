@@ -2337,11 +2337,11 @@ callable* :arrayCyclic(array *a)
 }
 
 // The helper function for the push method that does the actual operation.
-item :arrayPushHelper(item i, array *a)
+item :arrayPushHelper(item x, array *a)
 {
   checkArray(a);
-  a->push(i);
-  return i;
+  a->push(x);
+  return x;
 }
 
 // Returns the push method for an array.
@@ -2380,24 +2380,39 @@ callable* :arrayPop(array *a)
   return new thunk(new bfunc(arrayPopHelper),a);
 }
 
-// The helper function for the pull method.
-item :arrayPullHelper(int i, array *a)
+// The helper function for the insert method.
+item :arrayInsertHelper(int i, item x, array *a)
 {
   size_t asize=checkArray(a);
   if(a->cyclic() && asize > 0) i=imod(i,asize);
-  if((int) asize <= i) 
-    outOfBounds("popping",asize,i);
+  if(i < 0 || i > (int) asize) 
+    outOfBounds("inserting",asize,i);
+  (*a).insert((*a).begin()+i,x);
+  return x;
+}
+
+// Returns the insert method for an array.
+callable* :arrayInsert(array *a)
+{
+  return new thunk(new bfunc(arrayInsertHelper),a);
+}
+
+// The helper function for the insert method.
+item :arrayDeleteHelper(int i, array *a)
+{
+  size_t asize=checkArray(a);
+  if(a->cyclic() && asize > 0) i=imod(i,asize);
+  if(i < 0 || i >= (int) asize) 
+    outOfBounds("deleting",asize,i);
   item val=(*a)[i];
-  for(size_t j=(size_t) i+1; j < asize; ++j)
-    (*a)[j-1]=(*a)[j];
-  a->pop();
+  (*a).erase((*a).begin()+i);
   return val;
 }
 
-// Returns the pull method for an array.
-callable* :arrayPull(array *a)
+// Returns the delete method for an array.
+callable* :arrayDelete(array *a)
 {
-  return new thunk(new bfunc(arrayPullHelper),a);
+  return new thunk(new bfunc(arrayDeleteHelper),a);
 }
 
 bool :arrayAlias(array *a, array *b)

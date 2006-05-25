@@ -237,20 +237,28 @@ ty *array::popType()
   return poptype;
 }
 
-ty *array::pullType()
-{
-  if (pulltype == 0)
-    pulltype = new function(celltype,formal(primInt(),"i"));
-
-  return pulltype;
-}
-
 ty *array::appendType()
 {
   if (appendtype == 0)
     appendtype = new function(primVoid(),formal(this,"a"));
 
   return appendtype;
+}
+
+ty *array::insertType()
+{
+  if (inserttype == 0)
+    inserttype = new function(celltype,formal(primInt(),"i"),
+			      formal(celltype,"x"));
+  return inserttype;
+}
+
+ty *array::deleteType()
+{
+  if (deletetype == 0)
+    deletetype = new function(celltype,formal(primInt(),"i"));
+
+  return deletetype;
 }
 
 ty *cyclicType() {
@@ -263,8 +271,9 @@ ty *array::virtualFieldGetType(symbol *id)
     id == symbol::trans("cyclic") ? cyclicType() : 
     id == symbol::trans("push") ? pushType() : 
     id == symbol::trans("pop") ? popType() : 
-    id == symbol::trans("pull") ? pullType() : 
     id == symbol::trans("append") ? appendType() : 
+    id == symbol::trans("insert") ? insertType() : 
+    id == symbol::trans("delete") ? deleteType() : 
     ty::virtualFieldGetType(id);
 }
 
@@ -307,21 +316,30 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
 
     return v;
   }
-  if (id == symbol::trans("pull") &&
-      equivalent(sig, pullType()->getSignature()))
-  {
-    static trans::bltinAccess a(run::arrayPull);
-    // v needs to be dynamic, as the pull type differs among arrays.
-    trans::varEntry *v = new trans::varEntry(pullType(), &a);
-
-    return v;
-  }
   if (id == symbol::trans("append") &&
       equivalent(sig, appendType()->getSignature()))
   {
     static trans::bltinAccess a(run::arrayAppend);
     // v needs to be dynamic, as the append type differs among arrays.
     trans::varEntry *v = new trans::varEntry(appendType(), &a);
+
+    return v;
+  }
+  if (id == symbol::trans("insert") &&
+      equivalent(sig, insertType()->getSignature()))
+  {
+    static trans::bltinAccess a(run::arrayInsert);
+    // v needs to be dynamic, as the insert type differs among arrays.
+    trans::varEntry *v = new trans::varEntry(insertType(), &a);
+
+    return v;
+  }
+  if (id == symbol::trans("delete") &&
+      equivalent(sig, deleteType()->getSignature()))
+  {
+    static trans::bltinAccess a(run::arrayDelete);
+    // v needs to be dynamic, as the delete type differs among arrays.
+    trans::varEntry *v = new trans::varEntry(deleteType(), &a);
 
     return v;
   }

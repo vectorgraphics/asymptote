@@ -272,7 +272,7 @@ guide[][] contourguides(real f(real, real), real[] c,
 	    np.push(gj[q]);
 	  np.append(gi);
           gds[cnt][j].g=np;
-          gds[cnt].pull(i); 
+          gds[cnt].delete(i); 
           --i; 
           break;
         }
@@ -280,7 +280,7 @@ guide[][] contourguides(real f(real, real), real[] c,
 	  for(int q=1; q < gi.length; ++q)
 	    gj.push(gi[q]);
           gds[cnt][j].g=gj;
-          gds[cnt].pull(i);
+          gds[cnt].delete(i);
           --i;
           break;
         }
@@ -288,7 +288,7 @@ guide[][] contourguides(real f(real, real), real[] c,
 	  for(int q=1; q < gj.length; ++q)
 	    gi.push(gj[q]);
           gds[cnt][j].g=gi;
-          gds[cnt].pull(i);
+          gds[cnt].delete(i);
           --i;
           break;
         }
@@ -298,7 +298,7 @@ guide[][] contourguides(real f(real, real), real[] c,
 	    np.push(gj[q]);      
 	  gi.append(np);  
           gds[cnt][j].g=gi;
-          gds[cnt].pull(i);
+          gds[cnt].delete(i);
           --i;
           break;
         } 
