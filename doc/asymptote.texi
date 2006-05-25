@@ -260,13 +260,14 @@ and provide guidance to others by rating the @code{Asymptote} project:
 @cindex UNIX binary distributions
 
 @cindex @acronym{RPM}
+@cindex @code{tar.gz}
 We now release both @acronym{RPM} and @code{tar.gz} binary distributions of
 @code{Asymptote}. Here are the commands that the root user can use to
 install the @code{Linux i386} binary distribution of version @code{x.xx} of
 @code{Asymptote} for a specific platform @code{ARCH} in
 @code{/usr/local}. The executable file will be
 @code{/usr/local/bin/asy} (the optional @code{texhash} command
-installs a LaTeX style file):
+installs LaTeX style files):
 @verbatim
 tar -C / -zxf asymptote-x.xx.ARCH.tar.gz
 texhash
@@ -6320,6 +6321,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  obliqueX asycolors monthaxis xautoscale yautoscale zautoscale
 @c  LocalWords:  obliqueZ obliqueY cylinderskeleton flowblock llcorner dr py
 @c  LocalWords:  loc topleft topright bottomleft bottomright flowrectangle
-@c  LocalWords:  headercolor bodycolor chartblock flowdiamond flowcircle
+@c  LocalWords:  headercolor bodycolor chartblock flowdiamond flowcircle xlabel
 @c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow flowblocks
-@c  LocalWords:  multipleView usersetting mediumgray flowchartdemo
+@c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel
+@c  LocalWords:  zlabel
