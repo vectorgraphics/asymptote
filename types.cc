@@ -237,6 +237,14 @@ ty *array::popType()
   return poptype;
 }
 
+ty *array::pullType()
+{
+  if (pulltype == 0)
+    pulltype = new function(celltype,formal(primInt(),"i"));
+
+  return pulltype;
+}
+
 ty *array::appendType()
 {
   if (appendtype == 0)
@@ -255,6 +263,7 @@ ty *array::virtualFieldGetType(symbol *id)
     id == symbol::trans("cyclic") ? cyclicType() : 
     id == symbol::trans("push") ? pushType() : 
     id == symbol::trans("pop") ? popType() : 
+    id == symbol::trans("pull") ? pullType() : 
     id == symbol::trans("append") ? appendType() : 
     ty::virtualFieldGetType(id);
 }
@@ -295,6 +304,15 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
     static trans::bltinAccess a(run::arrayPop);
     // v needs to be dynamic, as the pop type differs among arrays.
     trans::varEntry *v = new trans::varEntry(popType(), &a);
+
+    return v;
+  }
+  if (id == symbol::trans("pull") &&
+      equivalent(sig, pullType()->getSignature()))
+  {
+    static trans::bltinAccess a(run::arrayPull);
+    // v needs to be dynamic, as the pull type differs among arrays.
+    trans::varEntry *v = new trans::varEntry(pullType(), &a);
 
     return v;
   }

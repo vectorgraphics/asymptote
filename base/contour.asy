@@ -128,14 +128,6 @@ private segment checktriangle(pair[] pts, real[] vls)
   }      
 }
 
-// remove an element from an array
-private void pop(cgd[] gds, int idx)
-{
-  for(int i=idx+1; i < gds.length; ++i) gds[i-1]=gds[i];
-  gds.pop();
-}
-
-
 // check existing guides and adds new segment to them if possible,
 // or otherwise store segment as a new guide
 private void addseg(segment seg, cgd[] gds)
@@ -280,7 +272,7 @@ guide[][] contourguides(real f(real, real), real[] c,
 	    np.push(gj[q]);
 	  np.append(gi);
           gds[cnt][j].g=np;
-          pop(gds[cnt],i); 
+          gds[cnt].pull(i); 
           --i; 
           break;
         }
@@ -288,7 +280,7 @@ guide[][] contourguides(real f(real, real), real[] c,
 	  for(int q=1; q < gi.length; ++q)
 	    gj.push(gi[q]);
           gds[cnt][j].g=gj;
-          pop(gds[cnt],i);
+          gds[cnt].pull(i);
           --i;
           break;
         }
@@ -296,7 +288,7 @@ guide[][] contourguides(real f(real, real), real[] c,
 	  for(int q=1; q < gj.length; ++q)
 	    gi.push(gj[q]);
           gds[cnt][j].g=gi;
-          pop(gds[cnt],i);
+          gds[cnt].pull(i);
           --i;
           break;
         }
@@ -306,7 +298,7 @@ guide[][] contourguides(real f(real, real), real[] c,
 	    np.push(gj[q]);      
 	  gi.append(np);  
           gds[cnt][j].g=gi;
-          pop(gds[cnt],i);
+          gds[cnt].pull(i);
           --i;
           break;
         } 

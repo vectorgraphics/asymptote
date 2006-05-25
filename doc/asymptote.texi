@@ -3235,11 +3235,13 @@ The @code{copy} function listed below provides a deep copy of an array.
 @cindex @code{cyclic}
 @cindex @code{cyclicflag}
 @cindex @code{push}
-@cindex @code{pop}
 @cindex @code{append}
+@cindex @code{pop}
+@cindex @code{pull}
 Every array @code{A} of type @code{T[]} has the virtual members
 @code{int length}, @code{void cyclic(bool b)}, @code{bool cyclicflag},
-@code{T push(T x)}, @code{void append(T[] a)}, and @code{T pop()}.
+@code{T push(T x)}, @code{void append(T[] a)}, @code{T pop()}, and
+@code{T pull()}.
 The member @code{A.length} evaluates to the length of the array.
 Setting @code{A.cyclic(true)} signifies that array indices should be reduced
 modulo the current array length. Reading from or writing to a nonempty
@@ -3247,10 +3249,13 @@ cyclic array never leads to out-of-bounds errors or array resizing. The member
 @code{A.cyclicflag} returns the current setting of the @code{cyclic} flag.
 The functions @code{A.push} and @code{A.append} append their
 arguments onto the end of the array (for convenience @code{A.push}
-also returns its argument), while @code{A.pop()} pops and
-returns the last element. Like all @code{Asymptote} functions, 
-@code{cyclic}, @code{push}, @code{pop}, and @code{append} can be
-"pulled off" of the array and used on their own. For example,
+also returns its argument). The function @code{A.pop()} pops and
+returns the last element, while @code{A.pull(int i)} pops and returns the
+element with index @code{i}, shifting the position of all
+higher-indexed elements down by one. Like all @code{Asymptote}
+functions, @code{cyclic}, @code{push}, @code{append}, @code{pop}, and
+@code{pull} can be "pulled off" of the array and used on their
+own. For example,
 @verbatim
 int[] A={1};
 A.push(2);         // A now contains {1,2}.
@@ -3259,6 +3264,7 @@ int f(int)=A.push;
 f(3);              // A now contains {1,2,1,2,3}.
 int g()=A.pop;
 write(g());        // Outputs 3.
+A.pull(0);         // A now contains {2,1,2}.
 @end verbatim
 
 The @code{[]} suffix can also appear after the variable name; this

@@ -2333,7 +2333,6 @@ void :arrayCyclicHelper(bool b, array *a)
 // Set the cyclic flag for an array.
 callable* :arrayCyclic(array *a)
 {
-  checkArray(a);
   return new thunk(new bfunc(arrayCyclicHelper),a);
 }
 
@@ -2348,7 +2347,6 @@ item :arrayPushHelper(item i, array *a)
 // Returns the push method for an array.
 callable* :arrayPush(array *a)
 {
-  checkArray(a);
   return new thunk(new bfunc(arrayPushHelper),a);
 }
 
@@ -2364,7 +2362,6 @@ void :arrayAppendHelper(array *b, array *a)
 // Returns the append method for an array.
 callable* :arrayAppend(array *a)
 {
-  checkArray(a);
   return new thunk(new bfunc(arrayAppendHelper),a);
 }
 
@@ -2380,8 +2377,27 @@ item :arrayPopHelper(array *a)
 // Returns the pop method for an array.
 callable* :arrayPop(array *a)
 {
-  checkArray(a);
   return new thunk(new bfunc(arrayPopHelper),a);
+}
+
+// The helper function for the pull method.
+item :arrayPullHelper(int i, array *a)
+{
+  size_t asize=checkArray(a);
+  if(a->cyclic() && asize > 0) i=imod(i,asize);
+  if((int) asize <= i) 
+    outOfBounds("popping",asize,i);
+  item val=(*a)[i];
+  for(size_t j=(size_t) i+1; j < asize; ++j)
+    (*a)[j-1]=(*a)[j];
+  a->pop();
+  return val;
+}
+
+// Returns the pull method for an array.
+callable* :arrayPull(array *a)
+{
+  return new thunk(new bfunc(arrayPullHelper),a);
 }
 
 bool :arrayAlias(array *a, array *b)
