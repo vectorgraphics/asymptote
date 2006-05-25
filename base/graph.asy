@@ -203,10 +203,14 @@ public ticklabel Format(string s) {
   return new string(real x) {return format(s,x);};
 }
 
-public ticklabel LogFormat=new string(real x) {
-  return format("$10^{%g}$",x);
-};
+public ticklabel LogFormat(int base) {
+  return new string(real x) {
+    return format("$"+(string) base+"^{%g}$",x);
+  };
+}
 
+ticklabel LogFormat=LogFormat(10);
+  
 // The default direction specifier.
 pair zero(real) {return 0;}
 
@@ -567,8 +571,10 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
       }
 
     } else { // Logarithmic
-      if(ticklabel == null)
-	ticklabel=format == "%" ? new string(real x) {return "";} : LogFormat;
+      int base=round(locate.S.Tinv(1));
+      if(ticklabel == null) 
+	ticklabel=format == "%" ? 
+	  new string(real x) {return "";} : LogFormat(base);
       real a=locate.S.postscale.Tinv(locate.a);
       real b=locate.S.postscale.Tinv(locate.b);
       if(a > b) {real temp=a; a=b; b=temp;}
@@ -586,7 +592,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
 	}
       }
       
-      if(N <= 2 && n == 0) n=10;
+      if(N <= 2 && n == 0) n=base;
       
       int count=floor(b)-ceil(a)+1;
       
@@ -606,7 +612,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
 	  }
 	  if(n > 0) {
 	    for(int j=2; j < n; ++j) {
-	      real val=(i+1+log10(j/n));
+	      real val=(i+1+locate.S.T(j/n));
 	      if(val >= a && val <= b)
 		drawtick(f,T,g,g2,locate,val,size,sign,ptick,extend);
 	    }
@@ -952,7 +958,7 @@ public axis XZero(bool extend=true)
 public axis YZero(bool extend=true)
 {
   return new void(picture pic, axisT axis) {
-    real y=pic.scale.x.scale.logarithmic ? 1 : 0;
+    real y=pic.scale.y.scale.logarithmic ? 1 : 0;
     axis.value=I*pic.scale.y.T(y);
     axis.position=1;
     axis.side=right;
