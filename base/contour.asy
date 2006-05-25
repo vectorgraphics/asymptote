@@ -128,7 +128,7 @@ private segment checktriangle(pair[] pts, real[] vls)
   }      
 }
 
-// removes an element from an array
+// remove an element from an array
 private void pop(cgd[] gds, int idx)
 {
   for(int i=idx+1; i < gds.length; ++i) gds[i-1]=gds[i];
@@ -136,18 +136,18 @@ private void pop(cgd[] gds, int idx)
 }
 
 
-// checks existing guides and adds new segment to them if possible,
-// or otherwise stores segment as a new guide
+// check existing guides and adds new segment to them if possible,
+// or otherwise store segment as a new guide
 private void addseg(segment seg, cgd[] gds)
 { 
   // initialization 
-  if (gds.length == 0){ 
+  if (gds.length == 0) { 
     cgd segm; segm.g.push(seg.a); segm.g.push(seg.b); 
     gds.push(segm); return;
   }
 
   // searching for a path to extend
-  int  i;  
+  int i;  
   for (i=0; i < gds.length; ++i) {
     if(!gds[i].actv) continue;
     pair[] gd=gds[i].g;
@@ -182,18 +182,17 @@ private void addseg(segment seg, cgd[] gds)
   gds.push(segm); 
 }
 
-/* contouring using a triangle mesh returns guides
- *func:        function for which we are finding contours
- *cl:          contour level
- *ll,ur:       lower left and upper right vertices of rectangle
- *xn,yn:       cuts on each axis (i.e. accuracy)
- */
-guide[][] contourguides(real func(real, real), real[] cl,
-			pair ll, pair ur, int xn=xndefault,
+// return contour guides computed using a triangle mesh
+// f:        function for which we are finding contours
+// c:        contour level
+// a,b:      lower left and upper right vertices of rectangle
+// xn,yn:       cuts on each axis (i.e. accuracy)
+guide[][] contourguides(real f(real, real), real[] c,
+			pair a, pair b, int xn=xndefault,
 			int yn=yndefault)
 {    
   // check if boundaries are good
-  if(ur.x <= ll.x || ur.y <= ll.y) {
+  if(b.x <= a.x || b.y <= a.y) {
     abort("bad contour domain: make sure the second passed point 
 		is above and to the right of the first one.");
   } 
@@ -202,22 +201,22 @@ guide[][] contourguides(real func(real, real), real[] cl,
   real[][] dat=new real[xn+1][yn+1];
   for(int i=0; i < xn+1; ++i) {
     for(int j=0; j < yn+1; ++j) {
-      dat[i][j]=func(ll.x+(ur.x-ll.x)*i/xn,ll.y+(ur.y-ll.y)*j/yn);
+      dat[i][j]=f(a.x+(b.x-a.x)*i/xn,a.y+(b.y-a.y)*j/yn);
     }
   } 
 
   // array to store guides found so far
-  cgd[][] gds=new cgd[cl.length][0];
+  cgd[][] gds=new cgd[c.length][0];
 
   // go over region a rectangle at a time
   for(int col=0; col < xn; ++col) {
     for(int row=0; row < yn; ++row) {
-      for(int cnt=0; cnt < cl.length; ++cnt) {
+      for(int cnt=0; cnt < c.length; ++cnt) {
         real[] vertdat=new real[5];   // neg-below, 0 -at, pos-above;
-        vertdat[0]=(dat[col][row]-cl[cnt]);      // lower-left vertex
-        vertdat[1]=(dat[col+1][row]-cl[cnt]);    // lower-right vertex
-        vertdat[2]=(dat[col][row+1]-cl[cnt]);    // upper-left vertex
-        vertdat[3]=(dat[col+1][row+1]-cl[cnt]);  // upper-right vertex
+        vertdat[0]=(dat[col][row]-c[cnt]);      // lower-left vertex
+        vertdat[1]=(dat[col+1][row]-c[cnt]);    // lower-right vertex
+        vertdat[2]=(dat[col][row+1]-c[cnt]);    // upper-left vertex
+        vertdat[3]=(dat[col+1][row+1]-c[cnt]);  // upper-right vertex
 
         // optimization: we make sure we don't work with empty rectangles
         int[] count=new int[3]; count[0]=0; count[1]=0; count[2]=0; 
@@ -231,37 +230,37 @@ guide[][] contourguides(real func(real, real), real[] cl,
 	   (count[2] == 3 && count[1] == 1)) continue;
 
         // evaluates point at middle of rectangle(to set up triangles)
-        real midpt=func(ll.x+(ur.x-ll.x)*(col+1/2)/xn,ll.y+
-			(ur.y-ll.y)*(row+1/2)/yn);
-	vertdat[4]=(midpt-cl[cnt]);                      // midpoint  
+        real midpt=f(a.x+(b.x-a.x)*(col+1/2)/xn,a.y+
+			(b.y-a.y)*(row+1/2)/yn);
+	vertdat[4]=(midpt-c[cnt]);                      // midpoint  
       
         // define points
-        pair bleft=(ll.x+(ur.x-ll.x)*col/xn,ll.y+(ur.y-ll.y)*row/yn);
-        pair bright=(ll.x+(ur.x-ll.x)*(col+1)/xn,ll.y+(ur.y-ll.y)*row/yn);
-        pair tleft=(ll.x+(ur.x-ll.x)*col/xn,ll.y+(ur.y-ll.y)*(row+1)/yn);
-        pair tright=(ll.x+(ur.x-ll.x)*(col+1)/xn,ll.y+(ur.y-ll.y)*(row+1)/yn);
-        pair middle=(ll.x+(ur.x-ll.x)*(col+1/2)/xn,
-		     ll.y+(ur.y-ll.y)*(row+1/2)/yn);
+        pair bleft=(a.x+(b.x-a.x)*col/xn,a.y+(b.y-a.y)*row/yn);
+        pair bright=(a.x+(b.x-a.x)*(col+1)/xn,a.y+(b.y-a.y)*row/yn);
+        pair tleft=(a.x+(b.x-a.x)*col/xn,a.y+(b.y-a.y)*(row+1)/yn);
+        pair tright=(a.x+(b.x-a.x)*(col+1)/xn,a.y+(b.y-a.y)*(row+1)/yn);
+        pair middle=(a.x+(b.x-a.x)*(col+1/2)/xn,
+		     a.y+(b.y-a.y)*(row+1/2)/yn);
    
         segment curseg;
      
         // go through the triangles
         curseg=checktriangle(new pair[] {tleft,tright,middle},
 			     new real[] {vertdat[2],vertdat[3],vertdat[4]});
-        if(length(curseg.a-curseg.b) > eps) addseg(curseg, gds[cnt]);
+        if(length(curseg.a-curseg.b) > eps) addseg(curseg,gds[cnt]);
         curseg=checktriangle(new pair[] {tright,bright,middle},
 			     new real[] {vertdat[3],vertdat[1],vertdat[4]});
-        if(length(curseg.a-curseg.b) > eps) addseg(curseg, gds[cnt]);
+        if(length(curseg.a-curseg.b) > eps) addseg(curseg,gds[cnt]);
         curseg=checktriangle(new pair[] {bright,bleft,middle},
 			     new real[] {vertdat[1],vertdat[0],vertdat[4]});
-        if(length(curseg.a-curseg.b) > eps) addseg(curseg, gds[cnt]);
+        if(length(curseg.a-curseg.b) > eps) addseg(curseg,gds[cnt]);
         curseg=checktriangle(new pair[] {bleft,tleft,middle},
 			     new real[] {vertdat[0],vertdat[2],vertdat[4]});
-        if(length(curseg.a-curseg.b) > eps) addseg(curseg, gds[cnt]);
+        if(length(curseg.a-curseg.b) > eps) addseg(curseg,gds[cnt]);
       }
     }
     // checks which guides are still extendable
-    for(int cnt=0; cnt < cl.length; ++cnt) {
+    for(int cnt=0; cnt < c.length; ++cnt) {
       for(int i=0; i < gds[cnt].length; ++i) {
         if(gds[cnt][i].exnd) gds[cnt][i].exnd=false;
         else gds[cnt][i].actv=false;
@@ -270,7 +269,7 @@ guide[][] contourguides(real func(real, real), real[] cl,
   }
 
   // connect existing paths
-  for(int cnt=0; cnt < cl.length; ++cnt) {
+  for(int cnt=0; cnt < c.length; ++cnt) {
     for(int i=0; i < gds[cnt].length; ++i) {
       for(int j=i+1; j < gds[cnt].length; ++j) {
         pair[] gi=gds[cnt][i].g;
@@ -316,8 +315,8 @@ guide[][] contourguides(real func(real, real), real[] cl,
   }
 
   // setting up return value
-  guide[][] result=new guide[cl.length][0];
-  for(int cnt=0; cnt < cl.length; ++cnt) {
+  guide[][] result=new guide[c.length][0];
+  for(int cnt=0; cnt < c.length; ++cnt) {
     result[cnt]=new guide[gds[cnt].length];
     for(int i=0; i < gds[cnt].length; ++i) {
       pair[] pts=gds[cnt][i].g;
@@ -333,33 +332,33 @@ guide[][] contourguides(real func(real, real), real[] cl,
 }
 
 
-void contour(picture pic=currentpicture, Label L="", real func(real, real),
-	     real[] cl, pair ll, pair ur, int xn=xndefault,
+void contour(picture pic=currentpicture, Label L="", real f(real, real),
+	     real[] c, pair a, pair b, int xn=xndefault,
 	     int yn=yndefault, pen[] p)
 {
   guide[][] g;
-  g=contourguides(func,cl,ll,ur,xn,yn);
-  for(int cnt=0; cnt < cl.length; ++cnt) {
-    for(int i=0; i < g[cnt].length; ++i){
+  g=contourguides(f,c,a,b,xn,yn);
+  for(int cnt=0; cnt < c.length; ++cnt) {
+    for(int i=0; i < g[cnt].length; ++i) {
       draw(pic,L,g[cnt][i],p[cnt]);
     }
   }
 }
 
  
-void contour(picture pic=currentpicture, Label L="", real func(real, real),
-	     real[] cl, pair ll, pair ur, int xn=xndefault,
+void contour(picture pic=currentpicture, Label L="", real f(real, real),
+	     real[] c, pair a, pair b, int xn=xndefault,
 	     int yn=yndefault, pen p=currentpen)
 {
-  pen[] pp=new pen[cl.length];
-  for(int i=0; i < cl.length; ++i) pp[i]=p;
-  contour(pic,L,func,cl,ll,ur,xn,yn,pp);
+  pen[] pp=new pen[c.length];
+  for(int i=0; i < c.length; ++i) pp[i]=p;
+  contour(pic,L,f,c,a,b,xn,yn,pp);
 }
 
 
-void contour(picture pic=currentpicture, Label L="", real func(real, real),
-	     real cl, pair ll, pair ur, int xn=xndefault,
+void contour(picture pic=currentpicture, Label L="", real f(real, real),
+	     real c, pair a, pair b, int xn=xndefault,
 	     int yn=yndefault, pen p=currentpen)
 {
-  contour(pic,L,func,new real[] {cl},ll,ur,xn,yn,new pen[]{p});
+  contour(pic,L,f,new real[] {c},a,b,xn,yn,new pen[]{p});
 }
