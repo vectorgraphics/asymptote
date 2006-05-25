@@ -174,14 +174,17 @@ private void addseg(segment seg, cgd[] gds)
   gds.push(segm); 
 }
 
+typedef guide interpolate(... guide[]);
+
 // return contour guides computed using a triangle mesh
 // f:        function for which we are finding contours
 // c:        contour level
 // a,b:      lower left and upper right vertices of rectangle
-// xn,yn:       cuts on each axis (i.e. accuracy)
+// xn,yn:    cuts on each axis (i.e. accuracy)
+// join:     type of interpolation (linear, bezier, etc)
 guide[][] contourguides(real f(real, real), real[] c,
 			pair a, pair b, int xn=xndefault,
-			int yn=yndefault)
+			int yn=yndefault, interpolate join)
 {    
   // check if boundaries are good
   if(b.x <= a.x || b.y <= a.y) {
@@ -314,9 +317,9 @@ guide[][] contourguides(real f(real, real), real[] c,
       pair[] pts=gds[cnt][i].g;
       guide gd=pts[0];
       for(int j=1; j < pts.length; ++j)
-      	gd=gd..pts[j];
+      	gd=join(gd,pts[j]);
       if(length(pts[0]-pts[pts.length-1]) < eps)
-        gd=gd..cycle;
+        gd=join(gd,point(gd,0));
       result[cnt][i]=gd;
     }
   }
@@ -326,10 +329,10 @@ guide[][] contourguides(real f(real, real), real[] c,
 
 void contour(picture pic=currentpicture, Label L="", real f(real, real),
 	     real[] c, pair a, pair b, int xn=xndefault,
-	     int yn=yndefault, pen[] p)
+	     int yn=yndefault, interpolate join=operator --, pen[] p)
 {
   guide[][] g;
-  g=contourguides(f,c,a,b,xn,yn);
+  g=contourguides(f,c,a,b,xn,yn,join);
   for(int cnt=0; cnt < c.length; ++cnt) {
     for(int i=0; i < g[cnt].length; ++i) {
       draw(pic,L,g[cnt][i],p[cnt]);
@@ -340,17 +343,17 @@ void contour(picture pic=currentpicture, Label L="", real f(real, real),
  
 void contour(picture pic=currentpicture, Label L="", real f(real, real),
 	     real[] c, pair a, pair b, int xn=xndefault,
-	     int yn=yndefault, pen p=currentpen)
+	     int yn=yndefault, interpolate join=operator --, pen p=currentpen)
 {
   pen[] pp=new pen[c.length];
   for(int i=0; i < c.length; ++i) pp[i]=p;
-  contour(pic,L,f,c,a,b,xn,yn,pp);
+  contour(pic,L,f,c,a,b,xn,yn,join,pp);
 }
 
 
 void contour(picture pic=currentpicture, Label L="", real f(real, real),
 	     real c, pair a, pair b, int xn=xndefault,
-	     int yn=yndefault, pen p=currentpen)
+	     int yn=yndefault, interpolate join=operator --, pen p=currentpen)
 {
-  contour(pic,L,f,new real[] {c},a,b,xn,yn,new pen[]{p});
+  contour(pic,L,f,new real[] {c},a,b,xn,yn,join,new pen[]{p});
 }
