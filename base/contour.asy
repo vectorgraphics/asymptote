@@ -351,10 +351,18 @@ void contour(picture pic=currentpicture, real f(real, real),
 }
 
 void contour(picture pic=currentpicture, real f(real, real),
+	     pair a, pair b, real c, int n=nmesh,
+	     int m=n, interpolate join=operator --, pen p(real))
+{
+  contour(pic,f,a,b,new real[] {c},n,m,join,p);
+}
+
+void contour(picture pic=currentpicture, real f(real, real),
 	     pair a, pair b, real[] c, int n=nmesh,
 	     int m=n, interpolate join=operator --, pen p=currentpen)
 {
-  contour(pic,f,a,b,c,n,m,join,p);
+  contour(pic,f,a,b,c,n,m,join,
+		new pen(real) {return p;});
 }
 
 void contour(picture pic=currentpicture, real f(real, real),
@@ -362,5 +370,5 @@ void contour(picture pic=currentpicture, real f(real, real),
 	     int m=n, interpolate join=operator --, pen p=currentpen)
 {
   contour(pic,f,a,b,new real[] {c},n,m,join,
-	  new pen(real) {return currentpen;});
+	  new pen(real) {return p;});
 }
