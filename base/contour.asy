@@ -1,6 +1,5 @@
 public real eps=10*realEpsilon;
-public int xndefault=25;       // cuts on x axis
-public int yndefault=25;       // cuts on y axis
+public int nmesh=25;       // default mesh subdivisions
 
 private struct cgd
 {
@@ -178,40 +177,34 @@ typedef guide interpolate(... guide[]);
 
 // return contour guides computed using a triangle mesh
 // f:        function for which we are finding contours
-// c:        contour level
 // a,b:      lower left and upper right vertices of rectangle
-// xn,yn:    cuts on each axis (i.e. accuracy)
+// c:        contour level
+// n,m:      subdivisions on x and y axes (affects accuracy)
 // join:     type of interpolation (linear, bezier, etc)
-guide[][] contourguides(real f(real, real), real[] c,
-			pair a, pair b, int xn=xndefault,
-			int yn=yndefault, interpolate join)
+guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
+			pair a, pair b, real[] c, int n=nmesh, int m=n,
+			interpolate join=operator --)
 {    
+  bool midpoints=midpoint.length > 0;
+  
   // check if boundaries are good
   if(b.x <= a.x || b.y <= a.y) {
     abort("bad contour domain: make sure the second passed point 
 		is above and to the right of the first one.");
   } 
 
-  // evaluate function at points
-  real[][] dat=new real[xn+1][yn+1];
-  for(int i=0; i < xn+1; ++i) {
-    for(int j=0; j < yn+1; ++j) {
-      dat[i][j]=f(a.x+(b.x-a.x)*i/xn,a.y+(b.y-a.y)*j/yn);
-    }
-  } 
-
   // array to store guides found so far
   cgd[][] gds=new cgd[c.length][0];
 
   // go over region a rectangle at a time
-  for(int col=0; col < xn; ++col) {
-    for(int row=0; row < yn; ++row) {
+  for(int col=0; col < n; ++col) {
+    for(int row=0; row < m; ++row) {
       for(int cnt=0; cnt < c.length; ++cnt) {
         real[] vertdat=new real[5];   // neg-below, 0 -at, pos-above;
-        vertdat[0]=(dat[col][row]-c[cnt]);      // lower-left vertex
-        vertdat[1]=(dat[col+1][row]-c[cnt]);    // lower-right vertex
-        vertdat[2]=(dat[col][row+1]-c[cnt]);    // upper-left vertex
-        vertdat[3]=(dat[col+1][row+1]-c[cnt]);  // upper-right vertex
+        vertdat[0]=f[col][row]-c[cnt];      // lower-left vertex
+        vertdat[1]=f[col+1][row]-c[cnt];    // lower-right vertex
+        vertdat[2]=f[col][row+1]-c[cnt];    // upper-left vertex
+        vertdat[3]=f[col+1][row+1]-c[cnt];  // upper-right vertex
 
         // optimization: we make sure we don't work with empty rectangles
         int[] count=new int[3]; count[0]=0; count[1]=0; count[2]=0; 
@@ -225,17 +218,17 @@ guide[][] contourguides(real f(real, real), real[] c,
 	   (count[2] == 3 && count[1] == 1)) continue;
 
         // evaluates point at middle of rectangle(to set up triangles)
-        real midpt=f(a.x+(b.x-a.x)*(col+1/2)/xn,a.y+
-			(b.y-a.y)*(row+1/2)/yn);
-	vertdat[4]=(midpt-c[cnt]);                      // midpoint  
+
+	vertdat[4]=midpoints ? midpoint[col][row]-c[cnt] :
+	  0.25*(vertdat[0]+vertdat[1]+vertdat[2]+vertdat[3]);
       
         // define points
-        pair bleft=(a.x+(b.x-a.x)*col/xn,a.y+(b.y-a.y)*row/yn);
-        pair bright=(a.x+(b.x-a.x)*(col+1)/xn,a.y+(b.y-a.y)*row/yn);
-        pair tleft=(a.x+(b.x-a.x)*col/xn,a.y+(b.y-a.y)*(row+1)/yn);
-        pair tright=(a.x+(b.x-a.x)*(col+1)/xn,a.y+(b.y-a.y)*(row+1)/yn);
-        pair middle=(a.x+(b.x-a.x)*(col+1/2)/xn,
-		     a.y+(b.y-a.y)*(row+1/2)/yn);
+        pair bleft=(a.x+(b.x-a.x)*col/n,a.y+(b.y-a.y)*row/m);
+        pair bright=(a.x+(b.x-a.x)*(col+1)/n,a.y+(b.y-a.y)*row/m);
+        pair tleft=(a.x+(b.x-a.x)*col/n,a.y+(b.y-a.y)*(row+1)/m);
+        pair tright=(a.x+(b.x-a.x)*(col+1)/n,a.y+(b.y-a.y)*(row+1)/m);
+        pair middle=(a.x+(b.x-a.x)*(col+1/2)/n,
+		     a.y+(b.y-a.y)*(row+1/2)/m);
    
         segment curseg;
      
@@ -326,34 +319,52 @@ guide[][] contourguides(real f(real, real), real[] c,
   return result;
 }
 
-
-void contour(picture pic=currentpicture, Label L="", real f(real, real),
-	     real[] c, pair a, pair b, int xn=xndefault,
-	     int yn=yndefault, interpolate join=operator .., pen[] p)
-{
-  guide[][] g;
-  g=contourguides(f,c,a,b,xn,yn,join);
-  for(int cnt=0; cnt < c.length; ++cnt) {
-    for(int i=0; i < g[cnt].length; ++i) {
-      draw(pic,L,g[cnt][i],p[cnt]);
+guide[][] contourguides(real f(real, real), pair a, pair b,
+			real[] c, int n=nmesh, int m=n,
+			interpolate join=operator --)
+{    
+  // evaluate function at points and midpoints
+  real[][] dat=new real[n+1][m+1];
+  real[][] midpoint=new real[n+1][m+1];
+  for(int i=0; i <= n; ++i) {
+    for(int j=0; j <= m; ++j) {
+      dat[i][j]=f(interp(a.x,b.x,i/n),interp(a.y,b.y,j/m));
+      midpoint[i][j]=f(interp(a.x,b.x,(i+0.5)/n),interp(a.y,b.y,(j+0.5)/m));
     }
   }
+  return contourguides(dat,midpoint,a,b,c,n,m,join);
+}
+  
+void contour(picture pic=currentpicture, real f(real, real),
+	     pair a, pair b, real[] c, int n=nmesh,
+	     int m=n, interpolate join=operator --, pen[] p)
+{
+  if(c.length != p.length)
+    abort("contour and pen arrays must have same length");
+  guide[][] g;
+  g=contourguides(f,a,b,c,n,m,join);
+  for(int cnt=0; cnt < c.length; ++cnt)
+    for(int i=0; i < g[cnt].length; ++i)
+      draw(pic,g[cnt][i],p[cnt]);
+  if(false)  
+  for(int cnt=0; cnt < c.length; ++cnt)
+    for(int i=0; i < g[cnt].length; ++i)
+      label(pic,Label((string) c[cnt],align=(0,0),UnFill),g[cnt][i],p[cnt]);
 }
 
- 
-void contour(picture pic=currentpicture, Label L="", real f(real, real),
-	     real[] c, pair a, pair b, int xn=xndefault,
-	     int yn=yndefault, interpolate join=operator .., pen p=currentpen)
+void contour(picture pic=currentpicture, real f(real, real),
+	     pair a, pair b, real[] c, int n=nmesh,
+	     int m=n, interpolate join=operator --, pen p=currentpen)
 {
   pen[] pp=new pen[c.length];
-  for(int i=0; i < c.length; ++i) pp[i]=p;
-  contour(pic,L,f,c,a,b,xn,yn,join,pp);
+  for(int i=0; i < c.length; i ) pp[i]=p;
+  contour(pic,f,a,b,c,n,m,join,pp);
 }
 
 
-void contour(picture pic=currentpicture, Label L="", real f(real, real),
-	     real c, pair a, pair b, int xn=xndefault,
-	     int yn=yndefault, interpolate join=operator .., pen p=currentpen)
+void contour(picture pic=currentpicture, real f(real, real),
+	     pair a, pair b, real c, int n=nmesh,
+	     int m=n, interpolate join=operator --, pen p=currentpen)
 {
-  contour(pic,L,f,new real[] {c},a,b,xn,yn,join,new pen[]{p});
+  contour(pic,f,a,b,new real[] {c},n,m,join,new pen[]{p});
 }
