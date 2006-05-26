@@ -337,34 +337,30 @@ guide[][] contourguides(real f(real, real), pair a, pair b,
   
 void contour(picture pic=currentpicture, real f(real, real),
 	     pair a, pair b, real[] c, int n=nmesh,
-	     int m=n, interpolate join=operator --, pen[] p)
+	     int m=n, interpolate join=operator --, pen p(real))
 {
-  if(c.length != p.length)
-    abort("contour and pen arrays must have same length");
   guide[][] g;
   g=contourguides(f,a,b,c,n,m,join);
   for(int cnt=0; cnt < c.length; ++cnt)
     for(int i=0; i < g[cnt].length; ++i)
-      draw(pic,g[cnt][i],p[cnt]);
+      draw(pic,g[cnt][i],p(c[cnt]));
   if(false)  
   for(int cnt=0; cnt < c.length; ++cnt)
     for(int i=0; i < g[cnt].length; ++i)
-      label(pic,Label((string) c[cnt],align=(0,0),UnFill),g[cnt][i],p[cnt]);
+      label(pic,Label((string) c[cnt],align=(0,0),UnFill),g[cnt][i],p(c[cnt]));
 }
 
 void contour(picture pic=currentpicture, real f(real, real),
 	     pair a, pair b, real[] c, int n=nmesh,
 	     int m=n, interpolate join=operator --, pen p=currentpen)
 {
-  pen[] pp=new pen[c.length];
-  for(int i=0; i < c.length; i ) pp[i]=p;
-  contour(pic,f,a,b,c,n,m,join,pp);
+  contour(pic,f,a,b,c,n,m,join,p);
 }
-
 
 void contour(picture pic=currentpicture, real f(real, real),
 	     pair a, pair b, real c, int n=nmesh,
 	     int m=n, interpolate join=operator --, pen p=currentpen)
 {
-  contour(pic,f,a,b,new real[] {c},n,m,join,new pen[]{p});
+  contour(pic,f,a,b,new real[] {c},n,m,join,
+	  new pen(real) {return currentpen;});
 }
