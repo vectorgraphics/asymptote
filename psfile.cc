@@ -174,6 +174,7 @@ void psfile::shade(array *a, const bbox& b)
   size_t m=a0->size();
 
   pen *p=read<pen *>(a0,0);
+  p->convert();
   ColorSpace colorspace=p->colorspace();
   checkColorSpace(colorspace);
   
@@ -206,6 +207,7 @@ void psfile::shade(array *a, const bbox& b)
     if(aisize != m) reportError("shading matrix must be rectangular");
     for(size_t j=0; j < m; j++) {
 	pen *p=read<pen *>(ai,j);
+	p->convert();
 	if(p->colorspace() != colorspace)
 	  reportError("inconsistent shading colorspaces");
 	writeHex(p,ncomponents);
@@ -255,6 +257,7 @@ void psfile::shade(array *pens, array *vertices, array *edges)
   if(size == 0) return;
   
   pen *p=read<pen *>(pens,0);
+  p->convert();
   ColorSpace colorspace=p->colorspace();
   checkColorSpace(colorspace);
 
@@ -265,6 +268,7 @@ void psfile::shade(array *pens, array *vertices, array *edges)
     write(read<int>(edges,i));
     write(read<pair>(vertices,i));
     pen *p=read<pen *>(pens,i);
+    p->convert();
     if(p->colorspace() != colorspace)
       reportError("inconsistent shading colorspaces");
     *out << " ";
@@ -321,6 +325,7 @@ void psfile::image(array *a, array *P)
   size_t a0size=a0->size();
   
   pen *p=read<pen *>(P,0);
+  p->convert();
   ColorSpace colorspace=p->colorspace();
   checkColorSpace(colorspace);
   unsigned ncomponents=ColorComponents[colorspace];
@@ -361,7 +366,8 @@ void psfile::image(array *a, array *P)
     for(size_t j=0; j < a0size; j++) {
       double val=read<double>(ai,j);
       pen *p=read<pen *>(P,(int) ((val-min)*step+0.5));
-      
+      p->convert();
+
       if(p->colorspace() != colorspace)
 	reportError("inconsistent colorspaces in palette");
   

@@ -1,3 +1,4 @@
+access settings;
 private import graph;
 
 void image(picture pic=currentpicture, real[][] data, pen[] palette,
@@ -67,6 +68,8 @@ pen[] Grayscale(int NColors=256)
 // A rainbow palette
 pen[] Rainbow(int NColors=32766)
 {
+  if(settings.gray) return Grayscale(NColors);
+  
   int offset=1;
   int nintervals=5;
   int n=quotient(NColors-1,nintervals);
@@ -96,6 +99,8 @@ pen[] Rainbow(int NColors=32766)
 
 private pen[] BWRainbow(int NColors, bool two)
 {
+  if(settings.gray) return Grayscale(NColors);
+  
   int offset=1;
   int nintervals=6;
   int divisor=3;

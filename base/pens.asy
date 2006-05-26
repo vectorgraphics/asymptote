@@ -1,3 +1,4 @@
+access settings;	   
 public pen currentpen;
 
 pen nullpen=linewidth(0);
@@ -154,11 +155,9 @@ public pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,
 		      longdashdotted};
 monoPen.cyclic(true);
 
-public bool mono=false;
-
 pen Pen(int n) 
 {
-  return mono ? monoPen[n] : colorPen[n];
+  return (settings.gray || settings.bw) ? monoPen[n] : colorPen[n];
 }
 
 real dotsize(pen p=currentpen) 
