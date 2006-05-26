@@ -1101,16 +1101,41 @@ the C-function @code{fprintf}), except that only one data field is
 allowed, trailing zeros are removed by default (unless @code{#} is
 specified) and @TeX{} is used to typeset scientific notation;
 
-@item string time(string s)
+@item string time(string *format="%a %b %d %T %Z %Y")
 @cindex @code{time}
-returns the current time formatted by the ANSI C routine strftime
-according to the string @code{s} using the current locale. For example,
+@cindex @code{date}
+@cindex @code{strftime}
+@cindex @code{strptime}
+returns the current time formatted by the ANSI C routine
+@code{strftime} according to the string @code{format} using the current
+locale. Thus
 @verbatim
+write(time());
 write(time("%a %b %d %H:%M:%S %Z %Y"));
 @end verbatim
 
 @noindent
-outputs the time in the default format of the UNIX @code{date} command.
+are equivalent ways of outputting the current time in the default
+format used by the UNIX @code{date} command.
+
+@item int seconds(string t="", string *format="")
+returns the time measured in seconds after the Epoch (Thu Jan 01
+00:00:00 UTC 1970) corresponding to the string @code{t} formatted
+according to the string @code{format} using the current locale, 
+or the current time if @code{t} is the empty string. For example,
+@verbatim
+write(1+(seconds()-seconds("Jan 1","%b %d"))/(24*60*60))
+@end verbatim
+outputs today's ordinal date, measured from the beginning of the year.
+
+@item string time(int seconds, string *format="%a %b %d %T %Z %Y")
+returns the time corresponding to @code{seconds} seconds after the Epoch
+(Thu Jan 01 00:00:00 UTC 1970) formatted by the ANSI C routine
+@code{strftime} according to the string @code{s} using the current
+locale. For example, to print the date corresponding to 24 hours ago:
+@verbatim
+write(time(seconds()-24*60*60));
+@end verbatim
 
 @item string string(real x, int digits)
 casts @code{x} using precision @code{digits} (rather than
