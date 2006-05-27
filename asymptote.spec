@@ -1,7 +1,7 @@
 %{!?_texmf: %define _texmf %(eval "echo `kpsewhich -expand-var '$TEXMFMAIN'`")}
 
 Name:           asymptote
-Version:        1.06
+Version:        1.07
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 
@@ -13,7 +13,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  ncurses-devel
 BuildRequires:  readline-devel
-BuildRequires:  fftw-devel >= 3
+BuildRequires:  fftw-devel >= 3.0
 BuildRequires:  gc-devel >= 6.7
 BuildRequires:  gsl-devel
 BuildRequires:  tetex-latex
@@ -64,16 +64,17 @@ texhash >/dev/null 2>&1 || :
 
 %files
 %defattr(-,root,root,-)
-%doc %{_defaultdocdir}/%{name}/*
+%doc %{_defaultdocdir}/%{name}/
 %{_bindir}/*
-%{_datadir}/%{name}/*.asy
-%{_datadir}/%{name}/asy*
-%{texpkgdir}/asymptote.sty
-%{texpkgdir}/asycolors.sty
+%{_datadir}/%{name}/
+%{texpkgdir}/
 %{_mandir}/man1/*.1*
 
 
 %changelog
+* Fri May 26 2006 Jose Pedro Oliveira <jpo at di.uminho.pt> - 1.07-1
+- Update to 1.07.
+
 * Sun May 21 2006 John Bowman <> - 1.06-1
 - Update to 1.06.
 
