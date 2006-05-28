@@ -30,12 +30,13 @@ private segment case1(pair pt1, pair pt2)
 
 // Case 2: line passes a vertex and a side of a triangle
 // (the first vertex passed and the side between the other two)
-private segment case2(pair[] pts, real[] vls)
+private segment case2(pair pts0, pair pts1, pair pts2,
+		      real vls0, real vls1, real vls2)
 {
   pair isect;
-  isect=pts[1]+(pts[2]-pts[1])*fabs(vls[1]/(vls[2]-vls[1]));
+  isect=pts1+(pts2-pts1)*abs(vls1/(vls2-vls1));
   segment rtrn;
-  rtrn.a=pts[0];
+  rtrn.a=pts0;
   rtrn.b=isect;
   return rtrn;
 }
@@ -43,11 +44,12 @@ private segment case2(pair[] pts, real[] vls)
 // Case 3: line passes through two sides of a triangle
 // (through the sides formed by the first & second, and second & third
 // vertices)
-private segment case3(pair[] pts, real[] vls)
+private segment case3(pair pts0, pair pts1, pair pts2,
+		      real vls0, real vls1, real vls2)
 {
   pair isect1,isect2;
-  isect1=pts[1]+(pts[2]-pts[1])*fabs(vls[1]/(vls[2]-vls[1]));
-  isect2=pts[1]+(pts[0]-pts[1])*fabs(vls[1]/(vls[0]-vls[1]));
+  isect1=pts1+(pts2-pts1)*abs(vls1/(vls2-vls1));
+  isect2=pts1+(pts0-pts1)*abs(vls1/(vls0-vls1));
   segment rtrn;
   rtrn.a=isect1;
   rtrn.b=isect2;
@@ -55,73 +57,56 @@ private segment case3(pair[] pts, real[] vls)
 }
 
 // Check if a line passes through a triangle, and draw the required line.
-private segment checktriangle(pair[] pts, real[] vls)
+private segment checktriangle(pair pts0, pair pts1, pair pts2,
+			      real vls0, real vls1, real vls2)
 {  
   //default null return  
   segment dflt; dflt.a=(0,0); dflt.b=(0,0);
   
-  if(vls[0] < 0) {
-    if(vls[1] < 0) {
-      if(vls[2] < 0) return dflt;          // nothing to do
-      else if(vls[2] == 0) return dflt;  // nothing to do
-      else return case3(new pair[] {pts[0],pts[2],pts[1]},
-			new real[] {vls[0],vls[2],vls[1]}); // case 3
-    }
-    else if(vls[1] == 0) {
-      if(vls[2] < 0) return dflt;       // nothing to do
-      else if(vls[2] == 0) return case1(pts[1],pts[2]); // case 1
-      else return case2(new pair[] {pts[1],pts[0],pts[2]},
-			new real[] {vls[1],vls[0],vls[2]}); // case 2
-    }
-    else {
-      if(vls[2] < 0) return case3(new pair[] {pts[0],pts[1],pts[2]},
-				  new real[] {vls[0],vls[1],vls[2]}); // case 3
-      else if(vls[2] == 0) 
-	return case2(new pair[] {pts[2],pts[0],pts[1]},
-		     new real[] {vls[2],vls[0],vls[1]}); // case 2
-      else return case3(new pair[] {pts[2],pts[0],pts[1]},
-			new real[] {vls[2],vls[0],vls[1]}); // case 3
+  if(vls0 < 0) {
+    if(vls1 < 0) {
+      if(vls2 < 0) return dflt; // nothing to do
+      else if(vls2 == 0) return dflt; // nothing to do
+      else return case3(pts0,pts2,pts1,vls0,vls2,vls1);
+    } else if(vls1 == 0) {
+      if(vls2 < 0) return dflt; // nothing to do
+      else if(vls2 == 0) return case1(pts1,pts2);
+      else return case2(pts1,pts0,pts2,vls1,vls0,vls2);
+    } else {
+      if(vls2 < 0) return case3(pts0,pts1,pts2,vls0,vls1,vls2);
+      else if(vls2 == 0) 
+	return case2(pts2,pts0,pts1,vls2,vls0,vls1);
+      else return case3(pts2,pts0,pts1,vls2,vls0,vls1);
     } 
   }
-  else if(vls[0] == 0) {
-    if(vls[1] < 0) {
-      if(vls[2] < 0) return dflt; // nothing to do
-      else if(vls[2] == 0) return case1(pts[0],pts[2]); // case 1
-      else return case2(new pair[] {pts[0],pts[1],pts[2]},
-			new real[] {vls[0],vls[1],vls[2]}); // case 2
-    }
-    else if(vls[1] == 0) {
-      if(vls[2] < 0) return case1(pts[0],pts[1]); // case 1
-      else if(vls[2] == 0) return dflt; // use finer partitioning.
-      else return case1(pts[0],pts[1]); // case 1
-    }
-    else {
-      if(vls[2] < 0) return case2(new pair[] {pts[0],pts[1],pts[2]},
-				  new real[] {vls[0],vls[1],vls[2]}); // case 2
-      else if(vls[2] == 0) return case1(pts[0],pts[2]); // case 1
+  else if(vls0 == 0) {
+    if(vls1 < 0) {
+      if(vls2 < 0) return dflt; // nothing to do
+      else if(vls2 == 0) return case1(pts0,pts2);
+      else return case2(pts0,pts1,pts2,vls0,vls1,vls2);
+    } else if(vls1 == 0) {
+      if(vls2 < 0) return case1(pts0,pts1);
+      else if(vls2 == 0) return dflt; // use finer partitioning.
+      else return case1(pts0,pts1);
+    } else {
+      if(vls2 < 0) return case2(pts0,pts1,pts2,vls0,vls1,vls2);
+      else if(vls2 == 0) return case1(pts0,pts2);
       else return dflt; // nothing to do
     } 
-  }
-  else {
-    if(vls[1] < 0) {
-      if(vls[2] < 0) return case3(new pair[] {pts[2],pts[0],pts[1]},
-				  new real[] {vls[2],vls[0],vls[1]}); // case 3
-      else if(vls[2] == 0)
-	return case2(new pair[] {pts[2],pts[0],pts[1]},
-		     new real[] {vls[2],vls[0],vls[1]}); // case 2
-      else return case3(new pair[] {pts[0],pts[1],pts[2]},
-			new real[] {vls[0],vls[1],vls[2]}); // case 3
+  } else {
+    if(vls1 < 0) {
+      if(vls2 < 0) return case3(pts2,pts0,pts1,vls2,vls0,vls1);
+      else if(vls2 == 0)
+	return case2(pts2,pts0,pts1,vls2,vls0,vls1);
+      else return case3(pts0,pts1,pts2,vls0,vls1,vls2);
     }
-    else if(vls[1] == 0) {
-      if(vls[2] < 0) return case2(new pair[] {pts[1],pts[0],pts[2]},
-				  new real[] {vls[1],vls[0],vls[2]}); // case 2
-      else if(vls[2] == 0) return case1(pts[1],pts[2]); // case 1
+    else if(vls1 == 0) {
+      if(vls2 < 0) return case2(pts1,pts0,pts2,vls1,vls0,vls2);
+      else if(vls2 == 0) return case1(pts1,pts2);
       else return dflt; // nothing to do
-    }
-    else {
-      if(vls[2] < 0) return case3(new pair[] {pts[0],pts[2],pts[1]},
-				  new real[] {vls[0],vls[2],vls[1]}); // case 3
-      else if(vls[2] == 0) return dflt; // nothing to do
+    } else {
+      if(vls2 < 0) return case3(pts0,pts2,pts1,vls0,vls2,vls1);
+      else if(vls2 == 0) return dflt; // nothing to do
       else return dflt; // nothing to do
     } 
   }      
@@ -132,45 +117,34 @@ private segment checktriangle(pair[] pts, real[] vls)
 private void addseg(segment seg, cgd[] gds)
 { 
   // initialization 
-  if (gds.length == 0) { 
-    cgd segm; segm.g.push(seg.a); segm.g.push(seg.b); 
-    gds.push(segm); return;
-  }
-
-  // searching for a path to extend
-  int i;  
-  for (i=0; i < gds.length; ++i) {
-    if(!gds[i].actv) continue;
-    pair[] gd=gds[i].g;
-    if(length(gd[0]-seg.b) < eps) {
-      pair[] toadd=new pair[]{seg.a};
-      toadd.append(gd);
-      gds[i].g=toadd;
-      gds[i].exnd=true; 
+  // search for a path to extend
+  for (int i=0; i < gds.length; ++i) {
+    cgd gdsi=gds[i];
+    if(!gdsi.actv) continue;
+    pair[] gd=gdsi.g;
+    if(abs(gd[0]-seg.b) < eps) {
+      gdsi.g.insert(0,seg.a);
+      gdsi.exnd=true; 
       return;
-    }
-    else if(length(gd[gd.length-1]-seg.b) < eps) {
-      gds[i].g.push(seg.a);
-      gds[i].exnd=true; 
+    } else if(abs(gd[gd.length-1]-seg.b) < eps) {
+      gdsi.g.push(seg.a);
+      gdsi.exnd=true; 
       return;
-    }
-    else if(length(gd[0]-seg.a) < eps) {
-      pair[] toadd=new pair[]{seg.b};
-      toadd.append(gd);
-      gds[i].g=toadd;
-      gds[i].exnd=true;
+    } else if(abs(gd[0]-seg.a) < eps) {
+      gdsi.g.insert(0,seg.b);
+      gdsi.exnd=true;
       return;
-    }
-    else if(length(gd[gd.length-1]-seg.a) < eps) {  
-      gds[i].g.push(seg.b);
-      gds[i].exnd=true; 
+    } else if(abs(gd[gd.length-1]-seg.a) < eps) {  
+      gdsi.g.push(seg.b);
+      gdsi.exnd=true; 
       return;
     }
   }
  
   // in case nothing is found
-  cgd segm; segm.g.push(seg.a); segm.g.push(seg.b); 
-  gds.push(segm); 
+  cgd segm;
+  segm.g=new pair[] {seg.a,seg.b}; 
+  gds.push(segm); return;
 }
 
 typedef guide interpolate(... guide[]);
@@ -196,105 +170,126 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
   // array to store guides found so far
   cgd[][] gds=new cgd[c.length][0];
 
+  real ninv=1/n;
+  real minv=1/m;
+  
   // go over region a rectangle at a time
   for(int col=0; col < n; ++col) {
+    real dx=(b.x-a.x)*ninv;
+    real x=a.x+col*dx;
     for(int row=0; row < m; ++row) {
+      real dy=(b.y-a.y)*minv;
+      real y=a.y+row*dy;
+      
+      // define points
+      pair bleft=(x,y);
+      pair bright=(x+dx,y);
+      pair tleft=(x,y+dy);
+      pair tright=(x+dx,y+dy);
+      pair middle=0.5*(bleft+tright);
+   
+      real f00=f[col][row];
+      real f01=f[col][row+1];
+      real f10=f[col+1][row];
+      real f11=f[col+1][row+1];
+      
       for(int cnt=0; cnt < c.length; ++cnt) {
-        real[] vertdat=new real[5];   // neg-below, 0 -at, pos-above;
-        vertdat[0]=f[col][row]-c[cnt];      // lower-left vertex
-        vertdat[1]=f[col+1][row]-c[cnt];    // lower-right vertex
-        vertdat[2]=f[col][row+1]-c[cnt];    // upper-left vertex
-        vertdat[3]=f[col+1][row+1]-c[cnt];  // upper-right vertex
+	real C=c[cnt];
+        real vertdat0=f00-C;  // lower-left vertex
+        real vertdat1=f10-C;  // lower-right vertex
+        real vertdat2=f01-C;  // upper-left vertex
+        real vertdat3=f11-C;  // upper-right vertex
 
         // optimization: we make sure we don't work with empty rectangles
-        int[] count=new int[3]; count[0]=0; count[1]=0; count[2]=0; 
-        for(int i=0; i < 4; ++i) {
-          if(fabs(vertdat[i]) < eps)++count[1]; 
-          else if(vertdat[i] < 0)++count[0];
-          else++count[2];
+        int count0=0;
+        int count1=0;
+        int count2=0;
+	
+	void check(real vertdat) {
+          if(abs(vertdat) < eps) ++count1; 
+          else if(vertdat < 0) ++count0;
+          else ++count2;
 	}
-        if((count[0] == 4) || (count[2] == 4)) continue;  // nothing to do 
-        if((count[0] == 3 && count[1] == 1) || 
-	   (count[2] == 3 && count[1] == 1)) continue;
+	
+	check(vertdat0);
+	check(vertdat1);
+	check(vertdat2);
+	check(vertdat3);
 
-        // evaluates point at middle of rectangle(to set up triangles)
+        if(count0 == 4 || count2 == 4) continue;  // nothing to do 
+        if((count0 == 3 || count2 == 3) && count1 == 1) continue;
 
-	vertdat[4]=midpoints ? midpoint[col][row]-c[cnt] :
-	  0.25*(vertdat[0]+vertdat[1]+vertdat[2]+vertdat[3]);
+        // evaluate point at middle of rectangle (to set up triangles)
+	real vertdat4=midpoints ? midpoint[col][row]-C :
+	  0.25*(vertdat0+vertdat1+vertdat2+vertdat3);
       
-        // define points
-        pair bleft=(a.x+(b.x-a.x)*col/n,a.y+(b.y-a.y)*row/m);
-        pair bright=(a.x+(b.x-a.x)*(col+1)/n,a.y+(b.y-a.y)*row/m);
-        pair tleft=(a.x+(b.x-a.x)*col/n,a.y+(b.y-a.y)*(row+1)/m);
-        pair tright=(a.x+(b.x-a.x)*(col+1)/n,a.y+(b.y-a.y)*(row+1)/m);
-        pair middle=(a.x+(b.x-a.x)*(col+1/2)/n,
-		     a.y+(b.y-a.y)*(row+1/2)/m);
-   
         segment curseg;
      
         // go through the triangles
-        curseg=checktriangle(new pair[] {tleft,tright,middle},
-			     new real[] {vertdat[2],vertdat[3],vertdat[4]});
+        curseg=checktriangle(tleft,tright,middle,
+			     vertdat2,vertdat3,vertdat4);
         if(length(curseg.a-curseg.b) > eps) addseg(curseg,gds[cnt]);
-        curseg=checktriangle(new pair[] {tright,bright,middle},
-			     new real[] {vertdat[3],vertdat[1],vertdat[4]});
+        curseg=checktriangle(tright,bright,middle,
+			     vertdat3,vertdat1,vertdat4);
         if(length(curseg.a-curseg.b) > eps) addseg(curseg,gds[cnt]);
-        curseg=checktriangle(new pair[] {bright,bleft,middle},
-			     new real[] {vertdat[1],vertdat[0],vertdat[4]});
+        curseg=checktriangle(bright,bleft,middle,
+			     vertdat1,vertdat0,vertdat4);
         if(length(curseg.a-curseg.b) > eps) addseg(curseg,gds[cnt]);
-        curseg=checktriangle(new pair[] {bleft,tleft,middle},
-			     new real[] {vertdat[0],vertdat[2],vertdat[4]});
+        curseg=checktriangle(bleft,tleft,middle,
+			     vertdat0,vertdat2,vertdat4);
         if(length(curseg.a-curseg.b) > eps) addseg(curseg,gds[cnt]);
       }
     }
-    // checks which guides are still extendable
+    // check which guides are still extendable
     for(int cnt=0; cnt < c.length; ++cnt) {
-      for(int i=0; i < gds[cnt].length; ++i) {
-        if(gds[cnt][i].exnd) gds[cnt][i].exnd=false;
-        else gds[cnt][i].actv=false;
+      cgd[] gdscnt=gds[cnt];
+      for(int i=0; i < gdscnt.length; ++i) {
+	cgd gdscnti=gdscnt[i];
+        if(gdscnti.exnd) gdscnti.exnd=false;
+        else gdscnti.actv=false;
       }
     }
   }
 
   // connect existing paths
+  
+  // use to reverse an array, omitting the first point
+  int[] reverseF(int n) {return sequence(new int(int x){return n-1-x;},n-1);}
+  // use to reverse an array, omitting the last point
+  int[] reverseL(int n) {return sequence(new int(int x){return n-2-x;},n-1);}
+  
   for(int cnt=0; cnt < c.length; ++cnt) {
-    for(int i=0; i < gds[cnt].length; ++i) {
-      for(int j=i+1; j < gds[cnt].length; ++j) {
-        pair[] gi=gds[cnt][i].g;
-        pair[] gj=gds[cnt][j].g;
-        if     (length(gi[0]-gj[0]) < eps) { 
-	  pair[] np;
-          for(int q=gj.length-1; q > 0; --q)
-	    np.push(gj[q]);
-	  np.append(gi);
-          gds[cnt][j].g=np;
-          gds[cnt].delete(i); 
+    cgd[] gdscnt=gds[cnt];
+    for(int i=0; i < gdscnt.length; ++i) {
+      pair[] gig=gdscnt[i].g;
+      int Li=gig.length;
+      for(int j=i+1; j < gdscnt.length; ++j) {
+        cgd gj=gdscnt[j];
+        pair[] gjg=gj.g;
+	int Lj=gjg.length;
+        if(abs(gig[0]-gjg[0]) < eps) { 
+	  gj.g=gjg[reverseF(Lj)];
+	  gj.g.append(gig);
+          gdscnt.delete(i); 
           --i; 
           break;
-        }
-        else if(length(gi[0]-gj[gj.length-1]) < eps) { 
-	  for(int q=1; q < gi.length; ++q)
-	    gj.push(gi[q]);
-          gds[cnt][j].g=gj;
-          gds[cnt].delete(i);
+        } else if(abs(gig[0]-gjg[Lj-1]) < eps) {
+	  gig.delete(0);
+	  gjg.append(gig);
+          gdscnt.delete(i);
           --i;
           break;
-        }
-        else if(length(gi[gi.length-1]-gj[0]) < eps) { 
-	  for(int q=1; q < gj.length; ++q)
-	    gi.push(gj[q]);
-          gds[cnt][j].g=gi;
-          gds[cnt].delete(i);
+        } else if(abs(gig[Li-1]-gjg[0]) < eps) {
+	  gjg.delete(0);
+	  gig.append(gjg);
+	  gj.g=gig;
+          gdscnt.delete(i);
           --i;
           break;
-        }
-        else if(length(gi[gi.length-1]-gj[gj.length-1]) < eps) { 
-	  pair[] np;
-          for(int q=gj.length-2; q > -1; --q)
-	    np.push(gj[q]);      
-	  gi.append(np);  
-          gds[cnt][j].g=gi;
-          gds[cnt].delete(i);
+        } else if(abs(gig[Li-1]-gjg[Lj-1]) < eps) {
+	  gig.append(gjg[reverseL(Lj)]);
+          gj.g=gig;
+          gdscnt.delete(i);
           --i;
           break;
         } 
@@ -302,17 +297,20 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
     }
   }
 
-  // setting up return value
+  // set up return value
   guide[][] result=new guide[c.length][0];
   for(int cnt=0; cnt < c.length; ++cnt) {
-    result[cnt]=new guide[gds[cnt].length];
-    for(int i=0; i < gds[cnt].length; ++i) {
-      pair[] pts=gds[cnt][i].g;
+    cgd[] gdscnt=gds[cnt];
+    result[cnt]=new guide[gdscnt.length];
+    for(int i=0; i < gdscnt.length; ++i) {
+      pair[] pts=gdscnt[i].g;
       guide gd=pts[0];
-      for(int j=1; j < pts.length; ++j)
+      for(int j=1; j < pts.length-1; ++j)
       	gd=join(gd,pts[j]);
-      if(length(pts[0]-pts[pts.length-1]) < eps)
-        gd=gd--cycle;
+      if(abs(pts[0]-pts[pts.length-1]) < eps)
+        gd=gd..cycle;
+      else
+	gd=join(gd,pts[pts.length-1]);
       result[cnt][i]=gd;
     }
   }
@@ -344,10 +342,11 @@ void contour(picture pic=currentpicture, real f(real, real),
   for(int cnt=0; cnt < c.length; ++cnt)
     for(int i=0; i < g[cnt].length; ++i)
       draw(pic,g[cnt][i],p(c[cnt]));
-  if(false)  
+  /*
   for(int cnt=0; cnt < c.length; ++cnt)
     for(int i=0; i < g[cnt].length; ++i)
       label(pic,Label((string) c[cnt],align=(0,0),UnFill),g[cnt][i],p(c[cnt]));
+  */
 }
 
 void contour(picture pic=currentpicture, real f(real, real),
@@ -361,14 +360,12 @@ void contour(picture pic=currentpicture, real f(real, real),
 	     pair a, pair b, real[] c, int n=nmesh,
 	     int m=n, interpolate join=operator --, pen p=currentpen)
 {
-  contour(pic,f,a,b,c,n,m,join,
-		new pen(real) {return p;});
+  contour(pic,f,a,b,c,n,m,join,new pen(real) {return p;});
 }
 
 void contour(picture pic=currentpicture, real f(real, real),
 	     pair a, pair b, real c, int n=nmesh,
 	     int m=n, interpolate join=operator --, pen p=currentpen)
 {
-  contour(pic,f,a,b,new real[] {c},n,m,join,
-	  new pen(real) {return p;});
+  contour(pic,f,a,b,new real[] {c},n,m,join,new pen(real) {return p;});
 }
