@@ -139,6 +139,7 @@ Base modules
 * solids::                      3D solid geometry package
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
+* contour::                     Contour lines
 
 
 @end detailmenu
@@ -4422,6 +4423,7 @@ Here now is @code{latexusage.tex}:
 * solids::                      3D solid geometry package
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
+* contour::                     Contour lines
 
 @end menu
 
@@ -5881,6 +5883,66 @@ is a simple flowchart example:
 
 @verbatiminclude flowchartdemo.asy
 @image{flowchartdemo}
+
+@node contour
+@section @code{contour}
+@cindex @code{contour}
+This package draws contour lines, given a function from the plane to the 
+reals, or given regularly spaced points in the plane along with values 
+at said points. 
+
+The main function of the package is @code{contour}:
+@verbatim
+void contour(picture pic=currentpicture, real f(real, real),
+	     pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
+	     interpolate join=operator --, pen p(real))
+@end verbatim
+The contour lines @code{real[]c} for the function @code{f} are drawn
+on the rectangle defined by the bottom-left and top-right points @code{a}
+and @code{b}. The integers @code{nx} and @code{ny} define the resolution.
+The default resolution is @code{25x25}. Increase it for more accuracy.
+
+The default interpolation operator is @code{--} (linear). Spline 
+interpolation ('operator @code{..}') generally produces more accurate
+pictures, but has problems under certain conditions.
+
+The function takes pen producing functions for more flexibility. For
+simplicity, plain pens are also accepted instead of pen (real) functions.
+
+
+The following interfaces are also available:
+
+-Single contour instead of a whole array:
+@verbatim
+void contour(picture pic=currentpicture, real f(real, real),
+	     pair a, pair b, real c, int n=nmesh,
+	     int m=n, interpolate join=operator --, pen p(real))
+@end verbatim
+-Just a pen instead of pen(real):
+@verbatim
+void contour(picture pic=currentpicture, real f(real, real),
+	     pair a, pair b, real[] c, int n=nmesh,
+	     int m=n, interpolate join=operator --, pen p=currentpen)
+@end verbatim
+-A single contour and the pen to draw it with:
+@verbatim
+void contour(picture pic=currentpicture, real f(real, real),
+	     pair a, pair b, real c, int n=nmesh,
+	     int m=n, interpolate join=operator --, pen p=currentpen)
+@end verbatim
+
+
+The following is a simple example that draws the contour line @code{1.0}
+for the function @code{z=x^{2}+y^{2},} which is a circle:
+@verbatiminclude contourex1.asy
+@image{contourex1}
+
+This is a bit more complicated example. It draws multiple contours for
+the function @code{z=x^2-y^2} with resolution @code{50x50}. The contours 
+below zero are dashed, while the ones above are in solid lines:
+@verbatiminclude contourex2.asy
+@image{contourex2}
+
 
 @node Options
 @chapter Options
