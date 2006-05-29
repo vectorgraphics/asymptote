@@ -512,27 +512,29 @@ picture surface(real[][] f, pair a, pair b,
 }
 
 // draw the surface described by a function f, with lighting
-picture surface(real f(pair z), pair a, pair b, int n=nmesh, int m=n,
+picture surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
 		pen surfacepen=lightgray, pen meshpen=nullpen,
 		light light=currentlight, projection P=currentprojection)
 {
-  real[][] z=new real[n+1][m+1];
+  real[][] z=new real[nx+1][ny+1];
 
-  for(int i=0; i <= n; ++i)
-    for(int j=0; j <= m; ++j)
-      z[i][j]=f((interp(a.x,b.x,i/n),interp(a.y,b.y,j/m)));
+  for(int i=0; i <= nx; ++i) {
+    real x=interp(a.x,b.x,i/nx);
+    for(int j=0; j <= ny; ++j)
+      z[i][j]=f((x,interp(a.y,b.y,j/ny)));
+  }
   
   return surface(z,a,b,surfacepen,meshpen,light,P);
 }
 
 // draw the surface described by f, subsampling nsub times along cell edges
-picture surface(real f(pair z), int nsub, pair a, pair b, int n=nmesh, int m=n,
-		pen surfacepen=lightgray, pen meshpen=currentpen,
+picture surface(real f(pair z), int nsub, pair a, pair b, int nx=nmesh,
+		int ny=nx, pen surfacepen=lightgray, pen meshpen=currentpen,
 		projection P=currentprojection)
 {
   picture pic;
 
-  grid g=grid.set(a,b,n,m,P);
+  grid g=grid.set(a,b,nx,ny,P);
   
   void drawcell(int i, int j) {
     guide3 g=graph(f,box(g.sample(i,j),g.sample(i+1,j+1)),nsub);
@@ -540,12 +542,12 @@ picture surface(real f(pair z), int nsub, pair a, pair b, int n=nmesh, int m=n,
   }
 
   if(g.reverse)
-    for(int j=0; j < m; ++j)
-      for(int i=0; i < n; ++i)
+    for(int j=0; j < ny; ++j)
+      for(int i=0; i < nx; ++i)
 	drawcell(i,j);
   else
-    for(int i=0; i < n; ++i)
-      for(int j=0; j < m; ++j)
+    for(int i=0; i < nx; ++i)
+      for(int j=0; j < ny; ++j)
 	drawcell(i,j);
 
   return pic;

@@ -1564,7 +1564,7 @@ This produces a @acronym{CMYK} color, where each of the cyan, magenta,
 yellow, and black intensities @code{c}, @code{m}, @code{y}, @code{k},
 lies in the interval [0,1].
 
-@item pen invisible();
+@item pen invisible;
 @cindex @code{invisible}
 This special pen writes in invisible ink, but adjusts the bounding
 box as if something had been drawn (like the @code{\phantom}
@@ -5705,13 +5705,13 @@ picture surface(real[][] f, pair a, pair b,
                 light light=currentlight, projection P=currentprojection);
 
 // draw the surface described by a function f, with lighting
-picture surface(real f(pair z), pair a, pair b, int n=nmesh, int m=n,
+picture surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 
 // draw the surface described by f, subsampling nsub times along cell edges
-picture surface(real f(pair z), int nsub, pair a, pair b, int n=nmesh, 
-                int m=n, pen surfacepen=lightgray, pen meshpen=currentpen,
+picture surface(real f(pair z), int nsub, pair a, pair b, int nx=nmesh, 
+                int ny=nx, pen surfacepen=lightgray, pen meshpen=currentpen,
                 projection P=currentprojection);
 @end verbatim
 @noindent
@@ -5964,6 +5964,7 @@ Command-line options override these defaults. Most configuration
 variables may also be changed at runtime. 
 
 @cindex @code{convert}
+@cindex @code{output}
 @cindex @code{format}
 @cindex @code{ImageMagick}
 @cindex @code{antialiasing}

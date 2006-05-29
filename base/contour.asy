@@ -1,3 +1,5 @@
+// Contour routines written by Radoslav Marinov (optimized by John Bowman).
+	 
 public real eps=10*realEpsilon;
 public int nmesh=25;       // default mesh subdivisions
 
@@ -14,7 +16,7 @@ private struct segment
 {
   public pair a;
   public pair b;
-  public bool empty; // is the segment empty
+  public bool empty=true; // is the segment empty
 }
   
 segment operator init() {return new segment;}
@@ -26,6 +28,7 @@ private segment case1(pair pt1, pair pt2)
   segment rtrn;
   rtrn.a=pt1;
   rtrn.b=pt2;
+  rtrn.empty=false;
   return rtrn;
 }
 
@@ -34,11 +37,10 @@ private segment case1(pair pt1, pair pt2)
 private segment case2(pair pts0, pair pts1, pair pts2,
 		      real vls0, real vls1, real vls2)
 {
-  pair isect;
-  isect=pts1+(pts2-pts1)*abs(vls1/(vls2-vls1));
   segment rtrn;
   rtrn.a=pts0;
-  rtrn.b=isect;
+  rtrn.b=interp(pts1,pts2,abs(vls1/(vls2-vls1)));
+  rtrn.empty=false;
   return rtrn;
 }
 
@@ -48,12 +50,10 @@ private segment case2(pair pts0, pair pts1, pair pts2,
 private segment case3(pair pts0, pair pts1, pair pts2,
 		      real vls0, real vls1, real vls2)
 {
-  pair isect1,isect2;
-  isect1=pts1+(pts2-pts1)*abs(vls1/(vls2-vls1));
-  isect2=pts1+(pts0-pts1)*abs(vls1/(vls0-vls1));
   segment rtrn;
-  rtrn.a=isect1;
-  rtrn.b=isect2;
+  rtrn.a=interp(pts1,pts2,abs(vls1/(vls2-vls1)));
+  rtrn.b=interp(pts1,pts0,abs(vls1/(vls0-vls1)));
+  rtrn.empty=false;
   return rtrn;
 }
 
@@ -63,7 +63,6 @@ private segment checktriangle(pair pts0, pair pts1, pair pts2,
 {  
   // default null return  
   static segment dflt;
-  dflt.empty=true;
   
   if(vls0 < 0) {
     if(vls1 < 0) {
@@ -156,12 +155,12 @@ typedef guide interpolate(... guide[]);
 // f:        function for which we are finding contours
 // a,b:      lower left and upper right vertices of rectangle
 // c:        contour level
-// n,m:      subdivisions on x and y axes (affects accuracy)
-// join:     type of interpolation (linear, bezier, etc)
+// nx,ny:    subdivisions on x and y axes (affects accuracy)
+// join:     interpolation operator (linear, bezier, etc)
 guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
-			pair a, pair b, real[] c, int n=nmesh, int m=n,
+			pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
 			interpolate join=operator --)
-{    
+{
   c=sort(c);
   bool midpoints=midpoint.length > 0;
   
@@ -174,16 +173,16 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
   // array to store guides found so far
   cgd[][] gds=new cgd[c.length][0];
 
-  real dx=(b.x-a.x)/n;
-  real dy=(b.y-a.y)/m;
+  real dx=(b.x-a.x)/nx;
+  real dy=(b.y-a.y)/ny;
   
   // go over region a rectangle at a time
-  for(int col=0; col < n; ++col) {
-    real x=a.x+col*dx;
-    real[] fcol=f[col];
-    real[] fcol1=f[col+1];
-    for(int row=0; row < m; ++row) {
-      real y=a.y+row*dy;
+  for(int i=0; i < nx; ++i) {
+    real x=a.x+i*dx;
+    real[] fi=f[i];
+    real[] fi1=f[i+1];
+    for(int j=0; j < ny; ++j) {
+      real y=a.y+j*dy;
       
       // define points
       pair bleft=(x,y);
@@ -192,10 +191,10 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
       pair tright=(x+dx,y+dy);
       pair middle=0.5*(bleft+tright);
    
-      real f00=fcol[row];
-      real f01=fcol[row+1];
-      real f10=fcol1[row];
-      real f11=fcol1[row+1];
+      real f00=fi[j];
+      real f01=fi[j+1];
+      real f10=fi1[j];
+      real f11=fi1[j+1];
       
       int checkcell(int cnt) {
 	real C=c[cnt];
@@ -225,7 +224,7 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
         if((countm == 3 || countp == 3) && countz == 1) return 0;
 
         // evaluate point at middle of rectangle (to set up triangles)
-	real vertdat4=midpoints ? midpoint[col][row]-C :
+	real vertdat4=midpoints ? midpoint[i][j]-C :
 	  0.25*(vertdat0+vertdat1+vertdat2+vertdat3);
       
         // go through the triangles
@@ -319,7 +318,7 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
   guide[][] result=new guide[c.length][0];
   for(int cnt=0; cnt < c.length; ++cnt) {
     cgd[] gdscnt=gds[cnt];
-    result[cnt]=new guide[gdscnt.length];
+    guide[] resultcnt=result[cnt]=new guide[gdscnt.length];
     for(int i=0; i < gdscnt.length; ++i) {
       pair[] pts=gdscnt[i].g;
       guide gd=pts[0];
@@ -329,34 +328,37 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
         gd=gd..cycle;
       else
 	gd=join(gd,pts[pts.length-1]);
-      result[cnt][i]=gd;
+      resultcnt[i]=gd;
     }
   }
   return result;
 }
 
 guide[][] contourguides(real f(real, real), pair a, pair b,
-			real[] c, int n=nmesh, int m=n,
+			real[] c, int nx=nmesh, int ny=nx,
 			interpolate join=operator --)
-{    
+{
   // evaluate function at points and midpoints
-  real[][] dat=new real[n+1][m+1];
-  real[][] midpoint=new real[n+1][m+1];
-  for(int i=0; i <= n; ++i) {
-    for(int j=0; j <= m; ++j) {
-      dat[i][j]=f(interp(a.x,b.x,i/n),interp(a.y,b.y,j/m));
-      midpoint[i][j]=f(interp(a.x,b.x,(i+0.5)/n),interp(a.y,b.y,(j+0.5)/m));
+  real[][] dat=new real[nx+1][ny+1];
+  real[][] midpoint=new real[nx+1][ny+1];
+  
+  for(int i=0; i <= nx; ++i) {
+    real x=interp(a.x,b.x,i/nx);
+    real x2=interp(a.x,b.x,(i+0.5)/nx);
+    for(int j=0; j <= ny; ++j) {
+      dat[i][j]=f(x,interp(a.y,b.y,j/ny));
+      midpoint[i][j]=f(x2,interp(a.y,b.y,(j+0.5)/ny));
     }
   }
-  return contourguides(dat,midpoint,a,b,c,n,m,join);
+  return contourguides(dat,midpoint,a,b,c,nx,ny,join);
 }
   
 void contour(picture pic=currentpicture, real f(real, real),
-	     pair a, pair b, real[] c, int n=nmesh,
-	     int m=n, interpolate join=operator --, pen p(real))
+	     pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
+	     interpolate join=operator --, pen p(real))
 {
   guide[][] g;
-  g=contourguides(f,a,b,c,n,m,join);
+  g=contourguides(f,a,b,c,nx,ny,join);
   for(int cnt=0; cnt < c.length; ++cnt)
     for(int i=0; i < g[cnt].length; ++i)
       draw(pic,g[cnt][i],p(c[cnt]));
