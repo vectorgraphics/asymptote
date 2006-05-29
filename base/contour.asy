@@ -14,6 +14,7 @@ private struct segment
 {
   public pair a;
   public pair b;
+  public bool empty; // is the segment empty
 }
   
 segment operator init() {return new segment;}
@@ -60,8 +61,9 @@ private segment case3(pair pts0, pair pts1, pair pts2,
 private segment checktriangle(pair pts0, pair pts1, pair pts2,
 			      real vls0, real vls1, real vls2)
 {  
-  //default null return  
-  segment dflt; dflt.a=(0,0); dflt.b=(0,0);
+  // default null return  
+  static segment dflt;
+  dflt.empty=true;
   
   if(vls0 < 0) {
     if(vls1 < 0) {
@@ -78,8 +80,7 @@ private segment checktriangle(pair pts0, pair pts1, pair pts2,
 	return case2(pts2,pts0,pts1,vls2,vls0,vls1);
       else return case3(pts2,pts0,pts1,vls2,vls0,vls1);
     } 
-  }
-  else if(vls0 == 0) {
+  } else if(vls0 == 0) {
     if(vls1 < 0) {
       if(vls2 < 0) return dflt; // nothing to do
       else if(vls2 == 0) return case1(pts0,pts2);
@@ -99,8 +100,7 @@ private segment checktriangle(pair pts0, pair pts1, pair pts2,
       else if(vls2 == 0)
 	return case2(pts2,pts0,pts1,vls2,vls0,vls1);
       else return case3(pts0,pts1,pts2,vls0,vls1,vls2);
-    }
-    else if(vls1 == 0) {
+    } else if(vls1 == 0) {
       if(vls2 < 0) return case2(pts1,pts0,pts2,vls1,vls0,vls2);
       else if(vls2 == 0) return case1(pts1,pts2);
       else return dflt; // nothing to do
@@ -114,8 +114,9 @@ private segment checktriangle(pair pts0, pair pts1, pair pts2,
 
 // check existing guides and adds new segment to them if possible,
 // or otherwise store segment as a new guide
-private void addseg(segment seg, cgd[] gds)
+private void addseg(cgd[] gds, segment seg)
 { 
+  if(seg.empty) return;
   // initialization 
   // search for a path to extend
   for (int i=0; i < gds.length; ++i) {
@@ -144,7 +145,9 @@ private void addseg(segment seg, cgd[] gds)
   // in case nothing is found
   cgd segm;
   segm.g=new pair[] {seg.a,seg.b}; 
-  gds.push(segm); return;
+  gds.push(segm);
+  
+  return;
 }
 
 typedef guide interpolate(... guide[]);
@@ -159,6 +162,7 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
 			pair a, pair b, real[] c, int n=nmesh, int m=n,
 			interpolate join=operator --)
 {    
+  c=sort(c);
   bool midpoints=midpoint.length > 0;
   
   // check if boundaries are good
@@ -170,15 +174,15 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
   // array to store guides found so far
   cgd[][] gds=new cgd[c.length][0];
 
-  real ninv=1/n;
-  real minv=1/m;
+  real dx=(b.x-a.x)/n;
+  real dy=(b.y-a.y)/m;
   
   // go over region a rectangle at a time
   for(int col=0; col < n; ++col) {
-    real dx=(b.x-a.x)*ninv;
     real x=a.x+col*dx;
+    real[] fcol=f[col];
+    real[] fcol1=f[col+1];
     for(int row=0; row < m; ++row) {
-      real dy=(b.y-a.y)*minv;
       real y=a.y+row*dy;
       
       // define points
@@ -188,12 +192,12 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
       pair tright=(x+dx,y+dy);
       pair middle=0.5*(bleft+tright);
    
-      real f00=f[col][row];
-      real f01=f[col][row+1];
-      real f10=f[col+1][row];
-      real f11=f[col+1][row+1];
+      real f00=fcol[row];
+      real f01=fcol[row+1];
+      real f10=fcol1[row];
+      real f11=fcol1[row+1];
       
-      for(int cnt=0; cnt < c.length; ++cnt) {
+      int checkcell(int cnt) {
 	real C=c[cnt];
         real vertdat0=f00-C;  // lower-left vertex
         real vertdat1=f10-C;  // lower-right vertex
@@ -201,14 +205,14 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
         real vertdat3=f11-C;  // upper-right vertex
 
         // optimization: we make sure we don't work with empty rectangles
-        int count0=0;
-        int count1=0;
-        int count2=0;
+        int countm=0;
+        int countz=0;
+        int countp=0;
 	
 	void check(real vertdat) {
-          if(abs(vertdat) < eps) ++count1; 
-          else if(vertdat < 0) ++count0;
-          else ++count2;
+          if(abs(vertdat) < eps) ++countz; 
+          else if(vertdat < 0) ++countm;
+          else ++countp;
 	}
 	
 	check(vertdat0);
@@ -216,30 +220,44 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
 	check(vertdat2);
 	check(vertdat3);
 
-        if(count0 == 4 || count2 == 4) continue;  // nothing to do 
-        if((count0 == 3 || count2 == 3) && count1 == 1) continue;
+        if(countm == 4) return 1;  // nothing to do 
+        if(countp == 4) return -1; // nothing to do 
+        if((countm == 3 || countp == 3) && countz == 1) return 0;
 
         // evaluate point at middle of rectangle (to set up triangles)
 	real vertdat4=midpoints ? midpoint[col][row]-C :
 	  0.25*(vertdat0+vertdat1+vertdat2+vertdat3);
       
-        segment curseg;
-     
         // go through the triangles
-        curseg=checktriangle(tleft,tright,middle,
-			     vertdat2,vertdat3,vertdat4);
-        if(length(curseg.a-curseg.b) > eps) addseg(curseg,gds[cnt]);
-        curseg=checktriangle(tright,bright,middle,
-			     vertdat3,vertdat1,vertdat4);
-        if(length(curseg.a-curseg.b) > eps) addseg(curseg,gds[cnt]);
-        curseg=checktriangle(bright,bleft,middle,
-			     vertdat1,vertdat0,vertdat4);
-        if(length(curseg.a-curseg.b) > eps) addseg(curseg,gds[cnt]);
-        curseg=checktriangle(bleft,tleft,middle,
-			     vertdat0,vertdat2,vertdat4);
-        if(length(curseg.a-curseg.b) > eps) addseg(curseg,gds[cnt]);
+	
+	cgd[] gdscnt=gds[cnt];
+	
+	addseg(gdscnt,checktriangle(tleft,tright,middle,
+				    vertdat2,vertdat3,vertdat4));
+	addseg(gdscnt,checktriangle(tright,bright,middle,
+				    vertdat3,vertdat1,vertdat4));
+	addseg(gdscnt,checktriangle(bright,bleft,middle,
+				    vertdat1,vertdat0,vertdat4));
+	addseg(gdscnt,checktriangle(bleft,tleft,middle,
+				    vertdat0,vertdat2,vertdat4));
+	return 0;
       }
+      
+      void process(int l, int u) {
+	if(l >= u) return;
+	int i=quotient(l+u,2);
+	int sign=checkcell(i);
+	if(sign == -1) process(i+1,u);
+	else if(sign == 1) process(l,i);
+	else {
+	  process(l,i);
+	  process(i+1,u);
+	}
+      }
+    
+      process(0,c.length);
     }
+      
     // check which guides are still extendable
     for(int cnt=0; cnt < c.length; ++cnt) {
       cgd[] gdscnt=gds[cnt];
