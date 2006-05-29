@@ -5909,8 +5909,19 @@ pictures, but has problems under certain conditions.
 The function takes pen producing functions for more flexibility. For
 simplicity, plain pens are also accepted instead of pen (real) functions.
 
+Alternatively, if one has the data in an array of regularly
+spaced points, one can use the following interface:
+@verbatim
+void contour(picture pic=currentpicture, real[][] data,
+	     pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
+	     interpolate join=operator --, pen p(real))
+@end verbatim
+When using this interface please make sure the correct resolution 
+is passed.
 
-The following interfaces are also available:
+
+The following interfaces are also available (also with 
+@code{real[][] data} instead of @code{real f(real, real)}.):
 
 -Single contour instead of a whole array:
 @verbatim

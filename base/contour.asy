@@ -369,11 +369,34 @@ void contour(picture pic=currentpicture, real f(real, real),
   */
 }
 
+void contour(picture pic=currentpicture, real[][] data,
+	     pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
+	     interpolate join=operator --, pen p(real))
+{
+  guide[][] g;
+  g=contourguides(data,a,b,c,nx,ny,join);
+  for(int cnt=0; cnt < c.length; ++cnt)
+    for(int i=0; i < g[cnt].length; ++i)
+      draw(pic,g[cnt][i],p(c[cnt]));
+  /*
+  for(int cnt=0; cnt < c.length; ++cnt)
+    for(int i=0; i < g[cnt].length; ++i)
+      label(pic,Label((string) c[cnt],align=(0,0),UnFill),g[cnt][i],p(c[cnt]));
+  */
+}
+
 void contour(picture pic=currentpicture, real f(real, real),
 	     pair a, pair b, real c, int n=nmesh,
 	     int m=n, interpolate join=operator --, pen p(real))
 {
   contour(pic,f,a,b,new real[] {c},n,m,join,p);
+}
+
+void contour(picture pic=currentpicture, real[][] data,
+	     pair a, pair b, real c, int n=nmesh,
+	     int m=n, interpolate join=operator --, pen p(real))
+{
+  contour(pic,data,a,b,new real[] {c},n,m,join,p);
 }
 
 void contour(picture pic=currentpicture, real f(real, real),
@@ -383,9 +406,23 @@ void contour(picture pic=currentpicture, real f(real, real),
   contour(pic,f,a,b,c,n,m,join,new pen(real) {return p;});
 }
 
+void contour(picture pic=currentpicture, real[][]data,
+	     pair a, pair b, real[] c, int n=nmesh,
+	     int m=n, interpolate join=operator --, pen p=currentpen)
+{
+  contour(pic,data,a,b,c,n,m,join,new pen(real) {return p;});
+}
+
 void contour(picture pic=currentpicture, real f(real, real),
 	     pair a, pair b, real c, int n=nmesh,
 	     int m=n, interpolate join=operator --, pen p=currentpen)
 {
   contour(pic,f,a,b,new real[] {c},n,m,join,new pen(real) {return p;});
+}
+
+void contour(picture pic=currentpicture, real[][] data,
+	     pair a, pair b, real c, int n=nmesh,
+	     int m=n, interpolate join=operator --, pen p=currentpen)
+{
+  contour(pic,data,a,b,new real[] {c},n,m,join,new pen(real) {return p;});
 }
