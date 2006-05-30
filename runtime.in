@@ -1583,8 +1583,9 @@ string time(int seconds, string *format=defaulttimeformat)
   if(!strftime(Time,nTime,format->c_str(),localtime(&bintime))) return "";
   return Time;
 #else
-  return *format;
-#endif  
+// Avoid unused variable warning messages
+  return seconds ? *format : *format;
+#endif
 }
 
 int seconds(string t=emptystring, string format=emptystring)
