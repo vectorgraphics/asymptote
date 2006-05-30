@@ -96,7 +96,7 @@ install-asy: asy
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
 	-${INSTALL} -d $(latexdir)
 	${INSTALL} -p -m 755 $(NAME) $(EXTRABIN) $(bindir)
-	cd base; ${INSTALL} -p -m 644 *.asy $(EXTRA) $(asydir)
+	cd base; ${INSTALL} -p -m 644 *.asy $(EXTRA) ../$(asydir)
 	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps \
 		doc/*.asy doc/*.csv doc/*.dat doc/latexusage.tex $(exampledir)
 	${INSTALL} -p -m 644 examples/animations/*.asy $(animationsdir)
