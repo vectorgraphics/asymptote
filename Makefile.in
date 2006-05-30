@@ -118,15 +118,15 @@ uninstall-all: uninstall-man uninstall-asy
 uninstall-asy:
 	-cd $(animationsdir); rm -f *.asy
 	-rmdir $(animationsdir)
-	-cd $(exampledir); rm -f *.asy *.csv *.dat asy* piicon.eps \
+	-cd $(exampledir); rm -f *.asy *.csv *.dat {$(EXTRA)} piicon.eps \
 		latexusage.tex
 	-rmdir $(exampledir)
 	-rmdir $(docdir)
-	-cd $(asydir); rm -f *.asy asy*
+	-cd $(asydir); rm -f *.asy {$(EXTRA)}
 	-rmdir $(asydir)
-	-cd $(latexdir); rm -f $(LATEXFILES)
+	-cd $(latexdir); rm -f {$(LATEXFILES)}
 	-rmdir $(latexdir)
-	-cd $(bindir); rm -f $(NAME) $(EXTRABIN) 
+	-cd $(bindir); rm -f $(NAME) {$(EXTRABIN)}
 
 uninstall-man: 
 	cd doc; $(MAKE) uninstall
