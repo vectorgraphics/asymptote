@@ -19,11 +19,11 @@ include paths;
 include filldraw;
 include margins;
 include picture;
+include shipout;
 include Label;
 include arcs;
 include boxes;
 include markers;
-include shipout;
 include arrows;
 include strings;
 
