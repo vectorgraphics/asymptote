@@ -3589,12 +3589,16 @@ after every @math{n} output lines (press @code{Enter} to continue).
 @code{Asymptote} implicitly casts @code{int} to @code{real}, @code{int} to
 @code{pair}, @code{real} to @code{pair}, @code{pair} to @code{path},
 @code{pair} to @code{guide}, @code{path} to @code{guide}, @code{guide}
-to @code{path}, and @code{real} to @code{pen}. Implicit casts are
-also automatically attempted when trying to match function calls with
-possible function signatures. Implicit casting can be inhibited
-by declaring individual arguments @code{explicit} in the function
-signature, say to avoid an ambiguous function call in the following
-example, which outputs 0:
+to @code{path}, @code{real} to @code{pen},
+@code{pair[]} to @code{guide[]}, @code{pair[]} to @code{path[]}, 
+@code{path} to @code{path[]}, @code{guide} to @code{path[]}, 
+and @code{pen} to @code{pen(real)}, along with various three-dimensional
+casts defined in @code{three.asy}.
+Implicit casts are automatically attempted on assignment and when
+trying to match function calls with possible function
+signatures. Implicit casting can be inhibited by declaring individual
+arguments @code{explicit} in the function signature, say to avoid an
+ambiguous function call in the following example, which outputs 0:
 
 @verbatim
 int f(pair a) {return 0;}
@@ -5887,70 +5891,43 @@ is a simple flowchart example:
 @node contour
 @section @code{contour}
 @cindex @code{contour}
-This package draws contour lines, given a function from the plane to the 
-reals, or given regularly spaced points in the plane along with values 
-at said points. 
-
-The main function of the package is @code{contour}:
+This package draws contour lines, given a function of two reals to one
+real, or given a two-dimensional array of values at regularly spaced points.
+The main function provided is
 @verbatim
 void contour(picture pic=currentpicture, real f(real, real),
 	     pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
-	     interpolate join=operator --, pen p(real))
+	     interpolate join=operator --, pen p(real)=currentpen);
 @end verbatim
 The contour lines @code{real[]c} for the function @code{f} are drawn
 on the rectangle defined by the bottom-left and top-right points @code{a}
 and @code{b}. The integers @code{nx} and @code{ny} define the resolution.
-The default resolution is @code{25x25}. Increase it for more accuracy.
+The default resolution of @code{25 x 25} can be increased for more accuracy.
 
-The default interpolation operator is @code{--} (linear). Spline 
-interpolation ('operator @code{..}') generally produces more accurate
-pictures, but has problems under certain conditions.
+The default interpolation operator is @code{operator --} (linear).
+Spline interpolation (@code{operator ..}) generally produces more
+accurate pictures, but as usual, can overshoot in certain cases.
 
-The function takes pen producing functions for more flexibility. For
-simplicity, plain pens are also accepted instead of pen (real) functions.
+While the function @code{contour} accepts pen-producing functions for
+greatest flexibility, scalar pens are implicitly cast to a pen(real)
+function returning that pen.
 
-Alternatively, if one has the data in an array of regularly
-spaced points, one can use the following interface:
+To draw a contour of data in an array of values at regularly spaced
+points, use
 @verbatim
 void contour(picture pic=currentpicture, real[][] data,
 	     pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
-	     interpolate join=operator --, pen p(real))
-@end verbatim
-When using this interface please make sure the correct resolution 
-is passed.
-
-
-The following interfaces are also available (also with 
-@code{real[][] data} instead of @code{real f(real, real)}.):
-
--Single contour instead of a whole array:
-@verbatim
-void contour(picture pic=currentpicture, real f(real, real),
-	     pair a, pair b, real c, int n=nmesh,
-	     int m=n, interpolate join=operator --, pen p(real))
-@end verbatim
--Just a pen instead of pen(real):
-@verbatim
-void contour(picture pic=currentpicture, real f(real, real),
-	     pair a, pair b, real[] c, int n=nmesh,
-	     int m=n, interpolate join=operator --, pen p=currentpen)
-@end verbatim
--A single contour and the pen to draw it with:
-@verbatim
-void contour(picture pic=currentpicture, real f(real, real),
-	     pair a, pair b, real c, int n=nmesh,
-	     int m=n, interpolate join=operator --, pen p=currentpen)
+	     interpolate join=operator --, pen p(real)=currentpen);
 @end verbatim
 
-
-The following is a simple example that draws the contour line @code{1.0}
-for the function @code{z=x^{2}+y^{2},} which is a circle:
+The following simple example draws the contour line @code{1.0}
+for the function @math{z=x^2+y^2}, which is a circle:
 @verbatiminclude contourex1.asy
 @image{contourex1}
 
-This is a bit more complicated example. It draws multiple contours for
-the function @code{z=x^2-y^2} with resolution @code{50x50}. The contours 
-below zero are dashed, while the ones above are in solid lines:
+The next example draws multiple contours for the function
+@math{z=x^2-y^2} with the resolution @code{50 x 50}, using a dashed
+pen for negative contours and a solid pen for positive (and zero) contours:
 @verbatiminclude contourex2.asy
 @image{contourex2}
 
@@ -6418,9 +6395,9 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  GSL deriv texcolors fixedscaling UpsideDown texreset slidedemo
 @c  LocalWords:  subitem newslide realMin realMax realEpsilon realDigits gsl dh
 @c  LocalWords:  obliqueX asycolors monthaxis xautoscale yautoscale zautoscale
-@c  LocalWords:  obliqueZ obliqueY cylinderskeleton flowblock llcorner dr py
-@c  LocalWords:  loc topleft topright bottomleft bottomright flowrectangle
+@c  LocalWords:  obliqueZ obliqueY cylinderskeleton flowblock llcorner dr py nx
+@c  LocalWords:  loc topleft topright bottomleft bottomright flowrectangle UTC
 @c  LocalWords:  headercolor bodycolor chartblock flowdiamond flowcircle xlabel
-@c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow flowblocks
+@c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow flowblocks ny
 @c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel
-@c  LocalWords:  zlabel
+@c  LocalWords:  zlabel strptime

@@ -266,3 +266,12 @@ pen ZapfDingbats(string series="m", string shape="n")
 }
 
 pen squarepen=makepen(shift(-0.5,-0.5)*unitsquare);
+
+private typedef pen penofreal(real);
+
+penofreal operator cast(pen p)
+{
+  return new pen(real) {return p;};
+}
+
+
