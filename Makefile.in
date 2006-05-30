@@ -19,8 +19,8 @@ DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc
 CLEAN = camp.output
 NAME = asy
 EXTRABIN = x$(NAME)
-EXTRA = asy-mode.el asy-init.el asy.vim asymptote.py
-LATEXFILES = asymptote.sty asycolors.sty
+EXTRA = asy-mode.el,asy-init.el,asy.vim,asymptote.py
+LATEXFILES = asymptote.sty,asycolors.sty
 
 CXX = @CXX@ -Wall -ansi
 CC = @CC@ -Wall -ansi
@@ -96,11 +96,11 @@ install-asy: asy
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
 	-${INSTALL} -d $(latexdir)
 	${INSTALL} -p -m 755 $(NAME) $(EXTRABIN) $(bindir)
-	cd base; ${INSTALL} -p -m 644 *.asy $(EXTRA) ../$(asydir)
+	${INSTALL} -p -m 644 base/*.asy base/{$(EXTRA)} $(asydir)
 	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps \
 		doc/*.asy doc/*.csv doc/*.dat doc/latexusage.tex $(exampledir)
 	${INSTALL} -p -m 644 examples/animations/*.asy $(animationsdir)
-	-cd doc; ${INSTALL} -p -m 644 $(LATEXFILES) ../$(latexdir)
+	-${INSTALL} -p -m 644 doc/{$(LATEXFILES)} $(latexdir)
 	-if test -z "$(DESTDIR)"; then \
 	  texhash; \
 	fi
