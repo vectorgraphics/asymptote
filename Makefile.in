@@ -100,7 +100,7 @@ install-asy: asy
 	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps \
 		doc/*.asy doc/*.csv doc/*.dat doc/latexusage.tex $(exampledir)
 	${INSTALL} -p -m 644 examples/animations/*.asy $(animationsdir)
-	-cd doc; ${INSTALL} -p -m 644 $(LATEXFILES) $(latexdir)
+	-cd doc; ${INSTALL} -p -m 644 $(LATEXFILES) ../$(latexdir)
 	-if test -z "$(DESTDIR)"; then \
 	  texhash; \
 	fi
