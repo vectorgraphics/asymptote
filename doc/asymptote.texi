@@ -5920,16 +5920,16 @@ void contour(picture pic=currentpicture, real[][] data,
 	     interpolate join=operator --, pen p(real)=currentpen);
 @end verbatim
 
-The following simple example draws the contour line @code{1.0}
+The following simple example draws the contour at value @code{1}
 for the function @math{z=x^2+y^2}, which is a circle:
-@verbatiminclude contourex1.asy
-@image{contourex1}
+@verbatiminclude contour1.asy
+@image{contour1}
 
 The next example draws multiple contours for the function
 @math{z=x^2-y^2} with the resolution @code{50 x 50}, using a dashed
 pen for negative contours and a solid pen for positive (and zero) contours:
-@verbatiminclude contourex2.asy
-@image{contourex2}
+@verbatiminclude contour2.asy
+@image{contour2}
 
 
 @node Options
