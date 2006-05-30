@@ -46,7 +46,7 @@ make %{?_smp_mflags}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-make install-all DESTDIR=$RPM_BUILD_ROOT
+make install-all CFLAGS="$CFLAGS -O3" DESTDIR=$RPM_BUILD_ROOT
 
 %{__install} -p -m 644 BUGS ChangeLog LICENSE README ReleaseNotes TODO \
     $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}/
@@ -66,7 +66,6 @@ texhash >/dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %doc %{_defaultdocdir}/%{name}/
 %{_bindir}/*
-%{_infodir}/*
 %{_datadir}/%{name}/
 %{texpkgdir}/
 %{_mandir}/man1/*.1*

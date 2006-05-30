@@ -22,16 +22,16 @@ EXTRABIN = x$(NAME)
 EXTRA = asy-mode.el,asy-init.el,asy.vim,asymptote.py
 LATEXFILES = asymptote.sty,asycolors.sty
 
+DEFS = @DEFS@ @OPTIONS@
+CFLAGS = @CPPFLAGS@ @CFLAGS@ 
+OPTS = $(DEFS) $(CFLAGS)
+INCL = -I . @INCL@
+
 CXX = @CXX@ -Wall -ansi
 CC = @CC@ -Wall -ansi
 MAKEDEPEND = $(OPTS) -O0 -M -DDEPEND
 BISON = bison
 LEX = @LEX@
-
-DEFS = @DEFS@ @OPTIONS@
-CFLAGS = @CPPFLAGS@ @CFLAGS@ 
-OPTS = $(DEFS) $(CFLAGS)
-INCL = -I . @INCL@
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
