@@ -5,7 +5,7 @@ Version:        1.07
 Release:        1%{?dist}
 Summary:        Descriptive vector graphics language
 
-Group:          Development/Tools
+Group:          Applications/Publishing
 License:        GPL
 URL:            http://asymptote.sourceforge.net/
 Source:         http://dl.sourceforge.net/sourceforge/asymptote/asymptote-%{version}.tar.gz
@@ -18,7 +18,7 @@ BuildRequires:  gc-devel >= 6.7
 BuildRequires:  gsl-devel
 BuildRequires:  tetex-latex
 BuildRequires:  ghostscript
-BuildRequires:  texinfo
+BuildRequires:  /usr/bin/texi2dvi
 
 Requires:       tetex-latex
 Requires:       tkinter

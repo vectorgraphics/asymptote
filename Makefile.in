@@ -19,7 +19,7 @@ DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc
 CLEAN = camp.output
 NAME = asy
 EXTRABIN = x$(NAME)
-EXTRA = asy-mode.el asy.vim asymptote.py
+EXTRA = asy-mode.el asy-init.el asy.vim asymptote.py
 LATEXFILES = asymptote.sty asycolors.sty
 
 CXX = @CXX@ -Wall -ansi
