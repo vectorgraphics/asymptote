@@ -613,9 +613,9 @@ To compile without optimization, use the command @code{make CFLAGS=-g}.
 @cindex Uninstall
 
 @noindent
-To uninstall a @code{UNIX} binary distribution, type
+To uninstall a @code{UNIX} binary distribution, use the commands
 @verbatim
-tar -zxvf asymptote-x.xx.ARCH.tar.gz | xargs rm
+tar -zxvf asymptote-x.xx.ARCH.tar.gz | xargs --replace=% rm /%
 texhash
 @end verbatim
 
@@ -1140,7 +1140,7 @@ write(time(seconds()-24*60*60));
 
 @item string string(real x, int digits)
 casts @code{x} using precision @code{digits} (rather than
-@code{realDigits}) to a string, using the C locale;
+@code{realDigits}) to a string, using the C locale.
 
 @end table
 
@@ -3476,12 +3476,17 @@ For Dirichlet boundary conditions (denoted here by @code{u[-1]} and
 @cindex @code{quadraticroots}
 @item @code{real[] quadraticroots(real a, real b, real c);}
 This numerically robust solver returns the real roots of the
-quadratic equation @code{ax^2+bx+c=0}.
+quadratic equation @math{ax^2+bx+c=0}.
 
 @cindex @code{cubicroots}
 @item @code{real[] cubicroots(real a, real b, real c, real d);}
 This numerically robust solver returns the real roots of the
-cubic equation @code{ax^3+bx^2+cx+d=0}.
+cubic equation @math{ax^3+bx^2+cx+d=0}.
+
+@cindex @code{cputime}
+@item @code{real[] cputime();}
+Returns a real array containing (in ascending order) the parent user time,
+parent system time, child user time, and child system time. 
 
 @end table
 

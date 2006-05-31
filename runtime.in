@@ -47,6 +47,9 @@ stringarray* => stringArray()
 stringarray2* => stringArray2()
 
 #include <cfloat>
+#include <time.h>
+#include <sys/times.h>
+  
 #include "angle.h"
 #include "pair.h"
 #include "triple.h"
@@ -78,7 +81,6 @@ stringarray2* => stringArray2()
 #include "callable.h"
 #include "stm.h"
 #include "lexical.h"
-#include "time.h"
   
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
@@ -1599,6 +1601,20 @@ int seconds(string t=emptystring, string format=emptystring)
 #else  
   return 0;
 #endif  
+}
+
+realarray *cputime()
+{
+  static const double ticktime=1.0/sysconf(_SC_CLK_TCK);
+  struct tms buf;
+
+  ::times(&buf);
+  array *t=new array(4);
+  (*t)[0] = ((double) buf.tms_utime)*ticktime;
+  (*t)[1] = ((double) buf.tms_stime)*ticktime;
+  (*t)[2] = ((double) buf.tms_cutime)*ticktime;
+  (*t)[3] = ((double) buf.tms_cstime)*ticktime;
+  return t;
 }
 
 
