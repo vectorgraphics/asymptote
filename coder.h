@@ -206,6 +206,11 @@ public:
     return level->accessFormal(index);
   }
 
+  // Checks if we are at the top level, which is true for a file-level module or
+  // a codelet.
+  bool isTopLevel() {
+    return parent==0 || parent->getFrame() == level;
+  }
 
   // The encode functions add instructions and operands on to the code array.
 private:

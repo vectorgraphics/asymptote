@@ -239,8 +239,13 @@ void modifiedRunnable::prettyprint(ostream &out, int indent)
 
 void modifiedRunnable::transAsField(coenv &e, record *r)
 {
-  if (mods->staticSet())
+  if (mods->staticSet()) {
+    if (e.c.isTopLevel()) {
+      em->warning(getPos());
+      *em << "static modifier is meaningless at top level";
+    }
     e.c.pushModifier(mods->getModifier());
+  }
 
   permission p = mods->getPermission();
 #if 0 // This is innocuous 
