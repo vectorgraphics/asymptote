@@ -37,6 +37,7 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 bindir = $(DESTDIR)@bindir@
 mandir = $(DESTDIR)@mandir@
+infodir = $(DESTDIR)@infodir@
 datadir = $(DESTDIR)@datadir@
 asydir = $(datadir)/asymptote
 docdir = $(datadir)/doc/asymptote
@@ -46,7 +47,7 @@ latexdir = $(DESTDIR)@latexdir@
 INSTALL = @INSTALL@
 ASYMPTOTE_DIR = ../base
 
-export prefix docdir exampledir mandir INSTALL ASYMPTOTE_DIR 
+export prefix docdir exampledir mandir infodir INSTALL ASYMPTOTE_DIR DESTDIR
 
 asy: $(FILES:=.o) $(GCLIBS)
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) $(LIBS)

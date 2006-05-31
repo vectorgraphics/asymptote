@@ -18,12 +18,13 @@ BuildRequires:  gc-devel >= 6.7
 BuildRequires:  gsl-devel
 BuildRequires:  tetex-latex
 BuildRequires:  ghostscript
-BuildRequires:  /usr/bin/texi2dvi
+BuildRequires:  /usr/bin/texi2dvi >= 1.3
+BuildRequires:  ImageMagick
 
 Requires:       tetex-latex
 Requires:       tkinter
-Requires(post): /usr/bin/texhash
-Requires(postun): /usr/bin/texhash
+Requires(post): /usr/bin/texhash /sbin/install-info
+Requires(postun): /usr/bin/texhash /sbin/install-info
 
 %define texpkgdir   %{_texmf}/tex/latex/%{name}
 
@@ -52,15 +53,20 @@ make install-all CFLAGS="$CFLAGS -O3" DESTDIR=$RPM_BUILD_ROOT
 %{__install} -p -m 644 BUGS ChangeLog LICENSE README ReleaseNotes TODO \
     $RPM_BUILD_ROOT%{_defaultdocdir}/%{name}/
 
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 
 %post
 texhash >/dev/null 2>&1 || :
+/sbin/install-info %{_infodir}/%{name}.info.gz %{_infodir}/dir 2>/dev/null || :
 
 %postun
 texhash >/dev/null 2>&1 || :
+if [ $1 = 0 ]; then
+    /sbin/install-info --delete %{_infodir}/%{name}.info.gz %{_infodir}/dir 2>/dev/null || :
+fi
 
 
 %files
@@ -70,6 +76,7 @@ texhash >/dev/null 2>&1 || :
 %{_datadir}/%{name}/
 %{texpkgdir}/
 %{_mandir}/man1/*.1*
+%{_infodir}/*.info*
 
 
 %changelog

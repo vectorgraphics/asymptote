@@ -57,16 +57,18 @@ install-man: man
 	${INSTALL} -p -m 644 $(MANFILES) $(mandir)/man1
 
 install: doc install-man
-	${INSTALL} -d $(prefix)/info $(docdir) $(mandir)/man1
-	${INSTALL} -p -m 644 asymptote.info $(prefix)/info
-	install-info --infodir=$(prefix)/info asymptote.info 
+	${INSTALL} -d -m 755 $(infodir) $(docdir) $(mandir)/man1
+	${INSTALL} -p -m 644 asymptote.info $(infodir)
+	-if test -z "$(DESTDIR)"; then \
+		install-info --infodir=$(infodir) asymptote.info; \
+	fi
 
 uninstall:
 	-cd $(mandir)/man1; rm $(MANFILES)
 	-rm -f $(docdir)/asymptote.pdf
 	-rmdir $(docdir)
-	-install-info --delete --infodir=$(prefix)/info doc/asymptote.info
-	-rm -f $(prefix)/info/asymptote.info
+	-install-info --delete --infodir=$(infodir) doc/asymptote.info
+	-rm -f $(infodir)/asymptote.info
 
 distclean: FORCE clean
 	rm -f version.texi
