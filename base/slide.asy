@@ -204,11 +204,11 @@ void remark(bool center=false, string s, pair align=0, pen p=itempen,
   pair M=tinv*min(f);
   
   if(abs(offset.x+M.x) > 1)
-    abort("slide too wide on page "+(string) page);
+    abort("slide too wide on page "+(string) page+':\n'+(string) s);
 
   if(abs(offset.y+M.y) > 1) {
     void toohigh() {
-      abort("slide too high on page "+(string) page);
+      abort("slide too high on page "+(string) page+':\n'+(string) s);
     }
     if(M.y-m.y < 2) {
       newslide(); offset=(offset.x,currentposition.y);
