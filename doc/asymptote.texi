@@ -3851,7 +3851,7 @@ include graph;
 @cindex @code{static}
 
 Static qualifiers allocate the memory address of a variable in a higher 
-enclosing scope.
+enclosing level.
 
 For a function body, the variable is allocated in the block where the
 function is defined; so in the code
@@ -3867,7 +3867,7 @@ struct s {
 
 @noindent
 there is one instance of the variable @code{c} for each
-object @code{s} (as opposed for each call of @code{count}). 
+object @code{s} (as opposed to each call of @code{count}). 
 
 Similarly, in
 @verbatim
@@ -3920,6 +3920,13 @@ int pow(int n, int k) {
 @noindent
 there is one instance of @code{x} for each call to @code{pow}, so this
 is an ugly implementation of exponentiation.
+
+Statements may also be declared static, in which case they are run at the place
+where the enclosing function or structure is defined.
+
+Declarations or statements not enclosed in a function or structure definition
+are already at the top level, so static modifiers are meaningless.  A warning is
+given in such a case.
 
 @node Drawing commands
 @chapter Drawing commands
