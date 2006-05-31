@@ -13,7 +13,7 @@ void distance(picture pic=currentpicture, pair A, pair B, Label L="", real n=0,
     label(opic,L,midpoint(G),UnFill(1)); 
     add(opic,(0,0));
   });
-  pic.addPath(T*g,p);
+  pic.addBox(min(g),max(g),T*min(p),T*max(p));
 } 
  
 pair A=(0,0), B=(3,3); 
