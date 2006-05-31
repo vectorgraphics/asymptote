@@ -18,7 +18,7 @@ BuildRequires:  gc-devel >= 6.7
 BuildRequires:  gsl-devel
 BuildRequires:  tetex-latex
 BuildRequires:  ghostscript
-BuildRequires:  /usr/bin/texi2dvi >= 1.3
+BuildRequires:  texinfo >= 4.7
 BuildRequires:  ImageMagick
 
 Requires:       tetex-latex
