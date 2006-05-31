@@ -1603,7 +1603,7 @@ int seconds(string t=emptystring, string format=emptystring)
 #endif  
 }
 
-realarray *cputime()
+realarray *_cputime()
 {
   static const double ticktime=1.0/sysconf(_SC_CLK_TCK);
   struct tms buf;

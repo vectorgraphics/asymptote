@@ -3484,9 +3484,10 @@ This numerically robust solver returns the real roots of the
 cubic equation @math{ax^3+bx^2+cx+d=0}.
 
 @cindex @code{cputime}
-@item @code{real[] cputime();}
-Returns a real array containing (in ascending order) the parent user time,
-parent system time, child user time, and child system time. 
+@item @code{cputime cputime();}
+Returns a structure @code{cputime} with the cumulative cpu times
+broken down into the fields @code{parent.user}, @code{parent.system},
+@code{child.user}, and @code{child.system}.
 
 @end table
 

@@ -168,7 +168,31 @@ void asy(bool overwrite=false ... string[] s)
     if(n != -1) f=erase(f,n,-1);
     if(overwrite || error(input(f+"."+settings.outformat,check=false))) {
       string F="\""+f+"\"";
-      eval("import "+F+" as dummy; shipout("+F+",view=false)"); 
+      eval("import "+F+" as dummy; shipout("+F+",view=false)");
     }
   }
+}
+
+struct processtime {
+  public real user;
+  public real system;
+}
+
+processtime operator init() {return new processtime;}
+
+struct cputime {
+  public processtime parent;
+  public processtime child;
+}
+
+cputime operator init() {return new cputime;}
+
+cputime cputime() {
+  real [] a=_cputime();
+  cputime cputime;
+  cputime.parent.user=a[0];
+  cputime.parent.system=a[1];
+  cputime.child.user=a[2];
+  cputime.child.system=a[3];
+  return cputime;
 }
