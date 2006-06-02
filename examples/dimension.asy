@@ -11,7 +11,7 @@ void distance(picture pic=currentpicture, pair A, pair B, Label L="", real n=0,
     guide G=T*t*g;
     draw(opic,G,p,Arrows(NoFill),Bars,PenMargins); 
     label(opic,L,midpoint(G),UnFill(1)); 
-    add(opic,(0,0));
+    add(f,opic.fit());
   });
   pic.addBox(min(g),max(g),T*min(p),T*max(p));
 } 
