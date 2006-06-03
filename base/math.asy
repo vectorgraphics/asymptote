@@ -28,16 +28,9 @@ picture grid(int Nx, int Ny, pen p=currentpen)
   return pic; 
 }
 
-bool straight(path p)
-{
-  for(int i=0; i < length(p); ++i)
-    if(!straight(p,i)) return false;
-  return true;
-}
-
 bool polygon(path p)
 {
-  return cyclic(p) && straight(p);
+  return cyclic(p) && piecewisestraight(p);
 }
 
 // Return the intersection point of the extensions of the line segments 

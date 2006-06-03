@@ -349,7 +349,7 @@ void labelaxis(frame f, transform T, Label L, guide g,
   if(L0.align.relative) align *= -I*dir;
   pair offset;
   if(ticklabels) {
-    if(straight(g)) {
+    if(piecewisestraight(g)) {
       real angle=degrees(dir);
       transform S=rotate(-angle,point(g,t));
       frame F=S*f;
@@ -1726,14 +1726,14 @@ void vectorfield(picture pic=currentpicture, path g, int n,
 }
 
 // True arc
-guide Arc(pair c, real r, real angle1, real angle2, int ngraph=400)
+guide Arc(pair c, real r, real angle1, real angle2, int n=400)
 {
   return shift(c)*polargraph(new real(real t){return r;},radians(angle1),
-			     radians(angle2),ngraph,operator ..);
+			     radians(angle2),n,operator ..);
 }
 
 // True circle
-guide Circle(pair c, real r, int ngraph=400)
+guide Circle(pair c, real r, int n=400)
 {
-  return Arc(c,r,0,360,ngraph)..cycle;
+  return Arc(c,r,0,360,n)..cycle;
 }

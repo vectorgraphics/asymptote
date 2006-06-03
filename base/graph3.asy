@@ -568,21 +568,20 @@ guide3 polargraph(real r(real,real), real theta(real), real phi(real),
 
 // True arc
 path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
-	  triple normal=Z, int ngraph=400)
+	  triple normal=Z, int n=400)
 {
   path3 p=polargraph(new real(real theta, real phi) {return r;},
 		     new real(real t) {
 		       return radians(interp(theta1,theta2,t));},
-		      new real(real t) {
-			return radians(interp(phi1,phi2,t));},
-		      ngraph,operator ..);
+		      new real(real t) {return radians(interp(phi1,phi2,t));},
+		      n,operator ..);
   if(normal != Z)
     p=rotate(longitude(normal,warn=false),Z)*rotate(colatitude(normal),Y)*p;
   return shift(c)*p;
 }
 
 // True circle
-path3 Circle(triple c, real r, triple normal=Z, int ngraph=400)
+path3 Circle(triple c, real r, triple normal=Z, int n=400)
 {
-  return Arc(c,r,90,0,90,360,normal,ngraph)..cycle3;
+  return Arc(c,r,90,0,90,360,normal,n)..cycle3;
 }

@@ -1199,7 +1199,7 @@ guide circle(pair c, real r)
 If high accuracy is needed, a true circle may be produced with this
 routine, defined in the module @code{graph.asy}:
 @verbatim
-guide Circle(pair c, real r, int ngraph=400);
+guide Circle(pair c, real r, int n=400);
 @end verbatim
 
 
@@ -1242,7 +1242,7 @@ If high accuracy is needed, a true arc may be produced with this
 routine, defined in the module @code{graph.asy}:
 @verbatim
 guide Arc(pair c, real r, real angle1, real angle2,
-          int ngraph=400);
+          int n=400);
 @end verbatim
 
 @cindex @code{controls}
@@ -5370,9 +5370,9 @@ picture palette(real[][] data, real width=Ticksize,
 The argument @code{paletteticks} is a special tick type (@pxref{ticks})
 that takes the following arguments:
 @verbatim
-paletteticks PaletteTicks(int N=0, real Step=0,
-                          bool beginlabel=true, bool endlabel=true,
-                          Label format="", pen pTick=nullpen);
+paletteticks PaletteTicks(Label format=defaultformat, ticklabel ticklabel=null,
+			  bool beginlabel=true, bool endlabel=true,
+			  int N=0, real Step=0, pen pTick=nullpen);
 @end verbatim
 
 The image and palette bar can be fit (and optionally aligned) to a frame 
