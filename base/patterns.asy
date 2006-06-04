@@ -96,8 +96,8 @@ picture hatch(real H=5mm, pair dir=NE, pen p=currentpen)
 picture crosshatch(real H=5mm, pen p=currentpen)
 {
   picture tiling;
-  add(tiling,hatch(H));
-  add(tiling,shift(H*sqrt(2))*rotate(90)*hatch(H));
+  add(tiling,hatch(H,p));
+  add(tiling,shift(H*sqrt(2))*rotate(90)*hatch(H,p));
   return tiling;
 }
 
