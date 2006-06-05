@@ -81,11 +81,11 @@ flowblock flowrectangle(picture header, picture body,
 		(0,bound[0].y+2*dx)--
 		(width+2*dx,bound[0].y+2*dx)--
 		(width+2*dx,0)--cycle),headercolor);
-      add(block,shift(width/2,bound[0].y+bound[1].y+dx)*header);
+      add(block,shift((width/2)+dx,bound[0].y+bound[1].y+dx)*header);
       draw(block,(0,0)--(0,bound[1].y+2*dx)--
 	   (width+2*dx,bound[1].y+2*dx)--
 	   (width+2*dx,0)--cycle,bodycolor);
-      add(block,shift(width/2,bound[0].y/2+dx)*body);
+      add(block,shift((width/2)+dx,bound[0].y/2)*body);
       return block;
     };
   block.f_position=new pair(real x) {
@@ -137,10 +137,8 @@ flowblock flowrectangle(picture body, pen bodycolor=currentpen,
   flowblock block;
   block.draw=new picture(pen p) {
       picture block;
-      draw(block,(0,0)--(0,bound.y+2*dx)--
-	   (bound.x+2*dx,bound.y+2*dx)--
-	   (bound.x+2*dx,0)--cycle,bodycolor);
-      add(block,shift(bound.x/2,bound.y/2)*body);
+      draw(block, shape, bodycolor);
+      add(block,shift((bound.x/2)+dx,(bound.y/2)+dx)*body);
       return block;
     };
   block.f_position=new pair(real x) {
