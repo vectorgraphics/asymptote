@@ -81,11 +81,11 @@ flowblock flowrectangle(picture header, picture body,
 		(0,bound[0].y+2*dx)--
 		(width+2*dx,bound[0].y+2*dx)--
 		(width+2*dx,0)--cycle),headercolor);
-      add(block,shift((width/2)+dx,bound[0].y+bound[1].y+0.5*dx)*header);
+      add(block,shift((width/2)+dx,bound[0].y/2+bound[1].y+3*dx)*header);
       draw(block,(0,0)--(0,bound[1].y+2*dx)--
 	   (width+2*dx,bound[1].y+2*dx)--
 	   (width+2*dx,0)--cycle,bodycolor);
-      add(block,shift((width/2)+dx,bound[0].y/2+0.5*dx)*body);
+      add(block,shift((width/2)+dx,bound[1].y/2+dx)*body);
       return block;
     };
   block.f_position=new pair(real x) {
