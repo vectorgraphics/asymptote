@@ -2,29 +2,37 @@
 void makedraw(frame f, path g, pen p)
 {
   path n=nib(p);
-  if(size(g) == 1) fill(f,shift(point(g,0))*n,p);
+  for(int i=0; i < size(g); ++i)
+   fill(f,shift(point(g,i))*n,p);
+
   static real epsilon=1000*realEpsilon;
-  real stop=length(g)-epsilon;
+  int L=length(g);
+  real stop=L-epsilon;
   int N=length(n);
-  pair n0=point(n,0);
+  pair first=point(n,0);
+  pair n0=first;
+
   for(int i=0; i < N; ++i) {
     pair n1=point(n,i+1);
-    pair dir=n1-n0;
-    real tm=dirtime(g,-dir);
-    real tp=dirtime(g,dir);
-    if(tm > epsilon && tm < stop) {
-      makedraw(f,subpath(g,0,tm),p);
-      makedraw(f,subpath(g,tm,length(g)),p);
+    pair dir=unit(n1-n0);
+    real t=dirtime(g,-dir);
+    if(straight(g,(int) t)) t=ceil(t);
+    if(t > epsilon && t < stop) {
+      makedraw(f,subpath(g,0,t),p);
+      makedraw(f,subpath(g,t,L),p);
       return;
-    }	
-    if(tp > epsilon && tp < stop) {
-      makedraw(f,subpath(g,0,tp),p);
-      makedraw(f,subpath(g,tp,length(g)),p);
+    }
+    real t=dirtime(g,dir);
+    if(straight(g,(int) t)) t=ceil(t);
+    if(t > epsilon && t < stop) {
+      makedraw(f,subpath(g,0,t),p);
+      makedraw(f,subpath(g,t,L),p);
       return;
     }
     n0=n1;
   }
-  pair n0=point(n,0);
+
+  n0=first;
   for(int i=0; i < N; ++i) {
     pair n1=point(n,i+1);
     fill(f,shift(n0)*g--shift(n1)*reverse(g)--cycle,p);
