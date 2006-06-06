@@ -140,6 +140,7 @@ Base modules
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
+* slopefields:                  Slope fields
 
 
 @end detailmenu
@@ -4441,6 +4442,7 @@ Here now is @code{latexusage.tex}:
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
+* slopefields::                 Slope fields
 
 @end menu
 
@@ -5944,6 +5946,36 @@ pen for negative contours and a solid pen for positive (and zero) contours:
 @verbatiminclude contour2.asy
 @image{contour2}
 
+@node slopefields
+@section @code{slopefields}
+@cindex @code{slopefields}
+This package draws slopefields.
+The main function is
+@verbatim
+picture slopefield(real f(real,real), 
+                   pair a, pair b, int nx=nmesh, int ny=nx, 
+                   real tickfactor=0.5, pen p=currentpen)
+@end verbatim
+where: @code{f} is a function @math{y'=f(x,y)} (@math{y'=f(x)} is also 
+accepted); the points @code{a} and @code{b} are the lower left and upper
+right corners of the rectangle in which the slope field is to be displayed;
+@code{nx} and @code{ny} are the amount of columns and rows of tics,
+respectively; @code{tickfactor} is the length of each tick in respect to 
+@code{a,b,nx,} and @code{ny}; and @code{p} is the pen with which the slope 
+field is drawn.
+
+The function @code{slopefields} returns a picture, which can be added to
+the user's @code{currentpicture} via the @code{add(picture)} command.
+
+The function
+@verbatim
+path curve(pair c, real f(real,real), pair a, pair b)
+@end verbatim
+takes a point (@code{c}) and a slope field - 
+defining function @code{f} (@code{real f(real)} is also accepted),
+and returns, as a path, the curve passing through that point.
+The points @code{a} and @code{b} represent the rectangular boundaries over
+which the curve is interpolated.
 
 @node Options
 @chapter Options
