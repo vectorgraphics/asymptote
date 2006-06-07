@@ -94,7 +94,8 @@ install: install-asy install-man
 install-all: install-asy install-doc
 
 install-asy: asy
-	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
+	${INSTALL} -d $(bindir) $(asydir) $(docdir) $(exampledir) \
+		$(animationsdir)
 	-${INSTALL} -d $(latexdir)
 	${INSTALL} -p -m 755 $(NAME) $(EXTRABIN) $(bindir)
 	${INSTALL} -p -m 644 base/*.asy base/{$(EXTRA)} $(asydir)
