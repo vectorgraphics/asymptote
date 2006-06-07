@@ -36,19 +36,19 @@ AC_MSG_NOTICE([Using $latexdir for LaTeX style file])
 
 AC_SUBST(latexdir)
 
-test "$docdir" = NONE && docdir=$Datadir/doc/asymptote
+Docdir='$(datadir)'/doc/asymptote
 
-AC_ARG_WITH(docdir,
+AC_ARG_WITH(Docdir,
 	[  --with-docdir=PATH      alternate documentation installation directory],
                      [if test "x$withval" != "x" ; then
-			docdir=$withval
+			Docdir=$withval
 		      fi
 		     ])
-AC_SUBST(docdir)
+AC_SUBST(Docdir)
 
 AC_DEFINE_UNQUOTED(ASYMPTOTE_SYSDIR,"$Datadir/asymptote",
 	[System directory for global .asy files])
-AC_DEFINE_UNQUOTED(ASYMPTOTE_DOCDIR,"$docdir",
+AC_DEFINE_UNQUOTED(ASYMPTOTE_DOCDIR,"$Docdir",
 	[Directory for documentation])
 
 AC_CONFIG_SRCDIR([absyn.cc])

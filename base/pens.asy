@@ -273,5 +273,3 @@ penofreal operator cast(pen p)
 {
   return new pen(real) {return p;};
 }
-
-

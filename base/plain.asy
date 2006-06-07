@@ -187,7 +187,8 @@ struct cputime {
 
 cputime operator init() {return new cputime;}
 
-cputime cputime() {
+cputime cputime() 
+{
   real [] a=_cputime();
   cputime cputime;
   cputime.parent.user=a[0];
