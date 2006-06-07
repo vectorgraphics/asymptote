@@ -55,6 +55,7 @@ inline T getSetting(string name)
 }
 
 extern int verbose;
+extern string gvOptionPrefix;
 
 bool view();
 bool trap();

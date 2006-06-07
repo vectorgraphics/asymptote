@@ -93,6 +93,9 @@ char *argv0;
 int verbose;
 int safe=1;
   
+// Work around backwards-incompatible command-line options of gv-3.6.1.
+string gvOptionPrefix;
+  
 int ShipoutNumber=0;
 int scrollLines=0;
   
@@ -764,8 +767,15 @@ int numArgs() { return argCount; }
 char *getArg(int n) { return argList[n]; }
 
 void setInteractive() {
-  if(numArgs() == 0 && !getSetting<bool>("listvariables"))
+  if(numArgs() == 0 && !getSetting<bool>("listvariables")) {
     interact::interactive=true;
+    
+    // Work around backwards-incompatible command-line options of gv-3.6.1.
+    if(getSetting<mem::string>("pdfviewer") == "gv" ||
+       getSetting<mem::string>("psviewer") == "gv");
+    gvOptionPrefix=System("gv -version >& /dev/null",true) == 0 ? "-" : "--";
+  }
+  
   historyname=getSetting<bool>("localhistory") ? ".asy_history" 
     : (initdir+"/history");
 }
