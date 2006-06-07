@@ -34,6 +34,7 @@ runnable* => primCode()
 array* => primArray()  
 boolarray* => boolArray()
 intarray*  => intArray()
+intarray2*  => intArray2()
 realarray* => realArray()
 realarray2* => realArray2()
 pairarray* => pairArray()
@@ -81,6 +82,7 @@ stringarray2* => stringArray2()
 #include "callable.h"
 #include "stm.h"
 #include "lexical.h"
+#include "Delaunay.h"
   
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
@@ -115,6 +117,7 @@ typedef double real;
 
 typedef array boolarray;
 typedef array intarray;
+typedef array intarray2;
 typedef array realarray;
 typedef array realarray2;
 typedef array pairarray;
@@ -147,6 +150,7 @@ using types::primFile;
 using types::primTransform;
 using types::boolArray;
 using types::intArray;
+using types::intArray2;
 using types::realArray;
 using types::realArray2;
 using types::pairArray;
@@ -1287,11 +1291,10 @@ real relativedistance(real theta, real phi, real t, bool atleast)
 
 bool inside(patharray *g, pair z, pen p)
 {
-  array *G=copyArray(g);
-  size_t size=G->size();
+  size_t size=g->size();
   int count=0;
   for(size_t i=0; i < size; i++) 
-    count += read<path *>(G,i)->inside(z);
+    count += read<path *>(g,i)->inside(z);
   return p.inside(count);
 }
 
@@ -2926,6 +2929,40 @@ pairarray* :pairArrayFFT(pairarray *a, int sign=1)
   array *c=new array(0*n*sign); // Avoid unused variable warning messages
 #endif //  HAVE_LIBFFTW3
   return c;
+}
+
+// Call Gilles Dumoulin's port of Paul Bourke's triangulation code.
+intarray2 *triangulate(pairarray *z, realarray *v)
+{
+  size_t nv=checkArrays(z,v);
+
+  XYZ *pxyz=new XYZ[nv+3];
+  ITRIANGLE *V=new ITRIANGLE[3*nv];
+  
+  for(size_t i=0; i < nv; ++i) {
+    pair w=read<pair>(z,i);
+    pxyz[i].x=w.getx();
+    pxyz[i].y=w.gety();
+    pxyz[i].z=read<real>(v,i);
+  }
+  
+  int ntri;
+  Triangulate((int) nv,pxyz,V,ntri);
+
+  size_t nt=(size_t) ntri;
+  array *t=new array(nt);
+  for(size_t i=0; i < nt; ++i) {
+    array *ti=new array(3);
+    (*t)[i]=ti;
+    (*ti)[0]=V[i].p1;
+    (*ti)[1]=V[i].p2;
+    (*ti)[2]=V[i].p3;
+  }
+   
+  delete[] V;
+  delete[] pxyz;
+  
+  return t;      
 }
 
 
