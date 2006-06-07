@@ -122,6 +122,7 @@ uninstall-asy:
 	-cd $(exampledir); rm -f *.asy *.csv *.dat {$(EXTRA)} piicon.eps \
 		latexusage.tex
 	-rmdir $(exampledir)
+	-rmdir $(docdir)
 	-cd $(asydir); rm -f *.asy {$(EXTRA)}
 	-rmdir $(asydir)
 	-cd $(latexdir); rm -f {$(LATEXFILES)}
