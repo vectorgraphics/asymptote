@@ -94,8 +94,7 @@ install: install-asy install-man
 install-all: install-asy install-doc
 
 install-asy: asy
-	${INSTALL} -d $(bindir) $(asydir) $(docdir) $(exampledir) \
-		$(animationsdir)
+	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
 	-${INSTALL} -d $(latexdir)
 	${INSTALL} -p -m 755 $(NAME) $(EXTRABIN) $(bindir)
 	${INSTALL} -p -m 644 base/*.asy base/{$(EXTRA)} $(asydir)
@@ -123,7 +122,6 @@ uninstall-asy:
 	-cd $(exampledir); rm -f *.asy *.csv *.dat {$(EXTRA)} piicon.eps \
 		latexusage.tex
 	-rmdir $(exampledir)
-	-rmdir $(docdir)
 	-cd $(asydir); rm -f *.asy {$(EXTRA)}
 	-rmdir $(asydir)
 	-cd $(latexdir); rm -f {$(LATEXFILES)}
