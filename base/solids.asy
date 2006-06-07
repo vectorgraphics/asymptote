@@ -155,6 +155,7 @@ struct revolution {
   path3 slice(real position, int ngraph) {
     triple v=point(g,position);
     triple center=c+dot(v-c,axis)*axis;
+//    return Arc(center,abs(v-center),90,angle1,90,angle2,axis,ngraph);
     return Circle(center,abs(v-center),axis,ngraph);
   }
   
@@ -297,7 +298,7 @@ revolution cylinder(triple c=O, real r, real h, triple axis=Z)
   return revolution(c,C-axis--C+axis,axis);
 }
 
-// Return a circular cone of radius r and height h centered at c and
+// Return a circular cone of radius r and height h with vertex at c and
 // aligned with axis.
 revolution cone(triple c=O, real r, real h, triple axis=Z)
 {
