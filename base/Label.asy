@@ -390,3 +390,49 @@ void label(picture pic=currentpicture, Label L, explicit guide g,
 }
 
 Label operator cast(string s) {return Label(s);}
+
+// A structure that a string, Label, or frame can be cast to.
+struct object {
+  public frame f;
+  public Label L=Label;
+  frame fit() {
+    if(L != Label) L.out(f);
+    return f;
+  }
+}
+
+object operator init() {return new object;}
+object operator cast(frame f) {
+  object o;
+  o.f=f;
+  return o;
+}
+
+object operator cast(Label L) 
+{
+  object o;
+  o.L=L.copy();
+  return o;
+}
+
+object operator cast(string s) 
+{
+  object o;
+  o.L=s;
+  return o;
+}
+
+// Pack a list of objects into a frame.
+frame pack(pair align=2S ... object inset[])
+{
+  frame F;
+  int n=inset.length;
+  pair z;
+  for (int i=0; i < n; ++i) {
+    frame f=inset[i].fit();
+    add(F,f,z);
+    z += align+realmult(unit(align),max(f)-min(f));
+  }
+  return F;
+}
+

@@ -140,7 +140,7 @@ Base modules
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
-* slopefields:                  Slope fields
+* slopefield::                  Slope fields
 
 
 @end detailmenu
@@ -654,7 +654,8 @@ file. To try this out, type
 @verbatiminclude diagonal.asy
 
 @noindent
-into a file, say test.asy. Then execute this file by typing the command
+into a file, say test.asy. Then execute this file with the
+@code{MSDOS} or @code{UNIX} command
 @verbatim
 asy -V test
 @end verbatim
@@ -3486,7 +3487,7 @@ cubic equation @math{ax^3+bx^2+cx+d=0}.
 
 @cindex @code{cputime}
 @item @code{cputime cputime();}
-Returns a structure @code{cputime} with the cumulative cpu times
+Returns a structure @code{cputime} with the cumulative @acronym{cpu} times
 broken down into the fields @code{parent.user}, @code{parent.system},
 @code{child.user}, and @code{child.system}.
 
@@ -4347,6 +4348,14 @@ example.
 One can prevent labels from overwriting one another with the
 @code{overwrite} pen attribute (@pxref{overwrite}).
 
+The structure @code{object} defined in @code{Label.asy} allows Labels
+and frames to be treated in a uniform manner.
+A group of objects may be packed together into single frame with the routine
+@cindex @code{pack}
+@verbatim
+frame pack(pair align=2S ... object inset[]);
+@end verbatim
+
 @cindex @code{minipage}
 The @code{string minipage(string s, width=100pt)} function can be used
 to format string @code{s} into a paragraph of width @code{width}, as
@@ -4442,7 +4451,7 @@ Here now is @code{latexusage.tex}:
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
-* slopefields::                 Slope fields
+* slopefield::                  Slope fields
 
 @end menu
 
@@ -5373,8 +5382,8 @@ The argument @code{paletteticks} is a special tick type (@pxref{ticks})
 that takes the following arguments:
 @verbatim
 paletteticks PaletteTicks(Label format=defaultformat, ticklabel ticklabel=null,
-			  bool beginlabel=true, bool endlabel=true,
-			  int N=0, real Step=0, pen pTick=nullpen);
+                          bool beginlabel=true, bool endlabel=true,
+                          int N=0, real Step=0, pen pTick=nullpen);
 @end verbatim
 
 The image and palette bar can be fit (and optionally aligned) to a frame 
@@ -5693,12 +5702,12 @@ Analogous routines @code{yaxis} and @code{zaxis} can be used to draw
 There are also some convenient routines for drawing all three axis:
 @verbatim
 void axes(Label xlabel="$x$", Label ylabel="$y$", Label zlabel="$z$", 
-	  triple min, triple max, pen p=currentpen, arrowbar arrow=None,
-	  bool put=Below, projection P=currentprojection);
+          triple min, triple max, pen p=currentpen, arrowbar arrow=None,
+          bool put=Below, projection P=currentprojection);
 
 void axes(Label xlabel="$x$", Label ylabel="$y$", Label zlabel="$z$", 
-	  bbox3 b, pen p=currentpen, arrowbar arrow=None,
-	  bool put=Below, projection P=currentprojection);
+          bbox3 b, pen p=currentpen, arrowbar arrow=None,
+          bool put=Below, projection P=currentprojection);
 @end verbatim
 
 Here is an example of a helix and bounding box axes with rotated tick
@@ -5774,131 +5783,112 @@ original package is documented at
 @section @code{flowchart}
 @cindex @code{flowchart}
 This package provides routines to assist in drawing flowcharts. The primary
-@code{struct} is @code{flowblock}, representing a single block on the
-chart.
+@code{struct} is a @code{block}, which represents a single block on the
+flowchart.
 
 @verbatim
-pair flowblock.bound
+pair block.bound
 @end verbatim 
-@cindex @code{flowblock.bound}
+@cindex @code{block.bound}
 The upper right corner of the block relative to its lower left corner.
 
 @verbatim
-pair flowblock.llcorner
+pair block.llcorner
 @end verbatim
-@cindex @code{flowblock.llcorner}
+@cindex @code{block.llcorner}
 The absolute lower left corner of the block.
 
 @verbatim
-pair flowblock.center()
-void flowblock.center(pair loc)
+pair block.center()
+void block.center(pair loc)
 @end verbatim
-@cindex @code{flowblock.center}
+@cindex @code{block.center}
 Returns the current absolute center of the block, or sets the absolute
 center of the block.
 
 @verbatim
-pair flowblock.position(real x)
+pair block.position(real x)
 @end verbatim
-@cindex @code{flowblock.position}
+@cindex @code{block.position}
 Returns an absolute position along the border path of the block.
 
 @verbatim
-pair flowblock.top()
-pair flowblock.left()
-pair flowblock.right()
-pair flowblock.bottom()
-pair flowblock.topleft()
-pair flowblock.topright()
-pair flowblock.bottomleft()
-pair flowblock.bottomright()
+pair block.top()
+pair block.left()
+pair block.right()
+pair block.bottom()
+pair block.topleft()
+pair block.topright()
+pair block.bottomleft()
+pair block.bottomright()
 @end verbatim
-@cindex @code{flowblock.top}
-@cindex @code{flowblock.left}
-@cindex @code{flowblock.right}
-@cindex @code{flowblock.bottom}
-@cindex @code{flowblock.topleft}
-@cindex @code{flowblock.topright}
-@cindex @code{flowblock.bottomleft}
-@cindex @code{flowblock.bottomright}
+@cindex @code{block.top}
+@cindex @code{block.left}
+@cindex @code{block.right}
+@cindex @code{block.bottom}
+@cindex @code{block.topleft}
+@cindex @code{block.topright}
+@cindex @code{block.bottomleft}
+@cindex @code{block.bottomright}
 These eight methods return an absolute position on the appropriate edge
 of the block.
 
-@code{picture flowblock.draw(pen p=currentpen)}
-@cindex @code{flowblock.draw}
-Returns a picture representing the flowblock.
+@code{picture block.draw(pen p=currentpen)}
+@cindex @code{block.draw}
+Returns a frame representing the block.
 
-@cindex @code{picture}
-@verbatim
-picture picture(string text, real dy=0.2cm,
-                real angle=0, pair align=0, pen p=currentpen)
-@end verbatim
-Converts the given string into a picture; used to pass text as pictures
-into the various flowblock generation routines.
+The following block generation routines accept a Label, string, or
+frame for their object argument.
 
-@cindex @code{flowrectangle}
+@cindex @code{rectangle}
 @verbatim
-flowblock flowrectangle(picture header, picture body,
-                        pen headercolor=mediumgray,
-                        pen bodycolor=currentpen,
-                        pair center=(0,0), real dx=3)
-flowblock flowrectangle(picture body,
-                        pen headercolor=mediumgray,
-                        pen bodycolor=currentpen,
-                        pair center=(0,0), real dx=3)
+block rectangle(object header, object body,
+                pen headercolor=mediumgray,
+                pen bodycolor=currentpen,
+                pair center=(0,0), real dx=3)
+block rectangle(object body, pen headercolor=mediumgray,
+                pen bodycolor=currentpen,
+                pair center=(0,0), real dx=3)
 @end verbatim
-Creates a rectangular flow chartblock with the given header (if specified)
+Create a rectangular block with the given header (if specified)
 and body. Here @code{dx} is the amount of padding around the header and body. 
 
-@cindex @code{flowdiamond}
+@cindex @code{diamond}
 @verbatim
-flowblock flowdiamond(picture pic, pair center=(0,0),
-                      real ds=5, real dw=1,
-                      real height=20, real dh=0)
+block diamond(object body, pair center=(0,0), real ds=5,
+              real dw=1, real height=20, real dh=0)
 @end verbatim
-Creates a diamond-shaped flowchart block.
+Create a diamond-shaped chart block.
 
-@cindex @code{flowcircle}
+@cindex @code{circle}
 @verbatim
-flowblock flowcircle(picture pic, pair center=(0,0), real dr=0)
+block circle(object body, pair center=(0,0), real dr=3)
 @end verbatim
-Creates a circular flowchart block.
+Create a circular chart block.
 
-@cindex @code{flowroundrectangle}
+@cindex @code{roundrectangle}
 @verbatim
-flowblock flowroundrectangle(picture pic, pair center=(0,0),
-                             real ds=5, real dw=0)
+block roundrectangle(object body, pair center=(0,0),
+                     real ds=5, real dw=0)
 @end verbatim
-Creates a rectangular flowchart block with rounded corners.
+Create a rectangular chart block with rounded corners.
 
-@cindex @code{flowbevel}
+@cindex @code{bevel}
 @verbatim
-flowblock flowbevel(picture pic, pair center=(0,0),
-                    real dh=5, real dw=5)
+block bevel(object body, pair center=(0,0), real dh=5, real dw=5)
 @end verbatim 
-Creates a rectangular flowchart block with beveled edges.
+Create a rectangular chart block with beveled edges.
 
-@cindex @code{flowpath}
+@cindex @code{path}
 @verbatim
-path flowpath(pair point[], bool horizontal[])
+path path(pair point[] ... bool horizontal[])
 @end verbatim
-Draws paths joining the pairs in @code{point} with right-angled lines.
-Each entry in @code{horizontal} corresponds with an entry in @code{point}
-and if set to true makes the line between it and the next point start
-with a horizontal segment (as opposed to a vertical segment).
+Draw paths joining the pairs in @code{point} with right-angled lines.
+The entries in @code{horizontal} identify whether successive
+segments between the pairs specified by @code{point} should be drawn
+horizontal (@code{true}) or vertical (@code{false}).
 
-@cindex @code{drawflow}
-@verbatim
-void drawflow(picture pic=currentpicture, path flow,
-              picture text=new picture, real pos=0.5,
-              pair align=(0,0), pen p=currentpen)
-@end verbatim
-Draws a path (usually a flowpath) with an optional label along its length.
-@code{text} represents the label, @code{pos} its position along the line,
-and @code{align} its alignment relative to that position on the line.
-
-It is also possible to use @code{draw} directly on flowblocks. Here
-is a simple flowchart example:
+Here is a simple flowchart example:
 
 @verbatiminclude flowchartdemo.asy
 @image{flowchartdemo}
@@ -5911,8 +5901,8 @@ real, or given a two-dimensional array of values at regularly spaced points.
 The main function provided is
 @verbatim
 void contour(picture pic=currentpicture, real f(real, real),
-	     pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
-	     interpolate join=operator --, pen p(real)=currentpen);
+             pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
+             interpolate join=operator --, pen p(real)=currentpen);
 @end verbatim
 The contour lines @code{real[]c} for the function @code{f} are drawn
 on the rectangle defined by the bottom-left and top-right points @code{a}
@@ -5931,8 +5921,8 @@ To draw a contour of data in an array of values at regularly spaced
 points, use
 @verbatim
 void contour(picture pic=currentpicture, real[][] data,
-	     pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
-	     interpolate join=operator --, pen p(real)=currentpen);
+             pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
+             interpolate join=operator --, pen p(real)=currentpen);
 @end verbatim
 
 The following simple example draws the contour at value @code{1}
@@ -5946,36 +5936,34 @@ pen for negative contours and a solid pen for positive (and zero) contours:
 @verbatiminclude contour2.asy
 @image{contour2}
 
-@node slopefields
-@section @code{slopefields}
-@cindex @code{slopefields}
-This package draws slopefields.
-The main function is
+@node slopefield
+@section @code{slopefield}
+@cindex @code{slopefield}
+This package draws slopefields. The main function is
 @verbatim
 picture slopefield(real f(real,real), 
                    pair a, pair b, int nx=nmesh, int ny=nx, 
-                   real tickfactor=0.5, pen p=currentpen)
+                   real tickfactor=0.5, pen p=currentpen);
 @end verbatim
-where: @code{f} is a function @math{y'=f(x,y)} (@math{y'=f(x)} is also 
-accepted); the points @code{a} and @code{b} are the lower left and upper
-right corners of the rectangle in which the slope field is to be displayed;
-@code{nx} and @code{ny} are the amount of columns and rows of tics,
-respectively; @code{tickfactor} is the length of each tick in respect to 
-@code{a,b,nx,} and @code{ny}; and @code{p} is the pen with which the slope 
+where @code{f} is a function @math{y'=f(x,y)} (@math{y'=f(x)} is also 
+accepted), the points @code{a} and @code{b} are the lower left and upper
+right corners of the rectangle in which the slope field is to be displayed,
+@code{nx} and @code{ny} are the number of ticks in the @math{x} and @math{y}
+directions, @code{tickfactor} is the fraction of the minimum cell dimension to
+use for drawing ticks, and @code{p} is the pen with which the slope 
 field is drawn.
 
-The function @code{slopefields} returns a picture, which can be added to
-the user's @code{currentpicture} via the @code{add(picture)} command.
+The function @code{slopefield} returns a picture, which can be added to
+@code{currentpicture} via the @code{add(picture)} command.
 
 The function
 @verbatim
 path curve(pair c, real f(real,real), pair a, pair b)
 @end verbatim
-takes a point (@code{c}) and a slope field - 
-defining function @code{f} (@code{real f(real)} is also accepted),
-and returns, as a path, the curve passing through that point.
-The points @code{a} and @code{b} represent the rectangular boundaries over
-which the curve is interpolated.
+takes a point (@code{c}) and a slope field-defining function @code{f}
+(@code{real f(real)} is also accepted), and returns, as a path, the
+curve passing through that point. The points @code{a} and @code{b}
+represent the rectangular boundaries over which the curve is interpolated.
 
 @node Options
 @chapter Options
@@ -6440,9 +6428,10 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  GSL deriv texcolors fixedscaling UpsideDown texreset slidedemo
 @c  LocalWords:  subitem newslide realMin realMax realEpsilon realDigits gsl dh
 @c  LocalWords:  obliqueX asycolors monthaxis xautoscale yautoscale zautoscale
-@c  LocalWords:  obliqueZ obliqueY cylinderskeleton flowblock llcorner dr py nx
+@c  LocalWords:  obliqueZ obliqueY cylinderskeleton block llcorner dr py nx CPU
 @c  LocalWords:  loc topleft topright bottomleft bottomright flowrectangle UTC
 @c  LocalWords:  headercolor bodycolor chartblock flowdiamond flowcircle xlabel
-@c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow flowblocks ny
+@c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow blocks ny
 @c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel
-@c  LocalWords:  zlabel strptime
+@c  LocalWords:  zlabel strptime slopefields cputime roundrectangle slopefield
+@c  LocalWords:  tickfactor

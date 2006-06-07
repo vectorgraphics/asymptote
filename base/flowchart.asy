@@ -3,10 +3,12 @@
 private import math;
 
 public real flowmargin;
+bool Horizontal=true;
+bool Vertical=false;
 
 // N.B.: Relative coordinates take the lower left corner of the block: (0,0)
 
-struct flowblock {
+struct block {
   // The relative maximum coordinates of the block. 
   public pair bound;
 
@@ -45,39 +47,44 @@ struct flowblock {
   pair topleft() {return shift(this.llcorner)*this.f_topleft();} 
   pair topright() {return shift(this.llcorner)*this.f_topright();} 
   pair bottomleft() {return shift(this.llcorner)*this.f_bottomleft();} 
-  pair bottomright() {return shift(this.llcorner)*this.f_bottom();} 
+  pair bottomright() {return shift(this.llcorner)*this.f_bottomright();} 
   
-  // Centers the block on the given coordinate.
+  // Center the block on the given coordinate.
   void center(pair loc) {this.llcorner=loc-this.f_center();} 
   
-  // Returns a picture representing the block.
-  public picture draw(pen p=currentpen);
+  // Return a frame representing the block.
+  public frame draw(pen p=currentpen);
 };
 
-flowblock operator init() {return new flowblock;}
+block operator init() {return new block;}
 
-// Given two pictures, returns a flowblock with those as a header and
-// body of a rectangular block.
-flowblock flowrectangle(picture header, picture body,
-                        pen headercolor=mediumgray,
-                        pen bodycolor=currentpen, 
-                        pair center=(0,0), real dx=3) 
+// Construct a rectangular block with header and body objects.
+block rectangle(object header, object body,
+		pen headercolor=mediumgray,
+		pen bodycolor=currentpen, 
+		pair center=(0,0), real dx=3) 
 {
-  pair bound0=max(header.fit())-min(header.fit());
-  pair bound1=max(body.fit())-min(body.fit());
+  frame fbody=body.fit();
+  frame fheader=header.fit();
+  pair mheader=min(fheader);
+  pair Mheader=max(fheader);
+  pair mbody=min(fbody);
+  pair Mbody=max(fbody);
+  pair bound0=Mheader-mheader;
+  pair bound1=Mbody-mbody;
   real width=max(bound0.x,bound1.x);
   pair z0=(width+2dx,bound0.y+2dx);
   pair z1=(width+2dx,bound1.y+2dx);
   path shape=(0,0)--(0,z1.y)--(0,z0.y+z1.y)--(z0.x,z0.y+z1.y)--z1--(z0.x,0)--
     cycle;
 
-  flowblock block;
-  block.draw=new picture(pen p) {
-      picture block;
+  block block;
+  block.draw=new frame(pen p) {
+      frame block;
       filldraw(block,shift(0,z1.y)*box((0,0),z0),headercolor);
-      add(block,shift((0,z1.y)+0.5z0)*header);
+      add(block,shift(-0.5*(Mheader+mheader))*fheader,(0,z1.y)+0.5z0);
       draw(block,box((0,0),z1));
-      add(block,shift(0.5*z1)*body);
+      add(block,shift(-0.5*(Mbody+mbody))*fbody,0.5z1);
       return block;
     };
   block.f_position=new pair(real x) {
@@ -116,18 +123,21 @@ flowblock flowrectangle(picture header, picture body,
 }
 
 // As above, but without the header.
-flowblock flowrectangle(picture body, pen bodycolor=currentpen, 
-                        pair center=(0,0), real dx=3) 
+block rectangle(object body, pen bodycolor=currentpen, pair center=(0,0),
+		real dx=3) 
 {
-  pair bound=max(body.fit())-min(body.fit());
+  frame f=body.fit();
+  pair m=min(f);
+  pair M=max(f);
+  pair bound=M-m;
   pair z=(bound.x+2dx,bound.y+2dx);
   path shape=box((0,0),z);
 
-  flowblock block;
-  block.draw=new picture(pen p) {
-      picture block;
+  block block;
+  block.draw=new frame(pen p) {
+      frame block;
       draw(block,shape,bodycolor);
-      add(block,shift(0.5*z)*body);
+      add(block,shift(-0.5*(M+m))*f,0.5z);
       return block;
     };
   block.f_position=new pair(real x) {
@@ -165,30 +175,31 @@ flowblock flowrectangle(picture body, pen bodycolor=currentpen,
   return block;
 }
 
-flowblock flowdiamond(picture pic, pair center=(0,0), 
-                      real ds=5,
-                      real dw=1,
-                      real height=20,
-                      real dh=0)
+block diamond(object body, pair center=(0,0), real ds=5, real dw=1,
+	      real height=20, real dh=0)
 {
-  real a,b,c,d,e,m;
+  frame f=body.fit();
+  pair m=min(f);
+  pair M=max(f);
+  pair bound=M-m;
   
-  pair bound=max(pic.fit())-min(pic.fit());
-  
-  e=ds;
-  a=0.5(bound.x-dw*2);
-  b=0.5bound.y;
-  c=b+height;
-  m=(a*c-a*b-e*sqrt(-e*e+c*c-2b*c+b*b+a*a))/(e*e-a*a);
-  d=abs(c/m);
+  real e=ds;
+  real a=0.5bound.x-dw;
+  real b=0.5bound.y;
+  real c=b+height;
+
+  real arg=a^2+b^2+c^2-2b*c-e^2;
+  real denom=e^2-a^2;
+  real slope=arg >= 0 && denom != 0 ? (a*(c-b)-e*sqrt(arg))/denom : 1.0;
+  real d=abs(c/slope);
 
   path shape=(2d,c)--(d,2c)--(0,c)--(d,0)--cycle;
 
-  flowblock block;
-  block.draw=new picture(pen p) {
-      picture block;
+  block block;
+  block.draw=new frame(pen p) {
+      frame block;
       draw(block,shape);
-      add(block,shift(d,c)*pic);
+      add(block,shift(-0.5*(M+m))*f,(d,c));
       return block;
     };
   block.f_position=new pair(real x) {
@@ -226,20 +237,21 @@ flowblock flowdiamond(picture pic, pair center=(0,0),
   return block;
 }
 
-flowblock flowcircle(picture pic, pair center=(0,0), real dr=3)
+block circle(object body, pair center=(0,0), real dr=3)
 {
-  real r;
-  
-  pair bound=max(pic.fit())-min(pic.fit());
-  r=0.5length(bound)+dr;
+  frame f=body.fit();
+  pair m=min(f);
+  pair M=max(f);
+  pair bound=M-m;
+  real r=0.5length(bound)+dr;
   
   path shape=(0,r)..(r,2r)..(2r,r)..(r,0)..cycle;
   
-  flowblock block;
-  block.draw=new picture(pen p) {
-      picture block;
+  block block;
+  block.draw=new frame(pen p) {
+      frame block;
       draw(block,shape);
-      add(block,shift((r,r))*pic);
+      add(block,shift(-0.5*(M+m))*f,(r,r));
       return block;
     };
   block.f_position=new pair(real x) {
@@ -277,14 +289,15 @@ flowblock flowcircle(picture pic, pair center=(0,0), real dr=3)
   return block;
 }
 
-flowblock flowroundrectangle(picture pic, pair center=(0,0),
-                             real ds=5, real dw=0)
+block roundrectangle(object body, pair center=(0,0), real ds=5, real dw=0)
 {
-  real a,b;
-  
-  pair bound=max(pic.fit())-min(pic.fit());
-  a=bound.x;
-  b=bound.y;
+  frame f=body.fit();
+  pair m=min(f);
+  pair M=max(f);
+  pair bound=M-m;
+
+  real a=bound.x;
+  real b=bound.y;
   
   path shape=(0,ds+dw)--(0,ds+b-dw){up}..
     {right}(ds+dw,2ds+b)--(ds+a-dw,2ds+b){right}..
@@ -292,11 +305,11 @@ flowblock flowroundrectangle(picture pic, pair center=(0,0),
 		     {left}(ds+a-dw,0)--
 			     (ds+dw,0){left}..{up}cycle;
   
-  flowblock block;
-  block.draw=new picture(pen p) {
-      picture block;
+  block block;
+  block.draw=new frame(pen p) {
+      frame block;
       draw(block,shape);
-      add(block,shift(ds,ds)*shift(0.5bound)*pic);
+      add(block,shift(-0.5*(M+m))*f,(ds,ds)+0.5bound);
       return block;
     };
   block.f_position=new pair(real x) {
@@ -334,23 +347,23 @@ flowblock flowroundrectangle(picture pic, pair center=(0,0),
   return block;
 }
 
-flowblock flowbevel(picture pic, pair center=(0,0), real dh=5, real dw=5)
+block bevel(object body, pair center=(0,0), real dh=5, real dw=5)
 {
-  real a,b;
-  path shape;
-  pair bound;
-  
-  bound=max(pic.fit())-min(pic.fit());
-  a=bound.x;
-  b=0.5bound.y;
+  frame f=body.fit();
+  pair m=min(f);
+  pair M=max(f);
+  pair bound=M-m;
 
-  shape=(2dw+a,b+dh)--(dw+a,2b+2dh)--(dw,2b+2dh)--(0,b+dh)--(dw,0)--(dw+a,0)--
-    cycle;
-  flowblock block;
-  block.draw=new picture(pen p) {
-      picture block;
+  real a=bound.x;
+  real b=0.5bound.y;
+
+  path shape=(2dw+a,b+dh)--(dw+a,2b+2dh)--(dw,2b+2dh)--(0,b+dh)--(dw,0)--
+    (dw+a,0)--cycle;
+  block block;
+  block.draw=new frame(pen p) {
+      frame block;
       draw(block,shape);
-      add(block,shift(0.5bound+(dw,dh))*pic);
+      add(block,shift(-0.5*(M+m))*f,(0.5bound+(dw,dh)));
       return block;
     };
   block.f_position=new pair(real x) {
@@ -388,7 +401,7 @@ flowblock flowbevel(picture pic, pair center=(0,0), real dh=5, real dw=5)
   return block;
 }
 
-path flowpath(pair point[], bool horizontal[])
+path path(pair point[] ... bool horizontal[])
 {
   path line=point[0];
   pair current, prev=point[0];
@@ -412,26 +425,7 @@ path flowpath(pair point[], bool horizontal[])
   return line;
 }
 
-picture flow(picture text, path flow, real pos=0.5,
-	     pair align=(0,0), pen p=currentpen, arrowbar arrow=Arrow,
-	     margin margin=PenMargin)
-{
-  picture pic;
-  draw(pic,flow,p,arrow,margin);
-  add(pic,text.fit(),point(flow,pos),align);
-  return pic;
-}
-
-picture picture(Label L, pair align=0, pen p=currentpen)
-{
-  picture block;
-  L.align(align);
-  L.p(p);
-  L.out(block);
-  return block;
-}
-
-void draw(picture pic=currentpicture, flowblock block, pen p=currentpen)
+void draw(picture pic=currentpicture, block block, pen p=currentpen)
 {
   add(pic,shift(block.llcorner)*block.draw(p));
 }
