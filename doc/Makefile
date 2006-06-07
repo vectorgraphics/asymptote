@@ -52,12 +52,12 @@ clean: FORCE
 	rm -rf asymptote
 
 install-man: man
-	${INSTALL} -d $(docdir) $(mandir)/man1
+	${INSTALL} -d -m 755 $(docdir) $(mandir)/man1
 	${INSTALL} -p -m 644 asymptote.pdf $(docdir)
 	${INSTALL} -p -m 644 $(MANFILES) $(mandir)/man1
 
 install: doc install-man
-	${INSTALL} -d -m 755 $(infodir) $(docdir) $(mandir)/man1
+	${INSTALL} -d -m 755 $(infodir)
 	${INSTALL} -p -m 644 asymptote.info $(infodir)
 	-if test -z "$(DESTDIR)"; then \
 		install-info --infodir=$(infodir) asymptote.info; \

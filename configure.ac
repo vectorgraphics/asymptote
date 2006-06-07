@@ -36,7 +36,7 @@ AC_MSG_NOTICE([Using $latexdir for LaTeX style file])
 
 AC_SUBST(latexdir)
 
-Docdir='$(datadir)'/doc/asymptote
+Docdir=$Datadir/doc/asymptote
 
 AC_ARG_WITH(Docdir,
 	[  --with-docdir=PATH      alternate documentation installation directory],
