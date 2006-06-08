@@ -289,9 +289,10 @@ prebuilt binary from one of the following sites:
 @url{http://packages.debian.org/asymptote}
 @end quotation
 
+@noindent
 @cindex Fedora Core
-Fedora Core 4 (and later) users can now install @code{Asymptote}
-directly from the Fedora Extras mirrors like this:
+Fedora Core 4 (and later) users can now easily install @code{Asymptote}
+directly from the Fedora Extras mirror sites:
 @verbatim
 yum install asymptote
 @end verbatim
@@ -314,7 +315,9 @@ The recommended installation directory is @code{c:\Program Files\Asymptote}.
 If you wish to install @code{Asymptote} in another directory, say
 @code{d:\Asymptote}, you can tell @code{Asymptote} where to find
 @code{plain.asy} and its other base modules by creating a file
-@code{%USERPROFILE%/.asy/config.asy} containing the lines
+@code{config.asy} in a new folder @code{%USERPROFILE%\.asy} (by
+default this means @code{C:\Documents and Settings\%USERNAME%\.asy,
+where %USERNAME% denotes your user name}) containing the lines
 @verbatim
 import settings;
 dir="d:\Asymptote";
@@ -350,7 +353,7 @@ configuration variable @code{psviewer}.
 @cindex configuration file
 Configuration variables are most easily set as @code{Asymptote}
 variables in the configuration file (by default, @code{.asy/config.asy} in the 
-user's home directory or @code{%USERPROFILE%/.asy/config.asy} under
+user's home directory or @code{%USERPROFILE%\.asy\config.asy} under
 @code{MSDOS}); @pxref{configuration file}.
 Here are the default values of several important configuration variables.
 
@@ -474,7 +477,7 @@ The current directory;
 @item
 @cindex @code{.asy}
 The directory @code{.asy} in the user's home directory 
-(@code{%USERPROFILE%/.asy} under @code{MSDOS});
+(@code{%USERPROFILE%\.asy} under @code{MSDOS});
 @item
 @cindex @code{dir}
 A list of one or more directories specified by the configuration
@@ -6039,7 +6042,7 @@ the environment variable @code{ASYMPTOTE_CONFIG} or @code{-config} option).
 @code{Asymptote} will look for this file in its usual search path.
 Typically the configuration file is placed in the
 @code{.asy} directory in the user's home directory
-(@code{%USERPROFILE%/.asy} under @code{MSDOS}).
+(@code{%USERPROFILE%\.asy} under @code{MSDOS}).
 Configuration variables are accessed using the long form of the option names:
 @verbatim
 import settings;
