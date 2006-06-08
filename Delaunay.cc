@@ -238,5 +238,13 @@ int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri)
   }
   delete[] edges;
   delete[] complete;
+
+	// Desort 
+  for(i = 0; i < ntri; i++) {
+		v[i].p1=pxyz[v[i].p1].i;
+		v[i].p2=pxyz[v[i].p2].i;
+		v[i].p3=pxyz[v[i].p3].i;
+	}
+
   return 0;
 } 

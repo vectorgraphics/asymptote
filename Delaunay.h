@@ -21,6 +21,7 @@ struct IEDGE{
 
 struct XYZ{
   double x, y, z;
+	int i;
 };
 
 int XYZCompare(const void *v1, const void *v2);
