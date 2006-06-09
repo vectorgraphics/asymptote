@@ -35,14 +35,11 @@ struct projection {
   public triple camera;
   public transform3 project;
   public transform3 aspect;
-  void init(triple camera, transform3 project, transform3 aspect) {
-    this.camera=camera;
-    this.project=project;
-    this.aspect=aspect;
-  }
   projection copy() {
     projection P=new projection;
-    P.init(camera,project,aspect);
+    P.camera=camera;
+    P.project=project;
+    P.aspect=aspect;
     return P;
   }
 }

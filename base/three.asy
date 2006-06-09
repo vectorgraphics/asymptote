@@ -122,25 +122,39 @@ transform3 lookAtOrigin(triple eye)
   return t;
 }
 
-transform3 lookAt(triple eye, triple target)
+typedef pair project(triple v);
+
+transform3 lookAt(triple target, triple eye)
 {
   return lookAtOrigin(eye-target)*shift(-target);
 }
 
-typedef pair project(triple v);
+// Return a matrix to do perspective distortion based on a triple v.
+transform3 distort(triple v) 
+{
+  transform3 t=identity(4);
+  real d=length(v);
+  t[3][2]=-1/d;
+  t[3][3]=0;
+  return t;
+}
+
+projection projection(triple camera, transform3 project,
+		      transform3 aspect=identity(4))
+{
+  projection P;
+  P.camera=camera;
+  P.project=project;
+  P.aspect=aspect;
+  return P;
+}
 
 // Uses the homogenous coordinate to perform perspective distortion.  When
 // combined with a projection to the XY plane, this effectively maps
 // points in three space to a plane at a distance d from the camera.
 projection perspective(triple camera)
 {
-  transform3 t=identity(4);
-  real d=length(camera);
-  t[3][2]=-1/d;
-  t[3][3]=0;
-  projection P;
-  P.init(camera,t*lookAtOrigin(camera),identity(4));
-  return P;
+  return projection(camera,distort(camera-O)*lookAtOrigin(camera));
 }
 
 projection perspective(real x, real y, real z)
@@ -150,9 +164,7 @@ projection perspective(real x, real y, real z)
 
 projection orthographic(triple camera)
 {
-  projection P;
-  P.init(camera,lookAtOrigin(camera),identity(4));
-  return P;
+  return projection(camera,lookAtOrigin(camera));
 }
 
 projection orthographic(real x, real y, real z)
@@ -168,9 +180,7 @@ projection oblique(real angle=45)
   t[0][2]=-c2;
   t[1][2]=-s2;
   t[2][2]=0;
-  projection P;
-  P.init((c2,s2,1),t,identity(4));
-  return P;
+  return projection((c2,s2,1),t);
 }
 
 projection obliqueZ(real angle=45) {return oblique(angle);}
@@ -186,9 +196,7 @@ projection obliqueX(real angle=45)
   t[0][1]=1;
   t[1][2]=1;
   t[2][2]=0;
-  projection P;
-  P.init((1,c2,s2),t,identity(4));
-  return P;
+  return projection((1,c2,s2),t);
 }
 
 projection obliqueY(real angle=45)
@@ -200,15 +208,32 @@ projection obliqueY(real angle=45)
   t[1][1]=s2;
   t[1][2]=1;
   t[2][2]=0;
-  projection P;
-  P.init((c2,-1,s2),t,identity(4));
-  return P;
+  return projection((c2,-1,s2),t);
 }
 
 projection oblique=oblique();
 projection obliqueX=obliqueX(), obliqueY=obliqueY(), obliqueZ=obliqueZ();
 
 currentprojection=perspective(5,4,2);
+
+// Project u onto v.
+triple project(triple u, triple v)
+{
+  v=unit(v);
+  return dot(u,v)*v;
+}
+
+// Return angle in degrees between triples u and v.
+real angle(triple u, triple v)
+{
+ return aCos(dot(unit(u),unit(v)));
+}
+
+// Return angle between projections of u and v onto plane normal.
+real projectedangle(triple u, triple v, triple normal)
+{
+  return angle(v-project(v,normal),u-project(u,normal));
+}
 
 transform3 aspect(projection P)
 {
@@ -624,7 +649,8 @@ guide3[] operator * (transform3 t, guide3[] g)
 }
 
 // A version of acos that tolerates numerical imprecision
-real acos1(real x) {
+real acos1(real x)
+ {
   if(x < -1) x=-1;
   if(x > 1) x=1;
   return acos(x);
