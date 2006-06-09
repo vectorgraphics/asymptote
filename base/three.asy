@@ -108,25 +108,32 @@ transform3 reflect(triple u, triple v, triple w)
   return basis*zscale3(-1)*inverse(basis);
 }
 
-// Transformation corresponding to moving the camera from the origin (looking
-// down the negative z axis) to the point 'eye' (looking at the origin).
-// Since, in actuality, we are transforming the points instead of
-// the camera, we calculate the inverse matrix.
-transform3 lookAtOrigin(triple eye)
-{
-  transform3 t=(eye.x == 0 && eye.y == 0) ? shift(-eye) : 
-    shift((0,0,-length(eye)))*
-    rotate(-90,Z)*
-    rotate(-colatitude(eye),Y)*
-    rotate(-longitude(eye),Z);
-  return t;
-}
-
 typedef pair project(triple v);
 
-transform3 lookAt(triple target, triple eye)
+// Project u onto v.
+triple project(triple u, triple v)
 {
-  return lookAtOrigin(eye-target)*shift(-target);
+  v=unit(v);
+  return dot(u,v)*v;
+}
+
+// Transformation corresponding to moving the camera from 'target'
+// (looking down the negative z axis) to the point 'eye' (looking at
+// target), orienting the camera so that direction 'up' points upwards.
+// Since, in actuality, we are transforming the points instead of
+// the camera, we calculate the inverse matrix.
+// Based on the gluLookAt implementation in the OpenGL manual.
+transform3 lookAt(triple target, triple eye, triple up=Z)
+{
+  triple f=unit(target-eye);
+  triple s=cross(f,unit(up));
+  triple u=cross(s,f);
+
+  transform3 M=new real[][] {{ s.x,  s.y,  s.z, 0},
+                             { u.x,  u.y,  u.z, 0},
+                             {-f.x, -f.y, -f.z, 0},
+                             {   0,    0,    0, 1}};
+  return M*shift(-eye);
 }
 
 // Return a matrix to do perspective distortion based on a triple v.
@@ -154,7 +161,7 @@ projection projection(triple camera, transform3 project,
 // points in three space to a plane at a distance d from the camera.
 projection perspective(triple camera)
 {
-  return projection(camera,distort(camera-O)*lookAtOrigin(camera));
+  return projection(camera,distort(camera-O)*lookAt(O,camera));
 }
 
 projection perspective(real x, real y, real z)
@@ -164,7 +171,7 @@ projection perspective(real x, real y, real z)
 
 projection orthographic(triple camera)
 {
-  return projection(camera,lookAtOrigin(camera));
+  return projection(camera,lookAt(O,camera));
 }
 
 projection orthographic(real x, real y, real z)
@@ -215,25 +222,6 @@ projection oblique=oblique();
 projection obliqueX=obliqueX(), obliqueY=obliqueY(), obliqueZ=obliqueZ();
 
 currentprojection=perspective(5,4,2);
-
-// Project u onto v.
-triple project(triple u, triple v)
-{
-  v=unit(v);
-  return dot(u,v)*v;
-}
-
-// Return angle in degrees between triples u and v.
-real angle(triple u, triple v)
-{
- return aCos(dot(unit(u),unit(v)));
-}
-
-// Return angle between projections of u and v onto plane normal.
-real projectedangle(triple u, triple v, triple normal)
-{
-  return angle(v-project(v,normal),u-project(u,normal));
-}
 
 transform3 aspect(projection P)
 {
