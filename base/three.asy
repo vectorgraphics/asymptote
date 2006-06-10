@@ -126,8 +126,17 @@ triple project(triple u, triple v)
 transform3 lookAt(triple target, triple eye, triple up=Z)
 {
   triple f=unit(target-eye);
+  if (f == O)
+    // The target is the same as the eye, so just move to the eye, and don't
+    // try to point in any particular direction.
+    return shift(-eye);
+
   triple s=cross(f,unit(up));
-  if(s == O) return shift(-eye); // Requested orientation impossible.
+  if(s == O)
+    // The camera is pointing either directly up or down, so there is no
+    // preferred "up" direction to rotate it.  Pick one arbitrarily.
+    return lookAt(target, eye, cross(f,Y) != O ? Y : Z);
+
   triple u=cross(s,f);
 
   transform3 M=new real[][] {{ s.x,  s.y,  s.z, 0},
@@ -136,6 +145,7 @@ transform3 lookAt(triple target, triple eye, triple up=Z)
                              {   0,    0,    0, 1}};
   return M*shift(-eye);
 }
+
 
 // Return a matrix to do perspective distortion based on a triple v.
 transform3 distort(triple v) 
@@ -146,6 +156,33 @@ transform3 distort(triple v)
   t[3][3]=0;
   return t;
 }
+
+struct projection {
+  public triple camera;
+  public transform3 project;
+  public transform3 aspect;
+  projection copy() {
+    projection P=new projection;
+    P.camera=camera;
+    P.project=project;
+    P.aspect=aspect;
+    return P;
+  }
+}
+
+projection operator init() {return new projection;}
+  
+public projection currentprojection;
+
+// With this, save() and restore() in plain also save and restore the
+// currentprojection.
+addSaveFunction( new restoreThunk () {
+    projection P=currentprojection.copy();
+    return new void() {
+        currentprojection=P;
+      };
+  });
+
 
 projection projection(triple camera, transform3 project,
 		      transform3 aspect=identity(4))

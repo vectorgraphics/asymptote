@@ -27,27 +27,6 @@ include markers;
 include arrows;
 include strings;
 
-// Three-dimensional projections
-
-typedef real[][] transform3;
-
-struct projection {
-  public triple camera;
-  public transform3 project;
-  public transform3 aspect;
-  projection copy() {
-    projection P=new projection;
-    P.camera=camera;
-    P.project=project;
-    P.aspect=aspect;
-    return P;
-  }
-}
-
-projection operator init() {return new projection;}
-  
-public projection currentprojection;
-
 typedef void exitfcn();
 void nullexitfcn();
 
@@ -60,6 +39,8 @@ atexit(exitfunction);
 // A restore thunk is a function, that when called, restores the graphics state
 // to what it was when the restore thunk was created.
 typedef void restoreThunk();
+typedef restoreThunk saveFunction();
+saveFunction[] saveFunctions={};
 
 // When save is called, this will be redefined to do the corresponding restore.
 void restore()
@@ -67,22 +48,39 @@ void restore()
   write("warning: restore called with no matching save");
 }
 
+void addSaveFunction(saveFunction s)
+{
+  saveFunctions.push(s);
+}
+
 restoreThunk buildRestoreThunk()
 {
-  pen defaultpen=defaultpen();
-  pen p=currentpen;
-  picture pic=currentpicture.copy();
-  projection P=currentprojection.copy();
-  restoreThunk r=restore;
-  return new void() {
-    defaultpen(defaultpen);
-    currentpen=p;
-    currentpicture=pic;
-    currentprojection=P;
-    uptodate(false);
-    restore=r;
-  };
+  // Call the save functions in reverse order, storing their restore thunks.
+  restoreThunk[] thunks={};
+  for (int i=saveFunctions.length-1; i>=0; --i)
+    thunks.push(saveFunctions[i]());
+
+  return new void () {
+      // Call the restore thunks in an order matching the saves.
+      for (int i=thunks.length-1; i>=0; --i)
+        thunks[i]();
+    };
 }
+
+// Add the default save function.
+addSaveFunction( new restoreThunk () {
+      pen defaultpen=defaultpen();
+      pen p=currentpen;
+      picture pic=currentpicture.copy();
+      restoreThunk r=restore;
+      return new void() {
+        defaultpen(defaultpen);
+        currentpen=p;
+        currentpicture=pic;
+        uptodate(false);
+        restore=r;
+      };
+    });
 
 // Save the current state, so that restore will put things back in that state.
 restoreThunk save() 
