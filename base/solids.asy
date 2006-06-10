@@ -1,6 +1,6 @@
 public import three;
-import light;
-import graph3;
+public import light;
+public import graph3;
 
 // A solid geometry package.
 
