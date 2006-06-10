@@ -162,7 +162,7 @@ projection projection(triple camera, transform3 project,
 // points in three space to a plane at a distance d from the camera.
 projection perspective(triple camera)
 {
-  return projection(camera,distort(camera-O)*lookAt(O,camera));
+  return projection(camera,distort(camera)*lookAt(O,camera));
 }
 
 projection perspective(real x, real y, real z)
