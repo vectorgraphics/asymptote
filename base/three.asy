@@ -127,6 +127,7 @@ transform3 lookAt(triple target, triple eye, triple up=Z)
 {
   triple f=unit(target-eye);
   triple s=cross(f,unit(up));
+  if(s == O) return shift(-eye); // Requested orientation impossible.
   triple u=cross(s,f);
 
   transform3 M=new real[][] {{ s.x,  s.y,  s.z, 0},
