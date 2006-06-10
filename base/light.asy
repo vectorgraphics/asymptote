@@ -1,4 +1,4 @@
-import three;
+public import three;
 
 path defaultshading(real s0=0.03, real s1=0.25, real s2=1-s1, real s3=1-s0)
 {

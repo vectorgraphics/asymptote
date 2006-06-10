@@ -1,4 +1,4 @@
-import three;
+public import three;
 import light;
 import graph3;
 

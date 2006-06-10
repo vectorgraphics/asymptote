@@ -2,7 +2,7 @@
 
 private import math;
 import graph;
-import three;
+public import three;
 public import light;
 
 public int nmesh=10;
