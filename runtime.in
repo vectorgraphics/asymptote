@@ -2943,7 +2943,6 @@ intarray2 *triangulate(pairarray *z, realarray *v)
     pair w=read<pair>(z,i);
     pxyz[i].x=w.getx();
     pxyz[i].y=w.gety();
-    pxyz[i].z=read<real>(v,i);
     pxyz[i].i=i;
   }
   

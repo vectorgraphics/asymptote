@@ -20,7 +20,7 @@ struct IEDGE{
 };
 
 struct XYZ{
-  double x, y, z;
+  double x, y;
 	int i;
 };
 
