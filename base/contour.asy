@@ -430,3 +430,132 @@ void contour(picture pic=currentpicture, real[][] data,
 {
   draw(pic,contourguides(data,a,b,c,nx,ny,join),c,p);
 }
+
+
+// non-regularly spaced points routines:
+
+// check existing guides and adds new segment to them if possible,
+// or otherwise store segment as a new guide
+private void addseg(pair[][] gds, segment seg)
+{ 
+  if(!seg.active) return;
+  // search for a path to extend
+  for (int i=0; i < gds.length; ++i) {
+    pair[] gd=gds[i];
+    if(abs(gd[0]-seg.b) < eps) {
+      gd.insert(0,seg.a);
+      return;
+    } else if(abs(gd[gd.length-1]-seg.b) < eps) {
+      gd.push(seg.a); 
+      return;
+    } else if(abs(gd[0]-seg.a) < eps) {
+      gd.insert(0,seg.b);
+      return;
+    } else if(abs(gd[gd.length-1]-seg.a) < eps) {  
+      gd.push(seg.b);
+      return;
+    }
+  }
+ 
+  // in case nothing is found
+  pair[] segm;
+  segm=new pair[] {seg.a,seg.b}; 
+  gds.push(segm);
+  
+  return;
+}
+
+guide[][] contourguides(pair[] pts, real[] vls, 
+			real[] c, interpolate join=operator --)
+{
+	int[][] trn=triangulate(pts);
+
+  // array to store guides found so far
+  pair[][][] gds=new pair[c.length][0][0];
+	
+	for(int cnt=0; cnt < c.length; ++cnt) {
+		pair[][] gdscnt=gds[cnt];
+		for(int i=0; i < trn.length; ++i) {
+			int i0=trn[i][0], i1=trn[i][1], i2=trn[i][2];
+			addseg(gdscnt,checktriangle(pts[i0],pts[i1],pts[i2],
+					    vls[i0]-c[cnt],vls[i1]-c[cnt],vls[i2]-c[cnt],0));
+ 	  }
+	}
+
+  // connect existing paths
+  // use to reverse an array, omitting the first point
+  int[] reverseF(int n) {return sequence(new int(int x){return n-1-x;},n-1);}
+  // use to reverse an array, omitting the last point
+  int[] reverseL(int n) {return sequence(new int(int x){return n-2-x;},n-1);}
+  
+  for(int cnt=0; cnt < c.length; ++cnt) {
+    pair[][] gdscnt=gds[cnt];
+    for(int i=0; i < gdscnt.length; ++i) {
+      pair[] gig=gdscnt[i];
+      int Li=gig.length;
+      for(int j=i+1; j < gdscnt.length; ++j) {
+        pair[] gjg=gdscnt[j];
+	int Lj=gjg.length;
+        if(abs(gig[0]-gjg[0]) < eps) { 
+	  gdscnt[j]=gjg[reverseF(Lj)];
+	  gdscnt[j].append(gig);
+          gdscnt.delete(i); 
+          --i; 
+          break;
+        } else if(abs(gig[0]-gjg[Lj-1]) < eps) {
+	  gig.delete(0);
+	  gdscnt[j].append(gig);
+          gdscnt.delete(i);
+          --i;
+          break;
+        } else if(abs(gig[Li-1]-gjg[0]) < eps) {
+	  gjg.delete(0);
+	  gig.append(gjg);
+	  gdscnt[j]=gig;
+          gdscnt.delete(i);
+          --i;
+          break;
+        } else if(abs(gig[Li-1]-gjg[Lj-1]) < eps) {
+	  gig.append(gjg[reverseL(Lj)]);
+          gdscnt[j]=gig;
+          gdscnt.delete(i);
+          --i;
+          break;
+        } 
+      }
+    }
+  }
+
+  // set up return value
+  guide[][] result=new guide[c.length][0];
+  for(int cnt=0; cnt < c.length; ++cnt) {
+    pair[][] gdscnt=gds[cnt];
+    guide[] resultcnt=result[cnt]=new guide[gdscnt.length];
+    for(int i=0; i < gdscnt.length; ++i) {
+      pair[] pts=gdscnt[i];
+      guide gd=pts[0];
+      for(int j=1; j < pts.length-1; ++j)
+      	gd=join(gd,pts[j]);
+      if(abs(pts[0]-pts[pts.length-1]) < eps)
+        gd=gd..cycle;
+      else
+	gd=join(gd,pts[pts.length-1]);
+      resultcnt[i]=gd;
+    }
+  }
+  return result;
+}
+
+void draw(picture pic=currentpicture, guide[][] g, real[] c, pen p(real))
+{	
+  for(int cnt=0; cnt < c.length; ++cnt)
+    for(int i=0; i < g[cnt].length; ++i)
+      draw(pic,g[cnt][i],p(c[cnt]));
+}
+
+void contour(picture pic=currentpicture, pair[] pts,
+			 real[] vls, real[] c, interpolate join=operator --, 
+			 pen p(real)=currentpen)
+{
+  draw(pic,contourguides(pts,vls,c,join),c,p);
+}

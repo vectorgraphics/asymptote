@@ -2937,9 +2937,9 @@ pairarray* :pairArrayFFT(pairarray *a, int sign=1)
 }
 
 // Call Gilles Dumoulin's port of Paul Bourke's triangulation code.
-intarray2 *triangulate(pairarray *z, realarray *v)
+intarray2 *triangulate(pairarray *z)
 {
-  size_t nv=checkArrays(z,v);
+  size_t nv=checkArray(z);
 
   XYZ *pxyz=new XYZ[nv+3];
   ITRIANGLE *V=new ITRIANGLE[3*nv];
