@@ -66,6 +66,11 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn)
   return true;
 }   
 
+inline double urand()
+{			  
+  static const double factor=2.0/RAND_MAX;
+  return rand()*factor-1.0;
+}
 
 void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
 		       bboxlist&)
@@ -139,7 +144,8 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
 	  break;
 	}
 
-	pair Align=(align == pair(0,0)) ? pair(1,0) : unit(align);
+	pair Align=(align == pair(0,0)) ? unit(pair(urand(),urand())) :
+	  unit(align);
 	double s=0.1*pentype.size();
 	double dx=0, dy=0;
 	if(Align.getx() > 0.1) dx=labelbounds[i].xmax()-Box.xmin()+s;
