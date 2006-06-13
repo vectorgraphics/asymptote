@@ -3347,7 +3347,7 @@ a null array);
 if @code{m >= n} returns an array @code{@{n,n+1,...,m@}} (otherwise
 returns a null array);
 
-@item T[] sequence(T f(int),n)
+@item T[] sequence(T f(int), int n)
 if @code{n >= 1} returns the sequence @code{@{f_i :i=0,1,...n-1@}} given a
 function @code{T f(int)} and integer @code{int n} (otherwise returns a
 null array);
@@ -3608,9 +3608,8 @@ after every @math{n} output lines (press @code{Enter} to continue).
 @code{pair} to @code{guide}, @code{path} to @code{guide}, @code{guide}
 to @code{path}, @code{real} to @code{pen},
 @code{pair[]} to @code{guide[]}, @code{pair[]} to @code{path[]}, 
-@code{path} to @code{path[]}, @code{guide} to @code{path[]}, 
-and @code{pen} to @code{pen(real)}, along with various three-dimensional
-casts defined in @code{three.asy}.
+@code{path} to @code{path[]}, and @code{guide} to @code{path[]}, 
+along with various three-dimensional casts defined in @code{three.asy}.
 Implicit casts are automatically attempted on assignment and when
 trying to match function calls with possible function
 signatures. Implicit casting can be inhibited by declaring individual
@@ -5922,16 +5921,23 @@ The default interpolation operator is @code{operator --} (linear).
 Spline interpolation (@code{operator ..}) generally produces more
 accurate pictures, but as usual, can overshoot in certain cases.
 
-While the function @code{contour} accepts pen-producing functions for
-greatest flexibility, scalar pens are implicitly cast to a pen(real)
-function returning that pen.
-
-To draw a contour of data in an array of values at regularly spaced
-points, use
+To construct contours for an array of data values on a uniform
+two-dimensional lattice, use
 @verbatim
-void contour(picture pic=currentpicture, real[][] data,
-             pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
-             interpolate join=operator --, pen p(real)=currentpen);
+guide[][] contour(real[][] f, real[][] midpoint=new real[][],
+		  pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
+		  interpolate join=operator --);
+
+guide[][] contour(real f(real, real), pair a, pair b,
+		  real[] c, int nx=nmesh, int ny=nx,
+		  interpolate join=operator --);
+@end verbatim
+
+The contours themselves can be drawn with one of the routines
+@verbatim
+void draw(picture pic=currentpicture, guide[][] g, pen p=currentpen);
+
+void draw(picture pic=currentpicture, guide[][] g, pen[] p);
 @end verbatim
 
 The following simple example draws the contour at value @code{1}
@@ -5944,6 +5950,15 @@ The next example draws multiple contours for the function
 pen for negative contours and a solid pen for positive (and zero) contours:
 @verbatiminclude contour2.asy
 @image{contour2}
+
+To draw a contour of data in an array of values at irregularly spaced
+points, use
+@verbatim
+guide[][] contour(pair[] points, real[] values, 
+		  real[] c, interpolate join=operator --);
+@end verbatim
+@verbatiminclude contour3.asy
+@image{contour3}
 
 @node slopefield
 @section @code{slopefield}

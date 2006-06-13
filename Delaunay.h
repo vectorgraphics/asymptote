@@ -25,7 +25,8 @@ struct XYZ{
 };
 
 int XYZCompare(const void *v1, const void *v2);
-int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri);
+int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri,
+		bool presort=true, bool postsort=true);
 int CircumCircle(double, double, double, double, double, double, double, 
 double, double&, double&, double&);
 

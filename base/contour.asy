@@ -137,9 +137,9 @@ typedef guide interpolate(... guide[]);
 // c:        contour level
 // nx,ny:    subdivisions on x and y axes (affects accuracy)
 // join:     interpolation operator (linear, bezier, etc)
-guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
-			pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
-			interpolate join=operator --)
+guide[][] contour(real[][] f, real[][] midpoint=new real[][],
+		  pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
+		  interpolate join=operator --)
 {
   c=sort(c);
   bool midpoints=midpoint.length > 0;
@@ -390,9 +390,9 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
   return result;
 }
 
-guide[][] contourguides(real f(real, real), pair a, pair b,
-			real[] c, int nx=nmesh, int ny=nx,
-			interpolate join=operator --)
+guide[][] contour(real f(real, real), pair a, pair b,
+		  real[] c, int nx=nmesh, int ny=nx,
+		  interpolate join=operator --)
 {
   // evaluate function at points and midpoints
   real[][] dat=new real[nx+1][ny+1];
@@ -407,30 +407,22 @@ guide[][] contourguides(real f(real, real), pair a, pair b,
     }
   }
 
-  return contourguides(dat,midpoint,a,b,c,nx,ny,join);
+  return contour(dat,midpoint,a,b,c,nx,ny,join);
 }
   
-void draw(picture pic=currentpicture, guide[][] g, real[] c, pen p(real))
+void draw(picture pic=currentpicture, guide[][] g, pen p=currentpen)
 {
-  for(int cnt=0; cnt < c.length; ++cnt)
+  for(int cnt=0; cnt < g.length; ++cnt)
     for(int i=0; i < g[cnt].length; ++i)
-      draw(pic,g[cnt][i],p(c[cnt]));
+      draw(pic,g[cnt][i],p);
 }
 
-void contour(picture pic=currentpicture, real f(real, real),
-	     pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
-	     interpolate join=operator --, pen p(real)=currentpen)
+void draw(picture pic=currentpicture, guide[][] g, pen[] p)
 {
-  draw(pic,contourguides(f,a,b,c,nx,ny,join),c,p);
+  for(int cnt=0; cnt < g.length; ++cnt)
+    for(int i=0; i < g[cnt].length; ++i)
+      draw(pic,g[cnt][i],p[cnt]);
 }
-
-void contour(picture pic=currentpicture, real[][] data,
-	     pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
-	     interpolate join=operator --, pen p(real)=currentpen)
-{
-  draw(pic,contourguides(data,a,b,c,nx,ny,join),c,p);
-}
-
 
 // non-regularly spaced points routines:
 
@@ -440,7 +432,7 @@ private void addseg(pair[][] gds, segment seg)
 { 
   if(!seg.active) return;
   // search for a path to extend
-  for (int i=0; i < gds.length; ++i) {
+  for(int i=0; i < gds.length; ++i) {
     pair[] gd=gds[i];
     if(abs(gd[0]-seg.b) < eps) {
       gd.insert(0,seg.a);
@@ -465,22 +457,23 @@ private void addseg(pair[][] gds, segment seg)
   return;
 }
 
-guide[][] contourguides(pair[] pts, real[] vls, 
-			real[] c, interpolate join=operator --)
+guide[][] contour(pair[] points, real[] values, 
+		  real[] c, interpolate join=operator --)
 {
-	int[][] trn=triangulate(pts);
+  int[][] trn=triangulate(points);
 
   // array to store guides found so far
   pair[][][] gds=new pair[c.length][0][0];
 	
-	for(int cnt=0; cnt < c.length; ++cnt) {
-		pair[][] gdscnt=gds[cnt];
-		for(int i=0; i < trn.length; ++i) {
-			int i0=trn[i][0], i1=trn[i][1], i2=trn[i][2];
-			addseg(gdscnt,checktriangle(pts[i0],pts[i1],pts[i2],
-					    vls[i0]-c[cnt],vls[i1]-c[cnt],vls[i2]-c[cnt],0));
- 	  }
-	}
+  for(int cnt=0; cnt < c.length; ++cnt) {
+    pair[][] gdscnt=gds[cnt];
+    for(int i=0; i < trn.length; ++i) {
+      int i0=trn[i][0], i1=trn[i][1], i2=trn[i][2];
+      addseg(gdscnt,checktriangle(points[i0],points[i1],points[i2],
+				  values[i0]-c[cnt],values[i1]-c[cnt],
+				  values[i2]-c[cnt],0));
+    }
+  }
 
   // connect existing paths
   // use to reverse an array, omitting the first point
@@ -544,18 +537,4 @@ guide[][] contourguides(pair[] pts, real[] vls,
     }
   }
   return result;
-}
-
-void draw(picture pic=currentpicture, guide[][] g, real[] c, pen p(real))
-{	
-  for(int cnt=0; cnt < c.length; ++cnt)
-    for(int i=0; i < g[cnt].length; ++i)
-      draw(pic,g[cnt][i],p(c[cnt]));
-}
-
-void contour(picture pic=currentpicture, pair[] pts,
-			 real[] vls, real[] c, interpolate join=operator --, 
-			 pen p(real)=currentpen)
-{
-  draw(pic,contourguides(pts,vls,c,join),c,p);
 }

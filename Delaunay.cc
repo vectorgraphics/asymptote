@@ -78,9 +78,11 @@ int XYZCompare(const void *v1, const void *v2)
 //   These triangles are arranged in a consistent clockwise order.
 //   The triangle array 'v' should be allocated to 3 * nv
 //   The vertex array pxyz must be big enough to hold 3 additional points.
+//   By default, the array pxyz is automatically presorted and postsorted.
 ///////////////////////////////////////////////////////////////////////////////
 
-int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri)
+int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri,
+		bool presort, bool postsort)
 {
   int *complete = NULL;
   IEDGE *edges = NULL; 
@@ -93,7 +95,8 @@ int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri)
   double xmin, xmax, ymin, ymax, xmid, ymid;
   double dx, dy, dmax; 
 
-  qsort(pxyz,nv,sizeof(XYZ),XYZCompare);
+  if(presort) qsort(pxyz,nv,sizeof(XYZ),XYZCompare);
+  else postsort=false;
   
 /* Allocate memory for the completeness list, flag for each triangle */
   trimax = 4 * nv;
@@ -239,12 +242,13 @@ int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri)
   delete[] edges;
   delete[] complete;
 
-	// Desort 
-  for(i = 0; i < ntri; i++) {
-		v[i].p1=pxyz[v[i].p1].i;
-		v[i].p2=pxyz[v[i].p2].i;
-		v[i].p3=pxyz[v[i].p3].i;
-	}
+  if(postsort) { 
+    for(i = 0; i < ntri; i++) {
+      v[i].p1=pxyz[v[i].p1].i;
+      v[i].p2=pxyz[v[i].p2].i;
+      v[i].p3=pxyz[v[i].p3].i;
+    }
+  }
 
   return 0;
 } 

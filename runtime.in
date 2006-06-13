@@ -2952,16 +2952,16 @@ intarray2 *triangulate(pairarray *z)
   }
   
   int ntri;
-  Triangulate((int) nv,pxyz,V,ntri);
+  Triangulate((int) nv,pxyz,V,ntri,true,false);
 
   size_t nt=(size_t) ntri;
   array *t=new array(nt);
   for(size_t i=0; i < nt; ++i) {
     array *ti=new array(3);
     (*t)[i]=ti;
-    (*ti)[0]=V[i].p1;
-    (*ti)[1]=V[i].p2;
-    (*ti)[2]=V[i].p3;
+    (*ti)[0]=pxyz[V[i].p1].i;
+    (*ti)[1]=pxyz[V[i].p2].i;
+    (*ti)[2]=pxyz[V[i].p3].i;
   }
    
   delete[] V;
