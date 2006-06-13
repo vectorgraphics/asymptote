@@ -1,5 +1,5 @@
-guide arrowhead(path g, real position, pen p=currentpen,
-		real size=0, real angle=arrowangle)
+public guide arrowhead(path g, real position, pen p=currentpen,
+		       real size=0, real angle=arrowangle)
 {
   if(size == 0) size=arrowsize(p);
   path r=subpath(g,position,0.0);
@@ -17,10 +17,10 @@ guide arrowhead(path g, real position, pen p=currentpen,
     ..cycle;
 }
 
-void arrowheadbbox(picture pic=currentpicture, path g,
-		   position position=EndPoint,
-		   pen p=currentpen, real size=0,
-		   real angle=arrowangle)
+public void arrowheadbbox(picture pic=currentpicture, path g,
+			  position position=EndPoint,
+			  pen p=currentpen, real size=0,
+			  real angle=arrowangle)
 {
   // Estimate the bounding box contribution using the local slope at endpoint
   // and ignoring margin.
