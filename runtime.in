@@ -1087,10 +1087,15 @@ void abort(string *msg)
   error(msg->c_str());
 }
 
-void assert(bool b)
+void assert(bool b, string s=emptystring)
 {
   flush(cout);
-  if(!b) error("assert FAILED.");
+  if(!b) {
+    ostringstream buf;
+    buf << "assert FAILED";
+    if(s != "") buf << ": " << s << endl;
+    error(buf);
+  }
 }
 
 void _eval(string *s, bool embedded)
