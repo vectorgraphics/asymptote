@@ -573,7 +573,8 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
       }
 
     } else { // Logarithmic
-      int base=round(locate.S.Tinv(1));
+      int base=round(locate.S.scale.Tinv(1));
+
       if(ticklabel == null) 
 	ticklabel=format == "%" ? 
 	  new string(real x) {return "";} : LogFormat(base);
@@ -614,7 +615,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
 	  }
 	  if(n > 0) {
 	    for(int j=2; j < n; ++j) {
-	      real val=(i+1+locate.S.T(j/n));
+	      real val=(i+1+locate.S.scale.T(j/n));
 	      if(val >= a && val <= b)
 		drawtick(f,T,g,g2,locate,val,size,sign,ptick,extend);
 	    }
