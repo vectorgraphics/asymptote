@@ -57,18 +57,18 @@ restoreThunk buildRestoreThunk()
 {
   // Call the save functions in reverse order, storing their restore thunks.
   restoreThunk[] thunks={};
-  for (int i=saveFunctions.length-1; i>=0; --i)
+  for (int i=saveFunctions.length-1; i >= 0; --i)
     thunks.push(saveFunctions[i]());
 
-  return new void () {
+  return new void() {
       // Call the restore thunks in an order matching the saves.
-      for (int i=thunks.length-1; i>=0; --i)
+      for (int i=thunks.length-1; i >= 0; --i)
         thunks[i]();
     };
 }
 
 // Add the default save function.
-addSaveFunction( new restoreThunk () {
+addSaveFunction(new restoreThunk () {
       pen defaultpen=defaultpen();
       pen p=currentpen;
       picture pic=currentpicture.copy();

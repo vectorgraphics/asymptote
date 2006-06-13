@@ -176,11 +176,11 @@ public projection currentprojection;
 
 // With this, save() and restore() in plain also save and restore the
 // currentprojection.
-addSaveFunction( new restoreThunk () {
+addSaveFunction(new restoreThunk() {
     projection P=currentprojection.copy();
     return new void() {
-        currentprojection=P;
-      };
+      currentprojection=P;
+    };
   });
 
 

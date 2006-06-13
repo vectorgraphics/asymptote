@@ -415,11 +415,6 @@ void draw(picture pic=currentpicture, guide[][] g, real[] c, pen p(real))
   for(int cnt=0; cnt < c.length; ++cnt)
     for(int i=0; i < g[cnt].length; ++i)
       draw(pic,g[cnt][i],p(c[cnt]));
-  /*
-  for(int cnt=0; cnt < c.length; ++cnt)
-    for(int i=0; i < g[cnt].length; ++i)
-      label(pic,Label((string) c[cnt],align=(0,0),UnFill),g[cnt][i],p(c[cnt]));
-  */
 }
 
 void contour(picture pic=currentpicture, real f(real, real),
