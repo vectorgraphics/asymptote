@@ -1,152 +1,132 @@
-// Contour routines written by Radoslav Marinov (optimized by John Bowman).
+// Contour routines written by Radoslav Marinov and John Bowman.
 	 
+public int nmesh=25; // default mesh subdivisions
 public real eps=10*realEpsilon;
-public int nmesh=25;       // default mesh subdivisions
 
-private struct cgd
-{
-  public pair[] g;	  // nodes
-  public bool actv=true;  // is guide active
-  public bool exnd=true;  // has the guide been extended
-}
-  
-cgd operator init() {return new cgd;}
+//                         1  
+//             6 +-------------------+ 5
+//               | \               / |
+//               |   \          /    |
+//               |     \       /     |
+//               |       \   /       |
+//             2 |         X         | 0
+//               |       /   \       |
+//               |     /       \     |
+//               |   /           \   |
+//               | /               \ |
+//             7 +-------------------+ 4 or 8
+//                         3  
 
 private struct segment
 {
-  public pair a;
-  public pair b;
-  public bool empty=true; // is the segment empty
+  public bool active;
+  public pair a,b;	  // Endpoints; a is always an edge point if one exists.
+  public int c;           // Contour value.
+  public int edge;        // -1: interior, 0 to 3: edge,
+                          // 4-8: single edge vertex, 9: double edge vertex.
 }
-  
+
 segment operator init() {return new segment;}
 
 // Case 1: line passes through two vertices of a triangle
-private segment case1(pair pt1, pair pt2)
+private segment case1(pair p0, pair p1, int edge)
 {
-  // Will cause a duplicate guide; luckily case1 is very rare
+  // Will cause a duplicate guide; luckily case1 is rare
   segment rtrn;
-  rtrn.a=pt1;
-  rtrn.b=pt2;
-  rtrn.empty=false;
+  rtrn.active=true;
+  rtrn.a=p0;
+  rtrn.b=p1;
+  rtrn.edge=edge;
   return rtrn;
 }
 
-// Case 2: line passes a vertex and a side of a triangle
+// Case 2: line passes through a vertex and a side of a triangle
 // (the first vertex passed and the side between the other two)
-private segment case2(pair pts0, pair pts1, pair pts2,
-		      real vls0, real vls1, real vls2)
+private segment case2(pair p0, pair p1, pair p2,
+		      real v0, real v1, real v2, int edge)
 {
   segment rtrn;
-  rtrn.a=pts0;
-  rtrn.b=interp(pts1,pts2,abs(vls1/(vls2-vls1)));
-  rtrn.empty=false;
+  pair val=interp(p1,p2,abs(v1/(v2-v1)));
+  rtrn.active=true;
+  if(edge < 4) {
+    rtrn.a=val;
+    rtrn.b=p0;
+  } else {
+    rtrn.a=p0;
+    rtrn.b=val;
+  }
+  rtrn.edge=edge;
   return rtrn;
 }
 
 // Case 3: line passes through two sides of a triangle
 // (through the sides formed by the first & second, and second & third
 // vertices)
-private segment case3(pair pts0, pair pts1, pair pts2,
-		      real vls0, real vls1, real vls2)
+private segment case3(pair p0, pair p1, pair p2,
+		      real v0, real v1, real v2, int edge=-1)
 {
   segment rtrn;
-  rtrn.a=interp(pts1,pts2,abs(vls1/(vls2-vls1)));
-  rtrn.b=interp(pts1,pts0,abs(vls1/(vls0-vls1)));
-  rtrn.empty=false;
+  rtrn.active=true;
+  rtrn.a=interp(p1,p0,abs(v1/(v0-v1)));
+  rtrn.b=interp(p1,p2,abs(v1/(v2-v1)));
+  rtrn.edge=edge;
   return rtrn;
 }
 
 // Check if a line passes through a triangle, and draw the required line.
-private segment checktriangle(pair pts0, pair pts1, pair pts2,
-			      real vls0, real vls1, real vls2)
-{  
+private segment checktriangle(pair p0, pair p1, pair p2,
+			      real v0, real v1, real v2, int edge)
+{
   // default null return  
   static segment dflt;
+
+  real eps=eps*max(abs(v0),abs(v1),abs(v2));
   
-  if(vls0 < 0) {
-    if(vls1 < 0) {
-      if(vls2 < 0) return dflt; // nothing to do
-      else if(vls2 == 0) return dflt; // nothing to do
-      else return case3(pts0,pts2,pts1,vls0,vls2,vls1);
-    } else if(vls1 == 0) {
-      if(vls2 < 0) return dflt; // nothing to do
-      else if(vls2 == 0) return case1(pts1,pts2);
-      else return case2(pts1,pts0,pts2,vls1,vls0,vls2);
+  if(v0 < -eps) {
+    if(v1 < -eps) {
+      if(v2 < -eps) return dflt; // nothing to do
+      else if(v2 <= eps) return dflt; // nothing to do
+      else return case3(p0,p2,p1,v0,v2,v1);
+    } else if(v1 <= eps) {
+      if(v2 < -eps) return dflt; // nothing to do
+      else if(v2 <= eps) return case1(p1,p2,5+edge);
+      else return case2(p1,p0,p2,v1,v0,v2,5+edge);
     } else {
-      if(vls2 < 0) return case3(pts0,pts1,pts2,vls0,vls1,vls2);
-      else if(vls2 == 0) 
-	return case2(pts2,pts0,pts1,vls2,vls0,vls1);
-      else return case3(pts2,pts0,pts1,vls2,vls0,vls1);
+      if(v2 < -eps) return case3(p0,p1,p2,v0,v1,v2,edge);
+      else if(v2 <= eps) 
+	return case2(p2,p0,p1,v2,v0,v1,edge);
+      else return case3(p1,p0,p2,v1,v0,v2,edge);
     } 
-  } else if(vls0 == 0) {
-    if(vls1 < 0) {
-      if(vls2 < 0) return dflt; // nothing to do
-      else if(vls2 == 0) return case1(pts0,pts2);
-      else return case2(pts0,pts1,pts2,vls0,vls1,vls2);
-    } else if(vls1 == 0) {
-      if(vls2 < 0) return case1(pts0,pts1);
-      else if(vls2 == 0) return dflt; // use finer partitioning.
-      else return case1(pts0,pts1);
+  } else if(v0 <= eps) {
+    if(v1 < -eps) {
+      if(v2 < -eps) return dflt; // nothing to do
+      else if(v2 <= eps) return case1(p0,p2,4+edge);
+      else return case2(p0,p1,p2,v0,v1,v2,4+edge);
+    } else if(v1 <= eps) {
+      if(v2 < -eps) return case1(p0,p1,9);
+      else if(v2 <= eps) return dflt; // use finer partitioning.
+      else return case1(p0,p1,9);
     } else {
-      if(vls2 < 0) return case2(pts0,pts1,pts2,vls0,vls1,vls2);
-      else if(vls2 == 0) return case1(pts0,pts2);
+      if(v2 < -eps) return case2(p0,p1,p2,v0,v1,v2,4+edge);
+      else if(v2 <= eps) return case1(p0,p2,4+edge);
       else return dflt; // nothing to do
     } 
   } else {
-    if(vls1 < 0) {
-      if(vls2 < 0) return case3(pts2,pts0,pts1,vls2,vls0,vls1);
-      else if(vls2 == 0)
-	return case2(pts2,pts0,pts1,vls2,vls0,vls1);
-      else return case3(pts0,pts1,pts2,vls0,vls1,vls2);
-    } else if(vls1 == 0) {
-      if(vls2 < 0) return case2(pts1,pts0,pts2,vls1,vls0,vls2);
-      else if(vls2 == 0) return case1(pts1,pts2);
+    if(v1 < -eps) {
+      if(v2 < -eps) return case3(p1,p0,p2,v1,v0,v2,edge);
+      else if(v2 <= eps)
+	return case2(p2,p0,p1,v2,v0,v1,edge);
+      else return case3(p0,p1,p2,v0,v1,v2,edge);
+    } else if(v1 <= eps) {
+      if(v2 < -eps) return case2(p1,p0,p2,v1,v0,v2,5+edge);
+      else if(v2 <= eps) return case1(p1,p2,5+edge);
       else return dflt; // nothing to do
     } else {
-      if(vls2 < 0) return case3(pts0,pts2,pts1,vls0,vls2,vls1);
-      else if(vls2 == 0) return dflt; // nothing to do
+      if(v2 < -eps) return case3(p0,p2,p1,v0,v2,v1);
+      else if(v2 <= eps) return dflt; // nothing to do
       else return dflt; // nothing to do
     } 
   }      
-}
-
-// check existing guides and adds new segment to them if possible,
-// or otherwise store segment as a new guide
-private void addseg(cgd[] gds, segment seg)
-{ 
-  if(seg.empty) return;
-  // initialization 
-  // search for a path to extend
-  for (int i=0; i < gds.length; ++i) {
-    cgd gdsi=gds[i];
-    if(!gdsi.actv) continue;
-    pair[] gd=gdsi.g;
-    if(abs(gd[0]-seg.b) < eps) {
-      gdsi.g.insert(0,seg.a);
-      gdsi.exnd=true; 
-      return;
-    } else if(abs(gd[gd.length-1]-seg.b) < eps) {
-      gdsi.g.push(seg.a);
-      gdsi.exnd=true; 
-      return;
-    } else if(abs(gd[0]-seg.a) < eps) {
-      gdsi.g.insert(0,seg.b);
-      gdsi.exnd=true;
-      return;
-    } else if(abs(gd[gd.length-1]-seg.a) < eps) {  
-      gdsi.g.push(seg.b);
-      gdsi.exnd=true; 
-      return;
-    }
-  }
- 
-  // in case nothing is found
-  cgd segm;
-  segm.g=new pair[] {seg.a,seg.b}; 
-  gds.push(segm);
-  
-  return;
 }
 
 typedef guide interpolate(... guide[]);
@@ -170,8 +150,7 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
 		is above and to the right of the first one.");
   } 
 
-  // array to store guides found so far
-  cgd[][] gds=new cgd[c.length][0];
+  segment segments[][][]=new segment[nx][ny][0];
 
   real dx=(b.x-a.x)/nx;
   real dy=(b.y-a.y)/ny;
@@ -181,8 +160,10 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
     real x=a.x+i*dx;
     real[] fi=f[i];
     real[] fi1=f[i+1];
+    segment[][] segmentsi=segments[i];
     for(int j=0; j < ny; ++j) {
       real y=a.y+j*dy;
+      segment[] segmentsij=segmentsi[j];
       
       // define points
       pair bleft=(x,y);
@@ -209,9 +190,11 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
         int countp=0;
 	
 	void check(real vertdat) {
-          if(abs(vertdat) < eps) ++countz; 
-          else if(vertdat < 0) ++countm;
-          else ++countp;
+	  if(vertdat < -eps) ++countm;
+          else {
+	    if(vertdat <= eps) ++countz; 
+	    else ++countp;
+	  }
 	}
 	
 	check(vertdat0);
@@ -229,16 +212,21 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
       
         // go through the triangles
 	
-	cgd[] gdscnt=gds[cnt];
-	
-	addseg(gdscnt,checktriangle(tleft,tright,middle,
-				    vertdat2,vertdat3,vertdat4));
-	addseg(gdscnt,checktriangle(tright,bright,middle,
-				    vertdat3,vertdat1,vertdat4));
-	addseg(gdscnt,checktriangle(bright,bleft,middle,
-				    vertdat1,vertdat0,vertdat4));
-	addseg(gdscnt,checktriangle(bleft,tleft,middle,
-				    vertdat0,vertdat2,vertdat4));
+	void addseg(segment seg) { 
+	  if(seg.active) {
+	    seg.c=cnt;
+	    segmentsij.push(seg);
+	  }
+	}
+
+	addseg(checktriangle(bright,tright,middle,
+			     vertdat1,vertdat3,vertdat4,0));
+	addseg(checktriangle(tright,tleft,middle,
+			     vertdat3,vertdat2,vertdat4,1));
+	addseg(checktriangle(tleft,bleft,middle,
+			     vertdat2,vertdat0,vertdat4,2));
+	addseg(checktriangle(bleft,bright,middle,
+			     vertdat0,vertdat1,vertdat4,3));
 	return 0;
       }
       
@@ -256,71 +244,138 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
     
       process(0,c.length);
     }
-      
-    // check which guides are still extendable
-    for(int cnt=0; cnt < c.length; ++cnt) {
-      cgd[] gdscnt=gds[cnt];
-      for(int i=0; i < gdscnt.length; ++i) {
-	cgd gdscnti=gdscnt[i];
-        if(gdscnti.exnd) gdscnti.exnd=false;
-        else gdscnti.actv=false;
-      }
-    }
   }
 
-  // connect existing paths
-  
-  // use to reverse an array, omitting the first point
-  int[] reverseF(int n) {return sequence(new int(int x){return n-1-x;},n-1);}
-  // use to reverse an array, omitting the last point
-  int[] reverseL(int n) {return sequence(new int(int x){return n-2-x;},n-1);}
-  
-  for(int cnt=0; cnt < c.length; ++cnt) {
-    cgd[] gdscnt=gds[cnt];
-    for(int i=0; i < gdscnt.length; ++i) {
-      pair[] gig=gdscnt[i].g;
-      int Li=gig.length;
-      for(int j=i+1; j < gdscnt.length; ++j) {
-        cgd gj=gdscnt[j];
-        pair[] gjg=gj.g;
-	int Lj=gjg.length;
-        if(abs(gig[0]-gjg[0]) < eps) { 
-	  gj.g=gjg[reverseF(Lj)];
-	  gj.g.append(gig);
-          gdscnt.delete(i); 
-          --i; 
-          break;
-        } else if(abs(gig[0]-gjg[Lj-1]) < eps) {
-	  gig.delete(0);
-	  gjg.append(gig);
-          gdscnt.delete(i);
-          --i;
-          break;
-        } else if(abs(gig[Li-1]-gjg[0]) < eps) {
-	  gjg.delete(0);
-	  gig.append(gjg);
-	  gj.g=gig;
-          gdscnt.delete(i);
-          --i;
-          break;
-        } else if(abs(gig[Li-1]-gjg[Lj-1]) < eps) {
-	  gig.append(gjg[reverseL(Lj)]);
-          gj.g=gig;
-          gdscnt.delete(i);
-          --i;
-          break;
-        } 
-      }
-    }
-  }
 
   // set up return value
+  pair[][][] points=new pair[c.length][0][0];
+
+  for(int i=0; i < nx; ++i) {
+    segment[][] segmentsi=segments[i];
+    for(int j=0; j < ny; ++j) {
+      segment[] segmentsij=segmentsi[j];
+      for(int k=0; k < segmentsij.length; ++k) {
+	segment C=segmentsij[k];
+
+	if(!C.active) continue;
+
+	pair[] g=new pair[] {C.a,C.b};
+	segmentsij[k].active=false;
+
+	int forward(int I, int J, bool first=true) {
+	  if(I >= 0 && I < nx && J >= 0 && J < ny) {
+	    segment[] segmentsIJ=segments[I][J];
+	    for(int l=0; l < segmentsIJ.length; ++l) {
+	      segment D=segmentsIJ[l];
+	      if(!D.active) continue;
+	      if(abs(D.a-g[g.length-1]) < eps) {
+		g.push(D.b);
+		segmentsIJ[l].active=false;
+		if(D.edge >= 0 && !first) return D.edge;
+		first=false;
+		l=-1;
+	      } else if(abs(D.b-g[g.length-1]) < eps) {
+		g.push(D.a);
+		segmentsIJ[l].active=false;
+		if(D.edge >= 0 && !first) return D.edge;
+		first=false;
+		l=-1;
+	      }
+	    }
+	  }
+	  return -1;
+	}
+	
+	int backward(int I, int J, bool first=true) {
+	  if(I >= 0 && I < nx && J >= 0 && J < ny) {
+	    segment[] segmentsIJ=segments[I][J];
+	    for(int l=0; l < segmentsIJ.length; ++l) {
+	      segment D=segmentsIJ[l];
+	      if(!D.active) continue;
+	      if(abs(D.a-g[0]) < eps) {
+		g.insert(0,D.b);
+		segmentsIJ[l].active=false;
+		if(D.edge >= 0 && !first) return D.edge;
+		first=false;
+		l=-1;
+	      } else if(abs(D.b-g[0]) < eps) {
+		g.insert(0,D.a);
+		segmentsIJ[l].active=false;
+		if(D.edge >= 0 && !first) return D.edge;
+		first=false;
+		l=-1;
+	      }
+	    }
+	  }
+	  return -1;
+	}
+	
+	void follow(int f(int, int, bool first=true), int edge) {
+	  int I=i;
+	  int J=j;
+	  while(true) {
+	    static int ix[]={1,0,-1,0};
+	    static int iy[]={0,1,0,-1};
+	    if(edge >= 0 && edge < 4) {
+	      I += ix[edge];
+	      J += iy[edge];
+	      edge=f(I,J);
+	    } else {
+	      if(edge == -1) break;
+	      if(edge < 9) {
+		int edge0=(edge-5) % 4;
+		int edge1=(edge-4) % 4;
+		int ix0=ix[edge0];
+		int iy0=iy[edge0];
+		I += ix0;
+		J += iy0;
+		// Search all 3 corner cells
+		if((edge=f(I,J)) == -1) {
+		  I += ix[edge1];
+		  J += iy[edge1];
+		  if((edge=f(I,J)) == -1) {
+		    I -= ix0;
+		    J -= iy0;
+		    edge=f(I,J);
+		  }
+		}
+	      } else {
+		// Two edge vertices: search all 8 surrounding cells
+		int I0=I;
+		int J0=J;
+		for(int i=-1; i <= 1; ++i) {
+		  for(int j=-1; j <= 1; ++j) {
+		    if(i == 0 && j == 0) continue;
+		    I=I0+i;
+		    J=J0+j;
+		    if((edge=f(I,J)) >= 0) break;
+		  }
+		}
+	      }
+	    }
+	  }
+	}
+
+	// Follow contour in cell
+	int edge=forward(i,j,first=false);
+
+	// Follow contour forward outside of cell
+	follow(forward,edge);
+
+	// Follow contour backward outside of cell
+	follow(backward,C.edge);
+
+	points[C.c].push(g);
+      }      
+    }
+  }
+
   guide[][] result=new guide[c.length][0];
   for(int cnt=0; cnt < c.length; ++cnt) {
-    cgd[] gdscnt=gds[cnt];
-    guide[] resultcnt=result[cnt]=new guide[gdscnt.length];
-    for(int i=0; i < gdscnt.length; ++i) {
-      pair[] pts=gdscnt[i].g;
+    pair[][] pointscnt=points[cnt];
+    guide[] resultcnt=result[cnt]=new guide[pointscnt.length];
+    for(int i=0; i < pointscnt.length; ++i) {
+      pair[] pts=pointscnt[i];
       guide gd=pts[0];
       for(int j=1; j < pts.length-1; ++j)
       	gd=join(gd,pts[j]);
@@ -331,6 +386,7 @@ guide[][] contourguides(real[][] f, real[][] midpoint=new real[][],
       resultcnt[i]=gd;
     }
   }
+
   return result;
 }
 
@@ -350,6 +406,7 @@ guide[][] contourguides(real f(real, real), pair a, pair b,
       midpoint[i][j]=f(x2,interp(a.y,b.y,(j+0.5)/ny));
     }
   }
+
   return contourguides(dat,midpoint,a,b,c,nx,ny,join);
 }
   
