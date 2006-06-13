@@ -309,24 +309,25 @@ pair labeltick(frame d, transform T, guide g, ticklocate locate, real val,
 {
   locateT locate1;
   locate1.calc(T,g,locate,val);
-  pair rot=dir(-F.angle);
-  pair align=rot*side*locate1.dir;
-  pair shift=dot(align,-sign*locate1.dir) <= 0 ? align*Size :
-    ticklabelshift(align,F.p);
-  pair Z=locate1.Z+shift;
+  pair align=side*locate1.dir;
+  pair perp=I*locate1.pathdir;
+
+  // Adjust tick label alignment
+  pair adjust=unit(align+0.75perp*sgn(dot(align,perp)));
+  // Project align onto adjusted direction.
+  align=adjust*dot(align,adjust);
+    pair shift=dot(align,-sign*locate1.dir) <= 0 ? align*Size :
+      ticklabelshift(align,F.p);
+
   if(abs(val) < epsilon*norm) val=0;
   // Fix epsilon errors at +/-1e-4
   // default format changes to scientific notation here
   if(abs(abs(val)-1e-4) < epsilon) val=sgn(val)*1e-4;
-  pair perp=I*locate1.pathdir;
-  // Adjust tick label alignment
-  pair adjust=unit(align+0.5*unit(perp*sgn(dot(align,perp))));
-  // Project align onto adjusted direction.
-  align=adjust*dot(align,adjust);
   string s=ticklabel(val);
+
   if(s != "") {
     s=baseline(s,align,"$10^4$");
-    label(d,rotate(F.angle)*s,Z,align,F.p,F.filltype);
+    label(d,rotate(F.angle)*s,locate1.Z+shift,align,F.p,F.filltype);
   }
   return locate1.pathdir;
 }  
@@ -467,8 +468,9 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     
     string format=F.s == "" ? defaultformat : F.s;
     if(F.s == "%") F.s="";
+
     if(F.align.dir != 0) side=F.align.dir;
-    else if(side == 0) side=rotate(F.angle)*((sign == 1) ? left : right);
+    else if(side == 0) side=((sign == 1) ? left : right);
     
     bool ticklabels=false;
     guide G=T*g;
