@@ -506,7 +506,7 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol *id)
   record *imp=e.e.getModule(id, (mem::string)*id);
   if (!imp) {
     em->error(pos);
-    *em << "could not load module of name '" << *id << "'";
+    *em << "could not load module '" << *id << "'";
     em->sync();
     return 0;
   }
