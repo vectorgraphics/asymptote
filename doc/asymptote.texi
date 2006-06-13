@@ -5904,13 +5904,13 @@ Here is a simple flowchart example:
 @node contour
 @section @code{contour}
 @cindex @code{contour}
-This package draws contour lines, given a function of two reals to one
-real, or given a two-dimensional array of values at regularly spaced points.
-The main function provided is
+This package draws contour lines.
+
+To construct contours for a given function, use
 @verbatim
-void contour(picture pic=currentpicture, real f(real, real),
-             pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
-             interpolate join=operator --, pen p(real)=currentpen);
+guide[][] contour(real f(real, real), pair a, pair b,
+		  real[] c, int nx=nmesh, int ny=nx,
+		  interpolate join=operator --);
 @end verbatim
 The contour lines @code{real[]c} for the function @code{f} are drawn
 on the rectangle defined by the bottom-left and top-right points @code{a}
@@ -5928,10 +5928,14 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
 		  pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
 		  interpolate join=operator --);
 
-guide[][] contour(real f(real, real), pair a, pair b,
-		  real[] c, int nx=nmesh, int ny=nx,
-		  interpolate join=operator --);
 @end verbatim
+
+To construct contoures for an array of non-regularly spaced points,
+along with an array of values at these points, use
+@verbatim
+guide[][] contour(pair[] points, real[] values, 
+		  real[] c, interpolate join=operator --);
+@end verbatim 
 
 The contours themselves can be drawn with one of the routines
 @verbatim
