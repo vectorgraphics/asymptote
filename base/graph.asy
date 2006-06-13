@@ -530,7 +530,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
       
       b += epsilon*norm;
       
-      int count=Step > 0 ? floor(b/Step)-ceil(a/Step)+1 : 0;
+      int count=Step > 0 ? floor((b-tickmin)/Step)-ceil((a-tickmin)/Step)+1 : 0;
       
       begingroup(f);
       if(opposite) draw(f,G,p);
