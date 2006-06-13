@@ -225,7 +225,7 @@ permission modifierList::getPermission()
     *em << "too many modifiers";
   }
 
-  return perms.empty() ? READONLY : perms.front();
+  return perms.empty() ? DEFAULT_PERM : perms.front();
 }
 
 
@@ -249,7 +249,7 @@ void modifiedRunnable::transAsField(coenv &e, record *r)
 
   permission p = mods->getPermission();
 #if 0 // This is innocuous 
-  if (p != READONLY && (!r || !body->allowPermissions())) {
+  if (p != DEFAULT_PERM && (!r || !body->allowPermissions())) {
     em->warning(pos);
     *em << "permission modifier is meaningless";
   }

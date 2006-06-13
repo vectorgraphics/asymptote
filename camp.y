@@ -94,7 +94,7 @@ using sym::symbol;
              '{' '}' '(' ')' '.' ','  '[' ']' ';' ELLIPSIS
              ACCESS UNRAVEL IMPORT INCLUDE FROM QUOTE STRUCT TYPEDEF NEW
              IF ELSE WHILE DO FOR BREAK CONTINUE RETURN_
-             STATIC PUBLIC_TOK PRIVATE_TOK THIS EXPLICIT
+             STATIC THIS EXPLICIT
 %token <e>   LIT
 %token <perm> PERM
 %token <mod> MODIFIER

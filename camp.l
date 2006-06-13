@@ -306,6 +306,7 @@ static             {adjust(); makemod(trans::EXPLICIT_STATIC);
                               return MODIFIER; }
 public             {adjust(); makeperm(trans::PUBLIC); return PERM; }
 private            {adjust(); makeperm(trans::PRIVATE); return PERM; }
+readable           {adjust(); makeperm(trans::READABLE); return PERM; }
 this               {adjust(); return THIS; }
 explicit           {adjust(); return EXPLICIT; }
 

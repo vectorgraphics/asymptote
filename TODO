@@ -1,5 +1,3 @@
-Andy: public:/private: default qualifiers
-
 Andy and John: (if possible) automatically turn expressions with array
 sub-expressions into iteration over the array(s)
     

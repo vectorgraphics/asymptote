@@ -2475,12 +2475,13 @@ string readline(string prompt="", string history="", string initial="",
 @cindex @code{new}
 
 Users may also define their own data types as structures, along with
-user-defined operators, much as in C++. By default, structure
-members are read-only when referenced outside the structure, but may be
-optionally declared @code{public} (read-write) or @code{private} (read
-and write allowed only inside the structure). The virtual structure @code{this}
-refers to the enclosing structure. Any code at the top-level scope
-within the structure is executed on initialization. 
+user-defined operators, much as in C++. By default, structure members
+are public and may be read and modified anywhere in the code, but may be
+optionally declared @code{readable} (readable anywhere but modifiable
+only inside the structure where they are defined) or @code{private}
+(read and write allowed only inside the structure). The virtual
+structure @code{this} refers to the enclosing structure. Any code at the
+top-level scope within the structure is executed on initialization. 
 
 A default initializer for a structure @code{S} can be defined by
 creating a function @code{S operator init()}. This can be used to

@@ -35,7 +35,7 @@ coder::coder(modifier sord)
     funtype(bootuptype()),
     parent(0),
     sord(sord),
-    perm(READONLY),
+    perm(DEFAULT_PERM),
     program(new vm::program),
     numLabels(0),
     curPos(position::nullPos())
@@ -54,7 +54,7 @@ coder::coder(function *t, coder *parent, modifier sord, bool reframe)
     funtype(t),
     parent(parent),
     sord(sord),
-    perm(READONLY),
+    perm(DEFAULT_PERM),
     program(new vm::program),
     numLabels(0),
     curPos(position::nullPos())
@@ -73,7 +73,7 @@ coder::coder(record *t, coder *parent, modifier sord)
     funtype(inittype()),
     parent(parent),
     sord(sord),
-    perm(READONLY),
+    perm(DEFAULT_PERM),
     program(new vm::program),
     numLabels(0),
     curPos(position::nullPos())

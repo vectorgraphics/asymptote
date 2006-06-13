@@ -105,7 +105,7 @@ syn keyword	asyType		pair triple transform guide path pen frame
 syn keyword     asyType         picture
 
 syn keyword	asyStructure	struct typedef
-syn keyword     asyStorageClass static public private explicit
+syn keyword     asyStorageClass static public readable private explicit
 
 syn keyword     asyPathSpec     and cycle controls tension atleast curl
 

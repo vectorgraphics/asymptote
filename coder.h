@@ -154,7 +154,7 @@ public:
   }
   void clearPermission()
   {
-    perm = READONLY;
+    perm = DEFAULT_PERM;
   }
     
 

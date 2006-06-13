@@ -338,7 +338,7 @@ void addConstant(venv &ve, T value, ty *t, const char *name,
   item* ref=new item;
   *ref=value;
   access *a = new itemRefAccess(ref);
-  varEntry *ent = new varEntry(t, a, READONLY, module);
+  varEntry *ent = new varEntry(t, a, READABLE, module);
   ve.enter(symbol::trans(name), ent);
 }
 
