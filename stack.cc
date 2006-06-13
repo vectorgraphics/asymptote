@@ -81,8 +81,6 @@ void stack::run(program *code, vars_t vars)
   /* start the new function */
   program::label ip = code->begin();
 
-  em->Pending(settings::verbose > 4);
-  
   try {
     for (;;) {
       const inst &i = *ip;
@@ -94,7 +92,7 @@ void stack::run(program *code, vars_t vars)
       cerr << "\n";
 #endif
 
-      if(em->Pending()) em->process(curPos);
+      if(settings::verbose > 4) em->process(curPos);
       
       switch (i.op)
         {

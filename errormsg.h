@@ -137,14 +137,6 @@ public:
     return anyWarnings || errors();
   }
   
-  bool Pending() {
-    return pending;
-  }
-
-  void Pending(bool b) {
-    pending=b;
-  }
-
   void process(const position& pos);
   
 };
