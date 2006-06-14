@@ -14,7 +14,7 @@ void image(picture pic=currentpicture, real[][] data, pen[] palette,
 
 typedef ticks paletteticks(real Size);
 
-paletteticks PaletteTicks(Label format=defaultformat, ticklabel ticklabel=null,
+paletteticks PaletteTicks(Label format="", ticklabel ticklabel=null,
 			  bool beginlabel=true, bool endlabel=true,
 			  int N=0, real Step=0, pen pTick=nullpen)
 {

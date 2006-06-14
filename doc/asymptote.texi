@@ -2471,15 +2471,16 @@ string readline(string prompt="", string history="", string initial="",
 @cindex structures
 @cindex @code{public}
 @cindex @code{private}
+@cindex @code{readable}
 @cindex @code{this}
 @cindex @code{new}
 
 Users may also define their own data types as structures, along with
 user-defined operators, much as in C++. By default, structure members
-are public and may be read and modified anywhere in the code, but may be
+are @code{public} (may be read and modified anywhere in the code), but may be
 optionally declared @code{readable} (readable anywhere but modifiable
 only inside the structure where they are defined) or @code{private}
-(read and write allowed only inside the structure). The virtual
+(readable and writable only inside the structure). The virtual
 structure @code{this} refers to the enclosing structure. Any code at the
 top-level scope within the structure is executed on initialization. 
 
@@ -3497,7 +3498,7 @@ cubic equation @math{ax^3+bx^2+cx+d=0}.
 
 @cindex @code{cputime}
 @item @code{cputime cputime();}
-Returns a structure @code{cputime} with the cumulative @acronym{cpu} times
+Returns a structure @code{cputime} with cumulative @acronym{CPU} times
 broken down into the fields @code{parent.user}, @code{parent.system},
 @code{child.user}, and @code{child.system}.
 
@@ -5390,7 +5391,7 @@ picture palette(real[][] data, real width=Ticksize,
 The argument @code{paletteticks} is a special tick type (@pxref{ticks})
 that takes the following arguments:
 @verbatim
-paletteticks PaletteTicks(Label format=defaultformat, ticklabel ticklabel=null,
+paletteticks PaletteTicks(Label format="", ticklabel ticklabel=null,
                           bool beginlabel=true, bool endlabel=true,
                           int N=0, real Step=0, pen pTick=nullpen);
 @end verbatim
@@ -5906,18 +5907,17 @@ Here is a simple flowchart example:
 @section @code{contour}
 @cindex @code{contour}
 This package draws contour lines.
-
-To construct contours for a given function, use
+To construct contours for a function @code{f}, use
 @verbatim
 guide[][] contour(real f(real, real), pair a, pair b,
 		  real[] c, int nx=nmesh, int ny=nx,
 		  interpolate join=operator --);
 @end verbatim
+@noindent
 The contour lines @code{real[]c} for the function @code{f} are drawn
 on the rectangle defined by the bottom-left and top-right points @code{a}
 and @code{b}. The integers @code{nx} and @code{ny} define the resolution.
-The default resolution of @code{25 x 25} can be increased for more accuracy.
-
+The default resolution of @code{25 x 25} can be increased for greater accuracy.
 The default interpolation operator is @code{operator --} (linear).
 Spline interpolation (@code{operator ..}) generally produces more
 accurate pictures, but as usual, can overshoot in certain cases.
@@ -5930,14 +5930,14 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
 		  interpolate join=operator --);
 
 @end verbatim
-
-To construct contoures for an array of non-regularly spaced points,
+@noindent
+To construct contours for an array of non-regularly spaced points,
 along with an array of values at these points, use
 @verbatim
 guide[][] contour(pair[] points, real[] values, 
 		  real[] c, interpolate join=operator --);
 @end verbatim 
-
+@noindent
 The contours themselves can be drawn with one of the routines
 @verbatim
 void draw(picture pic=currentpicture, guide[][] g, pen p=currentpen);
@@ -5946,7 +5946,7 @@ void draw(picture pic=currentpicture, guide[][] g, pen[] p);
 @end verbatim
 
 The following simple example draws the contour at value @code{1}
-for the function @math{z=x^2+y^2}, which is a circle:
+for the function @math{z=x^2+y^2}, which is a unit circle:
 @verbatiminclude contour1.asy
 @image{contour1}
 
@@ -5956,7 +5956,7 @@ pen for negative contours and a solid pen for positive (and zero) contours:
 @verbatiminclude contour2.asy
 @image{contour2}
 
-To draw a contour of data in an array of values at irregularly spaced
+To construct contours of data in an array of values at irregularly spaced
 points, use
 @verbatim
 guide[][] contour(pair[] points, real[] values, 
@@ -6460,7 +6460,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  obliqueZ obliqueY cylinderskeleton block llcorner dr py nx CPU
 @c  LocalWords:  loc topleft topright bottomleft bottomright flowrectangle UTC
 @c  LocalWords:  headercolor bodycolor chartblock flowdiamond flowcircle xlabel
-@c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow blocks ny
+@c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow blocks ny cpu
 @c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel
 @c  LocalWords:  zlabel strptime slopefields cputime roundrectangle slopefield
-@c  LocalWords:  tickfactor
+@c  LocalWords:  tickfactor USERNAME
