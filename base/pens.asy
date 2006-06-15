@@ -1,4 +1,8 @@
 access settings;	   
+
+public real labelmargin=0.3;
+public real dotfactor=6;
+
 public pen currentpen;
 
 pen nullpen=linewidth(0);
@@ -163,21 +167,6 @@ pen Pen(int n)
 real dotsize(pen p=currentpen) 
 {
   return dotfactor*linewidth(p);
-}
-
-real arrowsize(pen p=currentpen) 
-{
-  return arrowfactor*linewidth(p);
-}
-
-real arcarrowsize(pen p=currentpen) 
-{
-  return arcarrowfactor*linewidth(p);
-}
-
-real barsize(pen p=currentpen) 
-{
-  return barfactor*linewidth(p);
 }
 
 pen fontsize(real size) 

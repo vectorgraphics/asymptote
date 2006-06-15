@@ -1,3 +1,7 @@
+public real legendlinelength=50;
+public real legendskip=1.2;
+public real legendmargin=10;
+
 // Return a unit polygon with n sides
 guide polygon(int n) 
 {

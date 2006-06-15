@@ -2119,18 +2119,24 @@ frame bbox(picture pic=currentpicture, real xmargin=0,
 @anchor{filltype}
 Here @code{filltype} specifies one of the following fill types:
 @table @code
-@cindex @code{Fill}
-@item Fill
+@cindex @code{FillDraw}
+@item FillDraw
 Fill with the pen used to draw the boundary.
 
-@item Fill(real xmargin=0, real margin=0)
-Fill with the pen used to draw the boundary, adding an optional
-margin of @code{xmargin} and @code{ymargin}.
-
-@item Fill(real xmargin=0, real ymargin=xmargin, pen p)
+@item FillDraw(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
 @cindex @code{nullpen}
 If @code{p} is @code{nullpen}, fill with the pen used to draw the
 boundary; otherwise fill with pen @code{p}. An optional margin of
+@code{xmargin} and @code{ymargin} can be specified.
+
+@cindex @code{Fill}
+@item Fill
+Fill with the drawing pen.
+
+@item Fill(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
+@cindex @code{nullpen}
+If @code{p} is @code{nullpen}, fill with the drawing pen; 
+otherwise fill with pen @code{p}. An optional margin of
 @code{xmargin} and @code{ymargin} can be specified.
 
 @cindex @code{NoFill}
@@ -4023,7 +4029,9 @@ bar length is @code{barsize(p)}.
 @cindex @code{EndArrow}
 @cindex @code{Arrow}
 @cindex @code{Arrows}
+@cindex @code{FillDraw}
 @cindex @code{Fill}
+@cindex @code{Draw}
 @cindex @code{NoFill}
 @cindex @code{BeginArcArrow}
 @cindex @code{EndArcArrow}
@@ -4034,14 +4042,13 @@ The possible values of @code{arrow} are @code{None}, @code{Blank}
 @code{EndArrow} (or equivalently @code{Arrow}),
 and @code{Arrows} (which draws an arrow at both ends of the path).
 These arrow specifiers (except for @code{None} and @code{Blank})
-may be given the optional arguments real
-@code{size} (arrowhead size in @code{PostScript} coordinates),
-real @code{angle} (arrowhead angle in degrees),
-@code{Fill} or @code{NoFill}, and (except also for @code{MidArrow} and
-@code{Arrows}) a relative real @code{position}
-along the path (an @code{arctime}) where the tip of the arrow should
-be placed. The default arrowhead size is @code{arrowheadsize(p)}.
-There are also arrow versions with slightly modified
+may be given the optional arguments real @code{size} (arrowhead size
+in @code{PostScript} coordinates), real @code{angle} (arrowhead angle
+in degrees), @code{FillDraw}, @code{Fill}, or @code{NoFill} (equivalent to
+@code{Draw}), and (except for @code{MidArrow} and @code{Arrows}) a
+relative real @code{position} along the path (an @code{arctime}) where
+the tip of the arrow should be placed. The default arrowhead size is
+@code{arrowheadsize(p)}. There are also arrow versions with slightly modified
 default values of @code{size} and @code{angle} suitable for curved
 arrows: @code{BeginArcArrow}, @code{EndArcArrow} (or equivalently
 @code{ArcArrow}), @code{MidArcArrow}, and @code{ArcArrows}.

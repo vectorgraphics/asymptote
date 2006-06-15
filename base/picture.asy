@@ -1,3 +1,6 @@
+bool Aspect=true;
+bool IgnoreAspect=false;
+
 public frame patterns;
 public bool shipped;
 

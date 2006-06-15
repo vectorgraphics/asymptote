@@ -33,25 +33,8 @@ pair SSW=unit(S+SW);
 pair SSE=unit(S+SE);
 pair ESE=unit(E+SE);
   
-// Global parameters:
-public real labelmargin=0.3;
-public real arrowlength=0.75cm;
-public real arrowfactor=15;
-public real arrowangle=15;
-public real arcarrowfactor=0.5*arrowfactor;
-public real arcarrowangle=2*arrowangle;
-public real barfactor=arrowfactor;
-public real dotfactor=6;
-
-public real legendlinelength=50;
-public real legendskip=1.2;
-public real legendmargin=10;
-
 public string defaultfilename;
 public string defaultformat="$%.4g$";
-
-bool Aspect=true;
-bool IgnoreAspect=false;
 
 bool Above=true;
 bool Below=false;

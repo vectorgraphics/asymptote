@@ -93,7 +93,14 @@ path margin(path g, real xmargin, real ymargin)
   return g;
 }
 
-filltype Fill(real xmargin=0, real ymargin=xmargin, pen p)
+filltype Fill(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
+{
+  return new void(frame f, path g, pen drawpen) {
+    fill(f,margin(g,xmargin,ymargin),p == nullpen ? drawpen : p);
+  };
+}
+
+filltype FillDraw(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
 {
   return new void(frame f, path g, pen drawpen) {
     filldraw(f,margin(g,xmargin,ymargin),p == nullpen ? drawpen : p,drawpen);
@@ -104,12 +111,7 @@ public filltype NoFill=new void(frame f, path g, pen p) {
   draw(f,g,p);
 };
 
-filltype Fill(real xmargin=0, real ymargin=0)
-{
-  return Fill(xmargin,ymargin,nullpen);
-}
-
-public filltype Fill=Fill(nullpen);
+public filltype FillDraw=FillDraw(nullpen), Fill=Fill(nullpen), Draw=NoFill; 
 
 filltype UnFill(real xmargin=0, real ymargin=xmargin)
 {

@@ -1,3 +1,28 @@
+public real arrowlength=0.75cm;
+public real arrowfactor=15;
+public real arrowangle=15;
+public real arcarrowfactor=0.5*arrowfactor;
+public real arcarrowangle=2*arrowangle;
+public real arrowsizelimit=0.5;
+public real arrow2sizelimit=1/3;
+
+public real barfactor=arrowfactor;
+
+real arrowsize(pen p=currentpen) 
+{
+  return arrowfactor*linewidth(p);
+}
+
+real arcarrowsize(pen p=currentpen)
+{
+  return arrowfactor*linewidth(p);
+}
+
+real barsize(pen p=currentpen)
+{
+  return barfactor*linewidth(p);
+}
+
 public guide arrowhead(path g, real position, pen p=currentpen,
 		       real size=0, real angle=arrowangle)
 {
@@ -38,51 +63,56 @@ public void arrowheadbbox(picture pic=currentpicture, path g,
   pic.addPoint(x,dz2,p);
 }
 
-void arrow(frame f, path G, pen p=currentpen, real size=0,
-	   real angle=arrowangle, filltype filltype=Fill,
+void arrow(frame f, path g, pen p=currentpen, real size=0,
+	   real angle=arrowangle, filltype filltype=FillDraw,
 	   position position=EndPoint, bool forwards=true,
 	   margin margin=NoMargin, bool center=false)
 {
   if(size == 0) size=arrowsize(p);
+  size=min(arrowsizelimit*arclength(g),size);
   bool relative=position.relative;
   real position=position.position.x;
   if(relative) {
-    position *= arclength(G);
+    position *= arclength(g);
     if(center) position += 0.5*size;
-    position=arctime(G,position);
+    position=arctime(g,position);
   } else if(center) 
-    position=arctime(G,arclength(subpath(G,0,position))+0.5*size);
-  G=margin(G,p).g;
+    position=arctime(g,arclength(subpath(g,0,position))+0.5*size);
+  g=margin(g,p).g;
+  int L=length(g);
   if(!forwards) {
-    G=reverse(G);
-    position=length(G)-position;
+    g=reverse(g);
+    position=L-position;
   }
-  path R=subpath(G,position,0.0);
-  path S=subpath(G,position,length(G));
-  size=min(arclength(G),size);
-  draw(f,subpath(R,arctime(R,size),length(R)),p);
-  draw(f,S,p);
-  guide head=arrowhead(G,position,p,size,angle);
+  path r=subpath(g,position,0.0);
+  path s=subpath(g,position,L);
+
+  size=min(arrowsizelimit*arclength(r),size);
+  if(filltype == NoFill || position == L) {
+    draw(f,subpath(r,arctime(r,size),length(r)),p);
+    if(position < L) draw(f,s,p);
+  } else draw(f,g,p);
+  guide head=arrowhead(g,position,p,size,angle);
   filltype(f,head,p+solid);
 }
 
-void arrow2(frame f, path G, pen p=currentpen, real size=0,
-	    real angle=arrowangle, filltype filltype=Fill,
+void arrow2(frame f, path g, pen p=currentpen, real size=0,
+	    real angle=arrowangle, filltype filltype=FillDraw,
 	    margin margin=NoMargin)
 {
   if(size == 0) size=arrowsize(p);
-  G=margin(G,p).g;
-  path R=reverse(G);
-  size=min(0.5*arclength(G),size);
-  draw(f,subpath(R,arctime(R,size),length(R)-arctime(G,size)),p);
-  guide head=arrowhead(G,length(G),p,size,angle);
-  guide tail=arrowhead(R,length(R),p,size,angle);
+  g=margin(g,p).g;
+  size=min(arrow2sizelimit*arclength(g),size);
+  path r=reverse(g);
+  draw(f,subpath(r,arctime(r,size),length(r)-arctime(g,size)),p);
+  guide head=arrowhead(g,length(g),p,size,angle);
+  guide tail=arrowhead(r,length(r),p,size,angle);
   filltype(f,head,p+solid);
   filltype(f,tail,p+solid);
 }
 
 picture arrow(path g, pen p=currentpen, real size=0,
-	      real angle=arrowangle, filltype filltype=Fill,
+	      real angle=arrowangle, filltype filltype=FillDraw,
 	      position position=EndPoint, bool forwards=true,
 	      margin margin=NoMargin, bool center=false)
 {
@@ -97,7 +127,7 @@ picture arrow(path g, pen p=currentpen, real size=0,
 }
 
 picture arrow2(path g, pen p=currentpen, real size=0,
-	       real angle=arrowangle, filltype filltype=Fill,
+	       real angle=arrowangle, filltype filltype=FillDraw,
 	       margin margin=NoMargin)
 {
   picture pic;
@@ -142,7 +172,7 @@ arrowbar None()
 }
 
 arrowbar BeginArrow(real size=0, real angle=arrowangle,
-		    filltype filltype=Fill, position position=BeginPoint)
+		    filltype filltype=FillDraw, position position=BeginPoint)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     add(pic,arrow(g,p,size,angle,filltype,position,false,margin));
@@ -151,7 +181,7 @@ arrowbar BeginArrow(real size=0, real angle=arrowangle,
 }
 
 arrowbar Arrow(real size=0, real angle=arrowangle,
-	       filltype filltype=Fill, position position=EndPoint)
+	       filltype filltype=FillDraw, position position=EndPoint)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     add(pic,arrow(g,p,size,angle,filltype,position,margin));
@@ -160,9 +190,9 @@ arrowbar Arrow(real size=0, real angle=arrowangle,
 }
 
 arrowbar EndArrow(real size=0, real angle=arrowangle,
-		  filltype filltype=Fill, position position=EndPoint)=Arrow;
+		  filltype filltype=FillDraw, position position=EndPoint)=Arrow;
 
-arrowbar MidArrow(real size=0, real angle=arrowangle, filltype filltype=Fill)
+arrowbar MidArrow(real size=0, real angle=arrowangle, filltype filltype=FillDraw)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     add(pic,arrow(g,p,size,angle,filltype,MidPoint,margin,true));
@@ -170,7 +200,7 @@ arrowbar MidArrow(real size=0, real angle=arrowangle, filltype filltype=Fill)
   };
 }
   
-arrowbar Arrows(real size=0, real angle=arrowangle, filltype filltype=Fill)
+arrowbar Arrows(real size=0, real angle=arrowangle, filltype filltype=FillDraw)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     add(pic,arrow2(g,p,size,angle,filltype,margin));
@@ -179,7 +209,7 @@ arrowbar Arrows(real size=0, real angle=arrowangle, filltype filltype=Fill)
 }
 
 arrowbar BeginArcArrow(real size=0, real angle=arcarrowangle,
-		       filltype filltype=Fill, position position=BeginPoint)
+		       filltype filltype=FillDraw, position position=BeginPoint)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     real size=size == 0 ? arcarrowsize(p) : size;
@@ -189,7 +219,7 @@ arrowbar BeginArcArrow(real size=0, real angle=arcarrowangle,
 }
 
 arrowbar ArcArrow(real size=0, real angle=arcarrowangle,
-		  filltype filltype=Fill, position position=EndPoint)
+		  filltype filltype=FillDraw, position position=EndPoint)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     real size=size == 0 ? arcarrowsize(p) : size;
@@ -199,11 +229,11 @@ arrowbar ArcArrow(real size=0, real angle=arcarrowangle,
 }
 
 arrowbar EndArcArrow(real size=0, real angle=arcarrowangle,
-		     filltype filltype=Fill,
+		     filltype filltype=FillDraw,
 		     position position=EndPoint)=ArcArrow;
   
 arrowbar MidArcArrow(real size=0, real angle=arcarrowangle,
-		     filltype filltype=Fill)
+		     filltype filltype=FillDraw)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     real size=size == 0 ? arcarrowsize(p) : size;
@@ -213,7 +243,7 @@ arrowbar MidArcArrow(real size=0, real angle=arcarrowangle,
 }
   
 arrowbar ArcArrows(real size=0, real angle=arcarrowangle,
-		   filltype filltype=Fill)
+		   filltype filltype=FillDraw)
 {
   return new bool(picture pic, path g, pen p, margin margin) {
     real size=size == 0 ? arcarrowsize(p) : size;
