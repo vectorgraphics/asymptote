@@ -27,7 +27,7 @@ bool entry::pr::check(action act, coder &c) {
   // stored.
   assert(perm!=PUBLIC && r!=0);
   return c.inTranslation(r->getLevel()) ||
-         (perm == READABLE && act != WRITE);
+         (perm == RESTRICTED && act != WRITE);
 }
 
 void entry::pr::report(action act, position pos, coder &c) {
@@ -36,7 +36,7 @@ void entry::pr::report(action act, position pos, coder &c) {
       em->error(pos);
       *em << "accessing private field outside of structure";
     }
-    else if (perm == READABLE && act == WRITE) {
+    else if (perm == RESTRICTED && act == WRITE) {
       em->error(pos);
       *em << "modifying non-public field outside of structure";
     }

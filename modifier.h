@@ -4,7 +4,7 @@
  *
  * Permissions for variables.
  * PUBLIC means the variable can be read or written anywhere.
- * READABLE means it can be read anywhere, but written only in the record.
+ * RESTRICTED means it can be read anywhere, but written only in the record.
  * PRIVATE means it can only be accessed in the record.
  *
  * The modifiers static declares that variable to be allocated, are allocated in
@@ -16,11 +16,10 @@
 
 namespace trans {
 
-// PUBLIC, PRIVATE, or READABLE - the permission tokens defined in
-// camp.y for accessing a variable outside of its lexically enclosing
-// record.
+// Permission tokens defined in camp.y for accessing a variable outside of
+// its lexically enclosing record.
 enum permission {
-  READABLE,
+  RESTRICTED,
   PUBLIC,
   PRIVATE
 };
