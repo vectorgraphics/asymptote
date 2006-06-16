@@ -2681,6 +2681,7 @@ array* :arrayConditional(array *a, array *b, array *c)
 // for computing matrix inverses only.
 realarray2 *solve(realarray2 *a, realarray2 *b=NULL)
 {
+
   a=copyArray2(a);
   size_t n=a->size();
   size_t bsize=b ? b->size() : 0;
@@ -2700,12 +2701,12 @@ realarray2 *solve(realarray2 *a, realarray2 *b=NULL)
   } else m=0;
   
   solveAllocate(n,m);
-  
+  const char *singular="Singular matrix";
+
+  if(b == NULL) {  
   for(size_t i=0; i < n; i++)
     pivot[i]=0;
-
-  const char *singular="Singular matrix";
-  
+ 
   size_t col=0, row=0;
   // This is the main loop over the columns to be reduced.
   for(size_t i=0; i < n; i++) {
@@ -2801,6 +2802,125 @@ realarray2 *solve(realarray2 *a, realarray2 *b=NULL)
     b=a;
   }
   solveDeallocate();
+  }
+  else {
+
+    // vector with row numbers (for pivoting)
+    for (size_t q=0; q < n; ++q) pivot[q]=q;
+    
+    int swap=1;           // swap counter for -1 multiplier
+    realarray2 *lu=copyArray2(a);
+
+    // lu decomposition.
+    for(size_t i=0; i < n-1; ++i) {
+
+
+      // pivoting
+      for (size_t k=i+1; k < n; ++k) { 
+	array *apk=read<array*>(a,pivot[k]);
+	array *api=read<array*>(a,pivot[i]);
+        if ( fabs(read<real>(apk,i)) > fabs(read<real>(api,i)) ) {
+          size_t t=pivot[i];
+          pivot[i]=pivot[k];
+          pivot[k]=t;
+          swap *= -1;
+        }
+      }
+
+
+      // row of U
+      for(size_t j=i; j < n; ++j) {
+        real s=0.0;
+	array *lupk;
+	array *lupi;
+        for(size_t k=0; k < i; ++k) {
+	  lupk=read<array*>(lu,pivot[k]);
+	  lupi=read<array*>(lu,pivot[i]);
+	  s += (read<real>(lupk,j))*(read<real>(lupi,k));
+	} 
+	array *api=read<array*>(a,pivot[i]);
+	lupi=read<array*>(lu,pivot[i]);
+        (*lupi)[j]=read<real>(api,j)-s;
+      }
+
+      // column of L
+      for(size_t j=i+1; j < n; ++j) {
+        real s=0.0;
+	array *lupj;
+	array *lupk;
+        for(size_t k=0; k < i; ++k) {
+	  lupj=read<array*>(lu,pivot[j]);
+	  lupk=read<array*>(lu,pivot[k]);
+	  s += (read<real>(lupj,k))*(read<real>(lupk,i));
+	} 
+	array *lupi=read<array*>(lu,pivot[i]);
+  
+        if (fabs(read<real>(lupi,i)) == 0) {
+	    solveDeallocate();
+	    error(singular);
+	}
+
+	array *apj=read<array*>(a,pivot[j]);	
+	lupj=read<array*>(lu,pivot[j]);
+        (*lupj)[i]=(read<real>(apj,i)-s)/read<real>(lupi,i);
+      }
+    }
+
+    // last entry of U
+    real s=0.0;
+    array *lupk;
+    array *lupn;
+    for(size_t k=0; k < n-1; ++k) {
+      lupk=read<array*>(lu,pivot[k]);
+      lupn=read<array*>(lu,pivot[n-1]);
+      s += (read<real>(lupk,n-1))*(read<real>(lupn,k)); 
+    }
+    array *apn=read<array*>(a,pivot[n-1]);
+    lupn=read<array*>(lu,pivot[n-1]);
+    (*lupn)[n-1]=read<real>(apn,n-1)-s;
+    
+    // unscramble
+    for(size_t i=0; i<n; ++i) {
+      if(pivot[i] != i) {
+        array *tmp=read<array*>(lu,pivot[i]);
+	(*lu)[pivot[i]]=read<array*>(lu,i);
+	(*lu)[i]=tmp;
+      }
+    }
+
+    // solving Ly=b
+    realarray2 *y=copyArray2(b);
+    for(size_t i=0; i < n; ++i) {
+      for(size_t j=0; j < m; ++j) {
+        array *lurow=read<array*>(lu,i);
+	real s=0.0;
+	for(size_t k=0; k < i; ++k) {
+          array *bkrow=read<array*>(b,k);
+	  s+=read<real>(lurow,k)*read<real>(bkrow,j);   
+	}
+	array *yrow=read<array*>(y,i);
+        array *birow=read<array*>(b,i);
+	(*yrow)[j]=read<real>(birow,j)-s;
+      }
+    }
+
+    // solving Ux=y
+    for(size_t i=n; i > 0; --i) {
+      for(size_t j=0; j < m; ++j) {
+        array *lurow=read<array*>(lu,i-1);
+	real s=0.0;
+	for(size_t k=n-1; k > i-1; --k) {
+          array *bkrow=read<array*>(b,k);
+	  s+=read<real>(lurow,k)*read<real>(bkrow,j);   
+	}
+	array *xrow=read<array*>(b,i-1);
+        array *yirow=read<array*>(y,i-1);
+	// should there be 0 division defense ?
+	(*xrow)[j]=(read<real>(yirow,j)-s)/read<real>(lurow,i-1);
+      }
+    }
+  solveDeallocate();    
+  }
   return b;
 }
 
