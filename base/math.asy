@@ -325,11 +325,6 @@ real[] solve(real[][] a, real[] b)
   return transpose(solve(a,transpose(new real[][]{b})))[0];
 }
 
-real[][] inverse(real[][] m)
-{
-  return solve(m);
-}
-
 // draw the (infinite) line going through P and Q, without altering the
 // size of picture pic.
 void drawline(picture pic=currentpicture, pair P, pair Q, pen p=currentpen)

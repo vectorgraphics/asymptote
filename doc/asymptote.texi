@@ -4567,6 +4567,10 @@ Solve the linear equation @math{@code{a}x=@code{b}} returning the
 solution @math{x}, where @code{a} is an @math{n \times n} matrix and
 @code{b} is an @math{n \times m} matrix.
 
+@cindex @code{inverse}
+@item real[][] inverse(real[][] a)
+Return the inverse of an an @math{n \times n} matrix @code{a}.
+
 @cindex @code{straight}
 @item bool straight(path p)
 returns @code{true} iff the path @code{p} is straight.

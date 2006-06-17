@@ -1,5 +1,4 @@
 import graph;
-import math;
 
 size(140,80,IgnoreAspect);
 
@@ -9,7 +8,6 @@ picture logo(pair s=0, pen q)
   pen p=linewidth(2)+fontsize(24)+q;
   real a=-0.4;
   real b=0.95;
-  real eps=0.1;
   real y=5;
   path A=(a,0){dir(10)}::{dir(89.5)}(0,3y/2);
   draw(pic,A,p);
