@@ -15,7 +15,7 @@ real arrowsize(pen p=currentpen)
 
 real arcarrowsize(pen p=currentpen)
 {
-  return arrowfactor*linewidth(p);
+  return arcarrowfactor*linewidth(p);
 }
 
 real barsize(pen p=currentpen)
