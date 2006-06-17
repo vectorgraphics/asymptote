@@ -11,4 +11,6 @@ assert(close(determinant(new real[][] {{1,2,3,4},
 			     {5,6,7,8},{9,10,11,12},{13,14,15,16}}),0));
 assert(close(determinant(new real[][] {{1,2,3,4},
 			     {5,0,7,8},{9,10,0,12},{13,14,15,16}}),-2376));
+assert(close(determinant(new real[][]{{1,-2,3,0},{4,-5,6,2},{-7,-8,10,5},
+				      {1,50,1,-2}}),-4588));
 EndTest();

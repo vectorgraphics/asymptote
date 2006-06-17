@@ -173,15 +173,6 @@ real[][] operator * (real[][] a, real[][] b)
   return m;
 }
 
-real[] operator * (real[][] a, real[] b)
-{
-  int n=a.length;
-  real[] m=new real[n];
-  for(int i=0; i < n; ++i)
-    m[i]=sum(a[i]*b);
-  return m;
-}
-
 real[] operator * (real[] b, real[][] a)
 {
   int nb=b.length;
@@ -222,14 +213,6 @@ bool square2(real[][] m)
   return m[0].length == m.length && m[1].length == m.length;
 }
 
-bool square3(real[][] m)
-{
-  return
-    m[0].length == m.length &&
-    m[1].length == m.length &&
-    m[2].length == m.length;
-}
-
 bool square(real[][] m)
 {
   int n=m.length;
@@ -245,84 +228,6 @@ bool rectangular(real[][] m)
   for(int i=1; i < n; ++i)
     if(m[i].length != m0) return false;
   return true;
-}
-
-void nonsquare() 
-{
-  abort("attempt to find determinant of a nonsquare matrix");
-}
-
-real determinant(real[][] m)
-{
-  int n=m.length;
-  
-  if(n == 1) {
-    if(square(m)) return m[0][0];
-  } else if(n == 2) {
-    if(square2(m)) return m[0][0]*m[1][1]-m[0][1]*m[1][0];
-  } else if(n == 3) {
-    if(square3(m)) return
-      m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])-
-      m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])+
-      m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
-  } else if(square(m)) { // general case: LU decomposition (doolittle).
-    real[][] lu=new real[n][n];   // container for L and U
-
-    // vector with row numbers (for pivoting)
-    int[] row=new int[n];
-    for (int q=0; q < n; ++q) row[q]=q;
-    
-    int swap=1;           // swap counter for -1 multiplier
-
-    // lu decomposition.
-    for(int i=0; i < n-1; ++i) {
-      // pivoting
-      for (int k=i+1; k < n; ++k) { 
-        if ( fabs(m[row[k]][i]) > fabs(m[row[i]][i]) ) {
-          int t=row[i];
-          row[i]=row[k];
-          row[k]=t;
-          swap *= -1;
-        }
-      }
-
-      // row of U
-      for(int j=i; j < n; ++j) {
-        real s=0;
-        for(int k=0; k < i; ++k) s += lu[row[k]][j]*lu[row[i]][k]; 
-        lu[row[i]][j]=m[row[i]][j]-s;
-      }
-
-      // column of L
-      for(int j=i+1; j < n; ++j) {
-        real s=0;
-        for(int k=0; k < i; ++k) s += lu[row[j]][k]*lu[row[k]][i];
-        if (fabs(lu[row[i]][i]) == 0) return 0; // singular
-        lu[row[j]][i]=(m[row[j]][i]-s)/lu[row[i]][i];
-      }
-    }
-   
-    // last entry of U
-    real s=0;
-    for(int k=0; k < n-1; ++k) s += lu[row[k]][n-1]*lu[row[n-1]][k]; 
-    lu[row[n-1]][n-1]=m[row[n-1]][n-1]-s;
-
-    // compute determinant
-    real det=swap;
-    for (int i=0; i < n; ++i) det *= lu[row[i]][i];
-
-    return det;
-  }
-  nonsquare();
-  return 0;
-}
-
-// Solve the linear equation ax=b, returning the solution x, where a is
-// an n x n matrix and b is an array of length n. 
-
-real[] solve(real[][] a, real[] b)
-{
-  return transpose(solve(a,transpose(new real[][]{b})))[0];
 }
 
 // draw the (infinite) line going through P and Q, without altering the

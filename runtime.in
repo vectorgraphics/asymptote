@@ -241,6 +241,15 @@ array *copyArray(array *a)
   return c;
 }
 
+double *copyArrayC(array *a)
+{
+  size_t size=checkArray(a);
+  double *c=new double [size];
+  for(size_t i=0; i < size; i++) 
+    c[i]=read<double>(a,i);
+  return c;
+}
+
 array *copyArray2(array *a)
 {
   size_t size=checkArray(a);
@@ -254,6 +263,48 @@ array *copyArray2(array *a)
       (*ci)[j]=(*ai)[j];
   }
   return c;
+}
+
+double **copyArray2C(array *a, bool square=true)
+{
+  size_t size=checkArray(a);
+  size_t m=((square || size == 0) ? size : read<array*>(a,0)->size());
+  double **c=new double* [size];
+  for(size_t i=0; i < size; i++) {
+    array *ai=read<array*>(a,i);
+    size_t aisize=checkArray(ai);
+    if(aisize == m) {
+      double *ci=c[i]=new double [aisize];
+      for(size_t j=0; j < aisize; j++) 
+	ci[j]=read<double>(ai,j);
+    } else
+      error(square ? "matrix must be square" : "matrix must be rectangular");
+  }
+  return c;
+}
+
+static const char *incommensurate="Incommensurate matrices";
+static const char *singular="Singular matrix";
+static size_t *pivot,*Row,*Col;
+static inline void inverseAllocate(size_t n)
+{
+  pivot=new size_t[n];
+  Row=new size_t[n];
+  Col=new size_t[n];
+}
+
+static inline void inverseDeallocate()
+{
+  delete[] pivot;
+  delete[] Row;
+  delete[] Col;
+}
+
+static inline void deleteArray(real **a, size_t n)
+{
+  for(size_t i=0; i < n; i++)
+    delete a[i];
+  delete a;
 }
 
 void writestring(stack *s)
@@ -271,6 +322,76 @@ void writestring(stack *s)
       suffix->call(s);
     } else if(defaultfile) f->writeline();
   }
+}
+
+void checkSquare(array *a) 
+{
+  size_t n=a->size();
+  for(size_t i=0; i < n; i++)
+    if(read<array*>(a,i)->size() != n)
+      error("matrix a must be square");
+}
+
+// Crout's algorithm for computing the LU decomposition of a square matrix.
+// cf. routine ludcmp (Press et al.,  Numerical Recipes, 1991).
+int LUdecompose(double **a, size_t n, size_t* index)
+{
+  double *vv=new double[n];
+  int swap=1;
+  for(size_t i=0; i < n; ++i) {
+    double big=0.0;
+    for(size_t j=0; j < n; ++j) {
+      double temp=fabs(a[i][j]);
+      if(temp > big) big=temp;
+    }
+    if(big == 0.0) {
+      delete[] vv;
+      error(singular);
+    }
+    vv[i]=1.0/big;
+  }
+  for(size_t j=0; j < n; ++j) {
+    for(size_t i=0; i < j; ++i) {
+      double sum=a[i][j];
+      for(size_t k=0; k < i; ++k)
+	sum -= a[i][k]*a[k][j];
+      a[i][j]=sum;
+    }
+    double big=0.0;
+    size_t imax=j;
+    for(size_t i=j; i < n; ++i) {
+      double sum=a[i][j];
+      for(size_t k=0; k < j; ++k)
+	sum -= a[i][k]*a[k][j];
+      a[i][j]=sum;
+      double temp=vv[i]*fabs(sum);
+      if(temp >= big) {
+	big=temp;
+	imax=i;
+      }
+    }
+    if(j != imax) {
+      for(size_t k=0; k < n; ++k) {
+	double temp=a[imax][k];
+	a[imax][k]=a[j][k];
+	a[j][k]=temp;
+      }
+      swap *= -1;
+      vv[imax]=vv[j];
+    }
+    index[j]=imax;
+    if(j != n) {
+      double denom=a[j][j];
+      if(denom == 0.0) {
+	delete[] vv;
+	error(singular);
+      }
+      for(size_t i=j+1; i < n; ++i)
+	a[i][j] /= denom;
+    }
+  }
+  delete[] vv;
+  return swap;
 }
 
 void dividebyzero(size_t i)
@@ -337,22 +458,6 @@ void init_readline(bool tabcompletion=true)
   rl_bind_key('\t',tabcompletion ? rl_complete : rl_insert);
 }
 #endif
-
-static const char *singular="Singular matrix";
-static size_t *pivot,*Row,*Col;
-static inline void solveAllocate(size_t n)
-{
-  pivot=new size_t[n];
-  Row=new size_t[n];
-  Col=new size_t[n];
-}
-
-static inline void solveDeallocate()
-{
-  delete[] pivot;
-  delete[] Row;
-  delete[] Col;
-}
 
 void clearTeX()
 {
@@ -912,7 +1017,7 @@ int fillrule(pen p)
   return p.Fillrule();  
 }
 
-pen linetype(string *s, double offset=0, bool scale=true, bool adjust=true)
+pen linetype(string *s, real offset=0, bool scale=true, bool adjust=true)
 {
   return pen(LineType(*s,offset,scale,adjust)); 
 }
@@ -1617,15 +1722,15 @@ int seconds(string t=emptystring, string format=emptystring)
 
 realarray *_cputime()
 {
-  static const double ticktime=1.0/sysconf(_SC_CLK_TCK);
+  static const real ticktime=1.0/sysconf(_SC_CLK_TCK);
   struct tms buf;
 
   ::times(&buf);
   array *t=new array(4);
-  (*t)[0] = ((double) buf.tms_utime)*ticktime;
-  (*t)[1] = ((double) buf.tms_stime)*ticktime;
-  (*t)[2] = ((double) buf.tms_cutime)*ticktime;
-  (*t)[3] = ((double) buf.tms_cstime)*ticktime;
+  (*t)[0] = ((real) buf.tms_utime)*ticktime;
+  (*t)[1] = ((real) buf.tms_stime)*ticktime;
+  (*t)[2] = ((real) buf.tms_cutime)*ticktime;
+  (*t)[3] = ((real) buf.tms_cstime)*ticktime;
   return t;
 }
 
@@ -2675,12 +2780,9 @@ realarray2 *inverse(realarray2 *a)
 {
   a=copyArray2(a);
   size_t n=a->size();
+  checkSquare(a);
   
-  for(size_t i=0; i < n; i++)
-    if(read<array*>(a,i)->size() != n)
-      error("matrix a must be square");
-    
-  solveAllocate(n);
+  inverseAllocate(n);
   
   for(size_t i=0; i < n; i++)
     pivot[i]=0;
@@ -2702,7 +2804,7 @@ realarray2 *inverse(realarray2 *a)
 	      col=k;
 	    }
 	  } else if(pivot[k] > 1) {
-	    solveDeallocate();
+	    inverseDeallocate();
 	    error(singular);
 	  }
 	}
@@ -2727,7 +2829,7 @@ realarray2 *inverse(realarray2 *a)
     // Divide the pivot row by the pivot element.
     real denom=read<real>(acol,col);
     if(denom == 0.0) {
-      solveDeallocate();
+      inverseDeallocate();
       error(singular);
     }
     real pivinv=1.0/denom;
@@ -2739,10 +2841,10 @@ realarray2 *inverse(realarray2 *a)
     for(size_t k=0; k < n; k++) {
       if(k != col) { 
 	array *ak=read<array*>(a,k);
-	real dum=read<real>(ak,col);
+	real akcol=read<real>(ak,col);
 	(*ak)[col]=0.0;
 	for(size_t l=0; l < n; l++)
-	  (*ak)[l]=read<real>(ak,l)-read<real>(acol,l)*dum;
+	  (*ak)[l]=read<real>(ak,l)-read<real>(acol,l)*akcol;
       }
     }
   }
@@ -2761,143 +2863,135 @@ realarray2 *inverse(realarray2 *a)
       }
     }
   }
-  solveDeallocate();
+  inverseDeallocate();
   return a;
+}
+
+// Solve the linear equation ax=b by LU decomposition, returning the
+// solution x, where a is an n x n matrix and b is an array of length n.
+realarray *solve(realarray2 *a, realarray *b)
+{
+  real **A=copyArray2C(a);
+  size_t n=a->size();
+  
+  array *x=new array(n);
+  if(n == 0) return x;
+  
+  real *B=copyArrayC(b);
+  size_t m=b->size();
+  if(m != n) error(incommensurate);  
+  
+  size_t *index=new size_t[n];
+  LUdecompose(A,n,index);
+
+  for(size_t i=0; i < n; ++i) {
+    size_t ip=index[i];
+    real sum=B[ip];
+    B[ip]=B[i];
+    real *Ai=A[i];
+    for(size_t j=0; j < i; ++j)
+      sum -= Ai[j]*B[j];
+    B[i]=sum;
+  }
+  
+  for(size_t i=n; i > 0;) {
+    --i;
+    real sum=B[i];
+    real *Ai=A[i];
+    for(size_t j=i+1; j < n; ++j)
+      sum -= Ai[j]*B[j];
+    B[i]=sum/Ai[i];
+  }
+  
+  for(size_t i=0; i < n; ++i)
+    (*x)[i]=B[i];
+
+  delete[] index;
+  return x;
 }
 
 // Solve the linear equation ax=b by LU decomposition, returning the
 // solution x, where a is an n x n matrix and b is an n x m matrix.
 realarray2 *solve(realarray2 *a, realarray2 *b)
 {
-  a=copyArray2(a);
+  real **A=copyArray2C(a);
   size_t n=a->size();
-  size_t bsize=checkArray(b);
   
-  for(size_t i=0; i < n; i++)
-    if(read<array*>(a,i)->size() != n)
-      error("matrix a must be square");
-    
-  b=copyArray2(b);
-  if(bsize != n) error("Incommensurate matrices");
+  array *x=new array(n);
+  if(n == 0) return x;
+  
+  real **B=copyArray2C(b,false);
+  if(b->size() != n) error(incommensurate);  
   size_t m=read<array*>(b,0)->size();
-    for(size_t i=0; i < n; i++)
-      if(read<array*>(b,i)->size() != m)
-	error("matrix b must be rectangular");
   
-  size_t *pivot=new size_t[n];
+  size_t *index=new size_t[n];
+  LUdecompose(A,n,index);
 
-  // vector with row numbers (for pivoting)
-  for(size_t q=0; q < n; ++q) pivot[q]=q;
-    
-  realarray2 *lu=copyArray2(a);
-
-  // LU decomposition.
-  for(size_t i=0; i < n-1; ++i) {
-    // pivoting
-    for (size_t k=i+1; k < n; ++k) { 
-      array *apk=read<array*>(a,pivot[k]);
-      array *api=read<array*>(a,pivot[i]);
-      if(fabs(read<real>(apk,i)) > fabs(read<real>(api,i))) {
-	size_t t=pivot[i];
-	pivot[i]=pivot[k];
-	pivot[k]=t;
-      }
+  for(size_t i=0; i < n; ++i) {
+    size_t ip=index[i];
+    real *Ai=A[i];
+    real *Bi=B[i];
+    for(size_t k=0; k < m; ++k) {
+      real sum=B[ip][k];
+      B[ip][k]=Bi[k];
+      for(size_t j=0; j < i; ++j)
+	sum -= Ai[j]*B[j][k];
+      Bi[k]=sum;
     }
-
-
-    // row of U
-    for(size_t j=i; j < n; ++j) {
-      real s=0.0;
-      array *lupk;
-      array *lupi;
-      for(size_t k=0; k < i; ++k) {
-	lupk=read<array*>(lu,pivot[k]);
-	lupi=read<array*>(lu,pivot[i]);
-	s += (read<real>(lupk,j))*(read<real>(lupi,k));
-      } 
-      array *api=read<array*>(a,pivot[i]);
-      lupi=read<array*>(lu,pivot[i]);
-      (*lupi)[j]=read<real>(api,j)-s;
-    }
-
-    // column of L
-    for(size_t j=i+1; j < n; ++j) {
-      real s=0.0;
-      array *lupj=read<array*>(lu,pivot[j]);
-      array *apj=read<array*>(a,pivot[j]);	
-      for(size_t k=0; k < i; ++k) {
-	array *lupk=read<array*>(lu,pivot[k]);
-	s += (read<real>(lupj,k))*(read<real>(lupk,i));
-      } 
-      array *lupi=read<array*>(lu,pivot[i]);
+  }
   
-      if (fabs(read<real>(lupi,i)) == 0) {
-	delete[] pivot;
-	error(singular);
-      }
-
-      real denom=read<real>(lupi,i);
-      if(denom == 0.0) {
-	delete[] pivot;
-	error(singular);
-      }
-
-      (*lupj)[i]=(read<real>(apj,i)-s)/denom;
-    }
-  }
-
-  // last entry of U
-  real s=0.0;
-  array *lupn=read<array*>(lu,pivot[n-1]);
-  for(size_t k=0; k < n-1; ++k) {
-    array *lupk=read<array*>(lu,pivot[k]);
-    s += (read<real>(lupk,n-1))*(read<real>(lupn,k)); 
-  }
-  array *apn=read<array*>(a,pivot[n-1]);
-  (*lupn)[n-1]=read<real>(apn,n-1)-s;
-    
-  // unscramble
-  for(size_t i=0; i < n; ++i) {
-    if(pivot[i] != i) {
-      array *tmp=read<array*>(lu,pivot[i]);
-      (*lu)[pivot[i]]=read<array*>(lu,i);
-      (*lu)[i]=tmp;
-    }
-  }
-
-  // solving Ly=b
-  realarray2 *y=copyArray2(b);
-  for(size_t i=0; i < n; ++i) {
-    array *lui=read<array*>(lu,i);
-    array *yi=read<array*>(y,i);
-    array *bi=read<array*>(b,i);
-    for(size_t j=0; j < m; ++j) {
-      real s=0.0;
-      for(size_t k=0; k < i; ++k) {
-	array *bk=read<array*>(b,k);
-	s += read<real>(lui,k)*read<real>(bk,j);   
-      }
-      (*yi)[j]=read<real>(bi,j)-s;
-    }
-  }
-
-  // solving Ux=y
   for(size_t i=n; i > 0;) {
     --i;
-    array *xi=read<array*>(b,i);
-    array *yi=read<array*>(y,i);
-    array *lui=read<array*>(lu,i);
-    for(size_t j=0; j < m; ++j) {
-      real s=0.0;
-      for(size_t k=n-1; k > i; --k) {
-	array *bk=read<array*>(b,k);
-	s += read<real>(lui,k)*read<real>(bk,j);   
-      }
-      (*xi)[j]=(read<real>(yi,j)-s)/read<real>(lui,i);
+    real *Ai=A[i];
+    real *Bi=B[i];
+    for(size_t k=0; k < m; ++k) {
+      real sum=Bi[k];
+      for(size_t j=i+1; j < n; ++j)
+	sum -= Ai[j]*B[j][k];
+      Bi[k]=sum/Ai[i];
     }
   }
-  delete[] pivot;
-  return b;
+  
+  for(size_t i=0; i < n; ++i) {
+    real *Bi=B[i];
+    array *xi;
+    (*x)[i]=xi=new array(m);
+    for(size_t j=0; j < m; ++j)
+      (*xi)[j]=Bi[j];
+  }
+    
+  delete[] index;
+  return x;
+}
+
+// Compute the determinant of an n x n matrix.
+real determinant(realarray2 *a)
+{
+  real **A=copyArray2C(a);
+  size_t n=a->size();
+  
+  size_t *index=new size_t[n];
+  real det=LUdecompose(A,n,index);
+  for(size_t i=0; i < n; ++i) det *= A[i][i];
+  delete[] index;
+  return det;
+}
+
+realarray *Operator *(realarray2 *a, realarray *b)
+{
+  size_t n=checkArray(a);
+  size_t bsize=checkArray(b);
+  if(bsize != n) error(incommensurate);  
+  array *c=new array(n);
+  for(size_t i=0; i < n; ++i) {
+    array *ai=read<array*>(a,i);
+    real sum=0.0;
+    for(size_t j=0; j < n; ++j) {
+      sum += read<real>(ai,j)*read<real>(b,j);
+    }
+    (*c)[i]=sum;
+  }
+  return c;
 }
 
 // Solve the problem L\inv f, where f is an n vector and L is the n x n matrix
