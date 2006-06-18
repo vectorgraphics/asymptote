@@ -5387,7 +5387,7 @@ a function @code{f}(@math{x},@math{y}) and added to a picture @code{pic}:
 @verbatim
 bounds image(picture pic=currentpicture, real f(real,real),
              pair initial, pair final, range prange=Full,
-	     int nx=100, int ny=nx, pen[] palette); 
+             int nx=100, int ny=nx, pen[] palette); 
 @end verbatim
 The function @code{f} will be sampled at @code{nx} and @code{ny}
 evenly spaced points over a rectangle defined by the points
@@ -5410,7 +5410,10 @@ the argument @code{range}, which can be @code{Full}, @code{Automatic}
 or an explicit @code{bounds(pair min, pair max)}.
 Here @code{Full} specifies a range varying from the
 minimum to maximum values of the function over the sampling interval,
-while @code{Automatic} selects "nice" limits.
+while @code{Automatic} selects "nice" limits. 
+
+The example @code{imagecontour.asy} illustrates how level sets
+(contour lines) can be drawn on a color density plot (@pxref{contour}).
 
 A color density plot can also be generated from an explicit real[][]
 array @code{data}:
@@ -5423,7 +5426,7 @@ An optionally labelled palette bar may be generated with the routine
 @verbatim
 void palette(picture pic=currentpicture, Label L="", bounds range,
              pair initial, pair final, axis axis=Right, pen[] palette,
-	     pen p=currentpen, paletteticks ticks=PaletteTicks);
+             pen p=currentpen, paletteticks ticks=PaletteTicks);
 @end verbatim
 The color space of @code{palette} is taken to be over @code{range} with
 scaling given by the @math{z} scaling of @code{pic}.
@@ -5434,9 +5437,9 @@ The argument @code{paletteticks} is a special tick type (@pxref{ticks})
 that takes the following arguments:
 @verbatim
 paletteticks PaletteTicks(Label format="", ticklabel ticklabel=null,
-			  bool beginlabel=true, bool endlabel=true,
-			  int N=0, int n=0, real Step=0, real step=0,
-			  pen pTick=nullpen, pen ptick=nullpen);
+                          bool beginlabel=true, bool endlabel=true,
+                          int N=0, int n=0, real Step=0, real step=0,
+                          pen pTick=nullpen, pen ptick=nullpen);
 @end verbatim
 
 The image and palette bar can be fit to a frame and added and
@@ -5947,8 +5950,8 @@ This package draws contour lines.
 To construct contours for a function @code{f}, use
 @verbatim
 guide[][] contour(real f(real, real), pair a, pair b,
-		  real[] c, int nx=nmesh, int ny=nx,
-		  interpolate join=operator --);
+                  real[] c, int nx=nmesh, int ny=nx,
+                  interpolate join=operator --);
 @end verbatim
 @noindent
 The contour lines @code{real[]c} for the function @code{f} are drawn
@@ -5963,8 +5966,8 @@ To construct contours for an array of data values on a uniform
 two-dimensional lattice, use
 @verbatim
 guide[][] contour(real[][] f, real[][] midpoint=new real[][],
-		  pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
-		  interpolate join=operator --);
+                  pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
+                  interpolate join=operator --);
 
 @end verbatim
 @noindent
@@ -5972,7 +5975,7 @@ To construct contours for an array of non-regularly spaced points,
 along with an array of values at these points, use
 @verbatim
 guide[][] contour(pair[] points, real[] values, 
-		  real[] c, interpolate join=operator --);
+                  real[] c, interpolate join=operator --);
 @end verbatim 
 @noindent
 The contours themselves can be drawn with one of the routines
@@ -5997,10 +6000,15 @@ To construct contours of data in an array of values at irregularly spaced
 points, use
 @verbatim
 guide[][] contour(pair[] points, real[] values, 
-		  real[] c, interpolate join=operator --);
+                  real[] c, interpolate join=operator --);
 @end verbatim
 @verbatiminclude contour3.asy
 @image{contour3}
+
+The next example illustrates how contour lines can be drawn on color
+density images:
+@verbatiminclude imagecontour.asy
+@image{imagecontour}
 
 @node slopefield
 @section @code{slopefield}
