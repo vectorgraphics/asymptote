@@ -3325,10 +3325,13 @@ real a,A[];
 @end verbatim
 @noindent
 This declares @code{a} to be @code{real} and implicitly declares @code{A} to
-be of type @code{real[]}.
+be of type @code{real[]}. 
 
 In the following list of built-in array functions, @code{T} represents a
-generic type.
+generic type. Note that the internal functions @code{alias},
+@code{copy}, @code{concat}, @code{sequence}, @code{map}, and
+@code{transpose}, which depend on type @code{T[]}, are defined only after the
+first declaration of a variable of type @code{T[]}.
 
 @table @code
 

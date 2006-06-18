@@ -22,7 +22,7 @@ picture make_field(real lambda, real w0)
   picture p=new picture;
   size(p,250,250,IgnoreAspect);
   real xm=-n/lambda, ym=-n/(2*w0), xx=n/lambda, yx=n/(2*w0);
-  image(p,v,Palette,(xm,ym),(xx,yx));
+  image(p,v,(xm,ym),(xx,yx),Palette);
   xlimits(p,xm,xx);
   ylimits(p,ym,yx);
   xaxis(p,"{\Large $z/\frac{\lambda}{2}$}",BottomTop,LeftTicks);
