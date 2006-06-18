@@ -2,8 +2,8 @@ public int nmesh=10;
 public real eps=10*realEpsilon;
 public real stepfraction=0.05;
 
-picture slopefield(real f(real,real), 
-		   pair a, pair b, int nx=nmesh, int ny=nx, 
+picture slopefield(real f(real,real), pair a, pair b,
+		   int nx=nmesh, int ny=nx,
 		   real tickfactor=0.5, pen p=currentpen)
 {
   picture pic;
@@ -24,8 +24,8 @@ picture slopefield(real f(real,real),
   return pic;
 }
 
-picture slopefield(real f(real), pair a, pair b, int nx=nmesh, int ny=nx, 
-		   pen p=currentpen)
+picture slopefield(real f(real), pair a, pair b,
+		   int nx=nmesh, int ny=nx, pen p=currentpen)
 {
   return slopefield(new real(real x, real y) {return f(x);},a,b,nx,ny,p);
 }

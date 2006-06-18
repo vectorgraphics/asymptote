@@ -5389,7 +5389,7 @@ A color density plot using palette @code{palette} can be generated from
 a function @code{f}(@math{x},@math{y}) and added to a picture @code{pic}:
 @verbatim
 bounds image(picture pic=currentpicture, real f(real,real),
-             pair initial, pair final, range prange=Full,
+             pair initial, pair final, range range=Full,
              int nx=100, int ny=nx, pen[] palette); 
 @end verbatim
 The function @code{f} will be sampled at @code{nx} and @code{ny}
@@ -5983,9 +5983,11 @@ guide[][] contour(pair[] points, real[] values,
 @noindent
 The contours themselves can be drawn with one of the routines
 @verbatim
-void draw(picture pic=currentpicture, guide[][] g, pen p=currentpen);
+void draw(picture pic=currentpicture, Label[] L=new Label[],
+          guide[][] g, pen p=currentpen)
 
-void draw(picture pic=currentpicture, guide[][] g, pen[] p);
+void draw(picture pic=currentpicture, Label[] L=new Label[],
+          guide[][] g, pen[] p)
 @end verbatim
 
 The following simple example draws the contour at value @code{1}
@@ -5993,18 +5995,20 @@ for the function @math{z=x^2+y^2}, which is a unit circle:
 @verbatiminclude contour1.asy
 @image{contour1}
 
-The next example draws multiple contours for the function
+The next example draws and labels multiple contours for the function
 @math{z=x^2-y^2} with the resolution @code{50 x 50}, using a dashed
 pen for negative contours and a solid pen for positive (and zero) contours:
 @verbatiminclude contour2.asy
 @image{contour2}
 
-To construct contours of data in an array of values at irregularly spaced
-points, use
+The routine
 @verbatim
 guide[][] contour(pair[] points, real[] values, 
                   real[] c, interpolate join=operator --);
 @end verbatim
+@noindent
+may be used to construct contours of data in an array of values at
+irregularly spaced points:
 @verbatiminclude contour3.asy
 @image{contour3}
 
@@ -6016,27 +6020,28 @@ density images:
 @node slopefield
 @section @code{slopefield}
 @cindex @code{slopefield}
-This package draws slopefields. The main function is
+To draw a slope field of the function @math{y'=f(x,y)} (@math{y'=f(x)} is also 
+accepted), use:
 @verbatim
-picture slopefield(real f(real,real), 
-                   pair a, pair b, int nx=nmesh, int ny=nx, 
+picture slopefield(real f(real,real), pair a, pair b,
+                   int nx=nmesh, int ny=nx, 
                    real tickfactor=0.5, pen p=currentpen);
 @end verbatim
-where @code{f} is a function @math{y'=f(x,y)} (@math{y'=f(x)} is also 
-accepted), the points @code{a} and @code{b} are the lower left and upper
-right corners of the rectangle in which the slope field is to be displayed,
-@code{nx} and @code{ny} are the number of ticks in the @math{x} and @math{y}
-directions, @code{tickfactor} is the fraction of the minimum cell dimension to
-use for drawing ticks, and @code{p} is the pen with which the slope 
-field is drawn.
-
-The function @code{slopefield} returns a picture, which can be added to
+@noindent
+Here, the points @code{a} and @code{b} are the lower left and upper
+right corners of the rectangle in which the slope field is to be drawn,
+@code{nx} and @code{ny} are the respective number of ticks in the
+@math{x} and @math{y} directions, @code{tickfactor} is the fraction of
+the minimum cell dimension to use for drawing ticks, and @code{p} is
+the pen to use for drawing the slope fields.
+The return value is a picture that can be added to
 @code{currentpicture} via the @code{add(picture)} command.
 
 The function
 @verbatim
-path curve(pair c, real f(real,real), pair a, pair b)
+path curve(pair c, real f(real,real), pair a, pair b);
 @end verbatim
+@noindent
 takes a point (@code{c}) and a slope field-defining function @code{f}
 (@code{real f(real)} is also accepted), and returns, as a path, the
 curve passing through that point. The points @code{a} and @code{b}
@@ -6463,7 +6468,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  yequals Nobre Barbarosie Schwaiger nearearth conicurv Wiebusch
 @c  LocalWords:  unfill posterSize ngraph interpolatetype ctrl dt pic getint Ai
 @c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei nomarker
-@c  LocalWords:  westnile minipage ra penb paletteticks drawline nV
+@c  LocalWords:  westnile minipage ra penb paletteticks drawline nV FillDraw
 @c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis tt
 @c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx XEquals YEquals
 @c  LocalWords:  treetest eetomumu fermi backend pstoedit drawtree xFF MSDOS gz
@@ -6511,4 +6516,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow blocks ny cpu
 @c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel
 @c  LocalWords:  zlabel strptime slopefields cputime roundrectangle slopefield
-@c  LocalWords:  tickfactor USERNAME
+@c  LocalWords:  tickfactor USERNAME writeable imagecontour logimage

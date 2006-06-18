@@ -410,18 +410,29 @@ guide[][] contour(real f(real, real), pair a, pair b,
   return contour(dat,midpoint,a,b,c,nx,ny,join);
 }
   
-void draw(picture pic=currentpicture, guide[][] g, pen p=currentpen)
+void draw(picture pic=currentpicture, Label[] L=new Label[],
+	  guide[][] g, pen[] p)
 {
-  for(int cnt=0; cnt < g.length; ++cnt)
-    for(int i=0; i < g[cnt].length; ++i)
-      draw(pic,g[cnt][i],p);
-}
-
-void draw(picture pic=currentpicture, guide[][] g, pen[] p)
-{
-  for(int cnt=0; cnt < g.length; ++cnt)
+  begingroup(pic);
+  for(int cnt=0; cnt < g.length; ++cnt) {
     for(int i=0; i < g[cnt].length; ++i)
       draw(pic,g[cnt][i],p[cnt]);
+  }
+  if(L.length > 0) {
+    for(int cnt=0; cnt < g.length; ++cnt) {
+      for(int i=0; i < g[cnt].length; ++i) {
+	if(size(g[cnt][i]) > 1)
+	  label(pic,L[cnt],g[cnt][i],p[cnt]);
+      }
+    }
+  }
+  endgroup(pic);
+}
+
+void draw(picture pic=currentpicture, Label[] L=new Label[],
+	  guide[][] g, pen p=currentpen)
+{
+  draw(pic,L,g,sequence(new pen(int) {return p;},g.length));
 }
 
 // non-regularly spaced points routines:
