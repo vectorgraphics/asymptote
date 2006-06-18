@@ -107,12 +107,21 @@ scientific scientific(real x)
 struct bounds {
   public real min;
   public real max;
-  // Possible tick intervals;
+  // Possible tick intervals:
   public int[] divisor;
 }
 
 bounds operator init() {return new bounds;}
   
+bounds bounds(real min, real max, int[] divisor=new int[])
+{
+  bounds b;
+  b.min=min;
+  b.max=max;
+  b.divisor=divisor;
+  return b;
+}
+
 // Compute tick divisors.
 int[] divisors(int a, int b)
 {
@@ -982,7 +991,8 @@ public axis
   YZero=YZero();
 
 // Draw a general axis.
-void axis(picture pic=currentpicture, Label L="", guide g, pen p=currentpen,
+void axis(picture pic=currentpicture, Label L="", guide g, guide g2=nullpath,
+	  pen p=currentpen,
 	  ticks ticks, ticklocate locate, arrowbar arrow=None,
 	  int[] divisor=new int[], bool put=Above, bool opposite=false) 
 {
@@ -992,10 +1002,10 @@ void axis(picture pic=currentpicture, Label L="", guide g, pen p=currentpen,
   divisor=copy(divisor);
   locate=locate.copy();
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
-    frame d;
-    ticks(d,t,L,0,g,g,p,arrow,locate,divisor,opposite);
-    (put ? add : prepend)(f,t*T*inverse(t)*d);
-  });
+      frame d;
+      ticks(d,t,L,0,g,g2,p,arrow,locate,divisor,opposite);
+      (put ? add : prepend)(f,t*T*inverse(t)*d);
+    });
   
   pic.addPath(g,p);
   

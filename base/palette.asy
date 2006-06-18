@@ -1,61 +1,167 @@
-access settings;
 private import graph;
 
-void image(picture pic=currentpicture, real[][] data, pen[] palette,
-	   pair initial, pair final)
-{
-  data=copy(data);
-  palette=copy(palette);
-  pic.add(new void (frame f, transform t) {
-    image(f,data,palette,initial,final,t);
-  });
-  pic.addBox(initial,final);
+typedef bounds range(picture pic, real[][] data);
+
+range Range(bool automin=true, real min=-infinity,
+			  bool automax=true, real max=infinity) {
+  return new bounds(picture pic, real[][] data) {
+    real dmin=min(data);
+    real dmax=max(data);
+    // autoscale routine finds reasonable limits
+    bounds mz=autoscale(pic.scale.z.T(dmin),
+			pic.scale.z.T(dmax),
+			pic.scale.z.scale);
+    // If automin/max, use autoscale result, else
+    // 	if min/max is finite, use specified value, else
+    // 	use minimum/maximum data value
+    real pmin=automin ? pic.scale.z.Tinv(mz.min) : (finite(min) ? min : dmin);
+    real pmax=automax ? pic.scale.z.Tinv(mz.max) : (finite(max) ? max : dmax);
+    return bounds(pmin,pmax);
+  };
 }
 
-typedef ticks paletteticks(real Size);
+range Automatic=Range();
+range Full=Range(false,false);
+
+bounds image(picture pic=currentpicture, real[][] f, range range=Full,
+	     pair initial, pair final, pen[] palette)
+{
+  f=copy(f);
+  palette=copy(palette);
+  bounds range=range(pic,f);
+  
+  // *******************************************************************
+  // Reduce color palette to approximate range of data relative to "display"
+  // range => errors of 1/palette.length in resulting color space.
+  real dmin=pic.scale.z.T(min(f));
+  real dmax=pic.scale.z.T(max(f));
+  real rmin=pic.scale.z.T(range.min);
+  real rmax=pic.scale.z.T(range.max);
+  int minindex=floor((dmin-rmin)/(rmax-rmin)*palette.length);
+  if(minindex < 0) minindex=0;
+  int maxindex=floor((dmax-rmin)/(rmax-rmin)*palette.length);
+  if(maxindex > palette.length) maxindex=palette.length;
+  pen[] newpalette;
+  for(int i=minindex; i < maxindex; ++i)
+    newpalette.push(palette[i]);
+  palette=newpalette;
+  
+  int n=f.length;
+  int m=n > 0 ? f[0].length : 0;
+  // Crop data to allowed range and scale
+  for(int i=0; i < n; ++i) {
+    real[] fi=f[i];
+    for(int j=0; j < m; ++j) {
+      real v=fi[j];
+      v=max(v,range.min);
+      v=min(v,range.max);
+      fi[j]=pic.scale.z.T(v);
+    }
+  }
+
+  initial=Scale(pic,initial);
+  final=Scale(pic,final);
+
+  pic.add(new void(frame F, transform t) {
+      image(F,f,initial,final,palette,t);
+    });
+  pic.addBox(initial,final);
+  return range; // Return range used for color space
+}
+
+bounds image(picture pic=currentpicture, real f(real,real),
+	     range range=Full, pair initial, pair final,
+	     int nx=100, int ny=nx, pen[] palette) 
+{
+  // Generate data, taking scaling into account
+  real xmin=pic.scale.x.T(initial.x);
+  real xmax=pic.scale.x.T(final.x);
+  real ymin=pic.scale.y.T(initial.y);
+  real ymax=pic.scale.y.T(final.y);
+  real[][] data=new real[ny][nx];
+  for(int j=0; j < ny; ++j) {
+    for(int i=0; i < nx; ++i) {
+      // Take center point of each bin
+      data[j][i]=f(pic.scale.x.Tinv(interp(xmin,xmax,(i+0.5)/nx)),
+		pic.scale.y.Tinv(interp(ymin,ymax,(j+0.5)/ny)));
+    }
+  }
+  return image(pic,data,range,initial,final,palette);
+}
+
+typedef ticks paletteticks(int sign=-1);
 
 paletteticks PaletteTicks(Label format="", ticklabel ticklabel=null,
 			  bool beginlabel=true, bool endlabel=true,
-			  int N=0, real Step=0, pen pTick=nullpen)
+			  int N=0, int n=0, real Step=0, real step=0,
+			  pen pTick=nullpen, pen ptick=nullpen)
 {
-  return new ticks(real Size) {
-    format.align(RightSide);
-    return Ticks(-1,format,beginlabel,endlabel,N,-1,Step,false,false,Size,
-		 pTick);
+  return new ticks(int sign=-1) {
+    format.align(sign > 0 ? RightSide : LeftSide);
+    return Ticks(sign,format,ticklabel,beginlabel,endlabel,N,n,Step,step,
+                 true,true,extend=true,pTick,ptick);
   };
 } 
 
-public paletteticks PaletteTicks=PaletteTicks();
+paletteticks PaletteTicks=PaletteTicks();
 
-picture palette(real[][] data, real width=Ticksize, pen[] palette,
-		Label L, pen p=currentpen, paletteticks ticks=PaletteTicks)
+void palette(picture pic=currentpicture, Label L="", bounds range, 
+	     pair initial, pair final, axis axis=Right, pen[] palette, 
+	     pen p=currentpen, paletteticks ticks=PaletteTicks)
 {
-  data=copy(data);
+  real initialz=pic.scale.z.T(range.min);
+  real finalz=pic.scale.z.T(range.max);
+  bounds mz=autoscale(initialz,finalz,pic.scale.z.scale);
+  
+  axisT axis;
+  axis(pic,axis);
+  real angle=degrees(axis.align);
+
+  initial=Scale(pic,initial);
+  final=Scale(pic,final);
+
+  pair lambda=final-initial;
+  bool vertical=(floor((angle+45)/90) % 2 == 0);
+  pair perp,par;
+
+  if(vertical) {perp=E; par=N;} else {perp=N; par=E;}
+
+  guide g=(final-dot(lambda,par)*par)--final;
+  guide g2=initial--final-dot(lambda,perp)*perp;
+
+  if(sgn(dot(lambda,perp)*dot(axis.align,perp)) == -1) {
+    guide tmp=g;
+    g=g2;
+    g2=tmp;
+  }
+
   palette=copy(palette);
   Label L=L.copy();
   if(L.defaultposition) L.position(0.5);
-  L.align(E);
+  L.align(axis.align);
   L.p(p);
-  picture pic;
-  real initialy=min(data);
-  real finaly=max(data);
-  pair z0=(0,initialy);
-  pair z1=(0,finaly);
+  if(vertical && L.defaultangle) {
+    frame f;
+    add(f,Label(L.s,(0,0),L.p));
+    L.angle(length(max(f)-min(f)) > ylabelwidth*fontsize(L.p) ? 90 : 0);
+  }
+  real[][] pdata=new real[][] {sequence(palette.length-1)};
+  if(vertical) pdata=transpose(pdata);
   
-  pic.add(new void (frame f, transform t) {
-    pair z0=(0,z0.y);
-    pair z1=(0,z1.y);
-    pair Z0=t*z0;
-    pair Z1=t*z1;
-    pair initial=Z0-width;
-    image(f,transpose(new real[][] {sequence(palette.length-1)}),palette,
-	  inverse(t)*initial,z1,t);
-    draw(f,Z0--initial--Z1-width--Z1,p);
-  });
+  pic.add(new void(frame f, transform t) {
+      pair Z0=t*initial;
+      pair Z1=t*final;
+      pair initial=Z0;
+      image(f,pdata,inverse(t)*initial,final,palette,t);
+      guide G=Z0--(Z0.x,Z1.y)--Z1--(Z1.x,Z0.y)--cycle;
+      draw(f,G,p);
+    });
   
-  pic.addBox(z0,z1,(-width,0),(0,0));
-  yaxis(pic,L,initialy,finaly,p,ticks(width),Above);
-  return pic;
+  pic.addBox(initial,final);
+  
+  ticklocate locate=ticklocate(initialz,finalz,pic.scale.z);
+  axis(pic,L,g,g2,p,ticks(sgn(axis.side.x*dot(lambda,par))),locate,
+       mz.divisor,Above);
 }
 
 // A grayscale palette
@@ -204,4 +310,3 @@ pen[] cmyk(pen[] Palette)
     Palette[i]=cmyk+Palette[i];
   return Palette;
 }
-  

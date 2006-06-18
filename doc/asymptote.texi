@@ -121,7 +121,6 @@ Base modules
 * geometry::                    Geometry routines
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
-* palette::                     Color density images and palettes
 * tree::                        Dynamic binary search tree
 * drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
@@ -133,6 +132,7 @@ Base modules
 * babel::                       Implement @code{LaTeX} @code{babel} package
 * embed::                       Embedding movies, sounds, and 3D objects
 * graph::                       2D linear & logarithmic graphs
+* palette::                     Color density images and palettes
 * three::                       3D vector graphics
 * light::                       3D lighting effects
 * graph3::                      3D linear & logarithmic graphs
@@ -4376,16 +4376,8 @@ frame pack(pair align=2S ... object inset[]);
 @cindex @code{minipage}
 The @code{string minipage(string s, width=100pt)} function can be used
 to format string @code{s} into a paragraph of width @code{width}, as
-illustrated in the following example:
-@verbatiminclude mosquito.asy
-
-@image{mosquito}
-
-Here is another example, @code{advection.asy}, showing variable box
-and ellipse sizes:
-
+illustrated in the example @code{advection.asy}:
 @image{advection}
-
 
 @node LaTeX usage
 @chapter @code{LaTeX} usage
@@ -4449,7 +4441,6 @@ Here now is @code{latexusage.tex}:
 * geometry::                    Geometry routines
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
-* palette::                     Color density images and palettes
 * tree::                        Dynamic binary search tree
 * drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
@@ -4461,6 +4452,7 @@ Here now is @code{latexusage.tex}:
 * babel::                       Implement @code{LaTeX} @code{babel} package
 * embed::                       Embedding movies, sounds, and 3D objects
 * graph::                       2D linear & logarithmic graphs
+* palette::                     Color density images and palettes
 * three::                       3D vector graphics
 * light::                       3D lighting effects
 * graph3::                      3D linear & logarithmic graphs
@@ -4599,12 +4591,6 @@ and @code{leastsquares}.
 @cindex @code{patterns}
 This package implements @code{Postscript} tiling patterns and includes
 several convenient pattern generation routines.
-
-@node palette
-@section @code{palette}
-@cindex @code{palette}
-This package implements color density images and palette bars,
-along with several predefined palettes (@pxref{images}).
 
 @node tree
 @section @code{tree}
@@ -5356,8 +5342,20 @@ Here is a simple example of a flow field:
 @verbatiminclude flow.asy
 @image{flow}
 
+@item The following scientific graphs, which illustrate many features of
+@code{Asymptote}'s graphics routines, were generated from the examples
+@code{diatom.asy} and @code{westnile.asy}, using the comma-separated
+data in @code{diatom.csv} and @code{westnile.csv}.
+@page
+
+@image{diatom}
+@image{westnile,,7.5cm}
+@end enumerate
+
+@node palette
+@section @code{palette}
 @anchor{images}
-@item @code{Asymptote} can also generate color density images
+@code{Asymptote} can also generate color density images
 and palettes. The following palettes are predefined in
 @code{palette.asy}: 
 
@@ -5383,49 +5381,77 @@ a linearly scaled intensity.
 
 The function @code{cmyk(pen[] Palette)} may be used to convert any
 of these palettes to the @acronym{CMYK} colorspace.
-A color density plot can added to a picture @code{pic} by generating
-from a real[][] array @code{data}, using palette @code{palette}, an image
-spanning the rectangular region with opposite corners at coordinates
-@code{initial} and @code{final}:
+
+A color density plot using palette @code{palette} can be generated from
+a function @code{f}(@math{x},@math{y}) and added to a picture @code{pic}:
 @verbatim
-void image(picture pic=currentpicture, real[][] data, pen[] palette,
-           pair initial, pair final);
+bounds image(picture pic=currentpicture, real f(real,real),
+             pair initial, pair final, range prange=Full,
+	     int nx=100, int ny=nx, pen[] palette); 
+@end verbatim
+The function @code{f} will be sampled at @code{nx} and @code{ny}
+evenly spaced points over a rectangle defined by the points
+@code{initial} and @code{final}, respecting the current graphical
+scaling of @code{pic}. The color space is scaled according to the
+@math{z} axis scaling (@pxref{automatic scaling}). A bounds structure
+for the function values is returned:
+@verbatim
+struct bounds {
+  public real min;
+  public real max;
+  // Possible tick intervals:
+  public int[] divisor;
+}
+@end verbatim
+@noindent
+This information can be used for generating an optional palette bar.
+The palette color space corresponds to a range of values specified by
+the argument @code{range}, which can be @code{Full}, @code{Automatic}
+or an explicit @code{bounds(pair min, pair max)}.
+Here @code{Full} specifies a range varying from the
+minimum to maximum values of the function over the sampling interval,
+while @code{Automatic} selects "nice" limits.
+
+A color density plot can also be generated from an explicit real[][]
+array @code{data}:
+@verbatim
+bounds image(picture pic=currentpicture, real[][] f, range range=Full,
+             pair initial, pair final, pen[] palette);
 @end verbatim
 
 An optionally labelled palette bar may be generated with the routine
 @verbatim
-picture palette(real[][] data, real width=Ticksize,
-                pen[] palette, Label L, pen p=currentpen,
-                paletteticks ticks=PaletteTicks)
+void palette(picture pic=currentpicture, Label L="", bounds range,
+             pair initial, pair final, axis axis=Right, pen[] palette,
+	     pen p=currentpen, paletteticks ticks=PaletteTicks);
 @end verbatim
-
+The color space of @code{palette} is taken to be over @code{range} with
+scaling given by the @math{z} scaling of @code{pic}.
+The palette orientation is specified by @code{axis}, which may be one of
+@code{Right}, @code{Left}, @code{Top}, or @code{Bottom}.
+The bar is drawn over the rectangle from @code{initial} to @code{final}.
 The argument @code{paletteticks} is a special tick type (@pxref{ticks})
 that takes the following arguments:
 @verbatim
 paletteticks PaletteTicks(Label format="", ticklabel ticklabel=null,
-                          bool beginlabel=true, bool endlabel=true,
-                          int N=0, real Step=0, pen pTick=nullpen);
+			  bool beginlabel=true, bool endlabel=true,
+			  int N=0, int n=0, real Step=0, real step=0,
+			  pen pTick=nullpen, pen ptick=nullpen);
 @end verbatim
 
-The image and palette bar can be fit (and optionally aligned) to a frame 
-and added to picture @code{dest} at the location @code{position} using
-@code{add(picture dest=currentpicture, frame, pair position=0)}:
+The image and palette bar can be fit to a frame and added and
+optionally aligned to a picture at the desired location:
 
 @anchor{image}
 @verbatiminclude image.asy
 @image{image}
 
-@item The following scientific graphs, which illustrate many features of
-@code{Asymptote}'s graphics routines, were generated from the examples
-@code{diatom.asy} and @code{westnile.asy}, using the comma-separated
-data in @code{diatom.csv} and @code{westnile.csv}.
-@page
+Here is an example that uses logarithmic scaling of the function values:
 
-@image{diatom}
-@image{westnile,,7.5cm}
-@end enumerate
+@anchor{logimage}
+@verbatiminclude logimage.asy
+@image{logimage}
 
-@page
 @node three
 @section @code{three}
 @cindex @code{three}
@@ -6426,7 +6452,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  yequals Nobre Barbarosie Schwaiger nearearth conicurv Wiebusch
 @c  LocalWords:  unfill posterSize ngraph interpolatetype ctrl dt pic getint Ai
 @c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei nomarker
-@c  LocalWords:  westnile minipage infectiousM ra penb paletteticks drawline nV
+@c  LocalWords:  westnile minipage ra penb paletteticks drawline nV
 @c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis tt
 @c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx XEquals YEquals
 @c  LocalWords:  treetest eetomumu fermi backend pstoedit drawtree xFF MSDOS gz

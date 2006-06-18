@@ -807,8 +807,8 @@ void layer(picture *f)
   f->append(new drawLayer());
 }
 
-void image(picture *f, realarray2 *data, penarray *palette, 
-	   pair initial, pair final, transform t=Identity)
+void image(picture *f, realarray2 *data, pair initial, pair final,
+	   penarray *palette, transform t=Identity)
 {
   f->append(new drawImage(copyArray2(data),copyArray(palette),
 			  t*matrix(initial,final)));
