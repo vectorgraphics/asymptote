@@ -36,7 +36,7 @@ AC_MSG_NOTICE([Using $latexdir for LaTeX style file])
 
 AC_SUBST(latexdir)
 
-Docdir=$Datadir/doc/asymptote
+Docdir='${prefix}/share/doc/asymptote'
 
 AC_ARG_WITH(Docdir,
 	[  --with-docdir=PATH      alternate documentation installation directory],
@@ -152,10 +152,20 @@ AC_C_CONST
 AC_C_INLINE
 AC_TYPE_SIGNAL
 
+AC_DEFUN(AC_FUNC_STRPTIME, [
+    AC_CHECK_FUNCS(strptime)
+    AC_MSG_CHECKING(for strptime declaration in time.h)
+    AC_EGREP_HEADER(strptime, time.h, [
+        AC_DEFINE([HAVE_STRPTIME_DECL],,[Define if the function strptime is declared in <time.h>])
+    AC_MSG_RESULT(yes)], [AC_MSG_RESULT(no)
+    ])
+])
+
 # Checks for library functions.
 AC_FUNC_FORK
 AC_CHECK_FUNCS([dup2 floor memset pow sqrt strchr tgamma])
 AC_FUNC_STRFTIME
+AC_FUNC_STRPTIME
 AC_FUNC_ERROR_AT_LINE
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC

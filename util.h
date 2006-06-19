@@ -62,6 +62,7 @@ extern "C" double hypot(double x, double y) throw();
 extern "C" double jn(int n, double x);
 extern "C" double yn(int n, double x);
 extern "C" int fileno(FILE *);
+extern "C" char *strptime(const char *s, const char *format, struct tm *tm);
 #endif
 
 extern bool False;
