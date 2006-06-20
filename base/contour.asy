@@ -1,7 +1,7 @@
 // Contour routines written by Radoslav Marinov and John Bowman.
 	 
 public int nmesh=25; // default mesh subdivisions
-public real eps=10*realEpsilon;
+public real eps=100*realEpsilon;
 
 //                         1  
 //             6 +-------------------+ 5
@@ -421,8 +421,9 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
   if(L.length > 0) {
     for(int cnt=0; cnt < g.length; ++cnt) {
       for(int i=0; i < g[cnt].length; ++i) {
-	if(size(g[cnt][i]) > 1)
-	  label(pic,L[cnt],g[cnt][i],p[cnt]);
+	Label Lcnt=L[cnt];
+	if(Lcnt.s != "" && size(g[cnt][i]) > 1)
+	  label(pic,Lcnt,g[cnt][i],p[cnt]);
       }
     }
   }
