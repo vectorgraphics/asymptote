@@ -107,11 +107,11 @@ filltype FillDraw(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
   };
 }
 
-public filltype NoFill=new void(frame f, path g, pen p) {
+filltype NoFill=new void(frame f, path g, pen p) {
   draw(f,g,p);
 };
 
-public filltype FillDraw=FillDraw(nullpen), Fill=Fill(nullpen), Draw=NoFill; 
+filltype FillDraw=FillDraw(nullpen), Fill=Fill(nullpen), Draw=NoFill; 
 
 filltype UnFill(real xmargin=0, real ymargin=xmargin)
 {
@@ -120,7 +120,7 @@ filltype UnFill(real xmargin=0, real ymargin=xmargin)
   };
 }
 
-public filltype UnFill=UnFill();
+filltype UnFill=UnFill();
 
 // Fill varying radially from penc at the center of the bounding box to
 // penr at the edge.

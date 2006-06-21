@@ -127,7 +127,7 @@ pair intersectionpoint(path p, path q, real fuzz=0)
 }
 
 struct slice {
-  public path before,after;
+  path before,after;
 }
   
 slice operator init() {return new slice;}

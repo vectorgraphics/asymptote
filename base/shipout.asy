@@ -3,8 +3,8 @@ bool NoWait=false;
 
 struct GUIop
 {
-  public transform[] Transform;
-  public bool[] Delete;
+  transform[] Transform;
+  bool[] Delete;
 }
 
 GUIop operator init() {return new GUIop;}
@@ -20,7 +20,7 @@ frame GUI(int index) {
 }
 						   
 private struct DELETET {}
-public DELETET DELETE=null;
+DELETET DELETE=null;
 
 GUIop[] GUIlist;
 
@@ -83,7 +83,7 @@ frame Landscape(frame f) {return rotate(90)*f;};
 frame UpsideDown(frame f) {return rotate(180)*f;};
 frame Seascape(frame f) {return rotate(-90)*f;};
 typedef frame orientation(frame);
-public orientation orientation=Portrait;
+orientation orientation=Portrait;
 
 void shipout(string prefix=defaultfilename, picture pic, real unitsize=0,
 	     frame preamble=patterns, orientation orientation=orientation,

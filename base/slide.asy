@@ -1,15 +1,15 @@
 import fontsize;
 usepackage("colordvi");
 
-public bool reverse=false; // Set to true to enable reverse video
-public bool stepping=false; // Set to true to enable stepping
-public bool itemstep=true;  // Set to false to disable stepping on each item
+bool reverse=false; // Set to true to enable reverse video
+bool stepping=false; // Set to true to enable stepping
+bool itemstep=true;  // Set to false to disable stepping on each item
 
-public bool allowstepping=false; // Allow stepping for current slide.
+bool allowstepping=false; // Allow stepping for current slide.
 
-public real margin=0.5cm;
-public real pagewidth=-2margin;
-public real pageheight=-2margin;
+real margin=0.5cm;
+real pagewidth=-2margin;
+real pageheight=-2margin;
 
 access settings;
 								 
@@ -24,45 +24,45 @@ if(orientation == Portrait || orientation == UpsideDown) {
 size(pagewidth,pageheight,IgnoreAspect);
 
 real minipagemargin=1inch;
-public real minipagewidth=pagewidth-2minipagemargin;
+real minipagewidth=pagewidth-2minipagemargin;
 
-public transform tinv=inverse(fixedscaling((-1,-1),(1,1)));
+transform tinv=inverse(fixedscaling((-1,-1),(1,1)));
   
-public pen itempen=fontsize(24pt);
-public real itemskip=0.5;
+pen itempen=fontsize(24pt);
+real itemskip=0.5;
 
-public pen titlepagepen=fontsize(36pt)+red;
-public pen authorpen=fontsize(24pt)+blue;
-public pen institutionpen=authorpen;
-public pen urlpen=fontsize(20pt);
-public pair urlskip=(0,0.2);
-public pen datepen=urlpen;
-public pair dateskip=(0,0.1);
+pen titlepagepen=fontsize(36pt)+red;
+pen authorpen=fontsize(24pt)+blue;
+pen institutionpen=authorpen;
+pen urlpen=fontsize(20pt);
+pair urlskip=(0,0.2);
+pen datepen=urlpen;
+pair dateskip=(0,0.1);
 
-public pair titlealign=2S;
-public pen titlepen=fontsize(32pt);
-public real titleskip=0.5;
+pair titlealign=2S;
+pen titlepen=fontsize(32pt);
+real titleskip=0.5;
 
-public string oldbulletcolor="Black";
-public string newbulletcolor="Red";
-public string bullet="\bulletcolor{$\bullet$}";
+string oldbulletcolor="Black";
+string newbulletcolor="Red";
+string bullet="\bulletcolor{$\bullet$}";
 					      
-public pair pagenumberposition=S+E;
-public pair pagenumberalign=4NW;
-public pen pagenumberpen=fontsize(12);
-public pen steppagenumberpen=colorless(pagenumberpen)+red;
+pair pagenumberposition=S+E;
+pair pagenumberalign=4NW;
+pen pagenumberpen=fontsize(12);
+pen steppagenumberpen=colorless(pagenumberpen)+red;
 
-public real figureborder=0.25cm;
-public pen figuremattpen=invisible;
+real figureborder=0.25cm;
+pen figuremattpen=invisible;
 
-public pair titleposition=(-0.8,0.4);
-public pair startposition=(-0.8,0.9);
-public pair currentposition=startposition;
+pair titleposition=(-0.8,0.4);
+pair startposition=(-0.8,0.9);
+pair currentposition=startposition;
 
 texpreamble("\let\bulletcolor"+'\\'+newbulletcolor);
 texpreamble("\hyphenpenalty=10000\tolerance=1000");
 
-public picture background;
+picture background;
 size(background,pagewidth,pageheight,IgnoreAspect);
 
 defaultpen(itempen);
@@ -71,7 +71,7 @@ int[] firstnode=new int[] {currentpicture.nodes.length};
 int[] lastnode=new int[];
 bool firststep=true;
 
-public int page=1;
+int page=1;
 bool havepagenumber=false;
 
 int preamblenodes=2;

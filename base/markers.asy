@@ -1,6 +1,6 @@
-public real legendlinelength=50;
-public real legendskip=1.2;
-public real legendmargin=10;
+real legendlinelength=50;
+real legendskip=1.2;
+real legendmargin=10;
 
 // Return a unit polygon with n sides
 guide polygon(int n) 
@@ -42,9 +42,9 @@ markroutine markuniform(int n) {
 }
 
 struct marker {
-  public frame f;
-  public bool put=Above;
-  public markroutine markroutine=marknodes;
+  frame f;
+  bool put=Above;
+  markroutine markroutine=marknodes;
   void mark(picture pic, path g) {
     markroutine(pic,g,f);
   };
@@ -72,7 +72,7 @@ marker marker(path[] g, markroutine markroutine=marknodes, pen p=currentpen,
 
 marker nomarker;
 
-public real circlescale=0.85;
+real circlescale=0.85;
 
 marker[] Mark={
   marker(scale(circlescale)*unitcircle),

@@ -1,12 +1,12 @@
-public real arrowlength=0.75cm;
-public real arrowfactor=15;
-public real arrowangle=15;
-public real arcarrowfactor=0.5*arrowfactor;
-public real arcarrowangle=2*arrowangle;
-public real arrowsizelimit=0.5;
-public real arrow2sizelimit=1/3;
+real arrowlength=0.75cm;
+real arrowfactor=15;
+real arrowangle=15;
+real arcarrowfactor=0.5*arrowfactor;
+real arcarrowangle=2*arrowangle;
+real arrowsizelimit=0.5;
+real arrow2sizelimit=1/3;
 
-public real barfactor=arrowfactor;
+real barfactor=arrowfactor;
 
 real arrowsize(pen p=currentpen) 
 {
@@ -23,7 +23,7 @@ real barsize(pen p=currentpen)
   return barfactor*linewidth(p);
 }
 
-public guide arrowhead(path g, real position, pen p=currentpen,
+guide arrowhead(path g, real position, pen p=currentpen,
 		       real size=0, real angle=arrowangle)
 {
   if(size == 0) size=arrowsize(p);
@@ -42,7 +42,7 @@ public guide arrowhead(path g, real position, pen p=currentpen,
     ..cycle;
 }
 
-public void arrowheadbbox(picture pic=currentpicture, path g,
+void arrowheadbbox(picture pic=currentpicture, path g,
 			  position position=EndPoint,
 			  pen p=currentpen, real size=0,
 			  real angle=arrowangle)
@@ -283,7 +283,7 @@ arrowbar Bars(real size=0)
   };
 }
 
-public arrowbar
+arrowbar
   Blank=Blank(),
   None=None(),
   BeginArrow=BeginArrow(),

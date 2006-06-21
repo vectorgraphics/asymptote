@@ -1,4 +1,4 @@
-public real perpfactor=arrowfactor;
+real perpfactor=arrowfactor;
 
 guide square(pair z1, pair z2)
 {
@@ -30,7 +30,7 @@ void perpendicular(picture pic=currentpicture, pair z, pair align, path g,
 }
 
 struct triangle {
-  public pair A,B,C;
+  pair A,B,C;
 
   static triangle SAS(real b, real alpha, real c, real angle=0, pair A=(0,0)) {
     triangle T=new triangle;

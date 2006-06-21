@@ -1,6 +1,6 @@
 struct marginT {
-  public path g;
-  public real begin,end;
+  path g;
+  real begin,end;
 };
 
 marginT operator init() {return new marginT;}
@@ -71,7 +71,7 @@ margin TrueMargin(real begin, real end)
   };
 }
 						      
-public margin
+margin
   NoMargin=NoMargin(),
   BeginMargin=Margin(1,0),
   Margin=Margin(0,1),

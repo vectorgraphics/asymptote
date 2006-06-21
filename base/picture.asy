@@ -1,8 +1,8 @@
 bool Aspect=true;
 bool IgnoreAspect=false;
 
-public frame patterns;
-public bool shipped;
+frame patterns;
+bool shipped;
 
 real cap(real x, real m, real M, real bottom, real top)
 {
@@ -54,8 +54,8 @@ typedef void drawerBound(frame f, transform t, transform T, pair lb, pair rt);
 // coordinates.
   
 struct coord {
-  public real user,truesize;
-  public bool finite=true;
+  real user,truesize;
+  bool finite=true;
 
   // Build a coord.
   static coord build(real user, real truesize) {
@@ -225,7 +225,7 @@ coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
 
 typedef real scalefcn(real x);
 					      
-public struct scaleT {
+struct scaleT {
   scalefcn T,Tinv;
   bool logarithmic;
   bool automin,automax;
@@ -251,13 +251,13 @@ scaleT operator init()
   return S;
 }
 				  
-public struct autoscaleT {
-  public scaleT scale;
-  public scaleT postscale;
-  public real tickMin=-infinity, tickMax=infinity;
-  public bool automin=true, automax=true;
-  public bool automin() {return automin && scale.automin;}
-  public bool automax() {return automax && scale.automax;}
+struct autoscaleT {
+  scaleT scale;
+  scaleT postscale;
+  real tickMin=-infinity, tickMax=infinity;
+  bool automin=true, automax=true;
+  bool automin() {return automin && scale.automin;}
+  bool automax() {return automax && scale.automax;}
   
   real T(real x) {return postscale.T(scale.T(x));}
   scalefcn T() {return scale.logarithmic ? postscale.T : T;}
@@ -277,11 +277,11 @@ public struct autoscaleT {
 
 autoscaleT operator init() {return new autoscaleT;}
 				  
-public struct ScaleT {
-  public bool set;
-  public autoscaleT x;
-  public autoscaleT y;
-  public autoscaleT z;
+struct ScaleT {
+  bool set;
+  autoscaleT x;
+  autoscaleT y;
+  autoscaleT z;
   
   ScaleT copy() {
     ScaleT dest=new ScaleT;
@@ -296,11 +296,11 @@ public struct ScaleT {
 ScaleT operator init() {return new ScaleT;}
 
 struct Legend {
-  public string label;
-  public pen plabel;
-  public pen p;
-  public frame mark;
-  public bool put;
+  string label;
+  pen plabel;
+  pen p;
+  frame mark;
+  bool put;
   void init(string label, pen plabel=currentpen, pen p=nullpen,
 	    frame mark=newframe, bool put=Above) {
     this.label=label;
@@ -377,24 +377,24 @@ struct picture {
   bounds bounds;
     
   // Transform to be applied to this picture.
-  public transform T;
+  transform T;
   
   // Cached user-space bounding box
   pair userMin,userMax;
   bool userSetx,userSety;
   
-  public ScaleT scale; // Needed by graph
-  public Legend[] legend;
+  ScaleT scale; // Needed by graph
+  Legend[] legend;
 
   // The maximum sizes in the x and y directions; zero means no restriction.
-  public real xsize=0, ysize=0;
+  real xsize=0, ysize=0;
   
   // If true, the x and y directions must be scaled by the same amount.
-  public bool keepAspect=true;
+  bool keepAspect=true;
 
   // A fixed scaling transform.
-  public bool fixed;
-  public transform fixedscaling;
+  bool fixed;
+  transform fixedscaling;
   
   void init() {
     userMin=userMax=0;
@@ -551,7 +551,7 @@ struct picture {
 
   // The scaling in one dimension:  x --> a*x + b
   struct scaling {
-    public real a,b;
+    real a,b;
     static scaling build(real a, real b) {
       scaling s=new scaling;
       s.a=a; s.b=b;
@@ -816,7 +816,7 @@ picture operator * (transform t, picture orig)
   return pic;
 }
 
-public picture currentpicture;
+picture currentpicture;
 
 void size(picture pic=currentpicture, real x, real y, 
 	  bool keepAspect=pic.keepAspect)

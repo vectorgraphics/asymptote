@@ -1,14 +1,14 @@
 private import math;
 
-public real ticksize=1mm;
-public real Ticksize=2*ticksize;
-public real ylabelwidth=2.0;
-public real axislabelmargin=1;
-public real axislabelfactor=1.5;
-public real axiscoverage=0.8;
-public int ngraph=100;
+real ticksize=1mm;
+real Ticksize=2*ticksize;
+real ylabelwidth=2.0;
+real axislabelmargin=1;
+real axislabelfactor=1.5;
+real axiscoverage=0.8;
+int ngraph=100;
 
-public real epsilon=10*realEpsilon;
+real epsilon=10*realEpsilon;
 
 bool Crop=true;
 bool NoCrop=false;
@@ -22,7 +22,7 @@ Logarithmic=Log;
 
 // A linear scale, with optional autoscaling of minimum and maximum values,
 // scaling factor s and intercept.
-public scaleT Linear(bool automin=true, bool automax=true, real s=1,
+scaleT Linear(bool automin=true, bool automax=true, real s=1,
 		     real intercept=0)
 {
   real sinv=1/s;
@@ -35,7 +35,7 @@ public scaleT Linear(bool automin=true, bool automax=true, real s=1,
 
 // A logarithmic scale, with optional autoscaling of minimum and maximum
 // values.
-public scaleT Log(bool automin=true, bool automax=true)
+scaleT Log(bool automin=true, bool automax=true)
 {
   scaleT scale;
   scale.init(Log.T,Log.Tinv,logarithmic=true,automin,automax);
@@ -43,7 +43,7 @@ public scaleT Log(bool automin=true, bool automax=true)
 }
 
 // A "broken" linear axis omitting the segment [a,b].
-public scaleT Broken(real a, real b, bool automin=true, bool automax=true)
+scaleT Broken(real a, real b, bool automin=true, bool automax=true)
 {
   real skip=b-a;
   scaleT scale;
@@ -79,9 +79,9 @@ void scale(picture pic=currentpicture, bool xautoscale=true,
 
 struct scientific 
 {
-  public int sign;
-  public real mantissa;
-  public int exponent;
+  int sign;
+  real mantissa;
+  int exponent;
   int ceil() {return sign*ceil(mantissa);}
   real scale(real x, real exp) {return exp > 0 ? x/10^exp : x*10^-exp;}
   real ceil(real x, real exp) {return ceil(sign*scale(abs(x),exp));}
@@ -105,10 +105,10 @@ scientific scientific(real x)
 
 // Autoscale limits and tick divisor.
 struct bounds {
-  public real min;
-  public real max;
+  real min;
+  real max;
   // Possible tick intervals:
-  public int[] divisor;
+  int[] divisor;
 }
 
 bounds operator init() {return new bounds;}
@@ -208,11 +208,11 @@ bounds autoscale(real Min, real Max, scaleT scale=Linear)
 typedef string ticklabel(real);
 private string ticklabel(real) {return "";}
 
-public ticklabel Format(string s) {
+ticklabel Format(string s) {
   return new string(real x) {return format(s,x);};
 }
 
-public ticklabel LogFormat(int base) {
+ticklabel LogFormat(int base) {
   return new string(real x) {
     return format("$"+(string) base+"^{%g}$",x);
   };
@@ -224,10 +224,10 @@ ticklabel LogFormat=LogFormat(10);
 pair zero(real) {return 0;}
 
 struct ticklocate {
-  public real a,b;	    // Tick values at point(g,0), point(g,length(g)).
-  public autoscaleT S;	    // Autoscaling transformation.
-  public real time(real v); // Returns the time corresponding to the value v. 
-  public pair dir(real t);  // Returns the absolute tick direction as a
+  real a,b;	    // Tick values at point(g,0), point(g,length(g)).
+  autoscaleT S;	    // Autoscaling transformation.
+  real time(real v); // Returns the time corresponding to the value v. 
+  pair dir(real t);  // Returns the absolute tick direction as a
                             // function of t (zero means perpendicular).
   ticklocate copy() {
     ticklocate T=new ticklocate;
@@ -821,7 +821,7 @@ ticks Ticks(Label format="", ticklabel ticklabel=null,
 	       Ticks,ticks,Size,size,extend,pTick,ptick);
 }
 
-public ticks
+ticks
   NoTicks=NoTicks(),
   LeftTicks=LeftTicks(),
   RightTicks=RightTicks(),
@@ -839,26 +839,26 @@ pair tickMax(picture pic)
 					       
 // Structure used to communicate axis and autoscale settings to tick routines. 
 struct axisT {
-  public pair value;
-  public real position;
-  public pair side;
-  public pair align;
-  public pair value2;
+  pair value;
+  real position;
+  pair side;
+  pair align;
+  pair value2;
   
-  public pair userMin;
-  public pair userMax;
-  public int[] xdivisor;
-  public int[] ydivisor;
-  public bool extend;
+  pair userMin;
+  pair userMax;
+  int[] xdivisor;
+  int[] ydivisor;
+  bool extend;
 };
 
 axisT operator init() {return new axisT;}
 					       
-public axisT axis;
+axisT axis;
 typedef void axis(picture, axisT);
 void axis(picture, axisT) {};
 
-public axis Bottom(bool extend=false)
+axis Bottom(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
     axis.value=pic.scale.y.automin() ? tickMin(pic) : axis.userMin;
@@ -870,7 +870,7 @@ public axis Bottom(bool extend=false)
   };
 }
 
-public axis Top(bool extend=false)
+axis Top(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
     axis.value=pic.scale.y.automax() ? tickMax(pic) : axis.userMax;
@@ -882,7 +882,7 @@ public axis Top(bool extend=false)
   };
 }
 
-public axis BottomTop(bool extend=false)
+axis BottomTop(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
     axis.value=pic.scale.y.automin() ? tickMin(pic) : axis.userMin;
@@ -894,7 +894,7 @@ public axis BottomTop(bool extend=false)
   };
 }
 
-public axis Left(bool extend=false)
+axis Left(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
     axis.value=pic.scale.x.automin() ? tickMin(pic) : axis.userMin;
@@ -906,7 +906,7 @@ public axis Left(bool extend=false)
   };
 }
 
-public axis Right(bool extend=false)
+axis Right(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
     axis.value=pic.scale.x.automax() ? tickMax(pic) : axis.userMax;
@@ -918,7 +918,7 @@ public axis Right(bool extend=false)
   };
 }
 
-public axis LeftRight(bool extend=false) 
+axis LeftRight(bool extend=false) 
 {
   return new void(picture pic, axisT axis) {
     axis.value=pic.scale.x.automin() ? tickMin(pic) : axis.userMin;
@@ -930,7 +930,7 @@ public axis LeftRight(bool extend=false)
   };
 }
 
-public axis XEquals(real x, bool extend=true)
+axis XEquals(real x, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.value=pic.scale.x.T(x);
@@ -942,7 +942,7 @@ public axis XEquals(real x, bool extend=true)
   };
 }
 
-public axis YEquals(real y, bool extend=true)
+axis YEquals(real y, bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     axis.value=I*pic.scale.y.T(y);
@@ -954,7 +954,7 @@ public axis YEquals(real y, bool extend=true)
   };
 }
 
-public axis XZero(bool extend=true)
+axis XZero(bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     real x=pic.scale.x.scale.logarithmic ? 1 : 0;
@@ -967,7 +967,7 @@ public axis XZero(bool extend=true)
   };
 }
 
-public axis YZero(bool extend=true)
+axis YZero(bool extend=true)
 {
   return new void(picture pic, axisT axis) {
     real y=pic.scale.y.scale.logarithmic ? 1 : 0;
@@ -980,7 +980,7 @@ public axis YZero(bool extend=true)
   };
 }
 
-public axis
+axis
   Bottom=Bottom(),
   Top=Top(),
   BottomTop=BottomTop(),
@@ -1561,7 +1561,7 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
 
 typedef guide graph(pair F(real), real, real, int);
 		       
-public graph graph(guide join(... guide[]))
+graph graph(guide join(... guide[]))
 {
   return new guide(pair F(real), real a, real b, int n) {
     guide g;

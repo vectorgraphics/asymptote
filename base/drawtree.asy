@@ -1,17 +1,17 @@
 // A simple tree drawing module contributed by adarovsky
 // See example treetest.asy
 
-public real treeNodeStep = 0.5cm;
-public real treeLevelStep = 1cm;
+real treeNodeStep = 0.5cm;
+real treeLevelStep = 1cm;
 
 struct TreeNode {
-public TreeNode parent;
-public TreeNode[] children;
+TreeNode parent;
+TreeNode[] children;
 
-public frame content;
+frame content;
 
-public pair pos;
-public real adjust;
+pair pos;
+real adjust;
 }
 
 void add( TreeNode child, TreeNode parent )

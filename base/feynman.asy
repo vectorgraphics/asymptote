@@ -11,59 +11,59 @@
 // default ratio of width (distance between two loops) to amplitude for a gluon
 // line. The gluon function uses this ratio, if the width parameter is
 // negative. 
-public real gluonratio;
+real gluonratio;
 
 // default ratio of width (distance between two crests) to amplitude for a
 // photon  line. The photon function uses this ratio, if the width parameter is
 // negative. 
-public real photonratio;
+real photonratio;
 
 // default gluon amplitude
-public real gluonamplitude;
+real gluonamplitude;
 
 // default photon amplitude
-public real photonamplitude;
+real photonamplitude;
 
 // default pen for drawing the background. Usually white.
-public pen backgroundpen;
+pen backgroundpen;
 
 // default pen for drawing gluon lines
-public pen gluonpen;
+pen gluonpen;
 
 // default pen for drawing photon lines
-public pen photonpen;
+pen photonpen;
 
 // default pen for drawing fermion lines
-public pen fermionpen;
+pen fermionpen;
 
 // default pen for drawing scalar lines
-public pen scalarpen;
+pen scalarpen;
 
 // default pen for drawing ghost lines
-public pen ghostpen;
+pen ghostpen;
 
 // default pen for drawing double lines
-public pen doublelinepen;
+pen doublelinepen;
 
 // default pen for drawing vertices
-public pen vertexpen;
+pen vertexpen;
 
 // default pen for drawing big vertices (drawVertexOX and drawVertexBoxX)
-public pen bigvertexpen;
+pen bigvertexpen;
 
 // inner spacing of a double line
-public real doublelinespacing;
+real doublelinespacing;
 
 // default arrow for propagators
-public arrowbar currentarrow;
+arrowbar currentarrow;
 
 // if true, each of the drawSomething commands blots out the background
 // (with pen backgroundpen) before drawing.
-public bool overpaint;
+bool overpaint;
 
 // margin around lines. If one line is drawn over anoter, a white margin
 // of size linemargin is kept around the top one.
-public real linemargin;
+real linemargin;
 
 // at vertices, where many lines join, the last line drawn should not blot
 // out the others. By not erasing the background near the ends of lines,
@@ -71,13 +71,13 @@ public real linemargin;
 // each other. Note, that small values for minvertexangle mean that the
 // background is only erased behind a small segment of every line. Setting
 // minvertexangle = 0 effectively disables background erasing for lines.
-public real minvertexangle;
+real minvertexangle;
 
 // size (radius) of vertices
-public real vertexsize;
+real vertexsize;
 
 // size (radius) of big vertices (drawVertexOX and drawVertexBoxX)
-public real bigvertexsize;
+real bigvertexsize;
 
 /* defaults for momentum arrows **********************************************/
 
@@ -85,23 +85,23 @@ public real bigvertexsize;
 // direction of momentum)
 
 // default size of the arrowhead of momentum arrows
-public arrowbar currentmomarrow;
+arrowbar currentmomarrow;
 
 // default length of momentum arrows
-public real momarrowlength;
+real momarrowlength;
 
 // default pen for momentum arrows
-public pen momarrowpen;
+pen momarrowpen;
 
 // default offset between momentum arrow and related particle line
-public real momarrowoffset;
+real momarrowoffset;
 
 // default margin for momentum arrows
-public real momarrowmargin;
+real momarrowmargin;
 
 // factor for determining the size of momentum arrowheads. After changing it,
 // you still have to update currentmomarrow manually.
-public real momarrowfactor;
+real momarrowfactor;
 
 // size function for momentum arrowheads
 real momarrowsize(pen p=momarrowpen) { return momarrowfactor*linewidth(p); }

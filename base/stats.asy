@@ -135,9 +135,9 @@ real Gaussrand()
 }
 
 struct linefit {
-  public real m,b;	// slope, intercept
-  public real dm,db;	// standard error in slope, intercept
-  public real r;	// correlation coefficient
+  real m,b;	// slope, intercept
+  real dm,db;	// standard error in slope, intercept
+  real r;	// correlation coefficient
   real fit(real x) {
     return m*x+b;
   }

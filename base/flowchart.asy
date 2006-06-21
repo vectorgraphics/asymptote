@@ -2,7 +2,7 @@
 
 private import math;
 
-public real flowmargin;
+real flowmargin;
 bool Horizontal=true;
 bool Vertical=false;
 
@@ -10,33 +10,33 @@ bool Vertical=false;
 
 struct block {
   // The relative maximum coordinates of the block. 
-  public pair bound;
+  pair bound;
 
   // The absolute lower left corner of the block.
-  public pair llcorner;
+  pair llcorner;
 
   // Returns the relative center of the block.
-  public pair f_center();
+  pair f_center();
 
   // Returns the absolute center of the block.
   pair center() {return shift(this.llcorner)*this.f_center();}
  
   // Returns the relative position along the boundary of the block.
-  public pair f_position(real x);
+  pair f_position(real x);
 
   // Returns the absolute position along the boundary of the block.
   pair position(real x) {return shift(this.llcorner)*this.f_position(x);}
 
   // These eight functions return the appropriate location on the block
   // in relative coordinates.
-  public pair f_top();
-  public pair f_left();
-  public pair f_right();
-  public pair f_bottom();
-  public pair f_topleft();
-  public pair f_topright();
-  public pair f_bottomleft();
-  public pair f_bottomright();
+  pair f_top();
+  pair f_left();
+  pair f_right();
+  pair f_bottom();
+  pair f_topleft();
+  pair f_topright();
+  pair f_bottomleft();
+  pair f_bottomright();
 
   // These eight functions return the appropriate location on the block
   // in absolute coordinates.
@@ -53,7 +53,7 @@ struct block {
   void center(pair loc) {this.llcorner=loc-this.f_center();} 
   
   // Return a frame representing the block.
-  public frame draw(pen p=currentpen);
+  frame draw(pen p=currentpen);
 };
 
 block operator init() {return new block;}

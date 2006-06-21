@@ -1,43 +1,43 @@
-real infinity=cbrt(realMax); // Reduced for tension atleast infinity
-pair Infinity=(infinity,infinity);
+restricted real infinity=cbrt(realMax); // Reduced for tension atleast infinity
+restricted pair Infinity=(infinity,infinity);
 
-real inches=72;
-real inch=inches;
-real cm=inches/2.540005;
-real mm=0.1cm;
-real bp=1;	   // A PostScript point.
-real pt=72.0/72.27; // A TeX pt; slightly smaller than a PostScript bp.
-pair I=(0,1);
+restricted real inches=72;
+restricted real inch=inches;
+restricted real cm=inches/2.540005;
+restricted real mm=0.1cm;
+restricted real bp=1;	   // A PostScript point.
+restricted real pt=72.0/72.27; // A TeX pt; smaller than a PostScript bp.
+restricted pair I=(0,1);
 
-pair up=(0,1);
-pair down=(0,-1);
-pair right=(1,0);
-pair left=(-1,0);
+restricted pair up=(0,1);
+restricted pair down=(0,-1);
+restricted pair right=(1,0);
+restricted pair left=(-1,0);
 
-pair E=(1,0);
-pair N=(0,1);
-pair W=(-1,0);
-pair S=(0,-1);
+restricted pair E=(1,0);
+restricted pair N=(0,1);
+restricted pair W=(-1,0);
+restricted pair S=(0,-1);
 
-pair NE=unit(N+E);
-pair NW=unit(N+W);
-pair SW=unit(S+W);
-pair SE=unit(S+E);
+restricted pair NE=unit(N+E);
+restricted pair NW=unit(N+W);
+restricted pair SW=unit(S+W);
+restricted pair SE=unit(S+E);
 
-pair ENE=unit(E+NE);
-pair NNE=unit(N+NE);
-pair NNW=unit(N+NW);
-pair WNW=unit(W+NW);
-pair WSW=unit(W+SW);
-pair SSW=unit(S+SW);
-pair SSE=unit(S+SE);
-pair ESE=unit(E+SE);
+restricted pair ENE=unit(E+NE);
+restricted pair NNE=unit(N+NE);
+restricted pair NNW=unit(N+NW);
+restricted pair WNW=unit(W+NW);
+restricted pair WSW=unit(W+SW);
+restricted pair SSW=unit(S+SW);
+restricted pair SSE=unit(S+SE);
+restricted pair ESE=unit(E+SE);
   
-public string defaultfilename;
-public string defaultformat="$%.4g$";
+string defaultfilename;
+string defaultformat="$%.4g$";
 
-bool Above=true;
-bool Below=false;
+restricted bool Above=true;
+restricted bool Below=false;
 
 real min(... real[] a) {return min(a);}
 real max(... real[] a) {return max(a);}
@@ -52,8 +52,8 @@ bool finite(pair z)
   return abs(z.x) < infinity && abs(z.y) < infinity;
 }
 
-file stdin=input("");
-file stdout;
+restricted file stdin=input("");
+restricted file stdout;
 
 void none(file file) {}
 void endl(file file) {write(file,'\n'); flush(file);}
@@ -70,6 +70,6 @@ guide box(pair a, pair b)
 guide unitsquare=box((0,0),(1,1));
 
 guide unitcircle=E..N..W..S..cycle;
-public real circleprecision=0.0006;
+restricted real circleprecision=0.0006;
 
-transform invert=reflect((0,0),(1,0));
+restricted transform invert=reflect((0,0),(1,0));

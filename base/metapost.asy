@@ -1,6 +1,6 @@
 // MetaPost compatibility routines
 
-public path cuttings;
+path cuttings;
 
 path cutbefore(path p, path q) 
 {

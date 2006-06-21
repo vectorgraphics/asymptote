@@ -1,6 +1,6 @@
-public int nmesh=10;
-public real eps=10*realEpsilon;
-public real stepfraction=0.05;
+int nmesh=10;
+real eps=10*realEpsilon;
+real stepfraction=0.05;
 
 picture slopefield(real f(real,real), pair a, pair b,
 		   int nx=nmesh, int ny=nx,

@@ -28,32 +28,32 @@
 
 private import metapost;
 
-public pen background = gray(0.987);
+pen background = gray(0.987);
 
 //write("Preloading FeatPost macros, version 0.5(alpha asy port)");
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Global Variables %%%%%%%%%%%%%
 
-  public real RefDist[], HoriZon; 
-  public real Spread, Shifts, PrintStep, PageHeight, PageWidth;
-  public real MaxFearLimit;
+  real RefDist[], HoriZon; 
+  real Spread, Shifts, PrintStep, PageHeight, PageWidth;
+  real MaxFearLimit;
 
 //     V[], L[]p[], F[]p[];
   triple V[], L[][], F[][];
   int NL, npl[], NF, npf[];
     
-  public bool ParallelProj, SphericalDistortion, FCD[], ShadowOn;
-  public bool OverRidePolyhedricColor;
-  public real TDAtiplen, TDAhalftipbase, TDAhalfthick;
-  public int TableColors, RopeColors, ActuC,RopeColorSeq[]; 
-  public int Nobjects, FC[];
-  public pair OriginProjPagePos;
-  public path VGAborder;
-  public triple f, viewcentr;
-  public pen TableC[]; 
-  public pen HigColor, SubColor;
-  public triple LightSource;
-  public string ostr[];
+  bool ParallelProj, SphericalDistortion, FCD[], ShadowOn;
+  bool OverRidePolyhedricColor;
+  real TDAtiplen, TDAhalftipbase, TDAhalfthick;
+  int TableColors, RopeColors, ActuC,RopeColorSeq[]; 
+  int Nobjects, FC[];
+  pair OriginProjPagePos;
+  path VGAborder;
+  triple f, viewcentr;
+  pen TableC[]; 
+  pen HigColor, SubColor;
+  triple LightSource;
+  string ostr[];
 
   pair origin = (0,0);
 

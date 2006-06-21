@@ -169,15 +169,15 @@ void asy(bool overwrite=false ... string[] s)
 }
 
 struct processtime {
-  public real user;
-  public real system;
+  real user;
+  real system;
 }
 
 processtime operator init() {return new processtime;}
 
 struct cputime {
-  public processtime parent;
-  public processtime child;
+  processtime parent;
+  processtime child;
 }
 
 cputime operator init() {return new cputime;}

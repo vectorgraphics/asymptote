@@ -1,7 +1,7 @@
 // Contour routines written by Radoslav Marinov and John Bowman.
 	 
-public int nmesh=25; // default mesh subdivisions
-public real eps=100*realEpsilon;
+int nmesh=25; // default mesh subdivisions
+real eps=100*realEpsilon;
 
 //                         1  
 //             6 +-------------------+ 5
@@ -19,10 +19,10 @@ public real eps=100*realEpsilon;
 
 private struct segment
 {
-  public bool active;
-  public pair a,b;	  // Endpoints; a is always an edge point if one exists.
-  public int c;           // Contour value.
-  public int edge;        // -1: interior, 0 to 3: edge,
+  bool active;
+  pair a,b;	  // Endpoints; a is always an edge point if one exists.
+  int c;           // Contour value.
+  int edge;        // -1: interior, 0 to 3: edge,
                           // 4-8: single edge vertex, 9: double edge vertex.
 }
 

@@ -1,9 +1,9 @@
 access settings;	   
 
-public real labelmargin=0.3;
-public real dotfactor=6;
+real labelmargin=0.3;
+real dotfactor=6;
 
-public pen currentpen;
+pen currentpen;
 
 pen nullpen=linewidth(0);
 
@@ -149,13 +149,13 @@ int SuppressQuiet=2;
 int Move=3;
 int MoveQuiet=4;
 
-public pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,
+pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,
 		       deepblue,deepgreen,chartreuse,fuchsia,lightred,
 		       lightblue,black,pink,yellow,gray};
 
 colorPen.cyclic(true);
 
-public pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,
+pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,
 		      longdashdotted};
 monoPen.cyclic(true);
 

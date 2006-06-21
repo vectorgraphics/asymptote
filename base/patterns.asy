@@ -64,7 +64,7 @@ picture brick(real Hx=5mm, real Hy=0, pen p=currentpen)
   return tiling;
 }
 
-public real hatchepsilon=1e-4;
+real hatchepsilon=1e-4;
 picture hatch(real H=5mm, pair dir=NE, pen p=currentpen) 
 {
   picture tiling;

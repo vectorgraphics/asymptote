@@ -2,10 +2,10 @@
 
 private import math;
 import graph;
-public import three;
-public import light;
+import three;
+import light;
 
-public int nmesh=10;
+int nmesh=10;
 
 triple Scale(picture pic, triple v)
 {
@@ -314,7 +314,7 @@ void axes(Label xlabel="$x$", Label ylabel="$y$", Label zlabel="$z$",
 
 typedef guide3 graph(triple F(real), real, real, int);
 
-public graph graph(guide3 join(... guide3[]))
+graph graph(guide3 join(... guide3[]))
 {
   return new guide3(triple F(real), real a, real b, int n) {
     guide3 g;
@@ -327,8 +327,8 @@ public graph graph(guide3 join(... guide3[]))
   };
 }
 
-public guide3 Straight(... guide3[])=operator --;
-public guide3 Spline(... guide3[])=operator ..;
+guide3 Straight(... guide3[])=operator --;
+guide3 Spline(... guide3[])=operator ..;
 		       
 typedef guide3 interpolate(... guide3[]);
 

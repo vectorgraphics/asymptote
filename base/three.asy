@@ -158,9 +158,9 @@ transform3 distort(triple v)
 }
 
 struct projection {
-  public triple camera;
-  public transform3 project;
-  public transform3 aspect;
+  triple camera;
+  transform3 project;
+  transform3 aspect;
   projection copy() {
     projection P=new projection;
     P.camera=camera;
@@ -172,7 +172,7 @@ struct projection {
 
 projection operator init() {return new projection;}
   
-public projection currentprojection;
+projection currentprojection;
 
 // With this, save() and restore() in plain also save and restore the
 // currentprojection.
@@ -298,8 +298,8 @@ project operator cast(transform3 t)
 }
 
 struct control {
-  public triple post,pre;
-  public bool active=false;
+  triple post,pre;
+  bool active=false;
   void init(triple post, triple pre) {
     this.post=post;
     this.pre=pre;
@@ -328,9 +328,9 @@ void write(file file, control c)
 }
   
 struct Tension {
-  public real out,in;
-  public bool atLeast;
-  public bool active=false;
+  real out,in;
+  bool atLeast;
+  bool active=false;
   void init(real out, real in, bool atLeast) {
     this.out=out;
     this.in=in;
@@ -353,9 +353,9 @@ void write(file file, Tension t)
 }
   
 struct dir {
-  public triple dir;
-  public real gamma=1; // endpoint curl
-  public bool Curl;    // curl specified
+  triple dir;
+  real gamma=1; // endpoint curl
+  bool Curl;    // curl specified
   bool active() {
     return dir != O || Curl;
   }
@@ -410,11 +410,11 @@ dir operator * (transform3 t, dir d)
 }
 
 struct flatguide3 {
-  public triple[] nodes;
-  public bool[] cyclic;     // true if node is really a cycle
-  public control[] control; // control points for segment starting at node
-  public Tension[] Tension; // Tension parameters for segment starting at node
-  public dir[] in,out;    // in and out directions for segment starting at node
+  triple[] nodes;
+  bool[] cyclic;     // true if node is really a cycle
+  control[] control; // control points for segment starting at node
+  Tension[] Tension; // Tension parameters for segment starting at node
+  dir[] in,out;    // in and out directions for segment starting at node
 
   bool cyclic() {return cyclic[cyclic.length-1];}
   
@@ -871,8 +871,8 @@ void aim(flatguide3 g, int i, int n, triple camera)
 }
 
 struct node {
-  public triple pre,point,post;
-  public bool straight;
+  triple pre,point,post;
+  bool straight;
   node copy() {
     node n=new node;
     n.pre=pre;
@@ -907,8 +907,8 @@ node[] nodes(int n)
 node operator init() {return new node;}
 
 struct bbox3 {
-  public bool empty=true;
-  public triple min,max;
+  bool empty=true;
+  triple min,max;
   
   void add(triple v) {
     if(empty) {
@@ -1967,7 +1967,7 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
 	     colatitude(v2),longitude(v2,warn=false),normal,direction);
 }
 
-public real epsilon=1000*realEpsilon;
+real epsilon=1000*realEpsilon;
 
 // Return a representation of the plane through point O with normal cross(u,v).
 path3 plane(triple u, triple v, triple O=O)
@@ -2030,9 +2030,9 @@ void aspect(projection P=currentprojection, bbox3 b,
 // Structure face is derived from picture.
 struct face {
   picture pic;
-  public transform t;
-  public frame fit;
-  public triple normal,point;
+  transform t;
+  frame fit;
+  triple normal,point;
   static face face(path3 p) {
     face f=new face;
     f.normal=normal(p);
@@ -2057,8 +2057,8 @@ picture operator cast(face f) {return f.pic;}
 face operator cast(path3 p) {return face.face(p);}
   
 struct line {
-  public triple point;
-  public triple dir;
+  triple point;
+  triple dir;
 }
 
 line operator init() {return new line;}
@@ -2102,7 +2102,7 @@ struct half {
 half operator init() {return new half;}
 
 struct splitface {
-  public face back,front;
+  face back,front;
 }
 
 splitface operator init() {return new splitface;}

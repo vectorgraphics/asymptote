@@ -24,7 +24,7 @@ struct problem {
   static int INVALID = -3;
 
   struct row {
-    public real c, t[];
+    real c, t[];
   }
 
   // The variables of the rows.

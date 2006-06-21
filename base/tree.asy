@@ -7,10 +7,10 @@
 
 struct tree
 {
-  public tree left = null;
-  public tree right = null;
-  public int key = 0;
-  public int value = 0;
+  tree left = null;
+  tree right = null;
+  int key = 0;
+  int value = 0;
 }
 
 tree operator init() {return new tree;}

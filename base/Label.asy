@@ -14,8 +14,8 @@ transform scale(transform t)
 }
 
 struct align {
-  public pair dir;
-  public bool relative=false;
+  pair dir;
+  bool relative=false;
   bool default=true;
   void init(pair dir=0, bool relative=false, bool default=false) {
     this.dir=dir;
@@ -49,7 +49,7 @@ struct align {
 }
 
 struct side {
-  public pair align;
+  pair align;
 }
 
 side operator init() {return new side;}
@@ -84,8 +84,8 @@ void write(file file=stdout, align align, suffix suffix=endl)
 }
 
 struct position {
-  public pair position;
-  public bool relative;
+  pair position;
+  bool relative;
 }
 
 position operator init() {return new position;}
@@ -109,7 +109,7 @@ position operator cast(int x) {return (pair) x;}
 pair operator cast(position P) {return P.position;}
 
 struct Label {
-  public string s,size;
+  string s,size;
   position position;
   bool defaultposition=true;
   align align;
@@ -393,8 +393,8 @@ Label operator cast(string s) {return Label(s);}
 
 // A structure that a string, Label, or frame can be cast to.
 struct object {
-  public frame f;
-  public Label L=Label;
+  frame f;
+  Label L=Label;
   frame fit() {
     if(L != Label) L.out(f);
     return f;
