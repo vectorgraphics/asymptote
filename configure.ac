@@ -36,7 +36,7 @@ AC_MSG_NOTICE([Using $latexdir for LaTeX style file])
 
 AC_SUBST(latexdir)
 
-Docdir='${prefix}/share/doc/asymptote'
+Docdir=$Datadir/doc/asymptote
 
 AC_ARG_WITH(Docdir,
 	[  --with-docdir=PATH      alternate documentation installation directory],
@@ -167,8 +167,6 @@ AC_CHECK_FUNCS([dup2 floor memset pow sqrt strchr tgamma])
 AC_FUNC_STRFTIME
 AC_FUNC_STRPTIME
 AC_FUNC_ERROR_AT_LINE
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
 
 AC_CONFIG_HEADERS(config.h)
 
