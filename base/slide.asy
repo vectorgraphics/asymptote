@@ -31,17 +31,17 @@ public transform tinv=inverse(fixedscaling((-1,-1),(1,1)));
 public pen itempen=fontsize(24pt);
 public real itemskip=0.5;
 
+public pen titlepagepen=fontsize(36pt)+red;
+public pen authorpen=fontsize(24pt)+blue;
+public pen institutionpen=authorpen;
+public pen urlpen=fontsize(20pt);
+public pair urlskip=(0,0.2);
+public pen datepen=urlpen;
+public pair dateskip=(0,0.1);
+
 public pair titlealign=2S;
 public pen titlepen=fontsize(32pt);
 public real titleskip=0.5;
-
-public pen urlpen=fontsize(20pt);
-public pair urlskip=(0,0.3);
-
-public pen titlepagepen=fontsize(36pt)+red;
-public pen authorpen=fontsize(24pt)+blue;
-public pen datepen=urlpen;
-public pair dateskip=(0,0.05);
 
 public string oldbulletcolor="Black";
 public string newbulletcolor="Red";
@@ -50,7 +50,7 @@ public string bullet="\bulletcolor{$\bullet$}";
 public pair pagenumberposition=S+E;
 public pair pagenumberalign=4NW;
 public pen pagenumberpen=fontsize(12);
-public pen steppagenumberpen=pagenumberpen+red;
+public pen steppagenumberpen=colorless(pagenumberpen)+red;
 
 public real figureborder=0.25cm;
 public pen figuremattpen=invisible;
@@ -59,8 +59,8 @@ public pair titleposition=(-0.8,0.4);
 public pair startposition=(-0.8,0.9);
 public pair currentposition=startposition;
 
-texpreamble("\hyphenpenalty=10000\tolerance=1000");
 texpreamble("\let\bulletcolor"+'\\'+newbulletcolor);
+texpreamble("\hyphenpenalty=10000\tolerance=1000");
 
 public picture background;
 size(background,pagewidth,pageheight,IgnoreAspect);
@@ -99,15 +99,20 @@ void usersetting()
     itempen=white;
     defaultpen(itempen);
     oldbulletcolor="White";
-    pagenumberpen=fontsize(pagenumberpen)+white;
-    steppagenumberpen=pagenumberpen+mediumblue;
-    authorpen=fontsize(authorpen)+paleblue;
+    pagenumberpen=colorless(pagenumberpen)+white;
+    steppagenumberpen=colorless(steppagenumberpen)+mediumblue;
+    titlepagepen=colorless(titlepagepen)+mediumred;
+    authorpen=colorless(authorpen)+paleblue;
+    institutionpen=colorless(institutionpen)+paleblue;
     figuremattpen=white;
     usepackage("asycolors");
     texpreamble("\def\Blue#1{{\paleblue #1}}");
+    texpreamble("\def\Red#1{{\mediumred#1}}");
+    texpreamble("\let\Foreground\White");
   } else { // White background
     texpreamble("\let\Green\OliveGreen");
   }
+  texpreamble("\let\bulletcolor"+'\\'+newbulletcolor);
 }
 
 void numberpage(pen p=pagenumberpen)
@@ -184,7 +189,8 @@ void outline(string s="Outline", pair position=N, pair align=titlealign,
 }
 
 void remark(bool center=false, string s, pair align=0, pen p=itempen,
-	    real indent=0, bool minipage=true, filltype filltype=NoFill) 
+	    real indent=0, bool minipage=true, real itemskip=itemskip,
+	    filltype filltype=NoFill, bool step=false) 
 {
   checkposition();
   if(minipage) s=minipage(s,minipagewidth);
@@ -216,6 +222,11 @@ void remark(bool center=false, string s, pair align=0, pen p=itempen,
     } else toohigh();
   }
 
+  if(step) {
+    if(!firststep) step();
+    firststep=false;
+  }
+
   add(f,offset);
   incrementposition((0,(tinv*(min(f)-itemskip*I*lineskip(p)*pt)).y));
 }
@@ -227,7 +238,12 @@ void center(string s, pen p=itempen)
 
 void equation(string s, pen p=itempen)
 {
-  remark(center=true,"{$\displaystyle "+s+"$}",p,minipage=false);
+  remark(center=true,"\vbox{$$"+s+"$$}",p,minipage=false,itemskip=0);
+}
+
+void vbox(string s, pen p=itempen)
+{
+  remark(center=true,"\vbox{"+s+"}",p,minipage=false,itemskip=0);
 }
 
 void figure(string[] s, string options="", real margin=50bp, 
@@ -252,16 +268,14 @@ void figure(string s, string options="", real margin=50bp,
 
 void item(string s, pen p=itempen, bool step=itemstep)
 {
-  if(step && !firststep) step();
-  firststep=false;
   frame b;
   label(b,bullet,(0,0),p);
   real bulletwidth=max(b).x-min(b).x;
   remark(bullet+"\hangindent"+(string) bulletwidth+"pt$\,$"+s,p,
-	 -bulletwidth*pt);
+	 -bulletwidth*pt,step=step);
 }
 
-void subitem(string s, pen p=itempen, bool step=itemstep)
+void subitem(string s, pen p=itempen)
 {
   remark("\quad -- "+s,p);
 }
@@ -271,14 +285,15 @@ void skip(real n=1)
   incrementposition((0,(tinv*(-n*itemskip*I*lineskip(itempen)*pt)).y));
 }
 
-void titlepage(string title, string author, string date="", string url="",
-	       bool newslide=false)
+void titlepage(string title, string author, string institution="",
+	       string date="", string url="", bool newslide=false)
 {
   if(newslide && !empty()) newslide();
   background();
   currentposition=titleposition;
   center(title,titlepagepen);
   center(author,authorpen);
+  if(institution != "") center(institution,institutionpen);
   currentposition -= dateskip;
   if(date != "") center(date,datepen);
   currentposition -= urlskip;

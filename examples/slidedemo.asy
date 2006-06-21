@@ -16,8 +16,8 @@ usersetting();
 // import x11colors;
 // fill(background,box((-1,-1),(1,1)),Azure);
 
-titlepage("Slides with {\tt Asymptote}: A Demo","John C. Bowman","\today",
-	  "http://asymptote.sf.net");
+titlepage("Slides with {\tt Asymptote}: A Demo","John C. Bowman",
+	  "University of Alberta","\today","http://asymptote.sf.net");
 
 outline();
 item("item");
@@ -28,12 +28,16 @@ item("figure");
 
 title("Items");
 item("First item.");
-remark("A remark.");
-item("Second item.");
-equation("c^2=a^2+b^2.");
-item("Third item.");
 subitem("First subitem.");
 subitem("Second subitem.");
+item("Second item.");
+equation("a^2+b^2=c^2.");
+vbox("\begin{eqnarray}
+\frac{\sin^2\theta+\cos^2\theta}{\cos^2\theta}&=&\frac{1}{\cos^2\theta}
+\nonumber\\
+&=&\sec^2\theta.
+\end{eqnarray}");
+remark("A remark.");
 item("To enable pausing between bullets:");
 remark("{\tt asy -u stepping=true}");
 item("To enable reverse video:");

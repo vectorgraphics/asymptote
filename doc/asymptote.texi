@@ -1559,18 +1559,18 @@ saturates with one or more color components equal to 1.
 @item Colors are specified using one of the following colorspaces:
 @cindex color
 @table @code
-@item pen gray(real g) 
+@item pen gray(real g);
 @cindex @code{gray}
 @cindex grayscale
 This produces a grayscale color, where the intensity @code{g} lies in the
 interval [0,1], with 0.0 denoting black and 1.0 denoting white.
 
-@item pen rgb(real r, real g, real b) 
+@item pen rgb(real r, real g, real b);
 @cindex @code{rgb}
 This produces an @acronym{RGB} color, where each of the red, green,
 and blue intensities @code{r}, @code{g}, @code{b}, lies in the interval [0,1].
 
-@item pen cmyk(real c, real m, real y, real k) 
+@item pen cmyk(real c, real m, real y, real k);
 @cindex @code{cmyk}
 This produces a @acronym{CMYK} color, where each of the cyan, magenta,
 yellow, and black intensities @code{c}, @code{m}, @code{y}, @code{k},
@@ -1581,6 +1581,11 @@ lies in the interval [0,1].
 This special pen writes in invisible ink, but adjusts the bounding
 box as if something had been drawn (like the @code{\phantom}
 command in @TeX{}).
+
+@item pen colorless(pen);
+@cindex @code{colorless}
+The function @code{colorless(pen)}; returns a copy of @code{pen p}
+with its color attributes stripped (to avoid color mixing).
 
 @end table
 

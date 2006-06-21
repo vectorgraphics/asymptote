@@ -138,6 +138,11 @@ public:
     }
   }
   
+  void colorless() {
+    r=g=b=grey=0.0;
+    color=DEFCOLOR;
+  }
+  
   pen() :
     line(DEFLINE), linewidth(DEFWIDTH), P(0),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),

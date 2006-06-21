@@ -340,8 +340,9 @@ int LUdecompose(double **a, size_t n, size_t* index)
   int swap=1;
   for(size_t i=0; i < n; ++i) {
     double big=0.0;
+    double *ai=a[i];
     for(size_t j=0; j < n; ++j) {
-      double temp=fabs(a[i][j]);
+      double temp=fabs(ai[j]);
       if(temp > big) big=temp;
     }
     if(big == 0.0) {
@@ -352,36 +353,41 @@ int LUdecompose(double **a, size_t n, size_t* index)
   }
   for(size_t j=0; j < n; ++j) {
     for(size_t i=0; i < j; ++i) {
-      double sum=a[i][j];
-      for(size_t k=0; k < i; ++k)
-	sum -= a[i][k]*a[k][j];
-      a[i][j]=sum;
+      double *ai=a[i];
+      double sum=ai[j];
+      for(size_t k=0; k < i; ++k) {
+	sum -= ai[k]*a[k][j];
+      }
+      ai[j]=sum;
     }
     double big=0.0;
     size_t imax=j;
     for(size_t i=j; i < n; ++i) {
-      double sum=a[i][j];
+      double *ai=a[i];
+      double sum=ai[j];
       for(size_t k=0; k < j; ++k)
-	sum -= a[i][k]*a[k][j];
-      a[i][j]=sum;
+	sum -= ai[k]*a[k][j];
+      ai[j]=sum;
       double temp=vv[i]*fabs(sum);
       if(temp >= big) {
 	big=temp;
 	imax=i;
       }
     }
+    double *aj=a[j];
+    double *aimax=a[imax];
     if(j != imax) {
       for(size_t k=0; k < n; ++k) {
-	double temp=a[imax][k];
-	a[imax][k]=a[j][k];
-	a[j][k]=temp;
+	double temp=aimax[k];
+	aimax[k]=aj[k];
+	aj[k]=temp;
       }
       swap *= -1;
       vv[imax]=vv[j];
     }
     index[j]=imax;
     if(j != n) {
-      double denom=a[j][j];
+      double denom=aj[j];
       if(denom == 0.0) {
 	delete[] vv;
 	error(singular);
@@ -738,6 +744,11 @@ bool labels(picture *f)
   return f->havelabels();
 }
 
+void _draw(picture *f, path g, pen p)
+{
+  f->append(new drawPath(g,p));
+}
+
 void fill(picture *f, patharray *g, pen p)
 {
   f->append(new drawFill(copyArray(g),p));
@@ -778,6 +789,41 @@ void clip(picture *f, patharray *g, pen p)
 void beginclip(picture *f, patharray *g, pen p)
 {
   f->append(new drawClipBegin(copyArray(g),p,false));
+}
+
+void endclip(picture *f)
+{
+  f->append(new drawClipEnd(false));
+}
+
+void gsave(picture *f)
+{
+  f->append(new drawGsave());
+}
+
+void grestore(picture *f)
+{
+  f->append(new drawGrestore());
+}
+
+void begingroup(picture *f)
+{
+  f->append(new drawBegin());
+}
+
+void endgroup(picture *f)
+{
+  f->append(new drawEnd());
+}
+
+void add(picture *dest, picture *src)
+{
+  dest->add(*src);
+}
+
+void prepend(picture *dest, picture *src)
+{
+  dest->prepend(*src);
 }
 
 void postscript(picture *f, string s)
@@ -1116,47 +1162,12 @@ pen makepen(path p)
   return p.size() == 0 ? pen() : pen(new path(p));
 }
 
-void _draw(picture *f, path g, pen p)
+pen colorless(pen p)
 {
-  f->append(new drawPath(g,p));
+  p.colorless();
+  return p;
 }
 
-void endclip(picture *f)
-{
-  f->append(new drawClipEnd(false));
-}
-
-void gsave(picture *f)
-{
-  f->append(new drawGsave());
-}
-
-void grestore(picture *f)
-{
-  f->append(new drawGrestore());
-}
-
-void begingroup(picture *f)
-{
-  f->append(new drawBegin());
-}
-
-void endgroup(picture *f)
-{
-  f->append(new drawEnd());
-}
-
-void add(picture *dest, picture *src)
-{
-  dest->add(*src);
-}
-
-void prepend(picture *dest, picture *src)
-{
-  dest->prepend(*src);
-}
-
-
 // Interactive mode
 
 bool interact()
@@ -2928,12 +2939,12 @@ realarray2 *solve(realarray2 *a, realarray2 *b)
   LUdecompose(A,n,index);
 
   for(size_t i=0; i < n; ++i) {
-    size_t ip=index[i];
     real *Ai=A[i];
     real *Bi=B[i];
+    real *Bip=B[index[i]];
     for(size_t k=0; k < m; ++k) {
-      real sum=B[ip][k];
-      B[ip][k]=Bi[k];
+      real sum=Bip[k];
+      Bip[k]=Bi[k];
       for(size_t j=0; j < i; ++j)
 	sum -= Ai[j]*B[j][k];
       Bi[k]=sum;
