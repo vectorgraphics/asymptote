@@ -183,7 +183,10 @@ int System(const char *command, bool quiet, bool wait,
   
   if(pid == 0) {
     if(interact::interactive) signal(SIGINT,SIG_IGN);
-    if(quiet) close(STDOUT_FILENO);
+    if(quiet) {
+      close(STDOUT_FILENO);
+      close(STDERR_FILENO);
+    }
     if(argv) {
       execvp(argv[0],argv);
       execError(argv[0],hint,application);
