@@ -6006,6 +6006,11 @@ pen for negative contours and a solid pen for positive (and zero) contours:
 @verbatiminclude contour2.asy
 @image{contour2}
 
+The next example illustrates how contour lines can be drawn on color
+density images:
+@verbatiminclude imagecontour.asy
+@image{imagecontour}
+
 The routine
 @verbatim
 guide[][] contour(pair[] points, real[] values, 
@@ -6017,10 +6022,15 @@ irregularly spaced points:
 @verbatiminclude contour3.asy
 @image{contour3}
 
-The next example illustrates how contour lines can be drawn on color
-density images:
-@verbatiminclude imagecontour.asy
-@image{imagecontour}
+Internally, the contours are constructed by first creating a triangular
+mesh from an array @code{z} of pairs, using Gilles Dumoulin's C++ port of Paul
+Bourke's triangulation code: 
+@verbatim
+int[][] triangulate(pair[] z);
+@end verbatim
+
+@verbatiminclude triangulate.asy
+@image{triangulate}
 
 @node slopefield
 @section @code{slopefield}
