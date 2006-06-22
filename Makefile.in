@@ -142,8 +142,8 @@ distclean: FORCE clean
 		$(MAKE) -C $(GC) distclean; \
 		rm -rf $(GC); \
 	fi
-	rm -f Makefile config.h config.log config.status errors.temp; \
-	cd doc; $(MAKE) distclean; \
+	rm -f Makefile config.h config.log config.status errors.temp;
+	cd doc; $(MAKE) distclean;
 	cd tests; $(MAKE) distclean;
 
 cleanest: maintainer-clean
