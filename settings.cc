@@ -60,7 +60,7 @@ const string defaultPSViewer=
 const string defaultPDFViewer=
   "c:\\Program Files\\Adobe\\Acrobat 7.0\\Reader\\AcroRd32.exe";
 const string defaultGhostscript=
-  "c:\\Program Files\\gs\\gs8.53\\bin\\gswin32.exe";
+  "c:\\Program Files\\gs\\gs8.54\\bin\\gswin32.exe";
 const string defaultPython="c:\\Python24\\python.exe";
 const string defaultDisplay="imdisplay";
 #undef ASYMPTOTE_SYSDIR

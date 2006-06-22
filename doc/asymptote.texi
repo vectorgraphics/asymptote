@@ -373,7 +373,7 @@ Under @code{MSDOS:}
 import settings;
 psviewer="c:\Program Files\Ghostgum\gsview\gsview32.exe";
 pdfviewer="c:\Program Files\Adobe\Acrobat 7.0\Reader\AcroRd32.exe";
-gs="c:\Program Files\gs\gs8.53\bin\gswin32.exe";
+gs="c:\Program Files\gs\gs8.54\bin\gswin32.exe";
 python="c:\Python24\python.exe";
 @end verbatim
 
