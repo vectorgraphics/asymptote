@@ -1,6 +1,6 @@
 struct curve {
-  public real a=0;
-  public real b=8;
+  real a=0;
+  real b=8;
 
   real y2(real x) {
     return x^3+a*x+b;
