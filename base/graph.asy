@@ -1643,22 +1643,24 @@ guide graph(picture pic=currentpicture, real[] x, real[] y, bool[] cond={},
     return Scale(pic,(x[i],y[i]));},0,0,n);
 }
 
-guide graph(real f(real), real a, real b, int n=ngraph,
-	    real T(real), interpolate join=operator --)
+guide graph(picture pic=currentpicture, real f(real), real a, real b,
+            int n=ngraph, real T(real), interpolate join=operator --)
 {
-  return graph(join)(new pair(real x) {return (T(x),f(T(x)));},a,b,n);
+  return graph(join)(new pair(real x) {return Scale(pic,(T(x),f(T(x))));},
+                     a,b,n);
 }
 
-guide graph(real x(real), real y(real), real a, real b, int n=ngraph,
-	    real T(real), interpolate join=operator --)
+guide graph(picture pic=currentpicture, real x(real), real y(real), real a,
+            real b, int n=ngraph, real T(real), interpolate join=operator --)
 {
-  return graph(join)(new pair(real t) {return (x(T(t)),y(T(t)));},a,b,n);
+  return graph(join)(new pair(real t) {return Scale(pic,(x(T(t)),y(T(t))));},
+                     a,b,n);
 }
 
-guide graph(pair z(real), real a, real b, int n=ngraph,
-	    real T(real), interpolate join=operator --)
+guide graph(picture pic=currentpicture, pair z(real), real a, real b,
+            int n=ngraph, real T(real), interpolate join=operator --)
 {
-  return graph(join)(new pair(real t) {return z(T(t));},a,b,n);
+  return graph(join)(new pair(real t) {return Scale(pic,z(T(t)));},a,b,n);
 }
 
 pair polar(real r, real theta)
@@ -1666,10 +1668,10 @@ pair polar(real r, real theta)
   return r*expi(theta);
 }
 
-guide polargraph(real r(real), real a, real b, int n=ngraph,
-		 interpolate join=operator --)
+guide polargraph(picture pic=currentpicture, real r(real), real a, real b,
+                 int n=ngraph, interpolate join=operator --)
 {
-  return graph(join)(new pair(real theta) {return polar(r(theta),theta);},
+  return graph(join)(new pair(real theta) {return Scale(pic,polar(r(theta),theta));},
 		     a,b,n);
 }
 

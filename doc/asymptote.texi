@@ -4801,8 +4801,8 @@ of those elements of the arrays
 
 @item
 @verbatim
-guide graph(real f(real), real a, real b, int n=ngraph, real T(real),
-           interpolate join=operator --);
+guide graph(picture pic=currentpicture, real f(real), real a, real b,
+            int n=ngraph, real T(real), interpolate join=operator --);
 @end verbatim
 
 Returns a graph using the scaling information for picture @code{pic}
@@ -4812,17 +4812,18 @@ spaced in [@code{a},@code{b}], with the given interpolation
 type. These parametric versions also accept an arbitrary sampling
 function:
 @verbatim
-guide graph(real x(real), real y(real), real a, real b, int n=ngraph,
-            real T(real), interpolate join=operator --);
-guide graph(pair z(real), real a, real b, int n=ngraph,
-            real T(real), interpolate join=operator --)
+guide graph(picture pic=currentpicture, real x(real), real y(real),
+            real a, real b, int n=ngraph, real T(real),
+            interpolate join=operator --);
+guide graph(picture pic=currentpicture, pair z(real), real a, real b,
+            int n=ngraph, real T(real), interpolate join=operator --)
 @end verbatim
 
 @item
 @cindex @code{polargraph}
 @verbatim
-guide polargraph(real f(real), real a, real b, int n=ngraph,
-                 interpolate join=operator --);
+guide polargraph(picture pic=currentpicture, real f(real), real a,
+                 real b, int n=ngraph, interpolate join=operator --);
 @end verbatim
 
 Returns a polar-coordinate graph using the scaling information for
