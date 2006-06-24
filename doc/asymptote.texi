@@ -5222,7 +5222,7 @@ positive and negative extents of the error are assumed to be equal.
 The calls to 
 @verbatim
 xlimits(picture pic=currentpicture, real min=-infinity,
-        real max=infinity, bool crop=Crop);
+        real max=infinity, bool crop=NoCrop);
 @end verbatim 
 
 and the analogous function @code{ylimits} can be uncommented
