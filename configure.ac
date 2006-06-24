@@ -9,7 +9,8 @@ AC_SUBST(VERSION)
 
 test "$prefix" = NONE && prefix=/usr/local
 Datadir=$datadir
-test "$datadir" = '${prefix}/share' && Datadir=$prefix/share
+test "$Datadir" = '${datarootdir}' && Datadir=$datarootdir
+test "$Datadir" = '${prefix}/share' && Datadir=$prefix/share
 AC_SUBST(Datadir)
 
 AC_ARG_WITH(latex,
