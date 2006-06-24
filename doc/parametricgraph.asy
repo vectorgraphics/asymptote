@@ -7,8 +7,8 @@ real y(real t) {return sin(2pi*t);}
 
 draw(graph(x,y,0,1));
 
-//xlimits(0,1);
-//ylimits(-1,0);
+//xlimits(0,1,Crop);
+//ylimits(-1,0,Crop);
 
 xaxis("$x$",BottomTop,LeftTicks("$%#.1f$"));
 yaxis("$y$",LeftRight,RightTicks("$%#.1f$"));
