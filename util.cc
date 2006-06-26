@@ -13,6 +13,9 @@
 #include <cerrno>
 #include <sys/wait.h>
 #include <sys/param.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/fcntl.h>
 #include <unistd.h>
 #include <signal.h>
 
@@ -186,6 +189,9 @@ int System(const char *command, bool quiet, bool wait,
     if(quiet) {
       close(STDOUT_FILENO);
       close(STDERR_FILENO);
+      int null=creat("/dev/null",O_WRONLY);
+      dup2(null,STDOUT_FILENO);
+      dup2(null,STDERR_FILENO);
     }
     if(argv) {
       execvp(argv[0],argv);
