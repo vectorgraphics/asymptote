@@ -79,6 +79,8 @@ public:
 	if(interact::interactive) signal(SIGINT,SIG_IGN);
 	close(in[1]);
 	close(out[0]);
+	close(STDIN_FILENO);
+	close(out_fileno);
 	dup2(in[0],STDIN_FILENO);
 	dup2(out[1],out_fileno);
 	close(in[0]);

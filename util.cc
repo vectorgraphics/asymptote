@@ -168,7 +168,9 @@ void execError(const char *command, const char *hint, const char *application)
     exit(-1);
 }
 						    
-int System(const char *command, bool quiet, bool wait,
+// quiet: 0=none; 1=suppress stdout; 2=suppress stdout+stderr.
+
+int System(const char *command, int quiet, bool wait,
 	   const char *hint, const char *application, int *ppid)
 {
   int status;
@@ -187,11 +189,13 @@ int System(const char *command, bool quiet, bool wait,
   if(pid == 0) {
     if(interact::interactive) signal(SIGINT,SIG_IGN);
     if(quiet) {
-      close(STDOUT_FILENO);
-      close(STDERR_FILENO);
       int null=creat("/dev/null",O_WRONLY);
+      close(STDOUT_FILENO);
       dup2(null,STDOUT_FILENO);
-      dup2(null,STDERR_FILENO);
+      if(quiet == 2) {
+	close(STDERR_FILENO);
+	dup2(null,STDERR_FILENO);
+      }
     }
     if(argv) {
       execvp(argv[0],argv);
@@ -228,7 +232,7 @@ int System(const char *command, bool quiet, bool wait,
   }
 }
 
-int System(const ostringstream& command, bool quiet, bool wait,
+int System(const ostringstream& command, int quiet, bool wait,
 	   const char *hint, const char *application, int *pid)
 {
   return System(command.str().c_str(),quiet,wait,hint,application,pid);

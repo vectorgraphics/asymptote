@@ -36,10 +36,10 @@ bool checkFormatString(const string& format);
 
 // Similar to the standard system call except allows interrupts and does
 // not invoke a shell.
-int System(const char *command, bool quiet=false, bool wait=true,
+int System(const char *command, int quiet=0, bool wait=true,
 	   const char *hint=NULL, const char *application="",
 	   int *pid=NULL);
-int System(const ostringstream& command, bool quiet=false, bool wait=true,
+int System(const ostringstream& command, int quiet=0, bool wait=true,
 	   const char *hint=NULL, const char *application="",
 	   int *pid=NULL); 
   

@@ -75,7 +75,7 @@ const char *rl_gets()
 	ostringstream cmd;
 	cmd << "'" << getSetting<mem::string>("pdfviewer") << "' " 
 	    << docdir << "/asymptote.pdf";
-	status=System(cmd,false,false,"pdfviewer","your PDF viewer",&pid);
+	status=System(cmd,0,false,"pdfviewer","your PDF viewer",&pid);
       }
       continue;
     }
