@@ -2411,8 +2411,8 @@ int breakpoint:breakpoint()
     Stack->push<string>(curPos.filename());
     Stack->push<int>((int) curPos.Line());
     Stack->push<int>((int) curPos.Column());
-     atBreakpointFunction->call(Stack);
-  }
+    atBreakpointFunction->call(Stack); // returns an int
+  } else return 0;
 }
 
 // Merge output files  

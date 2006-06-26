@@ -36,6 +36,36 @@ void exitfunction()
 }
 atexit(exitfunction);
 
+access settings;
+
+// Return code: 0=none, 1=step, 2=next.
+
+int debugger(string file, int line, int column) 
+{
+  static int saveverbose=settings.verbose;
+  settings.verbose=saveverbose;
+  static bool debugging=true;
+  if(debugging) {
+    while(true) {
+      string prompt=file+": "+(string) line+"."+(string) column;
+      prompt += "? [%s] ";
+      string s=getstring(name="debug",default="h",prompt=prompt,save=false);
+      if(s == "h") {
+	write("c:continue h:help n:next s:step t:trace q:quit"); continue;
+      }
+      if(s == "c") break;
+      if(s == "s") return 1;
+      if(s == "n") return 2;
+      if(s == "q") {debugging=false; break;}
+      if(s == "t") {settings.verbose=5; break;}
+      _eval(s+";",true);
+    }
+  }
+  return 0;
+}
+
+atbreakpoint(debugger);
+
 // A restore thunk is a function, that when called, restores the graphics state
 // to what it was when the restore thunk was created.
 typedef void restoreThunk();
@@ -149,14 +179,12 @@ void eval(code s, bool embedded=false)
 // Evaluate user command line option.
 void usersetting()
 {
-  access settings;
   eval(settings.user,true);
 }
 
 // Conditionally process each file name in array s in a new environment.
 void asy(bool overwrite=false ... string[] s)
 {
-  access settings;
   for(int i=0; i < s.length; ++i) {
     string f=s[i];
     int n=rfind(f,".asy");

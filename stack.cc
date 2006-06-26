@@ -79,8 +79,8 @@ void stack::breakpoint()
   lastPos=curPos;
   indebugger=true;
   ::run::breakpoint(this);
-  indebugger=false;
   debugOp=vm::pop<int>(this);
+  indebugger=false;
 }
   
 void stack::debug() 
@@ -99,8 +99,10 @@ void stack::debug()
   default:
     for(list<fileinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
       if(curPos.match(p->name()) && 
-	 curPos.match(p->line()) && !curPos.match(lastPos.Line()))
+	 curPos.match(p->line()) && !curPos.match(lastPos.Line())) {
 	breakpoint();
+	break;
+      }
     }
     break;
   }
