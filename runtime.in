@@ -15,6 +15,7 @@ type asyname:cname(cparams)
 
 
 void     => primVoid()
+Void     => primVoid()
 int      => primInt()
 bool     => primBoolean()
 double   => primReal()
@@ -30,6 +31,7 @@ file*    => primFile()
 picture* => primPicture()
 transform => primTransform()
 callable* => voidFunction()
+callableString* => voidStringFunction()
 runnable* => primCode()
 array* => primArray()  
 boolarray* => boolArray()
@@ -110,9 +112,6 @@ using vm::stack;
 using camp::transform;
 using absyntax::runnable;
 
-callable *atExitFunction=NULL;
-callable *atDrawFunction=NULL;
-  
 typedef double real;
 
 typedef array boolarray;
@@ -129,6 +128,8 @@ typedef array penarray;
 typedef array penarray2;
 typedef array stringarray;
 typedef array stringarray2;
+  
+typedef callable callableString;
 }
 
 using vm::array;
@@ -174,10 +175,20 @@ function *voidFunction()
   return new function(primVoid());
 }
 
+function *voidStringFunction()
+{
+  return new function(primVoid(),primString());
+}
+
+callable *atExitFunction=NULL;
+callable *atDrawFunction=NULL;
+callable *atBreakpointFunction=NULL;
+  
 const int camp::ColorComponents[]={0,0,1,3,4,0};
 
 namespace vm {
 const char *arraymismatch="operation attempted on arrays of different lengths";
+extern std::list<fileinfo> bplist;
 }
 
 namespace run {
@@ -1220,6 +1231,12 @@ void _eval(string *s, bool embedded)
 void _eval(runnable *s, bool embedded)
 {
   loop::doIRunnable(s,embedded);
+}
+
+string location() {
+  ostringstream buf;
+  buf << getPos();
+  return buf.str();
 }
 
 void gui(real x=1)
@@ -2353,7 +2370,28 @@ callable *atexit()
   return atExitFunction;
 }
 
-
+void atbreakpoint(callableString *f)
+{
+  atBreakpointFunction=f;
+}
+
+void stop::stop(string file, int line)
+{
+  bplist.push_back(fileinfo(file,line));
+}
+
+// Declared as Void instead of void to force an explicit Stack argument.
+Void breakpoint:breakpoint()
+{
+  if(atBreakpointFunction && 
+     !nullfunc::instance()->compare(atBreakpointFunction)) {
+    ostringstream buf;
+    buf << getPos();
+    Stack->push<string>(buf.str());
+    atBreakpointFunction->call(Stack);
+  }
+}
+
 // Merge output files  
 int merge(stringarray *files, string *args, string *format)
 {
@@ -2371,7 +2409,7 @@ int merge(stringarray *files, string *args, string *format)
   
   string name=buildname(getSetting<string>("outname"),format->c_str());
   cmd << " " << name;
-  ret=System(cmd,false,true,"convert");
+  ret=System(cmd,0,true,"convert");
   
   if(ret == 0)
     if(verbose > 0) cout << "Wrote " << name << endl;
@@ -2383,7 +2421,7 @@ int merge(stringarray *files, string *args, string *format)
   if(ret == 0 && view()) {
     ostringstream cmd;
     cmd << "'" << getSetting<string>("animate") << "' " << name;
-    System(cmd,false,false,"animate","your animated GIF viewer");
+    System(cmd,0,false,"animate","your animated GIF viewer");
   }
   
   return ret;

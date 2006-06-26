@@ -24,12 +24,17 @@ class fileinfo : public gc {
   size_t lineNum;
 
 public:
-  fileinfo(string filename)
-    : filename(filename), lineNum(1) {}
+  fileinfo(string filename, size_t lineNum=1)
+    : filename(filename), lineNum(lineNum) {}
 
-  size_t line()
+  size_t line() const
   {
     return lineNum;
+  }
+  
+  string file() const
+  {
+    return filename;
   }
   
   // Specifies a newline symbol at the character position given.
@@ -42,10 +47,9 @@ public:
   }
 };
 
-
 class position {
   fileinfo *file;
-  size_t line; // The offset in characters in the file.
+  size_t line;
   size_t column;
 
 public:
@@ -59,6 +63,14 @@ public:
     }
   }
 
+  bool matchline(const fileinfo& f) {
+    return line == f.line();
+  }
+  
+  bool matchfile(const fileinfo& f) {
+    return file && file->file() == f.file();
+  }
+  
   bool operator! () const
   {
     return (file == 0);
@@ -78,14 +90,12 @@ class errorstream {
   bool anyErrors;
   bool anyWarnings;
   bool floating;	// Was a message output without a terminating newline?
-  bool pending;		// Are there pending interrupts or tracing requests?
   
 public:
   static bool interrupt; // Is there a pending interrupt?
   
   errorstream(ostream& out = std::cerr)
-    : out(out), anyErrors(false), anyWarnings(false), floating(false),
-      pending(false) {}
+    : out(out), anyErrors(false), anyWarnings(false), floating(false) {}
 
   void clear();
 
@@ -93,7 +103,6 @@ public:
   
   void Interrupt(bool b) {
     interrupt=b;
-    if(b) pending=true;
   }
   
   // An error is encountered, not in the user's code, but in the way the
@@ -136,9 +145,6 @@ public:
   bool warnings() const {
     return anyWarnings || errors();
   }
-  
-  void process(const position& pos);
-  
 };
 
 extern errorstream *em;

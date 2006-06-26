@@ -11,6 +11,7 @@
 #include "callable.h"
 #include "errormsg.h"
 #include "util.h"
+#include "runtime.h"
 
 //#define DEBUG_STACK
 
@@ -25,8 +26,15 @@ void draw(ostream& out, frame *v);
 }
 #endif
 
+namespace run {
+void breakpoint(vm::stack *Stack);
+}
+
 namespace vm {
 
+using std::list;
+list<fileinfo> bplist;
+  
 namespace {
 position curPos = position::nullPos();
 const program::label nulllabel;
@@ -76,6 +84,20 @@ void stack::run(func *f)
   run(body->code, vars);
 }
 
+inline void stack::debug() {
+  for(list<fileinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
+    static bool newmatch=true;
+    if(curPos.matchfile(*p)) {
+      if(curPos.matchline(*p)) {
+	if(newmatch) {
+	  newmatch=false;
+	  run::breakpoint(this);
+	}
+      } else newmatch=true;
+    }
+  }
+}    
+  
 void stack::run(program *code, vars_t vars)
 {
   /* start the new function */
@@ -92,7 +114,9 @@ void stack::run(program *code, vars_t vars)
       cerr << "\n";
 #endif
 
-      if(settings::verbose > 4) em->process(curPos);
+      if(settings::verbose > 4) em->trace(curPos);
+      
+      debug();
       
       switch (i.op)
         {
@@ -180,6 +204,8 @@ void stack::run(program *code, vars_t vars)
 	    error("Internal VM error: Bad stack operand");
         }
 
+      if(errorstream::interrupt) throw interrupted();
+      
 #ifdef DEBUG_STACK
       draw(cerr);
       vm::draw(cerr,vars);
@@ -300,3 +326,4 @@ void interactiveStack::run(lambda *codelet) {
 }
 
 } // namespace vm
+

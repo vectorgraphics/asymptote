@@ -78,9 +78,3 @@ void errorstream::sync()
   if (floating) out << endl;
   floating = false;
 }
-
-void errorstream::process(const position& pos)
-{
-  if(interrupt) throw interrupted();
-  else trace(pos);
-}

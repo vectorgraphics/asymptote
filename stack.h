@@ -66,6 +66,8 @@ public:
   // Executes a function on top of the stack.
   void run(func *f);
 
+  inline void debug();
+  
   // Put an import (indexed by name) on top of the stack, initializing it if
   // necessary.
   void load(mem::string index);

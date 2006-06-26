@@ -6532,4 +6532,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow blocks ny cpu
 @c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel
 @c  LocalWords:  zlabel strptime slopefields cputime roundrectangle slopefield
-@c  LocalWords:  tickfactor USERNAME writeable imagecontour logimage
+@c  LocalWords:  tickfactor USERNAME writeable imagecontour logimage Dumoulin's

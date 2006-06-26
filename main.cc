@@ -183,12 +183,7 @@ struct iprompt : public itree {
 	set(parser::parseInteractive());
 	if(resetenv) {purge(); break;}
       }
-      try {
-	itree::run(e,s);
-      } catch (interrupted&) {
-	if(em) em->Interrupt(false);
-	cout << endl;
-      }
+      itree::run(e,s);
       ast=0;
       if(!uptodate && virtualEOF)
 	run::updateFunction(&s);
@@ -325,6 +320,9 @@ void doIPrompt() {
 	doICore(i);
     } catch(handled_error) {
       status=false;
+    } catch(interrupted&) {
+      if(em) em->Interrupt(false);
+      cout << endl;
     }
   } while(virtualEOF);
   Setting("outname")=(mem::string)"";
@@ -359,18 +357,21 @@ int main(int argc, char *argv[])
   setOptions(argc,argv);
 
   fpu_trap(trap());
-  if(interactive) signal(SIGINT,interruptHandler);
 
   try {
-    if(interactive)
+    if(interactive) {
+      signal(SIGINT,interruptHandler);
       loop::doIPrompt();
-    else
-      if(numArgs() == 0) {
+    } else {
+      if(numArgs() == 0)
 	loop::doIFile("");
-      } else for(int ind=0; ind < numArgs() ; ind++) {
-	loop::doIFile(string(getArg(ind)));
-	if(ind < numArgs()-1) setOptions(argc,argv);
+      else {
+	for(int ind=0; ind < numArgs() ; ind++) {
+	  loop::doIFile(string(getArg(ind)));
+	  if(ind < numArgs()-1) setOptions(argc,argv);
+	}
       }
+    }
   }
   catch (handled_error) {
     status=false;
