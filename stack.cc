@@ -78,7 +78,7 @@ void stack::breakpoint()
 {
   lastPos=curPos;
   indebugger=true;
-  run::breakpoint(this);
+  ::run::breakpoint(this);
   indebugger=false;
   debugOp=vm::pop<int>(this);
 }
