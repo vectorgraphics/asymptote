@@ -26,10 +26,6 @@ void draw(ostream& out, frame *v);
 }
 #endif
 
-namespace run {
-void breakpoint(vm::stack *Stack);
-}
-
 namespace vm {
 
 using std::list;
@@ -46,12 +42,6 @@ inline stack::vars_t stack::make_frame(size_t size, vars_t closure)
   (*vars)[0] = closure;
   return vars;
 }
-
-stack::stack()
-{}
-
-stack::~stack()
-{}
 
 void run(lambda *l)
 {
@@ -84,19 +74,37 @@ void stack::run(func *f)
   run(body->code, vars);
 }
 
-inline void stack::debug() {
-  for(list<fileinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
-    static bool newmatch=true;
-    if(curPos.matchfile(*p)) {
-      if(curPos.matchline(*p)) {
-	if(newmatch) {
-	  newmatch=false;
-	  run::breakpoint(this);
-	}
-      } else newmatch=true;
+void stack::breakpoint() 
+{
+  lastPos=curPos;
+  indebugger=true;
+  run::breakpoint(this);
+  indebugger=false;
+  debugOp=vm::pop<int>(this);
+}
+  
+void stack::debug() 
+{
+  if(indebugger || curPos.filename() == "") return;
+  
+  switch(debugOp) {
+  case 1:
+    if(!curPos.match(lastPos.filename()) || !curPos.match(lastPos.Line()))
+      breakpoint();
+    break;
+  case 2:
+    if(curPos.match(lastPos.filename()) && !curPos.match(lastPos.Line()))
+      breakpoint();
+    break;
+  default:
+    for(list<fileinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
+      if(curPos.match(p->name()) && 
+	 curPos.match(p->line()) && !curPos.match(lastPos.Line()))
+	breakpoint();
     }
+    break;
   }
-}    
+}
   
 void stack::run(program *code, vars_t vars)
 {
@@ -116,7 +124,7 @@ void stack::run(program *code, vars_t vars)
 
       if(settings::verbose > 4) em->trace(curPos);
       
-      debug();
+      if(!bplist.empty()) debug();
       
       switch (i.op)
         {

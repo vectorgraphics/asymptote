@@ -52,9 +52,15 @@ private:
   typedef mem::map<CONST mem::string,frame *> importInstanceMap;
   importInstanceMap instMap;
   
+  // Debugger variables:
+  int debugOp; // 0=none, 1=step, 2=next.
+  bool indebugger;
+  position lastPos;
+  
 public:
-  stack();
-  ~stack();
+  stack() : debugOp(0), indebugger(false) {};
+  
+  ~stack() {};
 
   void setInitMap(importInitMap *i) {
     initMap=i;
@@ -66,7 +72,8 @@ public:
   // Executes a function on top of the stack.
   void run(func *f);
 
-  inline void debug();
+  void breakpoint();
+  void debug();
   
   // Put an import (indexed by name) on top of the stack, initializing it if
   // necessary.

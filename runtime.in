@@ -11,11 +11,14 @@ type asyname:cname(cparams)
 {
   C code
 }
+
 */
+
+// Use Void f() instead of void f() to force an explicit Stack argument.
 
 
 void     => primVoid()
-Void     => primVoid()
+Void     => primVoid() 
 int      => primInt()
 bool     => primBoolean()
 double   => primReal()
@@ -31,7 +34,7 @@ file*    => primFile()
 picture* => primPicture()
 transform => primTransform()
 callable* => voidFunction()
-callableString* => voidStringFunction()
+callableBp* => voidBpFunction()
 runnable* => primCode()
 array* => primArray()  
 boolarray* => boolArray()
@@ -129,7 +132,7 @@ typedef array penarray2;
 typedef array stringarray;
 typedef array stringarray2;
   
-typedef callable callableString;
+typedef callable callableBp;
 }
 
 using vm::array;
@@ -175,9 +178,9 @@ function *voidFunction()
   return new function(primVoid());
 }
 
-function *voidStringFunction()
+function *voidBpFunction()
 {
-  return new function(primVoid(),primString());
+  return new function(primInt(),primString(),primInt(),primInt());
 }
 
 callable *atExitFunction=NULL;
@@ -2370,25 +2373,45 @@ callable *atexit()
   return atExitFunction;
 }
 
-void atbreakpoint(callableString *f)
+void atbreakpoint(callableBp *f)
 {
   atBreakpointFunction=f;
 }
 
-void stop::stop(string file, int line)
+void stop(string file, int line)
 {
-  bplist.push_back(fileinfo(file,line));
+  fileinfo bp(file,line);
+  for(std::list<fileinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p)
+    if(*p == bp) return;
+  bplist.push_back(bp);
 }
 
-// Declared as Void instead of void to force an explicit Stack argument.
-Void breakpoint:breakpoint()
+void breakpoints()
 {
-  if(atBreakpointFunction && 
+  for(std::list<fileinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p)
+    cout << p->name() << ": " << p->line() << endl;
+}
+
+void remove(string file, int line)
+{
+  bplist.remove(fileinfo(file,line));
+}
+
+void remove()
+{
+  bplist.clear();
+}
+
+int breakpoint:breakpoint()
+{
+  if(atBreakpointFunction &&
      !nullfunc::instance()->compare(atBreakpointFunction)) {
     ostringstream buf;
-    buf << getPos();
-    Stack->push<string>(buf.str());
-    atBreakpointFunction->call(Stack);
+    position curPos=getPos();
+    Stack->push<string>(curPos.filename());
+    Stack->push<int>((int) curPos.Line());
+    Stack->push<int>((int) curPos.Column());
+     atBreakpointFunction->call(Stack);
   }
 }
 

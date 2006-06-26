@@ -401,6 +401,12 @@ struct function : public ty {
     add(f1);
     add(f2);
   }
+  function(ty *result, formal f1, formal f2, formal f3)
+    : ty(ty_function), result(result) {
+    add(f1);
+    add(f2);
+    add(f3);
+  }
   virtual ~function() {}
 
   void add(formal f) {

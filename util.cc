@@ -189,7 +189,7 @@ int System(const char *command, int quiet, bool wait,
   if(pid == 0) {
     if(interact::interactive) signal(SIGINT,SIG_IGN);
     if(quiet) {
-      int null=creat("/dev/null",O_WRONLY);
+      static int null=creat("/dev/null",O_WRONLY);
       close(STDOUT_FILENO);
       dup2(null,STDOUT_FILENO);
       if(quiet == 2) {

@@ -24,7 +24,7 @@ class fileinfo : public gc {
   size_t lineNum;
 
 public:
-  fileinfo(string filename, size_t lineNum=1)
+  fileinfo(mem::string filename, size_t lineNum=1)
     : filename(filename), lineNum(lineNum) {}
 
   size_t line() const
@@ -32,8 +32,7 @@ public:
     return lineNum;
   }
   
-  string file() const
-  {
+  mem::string name() const {
     return filename;
   }
   
@@ -42,10 +41,14 @@ public:
     ++lineNum;
   }
   
-  mem::string name() {
-    return filename;
-  }
 };
+
+inline bool operator == (const fileinfo& a, const fileinfo& b)
+{
+  return a.line() == b.line() && a.name() == b.name();
+}
+
+
 
 class position {
   fileinfo *file;
@@ -63,12 +66,27 @@ public:
     }
   }
 
-  bool matchline(const fileinfo& f) {
-    return line == f.line();
+  mem::string filename() const
+  {
+    return file ? file->name() : "";
   }
   
-  bool matchfile(const fileinfo& f) {
-    return file && file->file() == f.file();
+  size_t Line() const
+  {
+    return line;
+  }
+  
+  size_t Column() const
+  {
+    return column;
+  }
+  
+  bool match(const mem::string& s) {
+    return file && file->name() == s;
+  }
+  
+  bool match(size_t l) {
+    return line == l;
   }
   
   bool operator! () const
