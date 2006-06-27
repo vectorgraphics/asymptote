@@ -4167,7 +4167,7 @@ and then draws in the boundary. One can specify separate pens for each
 operation:
 @verbatim
 void filldraw(picture pic=currentpicture, path g, pen fillpen=currentpen,
-              pen drawpen=currentpen);
+              pen drawpen=fillpen);
 @end verbatim
 
 @cindex @code{fill}

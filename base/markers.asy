@@ -65,8 +65,7 @@ marker marker(path[] g, markroutine markroutine=marknodes, pen p=currentpen,
 	      filltype filltype=NoFill, bool put=Above)
 {
   frame f;
-  if(filltype == Fill) fill(f,g,p);
-  else draw(f,g,p);
+  filltype(f,g,p);
   return marker(f,markroutine,put);
 }
 

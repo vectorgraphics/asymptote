@@ -6,7 +6,7 @@ void distance(picture pic=currentpicture, pair A, pair B, Label L="", real n=0,
   real d=3mm;
   guide g=A--B;
   transform T=shift(-n*d*unit(B-A)*I);
-  pic.add(new void (frame f, transform t) {
+  pic.add(new void(frame f, transform t) {
     picture opic;
     guide G=T*t*g;
     draw(opic,G,p,Arrows(NoFill),Bars,PenMargins); 

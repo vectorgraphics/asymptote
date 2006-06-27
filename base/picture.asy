@@ -495,7 +495,7 @@ struct picture {
 
   void add(drawer d) {
     uptodate(false);
-    nodes.push(new void (frame f, transform t, transform T, pair, pair) {
+    nodes.push(new void(frame f, transform t, transform T, pair, pair) {
       d(f,t*T);
     });
   }
@@ -503,7 +503,7 @@ struct picture {
   void clip(drawer d) {
     uptodate(false);
     bounds.clip(userMin,userMax);
-    nodes.push(new void (frame f, transform t, transform T, pair, pair) {
+    nodes.push(new void(frame f, transform t, transform T, pair, pair) {
       d(f,t*T);
     });
   }
@@ -790,7 +790,7 @@ struct picture {
     
     picture srcCopy=src.drawcopy();
     // Draw by drawing the copied picture.
-    nodes.push(new void (frame f, transform t, transform T, pair m, pair M) {
+    nodes.push(new void(frame f, transform t, transform T, pair m, pair M) {
       frame d=srcCopy.fit(t,T*srcCopy.T,m,M);
       add(f,d,put,filltype,group);
     });
@@ -848,21 +848,21 @@ pair max(picture pic)
   
 void begingroup(picture pic=currentpicture)
 {
-  pic.add(new void (frame f, transform) {
+  pic.add(new void(frame f, transform) {
     begingroup(f);
   });
 }
 
 void endgroup(picture pic=currentpicture)
 {
-  pic.add(new void (frame f, transform) {
+  pic.add(new void(frame f, transform) {
     endgroup(f);
   });
 }
 
 void Draw(picture pic=currentpicture, path g, pen p=currentpen)
 {
-  pic.add(new void (frame f, transform t) {
+  pic.add(new void(frame f, transform t) {
     draw(f,t*g,p);
   });
   pic.addPath(g,p);
@@ -871,7 +871,7 @@ void Draw(picture pic=currentpicture, path g, pen p=currentpen)
 void _draw(picture pic=currentpicture, path g, pen p=currentpen,
 	   margin margin=NoMargin)
 {
-  pic.add(new void (frame f, transform t) {
+  pic.add(new void(frame f, transform t) {
     draw(f,margin(t*g,p).g,p);
   });
   pic.addPath(g,p);
@@ -885,7 +885,7 @@ void draw(picture pic=currentpicture, explicit path[] g, pen p=currentpen)
 void fill(picture pic=currentpicture, path[] g, pen p=currentpen)
 {
   g=copy(g);
-  pic.add(new void (frame f, transform t) {
+  pic.add(new void(frame f, transform t) {
     fill(f,t*g,p);
   });
   for(int i=0; i < g.length; ++i) 
@@ -897,7 +897,7 @@ void latticeshade(picture pic=currentpicture, path[] g,
 {
   g=copy(g);
   p=copy(p);
-  pic.add(new void (frame f, transform t) {
+  pic.add(new void(frame f, transform t) {
     latticeshade(f,t*g,fillrule,p);
   });
   for(int i=0; i < g.length; ++i) 
@@ -908,7 +908,7 @@ void axialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
 		pen penb, pair b)
 {
   g=copy(g);
-  pic.add(new void (frame f, transform t) {
+  pic.add(new void(frame f, transform t) {
     axialshade(f,t*g,pena,t*a,penb,t*b);
   });
   for(int i=0; i < g.length; ++i) 
@@ -919,7 +919,7 @@ void radialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
 		 real ra, pen penb, pair b, real rb)
 {
   g=copy(g);
-  pic.add(new void (frame f, transform t) {
+  pic.add(new void(frame f, transform t) {
     pair A=t*a, B=t*b;
     real RA=abs(t*(a+ra)-A);
     real RB=abs(t*(b+rb)-B);
@@ -936,7 +936,7 @@ void gouraudshade(picture pic=currentpicture, path[] g,
   p=copy(p);
   z=copy(z);
   edges=copy(edges);
-  pic.add(new void (frame f, transform t) {
+  pic.add(new void(frame f, transform t) {
     gouraudshade(f,t*g,fillrule,p,t*z,edges);
   });
   for(int i=0; i < g.length; ++i) 
@@ -944,7 +944,7 @@ void gouraudshade(picture pic=currentpicture, path[] g,
 }
 
 void filldraw(picture pic=currentpicture, path[] g, pen fillpen=currentpen,
-	      pen drawpen=currentpen)
+	      pen drawpen=fillpen)
 {
   begingroup(pic);
   fill(pic,g,fillpen);
@@ -961,7 +961,7 @@ void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
 {
   g=copy(g);
   pic.userClip(min(g),max(g));
-  pic.clip(new void (frame f, transform t) {
+  pic.clip(new void(frame f, transform t) {
     clip(f,t*g,p);
   });
 }
@@ -969,7 +969,7 @@ void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
 void unfill(picture pic=currentpicture, path[] g)
 {
   g=copy(g);
-  pic.clip(new void (frame f, transform t) {
+  pic.clip(new void(frame f, transform t) {
     unfill(f,t*g);
   });
 }
@@ -1001,7 +1001,7 @@ void add(frame dest, frame src, pair position, bool group=false,
 void add(picture dest=currentpicture, frame src, pair position=0,
 	 bool group=true, filltype filltype=NoFill, bool put=Above)
 {
-  dest.add(new void (frame f, transform t) {
+  dest.add(new void(frame f, transform t) {
     add(f,shift(t*position)*src,group,filltype,put);
   });
   dest.addBox(position,position,min(src),max(src));
@@ -1070,21 +1070,21 @@ void fill(pair origin, picture pic=currentpicture, path[] g, pen p=currentpen)
 
 void postscript(picture pic=currentpicture, string s)
 {
-  pic.add(new void (frame f, transform) {
+  pic.add(new void(frame f, transform) {
     postscript(f,s);
     });
 }
 
 void tex(picture pic=currentpicture, string s)
 {
-  pic.add(new void (frame f, transform) {
+  pic.add(new void(frame f, transform) {
     tex(f,s);
   });
 }
 
 void layer(picture pic=currentpicture)
 {
-  pic.add(new void (frame f, transform) {
+  pic.add(new void(frame f, transform) {
     layer(f);
   });
 }

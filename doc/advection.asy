@@ -21,31 +21,32 @@ Label cell(string s, string size="", pair position,
 
 frame IC,Adv0,Adv,AdvD,Ur,Ui,Crank,CrankR,Urout,Diff,UIout,psi,vel;
 
-box(IC,cell("initial condition $\v U_0$",(0,1)),margin,Fill(palegray));
+box(IC,cell("initial condition $\v U_0$",(0,1)),margin,black,
+    FillDraw(palegray));
 ellipse(Adv0,cell("Lagrangian state $\v U(t)$",(1,1)),margin,red,
-	Fill(palered));
+	FillDraw(palered));
 ellipse(Adv,cell("Lagrangian prediction $\v U(t+\tau)$",(1,0)),margin,red,
-	Fill(palered));
-ellipse(AdvD,cell("diffused parcels",(1.8,1)),margin,red,Fill(palered));
+	FillDraw(palered));
+ellipse(AdvD,cell("diffused parcels",(1.8,1)),margin,red,FillDraw(palered));
 box(Ur,cell("rearranged $\v \widetilde U$",(0,0)),margin,orange+gray,
-    Fill(paleyellow));
+    FillDraw(paleyellow));
 box(Ui,cell("interpolated $\v \widetilde U$",(1,-1)),margin,blue,
-    Fill(paleblue));
+    FillDraw(paleblue));
 box(Crank,cell("${\cal L}^{-1}(-\tau){\cal L}(\tau)\v \widetilde U$",(0.5,-1)),
-    margin,blue,Fill(paleblue));
+    margin,blue,FillDraw(paleblue));
 box(CrankR,cell("${\cal L}^{-1}(-\tau){\cal L}(\tau)\v \widetilde U$",
 		(0,-1)),margin,orange+gray,
-    Fill(paleyellow));
+    FillDraw(paleyellow));
 box(Urout,cell(minipage("\center{Lagrangian rearranged solution~$\v U_R$}",
-			100pt),(0,-2)),margin,orange+gray,Fill(paleyellow));
+			100pt),(0,-2)),margin,orange+gray,FillDraw(paleyellow));
 box(Diff,cell("$\v D\del^2 \v \widetilde U$",(0.75,-1.5)),margin,blue,
-    Fill(paleblue));
+    FillDraw(paleblue));
 box(UIout,cell(minipage("\center{semi-Lagrangian solution~$\v U_I$}",80pt),
-	       (0.5,-2)),margin,Fill(palered+paleyellow));
+	       (0.5,-2)),margin,FillDraw(palered+paleyellow));
 box(psi,cell("$\psi=\del^{-2}\omega$",(1.6,-1)),margin,darkgreen,
-    Fill(palegreen));
+    FillDraw(palegreen));
 box(vel,cell("$\v v=\v{\hat z} \cross\grad\psi$",(1.6,-0.5)),margin,darkgreen,
-    Fill(palegreen));
+    FillDraw(palegreen));
 
 pair padv=0.5*(point(Adv0,S)+point(Adv,N));
 

@@ -61,7 +61,7 @@ void fill(frame f, path[] g)
 }
 
 void filldraw(frame f, path[] g, pen fillpen=currentpen,
-	      pen drawpen=currentpen)
+	      pen drawpen=fillpen)
 {
   begingroup(f);
   fill(f,g,fillpen);
@@ -75,10 +75,10 @@ void unfill(frame f, path[] g)
   clip(f,box(min(f)-margin,max(f)+margin)^^g,evenoddoverlap);
 }
 
-typedef void filltype(frame, path, pen);
-void filltype(frame, path, pen) {}
+typedef void filltype(frame, path[], pen);
+void filltype(frame, path[], pen) {}
 
-path margin(path g, real xmargin, real ymargin) 
+path[] margin(path[] g, real xmargin, real ymargin) 
 {
   if(xmargin != 0 || ymargin != 0) {
     pair M=max(g);
@@ -95,19 +95,19 @@ path margin(path g, real xmargin, real ymargin)
 
 filltype Fill(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
 {
-  return new void(frame f, path g, pen drawpen) {
+  return new void(frame f, path[] g, pen drawpen) {
     fill(f,margin(g,xmargin,ymargin),p == nullpen ? drawpen : p);
   };
 }
 
 filltype FillDraw(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
 {
-  return new void(frame f, path g, pen drawpen) {
+  return new void(frame f, path[] g, pen drawpen) {
     filldraw(f,margin(g,xmargin,ymargin),p == nullpen ? drawpen : p,drawpen);
   };
 }
 
-filltype NoFill=new void(frame f, path g, pen p) {
+filltype NoFill=new void(frame f, path[] g, pen p) {
   draw(f,g,p);
 };
 
@@ -115,7 +115,7 @@ filltype FillDraw=FillDraw(nullpen), Fill=Fill(nullpen), Draw=NoFill;
 
 filltype UnFill(real xmargin=0, real ymargin=xmargin)
 {
-  return new void(frame f, path g, pen p) {
+  return new void(frame f, path[] g, pen p) {
     unfill(f,margin(g,xmargin,ymargin));
   };
 }
@@ -126,7 +126,7 @@ filltype UnFill=UnFill();
 // penr at the edge.
 filltype RadialShade(pen penc, pen penr)
 {
-  return new void(frame f, path g, pen) {
+  return new void(frame f, path[] g, pen) {
     pair c=(min(g)+max(g))/2;
     radialshade(f,g,penc,c,0,penr,c,abs(max(g)-min(g))/2);
   };
