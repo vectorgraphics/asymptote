@@ -208,9 +208,11 @@ int System(const char *command, int quiet, bool wait,
     if(waitpid(pid, &status, wait ? 0 : WNOHANG) == -1) {
       if(errno == ECHILD) return 0;
       if(errno != EINTR) {
-        ostringstream msg;
-        msg << "Command failed: " << command;
-        camp::reportError(msg);
+	if(quiet < 2) {
+	  ostringstream msg;
+	  msg << "Command failed: " << command;
+	  camp::reportError(msg);
+	}
       }
     } else {
       if(!wait) return 0;
@@ -224,9 +226,11 @@ int System(const char *command, int quiet, bool wait,
 	}
 	return WEXITSTATUS(status);
       } else {
-        ostringstream msg;
-        msg << "Command exited abnormally: " << command;
-        camp::reportError(msg);
+	if(quiet < 2) {
+	  ostringstream msg;
+	  msg << "Command exited abnormally: " << command;
+	  camp::reportError(msg);
+	}
       }
     }
   }

@@ -354,8 +354,12 @@ int main(int argc, char *argv[])
   
   setsignal(signalHandler);
 
-  setOptions(argc,argv);
-
+  try {
+    setOptions(argc,argv);
+  } catch (handled_error) {
+    status=false;
+  }
+  
   fpu_trap(trap());
 
   try {
