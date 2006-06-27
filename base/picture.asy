@@ -944,7 +944,7 @@ void gouraudshade(picture pic=currentpicture, path[] g,
 }
 
 void filldraw(picture pic=currentpicture, path[] g, pen fillpen=currentpen,
-	      pen drawpen=fillpen)
+	      pen drawpen=currentpen)
 {
   begingroup(pic);
   fill(pic,g,fillpen);

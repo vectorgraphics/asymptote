@@ -61,7 +61,7 @@ void fill(frame f, path[] g)
 }
 
 void filldraw(frame f, path[] g, pen fillpen=currentpen,
-	      pen drawpen=fillpen)
+	      pen drawpen=currentpen)
 {
   begingroup(f);
   fill(f,g,fillpen);
