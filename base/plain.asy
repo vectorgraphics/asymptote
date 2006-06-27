@@ -40,6 +40,8 @@ atexit(exitfunction);
 
 access settings;
 
+int debuggerlines=5;
+
 int debugger(string file, int line, int column) 
 {
   static int saveverbose=settings.verbose;
@@ -47,15 +49,26 @@ int debugger(string file, int line, int column)
   static bool debugging=true;
   if(debugging) {
     while(true) {
+      string[] source=input(file);
+      write();
+      for(int i=max(line-debuggerlines,0); i < line; ++i)
+	write(source[i]);
+      for(int i=0; i < column-1; ++i)
+	write(" ",none);
+      write("^");
       string prompt=file+": "+(string) line+"."+(string) column;
       prompt += "? [%s] ";
       string s=getstring(name="debug",default="h",prompt=prompt,save=false);
       if(s == "h") {
-	write("c:continue h:help n:next s:step t:trace q:quit"); continue;
+	write("c:continue f:file h:help l:line n:next r:return s:step t:trace q:quit");
+	continue;
       }
       if(s == "c") break;
       if(s == "s") return 1;
       if(s == "n") return 2;
+      if(s == "l") return 3;
+      if(s == "f") return 4;
+      if(s == "r") return 5;
       if(s == "q") {debugging=false; break;}
       if(s == "t") {settings.verbose=5; break;}
       _eval(s+";",true);

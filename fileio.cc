@@ -26,6 +26,7 @@ void ifile::ignoreComment(bool readstring)
   if(eol && (readstring || (csvmode && nullfield))) return;
   for(;;) {
     while(isspace(c=stream->peek())) {
+      if(c == '\n' && readstring) return;
       stream->ignore();
       whitespace += (char) c;
     }
@@ -33,7 +34,10 @@ void ifile::ignoreComment(bool readstring)
       whitespace="";
       while((c=stream->peek()) != '\n' && c != EOF)
 	stream->ignore();
-      if(c == '\n') stream->ignore();
+      if(c == '\n') {
+	if(readstring) return;
+	stream->ignore();
+      }
     } else {if(eol) stream->unget(); return;}
   }
 }

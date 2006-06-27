@@ -55,7 +55,7 @@ private:
   // Debugger variables:
   int debugOp; // 0=none, 1=step, 2=next.
   bool indebugger;
-  position lastPos;
+  position lastPos, breakPos;
   
 public:
   stack() : debugOp(0), indebugger(false) {};

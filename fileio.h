@@ -206,7 +206,7 @@ public:
     if(csvmode) {
       val=whitespace+getcsvline();
     } else {
-      mem::string s=mem::string();
+      mem::string s;
       getline(*stream,s);
       val=whitespace+s;
     }

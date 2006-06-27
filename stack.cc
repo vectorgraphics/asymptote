@@ -88,18 +88,30 @@ void stack::debug()
   if(indebugger || curPos.filename() == "") return;
   
   switch(debugOp) {
-  case 1:
+  case 1: // step
+      breakpoint();
+    break;
+  case 2: // next
+    if(curPos.match(lastPos.filename()) && !curPos.match(lastPos.Line()))
+      breakpoint();
+    break;
+  case 3: // line
     if(!curPos.match(lastPos.filename()) || !curPos.match(lastPos.Line()))
       breakpoint();
     break;
-  case 2:
-    if(curPos.match(lastPos.filename()) && !curPos.match(lastPos.Line()))
+  case 4: // file
+    if(!curPos.match(lastPos.filename()))
+      breakpoint();
+    break;
+  case 5: // return
+    if(curPos.match(breakPos.filename()))
       breakpoint();
     break;
   default:
     for(list<fileinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
       if(curPos.match(p->name()) && 
 	 curPos.match(p->line()) && !curPos.match(lastPos.Line())) {
+	breakPos=curPos;
 	breakpoint();
 	break;
       }

@@ -57,6 +57,7 @@ file LICENSE in the top-level source directory).
 * GUI::                         Graphical user interface
 * PostScript to Asymptote::     @code{Asymptote} backend to @code{pstoedit}
 * Help::                        Where to get help and submit bug reports
+* Debugger::                    
 * Credits::                     Contributions and acknowledgments
 * Index::                       General index
 
@@ -6243,10 +6244,11 @@ reset @code{Asymptote} to its initial state, except that a prior call
 to @code{scroll} (@pxref{scroll}) and any changes to the setting
 @code{outname} are respected.
 @item input FILE
-resets the environment and does an @code{erase(); include FILE}. If
-the file name @code{FILE} contains nonalphanumeric characters, enclose
-it with quotation marks. For convenience, a trailing semi-colon 
-followed by optional @code{Asymptote} commands may be entered on the same line.
+resets the environment (except for breakpoints; @pxref{Debugger}) and does an
+@code{erase(); include FILE}. If the file name @code{FILE} contains
+nonalphanumeric characters, enclose it with quotation marks. For
+convenience, a trailing semi-colon  followed by optional
+@code{Asymptote} commands may be entered on the same line.
 @cindex @code{quit}
 @cindex @code{exit}
 @anchor{history}
@@ -6395,11 +6397,13 @@ If the fonts aren't typeset correctly, try giving @code{pstoedit} the
 @cindex help
 @cindex forum
 Questions on installing and using @code{Asymptote} should be sent to the
-@code{Asymptote} forum.
+@code{Asymptote} forum: 
 @quotation
 @url{http://sourceforge.net/forum/forum.php?forum_id=409349}
 @end quotation
 @noindent
+@code{LaTeX} problems can often be diagnosed with the @code{-vv} or
+@code{-vvv} command-line options.
 Contributions in the form of patches or @code{Asymptote} modules can be
 posted here:
 @quotation
@@ -6438,6 +6442,83 @@ user-generated @code{Asymptote} stack overflows (@pxref{stack overflow})
 from true segmentation faults (due to internal C++ programming errors;
 please submit the @code{Asymptote} code that generates such segmentation
 faults along with your bug report). 
+
+@node Debugger
+@chapter Debugger
+@cindex debugger
+Asymptote now includes a line-based (as opposed to code-based)
+debugger that can assist the user in following flow control. To set a
+break point, use the command
+
+@cindex @code{stop}
+@verbatim
+void stop(string file, int line);
+@end verbatim
+@noindent
+The complete file name (as given by the @code{-vvvvv} flow tracing option) must
+be specified, as well as the line number.
+To list all breakpoints, use:
+@cindex @code{breakpoints}
+@verbatim
+void breakpoints();
+@end verbatim
+
+@noindent
+To remove a breakpoint, use:
+@cindex @code{remove}
+@verbatim
+void remove(string file, int line);
+@end verbatim
+@noindent
+To remove all breakpoints, use:
+@verbatim
+void remove();
+@end verbatim
+
+The following commands may be entered at the debugging prompt:
+
+@table @code
+@cindex @code{help}
+@item @code{h}
+help;
+
+@cindex @code{continue}
+@item @code{c}
+continue execution;
+
+@cindex @code{step}
+@item @code{s}
+step to the next instruction;
+
+@cindex @code{next}
+@item @code{n}
+step to the next executable line in the current file;
+
+@cindex @code{line}
+@item @code{l}
+step to the next executable line;
+
+@cindex @code{file}
+@item @code{f}
+step to the next file;
+
+@cindex @code{return}
+@item @code{r}
+return to the file associated with the most recent breakpoint;
+
+@cindex @code{trace}
+@item @code{t}
+turn on tracing and continue;
+
+@cindex @code{quit}
+@item @code{q}
+quit debugging and run to completion.
+
+@end table
+@noindent
+Arbitrary @code{Asymptote} code may also be entered at the debugging prompt;
+however, since the debugger is implemented with @code{eval}, currently
+only top-level (global) variables can be displayed or modified.
 
 @node Credits
 @chapter Acknowledgments
@@ -6504,7 +6585,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  yequals Nobre Barbarosie Schwaiger nearearth conicurv Wiebusch
 @c  LocalWords:  unfill posterSize ngraph interpolatetype ctrl dt pic getint Ai
 @c  LocalWords:  NNE jxf linecap linejoin unitsquare shadedtiling ei nomarker
-@c  LocalWords:  westnile minipage ra penb paletteticks drawline nV FillDraw
+@c  LocalWords:  westnile minipage ra penb paletteticks drawline nV FillDraw uv
 @c  LocalWords:  susceptibleM flushright secondaryX secondaryY secondaryaxis tt
 @c  LocalWords:  titlelabel columnlabel rb xtick ytick labelx XEquals YEquals
 @c  LocalWords:  treetest eetomumu fermi backend pstoedit drawtree xFF MSDOS gz
@@ -6550,6 +6631,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  loc topleft topright bottomleft bottomright flowrectangle UTC
 @c  LocalWords:  headercolor bodycolor chartblock flowdiamond flowcircle xlabel
 @c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow blocks ny cpu
-@c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel
+@c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel nv
 @c  LocalWords:  zlabel strptime slopefields cputime roundrectangle slopefield
 @c  LocalWords:  tickfactor USERNAME writeable imagecontour logimage Dumoulin's
+@c  LocalWords:  NoCrop parametricsurface
