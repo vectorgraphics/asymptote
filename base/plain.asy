@@ -48,21 +48,25 @@ int debugger(string file, int line, int column)
   settings.verbose=saveverbose;
   static bool debugging=true;
   if(debugging) {
+    static string lastfile;
+    static string[] source;
+    bool help=false;
     while(true) {
-      string[] source=input(file);
+      if(file != lastfile) {source=input(file); lastfile=file;}
       write();
       for(int i=max(line-debuggerlines,0); i < line; ++i)
 	write(source[i]);
       for(int i=0; i < column-1; ++i)
 	write(" ",none);
       write("^");
+      if(help) {
+	write("c:continue f:file h:help l:line n:next r:return s:step t:trace q:quit");
+	help=false;
+      }
       string prompt=file+": "+(string) line+"."+(string) column;
       prompt += "? [%s] ";
       string s=getstring(name="debug",default="h",prompt=prompt,save=false);
-      if(s == "h") {
-	write("c:continue f:file h:help l:line n:next r:return s:step t:trace q:quit");
-	continue;
-      }
+      if(s == "h") {help=true; continue;}
       if(s == "c") break;
       if(s == "s") return 1;
       if(s == "n") return 2;
