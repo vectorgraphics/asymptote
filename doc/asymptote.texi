@@ -5788,20 +5788,39 @@ One can also place ticks along a general three-dimensional axis:
 Surface plots of functions and matrices over the region
 @code{box(a,b)} in the @math{XY} plane are also implemented: 
 @verbatim
-// draw the surface described by a matrix f, with lighting
 picture surface(real[][] f, pair a, pair b,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 
-// draw the surface described by a function f, with lighting
 picture surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 
-// draw the surface described by f, subsampling nsub times along cell edges
 picture surface(real f(pair z), int nsub, pair a, pair b, int nx=nmesh, 
                 int ny=nx, pen surfacepen=lightgray, pen meshpen=currentpen,
                 projection P=currentprojection);
+@end verbatim
+@noindent
+The last form subsamples nsub times along the cell edges.  A mesh can be
+drawn without solid fills for all surface functions by specifying
+@code{nullpen} for the surfacepen.
+
+Parametrically defined surfaces may similarly be drawn for a function
+@math{f(u,v)} over the @math{uv} parametric region @code{box(a,b)}:
+@verbatim
+picture surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
+                pen surfacepen=lightgray, pen meshpen=nullpen,
+                light light=currentlight, projection P=currentprojection)
+
+picture surface(triple f(pair z), int nsub, pair a, pair b, int nu=nmesh,
+                int nv=nu, pen surfacepen=lightgray, pen meshpen=currentpen,
+                projection P=currentprojection)
+@end verbatim
+@noindent
+A surface can also be drawn over an explicit grid of triples:
+@verbatim
+picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
+                light light=currentlight, projection P=currentprojection)
 @end verbatim
 @noindent
 Here is an example of a Gaussian surface subsampled 4 times:

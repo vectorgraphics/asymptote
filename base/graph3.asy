@@ -439,6 +439,8 @@ struct grid {
 }
 
 // draw the surface described by a matrix f, with lighting
+// NOTE: this function can be replaced by a call to the parametric
+//       version, but this one is better optimized for speed
 picture surface(real[][] f, pair a, pair b,
 		pen surfacepen=lightgray, pen meshpen=nullpen,
 		light light=currentlight, projection P=currentprojection)
@@ -447,7 +449,7 @@ picture surface(real[][] f, pair a, pair b,
 
   if(!rectangular(f)) abort("matrix is not rectangular");
   
-  if(light.source == O && meshpen == nullpen) meshpen=currentpen;
+  //if(light.source == O && meshpen == nullpen) meshpen=currentpen;
   
   int n=f.length-1;
   int m=f[0].length-1;
@@ -480,11 +482,18 @@ picture surface(real[][] f, pair a, pair b,
 	      project((b.x,b.y,f[i+1][j+1]),P),
 	      project((b.x,a.y,f[i+1][j]),P)};
     guide g=v[0]--v[1]--v[2]--v[3]--cycle;
-    if(light.source == O)
-      filldraw(pic,g,surfacepen,meshpen);
+    if(light.source == O) {
+      if (surfacepen == nullpen) draw(pic,g,meshpen);
+      // if meshpen changed from nullpen to currentpen above
+      // following statement will never be true
+      else if (meshpen == nullpen) fill(pic,g,surfacepen);
+      else filldraw(pic,g,surfacepen,meshpen);
+    }
     else {
-      pen[] pcell={color(i1,j1),color(i1,j2),color(i2,j2),color(i2,j1)}; 
-      gouraudshade(pic,g,pcell,v,edges);
+      if (surfacepen != nullpen) {
+        pen[] pcell={color(i1,j1),color(i1,j2),color(i2,j2),color(i2,j1)}; 
+        gouraudshade(pic,g,pcell,v,edges);
+      }
       if(meshpen != nullpen) draw(pic,g,meshpen);
     }
   }
@@ -511,6 +520,86 @@ picture surface(real[][] f, pair a, pair b,
   return pic;
 }
 
+// draw the surface described by a matrix f, with lighting
+picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
+                light light=currentlight, projection P=currentprojection)
+{
+  picture pic;
+  
+  // ensure rectangular array
+  int flength=f.length;
+  int f0length=f[0].length;
+  for(int i=1; i < flength; ++i)
+    if(f[i].length != f0length) abort("matrix is not rectangular");
+  
+  //if(light.source == O && meshpen == nullpen) meshpen=currentpen;
+  
+  int n=f.length-1;
+  int m=f[0].length-1;
+  
+// calculate colors at each point
+  pen color(int i, int j) {
+    // determine grid points to use
+    int i1,i2,j1,j2;
+    if(i == 0) {i1=0; i2=1;}
+    else if(i == n) {i1=n-1; i2=n;}
+    else {i1=i-1; i2=i+1;}
+    if(j == 0) {j1=0; j2=1;}
+    else if(j == m) {j1=m-1; j2=m;}
+    else {j1=j-1; j2=j+1;}
+    // approximate directions of cell
+    triple dfi,dfj;
+    dfi = 0.5(f[i2][j1]+f[i2][j2])-0.5(f[i1][j1]+f[i1][j2]);
+    dfj = 0.5(f[i1][j2]+f[i2][j2])-0.5(f[i1][j1]+f[i2][j1]);
+    // intensity() converts to unit vector internally
+    return light.intensity(cross(dfi,dfj))*surfacepen;
+  }
+  
+  int[] edges={0,0,0,2};
+  
+  void drawcell(int i, int j, int i1, int j1, int i2, int j2) {
+    pair[] v={project(f[i][j],P),
+              project(f[i][j+1],P),
+              project(f[i+1][j+1],P),
+              project(f[i+1][j],P)};
+    guide g=v[0]--v[1]--v[2]--v[3]--cycle;
+    if(light.source == O) {
+      if (surfacepen == nullpen) draw(pic,g,meshpen);
+      // if meshpen changed from nullpen to currentpen above
+      // following statement will never be true
+      else if (meshpen == nullpen) fill(pic,g,surfacepen);
+      else filldraw(pic,g,surfacepen,meshpen);
+    }
+    else {
+      if (surfacepen != nullpen) {
+        pen[] pcell={color(i1,j1),color(i1,j2),color(i2,j2),color(i2,j1)};
+        gouraudshade(pic,g,pcell,v,edges);
+      }
+      if(meshpen != nullpen) draw(pic,g,meshpen);
+    }
+  }
+  
+  // Sort cells by distance from camera
+  real[][] depth;
+  for(int i=0; i < n; ++i) {
+    for(int j=0; j < m; ++j) {
+      real d = length(P.camera-f[i][j]);
+      depth.push(new real[] {d,i,j});
+    }
+  }
+  // Sorting only important for surface drawing
+  if(surfacepen != nullpen) depth = sort(depth);
+  
+  // Draw from farthest to nearest
+  for(int k=depth.length-1; k >= 0; --k) {
+      int i = (int)depth[k][1];
+      int j = (int)depth[k][2];
+      drawcell(i,j,i,j,i+1,j+1);
+  }
+  
+  return pic;
+}
+
 // draw the surface described by a function f, with lighting
 picture surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
 		pen surfacepen=lightgray, pen meshpen=nullpen,
@@ -527,6 +616,22 @@ picture surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
   return surface(z,a,b,surfacepen,meshpen,light,P);
 }
 
+// draw the surface described by a parametric function f, with lighting
+picture surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
+                pen surfacepen=lightgray, pen meshpen=nullpen,
+                light light=currentlight, projection P=currentprojection)
+{
+  triple[][] z=new triple[nu+1][nv+1];
+
+  for(int i=0; i <= nu; ++i) {
+    real x=interp(a.x,b.x,i/nu);
+    for(int j=0; j <= nv; ++j)
+      z[i][j]=f((x,interp(a.y,b.y,j/nv)));
+  }
+  
+  return surface(z,surfacepen,meshpen,light,P);
+}
+
 // draw the surface described by f, subsampling nsub times along cell edges
 picture surface(real f(pair z), int nsub, pair a, pair b, int nx=nmesh,
 		int ny=nx, pen surfacepen=lightgray, pen meshpen=currentpen,
@@ -538,7 +643,9 @@ picture surface(real f(pair z), int nsub, pair a, pair b, int nx=nmesh,
   
   void drawcell(int i, int j) {
     guide3 g=graph(f,box(g.sample(i,j),g.sample(i+1,j+1)),nsub);
-    filldraw(pic,project(g,P),surfacepen,meshpen);
+    if (surfacepen == nullpen) draw(pic,project(g,P),meshpen);
+    else if (meshpen == nullpen) fill(pic,project(g,P),surfacepen);
+    else filldraw(pic,project(g,P),surfacepen,meshpen);
   }
 
   if(g.reverse)
@@ -550,6 +657,46 @@ picture surface(real f(pair z), int nsub, pair a, pair b, int nx=nmesh,
       for(int j=0; j < ny; ++j)
 	drawcell(i,j);
 
+  return pic;
+}
+
+// draw the surface described by parametric function f, subsampling nsub
+// times along cell edges
+picture surface(triple f(pair z), int nsub, pair a, pair b, int nu=nmesh,
+                int nv=nu, pen surfacepen=lightgray, pen meshpen=currentpen,
+                projection P=currentprojection)
+{
+  picture pic;
+  
+  pair sample(int i, int j) {
+    return (interp(a.x,b.x,i/nu),interp(a.y,b.y,j/nv));
+  }
+  
+  void drawcell(int i, int j) {
+    guide3 g=graph(f,box(sample(i,j),sample(i+1,j+1)),nsub);
+    if (surfacepen == nullpen) draw(pic,project(g,P),meshpen);
+    else if (meshpen == nullpen) fill(pic,project(g,P),surfacepen);
+    else filldraw(pic,project(g,P),surfacepen,meshpen);
+  }
+  
+  // Sort cells by distance from camera
+  real[][] depth;
+  for(int i=0; i < nu; ++i) {
+    for(int j=0; j < nv; ++j) {
+      real d = length(P.camera-f(sample(i,j)));
+      depth.push(new real[] {d,i,j});
+    }
+  }
+  // Sorting only important for surface drawing
+  if(surfacepen != nullpen) depth = sort(depth);
+  
+  // Draw from farthest to nearest
+  for(int k=depth.length-1; k >= 0; --k) {
+      int i = (int)depth[k][1];
+      int j = (int)depth[k][2];
+      drawcell(i,j);
+  }
+  
   return pic;
 }
 
