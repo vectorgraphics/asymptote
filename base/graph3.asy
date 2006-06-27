@@ -483,14 +483,14 @@ picture surface(real[][] f, pair a, pair b,
 	      project((b.x,a.y,f[i+1][j]),P)};
     guide g=v[0]--v[1]--v[2]--v[3]--cycle;
     if(light.source == O) {
-      if (surfacepen == nullpen) draw(pic,g,meshpen);
+      if(surfacepen == nullpen) draw(pic,g,meshpen);
       // if meshpen changed from nullpen to currentpen above
       // following statement will never be true
-      else if (meshpen == nullpen) fill(pic,g,surfacepen);
+      else if(meshpen == nullpen) fill(pic,g,surfacepen);
       else filldraw(pic,g,surfacepen,meshpen);
     }
     else {
-      if (surfacepen != nullpen) {
+      if(surfacepen != nullpen) {
         pen[] pcell={color(i1,j1),color(i1,j2),color(i2,j2),color(i2,j1)}; 
         gouraudshade(pic,g,pcell,v,edges);
       }
@@ -549,8 +549,8 @@ picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
     else {j1=j-1; j2=j+1;}
     // approximate directions of cell
     triple dfi,dfj;
-    dfi = 0.5(f[i2][j1]+f[i2][j2])-0.5(f[i1][j1]+f[i1][j2]);
-    dfj = 0.5(f[i1][j2]+f[i2][j2])-0.5(f[i1][j1]+f[i2][j1]);
+    dfi=0.5(f[i2][j1]+f[i2][j2])-0.5(f[i1][j1]+f[i1][j2]);
+    dfj=0.5(f[i1][j2]+f[i2][j2])-0.5(f[i1][j1]+f[i2][j1]);
     // intensity() converts to unit vector internally
     return light.intensity(cross(dfi,dfj))*surfacepen;
   }
@@ -564,14 +564,14 @@ picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
               project(f[i+1][j],P)};
     guide g=v[0]--v[1]--v[2]--v[3]--cycle;
     if(light.source == O) {
-      if (surfacepen == nullpen) draw(pic,g,meshpen);
+      if(surfacepen == nullpen) draw(pic,g,meshpen);
       // if meshpen changed from nullpen to currentpen above
       // following statement will never be true
-      else if (meshpen == nullpen) fill(pic,g,surfacepen);
+      else if(meshpen == nullpen) fill(pic,g,surfacepen);
       else filldraw(pic,g,surfacepen,meshpen);
     }
     else {
-      if (surfacepen != nullpen) {
+      if(surfacepen != nullpen) {
         pen[] pcell={color(i1,j1),color(i1,j2),color(i2,j2),color(i2,j1)};
         gouraudshade(pic,g,pcell,v,edges);
       }
@@ -583,17 +583,18 @@ picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
   real[][] depth;
   for(int i=0; i < n; ++i) {
     for(int j=0; j < m; ++j) {
-      real d = length(P.camera-f[i][j]);
+      triple v=P.camera-f[i][j];
+      real d=sgn(dot(v,P.camera))*abs(v);
       depth.push(new real[] {d,i,j});
     }
   }
   // Sorting only important for surface drawing
-  if(surfacepen != nullpen) depth = sort(depth);
+  if(surfacepen != nullpen) depth=sort(depth);
   
   // Draw from farthest to nearest
   for(int k=depth.length-1; k >= 0; --k) {
-      int i = (int)depth[k][1];
-      int j = (int)depth[k][2];
+      int i=(int) depth[k][1];
+      int j=(int) depth[k][2];
       drawcell(i,j,i,j,i+1,j+1);
   }
   
@@ -643,8 +644,8 @@ picture surface(real f(pair z), int nsub, pair a, pair b, int nx=nmesh,
   
   void drawcell(int i, int j) {
     guide3 g=graph(f,box(g.sample(i,j),g.sample(i+1,j+1)),nsub);
-    if (surfacepen == nullpen) draw(pic,project(g,P),meshpen);
-    else if (meshpen == nullpen) fill(pic,project(g,P),surfacepen);
+    if(surfacepen == nullpen) draw(pic,project(g,P),meshpen);
+    else if(meshpen == nullpen) fill(pic,project(g,P),surfacepen);
     else filldraw(pic,project(g,P),surfacepen,meshpen);
   }
 
@@ -674,8 +675,8 @@ picture surface(triple f(pair z), int nsub, pair a, pair b, int nu=nmesh,
   
   void drawcell(int i, int j) {
     guide3 g=graph(f,box(sample(i,j),sample(i+1,j+1)),nsub);
-    if (surfacepen == nullpen) draw(pic,project(g,P),meshpen);
-    else if (meshpen == nullpen) fill(pic,project(g,P),surfacepen);
+    if(surfacepen == nullpen) draw(pic,project(g,P),meshpen);
+    else if(meshpen == nullpen) fill(pic,project(g,P),surfacepen);
     else filldraw(pic,project(g,P),surfacepen,meshpen);
   }
   
@@ -683,17 +684,18 @@ picture surface(triple f(pair z), int nsub, pair a, pair b, int nu=nmesh,
   real[][] depth;
   for(int i=0; i < nu; ++i) {
     for(int j=0; j < nv; ++j) {
-      real d = length(P.camera-f(sample(i,j)));
+      triple v=P.camera-f(sample(i,j));
+      real d=sgn(dot(v,P.camera))*abs(v);
       depth.push(new real[] {d,i,j});
     }
   }
   // Sorting only important for surface drawing
-  if(surfacepen != nullpen) depth = sort(depth);
+  if(surfacepen != nullpen) depth=sort(depth);
   
   // Draw from farthest to nearest
   for(int k=depth.length-1; k >= 0; --k) {
-      int i = (int)depth[k][1];
-      int j = (int)depth[k][2];
+      int i=(int) depth[k][1];
+      int j=(int) depth[k][2];
       drawcell(i,j);
   }
   

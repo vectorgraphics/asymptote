@@ -5794,7 +5794,7 @@ picture surface(real[][] f, pair a, pair b,
 
 picture surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection)
+                light light=currentlight, projection P=currentprojection);
 
 picture surface(real f(pair z), int nsub, pair a, pair b, int nx=nmesh, 
                 int ny=nx, pen surfacepen=lightgray, pen meshpen=currentpen,
@@ -5810,11 +5810,11 @@ Parametrically defined surfaces may similarly be drawn for a function
 @verbatim
 picture surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection)
+                light light=currentlight, projection P=currentprojection);
 
 picture surface(triple f(pair z), int nsub, pair a, pair b, int nu=nmesh,
                 int nv=nu, pen surfacepen=lightgray, pen meshpen=currentpen,
-                projection P=currentprojection)
+                projection P=currentprojection);
 @end verbatim
 @noindent
 A surface can also be drawn over an explicit grid of triples:
@@ -5827,7 +5827,8 @@ Here is an example of a Gaussian surface subsampled 4 times:
 @anchor{surface}
 @verbatiminclude surface.asy
 @image{surface}
-Surface lighting is illustrated in the example file @code{sinc.asy}.
+Surface lighting is illustrated in the example files 
+@code{parametricsurface.asy} and @code{sinc.asy}.
 
 @node solids
 @section @code{solids}
