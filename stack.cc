@@ -28,7 +28,7 @@ void draw(ostream& out, frame *v);
 
 namespace vm {
 
-using std::list;
+using mem::list;
 list<fileinfo> bplist;
   
 namespace {

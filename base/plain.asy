@@ -36,9 +36,9 @@ void exitfunction()
 }
 atexit(exitfunction);
 
-access settings;
-
 // Return code: 0=none, 1=step, 2=next.
+
+access settings;
 
 int debugger(string file, int line, int column) 
 {

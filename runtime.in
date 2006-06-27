@@ -34,7 +34,7 @@ file*    => primFile()
 picture* => primPicture()
 transform => primTransform()
 callable* => voidFunction()
-callableBp* => voidBpFunction()
+callableBp* => breakpointFunction()
 runnable* => primCode()
 array* => primArray()  
 boolarray* => boolArray()
@@ -178,7 +178,7 @@ function *voidFunction()
   return new function(primVoid());
 }
 
-function *voidBpFunction()
+function *breakpointFunction()
 {
   return new function(primInt(),primString(),primInt(),primInt());
 }
@@ -191,7 +191,7 @@ const int camp::ColorComponents[]={0,0,1,3,4,0};
 
 namespace vm {
 const char *arraymismatch="operation attempted on arrays of different lengths";
-extern std::list<fileinfo> bplist;
+extern mem::list<fileinfo> bplist;
 }
 
 namespace run {
@@ -2375,20 +2375,21 @@ callable *atexit()
 
 void atbreakpoint(callableBp *f)
 {
-  atBreakpointFunction=f;
+  if(atBreakpointFunction == NULL) // Work around memory leak.
+    atBreakpointFunction=f;
 }
 
 void stop(string file, int line)
 {
   fileinfo bp(file,line);
-  for(std::list<fileinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p)
+  for(mem::list<fileinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p)
     if(*p == bp) return;
   bplist.push_back(bp);
 }
 
 void breakpoints()
 {
-  for(std::list<fileinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p)
+  for(mem::list<fileinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p)
     cout << p->name() << ": " << p->line() << endl;
 }
 
