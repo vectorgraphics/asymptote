@@ -201,7 +201,7 @@ bool picture::texprocess(const string& texname, const string& outname,
 	 << " -O " << hoffset << "bp," << voffset << "bp"
          << " -T " << paperWidth << "bp," << paperHeight << "bp";
     if(verbose <= 1) dcmd << " -q";
-    dcmd << " -o " << psname << " '" << dviname << "'";
+    dcmd << " -o '" << psname << "' '" << dviname << "'";
     status=System(dcmd,0,true,"dvips");
     
     const double fuzz=0.06;
