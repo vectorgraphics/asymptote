@@ -51,6 +51,13 @@ void backslashToSlash(string& s)
     s[p]='/';
 }
 
+void spaceToUnderscore(string& s) 
+{
+  size_t p;
+  while ((p=s.find(' ')) < string::npos)
+    s[p]='_';
+}
+
 #ifdef __CYGWIN__
 string Getenv(const char *name, bool quote)
 {

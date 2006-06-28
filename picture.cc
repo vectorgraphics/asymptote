@@ -430,6 +430,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     (bpos.right > bpos.left && bpos.top > bpos.bottom);
   
   if(Labels) {
+    spaceToUnderscore(prefix);
     texname=auxname(prefix,"tex");
     tex=new texfile(texname,b,bpos);
     tex->prologue();
@@ -441,9 +442,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   std::list<string> psnameStack;
   
   while(p != nodes.end()) {
-    ostringstream buf;
-    buf << prefix << "_" << layer;
-    string psname=Labels ? buildname(buf.str(),"eps") : epsname;
+    string psname;
+    if(Labels) {
+      ostringstream buf;
+      buf << prefix << "_" << layer;
+      psname=buildname(buf.str(),"eps");
+    } else psname=epsname;
     psnameStack.push_back(psname);
     psfile out(psname,bpos,bboxshift);
     out.prologue();
