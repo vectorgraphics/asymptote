@@ -3,7 +3,6 @@ int debuggerlines=5;
 void stop(string file, string text) 
 {
   string[] source=input(file);
-  int len=length(text);
   for(int line=0; line < source.length; ++line)
     if(find(source[line],text) >= 0) {
       stop(file,line+1);
