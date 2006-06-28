@@ -1162,6 +1162,11 @@ write(time(seconds()-24*60*60));
 casts @code{x} using precision @code{digits} (rather than
 @code{realDigits}) to a string, using the C locale.
 
+@cindex @code{abort}
+@item abort(string *s);
+Aborts execution. If string @code{s} is nonempty, a diagnostic message
+constructed from the source file, line number, and @code{s} is printed.
+
 @end table
 
 @cindex @code{typedef}
@@ -6194,7 +6199,7 @@ asy -o - venn | convert -density 288x288 -geometry 100%x eps:- venn.tiff
 @end verbatim
 
 If the option @code{-unsafe} is given, @code{Asymptote} runs
-in unsafe mode. This enables the @code{int system(string)} call, allowing one
+in unsafe mode. This enables the @code{int system(string s)} call, allowing one
 to execute arbitrary shell commands. The default mode, @code{-safe},
 disables this call. 
 
@@ -6460,7 +6465,7 @@ faults along with your bug report).
 @cindex debugger
 Asymptote now includes a line-based (as opposed to code-based)
 debugger that can assist the user in following flow control. To set a
-break point, use the command
+break point in file @code{file} at line @code{line}, use the command
 
 @cindex @code{stop}
 @verbatim
@@ -6468,13 +6473,18 @@ void stop(string file, int line);
 @end verbatim
 @noindent
 The complete file name (as given by the @code{-vvvvv} flow tracing option) must
-be specified, as well as the line number.
+be specified, as well as the line number. To set a break point in file
+@code{file} at the first line containing the string @code{text}, use
+
+@verbatim
+void stop(string file, string text);
+@end verbatim
+@noindent
 To list all breakpoints, use:
 @cindex @code{breakpoints}
 @verbatim
 void breakpoints();
 @end verbatim
-
 @noindent
 To remove a breakpoint, use:
 @cindex @code{remove}
@@ -6524,7 +6534,11 @@ turn on tracing and continue;
 
 @cindex @code{quit}
 @item @code{q}
-quit debugging and run to completion.
+quit debugging and end execution;
+
+@cindex @code{exit}
+@item @code{x}
+exit the debugger and run to completion.
 
 @end table
 @noindent

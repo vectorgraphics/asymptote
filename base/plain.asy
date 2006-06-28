@@ -27,6 +27,9 @@ include markers;
 include arrows;
 include strings;
 
+access settings;
+include debugger;
+
 typedef void exitfcn();
 void nullexitfcn();
 
@@ -35,53 +38,6 @@ void exitfunction()
   if(interact() || (!shipped && !currentpicture.empty())) shipout();
 }
 atexit(exitfunction);
-
-// Return code: 0=none, 1=step, 2=next.
-
-access settings;
-
-int debuggerlines=5;
-
-int debugger(string file, int line, int column) 
-{
-  static int saveverbose=settings.verbose;
-  settings.verbose=saveverbose;
-  static bool debugging=true;
-  if(debugging) {
-    static string lastfile;
-    static string[] source;
-    bool help=false;
-    while(true) {
-      if(file != lastfile) {source=input(file); lastfile=file;}
-      write();
-      for(int i=max(line-debuggerlines,0); i < line; ++i)
-	write(source[i]);
-      for(int i=0; i < column-1; ++i)
-	write(" ",none);
-      write("^");
-      if(help) {
-	write("c:continue f:file h:help l:line n:next r:return s:step t:trace q:quit");
-	help=false;
-      }
-      string prompt=file+": "+(string) line+"."+(string) column;
-      prompt += "? [%s] ";
-      string s=getstring(name="debug",default="h",prompt=prompt,save=false);
-      if(s == "h") {help=true; continue;}
-      if(s == "c") break;
-      if(s == "s") return 1;
-      if(s == "n") return 2;
-      if(s == "l") return 3;
-      if(s == "f") return 4;
-      if(s == "r") return 5;
-      if(s == "q") {debugging=false; break;}
-      if(s == "t") {settings.verbose=5; break;}
-      _eval(s+";",true);
-    }
-  }
-  return 0;
-}
-
-atbreakpoint(debugger);
 
 // A restore thunk is a function, that when called, restores the graphics state
 // to what it was when the restore thunk was created.

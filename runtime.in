@@ -493,6 +493,10 @@ void cleanup()
 {
   if(initialdefaultpen) defaultpen=*initialdefaultpen;
   if(!interact::interactive) scrollLines=0;
+
+  atExitFunction=NULL;
+  atDrawFunction=NULL;
+  atBreakpointFunction=NULL;
   
   clearTeX();
 
@@ -1204,15 +1208,16 @@ bool uptodate()
 
 // System commands
 
-int system(string *str)
+int system(string *s)
 {
   if(safe) error("system() call disabled; override with option -unsafe");
-  else return System(str->c_str());
+  else return System(s->c_str());
 }
 
-void abort(string *msg)
+void abort(string s=emptystring)
 {
-  error(msg->c_str());
+  if(s == "") throw handled_error();
+  error(s.c_str());
 }
 
 void assert(bool b, string s=emptystring)
@@ -2375,8 +2380,7 @@ callable *atexit()
 
 void atbreakpoint(callableBp *f)
 {
-  if(atBreakpointFunction == NULL) // Work around memory leak.
-    atBreakpointFunction=f;
+  atBreakpointFunction=f;
 }
 
 void stop(string file, int line)
