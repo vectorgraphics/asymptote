@@ -2432,7 +2432,7 @@ int merge(stringarray *files, string *args, string *format)
     cmd << " " << read<string>(files,i);
   
   string name=buildname(getSetting<string>("outname"),format->c_str());
-  cmd << " " << name;
+  cmd << " '" << name << "'";
   ret=System(cmd,0,true,"convert");
   
   if(ret == 0)
@@ -2444,7 +2444,7 @@ int merge(stringarray *files, string *args, string *format)
     
   if(ret == 0 && view()) {
     ostringstream cmd;
-    cmd << "'" << getSetting<string>("animate") << "' " << name;
+    cmd << "'" << getSetting<string>("animate") << "' '" << name << "'";
     System(cmd,0,false,"animate","your animated GIF viewer");
   }
   

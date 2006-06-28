@@ -145,6 +145,12 @@ char **args(const char *command)
     }
   }
   
+  if(settings::verbose > 1) {
+    cerr << argv[0];
+    for(size_t m=1; m < n; ++m) cerr << " " << argv[m];
+    cerr << endl;
+  }
+  
   argv[n]=NULL;
   return argv;
 }
@@ -176,7 +182,6 @@ int System(const char *command, int quiet, bool wait,
   int status;
 
   if(!command) return 1;
-  if(settings::verbose > 1) cerr << command << endl;
 
   cout.flush(); // Flush stdout to avoid duplicate output.
     

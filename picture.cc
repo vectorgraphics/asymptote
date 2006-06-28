@@ -163,7 +163,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     outfile.close();
     ostringstream cmd;
     cmd << "'" << getSetting<mem::string>("latex") << "'"
-	<< " \\scrollmode\\input " << texname;
+	<< " \\scrollmode\\input '" << texname << "'";
     bool quiet=verbose <= 1;
     status=System(cmd,quiet ? 1 : 0,"latex");
     if(status) {
@@ -201,7 +201,7 @@ bool picture::texprocess(const string& texname, const string& outname,
 	 << " -O " << hoffset << "bp," << voffset << "bp"
          << " -T " << paperWidth << "bp," << paperHeight << "bp";
     if(verbose <= 1) dcmd << " -q";
-    dcmd << " -o " << psname << " " << dviname;
+    dcmd << " -o " << psname << " '" << dviname << "'";
     status=System(dcmd,0,true,"dvips");
     
     const double fuzz=0.06;
@@ -274,7 +274,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	  << bpos.right-bpos.left
 	  << " -dDEVICEHEIGHTPOINTS=" 
 	  << bpos.top-bpos.bottom
-	  << " -sOutputFile=" << outname << " " << epsname;
+	  << " -sOutputFile='" << outname << "' '" << epsname << "'";
       status=System(cmd,0,true,"gs","Ghostscript");
     } else {
       double expand=2.0;
@@ -283,10 +283,10 @@ bool picture::postprocess(const string& epsname, const string& outname,
       cmd << "'" << getSetting<mem::string>("convert") 
 	  << "' -density " << res << "x" << res;
       if(!tgifformat) cmd << " +antialias -geometry " << 100.0/expand << "%x";
-      cmd << " eps:" << epsname;
+      cmd << " 'eps:" << epsname << "'";
       if(tgifformat) cmd << " -transparent white gif";
       else cmd << " " << outputformat;
-      cmd << ":" << outname;
+      cmd << ":'" << outname << "'";
       status=System(cmd,0,true,"convert");
     }
     if(!getSetting<bool>("keep")) unlink(epsname.c_str());
@@ -311,7 +311,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	cmd << "'" << Viewer << "'";
 	if(Viewer == "gv" && interact::interactive)
 	  cmd << " " << gvOptionPrefix << "nowatch";
-	cmd << " " << outname;
+	cmd << " '" << outname << "'";
 	status=System(cmd,0,wait,
 		      pdfformat ? "pdfviewer" : "psviewer",
 		      pdfformat ? "your PDF viewer" : "your PostScript viewer",
@@ -320,7 +320,8 @@ bool picture::postprocess(const string& epsname, const string& outname,
       } else if(Viewer == "gv") kill(pid,SIGHUP); // Tell gv to reread file.
     } else {
       ostringstream cmd;
-      cmd << "'" << getSetting<mem::string>("display") << "' " << outname;
+      cmd << "'" << getSetting<mem::string>("display") << "' '"
+	  << outname << "'";
       string application="your "+outputformat+" viewer";
       status=System(cmd,0,wait,"display",application.c_str());
       if(status != 0) return false;
