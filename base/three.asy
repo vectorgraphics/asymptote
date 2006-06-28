@@ -131,11 +131,12 @@ transform3 lookAt(triple target, triple eye, triple up=Z)
     // try to point in any particular direction.
     return shift(-eye);
 
-  triple s=cross(f,unit(up));
-  if(s == O)
+  triple side=cross(f,unit(up));
+  if(side == O)
     // The camera is pointing either directly up or down, so there is no
     // preferred "up" direction to rotate it.  Pick one arbitrarily.
     return lookAt(target, eye, cross(f,Y) != O ? Y : Z);
+  triple s=unit(side);
 
   triple u=cross(s,f);
 
