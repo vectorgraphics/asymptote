@@ -358,6 +358,7 @@ user's home directory or @code{%USERPROFILE%\.asy\config.asy} under
 @code{MSDOS}); @pxref{configuration file}.
 Here are the default values of several important configuration variables.
 
+@cindex @code{python}
 @noindent
 Under @code{UNIX:}
 @verbatim
@@ -399,6 +400,13 @@ type may be changed to @code{a4} with the configuration variable
 @code{papertype}. Alignment to other paper sizes can be obtained by setting the
 configuration variables @code{paperwidth} and @code{paperheight}.
 
+@cindex @code{latex}
+@cindex @code{dvips}
+@cindex @code{convert}
+@cindex @code{display}
+@cindex @code{animate}
+@cindex @code{xasy}
+@cindex @code{ImageMagick}
 The following configuration variables normally do not require adjustment:
 @verbatim
 latex
@@ -6171,10 +6179,14 @@ variables may also be changed at runtime.
 @cindex @code{ImageMagick}
 @cindex @code{antialiasing}
 @cindex @code{size}
+@anchor{convert}
 An alternative output format (without antialiasing) may be produced by
 using the @code{-f format} option. This supports any format supported
 by the @code{ImageMagick} @code{convert} program (version 6.2.4 or
-later recommended). To give specific options to the @code{convert}
+later recommended; an @code{Invalid Parameter} error message indicates
+that the @code{MSDOS} utility @code{convert} is being used instead of
+the one that comes with @code{ImageMagick}).
+To give specific options to the @code{convert}
 program, call convert manually. This example enables antialiasing and 
 produces a @code{tiff} format at double the usual size:
 @verbatim
@@ -6312,8 +6324,8 @@ real number, say 2). The command @code{asy -VxN} automatically invokes
 turn on the @code{-xN} option in interactive mode or from within a module
 using the function @code{gui()} or @code{gui(N)}. One can turn GUI
 mode off again with @code{gui(0)}.
-Deconstruction requires that the @code{ImageMagick} @code{convert}
-utility be installed.
+Deconstruction requires that @code{ImageMagick} (@pxref{convert})
+be installed.
 
 The modified layout can be written to disk with the @code{w} key in a form
 readable to @code{Asymptote}.
@@ -6343,7 +6355,7 @@ this preliminary @acronym{GUI} soon.
 As @code{xasy} is written in the interactive scripting language
 @code{Python/TK}, it requires that both @code{Python} and the
 @code{tkinter} package be installed (included with @code{Python} under
-@code{MSDOS}). Under @code{Fedora Core 4}, you can either install
+@code{MSDOS}). @code{Fedora Core 4} (and later) users can either install
 @code{tkinter} with the command
 @verbatim
 yum install tkinter
