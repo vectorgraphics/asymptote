@@ -65,7 +65,8 @@ const char *rl_gets()
   }
      
   /* Get a line from the user. */
-  while((line_read=readline("> "))) {
+  while((line_read=readline(getSetting<bool>("quiet") ? "" : 
+			    getSetting<mem::string>("prompt").c_str()))) {
     if(*line_read == 0) continue;    
     static int pid=0, status=0;
     static bool restart=true;

@@ -3,7 +3,7 @@
 import os
 class asy:
 	def __init__(self):
-		self.session = os.popen("asy > /dev/null","w")
+		self.session = os.popen("asy -q","w")
 		self.help()
 	def send(self, cmd):
 		self.session.write(cmd+'\n')

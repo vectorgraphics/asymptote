@@ -302,8 +302,9 @@ void doIFile(const string& filename) {
 }
 
 void doIPrompt() {
-  cout << "Welcome to " << PROGRAM << " version " << VERSION
-       << " (to view the manual, type help)" << endl;
+  if(!getSetting<bool>("quiet"))
+    cout << "Welcome to " << PROGRAM << " version " << VERSION
+	 << " (to view the manual, type help)" << endl;
   
   interact::init_interactive();
   
