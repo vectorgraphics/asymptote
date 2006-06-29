@@ -47,7 +47,7 @@ file LICENSE in the top-level source directory).
 @menu
 * Description::                 What is @code{Asymptote}?
 * Installation::                Downloading and installing
-* Examples::                    Getting started
+* Tutorial::                    Getting started
 * Programming::                 The @code{Asymptote} vector graphics language
 * Drawing commands::            Four primitive graphics commands
 * LaTeX usage::                 Embedding @code{Asymptote} commands within @code{LaTeX}
@@ -644,9 +644,9 @@ distribution, use the command
 make uninstall
 @end verbatim
 
-@node Examples
-@chapter Examples
-@cindex examples
+@node Tutorial
+@chapter Tutorial
+@cindex tutorial
 To draw a line from coordinate (0,0) to coordinate (100,100) using
 @code{Asymptote}'s interactive mode, type at the command prompt:
 @verbatim
@@ -6138,7 +6138,7 @@ Options:
 -tex                 Enable LaTeX label postprocessing [true]
 -s,-translate        Translate test [false]
 -unsafe              Enable system call; command-line only [false]
--u,-user x           General purpose user string [""]
+-u,-user x           General purpose user command string [""]
 -v,-verbose          Increase verbosity level [0]
 
 @end verbatim
