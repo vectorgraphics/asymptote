@@ -72,9 +72,9 @@ void setsignal(RETSIGTYPE (*handler)(int))
 {
 #ifdef HAVE_LIBSIGSEGV
   char mystack[16384];
-  if(stackoverflow_install_handler(&stackoverflow_handler,
-				   mystack,sizeof (mystack)) < 0) exit(1);
-  if(sigsegv_install_handler (&sigsegv_handler) < 0) exit (1);
+  stackoverflow_install_handler(&stackoverflow_handler,
+				mystack,sizeof (mystack));
+  sigsegv_install_handler(&sigsegv_handler);
 #endif
   signal(SIGBUS,handler);
   signal(SIGFPE,handler);
