@@ -735,6 +735,122 @@ coordinate, and an optional alignment direction:
 @verbatiminclude labelsquare.asy
 @image{labelsquare}
 
+@code{Asymptote} uses the standard compass directions @code{E=(1,0)}, 
+@code{N=(0,1)}, @code{NE=unit(N+E)}, and @code{ENE=unit(E+NE)}, etc.,
+which along with the directions @code{up}, @code{down}, @code{right},
+and @code{left} are defined as pairs in the @code{Asymptote} base
+module @code{plain}.
+
+This example draws an approximate quarter circle:
+@verbatiminclude quartercircle.asy
+@image{quartercircle}
+
+In general, a path is specified as a list of pairs (or other paths)
+interconnected with
+@cindex @code{cycle}
+@cindex @code{--}
+@cindex @code{..}
+@code{--}, which denotes a straight line segment, or @code{..}, which
+denotes a cubic spline.
+@cindex @code{unitcircle}
+Specifying a final node @code{cycle} creates a cyclic path that
+connects smoothly back to the initial node, as in this approximation
+(accurate to within 0.06%) of a unit circle:
+@verbatim
+path unitcircle=E..N..W..S..cycle;
+@end verbatim
+
+@anchor{Bezier}
+Each interior node of a cubic spline may be given a
+direction prefix or suffix @code{@{dir@}}: the direction of the pair
+@code{dir} specifies the direction of the incoming or outgoing tangent,
+respectively, to the curve at that node. Exterior nodes may be
+given direction specifiers only on their interior side. Cubic splines between
+a node @code{z}, with postcontrol point @code{Z}, and a node @code{w},
+with precontrol point @code{W}, are computed as the Bezier curve
+
+@image{bezier,,,(1-t)^3*z+3t(1-t)^2*Z+3t^2(1-t)*W+t^3*w for 0 <=t <= 1.}
+
+A good reference on Bezier curves and the algorithms that @code{Asymptote}
+uses to determine the control points is Donald Knuth's monograph,
+@code{The MetaFontbook}, chapters 3 and 14.
+
+@cindex @code{controls}
+Instead of specifying the tangent directions before and after a node,
+one can also specify the control points directly:
+@verbatim
+draw((0,0)..controls (0,100) and (100,100)..(100,0));
+@end verbatim
+
+@cindex @code{tension}
+@cindex @code{and}
+@cindex @code{atleast}
+One can also change the spline tension from its default value of 1 to any
+real value greater than or equal to 0.75:
+@verbatim
+draw((100,0)..tension 2 ..(100,100)..(0,100));
+draw((100,0)..tension 2 and 1 ..(100,100)..(0,100));
+draw((100,0)..tension atleast 1 ..(100,100)..(0,100));
+@end verbatim
+
+@cindex @code{MetaPost ...@ }
+@cindex @code{::}
+The @code{MetaPost ...} path connector, which requests, when possible, an
+inflection-free curve confined to a triangle defined by the
+endpoints and directions, is implemented in @code{Asymptote} as the
+convenient abbreviation @code{::} for @code{..tension atleast 1 ..}
+(the ellipsis @code{...} is used in @code{Asymptote} to indicate a
+variable number of arguments; @pxref{Rest arguments}).  For example,
+compare
+@verbatiminclude dots.asy
+@image{dots}
+with
+@verbatiminclude colons.asy
+@image{colons}
+
+@cindex @code{---}
+@cindex @code{&}
+The @code{---} connector is an abbreviation for @code{..tension atleast
+infinity..} and the @code{&} connector concatenates two paths which meet
+at a common point. 
+
+@cindex @code{curl}
+The curl parameter specifies the curvature at the endpoints of a path
+(0 means straight; the default value of 1 means approximately circular):
+@verbatim
+draw((100,0){curl 0}..(100,100)..{curl 0}(0,100));
+@end verbatim
+
+@cindex @code{PostScript} subpath
+@cindex @code{^^}
+@cindex @code{path[]}
+@cindex superpath
+An @code{Asymptote} path, being connected, is equivalent to a
+@code{Postscript subpath}. The @code{^^} binary operator, which
+requests that the pen be moved (without drawing or affecting
+endpoint curvatures) from the final point of the left-hand path to the
+initial point of the right-hand path, may be used to group several
+@code{Asymptote} paths into a @code{path[]} array (equivalent to a
+@code{PostScript} path):
+@verbatiminclude superpath.asy
+@image{superpath}
+
+@cindex evenodd
+The @code{PostScript} even-odd fill rule here specifies that only the
+region bounded between the two unit circles is filled (@pxref{fillrule}).
+In this example, the same effect can be achieved by using the default
+zero winding number fill rule, if one is careful to alternate the
+orientation of the paths:
+@verbatim
+filldraw(unitcircle^^reverse(g),yellow,black);
+@end verbatim
+
+The @code{^^} operator is used by the @code{box3d} function in
+@code{three.asy} to construct a two-dimensional projection of the edges of a 3D
+cube, without retracing steps:
+@verbatiminclude cube.asy
+@image{cube}
+
 See section @ref{graph} (or the online @code{Asymptote} gallery at
 @url{http://asymptote.sourceforge.net}) for further examples, including
 two-dimensional scientific graphs.
@@ -1192,31 +1308,29 @@ two guides with free endpoint conditions to be joined together smoothly.
 @cindex @code{path}
 a cubic spline resolved into a fixed path.
 
-A path is specified as a list of pairs or paths interconnected with
-@cindex @code{cycle}
-@cindex @code{--}
-@cindex @code{..}
-@code{--}, which denotes a straight line segment, or @code{..}, which
-denotes a cubic spline.
-@cindex @code{unitcircle}
-Specifying a final node @code{cycle} creates a cyclic path that
-connects smoothly back to the initial node, as in this approximation
-(accurate to within 0.06%) of a unit circle:
+The implicit initializer for paths and guides is @code{nullpath},
+which is useful for building up a path within a loop.
+A direction specifier given to @code{nullpath} modifies the node on
+the other side: the paths
 @verbatim
-guide unitcircle=E..N..W..S..cycle;
+a..{up}nullpath..b;
+c..nullpath{up}..d;
+e..{up}nullpath{down}..f;
+@end verbatim
+are respectively equivalent to
+@verbatim
+a..nullpath..{up}b;
+c{up}..nullpath..d;
+e{down}..nullpath..{up}f;
 @end verbatim
 
-This example uses the standard compass directions @code{E=(1,0)},
-@code{N=(0,1)}, @code{NE=unit(N+E)}, and @code{ENE=unit(E+NE)}, etc.,
-which along with the directions @code{up}, @code{down}, @code{right},
-and @code{left} are defined as pairs in the @code{Asymptote} base
-module @code{plain}.
 @cindex @code{circle}
 @anchor{circle}
-The routine @code{circle(pair c, real r)} constructs a circle of
-radius @code{r} centered on @code{c} by transforming unitcircle:
+The routine @code{circle(pair c, real r)}, which returns a Bezier curve
+approximating a circle of radius @code{r} centered on @code{c},
+is based on unitcircle: 
 @verbatim
-guide circle(pair c, real r)
+path circle(pair c, real r)
 {
   return shift(c)*scale(r)*unitcircle;
 }
@@ -1224,28 +1338,8 @@ guide circle(pair c, real r)
 If high accuracy is needed, a true circle may be produced with this
 routine, defined in the module @code{graph.asy}:
 @verbatim
-guide Circle(pair c, real r, int n=400);
+path Circle(pair c, real r, int n=400);
 @end verbatim
-
-
-@anchor{Bezier}
-Each interior node of a cubic spline may be given a
-direction prefix or suffix @code{@{dir@}}: the direction of the pair
-@code{dir} specifies the direction of the incoming or outgoing tangent,
-respectively, to the curve at that node. Exterior nodes may be
-given direction specifiers only on their interior side. Cubic splines between
-a node @code{z}, with postcontrol point @code{Z}, and a node @code{w},
-with precontrol point @code{W}, are computed as the Bezier curve
-
-@image{bezier,,,(1-t)^3*z+3t(1-t)^2*Z+3t^2(1-t)*W+t^3*w for 0 <=t <= 1.}
-
-A good reference on Bezier curves and the algorithms that @code{Asymptote}
-uses to determine the control points is Donald Knuth's monograph,
-@code{The MetaFontbook}, chapters 3 and 14.
-
-This example draws an approximate quarter circle:
-@verbatiminclude quartercircle.asy
-@image{quartercircle}
 
 A circular arc consistent with the above approximation centered on
 @code{c} with radius @code{r} from @code{angle1} to @code{angle2}
@@ -1270,99 +1364,10 @@ guide Arc(pair c, real r, real angle1, real angle2,
           int n=400);
 @end verbatim
 
-@cindex @code{controls}
-Instead of specifying the tangent directions before and after a node,
-one can also specify the control points directly:
-@verbatim
-draw((0,0)..controls (0,100) and (100,100)..(100,0));
-@end verbatim
-
-@cindex @code{tension}
-@cindex @code{and}
-@cindex @code{atleast}
-One can also change the spline tension from its default value of 1 to any
-real value greater than or equal to 0.75:
-@verbatim
-draw((100,0)..tension 2 ..(100,100)..(0,100));
-draw((100,0)..tension 2 and 1 ..(100,100)..(0,100));
-draw((100,0)..tension atleast 1 ..(100,100)..(0,100));
-@end verbatim
-
-@cindex @code{MetaPost ...@ }
-@cindex @code{::}
-The @code{MetaPost ...} path connector, which requests, when possible, an
-inflection-free curve confined to a triangle defined by the
-endpoints and directions, is implemented in @code{Asymptote} as the
-convenient abbreviation @code{::} for @code{..tension atleast 1 ..}
-(the ellipsis @code{...} is used in @code{Asymptote} to indicate a
-variable number of arguments; @pxref{Rest arguments}).  For example,
-compare
-@verbatiminclude dots.asy
-@image{dots}
-with
-@verbatiminclude colons.asy
-@image{colons}
-
-@cindex @code{---}
-@cindex @code{&}
-The @code{---} connector is an abbreviation for @code{..tension atleast
-infinity..} and the @code{&} connector concatenates two paths which meet
-at a common point. Here is an example of all five path connectors:
+Here is an example of all five path connectors discussed in @ref{Tutorial}:
 @verbatiminclude join.asy
 @image{join}
 
-@cindex @code{curl}
-The curl parameter specifies the curvature at the endpoints of a path
-(0 means straight; the default value of 1 means approximately circular):
-@verbatim
-draw((100,0){curl 0}..(100,100)..{curl 0}(0,100));
-@end verbatim
-
-The implicit initializer for paths and guides is @code{nullpath},
-which is useful for building up a path within a loop.
-A direction specifier given to @code{nullpath} modifies the node on
-the other side: the paths
-@verbatim
-a..{up}nullpath..b;
-c..nullpath{up}..d;
-e..{up}nullpath{down}..f;
-@end verbatim
-are respectively equivalent to
-@verbatim
-a..nullpath..{up}b;
-c{up}..nullpath..d;
-e{down}..nullpath..{up}f;
-@end verbatim
-
-@cindex @code{PostScript} subpath
-@cindex @code{^^}
-@cindex @code{path[]}
-@cindex superpath
-An @code{Asymptote} path, being connected, is equivalent to a
-@code{Postscript subpath}. The @code{^^} binary operator, which
-requests that the pen be moved (without drawing or affecting
-endpoint curvatures) from the final point of the left-hand path to the
-initial point of the right-hand path, may be used to group several
-@code{Asymptote} paths into a @code{path[]} array (equivalent to a
-@code{PostScript} path):
-@verbatiminclude superpath.asy
-@image{superpath}
-
-@cindex evenodd
-The @code{PostScript} even-odd fill rule here specifies that only the
-region bounded between the two unit circles is filled (@pxref{fillrule}).
-In this example, the same effect can be achieved by using the default
-zero winding number fill rule, if one is careful to alternate the
-orientation of the paths:
-@verbatim
-filldraw(unitcircle^^reverse(g),yellow,black);
-@end verbatim
-
-The @code{^^} operator is used by the @code{box3d} function in
-@code{three.asy} to construct a two-dimensional projection of the edges of a 3D
-cube, without retracing steps:
-@verbatiminclude cube.asy
-@image{cube}
 
 Here are some useful functions for paths:
 
@@ -6134,7 +6139,7 @@ Options:
 -o,-outname name     Alternative output name for first file
 -p,-parseonly        Parse test [false]
 -prompt string       Prompt ["> "]
--q,-quiet            Suppress welcome message and prompt [false]
+-q,-quiet            Suppress welcome message [false]
 -rgb                 Convert cmyk colors to rgb [false]
 -safe                Disable system call; command-line only [true]
 -tex                 Enable LaTeX label postprocessing [true]

@@ -733,7 +733,10 @@ void initSettings() {
 			   "Disable system call", true));
   addOption(new safeOption("unsafe", 0,
 			   "Enable system call", false));
-
+  
+  addOption(new stringSetting("prompt", 0,"string","Prompt [\"> \"]","> "));
+  addOption(new boolSetting("quiet", 'q',
+			    "Suppress welcome message"));
   addOption(new boolSetting("localhistory", 0, 
 			    "Use a local interactive history file"));
   addOption(new intSetting("historylines", 0, "n", 
