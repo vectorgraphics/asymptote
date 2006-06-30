@@ -3417,6 +3417,14 @@ element, and otherwise the index corresponding to the left-hand
 @item T[] copy(T[] a)
 returns a deep copy of the array @code{a};
 
+@cindex @code{copy}
+@item T[][] copy(T[][] a)
+returns a deep copy of the array @code{a};
+
+@cindex @code{copy}
+@item T[][][] copy(T[][][] a)
+returns a deep copy of the array @code{a};
+
 @cindex @code{concat}
 @item T[] concat(T[] a, T[] b)
 returns a new array formed by concatenating arrays @code{a} and @code{b};
@@ -3452,6 +3460,11 @@ pete    7
 @cindex @code{transpose}
 @item T[][] transpose(T[][] a)
 returns the transpose of @code{a}.
+
+@cindex @code{transpose}
+@item T[][][] transpose(T[][][] a, int[] perm)
+returns the 3D transpose of @code{a} obtained by applying the permutation
+@code{perm} of @code{new int[]@{0,1,2@}} to the indices of each entry.
 
 @cindex @code{sum}
 @item T sum(T[] a)

@@ -279,6 +279,27 @@ array *copyArray2(array *a)
   return c;
 }
 
+array *copyArray3(array *a)
+{
+  size_t size=checkArray(a);
+  array *c=new array(size);
+  for(size_t i=0; i < size; i++) {
+    array *ai=read<array*>(a,i);
+    size_t aisize=checkArray(ai);
+    array *ci=new array(aisize);
+    (*c)[i]=ci;
+    for(size_t j=0; j < aisize; j++) {
+      array *aij=read<array*>(ai,j);
+      size_t aijsize=checkArray(aij);
+      array *cij=new array(aijsize);
+      (*ci)[j]=cij;
+      for(size_t k=0; k < aijsize; k++) 
+	(*cij)[k]=(*aij)[k];
+    }
+  }
+  return c;
+}
+
 double **copyArray2C(array *a, bool square=true)
 {
   size_t size=checkArray(a);
@@ -2784,6 +2805,11 @@ array* :array2Copy(array *a)
   return copyArray2(a);
 }
 
+array* :array3Copy(array *a)
+{
+  return copyArray3(a);
+}
+
 array* :array2Transpose(array *a)
 {
   size_t asize=checkArray(a);
@@ -2805,6 +2831,94 @@ array* :array2Transpose(array *a)
     (*cj)[i]=(*ai)[j];
     }
   }
+  return c;
+}
+
+// a is a rectangular 3D array; perm is an int array indicating the type of
+// permutation  (021 or 120, etc; original is 012).
+// Transpose by sending respective members to the permutated locations:
+// return the array obtained by putting a[i][j][k] into position perm{ijk}. 
+array* :array3Transpose(array *a, array *perm)
+{
+  const size_t DIM=3;
+
+  size_t *Perm=new size_t[DIM];
+  if(checkArray(perm) != DIM) {
+    ostringstream buf;
+    buf << "permutation array must have length " << DIM;
+    error(buf);
+  }
+  
+  for(size_t i=0; i < DIM; ++i)
+    Perm[i]=(size_t) read<int>(perm,i);
+  
+  // check if input is bad
+  for(size_t i=0; i < DIM; ++i) 
+    if(Perm[i] < 0 || Perm[i] >= DIM) {
+      ostringstream buf;
+      buf << "permutation index out of range: " << Perm[i];
+      error(buf);
+    }
+  
+  size_t* size=new size_t[DIM];
+  
+  for(size_t i=0; i < DIM; ++i) size[i]=DIM;
+  for(size_t i=0; i < DIM; ++i) size[Perm[i]]=Perm[i];
+  for(size_t i=0; i < DIM; ++i)
+    if(size[i] == DIM) error("permutation indices must be distinct");
+  
+  static const char *rectangular=
+    "3D transpose implemented for rectangular matrices only";
+  
+  size_t isize=size[0]=checkArray(a);
+  array *a0=read<array*>(a,0);
+  size[1]=a0->size();
+  array *a00=read<array*>(a0,0);
+  size[2]=a00->size();
+  for(size_t i=0; i < isize; i++) {
+    array *ai=read<array*>(a,i);
+    size_t jsize=checkArray(ai);
+    if(jsize != size[1]) error(rectangular);
+    for(size_t j=0; j < jsize; j++) {
+      array *aij=read<array*>(ai,j);
+      if(checkArray(aij) != size[2]) error(rectangular);
+    }
+  }
+  
+  size_t Perm0=Perm[0];
+  size_t Perm1=Perm[1];
+  size_t Perm2=Perm[2];
+  
+  size_t sizep0=size[Perm0];
+  array *c=new array(sizep0);
+  for(size_t i=0; i < sizep0; ++i) {
+    size_t sizep1=size[Perm1];
+    array *ci=new array(sizep1);
+    (*c)[i]=ci;
+    for(size_t j=0; j < sizep1; ++j) {
+      size_t sizep2=size[Perm2];
+      array *cij=new array(sizep2);
+      (*ci)[j]=cij;
+    }
+  }
+  
+  size_t* i=new size_t[DIM];
+
+  for(i[0]=0; i[0] < size[0]; ++i[0]) {
+    array *a0=read<array*>(a,i[0]);
+    for(i[1]=0; i[1] < size[1]; ++i[1]) {
+      array *a1=read<array*>(a0,i[1]);
+      for(i[2]=0; i[2] < size[2]; ++i[2]) {
+	array *c0=read<array*>(c,i[Perm0]);
+	array *c1=read<array*>(c0,i[Perm1]);
+	(*c1)[i[Perm2]]=read<real>(a1,i[2]);
+      }
+    }
+  }
+  
+  delete [] i;  
+  delete [] size;  
+
   return c;
 }
 
@@ -3033,8 +3147,8 @@ realarray2 *solve(realarray2 *a, realarray2 *b)
   
   for(size_t i=0; i < n; ++i) {
     real *Bi=B[i];
-    array *xi;
-    (*x)[i]=xi=new array(m);
+    array *xi=new array(m);
+    (*x)[i]=xi;
     for(size_t j=0; j < m; ++j)
       (*xi)[j]=Bi[j];
   }

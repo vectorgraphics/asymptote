@@ -549,6 +549,11 @@ void addArrayOps(venv &ve, types::array *t)
     addFunc(ve, run::array2Copy, t, "copy", formal(t, "a"));
     addFunc(ve, run::array2Transpose, t, "transpose", formal(t, "a"));
     break;
+  case 3:
+    addFunc(ve, run::array3Copy, t, "copy", formal(t, "a"));
+    addFunc(ve, run::array3Transpose, t, "transpose", formal(t, "a"),
+	    formal(intArray(),"perm"));
+    break;
   default:
     break;
   }
