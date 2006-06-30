@@ -178,15 +178,21 @@ struct iprompt : public itree {
   void run(coenv &e, istack &s) {
     virtualEOF=true;
     while (virtualEOF) {
+      try {
       if(!ast) {
 	virtualEOF=false;
 	set(parser::parseInteractive());
 	if(resetenv) {purge(); break;}
       }
       itree::run(e,s);
-      ast=0;
       if(!uptodate && virtualEOF)
 	run::updateFunction(&s);
+      } catch(handled_error) {
+      } catch(interrupted&) {
+	if(em) em->Interrupt(false);
+	cout << endl;
+      }
+      ast=0;
       purge(); // Close any files that have gone out of scope.
     }
   }
@@ -243,7 +249,7 @@ void doICore(icore &i, bool embedded=false) {
       if(settings::getSetting<bool>("listvariables"))
 	base_env.list();
     }
-  } catch (std::bad_alloc&) {
+  } catch(std::bad_alloc&) {
     cerr << "error: out of memory" << endl;
     status=false;
   } catch(handled_error) {
@@ -357,7 +363,7 @@ int main(int argc, char *argv[])
 
   try {
     setOptions(argc,argv);
-  } catch (handled_error) {
+  } catch(handled_error) {
     status=false;
   }
   
@@ -378,7 +384,7 @@ int main(int argc, char *argv[])
       }
     }
   }
-  catch (handled_error) {
+  catch(handled_error) {
     status=false;
   }
   loop::purge();
