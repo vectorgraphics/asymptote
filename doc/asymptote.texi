@@ -2917,8 +2917,9 @@ based on their signatures.
 @cindex stack overflow
 Functions are allowed to call themselves recursively. As in C++, infinite
 nested recursion will generate a stack overflow (reported as a
-segmentation fault, unless the @acronym{GNU} library @code{libsigsegv} is
-installed at configuration time). 
+segmentation fault, unless a fully working version of the @acronym{GNU}
+library @code{libsigsegv} (e.g. 2.4 or later) is installed at
+configuration time).
 
 @menu
 * Default arguments::           Default values can appear anywhere
