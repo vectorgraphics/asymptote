@@ -1425,7 +1425,7 @@ void xtick(picture pic=currentpicture, Label L, pair z, pair dir=N,
     L.shift(dot(dir,L.align.dir) > 0 ? dir*size :
 	    ticklabelshift(L.align.dir,p));
   L.p(p);
-  if(L.s == "") L.s=format(format,z.x);
+  if(L.s == "") L.s=format(format == "" ? defaultformat : format,z.x);
   L.s=baseline(L.s,L.align,"$10^4$");
   add(pic,L);
   tick(pic,z,dir,size,p);
@@ -1460,7 +1460,7 @@ private void label(picture pic, Label L, pair z, real x, align align,
   L.align(align);
   L.p(p);
   if(L.shift == 0) L.shift(ticklabelshift(L.align.dir,L.p));
-  if(L.s == "") L.s=format(format,x);
+  if(L.s == "") L.s=format(format == "" ? defaultformat : format,x);
   L.s=baseline(L.s,L.align,"$10^4$");
   add(pic,L);
 }

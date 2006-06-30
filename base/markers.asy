@@ -163,7 +163,10 @@ void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
 {
   Label L=L.copy();
   L.position(z);
-  if(L.s == "") L.s="("+format(format,z.x)+","+format(format,z.y)+")";
+  if(L.s == "") {
+    if(format == "") format=defaultformat;
+    L.s="("+format(format,z.x)+","+format(format,z.y)+")";
+  }
   L.align(align,E);
   L.p(p);
   dot(pic,z,p);
