@@ -333,7 +333,7 @@ void writeArray3(vm::stack *s)
   if(f->Standard()) camp::Stdout.resetlines();
   else if(!f->isOpen()) return;
   
-  for(size_t i=0; i < size; i++) {
+  for(size_t i=0; i < size;) {
     array *ai=read<array*>(a,i);
     size_t aisize=checkArray(ai);
     for(size_t j=0; j < aisize; j++) {
@@ -345,7 +345,8 @@ void writeArray3(vm::stack *s)
       }
       if(f->text()) f->writeline();
     }
-    if(f->text()) f->writeline();
+    ++i;
+    if(i < size && f->text()) f->writeline();
   }
   f->flush();
 }
