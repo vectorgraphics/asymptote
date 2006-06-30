@@ -8,8 +8,12 @@
 
 import embed;
 access settings;
-settings.outformat="pdf";
 
+// Generated needed files if they don't already exist.
+settings.outformat="mpg";
+asy(overwrite=false,"wheel");
+
+settings.outformat="pdf";
 label(embed("wheel.mpg","poster,text=wheel.mpg,label=wheel",20cm,5.6cm),
       (0,0),N);
 

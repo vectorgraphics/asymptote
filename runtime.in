@@ -2458,7 +2458,7 @@ int merge(stringarray *files, string *args, string *format)
   
   string name=buildname(getSetting<string>("outname"),format->c_str());
   cmd << " '" << name << "'";
-  ret=System(cmd,0,true,"convert");
+  ret=System(cmd,2,true,"convert");
   
   if(ret == 0)
     if(verbose > 0) cout << "Wrote " << name << endl;
