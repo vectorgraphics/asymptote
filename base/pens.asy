@@ -1,5 +1,3 @@
-access settings;	   
-
 real labelmargin=0.3;
 real dotfactor=6;
 

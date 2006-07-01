@@ -1,6 +1,8 @@
 bool Wait=true;				
 bool NoWait=false;
 
+frame patterns;
+
 struct GUIop
 {
   transform[] Transform;

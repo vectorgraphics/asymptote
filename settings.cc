@@ -709,6 +709,8 @@ void initSettings() {
   addOption(new boolSetting("tex", 0,
 			    "Enable LaTeX label postprocessing",
 			    true));
+  addOption(new boolSetting("twice", 0,
+			    "Run LaTeX twice (to resolve references) [false]"));
   addOption(new boolSetting("inlinetex", 0, "Generate inline tex code"));
   addOption(new boolSetting("parseonly", 'p', "Parse test"));
   addOption(new boolSetting("translate", 's', "Translate test"));

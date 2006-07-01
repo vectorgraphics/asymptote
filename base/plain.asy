@@ -6,6 +6,7 @@
  *
  *****/
 
+access settings;
 include constants;
 
 access version;		    
@@ -26,8 +27,6 @@ include boxes;
 include markers;
 include arrows;
 include strings;
-
-access settings;
 include debugger;
 
 typedef void exitfcn();
@@ -156,15 +155,27 @@ void usersetting()
 }
 
 // Conditionally process each file name in array s in a new environment.
-void asy(bool overwrite=false ... string[] s)
+void asy(string format, bool overwrite=false ... string[] s)
 {
   for(int i=0; i < s.length; ++i) {
     string f=s[i];
     int n=rfind(f,".asy");
     if(n != -1) f=erase(f,n,-1);
-    if(overwrite || error(input(f+"."+settings.outformat,check=false))) {
+    if(overwrite || error(input(f+"."+format,check=false))) {
       string F="\""+f+"\"";
-      eval("import "+F+" as dummy; shipout("+F+",view=false)");
+      string outname=settings.outname;
+      string outformat=settings.outformat;
+      bool interactiveView=settings.interactiveView;
+      bool batchView=settings.batchView;
+      settings.outname=f;
+      settings.outformat=format;
+      settings.interactiveView=false;
+      settings.batchView=false;
+      eval("import "+F+" as dummy; exitfunction()");
+      settings.outname=outname;
+      settings.outformat=outformat;
+      settings.interactiveView=interactiveView;
+      settings.batchView=batchView;
     }
   }
 }

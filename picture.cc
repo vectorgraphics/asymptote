@@ -28,6 +28,7 @@ void texstream::pipeclose() {
   iopipestream::pipeclose();
   if (!getSetting<bool>("keep")) {
     unlink("texput.log");
+    unlink("texput.out");
     unlink("texput.aux");
   }
 }
@@ -166,8 +167,10 @@ bool picture::texprocess(const string& texname, const string& outname,
 	<< " \\scrollmode\\input '" << texname << "'";
     bool quiet=verbose <= 1;
     status=System(cmd,quiet ? 1 : 0,"latex");
+    if(!status && getSetting<bool>("twice")) 
+      status=System(cmd,quiet ? 1 : 0,"latex");
     if(status) {
-      if(quiet) status=System(cmd,0,"latex");
+      if(quiet) System(cmd,0,"latex");
       return false;
     }
     
@@ -251,6 +254,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       unlink(psname.c_str());
       unlink(auxname(prefix,"aux").c_str());
       unlink(auxname(prefix,"log").c_str());
+      unlink(auxname(prefix,"out").c_str());
     }
   }
   if(status) return false;

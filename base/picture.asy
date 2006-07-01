@@ -1,7 +1,6 @@
 bool Aspect=true;
 bool IgnoreAspect=false;
 
-frame patterns;
 bool shipped;
 
 real cap(real x, real m, real M, real bottom, real top)

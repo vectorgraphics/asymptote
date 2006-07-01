@@ -5,8 +5,6 @@
  * Produce animated gifs.
  *****/
 
-access settings;
-
 struct animation {
   string prefix=settings.outname;
   int index=0;

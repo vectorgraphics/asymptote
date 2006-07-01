@@ -11,8 +11,6 @@ real margin=0.5cm;
 real pagewidth=-2margin;
 real pageheight=-2margin;
 
-access settings;
-								 
 if(orientation == Portrait || orientation == UpsideDown) {
   pagewidth += settings.paperwidth;
   pageheight += settings.paperheight;

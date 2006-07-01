@@ -3,7 +3,7 @@
 orientation=Landscape;
 
 // Generated needed files if they don't already exist.
-asy(overwrite=false,"Pythagoras","log","near_earth");
+asy("eps","Pythagoras","log","near_earth");
 
 import slide;
 

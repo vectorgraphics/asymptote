@@ -3863,10 +3863,10 @@ eval("import "+s,true);
 @cindex @code{asy}
 To conditionally execute an array of asy files, use
 @verbatim
-void asy(bool overwrite=false ... string[] s);
+void asy(string format="eps", bool overwrite ... string[] s);
 @end verbatim
-The file will only be processed if overwrite is @code{true} or the
-output file is missing.
+The file will only be processed, using output format @code{format}, if
+overwrite is @code{true} or the output file is missing.
 
 One can evaluate an @code{Asymptote} expression (without any return
 value, however) contained in the string @code{s} with:
@@ -6158,6 +6158,7 @@ Options:
 -safe                Disable system call; command-line only [true]
 -tex                 Enable LaTeX label postprocessing [true]
 -s,-translate        Translate test [false]
+-twice               Run LaTeX twice (to resolve references) [false]
 -unsafe              Enable system call; command-line only [false]
 -u,-user x           General purpose user command string [""]
 -v,-verbose          Increase verbosity level [0]
