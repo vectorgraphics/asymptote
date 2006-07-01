@@ -44,7 +44,6 @@ string debugger(string file, int line, int column)
       if(s == "q") abort(); // quit
       if(s == "x") {debugging=false; return "";} // exit
       if(s == "t") { // trace
-	write(tab);
 	if(verbose == 0) {
 	  verbose=5;
 	} else {
