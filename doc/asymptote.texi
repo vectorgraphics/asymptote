@@ -6525,22 +6525,17 @@ The following commands may be entered at the debugging prompt:
 @cindex @code{help}
 @item @code{h}
 help;
-
 @cindex @code{continue}
 @item @code{c}
 continue execution;
 
 @cindex @code{step}
 @item @code{s}
-step to the next instruction;
+step to the next executable line;
 
 @cindex @code{next}
 @item @code{n}
 step to the next executable line in the current file;
-
-@cindex @code{line}
-@item @code{l}
-step to the next executable line;
 
 @cindex @code{file}
 @item @code{f}
@@ -6552,7 +6547,7 @@ return to the file associated with the most recent breakpoint;
 
 @cindex @code{trace}
 @item @code{t}
-turn on tracing and continue;
+toggle tracing (@code{-vvvvv}) mode;
 
 @cindex @code{quit}
 @item @code{q}

@@ -752,7 +752,7 @@ void initSettings() {
   addOption(new realSetting("paperwidth", 0, "bp", ""));
   addOption(new realSetting("paperheight", 0, "bp", ""));
   
-  addOption(new envSetting("config","config.asy"));
+  addOption(new envSetting("config","config."+suffix));
   addOption(new envSetting("pdfviewer", defaultPDFViewer));
   addOption(new envSetting("psviewer", defaultPSViewer));
   addOption(new envSetting("gs", defaultGhostscript));
@@ -781,7 +781,7 @@ void setInteractive() {
       gvOptionPrefix=System("gv --version",2) == 0 ? "--" : "-";
   }
   
-  historyname=getSetting<bool>("localhistory") ? ".asy_history" 
+  historyname=getSetting<bool>("localhistory") ? "."+suffix+"_history" 
     : (initdir+"/history");
 }
 
@@ -801,7 +801,7 @@ bool trap() {
 }
 
 void initDir() {
-  initdir=Getenv(HOME,false)+"/.asy";
+  initdir=Getenv(HOME,false)+"/."+suffix;
   mkdir(initdir.c_str(),0xFFFF);
 }
   

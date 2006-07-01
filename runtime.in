@@ -180,7 +180,7 @@ function *voidFunction()
 
 function *breakpointFunction()
 {
-  return new function(primInt(),primString(),primInt(),primInt());
+  return new function(primString(),primString(),primInt(),primInt());
 }
 
 callable *atExitFunction=NULL;
@@ -1570,21 +1570,21 @@ string reverse(string s)
 
 string insert(string s, int pos, string t)
 {
-  if ((size_t)pos < s.length())
+  if ((size_t) pos < s.length())
     return s.insert(pos,t);
   return s;
 }
 
 string substr(string* s, int pos, int n=-1)
 {
-  if ((size_t)pos < s->length())
+  if ((size_t) pos < s->length())
     return s->substr(pos,n);
   return emptystring;
 }
 
 string erase(string s, int pos, int n)
 {
-  if ((size_t)pos < s.length())
+  if ((size_t) pos < s.length())
     return s.erase(pos,n);
   return s; 
 }
@@ -2428,7 +2428,7 @@ void remove()
   bplist.clear();
 }
 
-int breakpoint:breakpoint()
+string breakpoint:breakpoint()
 {
   if(atBreakpointFunction &&
      !nullfunc::instance()->compare(atBreakpointFunction)) {
@@ -2437,8 +2437,8 @@ int breakpoint:breakpoint()
     Stack->push<string>(curPos.filename());
     Stack->push<int>((int) curPos.Line());
     Stack->push<int>((int) curPos.Column());
-    atBreakpointFunction->call(Stack); // returns an int
-  } else return 0;
+    atBreakpointFunction->call(Stack); // returns a string
+  } else return "";
 }
 
 // Merge output files  

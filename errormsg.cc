@@ -68,7 +68,10 @@ void errorstream::warning(position pos)
 
 void errorstream::trace(position pos)
 {
-  if(!pos) return;
+  static position lastpos;
+  if(!pos || (pos.match(lastpos.filename()) && pos.match(lastpos.Line()))) 
+    return;
+  lastpos=pos;
   message(pos,"");
   sync();
 }

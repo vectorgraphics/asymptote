@@ -79,7 +79,8 @@ void stack::breakpoint()
   lastPos=curPos;
   indebugger=true;
   ::run::breakpoint(this);
-  debugOp=vm::pop<int>(this);
+  mem::string s=vm::pop<mem::string>(this);
+  debugOp=(s.length() > 0) ? s[0] : 0;
   indebugger=false;
 }
   
@@ -88,25 +89,23 @@ void stack::debug()
   if(indebugger || curPos.filename() == "") return;
   
   switch(debugOp) {
-  case 1: // step
-      breakpoint();
-    break;
-  case 2: // next
-    if(curPos.match(lastPos.filename()) && !curPos.match(lastPos.Line()))
-      breakpoint();
-    break;
-  case 3: // line
+  case 's': // step
     if(!curPos.match(lastPos.filename()) || !curPos.match(lastPos.Line()))
       breakpoint();
     break;
-  case 4: // file
+  case 'n': // next
+    if(curPos.match(lastPos.filename()) && !curPos.match(lastPos.Line()))
+      breakpoint();
+    break;
+  case 'f': // file
     if(!curPos.match(lastPos.filename()))
       breakpoint();
     break;
-  case 5: // return
+  case 'r': // return
     if(curPos.match(breakPos.filename()))
       breakpoint();
     break;
+ case 'c': // continue
   default:
     for(list<fileinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
       if(curPos.match(p->name()) && 

@@ -350,7 +350,6 @@ public:
 
 extern ofile Stdout;
 extern ofile nullfile;
-extern string asyinput;
 
 template<class T>
 void ifile::iread(T& val)

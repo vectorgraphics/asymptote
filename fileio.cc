@@ -13,8 +13,6 @@ namespace camp {
 string tab="\t";
 string newline="\n";
 
-string asyinput=".asy_input";
-  
 ofile nullfile("");
 ofile Stdout("");
 

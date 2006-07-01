@@ -11,11 +11,12 @@ void stop(string file, string text)
   write("no matching line in "+file+": \""+text+"\"");
 }
 
-int debugger(string file, int line, int column) 
+string debugger(string file, int line, int column) 
 {
-  static int saveverbose=settings.verbose;
-  settings.verbose=saveverbose;
+  int verbose=settings.verbose;
+  settings.verbose=0;
   static bool debugging=true;
+  static string s;
   if(debugging) {
     static string lastfile;
     static string[] source;
@@ -27,28 +28,35 @@ int debugger(string file, int line, int column)
 	write(source[i]);
       for(int i=0; i < column-1; ++i)
 	write(" ",none);
-      write("^");
+      write("^"+(verbose == 5 ? " trace" : ""));
+
       if(help) {
-	write("c:continue f:file h:help l:line n:next r:return s:step t:trace q:quit e:exit");
+	write("c:continue f:file h:help n:next r:return s:step t:trace q:quit e:exit");
 	help=false;
       }
+
       string prompt=file+": "+(string) line+"."+(string) column;
       prompt += "? [%s] ";
-      string s=getstring(name="debug",default="h",prompt=prompt,save=false);
+      s=getstring(name="debug",default="h",prompt=prompt,save=false);
       if(s == "h") {help=true; continue;}
-      if(s == "c") break;
-      if(s == "s") return 1; // step
-      if(s == "n") return 2; // next
-      if(s == "l") return 3; // line
-      if(s == "f") return 4; // file
-      if(s == "r") return 5; // return
-      if(s == "t") {settings.verbose=5; break;} // trace
+      if(s == "c" || s == "s" || s == "n" || s == "f" || s == "r")
+	break;
       if(s == "q") abort(); // quit
-      if(s == "x") {debugging=false; break;} // exit
+      if(s == "x") {debugging=false; return "";} // exit
+      if(s == "t") { // trace
+	write(tab);
+	if(verbose == 0) {
+	  verbose=5;
+	} else {
+	  verbose=0;
+	}
+	continue;
+      }
       _eval(s+";",true);
     }
   }
-  return 0;
+  settings.verbose=verbose;
+  return s;
 }
 
 atbreakpoint(debugger);

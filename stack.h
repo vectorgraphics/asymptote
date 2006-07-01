@@ -53,7 +53,7 @@ private:
   importInstanceMap instMap;
   
   // Debugger variables:
-  int debugOp; // 0=none, 1=step, 2=next.
+  char debugOp;
   bool indebugger;
   position lastPos, breakPos;
   
