@@ -26,10 +26,14 @@ void draw(ostream& out, frame *v);
 }
 #endif
 
+namespace run {
+  void breakpoint(vm::stack *Stack, absyntax::runnable *r);
+}
+
 namespace vm {
 
 using mem::list;
-list<fileinfo> bplist;
+list<bpinfo> bplist;
   
 namespace {
 position curPos = position::nullPos();
@@ -74,11 +78,11 @@ void stack::run(func *f)
   run(body->code, vars);
 }
 
-void stack::breakpoint() 
+void stack::breakpoint(absyntax::runnable *r) 
 {
   lastPos=curPos;
   indebugger=true;
-  ::run::breakpoint(this);
+  run::breakpoint(this,r);
   mem::string s=vm::pop<mem::string>(this);
   debugOp=(s.length() > 0) ? s[0] : 0;
   indebugger=false;
@@ -86,11 +90,14 @@ void stack::breakpoint()
   
 void stack::debug() 
 {
-  if(indebugger || curPos.filename() == "") return;
+  if(indebugger || !curPos) return;
   
   switch(debugOp) {
+  case 'i': // inst
+      breakpoint();
+    break;
   case 's': // step
-    if(!curPos.match(lastPos.filename()) || !curPos.match(lastPos.Line()))
+    if((!curPos.match(lastPos.filename()) || !curPos.match(lastPos.Line())))
       breakpoint();
     break;
   case 'n': // next
@@ -107,13 +114,18 @@ void stack::debug()
     break;
  case 'c': // continue
   default:
-    for(list<fileinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
-      if(curPos.match(p->name()) && 
-	 curPos.match(p->line()) && !curPos.match(lastPos.Line())) {
+    for(list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
+      if(curPos.match(p->f.name()) && curPos.match(p->f.line()) &&
+	 (newline || !curPos.match(breakPos.filename()) ||
+	  !curPos.match(breakPos.Line()))) {
 	breakPos=curPos;
-	breakpoint();
+	breakpoint(p->r);
+	newline=false;
 	break;
       }
+    if(!newline && 
+       (curPos.match(lastPos.filename()) && !curPos.match(lastPos.Line())))
+       newline=true;
     }
     break;
   }

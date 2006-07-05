@@ -89,6 +89,10 @@ public:
     return line == l;
   }
   
+  bool matchColumn(size_t c) {
+    return column == c;
+  }
+  
   bool operator! () const
   {
     return (file == 0);
@@ -102,6 +106,12 @@ public:
     return p;
   }
 };
+
+inline bool operator == (const position& a, const position& b)
+{
+  return a.Line() == b.Line() && a.Column() == b.Column() && 
+    a.filename() == b.filename(); 
+}
 
 class errorstream {
   ostream& out;

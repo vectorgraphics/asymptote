@@ -1042,9 +1042,13 @@ returns @code{z.x};
 @cindex @code{ypart}
 returns @code{z.y};
 
+@item pair realmult(pair z, pair w)
+@cindex @code{realmult}
+returns the element-by-element product @code{(z.x*w.x,z.y*w.y)};
+
 @item real dot(pair z, pair w)
-@cindex @code{dir}
-returns the dot product @code{z.x*z.x+z.y*z.y};
+@cindex @code{dot}
+returns the dot product @code{z.x*w.x+z.y*w.y};
 
 @item pair minbound(pair z, pair w) 
 @cindex @code{minbound}
@@ -6491,15 +6495,23 @@ break point in file @code{file} at line @code{line}, use the command
 
 @cindex @code{stop}
 @verbatim
-void stop(string file, int line);
+void stop(string file, int line, code s=quote{});
 @end verbatim
 @noindent
-The complete file name (as given by the @code{-vvvvv} flow tracing option) must
-be specified, as well as the line number. To set a break point in file
-@code{file} at the first line containing the string @code{text}, use
+The optional argument @code{s} may be used to conditionally set the variable
+@code{ignore} in @code{debugger.asy} to @code{true}. For example, the
+first 10 instances of this breakpoint will be ignored (the
+variable @code{int count=0} is defined in @code{debugger.asy}):
+@verbatim
+stop("test",2,quote{ignore=(++count <= 10);});
+@end verbatim
+
+
+To set a break point in file @code{file} at the first line containing
+the string @code{text}, use
 
 @verbatim
-void stop(string file, string text);
+void stop(string file, string text, code s=quote{});
 @end verbatim
 @noindent
 To list all breakpoints, use:
@@ -6508,15 +6520,15 @@ To list all breakpoints, use:
 void breakpoints();
 @end verbatim
 @noindent
-To remove a breakpoint, use:
-@cindex @code{remove}
+To clear a breakpoint, use:
+@cindex @code{clear}
 @verbatim
-void remove(string file, int line);
+void clear(string file, int line);
 @end verbatim
 @noindent
-To remove all breakpoints, use:
+To clear all breakpoints, use:
 @verbatim
-void remove();
+void clear();
 @end verbatim
 
 The following commands may be entered at the debugging prompt:
@@ -6528,6 +6540,10 @@ help;
 @cindex @code{continue}
 @item @code{c}
 continue execution;
+
+@cindex @code{inst}
+@item @code{i}
+step to the next instruction;
 
 @cindex @code{step}
 @item @code{s}
@@ -6562,6 +6578,11 @@ exit the debugger and run to completion.
 Arbitrary @code{Asymptote} code may also be entered at the debugging prompt;
 however, since the debugger is implemented with @code{eval}, currently
 only top-level (global) variables can be displayed or modified.
+
+The debugging prompt may be entered manually with the call
+@verbatim
+void breakpoint(code s=quote{});
+@end verbatim
 
 @node Credits
 @chapter Acknowledgments

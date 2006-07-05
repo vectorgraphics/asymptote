@@ -33,6 +33,10 @@ namespace run {
   void updateFunction(vm::stack *Stack);
 }
 
+namespace vm {
+  bool indebugger;  
+}
+
 using namespace settings;
 using std::list;
 
@@ -98,6 +102,7 @@ namespace loop {
 
 void init()
 {
+  vm::indebugger=false;
   setPath(startPath());
   ShipoutNumber=0;
   if(!em)
@@ -188,6 +193,7 @@ struct iprompt : public itree {
       if(!uptodate && virtualEOF)
 	run::updateFunction(&s);
       } catch(handled_error) {
+	vm::indebugger=false;
       } catch(interrupted&) {
 	if(em) em->Interrupt(false);
 	cout << endl;
@@ -383,8 +389,7 @@ int main(int argc, char *argv[])
 	}
       }
     }
-  }
-  catch(handled_error) {
+  } catch(handled_error) {
     status=false;
   }
   loop::purge();

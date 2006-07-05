@@ -39,6 +39,9 @@ string defaultformat="$%.4g$";
 restricted bool Above=true;
 restricted bool Below=false;
 
+int min(... int[] a) {return min(a);}
+int max(... int[] a) {return max(a);}
+
 real min(... real[] a) {return min(a);}
 real max(... real[] a) {return max(a);}
 

@@ -14,6 +14,7 @@
 #include "errormsg.h"
 #include "vm.h"
 #include "item.h"
+#include "absyn.h"
 
 namespace vm {
 
@@ -22,6 +23,26 @@ class program;
 class lambda;
 class importInitMap;
 
+struct bpinfo : public gc {
+  fileinfo f;
+  absyntax::runnable *r;
+  
+  bpinfo(const mem::string& filename, size_t lineNum,
+	 absyntax::runnable *r=NULL) :
+    f(fileinfo(filename,lineNum)), r(r) {}
+};
+  
+inline bool operator == (const bpinfo& a, const bpinfo& b)
+{
+  return a.f == b.f;
+}
+  
+extern mem::list<bpinfo> bplist;
+  
+class runnable;
+  
+extern bool indebugger;  
+  
 class stack {
 public:
   typedef frame* vars_t;
@@ -54,11 +75,12 @@ private:
   
   // Debugger variables:
   char debugOp;
-  bool indebugger;
   position lastPos, breakPos;
+  bool newline;
   
 public:
-  stack() : debugOp(0), indebugger(false) {};
+  stack() : debugOp(0), lastPos(position::nullPos()),
+	    breakPos(position::nullPos()), newline(false) {};
   
   ~stack() {};
 
@@ -72,7 +94,7 @@ public:
   // Executes a function on top of the stack.
   void run(func *f);
 
-  void breakpoint();
+  void breakpoint(absyntax::runnable *r=NULL);
   void debug();
   
   // Put an import (indexed by name) on top of the stack, initializing it if

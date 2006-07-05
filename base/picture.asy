@@ -312,11 +312,6 @@ struct Legend {
 
 Legend operator init() {return new Legend;}
 
-pair realmult(pair z, pair w) 
-{
-  return (z.x*w.x,z.y*w.y);
-}
-
 pair rectify(pair dir) 
 {
   real scale=max(abs(dir.x),abs(dir.y));
