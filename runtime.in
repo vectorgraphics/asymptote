@@ -2438,7 +2438,7 @@ void breakpoint(runnable *s=NULL)
   breakpoint(Stack,s);
 }
 
-string locate(string file)
+string locatefile(string file)
 {
   return settings::locateFile(file);
 }

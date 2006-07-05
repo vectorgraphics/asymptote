@@ -2,7 +2,7 @@ int debuggerlines=5;
 
 int sourceline(string file, string text)
 {
-  string file=locate(file);
+  string file=locatefile(file);
   string[] source=input(file);
   for(int line=0; line < source.length; ++line)
     if(find(source[line],text) >= 0) return line+1;
