@@ -99,7 +99,7 @@
   \def\@optarg{#1}%
    \immediate\write\AsyStream{}%
    \immediate\write\AsyStream{eval(quote\@charlb}%
-   \immediate\write\AsyStream{defaultfilename="\jobname_\arabic{asy}";}%
+   \immediate\write\AsyStream{defaultfilename='\jobname_\arabic{asy}';}%
   \ifx\@optarg\empty
    \immediate\write\AsyStream{size(\ASYdefaultsize);}%
   \else
