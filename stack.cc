@@ -84,7 +84,7 @@ void stack::breakpoint(absyntax::runnable *r)
   indebugger=true;
   run::breakpoint(this,r);
   mem::string s=vm::pop<mem::string>(this);
-  debugOp=(s.length() > 0) ? s[0] : 0;
+  debugOp=(s.length() > 0) ? s[0] : (char) 0;
   indebugger=false;
 }
   

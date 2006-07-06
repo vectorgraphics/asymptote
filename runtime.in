@@ -2871,16 +2871,16 @@ array* :array3Transpose(array *a, array *perm)
     error(buf);
   }
   
-  for(size_t i=0; i < DIM; ++i)
-    Perm[i]=(size_t) read<int>(perm,i);
-  
-  // check if input is bad
-  for(size_t i=0; i < DIM; ++i) 
-    if(Perm[i] < 0 || Perm[i] >= DIM) {
+  for(size_t i=0; i < DIM; ++i) {
+    int p=read<int>(perm,i);
+    // check if input is bad
+    if(p < 0 || (size_t) p >= DIM) {
       ostringstream buf;
-      buf << "permutation index out of range: " << Perm[i];
+      buf << "permutation index out of range: " << p;
       error(buf);
     }
+    Perm[i]=(size_t) p;
+  }
   
   size_t* size=new size_t[DIM];
   
