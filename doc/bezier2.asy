@@ -1,32 +1,32 @@
 size(400);
-pair p1,p2,p3,p4;
-p1=(0,0);
-p2=(1,1);
-p3=(2,1);
-p4=(3,0);
-draw(p1..controls p2 and p3 .. p4,blue+dashed); //bezier curve
+pair z0=(0,0);
+pair c0=(1,1);
+pair c1=(2,1);
+pair z1=(3,0);
+draw(z0..controls c0 and c1 .. z1,blue+dashed); // B ezier curve
 
-draw(p1--p2--p3--p4);
-dot("p1",p1,red);
-dot("p2",p2,red);
-dot("p3",p3,red);
-dot("p4",p4,red);
+draw(z0--c0--c1--z1);
+dot("$z_0$",z0,W,red);
+dot("$c_0$",c0,NW,red);
+dot("$c_1$",c1,NE,red);
+dot("$z_1$",z1,red);
 
-pair midpoint(pair a, pair b){return (a+b)*0.5;}
-pair p5=midpoint(p1,p2);
-pair p6=midpoint(p2,p3);
-pair p7=midpoint(p3,p4);
+pair midpoint(pair a, pair b) {return interp(a,b,0.5);}
 
-draw(p5--p6--p7);
-dot("p5",p5,red);
-dot("p6",p6,red);
-dot("p7",p7,red);
+pair m0=midpoint(z0,c0);
+pair m1=midpoint(c0,c1);
+pair m2=midpoint(c1,z1);
 
-pair p8=midpoint(p5,p6);
-pair p9=midpoint(p6,p7);
-pair p10=midpoint(p8,p9);
+draw(m0--m1--m2);
+dot("$m_0$",m0,NW,red);
+dot("$m_1$",m1,NE,red);
+dot("$m_2$",m2,red);
 
-draw(p8--p9);
-dot("p8",p8,red);
-dot("p9",p9,red);
-dot("p10",p10,red);
+pair m3=midpoint(m0,m1);
+pair m4=midpoint(m1,m2);
+pair m5=midpoint(m3,m4);
+
+draw(m3--m4);
+dot("$m_3$",m3,NW,red);
+dot("$m_4$",m4,NE,red);
+dot("$m_5$",m5,N,red);

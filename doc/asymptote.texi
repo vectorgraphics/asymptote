@@ -1,4 +1,4 @@
-\input texinfo   @c -*-texinfo-*-
+A\input texinfo   @c -*-texinfo-*-
 @setfilename asymptote.info
 @settitle Asymptote
 @include version.texi
@@ -761,74 +761,70 @@ path unitcircle=E..N..W..S..cycle;
 @end verbatim
 
 @anchor{Bezier}
+@cindex direction specifier
 Each interior node of a cubic spline may be given a
 direction prefix or suffix @code{@{dir@}}: the direction of the pair
 @code{dir} specifies the direction of the incoming or outgoing tangent,
 respectively, to the curve at that node. Exterior nodes may be
 given direction specifiers only on their interior side. Cubic splines between
-a node @code{z}, with postcontrol point @code{Z}, and a node @code{w},
-with precontrol point @code{W}, are computed as the Bezier curve
+a node @math{z_0}, with postcontrol point @math{c_0}, and a node @math{z_1},
+with precontrol point @math{c_1}, are computed as the Bezier curve
 
-@image{bezier,,,(1-t)^3*z+3t(1-t)^2*Z+3t^2(1-t)*W+t^3*w for 0 <=t <= 1.}
+@image{bezier,,,(1-t)^3*z_0+3t(1-t)^2*c_0+3t^2(1-t)*c_1+t^3*z_1 for 0 <=t <= 1.}
 
-Given four points (two endpoints and two control points), we can construct
-a bezier curve in the following way: an  easy check shows that the third
-order midpoint of the given four points lies on the desired curve. That
-allows us to recursively produce the curve, by using the newly extracted
-point as an endpoint, and the respective second and first order midpoints as
-control points.
-
-Consider the following example:
-
+It is easily shown that given two endpoints (@math{z_0} and @math{z_1}
+in the diagram below) and two control points (@math{c_0} and @math{c_1}),
+the third-order midpoint (@math{m_5}) lies on the Bezier
+curve formed by these four points. This allows one to recursively construct
+the curve, by using the newly extracted point as an endpoint and the
+respective second- and first-order midpoints as control points:
 @image{bezier2}
 
-@code{p1} and @code{p4} are the endpoints. @code{p2} and @code{p3} are the
-control points. @code{p5},@code{p6} and @code{p7} are the first order
-midpoints. @code{p8} an @code{p9} are the second order midpoints.
-@code{p10} is the third order midpoint, and it lies on the bezier curve.
-We can build the curve by recursively applying the algorithm on the
-quadriplets @code{p1}, @code{p5}, @code{p8} and @code{p10}, and
-@code{p10}, @code{p9}, @code{p7} and @code{p4}.
+Here @math{m_0}, @math{m_1} and @math{m_2} are the first-order
+midpoints, @math{m_3} and @math{m_4} are the second-order midpoints, and
+@math{m_5} is the third-order midpoint, which is indeed seen to lie on
+the Bezier curve corresponding to the quadruplet
+(@math{z_0}, @math{c_0}, @math{c_1}, @math{z_1}).
+The curve is then constructed by recursively applying the algorithm to
+(@math{z_0}, @math{m_0}, @math{m_3}, @math{m_5}) and
+(@math{m_5}, @math{m_4}, @math{m_2}, @math{z_1}).
 
-The curve constructed in the above manner has the following properties:
+The curve constructed in this manner has the following properties:
+@itemize @bullet
 
-* It is entirely contained in the convex hull of the given four points.
+@item It is entirely contained in the convex hull of the given four points.
 
-* It starts heading from the first endpoint to the first control point, 
+@item It starts heading from the first endpoint to the first control point 
 and finishes heading from the second control point to the second endpoint.
 
-The user can specify his own control points when constructing guides and 
-paths.
+@end itemize
 
 @cindex @code{controls}
-For example:
+The user can specify explicit control points between two nodes like this:
 @verbatim
 draw((0,0)..controls (0,100) and (100,100)..(100,0));
 @end verbatim
 
-Usually, however, it is more convenient to just use the '@code{..}' operator, 
-and let @code{Asy} choose the control points on its own. The user can still 
-customize the guide (or path) by passing tension, direction, and curl values.
+However, it is usually more convenient to just use the
+@code{..} operator, which tells @code{Asymptote} to choose its own
+control points using the algorithms described in Donald Knuth's
+monograph, The MetaFontbook, chapter 14.
+The user can still customize the guide (or path) by specifying
+direction, tension, and curl values.
 
-Direction was explained above.
-
-The higher the tension passed, the straighter the curve is, and the more 
-it approximates a straight line. For example:
-
+The higher the tension, the straighter the curve is, and the more 
+it approximates a straight line.
 @cindex @code{tension}
 @cindex @code{and}
 @cindex @code{atleast}
 One can change the spline tension from its default value of 1 to any
-real value greater than or equal to 0.75:
+real value greater than or equal to 0.75 (cf. John Hobby, Discrete and
+Computational Geometry 1, 1986):
 @verbatim
 draw((100,0)..tension 2 ..(100,100)..(0,100));
 draw((100,0)..tension 2 and 1 ..(100,100)..(0,100));
 draw((100,0)..tension atleast 1 ..(100,100)..(0,100));
 @end verbatim
-
-Here a question arises: why should the tension have a lower bound at 0.75?
-This is discussed in a paper by John Hobby [@code{Discrete and Computational 
-Geometry 1} (1986)].
 
 @cindex @code{curl}
 The curl parameter specifies the curvature at the endpoints of a path
@@ -836,10 +832,6 @@ The curl parameter specifies the curvature at the endpoints of a path
 @verbatim
 draw((100,0){curl 0}..(100,100)..{curl 0}(0,100));
 @end verbatim
-
-A good reference on Bezier curves and the algorithms that @code{Asymptote}
-uses to determine the control points is Donald Knuth's monograph,
-@code{The MetaFontbook}, chapters 3 and 14.
 
 @cindex @code{MetaPost ...@ }
 @cindex @code{::}
@@ -852,6 +844,7 @@ variable number of arguments; @pxref{Rest arguments}).  For example,
 compare
 @verbatiminclude dots.asy
 @image{dots}
+@noindent
 with
 @verbatiminclude colons.asy
 @image{colons}
@@ -3572,7 +3565,7 @@ is an @math{n} vector and @math{L} is the @math{n \times n} matrix
 [ a[1] b[1] c[1]             ]
 [      a[2] b[2] c[2]        ]
 [                ...         ]
-[       c[n-1] a[n-1] b[n-1] ]
+[ c[n-1]       a[n-1] b[n-1] ]
 @end verbatim
 For Dirichlet boundary conditions (denoted here by @code{u[-1]} and
 @code{u[n]}), replace @code{f[0]} by @code{f[0]-a[0]u[-1]} and
@@ -6739,4 +6732,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel nv
 @c  LocalWords:  zlabel strptime slopefields cputime roundrectangle slopefield
 @c  LocalWords:  tickfactor USERNAME writeable imagecontour logimage Dumoulin's
-@c  LocalWords:  NoCrop parametricsurface
+@c  LocalWords:  NoCrop parametricsurface realmult

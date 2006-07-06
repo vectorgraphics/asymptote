@@ -3215,7 +3215,7 @@ realarray *Operator *(realarray2 *a, realarray *b)
 // [ a[1] b[1] c[1]             ]
 // [      a[2] b[2] c[2]        ]
 // [                ...         ]
-// [       c[n-1] a[n-1] b[n-1] ]
+// [ c[n-1]       a[n-1] b[n-1] ]
 realarray *tridiagonal(realarray *a, realarray *b, realarray *c, realarray *f)
 {
   size_t n=checkArrays(a,b);
