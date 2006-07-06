@@ -741,7 +741,7 @@ which along with the directions @code{up}, @code{down}, @code{right},
 and @code{left} are defined as pairs in the @code{Asymptote} base
 module @code{plain}.
 
-This example draws an approximate quarter circle:
+This example draws a path that approximates a quarter circle:
 @verbatiminclude quartercircle.asy
 @image{quartercircle}
 
@@ -766,25 +766,26 @@ Each interior node of a cubic spline may be given a
 direction prefix or suffix @code{@{dir@}}: the direction of the pair
 @code{dir} specifies the direction of the incoming or outgoing tangent,
 respectively, to the curve at that node. Exterior nodes may be
-given direction specifiers only on their interior side. Cubic splines between
-a node @math{z_0}, with postcontrol point @math{c_0}, and a node @math{z_1},
-with precontrol point @math{c_1}, are computed as the Bezier curve
+given direction specifiers only on their interior side. 
+
+A cubic spline between the node @math{z_0}, with postcontrol point
+@math{c_0}, and the node @math{z_1}, with precontrol point @math{c_1},
+is computed as the Bezier curve
 
 @image{bezier,,,(1-t)^3*z_0+3t(1-t)^2*c_0+3t^2(1-t)*c_1+t^3*z_1 for 0 <=t <= 1.}
 
-It is easily shown that given two endpoints (@math{z_0} and @math{z_1}
-in the diagram below) and two control points (@math{c_0} and @math{c_1}),
-the third-order midpoint (@math{m_5}) lies on the Bezier
-curve formed by these four points. This allows one to recursively construct
-the curve, by using the newly extracted point as an endpoint and the
-respective second- and first-order midpoints as control points:
+As illustrated in the diagram below, the third-order midpoint (@math{m_5})
+constructed from two endpoints @math{z_0} and @math{z_1} and two control points
+@math{c_0} and @math{c_1}, lies on the Bezier curve formed by the
+quadruple (@math{z_0}, @math{c_0}, @math{c_1}, @math{z_1}). This
+allows one to recursively construct the desired curve, by using the newly
+extracted third-order midpoint as an endpoint and the respective second- and
+first-order midpoints as control points: 
 @image{bezier2}
 
 Here @math{m_0}, @math{m_1} and @math{m_2} are the first-order
 midpoints, @math{m_3} and @math{m_4} are the second-order midpoints, and
-@math{m_5} is the third-order midpoint, which is indeed seen to lie on
-the Bezier curve corresponding to the quadruplet
-(@math{z_0}, @math{c_0}, @math{c_1}, @math{z_1}).
+@math{m_5} is the third-order midpoint.
 The curve is then constructed by recursively applying the algorithm to
 (@math{z_0}, @math{m_0}, @math{m_3}, @math{m_5}) and
 (@math{m_5}, @math{m_4}, @math{m_2}, @math{z_1}).
