@@ -804,6 +804,7 @@ variable number of arguments; @pxref{Rest arguments}).  For example,
 compare
 @verbatiminclude dots.asy
 @image{dots}
+@noindent
 with
 @verbatiminclude colons.asy
 @image{colons}
@@ -853,7 +854,8 @@ cube, without retracing steps:
 
 See section @ref{graph} (or the online @code{Asymptote} gallery at
 @url{http://asymptote.sourceforge.net}) for further examples, including
-two-dimensional scientific graphs.
+two-dimensional scientific graphs. Examples of three-dimensional graphs are
+given in section @ref{graph3}.
 
 @node Programming
 @chapter Programming
@@ -6698,4 +6700,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel nv
 @c  LocalWords:  zlabel strptime slopefields cputime roundrectangle slopefield
 @c  LocalWords:  tickfactor USERNAME writeable imagecontour logimage Dumoulin's
-@c  LocalWords:  NoCrop parametricsurface
+@c  LocalWords:  NoCrop parametricsurface realmult
