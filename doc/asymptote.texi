@@ -771,27 +771,75 @@ with precontrol point @code{W}, are computed as the Bezier curve
 
 @image{bezier,,,(1-t)^3*z+3t(1-t)^2*Z+3t^2(1-t)*W+t^3*w for 0 <=t <= 1.}
 
-A good reference on Bezier curves and the algorithms that @code{Asymptote}
-uses to determine the control points is Donald Knuth's monograph,
-@code{The MetaFontbook}, chapters 3 and 14.
+Given four points (two endpoints and two control points), we can construct
+a bezier curve in the following way: an  easy check shows that the third
+order midpoint of the given four points lies on the desired curve. That
+allows us to recursively produce the curve, by using the newly extracted
+point as an endpoint, and the respective second and first order midpoints as
+control points.
+
+Consider the following example:
+
+@image{bezier2}
+
+@code{p1} and @code{p4} are the endpoints. @code{p2} and @code{p3} are the
+control points. @code{p5},@code{p6} and @code{p7} are the first order
+midpoints. @code{p8} an @code{p9} are the second order midpoints.
+@code{p10} is the third order midpoint, and it lies on the bezier curve.
+We can build the curve by recursively applying the algorithm on the
+quadriplets @code{p1}, @code{p5}, @code{p8} and @code{p10}, and
+@code{p10}, @code{p9}, @code{p7} and @code{p4}.
+
+The curve constructed in the above manner has the following properties:
+
+* It is entirely contained in the convex hull of the given four points.
+
+* It starts heading from the first endpoint to the first control point, 
+and finishes heading from the second control point to the second endpoint.
+
+The user can specify his own control points when constructing guides and 
+paths.
 
 @cindex @code{controls}
-Instead of specifying the tangent directions before and after a node,
-one can also specify the control points directly:
+For example:
 @verbatim
 draw((0,0)..controls (0,100) and (100,100)..(100,0));
 @end verbatim
 
+Usually, however, it is more convenient to just use the '@code{..}' operator, 
+and let @code{Asy} choose the control points on its own. The user can still 
+customize the guide (or path) by passing tension, direction, and curl values.
+
+Direction was explained above.
+
+The higher the tension passed, the straighter the curve is, and the more 
+it approximates a straight line. For example:
+
 @cindex @code{tension}
 @cindex @code{and}
 @cindex @code{atleast}
-One can also change the spline tension from its default value of 1 to any
+One can change the spline tension from its default value of 1 to any
 real value greater than or equal to 0.75:
 @verbatim
 draw((100,0)..tension 2 ..(100,100)..(0,100));
 draw((100,0)..tension 2 and 1 ..(100,100)..(0,100));
 draw((100,0)..tension atleast 1 ..(100,100)..(0,100));
 @end verbatim
+
+Here a question arises: why should the tension have a lower bound at 0.75?
+This is discussed in a paper by John Hobby [@code{Discrete and Computational 
+Geometry 1} (1986)].
+
+@cindex @code{curl}
+The curl parameter specifies the curvature at the endpoints of a path
+(0 means straight; the default value of 1 means approximately circular):
+@verbatim
+draw((100,0){curl 0}..(100,100)..{curl 0}(0,100));
+@end verbatim
+
+A good reference on Bezier curves and the algorithms that @code{Asymptote}
+uses to determine the control points is Donald Knuth's monograph,
+@code{The MetaFontbook}, chapters 3 and 14.
 
 @cindex @code{MetaPost ...@ }
 @cindex @code{::}
@@ -804,7 +852,6 @@ variable number of arguments; @pxref{Rest arguments}).  For example,
 compare
 @verbatiminclude dots.asy
 @image{dots}
-@noindent
 with
 @verbatiminclude colons.asy
 @image{colons}
@@ -814,13 +861,6 @@ with
 The @code{---} connector is an abbreviation for @code{..tension atleast
 infinity..} and the @code{&} connector concatenates two paths which meet
 at a common point. 
-
-@cindex @code{curl}
-The curl parameter specifies the curvature at the endpoints of a path
-(0 means straight; the default value of 1 means approximately circular):
-@verbatim
-draw((100,0){curl 0}..(100,100)..{curl 0}(0,100));
-@end verbatim
 
 @cindex @code{PostScript} subpath
 @cindex @code{^^}
@@ -854,8 +894,7 @@ cube, without retracing steps:
 
 See section @ref{graph} (or the online @code{Asymptote} gallery at
 @url{http://asymptote.sourceforge.net}) for further examples, including
-two-dimensional scientific graphs. Examples of three-dimensional graphs are
-given in section @ref{graph3}.
+two-dimensional scientific graphs.
 
 @node Programming
 @chapter Programming
@@ -6700,4 +6739,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel nv
 @c  LocalWords:  zlabel strptime slopefields cputime roundrectangle slopefield
 @c  LocalWords:  tickfactor USERNAME writeable imagecontour logimage Dumoulin's
-@c  LocalWords:  NoCrop parametricsurface realmult
+@c  LocalWords:  NoCrop parametricsurface
