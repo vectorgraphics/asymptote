@@ -3,7 +3,7 @@ pair z0=(0,0);
 pair c0=(1,1);
 pair c1=(2,1);
 pair z1=(3,0);
-draw(z0..controls c0 and c1 .. z1,blue+dashed); // B ezier curve
+draw(z0..controls c0 and c1 .. z1,blue+dashed); // Bezier curve
 
 draw(z0--c0--c1--z1);
 dot("$z_0$",z0,W,red);
@@ -19,7 +19,7 @@ pair m2=midpoint(c1,z1);
 
 draw(m0--m1--m2);
 dot("$m_0$",m0,NW,red);
-dot("$m_1$",m1,NE,red);
+dot("$m_1$",m1,N,red);
 dot("$m_2$",m2,red);
 
 pair m3=midpoint(m0,m1);
