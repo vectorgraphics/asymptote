@@ -1,4 +1,4 @@
-A\input texinfo   @c -*-texinfo-*-
+\input texinfo   @c -*-texinfo-*-
 @setfilename asymptote.info
 @settitle Asymptote
 @include version.texi
@@ -1785,19 +1785,6 @@ a cubic spline resolved into a fixed path.
 
 The implicit initializer for paths and guides is @code{nullpath},
 which is useful for building up a path within a loop.
-A direction specifier given to @code{nullpath} modifies the node on
-the other side: the paths
-@verbatim
-a..{up}nullpath..b;
-c..nullpath{up}..d;
-e..{up}nullpath{down}..f;
-@end verbatim
-are respectively equivalent to
-@verbatim
-a..nullpath..{up}b;
-c{up}..nullpath..d;
-e{down}..nullpath..{up}f;
-@end verbatim
 
 @cindex @code{circle}
 @anchor{circle}
@@ -1839,10 +1826,17 @@ guide Arc(pair c, real r, real angle1, real angle2,
           int n=400);
 @end verbatim
 
+An ellipse can be drawn with the routine
+@verbatim
+guide ellipse(pair c, real a, real b)
+{
+  return shift(c)*xscale(a)*yscale(b)*unitcircle;
+}
+@end verbatim
+
 Here is an example of all five path connectors discussed in @ref{Tutorial}:
 @verbatiminclude join.asy
 @image{join}
-
 
 Here are some useful functions for paths:
 
@@ -2002,7 +1996,7 @@ by the cyclic path @code{g} according to the fillrule of pen @code{p}
 
 @end table
 
-Finally, we point out an efficiency distinction in the use of guides and paths:
+We point out an efficiency distinction in the use of guides and paths:
 @verbatim
 guide g;
 for(int i=0; i < 10; ++i)
@@ -2021,6 +2015,20 @@ for(int i=0; i < 10; ++i)
 @noindent
 runs in quadratic time, as the entire path up to that point is copied at each
 step of the iteration.
+
+As a technical detail we note that a direction specifier given to
+@code{nullpath} modifies the node on the other side: the paths
+@verbatim
+a..{up}nullpath..b;
+c..nullpath{up}..d;
+e..{up}nullpath{down}..f;
+@end verbatim
+are respectively equivalent to
+@verbatim
+a..nullpath..{up}b;
+c{up}..nullpath..d;
+e{down}..nullpath..{up}f;
+@end verbatim
 
 @node Pens
 @section Pens
