@@ -2101,7 +2101,6 @@ The functions @code{pen gray(pen)}, @code{pen rgb(pen)},  and
 @code{pen cmyk(pen)} return new pens obtained by converting their
 arguments to the respective color spaces. 
 
-@page
 Various shades and mixtures of the grayscale primary colors
 @code{black} and @code{white}, @acronym{RGB} primary colors
 @code{red}, @code{green}, and @code{blue}, and
