@@ -98,15 +98,29 @@ triple intersectionpoint(triple n0, triple P0, triple n1, triple P1)
   }
 }
 
-// Given a real array A, return its partial (optionally dx-weighted) sums.
-real[] partialsum(real[] A, real[] dx={})
+// Given a real array A, return its partial sums.
+real[] partialsum(real[] A)
 {
-  real[] B=new real[A.length];
+  real[] B=new real[A.length+1];
+  real sum=0;
   B[0]=0;
-  if(dx.length == 0)
-    for(int i=0; i < A.length; ++i) B[i+1]=B[i]+A[i];
-  else
-    for(int i=0; i < A.length; ++i) B[i+1]=B[i]+A[i]*dx[i];
+  for(int i=0; i < A.length; ++i) {
+    sum += A[i];
+    B[i+1]=sum;
+  }
+  return B;
+}
+
+// Given a real array A, return its partial dx-weighted sums.
+real[] partialsum(real[] A, real[] dx)
+{
+  real[] B=new real[A.length+1];
+  real sum=0;
+  B[0]=0;
+  for(int i=0; i < A.length; ++i) {
+    sum += A[i]*dx[i];
+    B[i+1]=sum;
+  }
   return B;
 }
 
