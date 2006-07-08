@@ -663,7 +663,8 @@ static const size_t nTime=256;
 static char Time[nTime];
 #endif  
 
-void clear(string file, int line, bool warn=false) {
+void clear(string file, int line, bool warn=false) 
+{
   bpinfo bp(file,line);
   for(mem::list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
     if(*p == bp) {
@@ -2461,6 +2462,11 @@ void clear(string file, int line)
 {
   file=settings::locateFile(file);
   clear(file,line,true);
+}
+
+void clear()
+{
+  bplist.clear();
 }
 
 // Merge output files  
