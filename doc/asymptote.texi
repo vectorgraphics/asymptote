@@ -6544,13 +6544,12 @@ void stop(string file, int line, code s=quote{});
 @end verbatim
 @noindent
 The optional argument @code{s} may be used to conditionally set the variable
-@code{ignore} in @code{debugger.asy} to @code{true}. For example, the
+@code{ignore} in @code{plain_debugger.asy} to @code{true}. For example, the
 first 10 instances of this breakpoint will be ignored (the
-variable @code{int count=0} is defined in @code{debugger.asy}):
+variable @code{int count=0} is defined in @code{plain_debugger.asy}):
 @verbatim
 stop("test",2,quote{ignore=(++count <= 10);});
 @end verbatim
-
 
 To set a break point in file @code{file} at the first line containing
 the string @code{text}, use

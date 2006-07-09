@@ -7,7 +7,7 @@
  *****/
 
 access settings;
-include constants;
+include plain_constants;
 
 access version;		    
 if(version.VERSION != VERSION()) {
@@ -15,19 +15,19 @@ if(version.VERSION != VERSION()) {
 	 version.VERSION+" of plain.asy"+'\n');
 }
    
-include pens;
-include paths;
-include filldraw;
-include margins;
-include picture;
-include shipout;
-include Label;
-include arcs;
-include boxes;
-include markers;
-include arrows;
-include strings;
-include debugger;
+include plain_pens;
+include plain_paths;
+include plain_filldraw;
+include plain_margins;
+include plain_picture;
+include plain_shipout;
+include plain_Label;
+include plain_arcs;
+include plain_boxes;
+include plain_markers;
+include plain_arrows;
+include plain_strings;
+include plain_debugger;
 
 typedef void exitfcn();
 void nullexitfcn();
