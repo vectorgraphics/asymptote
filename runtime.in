@@ -514,7 +514,6 @@ void clearTeX()
 void cleanup()
 {
   if(initialdefaultpen) defaultpen=*initialdefaultpen;
-  if(!interact::interactive) scrollLines=0;
 
   atExitFunction=NULL;
   atDrawFunction=NULL;
@@ -1340,11 +1339,6 @@ string cd(string *d)
   if(p && interact::interactive) 
     cout << p << endl;
   return p;
-}
-
-void scroll(int n)
-{
-  scrollLines=n;
 }
 
 

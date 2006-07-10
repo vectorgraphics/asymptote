@@ -97,7 +97,6 @@ int safe=1;
 string gvOptionPrefix="-";
   
 int ShipoutNumber=0;
-int scrollLines=0;
   
 const string suffix="asy";
 const string guisuffix="gui";
@@ -739,10 +738,12 @@ void initSettings() {
   addOption(new stringSetting("prompt", 0,"string","Prompt [\"> \"]","> "));
   addOption(new boolSetting("quiet", 'q',
 			    "Suppress welcome message"));
-  addOption(new boolSetting("localhistory", 0, 
+  addOption(new boolSetting("localhistory", 0,
 			    "Use a local interactive history file"));
-  addOption(new intSetting("historylines", 0, "n", 
+  addOption(new intSetting("historylines", 0, "n",
 			   "Retain n lines of history [1000]",1000));
+  addOption(new intSetting("scroll", 0, "n",
+			   "Scroll standard output n lines at a time [0]",0));
   addOption(new boolSetting("autoplain", 0,
 			    "Enable automatic importing of plain",
 			    true));

@@ -268,10 +268,19 @@ public:
   void write(guide *val) {*stream << *val;}
   void write(const transform& val) {*stream << val;}
   void writeline() {
-    if(standard && settings::scrollLines) {
-      if(lines > 0 && lines % settings::scrollLines == 0) {
-	while(std::cin.good() && std::cin.get() != '\n') continue;
-	if(!std::cin.good()) *stream << newline;
+    int scroll=settings::getSetting<int>("scroll");
+    if(standard && scroll) {
+      if(lines > 0 && lines % scroll == 0) {
+	while(true) {
+	  if(!std::cin.good()) {
+	    *stream << newline;
+	    std::cin.clear();
+	    break;
+	  }
+	  char c=std::cin.get();
+	  if(c == 'q') throw quit();
+	  if(c == '\n') break;
+      }
       } else *stream << newline;
       ++lines;
     } else *stream << newline;

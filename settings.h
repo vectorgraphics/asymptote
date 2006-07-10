@@ -42,8 +42,6 @@ extern mem::string historyname;
   
 void SetPageDimensions();
 
-extern int scrollLines;
-  
 types::record *getSettingsModule();
 
 vm::item& Setting(string name);

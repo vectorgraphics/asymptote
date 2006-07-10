@@ -336,8 +336,6 @@ Example code will be installed by default in
 @node Configuring
 @section Configuring
 @cindex configuring
-@cindex settings
-
 @cindex @code{-V}
 @cindex @code{psviewer}
 @cindex @code{pdfviewer}
@@ -351,6 +349,7 @@ viewer @code{gv} (under @code{UNIX}) or @code{gsview} (under
 graphical output. These defaults may be overridden with the
 configuration variable @code{psviewer}. 
 
+@cindex @code{settings}
 @cindex configuration file
 Configuration variables are most easily set as @code{Asymptote}
 variables in the configuration file (by default, @code{.asy/config.asy} in the 
@@ -4125,8 +4124,10 @@ real[][][] C=read3(fin);
 One, two, and three-dimensional arrays of the basic data types can be
 output with the functions @code{write(file,T[])},
 @code{write(file,T[][])}, @code{write(file,T[][][])}, respectively.
-The command @code{scroll(int n)} is useful for pausing the output
-after every @math{n} output lines (press @code{Enter} to continue).
+Assigning @code{settings.scroll=n} will cause the output to pause
+after every @math{n} output lines (press @code{Enter} to continue or
+@code{q} followed by @code{Enter} to quit). The default value,
+@code{settings.scroll=0}, specifies continuous scrolling. 
 
 @node Casts
 @section Casts
@@ -4361,7 +4362,7 @@ If @code{embedded} is @code{true}, the string will be evaluated
 at the top level of the current environment.
 If @code{embedded} is @code{false} (the default), the string
 will be evaluated in an independent environment, sharing the same
-@code{settings} module. 
+@code{settings} module (@pxref{settings}). 
 
 One can evaluate arbitrary @code{Asymptote} code (which may
 contain unescaped quotation marks) with the command
@@ -6205,6 +6206,7 @@ Options:
 -q,-quiet            Suppress welcome message [false]
 -rgb                 Convert cmyk colors to rgb [false]
 -safe                Disable system call; command-line only [true]
+-scroll n            Scroll standard output n lines at a time [0]
 -tex                 Enable LaTeX label postprocessing [true]
 -s,-translate        Translate test [false]
 -twice               Run LaTeX twice (to resolve references) [false]
@@ -6230,6 +6232,8 @@ If multiple files are specified, they are treated as separate
 @anchor{configuration file}
 @cindex @code{ASYMPTOTE_CONFIG}
 @cindex @code{config}
+@cindex @code{settings}
+@anchor{settings}
 Default option values may be entered as @code{Asymptote} code in a
 configuration file named @code{config.asy} (or the file specified by
 the environment variable @code{ASYMPTOTE_CONFIG} or @code{-config} option).
@@ -6328,9 +6332,8 @@ and must be entered immediately after the prompt:
 @item help
 view the manual
 @item reset
-reset @code{Asymptote} to its initial state, except that a prior call
-to @code{scroll} (@pxref{scroll}) and any changes to the setting
-@code{outname} are respected.
+reset @code{Asymptote} to its initial state, except for changes to the
+settings module (@pxref{settings}).
 @item input FILE
 resets the environment (except for breakpoints; @pxref{Debugger}) and does an
 @code{erase(); include FILE}. If the file name @code{FILE} contains

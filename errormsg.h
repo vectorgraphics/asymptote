@@ -17,7 +17,8 @@ using std::ostream;
 using std::endl;
 
 struct handled_error {}; // Exception to process next file.
-struct interrupted {};   // Exception to process user interrupts.
+struct interrupted {};   // Exception to interrupt execution.
+struct quit {};          // Exception to quit current operation.
 
 class fileinfo : public gc {
   mem::string filename;

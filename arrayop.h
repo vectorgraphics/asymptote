@@ -249,7 +249,12 @@ void write(vm::stack *s)
     if(suffix) {
       s->push(f);
       suffix->call(s);
-    } else if(defaultfile) f->writeline();
+    } else if(defaultfile) {
+      try {
+	f->writeline();
+      } catch (quit&) {
+      }
+    }
   }
 }
 
@@ -267,36 +272,39 @@ void writeArray(vm::stack *s)
   size_t Asize=checkArray(A);
   if(f->Standard()) camp::Stdout.resetlines();
   else if(!f->isOpen()) return;
-  if(S != "") {f->write(S); f->writeline();}
+  try {
+    if(S != "") {f->write(S); f->writeline();}
   
-  size_t i=0;
-  bool cont=true;
-  while(cont) {
-    cont=false;
-    bool first=true;
-    if(i < asize) {
-      if(defaultfile) std::cout << i << ":\t";
-      f->write(read<T>(a,i)); cont=true;
-      first=false;
-    }
-    unsigned count=0;
-    for(size_t j=0; j < Asize; ++j) {
-      array *Aj=read<array*>(A,j);
-      size_t Ajsize=checkArray(Aj);
-      if(i < Ajsize) {
-	if(f->text()) {
-	  if(first && defaultfile) std::cout << i << ":\t";
-	  for(unsigned k=0; k <= count; ++k)
-	    f->write(tab);
-	  count=0;
-	}
-	f->write(read<T>(Aj,i));
+    size_t i=0;
+    bool cont=true;
+    while(cont) {
+      cont=false;
+      bool first=true;
+      if(i < asize) {
+	if(defaultfile) std::cout << i << ":\t";
+	f->write(read<T>(a,i)); cont=true;
 	first=false;
-	cont=true;
-      } else count++;
+      }
+      unsigned count=0;
+      for(size_t j=0; j < Asize; ++j) {
+	array *Aj=read<array*>(A,j);
+	size_t Ajsize=checkArray(Aj);
+	if(i < Ajsize) {
+	  if(f->text()) {
+	    if(first && defaultfile) std::cout << i << ":\t";
+	    for(unsigned k=0; k <= count; ++k)
+	      f->write(tab);
+	    count=0;
+	  }
+	  f->write(read<T>(Aj,i));
+	  first=false;
+	  cont=true;
+	} else count++;
+      }
+      ++i;
+      if(cont && f->text()) f->writeline();
     }
-    ++i;
-    if(cont && f->text()) f->writeline();
+  } catch (quit&) {
   }
   f->flush();
 }
@@ -311,6 +319,7 @@ void writeArray2(vm::stack *s)
   if(f->Standard()) camp::Stdout.resetlines();
   else if(!f->isOpen()) return;
   
+  try {
   for(size_t i=0; i < size; i++) {
     array *ai=read<array*>(a,i);
     size_t aisize=checkArray(ai);
@@ -319,6 +328,8 @@ void writeArray2(vm::stack *s)
       f->write(read<T>(ai,j));
     }
     if(f->text()) f->writeline();
+  }
+  } catch (quit&) {
   }
   f->flush();
 }
@@ -333,6 +344,7 @@ void writeArray3(vm::stack *s)
   if(f->Standard()) camp::Stdout.resetlines();
   else if(!f->isOpen()) return;
   
+  try {
   for(size_t i=0; i < size;) {
     array *ai=read<array*>(a,i);
     size_t aisize=checkArray(ai);
@@ -347,6 +359,8 @@ void writeArray3(vm::stack *s)
     }
     ++i;
     if(i < size && f->text()) f->writeline();
+  }
+  } catch (quit&) {
   }
   f->flush();
 }
