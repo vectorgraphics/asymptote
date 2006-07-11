@@ -17,7 +17,7 @@ pen operator +(pen p, real w) {return p+linewidth(w);}
 pen operator +(real w, pen p) {return linewidth(w)+p;}
 
 pen Dotted=dotted+1.0;
-pen Dotted(pen p) {return dotted+2*linewidth(p);}
+pen Dotted(pen p=currentpen) {return dotted+2*linewidth(p);}
 
 pen squarecap=linecap(0);
 pen roundcap=linecap(1);
