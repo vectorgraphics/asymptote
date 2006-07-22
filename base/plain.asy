@@ -34,7 +34,7 @@ void nullexitfcn();
 
 void exitfunction()
 {
-  if(interact() || (!shipped && !currentpicture.empty())) shipout();
+  if(interactive() || (!shipped && !currentpicture.empty())) shipout();
 }
 atexit(exitfunction);
 

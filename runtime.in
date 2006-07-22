@@ -1235,7 +1235,7 @@ pen colorless(pen p)
 
 // Interactive mode
 
-bool interact()
+bool interactive()
 {
   return interact::interactive;
 }
