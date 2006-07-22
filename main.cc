@@ -187,7 +187,7 @@ struct iprompt : public itree {
       if(!ast) {
 	virtualEOF=false;
 	set(parser::parseInteractive());
-	if(resetenv) {purge(); break;}
+	if(resetenv) {uptodate=true; purge(); break;}
       }
       itree::run(e,s);
       if(!uptodate && virtualEOF)
@@ -244,9 +244,12 @@ void doICore(icore &i, bool embedded=false) {
       i.run(e,s);
       
       if(interactive) {
-	interactive=false;
-	run::exitFunction(&s);
-	interactive=true;
+	if(resetenv) run::cleanup();
+	else {
+	  interactive=false;
+	  run::exitFunction(&s);
+	  interactive=true;
+	}
       } else run::exitFunction(&s);
       
       camp::TeXpipepreamble=TeXpipepreamble_save;
