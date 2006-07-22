@@ -80,9 +80,8 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
   pen Pentype=pentype;
   double offset=0.3;
   static double fuzz=Pentype.size()/24.0;
-  static double vfuzz=fuzz*scale.gety();
-  fuzz += offset;
-  vfuzz += offset;
+  static double hfuzz=fuzz+offset;
+  static double vfuzz=fuzz*scale.gety()+offset;
   
   if(!havebounds) {
     havebounds=true;
@@ -127,10 +126,10 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
   // alignment point
   pair p=position+Align;
   double vertical=height+depth+vfuzz;
-  pair A=p+pair(-fuzz,-vfuzz)*rotation;
-  pair B=p+pair(-fuzz,vertical)*rotation;
-  pair C=p+pair(width+fuzz,vertical)*rotation;
-  pair D=p+pair(width+fuzz,-vfuzz)*rotation;
+  pair A=p+pair(-hfuzz,-vfuzz)*rotation;
+  pair B=p+pair(-hfuzz,vertical)*rotation;
+  pair C=p+pair(width+hfuzz,vertical)*rotation;
+  pair D=p+pair(width+hfuzz,-vfuzz)*rotation;
   
   if(pentype.Overwrite() != ALLOW && label != "") {
     size_t n=labelbounds.size();
