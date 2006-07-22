@@ -6493,6 +6493,8 @@ Questions on installing and using @code{Asymptote} should be sent to the
 @url{http://sourceforge.net/forum/forum.php?forum_id=409349}
 @end quotation
 @noindent
+Including an example that illustrates what you are trying to do will help
+you get useful feedback.
 @code{LaTeX} problems can often be diagnosed with the @code{-vv} or
 @code{-vvv} command-line options.
 Contributions in the form of patches or @code{Asymptote} modules can be
@@ -6509,9 +6511,9 @@ To receive announcements of upcoming releases, please subscribe to
 @cindex bug reports
 @noindent
 If you find a bug in @code{Asymptote}, please check (if possible)
-whether the bug is still present in the latest developmental code
-available via @acronym{Subversion} before submitting a bug report. New bugs can
-be submitted using the Bug Tracking System at
+whether the bug is still present in the latest @acronym{Subversion}
+developmental code (@pxref{Subversion}) before submitting a bug
+report. New bugs can be submitted using the Bug Tracking System at
 @quotation
 @url{http://sourceforge.net/projects/asymptote}
 @end quotation
