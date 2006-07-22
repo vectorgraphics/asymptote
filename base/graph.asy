@@ -497,7 +497,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
 	locate.S.Tinv(locate.S.tickMax) : b;
       if(tickmin > tickmax) {real temp=tickmin; tickmin=tickmax; tickmax=temp;}
       
-      bool singletick=false;
+      bool calcStep=true;
       real len=tickmax-tickmin;
       real norm=max(abs(a),abs(b));
       if(Step == 0 && N == 0) {
@@ -512,9 +512,11 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
 		 && d < divisor.length-1) {
 		// Try using 2 ticks (otherwise 1);
 		int div=divisor[d+1];
-		singletick=true; Step=quotient(div,2)*len/div;
+		Step=quotient(div,2)*len/div;
+		calcStep=false; 
 		if(axiscoverage(2,T,g,locate,Step,side,sign,Size,F,ticklabel,
 				norm,limit) <= limit) N=2;
+		else Step=len;
 	      }
 	      // Found a good divisor; now compute subtick divisor
 	      if(n == 0) {
@@ -528,7 +530,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
 	} else N=1;
       }
       
-      if(!singletick) {
+      if(calcStep) {
 	if(N == 0) N=(int) (len/Step);
 	else Step=len/N;
       }
