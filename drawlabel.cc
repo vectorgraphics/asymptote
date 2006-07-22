@@ -60,9 +60,9 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn)
   tex << "\n";
   tex.wait("\n*","! ");
      
-  width *= fontscale;
-  height *= fontscale;
-  depth *= fontscale;
+  width *= fontscale*scale.getx();
+  height *= fontscale*scale.gety();
+  depth *= fontscale*scale.gety();
   return true;
 }   
 
@@ -78,7 +78,11 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
   if(!settings::getSetting<bool>("tex")) {b += position; return;}
   pair rotation=expi(radians(angle));
   pen Pentype=pentype;
-  static const double fuzz=0.3+Pentype.size()/24.0;
+  double offset=0.3;
+  static double fuzz=Pentype.size()/24.0;
+  static double vfuzz=fuzz*scale.gety();
+  fuzz += offset;
+  vfuzz += offset;
   
   if(!havebounds) {
     havebounds=true;
@@ -122,10 +126,11 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
 
   // alignment point
   pair p=position+Align;
-  pair A=p+pair(-fuzz,-fuzz)*rotation;
-  pair B=p+pair(-fuzz,height+depth+fuzz)*rotation;
-  pair C=p+pair(width+fuzz,height+depth+fuzz)*rotation;
-  pair D=p+pair(width+fuzz,-fuzz)*rotation;
+  double vertical=height+depth+vfuzz;
+  pair A=p+pair(-fuzz,-vfuzz)*rotation;
+  pair B=p+pair(-fuzz,vertical)*rotation;
+  pair C=p+pair(width+fuzz,vertical)*rotation;
+  pair D=p+pair(width+fuzz,-vfuzz)*rotation;
   
   if(pentype.Overwrite() != ALLOW && label != "") {
     size_t n=labelbounds.size();
