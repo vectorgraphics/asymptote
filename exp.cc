@@ -478,25 +478,30 @@ signature *callExp::argTypes(coenv &e)
 application *callExp::resolve(coenv &e, overloaded *o, signature *source) {
   app_list l=multimatch(e.e, o, source, *args);
 
-  symbol *s = callee->getName();
   if (l.empty()) {
     //cerr << "l is empty\n";
     em->error(getPos());
+
+    symbol *s = callee->getName();
     if (s)
       *em << "no matching function \'" << *s;
     else
       *em << "no matching function for signature \'";
     *em << *source << "\'";
+
     return 0;
   }
   else if (l.size() > 1) { // This may take O(n) time.
     //cerr << "l is full\n";
     em->error(getPos());
+
+    symbol *s = callee->getName();
     if(s)
       *em << "call of function \'" << *s;
     else
       *em << "call with signature \'";
     *em << *source << "\' is ambiguous";
+
     return 0;
   }
   else {
