@@ -170,7 +170,7 @@ public:
   pen() :
     line(DEFLINE), linewidth(DEFWIDTH), P(0),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
-    r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
+    r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
@@ -191,7 +191,7 @@ public:
   pen(invisiblepen_t) : 
     line(DEFLINE), linewidth(DEFWIDTH), P(0),
     font(""), fontsize(0.0), lineskip(0.0), color(INVISIBLE),
-    r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
+    r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
@@ -199,7 +199,7 @@ public:
   pen(setlinewidth_t, double linewidth) : 
     line(DEFLINE), linewidth(linewidth), P(0),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
-    r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
+    r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
@@ -207,7 +207,7 @@ public:
   pen(path *P) : 
     line(DEFLINE), linewidth(DEFWIDTH), P(P),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
-    r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
+    r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
@@ -215,7 +215,7 @@ public:
   pen(const LineType& line) :
     line(line), linewidth(DEFWIDTH), P(0),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
-    r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
+    r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
@@ -223,7 +223,7 @@ public:
   pen(setfont_t, mem::string font) :
     line(DEFLINE), linewidth(DEFWIDTH), P(0),
     font(font), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
-    r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
+    r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
@@ -231,7 +231,7 @@ public:
   pen(setfontsize_t, double fontsize, double lineskip) :
     line(DEFLINE), linewidth(DEFWIDTH), P(0),
     font(""), fontsize(fontsize), lineskip(lineskip), color(DEFCOLOR),
-    r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
+    r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
@@ -239,7 +239,7 @@ public:
   pen(setpattern_t, const mem::string& pattern) :
     line(DEFLINE), linewidth(DEFWIDTH), P(0),
     font(""), fontsize(0.0), lineskip(0.0), color(PATTERN),
-    r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
+    r(0), g(0), b(0), grey(0),
     pattern(pattern), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
@@ -247,7 +247,7 @@ public:
   pen(FillRule fillrule) :
     line(DEFLINE), linewidth(DEFWIDTH), P(0),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
-    r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
+    r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(fillrule), baseline(DEFBASE),
     transparency(DEFTRANSP),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
@@ -255,7 +255,7 @@ public:
   pen(BaseLine baseline) :
     line(DEFLINE), linewidth(DEFWIDTH), P(0),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
-    r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
+    r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(baseline),
     transparency(DEFTRANSP),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
@@ -263,7 +263,7 @@ public:
   pen(const Transparency& transparency) :
     line(DEFLINE), linewidth(DEFWIDTH), P(0),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
-    r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
+    r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(transparency),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
@@ -271,7 +271,7 @@ public:
   pen(setlinecap_t, int linecap) :
     line(DEFLINE), linewidth(DEFWIDTH), P(0),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
-    r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
+    r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
     linecap(linecap), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
@@ -279,7 +279,7 @@ public:
   pen(setlinejoin_t, int linejoin) :
     line(DEFLINE), linewidth(DEFWIDTH), P(0),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
-    r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
+    r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
     linecap(DEFCAP), linejoin(linejoin), overwrite(DEFWRITE), t(0) {}
@@ -287,7 +287,7 @@ public:
   pen(setoverwrite_t, overwrite_t overwrite) :
     line(DEFLINE), linewidth(DEFWIDTH), P(0),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
-    r(defaultpen.r), g(defaultpen.g), b(defaultpen.b), grey(defaultpen.grey),
+    r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(overwrite), t(0) {}
@@ -642,10 +642,10 @@ public:
     return  p.linetype() == q.linetype() 
       && p.width() == q.width() 
       && p.Path() == q.Path()
-      && p.colorspace() == q.colorspace()
       && p.Font() == q.Font()
       && p.Lineskip() == q.Lineskip()
       && p.size() == q.size()
+      && p.colorspace() == q.colorspace()
       && (!(p.grayscale() || p.cmyk()) || p.gray() == q.gray())
       && (!(p.rgb() || p.cmyk()) || (p.red() == q.red() &&
 				     p.green() == q.green() &&
