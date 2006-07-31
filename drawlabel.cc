@@ -92,10 +92,10 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
       tex.wait("\n*","! ");
     }
     
-    string font=Pentype.Font();
+    mem::string font=Pentype.Font();
     if(font != lastpen.Font()) {
       fontscale=1.0;
-      string scaled=" scaled";
+      mem::string scaled=" scaled";
       size_t p=font.find(scaled);
       if(p < string::npos) {
 	p += scaled.length();

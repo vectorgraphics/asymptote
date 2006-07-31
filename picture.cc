@@ -272,7 +272,7 @@ bool picture::postprocess(const string& epsname, const string& outname,
     if(pdfformat) {
       cmd << "'" << getSetting<mem::string>("gs")
 	  << "' -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
-	  << " -dAutoRotatePages=/None "
+	  << " -dCompatibilityLevel=1.4 -dAutoRotatePages=/None"
 	  << " -g" << ceil(paperWidth) << "x" << ceil(paperHeight)
 	  << " -dDEVICEWIDTHPOINTS=" 
 	  << bpos.right-bpos.left
@@ -360,7 +360,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     bbox b;
     b.left=b.bottom=0;
     b.right=b.top=1;
-    psfile out(epsname,b,0);
+    psfile out(epsname,b,0,false);
     out.prologue();
     out.epilogue();
     if(deconstruct && !tgifformat) {
@@ -453,7 +453,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       psname=buildname(buf.str(),"eps");
     } else psname=epsname;
     psnameStack.push_back(psname);
-    psfile out(psname,bpos,bboxshift);
+    psfile out(psname,bpos,bboxshift,pdfformat);
     out.prologue();
   
     if(Labels) tex->beginlayer(psname);

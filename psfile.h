@@ -32,6 +32,7 @@ class psfile {
   bbox box;
   pair Shift;
   bool rawmode;
+  bool pdfformat;
   pen lastpen;
   ostream *out;
   std::stack<pen> pens;
@@ -51,7 +52,8 @@ class psfile {
   }
   
 public: 
-  psfile(const string& filename, const bbox& box, const pair& Shift);
+  psfile(const string& filename, const bbox& box, const pair& Shift,
+	 bool pdformat);
   ~psfile();
   
   void prologue();

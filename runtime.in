@@ -656,6 +656,8 @@ inline double Max(double a, double b)
   return (a > b) ? a : b;
 }
 
+static mem::string *defaulttransparency=new mem::string("Compatible");
+
 static mem::string *defaulttimeformat=new mem::string("%a %b %d %T %Z %Y");
 #ifdef HAVE_STRFTIME
 static const size_t nTime=256;
@@ -1128,6 +1130,26 @@ int fillrule(pen p)
   return p.Fillrule();  
 }
 
+pen opacity(real opacity=1.0, string *blend=defaulttransparency)
+{
+  for(int i=0; i < nBlendMode; ++i)
+   if(*blend == BlendMode[i]) return pen(Transparency(*blend,opacity));
+
+  ostringstream buf;
+  buf << "Unknown blend mode: " << "'" << *blend << "'";
+  error(buf);
+}
+
+real opacity(pen p)
+{
+  return p.opacity();
+}
+
+string blend(pen p)
+{
+  return p.blend();
+}
+
 pen linetype(string *s, real offset=0, bool scale=true, bool adjust=true)
 {
   return pen(LineType(*s,offset,scale,adjust)); 
@@ -1136,6 +1158,21 @@ pen linetype(string *s, real offset=0, bool scale=true, bool adjust=true)
 string linetype(pen p)
 {
   return p.stroke();  
+}
+
+real offset(pen p)
+{
+  return p.linetype().offset;
+}
+
+bool scale(pen p)
+{
+  return p.linetype().scale;
+}
+
+bool adjust(pen p)
+{
+  return p.linetype().adjust;
 }
 
 pen linecap(int n)

@@ -36,8 +36,10 @@ void checkColorSpace(ColorSpace colorspace)
   }
 }
     
-psfile::psfile(const string& filename, const bbox& box, const pair& Shift)
-  : filename(filename), box(box), Shift(Shift), rawmode(false)
+psfile::psfile(const string& filename, const bbox& box, const pair& Shift,
+	       bool pdfformat)
+  : filename(filename), box(box), Shift(Shift), rawmode(false),
+    pdfformat(pdfformat)
 {
   if(filename.empty()) out=&std::cout;
   else out=new ofstream(filename.c_str());
@@ -85,6 +87,14 @@ void psfile::setpen(pen p)
   p.convert();
   if(p == lastpen) return;
     
+  if(pdfformat) {
+    if(p.blend() != lastpen.blend()) 
+      *out << "/" << p.blend() << " .setblendmode" << newl;
+  
+    if(p.opacity() != lastpen.opacity()) 
+      *out << p.opacity() << " .setopacityalpha" << newl;
+  }
+  
   if(!p.fillpattern().empty() && p.fillpattern() != lastpen.fillpattern()) 
     *out << p.fillpattern() << " setpattern" << newl;
   else if(p.cmyk() && (!lastpen.cmyk() ||

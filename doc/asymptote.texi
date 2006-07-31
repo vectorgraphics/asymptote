@@ -2325,6 +2325,32 @@ pen Symbol(string series="m", string shape="n");
 pen ZapfDingbats(string series="m", string shape="n");
 @end verbatim
 
+@anchor{transparency}
+@cindex transparency
+@cindex @code{opacity}
+@item The transparency of a pen can be changed with the command:
+@verbatim
+pen opacity(real opacity=1, string *blend="Compatible");
+@end verbatim
+The opacity can be varied from @code{0} (fully transparent) to the default
+value of @code{1} (opaque), and @code{blend} specifies one of the
+following foreground--background blending operations:
+@verbatim
+"Compatible","Normal","Multiply","Screen","Overlay","SoftLight",
+"HardLight","ColorDodge","ColorBurn","Darken","Lighten","Difference",
+"Exclusion","Hue","Saturation","Color","Luminosity",
+@end verbatim
+as described in
+
+@url{http://partners.adobe.com/public/developer/en/pdf/PDFReference16.pdf}.
+Since @code{PostScript} does not support transparency, this feature is
+only effective with the @code{-f pdf} output format option; other
+formats can be produced from the resulting @acronym{PDF} file with the
+@code{ImageMagick} @code{convert} program.
+Labels are always drawn with an @code{opacity} of 1.
+A simple example of transparent filling is provided in the example file
+@code{transparency.asy}. 
+
 @cindex patterns
 @cindex tilings
 @item @code{PostScript} commands within a @code{picture} may be used
