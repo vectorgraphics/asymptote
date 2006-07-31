@@ -244,6 +244,11 @@ void vbox(string s, pen p=itempen)
   remark(center=true,"\vbox{"+s+"}",p,minipage=false,itemskip=0);
 }
 
+void equations(string s, pen p=itempen)
+{
+  vbox("\begin{eqnarray}"+s+"\end{eqnarray}",p);
+}
+
 void figure(string[] s, string options="", real margin=50bp, 
 	    pen figuremattpen=figuremattpen,
 	    string caption="", pair align=S, pen p=itempen)

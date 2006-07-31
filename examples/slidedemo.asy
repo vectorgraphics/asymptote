@@ -32,11 +32,9 @@ subitem("First subitem.");
 subitem("Second subitem.");
 item("Second item.");
 equation("a^2+b^2=c^2.");
-vbox("\begin{eqnarray}
-\frac{\sin^2\theta+\cos^2\theta}{\cos^2\theta}&=&\frac{1}{\cos^2\theta}
-\nonumber\\
-&=&\sec^2\theta.
-\end{eqnarray}");
+equations("\frac{\sin^2\theta+\cos^2\theta}{\cos^2\theta}
+&=&\frac{1}{\cos^2\theta}\nonumber\\
+&=&\sec^2\theta.");
 remark("A remark.");
 item("To enable pausing between bullets:");
 remark("{\tt asy -u stepping=true}");
