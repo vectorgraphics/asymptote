@@ -31,10 +31,10 @@ syn cluster	asyCommentGroup	contains=asyTodo
 syn match	asySpecial	display contained "\\\\."
 " Highlight line continuation slashes
 syn match	asySpecial	display contained "\\$"
-syn region	asyString	start=+L\="+ skip=+\\\\\|\\"+ end=+"+ contains=asySpecial
+syn region	asyString	start=+"+ skip=+\\\\\|\\"+ end=+"+ contains=asySpecial
   " asyCppString: same as asyString, but ends at end of line
 if 0
-syn region	asyCppString	start=+L\="+ skip=+\\\\\|\\"\|\\$+ excludenl end=+"+ end='$' contains=asySpecial
+syn region	asyCppString	start=+"+ skip=+\\\\\|\\"\|\\$+ excludenl end=+"+ end='$' contains=asySpecial
 endif
 
 "when wanted, highlight trailing white space
@@ -72,13 +72,13 @@ endif
 "integer number, or floating point number without a dot and with "f".
 syn case ignore
 syn match	asyNumbers	display transparent "\<\d\|\.\d" contains=asyNumber,asyFloat
-syn match       asyNumber       display contained "\d\+\>"
+syn match       asyNumber       display contained "\d\+"
 "floating point number, with dot, optional exponent
 syn match	asyFloat	display contained "\d\+\.\d*\(e[-+]\=\d\+\)\="
 "floating point number, starting with a dot, optional exponent
-syn match	asyFloat	display contained "\.\d\+\(e[-+]\=\d\+\)\=\>"
+syn match	asyFloat	display contained "\.\d\+\(e[-+]\=\d\+\)\="
 "floating point number, without dot, with exponent
-syn match	asyFloat	display contained "\d\+e[-+]\=\d\+\>"
+syn match	asyFloat	display contained "\d\+e[-+]\=\d\+"
 syn case match
 
 if exists("asy_comment_strings")
