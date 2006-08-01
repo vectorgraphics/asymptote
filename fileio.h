@@ -271,13 +271,13 @@ public:
     int scroll=settings::getSetting<int>("scroll");
     if(standard && scroll) {
       if(lines > 0 && lines % scroll == 0) {
-	while(true) {
+	for(;;) {
 	  if(!std::cin.good()) {
 	    *stream << newline;
 	    std::cin.clear();
 	    break;
 	  }
-	  char c=std::cin.get();
+	  int c=std::cin.get();
 	  if(c == 'q') throw quit();
 	  if(c == '\n') break;
       }
