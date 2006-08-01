@@ -139,7 +139,7 @@ using sym::symbol;
 %type  <ai>  arrayinit basearrayinit varinits
 %type  <fl>  formal
 %type  <fls> formals baseformals
-%type  <e>   value exp
+%type  <e>   value exp fortest
 %type  <arg> argument
 %type  <j>   join basicjoin
 %type  <e>   tension controls
@@ -616,7 +616,7 @@ stm:
                    { $$ = new whileStm($1, $3, $5); }
 | DO stm WHILE '(' exp ')' ';'
                    { $$ = new doStm($1, $2, $5); }
-| FOR '(' forinit ';' exp ';' forupdate ')' stm
+| FOR '(' forinit ';' fortest ';' forupdate ')' stm
                    { $$ = new forStm($1, $3, $5, $7, $9); }
 | BREAK ';'        { $$ = new breakStm($1); }
 | CONTINUE ';'     { $$ = new continueStm($1); }
@@ -636,6 +636,11 @@ forinit:
   /* empty */      { $$ = 0; }
 | stmexplist       { $$ = $1; }
 | barevardec       { $$ = $1; }
+;
+
+fortest:
+  /* empty */      { $$ = 0; }
+| exp              { $$ = $1; }
 ;
 
 forupdate:
