@@ -43,7 +43,7 @@ public:
   void prettyprint(ostream &out, int indent);
 
   // When reporting errors with function calls, it is nice to say "no
-  // functon f(int)" instead of "no function matching signature
+  // function f(int)" instead of "no function matching signature
   // (int)."  Hence, this method returns the name of the expression if
   // there is one.
   virtual symbol *getName()
@@ -66,29 +66,37 @@ public:
 
   // Translates the expression and returns the resultant type.
   // For some expressions, this will be ambiguous and return an error.
+  // Trans may only return ty_error, if it (or one of its recursively
+  // called children in the syntax tree) reported an error to em.
   virtual types::ty *trans(coenv &) = 0;
 
-  // Figures out the type of the expression without translating the code
-  // into the virtual machine language or reporting errors to em.
+  // getType() figures out the type of the expression without translating
+  // the code into the virtual machine language or reporting errors to em.
   // This must follow a few rules to ensure proper translation:
   //   1. If this returns a valid type, t, trans(e) must return t or
-  //      report an error, and trans(e, t) must run either reporting an
-  //      error or reporting no error and yielding the same result.
+  //      report an error, and transToType(e, t) must run either reporting
+  //      an error or reporting no error and yielding the same result as
+  //      trans(e).
   //   2. If this returns a superposition of types (ie. for overloaded
   //      functions), trans must not return a singular type, and every
   //      type in the superposition must run without error properly
-  //      if fed to trans(e, t).
-  //   3. If this returns ty_error, then so must a call to trans(e) and
-  //      any call to either trans must report an error to em.
-  //   4. Any call to transToType(e, t) with a type that is not returned by
+  //      if fed to transAsType(e, t).
+  //   3. If this returns ty_error, then so must a call to trans(e) and any
+  //      call to trans, transAsType, or transToType must report an error
+  //      to em.
+  //   4. Any call to transAsType(e, t) with a type that is not returned by
+  //      getType() (or one of the subtypes in case of a superposition)
+  //      must report an error.
+  //      Any call to transToType(e, t) with a type that is not returned by
   //      getType() (or one of the subtypes in case of a superposition)
   //      or any type not implicitly castable from the above must report an
   //      error.
   virtual types::ty *getType(coenv &) = 0;
 
-  // Same result as getType, but caches the result, so that subsequent call are
-  // faster.  For this to work correctly, the expression should only be used in
-  // one place, so the environment doesn't change between calls.
+  // Same result as getType, but caches the result so that subsequent
+  // calls are faster.  For this to work correctly, the expression should
+  // only be used in one place, so the environment doesn't change between
+  // calls.
   virtual types::ty *cgetType(coenv &e) {
     return ct ? ct : ct = getType(e);
   }
