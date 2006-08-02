@@ -151,6 +151,8 @@ void stack::run(program *code, vars_t vars)
       
       if(!bplist.empty()) debug();
       
+      if(errorstream::interrupt) throw interrupted();
+      
       switch (i.op)
         {
           case inst::pop:
@@ -237,8 +239,6 @@ void stack::run(program *code, vars_t vars)
 	    error("Internal VM error: Bad stack operand");
         }
 
-      if(errorstream::interrupt) throw interrupted();
-      
 #ifdef DEBUG_STACK
       draw(cerr);
       vm::draw(cerr,vars);
