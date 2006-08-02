@@ -1301,6 +1301,16 @@ label(graphic("file.eps","width=1cm"),(0,0),NE);
 layer();
 @end verbatim
 
+@cindex @code{annotate}
+To annotate an @acronym{PDF} file for viewing with @code{Adobe Reader},
+use the function
+@verbatim
+void annotate(picture pic=currentpicture, string title, string text,
+	      pair position);
+@end verbatim
+@noindent
+An example of annotation is provided in the example file @code{annotation.asy}.
+
 @cindex @code{baseline}
 The @code{string baseline(string s, align align=S, string template="M")} 
 function can be used to enlarge the bounding box of letters aligned
