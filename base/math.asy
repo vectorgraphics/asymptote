@@ -262,7 +262,7 @@ void drawline(picture pic=currentpicture, pair P, pair Q, pen p=currentpen)
 	draw(f,(z.x,m.y)--(z.x,M.y),p);
     } else if(v.y == 0) {
       if(m.y <= z.y && z.y <= M.y)
-	draw(f,(m.y,z.y)--(M.x,z.y),p);
+	draw(f,(m.x,z.y)--(M.x,z.y),p);
     } else {
       // Calculate the maximum and minimum t values allowed for the
       // parametric equation z + t*v
@@ -270,6 +270,8 @@ void drawline(picture pic=currentpicture, pair P, pair Q, pen p=currentpen)
       real my=(m.y-z.y)/v.y, My=(M.y-z.y)/v.y;
       real tmin=max(v.x > 0 ? mx : Mx, v.y > 0 ? my : My);
       real tmax=min(v.x > 0 ? Mx : mx, v.y > 0 ? My : my);
+      write("tmin: ", tmin);
+      write("tmax: ", tmax);
       if(tmin <= tmax)
 	draw(f,z+tmin*v--z+tmax*v,p);
     }
