@@ -136,9 +136,6 @@ public:
   void addRecordOps(types::record *r);
   void addFunctionOps(types::function *f);
 
-  // Add the fields and types of the record given in v to the local environment.
-  void useRecord(varEntry *v);
-
   void list()
   {
     ve.list();
