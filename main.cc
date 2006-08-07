@@ -326,21 +326,16 @@ void doIPrompt() {
   Setting("outname")=(mem::string)"out";
   
   iprompt i;
-  do {
+  while(virtualEOF) {
     try {
       init();
-      virtualEOF=false;
-      i.set(parser::parseInteractive());
       resetenv=false;
-      if(virtualEOF)
-	doICore(i);
-    } catch(handled_error) {
-      status=false;
+      doICore(i);
     } catch(interrupted&) {
       if(em) em->Interrupt(false);
       cout << endl;
     }
-  } while(virtualEOF);
+  }
   Setting("outname")=(mem::string)"";
 }
 
@@ -378,22 +373,22 @@ int main(int argc, char *argv[])
   
   fpu_trap(trap());
 
-  try {
-    if(interactive) {
-      signal(SIGINT,interruptHandler);
-      loop::doIPrompt();
-    } else {
-      if(numArgs() == 0)
-	loop::doIFile("");
-      else {
-	for(int ind=0; ind < numArgs() ; ind++) {
-	  loop::doIFile(string(getArg(ind)));
+  if(interactive) {
+    signal(SIGINT,interruptHandler);
+    loop::doIPrompt();
+  } else {
+    if(numArgs() == 0)
+      loop::doIFile("");
+    else {
+      for(int ind=0; ind < numArgs() ; ind++) {
+	loop::doIFile(string(getArg(ind)));
+	try {
 	  if(ind < numArgs()-1) setOptions(argc,argv);
-	}
+	} catch(handled_error) {
+	  status=false;
+	} 
       }
     }
-  } catch(handled_error) {
-    status=false;
   }
   loop::purge();
   return status ? 0 : 1;
