@@ -18,8 +18,7 @@ namespace camp {
 
 std::list<string> TeXpipepreamble, TeXpreamble;
   
-texfile::texfile(const string& texname, const bbox& box,
-		 const bbox& boxpos) : box(box), boxpos(boxpos)
+texfile::texfile(const string& texname, const bbox& box) : box(box)
 {
   out=new ofstream(texname.c_str());
   if(!out || !*out) {
@@ -51,17 +50,17 @@ void texfile::prologue()
     
 void texfile::beginlayer(const string& psname)
 {
-  if(boxpos.right > boxpos.left && boxpos.top > boxpos.bottom)
+  if(box.right > box.left && box.top > box.bottom)
     *out << "\\includegraphics[bb="
-	 << boxpos.left << " " << boxpos.bottom << " "
-	 << boxpos.right << " " << boxpos.top << "]{" << psname << "}%"
+	 << box.left << " " << box.bottom << " "
+	 << box.right << " " << box.top << "]{" << psname << "}%"
 	 << newl;
 }
 
 void texfile::endlayer()
 {
-  if(boxpos.right > boxpos.left && boxpos.top > boxpos.bottom)
-    *out << "\\kern-" << (boxpos.right-boxpos.left)*ps2tex << "pt%" << newl;
+  if(box.right > box.left && box.top > box.bottom)
+    *out << "\\kern-" << (box.right-box.left)*ps2tex << "pt%" << newl;
 }
 
 void texfile::setpen(pen p)

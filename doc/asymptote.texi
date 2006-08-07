@@ -6213,7 +6213,7 @@ Usage: asy [options] [file ...]
 
 Options: 
 -V,-View             View output files; command-line only
--a,-align C|B|T|Z    Center, Bottom, Top, or Zero page alignment; Z => -notex
+-a,-align C|B|T|Z    Center, Bottom, Top, or Zero page alignment [Center]
 -autoplain           Enable automatic importing of plain [true]
 -batchMask           Mask fpu exceptions in batch mode [false]
 -batchView           View output in batch mode [false]
@@ -6322,9 +6322,8 @@ A @code{PostScript} offset may be specified as a pair (in bp units) with the
 asy -O 0,0 file
 @end verbatim
 
-The default offset is zero. The offset is adjusted if it would result in
-a negative vertical bounding box coordinate. The default value of the
-page alignment setting @code{align} is @code{Center}.
+The default offset is zero. The default value of the page alignment
+setting @code{align} is @code{Center}.
 
 The @code{-u} option may be used to specify arbitrary @code{Asymptote}
 code on the command line as a string. It is not necessary to terminate

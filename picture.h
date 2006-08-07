@@ -35,7 +35,6 @@ private:
   
   static bool epsformat,pdfformat,tgifformat;
   static double paperWidth,paperHeight;
-  static int origin;
 
 public:
   nodelist nodes;
@@ -64,11 +63,11 @@ public:
   void texinit();
 
   bool texprocess(const string& texname, const string& tempname,
-		  const string& prefix, bbox& bpos); 
+		  const string& prefix, bbox& box, const pair& bboxshift); 
     
   bool postprocess(const string& epsname, const string& outname, 
 		   const string& outputformat, bool wait, bool view,
-		   const bbox& bpos);
+		   const bbox& box);
     
   // Ship the picture out to PostScript & TeX files.
   bool shipout(picture* preamble, const string& prefix,

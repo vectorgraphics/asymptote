@@ -36,10 +36,8 @@ void checkColorSpace(ColorSpace colorspace)
   }
 }
     
-psfile::psfile(const string& filename, const bbox& box, const pair& Shift,
-	       bool pdfformat)
-  : filename(filename), box(box), Shift(Shift), rawmode(false),
-    pdfformat(pdfformat)
+psfile::psfile(const string& filename, const bbox& box, bool pdfformat)
+  : filename(filename), box(box), pdfformat(pdfformat)
 {
   if(filename.empty()) out=&std::cout;
   else out=new ofstream(filename.c_str());
@@ -193,7 +191,7 @@ void psfile::shade(array *a, const bbox& b)
   *out << "<< /ShadingType 1" << newl
        << "/Matrix ";
 
-  write(shift(Shift)*matrix(b.Min(),b.Max()));
+  write(matrix(b.Min(),b.Max()));
   *out << newl;
   *out << "/ColorSpace /Device" << ColorDeviceSuffix[colorspace] << newl
        << "/Function" << newl

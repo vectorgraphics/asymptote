@@ -39,7 +39,6 @@ picture::~picture()
 
 bool picture::epsformat,picture::pdfformat,picture::tgifformat;
 double picture::paperWidth,picture::paperHeight;
-int picture::origin;
   
 void picture::enclose(drawElement *begin, drawElement *end)
 {
@@ -154,7 +153,8 @@ void picture::texinit()
 }
   
 bool picture::texprocess(const string& texname, const string& outname,
-			 const string& prefix, bbox& bpos) 
+			 const string& prefix, bbox& box,
+			 const pair& bboxshift) 
 {
   int status=0;
   ifstream outfile;
@@ -177,28 +177,15 @@ bool picture::texprocess(const string& texname, const string& outname,
     string dviname=auxname(prefix,"dvi");
     string psname=auxname(prefix,"ps");
     
-    double height=bpos.top-bpos.bottom+1.0;
-    double width=bpos.right-bpos.left+1.0;
+    double height=box.top-box.bottom+1.0;
     
     // Magic dvips offsets:
-    double hoffset=-128.4;
+    double hoffset=-128.34;
     double voffset=(height < 13.0) ? -137.8+height : -124.8;
 
-    double yexcess=paperHeight-height;
-    if(origin != ZERO) {
-      if(pdfformat || origin == BOTTOM) {
-	voffset += yexcess;
-      } else if(origin == CENTER) {
-	hoffset += 0.5*max(paperWidth-width,0.0);
-	voffset += yexcess-0.5*max(yexcess,0.0);
-      } else voffset += min(yexcess,0.0);
-    }
+    hoffset += box.left;
+    voffset += paperHeight-height-box.bottom;
     
-    if(!pdfformat) {
-      hoffset += getSetting<pair>("offset").getx();
-      voffset -= getSetting<pair>("offset").gety();
-    }
-
     ostringstream dcmd;
     dcmd << "'" << getSetting<mem::string>("dvips") << "' -R "
 	 << " -O " << hoffset << "bp," << voffset << "bp"
@@ -207,21 +194,11 @@ bool picture::texprocess(const string& texname, const string& outname,
     dcmd << " -o '" << psname << "' '" << dviname << "'";
     status=System(dcmd,0,true,"dvips");
     
-    const double fuzz=0.06;
+    double fuzz=0.06;
     
-    bpos.left -= fuzz;
-    bpos.right += fuzz;
-    bpos.bottom -= fuzz;
-    bpos.top += fuzz;
+    box.right += fuzz;
+    box.top += fuzz;
 
-    if(pdfformat || origin == BOTTOM) {
-      bpos.bottom=max(bpos.bottom,0.0);
-      bpos.left=max(bpos.left,0.0);
-    }
-    
-    if(origin == TOP)
-      bpos.left=max(bpos.left,0.0);
-    
     ifstream fin(psname.c_str());
     ofstream *Fout=NULL;
     ostream *fout=(outname == "") ? &cout :
@@ -232,11 +209,18 @@ bool picture::texprocess(const string& texname, const string& outname,
     while(getline(fin,s)) {
       if(s.find("%%DocumentPaperSizes:") == 0) continue;
       if(first && s.find("%%BoundingBox:") == 0) {
-	if(verbose > 2) BoundingBox(cout,bpos);
-	BoundingBox(*fout,bpos);
+	box.shift(bboxshift);
+	if(verbose > 2) BoundingBox(cout,box);
+	BoundingBox(*fout,box);
 	first=false;
+	if(bboxshift != 0.0) {
+	  *fout << "gsave " << bboxshift.getx() << " " << bboxshift.gety()
+		<< " translate" << newl;
+	}
       } else *fout << s << newl;
     }
+    if(bboxshift != 0.0)
+      *fout << "grestore" << newl;
     flush(*fout);
     
     if(Fout) {
@@ -263,7 +247,7 @@ bool picture::texprocess(const string& texname, const string& outname,
 
 bool picture::postprocess(const string& epsname, const string& outname,
 			  const string& outputformat, bool wait, bool view,
-			  const bbox& bpos)
+			  const bbox& box)
 {
   int status=0;
   ostringstream cmd;
@@ -274,10 +258,8 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	  << "' -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
 	  << " -dCompatibilityLevel=1.4 -dAutoRotatePages=/None"
 	  << " -g" << ceil(paperWidth) << "x" << ceil(paperHeight)
-	  << " -dDEVICEWIDTHPOINTS=" 
-	  << bpos.right-bpos.left
-	  << " -dDEVICEHEIGHTPOINTS=" 
-	  << bpos.top-bpos.bottom
+	  << " -dDEVICEWIDTHPOINTS=" << box.right-box.left
+	  << " -dDEVICEHEIGHTPOINTS=" << box.top-box.bottom
 	  << " -sOutputFile='" << outname << "' '" << epsname << "'";
       status=System(cmd,0,true,"gs","Ghostscript");
     } else {
@@ -360,7 +342,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     bbox b;
     b.left=b.bottom=0;
     b.right=b.top=1;
-    psfile out(epsname,b,0,false);
+    psfile out(epsname,b,false);
     out.prologue();
     out.epilogue();
     if(deconstruct && !tgifformat) {
@@ -387,8 +369,6 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     return true;
   }
       
-  bbox bpos=b;
-  
   if(deconstruct) {
       if(!bboxout.is_open()) {
 	bboxout.open(("."+buildname(prefix,"box")).c_str());	
@@ -407,22 +387,20 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   paperWidth=getSetting<double>("paperwidth");
   paperHeight=getSetting<double>("paperheight");
-  origin=getSetting<int>("align");
+  int origin=getSetting<int>("align");
     
-  // Avoid negative bounding box coordinates
-  pair bboxshift=origin == ZERO ? 0.0 : pair(-bpos.left,-bpos.bottom);
+  pair bboxshift=origin == ZERO ? 0.0 : pair(-b.left,-b.bottom);
   if(!pdfformat) {
     bboxshift += getSetting<pair>("offset");
     if(origin != ZERO && origin != BOTTOM) {
-      double yexcess=max(paperHeight-(bpos.top-bpos.bottom+1.0),0.0);
+      double yexcess=max(paperHeight-(b.top-b.bottom+1.0),0.0);
       if(origin == TOP) bboxshift += pair(0.0,yexcess);
       else {
-	double xexcess=max(paperWidth-(bpos.right-bpos.left+1.0),0.0);
+	double xexcess=max(paperWidth-(b.right-b.left+1.0),0.0);
 	bboxshift += pair(0.5*xexcess,0.5*yexcess);
       }
     }
   }
-  bpos.shift(bboxshift);
   
   bool status = true;
   
@@ -430,13 +408,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   texfile *tex=NULL;
   
   bool TeXmode=getSetting<bool>("inlinetex") && getSetting<bool>("tex");
-  bool Labels=(labels || TeXmode) && 
-    (bpos.right > bpos.left && bpos.top > bpos.bottom);
+  bool Labels=(labels || TeXmode) && (b.right > b.left && b.top > b.bottom);
   
   if(Labels) {
     spaceToUnderscore(prefix);
     texname=auxname(prefix,"tex");
-    tex=new texfile(texname,b,bpos);
+    tex=new texfile(texname,b);
     tex->prologue();
   }
   
@@ -445,18 +422,27 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   unsigned int layer=0;
   std::list<string> psnameStack;
   
+  bbox bshift=b;
+  
   while(p != nodes.end()) {
     string psname;
     if(Labels) {
       ostringstream buf;
       buf << prefix << "_" << layer;
       psname=buildname(buf.str(),"eps");
-    } else psname=epsname;
+    } else {
+      psname=epsname;
+      bshift.shift(bboxshift);
+    }
     psnameStack.push_back(psname);
-    psfile out(psname,bpos,bboxshift,pdfformat);
+    psfile out(psname,bshift,pdfformat);
     out.prologue();
   
     if(Labels) tex->beginlayer(psname);
+    else {
+      out.gsave();
+      out.translate(bboxshift);
+    }
   
     if(preamble) {
       // Postscript preamble.
@@ -466,10 +452,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 	out.resetpen();
 	for(; P != Nodes.end(); ++P) {
 	  assert(*P);
-	  out.raw(true);
 	  if(!(*P)->draw(&out))
 	    status = false;
-	  out.raw(false);
 	}
       }
     }
@@ -482,20 +466,22 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 	status = false;
     }
     out.epilogue();
-  
-    if(status && Labels) {
-      for (p=layerp; p != nodes.end(); ++p) {
-	if((*p)->islayer()) {
-	  tex->endlayer();
-	  layerp=++p;
-	  layer++;
-	  break;
+    
+    if(Labels) {
+      if(status) {
+	for (p=layerp; p != nodes.end(); ++p) {
+	  if((*p)->islayer()) {
+	    tex->endlayer();
+	    layerp=++p;
+	    layer++;
+	    break;
+	  }
+	  assert(*p);
+	  if(!(*p)->write(tex))
+	    status = false;
 	}
-	assert(*p);
-	if(!(*p)->write(tex))
-	  status = false;
-      }
-    }    
+      }    
+    } else out.grestore();
   }
   
   if(status) {
@@ -504,14 +490,14 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     } else {
       if(Labels) {
 	tex->epilogue();
-	status=texprocess(texname,epsname,prefix,bpos);
+	status=texprocess(texname,epsname,prefix,bshift,bboxshift);
 	if(!getSetting<bool>("keep"))
 	  for(std::list<string>::iterator p=psnameStack.begin();
 	      p != psnameStack.end(); ++p)
 	    unlink(p->c_str());
       }
       if(status)
-	status=postprocess(epsname,outname,outputformat,wait,view,bpos);
+	status=postprocess(epsname,outname,outputformat,wait,view,bshift);
     }
   }
   

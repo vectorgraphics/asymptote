@@ -30,16 +30,11 @@ inline void BoundingBox(std::ostream& s, const bbox& box)
 class psfile {
   string filename;
   bbox box;
-  pair Shift;
   bool rawmode;
   bool pdfformat;
   pen lastpen;
   ostream *out;
   std::stack<pen> pens;
-
-  void writeUnshifted(pair z) {
-    *out << " " << z.getx() << " " << z.gety();
-  }
 
   void write(transform t) {
     *out << "[" << " " << t.getxx() << " " << t.getyx()
@@ -52,22 +47,18 @@ class psfile {
   }
   
 public: 
-  psfile(const string& filename, const bbox& box, const pair& Shift,
-	 bool pdformat);
+  psfile(const string& filename, const bbox& box, bool pdformat);
   ~psfile();
   
   void prologue();
   void epilogue();
 
-  void raw(bool mode) {rawmode=mode;}
-  bool raw() {return rawmode;}
-  
-  void write(pair z) {
-    writeUnshifted(rawmode ? z : z+Shift);
-  }
-
   void write(double x) {
     *out << " " << x;
+  }
+
+  void write(pair z) {
+    *out << " " << z.getx() << " " << z.gety();
   }
 
   void writeHex(pen *p, int ncomponents);
@@ -107,7 +98,7 @@ public:
   }
 
   void rlineto(pair z) {
-      writeUnshifted(z);
+      write(z);
       *out << " rlineto" << newl;
   }
 
@@ -147,18 +138,14 @@ public:
   }
 
   void translate(pair z) {
-    writeUnshifted(z);
+    write(z);
     *out << " translate" << newl;
   }
 
-  void concatUnshifted(transform t) {
-    write(t);
-    *out << " concat" << newl;
-  }
-  
   // Multiply on a transform to the transformation matrix.
   void concat(transform t) {
-    concatUnshifted(rawmode ? t : shift(Shift)*t);
+    write(t);
+    *out << " concat" << newl;
   }
   
   void verbatimline(const string& s) {

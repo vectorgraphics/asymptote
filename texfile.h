@@ -93,12 +93,11 @@ class texfile : public gc {
   ostream *out;
   pair offset;
   bbox box;
-  bbox boxpos;
   pen lastpen;
   cliplist clipstack;
 
 public:
-  texfile(const string& texname, const bbox& box, const bbox& boxpos);
+  texfile(const string& texname, const bbox& box);
   ~texfile();
 
   void prologue();

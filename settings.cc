@@ -420,7 +420,7 @@ struct dataSetting : public argumentSetting {
     try {
       value=(item)lexical::cast<T>(optarg);
     } catch (lexical::bad_cast&) {
-      error("option requires" + text + " as an argument");
+      error("option requires " + text + " as an argument");
       return false;
     }
     return true;
@@ -466,7 +466,6 @@ struct alignSetting : public argumentSetting {
       value=(int)BOTTOM;
     else if (str=="Z") {
       value=(int)ZERO;
-      Setting("tex")=false;
     }
     else {
       error("invalid argument for option");
@@ -699,7 +698,7 @@ void initSettings() {
   addOption(new pairSetting("offset", 'O', "pair",
 			    "PostScript offset [(0,0)]"));
   addOption(new alignSetting("align", 'a', "C|B|T|Z",
-		"[Center], Bottom, Top, or Zero page alignment; Z => -notex"));
+		"Center, Bottom, Top, or Zero page alignment [Center]"));
   
   addOption(new boolSetting("debug", 'd', "Enable debugging messages"));
   addOption(new incrementSetting("verbose", 'v',

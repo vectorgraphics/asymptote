@@ -728,10 +728,11 @@ struct picture {
   frame scaled() {
     frame f=fit(fixedscaling);
     pair d=max(f)-min(f);
-    if(d.x > xsize) 
+    static real epsilon=10*realEpsilon;
+    if(d.x > xsize*(1+epsilon)) 
       write("warning: frame exceeds xlimit: "+(string) d.x+" > "+
 	    (string) xsize);
-    if(d.y > ysize)
+    if(d.y > ysize*(1+epsilon))
       write("warning: frame exceeds ylimit: "+(string) d.y+" > "+
 	    (string) ysize);
     return f;
