@@ -3634,7 +3634,8 @@ string readline(string prompt=emptystring, string history=emptystring,
   
   store_history(&History);
   history_set_history_state(&history_save);
-  
+
+  init_readline(false);
   return line_read ? string(*line_read ? line_read : Default) : emptystring;
 #else
   Stdout.write(prompt);
