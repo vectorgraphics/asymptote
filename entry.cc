@@ -363,6 +363,13 @@ void venv::list()
     listValues(N->first, N->second);
 }
 
+void venv::completions(mem::list<symbol *>& l, mem::string start)
+{
+  for(namemap::iterator N = names.begin(); N != names.end(); ++N)
+    if (prefix(start, *(N->first)) && !N->second.empty())
+      l.push_back(N->first);
+}
+
 #endif // }}}
 
 } // namespace trans

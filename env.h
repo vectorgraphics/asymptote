@@ -141,6 +141,15 @@ public:
     ve.list();
   }
 
+  // Adds to a list the keywords in the environment that start with the given
+  // prefix.  Used for automatic completion at the interactive prompt.
+  typedef mem::list<symbol *> symbol_list;
+  void completions(symbol_list &l, mem::string start)
+  {
+    te.completions(l, start);
+    ve.completions(l, start);
+  }
+
 private: // Non-copyable
   void operator=(const protoenv&);
 };

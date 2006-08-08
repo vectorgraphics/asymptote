@@ -35,10 +35,48 @@ bool virtualEOF=true;
 bool resetenv;
 bool uptodate=true;
 
-void init_interactive() 
+completer *currentCompleter=0;
+
+void setCompleter(completer *c) {
+  currentCompleter=c;
+}
+
+char *call_completer(const char *text, int state) {
+  return currentCompleter ? (*currentCompleter)(text, state) : 0;
+}
+
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+void init_completion() {
+  rl_completion_entry_function=call_completer;
+
+  rl_completion_append_character='\0'; // Don't add a space after a match.
+
+  // Build a string containing all characters that separate words to be
+  // completed.  All characters that can't form part of an identifier are
+  // treated as break characters.
+  static char break_characters[128];
+  int j=0;
+  for (int c=9; c<128; ++c)
+    if (!isalnum(c) && c != '_') {
+      break_characters[j]=c;
+      ++j;
+    }
+  break_characters[j]='\0';
+  rl_completer_word_break_characters=break_characters;
+}
+#endif  
+
+void pre_readline()
 {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-  run::init_readline(false);
+  run::init_readline(getSetting<bool>("tabcompletion"));
+#endif  
+}
+
+void init_interactive()
+{
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+  init_completion();
   read_history(historyname.c_str());
 #endif  
 }
@@ -64,6 +102,10 @@ const char *rl_gets()
     line_read=NULL;
   }
      
+  
+  // Rebind tab key, as the setting tabcompletion may be changed at runtime.
+  pre_readline();
+
   /* Get a line from the user. */
   while((line_read=readline(getSetting<mem::string>("prompt").c_str()))) {
     if(*line_read == 0) continue;    

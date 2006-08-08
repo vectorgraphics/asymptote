@@ -14,7 +14,7 @@ FILES = $(CAMP) runtime env genv main stm dec errormsg callable name \
 	symbol types entry exp newexp stack camp.tab lex.yy access \
 	absyn record interact fileio builtin fftw++ simpson coder coenv \
 	@getopt@ locate parser program application varinit fundec refaccess \
-	Delaunay
+	Delaunay envcompleter
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc
 CLEAN = camp.output
@@ -79,9 +79,7 @@ man:	asy
 runtime.cc: runtime.pl runtime.in
 	./runtime.pl
 
-camp.tab.h: camp.tab.cc
-
-camp.tab.cc: camp.y
+camp.tab.h camp.tab.cc: camp.y
 	$(BISON) -dvt -b camp camp.y
 	mv camp.tab.c camp.tab.cc
 
@@ -89,6 +87,11 @@ lex.yy.cc: camp.l
 	$(LEX) -d -olex.yy.cc camp.l
 
 lex.yy.d: lex.yy.cc camp.tab.h $(GCLIBS)
+
+keywords.cc: keywords.pl camp.l
+	perl keywords.pl
+
+envcompleter.d: keywords.cc
 
 install: install-asy install-man
 

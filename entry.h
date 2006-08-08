@@ -177,6 +177,7 @@ public:
 
   friend std::ostream& operator<< (std::ostream& out, const venv& ve);
   
+  // Prints a list of the variables to the standard output.
   void list();
 };
 
@@ -314,6 +315,9 @@ public:
 
   // Prints a list of the variables to the standard output.
   void list();
+
+  // Adds to l, all names prefixed by start.
+  void completions(mem::list<symbol *>& l, mem::string start);
 };
 #endif
 

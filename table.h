@@ -33,6 +33,7 @@ protected:
   typedef mem::list<B> name_t;
   typedef typename name_t::iterator name_iterator;
   typedef mem::map<symbol*CONST,name_t> names_t;
+  typedef typename names_t::iterator names_iterator;
 
   scopes_t scopes;
   names_t names;
@@ -51,6 +52,9 @@ public :
   // Allows scoping and overloading of symbols of the same name
   void beginScope();
   void endScope();
+
+  // Adds to l, all names prefixed by start.
+  void completions(mem::list<symbol *>& l, mem::string start);
 
   friend std::ostream& operator<< <B> (std::ostream& out, const table& t);
 };
@@ -79,9 +83,6 @@ inline B table<B>::look(symbol *key)
 template <class B>
 inline B table<B>::lookInTopScope(symbol *key)
 {
-  // Due to the structure of the hash, this lookup has to be done by a linear
-  // search.  However, the top scope is usually fairly empty, so it is not a
-  // problem.
   scope_iterator p = scopes.front().find(key);
   if (p!=scopes.front().end())
     return p->second;
@@ -109,6 +110,20 @@ inline void table<B>::endScope()
     remove(p->first);
   scopes.pop_front();
 }
+
+// Returns true if start is a prefix for name; eg, mac is a prefix of machine.
+inline bool prefix(mem::string start, std::string name) {
+  return equal(start.begin(), start.end(), name.begin());
+}
+
+template <class B>
+inline void table<B>::completions(mem::list<symbol *>& l, mem::string start)
+{
+  for (names_iterator p = names.begin(); p != names.end(); ++p)
+    if (prefix(start, *(p->first)) && !p->second.empty())
+      l.push_back(p->first);
+}
+
 
 } // namespace sym
 

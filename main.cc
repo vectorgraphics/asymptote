@@ -20,6 +20,7 @@
 #include "vm.h"
 #include "program.h"
 #include "interact.h"
+#include "envcompleter.h"
 #include "parser.h"
 #include "fileio.h"
 
@@ -181,6 +182,8 @@ struct iprompt : public itree {
     : itree(ast) {}
   
   void run(coenv &e, istack &s) {
+    interact::setCompleter(new trans::envCompleter(e.e));
+
     virtualEOF=true;
     while (virtualEOF) {
       try {
