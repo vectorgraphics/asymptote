@@ -3230,6 +3230,8 @@ not
 bool positive=(pi >= 0) ? true : false;
 @end verbatim
 
+The function @code{T interp(T a, T b, real t)} returns @code{a+t*(b-a)}
+for all built-in arithmetic types @code{T}.
 
 @node Self & prefix operators
 @subsection Self & prefix operators
