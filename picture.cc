@@ -183,8 +183,8 @@ bool picture::texprocess(const string& texname, const string& outname,
     double hoffset=-128.34;
     double voffset=(height < 13.0) ? -137.8+height : -124.8;
 
-    hoffset += box.left;
-    voffset += paperHeight-height-box.bottom;
+    hoffset += box.left+bboxshift.getx();
+    voffset += paperHeight-height-box.bottom-bboxshift.gety();
     
     ostringstream dcmd;
     dcmd << "'" << getSetting<mem::string>("dvips") << "' -R "
@@ -206,6 +206,9 @@ bool picture::texprocess(const string& texname, const string& outname,
     
     string s;
     bool first=true;
+    bool shift=(bboxshift != 0.0);
+    string beginspecial="TeXDict begin @defspecial";
+    string endspecial="@fedspecial end";
     while(getline(fin,s)) {
       if(s.find("%%DocumentPaperSizes:") == 0) continue;
       if(first && s.find("%%BoundingBox:") == 0) {
@@ -213,14 +216,18 @@ bool picture::texprocess(const string& texname, const string& outname,
 	if(verbose > 2) BoundingBox(cout,box);
 	BoundingBox(*fout,box);
 	first=false;
-	if(bboxshift != 0.0) {
-	  *fout << "gsave " << newl
-		<< bboxshift.getx() << " " << bboxshift.gety()
-		<< " translate" << newl;
-	}
-      } else *fout << s << newl;
+      } else if(shift && s.find(beginspecial) == 0) {
+	*fout << s << newl;
+	*fout << "gsave " << newl
+	      << bboxshift.getx() << " " << bboxshift.gety()
+	      << " translate" << newl;
+      } else if(shift && s.find(endspecial) == 0) {
+	*fout << "grestore" << newl;
+	*fout << s << newl;
+      } else
+	*fout << s << newl;
     }
-    if(bboxshift != 0.0)
+    if(shift)
       *fout << "grestore" << newl;
     flush(*fout);
     
@@ -390,7 +397,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   paperHeight=getSetting<double>("paperheight");
   int origin=getSetting<int>("align");
     
-  pair bboxshift=origin == ZERO ? 0.0 : pair(-b.left,-b.bottom);
+  pair bboxshift=(origin == ZERO && !pdfformat) ? 0.0 : pair(-b.left,-b.bottom);
   if(!pdfformat) {
     bboxshift += getSetting<pair>("offset");
     if(origin != ZERO && origin != BOTTOM) {
