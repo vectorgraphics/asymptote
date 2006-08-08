@@ -214,7 +214,8 @@ bool picture::texprocess(const string& texname, const string& outname,
 	BoundingBox(*fout,box);
 	first=false;
 	if(bboxshift != 0.0) {
-	  *fout << "gsave " << bboxshift.getx() << " " << bboxshift.gety()
+	  *fout << "gsave " << newl
+		<< bboxshift.getx() << " " << bboxshift.gety()
 		<< " translate" << newl;
 	}
       } else *fout << s << newl;
