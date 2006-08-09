@@ -180,7 +180,8 @@ bool picture::texprocess(const string& texname, const string& outname,
     double height=box.top-box.bottom+1.0;
     
     // Magic dvips offsets:
-    double hoffset=-128.34;
+    double hoffset=-128.4;
+    cout << height << endl;
     double voffset=(height < 13.0) ? -137.8+height : -124.8;
 
     hoffset += box.left+bboxshift.getx();
@@ -194,11 +195,6 @@ bool picture::texprocess(const string& texname, const string& outname,
     dcmd << " -o '" << psname << "' '" << dviname << "'";
     status=System(dcmd,0,true,"dvips");
     
-    double fuzz=0.06;
-    
-    box.right += fuzz;
-    box.top += fuzz;
-
     ifstream fin(psname.c_str());
     ofstream *Fout=NULL;
     ostream *fout=(outname == "") ? &cout :
@@ -397,7 +393,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   paperHeight=getSetting<double>("paperheight");
   int origin=getSetting<int>("align");
     
-  pair bboxshift=(origin == ZERO && !pdfformat) ? 0.0 : pair(-b.left,-b.bottom);
+  pair bboxshift=(origin == ZERO) ? 0.0 : pair(-b.left,-b.bottom);
   if(!pdfformat) {
     bboxshift += getSetting<pair>("offset");
     if(origin != ZERO && origin != BOTTOM) {
