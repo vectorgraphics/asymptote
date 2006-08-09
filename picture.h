@@ -63,11 +63,10 @@ public:
   void texinit();
 
   bool texprocess(const string& texname, const string& tempname,
-		  const string& prefix, bbox& box, const pair& bboxshift); 
+		  const string& prefix, const pair& bboxshift); 
     
   bool postprocess(const string& epsname, const string& outname, 
-		   const string& outputformat, bool wait, bool view,
-		   const bbox& box);
+		   const string& outputformat, bool wait, bool view);
     
   // Ship the picture out to PostScript & TeX files.
   bool shipout(picture* preamble, const string& prefix,

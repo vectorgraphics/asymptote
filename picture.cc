@@ -153,8 +153,7 @@ void picture::texinit()
 }
   
 bool picture::texprocess(const string& texname, const string& outname,
-			 const string& prefix, bbox& box,
-			 const pair& bboxshift) 
+			 const string& prefix, const pair& bboxshift) 
 {
   int status=0;
   ifstream outfile;
@@ -177,15 +176,14 @@ bool picture::texprocess(const string& texname, const string& outname,
     string dviname=auxname(prefix,"dvi");
     string psname=auxname(prefix,"ps");
     
-    double height=box.top-box.bottom+1.0;
+    double height=b.top-b.bottom+1.0;
     
     // Magic dvips offsets:
     double hoffset=-128.4;
-    cout << height << endl;
     double voffset=(height < 13.0) ? -137.8+height : -124.8;
 
-    hoffset += box.left+bboxshift.getx();
-    voffset += paperHeight-height-box.bottom-bboxshift.gety();
+    hoffset += b.left+bboxshift.getx();
+    voffset += paperHeight-height-b.bottom-bboxshift.gety();
     
     ostringstream dcmd;
     dcmd << "'" << getSetting<mem::string>("dvips") << "' -R "
@@ -208,6 +206,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     while(getline(fin,s)) {
       if(s.find("%%DocumentPaperSizes:") == 0) continue;
       if(first && s.find("%%BoundingBox:") == 0) {
+	bbox box=b;
 	box.shift(bboxshift);
 	if(verbose > 2) BoundingBox(cout,box);
 	BoundingBox(*fout,box);
@@ -250,8 +249,7 @@ bool picture::texprocess(const string& texname, const string& outname,
 }
 
 bool picture::postprocess(const string& epsname, const string& outname,
-			  const string& outputformat, bool wait, bool view,
-			  const bbox& box)
+			  const string& outputformat, bool wait, bool view)
 {
   int status=0;
   ostringstream cmd;
@@ -262,8 +260,8 @@ bool picture::postprocess(const string& epsname, const string& outname,
 	  << "' -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
 	  << " -dCompatibilityLevel=1.4 -dAutoRotatePages=/None"
 	  << " -g" << ceil(paperWidth) << "x" << ceil(paperHeight)
-	  << " -dDEVICEWIDTHPOINTS=" << box.right-box.left
-	  << " -dDEVICEHEIGHTPOINTS=" << box.top-box.bottom
+	  << " -dDEVICEWIDTHPOINTS=" << b.right-b.left
+	  << " -dDEVICEHEIGHTPOINTS=" << b.top-b.bottom
 	  << " -sOutputFile='" << outname << "' '" << epsname << "'";
       status=System(cmd,0,true,"gs","Ghostscript");
     } else {
@@ -354,7 +352,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       ShipoutNumber++;
       return true;
     }
-    return postprocess(epsname,outname,outputformat,wait,view,b);
+    return postprocess(epsname,outname,outputformat,wait,view);
   }
   
   if(deconstruct && !tgifformat) {
@@ -494,14 +492,14 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     } else {
       if(Labels) {
 	tex->epilogue();
-	status=texprocess(texname,epsname,prefix,bshift,bboxshift);
+	status=texprocess(texname,epsname,prefix,bboxshift);
 	if(!getSetting<bool>("keep"))
 	  for(std::list<string>::iterator p=psnameStack.begin();
 	      p != psnameStack.end(); ++p)
 	    unlink(p->c_str());
       }
       if(status)
-	status=postprocess(epsname,outname,outputformat,wait,view,bshift);
+	status=postprocess(epsname,outname,outputformat,wait,view);
     }
   }
   
