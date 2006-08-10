@@ -6211,6 +6211,8 @@ represent the rectangular boundaries over which the curve is interpolated.
 Type @code{asy -h} to see the full list of command line options
 supported by @code{Asymptote}:
 @verbatim
+Usage: asy [options] [file ...]
+
 Options: 
 -V,-View              View output; command-line only
 -a,-align C|B|T|Z     Center, Bottom, Top, or Zero page alignment [Center]
@@ -6250,6 +6252,7 @@ Options:
 -unsafe               Enable system call; command-line only [false]
 -u,-user x            General purpose user string  [""]
 -v,-verbose           Increase verbosity level [0]
+
 @end verbatim
 
 All boolean options, except for @code{-unsafe}, @code{-safe}, and
