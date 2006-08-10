@@ -6211,47 +6211,45 @@ represent the rectangular boundaries over which the curve is interpolated.
 Type @code{asy -h} to see the full list of command line options
 supported by @code{Asymptote}:
 @verbatim
-Usage: asy [options] [file ...]
-
 Options: 
--V,-View             View output files; command-line only
--a,-align C|B|T|Z    Center, Bottom, Top, or Zero page alignment [Center]
--autoplain           Enable automatic importing of plain [true]
--batchMask           Mask fpu exceptions in batch mode [false]
--batchView           View output in batch mode [false]
--bw                  Convert all colors to black and white [false]
--c,-clearGUI         Clear GUI operations [false]
--cmyk                Convert rgb colors to cmyk [false]
--d,-debug            Enable debugging messages [false]
--x,-deconstruct X    Deconstruct into transparent GIF objects magnified by X
--gray                Convert all colors to grayscale [false]
--h,-help             Show summary of options; command-line only
--historylines n      Retain n lines of history [1000]
--i,-ignoreGUI        Ignore GUI operations [false]
--inlinetex           Generate inline tex code [false]
--interactiveMask     Mask fpu exceptions in interactive mode [true]
--interactiveView     View output in interactive mode [true]
--k,-keep             Keep intermediate files [false]
--l,-listvariables    List available global functions and variables [false]
--localhistory        Use a local interactive history file [false]
--m,-mask             Mask fpu exceptions; command-line only
--multipleView        View output from multiple batch-mode files [false]
--O,-offset pair      PostScript offset [(0,0)]
--f,-outformat format Convert each output file to specified format [eps]
--o,-outname name     Alternative output name for first file
--p,-parseonly        Parse test [false]
--prompt string       Prompt ["> "]
--q,-quiet            Suppress welcome message [false]
--rgb                 Convert cmyk colors to rgb [false]
--safe                Disable system call; command-line only [true]
--scroll n            Scroll standard output n lines at a time [0]
--tex                 Enable LaTeX label postprocessing [true]
--s,-translate        Translate test [false]
--twice               Run LaTeX twice (to resolve references) [false]
--unsafe              Enable system call; command-line only [false]
--u,-user x           General purpose user command string [""]
--v,-verbose          Increase verbosity level [0]
-
+-V,-View              View output; command-line only
+-a,-align C|B|T|Z     Center, Bottom, Top, or Zero page alignment [Center]
+-autoplain            Enable automatic importing of plain [true]
+-batchMask            Mask fpu exceptions in batch mode [false]
+-batchView            View output in batch mode [false]
+-bw                   Convert all colors to black and white [false]
+-c,-clearGUI          Clear GUI operations [false]
+-cmyk                 Convert rgb colors to cmyk [false]
+-d,-debug             Enable debugging messages [false]
+-x,-deconstruct X     Deconstruct into transparent GIF objects magnified by X
+-gray                 Convert all colors to grayscale [false]
+-h,-help              Show summary of options; command-line only
+-historylines n       Retain n lines of history [1000]
+-i,-ignoreGUI         Ignore GUI operations [false]
+-inlinetex            Generate inline tex code [false]
+-interactiveMask      Mask fpu exceptions in interactive mode [true]
+-interactiveView      View output in interactive mode [true]
+-k,-keep              Keep intermediate files [false]
+-l,-listvariables     List available global functions and variables [false]
+-localhistory         Use a local interactive history file [false]
+-m,-mask              Mask fpu exceptions; command-line only
+-multipleView         View output from multiple batch-mode files [false]
+-O,-offset pair       PostScript offset [(0,0)]
+-f,-outformat format  Convert each output file to specified format [eps]
+-o,-outname name      Alternative output name for first file
+-p,-parseonly         Parse test [false]
+-prompt string        Prompt ["> "]
+-q,-quiet             Suppress welcome message [false]
+-rgb                  Convert cmyk colors to rgb [false]
+-safe                 Disable system call; command-line only [true]
+-scroll n             Scroll standard output n lines at a time [0]
+-tabcompletion        Interactive prompt auto-completion [true]
+-tex                  Enable LaTeX label postprocessing [true]
+-s,-translate         Translate test [false]
+-twice                Run LaTeX twice (to resolve references) [false] [false]
+-unsafe               Enable system call; command-line only [false]
+-u,-user x            General purpose user string  [""]
+-v,-verbose           Increase verbosity level [0]
 @end verbatim
 
 All boolean options, except for @code{-unsafe}, @code{-safe}, and
