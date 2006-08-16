@@ -312,6 +312,30 @@ void axes(Label xlabel="$x$", Label ylabel="$y$", Label zlabel="$z$",
   axes(xlabel,ylabel,zlabel,limits(min,max),p,arrow,put,P);
 }
 
+void xtick(picture pic=currentpicture, Label L="", triple v, triple dir=Y,
+	   string format="", real size=Ticksize, pen p=currentpen,
+	   projection P=currentprojection)
+{
+  if(L.s == "") L.s=format(format == "" ? defaultformat : format,v.x);
+  xtick(pic,L,project(v,P),project(dir,P),format,size,p);
+}
+
+void ytick(picture pic=currentpicture, Label L="", triple v, triple dir=X,
+	   string format="", real size=Ticksize, pen p=currentpen,
+	   projection P=currentprojection)
+{
+  if(L.s == "") L.s=format(format == "" ? defaultformat : format,v.y);
+  xtick(pic,L,project(v,P),project(dir,P),format,size,p);
+}
+
+void ztick(picture pic=currentpicture, Label L="", triple v, triple dir=Y,
+	   string format="", real size=Ticksize, pen p=currentpen,
+	   projection P=currentprojection)
+{
+  if(L.s == "") L.s=format(format == "" ? defaultformat : format,v.z);
+  xtick(pic,L,project(v,P),project(dir,P),format,size,p);
+}
+
 typedef guide3 graph(triple F(real), real, real, int);
 
 graph graph(guide3 join(... guide3[]))
@@ -340,7 +364,7 @@ guide3 graph(picture pic=currentpicture, real x(real), real y(real),
 		     a,b,n);
 }
 
-guide3 graph3(picture pic=currentpicture, triple v(real), real a, real b,
+guide3 graph(picture pic=currentpicture, triple v(real), real a, real b,
 	     int n=ngraph, interpolate join=operator --)
 {
   return graph(join)(new triple(real t) {return Scale(pic,v(t));},a,b,n);

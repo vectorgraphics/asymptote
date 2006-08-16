@@ -1415,7 +1415,10 @@ void tick(picture pic=currentpicture, pair z, pair dir, real size=Ticksize,
 }
 
 void xtick(picture pic=currentpicture, pair z, pair dir=N,
-	   real size=Ticksize, pen p=currentpen)=tick;
+	   real size=Ticksize, pen p=currentpen)
+{
+  tick(pic,z,dir,size,p);
+}
 
 void xtick(picture pic=currentpicture, Label L, pair z, pair dir=N,
 	   string format="", real size=Ticksize, pen p=currentpen)
@@ -1446,7 +1449,10 @@ void ytick(picture pic=currentpicture, Label L, real y, pair dir=E,
 }
 
 void ytick(picture pic=currentpicture, explicit pair z, pair dir=E,
-	   real size=Ticksize, pen p=currentpen)=tick;
+	   real size=Ticksize, pen p=currentpen) 
+{
+  tick(pic,z,dir,size,p);
+}
 
 void ytick(picture pic=currentpicture, real y, pair dir=E,
 	   real size=Ticksize, pen p=currentpen)
