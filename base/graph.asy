@@ -380,10 +380,10 @@ void labelaxis(frame f, transform T, Label L, guide g,
   int n=length(g);
   real t=L.relative();
   pair s=realmult(width,dir(g,t));
-  if(t == 0) {
+  if(t <= 0) {
     if(L.align.default) s *= -axislabelfactor;
     d=shift(s)*d;
-  } else if(t == n) {
+  } else if(t >= n) {
     if(L.align.default) s *= -axislabelfactor;
     d=shift(-s)*d;
   } else if(offset == 0 && L.align.default) {
