@@ -102,7 +102,6 @@ const char *rl_gets()
     line_read=NULL;
   }
      
-  
   // Rebind tab key, as the setting tabcompletion may be changed at runtime.
   pre_readline();
 

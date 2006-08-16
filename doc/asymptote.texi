@@ -2896,8 +2896,9 @@ treated as an ordinary character).
 
 @cindex @code{cd}
 @cindex directory
-One can change the current working directory with the
-@code{string cd(string)} function, which returns the new working directory.
+One can change the current working directory to the contents of the string
+@code{d} with the function @code{string cd(string d)}, which returns
+the new working directory.
 
 @cindex @code{getc}
 When reading pairs, the enclosing parenthesis are optional.

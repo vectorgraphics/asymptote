@@ -93,7 +93,7 @@ varEntry *qualifyVarEntry(varEntry *qv, varEntry *v)
 
 tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent)
 {
-  // Records need a varEntry that refers back to the qualifier qv.  Ie. in
+  // Records need a varEntry that refers back to the qualifier qv; i.e. in
   // the last new of the code
   //   struct A {
   //     struct B {}
@@ -101,8 +101,7 @@ tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent)
   //   A a=new A;
   //   use a;
   //   new B;
-  // we need to put a's frame on the stack before allocating an instance of
-  // B.
+  // we need to put a's frame on the stack before allocating an instance of B.
   // NOTE: A possible optimization could be to only qualify the varEntry if
   // the type is a record, as other types don't use the varEntry.
   return new tyEntry(ent->t, qualifyVarEntry(qv, ent->v));
@@ -188,7 +187,7 @@ varEntry *venv::lookByType(symbol *name, ty *t)
 
 void venv::list()
 {
-  // List all functions.
+  // List all functions and variables.
   for(names_t::iterator N = names.begin(); N != names.end(); ++N) {
     symbol *s=N->first;
     name_t &list=names[s];
@@ -358,7 +357,7 @@ void venv::listValues(symbol *name, values &vals) {
 
 void venv::list()
 {
-  // List all variables.
+  // List all functions and variables.
   for(namemap::iterator N = names.begin(); N != names.end(); ++N)
     listValues(N->first, N->second);
 }
