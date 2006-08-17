@@ -50,10 +50,10 @@ ASYMPTOTE_DIR = ../base
 
 export prefix docdir exampledir mandir infodir INSTALL ASYMPTOTE_DIR DESTDIR
 
-asy: $(FILES:=.o) $(GCLIBS)
+asy: $(GCLIBS) $(FILES:=.o)
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) $(LIBS)
 
-msdos: $(FILES:=.o) asy.o $(GCLIBS)
+msdos: $(GCLIBS) $(FILES:=.o) asy.o
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) asy.o $(LIBS) -s -static
 
 asy.o:	asy.rc asy.ico Makefile
@@ -86,7 +86,7 @@ camp.tab.h camp.tab.cc: camp.y
 lex.yy.cc: camp.l
 	$(LEX) -d -olex.yy.cc camp.l
 
-lex.yy.d: lex.yy.cc camp.tab.h $(GCLIBS)
+lex.yy.d: $(GCLIBS) lex.yy.cc camp.tab.h
 
 keywords.cc: keywords.pl camp.l
 	perl keywords.pl
