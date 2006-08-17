@@ -195,6 +195,7 @@ void venv::list(record *module)
       if(!module || (*p)->whereDefined() == module) {
       (*p)->getType()->printVar(std::cout, s);
       std::cout << ";\n";
+      }
     }
   }
   flush(cout);
