@@ -65,7 +65,7 @@ bool newRecordExp::encodeLevel(coenv &e, trans::tyEntry *ent)
 
 types::ty *newRecordExp::trans(coenv &e)
 {
-  trans::tyEntry *ent = result->transAsTyEntry(e);
+  trans::tyEntry *ent = result->transAsTyEntry(e, 0);
   types::ty *t = ent->t;
   if (t->kind == ty_error)
     return t;

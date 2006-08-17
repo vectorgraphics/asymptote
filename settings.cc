@@ -236,7 +236,7 @@ struct setting : public option {
 
 #if 0
   varEntry *buildVarEntry() {
-    return new varEntry(t, buildAccess());
+    return new varEntry(t, buildAccess(), getSettingsModule());
   }
 #endif
 };

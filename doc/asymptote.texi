@@ -132,6 +132,7 @@ Base modules
 * latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Implement @code{LaTeX} @code{babel} package
 * embed::                       Embedding movies, sounds, and 3D objects
+* annotate::                    Annotate your @acronym{PDF} files
 * graph::                       2D linear & logarithmic graphs
 * palette::                     Color density images and palettes
 * three::                       3D vector graphics
@@ -1300,16 +1301,6 @@ drawn on top of the included image:
 label(graphic("file.eps","width=1cm"),(0,0),NE);
 layer();
 @end verbatim
-
-@cindex @code{annotate}
-To annotate an @acronym{PDF} file for viewing with @code{Adobe Reader},
-use the function
-@verbatim
-void annotate(picture pic=currentpicture, string title, string text,
-	      pair position);
-@end verbatim
-@noindent
-An example of annotation is provided in the example file @code{annotation.asy}.
 
 @cindex @code{baseline}
 The @code{string baseline(string s, align align=S, string template="M")} 
@@ -4427,6 +4418,15 @@ include graph;
 @noindent
 @code{include "@value{Datadir}/asymptote/graph.asy";}
 
+To list all global functions and variables defined in a module named
+by the contents of the string @code{s}, use the function
+@verbatim
+void list(string *s, bool imports=false);
+@end verbatim
+@noindent
+Imported global functions and variables are also listed if
+@code{imports} is @code{true}.
+
 @node Static
 @section Static
 @cindex @code{static}
@@ -4581,6 +4581,7 @@ Here now is @code{latexusage.tex}:
 * latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Implement @code{LaTeX} @code{babel} package
 * embed::                       Embedding movies, sounds, and 3D objects
+* annotate::                    Annotate your @acronym{PDF} files
 * graph::                       2D linear & logarithmic graphs
 * palette::                     Color density images and palettes
 * three::                       3D vector graphics
@@ -4839,6 +4840,19 @@ plugins for the Linux version of @code{Adobe Reader}.
 An example of this interface is provided in the file
 @code{embeddedmovie.asy} in the @code{animations} subdirectory of the
 examples directory.
+
+@node annotate
+@section @code{annotate}
+@cindex @code{annotate}
+@cindex @code{annotate}
+This module supports @acronym{PDF} annotations for viewing with
+@code{Adobe Reader}, via the function
+@verbatim
+void annotate(picture pic=currentpicture, string title, string text,
+	      pair position);
+@end verbatim
+@noindent
+Annotations are illustrated in the example file @code{annotation.asy}.
 
 @node graph
 @section @code{graph}
@@ -6786,4 +6800,5 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel nv
 @c  LocalWords:  zlabel strptime slopefields cputime roundrectangle slopefield
 @c  LocalWords:  tickfactor USERNAME writeable imagecontour logimage Dumoulin's
-@c  LocalWords:  NoCrop parametricsurface realmult
+@c  LocalWords:  NoCrop parametricsurface realmult SoftLight HardLight interp
+@c  LocalWords:  ColorDodge ColorBurn

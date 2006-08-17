@@ -136,9 +136,9 @@ public:
   void addRecordOps(types::record *r);
   void addFunctionOps(types::function *f);
 
-  void list()
+  void list(record *r=0)
   {
-    ve.list();
+    ve.list(r);
   }
 
   // Adds to a list the keywords in the environment that start with the given

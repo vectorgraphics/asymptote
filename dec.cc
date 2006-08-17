@@ -22,9 +22,9 @@ namespace absyntax {
 using namespace trans;
 using namespace types;
   
-trans::tyEntry *ty::transAsTyEntry(coenv &e)
+trans::tyEntry *ty::transAsTyEntry(coenv &e, record *where)
 {
-  return new trans::tyEntry(trans(e, false), 0);
+  return new trans::tyEntry(trans(e, false), 0, where);
 }
 
 
@@ -40,7 +40,7 @@ types::ty *nameTy::trans(coenv &e, bool tacit)
   return id->typeTrans(e, tacit);
 }
 
-trans::tyEntry *nameTy::transAsTyEntry(coenv &e)
+trans::tyEntry *nameTy::transAsTyEntry(coenv &e, record *)
 {
   return id->tyEntryTrans(e);
 }
@@ -278,9 +278,10 @@ types::ty *decidstart::getType(types::ty *base, coenv &, bool)
   return dims ? dims->truetype(base) : base;
 }
 
-trans::tyEntry *decidstart::getTyEntry(trans::tyEntry *base, coenv &e)
+trans::tyEntry *decidstart::getTyEntry(trans::tyEntry *base, coenv &e,
+                                       record *where)
 {
-  return dims ? new trans::tyEntry(getType(base->t,e,false), 0) :
+  return dims ? new trans::tyEntry(getType(base->t,e,false), 0, where) :
                 base;
 }
 
@@ -315,9 +316,10 @@ types::ty *fundecidstart::getType(types::ty *base, coenv &e, bool tacit)
   }
 }
 
-trans::tyEntry *fundecidstart::getTyEntry(trans::tyEntry *base, coenv &e)
+trans::tyEntry *fundecidstart::getTyEntry(trans::tyEntry *base, coenv &e,
+                                          record *where)
 {
-  return new trans::tyEntry(getType(base->t,e,false), 0);
+  return new trans::tyEntry(getType(base->t,e,false), 0, where);
 }
 
 void fundecidstart::addOps(types::ty *base, coenv &e)
@@ -345,8 +347,8 @@ varEntry *makeVarEntry(coenv &e, record *r, types::ty *t)
   access *a = r ? r->allocField(e.c.isStatic()) :
                   e.c.allocLocal();
 
-  return r ? new varEntry(t, a, e.c.getPermission(), r) :
-             new varEntry(t, a);
+  return r ? new varEntry(t, a, e.c.getPermission(), r, r) :
+             new varEntry(t, a, r);
 }
 
 void addVar(coenv &e, record *r, varEntry *v, symbol *id)
@@ -417,7 +419,7 @@ void decid::transAsField(coenv &e, record *r, types::ty *base)
 
 void decid::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
 {
-  trans::tyEntry *ent = start->getTyEntry(base, e);
+  trans::tyEntry *ent = start->getTyEntry(base, e, r);
   assert(ent && ent->t);
 
   if (init) {
@@ -462,7 +464,7 @@ void vardec::prettyprint(ostream &out, int indent)
 
 void vardec::transAsTypedefField(coenv &e, record *r)
 {
-  decs->transAsTypedefField(e, base->transAsTyEntry(e), r);
+  decs->transAsTypedefField(e, base->transAsTyEntry(e, r), r);
 }
 
 // Helper class for imports.  This essentially evaluates to the run::loadModule
@@ -696,7 +698,7 @@ void recorddec::transAsField(coenv &e, record *parent)
   record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
                        e.c.newRecord(id);
                      
-  addTypeWithPermission(e, parent, new trans::tyEntry(r,0), id);
+  addTypeWithPermission(e, parent, new trans::tyEntry(r,0,parent), id);
   e.e.addRecordOps(r);
   if (parent)
     parent->e.addRecordOps(r);

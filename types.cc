@@ -127,61 +127,61 @@ trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
     case ty_pair:
       if (sig == 0 && id == symbol::trans("x")) {
         static trans::bltinAccess a(run::pairXPart);
-        static trans::varEntry v(primReal(), &a);
+        static trans::varEntry v(primReal(), &a, 0);
         return &v;
       }
       if (sig == 0 && id == symbol::trans("y")) {
         static trans::bltinAccess a(run::pairYPart);
-        static trans::varEntry v(primReal(), &a);
+        static trans::varEntry v(primReal(), &a, 0);
         return &v;
       }
       break;
     case ty_triple:
       if (sig == 0 && id == symbol::trans("x")) {
         static trans::bltinAccess a(run::tripleXPart);
-        static trans::varEntry v(primReal(), &a);
+        static trans::varEntry v(primReal(), &a, 0);
         return &v;
       }
       if (sig == 0 && id == symbol::trans("y")) {
         static trans::bltinAccess a(run::tripleYPart);
-        static trans::varEntry v(primReal(), &a);
+        static trans::varEntry v(primReal(), &a, 0);
         return &v;
       }
       if (sig == 0 && id == symbol::trans("z")) {
         static trans::bltinAccess a(run::tripleZPart);
-        static trans::varEntry v(primReal(), &a);
+        static trans::varEntry v(primReal(), &a, 0);
         return &v;
       }
       break;
     case ty_transform:
       if (sig == 0 && id == symbol::trans("x")) {
         static trans::bltinAccess a(run::transformXPart);
-        static trans::varEntry v(primReal(), &a);
+        static trans::varEntry v(primReal(), &a, 0);
         return &v;
       }
       if (sig == 0 && id == symbol::trans("y")) {
         static trans::bltinAccess a(run::transformYPart);
-        static trans::varEntry v(primReal(), &a);
+        static trans::varEntry v(primReal(), &a, 0);
         return &v;
       }
       if (sig == 0 && id == symbol::trans("xx")) {
         static trans::bltinAccess a(run::transformXXPart);
-        static trans::varEntry v(primReal(), &a);
+        static trans::varEntry v(primReal(), &a, 0);
         return &v;
       }
       if (sig == 0 && id == symbol::trans("xy")) {
         static trans::bltinAccess a(run::transformXYPart);
-        static trans::varEntry v(primReal(), &a);
+        static trans::varEntry v(primReal(), &a, 0);
         return &v;
       }
       if (sig == 0 && id == symbol::trans("yx")) {
         static trans::bltinAccess a(run::transformYXPart);
-        static trans::varEntry v(primReal(), &a);
+        static trans::varEntry v(primReal(), &a, 0);
         return &v;
       }
       if (sig == 0 && id == symbol::trans("yy")) {
         static trans::bltinAccess a(run::transformYYPart);
-        static trans::varEntry v(primReal(), &a);
+        static trans::varEntry v(primReal(), &a, 0);
         return &v;
       }
     default:
@@ -282,20 +282,20 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
   if (sig == 0 && id == symbol::trans("length"))
   {
     static trans::bltinAccess a(run::arrayLength);
-    static trans::varEntry v(primInt(), &a);
+    static trans::varEntry v(primInt(), &a, 0);
     return &v;
   }
   if (sig == 0 && id == symbol::trans("cyclicflag"))
   {
     static trans::bltinAccess a(run::arrayCyclicFlag);
-    static trans::varEntry v(primBoolean(), &a);
+    static trans::varEntry v(primBoolean(), &a, 0);
     return &v;
   }
   if (id == symbol::trans("cyclic") &&
       equivalent(sig, cyclicType()->getSignature()))
   {
     static trans::bltinAccess a(run::arrayCyclic);
-    static trans::varEntry v(cyclicType(), &a);
+    static trans::varEntry v(cyclicType(), &a, 0);
     return &v;
   }
   if (id == symbol::trans("push") &&
@@ -303,7 +303,7 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
   {
     static trans::bltinAccess a(run::arrayPush);
     // v needs to be dynamic, as the push type differs among arrays.
-    trans::varEntry *v = new trans::varEntry(pushType(), &a);
+    trans::varEntry *v = new trans::varEntry(pushType(), &a, 0);
 
     return v;
   }
@@ -312,7 +312,7 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
   {
     static trans::bltinAccess a(run::arrayPop);
     // v needs to be dynamic, as the pop type differs among arrays.
-    trans::varEntry *v = new trans::varEntry(popType(), &a);
+    trans::varEntry *v = new trans::varEntry(popType(), &a, 0);
 
     return v;
   }
@@ -321,7 +321,7 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
   {
     static trans::bltinAccess a(run::arrayAppend);
     // v needs to be dynamic, as the append type differs among arrays.
-    trans::varEntry *v = new trans::varEntry(appendType(), &a);
+    trans::varEntry *v = new trans::varEntry(appendType(), &a, 0);
 
     return v;
   }
@@ -330,7 +330,7 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
   {
     static trans::bltinAccess a(run::arrayInsert);
     // v needs to be dynamic, as the insert type differs among arrays.
-    trans::varEntry *v = new trans::varEntry(insertType(), &a);
+    trans::varEntry *v = new trans::varEntry(insertType(), &a, 0);
 
     return v;
   }
@@ -339,7 +339,7 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
   {
     static trans::bltinAccess a(run::arrayDelete);
     // v needs to be dynamic, as the delete type differs among arrays.
-    trans::varEntry *v = new trans::varEntry(deleteType(), &a);
+    trans::varEntry *v = new trans::varEntry(deleteType(), &a, 0);
 
     return v;
   }

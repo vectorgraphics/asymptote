@@ -1378,6 +1378,15 @@ string cd(string *d)
   return p;
 }
 
+void list(string *s, bool imports=false)
+{
+  if(*s == "-") return;
+  trans::genv ge;
+  symbol *name=symbol::trans((std::string) *s);
+  record *r=ge.getModule(name,*s);
+  r->e.list(imports ? 0 : r);
+}
+
 
 // Path operations
 
@@ -3635,7 +3644,6 @@ string readline(string prompt=emptystring, string history=emptystring,
   store_history(&History);
   history_set_history_state(&history_save);
 
-  init_readline(false);
   return line_read ? string(*line_read ? line_read : Default) : emptystring;
 #else
   Stdout.write(prompt);

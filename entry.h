@@ -59,13 +59,18 @@ class entry : public gc {
       perms.push_back(pr(perm,r));
   }
 
+  // The record where the variable or type is defined, or 0 if the entry is
+  // not a field.
+  record *where;
+  
 public:
-  entry() {}
-  entry(permission perm, record *r) {
+  entry(record *where) : where(where) {}
+  entry(permission perm, record *r, record *where) : where(where) {
     addPerm(perm, r);
   }
 
   // (Non-destructively) merges two entries, appending permission lists.
+  // The 'where' member is taken from the second entry.
   entry(entry &e1, entry &e2);
   
   // Create an entry with one more permission in the list.
@@ -74,6 +79,9 @@ public:
   bool checkPerm(action act, coder &c);
   void reportPerm(action act, position pos, coder &c);
 
+  record *whereDefined() {
+    return where;
+  }
 };
     
 class varEntry : public entry {
@@ -81,11 +89,11 @@ class varEntry : public entry {
   access *location;
 
 public:
-  varEntry(ty *t, access *location)
-    : t(t), location(location) {}
+  varEntry(ty *t, access *location, record *where)
+    : entry(where), t(t), location(location) {}
 
-  varEntry(ty *t, access *location, permission perm, record *r)
-    : entry(perm, r), t(t), location(location) {}
+  varEntry(ty *t, access *location, permission perm, record *r, record *where)
+    : entry(perm, r, where), t(t), location(location) {}
 
   // (Non-destructively) merges two varEntries, created a qualified varEntry.
   varEntry(varEntry &qv, varEntry &v);
@@ -118,8 +126,8 @@ public:
   ty *t;
   varEntry *v;  // NOTE: Name isn't very descriptive.
 
-  tyEntry(ty *t, varEntry *v=0)
-    : t(t), v(v) {}
+  tyEntry(ty *t, varEntry *v, record *where)
+    : entry(where), t(t), v(v) {}
 
   tyEntry(tyEntry *base, permission perm, record *r)
     : entry(*base, perm, r), t(base->t), v(base->v) {}
@@ -178,7 +186,7 @@ public:
   friend std::ostream& operator<< (std::ostream& out, const venv& ve);
   
   // Prints a list of the variables to the standard output.
-  void list();
+  void list(record *module=0);
 };
 
 //}}}
@@ -258,7 +266,7 @@ public:
   typedef mem::hash_map<symbol *, values, namehash, nameeq> namemap;
   namemap names;
 
-  void listValues(symbol *name, values &vals);
+  void listValues(symbol *name, values &vals, record *module);
 
   // Helper function for endScope.
   void remove(key k);
@@ -314,7 +322,7 @@ public:
   }
 
   // Prints a list of the variables to the standard output.
-  void list();
+  void list(record *module=0);
 
   // Adds to l, all names prefixed by start.
   void completions(mem::list<symbol *>& l, mem::string start);

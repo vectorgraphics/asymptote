@@ -51,7 +51,7 @@ void gen_base_venv(venv &ve);
 
 void addType(tenv &te, const char *name, ty *t)
 {
-  te.enter(symbol::trans(name), new tyEntry(t,0));
+  te.enter(symbol::trans(name), new tyEntry(t,0,0));
 }
 
 // The base environments for built-in types and functions
@@ -94,7 +94,9 @@ void addFunc(venv &ve, access *a, ty *result, symbol *id,
   if (f7.t) fun->add(f7);
   if (f8.t) fun->add(f8);
 
-  varEntry *ent = new varEntry(fun, a);
+  // NOTE: If the function is a field, we should encode the defining record in
+  // the entry
+  varEntry *ent = new varEntry(fun, a, 0);
   
   ve.enter(id, ent);
 }
@@ -134,7 +136,7 @@ void addRestFunc(venv &ve, bltin f, ty *result, const char *name, formal frest,
 
   if (frest.t) fun->addRest(frest);
 
-  varEntry *ent = new varEntry(fun, a);
+  varEntry *ent = new varEntry(fun, a, 0);
 
   ve.enter(symbol::trans(name), ent);
 }
@@ -338,7 +340,7 @@ void addConstant(venv &ve, T value, ty *t, const char *name,
   item* ref=new item;
   *ref=value;
   access *a = new itemRefAccess(ref);
-  varEntry *ent = new varEntry(t, a, RESTRICTED, module);
+  varEntry *ent = new varEntry(t, a, RESTRICTED, module, 0);
   ve.enter(symbol::trans(name), ent);
 }
 

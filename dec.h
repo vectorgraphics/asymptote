@@ -54,7 +54,7 @@ public:
   // needed to silence errors in this case.
   virtual types::ty *trans(coenv &e, bool tacit = false) = 0;
 
-  virtual trans::tyEntry *transAsTyEntry(coenv &e);
+  virtual trans::tyEntry *transAsTyEntry(coenv &e, record *where);
 };
 
 class nameTy : public ty {
@@ -70,7 +70,7 @@ public:
   void prettyprint(ostream &out, int indent);
 
   types::ty *trans(coenv &e, bool tacit = false);
-  trans::tyEntry *transAsTyEntry(coenv &e);
+  trans::tyEntry *transAsTyEntry(coenv &e, record *where);
 };
 
 class dimensions : public absyn {
@@ -272,7 +272,8 @@ public:
   virtual void prettyprint(ostream &out, int indent);
 
   virtual types::ty *getType(types::ty *base, coenv &, bool = false);
-  virtual trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e);
+  virtual trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e,
+                                     record *where);
 
   // If a new type is formed by adding dimensions (or a function signature)
   // after the id, this will add the standard functions for that new type.
@@ -298,7 +299,7 @@ public:
   void prettyprint(ostream &out, int indent);
 
   types::ty *getType(types::ty *base, coenv &e, bool tacit = false);
-  trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e);
+  trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e, record *where);
   void addOps(types::ty *base, coenv &e);
 };
 

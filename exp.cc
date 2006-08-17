@@ -82,9 +82,9 @@ types::ty *tempExp::trans(coenv &e) {
 
 
 varEntryExp::varEntryExp(position pos, types::ty *t, access *a)
-  : exp(pos), v(new trans::varEntry(t, a)) {}
+  : exp(pos), v(new trans::varEntry(t, a, 0)) {}
 varEntryExp::varEntryExp(position pos, types::ty *t, vm::bltin f)
-  : exp(pos), v(new trans::varEntry(t, new bltinAccess(f))) {}
+  : exp(pos), v(new trans::varEntry(t, new bltinAccess(f), 0)) {}
 
 types::ty *varEntryExp::getType(coenv &) {
   return v->getType();
