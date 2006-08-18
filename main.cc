@@ -238,7 +238,7 @@ void doICore(icore &i, bool embedded=false) {
       std::list<string> TeXpreamble_save=
 	std::list<string>(camp::TeXpreamble);
       
-      if(settings::getSetting<bool>("autoplain")) {
+      if(getSetting<bool>("autoplain")) {
 	absyntax::runnable *r=absyntax::autoplainRunnable();
 	irunnable(r).run(e,s);
       }
@@ -258,7 +258,7 @@ void doICore(icore &i, bool embedded=false) {
       camp::TeXpipepreamble=TeXpipepreamble_save;
       camp::TeXpreamble=TeXpreamble_save;
       
-      if(settings::getSetting<bool>("listvariables"))
+      if(getSetting<bool>("listvariables"))
 	base_env.list();
     }
   } catch(std::bad_alloc&) {
@@ -293,7 +293,7 @@ void doIFile(const string& filename) {
   init();
 
   string basename = stripext(filename,suffix);
-  if(settings::verbose) cout << "Processing " << basename << endl;
+  if(verbose) cout << "Processing " << basename << endl;
   
   try {
     if(getSetting<bool>("parseonly")) {
@@ -344,10 +344,10 @@ void doIPrompt() {
 
 // Run the config file.
 void doConfig(string filename) {
-  string file = settings::locateFile(filename);
+  string file=locateFile(filename);
   if(!file.empty()) {
     bool autoplain=getSetting<bool>("autoplain");
-    bool listvariables=settings::getSetting<bool>("listvariables");
+    bool listvariables=getSetting<bool>("listvariables");
     if(autoplain) Setting("autoplain")=false; // Turn off for speed.
     if(listvariables) Setting("listvariables")=false;
     doIFile(file);
