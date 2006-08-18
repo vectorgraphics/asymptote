@@ -222,8 +222,6 @@ bool picture::texprocess(const string& texname, const string& outname,
       } else
 	*fout << s << newl;
     }
-    if(shift)
-      *fout << "grestore" << newl;
     flush(*fout);
     
     if(Fout) {
@@ -467,6 +465,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       if(!(*p)->draw(&out))
 	status = false;
     }
+    if(!Labels) out.grestore();
+    
     out.epilogue();
     
     if(Labels) {
@@ -483,7 +483,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 	    status = false;
 	}
       }    
-    } else out.grestore();
+    }
   }
   
   if(status) {
