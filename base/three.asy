@@ -489,7 +489,7 @@ void write(file file, string s="", explicit flatguide3 x, suffix suffix=none)
   write(file,s);
   if(x.size() == 0) write(file,"<nullpath3>");
   else for(int i=0; i < x.nodes.length; ++i) {
-    if(i > 0) write(file);
+    if(i > 0) write(file,endl);
     if(x.cyclic[i]) write(file,"cycle3");
     else write(file,x.nodes[i]);
 
@@ -515,7 +515,7 @@ void write(file file, string s="", flatguide3[] x, suffix suffix=none)
   write(file,s);
   if(x.length > 0) write(file,x[0]);
   for(int i=1; i < x.length; ++i) {
-    write(file);
+    write(file,endl);
     write(file," ^^");
     write(file,x[i]);
   }

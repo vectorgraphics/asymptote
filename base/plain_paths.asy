@@ -75,7 +75,7 @@ void write(file file, string s="", explicit path[] x, suffix suffix=none)
   write(file,s);
   if(x.length > 0) write(file,x[0]);
   for(int i=1; i < x.length; ++i) {
-    write(file);
+    write(file,endl);
     write(file," ^^");
     write(file,x[i]);
   }

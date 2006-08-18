@@ -63,7 +63,8 @@ void endl(file file) {write(file,'\n'); flush(file);}
 void tab(file file) {write(file,'\t');}
 typedef void suffix(file);
 
-void write(file file=stdout, suffix suffix=endl) {suffix(file);}
+void write(suffix suffix=endl) {suffix(stdout);}
+void write(file file, suffix suffix=none) {suffix(file);}
 
 guide box(pair a, pair b)
 {

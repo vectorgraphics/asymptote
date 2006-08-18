@@ -2911,12 +2911,13 @@ data will be appended to an existing file only if the file is opened with
 Data of a built-in type @code{T} can be written to an output file by
 calling one of the functions
 @verbatim
-write(string s="", T x, suffix e=endl ... T[]);
-write(file fout, string s="", T x, suffix e=none ... T[]);
+write(string s="", T x, suffix suffix=endl ... T[]);
+write(file fout, string s="", T x, suffix suffix=none ... T[]);
 write(file fout=stdout, string s="", explicit T[] x ... T[][]);
 write(file fout=stdout, T[][]);
 write(file fout=stdout, T[][][]);
-write(file fout=stdout, suffix e=endl);
+write(suffix suffix=endl);
+write(file fout, suffix suffix=none);
 @end verbatim
 @cindex @code{none}
 @cindex @code{endl}
@@ -2925,7 +2926,7 @@ If the @code{fout} is not specified, @code{stdout} is used and
 terminated with a newline. If specified, the optional
 identifying string @code{s} is written before the data @code{x}.
 An arbitrary number of data values may be listed when writing scalars
-or one-dimensional arrays. The suffix @code{e} may be one of the following:
+or one-dimensional arrays. Here @code{suffix} may be one of the following:
 @code{none} (do nothing), @code{endl} (terminate with a newline), or
 @code{tab} (terminate with a tab). Here is a simple example of data output:
 @verbatim
