@@ -1,4 +1,6 @@
 // Slide demo.
+// Command-line options to enable stepping and/or reverse video:
+// asy [-u stepping=true] [-u reverse=true] slidedemo
 
 orientation=Landscape;
 
@@ -6,9 +8,6 @@ orientation=Landscape;
 asy("eps","Pythagoras","log","near_earth");
 
 import slide;
-
-// Allow user to enable stepping and/or reverse video:
-// asy -u stepping=true -u reverse=true
 
 usersetting();
 
