@@ -132,7 +132,7 @@ private segment checktriangle(pair p0, pair p1, pair p2,
 typedef guide interpolate(... guide[]);
 
 // return contour guides computed using a triangle mesh
-// f:        function for which we are finding contours
+// f:        two-dimensional array of real data values
 // a,b:      lower left and upper right vertices of rectangle
 // c:        contour level
 // nx,ny:    subdivisions on x and y axes (affects accuracy)
@@ -146,8 +146,8 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
   
   // check if boundaries are good
   if(b.x <= a.x || b.y <= a.y) {
-    abort("bad contour domain: make sure the second passed point 
-		is above and to the right of the first one.");
+    abort("bad contour domain: the second vertex (b) must be above and to the right of the first one (a).");
+    
   } 
 
   segment segments[][][]=new segment[nx][ny][0];
@@ -401,9 +401,11 @@ guide[][] contour(real f(real, real), pair a, pair b,
   for(int i=0; i <= nx; ++i) {
     real x=interp(a.x,b.x,i/nx);
     real x2=interp(a.x,b.x,(i+0.5)/nx);
+    real[] dati=dat[i];
+    real[] midpointi=midpoint[i];
     for(int j=0; j <= ny; ++j) {
-      dat[i][j]=f(x,interp(a.y,b.y,j/ny));
-      midpoint[i][j]=f(x2,interp(a.y,b.y,(j+0.5)/ny));
+      dati[j]=f(x,interp(a.y,b.y,j/ny));
+      midpointi[j]=f(x2,interp(a.y,b.y,(j+0.5)/ny));
     }
   }
 
