@@ -23,8 +23,19 @@ range Range(bool automin=true, real min=-infinity,
 range Automatic=Range();
 range Full=Range(false,false);
 
+transform transpose=(0,0,0,1,1,0);
+
+void image(frame f, real[][] data, pair initial, pair final, pen[] palette,
+	   transform t=(initial.x < final.x && initial.y < final.y) ?
+	   transpose : identity()) 
+{
+  _image(f,data,initial,final,palette,t);
+}
+
 bounds image(picture pic=currentpicture, real[][] f, range range=Full,
-	     pair initial, pair final, pen[] palette)
+	     pair initial, pair final, pen[] palette,
+	     transform t=(initial.x < final.x && initial.y < final.y) ?
+	     transpose : identity()) 
 {
   f=copy(f);
   palette=copy(palette);
@@ -62,8 +73,8 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
   initial=Scale(pic,initial);
   final=Scale(pic,final);
 
-  pic.add(new void(frame F, transform t) {
-      image(F,f,initial,final,palette,t);
+  pic.add(new void(frame F, transform T) {
+      _image(F,f,initial,final,palette,T*t);
     });
   pic.addBox(initial,final);
   return range; // Return range used for color space
@@ -71,19 +82,20 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
 
 bounds image(picture pic=currentpicture, real f(real,real),
 	     range range=Full, pair initial, pair final,
-	     int nx=100, int ny=nx, pen[] palette) 
+	     int nx=100, int ny=nx, pen[] palette)
 {
   // Generate data, taking scaling into account
   real xmin=pic.scale.x.T(initial.x);
   real xmax=pic.scale.x.T(final.x);
   real ymin=pic.scale.y.T(initial.y);
   real ymax=pic.scale.y.T(final.y);
-  real[][] data=new real[ny][nx];
-  for(int j=0; j < ny; ++j) {
-    for(int i=0; i < nx; ++i) {
+  real[][] data=new real[nx][ny];
+  for(int i=0; i < nx; ++i) {
+    real[] datai=data[i];
+    for(int j=0; j < ny; ++j) {
       // Take center point of each bin
-      data[j][i]=f(pic.scale.x.Tinv(interp(xmin,xmax,(i+0.5)/nx)),
-		pic.scale.y.Tinv(interp(ymin,ymax,(j+0.5)/ny)));
+      datai[j]=f(pic.scale.x.Tinv(interp(xmin,xmax,(i+0.5)/nx)),
+		 pic.scale.y.Tinv(interp(ymin,ymax,(j+0.5)/ny)));
     }
   }
   return image(pic,data,range,initial,final,palette);
@@ -152,7 +164,7 @@ void palette(picture pic=currentpicture, Label L="", bounds range,
       pair Z0=t*initial;
       pair Z1=t*final;
       pair initial=Z0;
-      image(f,pdata,inverse(t)*initial,final,palette,t);
+      _image(f,pdata,inverse(t)*initial,final,palette,t);
       guide G=Z0--(Z0.x,Z1.y)--Z1--(Z1.x,Z0.y)--cycle;
       draw(f,G,p);
     });

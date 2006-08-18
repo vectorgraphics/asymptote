@@ -4850,7 +4850,7 @@ This module supports @acronym{PDF} annotations for viewing with
 @code{Adobe Reader}, via the function
 @verbatim
 void annotate(picture pic=currentpicture, string title, string text,
-	      pair position);
+              pair position);
 @end verbatim
 @noindent
 Annotations are illustrated in the example file @code{annotation.asy}.
@@ -5531,9 +5531,10 @@ of these palettes to the @acronym{CMYK} colorspace.
 A color density plot using palette @code{palette} can be generated from
 a function @code{f}(@math{x},@math{y}) and added to a picture @code{pic}:
 @verbatim
+@cindex @code{image}
 bounds image(picture pic=currentpicture, real f(real,real),
              pair initial, pair final, range range=Full,
-             int nx=100, int ny=nx, pen[] palette); 
+             int nx=100, int ny=nx, pen[] palette);
 @end verbatim
 The function @code{f} will be sampled at @code{nx} and @code{ny}
 evenly spaced points over a rectangle defined by the points
@@ -5564,9 +5565,16 @@ The example @code{imagecontour.asy} illustrates how level sets
 A color density plot can also be generated from an explicit real[][]
 array @code{data}:
 @verbatim
+@cindex @code{image}
 bounds image(picture pic=currentpicture, real[][] f, range range=Full,
-             pair initial, pair final, pen[] palette);
+             pair initial, pair final, pen[] palette,
+             transform t=(initial.x < final.x && initial.y < final.y) ?
+             (0,0,0,1,1,0) : identity());
 @end verbatim
+By default, if the initial point is to the left and below the final point,
+the optional transform argument uses @code{Cartesian} coordinate
+conventions (first index: x, second index: y) rather than usual matrix
+conventions (first index: -y, second index: x).
 
 An optionally labelled palette bar may be generated with the routine
 @verbatim

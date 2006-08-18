@@ -35,7 +35,7 @@ real[] cvals;
 real[] sumarr=sequence(1,divs-1)/divs * (range.max-range.min)/Divs;
 for (int ival=0; ival < Cvals.length-1; ++ival)
     cvals.append(Cvals[ival]+sumarr);
-draw(contour(f,a,b,cvals,100,operator ..),tickpen);
+draw(contour(f,a,b,cvals,N,operator ..),tickpen);
 
 palette("$f(x,y)$",range,point(NW)+(0,0.5),point(NE)+(0,1),Top,Palette,
 	PaletteTicks(N=Divs,n=divs,Tickpen,tickpen));
