@@ -5571,15 +5571,15 @@ array @code{data}:
 @verbatim
 bounds image(picture pic=currentpicture, real[][] f, range range=Full,
              pair initial, pair final, pen[] palette,
-             transform t=(initial.x < final.x && initial.y < final.y) ?
-             (0,0,0,1,1,0) : identity());
+	     bool transpose=(initial.x < final.x && initial.y < final.y) ?
+	     true : false); 
 @end verbatim
 @noindent
 If the initial point is to the left and below the final point,
-the default transform @code{t} will interpret the array indices
-according to the Cartesian convention (first index: @math{x}, second
-index: @math{y}) rather than the usual matrix convention (first index:
-@math{-y}, second index: @math{x}).
+by default the array indices are interpreted according to the
+Cartesian convention (first index: @math{x}, second index: @math{y})
+rather than the usual matrix convention (first index: @math{-y},
+second index: @math{x}).
 
 An optionally labelled palette bar may be generated with the routine
 @verbatim
