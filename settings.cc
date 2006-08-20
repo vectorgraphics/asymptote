@@ -36,6 +36,11 @@
 #include "item.h"
 #include "refaccess.h"
 
+#ifdef HAVE_LIBCURSES
+#include <curses.h>
+#include <term.h>
+#endif
+
 using std::vector;
 using vm::item;
 
@@ -848,6 +853,21 @@ void SetPageDimensions() {
       Setting("papertype")=mem::string("a4");
     }
   }
+}
+
+int getScroll() 
+{
+  int scroll=settings::getSetting<int>("scroll");
+#ifdef HAVE_LIBCURSES  
+  if(scroll < 0) {
+    char *terminal=getenv("TERM");
+    if(terminal) {
+      setterm(terminal);
+      scroll=lines > 2 ? lines-1 : 1;
+    }
+  }
+#endif
+  return scroll;
 }
 
 void setOptions(int argc, char *argv[])

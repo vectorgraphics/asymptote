@@ -63,5 +63,7 @@ void setOptions(int argc, char *argv[]);
 // Access the arguments once options have been parsed.
 int numArgs();
 char *getArg(int n);
+ 
+int getScroll();
 }
 #endif

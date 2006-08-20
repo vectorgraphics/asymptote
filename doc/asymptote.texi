@@ -2922,13 +2922,14 @@ write(file fout, suffix suffix=none);
 @cindex @code{none}
 @cindex @code{endl}
 @cindex @code{tab}
-If the @code{fout} is not specified, @code{stdout} is used and
-terminated with a newline. If specified, the optional
+If @code{fout} is not specified, @code{stdout} is used and
+terminated by default with a newline. If specified, the optional
 identifying string @code{s} is written before the data @code{x}.
 An arbitrary number of data values may be listed when writing scalars
-or one-dimensional arrays. Here @code{suffix} may be one of the following:
+or one-dimensional arrays. The @code{suffix} may be one of the following:
 @code{none} (do nothing), @code{endl} (terminate with a newline), or
-@code{tab} (terminate with a tab). Here is a simple example of data output:
+@code{tab} (terminate with a tab). Here are some simple examples of
+data output:
 @verbatim
 file fout=output("test.txt");
 write(fout,1);                  // Writes "1"
@@ -2972,6 +2973,15 @@ previous I/O error with @code{clear(file)}, and close the file with
 the current position in an input file relative to the beginning.
 The function @code{seek(file, int)} can be used to change this
 position; for example, to rewind a file, use the command @code{seek(file,0)}.
+
+@cindex @code{scroll}
+@anchor{scroll}
+Assigning @code{settings.scroll=n} for a positive integer @code{n}
+requests a pause after every @code{n} output lines to @code{stdout}.
+One may then press @code{Enter} to continue or @code{q} followed by @code{Enter}
+to quit. If @code{n} is negative, the output scrolls a page at a time
+(i.e. by one less than the current number of display lines). The
+default value, @code{settings.scroll=0}, specifies continuous scrolling.
 
 The routines
 @cindex @code{getstring}
@@ -4150,15 +4160,9 @@ real[][][] C=read3(fin);
 @end verbatim
 
 @cindex @code{write}
-@cindex @code{scroll}
-@anchor{scroll}
 One, two, and three-dimensional arrays of the basic data types can be
 output with the functions @code{write(file,T[])},
 @code{write(file,T[][])}, @code{write(file,T[][][])}, respectively.
-Assigning @code{settings.scroll=n} will cause the output to pause
-after every @math{n} output lines (press @code{Enter} to continue or
-@code{q} followed by @code{Enter} to quit). The default value,
-@code{settings.scroll=0}, specifies continuous scrolling. 
 
 @node Casts
 @section Casts
@@ -5530,8 +5534,8 @@ of these palettes to the @acronym{CMYK} colorspace.
 
 A color density plot using palette @code{palette} can be generated from
 a function @code{f}(@math{x},@math{y}) and added to a picture @code{pic}:
-@verbatim
 @cindex @code{image}
+@verbatim
 bounds image(picture pic=currentpicture, real f(real,real),
              pair initial, pair final, range range=Full,
              int nx=100, int ny=nx, pen[] palette);
@@ -5553,28 +5557,29 @@ struct bounds {
 @noindent
 This information can be used for generating an optional palette bar.
 The palette color space corresponds to a range of values specified by
-the argument @code{range}, which can be @code{Full}, @code{Automatic}
+the argument @code{range}, which can be @code{Full}, @code{Automatic},
 or an explicit @code{bounds(pair min, pair max)}.
 Here @code{Full} specifies a range varying from the
 minimum to maximum values of the function over the sampling interval,
 while @code{Automatic} selects "nice" limits. 
-
 The example @code{imagecontour.asy} illustrates how level sets
 (contour lines) can be drawn on a color density plot (@pxref{contour}).
 
 A color density plot can also be generated from an explicit real[][]
 array @code{data}:
-@verbatim
 @cindex @code{image}
+@verbatim
 bounds image(picture pic=currentpicture, real[][] f, range range=Full,
              pair initial, pair final, pen[] palette,
              transform t=(initial.x < final.x && initial.y < final.y) ?
              (0,0,0,1,1,0) : identity());
 @end verbatim
-By default, if the initial point is to the left and below the final point,
-the optional transform argument uses @code{Cartesian} coordinate
-conventions (first index: x, second index: y) rather than usual matrix
-conventions (first index: -y, second index: x).
+@noindent
+If the initial point is to the left and below the final point,
+the default transform @code{t} will interpret the array indices
+according to the Cartesian convention (first index: @math{x}, second
+index: @math{y}) rather than the usual matrix convention (first index:
+@math{-y}, second index: @math{x}).
 
 An optionally labelled palette bar may be generated with the routine
 @verbatim

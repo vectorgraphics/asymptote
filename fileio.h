@@ -268,9 +268,9 @@ public:
   void write(guide *val) {*stream << *val;}
   void write(const transform& val) {*stream << val;}
   void writeline() {
-    int scroll=settings::getSetting<int>("scroll");
-    if(standard && scroll) {
-      if(lines > 0 && lines % scroll == 0) {
+    if(standard) {
+      int scroll=settings::getScroll();
+      if(scroll && lines > 0 && lines % scroll == 0) {
 	for(;;) {
 	  if(!std::cin.good()) {
 	    *stream << newline;
@@ -278,9 +278,10 @@ public:
 	    break;
 	  }
 	  int c=std::cin.get();
-	  if(c == 'q') throw quit();
 	  if(c == '\n') break;
-      }
+	  while(std::cin.get() != '\n'); // Discard any additional characters
+	  if(c == 'q') throw quit();
+	}
       } else *stream << newline;
       ++lines;
     } else *stream << newline;
