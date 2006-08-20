@@ -342,13 +342,18 @@ void decid::prettyprint(ostream &out, int indent)
 }
 
 
-varEntry *makeVarEntry(coenv &e, record *r, types::ty *t)
+varEntry *makeVarEntryWhere(coenv &e, record *r, types::ty *t,
+                                record *where)
 {
   access *a = r ? r->allocField(e.c.isStatic()) :
                   e.c.allocLocal();
 
-  return r ? new varEntry(t, a, e.c.getPermission(), r, r) :
-             new varEntry(t, a, r);
+  return r ? new varEntry(t, a, e.c.getPermission(), r, where) :
+             new varEntry(t, a, where);
+}
+
+varEntry *makeVarEntry(coenv &e, record *r, types::ty *t) {
+  return makeVarEntryWhere(e, r, t, r);
 }
 
 void addVar(coenv &e, record *r, varEntry *v, symbol *id)
@@ -518,7 +523,9 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol *id)
     callExp init(pos, new loadModuleExp(pos, imp),
                       new stringExp(pos, *id));
 
-    varEntry *v=makeVarEntry(e, r, imp);
+    // The varEntry should have whereDefined()==0 as it is not defined inside
+    // the record r.
+    varEntry *v=makeVarEntryWhere(e, r, imp, 0);
     initializeVar(pos, e, r, v, imp, &init);
     return v;
   }
