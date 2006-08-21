@@ -891,7 +891,8 @@ cube, without retracing steps:
 
 See section @ref{graph} (or the online @code{Asymptote} gallery at
 @url{http://asymptote.sourceforge.net}) for further examples, including
-two-dimensional scientific graphs.
+two-dimensional scientific graphs. Additional examples have been posted
+by Philippe Ivaldi at @url{http://home.tele2.fr/phivaldi/asymptote}.
 
 @node Drawing commands
 @chapter Drawing commands
