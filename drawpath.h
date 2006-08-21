@@ -19,6 +19,9 @@ public:
   
   virtual ~drawPath() {}
 
+  // Account for pen cap contribution to bounding box.
+  void addcap(bbox& b, const path& p, double t, const pair& dir);
+    
   void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&);
 
   bool draw(psfile *out);
