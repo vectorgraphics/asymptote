@@ -92,20 +92,34 @@ void drawPath::addcap(bbox& b, const path& p, double t, const pair& dir)
   
 void drawPath::bounds(bbox& b, iopipestream&, boxvector&, bboxlist&)
 {
-  if(pentype.cap() == 0) {
-    double h=0.5*pentype.width();
-    path q=p.subpath(p.arctime(h),p.arctime(p.arclength()-h));
-    b += pad(q.bounds(),pentype.bounds());
-    addcap(b,p,0,pair(0,1));
-    addcap(b,p,p.length(),pair(0,1));
-  } else {
-    b += pad(p.bounds(),pentype.bounds());
-    
-    if(pentype.cap() == 2) {
+  b += p.bounds(pentype.bounds());
+  int l=p.length();
+  switch(pentype.cap()) {
+  case 0:
+    {
+      addcap(b,p,0,pair(0,1));
+      addcap(b,p,l,pair(0,1));
+      break;
+    }
+  case 1:
+    {
+      double h=0.5*pentype.width();
+      pair H=pair(h,h);
+      pair z0=p.point(0);
+      pair zl=p.point(l);
+      b += z0+H;
+      b += z0-H;
+      b += zl+H;
+      b += zl-H;
+      break;
+    }
+  case 2:
+    {
     addcap(b,p,0,pair(-1,1));
-    addcap(b,p,p.length(),pair(1,1));
-    }  
-  }
+    addcap(b,p,l,pair(1,1));
+    break;
+    }
+  } 
 }
 
 bool drawPath::draw(psfile *out)

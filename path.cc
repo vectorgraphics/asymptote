@@ -79,6 +79,16 @@ quadraticroots::quadraticroots(double a, double b, double c)
   }
 }
 
+inline bool goodroot(double t)
+{
+  return 0.0 <= t && t <= 1.0;
+}
+
+inline bool goodroot(double a, double b, double c, double t)
+{
+  return goodroot(t) && quadratic(a,b,c,t) >= 0.0;
+}
+
 // Accurate computation of cbrt(sqrt(1+x)+1)-cbrt(sqrt(1+x)-1).
 inline double cbrtsqrt1pxm(double x)
 {
@@ -395,13 +405,83 @@ bbox path::bounds() const
     
     // Check x coordinate
     quadraticroots x(a.getx(),b.getx(),c.getx());
-    if(x.distinct != quadraticroots::NONE) box += point(i+x.t1);
-    if(x.distinct == quadraticroots::TWO) box += point(i+x.t2);
+    if(x.distinct != quadraticroots::NONE && goodroot(x.t1))
+      box += point(i+x.t1);
+    if(x.distinct == quadraticroots::TWO && goodroot(x.t2))
+      box += point(i+x.t2);
     
     // Check y coordinate
     quadraticroots y(a.gety(),b.gety(),c.gety());
-    if(y.distinct != quadraticroots::NONE) box += point(i+y.t1);
-    if(y.distinct == quadraticroots::TWO) box += point(i+y.t2);
+    if(y.distinct != quadraticroots::NONE && goodroot(y.t1))
+      box += point(i+y.t1);
+    if(y.distinct == quadraticroots::TWO && goodroot(y.t2))
+      box += point(i+y.t2);
+  }
+  box += point(len);
+  return box;
+}
+
+bbox path::bounds(const bbox& pad) const
+{
+  if (empty()) {
+    // No bounds
+    return bbox(/* empty */);
+  }
+
+  if(!box.empty) return box;
+  
+  int len=length();
+  for (int i = 0; i < len; i++) {
+    box += point(i);
+    
+    pair pre=point(i)-precontrol(i);
+    pair post=postcontrol(i)-point(i);
+    
+    // Check node x coordinate
+    if(pre.getx() >= 0.0 ^ post.getx() >= 0) {
+      pair z=point(i);
+      box += z+pad.left;
+      box += z+pad.right;
+    }
+			      
+    // Check node y coordinate
+    if(pre.gety() >= 0.0 ^ post.gety() >= 0) {
+      pair z=point(i);
+      box += z+pair(0,pad.bottom);
+      box += z+pair(0,pad.top);
+    }
+			      
+    if(straight(i)) continue;
+    
+    pair a,b,c;
+    derivative(a,b,c,point(i),postcontrol(i),precontrol(i+1),point(i+1));
+    
+    // Check x coordinate
+    quadraticroots x(a.getx(),b.getx(),c.getx());
+    if(x.distinct != quadraticroots::NONE && goodroot(x.t1)) {
+      pair z=point(i+x.t1);
+      box += z+pad.left;
+      box += z+pad.right;
+    }
+    if(x.distinct == quadraticroots::TWO && goodroot(x.t2)) {
+      pair z=point(i+x.t2);     
+      box += z+pad.left;
+      box += z+pad.right;
+    }
+    
+    // Check y coordinate
+    quadraticroots y(a.gety(),b.gety(),c.gety());
+    if(y.distinct != quadraticroots::NONE && goodroot(y.t1)) {
+      pair z=point(i+y.t1);     
+      box += z+pair(0,pad.bottom);
+      box += z+pair(0,pad.top);
+    }
+    if(y.distinct == quadraticroots::TWO && goodroot(y.t2)) {
+      pair z=point(i+y.t2);
+      box += z+pair(0,pad.bottom);
+      box += z+pair(0,pad.top);
+    }
+    
   }
   box += point(len);
   return box;
@@ -503,11 +583,6 @@ double path::arctime(double goal) const {
 }
 
 // }}}
-
-inline bool goodroot(double a, double b, double c, double t)
-{
-  return 0.0 <= t && t <= 1.0 && quadratic(a,b,c,t) >= 0.0;
-}
 
 // {{{ Direction Time Calulation
 // Algorithm Stolen from Knuth's MetaFont
