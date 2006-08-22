@@ -93,6 +93,8 @@ void drawPath::addcap(bbox& b, const path& p, double t, const pair& dir)
 void drawPath::bounds(bbox& b, iopipestream&, boxvector&, bboxlist&)
 {
   b += p.bounds(pentype.bounds());
+  if(p.cyclic()) return;
+  
   int l=p.length();
   switch(pentype.cap()) {
   case 0:

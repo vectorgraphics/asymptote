@@ -211,7 +211,7 @@ public:
   bbox bounds() const;
   
   // Return bounding box accounting for internal pen padding (but not pencap).
-  bbox bounds(const bbox &pad) const;
+  bbox bounds(const bbox &padding) const;
 
   double arclength () const;
   double arctime (double l) const;
