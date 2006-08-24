@@ -6146,12 +6146,12 @@ To construct contours for an array of data values on a uniform
 two-dimensional lattice, use
 @verbatim
 guide[][] contour(real[][] f, real[][] midpoint=new real[][],
-                  pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
+                  pair a, pair b, real[] c,
                   interpolate join=operator --);
 
 @end verbatim
 @noindent
-To construct contours for an array of non-regularly spaced points,
+To construct contours for an array of irregularly spaced points,
 along with an array of values at these points, use
 @verbatim
 guide[][] contour(pair[] points, real[] values, 
@@ -6183,20 +6183,14 @@ density images:
 @verbatiminclude imagecontour.asy
 @image{imagecontour}
 
-The routine
-@verbatim
-guide[][] contour(pair[] points, real[] values, 
-                  real[] c, interpolate join=operator --);
-@end verbatim
-@noindent
-may be used to construct contours of data in an array of values at
-irregularly spaced points:
+Finally, here is an example that illustrates the construction of contours
+from irregularly spaced data:
 @verbatiminclude contour3.asy
 @image{contour3}
 
-Internally, the contours are constructed by first creating a triangular
-mesh from an array @code{z} of pairs, using Gilles Dumoulin's C++ port of Paul
-Bourke's triangulation code: 
+In the above example, the contours of irregularly spaced data are constructed by
+first creating a triangular mesh from an array @code{z} of pairs,
+using Gilles Dumoulin's C++ port of Paul Bourke's triangulation code: 
 @verbatim
 int[][] triangulate(pair[] z);
 @end verbatim

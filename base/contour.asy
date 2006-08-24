@@ -136,11 +136,14 @@ typedef guide interpolate(... guide[]);
 // a,b:      lower left and upper right vertices of rectangle
 // c:        contour level
 // nx,ny:    subdivisions on x and y axes (affects accuracy)
-// join:     interpolation operator (linear, bezier, etc)
+// join:     interpolation operator (e.g. operator -- or operator ..)
 guide[][] contour(real[][] f, real[][] midpoint=new real[][],
-		  pair a, pair b, real[] c, int nx=nmesh, int ny=nx,
+		  pair a, pair b, real[] c,
 		  interpolate join=operator --)
 {
+  int nx=f.length-1;
+  int ny=nx > 0 ? f[0].length-1 : 0;
+  
   c=sort(c);
   bool midpoints=midpoint.length > 0;
   
@@ -409,7 +412,7 @@ guide[][] contour(real f(real, real), pair a, pair b,
     }
   }
 
-  return contour(dat,midpoint,a,b,c,nx,ny,join);
+  return contour(dat,midpoint,a,b,c,join);
 }
   
 void draw(picture pic=currentpicture, Label[] L=new Label[],
