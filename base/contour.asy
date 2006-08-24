@@ -1,6 +1,7 @@
 // Contour routines written by Radoslav Marinov and John Bowman.
 	 
-int nmesh=25; // default mesh subdivisions
+import graph_settings;
+
 real eps=100*realEpsilon;
 
 //                         1  
@@ -131,11 +132,10 @@ private segment checktriangle(pair p0, pair p1, pair p2,
 
 typedef guide interpolate(... guide[]);
 
-// return contour guides computed using a triangle mesh
+// return contour guides for a 2D data array, using a triangle mesh
 // f:        two-dimensional array of real data values
-// a,b:      lower left and upper right vertices of rectangle
-// c:        contour level
-// nx,ny:    subdivisions on x and y axes (affects accuracy)
+// a,b:      lower-left and upper-right vertices of contour domain
+// c:        array of contour values
 // join:     interpolation operator (e.g. operator -- or operator ..)
 guide[][] contour(real[][] f, real[][] midpoint=new real[][],
 		  pair a, pair b, real[] c,
@@ -393,8 +393,14 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
   return result;
 }
 
+// return contour guides for a real-valued function
+// f:        real-valued function of two real variables
+// a,b:      lower-left and upper-right vertices of contour domain
+// c:        array of contour values
+// nx,ny:    subdivisions on x and y axes (affects accuracy)
+// join:     interpolation operator (e.g. operator -- or operator ..)
 guide[][] contour(real f(real, real), pair a, pair b,
-		  real[] c, int nx=nmesh, int ny=nx,
+		  real[] c, int nx=ngraph, int ny=nx,
 		  interpolate join=operator --)
 {
   // evaluate function at points and midpoints

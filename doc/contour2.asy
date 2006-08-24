@@ -16,4 +16,4 @@ Label[] Labels=sequence(new Label(int i) {
 		 UnFill(1bp));
   },n);
 
-draw(Labels,contour(f,(-1,-1),(1,1),c,50),p);
+draw(Labels,contour(f,(-1,-1),(1,1),c),p);
