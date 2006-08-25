@@ -872,7 +872,7 @@ void _draw(picture pic=currentpicture, path g, pen p=currentpen,
   pic.addPath(g,p);
 }
 
-void draw(picture pic=currentpicture, explicit path[] g, pen p=currentpen)
+void Draw(picture pic=currentpicture, explicit path[] g, pen p=currentpen)
 {
   for(int i=0; i < g.length; ++i) Draw(pic,g[i],p);
 }
@@ -943,7 +943,7 @@ void filldraw(picture pic=currentpicture, path[] g, pen fillpen=currentpen,
 {
   begingroup(pic);
   fill(pic,g,fillpen);
-  draw(pic,g,drawpen);
+  Draw(pic,g,drawpen);
   endgroup(pic);
 }
 

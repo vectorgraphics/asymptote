@@ -177,4 +177,3 @@ void add(frame dest, frame src, filltype filltype, bool put=Above)
   if(filltype != NoFill) fill(dest,src,filltype);
   (put ? add : prepend)(dest,src);
 }
-

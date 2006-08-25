@@ -338,6 +338,22 @@ void draw(pair origin, picture pic=currentpicture, Label L="", path g,
   add(pic,opic,origin);
 }
 
+void draw(picture pic=currentpicture, explicit path[] g, pen p=currentpen,
+	  Label legend="", marker marker=nomarker)
+{ 
+  for(int i=0; i < g.length-1; ++i) 
+    draw(pic,g[i],p,marker);
+ draw(pic,g[g.length-1],p,legend,marker);
+} 
+
+void draw(pair origin, picture pic=currentpicture, explicit path[] g,
+	  pen p=currentpen, Label legend="", marker marker=nomarker)
+{
+  picture opic;
+  draw(opic,g,p,legend,marker);
+  add(pic,opic,origin);
+}
+
 // Align an arrow pointing to b from the direction dir. The arrow is
 // 'length' PostScript units long.
 void arrow(picture pic=currentpicture, Label L="", pair b, pair dir,
