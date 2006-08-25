@@ -343,7 +343,7 @@ void draw(picture pic=currentpicture, explicit path[] g, pen p=currentpen,
 { 
   for(int i=0; i < g.length-1; ++i) 
     draw(pic,g[i],p,marker);
- draw(pic,g[g.length-1],p,legend,marker);
+  if(g.length > 0) draw(pic,g[g.length-1],p,legend,marker);
 } 
 
 void draw(pair origin, picture pic=currentpicture, explicit path[] g,
