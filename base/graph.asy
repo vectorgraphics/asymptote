@@ -12,7 +12,7 @@ Logarithmic=Log;
 // A linear scale, with optional autoscaling of minimum and maximum values,
 // scaling factor s and intercept.
 scaleT Linear(bool automin=true, bool automax=true, real s=1,
-		     real intercept=0)
+	      real intercept=0)
 {
   real sinv=1/s;
   scaleT scale;
@@ -82,14 +82,14 @@ scientific operator init() {return new scientific;}
 // Convert x to scientific notation
 scientific scientific(real x) 
 {
-    scientific s;
-    s.sign=sgn(x);
-    x=abs(x);
-    if(x == 0) {s.mantissa=0; s.exponent=-intMax; return s;}
-    real logx=log10(x);
-    s.exponent=floor(logx);
-    s.mantissa=s.scale(x,s.exponent);
-    return s;
+  scientific s;
+  s.sign=sgn(x);
+  x=abs(x);
+  if(x == 0) {s.mantissa=0; s.exponent=-intMax; return s;}
+  real logx=log10(x);
+  s.exponent=floor(logx);
+  s.mantissa=s.scale(x,s.exponent);
+  return s;
 }
 
 // Autoscale limits and tick divisor.
@@ -217,7 +217,7 @@ struct ticklocate {
   autoscaleT S;	    // Autoscaling transformation.
   real time(real v); // Returns the time corresponding to the value v. 
   pair dir(real t);  // Returns the absolute tick direction as a
-                            // function of t (zero means perpendicular).
+  // function of t (zero means perpendicular).
   ticklocate copy() {
     ticklocate T=new ticklocate;
     T.a=a;
@@ -270,7 +270,7 @@ private struct locateT {
     pair Dir=locate.dir(t);
     dir=Dir == 0 ? -I*pathdir : unit(Dir);
   }
-// Locate the desired position of a tick along a path.
+  // Locate the desired position of a tick along a path.
   void calc(transform T, guide g, ticklocate locate, real val) {
     t=locate.time(val);
     Z=T*point(g,t);
@@ -314,8 +314,8 @@ pair labeltick(frame d, transform T, guide g, ticklocate locate, real val,
   pair adjust=unit(align+0.75perp*sgn(dot(align,perp)));
   // Project align onto adjusted direction.
   align=adjust*dot(align,adjust);
-    pair shift=dot(align,-sign*locate1.dir) <= 0 ? align*Size :
-      ticklabelshift(align,F.p);
+  pair shift=dot(align,-sign*locate1.dir) <= 0 ? align*Size :
+    ticklabelshift(align,F.p);
 
   if(abs(val) < epsilon*norm) val=0;
   // Fix epsilon errors at +/-1e-4
@@ -393,13 +393,15 @@ real axiscoverage(int N, transform T, path g, ticklocate locate, real Step,
   real a=locate.S.Tinv(locate.a);
   real b=locate.S.Tinv(locate.b);
   real tickmin=finite(locate.S.tickMin) ? locate.S.Tinv(locate.S.tickMin) : a;
-  if(Size > 0) for(int i=0; i <= N; ++i) {
-    real val=tickmin+i*Step;
-    if(loop || (val >= a && val <= b)) {
-      frame d;
-      pair dir=labeltick(d,T,g,locate,val,side,sign,Size,ticklabel,F,norm);
-      coverage += abs(dot(max(d)-min(d),dir));
-      if(coverage > limit) return coverage;
+  if(Size > 0) {
+    for(int i=0; i <= N; ++i) {
+      real val=tickmin+i*Step;
+      if(loop || (val >= a && val <= b)) {
+	frame d;
+	pair dir=labeltick(d,T,g,locate,val,side,sign,Size,ticklabel,F,norm);
+	coverage += abs(dot(max(d)-min(d),dir));
+	if(coverage > limit) return coverage;
+      }
     }
   }
   return coverage;
@@ -713,7 +715,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     for(int i=0; i < ticks.length; ++i) {
       real val=T(ticks[i]);
       if(val >= a && val <= b)
-      drawtick(f,T,g,g2,locate,val,size,sign,ptick,extend);
+	drawtick(f,T,g,g2,locate,val,size,sign,ptick,extend);
     }
     endgroup(f);
     
@@ -812,8 +814,7 @@ ticks Ticks(Label format="", ticklabel ticklabel=null,
 	       Ticks,ticks,Size,size,extend,pTick,ptick);
 }
 
-ticks
-  NoTicks=NoTicks(),
+ticks NoTicks=NoTicks(),
   LeftTicks=LeftTicks(),
   RightTicks=RightTicks(),
   Ticks=Ticks();
@@ -971,8 +972,7 @@ axis YZero(bool extend=true)
   };
 }
 
-axis
-  Bottom=Bottom(),
+axis Bottom=Bottom(),
   Top=Top(),
   BottomTop=BottomTop(),
   Left=Left(),
@@ -993,10 +993,10 @@ void axis(picture pic=currentpicture, Label L="", guide g, guide g2=nullpath,
   divisor=copy(divisor);
   locate=locate.copy();
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
-      frame d;
-      ticks(d,t,L,0,g,g2,p,arrow,locate,divisor,opposite);
-      (put ? add : prepend)(f,t*T*inverse(t)*d);
-    });
+    frame d;
+    ticks(d,t,L,0,g,g2,p,arrow,locate,divisor,opposite);
+    (put ? add : prepend)(f,t*T*inverse(t)*d);
+  });
   
   pic.addPath(g,p);
   
@@ -1176,7 +1176,7 @@ void ylimits(picture pic=currentpicture, real min=-infinity, real max=infinity,
     pic.bounds.yclip(userMin.y,userMax.y);
     pic.clip(new void (frame f, transform t) {
       clip(f,box((min(f).x,(t*userMin).y),(max(f).x,(t*userMax).y)));
-  });
+    });
   }
 }
 
