@@ -581,6 +581,13 @@ under @code{MSDOS}):
 (setq auto-mode-alist (cons (cons "\\.asy$" 'asy-mode) auto-mode-alist))
 
 @end verbatim
+@noindent
+Particularly useful key bindings in this mode are @code{C-c C-c}, which compiles
+and displays the current buffer, and the key binding @code{C-c ?}, which
+shows the available function prototypes for the command at the cursor.
+For full functionality you should also install the Apache Software Foundation
+package @code{two-mode-mode}:
+@url{http://www.dedasys.com/freesoftware/files/two-mode-mode.el}
 
 @cindex @code{vim}
 @cindex @code{asy.vim}

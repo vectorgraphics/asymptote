@@ -27,11 +27,13 @@
 ;; (autoload 'asy-mode "asy-mode" "Asymptote major mode." t)
 ;; (setq auto-mode-alist (cons (cons "\\.asy$" 'asy-mode) auto-mode-alist))
 
-;; You must have the package 'two-mode-mode
+;; For full functionality you should also install the package 'two-mode-mode
 ;; from http://www.dedasys.com/freesoftware/files/two-mode-mode.el
 ;; The package 'texmathp is optional.
 
-(require 'two-mode-mode)
+(if (locate-library "two-mode-mode") (require 'two-mode-mode) 
+  (defvar two-mode-bool nil))
+
 (require 'font-lock)
 
 (define-derived-mode asy-mode c++-mode "Asymptote"
@@ -42,7 +44,7 @@ This package provides two modes:
     * Syntax color highlighting;
     * Compiling and viewing current buffer with the key binding C-c C-c;
     * Moving cursor to the error by pressing the key F4.
-    * Showing all definitions of the command at the cursor with the key binding C-c ?
+    * Showing the available function prototypes for the command at the cursor with the key binding C-c ?
     * Inserting template by pressing the key F3.
        - For example ife<F3> gives:
           if (*)
