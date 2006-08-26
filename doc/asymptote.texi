@@ -577,7 +577,7 @@ location of the @code{Asymptote} system directory (by default,
 @code{@value{Datadir}/asymptote} or @code{c:\Program Files\Asymptote}
 under @code{MSDOS}):
 @verbatim
-(autoload 'asy-mode "ASYDIR/asy-mode.el" "Asymptote major mode." t)
+(autoload 'asy-mode "ASYDIR/asy-mode" "Asymptote major mode." t)
 (setq auto-mode-alist (cons (cons "\\.asy$" 'asy-mode) auto-mode-alist))
 
 @end verbatim
@@ -6002,9 +6002,10 @@ To facilitate the conversion of existing MetaPost programs,
 this module contains a partial port of the @code{MetaPost} 3D package
 @code{featpost3D}  of L. Nobre G., C. Barbarosie, and J. Schwaiger to
 @code{Asymptote}. However, much (but not all) of the functionality of
-this port is now obsoleted by the general package @code{three},
-which fully extends the notion of a path to three dimensions. The
-original package is documented at
+this port is now obsoleted by the package @code{three},
+which fully extends the notion of a path to three dimensions,
+together with the packages @code{solids} and @code{graph3}.
+The original @code{featpost3D} package is documented at
 @quotation
 @url{http://matagalatlante.org/nobre/featpost/doc/featpost.html}
 @end quotation
@@ -6134,7 +6135,7 @@ guide[][] contour(real f(real, real), pair a, pair b,
                   interpolate join=operator --);
 @end verbatim
 @noindent
-The contour lines @code{real[]c} for the function @code{f} are drawn
+The contour lines @code{c} for the function @code{f} are drawn
 on the rectangle defined by the bottom-left and top-right points @code{a}
 and @code{b}. The integers @code{nx} and @code{ny} define the resolution.
 The default resolution of @code{25 x 25} can be increased for greater accuracy.
@@ -6810,4 +6811,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  zlabel strptime slopefields cputime roundrectangle slopefield
 @c  LocalWords:  tickfactor USERNAME writeable imagecontour logimage Dumoulin's
 @c  LocalWords:  NoCrop parametricsurface realmult SoftLight HardLight interp
-@c  LocalWords:  ColorDodge ColorBurn
+@c  LocalWords:  ColorDodge ColorBurn Ivaldi
