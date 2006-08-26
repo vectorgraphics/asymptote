@@ -36,7 +36,7 @@
 
 (require 'font-lock)
 
-(define-derived-mode asy-mode c++-mode "Asymptote"
+(define-derived-mode asy-mode objc-mode "Asymptote"
   "Emacs mode for editing Asymptote source code.
 For full functionality the 'two-mode-mode package should also be installed 
 (http://www.dedasys.com/freesoftware/files/two-mode-mode.el).
@@ -115,7 +115,7 @@ Some variables can be customized: M-x customize-group <RET> asymptote <RET>."
 
 (defcustom asy-command-location ""
   "*If not in the path, you can put here the name of the directory containing Asy's binary files.
-this variable must end in / (Linux) or \ (Windows)."
+this variable must end in / (UNIX) or \ (MSWindows)."
   :type 'directory
   :group 'asymptote)
 
