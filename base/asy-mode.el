@@ -35,6 +35,20 @@
   (defvar two-mode-bool nil))
 
 (require 'font-lock)
+(require 'cc-mode)
+
+(c-lang-defconst c-block-decls-with-vars
+  "Keywords introducing declarations that can contain a block which
+might be followed by variable declarations, e.g. like \"foo\" in
+\"class Foo { ... } foo;\".  So if there is a block in a declaration
+like that, it ends with the following ';' and not right away.
+
+The keywords on list are assumed to also be present on one of the
+`*-decl-kwds' lists."
+  t        nil
+  objc '("union" "enum" "typedef") ;; Asymptote doesn't require ';' after struct
+  c '("struct" "union" "enum" "typedef")
+  c++      '("class" "struct" "union" "enum" "typedef"))
 
 (define-derived-mode asy-mode objc-mode "Asymptote"
   "Emacs mode for editing Asymptote source code.
