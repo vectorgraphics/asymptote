@@ -27,8 +27,8 @@
 ;; (autoload 'asy-mode "asy-mode" "Asymptote major mode." t)
 ;; (setq auto-mode-alist (cons (cons "\\.asy$" 'asy-mode) auto-mode-alist))
 
-;; For full functionality you should also install the package 'two-mode-mode
-;; from http://www.dedasys.com/freesoftware/files/two-mode-mode.el
+;; For full functionality the 'two-mode-mode package should also be installed 
+;; (http://www.dedasys.com/freesoftware/files/two-mode-mode.el).
 ;; The package 'texmathp is optional.
 
 (if (locate-library "two-mode-mode") (require 'two-mode-mode) 
@@ -38,6 +38,10 @@
 
 (define-derived-mode asy-mode c++-mode "Asymptote"
   "Emacs mode for editing Asymptote source code.
+For full functionality the 'two-mode-mode package should also be installed 
+(http://www.dedasys.com/freesoftware/files/two-mode-mode.el).
+The package 'texmathp is optional.
+
 This package provides two modes:
 1- asy-mode:
   All the files with the extension '.asy' are edited in this mode, which provides the following features:
