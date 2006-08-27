@@ -125,7 +125,8 @@ Some variables can be customized: M-x customize-group <RET> asymptote <RET>."
 ;; Next line disabled since this interferes with grouping existing code (JCB)
 ;;  (define-key asy-mode-map "\{" 'skeleton-pair-insert-maybe)
   (define-key asy-mode-map "\(" 'skeleton-pair-insert-maybe)
-  (define-key asy-mode-map "\[" 'skeleton-pair-insert-maybe)
+;; Next line disabled since this makes typing real[] awkward (JCB)
+;;  (define-key asy-mode-map "\[" 'skeleton-pair-insert-maybe)
 )
 
 (defcustom asy-command-location ""
