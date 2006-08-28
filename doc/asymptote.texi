@@ -5966,18 +5966,19 @@ picture surface(triple f(pair z), int nsub=1, pair a, pair b, int nu=nmesh,
 @noindent
 as illustrated in the example @code{parametricsurface.asy}.
 The optional argument @code{nsub} allows one to subsample the function
-@code{f} times along the cell edges. A mesh can be drawn without solid
-fills by specifying @code{nullpen} for the surfacepen. Lighting
-effects can be disabled by setting @code{light=O}, as in this example
-of a Gaussian surface subsampled 4 times:
+@code{nsub} times along the cell edges. However, smoother Gouraud shading
+is used for lighting effects if @code{nsub=1}. Lighting can be
+disabled by setting @code{light=O}, as in this example of a Gaussian
+surface subsampled 4 times:
 @anchor{surface}
 @verbatiminclude surface.asy
 @image{surface}
 @noindent
-A mesh is always drawn in the absence of lighting, unless 
-@code{meshpen=invisible}.
-Surface lighting is illustrated in the example files 
+Surface lighting is illustrated in the example files
 @code{parametricsurface.asy} and @code{sinc.asy}.
+A mesh can be drawn without solid fills by specifying @code{nullpen}
+for the surfacepen. A mesh is always drawn in the absence of lighting, unless 
+@code{meshpen=invisible}. 
 
 @node solids
 @section @code{solids}
@@ -6796,7 +6797,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  pdfviewer papertype tabcompletion noautoplain plugins Teixeira
 @c  LocalWords:  embeddedmovie historylines inlinetex RadialShade penc penr CJK
 @c  LocalWords:  legendlinelength legendskip USERPROFILE LDFLAGS currentlight
-@c  LocalWords:  subsampling subsampled sinc kai AtBeginDocument GBK clearpage
+@c  LocalWords:  subsampled sinc kai AtBeginDocument GBK clearpage
 @c  LocalWords:  AtEndDocument zaxis maxbound truepoint paperwidth paperheight
 @c  LocalWords:  GSL deriv texcolors fixedscaling UpsideDown texreset slidedemo
 @c  LocalWords:  subitem newslide realMin realMax realEpsilon realDigits gsl dh

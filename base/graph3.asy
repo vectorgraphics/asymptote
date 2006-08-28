@@ -464,10 +464,10 @@ picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
               project(f[i+1][j+1],P),
               project(f[i+1][j],P)};
     guide g=v[0]--v[1]--v[2]--v[3]--cycle;
-    if(light.source == O)
-      filldraw(pic,g,surfacepen,meshpen);
-    else {
-      if(surfacepen != nullpen) {
+    if(surfacepen != nullpen) {
+      if(light.source == O)
+	fill(pic,g,surfacepen);
+      else {
         pen[] pcell={color(i,j),color(i,j+1),color(i+1,j+1),color(i+1,j)};
         gouraudshade(pic,g,pcell,v,edges);
       }
@@ -565,7 +565,9 @@ picture surface(triple f(pair z), int nsub=1, pair a, pair b,
     }
 
     void drawcell(int i, int j) {
-      filldraw(pic,project(cell(i,j),P),color(i,j),meshpen);
+      guide g=project(cell(i,j),P);
+      fill(pic,g,color(i,j));
+      if(meshpen != nullpen) draw(pic,g,meshpen);
     }
   
     if(surfacepen == nullpen) {
