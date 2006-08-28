@@ -96,7 +96,7 @@ bounds image(picture pic=currentpicture, real f(real,real),
       dataj[i]=f(pic.scale.x.Tinv(interp(xmin,xmax,(i+0.5)/ny)),y);
     }
   }
-  return image(pic,data,range,initial,final,palette,transpose=false);
+  return image(pic,data,range,initial,final,palette,false);
 }
 
 typedef ticks paletteticks(int sign=-1);

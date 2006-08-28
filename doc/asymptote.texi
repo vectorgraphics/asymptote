@@ -5943,48 +5943,39 @@ One can also place ticks along a general three-dimensional axis:
 @verbatiminclude generalaxis3.asy
 @image{generalaxis3}
 
-Surface plots of functions and matrices over the region
+Surface plots of matrices and functions over the region
 @code{box(a,b)} in the @math{XY} plane are also implemented: 
 @verbatim
 picture surface(real[][] f, pair a, pair b,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
-
-picture surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
-                pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection);
-
-picture surface(real f(pair z), int nsub, pair a, pair b, int nx=nmesh, 
-                int ny=nx, pen surfacepen=lightgray, pen meshpen=currentpen,
-                projection P=currentprojection);
-@end verbatim
-@noindent
-The last form subsamples nsub times along the cell edges.  A mesh can be
-drawn without solid fills for all surface functions by specifying
-@code{nullpen} for the surfacepen.
-
-Parametrically defined surfaces may similarly be drawn for a function
-@math{f(u,v)} over the @math{uv} parametric region @code{box(a,b)}:
-@verbatim
-picture surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
-                pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection);
-
-picture surface(triple f(pair z), int nsub, pair a, pair b, int nu=nmesh,
-                int nv=nu, pen surfacepen=lightgray, pen meshpen=currentpen,
-                projection P=currentprojection);
-@end verbatim
-@noindent
-A surface can also be drawn over an explicit grid of triples:
-@verbatim
 picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
-                light light=currentlight, projection P=currentprojection)
+                light light=currentlight, projection P=currentprojection);
+picture surface(real f(pair z), int nsub=1, pair a, pair b, int nx=nmesh,
+		int ny=nx, pen surfacepen=lightgray, pen meshpen=nullpen,
+		light light=currentlight, projection P=currentprojection);
 @end verbatim
 @noindent
-Here is an example of a Gaussian surface subsampled 4 times:
+A parametric surface for a function @math{f(u,v)} over the parameter
+space @code{box(a,b)} may be drawn with
+@verbatim
+picture surface(triple f(pair z), int nsub=1, pair a, pair b, int nu=nmesh,
+                int nv=nu, pen surfacepen=lightgray, pen meshpen=nullpen,
+		light light=currentlight, projection P=currentprojection);
+@end verbatim
+@noindent
+as illustrated in the example @code{parametricsurface.asy}.
+The optional argument @code{nsub} allows one to subsample the function
+@code{f} times along the cell edges. A mesh can be drawn without solid
+fills by specifying @code{nullpen} for the surfacepen. Lighting
+effects can be disabled by setting @code{light=O}, as in this example
+of a Gaussian surface subsampled 4 times:
 @anchor{surface}
 @verbatiminclude surface.asy
 @image{surface}
+@noindent
+A mesh is always drawn in the absence of lighting, unless 
+@code{meshpen=invisible}.
 Surface lighting is illustrated in the example files 
 @code{parametricsurface.asy} and @code{sinc.asy}.
 

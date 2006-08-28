@@ -244,6 +244,24 @@ bool rectangular(real[][] m)
   return true;
 }
 
+bool rectangular(pair[][] m)
+{
+  int n=m.length;
+  int m0=m[0].length;
+  for(int i=1; i < n; ++i)
+    if(m[i].length != m0) return false;
+  return true;
+}
+
+bool rectangular(triple[][] m)
+{
+  int n=m.length;
+  int m0=m[0].length;
+  for(int i=1; i < n; ++i)
+    if(m[i].length != m0) return false;
+  return true;
+}
+
 // draw the (infinite) line going through P and Q, without altering the
 // size of picture pic.
 void drawline(picture pic=currentpicture, pair P, pair Q, pen p=currentpen)

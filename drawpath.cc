@@ -127,16 +127,13 @@ void drawPath::bounds(bbox& b, iopipestream&, boxvector&, bboxlist&)
 bool drawPath::draw(psfile *out)
 {
   int n = p.size();
-  if (n == 0 || pentype.invisible())
+  if (n == 0 || pentype.invisible() || pentype.width() == 0.0)
     return true;
 
   pen pen0=pentype;
   adjustdash(pen0);
   out->setpen(pen0);
 
-  if (pentype.width() == 0.0)
-    return true;
-    
   penStart(out);
   penTranslate(out);
 
