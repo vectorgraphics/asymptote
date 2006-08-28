@@ -60,9 +60,9 @@ string debugger(string file, int line, int column, code s=quote{})
 	help=false;
       }
 
-      string prompt=file+": "+(string) line+"."+(string) column;
-      prompt += "? [%s] ";
-      s=getstring(name="debug",default="h",prompt=prompt,save=false);
+      string Prompt=file+": "+(string) line+"."+(string) column;
+      Prompt += "? [%s] ";
+      s=getstring(name="debug",default="h",prompt=Prompt,save=false);
       if(s == "h") {help=true; continue;}
       if(s == "c" || s == "s" || s == "n" || s == "i" || s == "f" || s == "r")
 	break;
