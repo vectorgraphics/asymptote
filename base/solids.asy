@@ -233,13 +233,13 @@ struct revolution {
   // the front portion of each of the m transverse slices with pen p and
   // the back portion with pen backpen.
   void draw(picture pic=currentpicture, int m=0, pen p=currentpen,
-	    pen backpen=p, bool longitudinal=true,
+	    pen backpen=p, bool longitudinal=true, pen longitudinalpen=p,
 	    projection P=currentprojection) {
     skeleton s=skeleton(m,P);
     begingroup(pic);
     draw(pic,s.back,linetype("8 8",8)+backpen);
     draw(pic,s.front,p);
-    if(longitudinal) draw(pic,s.longitudinal,p);
+    if(longitudinal) draw(pic,s.longitudinal,longitudinalpen);
     endgroup(pic);
   }
   
@@ -298,12 +298,12 @@ revolution cylinder(triple c=O, real r, real h, triple axis=Z)
   return revolution(c,C-axis--C+axis,axis);
 }
 
-// Return a circular cone of radius r and height h with vertex at c and
-// aligned with axis.
+// Return a circular cone of height h 
+// based on a circle centered at c with radius r and aligned with axis. 
 revolution cone(triple c=O, real r, real h, triple axis=Z)
 {
-  axis=0.5*h*unit(axis);
-  return revolution(c,c+r*perp(axis)-axis--c+axis,axis);
+  axis=unit(axis);
+  return revolution(c,c+r*perp(axis)--c+h*axis,axis);
 }
 
 // Return a sphere of radius r centered at c sampled n times.
