@@ -126,12 +126,12 @@ triple project(triple u, triple v)
 transform3 lookAt(triple target, triple eye, triple up=Z)
 {
   triple f=unit(target-eye);
-  if (f == O)
+  if(f == O)
     // The target is the same as the eye, so just move to the eye, and don't
     // try to point in any particular direction.
     return shift(-eye);
 
-  triple side=cross(f,unit(up));
+  triple side=cross(f,up);
   if(side == O)
     // The camera is pointing either directly up or down, so there is no
     // preferred "up" direction to rotate it.  Pick one arbitrarily.
@@ -198,24 +198,24 @@ projection projection(triple camera, transform3 project,
 // Uses the homogenous coordinate to perform perspective distortion.  When
 // combined with a projection to the XY plane, this effectively maps
 // points in three space to a plane at a distance d from the camera.
-projection perspective(triple camera)
+projection perspective(triple camera, triple up=Z)
 {
-  return projection(camera,distort(camera)*lookAt(O,camera));
+  return projection(camera,distort(camera)*lookAt(O,camera,up));
 }
 
-projection perspective(real x, real y, real z)
+projection perspective(real x, real y, real z, triple up=Z)
 {
-  return perspective((x,y,z));
+  return perspective((x,y,z),up);
 }
 
-projection orthographic(triple camera)
+projection orthographic(triple camera, triple up=Z)
 {
-  return projection(camera,lookAt(O,camera));
+  return projection(camera,lookAt(O,camera,up));
 }
 
-projection orthographic(real x, real y, real z)
+projection orthographic(real x, real y, real z, triple up=Z)
 {
-  return orthographic((x,y,z));
+  return orthographic((x,y,z),up);
 }
 
 projection oblique(real angle=45)

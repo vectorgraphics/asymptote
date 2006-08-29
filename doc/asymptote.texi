@@ -5727,18 +5727,21 @@ The point @code{(x,y,z)} is projected to @code{(x+0.5y,z+0.5y)}.
 If an optional real argument is given, the
 positive @math{y} axis is drawn at this angle in degrees.
 
-@item orthographic(triple camera)
-@item orthographic(real x, real y, real z)
+@item orthographic(triple camera, triple up=Z)
+@item orthographic(real x, real y, real z, triple up=Z)
 @cindex @code{orthographic}
 This projects three dimensions onto two using the view seen at the
-location @code{camera} or @code{(x,y,z)}, respectively.
-Parallel lines are projected to parallel lines.
+location @code{camera} or @code{(x,y,z)}, respectively,
+orienting the camera so that, if possible, the vector @code{up} points
+upwards. Parallel lines are projected to parallel lines.
 
-@item perspective(triple camera)
-@item perspective(real x, real y, real z)
+@item perspective(triple camera, triple up=Z)
+@item perspective(real x, real y, real z, triple up=Z)
 @cindex @code{perspective}
 These project three dimensions onto two taking account of perspective,
-as seen from the location @code{camera} or @code{(x,y,z)}, respectively.
+as seen from the location @code{camera} or @code{(x,y,z)}, respectively,
+orienting the camera so that, if possible, the vector @code{up} points
+upwards.
 
 @end table
 
