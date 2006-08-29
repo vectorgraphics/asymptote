@@ -1,31 +1,25 @@
-import graph;
-size(0,100);
+import graph3;
+import solids;
+size(0,150);
+currentprojection=perspective(0,0,10);
+currentlight=(1,0,0.25);
+pen color=green;
 
 real f(real x) {return sqrt(x);}
-pair F(real x) {return (x,f(x));}
+triple F(real x) {return (x,f(x),0);}
 
-real g(real x) {return sqrt(-x);}
-pair G(real x) {return (x,g(x));}
+guide3 p=graph(F,0,1,n=30);
+revolution a=revolution(p,Y,0,360);
+a.filldraw(color,blue,false);
+draw(p,blue);
 
-guide p=graph(f,0,1,operator ..);
+bbox3 b=autolimits(O,1.25*(X+Y)+Z);
 
-draw(p--(0,1),dotted);
+xtick((0,0,0));
+xtick((1,0,0));
 
-guide q=(0,0)--p--(0,1);
-guide h=q--cycle;
-fill(h,lightgray);
-
-xaxis("$x$");
-yaxis("$y$",0,1.25,dashed);
-
-draw(q);
-arrow("$y=\sqrt{x}$",F(0.7),ESE);
-draw(graph(g,0,-1,operator ..)--(0,1),dotted);
-draw((0,0.74),yscale(0.5)*arc(0,0.25cm,-250,70),ArcArrow);
-
-xtick(Label,-1);
-labelx(0);
-xtick(Label,1);
-
-dot(Label,(1,1));
-
+xaxis(Label("$x$",1),b,Arrow);
+yaxis(Label("$y$",1),b,dashed,Arrow);
+dot(Label("$(1,1)$"),(1,1,0));
+arrow("$y=\sqrt{x}$",F(0.5),E,0.75cm);
+draw(reverse(arc(1.01Y,0.3,90,0,7.5,180)),ArcArrow);

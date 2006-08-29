@@ -1,26 +1,23 @@
-import graph;
-size(0,100);
+import graph3;
 
-real f(real x) {return sqrt(1-x*x);}
+size(0,150);
+currentprojection=perspective(5,-4,6);
+currentlight=(-1,-1,2);
+real t=0.5;
 
-picture b;
-picture a=b;
-real x=0.5;
-pair zp=(x,f(x));
-pair zm=(x,-f(x));
-pair zh=(1.5,0.3);
-guide g=zm--zp--zh--cycle;
+real F(pair z) {
+  return (z.x^2+z.y^2 <= 1) ? sqrt(3)*(sqrt(1-z.x^2)-abs(z.y)) : 0; 
+}
 
-xaxis("$x$");
-yaxis("$y$",-infinity,1.3);
+real a=1.5;
+guide3 square=(-a,-a,0)--(-a,a,0)--(a,a,0)--(a,-a,0)--cycle3;
+fill(square,lightgray);
 
-draw("1",(0,0)--dir(135),Arrow,PenMargin);
-
-draw(circle((0,0),1));
-filldraw(g,red+white);
-
-picture hidden;
-draw(hidden,circle((0,0),1),dashed);
-clip(hidden,g);
-
-add(hidden);
+bbox3 b=limits(O,1.5(1,1,1));
+xaxis(Label("$x$",1),b,red,Arrow);
+yaxis(Label("$y$",1),b,red,Arrow);
+draw(circle((0,0,0),1),dashed);
+add(surface(F,(-1,-1),(t,1),20,green,black));
+real y=sqrt(1-t^2);
+draw((t,y,0)--(t,-y,0)--(t,0,sqrt(3)*y)--cycle3,blue);
+label("$1$",(1,0,0),-Y+X);

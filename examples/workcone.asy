@@ -1,32 +1,42 @@
+import graph3;
+import solids;
 size(0,150);
-import graph;
+currentprojection=orthographic(0,-30,5);
 
 real r=4;
 real h=10;
 real s=8;
-
-pair z0=(0,0);
-pair z1=(r,h);
-pair z2=(-r,h);
-
-draw(z0--z1--z2--cycle);
 real x=r*s/h;
-guide g=(0,0)--(-x,s)--(x,s)--cycle;
-fill(g,lightblue+white);
-yaxis(0,dotted);
-xaxis();
-draw(g);
 
-real s1=5.0;
-real s2=5.1;
+real sr=5;
+real xr=r*sr/h;
+
+real s1=sr-0.2;
 real x1=r*s1/h;
+
+real s2=sr+0.2;
 real x2=r*s2/h;
-guide g2=(-x2,s2)--(-x1,s1)--(x1,s1)--(x2,s2)--cycle;
-fill(g2,blue);
 
-draw((string) s,(-x,0)--(-x,s),W,red,Arrow,Bar,PenMargin);
-draw("$x$",(x2,0)--(x2,0.5*(s1+s2)),red,Arrow,Bar,PenMargin);
-draw((string) h,(r,0)--(r,h),red,Arrow,Bar,PenMargin);
-label("$r$",(0.5*x2,s2),0.5*N,red);
+guide3 p=(0,0,0)--(x,0,s);
+revolution a=revolution(p,Z);
+a.filldraw(lightblue,lightblue+white,false);
 
-label((string) r,(0.5*r,h+0.3),0.5*N,red);
+guide3 q=(x,0,s)--(r,0,h);
+revolution b=revolution(q,Z);
+b.filldraw(white,black,false);
+
+bbox3 b=autolimits(O,h*(X+Z)+Y);
+
+draw((-r-1,0,0)--(r+1,0,0));
+draw((0,0,0)--(0,0,h+1),dashed);
+
+guide3 w=(x1,0,s1)--(x2,0,s2)--(0,0,s2);
+revolution b=revolution(w,Z);
+b.filldraw(blue,black,false);
+draw(circle((0,0,s2),x2));
+
+draw("$x$",(xr,0,0)--(xr,0,sr-0.1),red,Arrow,Bar,PenMargin);
+draw("$r$",(0,0,s2)--(-x2,0,s2),N,red);
+draw((string) r,(0,0,h)--(r,0,h),N);
+draw((string) h,(r,0,0)--(r,0,h),red,Arrow,Bar,PenMargin);
+draw((string) s,(-x,0,0)--(-x,0,s),W,red,Arrow,Bar,PenMargin);

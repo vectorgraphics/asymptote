@@ -1,44 +1,27 @@
-import graph;
-size(0,125);
+import graph3;
+import solids;
+size(0,150);
+currentprojection=perspective(0,0,10);
+currentlight=(1,2,-1);
+pen color=green;
+real alpha=250;
 
 real f(real x) {return x^2;}
-pair F(real x) {return (x,f(x));}
+triple F(real x) {return (x,f(x),0);}
+triple H(real x) {return (x,x,0);}
 
-real g(real x) {return x;}
-pair G(real x) {return (x,g(x));}
+guide3 p=graph(F,0,1,n=10)--graph(H,1,0,n=10)--cycle3;
+revolution a=revolution(p,X,-alpha,0);
+a.filldraw(color,blue,false);
+filldraw(p,color);
+filldraw(rotate(-alpha,X)*p,color);
+draw(p,blue);
 
-guide h=(0,0)--graph(g,0,1);
+bbox3 b=autolimits(O,1.6X+1.25*Y+Z);
 
-arrow("$y=x^2$",F(0.85),E,0.75cm);
-arrow("$y=x$",G(0.4),N);
-
-guide g=(0,0)--graph(f,0,1,operator ..)--cycle;
-fill(g,lightgray);
-draw(h);
-draw(g);
-
-transform T=xscale(0.5);
-draw((1.04,0),T*arc(0,0.25cm,20,340),ArcArrow);
-
-dot(Label,(1,1));
-
-real x=0.5;
-pair c=(3,0);
-picture canvas=new picture; 
-transform S0=shift(c)*T*shift(-c);
-fill(canvas,S0*circle(c,g(x)),red+white);
-unfill(canvas,S0*circle(c,f(x)));
-add(currentpicture,canvas);
-
-draw((x,g(x))--c+(0,g(x)),dashed+red);
-draw((x,f(x))--c+(0,f(x)),dashed+red);
-draw((x,f(x))--(x,g(x)),red);
-
-arrow((2,0.5*(f(x)+g(x))),W,1cm,red);
-
-xaxis("$x$",0,c.x,dashed);
-yaxis("$y$");
-
-draw("$r_{\rm in}$",S0*(c--c+f(x)*dir(-45)),dir(56),darkgreen,Arrow(6.0));
-draw("$r_{\rm out}$",S0*(c--c+(0,g(x))),blue,Arrow);
-dot(c);
+xaxis(Label("$x$",1),b,dashed,Arrow);
+yaxis(Label("$y$",1),b,Arrow);
+dot(Label("$(1,1)$"),(1,1,0));
+arrow("$y=x$",(0.7,0.7,0),N,0.75cm);
+arrow("$y=x^{2}$",F(0.7),E,0.75cm);
+draw(arc(1.25X,0.3,90,90,3,-90),ArcArrow);
