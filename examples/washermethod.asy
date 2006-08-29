@@ -10,7 +10,7 @@ real alpha=250;
 real f(real x) {return 2x^2-x^3;}
 triple F(real x) {return (x,f(x),0);}
 
-ngraph=20;
+ngraph=12;
 guide3[] p=new guide3[] {
   graph(F,0.7476,1.8043)--cycle3,
   graph(F,0.7,0.7476)--graph(F,1.7787,1.8043)--cycle3,
@@ -20,7 +20,7 @@ pen[] pn=new pen[] {color1,color2,color1};
 
 for(int i=0; i < p.length; ++i) {
   revolution a=revolution(p[i],Y,0,alpha);
-  a.fill(16,pn[i]);
+  a.fill(10,pn[i]);
   filldraw(p[i],pn[i]);
   filldraw(rotate(alpha,Y)*p[i],pn[i]);
 }

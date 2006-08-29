@@ -11,7 +11,7 @@ triple H(real x) {return (x,x,0);}
 
 guide3 p=graph(F,0,1,n=10)--graph(H,1,0,n=10)--cycle3;
 revolution a=revolution(p,Y,180,180+alpha);
-a.filldraw(color,blue);
+a.filldraw(12,color,blue);
 filldraw(p,color);
 filldraw(rotate(alpha,(0,1,0))*p,color);
 

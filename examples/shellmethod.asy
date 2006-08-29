@@ -19,10 +19,10 @@ for(int i=1; i <= n; ++i) {
     (left,0,0)--(left,height,0)--(right,height,0)--(right,0,0)--cycle3;
 }
 
-guide3 p=graph(F,0,2,n=30)--cycle3;
+guide3 p=graph(F,0,2,n=25)--cycle3;
 
 revolution a=revolution(p,Y,0,alpha);
-a.filldraw(color,1,blue,false);
+a.filldraw(8,color,1,blue,false);
 filldraw(p,color);
 filldraw(rotate(alpha,(0,1,0))*p,color);
 for(int i=0; i < n; ++i) {

@@ -7,9 +7,9 @@ pen color=green;
 real f(real x){return sqrt(x);}
 triple F(real x){return (x,f(x),0);}
 
-guide3 p=graph(F,0,1,n=40);
+guide3 p=graph(F,0,1,n=20);
 revolution a=revolution(p,X,0,360);
-a.filldraw(color,3,blue);
+a.filldraw(16,color,3,blue);
 draw(p,blue);
 
 bbox3 b=autolimits(O,2X+1.25Y+Z);
