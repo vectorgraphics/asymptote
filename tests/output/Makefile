@@ -1,6 +1,9 @@
 # Automated testing to see if the output of Asymptote scripts changes when the
 # program is modified.
 
+# How to call asy from the tests/output/name.out directory
+ASY=../../../asy
+
 TESTS=$(basename $(wildcard *.asy))
 
 # This command performs the testing on all scripts.
@@ -14,14 +17,13 @@ $(TESTS:=.ref) $(TESTS:=.out): %:
 	@rm -rf $@
 	@mkdir $@
 	@cd $@; \
-	asy -v -v -keep ../$(basename $@) \
+	$(ASY) -v -v -keep ../$(basename $@) \
 	    >$(basename $@).stdout 2>$(basename $@).stderr; \
 	ls >$(basename $@).ls; \
 	rm -f *.dvi *.pdf *.gif *.jpg *.jpeg *.png
 
 # Ignore lines with timestamps of the form hh:mm, since the time changes between
-# runs.  This regex is fairly broad and it may need to be narrowed.  Also ignore
-# binary files, the types of which a listed in ignore.in.
+# runs.  This regex is fairly broad and it may need to be narrowed.
 $(TESTS:=.diff): %.diff: %.out
 	diff -I "[0-9][0-9]:[0-9][0-9]" -u $(@:.diff=.ref) $(@:.diff=.out)
 
