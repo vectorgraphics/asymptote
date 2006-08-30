@@ -23,14 +23,15 @@ namespace camp {
 
 inline void BoundingBox(std::ostream& s, const bbox& box) 
 {
-  s << "%%BoundingBox: " << box.LowRes() << newl;
+  s << "%%BoundingBox: " << std::setprecision(0) << std::fixed 
+    << box.LowRes() << newl;
+  s.unsetf(std::ios::fixed);
   s << "%%HiResBoundingBox: " << std::setprecision(9) << box << newl;
 }
 
 class psfile {
   string filename;
   bbox box;
-  bool rawmode;
   bool pdfformat;
   pen lastpen;
   ostream *out;
