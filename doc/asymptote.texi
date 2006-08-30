@@ -511,7 +511,7 @@ cd asymptote-x.xx
 @end verbatim
 
 @noindent Then put
-@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.7.tar.gz}
+@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.8.tar.gz}
 in the current directory and
 @verbatim
 ./configure

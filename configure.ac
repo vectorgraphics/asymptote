@@ -71,7 +71,7 @@ AC_CHECK_HEADER(fftw3.h,
            AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
      AC_MSG_NOTICE([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
 
-GCVERSION=6.7
+GCVERSION=6.8
 
 AC_ARG_ENABLE(gc,
 	[  --enable-gc[[=VERSION]]   Use single-threaded Boehm garbage collector (default)]
@@ -177,12 +177,13 @@ AC_OUTPUT
 if test "x$GCDIR" != "x" ; then
    AC_CHECK_FILE($GCDIR.tar.gz,,[
    echo
-   echo You need to obtain the Boehm garbage collector source code.
-   echo For example, use the command:
+   echo Please put the Boehm garbage collector tar.gz file in the current directory.
+   echo FOR EXAMPLE, USE THE COMMAND:
    echo
    echo wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/$GCDIR.tar.gz
    echo
-   echo Or ./configure --enable-gc=system to use a slower system version of gc
+   echo Or, to use a slower system version of gc:
+   echo ./configure --enable-gc=system
    exit 1
    ])
 fi
