@@ -103,10 +103,9 @@ Some variables can be customized: M-x customize-group <RET> asymptote <RET>."
 ;;  (define-key asy-mode-map "\"" 'skeleton-pair-insert-maybe)
 ;;  (define-key asy-mode-map "\'" 'skeleton-pair-insert-maybe)
 ;;  (define-key asy-mode-map "\$" 'skeleton-pair-insert-maybe)
-;; Next line disabled since this interferes with grouping existing code (JCB)
+;; Next 3 lines also disabled as they can make typing awkward. (JCB)
 ;;  (define-key asy-mode-map "\{" 'skeleton-pair-insert-maybe)
-  (define-key asy-mode-map "\(" 'skeleton-pair-insert-maybe)
-;; Next line disabled since this makes typing real[] awkward (JCB)
+;;  (define-key asy-mode-map "\(" 'skeleton-pair-insert-maybe)
 ;;  (define-key asy-mode-map "\[" 'skeleton-pair-insert-maybe)
 )
 
