@@ -11,7 +11,7 @@ real x=r*s/h;
 real sr=5;
 real xr=r*sr/h;
 
-real s1=sr-0.2;
+real s1=sr-0.1;
 real x1=r*s1/h;
 
 real s2=sr+0.2;
@@ -35,8 +35,8 @@ revolution b=revolution(w,Z);
 b.filldraw(blue,black,false);
 draw(circle((0,0,s2),x2));
 
-draw("$x$",(xr,0,0)--(xr,0,sr-0.1),red,Arrow,Bar,PenMargin);
-draw("$r$",(0,0,s2)--(-x2,0,s2),N,red);
-draw((string) r,(0,0,h)--(r,0,h),N);
-draw((string) h,(r,0,0)--(r,0,h),red,Arrow,Bar,PenMargin);
+draw("$x$",(xr,0,0)--(xr,0,sr),red,Arrow,PenMargin);
+draw("$r$",(0,0,sr)--(xr,0,sr),N,red);
+draw((string) r,(0,0,h)--(r,0,h),N,red);
+draw((string) h,(r,0,0)--(r,0,h),red,Arrow,PenMargin);
 draw((string) s,(-x,0,0)--(-x,0,s),W,red,Arrow,Bar,PenMargin);
