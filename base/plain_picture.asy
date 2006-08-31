@@ -673,26 +673,25 @@ struct picture {
   // Returns the transform for turning user-space pairs into true-space pairs.
   transform calculateTransform(real xsize, real ysize, bool keepAspect=true,
 			       bool warn=true) {
-    if (xsize == 0 && ysize == 0)
+    if(xsize == 0 && ysize == 0)
       return identity();
     
     coords2 Coords;
     
     append(Coords,Coords,Coords,T,bounds);
     
-    if (ysize == 0) {
-      scaling sx=calculateScaling("x",Coords.x,xsize,warn);
-      return scale(sx.a);
+    scaling sx,sy;
+    if(xsize != 0) {
+      sx=calculateScaling("x",Coords.x,xsize,warn);
+      if(ysize == 0)
+	return scale(sx.a);
     }
-    
-    if (xsize == 0) {
-      scaling sy=calculateScaling("y",Coords.y,ysize,warn);
+
+    sy=calculateScaling("y",Coords.y,ysize,warn);
+    if(xsize == 0)
       return scale(sy.a);
-    }
-    
-    scaling sx=calculateScaling("x",Coords.x,xsize,warn);
-    scaling sy=calculateScaling("y",Coords.y,ysize,warn);
-    if (keepAspect)
+
+    if(keepAspect)
       return scale(min(sx.a,sy.a));
     else
       return xscale(sx.a)*yscale(sy.a);
