@@ -12,6 +12,7 @@
 #include <fstream>
 #include <stack>
 #include <iomanip>
+#include <sstream>
 
 #include "pair.h"
 #include "path.h"
@@ -24,17 +25,16 @@ namespace camp {
 inline void BoundingBox(std::ostream& s, const bbox& box) 
 {
   s << "%%BoundingBox: " << std::setprecision(0) << std::fixed 
-    << box.LowRes() << newl;
+       << box.LowRes() << newl;
   s.unsetf(std::ios::fixed);
   s << "%%HiResBoundingBox: " << std::setprecision(9) << box << newl;
 }
 
 class psfile {
   string filename;
-  bbox box;
   bool pdfformat;
   pen lastpen;
-  ostream *out;
+  std::ostream *out;
   std::stack<pen> pens;
 
   void write(transform t) {
@@ -48,10 +48,14 @@ class psfile {
   }
   
 public: 
-  psfile(const string& filename, const bbox& box, bool pdformat);
+  psfile(const string& filename, bool pdformat);
   ~psfile();
   
-  void prologue();
+  void BoundingBox(const bbox& box) {
+    camp::BoundingBox(*out,box);
+  }
+  
+  void prologue(const bbox& box);
   void epilogue();
 
   void write(double x) {

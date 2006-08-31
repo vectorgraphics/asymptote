@@ -194,13 +194,13 @@ bool picture::texprocess(const string& texname, const string& outname,
     status=System(dcmd,0,true,"dvips");
     
     ifstream fin(psname.c_str());
-    ofstream *Fout=NULL;
-    ostream *fout=(outname == "") ? &cout :
-      Fout=new ofstream(outname.c_str());
+    psfile fout(outname,false);
     
     string s;
     bool first=true;
-    bool shift=(bboxshift != 0.0);
+    transform t=shift(bboxshift);
+    if(T) t=t*(*T);
+    bool shift=(t != identity());
     string beginspecial="TeXDict begin @defspecial";
     string endspecial="@fedspecial end";
     while(getline(fin,s)) {
@@ -209,30 +209,19 @@ bool picture::texprocess(const string& texname, const string& outname,
 	bbox box=b;
 	box.shift(bboxshift);
 	if(verbose > 2) BoundingBox(cout,box);
-	BoundingBox(*fout,box);
+	fout.BoundingBox(box);
 	first=false;
       } else if(shift && s.find(beginspecial) == 0) {
-	*fout << s << newl;
-	*fout << "gsave " << newl
-	      << bboxshift.getx() << " " << bboxshift.gety()
-	      << " translate" << newl;
+	fout.verbatimline(s);
+	fout.gsave();
+	fout.concat(t);
       } else if(shift && s.find(endspecial) == 0) {
-	*fout << "grestore" << newl;
-	*fout << s << newl;
+	fout.grestore();
+	fout.verbatimline(s);
       } else
-	*fout << s << newl;
+	fout.verbatimline(s);
     }
-    flush(*fout);
-    
-    if(Fout) {
-      if(!Fout->good()) {
-	ostringstream msg;
-	msg << "Cannot write to " << outname.c_str();
-	reportError(msg);
-      }
-      delete Fout;
-    }
-    
+      
     if(!getSetting<bool>("keep")) { // Delete temporary files.
       unlink(texname.c_str());
       unlink(dviname.c_str());
@@ -342,8 +331,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     bbox b;
     b.left=b.bottom=0;
     b.right=b.top=1;
-    psfile out(epsname,b,false);
-    out.prologue();
+    psfile out(epsname,false);
+    out.prologue(b);
     out.epilogue();
     if(deconstruct && !tgifformat) {
       if(bboxout) bboxout.close();
@@ -435,8 +424,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       bshift.shift(bboxshift);
     }
     psnameStack.push_back(psname);
-    psfile out(psname,bshift,pdfformat);
-    out.prologue();
+    psfile out(psname,pdfformat);
+    out.prologue(bshift);
   
     if(Labels) tex->beginlayer(psname);
     else {
@@ -518,6 +507,7 @@ picture *picture::transformed(const transform& t)
     assert(*p);
     pic->append((*p)->transformed(t));
   }
+  pic->T=new transform(T ? t*(*T) : t);
 
   return pic;
 }

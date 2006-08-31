@@ -72,6 +72,12 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
       add(F,GUI(i));
     f=F;
   }
+  
+  // Applications like LaTeX cannot handle large PostScript coordinates.
+  pair m=min(f);
+  int limit=2000;
+  if(abs(m.x) > limit || abs(m.y) > limit) f=shift(-m)*f;
+
   shipout(prefix,f,preamble,format,wait,view,
   	  Transform ? GUIlist[GUIFilenum].Transform : null,
 	  Transform ? GUIlist[GUIFilenum].Delete : null);

@@ -56,7 +56,7 @@ types::array *dimensions::truetype(types::ty *base)
 {
   if (base->kind == ty_void) {
     em->compiler(getPos());
-    *em << "can't declare array of type void";
+    *em << "cannot declare array of type void";
   }
 
   assert(depth >= 1);
@@ -414,7 +414,7 @@ void decid::transAsField(coenv &e, record *r, types::ty *base)
   assert(t);
   if (t->kind == ty_void) {
     em->compiler(getPos());
-    *em << "can't declare variable of type void";
+    *em << "cannot declare variable of type void";
   }
 
   start->addOps(base, e);

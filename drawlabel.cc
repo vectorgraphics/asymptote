@@ -41,7 +41,7 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn)
       tex << "\n";
       tex.wait("\n*","! ");
       return false;
-    } else reportError("Can't read label width");
+    } else reportError("Cannot read label width");
   }
   tex << "\n";
   tex.wait("\n*","! ");
@@ -49,14 +49,14 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn)
   tex >> texbuf;
   if(texbuf[0] == '>' && texbuf[1] == ' ')
     height=atof(texbuf.c_str()+2)*tex2ps;
-  else reportError("Can't read label height");
+  else reportError("Cannot read label height");
   tex << "\n";
   tex.wait("\n*","! ");
   tex << "\\showthe\\dp\\ASYbox\n";
   tex >> texbuf;
   if(texbuf[0] == '>' && texbuf[1] == ' ')
     depth=atof(texbuf.c_str()+2)*tex2ps;
-  else reportError("Can't read label depth");
+  else reportError("Cannot read label depth");
   tex << "\n";
   tex.wait("\n*","! ");
      

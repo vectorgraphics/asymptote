@@ -156,7 +156,7 @@ types::ty *newArrayExp::getType(coenv &e)
   types::ty *c = celltype->trans(e);
   if (c->kind == ty_void) {
     em->compiler(getPos());
-    *em << "can't declare array of type void";
+    *em << "cannot declare array of type void";
     return primError();
   }
   if (dims)

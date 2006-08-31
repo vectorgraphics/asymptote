@@ -22,7 +22,7 @@ texfile::texfile(const string& texname, const bbox& box) : box(box)
 {
   out=new ofstream(texname.c_str());
   if(!out || !*out) {
-    std::cerr << "Can't write to " << texname << std::endl;
+    std::cerr << "Cannot write to " << texname << std::endl;
     throw handled_error();
   }
   out->setf(std::ios::fixed);

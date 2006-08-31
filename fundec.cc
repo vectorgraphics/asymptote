@@ -40,7 +40,7 @@ types::ty *formal::getType(coenv &e, bool tacit) {
   types::ty *t = start ? start->getType(bt, e, tacit) : bt;
   if (t->kind == ty_void && !tacit) {
     em->compiler(getPos());
-    *em << "can't declare parameters of type void";
+    *em << "cannot declare parameters of type void";
     return primError();
   }
 

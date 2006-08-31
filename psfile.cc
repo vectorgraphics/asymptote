@@ -36,26 +36,36 @@ void checkColorSpace(ColorSpace colorspace)
   }
 }
     
-psfile::psfile(const string& filename, const bbox& box, bool pdfformat)
-  : filename(filename), box(box), pdfformat(pdfformat)
+psfile::psfile(const string& filename, bool pdfformat)
+  : filename(filename), pdfformat(pdfformat)
 {
   if(filename.empty()) out=&std::cout;
   else out=new ofstream(filename.c_str());
   if(!out || !*out) {
-    std::cerr << "Can't write to " << filename << std::endl;
+    std::cerr << "Cannot write to " << filename << std::endl;
     throw handled_error();
   }
 }
 
 psfile::~psfile()
 {
-  if(!filename.empty() && out) delete out;
+  if(out) {
+    out->flush();
+    if(!filename.empty()) {
+      if(!out->good()) {
+	std::ostringstream msg;
+	msg << "Cannot write to " << filename;
+	reportError(msg);
+      }
+      delete out;
+    }
+  }
 }
 
-void psfile::prologue()
+void psfile::prologue(const bbox& box)
 {
   *out << "%!PS-Adobe-3.0 EPSF-3.0" << newl;
-  BoundingBox(*out,box);
+  BoundingBox(box);
   *out << "%%Creator: " << settings::PROGRAM << " " << settings::VERSION
        <<  newl;
 
@@ -77,7 +87,6 @@ void psfile::epilogue()
 {
   *out << "showpage" << newl;
   *out << "%%EOF" << newl;
-  out->flush();
 }
 
 void psfile::setpen(pen p)

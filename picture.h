@@ -29,6 +29,7 @@ class picture : public gc {
 private:
   bool labels;
   size_t lastnumber;
+  transform *T; // Keep track of accumlative picture transform
   bbox b;
   boxvector labelbounds;
   bboxlist bboxstack;
@@ -39,7 +40,7 @@ private:
 public:
   nodelist nodes;
   
-  picture() : labels(false), lastnumber(0) {}
+  picture() : labels(false), lastnumber(0), T(0) {}
   
   // Destroy all of the owned picture objects.
   ~picture();

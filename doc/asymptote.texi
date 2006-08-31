@@ -732,8 +732,7 @@ the overall scaling will be determined by the other direction
 
 @cindex user coordinates
 @cindex @code{unitsize}
-To make the user coordinates represent multiples of exactly
-@code{1cm}, fit the picture like this:
+To make the user coordinates represent multiples of exactly @code{1cm}:
 @verbatim 
 draw(unitsquare);
 shipout(unitsize=1cm);
