@@ -268,7 +268,7 @@ public:
   void write(guide *val) {*stream << *val;}
   void write(const transform& val) {*stream << val;}
   void writeline() {
-    if(standard) {
+    if(standard && interact::interactive) {
       int scroll=settings::getScroll();
       if(scroll && lines > 0 && lines % scroll == 0) {
 	for(;;) {
