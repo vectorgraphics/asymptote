@@ -194,7 +194,7 @@ bool picture::texprocess(const string& texname, const string& outname,
     status=System(dcmd,0,true,"dvips");
     
     ifstream fin(psname.c_str());
-    psfile fout(outname,false);
+    psfile *fout=new psfile(outname,false);
     
     string s;
     bool first=true;
@@ -209,19 +209,21 @@ bool picture::texprocess(const string& texname, const string& outname,
 	bbox box=b;
 	box.shift(bboxshift);
 	if(verbose > 2) BoundingBox(cout,box);
-	fout.BoundingBox(box);
+	fout->BoundingBox(box);
 	first=false;
       } else if(shift && s.find(beginspecial) == 0) {
-	fout.verbatimline(s);
-	fout.gsave();
-	fout.concat(t);
+	fout->verbatimline(s);
+	fout->gsave();
+	fout->concat(t);
       } else if(shift && s.find(endspecial) == 0) {
-	fout.grestore();
-	fout.verbatimline(s);
+	fout->grestore();
+	fout->verbatimline(s);
       } else
-	fout.verbatimline(s);
+	fout->verbatimline(s);
     }
       
+    delete fout;
+    
     if(!getSetting<bool>("keep")) { // Delete temporary files.
       unlink(texname.c_str());
       unlink(dviname.c_str());
