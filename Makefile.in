@@ -48,7 +48,7 @@ animationsdir = $(exampledir)/animations
 latexdir = $(DESTDIR)@latexdir@
 INSTALL = @INSTALL@
 
-export prefix docdir exampledir mandir infodir INSTALL MAKE ASYMPTOTE_DIR DESTDIR
+export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR
 
 asy: $(GCLIBS) $(FILES:=.o) 
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) $(LIBS)
