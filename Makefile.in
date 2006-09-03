@@ -16,7 +16,7 @@ FILES = $(CAMP) runtime env genv main stm dec errormsg callable name \
 	@getopt@ locate parser program application varinit fundec refaccess \
 	Delaunay envcompleter
 
-DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc \
+DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc keywords.cc \
 	asy-keywords.el base/asy-keywords.el
 CLEAN = camp.output asy.list asy.sorted
 NAME = asy
