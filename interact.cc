@@ -56,7 +56,7 @@ void init_completion() {
   // treated as break characters.
   static char break_characters[128];
   int j=0;
-  for (int c=9; c<128; ++c)
+  for (unsigned char c=9; c<128; ++c)
     if (!isalnum(c) && c != '_') {
       break_characters[j]=c;
       ++j;
