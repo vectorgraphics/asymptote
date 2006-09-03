@@ -121,10 +121,10 @@ install-asy: asy asy-keywords.el
 	fi
 
 install-doc: doc
-	cd doc; $(MAKE) install
+	cd doc; $(MAKE) install-all
 
 install-man: man
-	cd doc; $(MAKE) install-man
+	cd doc; $(MAKE) install
 
 uninstall: uninstall-all
 

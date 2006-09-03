@@ -55,25 +55,27 @@ clean: FORCE
 	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,pdf,toc,tp,vr}
 	rm -rf asymptote
 
-install-man: man faq
+install: man faq
 	cd FAQ; $(MAKE) install
 	${INSTALL} -d -m 755 $(docdir) $(mandir)/man1
 	${INSTALL} -p -m 644 asymptote.pdf $(docdir)
 	${INSTALL} -p -m 644 $(MANFILES) $(mandir)/man1
 
-install: doc install-man
+install-all: doc install
+	cd FAQ; $(MAKE) install-info
 	${INSTALL} -d -m 755 $(infodir)
 	${INSTALL} -p -m 644 asymptote.info $(infodir)
 	-if test -z "$(DESTDIR)"; then \
 		install-info --infodir=$(infodir) asymptote.info; \
 	fi
 
-uninstall:
+uninstall: uninstall-all
+
+uninstall-all:
 	cd FAQ; $(MAKE) uninstall
 	-cd $(mandir)/man1; rm $(MANFILES)
 	-rm -f $(docdir)/asymptote.pdf
-	-rmdir $(docdir)
-	-install-info --delete --infodir=$(infodir) doc/asymptote.info
+	-install-info --delete --infodir=$(infodir) asymptote.info
 	-rm -f $(infodir)/asymptote.info
 
 distclean: FORCE clean
