@@ -1,23 +1,27 @@
 MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy) latexusage.asy
 FIGURES = version.texi 
+ASY = ../asy -dir ../base
 
 doc:	asymptote.dvi asymptote.info html man
 
 man:	asymptote.pdf
 
+faq:	
+	cd FAQ; $(MAKE) faq
+
 %.png:	%.asy
-	../asy -f png $<
+	$(ASY) -f png $<
 
 %.eps:	%.asy
-	../asy $<
+	$(ASY) $<
 
 %.pdf:	%.asy
-	../asy -f pdf $<
+	$(ASY) -f pdf $<
 
 latexusage.asy: latexusage.tex
 	latex latexusage
-	../asy latexusage
+	$(ASY) latexusage
 
 latexusage.dvi: latexusage.asy ../examples/slidedemo.asy
 	latex latexusage
@@ -51,7 +55,8 @@ clean: FORCE
 	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,pdf,toc,tp,vr}
 	rm -rf asymptote
 
-install-man: man
+install-man: man faq
+	cd FAQ; $(MAKE) install
 	${INSTALL} -d -m 755 $(docdir) $(mandir)/man1
 	${INSTALL} -p -m 644 asymptote.pdf $(docdir)
 	${INSTALL} -p -m 644 $(MANFILES) $(mandir)/man1
@@ -64,6 +69,7 @@ install: doc install-man
 	fi
 
 uninstall:
+	cd FAQ; $(MAKE) uninstall
 	-cd $(mandir)/man1; rm $(MANFILES)
 	-rm -f $(docdir)/asymptote.pdf
 	-rmdir $(docdir)
@@ -72,5 +78,5 @@ uninstall:
 
 distclean: FORCE clean
 	rm -f version.texi
-
+	cd FAQ; make distclean
 FORCE:
