@@ -23,10 +23,13 @@ real barsize(pen p=currentpen)
   return barfactor*linewidth(p);
 }
 
-guide arrowhead(path g, real position, pen p=currentpen,
-		       real size=0, real angle=arrowangle)
+guide arrowhead(path g, position position=EndPoint, pen p=currentpen,
+		real size=0, real angle=arrowangle)
 {
   if(size == 0) size=arrowsize(p);
+  bool relative=position.relative;
+  real position=position.position.x;
+  if(relative) position=reltime(g,position);
   path r=subpath(g,position,0.0);
   pair x=point(r,0);
   real t=arctime(r,size);
@@ -43,9 +46,9 @@ guide arrowhead(path g, real position, pen p=currentpen,
 }
 
 void arrowheadbbox(picture pic=currentpicture, path g,
-			  position position=EndPoint,
-			  pen p=currentpen, real size=0,
-			  real angle=arrowangle)
+		   position position=EndPoint,
+		   pen p=currentpen, real size=0,
+		   real angle=arrowangle)
 {
   // Estimate the bounding box contribution using the local slope at endpoint
   // and ignoring margin.
