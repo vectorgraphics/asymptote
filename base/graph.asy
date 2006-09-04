@@ -464,7 +464,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     L.p(p);
     F.p(p);
     if(pTick == nullpen) pTick=p;
-    if(ptick == nullpen) ptick=p;
+    if(ptick == nullpen) ptick=pTick;
     
     string format=F.s == "" ? defaultformat : F.s;
     if(F.s == "%") F.s="";
@@ -671,7 +671,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     L.p(p);
     F.p(p);
     if(pTick == nullpen) pTick=p;
-    if(ptick == nullpen) ptick=p;
+    if(ptick == nullpen) ptick=pTick;
     
     if(F.align.dir != 0) side=F.align.dir;
     else if(side == 0) side=rotate(F.angle)*((sign == 1) ? left : right);
