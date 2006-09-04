@@ -711,9 +711,9 @@ Automatic selects "nice" limits.
 \question 27jun:comporint Is Asymptote an interpreter or a compiler?  
 
 Asymptote compiles Asymptote commands into its own virtual machine code. It 
-then runs this pseudocode on a virtual machine to produce postscript code. 
+then runs this pseudocode on a virtual machine to produce PostScript code. 
 
-\question 27jun:picarray Several of my asy files use an array of pictures. What is a convenient way to declare and initialize the array?
+\question 27jun:picarray What is a convenient way to declare and initialize an array of pictures?
 
 You could write yourself a routine such as:
 \verbatim
