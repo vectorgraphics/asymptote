@@ -571,8 +571,8 @@ to the directory @code{base} (in the top level directory of the
 @cindex @code{emacs}
 @cindex @code{asy-mode}
 Users of @code{emacs} can edit @code{Asymptote} code with the mode
-@code{asy-mode}, after enabling it by putting these two lines in the
-@code{~/.emacs} initialization file, replacing @code{ASYDIR} with the
+@code{asy-mode}, after enabling it by putting the following lines in their
+@code{.emacs} initialization file, replacing @code{ASYDIR} with the
 location of the @code{Asymptote} system directory (by default,
 @code{@value{Datadir}/asymptote} or @code{c:\Program Files\Asymptote}
 under @code{MSDOS}):

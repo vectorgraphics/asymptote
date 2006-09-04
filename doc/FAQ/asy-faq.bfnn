@@ -33,15 +33,15 @@ This is the list of Frequently Asked Questions about Asymptote (asy).
 
 \comment ######################################################################
 
-\section  Introduction and general information
+\section  About Asymptote
 
-\question 26jun:whatisasy  What is Asymptote?
+\question 26jun:whatisasy What is Asymptote?
 
 Asymptote (asy for short) is a vector graphics language designed for
 technical graphics, inspired by MetaPost but with floating-point numerics
-and a C++-like syntax. 
+and a C++-like syntax.
 
-\question 22jun:whereisasy  How do I obtain Asymptote?
+\question 22jun:whereisasy How do I obtain Asymptote?
 
 New releases are available in binaries for several platforms and as source
 code from the website \docref{http://asymptote.sourceforge.net/\}.  Many Linux
@@ -55,15 +55,21 @@ extensive Asymptote documentation at
 \docref{http://asymptote.sourceforge.net/doc/\}, or search the forum:
 \docref{http://sourceforge.net/forum/forum.php?forum_id=409349\}.
 
+\question 02sep:whyasy Why was the name Asymptote chosen?
+
+Well, it isn't the perfect graphics package, but we think it is getting there
+asymptotically...
+
+\question 02sep:whycamp In the internal Asymptote source code, what does the name \courier{camp\} refer to?
+
+That was our original tentative name for this project, which stood for 
+"C's Answer to MetaPost" (the language that inspired Asymptote).
+However, we eventually decided that the name \courier{Asymptote\} better
+emphasizes the mathematical and graphical nature of this project.
+
 \comment ######################################################################
 
 \section  Questions about installation and setup
-
-\question 26jun:windir The path "%USERPROFILE%\\.asy\\config.asy" is incomprehensible.
-
-That is the way that Microsoft Windows refers to the user profile directory. 
-There's nothing really to understand here, just put your configuration
-commands in the file config.asy in a new folder "%USERPROFILE%\\.asy".
 
 \question 26jun:osx Is it possible to install Asymptote on Mac OS X?
 
@@ -73,7 +79,8 @@ can be found at
 It is also easy to compile Asymptote directly from sources
 \docref{http://sourceforge.net/project/showfiles.php?group_id=120000\}.
 
-\question 26jun:osxbadCPU On installing Asymptote from the MAC OS binary I get the error "Bad CPU type in executable".
+\question 26jun:osxbadCPU Why do I get the error "Bad CPU type in executable"
+on installing Asymptote from the MAC OS binary?
 
 This either means that you have a binary distribution for another MAC
 architecture, or (according to Marius Schamschula) that you may have a missing
@@ -87,11 +94,45 @@ Yes, see the example latexusage.tex. Dario Teixeira has also written a detailed
 guide on the topic. You can download it from
 \docref{http://dario.dse.nl/projects/asylatex/\}.
 
-\question 27jun:winglobal How do I change environment variables in Windows, for example, in order to change the default PostScript viewer?
+Philippe Ivaldi has contributed an Asymptote mode for Emacs users
+\docref{http://asymptote.sourceforge.net/doc/Editing-modes.html\},
+which includes a \courier{lasy-mode\} that allows one to compile and view
+the output of one \\begin{asy}...\\end{asy} section at a time.
+
+\question 02sep:pdflatex Is it possible to integrate Asymptote into pdflatex?
+
+Yes, just add these lines before \courier{\\usepackage{asymptote}\}:
+
+\verbatim
+\usepackage[pdftex]{graphicx}
+\usepackage{epstopdf}
+\endverbatim
+
+To use inline mode with pdflatex see
+\docref{http://sourceforge.net/forum/message.php?msg_id=3820188\}
+and \docref{http://sourceforge.net/forum/message.php?msg_id=3820228\}
+
+\question 02sep:tkinterdepend Do I need the \courier{tkinter\} package to install an Asymptote rpm binary?
+ 
+No, you don't need \courier{tkinter\} unless you want to try out the GUI \courier{xasy\} (still under development). Try
+
+\verbatim
+rpm -Uvh --nodeps asymptote-x.xx-1.i386.rpm
+\endverbatim
+
+where \courier{x.xx\} represents the version number.
+{
+\question 26jun:windir What does the path \courier{%USERPROFILE%\\.asy\\config.asy\} mean?
+
+That is the way that Microsoft Windows refers to the user profile directory. 
+There's nothing really to understand here, just put your configuration
+commands in the file \courier{config.asy\} in a new folder \courier{%USERPROFILE%\\.asy\}.
+
+\question 27jun:winglobal How do I change environment variables in Microsoft Windows, for example, in order to change the default PostScript viewer?
 
 While it is easier to set the corresponding Asymptote configuration
-variable in your config.asy file, here is the procedure for changing
-Windows environment variables:
+variable in your \courier{config.asy\} file, here is the procedure for changing
+Microsoft Windows environment variables:
  
 Click on the [Start] button 
 * RIGHT-click on 'My Computer' 
@@ -99,76 +140,143 @@ Click on the [Start] button
 * Click the 'Advanced' tab 
 * Click the 'Environment Variables' button. 
 
+\question 02sep:convert Why does xasy in WinXP gives me an error like "Invalid Parameter - 432x432"?
+
+This means that ImageMagick wasn't properly installed and you are using the
+MSDOS convert program rather than the ImageMagick one. Or you may have
+installed ImageMagick but ran Asymptote from an existing MSDOS window.
+In that case, simply open a new window and try again. If that doesn't work,
+check that 
+ 
+\verbatim
+convert --version 
+\endverbatim
+ 
+returns something like
+ 
+\verbatim
+Version: ImageMagick 6.2.8 06/27/06 Q16 http://www.imagemagick.org
+\endverbatim
+
+\question 26jun:miktex Why does Asymptote freeze upon trying to draw a label with my MikTex installation under Microsoft Windows?
+
+Likely, this means that latex and dvips are not in your default path.
+Try adding the following lines to your \courier{config.asy\} file: 
+
+\verbatim
+latex="C:\texmf\miktex\bin\latex.exe"; 
+dvips="C:\texmf\miktex\bin\dvips.exe"; 
+\endverbatim
+
+After that it also asks to install the xcolor package, which you should do. 
+Then it should work. 
+
 \comment #####################################################################
 
-\section Questions about programming
+\section Questions about paths
 
-\question 27jun:genarrays Is there a way to define functions that act on arrays in general (i.e. work for arrays of any type)?
+\question 02sep:tensionsyntax Why do I get a syntax error message when I specify an integer value for the path tension?
 
-Generic types aren't yet implemented. 
- 
-But for now you can at least say 
+What is happening here is that
+
 \verbatim
-typedef string T; 
-include F; 
- 
-typedef real T; 
-include F; 
+draw((0,0)..tension 2..(0,50)..(100,100)); 
 \endverbatim
+ 
+is read as 
 
-where F.asy contains some type-dependent code like
-T[] operator $(T A, T B) {return new T[] {A,B};}
-
-\question 27jun:cirdep Circular dependencies: is there any way to declare structures ahead of their definition, e.g. where struct A performs some operation on struct B, but B contains an A member.
-
-Asymptote does not support forward declaration of types. You can, however, 
-nest structures, so that both types are visible for parts of the bodies of 
-both structure definitions. For example: 
+\verbatim
+draw((0,0)..tension 2. .(0,50)..(100,100)); 
+\endverbatim
+ 
+So the first . after the two is treated as a decimal point.
+Just put a space after the integer tension value:
  
 \verbatim
-struct B { 
-typedef void someroutine(B b); 
- 
-static struct A { 
-someroutine routine; 
-void init(someroutine routine) { 
-this.routine=routine; 
-} 
-} 
- 
-A a=new A; 
-string test="Testing"; 
-} 
- 
-typedef B.A A; 
- 
-A operator init() {return new A;} 
-B operator init() {return new B;} 
- 
- 
-A a; 
-a.init(new void(B b){write(b.test);}); 
- 
-B b; 
-a.routine(b);
+draw((0,0)..tension 2 ..(0,50)..(100,100)); 
 \endverbatim
 
-\question 27jun:comporint Is Asymptote an interpreter or a compiler?  
+\comment #####################################################################
 
-Asymptote compiles Asymptote commands into its own virtual machine code. It 
-then runs this pseudocode on a virtual machine to produce postscript code. 
+\section Questions about labels
+
+\question 02sep:greek How do I get greek letters like omega to show up in my labels?
+
+In (La)TeX, Greek letters can be obtained in math mode by prepending a 
+backslash to the letter name. So for a omega symbol, use "$\\omega$". Everything
+between the dollar signs is considered to be a math formula. Uppercase Greek
+letters can be used by capitalizing the first letter of the name:
+
+\verbatim
+label("$\omega$",(0,0));
+label("$\Omega$",(20,0));
+\endverbatim
 
 \question 29jun:matlabels Can Asymptote use matrices as labels?
 
 Yes: 
 \verbatim
-texpreamble("\usepackage{amsmath}"); 
+usepackage("amsmath"); 
 label("$\begin{matrix} 1 & 2 \\\ 1 & 1 \end{matrix}$",(0,0)); 
 \endverbatim
 
-\comment #####################################################################
+\question 27jun:latexpackage How do I tell Asymptote to load a particular LaTeX package, like \courier{mathptmx\}?
 
-\section Questions about differences between Asymptote and MetaPost
+Put 
+ 
+\verbatim
+usepackage("mathptmx"); 
+\endverbatim
+
+at the beginning of your file.
+
+\question 28jun:internatfonts How can I use international fonts in Asymptote labels?
+
+See \docref{http://asymptote.sourceforge.net/doc/unicode.html\}.
+
+\question 10jul:Fourier How can I use Fourier fonts? 
+
+\verbatim
+usepackage("fourier");
+defaultpen(font("T1","fut\textfamilyextension","m","n"));
+\endverbatim
+
+\question 02sep:rotatelabel How can I get a rotated label with the filled box rotated as well so that it fits the text? 
+
+\question 02sep:rotatelabel3D How can I rotate labels in a 3D figure?
+
+You need to first project the triple to a pair like this: 
+ 
+\verbatim
+import three;
+size(100,100);
+
+draw(rotate(90,project(Z))*"A",O--X);
+\endverbatim
+
+\question 02sep:fixedsize How can I draw some squares and circles of a fixed size and put a label in the middle of them?
+
+Fixed-size objects should be drawn on a separate picture and then added to 
+currentpicture. Here is one way (see also \courier{subpictures.asy\} and 
+\courier{mosquito.asy\}): 
+
+\verbatim
+real u=2cm; 
+ 
+picture square; 
+draw(square,scale(u)*shift(-0.5,-0.5)*unitsquare); 
+ 
+picture circle; 
+draw(circle,scale(0.5u)*unitcircle); 
+ 
+void add(picture pic=currentpicture, Label L, picture object, pair z) { 
+add(pic,object,z); 
+label(pic,L,z); 
+} 
+ 
+add("square",square,(0,0)); 
+add("circle",circle,(5cm,0)); 
+\endverbatim
 
 \question 29jun:interp What is the equivalent of the MetaPost c[a,b] interpolation operator? 
 
@@ -177,138 +285,174 @@ Use
 interp(a,b,c);
 \endverbatim
 
-\question 23jun:mp3dots What is the equivalent of MetaPost ... command?
+\question 27jun:colorssaturation The binary operator * can be used to scale the color of a pen by a real number. Does this scaling factor have to be less than 1?
 
-::
+The scaling factor can be greater than 1. But keep in mind that the rgb color 
+components saturate at 1. 
+ 
+Try  
+\verbatim
+write(cyan); write(0.8*cyan); write(1.5*cyan); 
+\endverbatim
+and you will quickly see what is going on. 
+ 
+To get a lighter cyan you can say white+cyan, 
+which yields rgb(0.5,1,1). If you want something even lighter specify the 
+rgb colors directly, 
+for example, rgb(0.9,1,1). 
+ 
+Alternatively, work in cmyk colour space, which is nicer in that it handles 
+saturation separately from hue: 
+ 
+0.1*Cyan is light and 0.9*Cyan is dark. 
+You can also say things like 0.1*(red+cmyk) 
 
-This is just a macro for tension atleast 1:
+\comment #####################################################################
+
+\section Questions about arrows
+
+\question 02sep:doublearrows How do I draw two arrows at arbitrary positions along a path?
+
+Assuming that at least one of the arrowheads is to be filled, you can do this:
 
 \verbatim
-size(100);
-pair z0=(0,0);
-pair z1=(1,0.25);
-pair z2=(2,0);
-draw(z0{up}..tension atleast 1 ..z1{right}..tension atleast 1 ..z2{down});
+path g=((0,0)--(5cm,0)); 
+draw(g,Arrow(Relative(0.45))); 
+fill(arrowhead(g,Relative(0.55)));
 \endverbatim
 
-\question 23jun:mppickup What is the equivalent of the MetaPost pickup command?
-
-Just say, for example:
+If both of the arrowheads are to be drawn with filltype NoFill,
+one will need to create a specialized version of the arrow routine in 
+\courier{plain_arrows.asy\}:
 
 \verbatim
-currentpen=red;
+void arrow(frame f, path g, pen p=currentpen, real size=0,
+	   real angle=arrowangle, filltype filltype=FillDraw,
+	   position position=EndPoint, bool forwards=true,
+	   margin margin=NoMargin, bool center=false);
 \endverbatim
 
-\question 29aug:whatever What is the equivalent of the MetaPost whatever command?
+\question 02sep:reversearrow How do I reverse the direction of an arrowhead?
 
-* whatever
-
-Asymptote does not implicitly solve linear equations and therefore does not
-have the notion of a @code{whatever} unknown. Such a facility could
-certainly be added (perhaps using the notation ?= since = means assignment).
-However, the most common uses of whatever in MetaPost are covered by
-functions like extension in math.asy: 
-\verbatim
-pair extension(pair P, pair Q, pair p, pair q);
-\endverbatim
-this returns the intersection point of the extensions of the line segments 
-@code{PQ} and @code{pq}. I find using routines like extension more explicit
-and less confusing to new users. But we could be persuaded to add something
-similar if someone can justify the need. In the meantime, one can always
-use the explicit built-in linear solver (based on LU decomposition).
-
-\question 23jun:lray What is the equivalent for the MetaPost command for lray - horiz*v - verti*u = whatever*(LightSource - R), a system of three linear equations for three unknowns: horiz, verti, whatever.
-
-Since horiz*v+verti*u describes a plane, you could use
+Simply the reverse the direction of the path.
 
 \verbatim
-real intersect(vector P, vector Q, vector n, vector Z);
+path g=((0,0)--(5cm,0)); 
+draw(reverse(g),Arrow(Relative(0.55))); 
 \endverbatim
 
-to find the intersection time for the line lray-whatever*(LightSource - R);
-and then extract the three desired values from there. (You'll still need to
-use the built-in explicit linear solver to solve a 2x2 system to get horiz
-and verti.)
+\question 02sep:reversearrow How do I change the size of all arrows?
 
-\question 27jun:unitsizes In MetaPost, it is possible to have a drawing remain the same size in different pictures by defining a unit u and explicitly multiply all the coordinates by u.  Is there a better way to do this in Asymptote?
-
-Yes, Asymptote has a better way: you definitely don't want to manually scale 
-all of your coordinates. To make the user coordinates represent multiples
-of exactly 1cm:
-
-\verbatim
-draw(unitsquare);
-shipout(unitsize=1cm);
-\endverbatim 
-
-Another way is to draw your fixed size object to a frame and add it to
-currentpicture like this:
+To override the arrowsize you can give every Arrow drawing attribute a real
+size argument. If you want to do this globally, you can override the
+pen-dependent arrowsize function like this:
  
 \verbatim
-path p=(0,0)--(1,0); 
-frame object; 
-draw(object,scale(100)*p); 
- 
-add(object); 
-add(object,(0,-10)); 
+arrowsize=new real(pen p=currentpen) {return 2mm;}; 
 \endverbatim
+ 
+\question 26jun:arrowhead Can I create other arrowhead styles?
 
-To understand the difference between frames and pictures, try this: 
+Yes, you can build your own arrowheads by modifying the \courier{arrowhead\} routine in \courier{plain_arrows.asy\}: 
  
 \verbatim
-size(300,300); 
- 
-path p=(0,0)--(1,0); 
-picture object; 
-draw(object,scale(100)*p); 
- 
-add(object); 
-add(object,(0,-10)); // Adds truesize object to currentpicture 
-\endverbatim
-
-\question 28jun:tiles In MetaPost, one could produce tiling pictures by generating a picture, and then clipping the picture to a rectangle of fixed dimensions around the centre of the picture. How is that done in Asymptote?
-
-If you are using currentpicture the way one would in MetaPost (drawing in 
-raw PostScript coordinates), you can simply do something like: 
- 
-\verbatim
-fill((0,0)--(100,100)--(200,0)--cycle); 
- 
-pair center(picture pic=currentpicture) {return 0.5*(pic.min()+pic.max());} 
- 
-real height=100; 
-real width=100; 
-pair delta=0.5(width,height); 
-pair c=center(); 
-clip(box(c-delta,c+delta)); 
-\endverbatim
-
-However, drawing in PostScript coordinates is often inconvenient. Here's the 
-Asymptote way of doing the same thing, using deferred drawing: 
- 
-\verbatim
-size(200,0); 
-fill((0,0)--(1,1)--(2,0)--cycle); 
- 
-void clip(picture pic=currentpicture, real width, real height) 
-{
-pic.clip(new void (frame f, transform) { 
-pair center=0.5(min(f)+max(f)); 
-pair delta=0.5(width,height); 
-clip(f,box(center-delta,center+delta)); 
-}); 
+arrowhead=new guide(path g, real position, pen p=currentpen, real size=0,
+real angle=arrowangle)
+{ 
+... 
 } 
- 
-clip(100,100); 
 \endverbatim
 
-See also the index entry "tilings" in the documentation. 
+If you submit your alternate arrowheads to the forum or the Patch 
+Tracking System, we'll consider including them in a future release.
 
-\comment ######################################################################
+\comment #####################################################################
 
 \section  Questions about 2D graphs
 
-\question 26jun:vertlbls How can I prevent axes tick labels from rendering on top of each other?
+\question 02sep:axisticks How can I draw x axis ticks on the right side, with the tick labels on the left side (relative to the axis path)?
+ 
+\verbatim
+import graph;
+
+size(250,200,IgnoreAspect);
+
+draw(graph(exp,-1,1),red);
+
+xaxis("$x$",RightTicks(Label(align=left)));
+yaxis("$y$",LeftTicks(Label(align=right)));
+\endverbatim
+
+\question 02sep:axisticks How can I reposition the x axis label to three-quarters along the axis length?
+ 
+\verbatim
+import graph;
+
+size(250,200,IgnoreAspect);
+
+draw(graph(exp,-1,1),red);
+
+xaxis(Label("$x$",0.75),LeftTicks);
+yaxis("$y$",RightTicks);
+\endverbatim
+
+\question 02sep:axisticks How can I move the x axis label down 10bp?
+ 
+\verbatim
+import graph;
+size(250,200,IgnoreAspect);
+
+draw(graph(exp,-1,1),red);
+
+xaxis(shift(0,-10)*"$x$",LeftTicks);
+yaxis("$y$",RightTicks);
+\endverbatim
+
+\question 02sep:threeaxispens Can I use different pens for the axis, the axis label, and the tick labels?
+
+Yes:
+
+\verbatim
+import graph;
+size(300,200,IgnoreAspect);
+
+xlimits(-50,50); 
+ylimits(0,100);
+
+xaxis(Label("$x$",MidPoint,red),Bottom,blue,LeftTicks(green)); 
+yaxis("$y$",Left,RightTicks);
+\endverbatim
+
+\question 02sep:axislabelfont How can I change the font type of the axes label?
+ 
+\verbatim
+import graph;
+size(300,200,IgnoreAspect);
+
+xlimits(-50,50); 
+ylimits(0,100);
+
+xaxis("x",Bottom,Courier("m","n"),LeftTicks); 
+yaxis("$y$",Left,RightTicks);
+\endverbatim
+
+\question 02sep:axisticklabelfont How can I change the font type of the tick labels on an axes?
+ 
+Tick labels are by default typeset in (TeX) math mode, so to use other
+fonts you need to override the default tick format:
+ 
+\verbatim
+import graph;
+size(300,200,IgnoreAspect);
+
+xlimits(-50,50); 
+ylimits(0,100);
+
+xaxis("$x$",Bottom,LeftTicks("%.4g",Courier("m","n")+fontsize(12))); 
+yaxis("$y$",Left,RightTicks);
+\endverbatim
+
+\question 26jun:overlappingticklabels How can I prevent axes tick labels from rendering on top of each other?
 
 Either:
 
@@ -332,22 +476,6 @@ the non-quiet types, but will not notify you which labels are overlapping. See:
  
 In the case of a user-specified tick array, you can change which labels get
 suppressed/moved by changing the order of array entries.
-
-\question 26jun:arrows1 The default Asymptote arrow head is a triangle, but the PSTricks and XFig packages have other types of arrowheads. Is the a way to create another type of arrowhead?
-
-Yes, you can build your own arrowheads by modifying the arrowhead routine in 
-plain_arrows.asy: 
- 
-\verbatim
-arrowhead=new guide(path g, real position, pen p=currentpen, real size=0,
-real angle=arrowangle) 
-{ 
-... 
-} 
-\endverbatim
-
-If you submit your alternate arrowheads, we'll consider including them in a
-future release.
 
 \question 26jun:custompalettes Is it possible to define customized palettes?
 
@@ -430,7 +558,7 @@ distance(A,B,"$\ell$",1);
 
 \question 26jun:log2 I would like to have my y-axis display (base-2) logarithmic values. How do I do that?
 
-See the example log2graph.asy. 
+See the example \courier{log2graph.asy\}. 
  
 \question 26jun:decsep Is there any way to change the default appearance of the decimal separator in axis ticks, allowing for a comma instead of a dot?
 
@@ -453,7 +581,7 @@ but when you give a pen with an explicit width specified, you will
 have a dot of size linewidth. If you want the first case to behave like the
 second, you may set dotfactor=1.
 
-\question 27jun:align I'm trying to draw two graphs on the same figure with their x axes aligned. However, the y ticks are not the same length, so one x axis is shrinked with respect to the other. How can align these two graphs?
+\question 27jun:align How can I align the x axis of two graphs on the same figure?
 
 Here is solution that fits the second picture to a frame based on the
 horizontal scaling for the first picture:
@@ -497,7 +625,7 @@ add(pic2.fit(xscale(t1.xx)*yscale(t2.yy)),(0,0),SW);
 
 \question 27jun:changeaxis How can I change the direction of the y-axis, such that negatives values are on the upper y-axis?
 
-Here is a simple example (see also the example diatom.asy or the discussion
+Here is a simple example (see also the example \courier{diatom.asy\} or the discussion
 of Linear(-1) in the documentation):
  
 \verbatim
@@ -539,29 +667,7 @@ y=t
 x=(t-2)^2+1 
 \endverbatim
 
-See the example parametricgraph.asy. 
-
-\question 27jun:colorssaturation The binary operator * can be used to scale the color of a pen by a real number. Does this scaling factor have to be less than 1?
-
-The scaling factor can be greater than 1. But keep in mind that the rgb color 
-components saturate at 1. 
- 
-Try  
-\verbatim
-write(cyan); write(0.8*cyan); write(1.5*cyan); 
-\endverbatim
-and you will quickly see what is going on. 
- 
-To get a lighter cyan you can say white+cyan, 
-which yields rgb(0.5,1,1). If you want something even lighter specify the 
-rgb colors directly, 
-for example, rgb(0.9,1,1). 
- 
-Alternatively, work in cmyk colour space, which is nicer in that it handles 
-saturation separately from hue: 
- 
-0.1*Cyan is light and 0.9*Cyan is dark. 
-You can also say things like 0.1*(red+cmyk) 
+See the example \courier{parametricgraph.asy\}. 
 
 \question 27jun:scalesecondaryaxis  Is it possible to reverse or stretch an axis?
 
@@ -572,54 +678,40 @@ the picture size command.
 A secondary axis has the same length as the primary axis, so stretching cannot 
 have any effect. But one can still reverse the axis, with Linear(-1).
 
-\comment ######################################################################
+\question 02sep:emptymarkers Why can't I use the UnFill option to draw graphs with empty markers?
 
-\section  Questions about output and debugging
-
-\question 27jun:latexfonts How do I change the LaTeX font used for labels? 
-
-Try using  
+UnFill won't work here because it only affects the local frame the markers
+are initially drawn on, before being added to currentpicture. 
+Here is a way of achieving the desired effect:
  
 \verbatim
-texpreamble("\usepackage{mathptmx}"); 
-\endverbatim
-
-\question 27jun:psviewer How can I disable automatic invocation of the PS viewer after an asy file is done processing?
-
-It's actually not on by default, unless you happen to be using  
-Windows (because that is what most MSWindows users expect). Windows users 
-can turn this feature off with the command-line option -noV or by putting 
+import graph; 
+size(10cm,0); 
+pair[] z={(0,0),(0.5,0.5),(1,1)}; 
+guide g=graph(z); 
  
-\verbatim
-import settings; 
-interactiveView=false; 
-batchView=false; 
+draw(shift(0,.5)*g,marker(scale(5)*unitcircle,FillDraw(white))); 
+ 
+xaxis(BottomTop,LeftTicks); 
+yaxis(LeftRight,RightTicks); 
 \endverbatim
 
-in their config.asy file. See
-\docref{http://asymptote.sourceforge.net/doc/Options.html\}.
+\question 02sep:paletterange How can I force several images to use the same palette range (e.g. the entire 0-255 grayscale range)?
 
-\question 26jun:jpeg How do I output jpeg images?
+The palette color space corresponds to a range of values specified by the
+argument range, which can be Full, Automatic or an explicit
+bounds(pair min, pair max). Here Full specifies a range varying from the
+minimum to maximum values of the function over the sampling interval, while
+Automatic selects "nice" limits.
 
-If you have the ImageMagick convert program installed, you can run the following: 
-asy -f jpg test.asy 
+\comment #####################################################################
 
-\question 26jun:debug Is there a debugger for asy?
+\section Questions about programming
 
-Release 1.10 includes a line-based debugger.
+\question 27jun:comporint Is Asymptote an interpreter or a compiler?  
 
-\question 26jun:miktex Asymptote freezes upon trying to draw a label with my installation of MikTex in Windows, 
-
-Likely, this means that latex and dvips are not in your default path.
-Try adding the following lines to your config.asy file: 
-
-\verbatim
-latex="C:\texmf\miktex\bin\latex.exe"; 
-dvips="C:\texmf\miktex\bin\dvips.exe"; 
-\endverbatim
-
-After that it also asks to install the xcolor package, which you should do. 
-Then it should work. 
+Asymptote compiles Asymptote commands into its own virtual machine code. It 
+then runs this pseudocode on a virtual machine to produce postscript code. 
 
 \question 27jun:picarray Several of my asy files use an array of pictures. What is a convenient way to declare and initialize the array?
 
@@ -637,29 +729,251 @@ picture[] picture(int n) {
 picture[] pic=picture(6); 
 \endverbatim
 
+\question 27jun:genarrays Is there a way to define functions that act on arrays in general (i.e. work for arrays of any type)?
+
+Generic types aren't yet implemented. 
+ 
+But for now you can at least say 
+\verbatim
+typedef string T; 
+include F; 
+ 
+typedef real T; 
+include F; 
+\endverbatim
+
+where \courier{F.asy\} contains some type-dependent code like
+\verbatim
+T[] operator $(T A, T B) {return new T[] {A,B};}
+\endverbatim
+
+\question 27jun:cirdep Is there any way to declare structures ahead of their definition, e.g. where struct A performs some operation on struct B, but B contains an A member?
+
+Asymptote does not support forward declaration of types. You can, however, 
+nest structures, so that both types are visible for parts of the bodies of 
+both structure definitions. For example: 
+ 
+\verbatim
+struct B { 
+typedef void someroutine(B b); 
+ 
+static struct A { 
+someroutine routine; 
+void init(someroutine routine) { 
+this.routine=routine; 
+} 
+} 
+ 
+A a=new A; 
+string test="Testing"; 
+} 
+ 
+typedef B.A A; 
+ 
+A operator init() {return new A;} 
+B operator init() {return new B;} 
+ 
+ 
+A a; 
+a.init(new void(B b){write(b.test);}); 
+ 
+B b; 
+a.routine(b);
+\endverbatim
+
 \question 27jun:texpatches Do you accept patches for Asymptote?
 
 Yes, in fact we would prefer that users submit patches for customized features,
 instead of relying on us to do all of the coding. Development will proceed 
 faster that way. 
  
-\question 27jun:embedbitmaps I want to embed large bitmaps (photos) into my drawings, and would like to move them around and scale them.
+\question 26jun:debug Is there a debugger for asy?
+
+Yes, Asymptote includes a line-based debugger.
+
+\comment #####################################################################
+
+\section Questions about differences between Asymptote and MetaPost
+
+\question 02sep:automaticscaling How does picture scaling differ in Asymptote and MetaPost?
  
-Simply convert them to eps and use label(graphic("file"),(0,0)), etc. 
+Asymptote includes an optional facility to do automatic scaling of pictures
+to achieve a given overall picture size, whereas Metapost requires manual
+scaling. Asymptote defers drawing of objects drawn to pictures and
+distinguishes between true-size objects and objects that should scale with
+the picture size. The resulting linear programming problem is solved via
+the Simplex method. 
+
+See the \courier{dimension.asy\} example for an example of how deferred drawing is
+used to accomodate for both user and true-size (PostScript) coordinates.
  
-See the example orthocenter.asy and
-\docref{http://asymptote.sourceforge.net/doc/label.html\}.
+\question 02sep:manualscaling How can I avoid automatic scaling of a picture?
+ 
+If you really like Metapost-style manual (hard-wired) scaling either: 
+ 
+(i) use the default size(0,0) for the entire picture and do all of the 
+scaling by hand, just like in MetaPost;
+ 
+(ii) draw to a separate picture pic and add(pic.fit()); 
+ 
+(iii) use frames. 
+ 
+\question 23jun:mp3dots What is the equivalent of MetaPost ... command?
 
-\question 28jun:rus How can I use international fonts in Asymptote labels?
+::
 
-See \docref{http://asymptote.sourceforge.net/doc/unicode.html\}.
-
-\question 10jul:Fourier How can one use Fourier fonts? 
+This is just a macro for tension atleast 1:
 
 \verbatim
-texpreamble("\usepackage{fourier}");
-defaultpen(font("T1","fut\textfamilyextension","m","n"));
+size(100);
+pair z0=(0,0);
+pair z1=(1,0.25);
+pair z2=(2,0);
+draw(z0{up}..tension atleast 1 ..z1{right}..tension atleast 1 ..z2{down});
 \endverbatim
+
+\question 23jun:mppickup What is the equivalent of the MetaPost pickup command?
+
+Just say, for example:
+
+\verbatim
+currentpen=red;
+\endverbatim
+
+\question 29aug:whatever What is the equivalent of the MetaPost whatever command?
+
+Asymptote does not implicitly solve linear equations and therefore does not
+have the notion of a @code{whatever} unknown. Such a facility could
+certainly be added (perhaps using the notation ?= since = means assignment).
+However, the most common uses of whatever in MetaPost are covered by
+functions like extension in \courier{math.asy\}: 
+\verbatim
+pair extension(pair P, pair Q, pair p, pair q);
+\endverbatim
+this returns the intersection point of the extensions of the line segments 
+@code{PQ} and @code{pq}. I find using routines like extension more explicit
+and less confusing to new users. But we could be persuaded to add something
+similar if someone can justify the need. In the meantime, one can always
+use the explicit built-in linear solver (based on LU decomposition).
+
+\question 23jun:lray What is the equivalent for the MetaPost command for \courier{lray - horiz*v - verti*u = whatever*(LightSource - R)\}, a system of three linear equations for three unknowns: \courier{horiz, verti, whatever\}?
+
+Since horiz*v+verti*u describes a plane, you could use
+
+\verbatim
+real intersect(vector P, vector Q, vector n, vector Z);
+\endverbatim
+
+to find the intersection time for the line 
+\courier{lray-whatever*(LightSource - R)\}
+and then extract the three desired values from there. (You'll still need to
+use the built-in explicit linear solver to solve a 2x2 system to get 
+\courier{horiz\} and \courier{verti\}.)
+
+\question 27jun:unitsizes In MetaPost, it is possible to have a drawing remain the same size in different pictures by defining a unit \courier{u\} and explicitly multiply all the coordinates by \courier{u\}. Is there a better way to do this in Asymptote?
+
+Yes, Asymptote has a better way: you definitely don't want to manually scale 
+all of your coordinates. To make the user coordinates represent multiples
+of exactly \courier{1cm\}:
+
+\verbatim
+draw(unitsquare);
+shipout(unitsize=1cm);
+\endverbatim 
+
+Another way is to draw your fixed size object to a frame and add it to
+currentpicture like this:
+ 
+\verbatim
+path p=(0,0)--(1,0); 
+frame object; 
+draw(object,scale(100)*p); 
+ 
+add(object); 
+add(object,(0,-10)); 
+\endverbatim
+
+To understand the difference between frames and pictures, try this: 
+ 
+\verbatim
+size(300,300); 
+ 
+path p=(0,0)--(1,0); 
+picture object; 
+draw(object,scale(100)*p); 
+ 
+add(object); 
+add(object,(0,-10)); // Adds truesize object to currentpicture 
+\endverbatim
+
+\question 28jun:tiles In MetaPost, one could produce tiling pictures by generating a picture, and then clipping the picture to a rectangle of fixed dimensions around the center of the picture. How is that done in Asymptote?
+
+If you are using currentpicture the way one would in MetaPost (drawing in 
+raw PostScript coordinates), you can simply do something like: 
+ 
+\verbatim
+fill((0,0)--(100,100)--(200,0)--cycle); 
+ 
+pair center(picture pic=currentpicture) {return 0.5*(pic.min()+pic.max());} 
+ 
+real height=100; 
+real width=100; 
+pair delta=0.5(width,height); 
+pair c=center(); 
+clip(box(c-delta,c+delta)); 
+\endverbatim
+
+However, drawing in PostScript coordinates is often inconvenient. Here's the 
+Asymptote way of doing the same thing, using deferred drawing: 
+ 
+\verbatim
+size(200,0); 
+fill((0,0)--(1,1)--(2,0)--cycle); 
+ 
+void clip(picture pic=currentpicture, real width, real height) 
+{
+pic.clip(new void (frame f, transform) { 
+pair center=0.5(min(f)+max(f)); 
+pair delta=0.5(width,height); 
+clip(f,box(center-delta,center+delta)); 
+}); 
+} 
+ 
+clip(100,100); 
+\endverbatim
+
+See also the index entry "tilings" in the documentation. 
+
+\comment ######################################################################
+
+\section  Questions about output
+
+\question 27jun:psviewer How can I disable automatic invocation of the PS viewer after an asy file is done processing?
+
+It's actually not on by default, unless you happen to be using Microsoft
+Windows (because that is what most Microsoft Windows users
+expect). Microsoft Windows users can turn this feature off with the
+command-line option -noV or by putting  
+ 
+\verbatim
+import settings; 
+interactiveView=false; 
+batchView=false; 
+\endverbatim
+
+in their \courier{config.asy\} file. See
+\docref{http://asymptote.sourceforge.net/doc/Options.html\}.
+
+\question 26jun:jpeg How do I output jpeg images?
+
+If you have the ImageMagick convert program installed, you can run the following: 
+asy -f jpg test.asy 
+
+\question 27jun:embedbitmaps Can I embed bitmaps (photos) into my drawings and position and scale them? 
+ 
+Simply convert them to eps and use \courier{label(graphic("file"),(0,0));\}, etc. 
+See the example \courier{orthocenter.asy\} and
+\docref{http://asymptote.sourceforge.net/doc/label.html\}.
 
 \question 28jun:directpdf Does Asymptote support direct PDF output?
 
@@ -668,7 +982,7 @@ which supports transparency, annotations, and embedded movies and u3d images.
 However, we plan to eventually produce direct PDF output to support
 features not available in PostScript (e.g. general function shading).
 
-\question 28jun:bigpictures I can't figure out how to produce large pictures of high quality in raster format (e.g. png, giff etc). 
+\question 28jun:bigpictures How to I produce large pictures of high quality in raster format (e.g. png, giff etc). 
 
 Try using some of the options to convert, mainly -geometry and -density. For example: 
 convert -geometry 1000x3000 example.eps example.png 
@@ -686,7 +1000,6 @@ image).
 
 \question 28jun:multipage Is it possible to produce multi-page documents with asymptote? 
 
-Yes, simply call the newpage() function.
+Yes, simply call the newpage() function. This is used by the \courier{slide.asy\} package to make high-quality slide presentations.
 
 \comment Here it ends!
-
