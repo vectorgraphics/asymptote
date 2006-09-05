@@ -1648,8 +1648,6 @@ pair[] operator cast(triple[] v) {
   return z;
 }
 
-align operator cast(triple dir) {align A; A.init(project(dir),false); return A;}
-
 path3 operator cast(guide3 g) {return solve(g);}
 path operator cast(path3 p) {return project(p);}
 path operator cast(triple v) {return project(v);}
