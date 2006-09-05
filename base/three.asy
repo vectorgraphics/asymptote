@@ -1647,6 +1647,19 @@ pair[] operator cast(triple[] v) {
     z[i]=project(v[i]);
   return z;
 }
+position operator cast(triple x) {return project(x);}
+
+Label Label(Label L, position position, triple align, pen p=nullpen,
+	    filltype filltype=NoFill) 
+{
+  return Label(L,position,project(align),p,filltype);
+}
+
+void label(picture pic=currentpicture, Label L, pair position,
+	   triple align, pen p=nullpen, filltype filltype=NoFill)
+{
+  label(pic,L,position,project(align),p,filltype);
+}
 
 path3 operator cast(guide3 g) {return solve(g);}
 path operator cast(path3 p) {return project(p);}
