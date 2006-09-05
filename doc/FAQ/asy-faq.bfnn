@@ -37,16 +37,20 @@ This is the list of Frequently Asked Questions about Asymptote (asy).
 
 \question 26jun:whatisasy What is Asymptote?
 
-Asymptote (asy for short) is a vector graphics language designed for
-technical graphics, inspired by MetaPost but with floating-point numerics
-and a C++-like syntax.
+Asymptote is a vector graphics language designed for
+technical graphics, inspired by MetaPost but with IEEE floating-point numerics,
+native three-dimensional graphics, Grayscale/RGB/CMYK colourspaces, and a
+C++-like syntax. Unlike MetaPost, it natively supports multiple-segment paths
+(and hence regions other than simply connected ones), tiling patterns, Gouraud
+shading, and PostScript images. 
 
 \question 22jun:whereisasy How do I obtain Asymptote?
 
-New releases are available in binaries for several platforms and as source
-code from the website \docref{http://asymptote.sourceforge.net/\}.  Many Linux
-distributions now contain an Asymptote package (check your distribution's
-documentation for further information about this).
+Binary releases are available for Linux, MacOS X, and Microsoft Windows
+platforms, in addition to full source code, from the website
+\docref{http://asymptote.sourceforge.net/\}.  Many Linux distributions
+(such as RedHat and Debian) now include an Asymptote package (check your
+distribution's documentation for further information about this).
 
 \question 28jun:beforeasking Where can I ask questions about Asymptote? 
 
@@ -57,7 +61,7 @@ extensive Asymptote documentation at
 
 \question 02sep:whyasy Why was the name Asymptote chosen?
 
-Well, it isn't the perfect graphics package, but we think it is getting there
+Well, it isn't the perfect graphics package, but we do think it is getting there
 asymptotically...
 
 \question 02sep:whycamp In the internal Asymptote source code, what does the name \courier{camp\} refer to?
@@ -65,7 +69,7 @@ asymptotically...
 That was our original tentative name for this project, which stood for 
 "C's Answer to MetaPost" (the language that inspired Asymptote).
 However, we eventually decided that the name \courier{Asymptote\} better
-emphasizes the mathematical and graphical nature of this project.
+emphasizes the mathematical and graphical nature of this language.
 
 \comment ######################################################################
 
@@ -76,11 +80,10 @@ emphasizes the mathematical and graphical nature of this project.
 Yes. Marius Schamschula maintains a binary package for OS X Tiger (10.4), which
 can be found at
 \docref{http://www.hmug.org/pub/MacOS_X/BSD/Applications/Publishing/asymptote/\}.
-It is also easy to compile Asymptote directly from sources
+It is also easy to compile Asymptote directly from the source code at
 \docref{http://sourceforge.net/project/showfiles.php?group_id=120000\}.
 
-\question 26jun:osxbadCPU Why do I get the error "Bad CPU type in executable"
-on installing Asymptote from the MAC OS binary?
+\question 26jun:osxbadCPU Why do I get the error "Bad CPU type in executable" on installing Asymptote from the MAC OS binary?
 
 This either means that you have a binary distribution for another MAC
 architecture, or (according to Marius Schamschula) that you may have a missing
@@ -121,7 +124,7 @@ rpm -Uvh --nodeps asymptote-x.xx-1.i386.rpm
 \endverbatim
 
 where \courier{x.xx\} represents the version number.
-{
+
 \question 26jun:windir What does the path \courier{%USERPROFILE%\\.asy\\config.asy\} mean?
 
 That is the way that Microsoft Windows refers to the user profile directory. 
@@ -135,9 +138,13 @@ variable in your \courier{config.asy\} file, here is the procedure for changing
 Microsoft Windows environment variables:
  
 Click on the [Start] button 
+
 * RIGHT-click on 'My Computer' 
+
 * Choose 'Properties' from the popup menu 
+
 * Click the 'Advanced' tab 
+
 * Click the 'Environment Variables' button. 
 
 \question 02sep:convert Why does xasy in WinXP gives me an error like "Invalid Parameter - 432x432"?
@@ -243,6 +250,13 @@ defaultpen(font("T1","fut\textfamilyextension","m","n"));
 
 \question 02sep:rotatelabel How can I get a rotated label with the filled box rotated as well so that it fits the text? 
 
+\verbatim
+frame f; 
+label(f,"This is some text",white,Fill(blue));  
+add(rotate(65)*f); 
+\endverbatim
+
+
 \question 02sep:rotatelabel3D How can I rotate labels in a 3D figure?
 
 You need to first project the triple to a pair like this: 
@@ -276,13 +290,6 @@ label(pic,L,z);
  
 add("square",square,(0,0)); 
 add("circle",circle,(5cm,0)); 
-\endverbatim
-
-\question 29jun:interp What is the equivalent of the MetaPost c[a,b] interpolation operator? 
-
-Use
-\verbatim
-interp(a,b,c);
 \endverbatim
 
 \question 27jun:colorssaturation The binary operator * can be used to scale the color of a pen by a real number. Does this scaling factor have to be less than 1?
@@ -380,7 +387,7 @@ size(250,200,IgnoreAspect);
 draw(graph(exp,-1,1),red);
 
 xaxis("$x$",RightTicks(Label(align=left)));
-yaxis("$y$",LeftTicks(Label(align=right)));
+yaxis("$y$",RightTicks);
 \endverbatim
 
 \question 02sep:axisticks How can I reposition the x axis label to three-quarters along the axis length?
@@ -436,7 +443,7 @@ xaxis("x",Bottom,Courier("m","n"),LeftTicks);
 yaxis("$y$",Left,RightTicks);
 \endverbatim
 
-\question 02sep:axisticklabelfont How can I change the font type of the tick labels on an axes?
+\question 02sep:axisticklabelfont How can I change the font type of the tick labels on an axis?
  
 Tick labels are by default typeset in (TeX) math mode, so to use other
 fonts you need to override the default tick format:
@@ -525,7 +532,7 @@ xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks); 
 \endverbatim
 
-\question 26jun:length How do you indicate that a certain length should be exactly the size you prescribe with no rescaling, within a picture which has its own size?
+\question 26jun:length How do I indicate that a certain length should be exactly the size I prescribe with no rescaling, within a picture which has its own size?
 
 Here's an easy way to do this.
  
@@ -629,24 +636,15 @@ Here is a simple example (see also the example \courier{diatom.asy\} or the disc
 of Linear(-1) in the documentation):
  
 \verbatim
-import graph; 
- 
-size(250,200,IgnoreAspect); 
- 
+import graph;
+size(250,200,IgnoreAspect);
+
 scale(Linear,Linear(-1)); 
- 
-real Sin(real t) {return sin(2pi*t);} 
-real Cos(real t) {return cos(2pi*t);} 
- 
-draw(graph(Sin,0,1),red,"$\sin(2\pi x)$"); 
-draw(graph(Cos,0,1),blue,"$\cos(2\pi x)$"); 
- 
-xaxis("$x$",BottomTop,LeftTicks); 
-yaxis("$y$",LeftRight,RightTicks); 
- 
-label("LABEL",point(0),UnFill(1mm)); 
- 
-attach(legend(),point(E),20E,UnFill); 
+
+draw(graph(log,0.1,10),red);
+
+xaxis("$x$",LeftTicks);
+yaxis("$y$",RightTicks);
 \endverbatim
 
 \question 27jun:functioncolor How can I fill a path with a function that defines the color of each location?
@@ -712,6 +710,23 @@ Automatic selects "nice" limits.
 
 Asymptote compiles Asymptote commands into its own virtual machine code. It 
 then runs this pseudocode on a virtual machine to produce PostScript code. 
+
+\question 05sep:framepicture What is the difference between a frame and a picture? 
+
+Frames are canvases for drawing in PostScript coordinates. While working
+with frames directly is occasionally necessary for constructing deferred
+drawing routines, pictures are usually more convenient to work with.
+See \qref unitsizes.
+
+\question 05sep:pathguide What is the difference between a path and a guide? 
+
+A path is a cubic spline with fixed endpoint conditions.
+
+A guide is an unresolved cubic spline (list of cubic-spline nodes and
+control points). A guide is like a path except that the computation of the cubic
+spline is deferred until drawing time (when it is resolved into a path);
+this allows two guides with free endpoint conditions to be joined together
+smoothly.
 
 \question 27jun:picarray What is a convenient way to declare and initialize an array of pictures?
 
@@ -795,17 +810,23 @@ Yes, Asymptote includes a line-based debugger.
 
 \section Questions about differences between Asymptote and MetaPost
 
+\question 29jun:interp What is the equivalent of the MetaPost c[a,b] interpolation operator? 
+
+\verbatim
+interp(a,b,c);
+\endverbatim
+
 \question 02sep:automaticscaling How does picture scaling differ in Asymptote and MetaPost?
  
 Asymptote includes an optional facility to do automatic scaling of pictures
-to achieve a given overall picture size, whereas Metapost requires manual
+to achieve a given overall picture size, whereas Metapost only supports manual
 scaling. Asymptote defers drawing of objects drawn to pictures and
 distinguishes between true-size objects and objects that should scale with
 the picture size. The resulting linear programming problem is solved via
 the Simplex method. 
 
 See the \courier{dimension.asy\} example for an example of how deferred drawing is
-used to accomodate for both user and true-size (PostScript) coordinates.
+used to accomodate both user and true-size (PostScript) coordinates.
  
 \question 02sep:manualscaling How can I avoid automatic scaling of a picture?
  
@@ -820,16 +841,14 @@ scaling by hand, just like in MetaPost;
  
 \question 23jun:mp3dots What is the equivalent of MetaPost ... command?
 
-::
-
-This is just a macro for tension atleast 1:
+The connector \courier{::\} is a macro for tension atleast 1:
 
 \verbatim
 size(100);
 pair z0=(0,0);
 pair z1=(1,0.25);
 pair z2=(2,0);
-draw(z0{up}..tension atleast 1 ..z1{right}..tension atleast 1 ..z2{down});
+draw(z0{up}::z1{right}::z2{down});
 \endverbatim
 
 \question 23jun:mppickup What is the equivalent of the MetaPost pickup command?
@@ -843,22 +862,24 @@ currentpen=red;
 \question 29aug:whatever What is the equivalent of the MetaPost whatever command?
 
 Asymptote does not implicitly solve linear equations and therefore does not
-have the notion of a @code{whatever} unknown. Such a facility could
-certainly be added (perhaps using the notation ?= since = means assignment).
-However, the most common uses of whatever in MetaPost are covered by
-functions like extension in \courier{math.asy\}: 
+have the notion of a \courier{whatever\} unknown. Such a facility could
+certainly be added (perhaps using the notation \courier{?=\} since
+\courier{=\} means assignment).
+However, the most common uses of \courier{whatever\} in MetaPost are covered by
+functions like \courier{extension\} in \courier{math.asy\}: 
 \verbatim
 pair extension(pair P, pair Q, pair p, pair q);
 \endverbatim
 this returns the intersection point of the extensions of the line segments 
-@code{PQ} and @code{pq}. I find using routines like extension more explicit
-and less confusing to new users. But we could be persuaded to add something
-similar if someone can justify the need. In the meantime, one can always
-use the explicit built-in linear solver (based on LU decomposition).
+\courier{PQ\} and \courier{pq\}. We find using routines like
+\courier{extension\} more explicit and less confusing to new users. But we
+could be persuaded to add something similar if someone can justify the
+need. In the meantime, one can always use the explicit built-in linear
+solver \courier{solve\}, which uses LU decomposition.
 
 \question 23jun:lray What is the equivalent for the MetaPost command for \courier{lray - horiz*v - verti*u = whatever*(LightSource - R)\}, a system of three linear equations for three unknowns: \courier{horiz, verti, whatever\}?
 
-Since horiz*v+verti*u describes a plane, you could use
+Since \courier{horiz*v+verti*u\} spans a plane, you could use
 
 \verbatim
 real intersect(vector P, vector Q, vector n, vector Z);
@@ -942,7 +963,8 @@ clip(f,box(center-delta,center+delta));
 clip(100,100); 
 \endverbatim
 
-See also the index entry "tilings" in the documentation. 
+See also the discussion of tilings in the documentation: 
+\docref{http://asymptote.sourceforge.net/doc/Pens.html\}.
 
 \comment ######################################################################
 
@@ -966,12 +988,21 @@ in their \courier{config.asy\} file. See
 
 \question 26jun:jpeg How do I output jpeg images?
 
-If you have the ImageMagick convert program installed, you can run the following: 
+If you have the ImageMagick convert program installed, simply type
+
+\verbatim
 asy -f jpg test.asy 
+\endverbatim
 
 \question 27jun:embedbitmaps Can I embed bitmaps (photos) into my drawings and position and scale them? 
- 
-Simply convert them to eps and use \courier{label(graphic("file"),(0,0));\}, etc. 
+
+Convert them to eps format and use the graphic(string) function just like a
+Label:
+
+\verbatim
+label(graphic("file"),(0,0));
+\endverbatim
+
 See the example \courier{orthocenter.asy\} and
 \docref{http://asymptote.sourceforge.net/doc/label.html\}.
 
@@ -1000,6 +1031,8 @@ image).
 
 \question 28jun:multipage Is it possible to produce multi-page documents with asymptote? 
 
-Yes, simply call the newpage() function. This is used by the \courier{slide.asy\} package to make high-quality slide presentations.
+Yes, simply call the newpage() function. This is used by the
+\courier{slide.asy\} package to produce high-quality slide presentations
+(easier to use than Prosper).
 
 \comment Here it ends!

@@ -57,7 +57,7 @@ file LICENSE in the top-level source directory).
 * GUI::                         Graphical user interface
 * PostScript to Asymptote::     @code{Asymptote} backend to @code{pstoedit}
 * Help::                        Where to get help and submit bug reports
-* Debugger::                    
+* Debugger::                    Squish those bugs!
 * Credits::                     Contributions and acknowledgments
 * Index::                       General index
 
@@ -1785,7 +1785,7 @@ As in C/C++, complicated types may be abbreviated with @code{typedef}
 @cindex @code{guide}
 an unresolved cubic spline (list of cubic-spline nodes and control points).
 
-This is like a path except the computation of the cubic spline is
+This is like a path except that the computation of the cubic spline is
 deferred until drawing time (when it is resolved into a path); this allows
 two guides with free endpoint conditions to be joined together smoothly.
 
@@ -6554,7 +6554,14 @@ If the fonts aren't typeset correctly, try giving @code{pstoedit} the
 @chapter Help
 @cindex help
 @cindex forum
-Questions on installing and using @code{Asymptote} should be sent to the
+
+A list of frequently asked questions (@acronym{FAQ}) is maintained at
+@quotation
+@url{http://asymptote.sourceforge.net/FAQ}
+@end quotation
+@noindent
+Questions on installing and using @code{Asymptote} that are not
+addressed in the @acronym{FAQ} should be sent to the
 @code{Asymptote} forum: 
 @quotation
 @url{http://sourceforge.net/forum/forum.php?forum_id=409349}
