@@ -4065,6 +4065,37 @@ For Dirichlet boundary conditions (denoted here by @code{u[-1]} and
 @code{u[n]}), replace @code{f[0]} by @code{f[0]-a[0]u[-1]} and
 @code{f[n-1]-c[n-1]u[n]}; then set @code{a[0]=c[n-1]=0}. 
 
+@cindex @code{solve}
+@item real[] solve(real[][] a, real[] b)
+Solve the linear equation @math{@code{a}x=@code{b}} by LU decomposition,
+returning the solution @math{x}, where @code{a} is an
+@math{n \times n} matrix and @code{b} is an array of length @math{n}. 
+For example:
+@verbatim
+import math;
+real[][] a={{1,-2,3,0},{4,-5,6,2},{-7,-8,10,5},{1,50,1,-2}};
+real[] b={7,19,33,3};
+real[] x=solve(a,b);
+write(a); write();
+write(b); write();
+write(x); write();
+write(a*x);
+@end verbatim
+If the matrix @code{a} is tridiagonal, the routine @code{tridiagonal} provides
+a more efficient algorithm (@pxref{tridiagonal}). 
+
+@anchor{solve}
+
+@cindex @code{solve}
+@item real[][] solve(real[][] a, real[][] b)
+Solve the linear equation @math{@code{a}x=@code{b}} returning the
+solution @math{x}, where @code{a} is an @math{n \times n} matrix and
+@code{b} is an @math{n \times m} matrix.
+
+@cindex @code{inverse}
+@item real[][] inverse(real[][] a)
+Return the inverse of an an @math{n \times n} matrix @code{a}.
+
 @cindex @code{quadraticroots}
 @item @code{real[] quadraticroots(real a, real b, real c);}
 This numerically robust solver returns the real roots of the
@@ -4637,26 +4668,25 @@ sizing of pictures.
 @section @code{math}
 @cindex @code{math}
 This package extends @code{Asymptote}'s mathematical capabilities with
-point-in-polygon and intersection algorithms, matrix arithmetic and
-inversion, and a linear equation solver (via Gauss-Jordan elimination).
+point-in-polygon and intersection algorithms and matrix arithmetic.
 
 @cindex @code{implicit linear solver}
 @cindex @code{MetaPost whatever}
 @cindex @code{extension}
 Unlike @code{MetaPost}, @code{Asymptote} does not implicitly solve
 linear equations and therefore does not have the notion of a
-@code{whatever} unknown. The following routine provides a useful
+@code{whatever} unknown. Use the built-in explicit linear equation
+solver @code{solve} instead. The following routine provides a useful
 replacement for a common use of @code{whatever}: finding the
-intersection point of the lines through @code{P}, @code{Q}
-and @code{p}, @code{q}, respectively:
+intersection point of the lines through @code{P}, @code{Q} and
+@code{p}, @code{q}, respectively:
 
-@table @code
-
+@verbatim
 @item pair extension(pair P, pair Q, pair p, pair q);
+@end verbatim
+
 Return the intersection point of the extensions of the line segments 
 @code{PQ} and @code{pq}.
-
-@end table
 
 Here are some additional routines provided in the @code{math} package:
 
@@ -4679,35 +4709,6 @@ Return any point on the intersection of the two planes with normals
 @code{n0} and @code{n1} passing through points @code{P0} and @code{P1},
 respectively. If the planes are parallel, return
 @code{(infinity,infinity,infinity)}.
-
-@cindex @code{solve}
-@item real[] solve(real[][] a, real[] b)
-Solve the linear equation @math{@code{a}x=@code{b}} by Gauss-Jordan
-elimination, returning the solution @math{x}, where @code{a} is an
-@math{n \times n} matrix and @code{b} is an array of length @math{n}. 
-For example:
-@verbatim
-import math;
-real[][] a={{1,-2,3,0},{4,-5,6,2},{-7,-8,10,5},{1,50,1,-2}};
-real[] b={7,19,33,3};
-real[] x=solve(a,b);
-write(a); write();
-write(b); write();
-write(x); write();
-write(a*x);
-@end verbatim
-If the matrix @code{a} is tridiagonal, the routine @code{tridiagonal} provides
-a more efficient algorithm (@pxref{tridiagonal}). 
-
-@cindex @code{solve}
-@item real[][] solve(real[][] a, real[][] b)
-Solve the linear equation @math{@code{a}x=@code{b}} returning the
-solution @math{x}, where @code{a} is an @math{n \times n} matrix and
-@code{b} is an @math{n \times m} matrix.
-
-@cindex @code{inverse}
-@item real[][] inverse(real[][] a)
-Return the inverse of an an @math{n \times n} matrix @code{a}.
 
 @cindex @code{straight}
 @item bool straight(path p)
