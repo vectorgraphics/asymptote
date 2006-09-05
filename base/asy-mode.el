@@ -356,11 +356,14 @@ Fields are defined as 'field1:field2.field3:field4' . Field=0 <-> all fields"
 
 (defun asy-grep (Regexp)
   "Internal function used by asymptote."
-  (let ((Strout ""))
+  (let ((Strout "")
+	(case-fold-search-asy case-fold-search))
     (progn
       (beginning-of-buffer)
+      (setq case-fold-search nil)
       (while (re-search-forward Regexp (point-max) t)
         (setq Strout (concat Strout (match-string 0) "\n\n")))
+      (setq case-fold-search case-fold-search-asy)
       (if (string= Strout "") "No match.\n" Strout))))
 
 
