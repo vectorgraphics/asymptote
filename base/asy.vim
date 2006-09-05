@@ -129,8 +129,8 @@ if exists("asy_syn_plain")
   syn keyword	asyConstant	cmyk Cyan Magenta Yellow Black
   syn keyword	asyConstant	yellow magenta cyan
   syn keyword	asyConstant	brown darkgreen darkblue
-  syn keyword	asyConstant	orange purple
-  syn keyword	asyConstant	chartreuse fuchsia salmon lightblue lavender
+  syn keyword	asyConstant	orange purple royalblue olive
+  syn keyword	asyConstant	chartreuse fuchsia salmon lightblue springgreen
   syn keyword	asyConstant	pink
 endif
 
