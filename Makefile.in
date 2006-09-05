@@ -70,7 +70,7 @@ $(GCLIBS): $(GC).tar.gz
 	./configure --disable-threads --disable-shared --enable-cplusplus; \
 	$(MAKE) check
 
-doc:	asy
+html:	asy
 	cd doc; $(MAKE) doc
 
 man:	asy
