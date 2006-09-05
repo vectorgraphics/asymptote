@@ -578,9 +578,9 @@ location of the @code{Asymptote} system directory (by default,
 under @code{MSDOS}):
 @verbatim
 (add-to-list 'load-path "ASYDIR")
-(autoload 'asy-mode "asy-mode" "Asymptote major mode." t)
-(autoload 'lasy-mode "asy-mode" "hybrid Asymptote/Latex major mode." t)
-(autoload 'asy-insinuate-latex "asy-mode" "Asymptote insinuate LaTeX." t)
+(autoload 'asy-mode "asy-mode.el" "Asymptote major mode." t)
+(autoload 'lasy-mode "asy-mode.el" "hybrid Asymptote/Latex major mode." t)
+(autoload 'asy-insinuate-latex "asy-mode.el" "Asymptote insinuate LaTeX." t)
 (add-to-list 'auto-mode-alist '("\\.asy$" . asy-mode))
 
 @end verbatim

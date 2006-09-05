@@ -37,11 +37,12 @@
 ;;(require 'asy-mode)
 
 ;; Notes:
-;; See also paragraph II of the documentation below to automate asy-insinuate-latex. 
-
+;;
 ;; For full functionality the two-mode-mode package should also be installed
 ;; (http://www.dedasys.com/freesoftware/files/two-mode-mode.el).
 ;; The package texmathp is optional.
+;;
+;; See also paragraph II of the documentation below to automate asy-insinuate-latex. 
 
 ;;;###autoload
 (define-derived-mode asy-mode objc-mode "Asymptote"
