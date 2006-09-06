@@ -36,7 +36,7 @@ markroutine markuniform(int n) {
     else {
       real width=1/(n-1);
       for(int i=0; i < n; ++i)
-	add(pic,f,relpoint(g,i*width));
+        add(pic,f,relpoint(g,i*width));
     }
   };
 }
@@ -62,7 +62,7 @@ marker marker(frame f, markroutine markroutine=marknodes, bool put=Above)
 }
 
 marker marker(path[] g, markroutine markroutine=marknodes, pen p=currentpen,
-	      filltype filltype=NoFill, bool put=Above)
+              filltype filltype=NoFill, bool put=Above)
 {
   frame f;
   filltype(f,g,p);
@@ -122,9 +122,9 @@ picture legend(Legend[] legend, real length, real skip)
 }
   
 frame legend(picture pic=currentpicture,
-	     real xmargin=legendmargin, real ymargin=xmargin,
-	     real length=legendlinelength, real skip=legendskip,
-	     pen p=currentpen)
+             real xmargin=legendmargin, real ymargin=xmargin,
+             real length=legendlinelength, real skip=legendskip,
+             pen p=currentpen)
 {
   frame F;
   if(pic.legend.length == 0) return F;
@@ -159,7 +159,7 @@ void dot(picture pic=currentpicture, path[] g, pen p=currentpen)
 }
 
 void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
-	 string format=defaultformat, pen p=currentpen)
+         string format=defaultformat, pen p=currentpen)
 {
   Label L=L.copy();
   L.position(z);

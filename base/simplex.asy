@@ -69,25 +69,25 @@ struct problem {
     
     // Recalculate the rows other than the two used for the above pivot.
     for (var i = 0; i < a; ++i) {
-	row r=rows[i];
-	real m = r.t[col];
-	r.c += m*rvc.c;
-	r.t += m*rvc.t;
-	r.t[col]=m*factor;
+      row r=rows[i];
+      real m = r.t[col];
+      r.c += m*rvc.c;
+      r.t += m*rvc.t;
+      r.t[col]=m*factor;
     }
     for (var i = a+1; i < b; ++i) {
-	row r=rows[i];
-	real m = r.t[col];
-	r.c += m*rvc.c;
-	r.t += m*rvc.t;
-	r.t[col]=m*factor;
+      row r=rows[i];
+      real m = r.t[col];
+      r.c += m*rvc.c;
+      r.t += m*rvc.t;
+      r.t[col]=m*factor;
     }
     for (var i = b+1; i < rows.length; ++i) {
-	row r=rows[i];
-	real m = r.t[col];
-	r.c += m*rvc.c;
-	r.t += m*rvc.t;
-	r.t[col]=m*factor;
+      row r=rows[i];
+      real m = r.t[col];
+      r.c += m*rvc.c;
+      r.t += m*rvc.t;
+      r.t[col]=m*factor;
     }
 
     // Relabel the vars.
@@ -127,8 +127,8 @@ struct problem {
     // value.  Otherwise, if b has maximal value, choose a pivot to give b its
     // maximal value.
     return argmin != 0 ? argmin :
-           argmax != 0 ? argmax :
-                       UNBOUNDED;
+      argmax != 0 ? argmax :
+      UNBOUNDED;
   }
 
   // Initialize the linear program problem by moving into an acceptable state
@@ -171,7 +171,7 @@ struct problem {
     for (int i = 2; i < rows.length; ++i) {
       row r=rows[i];
       if(r.c < max*r.t[col]) {
-	max=r.c/r.t[col]; vp=i;
+        max=r.c/r.t[col]; vp=i;
       }
     }
     

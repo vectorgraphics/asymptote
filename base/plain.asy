@@ -9,11 +9,11 @@
 access settings;
 include plain_constants;
 
-access version;		    
+access version;             
 if(version.VERSION != VERSION()) {
   write(stdout,"Warning: using possibly incompatible version "+
-	 version.VERSION+" of plain.asy"+'\n');
-}
+        version.VERSION+" of plain.asy"+'\n');
+ }
    
 include plain_pens;
 include plain_paths;
@@ -63,26 +63,26 @@ restoreThunk buildRestoreThunk()
     thunks.push(saveFunctions[i]());
 
   return new void() {
-      // Call the restore thunks in an order matching the saves.
-      for (int i=thunks.length-1; i >= 0; --i)
-        thunks[i]();
-    };
+    // Call the restore thunks in an order matching the saves.
+    for (int i=thunks.length-1; i >= 0; --i)
+      thunks[i]();
+  };
 }
 
 // Add the default save function.
 addSaveFunction(new restoreThunk () {
-      pen defaultpen=defaultpen();
-      pen p=currentpen;
-      picture pic=currentpicture.copy();
-      restoreThunk r=restore;
-      return new void() {
-        defaultpen(defaultpen);
-        currentpen=p;
-        currentpicture=pic;
-        uptodate(false);
-        restore=r;
-      };
-    });
+    pen defaultpen=defaultpen();
+    pen p=currentpen;
+    picture pic=currentpicture.copy();
+    restoreThunk r=restore;
+    return new void() {
+      defaultpen(defaultpen);
+      currentpen=p;
+      currentpicture=pic;
+      uptodate(false);
+      restore=r;
+    };
+  });
 
 // Save the current state, so that restore will put things back in that state.
 restoreThunk save() 

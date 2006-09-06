@@ -3,7 +3,7 @@ void makedraw(frame f, path g, pen p)
 {
   path n=nib(p);
   for(int i=0; i < size(g); ++i)
-   fill(f,shift(point(g,i))*n,p);
+    fill(f,shift(point(g,i))*n,p);
 
   static real epsilon=1000*realEpsilon;
   int L=length(g);
@@ -61,7 +61,7 @@ void fill(frame f, path[] g)
 }
 
 void filldraw(frame f, path[] g, pen fillpen=currentpen,
-	      pen drawpen=currentpen)
+              pen drawpen=currentpen)
 {
   begingroup(f);
   fill(f,g,fillpen);
@@ -135,7 +135,7 @@ filltype RadialShade(pen penc, pen penr)
 // Fill the region in frame dest underneath frame src and return the
 // boundary of src.
 guide fill(frame dest, frame src, filltype filltype=NoFill, 
-	   real xmargin=0, real ymargin=xmargin)
+           real xmargin=0, real ymargin=xmargin)
 {
   pair z=(xmargin,ymargin);
   guide g=box(min(src)-0.5*min(invisible)-z,max(src)-0.5*max(invisible)+z);
@@ -145,7 +145,7 @@ guide fill(frame dest, frame src, filltype filltype=NoFill,
 
 // Add frame dest to frame src with optional grouping and background fill.
 void add(frame dest, frame src, bool group, filltype filltype=NoFill,
-	 bool put=Above)
+         bool put=Above)
 {
   if(put) {
     if(filltype != NoFill) fill(dest,src,filltype);

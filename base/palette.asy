@@ -3,17 +3,17 @@ private import graph;
 typedef bounds range(picture pic, real[][] data);
 
 range Range(bool automin=true, real min=-infinity,
-			  bool automax=true, real max=infinity) {
+            bool automax=true, real max=infinity) {
   return new bounds(picture pic, real[][] data) {
     real dmin=min(data);
     real dmax=max(data);
     // autoscale routine finds reasonable limits
     bounds mz=autoscale(pic.scale.z.T(dmin),
-			pic.scale.z.T(dmax),
-			pic.scale.z.scale);
+                        pic.scale.z.T(dmax),
+                        pic.scale.z.scale);
     // If automin/max, use autoscale result, else
-    // 	if min/max is finite, use specified value, else
-    // 	use minimum/maximum data value
+    //  if min/max is finite, use specified value, else
+    //  use minimum/maximum data value
     real pmin=automin ? pic.scale.z.Tinv(mz.min) : (finite(min) ? min : dmin);
     real pmax=automax ? pic.scale.z.Tinv(mz.max) : (finite(max) ? max : dmax);
     return bounds(pmin,pmax);
@@ -24,16 +24,16 @@ range Automatic=Range();
 range Full=Range(false,false);
 
 void image(frame f, real[][] data, pair initial, pair final, pen[] palette,
-	   bool transpose=(initial.x < final.x && initial.y < final.y) ?
-	   true : false, transform t=identity())
+           bool transpose=(initial.x < final.x && initial.y < final.y) ?
+           true : false, transform t=identity())
 {
   _image(f,transpose ? transpose(data) : data,initial,final,palette,t);
 }
 
 bounds image(picture pic=currentpicture, real[][] f, range range=Full,
-	     pair initial, pair final, pen[] palette,
-	     bool transpose=(initial.x < final.x && initial.y < final.y) ?
-	     true : false) 
+             pair initial, pair final, pen[] palette,
+             bool transpose=(initial.x < final.x && initial.y < final.y) ?
+             true : false) 
 {
   f=transpose ? transpose(f) : copy(f);
   palette=copy(palette);
@@ -79,8 +79,8 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
 }
 
 bounds image(picture pic=currentpicture, real f(real,real),
-	     range range=Full, pair initial, pair final,
-	     int nx=ngraph, int ny=nx, pen[] palette)
+             range range=Full, pair initial, pair final,
+             int nx=ngraph, int ny=nx, pen[] palette)
 {
   // Generate data, taking scaling into account
   real xmin=pic.scale.x.T(initial.x);
@@ -102,9 +102,9 @@ bounds image(picture pic=currentpicture, real f(real,real),
 typedef ticks paletteticks(int sign=-1);
 
 paletteticks PaletteTicks(Label format="", ticklabel ticklabel=null,
-			  bool beginlabel=true, bool endlabel=true,
-			  int N=0, int n=0, real Step=0, real step=0,
-			  pen pTick=nullpen, pen ptick=nullpen)
+                          bool beginlabel=true, bool endlabel=true,
+                          int N=0, int n=0, real Step=0, real step=0,
+                          pen pTick=nullpen, pen ptick=nullpen)
 {
   return new ticks(int sign=-1) {
     format.align(sign > 0 ? RightSide : LeftSide);
@@ -116,8 +116,8 @@ paletteticks PaletteTicks(Label format="", ticklabel ticklabel=null,
 paletteticks PaletteTicks=PaletteTicks();
 
 void palette(picture pic=currentpicture, Label L="", bounds range, 
-	     pair initial, pair final, axis axis=Right, pen[] palette, 
-	     pen p=currentpen, paletteticks ticks=PaletteTicks)
+             pair initial, pair final, axis axis=Right, pen[] palette, 
+             pen p=currentpen, paletteticks ticks=PaletteTicks)
 {
   real initialz=pic.scale.z.T(range.min);
   real finalz=pic.scale.z.T(range.max);
@@ -189,7 +189,7 @@ pen[] Rainbow(int NColors=32766)
   int offset=1;
   int nintervals=5;
   int n=quotient(NColors-1,nintervals);
-		
+                
   pen[] Palette;
   if(n == 0) return Palette;
   
@@ -226,7 +226,7 @@ private pen[] BWRainbow(int NColors, bool two)
   int num=NColors-offset;
   int n=quotient(num,nintervals*divisor)*divisor;
   NColors=n*nintervals+offset;
-		
+                
   pen[] Palette;
   if(n == 0) return Palette;
   

@@ -22,7 +22,7 @@ margin NoMargin()
     return margin;
   };
 }
-						      
+                                                      
 margin Margin(real begin, real end)
 { 
   return new marginT(path g, pen p) {
@@ -34,7 +34,7 @@ margin Margin(real begin, real end)
     return margin;
   };
 }
-							   
+                                                           
 margin PenMargin(real begin, real end)
 { 
   return new marginT(path g, pen p) {
@@ -46,7 +46,7 @@ margin PenMargin(real begin, real end)
     return margin;
   };
 }
-					      
+                                              
 margin DotMargin(real begin, real end)
 { 
   return new marginT(path g, pen p) {
@@ -59,7 +59,7 @@ margin DotMargin(real begin, real end)
     return margin;
   };
 }
-						      
+                                                      
 margin TrueMargin(real begin, real end)
 { 
   return new marginT(path g, pen p) {
@@ -70,9 +70,8 @@ margin TrueMargin(real begin, real end)
     return margin;
   };
 }
-						      
-margin
-  NoMargin=NoMargin(),
+                                                      
+margin NoMargin=NoMargin(),
   BeginMargin=Margin(1,0),
   Margin=Margin(0,1),
   EndMargin=Margin,

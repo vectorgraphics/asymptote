@@ -37,9 +37,9 @@ struct align {
   void write(file file=stdout, suffix suffix=endl) {
     if(!default) {
       if(relative) {
-	write(file,"Relative(");
-	write(file,dir);
-	write(file,")",suffix);
+        write(file,"Relative(");
+        write(file,dir);
+        write(file,")",suffix);
       } else write(file,dir,suffix);
     }
   }
@@ -121,10 +121,10 @@ struct Label {
   filltype filltype=NoFill;
   
   void init(string s="", string size="", position position=0, 
-	    bool defaultposition=true,
-	    align align=NoAlign, pen p=nullpen, real angle=0,
-	    bool defaultangle=true, pair shift=0, pair scale=(1,1),
-	    filltype filltype=NoFill) {
+            bool defaultposition=true,
+            align align=NoAlign, pen p=nullpen, real angle=0,
+            bool defaultangle=true, pair shift=0, pair scale=(1,1),
+            filltype filltype=NoFill) {
     this.s=s;
     this.size=size;
     this.position=position;
@@ -139,7 +139,7 @@ struct Label {
   }
   
   void initalign(string s="", string size="", align align, pen p=nullpen,
-		 filltype filltype=NoFill) {
+                 filltype filltype=NoFill) {
     init();
     this.s=s;
     this.size=size;
@@ -151,7 +151,7 @@ struct Label {
   Label copy() {
     Label L=new Label;
     L.init(s,size,position,defaultposition,align,p,angle,defaultangle,shift,
-	   scale,filltype);
+           scale,filltype);
     return L;
   }
   
@@ -192,7 +192,7 @@ struct Label {
     pen p0=p == nullpen ? currentpen : p;
     if(t == identity()) {
       label(f,s,size,angle,position+align*labelmargin(p0)+shift,align,scale,
-	    p0);
+            p0);
     } else {
       transform t0=shiftless(t);
       real angle=degrees(t0*dir(angle));
@@ -212,14 +212,14 @@ struct Label {
   
   void label(picture pic=currentpicture, pair position, pair align) {
     pic.add(new void (frame f, transform t) {
-      if(filltype == NoFill)
-	label(f,t,position,align);
-      else {
-	frame d;
-	label(d,t,position,align);
-	add(f,d,filltype);
-      }
-    });
+        if(filltype == NoFill)
+          label(f,t,position,align);
+        else {
+          frame d;
+          label(d,t,position,align);
+          add(f,d,filltype);
+        }
+      });
     frame f;
     // Create a picture with label at the origin to extract its bbox truesize.
     label(f,(0,0),align);
@@ -242,7 +242,7 @@ struct Label {
       Align=position <= 0 ? S : position >= length(g) ? N : E;
     }
     label(pic,point(g,position),
-	  alignrelative ? Align*dir(g,position)/N : Align);
+          alignrelative ? Align*dir(g,position)/N : Align);
   }
   
   void write(file file=stdout, suffix suffix=endl) {
@@ -291,7 +291,7 @@ Label operator * (transform t, Label L)
 }
 
 Label Label(string s, string size="", explicit position position,
-	    align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
+            align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
 {
   Label L;
   L.init(s,size,position,false,align,p,filltype);
@@ -299,19 +299,19 @@ Label Label(string s, string size="", explicit position position,
 }
 
 Label Label(string s, string size="", pair position, align align=NoAlign,
-	    pen p=nullpen, filltype filltype=NoFill)
+            pen p=nullpen, filltype filltype=NoFill)
 {
   return Label(s,size,(position) position,align,p,filltype);
 }
 
 Label Label(explicit pair position, align align=NoAlign, pen p=nullpen,
-	    filltype filltype=NoFill)
+            filltype filltype=NoFill)
 {
   return Label((string) position,position,align,p,filltype);
 }
 
 Label Label(string s="", string size="", align align=NoAlign, pen p=nullpen,
-	    filltype filltype=NoFill)
+            filltype filltype=NoFill)
 {
   Label L;
   L.initalign(s,size,align,p,filltype);
@@ -319,7 +319,7 @@ Label Label(string s="", string size="", align align=NoAlign, pen p=nullpen,
 }
 
 Label Label(Label L, position position, align align=NoAlign, pen p=nullpen,
-	    filltype filltype=NoFill)
+            filltype filltype=NoFill)
 {
   Label L=L.copy();
   L.position(position);
@@ -330,7 +330,7 @@ Label Label(Label L, position position, align align=NoAlign, pen p=nullpen,
 }
 
 Label Label(Label L, align align=NoAlign, pen p=nullpen,
-	    filltype filltype=NoFill)
+            filltype filltype=NoFill)
 {
   Label L=L.copy();
   L.align(align);
@@ -345,19 +345,19 @@ void write(file file=stdout, Label L, suffix suffix=endl)
 }
 
 void label(frame f, Label L, pair position, align align=NoAlign,
-	   pen p=currentpen, filltype filltype=NoFill)
+           pen p=currentpen, filltype filltype=NoFill)
 {
   add(f,Label(L,position,align,p,filltype));
 }
   
 void label(frame f, Label L, align align=NoAlign,
-	   pen p=currentpen, filltype filltype=NoFill)
+           pen p=currentpen, filltype filltype=NoFill)
 {
   add(f,Label(L,L.position,align,p,filltype));
 }
   
 void label(picture pic=currentpicture, Label L, pair position,
-	   align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
+           align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
 {
   Label L=L.copy();
   L.position(position);
@@ -368,13 +368,13 @@ void label(picture pic=currentpicture, Label L, pair position,
 }
   
 void label(picture pic=currentpicture, Label L, align align=NoAlign,
-	   pen p=nullpen, filltype filltype=NoFill)
+           pen p=nullpen, filltype filltype=NoFill)
 {
   label(pic,L,L.position,align,p,filltype);
 }
   
 void label(picture pic=currentpicture, Label L, explicit path g,
-	   align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
+           align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
 {
   Label L=L.copy();
   L.align(align);
@@ -384,7 +384,7 @@ void label(picture pic=currentpicture, Label L, explicit path g,
 }
 
 void label(picture pic=currentpicture, Label L, explicit guide g,
-	   align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
+           align align=NoAlign, pen p=nullpen, filltype filltype=NoFill)
 {
   label(pic,L,(path) g,align,p,filltype);
 }

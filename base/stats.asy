@@ -8,18 +8,18 @@ real mean(real A[])
 // unbiased estimate
 real variance(real A[])
 {
- return sum((A-mean(A))^2)/(A.length-1);
+  return sum((A-mean(A))^2)/(A.length-1);
 }
 
 real variancebiased(real A[])
 {
- return sum((A-mean(A))^2)/A.length;
+  return sum((A-mean(A))^2)/A.length;
 }
 
 // unbiased estimate
 real stdev(real A[])
 {
- return sqrt(variance(A));
+  return sqrt(variance(A));
 }
 
 real rms(real A[])
@@ -76,13 +76,13 @@ guide halfbox(pair a, pair b)
 
 // Draw a histogram for bin boundaries bin[n+1] of frequency data in count[n].
 void histogram(picture pic=currentpicture, real[] bins, real[] count,
-	       real low=-infinity, pen p=currentpen)
+               real low=-infinity, pen p=currentpen)
 {
   bool[] valid=count > 0;
   real m=min(valid ? count : null);
   real M=max(valid ? count : null);
   bounds my=autoscale(pic.scale.y.scale.T(m),pic.scale.y.T(M),
-		      pic.scale.y.scale);
+                      pic.scale.y.scale);
   if(low == -infinity) low=pic.scale.y.scale.Tinv(my.min);
   real last=low;
   int n=count.length;
@@ -94,8 +94,8 @@ void histogram(picture pic=currentpicture, real[] bins, real[] count,
       last=c;
     } else {
       if(last != low) {
-	draw(pic,Scale(pic,(bins[i],last))--Scale(pic,(bins[i],low)),p);
-	last=low;
+        draw(pic,Scale(pic,(bins[i],last))--Scale(pic,(bins[i],low)),p);
+        last=low;
       }
     }
   }
@@ -106,7 +106,7 @@ void histogram(picture pic=currentpicture, real[] bins, real[] count,
 
 // return a random number uniformly distributed in the unit interval [0,1]
 real unitrand()
-{			  
+{                         
   return rand()/randMax;
 }
 
@@ -135,9 +135,9 @@ real Gaussrand()
 }
 
 struct linefit {
-  real m,b;	// slope, intercept
-  real dm,db;	// standard error in slope, intercept
-  real r;	// correlation coefficient
+  real m,b;     // slope, intercept
+  real dm,db;   // standard error in slope, intercept
+  real r;       // correlation coefficient
   real fit(real x) {
     return m*x+b;
   }

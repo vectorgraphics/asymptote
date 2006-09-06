@@ -3,8 +3,8 @@ real eps=10*realEpsilon;
 real stepfraction=0.05;
 
 picture slopefield(real f(real,real), pair a, pair b,
-		   int nx=nmesh, int ny=nx,
-		   real tickfactor=0.5, pen p=currentpen)
+                   int nx=nmesh, int ny=nx,
+                   real tickfactor=0.5, pen p=currentpen)
 {
   picture pic;
   real dx=(b.x-a.x)/nx;
@@ -25,17 +25,17 @@ picture slopefield(real f(real,real), pair a, pair b,
 }
 
 picture slopefield(real f(real), pair a, pair b,
-		   int nx=nmesh, int ny=nx, pen p=currentpen)
+                   int nx=nmesh, int ny=nx, pen p=currentpen)
 {
   return slopefield(new real(real x, real y) {return f(x);},a,b,nx,ny,p);
 }
 
 path curve(pair c, real f(real,real), pair a, pair b) 
 {
-  real step=stepfraction*(b.x-a.x);	
+  real step=stepfraction*(b.x-a.x);     
   real halfstep=0.5*step;
   real sixthstep=step/6;
-	
+        
   path follow(real sign) {
     pair cp=c;
     guide g=cp;
@@ -44,32 +44,32 @@ path curve(pair c, real f(real,real), pair a, pair b)
     do {
       real slope;
       pair S(pair z) {
-	slope=f(z.x,z.y);
-	return factor*sign/sqrt(1+slope^2)*(1,slope);
+        slope=f(z.x,z.y);
+        return factor*sign/sqrt(1+slope^2)*(1,slope);
       }
       pair S3;
       pair advance() {
-	pair S0=S(cp);
-	pair S1=S(cp+halfstep*S0);
-	pair S2=S(cp+halfstep*S1);
-	S3=S(cp+step*S2);
-	pair cp0=cp+sixthstep*(S0+2S1+2S2+S3);
-	dx=min(cp0.x-a.x,b.x-cp0.x);
-	dy=min(cp0.y-a.y,b.y-cp0.y);
-	return cp0;
+        pair S0=S(cp);
+        pair S1=S(cp+halfstep*S0);
+        pair S2=S(cp+halfstep*S1);
+        S3=S(cp+step*S2);
+        pair cp0=cp+sixthstep*(S0+2S1+2S2+S3);
+        dx=min(cp0.x-a.x,b.x-cp0.x);
+        dy=min(cp0.y-a.y,b.y-cp0.y);
+        return cp0;
       }
       pair cp0=advance();
       if(dx < 0) {
-	factor=(step+dx)/step;
-	cp0=advance();
-	g=g..{S3}cp0{S3};
-	break;
+        factor=(step+dx)/step;
+        cp0=advance();
+        g=g..{S3}cp0{S3};
+        break;
       }
       if(dy < 0) {
-	factor=(step+dy)/step;
-	cp0=advance();
-	g=g..{S3}cp0{S3};
-	break;
+        factor=(step+dy)/step;
+        cp0=advance();
+        g=g..{S3}cp0{S3};
+        break;
       }
       cp=cp0;
       g=g..{S3}cp{S3};

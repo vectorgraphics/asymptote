@@ -5,13 +5,13 @@ real treeNodeStep = 0.5cm;
 real treeLevelStep = 1cm;
 
 struct TreeNode {
-TreeNode parent;
-TreeNode[] children;
+  TreeNode parent;
+  TreeNode[] children;
 
-frame content;
+  frame content;
 
-pair pos;
-real adjust;
+  pair pos;
+  real adjust;
 }
 
 void add( TreeNode child, TreeNode parent )
@@ -48,7 +48,7 @@ real layout( int level, TreeNode node )
       width[i] = layout( level+1, node.children[i] );
 
       node.children[i].pos = (curWidth + width[i]/2,
-			      -level*treeLevelStep);
+                              -level*treeLevelStep);
       curWidth += width[i] + treeNodeStep;
     }
 
@@ -58,7 +58,7 @@ real layout( int level, TreeNode node )
     }
 
     return max( (max(node.content)-min(node.content)).x,
-		sum(width)+treeNodeStep*width.length );
+                sum(width)+treeNodeStep*width.length );
   }
   else {
     return max( 2cm, (max(node.content)-min(node.content)).x );

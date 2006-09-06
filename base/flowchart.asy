@@ -60,9 +60,9 @@ block operator init() {return new block;}
 
 // Construct a rectangular block with header and body objects.
 block rectangle(object header, object body,
-		pen headercolor=mediumgray,
-		pen bodycolor=currentpen, 
-		pair center=(0,0), real dx=3) 
+                pen headercolor=mediumgray,
+                pen bodycolor=currentpen, 
+                pair center=(0,0), real dx=3) 
 {
   frame fbody=body.fit();
   frame fheader=header.fit();
@@ -80,43 +80,43 @@ block rectangle(object header, object body,
 
   block block;
   block.draw=new frame(pen p) {
-      frame block;
-      filldraw(block,shift(0,z1.y)*box((0,0),z0),headercolor);
-      add(block,shift(-0.5*(Mheader+mheader))*fheader,(0,z1.y)+0.5z0);
-      draw(block,box((0,0),z1));
-      add(block,shift(-0.5*(Mbody+mbody))*fbody,0.5z1);
-      return block;
-    };
+    frame block;
+    filldraw(block,shift(0,z1.y)*box((0,0),z0),headercolor);
+    add(block,shift(-0.5*(Mheader+mheader))*fheader,(0,z1.y)+0.5z0);
+    draw(block,box((0,0),z1));
+    add(block,shift(-0.5*(Mbody+mbody))*fbody,0.5z1);
+    return block;
+  };
   block.f_position=new pair(real x) {
-      return point(shape,x);
-    };
+    return point(shape,x);
+  };
   block.f_center=new pair() {
-      return interp(point(shape,0),point(shape,3),0.5);
-    };
+    return interp(point(shape,0),point(shape,3),0.5);
+  };
   block.f_bottomleft=new pair() {
-      return point(shape,0); 
-    };
+    return point(shape,0); 
+  };
   block.f_bottom=new pair() {
-      return point(shape,5.5); 
-    };
+    return point(shape,5.5); 
+  };
   block.f_bottomright=new pair() {
-      return point(shape,5); 
-    };
+    return point(shape,5); 
+  };
   block.f_right=new pair() {
-      return point(shape,4.5); 
-    };
+    return point(shape,4.5); 
+  };
   block.f_topright=new pair() {
-      return point(shape,3); 
-    };
+    return point(shape,3); 
+  };
   block.f_top=new pair() {
-      return point(shape,2.5); 
-    }; 
+    return point(shape,2.5); 
+  }; 
   block.f_topleft=new pair() {
-      return point(shape,2); 
-    };
+    return point(shape,2); 
+  };
   block.f_left=new pair() {
-      return point(shape,0.5); 
-    };
+    return point(shape,0.5); 
+  };
   block.center(center);
   block.bound=point(shape,3);
   return block;
@@ -124,7 +124,7 @@ block rectangle(object header, object body,
 
 // As above, but without the header.
 block rectangle(object body, pen bodycolor=currentpen, pair center=(0,0),
-		real dx=3) 
+                real dx=3) 
 {
   frame f=body.fit();
   pair m=min(f);
@@ -135,48 +135,48 @@ block rectangle(object body, pen bodycolor=currentpen, pair center=(0,0),
 
   block block;
   block.draw=new frame(pen p) {
-      frame block;
-      draw(block,shape,bodycolor);
-      add(block,shift(-0.5*(M+m))*f,0.5z);
-      return block;
-    };
+    frame block;
+    draw(block,shape,bodycolor);
+    add(block,shift(-0.5*(M+m))*f,0.5z);
+    return block;
+  };
   block.f_position=new pair(real x) {
-      return point(shape,x);
-    };
+    return point(shape,x);
+  };
   block.f_center=new pair() {
-      return 0.5*z;
-    };
+    return 0.5*z;
+  };
   block.center(center);
   block.bound=z;
   block.f_bottomleft=new pair() {
-      return point(shape,0);
-    };
+    return point(shape,0);
+  };
   block.f_bottom=new pair() {
-      return point(shape,0.5); 
-    };
+    return point(shape,0.5); 
+  };
   block.f_bottomright=new pair() {
-      return point(shape,1); 
-    };
+    return point(shape,1); 
+  };
   block.f_right=new pair() {
-      return point(shape,1.5); 
-    };
+    return point(shape,1.5); 
+  };
   block.f_topright=new pair() {
-      return point(shape,2); 
-    };
+    return point(shape,2); 
+  };
   block.f_top=new pair() {
-      return point(shape,2.5); 
-    };
+    return point(shape,2.5); 
+  };
   block.f_topleft=new pair() {
-      return point(shape,3); 
-    };
+    return point(shape,3); 
+  };
   block.f_left=new pair() {
-      return point(shape,3.5); 
-    };
+    return point(shape,3.5); 
+  };
   return block;
 }
 
 block diamond(object body, pair center=(0,0), real ds=5, real dw=1,
-	      real height=20, real dh=0)
+              real height=20, real dh=0)
 {
   frame f=body.fit();
   pair m=min(f);
@@ -197,43 +197,43 @@ block diamond(object body, pair center=(0,0), real ds=5, real dw=1,
 
   block block;
   block.draw=new frame(pen p) {
-      frame block;
-      draw(block,shape);
-      add(block,shift(-0.5*(M+m))*f,(d,c));
-      return block;
-    };
+    frame block;
+    draw(block,shape);
+    add(block,shift(-0.5*(M+m))*f,(d,c));
+    return block;
+  };
   block.f_position=new pair(real x) {
-      return point(shape,x);
-    };
+    return point(shape,x);
+  };
   block.f_center=new pair() {
-      return(point(shape,1).x,point(shape,0).y);
-    };
+    return(point(shape,1).x,point(shape,0).y);
+  };
   block.center(center);
   block.bound=(point(shape,2).x,point(shape,1).y);
   block.f_bottomleft=new pair() {
-      return point(shape,2.5); 
-    };
+    return point(shape,2.5); 
+  };
   block.f_bottom=new pair() {
-      return point(shape,3); 
-    };
+    return point(shape,3); 
+  };
   block.f_bottomright=new pair() {
-      return point(shape,3.5); 
-    };
+    return point(shape,3.5); 
+  };
   block.f_right=new pair() {
-      return point(shape,0); 
-    };
+    return point(shape,0); 
+  };
   block.f_topright=new pair() {
-      return point(shape,0.5); 
-    };
+    return point(shape,0.5); 
+  };
   block.f_top=new pair() {
-      return point(shape,1); 
-    }; 
+    return point(shape,1); 
+  }; 
   block.f_topleft=new pair() {
-      return point(shape,1.5); 
-    };
+    return point(shape,1.5); 
+  };
   block.f_left=new pair() {
-      return point(shape,2); 
-    };
+    return point(shape,2); 
+  };
   return block;
 }
 
@@ -249,43 +249,43 @@ block circle(object body, pair center=(0,0), real dr=3)
   
   block block;
   block.draw=new frame(pen p) {
-      frame block;
-      draw(block,shape);
-      add(block,shift(-0.5*(M+m))*f,(r,r));
-      return block;
-    };
+    frame block;
+    draw(block,shape);
+    add(block,shift(-0.5*(M+m))*f,(r,r));
+    return block;
+  };
   block.f_position=new pair(real x) {
-      return point(shape,x);
-    };
+    return point(shape,x);
+  };
   block.f_center=new pair() {
-      return(r,r);
-    };
+    return(r,r);
+  };
   block.center(center);
   block.bound=(2r,2r);
   block.f_left=new pair() {
-      return point(shape,0);
-    };
+    return point(shape,0);
+  };
   block.f_topleft=new pair() {
-      return point(shape,0.5); 
-    };
+    return point(shape,0.5); 
+  };
   block.f_top=new pair() {
-      return point(shape,1); 
-    };
+    return point(shape,1); 
+  };
   block.f_topright=new pair() {
-      return point(shape,1.5); 
-    };
+    return point(shape,1.5); 
+  };
   block.f_right=new pair() {
-      return point(shape,2); 
-    };
+    return point(shape,2); 
+  };
   block.f_bottomright=new pair() {
-      return point(shape,2.5); 
-    };
+    return point(shape,2.5); 
+  };
   block.f_bottom=new pair() {
-      return point(shape,3); 
-    };
+    return point(shape,3); 
+  };
   block.f_bottomleft=new pair() {
-      return point(shape,3.5); 
-    };
+    return point(shape,3.5); 
+  };
   return block;
 }
 
@@ -301,50 +301,50 @@ block roundrectangle(object body, pair center=(0,0), real ds=5, real dw=0)
   
   path shape=(0,ds+dw)--(0,ds+b-dw){up}..
     {right}(ds+dw,2ds+b)--(ds+a-dw,2ds+b){right}..
-	     {down}(2ds+a,ds+b-dw)--(2ds+a,ds+dw){down}..
-		     {left}(ds+a-dw,0)--
-			     (ds+dw,0){left}..{up}cycle;
+             {down}(2ds+a,ds+b-dw)--(2ds+a,ds+dw){down}..
+                     {left}(ds+a-dw,0)--
+                             (ds+dw,0){left}..{up}cycle;
   
-  block block;
-  block.draw=new frame(pen p) {
-      frame block;
-      draw(block,shape);
-      add(block,shift(-0.5*(M+m))*f,(ds,ds)+0.5bound);
-      return block;
-    };
-  block.f_position=new pair(real x) {
-      return point(shape,x);
-    };
-  block.f_center=new pair() {
-      return(ds+0.5a,ds+0.5b);
-    };
-  block.center(center);
-  block.bound=(2ds+a,2ds+b);
-  block.f_bottomleft=new pair() {
-      return point(shape,7.5); 
-    };
-  block.f_bottom=new pair() {
-      return point(shape,6.5); 
-    };
-  block.f_bottomright=new pair() {
-      return point(shape,5.5); 
-    };
-  block.f_right=new pair() {
-      return point(shape,4.5); 
-    };
-  block.f_topright=new pair() {
-      return point(shape,3.5); 
-    };
-  block.f_top=new pair() {
-      return point(shape,2.5); 
-    };
-  block.f_topleft=new pair() {
-      return point(shape,1.5); 
-    };
-  block.f_left=new pair() {
-      return point(shape,0.5); 
-    };
-  return block;
+                     block block;
+                     block.draw=new frame(pen p) {
+                       frame block;
+                       draw(block,shape);
+                       add(block,shift(-0.5*(M+m))*f,(ds,ds)+0.5bound);
+                       return block;
+                     };
+                     block.f_position=new pair(real x) {
+                       return point(shape,x);
+                     };
+                     block.f_center=new pair() {
+                       return(ds+0.5a,ds+0.5b);
+                     };
+                     block.center(center);
+                     block.bound=(2ds+a,2ds+b);
+                     block.f_bottomleft=new pair() {
+                       return point(shape,7.5); 
+                     };
+                     block.f_bottom=new pair() {
+                       return point(shape,6.5); 
+                     };
+                     block.f_bottomright=new pair() {
+                       return point(shape,5.5); 
+                     };
+                     block.f_right=new pair() {
+                       return point(shape,4.5); 
+                     };
+                     block.f_topright=new pair() {
+                       return point(shape,3.5); 
+                     };
+                     block.f_top=new pair() {
+                       return point(shape,2.5); 
+                     };
+                     block.f_topleft=new pair() {
+                       return point(shape,1.5); 
+                     };
+                     block.f_left=new pair() {
+                       return point(shape,0.5); 
+                     };
+                     return block;
 }
 
 block bevel(object body, pair center=(0,0), real dh=5, real dw=5)
@@ -361,43 +361,43 @@ block bevel(object body, pair center=(0,0), real dh=5, real dw=5)
     (dw+a,0)--cycle;
   block block;
   block.draw=new frame(pen p) {
-      frame block;
-      draw(block,shape);
-      add(block,shift(-0.5*(M+m))*f,(0.5bound+(dw,dh)));
-      return block;
-    };
+    frame block;
+    draw(block,shape);
+    add(block,shift(-0.5*(M+m))*f,(0.5bound+(dw,dh)));
+    return block;
+  };
   block.f_position=new pair(real x) {
-      return point(shape,x);
-    };
+    return point(shape,x);
+  };
   block.f_center=new pair() {
-      return(dw+0.5a,dh+b);
-    };
+    return(dw+0.5a,dh+b);
+  };
   block.center(center);
   block.bound=(2dw+a,2dh+2b);
   block.f_bottomleft=new pair() {
-      return point(shape,4); 
-    };
+    return point(shape,4); 
+  };
   block.f_bottom=new pair() {
-      return point(shape,4.5); 
-    };
+    return point(shape,4.5); 
+  };
   block.f_bottomright=new pair() {
-      return point(shape,5); 
-    };
+    return point(shape,5); 
+  };
   block.f_right=new pair() {
-      return point(shape,0); 
-    };
+    return point(shape,0); 
+  };
   block.f_topright=new pair() {
-      return point(shape,1); 
-    };
+    return point(shape,1); 
+  };
   block.f_top=new pair() {
-      return point(shape,1.5); 
-    };
+    return point(shape,1.5); 
+  };
   block.f_topleft=new pair() {
-      return point(shape,2); 
-    };
+    return point(shape,2); 
+  };
   block.f_left=new pair() {
-      return point(shape,3); 
-    };
+    return point(shape,3); 
+  };
   return block;
 }
 

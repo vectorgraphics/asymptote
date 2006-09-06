@@ -1,5 +1,5 @@
 // Contour routines written by Radoslav Marinov and John Bowman.
-	 
+         
 import graph_settings;
 
 real eps=100*realEpsilon;
@@ -21,10 +21,10 @@ real eps=100*realEpsilon;
 private struct segment
 {
   bool active;
-  pair a,b;	  // Endpoints; a is always an edge point if one exists.
+  pair a,b;        // Endpoints; a is always an edge point if one exists.
   int c;           // Contour value.
   int edge;        // -1: interior, 0 to 3: edge,
-                          // 4-8: single edge vertex, 9: double edge vertex.
+                   // 4-8: single edge vertex, 9: double edge vertex.
 }
 
 segment operator init() {return new segment;}
@@ -44,7 +44,7 @@ private segment case1(pair p0, pair p1, int edge)
 // Case 2: line passes through a vertex and a side of a triangle
 // (the first vertex passed and the side between the other two)
 private segment case2(pair p0, pair p1, pair p2,
-		      real v0, real v1, real v2, int edge)
+                      real v0, real v1, real v2, int edge)
 {
   segment rtrn;
   pair val=interp(p1,p2,abs(v1/(v2-v1)));
@@ -64,7 +64,7 @@ private segment case2(pair p0, pair p1, pair p2,
 // (through the sides formed by the first & second, and second & third
 // vertices)
 private segment case3(pair p0, pair p1, pair p2,
-		      real v0, real v1, real v2, int edge=-1)
+                      real v0, real v1, real v2, int edge=-1)
 {
   segment rtrn;
   rtrn.active=true;
@@ -76,7 +76,7 @@ private segment case3(pair p0, pair p1, pair p2,
 
 // Check if a line passes through a triangle, and draw the required line.
 private segment checktriangle(pair p0, pair p1, pair p2,
-			      real v0, real v1, real v2, int edge)
+                              real v0, real v1, real v2, int edge)
 {
   // default null return  
   static segment dflt;
@@ -95,7 +95,7 @@ private segment checktriangle(pair p0, pair p1, pair p2,
     } else {
       if(v2 < -eps) return case3(p0,p1,p2,v0,v1,v2,edge);
       else if(v2 <= eps) 
-	return case2(p2,p0,p1,v2,v0,v1,edge);
+        return case2(p2,p0,p1,v2,v0,v1,edge);
       else return case3(p1,p0,p2,v1,v0,v2,edge);
     } 
   } else if(v0 <= eps) {
@@ -116,7 +116,7 @@ private segment checktriangle(pair p0, pair p1, pair p2,
     if(v1 < -eps) {
       if(v2 < -eps) return case3(p1,p0,p2,v1,v0,v2,edge);
       else if(v2 <= eps)
-	return case2(p2,p0,p1,v2,v0,v1,edge);
+        return case2(p2,p0,p1,v2,v0,v1,edge);
       else return case3(p0,p1,p2,v0,v1,v2,edge);
     } else if(v1 <= eps) {
       if(v2 < -eps) return case2(p1,p0,p2,v1,v0,v2,5+edge);
@@ -138,8 +138,8 @@ typedef guide interpolate(... guide[]);
 // c:        array of contour values
 // join:     interpolation operator (e.g. operator -- or operator ..)
 guide[][] contour(real[][] f, real[][] midpoint=new real[][],
-		  pair a, pair b, real[] c,
-		  interpolate join=operator --)
+                  pair a, pair b, real[] c,
+                  interpolate join=operator --)
 {
   int nx=f.length-1;
   int ny=nx > 0 ? f[0].length-1 : 0;
@@ -181,7 +181,7 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
       real f11=fi1[j+1];
       
       int checkcell(int cnt) {
-	real C=c[cnt];
+        real C=c[cnt];
         real vertdat0=f00-C;  // lower-left vertex
         real vertdat1=f10-C;  // lower-right vertex
         real vertdat2=f01-C;  // upper-left vertex
@@ -191,58 +191,58 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
         int countm=0;
         int countz=0;
         int countp=0;
-	
-	void check(real vertdat) {
-	  if(vertdat < -eps) ++countm;
+        
+        void check(real vertdat) {
+          if(vertdat < -eps) ++countm;
           else {
-	    if(vertdat <= eps) ++countz; 
-	    else ++countp;
-	  }
-	}
-	
-	check(vertdat0);
-	check(vertdat1);
-	check(vertdat2);
-	check(vertdat3);
+            if(vertdat <= eps) ++countz; 
+            else ++countp;
+          }
+        }
+        
+        check(vertdat0);
+        check(vertdat1);
+        check(vertdat2);
+        check(vertdat3);
 
         if(countm == 4) return 1;  // nothing to do 
         if(countp == 4) return -1; // nothing to do 
         if((countm == 3 || countp == 3) && countz == 1) return 0;
 
         // evaluate point at middle of rectangle (to set up triangles)
-	real vertdat4=midpoints ? midpoint[i][j]-C :
-	  0.25*(vertdat0+vertdat1+vertdat2+vertdat3);
+        real vertdat4=midpoints ? midpoint[i][j]-C :
+          0.25*(vertdat0+vertdat1+vertdat2+vertdat3);
       
         // go through the triangles
-	
-	void addseg(segment seg) { 
-	  if(seg.active) {
-	    seg.c=cnt;
-	    segmentsij.push(seg);
-	  }
-	}
+        
+        void addseg(segment seg) { 
+          if(seg.active) {
+            seg.c=cnt;
+            segmentsij.push(seg);
+          }
+        }
 
-	addseg(checktriangle(bright,tright,middle,
-			     vertdat1,vertdat3,vertdat4,0));
-	addseg(checktriangle(tright,tleft,middle,
-			     vertdat3,vertdat2,vertdat4,1));
-	addseg(checktriangle(tleft,bleft,middle,
-			     vertdat2,vertdat0,vertdat4,2));
-	addseg(checktriangle(bleft,bright,middle,
-			     vertdat0,vertdat1,vertdat4,3));
-	return 0;
+        addseg(checktriangle(bright,tright,middle,
+                             vertdat1,vertdat3,vertdat4,0));
+        addseg(checktriangle(tright,tleft,middle,
+                             vertdat3,vertdat2,vertdat4,1));
+        addseg(checktriangle(tleft,bleft,middle,
+                             vertdat2,vertdat0,vertdat4,2));
+        addseg(checktriangle(bleft,bright,middle,
+                             vertdat0,vertdat1,vertdat4,3));
+        return 0;
       }
       
       void process(int l, int u) {
-	if(l >= u) return;
-	int i=quotient(l+u,2);
-	int sign=checkcell(i);
-	if(sign == -1) process(i+1,u);
-	else if(sign == 1) process(l,i);
-	else {
-	  process(l,i);
-	  process(i+1,u);
-	}
+        if(l >= u) return;
+        int i=quotient(l+u,2);
+        int sign=checkcell(i);
+        if(sign == -1) process(i+1,u);
+        else if(sign == 1) process(l,i);
+        else {
+          process(l,i);
+          process(i+1,u);
+        }
       }
     
       process(0,c.length);
@@ -258,117 +258,117 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
     for(int j=0; j < ny; ++j) {
       segment[] segmentsij=segmentsi[j];
       for(int k=0; k < segmentsij.length; ++k) {
-	segment C=segmentsij[k];
+        segment C=segmentsij[k];
 
-	if(!C.active) continue;
+        if(!C.active) continue;
 
-	pair[] g=new pair[] {C.a,C.b};
-	segmentsij[k].active=false;
+        pair[] g=new pair[] {C.a,C.b};
+        segmentsij[k].active=false;
 
-	int forward(int I, int J, bool first=true) {
-	  if(I >= 0 && I < nx && J >= 0 && J < ny) {
-	    segment[] segmentsIJ=segments[I][J];
-	    for(int l=0; l < segmentsIJ.length; ++l) {
-	      segment D=segmentsIJ[l];
-	      if(!D.active) continue;
-	      if(abs(D.a-g[g.length-1]) < eps) {
-		g.push(D.b);
-		segmentsIJ[l].active=false;
-		if(D.edge >= 0 && !first) return D.edge;
-		first=false;
-		l=-1;
-	      } else if(abs(D.b-g[g.length-1]) < eps) {
-		g.push(D.a);
-		segmentsIJ[l].active=false;
-		if(D.edge >= 0 && !first) return D.edge;
-		first=false;
-		l=-1;
-	      }
-	    }
-	  }
-	  return -1;
-	}
-	
-	int backward(int I, int J, bool first=true) {
-	  if(I >= 0 && I < nx && J >= 0 && J < ny) {
-	    segment[] segmentsIJ=segments[I][J];
-	    for(int l=0; l < segmentsIJ.length; ++l) {
-	      segment D=segmentsIJ[l];
-	      if(!D.active) continue;
-	      if(abs(D.a-g[0]) < eps) {
-		g.insert(0,D.b);
-		segmentsIJ[l].active=false;
-		if(D.edge >= 0 && !first) return D.edge;
-		first=false;
-		l=-1;
-	      } else if(abs(D.b-g[0]) < eps) {
-		g.insert(0,D.a);
-		segmentsIJ[l].active=false;
-		if(D.edge >= 0 && !first) return D.edge;
-		first=false;
-		l=-1;
-	      }
-	    }
-	  }
-	  return -1;
-	}
-	
-	void follow(int f(int, int, bool first=true), int edge) {
-	  int I=i;
-	  int J=j;
-	  while(true) {
-	    static int ix[]={1,0,-1,0};
-	    static int iy[]={0,1,0,-1};
-	    if(edge >= 0 && edge < 4) {
-	      I += ix[edge];
-	      J += iy[edge];
-	      edge=f(I,J);
-	    } else {
-	      if(edge == -1) break;
-	      if(edge < 9) {
-		int edge0=(edge-5) % 4;
-		int edge1=(edge-4) % 4;
-		int ix0=ix[edge0];
-		int iy0=iy[edge0];
-		I += ix0;
-		J += iy0;
-		// Search all 3 corner cells
-		if((edge=f(I,J)) == -1) {
-		  I += ix[edge1];
-		  J += iy[edge1];
-		  if((edge=f(I,J)) == -1) {
-		    I -= ix0;
-		    J -= iy0;
-		    edge=f(I,J);
-		  }
-		}
-	      } else {
-		// Two edge vertices: search all 8 surrounding cells
-		int I0=I;
-		int J0=J;
-		for(int i=-1; i <= 1; ++i) {
-		  for(int j=-1; j <= 1; ++j) {
-		    if(i == 0 && j == 0) continue;
-		    I=I0+i;
-		    J=J0+j;
-		    if((edge=f(I,J)) >= 0) break;
-		  }
-		}
-	      }
-	    }
-	  }
-	}
+        int forward(int I, int J, bool first=true) {
+          if(I >= 0 && I < nx && J >= 0 && J < ny) {
+            segment[] segmentsIJ=segments[I][J];
+            for(int l=0; l < segmentsIJ.length; ++l) {
+              segment D=segmentsIJ[l];
+              if(!D.active) continue;
+              if(abs(D.a-g[g.length-1]) < eps) {
+                g.push(D.b);
+                segmentsIJ[l].active=false;
+                if(D.edge >= 0 && !first) return D.edge;
+                first=false;
+                l=-1;
+              } else if(abs(D.b-g[g.length-1]) < eps) {
+                g.push(D.a);
+                segmentsIJ[l].active=false;
+                if(D.edge >= 0 && !first) return D.edge;
+                first=false;
+                l=-1;
+              }
+            }
+          }
+          return -1;
+        }
+        
+        int backward(int I, int J, bool first=true) {
+          if(I >= 0 && I < nx && J >= 0 && J < ny) {
+            segment[] segmentsIJ=segments[I][J];
+            for(int l=0; l < segmentsIJ.length; ++l) {
+              segment D=segmentsIJ[l];
+              if(!D.active) continue;
+              if(abs(D.a-g[0]) < eps) {
+                g.insert(0,D.b);
+                segmentsIJ[l].active=false;
+                if(D.edge >= 0 && !first) return D.edge;
+                first=false;
+                l=-1;
+              } else if(abs(D.b-g[0]) < eps) {
+                g.insert(0,D.a);
+                segmentsIJ[l].active=false;
+                if(D.edge >= 0 && !first) return D.edge;
+                first=false;
+                l=-1;
+              }
+            }
+          }
+          return -1;
+        }
+        
+        void follow(int f(int, int, bool first=true), int edge) {
+          int I=i;
+          int J=j;
+          while(true) {
+            static int ix[]={1,0,-1,0};
+            static int iy[]={0,1,0,-1};
+            if(edge >= 0 && edge < 4) {
+              I += ix[edge];
+              J += iy[edge];
+              edge=f(I,J);
+            } else {
+              if(edge == -1) break;
+              if(edge < 9) {
+                int edge0=(edge-5) % 4;
+                int edge1=(edge-4) % 4;
+                int ix0=ix[edge0];
+                int iy0=iy[edge0];
+                I += ix0;
+                J += iy0;
+                // Search all 3 corner cells
+                if((edge=f(I,J)) == -1) {
+                  I += ix[edge1];
+                  J += iy[edge1];
+                  if((edge=f(I,J)) == -1) {
+                    I -= ix0;
+                    J -= iy0;
+                    edge=f(I,J);
+                  }
+                }
+              } else {
+                // Two edge vertices: search all 8 surrounding cells
+                int I0=I;
+                int J0=J;
+                for(int i=-1; i <= 1; ++i) {
+                  for(int j=-1; j <= 1; ++j) {
+                    if(i == 0 && j == 0) continue;
+                    I=I0+i;
+                    J=J0+j;
+                    if((edge=f(I,J)) >= 0) break;
+                  }
+                }
+              }
+            }
+          }
+        }
 
-	// Follow contour in cell
-	int edge=forward(i,j,first=false);
+        // Follow contour in cell
+        int edge=forward(i,j,first=false);
 
-	// Follow contour forward outside of cell
-	follow(forward,edge);
+        // Follow contour forward outside of cell
+        follow(forward,edge);
 
-	// Follow contour backward outside of cell
-	follow(backward,C.edge);
+        // Follow contour backward outside of cell
+        follow(backward,C.edge);
 
-	points[C.c].push(g);
+        points[C.c].push(g);
       }      
     }
   }
@@ -381,11 +381,11 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
       pair[] pts=pointscnt[i];
       guide gd=pts[0];
       for(int j=1; j < pts.length-1; ++j)
-      	gd=join(gd,pts[j]);
+        gd=join(gd,pts[j]);
       if(abs(pts[0]-pts[pts.length-1]) < eps)
         gd=gd..cycle;
       else
-	gd=join(gd,pts[pts.length-1]);
+        gd=join(gd,pts[pts.length-1]);
       resultcnt[i]=gd;
     }
   }
@@ -400,8 +400,8 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
 // nx,ny:    subdivisions on x and y axes (affects accuracy)
 // join:     interpolation operator (e.g. operator -- or operator ..)
 guide[][] contour(real f(real, real), pair a, pair b,
-		  real[] c, int nx=ngraph, int ny=nx,
-		  interpolate join=operator --)
+                  real[] c, int nx=ngraph, int ny=nx,
+                  interpolate join=operator --)
 {
   // evaluate function at points and midpoints
   real[][] dat=new real[nx+1][ny+1];
@@ -422,7 +422,7 @@ guide[][] contour(real f(real, real), pair a, pair b,
 }
   
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-	  guide[][] g, pen[] p)
+          guide[][] g, pen[] p)
 {
   begingroup(pic);
   for(int cnt=0; cnt < g.length; ++cnt) {
@@ -432,9 +432,9 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
   if(L.length > 0) {
     for(int cnt=0; cnt < g.length; ++cnt) {
       for(int i=0; i < g[cnt].length; ++i) {
-	Label Lcnt=L[cnt];
-	if(Lcnt.s != "" && size(g[cnt][i]) > 1)
-	  label(pic,Lcnt,g[cnt][i],p[cnt]);
+        Label Lcnt=L[cnt];
+        if(Lcnt.s != "" && size(g[cnt][i]) > 1)
+          label(pic,Lcnt,g[cnt][i],p[cnt]);
       }
     }
   }
@@ -442,7 +442,7 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
 }
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-	  guide[][] g, pen p=currentpen)
+          guide[][] g, pen p=currentpen)
 {
   draw(pic,L,g,sequence(new pen(int) {return p;},g.length));
 }
@@ -481,20 +481,20 @@ private void addseg(pair[][] gds, segment seg)
 }
 
 guide[][] contour(pair[] points, real[] values, 
-		  real[] c, interpolate join=operator --)
+                  real[] c, interpolate join=operator --)
 {
   int[][] trn=triangulate(points);
 
   // array to store guides found so far
   pair[][][] gds=new pair[c.length][0][0];
-	
+        
   for(int cnt=0; cnt < c.length; ++cnt) {
     pair[][] gdscnt=gds[cnt];
     for(int i=0; i < trn.length; ++i) {
       int i0=trn[i][0], i1=trn[i][1], i2=trn[i][2];
       addseg(gdscnt,checktriangle(points[i0],points[i1],points[i2],
-				  values[i0]-c[cnt],values[i1]-c[cnt],
-				  values[i2]-c[cnt],0));
+                                  values[i0]-c[cnt],values[i1]-c[cnt],
+                                  values[i2]-c[cnt],0));
     }
   }
 
@@ -511,28 +511,28 @@ guide[][] contour(pair[] points, real[] values,
       int Li=gig.length;
       for(int j=i+1; j < gdscnt.length; ++j) {
         pair[] gjg=gdscnt[j];
-	int Lj=gjg.length;
+        int Lj=gjg.length;
         if(abs(gig[0]-gjg[0]) < eps) { 
-	  gdscnt[j]=gjg[reverseF(Lj)];
-	  gdscnt[j].append(gig);
+          gdscnt[j]=gjg[reverseF(Lj)];
+          gdscnt[j].append(gig);
           gdscnt.delete(i); 
           --i; 
           break;
         } else if(abs(gig[0]-gjg[Lj-1]) < eps) {
-	  gig.delete(0);
-	  gdscnt[j].append(gig);
+          gig.delete(0);
+          gdscnt[j].append(gig);
           gdscnt.delete(i);
           --i;
           break;
         } else if(abs(gig[Li-1]-gjg[0]) < eps) {
-	  gjg.delete(0);
-	  gig.append(gjg);
-	  gdscnt[j]=gig;
+          gjg.delete(0);
+          gig.append(gjg);
+          gdscnt[j]=gig;
           gdscnt.delete(i);
           --i;
           break;
         } else if(abs(gig[Li-1]-gjg[Lj-1]) < eps) {
-	  gig.append(gjg[reverseL(Lj)]);
+          gig.append(gjg[reverseL(Lj)]);
           gdscnt[j]=gig;
           gdscnt.delete(i);
           --i;
@@ -551,11 +551,11 @@ guide[][] contour(pair[] points, real[] values,
       pair[] pts=gdscnt[i];
       guide gd=pts[0];
       for(int j=1; j < pts.length-1; ++j)
-      	gd=join(gd,pts[j]);
+        gd=join(gd,pts[j]);
       if(abs(pts[0]-pts[pts.length-1]) < eps)
         gd=gd..cycle;
       else
-	gd=join(gd,pts[pts.length-1]);
+        gd=join(gd,pts[pts.length-1]);
       resultcnt[i]=gd;
     }
   }

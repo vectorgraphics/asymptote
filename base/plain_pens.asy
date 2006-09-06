@@ -148,13 +148,13 @@ int Move=3;
 int MoveQuiet=4;
 
 pen[] colorPen={red,blue,green,magenta,cyan,orange,purple,brown,
-		       deepblue,deepgreen,chartreuse,fuchsia,lightred,
-		       lightblue,black,pink,yellow,gray};
+                deepblue,deepgreen,chartreuse,fuchsia,lightred,
+                lightblue,black,pink,yellow,gray};
 
 colorPen.cyclic(true);
 
 pen[] monoPen={solid,dashed,dotted,longdashed,dashdotted,
-		      longdashdotted};
+               longdashdotted};
 monoPen.cyclic(true);
 
 pen Pen(int n) 
@@ -208,7 +208,7 @@ pen font(string name, real size)
 pen font(string encoding, string family, string series="m", string shape="n") 
 {
   return fontcommand("\usefont{"+encoding+"}{"+family+"}{"+series+"}{"+shape+
-		     "}");
+                     "}");
 }
 
 pen AvantGarde(string series="m", string shape="n")

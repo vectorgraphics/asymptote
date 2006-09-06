@@ -113,13 +113,13 @@ real momarrowsize(pen p=momarrowpen) { return momarrowfactor*linewidth(p); }
 private void do_overpaint(picture pic, path p, pen bgpen,
                           real halfwidth, real vertexangle)
 {
-    real tanvertexangle = tan(vertexangle*pi/180);
-    if(tanvertexangle != 0) {
-        real t1 = arctime(p, halfwidth/tanvertexangle+halfwidth);
-        real t2 = arctime(p, arclength(p)-halfwidth/tanvertexangle-halfwidth);
-        draw(pic, subpath(p, t1, t2),
-             bgpen+linewidth(2*halfwidth));
-    }
+  real tanvertexangle = tan(vertexangle*pi/180);
+  if(tanvertexangle != 0) {
+    real t1 = arctime(p, halfwidth/tanvertexangle+halfwidth);
+    real t2 = arctime(p, arclength(p)-halfwidth/tanvertexangle-halfwidth);
+    draw(pic, subpath(p, t1, t2),
+         bgpen+linewidth(2*halfwidth));
+  }
 }
 
 // returns the path of a gluon line along path p, with amplitude amp and width
@@ -127,32 +127,32 @@ private void do_overpaint(picture pic, path p, pen bgpen,
 // set to amp*gluonratio
 path gluon(path p, real amp = gluonamplitude, real width=-1)
 {
-    if(width < 0) width = abs(gluonratio*amp);
+  if(width < 0) width = abs(gluonratio*amp);
 
-    real pathlen = arclength(p);
-    int ncurls = floor(pathlen/width);
-    real firstlen = (pathlen - width*(ncurls-1))/2;
-    real firstt = arctime(p, firstlen);
-    pair firstv = dir(p, firstt);
-    guide g = point(p, 0)..{firstv}( point(p, firstt)
-                                    +amp*unit(rotate(90)*firstv));
+  real pathlen = arclength(p);
+  int ncurls = floor(pathlen/width);
+  real firstlen = (pathlen - width*(ncurls-1))/2;
+  real firstt = arctime(p, firstlen);
+  pair firstv = dir(p, firstt);
+  guide g = point(p, 0)..{firstv}( point(p, firstt)
+                                   +amp*unit(rotate(90)*firstv));
 
-    real t1;
-    pair v1;
-    real t2;
-    pair v2;
-    pathlen -= firstlen;
-    for(real len = firstlen+width/2; len < pathlen; len += width) {
-        t1 = arctime(p, len);
-        v1 = dir(p, t1);
-        t2 = arctime(p, len + width/2);
-        v2 = dir(p, t2);
+  real t1;
+  pair v1;
+  real t2;
+  pair v2;
+  pathlen -= firstlen;
+  for(real len = firstlen+width/2; len < pathlen; len += width) {
+    t1 = arctime(p, len);
+    v1 = dir(p, t1);
+    t2 = arctime(p, len + width/2);
+    v2 = dir(p, t2);
 
-        g=g..{-v1}(point(p, t1)+amp*unit(rotate(-90)*v1))
-           ..{+v2}(point(p, t2)+amp*unit(rotate(+90)*v2));
-    }
-    g = g..point(p, size(p));
-    return g;
+    g=g..{-v1}(point(p, t1)+amp*unit(rotate(-90)*v1))
+                ..{+v2}(point(p, t2)+amp*unit(rotate(+90)*v2));
+  }
+  g = g..point(p, size(p));
+  return g;
 }
 
 // returns the path of a photon line along path p, with amplitude amp and width
@@ -160,29 +160,29 @@ path gluon(path p, real amp = gluonamplitude, real width=-1)
 // set to amp*photonratio
 path photon(path p, real amp = photonamplitude, real width=-1)
 {
-    if(width < 0)
-        width = abs(photonratio*amp)/2;
-    else
-        width = width/2;
+  if(width < 0)
+    width = abs(photonratio*amp)/2;
+  else
+    width = width/2;
 
-    real pathlen = arclength(p);
-    int ncurls = floor(pathlen/width);
-    real firstlen = (pathlen - width*ncurls)/2;
-    real firstt = arctime(p, firstlen+width);
-    guide g =   point(p, 0){unit(point(p, firstt)-point(p, 0))};
+  real pathlen = arclength(p);
+  int ncurls = floor(pathlen/width);
+  real firstlen = (pathlen - width*ncurls)/2;
+  real firstt = arctime(p, firstlen+width);
+  guide g =   point(p, 0){unit(point(p, firstt)-point(p, 0))};
 
-    real t;
-    pair v;
-    pathlen -= firstlen;
-    for(real len = firstlen+width; len < pathlen; len += width) {
-        t = arctime(p, len);
-        v = dir(p, t);
+  real t;
+  pair v;
+  pathlen -= firstlen;
+  for(real len = firstlen+width; len < pathlen; len += width) {
+    t = arctime(p, len);
+    v = dir(p, t);
 
-        g=g..{v}(point(p, t)+amp*unit(rotate(90)*v));
-        amp = -amp;
-    }
-    g = g..{unit(point(p, size(p))-point(p, t))}point(p, size(p));
-    return g;
+    g=g..{v}(point(p, t)+amp*unit(rotate(90)*v));
+    amp = -amp;
+  }
+  g = g..{unit(point(p, size(p))-point(p, t))}point(p, size(p));
+  return g;
 }
 
 // returns the path of a momentum arrow along path p, with length length,
@@ -195,32 +195,32 @@ path momArrowPath(path p,
                   real offset = momarrowoffset,
                   real length = momarrowlength)
 {
-    real pathlen = arclength(p);
+  real pathlen = arclength(p);
 
-    real t1, t2;
-    if(pos.relative) {
-        t1 = arctime(p, (pathlen-length)*pos.position.x);
-        t2 = arctime(p, (pathlen-length)*pos.position.x+length);
-    } else {
-        t1 = arctime(p, (pathlen-length)/2 + pos.position.x);
-        t2 = arctime(p, (pathlen+length)/2+ pos.position.x);
-    }
+  real t1, t2;
+  if(pos.relative) {
+    t1 = arctime(p, (pathlen-length)*pos.position.x);
+    t2 = arctime(p, (pathlen-length)*pos.position.x+length);
+  } else {
+    t1 = arctime(p, (pathlen-length)/2 + pos.position.x);
+    t2 = arctime(p, (pathlen+length)/2+ pos.position.x);
+  }
 
-    pair v1 = dir(p, t1);
-    pair v2 = dir(p, t2);
+  pair v1 = dir(p, t1);
+  pair v2 = dir(p, t2);
 
-    pair p1, p2;
-    if(align.relative) {
-        p1 = point(p, t1) +  offset*abs(align.dir)
-                            *unit(rotate(degrees(align.dir)-90)*v1);
-        p2 = point(p, t2) +  offset*abs(align.dir)
-                            *unit(rotate(degrees(align.dir)-90)*v2);
-    } else {
-        p1 = point(p, t1) + offset*align.dir;
-        p2 = point(p, t2) + offset*align.dir;
-    }
+  pair p1, p2;
+  if(align.relative) {
+    p1 = point(p, t1) +  offset*abs(align.dir)
+      *unit(rotate(degrees(align.dir)-90)*v1);
+    p2 = point(p, t2) +  offset*abs(align.dir)
+      *unit(rotate(degrees(align.dir)-90)*v2);
+  } else {
+    p1 = point(p, t1) + offset*align.dir;
+    p2 = point(p, t2) + offset*align.dir;
+  }
 
-    return p1{v1}..{v2}p2;
+  return p1{v1}..{v2}p2;
 }
 
 
@@ -245,10 +245,10 @@ void drawGluon(picture pic = currentpicture,
                real vertexangle = minvertexangle,
                real margin = linemargin)
 {
-    if(width < 0) width = abs(2*amp);
+  if(width < 0) width = abs(2*amp);
 
-    if(erasebg) do_overpaint(pic, p, bgpen, amp+margin, vertexangle);
-    draw(pic, gluon(p, amp, width), fgpen);
+  if(erasebg) do_overpaint(pic, p, bgpen, amp+margin, vertexangle);
+  draw(pic, gluon(p, amp, width), fgpen);
 }
 
 // draw a photon line on picture pic, along path p, with amplitude amp, width
@@ -268,10 +268,10 @@ void drawPhoton(picture pic = currentpicture,
                 real vertexangle = minvertexangle,
                 real margin = linemargin)
 {
-    if(width < 0) width = abs(4*amp);
+  if(width < 0) width = abs(4*amp);
 
-    if(erasebg) do_overpaint(pic, p, bgpen, amp+margin, vertexangle);
-    draw(pic, photon(p, amp, width), fgpen);
+  if(erasebg) do_overpaint(pic, p, bgpen, amp+margin, vertexangle);
+  draw(pic, photon(p, amp, width), fgpen);
 }
 
 // draw a fermion line on picture pic, along path p with pen fgpen and an
@@ -288,9 +288,9 @@ void drawFermion(picture pic = currentpicture,
                  real vertexangle = minvertexangle,
                  real margin = linemargin)
 {
-    if(erasebg) do_overpaint(pic, p, bgpen,
-                             linewidth(fgpen)+margin, vertexangle);
-    draw(pic, p, fgpen, arrow);
+  if(erasebg) do_overpaint(pic, p, bgpen,
+                           linewidth(fgpen)+margin, vertexangle);
+  draw(pic, p, fgpen, arrow);
 }
 
 // draw a scalar line on picture pic, along path p with pen fgpen and an
@@ -307,9 +307,9 @@ void drawScalar(picture pic = currentpicture,
                 real vertexangle = minvertexangle,
                 real margin = linemargin)
 {
-    if(erasebg) do_overpaint(pic, p, bgpen,
-                             linewidth(fgpen)+margin, vertexangle);
-    draw(pic, p, fgpen, arrow);
+  if(erasebg) do_overpaint(pic, p, bgpen,
+                           linewidth(fgpen)+margin, vertexangle);
+  draw(pic, p, fgpen, arrow);
 }
 
 // draw a ghost line on picture pic, along path p with pen fgpen and an
@@ -326,9 +326,9 @@ void drawGhost(picture pic = currentpicture,
                real vertexangle = minvertexangle,
                real margin = linemargin)
 {
-    if(erasebg) do_overpaint(pic, p, bgpen, 
-                             linewidth(fgpen)+margin, vertexangle);
-    draw(pic, p, fgpen, arrow);
+  if(erasebg) do_overpaint(pic, p, bgpen, 
+                           linewidth(fgpen)+margin, vertexangle);
+  draw(pic, p, fgpen, arrow);
 }
 
 // draw a double line on picture pic, along path p with pen fgpen, an inner
@@ -347,17 +347,17 @@ void drawDoubleLine(picture pic = currentpicture,
                     real vertexangle = minvertexangle,
                     real margin = linemargin)
 {
-    if(erasebg) do_overpaint(pic, p, bgpen, 
-                             linewidth(fgpen)+margin, vertexangle);
+  if(erasebg) do_overpaint(pic, p, bgpen, 
+                           linewidth(fgpen)+margin, vertexangle);
 
-    real htw = linewidth(fgpen)+dlspacing/2;
-    draw(pic, p, fgpen+2*htw);
-    draw(pic, p, bgpen+(linewidth(dlspacing)));
-    path rect = (-htw,-htw)--(-htw,htw)--(0,htw)--(0,-htw)--cycle;
-    fill(shift(point(p,0))*rotate(degrees(dir(p,0)))*rect, bgpen);
-    fill(shift(point(p,size(p)))*scale(-1)*rotate(degrees(dir(p,size(p))))*
-	 rect,bgpen);
-    draw(pic, p, invisible, arrow);
+  real htw = linewidth(fgpen)+dlspacing/2;
+  draw(pic, p, fgpen+2*htw);
+  draw(pic, p, bgpen+(linewidth(dlspacing)));
+  path rect = (-htw,-htw)--(-htw,htw)--(0,htw)--(0,-htw)--cycle;
+  fill(shift(point(p,0))*rotate(degrees(dir(p,0)))*rect, bgpen);
+  fill(shift(point(p,size(p)))*scale(-1)*rotate(degrees(dir(p,size(p))))*
+       rect,bgpen);
+  draw(pic, p, invisible, arrow);
 }
 
 // draw a vertex dot on picture pic, at position xy with radius r and pen
@@ -367,7 +367,7 @@ void drawVertex(picture pic = currentpicture,
                 real r = vertexsize,
                 pen fgpen = vertexpen)
 {
-    fill(pic, circle(xy, r), fgpen);
+  fill(pic, circle(xy, r), fgpen);
 }
 
 // draw an empty vertex dot on picture pic, at position xy with radius r
@@ -380,10 +380,10 @@ void drawVertexO(picture pic = currentpicture,
                  bool erasebg = overpaint,
                  pen bgpen = backgroundpen)
 {
-    if(erasebg)
-        filldraw(pic, circle(xy, r), bgpen, fgpen);
-    else
-        draw(pic, circle(xy, r), fgpen);
+  if(erasebg)
+    filldraw(pic, circle(xy, r), bgpen, fgpen);
+  else
+    draw(pic, circle(xy, r), fgpen);
 }
 
 // draw a vertex triangle on picture pic, at position xy with radius r and pen
@@ -393,10 +393,10 @@ void drawVertexTriangle(picture pic = currentpicture,
                         real r = vertexsize,
                         pen fgpen = vertexpen)
 {
-    real cospi6 = cos(pi/6);
-    real sinpi6 = sin(pi/6);
-    path triangle = (cospi6,-sinpi6)--(0,1)--(-cospi6,-sinpi6)--cycle;
-    fill(pic, shift(xy)*scale(r)*triangle, fgpen);
+  real cospi6 = cos(pi/6);
+  real sinpi6 = sin(pi/6);
+  path triangle = (cospi6,-sinpi6)--(0,1)--(-cospi6,-sinpi6)--cycle;
+  fill(pic, shift(xy)*scale(r)*triangle, fgpen);
 }
 
 // draw an empty vertex triangle on picture pic, at position xy with size r
@@ -409,14 +409,14 @@ void drawVertexTriangleO(picture pic = currentpicture,
                          bool erasebg = overpaint,
                          pen bgpen = backgroundpen)
 {
-    real cospi6 = cos(pi/6);
-    real sinpi6 = sin(pi/6);
-    path triangle = (cospi6,-sinpi6)--(0,1)--(-cospi6,-sinpi6)--cycle;
+  real cospi6 = cos(pi/6);
+  real sinpi6 = sin(pi/6);
+  path triangle = (cospi6,-sinpi6)--(0,1)--(-cospi6,-sinpi6)--cycle;
 
-    if(erasebg)
-        filldraw(pic, shift(xy)*scale(r)*triangle, bgpen, fgpen);
-    else
-        draw(pic, shift(xy)*scale(r)*triangle, fgpen);
+  if(erasebg)
+    filldraw(pic, shift(xy)*scale(r)*triangle, bgpen, fgpen);
+  else
+    draw(pic, shift(xy)*scale(r)*triangle, fgpen);
 }
 
 // draw a vertex box on picture pic, at position xy with radius r and pen
@@ -426,8 +426,8 @@ void drawVertexBox(picture pic = currentpicture,
                    real r = vertexsize,
                    pen fgpen = vertexpen)
 {
-    path box = (1,1)--(-1,1)--(-1,-1)--(1,-1)--cycle;
-    fill(pic, shift(xy)*scale(r)*box, fgpen);
+  path box = (1,1)--(-1,1)--(-1,-1)--(1,-1)--cycle;
+  fill(pic, shift(xy)*scale(r)*box, fgpen);
 }
 
 // draw an empty vertex box on picture pic, at position xy with size r
@@ -440,11 +440,11 @@ void drawVertexBoxO(picture pic = currentpicture,
                     bool erasebg = overpaint,
                     pen bgpen = backgroundpen)
 {
-    path box = (1,1)--(-1,1)--(-1,-1)--(1,-1)--cycle;
-    if(erasebg)
-        filldraw(pic, shift(xy)*scale(r)*box, bgpen, fgpen);
-    else
-        draw(pic, shift(xy)*scale(r)*box, fgpen);
+  path box = (1,1)--(-1,1)--(-1,-1)--(1,-1)--cycle;
+  if(erasebg)
+    filldraw(pic, shift(xy)*scale(r)*box, bgpen, fgpen);
+  else
+    draw(pic, shift(xy)*scale(r)*box, fgpen);
 }
 
 // draw an X on picture pic, at position xy with size r and pen
@@ -454,8 +454,8 @@ void drawVertexX(picture pic = currentpicture,
                  real r = vertexsize,
                  pen fgpen = vertexpen)
 {
-    draw(pic, shift(xy)*scale(r)*((-1,-1)--(1,1)), fgpen);
-    draw(pic, shift(xy)*scale(r)*((1,-1)--(-1,1)), fgpen);    
+  draw(pic, shift(xy)*scale(r)*((-1,-1)--(1,1)), fgpen);
+  draw(pic, shift(xy)*scale(r)*((1,-1)--(-1,1)), fgpen);    
 }
 
 // draw a circle with an X in the middle on picture pic, at position xy with
@@ -468,12 +468,12 @@ void drawVertexOX(picture pic = currentpicture,
                   bool erasebg = overpaint,
                   pen bgpen = backgroundpen)
 {
-    if(erasebg)
-        filldraw(pic, circle(xy, r), bgpen, fgpen);
-    else
-        draw(pic, circle(xy, r), fgpen);
-    draw(pic, shift(xy)*scale(r)*(NW--SE), fgpen);
-    draw(pic, shift(xy)*scale(r)*(SW--NE), fgpen);
+  if(erasebg)
+    filldraw(pic, circle(xy, r), bgpen, fgpen);
+  else
+    draw(pic, circle(xy, r), fgpen);
+  draw(pic, shift(xy)*scale(r)*(NW--SE), fgpen);
+  draw(pic, shift(xy)*scale(r)*(SW--NE), fgpen);
 }
 
 // draw a box with an X in the middle on picture pic, at position xy with
@@ -486,14 +486,14 @@ void drawVertexBoxX(picture pic = currentpicture,
                     bool erasebg = overpaint,
                     pen bgpen = backgroundpen)
 {
-    path box = (1,1)--(-1,1)--(-1,-1)--(1,-1)--cycle;
-    box = shift(xy)*scale(r)*box;
-    if(erasebg)
-        filldraw(pic, box, bgpen, fgpen);
-    else
-        draw(pic, box, fgpen);
-    draw(pic, shift(xy)*scale(r)*((-1,-1)--(1,1)), fgpen);
-    draw(pic, shift(xy)*scale(r)*((1,-1)--(-1,1)), fgpen);
+  path box = (1,1)--(-1,1)--(-1,-1)--(1,-1)--cycle;
+  box = shift(xy)*scale(r)*box;
+  if(erasebg)
+    filldraw(pic, box, bgpen, fgpen);
+  else
+    draw(pic, box, fgpen);
+  draw(pic, shift(xy)*scale(r)*((-1,-1)--(1,1)), fgpen);
+  draw(pic, shift(xy)*scale(r)*((1,-1)--(-1,1)), fgpen);
 }
 
 // draw a momentum arrow on picture pic, along path p, at position position
@@ -515,10 +515,10 @@ void drawMomArrow(picture pic = currentpicture,
                   pen bgpen = backgroundpen,
                   real margin = momarrowmargin)
 {
-    path momarrow = momArrowPath(p, align, pos, offset, length);
-    if(erasebg) do_overpaint(pic, momarrow, bgpen, 
-                             linewidth(fgpen)+margin, 90);
-    draw(pic, momarrow, fgpen, arrow);
+  path momarrow = momArrowPath(p, align, pos, offset, length);
+  if(erasebg) do_overpaint(pic, momarrow, bgpen, 
+                           linewidth(fgpen)+margin, 90);
+  draw(pic, momarrow, fgpen, arrow);
 }
 
 
@@ -531,38 +531,38 @@ void drawMomArrow(picture pic = currentpicture,
 // parameters of feynman.asy.
 void fmdefaults() 
 {
-    real arrowsize=arrowsize(currentpen);
-    real linewidth=linewidth(currentpen);
+  real arrowsize=arrowsize(currentpen);
+  real linewidth=linewidth(currentpen);
 
-    gluonratio = 2;
-    photonratio = 4;
-    gluonamplitude = arrowsize/3;
-    photonamplitude = arrowsize/4;
+  gluonratio = 2;
+  photonratio = 4;
+  gluonamplitude = arrowsize/3;
+  photonamplitude = arrowsize/4;
 
-    backgroundpen = white;
-    gluonpen = currentpen;
-    photonpen = currentpen;
-    fermionpen = currentpen;
-    scalarpen = dashed+linewidth;
-    ghostpen = dotted+linewidth;
-    doublelinepen = currentpen;
-    vertexpen = currentpen;
-    bigvertexpen = currentpen;
-    currentarrow = MidArrow;
+  backgroundpen = white;
+  gluonpen = currentpen;
+  photonpen = currentpen;
+  fermionpen = currentpen;
+  scalarpen = dashed+linewidth;
+  ghostpen = dotted+linewidth;
+  doublelinepen = currentpen;
+  vertexpen = currentpen;
+  bigvertexpen = currentpen;
+  currentarrow = MidArrow;
 
-    doublelinespacing = 2*linewidth;
-    linemargin = 0.5*arrowsize;
-    minvertexangle = 30;
-    overpaint = true;
-    vertexsize = 0.5*dotfactor*linewidth;
-    bigvertexsize = 0.4*arrowsize;
+  doublelinespacing = 2*linewidth;
+  linemargin = 0.5*arrowsize;
+  minvertexangle = 30;
+  overpaint = true;
+  vertexsize = 0.5*dotfactor*linewidth;
+  bigvertexsize = 0.4*arrowsize;
 
-    momarrowfactor = 1.5*arrowfactor;
-    momarrowlength = 2.5*arrowsize;
-    momarrowpen = currentpen+0.5*linewidth;
-    momarrowoffset = 0.8*arrowsize;
-    momarrowmargin = 0.25*arrowsize;
-    currentmomarrow = EndArrow(momarrowsize());
+  momarrowfactor = 1.5*arrowfactor;
+  momarrowlength = 2.5*arrowsize;
+  momarrowpen = currentpen+0.5*linewidth;
+  momarrowoffset = 0.8*arrowsize;
+  momarrowmargin = 0.25*arrowsize;
+  currentmomarrow = EndArrow(momarrowsize());
 }
 
 // We call fmdefaults once, when the module is loaded.
@@ -582,24 +582,24 @@ void texshipout(string stem,
                 picture pic = currentpicture,
                 bool xalign = YAlign)
 {
-    file tf = output(stem + ".tex");
-    pair min=pic.min();
-    real depth = min.y;
-    real xoffset = min.x;
-    if(xalign) {
-        write(tf, "\makebox[0pt][l]{\kern");
-        write(tf, xoffset);
-        write(tf, "bp\relax");
-    }
-    write(tf, "\raisebox{");
-    write(tf, depth);
-    write(tf, "bp}{\includegraphics{");
-    write(tf, stem);
-    write(tf, ".eps}}");
-    if(xalign)
-        write(tf, "}");
-    close(tf);
-    shipout(stem + ".eps", pic);
+  file tf = output(stem + ".tex");
+  pair min=pic.min();
+  real depth = min.y;
+  real xoffset = min.x;
+  if(xalign) {
+    write(tf, "\makebox[0pt][l]{\kern");
+    write(tf, xoffset);
+    write(tf, "bp\relax");
+  }
+  write(tf, "\raisebox{");
+  write(tf, depth);
+  write(tf, "bp}{\includegraphics{");
+  write(tf, stem);
+  write(tf, ".eps}}");
+  if(xalign)
+    write(tf, "}");
+  close(tf);
+  shipout(stem + ".eps", pic);
 }
 
 

@@ -164,13 +164,13 @@ pair dir(path g, path h)
 // return the point on path g at arclength L
 pair arcpoint(path g, real L)
 {
-    return point(g,arctime(g,L));
+  return point(g,arctime(g,L));
 }
 
 // return the direction on path g at arclength L
 pair arcdir(path g, real L)
 {
-    return dir(g,arctime(g,L));
+  return dir(g,arctime(g,L));
 }
 
 // return the time on path g at the given relative fraction of its arclength
@@ -195,17 +195,17 @@ pair reldir(path g, real l)
 // return the initial point of path g
 pair beginpoint(path g)
 {
-    return point(g,0);
+  return point(g,0);
 }
 
 // return the point on path g at half of its arclength
 pair midpoint(path g)
 {
-    return relpoint(g,0.5);
+  return relpoint(g,0.5);
 }
 
 // return the final point of path g
 pair endpoint(path g)
 {
-    return point(g,length(g));
+  return point(g,length(g));
 }

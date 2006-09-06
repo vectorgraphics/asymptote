@@ -50,14 +50,14 @@ string debugger(string file, int line, int column, code s=quote{})
       if(file != lastfile && file != "-") {source=input(file); lastfile=file;}
       write();
       for(int i=max(line-debuggerlines,0); i < min(line,source.length); ++i)
-	write(source[i]);
+        write(source[i]);
       for(int i=0; i < column-1; ++i)
-	write(" ",none);
+        write(" ",none);
       write("^"+(verbose == 5 ? " trace" : ""));
 
       if(help) {
-	write("c:continue f:file h:help i:inst n:next r:return s:step t:trace q:quit e:exit");
-	help=false;
+        write("c:continue f:file h:help i:inst n:next r:return s:step t:trace q:quit e:exit");
+        help=false;
       }
 
       string Prompt=file+": "+(string) line+"."+(string) column;
@@ -65,16 +65,16 @@ string debugger(string file, int line, int column, code s=quote{})
       s=getstring(name="debug",default="h",prompt=Prompt,save=false);
       if(s == "h") {help=true; continue;}
       if(s == "c" || s == "s" || s == "n" || s == "i" || s == "f" || s == "r")
-	break;
+        break;
       if(s == "q") abort(); // quit
       if(s == "x") {debugging=false; return "";} // exit
       if(s == "t") { // trace
-	if(verbose == 0) {
-	  verbose=5;
-	} else {
-	  verbose=0;
-	}
-	continue;
+        if(verbose == 0) {
+          verbose=5;
+        } else {
+          verbose=0;
+        }
+        continue;
       }
       _eval(s+";",true);
     }

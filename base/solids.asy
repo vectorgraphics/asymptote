@@ -44,7 +44,7 @@ path line(path p, path q, real[] t)
 // Return a generalized cylinder of height h constructed from area base in
 // the XY plane and aligned with axis.
 path[] cylinder(guide3 base, real h, triple axis=Z,
-		projection P=currentprojection) 
+                projection P=currentprojection) 
 {
   base=rotate(-colatitude(axis),cross(axis,Z))*base;
   guide3 top=shift(h*axis)*base;
@@ -76,7 +76,7 @@ struct revolution {
   real angle1,angle2;
   
   void init(triple c=O, path3 g, triple axis=Z, real angle1=0,
-	    real angle2=360) {
+            real angle2=360) {
     this.c=c;
     this.g=g;
     this.axis=unit(axis);
@@ -94,7 +94,7 @@ struct revolution {
   // from angle1 to angle2 sampled n times about the line c--c+axis, using
   // the spatially dependent pen color(triple).
   void fill(picture pic=currentpicture, int n=32, pen color(triple),
-	    projection P=currentprojection) {
+            projection P=currentprojection) {
     real s=(angle2-angle1)/n;
   
     triple normal=normal(g);
@@ -127,9 +127,9 @@ struct revolution {
     for(int i=0; i < L; ++i) {
       real phi=angle1;
       for(int j=0; j < n; ++j, phi += s) {
-	triple v=P.camera-center(i,phi+0.5s);
-	real d=sgn(dot(v,P.camera))*abs(v);
-	depth.push(new real[] {d,i,phi});
+        triple v=P.camera-center(i,phi+0.5s);
+        real d=sgn(dot(v,P.camera))*abs(v);
+        depth.push(new real[] {d,i,phi});
       }
     }
   
@@ -147,7 +147,7 @@ struct revolution {
   }
   
   void fill(picture pic=currentpicture, int n=32, pen p=currentpen,
-	    projection P=currentprojection) {
+            projection P=currentprojection) {
     pen color(triple x) {return currentlight.intensity(x)*p;}
     fill(pic,n,color,P);
   }
@@ -155,7 +155,7 @@ struct revolution {
   path3 slice(real position, int ngraph) {
     triple v=point(g,position);
     triple center=c+dot(v-c,axis)*axis;
-//    return Arc(center,abs(v-center),90,angle1,90,angle2,axis,ngraph);
+    //    return Arc(center,abs(v-center),90,angle1,90,angle2,axis,ngraph);
     return Circle(center,abs(v-center),axis,ngraph);
   }
   
@@ -171,30 +171,30 @@ struct revolution {
       real t=(m == 0) ? i : reltime(g,i*factor);
       path3 S=slice(t,ngraph);
       if((i == 0 && dot(axis,P.camera) < 0) ||
-	 (i == n-1 && dot(axis,P.camera) >= 0))
-	s.front.push(S);
+         (i == n-1 && dot(axis,P.camera) >= 0))
+        s.front.push(S);
       else {
-	path3 Sp=slice(t+epsilon,ngraph);
-	path3 Sm=slice(t-epsilon,ngraph);
-	path sp=project(Sp,P);
-	path sm=project(Sm,P);
-	real[] t1=tangent(sp,sm,true);
-	real[] t2=tangent(sp,sm,false);
-	if(t1.length > 1 && t2.length > 1) {
-	  real t1=t1[0];
-	  real t2=t2[0];
-	  int len=length(S);
-	  if(t2 < t1) t2 += len;
-	  path3 p1=subpath(S,t1,t2);
-	  path3 p2=subpath(S,t2,t1+len);
-	  if(dot(point(p1,0.5*length(p1))-c,P.camera) >= 0) {
-	    s.front.push(p1);
-	    s.back.push(p2);
-	  } else {
-	    s.front.push(p2);
-	    s.back.push(p1);
-	  }
-	}
+        path3 Sp=slice(t+epsilon,ngraph);
+        path3 Sm=slice(t-epsilon,ngraph);
+        path sp=project(Sp,P);
+        path sm=project(Sm,P);
+        real[] t1=tangent(sp,sm,true);
+        real[] t2=tangent(sp,sm,false);
+        if(t1.length > 1 && t2.length > 1) {
+          real t1=t1[0];
+          real t2=t2[0];
+          int len=length(S);
+          if(t2 < t1) t2 += len;
+          path3 p1=subpath(S,t1,t2);
+          path3 p2=subpath(S,t2,t1+len);
+          if(dot(point(p1,0.5*length(p1))-c,P.camera) >= 0) {
+            s.front.push(p1);
+            s.back.push(p2);
+          } else {
+            s.front.push(p2);
+            s.back.push(p1);
+          }
+        }
       }
     }
     
@@ -206,8 +206,8 @@ struct revolution {
       triple center=c+dot(v-c,axis)*axis;
       real r=abs(v-center);
       if(r > d) {
-	t=i;
-	d=r;
+        t=i;
+        d=r;
       }
     }
     triple v=point(g,t);
@@ -233,8 +233,8 @@ struct revolution {
   // the front portion of each of the m transverse slices with pen p and
   // the back portion with pen backpen.
   void draw(picture pic=currentpicture, int m=0, pen p=currentpen,
-	    pen backpen=p, bool longitudinal=true, pen longitudinalpen=p,
-	    projection P=currentprojection) {
+            pen backpen=p, bool longitudinal=true, pen longitudinalpen=p,
+            projection P=currentprojection) {
     skeleton s=skeleton(m,P);
     begingroup(pic);
     draw(pic,s.back,linetype("8 8",8)+backpen);
@@ -244,8 +244,8 @@ struct revolution {
   }
   
   void filldraw(picture pic=currentpicture, int n=32,
-		pen fillpen=currentpen,  int m=2, pen drawpen=currentpen,
-		bool longitudinal=false, projection P=currentprojection) {
+                pen fillpen=currentpen,  int m=2, pen drawpen=currentpen,
+                bool longitudinal=false, projection P=currentprojection) {
     fill(pic,n,fillpen,P);
     draw(pic,m,drawpen,longitudinal,P);
   }
@@ -254,7 +254,7 @@ struct revolution {
 revolution operator init() {return new revolution;}
   
 revolution revolution(triple c=O, path3 g, triple axis=Z, real angle1=0,
-		      real angle2=360) 
+                      real angle2=360) 
 {
   revolution r;
   r.init(c,g,axis,angle1,angle2);
@@ -270,7 +270,7 @@ revolution operator * (transform3 t, revolution r)
 // Return the surface of rotation obtain by rotating the path3 (x,0,f(x))
 // sampled n times between x=a and x=b about an axis lying in the XZ plane.
 revolution revolution(triple c=O, real f(real x), real a, real b, int n=32,
-		      triple axis=Z)
+                      triple axis=Z)
 {
   real width=n == 0 ? 0 : (b-a)/n;
   guide3 g;

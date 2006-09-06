@@ -27,10 +27,10 @@ real ytrans(transform t, real y)
 }
 
 real cap(transform t, real x, real m, real M, real bottom, real top,
-	 real ct(transform,real))
+         real ct(transform,real))
 {
   return x == infinity  ? M-top :
-         x == -infinity ? m-bottom : cap(ct(t,x),m,M,bottom,top);
+    x == -infinity ? m-bottom : cap(ct(t,x),m,M,bottom,top);
 }
 
 pair cap(transform t, pair z, pair lb, pair rt, pen p=currentpen)
@@ -110,7 +110,7 @@ struct coords2 {
     for(int i=0; i < c1.x.length; ++i) {
       coord cx=c1.x[i], cy=c2.y[i];
       pair tinf=shiftless(t)*((finite(cx.user) ? 0 : 1),
-			      (finite(cy.user) ? 0 : 1));
+                              (finite(cy.user) ? 0 : 1));
       pair z=t*(cx.user,cy.user);
       pair w=(cx.truesize,cy.truesize);
       w=length(w)*unit(shiftless(t)*w);
@@ -160,7 +160,7 @@ coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
   int first=0;
   for(first=0; first < n; ++first)
     if(finite(in[first].user)) break;
-	
+        
   if (first == n)
     return c;
   else {
@@ -223,13 +223,13 @@ coord[] maxcoords(coord[] in, bool operator <= (coord,coord))
 }
 
 typedef real scalefcn(real x);
-					      
+                                              
 struct scaleT {
   scalefcn T,Tinv;
   bool logarithmic;
   bool automin,automax;
   void init(scalefcn T, scalefcn Tinv, bool logarithmic=false,
-	    bool automin=true, bool automax=true) {
+            bool automin=true, bool automax=true) {
     this.T=T;
     this.Tinv=Tinv;
     this.logarithmic=logarithmic;
@@ -249,7 +249,7 @@ scaleT operator init()
   S.init(identity,identity);
   return S;
 }
-				  
+                                  
 struct autoscaleT {
   scaleT scale;
   scaleT postscale;
@@ -275,7 +275,7 @@ struct autoscaleT {
 }
 
 autoscaleT operator init() {return new autoscaleT;}
-				  
+                                  
 struct ScaleT {
   bool set;
   autoscaleT x;
@@ -301,7 +301,7 @@ struct Legend {
   frame mark;
   bool put;
   void init(string label, pen plabel=currentpen, pen p=nullpen,
-	    frame mark=newframe, bool put=Above) {
+            frame mark=newframe, bool put=Above) {
     this.label=label;
     this.plabel=plabel;
     this.p=(p == nullpen) ? plabel : p;
@@ -449,15 +449,15 @@ struct picture {
       userMax=maxbound(userMax,max);
     } else {
       if(userSetx) {
-	userMin=(min(userMin.x,min.x),min.y);
-	userMax=(max(userMax.x,max.x),max.y);
+        userMin=(min(userMin.x,min.x),min.y);
+        userMax=(max(userMax.x,max.x),max.y);
       } else if(userSety) {
-	userMin=(min.x,min(userMin.y,min.y));
-	userMax=(max.x,max(userMax.y,max.y));
+        userMin=(min.x,min(userMin.y,min.y));
+        userMax=(max.x,max(userMax.y,max.y));
       } else {
-	userMin=min;
-	userMax=max;
-	userSetx=userSety=true;
+        userMin=min;
+        userMax=max;
+        userSetx=userSety=true;
       }
     }
   }
@@ -469,15 +469,15 @@ struct picture {
       userMax=minbound(userMax,max);
     } else {
       if(userSetx) {
-	userMin=(max(userMin.x,min.x),min.y);
-	userMax=(min(userMax.x,max.x),max.y);
+        userMin=(max(userMin.x,min.x),min.y);
+        userMax=(min(userMax.x,max.x),max.y);
       } else if(userSety) {
-	userMin=(min.x,max(userMin.y,min.y));
-	userMax=(max.x,min(userMax.y,max.y));
+        userMin=(min.x,max(userMin.y,min.y));
+        userMax=(max.x,min(userMax.y,max.y));
       } else {
-	userMin=min;
-	userMax=max;
-	userSetx=userSety=true;
+        userMin=min;
+        userMax=max;
+        userSetx=userSety=true;
       }
     }
   }
@@ -490,16 +490,16 @@ struct picture {
   void add(drawer d) {
     uptodate(false);
     nodes.push(new void(frame f, transform t, transform T, pair, pair) {
-      d(f,t*T);
-    });
+        d(f,t*T);
+      });
   }
 
   void clip(drawer d) {
     uptodate(false);
     bounds.clip(userMin,userMax);
     nodes.push(new void(frame f, transform t, transform T, pair, pair) {
-      d(f,t*T);
-    });
+        d(f,t*T);
+      });
   }
 
   // Add a point to the sizing.
@@ -564,8 +564,8 @@ struct picture {
     if (c.length > 0) {
       real m=infinity;
       for (int i=0; i < c.length; ++i)
-	if (finite(c[i].user) && s.scale(c[i]) < m)
-	  m=s.scale(c[i]);
+        if (finite(c[i].user) && s.scale(c[i]) < m)
+          m=s.scale(c[i]);
       return m;
     }
     else return 0;
@@ -588,11 +588,11 @@ struct picture {
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
     return (min(min(xs,bounds.min.x),
-		min(xs,bounds.max.x),
-		min(xs,bounds.point.x)),
-	    min(min(ys,bounds.min.y),
-		min(ys,bounds.max.y),
-		min(ys,bounds.point.y)));
+                min(xs,bounds.max.x),
+                min(xs,bounds.point.x)),
+            min(min(ys,bounds.min.y),
+                min(ys,bounds.max.y),
+                min(ys,bounds.point.y)));
   }
 
   // Calculate the max for the final picture, given the transform of coords.
@@ -601,16 +601,16 @@ struct picture {
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
     return (max(max(xs,bounds.min.x),
-		max(xs,bounds.max.x),
-		max(xs,bounds.point.x)),
-	    max(max(ys,bounds.min.y),
-		max(ys,bounds.max.y),
-		max(ys,bounds.point.y)));
+                max(xs,bounds.max.x),
+                max(xs,bounds.point.x)),
+            max(max(ys,bounds.min.y),
+                max(ys,bounds.max.y),
+                max(ys,bounds.point.y)));
   }
 
   // Calculate the sizing constants for the given array and maximum size.
   scaling calculateScaling(string dir, coord[] coords, real size,
-			   bool warn=true) {
+                           bool warn=true) {
     access simplex;
     simplex.problem p=new simplex.problem;
    
@@ -641,19 +641,19 @@ struct picture {
       if(!warn) return scaling.build(1,0);
       bool userzero=true;
       for(int i=0; i < coords.length; ++i) {
-	if(coords[i].user != 0) userzero=false;
-	if(!finite(coords[i].user) || !finite(coords[i].truesize))
-	  abort("unbounded picture");
+        if(coords[i].user != 0) userzero=false;
+        if(!finite(coords[i].user) || !finite(coords[i].truesize))
+          abort("unbounded picture");
       }
       if(userzero) return scaling.build(1,0);
       write("warning: cannot fit picture to "+dir+"size "+(string) size
-	    +"...enlarging...");
+            +"...enlarging...");
       return calculateScaling(dir,coords,sqrt(2)*size,warn);
     }
   }
 
   void append(coords2 point, coords2 min, coords2 max, transform t,
-	      bounds bounds) 
+              bounds bounds) 
   {
     // Add the coord info to this picture.
     if(t == identity()) {
@@ -672,7 +672,7 @@ struct picture {
   
   // Returns the transform for turning user-space pairs into true-space pairs.
   transform calculateTransform(real xsize, real ysize, bool keepAspect=true,
-			       bool warn=true) {
+                               bool warn=true) {
     if(xsize == 0 && ysize == 0)
       return identity();
     
@@ -684,7 +684,7 @@ struct picture {
     if(xsize != 0) {
       sx=calculateScaling("x",Coords.x,xsize,warn);
       if(ysize == 0)
-	return scale(sx.a);
+        return scale(sx.a);
     }
 
     sy=calculateScaling("y",Coords.y,ysize,warn);
@@ -702,12 +702,12 @@ struct picture {
   }
 
   pair min(real xsize=this.xsize, real ysize=this.ysize,
-	    bool keepAspect=this.keepAspect) {
+           bool keepAspect=this.keepAspect) {
     return min(calculateTransform(xsize,ysize,keepAspect));
   }
   
   pair max(real xsize=this.xsize, real ysize=this.ysize,
-	    bool keepAspect=this.keepAspect) {
+           bool keepAspect=this.keepAspect) {
     return max(calculateTransform(xsize,ysize,keepAspect));
   }
   
@@ -730,16 +730,16 @@ struct picture {
     static real epsilon=10*realEpsilon;
     if(d.x > xsize*(1+epsilon)) 
       write("warning: frame exceeds xlimit: "+(string) d.x+" > "+
-	    (string) xsize);
+            (string) xsize);
     if(d.y > ysize*(1+epsilon))
       write("warning: frame exceeds ylimit: "+(string) d.y+" > "+
-	    (string) ysize);
+            (string) ysize);
     return f;
   }
   
   // Returns the picture fit to the wanted size.
   frame fit(real xsize=this.xsize, real ysize=this.ysize,
-	    bool keepAspect=this.keepAspect) {
+            bool keepAspect=this.keepAspect) {
     if(fixed) return scaled();
     return empty() ? newframe :
       fit(calculateTransform(xsize,ysize,keepAspect));
@@ -775,7 +775,7 @@ struct picture {
   // Add a picture to this picture, such that the user coordinates will be
   // scaled identically when fitted
   void add(picture src, bool group=true, filltype filltype=NoFill,
-	   bool put=Above) {
+           bool put=Above) {
     // Copy the picture.  Only the drawing function closures are needed, so we
     // only copy them.  This needs to be a deep copy, as src could later have
     // objects added to it that should not be included in this picture.
@@ -785,9 +785,9 @@ struct picture {
     picture srcCopy=src.drawcopy();
     // Draw by drawing the copied picture.
     nodes.push(new void(frame f, transform t, transform T, pair m, pair M) {
-      frame d=srcCopy.fit(t,T*srcCopy.T,m,M);
-      add(f,d,put,filltype,group);
-    });
+        frame d=srcCopy.fit(t,T*srcCopy.T,m,M);
+        add(f,d,put,filltype,group);
+      });
     
     legend.append(src.legend);
     
@@ -804,23 +804,23 @@ picture operator * (transform t, picture orig)
   picture pic=orig.copy();
   pic.T=t*pic.T;
   pic.userCorners(t*pic.userMin,
-		  t*(pic.userMin.x,pic.userMax.y),
-		  t*(pic.userMax.x,pic.userMin.y),
-		  t*pic.userMax);
+                  t*(pic.userMin.x,pic.userMax.y),
+                  t*(pic.userMax.x,pic.userMin.y),
+                  t*pic.userMax);
   return pic;
 }
 
 picture currentpicture;
 
 void size(picture pic=currentpicture, real x, real y, 
-	  bool keepAspect=pic.keepAspect)
+          bool keepAspect=pic.keepAspect)
 {
   pic.size(x,y,keepAspect);
 }
 
 // Ensure that each dimension is no more than size.
 void size(picture pic=currentpicture, real size,
-	  bool keepAspect=pic.keepAspect)
+          bool keepAspect=pic.keepAspect)
 {
   pic.size(size,size,keepAspect);
 }
@@ -829,7 +829,7 @@ pair size(frame f)
 {
   return max(f)-min(f);
 }
-				     
+                                     
 pair min(picture pic)
 {
   return pic.min();
@@ -843,31 +843,31 @@ pair max(picture pic)
 void begingroup(picture pic=currentpicture)
 {
   pic.add(new void(frame f, transform) {
-    begingroup(f);
-  });
+      begingroup(f);
+    });
 }
 
 void endgroup(picture pic=currentpicture)
 {
   pic.add(new void(frame f, transform) {
-    endgroup(f);
-  });
+      endgroup(f);
+    });
 }
 
 void Draw(picture pic=currentpicture, path g, pen p=currentpen)
 {
   pic.add(new void(frame f, transform t) {
-    draw(f,t*g,p);
-  });
+      draw(f,t*g,p);
+    });
   pic.addPath(g,p);
 }
 
 void _draw(picture pic=currentpicture, path g, pen p=currentpen,
-	   margin margin=NoMargin)
+           margin margin=NoMargin)
 {
   pic.add(new void(frame f, transform t) {
-    draw(f,margin(t*g,p).g,p);
-  });
+      draw(f,margin(t*g,p).g,p);
+    });
   pic.addPath(g,p);
 }
 
@@ -880,65 +880,65 @@ void fill(picture pic=currentpicture, path[] g, pen p=currentpen)
 {
   g=copy(g);
   pic.add(new void(frame f, transform t) {
-    fill(f,t*g,p);
-  });
+      fill(f,t*g,p);
+    });
   for(int i=0; i < g.length; ++i) 
     pic.addPath(g[i]);
 }
 
 void latticeshade(picture pic=currentpicture, path[] g,
-		  pen fillrule=currentpen, pen[][] p)
+                  pen fillrule=currentpen, pen[][] p)
 {
   g=copy(g);
   p=copy(p);
   pic.add(new void(frame f, transform t) {
-    latticeshade(f,t*g,fillrule,p);
-  });
+      latticeshade(f,t*g,fillrule,p);
+    });
   for(int i=0; i < g.length; ++i) 
     pic.addPath(g[i]);
 }
 
 void axialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
-		pen penb, pair b)
+                pen penb, pair b)
 {
   g=copy(g);
   pic.add(new void(frame f, transform t) {
-    axialshade(f,t*g,pena,t*a,penb,t*b);
-  });
+      axialshade(f,t*g,pena,t*a,penb,t*b);
+    });
   for(int i=0; i < g.length; ++i) 
     pic.addPath(g[i]);
 }
 
 void radialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
-		 real ra, pen penb, pair b, real rb)
+                 real ra, pen penb, pair b, real rb)
 {
   g=copy(g);
   pic.add(new void(frame f, transform t) {
-    pair A=t*a, B=t*b;
-    real RA=abs(t*(a+ra)-A);
-    real RB=abs(t*(b+rb)-B);
-    radialshade(f,t*g,pena,A,RA,penb,B,RB);
-  });
+      pair A=t*a, B=t*b;
+      real RA=abs(t*(a+ra)-A);
+      real RB=abs(t*(b+rb)-B);
+      radialshade(f,t*g,pena,A,RA,penb,B,RB);
+    });
   for(int i=0; i < g.length; ++i) 
     pic.addPath(g[i]);
 }
 
 void gouraudshade(picture pic=currentpicture, path[] g,
-		  pen fillrule=currentpen, pen[] p, pair[] z, int[] edges)
+                  pen fillrule=currentpen, pen[] p, pair[] z, int[] edges)
 {
   g=copy(g);
   p=copy(p);
   z=copy(z);
   edges=copy(edges);
   pic.add(new void(frame f, transform t) {
-    gouraudshade(f,t*g,fillrule,p,t*z,edges);
-  });
+      gouraudshade(f,t*g,fillrule,p,t*z,edges);
+    });
   for(int i=0; i < g.length; ++i) 
     pic.addPath(g[i]);
 }
 
 void filldraw(picture pic=currentpicture, path[] g, pen fillpen=currentpen,
-	      pen drawpen=currentpen)
+              pen drawpen=currentpen)
 {
   begingroup(pic);
   fill(pic,g,fillpen);
@@ -956,16 +956,16 @@ void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
   g=copy(g);
   pic.userClip(min(g),max(g));
   pic.clip(new void(frame f, transform t) {
-    clip(f,t*g,p);
-  });
+      clip(f,t*g,p);
+    });
 }
 
 void unfill(picture pic=currentpicture, path[] g)
 {
   g=copy(g);
   pic.clip(new void(frame f, transform t) {
-    unfill(f,t*g);
-  });
+      unfill(f,t*g);
+    });
 }
 
 bool inside(path[] g, pair z) 
@@ -976,7 +976,7 @@ bool inside(path[] g, pair z)
 // Use a fixed scaling to map user coordinates in box(min,max) to the 
 // desired picture size.
 transform fixedscaling(picture pic=currentpicture, pair min, pair max,
-		       pen p=currentpen)
+                       pen p=currentpen)
 {
   Draw(pic,min,p+invisible);
   Draw(pic,max,p+invisible);
@@ -986,24 +986,24 @@ transform fixedscaling(picture pic=currentpicture, pair min, pair max,
 
 // Add frame dest about position to frame src with optional grouping
 void add(frame dest, frame src, pair position, bool group=false,
-	 filltype filltype=NoFill, bool put=Above)
+         filltype filltype=NoFill, bool put=Above)
 {
   add(dest,shift(position)*src,group,filltype,put);
 }
 
 // Add frame src about position to picture dest with optional grouping
 void add(picture dest=currentpicture, frame src, pair position=0,
-	 bool group=true, filltype filltype=NoFill, bool put=Above)
+         bool group=true, filltype filltype=NoFill, bool put=Above)
 {
   dest.add(new void(frame f, transform t) {
-    add(f,shift(t*position)*src,group,filltype,put);
-  });
+      add(f,shift(t*position)*src,group,filltype,put);
+    });
   dest.addBox(position,position,min(src),max(src));
 }
 
 // Like add(pair,picture,frame) but extend picture to accommodate frame
 void attach(picture dest=currentpicture, frame src, pair position=0,
-	    bool group=true, filltype filltype=NoFill, bool put=Above)
+            bool group=true, filltype filltype=NoFill, bool put=Above)
 {
   transform t=dest.calculateTransform();
   add(dest,src,position,group,filltype,put);
@@ -1013,14 +1013,14 @@ void attach(picture dest=currentpicture, frame src, pair position=0,
 
 // Like add(picture,frame,pair) but align frame in direction align.
 void add(picture dest=currentpicture, frame src, pair position, pair align,
-	 bool group=true, filltype filltype=NoFill, bool put=Above)
+         bool group=true, filltype filltype=NoFill, bool put=Above)
 {
   add(dest,align(src,align),position,group,filltype,put);
 }
 
 // Like attach(picture,frame,pair) but align frame in direction align.
 void attach(picture dest=currentpicture, frame src, pair position, pair align,
-	    bool group=true, filltype filltype=NoFill, bool put=Above)
+            bool group=true, filltype filltype=NoFill, bool put=Above)
 {
   attach(dest,align(src,align),position,group,filltype,put);
 }
@@ -1028,13 +1028,13 @@ void attach(picture dest=currentpicture, frame src, pair position, pair align,
 // Add a picture to another such that user coordinates in both will be scaled
 // identically in the shipout.
 void add(picture dest, picture src, bool group=true, filltype filltype=NoFill,
-	 bool put=Above)
+         bool put=Above)
 {
   dest.add(src,group,filltype,put);
 }
 
 void add(picture src, bool group=true, filltype filltype=NoFill,
-	 bool put=Above)
+         bool put=Above)
 {
   add(currentpicture,src,group,filltype,put);
 }
@@ -1043,13 +1043,13 @@ void add(picture src, bool group=true, filltype filltype=NoFill,
 // coordinates and truesize coordinates agree) and add it about the point
 // position to picture dest.
 void add(picture dest, picture src, pair position, bool group=true,
-	 filltype filltype=NoFill, bool put=Above)
+         filltype filltype=NoFill, bool put=Above)
 {
   add(dest,src.fit(identity()),position,group,filltype,put);
 }
 
 void add(picture src, pair position, bool group=true, filltype filltype=NoFill,
-	 bool put=Above)
+         bool put=Above)
 {
   add(currentpicture,src,position,group,filltype,put);
 }
@@ -1065,22 +1065,22 @@ void fill(pair origin, picture pic=currentpicture, path[] g, pen p=currentpen)
 void postscript(picture pic=currentpicture, string s)
 {
   pic.add(new void(frame f, transform) {
-    postscript(f,s);
+      postscript(f,s);
     });
 }
 
 void tex(picture pic=currentpicture, string s)
 {
   pic.add(new void(frame f, transform) {
-    tex(f,s);
-  });
+      tex(f,s);
+    });
 }
 
 void layer(picture pic=currentpicture)
 {
   pic.add(new void(frame f, transform) {
-    layer(f);
-  });
+      layer(f);
+    });
 }
 
 pair point(picture pic=currentpicture, pair dir)

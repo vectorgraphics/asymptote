@@ -64,7 +64,7 @@ real intersect(triple P, triple Q, triple n, triple Z)
   real denom=n.x*(Q.x-P.x)+n.y*(Q.y-P.y)+n.z*(Q.z-P.z);
   return denom == 0 ? infinity : (d-n.x*P.x-n.y*P.y-n.z*P.z)/denom;
 }
-		    
+                    
 // Return any point on the intersection of the two planes with normals
 // n0 and n1 passing through points P0 and P1, respectively.
 // If the planes are parallel return (infinity,infinity,infinity).
@@ -180,7 +180,7 @@ real[][] operator * (real[][] a, real[][] b)
     for(int j=0; j < nb0; ++j) {
       real sum;
       for(int k=0; k < nb; ++k)
-	sum += ai[k]*b[k][j];
+        sum += ai[k]*b[k][j];
       mi[j]=sum;
     }
   }
@@ -267,31 +267,31 @@ bool rectangular(triple[][] m)
 void drawline(picture pic=currentpicture, pair P, pair Q, pen p=currentpen)
 {
   pic.add(new void (frame f, transform t, transform, pair m, pair M) {
-    // Reduce the bounds by the size of the pen.
-    m -= min(p); M -= max(p);
+      // Reduce the bounds by the size of the pen.
+      m -= min(p); M -= max(p);
 
-    // Calculate the points and direction vector in the transformed space.
-    pair z=t*P;
-    pair v=t*Q-z;
+      // Calculate the points and direction vector in the transformed space.
+      pair z=t*P;
+      pair v=t*Q-z;
 
-    // Handle horizontal and vertical lines.
-    if(v.x == 0) {
-      if(m.x <= z.x && z.x <= M.x)
-	draw(f,(z.x,m.y)--(z.x,M.y),p);
-    } else if(v.y == 0) {
-      if(m.y <= z.y && z.y <= M.y)
-	draw(f,(m.x,z.y)--(M.x,z.y),p);
-    } else {
-      // Calculate the maximum and minimum t values allowed for the
-      // parametric equation z + t*v
-      real mx=(m.x-z.x)/v.x, Mx=(M.x-z.x)/v.x;
-      real my=(m.y-z.y)/v.y, My=(M.y-z.y)/v.y;
-      real tmin=max(v.x > 0 ? mx : Mx, v.y > 0 ? my : My);
-      real tmax=min(v.x > 0 ? Mx : mx, v.y > 0 ? My : my);
-      if(tmin <= tmax)
-	draw(f,z+tmin*v--z+tmax*v,p);
-    }
-  });
+      // Handle horizontal and vertical lines.
+      if(v.x == 0) {
+        if(m.x <= z.x && z.x <= M.x)
+          draw(f,(z.x,m.y)--(z.x,M.y),p);
+      } else if(v.y == 0) {
+        if(m.y <= z.y && z.y <= M.y)
+          draw(f,(m.x,z.y)--(M.x,z.y),p);
+      } else {
+        // Calculate the maximum and minimum t values allowed for the
+        // parametric equation z + t*v
+        real mx=(m.x-z.x)/v.x, Mx=(M.x-z.x)/v.x;
+        real my=(m.y-z.y)/v.y, My=(M.y-z.y)/v.y;
+        real tmin=max(v.x > 0 ? mx : Mx, v.y > 0 ? my : My);
+        real tmax=min(v.x > 0 ? Mx : mx, v.y > 0 ? My : my);
+        if(tmin <= tmax)
+          draw(f,z+tmin*v--z+tmax*v,p);
+      }
+    });
 }
 
 real interpolate(real[] x, real[] y, real x0, int i) 

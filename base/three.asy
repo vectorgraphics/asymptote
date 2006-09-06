@@ -83,9 +83,9 @@ transform3 rotate(real angle, triple v)
 
   return new real[][] {
     {t*x^2+c,   t*x*y-s*z, t*x*z+s*y, 0},
-    {t*x*y+s*z, t*y^2+c,   t*y*z-s*x, 0},
-    {t*x*z-s*y, t*y*z+s*x, t*z^2+c,   0},
-    {0,         0,         0,         1}};
+      {t*x*y+s*z, t*y^2+c,   t*y*z-s*x, 0},
+        {t*x*z-s*y, t*y*z+s*x, t*z^2+c,   0},
+          {0,         0,         0,         1}};
 }
 
 // A transformation representing rotation by an angle in degrees about
@@ -186,7 +186,7 @@ addSaveFunction(new restoreThunk() {
 
 
 projection projection(triple camera, transform3 project,
-		      transform3 aspect=identity(4))
+                      transform3 aspect=identity(4))
 {
   projection P;
   P.camera=camera;
@@ -270,12 +270,12 @@ transform3 aspect(projection P)
 // Map pair z onto a triple by inverting the projection P onto the 
 // plane perpendicular to normal and passing through point.
 triple invert(pair z, triple normal, triple point,
-	      projection P=currentprojection)
+              projection P=currentprojection)
 {
   transform3 t=aspect(P);
   real[][] A={{t[0][0]-z.x*t[3][0],t[0][1]-z.x*t[3][1],t[0][2]-z.x*t[3][2]},
-	      {t[1][0]-z.y*t[3][0],t[1][1]-z.y*t[3][1],t[1][2]-z.y*t[3][2]},
-	      {normal.x,normal.y,normal.z}};
+              {t[1][0]-z.y*t[3][0],t[1][1]-z.y*t[3][1],t[1][2]-z.y*t[3][2]},
+              {normal.x,normal.y,normal.z}};
   real[] b={z.x*t[3][3],z.y*t[3][3],dot(normal,point)};
   real[] x=solve(A,b);
   return (x[0],x[1],x[2]);
@@ -430,7 +430,7 @@ struct flatguide3 {
     in.push(new dir);
     out.push(new dir);
     cyclic.push(b);
- }
+  }
 
   void control(triple post, triple pre) {
     if(control.length > 0) {
@@ -489,19 +489,19 @@ void write(file file, string s="", explicit flatguide3 x, suffix suffix=none)
   write(file,s);
   if(x.size() == 0) write(file,"<nullpath3>");
   else for(int i=0; i < x.nodes.length; ++i) {
-    if(i > 0) write(file,endl);
-    if(x.cyclic[i]) write(file,"cycle3");
-    else write(file,x.nodes[i]);
+      if(i > 0) write(file,endl);
+      if(x.cyclic[i]) write(file,"cycle3");
+      else write(file,x.nodes[i]);
 
-    if(x.control[i].active) // Explicit control points trump other specifiers
-      write(file,x.control[i]);
-    else {
-      write(file,x.out[i]);
-      if(x.Tension[i].active) write(file,x.Tension[i]);
+      if(x.control[i].active) // Explicit control points trump other specifiers
+        write(file,x.control[i]);
+      else {
+        write(file,x.out[i]);
+        if(x.Tension[i].active) write(file,x.Tension[i]);
+      }
+      if(i < x.nodes.length-1) write(file,"..");
+      if(!x.control[i].active) write(file,x.in[i]);
     }
-    if(i < x.nodes.length-1) write(file,"..");
-    if(!x.control[i].active) write(file,x.in[i]);
-  }
   write(file,suffix);
 }
 
@@ -599,9 +599,9 @@ guide3 operator -- (... guide3[] g)
   return new void(flatguide3 f) {
     if(g.length > 0) {
       for(int i=0; i < g.length-1; ++i) {
-	g[i](f);
-	f.out(1);
-	f.in(1);
+        g[i](f);
+        f.out(1);
+        f.in(1);
       }
       g[g.length-1](f);
     }
@@ -677,7 +677,7 @@ guide3[] operator * (transform3 t, guide3[] g)
 
 // A version of acos that tolerates numerical imprecision
 real acos1(real x)
- {
+{
   if(x < -1) x=-1;
   if(x > 1) x=1;
   return acos(x);
@@ -686,10 +686,10 @@ real acos1(real x)
 struct Controls {
   triple c0,c1;
 
-// 3D extension of John Hobby's control point formula
-//  (The MetaFont Book, page 131).
+  // 3D extension of John Hobby's control point formula
+  //  (The MetaFont Book, page 131).
   void init(triple v0, triple v1, triple d0, triple d1, real tout, real tin,
-	    bool atLeast) {
+            bool atLeast) {
     triple v=v1-v0;
     triple u=unit(v);
     real L=length(v);
@@ -710,7 +710,7 @@ private triple cross(triple d0, triple d1, triple camera)
   triple normal=cross(d0,d1);
   return normal == O ? camera : normal;
 }
-					
+                                        
 private triple dir(real theta, triple d0, triple d1, triple camera)
 {
   triple normal=cross(d0,d1,camera);
@@ -729,7 +729,7 @@ private real angle(triple d0, triple d1, triple camera)
 // direction for segment i (where segment i begins at node i).
 
 real[] theta(triple[] v, real[] alpha, real[] beta, 
-	     triple dir0, triple dirn, real g0, real gn, triple camera)
+             triple dir0, triple dirn, real g0, real gn, triple camera)
 {
   real[] a,b,c,f,l,psi;
   int n=alpha.length;
@@ -820,7 +820,7 @@ void aim(flatguide3 g, int N, triple camera)
   } else v[n]=g.nodes[(start+n) % N];
   int final=(end-1) % N;
   real[] theta=theta(v,alpha,beta,g.out[start].dir,g.in[final].dir,
-		     g.out[start].gamma,g.in[final].gamma,camera);
+                     g.out[start].gamma,g.in[final].gamma,camera);
   v.cyclic(true);
   theta.cyclic(true);
     
@@ -831,7 +831,7 @@ void aim(flatguide3 g, int N, triple camera)
   }
   if(g.out[start].dir == O)
     g.out[start].init(dir(theta[0],v[0]-g.nodes[(start-1) % N],v[1]-v[0],
-			  camera));
+                          camera));
   if(g.in[final].dir == O)
     g.in[final].init(dir(theta[n],v[n-1]-v[n-2],v[n]-v[n-1],camera));
 }
@@ -851,7 +851,7 @@ void aim(flatguide3 g, int i, int n, triple camera)
     }
     v[j]=g.nodes[n];
     real[] theta=theta(v,alpha,beta,g.out[i].dir,g.in[n-1].dir,
-		       g.out[i].gamma,g.in[n-1].gamma,camera);
+                       g.out[i].gamma,g.in[n-1].gamma,camera);
     
     for(int k=1; k < j; ++k) {
       triple w=dir(theta[k],v[k]-v[k-1],v[k+1]-v[k],camera);
@@ -862,7 +862,7 @@ void aim(flatguide3 g, int i, int n, triple camera)
       triple w=dir(theta[0],g.in[i].dir,v[1]-v[0],camera);
       if(i > 0) g.in[i-1].init(w);
       g.out[i].init(w);
-     }
+    }
     if(g.in[n-1].dir == O) {
       triple w=dir(theta[j],g.out[n-1].dir,v[j]-v[j-1],camera);
       g.in[n-1].init(w);
@@ -929,20 +929,20 @@ struct bbox3 {
       real upper=max.z;
       
       if(x < left)
-	left = x;  
+        left = x;  
       if(x > right)
-	right = x;  
+        right = x;  
       if(y < bottom)
-	bottom = y;
+        bottom = y;
       if(y > top)
-	top = y;
+        top = y;
       if(z < lower)
-	lower = z;
+        lower = z;
       if(z > upper)
-	upper = z;
+        upper = z;
       
       min=(left,bottom,lower);
-      max=(right,top,upper);	   
+      max=(right,top,upper);       
     }
   }
 
@@ -1037,7 +1037,7 @@ struct path3 {
 
   triple precontrol(int i) {
     emptyError();
-		       
+                       
     if (cycles)
       return nodes[i % n].pre;
     else if (i < 0)
@@ -1051,7 +1051,7 @@ struct path3 {
   triple postcontrol(int i)
   {
     emptyError();
-		       
+                       
     if (cycles)
       return nodes[i % n].post;
     else if (i < 0)
@@ -1100,7 +1100,7 @@ struct path3 {
   
   triple precontrol(real t) {
     emptyError();
-		     
+                     
     int i = Floor(t);
     int iplus;
     t = fmod(t,1);
@@ -1210,10 +1210,10 @@ struct path3 {
     real L=0.0;
     for(int i = 0; i < n-1; ++i)
       L += cubiclength(nodes[i].point,nodes[i].post,nodes[i+1].pre,
-		       nodes[i+1].point,-1);
+                       nodes[i+1].point,-1);
 
     if(cycles) L += cubiclength(nodes[n-1].point,nodes[n-1].post,
-				nodes[n].pre,nodes[n].point,-1);
+                                nodes[n].pre,nodes[n].point,-1);
     cached_length = L;
     return L;
   }
@@ -1233,41 +1233,41 @@ struct path3 {
     if(cycles) {
       if(goal == 0) return 0;
       if(goal < 0)  {
-	path3 rp = reverse();
-	return -rp.arctime(-goal);
+        path3 rp = reverse();
+        return -rp.arctime(-goal);
       }
       if(cached_length > 0 && goal >= cached_length) {
-	int loops = (int)(goal / cached_length);
-	goal -= loops*cached_length;
-	return loops*n+arctime(goal);
+        int loops = (int)(goal / cached_length);
+        goal -= loops*cached_length;
+        return loops*n+arctime(goal);
       }      
     } else {
       if(goal <= 0)
-	return 0;
+        return 0;
       if(cached_length > 0 && goal >= cached_length)
-	return n-1;
+        return n-1;
     }
     
     real l,L=0;
     for(int i = 0; i < n-1; ++i) {
       l = cubiclength(nodes[i].point,nodes[i].post,nodes[i+1].pre,
-		      nodes[i+1].point,goal);
+                      nodes[i+1].point,goal);
       if(l < 0)
-	return (-l+i);
+        return (-l+i);
       else {
-	L += l;
-	goal -= l;
-	if (goal <= 0)
-	  return i+1;
+        L += l;
+        goal -= l;
+        if (goal <= 0)
+          return i+1;
       }
     }
     if(cycles) {
       l = cubiclength(nodes[n-1].point,nodes[n-1].post,nodes[n].pre,
-		      nodes[n].point,goal);
+                      nodes[n].point,goal);
       if(l < 0)
-	return -l+n-1;
+        return -l+n-1;
       if(cached_length > 0 && cached_length != L+l) {
-	abort("arclength != length");
+        abort("arclength != length");
       }
       cached_length = L += l;
       goal -= l;
@@ -1291,9 +1291,9 @@ struct path3 {
 
     if (!cycles) {
       if (start < 0)
-	start = 0;
+        start = 0;
       if (end > n-1)
-	end = n-1;
+        end = n-1;
     }
 
     int sn = end-start+1;
@@ -1322,14 +1322,14 @@ struct path3 {
     node startL, startR, endL, endR;
     if (!cycles) {
       if (start < 0) {
-	start = 0;
-	if (end < 0)
-	  end = 0;
+        start = 0;
+        if (end < 0)
+          end = 0;
       }
       if (end > n-1) {
-	end = n-1;
-	if (start > n-1)
-	  start = n-1;
+        end = n-1;
+        if (start > n-1)
+          start = n-1;
       }
       startL = nodes[floor(start)];
       startR = nodes[ceil(start)];
@@ -1337,7 +1337,7 @@ struct path3 {
       endR = nodes[ceil(end)];
     } else {
       if(fabs(start) > intMax || fabs(end) > intMax)
-	abort("invalid path index");
+        abort("invalid path index");
       startL = nodes[floor(start) % n];
       startR = nodes[ceil(start) % n];
       endL = nodes[floor(end) % n];
@@ -1350,9 +1350,9 @@ struct path3 {
     path3 p = subpath(Ceil(start), Floor(end));
     if (start > floor(start)) {
       if (end < ceil(start)) {
-	splitCubic(sn,start-floor(start),startL,startR);
-	splitCubic(sn,(end-start)/(ceil(end)-start),sn[1],sn[2]);
-	return path3(sn[0],sn[1]);
+        splitCubic(sn,start-floor(start),startL,startR);
+        splitCubic(sn,(end-start)/(ceil(end)-start),sn[1],sn[2]);
+        return path3(sn[0],sn[1]);
       }
       splitCubic(sn,start-floor(start),startL,startR);
       p=concat(path3(sn[1],sn[2]),p);
@@ -1432,19 +1432,19 @@ void write(file file, string s="", explicit path3 x, suffix suffix=none)
   write(file,s);
   if(size(x) == 0) write("<nullpath3>");
   else for(int i=0; i < x.nodes.length; ++i) {
-    if(i == x.nodes.length-1 && x.cycles) write(file,"cycle3");
-    else write(file,x.nodes[i].point);
-    if(i < length(x)) {
-      if(x.nodes[i].straight) write(file,"--");
-      else {
-	write(file,".. controls ");
-	write(file,x.nodes[i].post);
-	write(file," and ");
-	write(file,x.nodes[i+1].pre);
-	write(file,"..",endl);
+      if(i == x.nodes.length-1 && x.cycles) write(file,"cycle3");
+      else write(file,x.nodes[i].point);
+      if(i < length(x)) {
+        if(x.nodes[i].straight) write(file,"--");
+        else {
+          write(file,".. controls ");
+          write(file,x.nodes[i].post);
+          write(file," and ");
+          write(file,x.nodes[i+1].pre);
+          write(file,"..",endl);
+        }
       }
     }
-  }
   write(file,suffix);
 }
 
@@ -1496,13 +1496,13 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
     triple v=g.out[0].dir;
     for(int j=i; j <= n; ++j) {
       if(g.cyclic[j]) {
-	g.in[j-1].default(v);
-	g.out[j].default(v);
-	if(g.nodes[j-1] == g.nodes[j] && !g.control[j-1].active) {
-	  control c;
-	  c.init(g.nodes[j-1],g.nodes[j-1]);
-	  g.control[j-1]=c;
-	}
+        g.in[j-1].default(v);
+        g.out[j].default(v);
+        if(g.nodes[j-1] == g.nodes[j] && !g.control[j-1].active) {
+          control c;
+          c.init(g.nodes[j-1],g.nodes[j-1]);
+          g.control[j-1]=c;
+        }
       }
     }
   }
@@ -1529,16 +1529,16 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
     if(!g.control[i].active) {
       control c;
       if((g.out[i].Curl && g.in[i].Curl) ||
-	 (g.out[i].dir == O && g.in[i].dir == O)) {
-	// fill in straight control points for path3 functions
-	triple delta=(g.nodes[i+1]-g.nodes[i])/3;
-	c.init(g.nodes[i]+delta,g.nodes[i+1]-delta);
-	c.active=false;
+         (g.out[i].dir == O && g.in[i].dir == O)) {
+        // fill in straight control points for path3 functions
+        triple delta=(g.nodes[i+1]-g.nodes[i])/3;
+        c.init(g.nodes[i]+delta,g.nodes[i+1]-delta);
+        c.active=false;
       } else {
-	Controls C;
-	C.init(g.nodes[i],g.nodes[next],g.out[i].dir,g.in[i].dir,
-	       g.Tension[i].out,g.Tension[i].in,g.Tension[i].atLeast);
-	c.init(C.c0,C.c1);
+        Controls C;
+        C.init(g.nodes[i],g.nodes[next],g.out[i].dir,g.in[i].dir,
+               g.Tension[i].out,g.Tension[i].in,g.Tension[i].atLeast);
+        c.init(C.c0,C.c1);
       }
       g.control[i]=c;
     }
@@ -1587,7 +1587,7 @@ path project(explicit path3 p, projection Q=currentprojection)
       g=g--P(p.nodes[i+1].point);
     else {
       g=g..controls P(p.nodes[i].post) and P(p.nodes[i+1].pre)..
-      P(p.nodes[i+1].point);
+        P(p.nodes[i+1].point);
     }
   }
   
@@ -1628,7 +1628,7 @@ guide3 operator cast(path3 p) {
   for(i=0; i < stop; ++i) {
     if(p.nodes[i].straight) g=g--p.nodes[i+1].point;
     else g=g..controls p.nodes[i].post and p.nodes[i+1].pre..
-      p.nodes[i+1].point;
+           p.nodes[i+1].point;
   }
   
   if(p.cycles) {
@@ -1650,13 +1650,13 @@ pair[] operator cast(triple[] v) {
 position operator cast(triple x) {return project(x);}
 
 Label Label(Label L, position position, triple align, pen p=nullpen,
-	    filltype filltype=NoFill) 
+            filltype filltype=NoFill) 
 {
   return Label(L,position,project(align),p,filltype);
 }
 
 void label(picture pic=currentpicture, Label L, pair position,
-	   triple align, pen p=nullpen, filltype filltype=NoFill)
+           triple align, pen p=nullpen, filltype filltype=NoFill)
 {
   label(pic,L,position,project(align),p,filltype);
 }
@@ -1758,7 +1758,7 @@ pair intersect(path3 p1, path3 p2, real fuzz=0)
   
   static real Fuzz=10.0*realEpsilon;
   fuzz=max(fuzz,Fuzz*max(max(length(p1.max()),length(p1.min())),
-			 max(length(p2.max()),length(p2.min()))));
+                         max(length(p2.max()),length(p2.min()))));
   return intersect(pre1,point1,post1,pre2,point2,post2,fuzz);
 }
 
@@ -1786,25 +1786,25 @@ path3 operator & (explicit guide3 p, explicit guide3 q)
 // return the point on path3 g at arclength L
 triple arcpoint(path3 g, real L)
 {
-    return point(g,arctime(g,L));
+  return point(g,arctime(g,L));
 }
 
 // return the point on guide3 g at arclength L
 triple arcpoint(explicit guide3 g, real L)
 {
-    return point(g,arctime(g,L));
+  return point(g,arctime(g,L));
 }
 
 // return the direction on path3 g at arclength L
 triple arcdir(path3 g, real L)
 {
-    return dir(g,arctime(g,L));
+  return dir(g,arctime(g,L));
 }
 
 // return the direction on guide3 g at arclength L
 triple arcdir(explicit guide3 g, real L)
 {
-    return dir(g,arctime(g,L));
+  return dir(g,arctime(g,L));
 }
 
 // return the time on path3 g at the given relative fraction of its arclength
@@ -1940,7 +1940,7 @@ path3 circle(triple c, real r, triple normal=Z)
 // relative to the normal vector cross(dir(theta1,phi1),dir(theta2,phi2)).
 // The normal must be explicitly specified if c and the endpoints are colinear.
 path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
-	  triple normal=O, bool direction)
+          triple normal=O, bool direction)
 {
   if(normal == O) {
     normal=cross(dir(theta1,phi1),dir(theta2,phi2));
@@ -1964,7 +1964,7 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
 // The normal must be explicitly specified if c and the endpoints are colinear.
 // If r < 0, draw the complementary arc of radius |r|.
 path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
-	  triple normal=O)
+          triple normal=O)
 {
   bool pos=theta2 > theta1 || (theta2 == theta1 && phi2 >= phi1);
   if(r > 0) return arc(c,r,theta1,phi1,theta2,phi2,normal,pos ? CCW : CW);
@@ -1978,7 +1978,7 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
 {
   v1 -= c; v2 -= c;
   return arc(c,abs(v1),colatitude(v1),longitude(v1,warn=false),
-	     colatitude(v2),longitude(v2,warn=false),normal,direction);
+             colatitude(v2),longitude(v2,warn=false),normal,direction);
 }
 
 real epsilon=1000*realEpsilon;
@@ -1999,7 +1999,7 @@ triple normal(path3 p)
     if(abs(n) > epsilon*max(abspoint,absnext)) {
       n=unit(n);
       if(normal != O && abs(normal-n) > epsilon && abs(normal+n) > epsilon)
-	abort("path is not planar");
+        abort("path is not planar");
       normal=n;
     }
   }
@@ -2027,7 +2027,7 @@ triple normal(path3 p)
 
 // Adjust the aspect ratio.
 void aspect(projection P=currentprojection, bbox3 b,
-	    real x=0, real y=0, real z=0)
+            real x=0, real y=0, real z=0)
 {
   triple L=b.max-b.min;
   if(z != 0) {
@@ -2088,11 +2088,11 @@ line intersection(face a, face b)
 struct half {
   pair[] left,right;
   
-// Sort the points in the pair array z according to whether they lie on the
-// left or right side of the line L in the direction dir passing through P.
-// Points exactly on L are considered to be on the right side.
-// Also push any points of intersection of L with the path operator --(... z)
-// onto each of the arrays left and right. 
+  // Sort the points in the pair array z according to whether they lie on the
+  // left or right side of the line L in the direction dir passing through P.
+  // Points exactly on L are considered to be on the right side.
+  // Also push any points of intersection of L with the path operator --(... z)
+  // onto each of the arrays left and right. 
   static half split(pair dir, pair P ... pair[] z) {
     half h=new half;
     pair lastz,invdir=1.0/dir;
@@ -2100,9 +2100,9 @@ struct half {
     for(int i=0; i < z.length; ++i) {
       left=(invdir*z[i]).y > (invdir*P).y;
       if(i > 0 && last != left) {
-	pair w=extension(P,P+dir,lastz,z[i]);
-	h.left.push(w);
-	h.right.push(w);
+        pair w=extension(P,P+dir,lastz,z[i]);
+        h.left.push(w);
+        h.right.push(w);
       }
       if(left) h.left.push(z[i]);
       else h.right.push(z[i]);
@@ -2162,10 +2162,10 @@ splitface split(face a, face cut, projection P)
   }
   if(front != null)
     clip(front.fit,operator --(... rightfront ? h.right : h.left)--cycle,
-	 zerowinding);
+         zerowinding);
   if(back != null)
     clip(back.fit,operator --(... rightfront ? h.left : h.right)--cycle,
-	 zerowinding);
+         zerowinding);
   S.back=back;
   S.front=front;
   return S;
@@ -2204,7 +2204,7 @@ struct bsp
 }
 
 void add(picture pic=currentpicture, face[] faces,
-	 projection P=currentprojection)
+         projection P=currentprojection)
 {
   int n=faces.length;
   face[] Faces=new face[n];
@@ -2212,17 +2212,17 @@ void add(picture pic=currentpicture, face[] faces,
     Faces[i]=faces[i].copy();
   
   pic.nodes.push(new void (frame f, transform t, transform T,
-			   pair m, pair M) {
-// Fit all of the pictures so we know their exact sizes.	   
-   for(int i=0; i < n; ++i) {
-     face F=Faces[i];
-     F.t=t*T*F.pic.T;
-     F.fit=F.pic.fit(t,T*F.pic.T,m,M);
-   }
+                           pair m, pair M) {
+                   // Fit all of the pictures so we know their exact sizes.        
+                   for(int i=0; i < n; ++i) {
+                     face F=Faces[i];
+                     F.t=t*T*F.pic.T;
+                     F.fit=F.pic.fit(t,T*F.pic.T,m,M);
+                   }
     
-   bsp bsp=bsp.split(Faces,P);
-   if(bsp != null) bsp.add(f);
-  });
+                   bsp bsp=bsp.split(Faces,P);
+                   if(bsp != null) bsp.add(f);
+                 });
     
   for(int i=0; i < n; ++i) {
     picture F=Faces[i].pic;

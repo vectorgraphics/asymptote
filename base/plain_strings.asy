@@ -5,10 +5,10 @@ string ask(string prompt)
 }
 
 string getstring(string name="", string default="", string prompt="",
-		 bool save=true)
+                 bool save=true)
 {
   return readline(prompt == "" ? name+"? [%s] " : prompt,
-		  save ? name : '\012'+name,default);
+                  save ? name : '\012'+name,default);
 }
 
 int getint(string name="", int default=0, string prompt="", bool save=true)
@@ -37,7 +37,7 @@ string replace(string s, string before, string after)
 string TeXify(string s) 
 {
   static string[][] t={{"&","\&"},{"%","\%"},{"_","\_"},{"#","\#"},{"<","$<$"},
-		       {">","$>$"},{"|","$|$"},{"^","$\hat{\ }$"},{". ",".\ "},
+                       {">","$>$"},{"|","$|$"},{"^","$\hat{\ }$"},{". ",".\ "},
                        {"~","$\tilde{\ }$"}};
   return replace(s,t);
 }

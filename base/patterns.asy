@@ -9,7 +9,7 @@ frame tiling(string name, picture pic, pair lb=0, pair rt=0)
   int n=9;
   postscript(tiling,"<< /PaintType 1 /PatternType 1 /TilingType 1 
 /BBox ["+string(pmin.x,n)+" "+string(pmin.y,n)+" "+string(pmax.x,n)+" "
-	     +string(pmax.y,n)+"]
+             +string(pmax.y,n)+"]
 /XStep "+string(pmax.x-pmin.x,n)+"
 /YStep "+string(pmax.y-pmin.y,n)+"
 /PaintProc {pop");
@@ -23,20 +23,20 @@ frame tiling(string name, picture pic, pair lb=0, pair rt=0)
 // Add to frame preamble a tiling name constructed from picture pic
 // with optional left-bottom margin lb and right-top margin rt.
 void add(frame preamble=patterns, string name, picture pic, pair lb=0,
-	 pair rt=0)
+         pair rt=0)
 {
   add(preamble,tiling(name,pic,lb,rt));
 }
 
 picture tile(real Hx=5mm, real Hy=0, pen p=currentpen,
-	     filltype filltype=NoFill)
+             filltype filltype=NoFill)
 {
   picture tiling;
   if(Hy == 0) Hy=Hx;
   guide tile=box((0,0),(Hx,Hy));
   tiling.add(new void (frame f, transform t) {
-    filltype(f,t*tile,p);
-  });
+      filltype(f,t*tile,p);
+    });
   clip(tiling,tile);
   return tiling;
 }

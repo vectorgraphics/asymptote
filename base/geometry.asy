@@ -11,7 +11,7 @@ guide square(pair z1, pair z2)
 // Draw a perpendicular symbol at z aligned in the direction align
 // relative to the path z--z+dir.
 void perpendicular(picture pic=currentpicture, pair z, pair align,
-		   pair dir=E, real size=0, pen p=currentpen) 
+                   pair dir=E, real size=0, pen p=currentpen) 
 {
   if(size == 0) size=perpfactor*linewidth(p);
   picture apic;
@@ -24,7 +24,7 @@ void perpendicular(picture pic=currentpicture, pair z, pair align,
 // Draw a perpendicular symbol at z aligned in the direction align
 // relative to the path z--z+dir(g,0)
 void perpendicular(picture pic=currentpicture, pair z, pair align, path g,
-		   real size=0, pen p=currentpen) 
+                   real size=0, pen p=currentpen) 
 {
   perpendicular(pic,z,align,dir(g,0),size,p);
 }
@@ -77,7 +77,7 @@ triangle operator * (transform T, triangle t)
 // Return an interior arc BAC of triangle ABC, given a radius r > 0.
 // If r < 0, return the corresponding exterior arc of radius |r|.
 guide arc(explicit pair B, explicit pair A, explicit pair C,
-	  real r=arrowfactor)
+          real r=arrowfactor)
 {
   return arc(A,r,degrees(B-A),degrees(C-A));
 }

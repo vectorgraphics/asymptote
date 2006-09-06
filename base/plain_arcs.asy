@@ -1,5 +1,5 @@
 bool CCW=true;
-bool CW=false;						  
+bool CW=false;                                            
 
 guide circle(pair c, real r)
 {
@@ -41,7 +41,7 @@ guide arc(pair c, explicit pair z1, explicit pair z2, bool direction=CCW)
 }
 
 guide ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
-	      pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+              pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   pair m=min(src);
   pair M=max(src);
@@ -49,7 +49,7 @@ guide ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
   static real factor=0.5*sqrt(2);
   int sign=filltype == NoFill ? 1 : -1;
   guide g=ellipse(0.5*(M+m),factor*D.x+0.5*sign*max(p).x+xmargin,
-		  factor*D.y+0.5*sign*max(p).y+ymargin);
+                  factor*D.y+0.5*sign*max(p).y+ymargin);
   frame F;
   if(put == Below) {
     filltype(F,g,p);
@@ -59,7 +59,7 @@ guide ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
 }
 
 guide ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
-	      pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+              pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   add(f,L);
   return ellipse(f,xmargin,ymargin,p,filltype,put);

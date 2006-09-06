@@ -14,10 +14,10 @@ real pageheight=-2margin;
 if(orientation == Portrait || orientation == UpsideDown) {
   pagewidth += settings.paperwidth;
   pageheight += settings.paperheight;
-} else {
+ } else {
   pagewidth += settings.paperheight;
   pageheight += settings.paperwidth;
-}
+ }
 
 size(pagewidth,pageheight,IgnoreAspect);
 
@@ -44,7 +44,7 @@ real titleskip=0.5;
 string oldbulletcolor="Black";
 string newbulletcolor="Red";
 string bullet="\bulletcolor{$\bullet$}";
-					      
+                                              
 pair pagenumberposition=S+E;
 pair pagenumberalign=4NW;
 pen pagenumberpen=fontsize(12);
@@ -168,7 +168,7 @@ void incrementposition(pair z)
 }
 
 void title(string s, pair position=N, pair align=titlealign,
-	   pen p=titlepen, bool newslide=true)
+           pen p=titlepen, bool newslide=true)
 {
   if(newslide && !empty()) newslide();
   checkposition();
@@ -176,19 +176,19 @@ void title(string s, pair position=N, pair align=titlealign,
   label(f,minipage("\center "+s,minipagewidth),(0,0),align,p);
   add(f,position,labelmargin(p)*align);
   currentposition=(currentposition.x,position.y+
-		   (tinv*(min(f)-titleskip*I*lineskip(p)*pt)).y);
+                   (tinv*(min(f)-titleskip*I*lineskip(p)*pt)).y);
 }
 
 void outline(string s="Outline", pair position=N, pair align=titlealign,
-	     pen p=titlepen)
+             pen p=titlepen)
 {
   newslide(stepping=false);
   title(s,position,align,p,newslide=false);
 }
 
 void remark(bool center=false, string s, pair align=0, pen p=itempen,
-	    real indent=0, bool minipage=true, real itemskip=itemskip,
-	    filltype filltype=NoFill, bool step=false) 
+            real indent=0, bool minipage=true, real itemskip=itemskip,
+            filltype filltype=NoFill, bool step=false) 
 {
   checkposition();
   if(minipage) s=minipage(s,minipagewidth);
@@ -250,8 +250,8 @@ void equations(string s, pen p=itempen)
 }
 
 void figure(string[] s, string options="", real margin=50bp, 
-	    pen figuremattpen=figuremattpen,
-	    string caption="", pair align=S, pen p=itempen)
+            pen figuremattpen=figuremattpen,
+            string caption="", pair align=S, pen p=itempen)
 {
   string S;
   if(s.length == 0) return;
@@ -263,8 +263,8 @@ void figure(string[] s, string options="", real margin=50bp,
 }
 
 void figure(string s, string options="", real margin=50bp,
-	    pen figuremattpen=figuremattpen,
-	    string caption="", pair align=S, pen p=itempen)
+            pen figuremattpen=figuremattpen,
+            string caption="", pair align=S, pen p=itempen)
 {
   figure(new string[] {s},options,margin,figuremattpen,caption,align,p);
 }
@@ -275,7 +275,7 @@ void item(string s, pen p=itempen, bool step=itemstep)
   label(b,bullet,(0,0),p);
   real bulletwidth=max(b).x-min(b).x;
   remark(bullet+"\hangindent"+(string) bulletwidth+"pt$\,$"+s,p,
-	 -bulletwidth*pt,step=step);
+         -bulletwidth*pt,step=step);
 }
 
 void subitem(string s, pen p=itempen)
@@ -289,7 +289,7 @@ void skip(real n=1)
 }
 
 void titlepage(string title, string author, string institution="",
-	       string date="", string url="", bool newslide=false)
+               string date="", string url="", bool newslide=false)
 {
   if(newslide && !empty()) newslide();
   background();

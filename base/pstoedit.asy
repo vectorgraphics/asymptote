@@ -6,28 +6,28 @@ pair align=1e-10*NE;
 void beginclip(picture pic=currentpicture, path[] g, pen p=currentpen)
 {
   pic.add(new void (frame f, transform t) {
-    beginclip(f,t*g,p);
-  });
+      beginclip(f,t*g,p);
+    });
 }
 
 void endclip(picture pic=currentpicture)
 {
   pic.add(new void (frame f, transform) {
-    endclip(f);
-  });
+      endclip(f);
+    });
 }
 
 void gsave(picture pic=currentpicture)
 {
   pic.add(new void (frame f, transform) {
-    if(!deconstruct()) gsave(f);
-  });
+      if(!deconstruct()) gsave(f);
+    });
 }
 
 void grestore(picture pic=currentpicture)
 {
   pic.add(new void (frame f, transform) {
-    if(!deconstruct()) grestore(f);
-  });
+      if(!deconstruct()) grestore(f);
+    });
 }
     

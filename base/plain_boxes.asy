@@ -1,6 +1,6 @@
 // Draw and/or fill a box on frame dest using the dimensions of frame src.
 guide box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
-	  pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+          pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   pair z=(xmargin,ymargin);
   int sign=filltype == NoFill ? 1 : -1;
@@ -15,7 +15,7 @@ guide box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
 
 
 guide ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
-	      pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+              pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   pair m=min(src);
   pair M=max(src);
@@ -23,7 +23,7 @@ guide ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
   static real factor=0.5*sqrt(2);
   int sign=filltype == NoFill ? 1 : -1;
   guide g=ellipse(0.5*(M+m),factor*D.x+0.5*sign*max(p).x+xmargin,
-		  factor*D.y+0.5*sign*max(p).y+ymargin);
+                  factor*D.y+0.5*sign*max(p).y+ymargin);
   frame F;
   if(put == Below) {
     filltype(F,g,p);
@@ -33,29 +33,29 @@ guide ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
 }
 
 guide box(frame f, Label L, real xmargin=0, real ymargin=xmargin,
-	  pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+          pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   add(f,L);
   return box(f,xmargin,ymargin,p,filltype,put);
 }
 
 guide ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
-	      pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+              pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   add(f,L);
   return ellipse(f,xmargin,ymargin,p,filltype,put);
 }
 
 void box(picture pic=currentpicture, Label L,
-	 real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-	 filltype filltype=NoFill, bool put=Above)
+         real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+         filltype filltype=NoFill, bool put=Above)
 {
   pic.add(new void (frame f, transform t) {
-    frame d;
-    add(d,t,L);
-    box(f,d,xmargin,ymargin,p,filltype,put);
-    add(f,d);
-  });
+      frame d;
+      add(d,t,L);
+      box(f,d,xmargin,ymargin,p,filltype,put);
+      add(f,d);
+    });
   Label L0=L.copy();
   L0.position(0);
   L0.p(p+overwrite(Allow));
@@ -65,7 +65,7 @@ void box(picture pic=currentpicture, Label L,
 }
 
 frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=xmargin,
-	   pen p=currentpen, filltype filltype=NoFill)
+           pen p=currentpen, filltype filltype=NoFill)
 {
   frame f=pic.fit(max(pic.xsize-2*xmargin,0),max(pic.ysize-2*ymargin,0));
   box(f,xmargin,ymargin,p,filltype,Below);
