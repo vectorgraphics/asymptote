@@ -120,7 +120,8 @@ AC_SUBST(INCL)
 AC_SUBST(OPTIONS)
 
 # Checks for libraries.
-AC_CHECK_LIB([curses], [tparm])
+AC_CHECK_LIB([curses], [setupterm])
+AC_CHECK_LIB([ncurses], [setupterm])
 AC_CHECK_LIB([m], [sqrt])
 AC_CHECK_LIB([readline], [readline])
 AC_CHECK_LIB([readline], [history_set_history_state],

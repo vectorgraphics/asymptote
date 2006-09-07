@@ -38,7 +38,11 @@
 
 #ifdef HAVE_LIBCURSES
 #include <curses.h>
+#ifdef HAVE_LIBNCURSES // Workaround missing symbolic link under CYGWIN
+#include <ncurses/term.h>
+#else
 #include <term.h>
+#endif
 #endif
 
 using std::vector;
@@ -862,7 +866,7 @@ int getScroll()
   if(scroll < 0) {
     char *terminal=getenv("TERM");
     if(terminal) {
-      setterm(terminal);
+      setupterm(terminal,1,NULL);
       scroll=lines > 2 ? lines-1 : 1;
     }
   }
