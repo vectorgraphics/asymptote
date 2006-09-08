@@ -279,7 +279,8 @@ public:
 	  }
 	  int c=std::cin.get();
 	  if(c == '\n') break;
-	  while(std::cin.get() != '\n'); // Discard any additional characters
+	  // Discard any additional characters
+	  while(std::cin.good() && std::cin.get() != '\n');
 	  if(c == 'q') throw quit();
 	}
       } else *stream << newline;
