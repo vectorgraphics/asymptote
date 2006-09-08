@@ -38,7 +38,9 @@
 
 #ifdef HAVE_LIBCURSES
 #include <curses.h>
-#ifdef HAVE_LIBNCURSES // Workaround missing symbolic link under CYGWIN
+
+// Workaround missing symbolic link under CYGWIN
+#if defined(__CYGWIN__) && defined(HAVE_LIBNCURSES)
 #include <ncurses/term.h>
 #else
 #include <term.h>
