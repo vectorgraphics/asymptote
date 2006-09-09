@@ -16,13 +16,19 @@
 namespace interact {
 
 extern int interactive;
-extern bool virtualEOF;
-extern bool resetenv;
 extern bool uptodate;
 
-size_t interactive_input(char *buf, size_t max_size);
 void init_interactive();
   
+// Read a line from the input, without any processing.
+mem::string simpleline();
+
+// Remove the line last added to the history.
+void deleteLastLine();
+
+// Write out the history of input lines to the history file.
+void cleanup_interactive();
+
 // This class is used to set a text completion function for readline.  A class
 // is used instead the usual function pointer so that information such as the
 // current environment can be coded into the function (mimicking a closure).

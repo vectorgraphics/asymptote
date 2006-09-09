@@ -77,6 +77,7 @@ public:
 class expStm : public stm {
   exp *body;
 
+  void baseTrans(coenv &e, exp *expr);
 public:
   expStm(position pos, exp *body)
     : stm(pos), body(body) {}
@@ -84,6 +85,11 @@ public:
   void prettyprint(ostream &out, int indent);
 
   void trans(coenv &e);
+
+  // Should be called when running an expStm at the interactive prompt.
+  // The code will "write" the value of the expression at the prompt if
+  // possible.
+  void interactiveTrans(coenv &e);
 };
 
 class ifStm : public stm {

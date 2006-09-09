@@ -120,11 +120,16 @@ class errorstream {
   bool anyWarnings;
   bool floating;	// Was a message output without a terminating newline?
   
+  // Is there an error that warrants the asy process to return 1 instead of 0?
+  bool anyStatusErrors;
+
 public:
   static bool interrupt; // Is there a pending interrupt?
   
   errorstream(ostream& out = std::cerr)
-    : out(out), anyErrors(false), anyWarnings(false), floating(false) {}
+    : out(out), anyErrors(false), anyWarnings(false), floating(false),
+      anyStatusErrors(false) {}
+
 
   void clear();
 
@@ -173,6 +178,16 @@ public:
   
   bool warnings() const {
     return anyWarnings || errors();
+  }
+
+  void statusError() {
+    anyStatusErrors=true;
+  }
+
+  // Returns true if no errors have occured that should be reported by the
+  // return value of the process.
+  bool processStatus() const {
+    return !anyStatusErrors;
   }
 };
 

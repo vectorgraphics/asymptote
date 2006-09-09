@@ -73,19 +73,30 @@ private:
   typedef mem::map<CONST mem::string,frame *> importInstanceMap;
   importInstanceMap instMap;
   
+  // One can associate an environment to embedded code while running.
+  trans::coenv *e;
+
   // Debugger variables:
   char debugOp;
   position lastPos, breakPos;
   bool newline;
   
 public:
-  stack() : debugOp(0), lastPos(position::nullPos()),
+  stack() : e(0), debugOp(0), lastPos(position::nullPos()),
 	    breakPos(position::nullPos()), newline(false) {};
   
-  ~stack() {};
+  virtual ~stack() {};
 
   void setInitMap(importInitMap *i) {
     initMap=i;
+  }
+
+  void setEnvironment(trans::coenv *e) {
+    this->e=e;
+  }
+
+  trans::coenv *getEnvironment() {
+    return e;
   }
 
   // Runs the instruction listed in code, with vars as frame of variables.

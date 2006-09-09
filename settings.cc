@@ -54,9 +54,7 @@ using trans::itemRefAccess;
 using trans::refAccess;
 using trans::varEntry;
   
-namespace loop {
-  void doConfig(string filename);
-}
+void doConfig(string filename);
 
 namespace settings {
   
@@ -813,6 +811,11 @@ bool trap() {
     return !getSetting<bool>("batchMask");
 }
 
+mem::string outname() {
+  mem::string name=getSetting<mem::string>("outname");
+  return name.empty() ? "out" : name;
+}
+
 void initDir() {
   initdir=Getenv(HOME,false)+"/."+suffix;
   mkdir(initdir.c_str(),0xFFFF);
@@ -898,7 +901,7 @@ void setOptions(int argc, char *argv[])
   
   // Read user configuration file.
   setPath();
-  loop::doConfig(getSetting<mem::string>("config"));
+  doConfig(getSetting<mem::string>("config"));
   
   // Remember any changes to the defaultpen.
   initialdefaultpen=new camp::pen(defaultpen);

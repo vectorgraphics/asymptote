@@ -57,7 +57,7 @@ struct arg : public gc {
 
 // Pushes a default argument token on the stack as a placeholder for the
 // argument.
-  struct defaultArg : public arg {
+struct defaultArg : public arg {
   defaultArg(types::ty *t);
 };
 
@@ -181,7 +181,6 @@ class application : public gc {
   application(types::signature *sig)
     : sig(sig),
       t(0),
-      //seq(sig->formals.size()),
       args(sig->formals.size()),
       rest(0),
       rf(0),
@@ -191,7 +190,6 @@ class application : public gc {
   application(types::function *t)
     : sig(t->getSignature()),
       t(t),
-      //seq(sig->formals.size()),
       args(sig->formals.size()),
       rest(0),
       rf(0),

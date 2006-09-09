@@ -57,6 +57,7 @@ extern string gvOptionPrefix;
 
 bool view();
 bool trap();
+mem::string outname();
 
 void setOptions(int argc, char *argv[]);
 

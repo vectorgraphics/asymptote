@@ -89,6 +89,7 @@ stringarray2* => stringArray2()
 #include "stm.h"
 #include "lexical.h"
 #include "Delaunay.h"
+#include "process.h"
   
 #ifdef HAVE_LIBFFTW3
 #include "fftw++.h"
@@ -169,11 +170,6 @@ using types::stringArray;
 using types::stringArray2;
 using types::formal;
 
-namespace loop {
-  void doIRunnable(absyntax::runnable *r, bool embedded=false);
-  void doITree(absyntax::block *tree, bool embedded=false);
-}
-  
 function *voidFunction()
 {
   return new function(primVoid());
@@ -931,7 +927,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 	     string format=emptystring, bool wait=false, bool view=true,
 	     transformarray *GUItransform, boolarray *GUIdelete)
 {
-  if(prefix.empty()) prefix=getSetting<string>("outname");
+  if(prefix.empty()) prefix=settings::outname();
   
   size_t size=GUItransform && GUIdelete ?
     checkArrays(GUItransform,GUIdelete) : 0;
@@ -1315,12 +1311,35 @@ void assert(bool b, string s=emptystring)
 
 void _eval(string *s, bool embedded)
 {
-  loop::doITree(parser::parseString(*s),embedded);
+  if (embedded) {
+    trans::coenv *e=Stack->getEnvironment();
+    vm::interactiveStack *is=dynamic_cast<vm::interactiveStack *>(Stack);
+    if (e && is) {
+      runStringEmbedded(*s, *e, *is);
+    } else {
+      cerr << "no runtime environment for embedded eval" << endl;
+    }
+  } else {
+    runString(*s);
+  }
 }
 
 void _eval(runnable *s, bool embedded)
 {
-  loop::doIRunnable(s,embedded);
+  absyntax::block *ast=new absyntax::block(s->getPos(), false);
+  ast->add(s);
+
+  if (embedded) {
+    trans::coenv *e=Stack->getEnvironment();
+    vm::interactiveStack *is=dynamic_cast<vm::interactiveStack *>(Stack);
+    if (e && is) {
+      runCodeEmbedded(ast, *e, *is);
+    } else {
+      cerr << "no runtime environment for embedded eval" << endl;
+    }
+  } else {
+    runCode(ast);
+  }
 }
 
 string location() {
@@ -1339,10 +1358,10 @@ bool deconstruct()
   return getSetting<real>("deconstruct");
 }
 
-void readGUI()
+Void readGUI()
 {
   static bool first=true;
-  string name=buildname(getSetting<string>("outname"),"gui");
+  string name=buildname(settings::outname(),"gui");
   std::ifstream exists(name.c_str());
   if(exists) {
     if((getSetting<bool>("clearGUI") && !interact::interactive) ||
@@ -1350,8 +1369,15 @@ void readGUI()
     else {
       if (!getSetting<bool>("ignoreGUI")) {
 	string cmd=string("include \"")+name+string("\";");
-	absyntax::block *ast = parser::parseString(cmd);
-	loop::doITree(ast,true);
+
+        // NOTE: Duplicate code with _eval.
+        trans::coenv *e=Stack->getEnvironment();
+        vm::interactiveStack *is=dynamic_cast<vm::interactiveStack *>(Stack);
+        if (e && is) {
+          runStringEmbedded(cmd, *e, *is);
+        } else {
+          cerr << "no runtime environment for readGUI" << endl;
+        }
       }
     }
   }
@@ -2524,7 +2550,7 @@ int merge(stringarray *files, string *args, string *format)
   for(size_t i=0; i < size; i++) 
     cmd << " " << read<string>(files,i);
   
-  string name=buildname(getSetting<string>("outname"),format->c_str());
+  string name=buildname(settings::outname(),format->c_str());
   cmd << " '" << name << "'";
   ret=System(cmd,2,true,"convert");
   

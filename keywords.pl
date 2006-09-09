@@ -7,10 +7,9 @@
 #  keywords are used in autocompletion at the interactive prompt.
 #####
 
-# Extra keywords to add that aren't in camp.l.  Currently, this is just the
-# special commands of the interactive prompt, which I couldn't automatically
-# extract from interact.cc.
-@extrawords = ("help", "quit", "exit", "input", "reset");
+# Extra keywords to add that aren't automatically extracted, currently none.
+@extrawords = ();
+
 
 open(keywords, ">keywords.cc") ||
     die("Couldn't open keywords.out for writing.");
@@ -40,11 +39,22 @@ while (<camp>) {
   }
 }
 
+# Grab simple keyword definitions from camp.l
 while (<camp>) {
   if (/^%%\s*$/) {
     last; # A second %% indicates the end of definitions.
   }
-  if (/^(\w+)\s*\{/) {
+  if (/^([A-Za-z_][A-Za-z0-9_]*)\s*\{/) {
     add($1);
   }
 }
+
+# Grab the special commands from the interactive prompt.
+open(process, "process.cc") || dir("Couldn't open process.cc");
+
+while (<process>) {
+  if (/^\s*ADDCOMMAND\(\s*([A-Za-z_][A-Za-z0-9_]*),/) {
+    add($1);
+  }
+}
+

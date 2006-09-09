@@ -69,19 +69,8 @@ record *genv::loadModule(symbol *id, mem::string filename) {
   inTranslation.push_front(filename);
 
   em->sync();
-  
-  // Create the new module.
-  record *r = new record(id, new frame(0,0));
 
-  // Create coder and environment to translate the module.
-  // File-level modules have dynamic fields by default.
-  coder c(r, 0);
-  env e(*this);
-  coenv ce(c, e);
-
-  // Translate the abstract syntax.
-  ast->transAsFile(ce, r);
-  em->sync();
+  record *r=ast->transAsFile(*this, id);
   
   inTranslation.remove(filename);
 

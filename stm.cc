@@ -47,13 +47,29 @@ void expStm::prettyprint(ostream &out, int indent)
   body->prettyprint(out, indent+1);
 }
 
-void expStm::trans(coenv &e)
+void expStm::baseTrans(coenv &e, exp *expr)
 {
-  types::ty_kind kind = body->trans(e)->kind;
-  if (kind != types::ty_void &&
-      kind != types::ty_void)
+  types::ty_kind kind = expr->trans(e)->kind;
+  if (kind != types::ty_void)
     // Remove any value it puts on the stack.
     e.c.encode(inst::pop);
+}
+
+void expStm::trans(coenv &e) {
+  baseTrans(e, body);
+}
+
+exp *tryToWriteExp(coenv &e, exp *body)
+{
+  exp *callee=new nameExp(body->getPos(), symbol::trans("write"));
+  exp *call=new callExp(body->getPos(), callee, body);
+
+  return call->getType(e)->kind == ty_error ? body : call;
+}
+
+void expStm::interactiveTrans(coenv &e)
+{
+  baseTrans(e, tryToWriteExp(e, body));
 }
 
 

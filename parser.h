@@ -19,11 +19,11 @@ namespace parser {
 absyntax::file *parseFile(string filename);
 
 // Parses string and returns the abstract syntax tree.
-absyntax::file *parseString(string);
+absyntax::file *parseString(string code, string filename);
 
 // Parses standard input and returns the abstract syntax tree.
-absyntax::file *parseInteractive();
+//absyntax::file *parseInteractive();
 
-} // namespce parser
+} // namespace parser
 
 #endif // PARSER_H

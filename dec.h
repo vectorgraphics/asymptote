@@ -18,6 +18,7 @@
 
 namespace trans {
 class coenv;
+class genv;
 class protoenv;
 class varEntry;
 class access;
@@ -36,6 +37,7 @@ class lambda;
 namespace absyntax {
 
 using mem::list;
+using trans::genv;
 using trans::coenv;
 using trans::protoenv;
 using trans::varEntry;
@@ -182,7 +184,7 @@ public:
 
   void transAsRecordBody(coenv &e, record *r);
 
-  void transAsFile(coenv &e, record *r);
+  types::record *transAsFile(genv& ge, symbol *id);
 
   // A block is guaranteed to return iff one of the runnables is guaranteed to
   // return.

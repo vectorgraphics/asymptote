@@ -304,3 +304,21 @@ int setPath(const char *s)
     return chdir(s);
   } return 0;
 }
+
+void popupHelp() {
+  // If the popped-up help is already running, pid stores the pid of the viewer.
+  static int pid=0;
+
+  // Status is ignored.
+  static int status=0;
+
+  // If the help viewer isn't running (or its last run has termined), launch the
+  // viewer again.
+  if (pid==0 || (waitpid(pid, &status, WNOHANG) == pid)) {
+    ostringstream cmd;
+    cmd << "'" << getSetting<mem::string>("pdfviewer") << "' " 
+      << docdir << "/asymptote.pdf";
+    status=System(cmd,0,false,"pdfviewer","your PDF viewer",&pid);
+  }
+}
+

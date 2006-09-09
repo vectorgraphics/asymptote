@@ -280,7 +280,8 @@ bool picture::postprocess(const string& epsname, const string& outname,
       if(interact::interactive && pid)
 	restart=(waitpid(pid, &status, WNOHANG) == pid);
 
-      if (!interact::virtualEOF || outname != lastoutname || restart) {
+      // NOTE: Test may not be correct as virtualEOF was removed.
+      if (outname != lastoutname || restart) {
 	if(!wait) lastoutname=outname;
 	ostringstream cmd;
 	cmd << "'" << Viewer << "'";
@@ -350,7 +351,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       if(Python != "") cmd << "'" << Python << "' ";
       cmd << "'" << getSetting<mem::string>("xasy") << "' " 
 	  << buildname(prefix) << " " << ShipoutNumber << " "
-	  << buildname(getSetting<mem::string>("outname"));
+	  << buildname(settings::outname());
       int status=System(cmd,0,true,Python != "" ? "python" : "xasy");
       if(status != 0) return false;
     }

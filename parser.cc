@@ -118,18 +118,12 @@ absyntax::file *parseFile(string filename)
   return doParse(yy::stream_input,file);
 }
 
-absyntax::file *parseString(string code)
+absyntax::file *parseString(string code, string filename)
 {
   debug(false);
   std::stringbuf buf(code.c_str());
   yy::sbuf = &buf;
-  return doParse(yy::stream_input,"<eval>");
-}
-
-absyntax::file *parseInteractive()
-{
-  debug(false);
-  return doParse(interact::interactive_input,"-");
+  return doParse(yy::stream_input,filename);
 }
 
 } // namespace parser

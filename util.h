@@ -82,4 +82,7 @@ string Getenv(const char *name, bool quote=true);
 
 void execError(const char *command, const char *hint, const char *application);
   
+// This invokes a viewer to display the manual.  Subsequent calls will only
+// pop-up a new viewer if the old one has been closed.
+void popupHelp();
 #endif

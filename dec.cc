@@ -136,15 +136,27 @@ void block::transAsRecordBody(coenv &e, record *r)
   e.c.closeRecord();
 }
 
-void block::transAsFile(coenv &e, record *r)
+record *block::transAsFile(genv& ge, symbol *id)
 {
-  if (settings::getSetting<bool>("autoplain")) {
-    autoplainRunnable()->transAsField(e, r);
-  }
+  // Create the new module.
+  record *r = new record(id, new frame(0,0));
 
-  transAsRecordBody(e, r);
-}
+  // Create coder and environment to translate the module.
+  // File-level modules have dynamic fields by default.
+  coder c(r, 0);
+  env e(ge);
+  coenv ce(c, e);
+
+  // Translate the abstract syntax.
+  if (settings::getSetting<bool>("autoplain")) {
+    autoplainRunnable()->transAsField(ce, r);
+  }
+  transAsRecordBody(ce, r);
+  em->sync();
   
+  return r;
+}
+
 bool block::returns() {
   // Search for a returning runnable, starting at the end for efficiency.
   for (list<runnable *>::reverse_iterator p=stms.rbegin();
