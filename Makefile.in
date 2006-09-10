@@ -98,7 +98,7 @@ envcompleter.d: keywords.cc
 
 asy-keywords.el: asy-list.pl 
 	./asy -l -dir base > asy.list
-	ls base/*.asy | grep -v plain\* | grep -v featpost3D | xargs asy -l >> asy.list
+	ls base/*.asy | grep -v plain\* | grep -v featpost3D | xargs ./asy -l -dir base >> asy.list
 	./asy-list.pl asy.list @VERSION@
 	ln -sf ../asy-keywords.el base/
 
