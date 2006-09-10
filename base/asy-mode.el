@@ -199,6 +199,11 @@ This variable must be modified only using the function 'asy-set-master-tex by M-
 ;; asy-function-name and asy-variable-name
 (load-library "asy-keywords.el")
 
+(defcustom asy-extra-type-name '()
+  "Extra user type names highlighted with 'font-lock-type-face"
+  :type '(repeat symbol)
+  :group 'asymptote)
+
 (defcustom asy-extra-function-name
   '()
   "Extra user function names highlighted with 'font-lock-function-name-face"
@@ -213,6 +218,10 @@ This variable must be modified only using the function 'asy-set-master-tex by M-
 (asy-add-variable-keywords
  asy-keyword-name 
  'font-lock-builtin-face)
+
+(asy-add-variable-keywords
+ (nconc asy-type-name asy-extra-type-name)
+ 'font-lock-type-face)
 
 (asy-add-function-keywords
  (nconc asy-function-name asy-extra-function-name)

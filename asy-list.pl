@@ -48,18 +48,48 @@ while (<camp>) {
   }
 }
 
+openlist();
+
+while (<asylist>) {
+  if (/^(\w*)[^ ]* (\w*)\(.*/) {
+    push @types, $1;
+    push @functions, $2;
+  }
+  if (/^([^ ]*) (\w*);/) {
+    push @variables, $2;
+  }
+}
+
+@saw{@types} = ();
+@types = sort keys %saw; 
+undef %saw;
+
+@saw{@functions} = ();
+@functions = sort keys %saw; 
+undef %saw;
+
+@saw{@variables} = ();
+@variables = sort keys %saw; 
+undef %saw;
+
+print keywords <<END;
+))
+
+(defvar asy-type-name '(
+END
+
+foreach(@types) {
+ print keywords $_ . " ";
+}
+
 print keywords <<END;
 ))
 
 (defvar asy-function-name '(
 END
 
-openlist();
-
-while (<asylist>) {
-  if (/^(\w*)[^;]$/) {
-    add($1);
-  }
+foreach(@functions) {
+ print keywords $_ . " ";
 }
 
 print keywords <<END;
@@ -68,13 +98,9 @@ print keywords <<END;
 (defvar asy-variable-name '(
 END
 
-close(asylist);
-openlist();
-
-while (<asylist>) {
-  if (/^(\w*);$/) {
-    add($1);
-  }
+foreach(@variables) {
+ print keywords $_ . " ";
 }
 
 print keywords "))\n";
+

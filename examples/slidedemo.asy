@@ -60,4 +60,3 @@ item("Double skip:");
 skip(2);
 figure(new string[] {"log.eps","near_earth.eps"},
        "width=10cm","Examples of {\tt Asymptote} graphs.");
-

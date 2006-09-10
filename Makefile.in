@@ -18,7 +18,7 @@ FILES = $(CAMP) runtime env genv main stm dec errormsg callable name \
 
 DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc keywords.cc \
 	asy-keywords.el base/asy-keywords.el
-CLEAN = camp.output asy.list asy.sorted
+CLEAN = camp.output asy.list
 NAME = asy
 EXTRABIN = x$(NAME)
 EXTRA = asy-mode.el,asy-keywords.el,asy-init.el,asy.vim,asymptote.py
@@ -98,9 +98,8 @@ envcompleter.d: keywords.cc
 
 asy-keywords.el: asy-list.pl 
 	./asy -l -dir base > asy.list
-	ls base/*.asy | grep -v plain\* | grep -v featpost3D | xargs --replace=% echo "list('%');" | ./asy - >> asy.list
-	cat asy.list | sed -e "s/[^ ]* \([^(]*\).*/\1/" | grep -v "operator " - | sort -u > asy.sorted
-	./asy-list.pl asy.sorted @VERSION@
+	ls base/*.asy | grep -v plain\* | grep -v featpost3D | xargs asy -l >> asy.list
+	./asy-list.pl asy.list @VERSION@
 	ln -sf ../asy-keywords.el base/
 
 install: install-asy install-man
