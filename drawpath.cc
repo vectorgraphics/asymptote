@@ -96,6 +96,8 @@ void drawPath::bounds(bbox& b, iopipestream&, boxvector&, bboxlist&)
   if(p.cyclic()) return;
   
   int l=p.length();
+  if(l < 0) return;
+  
   switch(pentype.cap()) {
   case 0:
     {
