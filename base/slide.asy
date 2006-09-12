@@ -15,6 +15,7 @@ if(orientation == Portrait || orientation == UpsideDown) {
   pagewidth += settings.paperwidth;
   pageheight += settings.paperheight;
  } else {
+  settings.autorotate=true;
   pagewidth += settings.paperheight;
   pageheight += settings.paperwidth;
  }

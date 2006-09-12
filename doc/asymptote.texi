@@ -5588,8 +5588,8 @@ array @code{data}:
 @verbatim
 bounds image(picture pic=currentpicture, real[][] f, range range=Full,
              pair initial, pair final, pen[] palette,
-	     bool transpose=(initial.x < final.x && initial.y < final.y) ?
-	     true : false); 
+             bool transpose=(initial.x < final.x && initial.y < final.y) ?
+             true : false); 
 @end verbatim
 @noindent
 If the initial point is to the left and below the final point,
@@ -5964,8 +5964,8 @@ picture surface(real[][] f, pair a, pair b,
 picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 picture surface(real f(pair z), int nsub=1, pair a, pair b, int nx=nmesh,
-		int ny=nx, pen surfacepen=lightgray, pen meshpen=nullpen,
-		light light=currentlight, projection P=currentprojection);
+                int ny=nx, pen surfacepen=lightgray, pen meshpen=nullpen,
+                light light=currentlight, projection P=currentprojection);
 @end verbatim
 @noindent
 A parametric surface for a function @math{f(u,v)} over the parameter
@@ -5973,7 +5973,7 @@ space @code{box(a,b)} may be drawn with
 @verbatim
 picture surface(triple f(pair z), int nsub=1, pair a, pair b, int nu=nmesh,
                 int nv=nu, pen surfacepen=lightgray, pen meshpen=nullpen,
-		light light=currentlight, projection P=currentprojection);
+                light light=currentlight, projection P=currentprojection);
 @end verbatim
 @noindent
 as illustrated in the example @code{parametricsurface.asy}.
@@ -6253,6 +6253,7 @@ Options:
 -V,-View              View output; command-line only
 -a,-align C|B|T|Z     Center, Bottom, Top, or Zero page alignment [Center]
 -autoplain            Enable automatic importing of plain [true]
+-autorotate           Enable automatic PDF page rotation [false]
 -batchMask            Mask fpu exceptions in batch mode [false]
 -batchView            View output in batch mode [false]
 -bw                   Convert all colors to black and white [false]
@@ -6821,7 +6822,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  pdfviewer papertype tabcompletion noautoplain plugins Teixeira
 @c  LocalWords:  embeddedmovie historylines inlinetex RadialShade penc penr CJK
 @c  LocalWords:  legendlinelength legendskip USERPROFILE LDFLAGS currentlight
-@c  LocalWords:  subsampled sinc kai AtBeginDocument GBK clearpage
+@c  LocalWords:  subsampled sinc kai AtBeginDocument GBK clearpage lasy
 @c  LocalWords:  AtEndDocument zaxis maxbound truepoint paperwidth paperheight
 @c  LocalWords:  GSL deriv texcolors fixedscaling UpsideDown texreset slidedemo
 @c  LocalWords:  subitem newslide realMin realMax realEpsilon realDigits gsl dh
@@ -6834,4 +6835,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  zlabel strptime slopefields cputime roundrectangle slopefield
 @c  LocalWords:  tickfactor USERNAME writeable imagecontour logimage Dumoulin's
 @c  LocalWords:  NoCrop parametricsurface realmult SoftLight HardLight interp
-@c  LocalWords:  ColorDodge ColorBurn Ivaldi
+@c  LocalWords:  ColorDodge ColorBurn Ivaldi buildcycle autorotate

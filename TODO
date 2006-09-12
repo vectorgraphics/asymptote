@@ -1,8 +1,6 @@
 Andy and John: (if possible) automatically turn expressions with array
 sub-expressions into iteration over the array(s)
     
-Andy: Add coenv to interactiveStack to get rid of estack and sstack.
-
 Document scoping and lifetime issues with the virtual machine, especially as
 compared to C/C++ as opposed to lisp.
 

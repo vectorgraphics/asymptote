@@ -757,6 +757,9 @@ void initSettings() {
   addOption(new boolSetting("autoplain", 0,
 			    "Enable automatic importing of plain",
 			    true));
+  addOption(new boolSetting("autorotate", 0,
+			    "Enable automatic PDF page rotation",
+			    false));
   addOption(new userSetting("user", 'u', "x",
 			    "General purpose user string  [\"\"]", ""));
   

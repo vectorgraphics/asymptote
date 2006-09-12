@@ -245,8 +245,10 @@ bool picture::postprocess(const string& epsname, const string& outname,
     if(pdfformat) {
       cmd << "'" << getSetting<mem::string>("gs")
 	  << "' -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
-	  << " -dCompatibilityLevel=1.4 -dAutoRotatePages=/None"
-	  << " -g" << ceil(paperWidth) << "x" << ceil(paperHeight)
+	  << " -dCompatibilityLevel=1.4";
+      if(!getSetting<bool>("autorotate"))
+	cmd << " -dAutoRotatePages=/None";
+      cmd << " -g" << ceil(paperWidth) << "x" << ceil(paperHeight)
 	  << " -dDEVICEWIDTHPOINTS=" << b.right-b.left
 	  << " -dDEVICEHEIGHTPOINTS=" << b.top-b.bottom
 	  << " -sOutputFile='" << outname << "' '" << epsname << "'";
