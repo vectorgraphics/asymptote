@@ -1965,8 +1965,8 @@ struct slice {
 @end verbatim
 
 @cindex @code{MetaPost cutbefore}
-Note that @code{firstcut.after} plays the role of the @code{MetaPost}
-@code{cutbefore} command.
+Note that @code{firstcut.after} plays the role of the 
+@code{MetaPost cutbefore} command.
 
 @cindex @code{lastcut}
 @item slice lastcut(path p, path q);
@@ -1976,8 +1976,14 @@ intersection exists, the entire path is considered to be `after' the
 intersection).
 
 @cindex @code{MetaPost cutafter}
-Note that @code{lastcut.before} plays the role of the @code{MetaPost}
-@code{cutafter} command.
+Note that @code{lastcut.before} plays the role of the 
+@code{MetaPost cutafter} command.
+
+@cindex @code{buildcycle}
+@item path buildcycle(... path[] g);
+This returns the path surrounding a region bounded by a list of consecutively
+intersecting paths, following the behaviour of the 
+@code{MetaPost buildcycle} command.
 
 @cindex @code{min}
 @item pair min(path);
@@ -6358,6 +6364,7 @@ asy -O 0,0 file
 The default offset is zero. The default value of the page alignment
 setting @code{align} is @code{Center}.
 
+@cindex @code{-u}
 The @code{-u} option may be used to specify arbitrary @code{Asymptote}
 code on the command line as a string. It is not necessary to terminate
 the string with a semicolon. Multiple @code{-u} options are executed
@@ -6369,6 +6376,10 @@ access settings;
 usersetting();
 write(x);
 @end verbatim
+
+@cindex @code{-l}
+When the @code{-l} option is used with file arguments, it only lists
+global functions and variables defined in the specified file(s).
 
 Additional debugging output is produced with each additional @code{-v} option:
 @table @code

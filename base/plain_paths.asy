@@ -209,3 +209,24 @@ pair endpoint(path g)
 {
   return point(g,length(g));
 }
+
+// return the path surrounding a region bounded by a list of consecutively
+// intersecting paths
+path buildcycle(... path[] g)
+{
+  int n=g.length;
+  real[] ta=new real[n];
+  real[] tb=new real[n];
+  int j=n-1;
+  for(int i=0; i < n; ++i) {
+    pair t=intersect(g[i],reverse(g[j]));
+    if(t == (-1,-1))
+      abort("Paths "+(string) i+" and " +(string) j+" do not intersect");
+    ta[i]=t.x; tb[j]=length(g[j])-t.y;
+    j=i;
+  }
+  path G;
+  for(int i=0; i < n ; ++i) 
+    G=G..subpath(g[i],ta[i],tb[i]);
+  return G..cycle;
+}
