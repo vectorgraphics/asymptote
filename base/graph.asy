@@ -836,9 +836,6 @@ struct axisT {
   pair side;
   pair align;
   pair value2;
-  
-  pair userMin;
-  pair userMax;
   int[] xdivisor;
   int[] ydivisor;
   bool extend;
@@ -850,10 +847,23 @@ axisT axis;
 typedef void axis(picture, axisT);
 void axis(picture, axisT) {};
 
+pair axisMin(picture pic)
+{
+  return pic.scale.y.automin() ? tickMin(pic) : 
+    (pic.scale.x.automin() ? pic.scale.x.tickMin : pic.userMin.x,
+     pic.scale.y.automin() ? pic.scale.y.tickMin : pic.userMin.y);
+}
+
+pair axisMax(picture pic)
+{
+  return (pic.scale.x.automax() ? pic.scale.x.tickMax : pic.userMax.x,
+	  pic.scale.y.automax() ? pic.scale.y.tickMax : pic.userMax.y);
+}
+
 axis Bottom(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
-    axis.value=pic.scale.y.automin() ? tickMin(pic) : axis.userMin;
+    axis.value=pic.scale.y.automin() ? tickMin(pic) : axisMin(pic);
     axis.position=0.5;
     axis.side=right;
     axis.align=S;
@@ -865,7 +875,7 @@ axis Bottom(bool extend=false)
 axis Top(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
-    axis.value=pic.scale.y.automax() ? tickMax(pic) : axis.userMax;
+    axis.value=pic.scale.y.automax() ? tickMax(pic) : axisMax(pic);
     axis.position=0.5;
     axis.side=left;
     axis.align=N;
@@ -877,11 +887,11 @@ axis Top(bool extend=false)
 axis BottomTop(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
-    axis.value=pic.scale.y.automin() ? tickMin(pic) : axis.userMin;
+    axis.value=pic.scale.y.automin() ? tickMin(pic) : axisMin(pic);
     axis.position=0.5;
     axis.side=right;
     axis.align=S;
-    axis.value2=pic.scale.y.automax() ? tickMax(pic) : axis.userMax;
+    axis.value2=pic.scale.y.automax() ? tickMax(pic) : axisMax(pic);
     axis.extend=extend;
   };
 }
@@ -889,7 +899,7 @@ axis BottomTop(bool extend=false)
 axis Left(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
-    axis.value=pic.scale.x.automin() ? tickMin(pic) : axis.userMin;
+    axis.value=pic.scale.x.automin() ? tickMin(pic) : axisMin(pic);
     axis.position=0.5;
     axis.side=left;
     axis.align=W;
@@ -901,7 +911,7 @@ axis Left(bool extend=false)
 axis Right(bool extend=false)
 {
   return new void(picture pic, axisT axis) {
-    axis.value=pic.scale.x.automax() ? tickMax(pic) : axis.userMax;
+    axis.value=pic.scale.x.automax() ? tickMax(pic) : axisMax(pic);
     axis.position=0.5;
     axis.side=right;
     axis.align=E;
@@ -913,11 +923,11 @@ axis Right(bool extend=false)
 axis LeftRight(bool extend=false) 
 {
   return new void(picture pic, axisT axis) {
-    axis.value=pic.scale.x.automin() ? tickMin(pic) : axis.userMin;
+    axis.value=pic.scale.x.automin() ? tickMin(pic) : axisMin(pic);
     axis.position=0.5;
     axis.side=left;
     axis.align=W;
-    axis.value2=pic.scale.x.automax() ? tickMax(pic) : axis.userMax;
+    axis.value2=pic.scale.x.automax() ? tickMax(pic) : axisMax(pic);
     axis.extend=extend;
   };
 }
@@ -1231,10 +1241,6 @@ void autoscale(picture pic=currentpicture, axis axis)
     pic.scale.y.tickMax=my.max;
     axis.xdivisor=mx.divisor;
     axis.ydivisor=my.divisor;
-    axis.userMin=(pic.scale.x.automin() ? mx.min : pic.userMin.x,
-                  pic.scale.y.automin() ? my.min : pic.userMin.y);
-    axis.userMax=(pic.scale.x.automax() ? mx.max : pic.userMax.x,
-                  pic.scale.y.automax() ? my.max : pic.userMax.y);
   }
 }
 
@@ -1517,8 +1523,6 @@ picture secondaryX(picture primary=currentpicture, void f(picture))
     pic.scale.x.tickMax=pic.scale.x.postscale.T(a.max);
     pic.scale.y.tickMin=primary.scale.y.tickMin;
     pic.scale.y.tickMax=primary.scale.y.tickMax;
-    axis.userMin=(bmin,axis.userMin.y);
-    axis.userMax=(bmax,axis.userMax.y);
     axis.xdivisor=a.divisor;
     f(pic);
   }
@@ -1547,8 +1551,6 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
     pic.scale.x.tickMax=primary.scale.x.tickMax;
     pic.scale.y.tickMin=pic.scale.y.postscale.T(a.min);
     pic.scale.y.tickMax=pic.scale.y.postscale.T(a.max);
-    axis.userMin=(axis.userMin.x,bmin);
-    axis.userMax=(axis.userMax.x,bmax);
     axis.ydivisor=a.divisor;
     f(pic);
   }
