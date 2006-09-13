@@ -605,7 +605,7 @@ size(pic2,width,aspect*width,IgnoreAspect);
 scale(pic1,false);
 scale(pic2,false);
 
-real xmin1=5;
+real xmin1=6;
 real xmax1=9;
 real xmin2=8;
 real xmax2=16;
