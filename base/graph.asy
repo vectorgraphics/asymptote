@@ -849,9 +849,8 @@ void axis(picture, axisT) {};
 
 pair axisMin(picture pic)
 {
-  return pic.scale.y.automin() ? tickMin(pic) : 
-    (pic.scale.x.automin() ? pic.scale.x.tickMin : pic.userMin.x,
-     pic.scale.y.automin() ? pic.scale.y.tickMin : pic.userMin.y);
+  return (pic.scale.x.automin() ? pic.scale.x.tickMin : pic.userMin.x,
+	  pic.scale.y.automin() ? pic.scale.y.tickMin : pic.userMin.y);
 }
 
 pair axisMax(picture pic)
