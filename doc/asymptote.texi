@@ -672,12 +672,15 @@ The units here are @code{PostScript} "big points"
 In @code{Asymptote} coordinates like @code{(0,0)} and
 @code{(1000,100)} are called @emph{pairs}.
 
+@cindex tab completion
+@cindex arrow keys
 At this point you can type in further draw commands, which will be added
 to the displayed figure, or type @code{quit} to exit interactive mode.
 You can use the arrow keys in interactive mode to edit previous lines
 (assuming that you have support for the @acronym{GNU} @code{readline} library
-enabled). Further commands specific to interactive mode are described
-in @ref{Interactive mode}.
+enabled). The tab key will automatically complete unambiguous words;
+otherwise, hitting tab again will show the possible choices. Further
+commands specific to interactive mode are described in @ref{Interactive mode}.
 
 @cindex batch mode
 In batch mode, @code{Asymptote} reads commands directly from a
@@ -2178,6 +2181,8 @@ pen dashed=linetype("8 8");
 pen longdashed=linetype("24 8");
 pen dashdotted=linetype("8 8 0 8");
 pen longdashdotted=linetype("24 8 0 8");
+pen Dotted=dotted+1.0;
+pen Dotted(pen p=currentpen) {return dotted+2*linewidth(p);}
 @end verbatim
 @image{linetype}
 
@@ -6437,8 +6442,8 @@ current directory).
 Typing @code{ctrl-C} interrupts the execution of @code{Asymptote} code
 and returns control to the interactive prompt.
 
-Interactive mode is implemented with the @acronym{GNU} @code{readline} library.
-To customize the key bindings, see:
+Interactive mode is implemented with the @acronym{GNU} @code{readline} library,
+with command history and auto-completion. To customize the key bindings, see:
 @url{http://cnswww.cns.cwru.edu/php/chet/readline/readline.html}
 
 @cindex @code{Python} usage
