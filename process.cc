@@ -555,11 +555,15 @@ public:
     interact::init_interactive();
 
     do {
-      init();
-      restart=false;
-      icore::process();
+      try {
+	init();
+	restart=false;
+	icore::process();
+      } catch(interrupted&) {
+	if(em) em->Interrupt(false);
+      }
     } while(restart);
-
+      
     interact::cleanup_interactive();
   }
 };
