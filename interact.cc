@@ -96,6 +96,9 @@ mem::string simpleline() {
   /* Get a line from the user. */
   char *line = readline(getSetting<mem::string>("prompt").c_str());
 
+  /* Ignore keyboard interrupts while taking input. */
+  errorstream::interrupt=false;
+
   if (line) {
     /* If the line has any text in it, save it on the history. */
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
