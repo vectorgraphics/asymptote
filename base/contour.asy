@@ -492,7 +492,8 @@ guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
   for(int cnt=0; cnt < c.length; ++cnt) {
     pair[][] gdscnt=gds[cnt];
     for(int i=0; i < trn.length; ++i) {
-      int i0=trn[i][0], i1=trn[i][1], i2=trn[i][2];
+      int[] trni=trn[i];
+      int i0=trni[0], i1=trni[1], i2=trni[2];
       addseg(gdscnt,checktriangle(z[i0],z[i1],z[i2],
                                   f[i0]-c[cnt],f[i1]-c[cnt],f[i2]-c[cnt],0));
     }
@@ -563,7 +564,7 @@ guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
 }
 
 guide[][] contour(real[] x, real[] y, real[] f, real[] c,
-		  interpolate join=operator --)
+                  interpolate join=operator --)
 {
   int n=x.length;
   if(n != y.length)
