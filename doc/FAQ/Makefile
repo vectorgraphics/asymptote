@@ -1,6 +1,8 @@
 BFNNCONV = bfnnconv.pl m-ascii.pl m-html.pl m-info.pl m-lout.pl m-post.pl
 
-FAQ = asy-faq.html asy-faq.ascii
+FAQ = asy-faq.html asy-faq.ascii asy-faq.info
+
+all: faq
 
 $(FAQ): $(BFNNCONV) asy-faq.bfnn
 	mkdir -p asy-faq.html

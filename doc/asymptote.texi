@@ -2686,8 +2686,8 @@ boundary; otherwise fill with pen @code{p}. An optional margin of
 @item Fill
 Fill with the drawing pen.
 
-@item Fill(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
 @cindex @code{nullpen}
+@item Fill(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
 If @code{p} is @code{nullpen}, fill with the drawing pen; 
 otherwise fill with pen @code{p}. An optional margin of
 @code{xmargin} and @code{ymargin} can be specified.
@@ -6171,8 +6171,7 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
 To construct contours for an array of irregularly spaced points,
 along with an array of values at these points, use
 @verbatim
-guide[][] contour(pair[] points, real[] values, 
-                  real[] c, interpolate join=operator --);
+guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --);
 @end verbatim 
 @noindent
 The contours themselves can be drawn with one of the routines

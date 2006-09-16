@@ -83,13 +83,32 @@ can be found at
 It is also easy to compile Asymptote directly from the source code at
 \docref{http://sourceforge.net/project/showfiles.php?group_id=120000\}.
 
-\question 26jun:osxbadCPU Why do I get the error "Bad CPU type in executable" on installing Asymptote from the MAC OS binary?
+\question 15sep:osxbadreadline Why do I get an error in \courier{interact::init_completion()\} about \courier{invalid conversion from char* (*)(const char*, int)' to 'int (*)(const char*, int)'\} on installing Asymptote from the Mac OS binary?  
 
-This either means that you have a binary distribution for another MAC
+This means that your system does not satisfy the readline dependency listed at
+\docref{http://www.hmug.org/pub/MacOS_X/X/Applications/Publishing/asymptote\}
+
+Either upgrade to the latest GNU readline library or (if you don't care about
+readline support) simply compile Asymptote directly from the official
+source distribution (which will automatically detect and disable obsolete
+versions of the readline library):
+\docref{http://sourceforge.net/project/showfiles.php?group_id=120000\}.
+
+\question 26jun:osxbadCPU Why do I get the error \courier{Bad CPU type in executable\} on installing Asymptote from the MAC OS binary?
+
+This means either that you have a binary distribution for another MAC
 architecture, or (according to Marius Schamschula) that you may have a missing
 library. The simplest solution is to compile Asymptote directly from the
 official source:
 \docref{http://sourceforge.net/project/showfiles.php?group_id=120000\}.
+
+\question 15sep:nogccpp Why do I get the error: \courier{can't locate file for: -lgccpp\} when I configure with \courier{./configure --enable-gc=system\}? 
+
+This means that your system version of the Boehm Garbage Collector is
+incomplete. Please follow the instructions in the file \courier{INSTALL\}:
+get the latest version of the gc source from
+\docref{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/} and put it
+in the top-level Asymptote source directory before doing \courier{./configure\}.
 
 \question 27jun:latexintegration Is it possible to integrate Asymptote into LaTeX?
 
