@@ -5580,7 +5580,7 @@ struct bounds {
 This information can be used for generating an optional palette bar.
 The palette color space corresponds to a range of values specified by
 the argument @code{range}, which can be @code{Full}, @code{Automatic},
-or an explicit @code{bounds(pair min, pair max)}.
+or an explicit range @code{Range(pair min, pair max)}.
 Here @code{Full} specifies a range varying from the
 minimum to maximum values of the function over the sampling interval,
 while @code{Automatic} selects "nice" limits. 
@@ -5603,13 +5603,22 @@ Cartesian convention (first index: @math{x}, second index: @math{y})
 rather than the usual matrix convention (first index: @math{-y},
 second index: @math{x}).
 
+To construct an image from an array of irregularly spaced points
+and an array of values @code{f} at these points, use one of the routines
+@verbatim
+bounds image(picture pic=currentpicture, pair[] z, real[] f,
+             range range=Full, pen[] palette)
+bounds image(picture pic=currentpicture, real[] x, real[] y, real[] f,
+             range range=Full, pen[] palette)
+@end verbatim
+
 An optionally labelled palette bar may be generated with the routine
 @verbatim
 void palette(picture pic=currentpicture, Label L="", bounds range,
              pair initial, pair final, axis axis=Right, pen[] palette,
              pen p=currentpen, paletteticks ticks=PaletteTicks);
 @end verbatim
-The color space of @code{palette} is taken to be over @code{range} with
+The color space of @code{palette} is taken to be over bounds @code{range} with
 scaling given by the @math{z} scaling of @code{pic}.
 The palette orientation is specified by @code{axis}, which may be one of
 @code{Right}, @code{Left}, @code{Top}, or @code{Bottom}.
@@ -6168,10 +6177,13 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
 
 @end verbatim
 @noindent
-To construct contours for an array of irregularly spaced points,
-along with an array of values at these points, use
+To construct contours for an array of irregularly spaced points
+and an array of values @code{f} at these points, use one of the routines
 @verbatim
-guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --);
+guide[][] contour(pair[] z, real[] f, real[] c,
+                  interpolate join=operator --);
+guide[][] contour(real[] x, real[] y, real[] f, real[] c,
+                  interpolate join=operator --);
 @end verbatim 
 @noindent
 The contours themselves can be drawn with one of the routines
@@ -6213,6 +6225,9 @@ int[][] triangulate(pair[] z);
 
 @verbatiminclude triangulate.asy
 @image{triangulate}
+
+The example @code{Gouraudcontour} illustrates how to produce color
+density images over such irregular triangular meshes.
 
 @node slopefield
 @section @code{slopefield}

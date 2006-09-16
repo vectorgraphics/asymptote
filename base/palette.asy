@@ -1,33 +1,52 @@
 private import graph;
 
-typedef bounds range(picture pic, real[][] data);
+typedef bounds range(picture pic, real min, real max);
 
-range Range(bool automin=true, real min=-infinity,
-            bool automax=true, real max=infinity) {
-  return new bounds(picture pic, real[][] data) {
-    real dmin=min(data);
-    real dmax=max(data);
+range Range(bool automin=false, real min=-infinity,
+            bool automax=false, real max=infinity) 
+{
+  return new bounds(picture pic, real dmin, real dmax) {
     // autoscale routine finds reasonable limits
     bounds mz=autoscale(pic.scale.z.T(dmin),
                         pic.scale.z.T(dmax),
                         pic.scale.z.scale);
     // If automin/max, use autoscale result, else
-    //  if min/max is finite, use specified value, else
-    //  use minimum/maximum data value
+    //   if min/max is finite, use specified value, else
+    //   use minimum/maximum data value
     real pmin=automin ? pic.scale.z.Tinv(mz.min) : (finite(min) ? min : dmin);
     real pmax=automax ? pic.scale.z.Tinv(mz.max) : (finite(max) ? max : dmax);
     return bounds(pmin,pmax);
   };
 }
 
-range Automatic=Range();
-range Full=Range(false,false);
+range Automatic=Range(true,true);
+range Full=Range();
 
 void image(frame f, real[][] data, pair initial, pair final, pen[] palette,
            bool transpose=(initial.x < final.x && initial.y < final.y) ?
            true : false, transform t=identity())
 {
   _image(f,transpose ? transpose(data) : data,initial,final,palette,t);
+}
+
+// Reduce color palette to approximate range of data relative to "display"
+// range => errors of 1/palette.length in resulting color space.
+pen[] adjust(picture pic, real min, real max, real rmin, real rmax,
+             pen[] palette) 
+{
+  real dmin=pic.scale.z.T(min);
+  real dmax=pic.scale.z.T(max);
+  int minindex=floor((dmin-rmin)/(rmax-rmin)*palette.length);
+  if(minindex < 0) minindex=0;
+  int maxindex=floor((dmax-rmin)/(rmax-rmin)*palette.length);
+  if(maxindex > palette.length) maxindex=palette.length;
+  if(minindex > 0 || maxindex < palette.length) {
+    pen[] newpalette;
+    for(int i=minindex; i < maxindex; ++i)
+      newpalette.push(palette[i]);
+    return newpalette;
+  }
+  return palette;
 }
 
 bounds image(picture pic=currentpicture, real[][] f, range range=Full,
@@ -37,24 +56,14 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
 {
   f=transpose ? transpose(f) : copy(f);
   palette=copy(palette);
-  bounds range=range(pic,f);
-  
-  // *******************************************************************
-  // Reduce color palette to approximate range of data relative to "display"
-  // range => errors of 1/palette.length in resulting color space.
-  real dmin=pic.scale.z.T(min(f));
-  real dmax=pic.scale.z.T(max(f));
+
+  real m=min(f);
+  real M=max(f);
+  bounds range=range(pic,m,M);
   real rmin=pic.scale.z.T(range.min);
   real rmax=pic.scale.z.T(range.max);
-  int minindex=floor((dmin-rmin)/(rmax-rmin)*palette.length);
-  if(minindex < 0) minindex=0;
-  int maxindex=floor((dmax-rmin)/(rmax-rmin)*palette.length);
-  if(maxindex > palette.length) maxindex=palette.length;
-  pen[] newpalette;
-  for(int i=minindex; i < maxindex; ++i)
-    newpalette.push(palette[i]);
-  palette=newpalette;
-  
+  palette=adjust(pic,m,M,rmin,rmax,palette);
+
   int n=f.length;
   int m=n > 0 ? f[0].length : 0;
   // Crop data to allowed range and scale
@@ -97,6 +106,61 @@ bounds image(picture pic=currentpicture, real f(real,real),
     }
   }
   return image(pic,data,range,initial,final,palette,false);
+}
+
+bounds image(picture pic=currentpicture, pair[] z, real[] f,
+             range range=Full, pen[] palette)
+{
+  if(z.length != f.length)
+    abort("z and f arrays have different lengths");
+
+  real m=min(f);
+  real M=max(f);
+  bounds range=range(pic,m,M);
+  real rmin=pic.scale.z.T(range.min);
+  real rmax=pic.scale.z.T(range.max);
+  palette=adjust(pic,m,M,rmin,rmax,palette);
+
+  int n=f.length;
+  // Crop data to allowed range and scale
+  for(int i=0; i < n; ++i) {
+    real v=f[i];
+    v=max(v,range.min);
+    v=min(v,range.max);
+    f[i]=pic.scale.z.T(v);
+  }
+
+  int[] edges={0,0,1};
+  int N=palette.length-1;
+
+  int[][] trn=triangulate(z);
+  real step=rmax == rmin? 0.0 : (palette.length-1)/(rmax-rmin);
+  for(int i=0; i < trn.length; ++i) {
+    int[] trni=trn[i];
+    int i0=trni[0], i1=trni[1], i2=trni[2];
+    pair[] Z={z[i0],z[i1],z[i2]};
+    pen color(int i) {
+      return palette[round((f[i]-rmin)*step)];
+    }
+    pen[] p={color(i0),color(i1),color(i2)};
+    gouraudshade(pic,Z[0]--Z[1]--Z[2]--cycle,p,Z,edges);
+  }
+  return range; // Return range used for color space
+}
+
+bounds image(picture pic=currentpicture, real[] x, real[] y, real[] f,
+             range range=Full, pen[] palette)
+{
+  int n=x.length;
+  if(n != y.length)
+    abort("x and y arrays have different lengths");
+
+  pair[] z=new pair[n];
+
+  for(int i=0; i < n; ++i)
+    z[i]=(x[i],y[i]);
+    
+  return image(pic,z,f,range,palette);
 }
 
 typedef ticks paletteticks(int sign=-1);

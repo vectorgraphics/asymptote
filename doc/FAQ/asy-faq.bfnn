@@ -733,10 +733,11 @@ yaxis(LeftRight,RightTicks);
 \question 02sep:paletterange How can I force several images to use the same palette range (e.g. the entire 0-255 grayscale range)?
 
 The palette color space corresponds to a range of values specified by the
-argument range, which can be Full, Automatic or an explicit
-bounds(pair min, pair max). Here Full specifies a range varying from the
-minimum to maximum values of the function over the sampling interval, while
-Automatic selects "nice" limits.
+argument range, which can be \courier{Full\}, \courier{Automatic\} or an
+explicit range \courier{Range(pair min, pair max)\}. Here \courier{Full}
+specifies a range varying from the minimum to maximum values of the
+function over the sampling interval, while \courier{Automatic\} selects
+"nice" limits.
 
 \comment #####################################################################
 
