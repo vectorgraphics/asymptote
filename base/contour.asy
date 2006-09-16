@@ -480,10 +480,11 @@ private void addseg(pair[][] gds, segment seg)
   return;
 }
 
-guide[][] contour(pair[] points, real[] values, 
-                  real[] c, interpolate join=operator --)
+guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
 {
-  int[][] trn=triangulate(points);
+  if(z.length != f.length)
+    abort("z and f arrays have different lengths");
+  int[][] trn=triangulate(z);
 
   // array to store guides found so far
   pair[][][] gds=new pair[c.length][0][0];
@@ -492,9 +493,8 @@ guide[][] contour(pair[] points, real[] values,
     pair[][] gdscnt=gds[cnt];
     for(int i=0; i < trn.length; ++i) {
       int i0=trn[i][0], i1=trn[i][1], i2=trn[i][2];
-      addseg(gdscnt,checktriangle(points[i0],points[i1],points[i2],
-                                  values[i0]-c[cnt],values[i1]-c[cnt],
-                                  values[i2]-c[cnt],0));
+      addseg(gdscnt,checktriangle(z[i0],z[i1],z[i2],
+                                  f[i0]-c[cnt],f[i1]-c[cnt],f[i2]-c[cnt],0));
     }
   }
 
@@ -560,4 +560,19 @@ guide[][] contour(pair[] points, real[] values,
     }
   }
   return result;
+}
+
+guide[][] contour(real[] x, real[] y, real[] f, real[] c,
+		  interpolate join=operator --)
+{
+  int n=x.length;
+  if(n != y.length)
+    abort("x and y arrays have different lengths");
+
+  pair[] z=new pair[n];
+
+  for(int i=0; i < n; ++i)
+    z[i]=(x[i],y[i]);
+    
+  return contour(z,f,c,join);
 }
