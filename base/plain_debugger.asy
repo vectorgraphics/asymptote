@@ -66,7 +66,7 @@ string debugger(string file, int line, int column, code s=quote{})
       if(s == "h") {help=true; continue;}
       if(s == "c" || s == "s" || s == "n" || s == "i" || s == "f" || s == "r")
         break;
-      if(s == "q") abort(); // quit
+      if(s == "q") {debugging=false; abort();} // quit
       if(s == "x") {debugging=false; return "";} // exit
       if(s == "t") { // trace
         if(verbose == 0) {
