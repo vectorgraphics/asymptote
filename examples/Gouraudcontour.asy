@@ -8,7 +8,7 @@ int n=100;
 
 real[] x=new real[n];
 real[] y=new real[n];
-real[] f;
+real[] f=new real[n];
 
 real r() {return 1.1*(rand()/randMax*2-1);}
 
@@ -17,10 +17,10 @@ for(int i=0; i < n; ++i) {
   y[i]=r();
 }
 
-real F(real a, real b){return a^2+b^2;}
+real F(real a, real b) {return a^2+b^2;}
 
 for(int i=0; i < n; ++i)
-  f.push(F(x[i],y[i]));
+  f[i]=F(x[i],y[i]);
 
 pen Tickpen=black;
 pen tickpen=gray+0.5*linewidth(currentpen);
