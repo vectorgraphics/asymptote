@@ -4,12 +4,7 @@
 #include <iostream>
 #include <stdlib.h> // for C qsort 
 #include <cmath>
-#include <time.h> // for random
-
-const int MaxVertices = 500;
-const int MaxTriangles = 1000;
-const int n_MaxPoints = 10; // for the test programm
-const double EPSILON = 0.000001;
+#include <cfloat>
 
 struct ITRIANGLE{
   int p1, p2, p3;

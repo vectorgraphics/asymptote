@@ -1,17 +1,18 @@
 // Gilles Dumoulin's C++ port of Paul Bourke's triangulation code available
 // from http://astronomy.swin.edu.au/~pbourke/modelling/triangulate
 // Used with permission of Paul Bourke.
+// Numerical precision fixes by John C. Bowman
 
 #include "Delaunay.h"
 
 using namespace std; 
 
 ////////////////////////////////////////////////////////////////////////
-// CircumCircle() :
+// CircumCircle():
 //   Return true if a point (xp,yp) is inside the circumcircle made up
 //   of the points (x1,y1), (x2,y2), (x3,y3)
 //   The circumcircle centre is returned in (xc,yc) and the radius r
-//   Note : A point on the edge is inside the circumcircle
+//   Note: A point on the edge is inside the circumcircle
 ////////////////////////////////////////////////////////////////////////
 
 int CircumCircle(double xp, double yp, double x1, double y1, double x2, 
@@ -21,22 +22,24 @@ int CircumCircle(double xp, double yp, double x1, double y1, double x2,
   double m1, m2, mx1, mx2, my1, my2;
   double dx, dy, rsqr, drsqr;
 
+  double eps=100*DBL_EPSILON*max(max(abs(y1),abs(y2)),abs(y3));
+  
 /* Check for coincident points */
-  if(abs(y1 - y2) < EPSILON && abs(y2 - y3) < EPSILON)
+  if(abs(y1 - y2) <= eps && abs(y2 - y3) <= eps)
     return(false);
-  if(abs(y2-y1) < EPSILON){ 
+  if(abs(y2 - y1) <= eps) {
     m2 = - (x3 - x2) / (y3 - y2);
     mx2 = (x2 + x3) / 2.0;
     my2 = (y2 + y3) / 2.0;
     xc = (x2 + x1) / 2.0;
     yc = m2 * (xc - mx2) + my2;
-  }else if(abs(y3 - y2) < EPSILON){ 
+  } else if(abs(y3 - y2) <= eps) {
     m1 = - (x2 - x1) / (y2 - y1);
     mx1 = (x1 + x2) / 2.0;
     my1 = (y1 + y2) / 2.0;
     xc = (x3 + x2) / 2.0;
     yc = m1 * (xc - mx1) + my1;
-  }else{
+  } else {
     m1 = - (x2 - x1) / (y2 - y1); 
     m2 = - (x3 - x2) / (y3 - y2); 
     mx1 = (x1 + x2) / 2.0; 
@@ -53,7 +56,7 @@ int CircumCircle(double xp, double yp, double x1, double y1, double x2,
   dx = xp - xc;
   dy = yp - yc;
   drsqr = dx * dx + dy * dy;
-  return((drsqr <= rsqr) ? true : false);
+  return drsqr <= rsqr;
 }
 
 int XYZCompare(const void *v1, const void *v2) 
@@ -71,12 +74,12 @@ int XYZCompare(const void *v1, const void *v2)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Triangulate() :
+// Triangulate():
 //   Triangulation subroutine
 //   Takes as input NV vertices in array pxyz
 //   Returned is a list of ntri triangular faces in the array v
 //   These triangles are arranged in a consistent clockwise order.
-//   The triangle array 'v' should be allocated to 3 * nv
+//   The triangle array v should be allocated to 3 * nv
 //   The vertex array pxyz must be big enough to hold 3 additional points.
 //   By default, the array pxyz is automatically presorted and postsorted.
 ///////////////////////////////////////////////////////////////////////////////
@@ -111,11 +114,12 @@ int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri,
   ymin = pxyz[0].y;
   xmax = xmin;
   ymax = ymin;
-  for(i = 1; i < nv; i++){
-    if (pxyz[i].x < xmin) xmin = pxyz[i].x;
-    if (pxyz[i].x > xmax) xmax = pxyz[i].x;
-    if (pxyz[i].y < ymin) ymin = pxyz[i].y;
-    if (pxyz[i].y > ymax) ymax = pxyz[i].y;
+  for(i = 1; i < nv; i++) {
+    XYZ *pxyzi=pxyz+i;
+    if (pxyzi->x < xmin) xmin = pxyz[i].x;
+    if (pxyzi->x > xmax) xmax = pxyz[i].x;
+    if (pxyzi->y < ymin) ymin = pxyz[i].y;
+    if (pxyzi->y > ymax) ymax = pxyz[i].y;
   }
   dx = xmax - xmin;
   dy = ymax - ymin;
@@ -135,15 +139,15 @@ int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri,
   pxyz[nv+1].y = ymid + 20 * dmax;
   pxyz[nv+2].x = xmid + 20 * dmax;
   pxyz[nv+2].y = ymid - dmax;
-  v[0].p1 = nv;
-  v[0].p2 = nv+1;
-  v[0].p3 = nv+2;
+  v->p1 = nv;
+  v->p2 = nv+1;
+  v->p3 = nv+2;
   complete[0] = false;
   ntri = 1;
 /*
   Include each point one at a time into the existing mesh
 */
-  for(i = 0; i < nv; i++){
+  for(i = 0; i < nv; i++) {
     xp = pxyz[i].x;
     yp = pxyz[i].y;
     nedge = 0;
@@ -153,37 +157,39 @@ int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri,
   three edges of that triangle are added to the edge buffer
   and that triangle is removed.
 */
-    for(j = 0; j < ntri; j++){
+    for(j = 0; j < ntri; j++) {
       if(complete[j])
 	continue;
-      x1 = pxyz[v[j].p1].x;
-      y1 = pxyz[v[j].p1].y;
-      x2 = pxyz[v[j].p2].x;
-      y2 = pxyz[v[j].p2].y;
-      x3 = pxyz[v[j].p3].x;
-      y3 = pxyz[v[j].p3].y;
+      ITRIANGLE *vj=v+j;
+      x1 = pxyz[vj->p1].x;
+      y1 = pxyz[vj->p1].y;
+      x2 = pxyz[vj->p2].x;
+      y2 = pxyz[vj->p2].y;
+      x3 = pxyz[vj->p3].x;
+      y3 = pxyz[vj->p3].y;
       inside = CircumCircle(xp, yp, x1, y1, x2, y2, x3, y3, xc, yc, r);
       if (xc + r < xp)
 // Suggested
-// if (xc + r + EPSILON < xp)
+// if (xc + r + eps < xp)
 	complete[j] = true;
-      if(inside){
+      if(inside) {
 /* Check that we haven't exceeded the edge list size */
-	if(nedge + 3 >= emax){
+	if(nedge + 3 >= emax) {
 	  emax += 100;
 	  p_EdgeTemp = new IEDGE[emax];
-	  for (int i = 0; i < nv; i++){
+	  for (int i = 0; i < nv; i++) {
 	    p_EdgeTemp[i] = edges[i];   
 	  }
 	  delete []edges;
 	  edges = p_EdgeTemp;
 	}
-	edges[nedge+0].p1 = v[j].p1;
-	edges[nedge+0].p2 = v[j].p2;
-	edges[nedge+1].p1 = v[j].p2;
-	edges[nedge+1].p2 = v[j].p3;
-	edges[nedge+2].p1 = v[j].p3;
-	edges[nedge+2].p2 = v[j].p1;
+	ITRIANGLE *vj=v+j;
+	edges[nedge+0].p1 = vj->p1;
+	edges[nedge+0].p2 = vj->p2;
+	edges[nedge+1].p1 = vj->p2;
+	edges[nedge+1].p2 = vj->p3;
+	edges[nedge+2].p1 = vj->p3;
+	edges[nedge+2].p2 = vj->p1;
 	nedge += 3;
 	v[j] = v[ntri-1];
 	complete[j] = complete[ntri-1];
@@ -196,16 +202,16 @@ int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri,
   Note: if all triangles are specified anticlockwise then all
   interior edges are opposite pointing in direction.
 */
-    for(j = 0; j < nedge - 1; j++){
-      for(k = j + 1; k < nedge; k++){
-	if((edges[j].p1 == edges[k].p2) && (edges[j].p2 == edges[k].p1)){
+    for(j = 0; j < nedge - 1; j++) {
+      for(k = j + 1; k < nedge; k++) {
+	if((edges[j].p1 == edges[k].p2) && (edges[j].p2 == edges[k].p1)) {
 	  edges[j].p1 = -1;
 	  edges[j].p2 = -1;
 	  edges[k].p1 = -1;
 	  edges[k].p2 = -1;
 	}
 	/* Shouldn't need the following, see note above */
-	if((edges[j].p1 == edges[k].p1) && (edges[j].p2 == edges[k].p2)){
+	if((edges[j].p1 == edges[k].p1) && (edges[j].p2 == edges[k].p2)) {
 	  edges[j].p1 = -1;
 	  edges[j].p2 = -1;
 	  edges[k].p1 = -1;
@@ -233,8 +239,9 @@ int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri,
   These are triangles which have a vertex number greater than nv
 */
   for(i = 0; i < ntri; i++) {
-    if(v[i].p1 >= nv || v[i].p2 >= nv || v[i].p3 >= nv) {
-      v[i] = v[ntri-1];
+    ITRIANGLE *vi=v+i;
+    if(vi->p1 >= nv || vi->p2 >= nv || vi->p3 >= nv) {
+      *vi = v[ntri-1];
       ntri--;
       i--;
     }
@@ -244,9 +251,10 @@ int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri,
 
   if(postsort) { 
     for(i = 0; i < ntri; i++) {
-      v[i].p1=pxyz[v[i].p1].i;
-      v[i].p2=pxyz[v[i].p2].i;
-      v[i].p3=pxyz[v[i].p3].i;
+      ITRIANGLE *vi=v+i;
+      vi->p1=pxyz[vi->p1].i;
+      vi->p2=pxyz[vi->p2].i;
+      vi->p3=pxyz[vi->p3].i;
     }
   }
 
