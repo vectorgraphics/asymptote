@@ -107,8 +107,9 @@ official source:
 This means that your system version of the Boehm Garbage Collector is
 incomplete. Please follow the instructions in the file \courier{INSTALL\}:
 get the latest version of the gc source from
-\docref{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/} and put it
-in the top-level Asymptote source directory before doing \courier{./configure\}.
+\docref{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source\} and put it
+in the top-level Asymptote source directory before doing
+\courier{./configure\} (without the \courier{--enable-gc=system\} option).
 
 \question 27jun:latexintegration Is it possible to integrate Asymptote into LaTeX?
 
