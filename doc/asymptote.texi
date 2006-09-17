@@ -6156,16 +6156,17 @@ This package draws contour lines.
 To construct contours for a function @code{f}, use
 @verbatim
 guide[][] contour(real f(real, real), pair a, pair b,
-                  real[] c, int nx=nmesh, int ny=nx,
+                  real[] c, int nx=ngraph, int ny=nx,
                   interpolate join=operator --);
 @end verbatim
 @noindent
 The contour lines @code{c} for the function @code{f} are drawn
 on the rectangle defined by the bottom-left and top-right points @code{a}
 and @code{b}. The integers @code{nx} and @code{ny} define the resolution.
-The default resolution of @code{25 x 25} can be increased for greater accuracy.
-The default interpolation operator is @code{operator --} (linear).
-Spline interpolation (@code{operator ..}) generally produces more
+The default resolution, @code{ngraph x ngraph} (here @code{ngraph}
+defaults to @code{100}), can be increased for greater accuracy. The
+default interpolation operator is @code{operator --} (linear). Spline
+interpolation (@code{operator ..}) generally produces more
 accurate pictures, but as usual, can overshoot in certain cases.
 
 To construct contours for an array of data values on a uniform
@@ -6201,7 +6202,7 @@ for the function @math{z=x^2+y^2}, which is a unit circle:
 @image{contour1}
 
 The next example draws and labels multiple contours for the function
-@math{z=x^2-y^2} with the resolution @code{50 x 50}, using a dashed
+@math{z=x^2-y^2} with the resolution @code{100 x 100}, using a dashed
 pen for negative contours and a solid pen for positive (and zero) contours:
 @verbatiminclude contour2.asy
 @image{contour2}
@@ -6295,7 +6296,7 @@ Options:
 -O,-offset pair       PostScript offset [(0,0)]
 -f,-outformat format  Convert each output file to specified format [eps]
 -o,-outname name      Alternative output name for first file
--p,-parseonly         Parse test [false]
+-p,-parseonly         Parse file [false]
 -prompt string        Prompt ["> "]
 -q,-quiet             Suppress welcome message [false]
 -rgb                  Convert cmyk colors to rgb [false]
@@ -6303,7 +6304,7 @@ Options:
 -scroll n             Scroll standard output n lines at a time [0]
 -tabcompletion        Interactive prompt auto-completion [true]
 -tex                  Enable LaTeX label postprocessing [true]
--s,-translate         Translate test [false]
+-s,-translate         Show translated virtual machine code [false]
 -twice                Run LaTeX twice (to resolve references) [false] [false]
 -unsafe               Enable system call; command-line only [false]
 -u,-user x            General purpose user string  [""]

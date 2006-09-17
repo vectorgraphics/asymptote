@@ -169,7 +169,7 @@ public:
   }
 
   virtual void process() {
-    if (getSetting<bool>("parseonly"))
+    if (!interactive && getSetting<bool>("parseonly"))
       doParse();
     else if (getSetting<bool>("listvariables"))
       doList();
@@ -521,13 +521,9 @@ public:
     initCommands();
   }
 
-  void doParse() {
-    cerr << "iprompt::doParse() not yet implemented" << endl;
-  }
+  void doParse() {}
 
-  void doList() {
-    cerr << "iprompt::doParse() not yet implemented" << endl;
-  }
+  void doList() {}
 
   void run(coenv &e, istack &s) {
     running=true;

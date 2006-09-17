@@ -719,8 +719,9 @@ void initSettings() {
   addOption(new boolSetting("twice", 0,
 			    "Run LaTeX twice (to resolve references) [false]"));
   addOption(new boolSetting("inlinetex", 0, "Generate inline tex code"));
-  addOption(new boolSetting("parseonly", 'p', "Parse test"));
-  addOption(new boolSetting("translate", 's', "Translate test"));
+  addOption(new boolSetting("parseonly", 'p', "Parse file"));
+  addOption(new boolSetting("translate", 's',
+			    "Show translated virtual machine code"));
   addOption(new boolSetting("tabcompletion", 0,
                             "Interactive prompt auto-completion", true));
   addOption(new boolSetting("listvariables", 'l',
