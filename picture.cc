@@ -381,7 +381,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   paperHeight=getSetting<double>("paperheight");
   int origin=getSetting<int>("align");
     
-  pair bboxshift=(origin == ZERO) ? 0.0 : pair(-b.left,-b.bottom);
+  pair bboxshift=(origin == ZERO && !pdfformat) ?
+    pair(0.0,0.0) : pair(-b.left,-b.bottom);
   if(!pdfformat) {
     bboxshift += getSetting<pair>("offset");
     if(origin != ZERO && origin != BOTTOM) {
