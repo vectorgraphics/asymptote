@@ -887,10 +887,9 @@ void setOptions(int argc, char *argv[])
 {
   argv0=argv[0];
 
-  if(setlocale (LC_ALL, "") == NULL) {
+  if(setlocale (LC_ALL, "") == NULL)
     perror("setlocale");
-    exit(-1);
-  }
+  
   cout.precision(DBL_DIG);
   
   // Make configuration and history directory

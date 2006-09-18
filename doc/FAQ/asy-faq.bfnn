@@ -268,6 +268,16 @@ usepackage("fourier");
 defaultpen(font("T1","fut\textfamilyextension","m","n"));
 \endverbatim
 
+\question 26jun:decsep Is there any way to change the default appearance of the decimal separator, using a comma instead of a dot?
+
+Just set your locale appropriately. Here are two examples (under the UNIX bash shell):
+ 
+\verbatim
+echo "label(format(0.5));" | LC_NUMERIC=it_IT asy -V -
+
+LC_NUMERIC=it_IT asy -V lineargraph 
+\endverbatim
+
 \question 02sep:rotatelabel How can I get a rotated label with the filled box rotated as well so that it fits the text? 
 
 \verbatim
@@ -585,14 +595,6 @@ distance(A,B,"$\ell$",1);
 \question 26jun:log2 How can I make the y axis display base-2 logarithmic values?
 
 See the example \docref{http://asymptote.sourceforge.net/gallery/2D graphs/log2graph.asy\}. 
- 
-\question 26jun:decsep Is there any way to change the default appearance of the decimal separator in axis ticks, using a comma instead of a dot?
-
-Just set your locale appropriately. For example, under the UNIX bash shell:
- 
-\verbatim
-LC_NUMERIC=it_IT asy -V lineargraph 
-\endverbatim
 
 \question 27jun:dots Shouldn't dots always be the same size?
 
