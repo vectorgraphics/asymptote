@@ -95,15 +95,29 @@ path[] margin(path[] g, real xmargin, real ymargin)
 
 filltype Fill(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
 {
-  return new void(frame f, path[] g, pen drawpen) {
-    fill(f,margin(g,xmargin,ymargin),p == nullpen ? drawpen : p);
+  return new void(frame f, path[] g, pen fillpen) {
+    if(p != nullpen) fillpen=p;
+    if(fillpen == nullpen) fillpen=currentpen;
+    fill(f,margin(g,xmargin,ymargin),fillpen);
   };
 }
 
 filltype FillDraw(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
 {
   return new void(frame f, path[] g, pen drawpen) {
-    filldraw(f,margin(g,xmargin,ymargin),p == nullpen ? drawpen : p,drawpen);
+    pen fillpen=p == nullpen ? drawpen : p;
+    if(fillpen == nullpen) fillpen=currentpen;
+    if(drawpen == nullpen) fillpen=currentpen;
+    filldraw(f,margin(g,xmargin,ymargin),fillpen,drawpen);
+  };
+}
+
+filltype Draw(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
+{
+  return new void(frame f, path[] g, pen drawpen) {
+    pen drawpen=p == nullpen ? drawpen : p;
+    if(drawpen == nullpen) drawpen=currentpen;
+    draw(f,margin(g,xmargin,ymargin),drawpen);
   };
 }
 
@@ -111,16 +125,14 @@ filltype NoFill=new void(frame f, path[] g, pen p) {
   draw(f,g,p);
 };
 
-filltype FillDraw=FillDraw(nullpen), Fill=Fill(nullpen), Draw=NoFill; 
-
 filltype UnFill(real xmargin=0, real ymargin=xmargin)
 {
-  return new void(frame f, path[] g, pen p) {
+  return new void(frame f, path[] g, pen) {
     unfill(f,margin(g,xmargin,ymargin));
   };
 }
 
-filltype UnFill=UnFill();
+filltype FillDraw=FillDraw(), Fill=Fill(), Draw=Draw(), UnFill=UnFill(); 
 
 // Fill varying radially from penc at the center of the bounding box to
 // penr at the edge.
@@ -138,8 +150,8 @@ guide fill(frame dest, frame src, filltype filltype=NoFill,
            real xmargin=0, real ymargin=xmargin)
 {
   pair z=(xmargin,ymargin);
-  guide g=box(min(src)-0.5*min(invisible)-z,max(src)-0.5*max(invisible)+z);
-  filltype(dest,g,invisible);
+  guide g=box(min(src)-z,max(src)+z);
+  filltype(dest,g,nullpen);
   return g;
 }
 

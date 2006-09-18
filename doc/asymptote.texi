@@ -1004,8 +1004,8 @@ and @code{Arrows} (which draws an arrow at both ends of the path).
 These arrow specifiers (except for @code{None} and @code{Blank})
 may be given the optional arguments real @code{size} (arrowhead size
 in @code{PostScript} coordinates), real @code{angle} (arrowhead angle
-in degrees), @code{FillDraw}, @code{Fill}, or @code{NoFill} (equivalent to
-@code{Draw}), and (except for @code{MidArrow} and @code{Arrows}) a
+in degrees), @code{FillDraw}, @code{Fill}, @code{NoFill}, @code{Draw},
+and (except for @code{MidArrow} and @code{Arrows}) a
 relative real @code{position} along the path (an @code{arctime}) where
 the tip of the arrow should be placed. The default arrowhead size is
 @code{arrowheadsize(p)}. There are also arrow versions with slightly modified
@@ -2694,7 +2694,16 @@ otherwise fill with pen @code{p}. An optional margin of
 
 @cindex @code{NoFill}
 @item NoFill
-Do not fill; draw only the boundary.
+Do not fill.
+
+@item Draw
+Draw only the boundary.
+
+@cindex @code{Draw}
+@item Draw(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
+If @code{p} is @code{nullpen}, draw the boundary with the drawing pen; 
+otherwise draw with pen @code{p}. An optional margin of
+@code{xmargin} and @code{ymargin} can be specified.
 
 @cindex @code{UnFill}
 @item UnFill
@@ -2704,8 +2713,8 @@ Clip the region.
 @item UnFill(real xmargin=0, real ymargin=xmargin
 Clip the region and surrounding margins @code{xmargin} and @code{ymargin}.
 
-@cindex @code{RadialShade(pen penc, pen penr)}
-@item RadialShade
+@cindex @code{RadialShade}
+@item RadialShade(pen penc, pen penr)
 Fill varying radially from @code{penc} at the center of the bounding
 box to @code{penr} at the edge.
 
