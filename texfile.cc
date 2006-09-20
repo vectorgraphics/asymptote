@@ -41,11 +41,11 @@ void texfile::prologue()
 {
   texdefines(*out);
   if(!getSetting<bool>("inlinetex"))
-    *out << "\\pagestyle{empty}" << newl
+    *out << "\\usepackage{color}" << newl
+	 << "\\pagestyle{empty}" << newl
 	 << "\\textheight=2048pt" << newl
 	 << "\\textwidth=\\textheight" << newl
 	 << "\\begin{document}" << newl;
-  *out << "\\psset{unit=1pt}" << newl;
 }
     
 void texfile::beginlayer(const string& psname)
@@ -73,21 +73,21 @@ void texfile::setpen(pen p)
 		   p.magenta() != lastpen.magenta() || 
 		   p.yellow() != lastpen.yellow() ||
 		   p.black() != lastpen.black()))) {
-    *out << "\\newcmykcolor{ASYcolor}{" 
-	 << p.cyan() << " " << p.magenta() << " " << p.yellow() << " " 
-	 << p.black() << "}\\ASYcolor" << newl;
+    *out << "\\definecolor{ASYcolor}{cmyk}{" 
+	 << p.cyan() << "," << p.magenta() << "," << p.yellow() << "," 
+	 << p.black() << "}\\color{ASYcolor}" << newl;
   } else if(p.rgb() && (!lastpen.rgb() ||
 			(p.red() != lastpen.red() ||
 			 p.green() != lastpen.green() || 
 			 p.blue() != lastpen.blue()))) {
-    *out << "\\newrgbcolor{ASYcolor}{" 
-	 << p.red() << " " << p.green() << " " << p.blue()
-	 << "}\\ASYcolor" << newl;
+    *out << "\\definecolor{ASYcolor}{rgb}{" 
+	 << p.red() << "," << p.green() << "," << p.blue()
+	 << "}\\color{ASYcolor}" << newl;
   } else if(p.grayscale() && (!lastpen.grayscale() || 
 			      p.gray() != lastpen.gray())) {
-    *out << "\\newgray{ASYcolor}{" 
+    *out << "\\definecolor{ASYcolor}{gray}{" 
 	 << p.gray()
-	 << "}\\ASYcolor" << newl;
+	 << "}\\color{ASYcolor}" << newl;
   }
   
   if(p.size() != lastpen.size() || p.Lineskip() != lastpen.Lineskip()) {
@@ -135,7 +135,7 @@ void texfile::put(const string& label, double angle, const pair& z,
   if(scaled)
     *out << ")(" << scale.getx()
 	 << "," << scale.gety();
-  *out << "){" << angle
+  *out << "){" << -angle
        << "}{" << label << "}" << newl;
 }
 

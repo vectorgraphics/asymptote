@@ -76,16 +76,18 @@ void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
       << "\\ASYdimen=\\ht\\ASYbox%"
       << newl
       << "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl
+      << "\\input rotate" << newl
       << "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{%" << newl
       << "\\setbox\\ASYbox=\\hbox{#6}%" << newl
-      << "\\rput[lB]{#5}(#1,#2){\\ASYdimen=\\ht\\ASYbox%" << newl
+      << "\\put(#1,#2){\\rotstart{#5 rotate}\\ASYdimen=\\ht\\ASYbox%" << newl
       << "\\advance\\ASYdimen by\\dp\\ASYbox\\kern#3\\wd\\ASYbox"
-      << "\\raise#4\\ASYdimen\\box\\ASYbox}}" << newl
+      << "\\raise#4\\ASYdimen\\box\\ASYbox%" << newl
+      << "\\rotfinish}}"
       << "\\def\\ASYscale(#1,#2)(#3,#4)(#5,#6)#7#8{%" << newl
       << "\\ASYalign(#1,#2)(#3,#4){#7}{\\scalebox{#5}[#6]{#8}}}%" << newl;
   
   if(pipe || !settings::getSetting<bool>("inlinetex"))
-    out << "\\usepackage{pstricks,graphicx}" << newl;
+    out << "\\usepackage{graphicx}" << newl;
   if(pipe) out << "\\begin{document}" << newl;
 }
   
