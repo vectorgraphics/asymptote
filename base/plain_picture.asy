@@ -495,11 +495,8 @@ struct picture {
   }
 
   void clip(drawer d) {
-    uptodate(false);
     bounds.clip(userMin,userMax);
-    nodes.push(new void(frame f, transform t, transform T, pair, pair) {
-        d(f,t*T);
-      });
+    add(d);
   }
 
   // Add a point to the sizing.
@@ -963,8 +960,16 @@ void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
 void unfill(picture pic=currentpicture, path[] g)
 {
   g=copy(g);
-  pic.clip(new void(frame f, transform t) {
+  pic.add(new void(frame f, transform t) {
       unfill(f,t*g);
+    });
+}
+
+void filloutside(picture pic=currentpicture, path[] g, pen p=currentpen)
+{
+  g=copy(g);
+  pic.add(new void(frame f, transform t) {
+      filloutside(f,t*g,p);
     });
 }
 

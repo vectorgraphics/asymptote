@@ -69,10 +69,21 @@ void filldraw(frame f, path[] g, pen fillpen=currentpen,
   endgroup(f);
 }
 
-void unfill(frame f, path[] g)
+path[] complement(frame f, path[] g)
 {
   static pair margin=(0.5,0.5);
-  clip(f,box(min(f)-margin,max(f)+margin)^^g,evenoddoverlap);
+  return box(min(f)-margin,max(f)+margin)^^g;
+}
+
+void unfill(frame f, path[] g)
+{
+  clip(f,complement(f,g),evenoddoverlap);
+}
+
+void filloutside(frame f, path[] g, pen p=currentpen)
+{
+  static pair margin=(0.5,0.5);
+  fill(f,complement(f,g),p+evenoddoverlap);
 }
 
 typedef void filltype(frame, path[], pen);
