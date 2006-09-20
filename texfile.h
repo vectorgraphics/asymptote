@@ -73,16 +73,16 @@ void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
   out << "\\newbox\\ASYbox" << newl
       << "\\newdimen\\ASYdimen" << newl
       << "\\def\\ASYbase#1#2{\\setbox\\ASYbox=\\hbox{#1}"
-      << "\\ASYdimen=\\ht\\ASYbox%"
-      << newl
+      << "\\ASYdimen=\\ht\\ASYbox%" << newl
       << "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl
-      << "\\input rotate" << newl
-      << "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{%" << newl
-      << "\\setbox\\ASYbox=\\hbox{#6}%" << newl
-      << "\\put(#1,#2){\\rotstart{#5 rotate}\\ASYdimen=\\ht\\ASYbox%" << newl
+      << "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{\\setbox\\ASYbox=\\hbox{#6}%"
+      << newl
+      << "\\put(#1,#2){\\special{ps: gsave currentpoint currentpoint" << newl
+      << "translate #5 rotate neg exch neg exch translate}"
+      << "\\ASYdimen=\\ht\\ASYbox%" << newl
       << "\\advance\\ASYdimen by\\dp\\ASYbox\\kern#3\\wd\\ASYbox"
       << "\\raise#4\\ASYdimen\\box\\ASYbox%" << newl
-      << "\\rotfinish}}"
+      << "\\special{ps: currentpoint grestore moveto}}}" << newl
       << "\\def\\ASYscale(#1,#2)(#3,#4)(#5,#6)#7#8{%" << newl
       << "\\ASYalign(#1,#2)(#3,#4){#7}{\\scalebox{#5}[#6]{#8}}}%" << newl;
   

@@ -135,7 +135,7 @@ void texfile::put(const string& label, double angle, const pair& z,
   if(scaled)
     *out << ")(" << scale.getx()
 	 << "," << scale.gety();
-  *out << "){" << -angle
+  *out << "){" << (angle == 0.0 ? 0.0 : -angle)
        << "}{" << label << "}" << newl;
 }
 
