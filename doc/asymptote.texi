@@ -1714,7 +1714,7 @@ string pairs @{@code{before},@code{after}@} to the corresponding
 string @code{after};
 
 @anchor{format}
-@item string format(string s, int n) 
+@item string format(string s, int n)
 @cindex @code{format}
 returns a string containing @code{n} formatted according to the C-style
 format string @code{s} using the current locale;
@@ -1791,10 +1791,17 @@ an unresolved cubic spline (list of cubic-spline nodes and control points).
 This is like a path except that the computation of the cubic spline is
 deferred until drawing time (when it is resolved into a path); this allows
 two guides with free endpoint conditions to be joined together smoothly.
+The solid curve in the following example is built up incrementally as
+a guide, but only resolved at drawing time:
+
+@verbatiminclude mexicanhat.asy
+@image{mexicanhat}
 
 @item path
 @cindex @code{path}
-a cubic spline resolved into a fixed path.
+a cubic spline resolved into a fixed path. In the previous example,
+the dashed curve is incrementally resolved at each iteration, before
+the entire set of nodes (shown in red) are known.
 
 The implicit initializer for paths and guides is @code{nullpath},
 which is useful for building up a path within a loop.
@@ -6864,4 +6871,5 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  zlabel strptime slopefields cputime roundrectangle slopefield
 @c  LocalWords:  tickfactor USERNAME writeable imagecontour logimage Dumoulin's
 @c  LocalWords:  NoCrop parametricsurface realmult SoftLight HardLight interp
-@c  LocalWords:  ColorDodge ColorBurn Ivaldi buildcycle autorotate
+@c  LocalWords:  ColorDodge ColorBurn Ivaldi buildcycle autorotate mexicanhat
+@c  LocalWords:  Gouraudcontour
