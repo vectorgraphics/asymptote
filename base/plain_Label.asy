@@ -318,8 +318,8 @@ Label Label(string s="", string size="", align align=NoAlign, pen p=nullpen,
   return L;
 }
 
-Label Label(Label L, position position, align align=NoAlign, pen p=nullpen,
-            filltype filltype=NoFill)
+Label Label(Label L, explicit position position, align align=NoAlign,
+	    pen p=nullpen, filltype filltype=NoFill)
 {
   Label L=L.copy();
   L.position(position);
@@ -327,6 +327,12 @@ Label Label(Label L, position position, align align=NoAlign, pen p=nullpen,
   L.p(p);
   L.filltype(filltype);
   return L;
+}
+
+Label Label(Label L, pair position, align align=NoAlign,
+	    pen p=nullpen, filltype filltype=NoFill)
+{
+  return Label(L,(position) position,align,p,filltype);
 }
 
 Label Label(Label L, align align=NoAlign, pen p=nullpen,
