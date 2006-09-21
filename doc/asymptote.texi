@@ -1801,7 +1801,7 @@ a guide, but only resolved at drawing time:
 @cindex @code{path}
 a cubic spline resolved into a fixed path. In the previous example,
 the dashed curve is incrementally resolved at each iteration, before
-the entire set of nodes (shown in red) are known.
+the entire set of nodes (shown in red) is known.
 
 The implicit initializer for paths and guides is @code{nullpath},
 which is useful for building up a path within a loop.
