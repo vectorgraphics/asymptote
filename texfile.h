@@ -75,8 +75,8 @@ void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
       << "\\def\\ASYbase#1#2{\\setbox\\ASYbox=\\hbox{#1}"
       << "\\ASYdimen=\\ht\\ASYbox%" << newl
       << "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl
-      << "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{\\setbox\\ASYbox=\\hbox{#6}%"
-      << newl
+      << "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{\\leavevmode%" << newl
+      << "\\setbox\\ASYbox=\\hbox{#6}%" << newl
       << "\\put(#1,#2){\\special{ps: gsave currentpoint currentpoint" << newl
       << "translate #5 rotate neg exch neg exch translate}"
       << "\\ASYdimen=\\ht\\ASYbox%" << newl
