@@ -319,9 +319,9 @@ void draw(picture pic=currentpicture, Label L="", path g, align align=NoAlign,
   L.p(p);
   legend.p(p);
   if(marker != nomarker && !marker.put) marker.mark(pic,g);
-  if(L.s != "") L.out(pic,g);
   bool drawpath=arrow(pic,g,p,margin);
   if(bar(pic,g,p,margin) && drawpath) _draw(pic,g,p,margin);
+  if(L.s != "") L.out(pic,g);
   if(legend.s != "") {
     Legend l; l.init(legend.s,legend.p,p,marker.f,marker.put);
     pic.legend.push(l);
