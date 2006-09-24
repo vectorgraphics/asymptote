@@ -5146,8 +5146,7 @@ the size of the big ticks (in @code{PostScript} coordinates);
 @item real size
 the size of the small ticks (in @code{PostScript} coordinates);
 @item bool extend;
-extend the big ticks across the graph (useful for drawing a grid on
-the graph);
+extend the ticks between two axes (useful for drawing a grid on the graph);
 @item pen pTick
 an optional pen used to draw the big ticks;
 @item pen ptick
