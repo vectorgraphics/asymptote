@@ -338,23 +338,24 @@ void labelaxis(frame f, transform T, Label L, guide g,
   real t=L0.relative(g);
   pair z=point(g,t);
   pair dir=dir(g,t);
+  pair perp=I*dir;
   if(locate != null) {
     locateT locate1;
     locate1.dir(T,g,locate,t);
-    pair perp=I*dir;
     L0.align(L0.align,unit(-sgn(dot(sign*locate1.dir,perp))*perp));
   }                  
   pair align=L0.align.dir;
-  if(L0.align.relative) align *= -I*dir;
+  if(L0.align.relative) align *= -perp;
+  pair alignperp=dot(align,perp)*perp;
   pair offset;
   if(ticklabels) {
     if(piecewisestraight(g)) {
       real angle=degrees(dir);
-      transform S=rotate(-angle,point(g,t));
+      transform S=rotate(-angle,z);
       frame F=S*f;
       pair Z=S*z;
-      pair Align=rotate(-angle)*align;
-      offset=unit(align-sign*locate.dir(t))*
+      pair Align=rotate(-angle)*alignperp;
+      offset=unit(alignperp-sign*locate.dir(t))*
         abs((Align.y >= 0 ? max(F).y : (Align.y < 0 ? min(F).y : 0))-Z.y);
     }
     align=axislabelmargin*align;
