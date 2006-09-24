@@ -358,7 +358,7 @@ void labelaxis(frame f, transform T, Label L, guide g,
       offset=unit(alignperp-sign*locate.dir(t))*
         abs((Align.y >= 0 ? max(F).y : (Align.y < 0 ? min(F).y : 0))-Z.y);
     }
-    align=axislabelmargin*align;
+    align += (axislabelmargin-1)*alignperp;
   }
   z += offset;
 
