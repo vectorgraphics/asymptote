@@ -744,6 +744,11 @@ draw(unitsquare);
 shipout(unitsize=1cm);
 @end verbatim 
 
+One can also specify different @math{x} and @math{y} unit sizes:
+@verbatim 
+shipout(xunitsize=1cm,yunitsize=2cm);
+@end verbatim 
+
 Adding labels is easy in @code{Asymptote}; one specifies the
 label as a double-quoted @code{LaTeX} string, a
 coordinate, and an optional alignment direction:
@@ -2630,10 +2635,15 @@ by calling the function @code{shipout}:
 @cindex @code{shipout}
 @verbatim
 void shipout(string prefix=defaultfilename, picture pic,
-             real unitsize=0, frame preamble=patterns,
+             real unitsize=0,
+	     real xunitsize=unitsize != 0 ? unitsize : 0,
+	     real yunitsize=unitsize != 0 ? unitsize : 0,
+             frame preamble=patterns,
              orientation orientation=orientation,
              string format="", bool wait=NoWait, bool view=true);
 void shipout(string prefix=defaultfilename, real unitsize=0, 
+	     real xunitsize=unitsize != 0 ? unitsize : 0,
+	     real yunitsize=unitsize != 0 ? unitsize : 0,
              orientation orientation=orientation,
              string format="", bool wait=NoWait, bool view=true);
 @end verbatim
@@ -6871,4 +6881,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  tickfactor USERNAME writeable imagecontour logimage Dumoulin's
 @c  LocalWords:  NoCrop parametricsurface realmult SoftLight HardLight interp
 @c  LocalWords:  ColorDodge ColorBurn Ivaldi buildcycle autorotate mexicanhat
-@c  LocalWords:  Gouraudcontour
+@c  LocalWords:  Gouraudcontour xunitsize yunitsize

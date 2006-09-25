@@ -718,7 +718,7 @@ have any effect. But one can still reverse the axis, with Linear(-1).
 
 UnFill won't work here because it only affects the local frame the markers
 are initially drawn on, before being added to currentpicture. 
-Here is a way of achieving the desired effect:
+Here is a way of achieving the desired effect (assuming a white background):
  
 \verbatim
 import graph; 
@@ -943,6 +943,12 @@ of exactly \courier{1cm\}:
 \verbatim
 draw(unitsquare);
 shipout(unitsize=1cm);
+\endverbatim 
+
+One can also specify different x and y unit sizes:
+
+\verbatim
+shipout(xunitsize=1cm,yunitsize=2cm);
 \endverbatim 
 
 Another way is to draw your fixed size object to a frame and add it to
