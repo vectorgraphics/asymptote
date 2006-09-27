@@ -190,15 +190,7 @@ struct Label {
   
   void label(frame f, transform t=identity(), pair position, pair align) {
     pen p0=p == nullpen ? currentpen : p;
-    if(t == identity()) {
-      label(f,s,size,angle,position+align*labelmargin(p0)+shift,align,scale,
-            p0);
-    } else {
-      transform t0=shiftless(t);
-      real angle=degrees(t0*dir(angle));
-      pair position=t*position+align*labelmargin(p0)+shift;
-      label(f,s,size,angle,position,length(align)*unit(t0*align),scale,p0);
-    }
+    label(f,s,size,angle,t*position+align*labelmargin(p0)+shift,align,scale,p0);
   }
 
   void out(frame f, transform t=identity()) {
@@ -282,9 +274,8 @@ void add(picture pic=currentpicture, Label L)
 Label operator * (transform t, Label L)
 {
   Label tL=L.copy();
-  transform t0=shiftless(t);
-  tL.align.dir=length(L.align.dir)*unit(t0*L.align.dir);
-  tL.angle(degrees(t0*dir(L.angle)));
+  tL.align.dir=L.align.dir;
+  tL.angle(degrees(shiftless(t)*dir(L.angle)));
   tL.shift(shift(t)*L.shift);
   tL.scale(scale(t)*L.scale);
   return tL;
