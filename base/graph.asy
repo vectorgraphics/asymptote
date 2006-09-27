@@ -57,6 +57,12 @@ void scale(picture pic=currentpicture, scaleT x, scaleT y=Linear,
   pic.scale.x.scale=x;
   pic.scale.y.scale=y;
   pic.scale.z.scale=z;
+  pic.scale.x.automin=x.automin;
+  pic.scale.y.automin=y.automin;
+  pic.scale.z.automin=z.automin;
+  pic.scale.x.automax=x.automax;
+  pic.scale.y.automax=y.automax;
+  pic.scale.z.automax=z.automax;
 }
 
 void scale(picture pic=currentpicture, bool xautoscale=true,
