@@ -9,8 +9,7 @@ void distance(picture pic=currentpicture, pair A, pair B, Label L="", real n=0,
   pic.add(new void(frame f, transform t) {
     picture opic;
     guide G=T*t*g;
-    draw(opic,G,p,Arrows(NoFill),Bars,PenMargins); 
-    label(opic,L,midpoint(G),UnFill(1)); 
+    draw(opic,Label(L,Center,UnFill(1)),G,p,Arrows(NoFill),Bars,PenMargins); 
     add(f,opic.fit());
   });
   pic.addBox(min(g),max(g),T*min(p),T*max(p));
