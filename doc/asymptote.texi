@@ -2617,7 +2617,7 @@ is @code{x} and the height is @code{y}.
 To ensure that each dimension is no more than @code{size}, use the routine 
 @verbatim
 void size(picture pic=currentpicture, real size,
-          bool keepAspect=Aspect);
+          bool keepAspect=pic.keepAspect);
 @end verbatim
 
 Alternatively, calling the routine
@@ -5414,7 +5414,7 @@ xlimits(picture pic=currentpicture, real min=-infinity,
 @end verbatim 
 
 and the analogous function @code{ylimits} can be uncommented
-to restrict the respective axes limits for picture @code{pic} to the
+to set the respective axes limits for picture @code{pic} to the
 specified @code{min} and @code{max} values (alternatively, the function
 @code{limits(pair, pair)} can be used to limit the axes to the
 box having opposite vertices at the given pairs).
