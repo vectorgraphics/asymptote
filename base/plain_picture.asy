@@ -250,10 +250,13 @@ scaleT operator init()
   return S;
 }
                                   
+typedef void boundRoutine();
+
 struct autoscaleT {
   scaleT scale;
   scaleT postscale;
   real tickMin=-infinity, tickMax=infinity;
+  boundRoutine[] bound; // Optional routines to recompute the bounding box.
   bool automin=true, automax=true;
   bool automin() {return automin && scale.automin;}
   bool automax() {return automax && scale.automax;}
@@ -268,6 +271,7 @@ struct autoscaleT {
     dest.postscale=postscale.copy();
     dest.tickMin=tickMin;
     dest.tickMax=tickMax;
+    dest.bound=copy(bound);
     dest.automin=(bool) automin;
     dest.automax=(bool) automax;
     return dest;
