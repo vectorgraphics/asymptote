@@ -486,10 +486,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       if(Labels) {
 	tex->epilogue();
 	status=texprocess(texname,epsname,prefix,bboxshift);
-	if(!getSetting<bool>("keep"))
+	delete tex;
+	if(!getSetting<bool>("keep")) {
 	  for(std::list<string>::iterator p=psnameStack.begin();
 	      p != psnameStack.end(); ++p)
 	    unlink(p->c_str());
+	}
       }
       if(status)
 	status=postprocess(epsname,outname,outputformat,wait,view);
@@ -498,7 +500,6 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   if(!status) reportError("shipout failed");
     
-  delete tex;
   return status;
 }
 
