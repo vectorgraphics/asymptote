@@ -5,6 +5,11 @@
 
 #include "Delaunay.h"
 
+inline double max(double a, double b)
+{
+  return (a > b) ? a : b;
+}
+
 using namespace std; 
 
 ////////////////////////////////////////////////////////////////////////

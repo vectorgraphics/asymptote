@@ -120,7 +120,7 @@ public:
 
   virtual void run(coenv &e, istack &s) = 0;
 
-  virtual void postRun(coenv &e, istack &s) {
+  virtual void postRun(coenv &, istack &s) {
     // Run the exit function in non-interactive mode.
     // NOTE: resetenv used to do run::cleanup() instead.
     bool temp=interactive;
@@ -436,15 +436,15 @@ class iprompt : public icore {
     mem::string line=terminateLine(prefix+cl.rest);
     //block *code=parser::parseString(line, "<input>");
     //if (!em->errors() && code) {
-    if (true) {
+//    if (true) {
       running=false;
       restart=true;
       //startcode=code;
       startline=line;
-    } else {
-      em->sync();
-      em->clear();
-    }
+//    } else {
+//      em->sync();
+//      em->clear();
+//    }
     return true;
   }
 
