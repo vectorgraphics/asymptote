@@ -104,8 +104,8 @@ void texfile::setpen(pen p)
   lastpen=p;
 }
    
-void texfile::put(const string& label, double angle, const pair& z,
-		  const pair& align, const pair& scale, const bbox& Box)
+void texfile::put(const string& label, const transform& T, const pair& z,
+		  const pair& align, const bbox& Box)
 {
   if(label.empty()) return;
   
@@ -125,17 +125,13 @@ void texfile::put(const string& label, double angle, const pair& z,
     }
   }
   
-  static pair unscaled=pair(1.0,1.0);
-  bool scaled=(scale != unscaled);
-  *out << "\\ASY" << (scaled ? "scale" : "align")
+  *out << "\\ASYalign"
        << "(" << (z.getx()-offset.getx())*ps2tex
        << "," << (z.gety()-offset.gety())*ps2tex
        << ")(" << align.getx()
-       << "," << align.gety();
-  if(scaled)
-    *out << ")(" << scale.getx()
-	 << "," << scale.gety();
-  *out << "){" << (angle == 0.0 ? 0.0 : -angle)
+       << "," << align.gety() 
+       << "){" << T.getxx() << " " << -T.getyx()
+       << " " << -T.getxy() << " " << T.getyy()
        << "}{" << label << "}" << newl;
 }
 

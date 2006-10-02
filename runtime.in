@@ -796,10 +796,10 @@ pair min(picture *f)
   return f->bounds().Min();
 }
 
-void label(picture *f, string *s, string *size, real angle, pair position,
-	   pair align, pair scale, pen p)
+void label(picture *f, string *s, string *size, transform t, pair position,
+	   pair align, pen p)
 {
-  f->append(new drawLabel(*s,*size,angle,position,align,scale,p));
+  f->append(new drawLabel(*s,*size,t,position,align,p));
 }
 
 bool labels(picture *f)

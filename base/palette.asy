@@ -214,10 +214,11 @@ void palette(picture pic=currentpicture, Label L="", bounds range,
   if(L.defaultposition) L.position(0.5);
   L.align(axis.align);
   L.p(p);
-  if(vertical && L.defaultangle) {
+  if(vertical && L.defaulttransform) {
     frame f;
     add(f,Label(L.s,(0,0),L.p));
-    L.angle(length(max(f)-min(f)) > ylabelwidth*fontsize(L.p) ? 90 : 0);
+    if(length(max(f)-min(f)) > ylabelwidth*fontsize(L.p)) 
+      L.transform(rotate(90));
   }
   real[][] pdata=new real[][] {sequence(palette.length-1)};
   if(vertical) pdata=transpose(pdata);

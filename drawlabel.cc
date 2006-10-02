@@ -60,9 +60,6 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn)
   tex << "\n";
   tex.wait("\n*","! ");
      
-  width *= fontscale*scale.getx();
-  height *= fontscale*scale.gety();
-  depth *= fontscale*scale.gety();
   return true;
 }   
 
@@ -76,12 +73,8 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
 		       bboxlist&)
 {
   if(!settings::getSetting<bool>("tex")) {b += position; return;}
-  pair rotation=expi(radians(angle));
   pen Pentype=pentype;
-  double offset=0.3;
-  static double fuzz=Pentype.size()/24.0;
-  static double hfuzz=fuzz+offset;
-  static double vfuzz=fuzz*scale.gety()+offset;
+  double fuzz=Pentype.size()/24.0+0.3;
   
   if(!havebounds) {
     havebounds=true;
@@ -111,7 +104,8 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
     if(!texbounds(tex,label,nullsize) && !nullsize)
       texbounds(tex,size,false);
     
-    Align=align/rotation;
+    transform rot=rotate(angle(pair(T.getxx(),T.getyx())));
+    Align=inverse(rot)*align;
     double scale0=max(fabs(Align.getx()),fabs(Align.gety()));
     if(scale0) Align *= 0.5/scale0;
     Align -= pair(0.5,0.5);
@@ -120,16 +114,16 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
     if(Depth > 0) texAlign += pair(0.0,Depth/(height+Depth));
     Align.scale(width,height+Depth);
     Align += pair(0.0,Depth-depth);
-    Align *= rotation;
+    Align=T*Align;
   }
 
   // alignment point
   pair p=position+Align;
-  double vertical=height+depth+vfuzz;
-  pair A=p+pair(-hfuzz,-vfuzz)*rotation;
-  pair B=p+pair(-hfuzz,vertical)*rotation;
-  pair C=p+pair(width+hfuzz,vertical)*rotation;
-  pair D=p+pair(width+hfuzz,-vfuzz)*rotation;
+  double vertical=height+depth+fuzz;
+  pair A=p+T*pair(-fuzz,-fuzz);
+  pair B=p+T*pair(-fuzz,vertical);
+  pair C=p+T*pair(width+fuzz,vertical);
+  pair D=p+T*pair(width+fuzz,-fuzz);
   
   if(pentype.Overwrite() != ALLOW && label != "") {
     size_t n=labelbounds.size();
@@ -183,10 +177,9 @@ drawElement *drawLabel::transformed(const transform& t)
 {
   static const pair origin=pair(0,0);
   pair offset=t*origin;
-  return new drawLabel(label,size,
-		       degrees((t*expi(radians(angle))-offset).angle()),
-		       t*position,length(align)*unit(t*align-offset),scale,
-		       pentype);
+  return new drawLabel(label,size,t*T,
+//		       degrees((t*expi(radians(angle))-offset).angle()),
+		       t*position,length(align)*unit(t*align-offset),pentype);
 }
 
 } //namespace camp

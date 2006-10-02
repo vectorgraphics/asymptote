@@ -14,7 +14,7 @@ picture logo(pair s=0, pen q)
   draw(pic,(0,-y){dir(88.3)}::{dir(20)}(b,0),p);
   real c=0.5*a;
   pair z=(0,2.5);
-  label(pic,"{\it symptote}",z,0.25*E+0.83S,p);
+  label(pic,"{\it symptote}",z,0.25*E+0.169S,p);
   pair w=(0,1.7);
   draw(pic,intersectionpoint(A,w-1--w)--w,p);
   axes(pic,p);

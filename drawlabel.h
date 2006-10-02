@@ -11,13 +11,14 @@
 #include "drawelement.h"
 #include "path.h"
 #include "angle.h"
+#include "transform.h"
 
 namespace camp {
   
 class drawLabel : public drawElement {
 private:
   string label,size;
-  double angle;
+  transform T;		// A linear (shiftless) transformation.
   pair position;
   pair align;
   pair scale;
@@ -31,10 +32,10 @@ private:
   bbox Box;
   
 public:
-  drawLabel(string label, string size, double angle, pair position, pair align,
-	    pair scale, pen pentype)
-    : label(label), size(size), angle(angle), position(position), align(align),
-      scale(scale), pentype(pentype), width(0.0), height(0.0), depth(0.0),
+  drawLabel(string label, string size, transform T, pair position, pair align,
+	   pen pentype)
+    : label(label), size(size), T(shiftless(T)), position(position),
+      align(align), pentype(pentype), width(0.0), height(0.0), depth(0.0),
       havebounds(false), suppress(false), fontscale(1.0) {} 
   
   virtual ~drawLabel() {}
@@ -52,7 +53,7 @@ public:
       reportError("drawLabel::write called before bounds");
     if(suppress || pentype.invisible()) return true;
     out->setpen(pentype);
-    out->put(label,angle,position,texAlign,scale,Box);
+    out->put(label,T,position,texAlign,Box);
     return true;
   }
 

@@ -331,7 +331,7 @@ pair labeltick(frame d, transform T, guide g, ticklocate locate, real val,
 
   if(s != "") {
     s=baseline(s,align,"$10^4$");
-    label(d,rotate(F.angle)*s,locate1.Z+shift,align,F.p,F.filltype);
+    label(d,F.T*s,locate1.Z+shift,align,F.p,F.filltype);
   }
   return locate1.pathdir;
 }  
@@ -680,7 +680,7 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     if(ptick == nullpen) ptick=pTick;
     
     if(F.align.dir != 0) side=F.align.dir;
-    else if(side == 0) side=rotate(F.angle)*((sign == 1) ? left : right);
+    else if(side == 0) side=F.T*((sign == 1) ? left : right);
     
     bool ticklabels=false;
     guide G=T*g;
@@ -1412,10 +1412,11 @@ void yaxis(picture pic=currentpicture, Label L="", axis axis=XZero,
   if(L.defaultposition) L.position(axis.position);
   L.align(L.align,axis.align);
   
-  if(L.defaultangle) {
+  if(L.defaulttransform) {
     frame f;
     add(f,Label(L.s,(0,0),L.p));
-    L.angle(length(max(f)-min(f)) > ylabelwidth*fontsize(L.p) ? 90 : 0);
+    if(length(max(f)-min(f)) > ylabelwidth*fontsize(L.p)) 
+      L.transform(rotate(90));
   }
   
   yaxisAt(pic,L,axis,ymin,ymax,p,ticks,arrow,put);

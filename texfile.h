@@ -75,16 +75,17 @@ void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
       << "\\def\\ASYbase#1#2{\\setbox\\ASYbox=\\hbox{#1}"
       << "\\ASYdimen=\\ht\\ASYbox%" << newl
       << "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl
+//      << "\\usepackage{rotating}" << newl
       << "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{\\leavevmode%" << newl
       << "\\setbox\\ASYbox=\\hbox{#6}%" << newl
+//      << "\\put(#1,#2){\\begin{rotate}{#5}%" << newl
       << "\\put(#1,#2){\\special{ps: gsave currentpoint currentpoint" << newl
-      << "translate #5 rotate neg exch neg exch translate}"
+      << "translate [#5 0 0] concat neg exch neg exch translate}"
       << "\\ASYdimen=\\ht\\ASYbox%" << newl
       << "\\advance\\ASYdimen by\\dp\\ASYbox\\kern#3\\wd\\ASYbox"
       << "\\raise#4\\ASYdimen\\box\\ASYbox%" << newl
-      << "\\special{ps: currentpoint grestore moveto}}}" << newl
-      << "\\def\\ASYscale(#1,#2)(#3,#4)(#5,#6)#7#8{%" << newl
-      << "\\ASYalign(#1,#2)(#3,#4){#7}{\\scalebox{#5}[#6]{#8}}}%" << newl;
+//      << "\\end{rotate}}}" << newl
+      << "\\special{ps: currentpoint grestore moveto}}}" << newl;
   
   if(pipe || !settings::getSetting<bool>("inlinetex"))
     out << "\\usepackage{graphicx}" << newl;
@@ -118,9 +119,9 @@ public:
     clipstack.pop_back();
   }
   
-  // Draws label rotated by angle (relative to the horizontal) at position z.
-  void put(const string& label, double angle, const pair& z, const pair& Align,
-	   const pair& scale, const bbox& Box);
+  // Draws label transformed by T at position z.
+  void put(const string& label, const transform& T, const pair& z,
+	   const pair& Align, const bbox& Box);
 
   void beginlayer(const string& psname);
   void endlayer();

@@ -1237,23 +1237,23 @@ The Label @code{L} can either be a string or the structure obtained by calling
 one of the functions
 @verbatim
 Label Label(string s="", pair position, align align=NoAlign,
-            pen p=nullpen, filltype filltype=NoFill);
+            pen p=nullpen, bool scale=false, filltype filltype=NoFill);
 Label Label(string s="", align align=NoAlign,
-            pen p=nullpen, filltype filltype=NoFill);
+            pen p=nullpen, bool scale=false, filltype filltype=NoFill);
 Label Label(Label L, pair position, align align=NoAlign,
-            pen p=nullpen, filltype filltype=NoFill);
+            pen p=nullpen, bool scale=L.scale, filltype filltype=NoFill);
 Label Label(Label L, align align=NoAlign,
-            pen p=nullpen, filltype filltype=NoFill);
+            pen p=nullpen, bool scale=L.scale, filltype filltype=NoFill);
 @end verbatim
-The text of a Label can be scaled horizontally and/or vertically
-by multiplying it on the left with @code{xscale(real)},
-@code{yscale(real)}, or @code{scale(real)}.
-After optionally scaling a Label, it can be rotated by an angle by
-multiplying it on the left with a rotation (in degrees): for example,
-@code{rotate(45)*xscale(2)*L} first scales @code{L} in the @math{x}
-direction and then rotates it counterclockwise by 45 degrees.
-The final position of a Label can also be shifted by a
-@code{PostScript} coordinate translation like this: @code{shift(10,0)*L}.
+The text of a Label can be scaled, slanted, rotated, or shifted by
+multiplying it on the left by an affine transform (@pxref{Transforms}). 
+For example, @code{rotate(45)*xscale(2)*L} first scales @code{L} in the
+@math{x} direction and then rotates it counterclockwise by 45
+degrees. The final position of a Label can also be shifted by a
+@code{PostScript} coordinate translation: @code{shift(10,0)*L}.
+The only picture and frame transforms that are by default applied to labels
+are @code{rotate} and @code{shift}; to have the label scale (and slant)
+with the frame or picture, set @code{scale} to true.
 
 To add a label to a path, use
 @verbatim
@@ -1312,7 +1312,7 @@ of the file to include and @code{options} is a string containing a
 comma-separated list of optional bounding box (@code{bb=llx lly urx
 ury}), width (@code{width=value}), height (@code{height=value}),
 rotation (@code{angle=value}), scaling (@code{scale=factor}), clipping
-(@code{clip=bool}), and draft mode (@code{draftx=bool}) parameters. The
+(@code{clip=bool}), and draft mode (@code{draft=bool}) parameters. The
 @code{layer()} function can be used to force future objects to be
 drawn on top of the included image:
 @verbatim
@@ -2496,6 +2496,10 @@ attributes to their initial values.
 x' = t.x + t.xx * x + t.xy * y
 y' = t.y + t.yx * x + t.yy * y
 @end verbatim
+@noindent
+This is equivalent to the @code{PostScript} transformation
+@code{[t.xx t.yx t.xy t.yy t.x t.y]}.
+
 Transforms can be applied to pairs, guides, paths, pens,
 transforms, frames, and pictures by multiplication (via the binary operator
 @code{*}) on the left (@pxref{circle} for an example).
@@ -6847,7 +6851,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  PaletteTicks defaultformat leastsquares bjam fprintf endgroup
 @c  LocalWords:  begingroup xmargin ymargin pbox box ellipse wget exe Gouraud
 @c  LocalWords:  multithreaded newframe init emph nums concat xline yline zpart
-@c  LocalWords:  colatitude zscale noView cosh nullpen MetaFontbook cyclicflag
+@c  LocalWords:  colatitude zscale cosh nullpen MetaFontbook cyclicflag
 @c  LocalWords:  nodeps Ghostgum beginlabel endlabel pTick ptick loggrid SAS dy
 @c  LocalWords:  currentprojection latticeshading subpictures colinear unitcube
 @c  LocalWords:  Autoscaling solveQuadratic MidArrow MidArcArrow Prebuilt url
