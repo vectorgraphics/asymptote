@@ -48,7 +48,7 @@ Estimate proportion of birds surviving at end of season\end{itemize}}",100),
 	    align=NNE),
      (M1,S1),NNE,1cm,p,Arrow(NoFill));
 
-arrow(shift(-20,5)*Label(minipage("\flushleft{\begin{itemize}\item[2.]
+arrow(shift(-24,5)*Label(minipage("\flushleft{\begin{itemize}\item[2.]
 Read off initial mosquito abundance\end{itemize}}",80),align=NNE),
      (M1,0),NE,2cm,p,Arrow(NoFill));
 
@@ -56,7 +56,7 @@ arrow(shift(20,0)*Label(minipage("\flushleft{\begin{itemize}\item[3.]
 Determine desired bird survival for next season\end{itemize}}",90),align=SW),
      (M2,S2),SW,arrowlength,p,Arrow(NoFill));
 
-arrow(shift(5,-15)*Label(minipage("\flushleft{\begin{itemize}\item[4.]
+arrow(shift(8,-15)*Label(minipage("\flushleft{\begin{itemize}\item[4.]
 Calculate required proportional reduction in mosquitoes\end{itemize}}",90),
 			  align=NW),
       point(reduction,0.5),NW,1.5cm,p,Arrow(NoFill));

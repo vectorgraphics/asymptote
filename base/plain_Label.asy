@@ -137,13 +137,12 @@ struct Label {
   transform T;
   bool defaulttransform=true;
   bool scale=false; // Automatically scale with the frame or picture?
-  pair shift;
   filltype filltype=NoFill;
   
   void init(string s="", string size="", position position=0, 
             bool defaultposition=true,
             align align=NoAlign, pen p=nullpen, transform T=identity(),
-	    bool scale=false, pair shift=0, filltype filltype=NoFill) {
+	    bool scale=false, filltype filltype=NoFill) {
     this.s=s;
     this.size=size;
     this.position=position;
@@ -152,7 +151,6 @@ struct Label {
     this.p=p;
     this.T=T;
     this.scale=scale;
-    this.shift=shift;
     this.filltype=filltype;
   }
   
@@ -163,17 +161,13 @@ struct Label {
   
   Label copy() {
     Label L=new Label;
-    L.init(s,size,position,defaultposition,align,p,T,scale,shift,filltype);
+    L.init(s,size,position,defaultposition,align,p,T,scale,filltype);
     return L;
   }
   
   void transform(transform T) {
     this.T=T;
     defaulttransform=false;
-  }
-  
-  void shift(pair a) {
-    this.shift=a;
   }
   
   void position(position pos) {
@@ -198,8 +192,8 @@ struct Label {
   
   void label(frame f, transform t=identity(), pair position, pair align) {
     pen p0=p == nullpen ? currentpen : p;
-    label(f,s,size, (scale ? t : rotation(t))*T,
-	  t*position+align*labelmargin(p0)+shift,align,p0);
+    label(f,s,size, (scale ? t : rotation(t))*shiftless(T),
+	  t*position+align*labelmargin(p0)+shift(T)*0,align,p0);
   }
 
   void out(frame f, transform t=identity()) {
@@ -254,7 +248,6 @@ struct Label {
     if(p != nullpen) write(file,", pen=",p);
     if(!defaulttransform) write(file,", transform=",T);
     if(scale) write(file,", scale=",scale);
-    if(shift != 0) write(file,", shift=",shift);
     write(file,"",suffix);
   }
   
@@ -285,8 +278,7 @@ Label operator * (transform t, Label L)
 {
   Label tL=L.copy();
   tL.align.dir=L.align.dir;
-  tL.transform(shiftless(t)*L.T);
-  tL.shift(shift(t)*L.shift);
+  tL.transform(t*L.T);
   return tL;
 }
 

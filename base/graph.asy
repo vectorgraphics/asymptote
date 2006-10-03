@@ -1474,9 +1474,9 @@ void xtick(picture pic=currentpicture, Label L, pair z, pair dir=N,
   Label L=L.copy();
   if(L.defaultposition) L.position(z);
   L.align(L.align,-dir);
-  if(L.shift == 0) 
-    L.shift(dot(dir,L.align.dir) > 0 ? dir*size :
-            ticklabelshift(L.align.dir,p));
+  if(shift(L.T)*0 == 0)
+    L.T=shift(dot(dir,L.align.dir) > 0 ? dir*size :
+	      ticklabelshift(L.align.dir,p))*L.T;
   L.p(p);
   if(L.s == "") L.s=format(format == "" ? defaultformat : format,z.x);
   L.s=baseline(L.s,L.align,"$10^4$");
@@ -1515,7 +1515,8 @@ private void label(picture pic, Label L, pair z, real x, align align,
   L.position(z);
   L.align(align);
   L.p(p);
-  if(L.shift == 0) L.shift(ticklabelshift(L.align.dir,L.p));
+  if(shift(L.T)*0 == 0)
+    L.T=shift(ticklabelshift(L.align.dir,L.p))*L.T;
   if(L.s == "") L.s=format(format == "" ? defaultformat : format,x);
   L.s=baseline(L.s,L.align,"$10^4$");
   add(pic,L);
