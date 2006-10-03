@@ -991,8 +991,8 @@ void axis(picture pic=currentpicture, Label L="", guide g, guide g2=nullpath,
   locate=locate.copy();
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
       frame d;
-      ticks(d,t*T,L,0,g,g2,p,arrow,locate,divisor,opposite);
-      (put ? add : prepend)(f,d);
+      ticks(put ? f : d,t*T,L,0,g,g2,p,arrow,locate,divisor,opposite);
+      if(put == Below) prepend(f,d);
     });
   
   pic.addPath(g,p);
@@ -1037,9 +1037,9 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
       b += (fuzz,0);
 
       frame d;
-      ticks(d,t*T,L,side,a--b,finite(y2) ? a2--b2 : nullpath,p,arrow,
+      ticks(put ? f : d,t*T,L,side,a--b,finite(y2) ? a2--b2 : nullpath,p,arrow,
             ticklocate(a.x,b.x,pic.scale.x),divisor,opposite);
-      (put ? add : prepend)(f,d);
+      if(put == Below) prepend(f,d);
     });
 
   void bounds() {
@@ -1124,9 +1124,9 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
       b += (0,fuzz);
 
       frame d;
-      ticks(d,t*T,L,side,a--b,finite(x2) ? a2--b2 : nullpath,p,arrow,
+      ticks(put ? f : d,t*T,L,side,a--b,finite(x2) ? a2--b2 : nullpath,p,arrow,
             ticklocate(a.y,b.y,pic.scale.y),divisor,opposite);
-      (put ? add : prepend)(f,d);
+      if(put == Below) prepend(f,d);
     });
   
   void bounds() {
