@@ -991,8 +991,8 @@ void axis(picture pic=currentpicture, Label L="", guide g, guide g2=nullpath,
   locate=locate.copy();
   pic.add(new void (frame f, transform t, transform T, pair lb, pair rt) {
       frame d;
-      ticks(d,t,L,0,g,g2,p,arrow,locate,divisor,opposite);
-      (put ? add : prepend)(f,t*T*inverse(t)*d);
+      ticks(d,t*T,L,0,g,g2,p,arrow,locate,divisor,opposite);
+      (put ? add : prepend)(f,d);
     });
   
   pic.addPath(g,p);
