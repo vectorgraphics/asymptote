@@ -201,7 +201,6 @@ bounds autoscale(real Min, real Max, scaleT scale=Linear)
 }
 
 typedef string ticklabel(real);
-private string ticklabel(real) {return "";}
 
 ticklabel Format(string s) {
   return new string(real x) {return format(s,x);};
@@ -240,7 +239,6 @@ ticklocate operator init() {return new ticklocate;}
 autoscaleT defaultS;
   
 typedef real valuetime(real);
-real valuetime(real x) {return 0;}
 
 valuetime linear(picture pic=currentpicture, scalefcn S=identity,
                  real Min, real Max)
@@ -848,7 +846,6 @@ axisT operator init() {return new axisT;}
                                                
 axisT axis;
 typedef void axis(picture, axisT);
-void axis(picture, axisT) {};
 
 axis Bottom(bool extend=false)
 {

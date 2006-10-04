@@ -87,7 +87,6 @@ void filloutside(frame f, path[] g, pen p=currentpen)
 }
 
 typedef void filltype(frame, path[], pen);
-void filltype(frame, path[], pen) {}
 
 path[] margin(path[] g, real xmargin, real ymargin) 
 {
