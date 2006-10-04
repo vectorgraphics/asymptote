@@ -279,7 +279,7 @@ public:
 
   // If a new type is formed by adding dimensions (or a function signature)
   // after the id, this will add the standard functions for that new type.
-  virtual void addOps(types::ty *base, coenv &e);
+  virtual void addOps(types::ty *base, coenv &e, record *r);
 
   virtual symbol *getName()
     { return id; }
@@ -302,7 +302,7 @@ public:
 
   types::ty *getType(types::ty *base, coenv &e, bool tacit = false);
   trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e, record *where);
-  void addOps(types::ty *base, coenv &e);
+  void addOps(types::ty *base, coenv &e, record *r);
 };
 
 class decid : public absyn {

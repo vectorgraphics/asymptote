@@ -436,9 +436,6 @@ real logaxiscoverage(int N, transform T, path g, ticklocate locate, pair side,
 typedef void ticks(frame, transform, Label, pair, path, path, pen, arrowbar,
                    ticklocate, int[], bool opposite=false);
                                           
-private void ticks(frame, transform, Label, pair, path, path, pen, arrowbar,
-                   ticklocate, int[], bool opposite=false) {};
-
 // Automatic tick construction routine.
 ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
             bool beginlabel=true, bool endlabel=true,

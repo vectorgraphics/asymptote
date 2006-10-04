@@ -49,7 +49,7 @@ types::ty *formal::getType(coenv &e, bool tacit) {
   
 void formal::addOps(coenv &e) {
   if (start)
-    start->addOps(base->trans(e, true), e);
+    start->addOps(base->trans(e, true), e, (record *)0);
 } 
 
 void formals::prettyprint(ostream &out, int indent)
