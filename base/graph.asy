@@ -1082,6 +1082,8 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
   for(int i=0; i < pic.scale.y.bound.length; ++i)
     pic.scale.y.bound[i]();
 
+  pic.scale.y.bound=new boundRoutine[];
+
   bounds();
 
   // Request another x bounds calculation before final picture scaling.
@@ -1168,6 +1170,8 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
   // Process any queued x axis bound calculation requests.
   for(int i=0; i < pic.scale.x.bound.length; ++i)
     pic.scale.x.bound[i]();
+
+  pic.scale.x.bound=new boundRoutine[];
 
   bounds();
 
