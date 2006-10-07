@@ -77,13 +77,13 @@ path[] complement(frame f, path[] g)
 
 void unfill(frame f, path[] g)
 {
-  clip(f,complement(f,g),evenoddoverlap);
+  clip(f,complement(f,g),evenodd);
 }
 
 void filloutside(frame f, path[] g, pen p=currentpen)
 {
   static pair margin=(0.5,0.5);
-  fill(f,complement(f,g),p+evenoddoverlap);
+  fill(f,complement(f,g),p+evenodd);
 }
 
 typedef void filltype(frame, path[], pen);

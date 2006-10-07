@@ -1237,13 +1237,13 @@ The Label @code{L} can either be a string or the structure obtained by calling
 one of the functions
 @verbatim
 Label Label(string s="", pair position, align align=NoAlign,
-            pen p=nullpen, bool scale=false, filltype filltype=NoFill);
+            pen p=nullpen, embed embed=Rotate, filltype filltype=NoFill);
 Label Label(string s="", align align=NoAlign,
-            pen p=nullpen, bool scale=false, filltype filltype=NoFill);
+            pen p=nullpen, embed embed=Rotate, filltype filltype=NoFill);
 Label Label(Label L, pair position, align align=NoAlign,
-            pen p=nullpen, bool scale=L.scale, filltype filltype=NoFill);
+            pen p=nullpen, embed embed=L.embed, filltype filltype=NoFill);
 Label Label(Label L, align align=NoAlign,
-            pen p=nullpen, bool scale=L.scale, filltype filltype=NoFill);
+            pen p=nullpen, embed embed=L.embed, filltype filltype=NoFill);
 @end verbatim
 The text of a Label can be scaled, slanted, rotated, or shifted by
 multiplying it on the left by an affine transform (@pxref{Transforms}). 
@@ -1251,9 +1251,18 @@ For example, @code{rotate(45)*xscale(2)*L} first scales @code{L} in the
 @math{x} direction and then rotates it counterclockwise by 45
 degrees. The final position of a Label can also be shifted by a
 @code{PostScript} coordinate translation: @code{shift(10,0)*L}.
-The only picture and frame transforms that are by default applied to labels
-are @code{rotate} and @code{shift}; to have the label scale (and slant)
-with the frame or picture, set @code{scale} to true.
+
+@cindex @code{embed}
+@cindex @code{Shift}
+@cindex @code{Rotate}
+@cindex @code{Slant}
+@cindex @code{Scale}
+If @code{embed=Shift}, labels will only shift with pictures.
+If @code{embed=Rotate} (the default), labels will shift and rotate, but
+not scale or slant, with pictures.
+If @code{embed=Slant}, labels will shift, rotate, and slant with pictures.
+If @code{embed=Scale}, labels will shift, rotate, slant, and scale with
+pictures.
 
 To add a label to a path, use
 @verbatim
@@ -2258,16 +2267,12 @@ The default join style, @code{roundjoin}, may be changed with
 @cindex @code{fillrule}
 @cindex @code{zerowinding}
 @cindex @code{evenodd}
-@cindex @code{zerowindingoverlap}
-@cindex @code{evenoddoverlap}
 @anchor{fillrule}
 @item A pen with a specific @code{PostScript} fill rule is returned on
 calling @code{fillrule} with an integer argument:
 @verbatim
 pen zerowinding=fillrule(0);
 pen evenodd=fillrule(1);
-pen zerowindingoverlap=fillrule(2);
-pen evenoddoverlap=fillrule(3);
 @end verbatim
 
 @noindent
@@ -2279,15 +2284,8 @@ the number of upward intersections of the path with the horizontal
 line @code{z--z+infinity} minus the number of downward intersections
 is zero. For the @code{evenodd} fill rule, @code{z} is considered to
 be outside the region if the total number of such intersections is even.
-A label is considered to be inside the region only if all four
-corners of its (possibly rotated) bounding box are within the region.
-The fill rules @code{zerowindingoverlap} and @code{evenoddoverlap}
-are respectively identical to @code{zerowinding} and @code{evenodd},
-except that a label is considered to be inside the region whenever
-its center is within the region. While this allows labels to
-extend beyond the clipping region, any actual overlap is ignored when
-determining picture bounds. The default fill rule, @code{zerowinding}, may
-be changed with @code{defaultpen(pen)}.
+The default fill rule, @code{zerowinding}, may be changed with
+@code{defaultpen(pen)}.
 
 @cindex @code{nobasealign}
 @cindex @code{basealign}

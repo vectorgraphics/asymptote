@@ -20,7 +20,6 @@ transform rotation(transform t)
 
 transform scale(transform t)
 {
-  write(rotation(t));
   transform T=rotate(-angle(t))*t;
   return (0,0,T.xx,0,0,T.yy);
 }
@@ -81,10 +80,10 @@ side Relative(explicit pair align)
   return s;
 }
   
-side NoSide;
-side LeftSide=Relative(W);
-side Center=Relative((0,0));
-side RightSide=Relative(E);
+restricted side NoSide;
+restricted side LeftSide=Relative(W);
+restricted side Center=Relative((0,0));
+restricted side RightSide=Relative(E);
 
 side operator * (real x, side s) 
 {
@@ -118,15 +117,21 @@ position Relative(real position)
   return p;
 }
   
-position BeginPoint=Relative(0);
-position MidPoint=Relative(0.5);
-position EndPoint=Relative(1);
+restricted position BeginPoint=Relative(0);
+restricted position MidPoint=Relative(0.5);
+restricted position EndPoint=Relative(1);
 
 position operator cast(pair x) {position P; P.position=x; return P;}
 position operator cast(real x) {return (pair) x;}
 position operator cast(int x) {return (pair) x;}
 
 pair operator cast(position P) {return P.position;}
+
+typedef transform embed(transform);
+transform Shift(transform t) {return identity();}
+transform Rotate(transform t) {return rotation(t);}
+transform Slant(transform t) {return scaleless(t);}
+transform Scale(transform t) {return t;}
 
 struct Label {
   string s,size;
@@ -136,13 +141,13 @@ struct Label {
   pen p=nullpen;
   transform T;
   bool defaulttransform=true;
-  bool scale=false; // Automatically scale with the frame or picture?
+  embed embed=Rotate; // Fixed, Rotate, Slant, or Scale with embedded picture
   filltype filltype=NoFill;
   
   void init(string s="", string size="", position position=0, 
             bool defaultposition=true,
             align align=NoAlign, pen p=nullpen, transform T=identity(),
-	    bool scale=false, filltype filltype=NoFill) {
+	    embed embed=Rotate, filltype filltype=NoFill) {
     this.s=s;
     this.size=size;
     this.position=position;
@@ -150,18 +155,18 @@ struct Label {
     this.align=align.copy();
     this.p=p;
     this.T=T;
-    this.scale=scale;
+    this.embed=embed;
     this.filltype=filltype;
   }
   
   void initalign(string s="", string size="", align align, pen p=nullpen,
-                 bool scale=false, filltype filltype=NoFill) {
-    init(s,size,align,p,scale,filltype);
+                 embed embed=Rotate, filltype filltype=NoFill) {
+    init(s,size,align,p,embed,filltype);
   }
   
   Label copy() {
     Label L=new Label;
-    L.init(s,size,position,defaultposition,align,p,T,scale,filltype);
+    L.init(s,size,position,defaultposition,align,p,T,embed,filltype);
     return L;
   }
   
@@ -192,7 +197,7 @@ struct Label {
   
   void label(frame f, transform t=identity(), pair position, pair align) {
     pen p0=p == nullpen ? currentpen : p;
-    label(f,s,size, (scale ? t : rotation(t))*shiftless(T),
+    label(f,s,size,embed(t)*shiftless(T),
 	  t*position+align*labelmargin(p0)+shift(T)*0,align,p0);
   }
 
@@ -247,7 +252,6 @@ struct Label {
     write(file,align);
     if(p != nullpen) write(file,", pen=",p);
     if(!defaulttransform) write(file,", transform=",T);
-    if(scale) write(file,", scale=",scale);
     write(file,"",suffix);
   }
   
@@ -283,57 +287,57 @@ Label operator * (transform t, Label L)
 }
 
 Label Label(string s, string size="", explicit position position,
-            align align=NoAlign, pen p=nullpen, bool scale=false,
+            align align=NoAlign, pen p=nullpen, embed embed=Rotate,
 	    filltype filltype=NoFill)
 {
   Label L;
-  L.init(s,size,position,false,align,p,scale,filltype);
+  L.init(s,size,position,false,align,p,embed,filltype);
   return L;
 }
 
 Label Label(string s, string size="", pair position, align align=NoAlign,
-            pen p=nullpen, bool scale=false, filltype filltype=NoFill)
+            pen p=nullpen, embed embed=Rotate, filltype filltype=NoFill)
 {
-  return Label(s,size,(position) position,align,p,scale,filltype);
+  return Label(s,size,(position) position,align,p,embed,filltype);
 }
 
 Label Label(explicit pair position, align align=NoAlign, pen p=nullpen,
-            bool scale=false, filltype filltype=NoFill)
+            embed embed=Rotate, filltype filltype=NoFill)
 {
-  return Label((string) position,position,align,p,scale,filltype);
+  return Label((string) position,position,align,p,embed,filltype);
 }
 
 Label Label(string s="", string size="", align align=NoAlign, pen p=nullpen,
-            bool scale=false, filltype filltype=NoFill)
+            embed embed=Rotate, filltype filltype=NoFill)
 {
   Label L;
-  L.initalign(s,size,align,p,scale,filltype);
+  L.initalign(s,size,align,p,embed,filltype);
   return L;
 }
 
-Label Label(Label L, align align=NoAlign, pen p=nullpen, bool scale=L.scale,
+Label Label(Label L, align align=NoAlign, pen p=nullpen, embed embed=L.embed,
             filltype filltype=NoFill)
 {
   Label L=L.copy();
   L.align(align);
   L.p(p);
-  L.scale=scale;
+  L.embed=embed;
   L.filltype(filltype);
   return L;
 }
 
 Label Label(Label L, explicit position position, align align=NoAlign,
-	    pen p=nullpen, bool scale=L.scale, filltype filltype=NoFill)
+	    pen p=nullpen, embed embed=L.embed, filltype filltype=NoFill)
 {
-  Label L=Label(L,align,p,scale,filltype);
+  Label L=Label(L,align,p,embed,filltype);
   L.position(position);
   return L;
 }
 
 Label Label(Label L, pair position, align align=NoAlign,
-	    pen p=nullpen, bool scale=L.scale, filltype filltype=NoFill)
+	    pen p=nullpen, embed embed=L.embed, filltype filltype=NoFill)
 {
-  return Label(L,(position) position,align,p,scale,filltype);
+  return Label(L,(position) position,align,p,embed,filltype);
 }
 
 void write(file file=stdout, Label L, suffix suffix=endl)

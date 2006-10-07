@@ -21,6 +21,11 @@ public:
     out->grestore();
     return true;
   }
+  
+  bool write(texfile *out) {
+    out->grestore();
+    return true;
+  }
 };
 
 }

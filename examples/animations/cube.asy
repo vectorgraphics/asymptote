@@ -9,7 +9,7 @@ animation a;
 void face(face[] faces, path3 p, int j) {
   picture pic=faces.push(p);
   filldraw(pic,p,Pen(j));
-  label(pic,(string) j,0.5*(min(p)+max(p)));
+  label(pic,Label((string) j,Slant),0.5*(min(p)+max(p)));
 }
 
 void snapshot(transform3 t)
@@ -32,7 +32,7 @@ void snapshot(transform3 t)
   restore();
 }
 
-int n=50;
+int n=5;
 
 real step=360/n;
 for(int i=0; i < n; ++i)

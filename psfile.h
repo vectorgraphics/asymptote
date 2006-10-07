@@ -34,7 +34,6 @@ class psfile {
   string filename;
   bool pdfformat;
   pen lastpen;
-  std::ostream *out;
   std::stack<pen> pens;
 
   void write(transform t) {
@@ -47,8 +46,12 @@ class psfile {
     *out << std::hex << std::setw(2) << std::setfill('0') << n << std::dec;
   }
   
+protected:
+  std::ostream *out;
+  
 public: 
   psfile(const string& filename, bool pdformat);
+  psfile() {};
   ~psfile();
   
   void BoundingBox(const bbox& box) {

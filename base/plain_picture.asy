@@ -1,5 +1,5 @@
-bool Aspect=true;
-bool IgnoreAspect=false;
+restricted bool Aspect=true;
+restricted bool IgnoreAspect=false;
 
 bool shipped;
 

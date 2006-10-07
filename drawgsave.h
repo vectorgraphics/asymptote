@@ -21,6 +21,11 @@ public:
     out->gsave();
     return true;
   }
+  
+  bool write(texfile *out) {
+    out->gsave();
+    return true;
+  }
 };
 
 }

@@ -50,10 +50,9 @@ static const mem::string OverwriteTag[]={"Allow","Suppress","SupressQuiet",
 					 "Move","MoveQuiet"};
 const int nOverwrite=sizeof(OverwriteTag)/sizeof(mem::string);
   
-enum FillRule {DEFFILL=-1,ZEROWINDING,EVENODD,
-	       ZEROWINDINGOVERLAP,EVENODDOVERLAP};
-static const mem::string FillRuleTag[]={"ZeroWinding","EvenOdd",
-				   "ZeroWindingMarginal","EvenOddMarginal"};
+enum FillRule {DEFFILL=-1,ZEROWINDING,EVENODD};
+static const mem::string FillRuleTag[]={"ZeroWinding","EvenOdd"};
+
 const int nFill=sizeof(FillRuleTag)/sizeof(mem::string);
   
 enum BaseLine {DEFBASE=-1,NOBASEALIGN,BASEALIGN};
@@ -385,11 +384,7 @@ public:
   }
   
   bool evenodd() const {
-    return fillrule == EVENODD || fillrule == EVENODDOVERLAP;
-  }
-  
-  bool overlap() const {
-    return fillrule == ZEROWINDINGOVERLAP || fillrule == EVENODDOVERLAP;
+    return fillrule == EVENODD;
   }
   
   bool inside(int count) const {

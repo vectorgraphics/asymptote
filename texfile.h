@@ -21,31 +21,12 @@
 #include "interact.h"
 #include "path.h"
 #include "array.h"
+#include "psfile.h"
 
 using std::string;
 
 namespace camp {
 
-class clipper : public gc {
-public: 
-  vm::array *p;
-  pen rule;
-  clipper(vm::array *p, const pen& rule) : p(p), rule(rule) {}
-  
-  // Return true if z is within clipping bounds.
-  bool inside(const pair& z) {
-    checkArray(p);
-    size_t size=p->size();
-    int count=0;
-    for(size_t i=0; i < size; i++)
-      count += vm::read<path *>(p,i)->inside(z);
-    return rule.inside(count);
-  }
-
-};
-  
-typedef mem::list<clipper *> cliplist;
-  
 extern std::list<string> TeXpipepreamble, TeXpreamble;
 
 const double tex2ps=72.0/72.27;
@@ -67,7 +48,7 @@ void texpreamble(T& out, std::list<string>& preamble=TeXpreamble)
   
 template<class T>
 void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
-		bool pipe=false) 
+		bool pipe=false)
 {
   texpreamble(out,preamble);
   out << "\\newbox\\ASYbox" << newl
@@ -79,25 +60,35 @@ void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
       << "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{\\leavevmode%" << newl
       << "\\setbox\\ASYbox=\\hbox{#6}%" << newl
 //      << "\\put(#1,#2){\\begin{rotate}{#5}%" << newl
-      << "\\put(#1,#2){\\special{ps: gsave currentpoint currentpoint" << newl
-      << "translate [#5 0 0] concat neg exch neg exch translate}"
+      << "\\put(#1,#2){\\special{ps: gsave currentpoint currentpoint translate"
+      << newl
+      << "[#5 0 0] concat neg exch neg exch translate}"
       << "\\ASYdimen=\\ht\\ASYbox%" << newl
       << "\\advance\\ASYdimen by\\dp\\ASYbox\\kern#3\\wd\\ASYbox"
       << "\\raise#4\\ASYdimen\\box\\ASYbox%" << newl
 //      << "\\end{rotate}}}" << newl
-      << "\\special{ps: currentpoint grestore moveto}}}" << newl;
+      << "\\special{ps: currentpoint grestore moveto}}}" << newl
+      << "\\def\\ASYgsave{\\special{ps: gsave}}" << newl
+      << "\\def\\ASYgrestore{\\special{ps: grestore}}" << newl
+      << "\\def\\ASYclip(#1,#2)#3{\\leavevmode%" << newl
+      << "\\put(#1,#2){\\special{ps: currentpoint currentpoint translate" 
+      << newl
+      << "matrix currentmatrix" << newl
+      << "[matrix defaultmatrix 0 get 0 0 matrix defaultmatrix 3 get" << newl
+      << "matrix currentmatrix 4 get matrix currentmatrix 5 get] setmatrix"
+      << newl
+      << "#3" << newl
+      << "setmatrix" << newl
+      << "neg exch neg exch translate}}}" << newl;
   
   if(pipe || !settings::getSetting<bool>("inlinetex"))
     out << "\\usepackage{graphicx}" << newl;
   if(pipe) out << "\\begin{document}" << newl;
 }
   
-class texfile : public gc {
-  ostream *out;
-  pair offset;
+class texfile : public psfile {
   bbox box;
   pen lastpen;
-  cliplist clipstack;
 
 public:
   texfile(const string& texname, const bbox& box);
@@ -109,15 +100,13 @@ public:
 
   void setpen(pen p);
   
-  void beginclip(clipper *c) {
-    clipstack.push_back(c);
-  }
+  void gsave();
   
-  void endclip() {
-    if(clipstack.size() < 1)
-      reportError("endclip without matching beginclip");
-    clipstack.pop_back();
-  }
+  void grestore();
+  
+  void openclip();
+  
+  void closeclip();
   
   // Draws label transformed by T at position z.
   void put(const string& label, const transform& T, const pair& z,

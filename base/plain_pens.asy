@@ -29,8 +29,6 @@ pen beveljoin=linejoin(2);
 
 pen zerowinding=fillrule(0);
 pen evenodd=fillrule(1);
-pen zerowindingoverlap=fillrule(2);
-pen evenoddoverlap=fillrule(3);
 
 pen nobasealign=basealign(0);
 pen basealign=basealign(1);

@@ -99,35 +99,39 @@ void texfile::setpen(pen p)
     *out << p.Font() << "%" << newl;
   }
 
-  offset=pair(box.right,box.bottom);
-  
   lastpen=p;
 }
    
+void texfile::gsave()
+{
+  *out << "\\ASYgsave" << newl;
+}
+  
+void texfile::grestore()
+{
+    *out << "\\ASYgrestore" << newl;
+}
+  
+void texfile::openclip() 
+{
+  *out << "\\ASYclip(" << -box.right*ps2tex
+      << "," << -box.bottom*ps2tex
+      << "){" << newl;
+}
+  
+void texfile::closeclip() 
+{
+  *out << "}" << newl;
+}
+  
 void texfile::put(const string& label, const transform& T, const pair& z,
 		  const pair& align, const bbox& Box)
 {
   if(label.empty()) return;
   
-  for(cliplist::iterator p=clipstack.begin(); p != clipstack.end(); ++p) {
-    assert(*p);
-    if((*p)->rule.overlap()) {
-      if(!(*p)->inside(0.5*(Box.Min()+Box.Max()))) return;
-    } else {
-      // Include labels exactly on boundary.
-      static const double fuzz=10.0*DBL_EPSILON;
-      double xfuzz=fuzz*max(fabs(Box.left),fabs(Box.right));
-      double yfuzz=fuzz*max(fabs(Box.bottom),fabs(Box.top));
-      if(!(*p)->inside(pair(Box.left+xfuzz,Box.bottom+yfuzz))) return;
-      if(!(*p)->inside(pair(Box.right-xfuzz,Box.bottom+yfuzz))) return;
-      if(!(*p)->inside(pair(Box.left+xfuzz,Box.top-yfuzz))) return;
-      if(!(*p)->inside(pair(Box.right-xfuzz,Box.top-yfuzz))) return;
-    }
-  }
-  
   *out << "\\ASYalign"
-       << "(" << (z.getx()-offset.getx())*ps2tex
-       << "," << (z.gety()-offset.gety())*ps2tex
+       << "(" << (z.getx()-box.right)*ps2tex
+       << "," << (z.gety()-box.bottom)*ps2tex
        << ")(" << align.getx()
        << "," << align.gety() 
        << "){" << T.getxx() << " " << -T.getyx()

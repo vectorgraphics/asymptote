@@ -38,7 +38,7 @@ public:
   }
 
   bool write(texfile *out) {
-    out->endclip();
+    if(grestore) out->grestore();
     return true;
   }
 

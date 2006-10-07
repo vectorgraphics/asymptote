@@ -71,13 +71,6 @@ public:
     return c;
   }
   
-  bool overlap(const box& b) const {
-    if(intersect(b)) return true;
-    if(inside(b[0])) return true;
-    if(b.inside(p[0])) return true;
-    return false;
-  }
-  
   double xmax() {
     return max(max(max(p[0].x,p[1].x),p[2].x),p[3].x);
   }
@@ -97,6 +90,7 @@ public:
 };
   
 typedef mem::vector<box> boxvector;
+  
 typedef mem::list<bbox> bboxlist;
   
 class drawElement : public gc
@@ -256,10 +250,6 @@ public:
   void writepath(psfile *out) {
     for(size_t i=0; i < size; i++) 
       out->write(vm::read<path>(P,i),i == 0);
-  }
-  
-  void clip(texfile *out, const pen& p) {
-    out->beginclip(new clipper(P,p));
   }
 };
  

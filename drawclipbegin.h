@@ -41,7 +41,7 @@ public:
   
   bool draw(psfile *out) {
     if(gsave) out->gsave();
-    if (empty()) return true;
+    if(empty()) return true;
     
     writepath(out);
     out->clip(pentype);
@@ -49,7 +49,14 @@ public:
   }
 
   bool write(texfile *out) {
-    clip(out,pentype);
+    if(gsave) out->gsave();
+    if(empty()) return true;
+    
+    out->openclip();
+    writepath(out);
+    out->clip(pentype);
+    out->closeclip();
+    
     return true;
   }
   
