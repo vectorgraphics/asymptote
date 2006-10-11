@@ -40,6 +40,7 @@ picture::~picture()
 }
 
 bool picture::epsformat,picture::pdfformat,picture::tgifformat, picture::pdf;
+bool picture::Labels;
 double picture::paperWidth,picture::paperHeight;
   
 void picture::enclose(drawElement *begin, drawElement *end)
@@ -268,10 +269,9 @@ bool picture::postprocess(const string& prename, const string& outname,
 {
   int status=0;
   
-  if((pdf && !pdfformat) || (!pdf && !epsformat)) {
+  if((pdf && Labels) || !epsformat) {
     if(pdfformat) {
-      if(pdf) return true;
-      status=epstopdf(prename,outname);
+      if(!(pdf && Labels)) status=epstopdf(prename,outname);
     } else {
       ostringstream cmd;
       double expand=2.0;
@@ -335,9 +335,9 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   bool TeXmode=getSetting<bool>("inlinetex") && 
     getSetting<mem::string>("tex") != "none";
-  bool Labels=(labels || TeXmode) && (b.right > b.left && b.top > b.bottom);
+  Labels=(labels || TeXmode) && (b.right > b.left && b.top > b.bottom);
   
-  pdf=Labels && settings::pdf(getSetting<mem::string>("tex"));
+  pdf=settings::pdf(getSetting<mem::string>("tex"));
   
   bool standardout=Prefix == "-";
   string prefix=standardout ? "out" : Prefix;
@@ -346,14 +346,15 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   string defaultformat=(string) getSetting<mem::string>("outformat");
   if(defaultformat == "") defaultformat=preformat;
   string outputformat=format.empty() ? defaultformat : format;
-  epsformat=outputformat.empty() || outputformat == "eps";
+  epsformat=outputformat == "eps";
   pdfformat=outputformat == "pdf";
   tgifformat=outputformat == "tgif";
   string outname=tgifformat ? "."+buildname(prefix,"gif") :
     (standardout ? "-" : buildname(prefix,outputformat,"",false));
   string epsname=epsformat ? (standardout ? "" : outname) :
     auxname(prefix,"eps");
-  string prename=(epsformat && !pdf) ? epsname : auxname(prefix,preformat);
+  string prename=((epsformat && !pdf) || !Labels) ? epsname : 
+    auxname(prefix,preformat);
   double deconstruct=getSetting<double>("deconstruct");
   
   static ofstream bboxout;

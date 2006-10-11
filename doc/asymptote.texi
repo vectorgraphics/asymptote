@@ -4461,7 +4461,7 @@ eval("import "+s,true);
 @cindex @code{asy}
 To conditionally execute an array of asy files, use
 @verbatim
-void asy(string format="eps", bool overwrite ... string[] s);
+void asy(string format, bool overwrite ... string[] s);
 @end verbatim
 The file will only be processed, using output format @code{format}, if
 overwrite is @code{true} or the output file is missing.
@@ -4622,8 +4622,8 @@ latex latexusage
 
 If the @code{inline} option is given to the
 @code{asymptote.sty} package, inline @code{LaTeX} code is generated instead of
-@code{EPS} files, so that @code{pdflatex} may be substituted for @code{latex}.
-This makes LaTeX symbols visible to the
+@acronym{EPS} files, so that @code{pdflatex} may be substituted for
+@code{latex}. This makes LaTeX symbols visible to the
 @code{\begin@{asy@}...\end@{asy@}} environment.  In this mode,
 Asymptote correctly aligns LaTeX symbols defined outside of
 @code{\begin@{asy@}...\end@{asy@}}, but treats their size as zero; an
@@ -6385,6 +6385,8 @@ variables may also be changed at runtime.
 @cindex @code{antialiasing}
 @cindex @code{size}
 @anchor{convert}
+The default output format is @acronym{EPS} for the (default)
+@code{latex} tex engine and @acronym{PDF} for the @code{pdflatex} tex engine.
 An alternative output format (without antialiasing) may be produced by
 using the @code{-f format} option. This supports any format supported
 by the @code{ImageMagick} @code{convert} program (version 6.2.4 or
