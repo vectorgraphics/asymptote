@@ -37,7 +37,7 @@ void checkColorSpace(ColorSpace colorspace)
 }
     
 psfile::psfile(const string& filename, bool pdfformat)
-  : filename(filename), pdfformat(pdfformat)
+  : filename(filename), pdfformat(pdfformat), pdf(false), out(NULL)
 {
   if(filename.empty()) out=&std::cout;
   else out=new ofstream(filename.c_str());
@@ -47,7 +47,7 @@ psfile::psfile(const string& filename, bool pdfformat)
   }
 }
 
-psfile::~psfile()
+void psfile::close()
 {
   if(out) {
     out->flush();
@@ -58,10 +58,16 @@ psfile::~psfile()
 	reportError(msg);
       }
       delete out;
+      out=NULL;
     }
   }
 }
 
+psfile::~psfile()
+{
+  close();
+}
+  
 void psfile::prologue(const bbox& box)
 {
   *out << "%!PS-Adobe-3.0 EPSF-3.0" << newl;
@@ -163,8 +169,8 @@ void psfile::write(path p, bool newPath)
 
   if (n == 1) {
     moveto(p.point(0));
-    rlineto(pair(0,0));
-    stroke();
+    lineto(p.point(0));
+    return;
   }
 
   // Draw points

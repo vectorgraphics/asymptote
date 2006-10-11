@@ -122,18 +122,16 @@ Philippe Ivaldi has contributed an Asymptote mode for Emacs users
 which includes a \courier{lasy-mode\} that allows one to compile and view
 the output of one \\begin{asy}...\\end{asy} section at a time.
 
-\question 02sep:pdflatex Is it possible to integrate Asymptote into pdflatex?
+\question 02sep:pdflatex Is it possible to integrate Asymptote into latex or pdflatex?
 
-Yes, just add these lines before \courier{\\usepackage{asymptote}\}:
+Yes, as of version 1.14, Asymptote supports both latex and pdflatex in
+inline mode, as illustrated by the example \courier{latexusage.tex\}:
 
 \verbatim
-\usepackage[pdftex]{graphicx}
-\usepackage{epstopdf}
+pdflatex latexusage
+asy latexusage
+pdflatex latexusage
 \endverbatim
-
-To use inline mode with pdflatex see
-\docref{http://sourceforge.net/forum/message.php?msg_id=3820188\}
-and \docref{http://sourceforge.net/forum/message.php?msg_id=3820228\}
 
 \question 02sep:tkinterdepend Do I need the \courier{tkinter\} package to install an Asymptote rpm binary?
  

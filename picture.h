@@ -34,7 +34,7 @@ private:
   boxvector labelbounds;
   bboxlist bboxstack;
   
-  static bool epsformat,pdfformat,tgifformat;
+  static bool epsformat,pdfformat,tgifformat,pdf;
   static double paperWidth,paperHeight;
 
 public:
@@ -63,10 +63,12 @@ public:
 
   void texinit();
 
+  int epstopdf(const string& epsname, const string& pdfname);
+  
   bool texprocess(const string& texname, const string& tempname,
 		  const string& prefix, const pair& bboxshift); 
     
-  bool postprocess(const string& epsname, const string& outname, 
+  bool postprocess(const string& prename, const string& outname, 
 		   const string& outputformat, bool wait, bool view);
     
   // Ship the picture out to PostScript & TeX files.

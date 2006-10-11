@@ -19,11 +19,10 @@ faq:
 %.pdf:	%.asy
 	$(ASY) -f pdf $<
 
-latexusage.asy: latexusage.tex
+latexusage.dvi: latexusage.tex ../examples/slidedemo.asy
+	rm latexusage_*
 	latex latexusage
 	$(ASY) latexusage
-
-latexusage.dvi: latexusage.asy ../examples/slidedemo.asy
 	latex latexusage
 
 latexusage.eps: latexusage.dvi

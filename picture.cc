@@ -21,6 +21,8 @@ using namespace settings;
 
 namespace camp {
 
+const char *texpathmessage="the directory containing your tex engine (latex by default)";
+  
 string texready=string("(Please type a command or say `\\end')\n*");
 texstream tex; // Bi-directional pipe to latex (to find label bbox)
 
@@ -37,7 +39,7 @@ picture::~picture()
 {
 }
 
-bool picture::epsformat,picture::pdfformat,picture::tgifformat;
+bool picture::epsformat,picture::pdfformat,picture::tgifformat, picture::pdf;
 double picture::paperWidth,picture::paperHeight;
   
 void picture::enclose(drawElement *begin, drawElement *end)
@@ -93,7 +95,7 @@ void picture::prepend(picture &pic)
 bool picture::havelabels()
 {
   size_t n=nodes.size();
-  if(n > lastnumber && !labels && getSetting<bool>("tex")) {
+  if(n > lastnumber && !labels && getSetting<mem::string>("tex") != "none") {
     // Check to see if there are any labels yet
     nodelist::iterator p=nodes.begin();
     for(size_t i=0; i < lastnumber; ++i) ++p;
@@ -141,7 +143,8 @@ void picture::texinit()
     return;
   }
   
-  tex.open(getSetting<mem::string>("latex").c_str(),"latex","latex");
+
+  tex.open(texengine().c_str(),"texpath",texpathmessage);
   texdocumentclass(tex,true);
   
   texdefines(tex,TeXpipepreamble,true);
@@ -162,70 +165,79 @@ bool picture::texprocess(const string& texname, const string& outname,
   if(outfile) {
     outfile.close();
     ostringstream cmd;
-    cmd << "'" << getSetting<mem::string>("latex") << "'"
+    cmd << "'" << texengine() << "'"
 	<< " \\scrollmode\\input '" << texname << "'";
     bool quiet=verbose <= 1;
-    status=System(cmd,quiet ? 1 : 0,"latex");
+    status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage);
     if(!status && getSetting<bool>("twice")) 
-      status=System(cmd,quiet ? 1 : 0,"latex");
+      status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage);
     if(status) {
-      if(quiet) System(cmd,0,"latex");
+      if(quiet) System(cmd,0);
       return false;
     }
     
-    string dviname=auxname(prefix,"dvi");
-    string psname=auxname(prefix,"ps");
+    mem::string texengine=getSetting<mem::string>("tex");
+    if(settings::pdf(texengine)) {
+      if(pdfformat) {
+	rename(outname.c_str(),buildname(prefix,"pdf").c_str());
+      }
+    } else {
+      string dviname=auxname(prefix,"dvi");
+      string psname=auxname(prefix,"ps");
     
-    double height=b.top-b.bottom+1.0;
+      double height=b.top-b.bottom+1.0;
     
-    // Magic dvips offsets:
-    double hoffset=-128.4;
-    double voffset=(height < 13.0) ? -137.8+height : -124.8;
+      // Magic dvips offsets:
+      double hoffset=-128.4;
+      double voffset=(height < 13.0) ? -137.8+height : -124.8;
 
-    hoffset += b.left+bboxshift.getx();
-    voffset += paperHeight-height-b.bottom-bboxshift.gety();
+      hoffset += b.left+bboxshift.getx();
+      voffset += paperHeight-height-b.bottom-bboxshift.gety();
     
-    ostringstream dcmd;
-    dcmd << "'" << getSetting<mem::string>("dvips") << "' -R "
-	 << " -O " << hoffset << "bp," << voffset << "bp"
-         << " -T " << paperWidth << "bp," << paperHeight << "bp";
-    if(verbose <= 1) dcmd << " -q";
-    dcmd << " -o '" << psname << "' '" << dviname << "'";
-    status=System(dcmd,0,true,"dvips");
+      ostringstream dcmd;
+      dcmd << "'" << getSetting<mem::string>("dvips") << "' -R "
+	   << " -O " << hoffset << "bp," << voffset << "bp"
+	   << " -T " << paperWidth << "bp," << paperHeight << "bp";
+      if(verbose <= 1) dcmd << " -q";
+      dcmd << " -o '" << psname << "' '" << dviname << "'";
+      status=System(dcmd,0,true,"dvips");
     
-    ifstream fin(psname.c_str());
-    psfile fout(outname,false);
+      ifstream fin(psname.c_str());
+      psfile fout(outname,false);
     
-    string s;
-    bool first=true;
-    transform t=shift(bboxshift);
-    if(T) t=t*(*T);
-    bool shift=(t != identity());
-    string beginspecial="TeXDict begin @defspecial";
-    string endspecial="@fedspecial end";
-    while(getline(fin,s)) {
-      if(s.find("%%DocumentPaperSizes:") == 0) continue;
-      if(first && s.find("%%BoundingBox:") == 0) {
-	bbox box=b;
-	box.shift(bboxshift);
-	if(verbose > 2) BoundingBox(cout,box);
-	fout.BoundingBox(box);
-	first=false;
-      } else if(shift && s.find(beginspecial) == 0) {
-	fout.verbatimline(s);
-	fout.gsave();
-	fout.concat(t);
-      } else if(shift && s.find(endspecial) == 0) {
-	fout.grestore();
-	fout.verbatimline(s);
-      } else
-	fout.verbatimline(s);
+      string s;
+      bool first=true;
+      transform t=shift(bboxshift);
+      if(T) t=t*(*T);
+      bool shift=(t != identity());
+      string beginspecial="TeXDict begin @defspecial";
+      string endspecial="@fedspecial end";
+      while(getline(fin,s)) {
+	if(s.find("%%DocumentPaperSizes:") == 0) continue;
+	if(first && s.find("%%BoundingBox:") == 0) {
+	  bbox box=b;
+	  box.shift(bboxshift);
+	  if(verbose > 2) BoundingBox(cout,box);
+	  fout.BoundingBox(box);
+	  first=false;
+	} else if(shift && s.find(beginspecial) == 0) {
+	  fout.verbatimline(s);
+	  fout.gsave();
+	  fout.concat(t);
+	} else if(shift && s.find(endspecial) == 0) {
+	  fout.grestore();
+	  fout.verbatimline(s);
+	} else
+	  fout.verbatimline(s);
+      }
+      if(!getSetting<bool>("keep")) { // Delete temporary files.
+	unlink(dviname.c_str());
+	unlink(psname.c_str());
+      }
     }
       
     if(!getSetting<bool>("keep")) { // Delete temporary files.
       unlink(texname.c_str());
-      unlink(dviname.c_str());
-      unlink(psname.c_str());
       unlink(auxname(prefix,"aux").c_str());
       unlink(auxname(prefix,"log").c_str());
       unlink(auxname(prefix,"out").c_str());
@@ -235,38 +247,46 @@ bool picture::texprocess(const string& texname, const string& outname,
   return true;
 }
 
-bool picture::postprocess(const string& epsname, const string& outname,
+int picture::epstopdf(const string& epsname, const string& pdfname)
+{
+  ostringstream cmd;
+  
+  cmd << "'" << getSetting<mem::string>("gs")
+      << "' -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
+      << " -dCompatibilityLevel=1.4";
+  if(!getSetting<bool>("autorotate"))
+    cmd << " -dAutoRotatePages=/None";
+  cmd << " -g" << ceil(paperWidth) << "x" << ceil(paperHeight)
+      << " -dDEVICEWIDTHPOINTS=" << b.right-b.left
+      << " -dDEVICEHEIGHTPOINTS=" << b.top-b.bottom
+      << " -sOutputFile='" << pdfname << "' '" << epsname << "'";
+  return System(cmd,0,true,"gs","Ghostscript");
+}
+  
+bool picture::postprocess(const string& prename, const string& outname,
 			  const string& outputformat, bool wait, bool view)
 {
   int status=0;
-  ostringstream cmd;
   
-  if(!epsformat) {
+  if((pdf && !pdfformat) || (!pdf && !epsformat)) {
     if(pdfformat) {
-      cmd << "'" << getSetting<mem::string>("gs")
-	  << "' -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
-	  << " -dCompatibilityLevel=1.4";
-      if(!getSetting<bool>("autorotate"))
-	cmd << " -dAutoRotatePages=/None";
-      cmd << " -g" << ceil(paperWidth) << "x" << ceil(paperHeight)
-	  << " -dDEVICEWIDTHPOINTS=" << b.right-b.left
-	  << " -dDEVICEHEIGHTPOINTS=" << b.top-b.bottom
-	  << " -sOutputFile='" << outname << "' '" << epsname << "'";
-      status=System(cmd,0,true,"gs","Ghostscript");
+      if(pdf) return true;
+      status=epstopdf(prename,outname);
     } else {
+      ostringstream cmd;
       double expand=2.0;
       double res=(tgifformat ? getSetting<double>("deconstruct") : expand)*
 	72.0;
       cmd << "'" << getSetting<mem::string>("convert") 
 	  << "' -density " << res << "x" << res;
       if(!tgifformat) cmd << " +antialias -geometry " << 100.0/expand << "%x";
-      cmd << " 'eps:" << epsname << "'";
+      cmd << " '" << (pdf ? "pdf:" : "eps:") << prename << "'";
       if(tgifformat) cmd << " -transparent white gif";
       else cmd << " " << outputformat;
       cmd << ":'" << outname << "'";
       status=System(cmd,0,true,"convert");
     }
-    if(!getSetting<bool>("keep")) unlink(epsname.c_str());
+    if(!getSetting<bool>("keep")) unlink(prename.c_str());
   }
   if(status != 0) return false;
   
@@ -282,7 +302,6 @@ bool picture::postprocess(const string& epsname, const string& outname,
       if(interact::interactive && pid)
 	restart=(waitpid(pid, &status, WNOHANG) == pid);
 
-      // NOTE: Test may not be correct as virtualEOF was removed.
       if (outname != lastoutname || restart) {
 	if(!wait) lastoutname=outname;
 	ostringstream cmd;
@@ -312,11 +331,21 @@ bool picture::postprocess(const string& epsname, const string& outname,
 bool picture::shipout(picture *preamble, const string& Prefix,
 		      const string& format, bool wait, bool view, bool Delete)
 {
+  bounds();
+  
+  bool TeXmode=getSetting<bool>("inlinetex") && 
+    getSetting<mem::string>("tex") != "none";
+  bool Labels=(labels || TeXmode) && (b.right > b.left && b.top > b.bottom);
+  
+  pdf=Labels && settings::pdf(getSetting<mem::string>("tex"));
+  
   bool standardout=Prefix == "-";
   string prefix=standardout ? "out" : Prefix;
   checkFormatString(format);
-  string outputformat=format.empty() ? 
-    (string)getSetting<mem::string>("outformat") : format;
+  string preformat=pdf ? "pdf" : "eps";
+  string defaultformat=(string) getSetting<mem::string>("outformat");
+  if(defaultformat == "") defaultformat=preformat;
+  string outputformat=format.empty() ? defaultformat : format;
   epsformat=outputformat.empty() || outputformat == "eps";
   pdfformat=outputformat == "pdf";
   tgifformat=outputformat == "tgif";
@@ -324,9 +353,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     (standardout ? "-" : buildname(prefix,outputformat,"",false));
   string epsname=epsformat ? (standardout ? "" : outname) :
     auxname(prefix,"eps");
+  string prename=(epsformat && !pdf) ? epsname : auxname(prefix,preformat);
   double deconstruct=getSetting<double>("deconstruct");
-  
-  bounds();
   
   static ofstream bboxout;
   
@@ -400,9 +428,6 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   string texname;
   texfile *tex=NULL;
   
-  bool TeXmode=getSetting<bool>("inlinetex") && getSetting<bool>("tex");
-  bool Labels=(labels || TeXmode) && (b.right > b.left && b.top > b.bottom);
-  
   if(Labels) {
     spaceToUnderscore(prefix);
     texname=auxname(prefix,"tex");
@@ -418,11 +443,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   bbox bshift=b;
   
   while(p != nodes.end()) {
-    string psname;
+    string psname,pdfname;
     if(Labels) {
       ostringstream buf;
       buf << prefix << "_" << layer;
       psname=buildname(buf.str(),"eps");
+      if(pdf) pdfname=buildname(buf.str(),"pdf");
     } else {
       psname=epsname;
       bshift.shift(bboxshift);
@@ -431,7 +457,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     psfile out(psname,pdfformat);
     out.prologue(bshift);
   
-    if(Labels) tex->beginlayer(psname);
+    if(Labels) tex->beginlayer(pdf ? pdfname : psname);
     else {
       out.gsave();
       out.translate(bboxshift);
@@ -464,16 +490,23 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     
     if(Labels) {
       if(status) {
-	for (p=layerp; p != nodes.end(); ++p) {
-	  if((*p)->islayer()) {
-	    tex->endlayer();
-	    layerp=++p;
-	    layer++;
-	    break;
+	if(pdf) {
+	  out.close();
+	  status=(epstopdf(psname,pdfname) == 0);
+	}
+	
+	if(status) {
+	  for (p=layerp; p != nodes.end(); ++p) {
+	    if((*p)->islayer()) {
+	      tex->endlayer();
+	      layerp=++p;
+	      layer++;
+	      break;
+	    }
+	    assert(*p);
+	    if(!(*p)->write(tex))
+	      status = false;
 	  }
-	  assert(*p);
-	  if(!(*p)->write(tex))
-	    status = false;
 	}
       }    
     }
@@ -482,10 +515,11 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   if(status) {
     if(TeXmode) {
       if(Labels && verbose > 0) cout << "Wrote " << texname << endl;
+      delete tex;
     } else {
       if(Labels) {
 	tex->epilogue();
-	status=texprocess(texname,epsname,prefix,bboxshift);
+	status=texprocess(texname,prename,prefix,bboxshift);
 	delete tex;
 	if(!getSetting<bool>("keep")) {
 	  for(std::list<string>::iterator p=psnameStack.begin();
@@ -494,7 +528,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 	}
       }
       if(status)
-	status=postprocess(epsname,outname,outputformat,wait,view);
+	status=postprocess(prename,outname,outputformat,wait,view);
     }
   }
   

@@ -697,8 +697,7 @@ void initSettings() {
   addOption(new boolSetting("clearGUI", 'c', "Clear GUI operations"));
   addOption(new boolSetting("ignoreGUI", 'i', "Ignore GUI operations"));
   addOption(new stringSetting("outformat", 'f', "format",
-		      "Convert each output file to specified format [eps]",
-			      "eps"));
+		      "Convert each output file to specified format", ""));
   addOption(new stringSetting("outname", 'o', "name",
 			      "Alternative output name for first file",
 			      ""));
@@ -713,11 +712,11 @@ void initSettings() {
   addOption(new incrementSetting("verbose", 'v',
 				 "Increase verbosity level", &verbose));
   addOption(new boolSetting("keep", 'k', "Keep intermediate files"));
-  addOption(new boolSetting("tex", 0,
-			    "Enable LaTeX label postprocessing",
-			    true));
+  addOption(new stringSetting("tex", 0,"engine",
+			      "TeX engine (\"latex\", \"pdftex\", or \"none\") [\"latex\"]",
+			      "latex"));
   addOption(new boolSetting("twice", 0,
-			    "Run LaTeX twice (to resolve references) [false]"));
+			    "Run LaTeX twice (to resolve references)"));
   addOption(new boolSetting("inlinetex", 0, "Generate inline tex code"));
   addOption(new boolSetting("parseonly", 'p', "Parse file"));
   addOption(new boolSetting("translate", 's',
@@ -771,7 +770,7 @@ void initSettings() {
   addOption(new envSetting("pdfviewer", defaultPDFViewer));
   addOption(new envSetting("psviewer", defaultPSViewer));
   addOption(new envSetting("gs", defaultGhostscript));
-  addOption(new envSetting("latex", "latex"));
+  addOption(new envSetting("texpath", ""));
   addOption(new envSetting("dvips", "dvips"));
   addOption(new envSetting("convert", "convert"));
   addOption(new envSetting("display", defaultDisplay));
@@ -866,6 +865,51 @@ void SetPageDimensions() {
       Setting("papertype")=mem::string("a4");
     }
   }
+}
+
+bool pdf(mem::string texengine) {
+  return texengine == "pdflatex";
+}
+
+mem::string texengine() {
+  mem::string path=getSetting<mem::string>("texpath");
+  mem::string tex=getSetting<mem::string>("tex");
+  return (path == "")  ? tex : path+"/"+tex;
+}
+
+// TeX special command to set up currentmatrix for typesetting labels.
+const char *beginlabel(mem::string texengine) {
+  if(pdf(texengine))
+    return "\\special{pdf: q #5 0 0 cm}\\wd\\ASYbox 0pt\\dp\\ASYbox 0pt\\ht\\ASYbox 0pt";
+      return "\\special{ps: gsave currentpoint currentpoint translate [#5 0 0] concat neg exch neg exch translate}";
+}
+
+// TeX special command to restore currentmatrix after typesetting labels.
+const char *endlabel(mem::string texengine) {
+  if(pdf(texengine))
+    return "\\special{pdf: Q}";
+  return "\\special{ps: currentpoint grestore moveto}";
+}
+
+// TeX special command to save the graphics state. 
+const char *gsave(mem::string texengine) {
+  if(pdf(texengine))
+    return "\\special{pdf: q}";
+  return "\\special{ps: gsave}";
+}
+
+// TeX special command to save the graphics state. 
+const char *grestore(mem::string texengine) {
+  if(pdf(texengine))
+    return "\\special{pdf: Q}";
+  return "\\special{ps: grestore}";
+}
+
+// TeX special command to clip a label
+const char *clip(mem::string texengine) {
+  if(pdf(texengine))
+    return "\\special{pdf: #3}";
+  return "\\special{ps: currentpoint currentpoint translate matrix currentmatrix\n[matrix defaultmatrix 0 get 0 0 matrix defaultmatrix 3 get\nmatrix currentmatrix 4 get matrix currentmatrix 5 get] setmatrix\n#3\nsetmatrix neg exch neg exch translate}";
 }
 
 int getScroll() 

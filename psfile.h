@@ -32,14 +32,17 @@ inline void BoundingBox(std::ostream& s, const bbox& box)
 
 class psfile {
   string filename;
-  bool pdfformat;
+  bool pdfformat; // Is final output format PDF?
+  bool pdf;       // Output direct PDF?
   pen lastpen;
   std::stack<pen> pens;
 
   void write(transform t) {
-    *out << "[" << " " << t.getxx() << " " << t.getyx()
+    if(!pdf) *out << "[";
+    *out << " " << t.getxx() << " " << t.getyx()
 	 << " " << t.getxy() << " " << t.getyy()
-	 << " " << t.getx() << " " << t.gety() << "]";
+	 << " " << t.getx() << " " << t.gety();
+    if(!pdf) *out << "]";
   }
 
   void writeHex(unsigned int n) {
@@ -50,8 +53,9 @@ protected:
   std::ostream *out;
   
 public: 
-  psfile(const string& filename, bool pdformat);
-  psfile() {};
+  psfile(const string& filename, bool pdfformat);
+  psfile() {pdf=settings::pdf(settings::getSetting<mem::string>("tex"));}
+
   ~psfile();
   
   void BoundingBox(const bbox& box) {
@@ -61,6 +65,8 @@ public:
   void prologue(const bbox& box);
   void epilogue();
 
+  void close();
+  
   void write(double x) {
     *out << " " << x;
   }
@@ -83,43 +89,55 @@ public:
   void write(path p, bool newPath=true);
   
   void newpath() {
-      *out << "newpath";
+    if(!pdf) *out << "newpath";
   }
 
   void moveto(pair z) {
-      write(z);
-      *out << " moveto" << newl;
+    write(z);
+    if(pdf) *out << " m" << newl;
+    else *out << " moveto" << newl;
   }
 
   void lineto(pair z) {
-      write(z);
-      *out << " lineto" << newl;
+    write(z);
+    if(pdf) *out << " l" << newl;
+    else *out << " lineto" << newl;
   }
 
   void curveto(pair zp, pair zm, pair z1) {
-      write(zp); write(zm); write(z1);
-      *out << " curveto" << newl;
+    write(zp); write(zm); write(z1);
+    if(pdf) *out << " c" << newl;
+    else *out << " curveto" << newl;
   }
 
   void closepath() {
-      *out << " closepath" << newl;
-  }
-
-  void rlineto(pair z) {
-      write(z);
-      *out << " rlineto" << newl;
+    if(pdf) *out << " h" << newl;
+    else *out << " closepath" << newl;
   }
 
   void stroke() {
-    *out << " stroke" << newl;
+    if(pdf) *out << " S" << newl;
+    else *out << " stroke" << newl;
   }
   
   void fill(const pen &p) {
-    *out << (p.evenodd() ? " eofill" : " fill") << newl;
+    if(p.evenodd()) {
+      if(pdf) *out << " f*" << newl;
+      else *out << "eofill" << newl;
+    } else {
+      if(pdf) *out << " f" << newl;
+      else *out << "fill" << newl;
+    }
   }
   
   void clip(const pen &p) {
-    *out << (p.evenodd() ? " eoclip" : " clip") << newl;
+    if(p.evenodd()) {
+      if(pdf) *out << " W* n" << newl;
+      else *out << " eoclip" << newl;
+    } else {
+      if(pdf) *out << " W n" << newl;
+      else *out << " clip" << newl;
+    }
   }
   
   void shade(vm::array *a, const bbox& b);
@@ -133,7 +151,8 @@ public:
   void image(vm::array *a, vm::array *p);
 
   void gsave() {
-    *out << "gsave" << newl;
+    if(pdf) *out << "q" << newl;
+    else *out << "gsave" << newl;
     pens.push(lastpen);
   }
   
@@ -142,18 +161,22 @@ public:
       reportError("grestore without matching gsave");
     lastpen = pens.top();
     pens.pop();
-    *out << "grestore" << newl;
+    if(pdf) *out << "Q" << newl;
+    else *out << "grestore" << newl;
   }
 
   void translate(pair z) {
+   if(pdf) *out << " 1 0 0 1 " << newl;
     write(z);
+   if(pdf) *out << " cm" << newl;
     *out << " translate" << newl;
   }
 
   // Multiply on a transform to the transformation matrix.
   void concat(transform t) {
-    write(t);
-    *out << " concat" << newl;
+   write(t);
+   if(pdf) *out << " cm" << newl;
+   else *out << " concat" << newl;
   }
   
   void verbatimline(const string& s) {

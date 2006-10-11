@@ -22,6 +22,10 @@
 \immediate\write\AsyStream{access settings;}%
 \immediate\write\AsyStream{if(!settings.multipleView)}%
 \immediate\write\AsyStream{  settings.batchView=false;}%
+\ifcase\pdfoutput
+\else
+\immediate\write\AsyStream{settings.tex="pdflatex";}%
+\fi
 \ifinline
 \immediate\write\AsyStream{settings.inlinetex=true;}%
 \fi
@@ -70,15 +74,23 @@
 \def\AfterasyAsymptote{%
   \immediate\write\AsyStream{\@charrb);}%
   \ifinline
-  \openin\AsyTestStream=\jobname_\arabic{asy}_.tex
+    \openin\AsyTestStream=\jobname_\arabic{asy}_.tex
   \else
-  \openin\AsyTestStream=\jobname_\arabic{asy}.eps
+    \ifcase\pdfoutput
+      \openin\AsyTestStream=\jobname_\arabic{asy}.eps
+    \else
+      \openin\AsyTestStream=\jobname_\arabic{asy}.pdf
+    \fi
   \fi
   \ifeof\AsyTestStream
     \ifinline
       \message{File \jobname_\arabic{asy}_.tex does not exist.}%
     \else
-      \message{File \jobname_\arabic{asy}.eps does not exist.}%
+      \ifcase\pdfoutput
+        \message{File \jobname_\arabic{asy}.eps does not exist.}%
+      \else
+        \message{File \jobname_\arabic{asy}.pdf does not exist.}%
+      \fi
     \fi
     \closein\AsyTestStream%
   \else
@@ -86,7 +98,7 @@
     \ifinline
     \input{\jobname_\arabic{asy}_.tex}%
     \else
-    \includegraphics{\jobname_\arabic{asy}.eps}%
+    \includegraphics{\jobname_\arabic{asy}}%
     \fi
   \fi
   \relax%

@@ -34,7 +34,10 @@ texfile::texfile(const string& texname, const bbox& box) : box(box)
 
 texfile::~texfile()
 {
-  if(out) delete out;  
+  if(out) {
+    delete out;  
+    out=NULL;
+  }
 }
   
 void texfile::prologue()
@@ -50,11 +53,14 @@ void texfile::prologue()
     
 void texfile::beginlayer(const string& psname)
 {
-  if(box.right > box.left && box.top > box.bottom)
-    *out << "\\includegraphics[bb="
-	 << box.left << " " << box.bottom << " "
-	 << box.right << " " << box.top << "]{" << psname << "}%"
-	 << newl;
+  mem::string texengine=getSetting<mem::string>("tex");
+  if(box.right > box.left && box.top > box.bottom) {
+    *out << "\\includegraphics";
+    if(!settings::pdf(texengine))
+      *out << "[bb=" << box.left << " " << box.bottom << " "
+	   << box.right << " " << box.top << "]";
+    *out << "{" << psname << "}%" << newl;
+  }
 }
 
 void texfile::endlayer()
@@ -127,6 +133,10 @@ void texfile::closeclip()
 void texfile::put(const string& label, const transform& T, const pair& z,
 		  const pair& align, const bbox& Box)
 {
+  mem::string texengine=settings::getSetting<mem::string>("tex");
+  
+  transform T0=(texengine == "pdflatex") ? inverse(T) : T;
+
   if(label.empty()) return;
   
   *out << "\\ASYalign"
@@ -134,8 +144,8 @@ void texfile::put(const string& label, const transform& T, const pair& z,
        << "," << (z.gety()-box.bottom)*ps2tex
        << ")(" << align.getx()
        << "," << align.gety() 
-       << "){" << T.getxx() << " " << -T.getyx()
-       << " " << -T.getxy() << " " << T.getyy()
+       << "){" << T0.getxx() << " " << -T0.getyx()
+       << " " << -T0.getxy() << " " << T0.getyy()
        << "}{" << label << "}" << newl;
 }
 

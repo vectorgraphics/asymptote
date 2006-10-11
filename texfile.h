@@ -22,6 +22,7 @@
 #include "path.h"
 #include "array.h"
 #include "psfile.h"
+#include "settings.h"
 
 using std::string;
 
@@ -50,36 +51,27 @@ template<class T>
 void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
 		bool pipe=false)
 {
+  mem::string texengine=settings::getSetting<mem::string>("tex");
   texpreamble(out,preamble);
   out << "\\newbox\\ASYbox" << newl
       << "\\newdimen\\ASYdimen" << newl
       << "\\def\\ASYbase#1#2{\\setbox\\ASYbox=\\hbox{#1}"
       << "\\ASYdimen=\\ht\\ASYbox%" << newl
       << "\\setbox\\ASYbox=\\hbox{#2}\\lower\\ASYdimen\\box\\ASYbox}" << newl
-//      << "\\usepackage{rotating}" << newl
       << "\\def\\ASYalign(#1,#2)(#3,#4)#5#6{\\leavevmode%" << newl
       << "\\setbox\\ASYbox=\\hbox{#6}%" << newl
-//      << "\\put(#1,#2){\\begin{rotate}{#5}%" << newl
-      << "\\put(#1,#2){\\special{ps: gsave currentpoint currentpoint translate"
-      << newl
-      << "[#5 0 0] concat neg exch neg exch translate}"
-      << "\\ASYdimen=\\ht\\ASYbox%" << newl
+      << "\\setbox\\ASYbox\\hbox{\\ASYdimen=\\ht\\ASYbox%" << newl
       << "\\advance\\ASYdimen by\\dp\\ASYbox\\kern#3\\wd\\ASYbox"
-      << "\\raise#4\\ASYdimen\\box\\ASYbox%" << newl
-//      << "\\end{rotate}}}" << newl
-      << "\\special{ps: currentpoint grestore moveto}}}" << newl
-      << "\\def\\ASYgsave{\\special{ps: gsave}}" << newl
-      << "\\def\\ASYgrestore{\\special{ps: grestore}}" << newl
+      << "\\raise#4\\ASYdimen\\box\\ASYbox}%" << newl
+      << "\\put(#1,#2){%" << newl
+      << settings::beginlabel(texengine) << "%" << newl
+      << "\\box\\ASYbox%" << newl
+      << settings::endlabel(texengine) << "%" << newl
+      << "}}" << newl
+      << "\\def\\ASYgsave{" << settings::gsave(texengine) << "}" << newl
+      << "\\def\\ASYgrestore{" << settings::grestore(texengine) << "}" << newl
       << "\\def\\ASYclip(#1,#2)#3{\\leavevmode%" << newl
-      << "\\put(#1,#2){\\special{ps: currentpoint currentpoint translate" 
-      << newl
-      << "matrix currentmatrix" << newl
-      << "[matrix defaultmatrix 0 get 0 0 matrix defaultmatrix 3 get" << newl
-      << "matrix currentmatrix 4 get matrix currentmatrix 5 get] setmatrix"
-      << newl
-      << "#3" << newl
-      << "setmatrix" << newl
-      << "neg exch neg exch translate}}}" << newl;
+      << "\\put(#1,#2){" << settings::clip(texengine) << "}}" << newl;
   
   if(pipe || !settings::getSetting<bool>("inlinetex"))
     out << "\\usepackage{graphicx}" << newl;

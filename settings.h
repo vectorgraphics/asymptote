@@ -66,5 +66,14 @@ int numArgs();
 char *getArg(int n);
  
 int getScroll();
+  
+bool pdf(mem::string texengine);
+const char *beginlabel(mem::string texengine);
+const char *endlabel(mem::string texengine);
+const char *gsave(mem::string texengine);
+const char *grestore(mem::string texengine);
+const char *clip(mem::string texengine);
+  
+mem::string texengine();
 }
 #endif

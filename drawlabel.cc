@@ -72,7 +72,8 @@ inline double urand()
 void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
 		       bboxlist&)
 {
-  if(!settings::getSetting<bool>("tex")) {b += position; return;}
+  mem::string texengine=settings::getSetting<mem::string>("tex");
+  if(texengine == "none") {b += position; return;}
   pen Pentype=pentype;
   double fuzz=Pentype.size()/24.0+0.3;
   
@@ -80,6 +81,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
     havebounds=true;
     if(Pentype.size() != lastpen.size() ||
        Pentype.Lineskip() != lastpen.Lineskip()) {
+      if(texengine == "latex" || texengine == "pdflatex") {
       tex <<  "\\fontsize{" << Pentype.size() << "}{" << Pentype.Lineskip()
 	  << "}\\selectfont\n";
       tex.wait("\n*","! ");
@@ -87,15 +89,9 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
     
     mem::string font=Pentype.Font();
     if(font != lastpen.Font()) {
-      fontscale=1.0;
-      mem::string scaled=" scaled";
-      size_t p=font.find(scaled);
-      if(p < string::npos) {
-	p += scaled.length();
-	fontscale=atof(font.substr(p,string::npos).c_str())/1000.0;
+	tex <<  font << "\n";
+	tex.wait("\n*","! ");
       }
-      tex <<  font << "\n";
-      tex.wait("\n*","! ");
     }
     
     lastpen=Pentype;

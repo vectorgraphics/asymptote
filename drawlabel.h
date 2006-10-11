@@ -26,7 +26,6 @@ private:
   double width,height,depth;
   bool havebounds;
   bool suppress;
-  double fontscale;
   pair Align;
   pair texAlign;
   bbox Box;
@@ -36,7 +35,7 @@ public:
 	   pen pentype)
     : label(label), size(size), T(shiftless(T)), position(position),
       align(align), pentype(pentype), width(0.0), height(0.0), depth(0.0),
-      havebounds(false), suppress(false), fontscale(1.0) {} 
+      havebounds(false), suppress(false) {} 
   
   virtual ~drawLabel() {}
 
