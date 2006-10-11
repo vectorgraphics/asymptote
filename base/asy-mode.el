@@ -3,7 +3,7 @@
 ;; Copyright (C) 2006
 ;; Author: Philippe IVALDI 20 August 2006
 ;; Modified by: John Bowman 01 September 2006
-;; Last modification: 21 September 2006 (Philippe Ivaldi)
+;; Last modification: 11 october 2006 (Philippe Ivaldi)
 ;;
 ;; This program is free software ; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -183,6 +183,7 @@ This variable must be modified only using the function 'asy-set-master-tex by M-
 (make-variable-buffer-local 'asy-TeX-master-file)
 
 (when (fboundp 'font-lock-add-keywords)
+  (if (< max-specpdl-size 2000) (setq max-specpdl-size 2000))
   (defun asy-add-function-keywords (function-keywords face-name)
     (let* ((keyword-list (mapcar #'(lambda (x)
                                      (symbol-name  x))
@@ -251,25 +252,22 @@ This variable must be modified only using the function 'asy-set-master-tex by M-
      ("\\\\end{asy}" . 'asy-environment-face)))
   )
 
-(c-lang-defconst c-block-decls-with-vars
-  "Keywords introducing declarations that can contain a block which
+(when (fboundp 'c-lang-defconst)
+  (c-lang-defconst c-block-decls-with-vars
+    "Keywords introducing declarations that can contain a block which
 might be followed by variable declarations, e.g. like \"foo\" in
 \"class Foo { ... } foo;\".  So if there is a block in a declaration
 like that, it ends with the following ';' and not right away.
 
 The keywords on list are assumed to also be present on one of the
 `*-decl-kwds' lists."
-  t        nil
-  objc '("union" "enum" "typedef") ;; Asymptote doesn't require ';' after struct
-  c '("struct" "union" "enum" "typedef")
-  c++      '("class" "struct" "union" "enum" "typedef"))
+    t        nil
+    objc '("union" "enum" "typedef") ;; Asymptote doesn't require ';' after struct
+    c '("struct" "union" "enum" "typedef")
+    c++      '("class" "struct" "union" "enum" "typedef")))
 
 (setq buffers-menu-max-size nil)
 (setq mode-name "Asymptote")
-(if (featurep 'xemacs)
-    (turn-on-font-lock)
-  (global-font-lock-mode t))
-(column-number-mode t)
 
 (if running-xemacs-p
     (defvar asy-menu
@@ -326,8 +324,8 @@ The keywords on list are assumed to also be present on one of the
   "Get a temp file name for printing."
   (if running-xemacs-p
       (concat (make-temp-name asy-temp-dir) ".asy")
-    (make-temp-file
-     (expand-file-name "asy" asy-temp-dir) nil ".asy")))
+    (concat (make-temp-file
+             (expand-file-name "asy" asy-temp-dir)) ".asy")))
 
 (defun asy-log-filename()
   (concat "." (file-name-sans-extension (file-name-nondirectory buffer-file-name)) ".log"))
@@ -423,8 +421,10 @@ Fields are defined as 'field1:field2.field3:field4' . Field=0 <-> all fields"
     (let ((cWord (current-word))
           (cWindow (selected-window)))
       (switch-to-buffer-other-window "*asy-help*")
-      (call-process-shell-command
-       (concat asy-command-location "asy -l") nil t nil)
+      (if (> emacs-major-version 21)
+          (call-process-shell-command
+           (concat asy-command-location "asy -l") nil t nil)
+        (insert (shell-command-to-string "asy -l")))
       (let ((rHelp (asy-grep (concat "^.*\\b" cWord "(\\(.\\)*?$"))))
         (erase-buffer)
         (insert rHelp))
@@ -494,12 +494,16 @@ Fields are defined as 'field1:field2.field3:field4' . Field=0 <-> all fields"
    ))
 
 (add-hook 'asy-mode-hook
-	  '(lambda ()
-             (if running-xemacs-p
+	  (lambda ()
+             (if (or running-xemacs-p (< emacs-major-version 22))
                  (set-variable 'shell-file-name "/bin/sh")
                (set-variable 'shell-file-name "/bin/sh" t))
 	     (tempo-use-tag-list 'asy-tempo-tags)
-             (if (boundp flyspell-mode) (flyspell-mode -1))
+             (if (fboundp 'flyspell-mode) (flyspell-mode -1))
+             (if (featurep 'xemacs)
+                 (turn-on-font-lock)
+               (font-lock-mode t))
+             (column-number-mode t)
 	     ))
 
 ;; Definition of insertion functions
