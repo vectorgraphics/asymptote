@@ -74,27 +74,25 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
 {
   mem::string texengine=settings::getSetting<mem::string>("tex");
   if(texengine == "none") {b += position; return;}
-  pen Pentype=pentype;
-  double fuzz=Pentype.size()/24.0+0.3;
   
   if(!havebounds) {
     havebounds=true;
-    if(Pentype.size() != lastpen.size() ||
-       Pentype.Lineskip() != lastpen.Lineskip()) {
+    if(pentype.size() != lastpen.size() ||
+       pentype.Lineskip() != lastpen.Lineskip()) {
       if(texengine == "latex" || texengine == "pdflatex") {
-      tex <<  "\\fontsize{" << Pentype.size() << "}{" << Pentype.Lineskip()
+      tex <<  "\\fontsize{" << pentype.size() << "}{" << pentype.Lineskip()
 	  << "}\\selectfont\n";
       tex.wait("\n*","! ");
     }
     
-    mem::string font=Pentype.Font();
+    mem::string font=pentype.Font();
     if(font != lastpen.Font()) {
 	tex <<  font << "\n";
 	tex.wait("\n*","! ");
       }
     }
     
-    lastpen=Pentype;
+    lastpen=pentype;
     
     bool nullsize=size == "";
     if(!texbounds(tex,label,nullsize) && !nullsize)
@@ -105,7 +103,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
     double scale0=max(fabs(Align.getx()),fabs(Align.gety()));
     if(scale0) Align *= 0.5/scale0;
     Align -= pair(0.5,0.5);
-    double Depth=(Pentype.Baseline() == NOBASEALIGN) ? depth : 0.0;
+    double Depth=(pentype.Baseline() == NOBASEALIGN) ? depth : 0.0;
     texAlign=Align;
     if(Depth > 0) texAlign += pair(0.0,Depth/(height+Depth));
     Align.scale(width,height+Depth);
@@ -115,10 +113,12 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
 
   // alignment point
   pair p=position+Align;
-  double vertical=height+depth+fuzz;
+  double vertical=height+depth;
+  static const double epsilon=0.08;
+  const double fuzz=max(width,vertical)*epsilon;
   pair A=p+T*pair(-fuzz,-fuzz);
-  pair B=p+T*pair(-fuzz,vertical);
-  pair C=p+T*pair(width+fuzz,vertical);
+  pair B=p+T*pair(-fuzz,vertical+fuzz);
+  pair C=p+T*pair(width+fuzz,vertical+fuzz);
   pair D=p+T*pair(width+fuzz,-fuzz);
   
   if(pentype.Overwrite() != ALLOW && label != "") {
