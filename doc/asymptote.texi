@@ -4620,10 +4620,18 @@ asy latexusage
 latex latexusage
 @end verbatim
 
+@noindent
+or
+
+@verbatim
+pdflatex latexusage
+asy latexusage
+pdflatex latexusage
+@end verbatim
+
 If the @code{inline} option is given to the
 @code{asymptote.sty} package, inline @code{LaTeX} code is generated instead of
-@acronym{EPS} files, so that @code{pdflatex} may be substituted for
-@code{latex}. This makes LaTeX symbols visible to the
+@acronym{EPS} files. This makes LaTeX symbols visible to the
 @code{\begin@{asy@}...\end@{asy@}} environment.  In this mode,
 Asymptote correctly aligns LaTeX symbols defined outside of
 @code{\begin@{asy@}...\end@{asy@}}, but treats their size as zero; an
@@ -4633,9 +4641,9 @@ estimate of the unknown label size.
 Note that if @code{latex} is used with the @code{inline} option,
 the labels might not show up in @acronym{DVI} viewers that cannot
 handle raw @code{PostScript} code. One can use @code{dvips}/@code{dvipdf} to
-produce @code{PostScript}/@acronym{PDF} output. We recommend using the
+produce @code{PostScript}/@acronym{PDF} output (we recommend using the
 modified version of @code{dvipdf} in the @code{Asymptote} patches
-directory, which accepts the @code{dvips -z} hyperdvi option. 
+directory, which accepts the @code{dvips -z} hyperdvi option). 
 
 An excellent tutorial by Dario Teixeira on integrating @code{Asymptote} and
 @code{LaTeX} is available at @url{http://dario.dse.nl/projects/asylatex/}.

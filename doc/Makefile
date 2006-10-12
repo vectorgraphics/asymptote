@@ -20,7 +20,6 @@ faq:
 	$(ASY) -f pdf $<
 
 latexusage.dvi: latexusage.tex ../examples/slidedemo.asy
-	rm latexusage_*
 	latex latexusage
 	$(ASY) latexusage
 	latex latexusage

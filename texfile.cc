@@ -43,20 +43,28 @@ texfile::~texfile()
 void texfile::prologue()
 {
   texdefines(*out);
-  if(!getSetting<bool>("inlinetex"))
+  if(!getSetting<bool>("inlinetex")) {
     *out << "\\usepackage{color}" << newl
 	 << "\\pagestyle{empty}" << newl
 	 << "\\textheight=2048pt" << newl
-	 << "\\textwidth=\\textheight" << newl
-	 << "\\begin{document}" << newl;
+	 << "\\textwidth=\\textheight" << newl;
+    if(settings::pdf(getSetting<mem::string>("tex")))
+      *out << "\\oddsidemargin=-17.54bp" << newl
+	   << "\\evensidemargin=\\oddsidemargin" << newl
+	   << "\\topmargin=-36.86bp" << newl
+	   << "\\pdfhorigin=0bp" << newl
+	   << "\\pdfvorigin=0bp" << newl
+	   << "\\pdfpagewidth=" << box.right-box.left << "bp" << newl
+	   << "\\pdfpageheight=" << box.top-box.bottom << "bp" << newl;
+    *out << "\\begin{document}" << newl;
+  }
 }
     
 void texfile::beginlayer(const string& psname)
 {
-  mem::string texengine=getSetting<mem::string>("tex");
   if(box.right > box.left && box.top > box.bottom) {
     *out << "\\includegraphics";
-    if(!settings::pdf(texengine))
+    if(!settings::pdf(getSetting<mem::string>("tex")))
       *out << "[bb=" << box.left << " " << box.bottom << " "
 	   << box.right << " " << box.top << "]";
     *out << "{" << psname << "}%" << newl;
@@ -133,9 +141,7 @@ void texfile::closeclip()
 void texfile::put(const string& label, const transform& T, const pair& z,
 		  const pair& align, const bbox& Box)
 {
-  mem::string texengine=settings::getSetting<mem::string>("tex");
-  
-  transform T0=(texengine == "pdflatex") ? inverse(T) : T;
+  double sign=settings::pdf(getSetting<mem::string>("tex")) ? 1.0 : -1.0;
 
   if(label.empty()) return;
   
@@ -144,8 +150,8 @@ void texfile::put(const string& label, const transform& T, const pair& z,
        << "," << (z.gety()-box.bottom)*ps2tex
        << ")(" << align.getx()
        << "," << align.gety() 
-       << "){" << T0.getxx() << " " << -T0.getyx()
-       << " " << -T0.getxy() << " " << T0.getyy()
+       << "){" << T.getxx() << " " << sign*T.getyx()
+       << " " << sign*T.getxy() << " " << T.getyy()
        << "}{" << label << "}" << newl;
 }
 
