@@ -20,6 +20,7 @@ std::list<string> TeXpipepreamble, TeXpreamble;
   
 texfile::texfile(const string& texname, const bbox& box) : box(box)
 {
+  texengine=getSetting<mem::string>("tex");
   out=new ofstream(texname.c_str());
   if(!out || !*out) {
     std::cerr << "Cannot write to " << texname << std::endl;
@@ -43,20 +44,34 @@ texfile::~texfile()
 void texfile::prologue()
 {
   texdefines(*out);
-  if(!getSetting<bool>("inlinetex")) {
-    *out << "\\usepackage{color}" << newl
-	 << "\\pagestyle{empty}" << newl
-	 << "\\textheight=2048pt" << newl
-	 << "\\textwidth=\\textheight" << newl;
-    if(settings::pdf(getSetting<mem::string>("tex")))
-      *out << "\\oddsidemargin=-17.54bp" << newl
-	   << "\\evensidemargin=\\oddsidemargin" << newl
-	   << "\\topmargin=-36.86bp" << newl
+  if(settings::latex(texengine)) {
+    if(!getSetting<bool>("inlinetex")) {
+      *out << "\\pagestyle{empty}" << newl
+	   << "\\textheight=2048pt" << newl
+	   << "\\textwidth=\\textheight" << newl;
+      if(settings::pdf(texengine))
+	*out << "\\oddsidemargin=-17.61pt" << newl
+	     << "\\evensidemargin=\\oddsidemargin" << newl
+	     << "\\topmargin=-37.01pt" << newl
+	     << "\\pdfhorigin=0bp" << newl
+	     << "\\pdfvorigin=0bp" << newl
+	     << "\\pdfpagewidth=" << box.right-box.left << "bp" << newl
+	     << "\\pdfpageheight=" << box.top-box.bottom << "bp" << newl;
+      *out << "\\begin{document}" << newl;
+    }
+  } else {
+    *out << "\\hoffset=36.6pt" << newl
+	 << "\\voffset=54.0pt" << newl
+	 << "\\input graphicx" << newl
+	 << "\\input picture" << newl;
+    if(settings::pdf(texengine)) {
+      *out << "\\hoffset=-20pt" << newl
+	   << "\\voffset=0pt" << newl
 	   << "\\pdfhorigin=0bp" << newl
 	   << "\\pdfvorigin=0bp" << newl
 	   << "\\pdfpagewidth=" << box.right-box.left << "bp" << newl
 	   << "\\pdfpageheight=" << box.top-box.bottom << "bp" << newl;
-    *out << "\\begin{document}" << newl;
+    }
   }
 }
     
@@ -64,7 +79,7 @@ void texfile::beginlayer(const string& psname)
 {
   if(box.right > box.left && box.top > box.bottom) {
     *out << "\\includegraphics";
-    if(!settings::pdf(getSetting<mem::string>("tex")))
+    if(!settings::pdf(texengine))
       *out << "[bb=" << box.left << " " << box.bottom << " "
 	   << box.right << " " << box.top << "]";
     *out << "{" << psname << "}%" << newl;
@@ -82,29 +97,10 @@ void texfile::setpen(pen p)
   p.convert();
   if(p == lastpen) return;
 
-  if(p.cmyk() && (!lastpen.cmyk() || 
-		  (p.cyan() != lastpen.cyan() || 
-		   p.magenta() != lastpen.magenta() || 
-		   p.yellow() != lastpen.yellow() ||
-		   p.black() != lastpen.black()))) {
-    *out << "\\definecolor{ASYcolor}{cmyk}{" 
-	 << p.cyan() << "," << p.magenta() << "," << p.yellow() << "," 
-	 << p.black() << "}\\color{ASYcolor}" << newl;
-  } else if(p.rgb() && (!lastpen.rgb() ||
-			(p.red() != lastpen.red() ||
-			 p.green() != lastpen.green() || 
-			 p.blue() != lastpen.blue()))) {
-    *out << "\\definecolor{ASYcolor}{rgb}{" 
-	 << p.red() << "," << p.green() << "," << p.blue()
-	 << "}\\color{ASYcolor}" << newl;
-  } else if(p.grayscale() && (!lastpen.grayscale() || 
-			      p.gray() != lastpen.gray())) {
-    *out << "\\definecolor{ASYcolor}{gray}{" 
-	 << p.gray()
-	 << "}\\color{ASYcolor}" << newl;
-  }
+  setcolor(p,settings::beginspecial(texengine),settings::endspecial());
   
-  if(p.size() != lastpen.size() || p.Lineskip() != lastpen.Lineskip()) {
+  if((p.size() != lastpen.size() || p.Lineskip() != lastpen.Lineskip()) &&
+     settings::latex(texengine)) {
     *out << "\\fontsize{" << p.size() << "}{" << p.Lineskip()
 	 << "}\\selectfont" << newl;
   }
@@ -118,12 +114,16 @@ void texfile::setpen(pen p)
    
 void texfile::gsave()
 {
-  *out << "\\ASYgsave" << newl;
+  *out << settings::beginspecial(texengine);
+  psfile::gsave(true);
+  *out << settings::endspecial() << newl;
 }
-  
+
 void texfile::grestore()
 {
-    *out << "\\ASYgrestore" << newl;
+  *out << settings::beginspecial(texengine);
+  psfile::grestore(true);
+  *out << settings::endspecial() << newl;
 }
   
 void texfile::openclip() 
@@ -141,7 +141,7 @@ void texfile::closeclip()
 void texfile::put(const string& label, const transform& T, const pair& z,
 		  const pair& align, const bbox& Box)
 {
-  double sign=settings::pdf(getSetting<mem::string>("tex")) ? 1.0 : -1.0;
+  double sign=settings::pdf(texengine) ? 1.0 : -1.0;
 
   if(label.empty()) return;
   
@@ -157,7 +157,12 @@ void texfile::put(const string& label, const transform& T, const pair& z,
 
 void texfile::epilogue()
 {
-  if(!getSetting<bool>("inlinetex")) *out << "\\end{document}" << newl;
+  if(settings::latex(texengine)) {
+    if(!getSetting<bool>("inlinetex"))
+      *out << "\\end{document}" << newl;
+  } else {
+      *out << "\\bye" << newl;
+  }
   out->flush();
 }
 

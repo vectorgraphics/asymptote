@@ -79,7 +79,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
     havebounds=true;
     if(pentype.size() != lastpen.size() ||
        pentype.Lineskip() != lastpen.Lineskip()) {
-      if(texengine == "latex" || texengine == "pdflatex") {
+      if(settings::latex(texengine)) {
       tex <<  "\\fontsize{" << pentype.size() << "}{" << pentype.Lineskip()
 	  << "}\\selectfont\n";
       tex.wait("\n*","! ");

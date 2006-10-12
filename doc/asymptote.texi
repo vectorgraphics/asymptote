@@ -6340,7 +6340,7 @@ Options:
 -safe                 Disable system call; command-line only [true]
 -scroll n             Scroll standard output n lines at a time [0]
 -tabcompletion        Interactive prompt auto-completion [true]
--tex engine           TeX engine ("latex", "pdftex", or "none") ["latex"]
+-tex engine           TeX engine ("latex|pdflatex|tex|pdftex|none") ["latex"]
 -s,-translate         Show translated virtual machine code [false]
 -twice                Run LaTeX twice (to resolve references) [false]
 -unsafe               Enable system call; command-line only [false]

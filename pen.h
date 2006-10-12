@@ -24,7 +24,8 @@ namespace settings {
 namespace camp {
 
 static const mem::string DEFPAT="<default>";
-static const mem::string DEFFONT="\\usefont{OT1}{cmr}{m}{n}";
+static const mem::string DEFLATEXFONT="\\usefont{OT1}{cmr}{m}{n}";
+static const mem::string DEFTEXFONT="\\font\\ASYfont=cmr12\\ASYfont";
 static const double DEFWIDTH=-1;
 static const int DEFCAP=-1;
 static const int DEFJOIN=-1;
@@ -330,7 +331,7 @@ public:
     linecap(p.cap()), linejoin(p.join()),overwrite(p.Overwrite()), t(p.t) {}
   
   static pen startupdefaultpen() {
-    return pen(LineType("",0,true,true),0.5,0,DEFFONT,12.0,12.0*1.2,
+    return pen(LineType("",0,true,true),0.5,0,"",12.0,12.0*1.2,
 	       GRAYSCALE,
 	       0.0,0.0,0.0,0.0,"",ZEROWINDING,NOBASEALIGN,
 	       DEFTRANSP,1,1,ALLOW,0);
@@ -353,7 +354,13 @@ public:
   }
   
   mem::string Font() const {
-    return font.empty() ? defaultpen.font : font;
+    if(font.empty()) {
+      if(defaultpen.font.empty())
+	return settings::latex(settings::getSetting<mem::string>("tex")) ? 
+	  DEFLATEXFONT : DEFTEXFONT;
+      else return defaultpen.font;
+    }
+    return font;
   }
   
   double size() const {

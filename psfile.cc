@@ -95,6 +95,28 @@ void psfile::epilogue()
   *out << "%%EOF" << newl;
 }
 
+void psfile::setcolor(const pen& p, const string& begin="",
+		      const string& end="")
+{
+  if(p.cmyk() && (!lastpen.cmyk() ||
+		  (p.cyan() != lastpen.cyan() || 
+		   p.magenta() != lastpen.magenta() || 
+		   p.yellow() != lastpen.yellow() ||
+		   p.black() != lastpen.black()))) {
+    *out << begin << p.cyan() << " " << p.magenta() << " " << p.yellow() << " " 
+	 << p.black() << " setcmykcolor" << end << newl;
+  } else if(p.rgb() && (!lastpen.rgb() || 
+			(p.red() != lastpen.red() || 
+			 p.green() != lastpen.green() || 
+			 p.blue() != lastpen.blue()))) {
+    *out << begin << p.red() << " " << p.green() << " " << p.blue()
+	 << " setrgbcolor" << end << newl;
+  } else if(p.grayscale() && (!lastpen.grayscale() ||
+			      p.gray() != lastpen.gray())) {
+    *out << begin << p.gray() << " setgray" << end << newl;
+  }
+}
+  
 void psfile::setpen(pen p)
 {
   p.convert();
@@ -110,24 +132,8 @@ void psfile::setpen(pen p)
   
   if(!p.fillpattern().empty() && p.fillpattern() != lastpen.fillpattern()) 
     *out << p.fillpattern() << " setpattern" << newl;
-  else if(p.cmyk() && (!lastpen.cmyk() ||
-		       (p.cyan() != lastpen.cyan() || 
-			p.magenta() != lastpen.magenta() || 
-			p.yellow() != lastpen.yellow() ||
-			p.black() != lastpen.black()))) {
-    *out << p.cyan() << " " << p.magenta() << " " << p.yellow() << " " 
-	 << p.black() << " setcmykcolor" << newl;
-  } else if(p.rgb() && (!lastpen.rgb() || 
-			(p.red() != lastpen.red() || 
-			 p.green() != lastpen.green() || 
-			 p.blue() != lastpen.blue()))) {
-    *out << p.red() << " " << p.green() << " " << p.blue()
-	 << " setrgbcolor" << newl;
-  } else if(p.grayscale() && (!lastpen.grayscale() ||
-			      p.gray() != lastpen.gray())) {
-    *out << p.gray() << " setgray" << newl;
-  }
-    
+  else setcolor(p);
+  
   if(p.width() != lastpen.width()) {
     *out << " 0 " << p.width() << 
       " dtransform truncate idtransform setlinewidth pop" << newl;

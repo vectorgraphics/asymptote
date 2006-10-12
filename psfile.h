@@ -82,8 +82,10 @@ public:
     lastpen.convert();
   }
   
-  void setpen(pen p);
+  void setcolor(const pen& p, const string& begin, const string& end);
 
+  void setpen(pen p);
+  
   void write(pen p);
   
   void write(path p, bool newPath=true);
@@ -150,24 +152,26 @@ public:
   
   void image(vm::array *a, vm::array *p);
 
-  void gsave() {
-    if(pdf) *out << "q" << newl;
-    else *out << "gsave" << newl;
+  void gsave(bool tex=false) {
+    if(pdf) *out << "q";
+    else *out << "gsave";
+    if(!tex) *out << newl;
     pens.push(lastpen);
   }
   
-  void grestore() {
+  void grestore(bool tex=false) {
     if(pens.size() < 1)
       reportError("grestore without matching gsave");
     lastpen = pens.top();
     pens.pop();
-    if(pdf) *out << "Q" << newl;
-    else *out << "grestore" << newl;
+    if(pdf) *out << "Q";
+    else *out << "grestore";
+    if(!tex) *out << newl;
   }
 
   void translate(pair z) {
    if(pdf) *out << " 1 0 0 1 " << newl;
-    write(z);
+   write(z);
    if(pdf) *out << " cm" << newl;
     *out << " translate" << newl;
   }

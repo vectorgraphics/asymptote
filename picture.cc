@@ -190,7 +190,9 @@ bool picture::texprocess(const string& texname, const string& outname,
     
       // Magic dvips offsets:
       double hoffset=-128.4;
-      double voffset=(height < 13.0) ? -137.8+height : -124.8;
+      double vertical=height;
+      if(!settings::latex(texengine)) vertical += 2.0;
+      double voffset=(vertical < 13.0) ? -137.8+vertical : -124.8;
 
       hoffset += b.left+bboxshift.getx();
       voffset += paperHeight-height-b.bottom-bboxshift.gety();

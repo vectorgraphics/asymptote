@@ -67,12 +67,14 @@ char *getArg(int n);
  
 int getScroll();
   
-bool pdf(mem::string texengine);
-const char *beginlabel(mem::string texengine);
-const char *endlabel(mem::string texengine);
-const char *gsave(mem::string texengine);
-const char *grestore(mem::string texengine);
-const char *clip(mem::string texengine);
+bool pdf(const mem::string& texengine);
+bool latex(const mem::string& texengine);
+  
+const char *beginlabel(const mem::string& texengine);
+const char *endlabel(const mem::string& texengine);
+const char *clip(const mem::string& texengine);
+const char *beginspecial(const mem::string& texengine);
+const char *endspecial();
   
 mem::string texengine();
 }

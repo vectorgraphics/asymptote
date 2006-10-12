@@ -36,7 +36,8 @@ const double ps2tex=1.0/tex2ps;
 template<class T>
 void texdocumentclass(T& out, bool pipe=false)
 {
-  if(pipe || !settings::getSetting<bool>("inlinetex"))
+  bool latex=settings::latex(settings::getSetting<mem::string>("tex"));
+  if(latex && (pipe || !settings::getSetting<bool>("inlinetex")))
     out << "\\documentclass[12pt]{article}" << newl;
 }
   
@@ -46,7 +47,7 @@ void texpreamble(T& out, std::list<string>& preamble=TeXpreamble)
   for(std::list<string>::iterator p=preamble.begin(); p != preamble.end(); ++p)
     out << stripblanklines(*p);
 }
-  
+
 template<class T>
 void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
 		bool pipe=false)
@@ -68,19 +69,20 @@ void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
       << "\\box\\ASYbox%" << newl
       << settings::endlabel(texengine) << "%" << newl
       << "}}" << newl
-      << "\\def\\ASYgsave{" << settings::gsave(texengine) << "}" << newl
-      << "\\def\\ASYgrestore{" << settings::grestore(texengine) << "}" << newl
       << "\\def\\ASYclip(#1,#2)#3{\\leavevmode%" << newl
       << "\\put(#1,#2){" << settings::clip(texengine) << "}}" << newl;
   
-  if(pipe || !settings::getSetting<bool>("inlinetex"))
-    out << "\\usepackage{graphicx}" << newl;
-  if(pipe) out << "\\begin{document}" << newl;
+  if(settings::latex(texengine)) {
+    if(pipe || !settings::getSetting<bool>("inlinetex"))
+      out << "\\usepackage{graphicx}" << newl;
+    if(pipe) out << "\\begin{document}" << newl;
+  }
 }
   
 class texfile : public psfile {
   bbox box;
   pen lastpen;
+  mem::string texengine;
 
 public:
   texfile(const string& texname, const bbox& box);
