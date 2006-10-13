@@ -113,9 +113,9 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
 
   // alignment point
   pair p=position+Align;
-  double vertical=height+depth;
-  static const double epsilon=0.08;
-  const double fuzz=max(width,vertical)*epsilon;
+  const double vertical=height+depth;
+  static const double epsilon=0.09;
+  const double fuzz=vertical*epsilon;
   pair A=p+T*pair(-fuzz,-fuzz);
   pair B=p+T*pair(-fuzz,vertical+fuzz);
   pair C=p+T*pair(width+fuzz,vertical+fuzz);
