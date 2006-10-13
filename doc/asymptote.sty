@@ -22,6 +22,9 @@
 \immediate\write\AsyStream{access settings;}%
 \immediate\write\AsyStream{if(!settings.multipleView)}%
 \immediate\write\AsyStream{  settings.batchView=false;}%
+\ifx\pdfoutput\undefined
+\def\pdfoutput{0}
+\fi
 \ifcase\pdfoutput
 \else
 \immediate\write\AsyStream{settings.tex="pdflatex";}%
