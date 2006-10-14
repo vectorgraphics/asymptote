@@ -293,8 +293,8 @@ prebuilt binary from one of the following sites:
 
 @noindent
 @cindex Fedora Core
-Fedora Core 4 (and later) users can now easily install @code{Asymptote}
-directly from the Fedora Extras mirror sites:
+Fedora Core 4 (and later) users can easily install @code{Asymptote}
+from Fedora Extras mirrors:
 @verbatim
 yum install asymptote
 @end verbatim
@@ -307,6 +307,20 @@ MacOS users can either compile the @code{UNIX} source code
 or install the contributed @code{Asymptote} binary available at
 
 @url{http://www.hmug.org/pub/MacOS_X/BSD/Applications/Publishing/asymptote/}
+
+@noindent
+However, instead of trying to install from these preconfigured binary
+distributions, which ave strict architecture and library dependencies
+that many installations do not satisfy, we recommend installing
+Asymptote directly from the official source:
+
+@url{http://sourceforge.net/project/showfiles.php?group_id=120000}
+
+@noindent
+Note that many MacOS X (and FreeBSD) systems inexplicably ship with an extremely
+old @acronym{GNU} @code{readline} version (4.1, dated 21 March 2000);
+for full interactive functionality, a @code{readline} version of at
+least 4.2 or later (16 April 2001) is required.
 
 @node Microsoft Windows
 @section Microsoft Windows
@@ -547,10 +561,9 @@ for header files and libraries in nonstandard locations:
 @end verbatim
 
 If you are compiling @code{Asymptote} with @code{gcc}, you will need a
-relatively recent version (e.g. 3.2 or later).  If you get errors
-compiling @code{interact.cc}, try installing an up-to-date version of
-the @acronym{GNU} @code{readline} library or else uncomment
-@code{HAVE_LIBREADLINE} in @code{config.h}.
+relatively recent version (e.g. 3.2 or later).  For full interactive
+functionality, you will need version 4.2 or later of the @acronym{GNU}
+@code{readline} library.
 
 @cindex @code{FFTW}
 @cindex @code{GSL}
@@ -635,19 +648,20 @@ make all
 make install
 @end verbatim
 
+@noindent
 To compile without optimization, use the command @code{make CFLAGS=-g}.
 
 @node Uninstall
 @section Uninstall
 @cindex Uninstall
 
-@noindent
 To uninstall a @code{UNIX} binary distribution, use the commands
 @verbatim
 tar -zxvf asymptote-x.xx.ARCH.tar.gz | xargs --replace=% rm /%
 texhash
 @end verbatim
 
+@noindent
 To uninstall all @code{Asymptote} files installed from a source
 distribution, use the command
 @verbatim
