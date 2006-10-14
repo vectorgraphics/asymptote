@@ -915,10 +915,16 @@ void layer(picture *f)
 }
 
 void _image(picture *f, realarray2 *data, pair initial, pair final,
-	    penarray *palette, transform t=Identity)
+	    penarray *palette=NULL, transform t=Identity)
 {
   f->append(new drawImage(copyArray2(data),copyArray(palette),
 			  t*matrix(initial,final)));
+}
+
+void _image(picture *f, penarray2 *data, pair initial, pair final,
+	    transform t=Identity)
+{
+  f->append(new drawImage(copyArray2(data),NULL,t*matrix(initial,final)));
 }
 
 void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,

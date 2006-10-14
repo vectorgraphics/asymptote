@@ -343,6 +343,30 @@ void psfile::writeHex(pen *p, int ncomponents) {
   }
 }
 
+void psfile::imageheader(double width, double height, ColorSpace colorspace)
+{
+  unsigned ncomponents=ColorComponents[colorspace];
+  *out << "/Device" << ColorDeviceSuffix[colorspace] << " setcolorspace" 
+       << newl
+       << "<<" << newl
+       << "/ImageType 1" << newl
+       << "/Width " << width << newl
+       << "/Height " << height << newl
+       << "/BitsPerComponent 8" << newl
+       << "/Decode [";
+  
+  for(unsigned i=0; i < ncomponents; ++i)
+    *out << "0 1 ";
+  
+  *out << "]" << newl
+       << "/ImageMatrix [" << width << " 0 0 " << height << " 0 0]" << newl
+       << "/DataSource currentfile /ASCIIHexDecode filter" << newl
+       << ">>" << newl
+       << "image" << newl;
+}
+
+static const char *inconsistent="inconsistent colorspaces in palette";
+
 void psfile::image(array *a, array *P)
 {
   size_t asize=a->size();
@@ -359,24 +383,8 @@ void psfile::image(array *a, array *P)
   checkColorSpace(colorspace);
   unsigned ncomponents=ColorComponents[colorspace];
   
-  *out << "/Device" << ColorDeviceSuffix[colorspace] << " setcolorspace" 
-       << newl
-       << "<<" << newl
-       << "/ImageType 1" << newl
-       << "/Width " << a0size << newl
-       << "/Height " << asize << newl
-       << "/BitsPerComponent 8" << newl
-       << "/Decode [";
-  
-  for(unsigned i=0; i < ncomponents; ++i)
-    *out << "0 1 ";
-  
-  *out << "]" << newl
-       << "/ImageMatrix [" << a0size << " 0 0 " << asize << " 0 0]" << newl
-       << "/DataSource currentfile /ASCIIHexDecode filter" << newl
-       << ">>" << newl
-       << "image" << newl;
-  
+  imageheader(a0size,asize,colorspace);
+    
   double min=read<double>(a0,0);
   double max=min;
   for(size_t i=0; i < asize; i++) {
@@ -396,10 +404,10 @@ void psfile::image(array *a, array *P)
       double val=read<double>(ai,j);
       pen *p=read<pen *>(P,(int) ((val-min)*step+0.5));
       p->convert();
-
+      
       if(p->colorspace() != colorspace)
-	reportError("inconsistent colorspaces in palette");
-  
+	reportError(inconsistent);
+
       writeHex(p,ncomponents);
     }
   }
@@ -407,4 +415,37 @@ void psfile::image(array *a, array *P)
   *out << ">" << endl;
 }
 
+void psfile::image(array *a)
+{
+  size_t asize=a->size();
+  
+  if(asize == 0) return;
+  
+  array *a0=read<array *>(a,0);
+  size_t a0size=a0->size();
+  
+  pen *p=read<pen *>(a0,0);
+  p->convert();
+  ColorSpace colorspace=p->colorspace();
+  checkColorSpace(colorspace);
+  unsigned ncomponents=ColorComponents[colorspace];
+  
+  imageheader(a0size,asize,colorspace);
+    
+  for(size_t i=0; i < asize; i++) {
+    array *ai=read<array *>(a,i);
+    for(size_t j=0; j < a0size; j++) {
+      pen *p=read<pen *>(ai,j);
+      p->convert();
+
+      if(p->colorspace() != colorspace)
+	reportError(inconsistent);
+
+      writeHex(p,ncomponents);
+    }
+  }
+  
+  *out << ">" << endl;
+}
+  
 } //namespace camp

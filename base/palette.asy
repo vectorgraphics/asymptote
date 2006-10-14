@@ -23,10 +23,17 @@ range Automatic=Range(true,true);
 range Full=Range();
 
 void image(frame f, real[][] data, pair initial, pair final, pen[] palette,
-           bool transpose=(initial.x < final.x && initial.y < final.y) ?
-           true : false, transform t=identity())
+           bool transpose=(initial.x < final.x && initial.y < final.y),
+           transform t=identity())
 {
   _image(f,transpose ? transpose(data) : data,initial,final,palette,t);
+}
+
+void image(frame f, pen[][] data, pair initial, pair final,
+           bool transpose=(initial.x < final.x && initial.y < final.y),
+           transform t=identity())
+{
+  _image(f,transpose ? transpose(data) : data,initial,final,t);
 }
 
 // Reduce color palette to approximate range of data relative to "display"
@@ -51,8 +58,7 @@ pen[] adjust(picture pic, real min, real max, real rmin, real rmax,
 
 bounds image(picture pic=currentpicture, real[][] f, range range=Full,
              pair initial, pair final, pen[] palette,
-             bool transpose=(initial.x < final.x && initial.y < final.y) ?
-             true : false) 
+             bool transpose=(initial.x < final.x && initial.y < final.y))
 {
   f=transpose ? transpose(f) : copy(f);
   palette=copy(palette);
@@ -106,6 +112,20 @@ bounds image(picture pic=currentpicture, real f(real,real),
     }
   }
   return image(pic,data,range,initial,final,palette,false);
+}
+
+void image(picture pic=currentpicture, pen[][] data, pair initial, pair final,
+	   bool transpose=(initial.x < final.x && initial.y < final.y))
+{
+  data=transpose ? transpose(data) : copy(data);
+
+  initial=Scale(pic,initial);
+  final=Scale(pic,final);
+
+  pic.add(new void(frame F, transform t) {
+      _image(F,data,initial,final,t);
+    });
+  pic.addBox(initial,final);
 }
 
 bounds image(picture pic=currentpicture, pair[] z, real[] f,
@@ -220,7 +240,7 @@ void palette(picture pic=currentpicture, Label L="", bounds range,
     if(length(max(f)-min(f)) > ylabelwidth*fontsize(L.p)) 
       L.transform(rotate(90));
   }
-  real[][] pdata=new real[][] {sequence(palette.length-1)};
+  real[][] pdata={sequence(palette.length-1)};
   if(vertical) pdata=transpose(pdata);
   
   pic.add(new void(frame f, transform t) {

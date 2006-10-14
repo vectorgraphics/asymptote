@@ -5652,8 +5652,7 @@ array @code{data}:
 @verbatim
 bounds image(picture pic=currentpicture, real[][] f, range range=Full,
              pair initial, pair final, pen[] palette,
-             bool transpose=(initial.x < final.x && initial.y < final.y) ?
-             true : false); 
+             bool transpose=(initial.x < final.x && initial.y < final.y));
 @end verbatim
 @noindent
 If the initial point is to the left and below the final point,
@@ -5703,6 +5702,19 @@ Here is an example that uses logarithmic scaling of the function values:
 @anchor{logimage}
 @verbatiminclude logimage.asy
 @image{logimage}
+
+One can also draw an image directly from a two-dimensional pen array:
+@verbatim
+void image(picture pic=currentpicture, pen[][] data,
+           pair initial, pair final,
+           bool transpose=(initial.x < final.x && initial.y < final.y));
+@end verbatim
+@noindent
+as illustrated in the following example:
+
+@anchor{penimage}
+@verbatiminclude penimage.asy
+@image{penimage}
 
 @node three
 @section @code{three}
@@ -6883,7 +6895,7 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  PaletteTicks defaultformat leastsquares bjam fprintf endgroup
 @c  LocalWords:  begingroup xmargin ymargin pbox box ellipse wget exe Gouraud
 @c  LocalWords:  multithreaded newframe init emph nums concat xline yline zpart
-@c  LocalWords:  colatitude zscale cosh nullpen MetaFontbook cyclicflag
+@c  LocalWords:  colatitude zscale cosh nullpen MetaFontbook cyclicflag FreeBSD
 @c  LocalWords:  nodeps Ghostgum beginlabel endlabel pTick ptick loggrid SAS dy
 @c  LocalWords:  currentprojection latticeshading subpictures colinear unitcube
 @c  LocalWords:  Autoscaling solveQuadratic MidArrow MidArcArrow Prebuilt url
@@ -6917,4 +6929,5 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  tickfactor USERNAME writeable imagecontour logimage Dumoulin's
 @c  LocalWords:  NoCrop parametricsurface realmult SoftLight HardLight interp
 @c  LocalWords:  ColorDodge ColorBurn Ivaldi buildcycle autorotate mexicanhat
-@c  LocalWords:  Gouraudcontour xunitsize yunitsize pdflatex
+@c  LocalWords:  Gouraudcontour xunitsize yunitsize pdflatex preconfigured
+@c  LocalWords:  penimage

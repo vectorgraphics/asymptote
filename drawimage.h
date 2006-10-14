@@ -31,7 +31,8 @@ public:
   bool draw(psfile *out) {
     out->gsave();
     out->concat(t);
-    out->image(image,palette);
+    if(palette == NULL) out->image(image);
+    else out->image(image,palette);
     out->grestore();
     
     return true;

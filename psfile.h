@@ -150,7 +150,10 @@ public:
   
   void shade(vm::array *pens, vm::array *vertices, vm::array *edges);
   
+  void imageheader(double width, double height, ColorSpace colorspace);
+  
   void image(vm::array *a, vm::array *p);
+  void image(vm::array *a);
 
   void gsave(bool tex=false) {
     if(pdf) *out << "q";
