@@ -448,8 +448,7 @@ void integeroverflow(size_t i)
   error(buf);
 }
   
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_HISTORY_STATE) && \
-    defined(HAVE_LIBCURSES)
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 typedef mem::map<CONST string, HISTORY_STATE> historyMap_t;
 historyMap_t historyMap;
 static HISTORY_STATE history_save;
@@ -517,8 +516,7 @@ void cleanup()
   
   clearTeX();
 
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_HISTORY_STATE) && \
-    defined(HAVE_LIBCURSES)
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   store_history(&history_save);
   int nlines=getSetting<int>("historylines");
   for(historyMap_t::iterator h=historyMap.begin(); h != historyMap.end(); 
@@ -3633,8 +3631,7 @@ file* read3(file *File)
 string readline(string prompt=emptystring, string history=emptystring,
 		string initial=emptystring, bool tabcompletion=false)
 {
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_HISTORY_STATE) && \
-    defined(HAVE_LIBCURSES)
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   init_readline(tabcompletion);
   
   store_history(&history_save);
