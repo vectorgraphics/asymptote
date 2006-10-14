@@ -124,12 +124,11 @@ AC_CHECK_LIB([curses], [setupterm])
 AC_CHECK_LIB([ncurses], [setupterm])
 AC_CHECK_LIB([m], [sqrt])
 
-AC_CHECK_FILE(readline/rltypedefs.h,[
-	AC_CHECK_LIB([readline], [readline])
-	AC_CHECK_LIB([readline], [history_set_history_state],
+AC_CHECK_LIB([readline], [rl_completion_matches],
+AC_CHECK_LIB([readline], [history_set_history_state],
 			 AC_DEFINE(HAVE_HISTORY_STATE, 1,
-   [Define if your readline library includes history_set_history_state]))
-],AC_MSG_NOTICE(*** Could not find GNU readline 4.2 or later: will compile without readline support ***))
+   [Define if your readline library includes history_set_history_state])),
+AC_MSG_NOTICE(*** Could not find GNU readline 4.2 or later: will compile without readline support ***))
 
 AC_CHECK_LIB([sigsegv], [stackoverflow_install_handler])
 
