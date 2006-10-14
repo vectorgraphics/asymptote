@@ -104,16 +104,16 @@ void psfile::setcolor(const pen& p, const string& begin="",
 		   p.yellow() != lastpen.yellow() ||
 		   p.black() != lastpen.black()))) {
     *out << begin << p.cyan() << " " << p.magenta() << " " << p.yellow() << " " 
-	 << p.black() << " setcmykcolor" << end << newl;
+	 << p.black() << (pdf ? " k" : "setcmykcolor") << end << newl;
   } else if(p.rgb() && (!lastpen.rgb() || 
 			(p.red() != lastpen.red() || 
 			 p.green() != lastpen.green() || 
 			 p.blue() != lastpen.blue()))) {
     *out << begin << p.red() << " " << p.green() << " " << p.blue()
-	 << " setrgbcolor" << end << newl;
+	 << (pdf ? " rg" : " setrgbcolor") << end << newl;
   } else if(p.grayscale() && (!lastpen.grayscale() ||
 			      p.gray() != lastpen.gray())) {
-    *out << begin << p.gray() << " setgray" << end << newl;
+    *out << begin << p.gray() << (pdf ? " g" : " setgray") << end << newl;
   }
 }
   

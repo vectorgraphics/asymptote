@@ -3,7 +3,7 @@ TESTDIRS = string arith frames types imp array types
 test: $(TESTDIRS)
 
 $(TESTDIRS)::
-	../asy $@/*.asy
+	../asy -dir ../base $@/*.asy
 
 clean:  FORCE
 	rm -f *.eps
