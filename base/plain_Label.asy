@@ -9,8 +9,7 @@ transform rotate(explicit pair dir)
 
 real angle(transform t)
 {
-  // return degrees((2t.xx*t.yy,t.yx*t.yy-t.xx*t.xy),warn=false);
-  return degrees((t.xx,t.yx),warn=false);
+  return degrees((2t.xx*t.yy,t.yx*t.yy-t.xx*t.xy),warn=false);
 }
 
 transform rotation(transform t)
@@ -18,18 +17,68 @@ transform rotation(transform t)
   return rotate(angle(t));
 }
 
-transform scale(transform t)
-{
-  transform T=rotate(-angle(t))*t;
-  return (0,0,T.xx,0,0,T.yy);
-}
-
 transform scaleless(transform t)
 {
-  transform T=scale(t);
-  if(T.xx != 0) t=xscale(1/abs(T.xx))*t;
-  if(T.yy != 0) t=yscale(1/abs(T.yy))*t;
-  return t;
+  real a=t.xx, b=t.xy, c=t.yx, d=t.yy;
+  real arg=(a-d)^2+4b*c;
+  pair delta=arg >= 0 ? sqrt(arg) : I*sqrt(-arg);
+  real trace=a+d; 
+  pair l1=0.5(trace+delta);
+  pair l2=0.5(trace-delta);
+  
+  static real epsilon=sqrt(realEpsilon);
+  if(abs(delta) < epsilon*max(abs(l1),abs(l2))) {
+    real s=abs(0.5trace);
+    return (s != 0) ? scale(1/s)*t : t;
+  }
+
+  if(abs(l1-d) < abs(l2-d)) {pair temp=l1; l1=l2; l2=temp;}
+
+  pair dot(pair[] u, pair[] v) {return conj(u[0])*v[0]+conj(u[1])*v[1];}
+
+  pair[] unit(pair[] u) {
+    real norm2=abs(u[0])^2+abs(u[1])^2;
+    return norm2 != 0 ? u/sqrt(norm2) : u;
+  }
+
+  pair[] u={l1-d,b};
+  pair[] v={c,l2-a};
+  u=unit(u);
+  v -= dot(u,v)/dot(u,u)*u;
+  v=unit(v);
+
+  pair[][] U={{u[0],v[0]},{u[1],v[1]}};
+  pair[][] A={{a,b},{c,d}};
+
+  pair[][] operator *(pair[][] a, pair[][] b) {
+    pair[][] c=new pair[2][2];
+    for(int i=0; i < 2; ++i) {
+      for(int j=0; j < 2; ++j) {
+	c[i][j]=a[i][0]*b[0][j]+a[i][1]*b[1][j];
+      }
+    }
+    return c;
+  }	
+
+  pair[][] conj(pair[][] a) {
+    pair[][] c=new pair[2][2];
+    for(int i=0; i < 2; ++i) {
+      for(int j=0; j < 2; ++j) {
+	c[i][j]=conj(a[j][i]);
+      }
+    }
+    return c;
+  }	
+
+  A=conj(U)*A*U;
+
+  real D=abs(A[0][0]);
+  if(D != 0) A[0][0] /= D;
+  D=abs(A[1][1]);
+  if(D != 0) A[1][1] /= D;
+
+  A=U*A*conj(U);
+  return (0,0,A[0][0].x,A[0][1].x,A[1][0].x,A[1][1].x);
 }
 
 struct align {
@@ -141,7 +190,7 @@ struct Label {
   pen p=nullpen;
   transform T;
   bool defaulttransform=true;
-  embed embed=Rotate; // Fixed, Rotate, Slant, or Scale with embedded picture
+  embed embed=Rotate; // Fixed, Rotate, Rotate, or Scale with embedded picture
   filltype filltype=NoFill;
   
   void init(string s="", string size="", position position=0, 
@@ -198,7 +247,8 @@ struct Label {
   void label(frame f, transform t=identity(), pair position, pair align) {
     pen p0=p == nullpen ? currentpen : p;
     label(f,s,size,embed(t)*shiftless(T),
-	  t*position+align*labelmargin(p0)+shift(T)*0,align,p0);
+	  t*position+align*labelmargin(p0)+shift(T)*0,
+	  length(align)*unit(scaleless(shiftless(t))*align),p0);
   }
 
   void out(frame f, transform t=identity()) {

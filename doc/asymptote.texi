@@ -1265,18 +1265,26 @@ For example, @code{rotate(45)*xscale(2)*L} first scales @code{L} in the
 @math{x} direction and then rotates it counterclockwise by 45
 degrees. The final position of a Label can also be shifted by a
 @code{PostScript} coordinate translation: @code{shift(10,0)*L}.
-
-@cindex @code{embed}
+The @code{embed} argument determines how the Label should transform with the
+embedding picture:
+@table @code
+@item Shift
 @cindex @code{Shift}
+only shift with embedding picture;
+
+@item Rotate
 @cindex @code{Rotate}
+only shift and rotate with embedding picture (default);
+
+@item Slant
 @cindex @code{Slant}
+only shift, rotate, slant, and reflect with embedding picture;
+
+@item Scale 
 @cindex @code{Scale}
-If @code{embed=Shift}, labels will only shift with pictures.
-If @code{embed=Rotate} (the default), labels will shift and rotate, but
-not scale or slant, with pictures.
-If @code{embed=Slant}, labels will shift, rotate, and slant with pictures.
-If @code{embed=Scale}, labels will shift, rotate, slant, and scale with
-pictures.
+shift, rotate, slant, reflect, and scale with embedding picture.
+
+@end table
 
 To add a label to a path, use
 @verbatim
@@ -2555,8 +2563,8 @@ reflects about the line @code{a--b}.
 @cindex @code{shiftless}
 The implicit initializer for transforms is @code{identity()}.
 The routines @code{shift(transform t)} and @code{shiftless(transform t)}
-return the transforms @code{transform(t.x,t.y,0,0,0,0)} and
-@code{transform(0,0,t.xx,t.xy,t.yx,t.yy)} respectively.
+return the transforms @code{(t.x,t.y,0,0,0,0)} and
+@code{(0,0,t.xx,t.xy,t.yx,t.yy)} respectively.
 
 
 @node Frames and pictures

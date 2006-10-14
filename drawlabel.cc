@@ -98,8 +98,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
     if(!texbounds(tex,label,nullsize) && !nullsize)
       texbounds(tex,size,false);
     
-    transform rot=rotate(angle(pair(T.getxx(),T.getyx())));
-    Align=inverse(rot)*align;
+    Align=inverse(T)*align;
     double scale0=max(fabs(Align.getx()),fabs(Align.gety()));
     if(scale0) Align *= 0.5/scale0;
     Align -= pair(0.5,0.5);
@@ -171,11 +170,8 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
 
 drawElement *drawLabel::transformed(const transform& t)
 {
-  static const pair origin=pair(0,0);
-  pair offset=t*origin;
-  return new drawLabel(label,size,t*T,
-//		       degrees((t*expi(radians(angle))-offset).angle()),
-		       t*position,length(align)*unit(t*align-offset),pentype);
+  return new drawLabel(label,size,t*T,t*position,
+		       length(align)*unit(shiftless(t)*align),pentype);
 }
 
 } //namespace camp
