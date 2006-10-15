@@ -116,8 +116,9 @@ the output of one \\begin{asy}...\\end{asy} section at a time.
 
 \question 02sep:pdflatex Is it possible to integrate Asymptote into latex or pdflatex?
 
-Yes, as of version 1.14, Asymptote supports both latex and pdflatex in
-inline mode, as illustrated by the example \courier{latexusage.tex\}:
+Yes, as of version 1.14, Asymptote supports latex and pdflatex (both in
+EPS/PDF and inline mode), as illustrated by the example
+\courier{latexusage.tex\}:
 
 \verbatim
 pdflatex latexusage
