@@ -9,7 +9,7 @@ pair F(real x) {return (x,f(x));}
 
 xaxis(background,grey);
 yaxis(background,-0.25,0.25,grey);
-real a=1.2/pi;
+real a=1.15/pi;
 draw(background,graph(background,f,-a,a,10000),grey);
 label(background,"$x\sin\frac{1}{x}$",F(0.92/pi),3SE,grey+fontsize(14));
 frame f=background.fit();
