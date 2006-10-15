@@ -81,18 +81,10 @@ Yes. Marius Schamschula maintains a binary package for OS X Tiger (10.4), which
 can be found at
 \docref{http://www.hmug.org/pub/MacOS_X/BSD/Applications/Publishing/asymptote/\}.
 It is also easy to compile Asymptote directly from the source code at
-\docref{http://sourceforge.net/project/showfiles.php?group_id=120000\}.
-
-\question 15sep:osxbadreadline Why do I get an error in \courier{interact::init_completion()\} about \courier{invalid conversion from char* (*)(const char*, int)' to 'int (*)(const char*, int)'\} on installing Asymptote from the Mac OS binary?  
-
-This means that your system does not satisfy the readline dependency listed at
-\docref{http://www.hmug.org/pub/MacOS_X/X/Applications/Publishing/asymptote\}
-
-Either upgrade to the latest GNU readline library or (if you don't care about
-readline support) simply compile Asymptote directly from the official
-source distribution (which will automatically detect and disable obsolete
-versions of the readline library):
-\docref{http://sourceforge.net/project/showfiles.php?group_id=120000\}.
+\docref{http://sourceforge.net/project/showfiles.php?group_id=120000\}
+We recommend first upgrading to the latest GNU readline library, unless you
+don't care about interactive readline support (in which case configure will
+automatically detect and disable obsolete versions of the readline library).
 
 \question 26jun:osxbadCPU Why do I get the error \courier{Bad CPU type in executable\} on installing Asymptote from the MAC OS binary?
 
