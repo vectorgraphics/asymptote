@@ -3,7 +3,7 @@
 # this file.
 
 AC_PREREQ(2)
-AC_INIT([Asymptote],[1.14svn],[http://sourceforge.net/projects/asymptote])
+AC_INIT([Asymptote],[1.15svn],[http://sourceforge.net/projects/asymptote])
 VERSION=$PACKAGE_VERSION
 AC_SUBST(VERSION)
 
@@ -143,7 +143,7 @@ AC_CHECK_HEADER(gsl/gsl_sf.h,
    AC_CHECK_LIB([gsl], gsl_sf_Si, [AC_DEFINE(HAVE_LIBGSL, 1,
    [Define to 1 if you have the 'gsl' library (-lgsl). ]) LIBS=$LIBS"-lgsl -lgslcblas "],
            AC_MSG_NOTICE([*** Could not find libgsl: will compile without optional special functions. ***]),[-lgslcblas]),
-     AC_MSG_NOTICE([*** Header file gls_sf.h not found: will compile without optional special functions. ***]))
+     AC_MSG_NOTICE([*** Header file gsl_sf.h not found: will compile without optional special functions. ***]))
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_PID_T
