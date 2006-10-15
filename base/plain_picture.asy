@@ -583,7 +583,7 @@ struct picture {
     } else return 0;
   }
 
-  // Calculate the min for the final picture, given the transform of coords.
+  // Calculate the min for the final frame, given the coordinate transform.
   pair min(transform t) {
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x,b.x);
@@ -596,7 +596,7 @@ struct picture {
                 min(ys,bounds.point.y)));
   }
 
-  // Calculate the max for the final picture, given the transform of coords.
+  // Calculate the max for the final frame, given the coordinate transform.
   pair max(transform t) {
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x,b.x);
@@ -702,16 +702,6 @@ struct picture {
     return calculateTransform(xsize,ysize,keepAspect,warn);
   }
 
-  pair min(real xsize=this.xsize, real ysize=this.ysize,
-           bool keepAspect=this.keepAspect) {
-    return min(calculateTransform(xsize,ysize,keepAspect));
-  }
-  
-  pair max(real xsize=this.xsize, real ysize=this.ysize,
-           bool keepAspect=this.keepAspect) {
-    return max(calculateTransform(xsize,ysize,keepAspect));
-  }
-  
   frame fit(transform t, transform T0=T, pair m, pair M) {
     frame f;
     for (int i=0; i < nodes.length; ++i)
@@ -728,7 +718,7 @@ struct picture {
   frame scaled() {
     frame f=fit(fixedscaling);
     pair d=max(f)-min(f);
-    static real epsilon=10*realEpsilon;
+    static real epsilon=100*realEpsilon;
     if(d.x > xsize*(1+epsilon)) 
       write("warning: frame exceeds xlimit: "+(string) d.x+" > "+
             (string) xsize);
@@ -738,17 +728,50 @@ struct picture {
     return f;
   }
   
-  // Returns the picture fit to the wanted size.
+  transform scale(frame f, bool keepaspect=this.keepAspect) {
+    pair m=min(f);
+    pair M=max(f);
+    real xgrow=xsize == 0 ? 1 : xsize/(M.x-m.x);
+    real ygrow=ysize == 0 ? 1 : ysize/(M.y-m.y);
+    return keepAspect ? scale(min(xgrow,ygrow)) : xscale(xgrow)*yscale(ygrow);
+  }
+
+  pair min(real xsize=this.xsize, real ysize=this.ysize,
+           bool keepAspect=this.keepAspect) {
+    return min(calculateTransform(xsize,ysize,keepAspect));
+  }
+  
+  pair max(real xsize=this.xsize, real ysize=this.ysize,
+           bool keepAspect=this.keepAspect) {
+    return max(calculateTransform(xsize,ysize,keepAspect));
+  }
+  
+  // Returns the picture fit to the requested size.
   frame fit(real xsize=this.xsize, real ysize=this.ysize,
             bool keepAspect=this.keepAspect) {
     if(fixed) return scaled();
-    return empty() ? newframe :
-      fit(calculateTransform(xsize,ysize,keepAspect));
+    if(empty()) return newframe;
+    transform t=calculateTransform(xsize,ysize,keepAspect);
+    frame f=fit(t);
+
+    // In case only an approximate picture size estimate is available,
+    // check if the transform should be recalculated. 
+    transform s=scale(f,keepAspect);
+    if(s == identity()) return f;
+    return fit(s*t);
+  }
+
+  // In case only an approximate picture size estimate is available, return the
+  // fitted frame slightly scaled (including labels and true size distances)
+  // so that it precisely meets the given size specification. 
+  frame scale(real xsize=this.xsize, real ysize=this.ysize,
+              bool keepAspect=this.keepAspect) {
+    frame f=fit(xsize,ysize,keepAspect);
+    return scale(f,keepAspect)*f;
   }
 
   // Copies the drawing information, but not the sizing information into a new
-  // picture. Warning: "fitting" this picture will not scale as a normal
-  // picture would.
+  // picture. Fitting this picture will not scale as the original picture would.
   picture drawcopy() {
     picture dest=new picture;
     dest.nodes=copy(nodes);

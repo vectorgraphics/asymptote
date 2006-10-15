@@ -2679,6 +2679,16 @@ The default size and aspect ratio settings are those given to the
 @code{size} command (which default to @code{0}, @code{0}, and
 @code{true}, respectively).
 
+In certain cases (e.g. 2D graphs) where only an approximate size
+estimate for @code{pic} is available, the picture fitting routine
+@verbatim
+frame pic.scale(real xsize=this.xsize, real ysize=this.ysize,
+                bool keepAspect=this.keepAspect);
+@end verbatim
+(which scales the resulting frame, including fonts and true size
+objects) will enforce perfect compliance with the requested size
+specification, but should not normally be required.
+
 @cindex @code{orientation}
 @cindex @code{Portrait}
 @cindex @code{Landscape}
@@ -2780,9 +2790,9 @@ relative to its center. The function
 @verbatim
 pair truepoint(picture pic=currentpicture, pair dir);
 @end verbatim
-works similarly, except the result is a point on the true picture
-bounding box that picture @code{pic} would have if it were currently
-fit to a frame using its default size specification.
+works similarly, except the result is a point (in PostScript
+coordinates) on the bounding box that picture @code{pic} would have if
+it were currently fit to a frame using its default size specification.
 
 @anchor{add}
 Sometimes it is useful to draw objects on separate pictures and add one
