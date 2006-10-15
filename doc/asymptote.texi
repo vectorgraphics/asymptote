@@ -1157,6 +1157,14 @@ fill(opic,g,p);
 add(pic,opic,origin);
 @end verbatim
 
+The routine
+@cindex @code{filloutside}
+@verbatim
+void filloutside(picture pic=currentpicture, path g, pen p=currentpen);
+@end verbatim
+@noindent
+fills the region exterior to the path @code{g}.
+
 @anchor{gradient shading}
 @cindex gradient shading
 
@@ -1373,6 +1381,7 @@ frame pack(pair align=2S ... object inset[]);
 The @code{string minipage(string s, width=100pt)} function can be used
 to format string @code{s} into a paragraph of width @code{width}, as
 illustrated in the example @code{advection.asy}:
+
 @image{advection}
 
 @node Programming
@@ -6930,4 +6939,4 @@ Tom Prince. Sean Healy designed the @code{Asymptote} logo.
 @c  LocalWords:  NoCrop parametricsurface realmult SoftLight HardLight interp
 @c  LocalWords:  ColorDodge ColorBurn Ivaldi buildcycle autorotate mexicanhat
 @c  LocalWords:  Gouraudcontour xunitsize yunitsize pdflatex preconfigured
-@c  LocalWords:  penimage
+@c  LocalWords:  penimage filloutside
