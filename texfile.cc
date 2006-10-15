@@ -139,7 +139,7 @@ void texfile::closeclip()
 }
   
 void texfile::put(const string& label, const transform& T, const pair& z,
-		  const pair& align, const bbox& Box)
+		  const pair& align)
 {
   double sign=settings::pdf(texengine) ? 1.0 : -1.0;
 

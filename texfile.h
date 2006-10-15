@@ -104,7 +104,7 @@ public:
   
   // Draws label transformed by T at position z.
   void put(const string& label, const transform& T, const pair& z,
-	   const pair& Align, const bbox& Box);
+	   const pair& Align);
 
   void beginlayer(const string& psname);
   void endlayer();

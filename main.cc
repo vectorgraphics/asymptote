@@ -56,10 +56,10 @@ void setsignal(RETSIGTYPE (*handler)(int))
   signal(SIGFPE,handler);
 }
 
-void signalHandler(int signum)
+void signalHandler(int)
 {
   if (em) {
-    // Print the position and trust to the shell to print an error message.
+    // Print the position and trust the shell to print an error message.
     em->runtime(vm::getPos());
   }
   signal(SIGBUS,SIG_DFL);

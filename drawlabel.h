@@ -52,7 +52,7 @@ public:
       reportError("drawLabel::write called before bounds");
     if(suppress || pentype.invisible()) return true;
     out->setpen(pentype);
-    out->put(label,T,position,texAlign,Box);
+    out->put(label,T,position,texAlign);
     return true;
   }
 
