@@ -414,7 +414,7 @@ type may be changed to @code{a4} with the configuration variable
 @code{papertype}. Alignment to other paper sizes can be obtained by setting the
 configuration variables @code{paperwidth} and @code{paperheight}.
 
-@cindex @code{latex}
+@cindex @code{texpath}
 @cindex @code{dvips}
 @cindex @code{convert}
 @cindex @code{display}
@@ -423,7 +423,7 @@ configuration variables @code{paperwidth} and @code{paperheight}.
 @cindex @code{ImageMagick}
 The following configuration variables normally do not require adjustment:
 @verbatim
-latex
+texpath
 dvips
 convert
 display
