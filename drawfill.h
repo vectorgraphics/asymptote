@@ -65,7 +65,7 @@ public:
   }
   
   void shade(psfile *out) {
-    out->shade(pens,bcache);
+    out->shade(pens,bpath);
   }
   
   drawElement *transformed(const transform& t);
