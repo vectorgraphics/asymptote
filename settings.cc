@@ -911,7 +911,7 @@ const char *endspecial() {
 mem::string texengine() {
   mem::string path=getSetting<mem::string>("texpath");
   mem::string tex=getSetting<mem::string>("tex");
-  return (path == "")  ? tex : path+(mem::string) "/"+tex;
+  return (path == "") ? tex : (mem::string) (path+"/"+tex);
 }
 
 int getScroll() 
