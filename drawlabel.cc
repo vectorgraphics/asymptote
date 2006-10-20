@@ -80,16 +80,16 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
     if(pentype.size() != lastpen.size() ||
        pentype.Lineskip() != lastpen.Lineskip()) {
       if(settings::latex(texengine)) {
-      tex <<  "\\fontsize{" << pentype.size() << "}{" << pentype.Lineskip()
-	  << "}\\selectfont\n";
-      tex.wait("\n*","! ");
+	tex <<  "\\fontsize{" << pentype.size() << "}{" << pentype.Lineskip()
+	    << "}\\selectfont\n";
+	tex.wait("\n*","! ");
+      }
     }
     
     mem::string font=pentype.Font();
     if(font != lastpen.Font()) {
-	tex <<  font << "\n";
-	tex.wait("\n*","! ");
-      }
+      tex <<  font << "\n";
+      tex.wait("\n*","! ");
     }
     
     lastpen=pentype;
@@ -113,8 +113,7 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
   // alignment point
   pair p=position+Align;
   const double vertical=height+depth;
-  static const double epsilon=0.09;
-  const double fuzz=vertical*epsilon;
+  const double fuzz=pentype.size()*0.05+0.3;
   pair A=p+T*pair(-fuzz,-fuzz);
   pair B=p+T*pair(-fuzz,vertical+fuzz);
   pair C=p+T*pair(width+fuzz,vertical+fuzz);

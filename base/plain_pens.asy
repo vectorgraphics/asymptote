@@ -199,8 +199,9 @@ pen font(string name, real size)
     if(c >= "0" && c <= "9") basesize += c;
     else if(basesize != "") break;
   }
-  return basesize == "" ? font(name) :
-    font(name+" scaled "+(string) (1000*size/(int) basesize)); 
+  return fontsize(size)+
+    (basesize == "" ? font(name) :
+     font(name+" scaled "+(string) (1000*size/(int) basesize)));
 }
 
 pen font(string encoding, string family, string series="m", string shape="n") 
