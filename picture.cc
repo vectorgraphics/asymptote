@@ -492,6 +492,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     out.epilogue();
     
     if(Labels) {
+      tex->resetpen();
       if(status) {
 	if(pdf) {
 	  out.close();

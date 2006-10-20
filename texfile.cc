@@ -29,8 +29,7 @@ texfile::texfile(const string& texname, const bbox& box) : box(box)
   out->setf(std::ios::fixed);
   out->precision(6);
   texdocumentclass(*out);
-  lastpen=pen(initialpen);
-  lastpen.convert(); 
+  resetpen();
 }
 
 texfile::~texfile()
@@ -92,12 +91,40 @@ void texfile::endlayer()
     *out << "\\kern-" << (box.right-box.left)*ps2tex << "pt%" << newl;
 }
 
+void texfile::setlatexcolor(pen p)
+{
+  if(p.cmyk() && (!lastpen.cmyk() || 
+		  (p.cyan() != lastpen.cyan() || 
+		   p.magenta() != lastpen.magenta() || 
+		   p.yellow() != lastpen.yellow() ||
+		   p.black() != lastpen.black()))) {
+    *out << "\\definecolor{ASYcolor}{cmyk}{" 
+	 << p.cyan() << "," << p.magenta() << "," << p.yellow() << "," 
+	 << p.black() << "}\\color{ASYcolor}" << newl;
+  } else if(p.rgb() && (!lastpen.rgb() ||
+			(p.red() != lastpen.red() ||
+			 p.green() != lastpen.green() || 
+			 p.blue() != lastpen.blue()))) {
+    *out << "\\definecolor{ASYcolor}{rgb}{" 
+	 << p.red() << "," << p.green() << "," << p.blue()
+	 << "}\\color{ASYcolor}" << newl;
+  } else if(p.grayscale() && (!lastpen.grayscale() || 
+			      p.gray() != lastpen.gray())) {
+    *out << "\\definecolor{ASYcolor}{gray}{" 
+	 << p.gray()
+	 << "}\\color{ASYcolor}" << newl;
+  }
+}
+  
 void texfile::setpen(pen p)
 {
+  bool latex=settings::latex(texengine);
+  
   p.convert();
   if(p == lastpen) return;
 
-  setcolor(p,settings::beginspecial(texengine),settings::endspecial());
+  if(latex) setlatexcolor(p);
+  else setcolor(p,settings::beginspecial(texengine),settings::endspecial());
   
   if((p.size() != lastpen.size() || p.Lineskip() != lastpen.Lineskip()) &&
      settings::latex(texengine)) {

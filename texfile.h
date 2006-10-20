@@ -73,15 +73,15 @@ void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
       << "\\put(#1,#2){" << settings::clip(texengine) << "}}" << newl;
   
   if(settings::latex(texengine)) {
-    if(pipe || !settings::getSetting<bool>("inlinetex"))
-      out << "\\usepackage{graphicx}" << newl;
+    if(pipe || !settings::getSetting<bool>("inlinetex")) {
+      out << "\\usepackage{color,graphicx}" << newl;
+    }
     if(pipe) out << "\\begin{document}" << newl;
   }
 }
   
 class texfile : public psfile {
   bbox box;
-  pen lastpen;
   mem::string texengine;
 
 public:
@@ -92,6 +92,7 @@ public:
 
   void epilogue();
 
+  void setlatexcolor(pen p);
   void setpen(pen p);
   
   void gsave();

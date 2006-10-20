@@ -905,7 +905,7 @@ const char *beginspecial(const mem::string& texengine) {
 
 // End TeX special command.
 const char *endspecial() {
-  return "}";
+  return "}%";
 }
 
 mem::string texengine() {

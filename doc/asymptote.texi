@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
 @setfilename asymptote.info
-@settitle Asymptote
+@settitle Asymptote: the Vector Graphics Language
 @include version.texi
 
 @copying
@@ -24,7 +24,7 @@ file LICENSE in the top-level source directory).
 @end direntry
 
 @titlepage
-@title Asymptote
+@title Asymptote: the Vector Graphics Language
 @subtitle For version @value{VERSION}
 @image{logo}
      

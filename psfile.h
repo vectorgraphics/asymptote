@@ -34,7 +34,6 @@ class psfile {
   string filename;
   bool pdfformat; // Is final output format PDF?
   bool pdf;       // Output direct PDF?
-  pen lastpen;
   std::stack<pen> pens;
 
   void write(transform t) {
@@ -50,6 +49,7 @@ class psfile {
   }
   
 protected:
+  pen lastpen;
   std::ostream *out;
   
 public: 
