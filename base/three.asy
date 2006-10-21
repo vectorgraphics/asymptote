@@ -2213,14 +2213,16 @@ void add(picture pic=currentpicture, face[] faces,
   
   pic.nodes.push(new void (frame f, transform t, transform T,
                            pair m, pair M) {
-                   // Fit all of the pictures so we know their exact sizes.        
+                   // Fit all of the pictures so we know their exact sizes.
+		   face[] faces=new face[n];
                    for(int i=0; i < n; ++i) {
-                     face F=Faces[i];
-                     F.t=t*T*F.pic.T;
-                     F.fit=F.pic.fit(t,T*F.pic.T,m,M);
+		     faces[i]=Faces[i].copy();
+                     face F=faces[i];
+		     F.t=t*T*F.pic.T;
+		     F.fit=F.pic.fit(t,T*F.pic.T,m,M);
                    }
     
-                   bsp bsp=bsp.split(Faces,P);
+                   bsp bsp=bsp.split(faces,P);
                    if(bsp != null) bsp.add(f);
                  });
     
@@ -2229,4 +2231,4 @@ void add(picture pic=currentpicture, face[] faces,
     pic.userBox(F.userMin,F.userMax);
     pic.append(pic.bounds.point,pic.bounds.min,pic.bounds.max,F.T,F.bounds);
   }
-}    
+}
