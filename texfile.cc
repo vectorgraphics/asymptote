@@ -44,7 +44,9 @@ void texfile::prologue()
 {
   texdefines(*out);
   if(settings::latex(texengine)) {
-    if(!getSetting<bool>("inlinetex")) {
+    if(getSetting<bool>("inlinetex"))
+      *out << "\\setlength{\\unitlength}{1pt}" << newl;
+    else {
       *out << "\\pagestyle{empty}" << newl
 	   << "\\textheight=2048pt" << newl
 	   << "\\textwidth=\\textheight" << newl;
