@@ -57,6 +57,7 @@ html:	$(FIGURES) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
 clean: FORCE
 	rm -f *.eps *.png *.pdf latexusage.{asy,dvi,eps,png,log,aux,*.eps}
 	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,pdf,toc,tp,vr}
+	rm -f CAD.{aux,dvi,log,pdf,toc}
 	rm -rf asymptote
 
 install: man faq
