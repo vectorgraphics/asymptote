@@ -4948,6 +4948,8 @@ void annotate(picture pic=currentpicture, string title, string text,
 @end verbatim
 @noindent
 Annotations are illustrated in the example file @code{annotation.asy}.
+Currently, annotations are only implemented for the @code{latex}
+(default) and @code{tex} @TeX{} engines.
 
 @node graph
 @section @code{graph}
