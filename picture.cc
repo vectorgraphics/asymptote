@@ -457,6 +457,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       bshift.shift(bboxshift);
     }
     psnameStack.push_back(psname);
+    if(pdf) psnameStack.push_back(pdfname);
     psfile out(psname,pdfformat);
     out.prologue(bshift);
   
