@@ -2,10 +2,11 @@ MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy) latexusage.asy
 FIGURES = version.texi 
 ASY = ../asy -dir ../base
+DOCFILES = asymptote.pdf,CAD.pdf
 
 doc:	asymptote.dvi asymptote.info html man
 
-man:	asymptote.pdf
+man:	asymptote.pdf CAD.pdf
 
 faq:	
 	cd FAQ; $(MAKE) faq
@@ -43,6 +44,11 @@ asymptote.info: asymptote.texi $(FIGURES) $(ASYFILES:.asy=.png)
 asymptote.pdf: asymptote.texi $(FIGURES) $(ASYFILES:.asy=.pdf)
 	texi2dvi --pdf asymptote.texi
 
+CAD.pdf: CAD.tex CAD1.eps 
+	latex CAD
+	latex CAD
+	dvipdf CAD
+
 html:	$(FIGURES) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
 	mkdir -p asymptote
 	cp *.png asymptote
@@ -56,7 +62,7 @@ clean: FORCE
 install: man faq
 	cd FAQ; $(MAKE) install
 	${INSTALL} -d -m 755 $(docdir) $(mandir)/man1
-	${INSTALL} -p -m 644 asymptote.pdf $(docdir)
+	${INSTALL} -p -m 644 {$(DOCFILES)} $(docdir)
 	${INSTALL} -p -m 644 $(MANFILES) $(mandir)/man1
 
 install-all: doc install
@@ -72,7 +78,7 @@ uninstall: uninstall-all
 uninstall-all:
 	cd FAQ; $(MAKE) uninstall
 	-cd $(mandir)/man1; rm $(MANFILES)
-	-rm -f $(docdir)/asymptote.pdf
+	-rm -f $(docdir)/{$(DOCFILES)}
 	-install-info --delete --infodir=$(infodir) asymptote.info
 	-rm -f $(infodir)/asymptote.info
 

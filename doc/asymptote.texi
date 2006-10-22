@@ -133,6 +133,7 @@ Base modules
 * babel::                       Implement @code{LaTeX} @code{babel} package
 * embed::                       Embedding movies, sounds, and 3D objects
 * annotate::                    Annotate your @acronym{PDF} files
+* CAD::                         2D CAD pen and measurement functions (DIN 15)
 * graph::                       2D linear & logarithmic graphs
 * palette::                     Color density images and palettes
 * three::                       3D vector graphics
@@ -4707,6 +4708,7 @@ Here now is @code{latexusage.tex}:
 * babel::                       Implement @code{LaTeX} @code{babel} package
 * embed::                       Embedding movies, sounds, and 3D objects
 * annotate::                    Annotate your @acronym{PDF} files
+* CAD::                         2D CAD pen and measurement functions (DIN 15)
 * graph::                       2D linear & logarithmic graphs
 * palette::                     Color density images and palettes
 * three::                       3D vector graphics
@@ -4950,6 +4952,14 @@ void annotate(picture pic=currentpicture, string title, string text,
 Annotations are illustrated in the example file @code{annotation.asy}.
 Currently, annotations are only implemented for the @code{latex}
 (default) and @code{tex} @TeX{} engines.
+
+@node CAD
+@section @code{CAD}
+@cindex @code{CAD}
+This package, contributed by Mark Henning, provides basic pen
+definitions and measurement functions for simple 2D CAD drawings
+according to DIN 15. It is documented separately, in the file 
+@code{CAD.pdf}.
 
 @node graph
 @section @code{graph}
