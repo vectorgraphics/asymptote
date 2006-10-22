@@ -1368,6 +1368,11 @@ illustrated in the example @code{advection.asy}:
 
 @image{advection}
 
+This example uses @code{clip}, @code{minipage}, and
+@code{graphic} to produce a CD label:
+@verbatiminclude CDlabel.asy
+@image{CDlabel}
+
 @node Programming
 @chapter Programming
 @cindex programming
