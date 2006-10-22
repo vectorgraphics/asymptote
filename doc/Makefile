@@ -47,6 +47,7 @@ asymptote.pdf: asymptote.texi $(FIGURES) $(ASYFILES:.asy=.pdf)
 CAD.pdf: CAD.tex CAD1.eps 
 	latex CAD
 	latex CAD
+	latex CAD
 	dvipdf CAD
 
 html:	$(FIGURES) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
