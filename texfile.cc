@@ -62,9 +62,7 @@ void texfile::prologue()
     }
   } else {
     *out << "\\hoffset=36.6pt" << newl
-	 << "\\voffset=54.0pt" << newl
-	 << "\\input graphicx" << newl
-	 << "\\input picture" << newl;
+	 << "\\voffset=54.0pt" << newl;
     if(settings::pdf(texengine)) {
       *out << "\\hoffset=-20pt" << newl
 	   << "\\voffset=0pt" << newl
