@@ -73,12 +73,12 @@ void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
       << "\\put(#1,#2){" << settings::clip(texengine) << "}}" << newl;
   
   if(settings::latex(texengine)) {
-    if(pipe || !settings::getSetting<bool>("inlinetex"))
+    if(pipe || !settings::getSetting<bool>("inlinetex")) {
       out << "\\usepackage{graphicx}" << newl;
+      if(!pipe) out << "\\usepackage{color}" << newl;
+    }
     if(pipe)
       out << "\\begin{document}" << newl;
-    else 
-      out << "\\usepackage{color}" << newl;
   } else {
     out << "\\input graphicx" << newl;
     if(!pipe)
