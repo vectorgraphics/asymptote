@@ -269,12 +269,11 @@ and provide guidance to others by rating the @code{Asymptote} project:
 We now release both @acronym{RPM} and @code{tar.gz} binary distributions of
 @code{Asymptote}. Here are the commands that the root user can use to
 install the @code{Linux i386} binary distribution of version @code{x.xx} of
-@code{Asymptote} for a specific platform @code{ARCH} in
-@code{/usr/local}. The executable file will be
+@code{Asymptote} in @code{/usr/local}. The executable file will be
 @code{/usr/local/bin/asy} (the optional @code{texhash} command
 installs LaTeX style files):
 @verbatim
-tar -C / -zxf asymptote-x.xx.ARCH.tar.gz
+tar -C / -zxf asymptote-x.xx.i386.tar.gz
 texhash
 @end verbatim
 
@@ -640,9 +639,9 @@ To compile without optimization, use the command @code{make CFLAGS=-g}.
 @section Uninstall
 @cindex Uninstall
 
-To uninstall a @code{UNIX} binary distribution, use the commands
+To uninstall an @code{Linux i386} binary distribution, use the commands
 @verbatim
-tar -zxvf asymptote-x.xx.ARCH.tar.gz | xargs --replace=% rm /%
+tar -zxvf asymptote-x.xx.i386.tar.gz | xargs --replace=% rm /%
 texhash
 @end verbatim
 
