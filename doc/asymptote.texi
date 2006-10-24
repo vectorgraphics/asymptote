@@ -1056,21 +1056,25 @@ The use of arrows, bars, and margins is illustrated by the examples
 @code{Pythagoras.asy}, @code{sqrtx01.asy}, and @code{triads.asy}.
 
 The legend for a picture @code{pic} can be fit and aligned to a frame
-with the routine (@pxref{filltype})
+with the routine (@pxref{filltype}):
 @verbatim
-frame legend(picture pic=currentpicture,
-             real xmargin=legendmargin, real ymargin=xmargin,
-             real length=legendlinelength, real skip=legendskip,
-             pen p=currentpen);
+frame legend(picture pic=currentpicture, int perline=1,
+	     real xmargin=legendmargin, real ymargin=xmargin,
+	     real linelength=legendlinelength,
+	     real hskip=legendhskip, real vskip=legendvskip,
+	     real maxwidth=0, pen p=currentpen);
 @end verbatim
 @noindent
 Here @code{xmargin} and @code{ymargin} specify the surrounding @math{x}
-and @math{y} margins, @code{length} specifies the length of the path
-lines, @code{skip} specifies the line skip as a multiple of the
-maximum legend entry height, and @code{p} specifies the
-pen used to draw the bounding box. The legend frame can then be added
-and aligned about a point on a picture @code{dest} using @code{add} or
-@code{attach} (@pxref{add about}).
+and @math{y} margins, @code{perline} specifies the number of entries
+per line (default 1; 0 means choose this number automatically),
+@code{linelength} specifies the length of the path lines, @code{hskip}
+and @code{vskip} specify the line skip (as a multiple of legend entry
+size), @code{maxwidth} specifies an optional upper limit
+on the width of the resulting legend (0 means unlimited), and @code{p}
+specifies the pen used to draw the bounding box. The legend frame can
+then be added and aligned about a point on a picture @code{dest} using
+@code{add} or @code{attach} (@pxref{add about}).
 
 @cindex @code{dot}
 To draw a dot, simply draw a path containing a single point.
@@ -2690,7 +2694,7 @@ estimate for @code{pic} is available, the picture fitting routine
 frame pic.scale(real xsize=this.xsize, real ysize=this.ysize,
                 bool keepAspect=this.keepAspect);
 @end verbatim
-(which scales the resulting frame, including fonts and true size
+(which scales the resulting frame, including labels and fixed-size
 objects) will enforce perfect compliance with the requested size
 specification, but should not normally be required.
 
@@ -2790,14 +2794,26 @@ The function
 pair point(picture pic=currentpicture, pair dir);
 @end verbatim
 is a convenient way of determining the point on the boundary of the
-user-coordinate bounding box of @code{pic} in the direction @code{dir}
-relative to its center. The function
+user-coordinate bounding box of @code{pic}, ignoring the contributions
+from fixed-size objects (such as labels and arrowheads), in the direction
+@code{dir} relative to its center.
+
+The function
 @verbatim
 pair truepoint(picture pic=currentpicture, pair dir);
 @end verbatim
-works similarly, except the result is a point (in PostScript
-coordinates) on the bounding box that picture @code{pic} would have if
-it were currently fit to a frame using its default size specification.
+is identical to @code{point}, except that it also accounts for
+fixed-size objects, using the scaling transform that picture @code{pic}
+would have if currently fit to a frame using its default size
+specification.
+
+The function
+@verbatim
+pair framepoint(picture pic=currentpicture, pair dir);
+@end verbatim
+works similarly, except the result is a point in PostScript
+coordinates on the bounding box that picture @code{pic} would have if
+currently fit to a frame using its default size specification.
 
 @anchor{add}
 Sometimes it is useful to draw objects on separate pictures and add one
@@ -5392,8 +5408,14 @@ the picture covered by a label:
 @image{lineargraph0}
 
 @cindex @code{attach}
-To specify a fixed size for the graph proper, use @code{attach}.
+To specify a fixed size for the graph proper, use @code{attach}:
 @verbatiminclude lineargraph.asy
+
+@page
+@cindex @code{legend}
+A legend can have multiple entries per line:
+@verbatiminclude legend.asy
+@image{legend}
 
 @item This example draws a graph of one array versus another (both of
 the same size) using custom tick locations and a smaller font size for

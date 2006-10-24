@@ -1,6 +1,8 @@
 real legendlinelength=50;
-real legendskip=1.2;
+real legendhskip=1.2;
+real legendvskip=legendhskip;
 real legendmargin=10;
+real legendmaxrelativewidth=1;
 
 // Return a unit polygon with n sides
 guide polygon(int n) 
@@ -93,42 +95,102 @@ marker Mark(int n)
   else return MarkFill[n-Mark.length];
 }
 
-picture legend(Legend[] legend, real length, real skip)
+picture legenditem(Legend legenditem, real linelength)
+{
+  picture pic;
+  pair z1=(0,0);
+  pair z2=z1+(linelength,0);
+  if(!legenditem.put && !empty(legenditem.mark))
+    marknodes(pic,interp(z1,z2,0.5),legenditem.mark);
+  if(linelength > 0)
+    Draw(pic,z1--z2,legenditem.p);
+  if(legenditem.put && !empty(legenditem.mark))
+    marknodes(pic,interp(z1,z2,0.5),legenditem.mark);
+  if(legenditem.plabel != invisible)
+    label(pic,legenditem.label,z2,E,legenditem.plabel);
+  else
+    label(pic,legenditem.label,z2,E,currentpen);
+  return pic;
+}
+
+picture legend(Legend[] Legend, int perline=1, real linelength,
+               real hskip, real vskip, real maxwidth=0)
 {
   picture inset;
   size(inset,0,0,IgnoreAspect);
-  if(legend.length > 0) {
-    frame f;
-    real height=0;
-    for(int i=0; i < legend.length; ++i) {
-      Legend L=legend[i];
-      frame f;
-      draw(f,(0,0),L.p);
-      label(f,L.label,(0,0),L.plabel);
-      if(!empty(L.mark)) add(f,L.mark,(0,0));
-      height=max(height,max(f).y-min(f).y);
-    }
-    for(int i=0; i < legend.length; ++i) {
-      Legend L=legend[i];
-      pair z1=(0,-i*height*skip);
-      pair z2=z1+length;
-      if(!L.put && !empty(L.mark)) marknodes(inset,interp(z1,z2,0.5),L.mark);
-      Draw(inset,z1--z2,L.p);
-      label(inset,L.label,z2,E,L.plabel);
-      if(L.put && !empty(L.mark)) marknodes(inset,interp(z1,z2,0.5),L.mark);
+
+  if(Legend.length == 0)
+    return inset;
+
+  // Check for legend entries with lines: 
+  bool bLineEntriesAvailable=false;
+  for(int i=0; i < Legend.length; ++i)
+    if(Legend[i].p != invisible)
+      bLineEntriesAvailable=true;
+  // If no legend has a line, set the line length to zero
+  if(!bLineEntriesAvailable)
+    linelength=0;
+
+  // Get the maximum dimensions per legend entry;
+  // calculate line length for a one-line legend
+  real heightPerEntry=0;
+  real widthPerEntry=0;
+  real totalwidth=0;
+  for(int i=0; i < Legend.length; ++i) {
+    picture pic=legenditem(Legend[i],linelength);
+    heightPerEntry=max(heightPerEntry,max(pic).y-min(pic).y);
+    widthPerEntry=max(widthPerEntry,max(pic).x-min(pic).x);
+    if(Legend[i].p != invisible)
+      totalwidth += max(pic).x-min(pic).x;
+    else {
+      // Legend entries without leading line need less space in one-line legends
+      picture pic=legenditem(Legend[i],0);
+      totalwidth += max(pic).x-min(pic).x;
     }
   }
+  // Does everything fit into one line? 
+  if(((perline < 1) || (perline >= Legend.length)) && 
+     (maxwidth >= totalwidth+(totalwidth/Legend.length)*
+      (Legend.length-1)*(hskip-1))) {
+    // One-line legend
+    real currPosX=0;
+    real itemDistance=(totalwidth/Legend.length)*(hskip-1);
+    for(int i=0; i < Legend.length; ++i) {
+      picture pic=legenditem(Legend[i],
+                             Legend[i].p == invisible ? 0 : linelength);
+      add(inset,pic,(currPosX,0));
+      currPosX += max(pic).x-min(pic).x+itemDistance;
+    }
+  } else {
+    // multiline legend
+    if(maxwidth > 0) {
+      int maxperline=floor(maxwidth/(widthPerEntry*hskip));
+      if((perline < 1) || (perline > maxperline))
+        perline=maxperline;
+    }
+    if(perline < 1) // This means: maxwidth < widthPerEntry
+      perline=1;
+ 
+    for(int i=0; i < Legend.length; ++i)
+      add(inset,legenditem(Legend[i],linelength),
+          ((i%perline)*widthPerEntry*hskip,
+           -floor(i/perline)*heightPerEntry*vskip));
+  }
+
   return inset;
 }
-  
-frame legend(picture pic=currentpicture,
+
+frame legend(picture pic=currentpicture, int perline=1,
              real xmargin=legendmargin, real ymargin=xmargin,
-             real length=legendlinelength, real skip=legendskip,
+             real linelength=legendlinelength,
+             real hskip=legendhskip, real vskip=legendvskip,
+             real maxwidth=perline == 0 ?
+             legendmaxrelativewidth*(max(pic).x-min(pic).x) : 0,
              pen p=currentpen)
 {
   frame F;
   if(pic.legend.length == 0) return F;
-  F=legend(pic.legend,length,skip).fit();
+  F=legend(pic.legend,perline,linelength,hskip,vskip,maxwidth).fit();
   box(F,xmargin,ymargin,p);
   return F;
 }

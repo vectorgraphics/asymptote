@@ -650,12 +650,12 @@ pair max2=point(pic2,NE);
 real scale=(max1.x-min1.x)/(max2.x-min2.x);
 real shift=min1.x/scale-min2.x;
 
-transform t1 = pic1.calculateTransform();
-transform t2 = pic2.calculateTransform();
+transform t1=pic1.calculateTransform();
+transform t2=pic2.calculateTransform();
 transform T=xscale(scale*t1.xx)*yscale(t2.yy);
 
 add(pic1.fit());
-real height=truepoint(N).y-truepoint(S).y;
+real height=framepoint(N).y-framepoint(S).y;
 add(shift(0,-height)*(shift(shift)*pic2).fit(T));
 \endverbatim
 

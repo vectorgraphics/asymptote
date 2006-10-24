@@ -672,8 +672,8 @@ struct picture {
   }
   
   // Returns the transform for turning user-space pairs into true-space pairs.
-  transform calculateTransform(real xsize, real ysize, bool keepAspect=true,
-                               bool warn=true) {
+  transform scaling(real xsize, real ysize, bool keepAspect=true,
+		    bool warn=true) {
     if(xsize == 0 && ysize == 0)
       return identity();
     
@@ -696,10 +696,6 @@ struct picture {
       return scale(min(sx.a,sy.a));
     else
       return xscale(sx.a)*yscale(sy.a);
-  }
-
-  transform calculateTransform(bool warn=true) {
-    return calculateTransform(xsize,ysize,keepAspect,warn);
   }
 
   frame fit(transform t, transform T0=T, pair m, pair M) {
@@ -728,12 +724,25 @@ struct picture {
     return f;
   }
   
+  // Calculate additional scaling required if only an approximate picture
+  // size estimate is available.
   transform scale(frame f, bool keepaspect=this.keepAspect) {
     pair m=min(f);
     pair M=max(f);
     real xgrow=xsize == 0 ? 1 : xsize/(M.x-m.x);
     real ygrow=ysize == 0 ? 1 : ysize/(M.y-m.y);
     return keepAspect ? scale(min(xgrow,ygrow)) : xscale(xgrow)*yscale(ygrow);
+  }
+
+  // Return the transform that would be used to fit the picture to a frame
+  transform calculateTransform(real xsize, real ysize, bool keepAspect=true,
+		      bool warn=true) {
+    transform t=scaling(xsize,ysize,keepAspect,warn);
+    return scale(fit(t),keepAspect)*t;
+  }
+
+  transform calculateTransform(bool warn=true) {
+    return calculateTransform(xsize,ysize,keepAspect,warn);
   }
 
   pair min(real xsize=this.xsize, real ysize=this.ysize,
@@ -751,11 +760,8 @@ struct picture {
             bool keepAspect=this.keepAspect) {
     if(fixed) return scaled();
     if(empty()) return newframe;
-    transform t=calculateTransform(xsize,ysize,keepAspect);
+    transform t=scaling(xsize,ysize,keepAspect);
     frame f=fit(t);
-
-    // In case only an approximate picture size estimate is available,
-    // check if the transform should be recalculated. 
     transform s=scale(f,keepAspect);
     if(s == identity()) return f;
     return fit(s*t);
@@ -1120,11 +1126,18 @@ pair point(picture pic=currentpicture, pair dir)
   return pic.userMin+realmult(rectify(dir),pic.userMax-pic.userMin);
 }
 
+pair framepoint(picture pic=currentpicture, pair dir,
+	       transform t=pic.calculateTransform())
+{
+  pair m=pic.min(t);
+  pair M=pic.max(t);
+  return m+realmult(rectify(dir),M-m);
+}
+
 pair truepoint(picture pic=currentpicture, pair dir)
 {
-  pair m=pic.min();
-  pair M=pic.max();
-  return m+realmult(rectify(dir),M-m);
+  transform t=pic.calculateTransform();
+  return inverse(t)*framepoint(pic,dir,t);
 }
 
 // Transform coordinate in [0,1]x[0,1] to current user coordinates.
