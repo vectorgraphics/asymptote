@@ -20,6 +20,8 @@
 #include "errormsg.h"
 #include "parser.h"
 
+using std::string;
+
 // The lexical analysis and parsing functions used by parseFile.
 void setlexer(size_t (*input) (char* bif, size_t max_size),
               string filename);
@@ -49,7 +51,7 @@ void debug(bool state)
 }
 
 namespace {
-void error(string filename)
+void error(const string& filename)
 {
   em->sync();
   *em << "error: could not load module '" << filename << "'\n";
@@ -59,7 +61,7 @@ void error(string filename)
 }
 
 absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
-                        string filename)
+                        const string& filename)
 {
   setlexer(input,filename);
   absyntax::file *root = yyparse() == 0 ? absyntax::root : 0;
@@ -82,7 +84,7 @@ absyntax::file *parseStdin()
   return doParse(yy::stream_input,"-");
 }
 
-absyntax::file *parseFile(string filename)
+absyntax::file *parseFile(const string& filename)
 {
   if(filename == "-")
     return parseStdin();
@@ -118,7 +120,7 @@ absyntax::file *parseFile(string filename)
   return doParse(yy::stream_input,file);
 }
 
-absyntax::file *parseString(string code, string filename)
+absyntax::file *parseString(const string& code, const string& filename)
 {
   debug(false);
   std::stringbuf buf(code.c_str());

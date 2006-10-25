@@ -10,20 +10,15 @@
 #include <string>
 #include "absyn.h"
 
-using std::string;
-
 namespace parser {
 
 // Opens and parses the file returning the abstract syntax tree.  If
 // there is an unrecoverable parse error, returns null.
-absyntax::file *parseFile(string filename);
+absyntax::file *parseFile(const std::string& filename);
 
 // Parses string and returns the abstract syntax tree.
-absyntax::file *parseString(string code, string filename);
-
-// Parses standard input and returns the abstract syntax tree.
-//absyntax::file *parseInteractive();
-
+absyntax::file *parseString(const std::string& code,
+			    const std::string& filename);
 } // namespace parser
 
 #endif // PARSER_H
