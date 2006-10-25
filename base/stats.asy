@@ -61,10 +61,22 @@ int[] frequency(real[] bins, real[] data)
 {
   int n=bins.length-1;
   int[] freq=new int[n];
+  for(int i=0; i < n; ++i)
+    freq[i]=sum(bins[i] <= data && data < bins[i+1]);
+  return freq;
+}
+
+// Return frequency count in [xbins[i],xbins[i+1]) and [ybins[j],ybins[j+1]).
+int[][] frequency(real[] xbins, real[] ybins, real[] x, real[] y)
+{
+  int n=xbins.length-1;
+  int m=ybins.length-1;
+  int[][] freq=new int[n][m];
   for(int i=0; i < n; ++i) {
-    real left=bins[i];
-    real right=bins[i+1];
-    freq[i]=sum(left <= data && data < right);
+    for(int j=0; j < m; ++j) {
+      freq[i][j]=sum(xbins[i] <= x && x < xbins[i+1] &&
+		     ybins[j] <= y && y < ybins[j+1]);
+    }
   }
   return freq;
 }
