@@ -5542,7 +5542,6 @@ factor (e.g. for a depth axis, @code{Linear(-1)} requests axis reversal).
 @cindex log-log graph
 For example, to draw a log/log graph of a function, use @code{scale(Log,Log)}:
 @verbatiminclude loggraph.asy
-@page
 @image{loggraph}
 
 @cindex grid
