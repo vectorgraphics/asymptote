@@ -180,11 +180,11 @@ public:
 
 // Abstract base class for one-time processing of an abstract syntax tree.
 class itree : public icore {
-  mem::string name;
+  string name;
 
   block *cachedTree;
 public:
-  itree(mem::string name="<unnamed>")
+  itree(string name="<unnamed>")
     : name(name), cachedTree(0) {}
 
   // Build the tree, possibly throwing a handled_error if it cannot be built.
@@ -202,7 +202,7 @@ public:
     return cachedTree;
   }
 
-  virtual mem::string getName() {
+  virtual string getName() {
     return name;
   }
 
@@ -244,7 +244,7 @@ class icode : public itree {
   block *tree;
 
 public:
-  icode(block *tree, mem::string name="<unnamed>")
+  icode(block *tree, string name="<unnamed>")
     : itree(name), tree(tree) {}
 
   block *buildTree() {
@@ -253,10 +253,10 @@ public:
 };
 
 class istring : public itree {
-  mem::string str;
+  string str;
 
 public:
-  istring(mem::string str, mem::string name="<eval>")
+  istring(string str, string name="<eval>")
     : itree(name), str(str) {}
 
   block *buildTree() {
@@ -265,12 +265,12 @@ public:
 };
 
 class ifile : public itree {
-  mem::string filename;
-  mem::string basename;
-  mem::string outname_save;
+  string filename;
+  string basename;
+  string outname_save;
 
 public:
-  ifile(mem::string filename)
+  ifile(string filename)
     : itree(filename),
       filename(filename), basename(stripext(filename, suffix)) {}
 
@@ -278,18 +278,11 @@ public:
     return filename!="" ? parser::parseFile(filename) : 0;
   }
 
-  // Should fix stripDir to take mem::strings.
-  static mem::string stripDirHack(mem::string ms) {
-    std::string s=ms;
-    stripDir(s);
-    return (mem::string)s;
-  }
-
   void preRun(coenv& e, istack& s) {
     outname_save=getSetting<mem::string>("outname");
     if(outname_save.empty())
       Setting("outname")=
-        (mem::string)((filename == "-") ? "out" : stripDirHack(basename));
+        (mem::string)((filename == "-") ? "out" : stripDir(basename));
 
     itree::preRun(e, s);
   }
@@ -297,7 +290,7 @@ public:
   void postRun(coenv &e, istack& s) {
     itree::postRun(e, s);
 
-    Setting("outname")=(mem::string)outname_save;
+    Setting("outname")=(mem::string) outname_save;
   }
 
   void process() {
@@ -322,15 +315,11 @@ void printGreeting() {
 }
 
 // Add a semi-colon terminator, if one is not there.
-mem::string terminateLine(const mem::string line) {
-  return (!line.empty() && *(line.rbegin())!=';') ? (mem::string)(line+";") :
-                                                    line;
+string terminateLine(const string line) {
+  return (!line.empty() && *(line.rbegin())!=';') ? (line+";") : line;
 }
 
 class iprompt : public icore {
-  // Use mem::string throughout.
-  typedef mem::string string;
-
   // Flag that is set to false to signal the prompt to exit.
   bool running;
 
@@ -393,7 +382,7 @@ class iprompt : public icore {
   // line is treated as a normal line of code.
   // commands is a map of command names to methods which implement the commands.
   typedef bool (iprompt::*command)(commandLine);
-  typedef mem::map<CONST string, command> commandMap;
+  typedef mem::map<CONST mem::string, command> commandMap;
   commandMap commands;
 
   bool quit(commandLine cl) {
@@ -432,8 +421,8 @@ class iprompt : public icore {
 
 
   bool input(commandLine cl) {
-    mem::string prefix="erase(); include ";
-    mem::string line=terminateLine(prefix+cl.rest);
+    string prefix="erase(); include ";
+    string line=terminateLine(prefix+cl.rest);
     //block *code=parser::parseString(line, "<input>");
     //if (!em->errors() && code) {
 //    if (true) {
@@ -567,10 +556,7 @@ public:
 void processCode(absyntax::block *code) {
   icode(code).process();
 }
-void processString(mem::string string) {
-  istring(string).process();
-}
-void processFile(mem::string filename) {
+void processFile(const string& filename) {
   ifile(filename).process();
 }
 void processPrompt() {
@@ -580,10 +566,10 @@ void processPrompt() {
 void runCode(absyntax::block *code) {
   icode(code).doRun();
 }
-void runString(mem::string string) {
+void runString(const string& string) {
   istring(string).doRun();
 }
-void runFile(mem::string filename) {
+void runFile(const string& filename) {
   ifile(filename).doRun();
 }
 void runPrompt() {
@@ -593,11 +579,8 @@ void runPrompt() {
 void runCodeEmbedded(absyntax::block *code, trans::coenv &e, istack &s) {
   icode(code).run(e,s);
 }
-void runStringEmbedded(mem::string string, trans::coenv &e, istack &s) {
+void runStringEmbedded(const string& string, trans::coenv &e, istack &s) {
   istring(string).run(e,s);
-}
-void runFileEmbedded(mem::string filename, trans::coenv &e, istack &s) {
-  ifile(filename).run(e,s);
 }
 void runPromptEmbedded(trans::coenv &e, istack &s) {
   iprompt().run(e,s);

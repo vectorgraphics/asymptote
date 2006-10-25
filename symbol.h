@@ -14,6 +14,8 @@
 #include <string>
 #include <map>
 
+#include "memory.h"
+
 //using std::assert;
 using std::ostream;
 using std::string;
@@ -24,7 +26,7 @@ struct symbol {
 private:
   string name;
 
-  static std::map<string,symbol> dict;
+  static std::map<mem::string,symbol> dict;
 
   static symbol *specialTrans(string s) {
     assert(dict.find(s) == dict.end());
@@ -35,7 +37,7 @@ private:
   symbol(string name, bool special=false)
     : name(name), special(special) {}
 
-  friend class std::map<string,symbol>;
+  friend class std::map<mem::string,symbol>;
 public:
   bool special; // NOTE: make this const (later).
   
