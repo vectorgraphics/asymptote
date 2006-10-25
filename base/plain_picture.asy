@@ -698,6 +698,10 @@ struct picture {
       return xscale(sx.a)*yscale(sy.a);
   }
 
+  transform scaling(bool warn=true) {
+    return scaling(xsize,ysize,keepAspect,warn);
+  }
+
   frame fit(transform t, transform T0=T, pair m, pair M) {
     frame f;
     for (int i=0; i < nodes.length; ++i)
