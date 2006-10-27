@@ -66,6 +66,19 @@ int[] frequency(real[] bins, real[] data)
   return freq;
 }
 
+// Return frequency count in n intervals from a to b
+int[] frequency(real[] data, real a, real b, int n)
+{
+  int[] freq = sequence(new int(int x){return 0;},n);
+  real h=n/(b-a);
+  for (int i=0; i < data.length; ++i) {
+    int I=Floor((data[i]-a)*h);
+    if(I >= 0 && I < n)
+       ++freq[I];
+  }
+  return freq;
+}
+
 // Return frequency count in [xbins[i],xbins[i+1]) and [ybins[j],ybins[j+1]).
 int[][] frequency(real[] xbins, real[] ybins, real[] x, real[] y)
 {
@@ -80,6 +93,44 @@ int[][] frequency(real[] xbins, real[] ybins, real[] x, real[] y)
     int[] freqi=freq[i];
     for(int j=0; j < m; ++j)
       freqi[j]=sum(inxbini && inybin[j]);
+  }
+  return freq;
+}
+
+// Return frequency count in nx by ny bins in box(a,b).
+// Faster than above algorithm, but only allows for regularly spaced bins.
+int[][] frequency(real[] x, real[] y, pair a, pair b, int nx, int ny=nx)
+{
+  int[][] freq=new int[nx][0];
+  for(int i=0; i < nx; ++i)
+    freq[i]=sequence(new int(int x){return 0;},ny);
+  real hx=nx/(b.x-a.x);
+  real hy=ny/(b.y-a.y);
+  real ax=a.x;
+  real ay=a.y;
+  for (int i=0; i < x.length; ++i) {
+    int I=Floor((x[i]-ax)*hx);
+    int J=Floor((y[i]-ay)*hy);
+    if(I >= 0 && I < nx && J >= 0 && J < ny)
+       ++freq[I][J];
+  }
+  return freq;
+}
+
+int[][] frequency(pair[] z, pair a, pair b, int nx, int ny=nx)
+{
+  int[][] freq=new int[nx][0];
+  for(int i=0; i < nx; ++i)
+    freq[i]=sequence(new int(int x){return 0;},ny);
+  real hx=nx/(b.x-a.x);
+  real hy=ny/(b.y-a.y);
+  real ax=a.x;
+  real ay=a.y;
+  for (int i=0; i < z.length; ++i) {
+    int I=Floor((z[i].x-ax)*hx);
+    int J=Floor((z[i].y-ay)*hy);
+    if(I >= 0 && I < nx && J >= 0 && J < ny)
+       ++freq[I][J];
   }
   return freq;
 }
