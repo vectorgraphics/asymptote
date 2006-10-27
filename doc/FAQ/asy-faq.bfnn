@@ -486,15 +486,36 @@ Either:
 (i) give LeftTicks/RightTicks/Ticks the arguments beginlabel=false
 and/or endlabel=false;
 
-(ii) use the xasy GUI to move overlapping labels;
+(ii) explicitly remove specific tick labels and draw them manually:
 
-(iii) change the Label argument of LeftTicks to:
+\verbatim
+import graph; 
+
+size(10cm); 
+       
+draw(graph(new real(real x) {return x^2-2;},-2,2)); 
+       
+ticklabel NoZero(string s=defaultformat) { 
+  return new string(real x) { 
+    return (x != 0) ? format(s,x) : ""; 
+  }; 
+} 
+       
+xaxis(Ticks(NoZero()),Arrow); 
+yaxis(Ticks(NoZero()),Arrow); 
+
+label("$0$",(0,0),SW); 
+\endverbatim
+
+(iii) use the xasy GUI to move overlapping labels;
+
+(iv) change the Label argument of LeftTicks, RightTicks, or Ticks to:
 
 \verbatim
 Label(currentpen+overwrite(Move))
 \endverbatim
 
-Solution (iii) will move labels that might otherwise overwrite a previous
+Solution (iv) will move labels that might otherwise overwrite a previous
 label. Other possible overwrite arguments are Allow (allows overlapping
 labels; the default), Suppress (an overlapping label will not be written at
 all), SuppressQuiet, and MoveQuiet. The last two achieve the same result as
@@ -503,6 +524,8 @@ the non-quiet types, but will not notify you which labels are overlapping. See:
  
 In the case of a user-specified tick array, you can change which labels get
 suppressed/moved by changing the order of array entries.
+
+Further examples of graphs are available at \docref{http://home.tele2.fr/phivaldi/asymptote/graph/index.html\}.
 
 \question 26jun:custompalettes Is it possible to define customized palettes?
 
@@ -832,9 +855,10 @@ Yes, Asymptote includes a line-based debugger:
 
 \docref{http://asymptote.sourceforge.net/doc/Debugger\}
 
-\question 27jun:texpatches Do you accept patches for Asymptote?
+\question 27jun:patches Do you accept patches for Asymptote?
 
-Yes, in fact we would prefer that users submit patches for customized features,
+Yes, in fact we would prefer that users submit patches for customized features
+(to \docref{http://sourceforge.net/tracker/?atid=685685&group_id=120000\})
 instead of relying on us to do all of the coding. Development will proceed 
 faster that way. 
  
