@@ -72,18 +72,14 @@ int[][] frequency(real[] xbins, real[] ybins, real[] x, real[] y)
   int n=xbins.length-1;
   int m=ybins.length-1;
   int[][] freq=new int[n][m];
-  bool[][] inxbin=new bool[n][x.length];
   bool[][] inybin=new bool[m][y.length];
-  for(int i=0; i < n; ++i)
-    inxbin[i]=xbins[i] <= x && x < xbins[i+1];
   for(int j=0; j < m; ++j)
     inybin[j]=ybins[j] <= y && y < ybins[j+1];
   for(int i=0; i < n; ++i) {
+    bool[] inxbini=xbins[i] <= x && x < xbins[i+1];
     int[] freqi=freq[i];
-    bool[] inxbini=inxbin[i];
-    for(int j=0; j < m; ++j) {
+    for(int j=0; j < m; ++j)
       freqi[j]=sum(inxbini && inybin[j]);
-    }
   }
   return freq;
 }
