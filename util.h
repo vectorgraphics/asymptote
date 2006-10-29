@@ -19,10 +19,10 @@ using std::endl;
 using std::ostringstream;
 using std::string;
 
-string stripext(const string& name, const string& suffix);
+string stripExt(const string& name, const string& suffix);
   
 // Strip the directory from a filename.
-string& stripDir(string& name);
+string stripDir(string name);
   
 // Construct a filename from the original, adding aux at the end, and
 // changing the suffix.

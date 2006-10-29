@@ -35,7 +35,7 @@ using namespace settings;
 
 bool False=false;
 
-string stripext(const string& name, const string& ext)
+string stripExt(const string& name, const string& ext)
 {
   string suffix = "." + ext;
   size_t p=name.rfind(suffix);
@@ -77,7 +77,7 @@ string Getenv(const char *name, bool)
 }
 #endif
 
-string& stripDir(string& name)
+string stripDir(string name)
 {
   size_t p;
 #ifdef __CYGWIN__  
@@ -93,7 +93,7 @@ string buildname(string name, string suffix, string aux, bool stripdir)
 {
   if(stripdir) stripDir(name);
     
-  name = stripext(name,getSetting<mem::string>("outformat"));
+  name = stripExt(name,getSetting<mem::string>("outformat"));
   name += aux;
   if(!suffix.empty()) name += "."+suffix;
   return name;

@@ -180,11 +180,11 @@ public:
 
 // Abstract base class for one-time processing of an abstract syntax tree.
 class itree : public icore {
-  string name;
+  mem::string name;
 
   block *cachedTree;
 public:
-  itree(string name="<unnamed>")
+  itree(mem::string name="<unnamed>")
     : name(name), cachedTree(0) {}
 
   // Build the tree, possibly throwing a handled_error if it cannot be built.
@@ -202,7 +202,7 @@ public:
     return cachedTree;
   }
 
-  virtual string getName() {
+  virtual mem::string getName() {
     return name;
   }
 
@@ -244,7 +244,7 @@ class icode : public itree {
   block *tree;
 
 public:
-  icode(block *tree, string name="<unnamed>")
+  icode(block *tree, mem::string name="<unnamed>")
     : itree(name), tree(tree) {}
 
   block *buildTree() {
@@ -253,10 +253,10 @@ public:
 };
 
 class istring : public itree {
-  string str;
+  mem::string str;
 
 public:
-  istring(string str, string name="<eval>")
+  istring(const mem::string& str, mem::string name="<eval>")
     : itree(name), str(str) {}
 
   block *buildTree() {
@@ -265,15 +265,17 @@ public:
 };
 
 class ifile : public itree {
-  string filename;
-  string basename;
-  string outname_save;
+  mem::string filename;
+  mem::string outname;
+  mem::string outname_save;
 
 public:
-  ifile(string filename)
+  ifile(const mem::string& filename)
     : itree(filename),
-      filename(filename), basename(stripext(filename, suffix)) {}
-
+      filename(filename),
+      outname((mem::string) (filename == "-" ? "out" :
+			     stripDir(stripExt(string(filename),suffix)))) {}
+  
   block *buildTree() {
     return filename!="" ? parser::parseFile(filename) : 0;
   }
@@ -281,8 +283,7 @@ public:
   void preRun(coenv& e, istack& s) {
     outname_save=getSetting<mem::string>("outname");
     if(outname_save.empty())
-      Setting("outname")=
-        (mem::string)((filename == "-") ? "out" : stripDir(basename));
+      Setting("outname")=outname;
 
     itree::preRun(e, s);
   }
@@ -290,14 +291,14 @@ public:
   void postRun(coenv &e, istack& s) {
     itree::postRun(e, s);
 
-    Setting("outname")=(mem::string) outname_save;
+    Setting("outname")=outname_save;
   }
 
   void process() {
     init();
 
     if (verbose >= 1)
-      cout << "Processing " << basename << endl;
+      cout << "Processing " << outname << endl;
     
     try {
       itree::process();
@@ -382,7 +383,7 @@ class iprompt : public icore {
   // line is treated as a normal line of code.
   // commands is a map of command names to methods which implement the commands.
   typedef bool (iprompt::*command)(commandLine);
-  typedef mem::map<CONST mem::string, command> commandMap;
+  typedef mem::map<CONST string, command> commandMap;
   commandMap commands;
 
   bool quit(commandLine cl) {
@@ -556,7 +557,7 @@ public:
 void processCode(absyntax::block *code) {
   icode(code).process();
 }
-void processFile(const string& filename) {
+void processFile(const mem::string& filename) {
   ifile(filename).process();
 }
 void processPrompt() {
@@ -566,10 +567,10 @@ void processPrompt() {
 void runCode(absyntax::block *code) {
   icode(code).doRun();
 }
-void runString(const string& string) {
-  istring(string).doRun();
+void runString(const mem::string& s) {
+  istring(s).doRun();
 }
-void runFile(const string& filename) {
+void runFile(const mem::string& filename) {
   ifile(filename).doRun();
 }
 void runPrompt() {
@@ -579,8 +580,8 @@ void runPrompt() {
 void runCodeEmbedded(absyntax::block *code, trans::coenv &e, istack &s) {
   icode(code).run(e,s);
 }
-void runStringEmbedded(const string& string, trans::coenv &e, istack &s) {
-  istring(string).run(e,s);
+void runStringEmbedded(const mem::string& str, trans::coenv &e, istack &s) {
+  istring(str).run(e,s);
 }
 void runPromptEmbedded(trans::coenv &e, istack &s) {
   iprompt().run(e,s);

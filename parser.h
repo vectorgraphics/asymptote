@@ -14,11 +14,11 @@ namespace parser {
 
 // Opens and parses the file returning the abstract syntax tree.  If
 // there is an unrecoverable parse error, returns null.
-absyntax::file *parseFile(const std::string& filename);
+absyntax::file *parseFile(const mem::string& filename);
 
 // Parses string and returns the abstract syntax tree.
-absyntax::file *parseString(const std::string& code,
-			    const std::string& filename);
+absyntax::file *parseString(const mem::string& code,
+			    const mem::string& filename);
 } // namespace parser
 
 #endif // PARSER_H
