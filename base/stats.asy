@@ -56,8 +56,8 @@ real Gaussian(real x)
   return exp(-0.5*x^2)*invsqrt2pi;
 }
 
-// Return frequency count in [bins[i],bins[i+1]) for i=0,...n-1 of data.
-int[] frequency(real[] bins, real[] data)
+// Return frequency count of data in [bins[i],bins[i+1]) for i=0,...n-1.
+int[] frequency(real[] data, real[] bins)
 {
   int n=bins.length-1;
   int[] freq=new int[n];
@@ -69,7 +69,7 @@ int[] frequency(real[] bins, real[] data)
 // Return frequency count in n intervals from a to b
 int[] frequency(real[] data, real a, real b, int n)
 {
-  int[] freq = sequence(new int(int x){return 0;},n);
+  int[] freq = sequence(new int(int x) {return 0;},n);
   real h=n/(b-a);
   for (int i=0; i < data.length; ++i) {
     int I=Floor((data[i]-a)*h);
@@ -80,7 +80,7 @@ int[] frequency(real[] data, real a, real b, int n)
 }
 
 // Return frequency count in [xbins[i],xbins[i+1]) and [ybins[j],ybins[j+1]).
-int[][] frequency(real[] xbins, real[] ybins, real[] x, real[] y)
+int[][] frequency(real[] x, real[] y, real[] xbins, real[] ybins)
 {
   int n=xbins.length-1;
   int m=ybins.length-1;
@@ -103,7 +103,7 @@ int[][] frequency(real[] x, real[] y, pair a, pair b, int nx, int ny=nx)
 {
   int[][] freq=new int[nx][0];
   for(int i=0; i < nx; ++i)
-    freq[i]=sequence(new int(int x){return 0;},ny);
+    freq[i]=sequence(new int(int x) {return 0;},ny);
   real hx=nx/(b.x-a.x);
   real hy=ny/(b.y-a.y);
   real ax=a.x;
@@ -121,7 +121,7 @@ int[][] frequency(pair[] z, pair a, pair b, int nx, int ny=nx)
 {
   int[][] freq=new int[nx][0];
   for(int i=0; i < nx; ++i)
-    freq[i]=sequence(new int(int x){return 0;},ny);
+    freq[i]=sequence(new int(int x) {return 0;},ny);
   real hx=nx/(b.x-a.x);
   real hy=ny/(b.y-a.y);
   real ax=a.x;
