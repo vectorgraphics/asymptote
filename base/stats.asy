@@ -69,7 +69,7 @@ int[] frequency(real[] data, real[] bins)
 // Return frequency count in n intervals from a to b
 int[] frequency(real[] data, real a, real b, int n)
 {
-  int[] freq = sequence(new int(int x) {return 0;},n);
+  int[] freq=sequence(new int(int x) {return 0;},n);
   real h=n/(b-a);
   for (int i=0; i < data.length; ++i) {
     int I=Floor((data[i]-a)*h);
@@ -168,6 +168,17 @@ void histogram(picture pic=currentpicture, real[] bins, real[] count,
   if(last != low)
     draw(pic,Scale(pic,(bins[n],last))--Scale(pic,(bins[n],low)),p);
   endgroup(pic);
+}
+
+// Draw a histogram for data in n uniform bins between a and b
+// (optionally normalized).  
+void histogram(picture pic=currentpicture, real[] data, real a, real b, int n,
+               bool normalize=false, real low=-infinity, pen p=currentpen)
+{
+  real dx=(b-a)/n;
+  real[] freq=frequency(data,a,b,n);
+  if(normalize) freq /= dx*sum(freq);
+  histogram(pic,a+sequence(n+1)*dx,freq,low,p);
 }
 
 // return a random number uniformly distributed in the unit interval [0,1]
