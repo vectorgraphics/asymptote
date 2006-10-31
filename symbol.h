@@ -22,41 +22,53 @@ using std::string;
 
 namespace sym {
 
+struct GCInit {
+  GCInit() {
+#ifdef USEGC
+  GC_free_space_divisor = 2;
+  GC_dont_expand = 0;
+  GC_INIT();
+#endif  
+  }
+};
+
 struct symbol {
+  static GCInit initialize;
 private:
-  string name;
+  std::string name;
 
-  static std::map<mem::string,symbol> dict;
+public:
+  static mem::map<CONST mem::string,symbol> dict;
 
-  static symbol *specialTrans(string s) {
+  static symbol *specialTrans(std::string s) {
     assert(dict.find(s) == dict.end());
     return &(dict[s]=symbol(s,true));
   }
 
   symbol() : special(false) {}
-  symbol(string name, bool special=false)
+  symbol(std::string name, bool special=false)
     : name(name), special(special) {}
 
-  friend class std::map<mem::string,symbol>;
 public:
+  friend class mem::map<CONST mem::string,symbol>;
   bool special; // NOTE: make this const (later).
   
   static symbol *initsym;
   static symbol *castsym;
   static symbol *ecastsym;
   
-  static symbol *literalTrans(string s) {
+  static symbol *literalTrans(std::string s) {
     if (dict.find(s) != dict.end())
       return &dict[s];
     else
       return &(dict[s]=symbol(s));
   }
 
-  static symbol *opTrans(string s) {
+  static symbol *opTrans(std::string s) {
     return literalTrans("operator "+s);
   }
 
-  static symbol *trans(string s) {
+  static symbol *trans(std::string s) {
     // Figure out whether it's an operator or an identifier by looking at the
     // first character.
     char c=s[0];

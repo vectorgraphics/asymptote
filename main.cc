@@ -91,12 +91,6 @@ void doConfig(string filename) {
 
 int main(int argc, char *argv[])
 {
-#ifdef USEGC
-  GC_free_space_divisor = 2;
-  GC_dont_expand = 0;
-  GC_INIT();
-#endif  
-  
   setsignal(signalHandler);
 
   // NOTE: Change em to not be a pointer.

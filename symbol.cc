@@ -7,15 +7,15 @@
  *****/
 
 #include <cstdio>
-
 #include "symbol.h"
 
 namespace sym {
 
-std::map<mem::string,symbol> symbol::dict;
-symbol *symbol::initsym=symbol::specialTrans("operator init");
-symbol *symbol::castsym=symbol::specialTrans("operator cast");
-symbol *symbol::ecastsym=symbol::specialTrans("operator ecast");
+GCInit symbol::initialize;
+mem::map<CONST mem::string,symbol> symbol::dict;
+symbol *symbol::initsym=symbol::specialTrans(mem::string("operator init"));
+symbol *symbol::castsym=symbol::specialTrans(mem::string("operator cast"));
+symbol *symbol::ecastsym=symbol::specialTrans(mem::string("operator ecast"));
 
 } // namespace sym
 
