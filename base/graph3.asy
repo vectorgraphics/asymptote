@@ -471,8 +471,8 @@ picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
         pen[] pcell={color(i,j),color(i,j+1),color(i+1,j+1),color(i+1,j)};
         gouraudshade(pic,g,pcell,v,edges);
       }
-      if(meshpen != nullpen) draw(pic,g,meshpen);
     }
+    if(meshpen != nullpen) draw(pic,g,meshpen);
   }
   
   if(surfacepen == nullpen) {

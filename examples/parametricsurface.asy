@@ -3,10 +3,11 @@ import graph3;
 size(200,0);
 currentprojection=orthographic((4,0,2.0));
 
+real R=2.0;
+real a=1.9;
+
 triple f(pair t) {
-    return ((2.0+1.9*cos(t.y))*cos(t.x),
-    (2.0+1.9*cos(t.y))*sin(t.x),
-    1.9*sin(t.y));
+    return ((R+a*cos(t.y))*cos(t.x),(R+a*cos(t.y))*sin(t.x),a*sin(t.y));
 }
 
 pen p=rgb(0.2,0.5,0.7);
