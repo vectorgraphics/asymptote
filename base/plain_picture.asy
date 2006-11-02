@@ -733,8 +733,10 @@ struct picture {
   transform scale(frame f, bool keepaspect=this.keepAspect) {
     pair m=min(f);
     pair M=max(f);
-    real xgrow=xsize == 0 ? 1 : xsize/(M.x-m.x);
-    real ygrow=ysize == 0 ? 1 : ysize/(M.y-m.y);
+    real width=M.x-m.x;
+    real height=M.y-m.y;
+    real xgrow=xsize == 0 || width == 0 ? 1 : xsize/width;
+    real ygrow=ysize == 0 || height == 0 ? 1 : ysize/height;
     return keepAspect ? scale(min(xgrow,ygrow)) : xscale(xgrow)*yscale(ygrow);
   }
 
