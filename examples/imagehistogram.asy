@@ -22,12 +22,12 @@ int[][] bins=frequency(data,datamin,datamax,Nx,Ny);
 real[] values=new real[Nx*Ny]; 
 pair[] points=new pair[Nx*Ny];
 int k=0; 
-real hx=(datamax.x-datamin.x)/Nx;
-real hy=(datamax.y-datamin.y)/Ny;
+real dx=(datamax.x-datamin.x)/Nx;
+real dy=(datamax.y-datamin.y)/Ny;
 for(int i=0; i < Nx; ++i) {
   for(int j=0; j < Ny; ++j) {
     values[k]=bins[i][j]; 
-    points[k]=(datamin.x+i*hx,datamin.y+j*hy); 
+    points[k]=(datamin.x+(i+0.5)*dx,datamin.y+(j+0.5)*dy); 
     ++k; 
   }
 } 
