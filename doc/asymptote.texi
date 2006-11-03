@@ -5658,8 +5658,8 @@ a function @code{f}(@math{x},@math{y}) and added to a picture @code{pic}:
 @cindex @code{image}
 @verbatim
 bounds image(picture pic=currentpicture, real f(real,real),
-             pair initial, pair final, range range=Full,
-             int nx=100, int ny=nx, pen[] palette);
+             range range=Full, pair initial, pair final,
+             int nx=ngraph, int ny=nx, pen[] palette);
 @end verbatim
 The function @code{f} will be sampled at @code{nx} and @code{ny}
 evenly spaced points over a rectangle defined by the points
@@ -5679,7 +5679,7 @@ struct bounds {
 This information can be used for generating an optional palette bar.
 The palette color space corresponds to a range of values specified by
 the argument @code{range}, which can be @code{Full}, @code{Automatic},
-or an explicit range @code{Range(pair min, pair max)}.
+or an explicit range @code{Range(real min, real max)}.
 Here @code{Full} specifies a range varying from the
 minimum to maximum values of the function over the sampling interval,
 while @code{Automatic} selects "nice" limits. 
