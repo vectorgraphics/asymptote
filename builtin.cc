@@ -477,6 +477,46 @@ void addUnorderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
 	  formal(primFile(),"file",true),t4);
 }
 
+inline double Min(double a, double b)
+{
+  return (a < b) ? a : b;
+}
+
+inline double Max(double a, double b)
+{
+  return (a > b) ? a : b;
+}
+
+template <typename T>
+struct minbound {
+  pair operator() (pair z, pair w) {
+    return pair(Min(z.getx(),w.getx()),Min(z.gety(),w.gety()));
+  }
+  triple operator() (triple u, triple v) {
+    return triple(Min(u.getx(),v.getx()),Min(u.gety(),v.gety()),
+		  Min(u.getz(),v.getz()));
+  }
+};
+
+template <typename T>
+struct maxbound {
+  pair operator() (pair z, pair w) {
+    return pair(Max(z.getx(),w.getx()),Max(z.gety(),w.gety()));
+  }
+  triple operator() (triple u, triple v) {
+    return triple(Max(u.getx(),v.getx()),Max(u.gety(),v.gety()),
+		  Max(u.getz(),v.getz()));
+  }
+};
+
+template<class T, template <class S> class op>
+void addBinOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4, const char *name)
+{
+  addFunc(ve,binopArray<T,op>,t1,name,formal(t2,"a"));
+  addFunc(ve,binopArray2<T,op>,t1,name,formal(t3,"a"));
+  addFunc(ve,binopArray3<T,op>,t1,name,formal(t4,"a"));
+}
+
 template<class T>
 void addOrderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
 {
@@ -485,21 +525,16 @@ void addOrderedOps(venv &ve, ty *t1, ty *t2, ty *t3, ty *t4)
   addBooleanOps<T,greaterequals>(ve,t1,">=",t2);
   addBooleanOps<T,greater>(ve,t1,">",t2);
   
-  addFunc(ve,binopArray<T,less>,t1,"min",formal(t2,"a"));
-  addFunc(ve,binopArray<T,greater>,t1,"max",formal(t2,"a"));
-  addFunc(ve,binopArray2<T,less>,t1,"min",formal(t3,"a"));
-  addFunc(ve,binopArray2<T,greater>,t1,"max",formal(t3,"a"));
-  addFunc(ve,binopArray3<T,less>,t1,"min",formal(t4,"a"));
-  addFunc(ve,binopArray3<T,greater>,t1,"max",formal(t4,"a"));
-  
+  addOps<T,run::min>(ve,t1,"min",t2);
+  addOps<T,run::max>(ve,t1,"max",t2);
+  addBinOps<T,run::min>(ve,t1,t2,t3,t4,"min");
+  addBinOps<T,run::max>(ve,t1,t2,t3,t4,"max");
+    
   addFunc(ve,sortArray<T>,t2,"sort",formal(t2,"a"));
   addFunc(ve,sortArray2<T>,t3,"sort",formal(t3,"a"));
   
   addFunc(ve,searchArray<T>,primInt(),"search",formal(t2,"a"),
 	  formal(t1,"key"));
-  
-  addOps<T,run::min>(ve,t1,"min",t2);
-  addOps<T,run::max>(ve,t1,"max",t2);
 }
 
 template<class T>
@@ -596,6 +631,19 @@ void addOperators(venv &ve)
 		      tripleArray3());
   addUnorderedOps<string>(ve,primString(),stringArray(),stringArray2(),
 			  stringArray3());
+  
+  addSimpleOperator(ve,binaryOp<pair,minbound>,primPair(),"minbound");
+  addSimpleOperator(ve,binaryOp<pair,maxbound>,primPair(),"maxbound");
+  addSimpleOperator(ve,binaryOp<triple,minbound>,primTriple(),"minbound");
+  addSimpleOperator(ve,binaryOp<triple,maxbound>,primTriple(),"maxbound");
+  addBinOps<pair,minbound>(ve,primPair(),pairArray(),pairArray2(),pairArray3(),
+			   "minbound");
+  addBinOps<pair,maxbound>(ve,primPair(),pairArray(),pairArray2(),pairArray3(),
+			   "maxbound");
+  addBinOps<triple,minbound>(ve,primTriple(),tripleArray(),tripleArray2(),
+			     tripleArray3(),"minbound");
+  addBinOps<triple,maxbound>(ve,primTriple(),tripleArray(),tripleArray2(),
+			     tripleArray3(),"maxbound");
   
   addFunc(ve,binaryOp<int,divide>,primReal(),"/",
 	  formal(primInt(),"a"),formal(primInt(),"b"));

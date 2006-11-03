@@ -84,19 +84,17 @@ void sumArray(vm::stack *s)
   s->push(sum);
 }
 
-extern const char *arraymin, *arraymax;
+extern const char *emptyarray;
   
 template<class T, template <class S> class op>
 void binopArray(vm::stack *s)
 {
   array *a=pop<array*>(s);
   size_t size=checkArray(a);
-  if(size == 0) vm::error(arraymin);
+  if(size == 0) vm::error(emptyarray);
   T m=read<T>(a,0);
-  for(size_t i=1; i < size; i++) {
-    T val=read<T>(a,i);
-    if(op<T>()(val,m)) m=val;
-  }
+  for(size_t i=1; i < size; i++)
+    m=op<T>()(m,read<T>(a,i));
   s->push(m);
 }
 
@@ -115,13 +113,11 @@ void binopArray2(vm::stack *s)
 	m=read<T>(ai,0);
 	empty=false;
       }
-      for(size_t j=0; j < aisize; j++) {
-	T val=read<T>(ai,j);
-        if(op<T>()(val,m)) m=val;
-      }
+      for(size_t j=0; j < aisize; j++)
+	m=op<T>()(m,read<T>(ai,j));
     }
   }
-  if(empty) vm::error(arraymin);
+  if(empty) vm::error(emptyarray);
   s->push(m);
 }
 
@@ -144,13 +140,12 @@ void binopArray3(vm::stack *s)
 	  empty=false;
 	}
 	for(size_t k=0; k < aijsize; k++) {
-	  T val=read<T>(aij,k);
-	  if(op<T>()(val,m)) m=val;
+	  m=op<T>()(m,read<T>(aij,k));
 	}
       }
     }
   }
-  if(empty) vm::error(arraymin);
+  if(empty) vm::error(emptyarray);
   s->push(m);
 }
 

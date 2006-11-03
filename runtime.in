@@ -193,8 +193,7 @@ const char *arraymismatch="operation attempted on arrays of different lengths";
 
 namespace run {
   
-const char *arraymin="cannot take min of empty array";
-const char *arraymax="cannot take max of empty array";
+const char *emptyarray="cannot take min or max of empty array";
 
 static inline int Round(double x) 
 {
@@ -2312,17 +2311,6 @@ real dot(explicit pair z, explicit pair w)
   return z.getx()*w.getx()+z.gety()*w.gety();
 }
 
-pair minbound(pair z, pair w) 
-{
-  return pair(Min(z.getx(),w.getx()),Min(z.gety(),w.gety()));
-}
-
-pair maxbound(pair z, pair w) 
-{
-  return pair(Max(z.getx(),w.getx()),Max(z.gety(),w.gety()));
-}
-
-
 
 // Triple operations
 
@@ -2431,18 +2419,6 @@ triple expi(real theta, real phi)
 triple dir(real theta, real phi)
 {
   return expi(radians(theta),radians(phi));
-}
-
-triple minbound(triple u, triple v)
-{
-  return triple(Min(u.getx(),v.getx()),Min(u.gety(),v.gety()),
-		Min(u.getz(),v.getz()));
-}
-
-triple maxbound(triple u, triple v)
-{
-  return triple(Max(u.getx(),v.getx()),Max(u.gety(),v.gety()),
-		Max(u.getz(),v.getz()));
 }
 
 real cubiclength(triple z0, triple z0p, triple z1m, triple z1, real goal)
