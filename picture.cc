@@ -266,6 +266,8 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   return System(cmd,0,true,"gs","Ghostscript");
 }
   
+std::map<CONST std::string,int> pids;
+
 bool picture::postprocess(const string& prename, const string& outname,
 			  const string& outputformat, bool wait, bool view)
 {
@@ -296,16 +298,19 @@ bool picture::postprocess(const string& prename, const string& outname,
     cout << "Wrote " << outname << endl;
   if(settings::view() && view) {
     if(epsformat || pdfformat) {
-      static int pid=0;
-      static string lastoutname;
+      // Check to see if there is an existing viewer for this outname.
+      std::map<CONST std::string,int>::iterator p=pids.find(outname);
+      bool running=(p != pids.end());
       string Viewer=pdfformat ? getSetting<mem::string>("pdfviewer") :
 	getSetting<mem::string>("psviewer");
-      bool restart=false;
-      if(interact::interactive && pid)
-	restart=(waitpid(pid, &status, WNOHANG) == pid);
-
-      if (outname != lastoutname || restart) {
-	if(!wait) lastoutname=outname;
+      int pid;
+      if(running) {
+	pid=p->second;
+	if(interact::interactive && pid)
+	  running=(waitpid(pid, &status, WNOHANG) != pid);
+      }
+	
+      if(!running) {
 	ostringstream cmd;
 	cmd << "'" << Viewer << "'";
 	if(Viewer == "gv" && interact::interactive)
@@ -315,6 +320,7 @@ bool picture::postprocess(const string& prename, const string& outname,
 		      pdfformat ? "pdfviewer" : "psviewer",
 		      pdfformat ? "your PDF viewer" : "your PostScript viewer",
 		      &pid);
+	pids[outname]=pid;
 	if(status != 0) return false;
       } else if(Viewer == "gv") kill(pid,SIGHUP); // Tell gv to reread file.
     } else {
