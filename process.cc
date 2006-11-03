@@ -37,6 +37,7 @@ namespace vm {
 
 using namespace settings;
 using std::list;
+using std::string;
 
 using absyntax::file;
 using trans::genv;
@@ -121,13 +122,8 @@ public:
   virtual void run(coenv &e, istack &s) = 0;
 
   virtual void postRun(coenv &, istack &s) {
-    // Run the exit function in non-interactive mode.
-    // NOTE: resetenv used to do run::cleanup() instead.
-    bool temp=interactive;
-    interactive=false;
-    run::exitFunction(&s);
-    interactive=temp;
-
+    if(interactive) run::cleanup();
+    else run::exitFunction(&s);
     camp::TeXpipepreamble=TeXpipepreamble_save;
     camp::TeXpreamble=TeXpreamble_save;
   }
