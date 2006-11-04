@@ -892,8 +892,8 @@ const char *endlabel(const mem::string& texengine) {
 // TeX special command to clip a label
 const char *clip(const mem::string& texengine) {
   if(pdf(texengine))
-    return "\\special{pdf: #3}";
-  return "\\special{ps: currentpoint currentpoint translate matrix currentmatrix\n[matrix defaultmatrix 0 get 0 0 matrix defaultmatrix 3 get\nmatrix currentmatrix 4 get matrix currentmatrix 5 get] setmatrix\n#3\nsetmatrix neg exch neg exch translate}";
+    return "\\special{pdf: #1}";
+  return "\\special{ps: currentpoint currentpoint translate matrix currentmatrix\n[matrix defaultmatrix 0 get 0 0 matrix defaultmatrix 3 get\nmatrix currentmatrix 4 get matrix currentmatrix 5 get] setmatrix\n#1\nsetmatrix neg exch neg exch translate}";
 }
 
 // Begin TeX special command.

@@ -69,8 +69,8 @@ void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
       << "\\box\\ASYbox%" << newl
       << settings::endlabel(texengine) << "%" << newl
       << "}}" << newl
-      << "\\def\\ASYclip(#1,#2)#3{\\leavevmode%" << newl
-      << "\\put(#1,#2){" << settings::clip(texengine) << "}}" << newl;
+      << "\\def\\ASYput#1{%" << newl
+      << settings::clip(texengine) << "}" << newl;
   
   if(settings::latex(texengine)) {
     if(pipe || !settings::getSetting<bool>("inlinetex")) {
@@ -108,6 +108,10 @@ public:
   void openclip();
   
   void closeclip();
+  
+  void writeshifted(path p, bool newPath=true) {
+    write(p.transformed(shift(pair(-box.right,-box.bottom))),newPath);
+  }
   
   // Draws label transformed by T at position z.
   void put(const string& label, const transform& T, const pair& z,

@@ -113,32 +113,32 @@ public:
   }
 
   void closepath() {
-    if(pdf) *out << " h" << newl;
-    else *out << " closepath" << newl;
+    if(pdf) *out << "h" << newl;
+    else *out << "closepath" << newl;
   }
 
   void stroke() {
-    if(pdf) *out << " S" << newl;
-    else *out << " stroke" << newl;
+    if(pdf) *out << "S" << newl;
+    else *out << "stroke" << newl;
   }
   
   void fill(const pen &p) {
     if(p.evenodd()) {
-      if(pdf) *out << " f*" << newl;
+      if(pdf) *out << "f*" << newl;
       else *out << "eofill" << newl;
     } else {
-      if(pdf) *out << " f" << newl;
+      if(pdf) *out << "f" << newl;
       else *out << "fill" << newl;
     }
   }
   
   void clip(const pen &p) {
     if(p.evenodd()) {
-      if(pdf) *out << " W* n" << newl;
-      else *out << " eoclip" << newl;
+      if(pdf) *out << "W* n" << newl;
+      else *out << "eoclip" << newl;
     } else {
-      if(pdf) *out << " W n" << newl;
-      else *out << " clip" << newl;
+      if(pdf) *out << "W n" << newl;
+      else *out << "clip" << newl;
     }
   }
   

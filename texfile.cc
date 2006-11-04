@@ -155,14 +155,12 @@ void texfile::grestore()
   
 void texfile::openclip() 
 {
-  *out << "\\ASYclip(" << -box.right*ps2tex
-      << "," << -box.bottom*ps2tex
-      << "){" << newl;
+  *out << "\\ASYput{" << newl;
 }
   
 void texfile::closeclip() 
 {
-  *out << "}" << newl;
+  *out << "}%" << newl;
 }
   
 void texfile::put(const string& label, const transform& T, const pair& z,

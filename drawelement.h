@@ -186,6 +186,10 @@ public:
     out->write(p);
   }
   
+  virtual void writeshiftedpath(texfile *out) {
+    out->writeshifted(p);
+  }
+  
   virtual void penStart(psfile *out)
   {
     if (t())
@@ -250,6 +254,11 @@ public:
   void writepath(psfile *out) {
     for(size_t i=0; i < size; i++) 
       out->write(vm::read<path>(P,i),i == 0);
+  }
+  
+  void writeshiftedpath(texfile *out) {
+    for(size_t i=0; i < size; i++) 
+      out->writeshifted(vm::read<path>(P,i),i == 0);
   }
 };
  

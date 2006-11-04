@@ -53,7 +53,7 @@ public:
     if(empty()) return true;
     
     out->openclip();
-    writepath(out);
+    writeshiftedpath(out);
     out->clip(pentype);
     out->closeclip();
     
