@@ -76,7 +76,10 @@ void read(vm::stack *s)
 {
   camp::file *f = pop<camp::file*>(s);
   T val;
-  if(f->isOpen()) f->read(val);
+  if(f->isOpen()) {
+    f->read(val);
+    if(f->LineMode()) f->nexteol();
+  }
   s->push(val);
 }
 
