@@ -350,7 +350,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   bool standardout=Prefix == "-";
   string prefix=standardout ? "out" : Prefix;
   checkFormatString(format);
-  string preformat=pdf ? "pdf" : "eps";
+  string preformat=nativeformat();
   string defaultformat=(string) getSetting<mem::string>("outformat");
   if(defaultformat == "") defaultformat=preformat;
   string outputformat=format.empty() ? defaultformat : format;

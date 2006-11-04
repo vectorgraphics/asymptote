@@ -1,5 +1,5 @@
 import fontsize;
-usepackage("colordvi");
+usepackage("color");
 
 bool reverse=false; // Set to true to enable reverse video
 bool stepping=false; // Set to true to enable stepping
@@ -42,9 +42,9 @@ pair titlealign=2S;
 pen titlepen=fontsize(32pt);
 real titleskip=0.5;
 
-string oldbulletcolor="Black";
-string newbulletcolor="Red";
-string bullet="\bulletcolor{$\bullet$}";
+string oldbulletcolor;
+string newbulletcolor="red";
+string bullet="{\bulletcolor{$\bullet$}}";
                                               
 pair pagenumberposition=S+E;
 pair pagenumberalign=4NW;
@@ -52,14 +52,15 @@ pen pagenumberpen=fontsize(12);
 pen steppagenumberpen=colorless(pagenumberpen)+red;
 
 real figureborder=0.25cm;
-pen figuremattpen=invisible;
+pen figuremattpen;
 
 pair titleposition=(-0.8,0.4);
 pair startposition=(-0.8,0.9);
 pair currentposition=startposition;
 
-texpreamble("\let\bulletcolor"+'\\'+newbulletcolor);
-texpreamble("\hyphenpenalty=10000\tolerance=1000");
+string bulletcolor(string color) {
+  return "\def\bulletcolor{"+'\\'+"color{"+color+"}}";
+}
 
 picture background;
 size(background,pagewidth,pageheight,IgnoreAspect);
@@ -89,6 +90,26 @@ void background()
   }
 }
 
+void color(string name, string color) {
+  texpreamble("\def"+'\\'+name+"#1{{\color{"+color+"}#1}}");
+}
+
+usepackage("asycolors");
+
+void normalvideo() {
+    figuremattpen=invisible;
+    color("Red","red");
+    color("Green","heavygreen");
+    color("Blue","blue");
+    color("Foreground","black");
+    color("Background","white");
+    oldbulletcolor="black";
+}
+
+normalvideo();
+texpreamble(bulletcolor(newbulletcolor));
+texpreamble("\hyphenpenalty=10000\tolerance=1000");
+
 // Evaluate user command line option.
 void usersetting()
 {
@@ -97,21 +118,22 @@ void usersetting()
     fill(background,box((-1,-1),(1,1)),black);
     itempen=white;
     defaultpen(itempen);
-    oldbulletcolor="White";
     pagenumberpen=colorless(pagenumberpen)+white;
     steppagenumberpen=colorless(steppagenumberpen)+mediumblue;
     titlepagepen=colorless(titlepagepen)+mediumred;
     authorpen=colorless(authorpen)+paleblue;
     institutionpen=colorless(institutionpen)+paleblue;
-    figuremattpen=white;
-    usepackage("asycolors");
-    texpreamble("\def\Blue#1{{\paleblue #1}}");
-    texpreamble("\def\Red#1{{\mediumred#1}}");
-    texpreamble("\let\Foreground\White");
+    // Work around pdflatex bug, in which white is mapped to black!
+    figuremattpen=pdf() ? cmyk(0,0,0,1/255) : white;
+    color("Red","mediumred");
+    color("Green","green");
+    color("Blue","paleblue");
+    color("Foreground","white");
+    color("Background","black");
+    oldbulletcolor="white";
   } else { // White background
-    texpreamble("\let\Green\OliveGreen");
+    normalvideo();
   }
-  texpreamble("\let\bulletcolor"+'\\'+newbulletcolor);
 }
 
 void numberpage(pen p=pagenumberpen)
@@ -155,12 +177,12 @@ void step()
   nextpage(steppagenumberpen);
   for(int i=0; i < firstnode.length; ++i) {
     for(int j=firstnode[i]; j <= lastnode[i]; ++j) {
-      tex("\let\bulletcolor"+'\\'+oldbulletcolor);
+      tex(bulletcolor(oldbulletcolor));
       currentpicture.add(currentpicture.nodes[j]);
     }
   }
   firstnode.push(currentpicture.nodes.length-1);
-  tex("\let\bulletcolor"+'\\'+newbulletcolor);
+  tex(bulletcolor(newbulletcolor));
 }
 
 void incrementposition(pair z)

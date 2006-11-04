@@ -77,12 +77,16 @@ string graphic(string name, string options="")
 
 string minipage(string s, real width=100bp)
 {
-  return "\begin{minipage}{"+(string) (width*pt)+"pt}"+s+"\end{minipage}";
+  return latex() ? "\begin{minipage}{"+(string) (width*pt)+"pt}"+s+
+    "\end{minipage}" : ""; 
 }
 
-void usepackage(string s)
+void usepackage(string s, string options="")
 {
-  texpreamble("\usepackage{"+s+"}");
+  if(!latex()) return;
+  string usepackage="\usepackage";
+  if(options != "") usepackage += "["+options+"]";
+  texpreamble(usepackage+"{"+s+"}");
 }
 
 void pause(string w="Hit enter to continue") 

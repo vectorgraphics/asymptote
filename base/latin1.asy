@@ -1,2 +1,2 @@
-texpreamble("\usepackage[T1]{fontenc}");
-texpreamble("\usepackage[latin1]{inputenc}");
+usepackage("fontenc","T1");
+usepackage("inputenc","latin1");

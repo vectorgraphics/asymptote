@@ -70,6 +70,8 @@ int getScroll();
 bool pdf(const mem::string& texengine);
 bool latex(const mem::string& texengine);
   
+string nativeformat();
+  
 const char *beginlabel(const mem::string& texengine);
 const char *endlabel(const mem::string& texengine);
 const char *clip(const mem::string& texengine);

@@ -1,73 +1,71 @@
-\usepackage{pstricks}
+\definecolor{cyan}{cmyk}{1,0,0,0}
+\definecolor{magenta}{cmyk}{0,1,0,0}
+\definecolor{yellow}{cmyk}{0,0,1,0}
+\definecolor{black}{cmyk}{0,0,0,1}
 
-\newcmykcolor{cyan}{1 0 0 0}
-\newcmykcolor{magenta}{0 1 0 0}
-\newcmykcolor{yellow}{0 0 1 0}
-\newcmykcolor{black}{0 0 0 1}
+\definecolor{white}{cmyk}{0,0,0,0}
+\definecolor{gray}{cmyk}{0,0,0,0.5}
 
-\newcmykcolor{white}{0 0 0 1}
-\newcmykcolor{gray}{0 0 0 0.5}
+\definecolor{red}{cmyk}{0,1,1,0}
+\definecolor{green}{cmyk}{1,0,1,0}
+\definecolor{blue}{cmyk}{1,1,0,0}
 
-\newcmykcolor{red}{0 1 1 0}
-\newcmykcolor{green}{1 0 1 0}
-\newcmykcolor{blue}{1 1 0 0}
-
-\newcmykcolor{palered}{0 0.25 0.25 0}
-\newcmykcolor{palegreen}{0.25 0 0.25 0}
-\newcmykcolor{paleblue}{0.25 0.25 0 0}
-\newcmykcolor{palecyan}{0.25 0 0 0}
-\newcmykcolor{palemagenta}{0 0.25 0 0}
-\newcmykcolor{paleyellow}{0 0 0.25 0}
-\newcmykcolor{palegray}{0 0 0 0.05}
-\newcmykcolor{lightred}{0 0.5 0.5 0}
-\newcmykcolor{lightgreen}{0.5 0 0.5 0}
-\newcmykcolor{lightblue}{0.5 0.5 0 0}
-\newcmykcolor{lightcyan}{0.5 0 0 0}
-\newcmykcolor{lightmagenta}{0 0.5 0 0}
-\newcmykcolor{lightyellow}{0 0 0.5 0}
-\newcmykcolor{lightgray}{0 0 0 0.1}
-\newcmykcolor{mediumred}{0 0.75 0.75 0}
-\newcmykcolor{mediumgreen}{0.75 0 0.75 0}
-\newcmykcolor{mediumblue}{0.75 0.75 0 0}
-\newcmykcolor{mediumcyan}{0.75 0 0 0}
-\newcmykcolor{mediummagenta}{0 0.75 0 0}
-\newcmykcolor{mediumyellow}{0 0 0.75 0}
-\newcmykcolor{mediumgray}{0 0 0 0.25}
-\newcmykcolor{heavyred}{0 1 1 0.25}
-\newcmykcolor{heavygreen}{1 0 1 0.25}
-\newcmykcolor{heavyblue}{1 1 0 0.25}
-\newcmykcolor{heavycyan}{1 0 0 0.25}
-\newcmykcolor{heavymagenta}{0 1 0 0.25}
-\newcmykcolor{lightolive}{0 0 1 0.25}
-\newcmykcolor{heavygray}{0 0 0 0.75}
-\newcmykcolor{deepred}{0 1 1 0.5}
-\newcmykcolor{deepgreen}{1 0 1 0.5}
-\newcmykcolor{deepblue}{1 1 0 0.5}
-\newcmykcolor{deepcyan}{1 0 0 0.5}
-\newcmykcolor{deepmagenta}{0 1 0 0.5}
-\newcmykcolor{olive}{0 0 1 0.5}
-\newcmykcolor{deepgray}{0 0 0 0.9}
-\newcmykcolor{darkred}{0 1 1 0.75}
-\newcmykcolor{darkgreen}{1 0 1 0.75}
-\newcmykcolor{darkblue}{1 1 0 0.75}
-\newcmykcolor{darkcyan}{1 0 0 0.75}
-\newcmykcolor{darkmagenta}{0 1 0 0.75}
-\newcmykcolor{darkolive}{0 0 1 0.75}
-\newcmykcolor{darkgray}{0 0 0 0.95}
-\newcmykcolor{orange}{0 0.5 1 0}
-\newcmykcolor{fuchsia}{0 1 0.5 0}
-\newcmykcolor{chartreuse}{0.5 0 1 0}
-\newcmykcolor{springgreen}{1 0 0.5 0}
-\newcmykcolor{purple}{0.5 1 0 0}
-\newcmykcolor{royalblue}{1 0.5 0 0}
-\newcmykcolor{salmon}{0 0.5 0.5 0}
-\newcmykcolor{brown}{0 1 1 0.5}
-\newcmykcolor{darkbrown}{0 1 1 0.75}
-\newcmykcolor{pink}{0 0.25 0 0}
-\newcmykcolor{palegrey}{0 0 0 0.05}
-\newcmykcolor{lightgrey}{0 0 0 0.1}
-\newcmykcolor{mediumgrey}{0 0 0 0.25}
-\newcmykcolor{grey}{0 0 0 0.5}
-\newcmykcolor{heavygrey}{0 0 0 0.5}
-\newcmykcolor{deepgrey}{0 0 0 0.9}
-\newcmykcolor{darkgrey}{0 0 0 0.95}
+\definecolor{palered}{cmyk}{0,0.25,0.25,0}
+\definecolor{palegreen}{cmyk}{0.25,0,0.25,0}
+\definecolor{paleblue}{cmyk}{0.25,0.25,0,0}
+\definecolor{palecyan}{cmyk}{0.25,0,0,0}
+\definecolor{palemagenta}{cmyk}{0,0.25,0,0}
+\definecolor{paleyellow}{cmyk}{0,0,0.25,0}
+\definecolor{palegray}{cmyk}{0,0,0,0.05}
+\definecolor{lightred}{cmyk}{0,0.5,0.5,0}
+\definecolor{lightgreen}{cmyk}{0.5,0,0.5,0}
+\definecolor{lightblue}{cmyk}{0.5,0.5,0,0}
+\definecolor{lightcyan}{cmyk}{0.5,0,0,0}
+\definecolor{lightmagenta}{cmyk}{0,0.5,0,0}
+\definecolor{lightyellow}{cmyk}{0,0,0.5,0}
+\definecolor{lightgray}{cmyk}{0,0,0,0.1}
+\definecolor{mediumred}{cmyk}{0,0.75,0.75,0}
+\definecolor{mediumgreen}{cmyk}{0.75,0,0.75,0}
+\definecolor{mediumblue}{cmyk}{0.75,0.75,0,0}
+\definecolor{mediumcyan}{cmyk}{0.75,0,0,0}
+\definecolor{mediummagenta}{cmyk}{0,0.75,0,0}
+\definecolor{mediumyellow}{cmyk}{0,0,0.75,0}
+\definecolor{mediumgray}{cmyk}{0,0,0,0.25}
+\definecolor{heavyred}{cmyk}{0,1,1,0.25}
+\definecolor{heavygreen}{cmyk}{1,0,1,0.25}
+\definecolor{heavyblue}{cmyk}{1,1,0,0.25}
+\definecolor{heavycyan}{cmyk}{1,0,0,0.25}
+\definecolor{heavymagenta}{cmyk}{0,1,0,0.25}
+\definecolor{lightolive}{cmyk}{0,0,1,0.25}
+\definecolor{heavygray}{cmyk}{0,0,0,0.75}
+\definecolor{deepred}{cmyk}{0,1,1,0.5}
+\definecolor{deepgreen}{cmyk}{1,0,1,0.5}
+\definecolor{deepblue}{cmyk}{1,1,0,0.5}
+\definecolor{deepcyan}{cmyk}{1,0,0,0.5}
+\definecolor{deepmagenta}{cmyk}{0,1,0,0.5}
+\definecolor{olive}{cmyk}{0,0,1,0.5}
+\definecolor{deepgray}{cmyk}{0,0,0,0.9}
+\definecolor{darkred}{cmyk}{0,1,1,0.75}
+\definecolor{darkgreen}{cmyk}{1,0,1,0.75}
+\definecolor{darkblue}{cmyk}{1,1,0,0.75}
+\definecolor{darkcyan}{cmyk}{1,0,0,0.75}
+\definecolor{darkmagenta}{cmyk}{0,1,0,0.75}
+\definecolor{darkolive}{cmyk}{0,0,1,0.75}
+\definecolor{darkgray}{cmyk}{0,0,0,0.95}
+\definecolor{orange}{cmyk}{0,0.5,1,0}
+\definecolor{fuchsia}{cmyk}{0,1,0.5,0}
+\definecolor{chartreuse}{cmyk}{0.5,0,1,0}
+\definecolor{springgreen}{cmyk}{1,0,0.5,0}
+\definecolor{purple}{cmyk}{0.5,1,0,0}
+\definecolor{royalblue}{cmyk}{1,0.5,0,0}
+\definecolor{salmon}{cmyk}{0,0.5,0.5,0}
+\definecolor{brown}{cmyk}{0,1,1,0.5}
+\definecolor{darkbrown}{cmyk}{0,1,1,0.75}
+\definecolor{pink}{cmyk}{0,0.25,0,0}
+\definecolor{palegrey}{cmyk}{0,0,0,0.05}
+\definecolor{lightgrey}{cmyk}{0,0,0,0.1}
+\definecolor{mediumgrey}{cmyk}{0,0,0,0.25}
+\definecolor{grey}{cmyk}{0,0,0,0.5}
+\definecolor{heavygrey}{cmyk}{0,0,0,0.5}
+\definecolor{deepgrey}{cmyk}{0,0,0,0.9}
+\definecolor{darkgrey}{cmyk}{0,0,0,0.95}

@@ -875,6 +875,10 @@ bool latex(const mem::string& texengine) {
   return texengine == "latex" || texengine == "pdflatex";
 }
 
+string nativeformat() {
+  return pdf(getSetting<mem::string>("tex")) ? "pdf" : "eps";
+}
+
 // TeX special command to set up currentmatrix for typesetting labels.
 const char *beginlabel(const mem::string& texengine) {
   if(pdf(texengine))

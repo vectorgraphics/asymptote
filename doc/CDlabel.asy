@@ -1,8 +1,8 @@
-texpreamble("\usepackage[T1]{fontenc}");
-defaultpen(font("T1","cmr")); 
+usepackage("fontenc","T1");
+//defaultpen(font("T1","cmr")); 
 size(11.7cm,11.7cm);
 
-asy("eps","logo");
+asy(nativeformat(),"logo");
 fill(unitcircle^^(scale(2/11.7)*unitcircle),
 evenodd+rgb(124/255,205/255,124/255));
 
@@ -16,6 +16,6 @@ label(scale(1.1)*minipage("\centering\scriptsize Bericht Nr. 349(2005)\\
 {\bfseries Grazer Mathematische Berichte}\\
 ISSN 1016--7692",4cm),(0.55,0.2));
 
-label(graphic("logo.eps","height=6cm"),(0,-0.5));
+label(graphic("logo."+nativeformat(),"height=6cm"),(0,-0.5));
 clip(unitcircle^^(scale(2/11.7)*unitcircle),evenodd);
 

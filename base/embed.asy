@@ -1,5 +1,5 @@
-texpreamble("\usepackage[3D]{movie15}
-\usepackage{hyperref}");
+usepackage("movie15","3D");
+usepackage("hyperref");
 
 string embed(string name, string options="", real width=0, real height=0)
 {

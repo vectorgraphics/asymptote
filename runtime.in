@@ -928,11 +928,26 @@ void _image(picture *f, penarray2 *data, pair initial, pair final,
   f->append(new drawImage(copyArray2(data),NULL,t*matrix(initial,final)));
 }
 
+string nativeformat()
+{
+  return nativeformat();
+}
+
+bool latex()
+{
+  return latex(texengine());
+}
+
+bool pdf()
+{
+  return pdf(texengine());
+}
+
 void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 	     string format=emptystring, bool wait=false, bool view=true,
 	     transformarray *GUItransform, boolarray *GUIdelete)
 {
-  if(prefix.empty()) prefix=settings::outname();
+  if(prefix.empty()) prefix=outname();
   
   size_t size=GUItransform && GUIdelete ?
     checkArrays(GUItransform,GUIdelete) : 0;
@@ -1366,7 +1381,7 @@ bool deconstruct()
 Void readGUI()
 {
   static bool first=true;
-  string name=buildname(settings::outname(),"gui");
+  string name=buildname(outname(),"gui");
   std::ifstream exists(name.c_str());
   if(exists) {
     if((getSetting<bool>("clearGUI") && !interact::interactive) ||
@@ -2489,12 +2504,12 @@ void breakpoint(runnable *s=NULL)
 
 string locatefile(string file)
 {
-  return settings::locateFile(file);
+  return locateFile(file);
 }
 
 void stop(string file, int line, runnable *s=NULL)
 {
-  file=settings::locateFile(file);
+  file=locateFile(file);
   clear(file,line);
   cout << "setting breakpoint at " << file << ": " << line << endl;
   bplist.push_back(bpinfo(file,line,s));
@@ -2508,7 +2523,7 @@ void breakpoints()
 
 void clear(string file, int line)
 {
-  file=settings::locateFile(file);
+  file=locateFile(file);
   clear(file,line,true);
 }
 
@@ -2532,7 +2547,7 @@ int merge(stringarray *files, string *args, string *format)
   for(size_t i=0; i < size; i++) 
     cmd << " " << read<string>(files,i);
   
-  string name=buildname(settings::outname(),format->c_str());
+  string name=buildname(outname(),format->c_str());
   cmd << " '" << name << "'";
   ret=System(cmd,2,true,"convert");
   

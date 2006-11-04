@@ -1,1 +1,1 @@
-texpreamble("\usepackage{type1cm}");
+usepackage("type1cm");

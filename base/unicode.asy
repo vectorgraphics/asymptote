@@ -1,2 +1,2 @@
-texpreamble("\usepackage{ucs}");
-texpreamble("\usepackage[utf8x]{inputenc}");
+usepackage("ucs");
+usepackage("inputenc","utf8x");

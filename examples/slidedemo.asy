@@ -5,7 +5,7 @@
 orientation=Landscape;
 
 // Generated needed files if they don't already exist.
-asy("eps","Pythagoras","log","near_earth");
+asy(nativeformat(),"Pythagoras","log","near_earth");
 
 import slide;
 
@@ -49,8 +49,8 @@ fill(pic2,unitcircle,paleblue);
 add(pic2.fit(15cm));
 
 newslide();
-item("The slide \Red{title} can be omitted.");
-figure("Pythagoras.eps","height=12cm",
+item("The slide \Red{title} \Green{can} \Blue{be} omitted.");
+figure("Pythagoras","height=12cm",
        "A simple proof of Pythagoras' Theorem.");
 
 newslide();
@@ -58,5 +58,5 @@ item("Single skip:");
 skip();
 item("Double skip:");
 skip(2);
-figure(new string[] {"log.eps","near_earth.eps"},
+figure(new string[] {"log."+nativeformat(),"near_earth."+nativeformat()},
        "width=10cm","Examples of {\tt Asymptote} graphs.");
