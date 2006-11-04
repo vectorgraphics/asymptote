@@ -89,7 +89,6 @@ void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
 class texfile : public psfile {
   bbox box;
   mem::string texengine;
-  pen lastpen; 
 
 public:
   texfile(const string& texname, const bbox& box);

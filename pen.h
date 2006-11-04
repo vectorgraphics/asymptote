@@ -339,7 +339,7 @@ public:
   
   pen(initialpen_t) : 
     line(DEFLINE), linewidth(-2.0), P(0),
-    font("<invalid>"), fontsize(-1.0), lineskip(-1.0), color(GRAYSCALE),
+    font("<invalid>"), fontsize(-1.0), lineskip(-1.0), color(INVISIBLE),
     r(0.0), g(0.0), b(0.0), grey(0.0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(NOBASEALIGN),
     transparency(DEFTRANSP),linecap(-2), linejoin(-2), overwrite(DEFWRITE),
