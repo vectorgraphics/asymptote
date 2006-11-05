@@ -535,11 +535,12 @@ version of the Boehm garbage collector
 (@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/}).
 Alternatively, one can request use of a (presumably multithreaded and therefore
 slower) system version of the Boehm garbage collector by configuring
-instead with @code{./configure --enable-gc=system}. One can disable
-use of the garbage collector by configuring with @code{./configure
---disable-gc}. For a list of other configuration options, say
-@code{./configure --help}. For example, one can tell configure to look
-for header files and libraries in nonstandard locations:
+instead with @code{./configure --enable-gc=system} (provided of course
+that your system has the @code{libgc} and @code{libgccpp}
+libraries). One can disable use of the garbage collector by configuring
+with @code{./configure --disable-gc}. For a list of other configuration
+options, say @code{./configure --help}. For example, one can tell
+configure to look for header files and libraries in nonstandard locations:
 @verbatim
 ./configure CFLAGS=-I/opt/usr/include LDFLAGS=-L/opt/usr/lib
 @end verbatim
@@ -3458,10 +3459,11 @@ same name are allowed, so long as they have distinct signatures.
 Functions arguments are passed by value. To pass an argument by
 reference, simply enclose it in a structure (@pxref{Structures}).
 
-Here are some examples of @code{Asymptote} functions:
+Here are some significant features of @code{Asymptote} functions:
 
 @enumerate
-@item Two distinct variables:
+@item Variables with signatures (functions) and without signatures
+(nonfunction variables) are distinct:
 @verbatim
 int x, x();           
 x=5;
@@ -3502,6 +3504,34 @@ intop addby7=adder(7);
 write(addby7(1));   // Writes 8.
 @end verbatim
 
+@item 
+@cindex overloading functions
+One may redefine a function @code{f}, even for calls to @code{f} in previously
+declared functions, by assigning another (anonymous or named)
+function to it. However, if @code{f} is overloaded by a
+new function definition, previous calls will still access the original
+version of @code{f}, as illustrated in this example:
+@verbatim
+void f() {
+  write("hi");
+}  
+ 
+void g() {
+  f();
+} 
+ 
+g(); // writes "hi" 
+ 
+f=new void() {write("bye");}; 
+
+g(); // writes "bye" 
+ 
+void f() {write("overloaded");}; 
+
+f(); // writes "overloaded"
+g(); // writes "bye" 
+@end verbatim
+
 @cindex function declarations
 @item Anonymous functions can be used to redefine a function variable 
 that has been declared (and implicitly initialized to the null function)
@@ -3519,7 +3549,7 @@ f=new void(bool b) {
   g(false);
 };
 
-g(true);
+g(true); // Writes true, then writes false.
 @end verbatim
 
 @end enumerate

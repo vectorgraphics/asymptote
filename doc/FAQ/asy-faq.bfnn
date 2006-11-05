@@ -77,14 +77,14 @@ emphasizes the mathematical and graphical nature of this language.
 
 \question 26jun:osx Is it possible to install Asymptote on Mac OS X?
 
-Yes. Marius Schamschula maintains a binary package for OS X Tiger (10.4), which
-can be found at
-\docref{http://www.hmug.org/pub/MacOS_X/BSD/Applications/Publishing/asymptote/\}.
-It is also easy to compile Asymptote directly from the source code at
+It is easy to compile Asymptote directly from the source code at
 \docref{http://sourceforge.net/project/showfiles.php?group_id=120000\}
 We recommend first upgrading to the latest GNU readline library, unless you
 don't care about interactive readline support (in which case configure will
 automatically detect and disable obsolete versions of the readline library).
+Marius Schamschula also maintains a binary package for various MacOS X
+platforms 
+\docref{http://www.hmug.org/pub/MacOS_X/BSD/Applications/Publishing/asymptote/\}.
 
 \question 26jun:osxbadCPU Why do I get the error \courier{Bad CPU type in executable\} on installing Asymptote from the MAC OS binary?
 
@@ -102,6 +102,17 @@ get the latest version of the gc source from
 \docref{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source\} and put it
 in the top-level Asymptote source directory before doing
 \courier{./configure\} (without the \courier{--enable-gc=system\} option).
+
+\question 04nov:brokenpdftex What do I do if I get the error: \courier{Error: pdfetex (file pdftex.cfg): cannot open config file...texinfo.tex appears to be broken, quitting\}?
+
+Simply put \docref{http://asymptote.sourceforge.net/asymptote.pdf\}
+in the directory \courier{doc\} and repeat the command \courier{make all\}.
+Or, if you don't want to build a local copy of the documentation, simply
+proceed with \courier{make install-asy\}.
+
+\question 04nov:brokentexinfo What do I do if I get the error: \courier{! Undefined control sequence. l.6 @copying\}?
+
+Either upgrade your \courier{texinfo\} package or follow one of the easy work arounds in \qref brokenpdftex.
 
 \question 27jun:latexintegration Is it possible to integrate Asymptote into LaTeX?
 
@@ -158,7 +169,7 @@ Click on the [Start] button
 
 * Click the 'Environment Variables' button. 
 
-\question 02sep:convert Why does xasy in WinXP gives me an error like "Invalid Parameter - 432x432"?
+\question 02sep:convert Under Microsoft Windows XP, why do I get an error like "Invalid Parameter - 432x432"?
 
 This means that ImageMagick wasn't properly installed and you are using the
 MSDOS convert program rather than the ImageMagick one. Or you may have
@@ -213,6 +224,19 @@ Just put a space after the integer tension value:
 \verbatim
 draw((0,0)..tension 2 ..(0,50)..(100,100)); 
 \endverbatim
+
+\question 27jun:dots Shouldn't dots always be the same size?
+
+From the documentation: 
+ 
+"The dot command defined in the module plain draws a dot having a diameter 
+equal to an explicit pen linewidth or the default linewidth magnified by 
+dotfactor (6 by default)."
+ 
+Thus, when you use the default pen, the dot will have size 6*linewidth,
+but when you give a pen with an explicit width specified, you will 
+have a dot of size linewidth. If you want the first case to behave like the
+second, you may set dotfactor=1.
 
 \comment #####################################################################
 
@@ -527,6 +551,59 @@ suppressed/moved by changing the order of array entries.
 
 Further examples of graphs are available at \docref{http://home.tele2.fr/phivaldi/asymptote/graph/index.html\}.
 
+\question 04nov:fixedsizegraphs How do I make the plot region of a graph, ignoring labels and legends, have a fixed size?
+ 
+Either:
+
+i) Specify an \courier{xunitsize} and \courier{yunitsize} in an
+explicit \courier{shipout} call at the end:
+\verbatim
+shipout(xunitsize=1cm,yunitsize=2cm);
+\endverbatim
+ 
+ii) Specify the points in user coordinates that should correspond to a
+given picture size:
+ 
+\verbatim
+import graph;
+
+size(250,200,IgnoreAspect);
+
+draw(graph(exp,-1,1),red);
+
+xaxis("$x$",BottomTop,LeftTicks); 
+yaxis("$y$",LeftRight,RightTicks); 
+
+fixedscaling((-1.5,-0.5),(1.5,3.5));
+\endverbatim
+ 
+In this example, the user coordinate \courier{(-1.5,-0.5)\} will end up
+being the lower left corner of the figure and \courier{(1.5,3.5)\} will be
+the upper right corner. You can use this option to ensure multiple figures
+have the same scaling and same resulting figure size (just ensure the two
+coordinates given to \courier{fixedscaling()\} leaves room for any labels).
+ 
+See also
+\docref{http://asymptote.sourceforge.net/doc/Frames-and-pictures.html\}.
+ 
+\question 26jun:graphlimits How can I plot a function f(x) within [0,1]x[0,1] without explicitly calculating the x values for which f(x) hits the boundary?
+
+Call \courier{limits\} with the \courier{Crop\} option after drawing the graph:
+\verbatim
+import graph;
+
+size(250,200,IgnoreAspect);
+
+draw(graph(exp,-1,1),red);
+
+xaxis("$x$",BottomTop,LeftTicks); 
+yaxis("$y$",LeftRight,RightTicks); 
+
+limits((0,0),(1,1),Crop); 
+\endverbatim
+ 
+See also \docref{http://asymptote.sourceforge.net/doc/graph.html\}.
+ 
 \question 26jun:custompalettes Is it possible to define customized palettes?
 
 Yes, you may generate your own pen[] array. For example: 
@@ -591,8 +668,7 @@ void distance(picture pic=currentpicture, pair A, pair B, Label L="", real n=0,
   pic.add(new void(frame f, transform t) {
     picture opic;
     guide G=T*t*g;
-    draw(opic,G,p,Arrows(NoFill),Bars,PenMargins); 
-    label(opic,L,midpoint(G),UnFill(1)); 
+    draw(opic,Label(L,Center,UnFill(1)),G,p,Arrows(NoFill),Bars,PenMargins); 
     add(f,opic.fit());
   });
   pic.addBox(min(g),max(g),T*min(p),T*max(p));
@@ -609,19 +685,6 @@ distance(A,B,"$\ell$",1);
 \question 26jun:log2 How can I make the y axis display base-2 logarithmic values?
 
 See the example \docref{http://asymptote.sourceforge.net/gallery/2D graphs/log2graph.asy\}. 
-
-\question 27jun:dots Shouldn't dots always be the same size?
-
-From the documentation: 
- 
-"The dot command defined in the module plain draws a dot having a diameter 
-equal to an explicit pen linewidth or the default linewidth magnified by 
-dotfactor (6 by default)."
- 
-Thus, when you use the default pen, the dot will have size 6*linewidth,
-but when you give a pen with an explicit width specified, you will 
-have a dot of size linewidth. If you want the first case to behave like the
-second, you may set dotfactor=1.
 
 \question 27jun:align How can I align the x axes of two graphs on the same figure?
 
@@ -1100,3 +1163,30 @@ Yes, simply call the newpage() function. This is used by the
 (easier to use than Prosper).
 
 \comment Here it ends!
+
+ LocalWords:  brieftitle href copyto endcopy faq whatisasy MetaPost Gouraud sep
+ LocalWords:  colourspaces PostScript whereisasy MacOS docref RedHat Debian osx
+ LocalWords:  beforeasking whyasy whycamp readline Schamschula osxbadCPU lgccpp
+ LocalWords:  nogccpp gc Boehm nov brokenpdftex pdfetex pdftex cfg config qref
+ LocalWords:  brokentexinfo texinfo arounds latexintegration latexusage tex EPS
+ LocalWords:  Teixeira Ivaldi lasy pdflatex PDF inline endverbatim tkinter xasy
+ LocalWords:  tkinterdepend Uvh nodeps windir USERPROFILE winglobal popup XP PQ
+ LocalWords:  MSDOS miktex MikTex dvips texmf exe xcolor tensionsyntax greek pq
+ LocalWords:  dotfactor prepending matlabels usepackage amsmath latexpackage
+ LocalWords:  mathptmx internatfonts jul fourier textfamilyextension decsep pic
+ LocalWords:  lineargraph rotatelabel fixedsize colorssaturation colour NoFill
+ LocalWords:  doublearrows filltype arrowangle FillDraw EndPoint NoMargin xaxis
+ LocalWords:  reversearrow arrowsize axisticks RightTicks yaxis LeftTicks rgval
+ LocalWords:  threeaxispens xlimits ylimits MidPoint axislabelfont beginlabel
+ LocalWords:  axisticklabelfont overlappingticklabels endlabel ticklabel NoZero
+ LocalWords:  defaultformat SuppressQuiet MoveQuiet fixedsizegraphs xunitsize
+ LocalWords:  yunitsize BottomTop LeftRight fixedscaling graphlimits NColors
+ LocalWords:  custompalettes MyPalette Nongraphing dotloc dotlocs opic UnFill
+ LocalWords:  PenMargins addBox xmin xmax yequals calculateTransform changeaxis
+ LocalWords:  functioncolor latticeshade nonexplicitfun scalesecondaryaxis init
+ LocalWords:  emptymarkers paletterange comporint pseudocode framepicture aug
+ LocalWords:  unitsizes pathguide picarray genarrays cirdep someroutine interp
+ LocalWords:  automaticscaling Metapost accomodate manualscaling mppickup lray
+ LocalWords:  horiz verti LightSource unitsquare unitsize truesize psviewer noV
+ LocalWords:  interactiveView batchView jpeg jpg embedbitmaps eps directpdf pdf
+ LocalWords:  bigpictures png giff PixelsPerInch multipage newpage
