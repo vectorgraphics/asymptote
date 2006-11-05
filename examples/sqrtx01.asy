@@ -14,7 +14,6 @@ draw(p,blue);
 
 bbox3 b=autolimits(O,2X+1.25Y+Z);
 
-xtick((0,0,0));
 xtick((1,0,0));
 
 real x=relpoint(p,0.5).x;

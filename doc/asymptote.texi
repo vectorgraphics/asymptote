@@ -5390,7 +5390,10 @@ the tick location):
 @cindex tick
 @cindex Label
 @verbatim
-void xtick(picture pic=currentpicture, Label L="", pair z,
+void xtick(picture pic=currentpicture, Label L="", explicit pair z,
+           pair dir=N, string format="",
+           real size=Ticksize, pen p=currentpen);
+void xtick(picture pic=currentpicture, Label L="", real x,
            pair dir=N, string format="",
            real size=Ticksize, pen p=currentpen);
 void ytick(picture pic=currentpicture, Label L="", explicit pair z,
@@ -5401,8 +5404,10 @@ void ytick(picture pic=currentpicture, Label L="", real y,
            real size=Ticksize, pen p=currentpen);
 void tick(picture pic=currentpicture, pair z,
           pair dir, real size=Ticksize, pen p=currentpen);
-void labelx(picture pic=currentpicture, Label L="", pair z,
+void labelx(picture pic=currentpicture, Label L="", explicit pair z,
             align align=S, string format="", pen p=nullpen);
+void labelx(picture pic=currentpicture, Label L="", real x,
+	    align align=S, string format="", pen p=nullpen);
 void labelx(picture pic=currentpicture, Label L,
             string format="", explicit pen p=currentpen);
 void labely(picture pic=currentpicture, Label L="", explicit pair z,

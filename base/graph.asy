@@ -1448,6 +1448,11 @@ void yequals(picture pic=currentpicture, Label L="", real y,
   xaxis(pic,L,YEquals(y,extend),xmin,xmax,p,ticks,arrow,put);
 }
 
+pair Scale(picture pic=currentpicture, pair z)
+{
+  return (pic.scale.x.T(z.x),pic.scale.y.T(z.y));
+}
+
 // Draw a tick of length size at pair z in direction dir using pen p.
 void tick(picture pic=currentpicture, pair z, pair dir, real size=Ticksize,
           pen p=currentpen)
@@ -1460,13 +1465,19 @@ void tick(picture pic=currentpicture, pair z, pair dir, real size=Ticksize,
   pic.addPoint(z,unit(dir)*size,p);
 }
 
-void xtick(picture pic=currentpicture, pair z, pair dir=N,
+void xtick(picture pic=currentpicture, explicit pair z, pair dir=N,
            real size=Ticksize, pen p=currentpen)
 {
-  tick(pic,z,dir,size,p);
+  tick(pic,Scale(pic,z),dir,size,p);
 }
 
-void xtick(picture pic=currentpicture, Label L, pair z, pair dir=N,
+void xtick(picture pic=currentpicture, real x, pair dir=N,
+           real size=Ticksize, pen p=currentpen)
+{
+  xtick(pic,(x,pic.scale.y.scale.logarithmic ? 1 : 0),dir,size,p);
+}
+
+void xtick(picture pic=currentpicture, Label L, explicit pair z, pair dir=N,
            string format="", real size=Ticksize, pen p=currentpen)
 {
   Label L=L.copy();
@@ -1479,7 +1490,25 @@ void xtick(picture pic=currentpicture, Label L, pair z, pair dir=N,
   if(L.s == "") L.s=format(format == "" ? defaultformat : format,z.x);
   L.s=baseline(L.s,L.align,"$10^4$");
   add(pic,L);
-  tick(pic,z,dir,size,p);
+  xtick(pic,z,dir,size,p);
+}
+
+void xtick(picture pic=currentpicture, Label L, real x, pair dir=N,
+           string format="", real size=Ticksize, pen p=currentpen)
+{
+  xtick(pic,L,(x,pic.scale.y.scale.logarithmic ? 1 : 0),dir,size,p);
+}
+
+void ytick(picture pic=currentpicture, explicit pair z, pair dir=E,
+           real size=Ticksize, pen p=currentpen) 
+{
+  xtick(pic,z,dir,size,p);
+}
+
+void ytick(picture pic=currentpicture, real y, pair dir=E,
+           real size=Ticksize, pen p=currentpen)
+{
+  xtick(pic,(pic.scale.x.scale.logarithmic ? 1 : 0,y),dir,size,p);
 }
 
 void ytick(picture pic=currentpicture, Label L, explicit pair z, pair dir=E,
@@ -1491,19 +1520,7 @@ void ytick(picture pic=currentpicture, Label L, explicit pair z, pair dir=E,
 void ytick(picture pic=currentpicture, Label L, real y, pair dir=E,
            string format="", real size=Ticksize, pen p=currentpen)
 {
-  xtick(pic,L,(0,y),dir,format,size,p);
-}
-
-void ytick(picture pic=currentpicture, explicit pair z, pair dir=E,
-           real size=Ticksize, pen p=currentpen) 
-{
-  tick(pic,z,dir,size,p);
-}
-
-void ytick(picture pic=currentpicture, real y, pair dir=E,
-           real size=Ticksize, pen p=currentpen)
-{
-  tick(pic,(0,y),dir,size,p);
+  xtick(pic,L,(pic.scale.x.scale.logarithmic ? 1 : 0,y),dir,format,size,p);
 }
 
 private void label(picture pic, Label L, pair z, real x, align align,
@@ -1520,30 +1537,36 @@ private void label(picture pic, Label L, pair z, real x, align align,
   add(pic,L);
 }
 
-// Label and draw an x tick.
-void labelx(picture pic=currentpicture, Label L="", pair z, align align=S,
-            string format="", pen p=nullpen)
+// Put a label on the x axis.
+void labelx(picture pic=currentpicture, Label L="", explicit pair z,
+	    align align=S, string format="", pen p=nullpen)
 {
-  label(pic,L,z,z.x,align,format,p);
+  label(pic,L,Scale(pic,z),z.x,align,format,p);
+}
+
+void labelx(picture pic=currentpicture, Label L="", real x,
+	    align align=S, string format="", pen p=nullpen)
+{
+  label(pic,L,(x,pic.scale.y.scale.logarithmic ? 1 : 0),x,align,format,p);
 }
 
 void labelx(picture pic=currentpicture, Label L,
             string format="", explicit pen p=currentpen)
 {
-  labelx(pic,L,L.position,format,p);
+  labelx(pic,L,L.position.position,format,p);
 }
 
-// Label and draw a y tick.
+// Put a label on the y axis.
 void labely(picture pic=currentpicture, Label L="", explicit pair z,
             align align=W, string format="", pen p=nullpen)
 {
-  label(pic,L,z,z.y,align,format,p);
+  label(pic,L,Scale(pic,z),z.y,align,format,p);
 }
 
 void labely(picture pic=currentpicture, Label L="", real y,
             align align=W, string format="", pen p=nullpen)
 {
-  labely(pic,L,(0,y),align,format,p);
+  labely(pic,L,(pic.scale.x.scale.logarithmic ? 1 : 0,y),align,format,p);
 }
 
 void labely(picture pic=currentpicture, Label L,
@@ -1627,11 +1650,6 @@ graph graph(guide join(... guide[]))
 
 guide Straight(... guide[])=operator --;
 guide Spline(... guide[])=operator ..;
-
-pair Scale(picture pic=currentpicture, pair z)
-{
-  return (pic.scale.x.T(z.x),pic.scale.y.T(z.y));
-}
 
 typedef guide interpolate(... guide[]);
 
