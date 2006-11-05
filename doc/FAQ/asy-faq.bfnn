@@ -103,7 +103,7 @@ get the latest version of the gc source from
 in the top-level Asymptote source directory before doing
 \courier{./configure\} (without the \courier{--enable-gc=system\} option).
 
-\question 04nov:brokenpdftex What do I do if I get the error: \courier{Error: pdfetex (file pdftex.cfg): cannot open config file...texinfo.tex appears to be broken, quitting\}?
+\question 04nov:brokenpdftex What do I do if I get the error: \courier{Error: pdfetex (file pdftex.cfg): cannot open config file...texinfo.tex appears to be broken\}?
 
 Simply put \docref{http://asymptote.sourceforge.net/asymptote.pdf\}
 in the directory \courier{doc\} and repeat the command \courier{make all\}.
@@ -849,7 +849,7 @@ smoothly.
 You could write yourself a routine such as:
 \verbatim
 picture[] picture(int n) { 
-  picture[] pic; 
+  picture[] pic;
   for(int i=0; i < n; ++i) { 
     pic[i]=new picture; 
     size(pic[i],19cm,0); 
@@ -911,6 +911,67 @@ a.init(new void(B b){write(b.test);});
 B b; 
 a.routine(b);
 \endverbatim
+
+\question 04nov:static Where are static variables in for loops allocated?
+
+In the example 
+
+\verbatim
+void f() { 
+  for(int i=0; i < 3; ++i) { 
+    static int n; 
+    ++n; 
+    write(n); 
+  }
+} 
+
+f(); // Writes 1, 2, 3
+\endverbatim
+
+the static qualifier means that \courier{n\} is allocated not just outside
+of the for loop, but also outside the function. This is clear if you call 
+\courier{f\} multiple times; there is still only one instance of \courier{n\}.
+ 
+The "level" of a variable (where it is allocated) has nothing to do with
+the "scope" of a variable (how long it can be referred to by name).
+The curly braces enclosing a block affect only a variable's scope, not
+its level.
+ 
+Static modifiers are meaningless at the top level; they generate a warning
+and are simply ignored:
+
+\verbatim
+for(int i=0; i < 3; ++i) { 
+  static int n;
+  ++n; 
+  write(n); 
+}
+// Writes warning about top-level static modifier and then 1, 1, 1
+\endverbatim
+
+For efficiency reasons, variables inside for loops are allocated just once,
+and not for every iteration. However, they look like new variables in each
+iteration, because they are initialized again after each iteration. This could
+conceivably cause a problem in obscure cases where a variable in a loop is
+accessed in the closure of a function defined in the loop:
+ 
+\verbatim
+int f(); 
+ 
+for(int i=0; i < 3; ++i) { 
+  if(i == 1)
+    f=new int() {return i;}; 
+} 
+ 
+write(f()); // Writes 3
+\endverbatim
+ 
+In the current implementation, variables in a for loop last as long in
+memory as variables declared outside of the for loop. In a function
+body, they will last at least as long as the function call, though because
+of closures and garbage collection, they may last longer than that.
+If defined at the top level of a file or at the interactive prompt, they will
+last at least until the end of the file or prompt's run.
 
 \question 26jun:debug Is there a debugger for asy?
 
