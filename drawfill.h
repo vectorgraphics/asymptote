@@ -65,7 +65,7 @@ public:
   }
   
   void shade(psfile *out) {
-    out->shade(pens,bpath);
+    out->latticeshade(pens,bpath);
   }
   
   drawElement *transformed(const transform& t);
@@ -82,8 +82,9 @@ public:
     : drawShade(src,pentype), a(a), penb(penb), b(b) {}
   
   void palette(psfile *out);
+  
   void shade(psfile *out) {
-    out->shade(true,colorspace,pentype,a,0,penb,b,0);
+    out->gradientshade(true,colorspace,pentype,a,0,penb,b,0);
   }
   
   drawElement *transformed(const transform& t);
@@ -99,7 +100,7 @@ public:
     : drawAxialShade(src,pentype,a,penb,b), ra(ra), rb(rb) {}
   
   void shade(psfile *out) {
-    out->shade(false,colorspace,pentype,a,ra,penb,b,rb);
+    out->gradientshade(false,colorspace,pentype,a,ra,penb,b,rb);
   }
   
   drawElement *transformed(const transform& t);
@@ -118,7 +119,26 @@ public:
   }
   
   void shade(psfile *out) {
-    out->shade(pens,vertices,edges);
+    out->gouraudshade(pens,vertices,edges);
+  }
+  
+  drawElement *transformed(const transform& t);
+};
+  
+class drawTensorShade : public drawShade {
+protected:
+  vm::array *pens,*boundaries,*z;
+public:  
+  drawTensorShade(vm::array *src, pen pentype, vm::array *pens,
+		  vm::array *boundaries, vm::array *z)
+    : drawShade(src,pentype), pens(pens), boundaries(boundaries), z(z) {}
+  
+  void palette(psfile *out) {
+    out->gsave();
+  }
+  
+  void shade(psfile *out) {
+    out->tensorshade(pens,boundaries,z);
   }
   
   drawElement *transformed(const transform& t);

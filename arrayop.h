@@ -84,14 +84,14 @@ void sumArray(vm::stack *s)
   s->push(sum);
 }
 
-extern const char *emptyarray;
+extern const char *arrayempty;
   
 template<class T, template <class S> class op>
 void binopArray(vm::stack *s)
 {
   array *a=pop<array*>(s);
   size_t size=checkArray(a);
-  if(size == 0) vm::error(emptyarray);
+  if(size == 0) vm::error(arrayempty);
   T m=read<T>(a,0);
   for(size_t i=1; i < size; i++)
     m=op<T>()(m,read<T>(a,i));
@@ -117,7 +117,7 @@ void binopArray2(vm::stack *s)
 	m=op<T>()(m,read<T>(ai,j));
     }
   }
-  if(empty) vm::error(emptyarray);
+  if(empty) vm::error(arrayempty);
   s->push(m);
 }
 
@@ -145,7 +145,7 @@ void binopArray3(vm::stack *s)
       }
     }
   }
-  if(empty) vm::error(emptyarray);
+  if(empty) vm::error(arrayempty);
   s->push(m);
 }
 

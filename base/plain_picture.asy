@@ -959,8 +959,8 @@ void radialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
     pic.addPath(g[i]);
 }
 
-void gouraudshade(picture pic=currentpicture, path[] g,
-                  pen fillrule=currentpen, pen[] p, pair[] z, int[] edges)
+void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
+		  pen[] p, pair[] z, int[] edges)
 {
   g=copy(g);
   p=copy(p);
@@ -968,6 +968,23 @@ void gouraudshade(picture pic=currentpicture, path[] g,
   edges=copy(edges);
   pic.add(new void(frame f, transform t) {
       gouraudshade(f,t*g,fillrule,p,t*z,edges);
+    });
+  for(int i=0; i < g.length; ++i) 
+    pic.addPath(g[i]);
+}
+
+void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
+		 pen[][] p, path[] b, pair[][] z=new pair[][])
+{
+  g=copy(g);
+  p=copy(p);
+  b=copy(b);
+  z=copy(z);
+  pic.add(new void(frame f, transform t) {
+      pair[][] Z=new pair[z.length][0];
+      for(int i=0; i < z.length; ++i)
+	Z[i]=t*z[i];
+      tensorshade(f,t*g,fillrule,p,t*b,Z);
     });
   for(int i=0; i < g.length; ++i) 
     pic.addPath(g[i]);

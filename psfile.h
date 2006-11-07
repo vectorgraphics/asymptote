@@ -142,14 +142,15 @@ public:
     }
   }
   
-  void shade(vm::array *a, const bbox& b);
+  void latticeshade(vm::array *a, const bbox& b);
   
-  void shade(bool axial, const ColorSpace& colorspace,
-	     const pen& pena, const pair& a, double ra,
-	     const pen& penb, const pair& b, double rb);
+  void gradientshade(bool axial, const ColorSpace& colorspace,
+		     const pen& pena, const pair& a, double ra,
+		     const pen& penb, const pair& b, double rb);
   
-  void shade(vm::array *pens, vm::array *vertices, vm::array *edges);
-  
+  void gouraudshade(vm::array *pens, vm::array *vertices, vm::array *edges);
+  void tensorshade(vm::array *pens, vm::array *boundaries, vm::array *z);
+
   void imageheader(double width, double height, ColorSpace colorspace);
   
   void image(vm::array *a, vm::array *p);

@@ -81,4 +81,22 @@ drawElement *drawGouraudShade::transformed(const transform& t)
   return new drawGouraudShade(transpath(t),pentype,pens,Vertices,edges);
 }
 
+drawElement *drawTensorShade::transformed(const transform& t)
+{
+  size_t size=boundaries->size();
+  vm::array *Boundaries=new vm::array(size);
+  vm::array *Z=new vm::array(size);
+  for(size_t i=0; i < size; i++) {
+    (*Boundaries)[i]=vm::read<path>(boundaries,i).transformed(t);
+    vm::array *zi=vm::read<vm::array *>(z,i);
+    size_t zisize=checkArray(zi);
+    vm::array *Zi=new vm::array(zisize);
+    (*Z)[i]=Zi;
+    for(size_t j=0; j < zisize; j++)
+      (*Zi)[j]=t*vm::read<pair>(zi,j);
+  }
+
+  return new drawTensorShade(transpath(t),pentype,pens,Boundaries,Z);
+}
+
 } // namespace camp

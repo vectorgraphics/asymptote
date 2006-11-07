@@ -1207,6 +1207,24 @@ The pens in @code{p} must belong to the same color space.
 Illustrations of Gouraud shading are provided in the example file
 @code{Gouraud.asy} and in the solid geometry module @code{solid.asy}.
 
+@cindex Coons shading
+@cindex tensor shading
+Tensor shading using fillrule @code{fillrule} on patches
+bounded by the @math{n} cyclic paths of length 4 in path array @code{b},
+using the vertex colors specified in the @math{n \times 4} pen array
+@code{p} and internal color control points in the @math{n \times 4}
+array @code{z}, is implemented with
+@verbatim
+void tensorshade(picture pic=currentpicture, path g, pen fillrule=currentpen,
+		 pen[][] p, path[] b, pair[][] z=new pair[][]);
+@end verbatim
+@noindent
+If the array @code{z} is empty, Coons shading, in which the color
+control points are calculated automatically, is used.
+The pens in @code{p} must belong to the same color space.
+Illustrations of tensor and Coons shading are provided in the example files
+@code{tensor.asy} and @code{Coons.asy}, respectively.
+
 @cindex unfill
 The following routine uses @code{evenodd} clipping together with the
 @code{^^} operator to unfill a region:
@@ -1373,11 +1391,11 @@ illustrated in the example @code{advection.asy}:
 
 @image{advection}
 
+@page
 This example uses @code{clip}, @code{minipage}, and
 @code{graphic} to produce a CD label:
-@verbatiminclude CDlabel.asy
 @image{CDlabel}
-
+@verbatiminclude CDlabel.asy
 @node Programming
 @chapter Programming
 @cindex programming

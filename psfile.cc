@@ -193,8 +193,7 @@ void psfile::write(path p, bool newPath)
   }    
 }
 
-// Lattice shading
-void psfile::shade(array *a, const bbox& b)
+void psfile::latticeshade(array *a, const bbox& b)
 {
   size_t n=a->size();
   if(n == 0) return;
@@ -249,9 +248,9 @@ void psfile::shade(array *a, const bbox& b)
 }
 
 // Axial and radial shading
-void psfile::shade(bool axial, const ColorSpace &colorspace,
-		   const pen& pena, const pair& a, double ra,
-		   const pen& penb, const pair& b, double rb)
+void psfile::gradientshade(bool axial, const ColorSpace &colorspace,
+			   const pen& pena, const pair& a, double ra,
+			   const pen& penb, const pair& b, double rb)
 {
   checkColorSpace(colorspace);
   
@@ -279,8 +278,7 @@ void psfile::shade(bool axial, const ColorSpace &colorspace,
        << "shfill" << newl;
 }
   
-// Gouraud shading
-void psfile::shade(array *pens, array *vertices, array *edges)
+void psfile::gouraudshade(array *pens, array *vertices, array *edges)
 {
   size_t size=pens->size();
   if(size == 0) return;
@@ -304,6 +302,73 @@ void psfile::shade(array *pens, array *vertices, array *edges)
     write(*p);
     *out << newl;
   }
+  *out << "]" << newl
+       << ">>" << newl
+       << "shfill" << newl;
+}
+ 
+// Tensor-product patch shading
+void psfile::tensorshade(array *pens, array *boundaries, array *z)
+{
+  size_t size=pens->size();
+  if(size == 0) return;
+  size_t nz=z->size();
+  
+  array *p0=read<array *>(pens,0);
+  if(checkArray(p0) != 4)
+    reportError("4 pens required");
+  pen *p=read<pen *>(p0,0);
+  p->convert();
+  ColorSpace colorspace=p->colorspace();
+  checkColorSpace(colorspace);
+
+  *out << "<< /ShadingType 7" << newl
+       << "/ColorSpace /Device" << ColorDeviceSuffix[colorspace] << newl
+       << "/DataSource [" << newl;
+  
+  for(size_t i=0; i < size; i++) {
+    // Only edge flag 0 (new patch) is implemented since the 32% data
+    // compression (for RGB) afforded by other edge flags really isn't worth
+    // the trouble or confusion for the user. 
+    write(0);
+    path g=read<path>(boundaries,i);
+    if(!(g.cyclic() && g.size() == 4))
+      reportError("specify cyclic path of length 4");
+    for(int j=0; j < 4; ++j) {
+      write(g.point(j));
+      write(g.postcontrol(j));
+      write(g.precontrol(j+1));
+    }
+    if(nz == 0) { // Coons patch
+      static double nineth=1.0/9.0;
+      for(int j=0; j < 4; ++j) {
+	write(nineth*(-4.0*g.point(j)+6.0*(g.precontrol(j)+g.postcontrol(j))
+		      -2.0*(g.point(j-1)+g.point(j+1))
+		      +3.0*(g.precontrol(j-1)+g.postcontrol(j+1))
+		      -g.point(j+2)));
+      }
+    } else {
+      array *zi=read<array *>(z,i);
+      if(checkArray(zi) != 4)
+	reportError("specify 4 internal control points for each path");
+      for(int j=0; j < 4; ++j)
+	write(read<pair>(zi,j));
+    }
+    
+    array *pi=read<array *>(pens,i);
+    if(checkArray(pi) != 4)
+      reportError("specify 4 pens for each path");
+    for(int j=0; j < 4; ++j) {
+      pen *p=read<pen *>(pi,j);
+      p->convert();
+      if(p->colorspace() != colorspace)
+	reportError("inconsistent shading colorspaces");
+      *out << " ";
+      write(*p);
+    }
+    *out << newl;
+  }
+  
   *out << "]" << newl
        << ">>" << newl
        << "shfill" << newl;

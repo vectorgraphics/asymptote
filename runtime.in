@@ -43,6 +43,7 @@ intarray2*  => intArray2()
 realarray* => realArray()
 realarray2* => realArray2()
 pairarray* => pairArray()
+pairarray2* => pairArray2()
 triplearray* => tripleArray()
 patharray* => pathArray()  
 guidearray* => guideArray()  
@@ -125,6 +126,7 @@ typedef array intarray2;
 typedef array realarray;
 typedef array realarray2;
 typedef array pairarray;
+typedef array pairarray2;
 typedef array triplearray;
 typedef array patharray;
 typedef array guidearray;
@@ -160,6 +162,7 @@ using types::intArray2;
 using types::realArray;
 using types::realArray2;
 using types::pairArray;
+using types::pairArray2;
 using types::tripleArray;
 using types::pathArray;
 using types::guideArray;
@@ -193,7 +196,7 @@ const char *arraymismatch="operation attempted on arrays of different lengths";
 
 namespace run {
   
-const char *emptyarray="cannot take min or max of empty array";
+const char *arrayempty="cannot take min or max of empty array";
 
 static inline int Round(double x) 
 {
@@ -544,6 +547,7 @@ void exitFunction(stack *Stack)
 
 default_t def;
 string emptystring;
+array *emptyarray=new array(0);
 transform Identity;
 string commentchar="#";
 
@@ -839,6 +843,17 @@ void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
   checkArrays(z,edges);
   f->append(new drawGouraudShade(copyArray(g),fillrule,copyArray(p),
 				 copyArray(z),copyArray(edges)));
+}
+
+void tensorshade(picture *f, patharray *g, pen fillrule, penarray2 *p,
+		 patharray *b, pairarray2 *z=emptyarray)
+{
+  size_t n=checkArrays(p,b);
+  size_t nz=checkArray(z);
+  if(nz != 0 && nz != n)
+    error(arraymismatch);
+  f->append(new drawTensorShade(copyArray(g),fillrule,copyArray2(p),
+				copyArray(b),copyArray2(z)));
 }
 
 // Clip a picture to a superpath using the given fill rule.
@@ -2449,7 +2464,7 @@ pair intersect(triplearray* pre1, triplearray* point1, triplearray* post1,
   size_t size2=checkArrays(pre2,point2);
       
   if(checkArray(post1) != size1 || checkArray(post2) != size2)
-    vm::error(arraymismatch);
+    error(arraymismatch);
   
   int single1=(size1 == 1);
   int single2=(size2 == 1);
@@ -3289,7 +3304,7 @@ realarray *tridiagonal(realarray *a, realarray *b, realarray *c, realarray *f)
 {
   size_t n=checkArrays(a,b);
   if(n != checkArray(c) || n != checkArray(f))
-    vm::error(arraymismatch);
+    error(arraymismatch);
   
   array *up=new array(n);
   array& u=*up;
