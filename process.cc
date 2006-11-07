@@ -105,7 +105,7 @@ struct icore {
   virtual void doParse() = 0;
   virtual void doList() = 0;
 
-private:
+protected:
   // NOTE: Get this out of here!
   std::list<string> TeXpipepreamble_save;
   std::list<string> TeXpreamble_save;
@@ -122,8 +122,7 @@ public:
   virtual void run(coenv &e, istack &s) = 0;
 
   virtual void postRun(coenv &, istack &s) {
-    if(interactive) run::cleanup();
-    else run::exitFunction(&s);
+    run::exitFunction(&s);
     camp::TeXpipepreamble=TeXpipepreamble_save;
     camp::TeXpreamble=TeXpreamble_save;
   }
@@ -327,6 +326,12 @@ class iprompt : public icore {
   string startline;
   //block *startcode;
 
+  void postRun(coenv &, istack &s) {
+    run::cleanup();
+    camp::TeXpipepreamble=TeXpipepreamble_save;
+    camp::TeXpreamble=TeXpreamble_save;
+  }
+  
   // Commands are chopped into the starting word and the rest of the line.
   struct commandLine {
     string line;
