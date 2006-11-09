@@ -1216,7 +1216,7 @@ using the vertex colors specified in the @math{n \times 4} pen array
 array @code{z}, is implemented with
 @verbatim
 void tensorshade(picture pic=currentpicture, path g, pen fillrule=currentpen,
-		 pen[][] p, path[] b, pair[][] z=new pair[][]);
+		 pen[][] p, path[] b=g, pair[][] z=new pair[][]);
 @end verbatim
 @noindent
 If the array @code{z} is empty, Coons shading, in which the color
