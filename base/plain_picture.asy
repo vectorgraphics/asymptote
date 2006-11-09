@@ -974,7 +974,7 @@ void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
 }
 
 void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
-		 pen[][] p, path[] b, pair[][] z=new pair[][])
+		 pen[][] p, path[] b=g, pair[][] z=new pair[][])
 {
   g=copy(g);
   p=copy(p);

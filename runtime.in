@@ -846,8 +846,9 @@ void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
 }
 
 void tensorshade(picture *f, patharray *g, pen fillrule, penarray2 *p,
-		 patharray *b, pairarray2 *z=emptyarray)
+		 patharray *b=NULL, pairarray2 *z=emptyarray)
 {
+  if(b == NULL) b=g;
   size_t n=checkArrays(p,b);
   size_t nz=checkArray(z);
   if(nz != 0 && nz != n)
