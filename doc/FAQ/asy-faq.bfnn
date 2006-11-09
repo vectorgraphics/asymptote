@@ -949,8 +949,8 @@ for(int i=0; i < 3; ++i) {
 // Writes warning about top-level static modifier and then 1, 1, 1
 \endverbatim
 
-For efficiency reasons, variables inside for loops (or while loops) are
-allocated just once, and not for every iteration. However, they look like new
+For efficiency reasons, variables inside for and while loops are
+allocated just once, not every iteration. However, they look like new
 variables in each iteration, because they are initialized again after each
 iteration. This could conceivably cause a problem in obscure cases where a
 variable in a loop is accessed in the closure of a function defined in the loop:

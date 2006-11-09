@@ -1894,13 +1894,12 @@ string time(int seconds, string *format=defaulttimeformat)
 
 int seconds(string t=emptystring, string format=emptystring)
 {
-#if defined(HAVE_STRPTIME) && defined(HAVE_STRFTIME)
+#if defined(HAVE_STRPTIME)
   const time_t bintime=time(NULL);
   tm tm=*localtime(&bintime);
   if(t != "" && !strptime(t.c_str(),format.c_str(),&tm)) return 0;
-  if(!strftime(Time,nTime,"%s",&tm)) return 0;
-  return lexical::cast<int>(Time);
-#else  
+  return mktime(&tm);
+#else
   return 0;
 #endif  
 }
