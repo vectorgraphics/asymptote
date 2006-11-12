@@ -6,9 +6,10 @@
  *****/
 
 struct animation {
+  picture[] pictures;
+  string[] files;
   string prefix=settings.outname;
   int index=0;
-  string[] files;
 
   static animation prefix(string s=settings.outname) {
     animation animation=new animation;
@@ -22,29 +23,51 @@ struct animation {
     return name;
   }
 
-  void shipout(frame f) {
+  void shipout(picture pic=currentpicture, real unitsize=0,
+	       real xunitsize=unitsize != 0 ? unitsize : 0,
+	       real yunitsize=unitsize != 0 ? unitsize : 0) {
     string name=nextname();
     string format="eps";
-    shipout(name,f,format=format,view=false);
+    shipout(name,pic,unitsize,xunitsize,yunitsize,format=format,view=false);
     files.push(name+"."+format);
   }
-
-  void shipout(picture pic=currentpicture) {
-    this.shipout(pic.fit());
+  
+  void add(picture pic=currentpicture) {
+    pictures.push(pic.copy());
   }
   
-  // delay is in units of 0.01s
   int merge(int loops=0, int delay=50, string format="gif",
-            string options="", bool keep=false) {
+	    string options="", bool keep=false) {
     bool Keep=settings.keep;
     string Outname=settings.outname;
     settings.keep=keep;
     settings.outname=prefix;
-    int rc=merge(files,"-loop " +(string) loops+" -delay "+(string)delay
-                 +" "+options,format);
+    int rc=merge(files,"-loop " +(string) loops+" -delay "+(string)delay+
+                 " "+options,format);
     settings.keep=Keep;
     settings.outname=Outname;
     return rc;
+  }
+
+  // delay is in units of 0.01s
+  int movie(int loops=0, int delay=50, string format="gif",
+	    string options="", bool keep=false, real unitsize=0, 
+	    real xunitsize=unitsize != 0 ? unitsize : 0,
+	    real yunitsize=unitsize != 0 ? unitsize : 0) {
+    if(pictures.length == 0) return 0;
+    picture all;
+    size(all,pictures[0].xsize,pictures[0].ysize,pictures[0].keepAspect);
+    for(int i=0; i < pictures.length; ++i)
+      add(all,pictures[i]);
+    pair m=truepoint(all,SW);
+    pair M=truepoint(all,NE);
+    for(int i=0; i < pictures.length; ++i) {
+      picture pic=pictures[i];
+      draw(pic,m,invisible);
+      draw(pic,M,invisible);
+      this.shipout(pic,unitsize,xunitsize,yunitsize);
+    }
+    return merge(loops,delay,format,options,keep);
   }
 }
 

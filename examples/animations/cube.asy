@@ -28,11 +28,11 @@ void snapshot(transform3 t)
   add(faces);
   draw(box((-1,-1),(1,1)),invisible);
   
-  a.shipout();
+  a.add();
   restore();
 }
 
-int n=50;
+int n=5;
 
 real step=360/n;
 for(int i=0; i < n; ++i)
@@ -42,4 +42,4 @@ for(int i=0; i < n; ++i)
 for(int i=0; i < n; ++i)
   snapshot(rotate(i*step,Z));
 
-a.merge(10,10);
+a.movie(10,10);

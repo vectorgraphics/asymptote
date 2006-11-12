@@ -1391,7 +1391,6 @@ illustrated in the example @code{advection.asy}:
 
 @image{advection}
 
-@page
 This example uses @code{clip}, @code{minipage}, and
 @code{graphic} to produce a CD label:
 @image{CDlabel}
@@ -1438,11 +1437,10 @@ for(int i=0; i < 10; ++i) {
 @cindex animation
 @cindex @code{ImageMagick}
 Loops, together with user-defined functions, are illustrated
-in the files @code{wheel.asy} and @code{cube.asy} in the
+in the files @code{wheel.asy}, @code{wavelet.asy}, and @code{cube.asy} in the
 @code{animations} subdirectory of the examples directory. These
-examples use the @code{gifmerge} command to @code{merge} multiple
-images into a gif animation, using the @code{ImageMagick}
-@code{convert} program.
+animations use the @code{ImageMagick} @code{convert} program
+to @code{merge} multiple images into a @acronym{GIF} or @acronym{MPEG} movie.
 
 @cindex @code{while}
 @cindex @code{do}
