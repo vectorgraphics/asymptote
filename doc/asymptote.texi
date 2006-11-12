@@ -754,11 +754,18 @@ coordinate, and an optional alignment direction:
 @verbatiminclude labelsquare.asy
 @image{labelsquare}
 
+@cindex compass directions
+@cindex @code{N}
+@cindex @code{E}
+@cindex @code{W}
+@cindex @code{S}
 @code{Asymptote} uses the standard compass directions @code{E=(1,0)}, 
 @code{N=(0,1)}, @code{NE=unit(N+E)}, and @code{ENE=unit(E+NE)}, etc.,
 which along with the directions @code{up}, @code{down}, @code{right},
 and @code{left} are defined as pairs in the @code{Asymptote} base
-module @code{plain}.
+module @code{plain}. A user who has a local variable named @code{E} 
+may access the compass direction @code{E} by prefixing it with the name
+of the module where it is defined: @code{plain.E}.
 
 This example draws a path that approximates a quarter circle:
 @verbatiminclude quartercircle.asy
@@ -2055,11 +2062,11 @@ intersecting paths, following the behaviour of the
 
 @cindex @code{min}
 @item pair min(path);
-returns the pair(left,bottom) for the path bounding box.
+returns the pair (left,bottom) for the path bounding box.
 
 @cindex @code{max}
 @item pair max(path);
-returns the pair(right,top) for the path bounding box.
+returns the pair (right,top) for the path bounding box.
 
 @cindex @code{cyclic}
 @item bool cyclic(path);
