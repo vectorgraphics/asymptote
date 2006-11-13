@@ -73,6 +73,7 @@ struct coord {
   
   void clip(real min, real max) {
     user=min(max(user,min),max);
+    truesize=0;
   }
 }
 
