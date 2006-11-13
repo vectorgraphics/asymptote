@@ -5002,8 +5002,9 @@ This module provides an interface to the @code{LaTeX} package
 @end quotation
 @noindent
 for embedding movies, sounds, and 3D objects into a @acronym{PDF} document.
-Note that Adobe unfortunately has not yet made available the required
-plugins for the Linux version of @code{Adobe Reader}.
+Note that while Adobe unfortunately has not yet made available an
+embedded movie plugin for the Linux version of @code{Adobe Reader},
+support for the @code{U3D} format is now available.
 
 An example of this interface is provided in the file
 @code{embeddedmovie.asy} in the @code{animations} subdirectory of the
