@@ -1,5 +1,4 @@
 usepackage("babel","german");
-usepackage("fontenc","T1");
 size(11.7cm,11.7cm);
 
 asy(nativeformat(),"logo");
