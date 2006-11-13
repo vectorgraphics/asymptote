@@ -16,5 +16,5 @@ label(scale(1.1)*minipage("\centering\scriptsize Bericht Nr. 349(2005)\\
 {\bfseries Grazer Mathematische Berichte}\\
 ISSN 1016--7692",4cm),(0.55,0.2));
 
-label(graphic("logo."+nativeformat(),"height=7cm"),(0,-0.21));
+label(graphic("logo."+nativeformat(),"height=7cm"),(0,-0.22));
 clip(unitcircle^^(scale(2/11.7)*unitcircle),evenodd);
