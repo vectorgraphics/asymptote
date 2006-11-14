@@ -29,7 +29,8 @@ string stripDir(string name);
 string buildname(string filename, string suffix="", string aux="",
 		 bool stripdir=true);
 
-// Construct an alternate filename for a temporary file.
+// Construct an alternate filename for a temporary file in the current
+// directory.
 string auxname(string filename, string suffix="");
 
 bool checkFormatString(const string& format);
