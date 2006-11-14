@@ -27,7 +27,7 @@ real t2=t1+2*pi;
 
 draw(circle((0,0),1));
 draw(wheel(t1,t2,100),linetype("0 2"));
-//yequals(Label("$y=-1$",1.0),-1,extend=true,linetype("4 4"));
+yequals(Label("$y=-1$",1.0),-1,extend=true,linetype("4 4"));
 xaxis(Label("$x$",align=3SW),0);
 yaxis("$y$",0,1.2);
 pair z1=wheelpoint(t1);
@@ -42,7 +42,6 @@ real dt=(t2-t1)/n;
 for(int i=0; i <= n; ++i) {
   save();
   
-  if(i == 4) yequals(Label("$y=-1$",1.0),-1,extend=true,linetype("4 4"));
   real t=t1+dt*i;
   draw(circle((t,0),1),red);
   dot(wheelpoint(t));

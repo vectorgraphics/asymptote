@@ -32,7 +32,7 @@ void snapshot(transform3 t)
   restore();
 }
 
-int n=5;
+int n=50;
 
 real step=360/n;
 for(int i=0; i < n; ++i)

@@ -4,6 +4,8 @@
 import animate;
 import graph;
 
+unitsize(x=2cm,y=1.5cm);
+
 typedef real realfcn(real);
 
 real lambda=4;
@@ -80,4 +82,4 @@ for(int i=0; i < n; ++i) {
   restore();
 }
 
-A.movie(0,10,xunitsize=2cm,yunitsize=1.5cm);
+A.movie(0,10);
