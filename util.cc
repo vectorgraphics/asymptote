@@ -91,9 +91,9 @@ string stripDir(string name)
 
 string buildname(string name, string suffix, string aux, bool stripdir) 
 {
-  if(stripdir) stripDir(name);
+  if(stripdir) name=stripDir(name);
     
-  name = stripExt(name,getSetting<mem::string>("outformat"));
+  name = stripExt(name,defaultformat());
   name += aux;
   if(!suffix.empty()) name += "."+suffix;
   return name;

@@ -879,6 +879,11 @@ string nativeformat() {
   return pdf(getSetting<mem::string>("tex")) ? "pdf" : "eps";
 }
 
+string defaultformat() {
+  string format=getSetting<mem::string>("outformat");
+  return (format == "") ? nativeformat() : format;
+}
+
 // TeX special command to set up currentmatrix for typesetting labels.
 const char *beginlabel(const mem::string& texengine) {
   if(pdf(texengine))

@@ -351,9 +351,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   string prefix=standardout ? "out" : Prefix;
   checkFormatString(format);
   string preformat=nativeformat();
-  string defaultformat=(string) getSetting<mem::string>("outformat");
-  if(defaultformat == "") defaultformat=preformat;
-  string outputformat=format.empty() ? defaultformat : format;
+  string outputformat=format.empty() ? defaultformat() : format;
   epsformat=outputformat == "eps";
   pdfformat=outputformat == "pdf";
   tgifformat=outputformat == "tgif";
