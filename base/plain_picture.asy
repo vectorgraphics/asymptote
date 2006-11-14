@@ -387,6 +387,9 @@ struct picture {
 
   // The maximum sizes in the x and y directions; zero means no restriction.
   real xsize=0, ysize=0;
+
+  // Fixed unitsizes in the x and y directions; zero means use xsize, ysize.
+  real xunitsize=0, yunitsize=0;
   
   // If true, the x and y directions must be scaled by the same amount.
   bool keepAspect=true;
@@ -533,16 +536,15 @@ struct picture {
     addBox(min(g),max(g),min(p),max(p));
   }
 
-  void size(real x, real y, bool keepAspect=this.keepAspect) {
+  void size(real x, real y=x, bool keepAspect=this.keepAspect) {
     xsize=x;
     ysize=y;
     this.keepAspect=keepAspect;
   }
 
-  void size(real size, bool keepAspect=this.keepAspect) {
-    xsize=size;
-    ysize=size;
-    this.keepAspect=keepAspect;
+  void unitsize(real x, real y=x) {
+    xunitsize=x;
+    yunitsize=y;
   }
 
   // The scaling in one dimension:  x --> a*x + b
@@ -611,8 +613,8 @@ struct picture {
   }
 
   // Calculate the sizing constants for the given array and maximum size.
-  scaling calculateScaling(string dir, coord[] coords, real size,
-                           bool warn=true) {
+  real calculateScaling(string dir, coord[] coords, real size,
+			bool warn=true) {
     access simplex;
     simplex.problem p=new simplex.problem;
    
@@ -635,19 +637,19 @@ struct picture {
 
     int status=p.optimize();
     if (status == simplex.problem.OPTIMAL) {
-      return scaling.build(p.a(),p.b());
+      return scaling.build(p.a(),p.b()).a;
     } else if (status == simplex.problem.UNBOUNDED) {
       if(warn) write("warning: "+dir+" scaling in picture unbounded");
-      return scaling.build(1,0);
+      return 1;
     } else {
-      if(!warn) return scaling.build(1,0);
+      if(!warn) return 1;
       bool userzero=true;
       for(int i=0; i < coords.length; ++i) {
         if(coords[i].user != 0) userzero=false;
         if(!finite(coords[i].user) || !finite(coords[i].truesize))
           abort("unbounded picture");
       }
-      if(userzero) return scaling.build(1,0);
+      if(userzero) return 1;
       write("warning: cannot fit picture to "+dir+"size "+(string) size
             +"...enlarging...");
       return calculateScaling(dir,coords,sqrt(2)*size,warn);
@@ -675,28 +677,30 @@ struct picture {
   // Returns the transform for turning user-space pairs into true-space pairs.
   transform scaling(real xsize, real ysize, bool keepAspect=true,
 		    bool warn=true) {
-    if(xsize == 0 && ysize == 0)
+    if(xsize == 0 && xunitsize == 0 && ysize == 0 && yunitsize == 0)
       return identity();
-    
+
     coords2 Coords;
     
     append(Coords,Coords,Coords,T,bounds);
     
-    scaling sx,sy;
-    if(xsize != 0) {
-      sx=calculateScaling("x",Coords.x,xsize,warn);
-      if(ysize == 0)
-        return scale(sx.a);
-    }
+    real sx;
+    if(xunitsize == 0) {
+      if(xsize != 0) sx=calculateScaling("x",Coords.x,xsize,warn);
+    } else sx=xunitsize;
 
-    sy=calculateScaling("y",Coords.y,ysize,warn);
-    if(xsize == 0)
-      return scale(sy.a);
+    real sy;
+    if(yunitsize == 0) {
+      if(ysize != 0) sy=calculateScaling("y",Coords.y,ysize,warn);
+    } else sy=yunitsize;
 
-    if(keepAspect)
-      return scale(min(sx.a,sy.a));
+    if(sx == 0) sx=sy;
+    else if(sy == 0) sy=sx;
+
+    if(keepAspect && (xunitsize == 0 || yunitsize == 0))
+      return scale(min(sx,sy));
     else
-      return xscale(sx.a)*yscale(sy.a);
+      return xscale(sx)*yscale(sy);
   }
 
   transform scaling(bool warn=true) {
@@ -743,7 +747,7 @@ struct picture {
 
   // Return the transform that would be used to fit the picture to a frame
   transform calculateTransform(real xsize, real ysize, bool keepAspect=true,
-		      bool warn=true) {
+			       bool warn=true) {
     transform t=scaling(xsize,ysize,keepAspect,warn);
     return scale(fit(t),keepAspect)*t;
   }
@@ -804,6 +808,7 @@ struct picture {
     dest.bounds=bounds.copy();
     
     dest.xsize=xsize; dest.ysize=ysize; dest.keepAspect=keepAspect;
+    dest.xunitsize=xunitsize; dest.yunitsize=yunitsize;
     dest.fixed=fixed; dest.fixedscaling=fixedscaling;
     
     return dest;
@@ -849,17 +854,15 @@ picture operator * (transform t, picture orig)
 
 picture currentpicture;
 
-void size(picture pic=currentpicture, real x, real y, 
+void size(picture pic=currentpicture, real x, real y=x, 
           bool keepAspect=pic.keepAspect)
 {
   pic.size(x,y,keepAspect);
 }
 
-// Ensure that each dimension is no more than size.
-void size(picture pic=currentpicture, real size,
-          bool keepAspect=pic.keepAspect)
+void unitsize(picture pic=currentpicture, real x, real y=x) 
 {
-  pic.size(size,size,keepAspect);
+  pic.unitsize(x,y);
 }
 
 pair size(frame f)
@@ -1151,7 +1154,7 @@ pair point(picture pic=currentpicture, pair dir)
 }
 
 pair framepoint(picture pic=currentpicture, pair dir,
-	       transform t=pic.calculateTransform())
+		transform t=pic.calculateTransform())
 {
   pair m=pic.min(t);
   pair M=pic.max(t);
@@ -1167,7 +1170,7 @@ pair truepoint(picture pic=currentpicture, pair dir)
 // Transform coordinate in [0,1]x[0,1] to current user coordinates.
 pair relative(picture pic=currentpicture, pair z)
 {
-  pair w=(pic.userMax-pic.userMin);
+  pair w=pic.userMax-pic.userMin;
   return pic.userMin+(z.x*w.x,z.y*w.y);
 }
 

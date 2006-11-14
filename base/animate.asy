@@ -23,12 +23,10 @@ struct animation {
     return name;
   }
 
-  void shipout(picture pic=currentpicture, real unitsize=0,
-	       real xunitsize=unitsize != 0 ? unitsize : 0,
-	       real yunitsize=unitsize != 0 ? unitsize : 0) {
+  void shipout(picture pic=currentpicture) {
     string name=nextname();
     string format="eps";
-    shipout(name,pic,unitsize,xunitsize,yunitsize,format=format,view=false);
+    shipout(name,pic,format=format,view=false);
     files.push(name+"."+format);
   }
   
@@ -51,12 +49,11 @@ struct animation {
 
   // delay is in units of 0.01s
   int movie(int loops=0, int delay=50, string format="gif",
-	    string options="", bool keep=false, real unitsize=0, 
-	    real xunitsize=unitsize != 0 ? unitsize : 0,
-	    real yunitsize=unitsize != 0 ? unitsize : 0) {
+	    string options="", bool keep=false) {
     if(pictures.length == 0) return 0;
     picture all;
     size(all,pictures[0].xsize,pictures[0].ysize,pictures[0].keepAspect);
+    unitsize(all,pictures[0].xunitsize,pictures[0].yunitsize);
     for(int i=0; i < pictures.length; ++i)
       add(all,pictures[i]);
     pair m=truepoint(all,SW);
@@ -65,7 +62,7 @@ struct animation {
       picture pic=pictures[i];
       draw(pic,m,invisible);
       draw(pic,M,invisible);
-      this.shipout(pic,unitsize,xunitsize,yunitsize);
+      this.shipout(pic);
     }
     return merge(loops,delay,format,options,keep);
   }

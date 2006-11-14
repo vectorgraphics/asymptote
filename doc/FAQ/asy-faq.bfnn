@@ -555,10 +555,9 @@ Further examples of graphs are available at \docref{http://home.tele2.fr/phivald
  
 Either:
 
-i) Specify an \courier{xunitsize} and \courier{yunitsize} in an
-explicit \courier{shipout} call at the end:
+i) Specify an explicit unitsize, which overrides any call to \courier{size}:
 \verbatim
-shipout(xunitsize=1cm,yunitsize=2cm);
+unitsize(x=1cm,y=2cm);
 \endverbatim
  
 ii) Specify the points in user coordinates that should correspond to a
@@ -1081,14 +1080,15 @@ all of your coordinates. To make the user coordinates represent multiples
 of exactly \courier{1cm\}:
 
 \verbatim
+unitsize(1cm);
 draw(unitsquare);
-shipout(unitsize=1cm);
 \endverbatim 
 
 One can also specify different x and y unit sizes:
 
 \verbatim
-shipout(xunitsize=1cm,yunitsize=2cm);
+unitsize(x=1cm,y=2cm);
+draw(unitsquare);
 \endverbatim 
 
 Another way is to draw your fixed size object to a frame and add it to
@@ -1241,8 +1241,8 @@ Yes, simply call the newpage() function. This is used by the
  LocalWords:  reversearrow arrowsize axisticks RightTicks yaxis LeftTicks rgval
  LocalWords:  threeaxispens xlimits ylimits MidPoint axislabelfont beginlabel
  LocalWords:  axisticklabelfont overlappingticklabels endlabel ticklabel NoZero
- LocalWords:  defaultformat SuppressQuiet MoveQuiet fixedsizegraphs xunitsize
- LocalWords:  yunitsize BottomTop LeftRight fixedscaling graphlimits NColors
+ LocalWords:  defaultformat SuppressQuiet MoveQuiet fixedsizegraphs
+ LocalWords:  BottomTop LeftRight fixedscaling graphlimits NColors
  LocalWords:  custompalettes MyPalette Nongraphing dotloc dotlocs opic UnFill
  LocalWords:  PenMargins addBox xmin xmax yequals calculateTransform changeaxis
  LocalWords:  functioncolor latticeshade nonexplicitfun scalesecondaryaxis init

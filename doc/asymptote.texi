@@ -738,14 +738,15 @@ the overall scaling will be determined by the other direction
 @cindex user coordinates
 @cindex @code{unitsize}
 To make the user coordinates represent multiples of exactly @code{1cm}:
-@verbatim 
+@verbatim
+unitsize(1cm);
 draw(unitsquare);
-shipout(unitsize=1cm);
 @end verbatim 
 
 One can also specify different @math{x} and @math{y} unit sizes:
 @verbatim 
-shipout(xunitsize=1cm,yunitsize=2cm);
+unitsize(1cm,2cm);
+draw(unitsquare);
 @end verbatim 
 
 Adding labels is easy in @code{Asymptote}; one specifies the
@@ -1067,10 +1068,10 @@ The legend for a picture @code{pic} can be fit and aligned to a frame
 with the routine (@pxref{filltype}):
 @verbatim
 frame legend(picture pic=currentpicture, int perline=1,
-	     real xmargin=legendmargin, real ymargin=xmargin,
-	     real linelength=legendlinelength,
-	     real hskip=legendhskip, real vskip=legendvskip,
-	     real maxwidth=0, pen p=currentpen);
+             real xmargin=legendmargin, real ymargin=xmargin,
+             real linelength=legendlinelength,
+             real hskip=legendhskip, real vskip=legendvskip,
+             real maxwidth=0, pen p=currentpen);
 @end verbatim
 @noindent
 Here @code{xmargin} and @code{ymargin} specify the surrounding @math{x}
@@ -1223,7 +1224,7 @@ using the vertex colors specified in the @math{n \times 4} pen array
 array @code{z}, is implemented with
 @verbatim
 void tensorshade(picture pic=currentpicture, path g, pen fillrule=currentpen,
-		 pen[][] p, path[] b=g, pair[][] z=new pair[][]);
+                 pen[][] p, path[] b=g, pair[][] z=new pair[][]);
 @end verbatim
 @noindent
 If the array @code{z} is empty, Coons shading, in which the color
@@ -2644,7 +2645,7 @@ The @code{size} routine specifies the dimensions of the desired picture:
 @anchor{size}
 @cindex @code{size}
 @verbatim
-void size(picture pic=currentpicture, real x, real y,
+void size(picture pic=currentpicture, real x, real y=x,
           bool keepAspect=Aspect);
 @end verbatim
 
@@ -2667,12 +2668,6 @@ If @code{keepAspect} is set to @code{IgnoreAspect} or @code{false},
 the picture will be scaled in both directions so that the final width
 is @code{x} and the height is @code{y}. 
 
-To ensure that each dimension is no more than @code{size}, use the routine 
-@verbatim
-void size(picture pic=currentpicture, real size,
-          bool keepAspect=pic.keepAspect);
-@end verbatim
-
 Alternatively, calling the routine
 @cindex @code{fixedscaling}
 @verbatim
@@ -2682,21 +2677,27 @@ transform fixedscaling(picture pic=currentpicture, pair min,
 will cause picture @code{pic} to use a fixed scaling to map user
 coordinates in @code{box(min,max)} to the (already specified) picture size.
 
+To make the user coordinates of picture @code{pic}
+represent multiples of @code{x} units in the @math{x} direction and
+@code{y} units in the @math{y} direction, use
+@anchor{unitsize}
+@cindex @code{unitsize}
+@verbatim
+void unitsize(picture pic=currentpicture, real x, real y=x);
+@end verbatim
+When nonzero, these @code{x} and @code{y} values override the
+corresponding size parameters of picture @code{pic}.
+
 A picture can be fit to a frame and converted into a @code{PostScript} image
 by calling the function @code{shipout}:
 @anchor{shipout}
 @cindex @code{shipout}
 @verbatim
 void shipout(string prefix=defaultfilename, picture pic,
-             real unitsize=0,
-             real xunitsize=unitsize != 0 ? unitsize : 0,
-             real yunitsize=unitsize != 0 ? unitsize : 0,
              frame preamble=patterns,
              orientation orientation=orientation,
              string format="", bool wait=NoWait, bool view=true);
-void shipout(string prefix=defaultfilename, real unitsize=0, 
-             real xunitsize=unitsize != 0 ? unitsize : 0,
-             real yunitsize=unitsize != 0 ? unitsize : 0,
+void shipout(string prefix=defaultfilename,
              orientation orientation=orientation,
              string format="", bool wait=NoWait, bool view=true);
 @end verbatim
@@ -5945,6 +5946,11 @@ upwards.
 The default projection, @code{currentprojection}, is initially set to
 @code{perspective(5,4,2)}.
 
+A triple or path3 can be implicitly cast to a pair or path,
+respectively, using @code{currentprojection}. To use another
+projection, call @code{project(triple, projection P=currentprojection)} or
+@code{project(path, projection P=currentprojection)}.
+
 It is occasionally useful to be able to invert a projection, sending
 a pair @code{z} onto the plane perpendicular to @code{normal} and passing
 through @code{point}: 
@@ -7013,13 +7019,13 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  gouraudshade unescaped nmesh nsub surfacepen getpair MikTeX dw
 @c  LocalWords:  lightgray meshpen localhistory axisT roundedpath unitsize aSin
 @c  LocalWords:  fontcommand makepen aCos aTan Knorr roundpath BeginPoint nView
-@c  LocalWords:  MidPoint EndPoint nmask antialiasing autoplain batchMask
+@c  LocalWords:  MidPoint EndPoint nmask antialiasing autoplain batchMask libgc
 @c  LocalWords:  batchView clearGUI ignoreGUI interactiveMask interactiveView
 @c  LocalWords:  listvariables outformat outname parseonly prepending psviewer
 @c  LocalWords:  pdfviewer papertype tabcompletion noautoplain plugins Teixeira
 @c  LocalWords:  embeddedmovie historylines inlinetex RadialShade penc penr CJK
 @c  LocalWords:  legendlinelength legendskip USERPROFILE LDFLAGS currentlight
-@c  LocalWords:  subsampled sinc kai AtBeginDocument GBK clearpage lasy
+@c  LocalWords:  subsampled sinc kai AtBeginDocument GBK clearpage lasy texpath
 @c  LocalWords:  AtEndDocument zaxis maxbound truepoint paperwidth paperheight
 @c  LocalWords:  GSL deriv texcolors fixedscaling UpsideDown texreset slidedemo
 @c  LocalWords:  subitem newslide realMin realMax realEpsilon realDigits gsl dh
@@ -7029,9 +7035,11 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  headercolor bodycolor chartblock flowdiamond flowcircle xlabel
 @c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow blocks ny cpu
 @c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel nv
-@c  LocalWords:  zlabel slopefields cputime roundrectangle slopefield
+@c  LocalWords:  zlabel slopefields cputime roundrectangle slopefield libgccpp
 @c  LocalWords:  tickfactor USERNAME writeable imagecontour logimage Dumoulin's
 @c  LocalWords:  NoCrop parametricsurface realmult SoftLight HardLight interp
 @c  LocalWords:  ColorDodge ColorBurn Ivaldi buildcycle autorotate mexicanhat
-@c  LocalWords:  Gouraudcontour xunitsize yunitsize pdflatex preconfigured
-@c  LocalWords:  penimage filloutside
+@c  LocalWords:  Gouraudcontour pdflatex preconfigured perline linelength hskip
+@c  LocalWords:  penimage filloutside legendhskip legendvskip maxwidth CDlabel
+@c  LocalWords:  tensorshade MPEG framepoint nonfunction Radoslav Marinov
+@c  LocalWords:  Pienaar Melenchuk

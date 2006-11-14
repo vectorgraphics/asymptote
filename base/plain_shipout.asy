@@ -93,31 +93,18 @@ frame Seascape(frame f) {return rotate(-90)*f;};
 typedef frame orientation(frame);
 orientation orientation=Portrait;
 
-void shipout(string prefix=defaultfilename, picture pic, real unitsize=0,
-	     real xunitsize=unitsize != 0 ? unitsize : 0,
-	     real yunitsize=unitsize != 0 ? unitsize : 0,
+void shipout(string prefix=defaultfilename, picture pic,
              frame preamble=patterns, orientation orientation=orientation,
              string format="", bool wait=NoWait, bool view=true)
 {
-  transform scale(real x, real y) {
-    if(y == 0) return xscale(x);
-    if(x == 0) return yscale(y);
-    return xscale(x)*yscale(y);
-  }
-
-  shipout(prefix,orientation(xunitsize == 0 && yunitsize == 0 ?
-			     pic.fit() : pic.fit(scale(xunitsize,yunitsize))),
-	  preamble,format,wait,view);
+  shipout(prefix,orientation(pic.fit()),preamble,format,wait,view);
 }
 
-void shipout(string prefix=defaultfilename, real unitsize=0,
-	     real xunitsize=unitsize != 0 ? unitsize : 0,
-	     real yunitsize=unitsize != 0 ? unitsize : 0,
+void shipout(string prefix=defaultfilename,
 	     orientation orientation=orientation,
 	     string format="", bool wait=NoWait, bool view=true)
 {
-  shipout(prefix,currentpicture,unitsize,xunitsize,yunitsize,orientation,format,
-	  wait,view);
+  shipout(prefix,currentpicture,orientation,format,wait,view);
 }
 
 void newpage() 
