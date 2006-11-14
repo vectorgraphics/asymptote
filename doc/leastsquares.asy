@@ -47,6 +47,8 @@ for(int i=0; i <= n; ++i) {
 draw(graph(T,xi),blue);
 errorbars(T,xi,dxi,red);
 
+crop();
+
 ylimits(0);
 
 xaxis("$T$",BottomTop,LeftTicks);
