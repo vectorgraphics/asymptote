@@ -819,9 +819,9 @@ void path::countleft(int& count, double x, int i, double t, double begin,
   }
 }
 
-// Return the insideness count for the point z relative to the region
-// bounded by the (cyclic) path.
-int path::inside(const pair& z) const
+// Return the winding number of the region bounded by the (cyclic) path
+// relative to the point z.
+int path::windingnumber(const pair& z) const
 {
   if(!cycles)
     reportError("path is not cyclic");

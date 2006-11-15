@@ -2078,6 +2078,12 @@ returns @code{true} iff path is cyclic
 returns @code{true} iff the segment between node @code{i} and node @code{i+1}
 is straight.
 
+@cindex @code{windingnumber}
+@item int windingnumber(path g, pair z);
+returns the winding number of the cyclic path @code{g} relative to the point
+@code{z}. The winding number is positive if the path encircles @code{z} in the
+counterclockwise direction.
+
 @cindex @code{inside}
 @item bool inside(path g, pair z, pen p=currentpen);
 returns @code{true} iff the point @code{z} is inside the region bounded

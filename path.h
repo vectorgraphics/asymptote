@@ -240,9 +240,9 @@ public:
   void countleft(int& count, double x, int i, double t,
 		 double begin, double end, double& mint, double& maxt) const;
 
-// Return the insideness count for the point z relative to the region
-// bounded by the (cyclic) path.
-  int inside(const pair& z) const;
+// Return the winding number of the region bounded by the (cyclic) path
+// relative to the point z.
+  int windingnumber(const pair& z) const;
 
   // Transformation
   path transformed(const transform& t) const;
