@@ -2,7 +2,7 @@
 echo -n "Testing errors..."
 ./asy -noautoplain -debug errortest 2> errors.temp
 result=`diff errors.temp errors`
-if [ "$result" == "" ]; then
+if [ "$result" = "" ]; then
 echo PASSED.
 else
 echo FAILED.
