@@ -1828,9 +1828,8 @@ write(time(seconds()-24*60*60));
 @end verbatim
 
 @cindex @code{string}
-@item string string(real x, int digits)
-casts @code{x} using precision @code{digits} (rather than
-@code{realDigits}) to a string, using the C locale.
+@item string string(real x, int digits=realDigits)
+casts @code{x} using precision @code{digits} to a string, using the C locale.
 
 @cindex @code{abort}
 @item abort(string s);
@@ -2036,7 +2035,7 @@ intersection exists, the entire path is considered to be `before' the
 intersection):
 @verbatim
 struct slice {
-  public path before,after;
+  path before,after;
 }
 @end verbatim
 
@@ -3172,7 +3171,7 @@ a new anonymous instance of @code{S}).
 @cindex @code{new}
 @verbatim
 struct S {
-  public real a=1;
+  real a=1;
   real f(real a) {return a+this.a;}
 }
 
@@ -3232,7 +3231,7 @@ implementation of structure inheritance, including virtual functions:
 @verbatim
 struct parent {
   real x=1;
-  public void virtual(int) {write (0);}
+  void virtual(int) {write (0);}
   void f() {virtual(1);}
 }
 
@@ -4395,8 +4394,8 @@ write(stdout,b);     // Outputs 2,-3
 Casting to user-defined types is also possible using @code{operator cast}:
 @verbatim
 struct rpair {
-  public real radius;
-  public real angle;
+  real radius;
+  real angle;
 }
 
 rpair operator init() {return new rpair;}
@@ -5738,10 +5737,10 @@ scaling of @code{pic}. The color space is scaled according to the
 for the function values is returned:
 @verbatim
 struct bounds {
-  public real min;
-  public real max;
+  real min;
+  real max;
   // Possible tick intervals:
-  public int[] divisor;
+  int[] divisor;
 }
 @end verbatim
 @noindent

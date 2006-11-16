@@ -105,3 +105,7 @@ string format(real x)
   return format(defaultformat,x);
 }
 
+string string(real x)
+{
+  return (string) x;
+}
