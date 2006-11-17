@@ -117,7 +117,8 @@ absyntax::file *parseFile(const mem::string& filename)
   return doParse(yy::stream_input,file);
 }
 
-absyntax::file *parseString(const mem::string& code, const mem::string& filename)
+absyntax::file *parseString(const mem::string& code,
+                            const mem::string& filename)
 {
   debug(false);
   std::stringbuf buf(code.c_str());

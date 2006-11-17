@@ -891,7 +891,7 @@ const char *beginlabel(const mem::string& texengine) {
            "\\wd\\ASYbox 0pt\\dp\\ASYbox 0pt\\ht\\ASYbox 0pt";
   else 
     return "\\special{ps: gsave currentpoint currentpoint translate [#5 0 0] "
-           "concat neg exch neg exch translate}";
+                         "concat neg exch neg exch translate}";
 }
 
 // TeX special command to restore currentmatrix after typesetting labels.
@@ -906,7 +906,13 @@ const char *endlabel(const mem::string& texengine) {
 const char *clip(const mem::string& texengine) {
   if(pdf(texengine))
     return "\\special{pdf: #1}";
-  return "\\special{ps: currentpoint currentpoint translate matrix currentmatrix\n[matrix defaultmatrix 0 get 0 0 matrix defaultmatrix 3 get\nmatrix currentmatrix 4 get matrix currentmatrix 5 get] setmatrix\n#1\nsetmatrix neg exch neg exch translate}";
+  else
+    return "\\special{ps: "
+           "currentpoint currentpoint translate matrix currentmatrix\n"
+           "[matrix defaultmatrix 0 get 0 0 matrix defaultmatrix 3 get\n"
+           "matrix currentmatrix 4 get matrix currentmatrix 5 get] setmatrix\n"
+           "#1\n"
+           "setmatrix neg exch neg exch translate}";
 }
 
 // Begin TeX special command.
