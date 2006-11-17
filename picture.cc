@@ -21,7 +21,8 @@ using namespace settings;
 
 namespace camp {
 
-const char *texpathmessage="the directory containing your tex engine (latex by default)";
+const char *texpathmessage="the directory containing your tex engine "
+                           "(latex by default)";
   
 string texready=string("(Please type a command or say `\\end')\n*");
 texstream tex; // Bi-directional pipe to latex (to find label bbox)
