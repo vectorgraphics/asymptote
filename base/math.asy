@@ -6,9 +6,37 @@ int quadrant(real degrees)
 }
 
 // Roots of unity.
-pair unityroot(int n, int k = 1)
+pair unityroot(int n, int k=1)
 {
   return expi(2pi*k/n);
+}
+
+// Return an arbitrary point inside a cyclic path g.
+pair inside(path g)
+{
+  if(!cyclic(g)) abort("path is not cyclic");
+  pair c=point(g,0);
+  int n=length(g);
+  real r;
+  int i=0;
+  do {
+    ++i;
+    if(i == n) return c;
+    r=abs(point(g,i)-c);
+  } while (r == 0);
+  pair w=I*0.5*r;
+  // Search in a circle of radius r about c.
+  int n=2;
+  while(true) {
+    for(int k=0; k < n; ++k) {
+      pair z=c+w*unityroot(n,k);
+      if(inside(g,z)) return z;
+    }
+    w *= 0.5; // Reduce the radius of the circle and try again with more points.
+    if(w == 0) return c;
+    ++n;
+  }
+  return 0;
 }
 
 real csc(real x) {return 1/sin(x);}
