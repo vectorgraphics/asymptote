@@ -887,15 +887,19 @@ string defaultformat() {
 // TeX special command to set up currentmatrix for typesetting labels.
 const char *beginlabel(const mem::string& texengine) {
   if(pdf(texengine))
-    return "\\special{pdf: q #5 0 0 cm}\\wd\\ASYbox 0pt\\dp\\ASYbox 0pt\\ht\\ASYbox 0pt";
-      return "\\special{ps: gsave currentpoint currentpoint translate [#5 0 0] concat neg exch neg exch translate}";
+    return "\\special{pdf: q #5 0 0 cm}"
+           "\\wd\\ASYbox 0pt\\dp\\ASYbox 0pt\\ht\\ASYbox 0pt";
+  else 
+    return "\\special{ps: gsave currentpoint currentpoint translate [#5 0 0] "
+           "concat neg exch neg exch translate}";
 }
 
 // TeX special command to restore currentmatrix after typesetting labels.
 const char *endlabel(const mem::string& texengine) {
   if(pdf(texengine))
     return "\\special{pdf: Q}";
-  return "\\special{ps: currentpoint grestore moveto}";
+  else
+    return "\\special{ps: currentpoint grestore moveto}";
 }
 
 // TeX special command to clip a label
