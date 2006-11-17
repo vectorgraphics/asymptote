@@ -813,6 +813,7 @@ bool path::Count(int& count, double t) const
 void path::countleft(int& count, double x, int i, double t, double begin,
 		     double end, double& mint, double& maxt) const 
 {
+  if(t > -Fuzz && t < Fuzz) t=0;
   if(begin < t && t <= end && x < point(i+t).getx() && Count(count,i+t)) {
     if(t > maxt) maxt=t;
     if(t < mint) mint=t;
