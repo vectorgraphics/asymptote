@@ -800,10 +800,12 @@ path concat(path p1, path p2)
 bool path::Count(int& count, double t) const
 {
   pair z=point(t);
-  double pre=unit(z-precontrol(t)).gety();
-  double post=unit(postcontrol(t)-z).gety();
-  if(pre == 0.0) pre=post;
-  if(post == 0.0) post=pre;
+  pair Pre=z-precontrol(t);
+  pair Post=postcontrol(t)-z;
+  double pre=unit(Pre).gety();
+  double post=unit(Post).gety();
+  if(pre == 0.0 && Pre != pair(0.0,0.0)) pre=post;
+  if(post == 0.0 && Post != pair(0.0,0.0)) post=pre;
   int incr=(pre*post > Fuzz) ? sgn1(pre) : 0;
   count += incr;
   return incr != 0.0;
@@ -834,46 +836,46 @@ int path::windingnumber(const pair& z) const
   double begin=-Fuzz;
   double end=1.0+Fuzz;
       
-  double bottom=bounds().bottom;
-  double top=bounds().top;
+  bbox b=bounds();
+  
+  if(z.getx() < b.left || z.getx() > b.right ||
+     z.gety() < b.bottom || z.gety() > b.top) return 0;
   
   for(int i=0; i < n; ++i) {
-    if(z.gety() >= bottom && z.gety() <= top) {
-      pair a=point(i);
-      pair d=point(i+1);
+    pair a=point(i);
+    pair d=point(i+1);
       
-      double mint=1.0;
-      double maxt=0.0;
-      double stop=(i < n-1) ? 1.0+Fuzz : end;
+    double mint=1.0;
+    double maxt=0.0;
+    double stop=(i < n-1) ? 1.0+Fuzz : end;
       
-      if(straight(i)) {
-	double denom=d.gety()-a.gety();
-	if(denom != 0.0)
-	  countleft(count,x,i,(z.gety()-a.gety())/denom,begin,stop,mint,maxt);
-      } else {
-	pair b=postcontrol(i);
-	pair c=precontrol(i+1);
+    if(straight(i)) {
+      double denom=d.gety()-a.gety();
+      if(denom != 0.0)
+	countleft(count,x,i,(z.gety()-a.gety())/denom,begin,stop,mint,maxt);
+    } else {
+      pair b=postcontrol(i);
+      pair c=precontrol(i+1);
     
-	double A=-a.gety()+3.0*(b.gety()-c.gety())+d.gety();
-	double B=3.0*(a.gety()-2.0*b.gety()+c.gety());
-	double C=3.0*(-a.gety()+b.gety());
-	double D=a.gety()-y;
+      double A=-a.gety()+3.0*(b.gety()-c.gety())+d.gety();
+      double B=3.0*(a.gety()-2.0*b.gety()+c.gety());
+      double C=3.0*(-a.gety()+b.gety());
+      double D=a.gety()-y;
     
-	cubicroots r(A,B,C,D);
+      cubicroots r(A,B,C,D);
 
-	if(r.roots >= 1) countleft(count,x,i,r.t1,begin,stop,mint,maxt);
-	if(r.roots >= 2) countleft(count,x,i,r.t2,begin,stop,mint,maxt);
-	if(r.roots >= 3) countleft(count,x,i,r.t3,begin,stop,mint,maxt);
-      }
-      
-      // Avoid double-counting endpoint roots.      
-      if(i == 0)
-	end=camp::min(mint-Fuzz,Fuzz)+1.0;
-      if(mint <= maxt)
-	begin=camp::max(maxt+Fuzz-1.0,-Fuzz); 
-      else // no root found
-	begin=-Fuzz;
+      if(r.roots >= 1) countleft(count,x,i,r.t1,begin,stop,mint,maxt);
+      if(r.roots >= 2) countleft(count,x,i,r.t2,begin,stop,mint,maxt);
+      if(r.roots >= 3) countleft(count,x,i,r.t3,begin,stop,mint,maxt);
     }
+      
+    // Avoid double-counting endpoint roots.      
+    if(i == 0)
+      end=camp::min(mint-Fuzz,Fuzz)+1.0;
+    if(mint <= maxt)
+      begin=camp::max(maxt+Fuzz-1.0,-Fuzz); 
+    else // no root found
+      begin=-Fuzz;
   }
   return count;
 }
