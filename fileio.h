@@ -30,6 +30,10 @@
 #include "errormsg.h"
 #include "memory.h"
 
+namespace vm {
+extern bool indebugger;  
+}
+
 namespace camp {
 
 extern string tab;
@@ -268,7 +272,7 @@ public:
   void write(guide *val) {*stream << *val;}
   void write(const transform& val) {*stream << val;}
   void writeline() {
-    if(standard && interact::interactive) {
+    if(standard && interact::interactive && !vm::indebugger) {
       int scroll=settings::getScroll();
       if(scroll && lines > 0 && lines % scroll == 0) {
 	for(;;) {

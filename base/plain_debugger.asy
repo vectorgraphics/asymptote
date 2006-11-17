@@ -56,7 +56,7 @@ string debugger(string file, int line, int column, code s=quote{})
       write("^"+(verbose == 5 ? " trace" : ""));
 
       if(help) {
-        write("c:continue f:file h:help i:inst n:next r:return s:step t:trace q:quit e:exit");
+        write("c:continue f:file h:help i:inst n:next r:return s:step t:trace q:quit x:exit");
         help=false;
       }
 
