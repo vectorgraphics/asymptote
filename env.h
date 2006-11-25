@@ -59,6 +59,10 @@ public:
   {
     te.endScope(); ve.endScope();
   }
+  void collapseScope()
+  {
+    te.collapseScope(); ve.collapseScope();
+  }
 
   tyEntry *lookupTyEntry(symbol *s)
   {

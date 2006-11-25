@@ -320,6 +320,17 @@ public:
     }
     scopes.pop();
   }
+  
+  // Adds the definitions of the top-level scope to the level underneath,
+  // and then removes the top scope.
+  void collapseScope() {
+    // NOTE: May be expensively copying a large hash table.
+    keymultimap top=scopes.top();
+    scopes.pop();
+
+    keymultimap& underneath=scopes.top();
+    underneath.insert(top.begin(), top.end());
+  }
 
   // Prints a list of the variables to the standard output.
   void list(record *module=0);

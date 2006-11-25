@@ -78,8 +78,8 @@ bool runRunnable(runnable *r, coenv &e, istack &s) {
     if(getSetting<bool>("translate")) print(cout,codelet->code);
     s.run(codelet);
 
-    // NOTE: May want to add a "e.e.collapseTopScope()" here to keep scoping
-    // from getting out-of-hand.
+    // Commits the changes made to the environment.
+    e.e.collapseScope();
   } else {
     e.e.endScope(); // Remove any changes to the environment.
 

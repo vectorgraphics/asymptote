@@ -53,6 +53,10 @@ public :
   void beginScope();
   void endScope();
 
+  // Copies all bindings in the top scope to the scope underneath it, and
+  // removes the the top scope.
+  void collapseScope();
+
   // Adds to l, all names prefixed by start.
   void completions(mem::list<symbol *>& l, mem::string start);
 
@@ -109,6 +113,15 @@ inline void table<B>::endScope()
   for (scope_iterator p = scope.begin(); p != scope.end(); ++p)
     remove(p->first);
   scopes.pop_front();
+}
+
+template <class B>
+inline void table<B>::collapseScope()
+{
+  scope_t scope = scopes.front();
+  scopes.pop_front();
+
+  scopes.front().insert(scope.begin(), scope.end());
 }
 
 // Returns true if start is a prefix for name; eg, mac is a prefix of machine.
