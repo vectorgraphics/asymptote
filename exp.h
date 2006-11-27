@@ -187,11 +187,17 @@ public:
 
   void transAsType(coenv &e, types::ty *target) {
     value->varTrans(trans::READ, e, target);
+    
+    // After translation, the cached type is no longer needed and should be
+    // garbage collected.  This could presumably be done in every class derived
+    // from exp, but here it is most important as nameExp can have heavily
+    // overloaded types cached.
+    ct=0;
   }
 
   types::ty *trans(coenv &e) {
-    types::ty *t = value->varGetType(e);
-    if (t == 0) {
+    types::ty *t=cgetType(e);
+    if (t->kind == types::ty_error) {
       em->error(getPos());
       *em << "no matching variable \'" << *value << "\'";
       return types::primError();
@@ -214,10 +220,14 @@ public:
 
   void transWrite(coenv &e, types::ty *target) {
     value->varTrans(trans::WRITE, e, target);
+
+    ct=0;  // See note in transAsType.
   }
   
   void transCall(coenv &e, types::ty *target) {
     value->varTrans(trans::CALL, e, target);
+
+    ct=0;  // See note in transAsType.
   }
 
   exp *evaluate(coenv &, types::ty *) {
@@ -677,13 +687,15 @@ public:
 
 // Scaling expressions such as 3sin(x).
 class scaleExp : public binaryExp {
-  exp *left;
-  exp *right;
-
+  exp *getLeft() {
+    return (*this->args)[0].val;
+  }
+  exp *getRight() {
+    return (*this->args)[1].val;
+  }
 public:
   scaleExp(position pos, exp *left, exp *right)
-    : binaryExp(pos, left, symbol::trans("*"), right), left(left),
-      right(right) {}
+    : binaryExp(pos, left, symbol::trans("*"), right) {}
 
   void prettyprint(ostream &out, int indent);
 

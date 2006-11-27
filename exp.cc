@@ -269,6 +269,8 @@ types::ty *thisExp::getType(coenv &e)
 
 void scaleExp::prettyprint(ostream &out, int indent)
 {
+  exp *left=getLeft(); exp *right=getRight();
+
   prettyname(out, "scaleExp",indent);
   left->prettyprint(out, indent+1);
   right->prettyprint(out, indent+1);
@@ -276,6 +278,8 @@ void scaleExp::prettyprint(ostream &out, int indent)
 
 types::ty *scaleExp::trans(coenv &e)
 {
+  exp *left=getLeft(); exp *right=getRight();
+
   types::ty *lt = left->cgetType(e);
   if (lt->kind != types::ty_int && lt->kind != types::ty_real) {
     if (lt->kind != types::ty_error) {
@@ -594,6 +598,10 @@ types::ty *callExp::trans(coenv &e)
 
   application *a= ca ? ca : getApplication(e);
   
+  // The cached application is no longer needed after translation, so let be
+  // garbage collected.
+  ca=0;
+
   if (!a)
     return primError();
 
