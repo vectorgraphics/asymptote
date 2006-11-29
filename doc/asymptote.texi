@@ -4955,7 +4955,7 @@ sharp corners of paths, as illustrated in the example file @code{roundpath.asy}.
 @cindex @code{pdfanim}
 This module produces portable clickable high-quality @code{PDF} movies, with
 optional controls, that are internally generated and embedded by
-@code{Asymptote}, using version 0.53 of the @code{pdfanim.sty} package
+@code{Asymptote}, using version 0.52A of the @code{pdfanim.sty} package
 (shipped and installed with @code{Asymptote}, documented in
 @code{PDFAnim_Guide.pdf}). This requires the additional files
 @quotation
