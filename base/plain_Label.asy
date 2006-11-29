@@ -182,6 +182,10 @@ transform Rotate(transform t) {return rotation(t);}
 transform Slant(transform t) {return scaleless(t);}
 transform Scale(transform t) {return t;}
 
+embed Rotate(pair z) {
+  return new transform(transform t) {return rotate(degrees(t*z));};
+}
+
 struct Label {
   string s,size;
   position position;
@@ -246,9 +250,9 @@ struct Label {
   
   void label(frame f, transform t=identity(), pair position, pair align) {
     pen p0=p == nullpen ? currentpen : p;
+    align=length(align)*unit(scaleless(shiftless(t))*align);
     label(f,s,size,embed(t)*shiftless(T),
-	  t*position+align*labelmargin(p0)+shift(T)*0,
-	  length(align)*unit(scaleless(shiftless(t))*align),p0);
+	  t*position+align*labelmargin(p0)+shift(T)*0,align,p0);
   }
 
   void out(frame f, transform t=identity()) {
