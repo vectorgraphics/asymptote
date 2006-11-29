@@ -1318,6 +1318,10 @@ only shift with embedding picture;
 @cindex @code{Rotate}
 only shift and rotate with embedding picture (default);
 
+@item Rotate(pair z)
+@cindex @code{Rotate(pair z)}
+rotate with (picture-transformed) vector @code{z}.
+
 @item Slant
 @cindex @code{Slant}
 only shift, rotate, slant, and reflect with embedding picture;
@@ -4972,7 +4976,7 @@ texhash
 @end verbatim
 
 The example @code{pdfmovie.asy} in the @code{animations}
-directory, along with the slide presentation example @code{slidedemo.asy}
+directory, along with the slide presentation example @code{slidemovies.asy}
 illustrate the use of embedded @code{PDF} movies.
 
 @node embed
@@ -4985,7 +4989,8 @@ This module provides an interface to the @code{LaTeX} package
 @end quotation
 @noindent
 for embedding movies, sounds, and 3D objects into a @acronym{PDF} document.
-The latest version of the @code{movie15} package also requires
+The latest version of the @code{movie15} package requires both
+@code{pdflatex} version 1.20 or later and the file
 @quotation
 @url{http://www.tug.org/tex-archive/macros/latex/contrib/oberdiek/ifdraft.dtx}
 @end quotation
@@ -5021,10 +5026,12 @@ animation portably (@pxref{pdfanim}).
 @cindex @code{slide}
 This package provides a simple yet high-quality facility for making
 presentation slides, including portable embedded @code{PDF} animations.
-An example is provided in the file
-@code{slidedemo.asy}:
+Examples are provided in the file
+@code{slidedemo.asy} and @code{slidemovies.asy}:
 
 @verbatiminclude ../examples/slidedemo.asy
+
+@verbatiminclude ../examples/slidemovies.asy
 
 @node MetaPost
 @section @code{MetaPost}

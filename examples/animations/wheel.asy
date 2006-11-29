@@ -36,7 +36,7 @@ dot(z2);
 
 animation a;
 
-int n=5;
+int n=10;
 real dt=(t2-t1)/n;
 for(int i=0; i <= n; ++i) {
   save();

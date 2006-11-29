@@ -689,7 +689,7 @@ int windingnumber(array *g, pair z)
 string convertname(string name, const string& format, bool check=true)
 {
   if(name.empty())
-    name=buildname(outname(),format,"",false);
+    return buildname(outname(),format,"",false);
   else
     if(check) checkLocal(name);
   return format.empty() ? name : format+":"+name;
@@ -2600,8 +2600,8 @@ int convert(string *args, string output=emptystring,
       << " '" << name << "'";
   int ret=System(cmd,2,true,"convert");
   
-  if(ret == 0)
-    if(verbose > 0) cout << "Wrote " << name << endl;
+  if(ret == 0 && verbose > 0)
+    cout << "Wrote " << ((output == "") ? name : output) << endl;
   
   return ret;
 }
