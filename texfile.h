@@ -36,8 +36,8 @@ const double ps2tex=1.0/tex2ps;
 template<class T>
 void texdocumentclass(T& out, bool pipe=false)
 {
-  bool latex=settings::latex(settings::getSetting<mem::string>("tex"));
-  if(latex && (pipe || !settings::getSetting<bool>("inlinetex")))
+  if(settings::latex(settings::getSetting<mem::string>("tex")) &&
+     (pipe || !settings::getSetting<bool>("inlinetex")))
     out << "\\documentclass[12pt]{article}" << newl;
 }
   

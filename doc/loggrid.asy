@@ -10,3 +10,4 @@ xaxis("$x$",BottomTop,LeftTicks(begin=false,end=false,extend=true,
 				ptick=thin));
 yaxis("$y$",LeftRight,RightTicks(begin=false,end=false,extend=true,
 				 ptick=thin));
+

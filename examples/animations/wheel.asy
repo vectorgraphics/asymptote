@@ -1,6 +1,5 @@
 import graph;
 import animate;
-import settings;
 
 size(0,200);
 
@@ -50,5 +49,5 @@ for(int i=0; i <= n; ++i) {
   restore();
 }
 
-// Produce the final merged gif, etc.
-a.movie(10,outformat == "eps" || outformat == "pdf" ? "gif" : outformat); 
+// Produce the final merged gif.
+a.movie(10);

@@ -41,7 +41,7 @@ public:
 
   void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&);
   
-  bool texbounds(iopipestream& tex, string& s, bool warn);
+  bool texbounds(iopipestream& tex, string& s, bool warn, const char **abort);
     
   bool islabel() {
     return true;

@@ -109,3 +109,9 @@ string string(real x)
 {
   return (string) x;
 }
+
+string phantom(string s)
+{
+  return "\phantom{"+s+"}";
+}
+

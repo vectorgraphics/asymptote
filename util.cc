@@ -35,11 +35,12 @@ using namespace settings;
 
 bool False=false;
 
-string stripExt(const string& name, const string& ext)
+string stripExt(string name, const string& ext)
 {
-  string suffix = "." + ext;
+  string suffix="."+ext;
   size_t p=name.rfind(suffix);
-  if (p == name.length()-suffix.length())
+  size_t n=suffix.length();
+  if(n == 1 || p == name.length()-n)
     return name.substr(0,p);
   else return name;
 }
@@ -47,14 +48,14 @@ string stripExt(const string& name, const string& ext)
 void backslashToSlash(string& s) 
 {
   size_t p;
-  while ((p=s.find('\\')) < string::npos)
+  while((p=s.find('\\')) < string::npos)
     s[p]='/';
 }
 
 void spaceToUnderscore(string& s) 
 {
   size_t p;
-  while ((p=s.find(' ')) < string::npos)
+  while((p=s.find(' ')) < string::npos)
     s[p]='_';
 }
 
@@ -77,6 +78,21 @@ string Getenv(const char *name, bool)
 }
 #endif
 
+void writeDisabled()
+{
+  camp::reportError("Write/cd to other directories disabled; override with option -global");
+}
+
+void checkLocal(string name)
+{
+  if(global()) return;
+#ifdef __CYGWIN__  
+  if(name.rfind('\\') < string::npos) writeDisabled();
+#endif  
+  if(name.rfind('/') < string::npos) writeDisabled();
+  return;
+}
+
 string stripDir(string name)
 {
   size_t p;
@@ -93,7 +109,7 @@ string buildname(string name, string suffix, string aux, bool stripdir)
 {
   if(stripdir) name=stripDir(name);
     
-  name = stripExt(name,defaultformat());
+  name=stripExt(name,defaultformat());
   name += aux;
   if(!suffix.empty()) name += "."+suffix;
   return name;
@@ -102,16 +118,6 @@ string buildname(string name, string suffix, string aux, bool stripdir)
 string auxname(string filename, string suffix)
 {
   return buildname(filename,suffix,"_");
-}
-  
-bool checkFormatString(const string& format)
-{
-  if(format.find(' ') != string::npos) { // Avoid potential security hole
-    ostringstream msg;
-    msg << "output format \'" << format << "\' is invalid";
-    camp::reportError(msg);
-  }
-  return true;
 }
   
 // Return an argv array corresponding to the fields in command delimited

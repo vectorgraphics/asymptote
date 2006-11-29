@@ -21,12 +21,13 @@ void drawLabel::labelwarning(const char *action)
   cerr << "warning: label \"" << label 
 	       << "\" " << action << " to avoid overwriting" << endl;
 }
-  
-bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn)
+ 
+bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn,
+			  const char **abort)
 {
   string texbuf;
   tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(s) << "}\n\n";
-  tex.wait(texready.c_str(),"! ");
+  tex.wait(texready.c_str(),abort);
   tex << "\\showthe\\wd\\ASYbox\n";
   tex >> texbuf;
   if(texbuf[0] == '>' && texbuf[1] == ' ')
@@ -39,26 +40,26 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn)
 	reportWarning(buf);
       }
       tex << "\n";
-      tex.wait("\n*","! ");
+      tex.wait("\n*",abort);
       return false;
     } else reportError("Cannot read label width");
   }
   tex << "\n";
-  tex.wait("\n*","! ");
+  tex.wait("\n*",abort);
   tex << "\\showthe\\ht\\ASYbox\n";
   tex >> texbuf;
   if(texbuf[0] == '>' && texbuf[1] == ' ')
     height=atof(texbuf.c_str()+2)*tex2ps;
   else reportError("Cannot read label height");
   tex << "\n";
-  tex.wait("\n*","! ");
+  tex.wait("\n*",abort);
   tex << "\\showthe\\dp\\ASYbox\n";
   tex >> texbuf;
   if(texbuf[0] == '>' && texbuf[1] == ' ')
     depth=atof(texbuf.c_str()+2)*tex2ps;
   else reportError("Cannot read label depth");
   tex << "\n";
-  tex.wait("\n*","! ");
+  tex.wait("\n*",abort);
      
   return true;
 }   
@@ -77,26 +78,27 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
   
   if(!havebounds) {
     havebounds=true;
+    const char **abort=settings::texabort(texengine);
     if(pentype.size() != lastpen.size() ||
        pentype.Lineskip() != lastpen.Lineskip()) {
       if(settings::latex(texengine)) {
 	tex <<  "\\fontsize{" << pentype.size() << "}{" << pentype.Lineskip()
 	    << "}\\selectfont\n";
-	tex.wait("\n*","! ");
+	tex.wait("\n*",abort);
       }
     }
     
     mem::string font=pentype.Font();
     if(font != lastpen.Font()) {
       tex <<  font << "\n";
-      tex.wait("\n*","! ");
+      tex.wait("\n*",abort);
     }
     
     lastpen=pentype;
     
     bool nullsize=size == "";
-    if(!texbounds(tex,label,nullsize) && !nullsize)
-      texbounds(tex,size,false);
+    if(!texbounds(tex,label,nullsize,abort) && !nullsize)
+      texbounds(tex,size,false,abort);
     
     Align=inverse(T)*align;
     double scale0=max(fabs(Align.getx()),fabs(Align.gety()));

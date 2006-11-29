@@ -100,7 +100,13 @@ char *argv0;
 
 // The verbosity setting, a global variable.
 int verbose;
-int safe=1;
+// Disable system calls.
+bool safe=true;
+// Enable writing to (or changing to) other directories
+bool globaloption=false;
+bool globaloutname=false;
+  
+bool global() {return globaloption || !safe;}
   
 // Work around backwards-incompatible command-line options of gv-3.6.1.
 string gvOptionPrefix="-";
@@ -213,8 +219,11 @@ struct option : public gc {
         cerr << std::left << std::setw(WIDTH) << "";
       }
       cerr << desc;
-      if(cmdlineonly) cerr << "; command-line only";
-      if(Default != "") cerr << " [" << Default << "]";
+      if(Default != "") {
+	cerr << " [" << Default;
+	if(cmdlineonly) cerr << " (command-line)";
+	cerr << "]";
+      }
       cerr << endl;
     }
   }
@@ -390,6 +399,20 @@ struct stringSetting : public argumentSetting {
   }
 };
 
+struct stringOutnameSetting : public argumentSetting {
+  stringOutnameSetting(mem::string name, char code,
+		       mem::string argname, mem::string desc,
+		       mem::string defaultValue)
+    : argumentSetting(name, code, argname, desc,
+              types::primString(), (item)defaultValue) {}
+
+  bool getOption() {
+    value=(item)(mem::string)
+      ((globaloutname || global()) ? optarg : stripDir(optarg));
+    return true;
+  }
+};
+
 struct userSetting : public argumentSetting {
   userSetting(mem::string name, char code,
 	      mem::string argname, mem::string desc,
@@ -488,14 +511,26 @@ template <class T>
 struct refSetting : public setting {
   T *ref;
   T defaultValue;
+  string text;
 
   refSetting(mem::string name, char code, mem::string argname,
-             mem::string desc, types::ty *t, T *ref, T defaultValue)
-    : setting(name, code, argname, desc, t, "0"),
-      ref(ref), defaultValue(defaultValue) {
+             mem::string desc, types::ty *t, T *ref, T defaultValue,
+	     mem::string Default, const char *text="")
+    : setting(name, code, argname, desc, t, Default),
+      ref(ref), defaultValue(defaultValue), text(text) {
     reset();
   }
 
+  virtual bool getOption() {
+    try {
+      *ref=lexical::cast<T>(optarg);
+    } catch (lexical::bad_cast&) {
+      error("option requires " + text + " as an argument");
+      return false;
+    }
+    return true;
+  }
+  
   virtual void reset() {
     *ref=defaultValue;
   }
@@ -505,10 +540,17 @@ struct refSetting : public setting {
   }
 };
 
+struct intrefSetting : public refSetting<int> {
+  intrefSetting(mem::string name, char code, mem::string argname,
+		mem::string desc, int *ref)
+    : refSetting<int>(name, code, argname, desc,
+		      types::primInt(), ref, 0, "0", "an int") {}
+};
+
 struct incrementSetting : public refSetting<int> {
   incrementSetting(mem::string name, char code, mem::string desc, int *ref)
     : refSetting<int>(name, code, noarg, desc,
-              types::primInt(), ref, 0) {}
+		      types::primInt(), ref, 0, "0") {}
 
   bool getOption() {
     // Increment the value.
@@ -530,7 +572,7 @@ struct incrementSetting : public refSetting<int> {
     };
     return new negOption(*this, name);
   }
-
+  
   void add() {
     setting::add();
     negation("no"+name)->add();
@@ -590,16 +632,18 @@ struct helpOption : public option {
   }
 };
 
-// For security reasons, safe isn't a field of the settings module.
-struct safeOption : public option {
+// For security reasons, these options aren't fields of the settings module.
+struct boolOption : public option {
+  bool *variable;
   bool value;
 
-  safeOption(mem::string name, char code, mem::string desc, bool value)
+  boolOption(mem::string name, char code, mem::string desc,
+	     bool *variable, bool value)
     : option(name, code, noarg, desc, true, value ? "true" : "false"),
-      value(value) {}
+      variable(variable), value(value) {}
 
   bool getOption() {
-    safe=value;
+    *variable=value;
     return true;
   }
 };
@@ -637,6 +681,7 @@ void resetOptions() {
   
 void getOptions(int argc, char *argv[])
 {
+  globaloutname=true;
   bool syntax=false;
   optind=0;
 
@@ -672,6 +717,7 @@ void getOptions(int argc, char *argv[])
   
   if (syntax)
     reportSyntax();
+  globaloutname=false;
 }
 
 #ifdef USEGC
@@ -698,9 +744,9 @@ void initSettings() {
   addOption(new boolSetting("ignoreGUI", 'i', "Ignore GUI operations"));
   addOption(new stringSetting("outformat", 'f', "format",
 		      "Convert each output file to specified format", ""));
-  addOption(new stringSetting("outname", 'o', "name",
-			      "Alternative output name for first file",
-			      ""));
+  addOption(new stringOutnameSetting("outname", 'o', "name",
+				     "Alternative output name for first file",
+				     ""));
   addOption(new helpOption("help", 'h', "Show summary of options"));
 
   addOption(new pairSetting("offset", 'O', "pair",
@@ -740,10 +786,15 @@ void initSettings() {
   addOption(new boolSetting("rgb", 0, "Convert cmyk colors to rgb"));
   addOption(new boolSetting("cmyk", 0, "Convert rgb colors to cmyk"));
 
-  addOption(new safeOption("safe", 0,
-			   "Disable system call", true));
-  addOption(new safeOption("unsafe", 0,
-			   "Enable system call", false));
+  addOption(new boolOption("safe", 0,
+			   "Disable system call", &safe, true));
+  addOption(new boolOption("unsafe", 0,
+			   "Enable system call (=> global)", &safe, false));
+  addOption(new boolOption("global", 0,
+			   "Allow write/cd to other directories",
+			   &globaloption, true));
+  addOption(new boolOption("noglobal", 0,
+			   "", &globaloption, false));
   
   addOption(new stringSetting("prompt", 0,"string","Prompt [\"> \"]","> "));
   addOption(new boolSetting("quiet", 'q',
@@ -926,6 +977,15 @@ const char *beginspecial(const mem::string& texengine) {
 const char *endspecial() {
   return "}%";
 }
+
+const char *pdftexerrors[]={"! "," ==> Fatal error",NULL};
+const char *texerrors[]={"! ",NULL};
+
+// Messages that signify a TeX error.
+const char **texabort(const mem::string& texengine)
+{
+  return settings::pdf(texengine) ? pdftexerrors : texerrors;
+};
 
 mem::string texengine() {
   mem::string path=getSetting<mem::string>("texpath");

@@ -1,5 +1,7 @@
 import fontsize;
+usepackage("rotating");
 usepackage("color");
+usepackage("asycolors");
 
 bool reverse=false; // Set to true to enable reverse video
 bool stepping=false; // Set to true to enable stepping
@@ -7,25 +9,34 @@ bool itemstep=true;  // Set to false to disable stepping on each item
 
 bool allowstepping=false; // Allow stepping for current slide.
 
-real margin=0.5cm;
-real pagewidth=-2margin;
-real pageheight=-2margin;
+real pagemargin=0.5cm;
+real pagewidth=-2pagemargin;
+real pageheight=-2pagemargin;
 
 if(orientation == Portrait || orientation == UpsideDown) {
   pagewidth += settings.paperwidth;
   pageheight += settings.paperheight;
- } else {
-  settings.autorotate=true;
-  pagewidth += settings.paperheight;
-  pageheight += settings.paperwidth;
- }
+} else {
+  if(settings.outformat == "pdf") settings.tex="pdflatex";
+  if(pdf()) {
+    orientation=Portrait;
+    real temp=settings.paperwidth;
+    settings.paperwidth=settings.paperheight;
+    settings.paperheight=temp;
+    pagewidth += settings.paperwidth;
+    pageheight += settings.paperheight;
+  } else {
+    pagewidth += settings.paperheight;
+    pageheight += settings.paperwidth;
+  }
+}
 
 size(pagewidth,pageheight,IgnoreAspect);
 
 real minipagemargin=1inch;
 real minipagewidth=pagewidth-2minipagemargin;
 
-transform tinv=inverse(fixedscaling((-1,-1),(1,1)));
+transform tinv=inverse(fixedscaling((-1,-1),(1,1),currentpen));
   
 pen itempen=fontsize(24pt);
 real itemskip=0.5;
@@ -93,8 +104,6 @@ void background()
 void color(string name, string color) {
   texpreamble("\def"+'\\'+name+"#1{{\color{"+color+"}#1}}");
 }
-
-usepackage("asycolors");
 
 void normalvideo() {
     figuremattpen=invisible;
@@ -272,24 +281,61 @@ void equations(string s, pen p=itempen)
   vbox("\begin{eqnarray}"+s+"\end{eqnarray}",p);
 }
 
-void figure(string[] s, string options="", real margin=50bp, 
-            pen figuremattpen=figuremattpen,
-            string caption="", pair align=S, pen p=itempen)
+void display(string[] s, real margin=0, pen figuremattpen=figuremattpen,
+	     string[] captions=new string[], string caption="", pair align=S,
+	     pen p=itempen)
 {
-  string S;
   if(s.length == 0) return;
-  S=graphic(s[0],options);
-  for(int i=1; i < s.length; ++i)
-    S += "\kern "+(string) (margin/pt)+"pt "+graphic(s[i],options);
-  remark(center=true,S,align,minipage=false,Fill(figureborder,figuremattpen));
+  real[] width=new real[s.length];
+  real sum;
+  for(int i=0; i < s.length; ++i) {
+    frame f;
+    label(f,s[i]);
+    width[i]=max(f).x-min(f).x;
+    sum += width[i];
+  }
+  if(sum > pagewidth)
+    write("warning: slide too wide on page "+(string) page+':\n'+s[0]);
+  else margin=(pagewidth-sum)/(s.length+1);
+  real[] center;
+  real pos;
+  frame f;
+  for(int i=0; i < s.length; ++i) {
+    real w=margin+width[i];
+    pos += 0.5*w;
+    center[i]=pos;
+    label(f,s[i],(center[i],0));
+    pos += 0.5*w;
+  }
+  int stop=min(s.length,captions.length);
+  real y=min(f).y;
+  for(int i=0; i < stop; ++i)
+    label(f,captions[i],(center[i],y),align);
+  add(f,(0,currentposition.y),align);
+  incrementposition((0,(tinv*(-(max(f)-min(f))-itemskip*I*lineskip(p)*pt)).y));
   if(caption != "") center(caption,p);
 }
 
-void figure(string s, string options="", real margin=50bp,
+void display(string s, pen figuremattpen=figuremattpen,
+	     string caption="", pair align=S, pen p=itempen)
+{
+  display(new string[] {s},figuremattpen,caption,align,p);
+}
+
+void figure(string[] s, string options="", real margin=0, 
             pen figuremattpen=figuremattpen,
+            string[] captions=new string[], string caption="",
+	    pair align=S, pen p=itempen)
+{
+  string[] S;
+  for(int i=0; i < s.length; ++i) S[i]=graphic(s[i],options);
+  display(S,margin,figuremattpen,captions,caption,align,p);
+}
+
+void figure(string s, string options="", pen figuremattpen=figuremattpen,
             string caption="", pair align=S, pen p=itempen)
 {
-  figure(new string[] {s},options,margin,figuremattpen,caption,align,p);
+  figure(new string[] {s},options,figuremattpen,caption,align,p);
 }
 
 void item(string s, pen p=itempen, bool step=itemstep)

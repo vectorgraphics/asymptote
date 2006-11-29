@@ -160,25 +160,37 @@ public:
     return true;
   }
   
-  void wait(const char *prompt, const char *abort=NULL) {
+  bool checkabort(const char *abort) {
+    size_t alen=strlen(abort);
+    if(strncmp(buffer,abort,alen) == 0) {
+      if(settings::getSetting<bool>("inlinetex")) return true;
+      camp::reportError(buffer);
+    }
+    char *p=buffer;
+    while((p=strchr(p,'\n')) != NULL) {
+      ++p;
+      if(strncmp(p,abort,alen) == 0)
+	camp::reportError(buffer);
+    }
+    return false;
+  }
+  
+  void wait(const char *prompt, const char**abort=NULL) {
     ssize_t len;
     size_t plen=strlen(prompt);
-    size_t alen=0;
-    if(abort) alen=strlen(abort);
-    do {
-      len=readbuffer();
-      if(abort) {
-	if(strncmp(buffer,abort,alen) == 0) {
-	  if(settings::getSetting<bool>("inlinetex")) return;
-	  camp::reportError(buffer);
-	}
-	char *p=buffer;
-	while((p=strchr(p,'\n')) != NULL) {
-	  ++p;
-	  if(strncmp(p,abort,alen) == 0)
-	    camp::reportError(buffer);
-	}
+  
+    unsigned int n=0;
+    if(abort) {
+      while(true) {
+	if(abort[n]) n++;
+	else break;
       }
+    }
+    
+    do {
+      for(unsigned int i=0; i < n; ++i) 
+	if(checkabort(abort[i])) return;
+      len=readbuffer();
     } while (!tailequals(buffer,len,prompt,plen));
   }
 

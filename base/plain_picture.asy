@@ -742,7 +742,9 @@ struct picture {
     real height=M.y-m.y;
     real xgrow=xsize == 0 || width == 0 ? 1 : xsize/width;
     real ygrow=ysize == 0 || height == 0 ? 1 : ysize/height;
-    return keepAspect ? scale(min(xgrow,ygrow)) : xscale(xgrow)*yscale(ygrow);
+    return keepAspect ? 
+      scale(min(xsize > 0 ? xgrow : ygrow, ysize > 0 ? ygrow : xgrow)) :
+      xscale(xgrow)*yscale(ygrow);
   }
 
   // Return the transform that would be used to fit the picture to a frame
@@ -863,6 +865,17 @@ void size(picture pic=currentpicture, real x, real y=x,
 void unitsize(picture pic=currentpicture, real x, real y=x) 
 {
   pic.unitsize(x,y);
+}
+
+void size(picture dest, picture src)
+{
+  dest.size(src.xsize,src.ysize,src.keepAspect);
+  dest.unitsize(src.xunitsize,src.yunitsize);
+}
+
+void size(picture src)
+{
+  size(currentpicture,src);
 }
 
 pair size(frame f)
@@ -1041,7 +1054,7 @@ bool inside(path[] g, pair z)
 // Use a fixed scaling to map user coordinates in box(min,max) to the 
 // desired picture size.
 transform fixedscaling(picture pic=currentpicture, pair min, pair max,
-                       pen p=currentpen)
+                       pen p=nullpen)
 {
   Draw(pic,min,p+invisible);
   Draw(pic,max,p+invisible);
@@ -1138,6 +1151,20 @@ void tex(picture pic=currentpicture, string s)
 {
   pic.add(new void(frame f, transform) {
       tex(f,s);
+    });
+}
+
+void postscript(picture pic=currentpicture, string s, pair min, pair max)
+{
+  pic.add(new void(frame f, transform t) {
+      postscript(f,s,t*min,t*max);
+    });
+}
+
+void tex(picture pic=currentpicture, string s, pair min, pair max)
+{
+  pic.add(new void(frame f, transform t) {
+      tex(f,s,t*min,t*max);
     });
 }
 

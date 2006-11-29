@@ -16,3 +16,4 @@ label("(3,5)",Scale((3,5)),S);
 
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
+

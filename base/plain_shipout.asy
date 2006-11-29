@@ -107,8 +107,8 @@ void shipout(string prefix=defaultfilename,
   shipout(prefix,currentpicture,orientation,format,wait,view);
 }
 
-void newpage() 
+void newpage(picture pic=currentpicture) 
 {
-  tex("\newpage");
-  layer();
+  tex(pic,"\newpage");
+  layer(pic);
 }

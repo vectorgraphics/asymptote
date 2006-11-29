@@ -18,12 +18,24 @@ class drawVerbatim : public drawElement {
 private:
   Language language;
   string text;
+  bool havebounds;
+  pair min,max;
 public:
   drawVerbatim(Language language, const string& text) : 
-    language(language), text(text) {}
+    language(language), text(text), havebounds(false) {}
+  
+  drawVerbatim(Language language, const string& text, pair min, pair max) : 
+    language(language), text(text), havebounds(true), min(min), max(max) {}
   
   virtual ~drawVerbatim() {}
 
+  void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&) {
+    if(havebounds) {
+      b += min;
+      b += max;
+    }
+  }
+  
   bool islabel() {
     return language == TeX;
   }
@@ -37,7 +49,6 @@ public:
     if(language == TeX) out->verbatim(stripblanklines(text));
     return true;
   }
-
 };
 
 }

@@ -43,6 +43,16 @@ texfile::~texfile()
 void texfile::prologue()
 {
   texdefines(*out);
+  if(settings::pdf(texengine)) {
+    double width=box.right-box.left;
+    double height=box.top-box.bottom;
+    *out << "\\pdfhorigin=0bp" << newl
+	 << "\\pdfvorigin=0bp" << newl;
+    if(width > 0) 
+      *out << "\\pdfpagewidth=" << width << "bp" << newl;
+    if(height > 0)
+      *out << "\\pdfpageheight=" << height << "bp" << newl;
+  }
   if(settings::latex(texengine)) {
     if(getSetting<bool>("inlinetex"))
       *out << "\\setlength{\\unitlength}{1pt}" << newl;
@@ -53,11 +63,7 @@ void texfile::prologue()
       if(settings::pdf(texengine))
 	*out << "\\oddsidemargin=-17.61pt" << newl
 	     << "\\evensidemargin=\\oddsidemargin" << newl
-	     << "\\topmargin=-37.01pt" << newl
-	     << "\\pdfhorigin=0bp" << newl
-	     << "\\pdfvorigin=0bp" << newl
-	     << "\\pdfpagewidth=" << box.right-box.left << "bp" << newl
-	     << "\\pdfpageheight=" << box.top-box.bottom << "bp" << newl;
+	     << "\\topmargin=-37.01pt" << newl;
       *out << "\\begin{document}" << newl;
     }
   } else {
@@ -65,11 +71,7 @@ void texfile::prologue()
 	 << "\\voffset=54.0pt" << newl;
     if(settings::pdf(texengine)) {
       *out << "\\hoffset=-20pt" << newl
-	   << "\\voffset=0pt" << newl
-	   << "\\pdfhorigin=0bp" << newl
-	   << "\\pdfvorigin=0bp" << newl
-	   << "\\pdfpagewidth=" << box.right-box.left << "bp" << newl
-	   << "\\pdfpageheight=" << box.top-box.bottom << "bp" << newl;
+	   << "\\voffset=0pt" << newl;
     }
   }
 }
@@ -82,13 +84,12 @@ void texfile::beginlayer(const string& psname)
       *out << "[bb=" << box.left << " " << box.bottom << " "
 	   << box.right << " " << box.top << "]";
     *out << "{" << psname << "}%" << newl;
+    *out << "\\kern-" << (box.right-box.left)*ps2tex << "pt%" << newl;
   }
 }
 
 void texfile::endlayer()
 {
-  if(box.right > box.left && box.top > box.bottom)
-    *out << "\\kern-" << (box.right-box.left)*ps2tex << "pt%" << newl;
 }
 
 void texfile::setlatexcolor(pen p)
@@ -171,7 +172,7 @@ void texfile::put(const string& label, const transform& T, const pair& z,
   if(label.empty()) return;
   
   *out << "\\ASYalign"
-       << "(" << (z.getx()-box.right)*ps2tex
+       << "(" << (z.getx()-box.left)*ps2tex
        << "," << (z.gety()-box.bottom)*ps2tex
        << ")(" << align.getx()
        << "," << align.gety() 

@@ -29,6 +29,7 @@
 #include "interact.h"
 #include "errormsg.h"
 #include "memory.h"
+#include "util.h"
 
 namespace vm {
 extern bool indebugger;  
@@ -239,6 +240,7 @@ public:
   ~ofile() {close();}
   
   void open() {
+    checkLocal(name);
     if(standard) {
       stream=&std::cout;
     } else {
@@ -335,7 +337,7 @@ class oxfile : public file {
   xdr::oxstream stream;
 public:
   oxfile(const string& name, bool append=false) : 
-    file(name), stream(name.c_str(),
+    file(name), stream((checkLocal(name), name.c_str()),
 		       append ? xdr::xios::app : xdr::xios::trunc) {Check();}
 
   ~oxfile() {close();}

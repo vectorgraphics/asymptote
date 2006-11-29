@@ -2,6 +2,7 @@
 @setfilename asymptote.info
 @settitle Asymptote: the Vector Graphics Language
 @include version.texi
+@finalout
 
 @copying
 This file documents @code{Asymptote}, version @value{VERSION}.
@@ -126,12 +127,13 @@ Base modules
 * drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
 * roundedpath::                 Round the sharp corners of paths
+* pdfanim::                     Portable embedded @code{PDF} movies
+* embed::                       Embedding movies, sounds, and 3D objects
 * slide::                       Making presentations with @code{Asymptote}
 * MetaPost::                    @code{MetaPost} compatibility routines
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Implement @code{LaTeX} @code{babel} package
-* embed::                       Embedding movies, sounds, and 3D objects
 * annotate::                    Annotate your @acronym{PDF} files
 * CAD::                         2D CAD pen and measurement functions (DIN 15)
 * graph::                       2D linear & logarithmic graphs
@@ -173,7 +175,7 @@ that can generate objects directly. However, the script portion of the language
 is now ready for general use by users who are willing to learn a few
 simple @code{Asymptote} graphics commands (@pxref{Drawing commands}).
 
-@code{Asymptote} is mathematically oriented (e.g. one can
+@code{Asymptote} is mathematically oriented (e.g.@ one can
 use complex multiplication to rotate a vector) and uses
 @code{LaTeX} to do the 
 typesetting of labels. This is an important feature for scientific
@@ -266,38 +268,55 @@ and provide guidance to others by rating the @code{Asymptote} project:
 
 @cindex @acronym{RPM}
 @cindex @code{tar.gz}
-We now release both @acronym{RPM} and @code{tar.gz} binary distributions of
-@code{Asymptote}. Here are the commands that the root user can use to
-install the @code{Linux i386} binary distribution of version @code{x.xx} of
-@code{Asymptote} in @code{/usr/local}. The executable file will be
-@code{/usr/local/bin/asy} (the optional @code{texhash} command
-installs LaTeX style files):
+We release both @code{tar.gz} and @acronym{RPM} binary distributions of
+@code{Asymptote}. The root user can install the @code{Linux i386} @code{tar.gz}
+distribution of version @code{x.xx} of @code{Asymptote} with the commands:
 @verbatim
 tar -C / -zxf asymptote-x.xx.i386.tar.gz
 texhash
 @end verbatim
-
 @noindent
-Example code will be installed by default in
-@code{@value{Datadir}/doc/asymptote/examples}. 
-
-@cindex Debian
-@noindent
-Alternatively, Debian users can install Hubert Chan's @code{Asymptote}
-prebuilt binary from one of the following sites:
-@quotation
-@url{http://www.uhoreg.ca/programming/debian/pool/main/a/asymptote}
-
-@url{http://packages.debian.org/asymptote}
-@end quotation
+The @code{texhash} command, which installs LaTeX style files, is optional.
+The executable file will be @code{/usr/local/bin/asy}) and example code
+will be installed by default in @code{@value{Datadir}/doc/asymptote/examples}. 
 
 @noindent
 @cindex Fedora Core
 Fedora Core 4 (and later) users can easily install @code{Asymptote}
-from Fedora Extras mirrors:
+from the Fedora Extras mirrors:
 @verbatim
 yum install asymptote
 @end verbatim
+
+@cindex Debian
+@noindent
+To install the latest version of @code{Asymptote} on a Debian-based distribution
+(e.g.@ Ubuntu, Mepis, Linspire) you can either compile from
+@code{UNIX} source or use the @code{Alien} program
+@url{http://kitenet.net/~joey/code/alien.html} to convert the
+@code{Linux} @acronym{RPM} @code{asymptote-x.xx-1.i386.rpm} available on
+the @code{Asymptote} download page into a @code{deb} file suitable for
+installation via @code{Dpkg}:
+
+@enumerate
+@item Install Alien (if not installed already):
+
+sudo apt-get install alien
+
+@item Convert the rpm into a deb:
+
+sudo alien --to-deb --scripts --keep-version asymptote-x.xx-1.i386.rpm
+
+@item Use Dpkg to install (or upgrade) the generated deb file into your system:
+
+sudo dpkg -i asymptote_x.xx-1_i386.deb
+@end enumerate
+
+Alternatively, Debian users can install Hubert Chan's @code{Asymptote}
+prebuilt binary from
+@quotation
+@url{http://packages.debian.org/asymptote}
+@end quotation
 
 @node MacOS X binary distributions
 @section MacOS X binary distributions
@@ -546,7 +565,7 @@ configure to look for header files and libraries in nonstandard locations:
 @end verbatim
 
 If you are compiling @code{Asymptote} with @code{gcc}, you will need a
-relatively recent version (e.g. 3.2 or later).  For full interactive
+relatively recent version (e.g.@ 3.2 or later).  For full interactive
 functionality, you will need version 4.2 or later of the @acronym{GNU}
 @code{readline} library.
 
@@ -1696,7 +1715,7 @@ returns @code{(max(u.x,v.x),max(u.y,v.y),max(u.z,v.z)}).
 a character string, implemented using the STL @code{string} class.
 
 Strings delimited by double quotes (@code{"}) are subject to the
-following mapping to allow the use of double quotes in @TeX{} (e.g. for
+following mapping to allow the use of double quotes in @TeX{} (e.g.@ for
 using the @code{babel} package, @pxref{babel}):
 
 @itemize @bullet 
@@ -2219,7 +2238,7 @@ the command
 import texcolors;
 @end verbatim
 Note that there is some overlap between these two standards
-and the definitions of some colors (e.g. @code{Green}) actually disagree.
+and the definitions of some colors (e.g.@ @code{Green}) actually disagree.
 
 @code{Asymptote} also comes with a @code{asycolors.sty} @code{LaTeX} package
 that defines to @code{LaTeX} @acronym{CMYK} versions of
@@ -2721,7 +2740,7 @@ The default size and aspect ratio settings are those given to the
 @code{size} command (which default to @code{0}, @code{0}, and
 @code{true}, respectively).
 
-In certain cases (e.g. 2D graphs) where only an approximate size
+In certain cases (e.g.@ 2D graphs) where only an approximate size
 estimate for @code{pic} is available, the picture fitting routine
 @verbatim
 frame pic.scale(real xsize=this.xsize, real ysize=this.ysize,
@@ -2946,18 +2965,24 @@ the base module @code{plain}.
 @cindex verbatim
 @cindex @code{postscript}
 It is possible to insert verbatim @code{PostScript} commands in a picture with
-the routine
+one of the routines
 @verbatim
 void postscript(picture pic=currentpicture, string s);
+void postscript(picture pic=currentpicture, string s, pair min, pair max)
 @end verbatim
+Here @code{min} and @code{max} can be used to specify explicit bounds
+associated with the resulting @code{PostScript} code.
 
 @anchor{tex}
 @cindex @code{tex}
 Verbatim @TeX{} commands can be inserted in the intermediate
-@code{LaTeX} output file with the function 
+@code{LaTeX} output file with one of the functions
 @verbatim
 void tex(picture pic=currentpicture, string s);
+void tex(picture pic=currentpicture, string s, pair min, pair max)
 @end verbatim
+Here @code{min} and @code{max} can be used to specify explicit bounds
+associated with the resulting @code{TeX} code.
 
 To issue a global @TeX{} command (such as a @TeX{} macro definition) in the
 @TeX{} preamble (valid for the remainder of the top-level module) use:
@@ -3597,7 +3622,7 @@ based on their signatures.
 Functions are allowed to call themselves recursively. As in C++, infinite
 nested recursion will generate a stack overflow (reported as a
 segmentation fault, unless a fully working version of the @acronym{GNU}
-library @code{libsigsegv} (e.g. 2.4 or later) is installed at
+library @code{libsigsegv} (e.g.@ 2.4 or later) is installed at
 configuration time).
 
 @menu
@@ -4778,12 +4803,13 @@ Here now is @code{latexusage.tex}:
 * drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
 * roundedpath::                 Round the sharp corners of paths
+* pdfanim::                     Portable embedded @code{PDF} movies
+* embed::                       Embedding movies, sounds, and 3D objects
 * slide::                       Making presentations with @code{Asymptote}
 * MetaPost::                    @code{MetaPost} compatibility routines
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Implement @code{LaTeX} @code{babel} package
-* embed::                       Embedding movies, sounds, and 3D objects
 * annotate::                    Annotate your @acronym{PDF} files
 * CAD::                         2D CAD pen and measurement functions (DIN 15)
 * graph::                       2D linear & logarithmic graphs
@@ -4919,11 +4945,77 @@ and @code{fermi.asy}.
 @cindex @code{roundedpath}
 This package, contributed by Stefan Knorr, is useful for rounding the
 sharp corners of paths, as illustrated in the example file @code{roundpath.asy}.
+
+@node pdfanim
+@section @code{pdfanim}
+@cindex @code{pdfanim}
+This module produces portable clickable high-quality @code{PDF} movies, with
+optional controls, that are internally generated and embedded by
+@code{Asymptote}, using version 0.53 of the @code{pdfanim.sty} package
+(shipped and installed with @code{Asymptote}, documented in
+@code{PDFAnim_Guide.pdf}). This requires the additional files
+@quotation
+@url{http://www.tug.org/tex-archive/macros/latex/contrib/acrotex/eforms.ins}
+@url{http://www.tug.org/tex-archive/macros/latex/contrib/acrotex/eforms.dtx}
+@url{http://www.tug.org/tex-archive/macros/latex/contrib/acrotex/insdljs.ins}
+@url{http://www.tug.org/tex-archive/macros/latex/contrib/acrotex/insdljs.dtx}
+@end quotation
+@noindent
+These files can be installed by placing them in a directory @code{eforms} in
+the @code{LaTeX} source directory
+(e.g.@ @code{/usr/share/texmf/tex/latex/eforms}) and executing in that
+directory the commands:
+@verbatim
+tex eforms.ins
+tex insdljs.ins
+texhash
+@end verbatim
+
+The example @code{pdfmovie.asy} in the @code{animations}
+directory, along with the slide presentation @code{slidedemo.asy},
+illustrate the use of embedded @code{PDF} movies.
+
+@node embed
+@section @code{embed}
+@cindex @code{embed}
+This module provides an interface to the @code{LaTeX} package
+(included with @code{MikTeX}) 
+@quotation
+@url{http://www.tug.org/tex-archive/macros/latex/contrib/movie15}
+@end quotation
+@noindent
+for embedding movies, sounds, and 3D objects into a @acronym{PDF} document.
+The latest version of the @code{movie15} package also requires
+@quotation
+@url{http://www.tug.org/tex-archive/macros/latex/contrib/oberdiek/ifdraft.dtx}
+@end quotation
+@noindent
+which can be installed by placing it in a directory @code{ifdraft} in
+the @code{LaTeX} source directory
+(e.g.@ @code{/usr/share/texmf/tex/latex/ifdraft}) and executing in that
+directory the commands:
+@verbatim
+tex ifdraft.dtx
+texhash
+@end verbatim
+
+@cindex @code{external}
+Note that while Adobe unfortunately has not yet made available an
+embedded movie plugin for the Linux version of @code{Adobe Reader},
+support for the @code{U3D} format is now available. A portable method for
+embedding movies, which should work on any platform and does not require
+the @code{movie15} or @code{ifdraft} packages, is provided by using the
+@code{external} module instead of @code{embed}. 
+An example of these interfaces is provided in the file
+@code{embeddedmovie.asy} and @code{externalmovie.asy} in the
+@code{animations} subdirectory of the examples directory.
+
 @node slide
 @section @code{slide}
 @cindex @code{slide}
 This package provides a simple yet high-quality facility for making
-presentation slides. An example is provided in the file
+presentation slides, including portable embedded @code{PDF} animations.
+An example is provided in the file
 @code{slidedemo.asy}:
 
 @verbatiminclude ../examples/slidedemo.asy
@@ -4942,7 +5034,7 @@ Import this package at the beginning of the file to instruct
 @code{LaTeX} to accept @code{unicode} (UTF-8) standardized international
 characters. You will also need to set up @code{LaTeX} support for
 @code{unicode} by unpacking in your @code{LaTeX} source directory
-(e.g. @code{/usr/share/texmf/tex/latex}) the file
+(e.g.@ @code{/usr/share/texmf/tex/latex}) the file
 @quotation
 @url{http://www.unruh.de/DniQ/latex/unicode/unicode.tgz}
 @end quotation
@@ -4997,24 +5089,6 @@ This module implements the @code{LaTeX} @code{babel} package in
 import babel;
 babel("german");
 @end verbatim
-
-@node embed
-@section @code{embed}
-@cindex @code{embed}
-This module provides an interface to the @code{LaTeX} package
-(included with @code{MikTeX}) 
-@quotation
-@url{http://www.tug.org/tex-archive/macros/latex/contrib/movie15}
-@end quotation
-@noindent
-for embedding movies, sounds, and 3D objects into a @acronym{PDF} document.
-Note that while Adobe unfortunately has not yet made available an
-embedded movie plugin for the Linux version of @code{Adobe Reader},
-support for the @code{U3D} format is now available.
-
-An example of this interface is provided in the file
-@code{embeddedmovie.asy} in the @code{animations} subdirectory of the
-examples directory.
 
 @node annotate
 @section @code{annotate}
@@ -5479,7 +5553,6 @@ the picture covered by a label:
 To specify a fixed size for the graph proper, use @code{attach}:
 @verbatiminclude lineargraph.asy
 
-@page
 @cindex @code{legend}
 A legend can have multiple entries per line:
 @verbatiminclude legend.asy
@@ -5604,7 +5677,7 @@ The predefined scaling routines can be given two optional boolean arguments:
 be respectively set to @code{false} to disable automatic selection of
 "nice" axis minimum and maximum values. @code{Linear}
 can also take as an optional final argument a multiplicative scaling
-factor (e.g. for a depth axis, @code{Linear(-1)} requests axis reversal). 
+factor (e.g.@ for a depth axis, @code{Linear(-1)} requests axis reversal). 
 
 @cindex logarithmic graph
 @cindex log-log graph
@@ -5615,6 +5688,7 @@ For example, to draw a log/log graph of a function, use @code{scale(Log,Log)}:
 @cindex grid
 By extending the ticks, one can easily produce a logarithmic grid:
 @verbatiminclude loggrid.asy
+
 @image{loggrid}
 
 One can also specify custom tick locations and formats for logarithmic axes:
@@ -5691,6 +5765,7 @@ data in @code{diatom.csv} and @code{westnile.csv}.
 @image{westnile,,7.5cm}
 @end enumerate
 
+@page
 @node palette
 @section @code{palette}
 @anchor{images}

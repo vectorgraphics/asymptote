@@ -82,10 +82,6 @@ public:
     return nodes.empty();
   }
   
-  bool empty() {
-    bounds();
-    return null();
-  }
 };
 
 inline picture *transformed(const transform& t, picture *p)

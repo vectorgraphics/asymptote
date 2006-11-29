@@ -153,7 +153,7 @@ void picture::texinit()
   TeXpipepreamble.clear();
 
   tex << "\n";
-  tex.wait(texready.c_str(),"! ");
+  tex.wait(texready.c_str(),texabort(getSetting<mem::string>("tex")));
   TeXinitialized=true;
 }
   
@@ -344,13 +344,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   bool TeXmode=getSetting<bool>("inlinetex") && 
     getSetting<mem::string>("tex") != "none";
-  Labels=(labels || TeXmode) && (b.right > b.left && b.top > b.bottom);
+  Labels=labels || TeXmode;
   
   pdf=settings::pdf(getSetting<mem::string>("tex"));
   
   bool standardout=Prefix == "-";
   string prefix=standardout ? "out" : Prefix;
-  checkFormatString(format);
   string preformat=nativeformat();
   string outputformat=format.empty() ? defaultformat() : format;
   epsformat=outputformat == "eps";
@@ -366,7 +365,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   static ofstream bboxout;
   
-  if(null()) { // Output a null file
+  if(b.empty && !Labels) { // Output a null file
     bbox b;
     b.left=b.bottom=0;
     b.right=b.top=1;
@@ -500,7 +499,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     if(Labels) {
       tex->resetpen();
       if(status) {
-	if(pdf) {
+	if(pdf && !b.empty) {
 	  out.close();
 	  status=(epstopdf(psname,pdfname) == 0);
 	}

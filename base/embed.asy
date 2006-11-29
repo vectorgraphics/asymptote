@@ -1,6 +1,10 @@
 usepackage("movie15","3D");
 usepackage("hyperref");
 
+// See http://www.tug.org/tex-archive/macros/latex/contrib/movie15/README
+// for documentation of the options.
+
+// Embed object in pdf file 
 string embed(string name, string options="", real width=0, real height=0)
 {
   if(options != "") options="["+options+"]{";
@@ -10,8 +14,16 @@ string embed(string name, string options="", real width=0, real height=0)
   return "\includemovie"+options+"}{"+name+"}";
 }
 
-string hyperlink(string label, string text, string options="")
+string hyperlink(string url, string text)
 {
+  return "\href{"+url+"}{"+text+"}";
+}
+
+string link(string label, string text, string options="")
+{
+// Run LaTeX twice to resolve references.
+  access settings;
+  settings.twice=true;
   if(options != "") options="["+options+"]";
   return "\movieref"+options+"{"+label+"}{"+text+"}";
 }

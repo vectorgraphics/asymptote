@@ -1,0 +1,329 @@
+\documentclass[a4paper]{ltxdoc}
+\usepackage{hyperref}
+%\usepackage{url}
+
+\begin{document}
+
+%\GetFileInfo{pdfanim.sty}
+
+\title{The \textsf{PDFAnim} package}
+\author{Jochen Skupin (modified by John Bowman)}
+\date{\today}
+\maketitle
+
+\begin{abstract}
+  A \LaTeX\ package to create animated PDFs with pdf\LaTeX.
+\end{abstract}
+
+\changes{v0.03}
+	{2003/03/24}{First animation for \TeX -Showcase: \protect\url{http://www.tug.org/texshowcase/}}
+\changes{v0.51}
+	{2004/06/13}{First published version}
+\changes{v0.53}
+	{2006/11/26}{Second published version}
+
+%\clearpage
+\vfill
+\tableofcontents
+\clearpage
+ 
+\section{Introduction}
+  PDFAnim is a \LaTeX\ package to create animated PDFs with pdf\LaTeX.
+  
+  As it is very unusual to create animations with \LaTeX
+  and to have to deal with JavaScript it might be that large
+  parts of this document are not understandable for the
+  normal \LaTeX user. Don't be too frustrated about it and
+  just try the examples.
+  
+  Comments and bug reports are {\em very} welcome. 
+  You can contact me at:
+  \begin{center}
+  \href{mailto:jochen.skupin@uni-bremen.de}{jochen.skupin@uni-bremen.de}
+  \end{center}
+  
+  Don't be too disappointed if it takes a while until
+  you get an answer, as I have little spare time to 
+  work on this package.
+
+
+\section{Usage}
+To include an animation in a PDF file you need:
+\begin{itemize}
+\item PDF\LaTeX
+\item the PDFAnim package (i.e. the |pdfanim.sty|-file)
+\item The frames of the animation as single PDF files
+  with filenames in the form
+  |filename|\textit{n}|.pdf|
+  where \textit{n} is the number of the \textit{n}th frame of
+  the animation starting with 0.
+\item Adobe Acrobat or AcroReader to view the animation
+\end{itemize}
+
+The package includes the single frames as hidden picture buttons in the
+PDF-file. The animation itself is created using a visible picture
+button whose picture is exchanged using the JavaScript language available
+in Adobe Acrobat and AcroReader.
+The frames of the animation have to be included in the document preamble using
+\begin{center}
+  |\PDFAnimLoad[options]{name}{filename}{number_of_frames}|
+\end{center}
+where |filename| is the head of the filename of the PDF-files
+containing the single frames of the animation omitting the running number
+and the |.pdf| extension.
+|name| is the name of the animation. With this name it can be accessed
+in the document. |number_of_frames| gives the number of files to be
+included. An animation with 10 frames would require 
+|number_of_frames| $=10$ and files |filename0...9.pdf|.
+The various |options| of |\PDFAnimLoad| will be discussed
+in section \ref{sec:options}.
+
+\noindent
+To access the animation anywhere in the document use:
+\begin{center}
+  |\PDFAnimation{name}|
+\end{center}
+
+\noindent
+Examples can be found at:
+\begin{itemize}
+\item
+\url{http://www.uni-bremen.de/~skupin/pdfanim/Demos}
+\item
+\url{http://www.tug.org/texshowcase/}
+\end{itemize}
+
+
+\section{Package option(s)}
+\label{sec:pkgoptions}
+
+The package has to be loaded in the document preamble with:
+\begin{center}
+  |\usepackage[options]{pdfanim}|
+\end{center}
+The package |options| change the way the JavaScript
+code is included in the PDF-file.
+
+\begin{macro}{default}
+The default behaviour (by giving no options at all)
+is to include most of the JavaScript on document level
+and access it via page open/close attributes or via the on-click
+action of the picture button. 
+\begin{itemize}
+\item
+The advantage is that only very short
+function calls have to be included in the page open/close attributes
+because most JavaScript code is stored on document level.
+Also it is possible to define global variables to store the
+status of an animation (like the last displayed frame, is it running or not). 
+\item
+\end{itemize}
+\end{macro}
+
+\begin{macro}{NoDocJS}
+With this option no document level JavaScript is generated.
+All JavaScript is stored in the picture button itself and 
+the page open/close attributes.
+\begin{itemize}
+\item
+The disadvantage is that all JavaScript code is stored on every page
+again. This leads to slightly bigger file sizes.
+Due to this all variables are newly initialised on every page
+so it is not possible to have global variables to remember the status
+of an animation from page to page.
+\end{itemize}
+\end{macro}
+
+\begin{macro}{NoPageJS}
+I didn't yet manage to derive on which page a distinct animation
+(especially floats) is placed by \TeX. The JavaScript code
+for all animations is therefore included in every page. Not very 
+elegant---I know. The problem is that when the document contains
+auto starting animations all of them are started again on {\em every} 
+page. With the |NoPageJS| option the automatic inclusion of
+JavaScript code on any page can be suppressed. 
+\begin{itemize}
+\item
+The advantage is that not all auto start animations will run permanently.
+\item
+The disadvantage is that the user has to take care to put the 
+JavaScript on pages with animations by hand. To do this the
+following 4 commands are provided:
+\end{itemize}
+\end{macro}
+
+\begin{macro}{\PDFAnimJSPageEnable}
+enable JavaScript in page-attribute of current page
+\end{macro}
+\begin{macro}{\PDFAnimJSEnable}
+enable JavaScript in page-attribute on all following pages
+\end{macro}
+\begin{macro}{\PDFAnimJSPageDisable}
+disable JavaScript in page-attribute of current page
+\end{macro}
+\begin{macro}{\PDFAnimJSDisable}
+disable JavaScript in page-attribute on all following pages
+\end{macro}
+
+
+\section{\textsf{PDFAnimLoad} options}
+\label{sec:options}
+
+There are already much too many options. But during my usage 
+of PDFAnim I needed all of them for one or the other reason.
+Unfortunately not all options work well together and some of the
+older ones might not work at all in the current implementation
+anymore. Maybe some clean-up is needed here.
+
+\subsection{Boolean options}
+\label{sec:booloptions}
+
+\begin{macro}{single}
+extract frames as the individual pages of a single input file
+\end{macro}
+
+\begin{macro}{auto}
+auto start animation
+\end{macro}
+
+\begin{macro}{debug}
+enable debug messages
+\end{macro}
+
+\begin{macro}{fallback}
+include start-picture below PictureButton
+as fallback solution for xpdf, macs ...
+(gives poor animation results)
+\end{macro}
+
+\begin{macro}{hidden}
+create hidden PictureButton
+(mostly for internal use)
+\end{macro}
+
+\begin{macro}{loop}
+loop animation
+\end{macro}
+
+\begin{macro}{noclick}
+don't recognise clicks on PictureButton
+\end{macro}
+
+\begin{macro}{remember}
+remember last displayed picture when
+changing to another page
+\end{macro}
+
+\begin{macro}{reverse}
+play animation in reversed order
+\end{macro}
+
+\begin{macro}{step}
+advance animation on every mouse-click
+\end{macro}
+
+\subsection{Options that take parameters}
+\label{sec:paroptions}
+
+\begin{macro}{bcolor}
+bordercolor of PictureButton
+\end{macro}
+
+\begin{macro}{bgcolor}
+backgroundcolor of PictureButton
+\end{macro}
+
+\begin{macro}{defaultframe}
+select frame to display when animation not yet running
+\end{macro}
+
+\begin{macro}{depth}
+depth of PictureButton
+\end{macro}
+
+\begin{macro}{extension}
+set extension of included pictures
+(till now only pdf works)
+\end{macro}
+
+\begin{macro}{height}
+height of PictureButton
+\end{macro}
+
+\begin{macro}{interval}
+set interval in ms between animation frames
+(only shows effect if interval is longer than
+the time needed to display a frame)
+\end{macro}
+
+\begin{macro}{name}
+name PictureButton
+(may be useful for further editing of the pdf,
+not needed/used by PDFAnim)
+\end{macro}
+
+\begin{macro}{onclick}
+JavaScript action to perform on mouse-click
+(mostly for internal use)
+\end{macro}
+
+\begin{macro}{scale}
+scaling of picture used in PictureButton:
+\begin{itemize}
+\item[A] Always scale.
+\item[B] Scale only when the icon is bigger than the annotation rectangle.
+\item[S] Scale only when the icon is smaller than the annotation rectangle.
+\item[N] Never scale.
+\end{itemize}
+\end{macro}
+
+\begin{macro}{scaletype}
+type of scaling of picture used in PictureButton:
+\begin{itemize}
+\item[A] 
+  Anamorphic scaling: scale the icon to the annotation rectangle
+  exactly, without regard to its original aspect ratio (ratio of width to
+  height).
+\item[P]
+  Proportional scaling: scale the icon to the width or
+  height of the annotation rectangle while maintaining the icon's
+  original aspect ratio. If the required horizontal and vertical scaling
+  factors are different, use the smaller of the two, centering the icon
+  within the annotation rectangle in the other
+  dimension.
+\end{itemize}
+\end{macro}
+
+\begin{macro}{use}
+use pictures from other animation
+(to save memory)
+\end{macro}
+
+\begin{macro}{usecnt}
+use counter from other animation
+\end{macro}
+
+\begin{macro}{startframe}
+select first frame to display
+\end{macro}
+
+\begin{macro}{width}
+width of PictureButton
+\end{macro}
+
+\subsection{Navigation buttons}
+Another command, |\AnimButton|, which is available if you also load
+D. P. Story's package |eforms.sty|, presents an alternative method for starting
+and stoping animations by pressing the Play/Pause button. It also provides
+a method for jumping to arbitrary locations in long animations. I the
+animation is not running, you can input a percentage; pressing
+Play/Pause then starts the animation from that relative position (e.g.\ 75
+means frame 150 for a 200-frame animation).
+
+\section{Open issues}
+\subsection*{Fewer options}
+During my usage of PDFAnim I used all of the options 
+in section \ref{sec:options}. But I guess they can be reduced and combined
+in a better way. Any improvements are welcome.
+
+\end{document}

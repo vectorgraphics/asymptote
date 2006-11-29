@@ -28,7 +28,10 @@ extern const char BUGREPORT[];
 
 extern const string docdir;
   
-extern int safe;
+extern bool safe;
+  
+extern bool global();
+
 enum origin {CENTER,BOTTOM,TOP,ZERO};
 //extern int origin;
   
@@ -78,6 +81,7 @@ const char *endlabel(const mem::string& texengine);
 const char *clip(const mem::string& texengine);
 const char *beginspecial(const mem::string& texengine);
 const char *endspecial();
+const char **texabort(const mem::string& texengine);
   
 mem::string texengine();
 }

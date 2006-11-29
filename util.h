@@ -19,7 +19,12 @@ using std::endl;
 using std::ostringstream;
 using std::string;
 
-string stripExt(const string& name, const string& suffix);
+string stripExt(string name, const string& suffix="");
+  
+void writeDisabled();
+  
+// Check if global writes disabled and name contains a directory.
+void checkLocal(string name);
   
 // Strip the directory from a filename.
 string stripDir(string name);
@@ -32,8 +37,6 @@ string buildname(string filename, string suffix="", string aux="",
 // Construct an alternate filename for a temporary file in the current
 // directory.
 string auxname(string filename, string suffix="");
-
-bool checkFormatString(const string& format);
 
 // Similar to the standard system call except allows interrupts and does
 // not invoke a shell.
