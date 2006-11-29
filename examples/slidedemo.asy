@@ -4,11 +4,11 @@
 
 orientation=Landscape;
 
+settings.tex="pdflatex";
+
 // Generated needed files if they don't already exist.
 asy(nativeformat(),"Pythagoras","log","near_earth");
 asy("mpg","animations/wheel");
-
-settings.tex="pdflatex";
 
 import slide;
 
