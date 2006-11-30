@@ -5,6 +5,6 @@ if(latex()) {
   settings.autorotate=false;
   usepackage("color");
   usepackage("hyperref","setpagesize=false");
-  usepackage("pdfanim","NoPageJS");
+  usepackage("pdfanim_temp","NoPageJS");
   usepackage("eforms","pdftex");
 }

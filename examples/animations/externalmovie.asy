@@ -12,5 +12,3 @@ settings.outformat="pdf";
 label(embed("wheel.mpg"),(0,0),N);
 
 label(link("wheel.mpg","Play"),(0,0),S);
-
-

@@ -22,7 +22,7 @@ CLEAN = camp.output asy.list
 NAME = asy
 EXTRABIN = x$(NAME)
 EXTRA = asy-mode.el,asy-keywords.el,asy-init.el,asy.vim,asymptote.py
-LATEXFILES = asymptote.sty,asycolors.sty,pdfanim.sty
+LATEXFILES = asymptote.sty,asycolors.sty,pdfanim_temp.sty
 
 DEFS = @DEFS@ @OPTIONS@
 CFLAGS = @CPPFLAGS@ @CFLAGS@ 

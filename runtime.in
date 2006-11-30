@@ -2610,7 +2610,10 @@ int convert(string *args, string output=emptystring,
 int delete(string *s) 
 {
   checkLocal(*s);
-  return unlink(s->c_str());
+  int rc=unlink(s->c_str());
+  if(rc == 0 && verbose > 0) 
+    cout << "Deleted " << *s << endl;
+  return rc;
 }
 
 // Call ImageMagick animate.

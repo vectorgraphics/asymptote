@@ -4,9 +4,9 @@
 
 \begin{document}
 
-%\GetFileInfo{pdfanim.sty}
+%\GetFileInfo{pdfanim_temp.sty}
 
-\title{The \textsf{PDFAnim} package}
+\title{The \textsf{PDFAnim\_temp} package}
 \author{Jochen Skupin (Version 0.52A, modified by John Bowman)}
 \date{\today}
 \maketitle
@@ -28,7 +28,9 @@
 \clearpage
  
 \section{Introduction}
-  PDFAnim is a \LaTeX\ package to create animated PDFs with pdf\LaTeX.
+  PDFAnim\_temp is an interim \LaTeX\ package to create animated PDFs with
+  pdf\LaTeX. It will become obsolete as soon as the 0.53 release of PDFanim
+  is made.
   
   As it is very unusual to create animations with \LaTeX
   and to have to deal with JavaScript it might be that large
@@ -51,7 +53,7 @@
 To include an animation in a PDF file you need:
 \begin{itemize}
 \item PDF\LaTeX
-\item the PDFAnim package (i.e. the |pdfanim.sty|-file)
+\item the PDFAnim package (i.e. the |pdfanim_temp.sty|-file)
 \item The frames of the animation as single PDF files
   with filenames in the form
   |filename|\textit{n}|.pdf|
@@ -99,7 +101,7 @@ Examples can be found at:
 
 The package has to be loaded in the document preamble with:
 \begin{center}
-  |\usepackage[options]{pdfanim}|
+  |\usepackage[options]{pdfanim_temp}|
 \end{center}
 The package |options| change the way the JavaScript
 code is included in the PDF-file.
@@ -312,7 +314,7 @@ width of PictureButton
 \end{macro}
 
 \subsection{Navigation buttons}
-Another command, |\AnimButton|, which is available if you also load
+Another command, |\PDFAnimButtons|, which is available if you also load
 D. P. Story's package |eforms.sty|, presents an alternative method for starting
 and stoping animations by pressing the Play/Pause button. It also provides
 a method for jumping to arbitrary locations in long animations. I the

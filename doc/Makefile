@@ -2,11 +2,11 @@ MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy) latexusage.asy
 FIGURES = version.texi 
 ASY = ../asy -dir ../base
-DOCFILES = asymptote.pdf,CAD.pdf,PDFAnim_Guide.pdf
+DOCFILES = asymptote.pdf,CAD.pdf,PDFAnim_temp_Guide.pdf
 
 doc:	asymptote.dvi asymptote.info html man
 
-man:	asymptote.pdf CAD.pdf PDFAnim_Guide.pdf
+man:	asymptote.pdf CAD.pdf PDFAnim_temp_Guide.pdf
 
 faq:	
 	cd FAQ; $(MAKE) faq
@@ -50,9 +50,9 @@ CAD.pdf: CAD.tex CAD1.eps
 	latex CAD
 	dvipdf CAD
 
-PDFAnim_Guide.pdf: PDFAnim_Guide.tex
-	latex PDFAnim_Guide
-	dvipdf PDFAnim_Guide
+PDFAnim_temp_Guide.pdf: PDFAnim_temp_Guide.tex
+	latex PDFAnim_temp_Guide
+	dvipdf PDFAnim_temp_Guide
 
 html:	$(FIGURES) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
 	mkdir -p asymptote

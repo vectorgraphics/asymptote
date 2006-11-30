@@ -19,14 +19,14 @@ struct animation {
     return animation;
   }
   
-  private string nextname() {
+  private string nextname(string prefix=prefix) {
     string name=prefix+(string)index;
     ++index;
     return stripextension(stripdirectory(name));
   }
 
-  void shipout(picture pic=currentpicture) {
-    string name=nextname();
+  void shipout(string prefix=prefix, picture pic=currentpicture) {
+    string name=nextname(prefix);
     string format=nativeformat();
     shipout(name,pic,format=format,view=false);
     files.push(name+"."+format);
@@ -36,8 +36,6 @@ struct animation {
     pictures.push(pic.copy());
   }
   
-  access settings;
-
   void purge(bool keep) {
     if(!(keep || settings.keep)) {
       for(int i=0; i < files.length; ++i)
@@ -61,7 +59,7 @@ struct animation {
   pair min,max;
 
   // Export all frames with the same scaling.
-  void export(bool multipage=false) {
+  void export(string prefix=prefix, bool multipage=false) {
     if(pictures.length == 0) return;
     picture all;
     size(all,pictures[0]);
@@ -91,13 +89,25 @@ struct animation {
 
   // delay is in milliseconds
   string pdf(real delay=animationdelay, string options="") {
+    string filename="_"+stripextension(stripdirectory(prefix));
     if(!pdflatex()) return "";
-    export(true);
+    export(filename,true);
     shipped=false;
     string s="\PDFAnimLoad[single,interval="+string(delay);
     if(options != "") s += ","+options;
-    texpreamble(s+"]{"+prefix+"}{"+prefix+"}{"+string(pictures.length)+"}%");
+    texpreamble(s+"]{"+prefix+"}{"+filename+"}{"+string(pictures.length)+"}%");
+
+    if(!settings.keep) {
+      exitfcn atexit=atexit();
+      void exitfunction() {
+	atexit();
+	delete(filename+".pdf");
+      }
+      atexit(exitfunction);
+    }
+
     return "\PDFAnimJSPageEnable\PDFAnimation{"+prefix+"}";
+
   }
 
   private string color(string name, pen p, bool colorspace=false) {

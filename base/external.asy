@@ -9,6 +9,15 @@ string embed(string name, string options="", real width=0, real height=0,
   if(image == "") {
     image=stripdirectory(stripextension(name))+"."+nativeformat();
     convert(name+"[0]",image,nativeformat());
+
+    if(!settings.keep) {
+      exitfcn atexit=atexit();
+      void exitfunction() {
+	atexit();
+	delete(image);
+      }
+      atexit(exitfunction);
+    }
   }
   if(width != 0) options += ", width="+(string) (width*pt)+"pt"; 
   if(height != 0) options +=", height="+(string) (height*pt)+"pt"; 
