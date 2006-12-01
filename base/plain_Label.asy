@@ -183,7 +183,7 @@ transform Slant(transform t) {return scaleless(t);}
 transform Scale(transform t) {return t;}
 
 embed Rotate(pair z) {
-  return new transform(transform t) {return rotate(degrees(t*z));};
+  return new transform(transform t) {return rotate(degrees(shiftless(t)*z));};
 }
 
 struct Label {
