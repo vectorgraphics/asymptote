@@ -6565,12 +6565,14 @@ Options:
 -l,-listvariables     List available global functions and variables [false]
 -localhistory         Use a local interactive history file [false]
 -m,-mask              Mask fpu exceptions; command-line only
+-multiline            Input code over multiple lines at the prompt [false]
 -multipleView         View output from multiple batch-mode files [false]
 -O,-offset pair       PostScript offset [(0,0)]
 -f,-outformat format  Convert each output file to specified format [eps]
 -o,-outname name      Alternative output name for first file
 -p,-parseonly         Parse file [false]
 -prompt string        Prompt ["> "]
+-prompt2 string       Additional prompt for multiline input [".."]
 -q,-quiet             Suppress welcome message [false]
 -rgb                  Convert cmyk colors to rgb [false]
 -safe                 Disable system call; command-line only [true]

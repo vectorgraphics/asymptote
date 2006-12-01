@@ -26,6 +26,8 @@ extern bool yyparse(void);
 extern int yydebug;
 extern int yy_flex_debug;
 static const int YY_NULL = 0;
+extern bool lexerEOF();
+extern void reportEOF();
 
 namespace parser {
 
@@ -58,19 +60,30 @@ void error(const mem::string& filename)
 }
 
 absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
-                        const mem::string& filename)
+                        const mem::string& filename, bool extendable=false)
 {
   setlexer(input,filename);
   absyntax::file *root = yyparse() == 0 ? absyntax::root : 0;
   absyntax::root = 0;
   yy::sbuf = 0;
-  if(!root) {
+
+  if (!root) {
+    if (lexerEOF()) {
+      if (extendable) {
+        return 0;
+      } else {
+        // Have the lexer report the error.
+        reportEOF();
+      }
+    }
+
     em->error(position::nullPos());
     if(!interact::interactive)
       error(filename);
     else
       throw handled_error();
   }
+
   return root;
 }
 
@@ -118,12 +131,13 @@ absyntax::file *parseFile(const mem::string& filename)
 }
 
 absyntax::file *parseString(const mem::string& code,
-                            const mem::string& filename)
+                            const mem::string& filename,
+                            bool extendable)
 {
   debug(false);
   std::stringbuf buf(code.c_str());
   yy::sbuf = &buf;
-  return doParse(yy::stream_input,filename);
+  return doParse(yy::stream_input,filename,extendable);
 }
 
 } // namespace parser

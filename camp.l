@@ -30,6 +30,9 @@ int tokPos;
 int charPos;
 //int commentDepth = 0;
 
+bool eof;
+string eofMessage;
+
 extern errorstream *em;
 
 extern "C" int yywrap(void)
@@ -49,6 +52,9 @@ void setlexer(input_f input, string filename)
   fi = new fileinfo(filename);
   yy_input = input;
   tokPos = charPos = 1;
+
+  eof=false;
+  eofMessage="<no eof>";
 }
 
 #define YY_INPUT(buf,result,max_size) {result=yy_input(buf,max_size);}
@@ -62,6 +68,7 @@ position lexerPos()
   
 namespace {
 position here()
+
 {
   return lexerPos();
 }
@@ -111,6 +118,31 @@ void error(void)
 
 }
 
+
+// Used by the lexer rules to flag an unexpected end of input.  The message is
+// the error message that should be reported, and may differ if, say the input
+// ends in the middle of a string or comment.
+void setEOF(string message) {
+  eof=true;
+  eofMessage=message;
+}
+  
+// Called by code outside of the lexer to see if a parse error was caused by
+// running out of input.
+bool lexerEOF()
+{
+  return eof;
+}
+
+// Called by code outside of the lexer when it wants to report the unexpected
+// eof as an error (instead of looking for more input).
+void reportEOF() {
+  assert(eof);
+  error();
+  *em << eofMessage;
+  em->sync();
+}
+
 string stringbuild;
 
 namespace {
@@ -148,10 +180,9 @@ EXTRAOPS <<|>>|$|$$|@|@@|~
                     /*if (commentDepth == 0)*/ BEGIN INITIAL; }
 \r\n|\n|\r         {adjust(); newline(); continue; }
 <<EOF>>            {adjust();
-                    error();
-                    *em << "comment not terminated";
+                    setEOF("comment not terminated");
                     BEGIN INITIAL;
-                    yyterminate();
+                    return GARBAGE;
                    }
 .                  {adjust(); continue; }
 }
@@ -163,10 +194,10 @@ EXTRAOPS <<|>>|$|$$|@|@@|~
                     getstring(); 
                     return STRING; }
 <<EOF>>            {adjust();
-                    error();
-                    *em << "string not terminated";
+                    setEOF("string not terminated");
                     BEGIN INITIAL;
-                    yyterminate();
+                    getstring(); 
+                    return GARBAGE;
                    }
 \r\n|\n|\r         {adjust(); newline(); append('\n'); continue; }
 {ESC}{ESC}         {adjust(); append('\\'); append('\\'); continue; }
@@ -181,10 +212,10 @@ EXTRAOPS <<|>>|$|$$|@|@@|~
                     getstring(); 
                     return STRING; }
 <<EOF>>            {adjust();
-                    error();
-                    *em << "string not terminated";
+                    setEOF("string not terminated");
                     BEGIN INITIAL;
-                    yyterminate();
+                    getstring(); 
+                    return GARBAGE;
                    }
 \r\n|\n|\r         {adjust(); newline(); append('\n'); continue; }
 {ESC}(\'|\"|\?|\\)       {adjust(); append(yytext[1]); continue; }
@@ -339,10 +370,9 @@ operator           {adjust(); BEGIN opname; }
 [ \t\r]            {adjust(); continue;} 
 \r\n|\n|\r         {adjust(); newline(); continue;}
 <<EOF>>            {adjust();
-                    error();
-                    *em << "missing operator name";
+                    setEOF("missing operator name");
                     BEGIN INITIAL;
-                    yyterminate();
+                    return GARBAGE;
                    }
 "**"               { makesymbol(true, "^");
                      BEGIN INITIAL;
@@ -366,6 +396,8 @@ operator           {adjust(); BEGIN opname; }
 \/\*               {adjust(); /*commentDepth = 1;*/ BEGIN lexcomment; }
 \"                 {adjust(); BEGIN texstring; }
 \'                 {adjust(); BEGIN cstring; }
+
+<<EOF>>            { setEOF("unexpected end of input"); yyterminate(); }
 
 .                  {
   adjust(); error(); *em <<"invalid token '" << yytext << "'"; }

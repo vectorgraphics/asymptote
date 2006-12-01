@@ -310,10 +310,165 @@ void printGreeting() {
 	 << " (to view the manual, type help)" << endl;
 }
 
+
 // Add a semi-colon terminator, if one is not there.
 string terminateLine(const string line) {
   return (!line.empty() && *(line.rbegin())!=';') ? (line+";") : line;
 }
+
+// cleanLine changes a C++ style comment (//) into a C-style comment (/* */) so
+// that comments don't absorb subsequent lines of code when multiline input is
+// collapsed to a single line in the history.
+//
+// ex.  if (x==1) // test x
+//        x=2;
+// becomes
+//      if (x==1) /* test x */ x=2    (all on one line)
+//
+// cleanLine is a mess because we have to check that the // is not in a string
+// or c-style comment, which entails re-inventing much of the lexer.  The
+// routine handles most cases, but multiline strings lose their newlines when
+// recorded in the history.
+typedef string::size_type size_type;
+const size_type npos=string::npos;
+
+inline size_type min(size_type a, size_type b) {
+  return a < b ? a : b;
+}
+
+// If start is an offset somewhere within a string, this returns the first
+// offset outside of the string. sym is the character used to start the string,
+// ' or ".
+size_type endOfString(const char sym, const string line, size_type start) {
+  size_type endString=line.find(sym, start);
+  if (endString == npos)
+    return npos;
+
+  size_type escapeInString=min(line.find(string("\\")+sym, start),
+                               line.find("\\\\", start));
+  if (endString < escapeInString)
+    return endString+1;
+  else
+    return endOfString(sym, line, escapeInString+2);
+}
+
+// If start is an offset somewhere within a C-style comment, this returns the
+// first offset outside of the comment.
+size_type endOfComment(const string line, size_type start) {
+  size_type endComment=line.find("*/", start);
+  if (endComment == npos)
+    return npos;
+  else
+    return endComment+2;
+}
+
+// Find the start of a string literal in the line.
+size_type stringPos(const string line, size_type start) {
+  if (start == npos)
+    return npos;
+
+  size_type pos=line.find_first_of("\'\"", start);
+  if (pos == npos)
+    return npos;
+
+  // Skip over comments /*  */ and ignore anything after //
+  size_type startComment=line.find("/*", start);
+  size_type startLineComment=line.find("//", start);
+
+  if (min(startComment,startLineComment) < pos)
+    return stringPos(line,
+                     startComment < startLineComment ?
+                         endOfComment(line, startComment+2) :
+                         npos);
+  else
+    // Nothing to skip over - the symbol actually starts a string.
+    return pos;
+}
+
+// A multiline string should retain its newlines when collapsed to a single
+// line.  This converts
+//   'hello
+//   there'
+// to
+//   'hello\nthere'
+// and
+//   "hello
+//   there"
+// to
+//   "hello" '\n' "there"
+// If the line doesn't end mid-string, this adds a space to the end to preserve
+// whitespace, since it is the last function to touch the line.
+string endString(const string line, size_type start) {
+  assert(start!=npos);
+
+  size_type pos=stringPos(line, start);
+
+  if (pos==npos)
+    return line+" ";
+  else {
+    char sym=line[pos];
+    size_type eos=endOfString(sym, line, pos+1);
+    if (eos==npos) {
+      // Line ends while in a string, attach a newline symbol.
+      switch (line[pos]) {
+        case '\'':
+          return line+"\\n";
+        case '\"':
+          return line+"\" \'\\n\' \"";
+        default:
+           assert(false);
+           return line;
+      }
+    }
+    else {
+      return endString(line, eos+1);
+    }
+  }
+}
+
+// Find the first // that isn't in a C-style comment or a string.
+size_type slashPos(const string line, size_type start) {
+  if (start == npos)
+    return npos;
+
+  size_type pos=line.find("//", start);
+  if (pos == npos)
+    return npos;
+
+  // Skip over comments /*  */ and strings both "   " and '   '
+  size_type startComment=line.find("/*", start);
+  size_type startString=line.find_first_of("\'\"", start);
+
+  if (min(startComment,startString) < pos)
+    return slashPos(line,
+                    startComment < startString ?
+                        endOfComment(line, startComment+2) :
+                        endOfString(line[startString], line, startString+1));
+  else
+    // Nothing to skip over - the // actually starts a comment.
+    return pos;
+}
+
+string cleanLine(const string line) {
+  size_type pos=slashPos(line, 0);
+  if (pos == npos)
+    return endString(line, 0);
+  else {
+    string sub=line;
+
+    // Replace the first // by /*
+    sub[pos+1]='*';
+
+    // Replace any */ in the comment by *!
+    while ((pos = line.find("*/", pos+2)) != npos)
+      sub[pos+1]='!';
+
+    // Tack on a */ at the end.
+    sub.append(" */ ");
+    return sub;
+  }
+}
+
 
 class iprompt : public icore {
   // Flag that is set to false to signal the prompt to exit.
@@ -424,7 +579,7 @@ class iprompt : public icore {
 
   bool input(commandLine cl) {
     string prefix="erase(); include ";
-    string line=terminateLine(prefix+cl.rest);
+    string line=prefix+cl.rest;
     //block *code=parser::parseString(line, "<input>");
     //if (!em->errors() && code) {
 //    if (true) {
@@ -471,10 +626,40 @@ class iprompt : public icore {
       return false;
   }
 
+  void addToHistory(string line) {
+    interact::addToHistory(line);
+  }
+
+  void addToLastLine(string line) {
+    // Here we clean a line at the last possible point, when we know that more
+    // code is going to be appended to it.
+    string last=interact::getLastHistoryLine();
+    interact::setLastHistoryLine(cleanLine(last)+line);
+  }
+
+  block *parseExtendableLine(string line) {
+    block *code=parser::parseString(line, "-", true);
+    if (code) {
+      return code;
+    } else {
+      string nextline=interact::simpleline(getSetting<mem::string>("prompt2"));
+      addToLastLine(nextline);
+      return parseExtendableLine(line+"\n"+nextline);
+    }
+  }
+
   void runLine(coenv &e, istack &s, string line) {
     try {
-      istring i(terminateLine(line), "-");
-      i.run(e,s);
+      if (getSetting<bool>("multiline")) {
+        block *code=parseExtendableLine(line);
+        
+        icode i(code);
+        i.run(e,s);
+      }
+      else {
+        istring i(terminateLine(line), "-");
+        i.run(e,s);
+      }
 
       if(!uptodate)
         run::updateFunction(&s);
@@ -524,7 +709,8 @@ public:
 
     while (running) {
       // Read a line from the prompt.
-      string line=interact::simpleline();
+      string line=interact::simpleline(getSetting<mem::string>("prompt"));
+      addToHistory(line);
 
       // Copied from the old interactive prompt.  Needs to be moved.
       ShipoutNumber=0;

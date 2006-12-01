@@ -89,23 +89,17 @@ char *readline(const char *prompt) {
 }
 #endif  
   
-mem::string simpleline() {
+mem::string simpleline(mem::string prompt) {
   // Rebind tab key, as the setting tabcompletion may be changed at runtime.
   pre_readline();
 
   /* Get a line from the user. */
-  char *line = readline(getSetting<mem::string>("prompt").c_str());
+  char *line = readline(prompt.c_str());
 
   /* Ignore keyboard interrupts while taking input. */
   errorstream::interrupt=false;
 
   if (line) {
-    /* If the line has any text in it, save it on the history. */
-#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-    if (line[0] != '\0' && line[0] != '\n')
-      add_history(line);
-#endif    
-
     mem::string s=line;
     free(line);
     return s;
@@ -113,6 +107,47 @@ mem::string simpleline() {
     cout << endl;
     return "\n";
   }
+}
+
+void addToHistory(mem::string line) {
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+    // Only add it if it has something other than newlines.
+    if (line.find_first_not_of('\n') != string::npos) {
+      add_history(line.c_str());
+    }
+#endif    
+}
+
+mem::string getLastHistoryLine() {
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+  HIST_ENTRY *entry=history_list()[history_length-1];
+  if (!entry) {
+    em->compiler(position());
+    *em << "can't access last history line";
+    return "";
+  }
+  else {
+    return entry->line;
+  }
+#else
+  return "";
+#endif
+}
+
+void setLastHistoryLine(mem::string line) {
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+  HIST_ENTRY *entry=remove_history(history_length-1);
+  if (!entry) {
+    em->compiler(position());
+    *em << "can't modify last history line";
+  }
+  else {
+    addToHistory(line);
+
+    free(entry->line);
+    free(entry);
+  }
+#endif
 }
 
 void deleteLastLine() {

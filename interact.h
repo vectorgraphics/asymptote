@@ -21,7 +21,14 @@ extern bool uptodate;
 void init_interactive();
   
 // Read a line from the input, without any processing.
-mem::string simpleline();
+mem::string simpleline(mem::string prompt);
+
+// Add a line of input to the readline history.
+void addToHistory(mem::string line);
+
+// Functions to work with the most recently entered line in the history.
+mem::string getLastHistoryLine();
+void setLastHistoryLine(mem::string line);
 
 // Remove the line last added to the history.
 void deleteLastLine();

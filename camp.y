@@ -23,13 +23,17 @@
 // available.  Defined in camp.l.
 position lexerPos();
 
+bool lexerEOF();
+
 int yylex(void); /* function prototype */
 
 void yyerror(const char *s)
 {
-  em->error(lexerPos());
-  *em << s;
-  em->sync();
+  if (!lexerEOF()) {
+    em->error(lexerPos());
+    *em << s;
+    em->sync();
+  }
 }
 
 namespace absyntax { file *root; }
@@ -95,6 +99,7 @@ using sym::symbol;
              ACCESS UNRAVEL IMPORT INCLUDE FROM QUOTE STRUCT TYPEDEF NEW
              IF ELSE WHILE DO FOR BREAK CONTINUE RETURN_
              STATIC THIS EXPLICIT
+             GARBAGE
 %token <e>   LIT
 %token <perm> PERM
 %token <mod> MODIFIER

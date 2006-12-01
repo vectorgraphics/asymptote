@@ -797,6 +797,12 @@ void initSettings() {
 			   "", &globaloption, false));
   
   addOption(new stringSetting("prompt", 0,"string","Prompt [\"> \"]","> "));
+  addOption(new stringSetting("prompt2", 0,"string",
+                              "Continuation prompt for multiline input "
+                              "[\"..\"]", ".."));
+  addOption(new boolSetting("multiline", 0,
+                            "Input code over multiple lines at the prompt"));
+
   addOption(new boolSetting("quiet", 'q',
 			    "Suppress welcome message"));
   addOption(new boolSetting("localhistory", 0,
