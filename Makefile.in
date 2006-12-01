@@ -4,6 +4,7 @@ ARCH = unix
 POLL = poll
 
 GC = @GCDIR@
+GCOPTIONS = @GCOPTIONS@
 GCLIBS = @GCLIBS@
 LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @LIBS@ $(GCLIBS)
@@ -67,7 +68,7 @@ $(GCLIBS): $(GC).tar.gz
 	tar -xf $(GC).tar
 	rm -f $(GC).tar
 	cd $(GC); \
-	./configure --disable-threads --disable-shared --enable-cplusplus; \
+	./configure $(GCOPTIONS); \
 	$(MAKE) check
 
 html:	asy

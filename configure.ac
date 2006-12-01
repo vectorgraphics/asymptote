@@ -87,6 +87,7 @@ AC_ARG_ENABLE(gc,
 OPTIONS=
 GCLIBS=
 GCNAME="Boehm Garbage Collector"
+GCOPTIONS="--disable-threads --disable-shared --enable-cplusplus "
 if test "x$ac_cv_use_gc" != "xno" ; then
    OPTIONS=$OPTIONS"-DUSEGC "
    if test "x$ac_cv_use_gc" = "xsystem"; then
@@ -108,6 +109,13 @@ else
    AC_MSG_NOTICE([disabling the $GCNAME])
 fi
 
+AC_ARG_ENABLE(gc-debug,
+[  --enable-gc-debug       Enable (very slow) garbage collector debugging],
+[ if test "x$enableval" = "xyes" ; then
+   OPTIONS=$OPTIONS"-DGC_DEBUG "
+   GCOPTIONS=$GCOPTIONS"--enable-full-debug "
+ fi])
+
 AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
 			   [Define if getopt.h is the GNU version]),
 			   getopt="getopt getopt1",)
@@ -115,6 +123,7 @@ AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")
 
 AC_SUBST(getopt)
 AC_SUBST(GCDIR)
+AC_SUBST(GCOPTIONS)
 AC_SUBST(GCLIBS)
 AC_SUBST(INCL)
 AC_SUBST(OPTIONS)

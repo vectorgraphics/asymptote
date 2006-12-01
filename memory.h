@@ -28,10 +28,23 @@
 
 #include <gc.h>
 
+// WARNING: This is copied from gc6.8/include/gc.h and will conceivably change
+// in future versions of gc.
+# ifdef GC_DEBUG
+#   define GC_OLD_MALLOC(sz) GC_debug_malloc(sz, GC_EXTRAS)
+# else
+#   define GC_OLD_MALLOC(sz) GC_malloc(sz)
+#endif
+
+extern "C" {
+#include <gc_backptr.h>
+}
+
 #undef GC_MALLOC
 inline void *GC_MALLOC(size_t n) { \
-  if (void *mem=GC_malloc(n))      \
+  if (void *mem=GC_OLD_MALLOC(n))  \
     return mem;                    \
+  GC_generate_random_backtrace();  \
   throw std::bad_alloc();          \
 }
   
