@@ -637,13 +637,39 @@ class iprompt : public icore {
     interact::setLastHistoryLine(cleanLine(last)+line);
   }
 
+  // Get input from the interactive prompt.  Such input may be over several
+  // user-typed lines if he/she ends a line a with backslash to continue input
+  // on the next line.  If continuation is true, the input started on a previous
+  // line and is being continued (either because of a backslash or the parser
+  // detecting it in multiline mode).
+  string getline(bool continuation) {
+    string prompt=getSetting<mem::string>(continuation ? "prompt2" : "prompt");
+    string line=interact::simpleline(prompt);
+
+    // If a line ends in a slash, note it, and remove the slash.
+    string::size_type n=line.size();
+    bool slashed=(line[n-1]=='\\');
+    if (slashed)
+      line=line.substr(0,n-1);
+
+    if (continuation)
+      addToLastLine(line);
+    else
+      addToHistory(line);
+
+    return slashed ? line+"\n"+getline(true) :
+                     line;
+  }
+
+  // Continue taking input for a line until it properly parses, or a syntax
+  // error occurs.  Returns the parsed code on success, and throughs a
+  // handled_error exception on failure.
   block *parseExtendableLine(string line) {
     block *code=parser::parseString(line, "-", true);
     if (code) {
       return code;
     } else {
-      string nextline=interact::simpleline(getSetting<mem::string>("prompt2"));
-      addToLastLine(nextline);
+      string nextline=getline(true);
       return parseExtendableLine(line+"\n"+nextline);
     }
   }
@@ -709,8 +735,7 @@ public:
 
     while (running) {
       // Read a line from the prompt.
-      string line=interact::simpleline(getSetting<mem::string>("prompt"));
-      addToHistory(line);
+      string line=getline(false);
 
       // Copied from the old interactive prompt.  Needs to be moved.
       ShipoutNumber=0;
