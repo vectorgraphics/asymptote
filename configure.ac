@@ -111,10 +111,14 @@ fi
 
 AC_ARG_ENABLE(gc-debug,
 [  --enable-gc-debug       enable (very slow) garbage collector debugging],
-[ if test "x$enableval" = "xyes" ; then
-   OPTIONS=$OPTIONS"-DGC_DEBUG "
-   GCOPTIONS=$GCOPTIONS"--enable-full-debug "
- fi])
+[ if test "x$ac_cv_use_gc" != "xno" ; then
+    if test "x$enableval" = "xyes" ; then
+       OPTIONS=$OPTIONS"-DGC_DEBUG "
+       GCOPTIONS=$GCOPTIONS"--enable-full-debug "
+       AC_MSG_NOTICE([enabling GC debugging])
+    fi
+ fi
+])
 
 AC_CHECK_FUNC(getopt_long_only, AC_DEFINE(HAVE_GNU_GETOPT_H, 1,
 			   [Define if getopt.h is the GNU version]),

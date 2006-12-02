@@ -3751,12 +3751,12 @@ string readline(string prompt=emptystring, string history=emptystring,
 #endif
 }
 
-void GC_generate_random_backtrace()
+void generate_random_backtrace()
 {
 #ifdef GC_DEBUG
   GC_generate_random_backtrace();
 #else
-  error("GC debugging is not enabled");
+  error("generate_random_backtrace() requires ./configure --enable-gc-debug");
 #endif
 }
 
@@ -3770,7 +3770,7 @@ void print_random_addresses(int n=1)
     GC_debug_print_heap_obj_proc(base);
   }
 #else
-  error("GC debugging is not enabled");
+  error("print_random_addresses() requires ./configure --enable-gc-debug");
   if(n) return; // Avoid unused variable warning message.
 #endif
 }  
