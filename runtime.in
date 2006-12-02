@@ -3756,36 +3756,21 @@ void GC_generate_random_backtrace()
 #ifdef GC_DEBUG
   GC_generate_random_backtrace();
 #else
-  cerr << "no GC!" << endl;
+  error("GC debugging is not enabled");
 #endif
 }
 
-void print_random_address()
+void print_random_addresses(int n=1)
 {
 #ifdef GC_DEBUG
   GC_gcollect();
-  void *current=GC_generate_random_valid_address();
-  //cerr << "looking at: " << current << endl;
-  void *base=GC_base(current);
-  //cerr << "base is at: " << current << endl;
-  GC_debug_print_heap_obj_proc(base);
-#else
-  cerr << "no GC!" << endl;
-#endif
-}
-
-void print_random_addresses(int n)
-{
-#ifdef GC_DEBUG
-  GC_gcollect();
-  for (int i=0; i<n; ++i) {
+  for (int i=0; i < n; ++i) {
     void *current=GC_generate_random_valid_address();
-    //cerr << "looking at: " << current << endl;
     void *base=GC_base(current);
-    //cerr << "base is at: " << current << endl;
     GC_debug_print_heap_obj_proc(base);
   }
 #else
-  cerr << "no GC!" << endl;
+  error("GC debugging is not enabled");
+  if(n) return; // Avoid unused variable warning message.
 #endif
 }  

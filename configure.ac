@@ -74,8 +74,8 @@ AC_CHECK_HEADER(fftw3.h,
 GCVERSION=6.8
 
 AC_ARG_ENABLE(gc,
-	[  --enable-gc[[=VERSION]]   Use single-threaded Boehm garbage collector (default)]
-	[     [[=system]]    Use system Boehm garbage collector],
+	[  --enable-gc[[=VERSION]]   use single-threaded Boehm garbage collector (default)]
+	[     [[=system]]    use (typically slower) system Boehm garbage collector],
 			[
 			if test "x$enableval" = "xyes"; then
 			   ac_cv_use_gc=$GCVERSION
@@ -110,7 +110,7 @@ else
 fi
 
 AC_ARG_ENABLE(gc-debug,
-[  --enable-gc-debug       Enable (very slow) garbage collector debugging],
+[  --enable-gc-debug       enable (very slow) garbage collector debugging],
 [ if test "x$enableval" = "xyes" ; then
    OPTIONS=$OPTIONS"-DGC_DEBUG "
    GCOPTIONS=$GCOPTIONS"--enable-full-debug "
