@@ -36,12 +36,13 @@ guide arrowhead(path g, position position=EndPoint, pen p=currentpen,
   pair y=point(r,t);
   path base=y+2*size*I*dir(r,t)--y-2*size*I*dir(r,t);
   path left=rotate(-angle,x)*r, right=rotate(angle,x)*r;
-  real tl=intersect(left,base).x, tr=intersect(right,base).x;
-  pair denom=point(right,tr)-y;
-  real factor=denom != 0 ? length((point(left,tl)-y)/denom) : 1;
+  real[] tl=intersect(left,base), tr=intersect(right,base);
+  pair denom=point(right,tr[0])-y;
+  real factor=denom != 0 ? length((point(left,tl[0])-y)/denom) : 1;
   left=rotate(-angle,x)*r; right=rotate(angle*factor,x)*r;
-  tl=intersect(left,base).x; tr=intersect(right,base).x;
-  return subpath(left,0,tl > 0 ? tl : t)--subpath(right,tr > 0 ? tr : t,0)
+  tl=intersect(left,base); tr=intersect(right,base);
+  return subpath(left,0,tl.length > 0 ? tl[0] : 0)--
+    subpath(right,tr.length > 0 ? tr[0] : 0,0)
     ..cycle;
 }
 

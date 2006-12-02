@@ -158,7 +158,7 @@ public:
 double cubiclength(triple z0, triple z0p, triple z1m, triple z1,
 		   double goal=-1);
   
-pair intersect(int L1, int L2, node n1[], node n2[], double fuzz);
+bool intersect(pair& t, int L1, int L2, node n1[], node n2[], double fuzz);
   
 } //namespace camp
 

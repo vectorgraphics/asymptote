@@ -114,11 +114,9 @@ inline void splitCubic(node sn[], double t, node left_, node right_)
 static unsigned count;  
 extern unsigned maxIntersectCount;
   
-pair intersectcubics(node left1, node right1, node left2, node right2,
+bool intersectcubics(pair& t, node left1, node right1, node left2, node right2,
 		     double fuzz, unsigned depth=DBL_MANT_DIG)
 {
-  const pair F(-1,-1);
-
   bbox3 box1, box2;
   box1.add(left1.point); box1.add(left1.post);
   box1.add(right1.pre);  box1.add(right1.point);
@@ -127,45 +125,57 @@ pair intersectcubics(node left1, node right1, node left2, node right2,
   
   double lambda=box1.diameter()+box2.diameter();
   
-  if (box1.Max().getx()+fuzz >= box2.Min().getx() &&
-      box1.Max().gety()+fuzz >= box2.Min().gety() &&
-      box1.Max().getz()+fuzz >= box2.Min().getz() &&
-      box2.Max().getx()+fuzz >= box1.Min().getx() &&
-      box2.Max().gety()+fuzz >= box1.Min().gety() &&
-      box2.Max().getz()+fuzz >= box1.Min().getz()) {
-    if(lambda <= fuzz || depth == 0 || count == 0)
-      return pair(0,0);
+  if(box1.Max().getx()+fuzz >= box2.Min().getx() &&
+     box1.Max().gety()+fuzz >= box2.Min().gety() &&
+     box1.Max().getz()+fuzz >= box2.Min().getz() &&
+     box2.Max().getx()+fuzz >= box1.Min().getx() &&
+     box2.Max().gety()+fuzz >= box1.Min().gety() &&
+     box2.Max().getz()+fuzz >= box1.Min().getz()) {
+    if(lambda <= fuzz || depth == 0 || count == 0) {
+      t=pair(0,0);
+      return true;
+    }
     --depth;
     --count;
     node sn1[3], sn2[3];
     splitCubic(sn1,0.5,left1,right1);
     splitCubic(sn2,0.5,left2,right2);
-    pair t;
-    if ((t=intersectcubics(sn1[0],sn1[1],sn2[0],sn2[1],fuzz,depth)) != F)
-      return t*0.5;
-    if ((t=intersectcubics(sn1[0],sn1[1],sn2[1],sn2[2],fuzz,depth)) != F)
-      return t*0.5+pair(0,1);
-    if ((t=intersectcubics(sn1[1],sn1[2],sn2[0],sn2[1],fuzz,depth)) != F)
-      return t*0.5+pair(1,0);
-    if ((t=intersectcubics(sn1[1],sn1[2],sn2[1],sn2[2],fuzz,depth)) != F)
-      return t*0.5+pair(1,1);
-  }
-  return F;
-}
-  
-pair intersect(int L1, int L2, node n1[], node n2[], double fuzz=0.0)
-{
-  pair F=pair(-1,-1);
-  for (int i=0; i < L1; ++i) {
-    node left1=n1[i];
-    node right1=n1[i+1];
-    for (int j=0; j < L2; ++j) {
-      count=maxIntersectCount;
-      pair t=intersectcubics(left1,right1,n2[j],n2[j+1],fuzz);
-      if (t != F) return t*0.5 + pair(i,j);
+    pair T;
+    if(intersectcubics(T,sn1[0],sn1[1],sn2[0],sn2[1],fuzz,depth)) {
+      t=T*0.5;
+      return true;
+    }
+    if(intersectcubics(T,sn1[0],sn1[1],sn2[1],sn2[2],fuzz,depth)) {
+      t=T*0.5+pair(0,1);
+      return true;
+    }
+    if(intersectcubics(T,sn1[1],sn1[2],sn2[0],sn2[1],fuzz,depth)) {
+      t=T*0.5+pair(1,0);
+      return true;
+    }
+    if(intersectcubics(T,sn1[1],sn1[2],sn2[1],sn2[2],fuzz,depth)) {
+      t=T*0.5+pair(1,1);
+      return true;
     }
   }
-  return F;
+  return false;
+}
+  
+bool intersect(pair &t, int L1, int L2, node n1[], node n2[], double fuzz=0.0)
+{
+  for(int i=0; i < L1; ++i) {
+    node left1=n1[i];
+    node right1=n1[i+1];
+    for(int j=0; j < L2; ++j) {
+      count=maxIntersectCount;
+      pair T;
+      if(intersectcubics(T,left1,right1,n2[j],n2[j+1],fuzz)) {
+	t=T*0.5+pair(i,j);
+	return true;
+      }
+    }
+  }
+  return false;
 }
   
 } //namespace camp

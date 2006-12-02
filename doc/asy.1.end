@@ -1,0 +1,10 @@
+
+.SH SEE ALSO
+Asymptote is documented fully in the asymptote Info page.
+The manual can also be accessed in interactive mode with the "help" command.
+
+.SH AUTHOR
+Asymptote was written by Andy Hammerlindl, John Bowman, and Tom Prince.
+.PP
+This manual page was written by Hubert Chan for the Debian project (but may
+be used by others).

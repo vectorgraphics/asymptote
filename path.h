@@ -249,7 +249,7 @@ public:
   
 };
 
-pair intersectiontime(path p1, path p2, double fuzz);
+bool intersect(pair& t, path p1, path p2, double fuzz);
   
 // Concatenates two paths into a new one.
 path concat(path p1, path p2);

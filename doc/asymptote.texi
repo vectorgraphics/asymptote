@@ -2034,25 +2034,24 @@ in the sense of @code{point(path, real)}. If @code{a} < @code{b}, the
 direction of the subpath is reversed.
 
 @cindex @code{intersect}
-@item pair intersect(path p, path q, real fuzz=0);
+@item real[] intersect(path p, path q, real fuzz=0);
 If @code{p} and @code{q} have at least one intersection point, return a
-pair of times representing the respective path times along
-@code{p} and @code{q}, in the sense of @code{point(path, real)}, for
-one such intersection point (as chosen by the algorithm described on
-page 137 of @code{The MetaFontbook}). 
+real array of length 2 containing the times representing the respective
+path times along @code{p} and @code{q}, in the sense of 
+@code{point(path, real)}, for one such intersection point (as chosen by
+the algorithm described on page 137 of @code{The MetaFontbook}). 
 Perform the computations to the absolute error specified by @code{fuzz}, 
 or, if @code{fuzz} is 0, to machine precision. If the paths do not 
-intersect, return the pair @code{(-1,-1)}.
+intersect, return a real array of length 0.
 
 @cindex @code{intersectionpoint}
 @item pair intersectionpoint(path p, path q, real fuzz=0);
-This returns @code{point(p,intersect(p,q,fuzz).x)}, the actual point
-of intersection.
+returns the intersection point @code{point(p,intersect(p,q,fuzz)[0])}.
 
 @cindex @code{firstcut}
 @cindex @code{slice}
 @item slice firstcut(path p, path q);
-Return the portions of path @code{p} before and after the first intersection
+returns the portions of path @code{p} before and after the first intersection
 of @code{p} with path @code{q} as a structure @code{slice} (if no such
 intersection exists, the entire path is considered to be `before' the
 intersection):
@@ -6539,53 +6538,7 @@ represent the rectangular boundaries over which the curve is interpolated.
 @cindex command-line options
 Type @code{asy -h} to see the full list of command line options
 supported by @code{Asymptote}:
-@verbatim
-Usage: asy [options] [file ...]
-
-Options: 
--V,-View              View output; command-line only
--a,-align C|B|T|Z     Center, Bottom, Top, or Zero page alignment [Center]
--autoplain            Enable automatic importing of plain [true]
--autorotate           Enable automatic PDF page rotation [false]
--batchMask            Mask fpu exceptions in batch mode [false]
--batchView            View output in batch mode [false]
--bw                   Convert all colors to black and white [false]
--c,-clearGUI          Clear GUI operations [false]
--cmyk                 Convert rgb colors to cmyk [false]
--d,-debug             Enable debugging messages [false]
--x,-deconstruct X     Deconstruct into transparent GIF objects magnified by X
--gray                 Convert all colors to grayscale [false]
--h,-help              Show summary of options; command-line only
--historylines n       Retain n lines of history [1000]
--i,-ignoreGUI         Ignore GUI operations [false]
--inlinetex            Generate inline tex code [false]
--interactiveMask      Mask fpu exceptions in interactive mode [true]
--interactiveView      View output in interactive mode [true]
--k,-keep              Keep intermediate files [false]
--l,-listvariables     List available global functions and variables [false]
--localhistory         Use a local interactive history file [false]
--m,-mask              Mask fpu exceptions; command-line only
--multiline            Input code over multiple lines at the prompt [false]
--multipleView         View output from multiple batch-mode files [false]
--O,-offset pair       PostScript offset [(0,0)]
--f,-outformat format  Convert each output file to specified format [eps]
--o,-outname name      Alternative output name for first file
--p,-parseonly         Parse file [false]
--prompt string        Prompt ["> "]
--prompt2 string       Additional prompt for multiline input [".."]
--q,-quiet             Suppress welcome message [false]
--rgb                  Convert cmyk colors to rgb [false]
--safe                 Disable system call; command-line only [true]
--scroll n             Scroll standard output n lines at a time [0]
--tabcompletion        Interactive prompt auto-completion [true]
--tex engine           TeX engine ("latex|pdflatex|tex|pdftex|none") ["latex"]
--s,-translate         Show translated virtual machine code [false]
--twice                Run LaTeX twice (to resolve references) [false]
--unsafe               Enable system call; command-line only [false]
--u,-user x            General purpose user string  [""]
--v,-verbose           Increase verbosity level [0]
-
-@end verbatim
+@verbatiminclude options
 
 All boolean options, except for @code{-unsafe}, @code{-safe}, and
 @code{help}, can be negated by prepending @code{no} to the option name. 

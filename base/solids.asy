@@ -9,13 +9,13 @@ real[] tangent(path p, path q, bool side)
 {
   if((cyclic(p) && inside(p,point(q,0)) || 
       cyclic(q) && inside(q,point(p,0))) &&
-     intersect(p,q) == (-1,-1)) return new real[];
+     intersect(p,q).length == 0) return new real[];
 
   real time(path p) {
     pair m=min(p);
     pair M=max(p);
     path edge=side ? (m.x,m.y)--(M.x,m.y) : (m.x,M.y)--(M.x,M.y);
-    return intersect(p,edge).x;
+    return intersect(p,edge)[0];
   }
 
   static real epsilon=sqrt(realEpsilon);

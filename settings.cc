@@ -219,11 +219,9 @@ struct option : public gc {
         cerr << std::left << std::setw(WIDTH) << "";
       }
       cerr << desc;
-      if(Default != "") {
-	cerr << " [" << Default;
-	if(cmdlineonly) cerr << " (command-line)";
-	cerr << "]";
-      }
+      if(cmdlineonly) cerr << "; command-line only";
+      if(Default != "")
+	cerr << " [" << Default << "]";
       cerr << endl;
     }
   }
@@ -638,8 +636,8 @@ struct boolOption : public option {
   bool value;
 
   boolOption(mem::string name, char code, mem::string desc,
-	     bool *variable, bool value)
-    : option(name, code, noarg, desc, true, value ? "true" : "false"),
+	     bool *variable, bool value, bool Default)
+    : option(name, code, noarg, desc, true, Default ? "true" : "false"),
       variable(variable), value(value) {}
 
   bool getOption() {
@@ -787,14 +785,15 @@ void initSettings() {
   addOption(new boolSetting("cmyk", 0, "Convert rgb colors to cmyk"));
 
   addOption(new boolOption("safe", 0,
-			   "Disable system call", &safe, true));
+			   "Disable system call", &safe, true, true));
   addOption(new boolOption("unsafe", 0,
-			   "Enable system call (=> global)", &safe, false));
+			   "Enable system call (=> global)", &safe, false,
+			   false));
   addOption(new boolOption("global", 0,
-			   "Allow write/cd to other directories",
-			   &globaloption, true));
+			   "Allow write to other directory",
+			   &globaloption, true, false));
   addOption(new boolOption("noglobal", 0,
-			   "", &globaloption, false));
+			   "", &globaloption, false, true));
   
   addOption(new stringSetting("prompt", 0,"string","Prompt [\"> \"]","> "));
   addOption(new stringSetting("prompt2", 0,"string",

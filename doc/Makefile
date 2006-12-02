@@ -1,12 +1,12 @@
 MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy) latexusage.asy
-FIGURES = version.texi 
+INCLUDES = version.texi options
 ASY = ../asy -dir ../base
 DOCFILES = asymptote.pdf,CAD.pdf,PDFAnim_temp_Guide.pdf
 
 doc:	asymptote.dvi asymptote.info html man
 
-man:	asymptote.pdf CAD.pdf PDFAnim_temp_Guide.pdf
+man:	asymptote.pdf CAD.pdf PDFAnim_temp_Guide.pdf asy.1
 
 faq:	
 	cd FAQ; $(MAKE) faq
@@ -35,13 +35,19 @@ latexusage.png: latexusage.eps
 latexusage.pdf: latexusage.dvi
 	dvipdf latexusage
 
-asymptote.dvi: asymptote.texi $(FIGURES) $(ASYFILES:.asy=.eps)
+options: ../settings.cc
+	$(ASY) -h 2>&1 | grep -iv Asymptote > options
+
+asy.1: options asy.1.begin asy.1.end
+	cat options | grep ^- | sed -e "s/-\(.*\)  \([A-Z].*\)/.TP\n.B -\1\n\2\./" | cat asy.1.begin - asy.1.end > asy.1
+
+asymptote.dvi: asymptote.texi $(INCLUDES) $(ASYFILES:.asy=.eps)
 	texi2dvi asymptote.texi
 
-asymptote.info: asymptote.texi $(FIGURES) $(ASYFILES:.asy=.png)
+asymptote.info: asymptote.texi $(INCLUDES) $(ASYFILES:.asy=.png)
 	makeinfo asymptote
 
-asymptote.pdf: asymptote.texi $(FIGURES) $(ASYFILES:.asy=.pdf)
+asymptote.pdf: asymptote.texi $(INCLUDES) $(ASYFILES:.asy=.pdf)
 	texi2dvi --pdf asymptote.texi
 
 CAD.pdf: CAD.tex CAD1.eps 
@@ -54,7 +60,7 @@ PDFAnim_temp_Guide.pdf: PDFAnim_temp_Guide.tex
 	latex PDFAnim_temp_Guide
 	dvipdf PDFAnim_temp_Guide
 
-html:	$(FIGURES) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
+html:	$(INCLUDES) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
 	mkdir -p asymptote
 	cp *.png asymptote
 	makeinfo --html asymptote

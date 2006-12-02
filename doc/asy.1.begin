@@ -1,0 +1,31 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.TH ASY 1 "1 Dec 2004"
+.SH NAME
+asy \- Asymptote: a script-based vector graphics language
+.SH SYNOPSIS
+.B asy
+.RI [ options ] [ file ... ]
+.SH DESCRIPTION
+\fBAsymptote\fP is a powerful descriptive vector graphics language for
+technical drawings, inspired by MetaPost but with an improved C++\-like syntax.
+Asymptote provides for figures the same high\-quality level of typesetting that
+LaTeX does for scientific text.
+.SH OPTIONS
+If no arguments are given, Asymptote runs in interactive mode.
+.PP
+If "-" is given as the file argument, Asymptote reads from standard input.
+.PP
+A summary of options is included below. The effect of most options
+can be negated by prepending 
+.B no
+to the option name. 
+Default values for most options may also be entered in the 
+file 
+.B .asy/config.asy
+in the user's home directory using the long form:
+.PP
+     import settings;
+     batchView=true;
+.PP
+For a complete
+description, see the Info files.

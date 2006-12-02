@@ -15,8 +15,8 @@ guide ellipse(pair c, real a, real b)
 // drawing in the given direction.
 guide arc(pair c, real r, real angle1, real angle2, bool direction)
 {
-  real t1=intersect(unitcircle,(0,0)--2*dir(angle1)).x;
-  real t2=intersect(unitcircle,(0,0)--2*dir(angle2)).x;
+  real t1=intersect(unitcircle,(0,0)--2*dir(angle1))[0];
+  real t2=intersect(unitcircle,(0,0)--2*dir(angle2))[0];
   static int n=length(unitcircle);
   if(t1 >= t2 && direction) t1 -= n;
   if(t2 >= t1 && !direction) t2 -= n;

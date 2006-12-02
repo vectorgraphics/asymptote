@@ -1729,7 +1729,7 @@ path3 subpath(explicit guide3 g, real start, real end)
   return ((path3) g).subpath(start,end);
 }
 
-pair intersect(path3 p1, path3 p2, real fuzz=0)
+real[] intersect(path3 p1, path3 p2, real fuzz=0)
 {
   int L1=p1.length();
   int L2=p2.length();
@@ -1762,19 +1762,21 @@ pair intersect(path3 p1, path3 p2, real fuzz=0)
   return intersect(pre1,point1,post1,pre2,point2,post2,fuzz);
 }
 
-pair intersect(explicit guide3 p, explicit guide3 q, real fuzz=0)
+real[] intersect(explicit guide3 p, explicit guide3 q, real fuzz=0)
 {
   return intersect((path3) p,(path3) q,fuzz);
 }
 
 triple intersectionpoint(path3 p, path3 q, real fuzz=0)
 {
-  return point(p,intersect(p,q,fuzz).x);
+  real[] t=intersect(p,q,fuzz);
+  if(t.length == 0) abort("paths do not intersect");
+  return point(p,t[0]);
 }
 
 triple intersectionpoint(explicit guide3 p, explicit guide3 q, real fuzz=0)
 {
-  return point(p,intersect(p,q,fuzz).x);
+  return intersectionpoint((path3) p,(path3) q,fuzz);
 }
 
 path3 operator & (path3 p, path3 q) {return p.concat(p,q);}
@@ -1949,8 +1951,8 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
   transform3 T=(normal.x == 0 && normal.y == 0) ? identity(4) : align(normal); 
   triple v1=T*dir(theta1,phi1);
   triple v2=T*dir(theta2,phi2);
-  real t1=intersect(unitcircle3,O--2*(v1.x,v1.y,0)).x;
-  real t2=intersect(unitcircle3,O--2*(v2.x,v2.y,0)).x;
+  real t1=intersect(unitcircle3,O--2*(v1.x,v1.y,0))[0];
+  real t2=intersect(unitcircle3,O--2*(v2.x,v2.y,0))[0];
   int n=length(unitcircle3);
   if(t1 >= t2 && direction) t1 -= n;
   if(t2 >= t1 && !direction) t2 -= n;

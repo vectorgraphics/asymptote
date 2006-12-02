@@ -814,7 +814,7 @@ void rigorousdisc(real InRay, bool FullFill, triple BaseCenter, real Radius, tri
     istube = true;
     auxili = goodcirclepath( base, LenVec, InRay );
     auxihi = goodcirclepath( BaseCenter, LenVec, InRay );
-    hashole = (-1,-1) != intersect(auxili,auxihi);
+    hashole = intersect(auxili,auxihi).length > 0;
     if (hashole) {
       draw(auxili);
       draw(auxihi);
@@ -899,7 +899,8 @@ path rigorouscone(bool UsualForm, triple CenterPos,
   path bigcirc;
   real themargin, newlen, auxt, startt, endt, thelengthofc;
   int i;
-  pair pa, pb, pc, pd, pe;
+  pair pa, pb;
+  real[] pc,pd,pe;
   themargin = 0.02; //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DANGER
   basepath = goodcirclepath( CenterPos, AngulMom, Radius );
   thelengthofc = length( basepath ) - themargin;
@@ -911,8 +912,8 @@ path rigorouscone(bool UsualForm, triple CenterPos,
   pb = interp(rp(CenterPos),rp(VertexPos),1.005);
   auxpath = pa--pb;
   pc = intersect(auxpath, fullpath);
-  if (pc != (-1,-1)) {
-    auxt = pc.y;
+  if (pc.length > 0) {
+    auxt = pc[1];
     newlen = length(fullpath);
     if (UsualForm) {
       finalpath = point(fullpath, auxt)--point(fullpath,auxt+1);
@@ -924,8 +925,8 @@ path rigorouscone(bool UsualForm, triple CenterPos,
       bigcirc = goodcirclepath( CenterPos, AngulMom, 1.005*Radius );
       pd = intersect(bigcirc, fullpath);
       pe = intersect( reverse( bigcirc ), fullpath);
-      startt = floor( pd.x );
-      endt = ceil( length( bigcirc ) - pe.x );
+      startt = floor( pd[0] );
+      endt = ceil( length( bigcirc ) - pe[0] );
       finalpath = subpath (basepath, startt,endt);
     }
   } else {
@@ -1926,9 +1927,9 @@ void sharpraytrace() {
   int i, j, k, l, counter;
   real swapn;
   triple a, b, c, d, currcross, swapc;
-  bool flag, trythis;
+  bool flag;
   path refpath, otherpath;
-  pair intertimes;
+  real[] intertimes;
   string infolabel;
   triple crosspoin[];
   real sortangle[];
@@ -1945,8 +1946,8 @@ void sharpraytrace() {
       for (int k=1; k <= NF; k += 1) {
         otherpath = facepath(k);
         intertimes = intersect( refpath, otherpath );
-        trythis = intertimes.x != 0;
-        if (trythis && (intertimes.x != 1) && (k != i)) {
+	real x=intertimes[0];
+	if ((x != 0) && (x != 1) && (k != i)) {
           for (int l=1; l <= npf[k]; l += 1) {
             c = F[k][l];
             if (l < npf[k])

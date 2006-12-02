@@ -658,12 +658,10 @@ static unsigned count;
 unsigned maxIntersectCount=100000;
 
 // Algorithm derived from Knuth's MetaFont
-pair intersectcubics(solvedKnot left1, solvedKnot right1,
+bool intersectcubics(pair &t, solvedKnot left1, solvedKnot right1,
                      solvedKnot left2, solvedKnot right2,
 		     double fuzz, unsigned depth=DBL_MANT_DIG)
 {
-  const pair F(-1,-1);
-
   bbox box1, box2;
   box1 += left1.point; box1 += left1.post;
   box1 += right1.pre;  box1 += right1.point;
@@ -672,36 +670,45 @@ pair intersectcubics(solvedKnot left1, solvedKnot right1,
   
   double lambda=box1.diameter()+box2.diameter();
   
-  if (box1.Max().getx()+fuzz >= box2.Min().getx() &&
-      box1.Max().gety()+fuzz >= box2.Min().gety() &&
-      box2.Max().getx()+fuzz >= box1.Min().getx() &&
-      box2.Max().gety()+fuzz >= box1.Min().gety()) {
-    if(lambda <= fuzz || depth == 0 || count == 0)
-      return pair(0,0);
+  if(box1.Max().getx()+fuzz >= box2.Min().getx() &&
+     box1.Max().gety()+fuzz >= box2.Min().gety() &&
+     box2.Max().getx()+fuzz >= box1.Min().getx() &&
+     box2.Max().gety()+fuzz >= box1.Min().gety()) {
+    if(lambda <= fuzz || depth == 0 || count == 0) {
+      t=pair(0,0);
+      return true;
+    }
     --depth;
     --count;
     solvedKnot sn1[3], sn2[3];
     splitCubic(sn1,0.5,left1,right1);
     splitCubic(sn2,0.5,left2,right2);
-    pair t;
-    if ((t=intersectcubics(sn1[0],sn1[1],sn2[0],sn2[1],fuzz,depth)) != F)
-      return t*0.5;
-    if ((t=intersectcubics(sn1[0],sn1[1],sn2[1],sn2[2],fuzz,depth)) != F)
-      return t*0.5+pair(0,1);
-    if ((t=intersectcubics(sn1[1],sn1[2],sn2[0],sn2[1],fuzz,depth)) != F)
-      return t*0.5+pair(1,0);
-    if ((t=intersectcubics(sn1[1],sn1[2],sn2[1],sn2[2],fuzz,depth)) != F)
-      return t*0.5+pair(1,1);
+    pair T;
+    if(intersectcubics(T,sn1[0],sn1[1],sn2[0],sn2[1],fuzz,depth)) {
+      t=T*0.5;
+      return true;
+    }
+    if(intersectcubics(T,sn1[0],sn1[1],sn2[1],sn2[2],fuzz,depth)) {
+      t=T*0.5+pair(0,1);
+      return true;
+    }
+    if(intersectcubics(T,sn1[1],sn1[2],sn2[0],sn2[1],fuzz,depth)) {
+      t=T*0.5+pair(1,0);
+      return true;
+    }
+    if(intersectcubics(T,sn1[1],sn1[2],sn2[1],sn2[2],fuzz,depth)) {
+      t=T*0.5+pair(1,1);
+      return true;
+    }
   }
-  return F;
+  return false;
 }
 
 // TODO: Handle corner cases. (Done I think)
-pair intersectiontime(path p1, path p2, double fuzz=0.0)
+bool intersect(pair &t, path p1, path p2, double fuzz=0.0)
 {
   fuzz=max(fuzz,Fuzz*max(max(length(p1.max()),length(p1.min())),
 			 max(length(p2.max()),length(p2.min()))));
-  const pair F(-1,-1);
   solvedKnot *n1=p1.Nodes();
   solvedKnot *n2=p2.Nodes();
   int L1=p1.length();
@@ -710,17 +717,20 @@ pair intersectiontime(path p1, path p2, double fuzz=0.0)
   int jcycle=p2.cyclic() ? p2.size()-1 : -1;
   if(p1.size() == 1) {L1=1; icycle=0;}
   if(p2.size() == 1) {L2=1; jcycle=0;}
-  for (int i = 0; i < L1; i++) {
+  for(int i=0; i < L1; ++i) {
     solvedKnot& left1=n1[i];
     solvedKnot& right1=(i == icycle) ? n1[0] : n1[i+1];
-    for (int j = 0; j < L2; j++) {
+    for(int j=0; j < L2; ++j) {
       count=maxIntersectCount;
-      pair t=intersectcubics(left1,right1,
-			     n2[j],(j == jcycle) ? n2[0] : n2[j+1],fuzz);
-      if (t != F) return t*0.5 + pair(i,j);
+      pair T;
+      if(intersectcubics(T,left1,right1,
+			 n2[j],(j == jcycle) ? n2[0] : n2[j+1],fuzz)) {
+	t=T*0.5+pair(i,j);
+	return true;
+      }
     }
   }
-  return F;  
+  return false;  
 }
 // }}}
 

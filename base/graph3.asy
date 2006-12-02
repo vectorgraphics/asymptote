@@ -39,7 +39,7 @@ real projecttime(guide3 G, real T, guide g, projection P=currentprojection)
   triple v=point(G,T);
   pair z=project(v,P);
   pair dir=dir(v,dir(G,T),P);
-  return intersect(g,z).x;
+  return intersect(g,z)[0];
 }
 
 real projecttime(guide3 G, real T, projection P=currentprojection)

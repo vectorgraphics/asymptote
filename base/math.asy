@@ -355,14 +355,14 @@ real node(path g, real x)
 {
   real m=min(g).y;
   real M=max(g).y;
-  return intersect(g,(x,m)--(x,M)).x;
+  return intersect(g,(x,m)--(x,M))[0];
 }
 
 real node(path g, explicit pair z)
 {
   real m=min(g).x;
   real M=max(g).x;
-  return intersect(g,(m,z.y)--(M,z.y)).x;
+  return intersect(g,(m,z.y)--(M,z.y))[0];
 }
 
 real value(path g, real x)

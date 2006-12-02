@@ -662,7 +662,7 @@ class iprompt : public icore {
   }
 
   // Continue taking input for a line until it properly parses, or a syntax
-  // error occurs.  Returns the parsed code on success, and throughs a
+  // error occurs.  Returns the parsed code on success, and throws a
   // handled_error exception on failure.
   block *parseExtendableLine(string line) {
     block *code=parser::parseString(line, "-", true);

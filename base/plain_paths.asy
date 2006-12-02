@@ -123,7 +123,9 @@ guide operator ---(... guide[] a)
 
 pair intersectionpoint(path p, path q, real fuzz=0)
 {
-  return point(p,intersect(p,q,fuzz).x);
+  real[] t=intersect(p,q,fuzz);
+  if(t.length == 0) abort("paths do not intersect");
+  return point(p,t[0]);
 }
 
 struct slice {
@@ -135,10 +137,13 @@ slice operator init() {return new slice;}
 slice firstcut(path g, path knife) 
 {
   slice s;
-  real t=intersect(g,knife).x;
-  if (t < 0) {s.before=g; s.after=nullpath; return s;}
-  s.before=subpath(g,0,min(t,intersect(g,reverse(knife)).x));
-  s.after=subpath(g,min(t,intersect(g,reverse(knife)).x),length(g));
+  real[] t=intersect(g,knife);
+  if(t.length == 0) {s.before=g; s.after=nullpath; return s;}
+  real[] r=intersect(g,reverse(knife));
+  if(r.length == 0) {s.before=g; s.after=nullpath; return s;}
+  real t=min(t[0],r[0]);
+  s.before=subpath(g,0,t);
+  s.after=subpath(g,t,length(g));
   return s;
 }
 
@@ -219,10 +224,10 @@ path buildcycle(... path[] g)
   real[] tb=new real[n];
   int j=n-1;
   for(int i=0; i < n; ++i) {
-    pair t=intersect(g[i],reverse(g[j]));
-    if(t == (-1,-1))
+    real[] t=intersect(g[i],reverse(g[j]));
+    if(t.length == 0)
       abort("Paths "+(string) i+" and " +(string) j+" do not intersect");
-    ta[i]=t.x; tb[j]=length(g[j])-t.y;
+    ta[i]=t[0]; tb[j]=length(g[j])-t[1];
     j=i;
   }
   path G;

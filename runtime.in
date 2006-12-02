@@ -1591,9 +1591,16 @@ real dirtime(path p, pair z)
   return p.directiontime(z);
 }
 
-pair intersect(path x, path y, real fuzz=0)
+realarray* intersect(path x, path y, real fuzz=0)
 {
-  return intersectiontime(x,y,fuzz);
+  pair t;
+  if(intersect(t,x,y,fuzz)) {
+    array *T=new array(2);
+    (*T)[0]=t.getx();
+    (*T)[1]=t.gety();
+    return T;
+  } else
+    return new array(0);
 }
 
 int size(path p)
@@ -2497,9 +2504,9 @@ real cubiclength(triple z0, triple z0p, triple z1m, triple z1, real goal)
   return cubiclength(z0,z0p,z1m,z1,goal);
 }
 
-pair intersect(triplearray* pre1, triplearray* point1, triplearray* post1,
-               triplearray* pre2, triplearray* point2, triplearray* post2,
-	       real fuzz)
+realarray* intersect(triplearray* pre1, triplearray* point1, triplearray* post1,
+		     triplearray* pre2, triplearray* point2, triplearray* post2,
+		     real fuzz)
 {
   size_t size1=checkArrays(pre1,point1);
   size_t size2=checkArrays(pre2,point2);
@@ -2527,7 +2534,14 @@ pair intersect(triplearray* pre1, triplearray* point1, triplearray* post1,
   if(single1) n1[1]=n1[0];
   if(single2) n2[1]=n2[0];
   
-  return intersect((int) Size1-1,(int) Size2-1,n1,n2,fuzz);
+  pair t;
+  if(intersect(t,(int) Size1-1,(int) Size2-1,n1,n2,fuzz)) {
+    array *T=new array(2);
+    (*T)[0]=t.getx();
+    (*T)[1]=t.gety();
+    return T;
+  } else
+    return new array(0);
 }
 
 
