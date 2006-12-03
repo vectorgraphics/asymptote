@@ -1,7 +1,11 @@
+size(0,100);
 real margin=2mm;
-frame b1,b2;
-box(b1,Label("small box",(0,0)),margin);
-box(b2,Label("LARGER BOX",(0,-2cm)),margin);
-add(b1);
-add(b2);
-draw(point(b1,S)--point(b2,N),currentpen);
+pair z1=(0,1);
+pair z0=(0,0);
+
+envelope label1=envelope(box,Label("small box",z1),margin);
+envelope label0=envelope(ellipse,Label("LARGE ELLIPSE",z0),margin);
+
+currentpicture.add(new void(frame f, transform t) {
+    draw(f,point(label1,S,t)--point(label0,N,t));
+});

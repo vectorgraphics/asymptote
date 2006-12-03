@@ -46,22 +46,58 @@ guide ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
   return ellipse(f,xmargin,ymargin,p,filltype,put);
 }
 
-void box(picture pic=currentpicture, Label L,
-         real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-         filltype filltype=NoFill, bool put=Above)
+typedef guide container(frame dest, frame src=dest, real xmargin=0,
+			real ymargin=xmargin, pen p=currentpen,
+			filltype filltype=NoFill, bool put=Above);
+
+frame enclose(picture pic=currentpicture, container S, Label L,
+	      real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+	      filltype filltype=NoFill, bool put=Above) 
 {
   pic.add(new void (frame f, transform t) {
       frame d;
       add(d,t,L);
-      box(f,d,xmargin,ymargin,p,filltype,put);
+      S(f,d,xmargin,ymargin,p,filltype,put);
       add(f,d);
     });
   Label L0=L.copy();
   L0.position(0);
-  L0.p(p+overwrite(Allow));
+  L0.p(p);
   frame f;
-  box(f,L0,xmargin,ymargin,p,filltype);
+  add(f,L0);
+  S(f,xmargin,ymargin,p,filltype);
   pic.addBox(L.position,L.position,min(f),max(f));
+  
+  return f;
+}
+
+struct envelope {
+  frame f;
+  Label L;
+}
+
+envelope operator init() {return new envelope;}
+
+envelope envelope(picture pic=currentpicture, container S, Label L,
+		  real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+		  filltype filltype=NoFill, bool put=Above) 
+{
+  envelope e;
+  e.f=enclose(pic,S,L,xmargin,ymargin,p,filltype,put);
+  e.L=L.copy();
+  return e;
+}
+
+pair point(envelope e, pair dir, transform t=identity()) 
+{
+  return t*e.L.position+point(e.f,dir);
+}
+
+void box(picture pic=currentpicture, Label L,
+         real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+         filltype filltype=NoFill, bool put=Above)
+{
+  enclose(pic,box,L,xmargin,ymargin,p,filltype,put);
 }
 
 frame bbox(picture pic=currentpicture, real xmargin=0, real ymargin=xmargin,

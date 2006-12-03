@@ -817,7 +817,7 @@ void initSettings() {
 			    "Enable automatic PDF page rotation",
 			    false));
   addOption(new userSetting("user", 'u', "x",
-			    "General purpose user string  [\"\"]", ""));
+			    "General purpose user string [\"\"]", ""));
   
   addOption(new realSetting("paperwidth", 0, "bp", ""));
   addOption(new realSetting("paperheight", 0, "bp", ""));
