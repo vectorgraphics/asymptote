@@ -13,41 +13,43 @@ defaultpen(fontsize(10pt));
 
 real margin=1.5mm;
 
-envelope IC,Adv0,Adv,AdvD,Ur,Ui,Crank,CrankR,Urout,Diff,UIout,psi,vel;
+labelframe IC,Adv0,Adv,AdvD,Ur,Ui,Crank,CrankR,Urout,Diff,UIout,psi,vel;
 
-IC=envelope(box,Label("initial condition $\v U_0$",(0,1)),
-	    margin,black,FillDraw(palegray));
-Adv0=envelope(ellipse,Label("Lagrangian state $\v U(t)$",(1,1)),
-	      margin,red,FillDraw(palered));
-Adv=envelope(ellipse,
-	     Label("Lagrangian prediction $\v U(t+\tau)$",(1,0)),
-	     margin,red,FillDraw(palered));
-AdvD=envelope(ellipse,Label("diffused parcels",(1.8,1)),
-	      margin,red,FillDraw(palered));
-Ur=envelope(box,Label("rearranged $\v \widetilde U$",(0,0)),
-	    margin,orange+gray,FillDraw(paleyellow));
-Ui=envelope(box,Label("interpolated $\v \widetilde U$",(1,-1)),
-	    margin,blue,FillDraw(paleblue));
-Crank=envelope(box,Label("${\cal L}^{-1}(-\tau){\cal L}(\tau)\v \widetilde U$",
-			 (0.5,-1)),margin,blue,FillDraw(paleblue));
-CrankR=envelope(box,Label("${\cal L}^{-1}(-\tau){\cal L}(\tau)\v \widetilde U$",
-			  (0,-1)),margin,orange+gray,FillDraw(paleyellow));
-Urout=
-  envelope(box,
-	   Label(minipage("\center{Lagrangian rearranged solution~$\v U_R$}",
-			  100pt),
-		 (0,-2)),margin,orange+gray,FillDraw(paleyellow));
-
-Diff=envelope(box,Label("$\v D\del^2 \v \widetilde U$",(0.75,-1.5)),
+IC=labelframe(box,Label("initial condition $\v U_0$",(0,1)),
+	      margin,black,FillDraw(palegray));
+Adv0=labelframe(ellipse,Label("Lagrangian state $\v U(t)$",(1,1)),
+		margin,red,FillDraw(palered));
+Adv=labelframe(ellipse,
+	       Label("Lagrangian prediction $\v U(t+\tau)$",(1,0)),
+	       margin,red,FillDraw(palered));
+AdvD=labelframe(ellipse,Label("diffused parcels",(1.8,1)),
+		margin,red,FillDraw(palered));
+Ur=labelframe(box,Label("rearranged $\v \widetilde U$",(0,0)),
+	      margin,orange+gray,FillDraw(paleyellow));
+Ui=labelframe(box,Label("interpolated $\v \widetilde U$",(1,-1)),
 	      margin,blue,FillDraw(paleblue));
-UIout=envelope(box,
-	       Label(minipage("\center{semi-Lagrangian solution~$\v U_I$}",
-			      80pt),
-		     (0.5,-2)),margin,FillDraw(palered+paleyellow));
-psi=envelope(box,Label("$\psi=\del^{-2}\omega$",(1.6,-1)),
-	     margin,darkgreen,FillDraw(palegreen));
-vel=envelope(box,Label("$\v v=\v{\hat z} \cross\grad\psi$",(1.6,-0.5)),
-	     margin,darkgreen,FillDraw(palegreen));
+Crank=labelframe(box,
+		 Label("${\cal L}^{-1}(-\tau){\cal L}(\tau)\v \widetilde U$",
+		       (0.5,-1)),margin,blue,FillDraw(paleblue));
+CrankR=labelframe(box,
+		  Label("${\cal L}^{-1}(-\tau){\cal L}(\tau)\v \widetilde U$",
+			(0,-1)),margin,orange+gray,FillDraw(paleyellow));
+Urout=
+  labelframe(box,
+	     Label(minipage("\center{Lagrangian rearranged solution~$\v U_R$}",
+			    100pt),
+		   (0,-2)),margin,orange+gray,FillDraw(paleyellow));
+
+Diff=labelframe(box,Label("$\v D\del^2 \v \widetilde U$",(0.75,-1.5)),
+		margin,blue,FillDraw(paleblue));
+UIout=labelframe(box,
+		 Label(minipage("\center{semi-Lagrangian solution~$\v U_I$}",
+				80pt),
+		       (0.5,-2)),margin,FillDraw(palered+paleyellow));
+psi=labelframe(box,Label("$\psi=\del^{-2}\omega$",(1.6,-1)),
+	       margin,darkgreen,FillDraw(palegreen));
+vel=labelframe(box,Label("$\v v=\v{\hat z} \cross\grad\psi$",(1.6,-0.5)),
+	       margin,darkgreen,FillDraw(palegreen));
 
 currentpicture.add(new void(frame f, transform t) {
     pair padv=0.5*(point(Adv0,S,t)+point(Adv,N,t));
@@ -67,7 +69,8 @@ currentpicture.add(new void(frame f, transform t) {
 	 point(Ui,W,t)--point(Crank,E,t),5N,blue,MidArrow,PenMargin);
     draw(pic,minipage("\flushleft{diffuse: multigrid Crank--Nicholson}",80pt),
 	 point(Ur,S,t)--point(CrankR,N,t),LeftSide,orange+gray,Arrow,PenMargin);
-    draw(pic,"output",point(CrankR,S,t)--point(Urout,N,t),RightSide,orange+gray,Arrow,PenMargin);
+    draw(pic,"output",point(CrankR,S,t)--point(Urout,N,t),RightSide,
+	 orange+gray,Arrow,PenMargin);
     draw(pic,point(Ui,S,t)--point(Diff,N,t),blue,MidArrow,PenMargin);
     draw(pic,point(Crank,S,t)--point(Diff,N,t),blue,MidArrow,PenMargin);
     label(pic,"subtract",point(Diff,N,t),12N,blue);

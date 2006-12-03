@@ -46,18 +46,18 @@ guide ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
   return ellipse(f,xmargin,ymargin,p,filltype,put);
 }
 
-typedef guide container(frame dest, frame src=dest, real xmargin=0,
-			real ymargin=xmargin, pen p=currentpen,
-			filltype filltype=NoFill, bool put=Above);
+typedef guide envelope(frame dest, frame src=dest, real xmargin=0,
+		       real ymargin=xmargin, pen p=currentpen,
+		       filltype filltype=NoFill, bool put=Above);
 
-frame enclose(picture pic=currentpicture, container S, Label L,
+frame enclose(picture pic=currentpicture, envelope e, Label L,
 	      real xmargin=0, real ymargin=xmargin, pen p=currentpen,
 	      filltype filltype=NoFill, bool put=Above) 
 {
   pic.add(new void (frame f, transform t) {
       frame d;
       add(d,t,L);
-      S(f,d,xmargin,ymargin,p,filltype,put);
+      e(f,d,xmargin,ymargin,p,filltype,put);
       add(f,d);
     });
   Label L0=L.copy();
@@ -65,32 +65,32 @@ frame enclose(picture pic=currentpicture, container S, Label L,
   L0.p(p);
   frame f;
   add(f,L0);
-  S(f,xmargin,ymargin,p,filltype);
+  e(f,xmargin,ymargin,p,filltype);
   pic.addBox(L.position,L.position,min(f),max(f));
   
   return f;
 }
 
-struct envelope {
-  frame f;
+struct labelframe {
   Label L;
+  frame f;
 }
 
-envelope operator init() {return new envelope;}
+labelframe operator init() {return new labelframe;}
 
-envelope envelope(picture pic=currentpicture, container S, Label L,
-		  real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-		  filltype filltype=NoFill, bool put=Above) 
+labelframe labelframe(picture pic=currentpicture, envelope S, Label L,
+		      real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+		      filltype filltype=NoFill, bool put=Above) 
 {
-  envelope e;
-  e.f=enclose(pic,S,L,xmargin,ymargin,p,filltype,put);
-  e.L=L.copy();
-  return e;
+  labelframe F;
+  F.L=L.copy();
+  F.f=enclose(pic,S,L,xmargin,ymargin,p,filltype,put);
+  return F;
 }
 
-pair point(envelope e, pair dir, transform t=identity()) 
+pair point(labelframe F, pair dir, transform t=identity()) 
 {
-  return t*e.L.position+point(e.f,dir);
+  return t*F.L.position+point(F.f,dir);
 }
 
 void box(picture pic=currentpicture, Label L,
