@@ -15,34 +15,34 @@ real margin=1.5mm;
 
 object IC,Adv0,Adv,AdvD,Ur,Ui,Crank,CrankR,Urout,Diff,UIout,psi,vel;
 
-IC=object(box,Label("initial condition $\v U_0$",(0,1)),
+IC=draw(box,Label("initial condition $\v U_0$",(0,1)),
 	  margin,black,FillDraw(palegray));
-Adv0=object(ellipse,Label("Lagrangian state $\v U(t)$",(1,1)),
+Adv0=draw(ellipse,Label("Lagrangian state $\v U(t)$",(1,1)),
 	    margin,red,FillDraw(palered));
-Adv=object(ellipse,Label("Lagrangian prediction $\v U(t+\tau)$",(1,0)),
+Adv=draw(ellipse,Label("Lagrangian prediction $\v U(t+\tau)$",(1,0)),
 	   margin,red,FillDraw(palered));
-AdvD=object(ellipse,Label("diffused parcels",(1.8,1)),
+AdvD=draw(ellipse,Label("diffused parcels",(1.8,1)),
 	    margin,red,FillDraw(palered));
-Ur=object(box,Label("rearranged $\v \widetilde U$",(0,0)),
+Ur=draw(box,Label("rearranged $\v \widetilde U$",(0,0)),
 	  margin,orange+gray,FillDraw(paleyellow));
-Ui=object(box,Label("interpolated $\v \widetilde U$",(1,-1)),
+Ui=draw(box,Label("interpolated $\v \widetilde U$",(1,-1)),
 	  margin,blue,FillDraw(paleblue));
-Crank=object(box,Label("${\cal L}^{-1}(-\tau){\cal L}(\tau)\v \widetilde U$",
+Crank=draw(box,Label("${\cal L}^{-1}(-\tau){\cal L}(\tau)\v \widetilde U$",
 		       (0.5,-1)),margin,blue,FillDraw(paleblue));
-CrankR=object(box,Label("${\cal L}^{-1}(-\tau){\cal L}(\tau)\v \widetilde U$",
+CrankR=draw(box,Label("${\cal L}^{-1}(-\tau){\cal L}(\tau)\v \widetilde U$",
 			(0,-1)),margin,orange+gray,FillDraw(paleyellow));
-Urout=object(box,
+Urout=draw(box,
 	     Label(minipage("\center{Lagrangian rearranged solution~$\v U_R$}",
 			    100pt),
 		   (0,-2)),margin,orange+gray,FillDraw(paleyellow));
-Diff=object(box,Label("$\v D\del^2 \v \widetilde U$",(0.75,-1.5)),
+Diff=draw(box,Label("$\v D\del^2 \v \widetilde U$",(0.75,-1.5)),
 	    margin,blue,FillDraw(paleblue));
-UIout=object(box,Label(minipage("\center{semi-Lagrangian solution~$\v U_I$}",
+UIout=draw(box,Label(minipage("\center{semi-Lagrangian solution~$\v U_I$}",
 				80pt),
 		       (0.5,-2)),margin,FillDraw(palered+paleyellow));
-psi=object(box,Label("$\psi=\del^{-2}\omega$",(1.6,-1)),
+psi=draw(box,Label("$\psi=\del^{-2}\omega$",(1.6,-1)),
 	   margin,darkgreen,FillDraw(palegreen));
-vel=object(box,Label("$\v v=\v{\hat z} \cross\grad\psi$",(1.6,-0.5)),
+vel=draw(box,Label("$\v v=\v{\hat z} \cross\grad\psi$",(1.6,-0.5)),
 	   margin,darkgreen,FillDraw(palegreen));
 
 add(new void(frame f, transform t) {

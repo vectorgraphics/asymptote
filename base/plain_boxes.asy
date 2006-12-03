@@ -70,9 +70,9 @@ frame enclose(picture pic=currentpicture, envelope e, Label L,
   return f;
 }
 
-object object(picture pic=currentpicture, envelope S, Label L,
-	      real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-	      filltype filltype=NoFill, bool put=Above) 
+object draw(picture pic=currentpicture, envelope S, Label L,
+	    real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+	    filltype filltype=NoFill, bool put=Above) 
 {
   object F;
   F.L=L.copy();
