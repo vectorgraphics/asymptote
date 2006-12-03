@@ -9,5 +9,5 @@ axis(Label("C",align=Relative(5E)),G,
      ticklocate(0,360,new real(real v) {
 		  path g=G;
 		  path h=O--max(abs(max(G)),abs(min(G)))*dir(90,v);
-		  return intersect(g,h).x;
+		  return intersect(g,h)[0];
 		},perpendicular(G,Z)));

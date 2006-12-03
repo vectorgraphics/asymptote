@@ -25,11 +25,11 @@ real b=number[number.length-1];
 
 real S1=0.475;
 path h1=(a,S1)--(b,S1);
-real M1=interp(a,b,intersect(h1,g).x);
+real M1=interp(a,b,intersect(h1,g)[0]);
 
 real S2=0.9;
 path h2=(a,S2)--(b,S2);
-real M2=interp(a,b,intersect(h2,g).x);
+real M2=interp(a,b,intersect(h2,g)[0]);
 
 labelx("$M_1$",M1);
 labelx("$M_2$",M2);
