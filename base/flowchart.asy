@@ -302,8 +302,7 @@ block roundrectangle(object body, pair center=(0,0), real ds=5, real dw=0)
   path shape=(0,ds+dw)--(0,ds+b-dw){up}..
     {right}(ds+dw,2ds+b)--(ds+a-dw,2ds+b){right}..
              {down}(2ds+a,ds+b-dw)--(2ds+a,ds+dw){down}..
-                     {left}(ds+a-dw,0)--
-                             (ds+dw,0){left}..{up}cycle;
+                     {left}(ds+a-dw,0)--(ds+dw,0){left}..{up}cycle;
   
                      block block;
                      block.draw=new frame(pen p) {

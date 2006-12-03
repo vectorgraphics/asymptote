@@ -67,28 +67,20 @@ frame enclose(picture pic=currentpicture, envelope e, Label L,
   add(f,L0);
   e(f,xmargin,ymargin,p,filltype);
   pic.addBox(L.position,L.position,min(f),max(f));
-  
   return f;
 }
 
-struct labelframe {
-  Label L;
-  frame f;
-}
-
-labelframe operator init() {return new labelframe;}
-
-labelframe labelframe(picture pic=currentpicture, envelope S, Label L,
-		      real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-		      filltype filltype=NoFill, bool put=Above) 
+object object(picture pic=currentpicture, envelope S, Label L,
+	      real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+	      filltype filltype=NoFill, bool put=Above) 
 {
-  labelframe F;
+  object F;
   F.L=L.copy();
   F.f=enclose(pic,S,L,xmargin,ymargin,p,filltype,put);
   return F;
 }
 
-pair point(labelframe F, pair dir, transform t=identity()) 
+pair point(object F, pair dir, transform t=identity()) 
 {
   return t*F.L.position+point(F.f,dir);
 }

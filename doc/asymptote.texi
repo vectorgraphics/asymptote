@@ -1232,7 +1232,7 @@ void gouraudshade(picture pic=currentpicture, path g,
 @noindent
 The pens in @code{p} must belong to the same color space.
 Illustrations of Gouraud shading are provided in the example file
-@code{Gouraud.asy} and in the solid geometry module @code{solid.asy}.
+@code{Gouraud.asy} and in the solid geometry module @code{solids.asy}.
 
 @cindex Coons shading
 @cindex tensor product shading
@@ -1407,7 +1407,7 @@ example.
 One can prevent labels from overwriting one another with the
 @code{overwrite} pen attribute (@pxref{overwrite}).
 
-The structure @code{object} defined in @code{Label.asy} allows Labels
+The structure @code{object} defined in @code{plain_Label.asy} allows Labels
 and frames to be treated in a uniform manner.
 A group of objects may be packed together into single frame with the routine
 @cindex @code{pack}

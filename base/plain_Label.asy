@@ -450,6 +450,7 @@ struct object {
 }
 
 object operator init() {return new object;}
+
 object operator cast(frame f) {
   object o;
   o.f=f;
