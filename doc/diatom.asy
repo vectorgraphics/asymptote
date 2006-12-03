@@ -123,7 +123,7 @@ for(int taxon=0; taxon < n; ++taxon) {
   location += pic.userMax.x;
 }
 
-currentpicture.add(new void(frame f, transform) {
+add(new void(frame f, transform) {
     for(int i=0; i < draw.length; ++i)
       draw[i](f);
   });

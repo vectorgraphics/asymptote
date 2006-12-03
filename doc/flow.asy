@@ -25,8 +25,6 @@ xaxis("$x$");
 yaxis("$y$");
 
 vectorfield(p,n,vector(W,W),arrowsize);
-vectorfield((0,0)--(currentpicture.userMax.x,0),n,vector(NE,NW),
-	    arrowsize);
-vectorfield((0,0)--(0,currentpicture.userMax.y),n,vector(NE,NE),
-	    arrowsize);
+vectorfield((0,0)--(point(E).x,0),n,vector(NE,NW),arrowsize);
+vectorfield((0,0)--(0,point(N).y),n,vector(NE,NE),arrowsize);
 

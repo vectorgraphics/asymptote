@@ -100,7 +100,7 @@ for(int j=0; j < 7; ++j)
 label("\Huge Februar 2006",zentrum(Gkasten),Palatino()+white); 
 // Zentrum=center; Februar=february
 add(kalender,currentpicture);
-currentpicture.erase();
+erase();
 
 // Now the mosaic is constructed
 pair a[]=new pair[4];

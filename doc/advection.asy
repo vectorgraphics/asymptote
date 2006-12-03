@@ -45,7 +45,7 @@ psi=object(box,Label("$\psi=\del^{-2}\omega$",(1.6,-1)),
 vel=object(box,Label("$\v v=\v{\hat z} \cross\grad\psi$",(1.6,-0.5)),
 	   margin,darkgreen,FillDraw(palegreen));
 
-currentpicture.add(new void(frame f, transform t) {
+add(new void(frame f, transform t) {
     pair padv=0.5*(point(Adv0,S,t)+point(Adv,N,t));
     picture pic;
     draw(pic,"initialize",point(IC,E,t)--point(Adv0,W,t),RightSide,Arrow,

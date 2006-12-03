@@ -893,6 +893,11 @@ pair max(picture pic)
   return pic.max();
 }
   
+void add(picture pic=currentpicture, drawer d)
+{
+  pic.add(d);
+}
+
 void begingroup(picture pic=currentpicture)
 {
   pic.add(new void(frame f, transform) {
