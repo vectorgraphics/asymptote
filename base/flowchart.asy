@@ -73,8 +73,7 @@ block operator init() {return new block;}
 
 // Construct a rectangular block with header and body objects.
 block rectangle(object header, object body,
-                pen headercolor=mediumgray,
-                pen bodycolor=currentpen, 
+		pen headerpen=mediumgray, pen bodypen=currentpen, 
                 pair center=(0,0), real dx=3) 
 {
   frame fbody=body.fit();
@@ -94,7 +93,7 @@ block rectangle(object header, object body,
   block block;
   block.draw=new frame(pen p) {
     frame block;
-    filldraw(block,shift(0,z1.y)*box((0,0),z0),headercolor);
+    filldraw(block,shift(0,z1.y)*box((0,0),z0),headerpen);
     add(block,shift(-0.5*(Mheader+mheader))*fheader,(0,z1.y)+0.5z0);
     draw(block,box((0,0),z1));
     add(block,shift(-0.5*(Mbody+mbody))*fbody,0.5z1);
@@ -118,7 +117,7 @@ block rectangle(object header, object body,
 }
 
 // As above, but without the header.
-block rectangle(object body, pen bodycolor=currentpen, pair center=(0,0),
+block rectangle(object body, pen bodypen=currentpen, pair center=(0,0),
                 real dx=3) 
 {
   frame f=body.fit();
@@ -131,7 +130,7 @@ block rectangle(object body, pen bodycolor=currentpen, pair center=(0,0),
   block block;
   block.draw=new frame(pen p) {
     frame block;
-    draw(block,shape,bodycolor);
+    draw(block,shape,bodypen);
     add(block,shift(-0.5*(M+m))*f,0.5z);
     return block;
   };

@@ -5525,7 +5525,7 @@ void tick(picture pic=currentpicture, pair z,
 void labelx(picture pic=currentpicture, Label L="", explicit pair z,
             align align=S, string format="", pen p=nullpen);
 void labelx(picture pic=currentpicture, Label L="", real x,
-	    align align=S, string format="", pen p=nullpen);
+            align align=S, string format="", pen p=nullpen);
 void labelx(picture pic=currentpicture, Label L,
             string format="", explicit pen p=currentpen);
 void labely(picture pic=currentpicture, Label L="", explicit pair z,
@@ -6347,7 +6347,7 @@ The center of the block in user coordinates is stored in
 is given by @code{block.size}.
 
 @noindent
-A frame containing the block is given by
+A frame containing the block is returned by
 @verbatim
 frame block.draw(pen p=currentpen);
 @end verbatim 
@@ -6357,15 +6357,13 @@ The following block generation routines accept a Label, string, or
 frame for their object argument:
 
 @table @dfn
-@item rectangular block with the given header (if specified) and body (here @code{dx} is the amount of padding around the header and body): 
+@item rectangular block with an optional header (and padding @code{dx} around header and body): 
 @cindex @code{rectangle}
 @verbatim
 block rectangle(object header, object body,
-                pen headercolor=mediumgray,
-                pen bodycolor=currentpen,
+                pen headerpen=mediumgray, pen bodypen=currentpen,
                 pair center=(0,0), real dx=3);
-block rectangle(object body, pen headercolor=mediumgray,
-                pen bodycolor=currentpen,
+block rectangle(object body, pen bodypen=currentpen,
                 pair center=(0,0), real dx=3);
 @end verbatim
 
@@ -7073,7 +7071,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  obliqueX asycolors monthaxis xautoscale yautoscale zautoscale
 @c  LocalWords:  obliqueZ obliqueY cylinderskeleton block llcorner dr py nx CPU
 @c  LocalWords:  loc topleft topright bottomleft bottomright flowrectangle UTC
-@c  LocalWords:  headercolor bodycolor chartblock flowdiamond flowcircle xlabel
+@c  LocalWords:  chartblock flowdiamond flowcircle xlabel
 @c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow blocks ny cpu
 @c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel nv
 @c  LocalWords:  zlabel slopefields cputime roundrectangle slopefield libgccpp
@@ -7084,5 +7082,5 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  penimage filloutside legendhskip legendvskip maxwidth CDlabel
 @c  LocalWords:  tensorshade MPEG framepoint nonfunction Radoslav Marinov Mepis
 @c  LocalWords:  Pienaar Melenchuk finalout pdfanim Linspire Dpkg sudo dpkg dtx
-@c  LocalWords:  windingnumber clickable PDFAnim eforms insdljs pdfmovie
-@c  LocalWords:  slidemovies ifdraft embeddedu externalmovie
+@c  LocalWords:  windingnumber clickable PDFAnim eforms insdljs pdfmovie dfn
+@c  LocalWords:  slidemovies ifdraft embeddedu externalmovie headerpen bodypen
