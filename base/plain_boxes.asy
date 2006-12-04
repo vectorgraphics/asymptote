@@ -54,6 +54,7 @@ frame enclose(picture pic=currentpicture, envelope e, Label L,
 	      real xmargin=0, real ymargin=xmargin, pen p=currentpen,
 	      filltype filltype=NoFill, bool put=Above) 
 {
+  Label L=L.copy();
   pic.add(new void (frame f, transform t) {
       frame d;
       add(d,t,L);
@@ -70,14 +71,21 @@ frame enclose(picture pic=currentpicture, envelope e, Label L,
   return f;
 }
 
-object draw(picture pic=currentpicture, envelope S, Label L,
+object draw(picture pic=currentpicture, Label L, envelope S,
 	    real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-	    filltype filltype=NoFill, bool put=Above) 
+	    filltype filltype=NoFill, bool put=Above)
 {
   object F;
   F.L=L.copy();
   F.f=enclose(pic,S,L,xmargin,ymargin,p,filltype,put);
   return F;
+}
+
+object draw(picture pic=currentpicture, Label L, envelope S, pair position,
+	    real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+	    filltype filltype=NoFill, bool put=Above)
+{
+  return draw(pic,Label(L,position),S,xmargin,ymargin,p,filltype,put);
 }
 
 pair point(object F, pair dir, transform t=identity()) 

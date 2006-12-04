@@ -1,56 +1,69 @@
-// Flowchart routines written by Jacques Pienaar and Steve Melenchuk.
+// Flowchart routines written by Jacques Pienaar, Steve Melenchuk, John Bowman.
 
 private import math;
 
-real flowmargin;
-bool Horizontal=true;
-bool Vertical=false;
-
-// N.B.: Relative coordinates take the lower left corner of the block: (0,0)
+restricted bool Horizontal=true;
+restricted bool Vertical=false;
 
 struct block {
-  // The relative maximum coordinates of the block. 
-  pair bound;
+  // The absolute center of the block in user coordinates.
+  pair center;
 
-  // The absolute lower left corner of the block.
-  pair llcorner;
+  // The relative center of the block.
+  pair f_center;
 
-  // Returns the relative center of the block.
-  pair f_center();
+  // The size of the block
+  pair size;
 
-  // Returns the absolute center of the block.
-  pair center() {return shift(this.llcorner)*this.f_center();}
- 
   // Returns the relative position along the boundary of the block.
   pair f_position(real x);
 
-  // Returns the absolute position along the boundary of the block.
-  pair position(real x) {return shift(this.llcorner)*this.f_position(x);}
+  pair shift(transform t=identity()) {
+    return t*center-f_center;
+  }
 
-  // These eight functions return the appropriate location on the block
-  // in relative coordinates.
-  pair f_top();
-  pair f_left();
-  pair f_right();
-  pair f_bottom();
-  pair f_topleft();
-  pair f_topright();
-  pair f_bottomleft();
-  pair f_bottomright();
+  // Returns the absolute position along the boundary of the block.
+  pair position(real x, transform t=identity()) {
+    return shift(t)+f_position(x);
+  }
+
+  // These eight variables return the appropriate location on the block
+  // in relative coordinates, where the lower left corner of the block is (0,0).
+  pair f_top;
+  pair f_left;
+  pair f_right;
+  pair f_bottom;
+  pair f_topleft;
+  pair f_topright;
+  pair f_bottomleft;
+  pair f_bottomright;
 
   // These eight functions return the appropriate location on the block
   // in absolute coordinates.
-  pair top() {return shift(this.llcorner)*this.f_top();} 
-  pair bottom() {return shift(this.llcorner)*this.f_bottom();} 
-  pair left() {return shift(this.llcorner)*this.f_left();} 
-  pair right() {return shift(this.llcorner)*this.f_right();} 
-  pair topleft() {return shift(this.llcorner)*this.f_topleft();} 
-  pair topright() {return shift(this.llcorner)*this.f_topright();} 
-  pair bottomleft() {return shift(this.llcorner)*this.f_bottomleft();} 
-  pair bottomright() {return shift(this.llcorner)*this.f_bottomright();} 
-  
-  // Center the block on the given coordinate.
-  void center(pair loc) {this.llcorner=loc-this.f_center();} 
+  pair top(transform t=identity()) {
+    return shift(t)+f_top;
+  } 
+  pair bottom(transform t=identity()) {
+    return shift(t)+f_bottom;
+  } 
+  pair left(transform t=identity()) {
+    return shift(t)+f_left;
+  } 
+  pair right(transform t=identity()) {
+    return shift(t)+f_right;
+  } 
+  pair topleft(transform t=identity()) {
+    return shift(t)+f_topleft;
+  } 
+  pair topright(transform t=identity()) {
+    return shift(t)+f_topright;
+  } 
+  pair bottomleft(transform t=identity()) {
+    return shift(t)+f_bottomleft;
+  } 
+  pair bottomright(transform t=identity()) {
+    return shift(t)+f_bottomright;
+  } 
   
   // Return a frame representing the block.
   frame draw(pen p=currentpen);
@@ -90,35 +103,17 @@ block rectangle(object header, object body,
   block.f_position=new pair(real x) {
     return point(shape,x);
   };
-  block.f_center=new pair() {
-    return interp(point(shape,0),point(shape,3),0.5);
-  };
-  block.f_bottomleft=new pair() {
-    return point(shape,0); 
-  };
-  block.f_bottom=new pair() {
-    return point(shape,5.5); 
-  };
-  block.f_bottomright=new pair() {
-    return point(shape,5); 
-  };
-  block.f_right=new pair() {
-    return point(shape,4.5); 
-  };
-  block.f_topright=new pair() {
-    return point(shape,3); 
-  };
-  block.f_top=new pair() {
-    return point(shape,2.5); 
-  }; 
-  block.f_topleft=new pair() {
-    return point(shape,2); 
-  };
-  block.f_left=new pair() {
-    return point(shape,0.5); 
-  };
-  block.center(center);
-  block.bound=point(shape,3);
+  block.f_center=interp(point(shape,0),point(shape,3),0.5);
+  block.f_bottomleft=point(shape,0); 
+  block.f_bottom=point(shape,5.5); 
+  block.f_bottomright=point(shape,5); 
+  block.f_right=point(shape,4.5); 
+  block.f_topright=point(shape,3); 
+  block.f_top=point(shape,2.5); 
+  block.f_topleft=point(shape,2); 
+  block.f_left=point(shape,0.5); 
+  block.center=center;
+  block.size=point(shape,3);
   return block;
 }
 
@@ -143,35 +138,17 @@ block rectangle(object body, pen bodycolor=currentpen, pair center=(0,0),
   block.f_position=new pair(real x) {
     return point(shape,x);
   };
-  block.f_center=new pair() {
-    return 0.5*z;
-  };
-  block.center(center);
-  block.bound=z;
-  block.f_bottomleft=new pair() {
-    return point(shape,0);
-  };
-  block.f_bottom=new pair() {
-    return point(shape,0.5); 
-  };
-  block.f_bottomright=new pair() {
-    return point(shape,1); 
-  };
-  block.f_right=new pair() {
-    return point(shape,1.5); 
-  };
-  block.f_topright=new pair() {
-    return point(shape,2); 
-  };
-  block.f_top=new pair() {
-    return point(shape,2.5); 
-  };
-  block.f_topleft=new pair() {
-    return point(shape,3); 
-  };
-  block.f_left=new pair() {
-    return point(shape,3.5); 
-  };
+  block.f_center=0.5*z;
+  block.center=center;
+  block.size=z;
+  block.f_bottomleft=point(shape,0);
+  block.f_bottom=point(shape,0.5); 
+  block.f_bottomright=point(shape,1); 
+  block.f_right=point(shape,1.5); 
+  block.f_topright=point(shape,2); 
+  block.f_top=point(shape,2.5); 
+  block.f_topleft=point(shape,3); 
+  block.f_left=point(shape,3.5); 
   return block;
 }
 
@@ -205,35 +182,17 @@ block diamond(object body, pair center=(0,0), real ds=5, real dw=1,
   block.f_position=new pair(real x) {
     return point(shape,x);
   };
-  block.f_center=new pair() {
-    return(point(shape,1).x,point(shape,0).y);
-  };
-  block.center(center);
-  block.bound=(point(shape,2).x,point(shape,1).y);
-  block.f_bottomleft=new pair() {
-    return point(shape,2.5); 
-  };
-  block.f_bottom=new pair() {
-    return point(shape,3); 
-  };
-  block.f_bottomright=new pair() {
-    return point(shape,3.5); 
-  };
-  block.f_right=new pair() {
-    return point(shape,0); 
-  };
-  block.f_topright=new pair() {
-    return point(shape,0.5); 
-  };
-  block.f_top=new pair() {
-    return point(shape,1); 
-  }; 
-  block.f_topleft=new pair() {
-    return point(shape,1.5); 
-  };
-  block.f_left=new pair() {
-    return point(shape,2); 
-  };
+  block.f_center=(point(shape,1).x,point(shape,0).y);
+  block.center=center;
+  block.size=(point(shape,0).x,point(shape,1).y);
+  block.f_bottomleft=point(shape,2.5); 
+  block.f_bottom=point(shape,3); 
+  block.f_bottomright=point(shape,3.5); 
+  block.f_right=point(shape,0); 
+  block.f_topright=point(shape,0.5); 
+  block.f_top=point(shape,1); 
+  block.f_topleft=point(shape,1.5); 
+  block.f_left=point(shape,2); 
   return block;
 }
 
@@ -257,35 +216,17 @@ block circle(object body, pair center=(0,0), real dr=3)
   block.f_position=new pair(real x) {
     return point(shape,x);
   };
-  block.f_center=new pair() {
-    return(r,r);
-  };
-  block.center(center);
-  block.bound=(2r,2r);
-  block.f_left=new pair() {
-    return point(shape,0);
-  };
-  block.f_topleft=new pair() {
-    return point(shape,0.5); 
-  };
-  block.f_top=new pair() {
-    return point(shape,1); 
-  };
-  block.f_topright=new pair() {
-    return point(shape,1.5); 
-  };
-  block.f_right=new pair() {
-    return point(shape,2); 
-  };
-  block.f_bottomright=new pair() {
-    return point(shape,2.5); 
-  };
-  block.f_bottom=new pair() {
-    return point(shape,3); 
-  };
-  block.f_bottomleft=new pair() {
-    return point(shape,3.5); 
-  };
+  block.f_center=(r,r);
+  block.center=center;
+  block.size=(2r,2r);
+  block.f_left=point(shape,0);
+  block.f_topleft=point(shape,0.5); 
+  block.f_top=point(shape,1); 
+  block.f_topright=point(shape,1.5); 
+  block.f_right=point(shape,2); 
+  block.f_bottomright=point(shape,2.5); 
+  block.f_bottom=point(shape,3); 
+  block.f_bottomleft=point(shape,3.5); 
   return block;
 }
 
@@ -299,51 +240,33 @@ block roundrectangle(object body, pair center=(0,0), real ds=5, real dw=0)
   real a=bound.x;
   real b=bound.y;
   
-  path shape=(0,ds+dw)--(0,ds+b-dw){up}..
-    {right}(ds+dw,2ds+b)--(ds+a-dw,2ds+b){right}..
-             {down}(2ds+a,ds+b-dw)--(2ds+a,ds+dw){down}..
-                     {left}(ds+a-dw,0)--(ds+dw,0){left}..{up}cycle;
+  path shape=(0,ds+dw)--(0,ds+b-dw){up}..{right}
+  (ds+dw,2ds+b)--(ds+a-dw,2ds+b){right}..{down}
+  (2ds+a,ds+b-dw)--(2ds+a,ds+dw){down}..{left}
+  (ds+a-dw,0)--(ds+dw,0){left}..{up}cycle;
   
-                     block block;
-                     block.draw=new frame(pen p) {
-                       frame block;
-                       draw(block,shape);
-                       add(block,shift(-0.5*(M+m))*f,(ds,ds)+0.5bound);
-                       return block;
-                     };
-                     block.f_position=new pair(real x) {
-                       return point(shape,x);
-                     };
-                     block.f_center=new pair() {
-                       return(ds+0.5a,ds+0.5b);
-                     };
-                     block.center(center);
-                     block.bound=(2ds+a,2ds+b);
-                     block.f_bottomleft=new pair() {
-                       return point(shape,7.5); 
-                     };
-                     block.f_bottom=new pair() {
-                       return point(shape,6.5); 
-                     };
-                     block.f_bottomright=new pair() {
-                       return point(shape,5.5); 
-                     };
-                     block.f_right=new pair() {
-                       return point(shape,4.5); 
-                     };
-                     block.f_topright=new pair() {
-                       return point(shape,3.5); 
-                     };
-                     block.f_top=new pair() {
-                       return point(shape,2.5); 
-                     };
-                     block.f_topleft=new pair() {
-                       return point(shape,1.5); 
-                     };
-                     block.f_left=new pair() {
-                       return point(shape,0.5); 
-                     };
-                     return block;
+  block block;
+  block.draw=new frame(pen p) {
+    frame block;
+    draw(block,shape);
+    add(block,shift(-0.5*(M+m))*f,(ds,ds)+0.5bound);
+    return block;
+  };
+  block.f_position=new pair(real x) {
+    return point(shape,x);
+  };
+  block.f_center=(ds+0.5a,ds+0.5b);
+  block.center=center;
+  block.size=(2ds+a,2ds+b);
+  block.f_bottomleft=point(shape,7.5); 
+  block.f_bottom=point(shape,6.5); 
+  block.f_bottomright=point(shape,5.5); 
+  block.f_right=point(shape,4.5); 
+  block.f_topright=point(shape,3.5); 
+  block.f_top=point(shape,2.5); 
+  block.f_topleft=point(shape,1.5); 
+  block.f_left=point(shape,0.5); 
+  return block;
 }
 
 block bevel(object body, pair center=(0,0), real dh=5, real dw=5)
@@ -368,35 +291,17 @@ block bevel(object body, pair center=(0,0), real dh=5, real dw=5)
   block.f_position=new pair(real x) {
     return point(shape,x);
   };
-  block.f_center=new pair() {
-    return(dw+0.5a,dh+b);
-  };
-  block.center(center);
-  block.bound=(2dw+a,2dh+2b);
-  block.f_bottomleft=new pair() {
-    return point(shape,4); 
-  };
-  block.f_bottom=new pair() {
-    return point(shape,4.5); 
-  };
-  block.f_bottomright=new pair() {
-    return point(shape,5); 
-  };
-  block.f_right=new pair() {
-    return point(shape,0); 
-  };
-  block.f_topright=new pair() {
-    return point(shape,1); 
-  };
-  block.f_top=new pair() {
-    return point(shape,1.5); 
-  };
-  block.f_topleft=new pair() {
-    return point(shape,2); 
-  };
-  block.f_left=new pair() {
-    return point(shape,3); 
-  };
+  block.f_center=(dw+0.5a,dh+b);
+  block.center=center;
+  block.size=(2dw+a,2dh+2b);
+  block.f_bottomleft=point(shape,4); 
+  block.f_bottom=point(shape,4.5); 
+  block.f_bottomright=point(shape,5); 
+  block.f_right=point(shape,0); 
+  block.f_topright=point(shape,1); 
+  block.f_top=point(shape,1.5); 
+  block.f_topleft=point(shape,2); 
+  block.f_left=point(shape,3); 
   return block;
 }
 
@@ -426,5 +331,10 @@ path path(pair point[] ... bool horizontal[])
 
 void draw(picture pic=currentpicture, block block, pen p=currentpen)
 {
-  add(pic,shift(block.llcorner)*block.draw(p));
+  pic.add(new void (frame f, transform t) {
+      add(f,shift(block.shift(t))*block.draw(p));
+    });
+  frame f;
+  add(f,shift(-block.f_center)*block.draw(p));
+  pic.addBox(block.center,block.center,min(f),max(f));
 }

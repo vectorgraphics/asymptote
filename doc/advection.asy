@@ -13,37 +13,33 @@ defaultpen(fontsize(10pt));
 
 real margin=1.5mm;
 
-object IC,Adv0,Adv,AdvD,Ur,Ui,Crank,CrankR,Urout,Diff,UIout,psi,vel;
-
-IC=draw(box,Label("initial condition $\v U_0$",(0,1)),
-	  margin,black,FillDraw(palegray));
-Adv0=draw(ellipse,Label("Lagrangian state $\v U(t)$",(1,1)),
-	    margin,red,FillDraw(palered));
-Adv=draw(ellipse,Label("Lagrangian prediction $\v U(t+\tau)$",(1,0)),
-	   margin,red,FillDraw(palered));
-AdvD=draw(ellipse,Label("diffused parcels",(1.8,1)),
-	    margin,red,FillDraw(palered));
-Ur=draw(box,Label("rearranged $\v \widetilde U$",(0,0)),
-	  margin,orange+gray,FillDraw(paleyellow));
-Ui=draw(box,Label("interpolated $\v \widetilde U$",(1,-1)),
-	  margin,blue,FillDraw(paleblue));
-Crank=draw(box,Label("${\cal L}^{-1}(-\tau){\cal L}(\tau)\v \widetilde U$",
-		       (0.5,-1)),margin,blue,FillDraw(paleblue));
-CrankR=draw(box,Label("${\cal L}^{-1}(-\tau){\cal L}(\tau)\v \widetilde U$",
-			(0,-1)),margin,orange+gray,FillDraw(paleyellow));
-Urout=draw(box,
-	     Label(minipage("\center{Lagrangian rearranged solution~$\v U_R$}",
-			    100pt),
-		   (0,-2)),margin,orange+gray,FillDraw(paleyellow));
-Diff=draw(box,Label("$\v D\del^2 \v \widetilde U$",(0.75,-1.5)),
-	    margin,blue,FillDraw(paleblue));
-UIout=draw(box,Label(minipage("\center{semi-Lagrangian solution~$\v U_I$}",
-				80pt),
-		       (0.5,-2)),margin,FillDraw(palered+paleyellow));
-psi=draw(box,Label("$\psi=\del^{-2}\omega$",(1.6,-1)),
-	   margin,darkgreen,FillDraw(palegreen));
-vel=draw(box,Label("$\v v=\v{\hat z} \cross\grad\psi$",(1.6,-0.5)),
-	   margin,darkgreen,FillDraw(palegreen));
+object IC=draw("initial condition $\v U_0$",box,(0,1),
+	       margin,black,FillDraw(palegray));
+object Adv0=draw("Lagrangian state $\v U(t)$",ellipse,(1,1),
+		 margin,red,FillDraw(palered));
+object Adv=draw("Lagrangian prediction $\v U(t+\tau)$",ellipse,(1,0),
+		margin,red,FillDraw(palered));
+object AdvD=draw("diffused parcels",ellipse,(1.8,1),
+		  margin,red,FillDraw(palered));
+object Ur=draw("rearranged $\v \widetilde U$",box,(0,0),
+	       margin,orange+gray,FillDraw(paleyellow));
+object Ui=draw("interpolated $\v \widetilde U$",box,(1,-1),
+	       margin,blue,FillDraw(paleblue));
+object Crank=draw("${\cal L}^{-1}(-\tau){\cal L}(\tau)\v \widetilde U$",
+		  box,(0.5,-1),margin,blue,FillDraw(paleblue));
+object CrankR=draw("${\cal L}^{-1}(-\tau){\cal L}(\tau)\v \widetilde U$",
+		   box,(0,-1),margin,orange+gray,FillDraw(paleyellow));
+object Urout=draw(minipage("\center{Lagrangian rearranged solution~$\v U_R$}",
+			   100pt),box,(0,-2),margin,orange+gray,
+		  FillDraw(paleyellow));
+object Diff=draw("$\v D\del^2 \v \widetilde U$",box,(0.75,-1.5),
+		 margin,blue,FillDraw(paleblue));
+object UIout=draw(minipage("\center{semi-Lagrangian solution~$\v U_I$}",80pt),
+		  box,(0.5,-2),margin,FillDraw(palered+paleyellow));
+object psi=draw("$\psi=\del^{-2}\omega$",box,(1.6,-1),
+		margin,darkgreen,FillDraw(palegreen));
+object vel=draw("$\v v=\v{\hat z} \cross\grad\psi$",box,(1.6,-0.5),
+		margin,darkgreen,FillDraw(palegreen));
 
 add(new void(frame f, transform t) {
     pair padv=0.5*(point(Adv0,S,t)+point(Adv,N,t));

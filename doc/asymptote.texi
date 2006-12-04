@@ -5025,13 +5025,11 @@ animation portably (@pxref{pdfanim}).
 @section @code{slide}
 @cindex @code{slide}
 This package provides a simple yet high-quality facility for making
-presentation slides, including portable embedded @code{PDF} animations.
-Examples are provided in the file
-@code{slidedemo.asy} and @code{slidemovies.asy}:
+presentation slides, including portable embedded @code{PDF} animations (see
+the file @code{slidemovies.asy}). A simple example is provided in the file
+@code{slidedemo.asy}:
 
 @verbatiminclude ../examples/slidedemo.asy
-
-@verbatiminclude ../examples/slidemovies.asy
 
 @node MetaPost
 @section @code{MetaPost}
@@ -6108,7 +6106,7 @@ defined in the module @code{three}.
 @cindex @code{face}
 Planar hidden surface removal is implemented with a binary space
 partition and picture clipping. A planar path is first converted to a
-struct @code{face} derived from @code{picture}. A @code{face} may be given to
+structure @code{face} derived from @code{picture}. A @code{face} may be given to
 a drawing routine in place of any @code{picture} argument.  An array
 of such faces may then be drawn, removing hidden surfaces:
 @verbatim
@@ -6281,7 +6279,7 @@ for the surfacepen. A mesh is always drawn in the absence of lighting, unless
 @node solids
 @section @code{solids}
 @cindex @code{solids}
-This solid geometry package defines a struct @code{revolution} that
+This solid geometry package defines a structure @code{revolution} that
 can be used to fill and draw surfaces of revolution. The following example
 uses it to display the outline of a circular cylinder of radius 1 and
 height 1.5 aligned in the direction @code{(0,1,1)} with perspective projection:
@@ -6311,44 +6309,19 @@ The original @code{featpost3D} package is documented at
 @section @code{flowchart}
 @cindex @code{flowchart}
 This package provides routines to assist in drawing flowcharts. The primary
-@code{struct} is a @code{block}, which represents a single block on the
-flowchart.
+structure is a @code{block}, which represents a single block on the
+flowchart. The following eight functions return a position on the appropriate
+edge of the block, given picture transform @code{t}:
 
 @verbatim
-pair block.bound
-@end verbatim 
-@cindex @code{block.bound}
-The upper right corner of the block relative to its lower left corner.
-
-@verbatim
-pair block.llcorner
-@end verbatim
-@cindex @code{block.llcorner}
-The absolute lower left corner of the block.
-
-@verbatim
-pair block.center()
-void block.center(pair loc)
-@end verbatim
-@cindex @code{block.center}
-Returns the current absolute center of the block, or sets the absolute
-center of the block.
-
-@verbatim
-pair block.position(real x)
-@end verbatim
-@cindex @code{block.position}
-Returns an absolute position along the border path of the block.
-
-@verbatim
-pair block.top()
-pair block.left()
-pair block.right()
-pair block.bottom()
-pair block.topleft()
-pair block.topright()
-pair block.bottomleft()
-pair block.bottomright()
+pair block.top(transform t=identity());
+pair block.left(transform t=identity());
+pair block.right(transform t=identity());
+pair block.bottom(transform t=identity());
+pair block.topleft(transform t=identity());
+pair block.topright(transform t=identity());
+pair block.bottomleft(transform t=identity());
+pair block.bottomright(transform t=identity());
 @end verbatim
 @cindex @code{block.top}
 @cindex @code{block.left}
@@ -6358,60 +6331,79 @@ pair block.bottomright()
 @cindex @code{block.topright}
 @cindex @code{block.bottomleft}
 @cindex @code{block.bottomright}
-These eight methods return an absolute position on the appropriate edge
-of the block.
 
-@code{picture block.draw(pen p=currentpen)}
+@noindent
+To obtain an arbitrary position along the boundary of the block in user
+coordinates, use:
+@verbatim
+pair block.position(real x, transform t=identity());
+@end verbatim
+@cindex @code{block.position}
+
+@noindent
+@cindex @code{block.center}
+The center of the block in user coordinates is stored in
+@code{block.center} and the block size in @code{PostScript} coordinates
+is given by @code{block.size}.
+
+@noindent
+A frame containing the block is given by
+@verbatim
+frame block.draw(pen p=currentpen);
+@end verbatim 
 @cindex @code{block.draw}
-Returns a frame representing the block.
 
 The following block generation routines accept a Label, string, or
-frame for their object argument.
+frame for their object argument:
 
+@table @dfn
+@item rectangular block with the given header (if specified) and body (here @code{dx} is the amount of padding around the header and body): 
 @cindex @code{rectangle}
 @verbatim
 block rectangle(object header, object body,
                 pen headercolor=mediumgray,
                 pen bodycolor=currentpen,
-                pair center=(0,0), real dx=3)
+                pair center=(0,0), real dx=3);
 block rectangle(object body, pen headercolor=mediumgray,
                 pen bodycolor=currentpen,
-                pair center=(0,0), real dx=3)
+                pair center=(0,0), real dx=3);
 @end verbatim
-Create a rectangular block with the given header (if specified)
-and body. Here @code{dx} is the amount of padding around the header and body. 
 
+@item diamond-shaped flowchart block:
 @cindex @code{diamond}
 @verbatim
 block diamond(object body, pair center=(0,0), real ds=5,
-              real dw=1, real height=20, real dh=0)
+              real dw=1, real height=20, real dh=0);
 @end verbatim
-Create a diamond-shaped chart block.
 
+@item circular flowchart block:
 @cindex @code{circle}
 @verbatim
-block circle(object body, pair center=(0,0), real dr=3)
+block circle(object body, pair center=(0,0), real dr=3);
 @end verbatim
-Create a circular chart block.
 
+@item rectangular flowchart block with rounded corners:
 @cindex @code{roundrectangle}
 @verbatim
 block roundrectangle(object body, pair center=(0,0),
-                     real ds=5, real dw=0)
+                     real ds=5, real dw=0);
 @end verbatim
-Create a rectangular chart block with rounded corners.
 
+@item rectangular flowchart block with beveled edges:
 @cindex @code{bevel}
 @verbatim
-block bevel(object body, pair center=(0,0), real dh=5, real dw=5)
+block bevel(object body, pair center=(0,0), real dh=5, real dw=5);
 @end verbatim 
-Create a rectangular chart block with beveled edges.
 
+@end table
+
+To draw paths joining the pairs in @code{point} with right-angled lines,
+use the routine:
 @cindex @code{path}
 @verbatim
-path path(pair point[] ... bool horizontal[])
+path path(pair point[] ... bool horizontal[]);
 @end verbatim
-Draw paths joining the pairs in @code{point} with right-angled lines.
+@noindent
 The entries in @code{horizontal} identify whether successive
 segments between the pairs specified by @code{point} should be drawn
 horizontal (@code{true}) or vertical (@code{false}).
@@ -7014,7 +7006,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  linetype longdashed dashdotted longdashdotted linewidth y XP
 @c  LocalWords:  fontsize defaultfilename keepAspect IgnoreAspect ise flushleft
 @c  LocalWords:  NoWait src dest XDR txt getc fout stdin stdout endl xinput eof
-@c  LocalWords:  xoutput Microsystem's eol struct exponentials postfix sayhi th
+@c  LocalWords:  xoutput Microsystem's eol exponentials postfix sayhi th Ubuntu
 @c  LocalWords:  sqr intop addby libm asin acos atan sinh tanh asinh acosh cbrt
 @c  LocalWords:  atanh fabs hypot fmod ceil srand dereferenced alice pete sqrtx
 @c  LocalWords:  eval fft csv runtime nonalphanumeric labely LeftTicks NoTicks
@@ -7090,5 +7082,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  ColorDodge ColorBurn Ivaldi buildcycle autorotate mexicanhat
 @c  LocalWords:  Gouraudcontour pdflatex preconfigured perline linelength hskip
 @c  LocalWords:  penimage filloutside legendhskip legendvskip maxwidth CDlabel
-@c  LocalWords:  tensorshade MPEG framepoint nonfunction Radoslav Marinov
-@c  LocalWords:  Pienaar Melenchuk
+@c  LocalWords:  tensorshade MPEG framepoint nonfunction Radoslav Marinov Mepis
+@c  LocalWords:  Pienaar Melenchuk finalout pdfanim Linspire Dpkg sudo dpkg dtx
+@c  LocalWords:  windingnumber clickable PDFAnim eforms insdljs pdfmovie
+@c  LocalWords:  slidemovies ifdraft embeddedu externalmovie
