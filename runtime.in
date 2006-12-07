@@ -513,12 +513,9 @@ void init_readline(bool tabcompletion=true)
 
 void clearTeX()
 {
-  if(TeXinitialized) {
-    camp::TeXpipepreamble.clear();
-    camp::TeXpreamble.clear();
-    camp::tex.pipeclose();
-    TeXinitialized=false;
-  }
+  camp::TeXpipepreamble.clear();
+  camp::TeXpreamble.clear();
+  camp::tex.pipeclose();
 }
 
 void cleanup()

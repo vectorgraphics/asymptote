@@ -40,7 +40,6 @@ extern int ShipoutNumber;
 extern const string suffix;
 extern const string guisuffix;
   
-extern bool TeXinitialized; // Is LaTeX process initialized?
 extern mem::string historyname;
   
 void SetPageDimensions();

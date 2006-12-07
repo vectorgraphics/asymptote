@@ -2828,6 +2828,8 @@ box to @code{penr} at the edge.
 
 @end table
 
+@cindex bounding box
+@cindex background color
 For example, to draw a bounding box around a picture with a 0.25 cm
 margin and output the resulting frame, use the command:
 @verbatim

@@ -116,7 +116,6 @@ int ShipoutNumber=0;
 const string suffix="asy";
 const string guisuffix="gui";
   
-bool TeXinitialized=false;
 string initdir;
 mem::string historyname;
 

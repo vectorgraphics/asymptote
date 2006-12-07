@@ -138,23 +138,21 @@ void picture::texinit()
 {
   drawElement::lastpen=pen(initialpen);
   // Output any new texpreamble commands
-  if(TeXinitialized) {
+  if(tex.isopen()) {
     if(TeXpipepreamble.empty()) return;
     texpreamble(tex,TeXpipepreamble);
     TeXpipepreamble.clear();
     return;
   }
   
-
   tex.open(texengine().c_str(),"texpath",texpathmessage);
   texdocumentclass(tex,true);
   
-  texdefines(tex,TeXpipepreamble,true);
+  texdefines(tex,TeXpreamble,true);
   TeXpipepreamble.clear();
 
   tex << "\n";
   tex.wait(texready.c_str(),texabort(getSetting<mem::string>("tex")));
-  TeXinitialized=true;
 }
   
 bool picture::texprocess(const string& texname, const string& outname,

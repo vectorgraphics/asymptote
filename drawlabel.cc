@@ -27,25 +27,31 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn,
 {
   string texbuf;
   tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(s) << "}\n\n";
-  tex.wait(texready.c_str(),abort);
-  tex << "\\showthe\\wd\\ASYbox\n";
-  tex >> texbuf;
-  if(texbuf[0] == '>' && texbuf[1] == ' ')
-    width=atof(texbuf.c_str()+2)*tex2ps;
-  else {
+  if(!tex.wait(texready.c_str(),abort)) {
+    string error=string(tex.message());
+    tex << "\n";
+    tex.wait("\n*");
+    tex << "\n\n";
+    tex.wait("\n*");
     if(settings::getSetting<bool>("inlinetex")) {
       if(settings::getSetting<bool>("debug") && warn) {
 	ostringstream buf;
 	buf << "Cannot determine size of label \"" << s << "\"";
 	reportWarning(buf);
+	return false;
       }
-      tex << "\n";
-      tex.wait("\n*",abort);
-      return false;
-    } else reportError("Cannot read label width");
+      return true;
+    } else camp::reportError(error);
   }
+  
+  tex << "\\showthe\\wd\\ASYbox\n";
+  tex >> texbuf;
+  if(texbuf[0] == '>' && texbuf[1] == ' ')
+    width=atof(texbuf.c_str()+2)*tex2ps;
+  else reportError("Cannot read label width");
   tex << "\n";
   tex.wait("\n*",abort);
+  
   tex << "\\showthe\\ht\\ASYbox\n";
   tex >> texbuf;
   if(texbuf[0] == '>' && texbuf[1] == ' ')
@@ -53,6 +59,7 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn,
   else reportError("Cannot read label height");
   tex << "\n";
   tex.wait("\n*",abort);
+  
   tex << "\\showthe\\dp\\ASYbox\n";
   tex >> texbuf;
   if(texbuf[0] == '>' && texbuf[1] == ' ')

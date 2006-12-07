@@ -93,11 +93,14 @@ public:
     } else {
       close(out[1]);
       close(in[0]);
+      *buffer=0;
       pipeopen=true;
       waitpid(wrapperpid,NULL,0);
     }
   }
 
+  bool isopen() {return pipeopen;}
+  
   iopipestream(): pid(0), pipeopen(false) {}
   
   iopipestream(const char *command, const char *hint=NULL,
@@ -160,22 +163,23 @@ public:
     return true;
   }
   
+  string message() {
+    return buffer;
+  }
+  
   bool checkabort(const char *abort) {
     size_t alen=strlen(abort);
-    if(strncmp(buffer,abort,alen) == 0) {
-      if(settings::getSetting<bool>("inlinetex")) return true;
-      camp::reportError(buffer);
-    }
+    if(strncmp(buffer,abort,alen) == 0) return true;
     char *p=buffer;
     while((p=strchr(p,'\n')) != NULL) {
       ++p;
-      if(strncmp(p,abort,alen) == 0)
-	camp::reportError(buffer);
+      if(strncmp(p,abort,alen) == 0) return true;
     }
     return false;
   }
   
-  void wait(const char *prompt, const char**abort=NULL) {
+  // returns true if prompt found, false if abort string is received
+  bool wait(const char *prompt, const char**abort=NULL) {
     ssize_t len;
     size_t plen=strlen(prompt);
   
@@ -189,9 +193,10 @@ public:
     
     do {
       for(unsigned int i=0; i < n; ++i) 
-	if(checkabort(abort[i])) return;
+	if(checkabort(abort[i])) return false;
       len=readbuffer();
     } while (!tailequals(buffer,len,prompt,plen));
+    return true;
   }
 
   int wait() {
