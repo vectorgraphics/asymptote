@@ -199,7 +199,7 @@ public:
   
     unsigned int n=0;
     if(abort) {
-      while(true) {
+      for(;;) {
 	if(abort[n]) n++;
 	else break;
       }

@@ -685,7 +685,7 @@ void clear(string file, int line, bool warn=false)
     cout << "No such breakpoint at "  << file << ": " << line << endl;
 }
 
-int windingnumber(array *g, pair z)
+int windingnumber(array *g, camp::pair z)
 {
   size_t size=g->size();
   int count=0;
@@ -1944,7 +1944,7 @@ int seconds(string t=emptystring, string format=emptystring)
   const time_t bintime=time(NULL);
   tm tm=*localtime(&bintime);
   if(t != "" && !strptime(t.c_str(),format.c_str(),&tm)) return 0;
-  return mktime(&tm);
+  return (int) mktime(&tm);
 #else
   return 0;
 #endif  

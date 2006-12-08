@@ -416,7 +416,7 @@ string endString(const string line, size_type start) {
         case '\"':
           return line+"\" \'\\n\' \"";
         default:
-           assert(false);
+           assert(False);
            return line;
       }
     }
@@ -481,7 +481,7 @@ class iprompt : public icore {
   string startline;
   //block *startcode;
 
-  void postRun(coenv &, istack &s) {
+  void postRun(coenv &, istack &) {
     run::cleanup();
     camp::TeXpipepreamble=TeXpipepreamble_save;
     camp::TeXpreamble=TeXpreamble_save;
