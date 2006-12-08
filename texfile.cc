@@ -21,6 +21,9 @@ std::list<string> TeXpipepreamble, TeXpreamble;
 texfile::texfile(const string& texname, const bbox& box) : box(box)
 {
   texengine=getSetting<mem::string>("tex");
+  inlinetex=getSetting<bool>("inlinetex");
+  Hoffset=inlinetex ? box.right : box.left;
+  
   out=new ofstream(texname.c_str());
   if(!out || !*out) {
     std::cerr << "Cannot write to " << texname << std::endl;
@@ -43,7 +46,7 @@ texfile::~texfile()
 void texfile::prologue()
 {
   texdefines(*out);
-  if(settings::pdf(texengine) && !getSetting<bool>("inlinetex")) {
+  if(settings::pdf(texengine) && !inlinetex) {
     double width=box.right-box.left;
     double height=box.top-box.bottom;
     *out << "\\pdfhorigin=0bp" << newl
@@ -54,7 +57,7 @@ void texfile::prologue()
       *out << "\\pdfpageheight=" << height << "bp" << newl;
   }
   if(settings::latex(texengine)) {
-    if(getSetting<bool>("inlinetex"))
+    if(inlinetex)
       *out << "\\setlength{\\unitlength}{1pt}" << newl;
     else {
       *out << "\\pagestyle{empty}" << newl
@@ -84,16 +87,20 @@ void texfile::beginlayer(const string& psname)
       *out << "[bb=" << box.left << " " << box.bottom << " "
 	   << box.right << " " << box.top << "]";
     *out << "{" << psname << "}%" << newl;
-    if(!getSetting<bool>("inlinetex"))
+    if(!inlinetex)
       *out << "\\kern-" << (box.right-box.left)*ps2tex << "pt%" << newl;
   }
 }
 
 void texfile::endlayer()
 {
-  if(getSetting<bool>("inlinetex") &&
-     (box.right > box.left && box.top > box.bottom))
+  if(inlinetex && (box.right > box.left && box.top > box.bottom))
     *out << "\\kern-" << (box.right-box.left)*ps2tex << "pt%" << newl;
+}
+
+void texfile::writeshifted(path p, bool newPath)
+{
+  write(p.transformed(shift(pair(-Hoffset,-box.bottom))),newPath);
 }
 
 void texfile::setlatexcolor(pen p)
@@ -175,10 +182,8 @@ void texfile::put(const string& label, const transform& T, const pair& z,
 
   if(label.empty()) return;
   
-  double edge=getSetting<bool>("inlinetex") ? box.right : box.left;
-     
   *out << "\\ASYalign"
-       << "(" << (z.getx()-edge)*ps2tex
+       << "(" << (z.getx()-Hoffset)*ps2tex
        << "," << (z.gety()-box.bottom)*ps2tex
        << ")(" << align.getx()
        << "," << align.gety() 
@@ -190,7 +195,7 @@ void texfile::put(const string& label, const transform& T, const pair& z,
 void texfile::epilogue()
 {
   if(settings::latex(texengine)) {
-    if(!getSetting<bool>("inlinetex"))
+    if(!inlinetex)
       *out << "\\end{document}" << newl;
   } else {
       *out << "\\bye" << newl;

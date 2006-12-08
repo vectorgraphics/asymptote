@@ -89,6 +89,8 @@ void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
 class texfile : public psfile {
   bbox box;
   mem::string texengine;
+  bool inlinetex;
+  double Hoffset;
 
 public:
   texfile(const string& texname, const bbox& box);
@@ -109,9 +111,7 @@ public:
   
   void closeclip();
   
-  void writeshifted(path p, bool newPath=true) {
-    write(p.transformed(shift(pair(-box.left,-box.bottom))),newPath);
-  }
+  void writeshifted(path p, bool newPath=true);
   
   // Draws label transformed by T at position z.
   void put(const string& label, const transform& T, const pair& z,
