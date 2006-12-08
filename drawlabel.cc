@@ -22,26 +22,40 @@ void drawLabel::labelwarning(const char *action)
 	       << "\" " << action << " to avoid overwriting" << endl;
 }
  
+void recover(iopipestream &tex, const char **abort)
+{
+  tex << "\n";
+  tex.wait("\n*",abort);
+  tex << "\n\n";
+  tex.wait("\n*",abort);
+}
+  
 bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn,
 			  const char **abort)
 {
   string texbuf;
   tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(s) << "}\n\n";
-  if(!tex.wait(texready.c_str(),abort)) {
-    string error=string(tex.message());
-    tex << "\n";
-    tex.wait("\n*");
-    tex << "\n\n";
-    tex.wait("\n*");
+  int rc=tex.wait(texready.c_str(),abort);
+  if(rc) {
+    if(settings::fataltex[rc]) camp::reportError(*tex.message()); // Fatal error
     if(settings::getSetting<bool>("inlinetex")) {
-      if(settings::getSetting<bool>("debug") && warn) {
-	ostringstream buf;
-	buf << "Cannot determine size of label \"" << s << "\"";
-	reportWarning(buf);
+      if(warn) {
+	recover(tex,abort);
+	if(settings::getSetting<bool>("debug")) {
+	  ostringstream buf;
+	  buf << "Cannot determine size of label \"" << s << "\"";
+	  reportWarning(buf);
+	}
 	return false;
       }
-      return true;
-    } else camp::reportError(error);
+      tex << "\\show 0\n";
+      tex << "\n";
+      tex.wait("\n*",abort);
+      return false;
+    } else {
+      recover(tex,abort);
+      camp::reportError(*tex.message());
+    }
   }
   
   tex << "\\showthe\\wd\\ASYbox\n";

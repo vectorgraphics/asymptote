@@ -43,7 +43,7 @@ texfile::~texfile()
 void texfile::prologue()
 {
   texdefines(*out);
-  if(settings::pdf(texengine)) {
+  if(settings::pdf(texengine) && !getSetting<bool>("inlinetex")) {
     double width=box.right-box.left;
     double height=box.top-box.bottom;
     *out << "\\pdfhorigin=0bp" << newl
@@ -84,12 +84,16 @@ void texfile::beginlayer(const string& psname)
       *out << "[bb=" << box.left << " " << box.bottom << " "
 	   << box.right << " " << box.top << "]";
     *out << "{" << psname << "}%" << newl;
-    *out << "\\kern-" << (box.right-box.left)*ps2tex << "pt%" << newl;
+    if(!getSetting<bool>("inlinetex"))
+      *out << "\\kern-" << (box.right-box.left)*ps2tex << "pt%" << newl;
   }
 }
 
 void texfile::endlayer()
 {
+  if(getSetting<bool>("inlinetex") &&
+     (box.right > box.left && box.top > box.bottom))
+    *out << "\\kern-" << (box.right-box.left)*ps2tex << "pt%" << newl;
 }
 
 void texfile::setlatexcolor(pen p)
@@ -171,8 +175,10 @@ void texfile::put(const string& label, const transform& T, const pair& z,
 
   if(label.empty()) return;
   
+  double edge=getSetting<bool>("inlinetex") ? box.right : box.left;
+     
   *out << "\\ASYalign"
-       << "(" << (z.getx()-box.left)*ps2tex
+       << "(" << (z.getx()-edge)*ps2tex
        << "," << (z.gety()-box.bottom)*ps2tex
        << ")(" << align.getx()
        << "," << align.gety() 

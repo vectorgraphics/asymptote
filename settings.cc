@@ -982,6 +982,7 @@ const char *endspecial() {
   return "}%";
 }
 
+bool fataltex[]={false,true};
 const char *pdftexerrors[]={"! "," ==> Fatal error",NULL};
 const char *texerrors[]={"! ",NULL};
 

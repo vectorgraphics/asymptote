@@ -42,23 +42,23 @@
 %
 \NeedsTeXFormat{LaTeX2e}
 
-\ProvidesPackage{pdfanim}[2006/11/26 v0.52A Package to create animated PDFs with pdflatex]
+\ProvidesPackage{pdfanim_temp}[2006/11/26 v0.52A Package to create animated PDFs with pdflatex]
   
 \begingroup
 \@ifundefined{pdfoutput}
-    {\PackageError{PDFAnim}
+    {\PackageError{PDFAnim_temp}
             {You're either not using pdfLaTeX\MessageBreak
              or have turned off PDF output.\MessageBreak
-             `PDFAnim' works only with pdfLaTeX\MessageBreak
+             `PDFAnim_temp' works only with pdfLaTeX\MessageBreak
              and PDF output}%
             {Use `pdflatex' instead of `latex'\MessageBreak
              and set output to PDF (use: \pdfoutput = 1)!}
      \expandafter\endinput
     }{
      \ifnum\pdfoutput=0
-	 \PackageError{PDFAnim}
+	 \PackageError{PDFAnim_temp}
         	 {You don't produce PDF output, which\MessageBreak
-        	  is required for the `PDFAnim' package}%
+        	  is required for the `PDFAnim_temp' package}%
         	 {Set output to PDF. (use: \pdfoutput = 1)}
          \expandafter\endinput
      \fi

@@ -80,6 +80,8 @@ const char *endlabel(const mem::string& texengine);
 const char *clip(const mem::string& texengine);
 const char *beginspecial(const mem::string& texengine);
 const char *endspecial();
+  
+extern bool fataltex[];
 const char **texabort(const mem::string& texengine);
   
 mem::string texengine();

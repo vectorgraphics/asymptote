@@ -91,13 +91,16 @@ struct animation {
   string pdf(real delay=animationdelay, string options="") {
     string filename="_"+stripextension(stripdirectory(prefix));
     if(!pdflatex()) return "";
+    bool inlinetex=settings.inlinetex;
+    settings.inlinetex=false;
     export(filename,true);
+    settings.inlinetex=inlinetex;
     shipped=false;
     string s="\PDFAnimLoad[single,interval="+string(delay);
     if(options != "") s += ","+options;
     texpreamble(s+"]{"+prefix+"}{"+filename+"}{"+string(pictures.length)+"}%");
 
-    if(!settings.keep) {
+    if(!settings.keep && !settings.inlinetex) {
       exitfcn atexit=atexit();
       void exitfunction() {
 	atexit();

@@ -45,7 +45,19 @@ protected:
   char buffer[BUFSIZE];
   int pid;
   bool pipeopen;
+  std::string *last;
 public:
+  
+  void clear() {
+    if(last) delete last;
+    last=new std::string(buffer);
+    *buffer=0;
+  }
+  
+  const string *message() {
+    return last;
+  }
+  
   void open(const char *command, const char *hint=NULL,
 	    const char *application="", int out_fileno=STDOUT_FILENO) {
     if(pipe(in) == -1) {
@@ -101,7 +113,7 @@ public:
 
   bool isopen() {return pipeopen;}
   
-  iopipestream(): pid(0), pipeopen(false) {}
+  iopipestream(): pid(0), pipeopen(false), last(NULL) {}
   
   iopipestream(const char *command, const char *hint=NULL,
 	       const char *application="", int out_fileno=STDOUT_FILENO) :
@@ -163,23 +175,25 @@ public:
     return true;
   }
   
-  string message() {
-    return buffer;
-  }
-  
   bool checkabort(const char *abort) {
     size_t alen=strlen(abort);
-    if(strncmp(buffer,abort,alen) == 0) return true;
+    if(strncmp(buffer,abort,alen) == 0) {
+      clear();
+      return true;
+    }
     char *p=buffer;
     while((p=strchr(p,'\n')) != NULL) {
       ++p;
-      if(strncmp(p,abort,alen) == 0) return true;
+      if(strncmp(p,abort,alen) == 0) {
+	clear();
+	return true;
+      }
     }
     return false;
   }
   
   // returns true if prompt found, false if abort string is received
-  bool wait(const char *prompt, const char**abort=NULL) {
+  int wait(const char *prompt, const char**abort=NULL) {
     ssize_t len;
     size_t plen=strlen(prompt);
   
@@ -193,10 +207,10 @@ public:
     
     do {
       for(unsigned int i=0; i < n; ++i) 
-	if(checkabort(abort[i])) return false;
+	if(checkabort(abort[i])) return i+1;
       len=readbuffer();
     } while (!tailequals(buffer,len,prompt,plen));
-    return true;
+    return 0;
   }
 
   int wait() {
