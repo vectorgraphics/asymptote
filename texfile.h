@@ -110,7 +110,7 @@ public:
   void closeclip();
   
   void writeshifted(path p, bool newPath=true) {
-    write(p.transformed(shift(pair(-box.right,-box.bottom))),newPath);
+    write(p.transformed(shift(pair(-box.left,-box.bottom))),newPath);
   }
   
   // Draws label transformed by T at position z.
