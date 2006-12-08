@@ -258,9 +258,9 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
       << " -dCompatibilityLevel=1.4";
   if(!getSetting<bool>("autorotate"))
     cmd << " -dAutoRotatePages=/None";
-  cmd << " -g" << ceil(paperWidth) << "x" << ceil(paperHeight)
-      << " -dDEVICEWIDTHPOINTS=" << b.right-b.left
-      << " -dDEVICEHEIGHTPOINTS=" << b.top-b.bottom
+  cmd << " -g" << max(ceil(paperWidth),1.0) << "x" << max(ceil(paperHeight),1.0)
+      << " -dDEVICEWIDTHPOINTS=" << max(b.right-b.left,3.0)
+      << " -dDEVICEHEIGHTPOINTS=" << max(b.top-b.bottom,3.0)
       << " -sOutputFile='" << pdfname << "' '" << epsname << "'";
   return System(cmd,0,true,"gs","Ghostscript");
 }
