@@ -22,8 +22,8 @@ DIST = camp.tab.h camp.tab.cc lex.yy.cc runtime.h runtime.cc keywords.cc \
 CLEAN = camp.output asy.list
 NAME = asy
 EXTRABIN = x$(NAME)
-EXTRA = asy-mode.el,asy-keywords.el,asy-init.el,asy.vim,asymptote.py
-LATEXFILES = asymptote.sty,asycolors.sty,pdfanim_temp.sty
+EXTRA = asy-mode.el asy-keywords.el asy-init.el asy.vim asymptote.py
+LATEXFILES = asymptote.sty asycolors.sty pdfanim_temp.sty
 
 DEFS = @DEFS@ @OPTIONS@
 CFLAGS = @CPPFLAGS@ @CFLAGS@ 
@@ -111,11 +111,11 @@ install-asy: asy asy-keywords.el
 	${INSTALL} -d $(bindir) $(asydir) $(exampledir) $(animationsdir)
 	-${INSTALL} -d $(latexdir)
 	${INSTALL} -p -m 755 $(NAME) $(EXTRABIN) $(bindir)
-	${INSTALL} -p -m 644 base/*.asy base/{$(EXTRA)} $(asydir)
+	${INSTALL} -p -m 644 base/*.asy $(addprefix base/,$(EXTRA)) $(asydir)
 	${INSTALL} -p -m 644 examples/*.asy examples/piicon.eps \
 		doc/*.asy doc/*.csv doc/*.dat doc/latexusage.tex $(exampledir)
 	${INSTALL} -p -m 644 examples/animations/*.asy $(animationsdir)
-	-${INSTALL} -p -m 644 doc/{$(LATEXFILES)} $(latexdir)
+	-${INSTALL} -p -m 644 $(addprefix doc/,$(LATEXFILES)) $(latexdir)
 	-if test -z "$(DESTDIR)"; then \
 	  texhash; \
 	fi
@@ -133,15 +133,15 @@ uninstall-all: uninstall-man uninstall-asy
 uninstall-asy:
 	-cd $(animationsdir); rm -f *.asy
 	-rmdir $(animationsdir)
-	-cd $(exampledir); rm -f *.asy *.csv *.dat {$(EXTRA)} piicon.eps \
+	-cd $(exampledir); rm -f *.asy *.csv *.dat $(EXTRA) piicon.eps \
 		latexusage.tex
 	-rmdir $(exampledir)
 	-rmdir $(docdir)
-	-cd $(asydir); rm -f *.asy {$(EXTRA)}
+	-cd $(asydir); rm -f *.asy $(EXTRA)
 	-rmdir $(asydir)
-	-cd $(latexdir); rm -f {$(LATEXFILES)}
+	-cd $(latexdir); rm -f $(LATEXFILES)
 	-rmdir $(latexdir)
-	-cd $(bindir); rm -f $(NAME) {$(EXTRABIN)}
+	-cd $(bindir); rm -f $(NAME) $(EXTRABIN)
 
 uninstall-man: 
 	cd doc; $(MAKE) uninstall

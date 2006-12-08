@@ -34,7 +34,7 @@ uninstall: uninstall-all
 uninstall-all:
 	-cd $(docdir)/asy-faq.html; rm -rf *.html
 	-cd $(docdir); rmdir asy-faq.html; rm asy-faq.ascii 
-	-install-info --delete --infodir=$(infodir) asy-faq.info
+	-install-info --remove --infodir=$(infodir) asy-faq.info
 	-rm -f $(infodir)/asy-faq.info
 
 distclean: FORCE clean

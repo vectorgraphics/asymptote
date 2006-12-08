@@ -2,7 +2,7 @@ MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy) latexusage.asy
 INCLUDES = version.texi options
 ASY = ../asy -dir ../base
-DOCFILES = asymptote.pdf,CAD.pdf,PDFAnim_temp_Guide.pdf
+DOCFILES = asymptote.pdf CAD.pdf PDFAnim_temp_Guide.pdf
 
 doc:	asymptote.dvi asymptote.info html man
 
@@ -74,7 +74,7 @@ clean: FORCE
 install: man faq
 	cd FAQ; $(MAKE) install
 	${INSTALL} -d -m 755 $(docdir) $(mandir)/man1
-	${INSTALL} -p -m 644 {$(DOCFILES)} $(docdir)
+	${INSTALL} -p -m 644 $(DOCFILES) $(docdir)
 	${INSTALL} -p -m 644 $(MANFILES) $(mandir)/man1
 
 install-all: doc install
@@ -90,8 +90,8 @@ uninstall: uninstall-all
 uninstall-all:
 	cd FAQ; $(MAKE) uninstall
 	-cd $(mandir)/man1; rm $(MANFILES)
-	-rm -f $(docdir)/{$(DOCFILES)}
-	-install-info --delete --infodir=$(infodir) asymptote.info
+	-rm -f $(addprefix $(docdir)/,$(DOCFILES))
+	-install-info --remove --infodir=$(infodir) asymptote.info
 	-rm -f $(infodir)/asymptote.info
 
 distclean: FORCE clean

@@ -65,7 +65,7 @@ texhash >/dev/null 2>&1 || :
 %postun
 texhash >/dev/null 2>&1 || :
 if [ $1 = 0 ]; then
-    /sbin/install-info --delete %{_infodir}/%{name}.info.gz %{_infodir}/dir 2>/dev/null || :
+    /sbin/install-info --remove %{_infodir}/%{name}.info.gz %{_infodir}/dir 2>/dev/null || :
 fi
 
 
