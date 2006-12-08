@@ -22,12 +22,26 @@ void drawLabel::labelwarning(const char *action)
 	       << "\" " << action << " to avoid overwriting" << endl;
 }
  
+int wait(iopipestream &tex, const char *s, const char **abort,
+	 bool ignore=false)
+{
+  int rc=tex.wait(s,abort);
+  if(rc > 0) {
+    if(settings::fataltex[rc-1]) {
+      tex.pipeclose();
+      camp::reportError(*tex.message()); // Fatal error
+    }
+    if(!ignore) camp::reportError(*tex.message());
+  }
+  return rc;
+}
+ 
 void recover(iopipestream &tex, const char **abort)
 {
   tex << "\n";
-  tex.wait("\n*",abort);
+  wait(tex,"\n*",abort,true);
   tex << "\n\n";
-  tex.wait("\n*",abort);
+  wait(tex,"\n*",abort,true);
 }
   
 bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn,
@@ -35,9 +49,8 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn,
 {
   string texbuf;
   tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(s) << "}\n\n";
-  int rc=tex.wait(texready.c_str(),abort);
+  int rc=wait(tex,texready.c_str(),abort,true);
   if(rc) {
-    if(settings::fataltex[rc]) camp::reportError(*tex.message()); // Fatal error
     if(settings::getSetting<bool>("inlinetex")) {
       if(warn) {
 	recover(tex,abort);
@@ -50,7 +63,7 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn,
       }
       tex << "\\show 0\n";
       tex << "\n";
-      tex.wait("\n*",abort);
+      wait(tex,"\n*",abort,true);
       return false;
     } else {
       recover(tex,abort);
@@ -64,7 +77,7 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn,
     width=atof(texbuf.c_str()+2)*tex2ps;
   else reportError("Cannot read label width");
   tex << "\n";
-  tex.wait("\n*",abort);
+  wait(tex,"\n*",abort);
   
   tex << "\\showthe\\ht\\ASYbox\n";
   tex >> texbuf;
@@ -72,7 +85,7 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn,
     height=atof(texbuf.c_str()+2)*tex2ps;
   else reportError("Cannot read label height");
   tex << "\n";
-  tex.wait("\n*",abort);
+  wait(tex,"\n*",abort);
   
   tex << "\\showthe\\dp\\ASYbox\n";
   tex >> texbuf;
@@ -80,7 +93,7 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn,
     depth=atof(texbuf.c_str()+2)*tex2ps;
   else reportError("Cannot read label depth");
   tex << "\n";
-  tex.wait("\n*",abort);
+  wait(tex,"\n*",abort);
      
   return true;
 }   
@@ -105,14 +118,14 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
       if(settings::latex(texengine)) {
 	tex <<  "\\fontsize{" << pentype.size() << "}{" << pentype.Lineskip()
 	    << "}\\selectfont\n";
-	tex.wait("\n*",abort);
+	wait(tex,"\n*",abort);
       }
     }
     
     mem::string font=pentype.Font();
     if(font != lastpen.Font()) {
       tex <<  font << "\n";
-      tex.wait("\n*",abort);
+      wait(tex,"\n*",abort);
     }
     
     lastpen=pentype;
