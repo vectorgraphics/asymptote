@@ -404,6 +404,7 @@ string endString(const string line, size_type start) {
   size_type pos=stringPos(line, start);
 
   if (pos==npos)
+    // String ends in normal code.
     return line+" ";
   else {
     char sym=line[pos];
@@ -449,7 +450,7 @@ size_type slashPos(const string line, size_type start) {
     return pos;
 }
 
-string cleanLine(const string line) {
+string endCommentOrString(const string line) {
   size_type pos=slashPos(line, 0);
   if (pos == npos)
     return endString(line, 0);
@@ -467,6 +468,22 @@ string cleanLine(const string line) {
     sub.append(" */ ");
     return sub;
   }
+}
+
+bool isSlashed(const string line) {
+  return line[line.size()-1]=='\\';
+}
+string deslash(const string line) {
+  return isSlashed(line) ? line.substr(0,line.size()-1) : line;
+}
+
+// This transforms a line in to the history, so that when more code is added
+// after it, the code behaves the same as if there was a newline between the
+// two lines.  This involves changing // style comments to /* */ style comments,
+// and adding explicit newlines to multiline strings.
+string cleanLine(const string line) {
+  // First remove a trailing slash, if there is one.
+  return endCommentOrString(deslash(line));
 }
 
 
@@ -646,19 +663,14 @@ class iprompt : public icore {
     string prompt=getSetting<mem::string>(continuation ? "prompt2" : "prompt");
     string line=interact::simpleline(prompt);
 
-    // If a line ends in a slash, note it, and remove the slash.
-    string::size_type n=line.size();
-    bool slashed=(line[n-1]=='\\');
-    if (slashed)
-      line=line.substr(0,n-1);
-
     if (continuation)
       addToLastLine(line);
     else
       addToHistory(line);
 
-    return slashed ? line+"\n"+getline(true) :
-                     line;
+    // If the line ends in a slash, get more input.
+    return isSlashed(line) ? line+"\n"+getline(true) :
+                             line;
   }
 
   // Continue taking input for a line until it properly parses, or a syntax

@@ -170,6 +170,7 @@ void getstring(void)
 
 LETTER [_A-Za-z]
 ESC \\
+ENDL \\?(\r\n|\n|\r)
 EXTRAOPS <<|>>|$|$$|@|@@|~
 
 %%
@@ -188,7 +189,7 @@ EXTRAOPS <<|>>|$|$$|@|@@|~
 }
 
 <texstring>{
-\"/[ \t\r\n]*[\"\'] {adjust(); BEGIN INITIAL;}
+\"/([ \t]|{ENDL})*[\"\'] {adjust(); BEGIN INITIAL;}
 \"                 {adjust(); 
                     BEGIN INITIAL;
                     getstring(); 
@@ -199,14 +200,14 @@ EXTRAOPS <<|>>|$|$$|@|@@|~
                     getstring(); 
                     return GARBAGE;
                    }
-\r\n|\n|\r         {adjust(); newline(); append('\n'); continue; }
+{ENDL}             {adjust(); newline(); append('\n'); continue; }
 {ESC}{ESC}         {adjust(); append('\\'); append('\\'); continue; }
 {ESC}\"            {adjust(); append('\"'); continue; }
 .                  {adjust(); append(*yytext); }
 }
 
 <cstring>{
-\'/[ \t\r\n]*[\"\'] {adjust(); BEGIN INITIAL;}
+\'/([ \t]|{ENDL})*[\"\'] {adjust(); BEGIN INITIAL;}
 \'                 {adjust(); 
                     BEGIN INITIAL;
                     getstring(); 
@@ -217,7 +218,7 @@ EXTRAOPS <<|>>|$|$$|@|@@|~
                     getstring(); 
                     return GARBAGE;
                    }
-\r\n|\n|\r         {adjust(); newline(); append('\n'); continue; }
+{ENDL}             {adjust(); newline(); append('\n'); continue; }
 {ESC}(\'|\"|\?|\\)       {adjust(); append(yytext[1]); continue; }
 {ESC}a        {adjust(); append('\a'); continue; }
 {ESC}b        {adjust(); append('\b'); continue; }
@@ -260,7 +261,7 @@ EXTRAOPS <<|>>|$|$$|@|@@|~
 }
 
 [ \t]              {adjust(); continue;}
-\r\n|\n|\r         {adjust(); newline(); continue; }
+{ENDL}             {adjust(); newline(); continue;}
 \/\/[^\n]*         {adjust(); continue;}
 ","                {adjust(); return ','; }
 ":"                {adjust(); return ':'; }
@@ -368,7 +369,7 @@ newframe        {
 operator           {adjust(); BEGIN opname; }
 <opname>{
 [ \t\r]            {adjust(); continue;} 
-\r\n|\n|\r         {adjust(); newline(); continue;}
+{ENDL}             {adjust(); newline(); continue;}
 <<EOF>>            {adjust();
                     setEOF("missing operator name");
                     BEGIN INITIAL;

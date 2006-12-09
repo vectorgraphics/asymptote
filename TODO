@@ -1,5 +1,3 @@
-Andy: Add backslash to non-interactive lexing and handle in strings.
-
 Andy and John: (if possible) automatically turn expressions with array
 sub-expressions into iteration over the array(s)
 
