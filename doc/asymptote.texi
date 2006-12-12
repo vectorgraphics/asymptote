@@ -3051,11 +3051,12 @@ the remainder of the line is ignored. When reading strings, the
 comment character must be in the first column (otherwise it will be
 treated as an ordinary character).
 
+@anchor{cd}
 @cindex @code{cd}
 @cindex directory
-One can change the current working directory to the contents of the string
-@code{d} with the function @code{string cd(string d)}, which returns
-the new working directory.
+If the @code{global} option is enabled, one can change the current
+working directory to the contents of the string @code{s} with the
+function @code{string cd(string s)}, which returns the new working directory.
 
 @cindex @code{getc}
 When reading pairs, the enclosing parenthesis are optional.
@@ -6673,16 +6674,17 @@ and must be entered immediately after the prompt:
 @table @code
 @cindex @code{help}
 @item help
-view the manual
+view the manual;
 @item reset
-reset @code{Asymptote} to its initial state, except for changes to the
-settings module (@pxref{settings}).
+reset the @code{Asymptote} environment to its initial state, except for
+changes to the settings module (@pxref{settings}), the current path
+(@pxref{cd}), and breakpoints (@pxref{Debugger});
 @item input FILE
-resets the environment (except for breakpoints; @pxref{Debugger}) and does an
+does an interactive reset, followed by the commands 
 @code{erase(); include FILE}. If the file name @code{FILE} contains
-nonalphanumeric characters, enclose it with quotation marks. For
-convenience, a trailing semi-colon  followed by optional
-@code{Asymptote} commands may be entered on the same line.
+nonalphanumeric characters, enclose it with quotation marks.
+A trailing semi-colon followed by optional @code{Asymptote} commands may
+be entered on the same line.
 @cindex @code{quit}
 @cindex @code{exit}
 @anchor{history}

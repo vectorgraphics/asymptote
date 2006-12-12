@@ -49,10 +49,11 @@ using types::record;
 using interact::interactive;
 using interact::uptodate;
 
-void init()
+void init(bool resetpath=true)
 {
   vm::indebugger=false;
-  setPath(startPath());  /* On second and subsequent calls to init, sets the
+  if(resetpath) 
+    setPath(startPath());  /* On second and subsequent calls to init, sets the
                             path to what it was when the program started. */
   ShipoutNumber=0;
   if(!em)
@@ -766,7 +767,7 @@ public:
 
     do {
       try {
-	init();
+	init(false);
 	restart=false;
 	icore::process();
       } catch(interrupted&) {
