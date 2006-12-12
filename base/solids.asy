@@ -289,17 +289,17 @@ triple perp(triple axis)
   return v;
 }
 
-// Return a circular cylinder of radius r and height h centered at c and
-// aligned with axis.
+// Return a right circular cylinder of height h in the direction of axis
+// based on a circle centered at c with radius r.
 revolution cylinder(triple c=O, real r, real h, triple axis=Z)
 {
   triple C=c+r*perp(axis);
-  axis=0.5*h*unit(axis);
-  return revolution(c,C-axis--C+axis,axis);
+  axis=h*unit(axis);
+  return revolution(c,C--C+axis,axis);
 }
 
-// Return a circular cone of height h 
-// based on a circle centered at c with radius r and aligned with axis. 
+// Return a right circular cone of height h in the direction of axis
+// based on a circle centered at c with radius r.
 revolution cone(triple c=O, real r, real h, triple axis=Z)
 {
   axis=unit(axis);

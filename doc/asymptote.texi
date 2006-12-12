@@ -6292,8 +6292,8 @@ for the surfacepen. A mesh is always drawn in the absence of lighting, unless
 @cindex @code{solids}
 This solid geometry package defines a structure @code{revolution} that
 can be used to fill and draw surfaces of revolution. The following example
-uses it to display the outline of a circular cylinder of radius 1 and
-height 1.5 aligned in the direction @code{(0,1,1)} with perspective projection:
+uses it to display the outline of a circular cylinder of radius 1
+with axis @code{O--1.5unit(Y+Z)} with perspective projection:
 @verbatiminclude cylinderskeleton.asy
 @image{cylinderskeleton}
 

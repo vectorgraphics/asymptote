@@ -4,7 +4,7 @@ size(0,100);
 real r=1;
 real h=3;
 
-revolution R=cylinder(r,h);
+revolution R=cylinder(-h/2*Z,r,h);
 R.filldraw(lightgreen);
 draw((0,0,-h/2)--(0,0,h/2),dashed);
 dot((0,0,-h/2));

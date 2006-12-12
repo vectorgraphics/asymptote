@@ -4,7 +4,7 @@ size(0,150);
 currentprojection=perspective(8,10,2);
 pen color=green;
 
-revolution r=cylinder(O,4,8,Z);
+revolution r=cylinder(-4Z,4,8,Z);
 draw(circle(O,4,Z));
 r.draw(color);
 
