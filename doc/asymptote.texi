@@ -53,7 +53,7 @@ file LICENSE in the top-level source directory).
 * Programming::                 The @code{Asymptote} vector graphics language
 * LaTeX usage::                 Embedding @code{Asymptote} commands within @code{LaTeX}
 * Base modules::                Base modules shipped with @code{Asymptote}
-* Options::                     Command line options
+* Options::                     Command-line options
 * Interactive mode::            Typing @code{Asymptote} commands interactively
 * GUI::                         Graphical user interface
 * PostScript to Asymptote::     @code{Asymptote} backend to @code{pstoedit}
@@ -723,7 +723,7 @@ The @code{-V} option opens up a @code{PostScript}
 viewer window so you can immediately view the encapsulated
 @code{PostScript} output. By default the output will be written to the
 file @code{test.eps}; the prefix of the output file may be changed with
-the @code{-o} command line option.
+the @code{-o} command-line option.
 
 @cindex @code{cycle}
 One can draw a line with more than two points and create a cyclic path
@@ -2981,7 +2981,8 @@ It is possible to insert verbatim @code{PostScript} commands in a picture with
 one of the routines
 @verbatim
 void postscript(picture pic=currentpicture, string s);
-void postscript(picture pic=currentpicture, string s, pair min, pair max)
+void postscript(picture pic=currentpicture, string s, pair min,
+                pair max)
 @end verbatim
 Here @code{min} and @code{max} can be used to specify explicit bounds
 associated with the resulting @code{PostScript} code.
@@ -3054,11 +3055,11 @@ treated as an ordinary character).
 @anchor{cd}
 @cindex @code{cd}
 @cindex directory
-If the @code{global} option is enabled, one can change the current
-working directory to the contents of the string @code{s} with the
-function @code{string cd(string s)}, which returns the new working directory.
-If @code{string s} is empty, the path is reset to the value it had at
-program startup.
+If the @code{-global} (or @code{-unsafe}) option is enabled, one can
+change the current working directory to the contents of the string
+@code{s} with the function @code{string cd(string s)}, which returns the
+new working directory. If @code{string s} is empty, the path is reset to
+the value it had at program startup.
 
 @cindex @code{getc}
 When reading pairs, the enclosing parenthesis are optional.
@@ -3077,6 +3078,9 @@ file output(string name, bool append=false);
 @noindent
 data will be appended to an existing file only if the file is opened with
 @code{append=true}.
+For security reasons, writing to files in directories other than the
+current directory is allowed only if the @code{-global} 
+(or @code{-unsafe}) command-line option is specified.
 Data of a built-in type @code{T} can be written to an output file by
 calling one of the functions
 @verbatim
@@ -6552,7 +6556,7 @@ Here is an example of a slope field:
 @chapter Options
 @cindex options
 @cindex command-line options
-Type @code{asy -h} to see the full list of command line options
+Type @code{asy -h} to see the full list of command-line options
 supported by @code{Asymptote}:
 @verbatiminclude options
 
@@ -6702,7 +6706,7 @@ exit interactive mode (abbreviated as @code{q}; @code{exit} is a synonym).
 A history of the most recent 1000 (can be changed with the
 @code{historylines} command-line option) previous commands will be retained
 in the file @code{.asy/history} in the user's home directory (unless
-the command line option @code{-localhistory} was specified, in which case
+the command-line option @code{-localhistory} was specified, in which case
 the history will be stored in the file @code{.asy_history} in the
 current directory).
 @cindex @code{input}
