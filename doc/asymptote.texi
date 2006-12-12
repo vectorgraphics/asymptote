@@ -643,11 +643,11 @@ setlocal errorformat=%f:\ %l.%c:\ %m
 The following commands are needed to install the latest development version of
 @code{Asymptote} using @acronym{Subversion}:
 @verbatim
-svn co https://svn.sourceforge.net/svnroot/asymptote/trunk/asymptote
+svn co https://asymptote.svn.sourceforge.net/svnroot/asymptote/trunk/asymptote
  
 cd asymptote
 ./autogen.sh
-wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.7.tar.gz
+wget http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.8.tar.gz
 ./configure
 make all
 make install
