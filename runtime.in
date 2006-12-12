@@ -1462,13 +1462,14 @@ void :loadModule(string *index)
   Stack->load(*index);
 }
 
-string cd(string *s)
+string cd(string s=emptystring)
 {
   if(!global()) writeDisabled();
-  int rc=setPath(s->c_str());
+  if(s == "") s=startPath();
+  int rc=setPath(s.c_str());
   if(rc != 0) {
     ostringstream buf;
-    buf << "Cannot change to directory '" << *s << "'";
+    buf << "Cannot change to directory '" << s << "'";
     error(buf);
   }
   char *p=getPath();
