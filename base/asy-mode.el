@@ -124,6 +124,7 @@ Some variables can be customized: M-x customize-group <RET> asymptote <RET>."
 
 (require 'font-lock)
 (require 'cc-mode)
+(require 'cl) ;; Common Lisp extensions for Emacs
 
 (defvar running-xemacs-p (string-match "XEmacs\\|Lucid" emacs-version))
 (add-to-list 'auto-mode-alist '("\\.asy$" . asy-mode))
