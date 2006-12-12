@@ -1468,7 +1468,7 @@ string cd(string *s)
   int rc=setPath(s->c_str());
   if(rc != 0) {
     ostringstream buf;
-    buf << "Cannot change to directory '" << *d << "'";
+    buf << "Cannot change to directory '" << *s << "'";
     error(buf);
   }
   char *p=getPath();

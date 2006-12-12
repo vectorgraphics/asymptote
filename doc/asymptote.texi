@@ -6555,7 +6555,7 @@ supported by @code{Asymptote}:
 @verbatiminclude options
 
 All boolean options, except for @code{-unsafe}, @code{-safe}, and
-@code{help}, can be negated by prepending @code{no} to the option name. 
+@code{-help}, can be negated by prepending @code{no} to the option name. 
 
 If no arguments are given, @code{Asymptote} runs in interactive mode
 (@pxref{Interactive mode}). In this case, the default output file
@@ -6665,8 +6665,15 @@ Also output @code{Asymptote} traceback diagnostics.
 @chapter Interactive mode
 @cindex interactive mode
 Interactive mode is entered by executing the command @code{asy} with
-no file arguments. Each line must be a complete @code{Asymptote} statement;
-however, it is not necessary to terminate each line with a semicolon.
+no file arguments. When the @code{-multiline} option is disabled (the default),
+each line must be a complete @code{Asymptote} statement (unless
+explicitly continued by a final backslash character @code{\});
+it is not necessary to terminate input lines with a semicolon.
+Enabling the @code{-multiline} option allows interactive code to be
+entered over multiple lines, until a complete statement is entered; in
+this mode, the automatic termination of interactive input lines by a
+semicolon is inhibited. This mode is useful for cutting and pasting
+@code{Asymptote} code directly into the interactive input buffer.
 
 The following special commands are supported only in interactive mode
 and must be entered immediately after the prompt:
@@ -7109,4 +7116,4 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  Pienaar Melenchuk finalout pdfanim Linspire Dpkg sudo dpkg dtx
 @c  LocalWords:  windingnumber clickable PDFAnim eforms insdljs pdfmovie dfn
 @c  LocalWords:  slidemovies ifdraft embeddedu externalmovie headerpen bodypen
-@c  LocalWords:  GaussianSurface
+@c  LocalWords:  GaussianSurface multiline
