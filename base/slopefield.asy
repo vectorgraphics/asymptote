@@ -1,5 +1,4 @@
-int nmesh=10;
-real eps=10*realEpsilon;
+import graph_settings;
 real stepfraction=0.05;
 
 picture slopefield(real f(real,real), pair a, pair b,

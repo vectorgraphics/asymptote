@@ -1012,6 +1012,18 @@ void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
     pic.addPath(g[i]);
 }
 
+void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
+		 pen[] p, path b=g.length > 0 ? g[0] : nullpath)
+{
+  tensorshade(g,fillrule,new pen[][] {p},b);
+}
+
+void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
+		 pen[] p, path b=g.length > 0 ? g[0] : nullpath, pair[] z)
+{
+  tensorshade(g,fillrule,new pen[][] {p},b,new pair[][] {z});
+}
+
 void filldraw(picture pic=currentpicture, path[] g, pen fillpen=currentpen,
               pen drawpen=currentpen)
 {

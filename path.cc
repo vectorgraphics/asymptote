@@ -780,7 +780,9 @@ path concat(path p1, path p2)
 
   if (n1 == 0) return p2;
   if (n2 == 0) return p1;
-  if (p1.point(n1) != p2.point(0))
+  pair a=p1.point(n1);
+  pair b=p2.point(0);
+  if ((a-b).abs2() > Fuzz*max(a.abs2(),b.abs2()))
     reportError("paths in concatenation do not meet");
 
   solvedKnot *nodes = new solvedKnot[n1+n2+1];

@@ -142,6 +142,7 @@ Base modules
 * light::                       3D lighting effects
 * graph3::                      3D linear & logarithmic graphs
 * solids::                      3D solid geometry package
+* surface::                     
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
@@ -1239,7 +1240,7 @@ Illustrations of Gouraud shading are provided in the example file
 Tensor product shading using fillrule @code{fillrule} on patches
 bounded by the @math{n} cyclic paths of length 4 in path array @code{b},
 using the vertex colors specified in the @math{n \times 4} pen array
-@code{p} and internal color control points in the @math{n \times 4}
+@code{p} and internal control points in the @math{n \times 4}
 array @code{z}, is implemented with
 @verbatim
 void tensorshade(picture pic=currentpicture, path g, pen fillrule=currentpen,
@@ -1249,8 +1250,15 @@ void tensorshade(picture pic=currentpicture, path g, pen fillrule=currentpen,
 If the array @code{z} is empty, Coons shading, in which the color
 control points are calculated automatically, is used.
 The pens in @code{p} must belong to the same color space.
+A simpler interface for the case of a single patch (@math{n=1}) is also
+available:
+@verbatim
+void tensorshade(picture pic=currentpicture, path g, pen fillrule=currentpen,
+                 pen[] p, path b=g, pair[] z=new pair[]);
+@end verbatim
+@noindent
 Illustrations of tensor product and Coons shading are provided in the
-example files @code{tensor.asy} and @code{Coons.asy}, respectively.
+example files @code{tensor.asy}, @code{Coons.asy}, and @code{BezierSurface.asy}.
 
 @cindex unfill
 The following routine uses @code{evenodd} clipping together with the
@@ -4823,6 +4831,7 @@ Here now is @code{latexusage.tex}:
 * light::                       3D lighting effects
 * graph3::                      3D linear & logarithmic graphs
 * solids::                      3D solid geometry package
+* surface::                     
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
@@ -5974,7 +5983,7 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O,
 @noindent
 When high accuracy is needed, the routines @code{Circle} and
 @code{Arc} defined in @code{graph3} may be used instead.
-See @ref{surface} for an example of a three-dimensional circular arc.
+See @ref{GaussianSurface} for an example of a three-dimensional circular arc.
 
 A representation of the plane passing through point O with normal cross(u,v)
 is given by
@@ -6268,9 +6277,9 @@ The optional argument @code{nsub} allows one to subsample the function
 is used for lighting effects if @code{nsub=1}. Lighting can be
 disabled by setting @code{light=O}, as in this example of a Gaussian
 surface subsampled 4 times:
-@anchor{surface}
-@verbatiminclude surface.asy
-@image{surface}
+@anchor{GaussianSurface}
+@verbatiminclude GaussianSurface.asy
+@image{GaussianSurface}
 @noindent
 Surface lighting is illustrated in the example files
 @code{parametricsurface.asy} and @code{sinc.asy}.
@@ -6291,6 +6300,14 @@ height 1.5 aligned in the direction @code{(0,1,1)} with perspective projection:
 Further illustrations are provided in the example files @code{cylinder.asy},
 @code{sphere.asy}, @code{cones.asy}, @code{hyperboloid.asy}, and
 @code{torus.asy}.
+
+@node surface
+@section @code{surface}
+@cindex @code{surface}
+This is the beginnings of a package for drawing Bezier surfaces, the
+natural two-dimensional generalizations of a Bezier curve. An
+sample Bezier surface is contained in the example file
+@code{BezierSurface.asy}.
 
 @node featpost3D
 @section @code{featpost3D}
@@ -6497,8 +6514,8 @@ density images over such irregular triangular meshes.
 @node slopefield
 @section @code{slopefield}
 @cindex @code{slopefield}
-To draw a slope field of the function @math{y'=f(x,y)} (@math{y'=f(x)} is also 
-accepted), use:
+To draw a slope field for the differential equation @math{dy/dx=f(x,y)} (or
+@math{dy/dx=f(x)}), use:
 @verbatim
 picture slopefield(real f(real,real), pair a, pair b,
                    int nx=nmesh, int ny=nx, 
@@ -6523,6 +6540,10 @@ takes a point (@code{c}) and a slope field-defining function @code{f}
 (@code{real f(real)} is also accepted), and returns, as a path, the
 curve passing through that point. The points @code{a} and @code{b}
 represent the rectangular boundaries over which the curve is interpolated.
+Here is an example of a slope field:
+
+@verbatiminclude slopefield1.asy
+@image{slopefield1}
 
 @node Options
 @chapter Options
@@ -7073,7 +7094,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  obliqueX asycolors monthaxis xautoscale yautoscale zautoscale
 @c  LocalWords:  obliqueZ obliqueY cylinderskeleton block llcorner dr py nx CPU
 @c  LocalWords:  loc topleft topright bottomleft bottomright flowrectangle UTC
-@c  LocalWords:  chartblock flowdiamond flowcircle xlabel
+@c  LocalWords:  chartblock flowdiamond flowcircle xlabel BezierSurface
 @c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow blocks ny cpu
 @c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel nv
 @c  LocalWords:  zlabel slopefields cputime roundrectangle slopefield libgccpp
@@ -7086,3 +7107,4 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  Pienaar Melenchuk finalout pdfanim Linspire Dpkg sudo dpkg dtx
 @c  LocalWords:  windingnumber clickable PDFAnim eforms insdljs pdfmovie dfn
 @c  LocalWords:  slidemovies ifdraft embeddedu externalmovie headerpen bodypen
+@c  LocalWords:  GaussianSurface

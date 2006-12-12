@@ -5,8 +5,6 @@ import graph;
 import three;
 import light;
 
-int nmesh=10;
-
 triple Scale(picture pic, triple v)
 {
   return (pic.scale.x.T(v.x),pic.scale.y.T(v.y),pic.scale.z.T(v.z));

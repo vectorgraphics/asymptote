@@ -159,7 +159,7 @@ real[] zero(int n)
 
 real[][] zero(int n, int m)
 {
-  real[][] M=new real[n][m];
+  real[][] M=new real[n][0];
   for(int i=0; i < n; ++i)
     M[i]=sequence(new real(int x){return 0;},m);
   return M;
@@ -167,7 +167,7 @@ real[][] zero(int n, int m)
 
 real[][] identity(int n)
 {
-  real[][] m=new real[n][n];
+  real[][] m=new real[n][0];
   for(int i=0; i < n; ++i)
     m[i]=sequence(new real(int x){return x == i ? 1 : 0;},n);
   return m;
@@ -176,7 +176,7 @@ real[][] identity(int n)
 real[][] operator + (real[][] a, real[][] b)
 {
   int n=a.length;
-  real[][] m=new real[0][n];
+  real[][] m=new real[n][0];
   for(int i=0; i < n; ++i)
     m[i]=a[i]+b[i];
   return m;
@@ -185,7 +185,7 @@ real[][] operator + (real[][] a, real[][] b)
 real[][] operator - (real[][] a, real[][] b)
 {
   int n=a.length;
-  real[][] m=new real[0][n];
+  real[][] m=new real[n][0];
   for(int i=0; i < n; ++i)
     m[i]=a[i]-b[i];
   return m;
@@ -234,7 +234,7 @@ real[] operator * (real[] b, real[][] a)
 real[][] operator * (real[][] a, real b)
 {
   int n=a.length;
-  real[][] m=new real[0][n];
+  real[][] m=new real[n][0];
   for(int i=0; i < n; ++i)
     m[i]=a[i]*b;
   return m;

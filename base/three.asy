@@ -415,7 +415,7 @@ struct flatguide3 {
   bool[] cyclic;     // true if node is really a cycle
   control[] control; // control points for segment starting at node
   Tension[] Tension; // Tension parameters for segment starting at node
-  dir[] in,out;    // in and out directions for segment starting at node
+  dir[] in,out;      // in and out directions for segment starting at node
 
   bool cyclic() {return cyclic[cyclic.length-1];}
   
@@ -473,6 +473,7 @@ struct flatguide3 {
   }
 
   void cyclic() {
+    if(nodes.length == 0) abort("syntax error");
     node(nodes[0],true);
   }
   
@@ -884,17 +885,15 @@ struct node {
   }
 }
   
-triple split(real t, triple x, triple y) { return x+(y-x)*t; }
-
 void splitCubic(node[] sn, real t, node left_, node right_)
 {
   node left=sn[0]=left_.copy(), mid=sn[1], right=sn[2]=right_.copy();
-  triple x=split(t,left.post,right.pre);
-  left.post=split(t,left.point,left.post);
-  right.pre=split(t,right.pre,right.point);
-  mid.pre=split(t,left.post,x);
-  mid.post=split(t,x,right.pre);
-  mid.point=split(t,mid.pre,mid.post);
+  triple x=interp(left.post,right.pre,t);
+  left.post=interp(left.point,left.post,t);
+  right.pre=interp(right.pre,right.point,t);
+  mid.pre=interp(left.post,x,t);
+  mid.post=interp(x,right.pre,t);
+  mid.point=interp(mid.pre,mid.post,t);
 }
 
 node[] nodes(int n)
@@ -1178,7 +1177,10 @@ struct path3 {
 
     if (n1 == 0) return p2;
     if (n2 == 0) return p1;
-    if (p1.point(n1) != p2.point(0))
+    triple a=p1.point(n1);
+    triple b=p2.point(0);
+    static real Fuzz=10*realEpsilon;
+    if (abs(a-b) > Fuzz*max(abs(a),abs(b)))
       abort("path3 arguments in concatenation do not meet");
 
     node[] nodes = nodes(n1+n2+1);
@@ -1609,6 +1611,15 @@ pair project(triple v, projection P=currentprojection)
   return P(v);
 }
 
+pair[] project(triple[] v, projection P=currentprojection)
+{
+  int n=v.length;
+  pair[] z=new pair[n];
+  for(int i=0; i < n; ++i)
+    z[i]=project(v[i],P);
+  return z;
+}
+
 path[] project(flatguide3[] g, projection P=currentprojection)
 {
   path[] p=new path[g.length];
@@ -1640,13 +1651,8 @@ guide3 operator cast(path3 p) {
 }
 
 pair operator cast(triple v) {return project(v);}
-pair[] operator cast(triple[] v) {
-  int n=v.length;
-  pair[] z=new pair[n];
-  for(int i=0; i < n; ++i)
-    z[i]=project(v[i]);
-  return z;
-}
+pair[] operator cast(triple[] v) {return project(v);}
+
 position operator cast(triple x) {return project(x);}
 
 Label Label(Label L, position position, triple align, pen p=nullpen,
