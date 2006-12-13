@@ -50,4 +50,4 @@ for(int i=0; i <= n; ++i) {
 }
 
 // Produce the final merged gif.
-a.movie(10);
+a.movie(loops=10,delay=250);

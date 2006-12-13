@@ -5,6 +5,7 @@
  * Produce animated gifs.
  *****/
 
+// animation delay is in milliseconds
 real animationdelay=50;
 
 struct animation {
@@ -87,7 +88,6 @@ struct animation {
     return pdf() && latex();
   }
 
-  // delay is in milliseconds
   string pdf(real delay=animationdelay, string options="") {
     string filename="_"+stripextension(stripdirectory(prefix));
     if(!pdflatex()) return "";
@@ -158,7 +158,6 @@ struct animation {
     return field("PDFAnimDelayButton","Delay",foreground,background,2);
   }
 
-  // delay is in milliseconds
   int movie(int loops=0, real delay=animationdelay,
 	    string format=settings.outformat == "" ? "gif" : settings.outformat,
 	    string options="", bool keep=false) {
