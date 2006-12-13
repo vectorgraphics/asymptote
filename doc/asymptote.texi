@@ -823,11 +823,12 @@ is computed as the Bezier curve
 
 As illustrated in the diagram below, the third-order midpoint (@math{m_5})
 constructed from two endpoints @math{z_0} and @math{z_1} and two control points
-@math{c_0} and @math{c_1}, lies on the Bezier curve formed by the
-quadruple (@math{z_0}, @math{c_0}, @math{c_1}, @math{z_1}). This
-allows one to recursively construct the desired curve, by using the newly
-extracted third-order midpoint as an endpoint and the respective second- and
-first-order midpoints as control points: 
+@math{c_0} and @math{c_1}, is the point corresponding to @math{t=1/2} on
+the Bezier curve formed by the quadruple (@math{z_0}, @math{c_0},
+@math{c_1}, @math{z_1}). This allows one to recursively construct the
+desired curve, by using the newly extracted third-order midpoint as an
+endpoint and the respective second- and first-order midpoints as control
+points:
 @image{bezier2}
 
 Here @math{m_0}, @math{m_1} and @math{m_2} are the first-order
@@ -837,7 +838,11 @@ The curve is then constructed by recursively applying the algorithm to
 (@math{z_0}, @math{m_0}, @math{m_3}, @math{m_5}) and
 (@math{m_5}, @math{m_4}, @math{m_2}, @math{z_1}).
 
-The curve constructed in this manner has the following properties:
+In fact, an analogous property holds for points located at any
+fraction @math{t} in @math{[0,1]} of each segment, not just for
+midpoints (@math{t=1/2}).
+
+The Bezier curve constructed in this manner has the following properties:
 @itemize @bullet
 
 @item It is entirely contained in the convex hull of the given four points.
