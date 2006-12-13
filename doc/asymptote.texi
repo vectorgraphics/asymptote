@@ -6675,11 +6675,11 @@ no file arguments. When the @code{-multiline} option is disabled (the default),
 each line must be a complete @code{Asymptote} statement (unless
 explicitly continued by a final backslash character @code{\});
 it is not necessary to terminate input lines with a semicolon.
-Enabling the @code{-multiline} option allows interactive code to be
-entered over multiple lines, until a complete statement is entered; in
-this mode, the automatic termination of interactive input lines by a
-semicolon is inhibited. This mode is useful for cutting and pasting
-@code{Asymptote} code directly into the interactive input buffer.
+If one assigns @code{settings.multiline=true}, interactive code can be
+entered over multiple lines; in this mode, the automatic termination of
+interactive input lines by a semicolon is inhibited. Multiline mode is useful
+for cutting and pasting @code{Asymptote} code directly into the
+interactive input buffer.
 
 The following special commands are supported only in interactive mode
 and must be entered immediately after the prompt:
@@ -6703,7 +6703,7 @@ be entered on the same line.
 @anchor{history}
 @item quit
 exit interactive mode (abbreviated as @code{q}; @code{exit} is a synonym).
-A history of the most recent 1000 (can be changed with the
+A history of the most recent 1000 (this number can be changed with the
 @code{historylines} command-line option) previous commands will be retained
 in the file @code{.asy/history} in the user's home directory (unless
 the command-line option @code{-localhistory} was specified, in which case
