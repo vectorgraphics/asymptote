@@ -26,7 +26,6 @@ void snapshot(transform3 t)
     face(faces,T*plane((0,1,0),(1,0,0),(0,0,k)),++j);
   }
   add(faces);
-  draw(box((-1,-1),(1,1)),invisible);
   
   a.add();
   restore();
@@ -42,4 +41,4 @@ for(int i=0; i < n; ++i)
 for(int i=0; i < n; ++i)
   snapshot(rotate(i*step,Z));
 
-a.movie(10,10);
+a.movie(loops=10,delay=50);
