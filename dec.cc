@@ -691,10 +691,7 @@ void includedec::loadFailed(coenv &)
 
 void includedec::transAsField(coenv &e, record *r)
 {
-  if(settings::verbose > 1)
-    std::cerr << "Including " <<  filename << std::endl;
-  
-  file *ast = parser::parseFile(filename);
+  file *ast = parser::parseFile(filename,"Including");
   em->sync();
 
   // The runnables will be run, one at a time, without any additional scoping.

@@ -94,7 +94,8 @@ absyntax::file *parseStdin()
   return doParse(yy::stream_input,"-");
 }
 
-absyntax::file *parseFile(const mem::string& filename)
+absyntax::file *parseFile(const mem::string& filename,
+			  const char *text)
 {
   if(filename == "-")
     return parseStdin();
@@ -104,6 +105,9 @@ absyntax::file *parseFile(const mem::string& filename)
   if(file.empty())
     error(filename);
 
+  if(text && settings::verbose > 1)
+    std::cerr << text << " " <<  filename << " from " << file << std::endl;
+  
   debug(false); 
 
   std::filebuf filebuf;
