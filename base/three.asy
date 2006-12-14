@@ -1081,18 +1081,16 @@ struct path3 {
     else
       iplus = i+1;
 
-    real one_t = 1.0-t;
-
     triple a = nodes[i].point,
       b = nodes[i].post,
       c = nodes[iplus].pre,
       d = nodes[iplus].point,
-      ab   = one_t*a   + t*b,
-      bc   = one_t*b   + t*c,
-      cd   = one_t*c   + t*d,
-      abc  = one_t*ab  + t*bc,
-      bcd  = one_t*bc  + t*cd,
-      abcd = one_t*abc + t*bcd;
+      ab   = interp(a,b,t),
+      bc   = interp(b,c,t),
+      cd   = interp(c,d,t),
+      abc  = interp(ab,bc,t),
+      bcd  = interp(bc,cd,t),
+      abcd = interp(abc,bcd,t);
 
     return abcd;
   }
@@ -1116,14 +1114,12 @@ struct path3 {
     else
       iplus = i+1;
 
-    real one_t = 1.0-t;
-
     triple a = nodes[i].point,
       b = nodes[i].post,
       c = nodes[iplus].pre,
-      ab   = one_t*a   + t*b,
-      bc   = one_t*b   + t*c,
-      abc  = one_t*ab  + t*bc;
+      ab   = interp(a,b,t),
+      bc   = interp(b,c,t),
+      abc  = interp(ab,bc,t);
 
     return (abc == a) ? nodes[i].pre : abc;
   }
@@ -1149,14 +1145,12 @@ struct path3 {
     else
       iplus = i+1;
 
-    real one_t = 1.0-t;
-
     triple b = nodes[i].post,
       c = nodes[iplus].pre,
       d = nodes[iplus].point,
-      bc   = one_t*b   + t*c,
-      cd   = one_t*c   + t*d,
-      bcd  = one_t*bc  + t*cd;
+      bc   = interp(b,c,t),
+      cd   = interp(c,d,t),
+      bcd  = interp(bc,cd,t);
 
     return (bcd == d) ? nodes[iplus].post : bcd;
   }
