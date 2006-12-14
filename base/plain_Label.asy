@@ -200,7 +200,8 @@ struct Label {
   void init(string s="", string size="", position position=0, 
             bool defaultposition=true,
             align align=NoAlign, pen p=nullpen, transform T=identity(),
-	    embed embed=Rotate, filltype filltype=NoFill) {
+	    bool defaulttransform=true, embed embed=Rotate,
+	    filltype filltype=NoFill) {
     this.s=s;
     this.size=size;
     this.position=position;
@@ -208,6 +209,7 @@ struct Label {
     this.align=align.copy();
     this.p=p;
     this.T=T;
+    this.defaulttransform=defaulttransform;
     this.embed=embed;
     this.filltype=filltype;
   }
@@ -219,7 +221,8 @@ struct Label {
   
   Label copy() {
     Label L=new Label;
-    L.init(s,size,position,defaultposition,align,p,T,embed,filltype);
+    L.init(s,size,position,defaultposition,align,p,T,defaulttransform,
+	   embed,filltype);
     return L;
   }
   
