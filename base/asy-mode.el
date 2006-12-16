@@ -581,28 +581,16 @@ Fields are defined as 'field1:field2.field3:field4' . Field=0 <-> all fields"
 
 (eval-after-load "latex"
   '(progn
-     (if (locate-library "texmathp")
+     (if (and (locate-library "texmathp") (locate-library "tex"))
          (prog1
              ;; Not necessary but it's very useful.
-             (require 'texmathp)
-           (define-key LaTeX-mode-map [(^)] #'(lambda ()
-                                                (interactive)
-                                                (if (texmathp)
-                                                    (progn
-                                                      (insert "^{}")
-                                                      (backward-char))
-                                                  (insert "^"))))
-           
-           (define-key LaTeX-mode-map [(_)] #'(lambda ()
-                                                (interactive)
-                                                (if (texmathp)
-                                                    (progn
-                                                      (insert "_{}")
-                                                      (backward-char))
-                                                  (insert "_"))))
+	     (require 'texmathp)
+	   (require 'tex)
+           (define-key LaTeX-mode-map "^" 'TeX-insert-sub-or-superscript)
+           (define-key LaTeX-mode-map "_" 'TeX-insert-sub-or-superscript)
            )
        (progn
-         (message "texmathp not find...")))
+         (message "texmathp or tex libary not found...")))
      
      (setq lasy-mode-map (copy-keymap LaTeX-mode-map))
      (setq LaTeX-mode-map-backup (copy-keymap LaTeX-mode-map))
