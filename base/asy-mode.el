@@ -40,7 +40,6 @@
 ;;
 ;; For full functionality the two-mode-mode package should also be installed
 ;; (http://www.dedasys.com/freesoftware/files/two-mode-mode.el).
-;; The package texmathp is optional.
 ;;
 ;; See also paragraph II of the documentation below to automate asy-insinuate-latex. 
 
@@ -49,7 +48,6 @@
   "Emacs mode for editing Asymptote source code.
 For full functionality the 'two-mode-mode' package should also be installed
 (http://www.dedasys.com/freesoftware/files/two-mode-mode.el).
-The package 'texmathp' is optional.
 
 I. This package provides two modes:
 1- asy-mode:
@@ -581,17 +579,6 @@ Fields are defined as 'field1:field2.field3:field4' . Field=0 <-> all fields"
 
 (eval-after-load "latex"
   '(progn
-     (if (and (locate-library "texmathp") (locate-library "tex"))
-         (prog1
-             ;; Not necessary but it's very useful.
-	     (require 'texmathp)
-	   (require 'tex)
-           (define-key LaTeX-mode-map "^" 'TeX-insert-sub-or-superscript)
-           (define-key LaTeX-mode-map "_" 'TeX-insert-sub-or-superscript)
-           )
-       (progn
-         (message "texmathp or tex libary not found...")))
-     
      (setq lasy-mode-map (copy-keymap LaTeX-mode-map))
      (setq LaTeX-mode-map-backup (copy-keymap LaTeX-mode-map))
      
