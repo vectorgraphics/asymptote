@@ -145,7 +145,9 @@ void picture::texinit()
     return;
   }
   
-  tex.open(texengine().c_str(),"texpath",texpathmessage);
+  ostringstream cmd;
+  cmd << "'" << texengine() << "'";
+  tex.open(cmd.str().c_str(),"texpath",texpathmessage);
   texdocumentclass(tex,true);
   
   texdefines(tex,TeXpreamble,true);

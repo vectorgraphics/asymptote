@@ -992,10 +992,15 @@ const char **texabort(const mem::string& texengine)
   return settings::pdf(texengine) ? pdftexerrors : texerrors;
 };
 
+mem::string dirsep()
+{
+  return (msdos ? "\\" : "/");
+}
+
 mem::string texengine() {
   mem::string path=getSetting<mem::string>("texpath");
   mem::string tex=getSetting<mem::string>("tex");
-  return (path == "") ? tex : (mem::string) (path+"/"+tex);
+  return (path == "") ? tex : (mem::string) (path+dirsep()+tex);
 }
 
 int getScroll() 
