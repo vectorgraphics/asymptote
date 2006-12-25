@@ -82,7 +82,7 @@ int setPath(const char *s);
 
 void backslashToSlash(string& s);
 void spaceToUnderscore(string& s);
-string Getenv(const char *name, bool quote=true);
+string Getenv(const char *name, bool msdos);
 
 void execError(const char *command, const char *hint, const char *application);
   

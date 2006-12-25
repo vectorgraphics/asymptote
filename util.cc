@@ -53,24 +53,14 @@ void spaceToUnderscore(string& s)
     s[p]='_';
 }
 
-#ifdef __CYGWIN__
-string Getenv(const char *name, bool quote)
+string Getenv(const char *name, bool msdos)
 {
   char *s=getenv(name);
   if(!s) return "";
   string S=string(s);
-  backslashToSlash(S);
-  if(quote) S="'"+S+"'";
+  if(msdos) backslashToSlash(S);
   return S;
 }
-#else
-string Getenv(const char *name, bool)
-{
-  char *s=getenv(name);
-  if(!s) return "";
-  return string(s);
-}
-#endif
 
 void writeDisabled()
 {

@@ -427,7 +427,7 @@ struct userSetting : public argumentSetting {
 
 mem::string GetEnv(mem::string s, mem::string Default) {
   transform(s.begin(), s.end(), s.begin(), toupper);        
-  string t=Getenv(("ASYMPTOTE_"+s).c_str());
+  string t=Getenv(("ASYMPTOTE_"+s).c_str(),msdos);
   return t != "" ? mem::string(t) : Default;
 }
   
@@ -875,7 +875,7 @@ mem::string outname() {
 }
 
 void initDir() {
-  initdir=Getenv(HOME,false)+"/."+suffix;
+  initdir=Getenv(HOME,msdos)+"/."+suffix;
   mkdir(initdir.c_str(),0xFFFF);
 }
   
@@ -992,15 +992,10 @@ const char **texabort(const mem::string& texengine)
   return settings::pdf(texengine) ? pdftexerrors : texerrors;
 };
 
-mem::string dirsep()
-{
-  return (msdos ? "\\" : "/");
-}
-
 mem::string texengine() {
   mem::string path=getSetting<mem::string>("texpath");
   mem::string tex=getSetting<mem::string>("tex");
-  return (path == "") ? tex : (mem::string) (path+dirsep()+tex);
+  return (path == "") ? tex : (mem::string) (path+"/"+tex);
 }
 
 int getScroll() 
