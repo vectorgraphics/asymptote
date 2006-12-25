@@ -153,6 +153,15 @@ That is the way that Microsoft Windows refers to the user profile directory.
 There's nothing really to understand here, just put your configuration
 commands in the file \courier{config.asy\} in a new folder \courier{%USERPROFILE%\\.asy\}.
 
+\question 25dec:escapechar Why do I get the error "string not terminated" when I try to set \courier{settings.dir="C:\\asymptote\\";\}?
+ 
+The backslash is an escape character here, so
+\courier{\\"\} is interpreted as a verbatim quotation mark, leaving the string
+without a terminating quotation mark. Fortunately, this is the
+only escaped character in double-quoted strings. A final backslash isn't
+needed here anyway, but should you really want one somewhere, you can say:
+\courier{settings.dir="C:\\asymptote"+'\\\\';\}.
+
 \question 27jun:winglobal How do I change environment variables in Microsoft Windows, for example, in order to change the default PostScript viewer?
 
 While it is easier to set the corresponding Asymptote configuration
