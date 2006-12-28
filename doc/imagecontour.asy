@@ -27,12 +27,12 @@ yaxis("$y$",LeftRight,RightTicks,Above);
 
 // Major contours
 real[] Cvals;
-Cvals=sequence(11)/10 * (range.max-range.min) + range.min;
+Cvals=sequence(Divs+1)/Divs*(range.max-range.min)+range.min;
 draw(contour(f,a,b,Cvals,N,operator ..),Tickpen);
 
 // Minor contours
 real[] cvals;
-real[] sumarr=sequence(1,divs-1)/divs * (range.max-range.min)/Divs;
+real[] sumarr=sequence(1,divs-1)/divs*(range.max-range.min)/Divs;
 for (int ival=0; ival < Cvals.length-1; ++ival)
     cvals.append(Cvals[ival]+sumarr);
 draw(contour(f,a,b,cvals,N,operator ..),tickpen);
