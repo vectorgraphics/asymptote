@@ -52,9 +52,9 @@ using interact::uptodate;
 void init(bool resetpath=true)
 {
   vm::indebugger=false;
-  if(resetpath) 
-    setPath(startPath());  /* On second and subsequent calls to init, sets the
-                            path to what it was when the program started. */
+  if(resetpath)
+    setPath("");  /* On second and subsequent calls to init, sets the
+		     path to what it was when the program started. */
   ShipoutNumber=0;
   if(!em)
     em = new errorstream();
@@ -153,10 +153,10 @@ public:
 
       postRun(e,s);
 
-    } catch (std::bad_alloc&) {
+    } catch(std::bad_alloc&) {
       cerr << "error: out of memory" << endl;
       em->statusError();
-    } catch (handled_error) {
+    } catch(handled_error) {
       em->statusError();
       run::cleanup();
     }
@@ -190,7 +190,7 @@ public:
     if (cachedTree==0) {
       try {
         cachedTree=buildTree();
-      } catch (handled_error) {
+      } catch(handled_error) {
         em->statusError();
         return 0;
       }
@@ -291,7 +291,10 @@ public:
   }
 
   void process() {
-    init();
+    try {
+      init();
+    } catch(handled_error) {
+    }
 
     if (verbose >= 1)
       cout << "Processing " << outname << endl;
@@ -299,7 +302,7 @@ public:
     try {
       itree::process();
     }
-    catch (handled_error) {
+    catch(handled_error) {
       em->statusError();
     }
   }
@@ -703,9 +706,9 @@ class iprompt : public icore {
       if(!uptodate)
         run::updateFunction(&s);
 
-    } catch (handled_error) {
+    } catch(handled_error) {
       vm::indebugger=false;
-    } catch (interrupted&) {
+    } catch(interrupted&) {
       // Turn off the interrupted flag.
       if (em)
         em->Interrupt(false);
@@ -723,7 +726,7 @@ class iprompt : public icore {
     if (startcode) {
       try {
         icode(startcode).run(e,s);
-      } catch (handled_error) {}
+      } catch(handled_error) {}
     }
 #endif
     if (!startline.empty())
@@ -764,6 +767,10 @@ public:
   void process() {
     printGreeting();
     interact::init_interactive();
+    try {
+      setPath("",true);
+    } catch(handled_error) {
+    }
 
     do {
       try {

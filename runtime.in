@@ -1465,17 +1465,7 @@ void :loadModule(string *index)
 string cd(string s=emptystring)
 {
   if(!global()) writeDisabled();
-  if(s == "") s=startPath();
-  int rc=setPath(s.c_str());
-  if(rc != 0) {
-    ostringstream buf;
-    buf << "Cannot change to directory '" << s << "'";
-    error(buf);
-  }
-  char *p=getPath();
-  if(p && interact::interactive) 
-    cout << p << endl;
-  return p;
+  return setPath(s.c_str());
 }
 
 void list(string *s, bool imports=false)

@@ -645,6 +645,17 @@ struct boolOption : public option {
   }
 };
 
+struct stringOption : public option {
+  char **variable;
+  stringOption(mem::string name, char code, mem::string argname,
+	       mem::string desc, char **variable)
+    : option("cd", 0, argname, desc, true), variable(variable) {}
+
+  bool getOption() {
+    *variable=optarg;
+    return true;
+  }
+};
 
 mem::string build_optstring() {
   mem::string s;
@@ -793,6 +804,8 @@ void initSettings() {
 			   &globaloption, true, false));
   addOption(new boolOption("noglobal", 0,
 			   "", &globaloption, false, true));
+  addOption(new stringOption("cd", 0, "directory", "Set current directory",
+			     &startpath));
   
   addOption(new stringSetting("prompt", 0,"string","Prompt [\"> \"]","> "));
   addOption(new stringSetting("prompt2", 0,"string",

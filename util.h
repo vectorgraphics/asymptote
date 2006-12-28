@@ -76,9 +76,11 @@ string stripblanklines(string& s);
 
 extern char *currentpath;
 
-char *startPath();
+const char *startPath();
 char *getPath(char *p=currentpath);
-int setPath(const char *s);
+const char* setPath(const char *s, bool quiet=false);
+const char *changeDirectory(const char *s);
+extern char *startpath;
 
 void backslashToSlash(string& s);
 void spaceToUnderscore(string& s);

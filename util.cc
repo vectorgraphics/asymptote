@@ -259,13 +259,8 @@ string stripblanklines(string& s)
   return s;
 }
 
-static char *startpath=NULL;
+char *startpath=NULL;
 char *currentpath=NULL;
-
-char *startPath()
-{
-  return startpath;
-}
 
 void noPath()
 {
@@ -287,12 +282,20 @@ char *getPath(char *p)
   return p;
 }
 
-int setPath(const char *s)
+const char *setPath(const char *s, bool quiet)
 {
-  if(s != NULL && *s != 0) {
-    if(startpath == NULL) startpath=getPath(startpath);
-    return chdir(s);
-  } return 0;
+  if(startpath == NULL) startpath=getPath(startpath);
+  if(s == NULL || *s == 0) s=startpath;
+  int rc=chdir(s);
+  if(rc != 0) {
+    ostringstream buf;
+    buf << "Cannot change to directory '" << s << "'";
+    camp::reportError(buf);
+  }
+  char *p=getPath();
+  if(p && ((interact::interactive && !quiet) || verbose > 1))
+    cout << "cd " << p << endl;
+  return p;
 }
 
 void popupHelp() {
