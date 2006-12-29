@@ -649,7 +649,7 @@ struct stringOption : public option {
   char **variable;
   stringOption(mem::string name, char code, mem::string argname,
 	       mem::string desc, char **variable)
-    : option("cd", 0, argname, desc, true), variable(variable) {}
+    : option(name, code, argname, desc, true), variable(variable) {}
 
   bool getOption() {
     *variable=optarg;
@@ -1003,7 +1003,7 @@ const char *texerrors[]={"! ",NULL};
 const char **texabort(const mem::string& texengine)
 {
   return settings::pdf(texengine) ? pdftexerrors : texerrors;
-};
+}
 
 mem::string texengine() {
   mem::string path=getSetting<mem::string>("texpath");
