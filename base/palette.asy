@@ -154,7 +154,7 @@ bounds image(picture pic=currentpicture, pair[] z, real[] f,
   int N=palette.length-1;
 
   int[][] trn=triangulate(z);
-  real step=rmax == rmin? 0.0 : (palette.length-1)/(rmax-rmin);
+  real step=rmax == rmin ? 0.0 : N/(rmax-rmin);
   for(int i=0; i < trn.length; ++i) {
     int[] trni=trn[i];
     int i0=trni[0], i1=trni[1], i2=trni[2];
@@ -240,7 +240,7 @@ void palette(picture pic=currentpicture, Label L="", bounds range,
     if(length(max(f)-min(f)) > ylabelwidth*fontsize(L.p)) 
       L.transform(rotate(90));
   }
-  real[][] pdata={sequence(palette.length-1)};
+  real[][] pdata={sequence(palette.length)};
   if(vertical) pdata=transpose(pdata);
   
   pic.add(new void(frame f, transform t) {
@@ -378,6 +378,16 @@ private pen[] BWRainbow(int NColors, bool two)
   Palette[k]=rgb(1.0,1.0,1.0);
   
   return Palette;
+}
+
+// Quantize palette to exactly n values
+pen[] quantize(pen[] Palette, int n)
+{
+  if(Palette.length == 0) abort("cannot quantize empty palette");
+  pen[] p=new pen[n];
+  for(int i=0; i < n; ++i)
+    p[i]=Palette[round(i/(n-1)*(Palette.length-1))]; 
+  return p;
 }
 
 // A rainbow palette tapering off to black/white at the spectrum ends,

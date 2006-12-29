@@ -447,6 +447,33 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
   draw(pic,L,g,sequence(new pen(int) {return p;},g.length));
 }
 
+// Fill cyclic contours using palette
+void fill(guide[][] g, pen[] palette) 
+{
+  for(int i=0; i < g.length-1; ++i) {
+    guide[] gi=g[i];
+    guide[] gp=g[i+1];
+    pen p=palette[i];
+    if(gi.length == 0) {
+      for(int j=0; j < gp.length; ++j)
+	if(cyclic(gp[j]))
+	  fill(gp[j],p);
+    } else {
+      for(int j=0; j < gi.length; ++j) {
+	if(cyclic(gi[j])) {
+	  if(j < gp.length) {
+	    if(cyclic(gp[j])) {
+	      if(inside(gi[j],point(gp[j],0)) ||
+		 inside(gp[j],point(gi[j],0)))
+		fill(gi[j]^^gp[j],p+evenodd);
+	    }
+	  } else fill(gi[j],p);
+	}
+      }
+    }
+  }
+}
+
 // non-regularly spaced points routines:
 
 // check existing guides and adds new segment to them if possible,
