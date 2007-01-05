@@ -500,7 +500,6 @@ class iprompt : public icore {
 
   // Code ran at start-up.
   string startline;
-  //block *startcode;
 
   void postRun(coenv &, istack &) {
     run::cleanup();
@@ -578,7 +577,6 @@ class iprompt : public icore {
     if (cl.simple()) {
       running=false;
       restart=true;
-      //startcode=0;
       startline="";
 
       uptodate=true;
@@ -601,17 +599,9 @@ class iprompt : public icore {
   bool input(commandLine cl) {
     string prefix="erase(); include ";
     string line=prefix+cl.rest;
-    //block *code=parser::parseString(line, "<input>");
-    //if (!em->errors() && code) {
-//    if (true) {
-      running=false;
-      restart=true;
-      //startcode=code;
-      startline=line;
-//    } else {
-//      em->sync();
-//      em->clear();
-//    }
+    running=false;
+    restart=true;
+    startline=line;
     return true;
   }
 
@@ -722,19 +712,11 @@ class iprompt : public icore {
   }
 
   void runStartCode(coenv &e, istack &s) {
-#if 0
-    if (startcode) {
-      try {
-        icode(startcode).run(e,s);
-      } catch(handled_error) {}
-    }
-#endif
     if (!startline.empty())
       runLine(e, s, startline);
   }
 
 public:
-  //iprompt() : running(false), restart(false), startcode(0) {
   iprompt() : running(false), restart(false), startline("") {
     initCommands();
   }
