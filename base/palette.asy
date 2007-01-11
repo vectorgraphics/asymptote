@@ -254,7 +254,7 @@ void palette(picture pic=currentpicture, Label L="", bounds range,
   
   pic.addBox(initial,final);
   
-  ticklocate locate=ticklocate(initialz,finalz,pic.scale.z);
+  ticklocate locate=ticklocate(initialz,finalz,pic.scale.z,mz.min,mz.max);
   axis(pic,L,g,g2,p,ticks(sgn(axis.side.x*dot(lambda,par))),locate,
        mz.divisor,Above);
 }
