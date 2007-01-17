@@ -129,6 +129,13 @@ public:
     transAsField(e, 0);
   }
 
+  /* This can be overridden, to specify a special way of translating the code
+   * when it is run at the top of the interactive prompt.
+   */
+  virtual void interactiveTrans(coenv &e) {
+    trans(e);
+  }
+
   void markTransAsField(coenv &e, record *r)
   {
     markPos(e);

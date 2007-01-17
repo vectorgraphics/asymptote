@@ -61,10 +61,17 @@ void expStm::trans(coenv &e) {
 
 exp *tryToWriteExp(coenv &e, exp *body)
 {
-  exp *callee=new nameExp(body->getPos(), symbol::trans("write"));
-  exp *call=new callExp(body->getPos(), callee, body);
-
-  return call->getType(e)->kind == ty_error ? body : call;
+  types::ty *t=body->cgetType(e);
+  if (t->kind == types::ty_error || t->kind == types::ty_overloaded) {
+    // Don't try to write erroneous expressions, and don't resolve an overloaded
+    // expression, by trying to write it.
+    return body;
+  }
+  else {
+    exp *callee=new nameExp(body->getPos(), symbol::trans("write"));
+    exp *call=new callExp(body->getPos(), callee, body);
+    return call->getType(e)->kind == ty_error ? body : call;
+  }
 }
 
 void expStm::interactiveTrans(coenv &e)

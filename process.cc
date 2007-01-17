@@ -70,10 +70,45 @@ void purge()
 using absyntax::runnable;
 using absyntax::block;
 
+// This helper class does nothing but call the interactiveTrans method of the
+// base object in place of trans, so that the runnable can exhibit special
+// behaviour when run at the interactive prompt.
+class interactiveRunnable : public runnable {
+  runnable *base;
+
+public:
+  interactiveRunnable(runnable *base)
+    : runnable(base->getPos()), base(base) {}
+
+  void prettyprint(ostream &out, int indent) {
+    absyntax::prettyname(out, "interactiveRunnable", indent);
+    base->prettyprint(out, indent+1);
+  }
+  
+  void trans(coenv &e) {
+    base->interactiveTrans(e);
+  }
+
+  void transAsField(coenv &e, types::record *r) {
+    // There is no interactiveTransAsField, as fields aren't declared at the top
+    // level of the interactive prompt.
+    base->transAsField(e, r);
+  }
+};
+  
+enum transMode {
+  TRANS_INTERACTIVE,
+  TRANS_NORMAL
+};
+
+
 // How to run a runnable in runnable-at-a-time mode.
-bool runRunnable(runnable *r, coenv &e, istack &s) {
+bool runRunnable(runnable *r, coenv &e, istack &s, transMode tm=TRANS_NORMAL) {
   e.e.beginScope();
-  lambda *codelet=r->transAsCodelet(e);
+
+  lambda *codelet= tm==TRANS_INTERACTIVE ?
+                       interactiveRunnable(r).transAsCodelet(e) :
+                       r->transAsCodelet(e);
   em->sync();
   if(!em->errors()) {
     if(getSetting<bool>("translate")) print(cout,codelet->code);
@@ -120,7 +155,7 @@ public:
       runAutoplain(e,s);
   }
 
-  virtual void run(coenv &e, istack &s) = 0;
+  virtual void run(coenv &e, istack &s, transMode tm=TRANS_NORMAL) = 0;
 
   virtual void postRun(coenv &, istack &s) {
     run::exitFunction(&s);
@@ -218,13 +253,13 @@ public:
     }
   }
 
-  void run(coenv &e, istack &s) {
+  void run(coenv &e, istack &s, transMode tm=TRANS_NORMAL) {
     block *tree=getTree();
     if (tree) {
       for(list<runnable *>::iterator r=tree->stms.begin();
           r != tree->stms.end(); ++r)
         if(!em->errors() || getSetting<bool>("debug"))
-          runRunnable(*r,e,s);
+          runRunnable(*r,e,s,tm);
     }
   }
 
@@ -475,6 +510,7 @@ string endCommentOrString(const string line) {
 }
 
 bool isSlashed(const string line) {
+  // NOTE: This doesn't fully handle escaped slashed in a string literal.
   return line[line.size()-1]=='\\';
 }
 string deslash(const string line) {
@@ -686,11 +722,11 @@ class iprompt : public icore {
         block *code=parseExtendableLine(line);
         
         icode i(code);
-        i.run(e,s);
+        i.run(e,s,TRANS_INTERACTIVE);
       }
       else {
         istring i(terminateLine(line), "-");
-        i.run(e,s);
+        i.run(e,s,TRANS_INTERACTIVE);
       }
 
       if(!uptodate)
@@ -725,7 +761,7 @@ public:
 
   void doList() {}
 
-  void run(coenv &e, istack &s) {
+  void run(coenv &e, istack &s, transMode tm=TRANS_NORMAL) {
     running=true;
     interact::setCompleter(new trans::envCompleter(e.e));
 
