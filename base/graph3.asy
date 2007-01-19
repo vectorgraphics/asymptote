@@ -428,7 +428,7 @@ guide3 graph(real f(pair), path p, int n=1, real T(pair),
                join);
 }
 
-// draw the surface described by a matrix f, with lighting
+// draw the surface described by a matrix f, respecting lighting
 picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
@@ -500,7 +500,7 @@ picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
   return pic;
 }
 
-// draw the surface described by a real matrix f, with lighting
+// draw the surface described by a real matrix f, respecting lighting
 picture surface(real[][] f, pair a, pair b,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
@@ -522,14 +522,12 @@ picture surface(real[][] f, pair a, pair b,
 }
 
 // draw the surface described by a parametric function f over box(a,b),
-// optionally subsampled nsub times, with lighting.
-picture surface(triple f(pair z), int nsub=1, pair a, pair b,
-                int nu=nmesh, int nv=nu,
+// respecting lighting.
+picture surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
-  if(nsub == 1) {
-    triple[][] v=new triple[nu+1][nv+1];
+  triple[][] v=new triple[nu+1][nv+1];
 
     for(int i=0; i <= nu; ++i) {
       real x=interp(a.x,b.x,i/nu);
@@ -537,68 +535,85 @@ picture surface(triple f(pair z), int nsub=1, pair a, pair b,
         v[i][j]=f((x,interp(a.y,b.y,j/nv)));
     }
     return surface(v,surfacepen,meshpen,light,P);
-  } else {
-    picture pic;
-
-    // Draw a mesh in the absence of lighting (override with meshpen=invisible).
-    if(light.source == O && meshpen == nullpen) meshpen=currentpen;
-
-    pair sample(int i, int j) {
-      return (interp(a.x,b.x,i/nu),interp(a.y,b.y,j/nv));
-    }
-  
-    pen color(int i, int j) {
-      triple dfx,dfy;
-      if(i == 0) dfx=f(sample(1,j))-f(sample(0,j));
-      else if(i == nu) dfx=f(sample(nu,j))-f(sample(nu-1,j));
-      else dfx=0.5(f(sample(i+1,j))-f(sample(i-1,j)));
-      if(j == 0) dfy=f(sample(i,1))-f(sample(i,0));
-      else if(j == nv) dfy=f(sample(i,nv))-f(sample(i,nv-1));
-      else dfy=0.5(f(sample(i,j+1))-f(sample(i,j-1)));
-      return light.intensity(cross(dfx,dfy))*surfacepen;
-    }
-
-    guide3 cell(int i, int j) { 
-      return graph(f,box(sample(i,j),sample(i+1,j+1)),nsub);
-    }
-
-    void drawcell(int i, int j) {
-      guide g=project(cell(i,j),P);
-      fill(pic,g,color(i,j));
-      if(meshpen != nullpen) draw(pic,g,meshpen);
-    }
-  
-    if(surfacepen == nullpen) {
-      for(int i=0; i < nu; ++i)
-        for(int j=0; j < nv; ++j)
-          draw(pic,project(cell(i,j),P),meshpen);
-    } else {
-      // Sort cells by distance from camera
-      real[][] depth;
-      for(int i=0; i < nu; ++i) {
-        for(int j=0; j < nv; ++j) {
-          triple v=P.camera-0.25*(f(sample(i,j))+f(sample(i,j+1))+
-                                  f(sample(i+1,j))+f(sample(i+1,j+1)));
-          real d=sgn(dot(v,P.camera))*abs(v);
-          depth.push(new real[] {d,i,j});
-        }
-      }
-
-      depth=sort(depth);
-  
-      // Draw from farthest to nearest
-      while(depth.length > 0) {
-        real[] a=depth.pop();
-        drawcell(round(a[1]),round(a[2]));
-      }
-    }
-    return pic;
-  }
 }
 
-// draw the surface described by a real function f, optionally subsampled
-// nsub times, with lighting
-picture surface(real f(pair z), int nsub=1, pair a, pair b, 
+// draw the surface described by a parametric function f over box(a,b),
+// subsampled nsub times, respecting lighting.
+picture surface(triple f(pair z), int nsub, pair a, pair b,
+                int nu=nmesh, int nv=nu,
+                pen surfacepen=lightgray, pen meshpen=nullpen,
+                light light=currentlight, projection P=currentprojection)
+{
+  picture pic;
+
+  // Draw a mesh in the absence of lighting (override with meshpen=invisible).
+  if(light.source == O && meshpen == nullpen) meshpen=currentpen;
+
+  pair sample(int i, int j) {
+    return (interp(a.x,b.x,i/nu),interp(a.y,b.y,j/nv));
+  }
+  
+  pen color(int i, int j) {
+    triple dfx,dfy;
+    if(i == 0) dfx=f(sample(1,j))-f(sample(0,j));
+    else if(i == nu) dfx=f(sample(nu,j))-f(sample(nu-1,j));
+    else dfx=0.5(f(sample(i+1,j))-f(sample(i-1,j)));
+    if(j == 0) dfy=f(sample(i,1))-f(sample(i,0));
+    else if(j == nv) dfy=f(sample(i,nv))-f(sample(i,nv-1));
+    else dfy=0.5(f(sample(i,j+1))-f(sample(i,j-1)));
+    return light.intensity(cross(dfx,dfy))*surfacepen;
+  }
+
+  guide3 cell(int i, int j) { 
+    return graph(f,box(sample(i,j),sample(i+1,j+1)),nsub);
+  }
+
+  void drawcell(int i, int j) {
+    guide g=project(cell(i,j),P);
+    fill(pic,g,color(i,j));
+    if(meshpen != nullpen) draw(pic,g,meshpen);
+  }
+  
+  if(surfacepen == nullpen) {
+    for(int i=0; i < nu; ++i)
+      for(int j=0; j < nv; ++j)
+	draw(pic,project(cell(i,j),P),meshpen);
+  } else {
+    // Sort cells by distance from camera
+    real[][] depth;
+    for(int i=0; i < nu; ++i) {
+      for(int j=0; j < nv; ++j) {
+	triple v=P.camera-0.25*(f(sample(i,j))+f(sample(i,j+1))+
+				f(sample(i+1,j))+f(sample(i+1,j+1)));
+	real d=sgn(dot(v,P.camera))*abs(v);
+	depth.push(new real[] {d,i,j});
+      }
+    }
+
+    depth=sort(depth);
+  
+    // Draw from farthest to nearest
+    while(depth.length > 0) {
+      real[] a=depth.pop();
+      drawcell(round(a[1]),round(a[2]));
+    }
+  }
+  return pic;
+}
+
+// draw the surface described by a real function f over box(a,b),
+// respecting lighting.
+picture surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
+                pen surfacepen=lightgray, pen meshpen=nullpen,
+                light light=currentlight, projection P=currentprojection)
+{
+  return surface(new triple(pair z) {return (z.x,z.y,f(z));},a,b,nx,ny,
+                 surfacepen,meshpen,light,P);
+}
+
+// draw the surface described by a real function f over box(a,b),
+// subsampled nsub times, respecting lighting.
+picture surface(real f(pair z), int nsub, pair a, pair b, 
                 int nx=nmesh, int ny=nx,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)

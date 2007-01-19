@@ -473,8 +473,8 @@ struct flatguide3 {
   }
 
   void cyclic() {
-    if(nodes.length == 0) abort("syntax error");
-    node(nodes[0],true);
+    if(nodes.length > 0)
+      node(nodes[0],true);
   }
   
   // Return true if outgoing direction at node i is known.

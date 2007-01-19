@@ -6270,7 +6270,10 @@ picture surface(real[][] f, pair a, pair b,
                 light light=currentlight, projection P=currentprojection);
 picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
-picture surface(real f(pair z), int nsub=1, pair a, pair b, int nx=nmesh,
+picture surface(real f(pair z), pair a, pair b, int nx=nmesh,
+                int ny=nx, pen surfacepen=lightgray, pen meshpen=nullpen,
+                light light=currentlight, projection P=currentprojection);
+picture surface(real f(pair z), int nsub, pair a, pair b, int nx=nmesh,
                 int ny=nx, pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 @end verbatim
@@ -6278,7 +6281,10 @@ picture surface(real f(pair z), int nsub=1, pair a, pair b, int nx=nmesh,
 A parametric surface for a function @math{f(u,v)} over the parameter
 space @code{box(a,b)} may be drawn with
 @verbatim
-picture surface(triple f(pair z), int nsub=1, pair a, pair b, int nu=nmesh,
+picture surface(triple f(pair z), pair a, pair b, int nu=nmesh,
+                int nv=nu, pen surfacepen=lightgray, pen meshpen=nullpen,
+                light light=currentlight, projection P=currentprojection);
+picture surface(triple f(pair z), int nsub, pair a, pair b, int nu=nmesh,
                 int nv=nu, pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 @end verbatim
@@ -6286,7 +6292,7 @@ picture surface(triple f(pair z), int nsub=1, pair a, pair b, int nu=nmesh,
 as illustrated in the example @code{parametricsurface.asy}.
 The optional argument @code{nsub} allows one to subsample the function
 @code{nsub} times along the cell edges. However, smoother Gouraud shading
-is used for lighting effects if @code{nsub=1}. Lighting can be
+is used for lighting effects when this parameter is omitted. Lighting can be
 disabled by setting @code{light=O}, as in this example of a Gaussian
 surface subsampled 4 times:
 @anchor{GaussianSurface}

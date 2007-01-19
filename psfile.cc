@@ -284,6 +284,7 @@ void psfile::gouraudshade(array *pens, array *vertices, array *edges)
   if(size == 0) return;
   
   pen *p=read<pen *>(pens,0);
+  setpen(*p);
   p->convert();
   ColorSpace colorspace=p->colorspace();
   checkColorSpace(colorspace);
@@ -318,6 +319,7 @@ void psfile::tensorshade(array *pens, array *boundaries, array *z)
   if(checkArray(p0) != 4)
     reportError("4 pens required");
   pen *p=read<pen *>(p0,0);
+  setpen(*p);
   p->convert();
   ColorSpace colorspace=p->colorspace();
   checkColorSpace(colorspace);
@@ -443,6 +445,7 @@ void psfile::image(array *a, array *P)
   size_t a0size=a0->size();
   
   pen *p=read<pen *>(P,0);
+  setpen(*p);
   p->convert();
   ColorSpace colorspace=p->colorspace();
   checkColorSpace(colorspace);
