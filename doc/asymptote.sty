@@ -106,8 +106,7 @@
   \fi
   \relax%
   \endgroup}
-\newcommand\ASYdefaultsize{\the\linewidth,0,Aspect}
-\newcommand\asy[1][\ASYdefaultsize]{%
+\newcommand\asy[1][]{%
   \begingroup
   \let\par\empty
   \stepcounter{asy}%
@@ -116,7 +115,6 @@
    \immediate\write\AsyStream{eval(quote\@charlb}%
    \immediate\write\AsyStream{defaultfilename='\jobname_\arabic{asy}';}%
   \ifx\@optarg\empty
-   \immediate\write\AsyStream{size(\ASYdefaultsize);}%
   \else
     \immediate\write\AsyStream{size(#1);}%
   \fi

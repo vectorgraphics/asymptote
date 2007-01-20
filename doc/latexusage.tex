@@ -81,10 +81,10 @@ fill(circle((0,-0.5),0.125));
 \end{asy}
 \end{center}
 
-The default width is the full line width:
+To scale the figure to the full line width:
 
 \begin{center}
-\begin{asy}
+\begin{asy}[\the\linewidth]
 import graph;
 
 real f(real x) {return sqrt(x);}
