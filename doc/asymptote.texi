@@ -141,6 +141,7 @@ Base modules
 * three::                       3D vector graphics
 * light::                       3D lighting effects
 * graph3::                      3D linear & logarithmic graphs
+* grid3::                       
 * solids::                      3D solid geometry package
 * surface::                     
 * featpost3D::                  Partial port of @code{featpost3d}
@@ -4843,6 +4844,7 @@ Here now is @code{latexusage.tex}:
 * three::                       3D vector graphics
 * light::                       3D lighting effects
 * graph3::                      3D linear & logarithmic graphs
+* grid3::                       
 * solids::                      3D solid geometry package
 * surface::                     
 * featpost3D::                  Partial port of @code{featpost3d}
@@ -6305,6 +6307,17 @@ Surface lighting is illustrated in the example files
 A mesh can be drawn without solid fills by specifying @code{nullpen}
 for the surfacepen. A mesh is always drawn in the absence of lighting, unless 
 @code{meshpen=invisible}. 
+
+@node grid3
+@section @code{grid3}
+@cindex @code{grid3}
+@cindex 3D grids
+
+This module, contributed by Philippe Ivaldi, can be used for drawing
+3D grids. Here is an example (further examples can be found in
+@code{grid3.asy} and at @url{http://home.tele2.fr/phivaldi/asymptote/grid3}):  
+@verbatiminclude grid3xyz.asy
+@image{grid3xyz}
 
 @node solids
 @section @code{solids}
