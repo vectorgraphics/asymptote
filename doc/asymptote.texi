@@ -1576,6 +1576,7 @@ z=z.x-I*z.y;
 z=conj(z);
 @end example
 
+Here @code{I} is the pair @code{(0,1)}.
 A number of built-in functions are defined for pairs:
 
 @table @code
