@@ -125,6 +125,7 @@ Base modules
 * patterns::                    Custom fill and draw patterns
 * tree::                        Dynamic binary search tree
 * drawtree::                    Tree drawing module
+* binarytree::                  Binary trees
 * feynman::                     Feynman diagrams
 * roundedpath::                 Round the sharp corners of paths
 * pdfanim::                     Portable embedded @code{PDF} movies
@@ -133,7 +134,7 @@ Base modules
 * MetaPost::                    @code{MetaPost} compatibility routines
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
-* babel::                       Implement @code{LaTeX} @code{babel} package
+* babel::                       Interface to @code{LaTeX} @code{babel} package
 * annotate::                    Annotate your @acronym{PDF} files
 * CAD::                         2D CAD pen and measurement functions (DIN 15)
 * graph::                       2D linear & logarithmic graphs
@@ -141,9 +142,9 @@ Base modules
 * three::                       3D vector graphics
 * light::                       3D lighting effects
 * graph3::                      3D linear & logarithmic graphs
-* grid3::                       
-* solids::                      3D solid geometry package
-* surface::                     
+* grid3::                       3D grids
+* solids::                      3D solid geometry
+* surface::                     Bezier surfaces
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
@@ -4828,6 +4829,7 @@ Here now is @code{latexusage.tex}:
 * patterns::                    Custom fill and draw patterns
 * tree::                        Dynamic binary search tree
 * drawtree::                    Tree drawing module
+* binarytree::                  Binary trees
 * feynman::                     Feynman diagrams
 * roundedpath::                 Round the sharp corners of paths
 * pdfanim::                     Portable embedded @code{PDF} movies
@@ -4836,7 +4838,7 @@ Here now is @code{latexusage.tex}:
 * MetaPost::                    @code{MetaPost} compatibility routines
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
-* babel::                       Implement @code{LaTeX} @code{babel} package
+* babel::                       Interface to @code{LaTeX} @code{babel} package
 * annotate::                    Annotate your @acronym{PDF} files
 * CAD::                         2D CAD pen and measurement functions (DIN 15)
 * graph::                       2D linear & logarithmic graphs
@@ -4844,9 +4846,9 @@ Here now is @code{latexusage.tex}:
 * three::                       3D vector graphics
 * light::                       3D lighting effects
 * graph3::                      3D linear & logarithmic graphs
-* grid3::                       
-* solids::                      3D solid geometry package
-* surface::                     
+* grid3::                       3D grids
+* solids::                      3D solid geometry
+* surface::                     Bezier surfaces
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
@@ -4961,6 +4963,14 @@ This package implements an example of a dynamic binary search tree.
 @section @code{drawtree}
 @cindex @code{drawtree}
 This is a simple tree drawing module used by the example @code{treetest.asy}.
+
+@node binarytree
+@section @code{binarytree}
+@cindex @code{binarytree}
+This module is used by the example @code{binarytreetest.asy} to draw a
+binary tree:
+@verbatiminclude binarytreetest.asy
+@image{binarytreetest}
 
 @node feynman
 @section @code{feynman}
