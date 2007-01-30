@@ -363,8 +363,15 @@ dir="d:\Asymptote";
 
 A working @code{TeX} implementation (such as the one available at
 @url{http://www.miktex.org}) will be required to typeset labels.
-The @code{Python} interpretor from @url{http://www.python.org} is only required
+The @code{Python} interpreter from @url{http://www.python.org} is only required
 if you wish to try out the graphical user interface (@pxref{GUI}).
+The @code{ImageMagick} package from
+
+@url{http://www.imagemagick.org/script/binary-releases.php} 
+
+@noindent
+is required to support alternate output formats (@pxref{convert}),
+including the graphical user interface.
 
 @noindent
 Example code will be installed by default in
@@ -5518,7 +5525,7 @@ to try in the attempt to produce uncrowded tick labels. A @code{true}
 value for the flag @code{opposite} identifies an unlabelled secondary
 axis (typically drawn opposite a primary axis).  The axis is drawn
 on top of any existing objects in the current picture only if @code{put}
-is @code{Above}. The tick locater @code{ticklocate} is
+is @code{Above}. The tick locator @code{ticklocate} is
 constructed by the routine
 @verbatim
 ticklocate ticklocate(real a, real b, autoscaleT S=defaultS,
@@ -7144,7 +7151,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  obliqueX asycolors monthaxis xautoscale yautoscale zautoscale
 @c  LocalWords:  obliqueZ obliqueY cylinderskeleton block llcorner dr py nx CPU
 @c  LocalWords:  loc topleft topright bottomleft bottomright flowrectangle UTC
-@c  LocalWords:  chartblock flowdiamond flowcircle xlabel BezierSurface
+@c  LocalWords:  chartblock flowdiamond flowcircle xlabel BezierSurface el xyz
 @c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow blocks ny cpu
 @c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel nv
 @c  LocalWords:  zlabel slopefields cputime roundrectangle slopefield libgccpp
@@ -7157,4 +7164,5 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  Pienaar Melenchuk finalout pdfanim Linspire Dpkg sudo dpkg dtx
 @c  LocalWords:  windingnumber clickable PDFAnim eforms insdljs pdfmovie dfn
 @c  LocalWords:  slidemovies ifdraft embeddedu externalmovie headerpen bodypen
-@c  LocalWords:  GaussianSurface multiline
+@c  LocalWords:  GaussianSurface multiline binarytree tridiagonal portably
+@c  LocalWords:  binarytreetest Henning subsample breakpoint locator
