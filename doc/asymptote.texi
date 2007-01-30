@@ -6350,6 +6350,20 @@ Further illustrations are provided in the example files @code{cylinder.asy},
 @code{sphere.asy}, @code{cones.asy}, @code{hyperboloid.asy}, and
 @code{torus.asy}.
 
+The structure @code{skeleton} contains the three-dimensional wireframe
+used to visualize a volume of revolution (here longitudinal refers to
+those segments that are parallel to the axis of revolution; transverse
+segments are perpendicular to the axis of revolution):
+@verbatim
+struct skeleton {
+  // transverse skeleton
+  guide3[] front;
+  guide3[] back;
+  // longitudinal skeleton
+  guide3[] longitudinal;
+}
+@end verbatim
+
 @node surface
 @section @code{surface}
 @cindex @code{surface}
@@ -7165,4 +7179,4 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  windingnumber clickable PDFAnim eforms insdljs pdfmovie dfn
 @c  LocalWords:  slidemovies ifdraft embeddedu externalmovie headerpen bodypen
 @c  LocalWords:  GaussianSurface multiline binarytree tridiagonal portably
-@c  LocalWords:  binarytreetest Henning subsample breakpoint locator
+@c  LocalWords:  binarytreetest Henning subsample breakpoint locator wireframe

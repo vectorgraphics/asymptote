@@ -57,11 +57,12 @@ path[] cylinder(guide3 base, real h, triple axis=Z,
   return base^^project(top,P)^^line(Base,Top,t1)^^line(Base,Top,t2);
 }
 
+// The three-dimensional "wireframe" used to visualize a volume of revolution
 struct skeleton {
-  // transverse skeleton
+  // transverse skeleton (perpendicular to axis of revolution)
   guide3[] front;
   guide3[] back;
-  // longitudinal skeleton
+  // longitudinal skeleton (parallel to axis of revolution)
   guide3[] longitudinal;
 }
 
