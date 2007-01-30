@@ -870,7 +870,7 @@ draw((0,0)..controls (0,100) and (100,100)..(100,0));
 However, it is usually more convenient to just use the
 @code{..} operator, which tells @code{Asymptote} to choose its own
 control points using the algorithms described in Donald Knuth's
-monograph, The MetaFontbook, chapter 14.
+monograph, The MetaFontbook, Chapter 14.
 The user can still customize the guide (or path) by specifying
 direction, tension, and curl values.
 

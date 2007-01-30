@@ -1679,7 +1679,7 @@ guide* operator cycle()
 guide* operator spec(pair z, int p)
 {
   camp::side d=(camp::side) p;
-  camp::dirSpec *sp=new camp::dirSpec(angle(z));
+  camp::dirSpec *sp=new camp::dirSpec(z);
 
   return new specguide(sp,d);
 }
