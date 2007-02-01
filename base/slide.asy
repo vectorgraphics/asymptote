@@ -17,7 +17,8 @@ if(orientation == Portrait || orientation == UpsideDown) {
   pagewidth += settings.paperwidth;
   pageheight += settings.paperheight;
 } else {
-  if(settings.outformat == "pdf") settings.tex="pdflatex";
+  if(settings.outformat == "pdf" && settings.tex != "pdflatex")
+    settings.autorotate=true;
   if(pdf()) {
     orientation=Portrait;
     real temp=settings.paperwidth;
