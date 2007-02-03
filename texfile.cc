@@ -61,8 +61,8 @@ void texfile::prologue()
       *out << "\\setlength{\\unitlength}{1pt}" << newl;
     else {
       *out << "\\pagestyle{empty}" << newl
-	   << "\\textheight=" << height << "bp" << newl
-	   << "\\textwidth=" << width << "bp" << newl;
+	   << "\\textheight=" << height+18.0 << "bp" << newl
+	   << "\\textwidth=" << width+18.0 << "bp" << newl;
       if(settings::pdf(texengine))
 	*out << "\\oddsidemargin=-17.61pt" << newl
 	     << "\\evensidemargin=\\oddsidemargin" << newl
