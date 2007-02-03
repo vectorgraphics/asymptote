@@ -1,4 +1,4 @@
-size(0,23cm);
+size(0,25cm);
 guide center = (0,1){W}..tension 0.8..(0,0){(1,-.5)}..tension 0.8..{W}(0,-1); 
 
 draw((0,1)..(-1,0)..(0,-1));

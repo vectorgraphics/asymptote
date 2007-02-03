@@ -7,6 +7,11 @@ orientation=Landscape;
 // Generated needed files if they don't already exist.
 asy(nativeformat(),"Pythagoras","log","near_earth");
 
+// Optionally generate and resolve bibtex citations:
+// asy -k goysr; bibtex goysr_
+// settings.twice=true;
+// texpreamble("\bibliographystyle{rmp}");
+
 import slide;
 
 usersetting();
@@ -62,4 +67,6 @@ skip(2);
 figure(new string[] {"log."+nativeformat(),"near_earth."+nativeformat()},
        "width=10cm",new string[] {"{\tt log.asy}","{\tt near\_earth.asy}"},
        "Examples of {\tt Asymptote} graphs.");
+
+// bibliography("refs");
 

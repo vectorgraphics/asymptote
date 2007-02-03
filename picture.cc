@@ -495,14 +495,13 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     if(!Labels) out.grestore();
     
     out.epilogue();
+    out.close();
     
     if(Labels) {
       tex->resetpen();
       if(status) {
-	if(pdf && !b.empty) {
-	  out.close();
+	if(pdf && !b.empty)
 	  status=(epstopdf(psname,pdfname) == 0);
-	}
 	
 	if(status) {
 	  for (p=layerp; p != nodes.end(); ++p) {

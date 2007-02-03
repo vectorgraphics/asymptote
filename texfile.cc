@@ -46,9 +46,9 @@ texfile::~texfile()
 void texfile::prologue()
 {
   texdefines(*out);
+  double width=box.right-box.left;
+  double height=box.top-box.bottom;
   if(settings::pdf(texengine) && !inlinetex) {
-    double width=box.right-box.left;
-    double height=box.top-box.bottom;
     *out << "\\pdfhorigin=0bp" << newl
 	 << "\\pdfvorigin=0bp" << newl;
     if(width > 0) 
@@ -61,8 +61,8 @@ void texfile::prologue()
       *out << "\\setlength{\\unitlength}{1pt}" << newl;
     else {
       *out << "\\pagestyle{empty}" << newl
-	   << "\\textheight=2048pt" << newl
-	   << "\\textwidth=\\textheight" << newl;
+	   << "\\textheight=" << height << "bp" << newl
+	   << "\\textwidth=" << width << "bp" << newl;
       if(settings::pdf(texengine))
 	*out << "\\oddsidemargin=-17.61pt" << newl
 	     << "\\evensidemargin=\\oddsidemargin" << newl

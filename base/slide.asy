@@ -1,3 +1,4 @@
+usepackage("lscape");
 import fontsize;
 usepackage("rotating");
 usepackage("color");
@@ -13,10 +14,9 @@ real pagemargin=0.5cm;
 real pagewidth=-2pagemargin;
 real pageheight=-2pagemargin;
 
-if(orientation == Portrait || orientation == UpsideDown) {
-  pagewidth += settings.paperwidth;
-  pageheight += settings.paperheight;
-} else {
+bool landscape=orientation == Landscape || orientation == Seascape;
+
+if(landscape) {
   if(settings.outformat == "pdf" && settings.tex != "pdflatex")
     settings.autorotate=true;
   if(pdf()) {
@@ -30,6 +30,9 @@ if(orientation == Portrait || orientation == UpsideDown) {
     pagewidth += settings.paperheight;
     pageheight += settings.paperwidth;
   }
+} else {
+  pagewidth += settings.paperwidth;
+  pageheight += settings.paperheight;
 }
 
 size(pagewidth,pageheight,IgnoreAspect);
@@ -84,7 +87,7 @@ int[] lastnode=new int[];
 bool firststep=true;
 
 int page=1;
-bool havepagenumber=false;
+bool havepagenumber=true;
 
 int preamblenodes=2;
 
@@ -148,8 +151,10 @@ void usersetting()
 
 void numberpage(pen p=pagenumberpen)
 {
-  label((string) page,pagenumberposition,pagenumberalign,p);
-  havepagenumber=true;
+  if(havepagenumber) {
+    label((string) page,pagenumberposition,pagenumberalign,p);
+    ++page;
+  }
 }
 
 void nextpage(pen p=pagenumberpen)
@@ -164,7 +169,7 @@ void newslide(bool stepping=true)
 {
   allowstepping=stepping;
   nextpage();
-  ++page;
+  havepagenumber=true;
   currentposition=startposition;
   firstnode=new int[] {currentpicture.nodes.length};
   lastnode=new int[];
@@ -373,9 +378,33 @@ void titlepage(string title, string author, string institution="",
   if(url != "") center("{\tt "+url+"}",urlpen);
 }
 
+void bibliography(string name) 
+{
+  numberpage();
+  havepagenumber=false;
+  label("");
+  tex("\clearpage\def\refname{\fontsize{"+string(fontsize(titlepen))+"}{"+
+      string(lineskip(titlepen))+"}\selectfont References}%");
+  string s;
+  if(landscape)
+    s="{\centering\textheight="+string(pagewidth-1.5inches)+"bp\textwidth="+
+      string(pageheight-1inch)+"bp\begin{landscape}"+
+      "\topmargin=1in\oddsidemargin=1.1in";
+  else
+    s="{\centering\textheight="+string(pageheight-0.5inches)+"bp\textwidth="+
+      string(pagewidth-0.5inches)+
+      "bp\hsize=\textwidth\linewidth=\textwidth\vsize=\textheight"+
+      "\topmargin=0.5in\oddsidemargin=1in";
+  s += "\evensidemargin=\oddsidemargin\bibliography{"+name+"}";
+  if(landscape) s += "\end{landscape}";
+  else s += "\clearpage";
+  s += "}";
+  tex(s);
+}
+
 void exitfunction()
 {
-  if(havepagenumber) numberpage();
+  numberpage();
   plain.exitfunction();
 }
 
