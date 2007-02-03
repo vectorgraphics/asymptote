@@ -7,10 +7,14 @@ orientation=Landscape;
 // Generated needed files if they don't already exist.
 asy(nativeformat(),"Pythagoras","log","near_earth");
 
-// Optionally generate and resolve bibtex citations:
-// asy -k goysr; bibtex goysr_
-// settings.twice=true;
-// texpreamble("\bibliographystyle{rmp}");
+// Commands to generate optional bibtex citations:
+// asy -k slidedemo
+// bibtex slidedemo_
+// asy slidedemo
+//
+// Resolve optional bibtex citations:
+settings.twice=true;
+texpreamble("\bibliographystyle{alpha}");
 
 import slide;
 
@@ -27,7 +31,7 @@ outline("Basic Commands");
 item("item");
 subitem("subitem");
 remark("remark");
-item("draw");
+item("draw \cite{Hobby86,Knuth86b}");
 item("figure");
 item("embedded and external animations: see {\tt slidemovie.asy}");
 
@@ -52,6 +56,7 @@ draw(pic,unitcircle);
 add(pic.fit(15cm));
 step();
 fill(pic2,unitcircle,paleblue);
+label(pic2,"$\pi$",(0,0),fontsize(500));
 add(pic2.fit(15cm));
 
 newslide();
@@ -68,5 +73,4 @@ figure(new string[] {"log."+nativeformat(),"near_earth."+nativeformat()},
        "width=10cm",new string[] {"{\tt log.asy}","{\tt near\_earth.asy}"},
        "Examples of {\tt Asymptote} graphs.");
 
-// bibliography("refs");
-
+bibliography("refs");
