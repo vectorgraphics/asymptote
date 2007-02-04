@@ -124,8 +124,8 @@ Base modules
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
 * tree::                        Dynamic binary search tree
+* binarytree::                  Binary search tree drawing module
 * drawtree::                    Tree drawing module
-* binarytree::                  Binary trees
 * feynman::                     Feynman diagrams
 * roundedpath::                 Round the sharp corners of paths
 * pdfanim::                     Portable embedded @code{PDF} movies
@@ -880,7 +880,7 @@ it approximates a straight line.
 @cindex @code{and}
 @cindex @code{atleast}
 One can change the spline tension from its default value of 1 to any
-real value greater than or equal to 0.75 (cf. John Hobby, Discrete and
+real value greater than or equal to 0.75 (cf. John D. Hobby, Discrete and
 Computational Geometry 1, 1986):
 @verbatim
 draw((100,0)..tension 2 ..(100,100)..(0,100));
@@ -950,7 +950,7 @@ cube, without retracing steps:
 See section @ref{graph} (or the online @code{Asymptote} gallery at
 @url{http://asymptote.sourceforge.net}) for further examples, including
 two-dimensional scientific graphs. Additional examples have been posted
-by Philippe Ivaldi at @url{http://home.tele2.fr/phivaldi/asymptote}.
+by Philippe Ivaldi at @url{http://piprim.tuxfamily.org/asymptote/}.
 
 @node Drawing commands
 @chapter Drawing commands
@@ -4835,8 +4835,8 @@ Here now is @code{latexusage.tex}:
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
 * tree::                        Dynamic binary search tree
+* binarytree::                  Binary search tree drawing module
 * drawtree::                    Tree drawing module
-* binarytree::                  Binary trees
 * feynman::                     Feynman diagrams
 * roundedpath::                 Round the sharp corners of paths
 * pdfanim::                     Portable embedded @code{PDF} movies
@@ -4966,18 +4966,18 @@ several convenient pattern generation routines.
 @cindex @code{tree}
 This package implements an example of a dynamic binary search tree.
 
-@node drawtree
-@section @code{drawtree}
-@cindex @code{drawtree}
-This is a simple tree drawing module used by the example @code{treetest.asy}.
-
 @node binarytree
 @section @code{binarytree}
 @cindex @code{binarytree}
 This module is used by the example @code{binarytreetest.asy} to draw a
-binary tree:
+binary search tree:
 @verbatiminclude binarytreetest.asy
 @image{binarytreetest}
+
+@node drawtree
+@section @code{drawtree}
+@cindex @code{drawtree}
+This is a simple tree drawing module used by the example @code{treetest.asy}.
 
 @node feynman
 @section @code{feynman}
@@ -5373,7 +5373,7 @@ These tick routines accept a number of optional arguments:
 ticks LeftTicks(Label format="", ticklabel ticklabel=null,
                 bool beginlabel=true, bool endlabel=true,
                 int N=0, int n=0, real Step=0, real step=0,
-                bool begin=true, bool end=true,
+                bool begin=true, bool end=true, tickmodifier modify=None,
                 real Size=0, real size=0, bool extend=false,
                 pen pTick=nullpen, pen ptick=nullpen);
 @end verbatim
@@ -5390,37 +5390,40 @@ end with @code{$} @pxref{format}; if the format string is @code{"%"},
 the tick label will be suppressed;
 @item ticklabel
 is a function @code{string(real x)} returning the label (by default,
-format(format.s,x)) for each tick value @code{x};
+format(format.s,x)) for each major tick value @code{x};
 @item bool beginlabel
 include the first label;
 @item bool endlabel
 include the last label;
 @item int N
 when automatic scaling is enabled (the default; @pxref{automatic scaling}),
-divide the values evenly into this many intervals, separated by big ticks;
+divide the values evenly into this many intervals, separated by major ticks;
 @item int n
 divide each value interval into this many subintervals, separated by
-small ticks;
+minor ticks;
 @item real Step
-the tick value spacing between big ticks
+the tick value spacing between major ticks
 (if @code{N}=@code{0});
 @item real step
-the tick value spacing between small
-ticks (if @code{n}=@code{0});
+the tick value spacing between minor ticks (if @code{n}=@code{0});
 @item bool begin
-include the first big tick;
+include the first major tick;
 @item bool end
-include the last big tick;
+include the last major tick;
+@item tickmodifier modify;
+an optional function that takes and returns a tickvalue structure having
+real[] members @code{major} and @code{minor} consisting of the tick values
+(to allow modification of the automatically generated tick values);
 @item real Size
-the size of the big ticks (in @code{PostScript} coordinates);
+the size of the major ticks (in @code{PostScript} coordinates);
 @item real size
-the size of the small ticks (in @code{PostScript} coordinates);
+the size of the minor ticks (in @code{PostScript} coordinates);
 @item bool extend;
 extend the ticks between two axes (useful for drawing a grid on the graph);
 @item pen pTick
-an optional pen used to draw the big ticks;
+an optional pen used to draw the major ticks;
 @item pen ptick
-an optional pen used to draw the small ticks.
+an optional pen used to draw the minor ticks.
 
 @end table
 
@@ -5431,7 +5434,7 @@ an optional pen used to draw the small ticks.
 It is also possible to specify custom tick locations with
 @code{LeftTicks}, @code{RightTicks}, and @code{Ticks} by passing explicit real
 arrays @code{Ticks} and (optionally) @code{ticks} containing the
-locations of the big and small ticks, respectively:
+locations of the major and minor ticks, respectively:
 @verbatim
 ticks LeftTicks(Label format="", ticklabel ticklabel=null, 
                 bool beginlabel=true, bool endlabel=true, 
@@ -6332,7 +6335,7 @@ for the surfacepen. A mesh is always drawn in the absence of lighting, unless
 
 This module, contributed by Philippe Ivaldi, can be used for drawing
 3D grids. Here is an example (further examples can be found in
-@code{grid3.asy} and at @url{http://home.tele2.fr/phivaldi/asymptote/grid3}):  
+@code{grid3.asy} and at @url{http://piprim.tuxfamily.org/asymptote/grid3/}):  
 @verbatiminclude grid3xyz.asy
 @image{grid3xyz}
 
