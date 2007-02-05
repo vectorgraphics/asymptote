@@ -2071,6 +2071,11 @@ intersect, return a real array of length 0.
 @item pair intersectionpoint(path p, path q, real fuzz=0);
 returns the intersection point @code{point(p,intersect(p,q,fuzz)[0])}.
 
+@cindex @code{intersectionpoints}
+@item pair[] intersectionpoints(path p, path q);
+returns an array containing all intersection points of the paths
+@code{p} and @code{q}.
+
 @cindex @code{firstcut}
 @cindex @code{slice}
 @item slice firstcut(path p, path q);

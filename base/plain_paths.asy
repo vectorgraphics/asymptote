@@ -121,11 +121,46 @@ guide operator ---(... guide[] a)
   return g;
 }
 
+// return an arbitrary intersection point of paths p and q
 pair intersectionpoint(path p, path q, real fuzz=0)
 {
   real[] t=intersect(p,q,fuzz);
   if(t.length == 0) abort("paths do not intersect");
   return point(p,t[0]);
+}
+
+// return an array containing all intersection points of the paths p and q
+pair[] intersectionpoints(path p, path q)
+{
+  static real epsilon=sqrt(realEpsilon);
+  pair[] z;
+  real[] t=intersect(p,q);
+  if(t.length > 0) {
+    real s=t[0];
+    z.push(point(p,s));
+    int L=length(p);
+    real sm=s-epsilon;
+    real sp=s+epsilon;
+    if(cyclic(p)) {
+      if(sp < sm+L)
+	z.append(intersectionpoints(subpath(p,sp,sm+L),q));
+    } else {
+      if(sm > 0)
+	z.append(intersectionpoints(subpath(p,0,sm),q));
+      if(sp < L) 
+	z.append(intersectionpoints(subpath(p,sp,L),q));
+    }
+  }
+  return z;
+}
+
+pair[] intersectionpoints(path[] p, path[] q)
+{
+  pair[] z;
+  for(int i=0; i < p.length; ++i)
+    for(int j=0; j < q.length; ++j)
+      z.append(intersectionpoints(p[i],q[j]));
+  return z;
 }
 
 struct slice {

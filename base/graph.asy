@@ -575,8 +575,6 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
       
     if(N <= 2 && n == 0) n=base;
       
-    int count=floor(b)-ceil(a)+1;
-      
     if(N > 0) {
       int c=0;
       for(int i=first-1; i <= last+1; ++i) {
