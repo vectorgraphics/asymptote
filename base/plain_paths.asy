@@ -138,17 +138,26 @@ pair[] intersectionpoints(path p, path q)
   if(t.length > 0) {
     real s=t[0];
     z.push(point(p,s));
-    int L=length(p);
-    real sm=s-epsilon;
-    real sp=s+epsilon;
-    if(cyclic(p)) {
-      if(sp < sm+L)
-	z.append(intersectionpoints(subpath(p,sp,sm+L),q));
+    if(cyclic(q)) {
+      real s=t[1];
+      real sm=s-epsilon+length(q);
+      real sp=s+epsilon;
+      if(sp < sm)
+	z.append(intersectionpoints(p,subpath(q,sp,sm)));
     } else {
-      if(sm > 0)
-	z.append(intersectionpoints(subpath(p,0,sm),q));
-      if(sp < L) 
-	z.append(intersectionpoints(subpath(p,sp,L),q));
+      real sm=s-epsilon;
+      real sp=s+epsilon;
+      int L=length(p);
+      if(cyclic(p)) {
+	sm += L;
+	if(sp < sm)
+	  z.append(intersectionpoints(subpath(p,sp,sm),q));
+      } else  {
+	if(sm > 0)
+	  z.append(intersectionpoints(subpath(p,0,sm),q));
+	if(sp < L) 
+	  z.append(intersectionpoints(subpath(p,sp,L),q));
+      }
     }
   }
   return z;
