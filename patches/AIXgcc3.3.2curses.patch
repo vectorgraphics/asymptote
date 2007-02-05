@@ -1,0 +1,19 @@
+curses.h.ORIG       Mon Dec 26 02:17:28 2005
+--- curses.h Mon Dec 26 02:40:13 2005
+***************
+*** 2023,2029 ****
+
+
+  #endif /* _AIX32_CURSES */
+! #if defined(__USE_FIXED_PROTOTYPES__) || defined(__cplusplus) || defined (__STRICT_ANSI__)
+  extern int delwin (WINDOW *);
+  extern int endwin (void);
+  extern int getcurx (WINDOW *);
+--- 2023,2029 ----
+
+
+  #endif /* _AIX32_CURSES */
+! #if 0 && (defined(__USE_FIXED_PROTOTYPES__) || defined(__cplusplus) || defined (__STRICT_ANSI__))
+  extern int delwin (WINDOW *);
+  extern int endwin (void);
+  extern int getcurx (WINDOW *);
