@@ -9,7 +9,7 @@ transform tb=shift(0,c)*rotate(aCos(b/c))*scale(b/c);
 
 picture Pythagorean(int n) {
   picture pic;
-  draw(pic,scale(c)*unitsquare,1/(n+1)*green+n/(n+1)*brown);
+  fill(pic,scale(c)*unitsquare,1/(n+1)*green+n/(n+1)*brown);
   if(n == 0) return pic;
   picture branch=Pythagorean(--n);
   add(pic,ta*branch);
