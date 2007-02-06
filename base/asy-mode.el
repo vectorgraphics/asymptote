@@ -3,7 +3,7 @@
 ;; Copyright (C) 2006
 ;; Author: Philippe IVALDI 20 August 2006
 ;; Modified by: John Bowman 01 September 2006
-;; Last modification: 11 october 2006 (Philippe Ivaldi)
+;; Last modification: 06 February 2007 (Philippe Ivaldi)
 ;;
 ;; This program is free software ; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@
 ;;;###autoload
 (define-derived-mode asy-mode objc-mode "Asymptote"
   "Emacs mode for editing Asymptote source code.
-For full functionality the 'two-mode-mode' package should also be installed
+For full functionality the `two-mode-mode' package should also be installed
 (http://www.dedasys.com/freesoftware/files/two-mode-mode.el).
 
 I. This package provides two modes:
@@ -56,19 +56,6 @@ All the files with the extension '.asy' are edited in this mode, which provides 
 * Compiling and viewing current buffer with the key binding C-c C-c;
 * Moving cursor to the error by pressing the key F4.
 * Showing the available function prototypes for the command at the cursor with the key binding C-c ?
-* Inserting template by pressing the key F3.
-- For example ife<F3> gives:
-if (*)
-{
-**
-}
-else
-{
-***
-}
-
-The cursor is *. Press M-Right to go to **, M-Right again for ***
-- Look at the code after the comment 'Templates appended to asy-tempo-tags' to add your entries.
 * Compiling and viewing a TeX document linked with the current buffer (usually a document that includes the output picture).
 To link a Tex document try 'M-x asy-set-master-tex' follow by C-Return (see descriptions further of the key binding C-Return, C-S-Return, M-Return, M-S-Return etc within 2- lasy-mode)
 
@@ -77,7 +64,8 @@ Editing a TeX file that contains Asymptote code is facilitated with the hybrid m
 Toggle lasy-mode with M-x lasy-mode.
 In this hybrid mode the major mode is LaTeX when the cursor is in LaTeX code and becomes asy-mode when the cursor is between '\begin{asy}' and '\end{asy}'.
 All the features of asy-mode are provided and the key binding C-c C-c of asy-mode compiles and views only the code of the picture where is the cursor.
-Note that some keys binding are added to the LaTeX-mode-map in lasy-mode and also, if you want, in pure LaTeX-mode (customize the variable 'lasy-keep-key' to accept or refuse the modifications in pure LaTeX-mode).
+Note that some keys binding are added to the LaTeX-mode-map in lasy-mode if the value of the variable lasy-extra-key is t (the default)
+.
 * C-return : compile (if the buffer/file is modified) and view the postscript output with sequence [latex->[asy->latex]->dvips]->PSviewer
 * M-return : same with pdf output and with the sequence [pdflatex -shell-escape->[asy->pdflatex -shell-escape]]->PDFviewer
 * C-M-return : same with pdf output and with the sequence [latex->[asy->latex]->dvips->ps2pdf]->PSviewer
@@ -85,11 +73,11 @@ Note that some keys binding are added to the LaTeX-mode-map in lasy-mode and als
 
 II. To add a menu bar in current 'latex-mode' buffer and activate hot keys, use 'M-x asy-insinuate-latex <RET>'.
 You can automate this feature for all the 'latex-mode' buffers by inserting the five following lines in your .emacs initialization file:
-(eval-after-load \"latex\"
-  '(progn
-     ;; Add here your personal features for 'latex-mode':
-     (asy-insinuate-latex t) ;; Asymptote globally insinuates Latex.
-     ))
+  (eval-after-load \"latex\"
+    '(progn
+       ;; Add here your personal features for 'latex-mode':
+       (asy-insinuate-latex t) ;; Asymptote globally insinuates Latex.
+       ))
 
 You can access this help within Emacs by the key binding C-h f asy-mode <RET>
 
@@ -106,39 +94,78 @@ Report bugs to http://asymptote.sourceforge.net
 
 Some variables can be customized: M-x customize-group <RET> asymptote <RET>."
 
-  (setq c++-font-lock-extra-types (cons "true" c++-font-lock-extra-types))
-
-;;  (setq skeleton-pair t)
-;; Next 3 lines disabled: end delimiters are treated as begin delimiters!
-;;  (define-key asy-mode-map "\"" 'skeleton-pair-insert-maybe)
-;;  (define-key asy-mode-map "\'" 'skeleton-pair-insert-maybe)
-;;  (define-key asy-mode-map "\$" 'skeleton-pair-insert-maybe)
-;; Next line disabled since this interferes with grouping existing code
-;;  (define-key asy-mode-map "\{" 'skeleton-pair-insert-maybe)
-;; Next 2 lines also disabled as they can make typing awkward.
-;;  (define-key asy-mode-map "\(" 'skeleton-pair-insert-maybe)
-;;  (define-key asy-mode-map "\[" 'skeleton-pair-insert-maybe)
-)
+  (setq c++-font-lock-extra-types (cons "true" c++-font-lock-extra-types)))
 
 (require 'font-lock)
 (require 'cc-mode)
 (require 'cl) ;; Common Lisp extensions for Emacs
+(require 'compile)
 
-(defvar running-xemacs-p (string-match "XEmacs\\|Lucid" emacs-version))
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.asy$" . asy-mode))
 
-;; Make asy-mode work with other shells.
+(defvar running-xemacs-p (string-match "XEmacs\\|Lucid" emacs-version))
+
+(when running-xemacs-p
+  (defalias 'turn-on-font-lock-if-enabled 'ignore)
+  (defvar temporary-file-directory (temp-directory)))
+
+(when (and (< emacs-major-version 22) (not running-xemacs-p))
+  ;; Add regexp for parsing the compilation errors of asy
+  (add-to-list 'compilation-error-regexp-alist
+               '("\\(.*?.asy\\): \\(.*?\\)\\.\\(.*?\\):" 1 2 3)))
+
+(defcustom lasy-extra-key t
+  "* If on, the folowing binding keys are added in lasy-mode :
+     (define-key lasy-mode-map (kbd \"<C-return>\") 'lasy-view-ps)
+     (define-key lasy-mode-map (kbd \"<C-S-return>\") 'asy-master-tex-view-ps-f)
+     (define-key lasy-mode-map (kbd \"<M-return>\") 'lasy-view-pdf-via-pdflatex)
+     (define-key lasy-mode-map (kbd \"<M-S-return>\") 'asy-master-tex-view-pdflatex-f)
+     (define-key lasy-mode-map (kbd \"<C-M-return>\") 'lasy-view-pdf-via-ps2pdf)
+     (define-key lasy-mode-map (kbd \"<C-M-S-return>\") 'asy-master-tex-view-ps2pdf-f)
+
+If you also want this feature in pure latex-mode, you can set this variable to `nil' and add these lines in your .emacs:
+
+(require 'asy-mode)
+(eval-after-load \"latex\"
+  '(progn
+     (define-key LaTeX-mode-map (kbd \"<C-return>\") 'lasy-view-ps)
+     (define-key LaTeX-mode-map (kbd \"<C-S-return>\") 'asy-master-tex-view-ps-f)
+     (define-key LaTeX-mode-map (kbd \"<M-return>\") 'lasy-view-pdf-via-pdflatex)
+     (define-key LaTeX-mode-map (kbd \"<M-S-return>\") 'asy-master-tex-view-pdflatex-f)
+     (define-key LaTeX-mode-map (kbd \"<C-M-return>\") 'lasy-view-pdf-via-ps2pdf)
+     (define-key LaTeX-mode-map (kbd \"<C-M-S-return>\") 'asy-master-tex-view-ps2pdf-f)))"
+  :type 'boolean
+  :group 'asymptote)
+
+(defcustom asy-compilation-buffer 'none
+  "* 'visible means keep compilation buffer visible ;
+  'available means keep compilation buffer available in other buffer but not visible;
+  'none means delete compilation buffer automaticly after a *successful* compilation.
+  'never means delete compilation buffer automatically after any compilation.
+If the value is 'never', the compilation process is `shell-command' with poor management of errors."
+  :type '(choice (const visible) (const available) (const none) (const never))
+  :group 'asymptote)
 
 (defcustom asy-command-location ""
-  "*If not in the path, you can put here the name of the directory containing Asy's binary files.
+  "* If not in the path, you can put here the name of the directory containing Asy's binary files.
 this variable must end in / (UNIX) or \ (MSWindows)."
   :type 'directory
   :group 'asymptote)
 
-(defcustom asy-temp-dir (if (boundp 'temporary-file-directory)
-                            temporary-file-directory
-                          ;; XEmacs does it this way instead:
-                          (temp-directory))
+(defcustom asy-command "asy -V"
+  "* Command invoked to compile a Asymptote file.
+You can define the location of this command with the variable `asy-command-location'."
+  :type 'string
+  :group 'asymptote)
+
+(defcustom lasy-command "asy"
+  "* Command invoked to compile a Asymptote file generated compiling a .tex file.
+You can define the location of this command with the variable `asy-command-location'."
+  :type 'directory
+  :group 'asymptote)
+
+(defcustom asy-temp-dir temporary-file-directory
   "*The name of a directory for Asy's temporary files.
 Such files are generated by functions like
 `asy-compile' when lasy-mode is enable."
@@ -165,16 +192,6 @@ Such files are generated by functions like
   "Command to view a Postscript file."
   :type 'file
   :group 'asymptote)
-
-(defcustom lasy-keep-key t
-  "*If on, keep the binding key of lasy-mode in all latex-mode.
-The folowing keys are added:
-\(kbd \"<M-return>\"\) `lasy-view-pdf-via-pdflatex\)
-\(kbd \"<C-return>\"\) `lasy-view-ps\)
-\(kbd \"<C-M-return>\"\) `lasy-view-pdf-via-ps2pdf\)"
-  :type 'boolean
-  :group 'asymptote)
-
 
 (defvar asy-TeX-master-file nil
   "TeX file associate with current asymptote code.
@@ -272,7 +289,7 @@ The keywords on list are assumed to also be present on one of the
     (defvar asy-menu
       '("Asy"
         ["Toggle lasy-mode"  lasy-mode :active (and (featurep 'two-mode-mode) two-mode-bool)]
-        ["Compile/View"  asy-compile-view t]
+        ["Compile/View"  asy-compile t]
         ["Go to error" asy-goto-error t]
         ["Describe command" asy-show-function-at-point t]"--"
         ("Master TeX file"
@@ -293,7 +310,7 @@ The keywords on list are assumed to also be present on one of the
   (defvar asy-menu
     '("Asy"
       ["Toggle lasy-mode"  lasy-mode :visible (and (featurep 'two-mode-mode) two-mode-bool)]
-      ["Compile/View"  asy-compile-view t]
+      ["Compile/View"  asy-compile t]
       ["Go to error" asy-goto-error t]
       ["Describe command" asy-show-function-at-point t]"--"
       ("Master TeX file"
@@ -329,34 +346,25 @@ The keywords on list are assumed to also be present on one of the
 (defun asy-log-filename()
   (concat "." (file-name-sans-extension (file-name-nondirectory buffer-file-name)) ".log"))
 
-(defun asy-self-compile-view(Filename)
-  "Compile Asymptote code Filename and view compilation result with the function 'shell-command'."
-  (interactive)
-  (let*
-      ((asy-command
-	(concat asy-command-location
-		"asy -V " Filename
-                " 2> " (asy-log-filename))))
-    (shell-command asy-command)
-    (asy-error-message t)
-    ))
-
-(defun asy-compile-view()
-  "Compile Asymptote code and view compilation result."
+(defun asy-compile()
+  "Compile Asymptote code and view compilation result with the function `shell-command'."
   (interactive)
   (if (and (boundp two-mode-bool) two-mode-bool)
-      (lasy-compile-view)
+      (lasy-compile)
     (progn
       (let*
           ((buffer-base-name (file-name-sans-extension (file-name-nondirectory buffer-file-name)))
-           (asy-command (concat asy-command-location
-                                "asy -V "
-                                buffer-base-name
-                                ".asy 2> "
-				(asy-log-filename))))
+           (asy-compile-command (concat "echo `" asy-command-location
+                                        asy-command
+                                        " "
+                                        buffer-base-name
+                                        ".asy"
+                                        (if (eq asy-compilation-buffer 'never)
+                                            (concat " 2> "(asy-log-filename)))
+                                        "`")))
         (if (buffer-modified-p) (save-buffer))
-        (shell-command asy-command)
-        (asy-error-message t)
+        (asy-interneral-compile asy-compile-command)
+        (when (eq asy-compilation-buffer 'never) (asy-error-message t))
         ))))
 
 (defun asy-error-message(&optional P)
@@ -369,36 +377,41 @@ The keywords on list are assumed to also be present on one of the
     ))
 
 (defun asy-log-field-string(Filename Field)
-  "Return field of last line of file filename.
-Fields are defined as 'field1:field2.field3:field4' . Field=0 <-> all fields"
+  "Return field of first line of file filename.
+Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
   (with-temp-buffer
     (progn
       (insert-file Filename)
       (beginning-of-buffer)
       (if (re-search-forward "^\\(.*?\\): \\(.*?\\)\\.\\(.*?\\):\\(.*\\)$" (point-max) t)
-          (progn
-            (beginning-of-buffer)
-            (while (re-search-forward "^\\(.*?\\): \\(.*?\\)\\.\\(.*?\\):\\(.*\\)$" (point-max) t))
-            (match-string Field))
-        nil))))
+          (match-string Field) nil))))
 
-(defun asy-goto-error()
+(defun asy-goto-error(&optional arg reset)
   "Go to point of last error within asy/lasy-mode."
-  (interactive)
-  (let* ((log-file (asy-log-filename))
-         (line_ (asy-log-field-string log-file 2)))
-    (if line_
-        (if (and (boundp two-mode-bool) two-mode-bool)
-            (progn
-              (re-search-backward "\\\\begin{asy")
-              (next-line (1- (string-to-number line_)))
-              (asy-error-message))
-          (progn
-            (goto-line (string-to-number line_))
-            (asy-error-message)))
-      (progn (message "No error"))
-      )))
-
+  (interactive "P")
+  (if (or (eq asy-compilation-buffer 'never)
+          (and (boundp two-mode-bool) two-mode-bool))
+      (let* ((log-file (asy-log-filename))
+             (li_ (asy-log-field-string log-file 2))
+             (co_ (asy-log-field-string log-file 3)))
+        (if (and li_ (boundp two-mode-bool) two-mode-bool)
+            (if li_
+                (progn
+                  (re-search-backward "\\\\begin{asy")
+                  (next-line (1- (string-to-number li_)))
+                  (beginning-of-line)
+                  (forward-char (string-to-number co_))
+                  (asy-error-message))
+              (message "No error"))
+          (if li_
+              (progn
+                (goto-line (string-to-number li_))
+                (forward-char (string-to-number co_))
+                (asy-error-message))
+            (progn (message "No error")))))
+    (if (> emacs-major-version 21)
+        (next-error arg reset)
+      (next-error arg))))
 
 (defun asy-grep (Regexp)
   "Internal function used by asymptote."
@@ -432,103 +445,34 @@ Fields are defined as 'field1:field2.field3:field4' . Field=0 <-> all fields"
       (goto-char (point-min))
       (select-window cWindow))))
 
-
-
-;;;;;;; TEMPO ;;;;;;;;;;;;;;;
-(defvar asy-tempo-tags nil
-  "Tempo tags for ASY mode")
-
-;;; ASY-Mode Templates
-(require 'tempo)
-(require 'advice)
-(setq-default tempo-interactive t)
-(setq-default
- tempo-match-finder "\\b\\([^\b]+\\)\\=");; The definition in tempo.el is wrong.
-(tempo-use-tag-list 'asy-tempo-tags)
-
-;;; Function to construct asy commands
-(defun asy-tempo (l)
-  "Construct tempo-template for Asymptote commands."
-  (let* ((tag (car l))
-	 (element (nth 1 l)))
-    (tempo-define-template tag element tag nil 'asy-tempo-tags)))
-
-;;; Templates appended to asy-tempo-tags
-(mapcar
- 'asy-tempo
- '(("dir"  ("{dir(" p ")}"))
-   ("intp"  ("intersectionpoint(" p ", " p ")"))
-   ("intt"  ("intersectiontime(" p ", " p ")"))
-   ("rot"  ("rotate(" p ")*"))
-   ("shi"  ("shift(" p ")*"))
-   ("sca"  ("scale(" p ")*"))
-   ("xsc"  ("xscale(" p ")*"))
-   ("ysc"  ("yscale(" p ")*"))
-   ("zsc"  ("zscale(" p ")*"))
-   ("if"  (& >"if (" p ")"n>
-             "{"n>
-             r n >
-             "}"> %))
-   ("els"  (& >"else" n>
-              "{"n>
-              r n >
-              "}"> %))
-   ("ife"  (& >"if (" p ")" n>
-              "{" n>
-              r n
-              "}" > n>
-              "else" n>
-              "{" n>
-              p n>
-              "}" > %))
-   ("for"  (& >"for (" p "; " p "; " p ")" n>
-              "{" n>
-              r n >
-              "}"> %))
-   ("whi"  (& >"while (" p ")" n>
-              "{" n>
-              r n>
-              "}"> %))
-   
-   ))
-
 (add-hook 'asy-mode-hook
 	  (lambda ()
-             (if (or running-xemacs-p (< emacs-major-version 22))
-                 (set-variable 'shell-file-name "/bin/sh")
-               (set-variable 'shell-file-name "/bin/sh" t))
-	     (tempo-use-tag-list 'asy-tempo-tags)
-             (if (fboundp 'flyspell-mode) (flyspell-mode -1))
-             (if (featurep 'xemacs)
-                 (turn-on-font-lock)
-               (font-lock-mode t))
-             (column-number-mode t)
-	     ))
+            ;; Make asy-mode work with other shells.
+            (if (or running-xemacs-p (< emacs-major-version 22))
+                (progn
+                  (make-local-variable 'shell-file-name)
+                  (set-variable 'shell-file-name "/bin/sh"))
+              (set-variable 'shell-file-name "/bin/sh" t))
+            (when (fboundp 'flyspell-mode) (flyspell-mode -1))
+            (turn-on-font-lock)
+            (column-number-mode t)
+            ))
 
-;; Definition of insertion functions
-(defun dir()
-  (interactive)
-  (insert "{dir()}")
-  (forward-char -2))
-
+;;;###autoload (defun lasy-mode ())
 ;;; ************************************
 ;;; asy-mode mixed with LaTeX-mode: lasy
 ;;; ************************************
 (if (locate-library "two-mode-mode")
     (progn
-      ;;Xemacs don't know the function 'turn-on-font-lock-if-enabled
-      (unless (fboundp 'turn-on-font-lock-if-enabled)
-        (defalias 'turn-on-font-lock-if-enabled 'ignore))
       (require 'two-mode-mode)
-;;;###autoload
       (defun lasy-mode ()
         "Treat, in some cases, the current buffer as a literal Asymptote program."
         (interactive)
         (set (make-local-variable 'asy-insinuate-latex-p) asy-insinuate-latex-p)
         (setq default-mode    '("LaTeX" latex-mode)
               second-modes     '(("Asymptote"
-                                  "\\begin{asy"
-                                  "\\end{asy"
+                                  "\\begin{asy}"
+                                  "\\end{asy}"
                                   asy-mode)))
         (if two-mode-bool
             (progn
@@ -541,10 +485,11 @@ Fields are defined as 'field1:field2.field3:field4' . Field=0 <-> all fields"
       
       (add-hook 'two-mode-switch-hook
                 (lambda ()
-                  (if (string= (downcase (substring mode-name 0 5)) "latex")
-                      (asy-insinuate-latex))))
-      
-      
+                  (if (string-match "latex" (downcase mode-name))
+                      (progn ;; Disable LaTeX-math-Mode within lasy-mode (because of incompatibility)
+                        (when LaTeX-math-mode (LaTeX-math-mode))
+                        (asy-insinuate-latex)))))
+            
       ;; Solve a problem restoring a TeX file via desktop.el previously in lasy-mode.
       (if (boundp 'desktop-buffer-mode-handlers)
           (progn
@@ -558,7 +503,7 @@ Fields are defined as 'field1:field2.field3:field4' . Field=0 <-> all fields"
 
 (setq asy-latex-menu-item
       '(["Toggle lasy-mode"  lasy-mode :active (featurep 'two-mode-mode)]
-        ["View asy picture near cursor"  lasy-compile-view :active t]"--"
+        ["View asy picture near cursor"  lasy-compile :active t]"--"
         ("Compile OR View"
          ["PS"  lasy-view-ps :active t]
          ["PDF (pdflatex)" lasy-view-pdf-via-pdflatex :active t]
@@ -567,11 +512,11 @@ Fields are defined as 'field1:field2.field3:field4' . Field=0 <-> all fields"
          ["PS"  asy-master-tex-view-ps-f :active t]
          ["PDF (pdflatex)" asy-master-tex-view-pdflatex-f :active t]
          ["PDF (ps2pdf)" asy-master-tex-view-ps2pdf-f :active t])"--"
-         ["Asymptote insinuates globally LaTeX"  asy-insinuate-latex-globally :active (not asy-insinuate-latex-globally-p)]
-         ("Disable Asymptote insinuate Latex"
-          ["locally"  asy-no-insinuate-locally :active t]
-          ["globally"  asy-no-insinuate-globally :active t]
-          )))
+        ["Asymptote insinuates globally LaTeX"  asy-insinuate-latex-globally :active (not asy-insinuate-latex-globally-p)]
+        ("Disable Asymptote insinuate Latex"
+         ["locally"  asy-no-insinuate-locally :active t]
+         ["globally"  asy-no-insinuate-globally :active t]
+         )))
 (if running-xemacs-p
     (setq asy-latex-menu-item (nconc '("Asymptote") asy-latex-menu-item))
   (setq asy-latex-menu-item (nconc '("Asymptote" :visible asy-insinuate-latex-p) asy-latex-menu-item)))
@@ -581,58 +526,55 @@ Fields are defined as 'field1:field2.field3:field4' . Field=0 <-> all fields"
   '(progn
      (setq lasy-mode-map (copy-keymap LaTeX-mode-map))
      (setq LaTeX-mode-map-backup (copy-keymap LaTeX-mode-map))
+     (when lasy-extra-key
+       (define-key lasy-mode-map (kbd "<C-return>") 'lasy-view-ps)
+       (define-key lasy-mode-map (kbd "<C-S-return>") 'asy-master-tex-view-ps-f)
+       (define-key lasy-mode-map (kbd "<M-return>") 'lasy-view-pdf-via-pdflatex)
+       (define-key lasy-mode-map (kbd "<M-S-return>") 'asy-master-tex-view-pdflatex-f)
+       (define-key lasy-mode-map (kbd "<C-M-return>") 'lasy-view-pdf-via-ps2pdf)
+       (define-key lasy-mode-map (kbd "<C-M-S-return>") 'asy-master-tex-view-ps2pdf-f))
      
-     (define-key lasy-mode-map (kbd "<C-return>") 'lasy-view-ps)
-     (define-key lasy-mode-map (kbd "<C-S-return>") 'asy-master-tex-view-ps-f)
-     (define-key lasy-mode-map (kbd "<M-return>") 'lasy-view-pdf-via-pdflatex)
-     (define-key lasy-mode-map (kbd "<M-S-return>") 'asy-master-tex-view-pdflatex-f)
-     (define-key lasy-mode-map (kbd "<C-M-return>") 'lasy-view-pdf-via-ps2pdf)
-     (define-key lasy-mode-map (kbd "<C-M-S-return>") 'asy-master-tex-view-ps2pdf-f)
-     (when lasy-keep-key
-       (setq LaTeX-mode-map (copy-keymap lasy-mode-map))
+     ;; Hack not totally safe.
+     ;; Problems may occur if you customize the variables TeX-expand-list or TeX-command-list.
+     ;; If you will never customize these variables, you can uncomment the following lines.
+     ;;      (add-to-list 'TeX-expand-list
+     ;;                   '("%a"
+     ;;                     (lambda nil
+     ;;                       asy-command-location)) t)
        
-       ;; Hack not totally safe.
-       ;; Problems may occur if you customize the variables TeX-expand-list or TeX-command-list.
-       ;; If you will never customize these variables, you can uncomment the following lines.
-       ;;        (add-to-list 'TeX-expand-list
-       ;;                     '("%a"
-       ;;                       (lambda nil
-       ;;                         asy-command-location)) t)
+     ;;      (add-to-list 'TeX-command-list
+     ;;                   '("asy-LaTeX" "%l \"%(mode)\\input{%t}\" && %aasy %s.asy && %l \"%(mode)\\input{%t}\" && %V"
+     ;;                     TeX-run-command nil (latex-mode)
+     ;;                     :help "Run LaTeX && Asymptote && LaTeX
+     ;;              Be sure to have
+     ;;              \\usepackage{graphicx}
+     ;;              \\usepackage{asymptote}"))
        
-       ;;        (add-to-list 'TeX-command-list
-       ;;                     '("asy-LaTeX" "%l \"%(mode)\\input{%t}\" && %aasy %s.asy && %l \"%(mode)\\input{%t}\" && %V"
-       ;;                       TeX-run-interactive nil (latex-mode)
-       ;;                       :help "Run LaTeX && Asymptote && LaTeX
-       ;;         Be sure to have
-       ;;         \\usepackage{graphicx}
-       ;;         \\usepackage{asymptote}"))
+     ;;      (add-to-list 'TeX-command-list
+     ;;                   '("asy-pdflaTex" "pdflatex -shell-escape %t && %aasy %s.asy && pdflatex -shell-escape %t"
+     ;;                     TeX-run-command nil (latex-mode)
+     ;;                     :help "Run pdflatex && Asymptote && pdflatex
+     ;;              Be sure to have
+     ;;              \\usepackage{graphicx}
+     ;;              \\usepackage{epstopdf}
+     ;;              \\usepackage{asymptote}"))
        
-       ;;        (add-to-list 'TeX-command-list
-       ;;                     '("asy-pdflaTex" "pdflatex -shell-escape %t && %aasy %s.asy && pdflatex -shell-escape %t"
-       ;;                       TeX-run-command nil (latex-mode)
-       ;;                       :help "Run pdflatex && Asymptote && pdflatex
-       ;;         Be sure to have
-       ;;         \\usepackage{graphicx}
-       ;;         \\usepackage{epstopdf}
-       ;;         \\usepackage{asymptote}"))
+     ;;      (add-to-list 'TeX-command-list
+     ;;                   '("asy-ps" "%l \"%(mode)\\input{%t}\" && %aasy %s.asy && %(o?)dvips %d -o %f"
+     ;;                     TeX-run-command nil (latex-mode)
+     ;;                     :help "Run LaTeX && Asymptote && LaTeX
+     ;;              Be sure to have
+     ;;              \\usepackage{graphicx}
+     ;;              \\usepackage{asymptote}"))
        
-       ;;        (add-to-list 'TeX-command-list
-       ;;                     '("asy-ps" "%l \"%(mode)\\input{%t}\" && %aasy %s.asy && %(o?)dvips %d -o %f"
-       ;;                       TeX-run-command nil (latex-mode)
-       ;;                       :help "Run LaTeX && Asymptote && LaTeX
-       ;;         Be sure to have
-       ;;         \\usepackage{graphicx}
-       ;;         \\usepackage{asymptote}"))
-       
-       ;;        (add-to-list 'TeX-command-list
-       ;;                     '("asy-dvips-pdf" "%l \"%(mode)\\input{%t}\" && %aasy %s.asy && %(o?)dvips %d -o %f && ps2df14 -dPDFSETTINGS=/prepress -dAutoFilterGrayImages=false -dAutoFilterColorImages=false -dColorImageFilter=/FlateEncode -dGrayImageFilter=/FlateEncode -dAutoRotatePages=/None %f %s.pdf"
-       ;;                       TeX-run-command nil (latex-mode)
-       ;;                       :help "Run LaTeX && Asymptote && LaTeX && dvips && ps2pdf14
-       ;;         Be sure to have
-       ;;         \\usepackage{graphicx}
-       ;;         \\usepackage{asymptote}"))
-       
-       )
+     ;;      (add-to-list 'TeX-command-list
+     ;;                   '("asy-dvips-pdf" "%l \"%(mode)\\input{%t}\" && %aasy %s.asy && %(o?)dvips %d -o %f && ps2df14 -dPDFSETTINGS=/prepress -dAutoFilterGrayImages=false -dAutoFilterColorImages=false -dColorImageFilter=/FlateEncode -dGrayImageFilter=/FlateEncode -dAutoRotatePages=/None %f %s.pdf"
+     ;;                     TeX-run-command nil (latex-mode)
+     ;;                     :help "Run LaTeX && Asymptote && LaTeX && dvips && ps2pdf14
+     ;;              Be sure to have
+     ;;              \\usepackage{graphicx}
+     ;;              \\usepackage{asymptote}"))
+     
      (easy-menu-define asy-latex-mode-menu lasy-mode-map "Asymptote insinuates LaTeX" asy-latex-menu-item)
      ))
 
@@ -655,7 +597,7 @@ For internal use.")
     (menu-bar-update-buffers))
   (if (and (boundp 'two-mode-bool) two-mode-bool)
       (lasy-mode))
-  (if (not lasy-keep-key) (use-local-map LaTeX-mode-map-backup)))
+  (use-local-map LaTeX-mode-map-backup))
 
 
 (defun asy-no-insinuate-globally ()
@@ -668,7 +610,7 @@ For internal use.")
   (setq asy-insinuate-latex-globally-p nil)
   (if (not running-xemacs-p)
       (menu-bar-update-buffers))
-  (if (not lasy-keep-key) (setq LaTeX-mode-map (copy-keymap LaTeX-mode-map-backup)))
+  (setq LaTeX-mode-map (copy-keymap LaTeX-mode-map-backup))
   ;;Disable lasy-mode in all latex-mode buffers.
   (when (featurep 'two-mode-mode)
     (mapc (lambda (buffer)
@@ -729,7 +671,7 @@ See 'asy-insinuate-latex'."
               (easy-menu-add asy-latex-mode-menu lasy-mode-map))))
         (buffer-list)))
 
-(defun lasy-compile-view()
+(defun lasy-compile()
   "Compile region between \\begin{asy} and \\end{asy}"
   (interactive)
   (save-excursion
@@ -742,8 +684,13 @@ See 'asy-insinuate-latex'."
         (beginning-of-buffer)
         (while (re-search-forward "\\\\begin{asy}\\|\\\\end{asy}" (point-max) t)
           (replace-match "")))
-      (asy-self-compile-view Filename)
-      )))
+      (let*
+          ((asy-compile-command
+            (concat asy-command-location
+                    asy-command " " Filename
+                    " 2> " (asy-log-filename))))
+        (shell-command asy-compile-command)
+        (asy-error-message t)))))
 
 (defun asy-set-master-tex ()
   "Set the local variable 'asy-TeX-master-file.
@@ -792,7 +739,7 @@ Func-view can be one of 'lasy-view-ps, 'lasy-view-pdf-via-pdflatex, 'lasy-view-p
   (if (or
        (and (boundp two-mode-bool) two-mode-bool)
        (string= (downcase (substring mode-name 0 5)) "latex"))
-      (progn  ;; Current mode is lasy-mode or latex-mode not asy-mode
+      (progn ;; Current mode is lasy-mode or latex-mode not asy-mode
         (funcall Func-view Force))
     (if asy-TeX-master-file
         (if (string= asy-TeX-master-file
@@ -801,6 +748,40 @@ Func-view can be one of 'lasy-view-ps, 'lasy-view-pdf-via-pdflatex, 'lasy-view-p
           (funcall Func-view  Force asy-TeX-master-file))
       (if (asy-master-tex-error)
           (funcall Func-view Force asy-TeX-master-file)))))
+
+
+(defun asy-compilation-finish-function (buf msg)
+  (when (and (eq asy-compilation-buffer 'none)
+             (string-match "*asy-compilation*" (buffer-name buf)))
+    (if (string-match "exited abnormally" msg)
+        (message "Compilation errors, press C-x ` or  F4 to visit.")
+      (progn
+        (save-excursion
+          (set-buffer buf)
+          (beginning-of-buffer)
+          (if (not (search-forward-regexp "[wW]arning" nil t))
+              (progn
+                ;;no errors/Warning, make the compilation window go away
+                (run-at-time 0.5 nil (lambda (buf_)
+                                       (delete-windows-on buf_)
+                                       (kill-buffer buf_)) buf)
+                (message "No compilation errors..."))
+            (message "Compilation warnings...")))))))
+
+(if  running-xemacs-p
+    (setq compilation-finish-function 'asy-compilation-finish-function)
+  (add-to-list 'compilation-finish-functions
+               'asy-compilation-finish-function))
+
+(defun asy-interneral-compile (command)
+  (let* ((compilation-buffer-name-function
+          (lambda (mj) "*asy-compilation*")))
+    (cond
+     ((eq asy-compilation-buffer 'available)
+      (delete-window (get-buffer-window "*asy-compilation*")))
+     ((eq asy-compilation-buffer 'never)
+      (shell-command (concat "( " command " ) &> /dev/null"))))
+    (when (not (eq asy-compilation-buffer 'never)) (compile  command))))
 
 (defun lasy-view-ps (&optional Force  Filename )
   "Compile a LaTeX document embedding Asymptote code with latex->asy->latex->dvips and/or view the Poscript output.
@@ -814,20 +795,12 @@ If optional argument Force is t then force compilation."
              (concat b-b-n ".ps"))
             Force)
         (let
-            ((asy-command 
-              (concat  "latex  -interaction=nonstopmode " b-b-n ".tex >/dev/null && "
-                       "{ if [[ -f " b-b-n ".asy ]]; then " asy-command-location "asy " b-b-n ".asy && latex  -interaction=nonstopmode " b-b-n ".tex >/dev/null ; else true; fi;} && "
-                       "dvips -q " b-b-n ".dvi -o " b-b-n ".ps >/dev/null && " ps-view-command " " b-b-n ".ps")))
-          (shell-command asy-command)
-          ;;(set-window-text-height nil (ceiling (* (frame-height) .7)))
-          )
-      (let
-          ((asy-command 
-            (format  "%s %s.ps" ps-view-command b-b-n)))
-        (shell-command asy-command))
-      )))
-
-
+            ((asy-compile-command
+              (concat  "latex -interaction=nonstopmode " b-b-n ".tex && "
+                       "{ if [[ -f " b-b-n ".asy ]]; then " asy-command-location lasy-command " " b-b-n ".asy && latex -interaction=nonstopmode " b-b-n ".tex  ; else true; fi;} && "
+                       "dvips " b-b-n ".dvi -o " b-b-n ".ps && " ps-view-command " " b-b-n ".ps")))
+          (asy-interneral-compile asy-compile-command))
+      (start-process "" nil ps-view-command (concat  b-b-n ".ps")))))
 
 (defun lasy-view-pdf-via-pdflatex (&optional Force Filename)
   "Compile a LaTeX document embedding Asymptote code with pdflatex->asy->pdflatex and/or view the PDF output.
@@ -846,21 +819,12 @@ in the preamble."
              (concat b-b-n ".pdf"))
             Force)
         (let
-            ((asy-command 
-              (concat  "pdflatex -shell-escape -interaction=nonstopmode " b-b-n ".tex >/dev/null && "
-                       "{ if [[ -f " b-b-n ".asy ]]; then " asy-command-location "asy " b-b-n ".asy && pdflatex -shell-escape  -interaction=nonstopmode " b-b-n ".tex >/dev/null ; else true; fi;} && "
-                       pdf-view-command " " b-b-n ".pdf &")))
-          (shell-command asy-command)
-          (set-window-text-height nil (ceiling (* (frame-height) 1)))
-          )
-      (let
-          ((asy-command 
-            (format  "%s %s.pdf" pdf-view-command b-b-n)))
-        (shell-command asy-command))
-      )))
-
-
-
+            ((asy-compile-command
+              (concat  "pdflatex -shell-escape -interaction=nonstopmode " b-b-n ".tex && "
+                       "{ if [[ -f " b-b-n ".asy ]]; then " asy-command-location lasy-command " " b-b-n ".asy && pdflatex -shell-escape  -interaction=nonstopmode " b-b-n ".tex ; else true; fi; } && "
+                       pdf-view-command " " b-b-n ".pdf")))
+          (asy-interneral-compile asy-compile-command))
+      (start-process "" nil pdf-view-command (concat b-b-n ".pdf")))))
 
 (defun lasy-view-pdf-via-ps2pdf (&optional Force Filename)
   "Compile a LaTeX document embedding Asymptote code with latex->asy->latex->dvips->ps2pdf14 and/or view the PDF output.
@@ -874,75 +838,66 @@ If optional argument Force is t then force compilation."
              (concat b-b-n ".pdf"))
             Force)
         (let
-            ((asy-command 
-              (concat  "latex  -interaction=nonstopmode " b-b-n" .tex >/dev/null && "
-                       "{ if [[ -f " b-b-n ".asy ]]; then " asy-command-location "asy " b-b-n ".asy && latex  -interaction=nonstopmode " b-b-n ".tex >/dev/null ; else true; fi;} && "
-                       "dvips -q -Ppdf -ta4 " b-b-n ".dvi -o " b-b-n ".ps >/dev/null && "
-                       "ps2pdf14 -dPDFSETTINGS=/prepress -dAutoFilterGrayImages=false -dAutoFilterColorImages=false -dColorImageFilter=/FlateEncode -dGrayImageFilter=/FlateEncode -dAutoRotatePages=/None " b-b-n ".ps " b-b-n ".pdf >/dev/null && "
+            ((asy-compile-command
+              (concat  "latex  -interaction=nonstopmode " b-b-n" .tex && "
+                       "{ if [[ -f " b-b-n ".asy ]]; then " asy-command-location lasy-command " " b-b-n ".asy && latex  -interaction=nonstopmode " b-b-n ".tex ; else true; fi;} && "
+                       "dvips -q -Ppdf -ta4 " b-b-n ".dvi -o " b-b-n ".ps && "
+                       "ps2pdf14 -dPDFSETTINGS=/prepress -dAutoFilterGrayImages=false -dAutoFilterColorImages=false -dColorImageFilter=/FlateEncode -dGrayImageFilter=/FlateEncode -dAutoRotatePages=/None " b-b-n ".ps " b-b-n ".pdf && "
                        pdf-view-command " " b-b-n ".pdf")))
-          (shell-command asy-command)
-          ;;(set-window-text-height nil (ceiling (* (frame-height) .7)))
-          )
-      (let
-          ((asy-command 
-            (format  "%s %s.pdf" pdf-view-command b-b-n)))
-        (shell-command asy-command))
-      )))
+          (asy-interneral-compile asy-compile-command))
+      (start-process "" nil pdf-view-command (concat b-b-n ".pdf")))))
 
 ;; Goto to the forward/backward tempo's mark
-(if running-xemacs-p
-    (progn
-      (define-key asy-mode-map (kbd "M-right") 'tempo-forward-mark)
-      (define-key asy-mode-map (kbd "M-left")  'tempo-backward-mark))
-  (progn
-    (define-key asy-mode-map [M-right] 'tempo-forward-mark)
-    (define-key asy-mode-map [M-left]  'tempo-backward-mark)))
+;; (define-key asy-mode-map (kbd "<M-right>") 'tempo-forward-mark)
+;; (define-key asy-mode-map (kbd "<M-left>")  'tempo-backward-mark)
 
 ;; Complete the tempo tag (the first three letters of a keyword)
-(define-key asy-mode-map [f3] 'tempo-complete-tag)
+(define-key asy-mode-map (kbd "<f3>") 'tempo-complete-tag)
 
 ;; Goto error of last compilation
 (define-key asy-mode-map  (kbd "<f4>") 'asy-goto-error)
 
 ;; Save and compile the file with option -V
-(define-key asy-mode-map  (kbd "C-c C-c") 'asy-compile-view)
+(define-key asy-mode-map  (kbd "C-c C-c") 'asy-compile)
 
 ;; Show the definitions of command at point
 (define-key asy-mode-map  (kbd "C-c ?") 'asy-show-function-at-point)
 
+;; new line and indent
+(define-key asy-mode-map (kbd "RET") 'newline-and-indent)
 
 (defun asy-master-tex-view-ps ()
-  "Look at 'asy-master-tex-view"
+  "Look at `asy-master-tex-view'"
   (interactive)
   (asy-master-tex-view 'lasy-view-ps))
 (define-key asy-mode-map (kbd "<C-return>") 'asy-master-tex-view-ps)
 
 (defun asy-master-tex-view-ps-f ()
-  "Look at 'asy-master-tex-view"
+  "Look at `asy-master-tex-view'"
   (interactive)
   (asy-master-tex-view 'lasy-view-ps t))
 (define-key asy-mode-map (kbd "<C-S-return>") 'asy-master-tex-view-ps-f)
 
 (defun asy-master-tex-view-pdflatex ()
-  "Look at 'asy-master-tex-view"
+  "Look at `asy-master-tex-view'"
   (interactive)
   (asy-master-tex-view 'lasy-view-pdf-via-pdflatex))
 (define-key asy-mode-map (kbd "<M-return>") 'asy-master-tex-view-pdflatex)
 
 (defun asy-master-tex-view-pdflatex-f ()
-  "Look at 'asy-master-tex-view"
+  "Look at `asy-master-tex-view'"
   (interactive)
   (asy-master-tex-view 'lasy-view-pdf-via-pdflatex t))
 (define-key asy-mode-map (kbd "<M-S-return>") 'asy-master-tex-view-pdflatex-f)
 
 (defun asy-master-tex-view-ps2pdf ()
-  "Look at 'asy-master-tex-view"
+  "Look at `asy-master-tex-view'"
   (interactive)
   (asy-master-tex-view 'lasy-view-pdf-via-ps2pdf))
 (define-key asy-mode-map (kbd "<C-M-return>") 'asy-master-tex-view-ps2pdf)
 
 (defun asy-master-tex-view-ps2pdf-f ()
-  "Look at 'asy-master-tex-view"
+  "Look at `asy-master-tex-view'"
   (interactive)
   (asy-master-tex-view 'lasy-view-pdf-via-ps2pdf t))
 (define-key asy-mode-map (kbd "<C-M-S-return>") 'asy-master-tex-view-ps2pdf-f)
