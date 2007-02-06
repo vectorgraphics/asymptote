@@ -63,12 +63,12 @@ To link a Tex document try 'M-x asy-set-master-tex' follow by C-Return (see desc
 Editing a TeX file that contains Asymptote code is facilitated with the hybrid mode 'lasy-mode'.
 Toggle lasy-mode with M-x lasy-mode.
 In this hybrid mode the major mode is LaTeX when the cursor is in LaTeX code and becomes asy-mode when the cursor is between '\begin{asy}' and '\end{asy}'.
-All the features of asy-mode are provided and the key binding C-c C-c of asy-mode compiles and views only the code of the picture where is the cursor.
+All the features of asy-mode are provided and the key binding C-c C-c of asy-mode compiles and views only the code of the picture where the cursor is.
 Note that some keys binding are added to the LaTeX-mode-map in lasy-mode if the value of the variable lasy-extra-key is t (the default)
 .
-* C-return : compile (if the buffer/file is modified) and view the postscript output with sequence [latex->[asy->latex]->dvips]->PSviewer
-* M-return : same with pdf output and with the sequence [pdflatex -shell-escape->[asy->pdflatex -shell-escape]]->PDFviewer
-* C-M-return : same with pdf output and with the sequence [latex->[asy->latex]->dvips->ps2pdf]->PSviewer
+* C-return: compile (if the buffer/file is modified) and view the postscript output with sequence [latex->[asy->latex]->dvips]->PSviewer
+* M-return: same with pdf output and with the sequence [pdflatex -shell-escape->[asy->pdflatex -shell-escape]]->PDFviewer
+* C-M-return: same with pdf output and with the sequence [latex->[asy->latex]->dvips->ps2pdf]->PSviewer
 * Add the Shift key to the sequence of keys to compile even if the file is not modified.
 
 II. To add a menu bar in current 'latex-mode' buffer and activate hot keys, use 'M-x asy-insinuate-latex <RET>'.
@@ -116,7 +116,7 @@ Some variables can be customized: M-x customize-group <RET> asymptote <RET>."
                '("\\(.*?.asy\\): \\(.*?\\)\\.\\(.*?\\):" 1 2 3)))
 
 (defcustom lasy-extra-key t
-  "* If on, the folowing binding keys are added in lasy-mode :
+  "* If on, the folowing binding keys are added in lasy-mode:
      (define-key lasy-mode-map (kbd \"<C-return>\") 'lasy-view-ps)
      (define-key lasy-mode-map (kbd \"<C-S-return>\") 'asy-master-tex-view-ps-f)
      (define-key lasy-mode-map (kbd \"<M-return>\") 'lasy-view-pdf-via-pdflatex)
