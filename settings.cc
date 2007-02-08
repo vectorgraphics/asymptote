@@ -816,6 +816,8 @@ void initSettings() {
 
   addOption(new boolSetting("quiet", 'q',
 			    "Suppress welcome message"));
+  addOption(new boolSetting("wait", 0,
+			    "Wait for child processes to finish before exiting"));
   addOption(new boolSetting("localhistory", 0,
 			    "Use a local interactive history file"));
   addOption(new intSetting("historylines", 0, "n",
@@ -970,17 +972,17 @@ const char *endlabel(const mem::string& texengine) {
     return "\\special{ps: currentpoint grestore moveto}";
 }
 
-// TeX special command to clip a label
-const char *clip(const mem::string& texengine) {
+// TeX command to begin raw postscript code
+const char *rawpostscript(const mem::string& texengine) {
   if(pdf(texengine))
-    return "\\special{pdf: #1}";
+    return "\\def\\ASYraw#1{#1}";
   else
-    return "\\special{ps: "
-           "currentpoint currentpoint translate matrix currentmatrix\n"
-           "[matrix defaultmatrix 0 get 0 0 matrix defaultmatrix 3 get\n"
-           "matrix currentmatrix 4 get matrix currentmatrix 5 get] setmatrix\n"
-           "#1\n"
-           "setmatrix neg exch neg exch translate}";
+    return "\\def\\ASYraw#1{\n"
+      "currentpoint currentpoint translate matrix currentmatrix\n"
+      "[matrix defaultmatrix 0 get 0 0 matrix defaultmatrix 3 get\n"
+      "matrix currentmatrix 4 get matrix currentmatrix 5 get] setmatrix\n"
+      "#1\n"
+      "setmatrix neg exch neg exch translate}";
 }
 
 // Begin TeX special command.

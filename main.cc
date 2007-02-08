@@ -1,6 +1,9 @@
 #include <iostream>
 #include <csignal>
 #include <cstdlib>
+#include <cerrno>
+#include <sys/wait.h>
+#include <sys/types.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -125,5 +128,10 @@ int main(int argc, char *argv[])
   GC_gcollect();
 #endif
 
+  if(getSetting<bool>("wait")) {
+    int status;
+    while(wait(&status) > 0);
+  }
+  
   return em->processStatus() ? 0 : 1;
 }
