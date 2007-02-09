@@ -534,7 +534,8 @@ To compile and install a @code{UNIX} executable from
 a source release
 @code{x.xx}, first execute the commands:
 @verbatim
-tar -zxf asymptote-x.xx.tar.gz
+gunzip asymptote-x.xx.tar.gz
+tar -xf asymptote-x.xx.tar
 cd asymptote-x.xx
 @end verbatim
 
@@ -547,7 +548,9 @@ make all
 make install
 @end verbatim
 @noindent
-If you get errors from a broken @code{pdftex} installation, simply put
+Be sure to use @acronym{GNU} @code{make} (on non-@acronym{GNU} systems this command
+may be called @code{gmake}). If you get errors from a broken @code{pdftex}
+installation, simply put
 @quotation
 @url{http://asymptote.sourceforge.net/asymptote.pdf}
 @end quotation
@@ -3954,7 +3957,7 @@ and the integer @code{randMax}. A Gaussian random number generator
 @code{Gaussrand} and a collection of statistics routines, including
 @code{histogram}, are provided in the base file @code{stats.asy}.
 
-@cindex GNU Scientific Library
+@cindex @acronym{GNU} Scientific Library
 @cindex @code{gsl}
 @cindex Airy
 @cindex Bessel
@@ -3986,7 +3989,7 @@ and the integer @code{randMax}. A Gaussian random number generator
 @cindex @code{Ci}
 @cindex @code{Pl}
 @cindex @code{zeta}
-When configured with the GNU Scientific Library (GSL), available from
+When configured with the @acronym{GNU} Scientific Library (GSL), available from
 @url{http://www.gnu.org/software/gsl/},
 @code{Asymptote} contains an internal module @code{gsl} that
 defines the airy functions @code{Ai(real)}, 
@@ -5159,7 +5162,7 @@ along a path (properly kerned, as illustrated in the example file
 @code{curvedlabel.asy}), using the command
 @verbatim
 void labelpath(picture pic=currentpicture, Label L, path g,
-	       string justify=Centered, pen p=currentpen);
+               string justify=Centered, pen p=currentpen);
 @end verbatim
 @noindent
 Here @code{justify} is one of @code{LeftJustified}, @code{Centered}, or
@@ -7195,7 +7198,7 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  loc topleft topright bottomleft bottomright flowrectangle UTC
 @c  LocalWords:  chartblock flowdiamond flowcircle xlabel BezierSurface el xyz
 @c  LocalWords:  flowroundrectangle flowbevel flowpath drawflow blocks ny cpu
-@c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel nv
+@c  LocalWords:  multipleView usersetting mediumgray flowchartdemo ylabel nv xf
 @c  LocalWords:  zlabel slopefields cputime roundrectangle slopefield libgccpp
 @c  LocalWords:  tickfactor USERNAME writeable imagecontour logimage Dumoulin's
 @c  LocalWords:  NoCrop parametricsurface realmult SoftLight HardLight interp
@@ -7209,4 +7212,4 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  GaussianSurface multiline binarytree tridiagonal portably
 @c  LocalWords:  binarytreetest Henning subsample breakpoint locator wireframe
 @c  LocalWords:  labelpath intersectionpoints PSTricks pstextpath curvedlabel
-@c  LocalWords:  LeftJustified RightJustified tickmodifier
+@c  LocalWords:  LeftJustified RightJustified tickmodifier gunzip gmake
