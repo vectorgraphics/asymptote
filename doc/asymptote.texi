@@ -135,6 +135,7 @@ Base modules
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Interface to @code{LaTeX} @code{babel} package
+* labelpath::                   Drawing curved labels
 * annotate::                    Annotate your @acronym{PDF} files
 * CAD::                         2D CAD pen and measurement functions (DIN 15)
 * graph::                       2D linear & logarithmic graphs
@@ -538,7 +539,7 @@ cd asymptote-x.xx
 @end verbatim
 
 @noindent Then put
-@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.8.tar.gz}
+@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc7.0alpha7.tar.gz}
 in the current directory and
 @verbatim
 ./configure
@@ -4851,6 +4852,7 @@ Here now is @code{latexusage.tex}:
 * unicode::                     Accept @code{unicode} (UTF-8) characters
 * latin1::                      Accept @code{ISO 8859-1} characters
 * babel::                       Interface to @code{LaTeX} @code{babel} package
+* labelpath::                   Drawing curved labels
 * annotate::                    Annotate your @acronym{PDF} files
 * CAD::                         2D CAD pen and measurement functions (DIN 15)
 * graph::                       2D linear & logarithmic graphs
@@ -5149,9 +5151,27 @@ import babel;
 babel("german");
 @end verbatim
 
+@node labelpath
+@section @code{labelpath}
+@cindex @code{labelpath}
+This module uses the @code{PSTricks} @code{pstextpath} macro to fit labels 
+along a path (properly kerned, as illustrated in the example file
+@code{curvedlabel.asy}), using the command
+@verbatim
+void labelpath(picture pic=currentpicture, Label L, path g,
+	       string justify=Centered, pen p=currentpen);
+@end verbatim
+@noindent
+Here @code{justify} is one of @code{LeftJustified}, @code{Centered}, or
+@code{RightJustified}. The @math{x} component of a shift transform
+applied to the Label is interpreted as a shift along the curve, whereas
+the @math{y} component is interpreted as a shift away from the curve.
+All other Label transforms are ignored. This package requires the
+@code{latex} tex engine and inherits the limitations of the
+@code{PSTricks} @code{\pstextpath} macro.
+
 @node annotate
 @section @code{annotate}
-@cindex @code{annotate}
 @cindex @code{annotate}
 This module supports @acronym{PDF} annotations for viewing with
 @code{Adobe Reader}, via the function
@@ -5416,7 +5436,7 @@ include the first major tick;
 @item bool end
 include the last major tick;
 @item tickmodifier modify;
-an optional function that takes and returns a tickvalue structure having
+an optional function that takes and returns a @code{tickvalue} structure having
 real[] members @code{major} and @code{minor} consisting of the tick values
 (to allow modification of the automatically generated tick values);
 @item real Size
@@ -7188,3 +7208,5 @@ Mark Henning, Steve Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  slidemovies ifdraft embeddedu externalmovie headerpen bodypen
 @c  LocalWords:  GaussianSurface multiline binarytree tridiagonal portably
 @c  LocalWords:  binarytreetest Henning subsample breakpoint locator wireframe
+@c  LocalWords:  labelpath intersectionpoints PSTricks pstextpath curvedlabel
+@c  LocalWords:  LeftJustified RightJustified tickmodifier

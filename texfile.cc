@@ -23,7 +23,6 @@ texfile::texfile(const string& texname, const bbox& box) : box(box)
   texengine=getSetting<mem::string>("tex");
   inlinetex=getSetting<bool>("inlinetex");
   Hoffset=inlinetex ? box.right : box.left;
-  
   out=new ofstream(texname.c_str());
   if(!out || !*out) {
     std::cerr << "Cannot write to " << texname << std::endl;
@@ -164,13 +163,23 @@ void texfile::grestore()
   psfile::grestore(true);
   *out << settings::endspecial() << newl;
 }
-  
-void texfile::openclip() 
+
+void texfile::beginspecial() 
 {
-  *out << "\\ASYput{" << newl;
+  *out << settings::beginspecial(texengine);
 }
   
-void texfile::closeclip() 
+void texfile::endspecial() 
+{
+  *out << settings::endspecial() << newl;
+}
+  
+void texfile::beginraw() 
+{
+  *out << "\\ASYraw{" << newl;
+}
+  
+void texfile::endraw() 
 {
   *out << "}%" << newl;
 }

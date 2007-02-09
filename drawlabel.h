@@ -15,8 +15,8 @@
 
 namespace camp {
   
-class drawLabel : public drawElement {
-private:
+class drawLabel : public virtual drawElement {
+protected:
   string label,size;
   transform T;		// A linear (shiftless) transformation.
   pair position;
@@ -39,6 +39,10 @@ public:
   
   virtual ~drawLabel() {}
 
+  void getbounds(iopipestream& tex, const mem::string& texengine);
+  
+  void checkbounds();
+    
   void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&);
   
   bool texbounds(iopipestream& tex, string& s, bool warn, const char **abort);
@@ -47,18 +51,30 @@ public:
     return true;
   }
 
-  bool write(texfile *out) {
-    if(!havebounds) 
-      reportError("drawLabel::write called before bounds");
-    if(suppress || pentype.invisible()) return true;
-    out->setpen(pentype);
-    out->put(label,T,position,texAlign);
-    return true;
-  }
+  bool write(texfile *out);
 
   drawElement *transformed(const transform& t);
   
   void labelwarning(const char *action); 
+};
+
+class drawLabelPath : public drawLabel, public drawPathPenBase {
+private:  
+  string justify;
+  pair shift;
+public:
+  drawLabelPath(string label, string size, path src, string justify,
+		pair shift, pen pentype) : 
+    drawLabel(label,size,identity(),pair(0.0,0.0),align,pentype),
+    drawPathPenBase(src,pentype), justify(justify), shift(shift) {}
+  
+  virtual ~drawLabelPath() {}
+
+  void bounds(bbox& b, iopipestream& tex, boxvector&, bboxlist&);
+  
+  bool write(texfile *out);
+  
+  drawElement *transformed(const transform& t);
 };
 
 }

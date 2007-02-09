@@ -69,8 +69,7 @@ void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
       << "\\box\\ASYbox%" << newl
       << settings::endlabel(texengine) << "%" << newl
       << "}}" << newl
-      << "\\def\\ASYput#1{%" << newl
-      << settings::clip(texengine) << "}" << newl;
+      << settings::rawpostscript(texengine) << newl;
   
   if(settings::latex(texengine)) {
     if(pipe || !settings::getSetting<bool>("inlinetex")) {
@@ -107,9 +106,17 @@ public:
   
   void grestore();
   
-  void openclip();
+  void beginspecial();
   
-  void closeclip();
+  void endspecial();
+  
+  void beginraw();
+  
+  void endraw();
+  
+  void writepair(pair z) {
+    *out << z;
+  }
   
   void writeshifted(path p, bool newPath=true);
   
@@ -119,10 +126,6 @@ public:
 
   void beginlayer(const string& psname);
   void endlayer();
-  
-  void verbatim(const string& s) {
-    *out << s << newl;
-  }
   
 };
 

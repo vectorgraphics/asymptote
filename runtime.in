@@ -957,6 +957,12 @@ void texpreamble(string s)
   camp::TeXpreamble.push_back(t);
 }
 
+void _labelpath(picture *f, string s, string size, path g, string justify,
+		pair offset, pen p)
+{
+  f->append(new drawLabelPath(s,size,g,justify,offset,p));
+}
+
 void texreset()
 {
   clearTeX();
@@ -1318,6 +1324,12 @@ pen basealign(int n)
 int basealign(pen p)
 {
   return p.Baseline();
+}
+
+transform transform(pen p)
+{
+  const transform *t=p.getTransform();
+  return t ? *t : identity();  
 }
 
 path nib(pen p)

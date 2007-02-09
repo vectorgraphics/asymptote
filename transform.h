@@ -180,6 +180,15 @@ inline transform rotate(double theta)
   return transform (0.0, 0.0, c, -s, s, c);
 }
 
+// return rotate(angle(v)) if z != (0,0); otherwise return identity().
+inline transform rotate(pair z)
+{
+  double d=z.length();
+  if(d == 0.0) return identity();
+  d=1.0/d;
+  return transform (0.0, 0.0, d*z.getx(), -d*z.gety(), d*z.gety(), d*z.getx());
+}
+
 inline transform rotatearound(pair z, double theta)
 {
   // Notice the operators are applied from right to left.
@@ -203,6 +212,12 @@ inline transform reflectabout(pair z, pair w)
 inline transform shiftless(transform t)
 {
   return transform(0, 0, t.getxx(), t.getxy(), t.getyx(), t.getyy());
+} 
+
+// Return the translational component of t.
+inline transform shift(transform t)
+{
+  return transform(t.getx(), t.gety(), 1.0, 0, 0, 1.0);
 } 
 
 inline transform matrix(pair lb, pair rt)

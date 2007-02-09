@@ -206,22 +206,23 @@ public:
   path subpath(double start, double end) const;
 
   // Used by picture to determine bounding box
-  // NOTE: Conservative here; uses only control points.
-  //       A better method is in the MetaPost source.
   bbox bounds() const;
   
-  // Return bounding box accounting for internal pen padding (but not pencap).
-  bbox bounds(const bbox &padding) const;
+  // Return bounding box accounting for padding perpendicular to path.
+  bbox bounds(double min, double max) const;
 
+  // Return bounding box accounting for internal pen padding (but not pencap).
+  bbox internalbounds(const bbox &padding) const;
+  
   double arclength () const;
   double arctime (double l) const;
   double directiontime(pair z) const;
  
-  pair max () {
+  pair max() {
     return bounds().Max();
   }
 
-  pair min () {
+  pair min() {
     return bounds().Min();
   }
   

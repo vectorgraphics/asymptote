@@ -421,23 +421,65 @@ bbox path::bounds() const
   return box;
 }
 
-bbox path::bounds(const bbox& padding) const
+bbox path::bounds(double min, double max) const
 {
-  if (empty()) {
-    // No bounds
-    return bbox(/* empty */);
+  bbox box;
+  
+  static pair I(0,1);
+  
+  int len=length();
+  for (int i = 0; i < len; i++) {
+    pair v=I*unit(direction(i));
+    box += point(i)+min*v;
+    box += point(i)+max*v;
+    if(straight(i)) continue;
+    
+    pair a,b,c;
+    derivative(a,b,c,point(i),postcontrol(i),precontrol(i+1),point(i+1));
+    
+    // Check x coordinate
+    quadraticroots x(a.getx(),b.getx(),c.getx());
+    if(x.distinct != quadraticroots::NONE && goodroot(x.t1)) {
+      double t=i+x.t1;
+      pair v=I*unit(direction(t));
+      box += point(t)+min*v;
+      box += point(t)+max*v;
+    }
+    if(x.distinct == quadraticroots::TWO && goodroot(x.t2)) {
+      double t=i+x.t2;
+      pair v=I*unit(direction(t));
+      box += point(t)+min*v;
+      box += point(t)+max*v;
+    }
+    
+    // Check y coordinate
+    quadraticroots y(a.gety(),b.gety(),c.gety());
+    if(y.distinct != quadraticroots::NONE && goodroot(y.t1)) {
+      double t=i+y.t1;
+      pair v=I*unit(direction(t));
+      box += point(t)+min*v;
+      box += point(t)+max*v;
+    }
+    if(y.distinct == quadraticroots::TWO && goodroot(y.t2)) {
+      double t=i+y.t2;
+      pair v=I*unit(direction(t));
+      box += point(t)+min*v;
+      box += point(t)+max*v;
+    }
   }
-
-  if(!box.empty) return box;
+  pair v=I*unit(direction(len));
+  box += point(len)+min*v;
+  box += point(len)+max*v;
+  return box;
+}
   
-  if(cyclic()) return pad(bounds(),padding);
-  
-  box += point(0);
+bbox path::internalbounds(const bbox& padding) const
+{
+  bbox box;
   
   // Check interior nodes.
   int len=length();
   for (int i = 1; i < len; i++) {
-    box += point(i);
     
     pair pre=point(i)-precontrol(i);
     pair post=postcontrol(i)-point(i);
@@ -489,10 +531,7 @@ bbox path::bounds(const bbox& padding) const
       box += z+pair(0,padding.bottom);
       box += z+pair(0,padding.top);
     }
-    
   }
-  
-  box += point(len);
   return box;
 }
 

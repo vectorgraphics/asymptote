@@ -129,7 +129,7 @@ public:
 };
 
 // Base class for drawElements that involve paths.
-class drawPathBase : public drawElement {
+class drawPathBase : public virtual drawElement {
 protected:
   path p;
 
@@ -143,9 +143,18 @@ public:
 
   virtual ~drawPathBase() {}
 
-  void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&) {
+  virtual void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&) {
     b += p.bounds();
   }
+  
+  virtual void writepath(psfile *out) {
+    out->write(p);
+  }
+  
+  virtual void writeshiftedpath(texfile *out) {
+    out->writeshifted(p);
+  }
+  
 };
 
 // Base class for drawElements that involve paths and pens.
@@ -178,18 +187,6 @@ public:
     return p.cyclic();
   }
   
-  virtual void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&) {
-    b += p.bounds();
-  }
-  
-  virtual void writepath(psfile *out) {
-    out->write(p);
-  }
-  
-  virtual void writeshiftedpath(texfile *out) {
-    out->writeshifted(p);
-  }
-  
   virtual void penStart(psfile *out)
   {
     if (t())
@@ -213,6 +210,8 @@ public:
     if (t())
       out->grestore();
   }
+  
+  
 };
   
 // Base class for drawElements that involve superpaths and pens.

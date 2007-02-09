@@ -52,10 +52,12 @@ public:
     if(gsave) out->gsave();
     if(empty()) return true;
     
-    out->openclip();
+    out->beginspecial();
+    out->beginraw();
     writeshiftedpath(out);
     out->clip(pentype);
-    out->closeclip();
+    out->endraw();
+    out->endspecial();
     
     return true;
   }

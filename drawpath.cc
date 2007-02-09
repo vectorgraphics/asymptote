@@ -81,49 +81,61 @@ void drawPath::adjustdash(pen& pen0)
   }
 }
   
-void drawPath::addcap(bbox& b, const path& p, double t, const pair& dir)
-{
+// Account for square or extended pen cap contributions to bounding box.
+void cap(bbox& b, double t, path p, pen pentype) {
+  const transform *pT=pentype.getTransform();  
+  transform T=pT ? *pT : identity();
+  
   double h=0.5*pentype.width();
-  pair z=p.point(t);
-  pair v=unit(p.direction(t))*h;
-  b += z+dir*v;
-  b += z+conj(dir)*v;
-}
-  
-void drawPath::bounds(bbox& b, iopipestream&, boxvector&, bboxlist&)
-{
-  b += p.bounds(pentype.bounds());
-  if(p.cyclic()) return;
-  
-  int l=p.length();
-  if(l < 0) return;
+  pair v=p.direction(t);
+  transform S=rotate(conj(v))*shiftless(T);
+  double xx=S.getxx(), xy=S.getxy();
+  double yx=S.getyx(), yy=S.getyy();
+  double y=hypot(yx,yy);
+  if(y == 0) return;
+  double numer=xx*yx+xy*yy;
+  double x=numer/y;
+  pair z=shift(T)*p.point(t);
   
   switch(pentype.cap()) {
   case 0:
     {
-      addcap(b,p,0,pair(0,1));
-      addcap(b,p,l,pair(0,1));
-      break;
-    }
-  case 1:
-    {
-      double h=0.5*pentype.width();
-      pair H=pair(h,h);
-      pair z0=p.point(0);
-      pair zl=p.point(l);
-      b += z0+H;
-      b += z0-H;
-      b += zl+H;
-      b += zl-H;
+      pair d=rotate(v)*pair(x,y)*h;
+      b += z+d;
+      b += z-d;
       break;
     }
   case 2:
     {
-    addcap(b,p,0,pair(-1,1));
-    addcap(b,p,l,pair(1,1));
+      transform R=rotate(v);
+      double w=(xx*yy-xy*yx)/y;
+      pair dp=R*pair(x+w,y)*h;
+      pair dm=R*pair(x-w,y)*h;
+      b += z+dp;
+      b += z+dm;
+      b += z-dp;
+      b += z-dm;
     break;
     }
-  } 
+  }
+}
+
+void drawPath::bounds(bbox& b, iopipestream&, boxvector&, bboxlist&)
+{
+  bbox penbounds=pentype.bounds();
+  
+  if(cyclic() || pentype.cap() == 1) {
+    b += pad(p.bounds(),penbounds);
+    return;
+  }
+  
+  b += p.internalbounds(penbounds);
+  
+  int l=p.length();
+  if(l < 0) return;
+  
+  cap(b,0,p,pentype);
+  cap(b,l,p,pentype);
 }
 
 bool drawPath::draw(psfile *out)

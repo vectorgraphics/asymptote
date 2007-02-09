@@ -77,7 +77,7 @@ string defaultformat();
   
 const char *beginlabel(const mem::string& texengine);
 const char *endlabel(const mem::string& texengine);
-const char *clip(const mem::string& texengine);
+const char *rawpostscript(const mem::string& texengine);
 const char *beginspecial(const mem::string& texengine);
 const char *endspecial();
   
