@@ -37,6 +37,7 @@
 #include "refaccess.h"
 
 #ifdef HAVE_LIBCURSES
+extern "C" {
 #include <curses.h>
 
 // Workaround broken curses.h files:
@@ -50,6 +51,7 @@
 #else
 #include <term.h>
 #endif
+}
 #endif
 
 using std::vector;
