@@ -972,17 +972,17 @@ const char *endlabel(const mem::string& texengine) {
     return "\\special{ps: currentpoint grestore moveto}";
 }
 
-// TeX command to begin raw postscript code
-const char *rawpostscript(const mem::string& texengine) {
+// TeX special command to clip a label
+const char *clip(const mem::string& texengine) {
   if(pdf(texengine))
-    return "\\def\\ASYraw#1{#1}";
+    return "\\special{pdf: #1}";
   else
-    return "\\def\\ASYraw#1{\n"
-      "currentpoint currentpoint translate matrix currentmatrix\n"
-      "[matrix defaultmatrix 0 get 0 0 matrix defaultmatrix 3 get\n"
-      "matrix currentmatrix 4 get matrix currentmatrix 5 get] setmatrix\n"
-      "#1\n"
-      "setmatrix neg exch neg exch translate}";
+    return "\\special{ps: "
+           "currentpoint currentpoint translate matrix currentmatrix\n"
+           "[matrix defaultmatrix 0 get 0 0 matrix defaultmatrix 3 get\n"
+           "matrix currentmatrix 4 get matrix currentmatrix 5 get] setmatrix\n"
+           "#1\n"
+           "setmatrix neg exch neg exch translate}";
 }
 
 // Begin TeX special command.
