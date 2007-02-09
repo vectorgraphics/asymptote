@@ -39,6 +39,11 @@
 #ifdef HAVE_LIBCURSES
 #include <curses.h>
 
+// Workaround broken curses.h files:
+#ifdef clear
+#undef clear
+#endif
+
 // Workaround missing symbolic link under CYGWIN
 #if defined(__CYGWIN__) && defined(HAVE_LIBNCURSES)
 #include <ncurses/term.h>
