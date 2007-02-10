@@ -177,8 +177,6 @@ object draw(picture pic=currentpicture, binarytreeNode node, pair pos,
   return label;
 }
 
-struct nil {}
-
 struct key {
   int n;
   bool active;
