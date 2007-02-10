@@ -510,6 +510,8 @@ picture surface(real[][] f, pair a, pair b,
   int nx=f.length-1;
   int ny=nx > 0 ? f[0].length-1 : 0;
 
+  if(nx == 0 || ny == 0) return new picture;
+
   triple[][] v=new triple[nx+1][ny+1];
 
   for(int i=0; i <= nx; ++i) {
@@ -527,14 +529,17 @@ picture surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
+  if(nu <= 0 || nv <= 0) return new picture;
   triple[][] v=new triple[nu+1][nv+1];
 
-    for(int i=0; i <= nu; ++i) {
-      real x=interp(a.x,b.x,i/nu);
-      for(int j=0; j <= nv; ++j)
-        v[i][j]=f((x,interp(a.y,b.y,j/nv)));
-    }
-    return surface(v,surfacepen,meshpen,light,P);
+  real ustep=1/nu;
+  real vstep=1/nv;
+  for(int i=0; i <= nu; ++i) {
+    real x=interp(a.x,b.x,i*ustep);
+    for(int j=0; j <= nv; ++j)
+      v[i][j]=f((x,interp(a.y,b.y,j*vstep)));
+  }
+  return surface(v,surfacepen,meshpen,light,P);
 }
 
 // draw the surface described by a parametric function f over box(a,b),
@@ -577,16 +582,16 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
   if(surfacepen == nullpen) {
     for(int i=0; i < nu; ++i)
       for(int j=0; j < nv; ++j)
-	draw(pic,project(cell(i,j),P),meshpen);
+        draw(pic,project(cell(i,j),P),meshpen);
   } else {
     // Sort cells by distance from camera
     real[][] depth;
     for(int i=0; i < nu; ++i) {
       for(int j=0; j < nv; ++j) {
-	triple v=P.camera-0.25*(f(sample(i,j))+f(sample(i,j+1))+
-				f(sample(i+1,j))+f(sample(i+1,j+1)));
-	real d=sgn(dot(v,P.camera))*abs(v);
-	depth.push(new real[] {d,i,j});
+        triple v=P.camera-0.25*(f(sample(i,j))+f(sample(i,j+1))+
+                                f(sample(i+1,j))+f(sample(i+1,j+1)));
+        real d=sgn(dot(v,P.camera))*abs(v);
+        depth.push(new real[] {d,i,j});
       }
     }
 

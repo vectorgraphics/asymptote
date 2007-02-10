@@ -383,7 +383,7 @@ void labelaxis(frame f, transform T, Label L, guide g,
   L0.position(z);
   frame d;
   add(d,L0);
-  pair width=0.5*(max(d)-min(d));
+  pair width=0.5*size(d);
   int n=length(g);
   real t=L.relative();
   pair s=realmult(width,dir(g,t));
@@ -417,7 +417,7 @@ real axiscoverage(int N, transform T, path g, ticklocate locate, real Step,
       if(loop || (val >= a && val <= b)) {
         frame d;
         pair dir=labeltick(d,T,g,locate,val,side,sign,Size,ticklabel,F,norm);
-        coverage += abs(dot(max(d)-min(d),dir));
+        coverage += abs(dot(size(d),dir));
         if(coverage > limit) return coverage;
       }
     }
@@ -437,7 +437,7 @@ real logaxiscoverage(int N, transform T, path g, ticklocate locate, pair side,
     if(i >= a && i <= b) {
       frame d;
       pair dir=labeltick(d,T,g,locate,i,side,sign,Size,ticklabel,F);
-      coverage += abs(dot(max(d)-min(d),dir));
+      coverage += abs(dot(size(d),dir));
       if(coverage > limit) return coverage;
     }
   }

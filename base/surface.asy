@@ -12,14 +12,14 @@ struct surface {
   void init(path3 external, triple[] internal=new triple[]) {
     if(internal.length == 0) {
       for(int j=0; j < 4; ++j) {
-	static real nineth=1.0/9.0;
-	internal[j]=nineth*(-4.0*point(external,j)
-			    +6.0*(precontrol(external,j)+
-				  postcontrol(external,j))
-			    -2.0*(point(external,j-1)+point(external,j+1))
-			    +3.0*(precontrol(external,j-1)+
-				  postcontrol(external,j+1))-
-			    point(external,j+2));
+        static real nineth=1.0/9.0;
+        internal[j]=nineth*(-4.0*point(external,j)
+                            +6.0*(precontrol(external,j)+
+                                  postcontrol(external,j))
+                            -2.0*(point(external,j-1)+point(external,j+1))
+                            +3.0*(precontrol(external,j-1)+
+                                  postcontrol(external,j+1))-
+                            point(external,j+2));
       }
     }
 
@@ -77,9 +77,9 @@ struct surface {
 
     return new pen[] {
       color(P[1][0]-P[0][0],P[0][1]-P[0][0]),
-	color(P[1][3]-P[0][3],P[0][3]-P[0][2]),
-	color(P[3][3]-P[2][3],P[3][3]-P[3][2]),
-	color(P[3][0]-P[2][0],P[3][1]-P[3][0])};
+        color(P[1][3]-P[0][3],P[0][3]-P[0][2]),
+        color(P[3][3]-P[2][3],P[3][3]-P[3][2]),
+        color(P[3][0]-P[2][0],P[3][1]-P[3][0])};
   };
 
   guide3[] box() {
@@ -119,8 +119,8 @@ surface subsurfaceu(surface s, real ua, real ub)
   path3 s1=subpath(i1,ua,ub);
   path3 s2=subpath(i2,ua,ub);
   return surface(G..controls postcontrol(w,0) and precontrol(w,1)..cycle3,
-		 new triple[] {postcontrol(s1,0),postcontrol(s2,0),
-		     precontrol(s2,1),precontrol(s1,1)});
+                 new triple[] {postcontrol(s1,0),postcontrol(s2,0),
+                     precontrol(s2,1),precontrol(s1,1)});
 }
 
 surface subsurfacev(surface s, real va, real vb)
@@ -134,8 +134,8 @@ surface subsurfacev(surface s, real va, real vb)
   path3 t2=subpath(j2,va,vb);
 
   return surface(G..controls precontrol(w,1) and postcontrol(w,0)..cycle3,
-		 new triple[] {postcontrol(t1,0),precontrol(t1,1),
-		     precontrol(t2,1),postcontrol(t2,0)});
+                 new triple[] {postcontrol(t1,0),precontrol(t1,1),
+                     precontrol(t2,1),postcontrol(t2,0)});
 }
 
 surface subsurface(surface s, real ua, real ub, real va, real vb)
@@ -149,22 +149,22 @@ triple point(surface s, real u, real v)
 }
 
 void tensorshade(picture pic=currentpicture, surface s,
-		 pen surfacepen=lightgray, light light=currentlight,
-		 projection P=currentprojection)
+                 pen surfacepen=lightgray, light light=currentlight,
+                 projection P=currentprojection)
 {
   path[] b=project(s.box(),P);
   tensorshade(pic,box(min(b),max(b)),surfacepen,s.colors(surfacepen,light),
-  	      project(s.external(),P),project(s.internal(),P));
+              project(s.external(),P),project(s.internal(),P));
 }
 
 void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
-	  pen surfacepen=lightgray, pen meshpen=nullpen,
-	  light light=currentlight, projection P=currentprojection)
+          pen surfacepen=lightgray, pen meshpen=nullpen,
+          light light=currentlight, projection P=currentprojection)
 {
   // Draw a mesh in the absence of lighting (override with meshpen=invisible).
   if(light.source == O && meshpen == nullpen) meshpen=currentpen;
 
-  if(surfacepen != nullpen) {
+  if(surfacepen != nullpen && nu > 0) {
     // Sort cells by mean distance from camera
     real[][] depth;
     surface[] su=new surface[nu];
@@ -173,10 +173,10 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
       path3 s0=s.uequals(i/nu);
       path3 s1=s.uequals((i+1)/nu);
       for(int j=0; j < nv; ++j) {
-	triple v=P.camera-0.25*(point(s0,j/nv)+point(s0,(j+1)/nv)+
-				point(s1,j/nv)+point(s1,(j+1)/nv));
-	real d=sgn(dot(v,P.camera))*abs(v);
-	depth.push(new real[] {d,i,j});
+        triple v=P.camera-0.25*(point(s0,j/nv)+point(s0,(j+1)/nv)+
+                                point(s1,j/nv)+point(s1,(j+1)/nv));
+        real d=sgn(dot(v,P.camera))*abs(v);
+        depth.push(new real[] {d,i,j});
       }
     }
 
@@ -192,10 +192,12 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
   }
 
   if(meshpen != nullpen) {
+    real step=nu == 0 ? 0 : 1/nu;
     for(int i=0; i <= nu; ++i)
-      draw(pic,s.uequals(i/nu),meshpen);
+      draw(pic,s.uequals(i*step),meshpen);
     
+    real step=nv == 0 ? 0 : 1/nv;
     for(int j=0; j <= nv; ++j)
-      draw(pic,s.vequals(j/nv),meshpen);
+      draw(pic,s.vequals(j*step),meshpen);
   }
 }

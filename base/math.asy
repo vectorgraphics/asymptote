@@ -266,27 +266,33 @@ bool square(real[][] m)
 bool rectangular(real[][] m)
 {
   int n=m.length;
-  int m0=m[0].length;
-  for(int i=1; i < n; ++i)
-    if(m[i].length != m0) return false;
+  if(n > 0) {
+    int m0=m[0].length;
+    for(int i=1; i < n; ++i)
+      if(m[i].length != m0) return false;
+  }
   return true;
 }
 
 bool rectangular(pair[][] m)
 {
   int n=m.length;
-  int m0=m[0].length;
-  for(int i=1; i < n; ++i)
-    if(m[i].length != m0) return false;
+  if(n > 0) {
+    int m0=m[0].length;
+    for(int i=1; i < n; ++i)
+      if(m[i].length != m0) return false;
+  }
   return true;
 }
 
 bool rectangular(triple[][] m)
 {
   int n=m.length;
-  int m0=m[0].length;
-  for(int i=1; i < n; ++i)
-    if(m[i].length != m0) return false;
+  if(n > 0) {
+    int m0=m[0].length;
+    for(int i=1; i < n; ++i)
+      if(m[i].length != m0) return false;
+  }
   return true;
 }
 

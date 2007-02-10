@@ -483,7 +483,7 @@ frame pack(pair align=2S ... object inset[])
   for (int i=0; i < n; ++i) {
     frame f=inset[i].fit();
     add(F,f,z);
-    z += align+realmult(unit(align),max(f)-min(f));
+    z += align+realmult(unit(align),size(f));
   }
   return F;
 }
