@@ -90,6 +90,21 @@ struct surface {
 
 surface operator init() {return new surface;}
 
+surface operator * (transform3 t, surface s)
+{ 
+  surface S;
+  triple[][] p=s.P;
+  triple[][] P=S.P;
+  for(int i=0; i < p.length; ++i) { 
+    triple[] si=p[i];
+    triple[] Si=P[i];
+    for(int j=0; j < si.length; ++j) { 
+      Si[j]=t*si[j]; 
+    } 
+  }
+  return S; 
+}
+ 
 surface operator cast(triple[][] P) {
   surface s;
   s.init(P);
