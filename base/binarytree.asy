@@ -4,6 +4,8 @@
  * Copyright (C) 2006                                                   *
  * Tobias Langner tobias[at]langner[dot]nightlabs[dot]de                *
  *                                                                      *
+ * Modified by John Bowman                                              *
+ *                                                                      *
  ************************************************************************
  *                                                                      *
  * This library is free software; you can redistribute it and/or        *
@@ -41,7 +43,7 @@ struct binarytreeNode {
   binarytreeNode left;
   binarytreeNode right;
   binarytreeNode parent;
-	
+        
   /**
    * sets the left child of this node
    */
@@ -74,7 +76,7 @@ struct binarytreeNode {
     else
       return parent.getLevel()+1;
   }
-	
+        
   /**
    * sets the children of this binarytreeNode
    */
@@ -82,7 +84,7 @@ struct binarytreeNode {
     setLeft(left);
     setRight(right);
   }
-	
+        
   /**
    * creates a new binarytreeNode with key <key> 
    */
@@ -91,7 +93,7 @@ struct binarytreeNode {
     toReturn.key=key;
     return toReturn;
   }
-	
+        
   /**
    * returns the height of the subtree rooted at this node.
    */
@@ -102,7 +104,7 @@ struct binarytreeNode {
       return right.getHeight()+1;
     if(right == null)
       return left.getHeight()+1;
-		
+                
     return max(left.getHeight(),right.getHeight())+1;
   }
 }
@@ -120,13 +122,12 @@ binarytreeNode binarytreeNode(int key)=binarytreeNode.binarytreeNode;
  * <levelDist> the vertical distance between two levels,
  * <nodeDiameter>: the diameter of one node.
  */
-object draw(binarytreeNode node, pair pos, int height, real minDist,
-	    real levelDist, real nodeDiameter) {
-  picture pic;
-	
+object draw(picture pic=currentpicture, binarytreeNode node, pair pos,
+            int height, real minDist, real levelDist, real nodeDiameter,
+            pen p=currentpen) {
   Label label=Label(math((string) node.key),pos);
-	
-  binarytreeNode left=node.left; 	
+        
+  binarytreeNode left=node.left;        
   binarytreeNode right=node.right;
 
   /**
@@ -146,34 +147,57 @@ object draw(binarytreeNode node, pair pos, int height, real minDist,
    * and then drawing the corresponding arrow.
    */
   void deferredDrawNodeConnection(pair parentPos, pair childPos) {
-    add(new void(frame f, transform t) {
-	pair start,end; 
-	// calculate connection path 
-	transform T=shift(nodeDiameter/2*unit(t*childPos-t*parentPos));  
-	path arr=(T*t*parentPos)--(T^(-1)*t*childPos);  
-	draw(f,arr,Arrow(5));  
+    pic.add(new void(frame f, transform t) {
+        pair start,end; 
+        // calculate connection path 
+        transform T=shift(nodeDiameter/2*unit(t*childPos-t*parentPos));  
+        path arr=(T*t*parentPos)--(T^(-1)*t*childPos);  
+        draw(f,arr,p,Arrow(5));  
       }); 
   } 
 
   if(left != null) {
     pair childPos=pos-(0,levelDist)-(dist/2,0);
-    draw(left,childPos,height,minDist,levelDist,nodeDiameter);
+    draw(pic,left,childPos,height,minDist,levelDist,nodeDiameter,p);
     deferredDrawNodeConnection(pos,childPos);
   }
 
   if(right != null) {
     pair childPos=pos-(0,levelDist)+(dist/2,0);
-    draw(right,childPos,height,minDist,levelDist,nodeDiameter);
+    draw(pic,right,childPos,height,minDist,levelDist,nodeDiameter,p);
     deferredDrawNodeConnection(pos,childPos);
   }
-	
-  draw(pic,circle((0,0),nodeDiameter/2));
-  label(pic,label,(0,0));
-	
-  add(pic,pos);
-	
+        
+  picture obj;
+  draw(obj,circle((0,0),nodeDiameter/2),p);
+  label(obj,label,(0,0),p);
+        
+  add(pic,obj,pos);
+        
   return label;
 }
+
+struct nil {}
+
+struct key {
+  int n;
+  bool active;
+}
+
+key operator init() {return new key;}
+
+key key(int n, bool active=true) {key k; k.n=n; k.active=active; return k;}
+
+key operator cast(int n) {return key(n);}
+int operator cast(key k) {return k.n;}
+int[] operator cast(key[] k) {
+  int[] I;
+  for(int i=0; i < k.length; ++i)
+    I[i]=k[i].n;
+  return I;
+}
+
+key nil=key(0,false);
 
 /**
  * structure to represent a binary tree.
@@ -181,41 +205,41 @@ object draw(binarytreeNode node, pair pos, int height, real minDist,
 struct binarytree {
   binarytreeNode root;
   int[] keys;
-	
+        
   /**
    * adds the given < key > to the tree by searching for its place and inserting it there.
    */
   void addKey(int key) {
     binarytreeNode newNode=binarytreeNode(key);
-		
+                
     if(root == null) {
       root=newNode;
       keys.push(key);
       return; 
     }
-		
+                
     binarytreeNode n=root;
     while(n != null) {
       if(key < n.key) {
-	if(n.left != null)
-	  n=n.left;
-	else {
-	  n.setLeft(newNode);
-	  keys.push(key);
-	  return;
-	}
+        if(n.left != null)
+          n=n.left;
+        else {
+          n.setLeft(newNode);
+          keys.push(key);
+          return;
+        }
       } else if(key > n.key) {
-	if(n.right != null)
-	  n=n.right;
-	else {
-	  n.setRight(newNode);
-	  keys.push(key);
-	  return;
-	}
+        if(n.right != null)
+          n=n.right;
+        else {
+          n.setRight(newNode);
+          keys.push(key);
+          return;
+        }
       }
     }
   }
-	
+        
   /**
    * returns the height of the tree
    */
@@ -225,15 +249,40 @@ struct binarytree {
     else
       return root.getHeight();
   }
-	
+        
   /**
-   * adds all given keys to the tree subsequently
+   * adds all given keys to the tree sequentially
    */
-  void addKeys(...int[] keys) {
-    for(int i=0; i < keys.length; ++i)
-      addKey(keys[i]);
+  void addSearchKeys(int[] keys) {
+    for(int i=0; i < keys.length; ++i) {
+      int key=keys[i];
+      // Ignore duplicate keys
+      if(find(this.keys == key) == -1)
+	addKey(key);
+    }
   }
-	
+        
+  binarytreeNode build(key[] keys, int[] ind) {
+    if(ind[0] >= keys.length) return null;
+    key k=keys[ind[0]];
+    ++ind[0];
+    if(!k.active) return null;
+    binarytreeNode bt=binarytreeNode(k);
+    binarytreeNode left=build(keys,ind);
+    binarytreeNode right=build(keys,ind);
+    bt.left=left; bt.right=right;
+    if(left != null) left.parent=bt;
+    if(right != null) right.parent=bt;
+    return bt;
+  }
+
+  void addKeys(key[] keys) {
+    int[] ind={0};
+    root=build(keys,ind);
+    this.keys=keys;
+  }
+
+
   /**
    * returns all key in the tree
    */
@@ -244,20 +293,36 @@ struct binarytree {
 
 binarytree operator init() {return new binarytree;}
 
+binarytree searchtree(...int[] keys)
+{
+  binarytree bt;
+  bt.addSearchKeys(keys);
+  return bt;
+}
+
+binarytree binarytree(...key[] keys)
+{
+  binarytree bt;
+  bt.addKeys(keys);
+  return bt;
+}
+
 /**
  * draws the given binary tree.
  */
-void draw(binarytree tree, real minDist=minDistDefault,
-	  real nodeMargin=nodeMarginDefault) {
+void draw(picture pic=currentpicture, binarytree tree,
+          real minDist=minDistDefault, real nodeMargin=nodeMarginDefault,
+          pen p=currentpen)
+{
   int[] keys=tree.getKeys();
-	
+        
   // calculate the node diameter so that all keys fit into it
   frame f; 
-  for(int i=0; i < keys.length; ++i) 
-    label(f,math(string(keys[i])));
- 
-  real nodeDiameter=abs(max(f)-min(f))+2*nodeMargin;
-  real levelDist=nodeDiameter*1.8; 
+  for(int i=0; i < keys.length; ++i)
+    label(f,math(string(keys[i])),p);
 
-  draw(tree.root,(0,0),tree.getHeight(),minDist,levelDist,nodeDiameter);
+  real nodeDiameter=abs(max(f)-min(f))+2*nodeMargin;
+  real levelDist=nodeDiameter*1.8;
+
+  draw(pic,tree.root,(0,0),tree.getHeight(),minDist,levelDist,nodeDiameter,p);
 }

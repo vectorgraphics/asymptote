@@ -124,7 +124,7 @@ Base modules
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
 * tree::                        Dynamic binary search tree
-* binarytree::                  Binary search tree drawing module
+* binarytree::                  Binary tree drawing module
 * drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
 * roundedpath::                 Round the sharp corners of paths
@@ -4844,7 +4844,7 @@ Here now is @code{latexusage.tex}:
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
 * tree::                        Dynamic binary search tree
-* binarytree::                  Binary search tree drawing module
+* binarytree::                  Binary tree drawing module
 * drawtree::                    Tree drawing module
 * feynman::                     Feynman diagrams
 * roundedpath::                 Round the sharp corners of paths
@@ -4979,8 +4979,9 @@ This package implements an example of a dynamic binary search tree.
 @node binarytree
 @section @code{binarytree}
 @cindex @code{binarytree}
-This module is used by the example @code{binarytreetest.asy} to draw a
-binary search tree:
+This module can be used to draw an arbitrary binary tree and includes an
+input routine for the special case of a binary search tree, as
+illustrated in the example @code{binarytreetest.asy}:
 @verbatiminclude binarytreetest.asy
 @image{binarytreetest}
 
