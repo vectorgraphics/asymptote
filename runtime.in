@@ -222,8 +222,7 @@ inline int sgn(double x)
 void outOfBounds(const char *op, size_t len, int n)
 {
   ostringstream buf;
-  buf << op << " array of length " << len << " with out-of-bounds index "
-      << n;
+  buf << op << " array of length " << len << " with out-of-bounds index " << n;
   error(buf);
 }
 
@@ -2674,8 +2673,11 @@ array* :newDeepArray(int depth)
 
   int *dims = new int[depth];
 
-  for (int index = depth-1; index >= 0; index--)
-    dims[index] = pop<int>(Stack);
+  for (int index = depth-1; index >= 0; index--) {
+    int i=pop<int>(Stack);
+    if(i < 0) error("cannot create a negative length array");
+    dims[index]=i;
+  }
 
   array *a=deepArray(depth, dims);
   delete[] dims;
