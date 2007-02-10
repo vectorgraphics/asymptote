@@ -58,6 +58,7 @@ CAD.pdf: CAD.tex CAD1.eps
 
 PDFAnim_temp_Guide.pdf: PDFAnim_temp_Guide.tex
 	latex PDFAnim_temp_Guide
+	latex PDFAnim_temp_Guide
 	dvipdf PDFAnim_temp_Guide
 
 html:	$(INCLUDES) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
