@@ -250,17 +250,8 @@ struct setting : public option {
   virtual void add() {
     option::add();
 
-#if 0
-    settingsModule->e.addVar(symbol::trans(name), buildVarEntry());
-#endif
     settingsModule->add(name, t, buildAccess());
   }
-
-#if 0
-  varEntry *buildVarEntry() {
-    return new varEntry(t, buildAccess(), getSettingsModule());
-  }
-#endif
 };
 
 struct itemSetting : public setting {
@@ -786,6 +777,8 @@ void initSettings() {
                             "Interactive prompt auto-completion", true));
   addOption(new boolSetting("listvariables", 'l',
 			    "List available global functions and variables"));
+  addOption(new boolSetting("where", 0,
+			    "Show where listed variables are declared"));
   
   multiOption *mask=new multiOption("mask", 'm',
 				    "Mask fpu exceptions");

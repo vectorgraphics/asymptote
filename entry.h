@@ -62,10 +62,14 @@ class entry : public gc {
   // The record where the variable or type is defined, or 0 if the entry is
   // not a field.
   record *where;
+
+  // The location (file and line number) where the entry was defined.
+  position pos;
   
 public:
-  entry(record *where) : where(where) {}
-  entry(permission perm, record *r, record *where) : where(where) {
+  entry(record *where, position pos) : where(where), pos(pos) {}
+  entry(permission perm, record *r, record *where, position pos)
+    : where(where), pos(pos) {
     addPerm(perm, r);
   }
 
@@ -82,6 +86,10 @@ public:
   record *whereDefined() {
     return where;
   }
+  
+  position getPos() {
+    return pos;
+  }
 };
     
 class varEntry : public entry {
@@ -89,11 +97,12 @@ class varEntry : public entry {
   access *location;
 
 public:
-  varEntry(ty *t, access *location, record *where)
-    : entry(where), t(t), location(location) {}
+  varEntry(ty *t, access *location, record *where, position pos)
+    : entry(where, pos), t(t), location(location) {}
 
-  varEntry(ty *t, access *location, permission perm, record *r, record *where)
-    : entry(perm, r, where), t(t), location(location) {}
+  varEntry(ty *t, access *location, permission perm, record *r,
+           record *where, position pos)
+    : entry(perm, r, where, pos), t(t), location(location) {}
 
   // (Non-destructively) merges two varEntries, created a qualified varEntry.
   varEntry(varEntry &qv, varEntry &v);
@@ -126,8 +135,8 @@ public:
   ty *t;
   varEntry *v;  // NOTE: Name isn't very descriptive.
 
-  tyEntry(ty *t, varEntry *v, record *where)
-    : entry(where), t(t), v(v) {}
+  tyEntry(ty *t, varEntry *v, record *where, position pos)
+    : entry(where, pos), t(t), v(v) {}
 
   tyEntry(tyEntry *base, permission perm, record *r)
     : entry(*base, perm, r), t(base->t), v(base->v) {}

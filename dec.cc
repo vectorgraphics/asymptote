@@ -24,7 +24,7 @@ using namespace types;
   
 trans::tyEntry *ty::transAsTyEntry(coenv &e, record *where)
 {
-  return new trans::tyEntry(trans(e, false), 0, where);
+  return new trans::tyEntry(trans(e, false), 0, where, getPos());
 }
 
 
@@ -293,7 +293,8 @@ types::ty *decidstart::getType(types::ty *base, coenv &, bool)
 trans::tyEntry *decidstart::getTyEntry(trans::tyEntry *base, coenv &e,
                                        record *where)
 {
-  return dims ? new trans::tyEntry(getType(base->t,e,false), 0, where) :
+  return dims ? new trans::tyEntry(getType(base->t,e,false), 0,
+                                   where, getPos()) :
                 base;
 }
 
@@ -334,7 +335,7 @@ types::ty *fundecidstart::getType(types::ty *base, coenv &e, bool tacit)
 trans::tyEntry *fundecidstart::getTyEntry(trans::tyEntry *base, coenv &e,
                                           record *where)
 {
-  return new trans::tyEntry(getType(base->t,e,false), 0, where);
+  return new trans::tyEntry(getType(base->t,e,false), 0, where, getPos());
 }
 
 void fundecidstart::addOps(types::ty *base, coenv &e, record *r)
@@ -361,17 +362,17 @@ void decid::prettyprint(ostream &out, int indent)
 
 
 varEntry *makeVarEntryWhere(coenv &e, record *r, types::ty *t,
-                                record *where)
+                            record *where, position pos)
 {
   access *a = r ? r->allocField(e.c.isStatic()) :
                   e.c.allocLocal();
 
-  return r ? new varEntry(t, a, e.c.getPermission(), r, where) :
-             new varEntry(t, a, where);
+  return r ? new varEntry(t, a, e.c.getPermission(), r, where, pos) :
+             new varEntry(t, a, where, pos);
 }
 
-varEntry *makeVarEntry(coenv &e, record *r, types::ty *t) {
-  return makeVarEntryWhere(e, r, t, r);
+varEntry *makeVarEntry(position pos, coenv &e, record *r, types::ty *t) {
+  return makeVarEntryWhere(e, r, t, r, pos);
 }
 
 void addVar(coenv &e, record *r, varEntry *v, symbol *id)
@@ -401,7 +402,7 @@ void initializeVar(position pos, coenv &e, record *,
 void createVar(position pos, coenv &e, record *r,
                symbol *id, types::ty *t, varinit *init)
 {
-  varEntry *v=makeVarEntry(e, r, t);
+  varEntry *v=makeVarEntry(pos, e, r, t);
   addVar(e, r, v, id);
   initializeVar(pos, e, r, v, t, init);
 }
@@ -421,7 +422,7 @@ void addTypeWithPermission(coenv &e, record *r, tyEntry *base, symbol *id)
 void createVarOutOfOrder(position pos, coenv &e, record *r,
                          symbol *id, types::ty *t, varinit *init)
 {
-  varEntry *v=makeVarEntry(e, r, t);
+  varEntry *v=makeVarEntry(pos, e, r, t);
   initializeVar(pos, e, r, v, t, init);
   addVar(e, r, v, id);
 }
@@ -543,7 +544,7 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol *id)
 
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
-    varEntry *v=makeVarEntryWhere(e, r, imp, 0);
+    varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
     initializeVar(pos, e, r, v, imp, &init);
     return v;
   }
@@ -720,7 +721,7 @@ void recorddec::transAsField(coenv &e, record *parent)
   record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
                        e.c.newRecord(id);
                      
-  addTypeWithPermission(e, parent, new trans::tyEntry(r,0,parent), id);
+  addTypeWithPermission(e, parent, new trans::tyEntry(r,0,parent,getPos()), id);
   e.e.addRecordOps(r);
   if (parent)
     parent->e.addRecordOps(r);

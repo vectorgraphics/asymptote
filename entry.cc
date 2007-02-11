@@ -43,12 +43,13 @@ void entry::pr::report(action act, position pos, coder &c) {
   }
 }
 
-entry::entry(entry &e1, entry &e2) : where(e2.where) {
+entry::entry(entry &e1, entry &e2) : where(e2.where), pos(e2.pos) {
   perms.insert(perms.end(), e1.perms.begin(), e1.perms.end());
   perms.insert(perms.end(), e2.perms.begin(), e2.perms.end());
 }
 
-entry::entry(entry &base, permission perm, record *r) : where(base.where) {
+entry::entry(entry &base, permission perm, record *r)
+  : where(base.where), pos(base.pos) {
   perms.insert(perms.end(), base.perms.begin(), base.perms.end());
   addPerm(perm, r);
 }
@@ -104,7 +105,8 @@ tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent)
   // we need to put a's frame on the stack before allocating an instance of B.
   // NOTE: A possible optimization could be to only qualify the varEntry if
   // the type is a record, as other types don't use the varEntry.
-  return new tyEntry(ent->t, qualifyVarEntry(qv, ent->v), ent->whereDefined());
+  return new tyEntry(ent->t, qualifyVarEntry(qv, ent->v),
+                     ent->whereDefined(), ent->getPos());
 }
 
 bool tenv::add(symbol *dest,
@@ -187,12 +189,14 @@ varEntry *venv::lookByType(symbol *name, ty *t)
 
 void venv::list(record *module)
 {
+  bool where=settings::getSetting<bool>("where");
   // List all functions and variables.
   for(names_t::iterator N = names.begin(); N != names.end(); ++N) {
     symbol *s=N->first;
     name_t &list=names[s];
     for(name_iterator p = list.begin(); p != list.end(); ++p) {
       if(!module || (*p)->whereDefined() == module) {
+	if(where) out << (*p)->v->getPos();
 	(*p)->getType()->printVar(std::cout, s);
 	std::cout << ";\n";
       }
@@ -349,8 +353,10 @@ void venv::listValues(symbol *name, values &vals, record *module)
 {
   ostream& out=std::cout;
 
+  bool where=settings::getSetting<bool>("where");
   for(values::iterator p = vals.begin(); p != vals.end(); ++p) {
     if(!module || (*p)->v->whereDefined() == module) {
+      if(where) out << (*p)->v->getPos();
       if ((*p)->shadowed)
 	out << "  <shadowed> ";
       (*p)->v->getType()->printVar(out, name);

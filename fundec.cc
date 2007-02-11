@@ -141,7 +141,7 @@ void formal::transAsVar(coenv &e, int index) {
     // Suppress error messages because they will already be reported
     // when the formals are translated to yield the type earlier.
     types::ty *t = getType(e, true);
-    varEntry *v = new varEntry(t, a, 0);
+    varEntry *v = new varEntry(t, a, 0, getPos());
 
     // Add operations if a new array type is formed.  This will add to the
     // environment at the start of the function, when the formals are also added
