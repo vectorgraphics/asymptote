@@ -393,7 +393,7 @@ The keywords on list are assumed to also be present on one of the
   (concat buffer-file-name ".log"))
 
 (defun asy-compile()
-  "Compile Asymptote code and view compilation result with the function `shell-command'."
+  "Compile Asymptote code."
   (interactive)
   (if (and (boundp two-mode-bool) two-mode-bool)
       (lasy-compile)
@@ -883,11 +883,11 @@ Set the number of line into the variable `lasy-error-ignore-number-line'."
               (replace-match "")))
           (let*
               ((asy-compile-command
-                (concat asy-command-location
-                        asy-command " " Filename
-                        " 2> " (asy-log-filename))))
+                (concat "( " asy-command-location
+                        asy-command " -wait " Filename
+                        " 2> " (asy-log-filename) " & ) >/dev/null")))
             (shell-command asy-compile-command)
-            (asy-error-message t)))))))
+            (run-at-time 1 nil (lambda ()(asy-error-message t)))))))))
 
 (defun asy-set-master-tex ()
   "Set the local variable 'asy-TeX-master-file.
