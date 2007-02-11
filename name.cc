@@ -3,7 +3,7 @@
  * Andy Hammerlindl2002/07/14
  *
  * Qualified names (such as x, f, builtin.sin, a.b.c.d, etc.) can be used
- * either as varibles or a type names.  This class stores qualified
+ * either as variables or a type names.  This class stores qualified
  * names used in nameExp and nameTy in the abstract syntax, and
  * implements the exp and type functions.
  *****/
