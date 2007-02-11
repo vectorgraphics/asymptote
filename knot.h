@@ -303,7 +303,7 @@ struct protopath {
       end.post=end.point;
     }
   }
-  // Once all the control are set, return the final (constant) path.
+  // Once all the controls are set, return the final (constant) path.
   path fix() {
     return path(nodes,n,cycles);
   }
