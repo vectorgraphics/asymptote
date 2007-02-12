@@ -21,8 +21,12 @@ using namespace settings;
 
 namespace camp {
 
-const char *texpathmessage="the directory containing your tex engine "
-                           "(latex by default)";
+const char *texpathmessage() {
+  ostringstream buf;
+  buf << "the directory containing your " << getSetting<mem::string>("tex")
+      << "engine (" << texcommand() << ")";
+  return strcpy(new char[buf.str().size()+1],buf.str().c_str());
+}
   
 string texready=string("(Please type a command or say `\\end')\n*");
 texstream tex; // Bi-directional pipe to latex (to find label bbox)
@@ -147,7 +151,7 @@ void picture::texinit()
   
   ostringstream cmd;
   cmd << "'" << texengine() << "'";
-  tex.open(cmd.str().c_str(),"texpath",texpathmessage);
+  tex.open(cmd.str().c_str(),"texpath",texpathmessage());
   texdocumentclass(tex,true);
   
   texdefines(tex,TeXpreamble,true);
@@ -170,9 +174,9 @@ bool picture::texprocess(const string& texname, const string& outname,
     cmd << "'" << texengine() << "'"
 	<< " \\scrollmode\\input '" << texname << "'";
     bool quiet=verbose <= 1;
-    status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage);
+    status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
     if(!status && getSetting<bool>("twice")) 
-      status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage);
+      status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
     if(status) {
       if(quiet) System(cmd,0);
       return false;

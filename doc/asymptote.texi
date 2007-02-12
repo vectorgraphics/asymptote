@@ -452,6 +452,7 @@ type may be changed to @code{a4} with the configuration variable
 configuration variables @code{paperwidth} and @code{paperheight}.
 
 @cindex @code{texpath}
+@cindex @code{texcommand}
 @cindex @code{dvips}
 @cindex @code{convert}
 @cindex @code{display}
@@ -461,6 +462,7 @@ configuration variables @code{paperwidth} and @code{paperheight}.
 The following configuration variables normally do not require adjustment:
 @verbatim
 texpath
+texcommand
 dvips
 convert
 display

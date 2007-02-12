@@ -85,5 +85,6 @@ extern bool fataltex[];
 const char **texabort(const mem::string& texengine);
   
 mem::string texengine();
+mem::string texcommand();
 }
 #endif

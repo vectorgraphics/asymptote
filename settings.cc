@@ -841,6 +841,7 @@ void initSettings() {
   addOption(new envSetting("psviewer", defaultPSViewer));
   addOption(new envSetting("gs", defaultGhostscript));
   addOption(new envSetting("texpath", ""));
+  addOption(new envSetting("texcommand", ""));
   addOption(new envSetting("dvips", "dvips"));
   addOption(new envSetting("convert", "convert"));
   addOption(new envSetting("display", defaultDisplay));
@@ -972,7 +973,7 @@ const char *endlabel(const mem::string& texengine) {
     return "\\special{ps: currentpoint grestore moveto}";
 }
 
-// TeX command to begin raw postscript code
+// TeX macro to typeset raw postscript code
 const char *rawpostscript(const mem::string& texengine) {
   if(pdf(texengine))
     return "\\def\\ASYraw#1{#1}";
@@ -1007,10 +1008,16 @@ const char **texabort(const mem::string& texengine)
   return settings::pdf(texengine) ? pdftexerrors : texerrors;
 }
 
-mem::string texengine() {
+mem::string texcommand() 
+{
+  mem::string command=getSetting<mem::string>("texcommand");
+  return command.empty() ? getSetting<mem::string>("tex") : command;
+}
+  
+mem::string texengine()
+{
   mem::string path=getSetting<mem::string>("texpath");
-  mem::string tex=getSetting<mem::string>("tex");
-  return (path == "") ? tex : (mem::string) (path+"/"+tex);
+  return (path == "") ? texcommand() : (mem::string) (path+"/"+texcommand());
 }
 
 int getScroll() 
