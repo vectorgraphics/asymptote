@@ -296,6 +296,16 @@ This variable must be modified only using the function 'asy-set-master-tex by M-
    'asy-mode
    '(("\\\\begin{asy}.*" . 'asy-environment-face)
      ("\\\\end{asy}" . 'asy-environment-face)))
+
+  (defface asy-link-face ;; widget-field-face
+    `((t
+       (:underline t)))
+    "Face used to highlighting the links."
+    :group 'asymptote)
+
+  (font-lock-add-keywords
+   'asy-mode
+   '(("\\[.*?\\.asy\\]" . 'asy-link-face)))
   )
 
 (when (fboundp 'c-lang-defconst)
@@ -458,7 +468,7 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
             (if lasy-run-tex ; lasy-mode need the compilation of file.tex
                                         ; the error can be in Tex commands or in Asymptote comamds
                 (progn
-                  (if (or (eq asy-compilation-buffer 'never) lasy-compile-tex);; 
+                  (if (or (eq asy-compilation-buffer 'never) lasy-compile-tex) ;; 
                       (if li_
                           (when (lasy-ask-visit-tem-compilation-buffer)
                             (let ((file (asy-log-field-string log-file 1)))
@@ -509,6 +519,11 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
       (setq case-fold-search case-fold-search-asy)
       (if (string= Strout "") "No match.\n" Strout))))
 
+(defun asy-widget-open-file-at-pos (widget &optional event)
+  ""
+  (kill-buffer (current-buffer))
+  (find-file (widget-get widget :follow-link))
+  (goto-line (string-to-number (widget-get widget :value))))
 
 (defun asy-show-function-at-point()
   "Show the Asymptote definitions of the command at point."
@@ -519,13 +534,30 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
       (switch-to-buffer-other-window "*asy-help*")
       (if (> emacs-major-version 21)
           (call-process-shell-command
-           (concat asy-command-location "asy -l") nil t nil)
-        (insert (shell-command-to-string "asy -l")))
-      (let ((rHelp (asy-grep (concat "^.*\\b" cWord "(\\(.\\)*?$"))))
+           (concat asy-command-location "asy -l --where") nil t nil)
+        (insert (shell-command-to-string "asy -l --where")))
+      (let ((rHelp (asy-grep (concat "^.*\\b" cWord "(\\(.\\)*?$")))
+            (tag)(file)(line))
         (erase-buffer)
-        (insert rHelp))
+        (insert rHelp)
+        (beginning-of-buffer)
+        (while (re-search-forward "\\(.*\\): \\([0-9]*\\)\\.\\([0-9]*\\)" (point-max) t)
+          (setq file (match-string 1)
+                line (match-string 2)
+                tag (file-name-nondirectory file))
+          (widget-create `(file-link
+                           :tag ,tag
+                           :follow-link ,file
+                           :value ,line
+                           :action asy-widget-open-file-at-pos
+                           ))))
+      (beginning-of-buffer)
+      (while (re-search-forward "\\(.*: [0-9]*\\.[0-9]*\\)" (point-max) t)
+        (replace-match ""))
       (asy-mode)
-      (use-local-map nil)
+      (use-local-map widget-keymap)
+      (widget-setup)
+      ;; (use-local-map nil)
       (goto-char (point-min))
       (select-window cWindow))))
 
