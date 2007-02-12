@@ -23,6 +23,10 @@ using std::string;
 namespace sym {
 
 struct GCInit {
+#ifdef _AIX
+  typedef char * GC_PTR;
+#endif
+  
   GCInit() {
 #ifdef USEGC
   GC_free_space_divisor = 2;
