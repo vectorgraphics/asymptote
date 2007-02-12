@@ -761,7 +761,7 @@ public:
 
   void doList() {}
 
-  void run(coenv &e, istack &s, transMode tm=TRANS_NORMAL) {
+  void run(coenv &e, istack &s, transMode=TRANS_NORMAL) {
     running=true;
     interact::setCompleter(new trans::envCompleter(e.e));
 
