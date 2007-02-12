@@ -303,17 +303,24 @@ the @code{Asymptote} download page into a @code{deb} file suitable for
 installation via @code{Dpkg}:
 
 @enumerate
-@item Install Alien (if not installed already):
+@item Install @code{Alien} (if not installed already):
 
+@verbatim
 sudo apt-get install alien
+@end verbatim
 
-@item Convert the rpm into a deb:
+@item Convert the @code{rpm} file into a @code{deb} file:
 
+@verbatim
 sudo alien --to-deb --scripts --keep-version asymptote-x.xx-1.i386.rpm
+@end verbatim
 
-@item Use Dpkg to install (or upgrade) the generated deb file into your system:
+@item Use @code{Dpkg} to install (or upgrade) the generated deb file
+into your system:
 
+@verbatim
 sudo dpkg -i asymptote_x.xx-1_i386.deb
+@end verbatim
 @end enumerate
 
 Alternatively, Debian users can install Hubert Chan's @code{Asymptote}
@@ -582,6 +589,9 @@ If you are compiling @code{Asymptote} with @code{gcc}, you will need a
 relatively recent version (e.g.@ 3.2 or later).  For full interactive
 functionality, you will need version 4.2 or later of the @acronym{GNU}
 @code{readline} library.
+The file @code{gcc3.3.2curses.patch} in the @code{patches} directory can
+be used to patch the broken curses.h header file (or a local copy thereof
+in the current directory) on some @code{AIX} and @code{IRIX} systems.
 
 @cindex @code{FFTW}
 @cindex @code{GSL}
@@ -623,11 +633,13 @@ shows the available function prototypes for the command at the cursor.
 For full functionality you should also install the Apache Software Foundation
 package @code{two-mode-mode}:
 @quotation
-@url{http://www.dedasys.com/freesoftware/files/two-mode-mode.el}.
+@url{http://www.dedasys.com/freesoftware/files/two-mode-mode.el}
 @end quotation
 @noindent
-Once installed, you can use the hybrid mode @code{lasy-mode} to edit a LaTeX file which contains @code{Asymptote} code.
-@code{lasy-mode} within @code{latex-mode} is enabled by pressing the sequence keys @code{M-x lasy-mode <RET>}.
+Once installed, you can use the hybrid mode @code{lasy-mode} to edit a
+LaTeX file containing embedded @code{Asymptote} code (@pxref{LaTeX usage}). 
+This mode can be enabled within @code{latex-mode}
+with the key sequenc @code{M-x lasy-mode <RET>}.
 For more information, read the documentation of @code{asy-mode} within @code{emacs} by pressing the sequence keys @code{C-h f asy-mode <RET>}.
 
 @cindex @code{vim}

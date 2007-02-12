@@ -67,6 +67,9 @@ $(GCLIBS): $(GC).tar.gz
 	gunzip -c $(GC).tar.gz > $(GC).tar
 	tar -xf $(GC).tar
 	rm -f $(GC).tar
+	if test "$(GC)" = "gc6.8"; then \
+	  cd $(GC)/include; patch < ../../patches/gc6.8_AIX.patch; \
+	fi
 	cd $(GC); \
 	./configure $(GCOPTIONS); \
 	$(MAKE) check

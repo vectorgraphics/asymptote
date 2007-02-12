@@ -5,3 +5,9 @@ compilers.
 A modified version of dvipdf that accepts the dvips -z hyperdvi option is
 included.
 
+The file gcc3.3.2curses.patch can be used to patch the broken curses.h header
+files (or a local copy thereof in the current directory) on some AIX and
+IRIX systems.
+
+The file gc6.8_AIX.patch fixes an incorrect Boehm garbage collector
+prototype in the file gc6.8/include/gc.h (version 6.8).
