@@ -100,6 +100,7 @@ Some variables can be customized: M-x customize-group <RET> asymptote <RET>."
 (require 'cc-mode)
 (require 'cl) ;; Common Lisp extensions for Emacs
 (require 'compile)
+(require 'wid-edit)
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.asy$" . asy-mode))
