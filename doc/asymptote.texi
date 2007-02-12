@@ -622,7 +622,10 @@ and displays the current buffer, and the key binding @code{C-c ?}, which
 shows the available function prototypes for the command at the cursor.
 For full functionality you should also install the Apache Software Foundation
 package @code{two-mode-mode}:
+@quotation
 @url{http://www.dedasys.com/freesoftware/files/two-mode-mode.el}.
+@end quotation
+@noindent
 Once installed, you can use the hybrid mode @code{lasy-mode} to edit a LaTeX file which contains @code{Asymptote} code.
 @code{lasy-mode} within @code{latex-mode} is enabled by pressing the sequence keys @code{M-x lasy-mode <RET>}.
 For more information, read the documentation of @code{asy-mode} within @code{emacs} by pressing the sequence keys @code{C-h f asy-mode <RET>}.
