@@ -196,7 +196,7 @@ void venv::list(record *module)
     name_t &list=names[s];
     for(name_iterator p = list.begin(); p != list.end(); ++p) {
       if(!module || (*p)->whereDefined() == module) {
-	if(where) out << (*p)->v->getPos();
+	if(where) std::cout << (*p)->getPos();
 	(*p)->getType()->printVar(std::cout, s);
 	std::cout << ";\n";
       }
