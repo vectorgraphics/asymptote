@@ -1,5 +1,7 @@
---- curses.h.orig	2007-02-11 21:43:36.000000000 -0700
-+++ curses.h	2007-02-11 21:43:21.000000000 -0700
-@@ -1302 +1302 @@
--#if defined(__USE_FIXED_PROTOTYPES__) || defined(__cplusplus) || defined (__STRICT_ANSI__)
-+#if 0 && (defined(__USE_FIXED_PROTOTYPES__) || defined(__cplusplus) || defined (__STRICT_ANSI__))
+*** curses.h.orig	Sun Feb 11 21:43:36 2007
+--- curses.h	Sun Feb 11 21:43:21 2007
+***************
+*** 1302 ****
+! #if defined(__USE_FIXED_PROTOTYPES__) || defined(__cplusplus) || defined (__STRICT_ANSI__)
+--- 1302 ----
+! #if 0 && (defined(__USE_FIXED_PROTOTYPES__) || defined(__cplusplus) || defined (__STRICT_ANSI__))
