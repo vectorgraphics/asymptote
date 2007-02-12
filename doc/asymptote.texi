@@ -332,7 +332,7 @@ or install the contributed @code{Asymptote} binary available at
 @url{http://www.hmug.org/pub/MacOS_X/BSD/Applications/Publishing/asymptote/}
 
 @noindent
-Because these these preconfigured binary distributions have
+Because these preconfigured binary distributions have
 strict architecture and library dependencies that many installations do
 not satisfy, we recommend installing Asymptote directly from the
 official source:
@@ -601,6 +601,7 @@ to the directory @code{base} (in the top level directory of the
 @cindex Editing modes
 @cindex @code{emacs}
 @cindex @code{asy-mode}
+@cindex @code{lasy-mode}
 Users of @code{emacs} can edit @code{Asymptote} code with the mode
 @code{asy-mode}, after enabling it by putting the following lines in their
 @code{.emacs} initialization file, replacing @code{ASYDIR} with the
@@ -621,7 +622,10 @@ and displays the current buffer, and the key binding @code{C-c ?}, which
 shows the available function prototypes for the command at the cursor.
 For full functionality you should also install the Apache Software Foundation
 package @code{two-mode-mode}:
-@url{http://www.dedasys.com/freesoftware/files/two-mode-mode.el}
+@url{http://www.dedasys.com/freesoftware/files/two-mode-mode.el}.
+Once installed, you can use the hybrid mode @code{lasy-mode} to edit a LaTeX file which contains @code{Asymptote} code.
+@code{lasy-mode} within @code{latex-mode} is enabled by pressing the sequence keys @code{M-x lasy-mode <RET>}.
+For more information, read the documentation of @code{asy-mode} within @code{emacs} by pressing the sequence keys @code{C-h f asy-mode <RET>}.
 
 @cindex @code{vim}
 @cindex @code{asy.vim}
