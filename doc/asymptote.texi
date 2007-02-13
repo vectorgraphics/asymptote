@@ -341,7 +341,7 @@ or install the contributed @code{Asymptote} binary available at
 @noindent
 Because these preconfigured binary distributions have
 strict architecture and library dependencies that many installations do
-not satisfy, we recommend installing Asymptote directly from the
+not satisfy, we recommend installing @code{Asymptote} directly from the
 official source:
 
 @url{http://sourceforge.net/project/showfiles.php?group_id=120000}
@@ -499,7 +499,7 @@ under @code{Microsoft Windows XP}:
 The @code{PostScript} viewer should be capable of automatically
 redrawing whenever the output file is updated. The default @code{UNIX}
 @code{PostScript} viewer @code{gv} supports this (via a @code{SIGHUP}
-signal). Upgrading to @code{gv-3.6.2} (from
+signal). Version @code{gv-3.6.2} or later (from
 @code{http://ftp.gnu.org/gnu/gv/}) is required for interactive mode to
 work properly.
 
@@ -6789,6 +6789,10 @@ entered over multiple lines; in this mode, the automatic termination of
 interactive input lines by a semicolon is inhibited. Multiline mode is useful
 for cutting and pasting @code{Asymptote} code directly into the
 interactive input buffer.
+
+Interactive mode can be conveniently used as a calculator: expressions
+entered at the interactive prompt (for which a corresponding @code{write}
+function exists) are automatically evaluated and written to @code{stdout}.
 
 The following special commands are supported only in interactive mode
 and must be entered immediately after the prompt:
