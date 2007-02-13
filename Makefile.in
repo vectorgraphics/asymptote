@@ -23,6 +23,7 @@ CLEAN = camp.output asy.list
 NAME = asy
 EXTRABIN = x$(NAME)
 EXTRA = asy-mode.el asy-keywords.el asy-init.el asy.vim asymptote.py
+KEYWORDS = base $(ASYMPTOTE_SITEDIR)
 LATEXFILES = asymptote.sty asycolors.sty pdfanim_temp.sty
 
 DEFS = @DEFS@ @OPTIONS@
@@ -102,7 +103,7 @@ envcompleter.d: keywords.cc
 
 asy-keywords.el: asy-list.pl 
 	./asy -l -dir base > asy.list
-	ls base/*.asy | grep -v plain\* | grep -v featpost3D | xargs ./asy -l -dir base >> asy.list
+	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | grep -v featpost3D | xargs ./asy -l -dir base >> asy.list
 	./asy-list.pl asy.list @VERSION@
 	ln -sf ../asy-keywords.el base/
 
