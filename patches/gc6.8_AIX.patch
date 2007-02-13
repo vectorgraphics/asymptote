@@ -1,0 +1,7 @@
+*** gc.h.orig	Fri Jul  7 18:10:16 2006
+--- gc.h	Mon Feb 12 12:30:48 2007
+***************
+*** 981 ****
+! #     define GC_INIT() { GC_add_roots(GC_DATASTART, GC_DATAEND); }
+--- 981 ----
+! #     define GC_INIT() { GC_add_roots((char *) GC_DATASTART, (char *) GC_DATAEND); }
