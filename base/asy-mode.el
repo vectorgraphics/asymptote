@@ -533,6 +533,7 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
     (let ((cWord (current-word))
           (cWindow (selected-window)))
       (switch-to-buffer-other-window "*asy-help*")
+      (setq default-directory "/")
       (if (> emacs-major-version 21)
           (call-process-shell-command
            (concat asy-command-location "asy -l --where") nil t nil)
