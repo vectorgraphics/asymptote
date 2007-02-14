@@ -582,12 +582,17 @@ void addOption(option *o) {
   o->add();
 }
 
-void usage(const char *program)
+void version(const char *program)
 {
   cerr << PROGRAM << " version " << VERSION
        << " [(C) 2004 Andy Hammerlindl, John C. Bowman, Tom Prince]" 
-       << endl
-       << "\t\t\t" << "http://asymptote.sourceforge.net/"
+       << endl;
+}
+
+void usage(const char *program)
+{
+  version(program);
+  cerr << "\t\t\t" << "http://asymptote.sourceforge.net/"
        << endl
        << "Usage: " << program << " [options] [file ...]"
        << endl;
@@ -620,6 +625,19 @@ struct helpOption : public option {
     usage(argv0);
     displayOptions();
     cerr << endl;
+    exit(0);
+
+    // Unreachable code.
+    return true;
+  }
+};
+
+struct versionOption : public option {
+  versionOption(mem::string name, char code, mem::string desc)
+    : option(name, code, noarg, desc, true) {}
+
+  bool getOption() {
+    version(argv0);
     exit(0);
 
     // Unreachable code.
@@ -754,6 +772,7 @@ void initSettings() {
 				     "Alternative output name for first file",
 				     ""));
   addOption(new helpOption("help", 'h', "Show summary of options"));
+  addOption(new versionOption("version", 0, "Show version"));
 
   addOption(new pairSetting("offset", 'O', "pair",
 			    "PostScript offset [(0,0)]"));
