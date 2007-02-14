@@ -5703,8 +5703,9 @@ marker marker(frame f, markroutine markroutine=marknodes,
 In the right-hand graph, the unit @math{n}-sided regular polygon 
 @code{polygon(int n)} and the unit @math{n}-point cross 
 @code{cross(int n)} are used to build a custom marker frame. 
-Here @code{markuniform(int n)} adds this frame at @code{n}
-uniformly spaced points along the arclength of the path. This example also
+Here @code{markuniform(int n, bool rotated=false)} adds this frame at @code{n}
+uniformly spaced points along the arclength of the path, optionally
+rotating it by the angle of the local tangent. This example also
 illustrates the @code{errorbar} routines:
 
 @verbatim

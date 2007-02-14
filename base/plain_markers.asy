@@ -31,14 +31,21 @@ void marknodes(picture pic=currentpicture, path g, frame f) {
 }
 
 // On picture pic, add to path g the frame f, evenly spaced in arclength.
-markroutine markuniform(int n) {
+// If rotated=true, the frame will be rotated by the angle of the tangent
+// to the path at the points where the frame will be added.
+markroutine markuniform(int n, bool rotated=false) {
+  rotated=true;
   return new void(picture pic=currentpicture, path g, frame f) {
     if(n == 0) return;
-    if(n == 1) add(pic,f,relpoint(g,0.5));
+    void add(real x) {
+      real t=reltime(g,x);
+      add(pic,rotated ? rotate(degrees(dir(g,t)))*f : f,point(g,t));
+    }
+    if(n == 1) add(0.5);
     else {
       real width=1/(n-1);
       for(int i=0; i < n; ++i)
-        add(pic,f,relpoint(g,i*width));
+	add(i*width);
     }
   };
 }
