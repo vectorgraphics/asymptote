@@ -450,44 +450,42 @@ struct picture {
     userSety=pic.userSety;
   }
   
+  typedef real binop(real, real);
+
+  // Cache the current user-space bounding box x coodinates
+  void userBoxX(real min, real max, binop m=min, binop M=max) {
+    if(userSetx) {
+      userMin=(m(userMin.x,min),userMin.y);
+      userMax=(M(userMax.x,max),userMax.y);
+    } else {
+      userMin=(min,userMin.y);
+      userMax=(max,userMax.y);
+      userSetx=true;
+    }
+  }
+  
+  // Cache the current user-space bounding box y coodinates
+  void userBoxY(real min, real max, binop m=min, binop M=max) {
+    if(userSety) {
+      userMin=(userMin.x,m(userMin.y,min));
+      userMax=(userMax.x,M(userMax.y,max));
+    } else {
+      userMin=(userMin.x,min);
+      userMax=(userMax.x,max);
+      userSety=true;
+    }
+  }
+  
   // Cache the current user-space bounding box
   void userBox(pair min, pair max) {
-    if(userSetx && userSety) {
-      userMin=minbound(userMin,min);
-      userMax=maxbound(userMax,max);
-    } else {
-      if(userSetx) {
-        userMin=(min(userMin.x,min.x),min.y);
-        userMax=(max(userMax.x,max.x),max.y);
-      } else if(userSety) {
-        userMin=(min.x,min(userMin.y,min.y));
-        userMax=(max.x,max(userMax.y,max.y));
-      } else {
-        userMin=min;
-        userMax=max;
-        userSetx=userSety=true;
-      }
-    }
+    userBoxX(min.x,max.x);
+    userBoxY(min.y,max.y);
   }
   
   // Clip the current user-space bounding box
   void userClip(pair min, pair max) {
-    if(userSetx && userSety) {
-      userMin=maxbound(userMin,min);
-      userMax=minbound(userMax,max);
-    } else {
-      if(userSetx) {
-        userMin=(max(userMin.x,min.x),min.y);
-        userMax=(min(userMax.x,max.x),max.y);
-      } else if(userSety) {
-        userMin=(min.x,max(userMin.y,min.y));
-        userMax=(max.x,min(userMax.y,max.y));
-      } else {
-        userMin=min;
-        userMax=max;
-        userSetx=userSety=true;
-      }
-    }
+    userBoxX(min.x,max.x,max,min);
+    userBoxY(min.y,max.y,max,min);
   }
   
   void add(drawerBound d) {
@@ -835,7 +833,8 @@ struct picture {
     
     legend.append(src.legend);
     
-    userBox(src.userMin,src.userMax);
+    if(src.userSetx) userBoxX(src.userMin.x,src.userMax.x);
+    if(src.userSety) userBoxY(src.userMin.y,src.userMax.y);
     
     append(bounds.point,bounds.min,bounds.max,srcCopy.T,src.bounds);
   }
