@@ -163,7 +163,7 @@ pair[] intersectionpoints(path p, path q)
   return z;
 }
 
-pair[] intersectionpoints(path[] p, path[] q)
+pair[] intersectionpoints(explicit path[] p, explicit path[] q)
 {
   pair[] z;
   for(int i=0; i < p.length; ++i)
