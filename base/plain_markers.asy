@@ -34,7 +34,6 @@ void marknodes(picture pic=currentpicture, path g, frame f) {
 // If rotated=true, the frame will be rotated by the angle of the tangent
 // to the path at the points where the frame will be added.
 markroutine markuniform(int n, bool rotated=false) {
-  rotated=true;
   return new void(picture pic=currentpicture, path g, frame f) {
     if(n == 0) return;
     void add(real x) {
