@@ -74,7 +74,7 @@ pair startposition=(-0.8,0.9);
 pair currentposition=startposition;
 
 string bulletcolor(string color) {
-  return "\def\bulletcolor{"+'\\'+"color{"+color+"}}";
+  return "\def\bulletcolor{"+'\\'+"color{"+color+"}}%";
 }
 
 picture background;
@@ -106,7 +106,7 @@ void background()
 }
 
 void color(string name, string color) {
-  texpreamble("\def"+'\\'+name+"#1{{\color{"+color+"}#1}}");
+  texpreamble("\def"+'\\'+name+"#1{{\color{"+color+"}#1}}%");
 }
 
 void normalvideo() {
@@ -310,7 +310,7 @@ void display(string[] s, real margin=0, pen figuremattpen=figuremattpen,
     real w=margin+width[i];
     pos += 0.5*w;
     center[i]=pos;
-    label(f,s[i],(center[i],0));
+    label(f,s[i],(center[i],0),Fill(figureborder,figuremattpen));
     pos += 0.5*w;
   }
   int stop=min(s.length,captions.length);
@@ -380,8 +380,11 @@ void titlepage(string title, string author, string institution="",
 
 void bibliography(string name) 
 {
-  numberpage();
   havepagenumber=false;
+  if(reverse) {
+    tex("\definecolor{Background}{cmyk}{1,1,1,1}%");
+    tex("\pagecolor{Background}%");
+  }
   label("");
   tex("\clearpage\def\refname{\fontsize{"+string(fontsize(titlepen))+"}{"+
       string(lineskip(titlepen))+"}\selectfont References}%");
