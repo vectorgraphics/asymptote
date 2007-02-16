@@ -543,37 +543,41 @@ struct intrefSetting : public refSetting<int> {
 };
 
 struct incrementSetting : public refSetting<int> {
-  incrementSetting(mem::string name, char code, mem::string desc, int *ref)
+  int level;
+  
+  incrementSetting(mem::string name, char code, mem::string desc, int *ref,
+		   int level=1)
     : refSetting<int>(name, code, noarg, desc,
-		      types::primInt(), ref, 0, "0") {}
+		      types::primInt(), ref, 0, "0"), level(level) {}
 
   bool getOption() {
     // Increment the value.
-    ++(*ref);
+    (*ref) += level;
     return true;
   }
   
-  option *negation(mem::string name) {
+  option *negation(mem::string name, int level) {
     struct negOption : public option {
       incrementSetting &base;
+      int level;
 
-      negOption(incrementSetting &base, mem::string name)
-        : option(name, 0, noarg, ""), base(base) {}
+      negOption(incrementSetting &base, mem::string name, int level)
+        : option(name, 0, noarg, ""), base(base), level(level) {}
 
       bool getOption() {
-        if(*base.ref) --(*base.ref);
+        if(*base.ref) (*base.ref) -= level;
         return true;
       }
     };
-    return new negOption(*this, name);
+    return new negOption(*this, name, level);
   }
   
   void add() {
     setting::add();
-    negation("no"+name)->add();
+    negation("no"+name,level)->add();
     if (code) {
       mem::string nocode="no"; nocode.push_back(code);
-      negation(nocode)->add();
+      negation(nocode,level)->add();
     }
   }
 };
@@ -782,6 +786,8 @@ void initSettings() {
   addOption(new boolSetting("debug", 'd', "Enable debugging messages"));
   addOption(new incrementSetting("verbose", 'v',
 				 "Increase verbosity level", &verbose));
+  addOption(new incrementSetting("vv", 0,
+				 "", &verbose,2));
   addOption(new boolSetting("keep", 'k', "Keep intermediate files"));
   addOption(new stringSetting("tex", 0,"engine",
 			      "TeX engine (\"latex|pdflatex|tex|pdftex|none\") [\"latex\"]",
