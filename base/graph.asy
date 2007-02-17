@@ -334,7 +334,8 @@ pair labeltick(frame d, transform T, guide g, ticklocate locate, real val,
   pair shift=dot(align,-sign*locate1.dir) <= 0 ? align*Size :
     ticklabelshift(align,F.p);
 
-  real label=locate.S.scale.Tinv(val);
+  real label=locate.S.scale.logarithmic ? locate.S.scale.Tinv(val) : val;
+
   if(abs(label) < epsilon*norm) label=0;
   // Fix epsilon errors at +/-1e-4
   // default format changes to scientific notation here
