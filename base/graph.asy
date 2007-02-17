@@ -482,12 +482,15 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
     real b=locate.S.Tinv(locate.b);
     if(a > b) {real temp=a; a=b; b=temp;}
       
-    real tickmin=finite(locate.S.tickMin) && Step == 0 ? 
+    real tickmin=finite(locate.S.tickMin) && (Step == 0 || locate.S.automin) ? 
       locate.S.Tinv(locate.S.tickMin) : a;
-    real tickmax=finite(locate.S.tickMax) && Step == 0 ?
+    real tickmax=finite(locate.S.tickMax) && (Step == 0 || locate.S.automax) ?
       locate.S.Tinv(locate.S.tickMax) : b;
     if(tickmin > tickmax) {real temp=tickmin; tickmin=tickmax; tickmax=temp;}
       
+    if(Step > 0 && a*b < 0 && locate.S.automin)
+      tickmin=floor(tickmin/Step)*Step;
+
     bool calcStep=true;
     real len=tickmax-tickmin;
     real norm=max(abs(a),abs(b));
