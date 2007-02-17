@@ -336,7 +336,7 @@ pair labeltick(frame d, transform T, guide g, ticklocate locate, real val,
 
   real label=locate.S.scale.logarithmic ? locate.S.scale.Tinv(val) : val;
 
-  if(abs(label) < epsilon*norm) label=0;
+  if(abs(label) < 10*epsilon*norm) label=0;
   // Fix epsilon errors at +/-1e-4
   // default format changes to scientific notation here
   if(abs(abs(label)-1e-4) < epsilon) label=sgn(label)*1e-4;
@@ -1003,11 +1003,13 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
       pair a2=xmin == -infinity ? tinv*(lb.x-min(p).x,ytrans(t,y2)) : (xmin,y2);
       pair b2=xmax == infinity ? tinv*(rt.x-max(p).x,ytrans(t,y2)) : (xmax,y2);
 
-      bounds mx=autoscale(a.x,b.x,pic.scale.x.scale);
-      pic.scale.x.tickMin=mx.min;
-      pic.scale.x.tickMax=mx.max;
-      divisor=mx.divisor;
-
+      if(xmin == -infinity || xmax == infinity) {
+	bounds mx=autoscale(a.x,b.x,pic.scale.x.scale);
+	pic.scale.x.tickMin=mx.min;
+	pic.scale.x.tickMax=mx.max;
+	divisor=mx.divisor;
+      }
+      
       real fuzz=epsilon*max(abs(a.x),abs(b.x));
       a -= (fuzz,0);
       b += (fuzz,0);
@@ -1092,10 +1094,12 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
       pair a2=ymin == -infinity ? tinv*(xtrans(t,x2),lb.y-min(p).y) : (x2,ymin);
       pair b2=ymax == infinity ? tinv*(xtrans(t,x2),rt.y-max(p).y) : (x2,ymax);
 
-      bounds my=autoscale(a.y,b.y,pic.scale.y.scale);
-      pic.scale.y.tickMin=my.min;
-      pic.scale.y.tickMax=my.max;
-      divisor=my.divisor;
+      if(ymin == -infinity || ymax == infinity) {
+	bounds my=autoscale(a.y,b.y,pic.scale.y.scale);
+	pic.scale.y.tickMin=my.min;
+	pic.scale.y.tickMax=my.max;
+	divisor=my.divisor;
+      }
 
       real fuzz=epsilon*max(abs(a.y),abs(b.y));
       a -= (0,fuzz);
