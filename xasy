@@ -15,11 +15,11 @@ if L < 2 or L > 4 :
     sys.exit(1)
 
 prefix=sys.argv[1]
-if(L > 2):
+if L > 2:
     filenum=sys.argv[2]
 else:
     filenum=0
-if(L > 3):
+if L > 3:
     outname=sys.argv[3]
 else:
     outname=prefix
@@ -74,14 +74,16 @@ class transform:
         x=canvas.canvasx(event.x)
         y=canvas.canvasy(event.y)
         items=self.canv.find_overlapping(x,y,x,y)
-        self.Selection(items[-1])
+        if len(items) > 0:
+            self.Selection(items[-1]) 
     def lift(self,event):
         self.clearSelection()
         x=canvas.canvasx(event.x)
         y=canvas.canvasy(event.y)
         items=self.canv.find_overlapping(x,y,x,y)
-        self.canv.lift(items[0])
-        self.Selection(items[0])
+        if len(items) > 0:
+            self.canv.lift(items[0])
+            self.Selection(items[0])
     def leave(self,event):
 	self.clearSelection();
         self.canv.tag_unbind(self.obj,"<Delete>")
