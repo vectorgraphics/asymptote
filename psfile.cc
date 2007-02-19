@@ -238,7 +238,7 @@ void psfile::latticeshade(array *a, const bbox& b)
     for(size_t j=0; j < m; j++) {
 	pen *p=read<pen *>(ai,j);
 	p->convert();
-	if(!p->upgrade(colorspace))
+	if(!p->promote(colorspace))
 	  reportError(inconsistent);
 	writeHex(p,ncomponents);
       }
@@ -297,7 +297,7 @@ void psfile::gouraudshade(array *pens, array *vertices, array *edges)
     write(read<pair>(vertices,i));
     pen *p=read<pen *>(pens,i);
     p->convert();
-    if(!p->upgrade(colorspace))
+    if(!p->promote(colorspace))
       reportError(inconsistent);
     *out << " ";
     write(*p);
@@ -362,7 +362,7 @@ void psfile::tensorshade(array *pens, array *boundaries, array *z)
     for(int j=0; j < 4; ++j) {
       pen *p=read<pen *>(pi,j);
       p->convert();
-      if(!p->upgrade(colorspace))
+      if(!p->promote(colorspace))
 	reportError(inconsistent);
       *out << " ";
       write(*p);
@@ -469,7 +469,7 @@ void psfile::image(array *a, array *P)
       double val=read<double>(ai,j);
       pen *p=read<pen *>(P,(int) ((val-min)*step+0.5));
       p->convert();
-      if(!p->upgrade(colorspace))
+      if(!p->promote(colorspace))
 	reportError(inconsistent);
       writeHex(p,ncomponents);
     }
@@ -500,7 +500,7 @@ void psfile::image(array *a)
     for(size_t j=0; j < a0size; j++) {
       pen *p=read<pen *>(ai,j);
       p->convert();
-      if(!p->upgrade(colorspace))
+      if(!p->promote(colorspace))
 	reportError(inconsistent);
       writeHex(p,ncomponents);
     }

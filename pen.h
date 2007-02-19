@@ -516,13 +516,18 @@ public:
   }   
   
   // Try to upgrade to the specified colorspace.
-  bool upgrade(ColorSpace c) {
+  bool promote(ColorSpace c) {
     if(color == c) return true;
     
     switch(color) {
     case PATTERN:
     case INVISIBLE:
+      break;
     case DEFCOLOR:
+      {
+	return true;
+	break;
+      }
       break;
     case GRAYSCALE:
       {
