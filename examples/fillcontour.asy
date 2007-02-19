@@ -2,14 +2,14 @@ import graph;
 import palette;
 import contour;
 
-size(10cm,10cm,IgnoreAspect);
+size(12cm,IgnoreAspect);
 
 pair a=(pi/2,0);
 pair b=(1.5*pi+epsilon,2pi);
 
 real f(real x, real y) {return cos(x)*sin(y);}
 
-int N=300;
+int N=100;
 int Divs=10;
 
 defaultpen(1bp);
@@ -21,8 +21,9 @@ guide[][] g=contour(f,a,b,Cvals,N,operator --);
 
 pen[] Palette=quantize(Rainbow(),Divs);
 
-fill(g,Palette);
+pen[][] interior=interior(g,extend(Palette,grey,black));
+fill(g,interior);
 draw(g);
 
-palette("$f(x,y)$",range,point(NW)+(0,0.5),point(NE)+(0,1),Top,Palette,
-	PaletteTicks(N=Divs));
+palette("$f(x,y)$",range,point(SE)+(0.5,0),point(NE)+(1,0),Right,Palette,
+	PaletteTicks("$%+#0.1f$",N=Divs));

@@ -2,7 +2,7 @@
          
 import graph_settings;
 
-real eps=100*realEpsilon;
+real eps=10000*realEpsilon;
 
 //                         1  
 //             6 +-------------------+ 5
@@ -24,7 +24,7 @@ private struct segment
   pair a,b;        // Endpoints; a is always an edge point if one exists.
   int c;           // Contour value.
   int edge;        // -1: interior, 0 to 3: edge,
-                   // 4-8: single edge vertex, 9: double edge vertex.
+                   // 4-8: single-vertex edge, 9: double-vertex edge.
 }
 
 segment operator init() {return new segment;}
@@ -130,9 +130,79 @@ private segment checktriangle(pair p0, pair p1, pair p2,
   }      
 }
 
+// Collect connecting path segments
+private void collect(pair[][][] points, real[] c)
+{
+  // use to reverse an array, omitting the first point
+  int[] reverseF(int n) {return sequence(new int(int x){return n-1-x;},n-1);}
+  // use to reverse an array, omitting the last point
+  int[] reverseL(int n) {return sequence(new int(int x){return n-2-x;},n-1);}
+  
+  for(int cnt=0; cnt < c.length; ++cnt) {
+    pair[][] gdscnt=points[cnt];
+    for(int i=0; i < gdscnt.length; ++i) {
+      pair[] gig=gdscnt[i];
+      int Li=gig.length;
+      for(int j=i+1; j < gdscnt.length; ++j) {
+        pair[] gjg=gdscnt[j];
+        int Lj=gjg.length;
+        if(abs(gig[0]-gjg[0]) < eps) { 
+          gdscnt[j]=gjg[reverseF(Lj)];
+          gdscnt[j].append(gig);
+          gdscnt.delete(i); 
+          --i; 
+          break;
+        } else if(abs(gig[0]-gjg[Lj-1]) < eps) {
+          gig.delete(0);
+          gdscnt[j].append(gig);
+          gdscnt.delete(i);
+          --i;
+          break;
+        } else if(abs(gig[Li-1]-gjg[0]) < eps) {
+          gjg.delete(0);
+          gig.append(gjg);
+          gdscnt[j]=gig;
+          gdscnt.delete(i);
+          --i;
+          break;
+        } else if(abs(gig[Li-1]-gjg[Lj-1]) < eps) {
+          gig.append(gjg[reverseL(Lj)]);
+          gdscnt[j]=gig;
+          gdscnt.delete(i);
+          --i;
+          break;
+        } 
+      }
+    }
+  }
+}
+
 typedef guide interpolate(... guide[]);
 
-// return contour guides for a 2D data array, using a triangle mesh
+private guide[][] connect(pair[][][] points, real[] c, interpolate join)
+{
+  // set up return value
+  guide[][] result=new guide[c.length][0];
+  for(int cnt=0; cnt < c.length; ++cnt) {
+    pair[][] pointscnt=points[cnt];
+    guide[] resultcnt=result[cnt]=new guide[pointscnt.length];
+    for(int i=0; i < pointscnt.length; ++i) {
+      pair[] pts=pointscnt[i];
+      guide gd=pts[0];
+      for(int j=1; j < pts.length-1; ++j)
+        gd=join(gd,pts[j]);
+      if(abs(pts[0]-pts[pts.length-1]) < eps)
+        gd=gd..cycle;
+      else
+        gd=join(gd,pts[pts.length-1]);
+      resultcnt[i]=gd;
+    }
+  }
+  return result;
+}
+
+
+// Return contour guides for a 2D data array, using a triangle mesh
 // f:        two-dimensional array of real data values
 // a,b:      lower-left and upper-right vertices of contour domain
 // c:        array of contour values
@@ -343,17 +413,19 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
                   }
                 }
               } else {
-                // Two edge vertices: search all 8 surrounding cells
-                int I0=I;
-                int J0=J;
-                for(int i=-1; i <= 1; ++i) {
-                  for(int j=-1; j <= 1; ++j) {
-                    if(i == 0 && j == 0) continue;
-                    I=I0+i;
-                    J=J0+j;
-                    if((edge=f(I,J)) >= 0) break;
-                  }
-                }
+                // Double-vertex edge: search all 8 surrounding cells
+		void search() {
+		  for(int i=-1; i <= 1; ++i) {
+		    for(int j=-1; j <= 1; ++j) {
+		      if((edge=f(I+i,J+j,false)) >= 0) {
+			I += i;
+			J += j;
+			return;
+		      }
+		    }
+		  }
+		}
+		search();
               }
             }
           }
@@ -369,28 +441,13 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
         follow(backward,C.edge);
 
         points[C.c].push(g);
-      }      
+      }
     }
   }
 
-  guide[][] result=new guide[c.length][0];
-  for(int cnt=0; cnt < c.length; ++cnt) {
-    pair[][] pointscnt=points[cnt];
-    guide[] resultcnt=result[cnt]=new guide[pointscnt.length];
-    for(int i=0; i < pointscnt.length; ++i) {
-      pair[] pts=pointscnt[i];
-      guide gd=pts[0];
-      for(int j=1; j < pts.length-1; ++j)
-        gd=join(gd,pts[j]);
-      if(abs(pts[0]-pts[pts.length-1]) < eps)
-        gd=gd..cycle;
-      else
-        gd=join(gd,pts[pts.length-1]);
-      resultcnt[i]=gd;
-    }
-  }
+  collect(points,c); // Required to join remaining case1 cycles.
 
-  return result;
+  return connect(points,c,join);
 }
 
 // return contour guides for a real-valued function
@@ -424,7 +481,7 @@ guide[][] contour(real f(real, real), pair a, pair b,
 void draw(picture pic=currentpicture, Label[] L=new Label[],
           guide[][] g, pen[] p)
 {
-  begingroup(pic);
+  //  begingroup(pic);
   for(int cnt=0; cnt < g.length; ++cnt) {
     for(int i=0; i < g[cnt].length; ++i)
       draw(pic,g[cnt][i],p[cnt]);
@@ -438,7 +495,7 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
       }
     }
   }
-  endgroup(pic);
+  //  endgroup(pic);
 }
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
@@ -447,28 +504,86 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
   draw(pic,L,g,sequence(new pen(int) {return p;},g.length));
 }
 
-// Fill cyclic contours using palette
-void fill(guide[][] g, pen[] palette) 
+// Extend palette by the colors below and above at each end.
+pen[] extend(pen[] palette, pen below, pen above) {
+  pen[] p=copy(palette);
+  p.insert(0,below);
+  p.push(above);
+  return p;
+}
+
+// Compute the interior palette for a sequence of cyclic contours
+// corresponding to palette.
+pen[][] interior(picture pic=currentpicture, guide[][] g, pen[] palette)
 {
-  for(int i=0; i < g.length-1; ++i) {
+  if(palette.length != g.length+1)
+    abort("Palette array must have length one more than guide array");
+  pen[][] fillpalette=new pen[g.length][0];
+  for(int i=0; i < g.length; ++i) {
     guide[] gi=g[i];
-    guide[] gp=g[i+1];
-    pen p=palette[i];
-    if(gi.length == 0) {
-      for(int j=0; j < gp.length; ++j)
-	if(cyclic(gp[j]))
-	  fill(gp[j],p);
-    } else {
-      for(int j=0; j < gi.length; ++j) {
-	if(cyclic(gi[j])) {
-	  if(j < gp.length) {
-	    if(cyclic(gp[j])) {
-	      if(inside(gi[j],point(gp[j],0)) ||
-		 inside(gp[j],point(gi[j],0)))
-		fill(gi[j]^^gp[j],p+evenodd);
-	    }
-	  } else fill(gi[j],p);
+    guide[] gp;
+    if(i+1 < g.length) gp=g[i+1];
+    guide[] gm;
+    if(i > 0) gm=g[i-1];
+
+    pen[] fillpalettei=new pen[gi.length];
+    for(int j=0; j < gi.length; ++j) {
+      path P=gi[j];
+      if(cyclic(P)) {
+	int index=i+1;
+	bool nextinside;
+	for(int k=0; k < gp.length; ++k) {
+	  path next=gp[k];
+	  if(cyclic(next)) {
+	    if(inside(P,point(next,0)))
+	      nextinside=true;
+	    else if(inside(next,point(P,0)))
+	      index=i;
+	  }
 	}
+	if(!nextinside) {
+	  // Check to see if previous contour is inside
+	    for(int k=0; k < gm.length; ++k) {
+	      path prev=gm[k];
+	      if(cyclic(prev)) {
+		if(inside(P,point(prev,0)))
+		  index=i;
+	      }
+	    }
+	  } 
+	fillpalettei[j]=palette[index];
+      }
+      fillpalette[i]=fillpalettei;
+    }
+  }
+  return fillpalette;
+}
+
+// Fill the interior of cyclic contours with palette
+void fill(picture pic=currentpicture, guide[][] g, pen[][] palette)
+{
+  for(int i=0; i < g.length; ++i) {
+    guide[] gi=g[i];
+    guide[] gp;
+    if(i+1 < g.length) gp=g[i+1];
+    guide[] gm;
+    if(i > 0) gm=g[i-1];
+
+    for(int j=0; j < gi.length; ++j) {
+      path P=gi[j];
+      path[] S=P;
+      if(cyclic(P)) {
+	for(int k=0; k < gp.length; ++k) {
+	  path next=gp[k];
+	  if(cyclic(next) && inside(P,point(next,0)))
+	    S=S^^next;
+	}
+	for(int k=0; k < gm.length; ++k) {
+	  path next=gm[k];
+	  if(cyclic(next) && inside(P,point(next,0)))
+	    S=S^^next;
+	}
+	fill(pic,S,palette[i][j]+evenodd);
       }
     }
   }
@@ -514,80 +629,21 @@ guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
   int[][] trn=triangulate(z);
 
   // array to store guides found so far
-  pair[][][] gds=new pair[c.length][0][0];
+  pair[][][] points=new pair[c.length][0][0];
         
   for(int cnt=0; cnt < c.length; ++cnt) {
-    pair[][] gdscnt=gds[cnt];
+    pair[][] pointscnt=points[cnt];
     for(int i=0; i < trn.length; ++i) {
       int[] trni=trn[i];
       int i0=trni[0], i1=trni[1], i2=trni[2];
-      addseg(gdscnt,checktriangle(z[i0],z[i1],z[i2],
+      addseg(pointscnt,checktriangle(z[i0],z[i1],z[i2],
                                   f[i0]-c[cnt],f[i1]-c[cnt],f[i2]-c[cnt],0));
     }
   }
 
-  // connect existing paths
-  // use to reverse an array, omitting the first point
-  int[] reverseF(int n) {return sequence(new int(int x){return n-1-x;},n-1);}
-  // use to reverse an array, omitting the last point
-  int[] reverseL(int n) {return sequence(new int(int x){return n-2-x;},n-1);}
-  
-  for(int cnt=0; cnt < c.length; ++cnt) {
-    pair[][] gdscnt=gds[cnt];
-    for(int i=0; i < gdscnt.length; ++i) {
-      pair[] gig=gdscnt[i];
-      int Li=gig.length;
-      for(int j=i+1; j < gdscnt.length; ++j) {
-        pair[] gjg=gdscnt[j];
-        int Lj=gjg.length;
-        if(abs(gig[0]-gjg[0]) < eps) { 
-          gdscnt[j]=gjg[reverseF(Lj)];
-          gdscnt[j].append(gig);
-          gdscnt.delete(i); 
-          --i; 
-          break;
-        } else if(abs(gig[0]-gjg[Lj-1]) < eps) {
-          gig.delete(0);
-          gdscnt[j].append(gig);
-          gdscnt.delete(i);
-          --i;
-          break;
-        } else if(abs(gig[Li-1]-gjg[0]) < eps) {
-          gjg.delete(0);
-          gig.append(gjg);
-          gdscnt[j]=gig;
-          gdscnt.delete(i);
-          --i;
-          break;
-        } else if(abs(gig[Li-1]-gjg[Lj-1]) < eps) {
-          gig.append(gjg[reverseL(Lj)]);
-          gdscnt[j]=gig;
-          gdscnt.delete(i);
-          --i;
-          break;
-        } 
-      }
-    }
-  }
+  collect(points,c);
 
-  // set up return value
-  guide[][] result=new guide[c.length][0];
-  for(int cnt=0; cnt < c.length; ++cnt) {
-    pair[][] gdscnt=gds[cnt];
-    guide[] resultcnt=result[cnt]=new guide[gdscnt.length];
-    for(int i=0; i < gdscnt.length; ++i) {
-      pair[] pts=gdscnt[i];
-      guide gd=pts[0];
-      for(int j=1; j < pts.length-1; ++j)
-        gd=join(gd,pts[j]);
-      if(abs(pts[0]-pts[pts.length-1]) < eps)
-        gd=gd..cycle;
-      else
-        gd=join(gd,pts[pts.length-1]);
-      resultcnt[i]=gd;
-    }
-  }
-  return result;
+  return connect(points,c,join);
 }
 
 guide[][] contour(real[] x, real[] y, real[] f, real[] c,
