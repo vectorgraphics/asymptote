@@ -641,7 +641,7 @@ package @code{two-mode-mode}:
 Once installed, you can use the hybrid mode @code{lasy-mode} to edit a
 LaTeX file containing embedded @code{Asymptote} code (@pxref{LaTeX usage}). 
 This mode can be enabled within @code{latex-mode}
-with the key sequenc @code{M-x lasy-mode <RET>}.
+with the key sequence @code{M-x lasy-mode <RET>}.
 On @code{UNIX} systems, additional keywords will be generated from
 all @code{asy} files in the space-separated list of directories
 specified by the environment variable @code{ASYMPTOTE_SITEDIR}.
@@ -7242,7 +7242,8 @@ Stefan Knorr.
 @c  LocalWords:  Pienaar Melenchuk finalout pdfanim Linspire Dpkg sudo dpkg dtx
 @c  LocalWords:  windingnumber clickable PDFAnim eforms insdljs pdfmovie dfn
 @c  LocalWords:  slidemovies ifdraft embeddedu externalmovie headerpen bodypen
-@c  LocalWords:  GaussianSurface multiline binarytree tridiagonal portably
+@c  LocalWords:  GaussianSurface multiline binarytree tridiagonal portably AIX
 @c  LocalWords:  binarytreetest Henning subsample breakpoint locator wireframe
 @c  LocalWords:  labelpath intersectionpoints PSTricks pstextpath curvedlabel
-@c  LocalWords:  LeftJustified RightJustified tickmodifier gunzip gmake
+@c  LocalWords:  LeftJustified RightJustified tickmodifier gunzip gmake IRIX
+@c  LocalWords:  texcommand RET SITEDIR
