@@ -632,7 +632,7 @@ void addOption(option *o) {
   o->add();
 }
 
-void version(const char *program)
+void version()
 {
   cerr << PROGRAM << " version " << VERSION
        << " [(C) 2004 Andy Hammerlindl, John C. Bowman, Tom Prince]" 
@@ -641,7 +641,7 @@ void version(const char *program)
 
 void usage(const char *program)
 {
-  version(program);
+  version();
   cerr << "\t\t\t" << "http://asymptote.sourceforge.net/"
        << endl
        << "Usage: " << program << " [options] [file ...]"
@@ -687,7 +687,7 @@ struct versionOption : public option {
     : option(name, code, noarg, desc, true) {}
 
   bool getOption() {
-    version(argv0);
+    version();
     exit(0);
 
     // Unreachable code.
