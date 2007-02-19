@@ -107,6 +107,13 @@ char *argv0;
 
 // The verbosity setting, a global variable.
 int verbose;
+  
+// Colorspace conversion flags (stored in global variables for efficiency). 
+bool gray;
+bool bw;  
+bool rgb;
+bool cmyk;
+  
 // Disable system calls.
 bool safe=true;
 // Enable writing to (or changing to) other directories
@@ -535,11 +542,39 @@ struct refSetting : public setting {
   }
 };
 
-struct intrefSetting : public refSetting<int> {
-  intrefSetting(mem::string name, char code, mem::string argname,
-		mem::string desc, int *ref)
-    : refSetting<int>(name, code, argname, desc,
-		      types::primInt(), ref, 0, "0", "an int") {}
+struct boolrefSetting : public refSetting<bool> {
+  boolrefSetting(mem::string name, char code, mem::string desc, bool *ref)
+    : refSetting<bool>(name, code, noarg, desc,
+		       types::primBoolean(), ref, false, "false") {}
+  bool getOption() {
+    // Increment the value.
+    *ref=true;
+    return true;
+  }
+  
+  option *negation(mem::string name) {
+    struct negOption : public option {
+      boolrefSetting &base;
+
+      negOption(boolrefSetting &base, mem::string name)
+        : option(name, 0, noarg, ""), base(base) {}
+
+      bool getOption() {
+        *(base.ref)=false;
+        return true;
+      }
+    };
+    return new negOption(*this, name);
+  }
+  
+  void add() {
+    setting::add();
+    negation("no"+name)->add();
+    if (code) {
+      mem::string nocode="no"; nocode.push_back(code);
+      negation(nocode)->add();
+    }
+  }
 };
 
 struct incrementSetting : public refSetting<int> {
@@ -826,11 +861,12 @@ void initSettings() {
 			    "Mask fpu exceptions in interactive mode", true));
   addOption(mask);
 
-  addOption(new boolSetting("bw", 0,
-			    "Convert all colors to black and white"));
-  addOption(new boolSetting("gray", 0, "Convert all colors to grayscale"));
-  addOption(new boolSetting("rgb", 0, "Convert cmyk colors to rgb"));
-  addOption(new boolSetting("cmyk", 0, "Convert rgb colors to cmyk"));
+  addOption(new boolrefSetting("bw", 0,
+			       "Convert all colors to black and white",&bw));
+  addOption(new boolrefSetting("gray", 0, "Convert all colors to grayscale",
+			       &gray));
+  addOption(new boolrefSetting("rgb", 0, "Convert cmyk colors to rgb",&rgb));
+  addOption(new boolrefSetting("cmyk", 0, "Convert rgb colors to cmyk",&cmyk));
 
   addOption(new boolOption("safe", 0,
 			   "Disable system call", &safe, true, true));

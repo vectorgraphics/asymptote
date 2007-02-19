@@ -195,6 +195,34 @@ public:
     *out << s;
   }
 
+  // Determine shading and image transparency based on first pen.
+  void setfirstpen(vm::array *pens) {
+    if(pens->size() > 0) {
+      pen *p=vm::read<pen *>(pens,0);
+      setpen(*p);
+    }
+  }
+  
+  ColorSpace maxcolorspace(vm::array *pens) {
+    int colorspace=0;
+    size_t size=pens->size();
+    for(size_t i=0; i < size; i++) {
+      pen *p=vm::read<pen *>(pens,i);
+      p->convert();
+      colorspace=max(colorspace,(int) p->colorspace());
+    }
+    return (ColorSpace) colorspace;
+  }
+  
+  ColorSpace maxcolorspace2(vm::array *penarray) {
+    int colorspace=0;
+    size_t size=penarray->size();
+    for(size_t i=0; i < size; i++)
+      colorspace=max(colorspace,
+		     (int) maxcolorspace(vm::read<vm::array*>(penarray,i)));
+    return (ColorSpace) colorspace;
+  }
+
 };
 
 } //namespace camp

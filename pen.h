@@ -506,15 +506,42 @@ public:
   }
   
   void convert() {
-    if (settings::getSetting<bool>("gray") ||
-        settings::getSetting<bool>("bw")) {
+    if(settings::gray || settings::bw) {
       if(rgb()) rgbtogrey();
       else if(cmyk()) cmyktogrey();
-      if(settings::getSetting<bool>("bw")) {grey=(grey == 1.0) ? 1.0 : 0.0;}
+      if(settings::bw) {grey=(grey == 1.0) ? 1.0 : 0.0;}
     }
-    else if(settings::getSetting<bool>("rgb") && cmyk()) cmyktorgb();
-    else if(settings::getSetting<bool>("cmyk") && rgb()) rgbtocmyk();
-  }    
+    else if(settings::rgb && cmyk()) cmyktorgb();
+    else if(settings::cmyk && rgb()) rgbtocmyk();
+  }   
+  
+  // Try to upgrade to the specified colorspace.
+  bool upgrade(ColorSpace c) {
+    if(color == c) return true;
+    
+    switch(color) {
+    case PATTERN:
+    case INVISIBLE:
+    case DEFCOLOR:
+      break;
+    case GRAYSCALE:
+      {
+	if(c == RGB) {greytorgb(); return true;}
+	else if(c == CMYK) {greytocmyk(); return true;}
+	break;
+      }
+    case RGB:
+      {
+	if(c == CMYK) {rgbtocmyk(); return true;}
+	break;
+      }
+    case CMYK:
+      {
+	break;
+      }
+    }
+    return false;
+  }
   
   friend pen operator * (double x, const pen& q) {
     pen p=q;
@@ -530,7 +557,6 @@ public:
 	p.greyrange();
 	break;
       }
-      break;
     case RGB:
       {
 	p.r *= x;

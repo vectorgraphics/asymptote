@@ -115,7 +115,7 @@ bounds image(picture pic=currentpicture, real f(real,real),
 }
 
 void image(picture pic=currentpicture, pen[][] data, pair initial, pair final,
-	   bool transpose=(initial.x < final.x && initial.y < final.y))
+           bool transpose=(initial.x < final.x && initial.y < final.y))
 {
   data=transpose ? transpose(data) : copy(data);
 

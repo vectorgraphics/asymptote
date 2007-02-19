@@ -193,6 +193,8 @@ void psfile::write(path p, bool newPath)
   }    
 }
 
+static const char *inconsistent="inconsistent colorspaces";
+  
 void psfile::latticeshade(array *a, const bbox& b)
 {
   size_t n=a->size();
@@ -200,10 +202,9 @@ void psfile::latticeshade(array *a, const bbox& b)
   
   array *a0=read<array *>(a,0);
   size_t m=a0->size();
-
-  pen *p=read<pen *>(a0,0);
-  p->convert();
-  ColorSpace colorspace=p->colorspace();
+  setfirstpen(a0);
+  
+  ColorSpace colorspace=maxcolorspace2(a);
   checkColorSpace(colorspace);
   
   unsigned ncomponents=ColorComponents[colorspace];
@@ -218,12 +219,13 @@ void psfile::latticeshade(array *a, const bbox& b)
        << "<< /FunctionType 0" << newl
        << "/Order 1" << newl
        << "/Domain [0 1 0 1]" << newl
-       << "/Range [0 1 0 1 0 1]" << newl
-       << "/Decode [";
-  
+       << "/Range [" << newl;
   for(unsigned i=0; i < ncomponents; ++i)
     *out << "0 1 ";
-  
+  *out << "]" << newl
+       << "/Decode [";
+  for(unsigned i=0; i < ncomponents; ++i)
+    *out << "0 1 ";
   *out << "]" << newl;
   *out << "/BitsPerSample 8" << newl;
   *out << "/Size [" << m << " " << n << "]" << newl
@@ -236,8 +238,8 @@ void psfile::latticeshade(array *a, const bbox& b)
     for(size_t j=0; j < m; j++) {
 	pen *p=read<pen *>(ai,j);
 	p->convert();
-	if(p->colorspace() != colorspace)
-	  reportError("inconsistent shading colorspaces");
+	if(!p->upgrade(colorspace))
+	  reportError(inconsistent);
 	writeHex(p,ncomponents);
       }
     }
@@ -252,6 +254,7 @@ void psfile::gradientshade(bool axial, const ColorSpace &colorspace,
 			   const pen& pena, const pair& a, double ra,
 			   const pen& penb, const pair& b, double rb)
 {
+  setpen(pena);
   checkColorSpace(colorspace);
   
   *out << "<< /ShadingType " << (axial ? "2" : "3") << newl
@@ -283,11 +286,8 @@ void psfile::gouraudshade(array *pens, array *vertices, array *edges)
   size_t size=pens->size();
   if(size == 0) return;
   
-  pen *p=read<pen *>(pens,0);
-  setpen(*p);
-  p->convert();
-  ColorSpace colorspace=p->colorspace();
-  checkColorSpace(colorspace);
+  setfirstpen(pens);
+  ColorSpace colorspace=maxcolorspace(pens);
 
   *out << "<< /ShadingType 4" << newl
        << "/ColorSpace /Device" << ColorDeviceSuffix[colorspace] << newl
@@ -297,8 +297,8 @@ void psfile::gouraudshade(array *pens, array *vertices, array *edges)
     write(read<pair>(vertices,i));
     pen *p=read<pen *>(pens,i);
     p->convert();
-    if(p->colorspace() != colorspace)
-      reportError("inconsistent shading colorspaces");
+    if(!p->upgrade(colorspace))
+      reportError(inconsistent);
     *out << " ";
     write(*p);
     *out << newl;
@@ -318,10 +318,9 @@ void psfile::tensorshade(array *pens, array *boundaries, array *z)
   array *p0=read<array *>(pens,0);
   if(checkArray(p0) != 4)
     reportError("4 pens required");
-  pen *p=read<pen *>(p0,0);
-  setpen(*p);
-  p->convert();
-  ColorSpace colorspace=p->colorspace();
+  setfirstpen(p0);
+  
+  ColorSpace colorspace=maxcolorspace2(pens);
   checkColorSpace(colorspace);
 
   *out << "<< /ShadingType 7" << newl
@@ -363,8 +362,8 @@ void psfile::tensorshade(array *pens, array *boundaries, array *z)
     for(int j=0; j < 4; ++j) {
       pen *p=read<pen *>(pi,j);
       p->convert();
-      if(p->colorspace() != colorspace)
-	reportError("inconsistent shading colorspaces");
+      if(!p->upgrade(colorspace))
+	reportError(inconsistent);
       *out << " ";
       write(*p);
     }
@@ -385,7 +384,8 @@ inline unsigned int byte(double r) // Map [0,1] to [0,255]
   return a;
 }
 
-void psfile::writeHex(pen *p, int ncomponents) {
+void psfile::writeHex(pen *p, int ncomponents) 
+{
   switch(ncomponents) {
   case 0:
     break;
@@ -432,8 +432,6 @@ void psfile::imageheader(double width, double height, ColorSpace colorspace)
        << "image" << newl;
 }
 
-static const char *inconsistent="inconsistent colorspaces in palette";
-
 void psfile::image(array *a, array *P)
 {
   size_t asize=a->size();
@@ -443,12 +441,11 @@ void psfile::image(array *a, array *P)
   
   array *a0=read<array *>(a,0);
   size_t a0size=a0->size();
+  setfirstpen(P);
   
-  pen *p=read<pen *>(P,0);
-  setpen(*p);
-  p->convert();
-  ColorSpace colorspace=p->colorspace();
+  ColorSpace colorspace=maxcolorspace(P);
   checkColorSpace(colorspace);
+  
   unsigned ncomponents=ColorComponents[colorspace];
   
   imageheader(a0size,asize,colorspace);
@@ -472,10 +469,8 @@ void psfile::image(array *a, array *P)
       double val=read<double>(ai,j);
       pen *p=read<pen *>(P,(int) ((val-min)*step+0.5));
       p->convert();
-      
-      if(p->colorspace() != colorspace)
+      if(!p->upgrade(colorspace))
 	reportError(inconsistent);
-
       writeHex(p,ncomponents);
     }
   }
@@ -491,11 +486,11 @@ void psfile::image(array *a)
   
   array *a0=read<array *>(a,0);
   size_t a0size=a0->size();
+  setfirstpen(a0);
   
-  pen *p=read<pen *>(a0,0);
-  p->convert();
-  ColorSpace colorspace=p->colorspace();
+  ColorSpace colorspace=maxcolorspace2(a);
   checkColorSpace(colorspace);
+  
   unsigned ncomponents=ColorComponents[colorspace];
   
   imageheader(a0size,asize,colorspace);
@@ -505,10 +500,8 @@ void psfile::image(array *a)
     for(size_t j=0; j < a0size; j++) {
       pen *p=read<pen *>(ai,j);
       p->convert();
-
-      if(p->colorspace() != colorspace)
+      if(!p->upgrade(colorspace))
 	reportError(inconsistent);
-
       writeHex(p,ncomponents);
     }
   }

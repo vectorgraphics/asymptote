@@ -1,4 +1,3 @@
-import graph;
 size(0,150);
 
 pair z0=(0,0);

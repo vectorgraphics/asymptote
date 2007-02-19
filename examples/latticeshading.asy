@@ -1,6 +1,6 @@
 size(200);
 
-pen[][] p={{rgb(white),rgb(grey),rgb(black)},
+pen[][] p={{white,grey,black},
 	   {red,green,blue},
 	   {cyan,magenta,yellow}};
 

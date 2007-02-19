@@ -55,6 +55,11 @@ inline T getSetting(string name)
 }
 
 extern int verbose;
+extern bool gray;
+extern bool bw;  
+extern bool rgb;
+extern bool cmyk;
+  
 extern string gvOptionPrefix;
 
 bool view();
