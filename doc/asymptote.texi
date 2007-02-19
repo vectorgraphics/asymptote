@@ -4960,7 +4960,7 @@ using pen @code{p}.
 Return the intersection time of the extension of the line segment @code{PQ}
 with the plane perpendicular to @code{n} and passing through @code{Z}.
 
-@cindex @code{intersection}
+@cindex @code{intersectionpoint}
 @item triple intersectionpoint(triple n0, triple P0, triple n1, triple P1);
 Return any point on the intersection of the two planes with normals
 @code{n0} and @code{n1} passing through points @code{P0} and @code{P1},
@@ -5788,8 +5788,9 @@ The predefined scaling routines can be given two optional boolean arguments:
 @code{automin} and @code{automax}. These default to @code{true}, but can
 be respectively set to @code{false} to disable automatic selection of
 "nice" axis minimum and maximum values. @code{Linear}
-can also take as an optional final argument a multiplicative scaling
-factor (e.g.@ for a depth axis, @code{Linear(-1)} requests axis reversal). 
+can also take as optional final arguments a multiplicative scaling
+factor and intercept (e.g.@ for a depth axis, @code{Linear(-1)} requests
+axis reversal).
 
 @cindex logarithmic graph
 @cindex log-log graph
