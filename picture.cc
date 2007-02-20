@@ -24,7 +24,7 @@ namespace camp {
 const char *texpathmessage() {
   ostringstream buf;
   buf << "the directory containing your " << getSetting<mem::string>("tex")
-      << "engine (" << texcommand() << ")";
+      << " engine (" << texcommand() << ")";
   return strcpy(new char[buf.str().size()+1],buf.str().c_str());
 }
   
