@@ -45,13 +45,14 @@ transform tinv=inverse(fixedscaling((-1,-1),(1,1),currentpen));
 pen itempen=fontsize(24pt);
 real itemskip=0.5;
 
-pen titlepagepen=fontsize(36pt)+red;
-pen authorpen=fontsize(24pt)+blue;
+pen titlepagepen=fontsize(36pt);
+pen authorpen=fontsize(24pt);
 pen institutionpen=authorpen;
-pen urlpen=fontsize(20pt);
-pair urlskip=(0,0.2);
-pen datepen=urlpen;
+pen datepen=fontsize(20pt);
+pen urlpen=datepen;
+
 pair dateskip=(0,0.1);
+pair urlskip=(0,0.2);
 
 pair titlealign=2S;
 pen titlepen=fontsize(32pt);
@@ -64,10 +65,13 @@ string bullet="{\bulletcolor{$\bullet$}}";
 pair pagenumberposition=S+E;
 pair pagenumberalign=4NW;
 pen pagenumberpen=fontsize(12);
-pen steppagenumberpen=colorless(pagenumberpen)+red;
+pen steppagenumberpen=colorless(pagenumberpen);
 
 real figureborder=0.25cm;
 pen figuremattpen;
+
+pen backgroundcolor;
+pen foregroundcolor;
 
 pair titleposition=(-0.8,0.4);
 pair startposition=(-0.8,0.9);
@@ -79,8 +83,6 @@ string bulletcolor(string color) {
 
 picture background;
 size(background,pagewidth,pageheight,IgnoreAspect);
-
-defaultpen(itempen);
 
 int[] firstnode=new int[] {currentpicture.nodes.length};
 int[] lastnode=new int[];
@@ -105,21 +107,57 @@ void background()
   }
 }
 
-void color(string name, string color) {
+void color(string name, string color)
+{
   texpreamble("\def"+'\\'+name+"#1{{\color{"+color+"}#1}}%");
 }
 
+void setpens(pen red=red, pen blue=blue, pen steppen=red)
+{
+  itempen=colorless(itempen);
+  pagenumberpen=colorless(pagenumberpen);
+  steppagenumberpen=colorless(steppagenumberpen)+steppen;
+  titlepagepen=colorless(titlepagepen)+red;
+  authorpen=colorless(authorpen)+blue;
+  institutionpen=colorless(institutionpen)+blue;
+  datepen=colorless(datepen);
+  urlpen=colorless(urlpen);
+}
+
+void reversevideo()
+{
+  backgroundcolor=black;
+  foregroundcolor=white;
+  fill(background,box((-1,-1),(1,1)),backgroundcolor);
+  setpens(mediumred,paleblue,mediumblue);
+  // Work around pdflatex bug, in which white is mapped to black!
+  figuremattpen=pdf() ? cmyk(0,0,0,1/255) : white;
+  color("Red","mediumred");
+  color("Green","green");
+  color("Blue","paleblue");
+  color("Foreground","white");
+  color("Background","black");
+  oldbulletcolor="white";
+  defaultpen(itempen+foregroundcolor);
+}
+
 void normalvideo() {
-    figuremattpen=invisible;
-    color("Red","red");
-    color("Green","heavygreen");
-    color("Blue","blue");
-    color("Foreground","black");
-    color("Background","white");
-    oldbulletcolor="black";
+  backgroundcolor=invisible;
+  foregroundcolor=black;
+  background=new picture;
+  setpens();
+  figuremattpen=invisible;
+  color("Red","red");
+  color("Green","heavygreen");
+  color("Blue","blue");
+  color("Foreground","black");
+  color("Background","white");
+  oldbulletcolor="black";
+  defaultpen(itempen+foregroundcolor);
 }
 
 normalvideo();
+
 texpreamble(bulletcolor(newbulletcolor));
 texpreamble("\hyphenpenalty=10000\tolerance=1000");
 
@@ -128,22 +166,7 @@ void usersetting()
 {
   plain.usersetting();
   if(reverse) { // Black background
-    fill(background,box((-1,-1),(1,1)),black);
-    itempen=white;
-    defaultpen(itempen);
-    pagenumberpen=colorless(pagenumberpen)+white;
-    steppagenumberpen=colorless(steppagenumberpen)+mediumblue;
-    titlepagepen=colorless(titlepagepen)+mediumred;
-    authorpen=colorless(authorpen)+paleblue;
-    institutionpen=colorless(institutionpen)+paleblue;
-    // Work around pdflatex bug, in which white is mapped to black!
-    figuremattpen=pdf() ? cmyk(0,0,0,1/255) : white;
-    color("Red","mediumred");
-    color("Green","green");
-    color("Blue","paleblue");
-    color("Foreground","white");
-    color("Background","black");
-    oldbulletcolor="white";
+    reversevideo();
   } else { // White background
     normalvideo();
   }
@@ -328,6 +351,13 @@ void display(string s, pen figuremattpen=figuremattpen,
   display(new string[] {s},figuremattpen,caption,align,p);
 }
 
+void code(bool center=false, string s, pair align=0, pen p=itempen,
+	  real indent=0, bool minipage=true, real itemskip=itemskip,
+	  filltype filltype=NoFill, bool step=false) 
+{
+  remark(center,"{\tt"+verbatim(s)+"}");
+}
+
 void figure(string[] s, string options="", real margin=0, 
             pen figuremattpen=figuremattpen,
             string[] captions=new string[], string caption="",
@@ -381,11 +411,16 @@ void titlepage(string title, string author, string institution="",
 void bibliography(string name) 
 {
   havepagenumber=false;
-  if(reverse) {
-    tex("\definecolor{Background}{cmyk}{1,1,1,1}%");
+  real[] colors=colors(backgroundcolor);
+  if(colors.length > 0) {
+    string s="\definecolor{Background}{"+colorspace(backgroundcolor)+"}{";
+    for(int i=0; i < colors.length-1; ++i)
+      s += string(colors[i])+",";
+    s += string(colors[colors.length-1])+"}%";
+    tex(s);
     tex("\pagecolor{Background}%");
   }
-  label("");
+  label("",itempen);
   tex("\clearpage\def\refname{\fontsize{"+string(fontsize(titlepen))+"}{"+
       string(lineskip(titlepen))+"}\selectfont References}%");
   string s;

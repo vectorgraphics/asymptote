@@ -24,8 +24,11 @@ usersetting();
 // import x11colors;
 // fill(background,box((-1,-1),(1,1)),Azure);
 
-titlepage("Slides with {\tt Asymptote}: A Demo","John C. Bowman",
-	  "University of Alberta","\today","http://asymptote.sf.net");
+titlepage(title="Slides with {\tt Asymptote}: A Demo",
+	  author="John C. Bowman",
+	  institution="University of Alberta",
+	  date="\today",
+	  url="http://asymptote.sf.net");
 
 outline("Basic Commands");
 item("item");

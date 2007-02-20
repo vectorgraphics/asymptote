@@ -2269,7 +2269,9 @@ with its color attributes stripped (to avoid color mixing).
 
 @cindex @code{defaultpen}
 The default color is @code{black}; this may be changed with the routine
-@code{defaultpen(pen)}. 
+@code{defaultpen(pen)}. The function @code{colorspace(pen p)} returns
+the colorspace of pen @code{p} as a string (@code{"gray"}, @code{"rgb"},
+@code{"cmyk"}, or @code{""}).
 
 @cindex @code{colors}
 The function @code{real[] colors(pen)} returns the color components of a pen.
