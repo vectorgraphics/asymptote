@@ -1183,6 +1183,13 @@ realarray *colors(pen p)
   return a;
 }
 
+string colorspace(pen p)
+{
+  string s=ColorDeviceSuffix[p.colorspace()];
+  std::transform(s.begin(),s.end(),s.begin(),tolower);
+  return s;
+}
+
 pen pattern(string *s)
 {
   return pen(setpattern,*s);
