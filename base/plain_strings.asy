@@ -42,12 +42,24 @@ string TeXify(string s)
   return replace(s,t);
 }
 
+private string[][] trans1={{'\\',"\backslash "},
+			   {"$","\$"},{"{","\{"},{"}","\}"}};
+private string[][] trans2={{"\backslash ","$\backslash$"}};
+
 // Convert string to TeX
 string texify(string s) 
 {
-  static string[][] t={{'\\',"\backslash "},{"$","\$"},{"{","\{"},{"}","\}"}};
-  static string[][] u={{"\backslash ","$\backslash$"}};
-  return TeXify(replace(replace(s,t),u));
+  return TeXify(replace(replace(s,trans1),trans2));
+}
+
+// Convert string to TeX, preserving newlines
+string verbatim(string s)
+{
+  bool space=substr(s,0,1) == '\n';
+  static string[][] t={{'\n',"\\"}};
+  t.append(trans1);
+  s=TeXify(replace(replace(s,t),trans2));
+  return space ? "\ "+s : s;
 }
 
 string italic(string s)
@@ -114,4 +126,3 @@ string phantom(string s)
 {
   return "\phantom{"+s+"}";
 }
-
