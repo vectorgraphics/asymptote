@@ -1,4 +1,5 @@
 usepackage("lscape");
+usepackage("portrait");
 import fontsize;
 usepackage("rotating");
 usepackage("color");
@@ -15,10 +16,11 @@ real pagewidth=-2pagemargin;
 real pageheight=-2pagemargin;
 
 bool landscape=orientation == Landscape || orientation == Seascape;
+bool autorotation=false;
 
 if(landscape) {
   if(settings.outformat == "pdf" && settings.tex != "pdflatex")
-    settings.autorotate=true;
+    if(autorotation) settings.autorotate=true;
   if(pdf()) {
     orientation=Portrait;
     real temp=settings.paperwidth;
@@ -310,9 +312,14 @@ void equations(string s, pen p=itempen)
   vbox("\begin{eqnarray}"+s+"\end{eqnarray}",p);
 }
 
-void display(string[] s, real margin=0, pen figuremattpen=figuremattpen,
-	     string[] captions=new string[], string caption="", pair align=S,
-	     pen p=itempen)
+void skip(real n=1)
+{
+  incrementposition((0,(tinv*(-n*itemskip*I*lineskip(itempen)*pt)).y));
+}
+
+void display(string[] s, real margin=0, string[] captions=new string[],
+	     string caption="", pair align=S, pen p=itempen,
+	     pen figuremattpen=figuremattpen)
 {
   if(s.length == 0) return;
   real[] width=new real[s.length];
@@ -345,33 +352,61 @@ void display(string[] s, real margin=0, pen figuremattpen=figuremattpen,
   if(caption != "") center(caption,p);
 }
 
-void display(string s, pen figuremattpen=figuremattpen,
-	     string caption="", pair align=S, pen p=itempen)
+void display(string s, string caption="", pair align=S, pen p=itempen,
+	     pen figuremattpen=figuremattpen)
 {
-  display(new string[] {s},figuremattpen,caption,align,p);
-}
-
-void code(bool center=false, string s, pair align=0, pen p=itempen,
-	  real indent=0, bool minipage=true, real itemskip=itemskip,
-	  filltype filltype=NoFill, bool step=false) 
-{
-  remark(center,"{\tt "+verbatim(s)+"}");
+  display(new string[] {s},caption,align,p,figuremattpen);
 }
 
 void figure(string[] s, string options="", real margin=0, 
-            pen figuremattpen=figuremattpen,
             string[] captions=new string[], string caption="",
-	    pair align=S, pen p=itempen)
+	    pair align=S, pen p=itempen, pen figuremattpen=figuremattpen)
 {
   string[] S;
   for(int i=0; i < s.length; ++i) S[i]=graphic(s[i],options);
-  display(S,margin,figuremattpen,captions,caption,align,p);
+  display(S,margin,captions,caption,align,p,figuremattpen);
 }
 
-void figure(string s, string options="", pen figuremattpen=figuremattpen,
-            string caption="", pair align=S, pen p=itempen)
+void figure(string s, string options="", string caption="", pair align=S,
+	    pen p=itempen, pen figuremattpen=figuremattpen)
 {
-  figure(new string[] {s},options,figuremattpen,caption,align,p);
+  figure(new string[] {s},options,caption,align,p,figuremattpen);
+}
+
+void code(bool center=false, string s, pair align=0, pen p=itempen,
+	  real indent=0, real itemskip=itemskip,
+	  filltype filltype=NoFill) 
+{
+  remark(center,"{\tt "+verbatim(s)+"}",align,p,indent,itemskip,filltype,true);
+  skip(1);
+}
+
+void filecode(bool center=false, string s, pair align=0, pen p=itempen,
+	      real indent=0, real itemskip=itemskip,
+	      filltype filltype=NoFill)
+{
+  code(center,file(s),align,p,indent,itemskip,filltype);
+}
+
+void asycode(bool center=false, string s, string options="", pair align=0,
+	     pen p=itempen, pen figuremattpen=figuremattpen,
+	     real indent=0, real itemskip=itemskip,
+	     filltype filltype=NoFill, bool newslide=false)
+{
+  string a=s+".asy";
+  asy(nativeformat(),a);
+  code(center,file(a),align,p,indent,itemskip,filltype);
+  s += "."+nativeformat();
+  if(newslide) {newslide(); label(graphic(s,options),(0,0));}
+  else figure(s,options,align,p,figuremattpen);
+}
+
+void asyfigure(string s, string options="", string caption="", pair align=S,
+	       pen p=itempen, pen figuremattpen=figuremattpen)
+{
+  string a=s+".asy";
+  asy(nativeformat(),a);
+  figure(s+"."+nativeformat(),options,caption,align,p,figuremattpen);
 }
 
 void item(string s, pen p=itempen, bool step=itemstep)
@@ -386,11 +421,6 @@ void item(string s, pen p=itempen, bool step=itemstep)
 void subitem(string s, pen p=itempen)
 {
   remark("\quad -- "+s,p);
-}
-
-void skip(real n=1)
-{
-  incrementposition((0,(tinv*(-n*itemskip*I*lineskip(itempen)*pt)).y));
 }
 
 void titlepage(string title, string author, string institution="",
@@ -424,17 +454,24 @@ void bibliography(string name)
   tex("\clearpage\def\refname{\fontsize{"+string(fontsize(titlepen))+"}{"+
       string(lineskip(titlepen))+"}\selectfont References}%");
   string s;
-  if(landscape)
-    s="{\centering\textheight="+string(pagewidth-1.5inches)+"bp\textwidth="+
-      string(pageheight-1inch)+"bp\begin{landscape}"+
-      "\topmargin=1in\oddsidemargin=1.1in";
-  else
+  if(landscape) {
+    if(pdf()) {
+      s="{\centering\textheight="+string(pageheight-1inch)+"bp\textwidth="+
+	string(pagewidth-1.5inches)+"bp"+
+	"\vsize=\textheight\hsize=\textwidth\linewidth=\hsize"+
+	"\topmargin=0in\oddsidemargin=0.6in";
+    } else
+      s="{\centering\textheight="+string(pagewidth-1.5inches)+"bp\textwidth="+
+	string(pageheight-1inch)+"bp"+"\begin{landscape}"+
+	"\topmargin=1in\oddsidemargin=1.1in";
+  } else
     s="{\centering\textheight="+string(pageheight-0.5inches)+"bp\textwidth="+
       string(pagewidth-0.5inches)+
       "bp\hsize=\textwidth\linewidth=\textwidth\vsize=\textheight"+
       "\topmargin=0.5in\oddsidemargin=1in";
   s += "\evensidemargin=\oddsidemargin\bibliography{"+name+"}";
-  if(landscape) s += "\end{landscape}";
+  if(landscape && !pdf())
+    s += "\end{landscape}";
   else s += "\clearpage";
   s += "}";
   tex(s);

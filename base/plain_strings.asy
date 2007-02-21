@@ -37,8 +37,8 @@ string replace(string s, string before, string after)
 string TeXify(string s) 
 {
   static string[][] t={{"&","\&"},{"%","\%"},{"_","\_"},{"#","\#"},{"<","$<$"},
-                       {">","$>$"},{"|","$|$"},{"^","$\hat{\ }$"},{". ",".\ "},
-                       {"~","$\tilde{\ }$"}};
+                       {">","$>$"},{"|","$|$"},{"^","$\hat{\ }$"},
+                       {"~","$\tilde{\ }$"},{" ","\phantom{ }"}};
   return replace(s,t);
 }
 
@@ -60,6 +60,17 @@ string verbatim(string s)
   t.append(trans1);
   s=TeXify(replace(replace(s,t),trans2));
   return space ? "\ "+s : s;
+}
+
+// Read contents of file as a string.
+string file(string s)
+{
+  file f=input(s);
+  string s;
+  while(!eof(f)) {
+    s += f+'\n';
+  }
+  return s;
 }
 
 string italic(string s)
