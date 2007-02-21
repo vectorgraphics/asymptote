@@ -355,7 +355,7 @@ void code(bool center=false, string s, pair align=0, pen p=itempen,
 	  real indent=0, bool minipage=true, real itemskip=itemskip,
 	  filltype filltype=NoFill, bool step=false) 
 {
-  remark(center,"{\tt"+verbatim(s)+"}");
+  remark(center,"{\tt "+verbatim(s)+"}");
 }
 
 void figure(string[] s, string options="", real margin=0, 
