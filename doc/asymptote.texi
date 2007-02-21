@@ -4915,7 +4915,7 @@ intersection point of the lines through @code{P}, @code{Q} and
 @code{p}, @code{q}, respectively:
 
 @verbatim
-@item pair extension(pair P, pair Q, pair p, pair q);
+pair extension(pair P, pair Q, pair p, pair q);
 @end verbatim
 
 Return the intersection point of the extensions of the line segments 
