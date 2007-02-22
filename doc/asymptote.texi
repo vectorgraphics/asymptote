@@ -4918,9 +4918,6 @@ intersection point of the lines through @code{P}, @code{Q} and
 pair extension(pair P, pair Q, pair p, pair q);
 @end verbatim
 
-Return the intersection point of the extensions of the line segments 
-@code{PQ} and @code{pq}.
-
 Here are some additional routines provided in the @code{math} package:
 
 @table @code
