@@ -113,11 +113,11 @@ asycode("loggraph","height=15cm",newslide=true);
 
 
 title("Secondary Axis");
-figure("secondaryaxis."+nativeformat(),"height=15cm");
+asyfigure("secondaryaxis","height=15cm");
 
 
 title("Images");
-figure("imagecontour."+nativeformat(),"height=17cm");
+asyfigure("imagecontour","height=17cm");
 
 
 title("Multiple graphs");
