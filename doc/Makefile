@@ -2,7 +2,7 @@ MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy) latexusage.asy
 INCLUDES = version.texi options
 ASY = ../asy -dir ../base
-DOCFILES = asymptote.pdf CAD.pdf PDFAnim_temp_Guide.pdf
+DOCFILES = asymptote.pdf intro.pdf CAD.pdf PDFAnim_temp_Guide.pdf
 
 doc:	asymptote.dvi asymptote.info html man
 
@@ -31,6 +31,8 @@ latexusage.eps: latexusage.dvi
 latexusage.png: latexusage.eps
 	convert -density 144x144 +antialias -geometry 50%x \
 		latexusage.eps latexusage.png
+intro.png:
+	
 
 latexusage.pdf: latexusage.dvi
 	dvipdf latexusage
@@ -49,6 +51,10 @@ asymptote.info: asymptote.texi $(INCLUDES) $(ASYFILES:.asy=.png)
 
 asymptote.pdf: asymptote.texi $(INCLUDES) $(ASYFILES:.asy=.pdf)
 	texi2dvi --pdf asymptote.texi
+
+intro.pdf: intro.asy $(ASYFILES)
+	asy -tex pdflatex intro
+	asy -tex pdflatex intro
 
 CAD.pdf: CAD.tex CAD1.eps 
 	latex CAD

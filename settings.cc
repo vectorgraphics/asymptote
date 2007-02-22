@@ -837,6 +837,7 @@ void initSettings() {
   addOption(new incrementOption("novv", 0,"", &verbose,-2));
   
   addOption(new boolSetting("keep", 'k', "Keep intermediate files"));
+  addOption(new boolSetting("keepaux", 0, "Keep intermediate LaTeX .aux files"));
   addOption(new stringSetting("tex", 0,"engine",
 			      "TeX engine (\"latex|pdflatex|tex|pdftex|none\") [\"latex\"]",
 			      "latex"));

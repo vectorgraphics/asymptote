@@ -1,9 +1,12 @@
-usepackage("lscape");
-usepackage("portrait");
 import fontsize;
+usepackage("lscape");
 usepackage("rotating");
 usepackage("color");
 usepackage("asycolors");
+
+string s=fileprefix()+"_.aux";
+file f=input(s,false);
+if(!error(f)) texpreamble("\input "+s);
 
 bool reverse=false; // Set to true to enable reverse video
 bool stepping=false; // Set to true to enable stepping
@@ -45,14 +48,15 @@ real minipagewidth=pagewidth-2minipagemargin;
 transform tinv=inverse(fixedscaling((-1,-1),(1,1),currentpen));
   
 pen itempen=fontsize(24pt);
-real itemskip=0.5;
-
+pen codepen=fontsize(20pt);
 pen titlepagepen=fontsize(36pt);
 pen authorpen=fontsize(24pt);
 pen institutionpen=authorpen;
-pen datepen=fontsize(20pt);
+pen datepen=fontsize(18pt);
 pen urlpen=datepen;
 
+real itemskip=0.5;
+real codeskip=0.25;
 pair dateskip=(0,0.1);
 pair urlskip=(0,0.2);
 
@@ -79,7 +83,8 @@ pair titleposition=(-0.8,0.4);
 pair startposition=(-0.8,0.9);
 pair currentposition=startposition;
 
-string bulletcolor(string color) {
+string bulletcolor(string color)
+{
   return "\def\bulletcolor{"+'\\'+"color{"+color+"}}%";
 }
 
@@ -117,6 +122,7 @@ void color(string name, string color)
 void setpens(pen red=red, pen blue=blue, pen steppen=red)
 {
   itempen=colorless(itempen);
+  codepen=colorless(codepen);
   pagenumberpen=colorless(pagenumberpen);
   steppagenumberpen=colorless(steppagenumberpen)+steppen;
   titlepagepen=colorless(titlepagepen)+red;
@@ -250,7 +256,7 @@ void outline(string s="Outline", pair position=N, pair align=titlealign,
 }
 
 void remark(bool center=false, string s, pair align=0, pen p=itempen,
-            real indent=0, bool minipage=true, real itemskip=itemskip,
+            real indent=0, bool minipage=true, real skip=itemskip,
             filltype filltype=NoFill, bool step=false) 
 {
   checkposition();
@@ -289,7 +295,7 @@ void remark(bool center=false, string s, pair align=0, pen p=itempen,
   }
 
   add(f,offset);
-  incrementposition((0,(tinv*(min(f)-itemskip*I*lineskip(p)*pt)).y));
+  incrementposition((0,(tinv*(min(f)-skip*I*lineskip(p)*pt)).y));
 }
 
 void center(string s, pen p=itempen)
@@ -299,12 +305,12 @@ void center(string s, pen p=itempen)
 
 void equation(string s, pen p=itempen)
 {
-  remark(center=true,"\vbox{$$"+s+"$$}",p,minipage=false,itemskip=0);
+  remark(center=true,"\vbox{$$"+s+"$$}",p,minipage=false,skip=0);
 }
 
 void vbox(string s, pen p=itempen)
 {
-  remark(center=true,"\vbox{"+s+"}",p,minipage=false,itemskip=0);
+  remark(center=true,"\vbox{"+s+"}",p,minipage=false,skip=0);
 }
 
 void equations(string s, pen p=itempen)
@@ -373,36 +379,38 @@ void figure(string s, string options="", string caption="", pair align=S,
   figure(new string[] {s},options,caption,align,p,figuremattpen);
 }
 
-void code(bool center=false, string s, pair align=0, pen p=itempen,
-	  real indent=0, real itemskip=itemskip,
+void code(bool center=false, string s, pen p=codepen,
+	  real indent=0, real skip=codeskip,
 	  filltype filltype=NoFill) 
 {
-  remark(center,"{\tt "+verbatim(s)+"}",align,p,indent,itemskip,filltype,true);
-  skip(1);
+  while(substr(s,length(s)-1,1) == '\n') s=substr(s,0,length(s)-1);
+  remark(center,"{\tt "+verbatim(s)+"}",p,indent,skip,filltype);
 }
 
-void filecode(bool center=false, string s, pair align=0, pen p=itempen,
-	      real indent=0, real itemskip=itemskip,
-	      filltype filltype=NoFill)
+void filecode(bool center=false, string s, pen p=codepen, real indent=0,
+	      real skip=codeskip, filltype filltype=NoFill)
 {
-  code(center,file(s),align,p,indent,itemskip,filltype);
+  code(center,file(s),p,indent,skip,filltype);
 }
 
-void asycode(bool center=false, string s, string options="", pair align=0,
-	     pen p=itempen, pen figuremattpen=figuremattpen,
-	     real indent=0, real itemskip=itemskip,
+void asycode(bool center=false, string s, string options="", pair align=S,
+	     pen p=codepen, pen figuremattpen=figuremattpen,
+	     real indent=0, real skip=codeskip,
 	     filltype filltype=NoFill, bool newslide=false)
 {
   string a=s+".asy";
   asy(nativeformat(),a);
-  code(center,file(a),align,p,indent,itemskip,filltype);
+  filecode(center,a,p,indent,skip,filltype);
   s += "."+nativeformat();
-  if(newslide) {newslide(); label(graphic(s,options),(0,0));}
+  if(newslide) {
+    newslide();
+    label(graphic(s,options),(0,0),Fill(figureborder,figuremattpen));
+  }
   else figure(s,options,align,p,figuremattpen);
 }
 
 void asyfigure(string s, string options="", string caption="", pair align=S,
-	       pen p=itempen, pen figuremattpen=figuremattpen)
+	       pen p=codepen, pen figuremattpen=figuremattpen)
 {
   string a=s+".asy";
   asy(nativeformat(),a);
@@ -438,6 +446,14 @@ void titlepage(string title, string author, string institution="",
   if(url != "") center("{\tt "+url+"}",urlpen);
 }
 
+// Resolve optional bibtex citations:
+void bibliographystyle(string name)
+{
+  settings.twice=true;
+  settings.keepaux=true;
+  texpreamble("\bibliographystyle{"+name+"}");
+}
+
 void bibliography(string name) 
 {
   havepagenumber=false;
@@ -459,7 +475,7 @@ void bibliography(string name)
       s="{\centering\textheight="+string(pageheight-1inch)+"bp\textwidth="+
 	string(pagewidth-1.5inches)+"bp"+
 	"\vsize=\textheight\hsize=\textwidth\linewidth=\hsize"+
-	"\topmargin=0in\oddsidemargin=0.6in";
+	"\topmargin=0in\oddsidemargin=1in";
     } else
       s="{\centering\textheight="+string(pagewidth-1.5inches)+"bp\textwidth="+
 	string(pageheight-1inch)+"bp"+"\begin{landscape}"+

@@ -4,21 +4,18 @@
 
 orientation=Landscape;
 
-// Generated needed files if they don't already exist.
-asy(nativeformat(),"Pythagoras","log","near_earth");
+import slide;
+usersetting();
 
 // Commands to generate optional bibtex citations:
-// asy -k slidedemo
+// asy slidedemo
 // bibtex slidedemo_
 // asy slidedemo
 //
-// Resolve optional bibtex citations:
-settings.twice=true;
-texpreamble("\bibliographystyle{alpha}");
+bibliographystyle("alpha");
 
-import slide;
-
-usersetting();
+// Generated needed files if they don't already exist.
+asy(nativeformat(),"Pythagoras","log","near_earth");
 
 // Optional background color:
 // import x11colors;

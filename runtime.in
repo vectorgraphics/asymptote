@@ -1399,6 +1399,11 @@ void assert(bool b, string s=emptystring)
   }
 }
 
+string fileprefix()
+{
+  return outname();
+}
+
 void _eval(string *s, bool embedded)
 {
   if (embedded) {

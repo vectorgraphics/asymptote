@@ -5651,6 +5651,10 @@ the tick labels on the @math{y} axis.
 @verbatiminclude datagraph.asy
 @image{datagraph}
 
+@item This example shows how to graph columns of data read from a file.
+@verbatiminclude filegraph.asy
+@image{filegraph}
+
 @item This example shows how to label an axis with arbitrary strings.
 @verbatiminclude monthaxis.asy
 @image{monthaxis}
@@ -7222,4 +7226,4 @@ Stefan Knorr.
 @c  LocalWords:  binarytreetest Henning subsample breakpoint locator wireframe
 @c  LocalWords:  labelpath intersectionpoints PSTricks pstextpath curvedlabel
 @c  LocalWords:  LeftJustified RightJustified tickmodifier gunzip gmake IRIX
-@c  LocalWords:  texcommand RET SITEDIR
+@c  LocalWords:  texcommand RET SITEDIR filegraph
