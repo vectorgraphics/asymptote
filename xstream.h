@@ -1,6 +1,6 @@
 /* C++ interface to the XDR External Data Representation I/O routines
-   Version 1.42
-   Copyright (C) 1999-2004 John C. Bowman
+   Version 1.43
+   Copyright (C) 1999-2007 John C. Bowman
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ class xios {
  public:	
   int good() const { return _state == 0; }
   int eof() const { return _state & eofbit; }
-  int fail() const { return _state & (badbit|failbit); }
+  int fail() const { return _state & (eofbit|failbit|badbit); }
   int bad() const { return _state & badbit; }
   void clear(int state = 0) {_state=state;}
   void set(int flag) {_state |= flag;}
