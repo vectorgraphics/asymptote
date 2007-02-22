@@ -33,8 +33,7 @@ item("Instead, scale user coordinates to a specified final size:");
 
 code("size(101,101);
 draw((0,0)--(1,0)--(1,1)--(0,1)--cycle);");
-asy("square.asy");
-figure("square."+nativeformat());
+asyfigure("square");
 
 item("One can also specify the size in {\tt cm}:");
 
@@ -53,8 +52,7 @@ title("Bezier Splines");
 item("Using {\tt ..} instead of {\tt --} specifies a {\it Bezier cubic spline\/} \cite{Hobby86,Knuth86b}:");
 
 code("draw(z0..controls c0 and c1 .. z1,blue+dashed);");
-asy("beziercurve.asy");
-figure("beziercurve."+nativeformat());
+asyfigure("beziercurve");
 
 equation("(1-t)^3 z_0+3t(1-t)^2 c_0+3t^2(1-t) c_1+t^3 z_1, \qquad t\in [0,1].");
 
@@ -63,7 +61,7 @@ title("Rendering: Midpoint Property");
 
 item("Third-order midpoint $m_5$ is the midpoint of the Bezier curve formed by the quadruple ($z_0$, $c_0$, $c_1$, $z_1$).");
 
-figure("bezier2");
+asyfigure("bezier2");
 
 item("Recursively construct the desired curve, using the newly extracted third-order midpoint as an endpoint and the respective second- and first-order midpoints as control points.");
 
