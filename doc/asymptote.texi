@@ -300,7 +300,7 @@ from @code{UNIX} source (@pxref{Compiling from UNIX source}).
 Alternatively, Debian users can install one of Hubert Chan's
 prebuilt @code{Asymptote} binaries from
 @quotation
-@url{http://packages.debian.org/asymptote}
+@url{http://ftp.debian.org/debian/pool/main/a/asymptote}
 @end quotation
 
 @node MacOS X binary distributions
