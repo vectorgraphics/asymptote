@@ -334,14 +334,18 @@ pair labeltick(frame d, transform T, guide g, ticklocate locate, real val,
   pair shift=dot(align,-sign*locate1.dir) <= 0 ? align*Size :
     ticklabelshift(align,F.p);
 
-  real label=locate.S.scale.logarithmic ? locate.S.scale.Tinv(val) : val;
+  real label;
+  if(locate.S.scale.logarithmic)
+    label=locate.S.scale.Tinv(val);
+  else {
+    label=val;
+    if(abs(label) < 10*epsilon*norm) label=0;
+    // Fix epsilon errors at +/-1e-4
+    // default format changes to scientific notation here
+    if(abs(abs(label)-1e-4) < epsilon) label=sgn(label)*1e-4;
+  }
 
-  if(abs(label) < 10*epsilon*norm) label=0;
-  // Fix epsilon errors at +/-1e-4
-  // default format changes to scientific notation here
-  if(abs(abs(label)-1e-4) < epsilon) label=sgn(label)*1e-4;
   string s=ticklabel(label);
-
   if(s != "") {
     s=baseline(s,align,"$10^4$");
     label(d,F.T*s,locate1.Z+shift,align,F.p,F.filltype);
