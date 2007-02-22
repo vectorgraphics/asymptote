@@ -55,7 +55,7 @@ class xios {
  public:	
   int good() const { return _state == 0; }
   int eof() const { return _state & eofbit; }
-  int fail() const { return _state & (eofbit|failbit|badbit); }
+  int fail() const { return !good();}
   int bad() const { return _state & badbit; }
   void clear(int state = 0) {_state=state;}
   void set(int flag) {_state |= flag;}
