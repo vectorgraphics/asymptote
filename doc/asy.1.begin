@@ -4,16 +4,17 @@
 asy \- Asymptote: a script-based vector graphics language
 .SH SYNOPSIS
 .B asy
-.RI [ options ] [ file ... ]
+.RI [ options ]
+.RI [ file \ ...]
 .SH DESCRIPTION
 \fBAsymptote\fP is a powerful descriptive vector graphics language for
-technical drawings, inspired by MetaPost but with an improved C++\-like syntax.
-Asymptote provides for figures the same high\-quality level of typesetting that
+technical drawings, inspired by MetaPost but with an improved C++-like syntax.
+Asymptote provides for figures the same high-quality level of typesetting that
 LaTeX does for scientific text.
 .SH OPTIONS
 If no arguments are given, Asymptote runs in interactive mode.
 .PP
-If "-" is given as the file argument, Asymptote reads from standard input.
+If "\-" is given as the file argument, Asymptote reads from standard input.
 .PP
 A summary of options is included below. The effect of most options
 can be negated by prepending 

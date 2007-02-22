@@ -41,7 +41,7 @@ options: ../settings.cc
 	$(ASY) -h 2>&1 | grep -iv Asymptote > options
 
 asy.1: options asy.1.begin asy.1.end
-	cat options | grep ^- | sed -e "s/-\(.*\)  \([A-Z].*\)/.TP\n.B -\1\n\2\./" | cat asy.1.begin - asy.1.end > asy.1
+	cat options | grep ^- | sed -e "s/-\(.*\)  \([A-Z].*\)/.TP\n.B -\1\n\2\./" | sed -e "/^.B/ s/-/\\\\-/g" | cat asy.1.begin - asy.1.end > asy.1
 
 asymptote.dvi: asymptote.texi $(INCLUDES) $(ASYFILES:.asy=.eps)
 	texi2dvi asymptote.texi
@@ -74,7 +74,7 @@ html:	$(INCLUDES) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
 
 clean: FORCE
 	rm -f *.eps *.png *.pdf latexusage.{asy,dvi,eps,png,log,aux,*.eps}
-	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,pdf,toc,tp,vr}
+	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,pdf,toc,tp,vr} asymptote.info-*
 	rm -f CAD.{aux,dvi,log,pdf,toc}
 	rm -rf asymptote
 
@@ -88,6 +88,7 @@ install-all: doc install
 	cd FAQ; $(MAKE) install-info
 	${INSTALL} -d -m 755 $(infodir)
 	${INSTALL} -p -m 644 asymptote.info $(infodir)
+	-${INSTALL} -p -m 644 asymptote.info-* $(infodir)
 	-if test -z "$(DESTDIR)"; then \
 		install-info --infodir=$(infodir) asymptote.info; \
 	fi
@@ -99,7 +100,7 @@ uninstall-all:
 	-cd $(mandir)/man1; rm $(MANFILES)
 	-rm -f $(addprefix $(docdir)/,$(DOCFILES))
 	-install-info --remove --infodir=$(infodir) asymptote.info
-	-rm -f $(infodir)/asymptote.info
+	-rm -f $(infodir)/asymptote.info $(infodir)/asymptote.info-*
 
 distclean: FORCE clean
 	rm -f version.texi
