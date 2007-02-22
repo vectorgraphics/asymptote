@@ -19,7 +19,7 @@ real pagewidth=-2pagemargin;
 real pageheight=-2pagemargin;
 
 bool landscape=orientation == Landscape || orientation == Seascape;
-bool autorotation=false;
+bool autorotation=true;
 
 if(landscape) {
   if(settings.outformat == "pdf" && settings.tex != "pdflatex")
