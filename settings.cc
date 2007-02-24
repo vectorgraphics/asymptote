@@ -1114,9 +1114,6 @@ void setOptions(int argc, char *argv[])
 {
   argv0=argv[0];
 
-  if(setlocale (LC_ALL, "") == NULL)
-    perror("setlocale");
-  
   cout.precision(DBL_DIG);
   
   // Make configuration and history directory
@@ -1143,7 +1140,10 @@ void setOptions(int argc, char *argv[])
   if(!getSetting<bool>("debug")) GC_set_warn_proc(no_GCwarn);
 #endif  
 
-  // Set variables for the normal arguments.
+  if(setlocale (LC_ALL, "") == NULL && getSetting<bool>("debug"))
+    perror("setlocale");
+  
+  // Set variables for the file arguments.
   argCount = argc - optind;
   argList = argv + optind;
 
