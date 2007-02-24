@@ -11,6 +11,8 @@
 #include "settings.h"
 #include "util.h"
 
+using namespace settings;
+
 namespace camp {
   
 extern string texready;
@@ -27,7 +29,7 @@ int wait(iopipestream &tex, const char *s, const char **abort,
 {
   int rc=tex.wait(s,abort);
   if(rc > 0) {
-    if(settings::fataltex[rc-1]) {
+    if(fataltex[rc-1]) {
       tex.pipeclose();
       camp::reportError(*tex.message()); // Fatal error
     }
@@ -51,10 +53,10 @@ bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn,
   tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(s) << "}\n\n";
   int rc=wait(tex,texready.c_str(),abort,true);
   if(rc) {
-    if(settings::getSetting<bool>("inlinetex")) {
+    if(getSetting<bool>("inlinetex")) {
       if(warn) {
 	recover(tex,abort);
-	if(settings::getSetting<bool>("debug")) {
+	if(getSetting<bool>("debug")) {
 	  ostringstream buf;
 	  buf << "Cannot determine size of label \"" << s << "\"";
 	  reportWarning(buf);
@@ -109,10 +111,10 @@ void drawLabel::getbounds(iopipestream& tex, const mem::string& texengine)
   if(havebounds) return;
   havebounds=true;
   
-  const char **abort=settings::texabort(texengine);
+  const char **abort=texabort(texengine);
   if(pentype.size() != lastpen.size() ||
      pentype.Lineskip() != lastpen.Lineskip()) {
-    if(settings::latex(texengine)) {
+    if(latex(texengine)) {
       tex <<  "\\fontsize{" << pentype.size() << "}{" << pentype.Lineskip()
 	  << "}\\selectfont\n";
       wait(tex,"\n*",abort);
@@ -146,7 +148,7 @@ void drawLabel::getbounds(iopipestream& tex, const mem::string& texengine)
 void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
 		       bboxlist&)
 {
-  mem::string texengine=settings::getSetting<mem::string>("tex");
+  mem::string texengine=getSetting<mem::string>("tex");
   if(texengine == "none") {b += position; return;}
   
   getbounds(tex,texengine);
@@ -231,7 +233,7 @@ drawElement *drawLabel::transformed(const transform& t)
 
 void drawLabelPath::bounds(bbox& b, iopipestream& tex, boxvector&, bboxlist&)
 {
-  mem::string texengine=settings::getSetting<mem::string>("tex");
+  mem::string texengine=getSetting<mem::string>("tex");
   if(texengine == "none") {b += position; return;}
     
   getbounds(tex,texengine);
@@ -271,7 +273,7 @@ void drawLabelPath::bounds(bbox& b, iopipestream& tex, boxvector&, bboxlist&)
 bool drawLabelPath::write(texfile *out)
 {
   bbox b=Box;
-  double Hoffset=settings::getSetting<bool>("inlinetex") ? b.right : b.left;
+  double Hoffset=getSetting<bool>("inlinetex") ? b.right : b.left;
   b.shift(pair(-Hoffset,-b.bottom));
   
   checkbounds();
