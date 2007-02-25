@@ -11,22 +11,30 @@ guide square(pair z1, pair z2)
 // Draw a perpendicular symbol at z aligned in the direction align
 // relative to the path z--z+dir.
 void perpendicular(picture pic=currentpicture, pair z, pair align,
-                   pair dir=E, real size=0, pen p=currentpen) 
+                   pair dir=E, real size=0, pen p=currentpen,
+                   margin margin=NoMargin,
+                   filltype filltype=NoFill) 
 {
+  p=squarecap+p;
   if(size == 0) size=perpfactor*linewidth(p);
-  picture apic;
+  frame apic;
   pair d1=size*align*unit(dir)*dir(-45);
   pair d2=I*d1;
-  _draw(apic,d1--d1+d2--d2,p);
+  path g=d1--d1+d2--d2;
+  g=margin(g,p).g;
+  draw(apic,g,p);
+  if (filltype != NoFill) filltype(apic,(relpoint(g,0)-relpoint(g,.5)+relpoint(g,1))--g--cycle,p+solid);
   add(pic,apic,z);
 }
   
 // Draw a perpendicular symbol at z aligned in the direction align
 // relative to the path z--z+dir(g,0)
 void perpendicular(picture pic=currentpicture, pair z, pair align, path g,
-                   real size=0, pen p=currentpen) 
+                   real size=0, pen p=currentpen,
+                   margin margin=NoMargin,
+                   filltype filltype=NoFill) 
 {
-  perpendicular(pic,z,align,dir(g,0),size,p);
+  perpendicular(pic,z,align,dir(g,0),size,p,margin,filltype);
 }
 
 struct triangle {

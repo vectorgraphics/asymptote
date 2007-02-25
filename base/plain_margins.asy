@@ -13,6 +13,21 @@ path trim(path g, real begin, real end) {
   return a <= b ? subpath(g,a,b) : point(g,a);
 }
 
+margin operator +(margin ma, margin mb)
+{
+  return new marginT(path g, pen p) {
+    marginT margin;
+    real ba=ma(g,p).begin < 0 ? 0 : ma(g,p).begin;
+    real bb=mb(g,p).begin < 0 ? 0 : mb(g,p).begin;
+    real ea=ma(g,p).end < 0   ? 0 : ma(g,p).end;
+    real eb=mb(g,p).end < 0   ? 0 : mb(g,p).end;
+    margin.begin=ba+bb;
+    margin.end=ea+eb;
+    margin.g=trim(g,margin.begin,margin.end);
+    return margin;
+  };
+}
+
 margin NoMargin()
 { 
   return new marginT(path g, pen) {
