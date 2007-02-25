@@ -1,7 +1,6 @@
 import fontsize;
 usepackage("lscape");
 usepackage("rotating");
-usepackage("color");
 usepackage("asycolors");
 
 bool reverse=false; // Set to true to enable reverse video

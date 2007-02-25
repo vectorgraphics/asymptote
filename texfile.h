@@ -81,7 +81,7 @@ void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
   if(settings::latex(texengine)) {
     if(pipe || !settings::getSetting<bool>("inlinetex")) {
       out << "\\usepackage{graphicx}" << newl;
-      if(!pipe) out << "\\usepackage{color}" << newl;
+      out << "\\usepackage{color}" << newl;
     }
     if(pipe)
       out << "\\begin{document}" << newl;
