@@ -66,7 +66,7 @@ real titleskip=0.5;
 
 string oldbulletcolor;
 string newbulletcolor="red";
-string bullet="{\bulletcolor{$\bullet$}}";
+string bullet="{\bulletcolor\textbullet}";
                                               
 pair pagenumberposition=S+E;
 pair pagenumberalign=4NW;
