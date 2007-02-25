@@ -160,9 +160,9 @@ struct revolution {
     return Circle(center,abs(v-center),axis,ngraph);
   }
   
-  // transverse skeleton
-  skeleton transverse(skeleton s=new skeleton, real t, int ngraph=32,
-		      projection P=currentprojection) {
+  // add transverse slice to skeleton s
+  void transverse(skeleton s, real t, int ngraph=32,
+		  projection P=currentprojection) {
     static real epsilon=sqrt(realEpsilon);
     path3 S=slice(t,ngraph);
     if((t <= epsilon && dot(axis,P.camera) < 0) ||
@@ -191,11 +191,11 @@ struct revolution {
 	}
       }
     }
-    return s;
   }
 
-  skeleton transverse(skeleton s=new skeleton, int m=0, int ngraph=32,
-		      projection P=currentprojection) {
+  // add m evenly spaced transverse slices to skeleton s
+  void transverse(skeleton s, int m=0, int ngraph=32,
+		  projection P=currentprojection) {
     int N=size(g);
     int n=(m == 0) ? N : m;
     real factor=m == 1 ? 0 : 1/(m-1);
@@ -203,12 +203,10 @@ struct revolution {
       real t=(m == 0) ? i : reltime(g,i*factor);
       transverse(s,t,ngraph,P);
     }
-    return s;
   }
 
-  // longitudinal skeleton
-  skeleton longitudinal(skeleton s=new skeleton, int ngraph=32,
-		      projection P=currentprojection) {
+  // add longitudinal curves to skeleton
+  void longitudinal(skeleton s, int ngraph=32, projection P=currentprojection) {
     real t, d=0;
     // Find a point on g of maximal distance from the axis.
     int N=size(g);
@@ -236,14 +234,13 @@ struct revolution {
       s.longitudinal.push(rotate(angle(t1[0]),c,c+axis)*g);
     if(t2.length > 1)
       s.longitudinal.push(rotate(angle(t2[0]),c,c+axis)*g);
-    
-    return s;
   }
   
-  skeleton skeleton(skeleton s=new skeleton,
-		    int m=0, int ngraph=32, projection P=currentprojection) {
+  skeleton skeleton(int m=0, int ngraph=32, projection P=currentprojection) {
+    skeleton s;
     transverse(s,m,ngraph,P);
-    return longitudinal(s,ngraph,P);
+    longitudinal(s,ngraph,P);
+    return s;
   }
 
   // Draw on picture pic the skeleton of the surface of rotation. Draw
