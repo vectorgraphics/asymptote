@@ -53,8 +53,8 @@ asymptote.pdf: asymptote.texi $(INCLUDES) $(ASYFILES:.asy=.pdf)
 	texi2dvi --pdf asymptote.texi
 
 intro.pdf: intro.asy $(ASYFILES)
-	asy -tex pdflatex intro
-	asy -tex pdflatex intro
+	$(ASY) -tex pdflatex intro
+	$(ASY) -tex pdflatex intro
 
 CAD.pdf: CAD.tex CAD1.eps 
 	latex CAD
