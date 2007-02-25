@@ -144,7 +144,7 @@ public:
       p[nc]=0;
       if(nc == 0) break;
       if(nc > 0) {
-	if(settings::verbose > 2) std::cerr << p << std::endl;
+	if(settings::verbose > 2) std::cerr << p;
 	if(strchr(p,'\n')) break;
 	p += nc;
 	size -= nc;
@@ -236,7 +236,7 @@ public:
   
   iopipestream& operator << (const string &s) {
     ssize_t size=s.length();
-    if(settings::verbose > 2) std::cerr << s << std::endl;
+    if(settings::verbose > 2) std::cerr << s;
     if(write(in[1],s.c_str(),size) != size)
       camp::reportError("write to pipe failed");
     return *this;
