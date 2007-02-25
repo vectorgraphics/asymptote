@@ -160,48 +160,58 @@ struct revolution {
     return Circle(center,abs(v-center),axis,ngraph);
   }
   
-  skeleton skeleton(int m=0, int ngraph=32, projection P=currentprojection) {
-    skeleton s=new skeleton;
-    
-    // transverse skeleton
+  // transverse skeleton
+  skeleton transverse(skeleton s=new skeleton, real t, int ngraph=32,
+		      projection P=currentprojection) {
     static real epsilon=sqrt(realEpsilon);
+    path3 S=slice(t,ngraph);
+    if((t <= epsilon && dot(axis,P.camera) < 0) ||
+       (t >= length(g)-epsilon && dot(axis,P.camera) >= 0))
+      s.front.push(S);
+    else {
+      path3 Sp=slice(t+epsilon,ngraph);
+      path3 Sm=slice(t-epsilon,ngraph);
+      path sp=project(Sp,P);
+      path sm=project(Sm,P);
+      real[] t1=tangent(sp,sm,true);
+      real[] t2=tangent(sp,sm,false);
+      if(t1.length > 1 && t2.length > 1) {
+	real t1=t1[0];
+	real t2=t2[0];
+	int len=length(S);
+	if(t2 < t1) t2 += len;
+	path3 p1=subpath(S,t1,t2);
+	path3 p2=subpath(S,t2,t1+len);
+	if(dot(point(p1,0.5*length(p1))-c,P.camera) >= 0) {
+	  s.front.push(p1);
+	  s.back.push(p2);
+	} else {
+	  s.front.push(p2);
+	  s.back.push(p1);
+	}
+      }
+    }
+    return s;
+  }
+
+  skeleton transverse(skeleton s=new skeleton, int m=0, int ngraph=32,
+		      projection P=currentprojection) {
     int N=size(g);
     int n=(m == 0) ? N : m;
     real factor=m == 1 ? 0 : 1/(m-1);
     for(int i=0; i < n; ++i) {
       real t=(m == 0) ? i : reltime(g,i*factor);
-      path3 S=slice(t,ngraph);
-      if((i == 0 && dot(axis,P.camera) < 0) ||
-         (i == n-1 && dot(axis,P.camera) >= 0))
-        s.front.push(S);
-      else {
-        path3 Sp=slice(t+epsilon,ngraph);
-        path3 Sm=slice(t-epsilon,ngraph);
-        path sp=project(Sp,P);
-        path sm=project(Sm,P);
-        real[] t1=tangent(sp,sm,true);
-        real[] t2=tangent(sp,sm,false);
-        if(t1.length > 1 && t2.length > 1) {
-          real t1=t1[0];
-          real t2=t2[0];
-          int len=length(S);
-          if(t2 < t1) t2 += len;
-          path3 p1=subpath(S,t1,t2);
-          path3 p2=subpath(S,t2,t1+len);
-          if(dot(point(p1,0.5*length(p1))-c,P.camera) >= 0) {
-            s.front.push(p1);
-            s.back.push(p2);
-          } else {
-            s.front.push(p2);
-            s.back.push(p1);
-          }
-        }
-      }
+      transverse(s,t,ngraph,P);
     }
-    
-    // longitudinal skeleton
+    return s;
+  }
+
+  // longitudinal skeleton
+  skeleton longitudinal(skeleton s=new skeleton, int ngraph=32,
+		      projection P=currentprojection) {
     real t, d=0;
     // Find a point on g of maximal distance from the axis.
+    int N=size(g);
     for(int i=0; i < N; ++i) {
       triple v=point(g,i);
       triple center=c+dot(v-c,axis)*axis;
@@ -230,6 +240,12 @@ struct revolution {
     return s;
   }
   
+  skeleton skeleton(skeleton s=new skeleton,
+		    int m=0, int ngraph=32, projection P=currentprojection) {
+    transverse(s,m,ngraph,P);
+    return longitudinal(s,ngraph,P);
+  }
+
   // Draw on picture pic the skeleton of the surface of rotation. Draw
   // the front portion of each of the m transverse slices with pen p and
   // the back portion with pen backpen.
