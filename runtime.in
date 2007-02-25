@@ -1399,11 +1399,6 @@ void assert(bool b, string s=emptystring)
   }
 }
 
-string fileprefix()
-{
-  return outname();
-}
-
 void _eval(string *s, bool embedded)
 {
   if (embedded) {
@@ -1456,7 +1451,7 @@ bool deconstruct()
 Void readGUI()
 {
   static bool first=true;
-  string name=buildname(outname(),"gui");
+  string name=buildname(outname(),guisuffix);
   std::ifstream exists(name.c_str());
   if(exists) {
     if((getSetting<bool>("clearGUI") && !interact::interactive) ||

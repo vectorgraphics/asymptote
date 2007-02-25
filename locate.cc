@@ -39,8 +39,7 @@ file_list_t mungeFileName(string id)
 {
   string ext = fs::extension(id);
   file_list_t files;
-  if (ext == "."+settings::suffix ||
-      ext == "."+settings::guisuffix) {
+  if (ext == "."+settings::suffix) {
     files.push_back(id);
     files.push_back(id+"."+settings::suffix);
   } else {

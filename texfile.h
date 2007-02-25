@@ -71,6 +71,13 @@ void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
       << "}}" << newl
       << settings::rawpostscript(texengine) << newl;
   
+  
+  if(pipe) {
+    mem::string name=auxname(settings::outname(),"aux");
+    std::ifstream exists(name.c_str());
+    if(exists) 
+      out << "\\input " << name << newl;
+  }
   if(settings::latex(texengine)) {
     if(pipe || !settings::getSetting<bool>("inlinetex")) {
       out << "\\usepackage{graphicx}" << newl;

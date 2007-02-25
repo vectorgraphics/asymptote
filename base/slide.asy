@@ -4,10 +4,6 @@ usepackage("rotating");
 usepackage("color");
 usepackage("asycolors");
 
-string s=fileprefix()+"_.aux";
-file f=input(s,false);
-if(!error(f)) texpreamble("\input "+s);
-
 bool reverse=false; // Set to true to enable reverse video
 bool stepping=false; // Set to true to enable stepping
 bool itemstep=true;  // Set to false to disable stepping on each item
