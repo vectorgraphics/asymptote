@@ -23,7 +23,8 @@ void perpendicular(picture pic=currentpicture, pair z, pair align,
   path g=d1--d1+d2--d2;
   g=margin(g,p).g;
   draw(apic,g,p);
-  if (filltype != NoFill) filltype(apic,(relpoint(g,0)-relpoint(g,.5)+relpoint(g,1))--g--cycle,p+solid);
+  if(filltype != NoFill) filltype(apic,(relpoint(g,0)-relpoint(g,0.5)+
+                                        relpoint(g,1))--g--cycle,p+solid);
   add(pic,apic,z);
 }
   
@@ -89,4 +90,3 @@ guide arc(explicit pair B, explicit pair A, explicit pair C,
 {
   return arc(A,r,degrees(B-A),degrees(C-A));
 }
-
