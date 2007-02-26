@@ -4,6 +4,8 @@ usepackage("hyperref");
 // See http://www.tug.org/tex-archive/macros/latex/contrib/movie15/README
 // for documentation of the options.
 
+settings.outformat="pdf";
+
 // Embed object in pdf file 
 string embed(string name, string options="", real width=0, real height=0)
 {
