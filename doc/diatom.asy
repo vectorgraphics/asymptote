@@ -56,6 +56,8 @@ end[begin.length-1]=n-1;
 typedef void drawfcn(frame f);
 drawfcn[] draw=new drawfcn[begin.length];
 
+pair z0;
+
 for(int taxon=0; taxon < n; ++taxon) {
   real[] P=percentage[taxon];
   real maxP=max(P);
@@ -73,45 +75,38 @@ for(int taxon=0; taxon < n; ++taxon) {
   frame label;
   label(label,rotate(angle)*TeXify(taxa[taxon]),(0,0),N);
 
-  void block() {
-    pair z=point(pic,N);
-    pair v=max(label);
-    int taxon=taxon;
-    pic.add(new void(frame f, transform t) {
-	pair z1=t*z+v;
-	ymax=max(ymax,z1.y+margin);
-      });
-  }
-  block();
+  pair z=point(pic,N);
+  pair v=max(label);
+  int taxon=taxon;
+  pic.add(new void(frame f, transform t) {
+      pair z1=t*z+v;
+      ymax=max(ymax,z1.y+margin);
+    });
 
   for(int i=0; i < begin.length; ++i) {
-    pair z0;
-    void block() {
-      pair z=point(pic,N);
-      pair v=max(label);
-      if(taxon == begin[i]) {
-	pic.add(new void(frame f, transform t) {
-	    pair Z=t*z+v;
-	    z0=Z;
-	    pair w0=Z+Ldir;
-	  });
-      } else if(taxon == end[i]) {
-	int i=i;
-	pair align=2N;
-	pic.add(new void(frame, transform t) {
-	    pair z0=z0;
-	    pair z1=t*z+v;
-	    pair w1=z1+Ldir;
-	    draw[i]=new void(frame f) {
-		path g=z0--(z0.x+(ymax-z0.y)/Tan(angle),ymax)--
-		  (z1.x+(ymax-z1.y)/Tan(angle),ymax)--z1;
-		draw(f,g);
-		label(f,group[i],point(g,1.5),align);
-	      };
-	  });
-      }
+    pair z=point(pic,N);
+    pair v=max(label);
+    if(taxon == begin[i]) {
+      pic.add(new void(frame f, transform t) {
+          pair Z=t*z+v;
+          z0=Z;
+          pair w0=Z+Ldir;
+        });
+    } else if(taxon == end[i]) {
+      int i=i;
+      pair align=2N;
+      pic.add(new void(frame, transform t) {
+          pair z0=z0;
+          pair z1=t*z+v;
+          pair w1=z1+Ldir;
+          draw[i]=new void(frame f) {
+              path g=z0--(z0.x+(ymax-z0.y)/Tan(angle),ymax)--
+                (z1.x+(ymax-z1.y)/Tan(angle),ymax)--z1;
+              draw(f,g);
+              label(f,group[i],point(g,1.5),align);
+            };
+        });
     }
-    block();
   }
 
   add(pic,label,point(pic,N));

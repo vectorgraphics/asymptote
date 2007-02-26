@@ -234,7 +234,17 @@ void stack::run(program *code, vars_t vars)
             vars->extend(get<int>(i));
             break;
           }
-	
+
+          case inst::pushframe: {
+            vars=make_frame(0, vars);
+            break;
+          }
+
+          case inst::popframe: {
+            vars=get<frame *>((*vars)[0]);
+            break;
+          }
+
           default:
 	    error("Internal VM error: Bad stack operand");
         }

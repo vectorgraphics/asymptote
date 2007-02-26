@@ -34,6 +34,7 @@ public: // interface
   label() : where(0), code() {}
 public: //interface
   label& operator++();
+  label& operator--();
   bool operator==(const label& right) const;
   bool operator!=(const label& right) const;
   inst& operator*() const;
@@ -69,6 +70,8 @@ inline inst& program::operator[](size_t n)
 { return code[n]; }
 inline program::label& program::label::operator++()
 { ++where; return *this; }
+inline program::label& program::label::operator--()
+{ --where; return *this; }
 inline bool program::label::operator==(const label& right) const
 { return (code == right.code) && (where == right.where); }
 inline bool program::label::operator!=(const label& right) const

@@ -44,6 +44,9 @@ class coder {
   // The type of the enclosing record.  Also needed for the "this" expression.
   record *recordType;
   
+  // Are we translating a codelet?
+  bool isCodelet;
+
   // The lambda being constructed. In some cases, this lambda is needed
   // before full translation of the function, so it is stored,
   // incomplete, here.
@@ -77,6 +80,13 @@ class coder {
   std::map<int,vm::program::label> defs;
   std::multimap<int,vm::program::label> uses;
   int numLabels;
+
+  // The loop constructs allocate nested frames, in case variables in an
+  // iteration escape in a closure.  This stack keeps track of where the
+  // variables are allocated, so the size of the frame can be encoded.  At the
+  // start, it just holds the label of the first instruction of the lambda, as
+  // this is where space for the variables of the function is allocated.
+  std::stack<vm::program::label> allocs;
 
   // Loops need to store labels to where break and continue statements
   // should pass control to.  Since loops can be nested, this needs to
@@ -180,7 +190,7 @@ public:
 
   frame *getFrame()
   {
-    if (isStatic() && parent) {
+    if (isStatic() && !isTopLevel()) {
       assert(parent->getFrame());
       return parent->getFrame();
     }
@@ -209,7 +219,7 @@ public:
   // Checks if we are at the top level, which is true for a file-level module or
   // a codelet.
   bool isTopLevel() {
-    return parent==0 || parent->getFrame() == level;
+    return parent==0 || isCodelet;
   }
 
   // The encode functions add instructions and operands on to the code array.
@@ -219,7 +229,7 @@ private:
     i.pos = curPos;
     // Static code is put into the enclosing coder, unless we are translating a
     // codelet.
-    if (isStatic() && parent && parent->getFrame() != level) {  
+    if (isStatic() && !isTopLevel()) {
       assert(parent);
       parent->encode(i);
     }
@@ -227,6 +237,7 @@ private:
       program->encode(i);
     }
   }
+
 public:
   void encode(inst::opcode op)
   {
@@ -317,6 +328,32 @@ public:
     }
   }
   
+private:
+  void encodeAllocInstruction() {
+    encode(inst::alloc, 0);
+    allocs.push(--program->end());
+  }
+
+  void finishAlloc() {
+    allocs.top()->ref = level->size();
+    allocs.pop();
+  }
+
+public:
+  void encodePushFrame() {
+    encode(inst::pushframe);
+    level = new frame(level, 0);
+
+    encodeAllocInstruction();
+  }
+
+  void encodePopFrame() {
+    finishAlloc();
+
+    encode(inst::popframe);
+    level = level->getParent();
+  }
+
   // Adds an entry into the position list, linking the given point in the
   // source code to the current position in the virtual machine code.  This is
   // used to print positions at runtime.

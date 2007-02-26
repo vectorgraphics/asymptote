@@ -49,7 +49,7 @@ struct inst {
     varpush, varsave, fieldpush, fieldsave,
     builtin, jmp, cjmp, njmp, popcall,
     pushclosure, makefunc, ret,
-    alloc
+    alloc, pushframe, popframe
   };
   opcode op;
   position pos;

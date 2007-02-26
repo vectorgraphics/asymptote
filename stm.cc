@@ -111,6 +111,12 @@ void ifStm::trans(coenv &e)
 }
 
 
+void transLoopBody(coenv &e, stm *body) {
+  e.c.encodePushFrame();
+  body->markTrans(e);
+  e.c.encodePopFrame();
+}
+
 void whileStm::prettyprint(ostream &out, int indent)
 {
   prettyname(out,"whileStm",indent);
@@ -129,7 +135,7 @@ void whileStm::trans(coenv &e)
   e.c.pushBreak(end);
   e.c.useLabel(inst::njmp,end);
 
-  body->markTrans(e);
+  transLoopBody(e,body);
 
   e.c.useLabel(inst::jmp,start);
   e.c.defLabel(end);
@@ -156,7 +162,7 @@ void doStm::trans(coenv &e)
  
   int start = e.c.defLabel();
 
-  body->markTrans(e);  
+  transLoopBody(e,body);  
   
   e.c.defLabel(testLabel);
   test->transToType(e, types::primBoolean());
@@ -195,7 +201,7 @@ void forStm::trans(coenv &e)
     e.c.useLabel(inst::njmp,end);
   }
 
-  body->markTrans(e);
+  transLoopBody(e,body);
 
   e.c.defLabel(ctarget);
   
@@ -217,6 +223,10 @@ void breakStm::prettyprint(ostream &out, int indent)
 
 void breakStm::trans(coenv &e)
 {
+  // Loop bodies have their own frame to declare variables for each iteration.
+  // Pop out of this frame when jumping out of the loop body.
+  e.c.encode(inst::popframe);
+
   if (!e.c.encodeBreak()) {
     em->error(getPos());
     *em << "break statement outside of a loop";
@@ -231,6 +241,10 @@ void continueStm::prettyprint(ostream &out, int indent)
 
 void continueStm::trans(coenv &e)
 {
+  // Loop bodies have their own frame to declare variables for each iteration.
+  // Pop out of this frame when jumping out of the loop body.
+  e.c.encode(inst::popframe);
+
   if (!e.c.encodeContinue()) {
     em->error(getPos()); 
     *em << "continue statement outside of a loop";

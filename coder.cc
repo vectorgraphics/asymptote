@@ -31,6 +31,7 @@ coder::coder(modifier sord)
   : level(new frame(0, 0)),
     recordLevel(0),
     recordType(0),
+    isCodelet(false),
     l(new vm::lambda),
     funtype(bootuptype()),
     parent(0),
@@ -41,7 +42,7 @@ coder::coder(modifier sord)
     curPos(position::nullPos())
 {
   sord_stack.push(sord);
-  encode(inst::alloc,0);
+  encodeAllocInstruction();
 }
 
 // Defines a new function environment.
@@ -50,6 +51,7 @@ coder::coder(function *t, coder *parent, modifier sord, bool reframe)
                     parent->getFrame()),
     recordLevel(parent->recordLevel),
     recordType(parent->recordType),
+    isCodelet(!reframe),
     l(new vm::lambda),
     funtype(t),
     parent(parent),
@@ -60,7 +62,7 @@ coder::coder(function *t, coder *parent, modifier sord, bool reframe)
     curPos(position::nullPos())
 {
   sord_stack.push(sord);
-  encode(inst::alloc,0);
+  encodeAllocInstruction();
 }
 
 // Start encoding the body of the record.  The function being encoded
@@ -69,6 +71,7 @@ coder::coder(record *t, coder *parent, modifier sord)
   : level(t->getLevel()),
     recordLevel(t->getLevel()),
     recordType(t),
+    isCodelet(false),
     l(t->getInit()),
     funtype(inittype()),
     parent(parent),
@@ -79,7 +82,7 @@ coder::coder(record *t, coder *parent, modifier sord)
     curPos(position::nullPos())
 {
   sord_stack.push(sord);
-  encode(inst::alloc,0);
+  encodeAllocInstruction();
 }
 
 coder coder::newFunction(function *t, modifier sord)
@@ -234,7 +237,10 @@ vm::lambda *coder::close() {
   l->code = program;
 
   l->params = level->getNumFormals();
-  program->begin()->ref = level->size();
+
+  // Now that we know how many variables the function has, allocate space for
+  // all of them at the start of the function.
+  finishAlloc();
 
   sord_stack.pop();
   sord = sord_stack.top();

@@ -4765,6 +4765,23 @@ int pow(int n, int k) {
 there is one instance of @code{x} for each call to @code{pow}, so this
 is an ugly implementation of exponentiation.
 
+Loop constructs allocate a new frame in every iteration.  This is so that
+higher-order functions can refer to variables of a specific iteration of a
+loop:
+
+@verbatim
+void f();
+for (int i=0; i<10; ++i) {
+  int x=i;
+  if (x==5) {
+    f=new void () { write(x); }
+  }
+}
+f();
+@end verbatim
+
+Here, every iteration of the loop has it's own variable x, so f() will write 5.
+
 Statements may also be declared static, in which case they are run at the place
 where the enclosing function or structure is defined.
 

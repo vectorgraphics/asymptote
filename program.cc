@@ -15,7 +15,7 @@ static const char* opnames[] = {
   "varpush", "varsave", "fieldpush", "fieldsave",
   "builtin", "jmp", "cjmp", "njmp", "call",
   "pushclosure", "makefunc", "ret",
-  "alloc"
+  "alloc", "pushframe", "popframe"
 };
 static const int numOps = (int)(sizeof(opnames)/sizeof(char *));
 
