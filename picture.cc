@@ -33,10 +33,12 @@ texstream tex; // Bi-directional pipe to latex (to find label bbox)
 
 void texstream::pipeclose() {
   iopipestream::pipeclose();
-  if (!getSetting<bool>("keep")) {
+  if(!getSetting<bool>("keep")) {
     unlink("texput.log");
     unlink("texput.out");
     unlink("texput.aux");
+    if(settings::pdf(texengine()))
+      unlink("texput.pdf");
   }
 }
 
@@ -196,7 +198,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       // Magic dvips offsets:
       double hoffset=-128.4;
       double vertical=height;
-      if(!settings::latex(texengine)) vertical += 2.0;
+      if(!latex(texengine)) vertical += 2.0;
       double voffset=(vertical < 13.0) ? -137.8+vertical : -124.8;
 
       hoffset += b.left+bboxshift.getx();
