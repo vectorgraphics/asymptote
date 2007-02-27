@@ -69,12 +69,14 @@ void texdefines(T& out, mem::list<mem::string>& preamble=TeXpreamble,
       << "}}" << newl
       << settings::rawpostscript(texengine) << newl;
   
+#if 0 // Temporarily disabled
   if(pipe) {
     mem::string name=auxname(settings::outname(),"aux");
     std::ifstream exists(name.c_str());
     if(exists) 
       out << "\\input " << name << newl;
   }
+#endif  
   if(settings::latex(texengine)) {
     if(pipe || !settings::getSetting<bool>("inlinetex")) {
       out << "\\usepackage{graphicx}" << newl;
