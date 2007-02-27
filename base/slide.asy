@@ -394,7 +394,7 @@ void asycode(bool center=false, string s, string options="", pair align=S,
 	     filltype filltype=NoFill, bool newslide=false)
 {
   string a=s+".asy";
-  asy(nativeformat(),a);
+  asy(nativeformat(),s);
   filecode(center,a,p,indent,skip,filltype);
   s += "."+nativeformat();
   if(newslide) {

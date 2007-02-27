@@ -88,7 +88,7 @@ for(int i=0; i < 10; ++i) {
 
 
 title("Textbook Graph");
-asy(nativeformat(),"exp.asy");
+asy(nativeformat(),"exp");
 filecode("exp.asy");
 label(graphic("exp."+nativeformat(),"height=10cm"),(0.5,0),
       Fill(figureborder,figuremattpen));
