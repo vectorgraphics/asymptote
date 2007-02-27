@@ -10,8 +10,6 @@
 #ifndef CODER_H
 #define CODER_H
 
-#include <stack>
-
 #include "errormsg.h"
 #include "entry.h"
 #include "types.h"

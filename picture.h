@@ -9,7 +9,6 @@
 #ifndef PICTURE_H
 #define PICTURE_H
 
-#include <list>
 #include <sstream>
 #include <iostream>
 

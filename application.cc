@@ -17,6 +17,7 @@ using namespace types;
 using absyntax::varinit;
 using absyntax::arrayinit;
 using absyntax::arglist;
+using mem::list;
 
 namespace trans {
 

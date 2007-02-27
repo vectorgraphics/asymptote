@@ -8,7 +8,6 @@
 #ifndef ERRORMSG_H
 #define ERRORMSG_H
 
-#include <list>
 #include <iostream>
 #include "memory.h"
 #include "settings.h"

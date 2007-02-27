@@ -9,10 +9,6 @@
 #ifndef ENV_H
 #define ENV_H
 
-#include <list>
-#include <map>
-#include <stack>
-
 #include "errormsg.h"
 #include "entry.h"
 #include "types.h"
@@ -23,8 +19,6 @@ class record;
 }
 
 namespace trans {
-
-using std::list;
 
 using sym::symbol;
 using types::ty;

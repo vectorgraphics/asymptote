@@ -8,7 +8,6 @@
 #ifndef DRAWELEMENT_H
 #define DRAWELEMENT_H
 
-#include <list>
 #include <vector>
 
 #include "memory.h"

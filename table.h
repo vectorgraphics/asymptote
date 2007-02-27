@@ -9,8 +9,6 @@
 #define TABLE_H
 
 #include <cassert>
-#include <map>
-#include <list>
 #include <utility>
 
 #include "symbol.h"

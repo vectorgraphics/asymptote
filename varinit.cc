@@ -13,6 +13,8 @@
 #include "coenv.h"
 #include "runtime.h"
 
+using mem::list;
+
 namespace absyntax {
 
 using namespace types;

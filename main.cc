@@ -23,7 +23,6 @@
 #include "stack.h"
 
 using namespace settings;
-using std::list;
 using mem::string;
 
 errorstream *em;

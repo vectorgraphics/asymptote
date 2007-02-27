@@ -10,7 +10,6 @@
 #define PSFILE_H
 
 #include <fstream>
-#include <stack>
 #include <iomanip>
 #include <sstream>
 

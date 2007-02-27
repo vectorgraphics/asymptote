@@ -8,7 +8,6 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include <list>
 #include <fstream>
 
 #include "memory.h"

@@ -18,7 +18,6 @@
 
 namespace absyntax {
 
-using mem::list;
 using trans::coenv;
 using trans::access;
 using sym::symbol;
@@ -55,7 +54,7 @@ public:
 };
 
 class arrayinit : public varinit {
-  list<varinit *> inits;
+  mem::list<varinit *> inits;
 
   varinit *rest;
 public:

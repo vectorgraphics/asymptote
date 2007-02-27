@@ -7,8 +7,6 @@
  * instruction or builtin function used to handle the casting.
  *****/
 
-#include <map>
-
 #include "cast.h"
 #include "runtime.h"
 #include "access.h"

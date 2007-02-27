@@ -11,8 +11,6 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#include <list>
-
 #include "memory.h"
 #include "types.h"
 #include "coenv.h"

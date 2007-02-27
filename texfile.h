@@ -11,7 +11,6 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <list>
 
 #include "memory.h"
 #include "pair.h"
@@ -26,7 +25,7 @@
 
 namespace camp {
 
-extern std::list<mem::string> TeXpipepreamble, TeXpreamble;
+extern mem::list<mem::string> TeXpipepreamble, TeXpreamble;
 
 const double tex2ps=72.0/72.27;
 const double ps2tex=1.0/tex2ps;
@@ -40,15 +39,15 @@ void texdocumentclass(T& out, bool pipe=false)
 }
   
 template<class T>
-void texpreamble(T& out, std::list<mem::string>& preamble=TeXpreamble)
+void texpreamble(T& out, mem::list<mem::string>& preamble=TeXpreamble)
 {
-  for(std::list<mem::string>::iterator p=preamble.begin();
+  for(mem::list<mem::string>::iterator p=preamble.begin();
       p != preamble.end(); ++p)
     out << stripblanklines(*p);
 }
 
 template<class T>
-void texdefines(T& out, std::list<mem::string>& preamble=TeXpreamble,
+void texdefines(T& out, mem::list<mem::string>& preamble=TeXpreamble,
 		bool pipe=false)
 {
   mem::string texengine=settings::getSetting<mem::string>("tex");
@@ -69,7 +68,6 @@ void texdefines(T& out, std::list<mem::string>& preamble=TeXpreamble,
       << settings::endlabel(texengine) << "%" << newl
       << "}}" << newl
       << settings::rawpostscript(texengine) << newl;
-  
   
   if(pipe) {
     mem::string name=auxname(settings::outname(),"aux");

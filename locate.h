@@ -8,8 +8,6 @@
 #ifndef LOCATE_H
 #define LOCATE_H
 
-#include <list>
-
 #include "memory.h"
 
 namespace settings {
