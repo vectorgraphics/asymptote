@@ -957,30 +957,8 @@ for(int i=0; i < 3; ++i) {
 // Writes warning about top-level static modifier and then 1, 1, 1
 \endverbatim
 
-For efficiency reasons, variables inside for and while loops are
-allocated just once, not every iteration. However, they look like new
-variables in each iteration, because they are initialized again after each
-iteration. This could conceivably cause a problem in obscure cases where a
-variable in a loop is accessed in the closure of a function defined in the loop:
- 
-\verbatim
-int f(); 
- 
-for(int i=0; i < 3; ++i) { 
-  int j=10*i;
-  if(i == 1)
-    f=new int() {return j;}; 
-} 
- 
-write(f()); // Writes 20
-\endverbatim
- 
-In the current implementation, variables in a for loop last as long in
-memory as variables declared outside of the for loop. In a function
-body, they will last at least as long as the function call, though because
-of closures and garbage collection, they may last longer than that.
-If defined at the top level of a file or at the interactive prompt, they will
-last at least until the end of the file or prompt's run.
+New instances of variables inside for and while loops are allocated on
+every iteration.
 
 \question 26jun:debug Is there a debugger for asy?
 
