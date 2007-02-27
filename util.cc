@@ -246,19 +246,20 @@ int System(const ostringstream& command, int quiet, bool wait,
   return System(command.str().c_str(),quiet,wait,hint,application,pid);
 }
 
-string stripblanklines(string& s)
+string stripblanklines(const string& s)
 {
+  string S=string(s);
   bool blank=true;
-  const char *t=s.c_str();
-  size_t len=s.length();
+  const char *t=S.c_str();
+  size_t len=S.length();
   
   for(size_t i=0; i < len; i++) {
     if(t[i] == '\n') {
-      if(blank) s[i]=' ';
+      if(blank) S[i]=' ';
       else blank=true;
     } else if(t[i] != '\t' && t[i] != ' ') blank=false;
   }
-  return s;
+  return S;
 }
 
 char *startpath=NULL;

@@ -34,9 +34,6 @@ latexusage.png: latexusage.eps
 latexusage.pdf: latexusage.dvi
 	dvipdf latexusage
 
-intro.png:
-	-
-
 options: ../settings.cc
 	$(ASY) -h 2>&1 | grep -iv Asymptote > options
 
@@ -55,6 +52,9 @@ asymptote.pdf: asymptote.texi $(INCLUDES) $(ASYFILES:.asy=.pdf)
 intro.pdf: intro.asy $(ASYFILES)
 	$(ASY) -tex pdflatex intro
 	$(ASY) -tex pdflatex intro
+
+intro.png:
+	-
 
 CAD.pdf: CAD.tex CAD1.eps 
 	latex CAD

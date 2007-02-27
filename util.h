@@ -76,7 +76,7 @@ extern "C" char *strptime(const char *s, const char *format, struct tm *tm);
 extern bool False;
 
 // Strip blank lines (which would break the bidirectional TeX pipe)
-mem::string stripblanklines(mem::string& s);
+mem::string stripblanklines(const mem::string& s);
 
 extern char *currentpath;
 
