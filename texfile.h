@@ -69,14 +69,17 @@ void texdefines(T& out, mem::list<mem::string>& preamble=TeXpreamble,
       << "}}" << newl
       << settings::rawpostscript(texengine) << newl;
   
-#if 0 // Temporarily disabled
   if(pipe) {
+    // Make tex pipe aware of a previously generated aux file.
     mem::string name=auxname(settings::outname(),"aux");
-    std::ifstream exists(name.c_str());
-    if(exists) 
-      out << "\\input " << name << newl;
+    std::ifstream fin(name.c_str());
+    if(fin) {
+      std::ofstream fout("texput.aux");
+      mem::string s;
+      while(getline(fin,s))
+	fout << s << endl;
+    }
   }
-#endif  
   if(settings::latex(texengine)) {
     if(pipe || !settings::getSetting<bool>("inlinetex")) {
       out << "\\usepackage{graphicx}" << newl;
