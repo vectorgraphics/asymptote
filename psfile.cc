@@ -19,6 +19,8 @@ using std::ofstream;
 using std::setw;
 using vm::array;
 using vm::read;
+using mem::string;
+using mem::ostringstream;
   
 namespace camp {
 
@@ -53,7 +55,7 @@ void psfile::close()
     out->flush();
     if(!filename.empty()) {
       if(!out->good()) {
-	std::ostringstream msg;
+	ostringstream msg;
 	msg << "Cannot write to " << filename;
 	reportError(msg);
       }

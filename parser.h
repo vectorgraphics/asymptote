@@ -7,7 +7,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include <string>
+#include "memory.h"
 #include "absyn.h"
 
 namespace parser {

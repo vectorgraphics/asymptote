@@ -10,6 +10,8 @@
 
 namespace camp {
 
+using mem::string;
+  
 string tab="\t";
 string newline="\n";
 
@@ -95,7 +97,7 @@ void ifile::csv()
   if(c == ',') comma=true;
 }
   
-mem::string ifile::getcsvline() 
+string ifile::getcsvline() 
 {
   string s="";
   bool quote=false;

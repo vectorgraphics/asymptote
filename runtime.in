@@ -123,6 +123,7 @@ extern pen *initialdefaultpen;
 namespace run {
 using camp::pair;
 using mem::string;
+using mem::ostringstream;
 using vm::array;
 using vm::frame;
 using vm::stack;
@@ -183,6 +184,9 @@ using types::penArray2;
 using types::stringArray;
 using types::stringArray2;
 using types::formal;
+
+using mem::string;
+using mem::ostringstream;
 
 function *voidFunction()
 {
@@ -448,7 +452,7 @@ int LUdecompose(double **a, size_t n, size_t* index, bool warn=true)
 
 void dividebyzero(size_t i)
 {
-  std::ostringstream buf;
+  ostringstream buf;
   if(i > 0) buf << "array element " << i << ": ";
   buf << "Divide by zero";
   error(buf);
@@ -456,7 +460,7 @@ void dividebyzero(size_t i)
   
 void integeroverflow(size_t i)
 {
-  std::ostringstream buf;
+  ostringstream buf;
   if(i > 0) buf << "array element " << i << ": ";
   buf << "Integer overflow";
   error(buf);
@@ -662,9 +666,9 @@ inline double Max(double a, double b)
   return (a > b) ? a : b;
 }
 
-static mem::string *defaulttransparency=new mem::string("Compatible");
+static string *defaulttransparency=new string("Compatible");
 
-static mem::string *defaulttimeformat=new mem::string("%a %b %d %T %Z %Y");
+static string *defaulttimeformat=new string("%a %b %d %T %Z %Y");
 #ifdef HAVE_STRFTIME
 static const size_t nTime=256;
 static char Time[nTime];
@@ -1490,7 +1494,7 @@ void list(string *s, bool imports=false)
 {
   if(*s == "-") return;
   trans::genv ge;
-  symbol *name=symbol::trans((std::string) *s);
+  symbol *name=symbol::trans(*s);
   record *r=ge.getModule(name,*s);
   r->e.list(imports ? 0 : r);
 }
@@ -1918,7 +1922,7 @@ string format(string *format, real x)
 
 string string(real x, int digits)
 {
-  std::ostringstream buf;
+  ostringstream buf;
   buf.precision(digits);
   buf << x;
   return buf.str();

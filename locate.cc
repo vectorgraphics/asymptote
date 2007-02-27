@@ -11,6 +11,8 @@
 #include "util.h"
 #include "locate.h"
 
+using mem::string;
+  
 namespace settings {
 
 namespace fs {
@@ -85,7 +87,7 @@ string locateFile(string id)
       for (file_list_t::iterator dir = searchPath.begin();
            dir != searchPath.end();
            ++dir) {
-	mem::string file = join(*dir,*leaf);
+	string file = join(*dir,*leaf);
         if (fs::exists(file))
           return file;
       }

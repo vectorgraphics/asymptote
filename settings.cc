@@ -60,6 +60,8 @@ using vm::item;
 using trans::itemRefAccess;
 using trans::refAccess;
 using trans::varEntry;
+using mem::string;
+using mem::ostringstream;
   
 void doConfig(string filename);
 
@@ -131,7 +133,7 @@ const string suffix="asy";
 const string guisuffix="gui";
   
 string initdir;
-mem::string historyname;
+string historyname;
 
 camp::pen *initialdefaultpen=NULL;
 camp::pen defaultpen=camp::pen::startupdefaultpen();
@@ -150,32 +152,32 @@ types::record *getSettingsModule() {
 
 // The dictionaries of long options and short options.
 class option;
-typedef mem::map<CONST mem::string, option *> optionsMap_t;
+typedef mem::map<CONST string, option *> optionsMap_t;
 optionsMap_t optionsMap;
 typedef mem::map<CONST char, option *> codeMap_t;
 codeMap_t codeMap;
   
 struct option : public gc {
-  mem::string name;
+  string name;
   char code;      // Command line option, i.e. 'V' for -V.
   bool argument;  // If it takes an argument on the command line.  This is set
                   // based on whether argname is empty.
-  mem::string argname; // The argument name for printing the description.
-  mem::string desc; // One line description of what the option does.
+  string argname; // The argument name for printing the description.
+  string desc; // One line description of what the option does.
   bool cmdlineonly; // If it is only available on the command line.
-  mem::string Default; // A string containing an optional default value.
+  string Default; // A string containing an optional default value.
 
-  option(mem::string name, char code, mem::string argname, mem::string desc,
-	 bool cmdlineonly=false, mem::string Default="")
+  option(string name, char code, string argname, string desc,
+	 bool cmdlineonly=false, string Default="")
     : name(name), code(code), argument(!argname.empty()), argname(argname),
       desc(desc), cmdlineonly(cmdlineonly), Default(Default) {}
 
   virtual ~option() {}
 
   // Builds this option's contribution to the optstring argument of get_opt().
-  virtual mem::string optstring() {
+  virtual string optstring() {
     if (code) {
-      mem::string base;
+      string base;
       base.push_back(code);
       if(argument) base.push_back(':');
       return base;
@@ -210,7 +212,7 @@ struct option : public gc {
   }
 
   // The "-f,-outformat format" part of the option.
-  virtual mem::string describeStart() {
+  virtual string describeStart() {
     ostringstream ss;
     if (code)
       ss << "-" << code << ",";
@@ -225,7 +227,7 @@ struct option : public gc {
     // Don't show the option if it has no desciption.
     if (!desc.empty()) {
       const unsigned int WIDTH=22;
-      mem::string start=describeStart();
+      string start=describeStart();
       cerr << std::left << std::setw(WIDTH) << start;
       if (start.size() >= WIDTH) {
         cerr << endl;
@@ -240,13 +242,13 @@ struct option : public gc {
   }
 };
 
-const mem::string noarg;
+const string noarg;
 
 struct setting : public option {
   types::ty *t;
 
-  setting(mem::string name, char code, mem::string argname, mem::string desc,
-          types::ty *t, mem::string Default)
+  setting(string name, char code, string argname, string desc,
+          types::ty *t, string Default)
     : option(name, code, argname, desc, false,Default), t(t) {}
 
   virtual void reset() = 0;
@@ -265,9 +267,9 @@ struct itemSetting : public setting {
   item defaultValue;
   item value;
 
-  itemSetting(mem::string name, char code,
-              mem::string argname, mem::string desc,
-              types::ty *t, item defaultValue, mem::string Default="")
+  itemSetting(string name, char code,
+              string argname, string desc,
+              types::ty *t, item defaultValue, string Default="")
     : setting(name, code, argname, desc, t, Default),
       defaultValue(defaultValue) {reset();}
 
@@ -290,7 +292,7 @@ item& Setting(string name) {
 }
   
 struct boolSetting : public itemSetting {
-  boolSetting(mem::string name, char code, mem::string desc,
+  boolSetting(string name, char code, string desc,
               bool defaultValue=false)
     : itemSetting(name, code, noarg, desc,
                   types::primBoolean(), (item)defaultValue,
@@ -301,11 +303,11 @@ struct boolSetting : public itemSetting {
     return true;
   }
 
-  option *negation(mem::string name) {
+  option *negation(string name) {
     struct negOption : public option {
       boolSetting &base;
 
-      negOption(boolSetting &base, mem::string name)
+      negOption(boolSetting &base, string name)
         : option(name, 0, noarg, ""), base(base) {}
 
       bool getOption() {
@@ -320,7 +322,7 @@ struct boolSetting : public itemSetting {
     setting::add();
     negation("no"+name)->add();
     if (code) {
-      mem::string nocode="no"; nocode.push_back(code);
+      string nocode="no"; nocode.push_back(code);
       negation(nocode)->add();
     }
   }
@@ -330,7 +332,7 @@ struct boolSetting : public itemSetting {
   struct multiOption : public option {
     typedef mem::list<boolSetting *> setlist;
     setlist set;
-    multiOption(mem::string name, char code, mem::string desc)
+    multiOption(string name, char code, string desc)
       : option(name, code, noarg, desc, true) {}
 
     void add(boolSetting *s) {
@@ -347,11 +349,11 @@ struct boolSetting : public itemSetting {
       return true;
     }
 
-    option *negation(mem::string name) {
+    option *negation(string name) {
       struct negOption : public option {
         multiOption &base;
 
-        negOption(multiOption &base, mem::string name)
+        negOption(multiOption &base, string name)
           : option(name, 0, noarg, ""), base(base) {}
 
         bool getOption() {
@@ -366,7 +368,7 @@ struct boolSetting : public itemSetting {
       option::add();
       negation("no"+name)->add();
       if (code) {
-        mem::string nocode="no"; nocode.push_back(code);
+        string nocode="no"; nocode.push_back(code);
         negation(nocode)->add();
       }
 
@@ -379,8 +381,8 @@ struct boolSetting : public itemSetting {
 typedef boolSetting::multiOption multiOption;
 
 struct argumentSetting : public itemSetting {
-  argumentSetting(mem::string name, char code,
-                  mem::string argname, mem::string desc,
+  argumentSetting(string name, char code,
+                  string argname, string desc,
                   types::ty *t, item defaultValue)
     : itemSetting(name, code, argname, desc, t, defaultValue) 
   {
@@ -389,63 +391,63 @@ struct argumentSetting : public itemSetting {
 };
 
 struct stringSetting : public argumentSetting {
-  stringSetting(mem::string name, char code,
-                mem::string argname, mem::string desc,
-                mem::string defaultValue)
+  stringSetting(string name, char code,
+                string argname, string desc,
+                string defaultValue)
     : argumentSetting(name, code, argname, desc,
               types::primString(), (item)defaultValue) {}
 
   bool getOption() {
-    value=(item)(mem::string)optarg;
+    value=(item)(string)optarg;
     return true;
   }
 };
 
 struct stringOutnameSetting : public argumentSetting {
-  stringOutnameSetting(mem::string name, char code,
-		       mem::string argname, mem::string desc,
-		       mem::string defaultValue)
+  stringOutnameSetting(string name, char code,
+		       string argname, string desc,
+		       string defaultValue)
     : argumentSetting(name, code, argname, desc,
               types::primString(), (item)defaultValue) {}
 
   bool getOption() {
-    value=(item)(mem::string)
+    value=(item)(string)
       ((globaloutname || global()) ? optarg : stripDir(optarg));
     return true;
   }
 };
 
 struct userSetting : public argumentSetting {
-  userSetting(mem::string name, char code,
-	      mem::string argname, mem::string desc,
-	      mem::string defaultValue)
+  userSetting(string name, char code,
+	      string argname, string desc,
+	      string defaultValue)
     : argumentSetting(name, code, argname, desc,
 		      types::primString(), (item)defaultValue) {}
 
   bool getOption() {
-    mem::string s=vm::get<mem::string>(value)+mem::string(optarg);
+    string s=vm::get<string>(value)+string(optarg);
     s.push_back(';');
     value=(item) s;
     return true;
   }
 };
 
-mem::string GetEnv(mem::string s, mem::string Default) {
+string GetEnv(string s, string Default) {
   transform(s.begin(), s.end(), s.begin(), toupper);        
   string t=Getenv(("ASYMPTOTE_"+s).c_str(),msdos);
-  return t != "" ? mem::string(t) : Default;
+  return t != "" ? string(t) : Default;
 }
   
 struct envSetting : public stringSetting {
-  envSetting(mem::string name, mem::string Default)
+  envSetting(string name, string Default)
     : stringSetting(name, 0, " ", "", GetEnv(name,Default)) {}
 };
 
 template<class T>
 struct dataSetting : public argumentSetting {
   string text;
-  dataSetting(const char *text, mem::string name, char code,
-	      mem::string argname, mem::string desc, types::ty *type,
+  dataSetting(const char *text, string name, char code,
+	      string argname, string desc, types::ty *type,
 	      T defaultValue)
     : argumentSetting(name, code, argname, desc,
 		      type, (item)defaultValue), text(text) {}
@@ -462,36 +464,36 @@ struct dataSetting : public argumentSetting {
 };
 
 struct intSetting : public dataSetting<int> {
-  intSetting(mem::string name, char code,
-	     mem::string argname, mem::string desc, int defaultValue=0)
+  intSetting(string name, char code,
+	     string argname, string desc, int defaultValue=0)
     : dataSetting<int>("an int", name, code, argname, desc,
 		       types::primInt(), defaultValue) {}
 };
   
 struct realSetting : public dataSetting<double> {
-  realSetting(mem::string name, char code,
-	     mem::string argname, mem::string desc, double defaultValue=0.0)
+  realSetting(string name, char code,
+	     string argname, string desc, double defaultValue=0.0)
     : dataSetting<double>("a real", name, code, argname, desc,
 		       types::primReal(), defaultValue) {}
 };
   
 struct pairSetting : public dataSetting<pair> {
-  pairSetting(mem::string name, char code,
-	     mem::string argname, mem::string desc, pair defaultValue=0.0)
+  pairSetting(string name, char code,
+	     string argname, string desc, pair defaultValue=0.0)
     : dataSetting<pair>("a pair", name, code, argname, desc,
 		       types::primPair(), defaultValue) {}
 };
   
 // For setting the alignment of a figure on the page.
 struct alignSetting : public argumentSetting {
-  alignSetting(mem::string name, char code,
-                  mem::string argname, mem::string desc,
+  alignSetting(string name, char code,
+                  string argname, string desc,
                   int defaultValue=CENTER)
     : argumentSetting(name, code, argname, desc,
                   types::primInt(), (item)defaultValue) {}
 
   bool getOption() {
-    mem::string str=optarg;
+    string str=optarg;
     if (str=="C")
       value=(int)CENTER;
     else if (str=="T")
@@ -515,9 +517,9 @@ struct refSetting : public setting {
   T defaultValue;
   string text;
 
-  refSetting(mem::string name, char code, mem::string argname,
-             mem::string desc, types::ty *t, T *ref, T defaultValue,
-	     mem::string Default, const char *text="")
+  refSetting(string name, char code, string argname,
+             string desc, types::ty *t, T *ref, T defaultValue,
+	     string Default, const char *text="")
     : setting(name, code, argname, desc, t, Default),
       ref(ref), defaultValue(defaultValue), text(text) {
     reset();
@@ -543,7 +545,7 @@ struct refSetting : public setting {
 };
 
 struct boolrefSetting : public refSetting<bool> {
-  boolrefSetting(mem::string name, char code, mem::string desc, bool *ref)
+  boolrefSetting(string name, char code, string desc, bool *ref)
     : refSetting<bool>(name, code, noarg, desc,
 		       types::primBoolean(), ref, false, "false") {}
   bool getOption() {
@@ -552,11 +554,11 @@ struct boolrefSetting : public refSetting<bool> {
     return true;
   }
   
-  option *negation(mem::string name) {
+  option *negation(string name) {
     struct negOption : public option {
       boolrefSetting &base;
 
-      negOption(boolrefSetting &base, mem::string name)
+      negOption(boolrefSetting &base, string name)
         : option(name, 0, noarg, ""), base(base) {}
 
       bool getOption() {
@@ -571,14 +573,14 @@ struct boolrefSetting : public refSetting<bool> {
     setting::add();
     negation("no"+name)->add();
     if (code) {
-      mem::string nocode="no"; nocode.push_back(code);
+      string nocode="no"; nocode.push_back(code);
       negation(nocode)->add();
     }
   }
 };
 
 struct incrementSetting : public refSetting<int> {
-  incrementSetting(mem::string name, char code, mem::string desc, int *ref)
+  incrementSetting(string name, char code, string desc, int *ref)
     : refSetting<int>(name, code, noarg, desc,
 		      types::primInt(), ref, 0, "0") {}
 
@@ -588,11 +590,11 @@ struct incrementSetting : public refSetting<int> {
     return true;
   }
   
-  option *negation(mem::string name) {
+  option *negation(string name) {
     struct negOption : public option {
       incrementSetting &base;
 
-      negOption(incrementSetting &base, mem::string name)
+      negOption(incrementSetting &base, string name)
         : option(name, 0, noarg, ""), base(base) {}
 
       bool getOption() {
@@ -607,7 +609,7 @@ struct incrementSetting : public refSetting<int> {
     setting::add();
     negation("no"+name)->add();
     if (code) {
-      mem::string nocode="no"; nocode.push_back(code);
+      string nocode="no"; nocode.push_back(code);
       negation(nocode)->add();
     }
   }
@@ -617,7 +619,7 @@ struct incrementOption : public option {
   int *ref;
   int level;
   
-  incrementOption(mem::string name, char code, mem::string desc, int *ref,
+  incrementOption(string name, char code, string desc, int *ref,
 		  int level=1)
     : option(name, code, noarg, desc, true), ref(ref), level(level) {}
 
@@ -668,7 +670,7 @@ void displayOptions()
 }
 
 struct helpOption : public option {
-  helpOption(mem::string name, char code, mem::string desc)
+  helpOption(string name, char code, string desc)
     : option(name, code, noarg, desc, true) {}
 
   bool getOption() {
@@ -683,7 +685,7 @@ struct helpOption : public option {
 };
 
 struct versionOption : public option {
-  versionOption(mem::string name, char code, mem::string desc)
+  versionOption(string name, char code, string desc)
     : option(name, code, noarg, desc, true) {}
 
   bool getOption() {
@@ -700,7 +702,7 @@ struct boolOption : public option {
   bool *variable;
   bool value;
 
-  boolOption(mem::string name, char code, mem::string desc,
+  boolOption(string name, char code, string desc,
 	     bool *variable, bool value, bool Default)
     : option(name, code, noarg, desc, true, Default ? "true" : "false"),
       variable(variable), value(value) {}
@@ -713,8 +715,8 @@ struct boolOption : public option {
 
 struct stringOption : public option {
   char **variable;
-  stringOption(mem::string name, char code, mem::string argname,
-	       mem::string desc, char **variable)
+  stringOption(string name, char code, string argname,
+	       string desc, char **variable)
     : option(name, code, argname, desc, true), variable(variable) {}
 
   bool getOption() {
@@ -723,8 +725,8 @@ struct stringOption : public option {
   }
 };
 
-mem::string build_optstring() {
-  mem::string s;
+string build_optstring() {
+  string s;
   for (codeMap_t::iterator p=codeMap.begin(); p !=codeMap.end(); ++p)
     s +=p->second->optstring();
 
@@ -759,7 +761,7 @@ void getOptions(int argc, char *argv[])
   bool syntax=false;
   optind=0;
 
-  mem::string optstring=build_optstring();
+  string optstring=build_optstring();
   //cerr << "optstring: " << optstring << endl;
   c_option *longopts=build_longopts();
   int long_index = 0;
@@ -936,8 +938,8 @@ void setInteractive() {
     interact::interactive=true;
     
     // Work around backwards-incompatible command-line options of gv-3.6.1.
-    if(!msdos && (getSetting<mem::string>("pdfviewer") == "gv" ||
-		  getSetting<mem::string>("psviewer") == "gv"))
+    if(!msdos && (getSetting<string>("pdfviewer") == "gv" ||
+		  getSetting<string>("psviewer") == "gv"))
       gvOptionPrefix=System("gv --version",2) == 0 ? "--" : "-";
   }
   
@@ -960,8 +962,8 @@ bool trap() {
     return !getSetting<bool>("batchMask");
 }
 
-mem::string outname() {
-  mem::string name=getSetting<mem::string>("outname");
+string outname() {
+  string name=getSetting<string>("outname");
   return name.empty() ? "out" : name;
 }
 
@@ -974,7 +976,7 @@ void setPath() {
   searchPath.clear();
   searchPath.push_back(".");
   searchPath.push_back(initdir);
-  string asydir=getSetting<mem::string>("dir");
+  string asydir=getSetting<string>("dir");
   if(asydir != "") {
     size_t p,i=0;
     while((p=asydir.find(pathSeparator,i)) < string::npos) {
@@ -989,7 +991,7 @@ void setPath() {
 }
 
 void SetPageDimensions() {
-  string paperType=getSetting<mem::string>("papertype");
+  string paperType=getSetting<string>("papertype");
 
   if(paperType == "" &&
      getSetting<double>("paperwidth") != 0.0 &&
@@ -1008,30 +1010,30 @@ void SetPageDimensions() {
     if(paperType != "a4") {
       cerr << "Unknown paper size \'" << paperType << "\'; assuming a4." 
 	   << endl;
-      Setting("papertype")=mem::string("a4");
+      Setting("papertype")=string("a4");
     }
   }
 }
 
-bool pdf(const mem::string& texengine) {
+bool pdf(const string& texengine) {
   return texengine == "pdflatex" || texengine == "pdftex";
 }
 
-bool latex(const mem::string& texengine) {
+bool latex(const string& texengine) {
   return texengine == "latex" || texengine == "pdflatex";
 }
 
 string nativeformat() {
-  return pdf(getSetting<mem::string>("tex")) ? "pdf" : "eps";
+  return pdf(getSetting<string>("tex")) ? "pdf" : "eps";
 }
 
 string defaultformat() {
-  string format=getSetting<mem::string>("outformat");
+  string format=getSetting<string>("outformat");
   return (format == "") ? nativeformat() : format;
 }
 
 // TeX special command to set up currentmatrix for typesetting labels.
-const char *beginlabel(const mem::string& texengine) {
+const char *beginlabel(const string& texengine) {
   if(pdf(texengine))
     return "\\special{pdf: q #5 0 0 cm}"
            "\\wd\\ASYbox 0pt\\dp\\ASYbox 0pt\\ht\\ASYbox 0pt";
@@ -1041,7 +1043,7 @@ const char *beginlabel(const mem::string& texengine) {
 }
 
 // TeX special command to restore currentmatrix after typesetting labels.
-const char *endlabel(const mem::string& texengine) {
+const char *endlabel(const string& texengine) {
   if(pdf(texengine))
     return "\\special{pdf: Q}";
   else
@@ -1049,7 +1051,7 @@ const char *endlabel(const mem::string& texengine) {
 }
 
 // TeX macro to typeset raw postscript code
-const char *rawpostscript(const mem::string& texengine) {
+const char *rawpostscript(const string& texengine) {
   if(pdf(texengine))
     return "\\def\\ASYraw#1{#1}";
   else
@@ -1062,7 +1064,7 @@ const char *rawpostscript(const mem::string& texengine) {
 }
 
 // Begin TeX special command.
-const char *beginspecial(const mem::string& texengine) {
+const char *beginspecial(const string& texengine) {
   if(pdf(texengine))
     return "\\special{pdf: ";
   return "\\special{ps: ";
@@ -1078,21 +1080,21 @@ const char *pdftexerrors[]={"! "," ==> Fatal error",NULL};
 const char *texerrors[]={"! ",NULL};
 
 // Messages that signify a TeX error.
-const char **texabort(const mem::string& texengine)
+const char **texabort(const string& texengine)
 {
   return settings::pdf(texengine) ? pdftexerrors : texerrors;
 }
 
-mem::string texcommand() 
+string texcommand() 
 {
-  mem::string command=getSetting<mem::string>("texcommand");
-  return command.empty() ? getSetting<mem::string>("tex") : command;
+  string command=getSetting<string>("texcommand");
+  return command.empty() ? getSetting<string>("tex") : command;
 }
   
-mem::string texengine()
+string texengine()
 {
-  mem::string path=getSetting<mem::string>("texpath");
-  return (path == "") ? texcommand() : (mem::string) (path+"/"+texcommand());
+  string path=getSetting<string>("texpath");
+  return (path == "") ? texcommand() : (string) (path+"/"+texcommand());
 }
 
 int getScroll() 
@@ -1128,7 +1130,7 @@ void setOptions(int argc, char *argv[])
   
   // Read user configuration file.
   setPath();
-  doConfig(getSetting<mem::string>("config"));
+  doConfig(getSetting<string>("config"));
   
   // Remember any changes to the defaultpen.
   initialdefaultpen=new camp::pen(defaultpen);
@@ -1152,7 +1154,7 @@ void setOptions(int argc, char *argv[])
   
   if(getSetting<double>("paperwidth") != 0.0 && 
      getSetting<double>("paperheight") != 0.0)
-    Setting("papertype")=mem::string("");
+    Setting("papertype")=string("");
   
   SetPageDimensions();
   

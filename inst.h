@@ -15,8 +15,6 @@
 #include "item.h"
 #include "vm.h"
 
-using std::string;
-
 namespace vm {
 
 // Forward declarations

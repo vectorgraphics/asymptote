@@ -26,6 +26,8 @@
 #include "interact.h"
 
 using namespace settings;
+using mem::string;
+using mem::ostringstream;
 
 bool False=false;
 
@@ -159,7 +161,7 @@ void execError(const char *command, const char *hint, const char *application)
     string s=string(hint);
     transform(s.begin(), s.end(), s.begin(), toupper);        
     if(hint) 
-      cerr << "Please put in " << getSetting<mem::string>("config")
+      cerr << "Please put in " << getSetting<string>("config")
 	   << ": " << endl << endl
 	   << "import settings;" << endl
            << hint << "=\"PATH\";" << endl << endl
@@ -313,7 +315,7 @@ void popupHelp() {
   // viewer again.
   if (pid==0 || (waitpid(pid, &status, WNOHANG) == pid)) {
     ostringstream cmd;
-    cmd << "'" << getSetting<mem::string>("pdfviewer") << "' " 
+    cmd << "'" << getSetting<string>("pdfviewer") << "' " 
       << docdir << "/asymptote.pdf";
     status=System(cmd,0,false,"pdfviewer","your PDF viewer",&pid);
   }

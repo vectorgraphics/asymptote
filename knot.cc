@@ -12,6 +12,8 @@
 #include "angle.h"
 #include "settings.h"
 
+using mem::string;
+
 namespace camp {
 
 /***** Debugging *****/

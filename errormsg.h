@@ -133,7 +133,7 @@ public:
 
   void clear();
 
-  void message(position pos, const string& s);
+  void message(position pos, const mem::string& s);
   
   void Interrupt(bool b) {
     interrupt=b;

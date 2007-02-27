@@ -13,6 +13,7 @@
 #include <stack>
 #include <map>
 #include <string>
+#include <sstream>
 
 #ifndef NOHASH
 #include <ext/hash_map>
@@ -121,19 +122,15 @@ GC_CONTAINER(hash_multimap);
 #endif
 
 #ifdef USEGC
-#define GC_STRING \
-  std::basic_string<char,std::char_traits<char>,gc_allocator<char> >
-struct string : public GC_STRING
-{
-  string () {}
-  string (const char* str) : GC_STRING(str) {}
-  string (const std::string& str) : GC_STRING(str.c_str(),str.size()) {}
-  string (const GC_STRING& str) : GC_STRING(str) {}
-  operator std::string () const { return std::string(c_str(),size()); }
-};
-#undef GC_STRING
+typedef std::basic_string<char,std::char_traits<char>,gc_allocator<char> > string;
+typedef std::basic_istringstream<char,std::char_traits<char>,gc_allocator<char> > istringstream;
+typedef std::basic_ostringstream<char,std::char_traits<char>,gc_allocator<char> > ostringstream;
+typedef std::basic_stringbuf<char,std::char_traits<char>,gc_allocator<char> > stringbuf;
 #else
-using std::string;
+typedef std::string string;
+typedef std::istringstream istringstream;
+typedef std::ostringstream ostringstream;
+typedef std::stringbuf stringbuf;
 #endif // USEGC
 
 

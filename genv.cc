@@ -35,6 +35,7 @@
 using namespace types;
 using settings::getSetting;
 using settings::Setting;
+using mem::string;
 
 namespace trans {
 
@@ -59,7 +60,7 @@ genv::genv()
   }
 }
 
-record *genv::loadModule(symbol *id, mem::string filename) {
+record *genv::loadModule(symbol *id, string filename) {
   // Get the abstract syntax tree.
   absyntax::file *ast = parser::parseFile(filename,"Loading");
   
@@ -74,7 +75,7 @@ record *genv::loadModule(symbol *id, mem::string filename) {
   return r;
 }
 
-void genv::checkRecursion(mem::string filename) {
+void genv::checkRecursion(string filename) {
   if (find(inTranslation.begin(), inTranslation.end(), filename) !=
          inTranslation.end()) {
     em->sync();
@@ -84,7 +85,7 @@ void genv::checkRecursion(mem::string filename) {
   }
 }
 
-record *genv::getModule(symbol *id, mem::string filename) {
+record *genv::getModule(symbol *id, string filename) {
   checkRecursion(filename);
 
   record *r=imap[filename];
@@ -110,7 +111,7 @@ importInitMap *genv::getInitMap()
     genv &ge;
     initMap(genv &ge)
       : ge(ge) {}
-    lambda *operator[](mem::string s) {
+    lambda *operator[](string s) {
       record *r=ge.imap[s];
       return r ? r->getInit() : 0;
     }

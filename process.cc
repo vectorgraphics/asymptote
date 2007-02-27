@@ -37,7 +37,7 @@ namespace vm {
 
 using namespace settings;
 using std::list;
-using std::string;
+using mem::string;
 
 using absyntax::file;
 using trans::genv;
@@ -211,11 +211,11 @@ public:
 
 // Abstract base class for one-time processing of an abstract syntax tree.
 class itree : public icore {
-  mem::string name;
+  string name;
 
   block *cachedTree;
 public:
-  itree(mem::string name="<unnamed>")
+  itree(string name="<unnamed>")
     : name(name), cachedTree(0) {}
 
   // Build the tree, possibly throwing a handled_error if it cannot be built.
@@ -233,7 +233,7 @@ public:
     return cachedTree;
   }
 
-  virtual mem::string getName() {
+  virtual string getName() {
     return name;
   }
 
@@ -275,7 +275,7 @@ class icode : public itree {
   block *tree;
 
 public:
-  icode(block *tree, mem::string name="<unnamed>")
+  icode(block *tree, string name="<unnamed>")
     : itree(name), tree(tree) {}
 
   block *buildTree() {
@@ -284,10 +284,10 @@ public:
 };
 
 class istring : public itree {
-  mem::string str;
+  string str;
 
 public:
-  istring(const mem::string& str, mem::string name="<eval>")
+  istring(const string& str, string name="<eval>")
     : itree(name), str(str) {}
 
   block *buildTree() {
@@ -296,23 +296,24 @@ public:
 };
 
 class ifile : public itree {
-  mem::string filename;
-  mem::string outname;
-  mem::string outname_save;
+  string filename;
+  string outname;
+  string outname_save;
 
 public:
-  ifile(const mem::string& filename)
+  ifile(const string& filename)
     : itree(filename),
       filename(filename),
-      outname((mem::string) (filename == "-" ? "out" :
-			     stripDir(stripExt(string(filename),suffix)))) {}
+      outname((string) (filename == "-" ? "out" :
+			     stripDir(stripExt(string(filename),
+					       suffix)))) {}
   
   block *buildTree() {
     return filename!="" ? parser::parseFile(filename) : 0;
   }
 
   void preRun(coenv& e, istack& s) {
-    outname_save=getSetting<mem::string>("outname");
+    outname_save=getSetting<string>("outname");
     if(outname_save.empty())
       Setting("outname")=outname;
 
@@ -690,7 +691,7 @@ class iprompt : public icore {
   // line and is being continued (either because of a backslash or the parser
   // detecting it in multiline mode).
   string getline(bool continuation) {
-    string prompt=getSetting<mem::string>(continuation ? "prompt2" : "prompt");
+    string prompt=getSetting<string>(continuation ? "prompt2" : "prompt");
     string line=interact::simpleline(prompt);
 
     if (continuation)
@@ -807,7 +808,7 @@ public:
 void processCode(absyntax::block *code) {
   icode(code).process();
 }
-void processFile(const mem::string& filename) {
+void processFile(const string& filename) {
   ifile(filename).process();
 }
 void processPrompt() {
@@ -817,10 +818,10 @@ void processPrompt() {
 void runCode(absyntax::block *code) {
   icode(code).doRun();
 }
-void runString(const mem::string& s) {
+void runString(const string& s) {
   istring(s).doRun();
 }
-void runFile(const mem::string& filename) {
+void runFile(const string& filename) {
   ifile(filename).doRun();
 }
 void runPrompt() {
@@ -830,7 +831,7 @@ void runPrompt() {
 void runCodeEmbedded(absyntax::block *code, trans::coenv &e, istack &s) {
   icode(code).run(e,s);
 }
-void runStringEmbedded(const mem::string& str, trans::coenv &e, istack &s) {
+void runStringEmbedded(const string& str, trans::coenv &e, istack &s) {
   istring(str).run(e,s);
 }
 void runPromptEmbedded(trans::coenv &e, istack &s) {

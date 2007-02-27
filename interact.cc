@@ -23,6 +23,7 @@
 
 using std::cout;
 using namespace settings;
+using mem::string;
 
 namespace run {
   void init_readline(bool);
@@ -89,7 +90,7 @@ char *readline(const char *prompt) {
 }
 #endif  
   
-mem::string simpleline(mem::string prompt) {
+string simpleline(string prompt) {
   // Rebind tab key, as the setting tabcompletion may be changed at runtime.
   pre_readline();
 
@@ -100,7 +101,7 @@ mem::string simpleline(mem::string prompt) {
   errorstream::interrupt=false;
 
   if (line) {
-    mem::string s=line;
+    string s=line;
     free(line);
     return s;
   } else {
@@ -109,7 +110,7 @@ mem::string simpleline(mem::string prompt) {
   }
 }
 
-void addToHistory(mem::string line) {
+void addToHistory(string line) {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
     // Only add it if it has something other than newlines.
     if (line.find_first_not_of('\n') != string::npos) {
@@ -118,7 +119,7 @@ void addToHistory(mem::string line) {
 #endif    
 }
 
-mem::string getLastHistoryLine() {
+string getLastHistoryLine() {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   HIST_ENTRY *entry=history_list()[history_length-1];
   if (!entry) {
@@ -134,7 +135,7 @@ mem::string getLastHistoryLine() {
 #endif
 }
 
-void setLastHistoryLine(mem::string line) {
+void setLastHistoryLine(string line) {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   HIST_ENTRY *entry=remove_history(history_length-1);
   if (!entry) {

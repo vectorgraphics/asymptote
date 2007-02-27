@@ -12,6 +12,8 @@
 #include "util.h"
 
 using namespace settings;
+using mem::string;
+using mem::ostringstream;
 
 namespace camp {
   
@@ -106,7 +108,7 @@ inline double urand()
   return rand()*factor-1.0;
 }
 
-void drawLabel::getbounds(iopipestream& tex, const mem::string& texengine)
+void drawLabel::getbounds(iopipestream& tex, const string& texengine)
 {
   if(havebounds) return;
   havebounds=true;
@@ -121,7 +123,7 @@ void drawLabel::getbounds(iopipestream& tex, const mem::string& texengine)
     }
   }
     
-  mem::string font=pentype.Font();
+  string font=pentype.Font();
   if(font != lastpen.Font()) {
     tex <<  font << "\n";
     wait(tex,"\n*",abort);
@@ -148,7 +150,7 @@ void drawLabel::getbounds(iopipestream& tex, const mem::string& texengine)
 void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
 		       bboxlist&)
 {
-  mem::string texengine=getSetting<mem::string>("tex");
+  string texengine=getSetting<string>("tex");
   if(texengine == "none") {b += position; return;}
   
   getbounds(tex,texengine);
@@ -233,7 +235,7 @@ drawElement *drawLabel::transformed(const transform& t)
 
 void drawLabelPath::bounds(bbox& b, iopipestream& tex, boxvector&, bboxlist&)
 {
-  mem::string texengine=getSetting<mem::string>("tex");
+  string texengine=getSetting<string>("tex");
   if(texengine == "none") {b += position; return;}
     
   getbounds(tex,texengine);

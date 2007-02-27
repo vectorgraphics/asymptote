@@ -11,14 +11,11 @@
 
 #include <iostream>
 #include <cassert>
-#include <string>
 #include <map>
 
 #include "memory.h"
 
-//using std::assert;
 using std::ostream;
-using std::string;
 
 namespace sym {
 
@@ -39,18 +36,18 @@ struct GCInit {
 struct symbol {
   static GCInit initialize;
 private:
-  std::string name;
+  mem::string name;
 
 public:
   static mem::map<CONST mem::string,symbol> dict;
 
-  static symbol *specialTrans(std::string s) {
+  static symbol *specialTrans(mem::string s) {
     assert(dict.find(s) == dict.end());
     return &(dict[s]=symbol(s,true));
   }
 
   symbol() : special(false) {}
-  symbol(std::string name, bool special=false)
+  symbol(mem::string name, bool special=false)
     : name(name), special(special) {}
 
 public:
@@ -61,25 +58,25 @@ public:
   static symbol *castsym;
   static symbol *ecastsym;
   
-  static symbol *literalTrans(std::string s) {
+  static symbol *literalTrans(mem::string s) {
     if (dict.find(s) != dict.end())
       return &dict[s];
     else
       return &(dict[s]=symbol(s));
   }
 
-  static symbol *opTrans(std::string s) {
+  static symbol *opTrans(mem::string s) {
     return literalTrans("operator "+s);
   }
 
-  static symbol *trans(std::string s) {
+  static symbol *trans(mem::string s) {
     // Figure out whether it's an operator or an identifier by looking at the
     // first character.
     char c=s[0];
     return isalpha(c) || c == '_' ? literalTrans(s) : opTrans(s);
   }
 
-  operator string () { return string(name); }
+  operator mem::string () { return mem::string(name); }
 
   friend ostream& operator<< (ostream& out, const symbol& sym)
   { return out << sym.name; }

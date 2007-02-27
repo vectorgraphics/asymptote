@@ -8,14 +8,12 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include <string>
 #include <list>
 #include <fstream>
 
+#include "memory.h"
 #include "pair.h"
 #include "item.h"
-
-using std::string;
 
 namespace types {
   class record;
@@ -26,7 +24,7 @@ extern const char PROGRAM[];
 extern const char VERSION[];
 extern const char BUGREPORT[];
 
-extern const string docdir;
+extern const mem::string docdir;
   
 extern bool safe;
   
@@ -37,8 +35,8 @@ enum origin {CENTER,BOTTOM,TOP,ZERO};
   
 extern int ShipoutNumber;
   
-extern const string suffix;
-extern const string guisuffix;
+extern const mem::string suffix;
+extern const mem::string guisuffix;
   
 extern mem::string historyname;
   
@@ -46,10 +44,10 @@ void SetPageDimensions();
 
 types::record *getSettingsModule();
 
-vm::item& Setting(string name);
+vm::item& Setting(mem::string name);
   
 template <typename T>
-inline T getSetting(string name)
+inline T getSetting(mem::string name)
 {
   return vm::get<T>(Setting(name));
 }
@@ -60,7 +58,7 @@ extern bool bw;
 extern bool rgb;
 extern bool cmyk;
   
-extern string gvOptionPrefix;
+extern mem::string gvOptionPrefix;
 
 bool view();
 bool trap();
@@ -77,8 +75,8 @@ int getScroll();
 bool pdf(const mem::string& texengine);
 bool latex(const mem::string& texengine);
   
-string nativeformat();
-string defaultformat();
+mem::string nativeformat();
+mem::string defaultformat();
   
 const char *beginlabel(const mem::string& texengine);
 const char *endlabel(const mem::string& texengine);

@@ -15,6 +15,7 @@
 #include "access.h"
 
 using std::cout;
+using mem::string;
 
 namespace types {
 

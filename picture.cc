@@ -16,6 +16,8 @@
 
 using std::ifstream;
 using std::ofstream;
+using mem::string;
+using mem::ostringstream;
 
 using namespace settings;
 
@@ -23,7 +25,7 @@ namespace camp {
 
 const char *texpathmessage() {
   ostringstream buf;
-  buf << "the directory containing your " << getSetting<mem::string>("tex")
+  buf << "the directory containing your " << getSetting<string>("tex")
       << " engine (" << texcommand() << ")";
   return strcpy(new char[buf.str().size()+1],buf.str().c_str());
 }
@@ -103,7 +105,7 @@ void picture::prepend(picture &pic)
 bool picture::havelabels()
 {
   size_t n=nodes.size();
-  if(n > lastnumber && !labels && getSetting<mem::string>("tex") != "none") {
+  if(n > lastnumber && !labels && getSetting<string>("tex") != "none") {
     // Check to see if there are any labels yet
     nodelist::iterator p=nodes.begin();
     for(size_t i=0; i < lastnumber; ++i) ++p;
@@ -160,7 +162,7 @@ void picture::texinit()
   TeXpipepreamble.clear();
 
   tex << "\n";
-  tex.wait(texready.c_str(),texabort(getSetting<mem::string>("tex")));
+  tex.wait(texready.c_str(),texabort(getSetting<string>("tex")));
 }
   
 bool picture::texprocess(const string& texname, const string& outname,
@@ -184,7 +186,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       return false;
     }
     
-    mem::string texengine=getSetting<mem::string>("tex");
+    string texengine=getSetting<string>("tex");
     if(settings::pdf(texengine)) {
       if(pdfformat) {
 	rename(outname.c_str(),buildname(prefix,"pdf").c_str());
@@ -205,7 +207,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       voffset += paperHeight-height-b.bottom-bboxshift.gety();
     
       ostringstream dcmd;
-      dcmd << "'" << getSetting<mem::string>("dvips") << "' -R "
+      dcmd << "'" << getSetting<string>("dvips") << "' -R "
 	   << " -O " << hoffset << "bp," << voffset << "bp"
 	   << " -T " << paperWidth << "bp," << paperHeight << "bp";
       if(verbose <= 1) dcmd << " -q";
@@ -261,7 +263,7 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
 {
   ostringstream cmd;
   
-  cmd << "'" << getSetting<mem::string>("gs")
+  cmd << "'" << getSetting<string>("gs")
       << "' -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
       << " -dCompatibilityLevel=1.4";
   if(!getSetting<bool>("autorotate"))
@@ -273,7 +275,7 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   return System(cmd,0,true,"gs","Ghostscript");
 }
   
-std::map<CONST std::string,int> pids;
+std::map<CONST string,int> pids;
 
 bool picture::postprocess(const string& prename, const string& outname,
 			  const string& outputformat, bool wait, bool view)
@@ -288,7 +290,7 @@ bool picture::postprocess(const string& prename, const string& outname,
       double expand=2.0;
       double res=(tgifformat ? getSetting<double>("deconstruct") : expand)*
 	72.0;
-      cmd << "'" << getSetting<mem::string>("convert") 
+      cmd << "'" << getSetting<string>("convert") 
 	  << "' -density " << res << "x" << res;
       if(!tgifformat) cmd << " +antialias -geometry " << 100.0/expand << "%x";
       cmd << " '" << (pdf ? "pdf:" : "eps:") << prename << "'";
@@ -306,10 +308,10 @@ bool picture::postprocess(const string& prename, const string& outname,
   if(settings::view() && view) {
     if(epsformat || pdfformat) {
       // Check to see if there is an existing viewer for this outname.
-      std::map<CONST std::string,int>::iterator p=pids.find(outname);
+      std::map<CONST string,int>::iterator p=pids.find(outname);
       bool running=(p != pids.end());
-      string Viewer=pdfformat ? getSetting<mem::string>("pdfviewer") :
-	getSetting<mem::string>("psviewer");
+      string Viewer=pdfformat ? getSetting<string>("pdfviewer") :
+	getSetting<string>("psviewer");
       int pid;
       if(running) {
 	pid=p->second;
@@ -332,7 +334,7 @@ bool picture::postprocess(const string& prename, const string& outname,
       } else if(Viewer == "gv") kill(pid,SIGHUP); // Tell gv to reread file.
     } else {
       ostringstream cmd;
-      cmd << "'" << getSetting<mem::string>("display") << "' '"
+      cmd << "'" << getSetting<string>("display") << "' '"
 	  << outname << "'";
       string application="your "+outputformat+" viewer";
       status=System(cmd,0,wait,"display",application.c_str());
@@ -349,10 +351,10 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   bounds();
   
   bool TeXmode=getSetting<bool>("inlinetex") && 
-    getSetting<mem::string>("tex") != "none";
+    getSetting<string>("tex") != "none";
   Labels=labels || TeXmode;
   
-  pdf=settings::pdf(getSetting<mem::string>("tex"));
+  pdf=settings::pdf(getSetting<string>("tex"));
   
   bool standardout=Prefix == "-";
   string prefix=standardout ? "out" : Prefix;
@@ -390,9 +392,9 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     if(bboxout) bboxout.close();
     if(settings::view() && view) {
       ostringstream cmd;
-      string Python=getSetting<mem::string>("python");
+      string Python=getSetting<string>("python");
       if(Python != "") cmd << "'" << Python << "' ";
-      cmd << "'" << getSetting<mem::string>("xasy") << "' " 
+      cmd << "'" << getSetting<string>("xasy") << "' " 
 	  << buildname(prefix) << " " << ShipoutNumber << " "
 	  << buildname(settings::outname());
       int status=System(cmd,0,true,Python != "" ? "python" : "xasy");

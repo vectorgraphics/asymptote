@@ -20,6 +20,7 @@
 #include "xstream.h"
 #endif
 
+#include "memory.h"
 #include "pair.h"
 #include "triple.h"
 #include "guide.h"
@@ -28,7 +29,6 @@
 #include "camperror.h"
 #include "interact.h"
 #include "errormsg.h"
-#include "memory.h"
 #include "util.h"
 
 namespace vm {
@@ -37,12 +37,12 @@ extern bool indebugger;
 
 namespace camp {
 
-extern string tab;
-extern string newline;
+extern mem::string tab;
+extern mem::string newline;
   
 class file : public gc_cleanup {
 protected:  
-  string name;
+  mem::string name;
   int nx,ny,nz;    // Array dimensions
   bool linemode;   // Array reads will stop at eol instead of eof.
   bool csvmode;    // Read comma-separated values.
@@ -59,7 +59,7 @@ public:
   
   void dimension(int Nx=-1, int Ny=-1, int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
   
-  file(const string& name, bool checkappend=true) : 
+  file(const mem::string& name, bool checkappend=true) : 
     name(name), linemode(false), csvmode(false), singlemode(false),
     closed(false), checkappend(checkappend), standard(name.empty()),
     lines(0) {dimension();}
@@ -68,7 +68,7 @@ public:
   
   void Check() {
     if(error()) {
-      std::ostringstream buf;
+      mem::ostringstream buf;
       buf << "Cannot open file \"" << name << "\".";
       reportError(buf);
     }
@@ -80,14 +80,14 @@ public:
 
   bool isOpen() {
     if(closed) {
-      std::ostringstream buf;
+      mem::ostringstream buf;
       buf << "I/O operation attempted on closed file \'" << name << "\'.";
       reportError(buf);
     }
     return true;
   }
 		
-  string filename() {return name;}
+  mem::string filename() {return name;}
   virtual bool eol() {return false;}
   virtual bool nexteol() {return false;}
   virtual bool text() {return false;}
@@ -101,7 +101,7 @@ public:
   virtual void seek(size_t) {}
   
   void unsupported(const char *rw, const char *type) {
-    std::ostringstream buf;
+    mem::ostringstream buf;
     buf << rw << " of type " << type << " not supported in " << Mode()
 	<< " mode.";
     reportError(buf);
@@ -154,7 +154,7 @@ class ifile : public file {
   mem::string whitespace;
   
 public:
-  ifile(const string& name, bool check=true, char comment=0)
+  ifile(const mem::string& name, bool check=true, char comment=0)
     : file(name,check), comment(comment), comma(false), nullfield(false) {
       stream=&std::cin;
   }
@@ -199,9 +199,9 @@ public:
   mem::string getcsvline();
   
   // Skip over white space
-  void readwhite(string& val) {val=string(); *stream >> val;}
+  void readwhite(mem::string& val) {val=mem::string(); *stream >> val;}
   
-  void Read(bool &val) {string t; readwhite(t); val=(t == "true");}
+  void Read(bool &val) {mem::string t; readwhite(t); val=(t == "true");}
   void Read(int& val) {*stream >> val;}
   void Read(double& val) {*stream >> val;}
   void Read(pair& val) {*stream >> val;}
@@ -233,7 +233,7 @@ class ofile : public file {
   std::ostream *stream;
   std::ofstream fstream;
 public:
-  ofile(const string& name, bool append=false) : file(name,append) {
+  ofile(const mem::string& name, bool append=false) : file(name,append) {
       stream=&std::cout;
   }
   
@@ -301,7 +301,7 @@ public:
 class ixfile : public file {
   xdr::ixstream stream;
 public:
-  ixfile(const string& name, bool check=true) : 
+  ixfile(const mem::string& name, bool check=true) : 
     file(name,check), stream(name.c_str()) {if(check) Check();}
 
   ~ixfile() {close();}
@@ -336,7 +336,7 @@ public:
 class oxfile : public file {
   xdr::oxstream stream;
 public:
-  oxfile(const string& name, bool append=false) : 
+  oxfile(const mem::string& name, bool append=false) : 
     file(name), stream((checkLocal(name), name.c_str()),
 		       append ? xdr::xios::app : xdr::xios::trunc) {Check();}
 

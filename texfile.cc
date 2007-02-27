@@ -13,6 +13,7 @@
 
 using std::ofstream;
 using settings::getSetting;
+using mem::string;
   
 namespace camp {
 
@@ -20,7 +21,7 @@ std::list<string> TeXpipepreamble, TeXpreamble;
   
 texfile::texfile(const string& texname, const bbox& box) : box(box)
 {
-  texengine=getSetting<mem::string>("tex");
+  texengine=getSetting<string>("tex");
   inlinetex=getSetting<bool>("inlinetex");
   Hoffset=inlinetex ? box.right : box.left;
   out=new ofstream(texname.c_str());

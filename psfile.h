@@ -31,7 +31,7 @@ inline void BoundingBox(std::ostream& s, const bbox& box)
 }
 
 class psfile {
-  string filename;
+  mem::string filename;
   bool pdfformat; // Is final output format PDF?
   bool pdf;       // Output direct PDF?
   std::stack<pen> pens;
@@ -53,7 +53,7 @@ protected:
   std::ostream *out;
   
 public: 
-  psfile(const string& filename, bool pdfformat);
+  psfile(const mem::string& filename, bool pdfformat);
   psfile() {pdf=settings::pdf(settings::getSetting<mem::string>("tex"));}
 
   ~psfile();
@@ -82,7 +82,7 @@ public:
     lastpen.convert();
   }
   
-  void setcolor(const pen& p, const string& begin, const string& end);
+  void setcolor(const pen& p, const mem::string& begin, const mem::string& end);
 
   void setpen(pen p);
   
@@ -187,11 +187,11 @@ public:
    else *out << " concat" << newl;
   }
   
-  void verbatimline(const string& s) {
+  void verbatimline(const mem::string& s) {
     *out << s << newl;
   }
   
-  void verbatim(const string& s) {
+  void verbatim(const mem::string& s) {
     *out << s;
   }
 

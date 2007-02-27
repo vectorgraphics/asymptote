@@ -43,7 +43,7 @@ private:  // Non-copyable
 };
 
 void prettyindent(ostream &out, int indent);
-void prettyname(ostream &out, string name, int indent);
+void prettyname(ostream &out, mem::string name, int indent);
 
 class name;
 class ty;

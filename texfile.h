@@ -9,11 +9,11 @@
 #define TEXFILE_H
 
 #include <fstream>
-#include <string>
 #include <iomanip>
 #include <iostream>
 #include <list>
 
+#include "memory.h"
 #include "pair.h"
 #include "bbox.h"
 #include "pen.h"
@@ -24,11 +24,9 @@
 #include "psfile.h"
 #include "settings.h"
 
-using std::string;
-
 namespace camp {
 
-extern std::list<string> TeXpipepreamble, TeXpreamble;
+extern std::list<mem::string> TeXpipepreamble, TeXpreamble;
 
 const double tex2ps=72.0/72.27;
 const double ps2tex=1.0/tex2ps;
@@ -42,14 +40,15 @@ void texdocumentclass(T& out, bool pipe=false)
 }
   
 template<class T>
-void texpreamble(T& out, std::list<string>& preamble=TeXpreamble)
+void texpreamble(T& out, std::list<mem::string>& preamble=TeXpreamble)
 {
-  for(std::list<string>::iterator p=preamble.begin(); p != preamble.end(); ++p)
+  for(std::list<mem::string>::iterator p=preamble.begin();
+      p != preamble.end(); ++p)
     out << stripblanklines(*p);
 }
 
 template<class T>
-void texdefines(T& out, std::list<string>& preamble=TeXpreamble,
+void texdefines(T& out, std::list<mem::string>& preamble=TeXpreamble,
 		bool pipe=false)
 {
   mem::string texengine=settings::getSetting<mem::string>("tex");
@@ -99,7 +98,7 @@ class texfile : public psfile {
   double Hoffset;
 
 public:
-  texfile(const string& texname, const bbox& box);
+  texfile(const mem::string& texname, const bbox& box);
   ~texfile();
 
   void prologue();
@@ -128,10 +127,10 @@ public:
   void writeshifted(path p, bool newPath=true);
   
   // Draws label transformed by T at position z.
-  void put(const string& label, const transform& T, const pair& z,
+  void put(const mem::string& label, const transform& T, const pair& z,
 	   const pair& Align);
 
-  void beginlayer(const string& psname);
+  void beginlayer(const mem::string& psname);
   void endlayer();
   
 };

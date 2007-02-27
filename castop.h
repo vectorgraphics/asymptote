@@ -11,6 +11,7 @@
 
 #include <cfloat>
 
+#include "memory.h"
 #include "stack.h"
 #include "fileio.h"
 #include "lexical.h"
@@ -21,7 +22,6 @@ namespace run {
 
 using vm::read;
 using vm::pop;
-using mem::string;
 
 template<class T, class S>
 void cast(vm::stack *s)
@@ -39,17 +39,17 @@ void castDoubleInt(vm::stack *s)
 template<class T>
 void stringCast(vm::stack *s)
 {
-  std::ostringstream buf;
+  mem::ostringstream buf;
   buf.precision(DBL_DIG);
   buf << pop<T>(s);
-  s->push((string) buf.str());
+  s->push((mem::string) buf.str());
 }
 
 template<class T>
 void castString(vm::stack *s)
 {
   try {
-    string *S=pop<string*>(s);
+    mem::string *S=pop<mem::string*>(s);
     if(S->empty()) {
       T x=0;
       s->push(x);
@@ -86,7 +86,7 @@ void read(vm::stack *s)
 inline int Limit(int nx) {return nx == 0 ? INT_MAX : nx;}
 inline void reportEof(camp::file *f, int count) 
 {
-  std::ostringstream buf;
+  mem::ostringstream buf;
   buf << "EOF after reading " << count
       << " values from file '" << f->filename() << "'.";
   vm::error(buf);

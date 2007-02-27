@@ -21,6 +21,7 @@ namespace absyntax {
 
 using namespace trans;
 using namespace types;
+using mem::string;
   
 trans::tyEntry *ty::transAsTyEntry(coenv &e, record *where)
 {
@@ -529,7 +530,7 @@ public:
 // the import, but doesn't add the import to the environment.
 varEntry *accessModule(position pos, coenv &e, record *r, symbol *id)
 {
-  record *imp=e.e.getModule(id, (mem::string)*id);
+  record *imp=e.e.getModule(id, (string)*id);
   if (!imp) {
     em->error(pos);
     *em << "could not load module '" << *id << "'";

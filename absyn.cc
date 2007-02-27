@@ -8,6 +8,8 @@
 #include "absyn.h"
 #include "coenv.h"
 
+using mem::string;
+  
 namespace absyntax {
 
 void absyn::markPos(trans::coenv& e)

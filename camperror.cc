@@ -15,6 +15,9 @@
 #include "vm.h"
 #include "errormsg.h"
 
+using mem::string;
+using mem::ostringstream;
+
 namespace camp {
 
 // Used internally to report an error in an operation.
@@ -34,12 +37,12 @@ void reportWarning(const string& desc)
   em->sync();
 }
 
-void reportError(const std::ostringstream& desc)
+void reportError(const ostringstream& desc)
 {
   reportError(desc.str());
 }
   
-void reportWarning(const std::ostringstream& desc)
+void reportWarning(const ostringstream& desc)
 {
   reportWarning(desc.str());
 }

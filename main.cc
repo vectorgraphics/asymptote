@@ -24,6 +24,7 @@
 
 using namespace settings;
 using std::list;
+using mem::string;
 
 errorstream *em;
 using interact::interactive;

@@ -396,7 +396,7 @@ class stringExp : public literalExp {
   mem::string str;
 
 public:
-  stringExp(position pos, string str)
+  stringExp(position pos, mem::string str)
     : literalExp(pos), str(str) {}
 
   void prettyprint(ostream &out, int indent);

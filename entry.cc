@@ -17,6 +17,7 @@
 using std::ostream;
 using std::cerr;
 using std::endl;
+using mem::string;
 
 using types::signature;
 
@@ -373,7 +374,7 @@ void venv::list(record *module)
     listValues(N->first, N->second,module);
 }
 
-void venv::completions(mem::list<symbol *>& l, mem::string start)
+void venv::completions(mem::list<symbol *>& l, string start)
 {
   for(namemap::iterator N = names.begin(); N != names.end(); ++N)
     if (prefix(start, *(N->first)) && !N->second.empty())

@@ -63,17 +63,17 @@ public:
 
   void texinit();
 
-  int epstopdf(const string& epsname, const string& pdfname);
+  int epstopdf(const mem::string& epsname, const mem::string& pdfname);
   
-  bool texprocess(const string& texname, const string& tempname,
-		  const string& prefix, const pair& bboxshift); 
+  bool texprocess(const mem::string& texname, const mem::string& tempname,
+		  const mem::string& prefix, const pair& bboxshift); 
     
-  bool postprocess(const string& prename, const string& outname, 
-		   const string& outputformat, bool wait, bool view);
+  bool postprocess(const mem::string& prename, const mem::string& outname, 
+		   const mem::string& outputformat, bool wait, bool view);
     
   // Ship the picture out to PostScript & TeX files.
-  bool shipout(picture* preamble, const string& prefix,
-	       const string& format, bool wait, bool view=true,
+  bool shipout(picture* preamble, const mem::string& prefix,
+	       const mem::string& format, bool wait, bool view=true,
 	       bool Delete=false);
  
   picture *transformed(const transform& t);

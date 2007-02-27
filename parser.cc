@@ -20,6 +20,9 @@
 #include "errormsg.h"
 #include "parser.h"
 
+using mem::string;
+using mem::stringbuf;
+
 // The lexical analysis and parsing functions used by parseFile.
 void setlexer(size_t (*input) (char* bif, size_t max_size), string filename);
 extern bool yyparse(void);
@@ -50,7 +53,7 @@ void debug(bool state)
 }
 
 namespace {
-void error(const mem::string& filename)
+void error(const string& filename)
 {
   em->sync();
   *em << "error: could not load module '" << filename << "'\n";
@@ -60,7 +63,7 @@ void error(const mem::string& filename)
 }
 
 absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
-                        const mem::string& filename, bool extendable=false)
+                        const string& filename, bool extendable=false)
 {
   setlexer(input,filename);
   absyntax::file *root = yyparse() == 0 ? absyntax::root : 0;
@@ -94,13 +97,13 @@ absyntax::file *parseStdin()
   return doParse(yy::stream_input,"-");
 }
 
-absyntax::file *parseFile(const mem::string& filename,
+absyntax::file *parseFile(const string& filename,
 			  const char *text)
 {
   if(filename == "-")
     return parseStdin();
   
-  mem::string file = settings::locateFile(filename);
+  string file = settings::locateFile(filename);
 
   if(file.empty())
     error(filename);
@@ -134,12 +137,12 @@ absyntax::file *parseFile(const mem::string& filename,
   return doParse(yy::stream_input,file);
 }
 
-absyntax::file *parseString(const mem::string& code,
-                            const mem::string& filename,
+absyntax::file *parseString(const string& code,
+                            const string& filename,
                             bool extendable)
 {
   debug(false);
-  std::stringbuf buf(code.c_str());
+  stringbuf buf(code);
   yy::sbuf = &buf;
   return doParse(yy::stream_input,filename,extendable);
 }

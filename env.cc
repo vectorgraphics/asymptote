@@ -12,6 +12,7 @@
 #include "builtin.h"
 
 using namespace types;
+using mem::string;
 
 namespace trans {
 
@@ -142,7 +143,7 @@ env::env(genv &ge)
   base_venv(ve);
 }
 
-record *env::getModule(symbol *id, mem::string filename)
+record *env::getModule(symbol *id, string filename)
 {
   return ge.getModule(id, filename);
 }

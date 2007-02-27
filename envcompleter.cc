@@ -11,10 +11,12 @@
 #include "table.h"
 #include "envcompleter.h"
 
+using mem::string;
+
 namespace trans {
 
 char *envCompleter::symbolToMallocedString(symbol *name) {
-  std::string s=*name;
+  string s=*name;
   size_t size=(s.size()+1)*sizeof(char);
   char *word=(char *)std::malloc(size);
   std::memcpy(word, s.c_str(), size);
@@ -51,7 +53,7 @@ static void loadBasicList() {
   basicListLoaded=true;
 }
 
-void envCompleter::basicCompletions(symbol_list &l, mem::string start) {
+void envCompleter::basicCompletions(symbol_list &l, string start) {
   if (!basicListLoaded)
     loadBasicList();
 

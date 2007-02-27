@@ -40,6 +40,7 @@ namespace absyntax { file *root; }
 
 using namespace absyntax;
 using sym::symbol;
+using mem::string;
 %}
 
 %union {
@@ -235,7 +236,7 @@ dec:
                    { $$ = new importdec($1, $2); }
 | INCLUDE ID ';'   { $$ = new includedec($1, $2.sym); }                   
 | INCLUDE STRING ';'
-                   { $$ = new includedec($1, (mem::string)*$2.sym); }
+                   { $$ = new includedec($1, (string)*$2.sym); }
 ;
 
 idpair:

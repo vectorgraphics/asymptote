@@ -125,7 +125,7 @@ inline void table<B>::collapseScope()
 }
 
 // Returns true if start is a prefix for name; eg, mac is a prefix of machine.
-inline bool prefix(mem::string start, std::string name) {
+inline bool prefix(mem::string start, mem::string name) {
   return equal(start.begin(), start.end(), name.begin());
 }
 

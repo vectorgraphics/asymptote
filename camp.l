@@ -20,6 +20,7 @@
 #include "lexical.h"
 
 using namespace absyntax;
+using mem::string;
 
 #include "camp.tab.h"
 

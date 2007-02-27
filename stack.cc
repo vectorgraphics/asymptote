@@ -6,6 +6,7 @@
  *****/
 
 #include <sstream>
+
 #include "stack.h"
 #include "program.h"
 #include "callable.h"
@@ -32,6 +33,8 @@ namespace run {
 
 namespace vm {
 
+using mem::string;
+using mem::ostringstream;
 using mem::list;
 list<bpinfo> bplist;
   
@@ -83,7 +86,7 @@ void stack::breakpoint(absyntax::runnable *r)
   lastPos=curPos;
   indebugger=true;
   ::run::breakpoint(this,r);
-  mem::string s=vm::pop<mem::string>(this);
+  string s=vm::pop<string>(this);
   debugOp=(s.length() > 0) ? s[0] : (char) 0;
   indebugger=false;
 }
@@ -262,7 +265,7 @@ void stack::run(program *code, vars_t vars)
   }
 }
 
-void stack::load(mem::string index) {
+void stack::load(string index) {
   frame *inst=instMap[index];
   if (inst)
     push(inst);
@@ -356,7 +359,7 @@ void error(const char* message)
   throw handled_error();
 }
   
-void error(const std::ostringstream& message)
+void error(const ostringstream& message)
 {
   error(message.str().c_str());
 }

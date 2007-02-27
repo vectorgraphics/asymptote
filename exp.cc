@@ -21,7 +21,7 @@ namespace absyntax {
 using namespace types;
 using namespace trans;
 using vm::inst;
-
+using mem::string;
 
 void exp::prettyprint(ostream &out, int indent)
 {
@@ -335,7 +335,7 @@ void stringExp::prettyprint(ostream &out, int indent)
 
 types::ty *stringExp::trans(coenv &e)
 {
-  e.c.encode(inst::constpush,(item) mem::string(str));
+  e.c.encode(inst::constpush,(item) string(str));
   
   return types::primString();  
 }

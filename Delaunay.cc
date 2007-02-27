@@ -10,8 +10,6 @@ inline double max(double a, double b)
   return (a > b) ? a : b;
 }
 
-using namespace std; 
-
 ////////////////////////////////////////////////////////////////////////
 // CircumCircle():
 //   Return true if a point (xp,yp) is inside the circumcircle made up
@@ -27,18 +25,18 @@ int CircumCircle(double xp, double yp, double x1, double y1, double x2,
   double m1, m2, mx1, mx2, my1, my2;
   double dx, dy, rsqr, drsqr;
 
-  double eps=100*DBL_EPSILON*max(max(abs(y1),abs(y2)),abs(y3));
+  double eps=100.0*DBL_EPSILON*max(max(fabs(y1),fabs(y2)),fabs(y3));
   
 /* Check for coincident points */
-  if(abs(y1 - y2) <= eps && abs(y2 - y3) <= eps)
+  if(fabs(y1 - y2) <= eps && fabs(y2 - y3) <= eps)
     return(false);
-  if(abs(y2 - y1) <= eps) {
+  if(fabs(y2 - y1) <= eps) {
     m2 = - (x3 - x2) / (y3 - y2);
     mx2 = (x2 + x3) / 2.0;
     my2 = (y2 + y3) / 2.0;
     xc = (x2 + x1) / 2.0;
     yc = m2 * (xc - mx2) + my2;
-  } else if(abs(y3 - y2) <= eps) {
+  } else if(fabs(y3 - y2) <= eps) {
     m1 = - (x2 - x1) / (y2 - y1);
     mx1 = (x1 + x2) / 2.0;
     my1 = (y1 + y2) / 2.0;

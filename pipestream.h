@@ -20,19 +20,17 @@
 #define PIPESTREAM_H
 
 #include <iostream>
-#include <string>
 #include <sys/wait.h>
 #include <cerrno>
 #include <sstream>
 #include <unistd.h>
 #include <signal.h>
 
+#include "memory.h"
 #include "errormsg.h"
 #include "settings.h"
 #include "util.h"
 #include "interact.h"
-
-using std::string;
 
 char **args(const char *command);
   
@@ -45,16 +43,16 @@ protected:
   char buffer[BUFSIZE];
   int pid;
   bool pipeopen;
-  std::string *last;
+  mem::string *last;
 public:
   
   void clear() {
     if(last) delete last;
-    last=new std::string(buffer);
+    last=new mem::string(buffer);
     *buffer=0;
   }
   
-  const string *message() {
+  const mem::string *message() {
     return last;
   }
   
@@ -66,7 +64,7 @@ public:
     }
 
     if(pipe(out) == -1) {
-      ostringstream buf;
+      mem::ostringstream buf;
       cerr << "out pipe failed: " << command << endl;
       exit(-1);
     }
@@ -156,7 +154,7 @@ public:
   typedef iopipestream& (*imanip)(iopipestream&);
   iopipestream& operator << (imanip func) { return (*func)(*this); }
   
-  iopipestream& operator >> (string& s) {
+  iopipestream& operator >> (mem::string& s) {
     readbuffer();
     s=buffer;
     return *this;
@@ -219,14 +217,14 @@ public:
       if (waitpid(pid, &status, 0) == -1) {
 	if (errno == ECHILD) return 0;
 	if (errno != EINTR) {
-	  ostringstream buf;
+	  mem::ostringstream buf;
 	  buf << "Process " << pid << " failed";
 	  camp::reportError(buf);
 	}
       } else {
 	if(WIFEXITED(status)) return WEXITSTATUS(status);
 	else {
-	  ostringstream buf;
+	  mem::ostringstream buf;
 	  buf << "Process " << pid << " exited abnormally";
 	  camp::reportError(buf);
 	}
@@ -234,19 +232,23 @@ public:
     }
   }
   
-  iopipestream& operator << (const string &s) {
+  void Write(const mem::string &s) {
     ssize_t size=s.length();
     if(settings::verbose > 2) std::cerr << s;
     if(write(in[1],s.c_str(),size) != size)
       camp::reportError("write to pipe failed");
+  }
+  
+  iopipestream& operator << (const mem::string& s) {
+    Write(s);
     return *this;
   }
   
   template<class T>
   iopipestream& operator << (T x) {
-    std::ostringstream os;
+    mem::ostringstream os;
     os << x;
-    *this << os.str();
+    Write(os.str());
     return *this;
   }
 };

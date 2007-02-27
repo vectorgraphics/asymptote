@@ -11,6 +11,8 @@
 
 #include "errormsg.h"
 
+using mem::string;
+
 bool errorstream::interrupt=false;
 
 ostream& operator<< (ostream& out, const position& pos)

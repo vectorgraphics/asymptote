@@ -13,8 +13,9 @@
 #include "psfile.h"
 #include "util.h"
 
-using std::ostringstream;
-using std::istringstream;
+using mem::string;
+using mem::istringstream;
+using mem::ostringstream;
 
 namespace camp {
 

@@ -9,16 +9,14 @@
 #define DRAWELEMENT_H
 
 #include <list>
-#include <string>
 #include <vector>
 
+#include "memory.h"
 #include "bbox.h"
 #include "pen.h"
 #include "psfile.h"
 #include "texfile.h"
 #include "pipestream.h"
-
-using std::string;
 
 namespace camp {
 
