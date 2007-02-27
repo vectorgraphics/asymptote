@@ -1,5 +1,5 @@
 MANFILES = asy.1 xasy.1x
-ASYFILES = logo.asy $(wildcard *.asy) latexusage.asy
+ASYFILES = $(wildcard *.asy) latexusage.asy
 INCLUDES = version.texi options
 ASY = ../asy -dir ../base
 DOCFILES = asymptote.pdf intro.pdf CAD.pdf PDFAnim_temp_Guide.pdf
@@ -20,8 +20,10 @@ faq:
 %.pdf:	%.asy
 	$(ASY) -f pdf $<
 
-latexusage.dvi: latexusage.tex ../examples/slidedemo.asy
+latexusage.asy: latexusage.tex
 	latex latexusage
+
+latexusage.dvi: latexusage.asy
 	$(ASY) latexusage
 	latex latexusage
 
