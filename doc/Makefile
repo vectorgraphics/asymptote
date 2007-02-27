@@ -31,11 +31,11 @@ latexusage.eps: latexusage.dvi
 latexusage.png: latexusage.eps
 	convert -density 144x144 +antialias -geometry 50%x \
 		latexusage.eps latexusage.png
-intro.png:
-	
-
 latexusage.pdf: latexusage.dvi
 	dvipdf latexusage
+
+intro.png:
+	-
 
 options: ../settings.cc
 	$(ASY) -h 2>&1 | grep -iv Asymptote > options

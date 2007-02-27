@@ -7186,7 +7186,7 @@ Stefan Knorr.
 @c  LocalWords:  lineargraph datagraph vertices parametricgraph uncomment ggv
 @c  LocalWords:  loggraph generalaxis texhash arrowsize arrowangle arrowlength
 @c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config MacOS prebuilt svn
-@c  LocalWords:  ghostview gsview SIGHUP PDF acroread xpdf nullframe cutbefore
+@c  LocalWords:  ghostview gsview SIGHUP PDF acroread xpdf cutbefore
 @c  LocalWords:  libsigsegv intersectionpoint dotfactor vv firstcut pq logticks
 @c  LocalWords:  Unisys dvips vvv vvvv vvvvv traceback lastcut cutafter infodir
 @c  LocalWords:  zxvf xargs cond polargraph xmin xmax plabel YZero labelling ln
