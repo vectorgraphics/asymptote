@@ -957,8 +957,28 @@ for(int i=0; i < 3; ++i) {
 // Writes warning about top-level static modifier and then 1, 1, 1
 \endverbatim
 
-New instances of variables inside for and while loops are allocated on
-every iteration.
+Since version 1.22, non-static variables allocated in a loop body are allocated
+anew every iteration.  This is only noticable in obscure cases where a variable
+in a loop is accessed in the closure of a function defined in the loop:
+ 
+\verbatim
+int f(); 
+ 
+for(int i=0; i < 10; ++i) { 
+  int j=10*i;
+  if(i == 5)
+    f=new int() {return j;}; 
+} 
+ 
+write(f()); // Writes 50
+\endverbatim
+ 
+Variables in the body of a loop last as long as that iteration of the loop,
+unless they are kept alive by a function closure as in the example above.  In a
+function body, variables will last at least as long as the function call, though
+because of closures and garbage collection, they may last longer than that.  If
+defined at the top level of a file or at the interactive prompt, they will last
+at least until the end of the file or prompt's run.
 
 \question 26jun:debug Is there a debugger for asy?
 
