@@ -115,7 +115,6 @@ void GC_debug_print_heap_obj_proc(GC_PTR);
 using namespace vm;
 using namespace camp;
 using namespace settings;
-using mem::list;
 
 namespace settings {
 extern pen *initialdefaultpen;
@@ -207,6 +206,8 @@ const char *arraymismatch="operation attempted on arrays of different lengths";
 
 namespace run {
   
+using mem::list;
+
 const char *arrayempty="cannot take min or max of empty array";
 
 static inline int Round(double x) 
