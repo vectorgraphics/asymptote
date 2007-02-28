@@ -66,6 +66,13 @@ AC_PROG_CC
 AC_PROG_MAKE_SET
 AC_PROG_YACC
 
+if test "$GXX" = yes ; then
+   ac_gcc_version=`echo __GNUC__ | $CC -E - | grep -v ^\#`
+   if test "$ac_gcc_version" -lt 4; then
+       CFLAGS=$CFLAGS" -finline-limit=400"
+   fi
+fi
+
 AC_CHECK_HEADER(fftw3.h,
    AC_CHECK_LIB([fftw3], fftw_execute,,
            AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
