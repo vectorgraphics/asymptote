@@ -8,8 +8,11 @@ string Centered="c";
 void labelpath(frame f, Label L, path g, string justify=Centered,
 	       pen p=currentpen)
 {
-  if(pdf() || !latex()) abort("labelpath requires -tex latex");
-  _labelpath(f,L.s,L.size,g,justify,(L.T.x,L.T.y+0.5linewidth(p)),p);
+  if(latex() && !pdf()) {
+    _labelpath(f,L.s,L.size,g,justify,(L.T.x,L.T.y+0.5linewidth(p)),p);
+    return;
+  }
+  write("warning: labelpath requires -tex latex");
 }
 
 void labelpath(picture pic=currentpicture, Label L, path g,

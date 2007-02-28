@@ -3,7 +3,6 @@
 orientation=Landscape;
 
 import slide;
-autorotation=false;
 usersetting();
 
 bibliographystyle("alpha");

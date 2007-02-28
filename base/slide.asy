@@ -1,5 +1,4 @@
 import fontsize;
-usepackage("lscape");
 usepackage("rotating");
 usepackage("asycolors");
 
@@ -14,23 +13,15 @@ real pagewidth=-2pagemargin;
 real pageheight=-2pagemargin;
 
 bool landscape=orientation == Landscape || orientation == Seascape;
-bool autorotation=true;
 
 if(landscape) {
-  if(settings.outformat == "pdf" && settings.tex != "pdflatex")
-    if(autorotation) settings.autorotate=true;
-  if(pdf()) {
-    orientation=Portrait;
-    real temp=settings.paperwidth;
-    settings.paperwidth=settings.paperheight;
-    settings.paperheight=temp;
-    pagewidth += settings.paperwidth;
-    pageheight += settings.paperheight;
-  } else {
-    pagewidth += settings.paperheight;
-    pageheight += settings.paperwidth;
-  }
-} else {
+  orientation=Portrait;
+  real temp=settings.paperwidth;
+  settings.paperwidth=settings.paperheight;
+  settings.paperheight=temp;
+  pagewidth += settings.paperwidth;
+  pageheight += settings.paperheight;
+ } else {
   pagewidth += settings.paperwidth;
   pageheight += settings.paperheight;
 }
@@ -464,27 +455,26 @@ void bibliography(string name)
   label("",itempen);
   tex("\clearpage\def\refname{\fontsize{"+string(fontsize(titlepen))+"}{"+
       string(lineskip(titlepen))+"}\selectfont References}%");
+  real hmargin,vmargin;
+  if(pdf()) {
+    hmargin=1;
+    vmargin=0;
+  } else {
+    hmargin=1.5;
+    vmargin=1;
+  }
   string s;
   if(landscape) {
-    if(pdf()) {
-      s="{\centering\textheight="+string(pageheight-1inch)+"bp\textwidth="+
-	string(pagewidth-1.5inches)+"bp"+
-	"\vsize=\textheight\hsize=\textwidth\linewidth=\hsize"+
-	"\topmargin=0in\oddsidemargin=1in";
-    } else
-      s="{\centering\textheight="+string(pagewidth-1.5inches)+"bp\textwidth="+
-	string(pageheight-1inch)+"bp"+"\begin{landscape}"+
-	"\topmargin=1in\oddsidemargin=1.1in";
+    s="{\centering\textheight="+string(pageheight-1inch)+"bp\textwidth="+
+    string(pagewidth-1.5inches)+"bp"+
+    "\vsize=\textheight\hsize=\textwidth\linewidth=\hsize"+
+      "\topmargin="+string(vmargin)+"in\oddsidemargin="+string(hmargin)+"in";
   } else
     s="{\centering\textheight="+string(pageheight-0.5inches)+"bp\textwidth="+
       string(pagewidth-0.5inches)+
       "bp\hsize=\textwidth\linewidth=\textwidth\vsize=\textheight"+
       "\topmargin=0.5in\oddsidemargin=1in";
-  s += "\evensidemargin=\oddsidemargin\bibliography{"+name+"}";
-  if(landscape && !pdf())
-    s += "\end{landscape}";
-  else s += "\clearpage";
-  s += "}";
+  s += "\evensidemargin=\oddsidemargin\bibliography{"+name+"}\clearpage}";
   tex(s);
 }
 

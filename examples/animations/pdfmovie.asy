@@ -1,4 +1,5 @@
-import pdfanim;
+//import pdfanim;
+import animate;
 import patterns;
 
 animation a;

@@ -1080,16 +1080,16 @@ const char **texabort(const string& texengine)
   return settings::pdf(texengine) ? pdftexerrors : texerrors;
 }
 
-string texcommand() 
+string texengine() 
 {
   string command=getSetting<string>("texcommand");
   return command.empty() ? getSetting<string>("tex") : command;
 }
   
-string texengine()
+string texprogram()
 {
   string path=getSetting<string>("texpath");
-  return (path == "") ? texcommand() : (string) (path+"/"+texcommand());
+  return (path == "") ? texengine() : (string) (path+"/"+texengine());
 }
 
 int getScroll() 

@@ -24,7 +24,7 @@ namespace camp {
 const char *texpathmessage() {
   ostringstream buf;
   buf << "the directory containing your " << getSetting<string>("tex")
-      << " engine (" << texcommand() << ")";
+      << " engine (" << texengine() << ")";
   return strcpy(new char[buf.str().size()+1],buf.str().c_str());
 }
   
@@ -152,7 +152,7 @@ void picture::texinit()
   }
   
   ostringstream cmd;
-  cmd << "'" << texengine() << "'";
+  cmd << "'" << texprogram() << "'";
   tex.open(cmd.str().c_str(),"texpath",texpathmessage());
   texdocumentclass(tex,true);
   
@@ -173,7 +173,7 @@ bool picture::texprocess(const string& texname, const string& outname,
   if(outfile) {
     outfile.close();
     ostringstream cmd;
-    cmd << "'" << texengine() << "'"
+    cmd << "'" << texprogram() << "'"
 	<< " \\scrollmode\\input '" << texname << "'";
     bool quiet=verbose <= 1;
     status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());

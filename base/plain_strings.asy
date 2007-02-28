@@ -100,16 +100,21 @@ string graphic(string name, string options="")
 
 string minipage(string s, real width=100bp)
 {
-  return latex() ? "\begin{minipage}{"+(string) (width*pt)+"pt}"+s+
-    "\end{minipage}" : ""; 
+  if(latex())
+    return "\begin{minipage}{"+(string) (width*pt)+"pt}"+s+"\end{minipage}";
+  write("warning: minipage requires -tex latex or -tex pdflatex");
+  return "";
 }
 
 void usepackage(string s, string options="")
 {
-  if(!latex()) return;
-  string usepackage="\usepackage";
-  if(options != "") usepackage += "["+options+"]";
-  texpreamble(usepackage+"{"+s+"}");
+  if(latex()) {
+    string usepackage="\usepackage";
+    if(options != "") usepackage += "["+options+"]";
+    texpreamble(usepackage+"{"+s+"}");
+    return;
+  }
+  write("warning: usepackage requires -tex latex or -tex pdflatex");
 }
 
 void pause(string w="Hit enter to continue") 

@@ -83,9 +83,10 @@ struct animation {
       this.shipout(pictures[i]);
     }
   }
-
   bool pdflatex() {
-    return pdf() && latex();
+    if(pdf() && latex()) return true;
+    abort("error: PDF animations require -tex pdflatex");
+    return false;
   }
 
   string pdf(real delay=animationdelay, string options="") {
@@ -110,7 +111,6 @@ struct animation {
     }
 
     return "\PDFAnimJSPageEnable\PDFAnimation{"+prefix+"}";
-
   }
 
   private string color(string name, pen p, bool colorspace=false) {
