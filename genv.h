@@ -36,7 +36,7 @@ class genv : public gc {
 
   // List of modules in translation.  Used to detect and prevent infinite
   // recursion in loading modules.
-  list<string> inTranslation;
+  mem::list<string> inTranslation;
 
   // Checks for recursion in loading, reporting an error and throwing an
   // exception if it occurs.

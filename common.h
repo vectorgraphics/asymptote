@@ -15,8 +15,6 @@ using std::cin;
 using std::cerr;
 using std::endl;
 
-using mem::list;
-
 using mem::string;
 using mem::istringstream;
 using mem::ostringstream;

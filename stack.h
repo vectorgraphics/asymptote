@@ -37,7 +37,7 @@ inline bool operator == (const bpinfo& a, const bpinfo& b)
   return a.f == b.f;
 }
   
-extern list<bpinfo> bplist;
+extern mem::list<bpinfo> bplist;
   
 class runnable;
   

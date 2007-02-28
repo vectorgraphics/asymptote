@@ -163,7 +163,7 @@ public:
 
 class block : public runnable {
 public:
-  list<runnable *> stms;
+  mem::list<runnable *> stms;
 
   // If the runnables should be interpreted in their own scope.
   bool scope;
@@ -207,8 +207,8 @@ public:
 };
 
 class modifierList : public absyn {
-  list<trans::permission> perms;
-  list<trans::modifier> mods;
+  mem::list<trans::permission> perms;
+  mem::list<trans::modifier> mods;
 
 public:
   modifierList(position pos)
@@ -331,7 +331,7 @@ public:
 };
 
 class decidlist : public absyn {
-  list<decid *> decs;
+  mem::list<decid *> decs;
 
 public:
   decidlist(position pos)
@@ -415,7 +415,7 @@ struct idpair : public absyn {
 };
 
 struct idpairlist : public gc {
-  list<idpair *> base;
+  mem::list<idpair *> base;
 
   void add(idpair *x) {
     base.push_back(x);

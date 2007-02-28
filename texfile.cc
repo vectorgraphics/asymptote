@@ -17,7 +17,7 @@ using settings::getSetting;
   
 namespace camp {
 
-list<string> TeXpipepreamble, TeXpreamble;
+mem::list<string> TeXpipepreamble, TeXpreamble;
   
 texfile::texfile(const string& texname, const bbox& box) : box(box)
 {

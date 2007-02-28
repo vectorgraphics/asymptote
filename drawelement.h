@@ -88,7 +88,7 @@ public:
   
 typedef mem::vector<box> boxvector;
   
-typedef list<bbox> bboxlist;
+typedef mem::list<bbox> bboxlist;
   
 class drawElement : public gc
 {

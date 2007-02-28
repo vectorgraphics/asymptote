@@ -52,14 +52,14 @@ entry::entry(entry &base, permission perm, record *r)
 }
 
 bool entry::checkPerm(action act, coder &c) {
-  for (list<pr>::iterator p=perms.begin(); p != perms.end(); ++p)
+  for (mem::list<pr>::iterator p=perms.begin(); p != perms.end(); ++p)
     if (!p->check(act, c))
       return false;
   return true;
 }
 
 void entry::reportPerm(action act, position pos, coder &c) {
-  for (list<pr>::iterator p=perms.begin(); p != perms.end(); ++p)
+  for (mem::list<pr>::iterator p=perms.begin(); p != perms.end(); ++p)
     p->report(act, pos, c);
 }
 

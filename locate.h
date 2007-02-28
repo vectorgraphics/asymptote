@@ -12,7 +12,7 @@
 
 namespace settings {
 
-typedef list<string> file_list_t;
+typedef mem::list<string> file_list_t;
 extern file_list_t searchPath;
 
 // Find the appropriate file, first looking in the local directory, then the

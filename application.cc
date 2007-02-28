@@ -54,7 +54,7 @@ void restArg::transMaker(coenv &e, int size, bool rest) {
 void restArg::trans(coenv &e, temp_vector &temps)
 {
   // Push the values on the stack.
-  for (list<arg *>::iterator p = inits.begin(); p != inits.end(); ++p)
+  for (mem::list<arg *>::iterator p = inits.begin(); p != inits.end(); ++p)
     (*p)->trans(e, temps);
 
   if (rest)

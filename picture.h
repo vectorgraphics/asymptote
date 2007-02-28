@@ -22,7 +22,7 @@ public:
 };
 extern texstream tex; // Bi-directional pipe to latex (to find label bbox)
 
-typedef list<drawElement*> nodelist;
+typedef mem::list<drawElement*> nodelist;
   
 class picture : public gc {
 private:

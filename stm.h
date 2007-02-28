@@ -193,7 +193,7 @@ public:
 
 // Used at the start of for loops.
 class stmExpList : public stm {
-  list <stm *> stms;
+  mem::list<stm *> stms;
 
 public:
   stmExpList(position pos) 

@@ -25,7 +25,7 @@
 
 namespace camp {
 
-extern list<string> TeXpipepreamble, TeXpreamble;
+extern mem::list<string> TeXpipepreamble, TeXpreamble;
 
 const double tex2ps=72.0/72.27;
 const double ps2tex=1.0/tex2ps;
@@ -39,15 +39,15 @@ void texdocumentclass(T& out, bool pipe=false)
 }
   
 template<class T>
-void texpreamble(T& out, list<string>& preamble=TeXpreamble)
+void texpreamble(T& out, mem::list<string>& preamble=TeXpreamble)
 {
-  for(list<string>::iterator p=preamble.begin();
+  for(mem::list<string>::iterator p=preamble.begin();
       p != preamble.end(); ++p)
     out << stripblanklines(*p);
 }
 
 template<class T>
-void texdefines(T& out, list<string>& preamble=TeXpreamble,
+void texdefines(T& out, mem::list<string>& preamble=TeXpreamble,
 		bool pipe=false)
 {
   string texengine=settings::getSetting<string>("tex");

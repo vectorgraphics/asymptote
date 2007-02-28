@@ -325,7 +325,7 @@ struct boolSetting : public itemSetting {
   // Set several related boolean options at once.  Used for view and trap which
   // have batch and interactive settings.
   struct multiOption : public option {
-    typedef list<boolSetting *> setlist;
+    typedef mem::list<boolSetting *> setlist;
     setlist set;
     multiOption(string name, char code, string desc)
       : option(name, code, noarg, desc, true) {}

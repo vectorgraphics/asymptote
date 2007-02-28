@@ -66,7 +66,7 @@ public:
 class formals : public absyn {
   //friend class funheader;
 
-  list<formal *> fields;
+  mem::list<formal *> fields;
   formal *rest;
 
   void addToSignature(types::signature& sig,

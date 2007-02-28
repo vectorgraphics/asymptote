@@ -22,7 +22,8 @@ namespace absyntax {
 using namespace trans;
 using namespace types;
 
-  
+using mem::list;
+
 trans::tyEntry *ty::transAsTyEntry(coenv &e, record *where)
 {
   return new trans::tyEntry(trans(e, false), 0, where, getPos());

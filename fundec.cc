@@ -16,6 +16,7 @@ namespace absyntax {
 
 using namespace trans;
 using namespace types;
+using mem::list;
 
 varinit *Default=new definit(position::nullPos());
   

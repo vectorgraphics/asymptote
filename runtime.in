@@ -115,6 +115,7 @@ void GC_debug_print_heap_obj_proc(GC_PTR);
 using namespace vm;
 using namespace camp;
 using namespace settings;
+using mem::list;
 
 namespace settings {
 extern pen *initialdefaultpen;
@@ -672,7 +673,7 @@ static char Time[nTime];
 void clear(string file, int line, bool warn=false) 
 {
   bpinfo bp(file,line);
-  for(mem::list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
+  for(list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
     if(*p == bp) {
       cout << "cleared breakpoint at " << file << ": " << line << endl;
       bplist.remove(bp);
@@ -2592,7 +2593,7 @@ void stop(string file, int line, runnable *s=NULL)
 
 void breakpoints()
 {
-  for(mem::list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p)
+  for(list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p)
     cout << p->f.name() << ": " << p->f.line() << endl;
 }
 

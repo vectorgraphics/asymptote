@@ -54,7 +54,7 @@ public:
 };
 
 class arrayinit : public varinit {
-  list<varinit *> inits;
+  mem::list<varinit *> inits;
 
   varinit *rest;
 public:

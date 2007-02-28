@@ -292,13 +292,13 @@ void stmExpList::prettyprint(ostream &out, int indent)
 {
   prettyname(out, "stmExpList",indent);
 
-  for (list<stm *>::iterator p = stms.begin(); p != stms.end(); ++p)
+  for (mem::list<stm *>::iterator p = stms.begin(); p != stms.end(); ++p)
     (*p)->prettyprint(out, indent+1);
 }
 
 void stmExpList::trans(coenv &e)
 {
-  for (list<stm *>::iterator p = stms.begin(); p != stms.end(); ++p)
+  for (mem::list<stm *>::iterator p = stms.begin(); p != stms.end(); ++p)
     (*p)->markTrans(e);
 }
 

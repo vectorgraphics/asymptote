@@ -451,7 +451,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   nodelist::iterator layerp=nodes.begin();
   nodelist::iterator p=layerp;
   unsigned int layer=0;
-  list<string> psnameStack;
+  mem::list<string> psnameStack;
   
   bbox bshift=b;
   
@@ -536,7 +536,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 	status=texprocess(texname,prename,prefix,bboxshift);
 	delete tex;
 	if(!getSetting<bool>("keep")) {
-	  for(list<string>::iterator p=psnameStack.begin();
+	  for(mem::list<string>::iterator p=psnameStack.begin();
 	      p != psnameStack.end(); ++p)
 	    unlink(p->c_str());
 	}

@@ -30,7 +30,7 @@ namespace run {
 
 namespace vm {
 
-list<bpinfo> bplist;
+mem::list<bpinfo> bplist;
   
 namespace {
 position curPos = position::nullPos();
@@ -111,7 +111,7 @@ void stack::debug()
     break;
  case 'c': // continue
   default:
-    for(list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
+    for(mem::list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
       if(curPos.match(p->f.name()) && curPos.match(p->f.line()) &&
 	 (newline || !curPos.match(breakPos.filename()) ||
 	  !curPos.match(breakPos.Line()))) {

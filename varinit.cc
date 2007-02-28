@@ -39,7 +39,7 @@ void arrayinit::prettyprint(ostream &out, int indent)
 {
   prettyname(out, "arrayinit",indent);
 
-  for (list<varinit *>::iterator p = inits.begin(); p != inits.end(); ++p)
+  for (mem::list<varinit *>::iterator p = inits.begin(); p != inits.end(); ++p)
     (*p)->prettyprint(out, indent+2);
   if (rest)
     rest->prettyprint(out, indent+1);
@@ -65,7 +65,7 @@ void arrayinit::transToType(coenv &e, types::ty *target)
   }
 
   // Push the values on the stack.
-  for (list<varinit *>::iterator p = inits.begin(); p != inits.end(); ++p)
+  for (mem::list<varinit *>::iterator p = inits.begin(); p != inits.end(); ++p)
     (*p)->transToType(e, celltype);
 
   if (rest)

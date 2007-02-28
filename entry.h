@@ -48,7 +48,7 @@ class entry : public gc {
     void report(action act, position pos, coder &c);
   };
   
-  list<pr> perms;
+  mem::list<pr> perms;
 
   void addPerm(permission perm, record *r) {
     // Only store restrictive permissions.
@@ -268,7 +268,7 @@ public:
   // A hash table indexed solely on the name, storing for each name the list of
   // all values of that name.  Used to get the (possibly overloaded) type
   // of the name.
-  typedef list<value *> values;
+  typedef mem::list<value *> values;
   typedef mem::hash_map<symbol *, values, namehash, nameeq> namemap;
   namemap names;
 

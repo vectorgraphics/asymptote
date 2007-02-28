@@ -43,6 +43,7 @@ using trans::coenv;
 using trans::env;
 using trans::coder;
 using types::record;
+using mem::list;
 
 using interact::interactive;
 using interact::uptodate;
