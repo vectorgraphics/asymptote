@@ -21,7 +21,7 @@ namespace absyntax {
 
 using namespace trans;
 using namespace types;
-using mem::string;
+
   
 trans::tyEntry *ty::transAsTyEntry(coenv &e, record *where)
 {
@@ -583,7 +583,7 @@ void idpair::transAsUnravel(coenv &e, record *r,
 
 void idpairlist::prettyprint(ostream &out, int indent)
 {
-  for (mem::list<idpair *>::iterator p=base.begin();
+  for (list<idpair *>::iterator p=base.begin();
        p != base.end();
        ++p)
     (*p)->prettyprint(out, indent);
@@ -591,7 +591,7 @@ void idpairlist::prettyprint(ostream &out, int indent)
 
 void idpairlist::transAsAccess(coenv &e, record *r)
 {
-  for (mem::list<idpair *>::iterator p=base.begin();
+  for (list<idpair *>::iterator p=base.begin();
        p != base.end();
        ++p)
     (*p)->transAsAccess(e,r);
@@ -600,7 +600,7 @@ void idpairlist::transAsAccess(coenv &e, record *r)
 void idpairlist::transAsUnravel(coenv &e, record *r,
                                 protoenv &source, varEntry *qualifier)
 {
-  for (mem::list<idpair *>::iterator p=base.begin();
+  for (list<idpair *>::iterator p=base.begin();
        p != base.end();
        ++p)
     (*p)->transAsUnravel(e,r,source,qualifier);

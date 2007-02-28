@@ -17,14 +17,14 @@ enum Language {PostScript,TeX};
 class drawVerbatim : public drawElement {
 private:
   Language language;
-  mem::string text;
+  string text;
   bool havebounds;
   pair min,max;
 public:
-  drawVerbatim(Language language, const mem::string& text) : 
+  drawVerbatim(Language language, const string& text) : 
     language(language), text(text), havebounds(false) {}
   
-  drawVerbatim(Language language, const mem::string& text, pair min,
+  drawVerbatim(Language language, const string& text, pair min,
 	       pair max) : 
     language(language), text(text), havebounds(true), min(min), max(max) {}
   

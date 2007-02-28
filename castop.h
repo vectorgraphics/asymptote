@@ -11,7 +11,7 @@
 
 #include <cfloat>
 
-#include "memory.h"
+#include "common.h"
 #include "stack.h"
 #include "fileio.h"
 #include "lexical.h"
@@ -39,17 +39,17 @@ void castDoubleInt(vm::stack *s)
 template<class T>
 void stringCast(vm::stack *s)
 {
-  mem::ostringstream buf;
+  ostringstream buf;
   buf.precision(DBL_DIG);
   buf << pop<T>(s);
-  s->push((mem::string) buf.str());
+  s->push((string) buf.str());
 }
 
 template<class T>
 void castString(vm::stack *s)
 {
   try {
-    mem::string *S=pop<mem::string*>(s);
+    string *S=pop<string*>(s);
     if(S->empty()) {
       T x=0;
       s->push(x);
@@ -86,7 +86,7 @@ void read(vm::stack *s)
 inline int Limit(int nx) {return nx == 0 ? INT_MAX : nx;}
 inline void reportEof(camp::file *f, int count) 
 {
-  mem::ostringstream buf;
+  ostringstream buf;
   buf << "EOF after reading " << count
       << " values from file '" << f->filename() << "'.";
   vm::error(buf);

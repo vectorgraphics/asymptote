@@ -12,10 +12,7 @@
 
 #include <iostream>
 
-using std::cout;
-using std::endl;
-
-#include "memory.h"
+#include "common.h"
 #include "frame.h"
 #include "table.h"
 #include "types.h"
@@ -51,7 +48,7 @@ class entry : public gc {
     void report(action act, position pos, coder &c);
   };
   
-  mem::list<pr> perms;
+  list<pr> perms;
 
   void addPerm(permission perm, record *r) {
     // Only store restrictive permissions.
@@ -271,7 +268,7 @@ public:
   // A hash table indexed solely on the name, storing for each name the list of
   // all values of that name.  Used to get the (possibly overloaded) type
   // of the name.
-  typedef mem::list<value *> values;
+  typedef list<value *> values;
   typedef mem::hash_map<symbol *, values, namehash, nameeq> namemap;
   namemap names;
 
@@ -345,7 +342,7 @@ public:
   void list(record *module=0);
 
   // Adds to l, all names prefixed by start.
-  void completions(mem::list<symbol *>& l, mem::string start);
+  void completions(mem::list<symbol *>& l, string start);
 };
 #endif
 

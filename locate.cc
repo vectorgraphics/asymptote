@@ -11,7 +11,7 @@
 #include "util.h"
 #include "locate.h"
 
-using mem::string;
+
   
 namespace settings {
 

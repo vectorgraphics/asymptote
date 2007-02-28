@@ -36,7 +36,6 @@ class lambda;
 }
 namespace absyntax {
 
-using mem::list;
 using trans::genv;
 using trans::coenv;
 using trans::protoenv;
@@ -416,7 +415,7 @@ struct idpair : public absyn {
 };
 
 struct idpairlist : public gc {
-  mem::list<idpair *> base;
+  list<idpair *> base;
 
   void add(idpair *x) {
     base.push_back(x);
@@ -521,10 +520,10 @@ public:
 // Parses the file given, and translates the resulting runnables as if they
 // occurred at this place in the code.
 class includedec : public dec {
-  mem::string filename;
+  string filename;
 
 public:
-  includedec(position pos, mem::string filename)
+  includedec(position pos, string filename)
     : dec(pos), filename(filename) {}
   includedec(position pos, symbol *id)
     : dec(pos), filename(*id) {}

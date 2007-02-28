@@ -13,16 +13,16 @@
 
 #include <iostream>
 
-#include "memory.h"
+#include "common.h"
 
 namespace camp {
 
 // Used internally to report an error in an operation.
-void reportError(const mem::string& desc);
-void reportError(const mem::ostringstream& desc);
+void reportError(const string& desc);
+void reportError(const ostringstream& desc);
   
-void reportWarning(const mem::string& desc);
-void reportWarning(const mem::ostringstream& desc);
+void reportWarning(const string& desc);
+void reportWarning(const ostringstream& desc);
   
 inline std::ostream& newl(std::ostream& s) {s << '\n'; return s;}
 

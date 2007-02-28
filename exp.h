@@ -24,7 +24,6 @@ class application;
 
 namespace absyntax {
 
-using mem::list;
 using trans::coenv;
 using trans::application;
 using trans::access;
@@ -393,10 +392,10 @@ public:
 
 
 class stringExp : public literalExp {
-  mem::string str;
+  string str;
 
 public:
-  stringExp(position pos, mem::string str)
+  stringExp(position pos, string str)
     : literalExp(pos), str(str) {}
 
   void prettyprint(ostream &out, int indent);

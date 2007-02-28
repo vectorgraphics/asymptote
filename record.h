@@ -93,7 +93,7 @@ public:
 
   void debug(ostream& out) const
   {
-    out << "struct " << *name << std::endl;
+    out << "struct " << *name << endl;
     out << "types:" << endl;
     out << "re-implement" << endl;
     //out << te;
@@ -109,11 +109,11 @@ public:
 class dummyRecord : public record {
 public:
   dummyRecord(symbol *name);
-  dummyRecord(mem::string s);
+  dummyRecord(string s);
 
   // Convenient functions for adding fields.
-  void add(mem::string name, ty *t, trans::access *a);
-  void add(mem::string name, function *t, vm::bltin f);
+  void add(string name, ty *t, trans::access *a);
+  void add(string name, function *t, vm::bltin f);
 };
 
 } //namespace types

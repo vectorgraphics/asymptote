@@ -9,7 +9,7 @@
 #ifndef ABSYN_H
 #define ABSYN_H
 
-#include "memory.h"
+#include "common.h"
 #include "errormsg.h" // For position
 
 // Forward declaration for markPos.
@@ -43,7 +43,7 @@ private:  // Non-copyable
 };
 
 void prettyindent(ostream &out, int indent);
-void prettyname(ostream &out, mem::string name, int indent);
+void prettyname(ostream &out, string name, int indent);
 
 class name;
 class ty;

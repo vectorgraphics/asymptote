@@ -18,7 +18,7 @@
 #include <iostream>
 #include <cmath>
 
-#include "memory.h"
+#include "common.h"
 #include "angle.h"
 
 namespace camp {

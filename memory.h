@@ -1,5 +1,5 @@
 /****
- * memory.h
+ * common.h
  *
  * Interface to the Boehm Garbage Collector.
  *****/

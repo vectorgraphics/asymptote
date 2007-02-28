@@ -12,7 +12,7 @@
 #include <utility>
 
 #include "symbol.h"
-#include "memory.h"
+#include "common.h"
 
 namespace sym {
 
@@ -27,8 +27,8 @@ class table {
 protected:
   typedef mem::multimap<symbol*CONST,B> scope_t;
   typedef typename scope_t::iterator scope_iterator;
-  typedef mem::list<scope_t> scopes_t;
-  typedef mem::list<B> name_t;
+  typedef list<scope_t> scopes_t;
+  typedef list<B> name_t;
   typedef typename name_t::iterator name_iterator;
   typedef mem::map<symbol*CONST,name_t> names_t;
   typedef typename names_t::iterator names_iterator;
@@ -56,7 +56,7 @@ public :
   void collapseScope();
 
   // Adds to l, all names prefixed by start.
-  void completions(mem::list<symbol *>& l, mem::string start);
+  void completions(list<symbol *>& l, string start);
 
   friend std::ostream& operator<< <B> (std::ostream& out, const table& t);
 };
@@ -123,12 +123,12 @@ inline void table<B>::collapseScope()
 }
 
 // Returns true if start is a prefix for name; eg, mac is a prefix of machine.
-inline bool prefix(mem::string start, mem::string name) {
+inline bool prefix(string start, string name) {
   return equal(start.begin(), start.end(), name.begin());
 }
 
 template <class B>
-inline void table<B>::completions(mem::list<symbol *>& l, mem::string start)
+inline void table<B>::completions(list<symbol *>& l, string start)
 {
   for (names_iterator p = names.begin(); p != names.end(); ++p)
     if (prefix(start, *(p->first)) && !p->second.empty())

@@ -28,7 +28,7 @@ private:
     
   // These are completions that don't come from the environment, such as
   // keywords.  They are read from the keywords file.
-  static void basicCompletions(symbol_list &l, mem::string start);
+  static void basicCompletions(symbol_list &l, string start);
 
   void makeList(const char *text);
 

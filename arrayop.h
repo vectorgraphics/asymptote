@@ -217,7 +217,7 @@ void searchArray(vm::stack *s)
   s->push(0);
 }
 
-extern mem::string emptystring;
+extern string emptystring;
   
 void writestring(vm::stack *s);
   
@@ -227,7 +227,7 @@ void write(vm::stack *s)
   array *a=pop<array*>(s);
   vm::callable *suffix=pop<vm::callable *>(s,NULL);
   T first=pop<T>(s);
-  mem::string S=pop<mem::string>(s,emptystring);
+  string S=pop<string>(s,emptystring);
   vm::item it=pop(s);
   bool defaultfile=isdefault(it);
   camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
@@ -258,7 +258,7 @@ void writeArray(vm::stack *s)
 {
   array *A=pop<array*>(s);
   array *a=pop<array*>(s);
-  mem::string S=pop<mem::string>(s,emptystring);
+  string S=pop<string>(s,emptystring);
   vm::item it=pop(s);
   bool defaultfile=isdefault(it);
   camp::file *f=defaultfile ? &camp::Stdout : vm::get<camp::file*>(it);
@@ -276,7 +276,7 @@ void writeArray(vm::stack *s)
       cont=false;
       bool first=true;
       if(i < asize) {
-	if(defaultfile) std::cout << i << ":\t";
+	if(defaultfile) cout << i << ":\t";
 	f->write(read<T>(a,i)); cont=true;
 	first=false;
       }
@@ -286,7 +286,7 @@ void writeArray(vm::stack *s)
 	size_t Ajsize=checkArray(Aj);
 	if(i < Ajsize) {
 	  if(f->text()) {
-	    if(first && defaultfile) std::cout << i << ":\t";
+	    if(first && defaultfile) cout << i << ":\t";
 	    for(unsigned k=0; k <= count; ++k)
 	      f->write(tab);
 	    count=0;

@@ -8,7 +8,7 @@
 #ifndef CALLABLE_H
 #define CALLABLE_H
 
-#include "memory.h"
+#include "common.h"
 #include "item.h"
 
 namespace vm {

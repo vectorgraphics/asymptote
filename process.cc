@@ -36,8 +36,6 @@ namespace vm {
 }
 
 using namespace settings;
-using mem::list;
-using mem::string;
 
 using absyntax::file;
 using trans::genv;
@@ -143,13 +141,13 @@ struct icore {
 
 protected:
   // NOTE: Get this out of here!
-  mem::list<string> TeXpipepreamble_save;
-  mem::list<string> TeXpreamble_save;
+  list<string> TeXpipepreamble_save;
+  list<string> TeXpreamble_save;
 public:
 
   virtual void preRun(coenv &e, istack &s) {
-    TeXpipepreamble_save = mem::list<string>(camp::TeXpipepreamble);
-    TeXpreamble_save = mem::list<string>(camp::TeXpreamble);
+    TeXpipepreamble_save = list<string>(camp::TeXpipepreamble);
+    TeXpreamble_save = list<string>(camp::TeXpreamble);
 
     if(getSetting<bool>("autoplain"))
       runAutoplain(e,s);

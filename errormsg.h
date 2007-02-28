@@ -9,22 +9,21 @@
 #define ERRORMSG_H
 
 #include <iostream>
-#include "memory.h"
+#include "common.h"
 #include "settings.h"
 
 using std::ostream;
-using std::endl;
 
 struct handled_error {}; // Exception to process next file.
 struct interrupted {};   // Exception to interrupt execution.
 struct quit {};          // Exception to quit current operation.
 
 class fileinfo : public gc {
-  mem::string filename;
+  string filename;
   size_t lineNum;
 
 public:
-  fileinfo(mem::string filename, size_t lineNum=1)
+  fileinfo(string filename, size_t lineNum=1)
     : filename(filename), lineNum(lineNum) {}
 
   size_t line() const
@@ -32,7 +31,7 @@ public:
     return lineNum;
   }
   
-  mem::string name() const {
+  string name() const {
     return filename;
   }
   
@@ -66,7 +65,7 @@ public:
     }
   }
 
-  mem::string filename() const
+  string filename() const
   {
     return file ? file->name() : "";
   }
@@ -81,7 +80,7 @@ public:
     return column;
   }
   
-  bool match(const mem::string& s) {
+  bool match(const string& s) {
     return file && file->name() == s;
   }
   
@@ -125,14 +124,14 @@ class errorstream {
 public:
   static bool interrupt; // Is there a pending interrupt?
   
-  errorstream(ostream& out = std::cerr)
+  errorstream(ostream& out = cerr)
     : out(out), anyErrors(false), anyWarnings(false), floating(false),
       anyStatusErrors(false) {}
 
 
   void clear();
 
-  void message(position pos, const mem::string& s);
+  void message(position pos, const string& s);
   
   void Interrupt(bool b) {
     interrupt=b;

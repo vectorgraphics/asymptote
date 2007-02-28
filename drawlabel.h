@@ -17,7 +17,7 @@ namespace camp {
   
 class drawLabel : public virtual drawElement {
 protected:
-  mem::string label,size;
+  string label,size;
   transform T;		// A linear (shiftless) transformation.
   pair position;
   pair align;
@@ -31,7 +31,7 @@ protected:
   bbox Box;
   
 public:
-  drawLabel(mem::string label, mem::string size, transform T, pair position,
+  drawLabel(string label, string size, transform T, pair position,
 	    pair align, pen pentype)
     : label(label), size(size), T(shiftless(T)), position(position),
       align(align), pentype(pentype), width(0.0), height(0.0), depth(0.0),
@@ -39,13 +39,13 @@ public:
   
   virtual ~drawLabel() {}
 
-  void getbounds(iopipestream& tex, const mem::string& texengine);
+  void getbounds(iopipestream& tex, const string& texengine);
   
   void checkbounds();
     
   void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&);
   
-  bool texbounds(iopipestream& tex, mem::string& s, bool warn,
+  bool texbounds(iopipestream& tex, string& s, bool warn,
 		 const char **abort);
     
   bool islabel() {
@@ -61,11 +61,11 @@ public:
 
 class drawLabelPath : public drawLabel, public drawPathPenBase {
 private:  
-  mem::string justify;
+  string justify;
   pair shift;
 public:
-  drawLabelPath(mem::string label, mem::string size, path src,
-		mem::string justify, pair shift, pen pentype) : 
+  drawLabelPath(string label, string size, path src,
+		string justify, pair shift, pen pentype) : 
     drawLabel(label,size,identity(),pair(0.0,0.0),align,pentype),
     drawPathPenBase(src,pentype), justify(justify), shift(shift) {}
   

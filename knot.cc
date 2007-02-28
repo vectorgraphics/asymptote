@@ -12,8 +12,6 @@
 #include "angle.h"
 #include "settings.h"
 
-using mem::string;
-
 namespace camp {
 
 /***** Debugging *****/
@@ -26,9 +24,9 @@ ostream& info(ostream& o, string name, cvector<T>& v)
     o << name << ":\n\n";
 
     for(int i=0; i < (int) v.size(); ++i)
-      o << v[i] << std::endl;
+      o << v[i] << endl;
 
-    o << std::endl;
+    o << endl;
   }
   return o;
 }
@@ -39,17 +37,17 @@ ostream& info(ostream& o, string name, knotlist& l)
     o << name << ":\n\n";
 
     for(int i=0; i < (int) l.size(); ++i)
-      o << l[i] << std::endl;
+      o << l[i] << endl;
 
     if (l.cyclic())
-      o << "cyclic" << std::endl;
+      o << "cyclic" << endl;
 
-    o << std::endl;
+    o << endl;
   }
   return o;
 }
 
-#define INFO(x) info(std::cerr,#x,x)
+#define INFO(x) info(cerr,#x,x)
 
 /***** Auxillary computation functions *****/
 
@@ -620,7 +618,7 @@ void encodeStraight(protopath& p, int k, knotlist& l)
 void solveSection(protopath& p, int k, knotlist& l)
 {
   if (l.length()>0) {
-    info(std::cerr, "solving section", l);
+    info(cerr, "solving section", l);
 
     // Calculate useful properties.
     cvector<pair>   dz  =  dzprop(l)   .compute();
@@ -790,11 +788,11 @@ path solve(knotlist& l)
   if (l.empty())
     return path();
   else {
-    info(std::cerr, "input knotlist", l);
+    info(cerr, "input knotlist", l);
     curlEnds(l);
     controlDuplicates(l).exec();
     partnerUp(l).exec();
-    info(std::cerr, "specified knotlist", l);
+    info(cerr, "specified knotlist", l);
     return solveSpecified(l);
   }
 }

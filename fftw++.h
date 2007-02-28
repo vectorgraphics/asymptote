@@ -1,24 +1,24 @@
 /* Fast Fourier transform C++ header class for the FFTW3 Library
    Copyright (C) 2004 John C. Bowman, University of Alberta
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
 #ifndef __fftwpp_h__
 #define __fftwpp_h__ 1
 
-#define __FFTWPP_H_VERSION__ 1.02
+#define __FFTWPP_H_VERSION__ 1.03
 
 #include <fstream>
 #include <iostream>
@@ -28,11 +28,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 #include <complex>
 typedef std::complex<double> Complex;
 #endif
-
-using std::ifstream;
-using std::ofstream;
-using std::cerr;
-using std::endl;
 
 #ifdef __Array_h__
 using Array::array1;
@@ -49,7 +44,8 @@ inline Complex *FFTWComplex(size_t size)
   static const size_t offset = sizeof(size_t)/sizeof(Complex)+
     (sizeof(size_t) % sizeof(Complex) > 0);
   void *alloc=fftw_malloc((size+offset)*sizeof(Complex));
-  if(size && !alloc) cerr << endl << "Memory limits exceeded" << endl;
+  if(size && !alloc) std::cerr << std::endl << "Memory limits exceeded" 
+			       << std::endl;
   *(size_t *) alloc=size;
   Complex*p=(Complex *)alloc+offset;
   for(size_t i=0; i < size; i++) new(p+i) Complex;
@@ -61,7 +57,8 @@ inline double *FFTWdouble(size_t size)
   static const size_t offset = sizeof(size_t)/sizeof(Complex)+
     (sizeof(size_t) % sizeof(Complex) > 0);
   void *alloc=fftw_malloc(size*sizeof(double)+offset*sizeof(Complex));
-  if(size && !alloc) cerr << endl << "Memory limits exceeded" << endl;
+  if(size && !alloc) std::cerr << std::endl << "Memory limits exceeded"
+			       << std::endl;
   *(size_t *) alloc=size;
   double*p=(double*)((Complex *)alloc+offset);
   for(size_t i=0; i < size; i++) new(p+i) double;
@@ -80,19 +77,19 @@ inline void FFTWdelete(T *p)
   fftw_free(alloc);
 }
 
-inline void fftw_export_wisdom(void (*emitter)(char c, ofstream& s),
-			       ofstream& s)
+inline void fftw_export_wisdom(void (*emitter)(char c, std::ofstream& s),
+			       std::ofstream& s)
 {
   fftw_export_wisdom((void (*) (char, void *)) emitter,(void *) &s);
 }
 
-inline int fftw_import_wisdom(int (*g)(ifstream& s), ifstream &s)
+inline int fftw_import_wisdom(int (*g)(std::ifstream& s), std::ifstream &s)
 {
   return fftw_import_wisdom((int (*) (void *)) g,(void *) &s);
 }
 
-inline void PutWisdom(char c, ofstream& s) {s.put(c);}
-inline int GetWisdom(ifstream& s) {return s.get();}
+inline void PutWisdom(char c, std::ofstream& s) {s.put(c);}
+inline int GetWisdom(std::ifstream& s) {return s.get();}
 
 // Base clase for fft routines
 //
@@ -109,8 +106,8 @@ protected:
   static unsigned int effort;
   static bool Wise;
   static const char *WisdomName;
-  static ifstream ifWisdom;
-  static ofstream ofWisdom;
+  static std::ifstream ifWisdom;
+  static std::ofstream ofWisdom;
   
   unsigned int Dist(unsigned int n, unsigned int stride, unsigned int dist) {
     return dist ? dist : ((stride == 1) ? n : 1);
@@ -164,8 +161,8 @@ public:
   
   inline void CheckAlign(Complex *p, const char *s) {
     if((size_t) p % sizeof(Complex) == 0) return;
-    cerr << "WARNING: " << s << " array is not " << sizeof(Complex) 
-	 << "-byte aligned: address " << p << endl;
+    std::cerr << "WARNING: " << s << " array is not " << sizeof(Complex) 
+	      << "-byte aligned: address " << p << std::endl;
   }
   
   void Setup(Complex *in, Complex *out=NULL) {
@@ -182,7 +179,7 @@ public:
     inplace=(out==in);
     plan=Plan(in,out);
     if(!plan) {
-      cerr << "Unable to construct FFTW plan" << endl;
+      std::cerr << "Unable to construct FFTW plan" << std::endl;
       exit(1);
     }
     
@@ -219,7 +216,7 @@ public:
     if(!out) out=in;
 #endif    
     if(inplace ^ (out == in)) {
-      cerr << "ERROR: fft constructor and call must be either both in place or out of place" << endl; 
+      std::cerr << "ERROR: fft constructor and call must be either both in place or out of place" << std::endl; 
       exit(1);
     }
   }

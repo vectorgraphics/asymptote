@@ -12,8 +12,6 @@
 #include "util.h"
 
 using namespace settings;
-using mem::string;
-using mem::ostringstream;
 
 namespace camp {
   

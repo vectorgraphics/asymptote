@@ -11,7 +11,7 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#include "memory.h"
+#include "common.h"
 #include "types.h"
 #include "coenv.h"
 #include "exp.h"
@@ -62,7 +62,7 @@ struct defaultArg : public arg {
 // Handles translation of all the arguments matched to the rest formal.
 // NOTE: This code duplicates a lot of arrayinit.
 struct restArg : public gc {
-  mem::list<arg *> inits;
+  list<arg *> inits;
 
   arg *rest;
 public:
@@ -262,7 +262,7 @@ public:
   }
 };
 
-typedef mem::list<application *> app_list;
+typedef list<application *> app_list;
 
 // Given an overloaded list of types, determines which type to call.  If none
 // are applicable, returns an empty vector, if there is ambiguity, several will

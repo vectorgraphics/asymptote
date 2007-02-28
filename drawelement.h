@@ -10,7 +10,7 @@
 
 #include <vector>
 
-#include "memory.h"
+#include "common.h"
 #include "bbox.h"
 #include "pen.h"
 #include "psfile.h"
@@ -88,7 +88,7 @@ public:
   
 typedef mem::vector<box> boxvector;
   
-typedef mem::list<bbox> bboxlist;
+typedef list<bbox> bboxlist;
   
 class drawElement : public gc
 {

@@ -23,7 +23,7 @@
 #include "stack.h"
 
 using namespace settings;
-using mem::string;
+
 
 errorstream *em;
 using interact::interactive;

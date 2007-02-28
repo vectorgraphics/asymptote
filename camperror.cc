@@ -15,9 +15,6 @@
 #include "vm.h"
 #include "errormsg.h"
 
-using mem::string;
-using mem::ostringstream;
-
 namespace camp {
 
 // Used internally to report an error in an operation.

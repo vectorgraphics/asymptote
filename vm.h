@@ -19,7 +19,7 @@ void run(lambda *l);
 position getPos();
 void errornothrow(const char* message);
 void error(const char* message);
-void error(const mem::ostringstream& message);
+void error(const ostringstream& message);
 
 } // namespace vm
 

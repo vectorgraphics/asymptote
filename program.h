@@ -8,7 +8,7 @@
 #ifndef PROGRAM_H
 #define PROGRAM_H
 
-#include "memory.h"
+#include "common.h"
 #include "inst.h"
 
 namespace vm {

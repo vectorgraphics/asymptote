@@ -16,8 +16,6 @@
 
 using std::ifstream;
 using std::ofstream;
-using mem::string;
-using mem::ostringstream;
 
 using namespace settings;
 
@@ -453,7 +451,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   nodelist::iterator layerp=nodes.begin();
   nodelist::iterator p=layerp;
   unsigned int layer=0;
-  mem::list<string> psnameStack;
+  list<string> psnameStack;
   
   bbox bshift=b;
   
@@ -538,7 +536,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 	status=texprocess(texname,prename,prefix,bboxshift);
 	delete tex;
 	if(!getSetting<bool>("keep")) {
-	  for(mem::list<string>::iterator p=psnameStack.begin();
+	  for(list<string>::iterator p=psnameStack.begin();
 	      p != psnameStack.end(); ++p)
 	    unlink(p->c_str());
 	}

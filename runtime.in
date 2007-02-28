@@ -122,8 +122,6 @@ extern pen *initialdefaultpen;
 
 namespace run {
 using camp::pair;
-using mem::string;
-using mem::ostringstream;
 using vm::array;
 using vm::frame;
 using vm::stack;
@@ -184,9 +182,6 @@ using types::penArray2;
 using types::stringArray;
 using types::stringArray2;
 using types::formal;
-
-using mem::string;
-using mem::ostringstream;
 
 function *voidFunction()
 {

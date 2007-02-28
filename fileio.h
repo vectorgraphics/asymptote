@@ -20,7 +20,7 @@
 #include "xstream.h"
 #endif
 
-#include "memory.h"
+#include "common.h"
 #include "pair.h"
 #include "triple.h"
 #include "guide.h"
@@ -37,12 +37,12 @@ extern bool indebugger;
 
 namespace camp {
 
-extern mem::string tab;
-extern mem::string newline;
+extern string tab;
+extern string newline;
   
 class file : public gc_cleanup {
 protected:  
-  mem::string name;
+  string name;
   int nx,ny,nz;    // Array dimensions
   bool linemode;   // Array reads will stop at eol instead of eof.
   bool csvmode;    // Read comma-separated values.
@@ -59,7 +59,7 @@ public:
   
   void dimension(int Nx=-1, int Ny=-1, int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
   
-  file(const mem::string& name, bool checkappend=true) : 
+  file(const string& name, bool checkappend=true) : 
     name(name), linemode(false), csvmode(false), singlemode(false),
     closed(false), checkappend(checkappend), standard(name.empty()),
     lines(0) {dimension();}
@@ -68,7 +68,7 @@ public:
   
   void Check() {
     if(error()) {
-      mem::ostringstream buf;
+      ostringstream buf;
       buf << "Cannot open file \"" << name << "\".";
       reportError(buf);
     }
@@ -80,14 +80,14 @@ public:
 
   bool isOpen() {
     if(closed) {
-      mem::ostringstream buf;
+      ostringstream buf;
       buf << "I/O operation attempted on closed file \'" << name << "\'.";
       reportError(buf);
     }
     return true;
   }
 		
-  mem::string filename() {return name;}
+  string filename() {return name;}
   virtual bool eol() {return false;}
   virtual bool nexteol() {return false;}
   virtual bool text() {return false;}
@@ -101,7 +101,7 @@ public:
   virtual void seek(size_t) {}
   
   void unsupported(const char *rw, const char *type) {
-    mem::ostringstream buf;
+    ostringstream buf;
     buf << rw << " of type " << type << " not supported in " << Mode()
 	<< " mode.";
     reportError(buf);
@@ -117,15 +117,15 @@ public:
   virtual void read(pair&) {noread("pair");}
   virtual void read(triple&) {noread("triple");}
   virtual void read(char&) {noread("char");}
-  virtual void readwhite(mem::string&) {noread("string");}
-  virtual void read(mem::string&) {noread("string");}
+  virtual void readwhite(string&) {noread("string");}
+  virtual void read(string&) {noread("string");}
   
   virtual void write(bool) {nowrite("bool");}
   virtual void write(int) {nowrite("int");}
   virtual void write(double) {nowrite("real");}
   virtual void write(const pair&) {nowrite("pair");}
   virtual void write(const triple&) {nowrite("triple");}
-  virtual void write(const mem::string&) {nowrite("string");}
+  virtual void write(const string&) {nowrite("string");}
   virtual void write(const pen&) {nowrite("pen");}
   virtual void write(guide *) {nowrite("guide");}
   virtual void write(const transform&) {nowrite("transform");}
@@ -151,19 +151,19 @@ class ifile : public file {
   bool first;
   char comment;
   bool comma,nullfield; // Used to detect a final null field in cvs+line mode.
-  mem::string whitespace;
+  string whitespace;
   
 public:
-  ifile(const mem::string& name, bool check=true, char comment=0)
+  ifile(const string& name, bool check=true, char comment=0)
     : file(name,check), comment(comment), comma(false), nullfield(false) {
-      stream=&std::cin;
+      stream=&cin;
   }
   
   ~ifile() {close();}
   
   void open() {
     if(standard) {
-      stream=&std::cin;
+      stream=&cin;
     } else {
       fstream.open(name.c_str());
       stream=&fstream;
@@ -196,22 +196,22 @@ public:
   
 public:
 
-  mem::string getcsvline();
+  string getcsvline();
   
   // Skip over white space
-  void readwhite(mem::string& val) {val=mem::string(); *stream >> val;}
+  void readwhite(string& val) {val=string(); *stream >> val;}
   
-  void Read(bool &val) {mem::string t; readwhite(t); val=(t == "true");}
+  void Read(bool &val) {string t; readwhite(t); val=(t == "true");}
   void Read(int& val) {*stream >> val;}
   void Read(double& val) {*stream >> val;}
   void Read(pair& val) {*stream >> val;}
   void Read(triple& val) {*stream >> val;}
   void Read(char& val) {stream->get(val);}
-  void Read(mem::string& val) {
+  void Read(string& val) {
     if(csvmode) {
       val=whitespace+getcsvline();
     } else {
-      mem::string s;
+      string s;
       getline(*stream,s);
       val=whitespace+s;
     }
@@ -226,15 +226,15 @@ public:
   void read(pair& val) {iread<pair>(val);}
   void read(triple& val) {iread<triple>(val);}
   void read(char& val) {iread<char>(val);}
-  void read(mem::string& val) {iread<mem::string>(val);}
+  void read(string& val) {iread<string>(val);}
 };
   
 class ofile : public file {
   std::ostream *stream;
   std::ofstream fstream;
 public:
-  ofile(const mem::string& name, bool append=false) : file(name,append) {
-      stream=&std::cout;
+  ofile(const string& name, bool append=false) : file(name,append) {
+      stream=&cout;
   }
   
   ~ofile() {close();}
@@ -242,7 +242,7 @@ public:
   void open() {
     checkLocal(name);
     if(standard) {
-      stream=&std::cout;
+      stream=&cout;
     } else {
       fstream.open(name.c_str(),checkappend ? std::ios::app : std::ios::trunc);
       stream=&fstream;
@@ -269,7 +269,7 @@ public:
   void write(double val) {*stream << val;}
   void write(const pair& val) {*stream << val;}
   void write(const triple& val) {*stream << val;}
-  void write(const mem::string& val) {*stream << val;}
+  void write(const string& val) {*stream << val;}
   void write(const pen& val) {*stream << val;}
   void write(guide *val) {*stream << *val;}
   void write(const transform& val) {*stream << val;}
@@ -278,15 +278,15 @@ public:
       int scroll=settings::getScroll();
       if(scroll && lines > 0 && lines % scroll == 0) {
 	for(;;) {
-	  if(!std::cin.good()) {
+	  if(!cin.good()) {
 	    *stream << newline;
-	    std::cin.clear();
+	    cin.clear();
 	    break;
 	  }
-	  int c=std::cin.get();
+	  int c=cin.get();
 	  if(c == '\n') break;
 	  // Discard any additional characters
-	  while(std::cin.good() && std::cin.get() != '\n');
+	  while(cin.good() && cin.get() != '\n');
 	  if(c == 'q') throw quit();
 	}
       } else *stream << newline;
@@ -301,7 +301,7 @@ public:
 class ixfile : public file {
   xdr::ixstream stream;
 public:
-  ixfile(const mem::string& name, bool check=true) : 
+  ixfile(const string& name, bool check=true) : 
     file(name,check), stream(name.c_str()) {if(check) Check();}
 
   ~ixfile() {close();}
@@ -336,7 +336,7 @@ public:
 class oxfile : public file {
   xdr::oxstream stream;
 public:
-  oxfile(const mem::string& name, bool append=false) : 
+  oxfile(const string& name, bool append=false) : 
     file(name), stream((checkLocal(name), name.c_str()),
 		       append ? xdr::xios::app : xdr::xios::trunc) {Check();}
 
@@ -374,7 +374,7 @@ void ifile::iread(T& val)
   if(standard) clear();
   if(errorstream::interrupt) throw interrupted();
   else {
-    ignoreComment(typeid(T)==typeid(mem::string));
+    ignoreComment(typeid(T)==typeid(string));
     val=T();
     if(!nullfield)
       Read(val);

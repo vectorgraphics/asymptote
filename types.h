@@ -17,7 +17,7 @@
 
 #include "errormsg.h"
 #include "symbol.h"
-#include "memory.h"
+#include "common.h"
 #include "util.h"
 
 using std::ostream;

@@ -11,7 +11,7 @@
 #include "table.h"
 #include "envcompleter.h"
 
-using mem::string;
+
 
 namespace trans {
 

@@ -27,7 +27,7 @@ struct bpinfo : public gc {
   fileinfo f;
   absyntax::runnable *r;
   
-  bpinfo(const mem::string& filename, size_t lineNum,
+  bpinfo(const string& filename, size_t lineNum,
 	 absyntax::runnable *r=NULL) :
     f(fileinfo(filename,lineNum)), r(r) {}
 };
@@ -37,7 +37,7 @@ inline bool operator == (const bpinfo& a, const bpinfo& b)
   return a.f == b.f;
 }
   
-extern mem::list<bpinfo> bplist;
+extern list<bpinfo> bplist;
   
 class runnable;
   
@@ -49,7 +49,7 @@ public:
 
   struct importInitMap {
     virtual ~importInitMap() {}
-    virtual lambda *operator[](mem::string) = 0;
+    virtual lambda *operator[](string) = 0;
   };
 
 private:
@@ -70,7 +70,7 @@ private:
   // The stack stores a map of initialized imported modules by name, so that
   // each module is initialized only once and each import refers to the same
   // instance.
-  typedef mem::map<CONST mem::string,frame *> importInstanceMap;
+  typedef mem::map<CONST string,frame *> importInstanceMap;
   importInstanceMap instMap;
   
   // One can associate an environment to embedded code while running.
@@ -110,7 +110,7 @@ public:
   
   // Put an import (indexed by name) on top of the stack, initializing it if
   // necessary.
-  void load(mem::string index);
+  void load(string index);
 
   // These are so that built-in functions can easily manipulate the stack
   void push(item next) {

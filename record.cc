@@ -10,7 +10,7 @@
 #include "runtime.h"
 #include "coder.h"
 
-using mem::string;
+
 
 namespace types {
 

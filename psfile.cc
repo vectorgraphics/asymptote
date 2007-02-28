@@ -19,9 +19,7 @@ using std::ofstream;
 using std::setw;
 using vm::array;
 using vm::read;
-using mem::string;
-using mem::ostringstream;
-  
+
 namespace camp {
 
 void checkColorSpace(ColorSpace colorspace)
@@ -41,10 +39,10 @@ void checkColorSpace(ColorSpace colorspace)
 psfile::psfile(const string& filename, bool pdfformat)
   : filename(filename), pdfformat(pdfformat), pdf(false), out(NULL)
 {
-  if(filename.empty()) out=&std::cout;
+  if(filename.empty()) out=&cout;
   else out=new ofstream(filename.c_str());
   if(!out || !*out) {
-    std::cerr << "Cannot write to " << filename << std::endl;
+    cerr << "Cannot write to " << filename << endl;
     throw handled_error();
   }
 }

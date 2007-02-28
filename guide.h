@@ -12,9 +12,6 @@
 #include "flatguide.h"
 #include "settings.h"
 
-using std::cerr;
-using std::endl;
-
 namespace camp {
 
 // Abstract base class for guides.
@@ -52,7 +49,7 @@ inline ostream& operator<< (ostream& out, const guide& g)
 inline void adjustLocation(ostream& out, side l1, side l2)
 {
   if (l1 == END)
-    out << std::endl;
+    out << endl;
   if ((l1 == END || l1 == OUT) && (l2 == IN || l2 == END))
     out << "..";
 }

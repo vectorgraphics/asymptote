@@ -10,7 +10,7 @@
 
 #include <fstream>
 
-#include "memory.h"
+#include "common.h"
 #include "pair.h"
 #include "item.h"
 
@@ -23,7 +23,7 @@ extern const char PROGRAM[];
 extern const char VERSION[];
 extern const char BUGREPORT[];
 
-extern const mem::string docdir;
+extern const string docdir;
   
 extern bool safe;
   
@@ -34,19 +34,19 @@ enum origin {CENTER,BOTTOM,TOP,ZERO};
   
 extern int ShipoutNumber;
   
-extern const mem::string suffix;
-extern const mem::string guisuffix;
+extern const string suffix;
+extern const string guisuffix;
   
-extern mem::string historyname;
+extern string historyname;
   
 void SetPageDimensions();
 
 types::record *getSettingsModule();
 
-vm::item& Setting(mem::string name);
+vm::item& Setting(string name);
   
 template <typename T>
-inline T getSetting(mem::string name)
+inline T getSetting(string name)
 {
   return vm::get<T>(Setting(name));
 }
@@ -57,11 +57,11 @@ extern bool bw;
 extern bool rgb;
 extern bool cmyk;
   
-extern mem::string gvOptionPrefix;
+extern string gvOptionPrefix;
 
 bool view();
 bool trap();
-mem::string outname();
+string outname();
 
 void setOptions(int argc, char *argv[]);
 
@@ -71,22 +71,22 @@ char *getArg(int n);
  
 int getScroll();
   
-bool pdf(const mem::string& texengine);
-bool latex(const mem::string& texengine);
+bool pdf(const string& texengine);
+bool latex(const string& texengine);
   
-mem::string nativeformat();
-mem::string defaultformat();
+string nativeformat();
+string defaultformat();
   
-const char *beginlabel(const mem::string& texengine);
-const char *endlabel(const mem::string& texengine);
-const char *rawpostscript(const mem::string& texengine);
-const char *beginspecial(const mem::string& texengine);
+const char *beginlabel(const string& texengine);
+const char *endlabel(const string& texengine);
+const char *rawpostscript(const string& texengine);
+const char *beginspecial(const string& texengine);
 const char *endspecial();
   
 extern bool fataltex[];
-const char **texabort(const mem::string& texengine);
+const char **texabort(const string& texengine);
   
-mem::string texengine();
-mem::string texcommand();
+string texengine();
+string texcommand();
 }
 #endif

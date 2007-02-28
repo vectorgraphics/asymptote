@@ -40,9 +40,6 @@ bool unsimpson(double integral, double (*)(double), double a, double& b,
 
 namespace camp {
 
-using std::ostream;
-using std::endl;
-
 // Used in the storage of solved path knots.
 struct solvedKnot : public gc {
   pair pre;
@@ -227,7 +224,7 @@ public:
   }
   
   // Debugging output
-  friend ostream& operator<< (ostream& out, const path p);
+  friend std::ostream& operator<< (std::ostream& out, const path p);
 
   int sgn1(double x) const
   {

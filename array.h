@@ -9,7 +9,7 @@
 #define ARRAY_H
 
 #include "vm.h"
-#include "memory.h"
+#include "common.h"
 #include "item.h"
 
 namespace vm {

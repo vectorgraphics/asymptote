@@ -35,7 +35,7 @@
 using namespace types;
 using settings::getSetting;
 using settings::Setting;
-using mem::string;
+
 
 namespace trans {
 

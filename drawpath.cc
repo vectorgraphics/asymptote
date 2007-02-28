@@ -13,10 +13,6 @@
 #include "psfile.h"
 #include "util.h"
 
-using mem::string;
-using mem::istringstream;
-using mem::ostringstream;
-
 namespace camp {
 
 double PatternLength(double arclength, const std::vector<double>& pat,

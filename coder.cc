@@ -142,7 +142,7 @@ bool coder::encode(frame *f)
 
 bool coder::encode(frame *dest, frame *top)
 {
-  //std::cerr << "coder::encode()\n";
+  //cerr << "coder::encode()\n";
   
   if (dest == 0) {
     encode(inst::pop);
@@ -153,7 +153,7 @@ bool coder::encode(frame *dest, frame *top)
     while (level != dest) {
       if (level == 0) {
 	// Frame request was in an improper scope.
-	//std::cerr << "failed\n";
+	//cerr << "failed\n";
 	
 	return false;
       }
@@ -164,7 +164,7 @@ bool coder::encode(frame *dest, frame *top)
     }
   }
 
-  //std::cerr << "succeeded\n";
+  //cerr << "succeeded\n";
   return true;
 }
 

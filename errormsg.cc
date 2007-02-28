@@ -11,7 +11,7 @@
 
 #include "errormsg.h"
 
-using mem::string;
+
 
 bool errorstream::interrupt=false;
 

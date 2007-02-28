@@ -21,10 +21,10 @@ namespace absyntax {
 
 void printFrame(frame *f) {
   if (f == 0) {
-    std::cerr << '0';
+    cerr << '0';
   }
   else {
-    std::cerr << f << " of ";
+    cerr << f << " of ";
     printFrame(f->getParent());
   }
 }

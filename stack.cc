@@ -18,9 +18,6 @@
 
 #ifdef DEBUG_STACK
 #include <iostream>
-using std::cout;
-using std::cerr;
-using std::endl;
 
 namespace vm {
 void draw(ostream& out, frame *v);
@@ -33,9 +30,6 @@ namespace run {
 
 namespace vm {
 
-using mem::string;
-using mem::ostringstream;
-using mem::list;
 list<bpinfo> bplist;
   
 namespace {

@@ -12,7 +12,7 @@
 #include "builtin.h"
 
 using namespace types;
-using mem::string;
+
 
 namespace trans {
 

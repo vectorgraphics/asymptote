@@ -12,7 +12,7 @@
 #include <iomanip>
 #include <iostream>
 
-#include "memory.h"
+#include "common.h"
 #include "pair.h"
 #include "bbox.h"
 #include "pen.h"
@@ -25,7 +25,7 @@
 
 namespace camp {
 
-extern mem::list<mem::string> TeXpipepreamble, TeXpreamble;
+extern list<string> TeXpipepreamble, TeXpreamble;
 
 const double tex2ps=72.0/72.27;
 const double ps2tex=1.0/tex2ps;
@@ -33,24 +33,24 @@ const double ps2tex=1.0/tex2ps;
 template<class T>
 void texdocumentclass(T& out, bool pipe=false)
 {
-  if(settings::latex(settings::getSetting<mem::string>("tex")) &&
+  if(settings::latex(settings::getSetting<string>("tex")) &&
      (pipe || !settings::getSetting<bool>("inlinetex")))
     out << "\\documentclass[12pt]{article}" << newl;
 }
   
 template<class T>
-void texpreamble(T& out, mem::list<mem::string>& preamble=TeXpreamble)
+void texpreamble(T& out, list<string>& preamble=TeXpreamble)
 {
-  for(mem::list<mem::string>::iterator p=preamble.begin();
+  for(list<string>::iterator p=preamble.begin();
       p != preamble.end(); ++p)
     out << stripblanklines(*p);
 }
 
 template<class T>
-void texdefines(T& out, mem::list<mem::string>& preamble=TeXpreamble,
+void texdefines(T& out, list<string>& preamble=TeXpreamble,
 		bool pipe=false)
 {
-  mem::string texengine=settings::getSetting<mem::string>("tex");
+  string texengine=settings::getSetting<string>("tex");
   texpreamble(out,preamble);
   out << "\\newbox\\ASYbox" << newl
       << "\\newdimen\\ASYdimen" << newl
@@ -71,11 +71,11 @@ void texdefines(T& out, mem::list<mem::string>& preamble=TeXpreamble,
   
   if(pipe) {
     // Make tex pipe aware of a previously generated aux file.
-    mem::string name=auxname(settings::outname(),"aux");
+    string name=auxname(settings::outname(),"aux");
     std::ifstream fin(name.c_str());
     if(fin) {
       std::ofstream fout("texput.aux");
-      mem::string s;
+      string s;
       while(getline(fin,s))
 	fout << s << endl;
     }
@@ -96,12 +96,12 @@ void texdefines(T& out, mem::list<mem::string>& preamble=TeXpreamble,
   
 class texfile : public psfile {
   bbox box;
-  mem::string texengine;
+  string texengine;
   bool inlinetex;
   double Hoffset;
 
 public:
-  texfile(const mem::string& texname, const bbox& box);
+  texfile(const string& texname, const bbox& box);
   ~texfile();
 
   void prologue();
@@ -130,10 +130,10 @@ public:
   void writeshifted(path p, bool newPath=true);
   
   // Draws label transformed by T at position z.
-  void put(const mem::string& label, const transform& T, const pair& z,
+  void put(const string& label, const transform& T, const pair& z,
 	   const pair& Align);
 
-  void beginlayer(const mem::string& psname);
+  void beginlayer(const string& psname);
   void endlayer();
   
 };

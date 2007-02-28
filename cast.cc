@@ -21,7 +21,7 @@ using trans::access;
 using camp::pair;
 using camp::triple;
 using camp::path;
-using mem::string;
+
   
 typedef unsigned int uint;
 

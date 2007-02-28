@@ -8,7 +8,7 @@
 #ifndef ITEM_H
 #define ITEM_H
 
-#include "memory.h"
+#include "common.h"
 
 namespace vm {
 

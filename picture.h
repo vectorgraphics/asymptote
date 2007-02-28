@@ -22,7 +22,7 @@ public:
 };
 extern texstream tex; // Bi-directional pipe to latex (to find label bbox)
 
-typedef mem::list<drawElement*> nodelist;
+typedef list<drawElement*> nodelist;
   
 class picture : public gc {
 private:
@@ -62,17 +62,17 @@ public:
 
   void texinit();
 
-  int epstopdf(const mem::string& epsname, const mem::string& pdfname);
+  int epstopdf(const string& epsname, const string& pdfname);
   
-  bool texprocess(const mem::string& texname, const mem::string& tempname,
-		  const mem::string& prefix, const pair& bboxshift); 
+  bool texprocess(const string& texname, const string& tempname,
+		  const string& prefix, const pair& bboxshift); 
     
-  bool postprocess(const mem::string& prename, const mem::string& outname, 
-		   const mem::string& outputformat, bool wait, bool view);
+  bool postprocess(const string& prename, const string& outname, 
+		   const string& outputformat, bool wait, bool view);
     
   // Ship the picture out to PostScript & TeX files.
-  bool shipout(picture* preamble, const mem::string& prefix,
-	       const mem::string& format, bool wait, bool view=true,
+  bool shipout(picture* preamble, const string& prefix,
+	       const string& format, bool wait, bool view=true,
 	       bool Delete=false);
  
   picture *transformed(const transform& t);

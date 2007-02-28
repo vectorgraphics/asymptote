@@ -10,7 +10,7 @@
 #include "transform.h"
 #include "settings.h"
 #include "bbox.h"
-#include "memory.h"
+#include "common.h"
 #include "path.h"
 
 namespace camp {
@@ -23,9 +23,9 @@ namespace settings {
 
 namespace camp {
 
-static const mem::string DEFPAT="<default>";
-static const mem::string DEFLATEXFONT="\\usefont{OT1}{cmr}{m}{n}";
-static const mem::string DEFTEXFONT="\\font\\ASYfont=cmr12\\ASYfont";
+static const string DEFPAT="<default>";
+static const string DEFLATEXFONT="\\usefont{OT1}{cmr}{m}{n}";
+static const string DEFTEXFONT="\\font\\ASYfont=cmr12\\ASYfont";
 static const double DEFWIDTH=-1;
 static const int DEFCAP=-1;
 static const int DEFJOIN=-1;
@@ -41,41 +41,41 @@ static const struct setoverwrite_t {} setoverwrite={};
 static const struct initialpen_t {} initialpen={};
 static const struct resolvepen_t {} resolvepen={};
   
-static const mem::string Cap[]={"square","round","extended"};
-static const mem::string Join[]={"miter","round","bevel"};
-const int nCap=sizeof(Cap)/sizeof(mem::string);
-const int nJoin=sizeof(Join)/sizeof(mem::string);
+static const string Cap[]={"square","round","extended"};
+static const string Join[]={"miter","round","bevel"};
+const int nCap=sizeof(Cap)/sizeof(string);
+const int nJoin=sizeof(Join)/sizeof(string);
   
 enum overwrite_t {DEFWRITE=-1,ALLOW,SUPPRESS,SUPPRESSQUIET,MOVE,MOVEQUIET};
-static const mem::string OverwriteTag[]={"Allow","Suppress","SupressQuiet",
+static const string OverwriteTag[]={"Allow","Suppress","SupressQuiet",
 					 "Move","MoveQuiet"};
-const int nOverwrite=sizeof(OverwriteTag)/sizeof(mem::string);
+const int nOverwrite=sizeof(OverwriteTag)/sizeof(string);
   
 enum FillRule {DEFFILL=-1,ZEROWINDING,EVENODD};
-static const mem::string FillRuleTag[]={"ZeroWinding","EvenOdd"};
+static const string FillRuleTag[]={"ZeroWinding","EvenOdd"};
 
-const int nFill=sizeof(FillRuleTag)/sizeof(mem::string);
+const int nFill=sizeof(FillRuleTag)/sizeof(string);
   
 enum BaseLine {DEFBASE=-1,NOBASEALIGN,BASEALIGN};
-static const mem::string BaseLineTag[]={"NoAlign","Align"};
-const int nBaseLine=sizeof(BaseLineTag)/sizeof(mem::string);
+static const string BaseLineTag[]={"NoAlign","Align"};
+const int nBaseLine=sizeof(BaseLineTag)/sizeof(string);
   
 enum ColorSpace {DEFCOLOR=0,INVISIBLE,GRAYSCALE,RGB,CMYK,PATTERN};
 extern const int ColorComponents[];
-static const mem::string ColorDeviceSuffix[]={"","","Gray","RGB","CMYK",""};
-const int nColorSpace=sizeof(ColorDeviceSuffix)/sizeof(mem::string);
+static const string ColorDeviceSuffix[]={"","","Gray","RGB","CMYK",""};
+const int nColorSpace=sizeof(ColorDeviceSuffix)/sizeof(string);
   
 using settings::defaultpen;
   
 class LineType
 {
 public:  
-  mem::string pattern;	// The string for the PostScript style line pattern.
+  string pattern;	// The string for the PostScript style line pattern.
   double offset;        // The offset in the pattern at which to start drawing.
   bool scale;		// Scale the line type values by the pen width?
   bool adjust;		// Adjust the line type values to fit the arclength?
   
-  LineType(mem::string pattern, double offset, bool scale, bool adjust) : 
+  LineType(string pattern, double offset, bool scale, bool adjust) : 
     pattern(pattern), offset(offset), scale(scale), adjust(adjust) {}
 };
   
@@ -89,9 +89,9 @@ inline bool operator == (LineType a, LineType b) {
 class Transparency
 {
 public:  
-  mem::string blend;
+  string blend;
   double opacity;
-  Transparency(mem::string blend, double opacity) :
+  Transparency(string blend, double opacity) :
     blend(blend), opacity(opacity) {}
 };
   
@@ -101,12 +101,12 @@ inline bool operator == (Transparency a, Transparency b) {
   return a.blend == b.blend && a.opacity == b.opacity;
 }
   
-static const mem::string BlendMode[]={"Compatible","Normal","Multiply","Screen",
+static const string BlendMode[]={"Compatible","Normal","Multiply","Screen",
 				      "Overlay","SoftLight","HardLight",
 				      "ColorDodge","ColorBurn","Darken",
 				      "Lighten","Difference","Exclusion",
 				      "Hue","Saturation","Color","Luminosity"};
-const int nBlendMode=sizeof(BlendMode)/sizeof(mem::string);
+const int nBlendMode=sizeof(BlendMode)/sizeof(string);
 
   
 class pen : public gc { 
@@ -116,7 +116,7 @@ class pen : public gc {
   double linewidth;
   path *P;              // A polygonal path defining a custom pen nib
                         // NULL means the default circular nib.
-  mem::string font;
+  string font;
   double fontsize;  
   double lineskip;  
   
@@ -124,7 +124,7 @@ class pen : public gc {
   double r,g,b; 	// RGB or CMY value
   double grey; 		// grayscale or K value
   
-  mem::string pattern;	// The name of the user-defined fill/draw pattern
+  string pattern;	// The name of the user-defined fill/draw pattern
   FillRule fillrule; 	// Zero winding-number (default) or even-odd rule
   BaseLine baseline;	// Align to TeX baseline?
   Transparency transparency;
@@ -176,9 +176,9 @@ public:
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
 
   pen(const LineType& line, double linewidth, path *P,
-      const mem::string& font, double fontsize, double lineskip,
+      const string& font, double fontsize, double lineskip,
       ColorSpace color, double r, double g, double b,  double grey,
-      const mem::string& pattern, FillRule fillrule, BaseLine baseline,
+      const string& pattern, FillRule fillrule, BaseLine baseline,
       const Transparency& transparency,
       int linecap, int linejoin, overwrite_t overwrite, const transform *t) :
     line(line), linewidth(linewidth), P(P),
@@ -220,7 +220,7 @@ public:
     transparency(DEFTRANSP),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
   
-  pen(setfont_t, mem::string font) :
+  pen(setfont_t, string font) :
     line(DEFLINE), linewidth(DEFWIDTH), P(0),
     font(font), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
@@ -236,7 +236,7 @@ public:
     transparency(DEFTRANSP),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
   
-  pen(setpattern_t, const mem::string& pattern) :
+  pen(setpattern_t, const string& pattern) :
     line(DEFLINE), linewidth(DEFWIDTH), P(0),
     font(""), fontsize(0.0), lineskip(0.0), color(PATTERN),
     r(0), g(0), b(0), grey(0),
@@ -353,10 +353,10 @@ public:
     return P == NULL ? defaultpen.P : P;
   }
   
-  mem::string Font() const {
+  string Font() const {
     if(font.empty()) {
       if(defaultpen.font.empty())
-	return settings::latex(settings::getSetting<mem::string>("tex")) ? 
+	return settings::latex(settings::getSetting<string>("tex")) ? 
 	  DEFLATEXFONT : DEFTEXFONT;
       else return defaultpen.font;
     }
@@ -371,7 +371,7 @@ public:
     return lineskip == 0.0 ? defaultpen.lineskip : lineskip;
   }
   
-  mem::string stroke() const {
+  string stroke() const {
     return line == DEFLINE ? defaultpen.line.pattern : line.pattern;
   }
   
@@ -379,11 +379,11 @@ public:
     return line == DEFLINE ? defaultpen.line : line;
   }
   
-  void setstroke(const mem::string& s) {line.pattern=s;}
+  void setstroke(const string& s) {line.pattern=s;}
   void setoffset(const double& offset) {line.offset=offset;}
   
-  mem::string fillpattern() const {
-    return pattern == DEFPAT ? (mem::string)"" : pattern;
+  string fillpattern() const {
+    return pattern == DEFPAT ? (string)"" : pattern;
   }
   
   FillRule Fillrule() const {
@@ -406,7 +406,7 @@ public:
     return transparency == DEFTRANSP ? defaultpen.transparency : transparency;
   }
   
-  mem::string blend() const {
+  string blend() const {
     return transparency == DEFTRANSP ? defaultpen.transparency.blend :
       transparency.blend;
   }

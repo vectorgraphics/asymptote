@@ -11,39 +11,35 @@
 #include <sys/types.h>
 #include <iostream>
 
-#include "memory.h"
-
-using std::cout;
-using std::cerr;
-using std::endl;
+#include "common.h"
 
 #include <strings.h>
 
-mem::string stripExt(mem::string name, const mem::string& suffix="");
+string stripExt(string name, const string& suffix="");
   
 void writeDisabled();
   
 // Check if global writes disabled and name contains a directory.
-void checkLocal(mem::string name);
+void checkLocal(string name);
   
 // Strip the directory from a filename.
-mem::string stripDir(mem::string name);
+string stripDir(string name);
   
 // Construct a filename from the original, adding aux at the end, and
 // changing the suffix.
-mem::string buildname(mem::string filename, mem::string suffix="",
-		      mem::string aux="", bool stripdir=true);
+string buildname(string filename, string suffix="",
+		      string aux="", bool stripdir=true);
 
 // Construct an alternate filename for a temporary file in the current
 // directory.
-mem::string auxname(mem::string filename, mem::string suffix="");
+string auxname(string filename, string suffix="");
 
 // Similar to the standard system call except allows interrupts and does
 // not invoke a shell.
 int System(const char *command, int quiet=0, bool wait=true,
 	   const char *hint=NULL, const char *application="",
 	   int *pid=NULL);
-int System(const mem::ostringstream& command, int quiet=0, bool wait=true,
+int System(const ostringstream& command, int quiet=0, bool wait=true,
 	   const char *hint=NULL, const char *application="",
 	   int *pid=NULL); 
   
@@ -76,7 +72,7 @@ extern "C" char *strptime(const char *s, const char *format, struct tm *tm);
 extern bool False;
 
 // Strip blank lines (which would break the bidirectional TeX pipe)
-mem::string stripblanklines(const mem::string& s);
+string stripblanklines(const string& s);
 
 extern char *currentpath;
 
@@ -86,9 +82,9 @@ const char* setPath(const char *s, bool quiet=false);
 const char *changeDirectory(const char *s);
 extern char *startpath;
 
-void backslashToSlash(mem::string& s);
-void spaceToUnderscore(mem::string& s);
-mem::string Getenv(const char *name, bool msdos);
+void backslashToSlash(string& s);
+void spaceToUnderscore(string& s);
+string Getenv(const char *name, bool msdos);
 
 void execError(const char *command, const char *hint, const char *application);
   

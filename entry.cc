@@ -15,10 +15,6 @@
 #include "coder.h"
 
 using std::ostream;
-using std::cerr;
-using std::endl;
-using mem::string;
-
 using types::signature;
 
 namespace trans {
@@ -56,14 +52,14 @@ entry::entry(entry &base, permission perm, record *r)
 }
 
 bool entry::checkPerm(action act, coder &c) {
-  for (mem::list<pr>::iterator p=perms.begin(); p != perms.end(); ++p)
+  for (list<pr>::iterator p=perms.begin(); p != perms.end(); ++p)
     if (!p->check(act, c))
       return false;
   return true;
 }
 
 void entry::reportPerm(action act, position pos, coder &c) {
-  for (mem::list<pr>::iterator p=perms.begin(); p != perms.end(); ++p)
+  for (list<pr>::iterator p=perms.begin(); p != perms.end(); ++p)
     p->report(act, pos, c);
 }
 
@@ -197,9 +193,9 @@ void venv::list(record *module)
     name_t &list=names[s];
     for(name_iterator p = list.begin(); p != list.end(); ++p) {
       if(!module || (*p)->whereDefined() == module) {
-	if(where) std::cout << (*p)->getPos();
-	(*p)->getType()->printVar(std::cout, s);
-	std::cout << ";\n";
+	if(where) cout << (*p)->getPos();
+	(*p)->getType()->printVar(cout, s);
+	cout << ";\n";
       }
     }
   }
@@ -352,7 +348,7 @@ ty *venv::getType(symbol *name)
 
 void venv::listValues(symbol *name, values &vals, record *module)
 {
-  ostream& out=std::cout;
+  ostream& out=cout;
 
   bool where=settings::getSetting<bool>("where");
   for(values::iterator p = vals.begin(); p != vals.end(); ++p) {

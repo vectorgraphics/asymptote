@@ -136,7 +136,7 @@ struct power<int> {
   int operator() (int x, int y,  size_t i=0) {
     checkint(pow((double) x,(double) y),i); 
     if (y < 0 && !(x == 1 || x == -1)) {
-      mem::ostringstream buf;
+      ostringstream buf;
       if(i > 0) buf << "array element " << i << ": ";
       buf << "Only 1 and -1 can be raised to negative exponents as integers.";
       vm::error(buf);

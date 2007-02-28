@@ -20,9 +20,6 @@
 #include "errormsg.h"
 #include "parser.h"
 
-using mem::string;
-using mem::stringbuf;
-
 // The lexical analysis and parsing functions used by parseFile.
 void setlexer(size_t (*input) (char* bif, size_t max_size), string filename);
 extern bool yyparse(void);
@@ -93,7 +90,7 @@ absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
 absyntax::file *parseStdin()
 {
   debug(false);
-  yy::sbuf = std::cin.rdbuf();
+  yy::sbuf = cin.rdbuf();
   return doParse(yy::stream_input,"-");
 }
 
@@ -109,7 +106,7 @@ absyntax::file *parseFile(const string& filename,
     error(filename);
 
   if(text && settings::verbose > 1)
-    std::cerr << text << " " <<  filename << " from " << file << std::endl;
+    cerr << text << " " <<  filename << " from " << file << endl;
   
   debug(false); 
 

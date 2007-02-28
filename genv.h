@@ -16,7 +16,7 @@
 #ifndef GENV_H
 #define GENV_H
 
-#include "memory.h"
+#include "common.h"
 #include "table.h"
 #include "record.h"
 #include "absyn.h"
@@ -31,25 +31,25 @@ namespace trans {
 
 class genv : public gc {
   // The initializer functions for imports, indexed by filename.
-  typedef mem::map<CONST mem::string,record *> importMap;
+  typedef mem::map<CONST string,record *> importMap;
   importMap imap;
 
   // List of modules in translation.  Used to detect and prevent infinite
   // recursion in loading modules.
-  mem::list<mem::string> inTranslation;
+  list<string> inTranslation;
 
   // Checks for recursion in loading, reporting an error and throwing an
   // exception if it occurs.
-  void checkRecursion(mem::string filename);
+  void checkRecursion(string filename);
 
   // Translate a module to build the record type.
-  record *loadModule(symbol *name, mem::string s);
+  record *loadModule(symbol *name, string s);
 
 public:
   genv();
 
   // Get an imported module, translating if necessary.
-  record *getModule(symbol *name, mem::string s);
+  record *getModule(symbol *name, string s);
 
   // Uses the filename->record map to build a filename->initializer map to be
   // used at runtime.

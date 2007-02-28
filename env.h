@@ -142,7 +142,7 @@ public:
   // Adds to a list the keywords in the environment that start with the given
   // prefix.  Used for automatic completion at the interactive prompt.
   typedef mem::list<symbol *> symbol_list;
-  void completions(symbol_list &l, mem::string start)
+  void completions(symbol_list &l, string start)
   {
     te.completions(l, start);
     ve.completions(l, start);
@@ -162,7 +162,7 @@ public:
   // Start an environment for a file-level module.
   env(genv &ge);
 
-  record *getModule(symbol *id, mem::string filename);
+  record *getModule(symbol *id, string filename);
 };
 
 } // namespace trans

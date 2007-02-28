@@ -9,7 +9,7 @@
 #include <cstdio>
 #include "symbol.h"
 
-using mem::string;
+
 
 namespace sym {
 

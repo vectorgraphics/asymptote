@@ -26,8 +26,6 @@
 #include "interact.h"
 
 using namespace settings;
-using mem::string;
-using mem::ostringstream;
 
 bool False=false;
 

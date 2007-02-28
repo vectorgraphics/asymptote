@@ -21,9 +21,7 @@
 #include "util.h"
 #include "errormsg.h"
 
-using std::cout;
 using namespace settings;
-using mem::string;
 
 namespace run {
   void init_readline(bool);
@@ -82,9 +80,9 @@ void init_interactive()
   
 #if !defined(HAVE_LIBREADLINE) || !defined(HAVE_LIBCURSES)
 char *readline(const char *prompt) {
-  std::cout << prompt;
+  cout << prompt;
   string s;
-  getline(std::cin,s);
+  getline(cin,s);
   char *p=(char *) malloc(s.size()+1);
   return strcpy(p,s.c_str());
 }

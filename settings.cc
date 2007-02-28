@@ -9,7 +9,6 @@
 #include <iomanip>
 #include <cstdlib>
 #include <cerrno>
-#include <vector>
 #include <sys/stat.h>
 #include <cfloat>
 #include <locale.h>
@@ -30,7 +29,6 @@
 #include "interact.h"
 #include "locate.h"
 #include "lexical.h"
-#include "memory.h"
 #include "record.h"
 #include "env.h"
 #include "item.h"
@@ -54,15 +52,12 @@ extern "C" {
 }
 #endif
 
-using std::vector;
 using vm::item;
 
 using trans::itemRefAccess;
 using trans::refAccess;
 using trans::varEntry;
-using mem::string;
-using mem::ostringstream;
-  
+
 void doConfig(string filename);
 
 namespace settings {
@@ -330,7 +325,7 @@ struct boolSetting : public itemSetting {
   // Set several related boolean options at once.  Used for view and trap which
   // have batch and interactive settings.
   struct multiOption : public option {
-    typedef mem::list<boolSetting *> setlist;
+    typedef list<boolSetting *> setlist;
     setlist set;
     multiOption(string name, char code, string desc)
       : option(name, code, noarg, desc, true) {}

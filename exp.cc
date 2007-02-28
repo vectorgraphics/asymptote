@@ -21,7 +21,7 @@ namespace absyntax {
 using namespace types;
 using namespace trans;
 using vm::inst;
-using mem::string;
+
 
 void exp::prettyprint(ostream &out, int indent)
 {

@@ -13,11 +13,11 @@
 
 using std::ofstream;
 using settings::getSetting;
-using mem::string;
+
   
 namespace camp {
 
-mem::list<string> TeXpipepreamble, TeXpreamble;
+list<string> TeXpipepreamble, TeXpreamble;
   
 texfile::texfile(const string& texname, const bbox& box) : box(box)
 {
@@ -26,7 +26,7 @@ texfile::texfile(const string& texname, const bbox& box) : box(box)
   Hoffset=inlinetex ? box.right : box.left;
   out=new ofstream(texname.c_str());
   if(!out || !*out) {
-    std::cerr << "Cannot write to " << texname << std::endl;
+    cerr << "Cannot write to " << texname << endl;
     throw handled_error();
   }
   out->setf(std::ios::fixed);

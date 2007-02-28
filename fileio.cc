@@ -10,7 +10,7 @@
 
 namespace camp {
 
-using mem::string;
+
   
 string tab="\t";
 string newline="\n";
