@@ -43,7 +43,6 @@ using trans::coenv;
 using trans::env;
 using trans::coder;
 using types::record;
-using mem::list;
 
 using interact::interactive;
 using interact::uptodate;
@@ -142,13 +141,13 @@ struct icore {
 
 protected:
   // NOTE: Get this out of here!
-  list<string> TeXpipepreamble_save;
-  list<string> TeXpreamble_save;
+  mem::list<string> TeXpipepreamble_save;
+  mem::list<string> TeXpreamble_save;
 public:
 
   virtual void preRun(coenv &e, istack &s) {
-    TeXpipepreamble_save = list<string>(camp::TeXpipepreamble);
-    TeXpreamble_save = list<string>(camp::TeXpreamble);
+    TeXpipepreamble_save = mem::list<string>(camp::TeXpipepreamble);
+    TeXpreamble_save = mem::list<string>(camp::TeXpreamble);
 
     if(getSetting<bool>("autoplain"))
       runAutoplain(e,s);
@@ -255,7 +254,7 @@ public:
   void run(coenv &e, istack &s, transMode tm=TRANS_NORMAL) {
     block *tree=getTree();
     if (tree) {
-      for(list<runnable *>::iterator r=tree->stms.begin();
+      for(mem::list<runnable *>::iterator r=tree->stms.begin();
           r != tree->stms.end(); ++r)
         if(!em->errors() || getSetting<bool>("debug"))
           runRunnable(*r,e,s,tm);

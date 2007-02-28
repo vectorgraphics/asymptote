@@ -206,8 +206,6 @@ const char *arraymismatch="operation attempted on arrays of different lengths";
 
 namespace run {
   
-using mem::list;
-
 const char *arrayempty="cannot take min or max of empty array";
 
 static inline int Round(double x) 
@@ -674,7 +672,7 @@ static char Time[nTime];
 void clear(string file, int line, bool warn=false) 
 {
   bpinfo bp(file,line);
-  for(list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
+  for(mem::list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
     if(*p == bp) {
       cout << "cleared breakpoint at " << file << ": " << line << endl;
       bplist.remove(bp);
@@ -2594,7 +2592,7 @@ void stop(string file, int line, runnable *s=NULL)
 
 void breakpoints()
 {
-  for(list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p)
+  for(mem::list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p)
     cout << p->f.name() << ": " << p->f.line() << endl;
 }
 
