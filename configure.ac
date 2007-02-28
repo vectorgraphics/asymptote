@@ -150,7 +150,6 @@ AC_MSG_NOTICE(*** Could not find GNU readline 4.2 or later: will compile without
 
 # Checks for header files.
 AC_HEADER_SYS_WAIT
-AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([fenv.h stddef.h libintl.h])
 
 AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include "xstream.h"]),
