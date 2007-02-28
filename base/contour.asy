@@ -481,7 +481,7 @@ guide[][] contour(real f(real, real), pair a, pair b,
 void draw(picture pic=currentpicture, Label[] L=new Label[],
           guide[][] g, pen[] p)
 {
-  //  begingroup(pic);
+  begingroup(pic);
   for(int cnt=0; cnt < g.length; ++cnt) {
     for(int i=0; i < g[cnt].length; ++i)
       draw(pic,g[cnt][i],p[cnt]);
@@ -495,7 +495,7 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
       }
     }
   }
-  //  endgroup(pic);
+  endgroup(pic);
 }
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
