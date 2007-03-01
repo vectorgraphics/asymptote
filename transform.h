@@ -14,12 +14,11 @@
 
 #include <iostream>
 
-
 #include "pair.h"
 
 namespace camp {
 
-class transform : public gc {
+class transform : virtual public gc {
   double x;
   double y;
   double xx;
