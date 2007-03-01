@@ -1,4 +1,5 @@
 import graph3;
+import contour;
 
 size(12cm,0);
 
@@ -19,4 +20,5 @@ zaxis("$z$",b,RightTicks());
 
 layer();
 
-add(surface(sinc,xypart(b.O()),xypart(b.XY()),60));
+draw(lift(sinc,contour(sinc,(-2,-2),(2,2),new real[] {0})));
+add(surface(sinc,xypart(b.O()),xypart(b.XY()),50,lightgray+opacity(0.5)));

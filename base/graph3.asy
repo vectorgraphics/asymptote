@@ -352,18 +352,18 @@ graph graph(guide3 join(... guide3[]))
 guide3 Straight(... guide3[])=operator --;
 guide3 Spline(... guide3[])=operator ..;
                        
-typedef guide3 interpolate(... guide3[]);
+typedef guide3 interpolate3(... guide3[]);
 
 guide3 graph(picture pic=currentpicture, real x(real), real y(real),
              real z(real), real a, real b, int n=ngraph,
-             interpolate join=operator --)
+             interpolate3 join=operator --)
 {
   return graph(join)(new triple(real t) {return Scale(pic,(x(t),y(t),z(t)));},
                      a,b,n);
 }
 
 guide3 graph(picture pic=currentpicture, triple v(real), real a, real b,
-             int n=ngraph, interpolate join=operator --)
+             int n=ngraph, interpolate3 join=operator --)
 {
   return graph(join)(new triple(real t) {return Scale(pic,v(t));},a,b,n);
 }
@@ -378,7 +378,7 @@ int conditional(triple[] v, bool[] cond)
 }
 
 guide3 graph(picture pic=currentpicture, triple[] v, bool[] cond={},
-             interpolate join=operator --)
+             interpolate3 join=operator --)
 {
   int n=conditional(v,cond);
   int i=-1;
@@ -388,7 +388,7 @@ guide3 graph(picture pic=currentpicture, triple[] v, bool[] cond={},
 }
 
 guide3 graph(picture pic=currentpicture, real[] x, real[] y, real[] z,
-             bool[] cond={}, interpolate join=operator --)
+             bool[] cond={}, interpolate3 join=operator --)
 {
   if(x.length != y.length || x.length != z.length) abort(differentlengths);
   int n=conditional(x,cond);
@@ -400,7 +400,7 @@ guide3 graph(picture pic=currentpicture, real[] x, real[] y, real[] z,
 
 // The graph of a function along a path.
 guide3 graph(triple F(path, real), path p, int n=1,
-             interpolate join=operator --)
+             interpolate3 join=operator --)
 {
   guide3 g;
   for(int i=0; i < n*length(p); ++i)
@@ -408,21 +408,21 @@ guide3 graph(triple F(path, real), path p, int n=1,
   return cyclic(p) ? join(g,cycle3) : join(g,F(p,length(p)));
 }
 
-guide3 graph(triple F(pair), path p, int n=1, interpolate join=operator --)
+guide3 graph(triple F(pair), path p, int n=1, interpolate3 join=operator --)
 {
   return graph(new triple(path p, real position) 
                {return F(point(p,position));},p,n,join);
 }
 
 guide3 graph(picture pic=currentpicture, real f(pair), path p, int n=1,
-             interpolate join=operator --) 
+             interpolate3 join=operator --) 
 {
   return graph(new triple(pair z) {return Scale(pic,(z.x,z.y,f(z)));},p,n,
                join);
 }
 
 guide3 graph(real f(pair), path p, int n=1, real T(pair),
-             interpolate join=operator --)
+             interpolate3 join=operator --)
 {
   return graph(new triple(pair z) {pair w=T(z); return (w.x,w.y,f(w));},p,n,
                join);
@@ -627,13 +627,67 @@ picture surface(real f(pair z), int nsub, pair a, pair b,
                  surfacepen,meshpen,light,P);
 }
 
+guide3[][] lift(real f(real x, real y), guide[][] g,
+		interpolate3 join=operator --)
+{
+  guide3[][] G=new guide3[g.length][0];
+  for(int cnt=0; cnt < g.length; ++cnt) {
+    guide[] gcnt=g[cnt];
+    guide3[] Gcnt=new guide3[gcnt.length];
+    for(int i=0; i < gcnt.length; ++i) {
+      guide gcnti=gcnt[i];
+      guide3 Gcnti;
+      int n=size(gcnti);
+      for(int j=0; j < n; ++j) {
+	pair z=point(gcnti,j);
+	Gcnti=join(Gcnti,(z.x,z.y,f(z.x,z.y)));
+      }
+      if(cyclic(Gcnti)) Gcnti=Gcnti..cycle3;
+      Gcnt[i]=Gcnti;
+    }
+    G[cnt]=Gcnt;
+  }
+  return G;
+}
+
+guide3[][] lift(real f(pair z), guide[][] g, interpolate3 join=operator --)
+{
+  return lift(new real(real x, real y) {return f((x,y));},g,join);
+}
+
+void draw(picture pic=currentpicture, Label[] L=new Label[],
+          guide3[][] g, pen[] p, projection P=currentprojection)
+{
+  begingroup(pic);
+  for(int cnt=0; cnt < g.length; ++cnt) {
+    guide3[] gcnt=g[cnt];
+    pen pcnt=p[cnt];
+    for(int i=0; i < gcnt.length; ++i) {
+      guide G=project(gcnt[i],P);
+      draw(pic,G,pcnt);
+      if(L.length > 0) {
+	Label Lcnt=L[cnt];
+        if(Lcnt.s != "" && size(gcnt[i]) > 1)
+          label(pic,Lcnt,G,pcnt);
+      }
+    }
+  }
+  endgroup(pic);
+}
+
+void draw(picture pic=currentpicture, Label[] L=new Label[],
+          guide3[][] g, pen p=currentpen, projection P=currentprojection)
+{
+  draw(pic,L,g,sequence(new pen(int) {return p;},g.length),P);
+}
+
 triple polar(real r, real theta, real phi)
 {
   return r*expi(theta,phi);
 }
 
 guide3 polargraph(real r(real,real), real theta(real), real phi(real),
-                  int n=ngraph, interpolate join=operator --)
+                  int n=ngraph, interpolate3 join=operator --)
 {
   return graph(join)(new triple(real t) {
       return polar(r(theta(t),phi(t)),theta(t),phi(t));

@@ -483,15 +483,15 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
 {
   begingroup(pic);
   for(int cnt=0; cnt < g.length; ++cnt) {
-    for(int i=0; i < g[cnt].length; ++i)
-      draw(pic,g[cnt][i],p[cnt]);
-  }
-  if(L.length > 0) {
-    for(int cnt=0; cnt < g.length; ++cnt) {
-      for(int i=0; i < g[cnt].length; ++i) {
-        Label Lcnt=L[cnt];
-        if(Lcnt.s != "" && size(g[cnt][i]) > 1)
-          label(pic,Lcnt,g[cnt][i],p[cnt]);
+    guide[] gcnt=g[cnt];
+    pen pcnt=p[cnt];
+    for(int i=0; i < gcnt.length; ++i)
+      draw(pic,gcnt[i],pcnt);
+    if(L.length > 0) {
+      Label Lcnt=L[cnt];
+      for(int i=0; i < gcnt.length; ++i) {
+	if(Lcnt.s != "" && size(gcnt[i]) > 1)
+	  label(pic,Lcnt,gcnt[i],pcnt);
       }
     }
   }
@@ -620,6 +620,13 @@ private void addseg(pair[][] gds, segment seg)
   gds.push(segm);
   
   return;
+}
+
+guide[][] contour(real f(pair), pair a, pair b,
+                  real[] c, int nx=ngraph, int ny=nx,
+                  interpolate join=operator --)
+{
+  return contour(new real(real x, real y) {return f((x,y));},a,b,c,nx,ny,join);
 }
 
 guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
