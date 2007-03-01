@@ -46,7 +46,7 @@ protected:
   int nx,ny,nz;    // Array dimensions
   bool linemode;   // Array reads will stop at eol instead of eof.
   bool csvmode;    // Read comma-separated values.
-  bool singlemode; // Read/write single-precision XDR values.
+  bool singlemode; // Read/write single-precision XDR/binary values.
   bool closed;     // File has been closed.
   bool checkappend;// Check input for errors/append to output.
   bool standard;   // Standard input/output
@@ -146,9 +146,9 @@ public:
 };
 
 class ifile : public file {
+protected:  
   istream *stream;
   std::ifstream fstream;
-  bool first;
   char comment;
   bool comma,nullfield; // Used to detect a final null field in cvs+line mode.
   string whitespace;
@@ -156,7 +156,7 @@ class ifile : public file {
 public:
   ifile(const string& name, bool check=true, char comment=0)
     : file(name,check), comment(comment), comma(false), nullfield(false) {
-      stream=&cin;
+    stream=&cin;
   }
   
   ~ifile() {close();}
@@ -169,7 +169,6 @@ public:
       stream=&fstream;
       if(checkappend) Check();
     }
-    first=true;
   }
   
   void seek(size_t pos) {
@@ -220,16 +219,49 @@ public:
   template<class T>
   void iread(T&);
   
-  void read(bool& val) {iread<bool>(val);}
-  void read(int& val) {iread<int>(val);}
-  void read(double& val) {iread<double>(val);}
-  void read(pair& val) {iread<pair>(val);}
-  void read(triple& val) {iread<triple>(val);}
-  void read(char& val) {iread<char>(val);}
-  void read(string& val) {iread<string>(val);}
+  void read(bool& val) {iread(val);}
+  void read(int& val) {iread(val);}
+  void read(double& val) {iread(val);}
+  void read(pair& val) {iread(val);}
+  void read(triple& val) {iread(val);}
+  void read(char& val) {iread(val);}
+  void read(string& val) {iread(val);}
+};
+  
+class ibfile : public ifile {
+public:
+  ibfile(const string& name, bool check=true)
+    : ifile(name,check) {}
+
+  void open() {
+    if(standard) {
+      reportError("Cannot open standard input in binary mode");
+    } else {
+      fstream.open(name.c_str(),std::ios::binary);
+      stream=&fstream;
+      if(checkappend) Check();
+    }
+  }
+  
+  template<class T>
+  void iread(T& val) {
+    val=T();
+    fstream.read((char *) &val,sizeof(T));
+  }
+  
+  void read(bool& val) {iread(val);}
+  void read(int& val) {iread(val);}
+  void read(char& val) {iread(val);}
+  void read(string& val) {iread(val);}
+  
+  void read(double& val) {
+    if(singlemode) {float fval=0.0; iread(fval); val=fval;}
+    else iread(val);
+  }
 };
   
 class ofile : public file {
+protected:
   std::ostream *stream;
   std::ofstream fstream;
 public:
@@ -296,6 +328,51 @@ public:
   }
 };
 
+class obfile : public ofile {
+public:
+  obfile(const string& name, bool append=false)
+    : ofile(name,append) {}
+
+  void open() {
+    checkLocal(name);
+    if(standard) {
+      reportError("Cannot open standard output in binary mode");
+    } else {
+      fstream.open(name.c_str(),std::ios::binary |
+		   (checkappend ? std::ios::app : std::ios::trunc));
+      stream=&fstream;
+      Check();
+    }
+  }
+  
+  template<class T>
+  void iwrite(T val) {
+    fstream.write((char *) &val,sizeof(T));
+  }
+  
+  void write(bool val) {iwrite(val);}
+  void write(int val) {iwrite(val);}
+  void write(const string& val) {iwrite(val);}
+  void write(const pen& val) {iwrite(val);}
+  void write(guide *val) {iwrite(val);}
+  void write(const transform& val) {iwrite(val);}
+  void writeline() {}
+  
+  void write(double val) {
+    if(singlemode) {float fval=val; iwrite(fval);}
+    else iwrite(val);
+  }
+  void write(const pair& val) {
+    write(val.getx());
+    write(val.gety());
+  }
+  void write(const triple& val) {
+    write(val.getx());
+    write(val.gety());
+    write(val.getz());
+  }
+};
+  
 #ifdef HAVE_RPC_RPC_H
 
 class ixfile : public file {
@@ -322,13 +399,16 @@ public:
     }
   }
   void read(pair& val) {
-    double x=0.0, y=0.0;
-    stream >> x >> y;
+    double x,y;
+    read(x);
+    read(y);
     val=pair(x,y);
   }
   void read(triple& val) {
-    double x=0.0, y=0.0, z=0.0;
-    stream >> x >> y >> z;
+    double x,y,z;
+    read(x);
+    read(y);
+    read(z);
     val=triple(x,y,z);
   }
 };
@@ -353,13 +433,16 @@ public:
   void write(int val) {stream << val;}
   void write(double val) {
     if(singlemode) {float fval=val; stream << fval;}
-    stream << val;
+    else stream << val;
   }
   void write(const pair& val) {
-    stream << val.getx() << val.gety();
+    write(val.getx());
+    write(val.gety());
   }
   void write(const triple& val) {
-    stream << val.getx() << val.gety() << val.getz();
+    write(val.getx());
+    write(val.gety());
+    write(val.getz());
   }
 };
 

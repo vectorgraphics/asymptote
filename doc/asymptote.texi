@@ -3106,6 +3106,13 @@ data will be appended to an existing file only if the file is opened with
 For security reasons, writing to files in directories other than the
 current directory is allowed only if the @code{-global} 
 (or @code{-unsafe}) command-line option is specified.
+
+@cindex @code{stdin}
+@cindex @code{stdout}
+There are two special files: @code{stdin}, which reads from the keyboard,
+and @code{stdout}, which writes to the terminal. The implicit initializer
+for files is @code{stdout}.
+
 Data of a built-in type @code{T} can be written to an output file by
 calling one of the functions
 @verbatim
@@ -3135,23 +3142,24 @@ write(fout);                    // Writes a new line
 write(fout,"List: ",1,2,3);     // Writes "List: 1     2     3"
 @end verbatim
 @noindent
-
-@cindex @code{stdin}
-@cindex @code{stdout}
-There are two special files: @code{stdin}, which reads from the keyboard,
-and @code{stdout}, which writes to the terminal.
-
+        
+@cindex binary format
 @cindex @code{xinput}
 @cindex @code{xoutput}
+@cindex @code{binput}
+@cindex @code{boutput}
 @cindex @code{single}
 @cindex @code{double}
-A file may also be opened with @code{xinput} or @code{xoutput} instead of
-@code{input} or @code{output}, in which case it will read or write
-double precision values written in Sun Microsystem's @acronym{XDR} (External
+A file may also be opened with @code{xinput} or @code{xoutput}, instead of
+@code{input} or @code{output}, to read or write
+double precision values in Sun Microsystem's @acronym{XDR} (External
 Data Representation) portable binary format (available on all UNIX platforms).
-The function @code{file single(file)} sets the file to read single
-precision @acronym{XDR} values; calling @code{file single(file,false)} sets it
-back to read doubles again. The default initializer for file is @code{stdout}.
+A file may also be opened with @code{binput} or @code{boutput} to read
+or write double precision values in the native (nonportable)
+machine binary format. The function @code{file single(file)} may
+be used to set a file to read single precision @acronym{XDR} or binary
+values; calling @code{file single(file,false)} sets it back to read
+doubles again.
 
 @cindex @code{eof}
 @cindex @code{eol}
@@ -3232,7 +3240,7 @@ only inside the structure where they are defined) or @code{private}
 structure @code{this} refers to the enclosing structure. Any code at the
 top-level scope within the structure is executed on initialization. 
 
-A default initializer for a structure @code{S} can be defined by
+An implicit initializer for a structure @code{S} can be defined by
 creating a function @code{S operator init()}. This can be used to
 initialize each instance of @code{S} with @code{new S} (which creates
 a new anonymous instance of @code{S}).

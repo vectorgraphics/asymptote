@@ -3604,6 +3604,20 @@ file* xoutput(string name, bool append=false)
 #endif
 }
 
+file* binput(string name, bool check=true)
+{
+  file *f=new ibfile(name,check);
+  f->open();
+  return f;
+}
+
+file* boutput(string name, bool append=false)
+{
+  file *f=new obfile(name,append);
+  f->open();
+  return f;
+}
+
 bool eof(file *File)
 {
   return File->eof();
