@@ -11,7 +11,12 @@ in the current directory and
 make all
 make install
 
-Or, if you are compiling Subversion developmental source code:
+The last command requires root privileges. To install without root privileges
+you should change the first line to
+
+./configure --prefix=$HOME/asymptote
+
+If you are compiling Subversion developmental source code use the commands:
 
 ./autogen.sh
 ./configure
