@@ -25,7 +25,7 @@ markroutine markuniforminterval(int n, bool rotated=false) {
 }
 
 // Like the function markuniform(int n, bool rotated=false) but add
-// the frame 'finterval' between each mark.
+// the frame 'finterval' between each marks.
 markroutine markuniform(int n, bool rotated=false,
                         frame finterval) {
   return new void(picture pic=currentpicture, path g, frame f) {
@@ -111,7 +111,7 @@ frame circlebarframe(int n=1, real barsize=0,
 
 real crossmarksizefactor=5;
 real crossmarksize(pen p=currentpen){return crossmarksizefactor*sqrt(linewidth(p));}
-frame crossframe(int n, real size=0, real space=0,
+frame crossframe(int n=3, real size=0, real space=0,
                  real angle=0, real voffset=0, pen p=currentpen)
 {
   if(size == 0) size=crossmarksize(p)+2*linewidth(p);

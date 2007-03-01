@@ -123,6 +123,7 @@ Base modules
 * geometry::                    Geometry routines
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
+* markers::                     Custom markers and marks routines
 * tree::                        Dynamic binary search tree
 * binarytree::                  Binary tree drawing module
 * drawtree::                    Tree drawing module
@@ -1144,7 +1145,7 @@ is @code{"$%.4g$"}). One can also draw a dot at every node of a path:
 @verbatim
 void dot(picture pic=currentpicture, guide g, pen p=currentpen);
 @end verbatim
-See @ref{markers} for a more general way of marking path nodes.
+See @ref{graphmarkers} for a more general way of marking path nodes.
 
 To draw a fixed-sized object (in @code{PostScript} coordinates) about
 the user coordinate @code{origin}, use the routine
@@ -4884,6 +4885,7 @@ Here now is @code{latexusage.tex}:
 * geometry::                    Geometry routines
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
+* markers::                     Custom markers and marks routines
 * tree::                        Dynamic binary search tree
 * binarytree::                  Binary tree drawing module
 * drawtree::                    Tree drawing module
@@ -5008,6 +5010,58 @@ and @code{leastsquares}.
 @cindex @code{patterns}
 This package implements @code{Postscript} tiling patterns and includes
 several convenient pattern generation routines.
+
+@node markers
+@section @code{markers}
+@cindex @code{marker}
+@cindex @code{markuniform}
+This package implements markers and marks routines for the paths and the
+angles. The principal mark routine which is provided by this package is:
+@verbatim
+markroutine markuniform(int n, bool rotated=false,frame finterval);
+@end verbatim
+@noindent which has the same behaviour as the @code{function
+markuniform(int n, bool rotated=false)} (@pxref{markuniform}) but adds
+the frame @code{finterval} between each marks.
+
+Convenient frames are preset:
+@cindex @code{stickframe}
+@verbatim
+frame stickframe(int n=1, real size=0, real space=0, real angle=0,
+                 real voffset=0, pen p=currentpen);
+@end verbatim
+@cindex @code{circlebarframe}
+@verbatim
+frame circlebarframe(int n=1, real barsize=0,
+                     real radius=0,real angle=0,
+                     real voffset=0, pen p=currentpen,
+                     filltype filltype=NoFill, bool above=false);
+@end verbatim
+@cindex @code{crossframe}
+@verbatim
+frame crossframe(int n=3, real size=0, real space=0,
+                 real angle=0, real voffset=0, pen p=currentpen);
+@end verbatim
+@cindex @code{tildeframe}
+@verbatim
+frame tildeframe(int n=1, real size=0, real space=0,
+                 real angle=0, real voffset=0, pen p=currentpen);
+@end verbatim
+The use of the preceding routines is illustrated by the 
+example @code{markers1.asy}. To mark an angle, this package provides the
+routine:
+@cindex @code{markangle}
+@verbatim
+void markangle(picture pic=currentpicture, Label L="",
+	       int n=1, real radius=0, real space=0,
+	       pair O=0, pair A, pair B,
+	       arrowbar arrow=None,
+	       pen p=currentpen,
+	       margin margin=NoMargin,
+	       frame markerframe=newframe);
+@end verbatim
+@noindent which mark the vector angle @code{(OA,OB)} with the optional 
+frame @code{markerframe} as illustrated by the example @code{markers2.asy}.
 
 @node tree
 @section @code{tree}
@@ -5702,7 +5756,7 @@ the tick labels on the @math{y} axis.
 @cindex @code{marker}
 @cindex @code{marknodes}
 @cindex @code{markuniform}
-@anchor{markers}
+@anchor{graphmarkers}
 @item The next example draws two graphs of an array of coordinate pairs,
 using frame alignment and data markers. In the left-hand graph, the
 markers, constructed with
@@ -5720,7 +5774,7 @@ marker marker(frame f, markroutine markroutine=marknodes,
 In the right-hand graph, the unit @math{n}-sided regular polygon 
 @code{polygon(int n)} and the unit @math{n}-point cross 
 @code{cross(int n)} are used to build a custom marker frame. 
-Here @code{markuniform(int n, bool rotated=false)} adds this frame at @code{n}
+@anchor{markuniform}Here @code{markuniform(int n, bool rotated=false)} adds this frame at @code{n}
 uniformly spaced points along the arclength of the path, optionally
 rotating it by the angle of the local tangent. This example also
 illustrates the @code{errorbar} routines:
