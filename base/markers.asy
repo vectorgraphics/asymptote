@@ -121,7 +121,7 @@ frame crossframe(int n=3, real size=0, real space=0,
 }
 
 // Mark uniformly with 'markuniform' and between each marks with 'markinterval'
-marker markersuniform(int n=2,frame markuniform, frame markinterval,
+marker markersuniform(int n=2,frame markuniform=newframe, frame markinterval,
                       bool rotated=true,bool put=Above)
 {
   return marker(markuniform, markuniform(n, rotated, markinterval), put);

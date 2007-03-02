@@ -5021,8 +5021,12 @@ markroutine markuniform(int n, bool rotated=false, frame finterval);
 @end verbatim
 @noindent which has the same behaviour as the function 
 @code{markuniform(int n, bool rotated=false)} (@pxref{markuniform}) but adds
-the frame @code{finterval} between each marks.
-
+the frame @code{finterval} between each marks. Any couple of frames can be
+converted to a marker, using:
+@verbatim
+marker markersuniform(int n=2,frame markuniform=newframe, frame markinterval,
+                      bool rotated=true,bool put=Above);
+@end verbatim
 Convenient frames are preset:
 @cindex @code{stickframe}
 @verbatim
