@@ -5057,10 +5057,10 @@ void markangle(picture pic=currentpicture, Label L="",
 	       arrowbar arrow=None,
 	       pen p=currentpen,
 	       margin margin=NoMargin,
-	       frame markerframe=newframe);
+	       marker marker=nomarker);
 @end verbatim
-@noindent which mark the vector angle @code{(OA,OB)} with the optional 
-frame @code{markerframe} as illustrated by the example @code{markers2.asy}.
+@noindent which marks the vector angle @code{(OA,OB)} as illustrated by
+the example @code{markers2.asy}.
 
 @node tree
 @section @code{tree}

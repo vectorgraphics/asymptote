@@ -141,12 +141,10 @@ void markangle(picture pic=currentpicture,
 	       arrowbar arrow=None,
 	       pen p=currentpen,
 	       margin margin=NoMargin,
-	       frame markerframe=newframe)
+	       marker marker=nomarker)
 {
   if(space == 0) space=markanglespace(p);
   if(radius == 0) radius=markangleradius(p);
-  marker marker=(markerframe == newframe) ? nomarker:
-    marker(markerframe,markuniform(1,true,markerframe));
   picture lpic,phantom;
   path lpth;
   p=squarecap+p;
