@@ -51,7 +51,8 @@ void texdefines(T& out, mem::list<string>& preamble=TeXpreamble,
 		bool pipe=false)
 {
   string texengine=settings::getSetting<string>("tex");
-  texpreamble(out,preamble);
+  if(pipe || !settings::getSetting<bool>("inlinetex"))
+    texpreamble(out,preamble);
   out << "\\newbox\\ASYbox" << newl
       << "\\newdimen\\ASYdimen" << newl
       << "\\def\\ASYbase#1#2{\\setbox\\ASYbox=\\hbox{#1}"

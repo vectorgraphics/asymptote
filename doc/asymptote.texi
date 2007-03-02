@@ -5014,14 +5014,13 @@ several convenient pattern generation routines.
 @node markers
 @section @code{markers}
 @cindex @code{marker}
-@cindex @code{markuniform}
 This package implements markers and marks routines for the paths and the
 angles. The principal mark routine which is provided by this package is:
 @verbatim
 markroutine markuniform(int n, bool rotated=false, frame finterval);
 @end verbatim
-@noindent which has the same behaviour as the @code{function
-markuniform(int n, bool rotated=false)} (@pxref{markuniform}) but adds
+@noindent which has the same behaviour as the function 
+@code{markuniform(int n, bool rotated=false)} (@pxref{markuniform}) but adds
 the frame @code{finterval} between each marks.
 
 Convenient frames are preset:
