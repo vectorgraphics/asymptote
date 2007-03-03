@@ -442,6 +442,7 @@ void bibliographystyle(string name)
 
 void bibliography(string name) 
 {
+  numberpage();
   havepagenumber=false;
   real[] colors=colors(backgroundcolor);
   if(colors.length > 0) {
