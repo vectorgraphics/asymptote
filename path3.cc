@@ -1,5 +1,5 @@
 /*****
- * path.cc
+ * path3.cc
  * John Bowman
  *
  * Compute information for a three-dimensional path.

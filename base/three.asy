@@ -1169,8 +1169,8 @@ struct path3 {
   {
     int n1 = p1.length(), n2 = p2.length();
 
-    if (n1 == 0) return p2;
-    if (n2 == 0) return p1;
+    if (n1 == -1) return p2;
+    if (n2 == -1) return p1;
     triple a=p1.point(n1);
     triple b=p2.point(0);
     static real Fuzz=10*realEpsilon;
