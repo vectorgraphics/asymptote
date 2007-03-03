@@ -84,7 +84,7 @@ void texdefines(T& out, mem::list<string>& preamble=TeXpreamble,
   if(settings::latex(texengine)) {
     if(pipe || !settings::getSetting<bool>("inlinetex")) {
       out << "\\usepackage{graphicx}" << newl;
-      out << "\\usepackage{color}" << newl;
+      if(!pipe) out << "\\usepackage{color}" << newl;
     }
     if(pipe)
       out << "\\begin{document}" << newl;
