@@ -77,3 +77,5 @@ guide unitcircle=E..N..W..S..cycle;
 restricted real circleprecision=0.0006;
 
 restricted transform invert=reflect((0,0),(1,0));
+
+restricted pen defaultpen;

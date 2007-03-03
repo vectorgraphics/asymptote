@@ -2203,6 +2203,7 @@ overwrite mode, and calligraphic transforms on the pen nib. The
 default pen used by the drawing routines is called
 @code{currentpen}. This provides the same functionality as the
 @code{MetaPost} command @code{pickup}.
+The implicit initializer for pens is @code{defaultpen}.
 
 @cindex @code{+}
 @cindex @code{*}
