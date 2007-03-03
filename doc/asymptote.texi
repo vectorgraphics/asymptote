@@ -1604,9 +1604,9 @@ returns the complex modulus @code{|z|} of its argument @code{z}.
 For example,
 @example
 pair z=(3,4);
-write(length(z));
+length(z);
 @end example
-produces the result 5. A synonym for @code{length(pair)} is @code{abs(pair)};
+returns the result 5. A synonym for @code{length(pair)} is @code{abs(pair)};
 
 @item real angle(pair z)
 @cindex @code{angle}
@@ -1847,34 +1847,42 @@ returns the current time formatted by the ANSI C routine
 @code{strftime} according to the string @code{format} using the current
 locale. Thus
 @verbatim
-write(time());
-write(time("%a %b %d %H:%M:%S %Z %Y"));
+time();
+time("%a %b %d %H:%M:%S %Z %Y");
 @end verbatim
 
 @noindent
-are equivalent ways of outputting the current time in the default
+are equivalent ways of returning the current time in the default
 format used by the UNIX @code{date} command.
 
 @cindex @code{seconds}
+@cindex @code{strptime}
 @item int seconds(string t="", string format="")
 returns the time measured in seconds after the Epoch (Thu Jan 01
-00:00:00 UTC 1970) corresponding to the string @code{t} formatted
-according to the string @code{format} using the current locale, 
-or the current time if @code{t} is the empty string. For example,
+00:00:00 UTC 1970) as determined by the ANSI C routine @code{strptime}
+according to the string @code{format} using the current locale, or the
+current time if @code{t} is the empty string. 
+Note that the @code{"%Z"} extension to the POSIX @code{strptime}
+specification is ignored by the current GNU C Library. If an error occurs, the
+value -1 is returned. Here are some examples:
 @verbatim
-write(1+(seconds()-seconds("Jan 1","%b %d"))/(24*60*60))
+seconds("Mar 02 11:12:36 AM PST 2007","%b %d %r PST %Y");
+seconds(time("%b %d %r %z %Y"),"%b %d %r %z %Y");
+seconds(time("%b %d %r %Z %Y"),"%b %d %r "+time("%Z")+" %Y");
+1+(seconds()-seconds("Jan 1","%b %d"))/(24*60*60);
 @end verbatim
-outputs today's ordinal date, measured from the beginning of the year.
+The last example returns today's ordinal date, measured from the
+beginning of the year.
 
 @cindex @code{time}
 @cindex @code{strftime}
 @item string time(int seconds, string format="%a %b %d %T %Z %Y")
 returns the time corresponding to @code{seconds} seconds after the Epoch
 (Thu Jan 01 00:00:00 UTC 1970) formatted by the ANSI C routine
-@code{strftime} according to the string @code{s} using the current
-locale. For example, to print the date corresponding to 24 hours ago:
+@code{strftime} according to the string @code{format} using the current
+locale. For example, to return the date corresponding to 24 hours ago:
 @verbatim
-write(time(seconds()-24*60*60));
+time(seconds()-24*60*60);
 @end verbatim
 
 @cindex @code{string}
@@ -3732,7 +3740,7 @@ int f(int x, int y) {
 write(f(4,x=3));
 @end verbatim
 @noindent 
-output 34, as @code{x} is already matched when we try to match the
+outputs 34, as @code{x} is already matched when we try to match the
 unnamed argument @code{4}, so it gets matched to the next item, @code{y}. 
 
 For the rare occasions where it is desirable to assign a value to

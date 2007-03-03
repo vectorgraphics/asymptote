@@ -348,14 +348,14 @@ explicit           {adjust(); return EXPLICIT; }
   adjust(); yylval.e= new intExp(here(), lexical::cast<int>(yytext)); 
   } catch (lexical::bad_cast&) {
     error();
-    *em << "integer not valid";
+    *em << "invalid integer";
     yylval.e= new intExp(here(), 0); 
   } return LIT;
 ([0-9]*\.[0-9]+)|([0-9]+\.[0-9]*)|([0-9]*\.*[0-9]+e[-+]*[0-9]+)|([0-9]+\.[0-9]*e[-+]*[0-9]+)  try {
   adjust(); yylval.e= new realExp(here(), lexical::cast<double>(yytext));
   } catch (lexical::bad_cast&) {
     error();
-    *em << "real not valid";
+    *em << "invalid real";
     yylval.e= new realExp(here(), 0); 
   } return LIT;
 true               {
