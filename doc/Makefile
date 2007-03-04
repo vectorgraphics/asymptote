@@ -3,6 +3,7 @@ ASYFILES = $(wildcard *.asy) latexusage.asy
 INCLUDES = version.texi options
 ASY = ../asy -dir ../base
 DOCFILES = asymptote.pdf intro.pdf CAD.pdf PDFAnim_temp_Guide.pdf
+INTROFILES=diagonal square bigsquare labelsquare beziercurve bezier2 exp lineargraph datagraph filegraph loggraph secondaryaxis imagecontour diatom logo
 
 doc:	asymptote.dvi asymptote.info html man
 
@@ -51,7 +52,7 @@ asymptote.info: asymptote.texi $(INCLUDES) $(ASYFILES:.asy=.png)
 asymptote.pdf: asymptote.texi $(INCLUDES) $(ASYFILES:.asy=.pdf)
 	texi2dvi --pdf asymptote.texi
 
-intro.pdf: intro.asy $(ASYFILES)
+intro.pdf: intro.asy $(INTROFILES:=.asy)
 	$(ASY) -tex pdflatex intro
 	$(ASY) -tex pdflatex intro
 
