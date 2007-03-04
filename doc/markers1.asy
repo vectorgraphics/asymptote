@@ -1,4 +1,4 @@
-size(15cm,0);
+size(8cm,0);
 import markers;
 
 pair A=(0,0), B=(1,0), C=(2,0), D=(3,0);

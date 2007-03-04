@@ -1,8 +1,8 @@
+size(8cm,0);
 import markers;
 import geometry;
 import math;
 
-size(10cm,0);
 pair A=0, B=(1,0), C=(0.7,1), D=(-0.5,0), F=rotate(-90)*(C-B)/2+B;
 
 draw(A--B);

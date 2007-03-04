@@ -5023,57 +5023,57 @@ several convenient pattern generation routines.
 @node markers
 @section @code{markers}
 @cindex @code{marker}
-This package implements markers and marks routines for the paths and the
-angles. The principal mark routine which is provided by this package is:
+This package implements routines for marking paths and angles. The
+principal mark routine provided by this package is
 @verbatim
-markroutine markuniform(int n, bool rotated=false, frame finterval);
+markroutine markuniform(int n, frame center, bool rotated=false);
 @end verbatim
-@noindent which has the same behaviour as the function 
-@code{markuniform(int n, bool rotated=false)} (@pxref{markuniform}) but adds
-the frame @code{finterval} between each marks. Any couple of frames can be
-converted to a marker, using:
-@verbatim
-marker markersuniform(int n=2,frame markuniform=newframe, frame markinterval,
-                      bool rotated=true,bool put=Above);
-@end verbatim
-Convenient frames are preset:
+@noindent
+which is a modified version of
+@code{markuniform(int n, bool rotated=false)} (@pxref{markuniform})
+that centers a secondary frame @code{center} between each pair of marks.
+
+These frames are predefined:
 @cindex @code{stickframe}
 @verbatim
-frame stickframe(int n=1, real size=0, real space=0, real angle=0,
-                 real voffset=0, pen p=currentpen);
+frame stickframe(int n=1, real size=0, pair space=0, real angle=0,
+		 pair offset=0, pen p=currentpen);
 @end verbatim
 @cindex @code{circlebarframe}
 @verbatim
 frame circlebarframe(int n=1, real barsize=0,
-                     real radius=0, real angle=0,
-                     real voffset=0, pen p=currentpen,
+                     real radius=0,real angle=0,
+                     pair offset=0, pen p=currentpen,
                      filltype filltype=NoFill, bool above=false);
 @end verbatim
 @cindex @code{crossframe}
 @verbatim
-frame crossframe(int n=3, real size=0, real space=0,
-                 real angle=0, real voffset=0, pen p=currentpen);
+frame crossframe(int n=3, real size=0, pair space=0,
+                 real angle=0, pair offset=0, pen p=currentpen);
 @end verbatim
 @cindex @code{tildeframe}
 @verbatim
-frame tildeframe(int n=1, real size=0, real space=0,
-                 real angle=0, real voffset=0, pen p=currentpen);
+frame tildeframe(int n=1, real size=0, pair space=0,
+                 real angle=0, pair offset=0, pen p=currentpen);
 @end verbatim
-The use of the preceding routines is illustrated by the 
-example @code{markers1.asy}. To mark an angle, this package provides the
-routine:
+The use of the preceding routines is illustrated by the
+example @code{markers1.asy}. 
+
+@image{markers1}
+
+This package provides a routine for marking an angle AOB:
 @cindex @code{markangle}
 @verbatim
 void markangle(picture pic=currentpicture, Label L="",
-	       int n=1, real radius=0, real space=0,
-	       pair O=0, pair A, pair B,
-	       arrowbar arrow=None,
-	       pen p=currentpen,
-	       margin margin=NoMargin,
+               int n=1, real radius=0, real space=0,
+               pair A, pair O, pair B, arrowbar arrow=None,
+               pen p=currentpen, margin margin=NoMargin,
 	       marker marker=nomarker);
 @end verbatim
-@noindent which marks the vector angle @code{(OA,OB)} as illustrated by
-the example @code{markers2.asy}.
+@noindent
+as illustrated in the example @code{markers2.asy}.
+
+@image{markers2}
 
 @node tree
 @section @code{tree}
@@ -5786,10 +5786,13 @@ marker marker(frame f, markroutine markroutine=marknodes,
 In the right-hand graph, the unit @math{n}-sided regular polygon 
 @code{polygon(int n)} and the unit @math{n}-point cross 
 @code{cross(int n)} are used to build a custom marker frame. 
-@anchor{markuniform}Here @code{markuniform(int n, bool rotated=false)} adds this frame at @code{n}
-uniformly spaced points along the arclength of the path, optionally
-rotating it by the angle of the local tangent. This example also
-illustrates the @code{errorbar} routines:
+@anchor{markuniform}
+Here @code{markuniform(bool centered=false, int n, bool rotated=false)} 
+adds this frame at @code{n} uniformly spaced points along the arclength
+of the path, optionally rotated by the angle of the local tangent
+(if centered is true, the frames will be centered within @code{n} evenly
+spaced arclength intervals).
+This example also illustrates the @code{errorbar} routines:
 
 @verbatim
 void errorbars(picture pic=currentpicture, pair[] z, pair[] dp,

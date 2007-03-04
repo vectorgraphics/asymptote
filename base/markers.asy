@@ -129,11 +129,9 @@ real markanglespace=markanglespace();
 // Mark the angle AOB with optional Label, arrows, and markers.
 void markangle(picture pic=currentpicture, Label L="",
                int n=1, real radius=0, real space=0,
-               pair A, pair O, pair B,
-               arrowbar arrow=None,
-               pen p=currentpen,
-               margin margin=NoMargin,
-               marker marker=nomarker)
+               pair A, pair O, pair B, arrowbar arrow=None,
+               pen p=currentpen, margin margin=NoMargin,
+	       marker marker=nomarker)
 {
   if(space == 0) space=markanglespace(p);
   if(radius == 0) radius=markangleradius(p);
@@ -142,7 +140,7 @@ void markangle(picture pic=currentpicture, Label L="",
   p=squarecap+p;
   real xob=degrees(B-O,false);
   real xoa=degrees(A-O,false);
-  if(abs(xob-xoa)>180) radius=-radius;
+  if(abs(xob-xoa) > 180) radius=-radius;
   bool drawarrow = !arrow(phantom,arc((0,0),radius,xoa,xob),p,margin);
   if(drawarrow && margin == NoMargin) margin=TrueMargin(0,0.5linewidth(p));
   for(int i=0; i < n; ++i) {
