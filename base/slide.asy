@@ -105,6 +105,19 @@ void color(string name, string color)
   texpreamble("\def"+'\\'+name+"#1{{\color{"+color+"}#1}}%");
 }
 
+string texcolor(pen p)
+{
+  real[] colors=colors(p);
+  string s;
+  if(colors.length > 0) {
+    s="{"+colorspace(p)+"}{";
+    for(int i=0; i < colors.length-1; ++i)
+      s += string(colors[i])+",";
+    s += string(colors[colors.length-1])+"}";
+  }
+  return s;
+}
+
 void setpens(pen red=red, pen blue=blue, pen steppen=red)
 {
   itempen=colorless(itempen);
@@ -444,16 +457,14 @@ void bibliography(string name)
 {
   numberpage();
   havepagenumber=false;
-  real[] colors=colors(backgroundcolor);
-  if(colors.length > 0) {
-    string s="\definecolor{Background}{"+colorspace(backgroundcolor)+"}{";
-    for(int i=0; i < colors.length-1; ++i)
-      s += string(colors[i])+",";
-    s += string(colors[colors.length-1])+"}%";
-    tex(s);
-    tex("\pagecolor{Background}%");
-  }
+  string s=texcolor(backgroundcolor);
+  if(s != "") tex("\definecolor{Background}"+s+"\pagecolor{Background}%");
   label("",itempen);
+  string fg=texcolor(foregroundcolor);
+  if(fg != "") tex("\definecolor{Foreground}"+fg);
+  string s="\makeatletter\def\@oddfoot{\put("+string(pagewidth-1inch)+",36){";
+  if(fg != "") s += "\color{Foreground}";
+  tex(s+"\rm\thepage}}\makeatother"); 
   tex("\clearpage\def\refname{\fontsize{"+string(fontsize(titlepen))+"}{"+
       string(lineskip(titlepen))+"}\selectfont References}%");
   real hmargin,vmargin;
