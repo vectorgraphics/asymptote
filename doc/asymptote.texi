@@ -5022,18 +5022,21 @@ several convenient pattern generation routines.
 
 @node markers
 @section @code{markers}
-@cindex @code{marker}
-This package implements routines for marking paths and angles. The
-principal mark routine provided by this package is
+@cindex @code{markers}
+This package implements specialized routines for marking paths and angles.
+The principal mark routine provided by this package is
 @verbatim
-markroutine markuniform(int n, frame center, bool rotated=false);
+markroutine markinterval(int n=1, frame f, bool rotated=false);
 @end verbatim
 @noindent
-which is a modified version of
-@code{markuniform(int n, bool rotated=false)} (@pxref{markuniform})
-that centers a secondary frame @code{center} between each pair of marks.
+which centers @code{n} copies of frame @code{f} within uniformly space
+intervals in arclength along the path, optionally rotated by the angle of the
+local tangent.
 
-These frames are predefined:
+The @code{marker} (@pxref{marker}) routine can be used to construct new
+markers from these predefined frames, as illustrated in
+the example @code{markers1.asy}. 
+
 @cindex @code{stickframe}
 @verbatim
 frame stickframe(int n=1, real size=0, pair space=0, real angle=0,
@@ -5056,8 +5059,6 @@ frame crossframe(int n=3, real size=0, pair space=0,
 frame tildeframe(int n=1, real size=0, pair space=0,
                  real angle=0, pair offset=0, pen p=currentpen);
 @end verbatim
-The use of the preceding routines is illustrated by the
-example @code{markers1.asy}. 
 
 @image{markers1}
 
@@ -5779,6 +5780,7 @@ marker marker(path g, markroutine markroutine=marknodes,
 @end verbatim
 using the path @code{unitcircle} (@pxref{filltype}), are drawn
 below each node. Any frame can be converted to a marker, using
+@anchor{marker}
 @verbatim
 marker marker(frame f, markroutine markroutine=marknodes,
               bool put=Above);
@@ -5789,7 +5791,7 @@ In the right-hand graph, the unit @math{n}-sided regular polygon
 @anchor{markuniform}
 Here @code{markuniform(bool centered=false, int n, bool rotated=false)} 
 adds this frame at @code{n} uniformly spaced points along the arclength
-of the path, optionally rotated by the angle of the local tangent
+of the path, optionally rotated by the angle of the local tangent to the path
 (if centered is true, the frames will be centered within @code{n} evenly
 spaced arclength intervals).
 This example also illustrates the @code{errorbar} routines:

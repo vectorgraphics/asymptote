@@ -9,12 +9,12 @@ marker operator * (transform T, marker m)
   return M;
 }
 
-// Like the function markuniform(int n, bool rotated=false) but add
-// the frame center between each pair of mark.
-markroutine markuniform(int n, frame center, bool rotated=false) {
-  return new void(picture pic=currentpicture, frame f, path g) {
-    markuniform(n,rotated)(pic,f,g);
-    markuniform(centered=true,n-1,rotated)(pic,center,g);
+// Add n frames f midway (in arclength) between n+1 uniformly spaced marks.
+markroutine markinterval(int n=1, frame f, bool rotated=false)
+{
+  return new void(picture pic=currentpicture, frame mark, path g) {
+    markuniform(n+1,rotated)(pic,mark,g);
+    markuniform(centered=true,n,rotated)(pic,f,g);
   };
 }
 
