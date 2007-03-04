@@ -212,7 +212,11 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
                   interpolate join=operator --)
 {
   int nx=f.length-1;
-  int ny=nx > 0 ? f[0].length-1 : 0;
+  if(nx == 0)
+    abort("array f must have length >= 2");
+  int ny=f[0].length-1;
+  if(ny == 0)
+    abort("array f[0] must have length >= 2");
   
   c=sort(c);
   bool midpoints=midpoint.length > 0;
