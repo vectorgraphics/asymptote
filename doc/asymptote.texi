@@ -5035,8 +5035,7 @@ intervals in arclength along the path, optionally rotated by the angle of the
 local tangent.
 
 The @code{marker} (@pxref{marker}) routine can be used to construct new
-markers from these predefined frames, as illustrated in
-the following example @code{markers1.asy}. 
+markers from these predefined frames:
 
 @cindex @code{stickframe}
 @verbatim
@@ -5060,6 +5059,12 @@ frame crossframe(int n=3, real size=0, pair space=0,
 frame tildeframe(int n=1, real size=0, pair space=0,
                  real angle=0, pair offset=0, pen p=currentpen);
 @end verbatim
+
+For convenience, this module also constructs the markers
+@code{StickIntervalMarker},  @code{CrossIntervalMarker},
+@code{CircleBarIntervalMarker}, and @code{TildeIntervalMarker}
+from the above frames. The example @code{markers1.asy} illustrates the
+use of these markers:
 
 @image{markers1}
 

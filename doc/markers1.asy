@@ -22,75 +22,69 @@ label("$3$",point(p,0),3W);
 
 //line 4 **********
 p=t*p;
-draw(p,marker(dotframe(red),markinterval(3,stickframe(2,blue),true)));
+draw(p,StickIntervalMarker(3,2,blue,dotframe(red)));
 label("$4$",point(p,0),3W);
 
 //line 5 **********
 p=T*p;
 pen pn=linewidth(4bp);
-draw(p,pn,marker(dotframe(red+pn),markinterval(3,stickframe(3,angle=25,pn),
-					      true)));
+draw(p,pn,StickIntervalMarker(3,3,angle=25,pn,dotframe(red+pn)));
 label("$5$",point(p,0),3W);
 
 //line 6 **********
 p=t*p;
-draw(p,marker(scale(2)*dotframe(red),
-	      markinterval(3,stickframe(5,angle=25,size=4mm,space=2mm,
-				       offset=I*2mm),true)));
+draw(p,StickIntervalMarker(3,5,angle=25,size=4mm,space=2mm,offset=I*2mm,
+                    scale(2)*dotframe(red)));
 label("$6$",point(p,0),3W);
 
 //line 7 **********
 p=T*p;
-draw(p,marker(dotframe,
-	      markinterval(2,stickframe(3,angle=45,space=3mm,size=10mm),true)));
+draw(p,StickIntervalMarker(n=3,angle=45,size=10mm,space=3mm,dotframe));
 label("$7$",point(p,0),3W);
 
 //line 8 **********
 p=t*p;
-draw(p,marker(dotframe,markinterval(2,circlebarframe(2),true)));
+draw(p,CircleBarIntervalMarker(n=2,dotframe));
 label("$8$",point(p,0),3W);
 
 //line 9 **********
 p=T*p;
-draw(p,marker(dotframe,
-	      markinterval(2,circlebarframe(3,angle=30,barsize=8mm,
-					   radius=2mm,FillDraw(.8red)),true)));
+draw(p,CircleBarIntervalMarker(n=3,angle=30,barsize=8mm,radius=2mm,
+			     FillDraw(.8red),
+                        dotframe));
 label("$9$",point(p,0),3W);
 
 //line 10 **********
 p=t*p;
-draw(p,marker(dotframe,
-	      markinterval(2,circlebarframe(3,angle=30,barsize=8mm,
-					   radius=2mm,FillDraw(.8red),
-					   above=true),true)));
+draw(p,CircleBarIntervalMarker(n=3,angle=30,barsize=8mm,radius=2mm,
+                        FillDraw(.8red),above=true,dotframe));
 label("$10$",point(p,0),3W);
 
 //line 11 **********
 p=T*p;
-draw(p,marker(dotframe,markinterval(2,circlebarframe(3,angle=30,barsize=8mm,
-						    radius=2mm,FillDraw(.8red),
-						    above=true),true),put=Below));
+draw(p,CircleBarIntervalMarker(n=3,angle=30,barsize=8mm,radius=2mm,
+                        FillDraw(.8red),above=true,dotframe,put=Below));
 label("$11$",point(p,0),3W);
 
 //line 12 **********
 p=t*p;
-draw(p,marker(dotframe,markinterval(3,tildeframe,true)));
+draw(p,TildeIntervalMarker(i=3,dotframe));
 label("$12$",point(p,0),3W);
 
 //line 13 **********
 p=T*p;
-draw(p,marker(dotframe,markinterval(3,tildeframe(2,angle=-20),true)));
+draw(p,TildeIntervalMarker(i=3,n=2,angle=-20,dotframe));
 label("$13$",point(p,0),3W);
 
 //line 14 **********
 p=t*p;
-draw(p,marker(dotframe,markinterval(3,crossframe(3),true)));
+draw(p,CrossIntervalMarker(3,3,dotframe));
 label("$14$",point(p,0),3W);
 
 //line 15 **********
 p=shift(.25S)*T*p;
 path cle=shift(relpoint(p,.5))*scale(abs(A-D)/4)*unitcircle;
-draw(cle,marker(dotframe(6bp+red),markinterval(5,stickframe(3),true)));
+draw(cle,StickIntervalMarker(5,3,dotframe(6bp+red)));
 label("$15$",point(p,0),3W);
 
 //line 16 **********
@@ -101,8 +95,7 @@ label(a,"$a$",(0,-2labelmargin()));
 draw(cle,marker(dotframe(6bp+red),markinterval(5,a,true)));
 label("$16$",point(p,0),3W);
 
-//line 17 **********
-p=T*shift(relpoint(p,.5)+.65S)*scale(.5)*shift(-relpoint(p,.5))*
-  rotate(45,relpoint(p,.5))*p;
-draw(p,marker(dotframe,markinterval(2,tildeframe(size=5mm))));
+// line 17 **********
+p=T*shift(relpoint(p,.5)+.65S)*scale(.5)*shift(-relpoint(p,.5))*rotate(45,relpoint(p,.5))*p;
+draw(p,TildeIntervalMarker(size=5mm,rotated=false,dotframe));
 label("$17$",point(p,0),3W);
