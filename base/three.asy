@@ -18,7 +18,7 @@ triple operator ecast(real[] a)
 typedef real[][] transform3;
 
 // Alias the math operation of multiplying matrices.
-transform3 operator *(transform3 a, transform3 b)=math.operator *;
+transform3 operator * (transform3 a, transform3 b)=math.operator *;
 
 triple operator * (transform3 t, triple v)
 {
