@@ -13,7 +13,7 @@ titlepage("Asymptote: The Vector Graphics Language","John C. Bowman",
 	  "University of Alberta","\today","http://asymptote.sf.net");
 
 title("Cartesian Coordinates");
-asycode("../doc/diagonal");
+asycode("diagonal");
 item("units are {\tt PostScript} {\it big points\/} (1 {\tt bp} =
 1/72 {\tt inch})");
 item("{\tt --} means join the points with a linear segment to create
