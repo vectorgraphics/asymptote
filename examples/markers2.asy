@@ -3,7 +3,7 @@ import geometry;
 import math;
 
 size(10cm,0);
-pair A=0, B=(1,0), C=(.7,1), D=(-.5,0), F=rotate(-90)*(C-B)/2+B;
+pair A=0, B=(1,0), C=(0.7,1), D=(-0.5,0), F=rotate(-90)*(C-B)/2+B;
 
 draw(A--B);
 draw(A--C);
@@ -17,18 +17,18 @@ label("$C$",C,N);
 dot(Label("$D$",D,N+NE));
 dot(Label("$F$",F,N+NW));
 
-markangle(C,A,B);
+markangle(A,C,B);
 
-markangle(scale(1.5)*"$\theta$", radius=40, B,A,C,
-          ArcArrow(2mm), p=1mm+red);
+markangle(scale(1.5)*"$\theta$",radius=40,A,B,C,ArcArrow(2mm),1mm+red);
 
-markangle(Label("$\gamma$",Relative(.25)),n=2, radius=-30,
-          C,A,B, p=.7blue+2);
+markangle(Label("$\gamma$",Relative(0.25)),n=2,radius=-30,A,C,B,p=0.7blue+2);
 
-markangle(n=3, A,B,C, markersuniform(markinterval=stickframe(n=2)));
+markangle(n=3,B,A,C,marker(markuniform(2,stickframe(n=2),true)));
 
-pen RedPen=.7red+1bp;
-markangle(A,D,C, p=RedPen, markersuniform(3,markinterval=stickframe(3,4mm,RedPen)));
+pen RedPen=0.7red+1bp;
+markangle(D,A,C,RedPen,marker(markuniform(3,center=stickframe(3,4mm,RedPen),
+					  true)));
 drawline(A,A+dir(A--D,A--C),dotted);
 
-perpendicular(B,NE,F-B,size=10mm, p=1mm+red, TrueMargin(linewidth(p)/2,linewidth(p)/2),Fill(yellow));
+perpendicular(B,NE,F-B,size=10mm,1mm+red,
+	      TrueMargin(linewidth(p)/2,linewidth(p)/2),Fill(yellow));

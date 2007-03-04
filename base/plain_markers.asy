@@ -22,29 +22,37 @@ path[] cross(int n)
 
 path[] plus=(-1,0)--(1,0)^^(0,-1)--(0,1);
 
-typedef void markroutine(picture pic=currentpicture, path g, frame f);
+typedef void markroutine(picture pic=currentpicture, frame f, path g);
 
-// On picture pic, add to every node of path g the frame f.
-void marknodes(picture pic=currentpicture, path g, frame f) {
+// On picture pic, add frame f about every node of path g.
+void marknodes(picture pic=currentpicture, frame f, path g) {
   for(int i=0; i <= length(g); ++i)
     add(pic,f,point(g,i));
 }
 
-// On picture pic, add to path g the frame f, evenly spaced in arclength.
+// On picture pic, add n copies of frame f to path g, evenly spaced in
+// arclength.
 // If rotated=true, the frame will be rotated by the angle of the tangent
 // to the path at the points where the frame will be added.
-markroutine markuniform(int n, bool rotated=false) {
-  return new void(picture pic=currentpicture, path g, frame f) {
-    if(n == 0) return;
+// If centered is true, center the frames within n evenly spaced arclength
+// intervals.
+markroutine markuniform(bool centered=false, int n, bool rotated=false) {
+  return new void(picture pic=currentpicture, frame f, path g) {
+    if(n <= 0) return;
     void add(real x) {
       real t=reltime(g,x);
       add(pic,rotated ? rotate(degrees(dir(g,t)))*f : f,point(g,t));
     }
-    if(n == 1) add(0.5);
-    else {
-      real width=1/(n-1);
-      for(int i=0; i < n; ++i)
-	add(i*width);
+    if(centered) {
+      real width=1/n;
+      for(int i=0; i < n; ++i) add((i+0.5)*width);
+    } else {
+      if(n == 1) add(0.5);
+      else {
+	real width=1/(n-1);
+	for(int i=0; i < n; ++i)
+	  add(i*width);
+      }
     }
   };
 }
@@ -54,13 +62,14 @@ struct marker {
   bool put=Above;
   markroutine markroutine=marknodes;
   void mark(picture pic, path g) {
-    markroutine(pic,g,f);
+    markroutine(pic,f,g);
   };
 }
   
 marker operator init() {return new marker;}
   
-marker marker(frame f, markroutine markroutine=marknodes, bool put=Above) 
+marker marker(frame f=newframe, markroutine markroutine=marknodes,
+	      bool put=Above) 
 {
   marker m=new marker;
   m.f=f;
@@ -107,11 +116,11 @@ picture legenditem(Legend legenditem, real linelength)
   pair z1=(0,0);
   pair z2=z1+(linelength,0);
   if(!legenditem.put && !empty(legenditem.mark))
-    marknodes(pic,interp(z1,z2,0.5),legenditem.mark);
+    marknodes(pic,legenditem.mark,interp(z1,z2,0.5));
   if(linelength > 0)
     Draw(pic,z1--z2,legenditem.p);
   if(legenditem.put && !empty(legenditem.mark))
-    marknodes(pic,interp(z1,z2,0.5),legenditem.mark);
+    marknodes(pic,legenditem.mark,interp(z1,z2,0.5));
   if(legenditem.plabel != invisible)
     label(pic,legenditem.label,z2,E,legenditem.plabel);
   else
