@@ -123,7 +123,7 @@ Base modules
 * geometry::                    Geometry routines
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
-* markers::                     Custom markers and marks routines
+* markers::                     Custom path marker routines
 * tree::                        Dynamic binary search tree
 * binarytree::                  Binary tree drawing module
 * drawtree::                    Tree drawing module
@@ -1145,7 +1145,8 @@ is @code{"$%.4g$"}). One can also draw a dot at every node of a path:
 @verbatim
 void dot(picture pic=currentpicture, guide g, pen p=currentpen);
 @end verbatim
-See @ref{graphmarkers} for a more general way of marking path nodes.
+See @ref{pathmarkers} and @ref{markers} for more general
+methods for marking path nodes.
 
 To draw a fixed-sized object (in @code{PostScript} coordinates) about
 the user coordinate @code{origin}, use the routine
@@ -4894,7 +4895,7 @@ Here now is @code{latexusage.tex}:
 * geometry::                    Geometry routines
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
-* markers::                     Custom markers and marks routines
+* markers::                     Custom path marker routines
 * tree::                        Dynamic binary search tree
 * binarytree::                  Binary tree drawing module
 * drawtree::                    Tree drawing module
@@ -5035,12 +5036,12 @@ local tangent.
 
 The @code{marker} (@pxref{marker}) routine can be used to construct new
 markers from these predefined frames, as illustrated in
-the example @code{markers1.asy}. 
+the following example @code{markers1.asy}. 
 
 @cindex @code{stickframe}
 @verbatim
 frame stickframe(int n=1, real size=0, pair space=0, real angle=0,
-		 pair offset=0, pen p=currentpen);
+                 pair offset=0, pen p=currentpen);
 @end verbatim
 @cindex @code{circlebarframe}
 @verbatim
@@ -5062,14 +5063,14 @@ frame tildeframe(int n=1, real size=0, pair space=0,
 
 @image{markers1}
 
-This package provides a routine for marking an angle AOB:
+This package also provides a routine for marking an angle @math{AOB}:
 @cindex @code{markangle}
 @verbatim
 void markangle(picture pic=currentpicture, Label L="",
                int n=1, real radius=0, real space=0,
                pair A, pair O, pair B, arrowbar arrow=None,
                pen p=currentpen, margin margin=NoMargin,
-	       marker marker=nomarker);
+               marker marker=nomarker);
 @end verbatim
 @noindent
 as illustrated in the example @code{markers2.asy}.
@@ -5769,7 +5770,7 @@ the tick labels on the @math{y} axis.
 @cindex @code{marker}
 @cindex @code{marknodes}
 @cindex @code{markuniform}
-@anchor{graphmarkers}
+@anchor{pathmarkers}
 @item The next example draws two graphs of an array of coordinate pairs,
 using frame alignment and data markers. In the left-hand graph, the
 markers, constructed with
@@ -7265,7 +7266,7 @@ Stefan Knorr.
 @c  LocalWords:  lineargraph datagraph vertices parametricgraph uncomment ggv
 @c  LocalWords:  loggraph generalaxis texhash arrowsize arrowangle arrowlength
 @c  LocalWords:  SuppressQuiet MoveQuiet LIBREADLINE config MacOS prebuilt svn
-@c  LocalWords:  ghostview gsview SIGHUP PDF acroread xpdf cutbefore
+@c  LocalWords:  ghostview gsview SIGHUP PDF acroread xpdf cutbefore strptime
 @c  LocalWords:  libsigsegv intersectionpoint dotfactor vv firstcut pq logticks
 @c  LocalWords:  Unisys dvips vvv vvvv vvvvv traceback lastcut cutafter infodir
 @c  LocalWords:  zxvf xargs cond polargraph xmin xmax plabel YZero labelling ln
@@ -7334,4 +7335,6 @@ Stefan Knorr.
 @c  LocalWords:  binarytreetest Henning subsample breakpoint locator wireframe
 @c  LocalWords:  labelpath intersectionpoints PSTricks pstextpath curvedlabel
 @c  LocalWords:  LeftJustified RightJustified tickmodifier gunzip gmake IRIX
-@c  LocalWords:  texcommand RET SITEDIR filegraph
+@c  LocalWords:  texcommand RET SITEDIR filegraph pathmarkers POSIX binput AOB
+@c  LocalWords:  boutput nonportable markinterval stickframe circlebarframe
+@c  LocalWords:  crossframe tildeframe markangle
