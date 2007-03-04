@@ -244,19 +244,20 @@ void palette(picture pic=currentpicture, Label L="", bounds range,
   if(vertical) pdata=transpose(pdata);
   
   pic.add(new void(frame f, transform t) {
-      pair Z0=t*initial;
-      pair Z1=t*final;
-      pair initial=Z0;
-      _image(f,pdata,inverse(t)*initial,final,palette,t);
-      guide G=Z0--(Z0.x,Z1.y)--Z1--(Z1.x,Z0.y)--cycle;
-      draw(f,G,p);
+      _image(f,pdata,initial,final,palette,t);
     });
   
-  pic.addBox(initial,final);
-  
   ticklocate locate=ticklocate(initialz,finalz,pic.scale.z,mz.min,mz.max);
-  axis(pic,L,g,g2,p,ticks(sgn(axis.side.x*dot(lambda,par))),locate,
-       mz.divisor,Above);
+  axis(pic,L,g,g2,p,ticks(sgn(axis.side.x*dot(lambda,par))),locate,mz.divisor,
+       Above);
+
+  pic.add(new void(frame f, transform t) {
+      pair Z0=t*initial;
+      pair Z1=t*final;
+      draw(f,Z0--(Z0.x,Z1.y)--Z1--(Z1.x,Z0.y)--cycle,p);
+    });
+
+  pic.addBox(initial,final);
 }
 
 // A grayscale palette
