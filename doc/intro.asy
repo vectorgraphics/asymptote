@@ -123,9 +123,9 @@ asyfigure("diatom","height=15cm");
 title("Slide Presentations \& Movies");
 item("This presentation was prepared with the {\tt Asymptote} slide presentation package, which combines powerful graphics capabilities, including support for portable embedded PDF movies, with the high-quality \LaTeX\ typesetting engine.");
 
+bibliography("refs");
+
 title("Asymptote: The Vector Graphics Language");
-figure("logo.eps","height=11cm","{\tt http://asymptote.sf.net}");
+asyfigure("logo","height=11cm","{\tt http://asymptote.sf.net}");
 skip();
 center("(freely available under the GNU public license)");
-
-bibliography("refs");

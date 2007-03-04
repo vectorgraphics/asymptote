@@ -460,12 +460,7 @@ void bibliography(string name)
   string s=texcolor(backgroundcolor);
   if(s != "") tex("\definecolor{Background}"+s+"\pagecolor{Background}%");
   label("",itempen);
-  string fg=texcolor(foregroundcolor);
-  if(fg != "") tex("\definecolor{Foreground}"+fg);
-  string s="\makeatletter\def\@oddfoot{\put("+string(pagewidth-1inch)+",36){";
-  if(fg != "") s += "\color{Foreground}";
-  tex(s+"\rm\thepage}}\makeatother"); 
-  tex("\clearpage\def\refname{\fontsize{"+string(fontsize(titlepen))+"}{"+
+  tex("\eject\def\refname{\fontsize{"+string(fontsize(titlepen))+"}{"+
       string(lineskip(titlepen))+"}\selectfont References}%");
   real hmargin,vmargin;
   if(pdf()) {
@@ -486,7 +481,7 @@ void bibliography(string name)
       string(pagewidth-0.5inches)+
       "bp\hsize=\textwidth\linewidth=\textwidth\vsize=\textheight"+
       "\topmargin=0.5in\oddsidemargin=1in";
-  s += "\evensidemargin=\oddsidemargin\bibliography{"+name+"}\clearpage}";
+  s += "\evensidemargin=\oddsidemargin\bibliography{"+name+"}\eject}";
   tex(s);
 }
 
