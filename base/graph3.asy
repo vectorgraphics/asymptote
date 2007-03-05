@@ -656,7 +656,8 @@ guide3[][] lift(real f(pair z), guide[][] g, interpolate3 join=operator --)
 }
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-          guide3[][] g, pen[] p, projection P=currentprojection)
+          guide3[][] g, pen[] p, Label[] legend=new Label[],
+          projection P=currentprojection)
 {
   begingroup(pic);
   for(int cnt=0; cnt < g.length; ++cnt) {
@@ -664,7 +665,8 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
     pen pcnt=p[cnt];
     for(int i=0; i < gcnt.length; ++i) {
       guide G=project(gcnt[i],P);
-      draw(pic,G,pcnt);
+      if (i == 0 && legend.length > 0) draw(pic,G,pcnt,legend[cnt]);
+      else draw(pic,G,pcnt);
       if(L.length > 0) {
 	Label Lcnt=L[cnt];
         if(Lcnt.s != "" && size(gcnt[i]) > 1)
