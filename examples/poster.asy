@@ -7,6 +7,7 @@ defaultpen(deepblue);
 real f(real x) {return (x != 0) ? x*sin(1/x) : 0;}
 pair F(real x) {return (x,f(x));}
 
+size(background,currentpicture);
 xaxis(background,grey);
 yaxis(background,-0.25,0.25,grey);
 real a=1.2/pi;
