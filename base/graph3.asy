@@ -678,9 +678,10 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
 }
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-          guide3[][] g, pen p=currentpen, projection P=currentprojection)
+          guide3[][] g, pen p=currentpen, Label[] legend=new Label[],
+          projection P=currentprojection)
 {
-  draw(pic,L,g,sequence(new pen(int) {return p;},g.length),P);
+  draw(pic,L,g,sequence(new pen(int) {return p;},g.length),legend,P);
 }
 
 triple polar(real r, real theta, real phi)
