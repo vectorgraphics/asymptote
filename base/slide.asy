@@ -27,6 +27,7 @@ if(landscape) {
 }
 
 size(pagewidth,pageheight,IgnoreAspect);
+picture background;
 
 real minipagemargin=1inch;
 real minipagewidth=pagewidth-2minipagemargin;
@@ -73,9 +74,6 @@ string bulletcolor(string color)
 {
   return "\def\bulletcolor{"+'\\'+"color{"+color+"}}%";
 }
-
-picture background;
-size(background,pagewidth,pageheight,IgnoreAspect);
 
 int[] firstnode=new int[] {currentpicture.nodes.length};
 int[] lastnode=new int[];
@@ -152,6 +150,7 @@ void normalvideo() {
   backgroundcolor=invisible;
   foregroundcolor=black;
   background=new picture;
+  size(background,currentpicture);
   setpens();
   figuremattpen=invisible;
   color("Red","red");
