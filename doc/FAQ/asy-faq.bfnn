@@ -367,6 +367,14 @@ saturation separately from hue:
 0.1*Cyan is light and 0.9*Cyan is dark. 
 You can also say things like 0.1*(red+cmyk) 
 
+\question 05mar:commadecimalseparator My locale uses a comma instead of a period as the decimal separator. Why is the space between the comma and the tenths digit so large?
+
+This is from LaTeX, LaTeX use , as separator like (10,10) and 
+not a decimal separator. Use the 'icomma' package, that package  
+make , a decimal separator. 
+
+
+
 \comment #####################################################################
 
 \section Questions about arrows

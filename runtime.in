@@ -1857,12 +1857,14 @@ string format(string *format, real x)
     q++;
   }
   
+  const char decimal=*(localeconv()->decimal_point);
+
   // Remove any spurious sign
   if(*q == '-' || *q == '+') {
     p=q+1;
     bool zero=true;
     while(*p != 0) {
-      if(!isdigit(*p) && *p != '.') break;
+      if(!isdigit(*p) && *p != decimal) break;
       if(isdigit(*p) && *p != '0') {zero=false; break;}
       p++;
     }
@@ -1874,15 +1876,15 @@ string format(string *format, real x)
   
   const char *r=p=q;
   bool dp=false;
-  while(*r != 0 && (isdigit(*r) || *r == '.' || *r == '+' || *r == '-')) {
-    if(*r == '.') dp=true;
+  while(*r != 0 && (isdigit(*r) || *r == decimal || *r == '+' || *r == '-')) {
+    if(*r == decimal) dp=true;
     r++;
   }
   if(dp) { // Remove trailing zeros and/or decimal point
     r--;
     unsigned int n=0;
     while(r > q && *r == '0') {r--; n++;}
-    if(*r == '.') {r--; n++;}
+    if(*r == decimal) {r--; n++;}
     while(q <= r) out << *(q++);
     if(!trailingzero) q += n;
   }
