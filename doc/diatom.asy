@@ -27,7 +27,7 @@ while(true) {
   depth.push(d);
   year.push(in);
   percentage.push(in);
-}
+ }
 
 percentage=transpose(percentage);
 real depthmin=-min(depth);
@@ -40,7 +40,7 @@ for(int taxon=0; taxon < n; ++taxon) {
   real[] P=percentage[taxon];
   if(max(P) < ignorebelow) continue;
   final=taxon;
-}  
+ }  
 
 real angle=45;
 real L=3cm;
@@ -68,7 +68,7 @@ for(int taxon=0; taxon < n; ++taxon) {
   if(maxP > 100) x=50/maxP;
   scale(pic,Linear(x),Linear(false,-1));
   filldraw(pic,(0,depthmin)--graph(pic,P,depth)--(0,depthmax)--cycle,
-	   gray(0.9));
+           gray(0.9));
   xaxis(pic,Bottom,LeftTicks("$%.3g$",beginlabel=false,0,2),Above);
   xaxis(pic,Top,Above);
 
@@ -100,11 +100,11 @@ for(int taxon=0; taxon < n; ++taxon) {
           pair z1=t*z+v;
           pair w1=z1+Ldir;
           draw[i]=new void(frame f) {
-              path g=z0--(z0.x+(ymax-z0.y)/Tan(angle),ymax)--
-                (z1.x+(ymax-z1.y)/Tan(angle),ymax)--z1;
-              draw(f,g);
-              label(f,group[i],point(g,1.5),align);
-            };
+            path g=z0--(z0.x+(ymax-z0.y)/Tan(angle),ymax)--
+            (z1.x+(ymax-z1.y)/Tan(angle),ymax)--z1;
+            draw(f,g);
+            label(f,group[i],point(g,1.5),align);
+          };
         });
     }
   }
@@ -116,7 +116,7 @@ for(int taxon=0; taxon < n; ++taxon) {
  
   add(shift(location,0)*pic);
   location += pic.userMax.x;
-}
+ }
 
 add(new void(frame f, transform) {
     for(int i=0; i < draw.length; ++i)

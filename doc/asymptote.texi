@@ -185,27 +185,19 @@ use complex multiplication to rotate a vector) and uses
 @code{LaTeX} to do the 
 typesetting of labels. This is an important feature for scientific
 applications. It was inspired by an earlier drawing program (with a weaker
-syntax & capabilities) called @code{MetaPost}.
-
-Many of the features of @code{Asymptote} are written in the
-@code{Asymptote} language itself. While the stock version of
-@code{Asymptote} is designed for mathematics typesetting needs, one can
-write @code{Asymptote} modules that tailor it to specific
-applications. A scientific graphing module has already been written
-(@pxref{graph}). Examples of @code{Asymptote} code and output,
-including animations, are available at
-@quotation
-@url{http://asymptote.sourceforge.net/gallery/}.
-@end quotation
+syntax and capabilities) called @code{MetaPost}.
 
 The @code{Asymptote} vector graphics language provides:
 
 @itemize @bullet
+@item a standard for typesetting mathematical figures, just
+as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
+
+@item @code{LaTeX} typesetting of labels, for overall document consistency;
+
 @item a natural coordinate-based framework for technical drawings,
 inspired by @code{MetaPost}, with a much cleaner, powerful C++-like programming
 syntax;
-
-@item @code{LaTeX} typesetting of labels, for overall document consistency;
 
 @item compilation of figures into virtual machine code for speed, without
 sacrificing portability;
@@ -227,10 +219,24 @@ and complex variables;
 constraint issues between fixed-sized objects (labels and arrowheads) and
 objects that should scale with figure size;
 
-@item a standard for typesetting mathematical figures, just
-as @TeX{}/@code{LaTeX} is the de-facto standard for typesetting equations.
-
 @end itemize
+
+Many of the features of @code{Asymptote} are written in the
+@code{Asymptote} language itself. While the stock version of
+@code{Asymptote} is designed for mathematics typesetting needs, one can
+write @code{Asymptote} modules that tailor it to specific
+applications. A scientific graphing module has already been written
+(@pxref{graph}). Examples of @code{Asymptote} code and output,
+including animations, are available at
+@quotation
+@url{http://asymptote.sourceforge.net/gallery/}.
+@end quotation
+@noindent
+Links to many external resources, including an excellent user-written
+@code{Asymptote} tutorial can be found at
+@quotation
+@url{http://asymptote.sourceforge.net/links/}.
+@end quotation
 
 @node Installation
 @chapter Installation
@@ -689,6 +695,12 @@ make uninstall
 @node Tutorial
 @chapter Tutorial
 @cindex tutorial
+@emph{An excellent user-written @code{Asymptote} tutorial is also available
+from}
+
+@url{http://www.artofproblemsolving.com/Wiki/index.php/Asymptote:_Basics}
+
+@noindent
 To draw a line from coordinate (0,0) to coordinate (100,100) using
 @code{Asymptote}'s interactive mode, type at the command prompt:
 @verbatim
@@ -7342,4 +7354,6 @@ Stefan Knorr.
 @c  LocalWords:  LeftJustified RightJustified tickmodifier gunzip gmake IRIX
 @c  LocalWords:  texcommand RET SITEDIR filegraph pathmarkers POSIX binput AOB
 @c  LocalWords:  boutput nonportable markinterval stickframe circlebarframe
-@c  LocalWords:  crossframe tildeframe markangle
+@c  LocalWords:  crossframe tildeframe markangle StickIntervalMarker
+@c  LocalWords:  CrossIntervalMarker CircleBarIntervalMarker
+@c  LocalWords:  TildeIntervalMarker
