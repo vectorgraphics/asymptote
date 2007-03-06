@@ -184,12 +184,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       return false;
     }
     
-    string texengine=getSetting<string>("tex");
-    if(settings::pdf(texengine)) {
-      if(pdfformat) {
-	rename(outname.c_str(),buildname(prefix,"pdf").c_str());
-      }
-    } else {
+    if(!pdf) {
       string dviname=auxname(prefix,"dvi");
       string psname=auxname(prefix,"ps");
     
@@ -198,7 +193,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       // Magic dvips offsets:
       double hoffset=-128.4;
       double vertical=height;
-      if(!latex(texengine)) vertical += 2.0;
+      if(!latex(getSetting<string>("tex"))) vertical += 2.0;
       double voffset=(vertical < 13.0) ? -137.8+vertical : -124.8;
 
       hoffset += b.left+bboxshift.getx();
@@ -282,7 +277,8 @@ bool picture::postprocess(const string& prename, const string& outname,
   
   if((pdf && Labels) || !epsformat) {
     if(pdfformat) {
-      if(!(pdf && Labels)) status=epstopdf(prename,outname);
+      if(pdf && Labels) status=rename(prename.c_str(),outname.c_str());
+      else status=epstopdf(prename,outname);
     } else {
       ostringstream cmd;
       double expand=2.0;
@@ -362,7 +358,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   pdfformat=outputformat == "pdf";
   tgifformat=outputformat == "tgif";
   string outname=tgifformat ? "."+buildname(prefix,"gif") :
-    (standardout ? "-" : buildname(prefix,outputformat,"",false));
+    (standardout ? "-" : buildname(prefix,outputformat,"",!global()));
   string epsname=epsformat ? (standardout ? "" : outname) :
     auxname(prefix,"eps");
   string prename=((epsformat && !pdf) || !Labels) ? epsname : 
