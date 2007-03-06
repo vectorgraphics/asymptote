@@ -99,6 +99,7 @@
   \else
     \closein\AsyTestStream%
     \ifinline
+    \catcode`:=12
     \input{\jobname_\arabic{asy}_.tex}%
     \else
     \includegraphics{\jobname_\arabic{asy}}%
