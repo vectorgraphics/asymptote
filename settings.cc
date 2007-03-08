@@ -235,6 +235,9 @@ struct option : public gc {
       cerr << endl;
     }
   }
+  
+  virtual void reset() {
+  }
 };
 
 const string noarg;
@@ -246,7 +249,7 @@ struct setting : public option {
           types::ty *t, string Default)
     : option(name, code, argname, desc, false,Default), t(t) {}
 
-  virtual void reset() = 0;
+  void reset() = 0;
 
   virtual trans::access *buildAccess() = 0;
 
@@ -746,8 +749,12 @@ c_option *build_longopts() {
   return longopts;
 }
 
-void resetOptions() {
-  verbose=0;
+void resetOptions()
+{
+  for(optionsMap_t::iterator opt=optionsMap.begin(); opt != optionsMap.end();
+      ++opt)
+    if(opt->first != "config" && opt->first != "dir")
+      opt->second->reset();
 }
   
 void getOptions(int argc, char *argv[])
@@ -902,7 +909,9 @@ void initSettings() {
   addOption(new boolSetting("autorotate", 0,
 			    "Enable automatic PDF page rotation",
 			    false));
-  addOption(new userSetting("user", 'u', "x",
+  addOption(new stringSetting("autoimport", 0, "string",
+			      "Module to automatically import [\"\"]", ""));
+  addOption(new userSetting("user", 'u', "string",
 			    "General purpose user string [\"\"]", ""));
   
   addOption(new realSetting("paperwidth", 0, "bp", ""));

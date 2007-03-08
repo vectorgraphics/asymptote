@@ -162,7 +162,6 @@ void asy(string format, bool overwrite=false ... string[] s)
     int n=rfind(f,".asy");
     if(n != -1) f=erase(f,n,-1);
     if(overwrite || error(input(f+"."+format,check=false))) {
-      string F="\""+f+"\"";
       string outname=settings.outname;
       string outformat=settings.outformat;
       bool interactiveView=settings.interactiveView;
@@ -171,7 +170,7 @@ void asy(string format, bool overwrite=false ... string[] s)
       settings.outformat=format;
       settings.interactiveView=false;
       settings.batchView=false;
-      eval("import "+F+" as dummy; exitfunction()");
+      eval("import \""+f+"\" as dummy; exitfunction()");
       settings.outname=outname;
       settings.outformat=outformat;
       settings.interactiveView=interactiveView;
@@ -203,4 +202,13 @@ cputime cputime()
   cputime.child.user=a[2];
   cputime.child.system=a[3];
   return cputime;
+}
+
+if(settings.autoimport != "") {
+  string s=settings.autoimport;
+  settings.autoimport="";
+  eval("import \""+s+"\" as dummy",true);
+  shipped=false;
+  atexit(exitfunction);
+  settings.autoimport=s;
 }

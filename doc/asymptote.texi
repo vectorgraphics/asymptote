@@ -6794,6 +6794,10 @@ standard input.
 If multiple files are specified, they are treated as separate
 @code{Asymptote} runs.
 
+If the string @code{autoimport} is nonempty, a module with this name is
+automatically imported for each run as the final step in loading module
+@code{plain}.
+
 @anchor{configuration file}
 @cindex @code{ASYMPTOTE_CONFIG}
 @cindex @code{config}
