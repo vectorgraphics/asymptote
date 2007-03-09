@@ -67,8 +67,13 @@
   \expandafter\string\csname macro:->\endcsname{}
 }
 \def\ASYgobbleescape#1{\ifnum`\\=`#1 \else #1\fi}
+
 \def\WriteAsyLine#1{\def\ASYtmp{#1}%
   \immediate\write\AsyStream{\ASYstringmeaning\ASYtmp}}
+\def\WriteAsyPreambleLine#1{\def\ASYtmp{#1}%
+  \immediate\write\AsyPreambleStream{\ASYstringmeaning\ASYtmp}%
+  \WriteAsyLine{#1}}
+
 \def\gedefappend#1#2{%
   \toks@ = \expandafter{#1}%
   \global\edef#1{\the\toks@ #2}%
@@ -76,9 +81,6 @@
 \def\globalASYdefs{}
 \def\WriteGlobalAsyLine#1{\def\ASYtmp{#1^^J}%
 \gedefappend\globalASYdefs{\ASYstringmeaning\ASYtmp}}
-\def\WriteAsyPreambleLine#1{\def\ASYtmp{#1}%
-  \immediate\write\AsyPreambleStream{\ASYstringmeaning\ASYtmp}
-  \WriteGlobalAsyLine{texpreamble("#1");}}
 
 \def\EndOfAsymptote#1{\endgroup\end{#1}%
     \csname After#1Asymptote\endcsname}
@@ -141,11 +143,12 @@
 \AsymptoteEndDef{asydef}
 \def\AfterasydefAsymptote{}
 \def\texpreamble{%
-  \immediate\openout\AsyPreambleStream=\jobname_.pre
+  \immediate\write\AsyStream{texpreamble("}%
+  \immediate\openout\AsyPreambleStream=\jobname_.pre%
   \let\ThisAsymptote\WriteAsyPreambleLine%
   \ProcessAsymptote{texpreamble}}
 \AsymptoteEndDef{texpreamble}
-\def\AftertexpreambleAsymptote{}
+\def\AftertexpreambleAsymptote{\immediate\write\AsyStream{");}}
 
 \AtEndDocument{\immediate\closeout\AsyStream}
 
