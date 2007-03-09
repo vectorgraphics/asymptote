@@ -139,11 +139,13 @@
   \let\ThisAsymptote\WriteGlobalAsyLine%
   \ProcessAsymptote{asydef}}
 \AsymptoteEndDef{asydef}
+\def\AfterasydefAsymptote{}
 \def\texpreamble{%
   \immediate\openout\AsyPreambleStream=\jobname_.pre
   \let\ThisAsymptote\WriteAsyPreambleLine%
   \ProcessAsymptote{texpreamble}}
 \AsymptoteEndDef{texpreamble}
+\def\AftertexpreambleAsymptote{}
 
 \AtEndDocument{\immediate\closeout\AsyStream}
 
