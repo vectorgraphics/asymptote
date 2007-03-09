@@ -16,8 +16,17 @@
 \def\makeinnocent#1{\catcode`#1=12 }
 \def\csarg#1#2{\expandafter#1\csname#2\endcsname}
 \newwrite\AsyStream
+\newwrite\AsyPreambleStream
 \newread\AsyTestStream
 \def\AsyFile{\jobname.asy}
+
+\openin\AsyTestStream=\jobname_.pre
+\ifeof\AsyTestStream
+\else
+\input \jobname_.pre
+\fi
+\closein\AsyTestStream%
+
 \immediate\openout\AsyStream=\AsyFile
 \immediate\write\AsyStream{access settings;}%
 \immediate\write\AsyStream{if(!settings.multipleView)}%
@@ -67,6 +76,9 @@
 \def\globalASYdefs{}
 \def\WriteGlobalAsyLine#1{\def\ASYtmp{#1^^J}%
 \gedefappend\globalASYdefs{\ASYstringmeaning\ASYtmp}}
+\def\WriteAsyPreambleLine#1{\def\ASYtmp{#1}%
+  \immediate\write\AsyPreambleStream{\ASYstringmeaning\ASYtmp}
+  \WriteGlobalAsyLine{texpreamble("#1");}}
 
 \def\EndOfAsymptote#1{\endgroup\end{#1}%
     \csname After#1Asymptote\endcsname}
@@ -100,7 +112,7 @@
     \closein\AsyTestStream%
     \ifinline
     \catcode`:=12
-    \input{\jobname_\arabic{asy}_.tex}%
+    \input \jobname_\arabic{asy}_.tex%
     \else
     \includegraphics{\jobname_\arabic{asy}}%
     \fi
@@ -127,6 +139,11 @@
   \let\ThisAsymptote\WriteGlobalAsyLine%
   \ProcessAsymptote{asydef}}
 \AsymptoteEndDef{asydef}
+\def\texpreamble{%
+  \immediate\openout\AsyPreambleStream=\jobname_.pre
+  \let\ThisAsymptote\WriteAsyPreambleLine%
+  \ProcessAsymptote{texpreamble}}
+\AsymptoteEndDef{texpreamble}
 
 \AtEndDocument{\immediate\closeout\AsyStream}
 

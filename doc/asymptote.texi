@@ -7256,7 +7256,7 @@ Stefan Knorr.
 
 @c  LocalWords:  randMax Gaussrand asy cindex indices resized LaTeX TK latin au
 @c  LocalWords:  latexusage tex bbox PostScript subdirectory gcc emacs ASYDIR
-@c  LocalWords:  documentclass usepackage asydef subpath shipout sqrt xN  Mx bw
+@c  LocalWords:  documentclass usepackage subpath shipout sqrt xN  Mx bw
 @c  LocalWords:  xscale xaxis yaxis BeginBar GIF postprocessing fpu de rpair xy
 @c  LocalWords:  nomask noplain ImageMagick defaultfontsize defaultlinewidth cd
 @c  LocalWords:  startup natively xasy tkinter VxN yingyang currentpicture toc

@@ -12,15 +12,21 @@
 % Enable this line to produce pdf hyperlinks with pdftex:
 %\usepackage[pdftex]{hyperref}
 
+\begin{texpreamble}
+% LaTeX preamble common to LaTeX and Asymptote
+\usepackage{bm}
+\end{texpreamble}
+
 \begin{document}
+
 \begin{asydef}
-// Global definitions can be put here.
+// Global Asymptote definitions can be put here.
 \end{asydef}
 
 Here is a venn diagram produced with Asymptote, drawn to width 4cm:
 
 \def\A{A}
-\def\B{B}
+\def\B{\bm{B}}
 
 %\begin{figure}
 \begin{center}
@@ -50,7 +56,7 @@ draw(c2);
 //box(Label("$\A$",z1));              // Requires [inline] package option.
 //box(Label("$\B$","$B$",z2));        // Requires [inline] package option.
 box(Label("$A$",z1));             
-box(Label("$B$",z2));
+box(Label("$\bm{B}$",z2));
 
 pair z=(0,-2);
 real m=3;
