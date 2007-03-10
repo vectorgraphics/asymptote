@@ -68,7 +68,7 @@ string asyInstallDir; // Used only by msdos
 string defaultXasy="xasy";
 
 #ifdef __CYGWIN__
-const bool msdos=true;
+bool msdos=true;
 const char *HOME="USERPROFILE";
 const char pathSeparator=';';
 string defaultPSViewer="gsview32.exe";
@@ -80,7 +80,7 @@ string defaultDisplay="imdisplay";
 #define ASYMPTOTE_SYSDIR asyInstallDir
 const string docdir=".";
 #else  
-const bool msdos=false;
+bool msdos=false;
 const char *HOME="HOME";
 const char pathSeparator=':';
 string defaultPSViewer="gv";
