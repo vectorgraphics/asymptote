@@ -64,37 +64,114 @@ namespace settings {
   
 using camp::pair;
   
+string asyInstallDir; // Used only by msdos
+string defaultXasy="xasy";
+
 #ifdef __CYGWIN__
 const bool msdos=true;
 const char *HOME="USERPROFILE";
 const char pathSeparator=';';
-const string defaultPSViewer=
-  "c:\\Program Files\\Ghostgum\\gsview\\gsview32.exe";
-const string defaultPDFViewer=
-  "c:\\Program Files\\Adobe\\Reader 8.0\\Reader\\AcroRd32.exe";
-const string defaultGhostscript=
-  "c:\\Program Files\\gs\\gs8.54\\bin\\gswin32c.exe";
-const string defaultPython="c:\\Python25\\python.exe";
-const string defaultDisplay="imdisplay";
+string defaultPSViewer="gsview32.exe";
+string defaultPDFViewer="AcroRd32.exe";
+string defaultGhostscript="gswin32c.exe";
+string defaultPython="python.exe";
+string defaultDisplay="imdisplay";
 #undef ASYMPTOTE_SYSDIR
-#define ASYMPTOTE_SYSDIR "c:\\Program Files\\Asymptote"
+#define ASYMPTOTE_SYSDIR asyInstallDir
 const string docdir=".";
 #else  
 const bool msdos=false;
 const char *HOME="HOME";
 const char pathSeparator=':';
-const string defaultPSViewer="gv";
+string defaultPSViewer="gv";
 #ifdef __APPLE__
-const string defaultPDFViewer="open";
+string defaultPDFViewer="open";
 #else  
-const string defaultPDFViewer="acroread";
+string defaultPDFViewer="acroread";
 #endif  
-const string defaultGhostscript="gs";
-const string defaultDisplay="display";
-const string defaultPython="";
+string defaultGhostscript="gs";
+string defaultDisplay="display";
+string defaultPython;
 const string docdir=ASYMPTOTE_DOCDIR;
 #endif  
+const string Regedit="regedit.exe";
 
+void stripnull(string& s)
+{
+  size_t pos;
+  while((pos=s.find('\0')) < string::npos)
+    s.erase(pos,1);
+}
+
+string pruneBackslash(string s)
+{
+  size_t pos=0;
+  while((pos=s.find("\\\\",pos)) < string::npos) {
+    ++pos;
+    s.erase(pos,1);
+  }
+  return s;
+}
+  
+// Look up a key in the MSWindows registry
+string getPath(const string& key1, const string& key2="",
+	       const string& entry="") 
+{
+  string Key="HKEY_LOCAL_MACHINE\\SOFTWARE\\"+key1;
+  string head="["+Key;
+  string tail=key2+"]";
+  ostringstream tempname;
+  tempname << Getenv(HOME,false) << "\\.asy\\asymptote_" << getpid() << ".reg";
+  ostringstream cmd;
+  cmd << "'" << Regedit << "' /e '" << tempname.str() << "' '" << Key << "'";
+  if(System(cmd)) return "";
+  string s;
+  std::ifstream fin(tempname.str().c_str());
+  while(getline(fin,s)) {
+    stripnull(s);
+    if(s.find(head) < string::npos && s.find(tail) < string::npos) {
+      while(getline(fin,s)) {
+	stripnull(s);
+	size_t begin=s.find("=\"");
+	if(begin == string::npos) break;
+	if(s.find(entry+"=\"") < string::npos) {
+	  begin += 2;
+	  size_t end=s.rfind("\"");
+	  if(end < string::npos) {
+	    fin.close();
+	    unlink(tempname.str().c_str());
+	    return pruneBackslash(s.substr(begin,end-begin));
+	  }
+	}
+      }
+    }
+  }
+  fin.close();
+  unlink(tempname.str().c_str());
+  return "";
+}
+  
+string stripFile(string name)
+{
+  size_t p=name.rfind('\\');
+  ++p;
+  if(p < string::npos) name.erase(p,string::npos);
+  return name;
+}
+  
+void queryRegistry()
+{
+  defaultGhostscript=stripFile(getPath("AFPL Ghostscript\\","",
+				       "\"GS_DLL\""))+defaultGhostscript;
+  defaultPDFViewer=getPath("Adobe\\Acrobat Reader","InstallPath","@")+
+    "\\"+defaultPDFViewer;
+  defaultPSViewer=getPath("Ghostgum\\GSview")+"\\gsview\\"+defaultPSViewer;
+  defaultPython=getPath("Python\\PythonCore","InstallPath","@")+defaultPython;
+  asyInstallDir=getPath("Microsoft\\Windows\\CurrentVersion\\Uninstall\\Asymptote",
+			"","\"InstallLocation\"");
+  defaultXasy=asyInstallDir+"\\"+defaultXasy;
+}
+  
 const char PROGRAM[]=PACKAGE_NAME;
 const char VERSION[]=PACKAGE_VERSION;
 const char BUGREPORT[]=PACKAGE_BUGREPORT;
@@ -393,7 +470,7 @@ struct stringSetting : public argumentSetting {
                 string argname, string desc,
                 string defaultValue)
     : argumentSetting(name, code, argname, desc,
-              types::primString(), (item)defaultValue) {}
+		      types::primString(), (item)defaultValue) {}
 
   bool getOption() {
     value=(item)(string)optarg;
@@ -406,7 +483,7 @@ struct stringOutnameSetting : public argumentSetting {
 		       string argname, string desc,
 		       string defaultValue)
     : argumentSetting(name, code, argname, desc,
-              types::primString(), (item)defaultValue) {}
+		      types::primString(), (item)defaultValue) {}
 
   bool getOption() {
     value=(item)(string)
@@ -470,25 +547,25 @@ struct intSetting : public dataSetting<int> {
   
 struct realSetting : public dataSetting<double> {
   realSetting(string name, char code,
-	     string argname, string desc, double defaultValue=0.0)
+	      string argname, string desc, double defaultValue=0.0)
     : dataSetting<double>("a real", name, code, argname, desc,
-		       types::primReal(), defaultValue) {}
+			  types::primReal(), defaultValue) {}
 };
   
 struct pairSetting : public dataSetting<pair> {
   pairSetting(string name, char code,
-	     string argname, string desc, pair defaultValue=0.0)
+	      string argname, string desc, pair defaultValue=0.0)
     : dataSetting<pair>("a pair", name, code, argname, desc,
-		       types::primPair(), defaultValue) {}
+			types::primPair(), defaultValue) {}
 };
   
 // For setting the alignment of a figure on the page.
 struct alignSetting : public argumentSetting {
   alignSetting(string name, char code,
-                  string argname, string desc,
-                  int defaultValue=CENTER)
+	       string argname, string desc,
+	       int defaultValue=CENTER)
     : argumentSetting(name, code, argname, desc,
-                  types::primInt(), (item)defaultValue) {}
+		      types::primInt(), (item)defaultValue) {}
 
   bool getOption() {
     string str=optarg;
@@ -652,7 +729,7 @@ void reportSyntax() {
   cerr << endl;
   usage(argv0);
   cerr << endl << "Type '" << argv0
-    << " -h' for a description of options." << endl;
+       << " -h' for a description of options." << endl;
   exit(1);
 }
 
@@ -803,6 +880,9 @@ void no_GCwarn(char *, GC_word) {}
 #endif
 
 void initSettings() {
+  if(msdos)
+    queryRegistry();
+
   settingsModule=new types::dummyRecord(symbol::trans("settings"));
   
   multiOption *view=new multiOption("View", 'V', "View output");
@@ -816,12 +896,13 @@ void initSettings() {
   addOption(view);
 
   addOption(new realSetting("deconstruct", 'x', "X",
-                     "Deconstruct into transparent GIF objects magnified by X",
+			    "Deconstruct into transparent GIF objects magnified by X",
 			    0.0));
   addOption(new boolSetting("clearGUI", 'c', "Clear GUI operations"));
   addOption(new boolSetting("ignoreGUI", 'i', "Ignore GUI operations"));
   addOption(new stringSetting("outformat", 'f', "format",
-		      "Convert each output file to specified format", ""));
+			      "Convert each output file to specified format",
+			      ""));
   addOption(new stringOutnameSetting("outname", 'o', "name",
 				     "Alternative output name for first file",
 				     ""));
@@ -831,7 +912,7 @@ void initSettings() {
   addOption(new pairSetting("offset", 'O', "pair",
 			    "PostScript offset [(0,0)]"));
   addOption(new alignSetting("align", 'a', "C|B|T|Z",
-		"Center, Bottom, Top, or Zero page alignment [Center]"));
+			     "Center, Bottom, Top, or Zero page alignment [Center]"));
   
   addOption(new boolSetting("debug", 'd', "Enable debugging messages"));
   addOption(new incrementSetting("verbose", 'v',
@@ -841,7 +922,8 @@ void initSettings() {
   addOption(new incrementOption("novv", 0,"", &verbose,-2));
   
   addOption(new boolSetting("keep", 'k', "Keep intermediate files"));
-  addOption(new boolSetting("keepaux", 0, "Keep intermediate LaTeX .aux files"));
+  addOption(new boolSetting("keepaux", 0,
+			    "Keep intermediate LaTeX .aux files"));
   addOption(new stringSetting("tex", 0,"engine",
 			      "TeX engine (\"latex|pdflatex|tex|pdftex|none\") [\"latex\"]",
 			      "latex"));
@@ -928,7 +1010,7 @@ void initSettings() {
   addOption(new envSetting("display", defaultDisplay));
   addOption(new envSetting("animate", "animate"));
   addOption(new envSetting("python", defaultPython));
-  addOption(new envSetting("xasy", "xasy"));
+  addOption(new envSetting("xasy", defaultXasy));
   addOption(new envSetting("papertype", "letter"));
   addOption(new envSetting("dir", ""));
 }
@@ -1040,10 +1122,10 @@ string defaultformat() {
 const char *beginlabel(const string& texengine) {
   if(pdf(texengine))
     return "\\special{pdf: q #5 0 0 cm}"
-           "\\wd\\ASYbox 0pt\\dp\\ASYbox 0pt\\ht\\ASYbox 0pt";
+      "\\wd\\ASYbox 0pt\\dp\\ASYbox 0pt\\ht\\ASYbox 0pt";
   else 
     return "\\special{ps: gsave currentpoint currentpoint translate [#5 0 0] "
-                         "concat neg exch neg exch translate}";
+      "concat neg exch neg exch translate}";
 }
 
 // TeX special command to restore currentmatrix after typesetting labels.

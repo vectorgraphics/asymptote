@@ -338,17 +338,6 @@ For full interactive functionality, @code{readline} version 4.2 or later
 @cindex Microsoft Windows
 Users of the @code{Microsoft Windows} operating system can install the
 self-extracting @code{Asymptote} executable @code{asymptote-install-x.xx.exe}.
-The recommended installation directory is @code{c:\Program Files\Asymptote}.
-If you wish to install @code{Asymptote} in another directory, say
-@code{d:\Asymptote}, you can tell @code{Asymptote} where to find
-@code{plain.asy} and its other base modules by creating a file
-@code{config.asy} in a new folder @code{%USERPROFILE%\.asy} (by
-default this means @code{C:\Documents and Settings\%USERNAME%\.asy,
-where %USERNAME% denotes your user name}) containing the lines
-@verbatim
-import settings;
-dir="d:\Asymptote";
-@end verbatim
 
 A working @code{TeX} implementation (such as the one available at
 @url{http://www.miktex.org}) will be required to typeset labels.
@@ -360,11 +349,12 @@ The @code{ImageMagick} package from
 
 @noindent
 is required to support alternate output formats (@pxref{convert}),
-including the graphical user interface.
+including the graphical user interface and animations.
 
 @noindent
-Example code will be installed by default in
-@code{c:\Program Files\Asymptote\examples}.
+Example code will be installed by default in the @code{examples}
+subdirectory of the installation directory (by default, 
+@code{C:\Program Files\Asymptote}).
 
 @node Configuring
 @section Configuring
@@ -387,8 +377,8 @@ configuration variable @code{psviewer}.
 Configuration variables are most easily set as @code{Asymptote}
 variables in the configuration file (by default, @code{.asy/config.asy} in the 
 user's home directory or @code{%USERPROFILE%\.asy\config.asy} under
-@code{MSDOS}); @pxref{configuration file}.
-Here are the default values of several important configuration variables.
+@code{MSDOS}); @pxref{configuration file}. Here are the default values
+of several important configuration variables:
 
 @cindex @code{python}
 @noindent
@@ -405,10 +395,10 @@ python="";
 Under @code{MSDOS:}
 @verbatim
 import settings;
-psviewer="c:\Program Files\Ghostgum\gsview\gsview32.exe";
-pdfviewer="c:\Program Files\Adobe\Reader 8.0\Reader\AcroRd32.exe";
-gs="c:\Program Files\gs\gs8.54\bin\gswin32c.exe";
-python="c:\Python25\python.exe";
+psviewer="gsview32.exe";
+pdfviewer="AcroRd32.exe";
+gs="gswin32c.exe";
+python="python.exe";
 @end verbatim
 
 For @acronym{PDF} format output, the @code{gs} setting specifies the
@@ -513,7 +503,7 @@ variable @code{dir} (separated by @code{:} under UNIX and
 @item
 The @code{Asymptote} system directory (by default,
 @code{@value{Datadir}/asymptote} under @code{UNIX} and
-@code{c:\Program Files\Asymptote} under @code{MSDOS}).
+@code{C:\Program Files\Asymptote} under @code{MSDOS}).
 @end enumerate
 
 @node Compiling from UNIX source
@@ -599,7 +589,7 @@ Users of @code{emacs} can edit @code{Asymptote} code with the mode
 @code{asy-mode}, after enabling it by putting the following lines in their
 @code{.emacs} initialization file, replacing @code{ASYDIR} with the
 location of the @code{Asymptote} system directory (by default,
-@code{@value{Datadir}/asymptote} or @code{c:\Program Files\Asymptote}
+@code{@value{Datadir}/asymptote} or @code{C:\Program Files\Asymptote}
 under @code{MSDOS}):
 @verbatim
 (add-to-list 'load-path "ASYDIR")
