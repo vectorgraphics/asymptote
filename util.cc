@@ -156,9 +156,9 @@ void execError(const char *command, const char *hint, const char *application)
 {
     cerr << "Cannot execute " << command << endl;
     if(application == "") application=hint;
-    string s=string(hint);
-    transform(s.begin(), s.end(), s.begin(), toupper);        
-    if(hint) 
+    if(hint) {
+      string s=string(hint);
+      transform(s.begin(), s.end(), s.begin(), toupper);        
       cerr << "Please put in " << getSetting<string>("config")
 	   << ": " << endl << endl
 	   << "import settings;" << endl
@@ -168,6 +168,7 @@ void execError(const char *command, const char *hint, const char *application)
 	   << "Alternatively, set the environment variable ASYMPTOTE_" << s 
 	   << endl << "or use the command line option -" << hint 
 	   << "=\"PATH\"" << endl;
+    }
     exit(-1);
 }
 						    
