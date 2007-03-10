@@ -45,9 +45,6 @@ genv::genv()
   // Add settings as a module.  This is so that the init file ~/.asy/config.asy
   // can set settings.
   imap["settings"]=settings::getSettingsModule();
-#ifdef HAVE_LIBGSL  
-  imap["gsl"]=trans::getGSLModule();
-#endif  
 
   // Translate plain in advance, if we're using autoplain.
   if(getSetting<bool>("autoplain")) {
@@ -58,6 +55,9 @@ genv::genv()
 
     Setting("autoplain")=true;
   }
+#ifdef HAVE_LIBGSL  
+  imap["gsl"]=trans::getGSLModule();
+#endif  
 }
 
 record *genv::loadModule(symbol *id, string filename) {
