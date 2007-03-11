@@ -15,15 +15,19 @@
 
 #include <strings.h>
 
+// Strip the directory from a filename.
+string stripDir(string name);
+  
+// Strip the file from a filename, returning the directory.
+string stripFile(string name);
+
+// Strip the extension from a filename.
 string stripExt(string name, const string& suffix="");
   
 void writeDisabled();
   
 // Check if global writes disabled and name contains a directory.
 void checkLocal(string name);
-  
-// Strip the directory from a filename.
-string stripDir(string name);
   
 // Construct a filename from the original, adding aux at the end, and
 // changing the suffix.

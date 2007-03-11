@@ -94,83 +94,70 @@ string defaultDisplay="display";
 string defaultPython;
 const string docdir=ASYMPTOTE_DOCDIR;
 #endif  
-const string Regedit="regedit.exe";
 
-void stripnull(string& s)
-{
-  size_t pos;
-  while((pos=s.find('\0')) < string::npos)
-    s.erase(pos,1);
-}
-
-string pruneBackslash(string s)
-{
-  size_t pos=0;
-  while((pos=s.find("\\\\",pos)) < string::npos) {
-    ++pos;
-    s.erase(pos,1);
-  }
-  return s;
-}
+#if __CYGWIN__  
+#include <dirent.h>
   
-// Look up a key in the MSWindows registry
-string getPath(const string& key1, const string& key2="",
-	       const string& entry="") 
+// Use key to look up an entry in the MSWindows registry, respecting wild cards
+string getEntry(const string& key)
 {
-  string Key="HKEY_LOCAL_MACHINE\\SOFTWARE\\"+key1;
-  string head="["+Key;
-  string tail=key2+"]";
-  ostringstream tempname;
-  tempname << Getenv(HOME,false) << "\\.asy\\asymptote_" << getpid() << ".reg";
-  ostringstream cmd;
-  cmd << "'" << Regedit << "' /e '" << tempname.str() << "' '" << Key << "'";
-  if(System(cmd)) return "";
-  string s;
-  std::ifstream fin(tempname.str().c_str());
-  while(getline(fin,s)) {
-    stripnull(s);
-    if(s.find(head) < string::npos && s.find(tail) < string::npos) {
-      while(getline(fin,s)) {
-	stripnull(s);
-	size_t begin=s.find("=\"");
-	if(begin == string::npos) break;
-	if(s.find(entry+"=\"") < string::npos) {
-	  begin += 2;
-	  size_t end=s.rfind("\"");
-	  if(end < string::npos) {
-	    fin.close();
-	    unlink(tempname.str().c_str());
-	    return pruneBackslash(s.substr(begin,end-begin));
-	  }
-	}
+  string path="/proc/registry/HKEY_LOCAL_MACHINE/SOFTWARE/"+key;
+  size_t star;
+  string head;
+  while((star=path.find("*")) < string::npos) {
+    string prefix=path.substr(0,star);
+    string suffix=path.substr(star+1);
+    size_t slash=suffix.find("/");
+    if(slash < string::npos) {
+      path=suffix.substr(slash);
+      suffix=suffix.substr(0,slash);
+    } else {
+      path=suffix;
+      suffix="";
+    }
+    string directory=head+stripFile(prefix);
+    string file=stripDir(prefix);
+    DIR *dir=opendir(directory.c_str());
+    if(dir == NULL) return "";
+    dirent *p;
+    string rsuffix=suffix;
+    reverse(rsuffix.begin(),rsuffix.end());
+    while((p=readdir(dir)) != NULL) {
+      string dname=p->d_name;
+      string rdname=dname;
+      reverse(rdname.begin(),rdname.end());
+      if(dname != "." && dname != ".." && 
+	 dname.substr(0,file.size()) == file &&
+	 rdname.substr(0,suffix.size()) == rsuffix) {
+	head=directory+p->d_name;
+	break;
       }
     }
+    if(p == NULL) return "";
   }
-  fin.close();
-  unlink(tempname.str().c_str());
+  std::ifstream fin((head+path).c_str());
+  if(fin) {
+    string s;
+    getline(fin,s);
+    size_t end=s.find('\0');
+    if(end < string::npos)
+      return s.substr(0,end);
+  }
   return "";
-}
-  
-string stripFile(string name)
-{
-  size_t p=name.rfind('\\');
-  ++p;
-  if(p < string::npos) name.erase(p,string::npos);
-  return name;
 }
   
 void queryRegistry()
 {
-  defaultGhostscript=stripFile(getPath("AFPL Ghostscript\\","",
-				       "\"GS_DLL\""))+defaultGhostscript;
-  defaultPDFViewer=getPath("Adobe\\Acrobat Reader","InstallPath","@")+
-    "\\"+defaultPDFViewer;
-  defaultPSViewer=getPath("Ghostgum\\GSview")+"\\gsview\\"+defaultPSViewer;
-  defaultPython=getPath("Python\\PythonCore","InstallPath","@")+defaultPython;
-  asyInstallDir=getPath("Microsoft\\Windows\\CurrentVersion\\Uninstall\\Asymptote",
-			"","\"InstallLocation\"");
+  defaultGhostscript=stripFile(getEntry("AFPL Ghostscript/*/GS_DLL"))+
+    defaultGhostscript;
+  defaultPDFViewer=getEntry("Adobe/Acrobat Reader/*/InstallPath/@")+"\\"+
+    defaultPDFViewer;
+  defaultPSViewer=getEntry("Ghostgum/GSview/*")+"\\gsview\\"+defaultPSViewer;
+  defaultPython=getEntry("Python/PythonCore/*/InstallPath/@")+defaultPython;
+  asyInstallDir=getEntry("Microsoft/Windows/CurrentVersion/Uninstall/Asymptote/InstallLocation");
   defaultXasy=asyInstallDir+"\\"+defaultXasy;
 }
+#endif  
   
 const char PROGRAM[]=PACKAGE_NAME;
 const char VERSION[]=PACKAGE_VERSION;
@@ -880,8 +867,9 @@ void no_GCwarn(char *, GC_word) {}
 #endif
 
 void initSettings() {
-  if(msdos)
+#if __CYGWIN__
     queryRegistry();
+#endif
 
   settingsModule=new types::dummyRecord(symbol::trans("settings"));
   

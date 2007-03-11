@@ -29,6 +29,30 @@ using namespace settings;
 
 bool False=false;
 
+string stripDir(string name)
+{
+  size_t p;
+#ifdef __CYGWIN__  
+  p=name.rfind('\\');
+  if(p < string::npos) name.erase(0,p+1);
+#endif  
+  p=name.rfind('/');
+  if(p < string::npos) name.erase(0,p+1);
+  return name;
+}
+
+string stripFile(string name)
+{
+  size_t p;
+#ifdef __CYGWIN__  
+  p=name.rfind('\\');
+  if(p < string::npos) name.erase(p+1);
+#endif  
+  p=name.rfind('/');
+  if(p < string::npos) name.erase(p+1);
+  return name;
+}
+  
 string stripExt(string name, const string& ext)
 {
   string suffix="."+ext;
@@ -75,18 +99,6 @@ void checkLocal(string name)
 #endif  
   if(name.rfind('/') < string::npos) writeDisabled();
   return;
-}
-
-string stripDir(string name)
-{
-  size_t p;
-#ifdef __CYGWIN__  
-  p=name.rfind('\\');
-  if(p < string::npos) name.erase(0,p+1);
-#endif  
-  p=name.rfind('/');
-  if(p < string::npos) name.erase(0,p+1);
-  return name;
 }
 
 string buildname(string name, string suffix, string aux, bool stripdir) 
