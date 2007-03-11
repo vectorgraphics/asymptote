@@ -342,14 +342,11 @@ where @code{x.xx} denotes the latest version.
 
 A working @code{TeX} implementation (such as the one available at
 @url{http://www.miktex.org}) will be required to typeset labels.
+You will also need to install @code{AFPL Ghostscript} from
+@url{http://sourceforge.net/projects/ghostscript/}.
 To view the default @code{PostScript} output, you can install the
-program @code{gsview} available from
+program @code{gsview} available from 
 @url{http://www.cs.wisc.edu/~ghost/gsview/}.
-If you instead want to produce @acronym{PDF} output, you will need to
-install the @code{PostScript}-to-@acronym{PDF} processor @code{Ghostscript},
-from @url{http://sourceforge.net/projects/ghostscript/} and give
-@code{Asymptote} the @code{-f pdf} or @code{-tex pdflatex} option
-(@pxref{Options}).
 
 The @code{ImageMagick} package from
 
