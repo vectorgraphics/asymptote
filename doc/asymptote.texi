@@ -337,12 +337,20 @@ For full interactive functionality, @code{readline} version 4.2 or later
 @section Microsoft Windows
 @cindex Microsoft Windows
 Users of the @code{Microsoft Windows} operating system can install the
-self-extracting @code{Asymptote} executable @code{asymptote-install-x.xx.exe}.
+self-extracting @code{Asymptote} executable @code{asymptote-x.xx-setup.exe},
+where @code{x.xx} denotes the latest version.
 
 A working @code{TeX} implementation (such as the one available at
 @url{http://www.miktex.org}) will be required to typeset labels.
-The @code{Python} interpreter from @url{http://www.python.org} is only required
-if you wish to try out the graphical user interface (@pxref{GUI}).
+To view the default @code{PostScript} output, you can install the
+program @code{gsview} available from
+@url{http://www.cs.wisc.edu/~ghost/gsview/}.
+If you instead want to produce @acronym{PDF} output, you will need to
+install the @code{PostScript}-to-@acronym{PDF} processor @code{Ghostscript},
+from @url{http://sourceforge.net/projects/ghostscript/} and give
+@code{Asymptote} the @code{-f pdf} or @code{-tex pdflatex} option
+(@pxref{Options}).
+
 The @code{ImageMagick} package from
 
 @url{http://www.imagemagick.org/script/binary-releases.php} 
@@ -350,6 +358,8 @@ The @code{ImageMagick} package from
 @noindent
 is required to support alternate output formats (@pxref{convert}),
 including the graphical user interface and animations.
+The @code{Python} interpreter from @url{http://www.python.org} is only required
+if you wish to try out the graphical user interface (@pxref{GUI}).
 
 @noindent
 Example code will be installed by default in the @code{examples}
@@ -367,10 +377,20 @@ In interactive mode, or when given the @code{-V} option (the default
 when running @code{Asymptote} on a single file under @code{MSDOS}),
 @code{Asymptote} will automatically invoke the @code{PostScript}
 viewer @code{gv} (under @code{UNIX}) or @code{gsview} (under
-@code{MSDOS}; available from
-@url{http://www.cs.wisc.edu/~ghost/gsview/}) to display 
-graphical output. These defaults may be overridden with the
-configuration variable @code{psviewer}. 
+@code{MSDOS} to display graphical output. These defaults may be
+overridden with the configuration variable @code{psviewer}. 
+The @code{PostScript} viewer should be capable of automatically
+redrawing whenever the output file is updated. The default @code{UNIX}
+@code{PostScript} viewer @code{gv} supports this (via a @code{SIGHUP}
+signal). Version @code{gv-3.6.2} or later (from
+@code{http://ftp.gnu.org/gnu/gv/}) is required for interactive mode to
+work properly.
+Users of @code{ggv} will need to enable @code{Watch file} under
+@code{Edit/Postscript Viewer Preferences}.
+Users of @code{gsview} will need to enable @code{Options/Auto Redisplay}
+(however, under @code{MSDOS} it is still necessary to click on the
+@code{gsview} window; under @code{UNIX} one must manually redisplay by
+pressing the @code{r} key).
 
 @cindex @code{settings}
 @cindex configuration file
@@ -402,8 +422,10 @@ python="python.exe";
 @end verbatim
 
 For @acronym{PDF} format output, the @code{gs} setting specifies the
-location of the @code{PostScript}-to-@acronym{PDF} processor @code{gs}
-and @code{pdfviewer} specifies the location of the @acronym{PDF}
+location of the @code{PostScript}-to-@acronym{PDF} processor @code{Ghostscript},
+available from @url{http://sourceforge.net/projects/ghostscript/}.
+
+The setting @code{pdfviewer} specifies the location of the @acronym{PDF}
 viewer.  The graphical user interface may also require setting the
 variable @code{python} if @code{Python} is installed in a nonstandard
 location.
@@ -455,7 +477,7 @@ environment variable name is obtained by converting the configuration
 variable name to upper case  and prepending @code{ASYMPTOTE_}:
 For example, to set the environment variable
 @verbatim
-ASYMPTOTE_PSVIEWER="c:\Program Files\Ghostgum\gsview\gsview32.exe";
+ASYMPTOTE_PSVIEWER="C:\Program Files\Ghostgum\gsview\gsview32.exe";
 @end verbatim
 @noindent
 under @code{Microsoft Windows XP}:
@@ -466,21 +488,6 @@ under @code{Microsoft Windows XP}:
 @item Click the @code{Advanced} tab; 
 @item Click the @code{Environment Variables} button.
 @end enumerate
-
-The @code{PostScript} viewer should be capable of automatically
-redrawing whenever the output file is updated. The default @code{UNIX}
-@code{PostScript} viewer @code{gv} supports this (via a @code{SIGHUP}
-signal). Version @code{gv-3.6.2} or later (from
-@code{http://ftp.gnu.org/gnu/gv/}) is required for interactive mode to
-work properly.
-
-Users of @code{ggv} will need to enable @code{Watch file} under
-@code{Edit/Postscript Viewer Preferences} 
-
-Users of @code{gsview} will need to enable @code{Options/Auto Redisplay}
-(however, under @code{MSDOS} it is still necessary to click on the
-@code{gsview} window; under @code{UNIX} one must manually redisplay by
-pressing the @code{r} key).
 
 @node Search paths
 @section Search paths
@@ -7246,7 +7253,7 @@ Stefan Knorr.
 
 @c  LocalWords:  randMax Gaussrand asy cindex indices resized LaTeX TK latin au
 @c  LocalWords:  latexusage tex bbox PostScript subdirectory gcc emacs ASYDIR
-@c  LocalWords:  documentclass usepackage subpath shipout sqrt xN  Mx bw
+@c  LocalWords:  documentclass usepackage subpath shipout sqrt xN  Mx bw AcroRd
 @c  LocalWords:  xscale xaxis yaxis BeginBar GIF postprocessing fpu de rpair xy
 @c  LocalWords:  nomask noplain ImageMagick defaultfontsize defaultlinewidth cd
 @c  LocalWords:  startup natively xasy tkinter VxN yingyang currentpicture toc
@@ -7348,6 +7355,6 @@ Stefan Knorr.
 @c  LocalWords:  LeftJustified RightJustified tickmodifier gunzip gmake IRIX
 @c  LocalWords:  texcommand RET SITEDIR filegraph pathmarkers POSIX binput AOB
 @c  LocalWords:  boutput nonportable markinterval stickframe circlebarframe
-@c  LocalWords:  crossframe tildeframe markangle StickIntervalMarker
-@c  LocalWords:  CrossIntervalMarker CircleBarIntervalMarker
-@c  LocalWords:  TildeIntervalMarker
+@c  LocalWords:  crossframe tildeframe markangle StickIntervalMarker gswin
+@c  LocalWords:  CrossIntervalMarker CircleBarIntervalMarker Ghostscript
+@c  LocalWords:  TildeIntervalMarker autoimport
