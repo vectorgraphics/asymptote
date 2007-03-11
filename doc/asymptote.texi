@@ -2792,6 +2792,10 @@ frame pic.fit(real xsize=pic.xsize, real ysize=pic.ysize,
 The default size and aspect ratio settings are those given to the
 @code{size} command (which default to @code{0}, @code{0}, and
 @code{true}, respectively).
+@cindex @code{calculateTransform}
+The transformation that would currently be used to fit a picture
+@code{pic} to a frame is returned by the member function
+@code{pic.calculateTransform()}.
 
 In certain cases (e.g.@ 2D graphs) where only an approximate size
 estimate for @code{pic} is available, the picture fitting routine
@@ -2918,7 +2922,7 @@ The function
 @verbatim
 pair framepoint(picture pic=currentpicture, pair dir);
 @end verbatim
-works similarly, except the result is a point in PostScript
+works similarly, except the result is a point in @code{PostScript}
 coordinates on the bounding box that picture @code{pic} would have if
 currently fit to a frame using its default size specification.
 
@@ -3057,9 +3061,13 @@ void texreset();
 @cindex @code{usepackage}
 The routine
 @verbatim
-void usepackage(string s);
+void usepackage(string s, string options="");
 @end verbatim
-is a convenient abbreviation for @code{texpreamble("\usepackage@{"+s+"@}");}
+provides a convenient abbreviation for 
+@verbatim
+texpreamble("\usepackage["+options+"]{"+s+"}"); 
+@end verbatim
+@noindent
 that can be used for importing @code{LaTeX} packages.
 
 @end table
@@ -7352,6 +7360,6 @@ Stefan Knorr.
 @c  LocalWords:  LeftJustified RightJustified tickmodifier gunzip gmake IRIX
 @c  LocalWords:  texcommand RET SITEDIR filegraph pathmarkers POSIX binput AOB
 @c  LocalWords:  boutput nonportable markinterval stickframe circlebarframe
-@c  LocalWords:  crossframe tildeframe markangle StickIntervalMarker gswin
+@c  LocalWords:  crossframe tildeframe markangle StickIntervalMarker gswin AFPL
 @c  LocalWords:  CrossIntervalMarker CircleBarIntervalMarker Ghostscript
-@c  LocalWords:  TildeIntervalMarker autoimport
+@c  LocalWords:  TildeIntervalMarker autoimport calculateTransform

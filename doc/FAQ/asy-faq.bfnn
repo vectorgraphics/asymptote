@@ -202,12 +202,10 @@ Likely, this means that latex and dvips are not in your default path.
 Try adding the following lines to your \courier{config.asy\} file: 
 
 \verbatim
+import settings;
 latex="C:\texmf\miktex\bin\latex.exe"; 
 dvips="C:\texmf\miktex\bin\dvips.exe"; 
 \endverbatim
-
-After that it also asks to install the xcolor package, which you should do. 
-Then it should work. 
 
 \comment #####################################################################
 
@@ -374,6 +372,10 @@ The solution is to load the \courier{icomma\} package near the beginning of your
 \verbatim
 usepackage("icomma");
 \endverbatim
+
+\question 11mar:hyperref How can I prevent \courier{texpreamble("\usepackage[pdftex]{hyperref}")\} from changing the page size?
+
+texpreamble("\usepackage[pdftex,setpagesize=false]{hyperref}");
 
 \comment #####################################################################
 
@@ -1248,7 +1250,7 @@ Yes, simply call the newpage() function. This is used by the
  LocalWords:  brokentexinfo texinfo arounds latexintegration latexusage tex EPS
  LocalWords:  Teixeira Ivaldi lasy pdflatex PDF inline endverbatim tkinter xasy
  LocalWords:  tkinterdepend Uvh nodeps windir USERPROFILE winglobal popup XP PQ
- LocalWords:  MSDOS miktex MikTex dvips texmf exe xcolor tensionsyntax greek pq
+ LocalWords:  MSDOS miktex MikTex dvips texmf exe tensionsyntax greek pq
  LocalWords:  dotfactor prepending matlabels usepackage amsmath latexpackage
  LocalWords:  mathptmx internatfonts jul fourier textfamilyextension decsep pic
  LocalWords:  lineargraph rotatelabel fixedsize colorssaturation colour NoFill
