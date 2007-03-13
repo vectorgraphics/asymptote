@@ -19,12 +19,14 @@
 \newread\AsyTestStream
 \def\AsyFile{\jobname.asy}
 
+\ifinline
 \openin\AsyTestStream=\jobname_.pre
 \ifeof\AsyTestStream
 \else
 \input \jobname_.pre
 \fi
 \closein\AsyTestStream%
+\fi
 
 \immediate\openout\AsyStream=\AsyFile
 \immediate\write\AsyStream{access settings;}%
