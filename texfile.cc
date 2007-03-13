@@ -45,7 +45,14 @@ texfile::~texfile()
   
 void texfile::prologue()
 {
-  texdefines(*out);
+  if(inlinetex) {
+    std::ofstream *outpreamble=
+      new std::ofstream(auxname(getSetting<string>("outname"),"pre").c_str());
+    texpreamble(*outpreamble,TeXpreamble);
+    outpreamble->close();
+  }
+  
+  texdefines(*out,TeXpreamble,false);
   double width=box.right-box.left;
   double height=box.top-box.bottom;
   if(settings::pdf(texengine) && !inlinetex) {

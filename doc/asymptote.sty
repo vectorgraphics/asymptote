@@ -16,7 +16,6 @@
 \def\makeinnocent#1{\catcode`#1=12 }
 \def\csarg#1#2{\expandafter#1\csname#2\endcsname}
 \newwrite\AsyStream
-\newwrite\AsyPreambleStream
 \newread\AsyTestStream
 \def\AsyFile{\jobname.asy}
 
@@ -70,9 +69,6 @@
 
 \def\WriteAsyLine#1{\def\ASYtmp{#1}%
   \immediate\write\AsyStream{\ASYstringmeaning\ASYtmp}}
-\def\WriteAsyPreambleLine#1{\def\ASYtmp{#1}%
-  \immediate\write\AsyPreambleStream{\ASYstringmeaning\ASYtmp}%
-  \WriteAsyLine{#1}}
 
 \def\gedefappend#1#2{%
   \toks@ = \expandafter{#1}%
@@ -142,13 +138,6 @@
   \ProcessAsymptote{asydef}}
 \AsymptoteEndDef{asydef}
 \def\AfterasydefAsymptote{}
-\def\texpreamble{%
-  \immediate\write\AsyStream{texpreamble("}%
-  \immediate\openout\AsyPreambleStream=\jobname_.pre%
-  \let\ThisAsymptote\WriteAsyPreambleLine%
-  \ProcessAsymptote{texpreamble}}
-\AsymptoteEndDef{texpreamble}
-\def\AftertexpreambleAsymptote{\immediate\write\AsyStream{");}}
 
 \AtEndDocument{\immediate\closeout\AsyStream}
 
