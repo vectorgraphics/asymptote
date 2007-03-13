@@ -56,8 +56,13 @@ void texfile::prologue()
   double width=box.right-box.left;
   double height=box.top-box.bottom;
   if(settings::pdf(texengine) && !inlinetex) {
+    double voffset=0.0;
+    if(settings::latex(texengine)) {
+      if(height < 12.0) voffset=height-12.0;
+    } else if(height < 10.0) voffset=height-10.0;
+
     *out << "\\pdfhorigin=0bp" << newl
-	 << "\\pdfvorigin=0bp" << newl;
+	 << "\\pdfvorigin=" << voffset << "bp" << newl;
     if(width > 0) 
       *out << "\\pdfpagewidth=" << width << "bp" << newl;
     if(height > 0)
