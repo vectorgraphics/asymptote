@@ -24,9 +24,9 @@ include plain_shipout;
 include plain_Label;
 include plain_arcs;
 include plain_boxes;
+include plain_strings;
 include plain_markers;
 include plain_arrows;
-include plain_strings;
 include plain_debugger;
 
 typedef void exitfcn();

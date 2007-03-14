@@ -1,5 +1,8 @@
-bool Wait=true;                         
-bool NoWait=false;
+// Default file prefix used for inline LaTeX mode
+string defaultfilename;
+
+restricted bool Wait=true;                         
+restricted bool NoWait=false;
 
 frame patterns;
 

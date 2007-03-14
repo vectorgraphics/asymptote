@@ -1,3 +1,5 @@
+string defaultformat="$%.4g$";
+
 string ask(string prompt)
 {
   write(stdout,prompt);

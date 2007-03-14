@@ -33,9 +33,6 @@ restricted pair SSW=unit(S+SW);
 restricted pair SSE=unit(S+SE);
 restricted pair ESE=unit(E+SE);
   
-string defaultfilename;
-string defaultformat="$%.4g$";
-
 restricted bool Above=true;
 restricted bool Below=false;
 
