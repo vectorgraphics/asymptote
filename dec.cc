@@ -11,6 +11,7 @@
 #include "coenv.h"
 #include "dec.h"
 #include "fundec.h"
+#include "newexp.h"
 #include "stm.h"
 #include "exp.h"
 #include "modifier.h"
@@ -718,6 +719,23 @@ void recorddec::prettyprint(ostream &out, int indent)
   body->prettyprint(out, indent+1);
 }
 
+void recorddec::transRecordInitializer(coenv &e, record *parent)
+{
+  position here=getPos();
+
+  // This is equivalent to the code
+  //   A operator init() { return new A; };
+  // where A is the name of the record.
+  formals formals(here);
+  simpleName recordName(here, id);
+  nameTy result(here, &recordName);
+  newRecordExp exp(here, &result);
+  returnStm stm(here, &exp);
+  fundec init(here, &result, symbol::opTrans("init"), &formals, &stm);
+
+  init.transAsField(e, parent);
+}
+
 void recorddec::transAsField(coenv &e, record *parent)
 {
   record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
@@ -733,6 +751,11 @@ void recorddec::transAsField(coenv &e, record *parent)
   coenv re(c,e.e);
   
   body->transAsRecordBody(re, r);
+
+  // After the record is translated, add a default initializer so that a
+  // variable of the type of the record is initialized to a new instance by
+  // default.
+  transRecordInitializer(e, parent);
 }  
 
 runnable *autoplainRunnable() {

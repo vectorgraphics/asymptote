@@ -555,6 +555,8 @@ class recorddec : public dec {
   symbol *id;
   block *body;
 
+  void transRecordInitializer(coenv &e, record *parent);
+
 public:
   recorddec(position pos, symbol *id, block *body)
     : dec(pos), id(id), body(body) {}
