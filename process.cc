@@ -303,8 +303,7 @@ public:
     : itree(filename),
       filename(filename),
       outname((string) (filename == "-" ? "out" :
-			     stripDir(stripExt(string(filename),
-					       suffix)))) {}
+			stripDir(stripExt(string(filename), suffix)))) {}
   
   block *buildTree() {
     return filename!="" ? parser::parseFile(filename) : 0;
