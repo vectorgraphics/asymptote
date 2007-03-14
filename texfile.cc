@@ -47,7 +47,8 @@ void texfile::prologue()
 {
   if(inlinetex) {
     std::ofstream *outpreamble=
-      new std::ofstream(auxname(getSetting<string>("outname"),"pre").c_str());
+      new std::ofstream(auxname(getSetting<string>("outname"),"pre").c_str(),
+			std::ios::app);
     texpreamble(*outpreamble,TeXpreamble);
     outpreamble->close();
   }

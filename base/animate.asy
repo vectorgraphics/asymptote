@@ -9,12 +9,16 @@
 real animationdelay=50;
 
 struct animation {
+  static string outname() {
+    return defaultfilename == "" ? settings.outname : defaultfilename;
+  }
+
   picture[] pictures;
   string[] files;
-  string prefix=settings.outname;
+  string prefix=outname();
   int index=0;
 
-  static animation prefix(string s=settings.outname) {
+  static animation prefix(string s=outname()) {
     animation animation=new animation;
     animation.prefix=s;
     return animation;

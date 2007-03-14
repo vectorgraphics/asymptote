@@ -956,6 +956,13 @@ void texpreamble(string s)
   camp::TeXpreamble.push_back(t);
 }
 
+void deletepreamble() 
+{
+  if(getSetting<bool>("inlinetex")) {
+    unlink(auxname(outname(),"pre").c_str());
+  }
+}
+
 void _labelpath(picture *f, string s, string size, path g, string justify,
 		pair offset, pen p)
 {

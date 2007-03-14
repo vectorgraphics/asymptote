@@ -41,6 +41,7 @@
 \fi
 \ifinline
 \immediate\write\AsyStream{settings.inlinetex=true;}%
+\immediate\write\AsyStream{deletepreamble();}%
 \fi
 \newcounter{asy}
 
