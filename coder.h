@@ -218,6 +218,9 @@ public:
   // Get the access in the frame for a specified formal parameter.
   access *accessFormal(int index)
   {
+    // NOTE: This hasn't been extended to handle frames for loops, but is
+    // currently only called when starting to translate a function, where there
+    // can be no loops.
     return level->accessFormal(index);
   }
 
