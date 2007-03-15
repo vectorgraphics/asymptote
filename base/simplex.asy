@@ -270,5 +270,3 @@ struct problem {
     return rows[VAR_B].c;
   }
 }
-
-problem operator init() {return new problem;}

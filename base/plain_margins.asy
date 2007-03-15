@@ -3,8 +3,6 @@ struct marginT {
   real begin,end;
 };
 
-marginT operator init() {return new marginT;}
-
 typedef marginT margin(path, pen);
 
 path trim(path g, real begin, real end) {

@@ -171,8 +171,6 @@ struct projection {
   }
 }
 
-projection operator init() {return new projection;}
-  
 projection currentprojection;
 
 // With this, save() and restore() in plain also save and restore the
@@ -308,7 +306,6 @@ struct control {
   }
 }
 
-control operator init() {return new control;}
 control nocontrol;
   
 control operator * (transform3 t, control c) 
@@ -331,18 +328,23 @@ void write(file file, control c)
 struct Tension {
   real out,in;
   bool atLeast;
-  bool active=false;
-  void init(real out, real in, bool atLeast) {
+  bool active;
+  void init(real out=1, real in=1, bool atLeast=false, bool active=true) {
     this.out=out;
     this.in=in;
     this.atLeast=atLeast;
-    active=true;
+    this.active=active;
   }
 }
 
-Tension operator init() {return new Tension;}
+Tension operator init()
+{
+  Tension t=new Tension;
+  t.init(false);
+  return t;
+}
+
 Tension noTension;
-noTension.in=noTension.out=1;
   
 void write(file file, Tension t)
 {
@@ -394,8 +396,6 @@ void write(file file, dir d)
   }
 }
   
-dir operator init() {return new dir;}
-
 transform3 shiftless(transform3 t)
 {
   transform3 T=copy(t);
@@ -483,8 +483,6 @@ struct flatguide3 {
   }
 }
 
-flatguide3 operator init() {return new flatguide3;}
-  
 void write(file file, string s="", explicit flatguide3 x, suffix suffix=none)
 {
   write(file,s);
@@ -704,8 +702,6 @@ struct Controls {
   }
 }
 
-Controls operator init() {return new Controls;}
-  
 private triple cross(triple d0, triple d1, triple camera)
 {
   triple normal=cross(d0,d1);
@@ -904,8 +900,6 @@ node[] nodes(int n)
   return nodes;
 }
 
-node operator init() {return new node;}
-
 struct bbox3 {
   bool empty=true;
   triple min,max;
@@ -964,8 +958,6 @@ struct bbox3 {
   triple XYZ() {return max;}
 }
 
-bbox3 operator init() {return new bbox3;}
-  
 bbox3 bbox3(triple min, triple max) 
 {
   bbox3 b;
@@ -1405,8 +1397,6 @@ struct path3 {
   
 }
 
-path3 operator init() {return new path3;}
-  
 bool cyclic(explicit path3 p) {return p.cyclic();}
 int size(explicit path3 p) {return p.size();}
 int length(explicit path3 p) {return p.length();}
@@ -2067,8 +2057,6 @@ struct face {
   }
 }
 
-face operator init() {return new face;}
-
 picture operator cast(face f) {return f.pic;}
 face operator cast(path3 p) {return face.face(p);}
   
@@ -2077,8 +2065,6 @@ struct line {
   triple dir;
 }
 
-line operator init() {return new line;}
-  
 line intersection(face a, face b) 
 {
   line L;
@@ -2115,14 +2101,10 @@ struct half {
   }
 }
   
-half operator init() {return new half;}
-
 struct splitface {
   face back,front;
 }
 
-splitface operator init() {return new splitface;}
-  
 // Return the pieces obtained by splitting face a by face cut.
 splitface split(face a, face cut, projection P)
 {

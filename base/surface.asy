@@ -88,8 +88,6 @@ struct surface {
 
 }
 
-surface operator init() {return new surface;}
-
 surface operator * (transform3 t, surface s)
 { 
   surface S;

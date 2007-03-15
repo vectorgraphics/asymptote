@@ -182,8 +182,6 @@ struct key {
   bool active;
 }
 
-key operator init() {return new key;}
-
 key key(int n, bool active=true) {key k; k.n=n; k.active=active; return k;}
 
 key operator cast(int n) {return key(n);}
@@ -288,8 +286,6 @@ struct binarytree {
     return keys;
   }
 }
-
-binarytree operator init() {return new binarytree;}
 
 binarytree searchtree(...int[] keys)
 {

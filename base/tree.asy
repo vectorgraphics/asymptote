@@ -13,8 +13,6 @@ struct tree
   int value = 0;
 }
 
-tree operator init() {return new tree;}
-  
 tree newtree()
 {
   return null;

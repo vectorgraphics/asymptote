@@ -176,8 +176,6 @@ struct slice {
   path before,after;
 }
   
-slice operator init() {return new slice;}
-
 slice firstcut(path g, path knife) 
 {
   slice s;

@@ -67,10 +67,6 @@ struct curve {
   }
 }
 
-curve operator init() {
-  return new curve;
-}
-
 import graph;
 import math;
 

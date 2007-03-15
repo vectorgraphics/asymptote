@@ -71,8 +71,6 @@ struct triangle {
   path Path() {return A--C--B--cycle;}
 }
 
-triangle operator init() {return new triangle;}
-  
 void draw(picture pic=currentpicture, triangle t, pen p=currentpen) 
 {
   draw(pic,t.Path(),p);

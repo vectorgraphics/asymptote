@@ -66,8 +66,6 @@ struct marker {
   };
 }
   
-marker operator init() {return new marker;}
-  
 marker marker(frame f=newframe, markroutine markroutine=marknodes,
 	      bool put=Above) 
 {

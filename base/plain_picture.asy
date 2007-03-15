@@ -77,8 +77,6 @@ struct coord {
   }
 }
 
-coord operator init() {return new coord;}
-  
 struct coords2 {
   coord[] x;
   coord[] y;
@@ -133,8 +131,6 @@ struct coords2 {
   }
 }
   
-coords2 operator init() {return new coords2;}
-
 bool operator <= (coord a, coord b)
 {
   return a.user <= b.user && a.truesize <= b.truesize;
@@ -279,8 +275,6 @@ struct autoscaleT {
   }
 }
 
-autoscaleT operator init() {return new autoscaleT;}
-                                  
 struct ScaleT {
   bool set;
   autoscaleT x;
@@ -297,8 +291,6 @@ struct ScaleT {
   }
 };
 
-ScaleT operator init() {return new ScaleT;}
-
 struct Legend {
   string label;
   pen plabel;
@@ -314,8 +306,6 @@ struct Legend {
     this.put=put;
   }
 }
-
-Legend operator init() {return new Legend;}
 
 pair rectify(pair dir) 
 {
@@ -370,8 +360,6 @@ struct picture {
       yclip(Min.y,Max.y);
     }
   }
-  
-  bounds operator init() {return new bounds;}
   
   bounds bounds;
     
@@ -839,8 +827,6 @@ struct picture {
     append(bounds.point,bounds.min,bounds.max,srcCopy.T,src.bounds);
   }
 }
-
-picture operator init() {return new picture;}
 
 picture operator * (transform t, picture orig)
 {

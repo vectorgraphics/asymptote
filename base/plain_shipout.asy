@@ -12,8 +12,6 @@ struct GUIop
   bool[] Delete;
 }
 
-GUIop operator init() {return new GUIop;}
-  
 frame GUI[];
   
 frame GUI(int index) {

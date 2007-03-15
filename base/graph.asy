@@ -83,8 +83,6 @@ struct scientific
   real floor(real x, real exp) {return floor(sign*scale(abs(x),exp));}
 }
 
-scientific operator init() {return new scientific;}
-  
 // Convert x to scientific notation
 scientific scientific(real x) 
 {
@@ -106,8 +104,6 @@ struct bounds {
   int[] divisor;
 }
 
-bounds operator init() {return new bounds;}
-  
 bounds bounds(real min, real max, int[] divisor=new int[])
 {
   bounds b;
@@ -247,8 +243,6 @@ struct ticklocate {
   }
 }
 
-ticklocate operator init() {return new ticklocate;}
-
 autoscaleT defaultS;
   
 typedef real valuetime(real);
@@ -295,8 +289,6 @@ private struct locateT {
   }
 }
 
-locateT operator init() {return new locateT;}
-  
 pair ticklabelshift(pair align, pen p=currentpen) 
 {
   return 0.25*unit(align)*labelmargin(p);
@@ -453,8 +445,6 @@ struct tickvalues {
   real[] major;
   real[] minor;
 }
-
-tickvalues operator init() {return new tickvalues;}
 
 // Automatic tick generation routine.
 tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
@@ -831,8 +821,6 @@ struct axisT {
   bool extend;
 };
 
-axisT operator init() {return new axisT;}
-                                               
 axisT axis;
 typedef void axis(picture, axisT);
 

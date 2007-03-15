@@ -69,8 +69,6 @@ struct block {
   frame draw(pen p=currentpen);
 };
 
-block operator init() {return new block;}
-
 // Construct a rectangular block with header and body objects.
 block rectangle(object header, object body,
 		pen headerpen=mediumgray, pen bodypen=currentpen, 

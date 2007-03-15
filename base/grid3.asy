@@ -33,8 +33,6 @@ struct grid3 {
   }
 };
 
-grid3 operator init() {return new grid3;}
-
 typedef grid3 grid3routine(picture pic, bbox3 b, projection P);
 
 grid3routine XYgrid(position pos=Relative(0)) {
@@ -225,13 +223,12 @@ position top=Relative(1);
 position bottom=Relative(0);
 position middle=Relative(0.5);
 
-struct ticksgridT
-{// Structure used to communicate ticks and axis settings to grid3 routines. 
+// Structure used to communicate ticks and axis settings to grid3 routines. 
+struct ticksgridT {
   ticks ticks;
   // Other arguments of grid3 are define by ticks and axis settings
   void grid3(picture, bbox3, bool, projection);
 };
-ticksgridT operator init() {return new ticksgridT;}
 
 typedef ticksgridT ticksgrid();
 

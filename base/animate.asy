@@ -171,8 +171,6 @@ struct animation {
 
 }
 
-animation operator init() {return new animation;}
-
 animation animation(string prefix) 
 {
   return animation.prefix(prefix);

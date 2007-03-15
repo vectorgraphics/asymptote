@@ -27,8 +27,6 @@ private struct segment
                    // 4-8: single-vertex edge, 9: double-vertex edge.
 }
 
-segment operator init() {return new segment;}
-
 // Case 1: line passes through two vertices of a triangle
 private segment case1(pair p0, pair p1, int edge)
 {

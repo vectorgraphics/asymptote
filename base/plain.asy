@@ -184,14 +184,10 @@ struct processtime {
   real system;
 }
 
-processtime operator init() {return new processtime;}
-
 struct cputime {
   processtime parent;
   processtime child;
 }
-
-cputime operator init() {return new cputime;}
 
 cputime cputime() 
 {

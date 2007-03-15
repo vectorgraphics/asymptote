@@ -220,8 +220,6 @@ struct linefit {
   }
 }
 
-linefit operator init() {return new linefit;}
-  
 // Do a least-squares fit of data in real arrays x and y to the line y=m*x+b
 linefit leastsquares(real[] x, real[] y)
 {

@@ -23,8 +23,6 @@ struct light {
   }
 }
 
-light operator init() {return new light;}
-  
 light light(triple source, shadefcn shade=defaultshade)
 {
   light L;

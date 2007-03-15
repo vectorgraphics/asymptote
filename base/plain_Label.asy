@@ -120,8 +120,6 @@ struct side {
   pair align;
 }
 
-side operator init() {return new side;}
-  
 side Relative(explicit pair align)
 {
   side s;
@@ -141,7 +139,6 @@ side operator * (real x, side s)
   return S;
 }
 
-align operator init() {return new align;}
 align operator cast(pair dir) {align A; A.init(dir,false); return A;}
 align operator cast(side side) {align A; A.init(side.align,true); return A;}
 align NoAlign;
@@ -156,8 +153,6 @@ struct position {
   bool relative;
 }
 
-position operator init() {return new position;}
-  
 position Relative(real position)
 {
   position p;
@@ -321,8 +316,6 @@ struct Label {
   };
 }
 
-Label operator init() {return new Label;}
-
 Label Label;
 
 void add(frame f, transform t=identity(), Label L)
@@ -451,8 +444,6 @@ struct object {
     return f;
   }
 }
-
-object operator init() {return new object;}
 
 object operator cast(frame f) {
   object o;
