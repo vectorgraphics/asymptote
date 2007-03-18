@@ -330,8 +330,12 @@ struct Tension {
   bool atLeast;
   bool active;
   void init(real out=1, real in=1, bool atLeast=false, bool active=true) {
-    this.out=out;
-    this.in=in;
+    real check(real val) {
+      if(val < 0.75) abort("tension cannot be less than 3/4");
+      return val;
+    }
+    this.out=check(out);
+    this.in=check(in);
     this.atLeast=atLeast;
     this.active=active;
   }

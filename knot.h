@@ -181,7 +181,10 @@ struct tension {
   bool atleast;
 
   tension(double val=1.0, bool atleast=false)
-    : val(val), atleast(atleast) {}
+    : val(val), atleast(atleast) {
+    if(val < 0.75)
+      reportError("tension cannot be less than 3/4");
+  }
 };
 
 inline
