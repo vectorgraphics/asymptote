@@ -2087,7 +2087,8 @@ struct half {
   // onto each of the arrays left and right. 
   static half split(pair dir, pair P ... pair[] z) {
     half h=new half;
-    pair lastz,invdir=1.0/dir;
+    pair lastz;
+    pair invdir=dir != 0 ? 1/dir : 0;
     bool left,last;
     for(int i=0; i < z.length; ++i) {
       left=(invdir*z[i]).y > (invdir*P).y;
@@ -2131,7 +2132,7 @@ splitface split(face a, face cut, projection P)
   line L=intersection(a,cut);
   pair point=a.t*project(L.point,P);
   pair dir=a.t*project(L.point+L.dir,P)-point;
-  pair invdir=1.0/L.dir;
+  pair invdir=dir != 0 ? 1/dir : 0;
   triple apoint=L.point+cross(L.dir,a.normal);
   bool left=(invdir*(a.t*project(apoint,P))).y >= (invdir*point).y;
   real t=intersect(apoint,camera,cut.normal,cut.point);
