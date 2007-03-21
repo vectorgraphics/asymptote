@@ -117,25 +117,25 @@ triple project(triple u, triple v)
   return dot(u,v)*v;
 }
 
-// Transformation corresponding to moving the camera from 'target'
+// Transformation corresponding to moving the camera from the origin
 // (looking down the negative z axis) to the point 'eye' (looking at
-// target), orienting the camera so that direction 'up' points upwards.
+// the origin), orienting the camera so that direction 'up' points upwards.
 // Since, in actuality, we are transforming the points instead of
 // the camera, we calculate the inverse matrix.
 // Based on the gluLookAt implementation in the OpenGL manual.
-transform3 lookAt(triple target, triple eye, triple up=Z)
+transform3 look(triple eye, triple up=Z)
 {
-  triple f=unit(target-eye);
+  triple f=unit(-eye);
   if(f == O)
-    // The target is the same as the eye, so just move to the eye, and don't
-    // try to point in any particular direction.
-    return shift(-eye);
+    f=-Z; // The eye is already at the origin: look down.
 
   triple side=cross(f,up);
-  if(side == O)
-    // The camera is pointing either directly up or down, so there is no
+  if(side == O) {
+    // The eye is pointing either directly up or down, so there is no
     // preferred "up" direction to rotate it.  Pick one arbitrarily.
-    return lookAt(target, eye, cross(f,Y) != O ? Y : Z);
+    side=cross(f,Y);
+    if(side == O) side=cross(f,Z);
+  }
   triple s=unit(side);
 
   triple u=cross(s,f);
@@ -153,21 +153,32 @@ transform3 distort(triple v)
 {
   transform3 t=identity(4);
   real d=length(v);
+  if(d == 0) return t;
   t[3][2]=-1/d;
   t[3][3]=0;
   return t;
 }
 
 struct projection {
+  bool infinity;
   triple camera;
+  triple target;
   transform3 project;
   transform3 aspect;
   projection copy() {
     projection P=new projection;
+    P.infinity=infinity;
     P.camera=camera;
+    P.target=target;
     P.project=project;
     P.aspect=aspect;
     return P;
+  }
+
+  // Check that v is in front of the projection plane.
+  void check(triple v) {
+    if(!infinity && dot(camera-v,camera-target) < 0)
+      abort("camera is too close to object");
   }
 }
 
@@ -183,32 +194,36 @@ addSaveFunction(new restoreThunk() {
   });
 
 
-projection projection(triple camera, transform3 project,
-                      transform3 aspect=identity(4))
+projection projection(triple camera, triple target=O, transform3 project,
+                      transform3 aspect=identity(4), bool infinity=false)
 {
   projection P;
+  P.infinity=infinity;
   P.camera=camera;
+  P.target=target;
   P.project=project;
   P.aspect=aspect;
   return P;
 }
 
-// Uses the homogenous coordinate to perform perspective distortion.  When
-// combined with a projection to the XY plane, this effectively maps
-// points in three space to a plane at a distance d from the camera.
-projection perspective(triple camera, triple up=Z)
+// Uses the homogenous coordinate to perform perspective distortion.
+// When combined with a projection to the XY plane, this effectively maps
+// points in three space to a plane through target and
+// perpendicular to the vector camera-target.
+projection perspective(triple camera, triple up=Z, triple target=O)
 {
-  return projection(camera,distort(camera)*lookAt(O,camera,up));
+  return projection(camera,target,shift(-target)*distort(camera-target)*
+                    look(camera-target,up));
 }
 
-projection perspective(real x, real y, real z, triple up=Z)
+projection perspective(real x, real y, real z, triple up=Z, triple target=O)
 {
-  return perspective((x,y,z),up);
+  return perspective((x,y,z),up,target);
 }
 
 projection orthographic(triple camera, triple up=Z)
 {
-  return projection(camera,lookAt(O,camera,up));
+  return projection(camera,look(camera,up),infinity=true);
 }
 
 projection orthographic(real x, real y, real z, triple up=Z)
@@ -224,7 +239,7 @@ projection oblique(real angle=45)
   t[0][2]=-c2;
   t[1][2]=-s2;
   t[2][2]=0;
-  return projection((c2,s2,1),t);
+  return projection((c2,s2,1),t,infinity=true);
 }
 
 projection obliqueZ(real angle=45) {return oblique(angle);}
@@ -240,7 +255,7 @@ projection obliqueX(real angle=45)
   t[0][1]=1;
   t[1][2]=1;
   t[2][2]=0;
-  return projection((1,c2,s2),t);
+  return projection((1,c2,s2),t,infinity=true);
 }
 
 projection obliqueY(real angle=45)
@@ -252,7 +267,7 @@ projection obliqueY(real angle=45)
   t[1][1]=s2;
   t[1][2]=1;
   t[2][2]=0;
-  return projection((c2,-1,s2),t);
+  return projection((c2,-1,s2),t,infinity=true);
 }
 
 projection oblique=oblique();
@@ -1357,13 +1372,13 @@ struct path3 {
   }
   
   bbox3 bounds() {
+    if(!box.empty) return box;
+    
     if (empty()) {
       // No bounds
       return new bbox3;
     }
 
-    if(!box.empty) return box;
-    
     int len=length();
     for (int i = 0; i < len; ++i) {
       box.add(point(i));
@@ -1564,6 +1579,11 @@ int length(explicit flatguide3 g) {return g.nodes.length-1;}
 
 path project(explicit path3 p, projection Q=currentprojection)
 {
+  if(!Q.infinity) {
+    Q.check(p.min());
+    Q.check(p.max());
+  }
+
   guide g;
   project P=aspect(Q);
   
@@ -1595,6 +1615,7 @@ path project(flatguide3 g, projection P=currentprojection)
 
 pair project(triple v, projection P=currentprojection)
 {
+  P.check(v);
   project P=aspect(P);
   return P(v);
 }
@@ -2116,9 +2137,9 @@ splitface split(face a, face cut, projection P)
   splitface S;
   triple camera=P.camera;
 
-  if(abs(a.normal-cut.normal) < epsilon ||
-     abs(a.normal+cut.normal) < epsilon) {
-    if(abs(dot(a.point-camera,a.normal)) > 
+  if(!P.infinity && (abs(a.normal-cut.normal) < epsilon ||
+                     abs(a.normal+cut.normal) < epsilon)) {
+    if(abs(dot(a.point-camera,a.normal)) >= 
        abs(dot(cut.point-camera,cut.normal))) {
       S.back=a;
       S.front=null;
@@ -2135,8 +2156,12 @@ splitface split(face a, face cut, projection P)
   pair invdir=dir != 0 ? 1/dir : 0;
   triple apoint=L.point+cross(L.dir,a.normal);
   bool left=(invdir*(a.t*project(apoint,P))).y >= (invdir*point).y;
-  real t=intersect(apoint,camera,cut.normal,cut.point);
-  bool rightfront=left ^ (t <= 0 || t >= 1);
+  bool rightfront;
+  if(P.infinity) rightfront=!left;
+  else {
+    real t=intersect(apoint,camera,cut.normal,cut.point);
+    rightfront=left ^ (t <= 0 || t >= 1);
+  }
   
   face back=a, front=a.copy();
   pair max=max(a.fit);
@@ -2203,12 +2228,12 @@ void add(picture pic=currentpicture, face[] faces,
   pic.nodes.push(new void (frame f, transform t, transform T,
                            pair m, pair M) {
                    // Fit all of the pictures so we know their exact sizes.
-		   face[] faces=new face[n];
+                   face[] faces=new face[n];
                    for(int i=0; i < n; ++i) {
-		     faces[i]=Faces[i].copy();
+                     faces[i]=Faces[i].copy();
                      face F=faces[i];
-		     F.t=t*T*F.pic.T;
-		     F.fit=F.pic.fit(t,T*F.pic.T,m,M);
+                     F.t=t*T*F.pic.T;
+                     F.fit=F.pic.fit(t,T*F.pic.T,m,M);
                    }
     
                    bsp bsp=bsp.split(faces,P);

@@ -52,6 +52,11 @@ bool finite(pair z)
   return abs(z.x) < infinity && abs(z.y) < infinity;
 }
 
+bool finite(triple v)
+{
+  return abs(v.x) < infinity && abs(v.y) < infinity && abs(v.z) < infinity;
+}
+
 restricted file stdin=input("");
 restricted file stdout;
 

@@ -6222,21 +6222,22 @@ If an optional real argument is given, the
 positive @math{y} axis is drawn at this angle in degrees.
 
 @item orthographic(triple camera, triple up=Z)
-@item orthographic(real x, real y, real z, triple up=Z)
 @cindex @code{orthographic}
-This projects three dimensions onto two using the view seen at the
-location @code{camera} or @code{(x,y,z)}, respectively,
-orienting the camera so that, if possible, the vector @code{up} points
-upwards. Parallel lines are projected to parallel lines.
+This projects from three to two dimensions using the view seen at
+location @code{camera}, orienting the camera so that, if possible, the
+vector @code{up} points upwards. Parallel lines are projected to parallel lines.
 
-@item perspective(triple camera, triple up=Z)
-@item perspective(real x, real y, real z, triple up=Z)
+@item orthographic(real x, real y, real z, triple up=Z)
+This is equivalent to @code{orthographic((x,y,z),up)}.
+
+@item perspective(triple camera, triple up=Z, triple target=O)
 @cindex @code{perspective}
-These project three dimensions onto two taking account of perspective,
-as seen from the location @code{camera} or @code{(x,y,z)}, respectively,
-orienting the camera so that, if possible, the vector @code{up} points
-upwards.
+This projects from three to two dimensions, taking account of
+perspective, as seen from the location @code{camera} looking at @code{target},
+orienting the camera so that, if possible, the vector @code{up} points upwards.
 
+@item perspective(real x, real y, real z, triple up=Z, triple target=O)
+This is equivalent to @code{perspective((x,y,z),up,target)}.
 @end table
 
 @cindex @code{currentprojection}

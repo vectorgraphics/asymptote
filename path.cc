@@ -388,13 +388,13 @@ static inline void derivative(pair& a, pair& b, pair& c,
 
 bbox path::bounds() const
 {
-  if (empty()) {
-    // No bounds
-    return bbox(/* empty */);
-  }
-
   if(!box.empty) return box;
   
+  if (empty()) {
+    // No bounds
+    return bbox();
+  }
+
   int len=length();
   for (int i = 0; i < len; i++) {
     box += point(i);
