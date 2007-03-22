@@ -479,11 +479,15 @@ picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
         drawcell(i,j);
   } else {
     // Sort cells by distance from camera
+    triple camera=P.camera;
+    if(P.infinity)
+      camera=max(abs(minbound(f)),abs(maxbound(f)))*P.camera;
+
     real[][] depth;
     for(int i=0; i < nx; ++i) {
       for(int j=0; j < ny; ++j) {
-        triple v=P.camera-0.25(f[i][j]+f[i][j+1]+f[i+1][j]+f[i+1][j+1]);
-        real d=sgn(dot(v,P.camera))*abs(v);
+        triple v=camera-0.25(f[i][j]+f[i][j+1]+f[i+1][j]+f[i+1][j+1]);
+        real d=sgn(dot(v,camera))*abs(v);
         depth.push(new real[] {d,i,j});
       }
     }
@@ -585,12 +589,21 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
         draw(pic,project(cell(i,j),P),meshpen);
   } else {
     // Sort cells by distance from camera
+    triple camera=P.camera;
+    if(P.infinity) {
+      real r=0;
+      for(int i=0; i <= nu; ++i)
+      for(int j=0; j <= nv; ++j)
+	r=max(r,abs(f(sample(i,j))));
+      camera=r*P.camera;
+    }
+
     real[][] depth;
     for(int i=0; i < nu; ++i) {
       for(int j=0; j < nv; ++j) {
-        triple v=P.camera-0.25*(f(sample(i,j))+f(sample(i,j+1))+
+        triple v=camera-0.25*(f(sample(i,j))+f(sample(i,j+1))+
                                 f(sample(i+1,j))+f(sample(i+1,j+1)));
-        real d=sgn(dot(v,P.camera))*abs(v);
+        real d=sgn(dot(v,camera))*abs(v);
         depth.push(new real[] {d,i,j});
       }
     }

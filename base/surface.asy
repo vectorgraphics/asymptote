@@ -82,10 +82,8 @@ struct surface {
         color(P[3][0]-P[2][0],P[3][1]-P[3][0])};
   };
 
-  guide3[] box() {
-    return box(minbound(P),maxbound(P));
-  }
-
+  triple min() {return minbound(P);}
+  triple max() {return maxbound(P);}
 }
 
 surface operator * (transform3 t, surface s)
@@ -121,6 +119,9 @@ surface surface(path3 external, triple[] internal=new triple[])
   s.init(external,internal);
   return s;
 }
+
+triple min(surface s) {return s.min();}
+triple max(surface s) {return s.max();}
 
 surface subsurfaceu(surface s, real ua, real ub)
 {
@@ -165,7 +166,7 @@ void tensorshade(picture pic=currentpicture, surface s,
                  pen surfacepen=lightgray, light light=currentlight,
                  projection P=currentprojection)
 {
-  path[] b=project(s.box(),P);
+  path[] b=project(box(min(s),max(s)),P);
   tensorshade(pic,box(min(b),max(b)),surfacepen,s.colors(surfacepen,light),
               project(s.external(),P),project(s.internal(),P));
 }
@@ -179,16 +180,21 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
 
   if(surfacepen != nullpen && nu > 0) {
     // Sort cells by mean distance from camera
+    triple camera=P.camera;
+    if(P.infinity)
+      camera=max(abs(s.min()),abs(s.max()))*P.camera;
+
     real[][] depth;
     surface[] su=new surface[nu];
+    
     for(int i=0; i < nu; ++i) {
       su[i]=subsurfaceu(s,i/nu,(i+1)/nu);
       path3 s0=s.uequals(i/nu);
       path3 s1=s.uequals((i+1)/nu);
       for(int j=0; j < nv; ++j) {
-        triple v=P.camera-0.25*(point(s0,j/nv)+point(s0,(j+1)/nv)+
-                                point(s1,j/nv)+point(s1,(j+1)/nv));
-        real d=sgn(dot(v,P.camera))*abs(v);
+        triple v=camera-0.25*(point(s0,j/nv)+point(s0,(j+1)/nv)+
+			      point(s1,j/nv)+point(s1,(j+1)/nv));
+        real d=sgn(dot(v,camera))*abs(v);
         depth.push(new real[] {d,i,j});
       }
     }

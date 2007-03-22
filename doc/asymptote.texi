@@ -6223,9 +6223,10 @@ positive @math{y} axis is drawn at this angle in degrees.
 
 @item orthographic(triple camera, triple up=Z)
 @cindex @code{orthographic}
-This projects from three to two dimensions using the view seen at
-location @code{camera}, orienting the camera so that, if possible, the
-vector @code{up} points upwards. Parallel lines are projected to parallel lines.
+This projects from three to two dimensions using the view as seen at a point
+infinitely far away in the direction @code{unit(camera)}, orienting the camera
+so that, if possible, the vector @code{up} points upwards. Parallel
+lines are projected to parallel lines.
 
 @item orthographic(real x, real y, real z, triple up=Z)
 This is equivalent to @code{orthographic((x,y,z),up)}.

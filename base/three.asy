@@ -199,7 +199,7 @@ projection projection(triple camera, triple target=O, transform3 project,
 {
   projection P;
   P.infinity=infinity;
-  P.camera=camera;
+  P.camera=infinity ? unit(camera) : camera;
   P.target=target;
   P.project=project;
   P.aspect=aspect;
