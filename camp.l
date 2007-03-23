@@ -300,6 +300,7 @@ EXTRAOPS <<|>>|$|$$|@|@@|~
 "--"               {makesymbol(); return DASHES; }
 "---"              {makesymbol(); return LONGDASH; }
 "&"                {makesymbol(); return AMPERSAND; }
+"|"                {makesymbol(); return BAR; }
 {EXTRAOPS}         {makesymbol(); return OPERATOR; }
 
 "+="               {makeselfsymbol(); return ADD; }
@@ -380,7 +381,7 @@ operator           {adjust(); BEGIN opname; }
                      BEGIN INITIAL;
                      return ID;
                    }
-[-+*/%^!<>]|==|!=|<=|>=|&|&&|\|\||\^\^|\.\.|::|--|---|\+\+|{EXTRAOPS} {
+[-+*/%^!<>]|==|!=|<=|>=|&|\||\^\^|\.\.|::|--|---|\+\+|{EXTRAOPS} {
   makesymbol();
   BEGIN INITIAL;
   return ID;}

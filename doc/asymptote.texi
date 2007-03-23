@@ -3512,7 +3512,7 @@ and @code{i--} are really needed, one can substitute the expressions
 The following symbols may be used with @code{operator} to define or redefine
 operators on structures and built-in types:
 @verbatim
-- + * / % ^ ! < > == != <= >= & && || ^^ .. :: -- --- ++
+- + * / % ^ ! < > == != <= >= & | ^^ .. :: -- --- ++
 << >> $ $$ @ @@
 @end verbatim
 @noindent
