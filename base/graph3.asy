@@ -481,7 +481,7 @@ picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
     // Sort cells by distance from camera
     triple camera=P.camera;
     if(P.infinity)
-      camera=max(abs(minbound(f)),abs(maxbound(f)))*P.camera;
+      camera *= max(abs(minbound(f)),abs(maxbound(f)));
 
     real[][] depth;
     for(int i=0; i < nx; ++i) {
@@ -593,16 +593,16 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
     if(P.infinity) {
       real r=0;
       for(int i=0; i <= nu; ++i)
-      for(int j=0; j <= nv; ++j)
-	r=max(r,abs(f(sample(i,j))));
-      camera=r*P.camera;
+        for(int j=0; j <= nv; ++j)
+          r=max(r,abs(f(sample(i,j))));
+      camera *= r;
     }
 
     real[][] depth;
     for(int i=0; i < nu; ++i) {
       for(int j=0; j < nv; ++j) {
         triple v=camera-0.25*(f(sample(i,j))+f(sample(i,j+1))+
-                                f(sample(i+1,j))+f(sample(i+1,j+1)));
+                              f(sample(i+1,j))+f(sample(i+1,j+1)));
         real d=sgn(dot(v,camera))*abs(v);
         depth.push(new real[] {d,i,j});
       }
@@ -641,7 +641,7 @@ picture surface(real f(pair z), int nsub, pair a, pair b,
 }
 
 guide3[][] lift(real f(real x, real y), guide[][] g,
-		interpolate3 join=operator --)
+                interpolate3 join=operator --)
 {
   guide3[][] G=new guide3[g.length][0];
   for(int cnt=0; cnt < g.length; ++cnt) {
@@ -652,8 +652,8 @@ guide3[][] lift(real f(real x, real y), guide[][] g,
       guide3 Gcnti;
       int n=size(gcnti);
       for(int j=0; j < n; ++j) {
-	pair z=point(gcnti,j);
-	Gcnti=join(Gcnti,(z.x,z.y,f(z.x,z.y)));
+        pair z=point(gcnti,j);
+        Gcnti=join(Gcnti,(z.x,z.y,f(z.x,z.y)));
       }
       if(cyclic(Gcnti)) Gcnti=Gcnti..cycle3;
       Gcnt[i]=Gcnti;
@@ -681,7 +681,7 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
       if (i == 0 && legend.length > 0) draw(pic,G,pcnt,legend[cnt]);
       else draw(pic,G,pcnt);
       if(L.length > 0) {
-	Label Lcnt=L[cnt];
+        Label Lcnt=L[cnt];
         if(Lcnt.s != "" && size(gcnt[i]) > 1)
           label(pic,Lcnt,G,pcnt);
       }

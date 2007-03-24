@@ -182,7 +182,7 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
     // Sort cells by mean distance from camera
     triple camera=P.camera;
     if(P.infinity)
-      camera=max(abs(s.min()),abs(s.max()))*P.camera;
+      camera *= max(abs(min(s)),abs(max(s)));
 
     real[][] depth;
     surface[] su=new surface[nu];
