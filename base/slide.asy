@@ -188,8 +188,10 @@ void numberpage(pen p=pagenumberpen)
 
 void nextpage(pen p=pagenumberpen)
 {
-  numberpage(p);
-  newpage();
+  if(!empty()) {
+    numberpage(p);
+    newpage();
+  }
   background();
   firststep=true;
 }
@@ -237,7 +239,7 @@ void incrementposition(pair z)
 void title(string s, pair position=N, pair align=titlealign,
            pen p=titlepen, bool newslide=true)
 {
-  if(newslide && !empty()) newslide();
+  if(newslide) newslide();
   checkposition();
   frame f;
   label(f,minipage("\center "+s,minipagewidth),(0,0),align,p);
@@ -313,7 +315,7 @@ void vbox(string s, pen p=itempen)
 
 void equations(string s, pen p=itempen)
 {
-  vbox("\begin{eqnarray}"+s+"\end{eqnarray}",p);
+  vbox("\begin{eqnarray*}"+s+"\end{eqnarray*}",p);
 }
 
 void skip(real n=1)
@@ -321,54 +323,57 @@ void skip(real n=1)
   incrementposition((0,(tinv*(-n*itemskip*I*lineskip(itempen)*pt)).y));
 }
 
-void display(string[] s, real margin=0, string[] captions=new string[],
-	     string caption="", pair align=S, pen p=itempen,
+void display(frame[] f, real margin=0, pair align=S, pen p=itempen,
 	     pen figuremattpen=figuremattpen)
 {
-  if(s.length == 0) return;
-  real[] width=new real[s.length];
+  if(f.length == 0) return;
+  real[] width=new real[f.length];
   real sum;
-  for(int i=0; i < s.length; ++i) {
-    frame f;
-    label(f,s[i]);
-    width[i]=max(f).x-min(f).x;
+  for(int i=0; i < f.length; ++i) {
+    width[i]=size(f[i]).x;
     sum += width[i];
   }
   if(sum > pagewidth)
-    write("warning: slide too wide on page "+(string) page+':\n'+s[0]);
-  else margin=(pagewidth-sum)/(s.length+1);
-  real[] center;
+    write("warning: slide too wide on page "+(string) page);
+  else margin=(pagewidth-sum)/(f.length+1);
   real pos;
-  frame f;
-  for(int i=0; i < s.length; ++i) {
-    real w=margin+width[i];
-    pos += 0.5*w;
-    center[i]=pos;
-    label(f,s[i],(center[i],0),Fill(figureborder,figuremattpen));
-    pos += 0.5*w;
+  frame F;
+  for(int i=0; i < f.length; ++i) {
+    real w=0.5*(margin+width[i]);
+    pos += w;
+    add(F,f[i],(pos,0),Fill(figureborder,figuremattpen));
+    pos += w;
   }
-  int stop=min(s.length,captions.length);
-  real y=min(f).y;
-  for(int i=0; i < stop; ++i)
-    label(f,captions[i],(center[i],y),align);
-  add(f,(0,currentposition.y),align);
-  incrementposition((0,(tinv*(-(max(f)-min(f))-itemskip*I*lineskip(p)*pt)).y));
-  if(caption != "") center(caption,p);
+  add(F,(0,currentposition.y),align);
+  real a=0.5(unit(align).y-1);
+  incrementposition((0,(tinv*(a*(max(F)-min(F))-itemskip*I*lineskip(p)*pt)).y));
 }
 
-void display(string s, string caption="", pair align=S, pen p=itempen,
+void display(frame f, real margin=0, pair align=S, pen p=itempen,
 	     pen figuremattpen=figuremattpen)
 {
-  display(new string[] {s},caption,align,p,figuremattpen);
+  display(new frame[] {f},margin,align,p,figuremattpen);
 }
 
 void figure(string[] s, string options="", real margin=0, 
             string[] captions=new string[], string caption="",
 	    pair align=S, pen p=itempen, pen figuremattpen=figuremattpen)
 {
-  string[] S;
-  for(int i=0; i < s.length; ++i) S[i]=graphic(s[i],options);
-  display(S,margin,captions,caption,align,p,figuremattpen);
+  frame[] f=new frame[s.length];
+  frame F;
+  for(int i=0; i < s.length; ++i) {
+    f[i]=newframe;
+    label(f[i],graphic(s[i],options));
+    add(F,f[i],(0,0));
+  }
+  real y=point(F,S).y;
+  int stop=min(s.length,captions.length);
+  for(int i=0; i < stop; ++i) {
+    if(captions[i] != "")
+      label(f[i],captions[i],point(f[i],S).x+I*y,S);
+  }
+  display(f,margin,align,p,figuremattpen);
+  if(caption != "") center(caption,p);
 }
 
 void figure(string s, string options="", string caption="", pair align=S,
@@ -391,28 +396,28 @@ void filecode(bool center=false, string s, pen p=codepen, real indent=0,
   code(center,file(s),p,indent,skip,filltype);
 }
 
-void asycode(bool center=false, string s, string options="", pair align=S,
-	     pen p=codepen, pen figuremattpen=figuremattpen,
-	     real indent=0, real skip=codeskip,
-	     filltype filltype=NoFill, bool newslide=false)
+void asyfigure(string s, string options="", string caption="", pair align=S,
+	       pen p=codepen, pen figuremattpen=figuremattpen,
+	       filltype filltype=NoFill, bool newslide=false)
 {
   string a=s+".asy";
   asy(nativeformat(),s);
-  filecode(center,a,p,indent,skip,filltype);
   s += "."+nativeformat();
-  if(newslide) {
+  if(newslide && !empty()) {
     newslide();
-    label(graphic(s,options),(0,0),Fill(figureborder,figuremattpen));
+    currentposition=(currentposition.x,0);
+    align=0;
   }
-  else figure(s,options,align,p,figuremattpen);
+  figure(s,options,caption,align,p,figuremattpen);
 }
 
-void asyfigure(string s, string options="", string caption="", pair align=S,
-	       pen p=codepen, pen figuremattpen=figuremattpen)
+void asycode(bool center=false, string s, string options="", string caption="",
+	     pair align=S, pen p=codepen, pen figuremattpen=figuremattpen,
+	     real indent=0, real skip=codeskip,
+	     filltype filltype=NoFill, bool newslide=false)
 {
-  string a=s+".asy";
-  asy(nativeformat(),a);
-  figure(s+"."+nativeformat(),options,caption,align,p,figuremattpen);
+  filecode(center,s+".asy",p,indent,skip,filltype);
+  asyfigure(s,options,caption,align,p,figuremattpen,filltype,newslide);
 }
 
 void item(string s, pen p=itempen, bool step=itemstep)
@@ -432,8 +437,7 @@ void subitem(string s, pen p=itempen)
 void titlepage(string title, string author, string institution="",
                string date="", string url="", bool newslide=false)
 {
-  if(newslide && !empty()) newslide();
-  background();
+  newslide();
   currentposition=titleposition;
   center(title,titlepagepen);
   center(author,authorpen);
