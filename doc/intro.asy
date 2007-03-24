@@ -126,6 +126,7 @@ item("This presentation was prepared with the {\tt Asymptote} slide presentation
 bibliography("refs");
 
 title("Asymptote: The Vector Graphics Language");
-asyfigure("logo","height=11cm","{\tt http://asymptote.sf.net}");
+asyfigure("logo","height=11cm","{\tt http://asymptote.sf.net}",
+	  figuremattpen=invisible);
 skip();
 center("(freely available under the GNU public license)");
