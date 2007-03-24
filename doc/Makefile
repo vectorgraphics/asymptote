@@ -53,8 +53,8 @@ asymptote.pdf: asymptote.texi $(INCLUDES) $(ASYFILES:.asy=.pdf)
 	texi2dvi --pdf asymptote.texi
 
 intro.pdf: intro.asy $(INTROFILES:=.asy)
-	$(ASY) intro
-	$(ASY) intro
+	$(ASY) -f pdf intro
+	$(ASY) -f pdf intro
 
 intro.png:
 	-
