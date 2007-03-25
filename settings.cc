@@ -1132,11 +1132,11 @@ const char *rawpostscript(const string& texengine) {
     return "\\def\\ASYraw#1{#1}";
   else
     return "\\def\\ASYraw#1{\n"
-      "gsave currentpoint currentpoint translate matrix currentmatrix\n"
+      "currentpoint currentpoint translate matrix currentmatrix\n"
       "[matrix defaultmatrix 0 get 0 0 matrix defaultmatrix 3 get\n"
       "matrix currentmatrix 4 get matrix currentmatrix 5 get] setmatrix\n"
       "#1\n"
-      "setmatrix neg exch neg exch translate grestore}";
+      "setmatrix neg exch neg exch translate}";
 }
 
 // Begin TeX special command.
