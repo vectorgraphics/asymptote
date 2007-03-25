@@ -109,6 +109,8 @@ struct binarytreeNode {
   }
 }
 
+binarytreeNode operator init() {return null;}
+
 /**
  * "constructor" for binarytreeNode
  */
