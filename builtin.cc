@@ -618,8 +618,8 @@ void addOperators(venv &ve)
 {
   addSimpleOperator(ve,binaryOp<string,plus>,primString(),"+");
   
-  addBooleanOps<bool,And>(ve,primBoolean(),"&&",boolArray());
-  addBooleanOps<bool,Or>(ve,primBoolean(),"||",boolArray());
+  addBooleanOps<bool,And>(ve,primBoolean(),"&",boolArray());
+  addBooleanOps<bool,Or>(ve,primBoolean(),"|",boolArray());
   addBooleanOps<bool,Xor>(ve,primBoolean(),"^",boolArray());
   
   addUnorderedOps<bool>(ve,primBoolean(),boolArray(),boolArray2(),

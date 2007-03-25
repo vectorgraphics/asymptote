@@ -3416,8 +3416,8 @@ integers @code{p} and nonzero integers @code{q}.
 @item ^
 @cindex @code{**}
 power; if the exponent (second argument) is an int, recursive
-multiplication is used; otherwise, logarithms and exponentials are used.
-@code{**} is a synonym for @code{^}.
+multiplication is used; otherwise, logarithms and exponentials are used
+(@code{**} is a synonym for @code{^}).
 
 @end table
 
@@ -3443,9 +3443,15 @@ greater than or equals
 greater than
 @cindex @code{&&}
 @item &&
+and (with conditional evaluation of right-hand argument)
+@cindex @code{&}
+@item &
 and
 @cindex @code{||}
 @item ||
+or (with conditional evaluation of right-hand argument)
+@cindex @code{|}
+@item |
 or
 @cindex @code{^}
 @item ^
@@ -3465,6 +3471,12 @@ bool positive=(pi >= 0) ? true : false;
 
 The function @code{T interp(T a, T b, real t)} returns @code{a+t*(b-a)}
 for all built-in arithmetic types @code{T}.
+
+@cindex @code{AND}
+@cindex @code{OR}
+@cindex @code{XOR}
+@code{Asymptote} also defines bitwise functions @code{int AND(int,int)},
+@code{int OR(int,int)}, and @code{int XOR(int,int)}.
 
 @node Self & prefix operators
 @subsection Self & prefix operators

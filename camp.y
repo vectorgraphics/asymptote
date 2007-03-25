@@ -91,7 +91,7 @@ using mem::string;
 %token <ps> ID OP ADD SUBTRACT TIMES DIVIDE MOD EXPONENT
             DOTS COLONS DASHES INCR LONGDASH
             CONTROLS TENSION ATLEAST CURL CYCLE
-            COR CAND EQ NEQ LT LE GT GE CARETS AMPERSAND BAR
+            COR CAND BAR AMPERSAND EQ NEQ LT LE GT GE CARETS
             '+' '-' '*' '/' '%' '^' LOGNOT OPERATOR
             STRING
 %token <pos> LOOSE ASSIGN '?' ':'
@@ -110,12 +110,13 @@ using mem::string;
 %right '?' ':'
 %left  COR
 %left  CAND
+%left  BAR
+%left  AMPERSAND
 %left  EQ NEQ
 %left  LT LE GT GE
 %left  OPERATOR
 
 %left  CARETS
-%left  AMPERSAND BAR
 %left  JOIN_PREC DOTS COLONS DASHES INCR LONGDASH
 %left  DIRTAG CONTROLS TENSION ATLEAST AND
 %left  CURL '{' '}'
