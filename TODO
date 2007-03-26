@@ -11,5 +11,3 @@ Andy: Fix extra line break after a syntax error on the prompt.
 
 Andy: Look at Java syntactic sugar for iterating over arrays.
 
-John: Document how precisely how multidimensional array initialization should
-work.

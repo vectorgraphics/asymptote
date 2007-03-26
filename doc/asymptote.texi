@@ -3255,6 +3255,7 @@ string readline(string prompt="", string history="", string initial="",
 @cindex @code{private}
 @cindex @code{this}
 @cindex @code{new}
+@cindex @code{null}
 
 Users may also define their own data types as structures, along with
 user-defined operators, much as in C++. By default, structure members
@@ -4167,8 +4168,8 @@ delimited list of elements).
 
 @item new T[n]
 returns a new array of @code{n} elements of type @code{T[]}. 
-Unless they are arrays themselves, these @code{n} array elements are
-not initialized.
+These @code{n} array elements are not initialized unless they are arrays
+themselves (in which case they are each initialized to empty arrays).
 
 @cindex @code{sequence}
 @item int[] sequence(int n)
