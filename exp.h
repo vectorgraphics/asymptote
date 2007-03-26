@@ -724,6 +724,8 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
+  void baseTransToType(coenv &e, types::ty *target);
+
   void transToType(coenv &e, types::ty *target);
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
@@ -740,11 +742,8 @@ public:
   andOrExp(position pos, exp *left, symbol *op, exp *right)
     : exp(pos), left(left), op(op), right(right) {}
 
-  types::ty *trans(coenv &e);
-  types::ty *getType(coenv &);
-
-  virtual types::ty *baseTrans(coenv &e) = 0;
-  virtual types::ty *baseGetType(coenv &) {
+  virtual types::ty *trans(coenv &e) = 0;
+  virtual types::ty *getType(coenv &) {
     return types::primBoolean();
   }
 };
@@ -756,7 +755,7 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  types::ty *baseTrans(coenv &e);
+  types::ty *trans(coenv &e);
 };
 
 class andExp : public andOrExp {
@@ -766,7 +765,7 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
-  types::ty *baseTrans(coenv &e);
+  types::ty *trans(coenv &e);
 };
 
 class joinExp : public callExp {

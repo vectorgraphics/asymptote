@@ -775,6 +775,23 @@ void conditionalExp::prettyprint(ostream &out, int indent)
   onFalse->prettyprint(out, indent+1);
 }
 
+void conditionalExp::baseTransToType(coenv &e, types::ty *target) {
+  test->transToType(e, types::primBoolean());
+
+  int tlabel = e.c.fwdLabel();
+  e.c.useLabel(inst::cjmp,tlabel);
+
+  onFalse->transToType(e, target);
+
+  int end = e.c.fwdLabel();
+  e.c.useLabel(inst::jmp,end);
+
+  e.c.defLabel(tlabel);
+  onTrue->transToType(e, target);
+
+  e.c.defLabel(end);
+}
+
 void conditionalExp::transToType(coenv &e, types::ty *target)
 {
   if (isAnArray(e, test)) {
@@ -788,20 +805,7 @@ void conditionalExp::transToType(coenv &e, types::ty *target)
     e.c.encode(inst::builtin, run::arrayConditional);
   }
   else {
-    test->transToType(e, types::primBoolean());
-
-    int tlabel = e.c.fwdLabel();
-    e.c.useLabel(inst::cjmp,tlabel);
-
-    onFalse->transToType(e, target);
-
-    int end = e.c.fwdLabel();
-    e.c.useLabel(inst::jmp,end);
-
-    e.c.defLabel(tlabel);
-    onTrue->transToType(e, target);
-
-    e.c.defLabel(end);
+    baseTransToType(e, target);
   }
 }
 
@@ -876,26 +880,6 @@ types::ty *conditionalExp::getType(coenv &e)
 }
  
 
-types::ty *andOrExp::trans(coenv &e)
-{
-  if (isAnArray(e,left) || isAnArray(e,right)) {
-    binaryExp be(getPos(), left, op, right);
-    return be.trans(e);
-  }
-  else
-    return baseTrans(e);
-}
-
-types::ty *andOrExp::getType(coenv &e)
-{
-  if (isAnArray(e,left) || isAnArray(e,right)) {
-    binaryExp be(getPos(), left, op, right);
-    return be.cgetType(e);
-  }
-  else
-    return baseGetType(e);
-}
-
 void orExp::prettyprint(ostream &out, int indent)
 {
   prettyname(out, "orExp", indent);
@@ -904,16 +888,16 @@ void orExp::prettyprint(ostream &out, int indent)
   right->prettyprint(out, indent+1);
 }
 
-types::ty *orExp::baseTrans(coenv &e)
+types::ty *orExp::trans(coenv &e)
 {
   //     a || b
   // translates into
   //     a ? true : b
   booleanExp be(pos, true);
   conditionalExp ce(pos, left, &be, right);
-  ce.transToType(e, primBoolean());
+  ce.baseTransToType(e, primBoolean());
 
-  return baseGetType(e);
+  return getType(e);
 }
 
 
@@ -925,16 +909,16 @@ void andExp::prettyprint(ostream &out, int indent)
   right->prettyprint(out, indent+1);
 }
 
-types::ty *andExp::baseTrans(coenv &e)
+types::ty *andExp::trans(coenv &e)
 {
   //     a && b
   // translates into
   //     a ? b : false
   booleanExp be(pos, false);
   conditionalExp ce(pos, left, right, &be);
-  ce.transToType(e, primBoolean());
+  ce.baseTransToType(e, primBoolean());
 
-  return cgetType(e);
+  return getType(e);
 }
 
 
