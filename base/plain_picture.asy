@@ -490,7 +490,7 @@ struct picture {
 
   void clip(drawer d) {
     bounds.clip(userMin,userMax);
-    add(d);
+    this.add(d);
   }
 
   // Add a point to the sizing.
@@ -1000,13 +1000,13 @@ void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
 void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
 		 pen[] p, path b=g.length > 0 ? g[0] : nullpath)
 {
-  tensorshade(g,fillrule,new pen[][] {p},b);
+  tensorshade(pic,g,fillrule,new pen[][] {p},b);
 }
 
 void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
 		 pen[] p, path b=g.length > 0 ? g[0] : nullpath, pair[] z)
 {
-  tensorshade(g,fillrule,new pen[][] {p},b,new pair[][] {z});
+  tensorshade(pic,g,fillrule,new pen[][] {p},b,new pair[][] {z});
 }
 
 void filldraw(picture pic=currentpicture, path[] g, pen fillpen=currentpen,
