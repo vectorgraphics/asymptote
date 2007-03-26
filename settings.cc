@@ -1133,8 +1133,7 @@ const char *rawpostscript(const string& texengine) {
   else
     return "\\def\\ASYraw#1{\n"
       "currentpoint currentpoint translate matrix currentmatrix\n"
-      "[matrix defaultmatrix 0 get 0 0 matrix defaultmatrix 3 get\n"
-      "matrix currentmatrix 4 get matrix currentmatrix 5 get] setmatrix\n"
+      "100 12 div -100 12 div scale\n"
       "#1\n"
       "setmatrix neg exch neg exch translate}";
 }
