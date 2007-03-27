@@ -1,7 +1,7 @@
 // Gilles Dumoulin's C++ port of Paul Bourke's triangulation code available
 // from http://astronomy.swin.edu.au/~pbourke/modelling/triangulate
 // Used with permission of Paul Bourke.
-// Numerical precision fixes by John C. Bowman
+// Segmentation fault and numerical precision fixes by John C. Bowman
 
 #include "Delaunay.h"
 
@@ -180,7 +180,7 @@ int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri,
 	if(nedge + 3 >= emax) {
 	  emax += 100;
 	  p_EdgeTemp = new IEDGE[emax];
-	  for (int i = 0; i < nv; i++) {
+	  for (int i = 0; i < nedge; i++) {
 	    p_EdgeTemp[i] = edges[i];   
 	  }
 	  delete []edges;
