@@ -1,5 +1,5 @@
 // Gilles Dumoulin's C++ port of Paul Bourke's triangulation code available
-// from http://astronomy.swin.edu.au/~pbourke/modelling/triangulate
+// from http://astronomy.swin.edu.au/~pbourke/papers/triangulate
 // Used with permission of Paul Bourke.
 // Segmentation fault and numerical precision fixes by John C. Bowman
 
