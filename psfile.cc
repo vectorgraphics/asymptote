@@ -436,11 +436,12 @@ void psfile::image(array *a, array *P)
 {
   size_t asize=a->size();
   size_t Psize=P->size();
-  
   if(asize == 0 || Psize == 0) return;
   
   array *a0=read<array *>(a,0);
   size_t a0size=a0->size();
+  if(a0size == 0) return;
+  
   setfirstpen(P);
   
   ColorSpace colorspace=maxcolorspace(P);
@@ -467,7 +468,8 @@ void psfile::image(array *a, array *P)
     array *ai=read<array *>(a,i);
     for(size_t j=0; j < a0size; j++) {
       double val=read<double>(ai,j);
-      pen *p=read<pen *>(P,(int) ((val-min)*step+0.5));
+      size_t index=(size_t) ((val-min)*step+0.5);
+      pen *p=read<pen *>(P,index < Psize ? index : Psize-1);
       p->convert();
       if(!p->promote(colorspace))
 	reportError(inconsistent);
@@ -481,11 +483,12 @@ void psfile::image(array *a, array *P)
 void psfile::image(array *a)
 {
   size_t asize=a->size();
-  
   if(asize == 0) return;
   
   array *a0=read<array *>(a,0);
   size_t a0size=a0->size();
+  if(a0size == 0) return;
+  
   setfirstpen(a0);
   
   ColorSpace colorspace=maxcolorspace2(a);
