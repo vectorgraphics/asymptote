@@ -1621,10 +1621,10 @@ real dirtime(path p, pair z)
   return p.directiontime(z);
 }
 
-realarray* intersect(path x, path y, real fuzz=0)
+realarray* intersect(path p, path q, real fuzz=0)
 {
   pair t;
-  if(intersect(t,x,y,fuzz)) {
+  if(intersect(t,p,q,fuzz)) {
     array *T=new array(2);
     (*T)[0]=t.getx();
     (*T)[1]=t.gety();
