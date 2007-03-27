@@ -170,6 +170,8 @@ public:
   // appropriate newlines or file excerpts that may be needed at the end.
   void sync();
 
+  void cont();
+  
   bool errors() const {
     return anyErrors;
   }

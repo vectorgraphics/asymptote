@@ -78,8 +78,14 @@ void errorstream::trace(position pos)
   sync();
 }
 
+void errorstream::cont()
+{
+  floating = false;
+}
+
 void errorstream::sync()
 {
   if (floating) out << endl;
   floating = false;
 }
+

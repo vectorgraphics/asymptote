@@ -3,11 +3,7 @@ sub-expressions into iteration over the array(s)
 
 Andy: Add routines to allow access to guide components.
 
-Andy: Fix path p=(0,0).. tension 0 and 0 ..(1,1);
-
 Andy: Make keywords cycle, tension, etc. usable by three.asy.
-
-Andy: Fix extra line break after a syntax error on the prompt.
 
 Andy: Look at Java syntactic sugar for iterating over arrays.
 

@@ -32,7 +32,7 @@ void yyerror(const char *s)
   if (!lexerEOF()) {
     em->error(lexerPos());
     *em << s;
-    em->sync();
+    em->cont();
   }
 }
 
