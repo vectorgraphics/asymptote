@@ -139,8 +139,8 @@ types::ty *newArrayExp::trans(coenv &e)
       }
     }
     e.c.encode(inst::intpush,
-               (int) (dimexps ? dimexps->size():0
-                      + dims ? dims->size():0));
+               (int) ((dimexps ? dimexps->size():0)
+                      + (dims ? dims->size():0)));
     e.c.encode(inst::builtin, run::newDeepArray);
 
     return c;
