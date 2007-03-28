@@ -9,7 +9,9 @@ transform rotate(explicit pair dir)
 
 real angle(transform t)
 {
-  return degrees((2t.xx*t.yy,t.yx*t.yy-t.xx*t.xy),warn=false);
+  pair z=(2t.xx*t.yy,t.yx*t.yy-t.xx*t.xy);
+  if(t.xx < 0) z=-z;
+  return degrees(z,warn=false);
 }
 
 transform rotation(transform t)
