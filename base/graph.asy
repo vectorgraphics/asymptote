@@ -1458,28 +1458,6 @@ void xtick(picture pic=currentpicture, real x, pair dir=N,
   xtick(pic,(x,pic.scale.y.scale.logarithmic ? 1 : 0),dir,size,p);
 }
 
-void xtick(picture pic=currentpicture, Label L, explicit pair z, pair dir=N,
-           string format="", real size=Ticksize, pen p=currentpen)
-{
-  Label L=L.copy();
-  if(L.defaultposition) L.position(z);
-  L.align(L.align,-dir);
-  if(shift(L.T)*0 == 0)
-    L.T=shift(dot(dir,L.align.dir) > 0 ? dir*size :
-              ticklabelshift(L.align.dir,p))*L.T;
-  L.p(p);
-  if(L.s == "") L.s=format(format == "" ? defaultformat : format,z.x);
-  L.s=baseline(L.s,L.align,"$10^4$");
-  add(pic,L);
-  xtick(pic,z,dir,size,p);
-}
-
-void xtick(picture pic=currentpicture, Label L, real x, pair dir=N,
-           string format="", real size=Ticksize, pen p=currentpen)
-{
-  xtick(pic,L,(x,pic.scale.y.scale.logarithmic ? 1 : 0),dir,size,p);
-}
-
 void ytick(picture pic=currentpicture, explicit pair z, pair dir=E,
            real size=Ticksize, pen p=currentpen) 
 {
@@ -1492,16 +1470,44 @@ void ytick(picture pic=currentpicture, real y, pair dir=E,
   xtick(pic,(pic.scale.x.scale.logarithmic ? 1 : 0,y),dir,size,p);
 }
 
+void tick(picture pic=currentpicture, Label L, real value, explicit pair z,
+	  pair dir=N, string format="", real size=Ticksize, pen p=currentpen)
+{
+  Label L=L.copy();
+  if(L.defaultposition) L.position(z);
+  L.align(L.align,-dir);
+  if(shift(L.T)*0 == 0)
+    L.T=shift(dot(dir,L.align.dir) > 0 ? dir*size :
+              ticklabelshift(L.align.dir,p))*L.T;
+  L.p(p);
+  if(L.s == "") L.s=format(format == "" ? defaultformat : format,value);
+  L.s=baseline(L.s,L.align,"$10^4$");
+  add(pic,L);
+  xtick(pic,z,dir,size,p);
+}
+
+void xtick(picture pic=currentpicture, Label L, explicit pair z, pair dir=N,
+           string format="", real size=Ticksize, pen p=currentpen)
+{
+  tick(pic,L,z.x,z,dir,format,size,p);
+}
+
+void xtick(picture pic=currentpicture, Label L, real x, pair dir=N,
+           string format="", real size=Ticksize, pen p=currentpen)
+{
+  xtick(pic,L,(x,pic.scale.y.scale.logarithmic ? 1 : 0),dir,size,p);
+}
+
 void ytick(picture pic=currentpicture, Label L, explicit pair z, pair dir=E,
            string format="", real size=Ticksize, pen p=currentpen)
 {
-  xtick(pic,L,z,dir,format,size,p);
+  tick(pic,L,z.y,z,dir,format,size,p);
 }
 
 void ytick(picture pic=currentpicture, Label L, real y, pair dir=E,
            string format="", real size=Ticksize, pen p=currentpen)
 {
-  xtick(pic,L,(pic.scale.x.scale.logarithmic ? 1 : 0,y),dir,format,size,p);
+  ytick(pic,L,(pic.scale.x.scale.logarithmic ? 1 : 0,y),dir,format,size,p);
 }
 
 private void label(picture pic, Label L, pair z, real x, align align,
