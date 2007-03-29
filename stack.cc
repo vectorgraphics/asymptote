@@ -87,7 +87,8 @@ void stack::breakpoint(absyntax::runnable *r)
   
 void stack::debug() 
 {
-  if(indebugger || !curPos) return;
+  if(!curPos) return;
+  if(indebugger) {em->clear(); return;}
   
   switch(debugOp) {
   case 'i': // inst
