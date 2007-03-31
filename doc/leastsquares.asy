@@ -31,8 +31,8 @@ real[] T,xi,dxi;
 
 for(int i=0; i <= n; ++i) {
   real first=first+i*step;
-  real[] logrho=(t >= first && t <= last) ? log(rho) : null;
-  real[] logt=(t >= first && t <= last) ? -log(t) : null;
+  real[] logrho=(t >= first & t <= last) ? log(rho) : null;
+  real[] logt=(t >= first & t <= last) ? -log(t) : null;
   
   if(logt.length < 2) break;
   
