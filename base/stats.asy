@@ -101,7 +101,7 @@ int[][] frequency(real[] x, real[] y, real[] xbins, real[] ybins)
 // Faster than above algorithm, but only allows for regularly spaced bins.
 int[][] frequency(real[] x, real[] y, pair a, pair b, int nx, int ny=nx)
 {
-  int[][] freq=new int[nx][0];
+  int[][] freq=new int[nx][];
   for(int i=0; i < nx; ++i)
     freq[i]=sequence(new int(int x) {return 0;},ny);
   real hx=nx/(b.x-a.x);
@@ -119,7 +119,7 @@ int[][] frequency(real[] x, real[] y, pair a, pair b, int nx, int ny=nx)
 
 int[][] frequency(pair[] z, pair a, pair b, int nx, int ny=nx)
 {
-  int[][] freq=new int[nx][0];
+  int[][] freq=new int[nx][];
   for(int i=0; i < nx; ++i)
     freq[i]=sequence(new int(int x) {return 0;},ny);
   real hx=nx/(b.x-a.x);

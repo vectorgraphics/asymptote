@@ -988,7 +988,7 @@ void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
   b=copy(b);
   z=copy(z);
   pic.add(new void(frame f, transform t) {
-      pair[][] Z=new pair[z.length][0];
+      pair[][] Z=new pair[z.length][];
       for(int i=0; i < z.length; ++i)
 	Z[i]=t*z[i];
       tensorshade(f,t*g,fillrule,p,t*b,Z);

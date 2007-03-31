@@ -180,7 +180,7 @@ typedef guide interpolate(... guide[]);
 private guide[][] connect(pair[][][] points, real[] c, interpolate join)
 {
   // set up return value
-  guide[][] result=new guide[c.length][0];
+  guide[][] result=new guide[c.length][];
   for(int cnt=0; cnt < c.length; ++cnt) {
     pair[][] pointscnt=points[cnt];
     guide[] resultcnt=result[cnt]=new guide[pointscnt.length];
@@ -225,7 +225,7 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
     
   } 
 
-  segment segments[][][]=new segment[nx][ny][0];
+  segment segments[][][]=new segment[nx][ny][];
 
   real dx=(b.x-a.x)/nx;
   real dy=(b.y-a.y)/ny;
@@ -323,7 +323,7 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
 
 
   // set up return value
-  pair[][][] points=new pair[c.length][0][0];
+  pair[][][] points=new pair[c.length][][];
 
   for(int i=0; i < nx; ++i) {
     segment[][] segmentsi=segments[i];
@@ -520,7 +520,7 @@ pen[][] interior(picture pic=currentpicture, guide[][] g, pen[] palette)
 {
   if(palette.length != g.length+1)
     abort("Palette array must have length one more than guide array");
-  pen[][] fillpalette=new pen[g.length][0];
+  pen[][] fillpalette=new pen[g.length][];
   for(int i=0; i < g.length; ++i) {
     guide[] gi=g[i];
     guide[] gp;
@@ -638,7 +638,7 @@ guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
   int[][] trn=triangulate(z);
 
   // array to store guides found so far
-  pair[][][] points=new pair[c.length][0][0];
+  pair[][][] points=new pair[c.length][][];
         
   for(int cnt=0; cnt < c.length; ++cnt) {
     pair[][] pointscnt=points[cnt];

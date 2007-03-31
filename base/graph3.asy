@@ -643,7 +643,7 @@ picture surface(real f(pair z), int nsub, pair a, pair b,
 guide3[][] lift(real f(real x, real y), guide[][] g,
                 interpolate3 join=operator --)
 {
-  guide3[][] G=new guide3[g.length][0];
+  guide3[][] G=new guide3[g.length][];
   for(int cnt=0; cnt < g.length; ++cnt) {
     guide[] gcnt=g[cnt];
     guide3[] Gcnt=new guide3[gcnt.length];
