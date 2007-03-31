@@ -355,15 +355,15 @@ void display(frame f, real margin=0, pair align=S, pen p=itempen,
   display(new frame[] {f},margin,align,p,figuremattpen);
 }
 
-void figure(string[] s, string options="", real margin=0, 
-            string[] captions=new string[], string caption="",
-	    pair align=S, pen p=itempen, pen figuremattpen=figuremattpen)
+void display(string[] s, real margin=0, string[] captions=new string[],
+	     string caption="", pair align=S, pen p=itempen,
+	     pen figuremattpen=figuremattpen)
 {
   frame[] f=new frame[s.length];
   frame F;
   for(int i=0; i < s.length; ++i) {
     f[i]=newframe;
-    label(f[i],graphic(s[i],options));
+    label(f[i],s[i]);
     add(F,f[i],(0,0));
   }
   real y=point(F,S).y;
@@ -374,6 +374,24 @@ void figure(string[] s, string options="", real margin=0,
   }
   display(f,margin,align,p,figuremattpen);
   if(caption != "") center(caption,p);
+}
+
+void display(string s, string caption="", pair align=S, pen p=itempen,
+	     pen figuremattpen=figuremattpen)
+{
+  display(new string[] {s},caption,align,p,figuremattpen);
+}
+
+void figure(string[] s, string options="", real margin=0, 
+            string[] captions=new string[], string caption="",
+	    pair align=S, pen p=itempen, pen figuremattpen=figuremattpen)
+{
+  string[] S;
+  for(int i=0; i < s.length; ++i) {
+    S[i]=graphic(s[i],options);
+  }
+
+  display(S,margin,captions,caption,align,itempen,figuremattpen);
 }
 
 void figure(string s, string options="", string caption="", pair align=S,
