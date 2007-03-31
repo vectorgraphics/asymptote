@@ -21,7 +21,7 @@ yaxis(Left,RightTicks);
 
 picture secondary=secondaryY(new void(picture pic) {
   scale(pic,Linear,Log);
-  draw(pic,graph(pic,t,infectious,t >= 10 && t <= 15),red);
+  draw(pic,graph(pic,t,infectious,t >= 10 & t <= 15),red);
   yaxis(pic,Right,red,LeftTicks(begin=false,end=false));
 });
 			     
