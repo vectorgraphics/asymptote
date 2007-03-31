@@ -1,1 +1,1 @@
-usepackage("type1cm");
+usepackage("fix-cm");

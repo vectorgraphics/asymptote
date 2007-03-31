@@ -2435,7 +2435,7 @@ requests that the @TeX{} baseline be respected.
 @cindex @code{fontsize}
 @cindex @code{lineskip}
 @cindex @code{defaultpen}
-@cindex @code{type1cm}
+@cindex @code{fix-cm}
 @item The font size is specified in @TeX{} points (1 pt = 1/72.27 inches) with
 the function @code{pen fontsize(real size, real lineskip=1.2*size)}.
 The default font size, 12pt, may be changed with @code{defaultpen(pen)}.
@@ -2443,9 +2443,14 @@ Nonstandard font sizes may require inserting
 @verbatim
 import fontsize;
 @end verbatim
-at the beginning of the file. The font size and line skip of a pen can
-be examined with the routines @code{real fontsize(pen p=currentpen)} and 
-@code{real lineskip(pen p=currentpen)}, respectively.
+at the beginning of the file (this requires the @code{fix-cm} package
+available from
+@quotation
+@url{http://www.ctan.org/tex-archive/help/Catalogue/entries/fix-cm}
+@end quotation
+and included in recent @code{LaTeX} distributions). The font size and line
+skip of a pen can be examined with the routines @code{real fontsize(pen
+p=currentpen)} and @code{real lineskip(pen p=currentpen)}, respectively.
 
 @cindex @code{font}
 @cindex @code{LaTeX fonts}
