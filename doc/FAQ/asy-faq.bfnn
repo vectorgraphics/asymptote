@@ -375,7 +375,9 @@ usepackage("icomma");
 
 \question 11mar:hyperref How can I prevent \courier{texpreamble("\\usepackage[pdftex]{hyperref}")\} from changing the page size?
 
+\verbatim
 texpreamble("\\usepackage[pdftex,setpagesize=false]{hyperref}");
+\endverbatim
 
 \comment #####################################################################
 
