@@ -1794,6 +1794,45 @@ triple intersectionpoint(explicit guide3 p, explicit guide3 q, real fuzz=0)
   return intersectionpoint((path3) p,(path3) q,fuzz);
 }
 
+// return an array containing all intersection points of the paths p and q
+triple[] intersectionpoints(path3 p, path3 q)
+{
+  static real epsilon=sqrt(realEpsilon);
+  triple[] z;
+  real[] t=intersect(p,q);
+  if(t.length > 0) {
+    real s=t[0];
+    z.push(point(p,s));
+    if(cyclic(q)) {
+      real s=t[1];
+      real sm=s-epsilon+length(q);
+      real sp=s+epsilon;
+      if(sp < sm)
+	z.append(intersectionpoints(p,subpath(q,sp,sm)));
+    } else {
+      real sm=s-epsilon;
+      real sp=s+epsilon;
+      int L=length(p);
+      if(cyclic(p)) {
+	sm += L;
+	if(sp < sm)
+	  z.append(intersectionpoints(subpath(p,sp,sm),q));
+      } else  {
+	if(sm > 0)
+	  z.append(intersectionpoints(subpath(p,0,sm),q));
+	if(sp < L) 
+	  z.append(intersectionpoints(subpath(p,sp,L),q));
+      }
+    }
+  }
+  return z;
+}
+
+triple[] intersectionpoints(explicit guide3 p, explicit guide3 q)
+{
+  return intersectionpoints((path3) p,(path3) q);
+}
+
 path3 operator & (path3 p, path3 q) {return p.concat(p,q);}
 path3 operator & (explicit guide3 p, explicit guide3 q)
 {
