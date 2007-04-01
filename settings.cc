@@ -67,19 +67,8 @@ using camp::pair;
 string asyInstallDir; // Used only by msdos
 string defaultXasy="xasy";
 
-#ifdef __CYGWIN__
-bool msdos=true;
-const char *HOME="USERPROFILE";
-const char pathSeparator=';';
-string defaultPSViewer="gsview32.exe";
-string defaultPDFViewer="AcroRd32.exe";
-string defaultGhostscript="gswin32c.exe";
-string defaultPython="python.exe";
-string defaultDisplay="imdisplay";
-#undef ASYMPTOTE_SYSDIR
-#define ASYMPTOTE_SYSDIR asyInstallDir
-const string docdir=".";
-#else  
+#ifndef __CYGWIN__
+  
 bool msdos=false;
 const char *HOME="HOME";
 const char pathSeparator=':';
@@ -93,9 +82,22 @@ string defaultGhostscript="gs";
 string defaultDisplay="display";
 string defaultPython;
 const string docdir=ASYMPTOTE_DOCDIR;
-#endif  
-
-#if __CYGWIN__  
+void queryRegistry() {}
+  
+#else  
+  
+bool msdos=true;
+const char *HOME="USERPROFILE";
+const char pathSeparator=';';
+string defaultPSViewer="gsview32.exe";
+string defaultPDFViewer="AcroRd32.exe";
+string defaultGhostscript="gswin32c.exe";
+string defaultPython="python.exe";
+string defaultDisplay="imdisplay";
+#undef ASYMPTOTE_SYSDIR
+#define ASYMPTOTE_SYSDIR asyInstallDir
+const string docdir=".";
+  
 #include <dirent.h>
   
 // Use key to look up an entry in the MSWindows registry, respecting wild cards
@@ -159,6 +161,7 @@ void queryRegistry()
   asyInstallDir=getEntry("Microsoft/Windows/CurrentVersion/Uninstall/Asymptote/InstallLocation");
   defaultXasy=asyInstallDir+"\\"+defaultXasy;
 }
+  
 #endif  
   
 const char PROGRAM[]=PACKAGE_NAME;
@@ -869,9 +872,7 @@ void no_GCwarn(char *, GC_word) {}
 #endif
 
 void initSettings() {
-#if __CYGWIN__
-    queryRegistry();
-#endif
+  queryRegistry();
 
   settingsModule=new types::dummyRecord(symbol::trans("settings"));
   
