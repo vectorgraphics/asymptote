@@ -6631,36 +6631,42 @@ frame for their object argument:
 @verbatim
 block rectangle(object header, object body,
                 pen headerpen=mediumgray, pen bodypen=currentpen,
-                pair center=(0,0), real dx=3, pair headersize=0,
-                pair bodysize=0);
+                pair center=(0,0), real dx=3,
+                real minheaderwidth=0, real minheaderheight=0,
+                real minbodywidth=0, real minbodyheight=0);
 block rectangle(object body, pen bodypen=currentpen,
-                pair center=(0,0), real dx=3, pair size=0);
+                pair center=(0,0), real dx=3,
+                real minwidth=0, real minheight=0);
 @end verbatim
 
 @item diamond-shaped flowchart block:
 @cindex @code{diamond}
 @verbatim
 block diamond(object body, pair center=(0,0), real ds=5,
-              real dw=1, real height=20, pair size=0);
+              real dw=1, real height=20,
+              real minwidth=0, real minheight=0);
 @end verbatim
 
 @item circular flowchart block:
 @cindex @code{circle}
 @verbatim
-block circle(object body, pair center=(0,0), real dr=3, real size=0);
+block circle(object body, pair center=(0,0), real dr=3,
+             real mindiameter=0);
 @end verbatim
 
 @item rectangular flowchart block with rounded corners:
 @cindex @code{roundrectangle}
 @verbatim
 block roundrectangle(object body, pair center=(0,0),
-                     real ds=5, real dw=0, pair size=0);
+                     real ds=5, real dw=0,
+                     real minwidth=0, real minheight=0);
 @end verbatim
 
 @item rectangular flowchart block with beveled edges:
 @cindex @code{bevel}
 @verbatim
-block bevel(object body, pair center=(0,0), real dh=5, real dw=5, pair size=0);
+block bevel(object body, pair center=(0,0), real dh=5, real dw=5,
+            real minwidth=0, real minheight=0);
 @end verbatim 
 
 @end table
@@ -7384,4 +7390,5 @@ Stefan Knorr.
 @c  LocalWords:  crossframe tildeframe markangle StickIntervalMarker gswin AFPL
 @c  LocalWords:  CrossIntervalMarker CircleBarIntervalMarker Ghostscript
 @c  LocalWords:  TildeIntervalMarker autoimport calculateTransform bitwise
-@c  LocalWords:  headersize bodysize
+@c  LocalWords:  headersize bodysize minheaderwidth minheaderheight minwidth
+@c  LocalWords:  minbodywidth minbodyheight minheight mindiameter
