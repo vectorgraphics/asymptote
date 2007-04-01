@@ -6064,7 +6064,7 @@ the argument @code{range}, which can be @code{Full}, @code{Automatic},
 or an explicit range @code{Range(real min, real max)}.
 Here @code{Full} specifies a range varying from the
 minimum to maximum values of the function over the sampling interval,
-while @code{Automatic} selects "noice" limits. 
+while @code{Automatic} selects "nice" limits. 
 The example @code{imagecontour.asy} illustrates how level sets
 (contour lines) can be drawn on a color density plot (@pxref{contour}).
 
@@ -7383,4 +7383,5 @@ Stefan Knorr.
 @c  LocalWords:  boutput nonportable markinterval stickframe circlebarframe
 @c  LocalWords:  crossframe tildeframe markangle StickIntervalMarker gswin AFPL
 @c  LocalWords:  CrossIntervalMarker CircleBarIntervalMarker Ghostscript
-@c  LocalWords:  TildeIntervalMarker autoimport calculateTransform
+@c  LocalWords:  TildeIntervalMarker autoimport calculateTransform bitwise
+@c  LocalWords:  headersize bodysize
