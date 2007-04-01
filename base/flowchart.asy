@@ -72,7 +72,8 @@ struct block {
 // Construct a rectangular block with header and body objects.
 block rectangle(object header, object body,
 		pen headerpen=mediumgray, pen bodypen=currentpen, 
-                pair center=(0,0), real dx=3) 
+                pair center=(0,0), real dx=3, pair headersize=0,
+		pair bodysize=0)
 {
   frame fbody=body.fit();
   frame fheader=header.fit();
@@ -83,8 +84,8 @@ block rectangle(object header, object body,
   pair bound0=Mheader-mheader;
   pair bound1=Mbody-mbody;
   real width=max(bound0.x,bound1.x);
-  pair z0=(width+2dx,bound0.y+2dx);
-  pair z1=(width+2dx,bound1.y+2dx);
+  pair z0=bodysize == 0 ? (width+2dx,bound0.y+2dx) : bodysize;
+  pair z1=headersize == 0 ? (width+2dx,bound1.y+2dx) : headersize;
   path shape=(0,0)--(0,z1.y)--(0,z0.y+z1.y)--(z0.x,z0.y+z1.y)--z1--(z0.x,0)--
     cycle;
 
@@ -116,13 +117,12 @@ block rectangle(object header, object body,
 
 // As above, but without the header.
 block rectangle(object body, pen bodypen=currentpen, pair center=(0,0),
-                real dx=3) 
+                real dx=3, pair size=0) 
 {
   frame f=body.fit();
   pair m=min(f);
   pair M=max(f);
-  pair bound=M-m;
-  pair z=(bound.x+2dx,bound.y+2dx);
+  pair z=(size == 0 ? M-m+dx*(2,2) : size);
   path shape=box((0,0),z);
 
   block block;
@@ -150,12 +150,12 @@ block rectangle(object body, pen bodypen=currentpen, pair center=(0,0),
 }
 
 block diamond(object body, pair center=(0,0), real ds=5, real dw=1,
-              real height=20, real dh=0)
+              real height=20, pair size=0) 
 {
   frame f=body.fit();
   pair m=min(f);
   pair M=max(f);
-  pair bound=M-m;
+  pair bound=size == 0 ? M-m : size;
   
   real e=ds;
   real a=0.5bound.x-dw;
@@ -193,13 +193,12 @@ block diamond(object body, pair center=(0,0), real ds=5, real dw=1,
   return block;
 }
 
-block circle(object body, pair center=(0,0), real dr=3)
+block circle(object body, pair center=(0,0), real dr=3, real size=0)
 {
   frame f=body.fit();
   pair m=min(f);
   pair M=max(f);
-  pair bound=M-m;
-  real r=0.5length(bound)+dr;
+  real r=size == 0 ? 0.5length(M-m)+dr : 0.5size;
   
   path shape=(0,r)..(r,2r)..(2r,r)..(r,0)..cycle;
   
@@ -227,12 +226,13 @@ block circle(object body, pair center=(0,0), real dr=3)
   return block;
 }
 
-block roundrectangle(object body, pair center=(0,0), real ds=5, real dw=0)
+block roundrectangle(object body, pair center=(0,0), real ds=5, real dw=0,
+		     pair size=0)
 {
   frame f=body.fit();
   pair m=min(f);
   pair M=max(f);
-  pair bound=M-m;
+  pair bound=size == 0 ? M-m : size;
 
   real a=bound.x;
   real b=bound.y;
@@ -266,12 +266,12 @@ block roundrectangle(object body, pair center=(0,0), real ds=5, real dw=0)
   return block;
 }
 
-block bevel(object body, pair center=(0,0), real dh=5, real dw=5)
+block bevel(object body, pair center=(0,0), real dh=5, real dw=5, pair size=0)
 {
   frame f=body.fit();
   pair m=min(f);
   pair M=max(f);
-  pair bound=M-m;
+  pair bound=size == 0 ? M-m : size;
 
   real a=bound.x;
   real b=0.5bound.y;

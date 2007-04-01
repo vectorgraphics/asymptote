@@ -6631,35 +6631,36 @@ frame for their object argument:
 @verbatim
 block rectangle(object header, object body,
                 pen headerpen=mediumgray, pen bodypen=currentpen,
-                pair center=(0,0), real dx=3);
+                pair center=(0,0), real dx=3, pair headersize=0,
+                pair bodysize=0);
 block rectangle(object body, pen bodypen=currentpen,
-                pair center=(0,0), real dx=3);
+                pair center=(0,0), real dx=3, pair size=0);
 @end verbatim
 
 @item diamond-shaped flowchart block:
 @cindex @code{diamond}
 @verbatim
 block diamond(object body, pair center=(0,0), real ds=5,
-              real dw=1, real height=20, real dh=0);
+              real dw=1, real height=20, pair size=0);
 @end verbatim
 
 @item circular flowchart block:
 @cindex @code{circle}
 @verbatim
-block circle(object body, pair center=(0,0), real dr=3);
+block circle(object body, pair center=(0,0), real dr=3, real size=0);
 @end verbatim
 
 @item rectangular flowchart block with rounded corners:
 @cindex @code{roundrectangle}
 @verbatim
 block roundrectangle(object body, pair center=(0,0),
-                     real ds=5, real dw=0);
+                     real ds=5, real dw=0, pair size=0);
 @end verbatim
 
 @item rectangular flowchart block with beveled edges:
 @cindex @code{bevel}
 @verbatim
-block bevel(object body, pair center=(0,0), real dh=5, real dw=5);
+block bevel(object body, pair center=(0,0), real dh=5, real dw=5, pair size=0);
 @end verbatim 
 
 @end table
