@@ -54,7 +54,6 @@ asymptote.pdf: asymptote.texi $(INCLUDES) $(ASYFILES:.asy=.pdf)
 
 intro.pdf: intro.asy $(INTROFILES:=.asy)
 	$(ASY) -f pdf intro
-	$(ASY) -f pdf intro
 
 intro.png:
 	-
