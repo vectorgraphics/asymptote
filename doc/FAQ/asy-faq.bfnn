@@ -373,9 +373,9 @@ The solution is to load the \courier{icomma\} package near the beginning of your
 usepackage("icomma");
 \endverbatim
 
-\question 11mar:hyperref How can I prevent \courier{texpreamble("\usepackage[pdftex]{hyperref}")\} from changing the page size?
+\question 11mar:hyperref How can I prevent \courier{texpreamble("\\usepackage[pdftex]{hyperref}")\} from changing the page size?
 
-texpreamble("\usepackage[pdftex,setpagesize=false]{hyperref}");
+texpreamble("\\usepackage[pdftex,setpagesize=false]{hyperref}");
 
 \comment #####################################################################
 
