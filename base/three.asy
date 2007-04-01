@@ -2103,11 +2103,13 @@ struct face {
   transform t;
   frame fit;
   triple normal,point;
+  bbox3 box;
   static face face(path3 p) {
     face f=new face;
     f.normal=normal(p);
     if(f.normal == O) abort("path is linear");
     f.point=point(p,0);
+    f.box=bbox3(min(p),max(p));
     return f;
   }
   face copy() {
@@ -2116,6 +2118,7 @@ struct face {
     f.t=t;
     f.normal=normal;
     f.point=point;
+    f.box=box;
     add(f.fit,fit);
     return f;
   }
@@ -2174,33 +2177,43 @@ struct splitface {
 splitface split(face a, face cut, projection P)
 {
   splitface S;
-  triple camera=P.camera;
 
-  if(!P.infinity && (abs(a.normal-cut.normal) < epsilon ||
-                     abs(a.normal+cut.normal) < epsilon)) {
-    if(abs(dot(a.point-camera,a.normal)) >= 
-       abs(dot(cut.point-camera,cut.normal))) {
+  void nointersection() {
+    if(abs(dot(a.point-P.camera,a.normal)) >= 
+       abs(dot(cut.point-P.camera,cut.normal))) {
       S.back=a;
       S.front=null;
     } else {
       S.back=null;
       S.front=a;
     }
+  }
+
+  if(P.infinity) {
+    P=P.copy();
+    P.camera *= 2*max(abs(a.box.min),abs(a.box.max),
+		      abs(cut.box.min),abs(cut.box.max));
+  } else if((abs(a.normal-cut.normal) < epsilon ||
+	     abs(a.normal+cut.normal) < epsilon)) {
+    nointersection();
     return S;
   }
-  
+
   line L=intersection(a,cut);
+
+  if(!P.infinity && dot(P.camera-L.point,P.camera-P.target) < 0) {
+    nointersection();
+    return S;
+  }
+    
   pair point=a.t*project(L.point,P);
   pair dir=a.t*project(L.point+L.dir,P)-point;
   pair invdir=dir != 0 ? 1/dir : 0;
   triple apoint=L.point+cross(L.dir,a.normal);
   bool left=(invdir*(a.t*project(apoint,P))).y >= (invdir*point).y;
-  bool rightfront;
-  if(P.infinity) rightfront=!left;
-  else {
-    real t=intersect(apoint,camera,cut.normal,cut.point);
-    rightfront=left ^ (t <= 0 || t >= 1);
-  }
+
+  real t=intersect(apoint,P.camera,cut.normal,cut.point);
+  bool rightfront=left ^ (t <= 0 || t >= 1);
   
   face back=a, front=a.copy();
   pair max=max(a.fit);
