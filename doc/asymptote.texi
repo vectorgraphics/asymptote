@@ -543,7 +543,8 @@ in the directory @code{doc} and repeat the command @code{make all}.
 
 @noindent
 For a (default) system-wide installation, the last command should be
-done as root. To install without root privileges:
+done as root. To install without root privileges, change the @code{./configure}
+command to
 @verbatim
 ./configure --prefix=$HOME/asymptote
 @end verbatim
