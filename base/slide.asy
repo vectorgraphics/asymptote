@@ -1,5 +1,4 @@
 import fontsize;
-usepackage("rotating");
 usepackage("asycolors");
 
 bool reverse=false; // Set to true to enable reverse video
