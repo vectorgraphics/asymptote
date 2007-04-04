@@ -451,7 +451,8 @@ picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
     if(j == 0) dfy=f[i][1]-f[i][0];
     else if(j == ny) dfy=f[i][ny]-f[i][ny-1];
     else dfy=0.5(f[i][j+1]-f[i][j-1]);
-    return light.intensity(cross(dfx,dfy))*surfacepen;
+    triple v=cross(dfx,dfy);
+    return light.intensity(v*sgn(dot(v,P.camera-v)))*surfacepen;
   }
 
   int[] edges={0,0,0,2};
@@ -569,7 +570,8 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
     if(j == 0) dfy=f(sample(i,1))-f(sample(i,0));
     else if(j == nv) dfy=f(sample(i,nv))-f(sample(i,nv-1));
     else dfy=0.5(f(sample(i,j+1))-f(sample(i,j-1)));
-    return light.intensity(cross(dfx,dfy))*surfacepen;
+    triple v=cross(dfx,dfy);
+    return light.intensity(v*sgn(dot(v,P.camera-v)))*surfacepen;
   }
 
   guide3 cell(int i, int j) { 
