@@ -192,9 +192,8 @@ void draw(picture pic=currentpicture, surface s, int nu=nmesh, int nv=nu,
       path3 s0=s.uequals(i/nu);
       path3 s1=s.uequals((i+1)/nu);
       for(int j=0; j < nv; ++j) {
-        triple v=camera-0.25*(point(s0,j/nv)+point(s0,(j+1)/nv)+
-			      point(s1,j/nv)+point(s1,(j+1)/nv));
-        real d=sgn(dot(v,camera))*abs(v);
+        real d=abs(camera-0.25*(point(s0,j/nv)+point(s0,(j+1)/nv)+
+				point(s1,j/nv)+point(s1,(j+1)/nv)));
         depth.push(new real[] {d,i,j});
       }
     }

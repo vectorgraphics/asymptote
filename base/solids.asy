@@ -131,8 +131,7 @@ struct revolution {
         camera *= scalefactor();
       real phi=angle1;
       for(int j=0; j < n; ++j, phi += s) {
-        triple v=camera-center(i,phi+0.5s);
-        real d=sgn(dot(v,camera))*abs(v);
+        real d=abs(camera-center(i,phi+0.5s));
         depth.push(new real[] {d,i,phi});
       }
     }

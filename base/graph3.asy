@@ -486,8 +486,7 @@ picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
     real[][] depth;
     for(int i=0; i < nx; ++i) {
       for(int j=0; j < ny; ++j) {
-        triple v=camera-0.25(f[i][j]+f[i][j+1]+f[i+1][j]+f[i+1][j+1]);
-        real d=sgn(dot(v,camera))*abs(v);
+        real d=abs(camera-0.25(f[i][j]+f[i][j+1]+f[i+1][j]+f[i+1][j+1]));
         depth.push(new real[] {d,i,j});
       }
     }
@@ -601,9 +600,8 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
     real[][] depth;
     for(int i=0; i < nu; ++i) {
       for(int j=0; j < nv; ++j) {
-        triple v=camera-0.25*(f(sample(i,j))+f(sample(i,j+1))+
-                              f(sample(i+1,j))+f(sample(i+1,j+1)));
-        real d=sgn(dot(v,camera))*abs(v);
+        real d=abs(camera-0.25*(f(sample(i,j))+f(sample(i,j+1))+
+				f(sample(i+1,j))+f(sample(i+1,j+1))));
         depth.push(new real[] {d,i,j});
       }
     }
