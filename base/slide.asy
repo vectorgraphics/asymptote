@@ -546,6 +546,7 @@ void exitfunction()
     for(int i=0; i < codefile.length; ++i) {
       string name=codefile[i];
       delete(name+"."+nativeformat());
+      delete(name+"_.aux");
       delete(name+".asy");
     }
 }
