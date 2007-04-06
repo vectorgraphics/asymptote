@@ -9,11 +9,51 @@ bibliographystyle("alpha");
 
 itempen=fontsize(22pt);
 
-titlepage("Asymptote: The Vector Graphics Language","John C. Bowman",
-	  "University of Alberta","\today","http://asymptote.sf.net");
+titlepage("Asymptote: The Vector Graphics Language",
+	  "Andy Hammerlindl and John Bowman",
+	  "University of Toronto and University of Alberta","April 4, 2007",
+	  "http://asymptote.sf.net");
+
+title("History");
+item("\TeX\ and METAFONT (Knuth, 1979)");
+item("MetaPost (Hobby, 1989)");
+item("Asymptote (Hammerlindl, Bowman, Prince, 2004)");
+
+title("Statistics (as of April, 2007)");
+item("Runs on Windows, Mac OS X, Linux, etc.");
+item("1800 downloads a month from {\tt asymptote.sourceforge.net}.");
+item("33\ 000 lines of C++ code.");
+item("18\ 000 lines of Asymptote code.");
+
+title("Vector Graphics");
+item("Raster graphics assign colors to a grid of pixels.");
+figure("pixel.ps");
+item("Vector graphics are graphics which still maintain their look when
+    inspected at arbitrarily small scales.");
+asyfigure(asywrite("
+picture pic;
+
+path zoombox(real h) {
+  return box((-h,-h/2),(min(10,h),min(10,h)/2));
+}
+
+frame zoom(real h, real next=0) {
+  frame f;
+  draw(f, (0,-100){W}..{E}(0,0), Arrow);
+  clip(f, zoombox(h));
+  if(next > 0)
+    draw(f, zoombox(next));
+
+  return scale(100/h)*f;
+}
+
+add(zoom(100), (0,0));
+add(zoom(10), (200,0));
+add(zoom(1), (400,0));
+"));
 
 title("Cartesian Coordinates");
-asycode("diagonal");
+asyfilecode("diagonal");
 item("units are {\tt PostScript} {\it big points\/} (1 {\tt bp} =
 1/72 {\tt inch})");
 item("{\tt --} means join the points with a linear segment to create
@@ -21,7 +61,7 @@ a {\it path}");
 
 item("cyclic path:");
 
-asycode("square");
+asyfilecode("square");
 
 
 title("Scaling to a Given Size");
@@ -30,42 +70,157 @@ item("{\tt PostScript} units are often inconvenient.");
 
 item("Instead, scale user coordinates to a specified final size:");
 
-code("size(101,101);
-draw((0,0)--(1,0)--(1,1)--(0,1)--cycle);");
+code("
+size(101,101);
+draw((0,0)--(1,0)--(1,1)--(0,1)--cycle);
+");
 asyfigure("square");
 
 item("One can also specify the size in {\tt cm}:");
 
-asycode("bigsquare");
+asyfilecode("bigsquare");
 
 
 title("Labels");
 
 item("Adding and aligning \LaTeX\ labels is easy:");
 
-asycode("labelsquare","height=6cm");
+asyfilecode("labelsquare","height=6cm");
 
 
 title("Bezier Splines");
 
-item("Using {\tt ..} instead of {\tt --} specifies a {\it Bezier cubic spline\/} \cite{Hobby86,Knuth86b}:");
+item("Using {\tt ..} instead of {\tt --} specifies a {\it Bezier cubic
+    spline}:");
 
-code("draw(z0..controls c0 and c1 .. z1,blue+dashed);");
-asyfigure("beziercurve");
+code("
+draw(z0 .. controls c0 and c1 .. z1,blue+dashed);
+");
+asyfigure("beziercurve","height=7cm");
 
 equation("(1-t)^3 z_0+3t(1-t)^2 c_0+3t^2(1-t) c_1+t^3 z_1, \qquad t\in [0,1].");
 
 
-title("Rendering: Midpoint Property");
+title("Smooth Paths");
 
-item("Third-order midpoint $m_5$ is the midpoint of the Bezier curve formed by the quadruple ($z_0$, $c_0$, $c_1$, $z_1$).");
+item("Asymptote can choose control points for you.");
 
-asyfigure("bezier2");
+string bean="
+pair[] z={(0,0), (0,1), (2,1), (2,0), (1,0)};
+";
 
-item("Recursively construct the desired curve, using the newly extracted third-order midpoint as an endpoint and the respective second- and first-order midpoints as control points.");
+asycode(preamble="size(130,0);",bean+"
+draw(z[0]..z[1]..z[2]..z[3]..z[4]..cycle,
+     grey+linewidth(5));
+dot(z,linewidth(7));
+");
 
+item("First, linear equations involving the curvature are solved to find the
+    direction through each knot.  Then, control points along those directions
+    are chosen \cite{Hobby86,Knuth86b}:");
 
-title("{\tt C++}-like Programming Syntax");
+asyfigure(asywrite(preamble="size(130,0);",bean+"
+path p=z[0]..z[1]..z[2]..z[3]..z[4]..cycle;
+
+dot(z);
+draw(p,lightgrey+linewidth(5));
+dot(z);
+
+picture output;
+save();
+for (int i=0; i<length(p); ++i) {
+  pair z=point(p,i), dir=dir(p,i);
+  draw((z-0.3dir)--(z+0.3dir), Arrow);
+}
+add(output, currentpicture.fit(), (-0.5inch, 0), W);
+restore();
+
+save();
+guide g;
+for (int i=0; i<length(p); ++i) {
+  dot(precontrol(p,i));
+  dot(postcontrol(p,i));
+  g=g--precontrol(p,i)--point(p,i)--postcontrol(p,i);
+}
+draw(g--cycle,dashed);
+add(output, currentpicture.fit(), (+0.5inch, 0), E);
+restore();
+
+shipout(output);
+"));
+
+title("Filling");
+item("Use {\tt fill} to fill the inside of a path:");
+asycode(preamble="size(0,200);","
+path star;
+for (int i=0; i<5; ++i)
+  star=star--dir(90+144i);
+star=star--cycle;
+fill(shift(-1,0)*star,orange+zerowinding);
+draw(shift(-1,0)*star,linewidth(3));
+fill(shift(1,0)*star,blue+evenodd);
+draw(shift(1,0)*star,linewidth(3));
+");
+
+title("Filling");
+item("Use a list of paths to fill a region with holes:");
+asycode(preamble="size(0,300);","
+path[] p={scale(2)*unitcircle, reverse(unitcircle)};
+fill(p,green+zerowinding);
+");
+
+title("Clipping");
+item("Pictures can be clipped to lie inside a path:");
+asycode(preamble="
+size(0,200);
+guide star;
+for (int i=0; i<5; ++i)
+  star=star--dir(90+144i);
+star=star--cycle;","
+fill(star,orange+zerowinding);
+clip(scale(0.7)*unitcircle);
+draw(scale(0.7)*unitcircle);
+");
+item("All of Asymptote's graphical capabilities are based on four primitive
+    commands: {\tt draw}, {\tt fill}, {\tt clip}, and {\tt label}.");
+
+title("Transforms");
+
+item("Affine transformations include shifts, rotations, and scalings.");
+code("
+transform t=rotate(90);
+write(t*(1,0));  // Writes (0,1).
+");
+
+item("Pairs, paths, pens, and whole pictures can be transformed.");
+code("
+fill(P,blue);
+fill(shift(2,0)*reflect((0,0),(0,1))*P, red);
+fill(shift(4,0)*rotate(30)*P, yellow);
+fill(shift(6,0)*yscale(0.7)*xscale(2)*P, green);
+");
+asyfigure(asywrite("
+size(500,0);
+real bw=0.15;
+real sw=0.2;
+real r=0.15;
+
+path outside=(0,0)--(0,1)--
+    (bw+sw,1)..(bw+sw+r+bw,1-(r+bw))..(bw+sw,1-2(r+bw))--
+    (bw,1-2(r+bw))--(bw,0)--cycle;
+path inside=(bw,1-bw-2r)--(bw,1-bw)--
+    (bw+sw,1-bw)..(bw+sw+r,1-bw-r)..(bw+sw,1-bw-2r)--cycle;
+//fill(new path[] {outside, reverse(inside)},yellow);
+
+path[] P={outside, reverse(inside)};
+
+fill(P,blue);
+fill(shift(2,0)*reflect((0,0),(0,1))*P, red);
+fill(shift(4,0)*rotate(30)*P, yellow);
+fill(shift(6,0)*yscale(0.7)*xscale(2)*P, green);
+"));
+
+title("C++/Java-like Programming Syntax");
 
 code("// Declaration: Declare x to be real:
 real x;
@@ -85,6 +240,301 @@ for(int i=0; i < 10; ++i) {
   write(i);
 }");
 
+title("Helpful Math Notation");
+
+item("Integer division returns a {\tt real}.  Use {\tt quotient} for an integer
+    result:");
+code("3/4==0.75         quotient(3,4)==0");
+
+item("Caret for real and integer exponentiation:");
+code("2^3    2.7^3    2.7^3.2");
+
+item("Many expressions can be implicitly scaled by a numeric constant:");
+code("2pi    10cm    2x^2    3sin(x)    2(a+b)");
+
+item("Pairs are complex numbers:");
+code("(0,1)*(0,1)==(-1,0)");
+
+title("Function Calls");
+
+item("Functions can take default arguments in any position.  Arguments are
+    matched to the first possible location:");
+string unitsize="unitsize(0.65cm);";
+string preamble="void drawEllipse(real xsize=1, real ysize=xsize, pen p=blue) {
+  draw(xscale(xsize)*yscale(ysize)*unitcircle, p);
+}
+";
+
+asycode(preamble=unitsize,preamble+"
+drawEllipse(2);
+drawEllipse(red);
+");
+
+item("Arguments can be given by name:");
+asycode(preamble=unitsize+preamble,"
+drawEllipse(xsize=2, ysize=1);
+drawEllipse(ysize=2, xsize=3, green);
+");
+
+title("Rest Arguments");
+item("Rest arguments allow one to write a function that takes an arbitrary
+    number of arguments:");
+code("
+int sum(... int[] nums) {
+  int total=0; 
+  for (int i=0; i < nums.length; ++i)
+    total += nums[i];
+  return total;
+}
+
+sum(1,2,3,4);                       // returns 10
+sum();                              // returns 0
+sum(1,2,3 ... new int[] {4,5,6});   // returns 21
+
+int subtract(int start ... int[] subs) {
+  return start - sum(... subs);
+}
+");
+
+title("Higher-Order Functions");
+
+item("Functions are first-class values.  They can be passed to other
+    functions:");
+code("real f(real x) {
+    return x*sin(10x);
+}
+draw(graph(f,-3,3),red);");
+asyfigure(asywrite("
+import graph;
+size(300,0);
+real f(real x) {
+    return x*sin(10x);
+}
+draw(graph(f,-3,3),red);
+"));
+
+title("Higher-Order Functions");
+item("Functions can return functions:");
+equation("f_n(x)=n\sin\left(\frac{x}{n}\right).");
+skip();
+string preamble="
+import graph;
+size(300,0);
+";
+string graphfunc2="
+typedef real func(real);
+func f(int n) {
+  real fn(real x) {
+    return n*sin(x/n);
+  }
+  return fn;
+}
+
+func f1=f(1);
+real y=f1(pi);
+
+for (int i=1; i<=5; ++i)
+  draw(graph(f(i),-10,10),red);
+";
+code(graphfunc2);
+string name=asywrite(graphfunc2,preamble=preamble);
+asy(nativeformat(),name+".asy");
+label(graphic(name+"."+nativeformat()),(0.5,0),
+     Fill(figureborder,figuremattpen));
+
+title("Anonymous Functions");
+
+item("Create new functions with {\tt new}:");
+code("
+path p=graph(new real (real x) { return x*sin(10x); },-3,3,red);
+
+func f(int n) {
+  return new real (real x) { return n*sin(x/n); };
+}");
+
+item("Function definitions are just syntactic sugar for assigning function
+objects to variables.");
+code("
+real square(real x) {
+  return x^2;
+}
+");
+
+remark("is equivalent to");
+code("
+real square(real x);
+square=new real (real x) {
+  return x^2;
+};
+");
+
+title("Structures");
+
+item("As in other languages, structures group together data.");
+code("
+struct Person {
+  string firstname, lastname;
+  int age;
+}
+Person bob=new Person;
+bob.firstname=\"Bob\";
+bob.lastname=\"Chesterton\";
+bob.age=24;
+");
+
+item("Any code in the structure body will be executed every time a new structure
+    is allocated...");
+code("
+struct Person {
+  write(\"Making a person.\");
+  string firstname, lastname;
+  int age=18;
+}
+Person eve=new Person;   // Writes \"Making a person.\"
+write(eve.age);          // Writes 18.
+");
+
+title("Object-Oriented Programming");
+item("Functions are defined for each instance of a structure.");
+code("
+struct Quadratic {
+  real a,b,c;
+  real discriminant() {
+    return b^2-4*a*c;
+  }
+  real eval(real x) {
+    return a*x^2 + b*x + c;
+  }
+}
+");
+
+item("This allows us to construct ``methods'' which are just normal functions
+    declared in the environment of a particular object:");
+code("
+Quadratic poly=new Quadratic;
+poly.a=-1; poly.b=1; poly.c=2;
+
+real f(real x)=poly.eval;
+real y=f(2);
+draw(graph(poly.eval, -5, 5));
+");
+
+title("Specialization");
+
+item("Can create specialized objects just by redefining methods:");
+code("
+struct Shape {
+    void draw();
+    real area();
+}
+
+Shape rectangle(real w, real h) {
+  Shape s=new Shape;
+  s.draw = new void () {
+                   fill((0,0)--(w,0)--(w,h)--(0,h)--cycle); };
+  s.area = new real () { return w*h; };
+  return s;
+}
+
+Shape circle(real radius) {
+  Shape s=new Shape;
+  s.draw = new void () { fill(scale(radius)*unitcircle); };
+  s.area = new real () { return pi*radius^2; }
+  return s;
+}
+");
+
+title("Overloading");
+item("Consider the code:");
+code("
+int x1=2;
+int x2() {
+  return 7;
+}
+int x3(int y) {
+  return 2y;
+}
+
+write(x1+x2());  // Writes 9.
+write(x3(x1)+x2());  // Writes 11.
+");
+
+title("Overloading");
+item("{\tt x1}, {\tt x2}, and {\tt x3} are never used in the same context, so
+    they can all be renamed {\tt x} without ambiguity:");
+code("
+int x=2;
+int x() {
+  return 7;
+}
+int x(int y) {
+  return 2y;
+}
+
+write(x+x());  // Writes 9.
+write(x(x)+x());  // Writes 11.
+");
+
+item("Functions definitions are just variable definitions, but variables are
+    distinguished by their signatures to allow overloading.");
+
+title("Operators");
+item("Operators are just syntactic sugar for functions, and can be addressed or
+    defined as functions with the {\tt operator} keyword.");
+code("
+int add(int x, int y)=operator +;
+write(add(2,3));  // Writes 5.
+
+// Don't try this at home.
+int operator +(int x, int y) {
+  return add(2x,y);
+}
+write(2+3);  // Writes 7.
+");
+item("This allows operators to be defined for new types.");
+
+title("Operators");
+item("Operators for constructing paths are also functions:");
+code("a.. controls b and c .. d--e");
+remark("is equivalent to");
+code(
+"operator --(operator ..(a, operator controls(b,c), d), e)");
+item("This allowed us to redefine all of the path operators for 3D paths.");
+asyfigure("helix","height=10cm");
+
+title("Packages");
+
+item("Function and structure definitions can be grouped into packages:");
+code("
+// powers.asy
+real square(real x) { return x^2; }
+real cube(real x) { return x^3; }
+");
+remark("and imported:");
+code("
+import powers;
+real eight=cube(2.0);
+draw(graph(powers.square, -1, 1));
+");
+  
+title("Packages");
+
+item("There are packages for Feynman diagrams,");
+asyfigure("eetomumu","height=6cm");
+remark("data structures,");
+asyfigure(asywrite("
+import binarytree;
+
+binarytree bt=binarytree(1,2,4,nil,5,nil,nil,0,nil,nil,3,6,nil,nil,7);
+draw(bt);
+"),"height=6cm");
+newslide();
+remark("and algebraic knot theory:");
+asyfigure("knots");
+equations("\Phi\Phi(x_1,x_2,x_3,x_4,x_5)
+    =   &\rho_{4b}(x_1+x_4,x_2,x_3,x_5) + \rho_{4b}(x_1,x_2,x_3,x_4) \\
+      + &\rho_{4a}(x_1,x_2+x_3,x_4,x_5) - \rho_{4b}(x_1,x_2,x_3,x_4+x_5) \\
+      - &\rho_{4a}(x_1+x_2,x_3,x_4,x_5) - \rho_{4a}(x_1,x_2,x_4,x_5).");
 
 title("Textbook Graph");
 asy(nativeformat(),"exp");
@@ -92,36 +542,223 @@ filecode("exp.asy");
 label(graphic("exp."+nativeformat(),"height=10cm"),(0.5,0),
       Fill(figureborder,figuremattpen));
 
-
 title("Scientific Graph");
-asycode("lineargraph","height=13cm",newslide=true);
-
+asyfilecode("lineargraph","height=13cm",newslide=true);
 
 title("Data Graph");
-asycode("datagraph","height=13cm",newslide=true);
-
+asyfilecode("datagraph","height=13cm",newslide=true);
 
 title("Imported Data Graph");
-asycode("filegraph","height=15cm",newslide=true);
-
+asyfilecode("filegraph","height=15cm",newslide=true);
 
 title("Logarithmic Graph");
-asycode("loggraph","height=15cm",newslide=true);
-
+asyfilecode("loggraph","height=15cm",newslide=true);
 
 title("Secondary Axis");
 asyfigure("secondaryaxis","height=15cm");
 
-
 title("Images");
 asyfigure("imagecontour","height=17cm");
 
-
 title("Multiple Graphs");
-asyfigure("diatom","height=15cm");
+asyfigure("diatom","height=17cm");
 
-title("Slide Presentations \& Movies");
-item("This presentation was prepared with the {\tt Asymptote} slide presentation package, which combines powerful graphics capabilities, including support for portable embedded PDF movies, with the high-quality \LaTeX\ typesetting engine.");
+title("Slide Presentations");
+item("Asymptote has a package for preparing slides.");
+code('title("Slides");
+item("Asymptote has a package for preparing slides.");
+');
+remark("\quad\ldots");
+
+title("Automatic Sizing");
+item("Recall that figures can be specified in user coordinates, then
+    automatically scaled to the final size.");
+asyfigure(asywrite("
+import graph;
+
+size(0,100);
+
+frame cardsize(real w=0, real h=0, bool keepAspect=Aspect) {
+  picture pic;
+  pic.size(w,h,keepAspect);
+
+  real f(real t) {return 1+cos(t);}
+
+  guide g=polargraph(f,0,2pi,operator ..)--cycle;
+  filldraw(pic,g,pink);
+
+  xaxis(pic,\"$x$\");
+  yaxis(pic,\"$y$\");
+
+  dot(pic,\"$(a,0)$\",(1,0),N);
+  dot(pic,\"$(2a,0)$\",(2,0),N+E);
+
+  frame f=pic.fit();
+  label(f,\"{\tt size(\"+string(w)+\",\"+string(h)+\");}\",
+        (0.5(min(f).x+max(f).x),min(f).y), align=S);
+
+  return f;
+}
+
+add(cardsize(0,50), (0,0));
+add(cardsize(0,100), (230,0));
+add(cardsize(0,200), (540,0));
+"));
+
+title("Deferred Drawing");
+item("We can't draw a graphical object until we know the scaling
+    factors for the user coordinates.");
+item("Instead, store a function that when given the scaling information, draws
+    the scaled object.");
+code("
+void draw(picture pic=currentpicture, path g, pen p=currentpen) {
+  pic.add(new void(frame f, transform t) {
+      draw(f,t*g,p);
+    });
+  pic.addPoint(min(g),min(p));
+  pic.addPoint(max(g),max(p));
+}
+");
+
+title("Coordinates");
+item("Store bounding box information as a sum of user and true-size
+    coordinates:");
+asyfigure(asywrite("
+size(0,150);
+
+path q=(0,0){dir(70)}..{dir(70)}(100,50);
+pen p=rotate(30)*yscale(0.7)*(lightblue+linewidth(20));
+draw(q,p);
+draw((90,10),p);
+
+currentpicture.add(new void(frame f, transform t) {
+    draw(f,box(min(t*q)+min(p),max(t*q)+max(p)), dashed);
+    });
+
+draw(box(min(q),max(q)));
+
+frame f;
+draw(f,box(min(p),max(p)));
+
+add(f,min(q));
+add(f,max(q));
+
+draw(q);
+"));
+
+code("pic.addPoint(min(g),min(p));
+pic.addPoint(max(g),max(p));");
+item("Filling ignores the pen width:");
+code("pic.addPoint(min(g),(0,0));
+pic.addPoint(max(g),(0,0));");
+item("Communicate with \LaTeX\ to determine label sizes:");
+
+asyfigure(asywrite("
+size(0,100);
+
+pen p=fontsize(30pt);
+frame f;
+label(f, \"$E=mc^2$\", p);
+draw(f, box(min(f),max(f)));
+shipout(f);
+"));
+
+title("Sizing");
+
+item("When scaling the final figure to a given size $S$, we first need to
+    determine a scaling factor $a>0$ and a shift $b$ so that all of the
+    coordinates when transformed will lie in the interval $[0,S]$.  That is, if
+    $u$ and $t$ are the user and truesize components:");
+equation("0\le au+t+b \le S.");
+
+item("We are maximizing the variable $a$ subject to a number of inequalities.
+    This is a linear programming problem that can be solved by the simplex
+    method.");
+
+title("Sizing");
+item("Every addition of a coordinate $(t,u)$ adds two restrictions");
+equation("au+t+b\ge 0,");
+equation("au+t+b\le S,");
+remark("and each drawing component adds two coordinates.");
+item("A figure could easily produce thousands of restrictions, making the
+    simplex method impractical.");
+
+item("Most of these restrictions are redundent, however.  For instance, with
+    concentric circles, only the largest circle needs to be accounted for.");
+asyfigure(asywrite("
+import palette;
+size(160,0);
+pen[] p=Rainbow(NColors=11);
+for (int i=1; i<10; ++i) {
+  draw(scale(i)*unitcircle, p[i]+linewidth(2));
+}
+"));
+
+title("Redundant Restrictions");
+item("In general, if $u\le u'$ and $t\le t'$ then");
+equation("au+t+b\le au'+t'+b");
+remark("for all choices of $a>0$ and $b$, so");
+equation("0\le au+t+b\le au'+t'+b\le S.");
+item("This defines a partial ordering on coordinates.  When sizing a picture,
+    the program first computes which coordinates are maximal (or minimal) and
+    only sends effective restraints to the simplex algorithm.");
+item("In practice, the linear programming problem will have less than a dozen
+    restraints.");
+item("All picture sizing is implemented in Asymptote code.");
+
+title("Infinite Lines");
+item("Deferred drawing allows us to draw infinite lines.");
+code("drawline(P, Q);");
+
+asyfigure("elliptic","height=12cm");
+
+title("A Final Example: Quilting");
+asyfigure(asywrite("
+import math;
+
+int n=8, skip=3;
+
+pair r(int k) { return unityroot(n,k); }
+
+pen col=blue, col2=purple;
+
+guide square=box((1,1),(-1,-1));
+
+guide step(int mult)
+{
+  guide g;
+  for (int k=0; k<n; ++k)
+    g=g--r(mult*k);
+  g=g--cycle;
+  return g;
+}
+
+guide oct=step(1), star=step(skip);
+
+guide wedge(pair z, pair v, real r, real a)
+{
+  pair w=expi(a/2.0);
+  v=unit(v)*r;
+  return shift(z)*((0,0)--v*w--v*conj(w)--cycle);
+}
+
+filldraw(square, col);
+filldraw(oct, yellow);
+
+// The interior angle of the points of the star.
+real intang=pi*(1-((real)2skip)/((real)n));
+
+for (int k=0; k<n; ++k) {
+  pair z=midpoint(r(k)--r(k+1));
+  guide g=wedge(z,-z,1,intang);
+  filldraw(g,col2);
+}
+
+fill(star,yellow);
+filldraw(star,evenodd+col);
+
+size(5inch,0);
+"));
 
 bibliography("refs");
 

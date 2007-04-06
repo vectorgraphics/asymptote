@@ -96,7 +96,7 @@ dot("$Q$", Q, SSE);
 dot(c.neg(sum));
 dot("$P+Q$", sum, 2SW);
 
-add(output,currentpicture.fit(),(0,0),W);
+add(output,currentpicture.fit(),(-0.5cm,0),W);
 
 restore();
 
@@ -108,7 +108,7 @@ dot("$P$", P, NW);
 dot(c.neg(PP));
 dot("$2P$", PP, SW);
 
-add(output,currentpicture.fit(),(0,0),E);
+add(output,currentpicture.fit(),(0.5cm,0),E);
 
 shipout(output);
     

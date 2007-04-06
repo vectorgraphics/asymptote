@@ -399,12 +399,18 @@ void figure(string s, string options="", string caption="", pair align=S,
   figure(new string[] {s},options,caption,align,p,figuremattpen);
 }
 
+string cropcode(string s)
+{
+  while(substr(s,0,1) == '\n') s=substr(s,1,length(s));
+  while(substr(s,length(s)-1,1) == '\n') s=substr(s,0,length(s)-1);
+  return s;
+}
+
 void code(bool center=false, string s, pen p=codepen,
 	  real indent=0, real skip=codeskip,
 	  filltype filltype=NoFill) 
 {
-  while(substr(s,length(s)-1,1) == '\n') s=substr(s,0,length(s)-1);
-  remark(center,"{\tt "+verbatim(s)+"}",p,indent,skip,filltype);
+  remark(center,"{\tt "+verbatim(cropcode(s))+"}",p,indent,skip,filltype);
 }
 
 void filecode(bool center=false, string s, pen p=codepen, real indent=0,
@@ -428,10 +434,37 @@ void asyfigure(string s, string options="", string caption="", pair align=S,
   figure(s,options,caption,align,p,figuremattpen);
 }
 
-void asycode(bool center=false, string s, string options="", string caption="",
+string[] codefile;
+
+string asywrite(string s, string preamble="")
+{
+  static int count=0;
+  string name="_slide"+(string) count;
+  ++count;
+  file temp=output(name+".asy");
+  write(temp,preamble);
+  write(temp,s);
+  close(temp);
+  codefile.push(name);
+  return name;
+}
+
+void asycode(bool center=false, string s, string options="",
+	     string caption="", string preamble="",
 	     pair align=S, pen p=codepen, pen figuremattpen=figuremattpen,
 	     real indent=0, real skip=codeskip,
 	     filltype filltype=NoFill, bool newslide=false)
+{
+  code(center,s,p,indent,skip,filltype);
+  asyfigure(asywrite(s,preamble),options,caption,align,p,figuremattpen,filltype,
+	    newslide);
+}
+
+void asyfilecode(bool center=false, string s, string options="",
+		 string caption="",
+		 pair align=S, pen p=codepen, pen figuremattpen=figuremattpen,
+		 real indent=0, real skip=codeskip,
+		 filltype filltype=NoFill, bool newslide=false)
 {
   filecode(center,s+".asy",p,indent,skip,filltype);
   asyfigure(s,options,caption,align,p,figuremattpen,filltype,newslide);
@@ -509,6 +542,12 @@ void exitfunction()
 {
   numberpage();
   plain.exitfunction();
+  if(!settings.keep)
+    for(int i=0; i < codefile.length; ++i) {
+      string name=codefile[i];
+      delete(name+"."+nativeformat());
+      delete(name+".asy");
+    }
 }
 
 atexit(exitfunction);
