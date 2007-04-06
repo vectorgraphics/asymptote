@@ -1682,7 +1682,7 @@ path operator cast(triple v) {return project(v);}
 path operator cast(guide3 g) {return project(solve(g));}
 path3 operator cast(triple v) {return path3.path3(v);}
 
-path[] operator cast(path3 g) {return new path[] {(path) g};}
+path[] operator cast(path3 p) {return new path[] {(path) p};}
 path[] operator cast(guide3 g) {return new path[] {(path) g};}
 path[] operator cast(guide3[] g) {return project(g);}
 
@@ -1839,66 +1839,64 @@ path3 operator & (explicit guide3 p, explicit guide3 q)
   return ((path3) p).concat(p,q);
 }
 
-// return the point on path3 g at arclength L
-triple arcpoint(path3 g, real L)
+// return the point on path3 p at arclength L
+triple arcpoint(path3 p, real L)
 {
-  return point(g,arctime(g,L));
+  return point(p,arctime(p,L));
+}
+triple arcpoint(explicit guide3 p, real L)
+{
+  return arcpoint((path3) p,L);
 }
 
-// return the point on guide3 g at arclength L
-triple arcpoint(explicit guide3 g, real L)
+// return the direction on path3 p at arclength L
+triple arcdir(path3 p, real L)
 {
-  return point(g,arctime(g,L));
+  return dir(p,arctime(p,L));
+}
+triple arcdir(explicit guide3 p, real L)
+{
+  return arcdir((path3) p,L);
 }
 
-// return the direction on path3 g at arclength L
-triple arcdir(path3 g, real L)
+// return the time on path3 p at the relative fraction l of its arclength
+real reltime(path3 p, real l)
 {
-  return dir(g,arctime(g,L));
+  return arctime(p,l*arclength(p));
+}
+real reltime(explicit guide3 p, real l)
+{
+  return reltime((path3) p,l);
 }
 
-// return the direction on guide3 g at arclength L
-triple arcdir(explicit guide3 g, real L)
+// return the point on path3 p at the relative fraction l of its arclength
+triple relpoint(path3 p, real l)
 {
-  return dir(g,arctime(g,L));
+  return point(p,reltime(p,l));
+}
+triple relpoint(explicit guide3 p, real l)
+{
+  return relpoint((path3) p,l);
 }
 
-// return the time on path3 g at the given relative fraction of its arclength
-real reltime(path3 g, real fraction)
+// return the direction of path3 p at the relative fraction l of its arclength
+triple reldir(path3 p, real l)
 {
-  return arctime(g,fraction*arclength(g));
+  return dir(p,reltime(p,l));
+}
+triple reldir(explicit guide3 p, real l)
+{
+  return reldir((path3) p,l);
 }
 
-// return the time on guide3 g at the given relative fraction of its arclength
-real reltime(explicit guide3 g, real fraction)
+// return the point on path3 p at half of its arclength
+triple midpoint(path3 p)
 {
-  return arctime(g,fraction*arclength(g));
+  return relpoint(p,0.5);
 }
-
-// return the point on path3 g at the given relative fraction of its arclength
-triple relpoint(path3 g, real l)
+triple midpoint(explicit guide3 p)
 {
-  return point(g,reltime(g,l));
-}
-
-// return the point on guide3 g at the given relative fraction of its arclength
-triple relpoint(explicit guide3 g, real l)
-{
-  return point(g,reltime(g,l));
-}
-
-// return the direction of path3 g at the given relative fraction of its
-// arclength
-triple reldir(path3 g, real l)
-{
-  return dir(g,reltime(g,l));
-}
-
-// return the direction of guide3 g at the given relative fraction of its
-// arclength
-triple reldir(explicit guide3 g, real l)
-{
-  return dir(g,reltime(g,l));
+  return relpoint(p,0.5);
 }
 
 // return a rotation that maps u to Z.

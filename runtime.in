@@ -684,12 +684,12 @@ void clear(string file, int line, bool warn=false)
     cout << "No such breakpoint at "  << file << ": " << line << endl;
 }
 
-int windingnumber(array *g, camp::pair z)
+int windingnumber(array *p, camp::pair z)
 {
-  size_t size=g->size();
+  size_t size=p->size();
   int count=0;
   for(size_t i=0; i < size; i++) 
-    count += read<path *>(g,i)->windingnumber(z);
+    count += read<path *>(p,i)->windingnumber(z);
   return count;
 }
 
@@ -1663,9 +1663,9 @@ real relativedistance(real theta, real phi, real t, bool atleast)
   return camp::velocity(theta,phi,tension(t,atleast));
 }
 
-int windingnumber(patharray *g, pair z)
+int windingnumber(patharray *p, pair z)
 {
-  return windingnumber(g,z);
+  return windingnumber(p,z);
 }
 
 bool inside(patharray *g, pair z, pen p)

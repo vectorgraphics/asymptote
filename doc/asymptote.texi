@@ -1994,14 +1994,14 @@ Here are some useful functions for paths:
 @table @code
 
 @cindex @code{length}
-@item int length(path);
-This is the number of (linear or cubic) segments in the path.
-If the path is cyclic, this is the same as the number of nodes in the path.
+@item int length(path p);
+This is the number of (linear or cubic) segments in path @code{p}.
+If @code{p} is cyclic, this is the same as the number of nodes in @code{p}.
 
 @cindex @code{size}
-@item int size(path);
-This is the number of nodes in the path.
-If the path is cyclic, this is the same as the path length.
+@item int size(path p);
+This is the number of nodes in the path @code{p}.
+If @code{p} is cyclic, this is the same as @code{length(p)}.
 
 @cindex @code{point}
 @item pair point(path p, int n);
@@ -2020,61 +2020,75 @@ in the case where @code{p} is cyclic or else converted to the corresponding
 endpoint of @code{p}.
 
 @cindex @code{dir}
-@item pair dir(path, int n);
-This returns the direction (as a pair) of the tangent to the path at
-node @code{n}. If the path contains only one point, (0,0) is returned.
+@item pair dir(path p, int n);
+This returns the direction (as a pair) of the tangent to path @code{p} at
+node @code{n}. If @code{p} contains only one point, (0,0) is returned.
 
-@item pair dir(path, real t);
-This returns the direction of the tangent to the path at the point
+@item pair dir(path p, real t);
+This returns the direction of the tangent to path @code{p} at the point
 between node @code{floor(t)} and @code{floor(t)+1} corresponding to the
 cubic spline parameter @math{t=}@code{t-floor(t)} (@pxref{Bezier}).
-If the path contains only one point, (0,0) is returned.
+If @code{p} contains only one point, (0,0) is returned.
 
 @cindex @code{precontrol}
-@item pair precontrol(path, int n);
-This returns the precontrol point of node @code{n}.
+@item pair precontrol(path p, int n);
+returns the precontrol point of @code{p} at node @code{n}.
 
-@item pair precontrol(path, real t);
-This returns the effective precontrol point at parameter @code{t}.
+@item pair precontrol(path p, real t);
+returns the effective precontrol point of @code{p} at parameter @code{t}.
 
 @cindex @code{postcontrol}
-@item pair postcontrol(path, int n);
-This returns the postcontrol point of node @code{n}.
+@item pair postcontrol(path p, int n);
+returns the postcontrol point of @code{p} at node @code{n}.
 
-@item pair postcontrol(path, real t);
-This returns the effective postcontrol point at parameter @code{t}.
+@item pair postcontrol(path p, real t);
+returns the effective postcontrol point  of @code{p} at parameter @code{t}.
 
 @cindex @code{arclength}
-@item real arclength(path);
-This returns the length (in user coordinates) of the piecewise linear
-or cubic curve that the path represents.
+@item real arclength(path p);
+returns the length (in user coordinates) of the piecewise linear
+or cubic curve that path @code{p} represents.
 
 @anchor{arctime}
 @cindex @code{arctime}
-@item real arctime(path, real L);
-This returns the path "time", a real number between 0 and the length of
-the path in the sense of @code{point(path, real)}, at which the
+@item real arctime(path p, real L);
+returns the path "time", a real number between 0 and the length of
+the path in the sense of @code{point(path p, real t)}, at which the
 cumulative arclength (measured from the beginning of the path) equals @code{L}.
 
 @cindex @code{dirtime}
-@item real dirtime(path, pair z);
-This returns the first "time", a real number between 0 and the length of
+@item real dirtime(path p, pair z);
+returns the first "time", a real number between 0 and the length of
 the path in the sense of @code{point(path, real)}, at which the tangent
 to the path has the direction of pair @code{z}, or -1 if this never happens.
 
+@cindex @code{reltime}
+@item real reltime(path p, real l);
+returns the time on path @code{p} at the relative fraction @code{l} of
+its arclength.
+
+@cindex @code{relpoint}
+@item pair relpoint(path p, real l);
+returns the point on path @code{p} at the relative fraction @code{l} of its
+arclength.
+
+@cindex @code{midpoint}
+@item pair midpoint(path p);
+returns the point on path @code{p} at half of its arclength.
+
 @cindex @code{reverse}
 @item path reverse(path p);
-returns a path running backwards along p.
+returns a path running backwards along @code{p}.
 
 @cindex @code{subpath}
 @item path subpath(path p, int n, int m);
-returns the subpath running from node @code{n} to node @code{m}.
+returns the subpath of @code{p} running from node @code{n} to node @code{m}.
 If @code{n} < @code{m}, the direction of the subpath is reversed.
 
 @item path subpath(path p, real a, real b);
-returns the subpath running from path time @code{a} to path time @code{b},
-in the sense of @code{point(path, real)}. If @code{a} < @code{b}, the
-direction of the subpath is reversed.
+returns the subpath  of @code{p} running from path time @code{a} to path
+time @code{b}, in the sense of @code{point(path, real)}. If @code{a} <
+@code{b}, the direction of the subpath is reversed.
 
 @cindex @code{intersect}
 @item real[] intersect(path p, path q, real fuzz=0);
@@ -2125,30 +2139,30 @@ Note that @code{lastcut.before} plays the role of the
 @code{MetaPost cutafter} command.
 
 @cindex @code{buildcycle}
-@item path buildcycle(... path[] g);
+@item path buildcycle(... path[] p);
 This returns the path surrounding a region bounded by a list of consecutively
 intersecting paths, following the behaviour of the 
 @code{MetaPost buildcycle} command.
 
 @cindex @code{min}
-@item pair min(path);
-returns the pair (left,bottom) for the path bounding box.
+@item pair min(path p);
+returns the pair (left,bottom) for the path bounding box of path @code{p}.
 
 @cindex @code{max}
-@item pair max(path);
-returns the pair (right,top) for the path bounding box.
+@item pair max(path p);
+returns the pair (right,top) for the path bounding box of path @code{p}.
 
 @cindex @code{cyclic}
-@item bool cyclic(path);
-returns @code{true} iff path is cyclic
+@item bool cyclic(path p);
+returns @code{true} iff path @code{p} is cyclic
 
 @cindex @code{straight}
-@item bool straight(path, int i);
-returns @code{true} iff the segment between node @code{i} and node @code{i+1}
-is straight.
+@item bool straight(path p, int i);
+returns @code{true} iff the segment of path @code{p} between node
+@code{i} and node @code{i+1} is straight.
 
 @cindex @code{windingnumber}
-@item int windingnumber(path g, pair z);
+@item int windingnumber(path p, pair z);
 returns the winding number of the cyclic path @code{g} relative to the point
 @code{z}. The winding number is positive if the path encircles @code{z} in the
 counterclockwise direction.
