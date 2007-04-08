@@ -23,8 +23,8 @@ real barsize(pen p=currentpen)
   return barfactor*linewidth(p);
 }
 
-guide arrowhead(path g, position position=EndPoint, pen p=currentpen,
-                real size=0, real angle=arrowangle)
+path arrowhead(path g, position position=EndPoint, pen p=currentpen,
+	       real size=0, real angle=arrowangle)
 {
   if(size == 0) size=arrowsize(p);
   bool relative=position.relative;
@@ -96,7 +96,7 @@ void arrow(frame f, path g, pen p=currentpen, real size=0,
     draw(f,subpath(r,arctime(r,size),length(r)),p);
     if(position < L) draw(f,s,p);
   } else draw(f,g,p);
-  guide head=arrowhead(g,position,p,size,angle);
+  path head=arrowhead(g,position,p,size,angle);
   filltype(f,head,p+solid);
 }
 
@@ -109,8 +109,8 @@ void arrow2(frame f, path g, pen p=currentpen, real size=0,
   size=min(arrow2sizelimit*arclength(g),size);
   path r=reverse(g);
   draw(f,subpath(r,arctime(r,size),length(r)-arctime(g,size)),p);
-  guide head=arrowhead(g,length(g),p,size,angle);
-  guide tail=arrowhead(r,length(r),p,size,angle);
+  path head=arrowhead(g,length(g),p,size,angle);
+  path tail=arrowhead(r,length(r),p,size,angle);
   filltype(f,head,p+solid);
   filltype(f,tail,p+solid);
 }

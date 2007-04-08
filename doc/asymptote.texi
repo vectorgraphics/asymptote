@@ -1150,7 +1150,7 @@ argument to the fourth routine, the @code{format} argument will be
 used to format a string based on the dot location (here @code{defaultformat}
 is @code{"$%.4g$"}). One can also draw a dot at every node of a path:
 @verbatim
-void dot(picture pic=currentpicture, guide g, pen p=currentpen);
+void dot(picture pic=currentpicture, path g, pen p=currentpen);
 @end verbatim
 See @ref{pathmarkers} and @ref{markers} for more general
 methods for marking path nodes.
@@ -1959,27 +1959,27 @@ A circular arc consistent with the above approximation centered on
 degrees, drawing counterclockwise if @code{angle2 >= angle1}, can be
 constructed with
 @verbatim
-guide arc(pair c, real r, real angle1, real angle2);
+path arc(pair c, real r, real angle1, real angle2);
 @end verbatim
 If @code{r} < 0, the complementary arc of radius @code{|r|} is constructed.
 For convenience, an arc centered at @code{c} from pair @code{z1} to
 @code{z2} (assuming @code{|z2-c|=|z1-c|}) in the direction CCW
 (counter-clockwise) or CW (clockwise) may also be constructed with
 @verbatim
-guide arc(pair c, explicit pair z1, explicit pair z2,
-          bool direction=CCW)
+path arc(pair c, explicit pair z1, explicit pair z2,
+         bool direction=CCW)
 @end verbatim
 
 If high accuracy is needed, a true arc may be produced with this
 routine, defined in the module @code{graph.asy}:
 @verbatim
-guide Arc(pair c, real r, real angle1, real angle2,
-          int n=400);
+path Arc(pair c, real r, real angle1, real angle2,
+         int n=400);
 @end verbatim
 
 An ellipse can be drawn with the routine
 @verbatim
-guide ellipse(pair c, real a, real b)
+path ellipse(pair c, real a, real b)
 {
   return shift(c)*xscale(a)*yscale(b)*unitcircle;
 }
@@ -2765,15 +2765,6 @@ If @code{keepAspect} is set to @code{IgnoreAspect} or @code{false},
 the picture will be scaled in both directions so that the final width
 is @code{x} and the height is @code{y}. 
 
-Alternatively, calling the routine
-@cindex @code{fixedscaling}
-@verbatim
-transform fixedscaling(picture pic=currentpicture, pair min,
-                       pair max, pen p=currentpen);
-@end verbatim
-will cause picture @code{pic} to use a fixed scaling to map user
-coordinates in @code{box(min,max)} to the (already specified) picture size.
-
 To make the user coordinates of picture @code{pic}
 represent multiples of @code{x} units in the @math{x} direction and
 @code{y} units in the @math{y} direction, use
@@ -2784,6 +2775,27 @@ void unitsize(picture pic=currentpicture, real x, real y=x);
 @end verbatim
 When nonzero, these @code{x} and @code{y} values override the
 corresponding size parameters of picture @code{pic}.
+
+The routine
+@cindex @code{size}
+@verbatim
+void size(picture pic=currentpicture, real xsize, real ysize,
+          pair min, pair max);
+@end verbatim
+forces the final picture scaling to map the user coordinates
+@code{box(min,max)} to a region of width @code{xsize} and height @code{ysize}
+(when these parameters are nonzero).
+
+Alternatively, calling the routine
+@cindex @code{fixedscaling}
+@verbatim
+transform fixedscaling(picture pic=currentpicture, pair min,
+                       pair max, pen p=nullpen);
+@end verbatim
+will cause picture @code{pic} to use a fixed scaling to map user
+coordinates in @code{box(min,max)} to the (already specified) picture size,
+taking account of the width of pen @code{p}. A warning will be issued if
+the final picture exceeds the specified size.
 
 A picture can be fit to a frame and converted into a @code{PostScript} image
 by calling the function @code{shipout}:
@@ -3012,12 +3024,12 @@ To draw or fill a box or ellipse around a label, frame, or picture,
 use one of the routines (the first two routines for convenience also
 return the boundary as a guide):
 @verbatim
-guide box(frame f, Label L="", real xmargin=0,
-          real ymargin=xmargin, pen p=currentpen,
-          filltype filltype=NoFill, bool put=Above);
-guide ellipse(frame f, Label L="", real xmargin=0,
-              real ymargin=xmargin, pen p=currentpen,
-              filltype filltype=NoFill, bool put=Above);
+path box(frame f, Label L="", real xmargin=0,
+         real ymargin=xmargin, pen p=currentpen,
+         filltype filltype=NoFill, bool put=Above);
+path ellipse(frame f, Label L="", real xmargin=0,
+             real ymargin=xmargin, pen p=currentpen,
+             filltype filltype=NoFill, bool put=Above);
 void box(picture pic=currentpicture, Label L,
          real xmargin=0, real ymargin=xmargin, pen p=currentpen,
          filltype filltype=NoFill, bool put=Above);
@@ -3118,9 +3130,9 @@ be made that the file exists. If the file does not exist or is not
 readable, the function @code{bool error(file)} will return @code{true}.
 The first character of the string @code{commentchar} specifies a
 comment character. If this character is encountered in a data file,
-the remainder of the line is ignored. When reading strings, the
-comment character must be in the first column (otherwise it will be
-treated as an ordinary character).
+the remainder of the line is ignored. When reading strings, a comment
+character followed immediately by another comment character is treated
+as a single literal comment character.
 
 @anchor{cd}
 @cindex @code{cd}
@@ -3135,8 +3147,8 @@ the value it had at program startup.
 When reading pairs, the enclosing parenthesis are optional.
 Strings are also read by assignment, by reading characters up to but not
 including a newline. In addition, @code{Asymptote} provides the function
-@code{string getc(file)} to read the next character only, returning it
-as a string.
+@code{string getc(file)} to read the next character (treating the
+comment character as an ordinary character) and return it as a string.
 
 @cindex @code{output}
 @cindex @code{append}
@@ -3576,8 +3588,7 @@ guide operator ..(... guide[] g) {
 }
 
 guide g=(0,0){up}..{SW}(100,100){NE}..{curl 3}(50,50)..(10,10);
-write("g=",none);
-write(g);
+write("g=",g);
 @end verbatim
 
 @node Implicit scaling
@@ -5700,7 +5711,7 @@ or horizontal lines and axes at arbitrary locations.
 
 @item
 @verbatim 
-void axis(picture pic=currentpicture, Label L="", guide g,
+void axis(picture pic=currentpicture, Label L="", path g,
           pen p=currentpen, ticks ticks, ticklocate locate,
           arrowbar arrow=None, int[] divisor=new int[],
           bool put=Above, bool opposite=false);
@@ -6157,6 +6168,7 @@ as illustrated in the following example:
 @section @code{three}
 @cindex @code{three}
 @cindex @code{guide3}
+@cindex @code{path3}
 @cindex @code{cycle3}
 @cindex @code{curl3}
 @cindex @code{tension3}
@@ -6225,12 +6237,12 @@ path3 plane(triple u, triple v, triple O=O);
 A three-dimensional box with opposite vertices at triples @code{v1}
 and @code{v2} may be drawn with the function
 @verbatim
-guide3[] box(triple v1, triple v2);
+path3[] box(triple v1, triple v2);
 @end verbatim
 @noindent
 For example, a unit cube is predefined as
 @verbatim
-guide3[] unitcube=box((0,0,0),(1,1,1));
+path3[] unitcube=box((0,0,0),(1,1,1));
 @end verbatim
 
 These projections to two dimensions are predefined:
@@ -6559,10 +6571,10 @@ segments are perpendicular to the axis of revolution):
 @verbatim
 struct skeleton {
   // transverse skeleton
-  guide3[] front;
-  guide3[] back;
+  front3[] front;
+  front3[] back;
   // longitudinal skeleton
-  guide3[] longitudinal;
+  front3[] longitudinal;
 }
 @end verbatim
 

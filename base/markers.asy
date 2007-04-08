@@ -88,7 +88,7 @@ frame circlebarframe(int n=1, real barsize=0,
   if(barsize == 0) barsize=barmarksize+2*linewidth(p);
   if(radius == 0) radius=circlemarkradius+linewidth(p);
   frame opic;
-  guide g=circle(offset,radius);
+  path g=circle(offset,radius);
   frame f=stickframe(n,barsize,space=2*radius/(n+1),angle,offset,p);
   if(above) {
     add(opic,f);

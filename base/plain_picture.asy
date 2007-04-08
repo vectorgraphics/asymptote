@@ -42,6 +42,11 @@ pair cap(transform t, pair z, pair lb, pair rt, pen p=currentpen)
             cap(t,z.y,lb.y,rt.y,min(p).y,max(p).y,ytrans));
 }
   
+pair size(frame f)
+{
+  return max(f)-min(f);
+}
+                                     
 // A function that draws an object to frame pic, given that the transform
 // from user coordinates to true-size coordinates is t.
 typedef void drawer(frame f, transform t);
@@ -708,14 +713,14 @@ struct picture {
 
   frame scaled() {
     frame f=fit(fixedscaling);
-    pair d=max(f)-min(f);
+    pair d=size(f);
     static real epsilon=100*realEpsilon;
     if(d.x > xsize*(1+epsilon)) 
       write("warning: frame exceeds xlimit: "+(string) d.x+" > "+
-            (string) xsize);
+	    (string) xsize);
     if(d.y > ysize*(1+epsilon))
       write("warning: frame exceeds ylimit: "+(string) d.y+" > "+
-            (string) ysize);
+	    (string) ysize);
     return f;
   }
   
@@ -852,6 +857,14 @@ void unitsize(picture pic=currentpicture, real x, real y=x)
   pic.unitsize(x,y);
 }
 
+void size(picture pic=currentpicture, real xsize, real ysize,
+	  pair min, pair max)
+{
+  pair size=max-min;
+  pic.unitsize(size.x != 0 ? xsize/size.x : 0,
+	       size.y != 0 ? ysize/size.y : 0);
+}
+
 void size(picture dest, picture src)
 {
   dest.size(src.xsize,src.ysize,src.keepAspect);
@@ -863,11 +876,6 @@ void size(picture src)
   size(currentpicture,src);
 }
 
-pair size(frame f)
-{
-  return max(f)-min(f);
-}
-                                     
 pair min(picture pic)
 {
   return pic.min();
@@ -1056,7 +1064,7 @@ bool inside(path[] g, pair z)
 // Use a fixed scaling to map user coordinates in box(min,max) to the 
 // desired picture size.
 transform fixedscaling(picture pic=currentpicture, pair min, pair max,
-                       pen p=nullpen)
+                       pen p=nullpen, bool warn=false)
 {
   Draw(pic,min,p+invisible);
   Draw(pic,max,p+invisible);

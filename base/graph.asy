@@ -276,13 +276,13 @@ private struct locateT {
   pair pathdir; // path direction in frame coordinates
   pair dir;     // tick direction in frame coordinates
   
-  void dir(transform T, guide g, ticklocate locate, real t) {
+  void dir(transform T, path g, ticklocate locate, real t) {
     pathdir=unit(T*dir(g,t));
     pair Dir=locate.dir(t);
     dir=Dir == 0 ? -I*pathdir : unit(Dir);
   }
   // Locate the desired position of a tick along a path.
-  void calc(transform T, guide g, ticklocate locate, real val) {
+  void calc(transform T, path g, ticklocate locate, real val) {
     t=locate.time(val);
     Z=T*point(g,t);
     dir(T,g,locate,t);
@@ -310,7 +310,7 @@ void drawtick(frame f, transform T, path g, path g2, ticklocate locate,
 }
 
 // Label a tick on a frame.
-pair labeltick(frame d, transform T, guide g, ticklocate locate, real val,
+pair labeltick(frame d, transform T, path g, ticklocate locate, real val,
                pair side, int sign, real Size, ticklabel ticklabel,
                Label F, real norm=0)
 {
@@ -346,7 +346,7 @@ pair labeltick(frame d, transform T, guide g, ticklocate locate, real val,
 }  
 
 // Add axis label L to frame f.
-void labelaxis(frame f, transform T, Label L, guide g, 
+void labelaxis(frame f, transform T, Label L, path g, 
                ticklocate locate=null, int sign=1, bool ticklabels=false)
 {
   Label L0=L.copy();
@@ -468,7 +468,7 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
   else if(side == 0) side=((sign == 1) ? left : right);
     
   bool ticklabels=false;
-  guide G=T*g;
+  path G=T*g;
     
   if(!locate.S.scale.logarithmic) {
     if(ticklabel == null) ticklabel=Format(format);
@@ -630,8 +630,8 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
     else if(side == 0) side=F.T*((sign == 1) ? left : right);
     
     bool ticklabels=false;
-    guide G=T*g;
-    guide G2=T*g2;
+    path G=T*g;
+    path G2=T*g2;
     
     scalefcn T;
     
@@ -950,7 +950,7 @@ axis Bottom=Bottom(),
   YZero=YZero();
 
 // Draw a general axis.
-void axis(picture pic=currentpicture, Label L="", guide g, guide g2=nullpath,
+void axis(picture pic=currentpicture, Label L="", path g, path g2=nullpath,
           pen p=currentpen,
           ticks ticks, ticklocate locate, arrowbar arrow=None,
           int[] divisor=new int[], bool put=Above, bool opposite=false) 
@@ -1798,14 +1798,14 @@ void vectorfield(picture pic=currentpicture, path g, int n,
 }
 
 // True arc
-guide Arc(pair c, real r, real angle1, real angle2, int n=400)
+path Arc(pair c, real r, real angle1, real angle2, int n=400)
 {
   return shift(c)*polargraph(new real(real t){return r;},radians(angle1),
                              radians(angle2),n,operator ..);
 }
 
 // True circle
-guide Circle(pair c, real r, int n=400)
+path Circle(pair c, real r, int n=400)
 {
   return Arc(c,r,0,360,n)..cycle;
 }

@@ -68,14 +68,14 @@ typedef void suffix(file);
 void write(suffix suffix=endl) {suffix(stdout);}
 void write(file file, suffix suffix=none) {suffix(file);}
 
-guide box(pair a, pair b)
+path box(pair a, pair b)
 {
   return a--(b.x,a.y)--b--(a.x,b.y)--cycle;
 }
 
-guide unitsquare=box((0,0),(1,1));
+path unitsquare=box((0,0),(1,1));
 
-guide unitcircle=E..N..W..S..cycle;
+path unitcircle=E..N..W..S..cycle;
 restricted real circleprecision=0.0006;
 
 restricted transform invert=reflect((0,0),(1,0));

@@ -156,11 +156,11 @@ filltype RadialShade(pen penc, pen penr)
 
 // Fill the region in frame dest underneath frame src and return the
 // boundary of src.
-guide fill(frame dest, frame src, filltype filltype=NoFill, 
-           real xmargin=0, real ymargin=xmargin)
+path fill(frame dest, frame src, filltype filltype=NoFill,
+	  real xmargin=0, real ymargin=xmargin)
 {
   pair z=(xmargin,ymargin);
-  guide g=box(min(src)-z,max(src)+z);
+  path g=box(min(src)-z,max(src)+z);
   filltype(dest,g,nullpen);
   return g;
 }

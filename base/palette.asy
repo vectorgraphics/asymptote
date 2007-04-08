@@ -220,11 +220,11 @@ void palette(picture pic=currentpicture, Label L="", bounds range,
 
   if(vertical) {perp=E; par=N;} else {perp=N; par=E;}
 
-  guide g=(final-dot(lambda,par)*par)--final;
-  guide g2=initial--final-dot(lambda,perp)*perp;
+  path g=(final-dot(lambda,par)*par)--final;
+  path g2=initial--final-dot(lambda,perp)*perp;
 
   if(sgn(dot(lambda,perp)*dot(axis.align,perp)) == -1) {
-    guide tmp=g;
+    path tmp=g;
     g=g2;
     g2=tmp;
   }

@@ -462,7 +462,7 @@ picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
               project(f[i][j+1],P),
               project(f[i+1][j+1],P),
               project(f[i+1][j],P)};
-    guide g=v[0]--v[1]--v[2]--v[3]--cycle;
+    path g=v[0]--v[1]--v[2]--v[3]--cycle;
     if(surfacepen != nullpen) {
       if(light.source == O)
         fill(pic,g,surfacepen);
@@ -579,7 +579,7 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
   }
 
   void drawcell(int i, int j) {
-    guide g=project(cell(i,j),P);
+    path g=project(cell(i,j),P);
     fill(pic,g,color(i,j));
     if(meshpen != nullpen) draw(pic,g,meshpen);
   }

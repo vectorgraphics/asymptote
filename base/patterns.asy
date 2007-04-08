@@ -33,7 +33,7 @@ picture tile(real Hx=5mm, real Hy=0, pen p=currentpen,
 {
   picture tiling;
   if(Hy == 0) Hy=Hx;
-  guide tile=box((0,0),(Hx,Hy));
+  path tile=box((0,0),(Hx,Hy));
   tiling.add(new void (frame f, transform t) {
       filltype(f,t*tile,p);
     });
@@ -45,7 +45,7 @@ picture checker(real Hx=5mm, real Hy=0, pen p=currentpen)
 {
   picture tiling;
   if(Hy == 0) Hy=Hx;
-  guide tile=box((0,0),(Hx,Hy));
+  path tile=box((0,0),(Hx,Hy));
   fill(tiling,tile,p);
   fill(tiling,shift(Hx,Hy)*tile,p);
   clip(tiling,box((0,0),(2Hx,2Hy)));
@@ -56,7 +56,7 @@ picture brick(real Hx=5mm, real Hy=0, pen p=currentpen)
 {
   picture tiling;
   if(Hy == 0) Hy=Hx/2;
-  guide tile=box((0,0),(Hx,Hy));
+  path tile=box((0,0),(Hx,Hy));
   draw(tiling,tile,p);
   draw(tiling,(Hx/2,Hy)--(Hx/2,2Hy),p);
   draw(tiling,(0,2Hy)--(Hx,2Hy),p);

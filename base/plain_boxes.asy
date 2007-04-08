@@ -1,10 +1,10 @@
 // Draw and/or fill a box on frame dest using the dimensions of frame src.
-guide box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
+path box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
           pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   pair z=(xmargin,ymargin);
   int sign=filltype == NoFill ? 1 : -1;
-  guide g=box(min(src)+0.5*sign*min(p)-z,max(src)+0.5*sign*max(p)+z);
+  path g=box(min(src)+0.5*sign*min(p)-z,max(src)+0.5*sign*max(p)+z);
   frame F;
   if(put == Below) {
     filltype(F,g,p);
@@ -14,16 +14,16 @@ guide box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
 }
 
 
-guide ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
-              pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+path ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
+	     pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   pair m=min(src);
   pair M=max(src);
   pair D=M-m;
   static real factor=0.5*sqrt(2);
   int sign=filltype == NoFill ? 1 : -1;
-  guide g=ellipse(0.5*(M+m),factor*D.x+0.5*sign*max(p).x+xmargin,
-                  factor*D.y+0.5*sign*max(p).y+ymargin);
+  path g=ellipse(0.5*(M+m),factor*D.x+0.5*sign*max(p).x+xmargin,
+		 factor*D.y+0.5*sign*max(p).y+ymargin);
   frame F;
   if(put == Below) {
     filltype(F,g,p);
@@ -32,23 +32,23 @@ guide ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
   return g;
 }
 
-guide box(frame f, Label L, real xmargin=0, real ymargin=xmargin,
-          pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+path box(frame f, Label L, real xmargin=0, real ymargin=xmargin,
+	 pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   add(f,L);
   return box(f,xmargin,ymargin,p,filltype,put);
 }
 
-guide ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
-              pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+path ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
+	     pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   add(f,L);
   return ellipse(f,xmargin,ymargin,p,filltype,put);
 }
 
-typedef guide envelope(frame dest, frame src=dest, real xmargin=0,
-		       real ymargin=xmargin, pen p=currentpen,
-		       filltype filltype=NoFill, bool put=Above);
+typedef path envelope(frame dest, frame src=dest, real xmargin=0,
+		      real ymargin=xmargin, pen p=currentpen,
+		      filltype filltype=NoFill, bool put=Above);
 
 frame enclose(picture pic=currentpicture, envelope e, Label L,
 	      real xmargin=0, real ymargin=xmargin, pen p=currentpen,

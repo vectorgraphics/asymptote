@@ -5,9 +5,9 @@ real legendmargin=10;
 real legendmaxrelativewidth=1;
 
 // Return a unit polygon with n sides
-guide polygon(int n) 
+path polygon(int n) 
 {
-  guide g;
+  path g;
   for(int i=0; i < n; ++i) g=g--expi(2pi*(i+0.5)/n-0.5*pi);
   return g--cycle;
 }

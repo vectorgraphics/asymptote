@@ -135,7 +135,7 @@ int[][] frequency(pair[] z, pair a, pair b, int nx, int ny=nx)
   return freq;
 }
 
-guide halfbox(pair a, pair b)
+path halfbox(pair a, pair b)
 {
   return a--(a.x,b.y)--b;
 }

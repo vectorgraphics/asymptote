@@ -1028,6 +1028,7 @@ struct path3 {
   }
   
   bool straight(int i) {
+    write("hi");
     if (cycles) return nodes[i % n].straight;
     return (i >= 0 && i < n) ? nodes[i].straight : false;
   }
@@ -1629,7 +1630,7 @@ pair[] project(triple[] v, projection P=currentprojection)
   return z;
 }
 
-path[] project(flatguide3[] g, projection P=currentprojection)
+path[] project(path3[] g, projection P=currentprojection)
 {
   path[] p=new path[g.length];
   for(int i=0; i < g.length; ++i) 
@@ -1684,10 +1685,18 @@ path3 operator cast(triple v) {return path3.path3(v);}
 
 path[] operator cast(path3 p) {return new path[] {(path) p};}
 path[] operator cast(guide3 g) {return new path[] {(path) g};}
-path[] operator cast(guide3[] g) {return project(g);}
+path[] operator cast(path3[] g) {return project(g);}
+//path[] operator cast(guide3[] g) {return project(g);}
 
-bool straight(path3 p, int i) {return p.straight(i);}
-bool straight(explicit guide3 g, int i) {return ((path3) g).straight(i);}
+path3[] operator cast(guide3[] g) {
+  path3[] p=new path3[g.length];
+  for(int i=0; i < g.length; ++i)
+    p[i]=solve(g[i]);
+  return p;
+}
+
+//bool straight(path3 p, int i) {return p.straight(i);}
+//bool straight(explicit guide3 g, int i) {return ((path3) g).straight(i);}
 
 triple point(path3 p, int i) {return p.point(i);}
 triple point(explicit guide3 g, int i) {return ((path3) g).point(i);}
@@ -1910,12 +1919,12 @@ transform rotate(explicit triple dir)
   return rotate((pair) dir);
 } 
 
-void draw(frame f, guide3[] g, pen p=currentpen)
+void draw(frame f, path3[] g, pen p=currentpen)
 {
   draw(f,(path[]) g,p);
 }
 
-void draw(picture pic=currentpicture, guide3[] g, pen p=currentpen)
+void draw(picture pic=currentpicture, path3[] g, pen p=currentpen)
 {
   draw(pic,(path[]) g,p);
 }
@@ -1956,7 +1965,7 @@ triple max(explicit guide3[] g)
   return maxg;
 }
 
-guide3[] box(triple v1, triple v2)
+path3[] box(triple v1, triple v2)
 {
   return
     (v1.x,v1.y,v1.z)--
@@ -1977,7 +1986,7 @@ guide3[] box(triple v1, triple v2)
     (v1.x,v1.y,v2.z);
 }
 
-guide3[] unitcube=box((0,0,0),(1,1,1));
+path3[] unitcube=box((0,0,0),(1,1,1));
 
 path3 unitcircle3=X..Y..-X..-Y..cycle3;
 

@@ -1,6 +1,6 @@
 real perpfactor=arrowfactor;
 
-guide square(pair z1, pair z2)
+path square(pair z1, pair z2)
 {
   pair v=z2-z1;
   pair z3=z2+I*v;
@@ -83,8 +83,8 @@ triangle operator * (transform T, triangle t)
 
 // Return an interior arc BAC of triangle ABC, given a radius r > 0.
 // If r < 0, return the corresponding exterior arc of radius |r|.
-guide arc(explicit pair B, explicit pair A, explicit pair C,
-          real r=arrowfactor)
+path arc(explicit pair B, explicit pair A, explicit pair C,
+	 real r=arrowfactor)
 {
   return arc(A,r,degrees(B-A),degrees(C-A));
 }
