@@ -109,6 +109,10 @@ void ifile::Read(string& val)
       }
       s += (char) stream->get();
     }
+  } else if(wordmode) {
+    s=string(); 
+    *stream >> s;
+    whitespace="";
   } else
     getline(*stream,s);
   

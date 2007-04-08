@@ -4452,12 +4452,24 @@ real[] A=line(fin);
 @end verbatim
 
 @cindex csv
-@cindex comma-separated-value
+@cindex comma-separated-value mode
 Another useful mode is comma-separated-value mode, set with @code{csv(file)}
-and cleared with @code{csv(file,false)}, which skips over any comma delimiters:
+and cleared with @code{csv(file,false)}, which causes reads to respect
+comma delimiters:
 @verbatim
-file fin=input("test.txt");
-real[] A=csv(fin);
+file fin=csv(input("test.txt"));
+real[] A=fin;
+@end verbatim
+
+@cindex word
+@cindex white-space string delimiter mode
+There is also a white-space delimiter mode for reading strings, set with
+@code{word(file)} and cleared with @code{word(file,false)}, which causes
+string reads to respect white-space delimiters, instead of the default
+end-of-line delimiter:
+@verbatim
+file fin=csv(input("test.txt"));
+real[] A=fin;
 @end verbatim
 
 @cindex @code{dimension}
@@ -7418,4 +7430,5 @@ Stefan Knorr.
 @c  LocalWords:  CrossIntervalMarker CircleBarIntervalMarker Ghostscript
 @c  LocalWords:  TildeIntervalMarker autoimport calculateTransform bitwise
 @c  LocalWords:  headersize bodysize minheaderwidth minheaderheight minwidth
-@c  LocalWords:  minbodywidth minbodyheight minheight mindiameter
+@c  LocalWords:  minbodywidth minbodyheight minheight mindiameter reltime
+@c  LocalWords:  relpoint

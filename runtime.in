@@ -3730,6 +3730,13 @@ file* csv(file *File, bool b=true)
   return File;
 }
 
+// Set file to read whitespace-separated values
+file* word(file *File, bool b=true) 
+{
+  File->WordMode(b);
+  return File;
+}
+
 // Set file to read arrays in line-at-a-time mode
 file* line(file *File, bool b=true) 
 {

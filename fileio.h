@@ -46,6 +46,7 @@ protected:
   int nx,ny,nz;    // Array dimensions
   bool linemode;   // Array reads will stop at eol instead of eof.
   bool csvmode;    // Read comma-separated values.
+  bool wordmode;   // Delimit strings by white space instead of eol.
   bool singlemode; // Read/write single-precision XDR/binary values.
   bool closed;     // File has been closed.
   bool checkappend;// Check input for errors/append to output.
@@ -138,8 +139,11 @@ public:
   void LineMode(bool b) {linemode=b;}
   bool LineMode() {return linemode;}
   
-  void CSVMode(bool b) {csvmode=b;}
+  void CSVMode(bool b) {csvmode=b; if(b) wordmode=false;}
   bool CSVMode() {return csvmode;}
+  
+  void WordMode(bool b) {wordmode=b; if(b) csvmode=false;}
+  bool WordMode() {return wordmode;}
   
   void SingleMode(bool b) {singlemode=b;}
   bool SingleMode() {return singlemode;}
