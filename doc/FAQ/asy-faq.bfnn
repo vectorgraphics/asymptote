@@ -576,12 +576,26 @@ Further examples of graphs are available at \docref{http://home.tele2.fr/phivald
  
 Either:
 
-i) Specify an explicit unitsize, which overrides any call to \courier{size}:
+i) Specify an explicit unitsize, which overrides any call to \courier{size\}:
 \verbatim
 unitsize(x=1cm,y=2cm);
 \endverbatim
  
-ii) Specify the points in user coordinates that should correspond to a
+ii) Explicitly tell Asymptote to map the plot region to a specific size:
+\verbatim
+import graph;
+real[] x={0,1,2,3};
+real[] y=x^2;
+draw(graph(x,y),red);
+xaxis("$x$",BottomTop,LeftTicks);
+yaxis("$y$",LeftRight,RightTicks);
+
+size(5cm,5cm,point(SW),point(NE));
+
+label("$f_\mathrm{T}$",point(N),2N);
+\endverbatim
+
+iii) Specify the points in user coordinates that should correspond to a
 given picture size:
  
 \verbatim
