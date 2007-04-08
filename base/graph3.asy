@@ -17,14 +17,14 @@ pair dir(triple v, triple dir, projection P=currentprojection)
   return unit(project(v+dir,P)-project(v,P));
 }
 
-direction dir(guide3 G, triple dir, projection P=currentprojection)
+direction dir(path3 G, triple dir, projection P=currentprojection)
 {
   return new pair(real t) {
     return dir(point(G,t),dir,P);
   };
 }
 
-direction perpendicular(guide3 G, triple normal,
+direction perpendicular(path3 G, triple normal,
                         projection P=currentprojection)
 {
   return new pair(real t) {
@@ -32,7 +32,7 @@ direction perpendicular(guide3 G, triple normal,
   };
 }
 
-real projecttime(guide3 G, real T, guide g, projection P=currentprojection)
+real projecttime(path3 G, real T, path g, projection P=currentprojection)
 {
   triple v=point(G,T);
   pair z=project(v,P);
@@ -40,12 +40,12 @@ real projecttime(guide3 G, real T, guide g, projection P=currentprojection)
   return intersect(g,z)[0];
 }
 
-real projecttime(guide3 G, real T, projection P=currentprojection)
+real projecttime(path3 G, real T, projection P=currentprojection)
 {
   return projecttime(G,T,project(G,P),P);
 }
 
-valuetime linear(picture pic=currentpicture, guide3 G, scalefcn S,
+valuetime linear(picture pic=currentpicture, path3 G, scalefcn S,
                  real Min, real Max, projection P=currentprojection)
 {
   real factor=Max == Min ? 0.0 : 1.0/(Max-Min);
@@ -56,7 +56,7 @@ valuetime linear(picture pic=currentpicture, guide3 G, scalefcn S,
 }
 
 // Draw a general three-dimensional axis.
-void axis(picture pic=currentpicture, Label L="", guide3 G, pen p=currentpen,
+void axis(picture pic=currentpicture, Label L="", path3 G, pen p=currentpen,
           ticks ticks, ticklocate locate, arrowbar arrow=None,
           int[] divisor=new int[], bool put=Above,
           projection P=currentprojection,  bool opposite=false) 
@@ -92,7 +92,7 @@ void xaxis(picture pic=currentpicture, Label L="", triple min, triple max,
            projection P=currentprojection, bool opposite=false) 
 {
   bounds m=autoscale(min.x,max.x,pic.scale.x.scale);
-  guide3 G=min--max;
+  path3 G=min--max;
   valuetime t=linear(pic,G,pic.scale.x.T(),min.x,max.x,P);
   axis(pic,opposite ? "" : L,G,p,ticks,
        ticklocate(min.x,max.x,pic.scale.x,m.min,m.max,t,dir(G,dir,P)),
@@ -114,7 +114,7 @@ void yaxis(picture pic=currentpicture, Label L="", triple min, triple max,
            projection P=currentprojection, bool opposite=false) 
 {
   bounds m=autoscale(min.y,max.y,pic.scale.y.scale);
-  guide3 G=min--max;
+  path3 G=min--max;
   valuetime t=linear(pic,G,pic.scale.y.T(),min.y,max.y,P);
   axis(pic,L,G,p,ticks,
        ticklocate(min.y,max.y,pic.scale.y,m.min,m.max,t,dir(G,dir,P)),
@@ -136,7 +136,7 @@ void zaxis(picture pic=currentpicture, Label L="", triple min, triple max,
            projection P=currentprojection, bool opposite=false) 
 {
   bounds m=autoscale(min.z,max.z,pic.scale.z.scale);
-  guide3 G=min--max;
+  path3 G=min--max;
   valuetime t=linear(pic,G,pic.scale.z.T(),min.z,max.z,P);
   axis(pic,L,G,p,ticks,
        ticklocate(min.z,max.z,pic.scale.z,m.min,m.max,t,dir(G,dir,P)),
@@ -574,7 +574,7 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
     return light.intensity(v*sgn(dot(v,P.camera-v)))*surfacepen;
   }
 
-  guide3 cell(int i, int j) { 
+  path3 cell(int i, int j) { 
     return graph(f,box(sample(i,j),sample(i+1,j+1)),nsub);
   }
 
