@@ -150,7 +150,7 @@ protected:
   istream *stream;
   std::ifstream fstream;
   char comment;
-  bool comma,nullfield; // Used to detect a final null field in cvs+line mode.
+  bool comma,nullfield; // Used to detect a final null field in csv+line mode.
   string whitespace;
   
 public:
@@ -183,7 +183,16 @@ public:
   
   void csv();
   
-  void ignoreComment(bool readstring=false);
+  void ignoreComment();
+  
+  template<class T>
+  void ignoreComment(T&) {
+    ignoreComment();
+  }
+  
+  void ignoreComment(string&) {}
+  void ignoreComment(char&) {}
+  
   bool eol();
   bool nexteol();
   
@@ -195,8 +204,6 @@ public:
   
 public:
 
-  string getcsvline();
-  
   // Skip over white space
   void readwhite(string& val) {val=string(); *stream >> val;}
   
@@ -206,15 +213,7 @@ public:
   void Read(pair& val) {*stream >> val;}
   void Read(triple& val) {*stream >> val;}
   void Read(char& val) {stream->get(val);}
-  void Read(string& val) {
-    if(csvmode) {
-      val=whitespace+getcsvline();
-    } else {
-      string s;
-      getline(*stream,s);
-      val=whitespace+s;
-    }
-  }
+  void Read(string& val);
   
   template<class T>
   void iread(T&);
@@ -305,27 +304,7 @@ public:
   void write(const pen& val) {*stream << val;}
   void write(guide *val) {*stream << *val;}
   void write(const transform& val) {*stream << val;}
-  void writeline() {
-    if(standard && interact::interactive && !vm::indebugger) {
-      int scroll=settings::getScroll();
-      if(scroll && lines > 0 && lines % scroll == 0) {
-	for(;;) {
-	  if(!cin.good()) {
-	    *stream << newline;
-	    cin.clear();
-	    break;
-	  }
-	  int c=cin.get();
-	  if(c == '\n') break;
-	  // Discard any additional characters
-	  while(cin.good() && cin.get() != '\n');
-	  if(c == 'q') throw quit();
-	}
-      } else *stream << newline;
-      ++lines;
-    } else *stream << newline;
-    if(errorstream::interrupt) throw interrupted();
-  }
+  void writeline();
 };
 
 class obfile : public ofile {
@@ -457,7 +436,7 @@ void ifile::iread(T& val)
   if(standard) clear();
   if(errorstream::interrupt) throw interrupted();
   else {
-    ignoreComment(typeid(T)==typeid(string));
+    ignoreComment(val);
     val=T();
     if(!nullfield)
       Read(val);

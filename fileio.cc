@@ -10,23 +10,20 @@
 
 namespace camp {
 
-
-  
 string tab="\t";
 string newline="\n";
 
 ofile nullfile("");
 ofile Stdout("");
 
-void ifile::ignoreComment(bool readstring)
+void ifile::ignoreComment()
 {
   if(comment == 0) return;
   int c;
   bool eol=(stream->peek() == '\n');
-  if(eol && (readstring || (csvmode && nullfield))) return;
+  if(eol && csvmode && nullfield) return;
   for(;;) {
     while(isspace(c=stream->peek())) {
-      if(c == '\n' && readstring) return;
       stream->ignore();
       whitespace += (char) c;
     }
@@ -34,10 +31,8 @@ void ifile::ignoreComment(bool readstring)
       whitespace="";
       while((c=stream->peek()) != '\n' && c != EOF)
 	stream->ignore();
-      if(c == '\n') {
-	if(readstring) return;
+      if(c == '\n')
 	stream->ignore();
-      }
     } else {if(eol) stream->unget(); return;}
   }
 }
@@ -97,20 +92,57 @@ void ifile::csv()
   if(c == ',') comma=true;
 }
   
-string ifile::getcsvline() 
+void ifile::Read(string& val)
 {
-  string s="";
-  bool quote=false;
-  while(stream->good()) {
-    int c=stream->peek();
-    if(c == '"') {quote=!quote; stream->ignore(); continue;}
-    if(!quote && (c == ',' || c == '\n')) {
-      if(c == '\n') ignoreComment(true);
-      return s;
+  string s;
+  if(csvmode) {
+    bool quote=false;
+    while(stream->good()) {
+      int c=stream->peek();
+      if(c == '"') {quote=!quote; stream->ignore(); continue;}
+      if(!quote && (c == ',' || c == '\n'))
+	break;
+      s += (char) stream->get();
     }
-    s += (char) stream->get();
+  } else
+    getline(*stream,s);
+  
+  if(comment) {
+    size_t p=0;
+    while((p=s.find(comment,p)) < string::npos) {
+      if(p+1 < s.length() && s[p+1] == comment) {
+	s.erase(p,1);
+	++p;
+      } else {
+	s.erase(p);	
+	break;
+      }
+    }
+    val=whitespace+s;
   }
-  return s;
+}
+  
+void ofile::writeline() 
+{
+  if(standard && interact::interactive && !vm::indebugger) {
+    int scroll=settings::getScroll();
+    if(scroll && lines > 0 && lines % scroll == 0) {
+      for(;;) {
+	if(!cin.good()) {
+	  *stream << newline;
+	  cin.clear();
+	  break;
+	}
+	int c=cin.get();
+	if(c == '\n') break;
+	// Discard any additional characters
+	while(cin.good() && cin.get() != '\n');
+	if(c == 'q') throw quit();
+      }
+    } else *stream << newline;
+    ++lines;
+  } else *stream << newline;
+  if(errorstream::interrupt) throw interrupted();
 }
   
 } // namespace camp
