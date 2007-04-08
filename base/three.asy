@@ -1028,7 +1028,6 @@ struct path3 {
   }
   
   bool straight(int i) {
-    write("hi");
     if (cycles) return nodes[i % n].straight;
     return (i >= 0 && i < n) ? nodes[i].straight : false;
   }
