@@ -4451,22 +4451,25 @@ file fin=input("test.txt");
 real[] A=line(fin);
 @end verbatim
 
-@cindex csv
+@cindex reading string arrays
+@cindex @code{word}
+@cindex white-space string delimiter mode
+Since string reads by default read up to the end of line anyway, line mode
+normally has no effect on string array reads.
+However, there is a white-space delimiter mode for reading strings, set with
+@code{word(file)} and cleared with @code{word(file,false)}, which causes
+string reads to respect white-space delimiters, instead of the default
+end-of-line delimiter:
+@verbatim
+file fin=word(line(input("test.txt")));
+real[] A=fin;
+@end verbatim
+
+@cindex @code{csv}
 @cindex comma-separated-value mode
 Another useful mode is comma-separated-value mode, set with @code{csv(file)}
 and cleared with @code{csv(file,false)}, which causes reads to respect
 comma delimiters:
-@verbatim
-file fin=csv(input("test.txt"));
-real[] A=fin;
-@end verbatim
-
-@cindex word
-@cindex white-space string delimiter mode
-There is also a white-space delimiter mode for reading strings, set with
-@code{word(file)} and cleared with @code{word(file,false)}, which causes
-string reads to respect white-space delimiters, instead of the default
-end-of-line delimiter:
 @verbatim
 file fin=csv(input("test.txt"));
 real[] A=fin;
