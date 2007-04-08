@@ -200,7 +200,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       voffset += paperHeight-height-b.bottom-bboxshift.gety();
     
       ostringstream dcmd;
-      dcmd << "'" << getSetting<string>("dvips") << "' -E -R "
+      dcmd << "'" << getSetting<string>("dvips") << "' -R "
 	   << " -O " << hoffset << "bp," << voffset << "bp"
 	   << " -T " << paperWidth << "bp," << paperHeight << "bp";
       if(verbose <= 1) dcmd << " -q";
@@ -219,7 +219,9 @@ bool picture::texprocess(const string& texname, const string& outname,
       string endspecial="@fedspecial end";
       while(getline(fin,s)) {
 	if(s.find("%%DocumentPaperSizes:") == 0) continue;
-	if(first && s.find("%%BoundingBox:") == 0) {
+	if(s.find("%!PS-Adobe-") == 0) {
+	  fout.verbatimline("%!PS-Adobe-3.0 EPSF-3.0");
+	} else if(first && s.find("%%BoundingBox:") == 0) {
 	  bbox box=b;
 	  box.shift(bboxshift);
 	  if(verbose > 2) BoundingBox(cout,box);
