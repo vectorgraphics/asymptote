@@ -16,14 +16,15 @@ string newline="\n";
 ofile nullfile("");
 ofile Stdout("");
 
-void ifile::ignoreComment()
+void ifile::ignoreComment(bool readstring)
 {
   if(comment == 0) return;
   int c;
   bool eol=(stream->peek() == '\n');
-  if(eol && csvmode && nullfield) return;
+  if(eol && (readstring || (csvmode && nullfield))) return;
   for(;;) {
     while(isspace(c=stream->peek())) {
+      if(c == '\n' && readstring) return;
       stream->ignore();
       whitespace += (char) c;
     }
@@ -31,8 +32,10 @@ void ifile::ignoreComment()
       whitespace="";
       while((c=stream->peek()) != '\n' && c != EOF)
 	stream->ignore();
-      if(c == '\n')
+      if(c == '\n') {
+	if(readstring) return;
 	stream->ignore();
+      }
     } else {if(eol) stream->unget(); return;}
   }
 }
@@ -100,8 +103,10 @@ void ifile::Read(string& val)
     while(stream->good()) {
       int c=stream->peek();
       if(c == '"') {quote=!quote; stream->ignore(); continue;}
-      if(!quote && (c == ',' || c == '\n'))
+      if(!quote && (c == ',' || c == '\n')) {
+	if(c == '\n') ignoreComment(true);
 	break;
+      }
       s += (char) stream->get();
     }
   } else

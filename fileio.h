@@ -183,7 +183,7 @@ public:
   
   void csv();
   
-  void ignoreComment();
+  void ignoreComment(bool readstring=false);
   
   template<class T>
   void ignoreComment(T&) {
