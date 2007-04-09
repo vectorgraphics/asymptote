@@ -15,13 +15,13 @@ real df(real x) {return(-2*x/(x^2+1)^2);}
 
 real a=-5, b=5;
 int n=15;
-real[] xpt,ypt,dypt;
-xpt=a+(b-a)*sequence(n+1)/n;
-ypt=map(f,xpt);
-dypt=map(df,xpt);
+real[] x,y,dy;
+x=a+(b-a)*sequence(n+1)/n;
+y=map(f,x);
+dy=map(df,x);
 for(int i=0; i <= n; ++i)
-  dot((xpt[i],ypt[i]),5bp+blue);
-horner h=diffdiv(xpt,ypt);
+  dot((x[i],y[i]),5bp+blue);
+horner h=diffdiv(x,y);
 fhorner p=fhorner(h);
 draw(graph(p,a,b,n=500),"$x\longmapsto{}L_{"+string(n)+"}$");
 draw(graph(f,a,b),red,"$x\longmapsto{}\frac{1}{x^2+1}$");
@@ -40,13 +40,13 @@ real df(real x) {return(-2*x/(x^2+1)^2);}
 
 real a=-5, b=5;
 int n=16;
-real[] xpt,ypt,dypt;
-xpt=a+(b-a)*sequence(n+1)/n;
-ypt=map(f,xpt);
-dypt=map(df,xpt);
+real[] x,y,dy;
+x=a+(b-a)*sequence(n+1)/n;
+y=map(f,x);
+dy=map(df,x);
 for(int i=0; i <= n; ++i)
-  dot((xpt[i],ypt[i]),5bp+blue);
-horner h=hdiffdiv(xpt,ypt,dypt);
+  dot((x[i],y[i]),5bp+blue);
+horner h=hdiffdiv(x,y,dy);
 fhorner ph=fhorner(h);
 draw(graph(p,a,b,n=500),"$x\longmapsto{}H_{"+string(n)+"}$");
 draw(graph(f,a,b),red,"$x\longmapsto{}\frac{1}{x^2+1}$");
@@ -65,20 +65,20 @@ erase();
 
 // Test 3: The Runge effect does not occur for all functions:
 // Lagrange interpolation of a function whose successive derivatives
-// are bounded by a constant M(here M=1) is shown here to converge.
+// are bounded by a constant M (here M=1) is shown here to converge.
 
 real f(real x) {return(sin(x));}
 real df(real x) {return(cos(x));}
 
 real a=-5, b=5;
 int n=16;
-real[] xpt,ypt,dypt;
-xpt=a+(b-a)*sequence(n+1)/n;
-ypt=map(f,xpt);
-dypt=map(df,xpt);
+real[] x,y,dy;
+x=a+(b-a)*sequence(n+1)/n;
+y=map(f,x);
+dy=map(df,x);
 for(int i=0; i <= n; ++i)
-  dot((xpt[i],ypt[i]),5bp+blue);
-horner h=diffdiv(xpt,ypt);
+  dot((x[i],y[i]),5bp+blue);
+horner h=diffdiv(x,y);
 fhorner p=fhorner(h);
 
 draw(graph(p,a,b,n=500),"$x\longmapsto{}L_{"+string(n)+"}$");
@@ -99,13 +99,13 @@ real df(real x) {return(cos(x));}
 
 real a=-5, b=5;
 int n=72;
-real[] xpt,ypt,dypt;
-xpt=a+(b-a)*sequence(n+1)/n;
-ypt=map(f,xpt);
-dypt=map(df,xpt);
+real[] x,y,dy;
+x=a+(b-a)*sequence(n+1)/n;
+y=map(f,x);
+dy=map(df,x);
 for(int i=0; i <= n; ++i)
-  dot((xpt[i],ypt[i]),5bp+blue);
-horner h=diffdiv(xpt,ypt);
+  dot((x[i],y[i]),5bp+blue);
+horner h=diffdiv(x,y);
 fhorner p=fhorner(h);
 
 draw(graph(p,a,b,n=500),"$x\longmapsto{}L_{"+string(n)+"}$");
@@ -130,15 +130,15 @@ real df(real x) {return(-2*x/(x^2+1)^2);}
 
 real a=-5, b=5;
 int n=16;
-real[] xpt,ypt,dypt;
+real[] x,y,dy;
 fhorner p,ph,ph1;
 for(int i=0; i <= n; ++i)
-  xpt[i]=(a+b)/2+(b-a)/2*cos((2*i+1)/(2*n+2)*pi);
-ypt=map(f,xpt);
-dypt=map(df,xpt);
+  x[i]=(a+b)/2+(b-a)/2*cos((2*i+1)/(2*n+2)*pi);
+y=map(f,x);
+dy=map(df,x);
 for(int i=0; i <= n; ++i)
-  dot((xpt[i],ypt[i]),5bp+blue);
-horner h=diffdiv(xpt,ypt);
+  dot((x[i],y[i]),5bp+blue);
+horner h=diffdiv(x,y);
 fhorner p=fhorner(h);
 
 draw(graph(p,a,b,n=500),"$x\longmapsto{}T_{"+string(n)+"}$");
@@ -163,14 +163,14 @@ real df(real x) {return(-2*x/(x^2+1)^2);}
 
 real a=-5, b=5;
 int n=26;
-real[] xpt,ypt,dypt;
+real[] x,y,dy;
 for(int i=0; i <= n; ++i)
-  xpt[i]=(a+b)/2+(b-a)/2*cos((2*i+1)/(2*n+2)*pi);
-ypt=map(f,xpt);
-dypt=map(df,xpt);
+  x[i]=(a+b)/2+(b-a)/2*cos((2*i+1)/(2*n+2)*pi);
+y=map(f,x);
+dy=map(df,x);
 for(int i=0; i <= n; ++i)
-  dot((xpt[i],ypt[i]),5bp+blue);
-horner h=diffdiv(xpt,ypt);
+  dot((x[i],y[i]),5bp+blue);
+horner h=diffdiv(x,y);
 fhorner p=fhorner(h);
 draw(graph(p,a,b,n=500),"$x\longmapsto{}T_{"+string(n)+"}$");
 draw(graph(f,a,b),red,"$x\longmapsto{}\frac{1}{x^2+1}$");
@@ -194,14 +194,14 @@ real f(real x) {return(sqrt(abs(x-1)));}
 
 real a=-2, b=2;
 int n=30;
-real[] xpt,ypt,dypt;
+real[] x,y,dy;
 for(int i=0; i <= n; ++i)
-  xpt[i]=(a+b)/2+(b-a)/2*cos((2*i+1)/(2*n+2)*pi);
-ypt=map(f,xpt);
-dypt=map(df,xpt);
+  x[i]=(a+b)/2+(b-a)/2*cos((2*i+1)/(2*n+2)*pi);
+y=map(f,x);
+dy=map(df,x);
 for(int i=0; i <= n; ++i)
-  dot((xpt[i],ypt[i]),5bp+blue);
-horner h=diffdiv(xpt,ypt);
+  dot((x[i],y[i]),5bp+blue);
+horner h=diffdiv(x,y);
 fhorner p=fhorner(h);
 draw(graph(p,a,b,n=500),"$x\longmapsto{}T_{"+string(n)+"}$");
 draw(graph(f,a,b),red,"$x\longmapsto{}\sqrt{|x-1|}$");
