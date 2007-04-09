@@ -84,7 +84,7 @@ triangle operator * (transform T, triangle t)
 // Return an interior arc BAC of triangle ABC, given a radius r > 0.
 // If r < 0, return the corresponding exterior arc of radius |r|.
 path arc(explicit pair B, explicit pair A, explicit pair C,
-	 real r=arrowfactor)
+         real r=arrowfactor)
 {
   return arc(A,r,degrees(B-A),degrees(C-A));
 }

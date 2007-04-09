@@ -157,7 +157,7 @@ filltype RadialShade(pen penc, pen penr)
 // Fill the region in frame dest underneath frame src and return the
 // boundary of src.
 path fill(frame dest, frame src, filltype filltype=NoFill,
-	  real xmargin=0, real ymargin=xmargin)
+          real xmargin=0, real ymargin=xmargin)
 {
   pair z=(xmargin,ymargin);
   path g=box(min(src)-z,max(src)+z);

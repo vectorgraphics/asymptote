@@ -56,21 +56,21 @@ transform scaleless(transform t)
     pair[][] c=new pair[2][2];
     for(int i=0; i < 2; ++i) {
       for(int j=0; j < 2; ++j) {
-	c[i][j]=a[i][0]*b[0][j]+a[i][1]*b[1][j];
+        c[i][j]=a[i][0]*b[0][j]+a[i][1]*b[1][j];
       }
     }
     return c;
-  }	
+  }     
 
   pair[][] conj(pair[][] a) {
     pair[][] c=new pair[2][2];
     for(int i=0; i < 2; ++i) {
       for(int j=0; j < 2; ++j) {
-	c[i][j]=conj(a[j][i]);
+        c[i][j]=conj(a[j][i]);
       }
     }
     return c;
-  }	
+  }     
 
   A=conj(U)*A*U;
 
@@ -197,8 +197,8 @@ struct Label {
   void init(string s="", string size="", position position=0, 
             bool defaultposition=true,
             align align=NoAlign, pen p=nullpen, transform T=identity(),
-	    bool defaulttransform=true, embed embed=Rotate,
-	    filltype filltype=NoFill) {
+            bool defaulttransform=true, embed embed=Rotate,
+            filltype filltype=NoFill) {
     this.s=s;
     this.size=size;
     this.position=position;
@@ -219,7 +219,7 @@ struct Label {
   Label copy() {
     Label L=new Label;
     L.init(s,size,position,defaultposition,align,p,T,defaulttransform,
-	   embed,filltype);
+           embed,filltype);
     return L;
   }
   
@@ -252,7 +252,7 @@ struct Label {
     pen p0=p == nullpen ? currentpen : p;
     align=length(align)*unit(scaleless(shiftless(t))*align);
     label(f,s,size,embed(t)*shiftless(T),
-	  t*position+align*labelmargin(p0)+shift(T)*0,align,p0);
+          t*position+align*labelmargin(p0)+shift(T)*0,align,p0);
   }
 
   void out(frame f, transform t=identity()) {
@@ -340,7 +340,7 @@ Label operator * (transform t, Label L)
 
 Label Label(string s, string size="", explicit position position,
             align align=NoAlign, pen p=nullpen, embed embed=Rotate,
-	    filltype filltype=NoFill)
+            filltype filltype=NoFill)
 {
   Label L;
   L.init(s,size,position,false,align,p,embed,filltype);
@@ -379,7 +379,7 @@ Label Label(Label L, align align=NoAlign, pen p=nullpen, embed embed=L.embed,
 }
 
 Label Label(Label L, explicit position position, align align=NoAlign,
-	    pen p=nullpen, embed embed=L.embed, filltype filltype=NoFill)
+            pen p=nullpen, embed embed=L.embed, filltype filltype=NoFill)
 {
   Label L=Label(L,align,p,embed,filltype);
   L.position(position);
@@ -387,7 +387,7 @@ Label Label(Label L, explicit position position, align align=NoAlign,
 }
 
 Label Label(Label L, pair position, align align=NoAlign,
-	    pen p=nullpen, embed embed=L.embed, filltype filltype=NoFill)
+            pen p=nullpen, embed embed=L.embed, filltype filltype=NoFill)
 {
   return Label(L,(position) position,align,p,embed,filltype);
 }

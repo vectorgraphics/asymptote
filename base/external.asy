@@ -3,7 +3,7 @@ usepackage("hyperref");
 // Embed object to be run in an external window. An image file name can be
 // specified; if not given one will be automatically generated.
 string embed(string name, string options="", real width=0, real height=0,
-	     string image="")
+             string image="")
 {
   string options; // Ignore movie15 options.
   if(image == "") {
@@ -13,8 +13,8 @@ string embed(string name, string options="", real width=0, real height=0,
     if(!settings.keep) {
       exitfcn atexit=atexit();
       void exitfunction() {
-	atexit();
-	delete(image);
+        atexit();
+        delete(image);
       }
       atexit(exitfunction);
     }

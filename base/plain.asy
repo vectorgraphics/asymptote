@@ -207,4 +207,4 @@ if(settings.autoimport != "") {
   shipped=false;
   atexit(exitfunction);
   settings.autoimport=s;
-}
+ }

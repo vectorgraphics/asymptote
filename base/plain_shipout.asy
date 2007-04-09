@@ -102,8 +102,8 @@ void shipout(string prefix=defaultfilename, picture pic,
 }
 
 void shipout(string prefix=defaultfilename,
-	     orientation orientation=orientation,
-	     string format="", bool wait=NoWait, bool view=true)
+             orientation orientation=orientation,
+             string format="", bool wait=NoWait, bool view=true)
 {
   shipout(prefix,currentpicture,orientation,format,wait,view);
 }

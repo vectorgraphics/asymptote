@@ -1,6 +1,6 @@
 // Draw and/or fill a box on frame dest using the dimensions of frame src.
 path box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
-          pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+         pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   pair z=(xmargin,ymargin);
   int sign=filltype == NoFill ? 1 : -1;
@@ -15,7 +15,7 @@ path box(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
 
 
 path ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
-	     pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+             pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   pair m=min(src);
   pair M=max(src);
@@ -23,7 +23,7 @@ path ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
   static real factor=0.5*sqrt(2);
   int sign=filltype == NoFill ? 1 : -1;
   path g=ellipse(0.5*(M+m),factor*D.x+0.5*sign*max(p).x+xmargin,
-		 factor*D.y+0.5*sign*max(p).y+ymargin);
+                 factor*D.y+0.5*sign*max(p).y+ymargin);
   frame F;
   if(put == Below) {
     filltype(F,g,p);
@@ -33,26 +33,26 @@ path ellipse(frame dest, frame src=dest, real xmargin=0, real ymargin=xmargin,
 }
 
 path box(frame f, Label L, real xmargin=0, real ymargin=xmargin,
-	 pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+         pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   add(f,L);
   return box(f,xmargin,ymargin,p,filltype,put);
 }
 
 path ellipse(frame f, Label L, real xmargin=0, real ymargin=xmargin,
-	     pen p=currentpen, filltype filltype=NoFill, bool put=Above)
+             pen p=currentpen, filltype filltype=NoFill, bool put=Above)
 {
   add(f,L);
   return ellipse(f,xmargin,ymargin,p,filltype,put);
 }
 
 typedef path envelope(frame dest, frame src=dest, real xmargin=0,
-		      real ymargin=xmargin, pen p=currentpen,
-		      filltype filltype=NoFill, bool put=Above);
+                      real ymargin=xmargin, pen p=currentpen,
+                      filltype filltype=NoFill, bool put=Above);
 
 frame enclose(picture pic=currentpicture, envelope e, Label L,
-	      real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-	      filltype filltype=NoFill, bool put=Above) 
+              real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+              filltype filltype=NoFill, bool put=Above) 
 {
   Label L=L.copy();
   pic.add(new void (frame f, transform t) {
@@ -72,8 +72,8 @@ frame enclose(picture pic=currentpicture, envelope e, Label L,
 }
 
 object draw(picture pic=currentpicture, Label L, envelope S,
-	    real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-	    filltype filltype=NoFill, bool put=Above)
+            real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+            filltype filltype=NoFill, bool put=Above)
 {
   object F;
   F.L=L.copy();
@@ -82,8 +82,8 @@ object draw(picture pic=currentpicture, Label L, envelope S,
 }
 
 object draw(picture pic=currentpicture, Label L, envelope S, pair position,
-	    real xmargin=0, real ymargin=xmargin, pen p=currentpen,
-	    filltype filltype=NoFill, bool put=Above)
+            real xmargin=0, real ymargin=xmargin, pen p=currentpen,
+            filltype filltype=NoFill, bool put=Above)
 {
   return draw(pic,Label(L,position),S,xmargin,ymargin,p,filltype,put);
 }

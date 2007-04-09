@@ -430,7 +430,7 @@ guide3 graph(real f(pair), path p, int n=1, real T(pair),
 
 // draw the surface described by a matrix f, respecting lighting
 picture surface(triple[][] f, bool outward=false,
-		pen surfacepen=lightgray, pen meshpen=nullpen,
+                pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
   picture pic;
@@ -536,7 +536,7 @@ picture surface(real[][] f, pair a, pair b, bool outward=false,
 // respecting lighting.
 picture surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
                 bool outward=false,
-		pen surfacepen=lightgray, pen meshpen=nullpen,
+                pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
   if(nu <= 0 || nv <= 0) return new picture;
@@ -613,7 +613,7 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
     for(int i=0; i < nu; ++i) {
       for(int j=0; j < nv; ++j) {
         real d=abs(camera-0.25*(f(sample(i,j))+f(sample(i,j+1))+
-				f(sample(i+1,j))+f(sample(i+1,j+1))));
+                                f(sample(i+1,j))+f(sample(i+1,j+1))));
         depth.push(new real[] {d,i,j});
       }
     }
@@ -633,7 +633,7 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
 // respecting lighting.
 picture surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
                 bool outward=false,
-		pen surfacepen=lightgray, pen meshpen=nullpen,
+                pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
   return surface(new triple(pair z) {return (z.x,z.y,f(z));},a,b,nx,ny,

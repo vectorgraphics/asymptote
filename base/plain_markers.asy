@@ -49,9 +49,9 @@ markroutine markuniform(bool centered=false, int n, bool rotated=false) {
     } else {
       if(n == 1) add(0.5);
       else {
-	real width=1/(n-1);
-	for(int i=0; i < n; ++i)
-	  add(i*width);
+        real width=1/(n-1);
+        for(int i=0; i < n; ++i)
+          add(i*width);
       }
     }
   };
@@ -67,7 +67,7 @@ struct marker {
 }
   
 marker marker(frame f=newframe, markroutine markroutine=marknodes,
-	      bool put=Above) 
+              bool put=Above) 
 {
   marker m=new marker;
   m.f=f;

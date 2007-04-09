@@ -1946,8 +1946,8 @@ void sharpraytrace() {
       for (int k=1; k <= NF; k += 1) {
         otherpath = facepath(k);
         intertimes = intersect( refpath, otherpath );
-	real x=intertimes[0];
-	if ((x != 0) && (x != 1) && (k != i)) {
+        real x=intertimes[0];
+        if ((x != 0) && (x != 1) && (k != i)) {
           for (int l=1; l <= npf[k]; l += 1) {
             c = F[k][l];
             if (l < npf[k])

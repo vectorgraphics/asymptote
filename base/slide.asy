@@ -23,7 +23,7 @@ if(landscape) {
  } else {
   pagewidth += settings.paperwidth;
   pageheight += settings.paperheight;
-}
+ }
 
 size(pagewidth,pageheight,IgnoreAspect);
 picture background;
@@ -323,7 +323,7 @@ void skip(real n=1)
 }
 
 void display(frame[] f, real margin=0, pair align=S, pen p=itempen,
-	     pen figuremattpen=figuremattpen)
+             pen figuremattpen=figuremattpen)
 {
   if(f.length == 0) return;
   real[] width=new real[f.length];
@@ -349,14 +349,14 @@ void display(frame[] f, real margin=0, pair align=S, pen p=itempen,
 }
 
 void display(frame f, real margin=0, pair align=S, pen p=itempen,
-	     pen figuremattpen=figuremattpen)
+             pen figuremattpen=figuremattpen)
 {
   display(new frame[] {f},margin,align,p,figuremattpen);
 }
 
 void display(string[] s, real margin=0, string[] captions=new string[],
-	     string caption="", pair align=S, pen p=itempen,
-	     pen figuremattpen=figuremattpen)
+             string caption="", pair align=S, pen p=itempen,
+             pen figuremattpen=figuremattpen)
 {
   frame[] f=new frame[s.length];
   frame F;
@@ -376,14 +376,14 @@ void display(string[] s, real margin=0, string[] captions=new string[],
 }
 
 void display(string s, string caption="", pair align=S, pen p=itempen,
-	     pen figuremattpen=figuremattpen)
+             pen figuremattpen=figuremattpen)
 {
   display(new string[] {s},caption,align,p,figuremattpen);
 }
 
 void figure(string[] s, string options="", real margin=0, 
             string[] captions=new string[], string caption="",
-	    pair align=S, pen p=itempen, pen figuremattpen=figuremattpen)
+            pair align=S, pen p=itempen, pen figuremattpen=figuremattpen)
 {
   string[] S;
   for(int i=0; i < s.length; ++i) {
@@ -394,7 +394,7 @@ void figure(string[] s, string options="", real margin=0,
 }
 
 void figure(string s, string options="", string caption="", pair align=S,
-	    pen p=itempen, pen figuremattpen=figuremattpen)
+            pen p=itempen, pen figuremattpen=figuremattpen)
 {
   figure(new string[] {s},options,caption,align,p,figuremattpen);
 }
@@ -407,21 +407,21 @@ string cropcode(string s)
 }
 
 void code(bool center=false, string s, pen p=codepen,
-	  real indent=0, real skip=codeskip,
-	  filltype filltype=NoFill) 
+          real indent=0, real skip=codeskip,
+          filltype filltype=NoFill) 
 {
   remark(center,"{\tt "+verbatim(cropcode(s))+"}",p,indent,skip,filltype);
 }
 
 void filecode(bool center=false, string s, pen p=codepen, real indent=0,
-	      real skip=codeskip, filltype filltype=NoFill)
+              real skip=codeskip, filltype filltype=NoFill)
 {
   code(center,file(s),p,indent,skip,filltype);
 }
 
 void asyfigure(string s, string options="", string caption="", pair align=S,
-	       pen p=codepen, pen figuremattpen=figuremattpen,
-	       filltype filltype=NoFill, bool newslide=false)
+               pen p=codepen, pen figuremattpen=figuremattpen,
+               filltype filltype=NoFill, bool newslide=false)
 {
   string a=s+".asy";
   asy(nativeformat(),s);
@@ -450,21 +450,21 @@ string asywrite(string s, string preamble="")
 }
 
 void asycode(bool center=false, string s, string options="",
-	     string caption="", string preamble="",
-	     pair align=S, pen p=codepen, pen figuremattpen=figuremattpen,
-	     real indent=0, real skip=codeskip,
-	     filltype filltype=NoFill, bool newslide=false)
+             string caption="", string preamble="",
+             pair align=S, pen p=codepen, pen figuremattpen=figuremattpen,
+             real indent=0, real skip=codeskip,
+             filltype filltype=NoFill, bool newslide=false)
 {
   code(center,s,p,indent,skip,filltype);
   asyfigure(asywrite(s,preamble),options,caption,align,p,figuremattpen,filltype,
-	    newslide);
+            newslide);
 }
 
 void asyfilecode(bool center=false, string s, string options="",
-		 string caption="",
-		 pair align=S, pen p=codepen, pen figuremattpen=figuremattpen,
-		 real indent=0, real skip=codeskip,
-		 filltype filltype=NoFill, bool newslide=false)
+                 string caption="",
+                 pair align=S, pen p=codepen, pen figuremattpen=figuremattpen,
+                 real indent=0, real skip=codeskip,
+                 filltype filltype=NoFill, bool newslide=false)
 {
   filecode(center,s+".asy",p,indent,skip,filltype);
   asyfigure(s,options,caption,align,p,figuremattpen,filltype,newslide);
@@ -526,8 +526,8 @@ void bibliography(string name)
   string s;
   if(landscape) {
     s="{\centering\textheight="+string(pageheight-1inch)+"bp\textwidth="+
-    string(pagewidth-1.5inches)+"bp"+
-    "\vsize=\textheight\hsize=\textwidth\linewidth=\hsize"+
+      string(pagewidth-1.5inches)+"bp"+
+      "\vsize=\textheight\hsize=\textwidth\linewidth=\hsize"+
       "\topmargin="+string(vmargin)+"in\oddsidemargin="+string(hmargin)+"in";
   } else
     s="{\centering\textheight="+string(pageheight-0.5inches)+"bp\textwidth="+

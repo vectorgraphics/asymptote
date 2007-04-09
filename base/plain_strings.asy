@@ -45,7 +45,7 @@ string TeXify(string s)
 }
 
 private string[][] trans1={{'\\',"\backslash "},
-			   {"$","\$"},{"{","\{"},{"}","\}"}};
+                           {"$","\$"},{"{","\{"},{"}","\}"}};
 private string[][] trans2={{"\backslash ","$\backslash$"}};
 
 // Convert string to TeX

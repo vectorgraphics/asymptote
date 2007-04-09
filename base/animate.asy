@@ -44,21 +44,21 @@ struct animation {
   void purge(bool keep) {
     if(!(keep || settings.keep)) {
       for(int i=0; i < files.length; ++i)
-	delete(files[i]);
+        delete(files[i]);
     }
   }
 
   int merge(int loops=0, real delay=animationdelay, string format="gif",
-	    string options="", bool keep=false) {
+            string options="", bool keep=false) {
     string args="-loop " +(string) loops+" -delay "+(string)(delay/10)+" "
       +options;
-    for(int i=0; i < files.length; ++i)
-      args += " " +files[i];
-    int rc=convert(args,format=format);
-    purge(keep);
-    if(rc == 0) animate(format=format);
-    else abort("merge failed");
-    return rc;
+      for(int i=0; i < files.length; ++i)
+        args += " " +files[i];
+      int rc=convert(args,format=format);
+      purge(keep);
+      if(rc == 0) animate(format=format);
+      else abort("merge failed");
+      return rc;
   }
 
   pair min,max;
@@ -108,8 +108,8 @@ struct animation {
     if(!settings.keep && !settings.inlinetex) {
       exitfcn atexit=atexit();
       void exitfunction() {
-	atexit();
-	delete(filename+".pdf");
+        atexit();
+        delete(filename+".pdf");
       }
       atexit(exitfunction);
     }
@@ -132,7 +132,7 @@ struct animation {
   }
 
   string controlpanel(pen foreground=black, bool percentage=false,
-		      pen background=green, pen border=invisible) {
+                      pen background=green, pen border=invisible) {
     if(!pdflatex()) return "";
     string s="\PDFAnimButtons";
     if(percentage) s += "P";
@@ -142,7 +142,7 @@ struct animation {
   }
 
   private string field(string field, string max, pen foreground=black,
-		       pen background=white, real margin=0) {
+                       pen background=white, real margin=0) {
     if(!pdflatex()) return "";
     frame f;
     label(f,max,foreground);
@@ -163,8 +163,8 @@ struct animation {
   }
 
   int movie(int loops=0, real delay=animationdelay,
-	    string format=settings.outformat == "" ? "gif" : settings.outformat,
-	    string options="", bool keep=false) {
+            string format=settings.outformat == "" ? "gif" : settings.outformat,
+            string options="", bool keep=false) {
     export();
     return merge(loops,delay,format,options,keep);
   }

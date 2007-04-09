@@ -150,19 +150,19 @@ splinetype notaknot()
       c[0]=x[2]-x[0];
       a[0]=0;
       g[0]=((x[1]-x[0])^2*(y[2]-y[1])/b[0]+b[0]*(2*b[0]+3*(x[1]-x[0]))*
-	    (y[1]-y[0])/(x[1]-x[0]))/c[0];
+            (y[1]-y[0])/(x[1]-x[0]))/c[0];
       for(int i=1; i < n-1; ++i) {
-	a[i]=x[i+1]-x[i];
-	c[i]=x[i]-x[i-1];
-	b[i]=2*(a[i]+c[i]);
-	g[i]=3*(c[i]*(y[i+1]-y[i])/a[i]+a[i]*(y[i]-y[i-1])/c[i]);
+        a[i]=x[i+1]-x[i];
+        c[i]=x[i]-x[i-1];
+        b[i]=2*(a[i]+c[i]);
+        g[i]=3*(c[i]*(y[i+1]-y[i])/a[i]+a[i]*(y[i]-y[i-1])/c[i]);
       }
       c[n-1]=0;
       b[n-1]=x[n-2]-x[n-3];
       a[n-1]=x[n-1]-x[n-3];
       g[n-1]=((x[n-1]-x[n-2])^2*(y[n-2]-y[n-3])/b[n-1]+
-	      b[n-1]*(2*b[n-1]+3(x[n-1]-x[n-2]))*
-	      (y[n-1]-y[n-2])/(x[n-1]-x[n-2]))/a[n-1];
+              b[n-1]*(2*b[n-1]+3(x[n-1]-x[n-2]))*
+              (y[n-1]-y[n-2])/(x[n-1]-x[n-2]))/a[n-1];
       d=tridiagonal(a,b,c,g);
     }
     if(n == 2) {
@@ -205,10 +205,10 @@ splinetype periodic()
       b[0]=2*(a[0]+c[0]);
       g[0]=3*c[0]*(y[1]-y[0])/a[0]+3*a[0]*(y[n-1]-y[n-2])/c[0];
       for(int i=1; i < n-1; ++i) {
-	a[i]=x[i+1]-x[i];
-	c[i]=x[i]-x[i-1];
-	b[i]=2*(a[i]+c[i]);
-	g[i]=3*(c[i]*(y[i+1]-y[i])/a[i]+a[i]*(y[i]-y[i-1])/c[i]);
+        a[i]=x[i+1]-x[i];
+        c[i]=x[i]-x[i-1];
+        b[i]=2*(a[i]+c[i]);
+        g[i]=3*(c[i]*(y[i+1]-y[i])/a[i]+a[i]*(y[i]-y[i-1])/c[i]);
       }
       d=tridiagonal(a,b,c,g);
       d.push(d[0]);
@@ -246,10 +246,10 @@ splinetype natural()
       a[0]=0;
       g[0]=3*(y[1]-y[0]);
       for(int i=1; i < n-1; ++i) {
-	a[i]=x[i+1]-x[i];
-	c[i]=x[i]-x[i-1];
-	b[i]=2*(a[i]+c[i]);
-	g[i]=3*(c[i]*(y[i+1]-y[i])/a[i]+a[i]*(y[i]-y[i-1])/c[i]);
+        a[i]=x[i+1]-x[i];
+        c[i]=x[i]-x[i-1];
+        b[i]=2*(a[i]+c[i]);
+        g[i]=3*(c[i]*(y[i+1]-y[i])/a[i]+a[i]*(y[i]-y[i-1])/c[i]);
       }
       c[n-1]=0;
       a[n-1]=x[n-1]-x[n-2];
@@ -288,10 +288,10 @@ splinetype clamped(real[] de)
       c[0]=0;
       a[0]=0;
       for(int i=1; i < n-1; ++i) {
-	a[i]=x[i+1]-x[i];
-	c[i]=x[i]-x[i-1];
-	b[i]=2*(a[i]+c[i]);
-	g[i]=3*(c[i]*(y[i+1]-y[i])/a[i]+a[i]*(y[i]-y[i-1])/c[i]);
+        a[i]=x[i+1]-x[i];
+        c[i]=x[i]-x[i-1];
+        b[i]=2*(a[i]+c[i]);
+        g[i]=3*(c[i]*(y[i+1]-y[i])/a[i]+a[i]*(y[i]-y[i-1])/c[i]);
       }
       c[n-1]=0;
       a[n-1]=0;

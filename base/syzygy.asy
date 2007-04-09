@@ -63,522 +63,522 @@ bp.in=2; bp.out=2;
 bp.connections=new int[] {1,0};
 bp.symbol="B^+"; bp.lsym="b^+"; bp.codename="bp";
 bp.draw=new guide[] (picture pic, guide[] ins) {
-    pair[] z=endpoints(ins);
-    pair m=min(z), M=max(z);
-    real w=M.x-m.x, h=hwratio*w;
-    pair centre=(0.5(m.x+M.x),M.y+h/2);
+  pair[] z=endpoints(ins);
+  pair m=min(z), M=max(z);
+  real w=M.x-m.x, h=hwratio*w;
+  pair centre=(0.5(m.x+M.x),M.y+h/2);
 
-    /*
+  /*
     return new guide[] {ins[1]..centre{NW}..z[0]+h*N,
-                        ins[0]..centre{NE}..z[1]+h*N};
-    */
+    ins[0]..centre{NE}..z[1]+h*N};
+  */
 
-    real offset=gapfactor*linewidth(currentpen);
-    draw(pic, ins[1]..(centre-offset*NW){NW});
-    return new guide[] {(centre+offset*NW){NW}..z[0]+h*N,
-                        ins[0]..centre{NE}..z[1]+h*N};
-  };
+  real offset=gapfactor*linewidth(currentpen);
+  draw(pic, ins[1]..(centre-offset*NW){NW});
+  return new guide[] {(centre+offset*NW){NW}..z[0]+h*N,
+                                                ins[0]..centre{NE}..z[1]+h*N};
+};
     
 Component bm=new Component;
 bm.in=2; bm.out=2;
 bm.connections=new int[] {1,0};
 bm.symbol="B^-"; bm.lsym="b^-"; bm.codename="bm";
 bm.draw=new guide[] (picture pic, guide[] ins) {
-    pair[] z=endpoints(ins);
-    pair m=min(z), M=max(z);
-    real w=M.x-m.x, h=hwratio*w;
-    pair centre=(0.5(m.x+M.x),M.y+h/2);
+  pair[] z=endpoints(ins);
+  pair m=min(z), M=max(z);
+  real w=M.x-m.x, h=hwratio*w;
+  pair centre=(0.5(m.x+M.x),M.y+h/2);
 
-    /*
+  /*
     return new guide[] {ins[1]..centre{NW}..z[0]+h*N,
-                        ins[0]..centre{NE}..z[1]+h*N};
-    */
+    ins[0]..centre{NE}..z[1]+h*N};
+  */
 
-    real offset=gapfactor*linewidth(currentpen);
-    draw(pic, ins[0]..(centre-offset*NE){NE});
-    return new guide[] {ins[1]..centre{NW}..z[0]+h*N,
-                        (centre+offset*NE){NE}..z[1]+h*N};
-  };
+  real offset=gapfactor*linewidth(currentpen);
+  draw(pic, ins[0]..(centre-offset*NE){NE});
+  return new guide[] {ins[1]..centre{NW}..z[0]+h*N,
+                                            (centre+offset*NE){NE}..z[1]+h*N};
+};
     
 Component phi=new Component;
 phi.in=2; phi.out=1;
 phi.connections=new int[] {0,0};
 phi.symbol="\Phi"; phi.lsym="\phi"; phi.codename="phi";
 phi.draw=new guide[] (picture pic, guide[] ins) {
-    pair[] z=endpoints(ins);
-    pair m=min(z), M=max(z);
-    real w=M.x-m.x, h=hwratio*w;
-    pair centre=(0.5(m.x+M.x),M.y+h/2);
+  pair[] z=endpoints(ins);
+  pair m=min(z), M=max(z);
+  real w=M.x-m.x, h=hwratio*w;
+  pair centre=(0.5(m.x+M.x),M.y+h/2);
 
 
-    //real offset=4*linewidth(currentpen);
-    draw(pic, ins[0]..centre{NE});
-    draw(pic, ins[1]..centre{NW});
-    draw(pic, centre,linewidth(5*linewidth(currentpen)));
-    dot(pic, centre);
-    return new guide[] {centre..centre+0.5h*N};
-  };
+  //real offset=4*linewidth(currentpen);
+  draw(pic, ins[0]..centre{NE});
+  draw(pic, ins[1]..centre{NW});
+  draw(pic, centre,linewidth(5*linewidth(currentpen)));
+  dot(pic, centre);
+  return new guide[] {centre..centre+0.5h*N};
+};
 
 Component wye=new Component;
 wye.in=1; wye.out=2;
 wye.connections=null; // TODO: Fix this!
 wye.symbol="Y"; wye.lsym="y"; wye.codename="wye";
 wye.draw=new guide[] (picture pic, guide[] ins) {
-    pair z=endpoint(ins[0]);
-    real w=10, h=hwratio*w; // The 10 is a guess here, and may produce badness.
-    pair centre=(z.x,z.y+h/2);
+  pair z=endpoint(ins[0]);
+  real w=10, h=hwratio*w; // The 10 is a guess here, and may produce badness.
+  pair centre=(z.x,z.y+h/2);
 
 
-    draw(pic, ins[0]..centre);
-    draw(pic, centre,linewidth(5*linewidth(currentpen)));
-    return new guide[] {centre{NW}..centre+(-0.5w,0.5h),
-                        centre{NE}..centre+(0.5w,0.5h)};
-  };
+  draw(pic, ins[0]..centre);
+  draw(pic, centre,linewidth(5*linewidth(currentpen)));
+  return new guide[] {centre{NW}..centre+(-0.5w,0.5h),
+                                    centre{NE}..centre+(0.5w,0.5h)};
+};
 
 
 struct Braid { // {{{1
-   // Members {{{2
-   // Number of lines initially.
-   int n;
+  // Members {{{2
+  // Number of lines initially.
+  int n;
 
-   struct Placement {
-     Component c;
-     int place;
+  struct Placement {
+    Component c;
+    int place;
 
-     Placement copy() {
-       Placement p=new Placement;
-       p.c=this.c; p.place=this.place;
-       return p;
-     }
-   }
-   Placement[] places;
+    Placement copy() {
+      Placement p=new Placement;
+      p.c=this.c; p.place=this.place;
+      return p;
+    }
+  }
+  Placement[] places;
 
-   void add(Component c, int place) {
-     Placement p=new Placement;
-     p.c=c; p.place=place;
-     places.push(p);
-   }
+  void add(Component c, int place) {
+    Placement p=new Placement;
+    p.c=c; p.place=place;
+    places.push(p);
+  }
 
-   void add(Braid sub, int place) {
-     for (int i=0; i<sub.places.length; ++i)
-       add(sub.places[i].c,sub.places[i].place+place);
-   }
+  void add(Braid sub, int place) {
+    for (int i=0; i<sub.places.length; ++i)
+      add(sub.places[i].c,sub.places[i].place+place);
+  }
 
-   // Drawing {{{2
-   guide[] drawStep(picture pic, Placement p, guide[] ins) {
-     int i=0,j=0;
+  // Drawing {{{2
+  guide[] drawStep(picture pic, Placement p, guide[] ins) {
+    int i=0,j=0;
 
-     // Draw the component.
-     Component c=p.c;
-     //write("drawing "+c.symbol+" at place "+(string)p.place);
-     guide[] couts=c.draw(pic, ins[sequence(c.in)+p.place]);
+    // Draw the component.
+    Component c=p.c;
+    //write("drawing "+c.symbol+" at place "+(string)p.place);
+    guide[] couts=c.draw(pic, ins[sequence(c.in)+p.place]);
 
-     pair M=max(endpoints(couts));
+    pair M=max(endpoints(couts));
 
-     // Extend lines not in the component.
-     guide[] outs;
-     pair[] z=endpoints(ins);
-     while (i<p.place) {
-       outs.push(ins[i]..(z[i].x,M.y));
-       ++i;
-     }
+    // Extend lines not in the component.
+    guide[] outs;
+    pair[] z=endpoints(ins);
+    while (i<p.place) {
+      outs.push(ins[i]..(z[i].x,M.y));
+      ++i;
+    }
 
-     outs.append(couts);
-     i+=c.in;
+    outs.append(couts);
+    i+=c.in;
 
-     while (i<ins.length) {
-       outs.push(ins[i]..(z[i].x,M.y));
-       ++i;
-     }
+    while (i<ins.length) {
+      outs.push(ins[i]..(z[i].x,M.y));
+      ++i;
+    }
 
-     return outs;
-   }
+    return outs;
+  }
 
-   void drawEnd(picture pic, guide[] ins, real minheight=0) {
-     pair[] z=endpoints(ins);
-     for (int i=0; i<ins.length; ++i) {
-       draw(pic, z[i].y >= minheight ? ins[i] : ins[i]..(z[i].x,minheight));
-     }
-   }
+  void drawEnd(picture pic, guide[] ins, real minheight=0) {
+    pair[] z=endpoints(ins);
+    for (int i=0; i<ins.length; ++i) {
+      draw(pic, z[i].y >= minheight ? ins[i] : ins[i]..(z[i].x,minheight));
+    }
+  }
 
-   void draw(picture pic, guide[] ins, real minheight=0) {
-     int steps=places.length;
+  void draw(picture pic, guide[] ins, real minheight=0) {
+    int steps=places.length;
 
-     guide[] nodes=ins;
-     for (int i=0; i<steps; ++i) {
-       Placement p=places[i];
-       nodes=drawStep(pic, places[i], nodes);
-     }
+    guide[] nodes=ins;
+    for (int i=0; i<steps; ++i) {
+      Placement p=places[i];
+      nodes=drawStep(pic, places[i], nodes);
+    }
 
-     drawEnd(pic, nodes, minheight);
-   }
+    drawEnd(pic, nodes, minheight);
+  }
 
-   void draw(picture pic=currentpicture, real spacing=15,
-             real minheight=2hwratio*spacing) {
-     pair[] ins;
-     for (int i=0; i<n; ++i)
-       ins.push((spacing*i,0));
+  void draw(picture pic=currentpicture, real spacing=15,
+            real minheight=2hwratio*spacing) {
+    pair[] ins;
+    for (int i=0; i<n; ++i)
+      ins.push((spacing*i,0));
 
-     draw(pic, ins, minheight);
-   }
+    draw(pic, ins, minheight);
+  }
 
-   // Utilities {{{2
-   int in() {
-     return n;
-   }
-   int out() {
-     int steps=places.length;
-     int num=n; // The number of nodes at this step.
+  // Utilities {{{2
+  int in() {
+    return n;
+  }
+  int out() {
+    int steps=places.length;
+    int num=n; // The number of nodes at this step.
 
-     for (int i=0; i<steps; ++i) {
-       Placement p=places[i];
-       int nextNum=num-p.c.in+p.c.out;
-       num=nextNum;
-     }
-     return num;
-   }
+    for (int i=0; i<steps; ++i) {
+      Placement p=places[i];
+      int nextNum=num-p.c.in+p.c.out;
+      num=nextNum;
+    }
+    return num;
+  }
 
-   // Deep copy of a braid.
-   Braid copy() {
-     Braid b=new Braid;
-     b.n=this.n;
-     for (int i=0; i<this.places.length; ++i)
-       b.add(this.places[i].c,this.places[i].place);
-     return b;
-   }
+  // Deep copy of a braid.
+  Braid copy() {
+    Braid b=new Braid;
+    b.n=this.n;
+    for (int i=0; i<this.places.length; ++i)
+      b.add(this.places[i].c,this.places[i].place);
+    return b;
+  }
 
-   // Matching {{{2
-   // Tests if a component p can be swapped with a component q which is assumed
-   // to be directly above it.
-   static bool swapable(Placement p, Placement q) {
-     return  p.place + p.c.out <= q.place || // p is left of q or
-             q.place + q.c.in <= p.place;    // q is left of p
-   }
+  // Matching {{{2
+  // Tests if a component p can be swapped with a component q which is assumed
+  // to be directly above it.
+  static bool swapable(Placement p, Placement q) {
+    return  p.place + p.c.out <= q.place || // p is left of q or
+      q.place + q.c.in <= p.place;    // q is left of p
+  }
 
-   // Creates a new braid with a transposition of two components.
-   Braid swap(int i, int j) {
-     if (i>j)
-       return swap(j,i);
-     else {
-       assert(j==i+1); assert(swapable(places[i],places[j]));
+  // Creates a new braid with a transposition of two components.
+  Braid swap(int i, int j) {
+    if (i>j)
+      return swap(j,i);
+    else {
+      assert(j==i+1); assert(swapable(places[i],places[j]));
 
-       Placement p=places[i].copy();
-       Placement q=places[j].copy();
-       /*write("swap:");
-       write("p originally at " + (string)p.place);
-       write("q originally at " + (string)q.place);
-       write("p.c.in: " + (string)p.c.in + " p.c.out: " + (string)p.c.out);
-       write("q.c.in: " + (string)q.c.in + " q.c.out: " + (string)q.c.out);*/
-       if (q.place + q.c.in <= p.place)
-         // q is left of p - adjust for q renumbering strings.
-         p.place+=q.c.out-q.c.in;
-       else if (p.place + p.c.out <= q.place)
-         // q is right of p - adjust for p renumbering strings.
-         q.place+=p.c.in-p.c.out;
-       else
-         // q is directly on top of p
-         assert(false, "swapable");
+      Placement p=places[i].copy();
+      Placement q=places[j].copy();
+      /*write("swap:");
+        write("p originally at " + (string)p.place);
+        write("q originally at " + (string)q.place);
+        write("p.c.in: " + (string)p.c.in + " p.c.out: " + (string)p.c.out);
+        write("q.c.in: " + (string)q.c.in + " q.c.out: " + (string)q.c.out);*/
+      if (q.place + q.c.in <= p.place)
+        // q is left of p - adjust for q renumbering strings.
+        p.place+=q.c.out-q.c.in;
+      else if (p.place + p.c.out <= q.place)
+        // q is right of p - adjust for p renumbering strings.
+        q.place+=p.c.in-p.c.out;
+      else
+        // q is directly on top of p
+        assert(false, "swapable");
 
-       /*write("q now at " + (string)q.place);
-       write("p now at " + (string)p.place);*/
+      /*write("q now at " + (string)q.place);
+        write("p now at " + (string)p.place);*/
 
-       Braid b=this.copy();
-       b.places[i]=q;
-       b.places[j]=p;
-       return b;
-     }
-   }
+      Braid b=this.copy();
+      b.places[i]=q;
+      b.places[j]=p;
+      return b;
+    }
+  }
 
-   // Tests if the component at index 'start' can be moved to index 'end'
-   // without interfering with other components.
-   bool moveable(int start, int end) {
-     assert(start<places.length); assert(end<places.length);
-     if (start==end)
-       return true;
-     else if (end<start)
-       return moveable(end,start);
-     else {
-       assert(start<end);
-       Placement p=places[start].copy();
-       for (int step=start; step<end; ++step) {
-         Placement q=places[step+1];
-         if (q.place + q.c.in <= p.place)
-           // q is left of p - adjust for q renumbering strings.
-           p.place+=q.c.out-q.c.in;
-         else if (p.place + p.c.out <= q.place)
-           // q is right of p - nothing to do.
-           continue;
-         else
-           // q is directly on top of p
-           return false;
-       }
-       return true;
-     }
-   }
+  // Tests if the component at index 'start' can be moved to index 'end'
+  // without interfering with other components.
+  bool moveable(int start, int end) {
+    assert(start<places.length); assert(end<places.length);
+    if (start==end)
+      return true;
+    else if (end<start)
+      return moveable(end,start);
+    else {
+      assert(start<end);
+      Placement p=places[start].copy();
+      for (int step=start; step<end; ++step) {
+        Placement q=places[step+1];
+        if (q.place + q.c.in <= p.place)
+          // q is left of p - adjust for q renumbering strings.
+          p.place+=q.c.out-q.c.in;
+        else if (p.place + p.c.out <= q.place)
+          // q is right of p - nothing to do.
+          continue;
+        else
+          // q is directly on top of p
+          return false;
+      }
+      return true;
+    }
+  }
 
-   bool matchComponent(Braid sub, int subindex, int place, int step) {
-     int i=subindex;
-     return sub.places[i].c == this.places[step].c &&
-            sub.places[i].place + place == this.places[step].place;
-   }
+  bool matchComponent(Braid sub, int subindex, int place, int step) {
+    int i=subindex;
+    return sub.places[i].c == this.places[step].c &&
+      sub.places[i].place + place == this.places[step].place;
+  }
 
-   // Returns true if a sub-braid occurs within the one at the specified
-   // coordinates with no component occuring anywhere inbetween.
-   bool exactMatch(Braid sub, int place, int step) {
-     for (int i=0; i<sub.places.length; ++i) {
-       if (!matchComponent(sub, i, place, i+step)) {
-         write("match failed at iteration: ", i);
-         return false;
-       }
-     }
-     return true;
-   }
+  // Returns true if a sub-braid occurs within the one at the specified
+  // coordinates with no component occuring anywhere inbetween.
+  bool exactMatch(Braid sub, int place, int step) {
+    for (int i=0; i<sub.places.length; ++i) {
+      if (!matchComponent(sub, i, place, i+step)) {
+        write("match failed at iteration: ", i);
+        return false;
+      }
+    }
+    return true;
+  }
 
-   /*
-   bool findSubsequence(Braid sub, int place, int size, int[] acc) {
-     // If we've matched all the components, we've won.
-     if (acc.length >= sub.places.length)
-       return true;
+  /*
+    bool findSubsequence(Braid sub, int place, int size, int[] acc) {
+    // If we've matched all the components, we've won.
+    if (acc.length >= sub.places.length)
+    return true;
 
-     // The next component to match.
-     Placement p=sub.places[acc.length];
+    // The next component to match.
+    Placement p=sub.places[acc.length];
 
-     // Start looking immediately after the last match.
-     for (int step=acc[acc.length-1]+1; step<this.places.length; ++step) {
-       Placement q=this.places[step];
-       */
+    // Start looking immediately after the last match.
+    for (int step=acc[acc.length-1]+1; step<this.places.length; ++step) {
+    Placement q=this.places[step];
+  */
 
-   bool tryMatch(Braid sub, int place, int size, int[] acc) {
-     // If we've matched all the components, we've won.
-     if (acc.length >= sub.places.length)
-       return true;
+  bool tryMatch(Braid sub, int place, int size, int[] acc) {
+    // If we've matched all the components, we've won.
+    if (acc.length >= sub.places.length)
+      return true;
 
-     // The next component to match.
-     Placement p=sub.places[acc.length];
+    // The next component to match.
+    Placement p=sub.places[acc.length];
 
-     // Start looking immediately after the last match.
-     for (int step=acc[acc.length-1]+1; step<this.places.length; ++step) {
-       Placement q=this.places[step];
-       // Check if the next component is in the set of strings used by the
-       // subbraid.
-       if (q.place + q.c.in > place && q.place < place + size) {
-         // It's in the window, so it must match the next component in the
-         // subbraid.
-         if (p.c==q.c && p.place+place==q.place) {
-           // A match - go on to the next component.
-           acc.push(step);
-           return tryMatch(sub, place, size, acc); // TODO: Adjust place/size.
-         }
-         else
-           return false;
-       }
+    // Start looking immediately after the last match.
+    for (int step=acc[acc.length-1]+1; step<this.places.length; ++step) {
+      Placement q=this.places[step];
+      // Check if the next component is in the set of strings used by the
+      // subbraid.
+      if (q.place + q.c.in > place && q.place < place + size) {
+        // It's in the window, so it must match the next component in the
+        // subbraid.
+        if (p.c==q.c && p.place+place==q.place) {
+          // A match - go on to the next component.
+          acc.push(step);
+          return tryMatch(sub, place, size, acc); // TODO: Adjust place/size.
+        }
+        else
+          return false;
+      }
 
-       // TODO: Adjust place and size.
-     }
+      // TODO: Adjust place and size.
+    }
 
-     // We've run out of components to match.
-     return false;
-   }
+    // We've run out of components to match.
+    return false;
+  }
 
 
-   // This attempts to find a subbraid within the braid.  It allows other
-   // components to be interspersed with the components of the subbraid so long
-   // as they don't occur on the same string as the ones the subbraid lies on.
-   // Returns null on failure.
-   int[] match(Braid sub, int place) {
-     for (int i=0; i<=this.places.length-sub.places.length; ++i) {
-       // Find where the first component of the subbraid matches and try to
-       // match the rest of the braid starting from there.
-       if (matchComponent(sub, 0, place, i)) {
-         int[] result;
-         result.push(i);
-         if (tryMatch(sub,place,sub.n,result))
-           return result;
-       }
-     }
-     return null;
-   }
+  // This attempts to find a subbraid within the braid.  It allows other
+  // components to be interspersed with the components of the subbraid so long
+  // as they don't occur on the same string as the ones the subbraid lies on.
+  // Returns null on failure.
+  int[] match(Braid sub, int place) {
+    for (int i=0; i<=this.places.length-sub.places.length; ++i) {
+      // Find where the first component of the subbraid matches and try to
+      // match the rest of the braid starting from there.
+      if (matchComponent(sub, 0, place, i)) {
+        int[] result;
+        result.push(i);
+        if (tryMatch(sub,place,sub.n,result))
+          return result;
+      }
+    }
+    return null;
+  }
 
-   // Equations {{{2
-   // Returns the string that 'place' moves to when going through the section
-   // with Placement p.
-   static int advancePast(Placement p, int place) {
-            // If it's to the left of the component, it is unaffected.
-     return place<p.place ? place :
-            // If it's to the right of the component, adjust the numbering due
-            // to the change of the number of strings in the component.
-            p.place+p.c.in <= place ? place - p.c.in + p.c.out :
-            // If it's in the component, ask the component to do the work.
-                p.place + p.c.connections[place-p.place];
-   }
+  // Equations {{{2
+  // Returns the string that 'place' moves to when going through the section
+  // with Placement p.
+  static int advancePast(Placement p, int place) {
+    // If it's to the left of the component, it is unaffected.
+    return place<p.place ? place :
+      // If it's to the right of the component, adjust the numbering due
+      // to the change of the number of strings in the component.
+      p.place+p.c.in <= place ? place - p.c.in + p.c.out :
+      // If it's in the component, ask the component to do the work.
+      p.place + p.c.connections[place-p.place];
+  }
 
-   // Adjust the place (at step 0) to the step given, to find which string it is
-   // on in that part of the diagram.
-   int advanceToStep(int step, int place) {
-     assert(place>=0 && place<n);
-     assert(step>=0 && step<places.length);
+  // Adjust the place (at step 0) to the step given, to find which string it is
+  // on in that part of the diagram.
+  int advanceToStep(int step, int place) {
+    assert(place>=0 && place<n);
+    assert(step>=0 && step<places.length);
 
-     for (int i=0; i<step; ++i)
-       place=advancePast(places[i], place);
+    for (int i=0; i<step; ++i)
+      place=advancePast(places[i], place);
 
-     return place;
-   }
+    return place;
+  }
 
-   int pullbackWindowPlace(int step, int place,
-                           int w_place, int w_size) {
-     place=advanceToStep(step,place);
-     return place < w_place           ? 1 : // The shielding.
-            w_place + w_size <= place ? 0 : // The string doesn't touch it.
-                                        place-w_place+2;
-   }
+  int pullbackWindowPlace(int step, int place,
+                          int w_place, int w_size) {
+    place=advanceToStep(step,place);
+    return place < w_place           ? 1 : // The shielding.
+      w_place + w_size <= place ? 0 : // The string doesn't touch it.
+      place-w_place+2;
+  }
 
-   int pullbackPlace(int step, int place) {
-     // Move to the right step.
-     //write("advance: ", step, place, advanceToStep(step,place));
-     //place=advanceToStep(step,place);
-     Placement p=places[step];
-     return pullbackWindowPlace(step,place, p.place, p.c.in);
-     /*return place < p.place           ? 1 : // The shielding.
-            p.place + p.c.in <= place ? 0 : // The string doesn't touch it.
-                                        place-p.place+2;*/
-   }
+  int pullbackPlace(int step, int place) {
+    // Move to the right step.
+    //write("advance: ", step, place, advanceToStep(step,place));
+    //place=advanceToStep(step,place);
+    Placement p=places[step];
+    return pullbackWindowPlace(step,place, p.place, p.c.in);
+    /*return place < p.place           ? 1 : // The shielding.
+      p.place + p.c.in <= place ? 0 : // The string doesn't touch it.
+      place-p.place+2;*/
+  }
                 
-   int[] pullbackWindow(int step, int w_place, int w_size) {
-     int[] a={1};
-     for (int place=0; place<n; ++place)
-       a.push(pullbackWindowPlace(step, place, w_place, w_size));
-     return a;
-   }
+  int[] pullbackWindow(int step, int w_place, int w_size) {
+    int[] a={1};
+    for (int place=0; place<n; ++place)
+      a.push(pullbackWindowPlace(step, place, w_place, w_size));
+    return a;
+  }
 
-   int[] pullback(int step) {
-     Placement p=places[step];
-     return pullbackWindow(step, p.place, p.c.in);
-     /*int[] a={1};
-     for (int place=0; place<n; ++place)
-       a.push(pullbackPlace(step, place));
-     return a;*/
-   }
+  int[] pullback(int step) {
+    Placement p=places[step];
+    return pullbackWindow(step, p.place, p.c.in);
+    /*int[] a={1};
+      for (int place=0; place<n; ++place)
+      a.push(pullbackPlace(step, place));
+      return a;*/
+  }
 
-   string stepToFormula(int step) {
-     // Determine the pullbacks.
-     string s="(1";
-     for (int place=0; place<n; ++place)
-       //write("pullback: ", step, place, pullbackString(step,place));
-       s+=(string)pullbackPlace(step, place);
-     s+=")^\star "+places[step].c.symbol;
-     return s;
-   }
+  string stepToFormula(int step) {
+    // Determine the pullbacks.
+    string s="(1";
+    for (int place=0; place<n; ++place)
+      //write("pullback: ", step, place, pullbackString(step,place));
+      s+=(string)pullbackPlace(step, place);
+    s+=")^\star "+places[step].c.symbol;
+    return s;
+  }
 
-   // Write it as a formula with pullback notation.
-   string toFormula() {
-     if (places.length==0)
-       return "1";
-     else {
-       string s;
-       for (int step=0; step<places.length; ++step) {
-         if (step>0)
-           s+=" ";
-         s+=stepToFormula(step);
-       }
-       return s;
-     }
-   }
+  // Write it as a formula with pullback notation.
+  string toFormula() {
+    if (places.length==0)
+      return "1";
+    else {
+      string s;
+      for (int step=0; step<places.length; ++step) {
+        if (step>0)
+          s+=" ";
+        s+=stepToFormula(step);
+      }
+      return s;
+    }
+  }
 
-   string windowToLinear(int step, int w_place, int w_size) {
-     int[] a=pullbackWindow(step, w_place, w_size);
-     string s="(";
-     for (int arg=1; arg<=w_size+1; ++arg) {
-       if (arg>1)
-         s+=",";
-       bool first=true;
-       for (int var=0; var<a.length; ++var) {
-         if (a[var]==arg) {
-           if (first)
-             first=false;
-           else
-             s+="+";
-           s+="x_"+(string)(var+1);
-         }
-       }
-     }
-     return s+")";
-   }
+  string windowToLinear(int step, int w_place, int w_size) {
+    int[] a=pullbackWindow(step, w_place, w_size);
+    string s="(";
+    for (int arg=1; arg<=w_size+1; ++arg) {
+      if (arg>1)
+        s+=",";
+      bool first=true;
+      for (int var=0; var<a.length; ++var) {
+        if (a[var]==arg) {
+          if (first)
+            first=false;
+          else
+            s+="+";
+          s+="x_"+(string)(var+1);
+        }
+      }
+    }
+    return s+")";
+  }
 
-   string windowToCode(int step, int w_place, int w_size) {
-     int[] a=pullbackWindow(step, w_place, w_size);
-     string s="[";
-     for (int arg=1; arg<=w_size+1; ++arg) {
-       if (arg>1)
-         s+=", ";
-       bool first=true;
-       for (int var=0; var<a.length; ++var) {
-         if (a[var]==arg) {
-           if (first)
-             first=false;
-           else
-             s+=" + ";
-           s+="x"+(string)(var+1);
-         }
-       }
-     }
-     return s+"]";
-   }
+  string windowToCode(int step, int w_place, int w_size) {
+    int[] a=pullbackWindow(step, w_place, w_size);
+    string s="[";
+    for (int arg=1; arg<=w_size+1; ++arg) {
+      if (arg>1)
+        s+=", ";
+      bool first=true;
+      for (int var=0; var<a.length; ++var) {
+        if (a[var]==arg) {
+          if (first)
+            first=false;
+          else
+            s+=" + ";
+          s+="x"+(string)(var+1);
+        }
+      }
+    }
+    return s+"]";
+  }
 
-   string stepToLinear(int step) {
-     //int[] a=pullback(step);
-     Placement p=places[step];
-     return p.c.lsym+windowToLinear(step, p.place, p.c.in);
+  string stepToLinear(int step) {
+    //int[] a=pullback(step);
+    Placement p=places[step];
+    return p.c.lsym+windowToLinear(step, p.place, p.c.in);
 
-     /*string s=p.c.lsym+"(";
-     for (int arg=1; arg<=p.c.in+1; ++arg) {
-       if (arg>1)
-         s+=",";
-       bool first=true;
-       for (int var=0; var<a.length; ++var) {
-         if (a[var]==arg) {
-           if (first)
-             first=false;
-           else
-             s+="+";
-           s+="x_"+(string)(var+1);
-         }
-       }
-     }
-     return s+")";*/
-   }
+    /*string s=p.c.lsym+"(";
+      for (int arg=1; arg<=p.c.in+1; ++arg) {
+      if (arg>1)
+      s+=",";
+      bool first=true;
+      for (int var=0; var<a.length; ++var) {
+      if (a[var]==arg) {
+      if (first)
+      first=false;
+      else
+      s+="+";
+      s+="x_"+(string)(var+1);
+      }
+      }
+      }
+      return s+")";*/
+  }
 
-   string stepToCode(int step) {
-     Placement p=places[step];
-     return p.c.codename+windowToCode(step, p.place, p.c.in);
-   }
+  string stepToCode(int step) {
+    Placement p=places[step];
+    return p.c.codename+windowToCode(step, p.place, p.c.in);
+  }
 
-   string toLinear(bool subtract=false) {
-     if (places.length==0)
-       return subtract ? "0" : "";  // or "1" ?
-     else {
-       string s = subtract ? " - " : "";
-       for (int step=0; step<places.length; ++step) {
-         if (step>0)
-           s+= subtract ? " - " : " + ";
-         s+=stepToLinear(step);
-       }
-       return s;
-     }
-   }
+  string toLinear(bool subtract=false) {
+    if (places.length==0)
+      return subtract ? "0" : "";  // or "1" ?
+    else {
+      string s = subtract ? " - " : "";
+      for (int step=0; step<places.length; ++step) {
+        if (step>0)
+          s+= subtract ? " - " : " + ";
+        s+=stepToLinear(step);
+      }
+      return s;
+    }
+  }
 
-   string toCode(bool subtract=false) {
-     if (places.length==0)
-       return subtract ? "0" : "";  // or "1" ?
-     else {
-       string s = subtract ? " - " : "";
-       for (int step=0; step<places.length; ++step) {
-         if (step>0)
-           s+= subtract ? " - " : " + ";
-         s+=stepToCode(step);
-       }
-       return s;
-     }
-   }
+  string toCode(bool subtract=false) {
+    if (places.length==0)
+      return subtract ? "0" : "";  // or "1" ?
+    else {
+      string s = subtract ? " - " : "";
+      for (int step=0; step<places.length; ++step) {
+        if (step>0)
+          s+= subtract ? " - " : " + ";
+        s+=stepToCode(step);
+      }
+      return s;
+    }
+  }
 }
 
 struct Relation { // {{{1
@@ -762,8 +762,8 @@ struct Syzygy { // {{{1
     m.rel=r;
     m.place=place; m.step=step;
     m.action=new Braid (Braid b) {
-        return apply(r, b, step, place);
-      };
+      return apply(r, b, step, place);
+    };
     moves.push(m);
 
     if (watched) uptodate(false);
@@ -773,8 +773,8 @@ struct Syzygy { // {{{1
     Move m=new Move;
     m.rel=null;
     m.action=new Braid (Braid b) {
-        return b.swap(i, j);
-      };
+      return b.swap(i, j);
+    };
     moves.push(m);
 
     if (watched) uptodate(false);
@@ -816,7 +816,7 @@ struct Syzygy { // {{{1
     atexit(new void () {
         picture pic; this.draw(pic);
         shipout(pic);
-        });
+      });
     uptodate(false);
   }
 

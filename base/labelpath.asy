@@ -6,7 +6,7 @@ string RightJustified="r";
 string Centered="c";
 
 void labelpath(frame f, Label L, path g, string justify=Centered,
-	       pen p=currentpen)
+               pen p=currentpen)
 {
   if(latex() && !pdf()) {
     _labelpath(f,L.s,L.size,g,justify,(L.T.x,L.T.y+0.5linewidth(p)),p);
@@ -16,7 +16,7 @@ void labelpath(frame f, Label L, path g, string justify=Centered,
 }
 
 void labelpath(picture pic=currentpicture, Label L, path g,
-	       string justify=Centered, pen p=currentpen)
+               string justify=Centered, pen p=currentpen)
 {
   pic.add(new void(frame f, transform t) {
       labelpath(f,L,t*g,justify,p);

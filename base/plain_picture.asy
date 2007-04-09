@@ -605,7 +605,7 @@ struct picture {
 
   // Calculate the sizing constants for the given array and maximum size.
   real calculateScaling(string dir, coord[] coords, real size,
-			bool warn=true) {
+                        bool warn=true) {
     access simplex;
     simplex.problem p=new simplex.problem;
    
@@ -667,7 +667,7 @@ struct picture {
   
   // Returns the transform for turning user-space pairs into true-space pairs.
   transform scaling(real xsize, real ysize, bool keepAspect=true,
-		    bool warn=true) {
+                    bool warn=true) {
     if(xsize == 0 && xunitsize == 0 && ysize == 0 && yunitsize == 0)
       return identity();
 
@@ -717,10 +717,10 @@ struct picture {
     static real epsilon=100*realEpsilon;
     if(d.x > xsize*(1+epsilon)) 
       write("warning: frame exceeds xlimit: "+(string) d.x+" > "+
-	    (string) xsize);
+            (string) xsize);
     if(d.y > ysize*(1+epsilon))
       write("warning: frame exceeds ylimit: "+(string) d.y+" > "+
-	    (string) ysize);
+            (string) ysize);
     return f;
   }
   
@@ -740,7 +740,7 @@ struct picture {
 
   // Return the transform that would be used to fit the picture to a frame
   transform calculateTransform(real xsize, real ysize, bool keepAspect=true,
-			       bool warn=true) {
+                               bool warn=true) {
     transform t=scaling(xsize,ysize,keepAspect,warn);
     return scale(fit(t),keepAspect)*t;
   }
@@ -858,11 +858,11 @@ void unitsize(picture pic=currentpicture, real x, real y=x)
 }
 
 void size(picture pic=currentpicture, real xsize, real ysize,
-	  pair min, pair max)
+          pair min, pair max)
 {
   pair size=max-min;
   pic.unitsize(size.x != 0 ? xsize/size.x : 0,
-	       size.y != 0 ? ysize/size.y : 0);
+               size.y != 0 ? ysize/size.y : 0);
 }
 
 void size(picture dest, picture src)
@@ -975,7 +975,7 @@ void radialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
 }
 
 void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
-		  pen[] p, pair[] z, int[] edges)
+                  pen[] p, pair[] z, int[] edges)
 {
   g=copy(g);
   p=copy(p);
@@ -989,7 +989,7 @@ void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
 }
 
 void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
-		 pen[][] p, path[] b=g, pair[][] z=new pair[][])
+                 pen[][] p, path[] b=g, pair[][] z=new pair[][])
 {
   g=copy(g);
   p=copy(p);
@@ -998,7 +998,7 @@ void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
   pic.add(new void(frame f, transform t) {
       pair[][] Z=new pair[z.length][];
       for(int i=0; i < z.length; ++i)
-	Z[i]=t*z[i];
+        Z[i]=t*z[i];
       tensorshade(f,t*g,fillrule,p,t*b,Z);
     });
   for(int i=0; i < g.length; ++i) 
@@ -1006,13 +1006,13 @@ void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
 }
 
 void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
-		 pen[] p, path b=g.length > 0 ? g[0] : nullpath)
+                 pen[] p, path b=g.length > 0 ? g[0] : nullpath)
 {
   tensorshade(pic,g,fillrule,new pen[][] {p},b);
 }
 
 void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
-		 pen[] p, path b=g.length > 0 ? g[0] : nullpath, pair[] z)
+                 pen[] p, path b=g.length > 0 ? g[0] : nullpath, pair[] z)
 {
   tensorshade(pic,g,fillrule,new pen[][] {p},b,new pair[][] {z});
 }
@@ -1191,7 +1191,7 @@ pair point(picture pic=currentpicture, pair dir)
 }
 
 pair framepoint(picture pic=currentpicture, pair dir,
-		transform t=pic.calculateTransform())
+                transform t=pic.calculateTransform())
 {
   pair m=pic.min(t);
   pair M=pic.max(t);

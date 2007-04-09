@@ -74,7 +74,7 @@ int[] frequency(real[] data, real a, real b, int n)
   for (int i=0; i < data.length; ++i) {
     int I=Floor((data[i]-a)*h);
     if(I >= 0 && I < n)
-       ++freq[I];
+      ++freq[I];
   }
   return freq;
 }
@@ -112,7 +112,7 @@ int[][] frequency(real[] x, real[] y, pair a, pair b, int nx, int ny=nx)
     int I=Floor((x[i]-ax)*hx);
     int J=Floor((y[i]-ay)*hy);
     if(I >= 0 && I < nx && J >= 0 && J < ny)
-       ++freq[I][J];
+      ++freq[I][J];
   }
   return freq;
 }
@@ -130,7 +130,7 @@ int[][] frequency(pair[] z, pair a, pair b, int nx, int ny=nx)
     int I=Floor((z[i].x-ax)*hx);
     int J=Floor((z[i].y-ay)*hy);
     if(I >= 0 && I < nx && J >= 0 && J < ny)
-       ++freq[I][J];
+      ++freq[I][J];
   }
   return freq;
 }

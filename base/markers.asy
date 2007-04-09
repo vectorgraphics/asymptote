@@ -131,7 +131,7 @@ void markangle(picture pic=currentpicture, Label L="",
                int n=1, real radius=0, real space=0,
                pair A, pair O, pair B, arrowbar arrow=None,
                pen p=currentpen, margin margin=NoMargin,
-	       marker marker=nomarker)
+               marker marker=nomarker)
 {
   if(space == 0) space=markanglespace(p);
   if(radius == 0) radius=markangleradius(p);
@@ -160,40 +160,40 @@ void markangle(picture pic=currentpicture, Label L="",
 }
 
 marker StickIntervalMarker(int i=2, int n=1, real size=0, real space=0,
-			   real angle=0, pair offset=0, bool rotated=true,
-			   pen p=currentpen, frame uniform=newframe,
-			   bool put=Above)
+                           real angle=0, pair offset=0, bool rotated=true,
+                           pen p=currentpen, frame uniform=newframe,
+                           bool put=Above)
 {
   return marker(uniform,markinterval(i,stickframe(n,size,space,angle,offset,p),
-				     rotated),put);
+                                     rotated),put);
 }
 
 
 marker CrossIntervalMarker(int i=2, int n=3, real size=0, real space=0,
-			   real angle=0, pair offset=0, bool rotated=true,
-			   pen p=currentpen, frame uniform=newframe,
-			   bool put=Above)
+                           real angle=0, pair offset=0, bool rotated=true,
+                           pen p=currentpen, frame uniform=newframe,
+                           bool put=Above)
 {
   return marker(uniform,markinterval(i,crossframe(n,size,space,angle,offset,p),
-				     rotated=rotated),put);
+                                     rotated=rotated),put);
 }
 
 marker CircleBarIntervalMarker(int i=2, int n=1, real barsize=0, real radius=0,
-			       real angle=0, pair offset=0, bool rotated=true,
-			       pen p=currentpen, filltype filltype=NoFill,
-			       bool above=false, frame uniform=newframe,
-			       bool put=Above)
+                               real angle=0, pair offset=0, bool rotated=true,
+                               pen p=currentpen, filltype filltype=NoFill,
+                               bool above=false, frame uniform=newframe,
+                               bool put=Above)
 {
   return marker(uniform,markinterval(i,circlebarframe(n,barsize,radius,angle,
-						      offset,p,filltype,above),
-				     rotated),put);
+                                                      offset,p,filltype,above),
+                                     rotated),put);
 }
 
 marker TildeIntervalMarker(int i=2, int n=1, real size=0, real space=0,
-			   real angle=0, pair offset=0, bool rotated=true,
-			   pen p=currentpen, frame uniform=newframe,
-			   bool put=Above)
+                           real angle=0, pair offset=0, bool rotated=true,
+                           pen p=currentpen, frame uniform=newframe,
+                           bool put=Above)
 {
   return marker(uniform,markinterval(i,tildeframe(n,size,space,angle,offset,p),
-				     rotated),put);
+                                     rotated),put);
 }

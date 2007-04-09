@@ -256,7 +256,7 @@ struct binarytree {
       int key=keys[i];
       // Ignore duplicate keys
       if(find(this.keys == key) == -1)
-	addKey(key);
+        addKey(key);
     }
   }
         

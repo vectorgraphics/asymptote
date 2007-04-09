@@ -19,8 +19,8 @@ path roundedpath(path A, real R, real S = 1)
   else
     RoundPath = scale(S)*point(A,0);            // first point of 'A'
 
-// doing everything between start and end 
-// create round paths subpath by subpath for every i-th edge 
+  // doing everything between start and end 
+  // create round paths subpath by subpath for every i-th edge 
   for(int i = 1; i < len; ++i)
     { 
       // straight subpath towards i-th edge
@@ -47,25 +47,25 @@ path roundedpath(path A, real R, real S = 1)
   // final steps to have a correct termination 
   if(PathClosed) { // Is 'A' cyclic?
     // straight subpath towards 0-th edge 
-      LocalPath = point(A,len-1)---point(A,0);
-      // circle with radius 'R' around 0-th edge
-      LocalCirc = circle(point(A,0),R);
-      // calculate intersection-time between straight subpath and circle
-      LocalTime = intersect(LocalPath, LocalCirc)[0];
-      // define intersectionpoint between both paths
-      LocalPair = point(subpath(LocalPath, 0, LocalTime), 1);
-      // add straight subpath towards 0-th curvature to 'RoundPath'
-      RoundPath = RoundPath--scale(S)*LocalPair;
+    LocalPath = point(A,len-1)---point(A,0);
+    // circle with radius 'R' around 0-th edge
+    LocalCirc = circle(point(A,0),R);
+    // calculate intersection-time between straight subpath and circle
+    LocalTime = intersect(LocalPath, LocalCirc)[0];
+    // define intersectionpoint between both paths
+    LocalPair = point(subpath(LocalPath, 0, LocalTime), 1);
+    // add straight subpath towards 0-th curvature to 'RoundPath'
+    RoundPath = RoundPath--scale(S)*LocalPair;
     
-      // straight subpath from 0-th edge to 1st edge
-      LocalPath = point(A,0)---point(A,1);
-      // calculate intersection-time between straight subpath and circle
-      LocalTime = intersect(LocalPath, LocalCirc)[0];
-      // define intersectionpoint between both paths  
-      LocalPair = point(subpath(LocalPath, 0, LocalTime), 1);
-      // add curvature near 0-th edge to 'RoundPath' and close path
-      RoundPath = RoundPath..scale(S)*LocalPair--cycle;
-    }
+    // straight subpath from 0-th edge to 1st edge
+    LocalPath = point(A,0)---point(A,1);
+    // calculate intersection-time between straight subpath and circle
+    LocalTime = intersect(LocalPath, LocalCirc)[0];
+    // define intersectionpoint between both paths  
+    LocalPair = point(subpath(LocalPath, 0, LocalTime), 1);
+    // add curvature near 0-th edge to 'RoundPath' and close path
+    RoundPath = RoundPath..scale(S)*LocalPair--cycle;
+  }
   else
     RoundPath = RoundPath--scale(S)*point(A,len);
   return RoundPath;

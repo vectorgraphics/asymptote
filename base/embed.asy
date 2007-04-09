@@ -23,7 +23,7 @@ string hyperlink(string url, string text)
 
 string link(string label, string text, string options="")
 {
-// Run LaTeX twice to resolve references.
+  // Run LaTeX twice to resolve references.
   settings.twice=true;
   if(options != "") options="["+options+"]";
   return "\movieref"+options+"{"+label+"}{"+text+"}";

@@ -999,10 +999,10 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
       pair b2=xmax == infinity ? tinv*(rt.x-max(p).x,ytrans(t,y2)) : (xmax,y2);
 
       if(xmin == -infinity || xmax == infinity) {
-	bounds mx=autoscale(a.x,b.x,pic.scale.x.scale);
-	pic.scale.x.tickMin=mx.min;
-	pic.scale.x.tickMax=mx.max;
-	divisor=mx.divisor;
+        bounds mx=autoscale(a.x,b.x,pic.scale.x.scale);
+        pic.scale.x.tickMin=mx.min;
+        pic.scale.x.tickMax=mx.max;
+        divisor=mx.divisor;
       }
       
       real fuzz=epsilon*max(abs(a.x),abs(b.x));
@@ -1090,10 +1090,10 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
       pair b2=ymax == infinity ? tinv*(xtrans(t,x2),rt.y-max(p).y) : (x2,ymax);
 
       if(ymin == -infinity || ymax == infinity) {
-	bounds my=autoscale(a.y,b.y,pic.scale.y.scale);
-	pic.scale.y.tickMin=my.min;
-	pic.scale.y.tickMax=my.max;
-	divisor=my.divisor;
+        bounds my=autoscale(a.y,b.y,pic.scale.y.scale);
+        pic.scale.y.tickMin=my.min;
+        pic.scale.y.tickMax=my.max;
+        divisor=my.divisor;
       }
 
       real fuzz=epsilon*max(abs(a.y),abs(b.y));
@@ -1471,7 +1471,7 @@ void ytick(picture pic=currentpicture, real y, pair dir=E,
 }
 
 void tick(picture pic=currentpicture, Label L, real value, explicit pair z,
-	  pair dir=N, string format="", real size=Ticksize, pen p=currentpen)
+          pair dir=N, string format="", real size=Ticksize, pen p=currentpen)
 {
   Label L=L.copy();
   if(L.defaultposition) L.position(z);

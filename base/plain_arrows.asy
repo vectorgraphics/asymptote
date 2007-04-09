@@ -24,7 +24,7 @@ real barsize(pen p=currentpen)
 }
 
 path arrowhead(path g, position position=EndPoint, pen p=currentpen,
-	       real size=0, real angle=arrowangle)
+               real size=0, real angle=arrowangle)
 {
   if(size == 0) size=arrowsize(p);
   bool relative=position.relative;

@@ -511,15 +511,15 @@ void write(file file, string s="", explicit flatguide3 x, suffix suffix=none)
       if(x.cyclic[i]) write(file,"cycle3");
       else write(file,x.nodes[i]);
       if(i < x.nodes.length-1) {
-	// Explicit control points trump other specifiers
-	if(x.control[i].active)
-	  write(file,x.control[i]);
-	else {
-	  write(file,x.out[i]);
-	  if(x.Tension[i].active) write(file,x.Tension[i]);
-	}
-	write(file,"..");
-	if(!x.control[i].active) write(file,x.in[i]);
+        // Explicit control points trump other specifiers
+        if(x.control[i].active)
+          write(file,x.control[i]);
+        else {
+          write(file,x.out[i]);
+          if(x.Tension[i].active) write(file,x.Tension[i]);
+        }
+        write(file,"..");
+        if(!x.control[i].active) write(file,x.in[i]);
       }
     }
   write(file,suffix);
@@ -1781,20 +1781,20 @@ triple[] intersectionpoints(path3 p, path3 q)
       real sm=s-epsilon+length(q);
       real sp=s+epsilon;
       if(sp < sm)
-	z.append(intersectionpoints(p,subpath(q,sp,sm)));
+        z.append(intersectionpoints(p,subpath(q,sp,sm)));
     } else {
       real sm=s-epsilon;
       real sp=s+epsilon;
       int L=length(p);
       if(cyclic(p)) {
-	sm += L;
-	if(sp < sm)
-	  z.append(intersectionpoints(subpath(p,sp,sm),q));
+        sm += L;
+        if(sp < sm)
+          z.append(intersectionpoints(subpath(p,sp,sm),q));
       } else  {
-	if(sm > 0)
-	  z.append(intersectionpoints(subpath(p,0,sm),q));
-	if(sp < L) 
-	  z.append(intersectionpoints(subpath(p,sp,L),q));
+        if(sm > 0)
+          z.append(intersectionpoints(subpath(p,0,sm),q));
+        if(sp < L) 
+          z.append(intersectionpoints(subpath(p,sp,L),q));
       }
     }
   }
@@ -2179,9 +2179,9 @@ splitface split(face a, face cut, projection P)
   if(P.infinity) {
     P=P.copy();
     P.camera *= 2*max(abs(a.box.min),abs(a.box.max),
-		      abs(cut.box.min),abs(cut.box.max));
+                      abs(cut.box.min),abs(cut.box.max));
   } else if((abs(a.normal-cut.normal) < epsilon ||
-	     abs(a.normal+cut.normal) < epsilon)) {
+             abs(a.normal+cut.normal) < epsilon)) {
     nointersection();
     return S;
   }

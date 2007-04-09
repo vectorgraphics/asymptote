@@ -71,10 +71,10 @@ struct block {
 
 // Construct a rectangular block with header and body objects.
 block rectangle(object header, object body,
-		pen headerpen=mediumgray, pen bodypen=currentpen, 
+                pen headerpen=mediumgray, pen bodypen=currentpen, 
                 pair center=(0,0), real dx=3,
-		real minheaderwidth=0, real minheaderheight=0,
-		real minbodywidth=0, real minbodyheight=0)
+                real minheaderwidth=0, real minheaderheight=0,
+                real minbodywidth=0, real minbodyheight=0)
 {
   frame fbody=body.fit();
   frame fheader=header.fit();
@@ -228,7 +228,7 @@ block circle(object body, pair center=(0,0), real dr=3, real mindiameter=0)
 }
 
 block roundrectangle(object body, pair center=(0,0), real ds=5, real dw=0,
-		     real minwidth=0, real minheight=0)
+                     real minwidth=0, real minheight=0)
 {
   frame f=body.fit();
   pair m=min(f);
@@ -268,7 +268,7 @@ block roundrectangle(object body, pair center=(0,0), real ds=5, real dw=0,
 }
 
 block bevel(object body, pair center=(0,0), real dh=5, real dw=5,
-	    real minwidth=0, real minheight=0)
+            real minwidth=0, real minheight=0)
 {
   frame f=body.fit();
   pair m=min(f);
@@ -334,5 +334,5 @@ void draw(picture pic=currentpicture, block block, pen p=currentpen)
       add(f,shift(block.shift(t))*block.draw(p));
     });
   pic.addBox(block.center,block.center,
-	     -0.5*block.size+min(p),0.5*block.size+max(p));
+             -0.5*block.size+min(p),0.5*block.size+max(p));
 }

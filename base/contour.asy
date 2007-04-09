@@ -416,18 +416,18 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
                 }
               } else {
                 // Double-vertex edge: search all 8 surrounding cells
-		void search() {
-		  for(int i=-1; i <= 1; ++i) {
-		    for(int j=-1; j <= 1; ++j) {
-		      if((edge=f(I+i,J+j,false)) >= 0) {
-			I += i;
-			J += j;
-			return;
-		      }
-		    }
-		  }
-		}
-		search();
+                void search() {
+                  for(int i=-1; i <= 1; ++i) {
+                    for(int j=-1; j <= 1; ++j) {
+                      if((edge=f(I+i,J+j,false)) >= 0) {
+                        I += i;
+                        J += j;
+                        return;
+                      }
+                    }
+                  }
+                }
+                search();
               }
             }
           }
@@ -492,8 +492,8 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
     if(L.length > 0) {
       Label Lcnt=L[cnt];
       for(int i=0; i < gcnt.length; ++i) {
-	if(Lcnt.s != "" && size(gcnt[i]) > 1)
-	  label(pic,Lcnt,gcnt[i],pcnt);
+        if(Lcnt.s != "" && size(gcnt[i]) > 1)
+          label(pic,Lcnt,gcnt[i],pcnt);
       }
     }
   }
@@ -532,28 +532,28 @@ pen[][] interior(picture pic=currentpicture, guide[][] g, pen[] palette)
     for(int j=0; j < gi.length; ++j) {
       path P=gi[j];
       if(cyclic(P)) {
-	int index=i+1;
-	bool nextinside;
-	for(int k=0; k < gp.length; ++k) {
-	  path next=gp[k];
-	  if(cyclic(next)) {
-	    if(inside(P,point(next,0)))
-	      nextinside=true;
-	    else if(inside(next,point(P,0)))
-	      index=i;
-	  }
-	}
-	if(!nextinside) {
-	  // Check to see if previous contour is inside
-	    for(int k=0; k < gm.length; ++k) {
-	      path prev=gm[k];
-	      if(cyclic(prev)) {
-		if(inside(P,point(prev,0)))
-		  index=i;
-	      }
-	    }
-	  } 
-	fillpalettei[j]=palette[index];
+        int index=i+1;
+        bool nextinside;
+        for(int k=0; k < gp.length; ++k) {
+          path next=gp[k];
+          if(cyclic(next)) {
+            if(inside(P,point(next,0)))
+              nextinside=true;
+            else if(inside(next,point(P,0)))
+              index=i;
+          }
+        }
+        if(!nextinside) {
+          // Check to see if previous contour is inside
+          for(int k=0; k < gm.length; ++k) {
+            path prev=gm[k];
+            if(cyclic(prev)) {
+              if(inside(P,point(prev,0)))
+                index=i;
+            }
+          }
+        } 
+        fillpalettei[j]=palette[index];
       }
       fillpalette[i]=fillpalettei;
     }
@@ -575,17 +575,17 @@ void fill(picture pic=currentpicture, guide[][] g, pen[][] palette)
       path P=gi[j];
       path[] S=P;
       if(cyclic(P)) {
-	for(int k=0; k < gp.length; ++k) {
-	  path next=gp[k];
-	  if(cyclic(next) && inside(P,point(next,0)))
-	    S=S^^next;
-	}
-	for(int k=0; k < gm.length; ++k) {
-	  path next=gm[k];
-	  if(cyclic(next) && inside(P,point(next,0)))
-	    S=S^^next;
-	}
-	fill(pic,S,palette[i][j]+evenodd);
+        for(int k=0; k < gp.length; ++k) {
+          path next=gp[k];
+          if(cyclic(next) && inside(P,point(next,0)))
+            S=S^^next;
+        }
+        for(int k=0; k < gm.length; ++k) {
+          path next=gm[k];
+          if(cyclic(next) && inside(P,point(next,0)))
+            S=S^^next;
+        }
+        fill(pic,S,palette[i][j]+evenodd);
       }
     }
   }
@@ -646,7 +646,7 @@ guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
       int[] trni=trn[i];
       int i0=trni[0], i1=trni[1], i2=trni[2];
       addseg(pointscnt,checktriangle(z[i0],z[i1],z[i2],
-                                  f[i0]-c[cnt],f[i1]-c[cnt],f[i2]-c[cnt],0));
+                                     f[i0]-c[cnt],f[i1]-c[cnt],f[i2]-c[cnt],0));
     }
   }
 

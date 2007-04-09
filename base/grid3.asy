@@ -147,7 +147,7 @@ typedef grid3routines[] grid3routinetype;
 grid3routinetype XYZgrid(position pos=Relative(0))
 {
   grid3routinetype ogs=new grid3routines[] {YZYgrid(pos),XYXgrid(pos),
-                                             XZXgrid(pos)};
+                                            XZXgrid(pos)};
   return ogs;  
 }
 grid3routinetype XYZgrid=XYZgrid();
@@ -327,89 +327,89 @@ void zaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
 
 /* Example:
 
-import grid3;
+   import grid3;
 
-size(8cm,0);
-currentprojection=orthographic(0.5,1,0.5);
+   size(8cm,0);
+   currentprojection=orthographic(0.5,1,0.5);
 
-defaultpen(overwrite(SuppressQuiet));
-bbox3 b=limits((-2,-2,0),(0,2,2));
-aspect(b,1,1,1);
+   defaultpen(overwrite(SuppressQuiet));
+   bbox3 b=limits((-2,-2,0),(0,2,2));
+   aspect(b,1,1,1);
 
-scale(Linear, Linear, Log);
+   scale(Linear, Linear, Log);
 
-grid3(pic=currentpicture, // picture
-      b=b,                // bbox3: the 3D bounding box.
-      gridroutine=XYZgrid(// grid3routine 
-                          // or grid3routine[] (alias grid3routines)
-                          // or grid3routines[]: 
-                          // The routine(s) to draw the grid(s): 
-                          // *XYgrid: draw grid from X in direction of Y
-                          // *YXgrid: draw grid from Y in direction of X, ...
-                          // *An array of previous values XYgrid, YXgrid, ...
-                          // *XYXgrid: draw XYgrid and YXgrid grids
-                          // *YXYgrid: draw XYgrid and YXgrid grids
-                          // *ZXZgrid: draw ZXgrid and XZgrid grids
-                          // *YX_YZgrid: draw YXgrid and YZgrid grids 
-                          // *XY_XZgrid: draw XYgrid and XZgrid grids 
-                          // *YX_YZgrid: draw YXgrid and YZgrid grids 
-                          // *An array of previous values XYXgrid,...
-                          // *XYZgrid: draw XYXgrid, ZYZgrid, XZXgrid grids.
-                          pos=Relative(0)),
-                          // the position of the grid relative to the axis
-                          // perpendicular to the grid; a real number 
-                          // specifies a coordinate relative  to this axis.
-                          // Aliases: top=Relative(1), middle=Relative(0.5)
-                          // and bottom=Relative(0).
+   grid3(pic=currentpicture, // picture
+   b=b,                // bbox3: the 3D bounding box.
+   gridroutine=XYZgrid(// grid3routine 
+   // or grid3routine[] (alias grid3routines)
+   // or grid3routines[]: 
+   // The routine(s) to draw the grid(s): 
+   // *XYgrid: draw grid from X in direction of Y
+   // *YXgrid: draw grid from Y in direction of X, ...
+   // *An array of previous values XYgrid, YXgrid, ...
+   // *XYXgrid: draw XYgrid and YXgrid grids
+   // *YXYgrid: draw XYgrid and YXgrid grids
+   // *ZXZgrid: draw ZXgrid and XZgrid grids
+   // *YX_YZgrid: draw YXgrid and YZgrid grids 
+   // *XY_XZgrid: draw XYgrid and XZgrid grids 
+   // *YX_YZgrid: draw YXgrid and YZgrid grids 
+   // *An array of previous values XYXgrid,...
+   // *XYZgrid: draw XYXgrid, ZYZgrid, XZXgrid grids.
+   pos=Relative(0)),
+   // the position of the grid relative to the axis
+   // perpendicular to the grid; a real number 
+   // specifies a coordinate relative  to this axis.
+   // Aliases: top=Relative(1), middle=Relative(0.5)
+   // and bottom=Relative(0).
 
-                          // These arguments are similar to those of Ticks(): 
-      N=0,                // int
-      n=0,                // int
-      Step=0,             // real
-      step=0,             // real
-      begin=true,         // bool
-      end=true,           // bool
-      pGrid=grey,         // pen
-      pgrid=lightgrey,    // pen
-      put=Above,          // bool
-      P=currentprojection // projection
-      );
+   // These arguments are similar to those of Ticks(): 
+   N=0,                // int
+   n=0,                // int
+   Step=0,             // real
+   step=0,             // real
+   begin=true,         // bool
+   end=true,           // bool
+   pGrid=grey,         // pen
+   pgrid=lightgrey,    // pen
+   put=Above,          // bool
+   P=currentprojection // projection
+   );
 
-xaxis(Label("$x$",position=EndPoint,align=S),b,RightTicks());
-yaxis(Label("$y$",position=EndPoint,align=S),b,RightTicks());
-zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),b,RightTicks());
+   xaxis(Label("$x$",position=EndPoint,align=S),b,RightTicks());
+   yaxis(Label("$y$",position=EndPoint,align=S),b,RightTicks());
+   zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),b,RightTicks());
 
 */
 
 /* Other examples:
 
-int N=10, n=2;
-grid3(b,N=N,n=n);
-xaxis(Label("$x$",position=EndPoint,align=S),b,RightTicks());
-yaxis(Label("$y$",position=EndPoint,align=S),b,RightTicks(N=N,n=n));
-zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),b,RightTicks());
+   int N=10, n=2;
+   grid3(b,N=N,n=n);
+   xaxis(Label("$x$",position=EndPoint,align=S),b,RightTicks());
+   yaxis(Label("$y$",position=EndPoint,align=S),b,RightTicks(N=N,n=n));
+   zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),b,RightTicks());
 
 
-grid3(b,new grid3routines[] {XYXgrid(top),XZXgrid(0)});
-xaxis(Label("$x$",position=EndPoint,align=S),b,RightTicks());
-yaxis(Label("$y$",position=EndPoint,align=S),b,RightTicks());
-zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),b,RightTicks());
+   grid3(b,new grid3routines[] {XYXgrid(top),XZXgrid(0)});
+   xaxis(Label("$x$",position=EndPoint,align=S),b,RightTicks());
+   yaxis(Label("$y$",position=EndPoint,align=S),b,RightTicks());
+   zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),b,RightTicks());
 
 
-grid3(b,new grid3routines[] {XYXgrid(-0.5),XYXgrid(1.5)},
-       pGrid=new pen[] {red,blue},
-        pgrid=new pen[] {0.5red,0.5blue});
-xaxis(Label("$x$",position=EndPoint,align=S),b,RightTicks());
-yaxis(Label("$y$",position=EndPoint,align=S),b,RightTicks());
-zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),b,RightTicks());
+   grid3(b,new grid3routines[] {XYXgrid(-0.5),XYXgrid(1.5)},
+   pGrid=new pen[] {red,blue},
+   pgrid=new pen[] {0.5red,0.5blue});
+   xaxis(Label("$x$",position=EndPoint,align=S),b,RightTicks());
+   yaxis(Label("$y$",position=EndPoint,align=S),b,RightTicks());
+   zaxis(Label("$z$",position=EndPoint,align=(0,0.5)+W),b,RightTicks());
 
-// Axes with grids:
+   // Axes with grids:
 
-xaxis(Label("$x$",position=EndPoint,align=S),b,
-      RightTicks(Step=0.5,gridroutine=XYgrid));
-yaxis(Label("$y$",position=EndPoint,align=S),b,
-      Ticks(Label("",align=0.5project(X)),N=8,n=2,gridroutine=YX_YZgrid));
-zaxis("$z$",b,RightTicks(ZYgrid));
+   xaxis(Label("$x$",position=EndPoint,align=S),b,
+   RightTicks(Step=0.5,gridroutine=XYgrid));
+   yaxis(Label("$y$",position=EndPoint,align=S),b,
+   Ticks(Label("",align=0.5project(X)),N=8,n=2,gridroutine=YX_YZgrid));
+   zaxis("$z$",b,RightTicks(ZYgrid));
 
 */
 
