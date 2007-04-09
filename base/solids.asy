@@ -151,7 +151,7 @@ struct revolution {
   
   void fill(picture pic=currentpicture, int n=32, pen p=currentpen,
             projection P=currentprojection) {
-    pen color(triple x) {return currentlight.intensity(x)*p;}
+    pen color(triple x) {return currentlight.intensity(x-c)*p;}
     fill(pic,n,color,P);
   }
   
