@@ -127,6 +127,7 @@ Base modules
 * tree::                        Dynamic binary search tree
 * binarytree::                  Binary tree drawing module
 * drawtree::                    Tree drawing module
+* syzygy::                      Syzygy and braid drawing module
 * feynman::                     Feynman diagrams
 * roundedpath::                 Round the sharp corners of paths
 * pdfanim::                     Portable embedded @code{PDF} movies
@@ -4972,6 +4973,7 @@ Here now is @code{latexusage.tex}:
 * tree::                        Dynamic binary search tree
 * binarytree::                  Binary tree drawing module
 * drawtree::                    Tree drawing module
+* syzygy::                      Syzygy and braid drawing module
 * feynman::                     Feynman diagrams
 * roundedpath::                 Round the sharp corners of paths
 * pdfanim::                     Portable embedded @code{PDF} movies
@@ -5173,6 +5175,13 @@ illustrated in the example @code{binarytreetest.asy}:
 @section @code{drawtree}
 @cindex @code{drawtree}
 This is a simple tree drawing module used by the example @code{treetest.asy}.
+
+@node syzygy
+@section @code{syzygy}
+@cindex @code{syzygy}
+This module automates the drawing of braids, relations, and syzygies,
+along with the corresponding equations, as illustrated in the example
+@code{knots.asy}.
 
 @node feynman
 @section @code{feynman}
@@ -7439,8 +7448,8 @@ Stefan Knorr.
 @c  LocalWords:  texcommand RET SITEDIR filegraph pathmarkers POSIX binput AOB
 @c  LocalWords:  boutput nonportable markinterval stickframe circlebarframe
 @c  LocalWords:  crossframe tildeframe markangle StickIntervalMarker gswin AFPL
-@c  LocalWords:  CrossIntervalMarker CircleBarIntervalMarker Ghostscript
+@c  LocalWords:  CrossIntervalMarker CircleBarIntervalMarker Ghostscript syzygy
 @c  LocalWords:  TildeIntervalMarker autoimport calculateTransform bitwise
 @c  LocalWords:  headersize bodysize minheaderwidth minheaderheight minwidth
 @c  LocalWords:  minbodywidth minbodyheight minheight mindiameter reltime
-@c  LocalWords:  relpoint
+@c  LocalWords:  relpoint Syzygy syzygies

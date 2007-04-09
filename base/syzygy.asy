@@ -1,8 +1,8 @@
 /***** syzygy.asy {{{1
  * Andy Hammerlindl  2006/12/02
  *
- * Automates the drawing of braids, relations, and syzygies, and the
- * corresponing equations.
+ * Automates the drawing of braids, relations, and syzygies, along with the
+ * corresponding equations.
  *
  * See
  *   http://katlas.math.toronto.edu/drorbn/index.php?title=06-1350/Syzygies_in_Asymptote
