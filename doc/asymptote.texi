@@ -6514,16 +6514,19 @@ One can also place ticks along a general three-dimensional axis:
 Surface plots of matrices and functions over the region
 @code{box(a,b)} in the @math{XY} plane are also implemented: 
 @verbatim
-picture surface(real[][] f, pair a, pair b,
+picture surface(real[][] f, pair a, pair b, bool oriented=true,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
-picture surface(triple[][] f, pen surfacepen=lightgray, pen meshpen=nullpen,
+picture surface(triple[][] f, bool oriented=true,
+                pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 picture surface(real f(pair z), pair a, pair b, int nx=nmesh,
-                int ny=nx, pen surfacepen=lightgray, pen meshpen=nullpen,
+                int ny=nx, bool oriented=true,
+                pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 picture surface(real f(pair z), int nsub, pair a, pair b, int nx=nmesh,
-                int ny=nx, pen surfacepen=lightgray, pen meshpen=nullpen,
+                int ny=nx, bool oriented=true,
+                pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 @end verbatim
 @noindent
@@ -6531,10 +6534,12 @@ A parametric surface for a function @math{f(u,v)} over the parameter
 space @code{box(a,b)} may be drawn with
 @verbatim
 picture surface(triple f(pair z), pair a, pair b, int nu=nmesh,
-                int nv=nu, pen surfacepen=lightgray, pen meshpen=nullpen,
+                int nv=nu, bool oriented=true,
+                pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 picture surface(triple f(pair z), int nsub, pair a, pair b, int nu=nmesh,
-                int nv=nu, pen surfacepen=lightgray, pen meshpen=nullpen,
+                int nv=nu, bool oriented=true,
+                pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 @end verbatim
 @noindent
@@ -6552,7 +6557,11 @@ Surface lighting is illustrated in the example files
 @code{parametricsurface.asy} and @code{sinc.asy}.
 A mesh can be drawn without solid fills by specifying @code{nullpen}
 for the surfacepen. A mesh is always drawn in the absence of lighting, unless 
-@code{meshpen=invisible}. 
+@code{meshpen=invisible}. If @code{oriented=true}, the surface should be
+oriented (parametrized) so that @math{df/du \times df/dv} points in the
+direction of the outward normal to the surface. If the outward normal
+vector is not known or if the surface is nonorientable, one should specify
+@code{oriented=false}, as illustrated in the example @code{Klein.asy}.
 
 @node grid3
 @section @code{grid3}
