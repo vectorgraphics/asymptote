@@ -120,6 +120,7 @@ Base modules
 * plain::                       Default @code{Asymptote} base file
 * simplex::                     Linear programming: simplex method
 * math::                        Extend @code{Asymptote}'s math capabilities
+* interpolate::                 
 * geometry::                    Geometry routines
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
@@ -1452,13 +1453,10 @@ frame pack(pair align=2S ... object inset[]);
 
 @cindex @code{minipage}
 The @code{string minipage(string s, width=100pt)} function can be used
-to format string @code{s} into a paragraph of width @code{width}, as
-illustrated in the example @code{advection.asy}:
+to format string @code{s} into a paragraph of width @code{width}.
+This example uses @code{minipage}, @code{clip}, and @code{graphic} to
+produce a CD label:
 
-@image{advection}
-
-This example uses @code{clip}, @code{minipage}, and
-@code{graphic} to produce a CD label:
 @image{CDlabel}
 @verbatiminclude CDlabel.asy
 @node Programming
@@ -1467,7 +1465,7 @@ This example uses @code{clip}, @code{minipage}, and
 
 Here is a short introductory example to the @code{Asymptote} programming
 language that highlights the similarity of its control structures 
-with those of C and C++.
+with those of C, C++, and Java:
 @cindex declaration
 @cindex assignment
 @cindex conditional
@@ -4966,6 +4964,7 @@ Here now is @code{latexusage.tex}:
 * plain::                       Default @code{Asymptote} base file
 * simplex::                     Linear programming: simplex method
 * math::                        Extend @code{Asymptote}'s math capabilities
+* interpolate::                 
 * geometry::                    Geometry routines
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
@@ -5072,6 +5071,12 @@ respectively. If the planes are parallel, return
 returns @code{true} iff the path @code{p} is straight.
 
 @end table
+
+@node interpolate
+@section @code{interpolate}
+@cindex @code{interpolate}
+This module implements Lagrange and Hermite interpolation in @code{Asymptote},
+as illustrated in the example @code{interpolate1.asy}.
 
 @node geometry
 @section @code{geometry}
@@ -5276,13 +5281,12 @@ presentation slides, including portable embedded @code{PDF} animations (see
 the file @code{slidemovies.asy}). A simple example is provided in the file
 @code{slidedemo.asy}:
 
-@verbatiminclude ../examples/slidedemo.asy
-
 @node MetaPost
 @section @code{MetaPost}
 @cindex @code{MetaPost}
 This package provides some useful routines to help @code{MetaPost} users
-migrate old @code{MetaPost} code to @code{Asymptote}.
+migrate old @code{MetaPost} code to @code{Asymptote}. Further
+contributions here are welcome.
 
 @node unicode
 @section @code{unicode}
