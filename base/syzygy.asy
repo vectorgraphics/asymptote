@@ -581,10 +581,6 @@ struct Braid { // {{{1
    }
 }
 
-Braid operator init() { // {{{2
-  return new Braid;
-}
-
 struct Relation { // {{{1
   Braid lhs, rhs;
 
@@ -641,10 +637,6 @@ struct Relation { // {{{1
     label(pic, "=", (max(l).x + 0.5xpad, 0.25(max(l).y+max(r).y)));
     add(pic, r, (max(l).x+xpad,0));
   }
-}
-
-Relation operator init() {
-  return new Relation;
 }
 
 Relation operator- (Relation r) {
@@ -906,11 +898,6 @@ struct Syzygy { // {{{1
   }
 
 }
-
-Syzygy operator init() { // {{{2
-  return new Syzygy;
-}
-
 
 // Relation definitions {{{1
 // If you define more relations that you think would be useful, please email
