@@ -510,37 +510,22 @@ void write(file file, string s="", explicit flatguide3 x, suffix suffix=none)
       if(i > 0) write(file,endl);
       if(x.cyclic[i]) write(file,"cycle3");
       else write(file,x.nodes[i]);
-
-      if(x.control[i].active) // Explicit control points trump other specifiers
-        write(file,x.control[i]);
-      else {
-        write(file,x.out[i]);
-        if(x.Tension[i].active) write(file,x.Tension[i]);
+      if(i < x.nodes.length-1) {
+	// Explicit control points trump other specifiers
+	if(x.control[i].active)
+	  write(file,x.control[i]);
+	else {
+	  write(file,x.out[i]);
+	  if(x.Tension[i].active) write(file,x.Tension[i]);
+	}
+	write(file,"..");
+	if(!x.control[i].active) write(file,x.in[i]);
       }
-      if(i < x.nodes.length-1) write(file,"..");
-      if(!x.control[i].active) write(file,x.in[i]);
     }
   write(file,suffix);
 }
 
 void write(string s="", flatguide3 x, suffix suffix=endl)
-{
-  write(stdout,s,x,suffix);
-}
-
-void write(file file, string s="", flatguide3[] x, suffix suffix=none)
-{
-  write(file,s);
-  if(x.length > 0) write(file,x[0]);
-  for(int i=1; i < x.length; ++i) {
-    write(file,endl);
-    write(file," ^^");
-    write(file,x[i]);
-  }
-  write(file,suffix);
-}
-
-void write(string s="", flatguide3[] x, suffix suffix=endl)
 {
   write(stdout,s,x,suffix);
 }
@@ -557,14 +542,6 @@ guide3 operator cast(triple v)
   return new void(flatguide3 f) {
     f.node(v);
   };
-}
-
-guide3[] operator cast(triple[] v)
-{
-  guide3[] g=new guide3[v.length];
-  for(int i=0; i < v.length; ++i)
-    g[i]=v[i];
-  return g;
 }
 
 void cycle3(flatguide3 f)
@@ -668,29 +645,6 @@ flatguide3[] operator cast(guide3[] g)
     p[i]=f;
   }
   return p;
-}
-
-guide3 operator * (transform3 t, guide3 g) 
-{
-  return new void(flatguide3 f) {
-    g(f);
-    for(int i=0; i < f.nodes.length; ++i) {
-      f.nodes[i]=t*f.nodes[i];
-      f.cyclic[i]=f.cyclic[i];
-      f.control[i]=t*f.control[i];
-      f.Tension[i]=f.Tension[i];
-      f.in[i]=t*f.in[i];
-      f.out[i]=t*f.out[i];
-    }
-  };
-}
-
-guide3[] operator * (transform3 t, guide3[] g) 
-{
-  guide3[] G=new guide3[g.length];
-  for(int i=0; i < g.length; ++i)
-    G[i]=t*g[i];
-  return G;
 }
 
 // A version of acos that tolerates numerical imprecision
@@ -1458,6 +1412,23 @@ void write(string s="", explicit path3 x, suffix suffix=endl)
   write(stdout,s,x,suffix);
 }
 
+void write(file file, string s="", explicit path3[] x, suffix suffix=none)
+{
+  write(file,s);
+  if(x.length > 0) write(file,x[0]);
+  for(int i=1; i < x.length; ++i) {
+    write(file,endl);
+    write(file," ^^");
+    write(file,x[i]);
+  }
+  write(file,suffix);
+}
+
+void write(string s="", explicit path3[] x, suffix suffix=endl)
+{
+  write(stdout,s,x,suffix);
+}
+
 path3 solve(flatguide3 g, projection Q=currentprojection)
 {
   project P=aspect(Q);
@@ -1571,12 +1542,6 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
   return path3.path3(nodes,cyclic);
 }
 
-bool cyclic(explicit flatguide3 g) {return g.cyclic[g.cyclic.length-1];}
-int size(explicit flatguide3 g) {
-  return cyclic(g) ? g.nodes.length-1 : g.nodes.length;
-}
-int length(explicit flatguide3 g) {return g.nodes.length-1;}
-
 path project(explicit path3 p, projection Q=currentprojection)
 {
   if(!Q.infinity) {
@@ -1685,17 +1650,17 @@ path3 operator cast(triple v) {return path3.path3(v);}
 path[] operator cast(path3 p) {return new path[] {(path) p};}
 path[] operator cast(guide3 g) {return new path[] {(path) g};}
 path[] operator cast(path3[] g) {return project(g);}
-//path[] operator cast(guide3[] g) {return project(g);}
 
-path3[] operator cast(guide3[] g) {
-  path3[] p=new path3[g.length];
-  for(int i=0; i < g.length; ++i)
-    p[i]=solve(g[i]);
-  return p;
+path3[] operator cast(triple[] v)
+{
+  path3[] g=new path3[v.length];
+  for(int i=0; i < v.length; ++i)
+    g[i]=v[i];
+  return g;
 }
 
-//bool straight(path3 p, int i) {return p.straight(i);}
-//bool straight(explicit guide3 g, int i) {return ((path3) g).straight(i);}
+bool straight(path3 p, int i) {return p.straight(i);}
+bool straight(explicit guide3 g, int i) {return ((path3) g).straight(i);}
 
 triple point(path3 p, int i) {return p.point(i);}
 triple point(explicit guide3 g, int i) {return ((path3) g).point(i);}
@@ -1852,6 +1817,12 @@ triple arcpoint(path3 p, real L)
 {
   return point(p,arctime(p,L));
 }
+
+// return the point on path3 p at arclength L
+triple arcpoint(path3 p, real L)
+{
+  return point(p,arctime(p,L));
+}
 triple arcpoint(explicit guide3 p, real L)
 {
   return arcpoint((path3) p,L);
@@ -1928,40 +1899,50 @@ void draw(picture pic=currentpicture, path3[] g, pen p=currentpen)
   draw(pic,(path[]) g,p);
 }
 
-guide3[] operator ^^ (guide3 p, guide3 q) 
+path3[] operator ^^ (path3 p, path3  q) 
 {
-  return new guide3[] {p,q};
+  return new path3[] {p,q};
 }
 
-guide3[] operator ^^ (guide3 p, guide3[] q) 
+path3[] operator ^^ (guide3 p, guide3 q) 
 {
-  return concat(new guide3[] {p},q);
+  return new path3[] {p,q};
 }
 
-guide3[] operator ^^ (guide3[] p, guide3 q) 
+path3[] operator ^^ (triple p, triple q) 
 {
-  return concat(p,new guide3[] {q});
+  return new path3[] {p,q};
 }
 
-guide3[] operator ^^ (guide3[] p, guide3[] q) 
+path3[] operator ^^ (path3 p, explicit path3[] q) 
+{
+  return concat(new path3[] {p},q);
+}
+
+path3[] operator ^^ (explicit path3[] p, path3 q) 
+{
+  return concat(p,new path3[] {q});
+}
+
+path3[] operator ^^ (explicit path3[] p, explicit path3[] q) 
 {
   return concat(p,q);
 }
 
-triple min(explicit guide3[] g)
+triple min(explicit path3[] p)
 {
-  triple ming=(infinity,infinity,infinity);
-  for(int i=0; i < g.length; ++i)
-    ming=minbound(ming,min(g[i]));
-  return ming;
+  triple minp=(infinity,infinity,infinity);
+  for(int i=0; i < p.length; ++i)
+    minp=minbound(minp,min(p[i]));
+  return minp;
 }
 
-triple max(explicit guide3[] g)
+triple max(explicit path3[] p)
 {
-  triple maxg=(-infinity,-infinity,-infinity);
-  for(int i=0; i < g.length; ++i)
-    maxg=maxbound(maxg,max(g[i]));
-  return maxg;
+  triple maxp=(-infinity,-infinity,-infinity);
+  for(int i=0; i < p.length; ++i)
+    maxp=maxbound(maxp,max(p[i]));
+  return maxp;
 }
 
 path3[] box(triple v1, triple v2)
