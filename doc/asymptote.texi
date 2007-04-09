@@ -6557,12 +6557,11 @@ Surface lighting is illustrated in the example files
 @code{parametricsurface.asy} and @code{sinc.asy}.
 A mesh can be drawn without solid fills by specifying @code{nullpen}
 for the surfacepen. A mesh is always drawn in the absence of lighting, unless 
-@code{meshpen=invisible}. If @code{oriented=true}, the surface should be
-oriented (parametrized) so that @math{df/du \times df/dv} points in the
-direction of the outward normal to the surface.
-If the surface is nonorientable (or if the orientation of the
-parameterized surface is unknown), one should specify
-@code{oriented=false}, as illustrated in the example @code{Klein.asy}.
+@code{meshpen=invisible}. For closed orientable surfaces parametrized
+such that @math{df/du \times df/dv} points in the direction of the
+outward normal, low-mesh-resolution lighting artifacts near the
+projected edges can be avoided by specifying @code{outward=true},
+as this forces only the outer surface to be drawn.
 
 @node grid3
 @section @code{grid3}

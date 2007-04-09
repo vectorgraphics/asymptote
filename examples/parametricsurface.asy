@@ -13,13 +13,13 @@ triple f(pair t) {
 pen p=rgb(0.2,0.5,0.7);
 
 // surface only
-//add(surface(f,(0,0),(2pi,2pi),30,15));
+//add(surface(f,(0,0),(2pi,2pi),outward=true,30,15));
 
 // mesh only
-//add(surface(f,(0,0),(2pi,2pi),30,15,nullpen,meshpen=p));
+//add(surface(f,(0,0),(2pi,2pi),outward=true,30,15,nullpen,meshpen=p));
 
 // surface & mesh
-//add(surface(f,(0,0),(2pi,2pi),30,15,meshpen=p));
+//add(surface(f,(0,0),(2pi,2pi),outward=true,30,15,meshpen=p));
 
 // Surface coloring looks better if seam is moved
-add(surface(f,(pi,pi),(3pi,3pi),30,15,meshpen=p));
+add(surface(f,(pi,pi),(3pi,3pi),outward=true,30,15,meshpen=p));

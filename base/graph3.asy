@@ -429,7 +429,7 @@ guide3 graph(real f(pair), path p, int n=1, real T(pair),
 }
 
 // draw the surface described by a matrix f, respecting lighting
-picture surface(triple[][] f, bool oriented=true,
+picture surface(triple[][] f, bool outward=false,
 		pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
@@ -453,7 +453,7 @@ picture surface(triple[][] f, bool oriented=true,
     else if(j == ny) dfy=f[i][ny]-f[i][ny-1];
     else dfy=0.5(f[i][j+1]-f[i][j-1]);
     triple v=cross(dfx,dfy);
-    if(!oriented) {
+    if(!outward) {
       triple dir=P.infinity ?  P.camera : P.camera-v;
       v *= sgn(dot(v,dir));
     }
@@ -510,7 +510,7 @@ picture surface(triple[][] f, bool oriented=true,
 }
 
 // draw the surface described by a real matrix f, respecting lighting
-picture surface(real[][] f, pair a, pair b, bool oriented=true,
+picture surface(real[][] f, pair a, pair b, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
@@ -529,13 +529,13 @@ picture surface(real[][] f, pair a, pair b, bool oriented=true,
       v[i][j]=(x,interp(a.y,b.y,j/ny),f[i][j]);
     }
   }
-  return surface(v,oriented,surfacepen,meshpen,light,P);
+  return surface(v,outward,surfacepen,meshpen,light,P);
 }
 
 // draw the surface described by a parametric function f over box(a,b),
 // respecting lighting.
 picture surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
-                bool oriented=true,
+                bool outward=false,
 		pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
@@ -549,13 +549,13 @@ picture surface(triple f(pair z), pair a, pair b, int nu=nmesh, int nv=nu,
     for(int j=0; j <= nv; ++j)
       v[i][j]=f((x,interp(a.y,b.y,j*vstep)));
   }
-  return surface(v,oriented,surfacepen,meshpen,light,P);
+  return surface(v,outward,surfacepen,meshpen,light,P);
 }
 
 // draw the surface described by a parametric function f over box(a,b),
 // subsampled nsub times, respecting lighting.
 picture surface(triple f(pair z), int nsub, pair a, pair b,
-                int nu=nmesh, int nv=nu, bool oriented=true,
+                int nu=nmesh, int nv=nu, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
@@ -577,7 +577,7 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
     else if(j == nv) dfy=f(sample(i,nv))-f(sample(i,nv-1));
     else dfy=0.5(f(sample(i,j+1))-f(sample(i,j-1)));
     triple v=cross(dfx,dfy);
-    if(!oriented) {
+    if(!outward) {
       triple dir=P.infinity ?  P.camera : P.camera-v;
       v *= sgn(dot(v,dir));
     }
@@ -632,23 +632,23 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
 // draw the surface described by a real function f over box(a,b),
 // respecting lighting.
 picture surface(real f(pair z), pair a, pair b, int nx=nmesh, int ny=nx,
-                bool oriented=true,
+                bool outward=false,
 		pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
   return surface(new triple(pair z) {return (z.x,z.y,f(z));},a,b,nx,ny,
-                 oriented,surfacepen,meshpen,light,P);
+                 outward,surfacepen,meshpen,light,P);
 }
 
 // draw the surface described by a real function f over box(a,b),
 // subsampled nsub times, respecting lighting.
 picture surface(real f(pair z), int nsub, pair a, pair b, 
-                int nx=nmesh, int ny=nx, bool oriented=true,
+                int nx=nmesh, int ny=nx, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection)
 {
   return surface(new triple(pair z) {return (z.x,z.y,f(z));},nsub,a,b,nx,ny,
-                 oriented,surfacepen,meshpen,light,P);
+                 outward,surfacepen,meshpen,light,P);
 }
 
 guide3[][] lift(real f(real x, real y), guide[][] g,
