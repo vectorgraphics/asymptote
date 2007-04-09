@@ -6514,18 +6514,18 @@ One can also place ticks along a general three-dimensional axis:
 Surface plots of matrices and functions over the region
 @code{box(a,b)} in the @math{XY} plane are also implemented: 
 @verbatim
-picture surface(real[][] f, pair a, pair b, bool oriented=true,
+picture surface(real[][] f, pair a, pair b, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
-picture surface(triple[][] f, bool oriented=true,
+picture surface(triple[][] f, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 picture surface(real f(pair z), pair a, pair b, int nx=nmesh,
-                int ny=nx, bool oriented=true,
+                int ny=nx, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 picture surface(real f(pair z), int nsub, pair a, pair b, int nx=nmesh,
-                int ny=nx, bool oriented=true,
+                int ny=nx, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 @end verbatim
@@ -6534,11 +6534,11 @@ A parametric surface for a function @math{f(u,v)} over the parameter
 space @code{box(a,b)} may be drawn with
 @verbatim
 picture surface(triple f(pair z), pair a, pair b, int nu=nmesh,
-                int nv=nu, bool oriented=true,
+                int nv=nu, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 picture surface(triple f(pair z), int nsub, pair a, pair b, int nu=nmesh,
-                int nv=nu, bool oriented=true,
+                int nv=nu, bool outward=false,
                 pen surfacepen=lightgray, pen meshpen=nullpen,
                 light light=currentlight, projection P=currentprojection);
 @end verbatim
@@ -7430,12 +7430,12 @@ Stefan Knorr.
 @c  LocalWords:  penimage filloutside legendhskip legendvskip maxwidth CDlabel
 @c  LocalWords:  tensorshade MPEG framepoint nonfunction Radoslav Marinov Mepis
 @c  LocalWords:  Pienaar Melenchuk finalout pdfanim Linspire Dpkg sudo dpkg dtx
-@c  LocalWords:  windingnumber clickable PDFAnim eforms insdljs pdfmovie dfn
+@c  LocalWords:  windingnumber clickable PDFAnim eforms insdljs pdfmovie dfn du
 @c  LocalWords:  slidemovies ifdraft embeddedu externalmovie headerpen bodypen
 @c  LocalWords:  GaussianSurface multiline binarytree tridiagonal portably AIX
 @c  LocalWords:  binarytreetest Henning subsample breakpoint locator wireframe
 @c  LocalWords:  labelpath intersectionpoints PSTricks pstextpath curvedlabel
-@c  LocalWords:  LeftJustified RightJustified tickmodifier gunzip gmake IRIX
+@c  LocalWords:  LeftJustified RightJustified tickmodifier gunzip gmake IRIX dv
 @c  LocalWords:  texcommand RET SITEDIR filegraph pathmarkers POSIX binput AOB
 @c  LocalWords:  boutput nonportable markinterval stickframe circlebarframe
 @c  LocalWords:  crossframe tildeframe markangle StickIntervalMarker gswin AFPL
