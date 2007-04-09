@@ -120,7 +120,7 @@ Base modules
 * plain::                       Default @code{Asymptote} base file
 * simplex::                     Linear programming: simplex method
 * math::                        Extend @code{Asymptote}'s math capabilities
-* interpolate::                 
+* interpolate::                 Interpolation routines
 * geometry::                    Geometry routines
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
@@ -4964,7 +4964,7 @@ Here now is @code{latexusage.tex}:
 * plain::                       Default @code{Asymptote} base file
 * simplex::                     Linear programming: simplex method
 * math::                        Extend @code{Asymptote}'s math capabilities
-* interpolate::                 
+* interpolate::                 Interpolation routines
 * geometry::                    Geometry routines
 * stats::                       Statistics routines and histograms
 * patterns::                    Custom fill and draw patterns
@@ -5075,8 +5075,9 @@ returns @code{true} iff the path @code{p} is straight.
 @node interpolate
 @section @code{interpolate}
 @cindex @code{interpolate}
-This module implements Lagrange and Hermite interpolation in @code{Asymptote},
-as illustrated in the example @code{interpolate1.asy}.
+This module implements Lagrange, Hermite, and standard cubic spline
+interpolation in @code{Asymptote}, as illustrated in the example
+@code{interpolate1.asy}.
 
 @node geometry
 @section @code{geometry}
