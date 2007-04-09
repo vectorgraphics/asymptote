@@ -6559,8 +6559,9 @@ A mesh can be drawn without solid fills by specifying @code{nullpen}
 for the surfacepen. A mesh is always drawn in the absence of lighting, unless 
 @code{meshpen=invisible}. If @code{oriented=true}, the surface should be
 oriented (parametrized) so that @math{df/du \times df/dv} points in the
-direction of the outward normal to the surface. If the outward normal
-vector is not known or if the surface is nonorientable, one should specify
+direction of the outward normal to the surface.
+If the surface is nonorientable (or if the orientation of the
+parameterized surface is unknown), one should specify
 @code{oriented=false}, as illustrated in the example @code{Klein.asy}.
 
 @node grid3
