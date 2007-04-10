@@ -12,7 +12,14 @@ real[] y=x^2;
 
 draw(graph(x,y),red,MarkFill[0]);
 
-xaxis("$x$",BottomTop,LeftTicks(new real[]{0,1,2,9,10}));
+xaxis("$x$",BottomTop,LeftTicks(new tickvalues(tickvalues v) {
+      real[] V=v.major;
+      real[] major;
+      for(int i=0; i < V.length; ++i)
+	if(V[i] < a || V[i] > b) major.push(V[i]);
+      v.major=major;
+      return v;
+    }));
 yaxis("$y$",LeftRight,RightTicks);
 
 label(rotate(90)*Break,(a,point(S).y));
