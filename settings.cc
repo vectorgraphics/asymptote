@@ -1017,7 +1017,7 @@ void setInteractive() {
     // Work around backwards-incompatible command-line options of gv-3.6.1.
     if(!msdos && (getSetting<string>("pdfviewer") == "gv" ||
 		  getSetting<string>("psviewer") == "gv"))
-      gvOptionPrefix=System("gv --version",2) == 0 ? "--" : "-";
+      gvOptionPrefix=System("gv --version -display :0.0",2) == 0 ? "--" : "-";
   }
   
   historyname=getSetting<bool>("localhistory") ? "."+suffix+"_history" 
