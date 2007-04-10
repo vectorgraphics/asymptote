@@ -237,7 +237,7 @@ including animations, are available at
 Links to many external resources, including an excellent user-written
 @code{Asymptote} tutorial can be found at
 @quotation
-@url{http://asymptote.sourceforge.net/links/}.
+@url{http://asymptote.sourceforge.net/links.html}.
 @end quotation
 
 @node Installation
