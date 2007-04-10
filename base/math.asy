@@ -42,6 +42,11 @@ pair inside(path g)
 real csc(real x) {return 1/sin(x);}
 real sec(real x) {return 1/cos(x);}
 real cot(real x) {return tan(pi/2-x);}
+
+real acsc(real x) {return asin(1/x);}
+real asec(real x) {return acos(1/x);}
+real acot(real x) {return pi/2-atan(x);}
+
 real frac(real x) {return x-(int)x;}
 
 pair exp(explicit pair z) {return exp(z.x)*expi(z.y);}
