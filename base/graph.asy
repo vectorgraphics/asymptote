@@ -49,7 +49,31 @@ scaleT Broken(real a, real b, bool automin=true, bool automax=true)
   return scale;
 }
 
-Label Break=Label("$\approx$",UnFill);
+// A "broken" logarithmic axis omitting the segment [a,b], where a and b are
+// automatically rounded to the nearest integral power of the base.  
+scaleT BrokenLog(real a, real b, bool automin=true, bool automax=true)
+{
+  real A=round(Log.T(a));
+  real B=round(Log.T(b));
+  a=Log.Tinv(A);
+  b=Log.Tinv(B);
+  real skip=B-A;
+  scaleT scale;
+  real T(real x) {
+    if(x <= a) return Log.T(x);
+    if(x <= b) return A;
+    return Log.T(x)-skip;
+  }
+  real Tinv(real x) {
+    real X=Log.Tinv(x);
+    if(X <= a) return X;
+    return Log.Tinv(x+skip);
+  }
+  scale.init(T,Tinv,logarithmic=true,automin,automax);
+  return scale;
+}
+
+Label Break=Label("$\approx$",UnFill(0.2mm));
 
 void scale(picture pic=currentpicture, scaleT x, scaleT y=Linear,
            scaleT z=Linear)
@@ -692,6 +716,18 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
 // Optional routine to allow modification of auto-generated tick values.
 typedef tickvalues tickmodifier(tickvalues);
 tickvalues None(tickvalues v) {return v;}
+
+// Tickmodifier that removes all major ticks in the interval [a,b].
+tickmodifier Break(real a, real b) {
+  return new tickvalues(tickvalues v) {
+      real[] V=v.major;
+      real[] major;
+      for(int i=0; i < V.length; ++i)
+	if(V[i] < a-epsilon || V[i] > b+epsilon) major.push(V[i]);
+      v.major=major;
+      return v;
+  };
+}
 
 // Automatic tick construction routine.
 ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
@@ -1432,6 +1468,16 @@ void yequals(picture pic=currentpicture, Label L="", real y,
 pair Scale(picture pic=currentpicture, pair z)
 {
   return (pic.scale.x.T(z.x),pic.scale.y.T(z.y));
+}
+
+real ScaleX(picture pic=currentpicture, real x)
+{
+  return pic.scale.x.T(x);
+}
+
+real ScaleY(picture pic=currentpicture, real y)
+{
+  return pic.scale.y.T(y);
 }
 
 // Draw a tick of length size at pair z in direction dir using pen p.

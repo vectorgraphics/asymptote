@@ -24,3 +24,4 @@ picture q=secondaryY(new void(picture pic) {
 		     });
 label(q,"(1,0)",Scale(q,(1,0)),red);
 add(q);
+

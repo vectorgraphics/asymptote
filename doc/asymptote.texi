@@ -5964,6 +5964,14 @@ to the @code{label} and @code{limits} functions) are always treated as linear
 pair Scale(picture pic=currentpicture, pair z);
 @end verbatim
 to convert a graph coordinate into a scaled picture coordinate.
+@verbatim
+The @math{x} and @math{y} components can be individually scaled using
+the analogous routines
+@verbatim
+real ScaleX(picture pic=currentpicture, real x);
+real ScaleY(picture pic=currentpicture, real y);
+@end verbatim
+
 
 The predefined scaling routines can be given two optional boolean arguments:
 @code{automin} and @code{automax}. These default to @code{true}, but can
@@ -5995,8 +6003,10 @@ It is easy to draw logarithmic graphs with respect to other bases:
 @image{log2graph}
 
 @cindex broken axis
-Here is an example of a "broken" linear @math{x} axis that omits the
-segment [3,8]:
+Here is an example of "broken" linear @math{x} and logarithmic
+@math{y} axes that omit the segments [3,8] and [100,1000], respectively.
+In the case of a logarithmic axis, the break endpoints are automatically
+rounded to the nearest integral power of the base.
 @verbatiminclude brokenaxis.asy
 @image{brokenaxis}
 
