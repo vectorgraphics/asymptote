@@ -722,8 +722,13 @@ See the example \docref{http://asymptote.sourceforge.net/gallery/2D graphs/log2g
 
 \question 27jun:align How can I align the x axes of two graphs on the same figure?
 
-Here is solution that fits the second picture to a frame based on the
-horizontal scaling for the first picture:
+An easy way to do this, if the axes to be aligned have the same scaling
+and size, is illustrated in the example file \courier{alignedaxis.asy\}.
+
+Here is a more general solution to the problem of aligning two arbitrary axes.
+One fits the second picture to a frame based on the horizontal scaling for
+the first picture:
+
 \verbatim
 import graph;
 
