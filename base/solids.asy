@@ -170,8 +170,8 @@ struct revolution {
     triple camera=P.camera;
     if(P.infinity)
       camera *= scalefactor();
-    if((t <= epsilon && dot(axis,camera) < 0) ||
-       (t >= length(g)-epsilon && dot(axis,camera) >= 0))
+    real sign=sgn(dot(axis,camera-P.target))*sgn(dot(axis,dir(g,0)));
+    if((t <= epsilon && sign < 0) || (t >= length(g)-epsilon && sign > 0))
       s.front.push(S);
     else {
       path3 Sp=slice(t+epsilon,ngraph);
@@ -187,7 +187,7 @@ struct revolution {
         if(t2 < t1) t2 += len;
         path3 p1=subpath(S,t1,t2);
         path3 p2=subpath(S,t2,t1+len);
-        if(dot(point(p1,0.5*length(p1))-c,camera) >= 0) {
+        if(abs(midpoint(p1)-camera) <= abs(midpoint(p2)-camera)) {
           s.front.push(p1);
           s.back.push(p2);
         } else {
