@@ -2,7 +2,7 @@
  * feynman.asy -- An Asymptote library for drawing Feynman diagrams.         *
  *                                                                           *
  * by:  Martin Wiebusch <martin.wiebusch@gmx.net>                            *
- * last change: 2006/01/14                                                   *
+ * last change: 2007/04/13                                                   *
  *****************************************************************************/
 
 
@@ -105,6 +105,17 @@ real momarrowfactor;
 
 // size function for momentum arrowheads
 real momarrowsize(pen p=momarrowpen) { return momarrowfactor*linewidth(p); }
+
+
+/* defaults for texshipout ***************************************************/
+
+// tex command for including graphics. It takes one argument, which is the
+// name of the graphics (eps or pdf) file.
+string includegraphicscommand;
+
+// Determines whether the suffix (.eps or .pdf) should be appended to the stem
+// of the file name in the \includegraphics command.
+bool appendsuffix;
 
 
 /* helper functions **********************************************************/
@@ -563,6 +574,9 @@ void fmdefaults()
   momarrowoffset = 0.8*arrowsize;
   momarrowmargin = 0.25*arrowsize;
   currentmomarrow = EndArrow(momarrowsize());
+
+  includegraphicscommand = "\includegraphics";
+  appendsuffix = false;
 }
 
 // We call fmdefaults once, when the module is loaded.
@@ -577,7 +591,7 @@ bool XYAlign = true;
 // texshipout("filename", pic) creates two files: filename.eps holding the
 // picture pic and filename.tex holding some LaTeX code that includes the
 // picture from filename.eps and shifts it vertically in such a way that the
-// the the point (0,0) lies on the baseline.
+// point (0,0) lies on the baseline.
 void texshipout(string stem,
                 picture pic = currentpicture,
                 bool xalign = YAlign)
@@ -593,13 +607,16 @@ void texshipout(string stem,
   }
   write(tf, "\raisebox{");
   write(tf, depth);
-  write(tf, "bp}{\includegraphics{");
+  write(tf, "bp}{"+includegraphicscommand+"{");
   write(tf, stem);
-  write(tf, ".eps}}");
+  string suffix="."+nativeformat();
+  if(appendsuffix)
+    write(tf, suffix);
+  write(tf, "}}");
   if(xalign)
     write(tf, "}");
   close(tf);
-  shipout(stem + ".eps", pic);
+  shipout(stem+suffix, pic);
 }
 
 
