@@ -21,17 +21,19 @@ yaxis("$y$",0);
  
 draw(graph(f,a,b,operator ..),red);
  
+int n=2;
+
 for(int i=a; i <= b; ++i) {
   if(i < b) subinterval(i,i+1);
-  if(i <= 3) labelx(i);
+  if(i <= n) labelx(i);
   dot(F(i));
 }
- 
-int i=3;
+
+int i=n;
 labelx("$\ldots$",++i);
 labelx("$k$",++i);
 labelx("$k+1$",++i);
 labelx("$\ldots$",++i);
 
-arrow("$f(x)$",F(2.55),0.7*NE,1.5cm,red);
+arrow("$f(x)$",F(i-1.5),NE,1.5cm,red,Margin(0,0.5));
 
