@@ -6972,7 +6972,6 @@ in the order they are given. Command-line code like @code{-u
 x=sqrt(2)} can be executed within a module like this:
 @verbatim
 real x;
-access settings;
 usersetting();
 write(x);
 @end verbatim
