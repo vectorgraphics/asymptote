@@ -85,7 +85,6 @@ void psfile::prologue(const bbox& box)
   out->fill(prev);
 
   *out << "%%Pages: 1" << newl;
-  *out << "%%EndProlog" << newl;
   *out << "%%Page: 1 1" << newl;
 }
 
