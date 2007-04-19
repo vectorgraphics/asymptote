@@ -318,8 +318,6 @@ bool picture::postprocess(const string& prename, const string& outname,
       if(!running) {
 	ostringstream cmd;
 	cmd << "'" << Viewer << "'";
-	if(Viewer == "gv" && interact::interactive)
-	  cmd << " " << gvOptionPrefix << "nowatch";
 	cmd << " '" << outname << "'";
 	status=System(cmd,0,wait,
 		      pdfformat ? "pdfviewer" : "psviewer",

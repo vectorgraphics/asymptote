@@ -188,9 +188,6 @@ bool globaloutname=false;
   
 bool global() {return globaloption || !safe;}
   
-// Work around backwards-incompatible command-line options of gv-3.6.1.
-string gvOptionPrefix="-";
-  
 int ShipoutNumber=0;
   
 const string suffix="asy";
@@ -1013,11 +1010,6 @@ char *getArg(int n) { return argList[n]; }
 void setInteractive() {
   if(numArgs() == 0 && !getSetting<bool>("listvariables")) {
     interact::interactive=true;
-    
-    // Work around backwards-incompatible command-line options of gv-3.6.1.
-    if(!msdos && (getSetting<string>("pdfviewer") == "gv" ||
-		  getSetting<string>("psviewer") == "gv"))
-      gvOptionPrefix=System("gv --version -display :0.0",2) == 0 ? "--" : "-";
   }
   
   historyname=getSetting<bool>("localhistory") ? "."+suffix+"_history" 

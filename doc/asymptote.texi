@@ -344,7 +344,7 @@ where @code{x.xx} denotes the latest version.
 
 A working @code{TeX} implementation (such as the one available at
 @url{http://www.miktex.org}) will be required to typeset labels.
-You will also need to install @code{AFPL Ghostscript} from
+You will also need to install @code{AFPL or GPL Ghostscript} from
 @url{http://sourceforge.net/projects/ghostscript/}.
 To view the default @code{PostScript} output, you can install the
 program @code{gsview} available from 
@@ -585,6 +585,21 @@ sure the compiled binary @code{asy} and @acronym{GUI} script @code{xasy} are in
 your path and set the configuration variable @code{dir} to point
 to the directory @code{base} (in the top level directory of the
 @code{Asymptote} source code). 
+
+A patch supplied in the @code{patches} directory fixes several bugs
+in the @code{UNIX} @code{PostScript} viewer @code{gv-3.6.2}, allowing it
+to work properly with @code{Asymptote}.
+After putting @code{gv-3.6.2} from @code{http://ftp.gnu.org/gnu/gv/}
+in the @code{Asymptote} source directory, here are the steps to install
+a properly working @code{gv} in @code{/usr/bin} (as the @code{UNIX} root
+user):
+@verbatim
+tar -zxf gv-3.6.2.tar.gz
+cd gv-3.6.2
+patch -p1 < ../patches/gv-3.6.2.patch
+./configure --prefix=/usr
+make install
+@end verbatim
 
 @node Editing modes
 @section Editing modes

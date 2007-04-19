@@ -57,8 +57,6 @@ extern bool bw;
 extern bool rgb;
 extern bool cmyk;
   
-extern string gvOptionPrefix;
-
 bool view();
 bool trap();
 string outname();
