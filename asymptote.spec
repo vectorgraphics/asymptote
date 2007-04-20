@@ -8,7 +8,7 @@ Summary:        Descriptive vector graphics language
 Group:          Applications/Publishing
 License:        GPL
 URL:            http://asymptote.sourceforge.net/
-Source:         http://dl.sourceforge.net/sourceforge/asymptote/asymptote-%{version}.tar.gz
+Source:         http://dl.sourceforge.net/sourceforge/asymptote/asymptote-%{version}.src.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  ncurses-devel
@@ -80,6 +80,9 @@ fi
 
 
 %changelog
+* Thu Apr 19 2007 John Bowman <> - 1.26-1
+- Update source tar ball name.
+
 * Fri May 30 2006 John Bowman <> - 1.07-1
 - Use make install-all to also install info pages.
 

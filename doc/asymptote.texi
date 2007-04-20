@@ -280,12 +280,12 @@ and provide guidance to others by rating the @code{Asymptote} project:
 @cindex UNIX binary distributions
 
 @cindex @acronym{RPM}
-@cindex @code{tar.gz}
-We release both @code{tar.gz} and @acronym{RPM} binary distributions of
-@code{Asymptote}. The root user can install the @code{Linux i386} @code{tar.gz}
+@cindex @code{tgz}
+We release both @code{tgz} and @acronym{RPM} binary distributions of
+@code{Asymptote}. The root user can install the @code{Linux i386} @code{tgz}
 distribution of version @code{x.xx} of @code{Asymptote} with the commands:
 @verbatim
-tar -C / -zxf asymptote-x.xx.i386.tar.gz
+tar -C / -zxf asymptote-x.xx.i386.tgz
 texhash
 @end verbatim
 @noindent
@@ -520,8 +520,8 @@ To compile and install a @code{UNIX} executable from
 a source release
 @code{x.xx}, first execute the commands:
 @verbatim
-gunzip asymptote-x.xx.tar.gz
-tar -xf asymptote-x.xx.tar
+gunzip asymptote-x.xx.src.tgz
+tar -xf asymptote-x.xx.src.tar
 cd asymptote-x.xx
 @end verbatim
 
@@ -693,7 +693,7 @@ To compile without optimization, use the command @code{make CFLAGS=-g}.
 
 To uninstall an @code{Linux i386} binary distribution, use the commands
 @verbatim
-tar -zxvf asymptote-x.xx.i386.tar.gz | xargs --replace=% rm /%
+tar -zxvf asymptote-x.xx.i386.tgz | xargs --replace=% rm /%
 texhash
 @end verbatim
 

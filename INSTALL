@@ -1,7 +1,7 @@
 To compile and install Asymptote version x.xx from a source release:
 
-gunzip asymptote-x.xx.tar.gz
-tar -xf asymptote-x.xx.tar
+gunzip asymptote-x.xx.src.tgz
+tar -xf asymptote-x.xx.src.tar
 cd asymptote-x.xx
 
 Put http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc6.8.tar.gz
@@ -24,8 +24,8 @@ make all
 make install
 
 If you get errors from a broken pdftex installation, simply put
-http://asymptote.sourceforge.net/asymptote.pdf in the doc
-directory and repeat the commands make all and make install.
+http://asymptote.sourceforge.net/asymptote.pdf
+in the doc directory and repeat the commands make all and make install.
 
 For a list of configure options, type
 
