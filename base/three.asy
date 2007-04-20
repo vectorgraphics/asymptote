@@ -385,6 +385,7 @@ struct dir {
     this.dir=v;
   }
   void init(real gamma) {
+    if(gamma < 0) abort("curl cannot be less than 0");
     this.gamma=gamma;
     this.Curl=true;
   }
@@ -675,22 +676,23 @@ struct Controls {
   }
 }
 
-private triple cross(triple d0, triple d1, triple camera)
+private triple cross(triple d0, triple d1, triple reference)
 {
   triple normal=cross(d0,d1);
-  return normal == O ? camera : normal;
+  return normal == O ? reference : normal;
 }
                                         
-private triple dir(real theta, triple d0, triple d1, triple camera)
+private triple dir(real theta, triple d0, triple d1, triple reference)
 {
-  triple normal=cross(d0,d1,camera);
-  return rotate(degrees(theta),dot(normal,camera) >= 0 ? normal : -normal)*d1;
+  triple normal=cross(d0,d1,reference);
+  return rotate(degrees(theta),dot(normal,reference) >= 0 ? normal : -normal)*
+    d1;
 }
 
-private real angle(triple d0, triple d1, triple camera)
+private real angle(triple d0, triple d1, triple reference)
 {
   real theta=acos1(dot(unit(d0),unit(d1)));
-  return dot(cross(d0,d1,camera),camera) >= 0 ? theta : -theta;
+  return dot(cross(d0,d1,reference),reference) >= 0 ? theta : -theta;
 }
 
 // 3D extension of John Hobby's angle formula (The MetaFont Book, page 131).
@@ -699,7 +701,7 @@ private real angle(triple d0, triple d1, triple camera)
 // direction for segment i (where segment i begins at node i).
 
 real[] theta(triple[] v, real[] alpha, real[] beta, 
-             triple dir0, triple dirn, real g0, real gn, triple camera)
+             triple dir0, triple dirn, real g0, real gn, triple reference)
 {
   real[] a,b,c,f,l,psi;
   int n=alpha.length;
@@ -710,7 +712,7 @@ real[] theta(triple[] v, real[] alpha, real[] beta,
   if(cyclic) {i0=0; in=n;}
   else {i0=1; in=n-1;}
   for(int i=0; i < in; ++i)
-    psi[i]=angle(v[i+1]-v[i],v[i+2]-v[i+1],camera);
+    psi[i]=angle(v[i+1]-v[i],v[i+2]-v[i+1],reference);
   if(cyclic) {
     l.cyclic(true);
     psi.cyclic(true);
@@ -727,7 +729,7 @@ real[] theta(triple[] v, real[] alpha, real[] beta,
     } else {
       a[0]=c[0]=0;
       b[0]=1;
-      f[0]=angle(v[1]-v[0],dir0,camera);
+      f[0]=angle(v[1]-v[0],dir0,reference);
     }
     if(dirn == O) {
       real an=alpha[n-1];
@@ -739,7 +741,7 @@ real[] theta(triple[] v, real[] alpha, real[] beta,
     } else {
       a[n]=c[n]=0;
       b[n]=1;
-      f[n]=angle(v[n]-v[n-1],dirn,camera);
+      f[n]=angle(v[n]-v[n-1],dirn,reference);
     }
   }
   
@@ -759,7 +761,7 @@ real[] theta(triple[] v, real[] alpha, real[] beta,
 }
 
 // Fill in missing directions for n cyclic nodes.
-void aim(flatguide3 g, int N, triple camera) 
+void aim(flatguide3 g, int N) 
 {
   bool cyclic=true;
   int start=0, end=0;
@@ -789,25 +791,32 @@ void aim(flatguide3 g, int N, triple camera)
     beta.cyclic(true);
   } else v[n]=g.nodes[(start+n) % N];
   int final=(end-1) % N;
+
+  triple reference;
+  for(int i=1; i < n; ++i)
+    reference += unit(cross(v[i]-v[i-1],v[i+1]-v[i]));
+
   real[] theta=theta(v,alpha,beta,g.out[start].dir,g.in[final].dir,
-                     g.out[start].gamma,g.in[final].gamma,camera);
+                     g.out[start].gamma,g.in[final].gamma,reference);
+
   v.cyclic(true);
   theta.cyclic(true);
     
   for(int k=1; k < (cyclic ? n+1 : n); ++k) {
-    triple w=dir(theta[k],v[k]-v[k-1],v[k+1]-v[k],camera);
+    triple w=dir(theta[k],v[k]-v[k-1],v[k+1]-v[k],reference);
     g.in[(start+k-1) % N].init(w);
     g.out[(start+k) % N].init(w);
   }
+
   if(g.out[start].dir == O)
     g.out[start].init(dir(theta[0],v[0]-g.nodes[(start-1) % N],v[1]-v[0],
-                          camera));
+                          reference));
   if(g.in[final].dir == O)
-    g.in[final].init(dir(theta[n],v[n-1]-v[n-2],v[n]-v[n-1],camera));
+    g.in[final].init(dir(theta[n],v[n-1]-v[n-2],v[n]-v[n-1],reference));
 }
 
 // Fill in missing directions for the sequence of nodes i...n.
-void aim(flatguide3 g, int i, int n, triple camera) 
+void aim(flatguide3 g, int i, int n) 
 {
   int j=n-i;
   if(j > 1 || g.out[i].dir != O || g.in[i].dir != O) {
@@ -820,21 +829,26 @@ void aim(flatguide3 g, int i, int n, triple camera)
       beta[k]=g.Tension[i+k].in;
     }
     v[j]=g.nodes[n];
+    
+    triple reference;
+    for(int k=1; k < j; ++k)
+      reference += unit(cross(v[k]-v[k-1],v[k+1]-v[k]));
+
     real[] theta=theta(v,alpha,beta,g.out[i].dir,g.in[n-1].dir,
-                       g.out[i].gamma,g.in[n-1].gamma,camera);
+                       g.out[i].gamma,g.in[n-1].gamma,reference);
     
     for(int k=1; k < j; ++k) {
-      triple w=dir(theta[k],v[k]-v[k-1],v[k+1]-v[k],camera);
+      triple w=dir(theta[k],v[k]-v[k-1],v[k+1]-v[k],reference);
       g.in[i+k-1].init(w);
       g.out[i+k].init(w);
     }
     if(g.out[i].dir == O) {
-      triple w=dir(theta[0],g.in[i].dir,v[1]-v[0],camera);
+      triple w=dir(theta[0],g.in[i].dir,v[1]-v[0],reference);
       if(i > 0) g.in[i-1].init(w);
       g.out[i].init(w);
     }
     if(g.in[n-1].dir == O) {
-      triple w=dir(theta[j],g.out[n-1].dir,v[j]-v[j-1],camera);
+      triple w=dir(theta[j],g.out[n-1].dir,v[j]-v[j-1],reference);
       g.in[n-1].init(w);
       g.out[n].init(w);
     }
@@ -1429,9 +1443,8 @@ void write(string s="", explicit path3[] x, suffix suffix=endl)
   write(stdout,s,x,suffix);
 }
 
-path3 solve(flatguide3 g, projection Q=currentprojection)
+path3 solve(flatguide3 g)
 {
-  project P=aspect(Q);
   int n=g.nodes.length-1;
   path3 p;
 
@@ -1467,7 +1480,7 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
   // First, resolve cycles
   int i=find(g.cyclic);
   if(i > 0) {
-    aim(g,i,Q.camera);
+    aim(g,i);
     // All other cycles can now be reduced to sequences.
     triple v=g.out[0].dir;
     for(int j=i; j <= n; ++j) {
@@ -1496,7 +1509,7 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
     while(start < i && g.control[start].active) ++start;
     
     if(start < i) 
-      aim(g,start,i,Q.camera);
+      aim(g,start,i);
   }
   
   // Compute missing 3D control points.
@@ -1519,7 +1532,7 @@ path3 solve(flatguide3 g, projection Q=currentprojection)
       g.control[i]=c;
     }
   }
-  
+
   // Convert to Knuth's format (control points stored with nodes)
   node[] nodes=nodes(g.nodes.length);
   if(g.nodes.length == 0) return new path3;
@@ -1575,7 +1588,7 @@ path project(explicit path3 p, projection Q=currentprojection)
 
 path project(flatguide3 g, projection P=currentprojection)
 {
-  return project(solve(g,P),P);
+  return project(solve(g),P);
 }
 
 pair project(triple v, projection P=currentprojection)
@@ -2024,7 +2037,7 @@ path3 arc(triple c, triple v1, triple v2, triple normal=O, bool direction=CCW)
              colatitude(v2),longitude(v2,warn=false),normal,direction);
 }
 
-real epsilon=1000*realEpsilon;
+private real epsilon=1000*realEpsilon;
 
 // Return a representation of the plane through point O with normal cross(u,v).
 path3 plane(triple u, triple v, triple O=O)

@@ -137,7 +137,10 @@ class curlSpec : public endSpec {
 public:
   // Gamma should be non-negative.
   curlSpec(double gamma=1.0)
-    : gamma(gamma) {}
+    : gamma(gamma) {
+    if(gamma < 0)
+      reportError("curl cannot be less than 0");
+  }
 
   eqn eqnOut(int j, knotlist& l, cvector<double>& d, cvector<double>& psi);
   eqn eqnIn (int j, knotlist& l, cvector<double>& d, cvector<double>& psi);
