@@ -3,6 +3,8 @@
 orientation=Landscape;
 
 import slide;
+import pdfanim;
+
 usersetting();
 
 bibliographystyle("alpha");
@@ -27,7 +29,7 @@ item("18\ 000 lines of Asymptote code.");
 
 title("Vector Graphics");
 item("Raster graphics assign colors to a grid of pixels.");
-figure("pixel.ps");
+figure("pixel.pdf");
 item("Vector graphics are graphics which still maintain their look when
     inspected at arbitrarily small scales.");
 asyfigure(asywrite("
@@ -565,10 +567,64 @@ asyfigure("diatom","height=17cm");
 
 title("Slide Presentations");
 item("Asymptote has a package for preparing slides.");
-code('title("Slides");
+item("It even supports embedded hi-resolution PDF movies.");
+
+code('
+title("Slide Presentations");
 item("Asymptote has a package for preparing slides.");
+item("It even supports embedded hi-resolution PDF movies.");
 ');
 remark("\quad\ldots");
+
+import graph;
+
+pen p=linewidth(1);
+pen dotpen=linewidth(5);
+
+pair wheelpoint(real t) {return (t+cos(t),-sin(t));}
+
+guide wheel(guide g=nullpath, real a, real b, int n)
+{
+  real width=(b-a)/n;
+  for(int i=0; i <= n; ++i) {
+    real t=a+width*i;
+    g=g--wheelpoint(t);
+  }
+  return g;
+}
+
+real t1=0; 
+real t2=t1+2*pi;
+
+picture base;
+draw(base,circle((0,0),1),p);
+draw(base,wheel(t1,t2,100),p+linetype("0 2"));
+yequals(base,Label("$y=-1$",1.0),-1,extend=true,p+linetype("4 4"));
+xaxis(base,Label("$x$",align=3SW),0,p);
+yaxis(base,"$y$",0,1.3,p);
+pair z1=wheelpoint(t1);
+pair z2=wheelpoint(t2);
+dot(base,z1,dotpen);
+dot(base,z2,dotpen);
+
+animation a;
+
+int n=25;
+real dt=(t2-t1)/n;
+for(int i=0; i <= n; ++i) {
+  picture pic;
+  size(pic,25cm);
+  real t=t1+dt*i;
+  add(pic,base);
+  draw(pic,circle((t,0),1),p+red);
+  dot(pic,wheelpoint(t),dotpen);
+  a.add(pic);
+}
+
+label(a.pdf(delay=150),(0,-0.2));
+pair c=(0,-0.65);
+label(a.controlpanel(),c,N);
+label(a.progress(blue),c,S);
 
 title("Automatic Sizing");
 item("Recall that figures can be specified in user coordinates, then
