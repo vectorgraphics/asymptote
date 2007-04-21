@@ -110,6 +110,7 @@ struct animation {
       void exitfunction() {
         atexit();
         delete(filename+".pdf");
+        delete(filename+"_.aux");
       }
       atexit(exitfunction);
     }
