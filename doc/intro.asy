@@ -621,10 +621,7 @@ for(int i=0; i <= n; ++i) {
   a.add(pic);
 }
 
-label(a.pdf(delay=150),(0,-0.2));
-pair c=(0,-0.65);
-label(a.controlpanel(),c,N);
-label(a.progress(blue),c,S);
+display(a.pdf(delay=150),a.controlpanel());
 
 title("Automatic Sizing");
 item("Recall that figures can be specified in user coordinates, then
