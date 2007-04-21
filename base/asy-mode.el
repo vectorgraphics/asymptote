@@ -567,11 +567,10 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
 (add-hook 'asy-mode-hook
 	  (lambda ()
             ;; Make asy-mode work with other shells.
-            (if (or running-xemacs-p (< emacs-major-version 22))
-                (progn
-                  (make-local-variable 'shell-file-name)
-                  (set-variable 'shell-file-name "/bin/sh"))
-              (set-variable 'shell-file-name "/bin/sh" t))
+	    (make-local-variable 'shell-file-name)
+	    (setq shell-file-name "/bin/sh")
+	    (make-local-variable 'c-label-minimum-indentation)
+	    (setq c-label-minimum-indentation 0)
             (when (fboundp 'flyspell-mode) (flyspell-mode -1))
             (turn-on-font-lock)
             (column-number-mode t)
