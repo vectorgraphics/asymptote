@@ -1223,7 +1223,8 @@ The routine
 void filloutside(picture pic=currentpicture, path g, pen p=currentpen);
 @end verbatim
 @noindent
-fills the region exterior to the path @code{g}.
+fills the region exterior to the path @code{g}, out to the current
+boundary of picture @code{pic}.
 
 @anchor{gradient shading}
 @cindex gradient shading

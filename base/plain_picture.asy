@@ -521,6 +521,10 @@ struct picture {
   void addPath(path g) {
     addBox(min(g),max(g));
   }
+  void addPath(path[] g) {
+    for(int i=0; i < g.length; ++i) 
+      addPath(g[i]);
+  }
 
   // Add a path to the sizing with the additional padding of a pen.
   void addPath(path g, pen p) {
@@ -933,8 +937,7 @@ void fill(picture pic=currentpicture, path[] g, pen p=currentpen)
   pic.add(new void(frame f, transform t) {
       fill(f,t*g,p);
     });
-  for(int i=0; i < g.length; ++i) 
-    pic.addPath(g[i]);
+  pic.addPath(g);
 }
 
 void latticeshade(picture pic=currentpicture, path[] g,
@@ -945,8 +948,7 @@ void latticeshade(picture pic=currentpicture, path[] g,
   pic.add(new void(frame f, transform t) {
       latticeshade(f,t*g,fillrule,p);
     });
-  for(int i=0; i < g.length; ++i) 
-    pic.addPath(g[i]);
+  pic.addPath(g);
 }
 
 void axialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
@@ -956,8 +958,7 @@ void axialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
   pic.add(new void(frame f, transform t) {
       axialshade(f,t*g,pena,t*a,penb,t*b);
     });
-  for(int i=0; i < g.length; ++i) 
-    pic.addPath(g[i]);
+  pic.addPath(g);
 }
 
 void radialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
@@ -970,8 +971,7 @@ void radialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
       real RB=abs(t*(b+rb)-B);
       radialshade(f,t*g,pena,A,RA,penb,B,RB);
     });
-  for(int i=0; i < g.length; ++i) 
-    pic.addPath(g[i]);
+  pic.addPath(g);
 }
 
 void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
@@ -984,8 +984,7 @@ void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
   pic.add(new void(frame f, transform t) {
       gouraudshade(f,t*g,fillrule,p,t*z,edges);
     });
-  for(int i=0; i < g.length; ++i) 
-    pic.addPath(g[i]);
+  pic.addPath(g);
 }
 
 void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
@@ -1001,8 +1000,7 @@ void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
         Z[i]=t*z[i];
       tensorshade(f,t*g,fillrule,p,t*b,Z);
     });
-  for(int i=0; i < g.length; ++i) 
-    pic.addPath(g[i]);
+  pic.addPath(g);
 }
 
 void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
@@ -1054,6 +1052,7 @@ void filloutside(picture pic=currentpicture, path[] g, pen p=currentpen)
   pic.add(new void(frame f, transform t) {
       filloutside(f,t*g,p);
     });
+  pic.addPath(g);
 }
 
 bool inside(path[] g, pair z) 
