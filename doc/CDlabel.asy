@@ -3,10 +3,10 @@ size(11.7cm,11.7cm);
 
 asy(nativeformat(),"logo");
 fill(unitcircle^^(scale(2/11.7)*unitcircle),
-evenodd+rgb(124/255,205/255,124/255));
+     evenodd+rgb(124/255,205/255,124/255));
 
 label(scale(1.1)*minipage(
-"\centering\scriptsize \textbf{Nonlinear Modelling, Tutorial and Manual}\\
+                          "\centering\scriptsize \textbf{Nonlinear Modelling, Tutorial and Manual}\\
 \textsc{G\"unther H. Mehring}\\
 (edited by \textsc{Peter Sch\"opf} and \textsc{Jens Schwaiger})\\
 with an \textbf{Appendix} written by\\

@@ -14,10 +14,10 @@ pair[] fold(pair[] oldz)
   pair[] newz = new pair[2n-1];
 
   for (int i = 0; i < n-1; ++i)
-  {
-    newz[2i] = oldz[i];
-    newz[2i+1] = crease(oldz[i], oldz[i+1], i%2==0);
-  }
+    {
+      newz[2i] = oldz[i];
+      newz[2i+1] = crease(oldz[i], oldz[i+1], i%2==0);
+    }
 
   newz[2(n-1)] = oldz[n-1];
 

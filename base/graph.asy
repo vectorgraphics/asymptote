@@ -720,12 +720,12 @@ tickvalues None(tickvalues v) {return v;}
 // Tickmodifier that removes all major ticks in the interval [a,b].
 tickmodifier Break(real a, real b) {
   return new tickvalues(tickvalues v) {
-      real[] V=v.major;
-      real[] major;
-      for(int i=0; i < V.length; ++i)
-	if(V[i] < a-epsilon || V[i] > b+epsilon) major.push(V[i]);
-      v.major=major;
-      return v;
+    real[] V=v.major;
+    real[] major;
+    for(int i=0; i < V.length; ++i)
+      if(V[i] < a-epsilon || V[i] > b+epsilon) major.push(V[i]);
+    v.major=major;
+    return v;
   };
 }
 

@@ -27,7 +27,7 @@ while(true) {
   depth.push(d);
   year.push(in);
   percentage.push(in);
- }
+}
 
 percentage=transpose(percentage);
 real depthmin=-min(depth);
@@ -40,7 +40,7 @@ for(int taxon=0; taxon < n; ++taxon) {
   real[] P=percentage[taxon];
   if(max(P) < ignorebelow) continue;
   final=taxon;
- }  
+}  
 
 real angle=45;
 real L=3cm;
@@ -116,7 +116,7 @@ for(int taxon=0; taxon < n; ++taxon) {
  
   add(shift(location,0)*pic);
   location += pic.userMax.x;
- }
+}
 
 add(new void(frame f, transform) {
     for(int i=0; i < draw.length; ++i)

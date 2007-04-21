@@ -117,7 +117,7 @@ attach(legend(),point(10S),30S);
 
 shipout("runge4");
 
-erase(); 	
+erase();        
 
 // Test 5: The situation is much better using Tchebychev points. 
 
@@ -182,7 +182,7 @@ attach(legend(),point(10S),30S);
 
 shipout("runge6");
 
-erase(); 	
+erase();        
 
 // Test 7: Another Tchebychev example.
 

@@ -30,4 +30,4 @@ markangle(D,A,C,RedPen,marker(markinterval(2,stickframe(3,4mm,RedPen),true)));
 drawline(A,A+dir(A--D,A--C),dotted);
 
 perpendicular(B,NE,F-B,size=10mm,1mm+red,
-	      TrueMargin(linewidth(p)/2,linewidth(p)/2),Fill(yellow));
+              TrueMargin(linewidth(p)/2,linewidth(p)/2),Fill(yellow));

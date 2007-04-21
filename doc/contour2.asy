@@ -13,7 +13,7 @@ pen[] p=sequence(new pen(int i) {
 
 Label[] Labels=sequence(new Label(int i) {
     return Label(c[i] != 0 ? (string) c[i] : "",Relative(unitrand()),(0,0),
-		 UnFill(1bp));
+                 UnFill(1bp));
   },n);
 
 draw(Labels,contour(f,(-1,-1),(1,1),c),p);

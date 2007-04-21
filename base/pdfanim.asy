@@ -7,4 +7,4 @@ if(latex()) {
   usepackage("hyperref","setpagesize=false");
   usepackage("pdfanim_temp","NoPageJS");
   usepackage("eforms","pdftex");
- }
+}

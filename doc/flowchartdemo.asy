@@ -17,15 +17,15 @@ draw(block5);
 add(new void(frame f, transform t) {
     picture pic;
     draw(pic,path(new pair[]{block1.right(t),block2.top(t)},Horizontal),
-	 Arrow,PenMargin);
+         Arrow,PenMargin);
     draw(pic,Label("Yes",0.5),path(new pair[]{block2.left(t),block3.top(t)},
-				   Horizontal),Arrow,PenMargin);
+                                   Horizontal),Arrow,PenMargin);
     draw(pic,Label("No",0.5,N),path(new pair[]{block2.right(t),block4.top(t)},
-				    Horizontal),Arrow,PenMargin);
+                                    Horizontal),Arrow,PenMargin);
     draw(pic,path(new pair[]{block3.bottom(t),block5.left(t)},Vertical),
-	 Arrow,PenMargin);
+         Arrow,PenMargin);
     draw(pic,path(new pair[]{block4.bottom(t),block5.right(t)},Vertical),
-	 Arrow,PenMargin);
+         Arrow,PenMargin);
 
     add(f,pic.fit());
   });

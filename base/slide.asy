@@ -20,10 +20,10 @@ if(landscape) {
   settings.paperheight=temp;
   pagewidth += settings.paperwidth;
   pageheight += settings.paperheight;
- } else {
+} else {
   pagewidth += settings.paperwidth;
   pageheight += settings.paperheight;
- }
+}
 
 size(pagewidth,pageheight,IgnoreAspect);
 picture background;

@@ -14,14 +14,14 @@ xaxis("$\omega\tau_0$",BottomTop,LeftTicks);
 yaxis("$|G(\omega\tau_0)|$",Left,RightTicks);
 
 picture q=secondaryY(new void(picture pic) {
-		       scale(pic,Log,Linear);
-		       draw(pic,graph(pic,phas,0.01,10),red);
-		       ylimits(pic,-1.0,1.5);
-		       yaxis(pic,"$\Arg G/\pi$",Right,red,
-			     LeftTicks("$% #.1f$",
-				       begin=false,end=false));
-		       yequals(pic,1,Dotted);
-		     });
+    scale(pic,Log,Linear);
+    draw(pic,graph(pic,phas,0.01,10),red);
+    ylimits(pic,-1.0,1.5);
+    yaxis(pic,"$\Arg G/\pi$",Right,red,
+          LeftTicks("$% #.1f$",
+                    begin=false,end=false));
+    yequals(pic,1,Dotted);
+  });
 label(q,"(1,0)",Scale(q,(1,0)),red);
 add(q);
 

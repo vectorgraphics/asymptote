@@ -13,7 +13,7 @@ void col(bool fill=false ... string[] s) {
     if(components) {
       real[] a=colors(p);
       for(int i=0; i < a.length; ++i)
-	s += " "+(string) a[i];
+        s += " "+(string) a[i];
     }
     if(fill) label(s,(i+10,j),E,p,Fill(gray));
     else label(s,(i+10,j),E,p);

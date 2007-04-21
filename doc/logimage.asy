@@ -17,6 +17,6 @@ xaxis("$x$",BottomTop,LeftTicks,Above);
 yaxis("$y$",LeftRight,RightTicks,Above);
 
 palette("$f(x,y)$",range,(0,200),(100,250),Top,Palette,
-	PaletteTicks(ptick=linewidth(0.5*linewidth())));
+        PaletteTicks(ptick=linewidth(0.5*linewidth())));
 
 

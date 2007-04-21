@@ -34,7 +34,7 @@ label("$5$",point(p,0),3W);
 //line 6 **********
 p=t*p;
 draw(p,StickIntervalMarker(3,5,angle=25,size=4mm,space=2mm,offset=I*2mm,
-                    scale(2)*dotframe(red)));
+                           scale(2)*dotframe(red)));
 label("$6$",point(p,0),3W);
 
 //line 7 **********
@@ -50,20 +50,20 @@ label("$8$",point(p,0),3W);
 //line 9 **********
 p=T*p;
 draw(p,CircleBarIntervalMarker(n=3,angle=30,barsize=8mm,radius=2mm,
-			     FillDraw(.8red),
-                        dotframe));
+                               FillDraw(.8red),
+                               dotframe));
 label("$9$",point(p,0),3W);
 
 //line 10 **********
 p=t*p;
 draw(p,CircleBarIntervalMarker(n=3,angle=30,barsize=8mm,radius=2mm,
-                        FillDraw(.8red),above=true,dotframe));
+                               FillDraw(.8red),above=true,dotframe));
 label("$10$",point(p,0),3W);
 
 //line 11 **********
 p=T*p;
 draw(p,CircleBarIntervalMarker(n=3,angle=30,barsize=8mm,radius=2mm,
-                        FillDraw(.8red),above=true,dotframe,put=Below));
+                               FillDraw(.8red),above=true,dotframe,put=Below));
 label("$11$",point(p,0),3W);
 
 //line 12 **********

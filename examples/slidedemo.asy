@@ -22,10 +22,10 @@ asy(nativeformat(),"Pythagoras","log","near_earth");
 // fill(background,box((-1,-1),(1,1)),Azure);
 
 titlepage(title="Slides with {\tt Asymptote}: A Demo",
-	  author="John C. Bowman",
-	  institution="University of Alberta",
-	  date="\today",
-	  url="http://asymptote.sf.net");
+          author="John C. Bowman",
+          institution="University of Alberta",
+          date="\today",
+          url="http://asymptote.sf.net");
 
 outline("Basic Commands");
 item("item");

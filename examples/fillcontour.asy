@@ -26,4 +26,4 @@ fill(g,interior);
 draw(g);
 
 palette("$f(x,y)$",range,point(SE)+(0.5,0),point(NE)+(1,0),Right,Palette,
-	PaletteTicks("$%+#0.1f$",N=Divs));
+        PaletteTicks("$%+#0.1f$",N=Divs));

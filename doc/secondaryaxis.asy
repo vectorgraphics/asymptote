@@ -20,11 +20,11 @@ xaxis("Time ($\tau$)",BottomTop,LeftTicks);
 yaxis(Left,RightTicks);
 
 picture secondary=secondaryY(new void(picture pic) {
-  scale(pic,Linear,Log);
-  draw(pic,graph(pic,t,infectious,t >= 10 & t <= 15),red);
-  yaxis(pic,Right,red,LeftTicks(begin=false,end=false));
-});
-			     
+    scale(pic,Linear,Log);
+    draw(pic,graph(pic,t,infectious,t >= 10 & t <= 15),red);
+    yaxis(pic,Right,red,LeftTicks(begin=false,end=false));
+  });
+                             
 add(secondary);
 label(shift(5mm*N)*"Proportion of crows",point(NW),E);
 

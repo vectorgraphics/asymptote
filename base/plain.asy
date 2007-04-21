@@ -13,7 +13,7 @@ access version;
 if(version.VERSION != VERSION()) {
   write(stdout,"Warning: using possibly incompatible version "+
         version.VERSION+" of plain.asy"+'\n');
- }
+}
    
 include plain_pens;
 include plain_paths;
@@ -207,4 +207,4 @@ if(settings.autoimport != "") {
   shipped=false;
   atexit(exitfunction);
   settings.autoimport=s;
- }
+}

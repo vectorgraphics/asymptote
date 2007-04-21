@@ -34,7 +34,7 @@ draw(oplow--eplow,dashed);
 draw(central--centre,dashed);
 
 draw((0,0,-bord)--(0,longradius+bord,-bord)--(0,longradius+bord,totup)
-      --(0,0,totup)--cycle3);
+     --(0,0,totup)--cycle3);
 draw(Label("$y$",1),refo--refo+refy,SW,Arrow);
 draw(Label("$x$",1),refo--refo+refx,SE,Arrow);
 

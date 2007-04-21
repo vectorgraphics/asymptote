@@ -12,9 +12,9 @@ bibliographystyle("alpha");
 itempen=fontsize(22pt);
 
 titlepage("Asymptote: The Vector Graphics Language",
-	  "Andy Hammerlindl and John Bowman",
-	  "University of Toronto and University of Alberta","April 4, 2007",
-	  "http://asymptote.sf.net");
+          "Andy Hammerlindl and John Bowman",
+          "University of Toronto and University of Alberta","April 4, 2007",
+          "http://asymptote.sf.net");
 
 title("History");
 item("\TeX\ and METAFONT (Knuth, 1979)");
@@ -342,7 +342,7 @@ code(graphfunc2);
 string name=asywrite(graphfunc2,preamble=preamble);
 asy(nativeformat(),name+".asy");
 label(graphic(name+"."+nativeformat()),(0.5,0),
-     Fill(figureborder,figuremattpen));
+      Fill(figureborder,figuremattpen));
 
 title("Anonymous Functions");
 
@@ -500,7 +500,7 @@ item("Operators for constructing paths are also functions:");
 code("a.. controls b and c .. d--e");
 remark("is equivalent to");
 code(
-"operator --(operator ..(a, operator controls(b,c), d), e)");
+     "operator --(operator ..(a, operator controls(b,c), d), e)");
 item("This allowed us to redefine all of the path operators for 3D paths.");
 asyfigure("helix","height=10cm");
 
@@ -817,6 +817,6 @@ bibliography("refs");
 
 title("Asymptote: The Vector Graphics Language");
 asyfigure("logo","height=11cm","{\tt http://asymptote.sf.net}",
-	  figuremattpen=invisible);
+          figuremattpen=invisible);
 skip();
 center("(freely available under the GNU public license)");

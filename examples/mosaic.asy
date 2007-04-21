@@ -16,18 +16,18 @@ path similarpath(pair a, pair b, path p) {
 }
 
 path c_line(path p) {
-// returns the path obtained by adding to p a copy rotated
-// around the endpoint of p by 180 degrees
-// works only if the initial point and the endpoint of p are different
-// a c_line is symetric with respect to the center of 
-// the straight line between its endpoints
-//
+  // returns the path obtained by adding to p a copy rotated
+  // around the endpoint of p by 180 degrees
+  // works only if the initial point and the endpoint of p are different
+  // a c_line is symetric with respect to the center of 
+  // the straight line between its endpoints
+  //
   return p..rotate(180,point(p,length(p)))*reverse(p);
 }
 
 path tounitcircle(path p, int n=300) {
-// the transformation pair x --> x/sqrt(1+abs(x)^2)
-// is a bijection from the plane to the open unitdisk
+  // the transformation pair x --> x/sqrt(1+abs(x)^2)
+  // is a bijection from the plane to the open unitdisk
   real l=arclength(p);
   path ghlp;
   for(int i=0; i <= n; ++i) {
@@ -41,7 +41,7 @@ path tounitcircle(path p, int n=300) {
 }
 
 void centershade(picture pic=currentpicture, path p, pen in, pen out,
-		 pen drawpen=currentpen) { 
+                 pen drawpen=currentpen) { 
   pair center=0.5(max(p)+min(p));
   real radius=0.5abs(max(p)-min(p));
   radialshade(pic,p,in,center,0,out,center,radius);
@@ -136,7 +136,7 @@ for(int j=-4; j < 4; ++j)
     transform tr=shift(j*tri+k*trii);
     for(int i=1; i < 5; ++i) {
       centershade(temppic,tr*kontur[i],(1-i/10)*white,
-		  (1-i/10)*chartreuse,black+2bp);
+                  (1-i/10)*chartreuse,black+2bp);
     }
   }
   
@@ -147,7 +147,7 @@ for(int k=-1; k < 2; ++k)
     transform tr=shift(k*tri+l*trii);
     for(int i=1; i < 5; ++i) {
       centershade(temppic,scale(2.5)*tounitcircle(tr*kontur[i],380),
-		  (1-i/10)*white,(1-i/10)*orange,black+2bp);
+                  (1-i/10)*white,(1-i/10)*orange,black+2bp);
     }
   }         
           

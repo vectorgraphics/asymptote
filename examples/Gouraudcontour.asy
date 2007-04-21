@@ -30,4 +30,4 @@ bounds range=image(x,y,f,Range(0,2),Palette);
 draw(contour(x,y,f,new real[]{0.25,0.5,1},operator ..));
 
 palette("$f(x,y)$",range,point(NW)+(0,0.5),point(NE)+(0,0.8),Top,Palette,
-	PaletteTicks(Tickpen,tickpen));
+        PaletteTicks(Tickpen,tickpen));

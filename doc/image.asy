@@ -17,6 +17,6 @@ picture bar;
 
 bounds range=image(v,(0,0),(1,1),Palette);
 palette(bar,"$A$",range,(0,0),(0.5cm,8cm),Right,Palette,
-	PaletteTicks("$%+#.1f$"));
+        PaletteTicks("$%+#.1f$"));
 add(bar.fit(),point(E),30E);
 

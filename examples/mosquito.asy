@@ -39,14 +39,14 @@ path si=point(susceptible,N)--point(infectious,S);
 
 draw(minipage("\flushright{recovery rate ($g$) \& death rate from virus
 ($\mu_V$)}",40pt),point(infectious,N)--point(removed,S),LeftSide,Arrow,
-PenMargin);
+     PenMargin);
 
 draw(si,LeftSide,Arrow,PenMargin);
 
 draw(minipage("\flushright{maturation rate ($m$)}",50pt),ls,RightSide,
-Arrow,PenMargin);
+     Arrow,PenMargin);
 draw(minipage("\flushright{viral incubation rate ($k$)}",40pt),ei,
-RightSide,Arrow,PenMargin);
+     RightSide,Arrow,PenMargin);
 
 path ise=point(infectious,E)--point(se,0.5);
   
