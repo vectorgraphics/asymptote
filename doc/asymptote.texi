@@ -5245,8 +5245,8 @@ texhash
 @end verbatim
 
 The example @code{pdfmovie.asy} in the @code{animations}
-directory, along with the slide presentation example @code{slidemovies.asy}
-illustrate the use of embedded @code{PDF} movies.
+directory, along with the slide presentations @code{slidemovies.asy}
+and @code{intro.asy} illustrate the use of embedded @code{PDF} movies.
 
 @node embed
 @section @code{embed}

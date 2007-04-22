@@ -87,23 +87,29 @@ struct animation {
       this.shipout(pictures[i]);
     }
   }
+
   bool pdflatex() {
     if(pdf() && latex()) return true;
     abort("error: PDF animations require -tex pdflatex");
     return false;
   }
 
+  string load(string name, int pages, real delay=animationdelay,
+		string options="") {
+    string s="\PDFAnimLoad[single,interval="+string(delay);
+    if(options != "") s += ","+options;
+    texpreamble(s+"]{"+prefix+"}{"+name+"}{"+string(pages)+"}%");
+    return "\PDFAnimJSPageEnable\PDFAnimation{"+prefix+"}";
+  }
+
   string pdf(real delay=animationdelay, string options="") {
-    string filename="_"+stripextension(stripdirectory(prefix));
     if(!pdflatex()) return "";
+    string filename="_"+stripextension(stripdirectory(prefix));
     bool inlinetex=settings.inlinetex;
     settings.inlinetex=false;
     export(filename,true);
     settings.inlinetex=inlinetex;
     shipped=false;
-    string s="\PDFAnimLoad[single,interval="+string(delay);
-    if(options != "") s += ","+options;
-    texpreamble(s+"]{"+prefix+"}{"+filename+"}{"+string(pictures.length)+"}%");
 
     if(!settings.keep && !settings.inlinetex) {
       exitfcn atexit=atexit();
@@ -115,7 +121,7 @@ struct animation {
       atexit(exitfunction);
     }
 
-    return "\PDFAnimJSPageEnable\PDFAnimation{"+prefix+"}";
+    return load(filename,pictures.length,delay,options);
   }
 
   private string color(string name, pen p, bool colorspace=false) {
