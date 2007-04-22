@@ -1,11 +1,13 @@
 MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy) latexusage.asy
-INCLUDES = version.texi options
+SOURCE = asymptote.texi version.texi options
 ASY = ../asy -dir ../base
 DOCFILES = asymptote.pdf intro.pdf CAD.pdf PDFAnim_temp_Guide.pdf
-INTROFILES=diagonal square bigsquare labelsquare beziercurve bezier2 exp lineargraph datagraph filegraph loggraph secondaryaxis imagecontour diatom logo
+INTROFILES=diagonal square bigsquare labelsquare beziercurve helix eetomumu knots exp lineargraph datagraph filegraph loggraph secondaryaxis imagecontour diatom elliptic logo 
 
 doc:	asymptote.dvi asymptote.info html man
+
+html:	asymptote/index.html
 
 man:	asymptote.pdf CAD.pdf PDFAnim_temp_Guide.pdf asy.1
 
@@ -43,20 +45,19 @@ options: ../settings.cc
 asy.1: options asy.1.begin asy.1.end
 	cat options | grep ^- | sed -e "s/-\(.*\)  \([A-Z].*\)/.TP\n.B -\1\n\2\./" | sed -e "/^.B/ s/-/\\\\-/g" | cat asy.1.begin - asy.1.end > asy.1
 
-asymptote.dvi: asymptote.texi $(INCLUDES) $(ASYFILES:.asy=.eps)
+asymptote.dvi: $(SOURCE) $(ASYFILES:.asy=.eps)
 	texi2dvi asymptote.texi
 
-asymptote.info: asymptote.texi $(INCLUDES) $(ASYFILES:.asy=.png)
+asymptote.info: $(SOURCE) $(ASYFILES:.asy=.png)
 	makeinfo asymptote
 
-asymptote.pdf: asymptote.texi $(INCLUDES) $(ASYFILES:.asy=.pdf)
+asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf)
 	texi2dvi --pdf asymptote.texi
 
 intro.pdf: intro.asy $(INTROFILES:=.asy)
 	$(ASY) -f pdf intro
 
-intro.png:
-	-
+.IGNORE: intro.eps intro.png
 
 CAD.pdf: CAD.tex CAD1.eps 
 	latex CAD
@@ -69,13 +70,14 @@ PDFAnim_temp_Guide.pdf: PDFAnim_temp_Guide.tex
 	latex PDFAnim_temp_Guide
 	dvipdf PDFAnim_temp_Guide
 
-html:	$(INCLUDES) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
+asymptote/index.html: $(SOURCE) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
 	mkdir -p asymptote
 	cp *.png asymptote
 	makeinfo --html asymptote
 
 clean: FORCE
-	rm -f *.eps *.png *.pdf latexusage.{asy,dvi,eps,png,log,aux,*.eps}
+	rm -f $(ASYFILES:.asy=.pdf) $(DOCFILES)
+	rm -f *.eps *.png latexusage.{asy,dvi,eps,png,log,aux,*.eps}
 	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,pdf,toc,tp,vr} asymptote.info-*
 	rm -f CAD.{aux,dvi,log,pdf,toc}
 	rm -rf asymptote
