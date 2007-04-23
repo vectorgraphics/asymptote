@@ -3166,17 +3166,19 @@ including a newline. In addition, @code{Asymptote} provides the function
 comment character as an ordinary character) and return it as a string.
 
 @cindex @code{output}
-@cindex @code{append}
-@cindex @code{write}
+@cindex @code{update}
+@cindex append
 A file named @code{name} can be open for output with
 @verbatim
-file output(string name, bool append=false);
+file output(string name, bool update=false);
 @end verbatim
 @noindent
-data will be appended to an existing file only if the file is opened with
-@code{append=true}.
-For security reasons, writing to files in directories other than the
-current directory is allowed only if the @code{-global} 
+If @code{update=false}, any existing data in the file will be erased
+and only write operations can be used on the file.
+If @code{update=true}, existing data will be preserved, the position
+will be set to the end-of-file, and both reading and writing operations
+will be enabled. For security reasons, writing to files in directories
+other than the current directory is allowed only if the @code{-global}
 (or @code{-unsafe}) command-line option is specified.
 
 @cindex @code{stdin}
@@ -3187,19 +3189,20 @@ for files is @code{stdout}.
 
 Data of a built-in type @code{T} can be written to an output file by
 calling one of the functions
+@cindex @code{write}
 @verbatim
 write(string s="", T x, suffix suffix=endl ... T[]);
-write(file fout, string s="", T x, suffix suffix=none ... T[]);
-write(file fout=stdout, string s="", explicit T[] x ... T[][]);
-write(file fout=stdout, T[][]);
-write(file fout=stdout, T[][][]);
+write(file file, string s="", T x, suffix suffix=none ... T[]);
+write(file file=stdout, string s="", explicit T[] x ... T[][]);
+write(file file=stdout, T[][]);
+write(file file=stdout, T[][][]);
 write(suffix suffix=endl);
-write(file fout, suffix suffix=none);
+write(file file, suffix suffix=none);
 @end verbatim
 @cindex @code{none}
 @cindex @code{endl}
 @cindex @code{tab}
-If @code{fout} is not specified, @code{stdout} is used and
+If @code{file} is not specified, @code{stdout} is used and
 terminated by default with a newline. If specified, the optional
 identifying string @code{s} is written before the data @code{x}.
 An arbitrary number of data values may be listed when writing scalars
@@ -3242,15 +3245,20 @@ doubles again.
 @cindex @code{seek}
 @cindex @code{tell}
 @cindex rewind
+@cindex @code{seekeof}
 One can test a file for end-of-file with the boolean function @code{eof(file)},
 end-of-line with @code{eol(file)}, and for I/O errors with @code{error(file)}.
 One can flush the output buffers with @code{flush(file)}, clear a
 previous I/O error with @code{clear(file)}, and close the file with
 @code{close(file)}. To set the number of digits of output precision, use
 @code{precision(file,int)}. The function @code{int tell(file)} returns
-the current position in an input file relative to the beginning.
-The function @code{seek(file, int)} can be used to change this
-position; for example, to rewind a file, use the command @code{seek(file,0)}.
+the current position in a file relative to the beginning.
+The function @code{seek(file file, int pos)} can be used to
+change this position, where a negative value for the position @code{pos}
+is interpreted as relative to the end-of-file. For example, one can
+rewind a file @code{file} with the command @code{seek(file,0)}
+and position to the final character in the file with @code{seek(file,-1)}.
+The command @code{seekeof(file)} sets the position to the end of the file.
 
 @cindex @code{scroll}
 @anchor{scroll}
@@ -4457,7 +4465,7 @@ real[] A=fin;
 @cindex @code{line}
 @cindex line mode
 @noindent
-reads real values into @code{A} until the end of file is reached (or an
+reads real values into @code{A} until the end-of-file is reached (or an
 I/O error occurs). If line mode is set with @code{line(file)}, then
 reading will stop once the end of the line is reached instead
 (line mode may be cleared with @code{line(file,false)}):

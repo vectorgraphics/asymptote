@@ -1,9 +1,9 @@
 /******
- * fileio.h
- * Tom Prince and John Bowman 2004/05/10
- *
- * Handle input/output
- ******/
+  * fileio.h
+  * Tom Prince and John Bowman 2004/05/10
+  *
+  * Handle input/output
+  ******/
 
 #ifndef FILEIO_H
 #define FILEIO_H
@@ -32,7 +32,7 @@
 #include "util.h"
 
 namespace vm {
-extern bool indebugger;  
+  extern bool indebugger;  
 }
 
 namespace camp {
@@ -49,9 +49,13 @@ protected:
   bool wordmode;   // Delimit strings by white space instead of eol.
   bool singlemode; // Read/write single-precision XDR/binary values.
   bool closed;     // File has been closed.
-  bool checkappend;// Check input for errors/append to output.
+  bool checkerase; // Check input for errors/erase output.
   bool standard;   // Standard input/output
+  bool binary;     // Read in binary mode.
   int lines;       // Number of scrolled lines
+  
+  bool nullfield;  // Used to detect a final null field in csv+line mode.
+  string whitespace;
 public: 
 
   void resetlines() {lines=0;}
@@ -60,10 +64,10 @@ public:
   
   void dimension(int Nx=-1, int Ny=-1, int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
   
-  file(const string& name, bool checkappend=true) : 
+  file(const string& name, bool checkerase=true, bool binary=false) :
     name(name), linemode(false), csvmode(false), singlemode(false),
-    closed(false), checkappend(checkappend), standard(name.empty()),
-    lines(0) {dimension();}
+    closed(false), checkerase(checkerase), standard(name.empty()),
+    binary(binary), lines(0), nullfield(false), whitespace("") {dimension();}
   
   virtual void open() {}
   
@@ -99,7 +103,7 @@ public:
   virtual void precision(int) {}
   virtual void flush() {}
   virtual size_t tell() {return 0;}
-  virtual void seek(size_t) {}
+  virtual void seek(int, bool begin=true) {}
   
   void unsupported(const char *rw, const char *type) {
     ostringstream buf;
@@ -111,15 +115,15 @@ public:
   void noread(const char *type) {unsupported("Read",type);}
   void nowrite(const char *type) {unsupported("Write",type);}
   
-  virtual void read(bool&) {noread("bool");}
-  virtual void read(int&) {noread("int");}
-  virtual void read(double&) {noread("real");}
-  virtual void read(float&) {noread("real");}
-  virtual void read(pair&) {noread("pair");}
-  virtual void read(triple&) {noread("triple");}
-  virtual void read(char&) {noread("char");}
+  virtual void Read(bool&) {noread("bool");}
+  virtual void Read(int&) {noread("int");}
+  virtual void Read(double&) {noread("real");}
+  virtual void Read(float&) {noread("real");}
+  virtual void Read(pair&) {noread("pair");}
+  virtual void Read(triple&) {noread("triple");}
+  virtual void Read(char&) {noread("char");}
+  virtual void Read(string&) {noread("string");}
   virtual void readwhite(string&) {noread("string");}
-  virtual void read(string&) {noread("string");}
   
   virtual void write(bool) {nowrite("bool");}
   virtual void write(int) {nowrite("int");}
@@ -131,6 +135,34 @@ public:
   virtual void write(guide *) {nowrite("guide");}
   virtual void write(const transform&) {nowrite("transform");}
   virtual void writeline() {nowrite("string");}
+  
+  virtual void ignoreComment(bool readstring=false) {};
+  virtual void csv() {};
+  
+  template<class T>
+  void ignoreComment(T&) {
+    ignoreComment();
+  }
+  
+  void ignoreComment(string&) {}
+  void ignoreComment(char&) {}
+  
+  template<class T>
+  void read(T& val) {
+    if(binary) Read(val);
+    else {
+      if(standard) clear();
+      if(errorstream::interrupt) throw interrupted();
+      else {
+	ignoreComment(val);
+	val=T();
+	if(!nullfield)
+	  Read(val);
+	csv();
+	whitespace="";
+      }
+    }
+  }
   
   int Nx() {return nx;}
   int Ny() {return ny;}
@@ -152,16 +184,16 @@ public:
 class ifile : public file {
 protected:  
   istream *stream;
-  std::ifstream fstream;
+  std::fstream fstream;
   char comment;
-  bool comma,nullfield; // Used to detect a final null field in csv+line mode.
-  string whitespace;
+  bool comma;
   
 public:
-  ifile(const string& name, bool check=true, char comment=0)
-    : file(name,check), comment(comment), comma(false), nullfield(false) {
-    stream=&cin;
-  }
+  ifile(const string& name, char comment, bool check=true)
+    : file(name,check), comment(comment), comma(false) {stream=&cin;}
+  
+  // Binary file
+  ifile(const string& name, bool check=true) : file(name,check,true) {}
   
   ~ifile() {close();}
   
@@ -171,31 +203,11 @@ public:
     } else {
       fstream.open(name.c_str());
       stream=&fstream;
-      if(checkappend) Check();
+      if(checkerase) Check();
     }
   }
   
-  void seek(size_t pos) {
-    if(!standard && !closed) fstream.seekg(pos);
-  }
-  
-  size_t tell() {
-    return fstream.tellg();
-  }
-  
   const char* Mode() {return "input";}
-  
-  void csv();
-  
-  void ignoreComment(bool readstring=false);
-  
-  template<class T>
-  void ignoreComment(T&) {
-    ignoreComment();
-  }
-  
-  void ignoreComment(string&) {}
-  void ignoreComment(char&) {}
   
   bool eol();
   bool nexteol();
@@ -206,8 +218,19 @@ public:
   void close() {if(!standard && !closed) {fstream.close(); closed=true;}}
   void clear() {stream->clear();}
   
-public:
-
+  void seek(int pos, bool begin=true) {
+    if(!standard && !closed) {
+      clear();
+      fstream.seekg(pos,begin ? std::ios::beg : std::ios::end);
+    }
+  }
+  
+  size_t tell() {return fstream.tellg();}
+  
+  void csv();
+  
+  virtual void ignoreComment(bool readstring=false);
+  
   // Skip over white space
   void readwhite(string& val) {val=string(); *stream >> val;}
   
@@ -218,48 +241,28 @@ public:
   void Read(triple& val) {*stream >> val;}
   void Read(char& val) {stream->get(val);}
   void Read(string& val);
-  
-  template<class T>
-  void iread(T&);
-  
-  void read(bool& val) {iread(val);}
-  void read(int& val) {iread(val);}
-  void read(double& val) {iread(val);}
-  void read(pair& val) {iread(val);}
-  void read(triple& val) {iread(val);}
-  void read(char& val) {iread(val);}
-  void read(string& val) {iread(val);}
 };
   
-class ibfile : public ifile {
+class iofile : public ifile {
 public:
-  ibfile(const string& name, bool check=true)
-    : ifile(name,check) {}
+  iofile(const string& name, char comment=0) : ifile(name,true,comment) {}
 
-  void open() {
-    if(standard) {
-      reportError("Cannot open standard input in binary mode");
-    } else {
-      fstream.open(name.c_str(),std::ios::binary);
-      stream=&fstream;
-      if(checkappend) Check();
-    }
-  }
+  void precision(int p) {stream->precision(p);}
+  void flush() {fstream.flush();}
   
-  template<class T>
-  void iread(T& val) {
-    val=T();
-    fstream.read((char *) &val,sizeof(T));
-  }
+  void write(bool val) {fstream << (val ? "true " : "false ");}
+  void write(int val) {fstream << val;}
+  void write(double val) {fstream << val;}
+  void write(const pair& val) {fstream << val;}
+  void write(const triple& val) {fstream << val;}
+  void write(const string& val) {fstream << val;}
+  void write(const pen& val) {fstream << val;}
+  void write(guide *val) {fstream << *val;}
+  void write(const transform& val) {fstream << val;}
   
-  void read(bool& val) {iread(val);}
-  void read(int& val) {iread(val);}
-  void read(char& val) {iread(val);}
-  void read(string& val) {iread(val);}
-  
-  void read(double& val) {
-    if(singlemode) {float fval=0.0; iread(fval); val=fval;}
-    else iread(val);
+  void writeline() {
+    fstream << newline;
+    if(errorstream::interrupt) throw interrupted();
   }
 };
   
@@ -268,9 +271,8 @@ protected:
   std::ostream *stream;
   std::ofstream fstream;
 public:
-  ofile(const string& name, bool append=false) : file(name,append) {
-      stream=&cout;
-  }
+  ofile(const string& name) 
+    : file(name) {stream=&cout;}
   
   ~ofile() {close();}
   
@@ -279,14 +281,10 @@ public:
     if(standard) {
       stream=&cout;
     } else {
-      fstream.open(name.c_str(),checkappend ? std::ios::app : std::ios::trunc);
+      fstream.open(name.c_str(),std::ios::trunc);
       stream=&fstream;
       Check();
     }
-  }
-  
-  void seek(size_t pos) {
-    if(!standard && !closed) fstream.seekp(pos);
   }
   
   const char* Mode() {return "output";}
@@ -299,6 +297,15 @@ public:
   void precision(int p) {stream->precision(p);}
   void flush() {stream->flush();}
   
+  void seek(int pos, bool begin=true) {
+    if(!standard && !closed) {
+      clear();
+      fstream.seekp(pos,begin ? std::ios::beg : std::ios::end);
+    }
+  }
+  
+  size_t tell() {return fstream.tellp();}
+  
   void write(bool val) {*stream << (val ? "true " : "false ");}
   void write(int val) {*stream << val;}
   void write(double val) {*stream << val;}
@@ -308,21 +315,87 @@ public:
   void write(const pen& val) {*stream << val;}
   void write(guide *val) {*stream << *val;}
   void write(const transform& val) {*stream << val;}
+  
   void writeline();
 };
 
+class ibfile : public ifile {
+protected:  
+  std::fstream fstream;
+public:
+  ibfile(const string& name, bool check=true) : ifile(name,check) {}
+
+  void open() {
+    if(standard) {
+      reportError("Cannot open standard input in binary mode");
+    } else {
+      fstream.open(name.c_str(),std::ios::binary |
+		   std::ios::in | std::ios::out);
+      stream=&fstream;
+      if(checkerase) Check();
+    }
+  }
+  
+  template<class T>
+  void iread(T& val) {
+    val=T();
+    fstream.read((char *) &val,sizeof(T));
+  }
+  
+  void Read(bool& val) {iread(val);}
+  void Read(int& val) {iread(val);}
+  void Read(char& val) {iread(val);}
+  void Read(string& val) {iread(val);}
+  
+  void Read(double& val) {
+    if(singlemode) {float fval=0.0; iread(fval); val=fval;}
+    else iread(val);
+  }
+};
+  
+class iobfile : public ibfile {
+public:
+  iobfile(const string& name) : ibfile(name,true) {}
+
+  void flush() {fstream.flush();}
+  
+  template<class T>
+  void iwrite(T val) {
+    fstream.write((char *) &val,sizeof(T));
+  }
+  
+  void write(bool val) {iwrite(val);}
+  void write(int val) {iwrite(val);}
+  void write(const string& val) {iwrite(val);}
+  void write(const pen& val) {iwrite(val);}
+  void write(guide *val) {iwrite(val);}
+  void write(const transform& val) {iwrite(val);}
+  void write(double val) {
+    if(singlemode) {float fval=val; iwrite(fval);}
+    else iwrite(val);
+  }
+  void write(const pair& val) {
+    write(val.getx());
+    write(val.gety());
+  }
+  void write(const triple& val) {
+    write(val.getx());
+    write(val.gety());
+    write(val.getz());
+  }
+  void writeline() {}
+};
+  
 class obfile : public ofile {
 public:
-  obfile(const string& name, bool append=false)
-    : ofile(name,append) {}
+  obfile(const string& name) : ofile(name) {}
 
   void open() {
     checkLocal(name);
     if(standard) {
       reportError("Cannot open standard output in binary mode");
     } else {
-      fstream.open(name.c_str(),std::ios::binary |
-		   (checkappend ? std::ios::app : std::ios::trunc));
+      fstream.open(name.c_str(),std::ios::binary | std::ios::trunc);
       stream=&fstream;
       Check();
     }
@@ -339,8 +412,6 @@ public:
   void write(const pen& val) {iwrite(val);}
   void write(guide *val) {iwrite(val);}
   void write(const transform& val) {iwrite(val);}
-  void writeline() {}
-  
   void write(double val) {
     if(singlemode) {float fval=val; iwrite(fval);}
     else iwrite(val);
@@ -354,15 +425,18 @@ public:
     write(val.gety());
     write(val.getz());
   }
+  
+  void writeline() {}
 };
   
 #ifdef HAVE_RPC_RPC_H
 
 class ixfile : public file {
-  xdr::ixstream stream;
+protected:  
+  xdr::ioxstream stream;
 public:
   ixfile(const string& name, bool check=true) : 
-    file(name,check), stream(name.c_str()) {if(check) Check();}
+    file(name,check,true), stream(name.c_str()) {if(check) Check();}
 
   ~ixfile() {close();}
   
@@ -373,35 +447,67 @@ public:
   void close() {if(!closed) {stream.close(); closed=true;}}
   void clear() {stream.clear();}
   
-  void read(int& val) {val=0; stream >> val;}
-  void read(double& val) {
+  void seek(int pos, bool begin=true) {
+    if(!standard && !closed) {
+      clear();
+      stream.seek(pos,begin ? xdr::xios::beg : xdr::xios::end);
+    }
+  }
+  
+  size_t tell() {return stream.tell();}
+  
+  void Read(int& val) {val=0; stream >> val;}
+  void Read(double& val) {
     if(singlemode) {float fval=0.0; stream >> fval; val=fval;}
     else {
       val=0.0;
       stream >> val;
     }
   }
-  void read(pair& val) {
+  void Read(pair& val) {
     double x,y;
-    read(x);
-    read(y);
+    Read(x);
+    Read(y);
     val=pair(x,y);
   }
-  void read(triple& val) {
+  void Read(triple& val) {
     double x,y,z;
-    read(x);
-    read(y);
-    read(z);
+    Read(x);
+    Read(y);
+    Read(z);
     val=triple(x,y,z);
   }
 };
 
+class ioxfile : public ixfile {
+public:
+  ioxfile(const string& name) : ixfile(name,true) {}
+
+  void flush() {stream.flush();}
+  
+  void write(int val) {stream << val;}
+  void write(double val) {
+    if(singlemode) {float fval=val; stream << fval;}
+    else stream << val;
+  }
+  void write(const pair& val) {
+    write(val.getx());
+    write(val.gety());
+  }
+  void write(const triple& val) {
+    write(val.getx());
+    write(val.gety());
+    write(val.getz());
+  }
+};
+  
 class oxfile : public file {
   xdr::oxstream stream;
 public:
-  oxfile(const string& name, bool append=false) : 
-    file(name), stream((checkLocal(name), name.c_str()),
-		       append ? xdr::xios::app : xdr::xios::trunc) {Check();}
+  oxfile(const string& name) : 
+    file(name), stream((checkLocal(name),name.c_str()),xdr::xios::trunc) {
+    Check();
+  }
 
   ~oxfile() {close();}
   
@@ -412,6 +518,15 @@ public:
   void close() {if(!closed) {stream.close(); closed=true;}}
   void clear() {stream.clear();}
   void flush() {stream.flush();}
+  
+  void seek(int pos, bool begin=true) {
+    if(!standard && !closed) {
+      clear();
+      stream.seek(pos,begin ? xdr::xios::beg : xdr::xios::end);
+    }
+  }
+  
+  size_t tell() {return stream.tell();}
   
   void write(int val) {stream << val;}
   void write(double val) {
@@ -433,21 +548,6 @@ public:
 
 extern ofile Stdout;
 extern ofile nullfile;
-
-template<class T>
-void ifile::iread(T& val)
-{
-  if(standard) clear();
-  if(errorstream::interrupt) throw interrupted();
-  else {
-    ignoreComment(val);
-    val=T();
-    if(!nullfield)
-      Read(val);
-    csv();
-    whitespace="";
-  }
-}
 
 } // namespace camp
 

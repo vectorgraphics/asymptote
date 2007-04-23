@@ -75,7 +75,7 @@ template<class T>
 void read(vm::stack *s)
 {
   camp::file *f = pop<camp::file*>(s);
-  T val;
+  T val=T();
   if(f->isOpen()) {
     f->read(val);
     if(f->LineMode()) f->nexteol();
