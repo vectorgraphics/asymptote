@@ -281,7 +281,6 @@ ty *primPen();
 ty *primPicture();
 ty *primFile();
 ty *primCode();
-ty *primArray();
   
 ty *boolArray();
 ty *intArray();

@@ -36,7 +36,6 @@ transform => primTransform()
 callable* => voidFunction()
 callableBp* => breakpointFunction()
 runnable* => primCode()
-array* => primArray()  
 boolarray* => boolArray()
 intarray*  => intArray()
 intarray2*  => intArray2()
@@ -164,7 +163,6 @@ using types::primGuide;
 using types::primPicture;
 using types::primString;
 using types::primCode;
-using types::primArray;
 using types::primFile;
 using types::primTransform;
 using types::boolArray;
