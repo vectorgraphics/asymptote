@@ -21,7 +21,7 @@
 
 // The syntax is:
 // s=fspline(x,y);                            default not_a_knot condition
-// s=fspline(x,y,clamped(new real[] {1,1}));  clamped spline
+// s=fspline(x,y,clamped(1,1));               clamped spline
 // s=fspline(x,y,periodic);                   periodic spline
 // s=fspline(x,y,natural);                    natural spline
 //
@@ -267,16 +267,15 @@ splinetype natural()
 
 splinetype natural=natural();
 
-splinetype clamped(real[] de)
+splinetype clamped(real slopea, real slopeb)
 {
-  // Standard cubic spline interpolation with clamped condition:
-  // here, real[] de={f'(a),f'(b)}.
+  // Standard cubic spline interpolation with clamped conditions f'(a), f'(b)
+  real[] de={slopea,slopeb};
 
   return new real[] (real[] x, real[] y) {
     int n=x.length;
     real[] d;
     if(n < 2) abort(onepoint);
-    if(de.length != 2) abort("Clamping condition must consist of 2 reals");
     if(n != y.length) abort(differentlengths);
     if(n > 2) {
       real[] a=new real[n];
