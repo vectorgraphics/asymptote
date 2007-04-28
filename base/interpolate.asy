@@ -270,8 +270,6 @@ splinetype natural=natural();
 splinetype clamped(real slopea, real slopeb)
 {
   // Standard cubic spline interpolation with clamped conditions f'(a), f'(b)
-  real[] de={slopea,slopeb};
-
   return new real[] (real[] x, real[] y) {
     int n=x.length;
     real[] d;
@@ -283,7 +281,7 @@ splinetype clamped(real slopea, real slopeb)
       real[] c=new real[n];
       real[] g=new real[n];
       b[0]=x[1]-x[0];
-      g[0]=b[0]*de[0];
+      g[0]=b[0]*slopea;
       c[0]=0;
       a[0]=0;
       for(int i=1; i < n-1; ++i) {
@@ -295,12 +293,12 @@ splinetype clamped(real slopea, real slopeb)
       c[n-1]=0;
       a[n-1]=0;
       b[n-1]=x[n-1]-x[n-2];
-      g[n-1]=b[n-1]*de[1];
+      g[n-1]=b[n-1]*slopeb;
       d=tridiagonal(a,b,c,g);
     }
     if(n == 2) {
-      d[0]=de[0];
-      d[1]=de[1];
+      d[0]=slopea;
+      d[1]=slopeb;
     }
     return d;
   };
