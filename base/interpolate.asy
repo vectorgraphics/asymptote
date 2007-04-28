@@ -42,11 +42,10 @@ private string differentlengths="arrays have different lengths";
 fhorner fhorner(horner sh)
 {// Evaluate p(x)=d0+(x-x0)(d1+(x-x1).....+(d(n-1)+(x-x(n-1))*dn)))
  // via Horner's rule: n-1 multiplications, 2n-2 additions.
+  int n=sh.x.length;
+  if(n != sh.a.length) abort(differentlengths);
   return new real(real x) {
-    int n=sh.x.length;
-    if(n != sh.a.length) abort(differentlengths);
-    real s;
-    s=sh.a[n-1];
+    real s=sh.a[n-1];
     for(int k=n-2; k >= 0; --k)
       s=sh.a[k]+(x-sh.x[k])*s;
     return s;
@@ -58,10 +57,8 @@ horner diffdiv(real[] x, real[] y)
   int n=x.length;
   horner s;
   if(n != y.length) abort(differentlengths);
-  real[] d;
-  for(int i=0; i < n; ++i) {
+  for(int i=0; i < n; ++i)
     s.a[i]=y[i];
-  }
   for(int k=0; k < n-1; ++k) {
     for(int i=n-1; i > k; --i) {
       s.a[i]=(s.a[i]-s.a[i-1])/(x[i]-x[i-k-1]);
@@ -111,8 +108,8 @@ realfunction pwhermite(real[] x, real[] y, real[] dy)
   if(x.length < 2) abort(onepoint);
   if(x.length != y.length) abort(differentlengths);
   if(x.length != dy.length) abort(differentlengths);
+  int n=x.length;
   return new real(real t) {
-    int n=x.length;
     int i=search(x,t);
     if(i == n-1) {
       i=n-2;
@@ -126,17 +123,16 @@ realfunction pwhermite(real[] x, real[] y, real[] dy)
     real e=(3*delta-2*dy[i]-dy[i+1])/h;
     real f=(dy[i]-2*delta+dy[i+1])/h^2;
     real s=t-x[i];
-    return(y[i]+s*(dy[i]+s*(e+s*f)));
+    return y[i]+s*(dy[i]+s*(e+s*f));
   };
 }
 
-splinetype notaknot()
+real[] notaknot(real[] x, real[] y)
 {  // Standard cubic spline interpolation with not a knot condition:
   // s'''(x_2^-)=s'''(x_2^+) et s'''(x_(n_2)^-)=s'''(x_(n-2)^+)
   // if n=2, linear interpolation is returned
   // if n=3, an interpolation polynomial of degree <= 2 is returned:
   // p(x_1)=y_1, p(x_2)=y_2, p(x_3)=y_3
-  return new real[] (real[] x, real[] y) {
     int n=x.length;
     real[] d;
     if(n < 2) abort(onepoint);
@@ -178,18 +174,14 @@ splinetype notaknot()
       d[2]=a+c*(2*x[2]-x[0]-x[1]);
     }
     return d;
-  };
 }
 
-splinetype notaknot=notaknot();
-
-splinetype periodic()
+real[] periodic(real[] x, real[] y)
 {
   // Standard cubic spline interpolation with periodic condition
   // s'(a)=s'(b), s''(a)=s''(b), assuming that f(a)=f(b)
   // if n=2, linear interpolation is returned
 
-  return new real[] (real[] x, real[] y){
     int n=x.length;
     real[] d;
     if(n < 2) abort(onepoint);
@@ -218,20 +210,16 @@ splinetype periodic()
       d[1]=0;
     }
     return d;
-  };
 }
 
-splinetype periodic=periodic();
-
-
-splinetype natural()
-{ // Standard cubic spline interpolation with the natural condition
+real[] natural(real[] x, real[] y)
+{
+  // Standard cubic spline interpolation with the natural condition
   // s''(a)=s''(b)=0.
   // if n=2, linear interpolation is returned
   // Don't use the natural type unless the underlying function 
   // has zero second end points derivatives.
  
-  return new real[] (real[] x, real[] y){
     int n=x.length;
     real[] d;
     if(n < 2) abort(onepoint);
@@ -262,10 +250,7 @@ splinetype natural()
       d[1]=d[0];
     }
     return d;
-  };
 }
-
-splinetype natural=natural();
 
 splinetype clamped(real slopea, real slopeb)
 {
@@ -308,6 +293,6 @@ realfunction fspline(real[] x, real[] y, splinetype splinetype=notaknot)
 {
   real[] dy=splinetype(x,y);
   return new real(real t) {
-    return(pwhermite(x,y,dy)(t));
+    return pwhermite(x,y,dy)(t);
   }; 
 }
