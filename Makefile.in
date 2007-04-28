@@ -78,6 +78,9 @@ $(GCLIBS): $(GC).tar.gz
 html:	asy
 	cd doc; $(MAKE) doc
 
+intro:	asy
+	cd doc; $(MAKE) intro
+
 man:	asy
 	cd doc; $(MAKE) man
 
