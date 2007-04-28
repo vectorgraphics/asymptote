@@ -5,11 +5,13 @@ ASY = ../asy -dir ../base
 DOCFILES = asymptote.pdf CAD.pdf PDFAnim_temp_Guide.pdf
 INTROFILES=diagonal square bigsquare labelsquare beziercurve helix eetomumu knots exp lineargraph datagraph filegraph loggraph secondaryaxis imagecontour diatom elliptic logo 
 
-doc:	asymptote.dvi asymptote.info html man
+doc:	asymptote.dvi asymptote.info html man intro faq
 
 html:	asymptote/index.html
 
 man:	asymptote.pdf CAD.pdf PDFAnim_temp_Guide.pdf asy.1
+
+intro: intro.pdf
 
 faq:	
 	cd FAQ; $(MAKE) faq
@@ -54,7 +56,7 @@ asymptote.info: $(SOURCE) $(ASYFILES:.asy=.png)
 asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf)
 	texi2dvi --pdf asymptote.texi
 
-intro:   extra/intro.asy $(INTROFILES:=.asy)
+intro.pdf: extra/intro.asy $(INTROFILES:=.asy)
 	$(ASY) -f pdf extra/intro.asy
 
 CAD.pdf: CAD.tex CAD1.eps 
