@@ -17,39 +17,17 @@
 namespace types {
 
 /* Base types */
-primitiveTy pVoid(ty_void);
-ty *primVoid() { return &pVoid; }
+#define PRIMITIVE(name,Name,asyName) \
+  primitiveTy p##Name(ty_##name); \
+  ty *prim##Name() { return &p##Name; }
+#define PRIMERROR
+#include <primitives.h>
+#undef PRIMERROR
+#undef PRIMITIVE
+                             
 nullTy pNull;
 ty *primNull() { return &pNull; }
-primitiveTy pError(ty_error);
-ty *primError() { return &pError; }
-primitiveTy pBoolean(ty_boolean);
-ty *primBoolean() { return &pBoolean; }
-primitiveTy pInt(ty_int);
-ty *primInt() { return &pInt; }
-primitiveTy pReal(ty_real);
-ty *primReal() { return &pReal; }
-primitiveTy pString(ty_string);
-ty *primString() { return &pString; }
-primitiveTy pPair(ty_pair);
-ty *primPair() { return &pPair; }
-primitiveTy pTriple(ty_triple);
-ty *primTriple() { return &pTriple; }
-primitiveTy pTransform(ty_transform);
-ty *primTransform() { return &pTransform; }
-primitiveTy pGuide(ty_guide);
-ty *primGuide() { return &pGuide; }
-primitiveTy pPath(ty_path);
-ty *primPath() { return &pPath; }
-primitiveTy pPen(ty_pen);
-ty *primPen() { return &pPen; }
-primitiveTy pPicture(ty_picture);
-ty *primPicture() { return &pPicture; }
-primitiveTy pFile(ty_file);
-ty *primFile() { return &pFile; }
-primitiveTy pCode(ty_code);
-ty *primCode() { return &pCode; }
-  
+
 array boolArray_(primBoolean());
 ty *boolArray() { return &boolArray_; }
 array intArray_(primInt());
@@ -100,12 +78,15 @@ array stringArray3_(stringArray2());
 ty *stringArray3() { return &stringArray3_; }
   
 const char *names[] = {
-  "void", "null",
-  "<structure>", "<function>", "<error>", "<overloaded>",
-  "bool", "int", "real",
-  "string",
-  "pair", "triple", "transform", "guide", "path", "pen", "frame",
-  "file", "code",
+  "null",
+  "<structure>", "<function>", "<overloaded>",
+  
+#define PRIMITIVE(name,Name,asyName) #asyName,
+#define PRIMERROR
+#include <primitives.h>
+#undef PRIMERROR
+#undef PRIMITIVE
+
   "<array>"
 };
 
@@ -416,28 +397,6 @@ size_t signature::hash() {
   return x;
 }
 
-#if 0
-int numFormalsMatch(signature *target, signature *source)
-{
-  assert(target && source);
-
-  int matches=0;
-
-  formal_vector::iterator t    =target->formals.begin(),
-                          t_end=target->formals.end(),
-                          s    =source->formals.begin(),
-                          s_end=source->formals.end();
-  for (; t!=t_end; ++t)
-    if (s!=s_end && castable(*t, *s)) {
-      if (equivalent(*t, *s))
-        ++matches;
-      ++s;
-    }
-
-  return matches;
-}
-#endif
-
 trans::access *function::initializer() {
   static trans::bltinAccess a(run::pushNullFunction);
   return &a;
@@ -500,117 +459,6 @@ bool overloaded::castable(ty *target, caster &c)
       return true;
   return false;
 }
-
-#if 0 //{{{
-ty *overloaded::resolve(signature *key)
-{
-  cout << "sig: " << (key ? "fun " : "trivial\n");
-  cout << "candidates: " << sub.size();
-
-  overloaded set;
-  
-  // Pick out all applicable signatures.
-  for(ty_vector::iterator t = sub.begin();
-      t != sub.end();
-      ++t)
-  {
-    signature *nsig = (*t)->getSignature();
-   
-    if (castable(nsig, key)) {
-      set.add(*t);
-
-      // Shortcut for simple (ie. non-function) variables.
-      if (key == 0)
-	return (*t);
-    }
-  }
-
-  ty_vector& candidates = set.sub;
-  cout << " applicable: " << candidates.size() << endl; 
-  if (candidates.size() <= 1)
-    return set.simplify();
-
-  // Try to further resolve candidates by checking for number of
-  // arguments exactly matched.
-  for (int n = key->getNumFormals(); n > 0; n--)
-  {
-    ty_vector matches;
-    for (ty_vector::iterator p = candidates.begin();
-         p != candidates.end();
-	 ++p)
-    {
-      if (numFormalsMatch((*p)->getSignature(), key) >= n) {
-        matches.push_back(*p);
-      }
-    }
-
-    if (matches.size() == 1)
-      return matches.front();
-    if (matches.size() > 1)
-      break;
-  }
-
-  return new overloaded(set);
-}
-
-ty *overloaded::resolve(signature *key, symbol *name, position pos)
-{
-  cout << "name: ";
-  if (name)
-    cout << *name;
-  else
-    cout << "none";
-  cout << "position: " << pos;
-
-  cout << " sig: " << (key ? "fun " : "trivial\n");
-  cout << "candidates: " << sub.size();
-
-  overloaded set;
-  
-  // Pick out all applicable signatures.
-  for(ty_vector::iterator t = sub.begin();
-      t != sub.end();
-      ++t)
-  {
-    signature *nsig = (*t)->getSignature();
-   
-    if (castable(nsig, key)) {
-      set.add(*t);
-
-      // Shortcut for simple (ie. non-function) variables.
-      if (key == 0)
-	return (*t);
-    }
-  }
-
-  ty_vector& candidates = set.sub;
-  cout << " applicable: " << candidates.size() << endl; 
-  if (candidates.size() <= 1)
-    return set.simplify();
-
-  // Try to further resolve candidates by checking for number of
-  // arguments exactly matched.
-  for (int n = key->getNumFormals(); n > 0; n--)
-  {
-    ty_vector matches;
-    for (ty_vector::iterator p = candidates.begin();
-         p != candidates.end();
-	 ++p)
-    {
-      if (numFormalsMatch((*p)->getSignature(), key) >= n) {
-        matches.push_back(*p);
-      }
-    }
-
-    if (matches.size() == 1)
-      return matches.front();
-    if (matches.size() > 1)
-      break;
-  }
-
-  return new overloaded(set);
-}
-#endif //}}}
 
 bool equivalent(ty *t1, ty *t2)
 {

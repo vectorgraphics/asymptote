@@ -57,22 +57,9 @@ void addType(tenv &te, const char *name, ty *t)
 // The base environments for built-in types and functions
 void base_tenv(tenv &te)
 {
-  addType(te, "void", primVoid());
-  addType(te, "bool", primBoolean());
-  addType(te, "int", primInt());
-  addType(te, "real", primReal());
-  addType(te, "string", primString());
-  
-  addType(te, "pair", primPair());
-  addType(te, "triple", primTriple());
-  addType(te, "transform", primTransform());
-  addType(te, "guide", primGuide());
-  addType(te, "path", primPath());
-  addType(te, "pen", primPen());
-  addType(te, "frame", primPicture());
-
-  addType(te, "file", primFile());
-  addType(te, "code", primCode());
+#define PRIMITIVE(name,Name,asyName)  addType(te, #asyName, prim##Name());
+#include <primitives.h>
+#undef PRIMITIVE
 }
 
 const formal noformal(0);  

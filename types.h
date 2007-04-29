@@ -37,27 +37,17 @@ extern varinit *Default;
 namespace types {
 
 enum ty_kind {
-  ty_void,
   ty_null,
   ty_record,	// "struct" in Asymptote language
   ty_function,
-  ty_error,
   ty_overloaded,
  
-  ty_boolean,	// "bool" in Asymptote language
-  ty_int,
-  ty_real,
-  
-  ty_string,
-  ty_pair,
-  ty_triple,
-  ty_transform,
-  ty_guide,
-  ty_path,
-  ty_pen,
-  ty_picture,	// "frame" in Asymptote language
-  ty_file,
-  ty_code,
+#define PRIMITIVE(name,Name,asyName) ty_##name,
+#define PRIMERROR
+#include <primitives.h>
+#undef PRIMERROR
+#undef PRIMITIVE
+
   ty_array
 };
 
@@ -265,22 +255,13 @@ struct array : public ty {
 };
 
 /* Base types */
-ty *primVoid();
+#define PRIMITIVE(name,Name,asyName) ty *prim##Name();
+#define PRIMERROR
+#include <primitives.h>
+#undef PRIMERROR
+#undef PRIMITIVE
+
 ty *primNull();
-ty *primError();
-ty *primBoolean();
-ty *primInt();
-ty *primReal();
-ty *primString();
-ty *primPair();
-ty *primTriple();
-ty *primTransform();
-ty *primGuide();
-ty *primPath();
-ty *primPen();
-ty *primPicture();
-ty *primFile();
-ty *primCode();
   
 ty *boolArray();
 ty *intArray();
@@ -523,16 +504,6 @@ public:
 
   // True if one of the subtypes is castable.
   bool castable(ty *target, caster &c);
-
-#if 0
-  // This determines which type of function to use, given a signature of
-  // types.  It is valid to have overloaded parameters here.
-  // If exactly one type matches, it returns that type.
-  // If no types match, it returns null.
-  // Otherwise, it returns a new overloaded with all matches.
-  ty *resolve(signature *key);
-  ty *resolve(signature *key, symbol *name, position pos);
-#endif
 
   // Use default printing for now.
 };

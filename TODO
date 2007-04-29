@@ -1,6 +1,8 @@
 Andy and John: (if possible) automatically turn expressions with array
 sub-expressions into iteration over the array(s)
 
+Andy: Change primNull to another name (null is not primitive).
+
 Andy: Add routines to allow access to guide components.
 
 Andy: Make keywords cycle, tension, etc. usable by three.asy.
