@@ -12,9 +12,9 @@ triple F(real x) {return (x,f(x),0);}
 
 ngraph=12;
 guide3[] p=new guide3[] {
-  graph(F,0.7476,1.8043)--cycle3,
-  graph(F,0.7,0.7476)--graph(F,1.7787,1.8043)--cycle3,
-  graph(F,0,0.7)--graph(F,1.8043,2)--cycle3};
+  graph(F,0.7476,1.8043)--cycle,
+  graph(F,0.7,0.7476)--graph(F,1.7787,1.8043)--cycle,
+  graph(F,0,0.7)--graph(F,1.8043,2)--cycle};
 
 pen[] pn=new pen[] {color1,color2,color1};
 

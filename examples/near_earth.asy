@@ -11,9 +11,9 @@ currentprojection=perspective(4,1,2);
 
 // Planes
 pen bg=gray(0.9);
-filldraw((1.2,0,0)--(1.2,0,1.2)--(0,0,1.2)--(0,0,0)--cycle3,bg,bg);
-filldraw((0,1.2,0)--(0,1.2,1.2)--(0,0,1.2)--(0,0,0)--cycle3,bg,bg);
-filldraw((1.2,0,0)--(1.2,1.2,0)--(0,1.2,0)--(0,0,0)--cycle3,bg,bg);
+filldraw((1.2,0,0)--(1.2,0,1.2)--(0,0,1.2)--(0,0,0)--cycle,bg,bg);
+filldraw((0,1.2,0)--(0,1.2,1.2)--(0,0,1.2)--(0,0,0)--cycle,bg,bg);
+filldraw((1.2,0,0)--(1.2,1.2,0)--(0,1.2,0)--(0,0,0)--cycle,bg,bg);
 
 real r=1.5;
 pen p=rgb(0,0.7,0);

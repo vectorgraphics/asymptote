@@ -49,7 +49,7 @@ struct surface {
       P[0][0]..controls P[0][1] and P[0][2]..
       P[0][3]..controls P[1][3] and P[2][3]..
       P[3][3]..controls P[3][2] and P[3][1]..
-      P[3][0]..controls P[2][0] and P[1][0]..cycle3;
+      P[3][0]..controls P[2][0] and P[1][0]..cycle;
   }
 
   triple[] internal() {
@@ -132,7 +132,7 @@ surface subsurfaceu(surface s, real ua, real ub)
   path3 i2=s.P[0][2]..controls s.P[1][2] and s.P[2][2]..s.P[3][2];
   path3 s1=subpath(i1,ua,ub);
   path3 s2=subpath(i2,ua,ub);
-  return surface(G..controls postcontrol(w,0) and precontrol(w,1)..cycle3,
+  return surface(G..controls postcontrol(w,0) and precontrol(w,1)..cycle,
                  new triple[] {postcontrol(s1,0),postcontrol(s2,0),
                      precontrol(s2,1),precontrol(s1,1)});
 }
@@ -147,7 +147,7 @@ surface subsurfacev(surface s, real va, real vb)
   path3 t1=subpath(j1,va,vb);
   path3 t2=subpath(j2,va,vb);
 
-  return surface(G..controls precontrol(w,1) and postcontrol(w,0)..cycle3,
+  return surface(G..controls precontrol(w,1) and postcontrol(w,0)..cycle,
                  new triple[] {postcontrol(t1,0),precontrol(t1,1),
                      precontrol(t2,1),postcontrol(t2,0)});
 }

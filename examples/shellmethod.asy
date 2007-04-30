@@ -16,10 +16,10 @@ for(int i=1; i <= n; ++i) {
   real left=(i-1)*2/n;
   real right=i*2/n;
   blocks[i-1]=
-    (left,0,0)--(left,height,0)--(right,height,0)--(right,0,0)--cycle3;
+    (left,0,0)--(left,height,0)--(right,height,0)--(right,0,0)--cycle;
 }
 
-guide3 p=graph(F,0,2,n=25)--cycle3;
+guide3 p=graph(F,0,2,n=25)--cycle;
 
 revolution a=revolution(p,Y,0,alpha);
 a.filldraw(8,color,1,blue,false);

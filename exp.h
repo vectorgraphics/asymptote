@@ -417,6 +417,18 @@ public:
   types::ty *getType(coenv &) { return types::primBoolean(); }
 };
 
+class cycleExp : public literalExp {
+
+public:
+  cycleExp(position pos)
+    : literalExp(pos) {}
+
+  void prettyprint(ostream &out, int indent);
+
+  types::ty *trans(coenv &e);
+  types::ty *getType(coenv &) { return types::primCycleToken(); }
+};
+
 class newPictureExp : public literalExp {
 
 public:

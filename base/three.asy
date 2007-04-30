@@ -509,7 +509,7 @@ void write(file file, string s="", explicit flatguide3 x, suffix suffix=none)
   if(x.size() == 0) write(file,"<nullpath3>");
   else for(int i=0; i < x.nodes.length; ++i) {
       if(i > 0) write(file,endl);
-      if(x.cyclic[i]) write(file,"cycle3");
+      if(x.cyclic[i]) write(file,"cycle");
       else write(file,x.nodes[i]);
       if(i < x.nodes.length-1) {
         // Explicit control points trump other specifiers
@@ -545,10 +545,13 @@ guide3 operator cast(triple v)
   };
 }
 
-void cycle3(flatguide3 f)
-{
-  f.cyclic();
+guide3 operator cast(cycleToken) {
+  return new void(flatguide3 f) {
+    f.cyclic();
+  };
 }
+
+guide3 cycle3=cycle;
 
 guide3 operator controls(triple post, triple pre) 
 {
@@ -1405,7 +1408,7 @@ void write(file file, string s="", explicit path3 x, suffix suffix=none)
   write(file,s);
   if(size(x) == 0) write("<nullpath3>");
   else for(int i=0; i < x.nodes.length; ++i) {
-      if(i == x.nodes.length-1 && x.cycles) write(file,"cycle3");
+      if(i == x.nodes.length-1 && x.cycles) write(file,"cycle");
       else write(file,x.nodes[i].point);
       if(i < length(x)) {
         if(x.nodes[i].straight) write(file,"--");
@@ -1630,8 +1633,8 @@ guide3 operator cast(path3 p) {
   }
   
   if(p.cycles) {
-    if(p.nodes[i].straight) g=g--cycle3;
-    else g=g..controls p.nodes[i].post and p.nodes[i+1].pre..cycle3;
+    if(p.nodes[i].straight) g=g--cycle;
+    else g=g..controls p.nodes[i].post and p.nodes[i+1].pre..cycle;
   }
   
   return g;
@@ -1981,7 +1984,7 @@ path3[] box(triple v1, triple v2)
 
 path3[] unitcube=box((0,0,0),(1,1,1));
 
-path3 unitcircle3=X..Y..-X..-Y..cycle3;
+path3 unitcircle3=X..Y..-X..-Y..cycle;
 
 path3 circle(triple c, real r, triple normal=Z)
 {
@@ -2042,7 +2045,7 @@ private real epsilon=1000*realEpsilon;
 // Return a representation of the plane through point O with normal cross(u,v).
 path3 plane(triple u, triple v, triple O=O)
 {
-  return O--O+u--O+u+v--O+v--cycle3;
+  return O--O+u--O+u+v--O+v--cycle;
 }
 
 // Return the unit normal vector to a planar path p.

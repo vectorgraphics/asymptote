@@ -144,7 +144,7 @@ struct revolution {
       real j=a[2];
       triple[] v={vertex(i,j),vertex(i+1,j),vertex(i+1,j+s),vertex(i,j+s)};
       pen[] p={color(v[0]),color(v[1]),color(v[2]),color(v[3])};
-      gouraudshade(pic,project(v[0]--v[1]--v[2]--v[3]--cycle3,P),p,v,edges);
+      gouraudshade(pic,project(v[0]--v[1]--v[2]--v[3]--cycle,P),p,v,edges);
     }
     endgroup(pic);
   }

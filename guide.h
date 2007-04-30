@@ -260,6 +260,8 @@ public:
 };
 #endif
 
+struct cycleToken {};
+
 // A guide representing the cycle token.
 class cycletokguide : public guide {
 public:

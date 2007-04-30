@@ -356,7 +356,7 @@ types::ty *booleanExp::trans(coenv &e)
 
 void newPictureExp::prettyprint(ostream &out, int indent)
 {
-  prettyname(out, "newFrameExp",indent);
+  prettyname(out, "newPictureExp",indent);
 }
 
 types::ty *newPictureExp::trans(coenv &e)
@@ -364,6 +364,18 @@ types::ty *newPictureExp::trans(coenv &e)
   e.c.encode(inst::builtin, run::newPicture);
   
   return types::primPicture();  
+}
+
+void cycleExp::prettyprint(ostream &out, int indent)
+{
+  prettyname(out, "cycleExp",indent);
+}
+
+types::ty *cycleExp::trans(coenv &e)
+{
+  e.c.encode(inst::builtin, run::newCycleToken);
+  
+  return types::primCycleToken();  
 }
 
 void nullPathExp::prettyprint(ostream &out, int indent)

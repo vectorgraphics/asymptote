@@ -405,7 +405,7 @@ guide3 graph(triple F(path, real), path p, int n=1,
   guide3 g;
   for(int i=0; i < n*length(p); ++i)
     g=join(g,F(p,i/n));
-  return cyclic(p) ? join(g,cycle3) : join(g,F(p,length(p)));
+  return cyclic(p) ? join(g,cycle) : join(g,F(p,length(p)));
 }
 
 guide3 graph(triple F(pair), path p, int n=1, interpolate3 join=operator --)
@@ -666,7 +666,7 @@ guide3[][] lift(real f(real x, real y), guide[][] g,
         pair z=point(gcnti,j);
         Gcnti=join(Gcnti,(z.x,z.y,f(z.x,z.y)));
       }
-      if(cyclic(Gcnti)) Gcnti=Gcnti..cycle3;
+      if(cyclic(Gcnti)) Gcnti=Gcnti..cycle;
       Gcnt[i]=Gcnti;
     }
     G[cnt]=Gcnt;
@@ -738,5 +738,5 @@ path3 Arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
 // True circle
 path3 Circle(triple c, real r, triple normal=Z, int n=400)
 {
-  return Arc(c,r,90,0,90,360,normal,n)..cycle3;
+  return Arc(c,r,90,0,90,360,normal,n)..cycle;
 }

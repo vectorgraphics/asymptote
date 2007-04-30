@@ -90,7 +90,7 @@ using mem::string;
 
 %token <ps> ID OP ADD SUBTRACT TIMES DIVIDE MOD EXPONENT
             DOTS COLONS DASHES INCR LONGDASH
-            CONTROLS TENSION ATLEAST CURL CYCLE
+            CONTROLS TENSION ATLEAST CURL
             COR CAND BAR AMPERSAND EQ NEQ LT LE GT GE CARETS
             '+' '-' '*' '/' '%' '^' LOGNOT OPERATOR
             STRING
@@ -525,10 +525,6 @@ exp:
                    { $$ = new transformExp($1, $2, $4, $6, $8, $10, $12); }
 | exp join exp %prec JOIN_PREC 
                    { $2->pushFront($1); $2->pushBack($3); $$ = $2; }
-| exp join CYCLE %prec JOIN_PREC
-                   { $2->pushFront($1);
-                     $2->pushBack(new nullaryExp($3.pos, $3.sym));
-                     $$ = $2 }
 | exp dir %prec DIRTAG
                    { $2->setSide(camp::OUT);
                      joinExp *jexp =

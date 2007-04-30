@@ -6,7 +6,7 @@ currentprojection=perspective(5,4,2);
 
 real f(pair z) {return 0.5+exp(-abs(z)^2);}
 
-draw((-1,-1,0)--(1,-1,0)--(1,1,0)--(-1,1,0)--cycle3);
+draw((-1,-1,0)--(1,-1,0)--(1,1,0)--(-1,1,0)--cycle);
 
 draw(arc(0.12Z,0.2,90,60,90,15),ArcArrow);
 

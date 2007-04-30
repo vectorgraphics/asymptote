@@ -311,7 +311,6 @@ EXTRAOPS <<|>>|$|$$|@|@@|~
 "^="               {makeselfsymbol(); return EXPONENT; }
 
 and                {adjust(); return AND; }
-cycle              {makesymbol(); return CYCLE; }
 controls           {makesymbol(); return CONTROLS; }
 tension            {makesymbol(); return TENSION; }
 tension3           {makesymbol(); return TENSION; }
@@ -365,6 +364,8 @@ false              {
   adjust(); yylval.e= new booleanExp(here(), false); return LIT; }
 null               {
   adjust(); yylval.e= new nullExp(here()); return LIT; }
+cycle              {
+  adjust(); yylval.e= new cycleExp(here()); return LIT; }
 newframe        {
   adjust(); yylval.e= new newPictureExp(here()); return LIT; }
 

@@ -30,6 +30,7 @@ pair     => primPair()
 triple   => primTriple()
 path     => primPath()
 guide*   => primGuide()
+cycleToken => primCycleToken()
 file*    => primFile()
 picture* => primPicture()
 transform => primTransform()
@@ -160,6 +161,7 @@ using types::primTriple;
 using types::primPen;
 using types::primPath;
 using types::primGuide;
+using types::primCycleToken;
 using types::primPicture;
 using types::primString;
 using types::primCode;
@@ -1716,7 +1718,12 @@ guide* :dashesGuide(guidearray *a)
   return new multiguide(v);
 }
 
-guide* operator cycle()
+cycleToken :newCycleToken()
+{
+  return cycleToken();
+}
+
+guide *operator cast(cycleToken tok)
 {
   return new cycletokguide();
 }
