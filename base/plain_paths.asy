@@ -3,7 +3,7 @@ path nullpath;
 // Define a.. tension t ..b to be equivalent to
 //        a.. tension t and t ..b
 // and likewise with controls.
-guide operator tension(real t, bool atLeast)
+tensionSpecifier operator tension(real t, bool atLeast)
 {
   return operator tension(t,t,atLeast);
 }

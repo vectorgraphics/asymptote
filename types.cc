@@ -100,71 +100,41 @@ void ty::print(ostream& out) const
 
 trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
 {
+#define FIELD(Type, name, func) \
+  if (sig == 0 && id == symbol::trans(name)) { \
+    static trans::bltinAccess a(run::func); \
+    static trans::varEntry v(prim##Type(), &a, 0, position()); \
+    return &v; \
+  }
+
   switch (kind) {
     case ty_pair:
-      if (sig == 0 && id == symbol::trans("x")) {
-        static trans::bltinAccess a(run::pairXPart);
-        static trans::varEntry v(primReal(), &a, 0, position());
-        return &v;
-      }
-      if (sig == 0 && id == symbol::trans("y")) {
-        static trans::bltinAccess a(run::pairYPart);
-        static trans::varEntry v(primReal(), &a, 0, position());
-        return &v;
-      }
+      FIELD(Real,"x",pairXPart);
+      FIELD(Real,"y",pairYPart);
       break;
     case ty_triple:
-      if (sig == 0 && id == symbol::trans("x")) {
-        static trans::bltinAccess a(run::tripleXPart);
-        static trans::varEntry v(primReal(), &a, 0, position());
-        return &v;
-      }
-      if (sig == 0 && id == symbol::trans("y")) {
-        static trans::bltinAccess a(run::tripleYPart);
-        static trans::varEntry v(primReal(), &a, 0, position());
-        return &v;
-      }
-      if (sig == 0 && id == symbol::trans("z")) {
-        static trans::bltinAccess a(run::tripleZPart);
-        static trans::varEntry v(primReal(), &a, 0, position());
-        return &v;
-      }
+      FIELD(Real,"x",tripleXPart);
+      FIELD(Real,"y",tripleYPart);
+      FIELD(Real,"z",tripleZPart);
       break;
     case ty_transform:
-      if (sig == 0 && id == symbol::trans("x")) {
-        static trans::bltinAccess a(run::transformXPart);
-        static trans::varEntry v(primReal(), &a, 0, position());
-        return &v;
-      }
-      if (sig == 0 && id == symbol::trans("y")) {
-        static trans::bltinAccess a(run::transformYPart);
-        static trans::varEntry v(primReal(), &a, 0, position());
-        return &v;
-      }
-      if (sig == 0 && id == symbol::trans("xx")) {
-        static trans::bltinAccess a(run::transformXXPart);
-        static trans::varEntry v(primReal(), &a, 0, position());
-        return &v;
-      }
-      if (sig == 0 && id == symbol::trans("xy")) {
-        static trans::bltinAccess a(run::transformXYPart);
-        static trans::varEntry v(primReal(), &a, 0, position());
-        return &v;
-      }
-      if (sig == 0 && id == symbol::trans("yx")) {
-        static trans::bltinAccess a(run::transformYXPart);
-        static trans::varEntry v(primReal(), &a, 0, position());
-        return &v;
-      }
-      if (sig == 0 && id == symbol::trans("yy")) {
-        static trans::bltinAccess a(run::transformYYPart);
-        static trans::varEntry v(primReal(), &a, 0, position());
-        return &v;
-      }
+      FIELD(Real,"x",transformXPart);
+      FIELD(Real,"y",transformYPart);
+      FIELD(Real,"xx",transformXXPart);
+      FIELD(Real,"xy",transformXYPart);
+      FIELD(Real,"yx",transformYXPart);
+      FIELD(Real,"yy",transformYYPart);
+      break;
+    case ty_tensionSpecifier:
+      FIELD(Real,"out",tensionSpecifierOutPart);
+      FIELD(Real,"in",tensionSpecifierInPart);
+      FIELD(Boolean,"atLeast",tensionSpecifierAtleastPart);
     default:
       break;
   }
   return 0;
+
+#undef FIELD
 }
 
 ty *ty::virtualFieldGetType(symbol *id)

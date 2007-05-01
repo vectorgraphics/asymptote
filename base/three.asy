@@ -565,16 +565,11 @@ guide3 operator controls(triple v)
   return operator controls(v,v);
 }
 
-guide3 operator tension3(real out, real in, bool atLeast)
+guide3 operator cast(tensionSpecifier t)
 {
   return new void(flatguide3 f) {
-    f.Tension(out,in,atLeast);
+    f.Tension(t.out, t.in, t.atLeast);
   };
-};
-  
-guide3 operator tension3(real t, bool atLeast)
-{
-  return operator tension3(t,t,atLeast);
 }
 
 guide3 operator curl3(real gamma, int p)
@@ -620,7 +615,7 @@ guide3 operator ::(... guide3[] a)
   if(a.length == 0) return nullpath3;
   guide3 g=a[0];
   for(int i=1; i < a.length; ++i)
-    g=g..operator tension3(1,true)..a[i];
+    g=g.. tension atleast 1 ..a[i];
   return g;
 }
 
@@ -629,7 +624,7 @@ guide3 operator ---(... guide3[] a)
   if(a.length == 0) return nullpath3;
   guide3 g=a[0];
   for(int i=1; i < a.length; ++i)
-    g=g..operator tension3(infinity,true)..a[i];
+    g=g.. tension atleast infinity ..a[i];
   return g;
 }
 

@@ -6234,12 +6234,12 @@ as illustrated in the following example:
 @cindex @code{path3}
 @cindex @code{cycle}
 @cindex @code{curl3}
-@cindex @code{tension3}
+@cindex @code{tension}
 @cindex @code{controls}
 This module fully extends the notion of guides and paths in @code{Asymptote}
 to three dimensions, introducing the new types @code{guide3} and @code{path3},
-along with a three-dimensional versions of @code{cycle}, the tension operator
-@code{tension3}, and the curl operator @code{curl3}. Just as in two
+along with three-dimensional versions of @code{cycle}, the tension operator
+@code{tension}, and the curl operator @code{curl3}. Just as in two
 dimensions, the nodes within a @code{guide3} can be qualified with
 these operators and also with explicit directions and control points (using
 braces and @code{controls}, respectively). This generalization of John

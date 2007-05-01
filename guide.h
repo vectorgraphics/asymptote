@@ -105,6 +105,24 @@ public:
   }
 };
 
+// Tension expressions are evaluated to this class before being cast to a guide,
+// so that they can be cast to other types (such as guide3) instead.
+class tensionSpecifier : public gc {
+  double out,in;
+  bool atleast;
+
+public:
+  tensionSpecifier(double val, bool atleast=false)
+    : out(val), in(val), atleast(atleast) {}
+  tensionSpecifier(double out, double in, bool atleast=false)
+    : out(out), in(in), atleast(atleast) {}
+
+  double getOut() const { return out; }
+  double getIn() const { return in; }
+  bool getAtleast() const { return atleast; }
+};
+
+
 // A guide giving tension information (as part of a join).
 class tensionguide : public guide {
   tension tout,tin;
@@ -115,10 +133,9 @@ public:
     g.setTension(tout,OUT);
   }
 
-  tensionguide(tension tout,tension tin)
-    : tout(tout),tin(tin) {}
-  tensionguide(tension t)
-    : tout(t),tin(t) {}
+  tensionguide(tensionSpecifier spec)
+    : tout(spec.getOut(), spec.getAtleast()),
+      tin(spec.getIn(), spec.getAtleast()) {}
 
   void print(ostream& out) const {
     out << (tout.atleast ? ".. tension atleast " : ".. tension ")
@@ -260,7 +277,7 @@ public:
 };
 #endif
 
-struct cycleToken {};
+struct cycleToken : public gc {};
 
 // A guide representing the cycle token.
 class cycletokguide : public guide {

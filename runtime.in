@@ -31,6 +31,7 @@ triple   => primTriple()
 path     => primPath()
 guide*   => primGuide()
 cycleToken => primCycleToken()
+tensionSpecifier => primTensionSpecifier()
 file*    => primFile()
 picture* => primPicture()
 transform => primTransform()
@@ -152,21 +153,11 @@ typedef callable callableBp;
 
 using vm::array;
 using types::function;
-using types::primVoid;
-using types::primBoolean;
-using types::primInt;
-using types::primReal;
-using types::primPair;
-using types::primTriple;
-using types::primPen;
-using types::primPath;
-using types::primGuide;
-using types::primCycleToken;
-using types::primPicture;
-using types::primString;
-using types::primCode;
-using types::primFile;
-using types::primTransform;
+
+#define PRIMITIVE(name,Name,asyName)  using types::prim##Name;
+#include <primitives.h>
+#undef PRIMITIVE
+
 using types::boolArray;
 using types::intArray;
 using types::intArray2;
@@ -1744,9 +1735,29 @@ guide* operator curl(real gamma, int p)
   return new specguide(sp,d);
 }
 
-guide* operator tension(real tout, real tin, bool atleast)
+tensionSpecifier operator tension(real tout, real tin, bool atleast)
 {
-  return new tensionguide(tension(tout,atleast),tension(tin,atleast));
+  return tensionSpecifier(tout, tin, atleast);
+}
+
+real :tensionSpecifierOutPart(tensionSpecifier t)
+{
+  return t.getOut();
+}
+
+real :tensionSpecifierInPart(tensionSpecifier t)
+{
+  return t.getIn();
+}
+
+bool :tensionSpecifierAtleastPart(tensionSpecifier t)
+{
+  return t.getAtleast();
+}
+
+guide *operator cast(tensionSpecifier t)
+{
+  return new tensionguide(t);
 }
 
 guide* operator controls(pair zout, pair zin)
