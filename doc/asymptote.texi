@@ -6797,9 +6797,9 @@ Here is a simple flowchart example:
 This package draws contour lines.
 To construct contours for a function @code{f}, use
 @verbatim
-path[][] contour(real f(real, real), pair a, pair b,
-                 real[] c, int nx=ngraph, int ny=nx,
-                 interpolate join=operator --);
+guide[][] contour(real f(real, real), pair a, pair b,
+                  real[] c, int nx=ngraph, int ny=nx,
+                  interpolate join=operator --);
 @end verbatim
 @noindent
 The contour lines @code{c} for the function @code{f} are drawn
@@ -6814,28 +6814,28 @@ accurate pictures, but as usual, can overshoot in certain cases.
 To construct contours for an array of data values on a uniform
 two-dimensional lattice, use
 @verbatim
-path[][] contour(real[][] f, real[][] midpoint=new real[][],
-                 pair a, pair b, real[] c,
-                 interpolate join=operator --);
+guide[][] contour(real[][] f, real[][] midpoint=new real[][],
+                  pair a, pair b, real[] c,
+                  interpolate join=operator --);
 
 @end verbatim
 @noindent
 To construct contours for an array of irregularly spaced points
 and an array of values @code{f} at these points, use one of the routines
 @verbatim
-path[][] contour(pair[] z, real[] f, real[] c,
-                 interpolate join=operator --);
-path[][] contour(real[] x, real[] y, real[] f, real[] c,
-                 interpolate join=operator --);
+guide[][] contour(pair[] z, real[] f, real[] c,
+                  interpolate join=operator --);
+guide[][] contour(real[] x, real[] y, real[] f, real[] c,
+                  interpolate join=operator --);
 @end verbatim 
 @noindent
 The contours themselves can be drawn with one of the routines
 @verbatim
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-          path[][] g, pen p=currentpen)
+          guide[][] g, pen p=currentpen)
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-          path[][] g, pen[] p)
+          guide[][] g, pen[] p)
 @end verbatim
 
 The following simple example draws the contour at value @code{1}
