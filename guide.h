@@ -203,8 +203,10 @@ public:
     : zout(z),zin(z) {}
 
   void print(ostream& out) const {
+    size_t oldPrec = out.precision(6);
     out << ".. controls "
         << zout << " and " << zin << " ..";
+    out.precision(oldPrec);
   }
   
   side printLocation() const {
