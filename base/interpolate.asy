@@ -40,7 +40,7 @@ struct horner {
   real[] a;
 }
 
-// Evaluate p(x)=d0+(x-x0)(d1+(x-x1).....+(d(n-1)+(x-x(n-1))*dn)))
+// Evaluate p(x)=d0+(x-x0)(d1+(x-x1)+...+(d(n-1)+(x-x(n-1))*dn)))
 // via Horner's rule: n-1 multiplications, 2n-2 additions.
 fhorner fhorner(horner sh)
 {

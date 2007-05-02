@@ -1679,11 +1679,10 @@ graph graph(interpolate join)
   static guide[] sequenceguide;
   return new guide(pair f(real), real a, real b, int n) {
     real width=n == 0 ? 0 : (b-a)/n;
-    return join(f(a)...sequence(new guide(int i) {
-	  real x=a+width*(i+1);
+    return join(...sequence(new guide(int i) {
+	  real x=a+width*i;
 	  return f(x);
-	},n));
-
+	},n+1));
   };
 }
 
