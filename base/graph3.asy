@@ -336,7 +336,9 @@ void ztick(picture pic=currentpicture, Label L="", triple v, triple dir=Y,
 
 typedef guide3 graph(triple F(real), real, real, int);
 
-graph graph(guide3 join(... guide3[]))
+typedef guide3 interpolate3(... guide3[]);
+
+graph graph(interpolate3 join)
 {
   return new guide3(triple F(real), real a, real b, int n) {
     guide3 g;
@@ -352,8 +354,6 @@ graph graph(guide3 join(... guide3[]))
 guide3 Straight(... guide3[])=operator --;
 guide3 Spline(... guide3[])=operator ..;
                        
-typedef guide3 interpolate3(... guide3[]);
-
 guide3 graph(picture pic=currentpicture, real x(real), real y(real),
              real z(real), real a, real b, int n=ngraph,
              interpolate3 join=operator --)

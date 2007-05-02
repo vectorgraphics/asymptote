@@ -30,7 +30,7 @@ private struct segment
 // Case 1: line passes through two vertices of a triangle
 private segment case1(pair p0, pair p1, int edge)
 {
-  // Will cause a duplicate guide; luckily case1 is rare
+  // Will cause a duplicate path; luckily case1 is rare
   segment rtrn;
   rtrn.active=true;
   rtrn.a=p0;
@@ -175,24 +175,25 @@ private void collect(pair[][][] points, real[] c)
   }
 }
 
-typedef guide interpolate(... guide[]);
-
-private guide[][] connect(pair[][][] points, real[] c, interpolate join)
+private path[][] connect(pair[][][] points, real[] c, interpolate join)
 {
   // set up return value
-  guide[][] result=new guide[c.length][];
+  path[][] result=new path[c.length][];
   for(int cnt=0; cnt < c.length; ++cnt) {
     pair[][] pointscnt=points[cnt];
-    guide[] resultcnt=result[cnt]=new guide[pointscnt.length];
+    path[] resultcnt=result[cnt]=new path[pointscnt.length];
     for(int i=0; i < pointscnt.length; ++i) {
       pair[] pts=pointscnt[i];
-      guide gd=pts[0];
-      for(int j=1; j < pts.length-1; ++j)
-        gd=join(gd,pts[j]);
-      if(abs(pts[0]-pts[pts.length-1]) < eps)
-        gd=gd..cycle;
-      else
-        gd=join(gd,pts[pts.length-1]);
+      path gd;
+      if(pts.length > 0) {
+        if(pts.length > 1 && abs(pts[0]-pts[pts.length-1]) < eps) {
+          gd=join(...pts);
+          int n=length(gd);
+          gd=subpath(gd,0,n-1)..
+            controls(postcontrol(gd,n-1)) and precontrol(gd,n)..cycle;
+        } else
+          gd=join(...pts);
+      }
       resultcnt[i]=gd;
     }
   }
@@ -200,14 +201,14 @@ private guide[][] connect(pair[][][] points, real[] c, interpolate join)
 }
 
 
-// Return contour guides for a 2D data array, using a triangle mesh
+// Return contour paths for a 2D data array, using a triangle mesh
 // f:        two-dimensional array of real data values
 // a,b:      lower-left and upper-right vertices of contour domain
 // c:        array of contour values
 // join:     interpolation operator (e.g. operator -- or operator ..)
-guide[][] contour(real[][] f, real[][] midpoint=new real[][],
-                  pair a, pair b, real[] c,
-                  interpolate join=operator --)
+path[][] contour(real[][] f, real[][] midpoint=new real[][],
+                 pair a, pair b, real[] c,
+                 interpolate join=operator --)
 {
   int nx=f.length-1;
   if(nx == 0)
@@ -452,15 +453,15 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
   return connect(points,c,join);
 }
 
-// return contour guides for a real-valued function
+// return contour paths for a real-valued function
 // f:        real-valued function of two real variables
 // a,b:      lower-left and upper-right vertices of contour domain
 // c:        array of contour values
 // nx,ny:    subdivisions on x and y axes (affects accuracy)
 // join:     interpolation operator (e.g. operator -- or operator ..)
-guide[][] contour(real f(real, real), pair a, pair b,
-                  real[] c, int nx=ngraph, int ny=nx,
-                  interpolate join=operator --)
+path[][] contour(real f(real, real), pair a, pair b,
+                 real[] c, int nx=ngraph, int ny=nx,
+                 interpolate join=operator --)
 {
   // evaluate function at points and midpoints
   real[][] dat=new real[nx+1][ny+1];
@@ -481,11 +482,11 @@ guide[][] contour(real f(real, real), pair a, pair b,
 }
   
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-          guide[][] g, pen[] p)
+          path[][] g, pen[] p)
 {
   begingroup(pic);
   for(int cnt=0; cnt < g.length; ++cnt) {
-    guide[] gcnt=g[cnt];
+    path[] gcnt=g[cnt];
     pen pcnt=p[cnt];
     for(int i=0; i < gcnt.length; ++i)
       draw(pic,gcnt[i],pcnt);
@@ -501,7 +502,7 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
 }
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-          guide[][] g, pen p=currentpen)
+          path[][] g, pen p=currentpen)
 {
   draw(pic,L,g,sequence(new pen(int) {return p;},g.length));
 }
@@ -516,16 +517,16 @@ pen[] extend(pen[] palette, pen below, pen above) {
 
 // Compute the interior palette for a sequence of cyclic contours
 // corresponding to palette.
-pen[][] interior(picture pic=currentpicture, guide[][] g, pen[] palette)
+pen[][] interior(picture pic=currentpicture, path[][] g, pen[] palette)
 {
   if(palette.length != g.length+1)
-    abort("Palette array must have length one more than guide array");
+    abort("Palette array must have length one more than path array");
   pen[][] fillpalette=new pen[g.length][];
   for(int i=0; i < g.length; ++i) {
-    guide[] gi=g[i];
-    guide[] gp;
+    path[] gi=g[i];
+    path[] gp;
     if(i+1 < g.length) gp=g[i+1];
-    guide[] gm;
+    path[] gm;
     if(i > 0) gm=g[i-1];
 
     pen[] fillpalettei=new pen[gi.length];
@@ -562,13 +563,13 @@ pen[][] interior(picture pic=currentpicture, guide[][] g, pen[] palette)
 }
 
 // Fill the interior of cyclic contours with palette
-void fill(picture pic=currentpicture, guide[][] g, pen[][] palette)
+void fill(picture pic=currentpicture, path[][] g, pen[][] palette)
 {
   for(int i=0; i < g.length; ++i) {
-    guide[] gi=g[i];
-    guide[] gp;
+    path[] gi=g[i];
+    path[] gp;
     if(i+1 < g.length) gp=g[i+1];
-    guide[] gm;
+    path[] gm;
     if(i > 0) gm=g[i-1];
 
     for(int j=0; j < gi.length; ++j) {
@@ -593,8 +594,8 @@ void fill(picture pic=currentpicture, guide[][] g, pen[][] palette)
 
 // non-regularly spaced points routines:
 
-// check existing guides and adds new segment to them if possible,
-// or otherwise store segment as a new guide
+// check existing paths and adds new segment to them if possible,
+// or otherwise store segment as a new path
 private void addseg(pair[][] gds, segment seg)
 { 
   if(!seg.active) return;
@@ -624,20 +625,20 @@ private void addseg(pair[][] gds, segment seg)
   return;
 }
 
-guide[][] contour(real f(pair), pair a, pair b,
-                  real[] c, int nx=ngraph, int ny=nx,
-                  interpolate join=operator --)
+path[][] contour(real f(pair), pair a, pair b,
+                 real[] c, int nx=ngraph, int ny=nx,
+                 interpolate join=operator --)
 {
   return contour(new real(real x, real y) {return f((x,y));},a,b,c,nx,ny,join);
 }
 
-guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
+path[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
 {
   if(z.length != f.length)
     abort("z and f arrays have different lengths");
   int[][] trn=triangulate(z);
 
-  // array to store guides found so far
+  // array to store paths found so far
   pair[][][] points=new pair[c.length][][];
         
   for(int cnt=0; cnt < c.length; ++cnt) {
@@ -655,8 +656,8 @@ guide[][] contour(pair[] z, real[] f, real[] c, interpolate join=operator --)
   return connect(points,c,join);
 }
 
-guide[][] contour(real[] x, real[] y, real[] f, real[] c,
-                  interpolate join=operator --)
+path[][] contour(real[] x, real[] y, real[] f, real[] c,
+                 interpolate join=operator --)
 {
   int n=x.length;
   if(n != y.length)

@@ -1,5 +1,6 @@
 private import math;
 
+import splinetype;
 import graph_settings;
 
 scaleT Linear;
@@ -16,8 +17,13 @@ scaleT Linear(bool automin=true, bool automax=true, real s=1,
 {
   real sinv=1/s;
   scaleT scale;
-  real T(real x) {return (x-intercept)*s;}
-  real Tinv(real x) {return x*sinv+intercept;}
+  scalefcn T,Tinv;
+  if(s == 1 && intercept == 0)
+    T=Tinv=identity;
+  else {
+    T=new real(real x) {return (x-intercept)*s;};
+    Tinv=new real(real x) {return x*sinv+intercept;};
+  }
   scale.init(T,Tinv,logarithmic=false,automin,automax);
   return scale;
 }
@@ -1666,25 +1672,50 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
   return pic;
 }
 
-typedef guide graph(pair F(real), real, real, int);
+typedef guide graph(pair f(real), real, real, int);
                        
-graph graph(guide join(... guide[]))
+graph graph(interpolate join)
 {
-  return new guide(pair F(real), real a, real b, int n) {
-    guide g;
+  static guide[] sequenceguide;
+  return new guide(pair f(real), real a, real b, int n) {
     real width=n == 0 ? 0 : (b-a)/n;
-    for(int i=0; i <= n; ++i) {
-      real x=a+width*i;
-      g=join(g,F(x));   
-    }   
-    return g;
+    return join(f(a)...sequence(new guide(int i) {
+	  real x=a+width*(i+1);
+	  return f(x);
+	},n));
+
   };
 }
 
 guide Straight(... guide[])=operator --;
 guide Spline(... guide[])=operator ..;
 
-typedef guide interpolate(... guide[]);
+interpolate Hermite(splinetype splinetype)
+{
+  return new guide(... guide[] a) {
+    int n=a.length;
+    if(n == 0) return nullpath;
+    real[] x,y;
+    guide G;
+    for(int i=0; i < n; ++i) {
+      guide g=a[i];
+      int m=size(g);
+      if(m == 0) continue;
+      pair z=point(g,0);
+      x.push(z.x);
+      y.push(z.y);
+      if(m > 1) {
+	G=G..hermite(x,y,splinetype) & g;
+	pair z=point(g,m);
+	x=new real[] {z.x};
+	y=new real[] {z.y};
+      }
+    }
+    return G & hermite(x,y,splinetype);
+  };
+}
+
+interpolate Hermite=Hermite(defaultspline);
 
 guide graph(picture pic=currentpicture, real f(real), real a, real b,
             int n=ngraph, interpolate join=operator --)

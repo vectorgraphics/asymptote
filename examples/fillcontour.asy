@@ -17,7 +17,7 @@ defaultpen(1bp);
 bounds range=bounds(-1,1);
     
 real[] Cvals=sequence(Divs+1)/Divs*(range.max-range.min)+range.min;
-guide[][] g=contour(f,a,b,Cvals,N,operator --);
+path[][] g=contour(f,a,b,Cvals,N,operator --);
 
 pen[] Palette=quantize(Rainbow(),Divs);
 

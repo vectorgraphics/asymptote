@@ -70,17 +70,15 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
   real rmax=pic.scale.z.T(range.max);
   palette=adjust(pic,m,M,rmin,rmax,palette);
 
-  int n=f.length;
-  int m=n > 0 ? f[0].length : 0;
   // Crop data to allowed range and scale
-  for(int i=0; i < n; ++i) {
-    real[] fi=f[i];
-    for(int j=0; j < m; ++j) {
-      real v=fi[j];
-      v=max(v,range.min);
-      v=min(v,range.max);
-      fi[j]=pic.scale.z.T(v);
-    }
+  if(range != Full || pic.scale.z.scale.T != identity ||
+     pic.scale.z.postscale.T != identity) {
+    scalefcn T=pic.scale.z.T;
+    real m=range.min;
+    real M=range.max;
+    static real[] dummy;
+    for(int i=0; i < f.length; ++i)
+      map(new real(real x) {return T(min(max(x,m),M));},f[i]);
   }
 
   initial=Scale(pic,initial);
@@ -139,6 +137,7 @@ bounds image(picture pic=currentpicture, pair[] z, real[] f,
   bounds range=range(pic,m,M);
   real rmin=pic.scale.z.T(range.min);
   real rmax=pic.scale.z.T(range.max);
+
   palette=adjust(pic,m,M,rmin,rmax,palette);
 
   int n=f.length;

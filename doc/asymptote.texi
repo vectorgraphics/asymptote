@@ -5444,12 +5444,20 @@ one of these interpolation types:
 @cindex @code{operator --}
 @cindex @code{Straight}
 @item @code{operator --} (linear interpolation; the abbreviation
-@code{Straight} is also accepted) 
+@code{Straight} is also accepted);
 
 @cindex @code{operator ..}
 @cindex @code{Spline} 
 @item @code{operator ..} (piecewise Bezier cubic spline interpolation;
-the abbreviation @code{Spline} is also accepted)
+the abbreviation @code{Spline} is also accepted);
+
+@cindex @code{Hermite}
+@cindex @code{Hermite(splinetype splinetype}
+@item @code{Hermite} (standard cubic spline interpolation using boundary
+condition @code{notaknot}, @code{natural},  @code{periodic},
+or @code{clamped(real slopea, real slopeb)}). The abbreviation
+@code{Hermite} is equivalent to @code{Hermite(notaknot)} for nonperiodic
+data and @code{Hermite(periodic)} for periodic data).
 
 @end itemize
 
@@ -6789,9 +6797,9 @@ Here is a simple flowchart example:
 This package draws contour lines.
 To construct contours for a function @code{f}, use
 @verbatim
-guide[][] contour(real f(real, real), pair a, pair b,
-                  real[] c, int nx=ngraph, int ny=nx,
-                  interpolate join=operator --);
+path[][] contour(real f(real, real), pair a, pair b,
+                 real[] c, int nx=ngraph, int ny=nx,
+                 interpolate join=operator --);
 @end verbatim
 @noindent
 The contour lines @code{c} for the function @code{f} are drawn
@@ -6806,28 +6814,28 @@ accurate pictures, but as usual, can overshoot in certain cases.
 To construct contours for an array of data values on a uniform
 two-dimensional lattice, use
 @verbatim
-guide[][] contour(real[][] f, real[][] midpoint=new real[][],
-                  pair a, pair b, real[] c,
-                  interpolate join=operator --);
+path[][] contour(real[][] f, real[][] midpoint=new real[][],
+                 pair a, pair b, real[] c,
+                 interpolate join=operator --);
 
 @end verbatim
 @noindent
 To construct contours for an array of irregularly spaced points
 and an array of values @code{f} at these points, use one of the routines
 @verbatim
-guide[][] contour(pair[] z, real[] f, real[] c,
-                  interpolate join=operator --);
-guide[][] contour(real[] x, real[] y, real[] f, real[] c,
-                  interpolate join=operator --);
+path[][] contour(pair[] z, real[] f, real[] c,
+                 interpolate join=operator --);
+path[][] contour(real[] x, real[] y, real[] f, real[] c,
+                 interpolate join=operator --);
 @end verbatim 
 @noindent
 The contours themselves can be drawn with one of the routines
 @verbatim
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-          guide[][] g, pen p=currentpen)
+          path[][] g, pen p=currentpen)
 
 void draw(picture pic=currentpicture, Label[] L=new Label[],
-          guide[][] g, pen[] p)
+          path[][] g, pen[] p)
 @end verbatim
 
 The following simple example draws the contour at value @code{1}

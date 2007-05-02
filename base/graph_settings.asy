@@ -14,3 +14,5 @@ real epsilon=10*realEpsilon;
 
 restricted bool Crop=true;
 restricted bool NoCrop=false;
+
+typedef guide interpolate(... guide[]);

@@ -5,8 +5,6 @@ Andy: Change primNull to another name (null is not primitive).
 
 Andy: Add routines to allow access to guide components.
 
-Andy: Make keywords cycle, tension, etc. usable by three.asy.
-
 Andy: Look at Java syntactic sugar for iterating over arrays.
 
 Andy: Add void operator init() "constructor" for structures.
