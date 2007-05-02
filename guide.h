@@ -147,6 +147,20 @@ public:
   }
 };
 
+// Similar to tensionSpecifier, curl expression are evaluated to this type
+// before being cast to guides.
+class curlSpecifier : public gc {
+  double value;
+  side s;
+
+public:
+  curlSpecifier(double value, side s)
+    : value(value), s(s) {}
+
+  double getValue() const { return value; }
+  side getSide() const { return s; }
+};
+
 // A guide giving a specifier.
 class specguide : public guide {
   spec *p;
@@ -159,6 +173,9 @@ public:
   
   specguide(spec *p, side s)
     : p(p), s(s) {}
+
+  specguide(curlSpecifier spec)
+    : p(new curlSpec(spec.getValue())), s(spec.getSide()) {}
 
   void print(ostream& out) const {
     out << *p;

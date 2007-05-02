@@ -6233,20 +6233,17 @@ as illustrated in the following example:
 @cindex @code{guide3}
 @cindex @code{path3}
 @cindex @code{cycle}
-@cindex @code{curl3}
+@cindex @code{curl}
 @cindex @code{tension}
 @cindex @code{controls}
 This module fully extends the notion of guides and paths in @code{Asymptote}
-to three dimensions, introducing the new types @code{guide3} and @code{path3},
-along with three-dimensional versions of @code{cycle}, the tension operator
-@code{tension}, and the curl operator @code{curl3}. Just as in two
-dimensions, the nodes within a @code{guide3} can be qualified with
-these operators and also with explicit directions and control points (using
-braces and @code{controls}, respectively). This generalization of John
-Hobby's spline algorithm is shape-invariant under three-dimensional rotation,
-scaling, and shifting, and reduces in the planar case to the
-two-dimensional algorithm used in @code{Asymptote}, @code{MetaPost},
-and @code{MetaFont}.
+to three dimensions, introducing the new types @code{guide3} and @code{path3}.
+Guides in three dimensions are specified with the same syntax as in two
+dimensions but with triples @code{(x,y,z)} in place of pairs @code{(x,y)} for
+the nodes and direction specifiers.  This generalization of John Hobby's spline
+algorithm is shape-invariant under three-dimensional rotation, scaling, and
+shifting, and reduces in the planar case to the two-dimensional algorithm used
+in @code{Asymptote}, @code{MetaPost}, and @code{MetaFont}.
 
 For example, a unit circle in the @math{XY} plane may be filled and
 drawn like this:

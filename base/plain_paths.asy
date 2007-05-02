@@ -1,5 +1,11 @@
 path nullpath;
 
+// These numbers specify which side a specifier is in an operator spec or
+// operator curl expression:
+//  a{out} .. {in}b
+restricted int JOIN_OUT=0;
+restricted int JOIN_IN=1;
+
 // Define a.. tension t ..b to be equivalent to
 //        a.. tension t and t ..b
 // and likewise with controls.

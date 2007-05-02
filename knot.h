@@ -82,7 +82,7 @@ public:
   virtual bool open() { return true; }
   virtual bool controlled() { return false; }
 
-  // When a knot has a restriction on one side and open on the other, the
+  // When a knot has a restriction on one side but is open on the other, the
   // restriction implies a restriction on the other side.  This is the partner
   // restriction defined here, where the pair argument is for the location of
   // the knot.

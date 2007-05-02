@@ -35,5 +35,27 @@ StartTest("spec");
   assert(t.in==2);
   assert(t.atLeast==true);
 }
+
+// Test the curlSpecifier type.
+{
+  curlSpecifier operator ..(curlSpecifier spec, string b) {
+    return spec;
+  }
+  curlSpecifier operator ..(string a, curlSpecifier spec) {
+    return spec;
+  }
+  curlSpecifier operator ..(string a, curlSpecifier spec, string b) {
+    return spec;
+  }
+
+  curlSpecifier spec="hello"{curl 3}.."joe";
+  assert(spec.value==3);
+  assert(spec.side==JOIN_OUT);
+
+  curlSpecifier spec="hello"..{curl 7}"joe";
+  assert(spec.value==7);
+  assert(spec.side==JOIN_IN);
+}
+
 EndTest();
 

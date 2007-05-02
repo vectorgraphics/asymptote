@@ -412,7 +412,7 @@ void write(file file, dir d)
   if(d.dir != O) {
     write(file,"{"); write(file,unit(d.dir)); write(file,"}");
   } else if(d.Curl) {
-    write(file,"{curl3 "); write(file,d.gamma); write(file,"}");
+    write(file,"{curl "); write(file,d.gamma); write(file,"}");
   }
 }
   
@@ -572,19 +572,23 @@ guide3 operator cast(tensionSpecifier t)
   };
 }
 
-guide3 operator curl3(real gamma, int p)
+guide3 operator cast(curlSpecifier spec)
 {
   return new void(flatguide3 f) {
-    if(p == 0) f.out(gamma);
-    else if(p == 1) f.in(gamma);
+    if(spec.side == JOIN_OUT) f.out(spec.value);
+    else if(spec.side == JOIN_IN) f.in(spec.value);
+    else
+      abort("invalid curl specifier");
   };
 }
-  
-guide3 operator spec(triple v, int p)
+
+guide3 operator spec(triple v, int side)
 {
   return new void(flatguide3 f) {
-    if(p == 0) f.out(v);
-    else if(p == 1) f.in(v);
+    if(side == JOIN_OUT) f.out(v);
+    else if(side == JOIN_IN) f.in(v);
+    else
+      abort("invalid direction specifier");
   };
 }
   

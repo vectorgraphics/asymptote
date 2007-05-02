@@ -129,6 +129,11 @@ trans::varEntry *primitiveTy::virtualField(symbol *id, signature *sig)
       FIELD(Real,"out",tensionSpecifierOutPart);
       FIELD(Real,"in",tensionSpecifierInPart);
       FIELD(Boolean,"atLeast",tensionSpecifierAtleastPart);
+      break;
+    case ty_curlSpecifier:
+      FIELD(Real,"value",curlSpecifierValuePart);
+      FIELD(Int,"side",curlSpecifierSidePart);
+      break;
     default:
       break;
   }

@@ -32,6 +32,7 @@ path     => primPath()
 guide*   => primGuide()
 cycleToken => primCycleToken()
 tensionSpecifier => primTensionSpecifier()
+curlSpecifier => primCurlSpecifier()
 file*    => primFile()
 picture* => primPicture()
 transform => primTransform()
@@ -1727,12 +1728,25 @@ guide* operator spec(pair z, int p)
   return new specguide(sp,d);
 }
 
-guide* operator curl(real gamma, int p)
+curlSpecifier operator curl(real gamma, int p)
 {
-  camp::side d=(camp::side) p;
-  camp::curlSpec *sp=new camp::curlSpec(gamma);
-
-  return new specguide(sp,d);
+  camp::side s=(camp::side) p;
+  return curlSpecifier(gamma,s);
+}
+
+real :curlSpecifierValuePart(curlSpecifier spec)
+{
+  return spec.getValue();
+}
+
+int :curlSpecifierSidePart(curlSpecifier spec)
+{
+  return spec.getSide();
+}
+
+guide *operator cast(curlSpecifier spec)
+{
+  return new specguide(spec);
 }
 
 tensionSpecifier operator tension(real tout, real tin, bool atleast)
