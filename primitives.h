@@ -1,5 +1,5 @@
 /*****
- * primatives.h
+ * primitives.h
  * Andy Hammerlindl 2007/04/27
  *
  * A list of the primative types in Asymptote, defined using the
