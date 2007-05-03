@@ -963,10 +963,12 @@ void initSettings() {
   addOption(new boolSetting("multiline", 0,
                             "Input code over multiple lines at the prompt"));
 
-  addOption(new boolSetting("quiet", 'q',
-			    "Suppress welcome message"));
+  addOption(new boolSetting("quiet", 'q',"Suppress welcome message"));
   addOption(new boolSetting("wait", 0,
 			    "Wait for child processes to finish before exiting"));
+  // Signal xasy at completion of each shipout
+  addOption(new boolSetting("signal", 0, ""));
+			    
   addOption(new boolSetting("localhistory", 0,
 			    "Use a local interactive history file"));
   addOption(new intSetting("historylines", 0, "n",

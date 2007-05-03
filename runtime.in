@@ -1081,6 +1081,12 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
   }
 
   f->shipout(preamble,prefix,format,wait,view);
+  
+  if(getSetting<bool>("signal")) {
+    pid_t ppid=getppid();
+    if(ppid > 0) kill(ppid,SIGUSR1);
+  }
+  
 }
 
 
