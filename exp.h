@@ -54,6 +54,14 @@ public:
   // expression.  ie. 3sin(x)
   virtual bool scalable() { return true; }
   
+  // Specifies if the value of the expression should be written to interactive
+  // prompt if typed as a stand-alone expression.  For example:
+  // > 2+3;
+  // should write 5, but
+  // > x=2+3;
+  // shouldn't.  (This choices are largely aesthetic)
+  virtual bool writtenToPrompt() { return true; }
+
   // Translates the expression to the given target type.  This should only be
   // called with a type returned by getType().  It does not perform implicit
   // casting.
@@ -832,6 +840,9 @@ public:
 
   void prettyprint(ostream &out, int indent);
 
+  // Don't write the result of an assignment to the prompt.
+  bool writtenToPrompt() { return false; }
+
   void transAsType(coenv &e, types::ty *target);
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
@@ -862,6 +873,9 @@ public:
   void prettyprint(ostream &out, int indent);
 
   bool scalable() { return false; }
+
+  // Don't write the result to the prompt.
+  bool writtenToPrompt() { return false; }
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
