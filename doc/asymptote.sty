@@ -7,6 +7,12 @@
 \DeclareOption{inline}{\inlinetrue}
 \ProcessOptions*
 
+% Work around jobname bug in MiKTeX 2.5 and 2.6:
+% Turn stars in file names (resulting from spaces, etc.) into underscores
+\def\fixstar#1*#2\relax{\def\argtwo{#2}\ifx\argtwo\empty\gdef\Jobname{#1}\else
+\fixstar#1_#2\relax\fi}
+\expandafter\fixstar\jobname*\relax
+
 \ifinline
 \RequirePackage{color,graphicx}
 \else
@@ -90,22 +96,22 @@
 \def\AfterasyAsymptote{%
   \immediate\write\AsyStream{\@charrb);}%
   \ifinline
-    \openin\AsyTestStream=\jobname_\arabic{asy}_.tex
+    \openin\AsyTestStream=\Jobname_\arabic{asy}_.tex
   \else
     \ifcase\pdfoutput
-      \openin\AsyTestStream=\jobname_\arabic{asy}.eps
+      \openin\AsyTestStream=\Jobname_\arabic{asy}.eps
     \else
-      \openin\AsyTestStream=\jobname_\arabic{asy}.pdf
+      \openin\AsyTestStream=\Jobname_\arabic{asy}.pdf
     \fi
   \fi
   \ifeof\AsyTestStream
     \ifinline
-      \message{File \jobname_\arabic{asy}_.tex does not exist.}%
+      \message{File \Jobname_\arabic{asy}_.tex does not exist.}%
     \else
       \ifcase\pdfoutput
-        \message{File \jobname_\arabic{asy}.eps does not exist.}%
+        \message{File \Jobname_\arabic{asy}.eps does not exist.}%
       \else
-        \message{File \jobname_\arabic{asy}.pdf does not exist.}%
+        \message{File \Jobname_\arabic{asy}.pdf does not exist.}%
       \fi
     \fi
     \closein\AsyTestStream%
@@ -113,9 +119,9 @@
     \closein\AsyTestStream%
     \ifinline
     \catcode`:=12
-    \input \jobname_\arabic{asy}_.tex%
+    \input \Jobname_\arabic{asy}_.tex%
     \else
-    \includegraphics{\jobname_\arabic{asy}}%
+    \includegraphics{\Jobname_\arabic{asy}}%
     \fi
   \fi
   \relax%
@@ -127,7 +133,7 @@
   \def\@optarg{#1}%
    \immediate\write\AsyStream{}%
    \immediate\write\AsyStream{eval(quote\@charlb}%
-   \immediate\write\AsyStream{defaultfilename='\jobname_\arabic{asy}';}%
+   \immediate\write\AsyStream{defaultfilename='\Jobname_\arabic{asy}';}%
   \ifx\@optarg\empty
   \else
     \immediate\write\AsyStream{size(#1);}%
