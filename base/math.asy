@@ -168,14 +168,14 @@ bool increasing(real[] x)
 
 real[] zero(int n)
 {
-  return sequence(new real(int x){return 0;},n);
+  return sequence(new real(int) {return 0;},n);
 }
 
 real[][] zero(int n, int m)
 {
   real[][] M=new real[n][];
   for(int i=0; i < n; ++i)
-    M[i]=sequence(new real(int x){return 0;},m);
+    M[i]=sequence(new real(int) {return 0;},m);
   return M;
 }
 
@@ -183,7 +183,16 @@ real[][] identity(int n)
 {
   real[][] m=new real[n][];
   for(int i=0; i < n; ++i)
-    m[i]=sequence(new real(int x){return x == i ? 1 : 0;},n);
+    m[i]=sequence(new real(int j) {return j == i ? 1 : 0;},n);
+  return m;
+}
+
+real[][] diagonal(... real[] a)
+{
+  int n=a.length;
+  real[][] m=new real[n][];
+  for(int i=0; i < n; ++i)
+    m[i]=sequence(new real(int j) {return j == i ? a[i] : 0;},n);
   return m;
 }
 
