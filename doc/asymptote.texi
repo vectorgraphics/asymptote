@@ -7462,7 +7462,7 @@ Stefan Knorr.
 @c  LocalWords:  batchView clearGUI ignoreGUI interactiveMask interactiveView
 @c  LocalWords:  listvariables outformat outname parseonly prepending psviewer
 @c  LocalWords:  pdfviewer papertype tabcompletion noautoplain plugins Teixeira
-@c  LocalWords:  embeddedmovie historylines inlinetex RadialShade penc penr CJK
+@c  LocalWords:  embeddedmovie historylines RadialShade penc penr CJK
 @c  LocalWords:  legendlinelength legendskip USERPROFILE LDFLAGS currentlight
 @c  LocalWords:  subsampled sinc kai AtBeginDocument GBK clearpage lasy texpath
 @c  LocalWords:  AtEndDocument zaxis maxbound truepoint paperwidth paperheight

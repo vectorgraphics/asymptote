@@ -966,7 +966,7 @@ void initSettings() {
   addOption(new boolSetting("quiet", 'q',"Suppress welcome message"));
   addOption(new boolSetting("wait", 0,
 			    "Wait for child processes to finish before exiting"));
-  // Signal xasy at completion of each shipout
+  // Signal parent process at completion of each shipout
   addOption(new boolSetting("signal", 0, ""));
 			    
   addOption(new boolSetting("localhistory", 0,

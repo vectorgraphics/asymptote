@@ -204,9 +204,9 @@ public:
     }
     
     do {
+      len=readbuffer();
       for(unsigned int i=0; i < n; ++i) 
 	if(checkabort(abort[i])) return i+1;
-      len=readbuffer();
     } while (!tailequals(buffer,len,prompt,plen));
     return 0;
   }

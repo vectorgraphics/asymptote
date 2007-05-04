@@ -28,7 +28,6 @@ const char *texpathmessage() {
   return strcpy(new char[buf.str().size()+1],buf.str().c_str());
 }
   
-string texready=string("(Please type a command or say `\\end')\n*");
 texstream tex; // Bi-directional pipe to latex (to find label bbox)
 
 void texstream::pipeclose() {
@@ -152,15 +151,14 @@ void picture::texinit()
   }
   
   ostringstream cmd;
-  cmd << "'" << texprogram() << "'";
+  cmd << "'" << texprogram() << "'" << " \\scrollmode";
   tex.open(cmd.str().c_str(),"texpath",texpathmessage());
+  tex.wait("\n*");
+//  tex << "\n";
   texdocumentclass(tex,true);
   
   texdefines(tex,TeXpreamble,true);
   TeXpipepreamble.clear();
-
-  tex << "\n";
-  tex.wait(texready.c_str(),texabort(getSetting<string>("tex")));
 }
   
 bool picture::texprocess(const string& texname, const string& outname,

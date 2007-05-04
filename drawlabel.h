@@ -29,13 +29,14 @@ protected:
   pair Align;
   pair texAlign;
   bbox Box;
+  bool enabled;
   
 public:
   drawLabel(string label, string size, transform T, pair position,
 	    pair align, pen pentype)
     : label(label), size(size), T(shiftless(T)), position(position),
       align(align), pentype(pentype), width(0.0), height(0.0), depth(0.0),
-      havebounds(false), suppress(false) {} 
+    havebounds(false), suppress(false), enabled(false) {} 
   
   virtual ~drawLabel() {}
 
@@ -45,9 +46,11 @@ public:
     
   void bounds(bbox& b, iopipestream&, boxvector&, bboxlist&);
   
-  bool texbounds(iopipestream& tex, string& s, bool warn,
-		 const char **abort);
+  bool texbounds(iopipestream& tex, string& s, const char **abort, bool warn);
     
+  int wait(iopipestream &tex, const char *s, const char **abort,
+	   bool ignore=false);
+  
   bool islabel() {
     return true;
   }

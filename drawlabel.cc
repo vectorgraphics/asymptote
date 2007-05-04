@@ -15,64 +15,54 @@ using namespace settings;
 
 namespace camp {
   
-extern string texready;
+string texready=string("(Please type a command or say `\\end')\n*");
 pen drawElement::lastpen;
 
 void drawLabel::labelwarning(const char *action) 
 {
   cerr << "warning: label \"" << label 
-	       << "\" " << action << " to avoid overwriting" << endl;
+       << "\" " << action << " to avoid overwriting" << endl;
 }
  
-int wait(iopipestream &tex, const char *s, const char **abort,
-	 bool ignore=false)
+int drawLabel::wait(iopipestream &tex, const char *s, const char **abort,
+		    bool ignore)
 {
   int rc=tex.wait(s,abort);
   if(rc > 0) {
     if(fataltex[rc-1]) {
       tex.pipeclose();
-      camp::reportError(*tex.message()); // Fatal error
+      ignore=false;
     }
-    if(!ignore) camp::reportError(*tex.message());
-  }
+    tex << "\n";
+    tex.wait(s,abort);
+    tex << "\n";
+    tex.wait(s,abort);
+    if(!ignore)
+      reportError(*tex.message());
+   }
   return rc;
 }
  
-void recover(iopipestream &tex, const char **abort)
-{
-  tex << "\n";
-  wait(tex,"\n*",abort,true);
-  tex << "\n\n";
-  wait(tex,"\n*",abort,true);
-}
-  
-bool drawLabel::texbounds(iopipestream& tex, string& s, bool warn,
-			  const char **abort)
+bool drawLabel::texbounds(iopipestream& tex, string& s, const char **abort,
+			  bool warn)
 {
   string texbuf;
   tex << "\\setbox\\ASYbox=\\hbox{" << stripblanklines(s) << "}\n\n";
-  int rc=wait(tex,texready.c_str(),abort,true);
-  if(rc) {
-    if(getSetting<bool>("inlinetex")) {
-      if(warn) {
-	recover(tex,abort);
-	if(getSetting<bool>("debug")) {
-	  ostringstream buf;
-	  buf << "Cannot determine size of label \"" << s << "\"";
-	  reportWarning(buf);
-	}
-	return false;
-      }
-      tex << "\\show 0\n";
-      tex << "\n";
-      wait(tex,"\n*",abort,true);
-      return false;
-    } else {
-      recover(tex,abort);
-      camp::reportError(*tex.message());
-    }
-  }
-  
+  int rc=wait(tex,texready.c_str(),abort,getSetting<bool>("inlinetex"));
+   if(rc) {
+     tex << "\\show 0\n";
+     tex.wait("\n*");
+     if(warn) {
+       if(getSetting<bool>("debug")) {
+	 ostringstream buf;
+	 buf << "Cannot determine size of label \"" << s << "\"";
+	 reportWarning(buf);
+       }
+       return false;
+     }
+     return false;
+   }
+
   tex << "\\showthe\\wd\\ASYbox\n";
   tex >> texbuf;
   if(texbuf[0] == '>' && texbuf[1] == ' ')
@@ -129,9 +119,10 @@ void drawLabel::getbounds(iopipestream& tex, const string& texengine)
     
   lastpen=pentype;
     
-  bool nullsize=size == "";
-  if(!texbounds(tex,label,nullsize,abort) && !nullsize)
-    texbounds(tex,size,false,abort);
+  bool nullsize=size.empty();
+  if(!texbounds(tex,label,abort,nullsize) && !nullsize)
+    texbounds(tex,size,abort,false);
+  enabled=true;
     
   Align=inverse(T)*align;
   double scale0=max(fabs(Align.getx()),fabs(Align.gety()));
@@ -212,14 +203,14 @@ void drawLabel::bounds(bbox& b, iopipestream& tex, boxvector& labelbounds,
 
 void drawLabel::checkbounds()
 {
-  if(!havebounds) 
+  if(!havebounds)
     reportError("drawLabel::write called before bounds");
 }
 
 bool drawLabel::write(texfile *out)
 {
   checkbounds();
-  if(suppress || pentype.invisible()) return true;
+  if(suppress || pentype.invisible() || !enabled) return true;
   out->setpen(pentype);
   out->put(label,T,position,texAlign);
   return true;
