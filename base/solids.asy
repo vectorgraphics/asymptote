@@ -26,9 +26,8 @@ real[] tangent(path p, path q, bool side)
     pair a=point(p,ta);
     pair b=point(q,tb);
     real angle=angle(b-a,warn=false);
-    if(abs(angle) <= epsilon || abs(abs(0.5*angle)-pi) <= epsilon) {
+    if(abs(angle) <= epsilon || abs(abs(0.5*angle)-pi) <= epsilon)
       return new real[] {ta,tb};
-    }
     transform t=rotate(-degrees(angle));
     p=t*p;
     q=t*q;
@@ -194,7 +193,7 @@ struct revolution {
           s.front.push(p2);
           s.back.push(p1);
         }
-      }
+      } else s.front.push(S);
     }
   }
 
@@ -213,6 +212,8 @@ struct revolution {
   // add longitudinal curves to skeleton
   void longitudinal(skeleton s, int ngraph=32, projection P=currentprojection) {
     real t, d=0;
+    static real epsilon=sqrt(realEpsilon);
+
     // Find a point on g of maximal distance from the axis.
     int N=size(g);
     for(int i=0; i < N; ++i) {

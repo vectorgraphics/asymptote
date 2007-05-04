@@ -19,6 +19,7 @@ typedef real[][] transform3;
 
 // Alias the math operation of multiplying matrices.
 transform3 operator * (transform3 a, transform3 b)=math.operator *;
+transform3 identity(int n)=math.identity;
 
 triple operator * (transform3 t, triple v)
 {
@@ -77,6 +78,7 @@ transform3 zscale3(real s)
 // an axis v through the origin (in the right-handed direction).
 transform3 rotate(real angle, triple v)
 {
+  if(v == O) abort("cannot rotate about the zero vector");
   v=unit(v);
   real x=v.x, y=v.y, z=v.z;
   real s=Sin(angle), c=Cos(angle), t=1-c;
@@ -1896,7 +1898,9 @@ triple midpoint(explicit guide3 p)
 // return a rotation that maps u to Z.
 transform3 align(triple u) 
 {
-  return rotate(colatitude(u),cross(u,Z));
+  triple v=cross(u,Z);
+  if(v != O) return rotate(colatitude(u),v);
+  return u.z >= 0 ? identity(4) : diagonal(1,-1,-1,1);
 }
 
 transform rotate(explicit triple dir)
@@ -2004,7 +2008,7 @@ path3 arc(triple c, real r, real theta1, real phi1, real theta2, real phi2,
     normal=cross(dir(theta1,phi1),dir(theta2,phi2));
     if(normal == O) abort("explicit normal required for these endpoints");
   }
-  transform3 T=(normal.x == 0 && normal.y == 0) ? identity(4) : align(normal); 
+  transform3 T=align(normal); 
   triple v1=T*dir(theta1,phi1);
   triple v2=T*dir(theta2,phi2);
   real t1=intersect(unitcircle3,O--2*(v1.x,v1.y,0))[0];
