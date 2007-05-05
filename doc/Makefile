@@ -77,6 +77,7 @@ asymptote/index.html: $(SOURCE) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
 
 clean: FORCE
 	rm -f $(ASYFILES:.asy=.pdf) $(DOCFILES)
+	rm -f intro{.pdf,_.aux} PDFAnim_temp_Guide.{aux,dvi,log,toc,out}
 	rm -f *.eps *.png latexusage.{asy,dvi,eps,png,log,aux,*.eps}
 	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,pdf,toc,tp,vr} asymptote.info-*
 	rm -f CAD.{aux,dvi,log,pdf,toc}
