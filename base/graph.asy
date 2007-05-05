@@ -1680,9 +1680,9 @@ graph graph(interpolate join)
   return new guide(pair f(real), real a, real b, int n) {
     real width=n == 0 ? 0 : (b-a)/n;
     return join(...sequence(new guide(int i) {
-	  real x=a+width*i;
-	  return f(x);
-	},n+1));
+          real x=a+width*i;
+          return f(x);
+        },n+1));
   };
 }
 
@@ -1704,10 +1704,10 @@ interpolate Hermite(splinetype splinetype)
       x.push(z.x);
       y.push(z.y);
       if(m > 1) {
-	G=G..hermite(x,y,splinetype) & g;
-	pair z=point(g,m);
-	x=new real[] {z.x};
-	y=new real[] {z.y};
+        G=G..hermite(x,y,splinetype) & g;
+        pair z=point(g,m);
+        x=new real[] {z.x};
+        y=new real[] {z.y};
       }
     }
     return G & hermite(x,y,splinetype);

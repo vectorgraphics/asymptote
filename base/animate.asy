@@ -95,7 +95,7 @@ struct animation {
   }
 
   string load(string name, int pages, real delay=animationdelay,
-		string options="") {
+              string options="") {
     string s="\PDFAnimLoad[single,interval="+string(delay);
     if(options != "") s += ","+options;
     texpreamble(s+"]{"+prefix+"}{"+name+"}{"+string(pages)+"}%");

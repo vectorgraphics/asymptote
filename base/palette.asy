@@ -107,7 +107,7 @@ bounds image(picture pic=currentpicture, real f(real,real),
     scalefcn Tinv=pic.scale.x.Tinv;
     // Take center point of each bin
     data[j]=sequence(new real(int i) {
-	return f(Tinv(interp(xmin,xmax,(i+0.5)/ny)),y);
+        return f(Tinv(interp(xmin,xmax,(i+0.5)/ny)),y);
       },nx);
   }
   return image(pic,data,range,initial,final,palette,false);
