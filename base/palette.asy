@@ -78,7 +78,7 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
     real M=range.max;
     static real[] dummy;
     for(int i=0; i < f.length; ++i)
-      map(new real(real x) {return T(min(max(x,m),M));},f[i]);
+      f[i]=map(new real(real x) {return T(min(max(x,m),M));},f[i]);
   }
 
   initial=Scale(pic,initial);
