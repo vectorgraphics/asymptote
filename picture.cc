@@ -154,7 +154,7 @@ void picture::texinit()
   cmd << "'" << texprogram() << "'" << " \\scrollmode";
   tex.open(cmd.str().c_str(),"texpath",texpathmessage());
   tex.wait("\n*");
-//  tex << "\n";
+  tex << "\n";
   texdocumentclass(tex,true);
   
   texdefines(tex,TeXpreamble,true);
