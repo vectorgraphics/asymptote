@@ -103,7 +103,7 @@ public:
   virtual void precision(int) {}
   virtual void flush() {}
   virtual size_t tell() {return 0;}
-  virtual void seek(int, bool begin=true) {}
+  virtual void seek(int, bool=true) {}
   
   void unsupported(const char *rw, const char *type) {
     ostringstream buf;
@@ -136,7 +136,7 @@ public:
   virtual void write(const transform&) {nowrite("transform");}
   virtual void writeline() {nowrite("string");}
   
-  virtual void ignoreComment(bool readstring=false) {};
+  virtual void ignoreComment(bool=false) {};
   virtual void csv() {};
   
   template<class T>

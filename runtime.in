@@ -1723,6 +1723,8 @@ cycleToken :newCycleToken()
 
 guide *operator cast(cycleToken tok)
 {
+// Avoid unused variable warning messages.
+  if(&tok) return new cycletokguide();
   return new cycletokguide();
 }
 
