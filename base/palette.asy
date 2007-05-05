@@ -56,6 +56,8 @@ pen[] adjust(picture pic, real min, real max, real rmin, real rmax,
   return palette;
 }
 
+private real[] sequencereal;
+
 bounds image(picture pic=currentpicture, real[][] f, range range=Full,
              pair initial, pair final, pen[] palette,
              bool transpose=(initial.x < final.x && initial.y < final.y))
@@ -76,7 +78,6 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
     scalefcn T=pic.scale.z.T;
     real m=range.min;
     real M=range.max;
-    static real[] dummy;
     for(int i=0; i < f.length; ++i)
       f[i]=map(new real(real x) {return T(min(max(x,m),M));},f[i]);
   }
@@ -102,12 +103,12 @@ bounds image(picture pic=currentpicture, real f(real,real),
   real ymax=pic.scale.y.T(final.y);
   real[][] data=new real[ny][nx];
   for(int j=0; j < ny; ++j) {
-    real[] dataj=data[j];
     real y=pic.scale.y.Tinv(interp(ymin,ymax,(j+0.5)/nx));
-    for(int i=0; i < nx; ++i) {
-      // Take center point of each bin
-      dataj[i]=f(pic.scale.x.Tinv(interp(xmin,xmax,(i+0.5)/ny)),y);
-    }
+    scalefcn Tinv=pic.scale.x.Tinv;
+    // Take center point of each bin
+    data[j]=sequence(new real(int i) {
+	return f(Tinv(interp(xmin,xmax,(i+0.5)/ny)),y);
+      },nx);
   }
   return image(pic,data,range,initial,final,palette,false);
 }
@@ -140,13 +141,13 @@ bounds image(picture pic=currentpicture, pair[] z, real[] f,
 
   palette=adjust(pic,m,M,rmin,rmax,palette);
 
-  int n=f.length;
   // Crop data to allowed range and scale
-  for(int i=0; i < n; ++i) {
-    real v=f[i];
-    v=max(v,range.min);
-    v=min(v,range.max);
-    f[i]=pic.scale.z.T(v);
+  if(range != Full || pic.scale.z.scale.T != identity ||
+     pic.scale.z.postscale.T != identity) {
+    scalefcn T=pic.scale.z.T;
+    real m=range.min;
+    real M=range.max;
+    f=map(new real(real x) {return T(min(max(x,m),M));},f);
   }
 
   int[] edges={0,0,1};
@@ -174,11 +175,7 @@ bounds image(picture pic=currentpicture, real[] x, real[] y, real[] f,
   if(n != y.length)
     abort("x and y arrays have different lengths");
 
-  pair[] z=new pair[n];
-
-  for(int i=0; i < n; ++i)
-    z[i]=(x[i],y[i]);
-    
+  pair[] z=sequence(new pair(int i) {return (x[i],y[i]);},n);
   return image(pic,z,f,range,palette);
 }
 
@@ -384,10 +381,10 @@ private pen[] BWRainbow(int NColors, bool two)
 pen[] quantize(pen[] Palette, int n)
 {
   if(Palette.length == 0) abort("cannot quantize empty palette");
-  pen[] p=new pen[n];
-  for(int i=0; i < n; ++i)
-    p[i]=Palette[round(i/(n-1)*(Palette.length-1))]; 
-  return p;
+  if(n <= 1) abort("palette must contain at least two pens");
+  return sequence(new pen(int i) {
+      return Palette[round(i/(n-1)*(Palette.length-1))];
+    },n); 
 }
 
 // A rainbow palette tapering off to black/white at the spectrum ends,
