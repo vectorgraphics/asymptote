@@ -5911,8 +5911,9 @@ marker marker(frame f, markroutine markroutine=marknodes,
               bool put=Above);
 @end verbatim
 In the right-hand graph, the unit @math{n}-sided regular polygon 
-@code{polygon(int n)} and the unit @math{n}-point cross 
-@code{cross(int n)} are used to build a custom marker frame. 
+@code{polygon(int n)} and the unit @math{n}-point cyclic cross 
+@code{cross(int n, bool round=true, real r=0)} (where @code{r} is an
+optional ``inner'' radius) are used to build a custom marker frame.
 @anchor{markuniform}
 Here @code{markuniform(bool centered=false, int n, bool rotated=false)} 
 adds this frame at @code{n} uniformly spaced points along the arclength

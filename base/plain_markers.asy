@@ -4,20 +4,41 @@ real legendvskip=legendhskip;
 real legendmargin=10;
 real legendmaxrelativewidth=1;
 
-// Return a unit polygon with n sides
+// Return a unit polygon with n sides.
 path polygon(int n) 
 {
-  path g;
+  guide g;
   for(int i=0; i < n; ++i) g=g--expi(2pi*(i+0.5)/n-0.5*pi);
   return g--cycle;
 }
 
-// Return an n-point unit cross
-path[] cross(int n) 
+// Return a unit n-point cyclic cross, with optional inner radius r and
+// end rounding.
+path cross(int n, bool round=true, real r=0) 
 {
-  path[] g;
-  for(int i=0; i < n; ++i) g=g^^(0,0)--expi(2pi*(i+0.5)/n-0.5*pi);
-  return g;
+  assert(n > 1);
+  real r=min(r,1);
+  real theta=pi/n;
+  real s=sin(theta);
+  real c=cos(theta);
+  pair z=(c,s);
+  transform mirror=reflect(0,z);
+  pair p1=(r,0);
+  path elementary;
+  if(round) {
+    pair e1=p1+z*max(1-r*(s+c),0);
+    elementary=p1--e1..(c,s)..mirror*e1--mirror*p1;
+  } else {
+    pair p2=p1+z*(max(sqrt(1-(r*s)^2)-r*c),0);
+    elementary=p1--p2--mirror*p2--mirror*p1;
+  }
+
+  guide g;
+  real step=360/n;
+  for(int i=0; i < n; ++i)
+    g=g--rotate(i*step-90)*elementary;
+
+  return g--cycle;
 }
 
 path[] plus=(-1,0)--(1,0)^^(0,-1)--(0,1);
