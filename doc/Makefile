@@ -51,7 +51,7 @@ asymptote.info: $(SOURCE) $(ASYFILES:.asy=.png)
 	makeinfo asymptote
 
 asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf)
-	texi2dvi --pdf asymptote.texi
+	texi2dvi -o asymptote.pdf --pdf asymptote.texi
 
 CAD.pdf: CAD.tex CAD1.eps 
 	latex CAD
