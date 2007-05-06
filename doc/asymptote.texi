@@ -295,7 +295,7 @@ will be installed by default in @code{@value{Datadir}/doc/asymptote/examples}.
 
 @noindent
 @cindex Fedora Core
-Fedora Core 4 (and later) users can easily install @code{Asymptote}
+Fedora Core users can easily install @code{Asymptote}
 from the Fedora Extras mirrors:
 @verbatim
 yum install asymptote
@@ -7154,18 +7154,13 @@ this preliminary @acronym{GUI} soon.
 As @code{xasy} is written in the interactive scripting language
 @code{Python/TK}, it requires that both @code{Python} and the
 @code{tkinter} package be installed (included with @code{Python} under
-@code{MSDOS}). @code{Fedora Core 4} (and later) users can either install
+@code{MSDOS}). @code{Fedora Core} users can either install
 @code{tkinter} with the command
 @verbatim
 yum install tkinter
 @end verbatim
 @noindent
-or manually install the individual packages:
-@verbatim
-rpm -i tkinter-2.4.1-2.i386.rpm 
-rpm -U --nodeps tix-8.1.4-100.i386.rpm
-rpm -U --nodeps tk-8.4.9-3.i386.rpm 
-@end verbatim
+or manually install the @code{tkinter}, @code{tix}, and @code{tk} packages.
 
 Deconstruction of compound objects (such as arrows) can be prevented 
 by enclosing them within the commands
