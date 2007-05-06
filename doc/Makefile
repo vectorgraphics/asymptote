@@ -3,15 +3,12 @@ ASYFILES = $(wildcard *.asy) latexusage.asy
 SOURCE = asymptote.texi version.texi options
 ASY = ../asy -dir ../base
 DOCFILES = asymptote.pdf CAD.pdf PDFAnim_temp_Guide.pdf
-INTROFILES = diagonal square bigsquare labelsquare beziercurve helix eetomumu knots exp lineargraph datagraph filegraph loggraph secondaryaxis imagecontour diatom elliptic logo 
 
-doc:	asymptote.dvi asymptote.info html man intro faq
+doc:	asymptote.dvi asymptote.info html man faq
 
 html:	asymptote/index.html
 
 man:	asymptote.pdf CAD.pdf PDFAnim_temp_Guide.pdf asy.1
-
-intro: intro.pdf
 
 faq:	
 	cd FAQ; $(MAKE) faq
@@ -56,9 +53,6 @@ asymptote.info: $(SOURCE) $(ASYFILES:.asy=.png)
 asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf)
 	texi2dvi --pdf asymptote.texi
 
-intro.pdf: extra/intro.asy $(INTROFILES:=.asy)
-	$(ASY) -f pdf extra/intro.asy
-
 CAD.pdf: CAD.tex CAD1.eps 
 	latex CAD
 	latex CAD
@@ -77,7 +71,7 @@ asymptote/index.html: $(SOURCE) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
 
 clean: FORCE
 	rm -f $(ASYFILES:.asy=.pdf) $(DOCFILES)
-	rm -f intro{.pdf,_.aux} PDFAnim_temp_Guide.{aux,dvi,log,toc,out}
+	rm -f PDFAnim_temp_Guide.{aux,dvi,log,toc,out}
 	rm -f *.eps *.png latexusage.{asy,dvi,eps,png,log,aux,*.eps}
 	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,pdf,toc,tp,vr} asymptote.info-*
 	rm -f CAD.{aux,dvi,log,pdf,toc}
