@@ -1,8 +1,6 @@
 restricted bool Aspect=true;
 restricted bool IgnoreAspect=false;
 
-bool shipped;
-
 real cap(real x, real m, real M, real bottom, real top)
 {
   return x+top > M ? M-top : x+bottom < m ? m-bottom : x;

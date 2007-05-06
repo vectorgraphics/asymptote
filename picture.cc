@@ -172,10 +172,10 @@ bool picture::texprocess(const string& texname, const string& outname,
     outfile.close();
     ostringstream cmd;
     cmd << "'" << texprogram() << "'"
-	<< " \\scrollmode\\input '" << texname << "'";
+	<< " \\nonstopmode\\input '" << texname << "'";
     bool quiet=verbose <= 1;
     status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
-    if(!status && getSetting<bool>("twice")) 
+    if(!status && getSetting<bool>("twice"))
       status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
     if(status) {
       if(quiet) System(cmd,0);

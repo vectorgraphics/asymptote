@@ -32,11 +32,12 @@ int drawLabel::wait(iopipestream &tex, const char *s, const char **abort,
     if(fataltex[rc-1]) {
       tex.pipeclose();
       ignore=false;
+    } else {
+      tex << "\n";
+      tex.wait(s,abort);
+      tex << "\n";
+      tex.wait(s,abort);
     }
-    tex << "\n";
-    tex.wait(s,abort);
-    tex << "\n";
-    tex.wait(s,abort);
     if(!ignore)
       reportError(*tex.message());
    }

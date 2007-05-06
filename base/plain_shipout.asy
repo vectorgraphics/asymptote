@@ -1,6 +1,8 @@
 // Default file prefix used for inline LaTeX mode
 string defaultfilename;
 
+bool shipped; // Was a picture or frame already shipped out?
+
 restricted bool Wait=true;                         
 restricted bool NoWait=false;
 
@@ -82,9 +84,8 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
   shipout(prefix,f,preamble,format,wait,view,
           Transform ? GUIlist[GUIFilenum].Transform : null,
           Transform ? GUIlist[GUIFilenum].Delete : null);
-  ++GUIFilenum;
   shipped=true;
-  uptodate(true);
+  ++GUIFilenum;
 }
 
 frame Portrait(frame f) {return f;};
@@ -105,6 +106,7 @@ void shipout(string prefix=defaultfilename,
              orientation orientation=orientation,
              string format="", bool wait=NoWait, bool view=true)
 {
+  uptodate(true);
   shipout(prefix,currentpicture,orientation,format,wait,view);
 }
 
