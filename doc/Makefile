@@ -3,7 +3,7 @@ ASYFILES = $(wildcard *.asy) latexusage.asy
 SOURCE = asymptote.texi version.texi options
 ASY = ../asy -dir ../base
 DOCFILES = asymptote.pdf CAD.pdf PDFAnim_temp_Guide.pdf
-INTROFILES=diagonal square bigsquare labelsquare beziercurve helix eetomumu knots exp lineargraph datagraph filegraph loggraph secondaryaxis imagecontour diatom elliptic logo 
+INTROFILES = diagonal square bigsquare labelsquare beziercurve helix eetomumu knots exp lineargraph datagraph filegraph loggraph secondaryaxis imagecontour diatom elliptic logo 
 
 doc:	asymptote.dvi asymptote.info html man intro faq
 
