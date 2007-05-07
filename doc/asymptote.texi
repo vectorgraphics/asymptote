@@ -535,8 +535,10 @@ make install
 @end verbatim
 @noindent
 Be sure to use @acronym{GNU} @code{make} (on non-@acronym{GNU} systems this command
-may be called @code{gmake}). If you get errors from a broken @code{pdftex}
-installation, simply put
+may be called @code{gmake}). 
+To build the documentation, you may need to install the
+@code{texinfo-tex} package. If you get errors from a broken @code{texinfo}
+or @code{pdftex} installation, simply put
 @quotation
 @url{http://asymptote.sourceforge.net/asymptote.pdf}
 @end quotation

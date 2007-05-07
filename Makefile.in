@@ -5,7 +5,9 @@ POLL = poll
 
 GC = @GCDIR@
 GCOPTIONS = @GCOPTIONS@
-GCLIBS = @GCLIBS@
+GCLIB = @GCLIB@
+GCPPLIB = @GCPPLIB@
+GCLIBS = $(GCLIB) $(GCPPLIB)
 LFLAGS = @LDFLAGS@
 LIBS = $(LFLAGS) @LIBS@ $(GCLIBS)
 
@@ -64,7 +66,7 @@ asy.o:	asy.rc asy.ico Makefile
 
 all:  	asy man faq asy-keywords.el
 
-$(GCLIBS): $(GC).tar.gz
+$(GCLIB): $(GC).tar.gz
 	gunzip -c $(GC).tar.gz > $(GC).tar
 	tar -xf $(GC).tar
 	rm -f $(GC).tar

@@ -92,7 +92,8 @@ AC_ARG_ENABLE(gc,
 			],[ac_cv_use_gc=$GCVERSION])
 
 OPTIONS=
-GCLIBS=
+GCLIB=
+GCPPLIB=
 GCNAME="Boehm Garbage Collector"
 GCOPTIONS="--disable-threads --disable-shared --enable-cplusplus "
 if test "x$ac_cv_use_gc" != "xno" ; then
@@ -108,7 +109,8 @@ if test "x$ac_cv_use_gc" != "xno" ; then
    else
       GCDIR=gc$ac_cv_use_gc
       AC_MSG_NOTICE([enabling the $GCNAME $GCDIR])
-      GCLIBS="\$(GC)/.libs/libgccpp.a \$(GC)/.libs/libgc.a"
+      GCLIB="\$(GC)/.libs/libgc.a"
+      GCPPLIB="\$(GC)/.libs/libgccpp.a"
       INCL="-I \$(GC)/include"
    fi
 else
@@ -135,7 +137,8 @@ AC_CHECK_HEADER(ext/hash_map,,OPTIONS=$OPTIONS"-DNOHASH ")
 AC_SUBST(getopt)
 AC_SUBST(GCDIR)
 AC_SUBST(GCOPTIONS)
-AC_SUBST(GCLIBS)
+AC_SUBST(GCLIB)
+AC_SUBST(GCPPLIB)
 AC_SUBST(INCL)
 AC_SUBST(OPTIONS)
 
