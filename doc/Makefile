@@ -51,7 +51,9 @@ asymptote.info: $(SOURCE) $(ASYFILES:.asy=.png)
 	makeinfo asymptote
 
 asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf)
-	texi2dvi -o asymptote.pdf --pdf asymptote.texi
+	ln -sf asymptote.texi asymptote_.texi
+	texi2dvi --pdf asymptote_.texi
+	mv asymptote_.pdf asymptote.pdf
 
 CAD.pdf: CAD.tex CAD1.eps 
 	latex CAD
@@ -73,7 +75,8 @@ clean: FORCE
 	rm -f $(ASYFILES:.asy=.pdf) $(DOCFILES)
 	rm -f PDFAnim_temp_Guide.{aux,dvi,log,toc,out}
 	rm -f *.eps *.png latexusage.{asy,dvi,eps,png,log,aux,*.eps}
-	rm -f asymptote.{aux,cp,cps,dvi,fn,info,ky,log,pg,pdf,toc,tp,vr} asymptote.info-*
+	rm -f {asymptote,asymptote_}.{aux,cp,cps,dvi,fn,info,ky,log,pg,pdf,toc,tp,vr} 
+	rm -f asymptote_.texi asymptote.info-*
 	rm -f CAD.{aux,dvi,log,pdf,toc}
 	rm -rf asymptote
 

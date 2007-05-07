@@ -6955,6 +6955,11 @@ interactiveMask=true;
 @end verbatim
 Command-line options override these defaults. Most configuration
 variables may also be changed at runtime. 
+If you prepend 
+@verbatim
+import plain;
+@end verbatim
+to the configuration file, it can contain arbitrary @code{Asymptote} code.
 
 @cindex @code{convert}
 @cindex @code{output}
