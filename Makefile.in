@@ -77,6 +77,8 @@ $(GCLIB): $(GC).tar.gz
 	./configure $(GCOPTIONS); \
 	$(MAKE) check
 
+$(GCPPLIB): $(GCLIB)
+
 html:	asy
 	cd doc; $(MAKE) doc
 
