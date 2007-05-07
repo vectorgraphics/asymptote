@@ -20,6 +20,7 @@
 
 #define __FFTWPP_H_VERSION__ 1.03
 
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <fftw3.h>

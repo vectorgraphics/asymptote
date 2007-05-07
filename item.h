@@ -9,6 +9,7 @@
 #define ITEM_H
 
 #include "common.h"
+#include <typeinfo>
 
 namespace vm {
 
