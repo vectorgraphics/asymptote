@@ -16,7 +16,10 @@ struct animation {
   picture[] pictures;
   string[] files;
   string prefix=outname();
-  int index=0;
+  int index;
+  bool global=true; // Using a global scaling for all frames; this requires
+  // extra memory since the actual shipout is deferred until all frames have
+  // been generated. 
 
   static animation prefix(string s=outname()) {
     animation animation=new animation;
@@ -35,21 +38,29 @@ struct animation {
     string format=nativeformat();
     shipout(name,pic,format=format,view=false);
     files.push(name+"."+format);
+    shipped=false;
   }
   
+  string pdfname() {
+    return "_"+stripextension(stripdirectory(prefix));
+  }
+
   void add(picture pic=currentpicture) {
-    pictures.push(pic.copy());
+    if(global) {
+      pictures.push(pic.copy());
+      index=pictures.length;
+    } else this.shipout(pdfname(),pic);
   }
   
-  void purge(bool keep) {
-    if(!(keep || settings.keep)) {
+  void purge(bool keep=settings.keep) {
+    if(!keep) {
       for(int i=0; i < files.length; ++i)
         delete(files[i]);
     }
   }
 
   int merge(int loops=0, real delay=animationdelay, string format="gif",
-            string options="", bool keep=false) {
+            string options="", bool keep=settings.keep) {
     string args="-loop " +(string) loops+" -delay "+(string)(delay/10)+" "
       +options;
       for(int i=0; i < files.length; ++i)
@@ -73,7 +84,11 @@ struct animation {
       if(multipage) newpage(all);
     }
     if(multipage) {
+      bool inlinetex=settings.inlinetex;
+      settings.inlinetex=false;
       plain.shipout(prefix,all,view=false);
+      settings.inlinetex=inlinetex;
+      shipped=false;
       return;
     }
     transform t=inverse(all.calculateTransform()*pictures[0].T);
@@ -84,7 +99,7 @@ struct animation {
     for(int i=0; i < pictures.length; ++i) {
       draw(pictures[i],m,nullpen);
       draw(pictures[i],M,nullpen);
-      this.shipout(pictures[i]);
+      this.shipout(prefix,pictures[i]);
     }
   }
 
@@ -94,34 +109,36 @@ struct animation {
     return false;
   }
 
-  string load(string name, int pages, real delay=animationdelay,
-              string options="") {
-    string s="\PDFAnimLoad[single,interval="+string(delay);
+  string load(string name, int frames, bool single=true,
+	      real delay=animationdelay, string options="") {
+    string s="\PDFAnimLoad[";
+    if(single) s += "single,";
+    s += "interval="+string(delay);
     if(options != "") s += ","+options;
-    texpreamble(s+"]{"+prefix+"}{"+name+"}{"+string(pages)+"}%");
+    texpreamble(s+"]{"+prefix+"}{"+name+"}{"+string(frames)+"}%");
     return "\PDFAnimJSPageEnable\PDFAnimation{"+prefix+"}";
   }
 
   string pdf(real delay=animationdelay, string options="") {
     if(!pdflatex()) return "";
-    string filename="_"+stripextension(stripdirectory(prefix));
-    bool inlinetex=settings.inlinetex;
-    settings.inlinetex=false;
-    export(filename,true);
-    settings.inlinetex=inlinetex;
-    shipped=false;
+    string filename=pdfname();
+
+    if(global)
+      export(filename,multipage=true);
 
     if(!settings.keep && !settings.inlinetex) {
       exitfcn atexit=atexit();
       void exitfunction() {
-        atexit();
-        delete(filename+".pdf");
-        delete(filename+"_.aux");
+	atexit();
+	if(global) {
+	  delete(filename+".pdf");
+	  delete(filename+"_.aux");
+	} else purge();
       }
       atexit(exitfunction);
     }
 
-    return load(filename,pictures.length,delay,options);
+    return load(filename,index,single=global,delay,options);
   }
 
   private string color(string name, pen p, bool colorspace=false) {
@@ -172,7 +189,8 @@ struct animation {
   int movie(int loops=0, real delay=animationdelay,
             string format=settings.outformat == "" ? "gif" : settings.outformat,
             string options="", bool keep=false) {
-    export();
+    if(global)
+      export();
     return merge(loops,delay,format,options,keep);
   }
 
