@@ -45,15 +45,15 @@ asy.1: options asy.1.begin asy.1.end
 	cat options | grep ^- | sed -e "s/-\(.*\)  \([A-Z].*\)/.TP\n.B -\1\n\2\./" | sed -e "/^.B/ s/-/\\\\-/g" | cat asy.1.begin - asy.1.end > asy.1
 
 asymptote.dvi: $(SOURCE) $(ASYFILES:.asy=.eps)
-	texi2dvi asymptote.texi
+	ln -sf asymptote.texi asymptote_.texi
+	texi2dvi asymptote_.texi
+	mv asymptote_.dvi asymptote.dvi
 
 asymptote.info: $(SOURCE) $(ASYFILES:.asy=.png)
 	makeinfo asymptote
 
 asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf)
-	ln -sf asymptote.texi asymptote_.texi
-	texi2dvi --pdf asymptote_.texi
-	mv asymptote_.pdf asymptote.pdf
+	texi2dvi --pdf asymptote.texi
 
 CAD.pdf: CAD.tex CAD1.eps 
 	latex CAD
