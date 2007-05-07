@@ -1031,6 +1031,8 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 {
   if(prefix.empty()) prefix=outname();
   
+  pid_t ppid=getSetting<bool>("signal") ? getppid() : 0;
+
   size_t size=GUItransform && GUIdelete ?
     checkArrays(GUItransform,GUIdelete) : 0;
  
@@ -1076,6 +1078,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 	  ostringstream buf;
 	  buf << prefix << "_" << i;
 	  group->shipout(preamble,buf.str(),"tgif",false,false,Delete);
+	  if(ppid > 0) kill(ppid,SIGUSR1);
 	}
 	++i;
       }
@@ -1086,11 +1089,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 
   f->shipout(preamble,prefix,format,wait,view);
   
-  if(getSetting<bool>("signal")) {
-    pid_t ppid=getppid();
-    if(ppid > 0) kill(ppid,SIGUSR1);
-  }
-  
+  if(ppid > 0) kill(ppid,SIGUSR2);
 }
 
 

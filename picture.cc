@@ -404,7 +404,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
       }
       bbox bscaled=b;
       bscaled *= deconstruct;
-      bboxout << bscaled << newl;
+      bboxout << bscaled << endl;
       if(Delete) {
 	unlink(outname.c_str());
 	return false;
