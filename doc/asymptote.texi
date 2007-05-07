@@ -463,18 +463,18 @@ xasy
 @end verbatim
 
 @cindex command-line options
-Configuration variables may also be set or overwritten with a command
-line option:
+Configuration variables may also be set or overwritten with a
+command-line option:
 @verbatim
 asy -psviewer=gsview -V venn
 @end verbatim
 
 @cindex environment variables
-Alternatively, system environment versions of these configuration
+Alternatively, system environment versions of the above configuration
 variables may be set in the conventional way. The corresponding
 environment variable name is obtained by converting the configuration
 variable name to upper case  and prepending @code{ASYMPTOTE_}:
-For example, to set the environment variable
+for example, to set the environment variable
 @verbatim
 ASYMPTOTE_PSVIEWER="C:\Program Files\Ghostgum\gsview\gsview32.exe";
 @end verbatim
@@ -6955,6 +6955,9 @@ interactiveMask=true;
 @end verbatim
 Command-line options override these defaults. Most configuration
 variables may also be changed at runtime. 
+The advanced configuration variable @code{dvipsOptions} allows options
+to be passed to the @code{dvips} utility as a string.
+
 If you insert
 @verbatim
 import plain;
@@ -6962,6 +6965,7 @@ import plain;
 @noindent
 at the beginning of the configuration file, it can contain arbitrary
 @code{Asymptote} code.
+@cindex @code{dvipsOptions}
 
 @cindex @code{convert}
 @cindex @code{output}

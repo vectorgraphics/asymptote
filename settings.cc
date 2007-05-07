@@ -989,6 +989,8 @@ void initSettings() {
   addOption(new realSetting("paperwidth", 0, "bp", ""));
   addOption(new realSetting("paperheight", 0, "bp", ""));
   
+  addOption(new stringSetting("dvipsOptions", 0, "string", "", ""));
+  
   addOption(new envSetting("config","config."+suffix));
   addOption(new envSetting("pdfviewer", defaultPDFViewer));
   addOption(new envSetting("psviewer", defaultPSViewer));
