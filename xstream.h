@@ -37,7 +37,7 @@ namespace xdr {
   
 class xbyte {
   unsigned char c;
- public:
+public:
   xbyte() {}
   xbyte(unsigned char c0) : c(c0) {}
   xbyte(int c0) : c((unsigned char) c0) {}
@@ -47,13 +47,13 @@ class xbyte {
 };
 
 class xios {
- public:
+public:
   enum io_state {goodbit=0, eofbit=1, failbit=2, badbit=4};
   enum open_mode {in=1, out=2, app=8, trunc=16};
   enum seekdir {beg=SEEK_SET, cur=SEEK_CUR, end=SEEK_END};
- private:	
+private:	
   int _state;
- public:	
+public:	
   int good() const { return _state == 0; }
   int eof() const { return _state & eofbit; }
   int fail() const { return !good();}
@@ -67,29 +67,17 @@ class xios {
 class xstream : public xios {
  protected:
   FILE *buf;
-  XDR xdrs;
  public:
   virtual ~xstream() {}
   xstream() {buf=NULL;}
-  void xopen(const char *filename, const char *mode, xdr_op xop) {
-    clear();
-    buf=fopen(filename,mode);
-    if(buf) xdrstdio_create(&xdrs, buf, xop);
-    else set(badbit);
-  }
-  void close() {
-    if(buf) {
-#if !defined(_CRAY) && (!defined(__i386__) || defined(__ELF__))
-      xdr_destroy(&xdrs);
-#endif			
-      fclose(buf);
-      buf=NULL;
-    }
-  }
+
   void precision(int) {}
   
   xstream& seek(long pos, seekdir dir=beg) {
-    if(fseek(buf,pos,dir) != 0) set(failbit); 
+    if(buf) {
+      clear();
+      if(fseek(buf,pos,dir) != 0) set(failbit); 
+    }
     return *this;
   }
   long tell() {
@@ -98,32 +86,32 @@ class xstream : public xios {
 };
 
 #define IXSTREAM(T,N) ixstream& operator >> (T& x) \
-{if(!xdr_##N(&xdrs, &x)) set(eofbit); return *this;}
+{if(!xdr_##N(&xdri, &x)) set(eofbit); return *this;}
 
-#if __linux__ && !__ELF__
-// Due to a i386-linuxaout bug, cannot generate xdr output for a.out systems.
-#define OXSTREAM(T,N) oxstream& operator << (T) {return *this;}
-#else
 #define OXSTREAM(T,N) oxstream& operator << (T x) \
-{ \
-  Encode(); \
-  if(!xdr_##N(&xdrs, &x)) set(badbit); return *this; \
-}
-#endif
+{if(!xdr_##N(&xdro, &x)) set(badbit); return *this;}
 
-#define IOXSTREAM(T,N) ioxstream& operator >> (T& x) \
-{ \
-  Decode(); \
-  if(!xdr_##N(&xdrs, &x)) set(eofbit); \
-  return *this; \
-}
-  
 class ixstream : virtual public xstream {
- public:
+protected:  
+  XDR xdri;
+public:
   void open(const char *filename, open_mode=in) {
-    xopen(filename,"r",XDR_DECODE);
+    clear();
+    buf=fopen(filename,"r");
+    if(buf) xdrstdio_create(&xdri,buf,XDR_DECODE);
+    else set(badbit);
   }
 	
+  void close() {
+    if(buf) {
+#ifndef _CRAY
+      xdr_destroy(&xdri);
+#endif			
+      fclose(buf);
+      buf=NULL;
+    }
+  }
+      
   ixstream() {}
   ixstream(const char *filename) {open(filename);}
   ixstream(const char *filename, open_mode mode) {open(filename,mode);}
@@ -152,22 +140,27 @@ class ixstream : virtual public xstream {
   }
 };
 
-class oxstream : public xstream {
+class oxstream : virtual public xstream {
 protected:  
-  bool decode;
- public:
+  XDR xdro;
+public:
   void open(const char *filename, open_mode mode=trunc) {
-    xopen(filename,(mode & app) ? "a" : "w",XDR_ENCODE);
-    decode=false;
+    clear();
+    buf=fopen(filename,(mode & app) ? "a" : "w");
+    if(buf) xdrstdio_create(&xdro,buf,XDR_ENCODE);
+    else set(badbit);
   }
 	
-  void Encode() {
-    if(decode) {
-      xdrstdio_create(&xdrs, buf, XDR_ENCODE);
-      decode=false;
+  void close() {
+    if(buf) {
+#ifndef _CRAY
+      xdr_destroy(&xdro);
+#endif			
+      fclose(buf);
+      buf=NULL;
     }
   }
-  
+      
   oxstream() {}
   oxstream(const char *filename) {open(filename);}
   oxstream(const char *filename, open_mode mode) {open(filename,mode);}
@@ -195,22 +188,36 @@ protected:
     if(fputc(x.byte(),buf) == EOF) set(badbit);
     return *this;
   }
- 
 };
 
-class ioxstream : public oxstream {
- public:
+class ioxstream : public ixstream, public oxstream {
+public:
   void open(const char *filename, open_mode mode=out) {
-    xopen(filename,(mode & app) ? "a+" : ((mode & trunc) ? "w+" : 
-					  ((mode & out) ? "r+" : "r")),
-	  XDR_ENCODE);
-    decode=false;
+    clear();
+    if(mode & app)
+      buf=fopen(filename,"a+");
+    else if(mode & trunc)
+      buf=fopen(filename,"w+");
+    else if(mode & out) {
+      buf=fopen(filename,"r+");
+      if(!buf)
+	buf=fopen(filename,"w+");
+    } else
+	buf=fopen(filename,"r");
+    if(buf) {
+      xdrstdio_create(&xdri,buf,XDR_DECODE);
+      xdrstdio_create(&xdro,buf,XDR_ENCODE);
+    } else set(badbit);
   }
 	
-  void Decode() {
-    if(!decode) {
-      xdrstdio_create(&xdrs, buf, XDR_DECODE);
-      decode=true;
+  void close() {
+    if(buf) {
+#ifndef _CRAY
+      xdr_destroy(&xdri);
+      xdr_destroy(&xdro);
+#endif			
+      fclose(buf);
+      buf=NULL;
     }
   }
   
@@ -218,28 +225,6 @@ class ioxstream : public oxstream {
   ioxstream(const char *filename) {open(filename);}
   ioxstream(const char *filename, open_mode mode) {open(filename,mode);}
   virtual ~ioxstream() {close();}
-
-  typedef ioxstream& (*imanip)(ioxstream&);
-  ioxstream& operator >> (imanip func) { return (*func)(*this); }
-	
-  IOXSTREAM(int,int);
-  IOXSTREAM(unsigned int,u_int);
-  IOXSTREAM(long,long);
-  IOXSTREAM(unsigned long,u_long);
-  IOXSTREAM(short,short);
-  IOXSTREAM(unsigned short,u_short);
-  IOXSTREAM(char,char);
-#ifndef _CRAY		
-  IOXSTREAM(unsigned char,u_char);
-#endif		
-  IOXSTREAM(float,float);
-  IOXSTREAM(double,double);
-	
-  ioxstream& operator >> (xbyte& x) {
-    x=fgetc(buf);
-    if(x.byte() == EOF) set(eofbit);
-    return *this;
-  }
 };
 
 inline oxstream& endl(oxstream& s) {s.flush(); return s;}

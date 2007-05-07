@@ -6956,7 +6956,7 @@ interactiveMask=true;
 Command-line options override these defaults. Most configuration
 variables may also be changed at runtime. 
 The advanced configuration variable @code{dvipsOptions} allows options
-to be passed to the @code{dvips} utility as a string.
+to be passed as a string to @code{dvips}.
 
 If you insert
 @verbatim
