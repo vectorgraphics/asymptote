@@ -435,8 +435,11 @@ class ixfile : public file {
 protected:  
   xdr::ioxstream stream;
 public:
-  ixfile(const string& name, bool check=true) : 
-    file(name,check,true), stream(name.c_str()) {if(check) Check();}
+  ixfile(const string& name, bool check=true,
+	 xdr::xios::open_mode mode=xdr::xios::in) :
+    file(name,check,true), stream(name.c_str(), mode) {
+    if(check) Check();
+  }
 
   ~ixfile() {close();}
   
@@ -481,7 +484,7 @@ public:
 
 class ioxfile : public ixfile {
 public:
-  ioxfile(const string& name) : ixfile(name,true) {}
+  ioxfile(const string& name) : ixfile(name,true,xdr::xios::out) {}
 
   void flush() {stream.flush();}
   

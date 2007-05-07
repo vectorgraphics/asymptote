@@ -1,5 +1,5 @@
 /* C++ interface to the XDR External Data Representation I/O routines
-   Version 1.44
+   Version 1.45
    Copyright (C) 1999-2007 John C. Bowman
 
 This program is free software; you can redistribute it and/or modify
@@ -153,11 +153,11 @@ class ixstream : virtual public xstream {
 };
 
 class oxstream : public xstream {
+protected:  
   bool decode;
  public:
   void open(const char *filename, open_mode mode=trunc) {
-    xopen(filename,(mode & app) ? "a" : ((mode & trunc) ? "w" : "r+"),
-	  XDR_ENCODE);
+    xopen(filename,(mode & app) ? "a" : "w",XDR_ENCODE);
     decode=false;
   }
 	
@@ -165,13 +165,6 @@ class oxstream : public xstream {
     if(decode) {
       xdrstdio_create(&xdrs, buf, XDR_ENCODE);
       decode=false;
-    }
-  }
-  
-  void Decode() {
-    if(!decode) {
-      xdrstdio_create(&xdrs, buf, XDR_DECODE);
-      decode=true;
     }
   }
   
@@ -208,10 +201,19 @@ class oxstream : public xstream {
 class ioxstream : public oxstream {
  public:
   void open(const char *filename, open_mode mode=out) {
-    xopen(filename,(mode & app) ? "a+" : ((mode & trunc) ? "w+" : "r+"),
+    xopen(filename,(mode & app) ? "a+" : ((mode & trunc) ? "w+" : 
+					  ((mode & out) ? "r+" : "r")),
 	  XDR_ENCODE);
+    decode=false;
   }
 	
+  void Decode() {
+    if(!decode) {
+      xdrstdio_create(&xdrs, buf, XDR_DECODE);
+      decode=true;
+    }
+  }
+  
   ioxstream() {}
   ioxstream(const char *filename) {open(filename);}
   ioxstream(const char *filename, open_mode mode) {open(filename,mode);}
