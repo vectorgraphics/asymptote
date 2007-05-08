@@ -80,6 +80,7 @@ void init_interactive()
   
 #if !defined(HAVE_LIBREADLINE) || !defined(HAVE_LIBCURSES)
 char *readline(const char *prompt) {
+  if(!cin.good()) {cin.clear(); return NULL;}
   cout << prompt;
   string s;
   getline(cin,s);

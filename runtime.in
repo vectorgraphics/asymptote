@@ -3879,10 +3879,10 @@ string readline(string prompt=emptystring, string history=emptystring,
 
   return line_read ? string(*line_read ? line_read : Default) : emptystring;
 #else
-  Stdout.write(prompt);
-  static ifile Stdin("");
+  if(!cin.good()) {cin.clear(); return NULL;}
+  cout << prompt;
   string s;
-  Stdin.read(s);
+  getline(cin,s);
   unused(&tabcompletion); // Avoid unused variable warning message.
   return s;
 #endif
