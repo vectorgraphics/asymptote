@@ -78,6 +78,7 @@ void read(vm::stack *s)
   T val=T();
   if(f->isOpen()) {
     f->read(val);
+    if(interact::interactive) f->purgeStandard();
     if(f->LineMode()) f->nexteol();
   }
   s->push(val);
@@ -163,6 +164,7 @@ void readArray(vm::stack *s)
       }
     }
   }
+  if(interact::interactive) f->purgeStandard();
   s->push(c);
 }
 

@@ -3879,7 +3879,6 @@ string readline(string prompt=emptystring, string history=emptystring,
 
   return line_read ? string(*line_read ? line_read : Default) : emptystring;
 #else
-  if(!cin.good()) {cin.clear(); return NULL;}
   cout << prompt;
   string s;
   getline(cin,s);

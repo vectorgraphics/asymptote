@@ -62,6 +62,8 @@ public:
   
   bool Standard() {return standard;}
   
+  virtual void purgeStandard() {}
+  
   void dimension(int Nx=-1, int Ny=-1, int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
   
   file(const string& name, bool checkerase=true, bool binary=false) :
@@ -204,6 +206,20 @@ public:
       fstream.open(name.c_str());
       stream=&fstream;
       if(checkerase) Check();
+    }
+  }
+  
+  void purgeStandard() {
+    if(standard) {
+      string s;
+      if(!cin.eof()) {
+	cin.clear();
+	getline(cin,s);
+      }
+      if(cin.eof()) {
+	cin.clear();
+	cout << endl;
+      }
     }
   }
   
