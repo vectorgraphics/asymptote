@@ -81,6 +81,7 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
   int limit=2000;
   if(abs(m.x) > limit || abs(m.y) > limit) f=shift(-m)*f;
 
+  uptodate(true);
   shipout(prefix,f,preamble,format,wait,view,
           Transform ? GUIlist[GUIFilenum].Transform : null,
           Transform ? GUIlist[GUIFilenum].Delete : null);
