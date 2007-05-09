@@ -1564,14 +1564,14 @@ pair postcontrol(path p, real t)
   return p.postcontrol(t);
 }
 
-pair dir(path p, int n)
+pair dir(path p, int n, int sign=0)
 {
-  return unit(p.direction(n));
+  return p.dir(n,sign);
 }
 
 pair dir(path p, real t)
 {
-  return unit(p.direction(t));
+  return p.dir(t);
 }
 
 path reverse(path p)

@@ -84,7 +84,7 @@ void cap(bbox& b, double t, path p, pen pentype) {
   transform T=pT ? *pT : identity();
   
   double h=0.5*pentype.width();
-  pair v=p.direction(t);
+  pair v=p.dir(t);
   transform S=rotate(conj(v))*shiftless(T);
   double xx=S.getxx(), xy=S.getxy();
   double yx=S.getyx(), yy=S.getyy();

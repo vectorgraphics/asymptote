@@ -16,6 +16,7 @@
 #include "camperror.h"
 
 static double Fuzz=10.0*DBL_EPSILON;
+double sqrtepsilon=sqrt(DBL_EPSILON);
   
 namespace camp {
 
@@ -261,7 +262,6 @@ pair path::postcontrol(double t) const
   return (bcd == d) ? nodes[iplus].post : bcd;
 }
 
-
 path path::reverse() const
 {
   solvedKnot *nodes = new solvedKnot[n];
@@ -429,7 +429,7 @@ bbox path::bounds(double min, double max) const
   
   int len=length();
   for (int i = 0; i < len; i++) {
-    pair v=I*unit(direction(i));
+    pair v=I*dir(i);
     box += point(i)+min*v;
     box += point(i)+max*v;
     if(straight(i)) continue;
@@ -441,13 +441,13 @@ bbox path::bounds(double min, double max) const
     quadraticroots x(a.getx(),b.getx(),c.getx());
     if(x.distinct != quadraticroots::NONE && goodroot(x.t1)) {
       double t=i+x.t1;
-      pair v=I*unit(direction(t));
+      pair v=I*dir(t);
       box += point(t)+min*v;
       box += point(t)+max*v;
     }
     if(x.distinct == quadraticroots::TWO && goodroot(x.t2)) {
       double t=i+x.t2;
-      pair v=I*unit(direction(t));
+      pair v=I*dir(t);
       box += point(t)+min*v;
       box += point(t)+max*v;
     }
@@ -456,18 +456,18 @@ bbox path::bounds(double min, double max) const
     quadraticroots y(a.gety(),b.gety(),c.gety());
     if(y.distinct != quadraticroots::NONE && goodroot(y.t1)) {
       double t=i+y.t1;
-      pair v=I*unit(direction(t));
+      pair v=I*dir(t);
       box += point(t)+min*v;
       box += point(t)+max*v;
     }
     if(y.distinct == quadraticroots::TWO && goodroot(y.t2)) {
       double t=i+y.t2;
-      pair v=I*unit(direction(t));
+      pair v=I*dir(t);
       box += point(t)+min*v;
       box += point(t)+max*v;
     }
   }
-  pair v=I*unit(direction(len));
+  pair v=I*dir(len);
   box += point(len)+min*v;
   box += point(len)+max*v;
   return box;

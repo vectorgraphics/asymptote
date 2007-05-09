@@ -38,6 +38,8 @@ bool simpson(double& integral, double (*)(double), double a, double b,
 bool unsimpson(double integral, double (*)(double), double a, double& b,
 	       double acc, double& area, double dxmax);
 
+extern double sqrtepsilon;
+
 namespace camp {
 
 // Used in the storage of solved path knots.
@@ -51,7 +53,7 @@ struct solvedKnot : public gc {
 
 
 class path : public gc {
-  bool cycles;  // If the knot is closed in a loop
+  bool cycles;  // If the path is closed in a loop
 
   int n; // The number of knots
 
@@ -184,14 +186,47 @@ public:
 
   pair postcontrol(double t) const;
   
-  pair direction(int i) const
-  {
-    return postcontrol(i) - precontrol(i);
+  template<class T>
+  pair predir(T t) const {
+    if(!cycles && t <= 0) return 0.0;
+    pair z1=point(t);
+    pair c1=precontrol(t);
+    double norm=camp::max(z1.abs2(),c1.abs2());
+    pair dir=z1-c1;
+    if(dir.abs2() > sqrtepsilon*norm) return unit(dir);
+    pair c0=postcontrol(t-1);
+    dir=2*c1-c0-z1;
+    if(dir.abs2() > sqrtepsilon*camp::max(norm,c0.abs2())) return unit(dir);
+    pair z0=point(t-1);
+    return unit(z1-z0+3*(c0-c1));
   }
 
-  pair direction(double t) const
+  template<class T>
+  pair postdir(T t) const {
+    if(!cycles && t >= n-1) return 0.0;
+    pair z0=point(t);
+    pair c0=postcontrol(t);
+    double norm=camp::max(z0.abs2(),c0.abs2());
+    pair dir=c0-z0;
+    if(dir.abs2() > sqrtepsilon*norm) return unit(dir);
+    pair c1=precontrol(t+1);
+    dir=z0-2*c0+c1;
+    if(dir.abs2() > sqrtepsilon*camp::max(norm,c1.abs2())) return unit(dir);
+    pair z1=point(t+1);
+    return unit(z1-z0+3*(c0-c1));
+  }
+
+  template<class T>
+  pair dir(T t) const
   {
-    return postcontrol(t) - precontrol(t);
+    return unit(0.5*(postdir(t)+predir(t)));
+  }
+
+  pair dir(int i, int sign) const
+  {
+    if(sign == 0) return dir(i);
+    else if(sign > 0) return postdir(i);
+    else return predir(i);
   }
 
   // Returns the path traced out in reverse.

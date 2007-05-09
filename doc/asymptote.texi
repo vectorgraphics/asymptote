@@ -2031,21 +2031,24 @@ is returned).
 @item pair point(path p, real t);
 This returns the coordinates of the point between node @code{floor(t)}
 and @code{floor(t)+1} corresponding to the cubic spline parameter
-@math{t=}@code{t-floor(t)} (@pxref{Bezier}). If @code{t} lies outside the range
+@code{t-floor(t)} (@pxref{Bezier}). If @code{t} lies outside the range
 [0,@code{length(p)}], it is first reduced modulo @code{length(p)}
 in the case where @code{p} is cyclic or else converted to the corresponding
 endpoint of @code{p}.
 
 @cindex @code{dir}
-@item pair dir(path p, int n);
-This returns the direction (as a pair) of the tangent to path @code{p} at
-node @code{n}. If @code{p} contains only one point, (0,0) is returned.
+@item pair dir(path p, int n, int sign=0);
+If @code{sign=0}, this returns the direction (as a pair) of the tangent
+to path @code{p} at node @code{n}. If @code{sign < 0}, the direction of
+the incoming tangent is returned; if @code{sign > 0}, the direction of
+the outgoing tangent is returned. If @code{p} contains only one point,
+@code{(0,0)} is returned. 
 
 @item pair dir(path p, real t);
 This returns the direction of the tangent to path @code{p} at the point
 between node @code{floor(t)} and @code{floor(t)+1} corresponding to the
-cubic spline parameter @math{t=}@code{t-floor(t)} (@pxref{Bezier}).
-If @code{p} contains only one point, (0,0) is returned.
+cubic spline parameter @code{t-floor(t)} (@pxref{Bezier}).
+If @code{p} contains only one point, @code{(0,0)} is returned.
 
 @cindex @code{precontrol}
 @item pair precontrol(path p, int n);
