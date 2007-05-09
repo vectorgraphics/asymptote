@@ -398,17 +398,19 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   }
       
   if(deconstruct) {
-      if(!bboxout.is_open()) {
-	bboxout.open(("."+buildname(prefix,"box")).c_str());	
-	bboxout << deconstruct << newl;
-      }
-      bbox bscaled=b;
-      bscaled *= deconstruct;
-      bboxout << bscaled << endl;
-      if(Delete) {
-	unlink(outname.c_str());
-	return false;
-      }
+    bool signal=getSetting<bool>("signal");
+    if(!bboxout.is_open()) {
+      bboxout.open(("."+buildname(prefix,"box")).c_str());	
+      bboxout << deconstruct << newl;
+    }
+    bbox bscaled=b;
+    bscaled *= deconstruct;
+    bboxout << bscaled << endl;
+    if(signal) bboxout.close();
+    if(Delete) {
+      unlink(outname.c_str());
+      return false;
+    }
   }
   
   SetPageDimensions();
