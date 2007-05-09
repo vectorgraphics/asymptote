@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include <climits>
+#include <cfloat>
 
 #include "mod.h"
 #include "pair.h"
@@ -37,8 +38,6 @@ bool simpson(double& integral, double (*)(double), double a, double b,
 
 bool unsimpson(double integral, double (*)(double), double a, double& b,
 	       double acc, double& area, double dxmax);
-
-extern double sqrtepsilon;
 
 namespace camp {
 
@@ -132,101 +131,99 @@ public:
       reportError("nullpath has no points");
   }
   
-  pair point(int i) const
+  pair point(int t) const
   {
     emptyError();
     
     if (cycles)
-      return nodes[imod(i,n)].point;
-    else if (i < 0)
+      return nodes[imod(t,n)].point;
+    else if (t < 0)
       return nodes[0].point;
-    else if (i >= n)
+    else if (t >= n)
       return nodes[n-1].point;
     else
-      return nodes[i].point;
+      return nodes[t].point;
   }
 
-  bool straight(int i) const
+  bool straight(int t) const
   {
-    if (cycles) return nodes[imod(i,n)].straight;
-    return (i >= 0 && i < n) ? nodes[i].straight : false;
+    if (cycles) return nodes[imod(t,n)].straight;
+    return (t >= 0 && t < n) ? nodes[t].straight : false;
   }
   
   pair point(double t) const;
   
-  pair precontrol(int i) const
+  pair precontrol(int t) const
   {
     emptyError();
 		       
     if (cycles)
-      return nodes[imod(i,n)].pre;
-    else if (i < 0)
+      return nodes[imod(t,n)].pre;
+    else if (t < 0)
       return nodes[0].pre;
-    else if (i >= n)
+    else if (t >= n)
       return nodes[n-1].pre;
     else
-      return nodes[i].pre;
+      return nodes[t].pre;
   }
 
   pair precontrol(double t) const;
   
-  pair postcontrol(int i) const
+  pair postcontrol(int t) const
   {
     emptyError();
 		       
     if (cycles)
-      return nodes[imod(i,n)].post;
-    else if (i < 0)
+      return nodes[imod(t,n)].post;
+    else if (t < 0)
       return nodes[0].post;
-    else if (i >= n)
+    else if (t >= n)
       return nodes[n-1].post;
     else
-      return nodes[i].post;
+      return nodes[t].post;
   }
 
   pair postcontrol(double t) const;
   
   template<class T>
   pair predir(T t) const {
-    if(!cycles && t <= 0) return 0.0;
+    if(!cycles && t <= 0) return pair(0,0);
     pair z1=point(t);
     pair c1=precontrol(t);
     double norm=camp::max(z1.abs2(),c1.abs2());
     pair dir=z1-c1;
-    if(dir.abs2() > sqrtepsilon*norm) return unit(dir);
+    if(dir.abs2() > DBL_EPSILON*norm) return unit(dir);
     pair c0=postcontrol(t-1);
     dir=2*c1-c0-z1;
-    if(dir.abs2() > sqrtepsilon*camp::max(norm,c0.abs2())) return unit(dir);
+    if(dir.abs2() > DBL_EPSILON*camp::max(norm,c0.abs2())) return unit(dir);
     pair z0=point(t-1);
     return unit(z1-z0+3*(c0-c1));
   }
 
   template<class T>
   pair postdir(T t) const {
-    if(!cycles && t >= n-1) return 0.0;
+    if(!cycles && t >= n-1) return pair(0,0);
     pair z0=point(t);
     pair c0=postcontrol(t);
     double norm=camp::max(z0.abs2(),c0.abs2());
     pair dir=c0-z0;
-    if(dir.abs2() > sqrtepsilon*norm) return unit(dir);
+    if(dir.abs2() > DBL_EPSILON*norm) return unit(dir);
     pair c1=precontrol(t+1);
     dir=z0-2*c0+c1;
-    if(dir.abs2() > sqrtepsilon*camp::max(norm,c1.abs2())) return unit(dir);
+    if(dir.abs2() > DBL_EPSILON*camp::max(norm,c1.abs2())) return unit(dir);
     pair z1=point(t+1);
     return unit(z1-z0+3*(c0-c1));
   }
 
   template<class T>
-  pair dir(T t) const
-  {
-    return unit(0.5*(postdir(t)+predir(t)));
+  pair dir(T t) const {
+    return unit(0.5*(predir(t)+postdir(t)));
   }
 
-  pair dir(int i, int sign) const
-  {
-    if(sign == 0) return dir(i);
-    else if(sign > 0) return postdir(i);
-    else return predir(i);
+  pair dir(int t, int sign) const {
+    if(sign == 0) return dir(t);
+    else if(sign > 0) return postdir(t);
+    else return predir(t);
   }
 
   // Returns the path traced out in reverse.

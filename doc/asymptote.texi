@@ -2021,11 +2021,11 @@ This is the number of nodes in the path @code{p}.
 If @code{p} is cyclic, this is the same as @code{length(p)}.
 
 @cindex @code{point}
-@item pair point(path p, int n);
-If @code{p} is cyclic, return the coordinates of node @code{n} mod
-@code{length(p)}. Otherwise, return the coordinates of node @code{n},
-unless @code{n} < 0 (in which case @code{point(0)} is returned) or
-@code{n} > @code{length(p)} (in which case @code{point(length(p))}
+@item pair point(path p, int t);
+If @code{p} is cyclic, return the coordinates of node @code{t} mod
+@code{length(p)}. Otherwise, return the coordinates of node @code{t},
+unless @code{t} < 0 (in which case @code{point(0)} is returned) or
+@code{t} > @code{length(p)} (in which case @code{point(length(p))}
 is returned).
 
 @item pair point(path p, real t);
@@ -2037,9 +2037,9 @@ in the case where @code{p} is cyclic or else converted to the corresponding
 endpoint of @code{p}.
 
 @cindex @code{dir}
-@item pair dir(path p, int n, int sign=0);
+@item pair dir(path p, int t, int sign=0);
 If @code{sign=0}, this returns the direction (as a pair) of the tangent
-to path @code{p} at node @code{n}. If @code{sign < 0}, the direction of
+to path @code{p} at node @code{t}. If @code{sign < 0}, the direction of
 the incoming tangent is returned; if @code{sign > 0}, the direction of
 the outgoing tangent is returned. If @code{p} contains only one point,
 @code{(0,0)} is returned. 
@@ -2051,15 +2051,15 @@ cubic spline parameter @code{t-floor(t)} (@pxref{Bezier}).
 If @code{p} contains only one point, @code{(0,0)} is returned.
 
 @cindex @code{precontrol}
-@item pair precontrol(path p, int n);
-returns the precontrol point of @code{p} at node @code{n}.
+@item pair precontrol(path p, int t);
+returns the precontrol point of @code{p} at node @code{t}.
 
 @item pair precontrol(path p, real t);
 returns the effective precontrol point of @code{p} at parameter @code{t}.
 
 @cindex @code{postcontrol}
-@item pair postcontrol(path p, int n);
-returns the postcontrol point of @code{p} at node @code{n}.
+@item pair postcontrol(path p, int t);
+returns the postcontrol point of @code{p} at node @code{t}.
 
 @item pair postcontrol(path p, real t);
 returns the effective postcontrol point  of @code{p} at parameter @code{t}.
@@ -2101,9 +2101,9 @@ returns the point on path @code{p} at half of its arclength.
 returns a path running backwards along @code{p}.
 
 @cindex @code{subpath}
-@item path subpath(path p, int n, int m);
-returns the subpath of @code{p} running from node @code{n} to node @code{m}.
-If @code{n} < @code{m}, the direction of the subpath is reversed.
+@item path subpath(path p, int a, int b);
+returns the subpath of @code{p} running from node @code{a} to node @code{b}.
+If @code{a} < @code{b}, the direction of the subpath is reversed.
 
 @item path subpath(path p, real a, real b);
 returns the subpath  of @code{p} running from path time @code{a} to path
@@ -6933,6 +6933,7 @@ standard input.
 If multiple files are specified, they are treated as separate
 @code{Asymptote} runs.
 
+@cindex @code{autoimport}
 If the string @code{autoimport} is nonempty, a module with this name is
 automatically imported for each run as the final step in loading module
 @code{plain}.
@@ -6960,8 +6961,9 @@ interactiveMask=true;
 @end verbatim
 Command-line options override these defaults. Most configuration
 variables may also be changed at runtime. 
-The advanced configuration variable @code{dvipsOptions} allows options
-to be passed as a string to @code{dvips}.
+@cindex @code{dvipsOptions}
+The advanced configuration variable @code{dvipsOptions} allows
+specialized options to be passed as a string to @code{dvips}.
 
 If you insert
 @verbatim
@@ -6970,8 +6972,7 @@ import plain;
 @noindent
 at the beginning of the configuration file, it can contain arbitrary
 @code{Asymptote} code.
-@cindex @code{dvipsOptions}
-
+ 
 @cindex @code{convert}
 @cindex @code{output}
 @cindex @code{format}

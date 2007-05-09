@@ -8,15 +8,12 @@
  * three-dimensional algorithms in path3.cc and three.asy.
  *****/
 
-#include <cfloat>
-
 #include "path.h"
 #include "util.h"
 #include "angle.h"
 #include "camperror.h"
 
 static double Fuzz=10.0*DBL_EPSILON;
-double sqrtepsilon=sqrt(DBL_EPSILON);
   
 namespace camp {
 
@@ -275,28 +272,28 @@ path path::reverse() const
   return path(nodes, n, cycles);
 }
 
-path path::subpath(int start, int end) const
+path path::subpath(int a, int b) const
 {
   if(empty()) return path();
 
-  if (start > end) {
+  if (a > b) {
     const path &rp = reverse();
     int len=length();
-    path result = rp.subpath(len-start, len-end);
+    path result = rp.subpath(len-a, len-b);
     return result;
   }
 
   if (!cycles) {
-    if (start < 0)
-      start = 0;
-    if (end > n-1)
-      end = n-1;
+    if (a < 0)
+      a = 0;
+    if (b > n-1)
+      b = n-1;
   }
 
-  int sn = end-start+1;
+  int sn = b-a+1;
   solvedKnot *nodes = new solvedKnot[sn];
 
-  for (int i = 0, j = start; j <= end; i++, j++) {
+  for (int i = 0, j = a; j <= b; i++, j++) {
     nodes[i].pre = precontrol(j);
     nodes[i].point = point(j);
     nodes[i].post = postcontrol(j);
@@ -322,56 +319,56 @@ inline void splitCubic(solvedKnot sn[], double t, solvedKnot left_,
   mid.point=split(t,mid.pre,mid.post);
 }
 
-path path::subpath(double start, double end) const
+path path::subpath(double a, double b) const
 {
   if(empty()) return path();
   
-  if (start > end) {
+  if (a > b) {
     const path &rp = reverse();
     int len=length();
-    return rp.subpath(len-start, len-end);
+    return rp.subpath(len-a, len-b);
   }
 
-  solvedKnot startL, startR, endL, endR;
+  solvedKnot aL, aR, bL, bR;
   if (!cycles) {
-    if (start < 0) {
-      start = 0;
-      if (end < 0)
-	end = 0;
+    if (a < 0) {
+      a = 0;
+      if (b < 0)
+	b = 0;
     }	
-    if (end > n-1) {
-      end = n-1;
-      if (start > n-1)
-	start = n-1;
+    if (b > n-1) {
+      b = n-1;
+      if (a > n-1)
+	a = n-1;
     }
-    startL = nodes[(int)floor(start)];
-    startR = nodes[(int)ceil(start)];
-    endL = nodes[(int)floor(end)];
-    endR = nodes[(int)ceil(end)];
+    aL = nodes[(int)floor(a)];
+    aR = nodes[(int)ceil(a)];
+    bL = nodes[(int)floor(b)];
+    bR = nodes[(int)ceil(b)];
   } else {
-    if(fabs(start) > INT_MAX || fabs(end) > INT_MAX)
+    if(fabs(a) > INT_MAX || fabs(b) > INT_MAX)
       reportError("invalid path index");
-    startL = nodes[imod((int) floor(start),n)];
-    startR = nodes[imod((int) ceil(start),n)];
-    endL = nodes[imod((int) floor(end),n)];
-    endR = nodes[imod((int) ceil(end),n)];
+    aL = nodes[imod((int) floor(a),n)];
+    aR = nodes[imod((int) ceil(a),n)];
+    bL = nodes[imod((int) floor(b),n)];
+    bR = nodes[imod((int) ceil(b),n)];
   }
 
-  if (start == end) return path(point(start));
+  if (a == b) return path(point(a));
 
   solvedKnot sn[3];
-  path p = subpath(Ceil(start), Floor(end));
-  if (start > floor(start)) {
-    if (end < ceil(start)) {
-      splitCubic(sn,start-floor(start),startL,startR);
-      splitCubic(sn,(end-start)/(ceil(end)-start),sn[1],sn[2]);
+  path p = subpath(Ceil(a), Floor(b));
+  if (a > floor(a)) {
+    if (b < ceil(a)) {
+      splitCubic(sn,a-floor(a),aL,aR);
+      splitCubic(sn,(b-a)/(ceil(b)-a),sn[1],sn[2]);
       return path(sn[0],sn[1]);
     }
-    splitCubic(sn,start-floor(start),startL,startR);
+    splitCubic(sn,a-floor(a),aL,aR);
     p=concat(path(sn[1],sn[2]),p);
   }
-  if (ceil(end) > end) {
-    splitCubic(sn,end-floor(end),endL,endR);
+  if (ceil(b) > b) {
+    splitCubic(sn,b-floor(b),bL,bR);
     p=concat(p,path(sn[0],sn[1]));
   }
   return p;

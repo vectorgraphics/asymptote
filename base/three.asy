@@ -725,9 +725,10 @@ real[] theta(triple[] v, real[] alpha, real[] beta,
     if(dir0 == O) {
       real a0=alpha[0];
       real b0=beta[0];
+      real chi=g0*(b0/a0)^2;
       a[0]=0;
-      b[0]=g0*b0^3+a0^3*(3b0-1);
-      real C=g0*b0^3*(3a0-1)+a0^3;
+      b[0]=3a0-a0/b0+chi;
+      real C=chi*(3a0-1)+a0/b0;
       c[0]=C;
       f[0]=-C*psi[0];
     } else {
@@ -738,9 +739,9 @@ real[] theta(triple[] v, real[] alpha, real[] beta,
     if(dirn == O) {
       real an=alpha[n-1];
       real bn=beta[n-1];
-      a[n]=bn^3+gn*an^3*(3bn-1);
-      real C=bn^3*(3an-1)+gn*an^3;
-      b[n]=C;
+      real chi=gn*(an/bn)^2;
+      a[n]=chi*(3bn-1)+bn/an;
+      b[n]=3bn-bn/an+chi;
       c[n]=f[n]=0;
     } else {
       a[n]=c[n]=0;
@@ -999,53 +1000,51 @@ struct path3 {
       abort("nullpath3 has no points");
   }
   
-  bool straight(int i) {
-    if (cycles) return nodes[i % n].straight;
-    return (i >= 0 && i < n) ? nodes[i].straight : false;
+  bool straight(int t) {
+    if (cycles) return nodes[t % n].straight;
+    return (t >= 0 && t < n) ? nodes[t].straight : false;
   }
   
-  triple point(int i) {
+  triple point(int t) {
     emptyError();
     
     if (cycles)
-      return nodes[i % n].point;
-    else if (i < 0)
+      return nodes[t % n].point;
+    else if (t < 0)
       return nodes[0].point;
-    else if (i >= n)
+    else if (t >= n)
       return nodes[n-1].point;
     else
-      return nodes[i].point;
+      return nodes[t].point;
   }
 
-  triple precontrol(int i) {
+  triple precontrol(int t) {
     emptyError();
                        
     if (cycles)
-      return nodes[i % n].pre;
-    else if (i < 0)
+      return nodes[t % n].pre;
+    else if (t < 0)
       return nodes[0].pre;
-    else if (i >= n)
+    else if (t >= n)
       return nodes[n-1].pre;
     else
-      return nodes[i].pre;
+      return nodes[t].pre;
   }
 
-  triple postcontrol(int i)
-  {
+  triple postcontrol(int t) {
     emptyError();
                        
     if (cycles)
-      return nodes[i % n].post;
-    else if (i < 0)
+      return nodes[t % n].post;
+    else if (t < 0)
       return nodes[0].post;
-    else if (i >= n)
+    else if (t >= n)
       return nodes[n-1].post;
     else
-      return nodes[i].post;
+      return nodes[t].post;
   }
 
-  triple point(real t)
-  {
+  triple point(real t) {
     emptyError();
     
     int i = Floor(t);
@@ -1138,18 +1137,79 @@ struct path3 {
     return (bcd == d) ? nodes[iplus].post : bcd;
   }
 
-  triple dir(int i)
-  {
-    return unit(postcontrol(i) - precontrol(i));
+  real sqrtEpsilon=sqrt(realEpsilon);
+
+  triple predir(int t) {
+    if(!cycles && t <= 0) return (0,0,0);
+    triple z1=point(t);
+    triple c1=precontrol(t);
+    real norm=max(abs(z1),abs(c1));
+    triple dir=z1-c1;
+    if(abs(dir) > sqrtEpsilon*norm) return unit(dir);
+    triple c0=postcontrol(t-1);
+    dir=2*c1-c0-z1;
+    if(abs(dir) > sqrtEpsilon*max(norm,abs(c0))) return unit(dir);
+    triple z0=point(t-1);
+    return unit(z1-z0+3*(c0-c1));
   }
 
-  triple dir(real t)
-  {
-    return unit(postcontrol(t) - precontrol(t));
+  triple predir(real t) {
+    if(!cycles && t <= 0) return (0,0,0);
+    triple z1=point(t);
+    triple c1=precontrol(t);
+    real norm=max(abs(z1),abs(c1));
+    triple dir=z1-c1;
+    if(abs(dir) > sqrtEpsilon*norm) return unit(dir);
+    triple c0=postcontrol(t-1);
+    dir=2*c1-c0-z1;
+    if(abs(dir) > sqrtEpsilon*max(norm,abs(c0))) return unit(dir);
+    triple z0=point(t-1);
+    return unit(z1-z0+3*(c0-c1));
   }
 
-  path3 concat(path3 p1, path3 p2)
-  {
+  triple postdir(int t) {
+    if(!cycles && t >= n-1) return (0,0,0);
+    triple z0=point(t);
+    triple c0=postcontrol(t);
+    real norm=max(abs(z0),abs(c0));
+    triple dir=c0-z0;
+    if(abs(dir) > sqrtEpsilon*norm) return unit(dir);
+    triple c1=precontrol(t+1);
+    dir=z0-2*c0+c1;
+    if(abs(dir) > sqrtEpsilon*max(norm,abs(c1))) return unit(dir);
+    triple z1=point(t+1);
+    return unit(z1-z0+3*(c0-c1));
+  }
+
+  triple postdir(real t) {
+    if(!cycles && t >= n-1) return (0,0,0);
+    triple z0=point(t);
+    triple c0=postcontrol(t);
+    real norm=max(abs(z0),abs(c0));
+    triple dir=c0-z0;
+    if(abs(dir) > sqrtEpsilon*norm) return unit(dir);
+    triple c1=precontrol(t+1);
+    dir=z0-2*c0+c1;
+    if(abs(dir) > sqrtEpsilon*max(norm,abs(c1))) return unit(dir);
+    triple z1=point(t+1);
+    return unit(z1-z0+3*(c0-c1));
+  }
+
+  triple dir(int t) {
+    return unit(0.5*(predir(t)+postdir(t)));
+  }
+
+  triple dir(real t) {
+    return unit(0.5*(predir(t)+postdir(t)));
+  }
+
+  triple dir(int t, int sign) {
+    if(sign == 0) return dir(t);
+    else if(sign > 0) return postdir(t);
+    else return predir(t);
+  }
+
+  path3 concat(path3 p1, path3 p2) {
     int n1 = p1.length(), n2 = p2.length();
 
     if (n1 == -1) return p2;
@@ -1258,26 +1318,26 @@ struct path3 {
     }
   }
   
-  path3 subpath(int start, int end) {
+  path3 subpath(int a, int b) {
     if(empty()) return new path3;
 
-    if (start > end) {
+    if (a > b) {
       path3 rp = reverse();
       int len=length();
-      path3 result = rp.subpath(len-start, len-end);
+      path3 result = rp.subpath(len-a, len-b);
       return result;
     }
 
     if (!cycles) {
-      if (start < 0)
-        start = 0;
-      if (end > n-1)
-        end = n-1;
+      if (a < 0)
+        a = 0;
+      if (b > n-1)
+        b = n-1;
     }
 
-    int sn = end-start+1;
+    int sn = b-a+1;
     node[] nodes=nodes(sn);
-    for (int i = 0, j = start; j <= end; ++i, ++j) {
+    for (int i = 0, j = a; j <= b; ++i, ++j) {
       nodes[i].pre = precontrol(j);
       nodes[i].point = point(j);
       nodes[i].post = postcontrol(j);
@@ -1289,55 +1349,54 @@ struct path3 {
     return path3(nodes);
   }
   
-  path3 subpath(real start, real end)
-  {
+  path3 subpath(real a, real b) {
     if(empty()) return new path3;
   
-    if (start > end) {
+    if (a > b) {
       int len=length();
-      return reverse().subpath(len-start, len-end);
+      return reverse().subpath(len-a, len-b);
     }
 
-    node startL, startR, endL, endR;
+    node aL, aR, bL, bR;
     if (!cycles) {
-      if (start < 0) {
-        start = 0;
-        if (end < 0)
-          end = 0;
+      if (a < 0) {
+        a = 0;
+        if (b < 0)
+          b = 0;
       }
-      if (end > n-1) {
-        end = n-1;
-        if (start > n-1)
-          start = n-1;
+      if (b > n-1) {
+        b = n-1;
+        if (a > n-1)
+          a = n-1;
       }
-      startL = nodes[floor(start)];
-      startR = nodes[ceil(start)];
-      endL = nodes[floor(end)];
-      endR = nodes[ceil(end)];
+      aL = nodes[floor(a)];
+      aR = nodes[ceil(a)];
+      bL = nodes[floor(b)];
+      bR = nodes[ceil(b)];
     } else {
-      if(fabs(start) > intMax || fabs(end) > intMax)
+      if(fabs(a) > intMax || fabs(b) > intMax)
         abort("invalid path index");
-      startL = nodes[floor(start) % n];
-      startR = nodes[ceil(start) % n];
-      endL = nodes[floor(end) % n];
-      endR = nodes[ceil(end) % n];
+      aL = nodes[floor(a) % n];
+      aR = nodes[ceil(a) % n];
+      bL = nodes[floor(b) % n];
+      bR = nodes[ceil(b) % n];
     }
 
-    if (start == end) return path3(point(start));
+    if (a == b) return path3(point(a));
     
     node[] sn=nodes(3);
-    path3 p = subpath(Ceil(start), Floor(end));
-    if (start > floor(start)) {
-      if (end < ceil(start)) {
-        splitCubic(sn,start-floor(start),startL,startR);
-        splitCubic(sn,(end-start)/(ceil(end)-start),sn[1],sn[2]);
+    path3 p = subpath(Ceil(a), Floor(b));
+    if (a > floor(a)) {
+      if (b < ceil(a)) {
+        splitCubic(sn,a-floor(a),aL,aR);
+        splitCubic(sn,(b-a)/(ceil(b)-a),sn[1],sn[2]);
         return path3(sn[0],sn[1]);
       }
-      splitCubic(sn,start-floor(start),startL,startR);
+      splitCubic(sn,a-floor(a),aL,aR);
       p=concat(path3(sn[1],sn[2]),p);
     }
-    if (ceil(end) > end) {
-      splitCubic(sn,end-floor(end),endL,endR);
+    if (ceil(b) > b) {
+      splitCubic(sn,b-floor(b),bL,bR);
       p=concat(p,path3(sn[0],sn[1]));
     }
     return p;
@@ -1676,34 +1735,36 @@ path3[] operator cast(triple[] v)
   return g;
 }
 
-bool straight(path3 p, int i) {return p.straight(i);}
-bool straight(explicit guide3 g, int i) {return ((path3) g).straight(i);}
+bool straight(path3 p, int t) {return p.straight(t);}
+bool straight(explicit guide3 g, int t) {return ((path3) g).straight(t);}
 
-triple point(path3 p, int i) {return p.point(i);}
-triple point(explicit guide3 g, int i) {return ((path3) g).point(i);}
+triple point(path3 p, int t) {return p.point(t);}
+triple point(explicit guide3 g, int t) {return ((path3) g).point(t);}
 triple point(path3 p, real t) {return p.point(t);}
 triple point(explicit guide3 g, real t) {return ((path3) g).point(t);}
 
-triple postcontrol(path3 p, int i) {return p.postcontrol(i);}
-triple postcontrol(explicit guide3 g, int i) {
-  return ((path3) g).postcontrol(i);
+triple postcontrol(path3 p, int t) {return p.postcontrol(t);}
+triple postcontrol(explicit guide3 g, int t) {
+  return ((path3) g).postcontrol(t);
 }
 triple postcontrol(path3 p, real t) {return p.postcontrol(t);}
 triple postcontrol(explicit guide3 g, real t) {
   return ((path3) g).postcontrol(t);
 }
 
-triple precontrol(path3 p, int i) {return p.precontrol(i);}
-triple precontrol(explicit guide3 g, int i) {
-  return ((path3) g).precontrol(i);
+triple precontrol(path3 p, int t) {return p.precontrol(t);}
+triple precontrol(explicit guide3 g, int t) {
+  return ((path3) g).precontrol(t);
 }
 triple precontrol(path3 p, real t) {return p.precontrol(t);}
 triple precontrol(explicit guide3 g, real t) {
   return ((path3) g).precontrol(t);
 }
 
-triple dir(path3 p, int n) {return p.dir(n);}
-triple dir(explicit guide3 g, int n) {return ((path3) g).dir(n);}
+triple dir(path3 p, int t, int sign=0) {return p.dir(t,sign);}
+triple dir(explicit guide3 g, int t, int sign=0) {
+  return ((path3) g).dir(t,sign);
+}
 triple dir(path3 p, real t) {return p.dir(t);}
 triple dir(explicit guide3 g, real t) {return ((path3) g).dir(t);}
 
@@ -1722,16 +1783,16 @@ triple max(explicit guide3 g) {return ((path3) g).max();}
 triple min(path3 p) {return p.min();}
 triple min(explicit guide3 g) {return ((path3) g).min();}
 
-path3 subpath(path3 p, int start, int end) {return p.subpath(start,end);}
-path3 subpath(explicit guide3 g, int start, int end)
+path3 subpath(path3 p, int a, int b) {return p.subpath(a,b);}
+path3 subpath(explicit guide3 g, int a, int b)
 {
-  return ((path3) g).subpath(start,end);
+  return ((path3) g).subpath(a,b);
 }
 
-path3 subpath(path3 p, real start, real end) {return p.subpath(start,end);}
-path3 subpath(explicit guide3 g, real start, real end) 
+path3 subpath(path3 p, real a, real b) {return p.subpath(a,b);}
+path3 subpath(explicit guide3 g, real a, real b) 
 {
-  return ((path3) g).subpath(start,end);
+  return ((path3) g).subpath(a,b);
 }
 
 real[] intersect(path3 p1, path3 p2, real fuzz=0)

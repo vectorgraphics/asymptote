@@ -1534,9 +1534,9 @@ path :nullPath()
   return nullpath;
 }
 
-pair point(path p, int n)
+pair point(path p, int t)
 {
-  return p.point(n);
+  return p.point(t);
 }
 
 pair point(path p, real t)
@@ -1544,9 +1544,9 @@ pair point(path p, real t)
   return p.point(t);
 }
 
-pair precontrol(path p, int n)
+pair precontrol(path p, int t)
 {
-  return p.precontrol(n);
+  return p.precontrol(t);
 }
 
 pair precontrol(path p, real t)
@@ -1554,9 +1554,9 @@ pair precontrol(path p, real t)
   return p.precontrol(t);
 }
 
-pair postcontrol(path p, int n)
+pair postcontrol(path p, int t)
 {
-  return p.postcontrol(n);
+  return p.postcontrol(t);
 }
 
 pair postcontrol(path p, real t)
@@ -1564,9 +1564,9 @@ pair postcontrol(path p, real t)
   return p.postcontrol(t);
 }
 
-pair dir(path p, int n, int sign=0)
+pair dir(path p, int t, int sign=0)
 {
-  return p.dir(n,sign);
+  return p.dir(t,sign);
 }
 
 pair dir(path p, real t)
@@ -1579,14 +1579,14 @@ path reverse(path p)
   return p.reverse();
 }
 
-path subpath(path p, int b, int e)
+path subpath(path p, int a, int b)
 {
-  return p.subpath(b,e);
+  return p.subpath(a,b);
 }
 
-path subpath(path p, real b, real e)
+path subpath(path p, real a, real b)
 {
-  return p.subpath(b,e);
+  return p.subpath(a,b);
 }
 
 int length(path p)
@@ -1599,9 +1599,9 @@ bool cyclic(path p)
   return p.cyclic();
 }
 
-bool straight(path p, int i)
+bool straight(path p, int t)
 {
-  return p.straight(i);
+  return p.straight(t);
 }
 
 bool piecewisestraight(path p)
