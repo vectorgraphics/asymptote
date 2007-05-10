@@ -17,7 +17,7 @@ pen p=linewidth(1);
 draw(graph(L,a,b),dashed+black+p,"Lagrange interpolation"); 
 draw(graph(xpt,ypt,Hermite(natural)),red+p,"natural spline"); 
 draw(graph(xpt,ypt,Hermite(monotonic)),blue+p,"monotone spline"); 
-xaxis("$x$",BottomTop,LeftTicks(step=0.25)); 
+xaxis("$x$",BottomTop,LeftTicks(Step=1,step=0.25)); 
 yaxis("$y$",LeftRight,RightTicks(Step=5)); 
 dot(xpt,ypt,4bp+0.7black); 
 

@@ -1157,6 +1157,7 @@ default linewidth magnified by @code{dotfactor} (6 by default):
 @verbatim
 void dot(picture pic=currentpicture, pair z, pen p=currentpen);
 void dot(picture pic=currentpicture, pair[] z, pen p=currentpen);
+void dot(picture pic=currentpicture, pair[] x, pair[] y, pen p=currentpen);
 void dot(picture pic=currentpicture, Label L, pair z, align align=NoAlign,
          string format=defaultformat, pen p=currentpen)
 void dot(picture pic=currentpicture, Label L, pen p=currentpen)
