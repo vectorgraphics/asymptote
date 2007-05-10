@@ -381,38 +381,39 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     return postprocess(epsname,outname,outputformat,wait,view);
   }
   
-  if(deconstruct && !tgifformat) {
-    if(bboxout) bboxout.close();
-    if(settings::view() && view) {
-      ostringstream cmd;
-      string Python=getSetting<string>("python");
-      if(Python != "") cmd << "'" << Python << "' ";
-      cmd << "'" << getSetting<string>("xasy") << "' " 
-	  << buildname(prefix) << " " << ShipoutNumber << " "
-	  << buildname(settings::outname());
-      int status=System(cmd,0,true,Python != "" ? "python" : "xasy");
-      if(status != 0) return false;
-    }
-    ShipoutNumber++;
-    return true;
-  }
-      
   if(deconstruct) {
     bool signal=getSetting<bool>("signal");
     if(!bboxout.is_open()) {
       bboxout.open(("."+buildname(prefix,"box")).c_str());	
-      bboxout << deconstruct << newl;
+      bboxout << (tgifformat ? deconstruct : 0) << newl;
     }
-    bbox bscaled=b;
-    bscaled *= deconstruct;
-    bboxout << bscaled << endl;
-    if(signal) bboxout.close();
-    if(Delete) {
-      unlink(outname.c_str());
-      return false;
+    if(tgifformat) {
+      bbox bscaled=b;
+      bscaled *= deconstruct;
+      bboxout << bscaled << endl;
+      if(signal) bboxout.close();
+      if(Delete) {
+	unlink(outname.c_str());
+	return false;
+      }
+    } else {
+      if(bboxout) bboxout.close();
+      if(settings::view() && view) {
+	ostringstream cmd;
+	string Python=getSetting<string>("python");
+	if(Python != "") cmd << "'" << Python << "' ";
+	cmd << "'" << getSetting<string>("xasy") << "' " 
+	    << buildname(prefix) << " " << ShipoutNumber << " "
+	    << buildname(settings::outname());
+	int status=System(cmd,0,true,Python != "" ? "python" : "xasy");
+	if(status != 0) return false;
+      }
+      ShipoutNumber++;
+      return true;
     }
   }
-  
+
+      
   SetPageDimensions();
   
   paperWidth=getSetting<double>("paperwidth");

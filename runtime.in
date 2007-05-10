@@ -1077,19 +1077,22 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 	if(getSetting<real>("deconstruct")) {
 	  ostringstream buf;
 	  buf << prefix << "_" << i;
-	  group->shipout(preamble,buf.str(),"tgif",false,false,Delete);
-	  if(ppid > 0) kill(ppid,SIGUSR2);
+	  if(group->shipout(preamble,buf.str(),"tgif",false,false,Delete) &&
+	     ppid > 0)
+	    kill(ppid,SIGINT);
 	}
 	++i;
       }
       if(size && !Delete) result->add(*group);
     }
     if(size) f=result;
-  }
-
-  f->shipout(preamble,prefix,format,wait,view);
-  
-  if(ppid > 0) kill(ppid,SIGUSR1);
+    ostringstream buf;
+    buf << prefix << "_" << i;
+    if(f->shipout(preamble,(ppid ? buf.str() : prefix),"",wait,view) &&
+       ppid > 0)
+      kill(ppid,SIGINT);
+  } else
+    f->shipout(preamble,prefix,format,wait,view);
 }
 
 
