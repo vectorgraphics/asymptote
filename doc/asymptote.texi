@@ -5460,9 +5460,10 @@ the abbreviation @code{Spline} is also accepted);
 @cindex @code{Hermite(splinetype splinetype}
 @item @code{Hermite} (standard cubic spline interpolation using boundary
 condition @code{notaknot}, @code{natural},  @code{periodic},
-or @code{clamped(real slopea, real slopeb)}). The abbreviation
-@code{Hermite} is equivalent to @code{Hermite(notaknot)} for nonperiodic
-data and @code{Hermite(periodic)} for periodic data).
+@code{clamped(real slopea, real slopeb)}), or @code{monotonic}.
+The abbreviation @code{Hermite} is equivalent to
+@code{Hermite(notaknot)} for nonperiodic data and
+@code{Hermite(periodic)} for periodic data).
 
 @end itemize
 

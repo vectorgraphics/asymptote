@@ -11,8 +11,8 @@ string differentlengths="arrays have different lengths";
 real[] notaknot(real[] x, real[] y)
 {
   int n=x.length;
-  real[] d;
   if(n != y.length) abort(differentlengths);
+  real[] d;
   if(n > 3) {
     real[] a=new real[n];
     real[] b=new real[n];
@@ -37,15 +37,13 @@ real[] notaknot(real[] x, real[] y)
             (y[n-1]-y[n-2])/(x[n-1]-x[n-2]))/a[n-1];
     d=tridiagonal(a,b,c,g);
   } else if(n == 2) {
-    d[0]=(y[1]-y[0])/(x[1]-x[0]);
-    d[1]=d[0];
+    real val=(y[1]-y[0])/(x[1]-x[0]);
+    d=new real[] {val,val};
   } else if(n == 3) {
     real a=(y[1]-y[0])/(x[1]-x[0]);
     real b=(y[2]-y[1])/(x[2]-x[1]);
     real c=(b-a)/(x[2]-x[0]);
-    d[0]=a+c*(x[0]-x[1]);
-    d[1]=a+c*(x[1]-x[0]);
-    d[2]=a+c*(2*x[2]-x[0]-x[1]);
+    d=new real[] {a+c*(x[0]-x[1]),a+c*(x[1]-x[0]),a+c*(2*x[2]-x[0]-x[1])};
   } else abort(morepoints);
   return d;
 }
@@ -56,9 +54,9 @@ real[] notaknot(real[] x, real[] y)
 real[] periodic(real[] x, real[] y)
 {
   int n=x.length;
-  real[] d;
   if(n != y.length) abort(differentlengths);
   if(y[n-1] != y[0]) abort("function values are not periodic");
+  real[] d;
   if(n > 2) {
     real[] a=new real[n-1];
     real[] b=new real[n-1];
@@ -77,8 +75,7 @@ real[] periodic(real[] x, real[] y)
     d=tridiagonal(a,b,c,g);
     d.push(d[0]);
   } else if(n == 2) {
-    d[0]=0;
-    d[1]=0;
+    d=new real[] {0,0};
   } else abort(morepoints);
   return d;
 }
@@ -91,8 +88,8 @@ real[] periodic(real[] x, real[] y)
 real[] natural(real[] x, real[] y)
 {
   int n=x.length;
-  real[] d;
   if(n != y.length) abort(differentlengths);
+  real[] d;
   if(n > 2) {
     real[] a=new real[n];
     real[] b=new real[n];
@@ -114,8 +111,8 @@ real[] natural(real[] x, real[] y)
     g[n-1]=3*(y[n-1]-y[n-2]);
     d=tridiagonal(a,b,c,g);
   } else if(n == 2) {
-    d[0]=(y[1]-y[0])/(x[1]-x[0]);
-    d[1]=d[0];
+    real val=(y[1]-y[0])/(x[1]-x[0]);
+    d=new real[] {val,val};
   } else abort(morepoints);
   return d;
 }
@@ -125,8 +122,8 @@ splinetype clamped(real slopea, real slopeb)
 {
   return new real[] (real[] x, real[] y) {
     int n=x.length;
-    real[] d;
     if(n != y.length) abort(differentlengths);
+    real[] d;
     if(n > 2) {
       real[] a=new real[n];
       real[] b=new real[n];
@@ -148,12 +145,66 @@ splinetype clamped(real slopea, real slopeb)
       g[n-1]=b[n-1]*slopeb;
       d=tridiagonal(a,b,c,g);
     } else if(n == 2) {
-      d[0]=slopea;
-      d[1]=slopeb;
+      d=new real[] {slopea,slopeb};
     } else abort(morepoints);
     return d;
   };
 }
+
+// Piecewise Cubic Hermite Interpolating Polynomial (PCHIP)
+// Modified MATLAB code
+// [1] Fritsch, F. N. and R. E. Carlson, 
+//      "Monotone Piecewise Cubic Interpolation," 
+//      SIAM J. Numerical Analysis, Vol. 17, 1980, pp.238-246.
+// [2] Kahaner, David, Cleve Moler, Stephen Nash, 
+//      Numerical Methods and Software, Prentice Hall, 1988.
+real[] monotonic(real[] x, real[] y) 
+{
+  int n=x.length; 
+  if(n != y.length) abort(differentlengths); 
+  real[] d=new real[n]; 
+  if(n > 2) {
+    real[] h=new real[n-1];
+    real[] del=new real[n-1];
+    for(int i=0; i < n-1; ++i) {
+      h[i]=x[i+1]-x[i]; 
+      del[i]=(y[i+1]-y[i])/h[i]; 
+    } 
+    int j=0; 
+    int k[]=new int[];
+    for(int i=0; i < n-2; ++i)
+      if((sgn(del[i])*sgn(del[i+1])) > 0) {k[j]=i; j=j+1;}
+
+    real[] hs=new real[j];
+    for(int i=0; i < j; ++i) hs[i]=h[k[i]]+h[k[i]+1];
+    real w1[]=new real[j];
+    real w2[]=new real[j];
+    real dmax[]=new real[j];
+    real dmin[]=new real[j];
+    for(int i=0; i < j; ++i) {
+      w1[i]=(h[k[i]]+hs[i])/(3*hs[i]);
+      w2[i]=(h[k[i]+1]+hs[i])/(3*hs[i]);
+      dmax[i]=max(abs(del[k[i]]),abs(del[k[i]+1]));
+      dmin[i]=min(abs(del[k[i]]),abs(del[k[i]+1]));
+    } 
+    for(int i=0; i < n; ++i) d[i]=0;
+    for(int i=0; i < j; ++i)
+      d[k[i]+1]=dmin[i]/(w1[i]*(del[k[i]]/dmax[i])+w2[i]*(del[k[i]+1]/dmax[i])); 
+    d[0]=((2*h[0]+h[1])*del[0]-h[0]*del[1])/(h[0]+h[1]);
+    if(sgn(d[0]) != sgn(del[0])) {d[0]=0;}
+    else if((sgn(del[0]) != sgn(del[1])) && (abs(d[0]) > abs(3*del[0])))
+      d[0]=3*del[0];
+
+    d[n-1]=((2*h[n-2]+h[n-3])*del[n-2]-h[n-2]*del[n-2])/(h[n-2]+h[n-3]);
+    if(sgn(d[n-1]) != sgn(del[n-2])) {d[n-1]=0;}
+    else if((sgn(del[n-2]) != sgn(del[n-3])) &&
+            (abs(d[n-1]) > abs(3*del[n-2])))
+      d[n-1]=3*del[n-2];
+  } else if(n == 2) {
+    d[0]=d[1]=(y[1]-y[0])/(x[1]-x[0]);
+  } else abort(morepoints);
+  return d;
+} 
 
 real[] defaultspline(real[] x, real[] y);
 

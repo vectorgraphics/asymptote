@@ -24,7 +24,8 @@
 // s=fspline(x,y,natural);                    natural spline
 // s=fspline(x,y,periodic);                   periodic spline
 // s=fspline(x,y,clamped(1,1));               clamped spline
-//
+// s=fspline(x,y,monotonic);                  piecewise monotonic spline
+
 // Here s is a real function that is constant on (-infinity,a] and [b,infinity).
 
 private import math;
