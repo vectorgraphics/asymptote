@@ -12,9 +12,9 @@ draw(B--C,p);
 draw(A--D);
 draw(B--F,p);
 label("$A$",A,SW);
-label("$B$",B,SE);
+label("$B$",B,S);
 label("$C$",C,N);
-dot(Label("$D$",D,N+NE));
+dot(Label("$D$",D,S));
 dot(Label("$F$",F,N+NW));
 
 markangle(A,C,B);

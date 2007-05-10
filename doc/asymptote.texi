@@ -2038,11 +2038,11 @@ endpoint of @code{p}.
 
 @cindex @code{dir}
 @item pair dir(path p, int t, int sign=0);
-If @code{sign=0}, this returns the direction (as a pair) of the tangent
-to path @code{p} at node @code{t}. If @code{sign < 0}, the direction of
-the incoming tangent is returned; if @code{sign > 0}, the direction of
-the outgoing tangent is returned. If @code{p} contains only one point,
-@code{(0,0)} is returned. 
+If @code{sign < 0}, the direction (as a pair) of the incoming tangent 
+to path @code{p} at node @code{t} is returned; if @code{sign > 0}, the
+direction of the outgoing tangent is returned. If @code{sign=0}, the
+mean of these two directions is returned. If @code{p} contains only one
+point, @code{(0,0)} is returned.
 
 @item pair dir(path p, real t);
 This returns the direction of the tangent to path @code{p} at the point

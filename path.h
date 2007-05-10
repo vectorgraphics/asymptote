@@ -190,8 +190,9 @@ public:
     if(!cycles && t <= 0) return pair(0,0);
     pair z1=point(t);
     pair c1=precontrol(t);
-    double norm=camp::max(z1.abs2(),c1.abs2());
     pair dir=z1-c1;
+    if(!cycles && t < 1) return unit(dir);
+    double norm=camp::max(z1.abs2(),c1.abs2());
     if(dir.abs2() > DBL_EPSILON*norm) return unit(dir);
     pair c0=postcontrol(t-1);
     dir=2*c1-c0-z1;
@@ -205,8 +206,9 @@ public:
     if(!cycles && t >= n-1) return pair(0,0);
     pair z0=point(t);
     pair c0=postcontrol(t);
-    double norm=camp::max(z0.abs2(),c0.abs2());
     pair dir=c0-z0;
+    if(!cycles && t > n-2) return unit(dir);
+    double norm=camp::max(z0.abs2(),c0.abs2());
     if(dir.abs2() > DBL_EPSILON*norm) return unit(dir);
     pair c1=precontrol(t+1);
     dir=z0-2*c0+c1;
@@ -217,7 +219,7 @@ public:
 
   template<class T>
   pair dir(T t) const {
-    return unit(0.5*(predir(t)+postdir(t)));
+    return unit(predir(t)+postdir(t));
   }
 
   pair dir(int t, int sign) const {

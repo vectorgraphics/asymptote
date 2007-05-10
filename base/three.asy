@@ -1143,8 +1143,8 @@ struct path3 {
     if(!cycles && t <= 0) return (0,0,0);
     triple z1=point(t);
     triple c1=precontrol(t);
-    real norm=max(abs(z1),abs(c1));
     triple dir=z1-c1;
+    real norm=max(abs(z1),abs(c1));
     if(abs(dir) > sqrtEpsilon*norm) return unit(dir);
     triple c0=postcontrol(t-1);
     dir=2*c1-c0-z1;
@@ -1157,8 +1157,9 @@ struct path3 {
     if(!cycles && t <= 0) return (0,0,0);
     triple z1=point(t);
     triple c1=precontrol(t);
-    real norm=max(abs(z1),abs(c1));
     triple dir=z1-c1;
+    if(!cycles && t < 1) return unit(dir);
+    real norm=max(abs(z1),abs(c1));
     if(abs(dir) > sqrtEpsilon*norm) return unit(dir);
     triple c0=postcontrol(t-1);
     dir=2*c1-c0-z1;
@@ -1171,8 +1172,8 @@ struct path3 {
     if(!cycles && t >= n-1) return (0,0,0);
     triple z0=point(t);
     triple c0=postcontrol(t);
-    real norm=max(abs(z0),abs(c0));
     triple dir=c0-z0;
+    real norm=max(abs(z0),abs(c0));
     if(abs(dir) > sqrtEpsilon*norm) return unit(dir);
     triple c1=precontrol(t+1);
     dir=z0-2*c0+c1;
@@ -1185,8 +1186,9 @@ struct path3 {
     if(!cycles && t >= n-1) return (0,0,0);
     triple z0=point(t);
     triple c0=postcontrol(t);
-    real norm=max(abs(z0),abs(c0));
     triple dir=c0-z0;
+    if(!cycles && t > n-2) return unit(dir);
+    real norm=max(abs(z0),abs(c0));
     if(abs(dir) > sqrtEpsilon*norm) return unit(dir);
     triple c1=precontrol(t+1);
     dir=z0-2*c0+c1;
@@ -1196,11 +1198,11 @@ struct path3 {
   }
 
   triple dir(int t) {
-    return unit(0.5*(predir(t)+postdir(t)));
+    return unit(predir(t)+postdir(t));
   }
 
   triple dir(real t) {
-    return unit(0.5*(predir(t)+postdir(t)));
+    return unit(predir(t)+postdir(t));
   }
 
   triple dir(int t, int sign) {
