@@ -82,7 +82,8 @@ GCVERSION=6.8
 
 AC_ARG_ENABLE(gc,
 	[  --enable-gc[[=VERSION]]   use single-threaded Boehm garbage collector (default)]
-	[     [[=system]]    use (typically slower) system Boehm garbage collector],
+	[     [[=PREFIX]]    use (typically slower) system Boehm garbage collector]
+	[                  installed in PREFIX ("system" uses $prefix/include/gc)],
 			[
 			if test "x$enableval" = "xyes"; then
 			   ac_cv_use_gc=$GCVERSION
@@ -98,21 +99,27 @@ GCNAME="Boehm Garbage Collector"
 GCOPTIONS="--disable-threads --disable-shared --enable-cplusplus "
 if test "x$ac_cv_use_gc" != "xno" ; then
    OPTIONS=$OPTIONS"-DUSEGC "
-   if test "x$ac_cv_use_gc" = "xsystem"; then
+   case $ac_cv_use_gc in
+   system|*[[\\/]]*)
+      if test "x$ac_cv_use_gc" = "xsystem"
+      then INCL="-I$prefix/include/gc" 
+      else INCL="-I$ac_cv_use_gc/include/gc"
+      fi
       AC_CHECK_HEADER(gc.h,
-        INCL="-I $prefix/include/gc" 
 	AC_CHECK_LIB([gc],[GC_malloc],[
 	  LIBS=$LIBS"-lgccpp -lgc "
 	  AC_MSG_NOTICE([enabling system $GCNAME])],[
 	AC_MSG_ERROR($GCNAME library not found)]),
       AC_MSG_ERROR($GCNAME header file not found))
-   else
+      ;;
+   *)
       GCDIR=gc$ac_cv_use_gc
       AC_MSG_NOTICE([enabling the $GCNAME $GCDIR])
       GCLIB="\$(GC)/.libs/libgc.a"
       GCPPLIB="\$(GC)/.libs/libgccpp.a"
-      INCL="-I \$(GC)/include"
-   fi
+      INCL="-I\$(GC)/include"
+      ;;
+   esac
 else
    GCDIR=
    AC_MSG_NOTICE([disabling the $GCNAME])
