@@ -41,6 +41,7 @@ LEX = @LEX@
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
+datarootdir = @datarootdir@
 bindir = $(DESTDIR)@bindir@
 mandir = $(DESTDIR)@mandir@
 infodir = $(DESTDIR)@infodir@
