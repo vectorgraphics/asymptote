@@ -50,7 +50,8 @@ struct solvedKnot : public gc {
   solvedKnot() : straight(false) {}
 };
 
-
+extern const double Fuzz;
+  
 class path : public gc {
   bool cycles;  // If the path is closed in a loop
 
@@ -185,13 +186,11 @@ public:
 
   pair postcontrol(double t) const;
   
-  template<class T>
-  pair predir(T t) const {
+  pair predir(int t) const {
     if(!cycles && t <= 0) return pair(0,0);
     pair z1=point(t);
     pair c1=precontrol(t);
     pair dir=z1-c1;
-    if(!cycles && t < 1) return unit(dir);
     double norm=camp::max(z1.abs2(),c1.abs2());
     if(dir.abs2() > DBL_EPSILON*norm) return unit(dir);
     pair c0=postcontrol(t-1);
@@ -201,13 +200,17 @@ public:
     return unit(z1-z0+3*(c0-c1));
   }
 
-  template<class T>
-  pair postdir(T t) const {
+  pair predir(double t) const {
+    if(!cycles && t <= Fuzz) return pair(0,0);
+    path q=subpath(floor(t)-1.0,t);
+    return q.predir(q.size()-1);
+  }
+
+  pair postdir(int t) const {
     if(!cycles && t >= n-1) return pair(0,0);
     pair z0=point(t);
     pair c0=postcontrol(t);
     pair dir=c0-z0;
-    if(!cycles && t > n-2) return unit(dir);
     double norm=camp::max(z0.abs2(),c0.abs2());
     if(dir.abs2() > DBL_EPSILON*norm) return unit(dir);
     pair c1=precontrol(t+1);
@@ -217,8 +220,16 @@ public:
     return unit(z1-z0+3*(c0-c1));
   }
 
-  template<class T>
-  pair dir(T t) const {
+  pair postdir(double t) const {
+    if(!cycles && t >= n-1-Fuzz) return pair(0,0);
+    return subpath(t,ceil(t)+1.0).postdir(0);
+  }
+
+  pair dir(int t) const {
+    return unit(predir(t)+postdir(t));
+  }
+  
+  pair dir(double t) const {
     return unit(predir(t)+postdir(t));
   }
 

@@ -957,6 +957,8 @@ bbox3 bbox3(triple min, triple max)
   return b;
 }
 
+private real Fuzz=10.0*realEpsilon;
+
 struct path3 {
   node[] nodes;
   bool cycles;
@@ -1153,21 +1155,6 @@ struct path3 {
     return unit(z1-z0+3*(c0-c1));
   }
 
-  triple predir(real t) {
-    if(!cycles && t <= 0) return (0,0,0);
-    triple z1=point(t);
-    triple c1=precontrol(t);
-    triple dir=z1-c1;
-    if(!cycles && t < 1) return unit(dir);
-    real norm=max(abs(z1),abs(c1));
-    if(abs(dir) > sqrtEpsilon*norm) return unit(dir);
-    triple c0=postcontrol(t-1);
-    dir=2*c1-c0-z1;
-    if(abs(dir) > sqrtEpsilon*max(norm,abs(c0))) return unit(dir);
-    triple z0=point(t-1);
-    return unit(z1-z0+3*(c0-c1));
-  }
-
   triple postdir(int t) {
     if(!cycles && t >= n-1) return (0,0,0);
     triple z0=point(t);
@@ -1182,26 +1169,7 @@ struct path3 {
     return unit(z1-z0+3*(c0-c1));
   }
 
-  triple postdir(real t) {
-    if(!cycles && t >= n-1) return (0,0,0);
-    triple z0=point(t);
-    triple c0=postcontrol(t);
-    triple dir=c0-z0;
-    if(!cycles && t > n-2) return unit(dir);
-    real norm=max(abs(z0),abs(c0));
-    if(abs(dir) > sqrtEpsilon*norm) return unit(dir);
-    triple c1=precontrol(t+1);
-    dir=z0-2*c0+c1;
-    if(abs(dir) > sqrtEpsilon*max(norm,abs(c1))) return unit(dir);
-    triple z1=point(t+1);
-    return unit(z1-z0+3*(c0-c1));
-  }
-
   triple dir(int t) {
-    return unit(predir(t)+postdir(t));
-  }
-
-  triple dir(real t) {
     return unit(predir(t)+postdir(t));
   }
 
@@ -1218,7 +1186,6 @@ struct path3 {
     if (n2 == -1) return p1;
     triple a=p1.point(n1);
     triple b=p2.point(0);
-    static real Fuzz=10*realEpsilon;
     if (abs(a-b) > Fuzz*max(abs(a),abs(b)))
       abort("path3 arguments in concatenation do not meet");
 
@@ -1404,6 +1371,27 @@ struct path3 {
     return p;
   }
   
+  triple predir(real t) {
+    if(!cycles && t <= Fuzz) return (0,0,0);
+    path3 q=subpath(floor(t)-1.0,t);
+    return q.predir(q.size()-1);
+  }
+
+  triple postdir(real t) {
+    if(!cycles && t >= n-1-Fuzz) return (0,0,0);
+    return subpath(t,ceil(t)+1.0).postdir(0);
+  }
+
+  triple dir(real t) {
+    return unit(predir(t)+postdir(t));
+  }
+
+  triple dir(real t, int sign) {
+    if(sign == 0) return dir(t);
+    else if(sign > 0) return postdir(t);
+    else return predir(t);
+  }
+
   bbox3 bounds() {
     if(!box.empty) return box;
     
@@ -1824,7 +1812,6 @@ real[] intersect(path3 p1, path3 p2, real fuzz=0)
     post2[i]=n2[i].post;
   }
   
-  static real Fuzz=10.0*realEpsilon;
   fuzz=max(fuzz,Fuzz*max(max(length(p1.max()),length(p1.min())),
                          max(length(p2.max()),length(p2.min()))));
   return intersect(pre1,point1,post1,pre2,point2,post2,fuzz);

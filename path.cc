@@ -13,9 +13,9 @@
 #include "angle.h"
 #include "camperror.h"
 
-static double Fuzz=10.0*DBL_EPSILON;
-  
 namespace camp {
+
+const double Fuzz=10.0*DBL_EPSILON;
 
 // Accurate computation of sqrt(1+x)-1.
 inline double sqrt1pxm1(double x)
