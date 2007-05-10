@@ -7083,7 +7083,7 @@ be entered on the same line.
 @cindex @code{exit}
 @anchor{history}
 @item quit
-exit interactive mode (abbreviated as @code{q}; @code{exit} is a synonym).
+exit interactive mode (@code{exit} is a synonym).
 A history of the most recent 1000 (this number can be changed with the
 @code{historylines} command-line option) previous commands will be retained
 in the file @code{.asy/history} in the user's home directory (unless

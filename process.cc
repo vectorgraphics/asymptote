@@ -646,7 +646,6 @@ class iprompt : public icore {
     // keywords.pl looks for ADDCOMMAND to identify special commands in the
     // auto-completion.
     ADDCOMMAND(quit,quit);
-    ADDCOMMAND(q,quit);
     ADDCOMMAND(exit,quit);
     ADDCOMMAND(reset,reset);
     ADDCOMMAND(help, help);
