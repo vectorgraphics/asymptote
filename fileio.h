@@ -62,12 +62,18 @@ public:
   
   bool Standard() {return standard;}
   
+  void standardEOF() {
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+    cout << endl;
+#endif	
+  }
+  
   template<class T>
   void purgeStandard(T&) {
     if(standard) {
       int c;
-      if(cin.eof()) 
-	cout << endl;
+      if(cin.eof())
+	standardEOF();
       else {
 	cin.clear();
 	while((c=cin.peek()) != EOF) {
@@ -79,7 +85,8 @@ public:
   }
   
   void purgeStandard(string&) {
-    if(cin.eof()) cout << endl;
+    if(cin.eof())
+      standardEOF();
   }
   
   void dimension(int Nx=-1, int Ny=-1, int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
