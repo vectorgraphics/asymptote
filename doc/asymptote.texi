@@ -1800,8 +1800,8 @@ character strings in ANSI @code{C}:
 @end itemize
 
 The implicit initializer for strings is the empty string @code{""}.
-In the following string functions, position 0 denotes the start of the string.
-
+Strings may be concatenated with the @code{+} operator. In the following
+string functions, position @code{0} denotes the start of the string:
 @table @code
 
 @cindex @code{length}
@@ -5891,10 +5891,6 @@ the tick labels on the @math{y} axis.
 @verbatiminclude filegraph.asy
 @image{filegraph}
 
-@item This example shows how to label an axis with arbitrary strings.
-@verbatiminclude monthaxis.asy
-@image{monthaxis}
-
 @cindex @code{polygon}
 @cindex @code{cross}
 @cindex @code{errorbars}
@@ -5926,8 +5922,23 @@ Here @code{markuniform(bool centered=false, int n, bool rotated=false)}
 adds this frame at @code{n} uniformly spaced points along the arclength
 of the path, optionally rotated by the angle of the local tangent to the path
 (if centered is true, the frames will be centered within @code{n} evenly
-spaced arclength intervals).
-This example also illustrates the @code{errorbar} routines:
+spaced arclength intervals). These markers are predefined:
+@verbatim
+marker[] Mark={
+  marker(scale(circlescale)*unitcircle),
+  marker(polygon(3)),marker(polygon(4)),
+  marker(polygon(5)),marker(invert*polygon(3)),
+  marker(cross(4)),marker(cross(6))
+};
+
+marker[] MarkFill={
+  marker(scale(circlescale)*unitcircle,Fill),marker(polygon(3),Fill),
+  marker(polygon(4),Fill),marker(polygon(5),Fill),
+  marker(invert*polygon(3),Fill)
+};
+@end verbatim
+
+The example also illustrates the @code{errorbar} routines:
 
 @verbatim
 void errorbars(picture pic=currentpicture, pair[] z, pair[] dp,
@@ -5947,6 +5958,10 @@ positive and negative extents of the error are assumed to be equal.
 @anchor{errorbars}
 @verbatiminclude errorbars.asy
 @image{errorbars}
+
+@item This example shows how to label an axis with arbitrary strings.
+@verbatiminclude monthaxis.asy
+@image{monthaxis}
 
 @item This example draws a graph of a parametrized curve. 
 @cindex parametrized curve
