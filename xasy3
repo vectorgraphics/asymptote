@@ -113,7 +113,7 @@ class asyApp:
   self.namePrefixes = ["move","rotate","vertiMove","horizMove","drawLines","drawBezi","drawPoly","fillPoly","drawEllip","fillEllip","drawShape","fillShape","raise","lower","text"]
   self.toolIcons = {}
   for x in self.namePrefixes:
-   self.toolIcons[x] = PhotoImage(file=x+".gif")
+   self.toolIcons[x] = PhotoImage(file="xasy3Imgs/"+x+".gif")
   
 
   self.transformLbl = Label(self.toolBar,text="",anchor=W)
