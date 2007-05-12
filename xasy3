@@ -1,0 +1,703 @@
+#!/usr/bin/env python
+# A new GUI for Asymptote
+# by Orest Shardt
+# for the Summer 2007 NSERC USRA
+
+import sys,os,signal
+from subprocess import *
+from Tkinter import *
+import tkMessageBox
+import tkColorChooser
+import tkFileDialog
+import tkSimpleDialog
+from string import *
+import threading
+import time
+
+#from PIL import Image,ImageTk
+
+if len(sys.argv) != 2:
+ prefix = "New File"
+else:
+ prefix = sys.argv[1]
+
+#start up asy
+asyFail = False
+try:
+ asyProc = Popen(("asy","-q","-x1","-noV","-signal"),stdin=PIPE,stdout=PIPE)
+ if asyProc.returncode != None:
+  asyFail = True
+except:
+ asyFail = True
+
+class asyImage:
+ def __init__(self,fileIndex,itemIndex,img):
+  self.fileIndex = fileIndex
+  self.itemIndex = itemIndex
+  self.img = img
+
+class drawnItem:
+ def __init__(self,shape,pointList=[],color="black",fill=None):
+  self.shape=shape
+  self.pointList = pointList
+  self.color = color
+  self.fill = fill
+
+class asyApp:
+ def __init__(self,master):
+  #some init
+  self.quitting = False
+  self.ticker = 0
+  self.fileItemCount = 0
+  self.counter=0
+  self.sig1Count = 0
+  self.images = []
+  self.flipFlop = False
+
+  self.parent = master
+  master.protocol("WM_DELETE_WINDOW",self.canQuit)
+  self.mainMenu = Menu(master)
+  master.config(menu=self.mainMenu)
+
+  #the file menu
+  self.fileMenu = Menu(self.mainMenu)
+  self.fileMenu.add_command(label="New",command=self.fileNewCmd)
+  self.fileMenu.add_command(label="Open",command=self.fileOpenCmd)
+  self.fileMenu.add_separator()
+  self.fileMenu.add_command(label="Insert",command=self.fileInsertCmd)
+  self.fileMenu.add_separator()
+  self.fileMenu.add_command(label="Save",command=self.fileSaveCmd)
+  self.fileMenu.add_command(label="Save As",command=self.fileSaveAsCmd)
+  self.fileMenu.add_separator()
+  self.fileMenu.add_command(label="Exit",command=self.fileExitCmd)
+  
+  self.mainMenu.add_cascade(label="File",menu=self.fileMenu)
+
+  #the edit menu
+  self.editMenu = Menu(self.mainMenu)
+  self.editMenu.add_command(label="Undo",command=self.editUndoCmd)
+  self.editMenu.add_command(label="Redo",command=self.editRedoCmd)
+  self.mainMenu.add_cascade(label="Edit",menu=self.editMenu)
+
+  #the tools menu
+  self.toolsMenu = Menu(self.mainMenu)
+  self.toolsMenu.add_command(label="Options",command=self.toolsOptionsCmd)
+  self.mainMenu.add_cascade(label="Tools",menu=self.toolsMenu)
+
+  #the help menu
+  self.helpMenu = Menu(self.mainMenu)
+  self.helpMenu.add_command(label="Help",command=self.helpHelpCmd)
+  self.helpMenu.add_command(label="Asymptote Documentation",command=self.helpAsyDocCmd)
+  self.helpMenu.add_separator()
+  self.helpMenu.add_command(label="About xasy",command=self.helpAboutCmd)
+  self.mainMenu.add_cascade(label="Help",menu=self.helpMenu)
+
+  #status bar
+  self.statusBar = Frame(master,relief=FLAT)
+  
+  self.status = Label(self.statusBar,text="Ready",relief=SUNKEN,anchor=W)
+  self.status.pack(side=LEFT,fill=X,expand=1)
+  self.coords = Label(self.statusBar,relief=SUNKEN,anchor=W)
+  self.coords.pack(side=LEFT)
+  Label(self.statusBar,text="+").pack(side=RIGHT)
+  self.zoomBar = Scale(self.statusBar,orient=HORIZONTAL,length=150,width=10,from_=-5,to=5,command=self.zoomViewCmd,showvalue=False)
+  self.zoomBar.pack(side=RIGHT,fill=X)
+  Label(self.statusBar,text="Zoom: -").pack(side=RIGHT)
+  
+  self.statusBar.pack(side=BOTTOM,fill=X)
+  
+  #toolbar for transformation, drawing, and adjustment commands
+  self.toolBar = Frame(master,relief=FLAT)
+
+  #let's load some images
+  self.namePrefixes = ["move","rotate","vertiMove","horizMove","drawLines","drawBezi","drawPoly","fillPoly","drawEllip","fillEllip","drawShape","fillShape","raise","lower","text"]
+  self.toolIcons = {}
+  for x in self.namePrefixes:
+   self.toolIcons[x] = PhotoImage(file=x+".gif")
+  
+
+  self.transformLbl = Label(self.toolBar,text="",anchor=W)
+  self.transformLbl.grid(row=0,column=0,columnspan=2,sticky=W)
+  self.toolMoveButton = Button(self.toolBar,command=self.toolMoveCmd,image=self.toolIcons["move"])
+  self.toolMoveButton.grid(row=1,column=0,sticky=N+S+E+W)
+  self.toolRotateButton = Button(self.toolBar,command=self.toolRotateCmd,image=self.toolIcons["rotate"])
+  self.toolRotateButton.grid(row=1,column=1,sticky=N+S+E+W)
+  self.toolVertiMoveButton = Button(self.toolBar,command=self.toolVertiMoveCmd,image=self.toolIcons["vertiMove"])
+  self.toolVertiMoveButton.grid(row=2,column=0,sticky=N+S+E+W)
+  self.toolHorizMoveButton = Button(self.toolBar,command=self.toolHorizMoveCmd,image=self.toolIcons["horizMove"])
+  self.toolHorizMoveButton.grid(row=2,column=1,sticky=N+S+E+W)
+  
+  self.drawLbl = Label(self.toolBar,text="",anchor=W)
+  self.drawLbl.grid(row=3,column=0,columnspan=2,sticky=W)
+  self.toolDrawLinesButton = Button(self.toolBar,command=self.toolDrawLinesCmd,image=self.toolIcons["drawLines"])
+  self.toolDrawLinesButton.grid(row=4,column=0,sticky=N+S+E+W)
+  self.toolDrawBeziButton = Button(self.toolBar,command=self.toolDrawBeziCmd,image=self.toolIcons["drawBezi"])
+  self.toolDrawBeziButton.grid(row=4,column=1,sticky=N+S+E+W)
+  self.toolDrawPolyButton = Button(self.toolBar,command=self.toolDrawPolyCmd,image=self.toolIcons["drawPoly"])
+  self.toolDrawPolyButton.grid(row=5,column=0,sticky=N+S+E+W)
+  self.toolFillPolyButton = Button(self.toolBar,command=self.toolFillPolyCmd,image=self.toolIcons["fillPoly"])
+  self.toolFillPolyButton.grid(row=5,column=1,sticky=N+S+E+W)
+  self.toolDrawEllipButton = Button(self.toolBar,command=self.toolDrawEllipCmd,image=self.toolIcons["drawEllip"])
+  self.toolDrawEllipButton.grid(row=6,column=0,sticky=N+S+E+W)
+  self.toolFillEllipButton = Button(self.toolBar,command=self.toolFillEllipCmd,image=self.toolIcons["fillEllip"])
+  self.toolFillEllipButton.grid(row=6,column=1,sticky=N+S+E+W)
+  self.toolDrawShapeButton = Button(self.toolBar,command=self.toolDrawShapeCmd,image=self.toolIcons["drawShape"])
+  self.toolDrawShapeButton.grid(row=7,column=0,sticky=N+S+E+W)
+  self.toolFillShapeButton = Button(self.toolBar,command=self.toolFillShapeCmd,image=self.toolIcons["fillShape"])
+  self.toolFillShapeButton.grid(row=7,column=1,sticky=N+S+E+W)
+  self.toolTextButton = Button(self.toolBar,command=self.toolTextCmd,image=self.toolIcons["text"])
+  self.toolTextButton.grid(row=8,column=0,sticky=N+S+E+W)		
+
+  self.adjLbl = Label(self.toolBar,text="",anchor=W)
+  self.adjLbl.grid(row=9,column=0,columnspan=2,sticky=W)
+  self.toolRaiseButton = Button(self.toolBar,command=self.toolRaiseCmd,image=self.toolIcons["raise"])
+  self.toolRaiseButton.grid(row=10,column=0,sticky=N+S+E+W)
+  self.toolLowerButton = Button(self.toolBar,command=self.toolLowerCmd,image=self.toolIcons["lower"])
+  self.toolLowerButton.grid(row=10,column=1,sticky=N+S+E+W)
+  
+  self.toolBar.pack(side=LEFT,anchor=NW)
+  
+  #an options bar
+  self.optionsBar = Frame(master,relief=FLAT,height=100)
+  Label(self.optionsBar,text="Options",anchor=W).grid(row=0,column=0)
+  self.outColButton = Button(self.optionsBar,text="Outline Color...",command=self.setOutColCmd)
+  self.outColButton.grid(row=1,column=0)
+  self.fillColButton = Button(self.optionsBar,text="Fill Color...",command=self.setFillColCmd)
+  self.fillColButton.grid(row=1,column=1)
+  self.optionsBar.pack(side=BOTTOM,anchor=NW)
+  
+  #the highly important canvas!
+  self.mainCanvas = Canvas(master,relief=SUNKEN,background="white",borderwidth=0,highlightthickness=0)
+  self.mainCanvas.pack(side=RIGHT,fill=BOTH,expand=1)
+  
+  self.mainCanvas.bind("<Motion>",self.canvMotion)
+  self.mainCanvas.bind("<Button-1>",self.canvLeftDown)
+  self.mainCanvas.bind("<Shift-Button-1>",self.startDraw)
+  self.mainCanvas.bind("<KeyRelease-Shift_R>",self.endDraw)
+  self.mainCanvas.bind("<KeyRelease-Shift_L>",self.endDraw)
+  self.mainCanvas.bind("<ButtonRelease-1>",self.canvLeftUp)
+  
+  self.mainCanvas.bind("<Enter>",self.canvEnter)
+  self.mainCanvas.bind("<Leave>",self.canvLeave)
+  self.mainCanvas.bind("<Delete>",self.itemDelete)
+  #self.mainCanvas.bind("<Button-3>",self.canvRightDown)
+  #self.mainCanvas.bind("<ButtonRelease-3>",self.canvRightUp)
+  
+  self.canvVScroll = Scrollbar(self.mainCanvas,orient=VERTICAL)
+  self.canvHScroll = Scrollbar(self.mainCanvas,orient=HORIZONTAL)
+  self.canvHScroll.pack(side=BOTTOM,fill=X)
+  self.canvVScroll.pack(side=RIGHT,fill=Y)
+
+  self.mainCanvas.config(yscrollcommand=self.canvVScroll.set,xscrollcommand=self.canvHScroll.set)
+  self.canvVScroll.config(command=self.mainCanvas.yview)
+  self.canvHScroll.config(command=self.mainCanvas.xview)
+  
+  self.initGUI()
+  self.resetGUI()
+  #did asy start up?
+  if asyFail:
+   tkMessageBox.showerror("xasy Error","Asyptote could not start!\nPlease check installation and paths.")
+   master.destroy()
+  signal.signal(signal.SIGINT,self.sigHandler)
+
+ def initGUI(self):
+  self.selectedButton = self.toolMoveButton
+  self.freeMouseDown = True
+  
+ def resetGUI(self):
+  #pick a default operating mode
+  self.updateSelectedButton(self.toolMoveButton)
+  self.mainCanvas.delete(ALL)
+  self.parent.title("Xasy - New File")
+  self.itemsL,self.itemsT,self.itemsR,self.itemsB = 0,0,0,0
+  self.asyImageList = []
+  self.asyImageCount = 0
+  self.deleteImages = []
+  self.drawnItemList = []
+  self.drawnItemCount = 0
+  self.mainCanvas.create_rectangle(0,0,0,0,tags="outlineBox",width=0,outline="#801111",dash=(3,6))
+  self.magnification = 1
+  self.counter = 0
+  self.updateCanvasSize()
+  self.mainCanvas.xview(MOVETO,0)
+  self.mainCanvas.yview(MOVETO,0)
+  self.images = []
+  self.pointSet = []
+  self.imageBoxes = []
+  self.outlineColor = "black"
+  self.fillColor = "gray"
+  self.selectedId = None
+  self.backColor = "white"
+ def updateCanvasSize(self,left=-500,top=-500,right=500,bottom=500):
+  w,h = self.mainCanvas.winfo_width(),self.mainCanvas.winfo_height()
+  if right-left < w:
+   extraw = w-(right-left)
+   right = right + extraw/2
+   left = left - extraw/2
+  if bottom-top < h:
+   extrah = h-(bottom-top)
+   bottom = bottom + extrah/2
+   top = top-extrah/2
+  self.mainCanvas.config(scrollregion=(left,top,right,bottom))
+
+ def tickHandler(self):
+  while not(self.quitting):
+   self.ticker = self.ticker+1
+   self.flipFlop = not(self.flipFlop)
+   self.mainCanvas.itemconfigure("outlineBox",dashoffset=self.ticker%9)
+   time.sleep(0.5)
+  
+  
+ def sigHandler(self,signalnum,frame):
+  print "Sig#",self.fileItemCount
+  lines = map(split,open(".out_"+str(self.fileItemCount)+".box").readlines())
+  self.magnification = float(lines[0][0])
+  print self.magnification
+  if self.magnification != 0:
+   #for line in enumerate(lines[1:]):
+   line = lines[1]
+   left,bottom,right,top = float(line[0]),float(line[1]),float(line[2]),float(line[3])
+   #print self.fileItemCount
+   #print ".out_"+str(self.fileItemCount)+".gif"
+   self.imageBoxes.append((left,top))
+   self.itemsL = min(self.itemsL,left)
+   self.itemsT = min(self.itemsT,bottom)
+   self.itemsR = max(self.itemsR,right)
+   self.itemsB = max(self.itemsB,top)
+ 
+   #print (self.itemsL,self.itemsT,self.itemsR,self.itemsB)
+   nr = 1.5*max(abs(self.itemsL),abs(self.itemsR))
+   nl=-nr
+   nb = 1.5*max(abs(self.itemsB),abs(self.itemsT))
+   nt=-nb
+   #print (nl,nt,nr,nb)
+   self.updateCanvasSize(nl,nt,nr,nb)
+   self.mainCanvas.xview(MOVETO,(self.itemsL-nl)/(nr-nl))
+   self.mainCanvas.yview(MOVETO,(self.itemsT-nt)/(nb-nt))
+   #print ((self.itemsL-nl)/(nr-nl),(self.itemsT-nt)/(nb-nt))
+  
+   self.fileItemCount = self.fileItemCount+1
+  else:
+   print "File loading completed"
+   self.fileItemCount = 0
+   count = 0
+   for a in self.imageBoxes:
+    self.images.append(PhotoImage(file=".out_"+str(count)+".gif"))
+    self.deleteImages.append(False)
+    self.mainCanvas.create_image(a[0],-a[1],image=self.images[count],anchor=NW,tags=("image",str(count)))
+    self.bindItemEvents("image &&"+str(count))
+    count = count+1
+   self.status.config(text = "Done.")
+  
+ def sigHandler1(self,signalnum,frame):
+  pass
+ def bindItemEvents(self,tag):
+  self.mainCanvas.tag_bind(tag,"<Button-1>",self.itemSelect)
+  self.mainCanvas.tag_bind(tag,"<ButtonRelease-1>",self.itemMouseUp)
+  self.mainCanvas.tag_bind(tag,"<B1-Motion>",self.itemDrag)
+  self.mainCanvas.tag_bind(tag,"<Delete>",self.itemDelete)
+
+ def canQuit(self):
+  self.quitting = True
+  print "Quitting"
+  asyProc.communicate("quit\n")
+  asyProc.wait()
+  self.parent.destroy()
+
+ def openFile(self,name):
+  self.resetGUI()
+  self.insertFile(name)
+ def insertFile(self,name):
+  self.status.config(text="Loading "+name)
+  fullName = os.path.abspath(name)
+  fileName = os.path.basename(fullName)
+  fileDir = os.path.dirname(fullName)
+  self.filePrefix,none = os.path.splitext(fileName)
+  print "opening: full:" + fullName + " file:"+fileName+" dir:"+fileDir+" pref:"+self.filePrefix
+  self.parent.title("Xasy - "+fileName)
+  self.fileItemCount = 0
+  asyProc.stdin.write("input \""+fileDir+"/"+self.filePrefix+"\"\n")
+
+ def saveFile(self,name):
+  print "saving?"
+  outFile = open(name,'a')
+  outFile.write("//GUI file generated by xasy\n")
+  #outFile.write("file test:\n")
+  for a in range(0,len(self.images)):
+   print "Image ",a,"?"
+   ids = self.mainCanvas.find_withtag("image &&"+str(a))
+   if ids==():
+    print "deleted"
+    outFile.write("GUIop("+str(a)+","+str(0)+",DELETE);\n")
+   else:
+    imgId = ids[0]
+    tags = self.mainCanvas.gettags(imgId)
+    newCoords = self.mainCanvas.coords(imgId)
+    #coordinate system transformation:
+    newCoords[1] = -newCoords[1]
+    oldCoords = self.imageBoxes[a]
+    deltaX = newCoords[0]-oldCoords[0]
+    deltaY = (newCoords[1]-oldCoords[1])
+    #only save changes greater than 0.001%
+    if abs(deltaX/oldCoords[0])*100>0.001 or abs(deltaY/oldCoords[1])*100>0.001:
+     outFile.write("GUIop("+str(a)+","+str(0)+",shift"+str((deltaX,deltaY))+");\n")
+  for a in self.mainCanvas.find_withtag("drawn"):
+   if self.mainCanvas.gettags(a)[1] == "line":
+    coordList = self.mainCanvas.coords(a)
+    outFile.write("draw(GUI("+str(0)+"),")
+    while len(coordList)>2:
+     x = coordList.pop(0)
+     y = coordList.pop(0)
+     y = -y
+     outFile.write(str((x,y))+"--")
+    x = coordList.pop(0)
+    y = coordList.pop(0)
+    y = -y
+    outFile.write(str((x,y))+");\n")
+     
+
+ #menu commands
+ def fileNewCmd(self):
+  print "Create New File"
+  self.resetGUI()
+ def fileOpenCmd(self):
+  print "Open a file"
+  self.filename=tkFileDialog.askopenfile(filetypes=[("asy files","*.asy"),("All files","*")])
+  if self.filename != None:
+   self.openFile(self.filename.name)
+ def fileInsertCmd(self):
+  print "Insert a file"
+  self.filename=tkFileDialog.askopenfile(filetypes=[("asy files","*.asy"),("All files","*")])
+  if self.filename != None:
+   self.insertFile(self.filename.name)
+ def fileSaveCmd(self):
+  print "Save current file"
+  self.filename=tkFileDialog.asksaveasfile()
+  if self.filename != None:
+   self.saveFile(self.filename.name)
+ def fileSaveAsCmd(self):
+  print "Save current file as"
+  self.filename=tkFileDialog.asksaveasfile()
+  if self.filename != None:
+   self.saveFile(self.filename.name)
+
+ def fileExitCmd(self):
+  print "Exit xasy"
+  self.canQuit()
+ def editUndoCmd(self):
+  print "Undo"
+ def editRedoCmd(self):
+  print "Redo"
+ def toolsOptionsCmd(self):
+  print "Display options dialog"
+ def helpHelpCmd(self):
+  print "Get help on xasy"
+ def helpAsyDocCmd(self):
+  print "Open documentation about Asymptote"
+ def helpAboutCmd(self):
+  tkMessageBox.showinfo("About xasy","A graphical interface for Asymptote")
+
+ def updateSelectedButton(self,newB):
+  self.selectedButton.config(relief = RAISED)
+  self.selectedButton = newB
+  self.selectedButton.config(relief = FLAT)
+ #toolbar commands
+ def toolMoveCmd(self):
+  self.updateSelectedButton(self.toolMoveButton)
+ def toolRotateCmd(self):
+  self.updateSelectedButton(self.toolRotateButton)
+ def toolVertiMoveCmd(self):
+  self.updateSelectedButton(self.toolVertiMoveButton)
+ def toolHorizMoveCmd(self):
+  self.updateSelectedButton(self.toolHorizMoveButton)
+ def toolDrawLinesCmd(self):
+  self.updateSelectedButton(self.toolDrawLinesButton)
+ def toolDrawBeziCmd(self):
+  self.updateSelectedButton(self.toolDrawBeziButton)
+ def toolDrawPolyCmd(self):
+  self.updateSelectedButton(self.toolDrawPolyButton)
+ def toolFillPolyCmd(self):
+  self.updateSelectedButton(self.toolFillPolyButton)
+ def toolDrawEllipCmd(self):
+  self.updateSelectedButton(self.toolDrawEllipButton)
+ def toolFillEllipCmd(self):
+  self.updateSelectedButton(self.toolFillEllipButton)
+ def toolDrawShapeCmd(self):
+  self.updateSelectedButton(self.toolDrawShapeButton)
+ def toolFillShapeCmd(self):
+  self.updateSelectedButton(self.toolFillShapeButton)
+
+ def toolTextCmd(self):
+  self.updateSelectedButton(self.toolTextButton)
+
+ def toolRaiseCmd(self):
+  if self.selectedId != None:
+   self.mainCanvas.tag_raise(self.selectedId)
+ def toolLowerCmd(self):
+  if self.selectedId != None:
+   self.mainCanvas.tag_lower(self.selectedId)
+ #options bar commands
+ def setOutColCmd(self):
+  result=tkColorChooser.askcolor(initialcolor=self.outlineColor,title="Select Outline and Text Color",parent=self.parent)
+  if result != (None,None):
+   self.outlineColor = result[1]
+   print self.outlineColor
+ def setFillColCmd(self):
+  result=tkColorChooser.askcolor(initialcolor=self.fillColor,title="Select Fill Color",parent=self.parent)
+  if result != (None,None):
+   self.fillColor = result[1]
+   print self.fillColor
+
+ def clearSelection(self):
+  self.mainCanvas.tag_lower("outlineBox")
+  self.mainCanvas.coords("outlineBox",self.mainCanvas.bbox(ALL))
+  self.mainCanvas.itemconfigure("outlineBox",width=1,outline=self.backColor)
+  self.selectedId = None
+
+ def setSelection(self,what):
+  self.selectedId = self.mainCanvas.find_withtag(what)[0]
+  #print "selected",self.selectedId
+  #print self.mainCanvas.bbox(CURRENT)
+  self.mainCanvas.tag_raise("outlineBox")
+  self.mainCanvas.coords("outlineBox",self.mainCanvas.bbox(CURRENT))
+  self.mainCanvas.itemconfigure("outlineBox",width=2,outline="#801111")
+
+ #event handlers
+ def zoomViewCmd(self,where):
+  print "Zooming the view!"
+
+ def itemDrag(self,event):
+  x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+
+  if self.selectedButton == self.toolMoveButton:
+   self.mainCanvas.move(CURRENT,x-self.dragStartx,y-self.dragStarty)
+   self.mainCanvas.coords("outlineBox",self.mainCanvas.bbox(CURRENT))
+  elif self.selectedButton == self.toolVertiMoveButton:
+   self.mainCanvas.move(CURRENT,0,y-self.dragStarty)
+   self.mainCanvas.coords("outlineBox",self.mainCanvas.bbox(CURRENT))
+  elif self.selectedButton == self.toolHorizMoveButton:
+   self.mainCanvas.move(CURRENT,x-self.dragStartx,0)
+   self.mainCanvas.coords("outlineBox",self.mainCanvas.bbox(CURRENT))
+  
+  self.dragStartx,self.dragStarty = x,y
+
+ def itemMouseUp(self,event):
+  print "up"
+  self.freeMouseDown = True
+ def itemSelect(self,event):
+  x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+  if self.selectedButton == self.toolMoveButton or self.selectedButton == self.toolVertiMoveButton or self.selectedButton == self.toolHorizMoveButton :
+   self.setSelection(CURRENT)
+   self.dragStartx,self.dragStarty = x,y
+   self.freeMouseDown = False
+
+ def itemDelete(self,event):
+  print "delete"
+  if self.selectedId != None:
+   tags = self.mainCanvas.gettags(self.selectedId)
+   self.mainCanvas.delete(self.selectedId)
+   print self.selectedId,tags
+   if tags[0]=="image":
+    self.deleteImages[int(tags[1])] = True
+   self.clearSelection()
+ def itemMotion(self,event):
+  pass
+ def itemEnter(self,event):
+  pass
+ def itemLeave(self,event):
+  pass
+  
+ def itemLeftDown(self,event):
+  pass
+ def itemLeftUp(self,event):
+  pass
+ def itemRightDown(self,event):
+  pass
+ def itemRightUp(self,event):
+  pass
+ 
+ def canvMotion(self,event):
+  self.coords.config(text=str((self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(-event.y))))
+
+ def startDraw(self,event):
+  x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+
+  if self.selectedButton == self.toolDrawLinesButton:
+   self.pointSet.append(x)
+   self.pointSet.append(y)
+   print self.pointSet
+   if len(self.pointSet)==2:
+    self.pointSet.append(x)
+    self.pointSet.append(y)
+    self.mainCanvas.create_line(self.pointSet,tags=("drawn","line",str(self.drawnItemCount),"itemBeingDrawn"),fill=self.outlineColor)
+    self.bindItemEvents("drawn && "+str(self.drawnItemCount))
+    self.mainCanvas.bind("<Shift-Motion>",self.extendDraw)
+   elif len(self.pointSet)>2:
+    self.mainCanvas.coords("drawn && "+str(self.drawnItemCount),*self.pointSet)
+
+  if self.selectedButton == self.toolDrawBeziButton:
+   self.pointSet.append(x)
+   self.pointSet.append(y)
+   print self.pointSet
+   if len(self.pointSet)==2:
+    self.pointSet.append(x)
+    self.pointSet.append(y)
+    self.mainCanvas.create_line(self.pointSet,tags=("drawn","bezier",str(self.drawnItemCount),"itemBeingDrawn"),fill=self.outlineColor,smooth=True)
+    self.bindItemEvents("drawn && "+str(self.drawnItemCount))
+    self.mainCanvas.bind("<Shift-Motion>",self.extendDraw)
+   elif len(self.pointSet)>4:
+    self.mainCanvas.coords("drawn && "+str(self.drawnItemCount),*self.pointSet)
+
+  if self.selectedButton == self.toolDrawPolyButton:
+   self.pointSet.append(x)
+   self.pointSet.append(y)
+   print self.pointSet
+   if len(self.pointSet)==4:
+    self.pointSet.append(x)
+    self.pointSet.append(y)
+    self.mainCanvas.create_polygon(self.pointSet,tags=("drawn","outlinedPolygon",str(self.drawnItemCount),"itemBeingDrawn"),fill="",outline=self.outlineColor)
+    self.bindItemEvents("drawn && "+str(self.drawnItemCount))
+    self.mainCanvas.bind("<Shift-Motion>",self.extendDraw)
+   elif len(self.pointSet)>4:
+    self.mainCanvas.coords("drawn && "+str(self.drawnItemCount),*self.pointSet)
+
+  if self.selectedButton == self.toolFillPolyButton:
+   self.pointSet.append(x)
+   self.pointSet.append(y)
+   print self.pointSet
+   if len(self.pointSet)==4:
+    print "fillPoly created"
+    self.pointSet.append(x)
+    self.pointSet.append(y)
+    self.mainCanvas.create_polygon(self.pointSet,tags=("drawn","filledPolygon",str(self.drawnItemCount),"itemBeingDrawn"),fill=self.fillColor,outline=self.outlineColor)
+    self.bindItemEvents("drawn && "+str(self.drawnItemCount))
+    self.mainCanvas.bind("<Shift-Motion>",self.extendDraw)
+   elif len(self.pointSet)>4:
+    self.mainCanvas.coords("drawn && "+str(self.drawnItemCount),*self.pointSet)
+
+  if self.selectedButton == self.toolDrawEllipButton:
+   self.pointSet.append(x)
+   self.pointSet.append(y)
+   print self.pointSet
+   if len(self.pointSet)==4:
+    w = self.pointSet[2]-self.pointSet[0]
+    h = self.pointSet[3]-self.pointSet[1]
+    points = [self.pointSet[0]-w,self.pointSet[1]-h,self.pointSet[2],self.pointSet[3]]
+    self.mainCanvas.create_oval(points,tags=("drawn","outlinedEllipse",str(self.drawnItemCount)),fill="",outline=self.outlineColor)
+    self.bindItemEvents("drawn && "+str(self.drawnItemCount))
+    self.pointSet = []
+    self.drawnItemCount = self.drawnItemCount+1
+
+  if self.selectedButton == self.toolFillEllipButton:
+   self.pointSet.append(x)
+   self.pointSet.append(y)
+   print self.pointSet
+   if len(self.pointSet)==4:
+    w = self.pointSet[2]-self.pointSet[0]
+    h = self.pointSet[3]-self.pointSet[1]
+    points = [self.pointSet[0]-w,self.pointSet[1]-h,self.pointSet[2],self.pointSet[3]]
+    self.mainCanvas.create_oval(points,tags=("drawn","filledEllipse",str(self.drawnItemCount)),fill=self.fillColor,outline=self.outlineColor)
+    self.bindItemEvents("drawn && "+str(self.drawnItemCount))
+    self.pointSet = []
+    self.drawnItemCount = self.drawnItemCount+1
+
+  if self.selectedButton == self.toolDrawShapeButton:
+   self.pointSet.append(x)
+   self.pointSet.append(y)
+   print self.pointSet
+   if len(self.pointSet)==4:
+    self.pointSet.append(x)
+    self.pointSet.append(y)
+    self.mainCanvas.create_polygon(self.pointSet,tags=("drawn","outlinedShape",str(self.drawnItemCount),"itemBeingDrawn"),fill="",outline=self.outlineColor,smooth=True)
+    self.bindItemEvents("drawn && "+str(self.drawnItemCount))
+    self.mainCanvas.bind("<Shift-Motion>",self.extendDraw)
+   elif len(self.pointSet)>4:
+    self.mainCanvas.coords("drawn && "+str(self.drawnItemCount),*self.pointSet)
+
+  if self.selectedButton == self.toolFillShapeButton:
+   self.pointSet.append(x)
+   self.pointSet.append(y)
+   print self.pointSet
+   if len(self.pointSet)==4:
+    self.pointSet.append(x)
+    self.pointSet.append(y)
+    self.mainCanvas.create_polygon(self.pointSet,tags=("drawn","filledShape",str(self.drawnItemCount),"itemBeingDrawn"),fill=self.fillColor,outline=self.outlineColor,smooth=True)
+    self.bindItemEvents("drawn && "+str(self.drawnItemCount))
+    self.mainCanvas.bind("<Shift-Motion>",self.extendDraw)
+   elif len(self.pointSet)>4:
+    self.mainCanvas.coords("drawn && "+str(self.drawnItemCount),*self.pointSet)
+
+  if self.selectedButton == self.toolTextButton:
+   x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+   theText = tkSimpleDialog.askstring(title="Xasy - Text",prompt="Enter text to display:",initialvalue="Some text",parent=self.parent)		
+   if theText != None:
+    self.mainCanvas.create_text(x,y,text=theText,fill=self.outlineColor,anchor=W,tags=("drawn","text",str(self.drawnItemCount)))
+    self.bindItemEvents("drawn && "+str(self.drawnItemCount))
+    self.drawnItemCount = self.drawnItemCount+1
+
+ def extendDraw(self,event):
+  x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+  self.pointSet[-2] = x
+  self.pointSet[-1] = y
+  self.mainCanvas.coords("itemBeingDrawn",*self.pointSet)
+
+
+ def endDraw(self,event):
+  print "End Draw"
+  if self.selectedButton == self.toolDrawLinesButton:
+   self.drawnItemCount = self.drawnItemCount+1
+   self.pointSet = []
+  if self.selectedButton == self.toolDrawBeziButton:
+   self.drawnItemCount = self.drawnItemCount+1
+   self.pointSet = []
+  if self.selectedButton == self.toolDrawPolyButton:
+   self.drawnItemCount = self.drawnItemCount+1
+   self.pointSet = []
+  if self.selectedButton == self.toolFillPolyButton:
+   self.drawnItemCount = self.drawnItemCount+1
+   self.pointSet = []
+  if self.selectedButton == self.toolDrawShapeButton:
+   self.drawnItemCount = self.drawnItemCount+1
+   self.pointSet = []
+  if self.selectedButton == self.toolFillShapeButton:
+   self.drawnItemCount = self.drawnItemCount+1
+   self.pointSet = []
+  self.mainCanvas.dtag("itemBeingDrawn","itemBeingDrawn")
+  self.mainCanvas.unbind("<Shift-Motion>")
+ def canvLeftDown(self,event):
+  x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
+  print "Left Mouse Down"
+  if self.freeMouseDown:
+   self.clearSelection()
+   self.freeMouseDown = True
+    
+ def canvLeftUp(self,event):
+  print "Left Mouse Up"
+  self.freeMouseDown = True
+  
+ def canvEnter(self,event):
+  self.freeMouseDown = True
+  event.widget.focus_set()
+  pass
+ def canvLeave(self,event):
+  self.freeMouseDown = False
+  pass
+ def canvRightDown(self,event):
+  print "Right Mouse Down"
+ def canvRightUp(self,event):
+  print "Right Mouse Up"
+
+
+
+root = Tk()
+root.geometry("800x600")
+root.title("Xasy - "+prefix)
+root.resizable(True,True)
+app = asyApp(root)
+#signal.signal(signal.SIGINT,app.sigHandler)
+#signal.signal(signal.SIGUSR2,app.sigHandler2)
+ticker = threading.Timer(0.1,app.tickHandler)
+ticker.start()
+if len(sys.argv)>1:
+ app.openFile(sys.argv[1])
+root.mainloop()
