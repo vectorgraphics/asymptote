@@ -23,7 +23,7 @@
 inline double intcap(double t) {
   if(t <= -INT_MAX) return -INT_MAX;
   if(t >= INT_MAX) return INT_MAX;
-    return t;
+  return t;
 }
   
 // The are like floor and ceil, except they return an integer;
@@ -51,6 +51,8 @@ struct solvedKnot : public gc {
 };
 
 extern const double Fuzz;
+extern const double Fuzz2;
+extern const double sqrtFuzz;
   
 class path : public gc {
   bool cycles;  // If the path is closed in a loop
@@ -188,41 +190,48 @@ public:
   
   pair predir(int t) const {
     if(!cycles && t <= 0) return pair(0,0);
+    pair z0=point(t-1);
     pair z1=point(t);
     pair c1=precontrol(t);
     pair dir=z1-c1;
-    double norm=camp::max(z1.abs2(),c1.abs2());
-    if(dir.abs2() > DBL_EPSILON*norm) return unit(dir);
+    double epsilon=Fuzz2*(z0-z1).abs2();
+    if(dir.abs2() > epsilon) return unit(dir);
     pair c0=postcontrol(t-1);
     dir=2*c1-c0-z1;
-    if(dir.abs2() > DBL_EPSILON*camp::max(norm,c0.abs2())) return unit(dir);
-    pair z0=point(t-1);
+    if(dir.abs2() > epsilon) return unit(dir);
     return unit(z1-z0+3*(c0-c1));
   }
 
   pair predir(double t) const {
-    if(!cycles && t <= Fuzz) return pair(0,0);
-    path q=subpath(floor(t)-1.0,t);
-    return q.predir(q.size()-1);
+    if(!cycles) {
+      if(t <= 0) return pair(0,0);
+      if(t >= n-1) return predir(n-1);
+    }
+    int a=Floor(t);
+    return (t-a < sqrtFuzz) ? predir(a) : subpath((double) a,t).predir(1);
   }
 
   pair postdir(int t) const {
     if(!cycles && t >= n-1) return pair(0,0);
     pair z0=point(t);
+    pair z1=point(t+1);
     pair c0=postcontrol(t);
     pair dir=c0-z0;
-    double norm=camp::max(z0.abs2(),c0.abs2());
-    if(dir.abs2() > DBL_EPSILON*norm) return unit(dir);
+    double epsilon=Fuzz2*(z0-z1).abs2();
+    if(dir.abs2() > epsilon) return unit(dir);
     pair c1=precontrol(t+1);
     dir=z0-2*c0+c1;
-    if(dir.abs2() > DBL_EPSILON*camp::max(norm,c1.abs2())) return unit(dir);
-    pair z1=point(t+1);
+    if(dir.abs2() > epsilon) return unit(dir);
     return unit(z1-z0+3*(c0-c1));
   }
 
   pair postdir(double t) const {
-    if(!cycles && t >= n-1-Fuzz) return pair(0,0);
-    return subpath(t,ceil(t)+1.0).postdir(0);
+    if(!cycles) {
+      if(t >= n-1) return pair(0,0);
+      if(t <= 0) return postdir(0);
+    }
+    int b=Ceil(t);
+    return (b-t < sqrtFuzz) ? postdir(b) : subpath(t,(double) b).postdir(0);
   }
 
   pair dir(int t) const {

@@ -1139,33 +1139,33 @@ struct path3 {
     return (bcd == d) ? nodes[iplus].post : bcd;
   }
 
-  real sqrtEpsilon=sqrt(realEpsilon);
+  static real sqrtFuzz=sqrt(Fuzz);
 
   triple predir(int t) {
     if(!cycles && t <= 0) return (0,0,0);
+    triple z0=point(t-1);
     triple z1=point(t);
     triple c1=precontrol(t);
     triple dir=z1-c1;
-    real norm=max(abs(z1),abs(c1));
-    if(abs(dir) > sqrtEpsilon*norm) return unit(dir);
+    real epsilon=Fuzz*abs(z0-z1);
+    if(abs(dir) > epsilon) return unit(dir);
     triple c0=postcontrol(t-1);
     dir=2*c1-c0-z1;
-    if(abs(dir) > sqrtEpsilon*max(norm,abs(c0))) return unit(dir);
-    triple z0=point(t-1);
+    if(abs(dir) > epsilon) return unit(dir);
     return unit(z1-z0+3*(c0-c1));
   }
 
   triple postdir(int t) {
     if(!cycles && t >= n-1) return (0,0,0);
     triple z0=point(t);
+    triple z1=point(t+1);
     triple c0=postcontrol(t);
     triple dir=c0-z0;
-    real norm=max(abs(z0),abs(c0));
-    if(abs(dir) > sqrtEpsilon*norm) return unit(dir);
+    real epsilon=Fuzz*abs(z0-z1);
+    if(abs(dir) > epsilon) return unit(dir);
     triple c1=precontrol(t+1);
     dir=z0-2*c0+c1;
-    if(abs(dir) > sqrtEpsilon*max(norm,abs(c1))) return unit(dir);
-    triple z1=point(t+1);
+    if(abs(dir) > epsilon) return unit(dir);
     return unit(z1-z0+3*(c0-c1));
   }
 
@@ -1372,14 +1372,21 @@ struct path3 {
   }
   
   triple predir(real t) {
-    if(!cycles && t <= Fuzz) return (0,0,0);
-    path3 q=subpath(floor(t)-1.0,t);
-    return q.predir(q.size()-1);
+    if(!cycles) {
+      if(t <= 0) return (0,0,0);
+      if(t >= n-1) return predir(n-1);
+    }
+    int a=Floor(t);
+    return (t-a < sqrtFuzz) ? predir(a) : subpath((real) a,t).predir(1);
   }
 
   triple postdir(real t) {
-    if(!cycles && t >= n-1-Fuzz) return (0,0,0);
-    return subpath(t,ceil(t)+1.0).postdir(0);
+    if(!cycles) {
+      if(t >= n-1) return (0,0,0);
+      if(t <= 0) return postdir(0);
+    }
+    int b=Ceil(t);
+    return (b-t < sqrtFuzz) ? postdir(b) : subpath(t,(real) b).postdir(0);
   }
 
   triple dir(real t) {

@@ -1,4 +1,5 @@
 #include <cmath>
+#include <cassert>
 
 // Compute a numerical approximation to an integral via adaptive Simpson's Rule
 // This routine ignores underflow.
@@ -152,7 +153,7 @@ unsimpson(double integral,	// Given value for the integral.
       sum=estl+estr;
       diff=est-sum;
 
-      if(sum < 0.0) return false;
+      assert(sum >= 0.0);
       area=parea+sum;
       b2=alpha+da;
       if(fabs(fabs(integral-area)-fabs(pdiff))+fabs(diff) <= fv[4]*acc*(b2-a)){

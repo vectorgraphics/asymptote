@@ -16,6 +16,8 @@
 namespace camp {
 
 const double Fuzz=10.0*DBL_EPSILON;
+const double Fuzz2=Fuzz*Fuzz;
+const double sqrtFuzz=sqrt(Fuzz);
 
 // Accurate computation of sqrt(1+x)-1.
 inline double sqrt1pxm1(double x)
@@ -552,7 +554,7 @@ double cubiclength(pair z0, pair z0p, pair z1m, pair z1, double goal=-1)
   if(!simpson(integral,ds,0.0,1.0,DBL_EPSILON,1.0))
     reportError("nesting capacity exceeded in computing arclength");
   L=3.0*integral;
-  if(goal < 0 || goal > L) return L;
+  if(goal < 0 || goal >= L) return L;
   
   static const double third=1.0/3.0;
   goal *= third;
