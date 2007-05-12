@@ -559,7 +559,7 @@ double cubiclength(pair z0, pair z0p, pair z1m, pair z1, double goal=-1)
   static const double third=1.0/3.0;
   goal *= third;
   double t=0.5;
-  if(!unsimpson(goal,ds,0.0,t,100.0*DBL_EPSILON,integral,1.0))
+  if(!unsimpson(goal,ds,0.0,t,10.0*DBL_EPSILON,integral,1.0))
     reportError("nesting capacity exceeded in computing arctime");
   return -t;
 }
