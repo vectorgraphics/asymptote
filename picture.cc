@@ -373,6 +373,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     psfile out(epsname,false);
     out.prologue(b);
     out.epilogue();
+    out.close();
     if(deconstruct && !tgifformat) {
       if(bboxout) bboxout.close();
       ShipoutNumber++;
