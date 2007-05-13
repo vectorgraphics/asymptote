@@ -95,6 +95,7 @@
 
 \def\AfterasyAsymptote{%
   \immediate\write\AsyStream{\@charrb);}%
+  \immediate\write\AsyStream{// End of Asymptote Figure \arabic{asy}}%
   \ifinline
     \openin\AsyTestStream=\Jobname_\arabic{asy}_.tex
   \else
@@ -132,6 +133,7 @@
   \stepcounter{asy}%
   \def\@optarg{#1}%
    \immediate\write\AsyStream{}%
+   \immediate\write\AsyStream{// Beginning of Asymptote Figure \arabic{asy}}%
    \immediate\write\AsyStream{eval(quote\@charlb}%
    \immediate\write\AsyStream{defaultfilename='\Jobname_\arabic{asy}';}%
   \ifx\@optarg\empty
