@@ -17,7 +17,7 @@ struct animation {
   string[] files;
   string prefix=outname();
   int index;
-  bool global=true; // Using a global scaling for all frames; this requires
+  bool global=true; // Use a global scaling for all frames; this requires
   // extra memory since the actual shipout is deferred until all frames have
   // been generated. 
 

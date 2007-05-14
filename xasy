@@ -5,6 +5,7 @@
 
 from Tkinter import *
 from string import split
+#from PIL import ImageTk
 
 xscreen=800
 yscreen=600
@@ -127,6 +128,8 @@ class transform:
 
 class image(transform):
     def __init__(self,canv,x,y,name,i):
+#        imagetmp=Image.open(name)
+#        self.img=ImageTk.PhotoImage(imagetmp)
         self.img=PhotoImage(file=name)
         self.obj=canv.create_image(x,y,anchor=SW,image=self.img)
         self.bind(canv)

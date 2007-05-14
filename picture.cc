@@ -45,7 +45,7 @@ picture::~picture()
 {
 }
 
-bool picture::epsformat,picture::pdfformat,picture::tgifformat, picture::pdf;
+bool picture::epsformat,picture::pdfformat,picture::xasyformat, picture::pdf;
 bool picture::Labels;
 double picture::paperWidth,picture::paperHeight;
   
@@ -283,13 +283,13 @@ bool picture::postprocess(const string& prename, const string& outname,
     } else {
       ostringstream cmd;
       double expand=2.0;
-      double res=(tgifformat ? getSetting<double>("deconstruct") : expand)*
+      double res=(xasyformat ? getSetting<double>("deconstruct") : expand)*
 	72.0;
       cmd << "'" << getSetting<string>("convert") 
 	  << "' -density " << res << "x" << res;
-      if(!tgifformat) cmd << " +antialias -geometry " << 100.0/expand << "%x";
+      if(!xasyformat) cmd << " +antialias -geometry " << 100.0/expand << "%x";
       cmd << " '" << (pdf ? "pdf:" : "eps:") << prename << "'";
-      if(tgifformat) cmd << " -transparent white gif";
+      if(xasyformat) cmd << " -transparent white gif";
       else cmd << " " << outputformat;
       cmd << ":'" << outname << "'";
       status=System(cmd,0,true,"convert");
@@ -298,7 +298,7 @@ bool picture::postprocess(const string& prename, const string& outname,
   }
   if(status != 0) return false;
   
-  if(verbose > (tgifformat ? 1 : 0)) 
+  if(verbose > (xasyformat ? 1 : 0)) 
     cout << "Wrote " << outname << endl;
   if(settings::view() && view) {
     if(epsformat || pdfformat) {
@@ -355,8 +355,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   string outputformat=format.empty() ? defaultformat() : format;
   epsformat=outputformat == "eps";
   pdfformat=outputformat == "pdf";
-  tgifformat=outputformat == "tgif";
-  string outname=tgifformat ? "."+buildname(prefix,"gif") :
+  xasyformat=outputformat == "<xasy>";
+  string outname=xasyformat ? "."+buildname(prefix,"gif") :
     (standardout ? "-" : buildname(prefix,outputformat,"",!global()));
   string epsname=epsformat ? (standardout ? "" : outname) :
     auxname(prefix,"eps");
@@ -374,7 +374,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     out.prologue(b);
     out.epilogue();
     out.close();
-    if(deconstruct && !tgifformat) {
+    if(deconstruct && !xasyformat) {
       if(bboxout) bboxout.close();
       ShipoutNumber++;
       return true;
@@ -386,9 +386,9 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     bool signal=getSetting<bool>("signal");
     if(!bboxout.is_open()) {
       bboxout.open(("."+buildname(prefix,"box")).c_str());	
-      bboxout << (tgifformat ? deconstruct : 0) << newl;
+      bboxout << (xasyformat ? deconstruct : 0) << newl;
     }
-    if(tgifformat) {
+    if(xasyformat) {
       bbox bscaled=b;
       bscaled *= deconstruct;
       bboxout << bscaled << endl;

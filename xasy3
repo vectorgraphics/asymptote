@@ -53,6 +53,7 @@ class asyApp:
   self.sig1Count = 0
   self.images = []
   self.flipFlop = False
+  self.handled = False
 
   self.parent = master
   master.protocol("WM_DELETE_WINDOW",self.canQuit)
@@ -198,7 +199,7 @@ class asyApp:
   if asyFail:
    tkMessageBox.showerror("xasy Error","Asyptote could not start!\nPlease check installation and paths.")
    master.destroy()
-  signal.signal(signal.SIGINT,self.sigHandler)
+  signal.signal(signal.SIGUSR1,self.sigHandler)
 
  def initGUI(self):
   self.selectedButton = self.toolMoveButton
@@ -245,8 +246,10 @@ class asyApp:
    self.ticker = self.ticker+1
    self.flipFlop = not(self.flipFlop)
    self.mainCanvas.itemconfigure("outlineBox",dashoffset=self.ticker%9)
+   if(self.handled):
+       os.kill(asyProc.pid,signal.SIGUSR1)
+       self.handled = False
    time.sleep(0.5)
-  
   
  def sigHandler(self,signalnum,frame):
   print "Sig#",self.fileItemCount
@@ -277,6 +280,7 @@ class asyApp:
    #print ((self.itemsL-nl)/(nr-nl),(self.itemsT-nt)/(nb-nt))
   
    self.fileItemCount = self.fileItemCount+1
+   self.handled=True
   else:
    print "File loading completed"
    self.fileItemCount = 0

@@ -694,6 +694,14 @@ string convertname(string name, const string& format, bool check=true)
   return format.empty() ? name : format+":"+name;
 }
 
+void notifyXasy(pid_t ppid)
+{
+  if(signalCount > 0)
+    pause();
+  kill(ppid,SIGUSR1);
+  ++signalCount;
+}
+
 void unused(void *)
 {
 }
@@ -1077,9 +1085,9 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 	if(getSetting<real>("deconstruct")) {
 	  ostringstream buf;
 	  buf << prefix << "_" << i;
-	  if(group->shipout(preamble,buf.str(),"tgif",false,false,Delete) &&
+	  if(group->shipout(preamble,buf.str(),"<xasy>",false,false,Delete) &&
 	     ppid > 0)
-	    kill(ppid,SIGINT);
+	    notifyXasy(ppid);
 	}
 	++i;
       }
@@ -1090,7 +1098,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
     buf << prefix << "_" << i;
     if(f->shipout(preamble,(ppid ? buf.str() : prefix),"",wait,view) &&
        ppid > 0)
-      kill(ppid,SIGINT);
+      notifyXasy(ppid);
   } else
     f->shipout(preamble,prefix,format,wait,view);
 }

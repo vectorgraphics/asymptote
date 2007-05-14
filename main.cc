@@ -74,6 +74,11 @@ void interruptHandler(int)
   if(em) em->Interrupt(true);
 }
 
+void xasyHandler(int)
+{
+  --signalCount;
+}
+
 //bool status=true;
 
 // Run the config file.
@@ -107,6 +112,9 @@ int main(int argc, char *argv[])
   
   fpu_trap(trap());
 
+  if(getSetting<bool>("signal") && getSetting<double>("deconstruct") != 0.0)
+    signal(SIGUSR1,xasyHandler);
+    
   if(interactive) {
     signal(SIGINT,interruptHandler);
     processPrompt();
