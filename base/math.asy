@@ -163,8 +163,10 @@ bool increasing(real[] x, bool strict=false)
 {
   real[] xp=copy(x);
   xp.delete(0);
-  xp.push(x[x.length-1]);
-  return strict ? all(xp > x) : all(xp >= x);
+  xp.push(0);
+  bool[] b=strict ? (xp > x) : (xp >= x);
+  b[x.length-1]=true;
+  return all(b);
 }
 
 real[] zero(int n)
