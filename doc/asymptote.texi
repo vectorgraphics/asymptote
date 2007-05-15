@@ -4441,7 +4441,6 @@ broken down into the fields @code{parent.user}, @code{parent.system},
 @end table
 
 @cindex vectorization
-@cindex @code{all}
 @code{Asymptote} includes a full set of vectorized array instructions for
 arithmetic (including self) and logical operations. These
 element-by-element instructions are implemented in C++ code for speed. Given
@@ -4452,7 +4451,7 @@ real[] b={3,2};
 @noindent
 then @code{a == b} and @code{a >= 2} both evaluate to the vector
 @code{@{false, true@}}. 
-@cinde
+@cindex @code{all}
 To test whether all components of @code{a} and @code{b} agree,
 use the boolean function @code{all(a == b)}. One can also use conditionals like
 @code{(a >= 2) ? a : b}, which returns the array @code{@{3,2@}}, or
