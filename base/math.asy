@@ -157,8 +157,8 @@ real[] partialsum(real[] A, real[] dx)
   return B;
 }
 
-// If strict=false, return whether i >= j implies x[i] >= x[j]
-// Otherwise return return whether i >= j implies x[i] > x[j]
+// If strict=false, return whether i > j implies x[i] >= x[j]
+// Otherwise return return whether i > j implies x[i] > x[j]
 bool increasing(real[] x, bool strict=false)
 {
   real[] xp=copy(x);
