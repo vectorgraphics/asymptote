@@ -157,13 +157,14 @@ real[] partialsum(real[] A, real[] dx)
   return B;
 }
 
-// Return whether i >= j implies x[i] >= x[j].
-bool increasing(real[] x)
+// If strict=false, return whether i >= j implies x[i] >= x[j]
+// Otherwise return return whether i >= j implies x[i] > x[j]
+bool increasing(real[] x, bool strict=false)
 {
   real[] xp=copy(x);
   xp.delete(0);
   xp.push(x[x.length-1]);
-  return all(xp >= x);
+  return strict ? all(xp > x) : all(xp >= x);
 }
 
 real[] zero(int n)

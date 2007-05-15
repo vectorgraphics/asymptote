@@ -110,7 +110,7 @@ realfunction pwhermite(real[] x, real[] y, real[] dy)
   int n=x.length;
   if(n != y.length || n != dy.length) abort(differentlengths);
   if(n < 2) abort(morepoints);
-  if(!increasing(x)) abort("array x is not increasing");
+  if(!increasing(x,strict=true)) abort("array x is not strictly increasing");
   return new real(real t) {
     int i=search(x,t);
     if(i == n-1) {
