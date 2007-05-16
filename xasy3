@@ -25,7 +25,7 @@ else:
 #start up asy
 asyFail = False
 try:
- asyProc = Popen(("asy","-q","-x1","-noV","-signal","-xformat","png"),
+ asyProc = Popen(("asy","-q","-x1","-noV","-signal"),
                  stdin=PIPE,stdout=PIPE)
  if asyProc.returncode != None:
   asyFail = True
@@ -251,15 +251,15 @@ class asyApp:
    if(self.handled):
        os.kill(asyProc.pid,signal.SIGUSR1)
        self.handled = False
-   time.sleep(0.5)
+   time.sleep(0.05)
   
  def sigHandler(self,signalnum,frame):
-  print "Sig#",self.fileItemCount
+#  print "Sig#",self.fileItemCount
   lines = map(split,open(".out_"+str(self.fileItemCount)+".box").readlines())
   line=lines[0]
   self.magnification = float(line[0])
   xformat = line[1]
-  print self.magnification
+#  print self.magnification
   if self.magnification != 0:
    #for line in enumerate(lines[1:]):
    line = lines[1]
