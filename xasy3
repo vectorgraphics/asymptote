@@ -429,7 +429,7 @@ class asyApp:
 
  def updateSelectedButton(self,newB):
   self.selectedButton.config(relief = RAISED)
-  if newB == self.toolSelectButton:
+  if newB == self.toolSelectButton or self.selectedButton == self.toolSelectButton:
    self.mainCanvas.delete("highlightBox")
   self.selectedButton = newB
   self.selectedButton.config(relief = SUNKEN)
