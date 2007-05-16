@@ -5,7 +5,6 @@
 
 from Tkinter import *
 from string import split
-#from PIL import ImageTk
 
 xscreen=800
 yscreen=600
@@ -31,15 +30,20 @@ root.title(prefix)
 def killapp(event):
     root.destroy()
 
+xformat=""
+
 def readbboxes(name):
     global magnification
+    global xformat
     try:
 	lines=map(split,open(name).readlines())
     except IOError:
 	print "Cannot open "+name
 	sys.exit(1)
     boxes=[]
-    magnification=float(lines[0][0])
+    line=lines[0]
+    magnification=float(line[0])
+    xformat=line[1]
     for line in enumerate(lines[1:]):
         box=dict(zip( ["l","b","r","t"], map(float,line[1]) ))
         box["idx"]=line[0]
@@ -128,9 +132,10 @@ class transform:
 
 class image(transform):
     def __init__(self,canv,x,y,name,i):
-#        imagetmp=Image.open(name)
-#        self.img=ImageTk.PhotoImage(imagetmp)
-        self.img=PhotoImage(file=name)
+        if(xformat == "gif"):
+            self.img=PhotoImage(file=name)
+        else:
+            self.img=ImageTk.PhotoImage(file=name)
         self.obj=canv.create_image(x,y,anchor=SW,image=self.img)
         self.bind(canv)
         self.x=self.x0=x
@@ -238,6 +243,9 @@ root.bind_all("<w>",writetransform)
 
 boxes=readbboxes("."+prefix+"_0.box")
 
+if xformat != "gif":
+    from PIL import ImageTk
+
 if len(boxes) < 1:
     sys.exit(0)
 
@@ -344,7 +352,7 @@ imagedelete=[]
 images=[]
 for i in range(len(boxes)):
     box=boxes[i]
-    name="."+prefix+"_"+str(box["idx"])+".gif"
+    name="."+prefix+"_"+str(box["idx"])+"."+xformat
     imagedelete.append(0)
     try:
 	f=open(name,"r")

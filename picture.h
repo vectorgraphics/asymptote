@@ -33,7 +33,7 @@ private:
   boxvector labelbounds;
   bboxlist bboxstack;
   
-  static bool epsformat,pdfformat,xasyformat,pdf,Labels;
+  static bool epsformat,pdfformat,xobject,pdf,Labels;
   static double paperWidth,paperHeight;
 
 public:

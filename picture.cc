@@ -45,7 +45,7 @@ picture::~picture()
 {
 }
 
-bool picture::epsformat,picture::pdfformat,picture::xasyformat, picture::pdf;
+bool picture::epsformat,picture::pdfformat,picture::xobject, picture::pdf;
 bool picture::Labels;
 double picture::paperWidth,picture::paperHeight;
   
@@ -280,16 +280,24 @@ bool picture::postprocess(const string& prename, const string& outname,
     if(pdfformat) {
       if(pdf && Labels) status=rename(prename.c_str(),outname.c_str());
       else status=epstopdf(prename,outname);
+    } else if(xobject && getSetting<string>("xformat") == "png") {
+      ostringstream cmd;
+      double res=getSetting<double>("deconstruct")*72.0;
+      cmd << "'" << getSetting<string>("gs")
+	  << "' -q -dNOPAUSE -dBATCH -sDEVICE=pngalpha -dEPSCrop"
+	  << " -r" << res << "x" << res
+	  << " -sOutputFile='" << outname << "' '" << prename << "'";
+      status=System(cmd,0,true,"gs","Ghostscript");
     } else {
       ostringstream cmd;
       double expand=2.0;
-      double res=(xasyformat ? getSetting<double>("deconstruct") : expand)*
+      double res=(xobject ? getSetting<double>("deconstruct") : expand)*
 	72.0;
       cmd << "'" << getSetting<string>("convert") 
 	  << "' -density " << res << "x" << res;
-      if(!xasyformat) cmd << " +antialias -geometry " << 100.0/expand << "%x";
+      if(!xobject) cmd << " +antialias -geometry " << 100.0/expand << "%x";
       cmd << " '" << (pdf ? "pdf:" : "eps:") << prename << "'";
-      if(xasyformat) cmd << " -transparent white gif";
+      if(xobject) cmd << " -transparent white gif";
       else cmd << " " << outputformat;
       cmd << ":'" << outname << "'";
       status=System(cmd,0,true,"convert");
@@ -298,7 +306,7 @@ bool picture::postprocess(const string& prename, const string& outname,
   }
   if(status != 0) return false;
   
-  if(verbose > (xasyformat ? 1 : 0)) 
+  if(verbose > (xobject ? 1 : 0)) 
     cout << "Wrote " << outname << endl;
   if(settings::view() && view) {
     if(epsformat || pdfformat) {
@@ -355,8 +363,9 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   string outputformat=format.empty() ? defaultformat() : format;
   epsformat=outputformat == "eps";
   pdfformat=outputformat == "pdf";
-  xasyformat=outputformat == "<xasy>";
-  string outname=xasyformat ? "."+buildname(prefix,"gif") :
+  xobject=outputformat == "<x>";
+  string xformat=getSetting<string>("xformat");
+  string outname=xobject ? "."+buildname(prefix,xformat) :
     (standardout ? "-" : buildname(prefix,outputformat,"",!global()));
   string epsname=epsformat ? (standardout ? "" : outname) :
     auxname(prefix,"eps");
@@ -374,7 +383,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     out.prologue(b);
     out.epilogue();
     out.close();
-    if(deconstruct && !xasyformat) {
+    if(deconstruct && !xobject) {
       if(bboxout) bboxout.close();
       ShipoutNumber++;
       return true;
@@ -386,10 +395,16 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     bool signal=getSetting<bool>("signal");
     if(!bboxout.is_open()) {
       bboxout.open(("."+buildname(prefix,"box")).c_str());	
-      bboxout << (xasyformat ? deconstruct : 0) << newl;
+      bboxout << (xobject ? deconstruct : 0) << " " << xformat << newl;
     }
-    if(xasyformat) {
+    if(xobject) {
       bbox bscaled=b;
+      // Work around half-pixel bounding box bug in Ghostscript pngalpha driver
+      if(xformat == "png") {
+	double fuzz=0.5/deconstruct;
+	b.top += fuzz;
+	b.right += fuzz;
+      }
       bscaled *= deconstruct;
       bboxout << bscaled << endl;
       if(signal) bboxout.close();

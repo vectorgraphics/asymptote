@@ -884,8 +884,10 @@ void initSettings() {
   addOption(view);
 
   addOption(new realSetting("deconstruct", 'x', "X",
-			    "Deconstruct into transparent GIF objects magnified by X",
+			    "Deconstruct into transparent objects magnified by X",
 			    0.0));
+  addOption(new stringSetting("xformat", 0, "format", 
+			      "GUI deconstruction format [\"gif\"]","gif"));
   addOption(new boolSetting("clearGUI", 'c', "Clear GUI operations"));
   addOption(new boolSetting("ignoreGUI", 'i', "Ignore GUI operations"));
   addOption(new stringSetting("outformat", 'f', "format",

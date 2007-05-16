@@ -15,6 +15,7 @@ import threading
 import time
 
 #from PIL import Image,ImageTk
+ImageTkLoaded=False
 
 if len(sys.argv) != 2:
  prefix = "New File"
@@ -24,7 +25,8 @@ else:
 #start up asy
 asyFail = False
 try:
- asyProc = Popen(("asy","-q","-x1","-noV","-signal"),stdin=PIPE,stdout=PIPE)
+ asyProc = Popen(("asy","-q","-x1","-noV","-signal","-xformat","png"),
+                 stdin=PIPE,stdout=PIPE)
  if asyProc.returncode != None:
   asyFail = True
 except:
@@ -254,7 +256,9 @@ class asyApp:
  def sigHandler(self,signalnum,frame):
   print "Sig#",self.fileItemCount
   lines = map(split,open(".out_"+str(self.fileItemCount)+".box").readlines())
-  self.magnification = float(lines[0][0])
+  line=lines[0]
+  self.magnification = float(line[0])
+  xformat = line[1]
   print self.magnification
   if self.magnification != 0:
    #for line in enumerate(lines[1:]):
@@ -285,10 +289,20 @@ class asyApp:
    print "File loading completed"
    self.fileItemCount = 0
    count = 0
+   global ImageTkLoaded
+   if not ImageTkLoaded and xformat != "gif":
+    from PIL import ImageTk
+    ImageTkLoaded=True
    for a in self.imageBoxes:
-    self.images.append(PhotoImage(file=".out_"+str(count)+".gif"))
+    name=".out_"+str(count)+"."+xformat
+    if(xformat == "gif"):
+      img=PhotoImage(file=name)
+    else:
+      img=ImageTk.PhotoImage(file=name)
+    self.images.append(img)
     self.deleteImages.append(False)
-    self.mainCanvas.create_image(a[0],-a[1],image=self.images[count],anchor=NW,tags=("image",str(count)))
+    self.mainCanvas.create_image(a[0],-a[1],image=self.images[count],anchor=NW,
+                                 tags=("image",str(count)))
     self.bindItemEvents("image &&"+str(count))
     count = count+1
    self.status.config(text = "Done.")

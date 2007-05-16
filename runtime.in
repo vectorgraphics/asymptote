@@ -1085,7 +1085,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 	if(getSetting<real>("deconstruct")) {
 	  ostringstream buf;
 	  buf << prefix << "_" << i;
-	  if(group->shipout(preamble,buf.str(),"<xasy>",false,false,Delete) &&
+	  if(group->shipout(preamble,buf.str(),"<x>",false,false,Delete) &&
 	     ppid > 0)
 	    notifyXasy(ppid);
 	}
