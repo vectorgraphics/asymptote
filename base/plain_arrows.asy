@@ -317,13 +317,15 @@ void draw(picture pic=currentpicture, Label L="", path g, align align=NoAlign,
 {
   Label L=L.copy();
   L.align(align);
-  L.p(p);
-  legend.p(p);
   if(marker != nomarker && !marker.put) marker.mark(pic,g);
   bool drawpath=arrow(pic,g,p,margin);
   if(bar(pic,g,p,margin) && drawpath) _draw(pic,g,p,margin);
-  if(L.s != "") L.out(pic,g);
+  if(L.s != "") {
+    L.p(p);
+    L.out(pic,g);
+  }
   if(legend.s != "") {
+    legend.p(p);
     Legend l; l.init(legend.s,legend.p,p,marker.f,marker.put);
     pic.legend.push(l);
   }
