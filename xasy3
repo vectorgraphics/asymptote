@@ -20,6 +20,26 @@ try:
 except:
  ImageTkAvailable=False
 
+#toolbar icon image data in base64 eliminates need to worry about files
+iconB64 = {
+'lower': 'R0lGODlhGAAYAPEBAAAAAP///8zMzAAAACH5BAEAAAIALAAAAAAYABgAAAItlI+py+0Po5yUgosz\nrrybK2giqADed6LHKCZm+p7xx2Zuqsqr95KcJpv9cJUCADs=\n',
+'rotate': 'R0lGODlhGAAYAKEBAAAAAP///////////yH5BAEKAAEALAAAAAAYABgAAAI9jI8JkN0LoVMyxDrX\nu8x1yn2HOJWWiVpkqrCl5npxNss1At9GrvN1pFOdbjAfK7dC+ZKZpHHzwoyk0ZCjAAA7\n',
+'raise': 'R0lGODlhGAAYAPEBAAAAAP///8zMzAAAACH5BAEAAAIALAAAAAAYABgAAAIwlI+pywgND3ixzVvZ\nNDSn3nlKKH7fhaZmObKtk8Yh6dKlLcfC5vZ1jvIJh8SikVUAADs=\n',
+'fillPoly': 'R0lGODlhGAAYAPECAAAAAIOBg////6usrSH5BAEAAAMALAAAAAAYABgAAAJLnI+py+0PDZhxgRBo\nPRdjHU3eCDbiiJZKh6YAw7apJdfvWst3Eucf7SMBU7qh59XLGJWS2A7hxP2kmSfnYpV8slBuhxti\nbrrj8qMAADs=\n',
+'move': 'R0lGODlhGAAYAIABAAAAAP///yH5BAEAAAEALAAAAAAYABgAAAI4jI+py+0I3gNUNhqtwlVD7m3h\nkoVdUJ4MaKTYysVymbDoYcM4Tmv9eAO2cp6YEKUavY5BpvMZKgAAOw==\n',
+'drawBezi': 'R0lGODlhGAAYAPEBAAAAAP///6usrQAAACH5BAEAAAIALAAAAAAYABgAAAI6lI+py+0AnYRUKhox\nsFvUFDXdM4LWUaKnEaorhqSX1noPmMquWJukzpr0YitRcfE5oobFpPIJjUoZBQA7\n',
+'vertiMove': 'R0lGODlhGAAYAIABAAAAAP///yH5BAEAAAEALAAAAAAYABgAAAIsjI+py+0I3gNUNhqtwlVD7m3h\nko2QmZRooKKt+Y5xOFtc7dwrtrLd3gsKTQUAOw==\n',
+'horizMove': 'R0lGODlhGAAYAIABAAAAAP///yH5BAEAAAEALAAAAAAYABgAAAIljI+py+0Po5y02oshAGu/7Skg\n143mSYpgGTYt8mbyTNf2jedWAQA7\n',
+'fillEllip': 'R0lGODlhGAAYAPECAAAAAIOBg////6usrSH5BAEAAAMALAAAAAAYABgAAAJAnI+py+0PowS0gkmD\n3qE6wIXctYDi2SkmepLGyrYHHIcuXW93Lr+86BrgakHfrzjjIRGVFgVjWUqm1Kr1ijUUAAA7\n',
+'text': 'R0lGODlhGAAYAIABAAAAAP///yH5BAEAAAEALAAAAAAYABgAAAI+jI+py+0Po5x0AgSu1SZvHnhS\nBnpio5Ukt2Idm3bysYrnddLwy+czH0rhFDkbTigj6UzKl68CjUqn1Ko1UAAAOw==\n',
+'drawPoly': 'R0lGODlhGAAYAPEBAAAAAP///6usrQAAACH5BAEAAAIALAAAAAAYABgAAAI6lI+py+0PDZhxAXnr\nyZtDqoCOaHnhZ25VKrAM61ryOkdwjdzJleoqlsP1frtOqTUjhXSxB0+zhEofBQA7\n',
+'drawLines': 'R0lGODlhGAAYAPEBAAAAAP///6usrQAAACH5BAEAAAIALAAAAAAYABgAAAI3lI+py+0AnYRAPmoZ\njvlwX3Vh8j2XUIIWNXoZS3ZoO8soSK+4fRuYnQPyFEHhcHecFV+ppDNRAAA7\n',
+'drawShape': 'R0lGODlhGAAYAPEBAAAAAP///6usrQAAACH5BAEAAAIALAAAAAAYABgAAAI+lI+pK+CAHou0HTdt\nhAkrnl3gFXZfSZ7oWIVsWr6NzHgwqhm0e+P5ngEBa63VayhaIHUToCT4iNp81KoVVwAAOw==\n',
+'drawEllip': 'R0lGODlhGAAYAPEBAAAAAP///6usrQAAACH5BAEAAAIALAAAAAAYABgAAAIylI+py+0PowS0gklX\ndRd29XmgdIQh+Z1TSSJpyxpqZMLqzOB4sgsbmKFZgrCi8YhMNgoAOw==\n',
+'select': 'R0lGODlhGAAYAPIDAAAAAICAgMDAwP///6usrQAAAAAAAAAAACH5BAEAAAQALAAAAAAYABgAAANH\nSLrc/mvA6YCkGIiLIQhb54Gh2HwkZxKo4KoiSpam7L6rfdNZ4M+C3I+0Ush8wSLKCFIyPsnisyld\nAD7VabR6DWSt37BYmgAAOw==\n',
+'fillShape': 'R0lGODlhGAAYAPECAAAAAIOBg////6usrSH5BAEAAAMALAAAAAAYABgAAAJLnI+pO+CAHouhBtis\nm9le4FWbAoamhlHnmh7lGrYuHDMvLc+0tji7N9L9eMIhsWM83pKp5bDlxOWip6DqlyuaJJyHl8sJ\ni8fksqIAADs=\n'
+}
+
 asyOutFileName = "out"
 if len(sys.argv) != 2:
  prefix = "New File"
@@ -99,14 +119,14 @@ class asyApp:
   #status bar
   self.statusBar = Frame(master,relief=FLAT)
   
-  self.status = Label(self.statusBar,text="Ready",relief=SUNKEN,anchor=W)
-  self.status.pack(side=LEFT,fill=X,expand=1)
-  self.coords = Label(self.statusBar,relief=SUNKEN,anchor=W)
-  self.coords.pack(side=LEFT)
   Label(self.statusBar,text="+").pack(side=RIGHT)
   self.zoomBar = Scale(self.statusBar,orient=HORIZONTAL,length=150,width=10,from_=-5,to=5,command=self.zoomViewCmd,showvalue=False)
   self.zoomBar.pack(side=RIGHT,fill=X)
-  Label(self.statusBar,text="Zoom: -").pack(side=RIGHT)
+  Label(self.statusBar,text="Zoom: - ").pack(side=RIGHT)
+  self.coords = Label(self.statusBar,text="(0,0)",relief=SUNKEN,anchor=W)
+  self.coords.pack(side=RIGHT)
+  self.status = Label(self.statusBar,text="Ready",relief=SUNKEN,anchor=W)
+  self.status.pack(side=RIGHT,fill=X,expand=1)
   
   self.statusBar.pack(side=BOTTOM,fill=X)
   
@@ -114,10 +134,9 @@ class asyApp:
   self.toolBar = Frame(master,relief=FLAT)
 
   #let's load some images
-  self.namePrefixes = ["select","move","rotate","vertiMove","horizMove","drawLines","drawBezi","drawPoly","fillPoly","drawEllip","fillEllip","drawShape","fillShape","raise","lower","text"]
   self.toolIcons = {}
-  for x in self.namePrefixes:
-   self.toolIcons[x] = PhotoImage(file="xasy3Imgs/"+x+".gif")
+  for x in iconB64.keys():
+   self.toolIcons[x] = PhotoImage(data=iconB64[x])
   
 
   self.transformLbl = Label(self.toolBar,text="",anchor=W)
@@ -154,6 +173,7 @@ class asyApp:
   self.toolTextButton = Button(self.toolBar,command=self.toolTextCmd,image=self.toolIcons["text"])
   self.toolTextButton.grid(row=8,column=0,sticky=N+S+E+W)		
 
+  
   self.adjLbl = Label(self.toolBar,text="",anchor=W)
   self.adjLbl.grid(row=10,column=0,columnspan=2,sticky=W)
   self.toolRaiseButton = Button(self.toolBar,command=self.toolRaiseCmd,image=self.toolIcons["raise"])
@@ -163,6 +183,26 @@ class asyApp:
   
   self.toolBar.pack(side=LEFT,anchor=NW)
   
+  #documentation for the tool bar buttons
+  self.toolDocs = {
+    self.toolSelectButton : "Click an item to select it. Control-Click will select/deselect additional items. Use mouse scroller (or Up/Down keys) to raise/lower highlighted items.",
+    self.toolMoveButton : "Drag a selected item.",
+    self.toolHorizMoveButton : "Drag a selected item. Only horizontal translation will be applied.",
+    self.toolVertiMoveButton : "Drag a selected item. Only vertical translation will be applied.",
+    self.toolRotateButton : "Drag a selected item to rotate. (Not yet implemented)",
+    self.toolDrawLinesButton : "Shift-Click to draw line segments. For last segment, move mouse to position and release shift.",
+    self.toolDrawBeziButton : "Shift-Click to place points. For last point, move mouse to position and release shift.",
+    self.toolDrawPolyButton : "Shift-Click to place vertices. For last vertex, move mouse to position and release shift.",
+    self.toolFillPolyButton : "Shift-Click to place vertices. For last vertex, move mouse to position and release shift.",
+    self.toolDrawEllipButton : "Shift-Click to place center. Move mouse to achieve correct shape and release shift.",
+    self.toolFillEllipButton : "Shift-Click to place center. Move mouse to achieve correct shape and release shift.",
+    self.toolDrawShapeButton : "Shift-Click to place points. For last point, move mouse to position and release shift.",
+    self.toolFillShapeButton : "Shift-Click to place points. For last point, move mouse to position and release shift.",
+    self.toolTextButton : "Click location of top left label position and enter text in dialog.",
+    self.toolRaiseButton : "Raise selected items to top.",
+    self.toolLowerButton : "Lower selected items to bottom."
+  }
+
   #an options bar
   self.optionsBar = Frame(master,relief=FLAT,height=100)
   Label(self.optionsBar,text="Options",anchor=W).grid(row=0,column=0)
@@ -176,7 +216,7 @@ class asyApp:
   self.optionsBar.pack(side=BOTTOM,anchor=NW)
   
   #the highly important canvas!
-  self.mainCanvas = Canvas(master,relief=SUNKEN,background="white",borderwidth=0,highlightthickness=0)
+  self.mainCanvas = Canvas(master,relief=SUNKEN,background="white",borderwidth=0,highlightthickness=0,closeenough=2.0)
   self.mainCanvas.pack(side=RIGHT,fill=BOTH,expand=1)
   
   self.mainCanvas.bind("<Motion>",self.canvMotion)
@@ -185,12 +225,17 @@ class asyApp:
   self.mainCanvas.bind("<KeyRelease-Shift_R>",self.endDraw)
   self.mainCanvas.bind("<KeyRelease-Shift_L>",self.endDraw)
   self.mainCanvas.bind("<ButtonRelease-1>",self.canvLeftUp)
+  self.mainCanvas.bind("<B1-Motion>",self.canvDrag)
   
   self.mainCanvas.bind("<Enter>",self.canvEnter)
   self.mainCanvas.bind("<Leave>",self.canvLeave)
   self.mainCanvas.bind("<Delete>",self.itemDelete)
   #self.mainCanvas.bind("<Button-3>",self.canvRightDown)
   #self.mainCanvas.bind("<ButtonRelease-3>",self.canvRightUp)
+  self.mainCanvas.bind("<Button-4>",self.itemRaise)
+  self.mainCanvas.bind("<Button-5>",self.itemLower)
+  self.mainCanvas.bind("<Up>",self.itemRaise)
+  self.mainCanvas.bind("<Down>",self.itemLower)
   
   self.canvVScroll = Scrollbar(self.mainCanvas,orient=VERTICAL)
   self.canvHScroll = Scrollbar(self.mainCanvas,orient=HORIZONTAL)
@@ -251,12 +296,12 @@ class asyApp:
  def tickHandler(self):
   while not(self.quitting):
    self.ticker += 1
+   #speed up timer before uncommenting:
    #if(self.handled):
    #    os.kill(asyProc.pid,signal.SIGUSR1)
    #    self.handled = False
-   if self.ticker%10 == 0:
-    self.mainCanvas.itemconfigure("outlineBox",dashoffset=self.ticker/10%9)
-   time.sleep(0.05)
+   self.mainCanvas.itemconfigure("outlineBox",dashoffset=self.ticker%9)
+   time.sleep(0.5)
  
  def signalAsy(self):
   os.kill(asyProc.pid,signal.SIGUSR1)
@@ -431,8 +476,11 @@ class asyApp:
   self.selectedButton.config(relief = RAISED)
   if newB == self.toolSelectButton or self.selectedButton == self.toolSelectButton:
    self.mainCanvas.delete("highlightBox")
+  if newB not in (self.toolSelectButton,self.toolMoveButton,self.toolHorizMoveButton,self.toolVertiMoveButton,self.toolRotateButton):
+   self.clearSelection()
   self.selectedButton = newB
   self.selectedButton.config(relief = SUNKEN)
+  self.status.config(text=self.toolDocs[newB])
  #toolbar commands
  def toolSelectCmd(self):
   self.updateSelectedButton(self.toolSelectButton)
@@ -468,6 +516,10 @@ class asyApp:
   self.mainCanvas.tag_raise("selectedItem")
  def toolLowerCmd(self):
   self.mainCanvas.tag_lower("selectedItem")
+ def itemRaise(self,event):
+  self.mainCanvas.tag_raise(CURRENT)
+ def itemLower(self,event):
+  self.mainCanvas.tag_lower(CURRENT)
  #options bar commands
  def setOutColCmd(self):
   result=tkColorChooser.askcolor(initialcolor=self.outlineColor,title="Select Outline and Text Color",parent=self.parent)
@@ -483,12 +535,19 @@ class asyApp:
    #print self.fillColor
 
  def clearSelection(self):
+  self.hideSelectionBox()
   self.mainCanvas.dtag("selectedItem","selectedItem")
+  
+  
+ def hideSelectionBox(self):
+  self.mainCanvas.itemconfigure("outlineBox",width=1,outline=self.backColor)
   self.mainCanvas.tag_lower("outlineBox")
   self.mainCanvas.coords("outlineBox",self.mainCanvas.bbox(ALL))
-  self.mainCanvas.itemconfigure("outlineBox",width=1,outline=self.backColor)
   
-
+ def showSelectionBox(self):
+  self.mainCanvas.itemconfigure("outlineBox",width=2,outline="#801111")
+  self.mainCanvas.tag_raise("outlineBox")
+  
  def setSelection(self,what):
   self.mainCanvas.addtag_withtag("selectedItem",what)
   self.updateSelection()
@@ -496,14 +555,12 @@ class asyApp:
  def unSelect(self,what):
   self.mainCanvas.dtag(what,"selectedItem")
   self.updateSelection()
-  
- 
+
  def updateSelection(self):
-  self.mainCanvas.tag_raise("outlineBox")
   theBbox = self.mainCanvas.bbox("selectedItem")
   if theBbox != None:
    self.mainCanvas.coords("outlineBox",self.mainCanvas.bbox("selectedItem"))
-   self.mainCanvas.itemconfigure("outlineBox",width=2,outline="#801111")
+   self.showSelectionBox()
   else:
    self.clearSelection()
   
@@ -764,11 +821,30 @@ class asyApp:
   if self.freeMouseDown and self.selectedButton == self.toolSelectButton:
    self.clearSelection()
    self.freeMouseDown = True
-     
+   self.selectDragStart = (self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y))
+   self.dragSelecting = False
+ 
  def canvLeftUp(self,event):
   #print "Left Mouse Up"
   self.freeMouseDown = True
-  
+  if self.dragSelecting:
+   self.hideSelectionBox()
+   self.dragSelecting = False
+   self.mainCanvas.addtag_enclosed("enclosed",self.selectDragStart[0],self.selectDragStart[1],self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y))
+   for item in self.mainCanvas.find_withtag("enclosed"):
+    tags = self.mainCanvas.gettags(item)
+    if "drawn" not in tags and "image" not in tags:
+     self.mainCanvas.dtag(item,"enclosed")
+   self.mainCanvas.addtag_withtag("selectedItem","enclosed")
+   self.mainCanvas.dtag("enclosed","enclosed")
+   self.updateSelection()
+ 
+ def canvDrag(self,event):
+  if self.selectedButton == self.toolSelectButton:
+   self.mainCanvas.coords("outlineBox",self.selectDragStart[0],self.selectDragStart[1],self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y))
+   self.showSelectionBox()
+   self.dragSelecting = True
+   
  def canvEnter(self,event):
   self.freeMouseDown = True
   event.widget.focus_set()
