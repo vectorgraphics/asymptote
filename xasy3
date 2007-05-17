@@ -20,7 +20,30 @@ try:
 except:
  ImageTkAvailable=False
 
+########################################################
+#About images and base64
+#
+#Suppose you have image.gif and want to create a base64
+#string. This can be accomplished using:
+#
+#import base64
+#base64.encodestring(open("image.gif","rb").read())
+#
+#The resulting output, including the enclosing single quotes,
+#is the base64 encoding of the image and can be used in the
+#dictionary below.
+#
+#
+#Suppose you have a base64 string, b64str, and want to create
+#an image. This can be accomplished using:
+#
+#import base64
+#open("image.gif","w").write(base64.decode(b64str))
+#
+########################################################
+
 #toolbar icon image data in base64 eliminates need to worry about files
+#these are the base64 encodings of the content of the directory xasy3Imgs
 iconB64 = {
 'lower': 'R0lGODlhGAAYAPEBAAAAAP///8zMzAAAACH5BAEAAAIALAAAAAAYABgAAAItlI+py+0Po5yUgosz\nrrybK2giqADed6LHKCZm+p7xx2Zuqsqr95KcJpv9cJUCADs=\n',
 'rotate': 'R0lGODlhGAAYAKEBAAAAAP///////////yH5BAEKAAEALAAAAAAYABgAAAI9jI8JkN0LoVMyxDrX\nu8x1yn2HOJWWiVpkqrCl5npxNss1At9GrvN1pFOdbjAfK7dC+ZKZpHHzwoyk0ZCjAAA7\n',
