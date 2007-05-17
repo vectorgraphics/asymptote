@@ -158,12 +158,22 @@ picture legend(Legend[] Legend, int perline=1, real linelength,
 
   // Check for legend entries with lines: 
   bool bLineEntriesAvailable=false;
-  for(int i=0; i < Legend.length; ++i)
-    if(Legend[i].p != invisible)
+  for(int i=0; i < Legend.length; ++i) {
+    if(Legend[i].p != invisible) {
       bLineEntriesAvailable=true;
+      break;
+    }
+  }
+
+  real markersize=0;
+  for(int i=0; i < Legend.length; ++i)
+    markersize=max(markersize,size(Legend[i].mark).x);
+
   // If no legend has a line, set the line length to zero
   if(!bLineEntriesAvailable)
     linelength=0;
+
+  linelength=max(linelength,markersize*(linelength == 0 ? 1 : 2));
 
   // Get the maximum dimensions per legend entry;
   // calculate line length for a one-line legend
