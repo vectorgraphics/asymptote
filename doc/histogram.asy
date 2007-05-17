@@ -7,11 +7,9 @@ int n=10000;
 real[] a=new real[n];
 for(int i=0; i < n; ++i) a[i]=Gaussrand();
 
-histogram(a,min(a),max(a),n=100,normalize=true,low=0);
+draw(graph(Gaussian,min(a),max(a)),blue);
 
-draw(graph(Gaussian,min(a),max(a)),red);
+histogram(a,min(a),max(a),n=100,normalize=true,low=0,fillpen=red);
 
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$dP/dx$",LeftRight,RightTicks);
-
-

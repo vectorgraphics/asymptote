@@ -1,5 +1,7 @@
 private import graph;
 
+real legendmarkersize=2mm;
+
 real mean(real A[])
 {
   return sum(A)/A.length;
@@ -140,9 +142,16 @@ path halfbox(pair a, pair b)
   return a--(a.x,b.y)--b;
 }
 
+path topbox(pair a, pair b)
+{
+  return a--(a.x,b.y)--b--(b.x,a.y);
+}
+
 // Draw a histogram for bin boundaries bin[n+1] of frequency data in count[n].
 void histogram(picture pic=currentpicture, real[] bins, real[] count,
-               real low=-infinity, pen p=currentpen)
+               real low=-infinity, pen p=currentpen, pen fillpen=nullpen,
+	       pen drawpen=nullpen,  Label legend="",
+	       real markersize=legendmarkersize)
 {
   bool[] valid=count > 0;
   real m=min(valid ? count : null);
@@ -153,32 +162,52 @@ void histogram(picture pic=currentpicture, real[] bins, real[] count,
   real last=low;
   int n=count.length;
   begingroup(pic);
+  bool incremental=drawpen == nullpen;
+  if(drawpen != nullpen) p=drawpen;
   for(int i=0; i < n; ++i) {
     if(valid[i]) {
       real c=count[i];
-      draw(pic,halfbox(Scale(pic,(bins[i],last)),Scale(pic,(bins[i+1],c))),p);
+      pair b=Scale(pic,(bins[i+1],c));
+      if(fillpen != nullpen) {
+	pair a=Scale(pic,(bins[i],low));
+	fill(pic,box(a,b),fillpen);
+	if(!incremental) draw(pic,topbox(a,b),p);
+      }
+      if(incremental)
+	draw(pic,halfbox(Scale(pic,(bins[i],last)),b),p);
       last=c;
     } else {
-      if(last != low) {
-        draw(pic,Scale(pic,(bins[i],last))--Scale(pic,(bins[i],low)),p);
+      if(incremental && last != low) {
+	draw(pic,Scale(pic,(bins[i],last))--Scale(pic,(bins[i],low)),p);
         last=low;
       }
     }
   }
-  if(last != low)
+  if(incremental && last != low)
     draw(pic,Scale(pic,(bins[n],last))--Scale(pic,(bins[n],low)),p);
   endgroup(pic);
+
+  if(legend.s != "") {
+    marker m=marker(scale(markersize)*shift((-0.5,-0.5))*unitsquare,p,
+		    FillDraw(fillpen)); 
+    legend.p(p);
+    Legend l; l.init(legend.s,legend.p,invisible,m.f);
+    pic.legend.push(l);
+  }
 }
 
 // Draw a histogram for data in n uniform bins between a and b
-// (optionally normalized).  
+// (optionally normalized).
 void histogram(picture pic=currentpicture, real[] data, real a, real b, int n,
-               bool normalize=false, real low=-infinity, pen p=currentpen)
+               bool normalize=false, real low=-infinity, pen p=currentpen,
+	       pen fillpen=nullpen, pen drawpen=nullpen, Label legend="",
+	       real markersize=legendmarkersize)
 {
   real dx=(b-a)/n;
   real[] freq=frequency(data,a,b,n);
   if(normalize) freq /= dx*sum(freq);
-  histogram(pic,a+sequence(n+1)*dx,freq,low,p);
+  histogram(pic,a+sequence(n+1)*dx,freq,low,p,fillpen,drawpen,legend,
+	    markersize);
 }
 
 // return a random number uniformly distributed in the unit interval [0,1]
