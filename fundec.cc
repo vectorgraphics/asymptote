@@ -191,7 +191,8 @@ void fundef::prettyprint(ostream &out, int indent)
 }
 
 function *fundef::transType(coenv &e, bool tacit) {
-  return params->getType(result->trans(e, tacit), e, tacit);
+  bool encodeDefVal=true;
+  return params->getType(result->trans(e, tacit), e, encodeDefVal, tacit);
 }
 
 types::ty *fundef::trans(coenv &e) {
