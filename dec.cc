@@ -410,6 +410,14 @@ void createVar(position pos, coenv &e, record *r,
   initializeVar(pos, e, r, v, t, init);
 }
 
+void createVarOutOfOrder(position pos, coenv &e, record *r,
+                         symbol *id, types::ty *t, varinit *init)
+{
+  varEntry *v=makeVarEntry(pos, e, r, t);
+  initializeVar(pos, e, r, v, t, init);
+  addVar(e, r, v, id);
+}
+
 void addTypeWithPermission(coenv &e, record *r, tyEntry *base, symbol *id)
 {
   // Only bother encoding permissions for private types.
@@ -422,13 +430,6 @@ void addTypeWithPermission(coenv &e, record *r, tyEntry *base, symbol *id)
   e.e.addType(id, ent);
 }
 
-void createVarOutOfOrder(position pos, coenv &e, record *r,
-                         symbol *id, types::ty *t, varinit *init)
-{
-  varEntry *v=makeVarEntry(pos, e, r, t);
-  initializeVar(pos, e, r, v, t, init);
-  addVar(e, r, v, id);
-}
 
 void decid::transAsField(coenv &e, record *r, types::ty *base)
 {

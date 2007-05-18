@@ -29,7 +29,7 @@ void printFrame(frame *f) {
   }
 }
 
-bool newRecordExp::encodeLevel(coenv &e, trans::tyEntry *ent)
+bool newRecordExp::encodeLevel(position pos, coenv &e, trans::tyEntry *ent)
 {
   record *r = dynamic_cast<record *>(ent->t);
   assert(r);
@@ -43,7 +43,7 @@ bool newRecordExp::encodeLevel(coenv &e, trans::tyEntry *ent)
     //   new imp.t;
     // we are putting the instance of imp on the stack, so we can use it to
     // allocate an instance of imp.t.
-    ent->v->getLocation()->encode(trans::READ, getPos(), e.c);
+    ent->v->getLocation()->encode(trans::READ, pos, e.c);
 
     // Adjust to the right frame.  For instance, in the last new in
     //   struct A {
@@ -63,21 +63,21 @@ bool newRecordExp::encodeLevel(coenv &e, trans::tyEntry *ent)
     return e.c.encode(level);
 }
 
-types::ty *newRecordExp::trans(coenv &e)
+types::ty *newRecordExp::transFromTyEntry(position pos, coenv &e,
+                                          trans::tyEntry *ent)
 {
-  trans::tyEntry *ent = result->transAsTyEntry(e, 0);
   types::ty *t = ent->t;
   if (t->kind == ty_error)
     return t;
   else if (t->kind != ty_record) {
-    em->error(getPos());
+    em->error(pos);
     *em << "type '" << *t << "' is not a structure";
     return primError();
   }
 
   // Put the enclosing frame on the stack.
-  if (!encodeLevel(e, ent)) {
-    em->error(getPos());
+  if (!encodeLevel(pos, e, ent)) {
+    em->error(pos);
     *em << "allocation of struct '" << *t << "' is not in a valid scope";
     return primError();
   }
@@ -90,6 +90,11 @@ types::ty *newRecordExp::trans(coenv &e)
   e.c.encode(inst::popcall);
 
   return t;
+}
+
+types::ty *newRecordExp::trans(coenv &e)
+{
+  return transFromTyEntry(getPos(), e, result->transAsTyEntry(e, 0));
 }
 
 types::ty *newRecordExp::getType(coenv &e)

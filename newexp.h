@@ -21,10 +21,13 @@ typedef fundef newFunctionExp;
 class newRecordExp : public exp {
   ty *result;
 
-  bool encodeLevel(coenv &e, trans::tyEntry *ent);
+  static bool encodeLevel(position pos, coenv &e, trans::tyEntry *ent);
 public:
   newRecordExp(position pos, ty *result)
     : exp(pos), result(result) {}
+
+  static types::ty *transFromTyEntry(position pos, coenv &e,
+                                     trans::tyEntry *ent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
