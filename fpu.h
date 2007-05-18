@@ -28,7 +28,7 @@ inline int fpu_exceptions() {
   return excepts;
 }
 
-inline void fpu_trap(bool trap)
+inline void fpu_trap(bool trap=true)
 {
   // Conditionally trap FPU exceptions on NaN, zero divide and overflow.
   if(trap) feenableexcept(fpu_exceptions());
@@ -37,7 +37,7 @@ inline void fpu_trap(bool trap)
 
 #else
 
-inline void fpu_trap(bool) {}
+inline void fpu_trap(bool=true) {}
 
 #endif
 
