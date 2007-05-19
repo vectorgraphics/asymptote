@@ -7485,7 +7485,7 @@ Stefan Knorr.
 @c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
 @c  LocalWords:  vskip filll insertcopying ifnottex detailmenu alist augroup PQ
 @c  LocalWords:  bool behaviour facto zxf login Debian dev filetypedetect SVN
-@c  LocalWords:  FFTW bp readline gv eps args Boehm gc evenoddoverlap
+@c  LocalWords:  FFTW bp readline gv eps args Boehm gc evenoddoverlap png
 @c  LocalWords:  boolean initializer expi dir xpart ypart STL substring rfind
 @c  LocalWords:  pos substr strftime typedef pxref unitcircle yscale Bezier iff
 @c  LocalWords:  postcontrol precontrol atleast nullpath arclength arctime rgb
@@ -7571,7 +7571,7 @@ Stefan Knorr.
 @c  LocalWords:  penimage filloutside legendhskip legendvskip maxwidth CDlabel
 @c  LocalWords:  tensorshade MPEG framepoint nonfunction Radoslav Marinov Mepis
 @c  LocalWords:  Pienaar Melenchuk finalout Linspire Dpkg sudo dpkg dtx
-@c  LocalWords:  windingnumber clickable pdfmovie dfn du
+@c  LocalWords:  windingnumber clickable pdfmovie dfn du animationdelay
 @c  LocalWords:  slidemovies ifdraft embeddedu externalmovie headerpen bodypen
 @c  LocalWords:  GaussianSurface multiline binarytree tridiagonal portably AIX
 @c  LocalWords:  binarytreetest Henning subsample breakpoint locator wireframe
