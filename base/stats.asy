@@ -169,8 +169,10 @@ void histogram(picture pic=currentpicture, real[] bins, real[] count,
       real c=count[i];
       pair b=Scale(pic,(bins[i+1],c));
       pair a=Scale(pic,(bins[i],low));
-      if(fillpen != nullpen)
+      if(fillpen != nullpen) {
 	fill(pic,box(a,b),fillpen);
+	if(!bars) draw(pic,b--(b.x,a.y),fillpen);
+      }
       if(!bars)
 	draw(pic,halfbox(Scale(pic,(bins[i],last)),b),drawpen);
       else draw(pic,topbox(a,b),drawpen);
