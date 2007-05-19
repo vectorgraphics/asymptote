@@ -222,8 +222,7 @@ guide[][] contour(real[][] f, real[][] midpoint=new real[][],
   
   // check if boundaries are good
   if(b.x <= a.x || b.y <= a.y) {
-    abort("bad contour domain: the second vertex (b) must be above and to the right of the first one (a).");
-    
+    abort("bad contour domain: all coordinates of b-a must be positive.");
   } 
 
   segment segments[][][]=new segment[nx][ny][];

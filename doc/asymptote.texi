@@ -152,13 +152,14 @@ Base modules
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
+* contour3::                    
 * slopefield::                  Slope fields
 
 
 Graphical User Interface
 
-* Installation::                Installing @code{xasy}
-* Usage::                       Using the @acronym{GUI}
+* GUI Installation::            Installing @code{xasy}
+* GUI Usage::                   
 
 @end detailmenu
 @end menu
@@ -552,8 +553,8 @@ in the directory @code{doc} and repeat the command @code{make all}.
 
 @noindent
 For a (default) system-wide installation, the last command should be
-done as root. To install without root privileges, change the @code{./configure}
-command to
+done as the root user. To install without root privileges, change the
+@code{./configure} command to
 @verbatim
 ./configure --prefix=$HOME/asymptote
 @end verbatim
@@ -5035,6 +5036,7 @@ Here now is @code{latexusage.tex}:
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
+* contour3::                    
 * slopefield::                  Slope fields
 
 @end menu
@@ -6872,14 +6874,14 @@ void draw(picture pic=currentpicture, Label[] L=new Label[],
 
 The following simple example draws the contour at value @code{1}
 for the function @math{z=x^2+y^2}, which is a unit circle:
-@verbatiminclude contour1.asy
-@image{contour1}
+@verbatiminclude onecontour.asy
+@image{onecontour}
 
 The next example draws and labels multiple contours for the function
 @math{z=x^2-y^2} with the resolution @code{100 x 100}, using a dashed
 pen for negative contours and a solid pen for positive (and zero) contours:
-@verbatiminclude contour2.asy
-@image{contour2}
+@verbatiminclude multicontour.asy
+@image{multicontour}
 
 The next example illustrates how contour lines can be drawn on color
 density images:
@@ -6888,8 +6890,8 @@ density images:
 
 Finally, here is an example that illustrates the construction of contours
 from irregularly spaced data:
-@verbatiminclude contour3.asy
-@image{contour3}
+@verbatiminclude irregularcontour.asy
+@image{irregularcontour}
 
 In the above example, the contours of irregularly spaced data are constructed by
 first creating a triangular mesh from an array @code{z} of pairs,
@@ -6903,6 +6905,13 @@ int[][] triangulate(pair[] z);
 
 The example @code{Gouraudcontour} illustrates how to produce color
 density images over such irregular triangular meshes.
+
+@node contour3
+@section @code{contour3}
+@cindex @code{contour3}
+This package draws surfaces described as the zero-level sets of real-valued
+functions of @math{(x,y,z)} or real[][][] matrices.
+Its usage is illustrated in the example file @code{magnetic.asy}.
 
 @node slopefield
 @section @code{slopefield}
@@ -7159,18 +7168,18 @@ Graphical User Interface (@acronym{GUI}) @code{xasy} included with
 allows you to move graphical objects around with mouse @code{Button-1}. 
 
 @menu
-* Installation::                Installing @code{xasy}
-* Usage::                       Using the @acronym{GUI}
+* GUI Installation::            Installing @code{xasy}
+* GUI Usage::                   
 @end menu
 
-@node Installation
-@section Installation
-@cindex installation
+@node GUI Installation
+@section GUI Installation
+@cindex GUI installation
 
 As @code{xasy} is written in the interactive scripting language
 @code{Python/TK}, it requires that both @code{Python} and the
-@code{tkinter} package be installed (included with @code{Python} under
-@code{MSDOS}). @code{Fedora Core} users can either install
+@code{tkinter} package (included with @code{Python} under
+@code{MSDOS}) be installed. @code{Fedora Core} users can either install
 @code{tkinter} with the command
 @verbatim
 yum install tkinter
@@ -7182,14 +7191,11 @@ By default, @code{xasy} uses the @acronym{GIF} image format
 with white as the transparent color. To overcome certain side-effects, support 
 for an alternative transparent image format, @acronym{PNG}, is also available.
 
-Here are the steps to enable full alpha channel support for @acronym{PNG}
-images (on @code{UNIX} systems) in the Python Imaging Library (@acronym{PIL}) 
-used by @code{xasy}. A patch based on Con Radchenko's post at 
-@url{http://www.nabble.com/Patch:-alpha-channel-support-for-ImageTk-t3302615.html} is provided in the @code{patches} directory. After obtaining 
-@code{Imaging-1.1.6} from 
-@url{http://effbot.org/downloads/Imaging-1.1.6.tar.gz} and placing it in the 
-@code{Asymptote} source directory, the following commands (as the @code{UNIX} 
-root user) will correctly install the package:
+To enable full alpha channel support for @acronym{PNG} images in the
+Python Imaging Library (@acronym{PIL}) used by @code{xasy}, on
+@code{UNIX} systems place
+@url{http://effbot.org/downloads/Imaging-1.1.6.tar.gz} in the 
+@code{Asymptote} source directory, and type (as the root user):
 @verbatim
 tar -zxf Imaging-1.1.6.tar.gz
 cd Imaging-1.1.6
@@ -7202,12 +7208,12 @@ deconstruction, these lines need to be in the @code{Asymptote} configuration
 file (@pxref{configuration file}):
 @verbatim
 import settings;
-xformat="PNG";
+xformat="png";
 @end verbatim
 
-@node Usage
-@section Usage
-@cindex usage
+@node GUI Usage
+@section GUI Usage
+@cindex GUI usage
 To use @code{xasy}, one must first deconstruct @code{Asymptote}
 pictures into transparent @acronym{GIF} (or @acronym{PNG}) images with the 
 command @code{asy -xN}, where @code{N} denotes the magnification (a positive
@@ -7541,7 +7547,7 @@ Stefan Knorr.
 @c  LocalWords:  batchView clearGUI ignoreGUI interactiveMask interactiveView
 @c  LocalWords:  listvariables outformat outname parseonly prepending psviewer
 @c  LocalWords:  pdfviewer papertype tabcompletion noautoplain plugins Teixeira
-@c  LocalWords:  embeddedmovie historylines RadialShade penc penr CJK
+@c  LocalWords:  embeddedmovie historylines RadialShade penc penr CJK tgz GPL
 @c  LocalWords:  legendlinelength legendskip USERPROFILE LDFLAGS currentlight
 @c  LocalWords:  subsampled sinc kai AtBeginDocument GBK clearpage lasy texpath
 @c  LocalWords:  AtEndDocument zaxis maxbound truepoint paperwidth paperheight
@@ -7568,10 +7574,13 @@ Stefan Knorr.
 @c  LocalWords:  labelpath intersectionpoints PSTricks pstextpath curvedlabel
 @c  LocalWords:  LeftJustified RightJustified tickmodifier gunzip gmake IRIX dv
 @c  LocalWords:  texcommand RET SITEDIR filegraph pathmarkers POSIX binput AOB
-@c  LocalWords:  boutput nonportable markinterval stickframe circlebarframe
+@c  LocalWords:  boutput nonportable markinterval stickframe circlebarframe tix
 @c  LocalWords:  crossframe tildeframe markangle StickIntervalMarker gswin AFPL
 @c  LocalWords:  CrossIntervalMarker CircleBarIntervalMarker Ghostscript syzygy
-@c  LocalWords:  TildeIntervalMarker autoimport calculateTransform bitwise
+@c  LocalWords:  TildeIntervalMarker autoimport calculateTransform bitwise tk
 @c  LocalWords:  headersize bodysize minheaderwidth minheaderheight minwidth
-@c  LocalWords:  minbodywidth minbodyheight minheight mindiameter reltime
-@c  LocalWords:  relpoint Syzygy syzygies
+@c  LocalWords:  minbodywidth minbodyheight minheight mindiameter reltime PNG
+@c  LocalWords:  relpoint Syzygy syzygies seekeof splinetype notaknot slopea
+@c  LocalWords:  slopeb nonperiodic circlescale MarkFill ScaleX ScaleY xformat
+@c  LocalWords:  onecontour multicontour irregularcontour dvipsOptions
+@c  LocalWords:  Radchenko's
