@@ -149,10 +149,12 @@ path topbox(pair a, pair b)
 
 // Draw a histogram for bin boundaries bin[n+1] of frequency data in count[n].
 void histogram(picture pic=currentpicture, real[] bins, real[] count,
-               real low=-infinity, pen p=currentpen, pen fillpen=nullpen,
-	       pen drawpen=nullpen,  Label legend="",
-	       real markersize=legendmarkersize)
+               real low=-infinity,
+	       pen fillpen=nullpen, pen drawpen=nullpen, bool bars=false,
+	       Label legend="", real markersize=legendmarkersize)
 {
+  if((fillpen == nullpen || bars == true) && drawpen == nullpen)
+    drawpen=currentpen;
   bool[] valid=count > 0;
   real m=min(valid ? count : null);
   real M=max(valid ? count : null);
@@ -162,35 +164,33 @@ void histogram(picture pic=currentpicture, real[] bins, real[] count,
   real last=low;
   int n=count.length;
   begingroup(pic);
-  bool incremental=drawpen == nullpen;
-  if(drawpen != nullpen) p=drawpen;
   for(int i=0; i < n; ++i) {
     if(valid[i]) {
       real c=count[i];
       pair b=Scale(pic,(bins[i+1],c));
-      if(fillpen != nullpen) {
-	pair a=Scale(pic,(bins[i],low));
+      pair a=Scale(pic,(bins[i],low));
+      if(fillpen != nullpen)
 	fill(pic,box(a,b),fillpen);
-	if(!incremental) draw(pic,topbox(a,b),p);
-      }
-      if(incremental)
-	draw(pic,halfbox(Scale(pic,(bins[i],last)),b),p);
+      if(!bars)
+	draw(pic,halfbox(Scale(pic,(bins[i],last)),b),drawpen);
+      else draw(pic,topbox(a,b),drawpen);
       last=c;
     } else {
-      if(incremental && last != low) {
-	draw(pic,Scale(pic,(bins[i],last))--Scale(pic,(bins[i],low)),p);
+      if(!bars && last != low) {
+	draw(pic,Scale(pic,(bins[i],last))--Scale(pic,(bins[i],low)),drawpen);
         last=low;
       }
     }
   }
-  if(incremental && last != low)
-    draw(pic,Scale(pic,(bins[n],last))--Scale(pic,(bins[n],low)),p);
+  if(!bars && last != low)
+    draw(pic,Scale(pic,(bins[n],last))--Scale(pic,(bins[n],low)),drawpen);
   endgroup(pic);
 
   if(legend.s != "") {
-    marker m=marker(scale(markersize)*shift((-0.5,-0.5))*unitsquare,p,
-		    FillDraw(fillpen)); 
-    legend.p(p);
+    marker m=marker(scale(markersize)*shift((-0.5,-0.5))*unitsquare,
+		    drawpen,fillpen == nullpen ? Draw :
+		    (drawpen == nullpen ? Fill(fillpen) : FillDraw(fillpen)));
+    legend.p(drawpen);
     Legend l; l.init(legend.s,legend.p,invisible,m.f);
     pic.legend.push(l);
   }
@@ -199,14 +199,14 @@ void histogram(picture pic=currentpicture, real[] bins, real[] count,
 // Draw a histogram for data in n uniform bins between a and b
 // (optionally normalized).
 void histogram(picture pic=currentpicture, real[] data, real a, real b, int n,
-               bool normalize=false, real low=-infinity, pen p=currentpen,
-	       pen fillpen=nullpen, pen drawpen=nullpen, Label legend="",
-	       real markersize=legendmarkersize)
+               bool normalize=false, real low=-infinity,
+	       pen fillpen=nullpen, pen drawpen=nullpen, bool bars=false,
+	       Label legend="", real markersize=legendmarkersize)
 {
   real dx=(b-a)/n;
   real[] freq=frequency(data,a,b,n);
   if(normalize) freq /= dx*sum(freq);
-  histogram(pic,a+sequence(n+1)*dx,freq,low,p,fillpen,drawpen,legend,
+  histogram(pic,a+sequence(n+1)*dx,freq,low,fillpen,drawpen,bars,legend,
 	    markersize);
 }
 

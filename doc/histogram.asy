@@ -9,7 +9,8 @@ for(int i=0; i < n; ++i) a[i]=Gaussrand();
 
 draw(graph(Gaussian,min(a),max(a)),blue);
 
-histogram(a,min(a),max(a),n=100,normalize=true,low=0,fillpen=red);
+histogram(a,min(a),max(a),n=100,normalize=true,low=0,red,black,bars=false);
 
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$dP/dx$",LeftRight,RightTicks);
+
