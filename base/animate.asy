@@ -8,6 +8,10 @@
 // animation delay is in milliseconds
 real animationdelay=50;
 
+usepackage("animate");
+// Disable awkward filename padding of animate package.
+texpreamble("\makeatletter\def\@anim@pad#1#2{#2}\makeatother");
+
 struct animation {
   static string outname() {
     return defaultfilename == "" ? settings.outname : defaultfilename;
@@ -28,7 +32,7 @@ struct animation {
   }
   
   private string nextname(string prefix=prefix) {
-    string name=prefix+(string)index;
+    string name=prefix+string(index);
     ++index;
     return stripextension(stripdirectory(name));
   }
@@ -91,6 +95,7 @@ struct animation {
       shipped=false;
       return;
     }
+    index=0;
     transform t=inverse(all.calculateTransform()*pictures[0].T);
     min=min(all);
     max=max(all);
@@ -109,14 +114,10 @@ struct animation {
     return false;
   }
 
-  string load(string name, int frames, bool single=true,
+  string load(string name, int frames,
 	      real delay=animationdelay, string options="") {
-    string s="\PDFAnimLoad[";
-    if(single) s += "single,";
-    s += "interval="+string(delay);
-    if(options != "") s += ","+options;
-    texpreamble(s+"]{"+prefix+"}{"+name+"}{"+string(frames)+"}%");
-    return "\PDFAnimJSPageEnable\PDFAnimation{"+prefix+"}";
+    return "\animategraphics["+options+"]{"+string(1000/delay)+"}{"+
+      pdfname()+"}{0}{"+string(frames-1)+"}";
   }
 
   string pdf(real delay=animationdelay, string options="") {
@@ -124,66 +125,18 @@ struct animation {
     string filename=pdfname();
 
     if(global)
-      export(filename,multipage=true);
+      export(filename);
 
     if(!settings.keep && !settings.inlinetex) {
       exitfcn atexit=atexit();
       void exitfunction() {
 	atexit();
-	if(global) {
-	  delete(filename+".pdf");
-	  delete(filename+"_.aux");
-	} else purge();
+	purge();
       }
       atexit(exitfunction);
     }
 
-    return load(filename,index,single=global,delay,options);
-  }
-
-  private string color(string name, pen p, bool colorspace=false) {
-    string s='\\'+name+"{";
-    real[] P=colors(p);
-    if(P.length > 3) P=colors(rgb(p));
-    for(int i=0; i < P.length; ++i)
-      s += string(P[i])+" ";
-    if(colorspace) {
-      if(P.length == 1) s += "g";
-      if(P.length == 3) s += "rg";
-    }
-    s += "}";
-    return s;
-  }
-
-  string controlpanel(pen foreground=black, bool percentage=false,
-                      pen background=green, pen border=invisible) {
-    if(!pdflatex()) return "";
-    string s="\PDFAnimButtons";
-    if(percentage) s += "P";
-    return s+"["+color("BG",background)+
-      color("textColor",foreground,colorspace=true)+
-      color("BC",border)+"]{"+prefix+"}";
-  }
-
-  private string field(string field, string max, pen foreground=black,
-                       pen background=white, real margin=0) {
-    if(!pdflatex()) return "";
-    frame f;
-    label(f,max,foreground);
-    pair delta=max(f)-min(f);
-    return '\\'+field+"["+color("BG",background)+
-      color("textColor",foreground,colorspace=true)+
-      "\textSize{"+string(fontsize(foreground))+"}]{"+prefix+"}{"+
-      string(delta.x+labelmargin(foreground))+"bp}{"+
-      string(delta.y+labelmargin(foreground)+margin)+"bp}";
-  }
-
-  string progress(pen foreground=black, pen background=white) {
-    return field("PDFProgressField","100",foreground,background);
-  }
-
-  string delay(pen foreground=black, pen background=white) {
-    return field("PDFAnimDelayButton","Delay",foreground,background,2);
+    return load(filename,index,delay,options);
   }
 
   int movie(int loops=0, real delay=animationdelay,
@@ -191,6 +144,7 @@ struct animation {
             string options="", bool keep=false) {
     if(global)
       export();
+    shipped=true;
     return merge(loops,delay,format,options,keep);
   }
 

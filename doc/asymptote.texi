@@ -131,7 +131,7 @@ Base modules
 * syzygy::                      Syzygy and braid drawing module
 * feynman::                     Feynman diagrams
 * roundedpath::                 Round the sharp corners of paths
-* pdfanim::                     Portable embedded @acronym{PDF} movies
+* animate::                     Embedded @acronym{PDF} and @acronym{MPEG} movies
 * embed::                       Embedding movies, sounds, and 3D objects
 * slide::                       Making presentations with @code{Asymptote}
 * MetaPost::                    @code{MetaPost} compatibility routines
@@ -1519,17 +1519,6 @@ for(int i=0; i < 10; ++i) {
   write(i);
 }
 @end verbatim
-
-@cindex @code{gifmerge}
-@cindex @code{merge}
-@cindex @code{convert}
-@cindex animation
-@cindex @code{ImageMagick}
-Loops, together with user-defined functions, are illustrated
-in the files @code{wheel.asy}, @code{wavelet.asy}, and @code{cube.asy} in the
-@code{animations} subdirectory of the examples directory. These
-animations use the @code{ImageMagick} @code{convert} program
-to @code{merge} multiple images into a @acronym{GIF} or @acronym{MPEG} movie.
 
 @cindex @code{while}
 @cindex @code{do}
@@ -4925,7 +4914,7 @@ void f() {
 }
 @end verbatim
 
-both @code{x} and @code{y} will be allocated in the the same place, which is
+both @code{x} and @code{y} will be allocated in the same place, which is
 also where @code{f} is also allocated.
 
 Statements may also be declared static, in which case they are run at the place
@@ -5015,7 +5004,7 @@ Here now is @code{latexusage.tex}:
 * syzygy::                      Syzygy and braid drawing module
 * feynman::                     Feynman diagrams
 * roundedpath::                 Round the sharp corners of paths
-* pdfanim::                     Portable embedded @acronym{PDF} movies
+* animate::                     Embedded @acronym{PDF} and @acronym{MPEG} movies
 * embed::                       Embedding movies, sounds, and 3D objects
 * slide::                       Making presentations with @code{Asymptote}
 * MetaPost::                    @code{MetaPost} compatibility routines
@@ -5243,35 +5232,46 @@ and @code{fermi.asy}.
 This package, contributed by Stefan Knorr, is useful for rounding the
 sharp corners of paths, as illustrated in the example file @code{roundpath.asy}.
 
-@node pdfanim
-@section @code{pdfanim}
-@cindex @code{pdfanim}
-This module produces portable clickable high-quality @acronym{PDF} movies, with
-optional controls, that are internally generated and embedded by
-@code{Asymptote}, using version 0.52A of the @code{pdfanim_temp.sty} package
-(an interim version of @code{pdfanim.sty} shipped and installed with
-@code{Asymptote} and documented in @code{PDFAnim_temp_Guide.pdf}). This
-requires the additional files 
+@node animate
+@section @code{animate}
+@cindex @code{animate}
+@cindex @code{merge}
+@cindex @code{convert}
+@cindex animation
+@cindex @code{ImageMagick}
+This module allows one to generate animations, as illustrated by the
+files @code{wheel.asy}, @code{wavelet.asy}, and @code{cube.asy} in
+the @code{animations} subdirectory of the examples directory. These
+animations use the @code{ImageMagick} @code{convert} program to
+@code{merge} multiple images into a @acronym{GIF} or @acronym{MPEG}
+movie. 
+
+Higher-quality portable clickable @acronym{PDF} movies, with
+optional controls, can be internally generated and embedded by
+@code{Asymptote}
+by installing the file 
 @quotation
-@url{http://www.tug.org/tex-archive/macros/latex/contrib/acrotex/eforms.ins}
-@url{http://www.tug.org/tex-archive/macros/latex/contrib/acrotex/eforms.dtx}
-@url{http://www.tug.org/tex-archive/macros/latex/contrib/acrotex/insdljs.ins}
-@url{http://www.tug.org/tex-archive/macros/latex/contrib/acrotex/insdljs.dtx}
+@url{http://www.ctan.org/tex-archive/macros/latex/contrib/animate/animate.sty}
+@noindent
 @end quotation
 @noindent
-These files can be installed by placing them in a directory @code{eforms} in
-the @code{LaTeX} source directory
-(e.g.@ @code{/usr/share/texmf/tex/latex/eforms}) and executing in that
-directory the commands:
-@verbatim
-tex eforms.ins
-tex insdljs.ins
-texhash
-@end verbatim
+in a new directory @code{animate} in the @code{LaTeX} source directory
+(for example, in @code{/usr/share/texmf/tex/latex/animate}) and executing the command
+@code{texhash}.
 
 The example @code{pdfmovie.asy} in the @code{animations}
 directory, along with the slide presentations @code{slidemovies.asy}
 and @code{intro.asy} illustrate the use of embedded @acronym{PDF} movies.
+The member function
+@verbatim
+string pdf(real delay=animationdelay, string options="")
+@end verbatim
+@noindent
+of the @code{animate} structure accepts any of the @code{animate.sty} options,
+as described here:
+@quotation
+@url{http://www.ctan.org/tex-archive/macros/latex/contrib/animate/doc/animate.pdf}
+@end quotation
 
 @node embed
 @section @code{embed}
@@ -5312,8 +5312,9 @@ the @code{movie15} or @code{ifdraft} packages, is provided by using the
 interfaces is provided in the file @code{embeddedmovie.asy} and
 @code{externalmovie.asy} in the @code{animations} subdirectory of the
 examples directory. For a high-quality movie generated by
-@code{Asymptote}, use the @code{pdfanim} module to embed the
-animation portably (@pxref{pdfanim}).
+@code{Asymptote}, use the @code{animate} module along with the
+@code{animate.sty} package to embed a portable @code{PDF} animation
+(@pxref{animate}).
 
 @node slide
 @section @code{slide}
@@ -5321,7 +5322,7 @@ animation portably (@pxref{pdfanim}).
 This package provides a simple yet high-quality facility for making
 presentation slides, including portable embedded @acronym{PDF} animations (see
 the file @code{slidemovies.asy}). A simple example is provided in the file
-@code{slidedemo.asy}:
+@code{slidedemo.asy}.
 
 @node MetaPost
 @section @code{MetaPost}
@@ -7481,7 +7482,7 @@ Stefan Knorr.
 @c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
 @c  LocalWords:  vskip filll insertcopying ifnottex detailmenu alist augroup PQ
 @c  LocalWords:  bool behaviour facto zxf login Debian dev filetypedetect SVN
-@c  LocalWords:  FFTW bp readline gv eps gifmerge args Boehm gc evenoddoverlap
+@c  LocalWords:  FFTW bp readline gv eps args Boehm gc evenoddoverlap
 @c  LocalWords:  boolean initializer expi dir xpart ypart STL substring rfind
 @c  LocalWords:  pos substr strftime typedef pxref unitcircle yscale Bezier iff
 @c  LocalWords:  postcontrol precontrol atleast nullpath arclength arctime rgb
@@ -7566,8 +7567,8 @@ Stefan Knorr.
 @c  LocalWords:  Gouraudcontour pdflatex preconfigured perline linelength hskip
 @c  LocalWords:  penimage filloutside legendhskip legendvskip maxwidth CDlabel
 @c  LocalWords:  tensorshade MPEG framepoint nonfunction Radoslav Marinov Mepis
-@c  LocalWords:  Pienaar Melenchuk finalout pdfanim Linspire Dpkg sudo dpkg dtx
-@c  LocalWords:  windingnumber clickable PDFAnim eforms insdljs pdfmovie dfn du
+@c  LocalWords:  Pienaar Melenchuk finalout Linspire Dpkg sudo dpkg dtx
+@c  LocalWords:  windingnumber clickable pdfmovie dfn du
 @c  LocalWords:  slidemovies ifdraft embeddedu externalmovie headerpen bodypen
 @c  LocalWords:  GaussianSurface multiline binarytree tridiagonal portably AIX
 @c  LocalWords:  binarytreetest Henning subsample breakpoint locator wireframe
@@ -7583,4 +7584,3 @@ Stefan Knorr.
 @c  LocalWords:  relpoint Syzygy syzygies seekeof splinetype notaknot slopea
 @c  LocalWords:  slopeb nonperiodic circlescale MarkFill ScaleX ScaleY xformat
 @c  LocalWords:  onecontour multicontour irregularcontour dvipsOptions
-@c  LocalWords:  Radchenko's

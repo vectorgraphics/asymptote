@@ -3,7 +3,9 @@
 orientation=Landscape;
 
 import slide;
-import pdfanim;
+
+settings.tex="pdflatex";
+import animate;
 
 usersetting();
 
@@ -621,7 +623,7 @@ for(int i=0; i <= n; ++i) {
   a.add(pic);
 }
 
-display(a.pdf(delay=150),a.controlpanel());
+display(a.pdf(delay=150,"controls"));
 
 title("Automatic Sizing");
 item("Recall that figures can be specified in user coordinates, then

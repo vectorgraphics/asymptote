@@ -1,5 +1,5 @@
 usepackage("movie15","3D");
-usepackage("hyperref");
+usepackage("hyperref","setpagesize=false");
 
 // See http://www.tug.org/tex-archive/macros/latex/contrib/movie15/README
 // for documentation of the options.

@@ -2,13 +2,13 @@ MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy) latexusage.asy
 SOURCE = asymptote.texi version.texi options
 ASY = ../asy -dir ../base
-DOCFILES = asymptote.pdf CAD.pdf PDFAnim_temp_Guide.pdf
+DOCFILES = asymptote.pdf CAD.pdf
 
 doc:	asymptote.dvi asymptote.info html man faq
 
 html:	asymptote/index.html
 
-man:	asymptote.pdf CAD.pdf PDFAnim_temp_Guide.pdf asy.1
+man:	$(DOCFILES) asy.1
 
 faq:	
 	cd FAQ; $(MAKE) faq

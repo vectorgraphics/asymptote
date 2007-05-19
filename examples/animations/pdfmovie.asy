@@ -1,5 +1,7 @@
-import pdfanim;
+import animate;
 import patterns;
+
+settings.tex="pdflatex";
 
 animation a;
 
@@ -15,8 +17,4 @@ for(int i=0; i < 3.5n; ++i) {
   a.add(pic);
 }
 
-label(a.pdf());
-label(a.controlpanel(),truepoint(S),S);
-pair z=truepoint(S);
-label(a.progress(blue),z,SW);
-label(a.delay(red),z,SE);
+label(a.pdf("controls"));
