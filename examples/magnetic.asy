@@ -15,4 +15,4 @@ xaxis(Label("$x$",1),b,red);
 yaxis(Label("$y$",1),b,red);
 zaxis(Label("$z$",1),b,red);
 
-draw(contour3(f,(-2,-2,-10),(2,2,10),15));
+draw(contour3(f,(-2,-2,-10),(2,2,10),10));
