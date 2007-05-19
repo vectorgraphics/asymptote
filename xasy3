@@ -324,7 +324,7 @@ class asyApp:
    #    os.kill(asyProc.pid,signal.SIGUSR1)
    #    self.handled = False
    self.mainCanvas.itemconfigure("outlineBox",dashoffset=self.ticker%9)
-   time.sleep(0.5)
+   time.sleep(0.05)
  
  def signalAsy(self):
   os.kill(asyProc.pid,signal.SIGUSR1)
