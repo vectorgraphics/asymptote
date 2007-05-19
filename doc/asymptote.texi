@@ -6910,7 +6910,7 @@ density images over such irregular triangular meshes.
 @node contour3
 @section @code{contour3}
 @cindex @code{contour3}
-This package draws surfaces described as the zero-level sets of real-valued
+This package draws surfaces described as the null space of real-valued
 functions of @math{(x,y,z)} or real[][][] matrices.
 Its usage is illustrated in the example file @code{magnetic.asy}.
 
