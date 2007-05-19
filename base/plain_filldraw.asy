@@ -116,7 +116,7 @@ filltype FillDraw(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
   return new void(frame f, path[] g, pen drawpen) {
     pen fillpen=p == nullpen ? drawpen : p;
     if(fillpen == nullpen) fillpen=currentpen;
-    if(drawpen == nullpen) fillpen=currentpen;
+    if(drawpen == nullpen) drawpen=currentpen;
     filldraw(f,margin(g,xmargin,ymargin),fillpen,drawpen);
   };
 }
