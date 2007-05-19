@@ -537,6 +537,9 @@ class iprompt : public icore {
   // Code ran at start-up.
   string startline;
 
+  // Used for handling quit abbreviation (q).
+  protoenv *einteractive;
+  
   void postRun(coenv &, istack &) {
     run::cleanup();
     camp::TeXpipepreamble=TeXpipepreamble_save;
@@ -609,6 +612,11 @@ class iprompt : public icore {
     else return false;
   }
 
+  bool q(commandLine cl) {
+    if(einteractive->ve.getType(symbol::trans("q"))) return false;
+    return quit(cl);
+  }
+
   bool reset(commandLine cl) {
     if (cl.simple()) {
       running=false;
@@ -648,6 +656,7 @@ class iprompt : public icore {
     // keywords.pl looks for ADDCOMMAND to identify special commands in the
     // auto-completion.
     ADDCOMMAND(quit,quit);
+    ADDCOMMAND(q,q);
     ADDCOMMAND(exit,quit);
     ADDCOMMAND(reset,reset);
     ADDCOMMAND(help, help);
@@ -763,6 +772,7 @@ public:
   void run(coenv &e, istack &s, transMode=TRANS_NORMAL) {
     running=true;
     interact::setCompleter(new trans::envCompleter(e.e));
+    einteractive=&(e.e);
 
     runStartCode(e, s);
 
