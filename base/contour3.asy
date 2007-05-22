@@ -9,8 +9,8 @@ private struct weighted
 {
   triple normal;
   real ratio;
-  int kp1[]=new int[3];
-  int kp2[]=new int[3];
+  int[] kp1=new int[3];
+  int[] kp2=new int[3];
   triple pt;
 }
 
@@ -24,7 +24,7 @@ private struct bucket
 private struct particle
 {
   bool active;
-  weighted pts[];
+  weighted[] pts;
 }
 
 private weighted setupweighted(triple va, triple vb, real da, real db, 
@@ -64,7 +64,7 @@ private particle checkpyr(triple[] v, real[] d, int[][] c)
   bool s5=(!v1 && !v3) ? (abs(d[1]+d[3])+eps < abs(d[1])+abs(d[3])) : false;
   bool s6=(!v2 && !v3) ? (abs(d[2]+d[3])+eps < abs(d[2])+abs(d[3])) : false;
 
-  weighted pts[];
+  weighted[] pts;
   if(v0) pts.push(setupweighted(v[0],c[0]));
   if(v1) pts.push(setupweighted(v[1],c[1]));
   if(v2) pts.push(setupweighted(v[2],c[2]));
@@ -126,7 +126,7 @@ bucket[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
       for(int k=0; k <= nz; ++k)
         mp[2i][2j][2k]=f[i][j][k];   
 
-  particle particles[];
+  particle[] particles;
 
   real dx=(b.x-a.x)/nx;
   real dy=(b.y-a.y)/ny;
@@ -290,7 +290,8 @@ bucket[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
 	    addpart(part2);
 	  } else {
 	    addnormals(part.pts);
-	    for(int q=0; q < part.pts.length; ++q)accrue(part.pts[q]);
+	    for(int q=0; q < part.pts.length; ++q)
+	      accrue(part.pts[q]);
 	    particles.push(part);
 	  }
 	  return;
@@ -336,7 +337,7 @@ bucket[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
   bucket preparebucket(weighted w) {
     bucket ret;
     ret.t=w.pt;
-    ret.val=(0,0,0);
+    ret.val=O;
     bucket[] kp1=kps[w.kp1[0]][w.kp1[1]][w.kp1[2]];
     bucket[] kp2=kps[w.kp2[0]][w.kp2[1]][w.kp2[2]];
     bool found1=false;
@@ -359,12 +360,12 @@ bucket[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
 	}
       }
     }
-    ret.val *= (2/count);
+    ret.val *= 2/count;
     return ret;
   }
   
   // Prepare return value.
-  bucket g[][];
+  bucket[][] g;
   
   for(int q=0; q < particles.length; ++q) {
     particle p=particles[q];
@@ -420,9 +421,9 @@ void draw(picture pic=currentpicture, bucket[][] g, pen p=lightgray,
   int[] edges={0,0,0};
   for(int i=0; i < g.length; ++i) {
     bucket[] cur=g[i];
-    triple p0=cur[0].t;
-    triple p1=cur[1].t;
-    triple p2=cur[2].t;
+    pair p0=project(cur[0].t,P);
+    pair p1=project(cur[1].t,P);
+    pair p2=project(cur[2].t,P);
     pen pen0=light.intensity(cur[0].val)*p;
     pen pen1=light.intensity(cur[1].val)*p;
     pen pen2=light.intensity(cur[2].val)*p;
