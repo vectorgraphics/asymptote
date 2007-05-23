@@ -38,7 +38,7 @@ except:
 #an image. This can be accomplished using:
 #
 #import base64
-#open("image.gif","w").write(base64.decode(b64str))
+#open("image.gif","w").write(base64.decodestring(b64str))
 #
 ########################################################
 
