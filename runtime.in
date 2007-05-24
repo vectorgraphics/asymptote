@@ -1815,6 +1815,12 @@ int length(guide *g)
   return cyclic ? G.size() : G.size()-1;
 }
 
+bool cyclic(guide *g)
+{
+  flatguide G;
+  return g->flatten(G,false);
+}
+
 pair point(guide *g, int t)
 {
   flatguide G;
