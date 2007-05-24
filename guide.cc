@@ -8,10 +8,12 @@
 
 namespace camp {
 
-void multiguide::flatten(flatguide& g)
+bool multiguide::flatten(flatguide& g, bool allowsolve)
 {
+  bool cyclic;
   for (size_t i=0; i<v.size(); ++i)
-    v[i]->flatten(g);
+    cyclic=v[i]->flatten(g,allowsolve);
+  return cyclic;
 }
 
 void multiguide::print(ostream& out) const

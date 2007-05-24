@@ -81,6 +81,9 @@ public:
   // path.
   virtual bool open() { return true; }
   virtual bool controlled() { return false; }
+  virtual pair control() {return pair(0.0,0.0);}
+  virtual double curl() { return 1.0; }
+  virtual pair dir() { return pair(0.0,0.0); }
 
   // When a knot has a restriction on one side but is open on the other, the
   // restriction implies a restriction on the other side.  This is the partner
@@ -122,6 +125,8 @@ public:
   dirSpec(pair z)
     : given(niceAngle(z)) {}
 
+  pair dir() { return expi(given); }
+  
   eqn eqnOut(int j, knotlist& l, cvector<double>& d, cvector<double>& psi);
   eqn eqnIn (int j, knotlist& l, cvector<double>& d, cvector<double>& psi);
 
@@ -141,6 +146,8 @@ public:
     if(gamma < 0)
       reportError("curl cannot be less than 0");
   }
+  
+  double curl() { return gamma; }
 
   eqn eqnOut(int j, knotlist& l, cvector<double>& d, cvector<double>& psi);
   eqn eqnIn (int j, knotlist& l, cvector<double>& d, cvector<double>& psi);
@@ -163,7 +170,7 @@ public:
     
   bool open() { return false; }
   bool controlled() { return true; }
-  //pair control() { return cz; }
+  pair control() { return cz; }
 
   // The partner spec will be a dirSpec in the same direction the specifier
   // takes the path, unless the velocity is zero, then it uses a curl

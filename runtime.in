@@ -1776,17 +1776,17 @@ tensionSpecifier operator tension(real tout, real tin, bool atleast)
   return tensionSpecifier(tout, tin, atleast);
 }
 
-real :tensionSpecifierOutPart(tensionSpecifier t)
+real out:tensionSpecifierOutPart(tensionSpecifier t)
 {
   return t.getOut();
 }
 
-real :tensionSpecifierInPart(tensionSpecifier t)
+real in:tensionSpecifierInPart(tensionSpecifier t)
 {
   return t.getIn();
 }
 
-bool :tensionSpecifierAtleastPart(tensionSpecifier t)
+bool least:tensionSpecifierAtleastPart(tensionSpecifier t)
 {
   return t.getAtleast();
 }
@@ -1799,6 +1799,76 @@ guide *operator cast(tensionSpecifier t)
 guide* operator controls(pair zout, pair zin)
 {
   return new controlguide(zout, zin);
+}
+
+int size(guide *g)
+{
+  flatguide G;
+  g->flatten(G,false);
+  return G.size();
+}
+
+int length(guide *g)
+{
+  flatguide G;
+  bool cyclic=g->flatten(G,false);
+  return cyclic ? G.size() : G.size()-1;
+}
+
+pair point(guide *g, int t)
+{
+  flatguide G;
+  return G.Nodes(g->flatten(G,t)).z;
+}
+
+bool controlSpecified(guide *g, int t, int sign)
+{
+  flatguide G;
+  knot k=G.Nodes(g->flatten(G,t));
+  if(sign == -1) return k.in->controlled();
+  if(sign == 1) return k.out->controlled();
+  return false;
+}
+
+pair controlSpecifier(guide *g, int t, int sign)
+{
+  flatguide G;
+  knot k=G.Nodes(g->flatten(G,t));
+  if(sign == -1) return k.in->control();
+  if(sign == 1) return k.out->control();
+  return pair(0.0,0.0);
+}
+
+pair dirSpecifier(guide *g, int t, int sign)
+{
+  flatguide G;
+  knot k=G.Nodes(g->flatten(G,t));
+  if(sign == -1) return k.in->dir();
+  if(sign == 1) return k.out->dir();
+  return pair(0.0,0.0);
+}
+
+tensionSpecifier tensionSpecifier(guide *g, int t)
+{
+  flatguide G;
+  bool cyclic=g->flatten(G,false);
+  if(!cyclic) {
+    int n=G.size();
+    if(n >= 1 && t >= n) t=n-1;
+  }
+  knot curr=G.Nodes(t);
+  knot next=G.Nodes(t+1);
+  return tensionSpecifier(curr.tout.val,next.tin.val,curr.tout.atleast);
+}
+
+realarray *curls(guide *g)
+{
+  flatguide G;
+  g->flatten(G,false);
+  array *c=new array(2);
+  (*c)[0]=G.Nodes(0).out->curl();
+  (*c)[1]=G.Nodes(G.size()-1).in->curl();
+  return c;
 }
 
 
@@ -1849,6 +1919,18 @@ string erase(string s, int pos, int n)
   if ((size_t) pos < s.length())
     return s.erase(pos,n);
   return s; 
+}
+
+string downcase(string s)
+{
+  std::transform(s.begin(),s.end(),s.begin(),tolower);
+  return s;
+}
+
+string upcase(string s)
+{
+  std::transform(s.begin(),s.end(),s.begin(),toupper);
+  return s;
 }
 
 // returns a string constructed by translating all occurrences of the string

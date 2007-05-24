@@ -26,8 +26,19 @@ public:
 
   // Add the information in the guide to the flatguide, so that it can be
   // solved via the knotlist solving routines.
-  virtual void flatten(flatguide&) {}
-
+  // Returns true if guide is closed in a loop.
+  virtual bool flatten(flatguide&, bool allowsolve=true)=0;
+  
+  int flatten(flatguide& g, int i) {
+    bool cyclic=flatten(g,false);
+    if(cyclic) {
+      int n=g.size();
+      if(i >= n) i=n-1;
+      if(i < 0) i=0;
+    }
+    return i;
+  }
+  
   virtual void print(ostream& out) const {
     out << "nullpath";
   }
@@ -36,6 +47,7 @@ public:
   virtual side printLocation() const {
     return END;
   }
+  
 };
 
 inline ostream& operator<< (ostream& out, const guide& g)
@@ -59,8 +71,9 @@ class pairguide : public guide {
   pair z;
 
 public:
-  void flatten(flatguide& g) {
+  bool flatten(flatguide& g, bool=true) {
     g.add(z);
+    return false;
   }
 
   pairguide(pair z)
@@ -85,8 +98,9 @@ class pathguide : public guide {
   path p;
 
 public:
-  void flatten(flatguide& g) {
+  bool flatten(flatguide& g, bool=true) {
     g.add(p);
+    return false;
   }
 
   pathguide(path p)
@@ -128,9 +142,10 @@ class tensionguide : public guide {
   tension tout,tin;
 
 public:
-  void flatten(flatguide& g) {
+  bool flatten(flatguide& g, bool=true) {
     g.setTension(tin,IN);
     g.setTension(tout,OUT);
+    return false;
   }
 
   tensionguide(tensionSpecifier spec)
@@ -167,8 +182,9 @@ class specguide : public guide {
   side s;
 
 public:
-  void flatten(flatguide& g) {
+  bool flatten(flatguide& g, bool=true) {
     g.setSpec(p,s);
+    return false;
   }
   
   specguide(spec *p, side s)
@@ -192,9 +208,10 @@ class controlguide : public guide {
   pair zout, zin;
 
 public:
-  void flatten(flatguide& g) {
+  bool flatten(flatguide& g, bool=true) {
     g.setSpec(new controlSpec(zout), OUT);
     g.setSpec(new controlSpec(zin), IN);
+    return false;
   }
 
   controlguide(pair zout,pair zin)
@@ -214,7 +231,7 @@ public:
   }
 };
 
-// A guide that is a sequence of other guide.  This is used, for instance is
+// A guide that is a sequence of other guides.  This is used, for instance is
 // joins, where we have the left and right guide, and possibly specifiers and
 // tensions in between.
 typedef mem::vector<guide *> guidevector;
@@ -223,7 +240,7 @@ class multiguide : public guide {
   guidevector v;
 
 public:
-  void flatten(flatguide& g);
+  bool flatten(flatguide& g, bool=true);
 
   multiguide(guidevector& v)
     : v(v) {}
@@ -251,61 +268,17 @@ public:
   }
 };
 
-#if 0
-// A wrapper around another guide that signifies that the guide should be solved
-// cyclically.
-class cyclicguide : public guide {
-  // The guide to be solved.
-  guide *core;
-public:
-  cyclicguide(guide *core)
-    : core(core) {}
-
-  void flatten(flatguide& g) {
-    // If cycles occur in the midst of a guide, the guide up to that point
-    // should be solved and added as a path.
-    pathguide(this->solve()).flatten(g);
-  }
-
-  path solve() {
-    if (settings::verbose>3) {
-      cerr << "solving guide:\n";
-      print(cerr); cerr << "\n\n";
-    }
-    
-    flatguide g;
-    core->flatten(g);
-    path p=g.solve(true);
-
-    if (settings::verbose>3)
-      cerr << "solved as:\n" << p << "\n\n";
-
-    return p;
-  }
-
-  void print(ostream& out) const {
-    core->print(out);
-    side loc=core->printLocation();
-    adjustLocation(out,loc,this->printLocation());
-    out << "cycle";
-  }
-
-  side printLocation() const {
-    return END;
-  }
-};
-#endif
-
 struct cycleToken : public gc {};
 
 // A guide representing the cycle token.
 class cycletokguide : public guide {
 public:
-  void flatten(flatguide& g) {
+  bool flatten(flatguide& g, bool allowsolve=true) {
     // If cycles occur in the midst of a guide, the guide up to that point
     // should be solved as a path.  Any subsequent guide will work with that
     // path locked in place.
-    g.solve(true);
+    if(allowsolve) g.solve(true);
+    return true;
   }
 
   path solve() {

@@ -97,6 +97,14 @@ public:
   flatguide()
     : solved(true), p(), out(&open), in(&open) {}
 
+  int size() const {
+    return nodes.size();
+  }
+  
+  knot Nodes(int i) const {
+    return nodes[i];
+  }
+  
   void setTension(tension t, side s) {
     update();
     tref(s)=t;
