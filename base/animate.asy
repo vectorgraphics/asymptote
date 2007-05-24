@@ -108,12 +108,6 @@ struct animation {
     }
   }
 
-  bool pdflatex() {
-    if(pdf() && latex()) return true;
-    abort("error: PDF animations require -tex pdflatex");
-    return false;
-  }
-
   string load(string name, int frames,
 	      real delay=animationdelay, string options="") {
     return "\animategraphics["+options+"]{"+string(1000/delay)+"}{"+
@@ -121,7 +115,6 @@ struct animation {
   }
 
   string pdf(real delay=animationdelay, string options="") {
-    if(!pdflatex()) return "";
     string filename=pdfname();
 
     if(global)
