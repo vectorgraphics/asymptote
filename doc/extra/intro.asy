@@ -9,6 +9,9 @@ import animate;
 
 usersetting();
 
+// To generate bibliographic references:
+// asy -k goysr
+// bibtex goysr_ 
 bibliographystyle("alpha");
 
 itempen=fontsize(22pt);
