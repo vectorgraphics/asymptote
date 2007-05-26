@@ -10,7 +10,7 @@ namespace camp {
 
 bool multiguide::flatten(flatguide& g, bool allowsolve)
 {
-  bool cyclic;
+  bool cyclic=false;
   for (size_t i=0; i<v.size(); ++i)
     cyclic=v[i]->flatten(g,allowsolve);
   return cyclic;
