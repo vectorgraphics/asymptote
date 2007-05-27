@@ -220,27 +220,6 @@ real[][] operator - (real[][] a, real[][] b)
 private string incommensurate=
   "Multiplication of incommensurate matrices is undefined";
 
-real[][] operator * (real[][] a, real[][] b)
-{
-  int n=a.length;
-  int nb=b.length;
-  int nb0=b[0].length;
-  real[][] m=new real[n][nb0];
-  for(int i=0; i < n; ++i) {
-    real[] ai=a[i];
-    real[] mi=m[i];
-    if(ai.length != nb) 
-      abort(incommensurate);
-    for(int j=0; j < nb0; ++j) {
-      real sum;
-      for(int k=0; k < nb; ++k)
-        sum += ai[k]*b[k][j];
-      mi[j]=sum;
-    }
-  }
-  return m;
-}
-
 real[] operator * (real[] b, real[][] a)
 {
   int nb=b.length;
@@ -274,11 +253,6 @@ real[][] operator * (real b, real[][] a)
 real[][] operator / (real[][] a, real b)
 {
   return a*(1/b);
-}
-
-bool square2(real[][] m)
-{
-  return m[0].length == m.length && m[1].length == m.length;
 }
 
 bool square(real[][] m)

@@ -18,7 +18,7 @@ struct light {
   shadefcn shade;
   
   real intensity(triple v) {
-    if(source == O) return 1.0;
+    if(source == O) return 1;
     return shade(0.5(dot(unit(v),source)+1));
   }
 }
@@ -34,4 +34,4 @@ light light(triple source, shadefcn shade=defaultshade)
 light operator cast(triple v) {return light(v);}
 
 light currentlight=(0.25,-0.25,1);
-light nolight=(0,0,0);
+light nolight=O;

@@ -3543,7 +3543,7 @@ realarray *Operator *(realarray2 *a, realarray *b)
 {
   size_t n=checkArray(a);
   size_t bsize=checkArray(b);
-  if(bsize != n) error(incommensurate);  
+  if(bsize != n) error(incommensurate);
   array *c=new array(n);
   for(size_t i=0; i < n; ++i) {
     array *ai=read<array*>(a,i);
@@ -3552,6 +3552,34 @@ realarray *Operator *(realarray2 *a, realarray *b)
       sum += read<real>(ai,j)*read<real>(b,j);
     }
     (*c)[i]=sum;
+  }
+  return c;
+}
+
+realarray2 *Operator *(realarray2 *a, realarray2 *b)
+{
+  real **A=copyArray2C(a,false);
+  size_t n=a->size();
+  real **B=copyArray2C(b,false);
+  
+  size_t nb=b->size();
+  size_t na0=n == 0 ? 0 : read<array*>(a,0)->size();
+  if(na0 != nb) 
+    error(incommensurate);
+  
+  size_t nb0=nb == 0 ? 0 : read<array*>(b,0)->size();
+    
+  array *c=new array(n);
+  for(size_t i=0; i < n; ++i) {
+    real *Ai=A[i];
+    array *ci=new array(nb0);
+    (*c)[i]=ci;
+    for(size_t j=0; j < nb0; ++j) {
+      real sum=0.0;
+      for(size_t k=0; k < nb; ++k)
+        sum += Ai[k]*B[k][j];
+      (*ci)[j]=sum;
+    }
   }
   return c;
 }
