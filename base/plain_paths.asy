@@ -1,6 +1,6 @@
 path nullpath;
 
-// These numbers specify which side a specifier is in an operator spec or
+// These numbers identify the side of a specifier in an operator spec or
 // operator curl expression:
 //  a{out} .. {in}b
 restricted int JOIN_OUT=0;

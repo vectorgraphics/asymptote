@@ -2,7 +2,7 @@
  * mod.h
  * Andy Hammerlindl 2005/03/16
  *
- * Definition of implementation independent mod function.
+ * Definition of implementation-independent mod function.
  *****/
 
 #ifndef MOD_H

@@ -87,7 +87,7 @@ Drawing commands
 Programming
 
 * Data types::                  void, bool, int, real, pair, triple, string
-* Guides and paths::            Specifying lines and curves
+* Paths and guides::            
 * Pens::                        Colors, line types, line widths, font sizes
 * Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
@@ -1530,7 +1530,7 @@ many features beyond the ones found in those languages.
 
 @menu
 * Data types::                  void, bool, int, real, pair, triple, string
-* Guides and paths::            Specifying lines and curves
+* Paths and guides::            
 * Pens::                        Colors, line types, line widths, font sizes
 * Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
@@ -1924,31 +1924,15 @@ constructed from the source file, line number, and @code{s} is printed.
 As in C/C++, complicated types may be abbreviated with @code{typedef}
 (see the example in @ref{Functions}).
 
-@node Guides and paths
-@section Guides and paths
+@node Paths and guides
+@section Paths and guides
 
 @table @code
-@item guide
-@cindex @code{guide}
-an unresolved cubic spline (list of cubic-spline nodes and control points).
-
-This is like a path except that the computation of the cubic spline is
-deferred until drawing time (when it is resolved into a path); this allows
-two guides with free endpoint conditions to be joined together smoothly.
-The solid curve in the following example is built up incrementally as
-a guide, but only resolved at drawing time:
-
-@verbatiminclude mexicanhat.asy
-@image{mexicanhat}
 
 @item path
 @cindex @code{path}
-a cubic spline resolved into a fixed path. In the previous example,
-the dashed curve is incrementally resolved at each iteration, before
-the entire set of nodes (shown in red) is known.
-
-The implicit initializer for paths and guides is @code{nullpath},
-which is useful for building up a path within a loop.
+a cubic spline resolved into a fixed path. 
+The implicit initializer for paths is @code{nullpath}.
 
 @cindex @code{circle}
 @anchor{circle}
@@ -2015,6 +1999,15 @@ If @code{p} is cyclic, this is the same as the number of nodes in @code{p}.
 @item int size(path p);
 This is the number of nodes in the path @code{p}.
 If @code{p} is cyclic, this is the same as @code{length(p)}.
+
+@cindex @code{cyclic}
+@item bool cyclic(path p);
+returns @code{true} iff path @code{p} is cyclic.
+
+@cindex @code{straight}
+@item bool straight(path p, int i);
+returns @code{true} iff the segment of path @code{p} between node
+@code{i} and node @code{i+1} is straight.
 
 @cindex @code{point}
 @item pair point(path p, int t);
@@ -2168,15 +2161,6 @@ returns the pair (left,bottom) for the path bounding box of path @code{p}.
 @item pair max(path p);
 returns the pair (right,top) for the path bounding box of path @code{p}.
 
-@cindex @code{cyclic}
-@item bool cyclic(path p);
-returns @code{true} iff path @code{p} is cyclic
-
-@cindex @code{straight}
-@item bool straight(path p, int i);
-returns @code{true} iff the segment of path @code{p} between node
-@code{i} and node @code{i+1} is straight.
-
 @cindex @code{windingnumber}
 @item int windingnumber(path p, pair z);
 returns the winding number of the cyclic path @code{g} relative to the point
@@ -2191,7 +2175,22 @@ by the cyclic path @code{g} according to the fillrule of pen @code{p}
 
 @end table
 
-@end table
+@item guide
+@cindex @code{guide}
+an unresolved cubic spline (list of cubic-spline nodes and control points).
+The implicit initializer for a guide is @code{nullpath}; this is useful
+for building up a guide within a loop.
+
+A guide is similar to a path except that the computation of the cubic spline is
+deferred until drawing time (when it is resolved into a path); this allows
+two guides with free endpoint conditions to be joined together smoothly.
+The solid curve in the following example is built up incrementally as
+a guide, but only resolved at drawing time; the dashed curve is
+incrementally resolved at each iteration, before the entire set of nodes
+(shown in red) is known:
+
+@verbatiminclude mexicanhat.asy
+@image{mexicanhat}
 
 We point out an efficiency distinction in the use of guides and paths:
 @verbatim
@@ -2213,8 +2212,56 @@ for(int i=0; i < 10; ++i)
 runs in quadratic time, as the entire path up to that point is copied at each
 step of the iteration.
 
+The following routines can be used to examine the individual elements of a guide
+(without actually resolving the guide to a fixed path):
+
+@table @code
+
+@cindex @code{size}
+@item int size(guide g);
+Analogous to @code{size(path g)}.
+
+@cindex @code{length}
+@item int length(guide g);
+Analogous to @code{length(path g)}.
+
+@cindex @code{cyclic}
+@item bool cyclic(path p);
+Analogous to @code{cyclic(path g)}.
+
+@cindex @code{point}
+@item pair point(guide g, int t);
+Analogous to @code{point(path g, int t)}.
+
+@cindex @code{dirSpecifier}
+@item pair[] dirSpecifier(guide g, int t);
+This returns a pair array of length 2 containing the outgoing (in
+element 0) and incoming (in element 1) direction specifiers (or
+@code{(0,0)} if none specified) for the segment of guide @code{g}
+between nodes @code{t} and @code{t+1}.
+
+@cindex @code{controlSpecifier}
+@item pair[] controlSpecifier(guide g, int t);
+If the segment of guide @code{g} between nodes @code{t} and @code{t+1}
+has explicit outgoing and incoming control points, return them as a
+two-element array. Otherwise, an empty array is returned.
+
+@cindex @code{tensionSpecifier}
+@item tensionSpecifier tensionSpecifier(guide g, int t);
+This returns the tension specifier for the segment of guide @code{g} between
+nodes @code{t} and @code{t+1}. The individual components of the tension
+can be examined with the routines @code{in(tensionSpecifier)},
+@code{out(tensionSpecifier)}, and @code{atleastflag(tensionSpecifier)}.
+
+@cindex @code{curlSpecifier}
+@item real[] curls(guide g);
+This returns an array containing the initial curl specifier (in element 0)
+and final curl specifier (in element 1) for guide @code{g}.
+
+@end table
+
 As a technical detail we note that a direction specifier given to
-@code{nullpath} modifies the node on the other side: the paths
+@code{nullpath} modifies the node on the other side: the guides
 @verbatim
 a..{up}nullpath..b;
 c..nullpath{up}..d;
@@ -2226,6 +2273,8 @@ a..nullpath..{up}b;
 c{up}..nullpath..d;
 e{down}..nullpath..{up}f;
 @end verbatim
+
+@end table
 
 @node Pens
 @section Pens

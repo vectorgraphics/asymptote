@@ -1786,7 +1786,7 @@ real in:tensionSpecifierInPart(tensionSpecifier t)
   return t.getIn();
 }
 
-bool least:tensionSpecifierAtleastPart(tensionSpecifier t)
+bool atleastflag:tensionSpecifierAtleastPart(tensionSpecifier t)
 {
   return t.getAtleast();
 }
@@ -1803,77 +1803,87 @@ guide* operator controls(pair zout, pair zin)
 
 int size(guide *g)
 {
-  flatguide G;
-  g->flatten(G,false);
-  return G.size();
+  flatguide f;
+  g->flatten(f,false);
+  return f.size();
 }
 
 int length(guide *g)
 {
-  flatguide G;
-  bool cyclic=g->flatten(G,false);
-  return cyclic ? G.size() : G.size()-1;
+  flatguide f;
+  bool cyclic=g->flatten(f,false);
+  return cyclic ? f.size() : f.size()-1;
 }
 
 bool cyclic(guide *g)
 {
-  flatguide G;
-  return g->flatten(G,false);
+  flatguide f;
+  return g->flatten(f,false);
 }
 
 pair point(guide *g, int t)
 {
-  flatguide G;
-  return G.Nodes(g->flatten(G,t)).z;
+  flatguide f;
+  bool cyclic=g->flatten(f,false);
+  return f.Nodes(adjustedIndex(t,f.size(),cyclic)).z;
 }
 
-bool controlSpecified(guide *g, int t, int sign)
+pairarray *dirSpecifier(guide *g, int t)
 {
-  flatguide G;
-  knot k=G.Nodes(g->flatten(G,t));
-  if(sign == -1) return k.in->controlled();
-  if(sign == 1) return k.out->controlled();
-  return false;
+  flatguide f;
+  bool cyclic=g->flatten(f,false);
+  array *c=new array(2);
+  int n=f.size();
+  if(cyclic) t=t % n;
+  else if(t < 0 || t >= n-1) {
+    static pair zero;
+    (*c)[0]=zero;
+    (*c)[1]=zero;
+    return c;
+  }
+  (*c)[0]=f.Nodes(t).out->dir();
+  (*c)[1]=f.Nodes(t+1).in->dir();
+  return c;
 }
 
-pair controlSpecifier(guide *g, int t, int sign)
+pairarray *controlSpecifier(guide *g, int t)
 {
-  flatguide G;
-  knot k=G.Nodes(g->flatten(G,t));
-  if(sign == -1) return k.in->control();
-  if(sign == 1) return k.out->control();
-  return pair(0.0,0.0);
-}
-
-pair dirSpecifier(guide *g, int t, int sign)
-{
-  flatguide G;
-  knot k=G.Nodes(g->flatten(G,t));
-  if(sign == -1) return k.in->dir();
-  if(sign == 1) return k.out->dir();
-  return pair(0.0,0.0);
+  flatguide f;
+  bool cyclic=g->flatten(f,false);
+  int n=f.size();
+  if(cyclic) t=t % n;
+  else if(t < 0 || t >= n-1) return new array(0);
+  knot curr=f.Nodes(t);
+  knot next=f.Nodes(t+1);
+  if(curr.out->controlled()) {
+    array *c;
+    assert(next.in->controlled());
+    c=new array(2);
+    (*c)[0]=curr.out->control();
+    (*c)[1]=next.in->control();
+    return c;
+  } else return new array(0);
 }
 
 tensionSpecifier tensionSpecifier(guide *g, int t)
 {
-  flatguide G;
-  bool cyclic=g->flatten(G,false);
-  if(!cyclic) {
-    int n=G.size();
-    if(n >= 1 && t >= n) t=n-1;
-  }
-  knot curr=G.Nodes(t);
-  knot next=G.Nodes(t+1);
+  flatguide f;
+  bool cyclic=g->flatten(f,false);
+  int n=f.size();
+  if(cyclic) t=t % n;
+  else if(t < 0 || t >= n-1) return tensionSpecifier(1.0,1.0,false);
+  knot curr=f.Nodes(t);
+  knot next=f.Nodes(t+1);
   return tensionSpecifier(curr.tout.val,next.tin.val,curr.tout.atleast);
 }
 
-realarray *curls(guide *g)
+realarray *curlSpecifier(guide *g)
 {
-  flatguide G;
-  g->flatten(G,false);
+  flatguide f;
+  g->flatten(f,false);
   array *c=new array(2);
-  (*c)[0]=G.Nodes(0).out->curl();
-  (*c)[1]=G.Nodes(G.size()-1).in->curl();
+  (*c)[0]=f.Nodes(0).out->curl();
+  (*c)[1]=f.Nodes(f.size()-1).in->curl();
   return c;
 }
 

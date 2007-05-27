@@ -159,9 +159,8 @@ cubicroots::cubicroots(double a, double b, double c, double d)
   
 pair path::point(double t) const
 {
-  emptyError();
+  checkEmpty(n);
     
-  // NOTE: there may be better methods, but let's not split hairs, yet.
   int i = Floor(t);
   int iplus;
   t = fmod(t,1);
@@ -196,9 +195,8 @@ pair path::point(double t) const
 
 pair path::precontrol(double t) const
 {
-  emptyError();
+  checkEmpty(n);
 		     
-  // NOTE: may be better methods, but let's not split hairs, yet.
   int i = Floor(t);
   int iplus;
   t = fmod(t,1);
@@ -230,9 +228,8 @@ pair path::precontrol(double t) const
  
 pair path::postcontrol(double t) const
 {
-  emptyError();
+  checkEmpty(n);
   
-  // NOTE: may be better methods, but let's not split hairs, yet.
   int i = Floor(t);
   int iplus;
   t = fmod(t,1);

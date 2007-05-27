@@ -41,6 +41,24 @@ bool unsimpson(double integral, double (*)(double), double a, double& b,
 
 namespace camp {
 
+inline void checkEmpty(int n) {
+  if(n == 0)
+    reportError("nullpath has no points");
+}
+
+inline int adjustedIndex(int i, int n, bool cycles)
+{
+  checkEmpty(n);
+  if(cycles)
+    return imod(i,n);
+  else if(i < 0)
+    return 0;
+  else if(i >= n)
+    return n-1;
+  else
+    return i;
+}
+
 // Used in the storage of solved path knots.
 struct solvedKnot : public gc {
   pair pre;
@@ -129,61 +147,29 @@ public:
     return nodes;
   }
   
-  void emptyError() const {
-    if(empty())
-      reportError("nullpath has no points");
-  }
-  
-  pair point(int t) const
-  {
-    emptyError();
-    
-    if (cycles)
-      return nodes[imod(t,n)].point;
-    else if (t < 0)
-      return nodes[0].point;
-    else if (t >= n)
-      return nodes[n-1].point;
-    else
-      return nodes[t].point;
-  }
-
   bool straight(int t) const
   {
     if (cycles) return nodes[imod(t,n)].straight;
     return (t >= 0 && t < n) ? nodes[t].straight : false;
   }
   
+  pair point(int t) const
+  {
+    return nodes[adjustedIndex(t,n,cycles)].point;
+  }
+
   pair point(double t) const;
   
   pair precontrol(int t) const
   {
-    emptyError();
-		       
-    if (cycles)
-      return nodes[imod(t,n)].pre;
-    else if (t < 0)
-      return nodes[0].pre;
-    else if (t >= n)
-      return nodes[n-1].pre;
-    else
-      return nodes[t].pre;
+    return nodes[adjustedIndex(t,n,cycles)].pre;
   }
 
   pair precontrol(double t) const;
   
   pair postcontrol(int t) const
   {
-    emptyError();
-		       
-    if (cycles)
-      return nodes[imod(t,n)].post;
-    else if (t < 0)
-      return nodes[0].post;
-    else if (t >= n)
-      return nodes[n-1].post;
-    else
-      return nodes[t].post;
+    return nodes[adjustedIndex(t,n,cycles)].post;
   }
 
   pair postcontrol(double t) const;

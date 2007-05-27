@@ -432,6 +432,24 @@ dir operator * (transform3 t, dir d)
   return D;
 }
 
+void checkEmpty(int n) {
+  if(n == 0)
+    abort("nullpath3 has no points");
+}
+
+int adjustedIndex(int i, int n, bool cycles)
+{
+  checkEmpty(n);
+  if(cycles)
+    return i % n;
+  else if(i < 0)
+    return 0;
+  else if(i >= n)
+    return n-1;
+  else
+    return i;
+}
+
 struct flatguide3 {
   triple[] nodes;
   bool[] cyclic;     // true if node is really a cycle
@@ -494,7 +512,7 @@ struct flatguide3 {
     }
   }
 
-  void cyclic() {
+  void cycleToken() {
     if(nodes.length > 0)
       node(nodes[0],true);
   }
@@ -549,7 +567,7 @@ guide3 operator cast(triple v)
 
 guide3 operator cast(cycleToken) {
   return new void(flatguide3 f) {
-    f.cyclic();
+    f.cycleToken();
   };
 }
 
@@ -997,63 +1015,31 @@ struct path3 {
   bool empty() {return n == 0;}
   bool cyclic() {return cycles;}
   
-  void emptyError() {
-    if(empty())
-      abort("nullpath3 has no points");
-  }
-  
   bool straight(int t) {
     if (cycles) return nodes[t % n].straight;
     return (t >= 0 && t < n) ? nodes[t].straight : false;
   }
   
   triple point(int t) {
-    emptyError();
-    
-    if (cycles)
-      return nodes[t % n].point;
-    else if (t < 0)
-      return nodes[0].point;
-    else if (t >= n)
-      return nodes[n-1].point;
-    else
-      return nodes[t].point;
+    return nodes[adjustedIndex(t,n,cycles)].point;
   }
 
   triple precontrol(int t) {
-    emptyError();
-                       
-    if (cycles)
-      return nodes[t % n].pre;
-    else if (t < 0)
-      return nodes[0].pre;
-    else if (t >= n)
-      return nodes[n-1].pre;
-    else
-      return nodes[t].pre;
+    return nodes[adjustedIndex(t,n,cycles)].pre;
   }
 
   triple postcontrol(int t) {
-    emptyError();
-                       
-    if (cycles)
-      return nodes[t % n].post;
-    else if (t < 0)
-      return nodes[0].post;
-    else if (t >= n)
-      return nodes[n-1].post;
-    else
-      return nodes[t].post;
+    return nodes[adjustedIndex(t,n,cycles)].post;
   }
 
   triple point(real t) {
-    emptyError();
+    checkEmpty(n);
     
     int i = Floor(t);
-    int iplus;
     t = fmod(t,1);
     if (t < 0) t += 1;
 
+    int iplus;
     if (cycles) {
       i = i % n;
       iplus = (i+1) % n;
@@ -1080,13 +1066,13 @@ struct path3 {
   }
   
   triple precontrol(real t) {
-    emptyError();
+    checkEmpty(n);
                      
     int i = Floor(t);
-    int iplus;
     t = fmod(t,1);
     if (t < 0) t += 1;
 
+    int iplus;
     if (cycles) {
       i = i % n;
       iplus = (i+1) % n;
@@ -1110,9 +1096,8 @@ struct path3 {
         
  
   triple postcontrol(real t) {
-    emptyError();
+    checkEmpty(n);
   
-    // NOTE: may be better methods, but let's not split hairs, yet.
     int i = Floor(t);
     int iplus;
     t = fmod(t,1);
@@ -1444,9 +1429,13 @@ struct path3 {
   
 }
 
-bool cyclic(explicit path3 p) {return p.cyclic();}
-int size(explicit path3 p) {return p.size();}
-int length(explicit path3 p) {return p.length();}
+bool cyclic(path3 p) {return p.cyclic();}
+int size(path3 p) {return p.size();}
+int length(path3 p) {return p.length();}
+
+bool cyclic(guide3 g) {flatguide3 f; g(f); return f.cyclic();}
+int size(guide3 g) {flatguide3 f; g(f); return f.size();}
+int length(guide3 g) {flatguide3 f; g(f); return f.nodes.length-1;}
 
 path3 operator * (transform3 t, path3 p) 
 {
@@ -1736,7 +1725,13 @@ bool straight(path3 p, int t) {return p.straight(t);}
 bool straight(explicit guide3 g, int t) {return ((path3) g).straight(t);}
 
 triple point(path3 p, int t) {return p.point(t);}
-triple point(explicit guide3 g, int t) {return ((path3) g).point(t);}
+triple point(explicit guide3 g, int t) {
+  flatguide3 f;
+  g(f);
+  int n=f.size();
+  return f.nodes[adjustedIndex(t,n,f.cyclic())];
+}
+
 triple point(path3 p, real t) {return p.point(t);}
 triple point(explicit guide3 g, real t) {return ((path3) g).point(t);}
 
@@ -1756,6 +1751,51 @@ triple precontrol(explicit guide3 g, int t) {
 triple precontrol(path3 p, real t) {return p.precontrol(t);}
 triple precontrol(explicit guide3 g, real t) {
   return ((path3) g).precontrol(t);
+}
+
+triple[] dirSpecifier(guide3 g, int t)
+{
+  flatguide3 f;
+  g(f);
+  bool cyclic=f.cyclic();
+  int n=f.size();
+  checkEmpty(n);
+  if(cyclic) t=t % n;
+  else if(t < 0 || t >= n-1) return new triple[] {O,O};
+  return new triple[] {f.out[t].dir,f.in[t].dir};
+}
+
+triple[] controlSpecifier(guide3 g, int t) {
+  flatguide3 f;
+  g(f);
+  bool cyclic=f.cyclic();
+  int n=f.size();
+  checkEmpty(n);
+  if(cyclic) t=t % n;
+  else if(t < 0 || t >= n-1) return new triple[];
+  control c=f.control[t];
+  if(c.active) return new triple[] {c.post,c.pre};
+  else return new triple[];
+}
+
+tensionSpecifier tensionSpecifier(guide3 g, int t)
+{
+  flatguide3 f;
+  g(f);
+  bool cyclic=f.cyclic();
+  int n=f.size();
+  checkEmpty(n);
+  if(cyclic) t=t % n;
+  else if(t < 0 || t >= n-1) return operator tension(1,1,false);
+  Tension T=f.Tension[t];
+  return operator tension(T.out,T.in,T.atLeast);
+}
+
+real[] curlSpecifier(guide3 g)
+{
+  flatguide3 f;
+  g(f);
+  return new real[] {f.out[0].gamma,f.in[f.nodes.length-2].gamma};
 }
 
 triple dir(path3 p, int t, int sign=0) {return p.dir(t,sign);}

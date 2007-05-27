@@ -29,16 +29,6 @@ public:
   // Returns true if guide is closed in a loop.
   virtual bool flatten(flatguide&, bool allowsolve=true)=0;
   
-  int flatten(flatguide& g, int i) {
-    bool cyclic=flatten(g,false);
-    if(cyclic) {
-      int n=g.size();
-      if(i >= n) i=n-1;
-      if(i < 0) i=0;
-    }
-    return i;
-  }
-  
   virtual void print(ostream& out) const {
     out << "nullpath";
   }
