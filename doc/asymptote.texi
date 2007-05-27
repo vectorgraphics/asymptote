@@ -2243,8 +2243,9 @@ between nodes @code{t} and @code{t+1}.
 @cindex @code{controlSpecifier}
 @item pair[] controlSpecifier(guide g, int t);
 If the segment of guide @code{g} between nodes @code{t} and @code{t+1}
-has explicit outgoing and incoming control points, return them as a
-two-element array. Otherwise, an empty array is returned.
+has explicit outgoing and incoming control points, they are returned as
+elements 0 and 1, respectively, of a two-element array. Otherwise, an
+empty array is returned.
 
 @cindex @code{tensionSpecifier}
 @item tensionSpecifier tensionSpecifier(guide g, int t);
