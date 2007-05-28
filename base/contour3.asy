@@ -21,7 +21,8 @@ private struct bucket
   int count;
 }
 
-private struct particle
+// A group of 3 or 4 points.
+private struct object
 {
   bool active;
   weighted[] pts;
@@ -49,20 +50,25 @@ private weighted setupweighted(triple v, int[] kp)
   return newone;
 }
 
-// Checks if a pyramid contains a contour particle.
-private particle checkpyr(triple[] v, real[] d, int[][] c)
+// Checks if a pyramid contains a contour object.
+private object checkpyr(triple[] v, real[] d, int[][] c)
 {
-  particle part;
-  bool v0=(abs(d[0]) < eps);
-  bool v1=(abs(d[1]) < eps);
-  bool v2=(abs(d[2]) < eps);
-  bool v3=(abs(d[3]) < eps);
-  bool s1=(!v0 && !v1) ? (abs(d[0]+d[1])+eps < abs(d[0])+abs(d[1])) : false;
-  bool s2=(!v0 && !v2) ? (abs(d[0]+d[2])+eps < abs(d[0])+abs(d[2])) : false;
-  bool s3=(!v0 && !v3) ? (abs(d[0]+d[3])+eps < abs(d[0])+abs(d[3])) : false;
-  bool s4=(!v1 && !v2) ? (abs(d[1]+d[2])+eps < abs(d[1])+abs(d[2])) : false;
-  bool s5=(!v1 && !v3) ? (abs(d[1]+d[3])+eps < abs(d[1])+abs(d[3])) : false;
-  bool s6=(!v2 && !v3) ? (abs(d[2]+d[3])+eps < abs(d[2])+abs(d[3])) : false;
+  object obj;
+  real a0=abs(d[0]);
+  real a1=abs(d[1]);
+  real a2=abs(d[2]);
+  real a3=abs(d[3]);
+
+  bool v0=a0 < eps;
+  bool v1=a1 < eps;
+  bool v2=a2 < eps;
+  bool v3=a3 < eps;
+  bool s1=v0 || v1 ? false : abs(d[0]+d[1])+eps < a0+a1;
+  bool s2=v0 || v2 ? false : abs(d[0]+d[2])+eps < a0+a2;
+  bool s3=v0 || v3 ? false : abs(d[0]+d[3])+eps < a0+a3;
+  bool s4=v1 || v2 ? false : abs(d[1]+d[2])+eps < a1+a2;
+  bool s5=v1 || v3 ? false : abs(d[1]+d[3])+eps < a1+a3;
+  bool s6=v2 || v3 ? false : abs(d[2]+d[3])+eps < a2+a3;
 
   weighted[] pts;
   if(v0) pts.push(setupweighted(v[0],c[0]));
@@ -79,12 +85,12 @@ private particle checkpyr(triple[] v, real[] d, int[][] c)
   int s=pts.length;
   //There are three or four points.
   if(s > 2) {
-    part.active=true;
-    part.pts=pts;
+    obj.active=true;
+    obj.pts=pts;
   }
-  else part.active=false;
+  else obj.active=false;
 
-  return part;
+  return obj;
 }
 
 // Return contour buckets for a 3D data array, using a pyramid mesh
@@ -126,7 +132,7 @@ bucket[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
       for(int k=0; k <= nz; ++k)
         mp[2i][2j][2k]=f[i][j][k];   
 
-  particle[] particles;
+  object[] objects;
 
   real dx=(b.x-a.x)/nx;
   real dy=(b.y-a.y)/ny;
@@ -275,41 +281,41 @@ bucket[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
 	  return;
 	}
 
-	void addpart(particle part) {
-	  if(!part.active) return;
+	void addobj(object obj) {
+	  if(!obj.active) return;
 
-	  if(part.pts.length == 4) {
-	    weighted[] points=part.pts;
-	    particle part1;
-	    particle part2;
-	    part1.active=true; 
-	    part2.active=true;
-	    part1.pts=new weighted[] {points[0],points[1],points[2]};
-	    part2.pts=new weighted[] {points[1],points[2],points[3]};
-	    addpart(part1);
-	    addpart(part2);
+	  if(obj.pts.length == 4) {
+	    weighted[] points=obj.pts;
+	    object obj1;
+	    object obj2;
+	    obj1.active=true; 
+	    obj2.active=true;
+	    obj1.pts=new weighted[] {points[0],points[1],points[2]};
+	    obj2.pts=new weighted[] {points[1],points[2],points[3]};
+	    addobj(obj1);
+	    addobj(obj2);
 	  } else {
-	    addnormals(part.pts);
-	    for(int q=0; q < part.pts.length; ++q)
-	      accrue(part.pts[q]);
-	    particles.push(part);
+	    addnormals(obj.pts);
+	    for(int q=0; q < obj.pts.length; ++q)
+	      accrue(obj.pts[q]);
+	    objects.push(obj);
 	  }
 	  return;
 	}
 
 	void check4pyr(triple[] v, real[] d, int[][] c) {
-	  addpart(checkpyr(new triple[] {v[5],v[4],v[0],v[1]},
-			   new real[] {d[5],d[4],d[0],d[1]},
-			   new int[][] {c[5],c[4],c[0],c[1]}));
-	  addpart(checkpyr(new triple[] {v[5],v[4],v[1],v[2]},
-			   new real[] {d[5],d[4],d[1],d[2]},
-			   new int[][] {c[5],c[4],c[1],c[2]}));
-	  addpart(checkpyr(new triple[] {v[5],v[4],v[2],v[3]},
-			   new real[] {d[5],d[4],d[2],d[3]},
-			   new int[][] {c[5],c[4],c[2],c[3]}));
-	  addpart(checkpyr(new triple[] {v[5],v[4],v[3],v[0]},
-			   new real[] {d[5],d[4],d[3],d[0]},
-			   new int[][] {c[5],c[4],c[3],c[0]}));
+	  addobj(checkpyr(new triple[] {v[5],v[4],v[0],v[1]},
+			  new real[] {d[5],d[4],d[0],d[1]},
+			  new int[][] {c[5],c[4],c[0],c[1]}));
+	  addobj(checkpyr(new triple[] {v[5],v[4],v[1],v[2]},
+			  new real[] {d[5],d[4],d[1],d[2]},
+			  new int[][] {c[5],c[4],c[1],c[2]}));
+	  addobj(checkpyr(new triple[] {v[5],v[4],v[2],v[3]},
+			  new real[] {d[5],d[4],d[2],d[3]},
+			  new int[][] {c[5],c[4],c[2],c[3]}));
+	  addobj(checkpyr(new triple[] {v[5],v[4],v[3],v[0]},
+			  new real[] {d[5],d[4],d[3],d[0]},
+			  new int[][] {c[5],c[4],c[3],c[0]}));
 	}
 
 	check4pyr(new triple[] {p000,p010,p110,p100,mc,m0}, 
@@ -367,8 +373,8 @@ bucket[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
   // Prepare return value.
   bucket[][] g;
   
-  for(int q=0; q < particles.length; ++q) {
-    particle p=particles[q];
+  for(int q=0; q < objects.length; ++q) {
+    object p=objects[q];
     g.push(new bucket[] {preparebucket(p.pts[0]),preparebucket(p.pts[1]),
 	  preparebucket(p.pts[2])});
   }
