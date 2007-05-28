@@ -601,9 +601,9 @@ class iprompt : public icore {
   typedef mem::map<CONST string, command> commandMap;
   commandMap commands;
 
-  bool quit(commandLine cl) {
+  bool exit(commandLine cl) {
     if (cl.simple()) {
-      // Don't store quit commands in the history file.
+      // Don't store exit commands in the history file.
       interact::deleteLastLine();
 
       running=false;
@@ -614,7 +614,7 @@ class iprompt : public icore {
 
   bool q(commandLine cl) {
     if(einteractive->ve.getType(symbol::trans("q"))) return false;
-    return quit(cl);
+    return exit(cl);
   }
 
   bool reset(commandLine cl) {
@@ -655,9 +655,9 @@ class iprompt : public icore {
 
     // keywords.pl looks for ADDCOMMAND to identify special commands in the
     // auto-completion.
-    ADDCOMMAND(quit,quit);
+    ADDCOMMAND(quit,exit);
     ADDCOMMAND(q,q);
-    ADDCOMMAND(exit,quit);
+    ADDCOMMAND(exit,exit);
     ADDCOMMAND(reset,reset);
     ADDCOMMAND(help, help);
     ADDCOMMAND(input, input);
@@ -747,6 +747,7 @@ class iprompt : public icore {
       if (em)
         em->Interrupt(false);
       cout << endl;
+    } catch(quit&) {
     }
 
     // Ignore errors from this line when trying to run subsequent lines.
@@ -806,6 +807,7 @@ public:
 	icore::process();
       } catch(interrupted&) {
 	if(em) em->Interrupt(false);
+	restart=true;
       }
     } while(restart);
       

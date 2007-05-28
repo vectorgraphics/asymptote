@@ -146,12 +146,12 @@ void ofile::writeline()
 	if(c == '\n') break;
 	// Discard any additional characters
 	while(cin.good() && cin.get() != '\n');
-	if(c == 'q') throw quit();
+	if(c == 'q') {lines=0; throw quit();}
       }
     } else *stream << newline;
     ++lines;
   } else *stream << newline;
-  if(errorstream::interrupt) throw interrupted();
+  if(errorstream::interrupt) {lines=0; throw interrupted();}
 }
   
 } // namespace camp
