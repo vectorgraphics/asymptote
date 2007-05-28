@@ -4481,7 +4481,10 @@ cubic equation @math{ax^3+bx^2+cx+d=0}.
 @item @code{cputime cputime();}
 Returns a structure @code{cputime} with cumulative @acronym{CPU} times
 broken down into the fields @code{parent.user}, @code{parent.system},
-@code{child.user}, and @code{child.system}.
+@code{child.user}, and @code{child.system}. For convenience, the
+additional fields @code{change.user} and @code{change.system} indicate
+the change in the corresponding @acronym{CPU} times for the parent since
+the last call to cputime().
 
 @end table
 
