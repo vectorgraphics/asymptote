@@ -159,12 +159,14 @@ transform3 distort(triple v)
   return t;
 }
 
+typedef real[] aspect;
+
 struct projection {
   bool infinity;
   triple camera;
   triple target;
   transform3 project;
-  transform3 aspect;
+  aspect aspect;
   projection copy() {
     projection P=new projection;
     P.infinity=infinity;
@@ -195,7 +197,7 @@ addSaveFunction(new restoreThunk() {
 
 
 projection projection(triple camera, triple target=O, transform3 project,
-                      transform3 aspect=identity(4), bool infinity=false)
+                      aspect aspect=new real[] {1,1,1,1}, bool infinity=false)
 {
   projection P;
   P.infinity=infinity;
@@ -277,7 +279,7 @@ currentprojection=perspective(5,4,2);
 
 transform3 aspect(projection P)
 {
-  return P.project*P.aspect;
+  return multdiagonal(P.project,P.aspect);
 }
 
 // Map pair z onto a triple by inverting the projection P onto the 
@@ -296,7 +298,7 @@ triple invert(pair z, triple normal, triple point,
 
 void scale(projection dest=currentprojection, real x, real y, real z)
 {
-  dest.aspect=xscale3(x)*yscale3(y)*zscale3(z);
+  dest.aspect=new real[] {x,y,z,1};
 }
 
 pair xypart(triple v)
@@ -2189,10 +2191,11 @@ void aspect(projection P=currentprojection, bbox3 b,
   triple L=b.max-b.min;
   if(z != 0) {
     real s=L.z/z;
-    scale(P,x == 0 ? 1 : s*x/L.x, y == 0 ? 1 : s*y/L.y,1);
+    scale(P,x == 0 || L.x == 0 ? 1 : s*x/L.x,y == 0 || L.y == 0 ? 1 : s*y/L.y,
+	  1);
   } else if (y != 0) {
     real s=L.y/y;
-    scale(P,x == 0 ? 1 : s*x/L.x,1,1);
+    scale(P,x == 0 || L.x == 0 ? 1 : s*x/L.x,1,1);
   }
   else scale(P,1,1,1);
 }

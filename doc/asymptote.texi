@@ -3440,6 +3440,24 @@ for a particular type do a deep comparison.
 When @code{a} is defined both as a variable and a type, the qualified
 name @code{a.b} refers to the variable instead of the type.
 
+@cindex @code{cputime}
+The function @code{cputime()}
+returns a structure @code{cputime} with cumulative @acronym{CPU} times
+broken down into the fields @code{parent.user}, @code{parent.system},
+@code{child.user}, and @code{child.system}. For convenience, the
+incremental fields @code{change.user} and @code{change.system} indicate
+the change in the corresponding total parent and child @acronym{CPU}
+times since the last call to @code{cputime()}. The function
+@verbatim
+void write(file file=stdout, string s="", cputime c,
+           string format=cputimeformat, suffix suffix=none); 
+@end verbatim
+@noindent
+displays the incremental user cputime followed by ``u'', 
+the incremental system cputime followed by ``s'', 
+the total user cputime followed by ``U'', and
+the total system cputime followed by ``S''. 
+
 @cindex inheritance
 @cindex virtual functions
 Much like in C++, casting (@pxref{Casts}) provides for an elegant
@@ -4423,7 +4441,8 @@ write(f/n);
 @anchor{tridiagonal}
 @cindex @code{tridiagonal}
 @item real[] tridiagonal(real[] a, real[] b, real[] c, real[] f);
-Solve the periodic tridiagonal problem @math{L^{-1}} @code{f}, where @code{f}
+Solve the periodic tridiagonal problem @math{L@code{x}=@code{f}} and return the
+solution @code{x}, where @code{f}
 is an @math{n} vector and @math{L} is the @math{n \times n} matrix
 @verbatim
 [ b[0] c[0]           a[0]   ]
@@ -4438,8 +4457,8 @@ For Dirichlet boundary conditions (denoted here by @code{u[-1]} and
 
 @cindex @code{solve}
 @item real[] solve(real[][] a, real[] b)
-Solve the linear equation @math{@code{a}x=@code{b}} by LU decomposition,
-returning the solution @math{x}, where @code{a} is an
+Solve the linear equation @math{@code{a}x=@code{b}} by LU decomposition
+and return the solution @math{x}, where @code{a} is an
 @math{n \times n} matrix and @code{b} is an array of length @math{n}. 
 For example:
 @verbatim
@@ -4459,13 +4478,17 @@ a more efficient algorithm (@pxref{tridiagonal}).
 
 @cindex @code{solve}
 @item real[][] solve(real[][] a, real[][] b)
-Solve the linear equation @math{@code{a}x=@code{b}} returning the
+Solve the linear equation @math{@code{a}x=@code{b}} and return the
 solution @math{x}, where @code{a} is an @math{n \times n} matrix and
 @code{b} is an @math{n \times m} matrix.
 
 @cindex @code{inverse}
 @item real[][] inverse(real[][] a)
 Return the inverse of an an @math{n \times n} matrix @code{a}.
+
+@cindex @code{multdiagonal}
+@item real[][] multdiagonal(real[][] a, real[] b)
+Return @code{a*diagonal(b)}.
 
 @cindex @code{quadraticroots}
 @item @code{real[] quadraticroots(real a, real b, real c);}
@@ -4476,15 +4499,6 @@ quadratic equation @math{ax^2+bx+c=0}.
 @item @code{real[] cubicroots(real a, real b, real c, real d);}
 This numerically robust solver returns the real roots of the
 cubic equation @math{ax^3+bx^2+cx+d=0}.
-
-@cindex @code{cputime}
-@item @code{cputime cputime();}
-Returns a structure @code{cputime} with cumulative @acronym{CPU} times
-broken down into the fields @code{parent.user}, @code{parent.system},
-@code{child.user}, and @code{child.system}. For convenience, the
-additional fields @code{change.user} and @code{change.system} indicate
-the change in the corresponding @acronym{CPU} times for the parent since
-the last call to cputime().
 
 @end table
 
@@ -5152,6 +5166,10 @@ respectively. If the planes are parallel, return
 @cindex @code{straight}
 @item bool straight(path p)
 returns @code{true} iff the path @code{p} is straight.
+
+@cindex @code{diagonal}
+@item real[][] diagonal(... real[] a)
+returns a diagonal matrix with diagonal entries given by a.
 
 @end table
 
@@ -7640,3 +7658,5 @@ Stefan Knorr.
 @c  LocalWords:  relpoint Syzygy syzygies seekeof splinetype notaknot slopea
 @c  LocalWords:  slopeb nonperiodic circlescale MarkFill ScaleX ScaleY xformat
 @c  LocalWords:  onecontour multicontour irregularcontour dvipsOptions
+@c  LocalWords:  dirSpecifier controlSpecifier tensionSpecifier atleastflag
+@c  LocalWords:  curlSpecifier cputimeformat

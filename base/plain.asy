@@ -186,8 +186,8 @@ struct processtime {
 
 struct cputime {
   processtime parent;
-  processtime change;
   processtime child;
+  processtime change;
 }
 
 cputime cputime() 
@@ -197,13 +197,33 @@ cputime cputime()
   cputime cputime;
   cputime.parent.user=a[0];
   cputime.parent.system=a[1];
-  cputime.change.user=a[0]-last.user;
-  cputime.change.system=a[1]-last.system;
-  last.user=a[0];
-  last.system=a[1];
   cputime.child.user=a[2];
   cputime.child.system=a[3];
+  real user=a[0]+a[2];
+  real system=a[1]+a[3];
+  cputime.change.user=user-last.user;
+  cputime.change.system=system-last.system;
+  last.user=user;
+  last.system=system;
   return cputime;
+}
+
+string cputimeformat="%#.2f";
+
+void write(file file, string s="", cputime c, string format=cputimeformat,
+           suffix suffix=none)
+{
+  write(file,s,
+        format(format,c.change.user)+"u "+
+        format(format,c.change.system)+"s "+
+        format(format,c.parent.user+c.child.user)+"U "+
+        format(format,c.parent.system+c.child.system)+"S ",suffix);
+}
+
+void write(string s="", cputime c, string format=cputimeformat,
+           suffix suffix=endl)
+{
+  write(stdout,s,c,format,suffix);
 }
 
 if(settings.autoimport != "") {
@@ -214,3 +234,5 @@ if(settings.autoimport != "") {
   atexit(exitfunction);
   settings.autoimport=s;
 }
+
+cputime();

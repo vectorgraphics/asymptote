@@ -3543,8 +3543,7 @@ realarray *Operator *(realarray2 *a, realarray *b)
 {
   size_t n=checkArray(a);
   real *B=copyArrayC(b);
-  size_t bsize=b->size();
-  if(bsize != n) error(incommensurate);
+  if(b->size() != n) error(incommensurate);
   array *c=new array(n);
   for(size_t i=0; i < n; ++i) {
     array *ai=read<array*>(a,i);
@@ -3553,6 +3552,23 @@ realarray *Operator *(realarray2 *a, realarray *b)
       sum += read<real>(ai,j)*B[j];
     }
     (*c)[i]=sum;
+  }
+  return c;
+}
+
+// Multiply a by diagonal(b).
+realarray2 *multdiagonal(realarray2 *a, realarray *b)
+{
+  size_t n=checkArray(a);
+  real *B=copyArrayC(b);
+  if(b->size() != n) error(incommensurate);
+  array *c=new array(n);
+  for(size_t i=0; i < n; ++i) {
+    array *ai=read<array*>(a,i);
+    array *ci=new array(n);
+    (*c)[i]=ci;
+    for(size_t j=0; j < n; ++j)
+      (*ci)[j]=read<real>(ai,j)*B[j];
   }
   return c;
 }
