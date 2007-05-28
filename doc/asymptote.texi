@@ -152,7 +152,7 @@ Base modules
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
-* contour3::                    
+* contour3::                    Contour surfaces
 * slopefield::                  Slope fields
 
 
@@ -5092,7 +5092,7 @@ Here now is @code{latexusage.tex}:
 * featpost3D::                  Partial port of @code{featpost3d}
 * flowchart::                   Flowchart drawing routines
 * contour::                     Contour lines
-* contour3::                    
+* contour3::                    Contour surfaces
 * slopefield::                  Slope fields
 
 @end menu
