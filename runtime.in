@@ -3542,14 +3542,15 @@ real determinant(realarray2 *a)
 realarray *Operator *(realarray2 *a, realarray *b)
 {
   size_t n=checkArray(a);
-  size_t bsize=checkArray(b);
+  real *B=copyArrayC(b);
+  size_t bsize=b->size();
   if(bsize != n) error(incommensurate);
   array *c=new array(n);
   for(size_t i=0; i < n; ++i) {
     array *ai=read<array*>(a,i);
     real sum=0.0;
     for(size_t j=0; j < n; ++j) {
-      sum += read<real>(ai,j)*read<real>(b,j);
+      sum += read<real>(ai,j)*B[j];
     }
     (*c)[i]=sum;
   }
