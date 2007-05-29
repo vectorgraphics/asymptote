@@ -3337,6 +3337,21 @@ array* :arrayConditional(array *a, array *b, array *c)
   return r;
 }
 
+// Return an n x n identity matrix.
+realarray2 *identity(int n)
+{
+  size_t N=(size_t) n;
+  array *c=new array(N);
+  for(size_t i=0; i < N; ++i) {
+    array *ci=new array(N);
+    (*c)[i]=ci;
+    for(size_t j=0; j < N; ++j)
+      (*ci)[j]=0.0;
+   (*ci)[i]=1.0;
+  }
+  return c;
+}
+
 // Return the inverse of an n x n matrix a using Gauss-Jordan elimination.
 realarray2 *inverse(realarray2 *a)
 {

@@ -1674,9 +1674,10 @@ picture secondaryY(picture primary=currentpicture, void f(picture))
 
 typedef guide graph(pair f(real), real, real, int);
                        
+typedef guide interpolate(... guide[]);
+
 graph graph(interpolate join)
 {
-  static guide[] sequenceguide;
   return new guide(pair f(real), real a, real b, int n) {
     real width=n == 0 ? 0 : (b-a)/n;
     return join(...sequence(new guide(int i) {

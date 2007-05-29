@@ -17,8 +17,6 @@ triple operator ecast(real[] a)
 
 typedef real[][] transform3;
 
-transform3 identity(int n)=math.identity;
-
 triple operator * (transform3 t, triple v)
 {
   return (triple) (t*(real[]) v);

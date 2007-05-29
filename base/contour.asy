@@ -1,6 +1,7 @@
 // Contour routines written by Radoslav Marinov and John Bowman.
          
 import graph_settings;
+typedef guide interpolate(... guide[]);
 
 real eps=10000*realEpsilon;
 
@@ -128,7 +129,7 @@ private segment checktriangle(pair p0, pair p1, pair p2,
   }      
 }
 
-// Collect connecting path segments
+// Collect connecting path segments.
 private void collect(pair[][][] points, real[] c)
 {
   // use to reverse an array, omitting the first point
@@ -175,6 +176,7 @@ private void collect(pair[][][] points, real[] c)
   }
 }
 
+// Join path segments.
 private guide[][] connect(pair[][][] points, real[] c, interpolate join)
 {
   // set up return value
@@ -187,10 +189,9 @@ private guide[][] connect(pair[][][] points, real[] c, interpolate join)
       guide gd;
       if(pts.length > 0) {
         if(pts.length > 1 && abs(pts[0]-pts[pts.length-1]) < eps) {
-          gd=join(...pts);
-          int n=length(gd);
-          gd=subpath(gd,0,n-1)..
-            controls(postcontrol(gd,n-1)) and precontrol(gd,n)..cycle;
+	  pair extra=pts.delete(pts.length-1);
+          gd=join(join(...pts),cycle);
+	  pts.push(extra);
         } else
           gd=join(...pts);
       }

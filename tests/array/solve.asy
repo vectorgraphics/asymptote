@@ -21,7 +21,15 @@ StartTest("inverse");
 real[][] a=new real[][] {{1,1,1},{1,2,2},{0,0,1}};
 real[][] ainverse=new real[][] {{2,-1,0},{-1,1,-1},{0,0,1}};
 real[][] d=inverse(a);
-for(int i=0; i < d.length; ++i)
-  for(int j=0; j < d[i].length; ++j)
+real[][] l=d*a;
+real[][] r=a*d;
+real[][] I=identity(a.length);
+for(int i=0; i < d.length; ++i) {
+  for(int j=0; j < d[i].length; ++j) {
     assert(close(d[i][j],ainverse[i][j]));
+    assert(I[i][j] == (i == j ? 1 : 0));
+    assert(close(l[i][j],I[i][j]));
+    assert(close(r[i][j],I[i][j]));
+  }
+}
 EndTest();

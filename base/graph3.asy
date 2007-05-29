@@ -340,14 +340,12 @@ typedef guide3 interpolate3(... guide3[]);
 
 graph graph(interpolate3 join)
 {
-  return new guide3(triple F(real), real a, real b, int n) {
-    guide3 g;
+  return new guide3(triple f(real), real a, real b, int n) {
     real width=n == 0 ? 0 : (b-a)/n;
-    for(int i=0; i <= n; ++i) {
-      real x=a+width*i;
-      g=join(g,F(x));   
-    }   
-    return g;
+    return join(...sequence(new guide3(int i) {
+          real x=a+width*i;
+          return f(x);
+        },n+1));
   };
 }
 
@@ -402,9 +400,9 @@ guide3 graph(picture pic=currentpicture, real[] x, real[] y, real[] z,
 guide3 graph(triple F(path, real), path p, int n=1,
              interpolate3 join=operator --)
 {
-  guide3 g;
-  for(int i=0; i < n*length(p); ++i)
-    g=join(g,F(p,i/n));
+  guide3 g=join(...sequence(new guide3(int i) {
+	return F(p,i/n);
+      },n*length(p)));
   return cyclic(p) ? join(g,cycle) : join(g,F(p,length(p)));
 }
 
@@ -660,13 +658,11 @@ guide3[][] lift(real f(real x, real y), guide[][] g,
     guide3[] Gcnt=new guide3[gcnt.length];
     for(int i=0; i < gcnt.length; ++i) {
       guide gcnti=gcnt[i];
-      guide3 Gcnti;
-      int n=size(gcnti);
-      for(int j=0; j < n; ++j) {
-        pair z=point(gcnti,j);
-        Gcnti=join(Gcnti,(z.x,z.y,f(z.x,z.y)));
-      }
-      if(cyclic(Gcnti)) Gcnti=Gcnti..cycle;
+      guide3 Gcnti=join(...sequence(new guide3(int j) {
+	    pair z=point(gcnti,j);
+	    return (z.x,z.y,f(z.x,z.y));
+	  },size(gcnti)));
+      if(cyclic(gcnti)) Gcnti=Gcnti..cycle;
       Gcnt[i]=Gcnti;
     }
     G[cnt]=Gcnt;
