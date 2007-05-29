@@ -369,12 +369,12 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
     bool first=true;
     bucket[] kp1=kps[w.kpa0][w.kpa1][w.kpa2];
     bucket[] kp2=kps[w.kpb0][w.kpb1][w.kpb2];
-    bool found1=false;
-    bool found2=false;
+    bool notfound1=true;
+    bool notfound2=true;
     int count=0;
     int stop=max(kp1.length,kp2.length);
     for(int r=0; r < stop; ++r) {
-      if(!found1) {
+      if(notfound1) {
         if(length(w.v-kp1[r].v) < eps) {
           if(first) {
             ret.z=kp1[r].z;
@@ -382,10 +382,10 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
           }
           normal += kp1[r].val;
           count += kp1[r].count;
-          found1=true;
+          notfound1=false;
         }
       }
-      if(!found2) {
+      if(notfound2) {
         if(length(w.v-kp2[r].v) < eps) {
           if(first) {
             ret.z=kp2[r].z;
@@ -393,7 +393,7 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
           }
           normal += kp2[r].val;
           count += kp2[r].count;
-          found2=true;
+          notfound2=false;
         }
       }
     }
