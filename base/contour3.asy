@@ -469,9 +469,8 @@ vertex[][] contour3(real f(real, real, real), triple a, triple b,
         real z2=interp(a.z,b.z,(k+0.5)/nz);
         datij[k]=f(x,y,z);
 	if(i == nx || j == ny || k == nz) continue;
-        int k2=2k;
-        int k2p1=k2+1;
-        midpointi2p1j2p1[k2]=f(x2,y2,z); 
+        int k2p1=2k+1;
+        midpointi2p1j2p1[2k]=f(x2,y2,z); 
         midpointi2p1j2p1[k2p1]=f(x2,y2,z2);
         midpointi2p1j2[k2p1]=f(x2,y,z2);
         midpointi2j2p1[k2p1]=f(x,y2,z2);
