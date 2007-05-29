@@ -9,8 +9,8 @@ private struct weighted
 {
   triple normal;
   real ratio;
-  int[] kp1=new int[3];
-  int[] kp2=new int[3];
+  int kpa0,kpa1,kpa2;
+  int kpb0,kpb1,kpb2;
   triple pt;
 }
 
@@ -36,58 +36,71 @@ private struct object
 }
 
 private weighted setupweighted(triple va, triple vb, real da, real db, 
-                               int[] kpa, int[] kpb)
+                               int kpa0, int kpa1, int kpa2,
+                               int kpb0, int kpb1, int kpb2)
 {
   weighted newone;
   real ratio=abs(da/(db-da));
   newone.pt=interp(va,vb,ratio);
   newone.ratio=ratio;
-  newone.kp1=kpa;
-  newone.kp2=kpb;
+  newone.kpa0=kpa0;
+  newone.kpa1=kpa1;
+  newone.kpa2=kpa2;
+  newone.kpb0=kpb0;
+  newone.kpb1=kpb1;
+  newone.kpb2=kpb2;
+
   return newone;
 }
 
-private weighted setupweighted(triple v, int[] kp)
+private weighted setupweighted(triple v, int kp0, int kp1, int kp2)
 {
   weighted newone;
   newone.pt=v;
   newone.ratio=0.5;
-  newone.kp1=kp;
-  newone.kp2=kp;
+  newone.kpa0=newone.kpb0=kp0;
+  newone.kpa1=newone.kpb1=kp1;
+  newone.kpa2=newone.kpb2=kp2;
+
   return newone;
 }
 
 // Checks if a pyramid contains a contour object.
-private object checkpyr(triple[] v, real[] d, int[][] c)
+private object checkpyr(triple v0, triple v1, triple v2, triple v3,
+			real d0, real d1, real d2, real d3,
+			int c00, int c01, int c02,
+			int c10, int c11, int c12,
+			int c20, int c21, int c22,
+			int c30, int c31, int c32)
 {
   object obj;
-  real a0=abs(d[0]);
-  real a1=abs(d[1]);
-  real a2=abs(d[2]);
-  real a3=abs(d[3]);
+  real a0=abs(d0);
+  real a1=abs(d1);
+  real a2=abs(d2);
+  real a3=abs(d3);
 
-  bool v0=a0 < eps;
-  bool v1=a1 < eps;
-  bool v2=a2 < eps;
-  bool v3=a3 < eps;
-  bool s1=v0 || v1 ? false : abs(d[0]+d[1])+eps < a0+a1;
-  bool s2=v0 || v2 ? false : abs(d[0]+d[2])+eps < a0+a2;
-  bool s3=v0 || v3 ? false : abs(d[0]+d[3])+eps < a0+a3;
-  bool s4=v1 || v2 ? false : abs(d[1]+d[2])+eps < a1+a2;
-  bool s5=v1 || v3 ? false : abs(d[1]+d[3])+eps < a1+a3;
-  bool s6=v2 || v3 ? false : abs(d[2]+d[3])+eps < a2+a3;
+  bool b0=a0 < eps;
+  bool b1=a1 < eps;
+  bool b2=a2 < eps;
+  bool b3=a3 < eps;
+  bool s1=b0 || b1 ? false : abs(d0+d1)+eps < a0+a1;
+  bool s2=b0 || b2 ? false : abs(d0+d2)+eps < a0+a2;
+  bool s3=b0 || b3 ? false : abs(d0+d3)+eps < a0+a3;
+  bool s4=b1 || b2 ? false : abs(d1+d2)+eps < a1+a2;
+  bool s5=b1 || b3 ? false : abs(d1+d3)+eps < a1+a3;
+  bool s6=b2 || b3 ? false : abs(d2+d3)+eps < a2+a3;
 
   weighted[] pts;
-  if(v0) pts.push(setupweighted(v[0],c[0]));
-  if(v1) pts.push(setupweighted(v[1],c[1]));
-  if(v2) pts.push(setupweighted(v[2],c[2]));
-  if(v3) pts.push(setupweighted(v[3],c[3]));
-  if(s1) pts.push(setupweighted(v[0],v[1],d[0],d[1],c[0],c[1]));
-  if(s2) pts.push(setupweighted(v[0],v[2],d[0],d[2],c[0],c[2]));
-  if(s3) pts.push(setupweighted(v[0],v[3],d[0],d[3],c[0],c[3]));
-  if(s4) pts.push(setupweighted(v[1],v[2],d[1],d[2],c[1],c[2]));
-  if(s5) pts.push(setupweighted(v[1],v[3],d[1],d[3],c[1],c[3]));
-  if(s6) pts.push(setupweighted(v[2],v[3],d[2],d[3],c[2],c[3]));
+  if(b0) pts.push(setupweighted(v0,c00,c01,c02));
+  if(b1) pts.push(setupweighted(v1,c10,c11,c12));
+  if(b2) pts.push(setupweighted(v2,c20,c21,c22));
+  if(b3) pts.push(setupweighted(v3,c30,c31,c32));
+  if(s1) pts.push(setupweighted(v0,v1,d0,d1,c00,c01,c02,c10,c11,c12));
+  if(s2) pts.push(setupweighted(v0,v2,d0,d2,c00,c01,c02,c20,c21,c22));
+  if(s3) pts.push(setupweighted(v0,v3,d0,d3,c00,c01,c02,c30,c31,c32));
+  if(s4) pts.push(setupweighted(v1,v2,d1,d2,c10,c11,c12,c20,c21,c22));
+  if(s5) pts.push(setupweighted(v1,v3,d1,d3,c10,c11,c12,c30,c31,c32));
+  if(s6) pts.push(setupweighted(v2,v3,d2,d3,c20,c21,c22,c30,c31,c32));
 
   int s=pts.length;
   //There are three or four points.
@@ -193,25 +206,6 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
         triple m5=0.25*(p001+p011+p111+p101);
         triple mc=0.5*(m0+m5);                   
 
-        int k2=2k;
-        int k2p1=k2+1;
-        int k2p2=k2+2;
-        int[] pp000=new int[] {i2,j2,k2};
-        int[] pp001=new int[] {i2,j2,k2p2};
-        int[] pp010=new int[] {i2,j2p2,k2};
-        int[] pp011=new int[] {i2,j2p2,k2p2};
-        int[] pp100=new int[] {i2p2,j2,k2};
-        int[] pp101=new int[] {i2p2,j2,k2p2};
-        int[] pp110=new int[] {i2p2,j2p2,k2};
-        int[] pp111=new int[] {i2p2,j2p2,k2p2};
-        int[] pm0=new int[] {i2p1,j2p1,k2};
-        int[] pm1=new int[] {i2p1,j2p2,k2p1};
-        int[] pm2=new int[] {i2+2,j2p1,k2p1};
-        int[] pm3=new int[] {i2p1,j2,k2p1};
-        int[] pm4=new int[] {i2,j2p1,k2p1};
-        int[] pm5=new int[] {i2p1,j2p1,k2p2};
-        int[] pmc=new int[] {i2p1,j2p1,k2p1};
- 
         // optimization: we make sure we don't work with empty rectangles
         int countm=0;
         int countz=0;
@@ -237,6 +231,10 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
         if(countm == 8 || countp == 8 || 
            ((countm == 7 || countp == 7) && countz == 1)) continue;
 
+        int k2=2k;
+        int k2p1=k2+1;
+        int k2p2=k2+2;
+ 
         // Evaluate midpoints of cube sides.
         // Then evaluate midpoint of cube.
         real vdat8=midpoints ? mp[i2p1][j2p1][k2] :
@@ -256,8 +254,8 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
       
         // Go through the 24 pyramids, 4 for each side.
         
-        void addval(int[] kp, triple add, triple pt) {
-          bucket[] cur=kps[kp[0]][kp[1]][kp[2]];
+        void addval(int kp0, int kp1, int kp2, triple add, triple pt) {
+          bucket[] cur=kps[kp0][kp1][kp2];
           for(int q=0; q < cur.length; ++q) {
             if(length(cur[q].t-pt) < eps) {
               cur[q].val += add;
@@ -276,8 +274,8 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
         void accrue(weighted w) {
           triple val1=w.normal*w.ratio;
           triple val2=w.normal*(1-w.ratio);
-          addval(w.kp1,val1,w.pt);
-          addval(w.kp2,val2,w.pt);
+          addval(w.kpa0,w.kpa1,w.kpa2,val1,w.pt);
+          addval(w.kpb0,w.kpb1,w.kpb2,val2,w.pt);
         }
 
         void addnormals(weighted[] pts) {
@@ -321,39 +319,73 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
           return;
         }
 
-        void check4pyr(triple[] v, real[] d, int[][] c) {
-          addobj(checkpyr(new triple[] {v[5],v[4],v[0],v[1]},
-                          new real[] {d[5],d[4],d[0],d[1]},
-                          new int[][] {c[5],c[4],c[0],c[1]}));
-          addobj(checkpyr(new triple[] {v[5],v[4],v[1],v[2]},
-                          new real[] {d[5],d[4],d[1],d[2]},
-                          new int[][] {c[5],c[4],c[1],c[2]}));
-          addobj(checkpyr(new triple[] {v[5],v[4],v[2],v[3]},
-                          new real[] {d[5],d[4],d[2],d[3]},
-                          new int[][] {c[5],c[4],c[2],c[3]}));
-          addobj(checkpyr(new triple[] {v[5],v[4],v[3],v[0]},
-                          new real[] {d[5],d[4],d[3],d[0]},
-                          new int[][] {c[5],c[4],c[3],c[0]}));
+        void check4pyr(triple v0, triple v1, triple v2, triple v3,
+		       triple v4, triple v5,
+		       real d0, real d1, real d2, real d3, real d4, real d5,
+		       int c00, int c01, int c02,
+		       int c10, int c11, int c12,
+		       int c20, int c21, int c22,
+		       int c30, int c31, int c32,
+		       int c40, int c41, int c42,
+		       int c50, int c51, int c52) {
+          addobj(checkpyr(v5,v4,v0,v1,d5,d4,d0,d1,c50,c51,c52,
+			  c40,c41,c42,c00,c01,c02,c10,c11,c12));
+          addobj(checkpyr(v5,v4,v1,v2,d5,d4,d1,d2,c50,c51,c52,
+			  c40,c41,c42,c10,c11,c12,c20,c21,c22));
+          addobj(checkpyr(v5,v4,v2,v3,d5,d4,d2,d3,c50,c51,c52,
+			  c40,c41,c42,c20,c21,c22,c30,c31,c32));
+          addobj(checkpyr(v5,v4,v3,v0,d5,d4,d3,d0,c50,c51,c52,
+			  c40,c41,c42,c30,c31,c32,c00,c01,c02));
         }
 
-        check4pyr(new triple[] {p000,p010,p110,p100,mc,m0}, 
-                  new real[] {vdat0,vdat2,vdat6,vdat4,vdat14,vdat8},
-                  new int[][] {pp000,pp010,pp110,pp100,pmc,pm0});
-        check4pyr(new triple[] {p010,p110,p111,p011,mc,m1}, 
-                  new real[] {vdat2,vdat6,vdat7,vdat3,vdat14,vdat9},
-                  new int[][] {pp010,pp110,pp111,pp011,pmc,pm1});
-        check4pyr(new triple[] {p110,p100,p101,p111,mc,m2}, 
-                  new real[] {vdat6,vdat4,vdat5,vdat7,vdat14,vdat10},
-                  new int[][] {pp110,pp100,pp101,pp111,pmc,pm2});
-        check4pyr(new triple[] {p100,p000,p001,p101,mc,m3}, 
-                  new real[] {vdat4,vdat0,vdat1,vdat5,vdat14,vdat11},
-                  new int[][] {pp100,pp000,pp001,pp101,pmc,pm3});
-        check4pyr(new triple[] {p000,p010,p011,p001,mc,m4}, 
-                  new real[] {vdat0,vdat2,vdat3,vdat1,vdat14,vdat12},
-                  new int[][] {pp000,pp010,pp011,pp001,pmc,pm4});
-        check4pyr(new triple[] {p001,p011,p111,p101,mc,m5}, 
-                  new real[] {vdat1,vdat3,vdat7,vdat5,vdat14,vdat13},
-                  new int[][] {pp001,pp011,pp111,pp101,pmc,pm5});
+        check4pyr(p000,p010,p110,p100,mc,m0, 
+                  vdat0,vdat2,vdat6,vdat4,vdat14,vdat8,
+                  i2,j2,k2,
+		  i2,j2p2,k2,
+		  i2p2,j2p2,k2,
+		  i2p2,j2,k2,
+		  i2p1,j2p1,k2p1,
+		  i2p1,j2p1,k2);
+        check4pyr(p010,p110,p111,p011,mc,m1, 
+                  vdat2,vdat6,vdat7,vdat3,vdat14,vdat9,
+                  i2,j2p2,k2,
+		  i2p2,j2p2,k2,
+		  i2p2,j2p2,k2p2,
+		  i2,j2p2,k2p2,
+		  i2p1,j2p1,k2p1,
+		  i2p1,j2p2,k2p1);
+        check4pyr(p110,p100,p101,p111,mc,m2, 
+                  vdat6,vdat4,vdat5,vdat7,vdat14,vdat10,
+                  i2p2,j2p2,k2,
+		  i2p2,j2,k2,
+		  i2p2,j2,k2p2,
+		  i2p2,j2p2,k2p2,
+		  i2p1,j2p1,k2p1,
+		  i2p2,j2p1,k2p1);
+        check4pyr(p100,p000,p001,p101,mc,m3, 
+                  vdat4,vdat0,vdat1,vdat5,vdat14,vdat11,
+                  i2p2,j2,k2,
+		  i2,j2,k2,
+		  i2,j2,k2p2,
+		  i2p2,j2,k2p2,
+		  i2p1,j2p1,k2p1,
+		  i2p1,j2,k2p1);
+        check4pyr(p000,p010,p011,p001,mc,m4, 
+                  vdat0,vdat2,vdat3,vdat1,vdat14,vdat12,
+                  i2,j2,k2,
+		  i2,j2p2,k2,
+		  i2,j2p2,k2p2,
+		  i2,j2,k2p2,
+		  i2p1,j2p1,k2p1,
+		  i2,j2p1,k2p1);
+        check4pyr(p001,p011,p111,p101,mc,m5, 
+                  vdat1,vdat3,vdat7,vdat5,vdat14,vdat13,
+                  i2,j2,k2p2,
+		  i2,j2p2,k2p2,
+		  i2p2,j2p2,k2p2,
+		  i2p2,j2,k2p2,
+		  i2p1,j2p1,k2p1,
+		  i2p1,j2p1,k2p2);
       }
     }
   }
@@ -362,8 +394,8 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
     vertex ret;
     triple normal=O;
     bool first=true;
-    bucket[] kp1=kps[w.kp1[0]][w.kp1[1]][w.kp1[2]];
-    bucket[] kp2=kps[w.kp2[0]][w.kp2[1]][w.kp2[2]];
+    bucket[] kp1=kps[w.kpa0][w.kpa1][w.kpa2];
+    bucket[] kp2=kps[w.kpb0][w.kpb1][w.kpb2];
     bool found1=false;
     bool found2=false;
     int count=0;
@@ -417,34 +449,35 @@ vertex[][] contour3(real f(real, real, real), triple a, triple b,
 {
   // evaluate function at points and midpoints
   real[][][] dat=new real[nx+1][ny+1][nz+1];
-  real[][][] midpoint=new real[2nx+1][2ny+1][2nz+1];
+  real[][][] midpoint=new real[2nx+2][2ny+2][2nz+1];
 
   for(int i=0; i <= nx; ++i) {
     real x=interp(a.x,b.x,i/nx);
     real x2=interp(a.x,b.x,(i+0.5)/nx);
     real[][] dati=dat[i];
-    int i2=2i;
-    int i2p1=i2+1;
+    real[][] midpointi2=midpoint[2i];
+    real[][] midpointi2p1=midpoint[2i+1];
     for(int j=0; j <= ny; ++j) {
       real y=interp(a.y,b.y,j/ny);
       real y2=interp(a.y,b.y,(j+0.5)/ny);
       real datij[]=dati[j];
-      int j2=2j;
-      int j2p1=j2+1;
+      real[] midpointi2p1j2=midpointi2p1[2j];
+      real[] midpointi2p1j2p1=midpointi2p1[2j+1];
+      real[] midpointi2j2p1=midpointi2[2j+1];
       for(int k=0; k <= nz; ++k) {
         real z=interp(a.z,b.z,k/nz);
         real z2=interp(a.z,b.z,(k+0.5)/nz);
         datij[k]=f(x,y,z);
-        if(i == nx || j == ny || k == nz) continue;
+	if(i == nx || j == ny || k == nz) continue;
         int k2=2k;
         int k2p1=k2+1;
-        midpoint[i2p1][j2p1][k2]=f(x2,y2,z); 
-        midpoint[i2p1][j2][k2p1]=f(x2,y,z2);
-        midpoint[i2][j2p1][k2p1]=f(x,y2,z2);
-        midpoint[i2p1][j2p1][k2p1]=f(x2,y2,z2);
-        if(i == 0) midpoint[2nx][j2p1][k2p1]=f(b.x,y2,z2);
-        if(j == 0) midpoint[i2p1][2ny][k2p1]=f(x2,b.y,z2);
-        if(k == 0) midpoint[i2p1][j2p1][2nz]=f(x2,y2,b.z);
+        midpointi2p1j2p1[k2]=f(x2,y2,z); 
+        midpointi2p1j2p1[k2p1]=f(x2,y2,z2);
+        midpointi2p1j2[k2p1]=f(x2,y,z2);
+        midpointi2j2p1[k2p1]=f(x,y2,z2);
+        if(i == 0) midpoint[2nx][2j+1][k2p1]=f(b.x,y2,z2);
+        if(j == 0) midpointi2p1[2ny][k2p1]=f(x2,b.y,z2);
+        if(k == 0) midpointi2p1j2p1[2nz]=f(x2,y2,b.z);
       }
     }
   }
