@@ -11,12 +11,12 @@ private struct weighted
   real ratio;
   int kpa0,kpa1,kpa2;
   int kpb0,kpb1,kpb2;
-  triple pt;
+  triple v;
 }
 
 private struct bucket
 {
-  triple t;
+  triple v;
   triple val;
   int count;
   pair z;
@@ -33,84 +33,6 @@ private struct object
 {
   bool active;
   weighted[] pts;
-}
-
-private weighted setupweighted(triple va, triple vb, real da, real db, 
-                               int kpa0, int kpa1, int kpa2,
-                               int kpb0, int kpb1, int kpb2)
-{
-  weighted newone;
-  real ratio=abs(da/(db-da));
-  newone.pt=interp(va,vb,ratio);
-  newone.ratio=ratio;
-  newone.kpa0=kpa0;
-  newone.kpa1=kpa1;
-  newone.kpa2=kpa2;
-  newone.kpb0=kpb0;
-  newone.kpb1=kpb1;
-  newone.kpb2=kpb2;
-
-  return newone;
-}
-
-private weighted setupweighted(triple v, int kp0, int kp1, int kp2)
-{
-  weighted newone;
-  newone.pt=v;
-  newone.ratio=0.5;
-  newone.kpa0=newone.kpb0=kp0;
-  newone.kpa1=newone.kpb1=kp1;
-  newone.kpa2=newone.kpb2=kp2;
-
-  return newone;
-}
-
-// Checks if a pyramid contains a contour object.
-private object checkpyr(triple v0, triple v1, triple v2, triple v3,
-			real d0, real d1, real d2, real d3,
-			int c00, int c01, int c02,
-			int c10, int c11, int c12,
-			int c20, int c21, int c22,
-			int c30, int c31, int c32)
-{
-  object obj;
-  real a0=abs(d0);
-  real a1=abs(d1);
-  real a2=abs(d2);
-  real a3=abs(d3);
-
-  bool b0=a0 < eps;
-  bool b1=a1 < eps;
-  bool b2=a2 < eps;
-  bool b3=a3 < eps;
-  bool s1=b0 || b1 ? false : abs(d0+d1)+eps < a0+a1;
-  bool s2=b0 || b2 ? false : abs(d0+d2)+eps < a0+a2;
-  bool s3=b0 || b3 ? false : abs(d0+d3)+eps < a0+a3;
-  bool s4=b1 || b2 ? false : abs(d1+d2)+eps < a1+a2;
-  bool s5=b1 || b3 ? false : abs(d1+d3)+eps < a1+a3;
-  bool s6=b2 || b3 ? false : abs(d2+d3)+eps < a2+a3;
-
-  weighted[] pts;
-  if(b0) pts.push(setupweighted(v0,c00,c01,c02));
-  if(b1) pts.push(setupweighted(v1,c10,c11,c12));
-  if(b2) pts.push(setupweighted(v2,c20,c21,c22));
-  if(b3) pts.push(setupweighted(v3,c30,c31,c32));
-  if(s1) pts.push(setupweighted(v0,v1,d0,d1,c00,c01,c02,c10,c11,c12));
-  if(s2) pts.push(setupweighted(v0,v2,d0,d2,c00,c01,c02,c20,c21,c22));
-  if(s3) pts.push(setupweighted(v0,v3,d0,d3,c00,c01,c02,c30,c31,c32));
-  if(s4) pts.push(setupweighted(v1,v2,d1,d2,c10,c11,c12,c20,c21,c22));
-  if(s5) pts.push(setupweighted(v1,v3,d1,d3,c10,c11,c12,c30,c31,c32));
-  if(s6) pts.push(setupweighted(v2,v3,d2,d3,c20,c21,c22,c30,c31,c32));
-
-  int s=pts.length;
-  //There are three or four points.
-  if(s > 2) {
-    obj.active=true;
-    obj.pts=pts;
-  }
-  else obj.active=false;
-
-  return obj;
 }
 
 // Return contour vertices for a 3D data array, using a pyramid mesh
@@ -254,18 +176,18 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
       
         // Go through the 24 pyramids, 4 for each side.
         
-        void addval(int kp0, int kp1, int kp2, triple add, triple pt) {
+        void addval(int kp0, int kp1, int kp2, triple add, triple v) {
           bucket[] cur=kps[kp0][kp1][kp2];
           for(int q=0; q < cur.length; ++q) {
-            if(length(cur[q].t-pt) < eps) {
+            if(length(cur[q].v-v) < eps) {
               cur[q].val += add;
               ++cur[q].count;
               return;
             }
           }
           bucket newbuck;
-          newbuck.t=pt;
-          newbuck.z=project(pt,P);
+          newbuck.v=v;
+          newbuck.z=project(v,P);
           newbuck.val=add;
           newbuck.count=1;
           cur.push(newbuck);
@@ -274,14 +196,14 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
         void accrue(weighted w) {
           triple val1=w.normal*w.ratio;
           triple val2=w.normal*(1-w.ratio);
-          addval(w.kpa0,w.kpa1,w.kpa2,val1,w.pt);
-          addval(w.kpb0,w.kpb1,w.kpb2,val2,w.pt);
+          addval(w.kpa0,w.kpa1,w.kpa2,val1,w.v);
+          addval(w.kpb0,w.kpb1,w.kpb2,val2,w.v);
         }
 
         void addnormals(weighted[] pts) {
-          triple normal0=cross(pts[1].pt-pts[0].pt,pts[2].pt-pts[0].pt);
-          triple normal1=cross(pts[2].pt-pts[1].pt,pts[0].pt-pts[1].pt);
-          triple normal2=cross(pts[1].pt-pts[2].pt,pts[0].pt-pts[2].pt);
+          triple normal0=cross(pts[1].v-pts[0].v,pts[2].v-pts[0].v);
+          triple normal1=cross(pts[2].v-pts[1].v,pts[0].v-pts[1].v);
+          triple normal2=cross(pts[1].v-pts[2].v,pts[0].v-pts[2].v);
           if(finite) {
             normal0 *= sgn(dot(normal0,P.camera-normal0));
             normal1 *= sgn(dot(normal1,P.camera-normal1));
@@ -319,73 +241,124 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
           return;
         }
 
-        void check4pyr(triple v0, triple v1, triple v2, triple v3,
-		       triple v4, triple v5,
-		       real d0, real d1, real d2, real d3, real d4, real d5,
-		       int c00, int c01, int c02,
-		       int c10, int c11, int c12,
-		       int c20, int c21, int c22,
-		       int c30, int c31, int c32,
-		       int c40, int c41, int c42,
-		       int c50, int c51, int c52) {
-          addobj(checkpyr(v5,v4,v0,v1,d5,d4,d0,d1,c50,c51,c52,
-			  c40,c41,c42,c00,c01,c02,c10,c11,c12));
-          addobj(checkpyr(v5,v4,v1,v2,d5,d4,d1,d2,c50,c51,c52,
-			  c40,c41,c42,c10,c11,c12,c20,c21,c22));
-          addobj(checkpyr(v5,v4,v2,v3,d5,d4,d2,d3,c50,c51,c52,
-			  c40,c41,c42,c20,c21,c22,c30,c31,c32));
-          addobj(checkpyr(v5,v4,v3,v0,d5,d4,d3,d0,c50,c51,c52,
-			  c40,c41,c42,c30,c31,c32,c00,c01,c02));
+        weighted setupweighted(triple va, triple vb, real da, real db, 
+                               int[] kpa, int[] kpb) {
+          weighted w;
+          real ratio=abs(da/(db-da));
+          w.v=interp(va,vb,ratio);
+          w.ratio=ratio;
+          w.kpa0=i2+kpa[0];
+          w.kpa1=j2+kpa[1];
+          w.kpa2=k2+kpa[2];
+          w.kpb0=i2+kpb[0];
+          w.kpb1=j2+kpb[1];
+          w.kpb2=k2+kpb[2];
+
+          return w;
         }
 
-        check4pyr(p000,p010,p110,p100,mc,m0, 
+        weighted setupweighted(triple v, int[] kp) {
+          weighted w;
+          w.v=v;
+          w.ratio=0.5;
+          w.kpa0=w.kpb0=i2+kp[0];
+          w.kpa1=w.kpb1=j2+kp[1];
+          w.kpa2=w.kpb2=k2+kp[2];
+
+          return w;
+        }
+
+        // Checks if a pyramid contains a contour object.
+        object checkpyr(triple v0, triple v1, triple v2, triple v3,
+                        real d0, real d1, real d2, real d3,
+                        int[] c0, int[] c1, int[] c2, int[] c3) {
+          object obj;
+          real a0=abs(d0);
+          real a1=abs(d1);
+          real a2=abs(d2);
+          real a3=abs(d3);
+
+          bool b0=a0 < eps;
+          bool b1=a1 < eps;
+          bool b2=a2 < eps;
+          bool b3=a3 < eps;
+
+          weighted[] pts;
+
+          if(b0) pts.push(setupweighted(v0,c0));
+          if(b1) pts.push(setupweighted(v1,c1));
+          if(b2) pts.push(setupweighted(v2,c2));
+          if(b3) pts.push(setupweighted(v3,c3));
+
+          if(!b0 && !b1 && abs(d0+d1)+eps < a0+a1)
+            pts.push(setupweighted(v0,v1,d0,d1,c0,c1));
+          if(!b0 && !b2 && abs(d0+d2)+eps < a0+a2)
+            pts.push(setupweighted(v0,v2,d0,d2,c0,c2));
+          if(!b0 && !b3 && abs(d0+d3)+eps < a0+a3)
+            pts.push(setupweighted(v0,v3,d0,d3,c0,c3));
+          if(!b1 && !b2 && abs(d1+d2)+eps < a1+a2)
+            pts.push(setupweighted(v1,v2,d1,d2,c1,c2));
+          if(!b1 && !b3 && abs(d1+d3)+eps < a1+a3)
+            pts.push(setupweighted(v1,v3,d1,d3,c1,c3));
+          if(!b2 && !b3 && abs(d2+d3)+eps < a2+a3)
+            pts.push(setupweighted(v2,v3,d2,d3,c2,c3));
+
+          int s=pts.length;
+          //There are three or four points.
+          if(s > 2) {
+            obj.active=true;
+            obj.pts=pts;
+          }
+          else obj.active=false;
+
+          return obj;
+        }
+
+        void check4pyr(triple v0, triple v1, triple v2, triple v3,
+                       triple v4, triple v5,
+                       real d0, real d1, real d2, real d3, real d4, real d5,
+                       int[] c0, int[] c1, int[] c2, int[] c3, int[] c4,
+                       int[] c5) {
+          addobj(checkpyr(v5,v4,v0,v1,d5,d4,d0,d1,c5,c4,c0,c1));
+          addobj(checkpyr(v5,v4,v1,v2,d5,d4,d1,d2,c5,c4,c1,c2));
+          addobj(checkpyr(v5,v4,v2,v3,d5,d4,d2,d3,c5,c4,c2,c3));
+          addobj(checkpyr(v5,v4,v3,v0,d5,d4,d3,d0,c5,c4,c3,c0));
+        }
+
+        static int[] pp000={0,0,0};
+        static int[] pp001={0,0,2};
+        static int[] pp010={0,2,0};
+        static int[] pp011={0,2,2};
+        static int[] pp100={2,0,0};
+        static int[] pp101={2,0,2};
+        static int[] pp110={2,2,0};
+        static int[] pp111={2,2,2};
+        static int[] pm0={1,1,0};
+        static int[] pm1={1,2,1};
+        static int[] pm2={2,1,1};
+        static int[] pm3={1,0,1};
+        static int[] pm4={0,1,1};
+        static int[] pm5={1,1,2};
+        static int[] pmc={1,1,1};
+ 
+        check4pyr(p000,p010,p110,p100,mc,m0,
                   vdat0,vdat2,vdat6,vdat4,vdat14,vdat8,
-                  i2,j2,k2,
-		  i2,j2p2,k2,
-		  i2p2,j2p2,k2,
-		  i2p2,j2,k2,
-		  i2p1,j2p1,k2p1,
-		  i2p1,j2p1,k2);
-        check4pyr(p010,p110,p111,p011,mc,m1, 
+                  pp000,pp010,pp110,pp100,pmc,pm0);
+        check4pyr(p010,p110,p111,p011,mc,m1,
                   vdat2,vdat6,vdat7,vdat3,vdat14,vdat9,
-                  i2,j2p2,k2,
-		  i2p2,j2p2,k2,
-		  i2p2,j2p2,k2p2,
-		  i2,j2p2,k2p2,
-		  i2p1,j2p1,k2p1,
-		  i2p1,j2p2,k2p1);
-        check4pyr(p110,p100,p101,p111,mc,m2, 
+                  pp010,pp110,pp111,pp011,pmc,pm1);
+        check4pyr(p110,p100,p101,p111,mc,m2,
                   vdat6,vdat4,vdat5,vdat7,vdat14,vdat10,
-                  i2p2,j2p2,k2,
-		  i2p2,j2,k2,
-		  i2p2,j2,k2p2,
-		  i2p2,j2p2,k2p2,
-		  i2p1,j2p1,k2p1,
-		  i2p2,j2p1,k2p1);
-        check4pyr(p100,p000,p001,p101,mc,m3, 
+                  pp110,pp100,pp101,pp111,pmc,pm2);
+        check4pyr(p100,p000,p001,p101,mc,m3,
                   vdat4,vdat0,vdat1,vdat5,vdat14,vdat11,
-                  i2p2,j2,k2,
-		  i2,j2,k2,
-		  i2,j2,k2p2,
-		  i2p2,j2,k2p2,
-		  i2p1,j2p1,k2p1,
-		  i2p1,j2,k2p1);
-        check4pyr(p000,p010,p011,p001,mc,m4, 
+                  pp100,pp000,pp001,pp101,pmc,pm3);
+        check4pyr(p000,p010,p011,p001,mc,m4,
                   vdat0,vdat2,vdat3,vdat1,vdat14,vdat12,
-                  i2,j2,k2,
-		  i2,j2p2,k2,
-		  i2,j2p2,k2p2,
-		  i2,j2,k2p2,
-		  i2p1,j2p1,k2p1,
-		  i2,j2p1,k2p1);
-        check4pyr(p001,p011,p111,p101,mc,m5, 
+                  pp000,pp010,pp011,pp001,pmc,pm4);
+        check4pyr(p001,p011,p111,p101,mc,m5,
                   vdat1,vdat3,vdat7,vdat5,vdat14,vdat13,
-                  i2,j2,k2p2,
-		  i2,j2p2,k2p2,
-		  i2p2,j2p2,k2p2,
-		  i2p2,j2,k2p2,
-		  i2p1,j2p1,k2p1,
-		  i2p1,j2p1,k2p2);
+                  pp001,pp011,pp111,pp101,pmc,pm5);
       }
     }
   }
@@ -402,7 +375,7 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
     int stop=max(kp1.length,kp2.length);
     for(int r=0; r < stop; ++r) {
       if(!found1) {
-        if(length(w.pt-kp1[r].t) < eps) {
+        if(length(w.v-kp1[r].v) < eps) {
           if(first) {
             ret.z=kp1[r].z;
             first=false;
@@ -413,7 +386,7 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
         }
       }
       if(!found2) {
-        if(length(w.pt-kp2[r].t) < eps) {
+        if(length(w.v-kp2[r].v) < eps) {
           if(first) {
             ret.z=kp2[r].z;
             first=false;
@@ -468,7 +441,7 @@ vertex[][] contour3(real f(real, real, real), triple a, triple b,
         real z=interp(a.z,b.z,k/nz);
         real z2=interp(a.z,b.z,(k+0.5)/nz);
         datij[k]=f(x,y,z);
-	if(i == nx || j == ny || k == nz) continue;
+        if(i == nx || j == ny || k == nz) continue;
         int k2p1=2k+1;
         midpointi2p1j2p1[2k]=f(x2,y2,z); 
         midpointi2p1j2p1[k2p1]=f(x2,y2,z2);
