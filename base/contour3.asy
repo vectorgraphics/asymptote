@@ -57,9 +57,6 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
     abort("bad contour domain: all coordinates of b-a must be positive.");
   }
  
-  bool finite=!P.infinity;
-  triple dir=P.camera;
-
   bool midpoints=mp.length > 0;
   if(!midpoints) mp=new real[2nx+1][2ny+1][2nz+1];
 
@@ -200,6 +197,8 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
           addval(w.kpb0,w.kpb1,w.kpb2,val2,w.v);
         }
 
+	triple dir=P.camera-P.target;
+
         void addnormals(weighted[] pts) {
           triple vec2=pts[1].v-pts[0].v;
           triple vec1=pts[0].v-pts[2].v;
@@ -208,8 +207,7 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
 	  vec1=unit(vec1);
 	  vec0=unit(vec0);
           triple normal=cross(vec2,vec1);
-	  normal *= finite ? sgn(dot(normal,P.camera-normal)) :
-            sgn(dot(normal,dir));
+	  normal *= sgn(dot(normal,dir));
 	  real angle0=acos(-dot(vec1,vec2));
 	  real angle1=acos(-dot(vec2,vec0));
           pts[0].normal=normal*angle0;

@@ -451,10 +451,8 @@ picture surface(triple[][] f, bool outward=false,
     else if(j == ny) dfy=f[i][ny]-f[i][ny-1];
     else dfy=0.5(f[i][j+1]-f[i][j-1]);
     triple v=cross(dfx,dfy);
-    if(!outward) {
-      triple dir=P.infinity ?  P.camera : P.camera-v;
-      v *= sgn(dot(v,dir));
-    }
+    if(!outward)
+      v *= sgn(dot(v,P.camera-P.target));
     return light.intensity(v)*surfacepen;
   }
 
@@ -572,10 +570,8 @@ picture surface(triple f(pair z), int nsub, pair a, pair b,
     else if(j == nv) dfy=f(sample(i,nv))-f(sample(i,nv-1));
     else dfy=0.5(f(sample(i,j+1))-f(sample(i,j-1)));
     triple v=cross(dfx,dfy);
-    if(!outward) {
-      triple dir=P.infinity ?  P.camera : P.camera-v;
-      v *= sgn(dot(v,dir));
-    }
+    if(!outward)
+      v *= sgn(dot(v,P.camera-P.target));
     return light.intensity(v)*surfacepen;
   }
 
