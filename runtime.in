@@ -247,6 +247,11 @@ static array* deepArray(int depth, int *dims)
   }
 }
   
+array *nop(array *a) 
+{
+  return a;
+}
+  
 array *copyArray(array *a)
 {
   size_t size=checkArray(a);
@@ -644,6 +649,16 @@ inline double principalBranch(double deg)
   return deg;
 }
 
+inline int Min(int a, int b)
+{
+  return (a < b) ? a : b;
+}
+
+inline int Max(int a, int b)
+{
+  return (a > b) ? a : b;
+}
+
 inline double Min(double a, double b)
 {
   return (a < b) ? a : b;
@@ -866,53 +881,84 @@ void _draw(picture *f, path g, pen p)
   f->append(new drawPath(g,p));
 }
 
-void fill(picture *f, patharray *g, pen p)
+void fill(picture *f, patharray *g, pen p, bool copy=true)
 {
-  f->append(new drawFill(copyArray(g),p));
+  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  f->append(new drawFill(copyarray(g),p));
 }
 
-void latticeshade(picture *f, patharray *g, pen fillrule, penarray2 *p)
+void latticeshade(picture *f, patharray *g, pen fillrule, penarray2 *p,
+		  bool copy=true)
 {
-  f->append(new drawLatticeShade(copyArray(g),fillrule,copyArray(p)));
+  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  f->append(new drawLatticeShade(copyarray(g),fillrule,copyarray(p)));
 }
 
-void axialshade(picture *f, patharray *g, pen pena, pair a, pen penb, pair b)
+void axialshade(picture *f, patharray *g, pen pena, pair a, pen penb, pair b,
+		bool copy=true)
 {
-  f->append(new drawAxialShade(copyArray(g),pena,a,penb,b));
+  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  f->append(new drawAxialShade(copyarray(g),pena,a,penb,b));
 }
 
 void radialshade(picture *f, patharray *g, pen pena, pair a, real ra,
-		 pen penb, pair b, real rb)
+		 pen penb, pair b, real rb, bool copy=true)
 {
-  f->append(new drawRadialShade(copyArray(g),pena,a,ra,penb,b,rb));
+  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  f->append(new drawRadialShade(copyarray(g),pena,a,ra,penb,b,rb));
 }
 
 void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
-		  pairarray *z, intarray *edges)
+		  pairarray *z, intarray *edges, bool copy=true)
 {
+  array *(*copyarray)(array *a)=copy ? copyArray: nop;
   checkArrays(p,z);
   checkArrays(z,edges);
-  f->append(new drawGouraudShade(copyArray(g),fillrule,copyArray(p),
-				 copyArray(z),copyArray(edges)));
+  f->append(new drawGouraudShade(copyarray(g),fillrule,copyarray(p),
+				 copyarray(z),copyarray(edges)));
+}
+
+void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
+		  intarray *edges, bool copy=true)
+{
+  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  size_t n=checkArrays(p,edges);
+  size_t m=checkArray(g);
+  array *z=new array(n);
+  size_t k=0;
+  for(size_t j=0; j < m; ++j) {
+    path *P=read<path *>(g,j);
+    int stop=Min(P->size(),n-k);
+    solvedKnot *nodes=P->Nodes();
+    for(int i=0; i < stop; ++i)
+      (*z)[k++]=nodes[i].point;
+  }
+  checkArrays(p,z);
+  
+ f->append(new drawGouraudShade(copyarray(g),fillrule,copyarray(p),
+				 z,copyarray(edges)));
 }
 
 void tensorshade(picture *f, patharray *g, pen fillrule, penarray2 *p,
-		 patharray *b=NULL, pairarray2 *z=emptyarray)
+		 patharray *b=NULL, pairarray2 *z=emptyarray, bool copy=true)
 {
+  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
   if(b == NULL) b=g;
   size_t n=checkArrays(p,b);
   size_t nz=checkArray(z);
   if(nz != 0 && nz != n)
     error(arraymismatch);
-  f->append(new drawTensorShade(copyArray(g),fillrule,copyArray2(p),
-				copyArray(b),copyArray2(z)));
+  f->append(new drawTensorShade(copyarray(g),fillrule,copyarray2(p),
+				copyarray(b),copyarray2(z)));
 }
 
 // Clip a picture to a superpath using the given fill rule.
 // Subsequent additions to the picture will not be affected by the clipping.
-void clip(picture *f, patharray *g, pen p)
+void clip(picture *f, patharray *g, pen p, bool copy=true)
 {
-  f->enclose(new drawClipBegin(copyArray(g),p),new drawClipEnd());
+  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  f->enclose(new drawClipBegin(copyarray(g),p),new drawClipEnd());
 }
 
 void beginclip(picture *f, patharray *g, pen p)
@@ -1006,16 +1052,19 @@ void layer(picture *f)
 }
 
 void _image(picture *f, realarray2 *data, pair initial, pair final,
-	    penarray *palette=NULL, transform t=Identity)
+	    penarray *palette=NULL, transform t=Identity, bool copy=true)
 {
-  f->append(new drawImage(copyArray2(data),copyArray(palette),
+  array *(*copyarray)(array *a)=copy ? copyArray: nop;
+  array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
+  f->append(new drawImage(copyarray2(data),copyarray(palette),
 			  t*matrix(initial,final)));
 }
 
 void _image(picture *f, penarray2 *data, pair initial, pair final,
-	    transform t=Identity)
+	    transform t=Identity, bool copy=true)
 {
-  f->append(new drawImage(copyArray2(data),NULL,t*matrix(initial,final)));
+  array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
+  f->append(new drawImage(copyarray2(data),NULL,t*matrix(initial,final)));
 }
 
 string nativeformat()

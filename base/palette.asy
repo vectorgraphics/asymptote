@@ -86,7 +86,7 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
   final=Scale(pic,final);
 
   pic.add(new void(frame F, transform t) {
-      _image(F,f,initial,final,palette,t);
+      _image(F,f,initial,final,palette,t,copy=false);
     });
   pic.addBox(initial,final);
   return range; // Return range used for color space
@@ -122,7 +122,7 @@ void image(picture pic=currentpicture, pen[][] data, pair initial, pair final,
   final=Scale(pic,final);
 
   pic.add(new void(frame F, transform t) {
-      _image(F,data,initial,final,t);
+      _image(F,data,initial,final,t,copy=false);
     });
   pic.addBox(initial,final);
 }
@@ -158,12 +158,11 @@ bounds image(picture pic=currentpicture, pair[] z, real[] f,
   for(int i=0; i < trn.length; ++i) {
     int[] trni=trn[i];
     int i0=trni[0], i1=trni[1], i2=trni[2];
-    pair[] Z={z[i0],z[i1],z[i2]};
     pen color(int i) {
       return palette[round((f[i]-rmin)*step)];
     }
-    pen[] p={color(i0),color(i1),color(i2)};
-    gouraudshade(pic,Z[0]--Z[1]--Z[2]--cycle,p,Z,edges);
+    gouraudshade(pic,z[i0]--z[i1]--z[i2]--cycle,
+		 new pen[] {color(i0),color(i1),color(i2)},edges);
   }
   return range; // Return range used for color space
 }
@@ -240,7 +239,7 @@ void palette(picture pic=currentpicture, Label L="", bounds range,
   if(vertical) pdata=transpose(pdata);
   
   pic.add(new void(frame f, transform t) {
-      _image(f,pdata,initial,final,palette,t);
+      _image(f,pdata,initial,final,palette,t,copy=false);
     });
   
   ticklocate locate=ticklocate(initialz,finalz,pic.scale.z,mz.min,mz.max);

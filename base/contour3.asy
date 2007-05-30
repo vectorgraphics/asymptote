@@ -464,14 +464,11 @@ void draw(picture pic=currentpicture, vertex[][] g, pen p=lightgray,
   int[] edges={0,0,0};
   for(int i=0; i < g.length; ++i) {
     vertex[] cur=g[i];
-    pair p0=cur[0].z;
-    pair p1=cur[1].z;
-    pair p2=cur[2].z;
     pen pen0=light.intensity(cur[0].normal)*p;
     pen pen1=light.intensity(cur[1].normal)*p;
     pen pen2=light.intensity(cur[2].normal)*p;
-    gouraudshade(pic,p0--p1--p2--cycle,new pen[] {pen0,pen1,pen2}, 
-                 new pair[] {p0,p1,p2},edges);
+    gouraudshade(pic,cur[0].z--cur[1].z--cur[2].z--cycle,
+		 new pen[] {pen0,pen1,pen2}, edges);
   }
   endgroup(pic);
 }

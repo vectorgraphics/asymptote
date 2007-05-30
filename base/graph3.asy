@@ -461,17 +461,14 @@ picture surface(triple[][] f, bool outward=false,
   int[] edges={0,0,0,2};
   
   void drawcell(int i, int j) {
-    pair[] v={project(f[i][j],P),
-              project(f[i][j+1],P),
-              project(f[i+1][j+1],P),
-              project(f[i+1][j],P)};
-    path g=v[0]--v[1]--v[2]--v[3]--cycle;
+    path g=project(f[i][j],P)--project(f[i][j+1],P)--project(f[i+1][j+1],P)--
+      project(f[i+1][j],P)--cycle;
     if(surfacepen != nullpen) {
       if(light.source == O)
         fill(pic,g,surfacepen);
       else {
         pen[] pcell={color(i,j),color(i,j+1),color(i+1,j+1),color(i+1,j)};
-        gouraudshade(pic,g,pcell,v,edges);
+        gouraudshade(pic,g,pcell,edges);
       }
     }
     if(meshpen != nullpen) draw(pic,g,meshpen);

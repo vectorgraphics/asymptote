@@ -141,9 +141,12 @@ struct revolution {
       real[] a=depth.pop();
       int i=round(a[1]);
       real j=a[2];
-      triple[] v={vertex(i,j),vertex(i+1,j),vertex(i+1,j+s),vertex(i,j+s)};
-      pen[] p={color(v[0]),color(v[1]),color(v[2]),color(v[3])};
-      gouraudshade(pic,project(v[0]--v[1]--v[2]--v[3]--cycle,P),p,v,edges);
+      triple v0=vertex(i,j);
+      triple v1=vertex(i+1,j);
+      triple v2=vertex(i+1,j+s);
+      triple v3=vertex(i,j+s);
+      gouraudshade(pic,project(v0--v1--v2--v3--cycle,P),
+		   new pen[] {color(v0),color(v1),color(v2),color(v3)},edges);
     }
     endgroup(pic);
   }

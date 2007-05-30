@@ -1282,9 +1282,12 @@ pen array @code{p} on a triangular lattice defined by the vertices
 void gouraudshade(picture pic=currentpicture, path g,
                   pen fillrule=currentpen, pen[] p, pair[] z,
                   int[] edges);
+void gouraudshade(picture pic=currentpicture, path g,
+                  pen fillrule=currentpen, pen[] p, int[] edges);
 @end verbatim
 @noindent
-The pens in @code{p} must belong to the same color space.
+In the second form, the elements of @code{z} are taken to be successive
+nodes of @code{g}. The pens in @code{p} must belong to the same color space.
 Illustrations of Gouraud shading are provided in the example file
 @code{Gouraud.asy} and in the solid geometry module @code{solids.asy}.
 

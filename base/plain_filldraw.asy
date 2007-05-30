@@ -75,14 +75,14 @@ path[] complement(frame f, path[] g)
   return box(minbound(min(f),min(g))-margin,maxbound(max(f),max(g))+margin)^^g;
 }
 
-void unfill(frame f, path[] g)
+void unfill(frame f, path[] g, bool copy=true)
 {
-  clip(f,complement(f,g),evenodd);
+  clip(f,complement(f,g),evenodd,copy);
 }
 
-void filloutside(frame f, path[] g, pen p=currentpen)
+void filloutside(frame f, path[] g, pen p=currentpen, bool copy=true)
 {
-  fill(f,complement(f,g),p+evenodd);
+  fill(f,complement(f,g),p+evenodd,copy);
 }
 
 typedef void filltype(frame, path[], pen);

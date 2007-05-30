@@ -65,10 +65,9 @@ void base_tenv(tenv &te)
 const formal noformal(0);  
 
 void addFunc(venv &ve, access *a, ty *result, symbol *id,
-	     formal f1=noformal, formal f2=noformal,
-	     formal f3=noformal, formal f4=noformal,
-	     formal f5=noformal, formal f6=noformal,
-	     formal f7=noformal, formal f8=noformal)
+	     formal f1=noformal, formal f2=noformal, formal f3=noformal,
+	     formal f4=noformal, formal f5=noformal, formal f6=noformal,
+	     formal f7=noformal, formal f8=noformal, formal f9=noformal)
 {
   function *fun = new function(result);
 
@@ -80,6 +79,7 @@ void addFunc(venv &ve, access *a, ty *result, symbol *id,
   if (f6.t) fun->add(f6);
   if (f7.t) fun->add(f7);
   if (f8.t) fun->add(f8);
+  if (f9.t) fun->add(f9);
 
   // NOTE: If the function is a field, we should encode the defining record in
   // the entry
@@ -90,11 +90,12 @@ void addFunc(venv &ve, access *a, ty *result, symbol *id,
 
 // Add a function with one or more default arguments.
 void addFunc(venv &ve, bltin f, ty *result, const char *name, 
-	     formal f1, formal f2, formal f3, formal f4,
-	     formal f5, formal f6, formal f7, formal f8)
+	     formal f1, formal f2, formal f3,
+	     formal f4, formal f5, formal f6,
+	     formal f7, formal f8, formal f9)
 {
   access *a = new bltinAccess(f);
-  addFunc(ve,a,result,symbol::trans(name),f1,f2,f3,f4,f5,f6,f7,f8);
+  addFunc(ve,a,result,symbol::trans(name),f1,f2,f3,f4,f5,f6,f7,f8,f9);
 }
   
 void addFunc(venv &ve, access *a, ty *result, const char *name, formal f1)
@@ -104,10 +105,9 @@ void addFunc(venv &ve, access *a, ty *result, const char *name, formal f1)
 
 // Add a rest function with zero or more default/explicit arguments.
 void addRestFunc(venv &ve, bltin f, ty *result, const char *name, formal frest,
-		 formal f1=noformal, formal f2=noformal,
-		 formal f3=noformal, formal f4=noformal,
-		 formal f5=noformal, formal f6=noformal,
-		 formal f7=noformal, formal f8=noformal)
+		 formal f1=noformal, formal f2=noformal, formal f3=noformal,
+		 formal f4=noformal, formal f5=noformal, formal f6=noformal,
+		 formal f7=noformal, formal f8=noformal, formal f9=noformal)
 {
   access *a = new bltinAccess(f);
   function *fun = new function(result);
@@ -120,6 +120,7 @@ void addRestFunc(venv &ve, bltin f, ty *result, const char *name, formal frest,
   if (f6.t) fun->add(f6);
   if (f7.t) fun->add(f7);
   if (f8.t) fun->add(f8);
+  if (f9.t) fun->add(f9);
 
   if (frest.t) fun->addRest(frest);
 
