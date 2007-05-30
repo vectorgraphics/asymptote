@@ -182,7 +182,7 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
             if(length(cur[q].v-v) < eps) {
               cur[q].val += add;
               ++cur[q].count;
-              return;
+	      return;
             }
           }
           bucket newbuck;
@@ -201,35 +201,20 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
         }
 
         void addnormals(weighted[] pts) {
-          triple vec0=pts[1].v-pts[0].v;
-          triple vec1=pts[2].v-pts[0].v;
-          triple vec2=pts[2].v-pts[1].v;
-          triple vec3=pts[0].v-pts[1].v;
-          triple vec4=pts[1].v-pts[2].v;
-          triple vec5=pts[0].v-pts[2].v;
-          triple normal0=cross(vec0,vec1);
-          triple normal1=cross(vec2,vec3);
-          triple normal2=cross(vec4,vec5);
-          if(finite) {
-            normal0 *= sgn(dot(normal0,P.camera-normal0));
-            normal1 *= sgn(dot(normal1,P.camera-normal1));
-            normal2 *= sgn(dot(normal2,P.camera-normal2));
-          } else {
-            normal0 *= sgn(dot(normal0,dir));
-            normal1 *= sgn(dot(normal1,dir));
-            normal2 *= sgn(dot(normal2,dir));
-          }
-          real ac0=dot(vec0,vec1)/(length(vec0)*length(vec1));
-          real ac1=dot(vec2,vec3)/(length(vec2)*length(vec3));
-          real ac2=dot(vec4,vec5)/(length(vec4)*length(vec5));
-          real area=0.5*length(normal0+normal1+normal2);
-          real w0=radians(aCos(ac0));
-          real w1=radians(aCos(ac1));
-          real w2=radians(aCos(ac2));
-          pts[0].normal=normal0*w0/area;
-          pts[1].normal=normal1*w1/area;
-          pts[2].normal=normal2*w2/area;
-          return;
+          triple vec2=pts[1].v-pts[0].v;
+          triple vec1=pts[0].v-pts[2].v;
+	  triple vec0=-vec2-vec1;
+	  vec2=unit(vec2);
+	  vec1=unit(vec1);
+	  vec0=unit(vec0);
+          triple normal=cross(vec2,vec1);
+	  normal *= finite ? sgn(dot(normal,P.camera-normal)) :
+            sgn(dot(normal,dir));
+	  real angle0=acos(-dot(vec1,vec2));
+	  real angle1=acos(-dot(vec2,vec0));
+          pts[0].normal=normal*angle0;
+          pts[1].normal=normal*angle1;
+          pts[2].normal=normal*(pi-angle0-angle1);
         }
 
         void addobj(object obj) {
@@ -251,7 +236,6 @@ vertex[][] contour3(real[][][] f, real[][][] mp=new real[][][] ,
               accrue(obj.pts[q]);
             objects.push(obj);
           }
-          return;
         }
 
         weighted setupweighted(triple va, triple vb, real da, real db, 
