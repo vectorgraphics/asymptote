@@ -228,11 +228,18 @@ bounds autoscale(real Min, real Max, scaleT scale=Linear)
 
 typedef string ticklabel(real);
 
-ticklabel Format(string s) {
+ticklabel Format(string s=defaultformat) {
   return new string(real x) {return format(s,x);};
 }
 
-ticklabel DefaultFormat=Format(defaultformat);
+ticklabel NoZeroFormat(string s=defaultformat) {
+  return new string(real x) {
+    return x != 0 ? format(s,x) : "";
+  };
+}
+
+ticklabel DefaultFormat=Format();
+ticklabel NoZeroFormat=NoZeroFormat();
 
 // Format tick values as integral powers of base; otherwise with DefaultFormat.
 ticklabel DefaultLogFormat(int base) {
@@ -722,6 +729,13 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
 // Optional routine to allow modification of auto-generated tick values.
 typedef tickvalues tickmodifier(tickvalues);
 tickvalues None(tickvalues v) {return v;}
+
+tickvalues NoZero(tickvalues v)
+{ 
+  int i=find(v.major == 0);
+  if(i >= 0) v.major.delete(i);
+  return v;
+}
 
 // Tickmodifier that removes all major ticks in the interval [a,b].
 tickmodifier Break(real a, real b) {

@@ -531,36 +531,51 @@ Either:
 (i) give LeftTicks/RightTicks/Ticks the arguments beginlabel=false
 and/or endlabel=false;
 
-(ii) explicitly remove specific tick labels and draw them manually:
+(ii) explicitly remove specific ticks and their labels (drawing them manually)
+(see \courier{graph.asy\} for the definition of NoZero):
 
 \verbatim
-import graph; 
+import graph;
 
-size(10cm); 
-       
-draw(graph(new real(real x) {return x^2-2;},-2,2)); 
-       
-ticklabel NoZero(string s=defaultformat) { 
-  return new string(real x) { 
-    return (x != 0) ? format(s,x) : ""; 
-  }; 
-} 
-       
-xaxis(Ticks(NoZero()),Arrow); 
-yaxis(Ticks(NoZero()),Arrow); 
+size(10cm);
 
-label("$0$",(0,0),SW); 
+real f(real x) {return x^2;}
+ 
+draw(graph(f,-2,2));
+
+xaxis(Ticks(NoZero));
+yaxis(Ticks(NoZero));
+
+label("$0$",(0,0),SW);
 \endverbatim
 
-(iii) use the xasy GUI to move overlapping labels;
+(iii) explicitly remove specific tick labels and draw them manually
+(see \courier{graph.asy\} for the definition of NoZeroFormat):
 
-(iv) change the Label argument of LeftTicks, RightTicks, or Ticks to:
+\verbatim
+import graph;
+
+size(10cm);
+
+real f(real x) {return x^2;}
+ 
+draw(graph(f,-2,2));
+
+xaxis(Ticks(NoZeroFormat));
+yaxis(Ticks(NoZeroFormat));
+
+label("$0$",(0,0),SW);
+\endverbatim
+
+(iv) use the xasy GUI to move overlapping labels;
+
+(v) change the Label argument of LeftTicks, RightTicks, or Ticks to:
 
 \verbatim
 Label(currentpen+overwrite(Move))
 \endverbatim
 
-Solution (iv) will move labels that might otherwise overwrite a previous
+Solution (v) will move labels that might otherwise overwrite a previous
 label. Other possible overwrite arguments are Allow (allows overlapping
 labels; the default), Suppress (an overlapping label will not be written at
 all), SuppressQuiet, and MoveQuiet. The last two achieve the same result as
