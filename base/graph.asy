@@ -732,7 +732,7 @@ tickvalues None(tickvalues v) {return v;}
 
 tickvalues NoZero(tickvalues v)
 { 
-  int i=find(v.major == 0);
+  int i=find(abs(v.major) < 10.0^3*epsilon);
   if(i >= 0) v.major.delete(i);
   return v;
 }
