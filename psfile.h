@@ -49,6 +49,7 @@ class psfile {
   
 protected:
   pen lastpen;
+  bool newwidth;
   std::ostream *out;
   
 public: 
@@ -117,6 +118,12 @@ public:
   }
 
   void stroke() {
+    if(newwidth) {
+      *out << " 0 " << lastpen.width() << 
+	" dtransform dup abs 1 lt {pop 0}{round} ifelse idtransform setlinewidth pop" << newl;
+      newwidth=false;
+    }
+    
     if(pdf) *out << "S" << newl;
     else *out << "stroke" << newl;
   }

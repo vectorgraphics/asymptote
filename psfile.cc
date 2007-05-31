@@ -133,10 +133,9 @@ void psfile::setpen(pen p)
     *out << p.fillpattern() << " setpattern" << newl;
   else setcolor(p);
   
-  if(p.width() != lastpen.width()) {
-    *out << " 0 " << p.width() << 
-      " dtransform truncate idtransform setlinewidth pop" << newl;
-  }
+  // Defer dynamic linewidth until stroke time in case currentmatrix changes.
+  if(p.width() != lastpen.width())
+    newwidth=true;
     
   if(p.cap() != lastpen.cap()) {
     *out << p.cap() << " setlinecap" << newl;
