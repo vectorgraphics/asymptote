@@ -119,7 +119,7 @@ void psfile::setcolor(const pen& p, const string& begin="",
 void psfile::setpen(pen p)
 {
   p.convert();
-  if(p == lastpen) return;
+  if(p == lastpen) {newwidth=false; return;}
     
   if(pdfformat) {
     if(p.blend() != lastpen.blend()) 
@@ -134,8 +134,7 @@ void psfile::setpen(pen p)
   else setcolor(p);
   
   // Defer dynamic linewidth until stroke time in case currentmatrix changes.
-  if(p.width() != lastpen.width())
-    newwidth=true;
+  newwidth=(p.width() != lastpen.width());
     
   if(p.cap() != lastpen.cap()) {
     *out << p.cap() << " setlinecap" << newl;
