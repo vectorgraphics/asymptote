@@ -94,8 +94,8 @@ path[] margin(path[] g, real xmargin, real ymargin)
     pair m=min(g);
     real width=M.x-m.x;
     real height=M.y-m.y;
-    real xfactor=(width+2xmargin)/width;
-    real yfactor=(height+2ymargin)/height;
+    real xfactor=width > 0 ? (width+2xmargin)/width : 1;
+    real yfactor=height > 0 ? (height+2ymargin)/height : 1;
     g=xscale(xfactor)*yscale(yfactor)*g;
     g=shift(0.5*(M+m)-0.5*(max(g)+min(g)))*g;
   }   

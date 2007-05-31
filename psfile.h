@@ -118,7 +118,7 @@ public:
   }
 
   void stroke() {
-    if(newwidth) {
+    if(newwidth && !pdf) {
       *out << " 0 " << lastpen.width() << 
 	" dtransform dup abs 1 lt {pop 0}{round} ifelse idtransform setlinewidth pop" << newl;
       newwidth=false;
@@ -173,6 +173,7 @@ public:
     if(pens.size() < 1)
       reportError("grestore without matching gsave");
     lastpen = pens.top();
+    newwidth=true;
     pens.pop();
     if(pdf) *out << "Q";
     else *out << "grestore";
