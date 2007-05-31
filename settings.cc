@@ -1110,19 +1110,19 @@ string defaultformat() {
 // TeX special command to set up currentmatrix for typesetting labels.
 const char *beginlabel(const string& texengine) {
   if(pdf(texengine))
-    return "\\special{pdf: q #5 0 0 cm}"
+    return "\\special{pdf:q #5 0 0 cm}"
       "\\wd\\ASYbox 0pt\\dp\\ASYbox 0pt\\ht\\ASYbox 0pt";
   else 
-    return "\\special{ps: gsave currentpoint currentpoint translate [#5 0 0] "
+    return "\\special{ps:gsave currentpoint currentpoint translate [#5 0 0] "
       "concat neg exch neg exch translate}";
 }
 
 // TeX special command to restore currentmatrix after typesetting labels.
 const char *endlabel(const string& texengine) {
   if(pdf(texengine))
-    return "\\special{pdf: Q}";
+    return "\\special{pdf:Q}";
   else
-    return "\\special{ps: currentpoint grestore moveto}";
+    return "\\special{ps:currentpoint grestore moveto}";
 }
 
 // TeX macro to typeset raw postscript code
@@ -1140,8 +1140,8 @@ const char *rawpostscript(const string& texengine) {
 // Begin TeX special command.
 const char *beginspecial(const string& texengine) {
   if(pdf(texengine))
-    return "\\special{pdf: ";
-  return "\\special{ps: ";
+    return "\\special{pdf:";
+  return "\\special{ps:";
 }
 
 // End TeX special command.

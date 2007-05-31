@@ -210,9 +210,12 @@ void texfile::put(const string& label, const transform& T, const pair& z,
        << "," << (z.gety()-box.bottom)*ps2tex
        << ")(" << align.getx()
        << "," << align.gety() 
-       << "){" << T.getxx() << " " << sign*T.getyx()
+       << "){";
+  out->unsetf(std::ios::fixed);
+  *out << T.getxx() << " " << sign*T.getyx()
        << " " << sign*T.getxy() << " " << T.getyy()
        << "}{" << label << "}" << newl;
+  out->setf(std::ios::fixed);
 }
 
 void texfile::epilogue()

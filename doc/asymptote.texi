@@ -1287,9 +1287,13 @@ void gouraudshade(picture pic=currentpicture, path g,
 @end verbatim
 @noindent
 In the second form, the elements of @code{z} are taken to be successive
-nodes of @code{g}. The pens in @code{p} must belong to the same color space.
-Illustrations of Gouraud shading are provided in the example file
+nodes of path @code{g}. The pens in @code{p} must belong to the same
+color space. Illustrations of Gouraud shading are provided in the example file
 @code{Gouraud.asy} and in the solid geometry module @code{solids.asy}.
+The edge flags used in Gouraud shading are documented here:
+@quotation
+@url{http://partners.adobe.com/public/developer/en/ps/sdk/TN5600.SmoothShading.pdf}.
+@end quotation
 
 @cindex Coons shading
 @cindex tensor product shading

@@ -94,7 +94,7 @@ public:
     return !(t1 == t2);
   }
 
-  bool isIdentity()
+  bool isIdentity() const
   {
     return x == 0.0 && y == 0.0 &&
       xx == 1.0 && xy == 0.0 && yx == 0.0 && yy == 1.0;
@@ -107,7 +107,7 @@ public:
   }
 
   // Tells if the transformation is invertible (bijective).
-  bool invertible()
+  bool invertible() const
   {
     return det(*this) != 0.0;
   }
@@ -217,6 +217,12 @@ inline transform shiftless(transform t)
 inline transform shift(transform t)
 {
   return transform(t.getx(), t.gety(), 1.0, 0, 0, 1.0);
+} 
+
+// Return the translational component of t.
+inline pair shiftpair(transform t)
+{
+  return (t.getx(), t.gety());
 } 
 
 inline transform matrix(pair lb, pair rt)

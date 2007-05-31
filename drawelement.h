@@ -162,7 +162,8 @@ protected:
   // The pen's transform;
   const transform *t()
   {
-    return pentype.getTransform();
+    const transform *T=pentype.getTransform();
+    return (T && !T->isIdentity()) ? T : NULL;
   }
 
   pen transpen(const transform& t) const {
@@ -193,7 +194,7 @@ public:
   virtual void penTranslate(psfile *out)
   {
     if (t())
-      out->translate(*t() * pair(0,0));
+      out->translate(shiftpair(*t()));
   }
 
   virtual void penConcat(psfile *out)

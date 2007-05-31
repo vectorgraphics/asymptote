@@ -80,6 +80,7 @@ public:
   void resetpen() {
     lastpen=pen(initialpen);
     lastpen.convert();
+    newwidth=true;
   }
   
   void setcolor(const pen& p, const string& begin, const string& end);
@@ -118,9 +119,8 @@ public:
   }
 
   void stroke() {
-    if(newwidth && !pdf) {
-      *out << " 0 " << lastpen.width() << 
-	" dtransform dup abs 1 lt {pop 0}{round} ifelse idtransform setlinewidth pop" << newl;
+    if(newwidth) {
+      *out << lastpen.width() << (pdf ? " w" : " Setlinewidth") << newl;
       newwidth=false;
     }
     
@@ -172,26 +172,27 @@ public:
   void grestore(bool tex=false) {
     if(pens.size() < 1)
       reportError("grestore without matching gsave");
-    lastpen = pens.top();
-    newwidth=true;
+    lastpen=pens.top();
     pens.pop();
+    newwidth=true;
     if(pdf) *out << "Q";
     else *out << "grestore";
     if(!tex) *out << newl;
   }
 
   void translate(pair z) {
-   if(pdf) *out << " 1 0 0 1 " << newl;
-   write(z);
-   if(pdf) *out << " cm" << newl;
+    if(pdf) *out << " 1 0 0 1 " << newl;
+    write(z);
+    if(pdf) *out << " cm" << newl;
     *out << " translate" << newl;
   }
 
   // Multiply on a transform to the transformation matrix.
   void concat(transform t) {
-   write(t);
-   if(pdf) *out << " cm" << newl;
-   else *out << " concat" << newl;
+    if(t.isIdentity()) return;
+    write(t);
+    if(pdf) *out << " cm" << newl;
+    else *out << " concat" << newl;
   }
   
   void verbatimline(const string& s) {

@@ -86,6 +86,8 @@ void psfile::prologue(const bbox& box)
 
   *out << "%%Pages: 1" << newl;
   *out << "%%Page: 1 1" << newl;
+  
+  *out << "/Setlinewidth {0 exch dtransform dup abs 1 lt {pop 0}{round} ifelse idtransform setlinewidth pop} bind def" << newl;
 }
 
 void psfile::epilogue()
