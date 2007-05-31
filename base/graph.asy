@@ -346,7 +346,7 @@ void drawtick(frame f, transform T, path g, path g2, ticklocate locate,
       draw(f,locate1.Z--locate1.Z+Size*sign*locate1.dir,p);
 }
 
-real zerotick=10*epsilon;
+real zerotickfuzz=10*epsilon;
 
 // Label a tick on a frame.
 pair labeltick(frame d, transform T, path g, ticklocate locate, real val,
@@ -370,7 +370,7 @@ pair labeltick(frame d, transform T, path g, ticklocate locate, real val,
     label=locate.S.scale.Tinv(val);
   else {
     label=val;
-    if(abs(label) < zerotick*norm) label=0;
+    if(abs(label) < zerotickfuzz*norm) label=0;
     // Fix epsilon errors at +/-1e-4
     // default format changes to scientific notation here
     if(abs(abs(label)-1e-4) < epsilon) label=sgn(label)*1e-4;
@@ -735,7 +735,7 @@ tickvalues None(tickvalues v) {return v;}
 tickvalues NoZero(tickvalues v)
 { 
   real[] abs=abs(v.major);
-  int i=find(abs < zerotick*max(abs));
+  int i=find(abs < zerotickfuzz*max(abs));
   if(i >= 0) v.major.delete(i);
   return v;
 }
