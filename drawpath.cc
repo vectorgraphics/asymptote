@@ -143,18 +143,19 @@ bool drawPath::draw(psfile *out)
 
   pen pen0=pentype;
   adjustdash(pen0);
-  out->setpen(pen0);
 
-  penStart(out);
+  penSave(out);
   penTranslate(out);
 
   out->write(p);
 
   penConcat(out);
 
+  out->setpen(pen0);
+  
   out->stroke();
 
-  penEnd(out);
+  penRestore(out);
 
   return true;
 }

@@ -135,7 +135,9 @@ void psfile::setpen(pen p)
   else setcolor(p);
   
   // Defer dynamic linewidth until stroke time in case currentmatrix changes.
-  if(p.width() != lastpen.width()) newwidth=true;
+  if(p.width() != lastpen.width()) {
+    *out << p.width() << " Setlinewidth" << newl;
+  }
     
   if(p.cap() != lastpen.cap()) {
     *out << p.cap() << " setlinecap" << newl;

@@ -185,7 +185,7 @@ public:
     return p.cyclic();
   }
   
-  virtual void penStart(psfile *out)
+  virtual void penSave(psfile *out)
   {
     if (t())
       out->gsave();
@@ -203,7 +203,7 @@ public:
       out->concat(shiftless(*t()));
   }
 
-  virtual void penEnd(psfile *out)
+  virtual void penRestore(psfile *out)
   {
     if (t())
       out->grestore();

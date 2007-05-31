@@ -28,13 +28,13 @@ public:
 
   bool draw(psfile *out);
   virtual void palette(psfile *out) {
-    out->setpen(pentype);
-    penStart(out);
+    penSave(out);
     penTranslate(out);
   }
   virtual void fill(psfile *out) {
+    out->setpen(pentype);
     out->fill(pentype);
-    penEnd(out);
+    penRestore(out);
   };
 
   drawElement *transformed(const transform& t);

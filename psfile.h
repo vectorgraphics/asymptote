@@ -49,7 +49,6 @@ class psfile {
   
 protected:
   pen lastpen;
-  bool newwidth;
   std::ostream *out;
   
 public: 
@@ -80,7 +79,6 @@ public:
   void resetpen() {
     lastpen=pen(initialpen);
     lastpen.convert();
-    newwidth=true;
   }
   
   void setcolor(const pen& p, const string& begin, const string& end);
@@ -119,11 +117,6 @@ public:
   }
 
   void stroke() {
-    if(newwidth) {
-      *out << lastpen.width() << (pdf ? " w" : " Setlinewidth") << newl;
-      newwidth=false;
-    }
-    
     if(pdf) *out << "S" << newl;
     else *out << "stroke" << newl;
   }
@@ -174,7 +167,6 @@ public:
       reportError("grestore without matching gsave");
     lastpen=pens.top();
     pens.pop();
-    newwidth=true;
     if(pdf) *out << "Q";
     else *out << "grestore";
     if(!tex) *out << newl;
