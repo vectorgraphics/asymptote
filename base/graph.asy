@@ -228,18 +228,21 @@ bounds autoscale(real Min, real Max, scaleT scale=Linear)
 
 typedef string ticklabel(real);
 
-ticklabel Format(string s=defaultformat) {
+ticklabel Format(string s=defaultformat)
+{
   return new string(real x) {return format(s,x);};
 }
 
-ticklabel NoZeroFormat(string s=defaultformat) {
-  return new string(real x) {
-    return x != 0 ? format(s,x) : "";
+ticklabel OmitFormat(string s=defaultformat ... real[] x)
+{
+  return new string(real v) {
+    int i=find(x == v);
+    return i < 0 ? format(s,v) : "";
   };
 }
 
 ticklabel DefaultFormat=Format();
-ticklabel NoZeroFormat=NoZeroFormat();
+ticklabel NoZeroFormat=OmitFormat(0);
 
 // Format tick values as integral powers of base; otherwise with DefaultFormat.
 ticklabel DefaultLogFormat(int base) {
@@ -732,13 +735,18 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
 typedef tickvalues tickmodifier(tickvalues);
 tickvalues None(tickvalues v) {return v;}
 
-tickvalues NoZero(tickvalues v)
-{ 
-  real[] abs=abs(v.major);
-  int i=find(abs < zerotickfuzz*max(abs));
-  if(i >= 0) v.major.delete(i);
-  return v;
+tickmodifier OmitTick(... real[] x) {
+  return new tickvalues(tickvalues v) { 
+    real norm=max(abs(v.major));
+    for(int i=0; i < x.length; ++i) {
+      int j=find(abs(v.major-x[i]) < zerotickfuzz*norm);
+      if(j >= 0) v.major.delete(j);
+    }
+    return v;
+  };
 }
+
+tickmodifier NoZero=OmitTick(0);
 
 // Tickmodifier that removes all major ticks in the interval [a,b].
 tickmodifier Break(real a, real b) {
