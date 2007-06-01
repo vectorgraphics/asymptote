@@ -460,7 +460,12 @@ void integeroverflow(size_t i)
 }
   
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
-typedef mem::map<CONST string, HISTORY_STATE> historyMap_t;
+struct historyState {
+  bool save;
+  HISTORY_STATE state;
+};
+  
+typedef mem::map<CONST string, historyState> historyMap_t;
 historyMap_t historyMap;
 static HISTORY_STATE history_save;
 
@@ -475,8 +480,6 @@ void store_history(HISTORY_STATE *dest)
     free(src);
   }
 }
-
-const char nosave='\n';
 
 string historyfilename(const string &name) 
 {
@@ -529,9 +532,9 @@ void cleanup()
   int nlines=getSetting<int>("historylines");
   for(historyMap_t::iterator h=historyMap.begin(); h != historyMap.end(); 
       ++h) {
-    history_set_history_state(&h->second);
+    history_set_history_state(&h->second.state);
     stifle_history(nlines);
-    if(h->first[0] != nosave) write_history(historyfilename(h->first).c_str());
+    if(h->second.save) write_history(historyfilename(h->first).c_str());
   }
   history_set_history_state(&history_save);
 #endif
@@ -4052,50 +4055,84 @@ file* read3(file *File)
   return File;
 }
 
+// Look up name in history.
+string history(string name)
+{
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+  bool newhistory=historyMap.find(name) == historyMap.end();
+  
+  string filename;
+  
+  if(newhistory) {
+    filename=historyfilename(name);
+    std::ifstream exists(filename.c_str());
+    if(!exists) return "";
+  }
+
+  store_history(&history_save);
+  HISTORY_STATE& history=historyMap[name].state;
+  history_set_history_state(&history);
+  
+  if(newhistory)
+    read_history(filename.c_str());
+  
+  HIST_ENTRY *last=history_get(history_length);
+  
+  store_history(&history);
+  history_set_history_state(&history_save);
+  
+  return last ? last-> line : "";
+#else
+  return "";	
+#endif
+}
+
 // Prompt for a string using the GNU readline library and a local history.
-// On exit, save this local history under the name historyfilename(history),
-// unless history begins with an underscore character.
-string readline(string prompt=emptystring, string history=emptystring,
-		string initial=emptystring, bool tabcompletion=false)
+// If save=true, store this local history in the file historyfilename(name).
+string readline(string name=emptystring, string defaultvalue=emptystring,
+       		string prompt=emptystring, bool save=true,
+		bool tabcompletion=false)
 {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   init_readline(tabcompletion);
   
   store_history(&history_save);
-  bool newhistory=historyMap.find(history) == historyMap.end();
-  HISTORY_STATE& History=historyMap[history];
-  history_set_history_state(&History);
-  if(history[0] != nosave && newhistory)
-    read_history(historyfilename(history).c_str());
+  bool newhistory=historyMap.find(name) == historyMap.end();
+  historyState& h=historyMap[name];
+  h.save=save;
+  HISTORY_STATE& history=h.state;
+  history_set_history_state(&history);
+
+  if(newhistory)
+    read_history(historyfilename(name).c_str());
   
-  static char *line_read=NULL;
+  static char *line=NULL;
   /* Return the memory to the free pool
      if the buffer has already been allocated. */
-  if(line_read) {
-    free(line_read);
-    line_read=NULL;
+  if(line) {
+    free(line);
+    line=NULL;
   }
      
-  HIST_ENTRY *last=history_get(history_length);
-  const char *Default=last ? last->line : initial.c_str();
+  const char *Default=defaultvalue.c_str();
   int size=snprintf(NULL,0,prompt.c_str(),Default)+1;
   if(size < 1) size=255; // Workaround for non-C99 compliant systems.
   char *buf=new char[size];
   snprintf(buf,size,prompt.c_str(),Default);
   
   /* Get a line from the user. */
-  line_read=readline(buf);
+  line=readline(buf);
   delete[] buf;
      
-  if(line_read) {
+  if(line) {
   /* If the line has any text in it, save it on the history. */
-    if(*line_read) add_history(line_read);
+    if(*line) add_history(line);
   } else cout << endl;
   
-  store_history(&History);
+  store_history(&history);
   history_set_history_state(&history_save);
 
-  return line_read ? string(*line_read ? line_read : Default) : emptystring;
+  return line ? string(*line ? line : defaultvalue) : emptystring;
 #else
   cout << prompt;
   string s;

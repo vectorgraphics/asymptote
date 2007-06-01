@@ -3349,15 +3349,16 @@ recent value in the history will be used to provide a default value
 for subsequent runs.  The default value (initially @code{default}) is
 displayed after @code{prompt}. These routines are based on the
 following interface to @code{readline}, which prompts the user with
-the default value formatted according to @code{prompt} and 
-saves the local history under the name @code{".asy_"+history}, unless
-the string @code{history} begins with a linefeed (@code{'\n'}):
+the default value formatted according to @code{prompt} and, if
+@code{save=true}, saves the local history under the name
+@code{".asy_"+variable}:
 @cindex @code{readline}
 @verbatim
-string readline(string prompt="", string history="", string initial="",
-                bool tabcompletion=false);
+string readline(string name="", string defaultvalue="", string prompt="",
+                bool save=true, bool tabcompletion=false);
 @end verbatim
-
+The routine @code{history(string name)} can be used to look up the most
+recent value entered for string @code{name}.
 
 @node Structures
 @section Structures
@@ -5786,6 +5787,14 @@ an optional pen used to draw the major ticks;
 an optional pen used to draw the minor ticks.
 
 @end table
+
+For convenience, the predefined tickmodifier @code{OmitTick(... real[] x)}
+tickmodifier can be used to remove specific auto-generated ticks and
+their labels. The @code{OmitFormat(string s=defaultformat ... real[] x)}
+ticklabel can be used to remove specific tick labels but not the
+corresponding ticks. The tickmodifier @code{NoZero} is an abbreviation for
+@code{OmitTick(0)} and the ticklabel @code{NoZeroFormat} is an
+abbrevation for @code{OmitFormat(0)}.
 
 @cindex custom tick locations
 @cindex @code{LeftTicks}
