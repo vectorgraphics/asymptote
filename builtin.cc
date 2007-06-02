@@ -769,3 +769,46 @@ void base_menv(menv&)
 }
 
 } //namespace trans
+
+namespace run {
+
+using namespace vm;  
+
+void arrayDeleteHelper(stack *Stack)
+{
+  array *a=vm::pop<array *>(Stack);
+  item it=vm::pop(Stack);
+  int i=vm::pop<int>(Stack);
+  int j=isdefault(it) ? i : get<int>(it);
+
+  size_t asize=checkArray(a);
+  if(a->cyclic() && asize > 0) {
+    size_t J=j;
+    j=imod(j,asize);
+    item val=(*a)[j];
+    if(J+1 >= asize+i) {
+      (*a).clear(); {Stack->push(val); return;}
+    }
+    i=imod(i,asize);
+    if(j >= i) 
+      (*a).erase((*a).begin()+i,(*a).begin()+j+1);
+    else {
+      (*a).erase((*a).begin()+i,(*a).end());
+      (*a).erase((*a).begin(),(*a).begin()+j+1);
+    }
+    {Stack->push(val); return;}
+  }
+  
+  if(i < 0 || i >= (int) asize || i > j || j >= (int) asize) {
+    ostringstream buf;
+    buf << "delete called on array of length " << (int) asize 
+	<< " with out-of-bounds index range [" << i << "," << j << "]";
+    error(buf);
+  }
+
+  item val=(*a)[j];
+  (*a).erase((*a).begin()+i,(*a).begin()+j+1);
+  {Stack->push(val); return;}
+}
+  
+}

@@ -276,8 +276,9 @@ void writeArray(vm::stack *s)
       cont=false;
       bool first=true;
       if(i < asize) {
+	T v=read<T>(a,i);
 	if(defaultfile) cout << i << ":\t";
-	f->write(read<T>(a,i)); cont=true;
+	f->write(v); cont=true;
 	first=false;
       }
       unsigned count=0;

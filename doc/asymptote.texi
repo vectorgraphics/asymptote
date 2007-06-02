@@ -4242,23 +4242,27 @@ The @code{copy} function listed below provides a deep copy of an array.
 Every array @code{A} of type @code{T[]} has the virtual members
 @code{int length}, @code{void cyclic(bool b)}, @code{bool cyclicflag},
 @code{T push(T x)}, @code{void append(T[] a)}, @code{T pop()},
-@code{T insert(int i, T x)}, and @code{T delete(int i)}.
+@code{void insert(int i ... T[] x)}, @code{T delete(int i, int j=i)}, and
+@code{bool initialized(int n)}.
 The member @code{A.length} evaluates to the length of the array.
 Setting @code{A.cyclic(true)} signifies that array indices should be reduced
 modulo the current array length. Reading from or writing to a nonempty
 cyclic array never leads to out-of-bounds errors or array resizing. The member
 @code{A.cyclicflag} returns the current setting of the @code{cyclic} flag.
 The functions @code{A.push} and @code{A.append} append their
-arguments onto the end of the array, while @code{A.insert(int i, T x)}
-inserts @code{x} into the array so that it will be the element with
-index @code{i}.
-For convenience @code{A.push} and @code{A.insert} return the inserted
-item. The function @code{A.pop()} pops and returns the last element,
-while @code{A.delete(int i)} pops and returns the element with index
-@code{i}, shifting the position of all higher-indexed elements down by
-one. Like all @code{Asymptote} functions, @code{cyclic}, @code{push},
-@code{append}, @code{pop}, @code{insert}, and @code{delete} can be
-"pulled off" of the array and used on their own. For example,
+arguments onto the end of the array, while @code{A.insert(int i ... T[] x)}
+inserts @code{x} into the array at index @code{i}.
+For convenience @code{A.push} returns the pushed item.
+The function @code{A.pop()} pops and returns the last element,
+while @code{A.delete(int i, int j=i)} deletes elements with indices in
+the range [@code{i},@code{j}] and returns the element
+with index @code{j}, shifting the position of all higher-indexed
+elements down. The routine @code{A.initialized(int n)} can be used to examine
+whether the element at index @code{n} is initialized.
+Like all @code{Asymptote} functions,
+@code{cyclic}, @code{push}, @code{append}, @code{pop}, @code{insert},
+@code{delete}, and @code{initialized} can be "pulled off" of the array
+and used on their own. For example,
 @verbatim
 int[] A={1};
 A.push(2);         // A now contains {1,2}.
@@ -4268,7 +4272,10 @@ f(3);              // A now contains {1,2,1,2,3}.
 int g()=A.pop;
 write(g());        // Outputs 3.
 A.delete(0);       // A now contains {2,1,2}.
-A.insert(1,3);     // A now contains {2,3,1,2}.
+A.delete(0,1);       // A now contains {2}.
+A.insert(1,3);     // A now contains {2,3}.
+A.insert(1 ... A); // A now contains {2,2,3,3}
+A.insert(2,4,5);   // A now contains {2,2,4,5,3,3}.
 @end verbatim
 
 The @code{[]} suffix can also appear after the variable name; this

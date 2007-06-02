@@ -3006,6 +3006,20 @@ bool :arrayCyclicFlag(array *a)
   return a->cyclic();
 }
 
+// Check to see if an array element is initialized.
+bool :arrayInitializedHelper(int n, array *a)
+{
+  checkArray(a);
+  item& i=arrayRead(a,n);
+  return !i.empty();
+}
+
+// Returns the initialize method for an array.
+callable* :arrayInitialized(array *a)
+{
+  return new thunk(new bfunc(arrayInitializedHelper),a);
+}
+
 // The helper function for the cyclic method that sets the cyclic flag.
 void :arrayCyclicHelper(bool b, array *a)
 {
@@ -3064,32 +3078,20 @@ callable* :arrayPop(array *a)
 }
 
 // The helper function for the insert method.
-item :arrayInsertHelper(int i, item x, array *a)
+item :arrayInsertHelper(int i, array *x, array *a)
 {
   size_t asize=checkArray(a);
+  checkArray(x);
   if(a->cyclic() && asize > 0) i=imod(i,asize);
   if(i < 0 || i > (int) asize) 
     outOfBounds("inserting",asize,i);
-  (*a).insert((*a).begin()+i,x);
-  return x;
+  (*a).insert((*a).begin()+i,(*x).begin(),(*x).end());
 }
 
 // Returns the insert method for an array.
 callable* :arrayInsert(array *a)
 {
   return new thunk(new bfunc(arrayInsertHelper),a);
-}
-
-// The helper function for the insert method.
-item :arrayDeleteHelper(int i, array *a)
-{
-  size_t asize=checkArray(a);
-  if(a->cyclic() && asize > 0) i=imod(i,asize);
-  if(i < 0 || i >= (int) asize) 
-    outOfBounds("deleting",asize,i);
-  item val=(*a)[i];
-  (*a).erase((*a).begin()+i);
-  return val;
 }
 
 // Returns the delete method for an array.

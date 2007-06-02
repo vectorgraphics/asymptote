@@ -59,7 +59,7 @@ sub c_params {
               (explicit)*\s*(\w*(?:\s*\*)?)
               \s*
               (\w*)(=*)([\w.+\-]*)|xs;
-       $_ = "  $type $name = vm::pop" . ($type =~ /^item$/ ? "" : "<$type>") .
+       $_ = "  $type $name=vm::pop" . ($type =~ /^item$/ ? "" : "<$type>") .
 	   "($stack" . ($default ? "," . $value : "") . ");\n";
    }
    reverse @params;

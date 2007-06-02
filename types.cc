@@ -199,22 +199,30 @@ ty *array::appendType()
 
 ty *array::insertType()
 {
-  if (inserttype == 0)
-    inserttype = new function(celltype,formal(primInt(),"i"),
-			      formal(celltype,"x"));
+  if (inserttype == 0) {
+    function *f=new function(primVoid(),formal(primInt(),"i"));
+    f->addRest(this);
+    inserttype = f;
+  }
+  
   return inserttype;
 }
 
 ty *array::deleteType()
 {
   if (deletetype == 0)
-    deletetype = new function(celltype,formal(primInt(),"i"));
+    deletetype = new function(celltype,formal(primInt(),"i"),
+			      formal(primInt(),"j",true));
 
   return deletetype;
 }
 
 ty *cyclicType() {
   return new function(primVoid(),formal(primBoolean(),"b"));
+}
+
+ty *initializedType() {
+  return new function(primBoolean(),formal(primInt(),"i"));
 }
 
 ty *array::virtualFieldGetType(symbol *id)
@@ -226,6 +234,7 @@ ty *array::virtualFieldGetType(symbol *id)
     id == symbol::trans("append") ? appendType() : 
     id == symbol::trans("insert") ? insertType() : 
     id == symbol::trans("delete") ? deleteType() : 
+    id == symbol::trans("initialized") ? initializedType() : 
     ty::virtualFieldGetType(id);
 }
 
@@ -248,6 +257,13 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
   {
     static trans::bltinAccess a(run::arrayCyclic);
     static trans::varEntry v(cyclicType(), &a, 0, position());
+    return &v;
+  }
+  if (id == symbol::trans("initialized") &&
+      equivalent(sig, initializedType()->getSignature()))
+  {
+    static trans::bltinAccess a(run::arrayInitialized);
+    static trans::varEntry v(initializedType(), &a, 0, position());
     return &v;
   }
   if (id == symbol::trans("push") &&

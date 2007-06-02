@@ -40,4 +40,8 @@ types::record *getGSLModule();
   
 } //namespace trans
 
+namespace run {
+  void arrayDeleteHelper(vm::stack *Stack);
+}
+
 #endif //BUILTIN_H
