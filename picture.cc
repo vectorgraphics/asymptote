@@ -259,7 +259,8 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   
   cmd << "'" << getSetting<string>("gs")
       << "' -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -dEPSCrop"
-      << " -dCompatibilityLevel=1.4";
+      << " -dSubsetFonts=true -dEmbedAllFonts=true -dMaxSubsetPct=100"
+      << " -dPDFSETTINGS=/prepress -dCompatibilityLevel=1.4";
   if(!getSetting<bool>("autorotate"))
     cmd << " -dAutoRotatePages=/None";
   cmd << " -g" << max(ceil(paperWidth),1.0) << "x" << max(ceil(paperHeight),1.0)
