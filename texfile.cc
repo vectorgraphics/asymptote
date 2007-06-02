@@ -211,11 +211,9 @@ void texfile::put(const string& label, const transform& T, const pair& z,
        << ")(" << align.getx()
        << "," << align.gety() 
        << "){";
-  out->unsetf(std::ios::fixed);
   *out << T.getxx() << " " << sign*T.getyx()
        << " " << sign*T.getxy() << " " << T.getyy()
        << "}{" << label << "}" << newl;
-  out->setf(std::ios::fixed);
 }
 
 void texfile::epilogue()
