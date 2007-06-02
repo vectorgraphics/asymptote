@@ -564,6 +564,9 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
       (goto-char (point-min))
       (select-window cWindow))))
 
+(setq c-topmost-intro-cont c-basic-offset)
+(setq c-offsets-alist (quote ((topmost-intro-cont . c-topmost-intro-cont))))
+
 (add-hook 'asy-mode-hook
 	  (lambda ()
             ;; Make asy-mode work with other shells.
@@ -571,6 +574,8 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
 	    (setq shell-file-name "/bin/sh")
 	    (make-local-variable 'c-label-minimum-indentation)
 	    (setq c-label-minimum-indentation 0)
+	    (make-local-variable 'c-topmost-intro-cont)
+	    (setq c-topmost-intro-cont 0)
             (when (fboundp 'flyspell-mode) (flyspell-mode -1))
             (turn-on-font-lock)
             (column-number-mode t)
