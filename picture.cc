@@ -198,10 +198,10 @@ bool picture::texprocess(const string& texname, const string& outname,
       voffset += paperHeight-height-b.bottom-bboxshift.gety();
     
       ostringstream dcmd;
-      dcmd << "'" << getSetting<string>("dvips") << "' "
-	   << getSetting<string>("dvipsOptions") << " -R "
+      dcmd << "'" << getSetting<string>("dvips") << "' -R -Pdownload35"
 	   << " -O " << hoffset << "bp," << voffset << "bp"
-	   << " -T " << paperWidth << "bp," << paperHeight << "bp";
+	   << " -T " << paperWidth << "bp," << paperHeight << "bp "
+           << getSetting<string>("dvipsOptions");
       if(verbose <= 1) dcmd << " -q";
       dcmd << " -o '" << psname << "' '" << dviname << "'";
       status=System(dcmd,0,true,"dvips");
@@ -266,6 +266,7 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   cmd << " -g" << max(ceil(paperWidth),1.0) << "x" << max(ceil(paperHeight),1.0)
       << " -dDEVICEWIDTHPOINTS=" << max(b.right-b.left,3.0)
       << " -dDEVICEHEIGHTPOINTS=" << max(b.top-b.bottom,3.0)
+      << " " << getSetting<string>("gsOptions")
       << " -sOutputFile='" << pdfname << "' '" << epsname << "'";
   return System(cmd,0,true,"gs","Ghostscript");
 }

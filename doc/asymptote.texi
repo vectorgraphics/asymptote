@@ -7096,8 +7096,10 @@ interactiveMask=true;
 Command-line options override these defaults. Most configuration
 variables may also be changed at runtime. 
 @cindex @code{dvipsOptions}
-The advanced configuration variable @code{dvipsOptions} allows
-specialized options to be passed as a string to @code{dvips}.
+@cindex @code{gsOptions}
+The advanced configuration variables @code{dvipsOptions} and
+@code{gsOptions} allow specialized options to be passed as a string to
+@code{dvips} and @code{gs}, respectively. 
 
 If you insert
 @verbatim
