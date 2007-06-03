@@ -9,8 +9,6 @@
 real animationdelay=50;
 
 usepackage("animate");
-// Disable awkward filename padding of animate package.
-texpreamble("\makeatletter\def\@anim@pad#1#2{#2}\makeatother");
 
 struct animation {
   static string outname() {

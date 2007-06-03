@@ -5339,16 +5339,16 @@ movie.
 
 Higher-quality portable clickable @acronym{PDF} movies, with
 optional controls, can be internally generated and embedded by
-@code{Asymptote}
-by installing the file 
+@code{Asymptote}. This requires installing the package
 @quotation
 @url{http://www.ctan.org/tex-archive/macros/latex/contrib/animate/animate.sty}
 @noindent
 @end quotation
 @noindent
-in a new directory @code{animate} in the @code{LaTeX} source directory
-(for example, in @code{/usr/share/texmf/tex/latex/animate}) and executing the command
-@code{texhash}.
+(version 2007/05/24 or later) in a new directory @code{animate} in the
+@code{LaTeX} source directory (for example, in
+@code{/usr/share/texmf/tex/latex/animate}). On @code{UNIX} systems,
+one must then execute the command @code{texhash}.
 
 The example @code{pdfmovie.asy} in the @code{animations}
 directory, along with the slide presentations @code{slidemovies.asy}
