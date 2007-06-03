@@ -4058,7 +4058,7 @@ file* read3(file *File)
 }
 
 // Look up name in history.
-string history(string name)
+stringarray* history(string name, int n=1)
 {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   bool newhistory=historyMap.find(name) == historyMap.end();
@@ -4068,7 +4068,7 @@ string history(string name)
   if(newhistory) {
     filename=historyfilename(name);
     std::ifstream exists(filename.c_str());
-    if(!exists) return "";
+    if(!exists) return new array(0);
   }
 
   store_history(&history_save);
@@ -4078,14 +4078,22 @@ string history(string name)
   if(newhistory)
     read_history(filename.c_str());
   
-  HIST_ENTRY *last=history_get(history_length);
+  if(n <= 0) n=history_length;
+  else n=Min(n,history_length);
+  array *a=new array((size_t) n);
+  int offset=history_length-n+1;
+  for(int i=0; i < n; ++i) {
+    HIST_ENTRY *last=history_get(offset+i);
+    string s=last ? last-> line : "";
+    (*a)[i]=s;
+  }	
   
   store_history(&history);
   history_set_history_state(&history_save);
   
-  return last ? last-> line : "";
+  return a;
 #else
-  return "";	
+  return new array(0);
 #endif
 }
 

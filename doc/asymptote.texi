@@ -3357,8 +3357,9 @@ the default value formatted according to @code{prompt} and, if
 string readline(string name="", string defaultvalue="", string prompt="",
                 bool save=true, bool tabcompletion=false);
 @end verbatim
-The routine @code{history(string name)} can be used to look up the most
-recent value entered for string @code{name}.
+The routine @code{history(string name, int n=1)} can be used to look up
+the @code{n} most recent values (or all values up to @code{historylines}
+if @code{n=0}) entered for string @code{name}.
 
 @node Structures
 @section Structures
@@ -7221,8 +7222,9 @@ be entered on the same line.
 exit interactive mode (@code{exit} is a synonym; the abbreviation
 @code{q} is also accepted unless there exists a top-level variable named
 @code{q}).
+@cindex @code{historylines}
 A history of the most recent 1000 (this number can be changed with the
-@code{historylines} command-line option) previous commands will be retained
+@code{historylines} configuration variable) previous commands will be retained
 in the file @code{.asy/history} in the user's home directory (unless
 the command-line option @code{-localhistory} was specified, in which case
 the history will be stored in the file @code{.asy_history} in the

@@ -9,9 +9,9 @@ string ask(string prompt)
 string getstring(string name="", string default="", string prompt="",
                  bool save=true)
 {
-  string last=history(name);
-  if(last == "") last=default;
-  return readline(name,last,prompt == "" ? name+"? [%s] " : prompt,save);
+  string[] history=history(name,1);
+  if(history.length > 0) default=history[0];
+  return readline(name,default,prompt == "" ? name+"? [%s] " : prompt,save);
 }
 
 int getint(string name="", int default=0, string prompt="", bool save=true)
