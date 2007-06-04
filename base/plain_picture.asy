@@ -1,5 +1,3 @@
-include xasy;
-
 restricted bool Aspect=true;
 restricted bool IgnoreAspect=false;
 
@@ -331,23 +329,10 @@ frame align(frame f, pair align)
   return shift(align-point(f,-align))*f;
 }
 
-struct node {
-  drawerBound drawerBound;
-  transform xform; // GUI transform (in PostScript coordinates) to be applied to drawerBound.
-}
-
-node node(drawerBound d)
-{
-  node n;
-  n.drawerBound=d;
-  n.xform=xformStack.pop();
-  return n;
-}
-
 struct picture {
   // The functions to do the deferred drawing.
-  node[] nodes;
-
+  drawerBound[] nodes;
+  
   // The coordinates in flex space to be used in sizing the picture.
   struct bounds {
     coords2 point,min,max;
@@ -412,7 +397,7 @@ struct picture {
   
   // Erase the current picture, retaining any size specification.
   void erase() {
-    nodes=new node[];
+    nodes=new drawerBound[];
     bounds.erase();
     T=identity();
     scale=new ScaleT;
@@ -496,14 +481,14 @@ struct picture {
   
   void add(drawerBound d) {
     uptodate(false);
-    nodes.push(node(d));
+    nodes.push(d);
   }
 
   void add(drawer d) {
     uptodate(false);
-    nodes.push(node(new void(frame f, transform t, transform T, pair, pair) {
-          d(f,t*T);
-        }));
+    nodes.push(new void(frame f, transform t, transform T, pair, pair) {
+        d(f,t*T);
+      });
   }
 
   void clip(drawer d) {
@@ -717,10 +702,8 @@ struct picture {
 
   frame fit(transform t, transform T0=T, pair m, pair M) {
     frame f;
-    for(int i=0; i < nodes.length; ++i) {
-      node n=nodes[i];
-      n.drawerBound(f,n.xform*t,T0,m,M);
-    }
+    for (int i=0; i < nodes.length; ++i)
+      nodes[i](f,t,T0,m,M);
     return f;
   }
 
@@ -838,10 +821,10 @@ struct picture {
     
     picture srcCopy=src.drawcopy();
     // Draw by drawing the copied picture.
-    nodes.push(node(new void(frame f, transform t, transform T, pair m, pair M) {
-          frame d=srcCopy.fit(t,T*srcCopy.T,m,M);
-          add(f,d,put,filltype,group);
-        }));
+    nodes.push(new void(frame f, transform t, transform T, pair m, pair M) {
+        frame d=srcCopy.fit(t,T*srcCopy.T,m,M);
+        add(f,d,put,filltype,group);
+      });
     
     legend.append(src.legend);
     
