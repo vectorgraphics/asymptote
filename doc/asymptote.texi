@@ -4520,6 +4520,25 @@ quadratic equation @math{ax^2+bx+c=0}.
 This numerically robust solver returns the real roots of the
 cubic equation @math{ax^3+bx^2+cx+d=0}.
 
+@cindex @code{newton}
+@item @code{real newton(int iterations=100, real f(real), real fprime(real),
+real x, bool verbose=false);}
+Use Newton-Raphson iteration to solve for a root of the real-valued
+differentiable function @code{f}, given its derivative @code{fprime} and
+an initial guess @code{x}. Diagnostics for
+each iteration are printed if @code{verbose=true}. 
+If the iteration fails after @code{iterations} loops, @code{realMax} is returned.
+
+@cindex @code{newton}
+@item @code{real newton(int iterations=100, real f(real), real fprime(real),
+real x1, real x2, bool verbose=false);}
+Use bracketed Newton-Raphson bisection to solve for a root of the real-valued
+differentiable function @code{f} within an interval
+[@code{x1},@code{x2}] (on which the endpoint values of @code{f} have
+opposite signs), given its derivative @code{fprime}. Diagnostics for
+each iteration are printed if @code{verbose=true}. If the iteration fails after
+@code{iterations} loops, @code{realMax} is returned.
+
 @end table
 
 @cindex vectorization

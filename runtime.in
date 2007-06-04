@@ -38,6 +38,7 @@ picture* => primPicture()
 transform => primTransform()
 callable* => voidFunction()
 callableBp* => breakpointFunction()
+callableReal* => realRealFunction()
 runnable* => primCode()
 boolarray* => boolArray()
 intarray*  => intArray()
@@ -150,6 +151,7 @@ typedef array stringarray;
 typedef array stringarray2;
   
 typedef callable callableBp;
+typedef callable callableReal;
 }
 
 using vm::array;
@@ -185,6 +187,11 @@ function *breakpointFunction()
 {
   return new function(primString(),primString(),primInt(),primInt(),
   primCode());
+}
+
+function *realRealFunction()
+{
+  return new function(primReal(),primReal());
 }
 
 callable *atExitFunction=NULL;
@@ -3772,6 +3779,129 @@ realarray *tridiagonal(realarray *a, realarray *b, realarray *c, realarray *f)
   delete[] delta;
   
   return up;
+}
+
+// Root solve by Newton-Raphson
+real newton(int iterations=100, callableReal *f, callableReal *fprime, real x,
+	    bool verbose=false)
+{
+  static const double fuzz=1000.0*DBL_EPSILON;
+  int i=0;
+  size_t oldPrec=cout.precision(DBL_DIG);
+  if(verbose)
+    cout <<  "newton0: " << x << endl;
+
+  real diff=DBL_MAX;
+  real lastdiff;
+  do {
+    real x0=x;
+    
+    Stack->push(x);
+    f->call(Stack);
+    real fx=pop<real>(Stack);
+    
+    Stack->push(x);
+    fprime->call(Stack);
+    real dfdx=pop<real>(Stack);
+    
+    if(dfdx == 0.0) {
+      x=DBL_MAX;
+      break;
+    }
+    x -= fx/dfdx;
+
+    lastdiff=diff;
+    
+    cout << "newton: " << x << endl;
+    
+    diff=fabs(x-x0);
+    if(++i == iterations) {
+      x=DBL_MAX;
+      break;
+    }
+  } while (diff != 0.0 && (diff < lastdiff || diff > fuzz*fabs(x)));
+
+  cout.precision(oldPrec);
+  return x;
+}
+
+// Root solve by Newton-Raphson bisection
+real newton(int iterations=100, callableReal *f, callableReal *fprime, real x1, real x2,
+	    bool verbose=false)
+{
+  static const double fuzz=1000.0*DBL_EPSILON;
+  size_t oldPrec=cout.precision(DBL_DIG);
+
+  Stack->push(x1);
+  f->call(Stack);
+  real f1=pop<real>(Stack);
+  if(f1 == 0.0) return x1;
+  
+  Stack->push(x2);
+  f->call(Stack);
+  real f2=pop<real>(Stack);
+  if(f2 == 0.0) return x2;
+	
+  if((f1 > 0.0 && f2 > 0.0) || (f1 < 0.0 && f2 < 0.0)) {
+    ostringstream buf;
+    buf << "root not bracketed, f(x1)=" << f1 << ", f(x2)=" << f2 << endl;
+    error(buf);
+  }
+
+  real x=0.5*(x1+x2);
+  real dxold=fabs(x2-x1);
+  if(f1 > 0.0) {
+    real temp=x1;
+    x1=x2;
+    x2=temp;
+  }
+	
+  if(verbose) {
+    cout << "Midpoint: " << x << endl;
+  }
+
+  real dx=dxold;
+  Stack->push(x);
+  f->call(Stack);
+  real y=pop<real>(Stack);
+  
+  Stack->push(x);
+  fprime->call(Stack);
+  real dy=pop<real>(Stack);
+
+  int j;
+  for(j=0; j < iterations; j++) {
+    if(((x-x2)*dy-y)*((x-x1)*dy-y) >= 0.0 || fabs(2.0*y) > fabs(dxold*dy)) {
+      dxold=dx;
+      dx=0.5*(x2-x1);
+      x=x1+dx;
+      if(verbose)
+	cout << "Bisection: " << x << endl;
+      if(x1 == x) return x;
+    } else {
+      dxold=dx;
+      dx=y/dy;
+      real temp=x;
+      x -= dx;
+      if(verbose)
+	cout << "Newton-Raphson: " << x << endl;
+      if(temp == x) return x;
+    }
+    if(fabs(dx) < fuzz*fabs(x)) return x;
+    
+    Stack->push(x);
+    f->call(Stack);
+    y=pop<real>(Stack);
+    
+    Stack->push(x);
+    fprime->call(Stack);
+    dy=pop<real>(Stack);
+
+    if(y < 0.0) x1=x;
+    else x2=x;
+  }
+  cout.precision(oldPrec);
+  return (j == iterations) ? DBL_MAX : x;
 }
 
 // Compute the fast Fourier transform of a pair array
