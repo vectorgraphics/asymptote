@@ -3826,8 +3826,8 @@ real newton(int iterations=100, callableReal *f, callableReal *fprime, real x,
 }
 
 // Root solve by Newton-Raphson bisection
-real newton(int iterations=100, callableReal *f, callableReal *fprime, real x1, real x2,
-	    bool verbose=false)
+real newton(int iterations=100, callableReal *f, callableReal *fprime, real x1,
+	    real x2, bool verbose=false)
 {
   static const double fuzz=1000.0*DBL_EPSILON;
   size_t oldPrec=cout.precision(DBL_DIG);
