@@ -3332,31 +3332,34 @@ The routines
 @cindex @code{getreal}
 @verbatim
 string getstring(string name="", string default="", string prompt="",
-                 bool save=true);
+                 bool store=true);
 int getint(string name="", int default=0, string prompt="",
-           bool save=true);
+           bool store=true);
 real getreal(string name="", real default=0, string prompt="",
-             bool save=true);
+             bool store=true);
 pair getpair(string name="", pair default=0, string prompt="",
-             bool save=true)
+             bool store=true)
 @end verbatim
 @noindent
 defined in the module @code{plain} may be used to prompt for a value from
 @code{stdin} using the @acronym{GNU} @code{readline} library.
-If @code{save=true}, the history of values for @code{name} is
-saved to the file @code{".asy_"+name} (@pxref{history}). The most
+If @code{store=true}, the history of values for @code{name} is
+stored in the file @code{".asy_history"+name} (@pxref{history}). The most
 recent value in the history will be used to provide a default value
 for subsequent runs.  The default value (initially @code{default}) is
-displayed after @code{prompt}. These routines are based on the
-following interface to @code{readline}, which prompts the user with
-the default value formatted according to @code{prompt} and, if
-@code{save=true}, saves the local history under the name
-@code{".asy_"+variable}:
+displayed after @code{prompt}. These functions are based on the internal
+routines
 @cindex @code{readline}
 @verbatim
-string readline(string name="", string defaultvalue="", string prompt="",
-                bool save=true, bool tabcompletion=false);
+string readline(string prompt="", string name="", bool tabcompletion=false);
+void saveline(string name, string value, bool store=true);
 @end verbatim
+Here, @code{readline} prompts the user with the default value
+formatted according to @code{prompt}, while @code{saveline} 
+is used to save the string @code{value} in a local history named
+@code{name}, optionally storing the local history in a file
+@code{".asy_history_"+name}. 
+
 The routine @code{history(string name, int n=1)} can be used to look up
 the @code{n} most recent values (or all values up to @code{historylines}
 if @code{n=0}) entered for string @code{name}.

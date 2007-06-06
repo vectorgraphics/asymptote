@@ -7,26 +7,31 @@ string ask(string prompt)
 }
 
 string getstring(string name="", string default="", string prompt="",
-                 bool save=true)
+                 bool store=true)
 {
   string[] history=history(name,1);
   if(history.length > 0) default=history[0];
-  return readline(name,default,prompt == "" ? name+"? [%s] " : prompt,save);
+  if(prompt == "") prompt=name+"? [%s] ";
+  prompt=replace(prompt,new string[][] {{"%s",default}});
+  string s=readline(prompt,name);
+  if(s == "") s=default;
+  else saveline(name,s,store);
+  return s;
 }
 
-int getint(string name="", int default=0, string prompt="", bool save=true)
+int getint(string name="", int default=0, string prompt="", bool store=true)
 {
-  return (int) getstring(name,(string) default,prompt,save);
+  return (int) getstring(name,(string) default,prompt,store);
 }
 
-real getreal(string name="", real default=0, string prompt="", bool save=true)
+real getreal(string name="", real default=0, string prompt="", bool store=true)
 {
-  return (real) getstring(name,(string) default,prompt,save);
+  return (real) getstring(name,(string) default,prompt,store);
 }
 
-pair getpair(string name="", pair default=0, string prompt="", bool save=true)
+pair getpair(string name="", pair default=0, string prompt="", bool store=true)
 {
-  return (pair) getstring(name,(string) default,prompt,save);
+  return (pair) getstring(name,(string) default,prompt,store);
 }
 
 // returns a string with all occurrences of string 'before' in string 's'

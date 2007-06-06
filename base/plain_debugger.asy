@@ -62,7 +62,7 @@ string debugger(string file, int line, int column, code s=quote{})
 
       string Prompt=file+": "+(string) line+"."+(string) column;
       Prompt += "? [%s] ";
-      s=getstring(name="debug",default="h",prompt=Prompt,save=false);
+      s=getstring(name="debug",default="h",prompt=Prompt,store=false);
       if(s == "h" || s == "?") {help=true; continue;}
       if(s == "c" || s == "s" || s == "n" || s == "i" || s == "f" || s == "r")
         break;

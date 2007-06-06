@@ -468,7 +468,7 @@ void integeroverflow(size_t i)
   
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 struct historyState {
-  bool save;
+  bool store;
   HISTORY_STATE state;
 };
   
@@ -541,7 +541,7 @@ void cleanup()
       ++h) {
     history_set_history_state(&h->second.state);
     stifle_history(nlines);
-    if(h->second.save) write_history(historyfilename(h->first).c_str());
+    if(h->second.store) write_history(historyfilename(h->first).c_str());
   }
   history_set_history_state(&history_save);
 #endif
@@ -4227,10 +4227,9 @@ stringarray* history(string name, int n=1)
 #endif
 }
 
-// Prompt for a string using the GNU readline library and a local history.
-// If save=true, store this local history in the file historyfilename(name).
-string readline(string name=emptystring, string defaultvalue=emptystring,
-       		string prompt=emptystring, bool save=true,
+// Prompt for a string using prompt, the GNU readline library, and a
+// local history named name.
+string readline(string prompt=emptystring, string name=emptystring,
 		bool tabcompletion=false)
 {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
@@ -4239,7 +4238,6 @@ string readline(string name=emptystring, string defaultvalue=emptystring,
   store_history(&history_save);
   bool newhistory=historyMap.find(name) == historyMap.end();
   historyState& h=historyMap[name];
-  h.save=save;
   HISTORY_STATE& history=h.state;
   history_set_history_state(&history);
 
@@ -4254,31 +4252,43 @@ string readline(string name=emptystring, string defaultvalue=emptystring,
     line=NULL;
   }
      
-  const char *Default=defaultvalue.c_str();
-  int size=snprintf(NULL,0,prompt.c_str(),Default)+1;
-  if(size < 1) size=255; // Workaround for non-C99 compliant systems.
-  char *buf=new char[size];
-  snprintf(buf,size,prompt.c_str(),Default);
-  
   /* Get a line from the user. */
-  line=readline(buf);
-  delete[] buf;
+  line=readline(prompt.c_str());
      
-  if(line) {
-  /* If the line has any text in it, save it on the history. */
-    if(*line) add_history(line);
-  } else cout << endl;
+  if(!line) cout << endl;
   
-  store_history(&history);
   history_set_history_state(&history_save);
 
-  return line ? string(*line ? line : defaultvalue) : emptystring;
+  return line ? string(line) : emptystring;
 #else
   cout << prompt;
   string s;
   getline(cin,s);
   unused(&tabcompletion); // Avoid unused variable warning message.
   return s;
+#endif
+}
+
+// Save a string in a local history named name.
+// If store=true, store the local history in the file historyfilename(name).
+void saveline(string name, string value, bool store=true)
+{
+#if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
+  store_history(&history_save);
+  bool newhistory=historyMap.find(name) == historyMap.end();
+  historyState& h=historyMap[name];
+  h.store=store;
+  HISTORY_STATE& history=h.state;
+  history_set_history_state(&history);
+
+  if(newhistory)
+    read_history(historyfilename(name).c_str());
+  
+  if(value != "")
+    add_history(value.c_str());
+  
+  store_history(&history);
+  history_set_history_state(&history_save);
 #endif
 }
 
