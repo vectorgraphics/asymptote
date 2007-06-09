@@ -929,9 +929,11 @@ void Draw(picture pic=currentpicture, explicit path[] g, pen p=currentpen)
   for(int i=0; i < g.length; ++i) Draw(pic,g[i],p);
 }
 
-void fill(picture pic=currentpicture, path[] g, pen p=currentpen)
+void fill(picture pic=currentpicture, path[] g, pen p=currentpen,
+	  bool copy=true)
 {
-  g=copy(g);
+  if(copy)
+    g=copy(g);
   pic.add(new void(frame f, transform t) {
       fill(f,t*g,p,copy=false);
     });
@@ -939,10 +941,12 @@ void fill(picture pic=currentpicture, path[] g, pen p=currentpen)
 }
 
 void latticeshade(picture pic=currentpicture, path[] g,
-                  pen fillrule=currentpen, pen[][] p)
+                  pen fillrule=currentpen, pen[][] p, bool copy=true)
 {
-  g=copy(g);
-  p=copy(p);
+  if(copy) {
+    g=copy(g);
+    p=copy(p);
+  }
   pic.add(new void(frame f, transform t) {
       latticeshade(f,t*g,fillrule,p,copy=false);
     });
@@ -950,9 +954,10 @@ void latticeshade(picture pic=currentpicture, path[] g,
 }
 
 void axialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
-                pen penb, pair b)
+                pen penb, pair b, bool copy=true)
 {
-  g=copy(g);
+  if(copy)
+    g=copy(g);
   pic.add(new void(frame f, transform t) {
       axialshade(f,t*g,pena,t*a,penb,t*b,copy=false);
     });
@@ -960,9 +965,10 @@ void axialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
 }
 
 void radialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
-                 real ra, pen penb, pair b, real rb)
+                 real ra, pen penb, pair b, real rb, bool copy=true)
 {
-  g=copy(g);
+  if(copy)
+    g=copy(g);
   pic.add(new void(frame f, transform t) {
       pair A=t*a, B=t*b;
       real RA=abs(t*(a+ra)-A);
@@ -973,12 +979,14 @@ void radialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
 }
 
 void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
-                  pen[] p, pair[] z, int[] edges)
+                  pen[] p, pair[] z, int[] edges, bool copy=true)
 {
-  g=copy(g);
-  p=copy(p);
-  z=copy(z);
-  edges=copy(edges);
+  if(copy) {
+    g=copy(g);
+    p=copy(p);
+    z=copy(z);
+    edges=copy(edges);
+  }
   pic.add(new void(frame f, transform t) {
       gouraudshade(f,t*g,fillrule,p,t*z,edges,copy=false);
     });
@@ -986,11 +994,13 @@ void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
 }
 
 void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
-                  pen[] p, int[] edges)
+                  pen[] p, int[] edges, bool copy=true)
 {
-  g=copy(g);
-  p=copy(p);
-  edges=copy(edges);
+  if(copy) {
+    g=copy(g);
+    p=copy(p);
+    edges=copy(edges);
+  }
   pic.add(new void(frame f, transform t) {
       gouraudshade(f,t*g,fillrule,p,edges,copy=false);
     });
@@ -998,12 +1008,14 @@ void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
 }
 
 void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
-                 pen[][] p, path[] b=g, pair[][] z=new pair[][])
+                 pen[][] p, path[] b=g, pair[][] z=new pair[][], bool copy=true)
 {
-  g=copy(g);
-  p=copy(p);
-  b=copy(b);
-  z=copy(z);
+  if(copy) {
+    g=copy(g);
+    p=copy(p);
+    b=copy(b);
+    z=copy(z);
+  }
   pic.add(new void(frame f, transform t) {
       pair[][] Z=new pair[z.length][];
       for(int i=0; i < z.length; ++i)
@@ -1039,26 +1051,31 @@ void clip(frame f, path[] g)
   clip(f,g,currentpen);
 }
 
-void clip(picture pic=currentpicture, path[] g, pen p=currentpen)
+void clip(picture pic=currentpicture, path[] g, pen p=currentpen,
+	  bool copy=true)
 {
-  g=copy(g);
+  if(copy)
+    g=copy(g);
   pic.userClip(min(g),max(g));
   pic.clip(new void(frame f, transform t) {
       clip(f,t*g,p,copy=false);
     });
 }
 
-void unfill(picture pic=currentpicture, path[] g)
+void unfill(picture pic=currentpicture, path[] g, bool copy=true)
 {
-  g=copy(g);
+  if(copy)
+    g=copy(g);
   pic.add(new void(frame f, transform t) {
       unfill(f,t*g,copy=false);
     });
 }
 
-void filloutside(picture pic=currentpicture, path[] g, pen p=currentpen)
+void filloutside(picture pic=currentpicture, path[] g, pen p=currentpen,
+		 bool copy=true)
 {
-  g=copy(g);
+  if(copy)
+    g=copy(g);
   pic.add(new void(frame f, transform t) {
       filloutside(f,t*g,p,copy=false);
     });
