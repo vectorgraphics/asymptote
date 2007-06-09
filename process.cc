@@ -64,6 +64,7 @@ void purge()
 {
 #ifdef USEGC
   GC_gcollect();
+  GC_gcollect();
 #endif
 }
 
@@ -171,7 +172,7 @@ public:
 
     try {
       purge();
-
+      
       genv ge;
       env base_env(ge);
       coder base_coder;
@@ -186,8 +187,10 @@ public:
       // Now that everything is set up, run the core.
       run(e,s);
 
+      purge();
       postRun(e,s);
-
+      purge();
+      
     } catch(std::bad_alloc&) {
       cerr << "error: out of memory" << endl;
       em->statusError();
@@ -752,7 +755,7 @@ class iprompt : public icore {
 
     // Ignore errors from this line when trying to run subsequent lines.
     em->clear();
-
+    
     purge(); // Close any files that have gone out of scope.
   }
 
