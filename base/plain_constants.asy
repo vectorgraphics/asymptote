@@ -58,7 +58,7 @@ bool finite(triple v)
 }
 
 restricted file stdin=input("");
-restricted file stdout;
+restricted file stdout=output("");
 
 void none(file file) {}
 void endl(file file) {write(file,'\n'); flush(file);}

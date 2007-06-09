@@ -3242,8 +3242,8 @@ other than the current directory is allowed only if the @code{-global}
 @cindex @code{stdin}
 @cindex @code{stdout}
 There are two special files: @code{stdin}, which reads from the keyboard,
-and @code{stdout}, which writes to the terminal. The implicit initializer
-for files is @code{stdout}.
+and @code{stdout}, which writes to the terminal. There is no implicit
+initializer for files.
 
 Data of a built-in type @code{T} can be written to an output file by
 calling one of the functions

@@ -365,7 +365,6 @@ void addInitializers(venv &ve)
   addInitializer(ve, primPath(), nullPath);
   addInitializer(ve, primPen(), newPen);
   addInitializer(ve, primPicture(), newPicture);
-  addInitializer(ve, primFile(), standardOut);
 }
 
 void addCasts(venv &ve)
@@ -389,8 +388,6 @@ void addCasts(venv &ve)
   addCast(ve, primGuide(), primPair(), pairToGuide);
   addCast(ve, primGuide(), primPath(), pathToGuide);
   addCast(ve, primPath(), primGuide(), guideToPath);
-
-  addCast(ve, primFile(), primNull(), nullFile);
 
   // Vectorized casts.
   addExplicitCast(ve, intArray(), realArray(), arrayToArray<double,int>);

@@ -13,7 +13,6 @@ namespace camp {
 string tab="\t";
 string newline="\n";
 
-ofile nullfile("");
 ofile Stdout("");
 
 void ifile::ignoreComment(bool readstring)

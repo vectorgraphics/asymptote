@@ -577,7 +577,6 @@ public:
 #endif
 
 extern ofile Stdout;
-extern ofile nullfile;
 
 } // namespace camp
 
