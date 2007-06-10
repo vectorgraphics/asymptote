@@ -3788,8 +3788,6 @@ real newton(int iterations=100, callableReal *f, callableReal *fprime, real x,
   static const double fuzz=1000.0*DBL_EPSILON;
   int i=0;
   size_t oldPrec=cout.precision(DBL_DIG);
-  if(verbose)
-    cout <<  "newton0: " << x << endl;
 
   real diff=DBL_MAX;
   real lastdiff;
@@ -3812,7 +3810,8 @@ real newton(int iterations=100, callableReal *f, callableReal *fprime, real x,
 
     lastdiff=diff;
     
-    cout << "newton: " << x << endl;
+    if(verbose)
+      cout << "Newton-Raphson: " << x << endl;
     
     diff=fabs(x-x0);
     if(++i == iterations) {
@@ -3856,9 +3855,8 @@ real newton(int iterations=100, callableReal *f, callableReal *fprime, real x1,
     x2=temp;
   }
 	
-  if(verbose) {
-    cout << "Midpoint: " << x << endl;
-  }
+  if(verbose)
+    cout << "midpoint: " << x << endl;
 
   real dx=dxold;
   Stack->push(x);
@@ -3876,7 +3874,7 @@ real newton(int iterations=100, callableReal *f, callableReal *fprime, real x1,
       dx=0.5*(x2-x1);
       x=x1+dx;
       if(verbose)
-	cout << "Bisection: " << x << endl;
+	cout << "bisection: " << x << endl;
       if(x1 == x) return x;
     } else {
       dxold=dx;
