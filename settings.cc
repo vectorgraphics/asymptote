@@ -150,9 +150,9 @@ string getEntry(const string& key)
   
 void queryRegistry()
 {
-  string gs=getEntry("AFPL Ghostscript/*/GS_DLL");
+  string gs=getEntry("GPL Ghostscript/*/GS_DLL");
   if(gs.empty())
-    gs=getEntry("GPL Ghostscript/*/GS_DLL");
+    gs=getEntry("AFPL Ghostscript/*/GS_DLL");
   defaultGhostscript=stripFile(gs)+defaultGhostscript;
   defaultPDFViewer=getEntry("Adobe/Acrobat Reader/*/InstallPath/@")+"\\"+
     defaultPDFViewer;

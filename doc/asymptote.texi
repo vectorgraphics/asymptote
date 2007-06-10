@@ -350,7 +350,7 @@ where @code{x.xx} denotes the latest version.
 
 A working @code{TeX} implementation (such as the one available at
 @url{http://www.miktex.org}) will be required to typeset labels.
-You will also need to install @code{AFPL or GPL Ghostscript} from
+You will also need to install @code{GPL Ghostscript} from
 @url{http://sourceforge.net/projects/ghostscript/}.
 To view the default @code{PostScript} output, you can install the
 program @code{gsview} available from 
@@ -7705,7 +7705,7 @@ Stefan Knorr.
 @c  LocalWords:  LeftJustified RightJustified tickmodifier gunzip gmake IRIX dv
 @c  LocalWords:  texcommand RET SITEDIR filegraph pathmarkers POSIX binput AOB
 @c  LocalWords:  boutput nonportable markinterval stickframe circlebarframe tix
-@c  LocalWords:  crossframe tildeframe markangle StickIntervalMarker gswin AFPL
+@c  LocalWords:  crossframe tildeframe markangle StickIntervalMarker gswin
 @c  LocalWords:  CrossIntervalMarker CircleBarIntervalMarker Ghostscript syzygy
 @c  LocalWords:  TildeIntervalMarker autoimport calculateTransform bitwise tk
 @c  LocalWords:  headersize bodysize minheaderwidth minheaderheight minwidth
