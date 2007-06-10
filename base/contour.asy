@@ -189,11 +189,15 @@ private guide[][] connect(pair[][][] points, real[] c, interpolate join)
       guide gd;
       if(pts.length > 0) {
         if(pts.length > 1 && abs(pts[0]-pts[pts.length-1]) < eps) {
-	  pair extra=pts.delete(pts.length-1);
-          gd=join(join(...pts),cycle);
-	  pts.push(extra);
+          guide[] g=sequence(new guide(int i) {
+              return pts[i];
+            },pts.length-1);
+          g.push(cycle);
+          gd=join(...g);
         } else
-          gd=join(...pts);
+          gd=join(...sequence(new guide(int i) {
+                return pts[i];
+              },pts.length));
       }
       resultcnt[i]=gd;
     }
