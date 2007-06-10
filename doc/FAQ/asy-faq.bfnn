@@ -1135,14 +1135,14 @@ of exactly \courier{1cm\}:
 \verbatim
 unitsize(1cm);
 draw(unitsquare);
-\endverbatim 
+\endverbatim
 
 One can also specify different x and y unit sizes:
 
 \verbatim
 unitsize(x=1cm,y=2cm);
 draw(unitsquare);
-\endverbatim 
+\endverbatim
 
 Another way is to draw your fixed size object to a frame and add it to
 currentpicture like this:

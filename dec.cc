@@ -58,7 +58,7 @@ void dimensions::prettyprint(ostream &out, int indent)
 types::array *dimensions::truetype(types::ty *base)
 {
   if (base->kind == ty_void) {
-    em->compiler(getPos());
+    em->error(getPos());
     *em << "cannot declare array of type void";
   }
 
@@ -378,8 +378,18 @@ varEntry *makeVarEntry(position pos, coenv &e, record *r, types::ty *t) {
   return makeVarEntryWhere(e, r, t, r, pos);
 }
 
+
+// Defined in constructor.cc.
+bool definesImplicitConstructor(coenv &e, record *r, varEntry *v, symbol *id);
+void addConstructorFromInitializer(position pos, coenv &e, record *r,
+                                   varEntry *init);
+
 void addVar(coenv &e, record *r, varEntry *v, symbol *id)
 {
+  // Test for 'operator init' definitions that implicitly define constructors:
+  if (definesImplicitConstructor(e, r, v, id))
+    addConstructorFromInitializer(position(), e, r, v);
+
   // Add to the record so it can be accessed when qualified; add to the
   // environment so it can be accessed unqualified in the scope of the
   // record definition.
@@ -388,9 +398,10 @@ void addVar(coenv &e, record *r, varEntry *v, symbol *id)
   e.e.addVar(id, v);
 }
 
-void initializeVar(position pos, coenv &e, record *,
-                   varEntry *v, types::ty *t, varinit *init)
+void initializeVar(position pos, coenv &e, varEntry *v, varinit *init)
 {
+  types::ty *t=v->getType();
+
   if (init)
     init->transToType(e, t);
   else {
@@ -407,14 +418,14 @@ void createVar(position pos, coenv &e, record *r,
 {
   varEntry *v=makeVarEntry(pos, e, r, t);
   addVar(e, r, v, id);
-  initializeVar(pos, e, r, v, t, init);
+  initializeVar(pos, e, v, init);
 }
 
 void createVarOutOfOrder(position pos, coenv &e, record *r,
                          symbol *id, types::ty *t, varinit *init)
 {
   varEntry *v=makeVarEntry(pos, e, r, t);
-  initializeVar(pos, e, r, v, t, init);
+  initializeVar(pos, e, v, init);
   addVar(e, r, v, id);
 }
 
@@ -436,7 +447,7 @@ void decid::transAsField(coenv &e, record *r, types::ty *base)
   types::ty *t = start->getType(base, e);
   assert(t);
   if (t->kind == ty_void) {
-    em->compiler(getPos());
+    em->error(getPos());
     *em << "cannot declare variable of type void";
   }
 
@@ -549,7 +560,7 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol *id)
     // The varEntry should have whereDefined()==0 as it is not defined inside
     // the record r.
     varEntry *v=makeVarEntryWhere(e, r, imp, 0, pos);
-    initializeVar(pos, e, r, v, imp, &init);
+    initializeVar(pos, e, v, &init);
     return v;
   }
 }
@@ -626,22 +637,15 @@ void fromdec::prettyprint(ostream &out, int indent)
 
 void fromdec::transAsField(coenv &e, record *r)
 {
-  varEntry *v=getQualifier(e,r);
-  if (v) {
-    record *qt=dynamic_cast<record *>(v->getType());
-    if (!qt) {
-      em->error(getPos());
-      *em << "qualifier is not a record";
+  qualifier q=getQualifier(e,r);
+  if (q.t) {
+    if (fields==WILDCARD) {
+      if (r)
+        r->e.add(q.t->e, q.v, e.c);
+      e.e.add(q.t->e, q.v, e.c);
     }
-    else {
-      if (fields==WILDCARD) {
-        if (r)
-          r->e.add(qt->e, v, e.c);
-        e.e.add(qt->e, v, e.c);
-      }
-      else
-        fields->transAsUnravel(e, r, qt->e, v);
-    }
+    else
+      fields->transAsUnravel(e, r, q.t->e, q.v);
   }
 }
 
@@ -654,12 +658,16 @@ void unraveldec::prettyprint(ostream &out, int indent)
   if(f) f->prettyprint(out, indent+1);
 }
 
-varEntry *unraveldec::getQualifier(coenv &e, record *)
+fromdec::qualifier unraveldec::getQualifier(coenv &e, record *)
 {
-  // To report errors.
-  id->getType(e, false);
+  // getType is where errors in the qualifier are reported.
+  record *qt=dynamic_cast<record *>(id->getType(e, false));
+  if (!qt) {
+    em->error(getPos());
+    *em << "qualifier is not a record";
+  }
 
-  return id->getVarEntry(e);
+  return qualifier(qt,id->getVarEntry(e));
 }
 
 void fromaccessdec::prettyprint(ostream &out, int indent)
@@ -670,9 +678,19 @@ void fromaccessdec::prettyprint(ostream &out, int indent)
   if(f) f->prettyprint(out, indent+1);
 }
 
-varEntry *fromaccessdec::getQualifier(coenv &e, record *r)
+fromdec::qualifier fromaccessdec::getQualifier(coenv &e, record *r)
 {
-  return accessModule(getPos(), e, r, id);
+  varEntry *v=accessModule(getPos(), e, r, id);
+  if (v) {
+    record *qt=dynamic_cast<record *>(v->getType());
+    if (!qt) {
+      em->compiler(getPos());
+      *em << "qualifier is not a record";
+    }
+    return qualifier(qt, v);
+  }
+  else
+    return qualifier(0,0);
 }
 
 void importdec::prettyprint(ostream &out, int indent)
@@ -737,6 +755,12 @@ void recorddec::transRecordInitializer(coenv &e, record *parent)
   init.transAsField(e, parent);
 }
 
+void recorddec::addPostRecordEnvironment(coenv &e, record *r, record *parent) {
+  if (parent)
+    parent->e.add(r->postdefenv, 0, e.c);
+  e.e.add(r->postdefenv, 0, e.c);
+}
+
 void recorddec::transAsField(coenv &e, record *parent)
 {
   record *r = parent ? parent->newRecord(id, e.c.isStatic()) :
@@ -757,6 +781,11 @@ void recorddec::transAsField(coenv &e, record *parent)
   // variable of the type of the record is initialized to a new instance by
   // default.
   transRecordInitializer(e, parent);
+
+  // Add types and variables defined during the record that should be added to
+  // the enclosing environment.  These are the implicit constructors defined by
+  // "operator init".
+  addPostRecordEnvironment(e, r, parent);
 }  
 
 runnable *autoplainRunnable() {

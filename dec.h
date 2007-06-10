@@ -405,7 +405,7 @@ struct idpair : public absyn {
 
   void prettyprint(ostream &out, int indent);
 
-  // Translates as: import src as dest;
+  // Translates as: access src as dest;
   void transAsAccess(coenv &e, record *r);
   
   // Translates as: from _ unravel src as dest;
@@ -452,9 +452,31 @@ public:
 //   from _ unravel _;  (unraveldec)
 class fromdec : public dec {
 protected:
-  // Return the record from which the fields are taken.  If this returns 0, it
-  // is assumed that an error occurred and was reported.
-  virtual varEntry *getQualifier(coenv &e, record *r) = 0;
+  struct qualifier {
+    // The varEntry holds the location and the type of the highest framed
+    // structure that can be put on the stack.  The record holds the actual type
+    // of the qualifier.
+    // For example:
+    //   struct A {
+    //     struct B {
+    //       static int x;
+    //     }
+    //   }
+    //   A a=new A;
+    //   from a.B unravel x;
+    //
+    // Here, v->getType() will yield A and v->getLocation() will yield the
+    // location of the the variable a, but the record type t will be B.
+    record *t;
+    varEntry *v;
+
+    qualifier(record *t, varEntry *v)
+      : t(t), v(v) {}
+  };
+
+  // Return the qualifier from which the fields are taken.  If t==0, it is
+  // assumed that an error occurred and was reported.
+  virtual qualifier getQualifier(coenv &e, record *r) = 0;
   idpairlist *fields;
 
 public:
@@ -471,7 +493,7 @@ public:
 class unraveldec : public fromdec {
   name *id;
 
-  varEntry *getQualifier(coenv &e, record *);
+  qualifier getQualifier(coenv &e, record *);
 public:
   unraveldec(position pos, name *id, idpairlist *fields)
     : fromdec(pos, fields), id(id) {}
@@ -484,7 +506,7 @@ public:
 class fromaccessdec : public fromdec {
   symbol *id;
 
-  varEntry *getQualifier(coenv &e, record *r);
+  qualifier getQualifier(coenv &e, record *r);
 public:
   fromaccessdec(position pos, symbol *id, idpairlist *fields)
     : fromdec(pos, fields), id(id) {}
@@ -556,6 +578,7 @@ class recorddec : public dec {
   block *body;
 
   void transRecordInitializer(coenv &e, record *parent);
+  void addPostRecordEnvironment(coenv &e, record *r, record *parent);
 
 public:
   recorddec(position pos, symbol *id, block *body)

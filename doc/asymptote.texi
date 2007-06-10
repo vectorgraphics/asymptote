@@ -3364,6 +3364,68 @@ The routine @code{history(string name, int n=1)} can be used to look up
 the @code{n} most recent values (or all values up to @code{historylines}
 if @code{n=0}) entered for string @code{name}.
 
+@node Variable Initializers
+@section Variable Initializers
+@cindex variable initializers
+@cindex @code{operator init}
+@cindex initializers
+
+A variable can be assigned a value when it is declared, as in
+@code{int x=3;} where the variable @code{x} is assigned the value @code{3}.
+As well as literal constants such as @code{3}, arbitary expressions can be used
+as initializers, as in @code{real x=2*sin(pi/2);}.
+
+A variable is not added to the namespace until after the initializer is
+evaluated, so for example, in
+
+@verbatim
+int x=2;
+int x=5*x;
+@end verbatim
+
+the @code{x} in the initializer on the second line refers to the variable
+@code{x} declared on the first line.  The second line, then, declares a variable
+@code{x} shadowing the original @code{x} and initializes it to the value
+@code{10}.
+
+Variables of most types can be declared without an explicit initializer and they
+will be initialized by the default initializer of that type.
+
+@itemize
+@item Variables of the numeric types @code{int}, @code{real}, @code{pair}, and
+@code{triple} are all initialized to zero.
+@item @code{boolean} variables are initialized to @code{false}.
+@item @code{string} variables are initialized to the empty string.
+@item @code{transform} variables are initialized to the identity transformation.
+@item @code{guide} and @code{path} variables are initialized to @code{nullguide}
+and @code{nullpath} respectively.
+@item @code{pen} variables are initialized to the default pen.
+@item @code{frame} and @code{picture} variables and empty frames and pictures
+respectively.
+@end itemize
+
+The default initializers for user-defined array, structure, and function types
+are explained in their respective sections.  Some types, such as @code{file} and
+@code{code} do not have a default initializer.  When a variable of such a type
+is introduced, the user must initialize it by explicitly giving it a value.
+
+The default initializer for any type @code{T} can be redeclared by defining the
+function @code{T operator init()}.  For instance, @code{int} variables are
+usually initialized to zero, but in
+
+@verbatim
+int operator init() {
+  return 3;
+}
+int y;
+@end verbatim
+
+@noindent
+the variable @code{y} is initialized to @code{3}.  This example was given for
+illustrative purposes; redeclaring the initializers of built-in types is not
+recommended.  @code{operator init} is more commonly used to define sensible
+defaults for user-defined types.
+
 @node Structures
 @section Structures
 @cindex @code{struct}
@@ -3380,22 +3442,74 @@ user-defined operators, much as in C++. By default, structure members
 are @code{public} (may be read and modified anywhere in the code), but may be
 optionally declared @code{restricted} (readable anywhere but writeable
 only inside the structure where they are defined) or @code{private}
-(readable and writable only inside the structure). The virtual
-structure @code{this} refers to the enclosing structure. Any code at the
+(readable and writable only inside the structure). In a structure definition,
+the keyword @code{this} can be used as an expression to refer to the enclosing
+structure. Any code at the
 top-level scope within the structure is executed on initialization. 
-The implicit initializer for a structure @code{S} is @code{new S} (which
-creates a new anonymous instance of @code{S}).
-A null instance of a structure results on assigning it the value
-@code{null}.
 
-@cindex @code{operator init}
-This implicit initializer can be overwritten with the 
-@code{operator init()} to allow for a custom initialization of each
-instance of @code{S}:
+Variables hold references to structures.  That is, in the example:
+
 @verbatim
-S operator init() {
-  S s=new S;
-  return s;
+struct T {
+  int x;
+}
+
+T foo=new T;
+T bar=foo;
+bar.x=5;
+@end verbatim
+
+The variable @code{foo} holds a reference to an instance of the structure
+@code{T}.  When @code{bar} is assigned the value of @code{foo}, it now too holds
+a reference to the same instance as @code{foo} does.  The assignment
+@code{bar.x=5} changes the value of the field @code{x} in that one instance, so
+now @code{foo.x} will also be equal to @code{5}.
+
+The expression @code{new T} creates a new instance of the structure @code{T} and
+returns a reference to that instance.  In creating the new instance, any code in
+the body of the record definition is executed.  For example:
+
+@verbatim
+int TCount=0;
+struct T {
+  int x;
+  ++TCount;
+}
+
+T foo=new T;
+@end verbatim
+
+Here, the expression @code{new T} will produce a new instance of the class, but
+will also cause @code{TCount} to be incremented, so that it keeps track of the
+number of instances produced.
+
+The expression @code{null} can be cast to any structure type to yield a null
+reference, a reference that does not actually refer to any instance of the
+structure.  Trying to use a field of a null reference will cause an error.
+
+@cindex alias
+@cindex @code{==}
+@cindex @code{!=}
+The function @code{bool alias(T,T)} checks to see if two structure references
+refer to the same instance of the structure (or both to @code{null}).  For
+example, in the example code at the start of the section, @code{alias(foo,bar)}
+would return true, but @code{alias(foo,new T)} would return false, as @code{new
+T} creates a new instance of the structure @code{T}.  The boolean operators
+@code{==} and @code{!=} are by default equivalent to @code{alias} and
+@code{!alias} respectively, but may be overwritten for a particular type do a
+deep comparison.
+
+After the definition of a structure @code{T}, a variable of type @code{T} is
+initialized to a new instance (@code{new T}) by default.  During the definition
+of the structure, however, variables are initialized to @code{null} by default.
+This special behaviour is to avoid infinite recursion of creating new instances
+in code such as
+
+@verbatim
+struct tree {
+  int value;
+  tree left;
+  tree right;
 }
 @end verbatim
 
@@ -3423,34 +3537,97 @@ write((s+s).f(0));              // Outputs 2
 @end verbatim
 
 @cindex constructors
-In the following example, the static function @code{T.T(real x)}
-is a constructor that initializes and returns a new instance of @code{T}:
+It is often convenient to have functions that construct new instances of a
+structure.  Say we have a @code{Person} structure:
 
 @verbatim
-struct T {
-  real x;
-  static T T(real x) {T t=new T; t.x=x; return t;}
+struct Person {
+  string firstname;
+  string lastname;
 }
 
-T a;
-T b=T.T(1);
+Person joe=new Person;
+joe.firstname="Joe";
+joe.lastname="Jones";
+@end verbatim
 
-write(a.x);                     // Outputs 0
-write(b.x);                     // Outputs 1
+Creating a new Person is a chore; it takes three lines to create a new instance
+and to initialize its fields.  (It's still considerably less effort than
+creating a new person in real-life, though.)
+
+We can reduce the work by defining a constructor function, also called
+@code{Person}.
+
+@verbatim
+struct Person {
+  string firstname;
+  string lastname;
+
+  static Person Person(string firstname, string lastname) {
+    Person p=new Person;
+    p.firstname=firstname;
+    p.lastname=lastname;
+
+    return p;
+  }
+}
+
+Person joe=Person.Person("Joe", "Jones");
+@end verbatim
+
+While it is easier than before to create a new instance, we still have to refer
+to the constructor by the qualified name @code{Person.Person}.  If we add the
+line
+
+@verbatim
+from Person unravel Person;
 @end verbatim
 @noindent
-The name of the constructor need not be identical to the name of the structure;
-for example, see @code{triangle.SAS} in @code{geometry.asy}.
+immediately after the structure definition, then the constructor can be used
+without qualification: @code{Person p=Person("Joe", "Jones");}.
 
-Structure assignment does a shallow copy; a deep copy requires writing
-an explicit @code{copy()} member. The function @code{bool alias(T,T)} checks to
-see if two instances of the structure @code{T} are identical.
-The boolean operators @code{==} and @code{!=} are by default equivalent to
-@code{alias} and @code{!alias} respectively, but may be overwritten
-for a particular type do a deep comparison.
+The constructor is now easy to use, but it is quite a hassle to define.  If you
+write a lot of constructors, you will find that you are repeating a lot of code
+in each of them.  Fortunately, your friendly, neighbourhood Asymptote
+developers have devised a way to automate much of the process.
 
-When @code{a} is defined both as a variable and a type, the qualified
-name @code{a.b} refers to the variable instead of the type.
+If, in the body of a structure structure, Asymptote encounters the definition of
+a function of the form @code{void operator init(@var{args})},  it implicitly
+defines a constructor function that takes the same arguments and constructs a
+new instance by calling the @code{operator init} function to initialize it.
+That is, it essentially defines the following (assuming the structure is called
+@code{Foo}):
+
+@example
+static Foo Foo(@var{args}) @{
+  Foo instance=new Foo;
+  instance.operator init(@var{args});
+  return instance;
+@}
+@end example
+
+This constructor is also implicitly copied to the enclosing scope after the end
+of the structure definition, so that it can used subsequently without qualifying
+it by the structure name.  Our @code{Person} example can thus be implemented as:
+
+@verbatim
+struct Person {
+  string firstname;
+  string lastname;
+
+  void operator init(string firstname, string lastname) {
+    this.firstname=firstname;
+    this.lastname=lastname;
+  }
+}
+
+Person joe=Person("Joe", "Jones");
+@end verbatim
+
+The use of @code{operator init} to implicitly define constructors should not be
+confused with its use to define default values for variables.  Indeed, in the
+first case, the return type of the @code{operator init} must be @code{void}
+while in the second, it must be the (non-@code{void}) type of the variable.
 
 @cindex @code{cputime}
 The function @code{cputime()}
@@ -5024,16 +5201,32 @@ void f() {
   }
 }
 @end verbatim
-
+@noindent
 both @code{x} and @code{y} will be allocated in the same place, which is
 also where @code{f} is also allocated.
 
 Statements may also be declared static, in which case they are run at the place
 where the enclosing function or structure is defined.
-
 Declarations or statements not enclosed in a function or structure definition
 are already at the top level, so static modifiers are meaningless.  A warning is
 given in such a case.
+
+Since structures can have static fields, it is not always clear for a qualified
+name whether the qualifier is a variable or a type.  For instance, in:
+
+@verbatim
+struct A {
+  static int x;
+}
+pair A;
+
+int y=A.x;
+@end verbatim
+@noindent
+does the @code{A} in @code{A.x} refer to the structure or to the pair variable.
+It is the convention in Asymptote that, if there is a non-function variable with
+the same name as the qualifier, the qualifier refers to that variable, and not
+to the type.  This is regardless of what fields the variable actually possesses.
 
 @node LaTeX usage
 @chapter @code{LaTeX} usage

@@ -50,8 +50,9 @@ public:
     return 0;
   }
 
-  // Checks if expression can be used as the right side of a scale
+  // Checks if the expression can be used as the right side of a scale
   // expression.  ie. 3sin(x)
+  // If a "non-scalable" expression is scaled a warning is issued.
   virtual bool scalable() { return true; }
   
   // Specifies if the value of the expression should be written to interactive
@@ -59,7 +60,7 @@ public:
   // > 2+3;
   // should write 5, but
   // > x=2+3;
-  // shouldn't.  (This choices are largely aesthetic)
+  // shouldn't.  (These choices are largely aesthetic)
   virtual bool writtenToPrompt() { return true; }
 
   // Translates the expression to the given target type.  This should only be

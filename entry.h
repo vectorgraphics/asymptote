@@ -101,7 +101,7 @@ public:
            record *where, position pos)
     : entry(perm, r, where, pos), t(t), location(location) {}
 
-  // (Non-destructively) merges two varEntries, created a qualified varEntry.
+  // (Non-destructively) merges two varEntries, creating a qualified varEntry.
   varEntry(varEntry &qv, varEntry &v);
 
   ty *getType()
@@ -285,8 +285,8 @@ public:
   void enter(symbol *name, varEntry *v);
 
   // Add the entries in one environment to another, if qualifier is
-  // non-null, it is a record and the source environment are its fields.
-  // The coder is necessary to check which variables are accessible and
+  // non-null, it is a record and entries of the source environment are its
+  // fields.  The coder is necessary to check which variables are accessible and
   // should be added.
   void add(venv& source, varEntry *qualifier, coder &c);
 

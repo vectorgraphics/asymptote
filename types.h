@@ -329,6 +329,9 @@ struct signature : public gc {
     : rest(0)
     {}
 
+  signature(signature &sig)
+    : formals(sig.formals), rest(sig.rest) {}
+
   virtual ~signature() {}
 
   void add(formal f) {
@@ -372,6 +375,8 @@ struct function : public ty {
 
   function(ty *result)
     : ty(ty_function), result(result) {}
+  function(ty *result, signature *sig)
+    : ty(ty_function), result(result), sig(*sig) {}
   function(ty *result, formal f1)
     : ty(ty_function), result(result) {
     add(f1);

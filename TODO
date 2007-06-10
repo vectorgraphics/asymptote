@@ -5,4 +5,5 @@ Andy: Change primNull to another name (null is not primitive).
 
 Andy: Look at Java syntactic sugar for iterating over arrays.
 
-Andy: Add void operator init() "constructor" for structures.
+Andy: Add info to vm to aid debugging.  (Locations are a start, but we can add
+variable names, type info, stack traces).

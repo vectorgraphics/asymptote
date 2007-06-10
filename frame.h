@@ -62,6 +62,14 @@ public:
   }
 };
 
+inline void print(ostream& out, frame *f) {
+  out << f;
+  if (f != 0) {
+    out << " -> ";
+    print(out, f->getParent());
+  }
+}
+
 } // namespace trans
 
 #endif

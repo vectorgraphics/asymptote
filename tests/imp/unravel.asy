@@ -59,4 +59,37 @@ StartTest("unravel");
   assert(z==5);
   assert(blah()==7);
 }
+{
+  struct A {
+    struct B {
+      static int x=4;
+    }
+  }
+  A a=new A;
+  int x=3;
+  from a.B unravel x;
+  assert(x==4);
+}
+{
+  struct A {
+    struct B {
+      static int x=4;
+    }
+  }
+  A a=new A;
+  A.B b=new a.B;
+  int x=3;
+  from b unravel x;
+  assert(x==4);
+}
+{
+  struct A {
+    static struct B {
+      static int x=4;
+    }
+  }
+  int x=3;
+  from A.B unravel x;
+  assert(x==4);
+}
 EndTest();

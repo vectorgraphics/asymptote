@@ -39,6 +39,11 @@ public:
   // The name bindings for fields of the record.
   protoenv e;
 
+  // These are name bindings that should be added to the enclosing environment
+  // after translation of the record is completed.  Constructors implicitly
+  // defined by "operator init" are stored here.
+  protoenv postdefenv;
+
   record(symbol *name, frame *level);
   ~record();
 
