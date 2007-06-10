@@ -92,6 +92,7 @@ Programming
 * Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
 * Files::                       Reading and writing your data
+* Variable initializers::       Initialize your variables
 * Structures::                  Organize your data
 * Operators::                   Arithmetic and logical operators
 * Implicit scaling::            Avoiding those ugly *s
@@ -1542,6 +1543,7 @@ many features beyond the ones found in those languages.
 * Transforms::                  Affine transforms
 * Frames and pictures::         Canvases for immediate and deferred drawing
 * Files::                       Reading and writing your data
+* Variable initializers::       Initialize your variables
 * Structures::                  Organize your data
 * Operators::                   Arithmetic and logical operators
 * Implicit scaling::            Avoiding those ugly *s
@@ -2241,28 +2243,28 @@ Analogous to @code{cyclic(path g)}.
 Analogous to @code{point(path g, int t)}.
 
 @cindex @code{dirSpecifier}
-@item pair[] dirSpecifier(guide g, int t);
+@item pair[] dirSpecifier(guide g, int i);
 This returns a pair array of length 2 containing the outgoing (in
 element 0) and incoming (in element 1) direction specifiers (or
 @code{(0,0)} if none specified) for the segment of guide @code{g}
-between nodes @code{t} and @code{t+1}.
+between nodes @code{i} and @code{i+1}.
 
 @cindex @code{controlSpecifier}
-@item pair[] controlSpecifier(guide g, int t);
-If the segment of guide @code{g} between nodes @code{t} and @code{t+1}
+@item pair[] controlSpecifier(guide g, int i);
+If the segment of guide @code{g} between nodes @code{i} and @code{i+1}
 has explicit outgoing and incoming control points, they are returned as
 elements 0 and 1, respectively, of a two-element array. Otherwise, an
 empty array is returned.
 
 @cindex @code{tensionSpecifier}
-@item tensionSpecifier tensionSpecifier(guide g, int t);
+@item tensionSpecifier tensionSpecifier(guide g, int i);
 This returns the tension specifier for the segment of guide @code{g} between
-nodes @code{t} and @code{t+1}. The individual components of the tension
+nodes @code{i} and @code{i+1}. The individual components of the tension
 can be examined with the routines @code{in(tensionSpecifier)},
 @code{out(tensionSpecifier)}, and @code{atleastflag(tensionSpecifier)}.
 
 @cindex @code{curlSpecifier}
-@item real[] curls(guide g);
+@item real[] curlSpecifier(guide g);
 This returns an array containing the initial curl specifier (in element 0)
 and final curl specifier (in element 1) for guide @code{g}.
 
@@ -3364,8 +3366,8 @@ The routine @code{history(string name, int n=1)} can be used to look up
 the @code{n} most recent values (or all values up to @code{historylines}
 if @code{n=0}) entered for string @code{name}.
 
-@node Variable Initializers
-@section Variable Initializers
+@node Variable initializers
+@section Variable initializers
 @cindex variable initializers
 @cindex @code{operator init}
 @cindex initializers
@@ -3382,31 +3384,32 @@ evaluated, so for example, in
 int x=2;
 int x=5*x;
 @end verbatim
-
+@noindent
 the @code{x} in the initializer on the second line refers to the variable
 @code{x} declared on the first line.  The second line, then, declares a variable
 @code{x} shadowing the original @code{x} and initializes it to the value
 @code{10}.
 
 Variables of most types can be declared without an explicit initializer and they
-will be initialized by the default initializer of that type.
+will be initialized by the default initializer of that type:
 
 @itemize
-@item Variables of the numeric types @code{int}, @code{real}, @code{pair}, and
-@code{triple} are all initialized to zero.
+@item Variables of the numeric types @code{int}, @code{real}, and @code{pair}
+are all initialized to zero; variables of type @code{triple} are
+initialized to @code{O=(0,0,0)}.
 @item @code{boolean} variables are initialized to @code{false}.
 @item @code{string} variables are initialized to the empty string.
 @item @code{transform} variables are initialized to the identity transformation.
-@item @code{guide} and @code{path} variables are initialized to @code{nullguide}
-and @code{nullpath} respectively.
+@item @code{guide} and @code{path} variables are initialized to
+@code{nullpath}.
 @item @code{pen} variables are initialized to the default pen.
-@item @code{frame} and @code{picture} variables and empty frames and pictures
-respectively.
+@item @code{frame} and @code{picture} variables are initialized to empty
+frames and pictures, respectively.
 @end itemize
 
 The default initializers for user-defined array, structure, and function types
 are explained in their respective sections.  Some types, such as @code{file} and
-@code{code} do not have a default initializer.  When a variable of such a type
+@code{code}, do not have a default initializer.  When a variable of such a type
 is introduced, the user must initialize it by explicitly giving it a value.
 
 The default initializer for any type @code{T} can be redeclared by defining the
@@ -3423,7 +3426,7 @@ int y;
 @noindent
 the variable @code{y} is initialized to @code{3}.  This example was given for
 illustrative purposes; redeclaring the initializers of built-in types is not
-recommended.  @code{operator init} is more commonly used to define sensible
+recommended. Typically, @code{operator init} is used to define sensible
 defaults for user-defined types.
 
 @node Structures
@@ -3460,27 +3463,27 @@ bar.x=5;
 @end verbatim
 
 The variable @code{foo} holds a reference to an instance of the structure
-@code{T}.  When @code{bar} is assigned the value of @code{foo}, it now too holds
-a reference to the same instance as @code{foo} does.  The assignment
-@code{bar.x=5} changes the value of the field @code{x} in that one instance, so
-now @code{foo.x} will also be equal to @code{5}.
+@code{T}.  When @code{bar} is assigned the value of @code{foo}, it too
+now holds a reference to the same instance as @code{foo} does.  The assignment
+@code{bar.x=5} changes the value of the field @code{x} in that instance, so
+that @code{foo.x} will also be equal to @code{5}.
 
 The expression @code{new T} creates a new instance of the structure @code{T} and
 returns a reference to that instance.  In creating the new instance, any code in
 the body of the record definition is executed.  For example:
 
 @verbatim
-int TCount=0;
+int Tcount=0;
 struct T {
   int x;
-  ++TCount;
+  ++Tcount;
 }
 
 T foo=new T;
 @end verbatim
 
 Here, the expression @code{new T} will produce a new instance of the class, but
-will also cause @code{TCount} to be incremented, so that it keeps track of the
+will also cause @code{Tcount} to be incremented, so that it keeps track of the
 number of instances produced.
 
 The expression @code{null} can be cast to any structure type to yield a null
@@ -3496,14 +3499,14 @@ example, in the example code at the start of the section, @code{alias(foo,bar)}
 would return true, but @code{alias(foo,new T)} would return false, as @code{new
 T} creates a new instance of the structure @code{T}.  The boolean operators
 @code{==} and @code{!=} are by default equivalent to @code{alias} and
-@code{!alias} respectively, but may be overwritten for a particular type do a
-deep comparison.
+@code{!alias} respectively, but may be overwritten for a particular type
+(for example, to do a deep comparison).
 
 After the definition of a structure @code{T}, a variable of type @code{T} is
 initialized to a new instance (@code{new T}) by default.  During the definition
-of the structure, however, variables are initialized to @code{null} by default.
-This special behaviour is to avoid infinite recursion of creating new instances
-in code such as
+of the structure, however, variables of type @code{T} are initialized to
+@code{null} by default. This special behaviour is to avoid infinite
+recursion of creating new instances in code such as
 
 @verbatim
 struct tree {
@@ -3550,13 +3553,13 @@ Person joe=new Person;
 joe.firstname="Joe";
 joe.lastname="Jones";
 @end verbatim
-
+@noindent
 Creating a new Person is a chore; it takes three lines to create a new instance
-and to initialize its fields.  (It's still considerably less effort than
-creating a new person in real-life, though.)
+and to initialize its fields (that's still considerably less effort than
+creating a new person in real life, though).
 
-We can reduce the work by defining a constructor function, also called
-@code{Person}.
+We can reduce the work by defining a constructor function 
+@code{Person(string,string)}:
 
 @verbatim
 struct Person {
@@ -3575,9 +3578,9 @@ struct Person {
 Person joe=Person.Person("Joe", "Jones");
 @end verbatim
 
-While it is easier than before to create a new instance, we still have to refer
-to the constructor by the qualified name @code{Person.Person}.  If we add the
-line
+While it is now easier than before to create a new instance, we still
+have to refer to the constructor by the qualified name
+@code{Person.Person}.  If we add the line
 
 @verbatim
 from Person unravel Person;
@@ -3588,15 +3591,17 @@ without qualification: @code{Person p=Person("Joe", "Jones");}.
 
 The constructor is now easy to use, but it is quite a hassle to define.  If you
 write a lot of constructors, you will find that you are repeating a lot of code
-in each of them.  Fortunately, your friendly, neighbourhood Asymptote
+in each of them.  Fortunately, your friendly neighbourhood Asymptote
 developers have devised a way to automate much of the process.
 
-If, in the body of a structure structure, Asymptote encounters the definition of
+@cindex @code{operator init}
+If, in the body of a structure, Asymptote encounters the definition of
 a function of the form @code{void operator init(@var{args})},  it implicitly
-defines a constructor function that takes the same arguments and constructs a
-new instance by calling the @code{operator init} function to initialize it.
-That is, it essentially defines the following (assuming the structure is called
-@code{Foo}):
+defines a constructor function of the arguments @code{@var{args}} that
+uses the @code{void operator init} function to initialize a
+new instance of the structure.
+That is, it essentially defines the following constructor (assuming the
+structure is called @code{Foo}):
 
 @example
 static Foo Foo(@var{args}) @{
@@ -3625,7 +3630,8 @@ Person joe=Person("Joe", "Jones");
 @end verbatim
 
 The use of @code{operator init} to implicitly define constructors should not be
-confused with its use to define default values for variables.  Indeed, in the
+confused with its use to define default values for variables
+(@pxref{Variable initializers}).  Indeed, in the
 first case, the return type of the @code{operator init} must be @code{void}
 while in the second, it must be the (non-@code{void}) type of the variable.
 
@@ -3682,7 +3688,7 @@ write(c.parent.x);              // Outputs 1;
 write(c.y);                     // Outputs 2;
 @end verbatim
 
-Further examples of structures are @code{Legend} and @code{picture} in
+For further examples of structures, see @code{Legend} and @code{picture} in
 the @code{Asymptote} base module @code{plain}.
 
 @node Operators
@@ -7804,7 +7810,7 @@ Stefan Knorr.
 @c  LocalWords:  printindex setfilename settitle dircategory direntry titlepage
 @c  LocalWords:  vskip filll insertcopying ifnottex detailmenu alist augroup PQ
 @c  LocalWords:  bool behaviour facto zxf login Debian dev filetypedetect SVN
-@c  LocalWords:  FFTW bp readline gv eps args Boehm gc evenoddoverlap png
+@c  LocalWords:  FFTW bp readline gv eps args Boehm gc evenoddoverlap png joe
 @c  LocalWords:  boolean initializer expi dir xpart ypart STL substring rfind
 @c  LocalWords:  pos substr strftime typedef pxref unitcircle yscale Bezier iff
 @c  LocalWords:  postcontrol precontrol atleast nullpath arclength arctime rgb
@@ -7889,8 +7895,8 @@ Stefan Knorr.
 @c  LocalWords:  Gouraudcontour pdflatex preconfigured perline linelength hskip
 @c  LocalWords:  penimage filloutside legendhskip legendvskip maxwidth CDlabel
 @c  LocalWords:  tensorshade MPEG framepoint nonfunction Radoslav Marinov Mepis
-@c  LocalWords:  Pienaar Melenchuk finalout Linspire Dpkg sudo dpkg dtx
-@c  LocalWords:  windingnumber clickable pdfmovie dfn du animationdelay
+@c  LocalWords:  Pienaar Melenchuk finalout Linspire Dpkg sudo dpkg dtx Tcount
+@c  LocalWords:  windingnumber clickable pdfmovie dfn du animationdelay fprime
 @c  LocalWords:  slidemovies ifdraft embeddedu externalmovie headerpen bodypen
 @c  LocalWords:  GaussianSurface multiline binarytree tridiagonal portably AIX
 @c  LocalWords:  binarytreetest Henning subsample breakpoint locator wireframe
@@ -7905,6 +7911,8 @@ Stefan Knorr.
 @c  LocalWords:  minbodywidth minbodyheight minheight mindiameter reltime PNG
 @c  LocalWords:  relpoint Syzygy syzygies seekeof splinetype notaknot slopea
 @c  LocalWords:  slopeb nonperiodic circlescale MarkFill ScaleX ScaleY xformat
-@c  LocalWords:  onecontour multicontour irregularcontour dvipsOptions
+@c  LocalWords:  onecontour multicontour irregularcontour dvipsOptions saveline
 @c  LocalWords:  dirSpecifier controlSpecifier tensionSpecifier atleastflag
-@c  LocalWords:  curlSpecifier cputimeformat
+@c  LocalWords:  curlSpecifier cputimeformat initializers arbitary redeclaring
+@c  LocalWords:  firstname lastname multdiagonal Raphson OmitTick OmitFormat
+@c  LocalWords:  NoZero NoZeroFormat abbrevation gsOptions namespace redeclared
