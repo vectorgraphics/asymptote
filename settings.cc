@@ -1015,9 +1015,9 @@ int numArgs() { return argCount; }
 char *getArg(int n) { return argList[n]; }
 
 void setInteractive() {
-  if(numArgs() == 0 && !getSetting<bool>("listvariables")) {
+  if(numArgs() == 0 && !getSetting<bool>("listvariables") && 
+     (isatty(STDIN_FILENO) || getSetting<bool>("signal")))
     interact::interactive=true;
-  }
   
   historyname=getSetting<bool>("localhistory") ? "."+suffix+"_history" 
     : (initdir+"/history");

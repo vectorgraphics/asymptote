@@ -17,6 +17,7 @@ using std::ostream;
 struct handled_error {}; // Exception to process next file.
 struct interrupted {};   // Exception to interrupt execution.
 struct quit {};          // Exception to quit current operation.
+struct eof {};           // Exception to exit interactive mode.
 
 class fileinfo : public gc {
   string filename;

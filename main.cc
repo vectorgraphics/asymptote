@@ -121,6 +121,9 @@ int main(int argc, char *argv[])
   } else if (getSetting<bool>("listvariables") && numArgs()==0) {
     doUnrestrictedList();
   } else {
+    if(numArgs() == 0) 
+      processFile("-");
+    else
     for(int ind=0; ind < numArgs() ; ind++) {
       processFile(string(getArg(ind)));
       try {

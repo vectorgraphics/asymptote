@@ -811,6 +811,8 @@ public:
       } catch(interrupted&) {
 	if(em) em->Interrupt(false);
 	restart=true;
+      } catch(eof&) {
+	restart=false;
       }
     } while(restart);
       

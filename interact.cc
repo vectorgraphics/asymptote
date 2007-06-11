@@ -105,6 +105,8 @@ string simpleline(string prompt) {
     return s;
   } else {
     cout << endl;
+    if(!isatty(STDIN_FILENO))
+      throw eof();
     return "\n";
   }
 }
