@@ -41,20 +41,16 @@ void perpendicular(picture pic=currentpicture, pair z, pair align, path g,
 struct triangle {
   pair A,B,C;
 
-  static triangle SAS(real b, real alpha, real c, real angle=0, pair A=(0,0)) {
-    triangle T=new triangle;
-    T.A=A;
-    T.B=A+c*dir(angle);
-    T.C=A+b*dir(angle+alpha);
-    return T;
+  void operator init(real b, real alpha, real c, real angle=0, pair A=(0,0)) {
+    this.A=A;
+    this.B=A+c*dir(angle);
+    this.C=A+b*dir(angle+alpha);
   }
 
-  static triangle vertices(pair A, pair B, pair C) {
-    triangle T=new triangle;
-    T.A=A;
-    T.B=B;
-    T.C=C;
-    return T;
+  void operator init(explicit pair A, explicit pair B, explicit pair C) {
+    this.A=A;
+    this.B=B;
+    this.C=C;
   }
 
   real a() {return length(C-B);}
@@ -78,7 +74,7 @@ void draw(picture pic=currentpicture, triangle t, pen p=currentpen)
 
 triangle operator * (transform T, triangle t)
 {
-  return triangle.vertices(T*t.A,T*t.B,T*t.C);
+  return triangle(T*t.A,T*t.B,T*t.C);
 }
 
 // Return an interior arc BAC of triangle ABC, given a radius r > 0.
