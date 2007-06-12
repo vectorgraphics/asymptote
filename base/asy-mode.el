@@ -162,11 +162,14 @@ If you also want this feature in pure latex-mode, you can set this variable to `
   :group 'asymptote)
 
 (defcustom asy-compilation-buffer 'none
-  "* 'visible means keep compilation buffer visible ;
-  'available means keep compilation buffer available in other buffer but not visible;
-  'none means delete compilation buffer automatically after a *successful* compilation.
-  'never means delete compilation buffer automatically after any compilation.
-If the value is 'never', the compilation process is `shell-command' with poor management of errors."
+  " 'visible means keep compilation buffer visible ;
+ 'available means keep compilation buffer available in other buffer but not visible;
+ 'none means delete compilation buffer automatically after a *successful* compilation.
+ 'never means don't open any window or buffer attached to the compilation process.
+If the value is 'never':
+* Emacs is suspended until the child program returns;
+* the management of errors is poorer than with other value;
+* the compilation doesn't modify your current window configuration."
   :type '(choice (const visible) (const available) (const none) (const never))
   :group 'asymptote)
 
@@ -1094,6 +1097,7 @@ The optional argument pass, for compatibility, is not used."
 ;;         (status
 ;;          (progn
 ;;            (let ((inhibit-redisplay t))(write-region "" 0 log-file nil))
+;;            (message "%s" command)
 ;;            (call-process shell-file-name nil (list discard log-file) nil shell-command-switch command))))
 ;;     (setq asy-last-compilation-code (if status status 0))
 ;;     (when pass (sit-for 1))
