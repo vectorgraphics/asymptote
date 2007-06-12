@@ -771,11 +771,11 @@ namespace run {
 
 using namespace vm;  
 
-void arrayDeleteHelper(stack *Stack)
+void arrayDeleteHelper(vm::stack *Stack)
 {
-  array *a=vm::pop<array *>(Stack);
-  item it=vm::pop(Stack);
-  int i=vm::pop<int>(Stack);
+  array *a=pop<array *>(Stack);
+  item it=pop(Stack);
+  int i=pop<int>(Stack);
   int j=isdefault(it) ? i : get<int>(it);
 
   size_t asize=checkArray(a);

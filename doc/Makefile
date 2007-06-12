@@ -61,11 +61,6 @@ CAD.pdf: CAD.tex CAD1.eps
 	latex CAD
 	dvipdf CAD
 
-PDFAnim_temp_Guide.pdf: PDFAnim_temp_Guide.tex
-	latex PDFAnim_temp_Guide
-	latex PDFAnim_temp_Guide
-	dvipdf PDFAnim_temp_Guide
-
 asymptote/index.html: $(SOURCE) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
 	mkdir -p asymptote
 	cp *.png asymptote
@@ -73,7 +68,6 @@ asymptote/index.html: $(SOURCE) $(ASYFILES:.asy=.eps) $(ASYFILES:.asy=.png)
 
 clean: FORCE
 	rm -f $(ASYFILES:.asy=.pdf) $(DOCFILES)
-	rm -f PDFAnim_temp_Guide.{aux,dvi,log,toc,out}
 	rm -f *.eps *.png latexusage.{asy,dvi,eps,png,log,aux,*.eps}
 	rm -f {asymptote,asymptote_}.{aux,cp,cps,dvi,fn,info,ky,log,pg,pdf,toc,tp,vr} 
 	rm -f asymptote_.texi asymptote.info-*

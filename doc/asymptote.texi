@@ -2242,6 +2242,14 @@ Analogous to @code{cyclic(path g)}.
 @item pair point(guide g, int t);
 Analogous to @code{point(path g, int t)}.
 
+@cindex @code{reverse}
+@item path reverse(guide g);
+Analogous to @code{point(path g)}. If @code{g} is cyclic and
+also contains a secondary cycle, the guide is first solved to a
+path, then reversed. If @code{g} is not cyclic but contains an internal
+cycle, only the internal cycle is solved before reversal. If there are
+no internal cycles, the guide is reversed but not solved to a path. 
+
 @cindex @code{dirSpecifier}
 @item pair[] dirSpecifier(guide g, int i);
 This returns a pair array of length 2 containing the outgoing (in

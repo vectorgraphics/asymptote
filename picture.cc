@@ -299,9 +299,9 @@ bool picture::postprocess(const string& prename, const string& outname,
 	  << "' -density " << res << "x" << res;
       if(!xobject) cmd << " +antialias -geometry " << 100.0/expand << "%x";
       cmd << " '" << (pdf ? "pdf:" : "eps:") << prename << "'";
-      if(xobject) cmd << " -transparent white ";
-      else cmd << " " << outputformat;
-      cmd << "'" << outname << "'";
+      if(xobject) cmd << " -transparent white '";
+      else cmd << " '" << outputformat << ":";
+      cmd << outname << "'";
       status=System(cmd,0,true,"convert");
     }
     if(!getSetting<bool>("keep")) unlink(prename.c_str());

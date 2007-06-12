@@ -22,7 +22,7 @@ picture logo(pair s=0, pen q)
 } 
 
 pair z=(-0.015,0.08);
-for(real x=0; x < 1; x += 0.1) {
-  add(logo(x*z,gray(0.4*x)));
-} 
+for(int x=0; x < 10; ++x)
+  add(logo(0.1*x*z,gray(0.04*x)));
+
 add(logo(red));

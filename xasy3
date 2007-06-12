@@ -273,7 +273,7 @@ class asyApp:
   self.resetGUI()
   #did asy start up?
   if asyFail:
-   tkMessageBox.showerror("xasy Error","Asyptote could not start!\nPlease check installation and paths.")
+   tkMessageBox.showerror("xasy Error","Asymptote could not start!\nPlease check installation and paths.")
    master.destroy()
   signal.signal(signal.SIGUSR1,self.sigHandler)
 

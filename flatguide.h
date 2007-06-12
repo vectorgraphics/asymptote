@@ -98,7 +98,7 @@ public:
     : solved(true), p(), out(&open), in(&open) {}
 
   int size() const {
-    return nodes.size();
+    return (int) nodes.size();
   }
   
   knot Nodes(int i) const {

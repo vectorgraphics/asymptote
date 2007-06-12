@@ -666,22 +666,14 @@ inline double principalBranch(double deg)
   return deg;
 }
 
-inline int Min(int a, int b)
+template<class T>
+inline T Min(T a, T b)
 {
   return (a < b) ? a : b;
 }
 
-inline int Max(int a, int b)
-{
-  return (a > b) ? a : b;
-}
-
-inline double Min(double a, double b)
-{
-  return (a < b) ? a : b;
-}
-
-inline double Max(double a, double b)
+template<class T>
+inline T Max(T a, T b)
 {
   return (a > b) ? a : b;
 }
@@ -942,10 +934,11 @@ void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
   size_t n=checkArrays(p,edges);
   size_t m=checkArray(g);
   array *z=new array(n);
-  size_t k=0;
+  int k=0;
+  int in=(int) n;
   for(size_t j=0; j < m; ++j) {
     path *P=read<path *>(g,j);
-    int stop=Min(P->size(),n-k);
+    int stop=Min(P->size(),in-k);
     solvedKnot *nodes=P->Nodes();
     for(int i=0; i < stop; ++i)
       (*z)[k++]=nodes[i].point;
@@ -1154,7 +1147,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
   f=result;
   ostringstream buf;
   buf << prefix << "_" << i;
-  if(f->shipout(preamble,(ppid ? buf.str() : prefix),"",wait,view) &&
+  if(f->shipout(preamble,(ppid ? buf.str() : prefix),format,wait,view) &&
      ppid > 0)
     notifyXasy(ppid);
 }
