@@ -199,8 +199,13 @@ public:
   // Tests if the function or record with the given frame is currently under
   // translation (either by this coder or an ancestor).
   bool inTranslation(frame *f) {
-    return f==this->level ? true :
-                            (parent && parent->inTranslation(f));
+    frame *level=this->level;
+    while (level) {
+      if (f==level)
+        return true;
+      level=level->getParent();
+    }
+    return parent && parent->inTranslation(f);
   }
 
   // Allocates space in the function or record frame for a new local variable.
