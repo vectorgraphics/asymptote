@@ -107,7 +107,7 @@ keywords.cc: keywords.pl camp.l
 
 envcompleter.d: keywords.cc
 
-asy-keywords.el: asy-list.pl 
+asy-keywords.el: asy asy-list.pl
 	./asy -l -dir base > asy.list
 	ls $(addsuffix /*.asy,$(KEYWORDS)) | grep -v plain\* | grep -v featpost3D | xargs ./asy -l -dir base >> asy.list
 	./asy-list.pl asy.list @VERSION@
