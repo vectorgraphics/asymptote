@@ -718,12 +718,18 @@ string convertname(string name, const string& format, bool check=true)
   return format.empty() ? name : format+":"+name;
 }
 
-void notifyXasy(pid_t ppid)
+void notifyXasy(pid_t ppid, bool busy, int count)
 {
-  if(signalCount > 0)
-    pause();
-  kill(ppid,SIGUSR1);
-  ++signalCount;
+  ostringstream statFilename;
+  statFilename << ".asy_status_" << ppid;
+  std::ofstream statFile(statFilename.str().c_str());
+  if(!statFile)
+    error("cannot open status file");
+  else {
+    statFile << busy << endl << count << endl;
+    statFile.close();
+    kill(ppid,SIGINT);
+  }
 }
 
 void unused(void *)
@@ -1138,7 +1144,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 	buf << prefix << "_" << i;
 	if(group->shipout(preamble,buf.str(),"<x>",false,false,Delete) &&
 	   ppid > 0)
-	  notifyXasy(ppid);
+	  notifyXasy(ppid,true,i);
       }
       ++i;
     }
@@ -1149,7 +1155,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
   buf << prefix << "_" << i;
   if(f->shipout(preamble,(ppid ? buf.str() : prefix),format,wait,view) &&
      ppid > 0)
-    notifyXasy(ppid);
+    notifyXasy(ppid,false,i);
 }
 
 

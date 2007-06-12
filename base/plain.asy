@@ -30,12 +30,20 @@ include plain_arrows;
 include plain_debugger;
 
 typedef void exitfcn();
-void nullexitfcn();
+
+bool needshipout() {
+  return !shipped && !currentpicture.empty();
+}
+
+void shiponce() {
+  if(needshipout()) shipout();
+}
 
 void exitfunction()
 {
-  if(interactive() || (!shipped && !currentpicture.empty())) shipout();
+  if(interactive() || needshipout()) shipout();
 }
+
 atexit(exitfunction);
 
 // A restore thunk is a function, that when called, restores the graphics state
@@ -117,7 +125,7 @@ void initdefaults()
 {
   savedefaults();
   resetdefaultpen();
-  atexit(nullexitfcn);
+  atexit(null);
 }
 
 // Return the sequence n,...m

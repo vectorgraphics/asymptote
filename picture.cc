@@ -397,7 +397,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     bool signal=getSetting<bool>("signal");
     if(!bboxout.is_open()) {
       bboxout.open(("."+buildname(prefix,"box")).c_str());	
-      bboxout << (xobject ? deconstruct : 0) << " " << xformat << newl;
+      bboxout << deconstruct << " " << xformat << newl;
     }
     if(xobject) {
       bbox bscaled=b;
