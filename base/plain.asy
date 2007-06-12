@@ -11,7 +11,7 @@ include plain_constants;
 
 access version;             
 if(version.VERSION != VERSION()) {
-  write(stdout,"Warning: using possibly incompatible version "+
+  write(stdout,"warning: using possibly incompatible version "+
         version.VERSION+" of plain.asy"+'\n');
 }
    

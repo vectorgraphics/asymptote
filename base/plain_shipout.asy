@@ -1,3 +1,5 @@
+include plain_xasy;
+
 // Default file prefix used for inline LaTeX mode
 string defaultfilename;
 
@@ -82,9 +84,22 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
   if(abs(m.x) > limit || abs(m.y) > limit) f=shift(-m)*f;
 
   uptodate(true);
+
+  int i=-1;
+  transform[] t;
+  bool[] d;
+  GUIop GUIop;
+  if(Transform) {
+    GUIop=GUIlist[GUIFilenum];
+    t=GUIop.Transform;
+    d=GUIop.Delete;
+  }
+  //  shipout(prefix,f,preamble,format,wait,view,xformStack.pop);
   shipout(prefix,f,preamble,format,wait,view,
-          Transform ? GUIlist[GUIFilenum].Transform : null,
-          Transform ? GUIlist[GUIFilenum].Delete : null);
+          new transform() {
+	    if(++i < d.length && d[i]) return (0,0,0,0,0,0);
+	    return i < t.length ? t[i] : identity();});
+
   shipped=true;
   ++GUIFilenum;
 }

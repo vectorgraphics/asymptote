@@ -2259,9 +2259,9 @@ empty array is returned.
 @cindex @code{tensionSpecifier}
 @item tensionSpecifier tensionSpecifier(guide g, int i);
 This returns the tension specifier for the segment of guide @code{g} between
-nodes @code{i} and @code{i+1}. The individual components of the tension
-can be examined with the routines @code{in(tensionSpecifier)},
-@code{out(tensionSpecifier)}, and @code{atleastflag(tensionSpecifier)}.
+nodes @code{i} and @code{i+1}. The individual components of the
+@code{tensionSpecifier} type can be accessed as the virtual members
+@code{in}, @code{out}, and @code{atLeast}.
 
 @cindex @code{curlSpecifier}
 @item real[] curlSpecifier(guide g);
@@ -3570,7 +3570,6 @@ struct Person {
     Person p=new Person;
     p.firstname=firstname;
     p.lastname=lastname;
-
     return p;
   }
 }
@@ -3587,7 +3586,7 @@ from Person unravel Person;
 @end verbatim
 @noindent
 immediately after the structure definition, then the constructor can be used
-without qualification: @code{Person p=Person("Joe", "Jones");}.
+without qualification: @code{Person joe=Person("Joe", "Jones");}.
 
 The constructor is now easy to use, but it is quite a hassle to define.  If you
 write a lot of constructors, you will find that you are repeating a lot of code

@@ -82,7 +82,7 @@ public:
   virtual bool open() { return true; }
   virtual bool controlled() { return false; }
   virtual pair control() {return pair(0.0,0.0);}
-  virtual double curl() { return 1.0; }
+  virtual double curl() { return -1.0; }
   virtual pair dir() { return pair(0.0,0.0); }
 
   // When a knot has a restriction on one side but is open on the other, the
@@ -211,10 +211,8 @@ struct knot {
   spec *out;
   tension tin, tout;
 
-  static spec defaultOpen;
-
   knot() {}
-  knot(pair z, spec *in=&defaultOpen, spec *out=&defaultOpen,
+  knot(pair z, spec *in, spec *out,
        tension tin=tension(), tension tout=tension())
     : z(z), in(in), out(out), tin(tin), tout(tout) {}
 

@@ -39,6 +39,7 @@ transform => primTransform()
 callable* => voidFunction()
 callableBp* => breakpointFunction()
 callableReal* => realRealFunction()
+callableTransform* => transformFunction()
 runnable* => primCode()
 boolarray* => boolArray()
 intarray*  => intArray()
@@ -152,6 +153,7 @@ typedef array stringarray2;
   
 typedef callable callableBp;
 typedef callable callableReal;
+typedef callable callableTransform;
 }
 
 using vm::array;
@@ -192,6 +194,11 @@ function *breakpointFunction()
 function *realRealFunction()
 {
   return new function(primReal(),primReal());
+}
+
+function *transformFunction()
+{
+  return new function(primTransform());
 }
 
 callable *atExitFunction=NULL;
@@ -1094,72 +1101,62 @@ bool pdf()
 
 void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 	     string format=emptystring, bool wait=false, bool view=true,
-	     transformarray *GUItransform, boolarray *GUIdelete)
+	     callableTransform *xform)
 {
   if(prefix.empty()) prefix=outname();
   
   pid_t ppid=getSetting<bool>("signal") ? getppid() : 0;
 
-  size_t size=GUItransform && GUIdelete ?
-    checkArrays(GUItransform,GUIdelete) : 0;
- 
-  if(getSetting<real>("deconstruct") || size) {
-    picture *result=new picture;
-    unsigned level=0;
-    unsigned i=0;
-    nodelist::iterator p;
-    for(p = f->nodes.begin(); p != f->nodes.end(); ++p) {
-      bool Delete;
-      transform t;
-      if(i < size) {
-	t=*(read<transform*>(GUItransform,i));
-	Delete=read<bool>(GUIdelete,i);
-      } else {
-	t=identity();
-	Delete=false;
-      }
-      picture *group=new picture;
+  picture *result=new picture;
+  unsigned level=0;
+  unsigned i=0;
+  nodelist::iterator p;
+  for(p = f->nodes.begin(); p != f->nodes.end(); ++p) {
+    bool Delete;
+    xform->call(Stack);
+    transform t=pop<transform>(Stack);
+    static transform Zero=transform(0.0,0.0,0.0,0.0,0.0,0.0);
+    Delete=(t == Zero);
+    picture *group=new picture;
 // Ignore unclosed begingroups but not spurious endgroups.
-      const char *nobegin="endgroup without matching begingroup";
-      assert(*p);
-      if((*p)->endgroup()) error(nobegin);
-      if((*p)->begingroup()) {
-	++level;
-	while(p != f->nodes.end() && level) {
-	  drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
-	  group->append(e);
-	  ++p;
-	  if(p == f->nodes.end()) break;
-	  assert(*p);
-	  if((*p)->begingroup()) ++level;
-	  if((*p)->endgroup()) if(level) --level;
+    const char *nobegin="endgroup without matching begingroup";
+    assert(*p);
+    if((*p)->endgroup()) error(nobegin);
+    if((*p)->begingroup()) {
+      ++level;
+      while(p != f->nodes.end() && level) {
+	drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
+	group->append(e);
+	++p;
+	if(p == f->nodes.end()) break;
+	assert(*p);
+	if((*p)->begingroup()) ++level;
+	if((*p)->endgroup()) if(level) --level;
 	  else error(nobegin);
-	}
       }
-      if(p == f->nodes.end()) break;
-      assert(*p);
-      drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
-      group->append(e);
-      if(!group->null()) {
-	if(getSetting<real>("deconstruct")) {
-	  ostringstream buf;
-	  buf << prefix << "_" << i;
-	  if(group->shipout(preamble,buf.str(),"<x>",false,false,Delete) &&
-	     ppid > 0)
-	    notifyXasy(ppid);
-	}
-	++i;
-      }
-      if(size && !Delete) result->add(*group);
     }
-    if(size) f=result;
-    ostringstream buf;
-    buf << prefix << "_" << i;
-    if(f->shipout(preamble,(ppid ? buf.str() : prefix),"",wait,view) &&
-       ppid > 0)
-      notifyXasy(ppid);
-  } else
-    f->shipout(preamble,prefix,format,wait,view);
+    if(p == f->nodes.end()) break;
+    assert(*p);
+    drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
+    group->append(e);
+    if(!group->null()) {
+      if(getSetting<real>("deconstruct")) {
+	ostringstream buf;
+	buf << prefix << "_" << i;
+	if(group->shipout(preamble,buf.str(),"<x>",false,false,Delete) &&
+	   ppid > 0)
+	  notifyXasy(ppid);
+      }
+      ++i;
+    }
+    if(!Delete) result->add(*group);
+  }
+  f=result;
+  ostringstream buf;
+  buf << prefix << "_" << i;
+  if(f->shipout(preamble,(ppid ? buf.str() : prefix),"",wait,view) &&
+     ppid > 0)
+    notifyXasy(ppid);
 }
 
 
@@ -1835,17 +1832,17 @@ tensionSpecifier operator tension(real tout, real tin, bool atleast)
   return tensionSpecifier(tout, tin, atleast);
 }
 
-real out:tensionSpecifierOutPart(tensionSpecifier t)
+real :tensionSpecifierOutPart(tensionSpecifier t)
 {
   return t.getOut();
 }
 
-real in:tensionSpecifierInPart(tensionSpecifier t)
+real :tensionSpecifierInPart(tensionSpecifier t)
 {
   return t.getIn();
 }
 
-bool atleastflag:tensionSpecifierAtleastPart(tensionSpecifier t)
+bool :tensionSpecifierAtleastPart(tensionSpecifier t)
 {
   return t.getAtleast();
 }
@@ -1870,30 +1867,31 @@ int size(guide *g)
 int length(guide *g)
 {
   flatguide f;
-  bool cyclic=g->flatten(f,false);
-  return cyclic ? f.size() : f.size()-1;
+  g->flatten(f,false);
+  return g->cyclic() ? f.size() : f.size()-1;
 }
 
 bool cyclic(guide *g)
 {
   flatguide f;
-  return g->flatten(f,false);
+  g->flatten(f,false);
+  return g->cyclic();
 }
 
 pair point(guide *g, int t)
 {
   flatguide f;
-  bool cyclic=g->flatten(f,false);
-  return f.Nodes(adjustedIndex(t,f.size(),cyclic)).z;
+  g->flatten(f,false);
+  return f.Nodes(adjustedIndex(t,f.size(),g->cyclic())).z;
 }
 
 pairarray *dirSpecifier(guide *g, int t)
 {
   flatguide f;
-  bool cyclic=g->flatten(f,false);
+  g->flatten(f,false);
   array *c=new array(2);
   int n=f.size();
-  if(cyclic) t=t % n;
+  if(g->cyclic()) t=t % n;
   else if(t < 0 || t >= n-1) {
     static pair zero;
     (*c)[0]=zero;
@@ -1908,9 +1906,9 @@ pairarray *dirSpecifier(guide *g, int t)
 pairarray *controlSpecifier(guide *g, int t)
 {
   flatguide f;
-  bool cyclic=g->flatten(f,false);
+  g->flatten(f,false);
   int n=f.size();
-  if(cyclic) t=t % n;
+  if(g->cyclic()) t=t % n;
   else if(t < 0 || t >= n-1) return new array(0);
   knot curr=f.Nodes(t);
   knot next=f.Nodes(t+1);
@@ -1927,9 +1925,9 @@ pairarray *controlSpecifier(guide *g, int t)
 tensionSpecifier tensionSpecifier(guide *g, int t)
 {
   flatguide f;
-  bool cyclic=g->flatten(f,false);
+  g->flatten(f,false);
   int n=f.size();
-  if(cyclic) t=t % n;
+  if(g->cyclic()) t=t % n;
   else if(t < 0 || t >= n-1) return tensionSpecifier(1.0,1.0,false);
   knot curr=f.Nodes(t);
   knot next=f.Nodes(t+1);
@@ -1941,9 +1939,64 @@ realarray *curlSpecifier(guide *g)
   flatguide f;
   g->flatten(f,false);
   array *c=new array(2);
-  (*c)[0]=f.Nodes(0).out->curl();
-  (*c)[1]=f.Nodes(f.size()-1).in->curl();
+  real c0=f.Nodes(0).out->curl();
+  real c1=f.Nodes(f.size()-1).in->curl();
+  if(c1 < 0.0) c1=f.Nodes(f.size()-1).out->curl();
+  (*c)[0]=c0 >= 0.0 ? c0 : 1.0;
+  (*c)[1]=c1 >= 0.0 ? c1 : 1.0;
   return c;
+}
+
+guide *reverse(guide *g)
+{
+  flatguide f;
+  bool precycle=g->flatten(f,false);
+  if(precycle && g->cyclic()) {
+    path p=g->solve();
+    return new pathguide(p.reverse());
+  }
+  int n=f.size();
+
+  guidevector v;
+  if(n >= 0) {
+    v.push_back(new pairguide(f.Nodes(n-1).z));
+    
+    real c0=f.Nodes(0).out->curl();
+    real c1=f.Nodes(f.size()-1).in->curl();
+    if(c1 < 0.0)
+      c1=f.Nodes(f.size()-1).out->curl();
+    if(c1 >= 0.0)
+      v.push_back(new specguide(new curlSpec(c1),camp::OUT));
+  
+    for(int i=n-2; i >= 0; --i) {
+      knot curr=f.Nodes(i);
+      knot next=f.Nodes(i+1);
+      if(curr.out->controlled()) {
+	assert(next.in->controlled());
+	v.push_back(new controlguide(next.in->control(),curr.out->control()));
+      } else {
+	pair d=f.Nodes(i+1).in->dir();
+	static pair zero;
+	if(d != zero) 
+	  v.push_back(new specguide(new dirSpec(-d),camp::OUT));
+	real tout=next.tin.val;
+	real tin=curr.tout.val;
+	bool atleast=curr.tout.atleast;
+	if(tout != 1.0 || tin != 1.0 || curr.tout.atleast)
+	  v.push_back(new tensionguide(tensionSpecifier(tout,tin,atleast)));
+	d=f.Nodes(i).out->dir();	
+	if(d != zero) 
+	  v.push_back(new specguide(new dirSpec(-d),camp::IN));
+
+      }
+      if(i == 0 && c0 >= 0.0)
+	v.push_back(new specguide(new curlSpec(c0),camp::IN));
+      v.push_back(new pairguide(f.Nodes(i).z));
+    }
+    if(g->cyclic())
+      v.push_back(new cycletokguide());
+  }
+  return new multiguide(v);
 }
 
 

@@ -16,6 +16,7 @@ namespace camp {
 
 // Abstract base class for guides.
 class guide : public gc {
+protected:
 public:
   virtual ~guide() {}
   
@@ -26,8 +27,10 @@ public:
 
   // Add the information in the guide to the flatguide, so that it can be
   // solved via the knotlist solving routines.
-  // Returns true if guide is closed in a loop.
+  // Returns true if guide has an interior cycle token. 
   virtual bool flatten(flatguide&, bool allowsolve=true)=0;
+  
+  virtual bool cyclic() {return false;}
   
   virtual void print(ostream& out) const {
     out << "nullpath";
@@ -230,8 +233,13 @@ class multiguide : public guide {
   guidevector v;
 
 public:
-  bool flatten(flatguide& g, bool=true);
 
+  bool flatten(flatguide&, bool=true);
+  
+  bool cyclic() {
+    return v[v.size()-1]->cyclic();
+  }
+  
   multiguide(guidevector& v)
     : v(v) {}
 
@@ -267,10 +275,15 @@ public:
     // If cycles occur in the midst of a guide, the guide up to that point
     // should be solved as a path.  Any subsequent guide will work with that
     // path locked in place.
-    if(allowsolve) g.solve(true);
-    return true;
+    if(allowsolve) {
+      g.solve(true);
+      return true;
+    }
+    return false;
   }
 
+  bool cyclic() {return true;}
+  
   path solve() {
     // Just a cycle on it's own makes an empty guide.
     return path();
