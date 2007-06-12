@@ -26,7 +26,7 @@ NAME = asy
 EXTRABIN = x$(NAME)
 EXTRA = asy-mode.el asy-keywords.el asy-init.el asy.vim asymptote.py
 KEYWORDS = base $(ASYMPTOTE_SITEDIR)
-LATEXFILES = asymptote.sty asycolors.sty pdfanim_temp.sty
+LATEXFILES = asymptote.sty asycolors.sty
 
 DEFS = @DEFS@ @OPTIONS@
 CFLAGS = @CPPFLAGS@ @CFLAGS@ 
