@@ -394,12 +394,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   }
   
   if(deconstruct) {
-    bool signal=getSetting<bool>("signal");
-    if(!bboxout.is_open()) {
-      bboxout.open(("."+buildname(prefix,"box")).c_str());	
-      bboxout << deconstruct << " " << xformat << newl;
-    }
     if(xobject) {
+      bool signal=getSetting<bool>("signal");
+      if(!bboxout.is_open()) {
+	bboxout.open(("."+buildname(prefix,"box")).c_str());	
+	bboxout << deconstruct << " " << xformat << newl;
+      }
       bbox bscaled=b;
       // Work around half-pixel bounding box bug in Ghostscript pngalpha driver
       if(xformat == "png") {
