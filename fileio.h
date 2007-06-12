@@ -91,9 +91,10 @@ public:
   
   void dimension(int Nx=-1, int Ny=-1, int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
   
-  file(const string& name, bool checkerase=true, bool binary=false) :
+  file(const string& name, bool checkerase=true, bool binary=false,
+       bool closed=false) :
     name(name), linemode(false), csvmode(false), singlemode(false),
-    closed(false), checkerase(checkerase), standard(name.empty()),
+    closed(closed), checkerase(checkerase), standard(name.empty()),
     binary(binary), lines(0), nullfield(false), whitespace("") {dimension();}
   
   virtual void open() {}
@@ -108,12 +109,14 @@ public:
   
   virtual ~file() {}
 
-  virtual const char* Mode()=0;
+  virtual const char* Mode() {return "";}
 
   bool isOpen() {
     if(closed) {
       ostringstream buf;
-      buf << "I/O operation attempted on closed file \'" << name << "\'.";
+      buf << "I/O operation attempted on ";
+      if(name != "") buf << "closed file \'" << name << "\'.";
+      else buf << "null file.";
       reportError(buf);
     }
     return true;
@@ -123,10 +126,10 @@ public:
   virtual bool eol() {return false;}
   virtual bool nexteol() {return false;}
   virtual bool text() {return false;}
-  virtual bool eof()=0;
-  virtual bool error()=0;
-  virtual void close()=0;
-  virtual void clear()=0;
+  virtual bool eof() {return true;}
+  virtual bool error() {return true;}
+  virtual void close() {}
+  virtual void clear() {}
   virtual void precision(int) {}
   virtual void flush() {}
   virtual size_t tell() {return 0;}
@@ -577,6 +580,7 @@ public:
 #endif
 
 extern ofile Stdout;
+extern file nullfile;
 
 } // namespace camp
 

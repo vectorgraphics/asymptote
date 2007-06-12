@@ -4032,6 +4032,11 @@ bool !=(file *a, file *b)
   return a != b;
 }
 
+file* :nullFile()
+{
+ return &camp::nullfile;
+}
+
 file* input(string name, bool check=true, string comment=commentchar)
 {
   char c=comment == "" ? (char) 0 : comment[0];

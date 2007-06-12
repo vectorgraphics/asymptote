@@ -14,6 +14,7 @@ string tab="\t";
 string newline="\n";
 
 ofile Stdout("");
+file nullfile("",false,false,true);
 
 void ifile::ignoreComment(bool readstring)
 {

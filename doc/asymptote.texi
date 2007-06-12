@@ -3252,11 +3252,11 @@ other than the current directory is allowed only if the @code{-global}
 @cindex @code{stdin}
 @cindex @code{stdout}
 There are two special files: @code{stdin}, which reads from the keyboard,
-and @code{stdout}, which writes to the terminal. There is no implicit
-initializer for files.
+and @code{stdout}, which writes to the terminal. The implicit
+initializer for files is @code{null}.
 
 Data of a built-in type @code{T} can be written to an output file by
-calling one of the functions
+calling one of the functionsC
 @cindex @code{write}
 @verbatim
 write(string s="", T x, suffix suffix=endl ... T[]);
@@ -3408,17 +3408,19 @@ initialized to @code{O=(0,0,0)}.
 @item @code{boolean} variables are initialized to @code{false}.
 @item @code{string} variables are initialized to the empty string.
 @item @code{transform} variables are initialized to the identity transformation.
-@item @code{guide} and @code{path} variables are initialized to
+@item @code{path} and @code{guide} variables are initialized to
 @code{nullpath}.
 @item @code{pen} variables are initialized to the default pen.
 @item @code{frame} and @code{picture} variables are initialized to empty
 frames and pictures, respectively.
+@item @code{file} variables are initialized to @code{null}.
 @end itemize
 
 The default initializers for user-defined array, structure, and function types
-are explained in their respective sections.  Some types, such as @code{file} and
-@code{code}, do not have a default initializer.  When a variable of such a type
-is introduced, the user must initialize it by explicitly giving it a value.
+are explained in their respective sections.  Some types, such as
+@code{code}, do not have default initializers.  When a variable of such
+a type is introduced, the user must initialize it by explicitly giving
+it a value.
 
 The default initializer for any type @code{T} can be redeclared by defining the
 function @code{T operator init()}.  For instance, @code{int} variables are
