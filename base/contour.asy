@@ -1,7 +1,6 @@
 // Contour routines written by Radoslav Marinov and John Bowman.
          
 import graph_settings;
-typedef guide interpolate(... guide[]);
 
 real eps=10000*realEpsilon;
 
