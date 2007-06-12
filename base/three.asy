@@ -1716,6 +1716,14 @@ path[] operator cast(path3 p) {return new path[] {(path) p};}
 path[] operator cast(guide3 g) {return new path[] {(path) g};}
 path[] operator cast(path3[] g) {return project(g);}
 
+guide3[] operator cast(triple[] v)
+{
+  guide3[] g=new guide3[v.length];
+  for(int i=0; i < v.length; ++i)
+    g[i]=v[i];
+  return g;
+}
+
 path3[] operator cast(triple[] v)
 {
   path3[] g=new path3[v.length];
