@@ -366,34 +366,36 @@ guide3 graph(picture pic=currentpicture, triple v(real), real a, real b,
   return graph(join)(new triple(real t) {return Scale(pic,v(t));},a,b,n);
 }
 
-int conditional(triple[] v, bool[] cond)
+int[] conditional(triple[] v, bool[] cond)
 {
   if(cond.length > 0) {
     if(cond.length != v.length)
       abort("condition array has different length than data");
-    return sum(cond)-1;
-  } else return v.length-1;
+    return cond ? sequence(cond.length) : null;
+  } else return sequence(v.length);
 }
 
 guide3 graph(picture pic=currentpicture, triple[] v, bool[] cond={},
              interpolate3 join=operator --)
 {
-  int n=conditional(v,cond);
-  int i=-1;
+  int[] I=conditional(v,cond);
+  int k=0;
   return graph(join)(new triple(real) {
-      i=next(i,cond);
-      return Scale(pic,v[i]);},0,0,n);
+      int i=I[k]; ++k;
+      return Scale(pic,v[i]);}
+    ,0,0,I.length-1);
 }
 
 guide3 graph(picture pic=currentpicture, real[] x, real[] y, real[] z,
              bool[] cond={}, interpolate3 join=operator --)
 {
   if(x.length != y.length || x.length != z.length) abort(differentlengths);
-  int n=conditional(x,cond);
-  int i=-1;
+  int[] I=conditional(x,cond);
+  int k=0;
   return graph(join)(new triple(real) {
-      i=next(i,cond);
-      return Scale(pic,(x[i],y[i],z[i]));},0,0,n);
+      int i=I[k]; ++k;
+      return Scale(pic,(x[i],y[i],z[i]));
+    },0,0,I.length-1);
 }
 
 // The graph of a function along a path.
@@ -424,6 +426,16 @@ guide3 graph(real f(pair), path p, int n=1, real T(pair),
 {
   return graph(new triple(pair z) {pair w=T(z); return (w.x,w.y,f(w));},p,n,
                join);
+}
+
+// Connect points in v into segments corresponding to consecutive true elements
+// of b using interpolation operator join. 
+path3[] segment(triple[] v, bool[] b, interpolate3 join=operator --)
+{
+  if(v.length != b.length) abort(differentlengths);
+  int[][] segment=segment(b);
+  return sequence(new path3(int i) {return join(... v[segment[i]]);},
+		  segment.length);
 }
 
 // draw the surface described by a matrix f, respecting lighting

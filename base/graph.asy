@@ -1762,30 +1762,24 @@ guide graph(picture pic=currentpicture, pair z(real), real a, real b,
   return graph(join)(new pair(real t) {return Scale(pic,z(t));},a,b,n);
 }
 
-int next(int i, bool[] cond)
-{
-  ++i;
-  if(cond.length > 0) while(!cond[i]) ++i;
-  return i;
-}
-
-int conditional(pair[] z, bool[] cond)
+int[] conditional(pair[] z, bool[] cond)
 {
   if(cond.length > 0) {
     if(cond.length != z.length)
       abort("condition array has different length than data");
-    return sum(cond)-1;
-  } else return z.length-1;
+    return cond ? sequence(cond.length) : null;
+  } else return sequence(z.length);
 }
 
 guide graph(picture pic=currentpicture, pair[] z, bool[] cond={},
             interpolate join=operator --)
 {
-  int n=conditional(z,cond);
-  int i=-1;
+  int[] I=conditional(z,cond);
+  int k=0;
   return graph(join)(new pair(real) {
-      i=next(i,cond);
-      return Scale(pic,z[i]);},0,0,n);
+      int i=I[k]; ++k;
+      return Scale(pic,z[i]);
+    },0,0,I.length-1);
 }
 
 string differentlengths="attempt to graph arrays of different lengths";
@@ -1794,11 +1788,12 @@ guide graph(picture pic=currentpicture, real[] x, real[] y, bool[] cond={},
             interpolate join=operator --)
 {
   if(x.length != y.length) abort(differentlengths);
-  int n=conditional(x,cond);
-  int i=-1;
+  int[] I=conditional(x,cond);
+  int k=0;
   return graph(join)(new pair(real) {
-      i=next(i,cond);
-      return Scale(pic,(x[i],y[i]));},0,0,n);
+      int i=I[k]; ++k;
+      return Scale(pic,(x[i],y[i]));
+    },0,0,I.length-1);
 }
 
 guide graph(picture pic=currentpicture, real f(real), real a, real b,
@@ -1819,6 +1814,16 @@ guide graph(picture pic=currentpicture, pair z(real), real a, real b,
             int n=ngraph, real T(real), interpolate join=operator --)
 {
   return graph(join)(new pair(real t) {return Scale(pic,z(T(t)));},a,b,n);
+}
+
+// Connect points in z into segments corresponding to consecutive true elements
+// of b using interpolation operator join. 
+path[] segment(pair[] z, bool[] b, interpolate join=operator --)
+{
+  if(z.length != b.length) abort(differentlengths);
+  int[][] segment=segment(b);
+  return sequence(new path(int i) {return join(... z[segment[i]]);},
+		  segment.length);
 }
 
 pair polar(real r, real theta)
@@ -1852,10 +1857,10 @@ void errorbars(picture pic=currentpicture, pair[] z, pair[] dp, pair[] dm={},
 {
   if(dm.length == 0) dm=dp;
   if(z.length != dm.length || z.length != dp.length) abort(differentlengths);
-  int n=conditional(z,cond);
-  int i=-1;
-  for(int I=0; I <= n; ++I) {
-    i=next(i,cond);
+  int[] I=conditional(z,cond);
+  int i=0;
+  for(int k=0; k < I.length; ++k) {
+    int i=I[k];
     errorbar(pic,z[i],dp[i],dm[i],p,size);
   }
 }
@@ -1869,10 +1874,9 @@ void errorbars(picture pic=currentpicture, real[] x, real[] y,
   if(x.length != y.length || 
      x.length != dpx.length || x.length != dmx.length ||
      x.length != dpy.length || x.length != dmy.length) abort(differentlengths);
-  int n=conditional(x,cond);
-  int i=-1;
-  for(int I=0; I <= n; ++I) {
-    i=next(i,cond);
+  int[] I=conditional(x,cond);
+  for(int k=0; k < I.length; ++k) {
+    int i=I[k];
     errorbar(pic,(x[i],y[i]),(dpx[i],dpy[i]),(dmx[i],dmy[i]),p,size);
   }
 }

@@ -169,6 +169,25 @@ bool increasing(real[] x, bool strict=false)
   return all(b);
 }
 
+// Return the indices of consecutive true-element segments of bool[] b.
+int[][] segment(bool[] b)
+{
+  int[][] segment;
+  bool[] n=copy(b);
+  n.delete(0);
+  n.push(!b[b.length-1]);
+  int[] edge=(b != n) ? sequence(1,b.length) : null;
+  edge.insert(0,0);
+  int stop=edge[0];
+  for(int i=0; i < edge.length-1;) {
+    int start=stop;
+    stop=edge[++i];
+    if(b[start])
+      segment.push(sequence(start,stop-1));
+  }
+  return segment;
+}
+
 real[] zero(int n)
 {
   return sequence(new real(int) {return 0;},n);
