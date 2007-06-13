@@ -3256,7 +3256,7 @@ and @code{stdout}, which writes to the terminal. The implicit
 initializer for files is @code{null}.
 
 Data of a built-in type @code{T} can be written to an output file by
-calling one of the functionsC
+calling one of the functions
 @cindex @code{write}
 @verbatim
 write(string s="", T x, suffix suffix=endl ... T[]);
@@ -7925,3 +7925,4 @@ Stefan Knorr.
 @c  LocalWords:  curlSpecifier cputimeformat initializers arbitary redeclaring
 @c  LocalWords:  firstname lastname multdiagonal Raphson OmitTick OmitFormat
 @c  LocalWords:  NoZero NoZeroFormat abbrevation gsOptions namespace redeclared
+@c  LocalWords:  atLeast

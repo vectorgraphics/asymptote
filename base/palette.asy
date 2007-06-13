@@ -60,10 +60,12 @@ private real[] sequencereal;
 
 bounds image(picture pic=currentpicture, real[][] f, range range=Full,
              pair initial, pair final, pen[] palette,
-             bool transpose=(initial.x < final.x && initial.y < final.y))
+             bool transpose=(initial.x < final.x && initial.y < final.y),
+	     bool copy=true)
 {
-  f=transpose ? transpose(f) : copy(f);
-  palette=copy(palette);
+  if(transpose) f=transpose(f);
+  else if(copy) f=copy(f);
+  if(copy) palette=copy(palette);
 
   real m=min(f);
   real M=max(f);
@@ -114,9 +116,11 @@ bounds image(picture pic=currentpicture, real f(real,real),
 }
 
 void image(picture pic=currentpicture, pen[][] data, pair initial, pair final,
-           bool transpose=(initial.x < final.x && initial.y < final.y))
+           bool transpose=(initial.x < final.x && initial.y < final.y),
+	   bool copy=true)
 {
-  data=transpose ? transpose(data) : copy(data);
+  if(transpose) data=transpose(data);
+  else if(copy) data=copy(data);
 
   initial=Scale(pic,initial);
   final=Scale(pic,final);
@@ -196,7 +200,8 @@ paletteticks PaletteTicks=PaletteTicks();
 
 void palette(picture pic=currentpicture, Label L="", bounds range, 
              pair initial, pair final, axis axis=Right, pen[] palette, 
-             pen p=currentpen, paletteticks ticks=PaletteTicks)
+             pen p=currentpen, paletteticks ticks=PaletteTicks,
+	     bool copy=true)
 {
   real initialz=pic.scale.z.T(range.min);
   real finalz=pic.scale.z.T(range.max);
@@ -224,7 +229,7 @@ void palette(picture pic=currentpicture, Label L="", bounds range,
     g2=tmp;
   }
 
-  palette=copy(palette);
+  if(copy) palette=copy(palette);
   Label L=L.copy();
   if(L.defaultposition) L.position(0.5);
   L.align(axis.align);
