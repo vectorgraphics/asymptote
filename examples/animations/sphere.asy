@@ -30,7 +30,6 @@ animation A;
 for(int phi=0; phi < 360; phi += angle) {
   bool[] front=new bool[nbpts];
   save();
-  r=t*r;
   for(int i=0; i < nbpts; ++i) {
     P[i]=t*P[i];
     front[i]=dot(P[i],currentprojection.camera) > 0;
