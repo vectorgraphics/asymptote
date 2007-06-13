@@ -7,3 +7,7 @@ Andy: Look at Java syntactic sugar for iterating over arrays.
 
 Andy: Add info to vm to aid debugging.  (Locations are a start, but we can add
 variable names, type info, stack traces).
+
+John or Andy: Add unit test for AddOps.
+
+Andy: Fix: void f(int x=blah);

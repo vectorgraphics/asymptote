@@ -48,9 +48,10 @@ types::ty *formal::getType(coenv &e, bool tacit) {
   return t;
 }
   
-void formal::addOps(coenv &e) {
+void formal::addOps(coenv &e, record *r) {
+  base->addOps(e, r);
   if (start)
-    start->addOps(base->trans(e, true), e, (record *)0);
+    start->addOps(base->trans(e, true), e, r);
 } 
 
 void formals::prettyprint(ostream &out, int indent)
@@ -90,6 +91,15 @@ function *formals::getType(types::ty *result, coenv &e,
   function *ft = new function(result);
   addToSignature(ft->sig,e,encodeDefVal,tacit);
   return ft;
+}
+
+void formals::addOps(coenv &e, record *r)
+{
+  for(list<formal *>::iterator p = fields.begin(); p != fields.end(); ++p)
+    (*p)->addOps(e, r);
+
+  if (rest)
+    rest->addOps(e, r);
 }
 
 // Another helper class. Does an assignment, but relying only on the
@@ -144,11 +154,6 @@ void formal::transAsVar(coenv &e, int index) {
     types::ty *t = getType(e, true);
     varEntry *v = new varEntry(t, a, 0, getPos());
 
-    // Add operations if a new array type is formed.  This will add to the
-    // environment at the start of the function, when the formals are also added
-    // to the environment.
-    addOps(e);
-
     // Translate the default argument before adding the formal to the
     // environment, consistent with the initializers of variables.
     if (defval)
@@ -195,9 +200,41 @@ function *fundef::transType(coenv &e, bool tacit) {
   return params->getType(result->trans(e, tacit), e, encodeDefVal, tacit);
 }
 
-types::ty *fundef::trans(coenv &e) {
-  function *ft=transType(e, false);
-  
+function *fundef::transTypeAndAddOps(coenv &e, record *r, bool tacit) {
+  result->addOps(e,r);
+  params->addOps(e,r);
+
+  function *ft=transType(e, tacit);
+  e.e.addFunctionOps(ft);
+  if (r)
+    r->e.addFunctionOps(ft);
+
+  return ft;
+}
+
+varinit *fundef::makeVarInit(function *ft) {
+  struct initializer : public varinit {
+    fundef *f;
+    function *ft;
+
+    initializer(fundef *f, function *ft)
+      : varinit(f->getPos()), f(f), ft(ft) {}
+
+    void prettyprint(ostream &out, int indent) {
+      prettyname(out, "initializer", indent);
+    }
+
+    void transToType(coenv &e, types::ty *target) {
+      assert(ft==target);
+      f->baseTrans(e, ft);
+    }
+  };
+
+  return new initializer(this, ft);
+}
+
+void fundef::baseTrans(coenv &e, types::function *ft)
+{
   // Create a new function environment.
   coder fc = e.c.newFunction(ft);
   coenv fe(fc,e.e);
@@ -222,6 +259,29 @@ types::ty *fundef::trans(coenv &e) {
   vm::lambda *l = fe.c.close();
   e.c.encode(inst::pushclosure);
   e.c.encode(inst::makefunc, l);
+}
+
+types::ty *fundef::trans(coenv &e) {
+  // I don't see how addFunctionOps can be useful here.
+  // For instance, in
+  //
+  //   new void() {} == null
+  //
+  // callExp has to search for == before translating either argument, and the
+  // operator cannot be added before translation.  (getType() is not allowed to
+  // manipulate the environment.)
+  // A new function expression is assigned to a variable, given as a return
+  // value, or used as an argument to a function.  In any of these 
+  //
+  // We must still addOps though, for the return type and formals.  ex:
+  //
+  // new guide[] (guide f(int)) {
+  //   return sequence(f, 10);
+  // };
+  function *ft=transTypeAndAddOps(e, (record *)0, false);
+  assert(ft);
+  
+  baseTrans(e, ft);
 
   return ft;
 }
@@ -241,14 +301,10 @@ void fundec::trans(coenv &e)
 
 void fundec::transAsField(coenv &e, record *r)
 {
-  function *ft = fun.transType(e, true);
+  function *ft = fun.transTypeAndAddOps(e, r, false);
   assert(ft);
 
-  e.e.addFunctionOps(ft);
-  if (r)
-    r->e.addFunctionOps(ft);
-  
-  createVar(getPos(), e, r, id, ft, &fun);
+  createVar(getPos(), e, r, id, ft, fun.makeVarInit(ft));
 } 
 
 } // namespace absyntax

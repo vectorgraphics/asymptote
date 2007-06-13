@@ -759,6 +759,7 @@ types::ty *castExp::tryCast(coenv &e, types::ty *t, types::ty *s,
 
 types::ty *castExp::trans(coenv &e)
 {
+  target->addOps(e, (record *)0);
   types::ty *t=target->trans(e);
 
   types::ty *s=castee->cgetType(e);

@@ -36,7 +36,8 @@ public:
   virtual void transAsVar(coenv &e, int index);
 
   types::ty *getType(coenv &e, bool tacit=false);
-  void addOps(coenv &e);
+
+  virtual void addOps(coenv &e, record *r);
 
   varinit *getDefaultValue() {
     return defval;
@@ -100,6 +101,8 @@ public:
                            bool encodeDefVal = false,
                            bool tacit = false);
 
+  virtual void addOps(coenv &e, record *r);
+
   // Add the formal parameters to the environment to prepare for the
   // function body's translation.
   virtual void trans(coenv &e);
@@ -118,12 +121,15 @@ public:
   fundef(position pos, ty *result, formals *params, stm *body)
     : exp(pos), result(result), params(params), body(body) {}
 
-  void prettyprint(ostream &out, int indent);
+  virtual void prettyprint(ostream &out, int indent);
 
-  types::ty *trans(coenv &e);
+  varinit *makeVarInit(types::function *ft);
+  virtual void baseTrans(coenv &e, types::function *ft);
+  virtual types::ty *trans(coenv &e);
 
-  types::function *transType(coenv &e, bool tacit);
-  types::ty *getType(coenv &e) {
+  virtual types::function *transType(coenv &e, bool tacit);
+  virtual types::function *transTypeAndAddOps(coenv &e, record *r, bool tacit);
+  virtual types::ty *getType(coenv &e) {
     return transType(e, true);
   }
 };

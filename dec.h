@@ -50,6 +50,10 @@ public:
 
   virtual void prettyprint(ostream &out, int indent) = 0;
 
+  // If we introduced a new type, automatically add corresponding functions for
+  // that type.  
+  virtual void addOps(coenv &e, record *r) {}
+
   // Returns the internal representation of the type.  This method can
   // be called by exp::getType which does not report errors, so tacit is
   // needed to silence errors in this case.
@@ -104,6 +108,8 @@ public:
     : ty(dims->getPos()), cell(new nameTy(id)), dims(dims) {}
 
   void prettyprint(ostream &out, int indent);
+
+  void addOps(coenv &e, record *r);
 
   types::ty *trans(coenv &e, bool tacit = false);
 };
@@ -378,6 +384,7 @@ public:
 
   void transAsField(coenv &e, record *r)
   {
+    base->addOps(e, r);
     decs->transAsField(e, r, base->trans(e));
   }
 

@@ -80,6 +80,14 @@ void arrayTy::prettyprint(ostream &out, int indent)
   dims->prettyprint(out, indent+1);
 }
 
+void arrayTy::addOps(coenv &e, record *r)
+{
+  types::array *t=dynamic_cast<types::array *>(trans(e, true));
+  e.e.addArrayOps(t);
+  if (r)
+    r->e.addArrayOps(t);
+}
+  
 types::ty *arrayTy::trans(coenv &e, bool tacit)
 {
   types::ty *ct = cell->trans(e, tacit);
@@ -87,8 +95,6 @@ types::ty *arrayTy::trans(coenv &e, bool tacit)
 
   types::array *t = dims->truetype(ct);
   assert(t);
-  
-  e.e.addArrayOps(t);
   
   return t;
 }
@@ -345,6 +351,8 @@ void fundecidstart::addOps(types::ty *base, coenv &e, record *r)
 {
   decidstart::addOps(base, e, r);
 
+  params->addOps(e, r);
+
   types::function *ft=dynamic_cast<types::function *>(getType(base, e, true));
   assert(ft);
 
@@ -503,6 +511,7 @@ void vardec::prettyprint(ostream &out, int indent)
 
 void vardec::transAsTypedefField(coenv &e, record *r)
 {
+  base->addOps(e, r);
   decs->transAsTypedefField(e, base->transAsTyEntry(e, r), r);
 }
 
