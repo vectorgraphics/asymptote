@@ -3877,6 +3877,7 @@ real newton(int iterations=100, callableReal *f, callableReal *fprime, real x,
 }
 
 // Root solve by Newton-Raphson bisection
+// cf. routine rtsafe (Press et al.,  Numerical Recipes, 1991).
 real newton(int iterations=100, callableReal *f, callableReal *fprime, real x1,
 	    real x2, bool verbose=false)
 {
