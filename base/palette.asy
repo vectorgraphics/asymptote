@@ -69,17 +69,17 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
 
   real m=min(f);
   real M=max(f);
-  bounds range=range(pic,m,M);
-  real rmin=pic.scale.z.T(range.min);
-  real rmax=pic.scale.z.T(range.max);
+  bounds bounds=range(pic,m,M);
+  real rmin=pic.scale.z.T(bounds.min);
+  real rmax=pic.scale.z.T(bounds.max);
   palette=adjust(pic,m,M,rmin,rmax,palette);
 
   // Crop data to allowed range and scale
   if(range != Full || pic.scale.z.scale.T != identity ||
      pic.scale.z.postscale.T != identity) {
     scalefcn T=pic.scale.z.T;
-    real m=range.min;
-    real M=range.max;
+    real m=bounds.min;
+    real M=bounds.max;
     for(int i=0; i < f.length; ++i)
       f[i]=map(new real(real x) {return T(min(max(x,m),M));},f[i]);
   }
@@ -91,7 +91,7 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
       _image(F,f,initial,final,palette,t,copy=false);
     });
   pic.addBox(initial,final);
-  return range; // Return range used for color space
+  return bounds; // Return bounds used for color space
 }
 
 bounds image(picture pic=currentpicture, real f(real,real),
@@ -139,9 +139,9 @@ bounds image(picture pic=currentpicture, pair[] z, real[] f,
 
   real m=min(f);
   real M=max(f);
-  bounds range=range(pic,m,M);
-  real rmin=pic.scale.z.T(range.min);
-  real rmax=pic.scale.z.T(range.max);
+  bounds bounds=range(pic,m,M);
+  real rmin=pic.scale.z.T(bounds.min);
+  real rmax=pic.scale.z.T(bounds.max);
 
   palette=adjust(pic,m,M,rmin,rmax,palette);
 
@@ -149,8 +149,8 @@ bounds image(picture pic=currentpicture, pair[] z, real[] f,
   if(range != Full || pic.scale.z.scale.T != identity ||
      pic.scale.z.postscale.T != identity) {
     scalefcn T=pic.scale.z.T;
-    real m=range.min;
-    real M=range.max;
+    real m=bounds.min;
+    real M=bounds.max;
     f=map(new real(real x) {return T(min(max(x,m),M));},f);
   }
 
@@ -168,7 +168,7 @@ bounds image(picture pic=currentpicture, pair[] z, real[] f,
     gouraudshade(pic,z[i0]--z[i1]--z[i2]--cycle,
 		 new pen[] {color(i0),color(i1),color(i2)},edges);
   }
-  return range; // Return range used for color space
+  return bounds; // Return bounds used for color space
 }
 
 bounds image(picture pic=currentpicture, real[] x, real[] y, real[] f,
@@ -180,6 +180,25 @@ bounds image(picture pic=currentpicture, real[] x, real[] y, real[] f,
 
   pair[] z=sequence(new pair(int i) {return (x[i],y[i]);},n);
   return image(pic,z,f,range,palette);
+}
+
+// Use palette to construct a pen[][] array from f for use with latticeshade.
+pen[][] interpolate(real[][] f, pen[] palette)
+{
+  real Min=min(f);
+  real Max=max(f);
+  int n=f.length;
+  int m=n > 0 ? f[0].length : 0;
+  pen[][] p=new pen[n][m];
+  real step=(Max == Min) ? 0.0 : (palette.length-1)/(Max-Min);
+  for(int i=0; i < n; ++i) {
+    real[] fi=f[i];
+    pen[] pi=p[i];
+    for(int j=0; j < m; ++j) {
+      pi[j]=Palette[round((fi[j]-Min)*step)];
+    }
+  }
+  return p;
 }
 
 typedef ticks paletteticks(int sign=-1);
@@ -198,13 +217,13 @@ paletteticks PaletteTicks(Label format="", ticklabel ticklabel=null,
 
 paletteticks PaletteTicks=PaletteTicks();
 
-void palette(picture pic=currentpicture, Label L="", bounds range, 
+void palette(picture pic=currentpicture, Label L="", bounds bounds, 
              pair initial, pair final, axis axis=Right, pen[] palette, 
              pen p=currentpen, paletteticks ticks=PaletteTicks,
 	     bool copy=true)
 {
-  real initialz=pic.scale.z.T(range.min);
-  real finalz=pic.scale.z.T(range.max);
+  real initialz=pic.scale.z.T(bounds.min);
+  real finalz=pic.scale.z.T(bounds.max);
   bounds mz=autoscale(initialz,finalz,pic.scale.z.scale);
   
   axisT axis;

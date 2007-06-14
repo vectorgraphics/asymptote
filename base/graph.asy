@@ -130,17 +130,15 @@ scientific scientific(real x)
 struct bounds {
   real min;
   real max;
+
   // Possible tick intervals:
   int[] divisor;
-}
 
-bounds bounds(real min, real max, int[] divisor=new int[])
-{
-  bounds b;
-  b.min=min;
-  b.max=max;
-  b.divisor=divisor;
-  return b;
+  void operator init(real min, real max, int[] divisor=new int[]) {
+    this.min=min;
+    this.max=max;
+    this.divisor=divisor;
+  }
 }
 
 // Compute tick divisors.

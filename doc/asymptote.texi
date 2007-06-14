@@ -6557,11 +6557,11 @@ bounds image(picture pic=currentpicture, real[] x, real[] y, real[] f,
 
 An optionally labelled palette bar may be generated with the routine
 @verbatim
-void palette(picture pic=currentpicture, Label L="", bounds range,
+void palette(picture pic=currentpicture, Label L="", bounds bounds,
              pair initial, pair final, axis axis=Right, pen[] palette,
              pen p=currentpen, paletteticks ticks=PaletteTicks);
 @end verbatim
-The color space of @code{palette} is taken to be over bounds @code{range} with
+The color space of @code{palette} is taken to be over bounds @code{bounds} with
 scaling given by the @math{z} scaling of @code{pic}.
 The palette orientation is specified by @code{axis}, which may be one of
 @code{Right}, @code{Left}, @code{Top}, or @code{Bottom}.
