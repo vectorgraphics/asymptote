@@ -58,10 +58,10 @@ struct framedTransformStack {
     return popped;
   }
 
-  transform push(transform t) {
+  void push(transform t) {
     report("Pushed");
     report(t);
-    return stack.push(t);
+    stack.push(t);
   }
 
   void enterFrame() {
