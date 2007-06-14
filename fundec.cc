@@ -275,9 +275,9 @@ types::ty *fundef::trans(coenv &e) {
   //
   // We must still addOps though, for the return type and formals.  ex:
   //
-  // new guide[] (guide f(int)) {
-  //   return sequence(f, 10);
-  // };
+  //   new guide[] (guide f(int)) {
+  //     return sequence(f, 10);
+  //   };
   function *ft=transTypeAndAddOps(e, (record *)0, false);
   assert(ft);
   

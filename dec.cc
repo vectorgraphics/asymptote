@@ -80,6 +80,7 @@ void arrayTy::prettyprint(ostream &out, int indent)
   dims->prettyprint(out, indent+1);
 }
 
+// NOTE: Can this be merged with trans somehow?
 void arrayTy::addOps(coenv &e, record *r)
 {
   types::array *t=dynamic_cast<types::array *>(trans(e, true));
