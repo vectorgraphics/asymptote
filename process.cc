@@ -63,8 +63,10 @@ void init(bool resetpath=true)
 void purge()
 {
 #ifdef USEGC
+#ifndef _MAC
   GC_gcollect();
   GC_gcollect();
+#endif
 #endif
 }
 
@@ -755,8 +757,6 @@ class iprompt : public icore {
 
     // Ignore errors from this line when trying to run subsequent lines.
     em->clear();
-    
-    purge(); // Close any files that have gone out of scope.
   }
 
   void runStartCode(coenv &e, istack &s) {

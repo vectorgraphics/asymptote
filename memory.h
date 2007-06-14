@@ -29,12 +29,13 @@
 
 #include <gc.h>
 
+#undef GC_MALLOC
+#ifdef GC_DEBUG
+
 extern "C" {
 #include <gc_backptr.h>
 }
 
-#undef GC_MALLOC
-# ifdef GC_DEBUG
 inline void *GC_MALLOC(size_t n) { \
   if (void *mem=GC_debug_malloc(n, GC_EXTRAS))	\
     return mem;                    \

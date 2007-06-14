@@ -126,7 +126,9 @@ int main(int argc, char *argv[])
   }
 
 #ifdef USEGC
+#ifndef _MAC
   GC_gcollect();
+#endif
 #endif
 
   if(getSetting<bool>("wait")) {
