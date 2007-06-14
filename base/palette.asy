@@ -195,7 +195,7 @@ pen[][] interpolate(real[][] f, pen[] palette)
     real[] fi=f[i];
     pen[] pi=p[i];
     for(int j=0; j < m; ++j) {
-      pi[j]=Palette[round((fi[j]-Min)*step)];
+      pi[j]=palette[round((fi[j]-Min)*step)];
     }
   }
   return p;
