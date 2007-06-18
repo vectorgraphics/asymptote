@@ -109,7 +109,11 @@ int main(int argc, char *argv[])
     signal(SIGINT,interruptHandler);
     processPrompt();
   } else if (getSetting<bool>("listvariables") && numArgs()==0) {
-    doUnrestrictedList();
+    try {
+      doUnrestrictedList();
+    } catch(handled_error) {
+      em->statusError();
+    } 
   } else {
     if(numArgs() == 0) 
       processFile("-");
