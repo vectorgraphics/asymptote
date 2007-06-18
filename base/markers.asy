@@ -130,12 +130,13 @@ real markanglespace=markanglespace();
 void markangle(picture pic=currentpicture, Label L="",
                int n=1, real radius=0, real space=0,
                pair A, pair O, pair B, arrowbar arrow=None,
-               pen p=currentpen, margin margin=NoMargin,
-               marker marker=nomarker)
+               pen p=currentpen,filltype filltype=NoFill,
+               margin margin=NoMargin, marker marker=nomarker)
 {
   if(space == 0) space=markanglespace(p);
   if(radius == 0) radius=markangleradius(p);
   picture lpic,phantom;
+  frame ff;
   path lpth;
   p=squarecap+p;
   real xob=degrees(B-O,false);
@@ -143,6 +144,11 @@ void markangle(picture pic=currentpicture, Label L="",
   if(abs(xob-xoa) > 180) radius=-radius;
   bool drawarrow = !arrow(phantom,arc((0,0),radius,xoa,xob),p,margin);
   if(drawarrow && margin == NoMargin) margin=TrueMargin(0,0.5linewidth(p));
+  if(filltype != NoFill) {
+    lpth=margin(arc((0,0),radius+sgn(radius)*(n-1)*space,xoa,xob),p).g;
+    filltype(ff,O--lpth--relpoint(lpth,1)--cycle,p);
+    add(lpic,ff);
+  }
   for(int i=0; i < n; ++i) {
     lpth=margin(arc((0,0),radius+sgn(radius)*i*space,xoa,xob),p).g;
     draw(lpic,lpth,p=p,arrow=arrow,margin=NoMargin,marker=marker);
