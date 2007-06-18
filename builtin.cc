@@ -782,12 +782,18 @@ void arrayDeleteHelper(vm::stack *Stack)
   int j=isdefault(it) ? i : get<int>(it);
 
   size_t asize=checkArray(a);
+  if(i == 0 && j+1 == (int) asize) {
+    (*a).clear();
+    return;
+  }
+
   if(a->cyclic() && asize > 0) {
     size_t J=j;
     j=imod(j,asize);
     item val=(*a)[j];
     if(J+1 >= asize+i) {
-      (*a).clear(); {Stack->push(val); return;}
+      (*a).clear();
+      return;
     }
     i=imod(i,asize);
     if(j >= i) 
@@ -796,7 +802,7 @@ void arrayDeleteHelper(vm::stack *Stack)
       (*a).erase((*a).begin()+i,(*a).end());
       (*a).erase((*a).begin(),(*a).begin()+j+1);
     }
-    {Stack->push(val); return;}
+    return;
   }
   
   if(i < 0 || i >= (int) asize || i > j || j >= (int) asize) {
@@ -806,9 +812,7 @@ void arrayDeleteHelper(vm::stack *Stack)
     error(buf);
   }
 
-  item val=(*a)[j];
   (*a).erase((*a).begin()+i,(*a).begin()+j+1);
-  {Stack->push(val); return;}
 }
   
 }

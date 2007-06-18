@@ -211,7 +211,7 @@ ty *array::insertType()
 ty *array::deleteType()
 {
   if (deletetype == 0)
-    deletetype = new function(celltype,formal(primInt(),"i"),
+    deletetype = new function(primVoid(),formal(primInt(),"i"),
 			      formal(primInt(),"j",true));
 
   return deletetype;

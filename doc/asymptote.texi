@@ -4439,7 +4439,7 @@ The @code{copy} function listed below provides a deep copy of an array.
 Every array @code{A} of type @code{T[]} has the virtual members
 @code{int length}, @code{void cyclic(bool b)}, @code{bool cyclicflag},
 @code{T push(T x)}, @code{void append(T[] a)}, @code{T pop()},
-@code{void insert(int i ... T[] x)}, @code{T delete(int i, int j=i)}, and
+@code{void insert(int i ... T[] x)}, @code{void delete(int i, int j=i)}, and
 @code{bool initialized(int n)}.
 The member @code{A.length} evaluates to the length of the array.
 Setting @code{A.cyclic(true)} signifies that array indices should be reduced
@@ -4452,8 +4452,7 @@ inserts @code{x} into the array at index @code{i}.
 For convenience @code{A.push} returns the pushed item.
 The function @code{A.pop()} pops and returns the last element,
 while @code{A.delete(int i, int j=i)} deletes elements with indices in
-the range [@code{i},@code{j}] and returns the element
-with index @code{j}, shifting the position of all higher-indexed
+the range [@code{i},@code{j}], shifting the position of all higher-indexed
 elements down. The routine @code{A.initialized(int n)} can be used to examine
 whether the element at index @code{n} is initialized.
 Like all @code{Asymptote} functions,
