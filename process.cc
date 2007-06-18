@@ -31,6 +31,7 @@ namespace run {
   void cleanup();
   void exitFunction(vm::stack *Stack);
   void updateFunction(vm::stack *Stack);
+  void purge();
 }
 
 namespace vm {
@@ -58,16 +59,6 @@ void init(bool resetpath=true)
   ShipoutNumber=0;
   if(!em)
     em = new errorstream();
-}
-
-void purge()
-{
-#ifdef USEGC
-#ifndef _MAC
-  GC_gcollect();
-  GC_gcollect();
-#endif
-#endif
 }
 
 using absyntax::runnable;
@@ -173,7 +164,7 @@ public:
       return;
 
     try {
-      purge();
+      run::purge();
       
       genv ge;
       env base_env(ge);
@@ -189,9 +180,9 @@ public:
       // Now that everything is set up, run the core.
       run(e,s);
 
-      purge();
+      run::purge();
       postRun(e,s);
-      purge();
+      run::purge();
       
     } catch(std::bad_alloc&) {
       cerr << "error: out of memory" << endl;
@@ -629,7 +620,7 @@ class iprompt : public icore {
       startline="";
 
       uptodate=true;
-      purge();
+      run::purge();
 
       return true;
     }

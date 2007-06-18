@@ -180,6 +180,18 @@ using types::stringArray;
 using types::stringArray2;
 using types::formal;
 
+template<class T>
+inline T Min(T a, T b)
+{
+  return (a < b) ? a : b;
+}
+
+template<class T>
+inline T Max(T a, T b)
+{
+  return (a > b) ? a : b;
+}
+
 function *voidFunction()
 {
   return new function(primVoid());
@@ -554,6 +566,15 @@ void cleanup()
 #endif
 }
 
+void purge()
+{
+#ifdef USEGC
+#ifndef _MAC
+  GC_gcollect();
+#endif
+#endif
+}
+
 void updateFunction(stack *Stack)
 {
   if(atExitFunction && !nullfunc::instance()->compare(atExitFunction))
@@ -664,18 +685,6 @@ inline double principalBranch(double deg)
 {
   if(deg < 0) deg += 360; 
   return deg;
-}
-
-template<class T>
-inline T Min(T a, T b)
-{
-  return (a < b) ? a : b;
-}
-
-template<class T>
-inline T Max(T a, T b)
-{
-  return (a > b) ? a : b;
 }
 
 static string *defaulttransparency=new string("Compatible");
@@ -1156,6 +1165,11 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
   if(f->shipout(preamble,(ppid ? buf.str() : prefix),format,wait,view) &&
      ppid > 0)
     notifyXasy(ppid,false,i);
+}
+
+void purge()
+{
+  purge();
 }
 
 
@@ -3068,8 +3082,11 @@ bool :arrayCyclicFlag(array *a)
 // Check to see if an array element is initialized.
 bool :arrayInitializedHelper(int n, array *a)
 {
-  checkArray(a);
-  item& i=arrayRead(a,n);
+  size_t len=checkArray(a);
+  bool cyclic=a->cyclic();
+  if(cyclic && len > 0) n=imod(n,len);
+  else if(n < 0 || n >= (int) len) return false;
+  item&i=(*a)[(unsigned) n];
   return !i.empty();
 }
 

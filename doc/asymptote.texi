@@ -4435,6 +4435,7 @@ The @code{copy} function listed below provides a deep copy of an array.
 @cindex @code{pop}
 @cindex @code{insert}
 @cindex @code{delete}
+@cindex @code{initialized}
 Every array @code{A} of type @code{T[]} has the virtual members
 @code{int length}, @code{void cyclic(bool b)}, @code{bool cyclicflag},
 @code{T push(T x)}, @code{void append(T[] a)}, @code{T pop()},

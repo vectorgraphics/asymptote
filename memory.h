@@ -30,23 +30,23 @@
 #include <gc.h>
 
 #undef GC_MALLOC
-#ifdef GC_DEBUG
 
+#ifdef GC_DEBUG
 extern "C" {
 #include <gc_backptr.h>
 }
 
-inline void *GC_MALLOC(size_t n) { \
-  if (void *mem=GC_debug_malloc(n, GC_EXTRAS))	\
-    return mem;                    \
-  GC_generate_random_backtrace();  \
-  throw std::bad_alloc();          \
+inline void *GC_MALLOC(size_t n) {
+  if(void *mem=GC_debug_malloc(n, GC_EXTRAS))
+    return mem;
+  GC_generate_random_backtrace();
+  throw std::bad_alloc();
 }
-#else  
-inline void *GC_MALLOC(size_t n) { \
-  if (void *mem=GC_malloc(n))  \
-    return mem;                    \
-  throw std::bad_alloc();          \
+#else
+inline void *GC_MALLOC(size_t n) {
+  if (void *mem=GC_malloc(n))
+    return mem;
+  throw std::bad_alloc();
 }
 #endif
 
@@ -137,4 +137,4 @@ typedef std::stringbuf stringbuf;
 
 } // namespace mem
 
-#endif 
+#endif

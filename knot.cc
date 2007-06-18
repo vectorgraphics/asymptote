@@ -287,9 +287,9 @@ struct eqnprop : public knotprop<eqn> {
 //
 // which arises when solving a one-length path a..b or in a larger path a
 // section a--b.
-bool homogeneous(vector<eqn>& e)
+bool homogeneous(cvector<eqn>& e)
 {
-  for(vector<eqn>::iterator p=e.begin(); p!=e.end(); ++p)
+  for(cvector<eqn>::iterator p=e.begin(); p!=e.end(); ++p)
     if (p->aug != 0)
       return false;
   return true;

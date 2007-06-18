@@ -62,6 +62,9 @@ void doConfig(string filename);
 
 namespace settings {
   
+// Garbage collect after this many allocations.
+int gcfrequency=1000000;
+
 using camp::pair;
   
 string asyInstallDir; // Used only by msdos
@@ -575,6 +578,16 @@ struct alignSetting : public argumentSetting {
   }
 };
 
+template<class T>
+string stringCast(T x)
+{
+  ostringstream buf;
+  buf.precision(DBL_DIG);
+  buf.setf(std::ios::boolalpha);
+  buf << x;
+  return string(buf.str());
+}
+
 template <class T>
 struct refSetting : public setting {
   T *ref;
@@ -583,8 +596,8 @@ struct refSetting : public setting {
 
   refSetting(string name, char code, string argname,
              string desc, types::ty *t, T *ref, T defaultValue,
-	     string Default, const char *text="")
-    : setting(name, code, argname, desc, t, Default),
+	     const char *text="")
+    : setting(name, code, argname, desc, t, stringCast(defaultValue)),
       ref(ref), defaultValue(defaultValue), text(text) {
     reset();
   }
@@ -609,11 +622,11 @@ struct refSetting : public setting {
 };
 
 struct boolrefSetting : public refSetting<bool> {
-  boolrefSetting(string name, char code, string desc, bool *ref)
+  boolrefSetting(string name, char code, string desc, bool *ref,
+		 bool Default=false)
     : refSetting<bool>(name, code, noarg, desc,
-		       types::primBoolean(), ref, false, "false") {}
+		       types::primBoolean(), ref, Default) {}
   bool getOption() {
-    // Increment the value.
     *ref=true;
     return true;
   }
@@ -643,10 +656,16 @@ struct boolrefSetting : public refSetting<bool> {
   }
 };
 
+struct boolintrefSetting : public boolrefSetting {
+  boolintrefSetting(string name, char code, string desc, int *ref,
+		    bool Default=false)
+    : boolrefSetting(name, code, desc, (bool *) ref, Default) {}
+};
+
 struct incrementSetting : public refSetting<int> {
   incrementSetting(string name, char code, string desc, int *ref)
     : refSetting<int>(name, code, noarg, desc,
-		      types::primInt(), ref, 0, "0") {}
+		      types::primInt(), ref, 0) {}
 
   bool getOption() {
     // Increment the value.
@@ -957,6 +976,13 @@ void initSettings() {
 			   "", &globaloption, false, true));
   addOption(new stringOption("cd", 0, "directory", "Set current directory",
 			     &startpath));
+  addOption(new boolintrefSetting("compact", 0,
+				  "Conserve memory at the expense of speed",
+				  &GC_dont_expand));
+  addOption(new refSetting<GC_word>("divisor", 0, "n",
+			      "Free space divisor for garbage collection",
+				    types::primInt(),&GC_free_space_divisor,2,
+				    "an int"));
   
   addOption(new stringSetting("prompt", 0,"string","Prompt [\"> \"]","> "));
   addOption(new stringSetting("prompt2", 0,"string",
