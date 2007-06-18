@@ -1,13 +1,13 @@
 # Python module to feed Asymptote with commands
 # (modified from gnuplot.py)
-import os
+from subprocess import *
 class asy:
 	def __init__(self):
-		self.session = os.popen("asy -q","w")
+		self.session = Popen(['asy','-q'],stdin=PIPE)
 		self.help()
 	def send(self, cmd):
-		self.session.write(cmd+'\n')
-		self.session.flush()
+		self.session.stdin.write(cmd+'\n')
+		self.session.stdin.flush()
 	def size(self, size):
 		self.send("size(%d);" % size)
 	def draw(self, str):
@@ -27,8 +27,12 @@ class asy:
 		print "    help(), size(int), draw(str), fill(str), clip(str), label(str), shipout(str), send(str), erase()"
 	def __del__(self):
 		print "closing Asymptote session..."
-		self.send("quit"+'\n')
-		self.session.close()
+		self.send('quit');
+		self.session.stdin.close();
+		self.session.wait()
+		
+
+
 
 
 if __name__=="__main__":
