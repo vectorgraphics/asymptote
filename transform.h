@@ -18,7 +18,7 @@
 
 namespace camp {
 
-class transform : virtual public gc {
+class transform : public gc {
   double x;
   double y;
   double xx;
@@ -29,6 +29,8 @@ class transform : virtual public gc {
 public:
   transform()
     : x(0.0), y(0.0), xx(1.0), xy(0.0), yx(0.0), yy(1.0) {}
+
+  virtual ~transform() {}
 
   transform(double x, double y,
             double xx, double xy,
