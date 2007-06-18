@@ -130,7 +130,7 @@ real markanglespace=markanglespace();
 void markangle(picture pic=currentpicture, Label L="",
                int n=1, real radius=0, real space=0,
                pair A, pair O, pair B, arrowbar arrow=None,
-               pen p=currentpen,filltype filltype=NoFill,
+               pen p=currentpen, filltype filltype=NoFill,
                margin margin=NoMargin, marker marker=nomarker)
 {
   if(space == 0) space=markanglespace(p);
