@@ -146,7 +146,10 @@ void markangle(picture pic=currentpicture, Label L="",
   if(drawarrow && margin == NoMargin) margin=TrueMargin(0,0.5linewidth(p));
   if(filltype != NoFill) {
     lpth=margin(arc((0,0),radius+sgn(radius)*(n-1)*space,xoa,xob),p).g;
-    filltype(ff,O--lpth--relpoint(lpth,1)--cycle,p);
+    pair p0=relpoint(lpth,0), p1=relpoint(lpth,1);
+    pair ac=p0-p0-A+O, bd=p1-p1-B+O, det=(conj(ac)*bd).y;
+    pair op=(det == 0) ? O : p0+(conj(p1-p0)*bd).y*ac/det;
+    filltype(ff,op--lpth--relpoint(lpth,1)--cycle,p);
     add(lpic,ff);
   }
   for(int i=0; i < n; ++i) {
