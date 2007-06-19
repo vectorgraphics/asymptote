@@ -406,11 +406,11 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 	b.top += fuzz;
 	b.right += fuzz;
       }
-      bscaled *= deconstruct;
+      bscaled *= Delete ? 0 : deconstruct;
       bboxout << bscaled << endl;
       if(Delete) {
 	unlink(outname.c_str());
-	return false;
+	return true;
       }
     } else {
       if(bboxout) bboxout.close();

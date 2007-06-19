@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -93,6 +94,23 @@ string simpleline(string prompt) {
   // Rebind tab key, as the setting tabcompletion may be changed at runtime.
   pre_readline();
 
+  //warn xasy about completion of previous command
+  if(getSetting<bool>("signal"))
+  {
+    ostringstream statFilename;
+    pid_t ppid = getppid();
+    statFilename << ".asy_status_" << ppid;
+    std::ofstream statFile(statFilename.str().c_str(),std::ofstream::app);
+    if(!statFile)
+    {
+      *em << "cannot open status file";
+      throw handled_error();
+    } else {
+      statFile << 0 << endl;
+      statFile.close();
+      kill(ppid,SIGINT);
+    }
+  }
   /* Get a line from the user. */
   char *line = readline(prompt.c_str());
 
@@ -124,7 +142,6 @@ string getLastHistoryLine() {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   HIST_ENTRY *entry=history_list()[history_length-1];
   if (!entry) {
-    em->compiler(position());
     *em << "can't access last history line";
     return "";
   }
@@ -140,7 +157,6 @@ void setLastHistoryLine(string line) {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   HIST_ENTRY *entry=remove_history(history_length-1);
   if (!entry) {
-    em->compiler(position());
     *em << "can't modify last history line";
   }
   else {
@@ -156,7 +172,6 @@ void deleteLastLine() {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   HIST_ENTRY *entry=remove_history(history_length-1);
   if (!entry) {
-    em->compiler(position());
     *em << "can't delete last history line";
   }
   else {
