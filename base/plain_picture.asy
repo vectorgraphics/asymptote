@@ -84,8 +84,8 @@ struct coords2 {
   coord[] x;
   coord[] y;
   void erase() {
-    x.delete(0,x.length-1);
-    y.delete(0,y.length-1);
+    x.delete();
+    y.delete();
   }
   // Only a shallow copy of the individual elements of x and y
   // is needed since, once entered, they are never modified.
@@ -397,11 +397,11 @@ struct picture {
   
   // Erase the current picture, retaining any size specification.
   void erase() {
-    nodes.delete(0,nodes.length-1);
+    nodes.delete();
     bounds.erase();
     T=identity();
     scale=new ScaleT;
-    legend.delete(0,legend.length-1);
+    legend.delete();
     init();
   }
   

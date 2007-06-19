@@ -4439,8 +4439,8 @@ The @code{copy} function listed below provides a deep copy of an array.
 Every array @code{A} of type @code{T[]} has the virtual members
 @code{int length}, @code{void cyclic(bool b)}, @code{bool cyclicflag},
 @code{T push(T x)}, @code{void append(T[] a)}, @code{T pop()},
-@code{void insert(int i ... T[] x)}, @code{void delete(int i, int j=i)}, and
-@code{bool initialized(int n)}.
+@code{void insert(int i ... T[] x)}, @code{void delete(int i, int j=i)}, 
+@code{void delete()}, and @code{bool initialized(int n)}.
 The member @code{A.length} evaluates to the length of the array.
 Setting @code{A.cyclic(true)} signifies that array indices should be reduced
 modulo the current array length. Reading from or writing to a nonempty
@@ -4453,9 +4453,10 @@ For convenience @code{A.push} returns the pushed item.
 The function @code{A.pop()} pops and returns the last element,
 while @code{A.delete(int i, int j=i)} deletes elements with indices in
 the range [@code{i},@code{j}], shifting the position of all higher-indexed
-elements down. The routine @code{A.initialized(int n)} can be used to examine
-whether the element at index @code{n} is initialized.
-Like all @code{Asymptote} functions,
+elements down. If no arguments are given, @code{A.delete()} provides a
+convenient way of deleting all elements of @code{A}. The routine
+@code{A.initialized(int n)} can be used to examine whether the element
+at index @code{n} is initialized. Like all @code{Asymptote} functions,
 @code{cyclic}, @code{push}, @code{append}, @code{pop}, @code{insert},
 @code{delete}, and @code{initialized} can be "pulled off" of the array
 and used on their own. For example,

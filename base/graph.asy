@@ -1126,7 +1126,7 @@ void xaxisAt(picture pic=currentpicture, Label L="", axis axis,
   for(int i=0; i < pic.scale.y.bound.length; ++i)
     pic.scale.y.bound[i]();
 
-  pic.scale.y.bound.delete(0,pic.scale.y.bound.length-1);
+  pic.scale.y.bound.delete();
 
   bounds();
 
@@ -1217,7 +1217,7 @@ void yaxisAt(picture pic=currentpicture, Label L="", axis axis,
   for(int i=0; i < pic.scale.x.bound.length; ++i)
     pic.scale.x.bound[i]();
 
-  pic.scale.x.bound.delete(0,pic.scale.x.bound.length-1);
+  pic.scale.x.bound.delete();
 
   bounds();
 

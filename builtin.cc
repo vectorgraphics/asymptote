@@ -777,16 +777,16 @@ using namespace vm;
 void arrayDeleteHelper(vm::stack *Stack)
 {
   array *a=pop<array *>(Stack);
-  item it=pop(Stack);
-  int i=pop<int>(Stack);
-  int j=isdefault(it) ? i : get<int>(it);
-
-  size_t asize=checkArray(a);
-  if(i == 0 && j+1 == (int) asize) {
+  item itj=pop(Stack);
+  item iti=pop(Stack);
+  if(isdefault(iti)) {
     (*a).clear();
     return;
   }
+  int i=get<int>(iti);
+  int j=isdefault(itj) ? i : get<int>(itj);
 
+  size_t asize=checkArray(a);
   if(a->cyclic() && asize > 0) {
     size_t J=j;
     j=imod(j,asize);
