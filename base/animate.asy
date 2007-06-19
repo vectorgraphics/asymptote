@@ -68,7 +68,7 @@ struct animation {
       for(int i=0; i < files.length; ++i)
         args += " " +files[i];
       int rc=convert(args,format=format);
-      purge(keep);
+      this.purge(keep);
       if(rc == 0) animate(format=format);
       else abort("merge failed");
       return rc;
@@ -122,7 +122,7 @@ struct animation {
       exitfcn atexit=atexit();
       void exitfunction() {
 	atexit();
-	purge();
+	this.purge();
       }
       atexit(exitfunction);
     }
