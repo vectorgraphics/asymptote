@@ -996,6 +996,8 @@ void initSettings() {
 			    "Wait for child processes to finish before exiting"));
   // Signal parent process at completion of each shipout
   addOption(new boolSetting("signal", 0, ""));
+  //be interactive even in a pipe
+  addOption(new boolSetting("interactive", 0, ""));
 			    
   addOption(new boolSetting("localhistory", 0,
 			    "Use a local interactive history file"));
@@ -1042,7 +1044,7 @@ char *getArg(int n) { return argList[n]; }
 
 void setInteractive() {
   if(numArgs() == 0 && !getSetting<bool>("listvariables") && 
-     (isatty(STDIN_FILENO) || getSetting<bool>("signal")))
+     (isatty(STDIN_FILENO) || getSetting<bool>("interactive")))
     interact::interactive=true;
   
   historyname=getSetting<bool>("localhistory") ? "."+suffix+"_history" 
