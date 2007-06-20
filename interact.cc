@@ -85,8 +85,7 @@ char *readline(const char *prompt) {
   cout << prompt;
   string s;
   getline(cin,s);
-  char *p=(char *) malloc(s.size()+1);
-  return strcpy(p,s.c_str());
+  return Strdup(s);
 }
 #endif  
   
@@ -95,15 +94,14 @@ string simpleline(string prompt) {
   pre_readline();
 
   //warn xasy about completion of previous command
-  if(getSetting<bool>("signal"))
-  {
+  if(getSetting<bool>("signal")) {
     ostringstream statFilename;
     pid_t ppid = getppid();
     statFilename << ".asy_status_" << ppid;
     std::ofstream statFile(statFilename.str().c_str(),std::ofstream::app);
-    if(!statFile)
-    {
-      *em << "cannot open status file";
+    if(!statFile) {
+      em.compiler();
+      em << "cannot open status file";
       throw handled_error();
     } else {
       statFile << 0 << endl;
@@ -117,7 +115,7 @@ string simpleline(string prompt) {
   /* Ignore keyboard interrupts while taking input. */
   errorstream::interrupt=false;
 
-  if (line) {
+  if(line) {
     string s=line;
     free(line);
     return s;
@@ -141,11 +139,11 @@ void addToHistory(string line) {
 string getLastHistoryLine() {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   HIST_ENTRY *entry=history_list()[history_length-1];
-  if (!entry) {
-    *em << "can't access last history line";
+  if(!entry) {
+    em.compiler();
+    em << "cannot access last history line";
     return "";
-  }
-  else {
+  } else {
     return entry->line;
   }
 #else
@@ -156,10 +154,10 @@ string getLastHistoryLine() {
 void setLastHistoryLine(string line) {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   HIST_ENTRY *entry=remove_history(history_length-1);
-  if (!entry) {
-    *em << "can't modify last history line";
-  }
-  else {
+  if(!entry) {
+    em.compiler();
+    em << "cannot modify last history line";
+  } else {
     addToHistory(line);
 
     free(entry->line);
@@ -171,10 +169,10 @@ void setLastHistoryLine(string line) {
 void deleteLastLine() {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   HIST_ENTRY *entry=remove_history(history_length-1);
-  if (!entry) {
-    *em << "can't delete last history line";
-  }
-  else {
+  if(!entry) {
+    em.compiler();
+    em << "cannot delete last history line";
+  } else {
     free(entry->line);
     free(entry);
   }

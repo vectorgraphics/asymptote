@@ -11,7 +11,6 @@
 
 #include "env.h"
 #include "interact.h"
-#include <cstring>
 
 namespace trans {
 

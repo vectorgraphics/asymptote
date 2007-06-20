@@ -18,6 +18,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <signal.h>
+#include <cstring>
 
 #include "util.h"
 #include "settings.h"
@@ -28,6 +29,22 @@
 using namespace settings;
 
 bool False=false;
+
+char *Strdup(string s)
+{
+  size_t size=s.size()+1;
+  char *dest=new(UseGC) char[size];
+  std::memcpy(dest,s.c_str(),size*sizeof(char));
+  return dest;
+}
+
+char *StrdupNoGC(string s)
+{
+  size_t size=s.size()+1;
+  char *dest=new char[size];
+  std::memcpy(dest,s.c_str(),size*sizeof(char));
+  return dest;
+}
 
 string stripDir(string name)
 {
@@ -136,7 +153,7 @@ char **args(const char *command)
       if(!quote && c == ' ') {
 	if(!empty) {
 	  if(pass) {
-	    argv[n]=strcpy(new char[buf.str().size()+1],buf.str().c_str());
+	    argv[n]=StrdupNoGC(buf.str());
 	    buf.str("");
 	  }
 	  empty=true;
@@ -149,7 +166,7 @@ char **args(const char *command)
       }
     }
     if(!empty) {
-      if(pass) argv[n]=strcpy(new char[buf.str().size()+1],buf.str().c_str());
+      if(pass) argv[n]=StrdupNoGC(buf.str());
       n++;
     }
   }
@@ -281,16 +298,15 @@ void noPath()
   camp::reportError("Cannot get current path");
 }
 
-char *getPath(char *p)
+char *getPath(char *p=currentpath)
 {
   static int size=MAXPATHLEN;
-  if(!p) p=new char[size];
+  if(!p) p=new(UseGC) char[size];
   if(!p) noPath();
   else while(getcwd(p,size) == NULL) {
     if(errno == ERANGE) {
       size *= 2;
-      delete [] p;
-      p=new char[size];
+      p=new(UseGC) char[size];
     } else {noPath(); p=NULL;}
   }
   return p;

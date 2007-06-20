@@ -19,7 +19,7 @@ class bad_item_value {};
 template<typename T>
 T get(const item&);
 
-class item {
+class item : public gc {
 public:
   bool empty()
   { return *kind == typeid(void); }

@@ -14,8 +14,8 @@ namespace trans {
 // Prints out error messages for the cast methods.
 static inline void castError(position pos, ty *target, ty *source)
 {
-  em->error(pos);
-  *em << "cannot convert \'" << *source
+  em.error(pos);
+  em << "cannot convert \'" << *source
       << "\' to \'" << *target << "\'";
 }
 

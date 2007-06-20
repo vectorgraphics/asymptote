@@ -31,8 +31,8 @@ void definit::transToType(coenv &e, types::ty *target)
     if (a)
       a->encode(CALL, getPos(), e.c);
     else {
-      em->error(getPos());
-      *em << "no default initializer for type '" << *target << "'";
+      em.error(getPos());
+      em << "no default initializer for type '" << *target << "'";
     }
   }
 }
@@ -58,8 +58,8 @@ void arrayinit::transToType(coenv &e, types::ty *target)
 {
   types::ty *celltype;
   if (target->kind != types::ty_array) {
-    em->error(getPos());
-    *em << "array initializer used for non-array";
+    em.error(getPos());
+    em << "array initializer used for non-array";
     celltype = types::primError();
   }
   else {

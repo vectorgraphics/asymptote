@@ -88,7 +88,7 @@ void stack::breakpoint(absyntax::runnable *r)
 void stack::debug() 
 {
   if(!curPos) return;
-  if(indebugger) {em->clear(); return;}
+  if(indebugger) {em.clear(); return;}
   
   switch(debugOp) {
   case 'i': // inst
@@ -145,7 +145,7 @@ void stack::run(program *code, vars_t vars)
       cerr << "\n";
 #endif
 
-      if(settings::verbose > 4) em->trace(curPos);
+      if(settings::verbose > 4) em.trace(curPos);
       
       if(!bplist.empty()) debug();
       
@@ -343,9 +343,9 @@ position getPos() {
 
 void errornothrow(const char* message)
 {
-  em->error(curPos);
-  *em << message;
-  em->sync();
+  em.error(curPos);
+  em << message;
+  em.sync();
 }
   
 void error(const char* message)

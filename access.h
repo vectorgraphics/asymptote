@@ -34,8 +34,8 @@ protected:
   // none of these should be reachable by the user.
   void error(position pos)
   {
-    em->compiler(pos);
-    *em << "invalid use of access";
+    em.compiler(pos);
+    em << "invalid use of access";
   }
 
 public:

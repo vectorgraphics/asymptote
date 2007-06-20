@@ -32,8 +32,8 @@ void identAccess::encode(action act, position pos, coder& e)
 /* bltinAccess */
 static void bltinError(position pos)
 {
-  em->error(pos);
-  *em << "built-in functions cannot be modified";
+  em.error(pos);
+  em << "built-in functions cannot be modified";
 }
 
 void bltinAccess::encode(action act, position pos, coder &e)
@@ -63,8 +63,8 @@ void frameAccess::encode(action act, position pos, coder &e)
 {
   if (act == READ) {
     if (!e.encode(f)) {
-      em->compiler(pos);
-      *em << "encoding frame out of context";
+      em.compiler(pos);
+      em << "encoding frame out of context";
     }
   }
   else
@@ -75,8 +75,8 @@ void frameAccess::encode(action act, position pos, coder &e, frame *top)
 {
   if (act == READ) {
     if (!e.encode(f, top)) {
-      em->compiler(pos);
-      *em << "encoding frame out of context";
+      em.compiler(pos);
+      em << "encoding frame out of context";
     }
   }
   else
@@ -113,8 +113,8 @@ void localAccess::encode(action act, position pos, coder &e, frame *top)
   }
   else {
     // The local variable is being used when its frame is not active.
-    em->error(pos);
-    *em << "static use of dynamic variable";
+    em.error(pos);
+    em << "static use of dynamic variable";
   }
 }
 

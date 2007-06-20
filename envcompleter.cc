@@ -11,16 +11,11 @@
 #include "table.h"
 #include "envcompleter.h"
 
-
-
 namespace trans {
 
-char *envCompleter::symbolToMallocedString(symbol *name) {
-  string s=*name;
-  size_t size=(s.size()+1)*sizeof(char);
-  char *word=(char *)std::malloc(size);
-  std::memcpy(word, s.c_str(), size);
-  return word;
+char *envCompleter::symbolToMallocedString(symbol *name)
+{
+  return Strdup((string) *name);
 }
 
 bool basicListLoaded=false;

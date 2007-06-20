@@ -47,8 +47,8 @@ public:
   // Used by newFunctionExp.
   bool reportDefault() {
     if (defval) {
-      em->error(getPos());
-      *em << "default value in anonymous function";
+      em.error(getPos());
+      em << "default value in anonymous function";
       return true;
     }
     else 

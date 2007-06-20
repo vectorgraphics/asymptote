@@ -57,8 +57,6 @@ void init(bool resetpath=true)
     setPath("");  /* On second and subsequent calls to init, sets the
 		     path to what it was when the program started. */
   ShipoutNumber=0;
-  if(!em)
-    em = new errorstream();
 }
 
 using absyntax::runnable;
@@ -103,8 +101,8 @@ bool runRunnable(runnable *r, coenv &e, istack &s, transMode tm=TRANS_NORMAL) {
   lambda *codelet= tm==TRANS_INTERACTIVE ?
                        interactiveRunnable(r).transAsCodelet(e) :
                        r->transAsCodelet(e);
-  em->sync();
-  if(!em->errors()) {
+  em.sync();
+  if(!em.errors()) {
     if(getSetting<bool>("translate")) print(cout,codelet->code);
     s.run(codelet);
 
@@ -114,7 +112,7 @@ bool runRunnable(runnable *r, coenv &e, istack &s, transMode tm=TRANS_NORMAL) {
     e.e.endScope(); // Remove any changes to the environment.
 
     // Should an interactive error hurt the status?
-    em->statusError();
+    em.statusError();
 
     return false;   
   }
@@ -157,15 +155,12 @@ public:
     camp::TeXpreamble=TeXpreamble_save;
   }
 
-  virtual void doRun() {
-    assert(em);
-    em->sync();
-    if(em->errors())
+  virtual void doRun(bool purge=false) {
+    em.sync();
+    if(em.errors())
       return;
 
     try {
-      run::purge();
-      
       genv ge;
       env base_env(ge);
       coder base_coder;
@@ -176,32 +171,33 @@ public:
       s.setEnvironment(&e);
 
       preRun(e,s);
+      if(purge) run::purge();
 
       // Now that everything is set up, run the core.
       run(e,s);
 
-      run::purge();
+      if(purge) run::purge();
       postRun(e,s);
-      run::purge();
-      
+      if(purge) run::purge();
+       
     } catch(std::bad_alloc&) {
       cerr << "error: out of memory" << endl;
-      em->statusError();
+      em.statusError();
     } catch(handled_error) {
-      em->statusError();
+      em.statusError();
       run::cleanup();
     }
 
-    em->clear();
+    em.clear();
   }
 
-  virtual void process() {
+  virtual void process(bool purge=false) {
     if (!interactive && getSetting<bool>("parseonly"))
       doParse();
     else if (getSetting<bool>("listvariables"))
       doList();
     else
-      doRun();
+      doRun(purge);
   }
 };
 
@@ -222,7 +218,7 @@ public:
       try {
         cachedTree=buildTree();
       } catch(handled_error) {
-        em->statusError();
+        em.statusError();
         return 0;
       }
     }
@@ -235,8 +231,8 @@ public:
 
   void doParse() {
     block *tree=getTree();
-    em->sync();
-    if(tree && !em->errors())
+    em.sync();
+    if(tree && !em.errors())
       tree->prettyprint(cout, 0);
   }
 
@@ -254,7 +250,7 @@ public:
     if (tree) {
       for(mem::list<runnable *>::iterator r=tree->stms.begin();
           r != tree->stms.end(); ++r)
-        if(!em->errors() || getSetting<bool>("debug"))
+        if(!em.errors() || getSetting<bool>("debug"))
           runRunnable(*r,e,s,tm);
     }
   }
@@ -321,7 +317,7 @@ public:
     Setting("outname")=outname_save;
   }
 
-  void process() {
+  void process(bool purge=false) {
     try {
       init();
     } catch(handled_error) {
@@ -331,10 +327,10 @@ public:
       cout << "Processing " << outname << endl;
     
     try {
-      itree::process();
+      itree::process(purge);
     }
     catch(handled_error) {
-      em->statusError();
+      em.statusError();
     }
   }
 };
@@ -740,14 +736,13 @@ class iprompt : public icore {
       vm::indebugger=false;
     } catch(interrupted&) {
       // Turn off the interrupted flag.
-      if (em)
-        em->Interrupt(false);
+      em.Interrupt(false);
       cout << endl;
     } catch(quit&) {
     }
 
     // Ignore errors from this line when trying to run subsequent lines.
-    em->clear();
+    em.clear();
   }
 
   void runStartCode(coenv &e, istack &s) {
@@ -800,7 +795,7 @@ public:
 	restart=false;
 	icore::process();
       } catch(interrupted&) {
-	if(em) em->Interrupt(false);
+	em.Interrupt(false);
 	restart=true;
       } catch(eof&) {
 	restart=false;
@@ -814,8 +809,8 @@ public:
 void processCode(absyntax::block *code) {
   icode(code).process();
 }
-void processFile(const string& filename) {
-  ifile(filename).process();
+void processFile(const string& filename, bool purge) {
+  ifile(filename).process(purge);
 }
 void processPrompt() {
   iprompt().process();

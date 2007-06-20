@@ -405,8 +405,8 @@ struct idpair : public absyn {
 
   void checkValidity() {
     if (!valid) {
-      em->error(getPos());
-      *em << "expected 'as'";
+      em.error(getPos());
+      em << "expected 'as'";
     }
   }
 

@@ -30,12 +30,12 @@ bool entry::pr::check(action act, coder &c) {
 void entry::pr::report(action act, position pos, coder &c) {
   if (!c.inTranslation(r->getLevel())) {
     if (perm == PRIVATE) {
-      em->error(pos);
-      *em << "accessing private field outside of structure";
+      em.error(pos);
+      em << "accessing private field outside of structure";
     }
     else if (perm == RESTRICTED && act == WRITE) {
-      em->error(pos);
-      *em << "modifying non-public field outside of structure";
+      em.error(pos);
+      em << "modifying non-public field outside of structure";
     }
   }
 }

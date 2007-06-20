@@ -24,14 +24,17 @@
 
 using namespace settings;
 
-
-errorstream *em;
+errorstream em;
 using interact::interactive;
 
+namespace run {
+  void purge();
+}
+  
 #ifdef HAVE_LIBSIGSEGV
 void stackoverflow_handler (int, stackoverflow_context_t)
 {
-  if(em) em->runtime(vm::getPos());
+  em.runtime(vm::getPos());
   cerr << "Stack overflow" << endl;
   abort();
 }
@@ -39,7 +42,7 @@ void stackoverflow_handler (int, stackoverflow_context_t)
 int sigsegv_handler (void *, int emergency)
 {
   if(!emergency) return 0; // Really a stack overflow
-  if(em) em->runtime(vm::getPos());
+  em.runtime(vm::getPos());
   cerr << "Segmentation fault" << endl;
   cerr << "Please report this programming error to" << endl 
        << BUGREPORT << endl;
@@ -61,17 +64,16 @@ void setsignal(RETSIGTYPE (*handler)(int))
 
 void signalHandler(int)
 {
-  if (em) {
-    // Print the position and trust the shell to print an error message.
-    em->runtime(vm::getPos());
-  }
+  // Print the position and trust the shell to print an error message.
+  em.runtime(vm::getPos());
+
   signal(SIGBUS,SIG_DFL);
   signal(SIGFPE,SIG_DFL);
 }
 
 void interruptHandler(int)
 {
-  if(em) em->Interrupt(true);
+  em.Interrupt(true);
 }
 
 // Run the config file.
@@ -94,13 +96,10 @@ int main(int argc, char *argv[])
 {
   setsignal(signalHandler);
 
-  // NOTE: Change em to not be a pointer.
-  em = new errorstream;
-
   try {
     setOptions(argc,argv);
   } catch(handled_error) {
-    em->statusError();
+    em.statusError();
   }
   
   fpu_trap(trap());
@@ -112,19 +111,20 @@ int main(int argc, char *argv[])
     try {
       doUnrestrictedList();
     } catch(handled_error) {
-      em->statusError();
+      em.statusError();
     } 
   } else {
-    if(numArgs() == 0) 
+    int n=numArgs();
+    if(n == 0) 
       processFile("-");
     else
-    for(int ind=0; ind < numArgs() ; ind++) {
-      processFile(string(getArg(ind)));
+    for(int ind=0; ind < n; ind++) {
+      processFile(string(getArg(ind)),n > 1);
       try {
-        if(ind < numArgs()-1)
+        if(ind < n-1)
           setOptions(argc,argv);
       } catch(handled_error) {
-        em->statusError();
+        em.statusError();
       } 
     }
   }
@@ -134,5 +134,5 @@ int main(int argc, char *argv[])
     while(wait(&status) > 0);
   }
   
-  return em->processStatus() ? 0 : 1;
+  return em.processStatus() ? 0 : 1;
 }

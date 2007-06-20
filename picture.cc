@@ -25,7 +25,7 @@ const char *texpathmessage() {
   ostringstream buf;
   buf << "the directory containing your " << getSetting<string>("tex")
       << " engine (" << texengine() << ")";
-  return strcpy(new char[buf.str().size()+1],buf.str().c_str());
+  return Strdup(buf.str());
 }
   
 texstream tex; // Bi-directional pipe to latex (to find label bbox)

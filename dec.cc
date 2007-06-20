@@ -58,8 +58,8 @@ void dimensions::prettyprint(ostream &out, int indent)
 types::array *dimensions::truetype(types::ty *base)
 {
   if (base->kind == ty_void) {
-    em->error(getPos());
-    *em << "cannot declare array of type void";
+    em.error(getPos());
+    em << "cannot declare array of type void";
   }
 
   assert(depth >= 1);
@@ -162,7 +162,7 @@ record *block::transAsFile(genv& ge, symbol *id)
     autoplainRunnable()->transAsField(ce, r);
   }
   transAsRecordBody(ce, r);
-  em->sync();
+  em.sync();
   
   return r;
 }
@@ -232,8 +232,8 @@ bool modifierList::staticSet()
 modifier modifierList::getModifier()
 {
   if (mods.size() > 1) {
-    em->error(getPos());
-    *em << "too many modifiers";
+    em.error(getPos());
+    em << "too many modifiers";
   }
 
   assert(staticSet());
@@ -243,8 +243,8 @@ modifier modifierList::getModifier()
 permission modifierList::getPermission()
 {
   if (perms.size() > 1) {
-    em->error(getPos());
-    *em << "too many modifiers";
+    em.error(getPos());
+    em << "too many modifiers";
   }
 
   return perms.empty() ? DEFAULT_PERM : perms.front();
@@ -263,8 +263,8 @@ void modifiedRunnable::transAsField(coenv &e, record *r)
 {
   if (mods->staticSet()) {
     if (e.c.isTopLevel()) {
-      em->warning(getPos());
-      *em << "static modifier is meaningless at top level";
+      em.warning(getPos());
+      em << "static modifier is meaningless at top level";
     }
     e.c.pushModifier(mods->getModifier());
   }
@@ -272,8 +272,8 @@ void modifiedRunnable::transAsField(coenv &e, record *r)
   permission p = mods->getPermission();
 #if 0 // This is innocuous 
   if (p != DEFAULT_PERM && (!r || !body->allowPermissions())) {
-    em->warning(pos);
-    *em << "permission modifier is meaningless";
+    em.warning(pos);
+    em << "permission modifier is meaningless";
   }
 #endif  
   e.c.setPermission(p);
@@ -456,8 +456,8 @@ void decid::transAsField(coenv &e, record *r, types::ty *base)
   types::ty *t = start->getType(base, e);
   assert(t);
   if (t->kind == ty_void) {
-    em->error(getPos());
-    *em << "cannot declare variable of type void";
+    em.error(getPos());
+    em << "cannot declare variable of type void";
   }
 
   start->addOps(base, e, r);
@@ -471,8 +471,8 @@ void decid::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
   assert(ent && ent->t);
 
   if (init) {
-    em->error(getPos());
-    *em << "type definition cannot have initializer";
+    em.error(getPos());
+    em << "type definition cannot have initializer";
   }
    
   start->addOps(base->t, e, r);
@@ -530,8 +530,8 @@ public:
     : exp(pos), imp(imp), ft(new function(imp,primString())) {}
 
   types::ty *trans(coenv &) {
-    em->compiler(getPos());
-    *em << "trans called for loadModuleExp";
+    em.compiler(getPos());
+    em << "trans called for loadModuleExp";
     return primError();
   }
 
@@ -556,9 +556,9 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol *id)
 {
   record *imp=e.e.getModule(id, (string)*id);
   if (!imp) {
-    em->error(pos);
-    *em << "could not load module '" << *id << "'";
-    em->sync();
+    em.error(pos);
+    em << "could not load module '" << *id << "'";
+    em.sync();
     return 0;
   }
   else {
@@ -599,8 +599,8 @@ void idpair::transAsUnravel(coenv &e, record *r,
   if (r)
     r->e.add(src, dest, source, qualifier, e.c);
   if (!e.e.add(src, dest, source, qualifier, e.c)) {
-    em->error(getPos());
-    *em << "no matching types or fields of name '" << *src << "'";
+    em.error(getPos());
+    em << "no matching types or fields of name '" << *src << "'";
   }
 }
 
@@ -673,8 +673,8 @@ fromdec::qualifier unraveldec::getQualifier(coenv &e, record *)
   // getType is where errors in the qualifier are reported.
   record *qt=dynamic_cast<record *>(id->getType(e, false));
   if (!qt) {
-    em->error(getPos());
-    *em << "qualifier is not a record";
+    em.error(getPos());
+    em << "qualifier is not a record";
   }
 
   return qualifier(qt,id->getVarEntry(e));
@@ -694,8 +694,8 @@ fromdec::qualifier fromaccessdec::getQualifier(coenv &e, record *r)
   if (v) {
     record *qt=dynamic_cast<record *>(v->getType());
     if (!qt) {
-      em->compiler(getPos());
-      *em << "qualifier is not a record";
+      em.compiler(getPos());
+      em << "qualifier is not a record";
     }
     return qualifier(qt, v);
   }
@@ -717,15 +717,15 @@ void includedec::prettyprint(ostream &out, int indent)
 
 void includedec::loadFailed(coenv &)
 {
-  em->warning(getPos());
-  *em << "could not parse file of name '" << filename << "'";
-  em->sync();
+  em.warning(getPos());
+  em << "could not parse file of name '" << filename << "'";
+  em.sync();
 }
 
 void includedec::transAsField(coenv &e, record *r)
 {
   file *ast = parser::parseFile(filename,"Including");
-  em->sync();
+  em.sync();
 
   // The runnables will be run, one at a time, without any additional scoping.
   ast->transAsField(e, r);

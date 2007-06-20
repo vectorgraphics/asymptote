@@ -52,9 +52,9 @@ void debug(bool state)
 namespace {
 void error(const string& filename)
 {
-  em->sync();
-  *em << "error: could not load module '" << filename << "'\n";
-  em->sync();
+  em.sync();
+  em << "error: could not load module '" << filename << "'\n";
+  em.sync();
   throw handled_error();
 }
 }
@@ -77,7 +77,7 @@ absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
       }
     }
 
-    em->error(position::nullPos());
+    em.error(position::nullPos());
     if(!interact::interactive)
       error(filename);
     else

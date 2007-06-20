@@ -29,26 +29,39 @@
 
 #include <gc.h>
 
-#undef GC_MALLOC
-
 #ifdef GC_DEBUG
 extern "C" {
 #include <gc_backptr.h>
 }
-
-inline void *GC_MALLOC(size_t n) {
-  if(void *mem=GC_debug_malloc(n, GC_EXTRAS))
-    return mem;
-  GC_generate_random_backtrace();
-  throw std::bad_alloc();
-}
-#else
-inline void *GC_MALLOC(size_t n) {
-  if (void *mem=GC_malloc(n))
-    return mem;
-  throw std::bad_alloc();
-}
 #endif
+
+inline void *asy_malloc(size_t n)
+{
+#ifdef GC_DEBUG
+  if(void *mem=GC_debug_malloc_ignore_off_page(n, GC_EXTRAS))
+#else
+  if(void *mem=GC_malloc_ignore_off_page(n))
+#endif
+    return mem;
+  throw std::bad_alloc();
+}
+
+inline void *asy_malloc_atomic(size_t n)
+{
+#ifdef GC_DEBUG
+  if(void *mem=GC_debug_malloc_atomic_ignore_off_page(n, GC_EXTRAS))
+#else
+  if(void *mem=GC_malloc_atomic_ignore_off_page(n))
+#endif
+    return mem;
+  throw std::bad_alloc();
+}
+
+#undef GC_MALLOC
+#undef GC_MALLOC_ATOMIC
+
+#define GC_MALLOC(sz) asy_malloc(sz)
+#define GC_MALLOC_ATOMIC(sz) asy_malloc_atomic(sz)
 
 #include <gc_allocator.h>
 #include <gc_cpp.h>
@@ -67,16 +80,13 @@ inline void* operator new(size_t size, GCPlacement) {
   return operator new(size);
 }
 
-#define GC_MALLOC(size) ::operator new(size)
-#define GC_FREE(ptr) ::operator delete(ptr)
-
 #endif // USEGC
 
 namespace mem {
 
 #define GC_CONTAINER(KIND)                                               \
   template <typename T>                                                  \
-  struct KIND : public std::KIND<T, gc_allocator<T> > {                  \
+  struct KIND : public std::KIND<T, gc_allocator<T> >, public gc {       \
     KIND() : std::KIND<T, gc_allocator<T> >() {}                         \
     KIND(size_t n) : std::KIND<T, gc_allocator<T> >(n) {}                \
     KIND(size_t n, const T& t) : std::KIND<T, gc_allocator<T> >(n,t) {}  \
@@ -87,7 +97,7 @@ GC_CONTAINER(vector);
 GC_CONTAINER(deque);
 
 template <typename T, typename Container = deque<T> >
-struct stack : public std::stack<T, Container> {
+struct stack : public std::stack<T, Container>, public gc {
 };
 
 #undef GC_CONTAINER
@@ -95,7 +105,7 @@ struct stack : public std::stack<T, Container> {
 #define GC_CONTAINER(KIND)                                                    \
   template <typename Key, typename T, typename Compare = std::less<Key> >     \
   struct KIND : public                                                        \
-  std::KIND<Key,T,Compare,gc_allocator<std::pair<Key,T> > > {                 \
+  std::KIND<Key,T,Compare,gc_allocator<std::pair<Key,T> > >, public gc {      \
     KIND() : std::KIND<Key,T,Compare,gc_allocator<std::pair<Key,T> > > () {}  \
   }
 
@@ -111,7 +121,7 @@ GC_CONTAINER(multimap);
             typename Hash = EXT::hash<Key>,                                   \
             typename Eq = std::equal_to<Key> >                                \
   struct KIND : public                                                        \
-  EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > > {                \
+  EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > >, public gc {     \
     KIND() : EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > > () {} \
   }
 
@@ -123,17 +133,20 @@ GC_CONTAINER(hash_multimap);
 #endif
 
 #ifdef USEGC
-typedef std::basic_string<char,std::char_traits<char>,gc_allocator<char> > string;
-typedef std::basic_istringstream<char,std::char_traits<char>,gc_allocator<char> > istringstream;
-typedef std::basic_ostringstream<char,std::char_traits<char>,gc_allocator<char> > ostringstream;
-typedef std::basic_stringbuf<char,std::char_traits<char>,gc_allocator<char> > stringbuf;
+typedef std::basic_string<char,std::char_traits<char>,
+                          gc_allocator<char> > string;
+typedef std::basic_istringstream<char,std::char_traits<char>,
+                                 gc_allocator<char> > istringstream;
+typedef std::basic_ostringstream<char,std::char_traits<char>,
+                                 gc_allocator<char> > ostringstream;
+typedef std::basic_stringbuf<char,std::char_traits<char>,
+                             gc_allocator<char> > stringbuf;
 #else
 typedef std::string string;
 typedef std::istringstream istringstream;
 typedef std::ostringstream ostringstream;
 typedef std::stringbuf stringbuf;
 #endif // USEGC
-
 
 } // namespace mem
 

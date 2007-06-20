@@ -236,8 +236,8 @@ void breakStm::trans(coenv &e)
   e.c.encode(inst::popframe);
 
   if (!e.c.encodeBreak()) {
-    em->error(getPos());
-    *em << "break statement outside of a loop";
+    em.error(getPos());
+    em << "break statement outside of a loop";
   }
 }
 
@@ -254,8 +254,8 @@ void continueStm::trans(coenv &e)
   e.c.encode(inst::popframe);
 
   if (!e.c.encodeContinue()) {
-    em->error(getPos()); 
-    *em << "continue statement outside of a loop";
+    em.error(getPos()); 
+    em << "continue statement outside of a loop";
   }
 }
 
@@ -274,8 +274,8 @@ void returnStm::trans(coenv &e)
 
   if (t->kind == ty_void) {
     if (value) {
-      em->error(getPos());
-      *em << "function cannot return a value";
+      em.error(getPos());
+      em << "function cannot return a value";
     }
     if (e.c.isRecord())
       e.c.encode(inst::pushclosure);
@@ -285,8 +285,8 @@ void returnStm::trans(coenv &e)
       value->transToType(e, t);
     }
     else {
-      em->error(getPos());
-      *em << "function must return a value";
+      em.error(getPos());
+      em << "function must return a value";
     }
   }
 

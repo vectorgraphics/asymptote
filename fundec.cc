@@ -40,8 +40,8 @@ types::ty *formal::getType(coenv &e, bool tacit) {
   types::ty *bt = base->trans(e, tacit);
   types::ty *t = start ? start->getType(bt, e, tacit) : bt;
   if (t->kind == ty_void && !tacit) {
-    em->error(getPos());
-    *em << "cannot declare parameters of type void";
+    em.error(getPos());
+    em << "cannot declare parameters of type void";
     return primError();
   }
 
@@ -249,8 +249,8 @@ void fundef::baseTrans(coenv &e, types::function *ft)
   if (rt->kind != ty_void &&
       rt->kind != ty_error &&
       !body->returns()) {
-    em->error(body->getPos());
-    *em << "function must return a value";
+    em.error(body->getPos());
+    em << "function must return a value";
   }
 
   fe.e.endScope();

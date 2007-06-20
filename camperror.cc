@@ -20,18 +20,18 @@ namespace camp {
 // Used internally to report an error in an operation.
 void reportError(const string& desc)
 {
-  em->runtime(vm::getPos());
-  *em << desc;
-  em->sync();
+  em.runtime(vm::getPos());
+  em << desc;
+  em.sync();
   throw handled_error(); 
 }
 
 // Used internally to report a warning in an operation.
 void reportWarning(const string& desc)
 {
-  em->runtime(vm::getPos());
-  *em << "warning: " << desc;
-  em->sync();
+  em.runtime(vm::getPos());
+  em << "warning: " << desc;
+  em.sync();
 }
 
 void reportError(const ostringstream& desc)

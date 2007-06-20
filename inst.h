@@ -41,7 +41,7 @@ struct lambda : public gc {
 
 // The code run is just a string of instructions.  The ops are actual commands
 // to be run, but constants, labels, and other objects can be in the code.
-struct inst {
+struct inst : public gc {
   enum opcode {
     pop, intpush, constpush,
     varpush, varsave, fieldpush, fieldsave,

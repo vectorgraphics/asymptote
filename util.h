@@ -15,6 +15,10 @@
 
 #include <strings.h>
 
+// Duplicate a string.
+char *Strdup(string s);
+char *StrdupNoGC(string s);
+  
 // Strip the directory from a filename.
 string stripDir(string name);
   
@@ -81,7 +85,6 @@ string stripblanklines(const string& s);
 extern char *currentpath;
 
 const char *startPath();
-char *getPath(char *p=currentpath);
 const char* setPath(const char *s, bool quiet=false);
 const char *changeDirectory(const char *s);
 extern char *startpath;

@@ -70,15 +70,15 @@ types::ty *newRecordExp::transFromTyEntry(position pos, coenv &e,
   if (t->kind == ty_error)
     return t;
   else if (t->kind != ty_record) {
-    em->error(pos);
-    *em << "type '" << *t << "' is not a structure";
+    em.error(pos);
+    em << "type '" << *t << "' is not a structure";
     return primError();
   }
 
   // Put the enclosing frame on the stack.
   if (!encodeLevel(pos, e, ent)) {
-    em->error(pos);
-    *em << "allocation of struct '" << *t << "' is not in a valid scope";
+    em.error(pos);
+    em << "allocation of struct '" << *t << "' is not in a valid scope";
     return primError();
   }
 
@@ -120,8 +120,8 @@ types::ty *newArrayExp::trans(coenv &e)
 {
   types::ty *c = celltype->trans(e);
   if (c->kind == ty_void) {
-    em->error(getPos());
-    *em << "cannot declare array of type void";
+    em.error(getPos());
+    em << "cannot declare array of type void";
     return primError();
   }
 
@@ -150,8 +150,8 @@ types::ty *newArrayExp::trans(coenv &e)
 
     return c;
   } else {
-    em->compiler(getPos());
-    *em << "new array expression must have either dims or dimexps";
+    em.compiler(getPos());
+    em << "new array expression must have either dims or dimexps";
     return primError();
   }
 }

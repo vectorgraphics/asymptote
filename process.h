@@ -17,7 +17,7 @@
 // Process the code respecting the parseonly and listvariables flags of
 // settings.
 void processCode(absyntax::block *code);
-void processFile(const string& filename);
+void processFile(const string& filename, bool purge=false);
 void processPrompt();
 
 // Run the code in its own environment.

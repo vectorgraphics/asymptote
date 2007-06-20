@@ -34,7 +34,7 @@ int charPos;
 bool eof;
 string eofMessage;
 
-extern errorstream *em;
+extern errorstream em;
 
 extern "C" int yywrap(void)
 {
@@ -114,7 +114,7 @@ void newline()
 
 void error(void)
 {
-  em->error(here());
+  em.error(here());
 }
 
 }
@@ -140,8 +140,8 @@ bool lexerEOF()
 void reportEOF() {
   assert(eof);
   error();
-  *em << eofMessage;
-  em->sync();
+  em << eofMessage;
+  em.sync();
 }
 
 string stringbuild;
@@ -346,14 +346,14 @@ explicit           {adjust(); return EXPLICIT; }
   adjust(); yylval.e= new intExp(here(), lexical::cast<int>(yytext)); 
   } catch (lexical::bad_cast&) {
     error();
-    *em << "invalid integer";
+    em << "invalid integer";
     yylval.e= new intExp(here(), 0); 
   } return LIT;
 ([0-9]*\.[0-9]+)|([0-9]+\.[0-9]*)|([0-9]*\.*[0-9]+e[-+]*[0-9]+)|([0-9]+\.[0-9]*e[-+]*[0-9]+)  try {
   adjust(); yylval.e= new realExp(here(), lexical::cast<double>(yytext));
   } catch (lexical::bad_cast&) {
     error();
-    *em << "invalid real";
+    em << "invalid real";
     yylval.e= new realExp(here(), 0); 
   } return LIT;
 true               {
@@ -402,5 +402,5 @@ operator           {adjust(); BEGIN opname; }
 <<EOF>>            { setEOF("unexpected end of input"); yyterminate(); }
 
 .                  {
-  adjust(); error(); *em <<"invalid token '" << yytext << "'"; }
+  adjust(); error(); em <<"invalid token '" << yytext << "'"; }
 

@@ -217,7 +217,9 @@ types::record *getSettingsModule() {
 // The dictionaries of long options and short options.
 class option;
 typedef mem::map<CONST string, option *> optionsMap_t;
+//typedef std::map<CONST string, option *, std::less<CONST string>, gc_allocator<std::pair<CONST string *, option *> > >  optionsMap_t;
 optionsMap_t optionsMap;
+
 typedef mem::map<CONST char, option *> codeMap_t;
 codeMap_t codeMap;
   
@@ -819,11 +821,7 @@ string build_optstring() {
 c_option *build_longopts() {
   size_t n=optionsMap.size();
 
-#ifdef USEGC
-  c_option *longopts=new (UseGC) c_option[n];
-#else
-  c_option *longopts=new c_option[n];
-#endif
+  c_option *longopts=new(UseGC) c_option[n];
 
   int i=0;
   for (optionsMap_t::iterator p=optionsMap.begin();

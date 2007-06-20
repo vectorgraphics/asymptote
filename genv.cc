@@ -66,7 +66,7 @@ record *genv::loadModule(symbol *id, string filename) {
   
   inTranslation.push_front(filename);
 
-  em->sync();
+  em.sync();
 
   record *r=ast->transAsFile(*this, id);
   
@@ -78,9 +78,9 @@ record *genv::loadModule(symbol *id, string filename) {
 void genv::checkRecursion(string filename) {
   if (find(inTranslation.begin(), inTranslation.end(), filename) !=
          inTranslation.end()) {
-    em->sync();
-    *em << "error: recursive loading of module '" << filename << "'\n";
-    em->sync();
+    em.sync();
+    em << "error: recursive loading of module '" << filename << "'\n";
+    em.sync();
     throw handled_error();
   }
 }
@@ -95,7 +95,7 @@ record *genv::getModule(symbol *id, string filename) {
     record *r=loadModule(id, filename);
     // Don't add an erroneous module to the dictionary in interactive mode, as
     // the user may try to load it again.
-    if (!interact::interactive || !em->errors())
+    if (!interact::interactive || !em.errors())
       imap[filename]=r;
 
     return r;
@@ -107,7 +107,7 @@ typedef vm::stack::importInitMap importInitMap;
 
 importInitMap *genv::getInitMap()
 {
-  struct initMap : public importInitMap {
+  struct initMap : public importInitMap, public gc {
     genv &ge;
     initMap(genv &ge)
       : ge(ge) {}

@@ -38,17 +38,17 @@ void exp::transToType(coenv &e, types::ty *target)
   types::ty *source=e.e.castSource(target, cgetType(e), symbol::castsym);
   if (source==0) {
     types::ty *sources=cgetType(e);
-    em->error(getPos());
-    *em << "cannot cast ";
+    em.error(getPos());
+    em << "cannot cast ";
     if (sources->kind==ty_overloaded)
-      *em << "expression";
+      em << "expression";
     else
-      *em << "'" << *sources << "'";
-    *em << " to '" << *target << "'";
+      em << "'" << *sources << "'";
+    em << " to '" << *target << "'";
   }
   else if (source->kind==ty_overloaded) {
-    em->error(getPos());
-    *em << "expression is ambiguous in cast to '" << *target << "'";
+    em.error(getPos());
+    em << "expression is ambiguous in cast to '" << *target << "'";
   }
   else {
     transAsType(e, source);
@@ -180,8 +180,8 @@ array *subscriptExp::transArray(coenv &e)
   if (a->kind == ty_overloaded) {
     a = ((overloaded *)a)->signatureless();
     if (!a) {
-      em->error(set->getPos());
-      *em << "expression is not an array";
+      em.error(set->getPos());
+      em << "expression is not an array";
       return 0;
     }
   }
@@ -194,8 +194,8 @@ array *subscriptExp::transArray(coenv &e)
     case ty_error:
       return 0;
     default:
-      em->error(set->getPos());
-      *em << "expression is not an array";
+      em.error(set->getPos());
+      em << "expression is not an array";
       return 0;
   }
 }
@@ -256,8 +256,8 @@ void thisExp::prettyprint(ostream &out, int indent)
 types::ty *thisExp::trans(coenv &e)
 {
   if (!e.c.encodeThis()) {
-    em->error(getPos());
-    *em << "static use of 'this' expression";
+    em.error(getPos());
+    em << "static use of 'this' expression";
   }
   return cgetType(e);
 }
@@ -283,16 +283,16 @@ types::ty *scaleExp::trans(coenv &e)
   types::ty *lt = left->cgetType(e);
   if (lt->kind != types::ty_int && lt->kind != types::ty_real) {
     if (lt->kind != types::ty_error) {
-      em->error(left->getPos());
-      *em << "only numeric constants can do implicit scaling";
+      em.error(left->getPos());
+      em << "only numeric constants can do implicit scaling";
     }
     right->trans(e);
     return types::primError();
   }
 
   if (!right->scalable()) {
-    em->warning(right->getPos());
-    *em << "implicit scaling may be unintentional";
+    em.warning(right->getPos());
+    em << "implicit scaling may be unintentional";
   }
 
   // Defer to the binaryExp for multiplication.
@@ -438,8 +438,8 @@ void argument::prettyprint(ostream &out, int indent)
 
 void argument::assignAmbiguity(coenv &e) {
   if (name && e.e.varGetType(name) && settings::getSetting<bool>("debug")) {
-    em->warning(val->getPos());
-    *em << "named argument may be mistaken for assignment";
+    em.warning(val->getPos());
+    em << "named argument may be mistaken for assignment";
   }
 }
 
@@ -496,27 +496,27 @@ application *callExp::resolve(coenv &e, overloaded *o, signature *source) {
 
   if (l.empty()) {
     //cerr << "l is empty\n";
-    em->error(getPos());
+    em.error(getPos());
 
     symbol *s = callee->getName();
     if (s)
-      *em << "no matching function \'" << *s;
+      em << "no matching function \'" << *s;
     else
-      *em << "no matching function for signature \'";
-    *em << *source << "\'";
+      em << "no matching function for signature \'";
+    em << *source << "\'";
 
     return 0;
   }
   else if (l.size() > 1) { // This may take O(n) time.
     //cerr << "l is full\n";
-    em->error(getPos());
+    em.error(getPos());
 
     symbol *s = callee->getName();
     if(s)
-      *em << "call of function \'" << *s;
+      em << "call of function \'" << *s;
     else
-      *em << "call with signature \'";
-    *em << *source << "\' is ambiguous";
+      em << "call with signature \'";
+    em << *source << "\' is ambiguous";
 
     return 0;
   }
@@ -531,21 +531,21 @@ void callExp::reportMismatch(symbol *s, function *ft, signature *source)
 {
   const char *separator=ft->getSignature()->getNumFormals() > 1 ? "\n" : " ";
 
-  em->error(getPos());
-  *em << "cannot call" << separator << "'" << *ft->getResult() << " ";
+  em.error(getPos());
+  em << "cannot call" << separator << "'" << *ft->getResult() << " ";
   if(s)
-    *em << *s;
-  *em << *ft->getSignature() << "'" << separator;
+    em << *s;
+  em << *ft->getSignature() << "'" << separator;
 
   switch(source->getNumFormals()) {
     case 0:
-      *em << "without parameters";
+      em << "without parameters";
       break;
     case 1:
-      *em << "with parameter '" << *source << "'";
+      em << "with parameter '" << *source << "'";
       break;
     default:
-      *em << "with parameters\n'" << *source << "'";
+      em << "with parameters\n'" << *source << "'";
   }
 }
 
@@ -587,12 +587,12 @@ application *callExp::getApplication(coenv &e)
       return resolve(e, (overloaded *)ft, source);
     default:
       //cerr << "not a function\n";
-      em->error(getPos());
+      em.error(getPos());
       symbol *s = callee->getName();
       if (s)
-        *em << "\'" << *s << "\' is not a function";
+        em << "\'" << *s << "\' is not a function";
       else
-        *em << "called expression is not a function";
+        em << "called expression is not a function";
       return 0;
   }
 }
@@ -743,8 +743,8 @@ types::ty *castExp::tryCast(coenv &e, types::ty *t, types::ty *s,
     return 0;
   }
   if (ss->kind == ty_overloaded) {
-    em->error(getPos());
-    *em << "cast is ambiguous";
+    em.error(getPos());
+    em << "cast is ambiguous";
     return primError();
   }
   else {
@@ -766,8 +766,8 @@ types::ty *castExp::trans(coenv &e)
 
   if (!tryCast(e, t, s, symbol::ecastsym))
     if (!tryCast(e, t, s, symbol::castsym)) {
-      em->error(getPos());
-      *em << "cannot cast '" << *s << "' to '" << *t << "'";
+      em.error(getPos());
+      em << "cannot cast '" << *s << "' to '" << *t << "'";
     }
 
   return t;
@@ -809,8 +809,8 @@ void conditionalExp::transToType(coenv &e, types::ty *target)
 {
   if (isAnArray(e, test)) {
     if (target->kind != ty_array) {
-      em->error(getPos());
-      *em << "cannot cast vectorized conditional to '" << *target << "'";
+      em.error(getPos());
+      em << "cannot cast vectorized conditional to '" << *target << "'";
     }
     test->transToType(e, types::boolArray());
     onTrue->transToType(e, target);
@@ -867,13 +867,13 @@ types::ty *conditionalExp::trans(coenv &e)
 
   types::ty *t=promote(e, tt, ft);
   if (!t) {
-    em->error(getPos());
-    *em << "types in conditional expression do not match";
+    em.error(getPos());
+    em << "types in conditional expression do not match";
     return primError();
   }
   else if (t->kind == ty_overloaded) {
-    em->error(getPos());
-    *em << "type of conditional expression is ambiguous";
+    em.error(getPos());
+    em << "type of conditional expression is ambiguous";
     return primError();
   }
 
@@ -998,13 +998,13 @@ types::ty *assignExp::trans(coenv &e)
 
   types::ty *t = e.e.castTarget(lt, rt, symbol::castsym);
   if (!t) {
-    em->error(getPos());
-    *em << "cannot convert '" << *rt << "' to '" << *lt << "' in assignment";
+    em.error(getPos());
+    em << "cannot convert '" << *rt << "' to '" << *lt << "' in assignment";
     return primError();
   }
   else if (t->kind == ty_overloaded) {
-    em->error(getPos());
-    *em << "assignment is ambiguous";
+    em.error(getPos());
+    em << "assignment is ambiguous";
     return primError();
   }
   else {
@@ -1072,8 +1072,8 @@ void postfixExp::prettyprint(ostream &out, int indent)
 
 types::ty *postfixExp::trans(coenv &)
 {
-  em->error(getPos());
-  *em << "postfix expressions are not allowed";
+  em.error(getPos());
+  em << "postfix expressions are not allowed";
   return primError();
 }
 

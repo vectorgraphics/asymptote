@@ -15,7 +15,7 @@
 namespace vm {
 
 // Arrays are vectors with push and pop functions.
-class array : public mem::deque<item>, public gc {
+class array : public mem::deque<item> {
 bool cycle;  
 public:
   array(size_t n)

@@ -50,7 +50,7 @@ inline bool operator == (const fileinfo& a, const fileinfo& b)
 
 
 
-class position {
+class position : public gc {
   fileinfo *file;
   size_t line;
   size_t column;
@@ -192,6 +192,6 @@ public:
   }
 };
 
-extern errorstream *em;
+extern errorstream em;
 
 #endif

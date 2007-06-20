@@ -30,9 +30,9 @@ int yylex(void); /* function prototype */
 void yyerror(const char *s)
 {
   if (!lexerEOF()) {
-    em->error(lexerPos());
-    *em << s;
-    em->cont();
+    em.error(lexerPos());
+    em << s;
+    em.cont();
   }
 }
 

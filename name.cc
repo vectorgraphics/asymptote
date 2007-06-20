@@ -39,8 +39,8 @@ void name::forceEquivalency(action act, coenv &e,
   if (act == READ)
     e.implicitCast(getPos(), target, source);
   else if (!equivalent(target, source)) {
-    em->compiler(getPos());
-    *em << "type mismatch in variable: "
+    em.compiler(getPos());
+    em << "type mismatch in variable: "
       << *target
       << " vs " << *source;
   }
@@ -86,8 +86,8 @@ void simpleName::varTrans(action act, coenv &e, types::ty *target)
     forceEquivalency(act, e, target, v->getType());
   }
   else {
-    em->error(getPos());
-    *em << "no matching variable of name \'" << *id << "\'";
+    em.error(getPos());
+    em << "no matching variable of name \'" << *id << "\'";
   }
 }
 
@@ -104,8 +104,8 @@ types::ty *simpleName::typeTrans(coenv &e, bool tacit)
   }
   else {
     if (!tacit) {
-      em->error(getPos());
-      *em << "no type of name \'" << *id << "\'";
+      em.error(getPos());
+      em << "no type of name \'" << *id << "\'";
     }
     return primError();
   }
@@ -115,8 +115,8 @@ tyEntry *simpleName::tyEntryTrans(coenv &e)
 {
   tyEntry *ent = e.e.lookupTyEntry(id);
   if (!ent) {
-    em->error(getPos());
-    *em << "no type of name \'" << *id << "\'";
+    em.error(getPos());
+    em << "no type of name \'" << *id << "\'";
     return new tyEntry(primError(), 0, 0, position());
   }
   return ent;
@@ -145,8 +145,8 @@ record *qualifiedName::castToRecord(types::ty *t, bool tacit)
   switch (t->kind) {
     case ty_overloaded:
       if (!tacit) {
-        em->compiler(qualifier->getPos());
-        *em << "name::getType returned overloaded";
+        em.compiler(qualifier->getPos());
+        em << "name::getType returned overloaded";
       }
       return 0;
     case ty_record:
@@ -155,8 +155,8 @@ record *qualifiedName::castToRecord(types::ty *t, bool tacit)
       return 0;
     default:
       if (!tacit) {
-        em->error(qualifier->getPos());
-        *em << "type \'" << *t << "\' is not a structure";
+        em.error(qualifier->getPos());
+        em << "type \'" << *t << "\' is not a structure";
       }
       return 0;
   }
@@ -171,8 +171,8 @@ bool qualifiedName::varTransVirtual(action act, coenv &e,
     qualifier->varTrans(READ, e, qt);
 
     if (act == WRITE) {
-      em->error(getPos());
-      *em << "virtual field '" << *id << "' of '" << *qt
+      em.error(getPos());
+      em << "virtual field '" << *id << "' of '" << *qt
           << "' cannot be modified";
     }
     else {
@@ -210,8 +210,8 @@ void qualifiedName::varTransField(action act, coenv &e,
     forceEquivalency(act, e, target, v->getType());
   }
   else {
-    em->error(getPos());
-    *em << "no matching field of name \'" << *id << "\' in \'" << *r << "\'";
+    em.error(getPos());
+    em << "no matching field of name \'" << *id << "\' in \'" << *r << "\'";
   }
 }
 
@@ -272,8 +272,8 @@ types::ty *qualifiedName::typeTrans(coenv &e, bool tacit)
   }
   else {
     if (!tacit) {
-      em->error(getPos());
-      *em << "no matching field or type of name \'" << *id << "\' in \'"
+      em.error(getPos());
+      em << "no matching field or type of name \'" << *id << "\' in \'"
           << *r << "\'";
     }
     return primError();
@@ -290,8 +290,8 @@ tyEntry *qualifiedName::tyEntryTrans(coenv &e)
 
   tyEntry *ent = r->e.lookupTyEntry(id);
   if (!ent) {
-    em->error(getPos());
-    *em << "no matching type of name \'" << *id << "\' in \'"
+    em.error(getPos());
+    em << "no matching type of name \'" << *id << "\' in \'"
         << *r << "\'";
     return new tyEntry(primError(), 0, 0, position());
   }

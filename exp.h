@@ -113,8 +113,8 @@ public:
   // so that the value on top of stack is put into the address (but not popped
   // off the stack).
   virtual void transWrite(coenv &, types::ty *) {
-    em->error(getPos());
-    *em << "expression cannot be used as an address";
+    em.error(getPos());
+    em << "expression cannot be used as an address";
   }
 
   // Translates code for calling a function.  The arguments, in the order they
@@ -206,13 +206,13 @@ public:
   types::ty *trans(coenv &e) {
     types::ty *t=cgetType(e);
     if (t->kind == types::ty_error) {
-      em->error(getPos());
-      *em << "no matching variable \'" << *value << "\'";
+      em.error(getPos());
+      em << "no matching variable \'" << *value << "\'";
       return types::primError();
     }
     if (t->kind == types::ty_overloaded) {
-      em->error(getPos());
-      *em << "use of variable \'" << *value << "\' is ambiguous";
+      em.error(getPos());
+      em << "use of variable \'" << *value << "\' is ambiguous";
       return types::primError();
     }
     else {
@@ -272,21 +272,21 @@ class fieldExp : public nameExp {
     // As a type:
     types::ty *typeTrans(coenv &, bool tacit = false) {
       if (!tacit) {
-        em->error(getPos());
-        *em << "expression is not a type";
+        em.error(getPos());
+        em << "expression is not a type";
       }
       return types::primError();
     }
 
     trans::varEntry *getVarEntry(coenv &) {
-      em->compiler(getPos());
-      *em << "expression cannot be used as part of a type";
+      em.compiler(getPos());
+      em << "expression cannot be used as part of a type";
       return 0;
     }
 
     trans::tyEntry *tyEntryTrans(coenv &) {
-      em->compiler(getPos());
-      *em << "expression cannot be used as part of a type";
+      em.compiler(getPos());
+      em << "expression cannot be used as part of a type";
       return 0;
     }
 
