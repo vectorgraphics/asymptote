@@ -35,6 +35,4 @@ void runPromptEmbedded(trans::coenv &e, istack &s);
 // Basic listing.
 void doUnrestrictedList();
 
-extern int signalCount;
-
 #endif

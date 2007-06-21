@@ -25,8 +25,6 @@
 
 #include "process.h"
 
-int signalCount=0;
-
 namespace run {
   void cleanup();
   void exitFunction(vm::stack *Stack);
