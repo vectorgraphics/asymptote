@@ -46,6 +46,14 @@ char *StrdupNoGC(string s)
   return dest;
 }
 
+char *StrdupMalloc(string s)
+{
+  size_t size=s.size()+1;
+  char *dest=(char *) std::malloc(size);
+  std::memcpy(dest,s.c_str(),size*sizeof(char));
+  return dest;
+}
+
 string stripDir(string name)
 {
   size_t p;

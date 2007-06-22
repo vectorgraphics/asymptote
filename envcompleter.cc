@@ -13,11 +13,6 @@
 
 namespace trans {
 
-char *envCompleter::symbolToMallocedString(symbol *name)
-{
-  return Strdup((string) *name);
-}
-
 bool basicListLoaded=false;
 envCompleter::symbol_list basicList;
 
@@ -73,7 +68,7 @@ char *envCompleter::operator () (const char *text, int state) {
   else {
     symbol *name=*index;
     ++index;
-    return symbolToMallocedString(name);
+    return StrdupMalloc((string) *name);
   }
 }
 

@@ -18,6 +18,7 @@
 // Duplicate a string.
 char *Strdup(string s);
 char *StrdupNoGC(string s);
+char *StrdupMalloc(string s);
   
 // Strip the directory from a filename.
 string stripDir(string name);

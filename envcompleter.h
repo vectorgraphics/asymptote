@@ -23,8 +23,6 @@ private:
   symbol_list l;
   symbol_list::iterator index;
 
-  static char *symbolToMallocedString(symbol *name);
-    
   // These are completions that don't come from the environment, such as
   // keywords.  They are read from the keywords file.
   static void basicCompletions(symbol_list &l, string start);
