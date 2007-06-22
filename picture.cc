@@ -178,7 +178,12 @@ bool picture::texprocess(const string& texname, const string& outname,
     if(!status && getSetting<bool>("twice"))
       status=System(cmd,quiet ? 1 : 0,"texpath",texpathmessage());
     if(status) {
-      if(quiet) System(cmd,0);
+      if(quiet) {
+	ostringstream cmd;
+	cmd << "'" << texprogram() << "'"
+	    << " \\scrollmode\\input '" << texname << "'";
+	System(cmd,0);
+      }
       return false;
     }
     
