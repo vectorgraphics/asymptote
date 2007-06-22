@@ -198,4 +198,6 @@ inline bbox pad(bbox b1, bbox b2)
 
 } // namespace camp
 
+GC_DECLARE_PTRFREE(camp::bbox);
+
 #endif

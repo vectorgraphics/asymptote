@@ -9,7 +9,6 @@
 #define STACK_H
 
 #include <iostream>
-#include <deque>
 
 #include "errormsg.h"
 #include "vm.h"
@@ -54,7 +53,7 @@ public:
 
 private:
   // stack for operands
-  typedef mem::deque<item> stack_t;
+  typedef mem::vector<item> stack_t;
   stack_t theStack;
 
   vars_t make_frame(size_t, vars_t closure);
@@ -82,8 +81,8 @@ private:
   bool newline;
   
 public:
-  stack() : e(0), debugOp(0), lastPos(position::nullPos()),
-	    breakPos(position::nullPos()), newline(false) {};
+  stack() : e(0), debugOp(0), lastPos(nullPos),
+	    breakPos(nullPos), newline(false) {};
   
   virtual ~stack() {};
 

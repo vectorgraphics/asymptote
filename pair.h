@@ -210,4 +210,6 @@ inline pair pow(const pair& z, const pair& w)
 
 } //namespace camp
 
+GC_DECLARE_PTRFREE(camp::pair);
+
 #endif

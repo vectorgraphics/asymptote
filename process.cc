@@ -159,6 +159,8 @@ public:
       return;
 
     try {
+      if(purge) run::purge();
+      
       genv ge;
       env base_env(ge);
       coder base_coder;
@@ -169,7 +171,6 @@ public:
       s.setEnvironment(&e);
 
       preRun(e,s);
-      if(purge) run::purge();
 
       // Now that everything is set up, run the core.
       run(e,s);

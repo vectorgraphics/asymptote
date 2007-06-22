@@ -77,7 +77,7 @@ absyntax::file *doParse(size_t (*input) (char* bif, size_t max_size),
       }
     }
 
-    em.error(position::nullPos());
+    em.error(nullPos);
     if(!interact::interactive)
       error(filename);
     else

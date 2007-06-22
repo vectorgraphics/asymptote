@@ -1,5 +1,5 @@
 /****
- * common.h
+ * memory.h
  *
  * Interface to the Boehm Garbage Collector.
  *****/
@@ -9,7 +9,6 @@
 
 #include <list>
 #include <vector>
-#include <deque>
 #include <stack>
 #include <map>
 #include <string>
@@ -94,9 +93,8 @@ namespace mem {
 
 GC_CONTAINER(list);
 GC_CONTAINER(vector);
-GC_CONTAINER(deque);
 
-template <typename T, typename Container = deque<T> >
+template <typename T, typename Container = vector<T> >
 struct stack : public std::stack<T, Container>, public gc {
 };
 
@@ -149,5 +147,7 @@ typedef std::stringbuf stringbuf;
 #endif // USEGC
 
 } // namespace mem
+
+GC_DECLARE_PTRFREE(mem::string);
 
 #endif

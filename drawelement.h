@@ -261,5 +261,7 @@ public:
  
 }
 
+GC_DECLARE_PTRFREE(camp::box);
+
 #endif
 

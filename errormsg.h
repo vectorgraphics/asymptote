@@ -100,13 +100,14 @@ public:
   
   friend ostream& operator << (ostream& out, const position& pos);
 
-  static position nullPos() {
-    position p;
-    p.init(0,0);
-    return p;
-  }
 };
 
+extern position nullPos;
+
+struct nullPosInitializer {
+  nullPosInitializer() {nullPos.init(NULL,0);}
+};
+  
 inline bool operator == (const position& a, const position& b)
 {
   return a.Line() == b.Line() && a.Column() == b.Column() && 

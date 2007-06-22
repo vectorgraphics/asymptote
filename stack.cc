@@ -33,7 +33,7 @@ namespace vm {
 mem::list<bpinfo> bplist;
   
 namespace {
-position curPos = position::nullPos();
+position curPos = nullPos;
 const program::label nulllabel;
 }
 

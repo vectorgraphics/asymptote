@@ -83,4 +83,6 @@ public:
 
 } // namespace sym
 
+GC_DECLARE_PTRFREE(sym::symbol);
+
 #endif

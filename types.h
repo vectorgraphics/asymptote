@@ -13,7 +13,6 @@
 #include <iostream>
 #include <cstdio>
 #include <cassert>
-#include <vector>
 
 #include "errormsg.h"
 #include "symbol.h"

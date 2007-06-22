@@ -39,7 +39,7 @@ coder::coder(modifier sord)
     perm(DEFAULT_PERM),
     program(new vm::program),
     numLabels(0),
-    curPos(position::nullPos())
+    curPos(nullPos)
 {
   sord_stack.push(sord);
   encodeAllocInstruction();
@@ -59,7 +59,7 @@ coder::coder(function *t, coder *parent, modifier sord, bool reframe)
     perm(DEFAULT_PERM),
     program(new vm::program),
     numLabels(0),
-    curPos(position::nullPos())
+    curPos(nullPos)
 {
   sord_stack.push(sord);
   encodeAllocInstruction();
@@ -79,7 +79,7 @@ coder::coder(record *t, coder *parent, modifier sord)
     perm(DEFAULT_PERM),
     program(new vm::program),
     numLabels(0),
-    curPos(position::nullPos())
+    curPos(nullPos)
 {
   sord_stack.push(sord);
   encodeAllocInstruction();

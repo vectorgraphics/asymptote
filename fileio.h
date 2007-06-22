@@ -40,7 +40,7 @@ namespace camp {
 extern string tab;
 extern string newline;
   
-class file : public gc_cleanup {
+class file : public gc {
 protected:  
   string name;
   int nx,ny,nz;    // Array dimensions

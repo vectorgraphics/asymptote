@@ -35,4 +35,7 @@ enum modifier {
 
 } // namespace trans
 
+GC_DECLARE_PTRFREE(trans::permission);
+GC_DECLARE_PTRFREE(trans::modifier);
+
 #endif

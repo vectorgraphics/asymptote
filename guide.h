@@ -300,4 +300,11 @@ public:
 
 } // namespace camp
 
+GC_DECLARE_PTRFREE(camp::pairguide);
+GC_DECLARE_PTRFREE(camp::tensionSpecifier);
+GC_DECLARE_PTRFREE(camp::tensionguide);
+GC_DECLARE_PTRFREE(camp::curlSpecifier);
+GC_DECLARE_PTRFREE(camp::controlguide);
+GC_DECLARE_PTRFREE(camp::cycletokguide);
+
 #endif // GUIDE_H

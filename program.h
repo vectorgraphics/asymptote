@@ -23,7 +23,7 @@ public:
   label end();
 private:
   friend class label;
-  typedef mem::deque<inst> code_t;
+  typedef mem::vector<inst> code_t;
   code_t code;
   inst& operator[](size_t);
 };

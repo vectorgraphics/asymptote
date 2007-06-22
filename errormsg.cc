@@ -12,6 +12,8 @@
 #include "errormsg.h"
 
 
+position nullPos;
+static nullPosInitializer nullPosInit;
 
 bool errorstream::interrupt=false;
 
@@ -46,7 +48,7 @@ void errorstream::compiler(position pos)
 
 void errorstream::compiler()
 {
-  message(position::nullPos(),"compiler: ");
+  message(nullPos,"compiler: ");
   anyErrors = true;
 }
 

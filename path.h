@@ -316,7 +316,8 @@ public:
   cubicroots(double a, double b, double c, double d);
 };
 
-  
 }
+
+GC_DECLARE_PTRFREE(camp::solvedKnot);
 
 #endif

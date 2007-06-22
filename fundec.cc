@@ -18,7 +18,7 @@ using namespace trans;
 using namespace types;
 using mem::list;
 
-varinit *Default=new definit(position::nullPos());
+varinit *Default=new definit(nullPos);
   
 void formal::prettyprint(ostream &out, int indent)
 {
