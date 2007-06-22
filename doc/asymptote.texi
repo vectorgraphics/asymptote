@@ -7338,6 +7338,7 @@ The advanced configuration variables @code{dvipsOptions} and
 If you insert
 @verbatim
 import plain;
+settings.autoplain=true;
 @end verbatim
 @noindent
 at the beginning of the configuration file, it can contain arbitrary
