@@ -70,7 +70,7 @@ public:
   ~termvector() {
     for(typename Pointer::iterator p=pointer.begin(); p != pointer.end(); ++p) {
       if(*p != NULL)
-	(*p)->close();
+	(*p)->~T();
     }
   }
 };

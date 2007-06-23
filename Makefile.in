@@ -161,10 +161,14 @@ uninstall-man:
 clean:  FORCE
 	rm -f asy *.o *.d *mon.out $(CLEAN)
 
+gc-clean: clean
+	-if test -d $(GC); then \
+		$(MAKE) -C $(GC) clean; \
+	fi
+
 cleaner: distclean
 distclean: FORCE clean
 	-if test -d $(GC); then \
-		$(MAKE) -C $(GC) distclean; \
 		rm -rf $(GC); \
 	fi
 	rm -f Makefile config.h config.log config.status errors.temp

@@ -821,7 +821,7 @@ string build_optstring() {
 c_option *build_longopts() {
   size_t n=optionsMap.size();
 
-  c_option *longopts=new(UseGC) c_option[n];
+  c_option *longopts=new c_option[n];
 
   int i=0;
   for (optionsMap_t::iterator p=optionsMap.begin();
@@ -876,14 +876,12 @@ void getOptions(int argc, char *argv[])
     errno=0;
   }
   
+  delete [] longopts;
+  
   if (syntax)
     reportSyntax();
   globaloutname=false;
 }
-
-#ifdef USEGC
-void no_GCwarn(char *, GC_word) {}
-#endif
 
 void initSettings() {
   queryRegistry();
@@ -1239,10 +1237,6 @@ void setOptions(int argc, char *argv[])
   // Read command-line options again to override configuration file defaults.
   getOptions(argc,argv);
   
-#ifdef USEGC
-  if(!getSetting<bool>("debug")) GC_set_warn_proc(no_GCwarn);
-#endif  
-
   if(setlocale (LC_ALL, "") == NULL && getSetting<bool>("debug"))
     perror("setlocale");
   

@@ -18,7 +18,7 @@
 #include <ext/hash_map>
 #endif
 
-#if defined(__DECCXX_LIBCXX_RH70)
+#ifdef __DECCXX_LIBCXX_RH70
 #define CONST
 #else
 #define CONST const  

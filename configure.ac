@@ -126,12 +126,23 @@ else
 fi
 
 AC_ARG_ENABLE(gc-debug,
-[  --enable-gc-debug       enable (very slow) garbage collector debugging],
+[  --enable-gc-debug       enable (slow) garbage collector debugging],
 [ if test "x$ac_cv_use_gc" != "xno" ; then
     if test "x$enableval" = "xyes" ; then
        OPTIONS=$OPTIONS"-DGC_DEBUG "
+       AC_MSG_NOTICE([*** Enabling GC debugging: remember to make clean ***])
+       AC_MSG_NOTICE([*** Set the environment variable GC_FIND_LEAK at runtime ***])
+    fi
+ fi
+])
+
+AC_ARG_ENABLE(gc-full-debug,
+[  --enable-gc-full-debug  enable (very slow) garbage collector backtrace],
+[ if test "x$ac_cv_use_gc" != "xno" ; then
+    if test "x$enableval" = "xyes" ; then
+       OPTIONS=$OPTIONS"-DGC_DEBUG -DGC_BACKTRACE "
        GCOPTIONS=$GCOPTIONS"--enable-full-debug "
-       AC_MSG_NOTICE([enabling GC debugging])
+       AC_MSG_NOTICE([*** Enabling GC backtrace debugging; remember to make gc-clean ***])
     fi
  fi
 ])
