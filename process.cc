@@ -48,19 +48,19 @@ using types::record;
 using interact::interactive;
 using interact::uptodate;
 
+using absyntax::runnable;
+using absyntax::block;
+
+mem::list<globalData *> global;
+
 void init(bool resetpath=true)
 {
   vm::indebugger=false;
   if(resetpath)
-    setPath("");  /* On second and subsequent calls to init, sets the
-		     path to what it was when the program started. */
+    setPath("");  /* On second and subsequent calls, sets the path
+		     to what it was when the program started. */
   ShipoutNumber=0;
 }
-
-using absyntax::runnable;
-using absyntax::block;
-
-Terminator *terminator;
 
 // This helper class does nothing but call the interactiveTrans method of the
 // base object in place of trans, so that the runnable can exhibit special
@@ -124,7 +124,6 @@ void runAutoplain(coenv &e, istack &s) {
   runRunnable(r,e,s);
 }
 
-
 // Abstract base class for the core object being run in line-at-a-time mode, it
 // may be a block of code, file, or interactive prompt.
 struct icore {
@@ -133,16 +132,9 @@ struct icore {
   virtual void doParse() = 0;
   virtual void doList() = 0;
 
-protected:
-  // NOTE: Get this out of here!
-  mem::list<string> TeXpipepreamble_save;
-  mem::list<string> TeXpreamble_save;
 public:
 
   virtual void preRun(coenv &e, istack &s) {
-    TeXpipepreamble_save = mem::list<string>(camp::TeXpipepreamble);
-    TeXpreamble_save = mem::list<string>(camp::TeXpreamble);
-
     if(getSetting<bool>("autoplain"))
       runAutoplain(e,s);
   }
@@ -151,8 +143,6 @@ public:
 
   virtual void postRun(coenv &, istack &s) {
     run::exitFunction(&s);
-    camp::TeXpipepreamble=TeXpipepreamble_save;
-    camp::TeXpreamble=TeXpreamble_save;
   }
 
   virtual void doRun(bool purge=false) {
@@ -160,8 +150,6 @@ public:
     if(em.errors())
       return;
 
-    terminator=new Terminator;
-    
     try {
       if(purge) run::purge();
       
@@ -181,17 +169,17 @@ public:
 
       if(purge) run::purge();
       postRun(e,s);
-      if(purge) run::purge();
        
     } catch(std::bad_alloc&) {
       cerr << "error: out of memory" << endl;
       em.statusError();
     } catch(handled_error) {
       em.statusError();
-      run::cleanup();
     }
     
-    delete terminator;
+    run::cleanup();
+    
+    if(purge) run::purge();
 
     em.clear();
   }
@@ -201,8 +189,12 @@ public:
       doParse();
     else if (getSetting<bool>("listvariables"))
       doList();
-    else
+    else {
+      globalData g;
+      global.push_back(&g);
       doRun(purge);
+      global.pop_back();
+    }
   }
 };
 
@@ -263,7 +255,10 @@ public:
   void doRun() {
     // Don't prepare an environment to run the code if there isn't any code.
     if (getTree()) {
+      globalData g;
+      global.push_back(&g);
       icore::doRun();
+      global.pop_back();
     }
   }
 };
@@ -332,7 +327,7 @@ public:
       cout << "Processing " << outname << endl;
     
     try {
-      itree::process(purge);
+      icore::process(purge);
     }
     catch(handled_error) {
       em.statusError();
@@ -523,7 +518,6 @@ string cleanLine(const string line) {
   return endCommentOrString(deslash(line));
 }
 
-
 class iprompt : public icore {
   // Flag that is set to false to signal the prompt to exit.
   bool running;
@@ -538,9 +532,6 @@ class iprompt : public icore {
   protoenv *einteractive;
   
   void postRun(coenv &, istack &) {
-    run::cleanup();
-    camp::TeXpipepreamble=TeXpipepreamble_save;
-    camp::TeXpreamble=TeXpreamble_save;
   }
   
   // Commands are chopped into the starting word and the rest of the line.

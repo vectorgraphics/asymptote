@@ -16,14 +16,6 @@
 
 namespace camp {
 
-class texstream : public iopipestream {
-public:
-  void pipeclose();
-};
-extern texstream tex; // Bi-directional pipe to latex (to find label bbox)
-
-typedef mem::list<drawElement*> nodelist;
-  
 class picture : public gc {
 private:
   bool labels;
@@ -37,6 +29,8 @@ private:
   static double paperWidth,paperHeight;
 
 public:
+  typedef mem::list<drawElement*> nodelist;
+  
   nodelist nodes;
   
   picture() : labels(false), lastnumber(0), T(0) {}

@@ -27,7 +27,7 @@ extern const string docdir;
   
 extern bool safe;
   
-extern bool global();
+extern bool globalwrite();
 
 enum origin {CENTER,BOTTOM,TOP,ZERO};
 //extern int origin;

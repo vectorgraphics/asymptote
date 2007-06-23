@@ -118,7 +118,7 @@ void writeDisabled()
 
 void checkLocal(string name)
 {
-  if(global()) return;
+  if(globalwrite()) return;
 #ifdef __CYGWIN__  
   if(name.rfind('\\') < string::npos) writeDisabled();
 #endif  

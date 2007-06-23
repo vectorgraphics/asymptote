@@ -14,6 +14,8 @@
 #include "common.h"
 #include "stm.h"
 #include "stack.h"
+#include "pipestream.h"
+#include "callable.h"
 
 #ifdef HAVE_RPC_RPC_H
 #include "xstream.h"
@@ -41,7 +43,7 @@ void runPromptEmbedded(trans::coenv &e, istack &s);
 void doUnrestrictedList();
 
 template<class T>
-class termvector {
+class terminator {
 public:  
   typedef mem::vector<T *> Pointer;
   Pointer pointer;
@@ -67,23 +69,41 @@ public:
     pointer[index]=NULL;
   }
   
-  ~termvector() {
+  ~terminator() {
     for(typename Pointer::iterator p=pointer.begin(); p != pointer.end(); ++p) {
-      if(*p != NULL)
+      if(*p != NULL) {
 	(*p)->~T();
+	(*p)=NULL;
+      }
     }
   }
 };
 
-struct Terminator {
-  termvector<std::ofstream> ofile;
-  termvector<std::fstream> ifile;
-#ifdef HAVE_RPC_RPC_H
-  termvector<xdr::ioxstream> ixfile;
-  termvector<xdr::oxstream> oxfile;
-#endif  
+class texstream : public iopipestream {
+public:
+  void pipeclose();
 };
 
-extern Terminator *terminator;
+struct globalData {
+  mem::list<string> TeXpipepreamble;
+  mem::list<string> TeXpreamble;
+  texstream tex; // Bi-directional pipe to latex (to find label bbox)
+  vm::callable *atExitFunction;
+  vm::callable *atBreakpointFunction;
   
+  terminator<std::ofstream> ofile;
+  terminator<std::fstream> ifile;
+#ifdef HAVE_RPC_RPC_H
+  terminator<xdr::ioxstream> ixfile;
+  terminator<xdr::oxstream> oxfile;
+#endif  
+  
+  globalData() {
+    atExitFunction=NULL;
+    atBreakpointFunction=NULL;
+  }
+  
+};
+
+extern mem::list<globalData *> global;
 #endif

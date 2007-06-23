@@ -234,7 +234,7 @@ public:
       stream=&cin;
     } else {
       stream=fstream=new std::fstream(name.c_str());
-      index=terminator->ifile.add(fstream);
+      index=global.back()->ifile.add(fstream);
       if(checkerase) Check();
     }
   }
@@ -254,7 +254,7 @@ public:
       closed=true;
       delete fstream;
       fstream=NULL;
-      terminator->ifile.remove(index);
+      global.back()->ifile.remove(index);
     }
   }
   
@@ -323,7 +323,7 @@ public:
       stream=&cout;
     } else {
       stream=fstream=new std::ofstream(name.c_str(),std::ios::trunc);
-      index=terminator->ofile.add(fstream);
+      index=global.back()->ofile.add(fstream);
       Check();
     }
   }
@@ -340,7 +340,7 @@ public:
       closed=true;
       delete fstream;
       fstream=NULL;
-      terminator->ofile.remove(index);
+      global.back()->ofile.remove(index);
     }
   }
   void clear() {stream->clear();}
@@ -487,7 +487,7 @@ public:
 
   void open() {
     fstream=new xdr::ioxstream(name.c_str());
-    index=terminator->ixfile.add(fstream);
+    index=global.back()->ixfile.add(fstream);
     if(checkerase) Check();
   }
     
@@ -497,7 +497,7 @@ public:
       closed=true;
       delete fstream;
       fstream=NULL;
-      terminator->ixfile.remove(index);
+      global.back()->ixfile.remove(index);
     }
   }
   
@@ -571,7 +571,7 @@ public:
 
   void open() {
     fstream=new xdr::oxstream((checkLocal(name),name.c_str()),xdr::xios::trunc);
-    index=terminator->oxfile.add(fstream);
+    index=global.back()->oxfile.add(fstream);
     Check();
   }
   
@@ -581,7 +581,7 @@ public:
       closed=true;
       delete fstream;
       fstream=NULL;
-      terminator->oxfile.remove(index);
+      global.back()->oxfile.remove(index);
     }
   }
   

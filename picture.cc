@@ -19,17 +19,6 @@ using std::ofstream;
 
 using namespace settings;
 
-namespace camp {
-
-const char *texpathmessage() {
-  ostringstream buf;
-  buf << "the directory containing your " << getSetting<string>("tex")
-      << " engine (" << texengine() << ")";
-  return Strdup(buf.str());
-}
-  
-texstream tex; // Bi-directional pipe to latex (to find label bbox)
-
 void texstream::pipeclose() {
   iopipestream::pipeclose();
   if(!getSetting<bool>("keep")) {
@@ -41,6 +30,15 @@ void texstream::pipeclose() {
   }
 }
 
+namespace camp {
+
+const char *texpathmessage() {
+  ostringstream buf;
+  buf << "the directory containing your " << getSetting<string>("tex")
+      << " engine (" << texengine() << ")";
+  return Strdup(buf.str());
+}
+  
 picture::~picture()
 {
 }
@@ -132,7 +130,7 @@ bbox picture::bounds()
   for(size_t i=0; i < lastnumber; ++i) ++p;
   for(; p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->bounds(b,tex,labelbounds,bboxstack);
+    (*p)->bounds(b,global.back()->tex,labelbounds,bboxstack);
   }
 
   lastnumber=n;
@@ -142,23 +140,24 @@ bbox picture::bounds()
 void picture::texinit()
 {
   drawElement::lastpen=pen(initialpen);
+  globalData *g=global.back();
   // Output any new texpreamble commands
-  if(tex.isopen()) {
-    if(TeXpipepreamble.empty()) return;
-    texpreamble(tex,TeXpipepreamble);
-    TeXpipepreamble.clear();
+  if(g->tex.isopen()) {
+    if(g->TeXpipepreamble.empty()) return;
+    texpreamble(g->tex,g->TeXpipepreamble);
+    g->TeXpipepreamble.clear();
     return;
   }
   
   ostringstream cmd;
   cmd << "'" << texprogram() << "'" << " \\scrollmode";
-  tex.open(cmd.str().c_str(),"texpath",texpathmessage());
-  tex.wait("\n*");
-  tex << "\n";
-  texdocumentclass(tex,true);
+  g->tex.open(cmd.str().c_str(),"texpath",texpathmessage());
+  g->tex.wait("\n*");
+  g->tex << "\n";
+  texdocumentclass(g->tex,true);
   
-  texdefines(tex,TeXpreamble,true);
-  TeXpipepreamble.clear();
+  texdefines(g->tex,g->TeXpreamble,true);
+  g->TeXpipepreamble.clear();
 }
   
 bool picture::texprocess(const string& texname, const string& outname,
@@ -373,7 +372,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   xobject=outputformat == "<x>";
   string xformat=getSetting<string>("xformat");
   string outname=xobject ? "."+buildname(prefix,xformat) :
-    (standardout ? "-" : buildname(prefix,outputformat,"",!global()));
+    (standardout ? "-" : buildname(prefix,outputformat,"",!globalwrite()));
   string epsname=epsformat ? (standardout ? "" : outname) :
     auxname(prefix,"eps");
   string prename=((epsformat && !pdf) || !Labels) ? epsname : 

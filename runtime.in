@@ -213,10 +213,6 @@ function *transformFunction()
   return new function(primTransform());
 }
 
-callable *atExitFunction=NULL;
-callable *atDrawFunction=NULL;
-callable *atBreakpointFunction=NULL;
-  
 const int camp::ColorComponents[]={0,0,1,3,4,0};
 
 namespace vm {
@@ -536,23 +532,14 @@ void init_readline(bool tabcompletion=true)
 }
 #endif
 
-void clearTeX()
-{
-  camp::TeXpipepreamble.clear();
-  camp::TeXpreamble.clear();
-  camp::tex.pipeclose();
-}
-
 void cleanup()
 {
   if(initialdefaultpen) defaultpen=*initialdefaultpen;
 
-  atExitFunction=NULL;
-  atDrawFunction=NULL;
-  atBreakpointFunction=NULL;
+  globalData *g=global.back();
+  g->atExitFunction=NULL;
+  g->atBreakpointFunction=NULL;
   
-  clearTeX();
-
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   store_history(&history_save);
   int nlines=getSetting<int>("historylines");
@@ -577,6 +564,7 @@ void purge()
 
 void updateFunction(stack *Stack)
 {
+  callable *atExitFunction=global.back()->atExitFunction;
   if(atExitFunction && !nullfunc::instance()->compare(atExitFunction))
     atExitFunction->call(Stack);
 }
@@ -595,6 +583,7 @@ string commentchar="#";
 
 void breakpoint(stack *Stack, runnable *r)
 {
+  callable *atBreakpointFunction=global.back()->atBreakpointFunction;
   if(atBreakpointFunction &&
      !nullfunc::instance()->compare(atBreakpointFunction)) {
     position curPos=getPos();
@@ -1049,8 +1038,9 @@ void tex(picture *f, string s, pair min, pair max)
 void texpreamble(string s)
 {
   string t=s+"\n";
-  camp::TeXpipepreamble.push_back(t);
-  camp::TeXpreamble.push_back(t);
+  globalData *g=global.back();
+  g->TeXpipepreamble.push_back(t);
+  g->TeXpreamble.push_back(t);
 }
 
 void deletepreamble() 
@@ -1068,7 +1058,10 @@ void _labelpath(picture *f, string s, string size, path g, string justify,
 
 void texreset()
 {
-  clearTeX();
+  globalData *g=global.back();
+  g->TeXpipepreamble.clear();
+  g->TeXpreamble.clear();
+  g->tex.pipeclose();
 }
 
 void layer(picture *f)
@@ -1118,7 +1111,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
   picture *result=new picture;
   unsigned level=0;
   unsigned i=0;
-  nodelist::iterator p;
+  picture::nodelist::iterator p;
   for(p = f->nodes.begin(); p != f->nodes.end(); ++p) {
     bool Delete;
     xform->call(Stack);
@@ -1590,7 +1583,7 @@ void :loadModule(string *index)
 
 string cd(string s=emptystring)
 {
-  if(!global()) writeDisabled();
+  if(!globalwrite()) writeDisabled();
   return setPath(s.c_str());
 }
 
@@ -2865,17 +2858,17 @@ string VERSION()
 
 void atexit(callable *f)
 {
-  atExitFunction=f;
+  global.back()->atExitFunction=f;
 }
 
 callable *atexit()
 {
-  return atExitFunction;
+  return global.back()->atExitFunction;
 }
 
 void atbreakpoint(callableBp *f)
 {
-  atBreakpointFunction=f;
+  global.back()->atBreakpointFunction=f;
 }
 
 void breakpoint(runnable *s=NULL)

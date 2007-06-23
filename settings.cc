@@ -189,7 +189,7 @@ bool safe=true;
 bool globaloption=false;
 bool globaloutname=false;
   
-bool global() {return globaloption || !safe;}
+bool globalwrite() {return globaloption || !safe;}
   
 int ShipoutNumber=0;
   
@@ -481,7 +481,7 @@ struct stringOutnameSetting : public argumentSetting {
 
   bool getOption() {
     value=(item)(string)
-      ((globaloutname || global()) ? optarg : stripDir(optarg));
+      ((globaloutname || globalwrite()) ? optarg : stripDir(optarg));
     return true;
   }
 };
@@ -965,10 +965,10 @@ void initSettings() {
   addOption(new boolOption("unsafe", 0,
 			   "Enable system call (=> global)", &safe, false,
 			   false));
-  addOption(new boolOption("global", 0,
+  addOption(new boolOption("globalwrite", 0,
 			   "Allow write to other directory",
 			   &globaloption, true, false));
-  addOption(new boolOption("noglobal", 0,
+  addOption(new boolOption("noglobalwrite", 0,
 			   "", &globaloption, false, true));
   addOption(new stringOption("cd", 0, "directory", "Set current directory",
 			     &startpath));

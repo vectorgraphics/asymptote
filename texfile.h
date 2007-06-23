@@ -22,10 +22,9 @@
 #include "array.h"
 #include "psfile.h"
 #include "settings.h"
+#include "process.h"
 
 namespace camp {
-
-extern mem::list<string> TeXpipepreamble, TeXpreamble;
 
 const double tex2ps=72.0/72.27;
 const double ps2tex=1.0/tex2ps;
@@ -39,7 +38,7 @@ void texdocumentclass(T& out, bool pipe=false)
 }
   
 template<class T>
-void texpreamble(T& out, mem::list<string>& preamble=TeXpreamble)
+void texpreamble(T& out, mem::list<string>& preamble=global.back()->TeXpreamble)
 {
   for(mem::list<string>::iterator p=preamble.begin();
       p != preamble.end(); ++p)
@@ -47,7 +46,7 @@ void texpreamble(T& out, mem::list<string>& preamble=TeXpreamble)
 }
 
 template<class T>
-void texdefines(T& out, mem::list<string>& preamble=TeXpreamble,
+void texdefines(T& out, mem::list<string>& preamble=global.back()->TeXpreamble,
 		bool pipe=false)
 {
   string texengine=settings::getSetting<string>("tex");

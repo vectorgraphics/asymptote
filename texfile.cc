@@ -17,8 +17,6 @@ using settings::getSetting;
   
 namespace camp {
 
-mem::list<string> TeXpipepreamble, TeXpreamble;
-  
 texfile::texfile(const string& texname, const bbox& box) : box(box)
 {
   texengine=getSetting<string>("tex");
@@ -49,11 +47,11 @@ void texfile::prologue()
     std::ofstream *outpreamble=
       new std::ofstream(auxname(getSetting<string>("outname"),"pre").c_str(),
 			std::ios::app);
-    texpreamble(*outpreamble,TeXpreamble);
+    texpreamble(*outpreamble,global.back()->TeXpreamble);
     outpreamble->close();
   }
   
-  texdefines(*out,TeXpreamble,false);
+  texdefines(*out,global.back()->TeXpreamble,false);
   double width=box.right-box.left;
   double height=box.top-box.bottom;
   if(settings::pdf(texengine) && !inlinetex) {

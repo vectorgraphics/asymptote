@@ -15,7 +15,6 @@
 #include "pen.h"
 #include "psfile.h"
 #include "texfile.h"
-#include "pipestream.h"
 
 namespace camp {
 
