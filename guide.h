@@ -300,6 +300,7 @@ public:
 
 } // namespace camp
 
+GC_DECLARE_PTRFREE(camp::guide);
 GC_DECLARE_PTRFREE(camp::pairguide);
 GC_DECLARE_PTRFREE(camp::tensionSpecifier);
 GC_DECLARE_PTRFREE(camp::tensionguide);

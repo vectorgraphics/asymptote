@@ -60,6 +60,8 @@ void init(bool resetpath=true)
 using absyntax::runnable;
 using absyntax::block;
 
+Terminator *terminator;
+
 // This helper class does nothing but call the interactiveTrans method of the
 // base object in place of trans, so that the runnable can exhibit special
 // behaviour when run at the interactive prompt.
@@ -158,6 +160,8 @@ public:
     if(em.errors())
       return;
 
+    terminator=new Terminator;
+    
     try {
       if(purge) run::purge();
       
@@ -186,6 +190,8 @@ public:
       em.statusError();
       run::cleanup();
     }
+    
+    delete terminator;
 
     em.clear();
   }

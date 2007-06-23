@@ -15,17 +15,12 @@
 #define PAIR_H
 
 #include <cassert>
-#include <iostream>
 #include <cmath>
 
 #include "common.h"
 #include "angle.h"
 
 namespace camp {
-
-using std::ostream;
-using std::istream;
-using std::ws;
 
 class pair : public gc {
   double x;
@@ -167,14 +162,14 @@ public:
   friend istream& operator >> (istream& s, pair& z)
   {
     char c;
-    s >> ws;
+    s >> std::ws;
     bool paren=s.peek() == '('; // parenthesis are optional
     if(paren) s >> c;
-    s >> z.x >> ws;
+    s >> z.x >> std::ws;
     if(!s.eof() && s.peek() == ',') s >> c >> z.y;
     else z.y=0.0;
     if(paren) {
-      s >> ws;
+      s >> std::ws;
       if(s.peek() == ')') s >> c;
     }
     

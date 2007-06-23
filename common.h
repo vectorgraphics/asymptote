@@ -14,6 +14,8 @@ using std::cout;
 using std::cin;
 using std::cerr;
 using std::endl;
+using std::istream;
+using std::ostream;
 
 using mem::string;
 using mem::istringstream;

@@ -4076,6 +4076,7 @@ file* xinput(string name, bool check=true)
 {
 #ifdef HAVE_RPC_RPC_H
   file *f=new ixfile(name,check);
+  f->open();
   return f;
 #else  
   ostringstream buf;
@@ -4089,11 +4090,11 @@ file* xoutput(string name, bool update=false)
 {
 #ifdef HAVE_RPC_RPC_H
   file *f;
-  if(update) {
+  if(update)
     f=new ioxfile(name);
-    f->seek(0,false);
-  }
   else f=new oxfile(name);
+  f->open();
+  if(update) f->seek(0,false);
   return f;
 #else  
   ostringstream buf;

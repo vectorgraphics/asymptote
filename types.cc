@@ -315,7 +315,7 @@ trans::varEntry *array::virtualField(symbol *id, signature *sig)
     return ty::virtualField(id, sig);
 }
 
-std::ostream& operator<< (std::ostream& out, const formal& f)
+ostream& operator<< (ostream& out, const formal& f)
 {
   if (f.Explicit)
     out << "explicit ";
@@ -336,7 +336,7 @@ bool equivalent(formal& f1, formal& f2) {
 }
 
 
-std::ostream& operator<< (std::ostream& out, const signature& s)
+ostream& operator<< (ostream& out, const signature& s)
 {
   out << "(";
 

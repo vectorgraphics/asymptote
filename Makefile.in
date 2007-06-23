@@ -55,10 +55,10 @@ INSTALL = @INSTALL@
 
 export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR
 
-asy: $(GCLIBS) $(FILES:=.o) 
+asy: $(GCPPLIB) $(FILES:=.o) 
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) $(LIBS)
 
-msdos: $(GCLIBS) $(FILES:=.o) asy.o
+msdos: $(GCPPLIB) $(FILES:=.o) asy.o
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) asy.o $(LIBS) -s -static
 
 asy.o:	asy.rc asy.ico Makefile
@@ -76,7 +76,9 @@ $(GCLIB): $(GC).tar.gz
 	fi
 	cd $(GC); \
 	./configure $(GCOPTIONS); \
-	$(MAKE) check
+	$(MAKE) check; \
+	cd ..; \
+	$(MAKE) asy
 
 $(GCPPLIB): $(GCLIB)
 

@@ -18,10 +18,6 @@
 
 namespace camp {
 
-using std::ostream;
-using std::istream;
-using std::ws;
-
 class triple : public gc {
   double x;
   double y;
@@ -121,16 +117,16 @@ public:
   friend istream& operator >> (istream& s, triple& z)
   {
     char c;
-    s >> ws;
+    s >> std::ws;
     bool paren=s.peek() == '('; // parenthesis are optional
     if(paren) s >> c;
-    s >> z.x >> ws;
+    s >> z.x >> std::ws;
     if(s.peek() == ',') s >> c >> z.y;
     else z.y=0.0;
     if(s.peek() == ',') s >> c >> z.z;
     else z.z=0.0;
     if(paren) {
-      s >> ws;
+      s >> std::ws;
       if(s.peek() == ')') s >> c;
     }
     

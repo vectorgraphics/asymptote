@@ -10,9 +10,14 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
+
 #include "common.h"
 #include "stm.h"
 #include "stack.h"
+
+#ifdef HAVE_RPC_RPC_H
+#include "xstream.h"
+#endif
 
 // Process the code respecting the parseonly and listvariables flags of
 // settings.
@@ -35,4 +40,50 @@ void runPromptEmbedded(trans::coenv &e, istack &s);
 // Basic listing.
 void doUnrestrictedList();
 
+template<class T>
+class termvector {
+public:  
+  typedef mem::vector<T *> Pointer;
+  Pointer pointer;
+  
+  // Return first available index
+  size_t available() {
+    size_t index=0;
+    for(typename Pointer::iterator p=pointer.begin(); p != pointer.end(); ++p) {
+      if(*p == NULL) {return index;}
+      ++index;
+    }
+    pointer.push_back(NULL);
+    return index;
+  }
+  
+  size_t add(T *p) {
+    size_t index=available();
+    pointer[index]=p;
+    return index;
+  }
+  
+  void remove(size_t index) {
+    pointer[index]=NULL;
+  }
+  
+  ~termvector() {
+    for(typename Pointer::iterator p=pointer.begin(); p != pointer.end(); ++p) {
+      if(*p != NULL)
+	(*p)->close();
+    }
+  }
+};
+
+struct Terminator {
+  termvector<std::ofstream> ofile;
+  termvector<std::fstream> ifile;
+#ifdef HAVE_RPC_RPC_H
+  termvector<xdr::ioxstream> ixfile;
+  termvector<xdr::oxstream> oxfile;
+#endif  
+};
+
+extern Terminator *terminator;
+  
 #endif

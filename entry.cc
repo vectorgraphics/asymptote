@@ -14,7 +14,6 @@
 #include "entry.h"
 #include "coder.h"
 
-using std::ostream;
 using types::signature;
 
 namespace trans {

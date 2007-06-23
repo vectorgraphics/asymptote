@@ -30,6 +30,7 @@
 #include "interact.h"
 #include "errormsg.h"
 #include "util.h"
+#include "process.h"
 
 namespace vm {
   extern bool indebugger;  
@@ -56,6 +57,7 @@ protected:
   
   bool nullfield;  // Used to detect a final null field in csv+line mode.
   string whitespace;
+  size_t index;	   // Terminator index.
 public: 
 
   void resetlines() {lines=0;}
@@ -92,7 +94,7 @@ public:
   void dimension(int Nx=-1, int Ny=-1, int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
   
   file(const string& name, bool checkerase=true, bool binary=false,
-       bool closed=false) :
+       bool closed=false) : 
     name(name), linemode(false), csvmode(false), singlemode(false),
     closed(closed), checkerase(checkerase), standard(name.empty()),
     binary(binary), lines(0), nullfield(false), whitespace("") {dimension();}
@@ -214,13 +216,13 @@ public:
 class ifile : public file {
 protected:  
   istream *stream;
-  std::fstream fstream;
+  std::fstream *fstream;
   char comment;
   bool comma;
   
 public:
-  ifile(const string& name, char comment, bool check=true)
-    : file(name,check), comment(comment), comma(false) {stream=&cin;}
+  ifile(const string& name, char comment, bool check=true) :
+    file(name,check), comment(comment), comma(false) {stream=&cin;}
   
   // Binary file
   ifile(const string& name, bool check=true) : file(name,check,true) {}
@@ -231,8 +233,8 @@ public:
     if(standard) {
       stream=&cin;
     } else {
-      fstream.open(name.c_str());
-      stream=&fstream;
+      stream=fstream=new std::fstream(name.c_str());
+      index=terminator->ifile.add(fstream);
       if(checkerase) Check();
     }
   }
@@ -245,17 +247,27 @@ public:
   bool text() {return true;}
   bool eof() {return stream->eof();}
   bool error() {return stream->fail();}
-  void close() {if(!standard && !closed) {fstream.close(); closed=true;}}
-  void clear() {stream->clear();}
   
-  void seek(int pos, bool begin=true) {
-    if(!standard && !closed) {
-      clear();
-      fstream.seekg(pos,begin ? std::ios::beg : std::ios::end);
+  void close() {
+    if(!standard && fstream) {
+      fstream->close();
+      closed=true;
+      delete fstream;
+      fstream=NULL;
+      terminator->ifile.remove(index);
     }
   }
   
-  size_t tell() {return fstream.tellg();}
+  void clear() {stream->clear();}
+  
+  void seek(int pos, bool begin=true) {
+    if(!standard && fstream) {
+      clear();
+      fstream->seekg(pos,begin ? std::ios::beg : std::ios::end);
+    }
+  }
+  
+  size_t tell() {return fstream->tellg();}
   
   void csv();
   
@@ -278,31 +290,30 @@ public:
   iofile(const string& name, char comment=0) : ifile(name,true,comment) {}
 
   void precision(int p) {stream->precision(p);}
-  void flush() {fstream.flush();}
+  void flush() {fstream->flush();}
   
-  void write(bool val) {fstream << (val ? "true " : "false ");}
-  void write(int val) {fstream << val;}
-  void write(double val) {fstream << val;}
-  void write(const pair& val) {fstream << val;}
-  void write(const triple& val) {fstream << val;}
-  void write(const string& val) {fstream << val;}
-  void write(const pen& val) {fstream << val;}
-  void write(guide *val) {fstream << *val;}
-  void write(const transform& val) {fstream << val;}
+  void write(bool val) {*fstream << (val ? "true " : "false ");}
+  void write(int val) {*fstream << val;}
+  void write(double val) {*fstream << val;}
+  void write(const pair& val) {*fstream << val;}
+  void write(const triple& val) {*fstream << val;}
+  void write(const string& val) {*fstream << val;}
+  void write(const pen& val) {*fstream << val;}
+  void write(guide *val) {*fstream << *val;}
+  void write(const transform& val) {*fstream << val;}
   
   void writeline() {
-    fstream << newline;
+    *fstream << newline;
     if(errorstream::interrupt) throw interrupted();
   }
 };
   
 class ofile : public file {
 protected:
-  std::ostream *stream;
-  std::ofstream fstream;
+  ostream *stream;
+  std::ofstream *fstream;
 public:
-  ofile(const string& name) 
-    : file(name) {stream=&cout;}
+  ofile(const string& name) : file(name), fstream(NULL) {stream=&cout;}
   
   ~ofile() {close();}
   
@@ -311,8 +322,8 @@ public:
     if(standard) {
       stream=&cout;
     } else {
-      fstream.open(name.c_str(),std::ios::trunc);
-      stream=&fstream;
+      stream=fstream=new std::ofstream(name.c_str(),std::ios::trunc);
+      index=terminator->ofile.add(fstream);
       Check();
     }
   }
@@ -322,19 +333,28 @@ public:
   bool text() {return true;}
   bool eof() {return stream->eof();}
   bool error() {return stream->fail();}
-  void close() {if(!standard && !closed) {fstream.close(); closed=true;}}
+  
+  void close() {
+    if(!standard && fstream) {
+      fstream->close();
+      closed=true;
+      delete fstream;
+      fstream=NULL;
+      terminator->ofile.remove(index);
+    }
+  }
   void clear() {stream->clear();}
   void precision(int p) {stream->precision(p);}
   void flush() {stream->flush();}
   
   void seek(int pos, bool begin=true) {
-    if(!standard && !closed) {
+    if(!standard && fstream) {
       clear();
-      fstream.seekp(pos,begin ? std::ios::beg : std::ios::end);
+      fstream->seekp(pos,begin ? std::ios::beg : std::ios::end);
     }
   }
   
-  size_t tell() {return fstream.tellp();}
+  size_t tell() {return fstream->tellp();}
   
   void write(bool val) {*stream << (val ? "true " : "false ");}
   void write(int val) {*stream << val;}
@@ -350,8 +370,6 @@ public:
 };
 
 class ibfile : public ifile {
-protected:  
-  std::fstream fstream;
 public:
   ibfile(const string& name, bool check=true) : ifile(name,check) {}
 
@@ -359,9 +377,8 @@ public:
     if(standard) {
       reportError("Cannot open standard input in binary mode");
     } else {
-      fstream.open(name.c_str(),std::ios::binary |
-		   std::ios::in | std::ios::out);
-      stream=&fstream;
+      stream=fstream=new std::fstream(name.c_str(),std::ios::binary |
+				      std::ios::in | std::ios::out);
       if(checkerase) Check();
     }
   }
@@ -369,7 +386,7 @@ public:
   template<class T>
   void iread(T& val) {
     val=T();
-    fstream.read((char *) &val,sizeof(T));
+    fstream->read((char *) &val,sizeof(T));
   }
   
   void Read(bool& val) {iread(val);}
@@ -387,11 +404,11 @@ class iobfile : public ibfile {
 public:
   iobfile(const string& name) : ibfile(name,true) {}
 
-  void flush() {fstream.flush();}
+  void flush() {fstream->flush();}
   
   template<class T>
   void iwrite(T val) {
-    fstream.write((char *) &val,sizeof(T));
+    fstream->write((char *) &val,sizeof(T));
   }
   
   void write(bool val) {iwrite(val);}
@@ -425,15 +442,15 @@ public:
     if(standard) {
       reportError("Cannot open standard output in binary mode");
     } else {
-      fstream.open(name.c_str(),std::ios::binary | std::ios::trunc);
-      stream=&fstream;
+      stream=fstream=new std::ofstream(name.c_str(),
+				       std::ios::binary | std::ios::trunc);
       Check();
     }
   }
   
   template<class T>
   void iwrite(T val) {
-    fstream.write((char *) &val,sizeof(T));
+    fstream->write((char *) &val,sizeof(T));
   }
   
   void write(bool val) {iwrite(val);}
@@ -463,38 +480,51 @@ public:
 
 class ixfile : public file {
 protected:  
-  xdr::ioxstream stream;
+  xdr::ioxstream *fstream;
 public:
   ixfile(const string& name, bool check=true,
-	 xdr::xios::open_mode mode=xdr::xios::in) :
-    file(name,check,true), stream(name.c_str(), mode) {
-    if(check) Check();
-  }
+	 xdr::xios::open_mode mode=xdr::xios::in) : file(name,check,true) {}
 
+  void open() {
+    fstream=new xdr::ioxstream(name.c_str());
+    index=terminator->ixfile.add(fstream);
+    if(checkerase) Check();
+  }
+    
+  void close() {
+    if(fstream) {
+      fstream->close();
+      closed=true;
+      delete fstream;
+      fstream=NULL;
+      terminator->ixfile.remove(index);
+    }
+  }
+  
   ~ixfile() {close();}
   
   const char* Mode() {return "xinput";}
   
-  bool eof() {return stream.eof();}
-  bool error() {return stream.fail();}
-  void close() {if(!closed) {stream.close(); closed=true;}}
-  void clear() {stream.clear();}
+  bool eof() {return fstream->eof();}
+  bool error() {return fstream->fail();}
+
+  void clear() {fstream->clear();}
   
   void seek(int pos, bool begin=true) {
-    if(!standard && !closed) {
+    if(!standard && fstream) {
       clear();
-      stream.seek(pos,begin ? xdr::xios::beg : xdr::xios::end);
+      fstream->seek(pos,begin ? xdr::xios::beg : xdr::xios::end);
     }
   }
   
-  size_t tell() {return stream.tell();}
+  size_t tell() {return fstream->tell();}
   
-  void Read(int& val) {val=0; stream >> val;}
+  void Read(int& val) {val=0; *fstream >> val;}
   void Read(double& val) {
-    if(singlemode) {float fval=0.0; stream >> fval; val=fval;}
+    if(singlemode) {float fval=0.0; *fstream >> fval; val=fval;}
     else {
       val=0.0;
-      stream >> val;
+      *fstream >> val;
     }
   }
   void Read(pair& val) {
@@ -516,12 +546,12 @@ class ioxfile : public ixfile {
 public:
   ioxfile(const string& name) : ixfile(name,true,xdr::xios::out) {}
 
-  void flush() {stream.flush();}
+  void flush() {fstream->flush();}
   
-  void write(int val) {stream << val;}
+  void write(int val) {*fstream << val;}
   void write(double val) {
-    if(singlemode) {float fval=val; stream << fval;}
-    else stream << val;
+    if(singlemode) {float fval=val; *fstream << fval;}
+    else *fstream << val;
   }
   void write(const pair& val) {
     write(val.getx());
@@ -535,36 +565,48 @@ public:
 };
   
 class oxfile : public file {
-  xdr::oxstream stream;
+  xdr::oxstream *fstream;
 public:
-  oxfile(const string& name) : 
-    file(name), stream((checkLocal(name),name.c_str()),xdr::xios::trunc) {
+  oxfile(const string& name) : file(name) {}
+
+  void open() {
+    fstream=new xdr::oxstream((checkLocal(name),name.c_str()),xdr::xios::trunc);
+    index=terminator->oxfile.add(fstream);
     Check();
   }
-
+  
+  void close() {
+    if(fstream) {
+      fstream->close();
+      closed=true;
+      delete fstream;
+      fstream=NULL;
+      terminator->oxfile.remove(index);
+    }
+  }
+  
   ~oxfile() {close();}
   
   const char* Mode() {return "xoutput";}
   
-  bool eof() {return stream.eof();}
-  bool error() {return stream.fail();}
-  void close() {if(!closed) {stream.close(); closed=true;}}
-  void clear() {stream.clear();}
-  void flush() {stream.flush();}
+  bool eof() {return fstream->eof();}
+  bool error() {return fstream->fail();}
+  void clear() {fstream->clear();}
+  void flush() {fstream->flush();}
   
   void seek(int pos, bool begin=true) {
-    if(!standard && !closed) {
+    if(!standard && fstream) {
       clear();
-      stream.seek(pos,begin ? xdr::xios::beg : xdr::xios::end);
+      fstream->seek(pos,begin ? xdr::xios::beg : xdr::xios::end);
     }
   }
   
-  size_t tell() {return stream.tell();}
+  size_t tell() {return fstream->tell();}
   
-  void write(int val) {stream << val;}
+  void write(int val) {*fstream << val;}
   void write(double val) {
-    if(singlemode) {float fval=val; stream << fval;}
-    else stream << val;
+    if(singlemode) {float fval=val; *fstream << fval;}
+    else *fstream << val;
   }
   void write(const pair& val) {
     write(val.getx());
