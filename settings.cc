@@ -967,6 +967,8 @@ void initSettings() {
 			   "", &globaloption, false, true));
   addOption(new stringOption("cd", 0, "directory", "Set current directory",
 			     &startpath));
+  
+#ifdef USEGC  
   addOption(new boolintrefSetting("compact", 0,
 				  "Conserve memory at the expense of speed",
 				  &GC_dont_expand));
@@ -974,6 +976,7 @@ void initSettings() {
 			      "Free space divisor for garbage collection",
 				    types::primInt(),&GC_free_space_divisor,2,
 				    "an int"));
+#endif  
   
   addOption(new stringSetting("prompt", 0,"string","Prompt [\"> \"]","> "));
   addOption(new stringSetting("prompt2", 0,"string",
