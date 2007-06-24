@@ -85,11 +85,12 @@ public:
 };
 
 struct globalData {
+  texstream tex; // Bi-directional pipe to latex (to find label bbox)
   mem::list<string> TeXpipepreamble;
   mem::list<string> TeXpreamble;
-  texstream tex; // Bi-directional pipe to latex (to find label bbox)
   vm::callable *atExitFunction;
   vm::callable *atBreakpointFunction;
+  int ShipoutNumber; // Used by xasy to keep track of multiple shipouts/file.
   
   terminator<std::ofstream> ofile;
   terminator<std::fstream> ifile;
@@ -101,6 +102,7 @@ struct globalData {
   globalData() {
     atExitFunction=NULL;
     atBreakpointFunction=NULL;
+    ShipoutNumber=0;
   }
   
 };

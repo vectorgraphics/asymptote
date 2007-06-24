@@ -62,9 +62,6 @@ void doConfig(string filename);
 
 namespace settings {
   
-// Garbage collect after this many allocations.
-int gcfrequency=1000000;
-
 using camp::pair;
   
 string asyInstallDir; // Used only by msdos
@@ -190,8 +187,6 @@ bool globaloption=false;
 bool globaloutname=false;
   
 bool globalwrite() {return globaloption || !safe;}
-  
-int ShipoutNumber=0;
   
 const string suffix="asy";
 const string guisuffix="gui";

@@ -59,7 +59,6 @@ void init(bool resetpath=true)
   if(resetpath)
     setPath("");  /* On second and subsequent calls, sets the path
 		     to what it was when the program started. */
-  ShipoutNumber=0;
 }
 
 // This helper class does nothing but call the interactiveTrans method of the
@@ -765,9 +764,6 @@ public:
     while (running) {
       // Read a line from the prompt.
       string line=getline(false);
-
-      // Copied from the old interactive prompt.  Needs to be moved.
-      ShipoutNumber=0;
 
       // Check if it is a special command.
       if (handleCommand(line))

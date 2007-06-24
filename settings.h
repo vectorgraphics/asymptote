@@ -32,8 +32,6 @@ extern bool globalwrite();
 enum origin {CENTER,BOTTOM,TOP,ZERO};
 //extern int origin;
   
-extern int ShipoutNumber;
-  
 extern const string suffix;
 extern const string guisuffix;
   

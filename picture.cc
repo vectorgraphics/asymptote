@@ -381,6 +381,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   static ofstream bboxout;
   
+  globalData *g=global.back();
+  
   if(b.empty && !Labels) { // Output a null file
     bbox b;
     b.left=b.bottom=0;
@@ -391,7 +393,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     out.close();
     if(deconstruct && !xobject) {
       if(bboxout) bboxout.close();
-      ShipoutNumber++;
+      g->ShipoutNumber++;
       return true;
     }
     return postprocess(epsname,outname,outputformat,wait,view);
@@ -423,12 +425,12 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 	string Python=getSetting<string>("python");
 	if(Python != "") cmd << "'" << Python << "' ";
 	cmd << "'" << getSetting<string>("xasy") << "' " 
-	    << buildname(prefix) << " " << ShipoutNumber << " "
+	    << buildname(prefix) << " " << g->ShipoutNumber << " "
 	    << buildname(settings::outname());
 	int status=System(cmd,0,true,Python != "" ? "python" : "xasy");
 	if(status != 0) return false;
       }
-      ShipoutNumber++;
+      g->ShipoutNumber++;
       return true;
     }
   }
