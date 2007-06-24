@@ -78,7 +78,7 @@ AC_CHECK_HEADER(fftw3.h,
            AC_MSG_NOTICE([*** Could not find libfftw3: will compile without optional fast Fourier transforms. ***])),
      AC_MSG_NOTICE([*** Header file fftw3.h not found: will compile without optional fast Fourier transforms. ***]))
 
-GCVERSION=6.8
+GCVERSION=gc-7.0alpha9
 
 AC_ARG_ENABLE(gc,
 	[  --enable-gc[[=VERSION]]   use single-threaded Boehm garbage collector (default)]
@@ -113,7 +113,7 @@ if test "x$ac_cv_use_gc" != "xno" ; then
       AC_MSG_ERROR($GCNAME header file not found))
       ;;
    *)
-      GCDIR=gc$ac_cv_use_gc
+      GCDIR=$ac_cv_use_gc
       AC_MSG_NOTICE([enabling the $GCNAME $GCDIR])
       GCLIB="\$(GC)/.libs/libgc.a"
       GCPPLIB="\$(GC)/.libs/libgccpp.a"

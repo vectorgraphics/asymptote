@@ -556,9 +556,7 @@ void cleanup()
 void purge()
 {
 #ifdef USEGC
-#ifndef _MAC
   GC_gcollect();
-#endif
 #endif
 }
 
@@ -4348,7 +4346,7 @@ void saveline(string name, string value, bool store=true)
 
 void generate_random_backtrace()
 {
-#if defined(GC_DEBUG) && defined(GC_BACKTRACE)
+#if defined(USEGC) && defined(GC_DEBUG) && defined(GC_BACKTRACE)
   GC_generate_random_backtrace();
 #else
   error("generate_random_backtrace() requires ./configure --enable-gc-debug");
@@ -4357,7 +4355,7 @@ void generate_random_backtrace()
 
 void print_random_addresses(int n=1)
 {
-#if defined(GC_DEBUG) && defined(GC_BACKTRACE)
+#if defined(USEGC) && defined(GC_DEBUG) && defined(GC_BACKTRACE)
   GC_gcollect();
   for (int i=0; i < n; ++i) {
     void *current=GC_generate_random_valid_address();
