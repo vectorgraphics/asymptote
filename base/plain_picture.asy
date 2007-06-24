@@ -935,7 +935,7 @@ void fill(picture pic=currentpicture, path[] g, pen p=currentpen,
   if(copy)
     g=copy(g);
   pic.add(new void(frame f, transform t) {
-      fill(f,t*g,p,copy=false);
+      fill(f,t*g,p,false);
     });
   pic.addPath(g);
 }
@@ -948,7 +948,7 @@ void latticeshade(picture pic=currentpicture, path[] g,
     p=copy(p);
   }
   pic.add(new void(frame f, transform t) {
-      latticeshade(f,t*g,fillrule,p,copy=false);
+      latticeshade(f,t*g,fillrule,p,false);
     });
   pic.addPath(g);
 }
@@ -959,7 +959,7 @@ void axialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
   if(copy)
     g=copy(g);
   pic.add(new void(frame f, transform t) {
-      axialshade(f,t*g,pena,t*a,penb,t*b,copy=false);
+      axialshade(f,t*g,pena,t*a,penb,t*b,false);
     });
   pic.addPath(g);
 }
@@ -973,7 +973,7 @@ void radialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
       pair A=t*a, B=t*b;
       real RA=abs(t*(a+ra)-A);
       real RB=abs(t*(b+rb)-B);
-      radialshade(f,t*g,pena,A,RA,penb,B,RB,copy=false);
+      radialshade(f,t*g,pena,A,RA,penb,B,RB,false);
     });
   pic.addPath(g);
 }
@@ -988,7 +988,7 @@ void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
     edges=copy(edges);
   }
   pic.add(new void(frame f, transform t) {
-      gouraudshade(f,t*g,fillrule,p,t*z,edges,copy=false);
+      gouraudshade(f,t*g,fillrule,p,t*z,edges,false);
     });
   pic.addPath(g);
 }
@@ -1002,7 +1002,7 @@ void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
     edges=copy(edges);
   }
   pic.add(new void(frame f, transform t) {
-      gouraudshade(f,t*g,fillrule,p,edges,copy=false);
+      gouraudshade(f,t*g,fillrule,p,edges,false);
     });
   pic.addPath(g);
 }
@@ -1020,7 +1020,7 @@ void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
       pair[][] Z=new pair[z.length][];
       for(int i=0; i < z.length; ++i)
         Z[i]=t*z[i];
-      tensorshade(f,t*g,fillrule,p,t*b,Z,copy=false);
+      tensorshade(f,t*g,fillrule,p,t*b,Z,false);
     });
   pic.addPath(g);
 }
@@ -1058,7 +1058,7 @@ void clip(picture pic=currentpicture, path[] g, pen p=currentpen,
     g=copy(g);
   pic.userClip(min(g),max(g));
   pic.clip(new void(frame f, transform t) {
-      clip(f,t*g,p,copy=false);
+      clip(f,t*g,p,false);
     });
 }
 
@@ -1067,7 +1067,7 @@ void unfill(picture pic=currentpicture, path[] g, bool copy=true)
   if(copy)
     g=copy(g);
   pic.add(new void(frame f, transform t) {
-      unfill(f,t*g,copy=false);
+      unfill(f,t*g,false);
     });
 }
 
@@ -1077,7 +1077,7 @@ void filloutside(picture pic=currentpicture, path[] g, pen p=currentpen,
   if(copy)
     g=copy(g);
   pic.add(new void(frame f, transform t) {
-      filloutside(f,t*g,p,copy=false);
+      filloutside(f,t*g,p,false);
     });
   pic.addPath(g);
 }
