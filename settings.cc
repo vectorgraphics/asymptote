@@ -878,6 +878,12 @@ void getOptions(int argc, char *argv[])
   globaloutname=false;
 }
 
+#ifdef USEGC
+void no_GCwarn(char *, GC_word)
+{
+}
+#endif
+
 void initSettings() {
   queryRegistry();
 
@@ -1235,6 +1241,10 @@ void setOptions(int argc, char *argv[])
   // Read command-line options again to override configuration file defaults.
   getOptions(argc,argv);
   
+#ifdef USEGC
+  if(verbose == 0 && !getSetting<bool>("debug")) GC_set_warn_proc(no_GCwarn);
+#endif  
+
   if(setlocale (LC_ALL, "") == NULL && getSetting<bool>("debug"))
     perror("setlocale");
   
