@@ -4157,7 +4157,7 @@ number of arguments:
 // This function sums its arguments.
 int sum(... int[] nums) {
   int total=0; 
-  for (int i=0; i < nums.length; ++i)
+  for(int i=0; i < nums.length; ++i)
     total += nums[i];
   return total;
 }
@@ -4167,7 +4167,7 @@ sum();                              // returns 0
 
 // This function subtracts subsequent arguments from the first.
 int subtract(int start ... int[] subs) {
-  for (int i=0; i < subs.length; ++i)
+  for(int i=0; i < subs.length; ++i)
     start -= subs[i];
   return start;
 }
@@ -5178,7 +5178,7 @@ int pow(int n, int k) {
       x *= n;
     }
   }
-  for (int i=0; i < k; ++i) {
+  for(int i=0; i < k; ++i) {
     A a;
     a.helper();
   }
@@ -5196,16 +5196,16 @@ loop:
 
 @verbatim
 void f();
-for (int i=0; i < 10; ++i) {
+for(int i=0; i < 10; ++i) {
   int x=i;
-  if (x==5) {
+  if(x==5) {
     f=new void () { write(x); }
   }
 }
 f();
 @end verbatim
 
-Here, every iteration of the loop has it's own variable @code{x}, so @code{f()}
+Here, every iteration of the loop has its own variable @code{x}, so @code{f()}
 will write @code{5}.  If a variable in a loop is declared static, it will be
 allocated where the enclosing function or structure was defined (just as if it
 were declared static outside of the loop).  For instance, in:
@@ -5213,7 +5213,7 @@ were declared static outside of the loop).  For instance, in:
 @verbatim
 void f() {
   static int x;
-  for (int i=0; i < 10; ++i) {
+  for(int i=0; i < 10; ++i) {
     static int y;
   }
 }
