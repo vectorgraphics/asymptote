@@ -16,7 +16,6 @@ frame f=background.fit();
 box(f,RadialShade(yellow,0.6*yellow+red),Below);
 background.erase();
 add(background,f);  
-background();
 
 title("Young Researchers' Conference",align=3S,fontsize(48));
 center("University of Alberta, Edmonton, April 1--2, 2006");

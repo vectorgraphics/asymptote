@@ -47,7 +47,6 @@ protected:
 public:
   
   void clear() {
-    if(last) delete last;
     last=new string(buffer);
     *buffer=0;
   }
