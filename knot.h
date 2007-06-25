@@ -283,10 +283,10 @@ struct simpleknotlist : public knotlist {
 struct protopath {
   bool cycles;
   int n;
-  solvedKnot *nodes;
+  mem::vector<solvedKnot> nodes;
 
   protopath(int n, bool cycles)
-    : cycles(cycles), n(n), nodes(new solvedKnot[n]) {}
+    : cycles(cycles), n(n), nodes(n) {}
 
   solvedKnot& operator[](int j) {
     return nodes[imod(j,n)];

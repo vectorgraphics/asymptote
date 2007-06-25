@@ -77,7 +77,7 @@ class path : public gc {
 
   int n; // The number of knots
 
-  solvedKnot *nodes;
+  mem::vector<solvedKnot> nodes;
   mutable double cached_length; // Cache length since path is immutable.
   mutable bbox box;
 
@@ -87,7 +87,7 @@ public:
 
   // Create a path of a single point
   path(pair z,bool = false)
-    : cycles(false), n(1), nodes(new solvedKnot[n]), cached_length(-1)
+    : cycles(false), n(1), nodes(1), cached_length(-1)
   {
     nodes[0].pre = nodes[0].point = nodes[0].post = z;
     nodes[0].straight = false;
@@ -96,14 +96,14 @@ public:
   // Creates path from a list of knots.  This will be used by camp
   // methods such as the guide solver, but should probably not be used by a
   // user of the system unless he knows what he is doing.
-  path(solvedKnot *nodes, int n, bool cycles = false)
+  path(mem::vector<solvedKnot>& nodes, int n, bool cycles = false)
     : cycles(cycles), n(n), nodes(nodes), cached_length(-1)
   {
   }
 
 private:
   path(solvedKnot n1, solvedKnot n2)
-    : cycles(false), n(2), nodes(new solvedKnot[n]) ,cached_length(-1)
+    : cycles(false), n(2), nodes(2), cached_length(-1)
   {
     nodes[0] = n1;
     nodes[1] = n2;
@@ -143,7 +143,7 @@ public:
     return cycles;
   }
   
-  solvedKnot *Nodes() {
+  mem::vector<solvedKnot>& Nodes() {
     return nodes;
   }
   
@@ -319,5 +319,6 @@ public:
 }
 
 GC_DECLARE_PTRFREE(camp::solvedKnot);
+GC_DECLARE_PTRFREE(camp::path);
 
 #endif

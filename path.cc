@@ -260,7 +260,7 @@ pair path::postcontrol(double t) const
 
 path path::reverse() const
 {
-  solvedKnot *nodes = new solvedKnot[n];
+  mem::vector<solvedKnot> nodes(n);
   int len=length();
   for (int i = 0, j = len; i < n; i++, j--) {
     nodes[i].pre = postcontrol(j);
@@ -290,7 +290,7 @@ path path::subpath(int a, int b) const
   }
 
   int sn = b-a+1;
-  solvedKnot *nodes = new solvedKnot[sn];
+  mem::vector<solvedKnot> nodes(n);
 
   for (int i = 0, j = a; j <= b; i++, j++) {
     nodes[i].pre = precontrol(j);
@@ -744,8 +744,8 @@ bool intersect(pair &t, path p1, path p2, double fuzz=0.0)
 {
   fuzz=max(fuzz,Fuzz*max(max(length(p1.max()),length(p1.min())),
 			 max(length(p2.max()),length(p2.min()))));
-  solvedKnot *n1=p1.Nodes();
-  solvedKnot *n2=p2.Nodes();
+  mem::vector<solvedKnot> n1=p1.Nodes();
+  mem::vector<solvedKnot> n2=p2.Nodes();
   int L1=p1.length();
   int L2=p2.length();
   int icycle=p1.cyclic() ? p1.size()-1 : -1;
@@ -820,7 +820,7 @@ path concat(path p1, path p2)
   if ((a-b).abs2() > Fuzz*max(a.abs2(),b.abs2()))
     reportError("paths in concatenation do not meet");
 
-  solvedKnot *nodes = new solvedKnot[n1+n2+1];
+  mem::vector<solvedKnot> nodes(n1+n2+1);
 
   int i = 0;
   nodes[0].pre = p1.point(0);
@@ -929,7 +929,7 @@ int path::windingnumber(const pair& z) const
 
 path path::transformed(const transform& t) const
 {
-  solvedKnot *nodes = new solvedKnot[n];
+  mem::vector<solvedKnot> nodes(n);
 
   for (int i = 0; i < n; ++i) {
     nodes[i].pre = t * this->nodes[i].pre;
@@ -945,7 +945,7 @@ path path::transformed(const transform& t) const
 path transformed(const transform& t, path p)
 {
   int n = p.size();
-  solvedKnot *nodes = new solvedKnot[n];
+  mem::vector<solvedKnot> nodes(n);
 
   for (int i = 0; i < n; ++i) {
     nodes[i].pre = t * p.precontrol(i);

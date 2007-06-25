@@ -939,7 +939,7 @@ void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
   for(size_t j=0; j < m; ++j) {
     path *P=read<path *>(g,j);
     int stop=Min(P->size(),in-k);
-    solvedKnot *nodes=P->Nodes();
+    mem::vector<solvedKnot>& nodes=P->Nodes();
     for(int i=0; i < stop; ++i)
       (*z)[k++]=nodes[i].point;
   }
