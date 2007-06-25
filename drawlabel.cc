@@ -31,13 +31,15 @@ int drawLabel::wait(iopipestream &tex, const char *s, const char **abort,
   if(rc > 0) {
     if(fataltex[rc-1]) {
       tex.pipeclose();
-      reportError("..."+*tex.message());
+      ignore=false;
     } else {
       tex << "\n";
       tex.wait(s,abort);
       tex << "\n";
       tex.wait(s,abort);
     }
+    if(!ignore)
+      reportError(*tex.message());
    }
   return rc;
 }
@@ -119,20 +121,8 @@ void drawLabel::getbounds(iopipestream& tex, const string& texengine)
   lastpen=pentype;
     
   bool nullsize=size.empty();
-  bool rc=texbounds(tex,label,abort,nullsize);
-  if(!rc && !nullsize)
-    rc=texbounds(tex,size,abort,false);
-  if(!rc) {
-    if(settings::verbose < 3) {
-      em.runtime(vm::getPos());
-      em.sync();
-      int verbose=settings::verbose;
-      settings::verbose=3;
-      texbounds(tex,label,abort,true);
-      settings::verbose=verbose;
-    }
-    throw handled_error(); 
-  }
+  if(!texbounds(tex,label,abort,nullsize) && !nullsize)
+    texbounds(tex,size,abort,false);
   enabled=true;
     
   Align=inverse(T)*align;
