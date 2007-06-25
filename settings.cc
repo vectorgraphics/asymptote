@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <cfloat>
 #include <locale.h>
+#include <unistd.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
