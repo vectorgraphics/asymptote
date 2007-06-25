@@ -83,7 +83,11 @@ inline void* operator new[](size_t size, GCPlacement) {
   return operator new(size);
 }
 
-#define GC_DECLARE_PTRFREE(x) {}
+template<class T>
+struct GC_type_traits {};
+
+#define GC_DECLARE_PTRFREE(T) \
+template<> struct GC_type_traits<T> {}
 
 #endif // USEGC
 
