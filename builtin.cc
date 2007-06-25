@@ -788,14 +788,12 @@ void arrayDeleteHelper(vm::stack *Stack)
 
   size_t asize=checkArray(a);
   if(a->cyclic() && asize > 0) {
-    size_t J=j;
-    j=imod(j,asize);
-    item val=(*a)[j];
-    if(J+1 >= asize+i) {
+    if(j-i+1 >= (int) asize) {
       (*a).clear();
       return;
     }
     i=imod(i,asize);
+    j=imod(j,asize);
     if(j >= i) 
       (*a).erase((*a).begin()+i,(*a).begin()+j+1);
     else {
