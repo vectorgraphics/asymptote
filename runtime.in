@@ -672,9 +672,9 @@ inline double principalBranch(double deg)
   return deg;
 }
 
-static string *defaulttransparency=new string("Compatible");
+static string defaulttransparency=string("Compatible");
 
-static string *defaulttimeformat=new string("%a %b %d %T %Z %Y");
+static const string defaulttimeformat=string("%a %b %d %T %Z %Y");
 #ifdef HAVE_STRFTIME
 static const size_t nTime=256;
 static char Time[nTime];
@@ -1307,13 +1307,13 @@ int fillrule(pen p)
   return p.Fillrule();  
 }
 
-pen opacity(real opacity=1.0, string *blend=defaulttransparency)
+pen opacity(real opacity=1.0, string blend=defaulttransparency)
 {
   for(int i=0; i < nBlendMode; ++i)
-   if(*blend == BlendMode[i]) return pen(Transparency(*blend,opacity));
+   if(blend == BlendMode[i]) return pen(Transparency(blend,opacity));
 
   ostringstream buf;
-  buf << "Unknown blend mode: " << "'" << *blend << "'";
+  buf << "Unknown blend mode: " << "'" << blend << "'";
   error(buf);
 }
 
@@ -2217,22 +2217,22 @@ string string(real x, int digits)
   return buf.str();
 }
 
-string time(string *format=defaulttimeformat)
+string time(string format=defaulttimeformat)
 {
 #ifdef HAVE_STRFTIME
   const time_t bintime=time(NULL);
-  if(!strftime(Time,nTime,format->c_str(),localtime(&bintime))) return "";
+  if(!strftime(Time,nTime,format.c_str(),localtime(&bintime))) return "";
   return Time;
 #else
   return *format;
 #endif  
 }
 
-string time(int seconds, string *format=defaulttimeformat)
+string time(int seconds, string format=defaulttimeformat)
 {
 #ifdef HAVE_STRFTIME
   const time_t bintime=seconds;
-  if(!strftime(Time,nTime,format->c_str(),localtime(&bintime))) return "";
+  if(!strftime(Time,nTime,format.c_str(),localtime(&bintime))) return "";
   return Time;
 #else
 // Avoid unused variable warning messages
