@@ -83,7 +83,7 @@ inline void* operator new[](size_t size, GCPlacement) {
   return operator new(size);
 }
 
-#define GC_DECLARE_PTRFREE(x)
+#define GC_DECLARE_PTRFREE(x) {}
 
 #endif // USEGC
 

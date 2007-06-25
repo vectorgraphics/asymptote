@@ -235,4 +235,6 @@ inline transform matrix(pair lb, pair rt)
 
 } //namespace camp
 
+GC_DECLARE_PTRFREE(camp::transform);
+
 #endif

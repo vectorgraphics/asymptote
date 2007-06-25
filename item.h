@@ -27,6 +27,8 @@ public:
   item()
     : kind(&typeid(void)) {}
   
+  virtual ~item() {}
+  
   item(int i)
     : kind(&typeid(int)), i(i) {}
   item(double x)

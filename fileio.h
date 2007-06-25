@@ -481,12 +481,14 @@ public:
 class ixfile : public file {
 protected:  
   xdr::ioxstream *fstream;
+  xdr::xios::open_mode mode;
 public:
   ixfile(const string& name, bool check=true,
-	 xdr::xios::open_mode mode=xdr::xios::in) : file(name,check,true) {}
+	 xdr::xios::open_mode mode=xdr::xios::in) :
+    file(name,check,true), mode(mode) {}
 
   void open() {
-    fstream=new xdr::ioxstream(name.c_str());
+    fstream=new xdr::ioxstream(name.c_str(),mode);
     index=global.back()->ixfile.add(fstream);
     if(checkerase) Check();
   }

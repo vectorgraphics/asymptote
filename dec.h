@@ -52,7 +52,7 @@ public:
 
   // If we introduced a new type, automatically add corresponding functions for
   // that type.  
-  virtual void addOps(coenv &e, record *r) {}
+  virtual void addOps(coenv &, record *) {}
 
   // Returns the internal representation of the type.  This method can
   // be called by exp::getType which does not report errors, so tacit is

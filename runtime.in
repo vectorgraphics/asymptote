@@ -4273,6 +4273,7 @@ stringarray* history(string name, int n=1)
   
   return a;
 #else
+  unused(&n);
   return new array(0);
 #endif
 }
@@ -4339,7 +4340,9 @@ void saveline(string name, string value, bool store=true)
   
   store_history(&history);
   history_set_history_state(&history_save);
-#endif
+#else
+  unused(&store);
+#endif	 
 }
 
 void generate_random_backtrace()

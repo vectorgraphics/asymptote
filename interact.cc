@@ -10,13 +10,15 @@
 #include <fstream>
 #include <sstream>
 #include <sys/wait.h>
+#include <sys/types.h>
 #include <unistd.h>
+#include <csignal>
+
 #include "interact.h"
 
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
 #include <readline/readline.h>
 #include <readline/history.h>
-#include <csignal>
 #endif
 
 #include "util.h"
