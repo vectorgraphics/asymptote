@@ -100,6 +100,21 @@ types::ty *arrayTy::trans(coenv &e, bool tacit)
   return t;
 }
 
+tyEntryTy::tyEntryTy(position pos, types::ty *t)
+  : ty(pos), ent(new trans::tyEntry(t, 0, 0, position()))
+{
+}
+
+void tyEntryTy::prettyprint(ostream &out, int indent)
+{
+  prettyindent(out,indent);
+  out << "tyEntryTy: " << *(ent->t) << "\n";
+}
+
+types::ty *tyEntryTy::trans(coenv &e, bool tacit) {
+  return ent->t;
+}
+
 
 vm::lambda *runnable::transAsCodelet(coenv &e)
 {

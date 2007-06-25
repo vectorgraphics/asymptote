@@ -45,7 +45,7 @@ using mem::string;
 
 %union {
   position pos;
-  //sym::symbol *sym;
+  bool boo;
   struct {
     position pos;
     sym::symbol *sym;
@@ -156,6 +156,7 @@ using mem::string;
 %type  <s>   stm stmexp blockstm
 %type  <run> forinit
 %type  <sel> forupdate stmexplist
+%type  <boo> explicitornot
 
 /* There are four shift/reduce conflicts:
  *   the dangling ELSE in IF (exp) IF (exp) stm ELSE stm
@@ -370,17 +371,18 @@ baseformals:
                    { $$ = $1; $$->add($3); }
 ;
 
+explicitornot:
+  EXPLICIT         { $$ = true; }
+|                  { $$ = false; }
+;
+
 formal:
-  type             { $$ = new formal($1->getPos(), $1); }
-| type decidstart  { $$ = new formal($2->getPos(), $1, $2); }
-| type decidstart ASSIGN varinit
-                   { $$ = new formal($2->getPos(), $1, $2, $4); }
-| EXPLICIT type
-                   { $$ = new formal($2->getPos(), $2, 0, 0, true); }
-| EXPLICIT type decidstart
-                   { $$ = new formal($3->getPos(), $2, $3, 0, true); }
-| EXPLICIT type decidstart ASSIGN varinit
-                   { $$ = new formal($3->getPos(), $2, $3, $5, true); }
+  explicitornot type
+                   { $$ = new formal($2->getPos(), $2, 0, 0, $1); }
+| explicitornot type decidstart
+                   { $$ = new formal($2->getPos(), $2, $3, 0, $1); }
+| explicitornot type decidstart ASSIGN varinit
+                   { $$ = new formal($2->getPos(), $2, $3, $5, $1); }
 ;
 
 fundec:
@@ -622,6 +624,8 @@ stm:
                    { $$ = new doStm($1, $2, $5); }
 | FOR '(' forinit ';' fortest ';' forupdate ')' stm
                    { $$ = new forStm($1, $3, $5, $7, $9); }
+| FOR '(' type decidstart ':' exp ')' stm
+                   { $$ = new extendedForStm($1, $3, $4, $6, $8); }
 | BREAK ';'        { $$ = new breakStm($1); }
 | CONTINUE ';'     { $$ = new continueStm($1); }
 | RETURN_ ';'       { $$ = new returnStm($1); }

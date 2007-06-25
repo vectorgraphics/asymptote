@@ -153,6 +153,23 @@ public:
   void trans(coenv &e);
 };
 
+class extendedForStm : public stm {
+  ty *start;
+  decidstart *var;
+  exp *set;
+
+  stm *body;
+
+public:
+  extendedForStm(position pos, ty *start, decidstart *var, exp *set, stm *body)
+    : stm(pos), start(start), var(var), set(set), body(body) {}
+
+  void prettyprint(ostream &out, int indent);
+
+  void trans(coenv &e);
+};
+
+
 class breakStm : public stm {
 public:
   breakStm(position pos)

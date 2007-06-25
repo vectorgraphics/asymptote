@@ -114,6 +114,24 @@ public:
   types::ty *trans(coenv &e, bool tacit = false);
 };
 
+// Similar to varEntryExp, this helper class always translates to the same fixed
+// type.
+class tyEntryTy : public ty {
+  trans::tyEntry *ent;
+public:
+  tyEntryTy(position pos, trans::tyEntry *ent)
+    : ty(pos), ent(ent) {}
+
+  tyEntryTy(position pos, types::ty *t);
+
+  void prettyprint(ostream &out, int indent);
+
+  types::ty *trans(coenv &e, bool tacit = false);
+  trans::tyEntry *transAsTyEntry(coenv &e, record *where) {
+    return ent;
+  }
+};
+
 // Runnable is anything that can be executed by the program, including
 // any declaration or statement.
 class runnable : public absyn {
@@ -380,6 +398,11 @@ public:
   vardec(position pos, ty *base, decidlist *decs)
     : dec(pos), base(base), decs(decs) {}
 
+  vardec(position pos, ty *base, decid *di)
+    : dec(pos), base(base), decs(new decidlist(pos))
+  {
+    decs->add(di);
+  }
   void prettyprint(ostream &out, int indent);
 
   void transAsField(coenv &e, record *r)

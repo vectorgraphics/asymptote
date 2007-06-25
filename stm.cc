@@ -223,6 +223,61 @@ void forStm::trans(coenv &e)
   e.c.popContinue();
 }
 
+void extendedForStm::prettyprint(ostream &out, int indent)
+{
+  prettyname(out,"extendedForStm",indent);
+
+
+  start->prettyprint(out, indent+1);
+  var->prettyprint(out, indent+1);
+  set->prettyprint(out, indent+1);
+  body->prettyprint(out, indent+1);
+}
+
+void extendedForStm::trans(coenv &e) {
+  // Translate into the syntax:
+  //
+  // start[] a = set;
+  // for (int i=0; i < a.length; ++i) {
+  //   start var=a[i];
+  //   body
+  // }
+
+  position pos=getPos();
+
+  // Use gensyms for the variable names so as not to pollute the namespace.
+  symbol *a=symbol::gensym("a");
+  symbol *i=symbol::gensym("i");
+
+  // start[] a=set;
+  arrayTy at(pos, start, new dimensions(pos));
+  decid dec1(pos, new decidstart(pos, a), set);
+  vardec(pos, &at, &dec1).trans(e);
+
+  // { start var=a[i]; body }
+  block b(pos);
+  decid dec2(pos, var, 
+                  new subscriptExp(pos, new nameExp(pos, a),
+                                       new nameExp(pos, i)));
+  b.add(new vardec(pos, start, &dec2));
+  b.add(body);
+
+
+
+  // for (int i=0; i < a.length; ++i)
+  //   <block>
+  forStm(pos, new vardec(pos, new tyEntryTy(pos, primInt()),
+                              new decid(pos, new decidstart(pos, i),
+                                             new intExp(pos, 0))),
+              new binaryExp(pos, new nameExp(pos, i),
+                                 symbol::trans("<"),
+                                 new nameExp(pos, new qualifiedName(pos, new simpleName(pos, a),
+                                                                         symbol::trans("length")))),
+              new expStm(pos, new prefixExp(pos, new nameExp(pos, i),
+                                                 symbol::trans("+"))),
+              new blockStm(pos, &b)).trans(e);
+}
+                              
 
 void breakStm::prettyprint(ostream &out, int indent)
 {

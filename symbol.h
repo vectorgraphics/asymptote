@@ -75,6 +75,12 @@ public:
     return isalpha(c) || c == '_' ? literalTrans(s) : opTrans(s);
   }
 
+  // Make a symbol that is guaranteed to be unique.  It will not match any other
+  // symbol in the namespace.
+  static symbol *gensym(string s) {
+    return new symbol("gensym "+s);
+  }
+
   operator string () { return string(name); }
 
   friend ostream& operator<< (ostream& out, const symbol& sym)
