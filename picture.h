@@ -20,7 +20,7 @@ class picture : public gc {
 private:
   bool labels;
   size_t lastnumber;
-  transform *T; // Keep track of accumlative picture transform
+  transform *T; // Keep track of accumulative picture transform
   bbox b;
   boxvector labelbounds;
   bboxlist bboxstack;

@@ -158,4 +158,6 @@ bool intersect(pair& t, int L1, int L2, node n1[], node n2[], double fuzz);
   
 } //namespace camp
 
+GC_DECLARE_PTRFREE(camp::triple);
+
 #endif
