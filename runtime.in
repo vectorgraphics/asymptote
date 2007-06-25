@@ -2224,7 +2224,7 @@ string time(string format=defaulttimeformat)
   if(!strftime(Time,nTime,format.c_str(),localtime(&bintime))) return "";
   return Time;
 #else
-  return *format;
+  return format;
 #endif  
 }
 
@@ -2237,7 +2237,7 @@ string time(int seconds, string format=defaulttimeformat)
 #else
 // Avoid unused variable warning messages
   unused(&seconds);
-  return *format;
+  return format;
 #endif
 }
 
