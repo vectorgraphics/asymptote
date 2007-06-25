@@ -206,7 +206,6 @@ void execError(const char *command, const char *hint, const char *application)
 	   << endl << "or use the command line option -" << hint 
 	   << "=\"PATH\"" << endl;
     }
-    exit(-1);
 }
 						    
 // quiet: 0=none; 1=suppress stdout; 2=suppress stdout+stderr.
@@ -240,6 +239,7 @@ int System(const char *command, int quiet, bool wait,
     if(argv) {
       execvp(argv[0],argv);
       execError(argv[0],hint,application);
+      exit(-1);
     }
   }
 
