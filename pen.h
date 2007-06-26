@@ -782,16 +782,16 @@ public:
     return b;
   }
 
-  friend pen transformed(const transform& t, pen p) {
+  friend pen transformed(const transform& t, const pen& p) {
     pen ret = p;
-    if(!p.P.empty()) ret.P = path(p.P.transformed(t));
-    ret.t = transform(p.t.isNull() ? t : t*p.t);
+    if(!p.P.empty()) ret.P = p.P.transformed(t);
+    ret.t = p.t.isNull() ? t : t*p.t;
     return ret;
   }
 
 };
   
-pen transformed(const transform& t, pen p);
+pen transformed(const transform& t, const pen &p);
 }
 
 GC_DECLARE_PTRFREE(camp::LineType);

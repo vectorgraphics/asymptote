@@ -263,18 +263,18 @@ public:
   
   double arclength () const;
   double arctime (double l) const;
-  double directiontime(pair z) const;
+  double directiontime(const pair& z) const;
  
-  pair max() {
+  pair max() const {
     return bounds().Max();
   }
 
-  pair min() {
+  pair min() const {
     return bounds().Min();
   }
   
   // Debugging output
-  friend std::ostream& operator<< (std::ostream& out, const path p);
+  friend std::ostream& operator<< (std::ostream& out, const path& p);
 
   int sgn1(double x) const
   {
@@ -299,13 +299,13 @@ public:
 
 extern path nullpath;
   
-bool intersect(pair& t, path p1, path p2, double fuzz);
+bool intersect(pair& t, path& p1, path& p2, double fuzz);
   
 // Concatenates two paths into a new one.
-path concat(path p1, path p2);
+path concat(const path& p1, const path& p2);
 
 // Applies a transformation to the path
-path transformed(const transform& t, path p);
+path transformed(const transform& t, const path& p);
   
 inline double quadratic(double a, double b, double c, double x)
 {

@@ -306,10 +306,10 @@ path path::subpath(int a, int b) const
   return path(nodes, sn);
 }
 
-inline pair split(double t, pair x, pair y) { return x+(y-x)*t; }
+inline pair split(double t, const pair& x, const pair& y) { return x+(y-x)*t; }
 
-inline void splitCubic(solvedKnot sn[], double t, solvedKnot left_,
-		       solvedKnot right_)
+inline void splitCubic(solvedKnot sn[], double t, const solvedKnot& left_,
+		       const solvedKnot& right_)
 {
   solvedKnot &left=(sn[0]=left_), &mid=sn[1], &right=(sn[2]=right_);
   pair x=split(t,left.post,right.pre);
@@ -377,7 +377,8 @@ path path::subpath(double a, double b) const
 
 // Calculate coefficients of Bezier derivative.
 static inline void derivative(pair& a, pair& b, pair& c,
-			      pair z0, pair z0p, pair z1m, pair z1)
+			      const pair& z0, const pair& z0p,
+			      const pair& z1m, const pair& z1)
 {
   a=z1-z0+3.0*(z0p-z1m);
   b=2.0*(z0+z1m)-4.0*z0p;
@@ -545,7 +546,8 @@ static double ds(double t)
 }
 
 // Calculates arclength of a cubic using adaptive simpson integration.
-double cubiclength(pair z0, pair z0p, pair z1m, pair z1, double goal=-1)
+double cubiclength(const pair& z0, const pair& z0p,
+		   const pair& z1m, const pair& z1, double goal=-1)
 {
   double L,integral;
   derivative(a,b,c,z0,z0p,z1m,z1);
@@ -662,7 +664,7 @@ inline double cubicDir(const solvedKnot& left, const solvedKnot& right,
 
 // TODO: Check that we handle corner cases.
 // Velocity(t) == (0,0)
-double path::directiontime(pair dir) const {
+double path::directiontime(const pair& dir) const {
   if (dir == pair(0,0)) return 0;
   pair rot = pair(1,0)/unit(dir);
     
@@ -741,8 +743,7 @@ bool intersectcubics(pair &t, solvedKnot left1, solvedKnot right1,
   return false;
 }
 
-// TODO: Handle corner cases. (Done I think)
-bool intersect(pair &t, path p1, path p2, double fuzz=0.0)
+bool intersect(pair &t, path& p1, path& p2, double fuzz=0.0)
 {
   fuzz=max(fuzz,Fuzz*max(max(length(p1.max()),length(p1.min())),
 			 max(length(p2.max()),length(p2.min()))));
@@ -771,7 +772,7 @@ bool intersect(pair &t, path p1, path p2, double fuzz=0.0)
 }
 // }}}
 
-ostream& operator<< (ostream& out, const path p)
+ostream& operator<< (ostream& out, const path& p)
 {
   size_t oldPrec = out.precision(6);
   
@@ -811,7 +812,7 @@ ostream& operator<< (ostream& out, const path p)
   return out;
 }
 
-path concat(path p1, path p2)
+path concat(const path& p1, const path& p2)
 {
   int n1 = p1.length(), n2 = p2.length();
 
@@ -944,7 +945,7 @@ path path::transformed(const transform& t) const
   return p;
 }
 
-path transformed(const transform& t, path p)
+path transformed(const transform& t, const path& p)
 {
   int n = p.size();
   mem::vector<solvedKnot> nodes(n);
