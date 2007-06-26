@@ -1717,12 +1717,12 @@ path &(path p, path q)
 
 pair min(path p)
 {
-  return p.bounds().Min();
+  return p.min();
 }
 
 pair max(path p)
 {
-  return p.bounds().Max();
+  return p.max();
 }
 
 real relativedistance(real theta, real phi, real t, bool atleast)

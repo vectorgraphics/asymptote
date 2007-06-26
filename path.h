@@ -266,10 +266,12 @@ public:
   double directiontime(const pair& z) const;
  
   pair max() const {
+    checkEmpty(n);
     return bounds().Max();
   }
 
   pair min() const {
+    checkEmpty(n);
     return bounds().Min();
   }
   

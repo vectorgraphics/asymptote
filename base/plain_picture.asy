@@ -517,7 +517,8 @@ struct picture {
 
   // Add a (user space) path to the sizing.
   void addPath(path g) {
-    addBox(min(g),max(g));
+    if(size(g) > 0)
+      addBox(min(g),max(g));
   }
   void addPath(path[] g) {
     for(int i=0; i < g.length; ++i) 
@@ -526,7 +527,8 @@ struct picture {
 
   // Add a path to the sizing with the additional padding of a pen.
   void addPath(path g, pen p) {
-    addBox(min(g),max(g),min(p),max(p));
+    if(size(g) > 0)
+      addBox(min(g),max(g),min(p),max(p));
   }
 
   void size(real x, real y=x, bool keepAspect=this.keepAspect) {

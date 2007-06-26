@@ -118,6 +118,9 @@ void cap(bbox& b, double t, path p, pen pentype) {
 
 void drawPath::bounds(bbox& b, iopipestream&, boxvector&, bboxlist&)
 {
+  int l=p.length();
+  if(l < 0) return;
+  
   bbox penbounds=pentype.bounds();
   
   if(cyclic() || pentype.cap() == 1) {
@@ -126,9 +129,6 @@ void drawPath::bounds(bbox& b, iopipestream&, boxvector&, bboxlist&)
   }
   
   b += p.internalbounds(penbounds);
-  
-  int l=p.length();
-  if(l < 0) return;
   
   cap(b,0,p,pentype);
   cap(b,l,p,pentype);
