@@ -20,7 +20,7 @@ class picture : public gc {
 private:
   bool labels;
   size_t lastnumber;
-  transform *T; // Keep track of accumulative picture transform
+  transform T; // Keep track of accumulative picture transform
   bbox b;
   boxvector labelbounds;
   bboxlist bboxstack;
@@ -33,7 +33,7 @@ public:
   
   nodelist nodes;
   
-  picture() : labels(false), lastnumber(0), T(0) {}
+  picture() : labels(false), lastnumber(0), T(identity) {}
   
   // Destroy all of the owned picture objects.
   ~picture();
@@ -84,4 +84,6 @@ inline picture *transformed(const transform& t, picture *p)
 
 } //namespace camp
 
+GC_DECLARE_PTRFREE(camp::picture);
+  
 #endif

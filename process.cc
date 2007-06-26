@@ -25,6 +25,12 @@
 
 #include "process.h"
 
+namespace camp {
+  pen& defaultpen() {
+    return global.back()->defaultpen;
+  }
+}
+
 namespace run {
   void cleanup();
   void exitFunction(vm::stack *Stack);
@@ -163,10 +169,11 @@ public:
 
       preRun(e,s);
 
+      if(purge) run::purge();
+
       // Now that everything is set up, run the core.
       run(e,s);
 
-      if(purge) run::purge();
       postRun(e,s);
        
     } catch(std::bad_alloc&) {
@@ -178,8 +185,6 @@ public:
     
     run::cleanup();
     
-    if(purge) run::purge();
-
     em.clear();
   }
 

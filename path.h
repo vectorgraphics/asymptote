@@ -66,6 +66,11 @@ struct solvedKnot : public gc {
   pair post;
   bool straight;
   solvedKnot() : straight(false) {}
+  
+  friend bool operator== (const solvedKnot& p, const solvedKnot& q)
+  {
+    return p.pre == q.pre && p.point == q.point && p.post == q.post;
+  }
 };
 
 extern const double Fuzz;
@@ -99,6 +104,11 @@ public:
   path(mem::vector<solvedKnot>& nodes, int n, bool cycles = false)
     : cycles(cycles), n(n), nodes(nodes), cached_length(-1)
   {
+  }
+
+  friend bool operator== (const path& p, const path& q)
+  {
+    return p.cycles == q.cycles && p.nodes == q.nodes;
   }
 
 private:
@@ -287,6 +297,8 @@ public:
   
 };
 
+extern path nullpath;
+  
 bool intersect(pair& t, path p1, path p2, double fuzz);
   
 // Concatenates two paths into a new one.

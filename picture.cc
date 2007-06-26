@@ -215,9 +215,8 @@ bool picture::texprocess(const string& texname, const string& outname,
     
       string s;
       bool first=true;
-      transform t=shift(bboxshift);
-      if(T) t=t*(*T);
-      bool shift=(t != identity());
+      transform t=shift(bboxshift)*T;
+      bool shift=!t.isIdentity();
       string beginspecial="TeXDict begin @defspecial";
       string endspecial="@fedspecial end";
       while(getline(fin,s)) {
@@ -580,7 +579,7 @@ picture *picture::transformed(const transform& t)
     assert(*p);
     pic->append((*p)->transformed(t));
   }
-  pic->T=new transform(T ? t*(*T) : t);
+  pic->T=transform(t*T);
 
   return pic;
 }

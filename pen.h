@@ -14,14 +14,6 @@
 #include "path.h"
 
 namespace camp {
-  class pen;
-}
-
-namespace settings {
-  extern camp::pen defaultpen;
-}
-
-namespace camp {
 
 static const string DEFPAT="<default>";
 static const string DEFLATEXFONT="\\usefont{OT1}{cmr}{m}{n}";
@@ -65,8 +57,6 @@ extern const int ColorComponents[];
 static const string ColorDeviceSuffix[]={"","","Gray","RGB","CMYK",""};
 const int nColorSpace=sizeof(ColorDeviceSuffix)/sizeof(string);
   
-using settings::defaultpen;
-  
 class LineType
 {
 public:  
@@ -108,14 +98,18 @@ static const string BlendMode[]={"Compatible","Normal","Multiply","Screen",
 				      "Hue","Saturation","Color","Luminosity"};
 const int nBlendMode=sizeof(BlendMode)/sizeof(string);
 
+static const transform nullTransform=transform(0.0,0.0,0.0,0.0,0.0,0.0);  
   
+class pen;
+pen& defaultpen();
+
 class pen : public gc { 
   LineType line;
 
   // Width of line, in PS units.
   double linewidth;
-  path *P;              // A polygonal path defining a custom pen nib
-                        // NULL means the default circular nib.
+  path P;               // A polygonal path defining a custom pen nib;
+                        // nullpath means the default (typically circular) nib.
   string font;
   double fontsize;  
   double lineskip;  
@@ -133,8 +127,8 @@ class pen : public gc {
   overwrite_t overwrite;
   
   // The transformation applied to the pen nib for calligraphic effects.
-  // NULL means the identity transformation.
-  const transform *t;
+  // nullTransform means the default (typically identity) transformation.
+  transform t;
   
 public:
   static double pos0(double x) {return x >= 0 ? x : 0;}
@@ -168,19 +162,19 @@ public:
   }
   
   pen() :
-    line(DEFLINE), linewidth(DEFWIDTH), P(0),
+    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
 
-  pen(const LineType& line, double linewidth, path *P,
+  pen(const LineType& line, double linewidth, const path& P,
       const string& font, double fontsize, double lineskip,
       ColorSpace color, double r, double g, double b,  double grey,
       const string& pattern, FillRule fillrule, BaseLine baseline,
       const Transparency& transparency,
-      int linecap, int linejoin, overwrite_t overwrite, const transform *t) :
+      int linecap, int linejoin, overwrite_t overwrite, const transform& t) :
     line(line), linewidth(linewidth), P(P),
     font(font), fontsize(fontsize), lineskip(lineskip), color(color),
     r(r), g(g), b(b), grey(grey),
@@ -189,134 +183,134 @@ public:
     linecap(linecap), linejoin(linejoin), overwrite(overwrite), t(t) {}
       
   pen(invisiblepen_t) : 
-    line(DEFLINE), linewidth(DEFWIDTH), P(0),
+    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(INVISIBLE),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setlinewidth_t, double linewidth) : 
-    line(DEFLINE), linewidth(linewidth), P(0),
+    line(DEFLINE), linewidth(linewidth), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
   
-  pen(path *P) : 
+  pen(path P) : 
     line(DEFLINE), linewidth(DEFWIDTH), P(P),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(const LineType& line) :
-    line(line), linewidth(DEFWIDTH), P(0),
+    line(line), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setfont_t, string font) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(0),
+    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
     font(font), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setfontsize_t, double fontsize, double lineskip) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(0),
+    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(fontsize), lineskip(lineskip), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setpattern_t, const string& pattern) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(0),
+    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(PATTERN),
     r(0), g(0), b(0), grey(0),
     pattern(pattern), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(FillRule fillrule) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(0),
+    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(fillrule), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(BaseLine baseline) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(0),
+    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(baseline),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(const Transparency& transparency) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(0),
+    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(transparency),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setlinecap_t, int linecap) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(0),
+    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(linecap), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0) {}
+    linecap(linecap), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setlinejoin_t, int linejoin) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(0),
+    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(linejoin), overwrite(DEFWRITE), t(0) {}
+    linecap(DEFCAP), linejoin(linejoin), overwrite(DEFWRITE), t(nullTransform) {}
   
   pen(setoverwrite_t, overwrite_t overwrite) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(0),
+    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(overwrite), t(0) {}
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(overwrite), t(nullTransform) {}
   
   explicit pen(double grey) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(0),
+    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(GRAYSCALE),
     r(0.0), g(0.0), b(0.0), grey(pos0(grey)),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0)
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform)
   {greyrange();}
   
   pen(double r, double g, double b) : 
-    line(DEFLINE), linewidth(DEFWIDTH), P(0),
+    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(RGB),
     r(pos0(r)), g(pos0(g)), b(pos0(b)),  grey(0.0), 
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0)
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform)
   {rgbrange();}
   
   pen(double c, double m, double y, double k) :
-    line(DEFLINE), linewidth(DEFWIDTH), P(0),
+    line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(CMYK),
     r(pos0(c)), g(pos0(m)), b(pos0(y)), grey(pos0(k)),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(DEFBASE),
     transparency(DEFTRANSP),
-    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(0)
+    linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform)
   {cmykrange();}
   
   // Construct one pen from another, resolving defaults
@@ -327,56 +321,57 @@ public:
     color(p.colorspace()),
     r(p.red()), g(p.green()), b(p.blue()), grey(p.gray()),
     pattern(""), fillrule(p.Fillrule()), baseline(p.Baseline()),
-    transparency(Transparency(p.blend(),p.opacity())),
-    linecap(p.cap()), linejoin(p.join()),overwrite(p.Overwrite()), t(p.t) {}
+    transparency(Transparency(p.blend(), p.opacity())),
+    linecap(p.cap()), linejoin(p.join()), overwrite(p.Overwrite()),
+    t(p.getTransform()) {}
   
-  static pen startupdefaultpen() {
-    return pen(LineType("",0,true,true),0.5,0,"",12.0,12.0*1.2,
+  static pen initialpen() {
+    return pen(LineType("",0,true,true),0.5,nullpath,"",12.0,12.0*1.2,
 	       GRAYSCALE,
 	       0.0,0.0,0.0,0.0,"",ZEROWINDING,NOBASEALIGN,
-	       DEFTRANSP,1,1,ALLOW,0);
+	       DEFTRANSP,1,1,ALLOW,identity);
   }
   
   pen(initialpen_t) : 
-    line(DEFLINE), linewidth(-2.0), P(0),
+    line(DEFLINE), linewidth(-2.0), P(nullpath),
     font("<invalid>"), fontsize(-1.0), lineskip(-1.0), color(INVISIBLE),
     r(0.0), g(0.0), b(0.0), grey(0.0),
     pattern(DEFPAT), fillrule(DEFFILL), baseline(NOBASEALIGN),
     transparency(DEFTRANSP),linecap(-2), linejoin(-2), overwrite(DEFWRITE),
-    t(0) {}
+    t(nullTransform) {}
   
   double width() const {
-    return linewidth == DEFWIDTH ? defaultpen.linewidth : linewidth;
+    return linewidth == DEFWIDTH ? defaultpen().linewidth : linewidth;
   }
   
-  path *Path() const {
-    return P == NULL ? defaultpen.P : P;
+  path Path() const {
+    return P.empty() ? defaultpen().P : P;
   }
   
   string Font() const {
     if(font.empty()) {
-      if(defaultpen.font.empty())
+      if(defaultpen().font.empty())
 	return settings::latex(settings::getSetting<string>("tex")) ? 
 	  DEFLATEXFONT : DEFTEXFONT;
-      else return defaultpen.font;
+      else return defaultpen().font;
     }
     return font;
   }
   
   double size() const {
-    return fontsize == 0.0 ? defaultpen.fontsize : fontsize;
+    return fontsize == 0.0 ? defaultpen().fontsize : fontsize;
   }
   
   double Lineskip() const {
-    return lineskip == 0.0 ? defaultpen.lineskip : lineskip;
+    return lineskip == 0.0 ? defaultpen().lineskip : lineskip;
   }
   
   string stroke() const {
-    return line == DEFLINE ? defaultpen.line.pattern : line.pattern;
+    return line == DEFLINE ? defaultpen().line.pattern : line.pattern;
   }
   
   LineType linetype() const {
-    return line == DEFLINE ? defaultpen.line : line;
+    return line == DEFLINE ? defaultpen().line : line;
   }
   
   void setstroke(const string& s) {line.pattern=s;}
@@ -387,7 +382,7 @@ public:
   }
   
   FillRule Fillrule() const {
-    return fillrule == DEFFILL ? defaultpen.fillrule : fillrule;
+    return fillrule == DEFFILL ? defaultpen().fillrule : fillrule;
   }
   
   bool evenodd() const {
@@ -399,37 +394,37 @@ public:
   }
   
   BaseLine Baseline() const {
-    return baseline == DEFBASE ? defaultpen.baseline : baseline;
+    return baseline == DEFBASE ? defaultpen().baseline : baseline;
   }
   
   Transparency transp() const {
-    return transparency == DEFTRANSP ? defaultpen.transparency : transparency;
+    return transparency == DEFTRANSP ? defaultpen().transparency : transparency;
   }
   
   string blend() const {
-    return transparency == DEFTRANSP ? defaultpen.transparency.blend :
+    return transparency == DEFTRANSP ? defaultpen().transparency.blend :
       transparency.blend;
   }
   
   double opacity() const {
-    return transparency == DEFTRANSP ? defaultpen.transparency.opacity :
+    return transparency == DEFTRANSP ? defaultpen().transparency.opacity :
       transparency.opacity;
   }
   
   int cap() const {
-    return linecap == DEFCAP ? defaultpen.linecap : linecap;
+    return linecap == DEFCAP ? defaultpen().linecap : linecap;
   }
   
   int join() const {
-    return linejoin == DEFJOIN ? defaultpen.linejoin : linejoin;
+    return linejoin == DEFJOIN ? defaultpen().linejoin : linejoin;
   }
   
   overwrite_t Overwrite() const {
-    return overwrite == DEFWRITE ? defaultpen.overwrite : overwrite;
+    return overwrite == DEFWRITE ? defaultpen().overwrite : overwrite;
   }
   
   ColorSpace colorspace() const {
-    return color == DEFCOLOR ? defaultpen.color : color;
+    return color == DEFCOLOR ? defaultpen().color : color;
   }
   
   bool invisible() const {return colorspace() == INVISIBLE;}
@@ -440,13 +435,13 @@ public:
   
   bool cmyk() const {return colorspace() == CMYK;}
   
-  double gray() const {return color == DEFCOLOR ? defaultpen.grey : grey;}
+  double gray() const {return color == DEFCOLOR ? defaultpen().grey : grey;}
   
-  double red() const {return color == DEFCOLOR ? defaultpen.r : r;}
+  double red() const {return color == DEFCOLOR ? defaultpen().r : r;}
   
-  double green() const {return color == DEFCOLOR ? defaultpen.g : g;}
+  double green() const {return color == DEFCOLOR ? defaultpen().g : g;}
   
-  double blue() const {return color == DEFCOLOR ? defaultpen.b : b;}
+  double blue() const {return color == DEFCOLOR ? defaultpen().b : b;}
   
   double cyan() const {return red();}
   
@@ -656,7 +651,7 @@ public:
     
     return pen(q.line == DEFLINE ? p.line : q.line,
 	       q.linewidth == DEFWIDTH ? p.linewidth : q.linewidth,
-	       q.P == NULL ? p.P : q.P,
+	       q.P.empty() ? p.P : q.P,
 	       q.font.empty() ? p.font : q.font,
 	       q.fontsize == 0.0 ? p.fontsize : q.fontsize,
 	       q.lineskip == 0.0 ? p.lineskip : q.lineskip,
@@ -668,7 +663,7 @@ public:
 	       q.linecap == DEFCAP ? p.linecap : q.linecap,
 	       q.linejoin == DEFJOIN ? p.linejoin : q.linejoin,
 	       q.overwrite == DEFWRITE ? p.overwrite : q.overwrite,
-	       q.t == NULL ? p.t : q.t);
+	       q.t.isNull() ? p.t : q.t);
   }
 
   friend bool operator == (const pen& p, const pen& q) {
@@ -690,7 +685,7 @@ public:
       && p.cap() == q.cap()
       && p.join() == q.join()
       && p.Overwrite() == q.Overwrite()
-      && (p.t ? *p.t : identity()) == (q.t ? *q.t : identity());
+      && p.t == q.t;
   }
   
   friend bool operator != (const pen& p, const pen& q) {
@@ -707,8 +702,8 @@ public:
       out << " fixed";
     if(p.linewidth != DEFWIDTH)
       out << ", linewidth=" << p.linewidth;
-    if(p.P)
-      out << ", path=" << *p.P;
+    if(!p.P.empty())
+      out << ", path=" << p.P;
     if(p.linecap != DEFCAP)
       out << ", linecap=" << Cap[p.linecap];
     if(p.linejoin != DEFJOIN)
@@ -741,24 +736,34 @@ public:
     }
     if(p.overwrite != DEFWRITE)
       out << ", overwrite=" << OverwriteTag[p.overwrite];
-    if(p.t)
-      out << ", transform=" << *(p.t);
+    if(!p.t.isNull())
+      out << ", transform=" << p.t;
     out << ")";
     
     return out;
   }
 
+  const transform getTransform() const {
+    return t.isNull() ? defaultpen().t : t;
+  }
+  
   // The bounds of the circle or ellipse the pen describes.
   bbox bounds() const
   {
     double maxx, maxy;
     pair shift;
 
-    if(P) return P->bounds();
+    if(!P.empty()) return P.bounds();
     
-    if (t != 0) {
-      double xx = t->getxx(), xy = t->getxy(),
-             yx = t->getyx(), yy = t->getyy();
+    transform t=getTransform();
+    
+    if(t.isIdentity()) {
+      maxx = 1;
+      maxy = 1;
+      shift = pair(0,0);
+    } else {
+      double xx = t.getxx(), xy = t.getxy(),
+             yx = t.getyx(), yy = t.getyy();
 
       // These are the maximum x and y values that a linear transform can map
       // a point in the unit circle.  This can be proven by the Lagrange
@@ -766,11 +771,7 @@ public:
       maxx = length(pair(xx,xy));
       maxy = length(pair(yx,yy));
 
-      shift = *t*pair(0,0);
-    } else {
-      maxx = 1;
-      maxy = 1;
-      shift = pair(0,0);
+      shift = t*pair(0,0);
     }
 
     bbox b;
@@ -783,14 +784,11 @@ public:
 
   friend pen transformed(const transform& t, pen p) {
     pen ret = p;
-    if(p.P) ret.P=new path(p.P->transformed(t));
-    ret.t = new transform(p.t ? t*(*p.t) : t);
+    if(!p.P.empty()) ret.P = path(p.P.transformed(t));
+    ret.t = transform(p.t.isNull() ? t : t*p.t);
     return ret;
   }
 
-  const transform *getTransform() const {
-    return t;
-  }
 };
   
 pen transformed(const transform& t, pen p);
@@ -798,5 +796,6 @@ pen transformed(const transform& t, pen p);
 
 GC_DECLARE_PTRFREE(camp::LineType);
 GC_DECLARE_PTRFREE(camp::Transparency);
+GC_DECLARE_PTRFREE(camp::pen);
 
 #endif

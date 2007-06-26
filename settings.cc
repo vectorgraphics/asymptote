@@ -26,7 +26,6 @@
 
 #include "util.h"
 #include "settings.h"
-#include "pen.h"
 #include "interact.h"
 #include "locate.h"
 #include "lexical.h"
@@ -195,9 +194,6 @@ const string guisuffix="gui";
 string initdir;
 string historyname;
 
-camp::pen *initialdefaultpen=NULL;
-camp::pen defaultpen=camp::pen::startupdefaultpen();
-  
 // Local versions of the argument list.
 int argCount = 0;
 char **argList = 0;
@@ -1236,9 +1232,6 @@ void setOptions(int argc, char *argv[])
   setPath();
   doConfig(getSetting<string>("config"));
   
-  // Remember any changes to the defaultpen.
-  initialdefaultpen=new camp::pen(defaultpen);
-
   // Read command-line options again to override configuration file defaults.
   getOptions(argc,argv);
   

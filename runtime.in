@@ -119,10 +119,6 @@ using namespace vm;
 using namespace camp;
 using namespace settings;
 
-namespace settings {
-extern pen *initialdefaultpen;
-}
-
 namespace run {
 using camp::pair;
 using vm::array;
@@ -532,8 +528,6 @@ void init_readline(bool tabcompletion=true)
 
 void cleanup()
 {
-  if(initialdefaultpen) defaultpen=*initialdefaultpen;
-
   globalData *g=global.back();
   g->atExitFunction=NULL;
   g->atBreakpointFunction=NULL;
@@ -574,7 +568,6 @@ void exitFunction(stack *Stack)
 default_t def;
 string emptystring;
 array *emptyarray=new array(0);
-transform Identity;
 string commentchar="#";
 
 void breakpoint(stack *Stack, runnable *r)
@@ -1066,7 +1059,7 @@ void layer(picture *f)
 }
 
 void _image(picture *f, realarray2 *data, pair initial, pair final,
-	    penarray *palette=NULL, transform t=Identity, bool copy=true)
+	    penarray *palette=NULL, transform t=identity, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
@@ -1075,7 +1068,7 @@ void _image(picture *f, realarray2 *data, pair initial, pair final,
 }
 
 void _image(picture *f, penarray2 *data, pair initial, pair final,
-	    transform t=Identity, bool copy=true)
+	    transform t=identity, bool copy=true)
 {
   array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
   f->append(new drawImage(copyarray2(data),NULL,t*matrix(initial,final)));
@@ -1205,17 +1198,17 @@ pair min(pen p)
 // Reset the meaning of pen default attributes.
 void resetdefaultpen()
 {
-  if(initialdefaultpen) defaultpen=*initialdefaultpen;
+  global.back()->defaultpen=camp::pen::initialpen();
 }
 
 void defaultpen(pen p)
 {
-  defaultpen=pen(resolvepen,p);
+  global.back()->defaultpen=pen(resolvepen,p);
 }
 
 pen defaultpen()
 {
-  return defaultpen;
+  return global.back()->defaultpen;
 }
 
 pen invisible()
@@ -1431,20 +1424,17 @@ int basealign(pen p)
 
 transform transform(pen p)
 {
-  const transform *t=p.getTransform();
-  return t ? *t : identity();  
+  return p.getTransform();
 }
 
 path nib(pen p)
 {
-  static path nullpath;
-  path *g=p.Path();
-  return g ? *g : nullpath;
+  return p.Path();
 }
 
 pen makepen(path p)
 {
-  return p.size() == 0 ? pen() : pen(new path(p));
+  return pen(p);
 }
 
 pen colorless(pen p)
@@ -1597,8 +1587,17 @@ void list(string *s, bool imports=false)
 
 path :nullPath()
 {
-  static path nullpath;
   return nullpath;
+}
+
+bool ==(path a, path b)
+{
+  return a == b;
+}
+
+bool !=(path a, path b)
+{
+  return !(a == b);
 }
 
 pair point(path p, int t)
@@ -2509,7 +2508,7 @@ transform shiftless(transform t)
 
 transform identity:transformIdentity()
 {
-  return identity();
+  return identity;
 }
 
 transform inverse(transform t)

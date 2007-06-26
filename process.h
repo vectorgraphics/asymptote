@@ -16,6 +16,7 @@
 #include "stack.h"
 #include "pipestream.h"
 #include "callable.h"
+#include "pen.h"
 
 #ifdef HAVE_RPC_RPC_H
 #include "xstream.h"
@@ -91,6 +92,7 @@ struct globalData {
   vm::callable *atExitFunction;
   vm::callable *atBreakpointFunction;
   int ShipoutNumber; // Used by xasy to keep track of multiple shipouts/file.
+  camp::pen defaultpen;
   
   terminator<std::ofstream> ofile;
   terminator<std::fstream> ifile;
@@ -103,9 +105,11 @@ struct globalData {
     atExitFunction=NULL;
     atBreakpointFunction=NULL;
     ShipoutNumber=0;
+    defaultpen=camp::pen::initialpen();
   }
   
 };
 
 extern mem::list<globalData *> global;
+
 #endif

@@ -530,7 +530,6 @@ double velocity(double theta, double phi, tension t);
 GC_DECLARE_PTRFREE(camp::eqn);
 GC_DECLARE_PTRFREE(camp::tension);
 GC_DECLARE_PTRFREE(camp::knotlist);
-GC_DECLARE_PTRFREE(camp::subknotlist);
 GC_DECLARE_PTRFREE(camp::simpleknotlist);
 
 #endif // KNOT_H

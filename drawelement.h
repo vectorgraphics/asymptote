@@ -158,13 +158,6 @@ class drawPathPenBase : public drawPathBase {
 protected:
   pen pentype;
 
-  // The pen's transform;
-  const transform *t()
-  {
-    const transform *T=pentype.getTransform();
-    return (T && !T->isIdentity()) ? T : NULL;
-  }
-
   pen transpen(const transform& t) const {
     return camp::transformed(shiftless(t),pentype);
   }
@@ -186,25 +179,27 @@ public:
   
   virtual void penSave(psfile *out)
   {
-    if (t())
+    if (!pentype.getTransform().isIdentity())
       out->gsave();
   }
   
   virtual void penTranslate(psfile *out)
   {
-    if (t())
-      out->translate(shiftpair(*t()));
+    transform t=pentype.getTransform();
+    if (!t.isIdentity())
+      out->translate(shiftpair(t));
   }
 
   virtual void penConcat(psfile *out)
   {
-    if (t())
-      out->concat(shiftless(*t()));
+    transform t=pentype.getTransform();
+    if (!t.isIdentity())
+      out->concat(shiftless(t));
   }
 
   virtual void penRestore(psfile *out)
   {
-    if (t())
+    if (!pentype.getTransform().isIdentity())
       out->grestore();
   }
   
@@ -261,6 +256,9 @@ public:
 }
 
 GC_DECLARE_PTRFREE(camp::box);
+GC_DECLARE_PTRFREE(camp::drawElement);
+GC_DECLARE_PTRFREE(camp::drawPathBase);
+GC_DECLARE_PTRFREE(camp::drawPathPenBase);
 
 #endif
 

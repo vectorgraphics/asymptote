@@ -161,4 +161,7 @@ inline bool isdefault(const item& it)
 
 } // namespace vm
 
+GC_DECLARE_PTRFREE(vm::frame);
+GC_DECLARE_PTRFREE(vm::default_t);
+
 #endif // ITEM_H

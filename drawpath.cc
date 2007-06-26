@@ -80,8 +80,7 @@ void drawPath::adjustdash(pen& pen0)
   
 // Account for square or extended pen cap contributions to bounding box.
 void cap(bbox& b, double t, path p, pen pentype) {
-  const transform *pT=pentype.getTransform();  
-  transform T=pT ? *pT : identity();
+  transform T=pentype.getTransform();  
   
   double h=0.5*pentype.width();
   pair v=p.dir(t);

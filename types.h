@@ -582,7 +582,15 @@ public:
   }
 };
 
-
 } // namespace types
+
+GC_DECLARE_PTRFREE(types::signature);
+GC_DECLARE_PTRFREE(types::caster);
+GC_DECLARE_PTRFREE(types::ty);
+GC_DECLARE_PTRFREE(types::primitiveTy);
+GC_DECLARE_PTRFREE(types::nullTy);
+GC_DECLARE_PTRFREE(types::overloaded);
+GC_DECLARE_PTRFREE(types::collector);
+GC_DECLARE_PTRFREE(types::tester);
 
 #endif

@@ -79,4 +79,6 @@ inline size_t checkArrays(vm::array *a, vm::array *b)
  
 } // namespace vm
 
+GC_DECLARE_PTRFREE(vm::array);
+
 #endif // ARRAY_H

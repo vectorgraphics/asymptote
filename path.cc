@@ -19,6 +19,8 @@ const double Fuzz=10.0*DBL_EPSILON;
 const double Fuzz2=Fuzz*Fuzz;
 const double sqrtFuzz=sqrt(Fuzz);
 
+path nullpath;
+  
 // Accurate computation of sqrt(1+x)-1.
 inline double sqrt1pxm1(double x)
 {

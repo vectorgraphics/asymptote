@@ -46,4 +46,6 @@ public:
 
 }
 
+GC_DECLARE_PTRFREE(camp::drawClipEnd);
+
 #endif

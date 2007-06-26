@@ -102,6 +102,12 @@ public:
       xx == 1.0 && xy == 0.0 && yx == 0.0 && yy == 1.0;
   }
 
+  bool isNull() const
+  {
+    return x == 0.0 && y == 0.0 &&
+      xx == 0.0 && xy == 0.0 && yx == 0.0 && yy == 0.0;
+  }
+
   // Calculates the determinant, as if it were a matrix.
   friend double det(const transform& t)
   {
@@ -138,10 +144,7 @@ public:
 };
 
 // The common transforms
-inline transform identity()
-{
-  return transform();
-}
+static const transform identity;
 
 inline transform shift(pair z)
 {
@@ -181,11 +184,11 @@ inline transform rotate(double theta)
   return transform (0.0, 0.0, c, -s, s, c);
 }
 
-// return rotate(angle(v)) if z != (0,0); otherwise return identity().
+// return rotate(angle(v)) if z != (0,0); otherwise return identity.
 inline transform rotate(pair z)
 {
   double d=z.length();
-  if(d == 0.0) return identity();
+  if(d == 0.0) return identity;
   d=1.0/d;
   return transform (0.0, 0.0, d*z.getx(), -d*z.gety(), d*z.gety(), d*z.getx());
 }

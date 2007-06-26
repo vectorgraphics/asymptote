@@ -195,4 +195,7 @@ public:
 
 extern errorstream em;
 
+GC_DECLARE_PTRFREE(fileinfo);
+GC_DECLARE_PTRFREE(nullPosInitializer);
+
 #endif
