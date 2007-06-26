@@ -1424,9 +1424,11 @@ struct path3 {
   }
   
   triple max() {
+    checkEmpty(n);
     return bounds().max;
   }
   triple min() {
+    checkEmpty(n);
     return bounds().min;
   }
   
