@@ -127,7 +127,7 @@ public:
   void prettyprint(ostream &out, int indent);
 
   types::ty *trans(coenv &e, bool tacit = false);
-  trans::tyEntry *transAsTyEntry(coenv &e, record *where) {
+  trans::tyEntry *transAsTyEntry(coenv &, record *) {
     return ent;
   }
 };
