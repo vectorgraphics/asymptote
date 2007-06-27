@@ -111,7 +111,7 @@ void tyEntryTy::prettyprint(ostream &out, int indent)
   out << "tyEntryTy: " << *(ent->t) << "\n";
 }
 
-types::ty *tyEntryTy::trans(coenv &e, bool tacit) {
+types::ty *tyEntryTy::trans(coenv &, bool) {
   return ent->t;
 }
 
