@@ -32,7 +32,8 @@ static double ds(double t)
 }
 
 // Calculates arclength of a cubic using adaptive simpson integration.
-double cubiclength(triple z0, triple z0p, triple z1m, triple z1, double goal)
+double cubiclength(const triple& z0, const triple& z0p, const triple& z1m,
+		   const triple& z1, double goal)
 {
   double L,integral;
   derivative(a,b,c,z0,z0p,z1m,z1);
@@ -98,9 +99,12 @@ public:
   }
 };
   
-inline triple split(double t, triple x, triple y) {return x+t*(y-x);}
+inline triple split(double t, const triple& x, const triple& y) {
+  return x+t*(y-x);
+}
 
-inline void splitCubic(node sn[], double t, node left_, node right_)
+inline void splitCubic(node sn[], double t, const node& left_,
+		       const node& right_)
 {
   node &left=(sn[0]=left_), &mid=sn[1], &right=(sn[2]=right_);
   triple x=split(t,left.post,right.pre);
@@ -114,7 +118,8 @@ inline void splitCubic(node sn[], double t, node left_, node right_)
 static unsigned count;  
 extern unsigned maxIntersectCount;
   
-bool intersectcubics(pair& t, node left1, node right1, node left2, node right2,
+bool intersectcubics(pair& t, const node& left1, const node& right1,
+		     const node& left2, const node& right2,
 		     double fuzz, unsigned depth=DBL_MANT_DIG)
 {
   bbox3 box1, box2;
@@ -161,11 +166,12 @@ bool intersectcubics(pair& t, node left1, node right1, node left2, node right2,
   return false;
 }
   
-bool intersect(pair &t, int L1, int L2, node n1[], node n2[], double fuzz=0.0)
+bool intersect(pair &t, int L1, int L2, const mem::vector<node>& n1,
+	       const mem::vector<node>& n2, double fuzz)
 {
   for(int i=0; i < L1; ++i) {
-    node left1=n1[i];
-    node right1=n1[i+1];
+    const node& left1=n1[i];
+    const node& right1=n1[i+1];
     for(int j=0; j < L2; ++j) {
       count=maxIntersectCount;
       pair T;
@@ -179,3 +185,4 @@ bool intersect(pair &t, int L1, int L2, node n1[], node n2[], double fuzz=0.0)
 }
   
 } //namespace camp
+  

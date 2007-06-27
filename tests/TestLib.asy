@@ -6,7 +6,7 @@ bool close(pair a, pair b)
 
 void StartTest(string desc)
 { 
-  write(stdout, "Testing " + desc + "...");
+  write(stdout, "Testing " + desc + "...",flush);
 }
 
 void EndTest()

@@ -697,8 +697,8 @@ static unsigned count;
 unsigned maxIntersectCount=100000;
 
 // Algorithm derived from Knuth's MetaFont
-bool intersectcubics(pair &t, solvedKnot left1, solvedKnot right1,
-                     solvedKnot left2, solvedKnot right2,
+bool intersectcubics(pair &t, const solvedKnot& left1, const solvedKnot& right1,
+                     const solvedKnot& left2, const solvedKnot& right2,
 		     double fuzz, unsigned depth=DBL_MANT_DIG)
 {
   bbox box1, box2;
@@ -756,8 +756,8 @@ bool intersect(pair &t, path& p1, path& p2, double fuzz=0.0)
   if(p1.size() == 1) {L1=1; icycle=0;}
   if(p2.size() == 1) {L2=1; jcycle=0;}
   for(int i=0; i < L1; ++i) {
-    solvedKnot& left1=n1[i];
-    solvedKnot& right1=(i == icycle) ? n1[0] : n1[i+1];
+    const solvedKnot& left1=n1[i];
+    const solvedKnot& right1=(i == icycle) ? n1[0] : n1[i+1];
     for(int j=0; j < L2; ++j) {
       count=maxIntersectCount;
       pair T;

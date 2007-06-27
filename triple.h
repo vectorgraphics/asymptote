@@ -143,21 +143,23 @@ public:
 
 triple expi(double theta, double phi);
   
-struct node {
+struct node : public gc {
   triple pre,point,post;
 public:
   node() {}
-  node(triple pre, triple point, triple post)
+  node(const triple& pre, const triple& point, const triple& post)
     : pre(pre), point(point), post(post) {}
 };
   
-double cubiclength(triple z0, triple z0p, triple z1m, triple z1,
-		   double goal=-1);
+double cubiclength(const triple& z0, const triple& z0p, const triple& z1m,
+		   const triple& z1, double goal=-1);
   
-bool intersect(pair& t, int L1, int L2, node n1[], node n2[], double fuzz);
+bool intersect(pair &t, int L1, int L2, const mem::vector<node>& n1,
+	       const mem::vector<node>& n2, double fuzz=0.0);
   
 } //namespace camp
 
 GC_DECLARE_PTRFREE(camp::triple);
+GC_DECLARE_PTRFREE(camp::node);
 
 #endif

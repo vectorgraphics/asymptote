@@ -280,7 +280,7 @@ array *copyArray(array *a)
 double *copyArrayC(array *a)
 {
   size_t size=checkArray(a);
-  double *c=new double [size];
+  double *c=new double[size];
   for(size_t i=0; i < size; i++) 
     c[i]=read<double>(a,i);
   return c;
@@ -338,6 +338,12 @@ double **copyArray2C(array *a, bool square=true)
       error(square ? "matrix must be square" : "matrix must be rectangular");
   }
   return c;
+}
+
+void deleteArray2C(double **a, size_t n)
+{
+  for(size_t i=0; i < n; i++)
+    delete[] a[i];
 }
 
 static const char *incommensurate="Incommensurate matrices";
@@ -939,7 +945,7 @@ void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
   checkArrays(p,z);
   
  f->append(new drawGouraudShade(copyarray(g),fillrule,copyarray(p),
-				 z,copyarray(edges)));
+				z,copyarray(edges)));
 }
 
 void tensorshade(picture *f, patharray *g, pen fillrule, penarray2 *p,
@@ -2819,8 +2825,8 @@ realarray* intersect(triplearray* pre1, triplearray* point1, triplearray* post1,
   size_t Size1=size1+single1;
   size_t Size2=size2+single2;
   
-  node *n1=new node[Size1];
-  node *n2=new node[Size2];
+  mem::vector<node> n1(Size1);
+  mem::vector<node> n2(Size2);
       
   for(size_t i=0; i < size1; ++i)
     n1[i]=node(read<triple>(pre1,i),read<triple>(point1,i),
@@ -3599,6 +3605,9 @@ realarray *solve(realarray2 *a, realarray *b)
     (*x)[i]=B[i];
 
   delete[] index;
+  delete[] B;
+  deleteArray2C(A,n);
+  
   return x;
 }
 
@@ -3653,6 +3662,9 @@ realarray2 *solve(realarray2 *a, realarray2 *b)
   }
     
   delete[] index;
+  deleteArray2C(B,n);
+  deleteArray2C(A,n);
+  
   return x;
 }
 
@@ -3665,7 +3677,10 @@ real determinant(realarray2 *a)
   size_t *index=new size_t[n];
   real det=LUdecompose(A,n,index,false);
   for(size_t i=0; i < n; ++i) det *= A[i][i];
+  
   delete[] index;
+  deleteArray2C(A,n);
+  
   return det;
 }
 
@@ -3683,6 +3698,7 @@ realarray *Operator *(realarray2 *a, realarray *b)
     }
     (*c)[i]=sum;
   }
+  delete[] B;
   return c;
 }
 
@@ -3700,6 +3716,7 @@ realarray2 *multdiagonal(realarray2 *a, realarray *b)
     for(size_t j=0; j < n; ++j)
       (*ci)[j]=read<real>(ai,j)*B[j];
   }
+  delete[] B;
   return c;
 }
 
@@ -3728,6 +3745,10 @@ realarray2 *Operator *(realarray2 *a, realarray2 *b)
       (*ci)[j]=sum;
     }
   }
+  
+  deleteArray2C(A,n);
+  deleteArray2C(B,nb);
+  
   return c;
 }
 
