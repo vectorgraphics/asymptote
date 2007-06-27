@@ -76,7 +76,7 @@ $(GCLIB): $(GC).tar.gz
 	fi
 	cd $(GC); \
 	./configure $(GCOPTIONS); \
-	$(MAKE)
+	$(MAKE) check
 
 $(GCPPLIB): $(GCLIB)
 
