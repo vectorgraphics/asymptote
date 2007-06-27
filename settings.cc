@@ -813,7 +813,7 @@ string build_optstring() {
 c_option *build_longopts() {
   size_t n=optionsMap.size();
 
-  c_option *longopts=new c_option[n];
+  c_option *longopts=new(UseGC) c_option[n];
 
   int i=0;
   for (optionsMap_t::iterator p=optionsMap.begin();
@@ -867,8 +867,6 @@ void getOptions(int argc, char *argv[])
 
     errno=0;
   }
-  
-  delete [] longopts;
   
   if (syntax)
     reportSyntax();
