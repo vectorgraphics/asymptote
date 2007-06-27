@@ -109,9 +109,7 @@ stringarray2* => stringArray2()
 #if defined(USEGC) && defined(GC_DEBUG) && defined(GC_BACKTRACE)
 extern "C" {
 void *GC_generate_random_valid_address(void);
-typedef char * ptr_t;
-GC_PTR GC_base(GC_PTR);
-void GC_debug_print_heap_obj_proc(GC_PTR);
+void GC_debug_print_heap_obj_proc(void *);
 }
 #endif
 
@@ -4378,11 +4376,8 @@ void print_random_addresses(int n=1)
 {
 #if defined(USEGC) && defined(GC_DEBUG) && defined(GC_BACKTRACE)
   GC_gcollect();
-  for (int i=0; i < n; ++i) {
-    void *current=GC_generate_random_valid_address();
-    void *base=GC_base(current);
-    GC_debug_print_heap_obj_proc(base);
-  }
+  for (int i=0; i < n; ++i)
+    GC_debug_print_heap_obj_proc(GC_base(GC_generate_random_valid_address()));
 #else
   error("print_random_addresses() requires ./configure --enable-gc-debug");
   unused(&n); // Avoid unused variable warning message.
