@@ -76,9 +76,7 @@ $(GCLIB): $(GC).tar.gz
 	fi
 	cd $(GC); \
 	./configure $(GCOPTIONS); \
-	$(MAKE) check; \
-	cd ..; \
-	$(MAKE) asy
+	$(MAKE)
 
 $(GCPPLIB): $(GCLIB)
 
@@ -102,7 +100,7 @@ camp.tab.h: camp.tab.cc
 lex.yy.cc: camp.l
 	$(LEX) -d -olex.yy.cc camp.l
 
-lex.yy.d: $(GCLIBS) lex.yy.cc camp.tab.h
+lex.yy.d: $(GCLIB) lex.yy.cc camp.tab.h
 
 keywords.cc: keywords.pl camp.l
 	./keywords.pl
