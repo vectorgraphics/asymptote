@@ -31,7 +31,7 @@ string stripExt(string name, const string& suffix="");
   
 void writeDisabled();
   
-// Check if global writes disabled and name contains a directory.
+// Check if global writes are disabled and name contains a directory.
 void checkLocal(string name);
   
 // Construct a filename from the original, adding aux at the end, and

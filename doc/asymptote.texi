@@ -3221,7 +3221,7 @@ as a single literal comment character.
 @anchor{cd}
 @cindex @code{cd}
 @cindex directory
-If the @code{-global} (or @code{-unsafe}) option is enabled, one can
+If the @code{-globalwrite} (or @code{-unsafe}) option is enabled, one can
 change the current working directory to the contents of the string
 @code{s} with the function @code{string cd(string s)}, which returns the
 new working directory. If @code{string s} is empty, the path is reset to
@@ -3247,7 +3247,7 @@ and only write operations can be used on the file.
 If @code{update=true}, existing data will be preserved, the position
 will be set to the end-of-file, and both reading and writing operations
 will be enabled. For security reasons, writing to files in directories
-other than the current directory is allowed only if the @code{-global}
+other than the current directory is allowed only if the @code{-globalwrite}
 (or @code{-unsafe}) command-line option is specified.
 
 @cindex @code{stdin}

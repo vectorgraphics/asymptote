@@ -113,7 +113,7 @@ string Getenv(const char *name, bool msdos)
 
 void writeDisabled()
 {
-  camp::reportError("Write/cd to other directories disabled; override with option -global");
+  camp::reportError("Write/cd to other directories disabled; override with option -globalwrite");
 }
 
 void checkLocal(string name)
@@ -331,12 +331,8 @@ const char *setPath(const char *s, bool quiet)
     camp::reportError(buf);
   }
   char *p=getPath();
-  if(p) {
-    if(interact::interactive && !quiet)
-      cout << p << endl;
-    else if(verbose > 1)
-      cout << "cd " << p << endl;
-  }
+  if(p && (!interact::interactive || quiet) && verbose > 1)
+    cout << "cd " << p << endl;
   return p;
 }
 
