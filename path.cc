@@ -292,7 +292,7 @@ path path::subpath(int a, int b) const
   }
 
   int sn = b-a+1;
-  mem::vector<solvedKnot> nodes(n);
+  mem::vector<solvedKnot> nodes(sn);
 
   for (int i = 0, j = a; j <= b; i++, j++) {
     nodes[i].pre = precontrol(j);
