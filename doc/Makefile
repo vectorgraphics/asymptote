@@ -4,7 +4,7 @@ SOURCE = asymptote.texi version.texi options
 ASY = ../asy -dir ../base
 DOCFILES = asymptote.pdf CAD.pdf
 
-doc:	asymptote.dvi asymptote.info html man faq
+all:    doc
 
 html:	asymptote/index.html
 
@@ -12,6 +12,8 @@ man:	$(DOCFILES) asy.1
 
 faq:	
 	cd FAQ; $(MAKE) faq
+
+doc:	asymptote.dvi asymptote.info html man faq
 
 %.png:	%.asy
 	$(ASY) -f png $<
