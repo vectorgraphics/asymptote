@@ -657,7 +657,7 @@ class xasyFilledShape(xasyShape):
   def __init__(self,path,pen=asyPen(),transform=identity):
     """Initialize this shape with a path, pen, and transform"""
     if path.nodeSet[-1] != 'cycle':
-      raise Exception,"Filled paths must be cyclic"""
+      raise Exception,"Filled paths must be cyclic"
     xasyShape.__init__(self,path,pen,transform)
 
   def updateCode(self):
