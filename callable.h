@@ -65,4 +65,8 @@ private:
 
 } // namespace vm
 
+GC_DECLARE_PTRFREE(vm::callable);
+GC_DECLARE_PTRFREE(vm::nullfunc);
+GC_DECLARE_PTRFREE(vm::bfunc);
+
 #endif // CALLABLE_H
