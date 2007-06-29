@@ -17,6 +17,7 @@ void report(int i)
 }
 void initXasyMode()
 {
+  size(0,0);
   inXasyMode = true;
 }
 
@@ -24,12 +25,24 @@ void exitXasyMode()
 {
 
 }
+private picture[] tempStore;
+private picture newPic;
 void startScript()
 {
+  tempStore.push(currentpicture.copy());
+  newPic = new picture;
+  currentpicture = newPic;
 }
 
 void endScript()
 {
+  if(tempStore.length < 1)
+  {
+    write("Error: endscript() without matching beginScript()");
+  } else {
+    currentpicture = tempStore.pop();
+    add(currentpicture,newPic.fit(),group=false);
+  }
 }
 
 struct indexedTransform {
@@ -47,15 +60,19 @@ struct framedTransformStack {
   private transform[] stack;
   private int[] frames;
   private int stackBase=0;
-
   transform pop() {
     if(!inXasyMode) return identity();
     //transform popped = (stack.length > stackBase) ? stack.pop() : identity();
-    transform popped = stack[0];
-    stack.delete(0);
-    report("Popped");
-    report(popped);
-    return popped;
+    if(stack.length == 0)
+      return identity();
+    else
+    {
+      transform popped = stack[0];
+      stack.delete(0);
+      report("Popped");
+      report(popped);
+      return popped;
+    }
   }
 
   void push(transform t) {
