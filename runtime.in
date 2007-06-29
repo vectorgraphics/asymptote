@@ -3195,7 +3195,7 @@ intarray* complement(intarray *a, int n)
 {
   size_t asize=checkArray(a);
   array *r=new array(0);
-  bool *keep=new bool(n);
+  bool *keep=new bool[n];
   for(int i=0; i < n; ++i) keep[i]=true;
   for(size_t i=0; i < asize; ++i) {
     int j=read<int>(a,i);
