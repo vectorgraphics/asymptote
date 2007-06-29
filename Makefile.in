@@ -130,7 +130,7 @@ install-asy: asy asy-keywords.el
 	  texhash; \
 	fi
 
-install-doc: doc
+install-doc: html
 	cd doc; $(MAKE) install-all
 
 install-man: man
