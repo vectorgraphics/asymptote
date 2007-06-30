@@ -23,4 +23,6 @@ public:
 
 }
 
+GC_DECLARE_PTRFREE(camp::drawLayer);
+
 #endif

@@ -15,11 +15,17 @@
 namespace camp {
 
 class drawImage : public drawElement {
-  vm::array *image,*palette;
+  vm::array image,palette;
   transform t;
+  bool havepalette;
 public:
-  drawImage(vm::array *image, vm::array *palette, const transform& t)
-    : image(image), palette(palette), t(t) {}
+  drawImage(const vm::array& image, const vm::array& palette,
+	    const transform& t)
+    : image(image), palette(palette), t(t), havepalette(true) {}
+  
+  drawImage(const vm::array& image, const transform& t)
+    : image(image), t(t), havepalette(false) {}
+  
   
   virtual ~drawImage() {}
 
@@ -31,8 +37,8 @@ public:
   bool draw(psfile *out) {
     out->gsave();
     out->concat(t);
-    if(palette == NULL) out->image(image);
-    else out->image(image,palette);
+    if(havepalette) out->image(image,palette);
+    else out->image(image);
     out->grestore();
     
     return true;
@@ -44,5 +50,7 @@ public:
 };
 
 }
+
+GC_DECLARE_PTRFREE(camp::drawImage);
 
 #endif

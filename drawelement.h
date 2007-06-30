@@ -209,20 +209,20 @@ public:
 // Base class for drawElements that involve superpaths and pens.
 class drawSuperPathPenBase : public drawPathPenBase {
 protected:
-  vm::array *P;
+  vm::array P;
   size_t size;
   bbox bpath;
 
-  vm::array *transpath(const transform& t) const {
+  vm::array transpath(const transform& t) const {
     vm::array *Pt=new vm::array(size);
     for(size_t i=0; i < size; i++)
       (*Pt)[i]=vm::read<path>(P,i).transformed(t);
-    return Pt;
+    return *Pt;
   }
   
 public:
-  drawSuperPathPenBase(vm::array *P, pen pentype) :
-    drawPathPenBase(pentype), P(P), size(P->size()) {}
+  drawSuperPathPenBase(const vm::array& P, pen pentype) :
+    drawPathPenBase(pentype), P(P), size(P.size()) {}
 
   bool empty() {
     for(size_t i=0; i < size; i++) 
@@ -259,6 +259,7 @@ GC_DECLARE_PTRFREE(camp::box);
 GC_DECLARE_PTRFREE(camp::drawElement);
 GC_DECLARE_PTRFREE(camp::drawPathBase);
 GC_DECLARE_PTRFREE(camp::drawPathPenBase);
+GC_DECLARE_PTRFREE(camp::drawSuperPathPenBase);
 
 #endif
 

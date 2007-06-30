@@ -73,18 +73,18 @@ drawElement *drawRadialShade::transformed(const transform& t)
 
 drawElement *drawGouraudShade::transformed(const transform& t)
 {
-  size_t size=vertices->size();
+  size_t size=vertices.size();
   vm::array *Vertices=new vm::array(size);
   for(size_t i=0; i < size; i++)
     (*Vertices)[i]=t*vm::read<pair>(vertices,i);
 
-  return new drawGouraudShade(transpath(t),pentype,pens,Vertices,edges);
+  return new drawGouraudShade(transpath(t),pentype,pens,*Vertices,edges);
 }
 
 drawElement *drawTensorShade::transformed(const transform& t)
 {
-  size_t size=boundaries->size();
-  size_t zsize=z->size();
+  size_t size=boundaries.size();
+  size_t zsize=z.size();
   vm::array *Boundaries=new vm::array(size);
   vm::array *Z=new vm::array(zsize);
   
@@ -100,7 +100,7 @@ drawElement *drawTensorShade::transformed(const transform& t)
       (*Zi)[j]=t*vm::read<pair>(zi,j);
   }
 
-  return new drawTensorShade(transpath(t),pentype,pens,Boundaries,Z);
+  return new drawTensorShade(transpath(t),pentype,pens,*Boundaries,*Z);
 }
 
 } // namespace camp

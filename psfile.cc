@@ -195,14 +195,14 @@ void psfile::write(path p, bool newPath)
 
 static const char *inconsistent="inconsistent colorspaces";
   
-void psfile::latticeshade(array *a, const bbox& b)
+void psfile::latticeshade(const vm::array& a, const bbox& b)
 {
-  size_t n=a->size();
+  size_t n=a.size();
   if(n == 0) return;
   
   array *a0=read<array *>(a,0);
   size_t m=a0->size();
-  setfirstpen(a0);
+  setfirstpen(*a0);
   
   ColorSpace colorspace=maxcolorspace2(a);
   checkColorSpace(colorspace);
@@ -281,9 +281,10 @@ void psfile::gradientshade(bool axial, const ColorSpace &colorspace,
        << "shfill" << newl;
 }
   
-void psfile::gouraudshade(array *pens, array *vertices, array *edges)
+void psfile::gouraudshade(const array& pens, const array& vertices,
+			  const array& edges)
 {
-  size_t size=pens->size();
+  size_t size=pens.size();
   if(size == 0) return;
   
   setfirstpen(pens);
@@ -309,16 +310,17 @@ void psfile::gouraudshade(array *pens, array *vertices, array *edges)
 }
  
 // Tensor-product patch shading
-void psfile::tensorshade(array *pens, array *boundaries, array *z)
+void psfile::tensorshade(const array& pens, const array& boundaries,
+			 const array& z)
 {
-  size_t size=pens->size();
+  size_t size=pens.size();
   if(size == 0) return;
-  size_t nz=z->size();
+  size_t nz=z.size();
   
   array *p0=read<array *>(pens,0);
   if(checkArray(p0) != 4)
     reportError("4 pens required");
-  setfirstpen(p0);
+  setfirstpen(*p0);
   
   ColorSpace colorspace=maxcolorspace2(pens);
   checkColorSpace(colorspace);
@@ -432,10 +434,10 @@ void psfile::imageheader(double width, double height, ColorSpace colorspace)
        << "image" << newl;
 }
 
-void psfile::image(array *a, array *P)
+void psfile::image(const array& a, const array& P)
 {
-  size_t asize=a->size();
-  size_t Psize=P->size();
+  size_t asize=a.size();
+  size_t Psize=P.size();
   if(asize == 0 || Psize == 0) return;
   
   array *a0=read<array *>(a,0);
@@ -480,16 +482,16 @@ void psfile::image(array *a, array *P)
   *out << ">" << endl;
 }
 
-void psfile::image(array *a)
+void psfile::image(const array& a)
 {
-  size_t asize=a->size();
+  size_t asize=a.size();
   if(asize == 0) return;
   
   array *a0=read<array *>(a,0);
   size_t a0size=a0->size();
   if(a0size == 0) return;
   
-  setfirstpen(a0);
+  setfirstpen(*a0);
   
   ColorSpace colorspace=maxcolorspace2(a);
   checkColorSpace(colorspace);

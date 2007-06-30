@@ -890,28 +890,28 @@ void _draw(picture *f, path g, pen p)
 void fill(picture *f, patharray *g, pen p, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  f->append(new drawFill(copyarray(g),p));
+  f->append(new drawFill(*copyarray(g),p));
 }
 
 void latticeshade(picture *f, patharray *g, pen fillrule, penarray2 *p,
 		  bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  f->append(new drawLatticeShade(copyarray(g),fillrule,copyarray(p)));
+  f->append(new drawLatticeShade(*copyarray(g),fillrule,*copyarray(p)));
 }
 
 void axialshade(picture *f, patharray *g, pen pena, pair a, pen penb, pair b,
 		bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  f->append(new drawAxialShade(copyarray(g),pena,a,penb,b));
+  f->append(new drawAxialShade(*copyarray(g),pena,a,penb,b));
 }
 
 void radialshade(picture *f, patharray *g, pen pena, pair a, real ra,
 		 pen penb, pair b, real rb, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  f->append(new drawRadialShade(copyarray(g),pena,a,ra,penb,b,rb));
+  f->append(new drawRadialShade(*copyarray(g),pena,a,ra,penb,b,rb));
 }
 
 void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
@@ -920,8 +920,8 @@ void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   checkArrays(p,z);
   checkArrays(z,edges);
-  f->append(new drawGouraudShade(copyarray(g),fillrule,copyarray(p),
-				 copyarray(z),copyarray(edges)));
+  f->append(new drawGouraudShade(*copyarray(g),fillrule,*copyarray(p),
+				 *copyarray(z),*copyarray(edges)));
 }
 
 void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
@@ -942,8 +942,8 @@ void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
   }
   checkArrays(p,z);
   
- f->append(new drawGouraudShade(copyarray(g),fillrule,copyarray(p),
-				z,copyarray(edges)));
+ f->append(new drawGouraudShade(*copyarray(g),fillrule,*copyarray(p),
+				*z,*copyarray(edges)));
 }
 
 void tensorshade(picture *f, patharray *g, pen fillrule, penarray2 *p,
@@ -956,8 +956,8 @@ void tensorshade(picture *f, patharray *g, pen fillrule, penarray2 *p,
   size_t nz=checkArray(z);
   if(nz != 0 && nz != n)
     error(arraymismatch);
-  f->append(new drawTensorShade(copyarray(g),fillrule,copyarray2(p),
-				copyarray(b),copyarray2(z)));
+  f->append(new drawTensorShade(*copyarray(g),fillrule,*copyarray2(p),
+				*copyarray(b),*copyarray2(z)));
 }
 
 // Clip a picture to a superpath using the given fill rule.
@@ -965,12 +965,12 @@ void tensorshade(picture *f, patharray *g, pen fillrule, penarray2 *p,
 void clip(picture *f, patharray *g, pen p, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  f->enclose(new drawClipBegin(copyarray(g),p),new drawClipEnd());
+  f->enclose(new drawClipBegin(*copyarray(g),p),new drawClipEnd());
 }
 
 void beginclip(picture *f, patharray *g, pen p)
 {
-  f->append(new drawClipBegin(copyArray(g),p,false));
+  f->append(new drawClipBegin(*copyArray(g),p,false));
 }
 
 void endclip(picture *f)
@@ -1067,7 +1067,7 @@ void _image(picture *f, realarray2 *data, pair initial, pair final,
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
-  f->append(new drawImage(copyarray2(data),copyarray(palette),
+  f->append(new drawImage(*copyarray2(data),*copyarray(palette),
 			  t*matrix(initial,final)));
 }
 
@@ -1075,7 +1075,7 @@ void _image(picture *f, penarray2 *data, pair initial, pair final,
 	    transform t=identity, bool copy=true)
 {
   array *(*copyarray2)(array *a)=copy ? copyArray2: nop;
-  f->append(new drawImage(copyarray2(data),NULL,t*matrix(initial,final)));
+  f->append(new drawImage(*copyarray2(data),t*matrix(initial,final)));
 }
 
 string nativeformat()

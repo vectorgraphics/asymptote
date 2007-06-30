@@ -21,7 +21,7 @@ public:
       reportError("cannot clip to non-cyclic path");
   }
   
-  drawClipBegin(vm::array *src, pen pentype, bool gsave=true)
+  drawClipBegin(const vm::array& src, pen pentype, bool gsave=true)
     : drawSuperPathPenBase(src,pentype), gsave(gsave) {
     for(size_t i=0; i < size; i++)
       if(!cyclic()) noncyclic();
@@ -70,5 +70,7 @@ public:
 };
 
 }
+
+GC_DECLARE_PTRFREE(camp::drawClipBegin);
 
 #endif

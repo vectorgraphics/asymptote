@@ -141,19 +141,21 @@ public:
     }
   }
   
-  void latticeshade(vm::array *a, const bbox& b);
+  void latticeshade(const vm::array& a, const bbox& b);
   
   void gradientshade(bool axial, const ColorSpace& colorspace,
 		     const pen& pena, const pair& a, double ra,
 		     const pen& penb, const pair& b, double rb);
   
-  void gouraudshade(vm::array *pens, vm::array *vertices, vm::array *edges);
-  void tensorshade(vm::array *pens, vm::array *boundaries, vm::array *z);
+  void gouraudshade(const vm::array& pens, const vm::array& vertices,
+		    const vm::array& edges);
+  void tensorshade(const vm::array& pens, const vm::array& boundaries,
+		   const vm::array& z);
 
   void imageheader(double width, double height, ColorSpace colorspace);
   
-  void image(vm::array *a, vm::array *p);
-  void image(vm::array *a);
+  void image(const vm::array& a, const vm::array& p);
+  void image(const vm::array& a);
 
   void gsave(bool tex=false) {
     if(pdf) *out << "q";
@@ -196,16 +198,16 @@ public:
   }
 
   // Determine shading and image transparency based on first pen.
-  void setfirstpen(vm::array *pens) {
-    if(pens->size() > 0) {
+  void setfirstpen(const vm::array& pens) {
+    if(pens.size() > 0) {
       pen *p=vm::read<pen *>(pens,0);
       setpen(*p);
     }
   }
   
-  ColorSpace maxcolorspace(vm::array *pens) {
+  ColorSpace maxcolorspace(const vm::array& pens) {
     int colorspace=0;
-    size_t size=pens->size();
+    size_t size=pens.size();
     for(size_t i=0; i < size; i++) {
       pen *p=vm::read<pen *>(pens,i);
       p->convert();
@@ -214,12 +216,12 @@ public:
     return (ColorSpace) colorspace;
   }
   
-  ColorSpace maxcolorspace2(vm::array *penarray) {
+  ColorSpace maxcolorspace2(const vm::array& penarray) {
     int colorspace=0;
-    size_t size=penarray->size();
+    size_t size=penarray.size();
     for(size_t i=0; i < size; i++)
       colorspace=max(colorspace,
-		     (int) maxcolorspace(vm::read<vm::array*>(penarray,i)));
+		     (int) maxcolorspace(vm::read<vm::array>(penarray,i)));
     return (ColorSpace) colorspace;
   }
 

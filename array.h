@@ -18,6 +18,8 @@ namespace vm {
 class array : public mem::vector<item> {
 bool cycle;  
 public:
+  array() {}
+  
   array(size_t n)
     : mem::vector<item>(n), cycle(false)
   {}
@@ -35,7 +37,7 @@ public:
   }
 
   template <typename T>
-  T read(size_t i)
+  T read(size_t i) const
   {
     return get<T>((*this)[i]);
   }
@@ -44,7 +46,7 @@ public:
     cycle=b;
   }
   
-  bool cyclic() {
+  bool cyclic() const {
     return cycle;
   }
 };
@@ -56,7 +58,7 @@ inline T read(array *a, size_t i)
 }
 
 template <typename T>
-inline T read(array &a, size_t i)
+inline T read(const array &a, size_t i)
 {
   return a.array::read<T>(i);
 }

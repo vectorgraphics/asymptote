@@ -30,4 +30,6 @@ public:
 
 }
 
+GC_DECLARE_PTRFREE(camp::drawGrestore);
+
 #endif

@@ -32,4 +32,7 @@ public:
 
 }
 
+GC_DECLARE_PTRFREE(camp::drawBegin);
+GC_DECLARE_PTRFREE(camp::drawEnd);
+
 #endif

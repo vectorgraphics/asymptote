@@ -19,7 +19,7 @@ public:
       reportError("non-cyclic path cannot be filled");
   }
   
-  drawFill(vm::array *src, pen pentype)
+  drawFill(const vm::array& src, pen pentype)
     : drawSuperPathPenBase(src,pentype) {
     if(!cyclic()) noncyclic();
   }
@@ -42,7 +42,7 @@ public:
   
 class drawShade : public drawFill {
 public:  
-  drawShade(vm::array *src, pen pentype)
+  drawShade(const vm::array& src, pen pentype)
     : drawFill(src,pentype) {}
 
   virtual void shade(psfile *out)=0;
@@ -55,9 +55,9 @@ public:
   
 class drawLatticeShade : public drawShade {
 protected:
-  vm::array *pens;
+  vm::array pens;
 public:  
-  drawLatticeShade(vm::array *src, pen pentype, vm::array *pens)
+  drawLatticeShade(const vm::array& src, pen pentype, const vm::array& pens)
     : drawShade(src,pentype), pens(pens) {}
   
   void palette(psfile *out) {
@@ -78,7 +78,7 @@ protected:
   pair b;
   ColorSpace colorspace;
 public:  
-  drawAxialShade(vm::array *src, pen pentype, pair a, pen penb, pair b) 
+  drawAxialShade(const vm::array& src, pen pentype, pair a, pen penb, pair b) 
     : drawShade(src,pentype), a(a), penb(penb), b(b) {}
   
   void palette(psfile *out);
@@ -95,7 +95,7 @@ protected:
   double ra;
   double rb;
 public:
-  drawRadialShade(vm::array *src,
+  drawRadialShade(const vm::array& src,
 	   pen pentype, pair a, double ra, pen penb, pair b, double rb)
     : drawAxialShade(src,pentype,a,penb,b), ra(ra), rb(rb) {}
   
@@ -108,10 +108,10 @@ public:
   
 class drawGouraudShade : public drawShade {
 protected:
-  vm::array *pens,*vertices,*edges;
+  vm::array pens,vertices,edges;
 public:  
-  drawGouraudShade(vm::array *src, pen pentype, vm::array *pens,
-		   vm::array *vertices, vm::array *edges)
+  drawGouraudShade(const vm::array& src, pen pentype, const vm::array& pens,
+		   const vm::array& vertices, const vm::array& edges)
     : drawShade(src,pentype), pens(pens), vertices(vertices), edges(edges) {}
   
   void palette(psfile *out) {
@@ -127,10 +127,10 @@ public:
   
 class drawTensorShade : public drawShade {
 protected:
-  vm::array *pens,*boundaries,*z;
+  vm::array pens,boundaries,z;
 public:  
-  drawTensorShade(vm::array *src, pen pentype, vm::array *pens,
-		  vm::array *boundaries, vm::array *z)
+  drawTensorShade(const vm::array& src, pen pentype, const vm::array& pens,
+		  const vm::array& boundaries, const vm::array& z)
     : drawShade(src,pentype), pens(pens), boundaries(boundaries), z(z) {}
   
   void palette(psfile *out) {
@@ -145,5 +145,13 @@ public:
 };
   
 }
+
+GC_DECLARE_PTRFREE(camp::drawFill);
+GC_DECLARE_PTRFREE(camp::drawShade);
+GC_DECLARE_PTRFREE(camp::drawLatticeShade);
+GC_DECLARE_PTRFREE(camp::drawAxialShade);
+GC_DECLARE_PTRFREE(camp::drawRadialShade);
+GC_DECLARE_PTRFREE(camp::drawGouraudShade);
+GC_DECLARE_PTRFREE(camp::drawTensorShade);
 
 #endif
