@@ -225,11 +225,10 @@ void forStm::trans(coenv &e)
 
 void extendedForStm::prettyprint(ostream &out, int indent)
 {
-  prettyname(out,"extendedForStm",indent);
-
+  prettyindent(out, indent);
+  out << "extendedForStm: '" << *var << "'\n";
 
   start->prettyprint(out, indent+1);
-  var->prettyprint(out, indent+1);
   set->prettyprint(out, indent+1);
   body->prettyprint(out, indent+1);
 }
@@ -256,7 +255,7 @@ void extendedForStm::trans(coenv &e) {
 
   // { start var=a[i]; body }
   block b(pos);
-  decid dec2(pos, var, 
+  decid dec2(pos, new decidstart(pos, var), 
                   new subscriptExp(pos, new nameExp(pos, a),
                                        new nameExp(pos, i)));
   b.add(new vardec(pos, start, &dec2));

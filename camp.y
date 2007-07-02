@@ -624,8 +624,8 @@ stm:
                    { $$ = new doStm($1, $2, $5); }
 | FOR '(' forinit ';' fortest ';' forupdate ')' stm
                    { $$ = new forStm($1, $3, $5, $7, $9); }
-| FOR '(' type decidstart ':' exp ')' stm
-                   { $$ = new extendedForStm($1, $3, $4, $6, $8); }
+| FOR '(' type ID ':' exp ')' stm
+                   { $$ = new extendedForStm($1, $3, $4.sym, $6, $8); }
 | BREAK ';'        { $$ = new breakStm($1); }
 | CONTINUE ';'     { $$ = new continueStm($1); }
 | RETURN_ ';'       { $$ = new returnStm($1); }
