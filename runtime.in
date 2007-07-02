@@ -320,29 +320,22 @@ array *copyArray3(array *a)
   return c;
 }
 
-double **copyArray2C(array *a, bool square=true)
+double *copyArray2C(array *a, bool square=true)
 {
-  size_t size=checkArray(a);
-  size_t m=((square || size == 0) ? size : read<array*>(a,0)->size());
-  double **c=new double* [size];
-  for(size_t i=0; i < size; i++) {
+  size_t n=checkArray(a);
+  size_t m=((square || n == 0) ? n : read<array*>(a,0)->size());
+  double *c=new double[n*m];
+  for(size_t i=0; i < n; i++) {
     array *ai=read<array*>(a,i);
     size_t aisize=checkArray(ai);
     if(aisize == m) {
-      double *ci=c[i]=new double [aisize];
-      for(size_t j=0; j < aisize; j++) 
+      double *ci=c+i*m;
+      for(size_t j=0; j < m; j++) 
 	ci[j]=read<double>(ai,j);
     } else
       error(square ? "matrix must be square" : "matrix must be rectangular");
   }
   return c;
-}
-
-void deleteArray2C(double **a, size_t n)
-{
-  for(size_t i=0; i < n; i++)
-    delete[] a[i];
-  delete a;
 }
 
 static const char *incommensurate="Incommensurate matrices";
@@ -389,13 +382,13 @@ void checkSquare(array *a)
 
 // Crout's algorithm for computing the LU decomposition of a square matrix.
 // cf. routine ludcmp (Press et al.,  Numerical Recipes, 1991).
-int LUdecompose(double **a, size_t n, size_t* index, bool warn=true)
+int LUdecompose(double *a, size_t n, size_t* index, bool warn=true)
 {
   double *vv=new double[n];
   int swap=1;
   for(size_t i=0; i < n; ++i) {
     double big=0.0;
-    double *ai=a[i];
+    double *ai=a+i*n;
     for(size_t j=0; j < n; ++j) {
       double temp=fabs(ai[j]);
       if(temp > big) big=temp;
@@ -409,20 +402,20 @@ int LUdecompose(double **a, size_t n, size_t* index, bool warn=true)
   }
   for(size_t j=0; j < n; ++j) {
     for(size_t i=0; i < j; ++i) {
-      double *ai=a[i];
+      double *ai=a+i*n;
       double sum=ai[j];
       for(size_t k=0; k < i; ++k) {
-	sum -= ai[k]*a[k][j];
+	sum -= ai[k]*a[k*n+j];
       }
       ai[j]=sum;
     }
     double big=0.0;
     size_t imax=j;
     for(size_t i=j; i < n; ++i) {
-      double *ai=a[i];
+      double *ai=a+i*n;
       double sum=ai[j];
       for(size_t k=0; k < j; ++k)
-	sum -= ai[k]*a[k][j];
+	sum -= ai[k]*a[k*n+j];
       ai[j]=sum;
       double temp=vv[i]*fabs(sum);
       if(temp >= big) {
@@ -430,8 +423,8 @@ int LUdecompose(double **a, size_t n, size_t* index, bool warn=true)
 	imax=i;
       }
     }
-    double *aj=a[j];
-    double *aimax=a[imax];
+    double *aj=a+j*n;
+    double *aimax=a+imax*n;
     if(j != imax) {
       for(size_t k=0; k < n; ++k) {
 	double temp=aimax[k];
@@ -441,7 +434,8 @@ int LUdecompose(double **a, size_t n, size_t* index, bool warn=true)
       swap *= -1;
       vv[imax]=vv[j];
     }
-    index[j]=imax;
+    if(index) 
+      index[j]=imax;
     if(j != n) {
       double denom=aj[j];
       if(denom == 0.0) {
@@ -450,7 +444,7 @@ int LUdecompose(double **a, size_t n, size_t* index, bool warn=true)
 	else return 0;
       }
       for(size_t i=j+1; i < n; ++i)
-	a[i][j] /= denom;
+	a[i*n+j] /= denom;
     }
   }
   delete[] vv;
@@ -3561,12 +3555,12 @@ realarray2 *inverse(realarray2 *a)
 // solution x, where a is an n x n matrix and b is an array of length n.
 realarray *solve(realarray2 *a, realarray *b)
 {
-  real **A=copyArray2C(a);
   size_t n=a->size();
   
   array *x=new array(n);
   if(n == 0) return x;
   
+  real *A=copyArray2C(a);
   real *B=copyArrayC(b);
   size_t m=b->size();
   if(m != n) error(incommensurate);  
@@ -3578,7 +3572,7 @@ realarray *solve(realarray2 *a, realarray *b)
     size_t ip=index[i];
     real sum=B[ip];
     B[ip]=B[i];
-    real *Ai=A[i];
+    real *Ai=A+i*n;
     for(size_t j=0; j < i; ++j)
       sum -= Ai[j]*B[j];
     B[i]=sum;
@@ -3587,7 +3581,7 @@ realarray *solve(realarray2 *a, realarray *b)
   for(size_t i=n; i > 0;) {
     --i;
     real sum=B[i];
-    real *Ai=A[i];
+    real *Ai=A+i*n;
     for(size_t j=i+1; j < n; ++j)
       sum -= Ai[j]*B[j];
     B[i]=sum/Ai[i];
@@ -3598,7 +3592,7 @@ realarray *solve(realarray2 *a, realarray *b)
 
   delete[] index;
   delete[] B;
-  deleteArray2C(A,n);
+  delete[] A;
   
   return x;
 }
@@ -3607,46 +3601,49 @@ realarray *solve(realarray2 *a, realarray *b)
 // solution x, where a is an n x n matrix and b is an n x m matrix.
 realarray2 *solve(realarray2 *a, realarray2 *b)
 {
-  real **A=copyArray2C(a);
   size_t n=a->size();
   
   array *x=new array(n);
   if(n == 0) return x;
   
-  real **B=copyArray2C(b,false);
   if(b->size() != n) error(incommensurate);  
   size_t m=read<array*>(b,0)->size();
+  
+  real *A=copyArray2C(a);
+  real *B=copyArray2C(b,false);
   
   size_t *index=new size_t[n];
   LUdecompose(A,n,index);
 
   for(size_t i=0; i < n; ++i) {
-    real *Ai=A[i];
-    real *Bi=B[i];
-    real *Bip=B[index[i]];
+    real *Ai=A+i*n;
+    real *Bi=B+i*m;
+    real *Bip=B+index[i]*m;
     for(size_t k=0; k < m; ++k) {
       real sum=Bip[k];
       Bip[k]=Bi[k];
-      for(size_t j=0; j < i; ++j)
-	sum -= Ai[j]*B[j][k];
+      size_t jk=k;
+      for(size_t j=0; j < i; ++j, jk += m)
+	sum -= Ai[j]*B[jk];
       Bi[k]=sum;
     }
   }
   
   for(size_t i=n; i > 0;) {
     --i;
-    real *Ai=A[i];
-    real *Bi=B[i];
+    real *Ai=A+i*n;
+    real *Bi=B+i*m;
     for(size_t k=0; k < m; ++k) {
       real sum=Bi[k];
-      for(size_t j=i+1; j < n; ++j)
-	sum -= Ai[j]*B[j][k];
+      size_t jk=(i+1)*m+k;
+      for(size_t j=i+1; j < n; ++j, jk += m)
+	sum -= Ai[j]*B[jk];
       Bi[k]=sum/Ai[i];
     }
   }
   
   for(size_t i=0; i < n; ++i) {
-    real *Bi=B[i];
+    real *Bi=B+i*m;
     array *xi=new array(m);
     (*x)[i]=xi;
     for(size_t j=0; j < m; ++j)
@@ -3654,8 +3651,8 @@ realarray2 *solve(realarray2 *a, realarray2 *b)
   }
     
   delete[] index;
-  deleteArray2C(B,n);
-  deleteArray2C(A,n);
+  delete[] B;
+  delete[] A;
   
   return x;
 }
@@ -3663,15 +3660,15 @@ realarray2 *solve(realarray2 *a, realarray2 *b)
 // Compute the determinant of an n x n matrix.
 real determinant(realarray2 *a)
 {
-  real **A=copyArray2C(a);
+  real *A=copyArray2C(a);
   size_t n=a->size();
   
-  size_t *index=new size_t[n];
-  real det=LUdecompose(A,n,index,false);
-  for(size_t i=0; i < n; ++i) det *= A[i][i];
+  real det=LUdecompose(A,n,NULL,false);
+  size_t n1=n+1;
+  for(size_t i=0; i < n; ++i)
+    det *= A[i*n1];
   
-  delete[] index;
-  deleteArray2C(A,n);
+  delete[] A;
   
   return det;
 }
@@ -3685,9 +3682,8 @@ realarray *Operator *(realarray2 *a, realarray *b)
   for(size_t i=0; i < n; ++i) {
     array *ai=read<array*>(a,i);
     real sum=0.0;
-    for(size_t j=0; j < n; ++j) {
+    for(size_t j=0; j < n; ++j)
       sum += read<real>(ai,j)*B[j];
-    }
     (*c)[i]=sum;
   }
   delete[] B;
@@ -3725,23 +3721,24 @@ realarray2 *Operator *(realarray2 *a, realarray2 *b)
     
   array *c=new array(n);
 
-  real **A=copyArray2C(a,false);
-  real **B=copyArray2C(b,false);
+  real *A=copyArray2C(a,false);
+  real *B=copyArray2C(b,false);
 
   for(size_t i=0; i < n; ++i) {
-    real *Ai=A[i];
+    real *Ai=A+i*nb;
     array *ci=new array(nb0);
     (*c)[i]=ci;
     for(size_t j=0; j < nb0; ++j) {
       real sum=0.0;
-      for(size_t k=0; k < nb; ++k)
-        sum += Ai[k]*B[k][j];
+      size_t kj=j;
+      for(size_t k=0; k < nb; ++k, kj += nb0)
+        sum += Ai[k]*B[kj];
       (*ci)[j]=sum;
     }
   }
   
-  deleteArray2C(B,nb);
-  deleteArray2C(A,n);
+  delete[] B;
+  delete[] A;
   
   return c;
 }
