@@ -342,6 +342,7 @@ void deleteArray2C(double **a, size_t n)
 {
   for(size_t i=0; i < n; i++)
     delete[] a[i];
+  delete a;
 }
 
 static const char *incommensurate="Incommensurate matrices";
@@ -359,13 +360,6 @@ static inline void inverseDeallocate()
   delete[] pivot;
   delete[] Row;
   delete[] Col;
-}
-
-static inline void deleteArray(real **a, size_t n)
-{
-  for(size_t i=0; i < n; i++)
-    delete a[i];
-  delete a;
 }
 
 void writestring(stack *s)
@@ -3685,9 +3679,9 @@ real determinant(realarray2 *a)
 realarray *Operator *(realarray2 *a, realarray *b)
 {
   size_t n=checkArray(a);
-  real *B=copyArrayC(b);
   if(b->size() != n) error(incommensurate);
   array *c=new array(n);
+  real *B=copyArrayC(b);
   for(size_t i=0; i < n; ++i) {
     array *ai=read<array*>(a,i);
     real sum=0.0;
@@ -3704,9 +3698,9 @@ realarray *Operator *(realarray2 *a, realarray *b)
 realarray2 *multdiagonal(realarray2 *a, realarray *b)
 {
   size_t n=checkArray(a);
-  real *B=copyArrayC(b);
   if(b->size() != n) error(incommensurate);
   array *c=new array(n);
+  real *B=copyArrayC(b);
   for(size_t i=0; i < n; ++i) {
     array *ai=read<array*>(a,i);
     array *ci=new array(n);
@@ -3720,9 +3714,7 @@ realarray2 *multdiagonal(realarray2 *a, realarray *b)
 
 realarray2 *Operator *(realarray2 *a, realarray2 *b)
 {
-  real **A=copyArray2C(a,false);
   size_t n=a->size();
-  real **B=copyArray2C(b,false);
   
   size_t nb=b->size();
   size_t na0=n == 0 ? 0 : read<array*>(a,0)->size();
@@ -3732,6 +3724,10 @@ realarray2 *Operator *(realarray2 *a, realarray2 *b)
   size_t nb0=nb == 0 ? 0 : read<array*>(b,0)->size();
     
   array *c=new array(n);
+
+  real **A=copyArray2C(a,false);
+  real **B=copyArray2C(b,false);
+
   for(size_t i=0; i < n; ++i) {
     real *Ai=A[i];
     array *ci=new array(nb0);
@@ -3744,8 +3740,8 @@ realarray2 *Operator *(realarray2 *a, realarray2 *b)
     }
   }
   
-  deleteArray2C(A,n);
   deleteArray2C(B,nb);
+  deleteArray2C(A,n);
   
   return c;
 }
@@ -3848,8 +3844,8 @@ realarray *tridiagonal(realarray *a, realarray *b, realarray *c, realarray *f)
   for(size_t i=n-2; i >= 1; i--)
     u[i-1]=read<real>(u,i-1)-gamma[i-1]*read<real>(u,i)-delta[i-1]*temp;
   
-  delete[] gamma;
   delete[] delta;
+  delete[] gamma;
   
   return up;
 }
