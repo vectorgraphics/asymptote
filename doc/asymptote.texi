@@ -388,7 +388,7 @@ overridden with the configuration variable @code{psviewer}.
 The @code{PostScript} viewer should be capable of automatically
 redrawing whenever the output file is updated. The default @code{UNIX}
 @code{PostScript} viewer @code{gv} supports this (via a @code{SIGHUP}
-signal). Version @code{gv-3.6.2} or later (from
+signal). Version @code{gv-3.6.3} or later (from
 @url{http://ftp.gnu.org/gnu/gv/}) is required for interactive mode to
 work properly.
 Users of @code{ggv} will need to enable @code{Watch file} under
@@ -594,21 +594,6 @@ sure the compiled binary @code{asy} and @acronym{GUI} script @code{xasy} are in
 your path and set the configuration variable @code{dir} to point
 to the directory @code{base} (in the top level directory of the
 @code{Asymptote} source code). 
-
-A patch supplied in the @code{patches} directory fixes several bugs
-in the @code{UNIX} @code{PostScript} viewer @code{gv-3.6.2}, allowing it
-to work properly with @code{Asymptote}.
-After putting @code{gv-3.6.2} from @url{http://ftp.gnu.org/gnu/gv/}
-in the @code{Asymptote} source directory, here are the steps to install
-a properly working @code{gv} in @code{/usr/bin} (as the @code{UNIX} root
-user):
-@verbatim
-tar -zxf gv-3.6.2.tar.gz
-cd gv-3.6.2
-patch -p1 < ../patches/gv-3.6.2.patch
-./configure --prefix=/usr
-make install
-@end verbatim
 
 @node Editing modes
 @section Editing modes
