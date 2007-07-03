@@ -1522,6 +1522,7 @@ for(int i=0; i < 10; ++i) {
 @code{continue} statements just as in C/C++. It also supports the Java-style
 shorthand for iterating over all elements of an array:
 
+@anchor{array iteration}
 @verbatim
 // Iterate over an array
 int[] array={1,1,2,3,5};
@@ -1529,7 +1530,7 @@ for(int k : array) {
   write(k);
 }
 @end verbatim
-
+@noindent
 In addition, it supports many features beyond the ones found in those languages.
 
 @menu
@@ -4398,6 +4399,8 @@ array to be resized to accommodate the new element.
 One can also index an array @code{A} with an integer array @code{B}:
 the array @code{A[B]} is formed by indexing array @code{A} with
 successive elements of array @code{B}.
+A convenient Java-style shorthand exists for iterating over all elements of an
+array; see @ref{array iteration}. 
 
 The declaration
 @verbatim
