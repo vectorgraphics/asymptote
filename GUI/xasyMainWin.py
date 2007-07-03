@@ -683,6 +683,7 @@ class xasyMainWin:
     self.updateSelection()
 
   def updateSelection(self):
+    self.clearHighlight()
     theBbox = self.mainCanvas.bbox("selectedItem")
     if theBbox != None:
       self.mainCanvas.coords("outlineBox",self.mainCanvas.bbox("selectedItem"))
@@ -759,6 +760,8 @@ class xasyMainWin:
     self.clearSelection()
 
   def deleteSomething(self,ID):
+    self.clearSelection()
+    self.clearHighlight()
     if self.editor != None:
       self.editor.endEdit()
     item = self.findItem(ID)
