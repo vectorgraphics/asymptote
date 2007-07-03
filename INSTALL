@@ -4,7 +4,7 @@ gunzip asymptote-x.xx.src.tgz
 tar -xf asymptote-x.xx.src.tar
 cd asymptote-x.xx
 
-Put http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-7.0alpha9.tar.gz
+Put http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-7.0.tar.gz
 in the current directory and
 
 ./configure
