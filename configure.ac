@@ -142,7 +142,7 @@ AC_ARG_ENABLE(gc-full-debug,
 [ if test "x$ac_cv_use_gc" != "xno" ; then
     if test "x$enableval" = "xyes" ; then
        OPTIONS=$OPTIONS"-DGC_DEBUG -DGC_BACKTRACE "
-       GCOPTIONS=$GCOPTIONS"--enable-full-debug "
+       GCOPTIONS=$GCOPTIONS"--enable-gc-debug "
        AC_MSG_NOTICE([*** Enabling GC backtrace debugging; remember to make gc-clean ***])
     fi
  fi
