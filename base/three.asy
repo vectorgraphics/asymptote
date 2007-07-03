@@ -138,10 +138,11 @@ transform3 look(triple eye, triple up=Z)
 
   triple u=cross(s,f);
 
-  transform3 M=new real[][] {{ s.x,  s.y,  s.z, 0},
-                             { u.x,  u.y,  u.z, 0},
-                             {-f.x, -f.y, -f.z, 0},
-                             {   0,    0,    0, 1}};
+  transform3 M={{ s.x,  s.y,  s.z, 0},
+                { u.x,  u.y,  u.z, 0},
+                {-f.x, -f.y, -f.z, 0},
+                {   0,    0,    0, 1}};
+
   return M*shift(-eye);
 }
 
@@ -2205,8 +2206,8 @@ void aspect(projection P=currentprojection, bbox3 b,
   if(z != 0) {
     real s=L.z/z;
     scale(P,x == 0 || L.x == 0 ? 1 : s*x/L.x,y == 0 || L.y == 0 ? 1 : s*y/L.y,
-	  1);
-  } else if (y != 0) {
+          1);
+  } else if(y != 0) {
     real s=L.y/y;
     scale(P,x == 0 || L.x == 0 ? 1 : s*x/L.x,1,1);
   }
