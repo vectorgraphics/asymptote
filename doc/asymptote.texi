@@ -1520,13 +1520,13 @@ for(int i=0; i < 10; ++i) {
 @cindex @code{continue}
 @code{Asymptote} supports @code{while}, @code{do}, @code{break}, and
 @code{continue} statements just as in C/C++. It also supports the Java-style
-shorthand for iterating over elements in an array:
+shorthand for iterating over all elements of an array:
 
 @verbatim
 // Iterate over an array
 int[] array={1,1,2,3,5};
-for (int k : array) {
-  write(k+1);
+for(int k : array) {
+  write(k);
 }
 @end verbatim
 
