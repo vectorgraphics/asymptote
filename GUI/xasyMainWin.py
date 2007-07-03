@@ -25,6 +25,7 @@ from xasyCodeEditor import *
 from xasy2asy import *
 import xasyFile
 import CubicBezier
+from xasyBezierEditor import xasyBezierEditor
 from xasyGUIIcons import iconB64
 from xasyColorPicker import *
 try:
@@ -284,6 +285,9 @@ class xasyMainWin:
     self.fileToOpen = None
     self.retitle()
 
+    #set up editing
+    self.editor = None
+
     #set up the toolbar
     try:
       self.updateSelectedButton(self.toolSelectButton)
@@ -319,6 +323,7 @@ class xasyMainWin:
     #set up the paned window
     self.paneVisible = True
 
+    
     #set up the xasy item list
     self.fileItems = []
     self.propList.delete(0,END)
@@ -601,6 +606,8 @@ class xasyMainWin:
     self.selectedButton.config(relief = RAISED)
     if newB == self.toolSelectButton or self.selectedButton == self.toolSelectButton:
       self.mainCanvas.delete("highlightBox")
+    if self.editor != None:
+      self.editor.endEdit()
     if newB not in (self.toolSelectButton,self.toolMoveButton,self.toolHorizMoveButton,self.toolVertiMoveButton,self.toolRotateButton):
       self.clearSelection()
     self.selectedButton = newB
@@ -779,6 +786,10 @@ class xasyMainWin:
       if theText != None and theText != "":
         item.label.text = theText
         item.drawOnCanvas(self.mainCanvas) 
+    elif isinstance(item,xasyShape):
+      self.clearSelection()
+      self.clearHighlight()
+      self.editor = xasyBezierEditor(self,item,self.mainCanvas)
 
   def itemEditEvt(self,event):
     if not self.inDrawingMode:
@@ -846,7 +857,7 @@ class xasyMainWin:
     pass
 
   def itemHighlight(self,event):
-    if self.selectedButton == self.toolSelectButton:
+    if self.selectedButton == self.toolSelectButton and self.editor == None:
       box = self.mainCanvas.bbox(CURRENT)
       if len(self.mainCanvas.find_withtag("highlightBox"))==0:
         self.mainCanvas.create_rectangle(box,tags="highlightBox",width=2,outline="red")
@@ -856,6 +867,9 @@ class xasyMainWin:
       self.mainCanvas.tag_bind("highlightBox","<Leave>",self.itemUnHighlight)
 
   def itemUnHighlight(self,event):
+    self.clearHighlight()
+
+  def clearHighlight(self):
     self.mainCanvas.delete("highlightBox")
 
   def itemLeftDown(self,event):
@@ -960,11 +974,14 @@ class xasyMainWin:
   def canvLeftDown(self,event):
     x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
     #print "Left Mouse Down"
-    if self.selectedButton == self.toolSelectButton:
-      self.selectDragStart = (self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y))
+    if self.freeMouseDown and self.editor != None:
+      self.editor.endEdit()
+      self.editor = None
+    elif self.selectedButton == self.toolSelectButton:
+      if self.editor == None:
+        self.selectDragStart = (self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y))
       if self.freeMouseDown:
         self.clearSelection()
-        self.freeMouseDown = True
         self.dragSelecting = False
     else:
       self.startDraw(event)
@@ -985,7 +1002,7 @@ class xasyMainWin:
       self.updateSelection()
 
   def canvDrag(self,event):
-    if self.selectedButton == self.toolSelectButton:
+    if self.selectedButton == self.toolSelectButton and self.editor == None:
       self.mainCanvas.coords("outlineBox",self.selectDragStart[0],self.selectDragStart[1],self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y))
       self.showSelectionBox()
       self.dragSelecting = True
