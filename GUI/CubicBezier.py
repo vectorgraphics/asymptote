@@ -16,22 +16,6 @@ def norm(vector):
   """Return the norm of a vector"""
   return math.sqrt(vector[0]**2+vector[1]**2)
 
-def distancePointToLine(point,line0,line1):
-  #return the distance from a point to the line segment line0--line1
-  
-  #find a vector in the direction of the line
-  d = (line0[0]-line1[0],line0[1]-line1[1])
-  l = norm(d)
-  if l == 0:
-    return norm((point[0]-line0[0],point[1]-line0[1]))
-  u = (-d[1]/l,d[0]/l) #now it's perpendicular
-  v = (point[0]-line0[0],point[1]-line0[1])
-  #now find proj of v onto u
-  #proj_u v = (v.u)*u
-  dot = v[0]*u[0]+v[1]*u[1]
-  d = (dot*u[0],dot*u[1])
-  return norm(d)
-
 def splitLine(end0,end1,t):
   """Split a line at the distance t, with t in (0,1)"""
   return (end0[0]+t*(end1[0]-end0[0]),end0[1]+t*(end1[1]-end0[1]))
@@ -48,8 +32,23 @@ def splitBezier(node0,control0,control1,node1,t):
 
 def BezierWidth(node0,control0,control1,node1):
   """Find a quantity related to the distance of the controls from the node-node line"""
-  return distancePointToLine(control0,node0,node1)+distancePointToLine(control1,node0,node1)
-
+  deltax = node1[0] - node0[0]
+  deltay = node1[1] - node0[1]
+  length = norm((deltax,deltay))
+  if length == 0:
+    y1 = control0[1]-node0[1]
+    y2 = control1[1]-node0[1]
+  else:
+    cosine = deltax/length
+    sine = deltay/length
+    y1 = cosine*(control0[1]-node0[1])-sine*(control0[0]-node0[0])
+    y2 = cosine*(control1[1]-node0[1])-sine*(control1[0]-node0[0])
+  if y1*y2 >= 0:
+    #same sign
+    return max(abs(y1),abs(y2))
+  else:
+    #opposite sign
+    return abs(y1)+abs(y2)
 
 #If the above algorithm fails, this one will work, but it is far from elegant
 #def computeIntermediates(steps,node0,control0,control1,node1):
