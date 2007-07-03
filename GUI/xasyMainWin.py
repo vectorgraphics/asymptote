@@ -381,7 +381,7 @@ class xasyMainWin:
 
   def updateCanvasSize(self,left=-200,top=-200,right=200,bottom=200):
     self.parent.update_idletasks()
-    bbox = self.mainCanvas.bbox("drawn || image")
+    bbox = self.mainCanvas.bbox("drawn || image || node || precontrol || postcontrol")
     if bbox == None:
       bbox = (0,0,0,0)
     #(topleft, bottomright)
@@ -759,6 +759,8 @@ class xasyMainWin:
     self.clearSelection()
 
   def deleteSomething(self,ID):
+    if self.editor != None:
+      self.editor.endEdit()
     item = self.findItem(ID)
     if item == None:
       raise Exception,"fileList is corrupt!!!"
@@ -775,6 +777,7 @@ class xasyMainWin:
     self.clearSelection()
 
   def itemEdit(self,item):
+    self.updateSelectedButton(self.toolSelectButton)
     if isinstance(item,xasyScript):
       tl = Toplevel()
       xasyCodeEditor(tl,item.script,item.setScript)
@@ -974,12 +977,11 @@ class xasyMainWin:
   def canvLeftDown(self,event):
     x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
     #print "Left Mouse Down"
+    self.selectDragStart = (self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y))
     if self.freeMouseDown and self.editor != None:
       self.editor.endEdit()
       self.editor = None
     elif self.selectedButton == self.toolSelectButton:
-      if self.editor == None:
-        self.selectDragStart = (self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y))
       if self.freeMouseDown:
         self.clearSelection()
         self.dragSelecting = False

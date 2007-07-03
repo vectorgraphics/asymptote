@@ -5,9 +5,7 @@
 #
 from Tkinter import *
 import math
-
-def norm(vector):
-  return math.sqrt(vector[0]**2+vector[1]**2)
+from CubicBezier import *
 
 class node:
   def __init__(self,precontrol,node,postcontrol,uid,isTied = True):
@@ -26,40 +24,34 @@ class node:
       self.postcontrol = (self.postcontrol[0]+delta[0],self.postcontrol[1]+delta[1])
 
   def shiftPrecontrol(self,delta):
-    newpc = (self.precontrol[0]+delta[0],self.precontrol[1]+delta[1])
+    self.precontrol = (self.precontrol[0]+delta[0],self.precontrol[1]+delta[1])
     if self.isTied and self.postcontrol != None:
-      self.rotatePostControl(self.precontrol,newpc)
-    self.precontrol = newpc
+      self.rotatePostControl(self.precontrol)
 
   def shiftPostcontrol(self,delta):
-    newpc = (self.postcontrol[0]+delta[0],self.postcontrol[1]+delta[1])
+    self.postcontrol = (self.postcontrol[0]+delta[0],self.postcontrol[1]+delta[1])
     if self.isTied and self.precontrol != None:
-      self.rotatePrecontrol(self.postcontrol,newpc)
-    self.postcontrol = newpc
+      self.rotatePrecontrol(self.postcontrol)
 
-  def rotatePrecontrol(self,before,after):
-    deltax,deltay = after[0]-before[0],after[1]-before[1]
-    r1 = norm((self.postcontrol[0]-self.node[0],self.postcontrol[1]-self.node[1]))
-    r2 = norm((self.precontrol[0]-self.node[0],self.precontrol[1]-self.node[1]))
-    if r1==0:
-      deltax = 0
-      deltay = 0
-    else:
-      deltax = -r2*deltax/r1
-      deltay = -r2*deltay/r1
-    self.precontrol = self.precontrol[0]+deltax,self.precontrol[1]+deltay
+  def rotatePrecontrol(self,after):
+    vx,vy = after[0]-self.node[0],after[1]-self.node[1]
+    l = norm((vx,vy))
+    if l == 0:
+      return
+    m = norm((self.precontrol[0]-self.node[0],self.precontrol[1]-self.node[1]))
+    vx = -m*vx/l
+    vy = -m*vy/l
+    self.precontrol = self.node[0]+vx,self.node[1]+vy
 
-  def rotatePostControl(self,before,after):
-    deltax,deltay = after[0]-before[0],after[1]-before[1]
-    r1 = norm((self.precontrol[0]-self.node[0],self.precontrol[1]-self.node[1]))
-    r2 = norm((self.postcontrol[0]-self.node[0],self.postcontrol[1]-self.node[1]))
-    if r1==0:
-      deltax = 0
-      deltay = 0
-    else:
-      deltax = -r2*deltax/r1
-      deltay = -r2*deltay/r1
-    self.postcontrol = self.postcontrol[0]+deltax,self.postcontrol[1]+deltay
+  def rotatePostControl(self,after):
+    vx,vy = after[0]-self.node[0],after[1]-self.node[1]
+    l = norm((vx,vy))
+    if l == 0:
+      return
+    m = norm((self.postcontrol[0]-self.node[0],self.postcontrol[1]-self.node[1]))
+    vx = -m*vx/l
+    vy = -m*vy/l
+    self.postcontrol = self.node[0]+vx,self.node[1]+vy
 
   def draw(self,canvas):
     width = 3
@@ -122,6 +114,7 @@ class xasyBezierEditor:
       n.draw(self.canvas)
     self.bindNodeEvents()
     self.bindControlEvents()
+    self.parent.updateCanvasSize()
 
   def bindNodeEvents(self):
     self.canvas.tag_bind("node","<B1-Motion>",self.nodeDrag)
