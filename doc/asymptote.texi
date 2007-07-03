@@ -1511,15 +1511,26 @@ if(x == 1.0) {
 for(int i=0; i < 10; ++i) {
   write(i);
 }
+
 @end verbatim
 
 @cindex @code{while}
 @cindex @code{do}
 @cindex @code{break}
 @cindex @code{continue}
-@code{Asymptote} also supports @code{while}, @code{do}, @code{break}, and
-@code{continue} statements just as in C/C++. In addition, it supports
-many features beyond the ones found in those languages.
+@code{Asymptote} supports @code{while}, @code{do}, @code{break}, and
+@code{continue} statements just as in C/C++. It also supports the Java-style
+shorthand for iterating over elements in an array:
+
+@verbatim
+// Iterate over an array
+int[] array={1,1,2,3,5};
+for (int k : array) {
+  write(k+1);
+}
+@end verbatim
+
+In addition, it supports many features beyond the ones found in those languages.
 
 @menu
 * Data types::                  void, bool, int, real, pair, triple, string
