@@ -6,6 +6,7 @@
 from Tkinter import *
 import math
 from CubicBezier import *
+import xasy2asy
 
 class node:
   def __init__(self,precontrol,node,postcontrol,uid,isTied = True):
@@ -90,6 +91,7 @@ class xasyBezierEditor:
   def __init__(self,parent,shape,canvas):
     self.parent = parent
     self.shape = shape
+    self.transform = self.shape.transform
     self.path = self.shape.path
     self.canvas = canvas
     self.path.computeControls()
@@ -98,13 +100,20 @@ class xasyBezierEditor:
     self.nodeList = []
     for i in range(segments):
       if i == 0:
-        self.nodeList.append(node(None,self.path.nodeSet[i],self.path.controlSet[i][0],len(self.nodeList)))
+        node0 = self.transform*self.path.nodeSet[i]
+        control = self.transform*self.path.controlSet[i][0]
+        self.nodeList.append(node(None,node0,control,len(self.nodeList)))
       else:
-        self.nodeList.append(node(self.path.controlSet[i-1][1],self.path.nodeSet[i],self.path.controlSet[i][0],len(self.nodeList)))
+        node0 = self.transform*self.path.nodeSet[i]
+        precontrol = self.transform*self.path.controlSet[i-1][1]
+        postcontrol = self.transform*self.path.controlSet[i][0]
+        self.nodeList.append(node(precontrol,node0,postcontrol,len(self.nodeList)))
     if not isCyclic:
-      self.nodeList.append(node(self.path.controlSet[-1][1],self.path.nodeSet[-1],None,len(self.nodeList)))
+      node0 = self.transform*self.path.nodeSet[-1]
+      precontrol = self.transform*self.path.controlSet[-1][1]
+      self.nodeList.append(node(precontrol,node0,None,len(self.nodeList)))
     else:
-      self.nodeList[0].precontrol = self.path.controlSet[-1][1]
+      self.nodeList[0].precontrol = self.transform*self.path.controlSet[-1][1]
     self.showControls()
     self.bindNodeEvents()
     self.bindControlEvents()
@@ -176,6 +185,7 @@ class xasyBezierEditor:
     self.shape.drawOnCanvas(self.canvas)
 
   def applyChanges(self):
+    self.shape.transform = xasy2asy.asyTransform((0,0,1,0,0,1))
     for i in range(len(self.nodeList)):
       self.path.nodeSet[i] = self.nodeList[i].node
       if self.nodeList[i].postcontrol != None:
