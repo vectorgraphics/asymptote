@@ -24,6 +24,8 @@ import time
 from xasyCodeEditor import *
 from xasy2asy import *
 import xasyFile
+import xasyOptions
+import xasyOptionsDialog
 import CubicBezier
 from xasyBezierEditor import xasyBezierEditor
 from xasyGUIIcons import iconB64
@@ -101,12 +103,8 @@ class xasyMainWin:
     #the options menu
     self.optionsMenu = Menu(self.toolsMenu)
     self.toolsMenu.add_cascade(label="Options",menu=self.optionsMenu)
-    self.axesToggleState = BooleanVar()
-    self.axesToggleState.set(True)
-    self.optionsMenu.add_checkbutton(label="Show Axes",command=self.toggleAxes,var=self.axesToggleState)
-    self.gridToggleState = BooleanVar()
-    self.gridToggleState.set(False)
-    self.optionsMenu.add_checkbutton(label="Show Grid",command=self.toggleGrid,var=self.gridToggleState)
+    self.optionsMenu.add_command(label="Edit...",command=self.editOptions)
+    self.optionsMenu.add_command(label="Reset defaults",command=self.resetOptions)
 
     #the help menu
     self.helpMenu = Menu(self.mainMenu)
@@ -137,7 +135,6 @@ class xasyMainWin:
     self.toolIcons = {}
     for x in iconB64.keys():
       self.toolIcons[x] = PhotoImage(data=iconB64[x])
-
 
     self.transformLbl = Label(self.toolBar,text="",anchor=W)
     self.transformLbl.grid(row=0,column=0,columnspan=2,sticky=W)
@@ -181,7 +178,7 @@ class xasyMainWin:
     self.toolLowerButton = Button(self.toolBar,command=self.toolLowerCmd,image=self.toolIcons["lower"],state=DISABLED,relief=FLAT)
     self.toolLowerButton.grid(row=11,column=1,sticky=N+S+E+W)
 
-    Label(self.toolBar,text="",ancho=W).grid(row=11,column=0,columnspan=2,sticky=W)
+    Label(self.toolBar,text="",anchor=W).grid(row=11,column=0,columnspan=2,sticky=W)
     self.toolAsyButton = Button(self.toolBar,command=self.toolAsyCmd,image=self.toolIcons["asy"])
     self.toolAsyButton.grid(row=12,column=0,sticky=N+S+E+W)
 
@@ -210,8 +207,8 @@ class xasyMainWin:
 
     #an options bar
     self.optionsBar = Frame(self.parent,relief=FLAT,height=100)
-    Label(self.optionsBar,text="Options",anchor=W).grid(row=0,column=0)
-    Label(self.optionsBar,text="Pen Color:",anchor=E).grid(row=1,column=0)
+    Label(self.optionsBar,text="Current Pen",anchor=W).grid(row=0,column=0)
+    Label(self.optionsBar,text="Color",anchor=E).grid(row=1,column=0)
     self.penColButton = Button(self.optionsBar,text=" ",width=5,bg="black",activebackground="black",command=self.setPenColCmd)
     self.penColButton.grid(row=1,column=1)
     self.optionsBar.pack(side=BOTTOM,anchor=NW)
@@ -285,6 +282,13 @@ class xasyMainWin:
     self.fileToOpen = None
     self.retitle()
 
+    #set up the paned window
+    self.paneVisible = True
+
+    #load configuration
+    xasyOptions.load()
+    self.applyOptions()
+
     #set up editing
     self.editor = None
 
@@ -295,7 +299,6 @@ class xasyMainWin:
       self.selectedButton = self.toolSelectButton
       self.updateSelectedButton(self.toolSelectButton)
 
-
     #set up the canvas
     self.mainCanvas.delete(ALL)
     self.mainCanvas.create_rectangle(0,0,0,0,tags="outlineBox",width=0,outline="#801111",dash=(3,6))
@@ -303,27 +306,12 @@ class xasyMainWin:
     self.mainCanvas.configure(background=self.backColor)
 
     #set up drawing
-    self.tkPenColor = (0,0,0)
-    self.penColor = makeRGBfromTkColor(self.tkPenColor)
-    self.penWidth = 0.5
     self.pathInProgress = asyPath()
     self.currentIDTag = -1
     self.inDrawingMode = False
     self.freeMouseDown = True
     self.dragSelecting = False
-    try:
-      self.axesVisible = self.axesToggleState.get()
-    except:
-      self.axesVisible = True
-    try:
-      self.gridVisible = gridToggleState.get()
-    except:
-      self.gridVisible = False
 
-    #set up the paned window
-    self.paneVisible = True
-
-    
     #set up the xasy item list
     self.fileItems = []
     self.propList.delete(0,END)
@@ -343,19 +331,35 @@ class xasyMainWin:
       name = os.path.basename(name)
       self.parent.title("Xasy - %s"%name)
 
+  def applyOptions(self):
+    self.tkPenColor = xasyOptions.options['defPenColor']
+    self.penColor = makeRGBfromTkColor(self.tkPenColor)
+    self.penColButton.config(bg=self.tkPenColor,activebackground=self.tkPenColor)
+    self.penWidth = xasyOptions.options['defPenWidth']
+    self.penOptions = xasyOptions.options['defPenOptions']
+    self.gridcolor = xasyOptions.options['gridColor']
+    self.tickcolor = xasyOptions.options['tickColor']
+    self.axiscolor = xasyOptions.options['axesColor']
+    self.gridVisible = xasyOptions.options['showGrid']
+    self.gridxspace = xasyOptions.options['gridX']
+    self.gridyspace = xasyOptions.options['gridY']
+    self.axesVisible = xasyOptions.options['showAxes']
+    self.axisxspace = xasyOptions.options['axisX']
+    self.axisyspace = xasyOptions.options['axisY']
+    self.updateCanvasSize()
+
   def drawGrid(self):
     self.mainCanvas.delete("grid")
     if not self.gridVisible:
       return
     left,top,right,bottom = map(int,self.mainCanvas.cget("scrollregion").split())
-    self.gridcolor = "#eeeeee"
-    for i in range(10,right,10):
+    for i in range(0,right,self.gridxspace):
       self.mainCanvas.create_line(i,top,i,bottom,tags=("grid","vertical"),fill=self.gridcolor)
-    for i in range(-10,left,-10):
+    for i in range(-self.gridxspace,left,-self.gridxspace):
       self.mainCanvas.create_line(i,top,i,bottom,tags=("grid","vertical"),fill=self.gridcolor)
-    for i in range(-10,top,-10):
+    for i in range(-self.gridyspace,top,-self.gridyspace):
       self.mainCanvas.create_line(left,i,right,i,tags=("grid","horizontal"),fill=self.gridcolor)
-    for i in range(10,bottom,10):
+    for i in range(0,bottom,self.gridyspace):
       self.mainCanvas.create_line(left,i,right,i,tags=("grid","horizontal"),fill=self.gridcolor)
     self.mainCanvas.tag_lower("grid")
 
@@ -364,8 +368,6 @@ class xasyMainWin:
     if not self.axesVisible:
       return
     left,top,right,bottom = map(int,self.mainCanvas.cget("scrollregion").split())
-    self.axiscolor = "#cccccc"
-    self.tickcolor = "#eeeeee"
     self.mainCanvas.create_line(0,top,0,bottom,tags=("axes","yaxis"),fill=self.axiscolor)
     self.mainCanvas.create_line(left,0,right,0,tags=("axes","xaxis"),fill=self.axiscolor)
     self.mainCanvas.create_rectangle(left,top,right,bottom,tags=("axes","scrolloutline"),outline=self.axiscolor,fill="")
@@ -1027,14 +1029,6 @@ class xasyMainWin:
     pass
     #print "Right Mouse Up"
 
-  def toggleAxes(self):
-    self.axesVisible = self.axesToggleState.get()
-    self.drawAxes()
-
-  def toggleGrid(self):
-    self.gridVisible = self.gridToggleState.get()
-    self.drawGrid()
-
   def configEvt(self,event):
     self.updateCanvasSize()
     self.sizePane()
@@ -1095,3 +1089,12 @@ class xasyMainWin:
         item = None
       if item != None:
         self.itemMenuPopup(self.mainCanvas,item,event.x_root,event.y_root)
+
+  def editOptions(self):
+    xasyOptionsDialog.xasyOptionsDlg(self.parent)
+    self.applyOptions()
+
+  def resetOptions(self):
+    xasyOptions.setDefaults()
+    xasyOptions.save()
+    self.applyOptions()

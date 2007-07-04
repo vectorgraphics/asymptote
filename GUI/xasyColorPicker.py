@@ -127,9 +127,12 @@ colorLayout = [['palered',
   'Magenta',
   'Yellow',
   'Black']]
+
 def makeRGBfromTkColor(tkColor):
-  """Convert a Tk color of the for (0-255,0-255,0-255) to an asy rgb color"""
-  r = tkColor[0];g = tkColor[1]; b = tkColor[2]
+  """Convert a Tk color of the form #rrggbb to an asy rgb color"""
+  r = int('0x'+tkColor[1:3],16)
+  g = int('0x'+tkColor[3:5],16)
+  b = int('0x'+tkColor[5:7],16)
   r /= 255.0
   g /= 255.0
   b /= 255.0
@@ -195,6 +198,7 @@ class xasyColorDlg(Toplevel):
     Button(self,text="Cancel",command=self.cancel).grid(row=3,column=2,sticky=E+W)
     self.pframe.grid(row=1,column=0,columnspan=3,padx=10,pady=10)
     self.bind("<Return>",self.closeUp)
+    self.setColor(color)
   def closeUp(self,event):
     """Close the dialog forcibly"""
     self.destroy()

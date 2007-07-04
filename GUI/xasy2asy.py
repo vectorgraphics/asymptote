@@ -619,7 +619,7 @@ class xasyShape(xasyDrawnItem):
       if self.IDTag == None:
         #add ourselves to the canvas
         self.path.computeControls()
-        self.IDTag = canvas.create_line(0,0,0,0,tags = ("drawn","xasyShape"), fill = self.pen.tkColor())
+        self.IDTag = canvas.create_line(0,0,0,0,tags=("drawn","xasyShape"),fill=self.pen.tkColor(),width=self.pen.width)
         self.drawOnCanvas(canvas)
       else:
         self.path.computeControls()
@@ -644,6 +644,7 @@ class xasyShape(xasyDrawnItem):
             nodeCount += 1
             previousNode = node
         canvas.coords(self.IDTag,*pointSet)
+        canvas.itemconfigure(self.IDTag,fill=self.pen.tkColor(),width=self.pen.width)
     else:
       #first asyfy then add an image list
       pass
@@ -676,7 +677,7 @@ class xasyFilledShape(xasyShape):
       if self.IDTag == None:
         #add ourselves to the canvas
         self.path.computeControls()
-        self.IDTag = canvas.create_polygon(0,0,0,0,0,0,tags = ("drawn","xasyFilledShape"), fill = self.pen.tkColor(), outline = self.pen.tkColor())
+        self.IDTag = canvas.create_polygon(0,0,0,0,0,0,tags=("drawn","xasyFilledShape"),fill=self.pen.tkColor(),outline=self.pen.tkColor(),width=self.pen.width)
         self.drawOnCanvas(canvas)
       else:
         self.path.computeControls()
@@ -708,6 +709,7 @@ class xasyFilledShape(xasyShape):
             nodeCount += 1
             previousNode = node
         canvas.coords(self.IDTag,*pointSet)
+        canvas.itemconfigure(self.IDTag,fill=self.pen.tkColor(),outline=self.pen.tkColor(),width=self.pen.width)
     else:
       #first asyfy then add an image list
       pass
