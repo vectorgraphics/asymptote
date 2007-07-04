@@ -904,11 +904,15 @@ Set the number of line into the variable `lasy-error-ignore-number-line'."
            (asydef (lasy-asydef)))
       (save-excursion
         (beginning-of-buffer)
-        (re-search-forward "\\(.\\|\n\\)*\\\\begin{document}.*\n")
-        (write-region (concat (match-string 0) "\\begin{asydef}\n" asydef "\\end{asydef}\n") 0 FilenameTex))
-      (re-search-forward "\\\\end{asy}")
-      (re-search-backward "\\\\begin{asy}\\(\n\\|.\\)*?\\\\end{asy}")
-      (write-region (match-string 0) 0 FilenameTex t)
+        (write-region (point)
+                      (progn
+                        (re-search-forward "\\(.\\|\n\\)*\\\\begin{document}.*\n")
+                        (point)) FilenameTex)
+        (write-region (concat "\\begin{asydef}\n" asydef "\\end{asydef}\n") 0 FilenameTex t))
+      (re-search-backward "\\\\begin{asy}")
+      (write-region (point) (progn
+                              (re-search-forward "\\\\end{asy}")
+                              (point)) FilenameTex t)
       (with-temp-file FilenameTex
         (insert-file FilenameTex)
         (end-of-buffer)
@@ -931,9 +935,13 @@ Set the number of line into the variable `lasy-error-ignore-number-line'."
       (save-excursion
         (let ((Filename (asy-get-temp-file-name))
               (asydef (lasy-asydef)))
-          (re-search-forward "\\\\end{asy}")
-          (re-search-backward "\\\\begin{asy}\\(\n\\|.\\)*?\\\\end{asy}")
+          ;;           (re-search-forward "\\\\end{asy}")
+          ;;           (re-search-backward "\\\\begin{asy}\\(\n\\|.\\)*?\\\\end{asy}")
           (write-region (match-string 0) 0 Filename)
+          (re-search-backward "\\\\begin{asy}")
+          (write-region (point) (progn
+                                  (re-search-forward "\\\\end{asy}")
+                                  (point)) Filename)
           (with-temp-file Filename
             (insert-file-contents Filename)
             (beginning-of-buffer)
