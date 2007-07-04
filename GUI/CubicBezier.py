@@ -31,7 +31,7 @@ def splitBezier(node0,control0,control1,node1,t):
   return ([node0,a,d,f],[f,e,c,node1])
 
 def BezierWidth(node0,control0,control1,node1):
-  """Find a quantity related to the distance of the controls from the node-node line"""
+  """Compute the distance of the control points from the node-node axis"""
   deltax = node1[0] - node0[0]
   deltay = node1[1] - node0[1]
   length = norm((deltax,deltay))
