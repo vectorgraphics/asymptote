@@ -285,8 +285,14 @@ class xasyMainWin:
     #set up the paned window
     self.paneVisible = True
 
-    #load configuration
+    #load one-time configs
     xasyOptions.load()
+    self.tkPenColor = xasyOptions.options['defPenColor']
+    self.penColor = makeRGBfromTkColor(self.tkPenColor)
+    self.penColButton.config(bg=self.tkPenColor,activebackground=self.tkPenColor)
+    self.penWidth = xasyOptions.options['defPenWidth']
+    self.penOptions = xasyOptions.options['defPenOptions']
+    #load configuration
     self.applyOptions()
 
     #set up editing
@@ -332,11 +338,6 @@ class xasyMainWin:
       self.parent.title("Xasy - %s"%name)
 
   def applyOptions(self):
-    self.tkPenColor = xasyOptions.options['defPenColor']
-    self.penColor = makeRGBfromTkColor(self.tkPenColor)
-    self.penColButton.config(bg=self.tkPenColor,activebackground=self.tkPenColor)
-    self.penWidth = xasyOptions.options['defPenWidth']
-    self.penOptions = xasyOptions.options['defPenOptions']
     self.gridcolor = xasyOptions.options['gridColor']
     self.tickcolor = xasyOptions.options['tickColor']
     self.axiscolor = xasyOptions.options['axesColor']
