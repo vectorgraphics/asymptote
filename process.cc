@@ -304,7 +304,7 @@ public:
 			stripDir(stripExt(string(filename), suffix)))) {}
   
   block *buildTree() {
-    return filename!="" ? parser::parseFile(filename) : 0;
+    return !filename.empty() ? parser::parseFile(filename,"Loading") : 0;
   }
 
   void preRun(coenv& e, istack& s) {

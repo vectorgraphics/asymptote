@@ -65,6 +65,7 @@ string join(string dir, string file)
 // directory given in settings, and finally the global system directory.
 string locateFile(string id)
 {
+  if(id.empty()) return "";
   file_list_t filenames = mungeFileName(id);
   for (file_list_t::iterator leaf = filenames.begin();
        leaf != filenames.end();
