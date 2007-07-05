@@ -129,13 +129,18 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
   def validate(self):
     """Validate the data entered into the dialog"""
     #validate the path
+    pathOK = True
     try:
-      test = subprocess.Popen(self.ap.get(),stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+      test = subprocess.Popen([self.ap.get(),"-interactive"],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
       test.stdin.close()
       test.wait()
+      idString = test.stdout.read()
     except:
-      tkMessageBox.showerror("xasy Options","Invalid path to asy executable:\r\n"+self.ap.get()+"\r\nFile could not be executed",parent=self)
+      pathOK = False
+    if not pathOK or not idString.startswith("Welcome to Asymptote"):
+      tkMessageBox.showerror("xasy Options","Specified file does not exist or is not an Asymptote executable.\r\n"+self.ap.get(),parent=self)
       return False
+
     #validate the color
     hexdigits = '0123456789abcdef'
     if not self.validateAColor(self.pc):
