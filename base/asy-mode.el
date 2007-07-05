@@ -426,8 +426,7 @@ The keywords on list are assumed to also be present on one of the
                      (asy-protect-file-name buffer-base-name))))
         (if (buffer-modified-p) (save-buffer))
         (message "%s" asy-compile-command)
-        (asy-internal-compile asy-compile-command t t)
-        ))))
+        (asy-internal-compile asy-compile-command t t)))))
 
 (defun asy-error-message(&optional P)
   (let ((asy-last-error
@@ -436,9 +435,7 @@ The keywords on list are assumed to also be present on one of the
     (if (and asy-last-error (not (string= asy-last-error "")))
         (message (concat asy-last-error (if P "\nPress F4 to go to error" "")))
       (when (and (boundp two-mode-bool) two-mode-bool lasy-run-tex (not (zerop asy-last-compilation-code)))
-        (message "The LaTeX code may be incorrect.")
-        ))
-    ))
+        (message "The LaTeX code may be incorrect.")))))
 
 (defun asy-log-field-string(Filename Field)
   "Return field of first line of file filename.
@@ -459,8 +456,7 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
 (defun lasy-ask-visit-tem-compilation-buffer()
   "* Ask before visiting a temporary compilation buffer depending the value of `lasy-ask-about-temp-compilation-buffer'."
   (if lasy-ask-about-temp-compilation-buffer
-      (y-or-n-p "Visit temporary buffer of compilation ? ") t)
-  )
+      (y-or-n-p "Visit temporary buffer of compilation ? ") t))
 
 (defun lasy-place-cursor-to-error(Filename li co)
   (save-excursion
@@ -470,7 +466,7 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
          (replace-regexp-in-string
           "//" ":/"
           (replace-regexp-in-string "/cygdrive/" "" Filename)))) ;; Not right,
-                                        ;maybe take a look at the code of compilation-find-file
+;;;maybe take a look at the code of compilation-find-file
       (beginning-of-buffer)
       (next-line (1- (string-to-number li)))
       (setq line-err
@@ -491,66 +487,46 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
              (li_ (asy-log-field-string log-file 2))
              (co_ (asy-log-field-string log-file 3)))
         (if (and (boundp two-mode-bool) two-mode-bool) ;; Within Lasy-mode
-            (if t ;;lasy-run-tex ; lasy-mode need the compilation of file.tex
-                                        ; the error can be in Tex commands or in Asymptote commands
-                (progn
-                  (if (eq asy-compilation-buffer 'never) ;; Find error in the log file.
-                      (if li_ ;; Asy error found in the log-file
+            (progn ;; lasy-mode need the compilation of file.tex
+              ;; the error can be in Tex commands or in Asymptote commands
+              (if (eq asy-compilation-buffer 'never) ;; Find error in the log file.
+                  (if li_ ;; Asy error found in the log-file
+                      (progn
+                        (lasy-place-cursor-to-error
+                         (asy-log-field-string log-file 1) li_ co_)
+                        (asy-error-message))
+                    (message "There is an error in your LaTeX code..."))
+                (if (or running-xemacs-p (< emacs-major-version 22))
+                    (when (lasy-ask-visit-tem-compilation-buffer)
+                      (next-error arg))
+                  (let ((msg)) ;; Find error in the compilation buffer
+                    (save-excursion
+                      (set-buffer (next-error-find-buffer))
+                      (when reset
+                        (setq compilation-current-error nil))
+                      (let* ((columns compilation-error-screen-columns)
+                             (last 1)
+                             (loc (compilation-next-error (or arg 1) nil
+                                                          (or compilation-current-error
+                                                              compilation-messages-start
+                                                              (point-min))))
+                             (end-loc (nth 2 loc))
+                             (marker (point-marker)))
+                        (setq compilation-current-error (point-marker)
+                              overlay-arrow-position
+                              (if (bolp)
+                                  compilation-current-error
+                                (copy-marker (line-beginning-position)))
+                              loc (car loc)))
+                      (if (re-search-forward "^\\(.*?\\): \\(.*?\\)\\.\\(.*?\\):\\(.*\\)$" (point-max) t)
                           (progn
-                            (lasy-place-cursor-to-error
-                             (asy-log-field-string log-file 1) li_ co_)
-                            (asy-error-message))
-                        (message "There is an error in your LaTeX code..."))
-                    (if (or running-xemacs-p (< emacs-major-version 22))
-                        (when (lasy-ask-visit-tem-compilation-buffer)
-                          (next-error arg))
-                      (let ((msg)) ;; Find error in the compilation buffer
-                        (save-excursion
-                          (set-buffer (next-error-find-buffer))
-                          (when reset
-                            (setq compilation-current-error nil))
-                          (let* ((columns compilation-error-screen-columns)
-                                 (last 1)
-                                 (loc (compilation-next-error (or arg 1) nil
-                                                              (or compilation-current-error
-                                                                  compilation-messages-start
-                                                                  (point-min))))
-                                 (end-loc (nth 2 loc))
-                                 (marker (point-marker)))
-                            (setq compilation-current-error (point-marker)
-                                  overlay-arrow-position
-                                  (if (bolp)
-                                      compilation-current-error
-                                    (copy-marker (line-beginning-position)))
-                                  loc (car loc)))
-                          (if (re-search-forward "^\\(.*?\\): \\(.*?\\)\\.\\(.*?\\):\\(.*\\)$" (point-max) t)
-                              (progn
-                                (setq msg (match-string 0)
-                                      log-file (match-string 1)
-                                      li_ (match-string 2)
-                                      co_ (match-string 3)))
-                            (error "Not other errors.")))
-                        (lasy-place-cursor-to-error log-file li_ co_)
-                        (message msg)))))
-              (if li_
-                  (progn
-                    (let ((nline (- (1- (string-to-number li_)) lasy-error-ignore-number-line)))
-                      (re-search-backward "\\\\begin{asy")
-                      (if (> nline 0)
-                          (progn
-                            (next-line nline)
-                            (beginning-of-line)
-                            (forward-char (1- (string-to-number co_)))
-                            (asy-error-message))
-                        (progn
-                          (beginning-of-buffer)
-                          (re-search-forward "\\\\begin{asydef}" (point-max) t)
-                          (next-line (string-to-number li_))
-                          (beginning-of-line)
-                          (forward-char (1- (string-to-number co_)))
-                          (asy-error-message)
-                          ))))
-                (message "No error.")))
+                            (setq msg (match-string 0)
+                                  log-file (match-string 1)
+                                  li_ (match-string 2)
+                                  co_ (match-string 3)))
+                        (error "Not other errors.")))
+                    (lasy-place-cursor-to-error log-file li_ co_)
+                    (message msg)))))
           (if li_ ;;Pure asy-mode and compilation with shell-command
               (progn
                 (goto-line (string-to-number li_))
@@ -611,7 +587,6 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
       (asy-mode)
       (use-local-map widget-keymap)
       (widget-setup)
-      ;; (use-local-map nil)
       (goto-char (point-min))
       (select-window cWindow))))
 
@@ -628,14 +603,6 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
             (turn-on-font-lock)
             (column-number-mode t)
             ))
-
-;; (when running-unix-p
-;;   (add-hook 'asy-mode-hook
-;;             (lambda ()
-;;               ;; Make asy-mode work with other shells.
-;;               (make-local-variable 'shell-file-name)
-;;               (setq shell-file-name "/bin/sh"))))
-
 
 ;;;###autoload (defun lasy-mode ())
 ;;; ************************************
@@ -877,22 +844,17 @@ See `asy-insinuate-latex'."
         (re-search-backward "^[^%]* *\\\\usepackage\\[ *inline *\\]{ *asymptote *}" 0 t))
     nil))
 
-(defvar lasy-error-ignore-number-line 0)
 (defvar lasy-run-tex nil)
 (defun lasy-asydef()
-  "Return the content between the tags \begin{asydef} and \end{asydef}.
-Set the number of line into the variable `lasy-error-ignore-number-line'."
+  "Return the content between the tags \begin{asydef} and \end{asydef}."
   (save-excursion
     (if (re-search-backward "\\\\begin{asydef}" 0 t)
-        (let ((lb (line-number-at-pos)))
-          (re-search-forward "\\\\begin{asydef} *\n\\(\\(\n\\|.\\)*\\)\\\\end{asydef}" (point-max))
-          (setq lasy-error-ignore-number-line (- (- (line-number-at-pos) lb) 1))
-          (when (and (< emacs-major-version 22) (not running-xemacs-p))
-            (setq lasy-error-ignore-number-line (1- lasy-error-ignore-number-line)))
-          (match-string 1))
-      (progn
-        (setq lasy-error-ignore-number-line 0)
-        ""))))
+        (buffer-substring
+         (progn (next-line)(beginning-of-line)(point))
+         (progn (re-search-forward "\\\\end{asydef}")
+                (previous-line)(end-of-line)
+                (point)))
+      "")))
 
 (defun lasy-compile-tex()
   "Compile region between \\begin{asy}[text with backslash] and \\end{asy} passing by a reconstructed file .tex."
@@ -906,9 +868,9 @@ Set the number of line into the variable `lasy-error-ignore-number-line'."
         (beginning-of-buffer)
         (write-region (point)
                       (progn
-                        (re-search-forward "\\(.\\|\n\\)*\\\\begin{document}.*\n")
+                        (re-search-forward "\\\\begin{document}.*\n")
                         (point)) FilenameTex)
-        (write-region (concat "\\begin{asydef}\n" asydef "\\end{asydef}\n") 0 FilenameTex t))
+        (write-region (concat "\\begin{asydef}\n" asydef "\n\\end{asydef}\n") 0 FilenameTex t))
       (re-search-backward "\\\\begin{asy}")
       (write-region (point) (progn
                               (re-search-forward "\\\\end{asy}")
@@ -935,8 +897,6 @@ Set the number of line into the variable `lasy-error-ignore-number-line'."
       (save-excursion
         (let ((Filename (asy-get-temp-file-name))
               (asydef (lasy-asydef)))
-          ;;           (re-search-forward "\\\\end{asy}")
-          ;;           (re-search-backward "\\\\begin{asy}\\(\n\\|.\\)*?\\\\end{asy}")
           (write-region (match-string 0) 0 Filename)
           (re-search-backward "\\\\begin{asy}")
           (write-region (point) (progn
@@ -946,9 +906,7 @@ Set the number of line into the variable `lasy-error-ignore-number-line'."
             (insert-file-contents Filename)
             (beginning-of-buffer)
             (if (re-search-forward "\\\\begin{asy}\\[\\(.*\\)\\]" (point-max) t)
-                (progn
-                  (replace-match (concat asydef "size(" (match-string 1) ");"))
-                  (+ lasy-error-ignore-number-line 1))
+                (replace-match (concat asydef "size(" (match-string 1) ");"))
               (when (re-search-forward "\\\\begin{asy}" (point-max) t)
                 (replace-match asydef)))
             (while (re-search-forward "\\\\end{asy}" (point-max) t)
@@ -1127,6 +1085,7 @@ the parameter auto-close is not used (see `asy-internal-shell')."
           (asy-internal-shell command pass)
           (asy-error-message t))
       (progn
+        (let ((view-inhibit-help-message t))(write-region "" 0 (asy-log-filename) nil))
         (compile command))
       (asy-compilation-wait pass auto-close))))
 
@@ -1160,7 +1119,6 @@ If optional argument Force is t then force compilation."
        (b-b-n-ps (asy-protect-file-name (concat b-b-n ".ps")))
        (b-b-n-dvi (asy-protect-file-name (concat b-b-n ".dvi")))
        (b-b-n-asy (asy-protect-file-name (concat b-b-n ".asy")))
-       ;; (stderr (or (eq asy-compilation-buffer 'never) lasy-compile-tex))
        (stderr (eq asy-compilation-buffer 'never)))
     (if (or (file-newer-than-file-p
              (concat b-b-n ".tex")
