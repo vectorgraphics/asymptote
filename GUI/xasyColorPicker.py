@@ -168,7 +168,9 @@ class xasyColorDlg(Toplevel):
     self.resizable(False,False)
     self.parent = master
     self.title("Color Picker")
+    self.transient(master)
     self.focus_set()
+    self.wait_visibility()
     self.grab_set()
     self.color = self.oldColor = color
     cwidth = 120
@@ -191,11 +193,15 @@ class xasyColorDlg(Toplevel):
         rcount += 1
       ccount += 1
     self.colorList.tag_bind("preset","<Button-1>",self.setColorEvt)
-    Button(self,text="Custom color...",command=self.getCustom).grid(row=2,column=0,sticky=W)
+    Button(self,text="Custom color...",command=self.getCustom).grid(row=2,column=0,sticky=W,padx=5,pady=5)
     self.colDisp = Canvas(self,width=200,height=20,background=RGB255hex(RGBreal255(self.color)),relief=SUNKEN, bd=3)
     self.colDisp.grid(row=2,column=1,columnspan=2)
-    Button(self,text="OK",state=ACTIVE,command=self.destroy).grid(row=3,column=1,sticky=E+W)
-    Button(self,text="Cancel",command=self.cancel).grid(row=3,column=2,sticky=E+W)
+    self.rowconfigure(3,minsize=10)
+    self.columnconfigure(0,weight=1)
+    self.columnconfigure(1,weight=1)
+    self.columnconfigure(2,weight=1)
+    Button(self,text="OK",default=ACTIVE,command=self.destroy).grid(row=4,column=1,sticky=E+W,padx=5,pady=5)
+    Button(self,text="Cancel",command=self.cancel).grid(row=4,column=2,sticky=E+W,padx=5,pady=5)
     self.pframe.grid(row=1,column=0,columnspan=3,padx=10,pady=10)
     self.bind("<Return>",self.closeUp)
     self.setColor(color)
