@@ -28,7 +28,11 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
     self.ap = Entry(asyGrp)
     self.ap.insert(END,xasyOptions.options['asyPath'])
     self.ap.grid(row=0,column=1,sticky=E+W)
-
+    self.showDebug = BooleanVar()
+    self.showDebug.set(xasyOptions.options['showDebug'])
+    self.sd = Checkbutton(asyGrp,text="Show debugging info in console",var=self.showDebug)
+    self.sd.grid(row=1,column=0,columnspan=2,sticky=W)
+    
     penGrp = LabelFrame(optFrame,text="Default Pen",padx=5,pady=5)
     penGrp.grid(row=1,column=0,sticky=E+W)
     penGrp.rowconfigure(0,weight=1)
@@ -103,6 +107,7 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
 
   def apply(self):
     xasyOptions.options['asyPath'] = self.ap.get()
+    xasyOptions.options['showDebug'] = self.showDebug.get()
 
     xasyOptions.options['defPenColor'] = self.pc
     xasyOptions.options['defPenWidth'] = float(self.pw.get())

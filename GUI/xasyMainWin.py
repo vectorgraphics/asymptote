@@ -129,7 +129,7 @@ class xasyMainWin:
     self.statusBar.pack(side=BOTTOM,fill=X)
 
     #toolbar for transformation, drawing, and adjustment commands
-    self.toolBar = Frame(self.parent,relief=FLAT)
+    self.toolBar = Frame(self.parent,relief=FLAT,borderwidth=3)
 
     #let's load some images
     self.toolIcons = {}
@@ -205,12 +205,26 @@ class xasyMainWin:
       self.toolAsyButton : "Insert/Edit Asymptote code."
     }
 
-    #an options bar
-    self.optionsBar = Frame(self.parent,relief=FLAT,height=100)
-    Label(self.optionsBar,text="Current Pen",anchor=W).grid(row=0,column=0)
-    Label(self.optionsBar,text="Color",anchor=E).grid(row=1,column=0)
-    self.penColButton = Button(self.optionsBar,text=" ",width=5,bg="black",activebackground="black",command=self.setPenColCmd)
-    self.penColButton.grid(row=1,column=1)
+    #Current pen settings
+    self.optionsBar = Frame(self.parent,height=100,relief=FLAT,borderwidth=3)
+    self.penDisp = Canvas(self.optionsBar,width=100,height=25,bg="white",relief=SUNKEN,borderwidth=3)
+    self.penDisp.grid(row=0,column=0,padx=3,pady=3)
+    self.penDisp.create_line(10,25,30,10,60,20,80,10,smooth=True,tags="penDisp")
+    self.penDisp.create_text(100,30,text="x1",tags="penMag",anchor=SE,font=("times","8"))
+    self.penColButton = Button(self.optionsBar,text="Color...",width=2,command=self.setPenColCmd,relief=FLAT)
+    self.penColButton.grid(row=0,column=1,padx=3,pady=3)
+    Label(self.optionsBar,text="Width",anchor=E).grid(row=0,column=2)
+    self.penWidthEntry = Entry(self.optionsBar,width=5)
+    self.penWidthEntry.bind("<KeyRelease>",self.penWidthChanged)
+    self.penWidthEntry.bind("<FocusOut>",self.applyPenWidthEvt)
+    self.penWidthEntry.bind("<Return>",self.applyPenWidthEvt)
+    self.penWidthEntry.grid(row=0,column=3)
+    Label(self.optionsBar,text="Options",anchor=E).grid(row=0,column=4)
+    self.penOptEntry = Entry(self.optionsBar)
+    self.penOptEntry.bind("<KeyRelease>",self.penOptChanged)
+    self.penOptEntry.bind("<FocusOut>",self.applyPenOptEvt)
+    self.penOptEntry.bind("<Return>",self.applyPenOptEvt)
+    self.penOptEntry.grid(row=0,column=5)
     self.optionsBar.pack(side=BOTTOM,anchor=NW)
 
     #a paned window for the canvas and propert explorer
@@ -218,24 +232,19 @@ class xasyMainWin:
 
     #a property explorer
     self.propFrame = Frame(self.parent)
-    #self.propFrame.pack(side=RIGHT,fill=Y,expand=False)
     self.propFrame.rowconfigure(1,weight=1)
     self.propFrame.columnconfigure(0,weight=1)
     Label(self.propFrame,text="Item List").grid(row=0,column=0,columnspan=2)
     self.itemScroll = Scrollbar(self.propFrame,orient=VERTICAL)
-    #self.itemHScroll = Scrollbar(self.propFrame,orient=HORIZONTAL)
-    self.propList = Listbox(self.propFrame, yscrollcommand=self.itemScroll.set)#, xscrollcommand=self.itemHScroll.set)
+    self.propList = Listbox(self.propFrame, yscrollcommand=self.itemScroll.set)
     self.itemScroll.config(command=self.propList.yview)
-    #self.itemHScroll.config(command=self.propList.xview)
     self.itemScroll.grid(row=1,column=1,sticky=N+S)
-    #self.itemHScroll.grid(row=2,column=0,stick=E+W)
     self.propList.grid(row=1,column=0,sticky=N+S+E+W)
     self.propList.bind("<Double-Button-1>",self.propSelect)
     self.propList.bind("<Button-3>",self.itemPropMenuPopup)
 
     #the canvas's frame
-    self.canvFrame = Frame(self.parent)
-    #self.canvFrame.pack(side=RIGHT,fill=BOTH,expand=True)
+    self.canvFrame = Frame(self.parent,relief=FLAT,borderwidth=0)
     self.canvFrame.rowconfigure(0,weight=1)
     self.canvFrame.columnconfigure(0,weight=1)
     self.canvVScroll = Scrollbar(self.canvFrame,orient=VERTICAL)
@@ -249,8 +258,9 @@ class xasyMainWin:
     self.windowPane.add(self.propFrame)
     self.windowPane.paneconfigure(self.propFrame,minsize=50,sticky=N+S+E+W)
     self.windowPane.bind("<Double-Button-1>",self.togglePaneEvt)
+
     #the highly important canvas!
-    self.mainCanvas = Canvas(self.canvFrame,relief=SUNKEN,background="white",borderwidth=0,
+    self.mainCanvas = Canvas(self.canvFrame,relief=SUNKEN,background="white",borderwidth=3,
                   highlightthickness=0,closeenough=1.0,yscrollcommand=self.canvVScroll.set,
                   xscrollcommand=self.canvHScroll.set)
     self.mainCanvas.grid(row=0,column=0,sticky=N+S+E+W)
@@ -285,14 +295,24 @@ class xasyMainWin:
     #set up the paned window
     self.paneVisible = True
 
+    #setup the pen entries
+    self.pendingPenWidthChange = None
+    self.pendingPenOptChange = None
+
     #load one-time configs
     xasyOptions.load()
     self.tkPenColor = xasyOptions.options['defPenColor']
     self.penColor = makeRGBfromTkColor(self.tkPenColor)
-    self.penColButton.config(bg=self.tkPenColor,activebackground=self.tkPenColor)
+    self.penColButton.config(activeforeground=self.tkPenColor,activebackground=self.tkPenColor)
     self.penWidth = xasyOptions.options['defPenWidth']
+    self.penWidthEntry.select_range(0,END)
+    self.penWidthEntry.insert(END,str(self.penWidth))
     self.penOptions = xasyOptions.options['defPenOptions']
-    #load configuration
+    self.penOptEntry.select_range(0,END)
+    self.penOptEntry.insert(END,str(self.penOptions))
+    self.showCurrentPen()
+
+    #load modifiable configs
     self.applyOptions()
 
     #set up editing
@@ -348,6 +368,21 @@ class xasyMainWin:
     self.axisxspace = xasyOptions.options['axisX']
     self.axisyspace = xasyOptions.options['axisY']
     self.updateCanvasSize()
+    #test the asyProcess
+    global asy
+    global quickAsyFailed
+    asy.restart()
+    startQuickAsy()
+    while asy.failed or quickAsyFailed:
+      if tkMessageBox.askyesno("Xasy Error","Asymptote could not be executed.\r\nEdit settings?"):
+        asy.process.stdin.close()
+        asy.process.wait()
+        xasyOptionsDialog.xasyOptionsDlg(self.parent)
+        xasyOptions.save()
+        asy.restart()
+        startQuickAsy()
+      else:
+        self.destroy()
 
   def drawGrid(self):
     self.mainCanvas.delete("grid")
@@ -371,7 +406,7 @@ class xasyMainWin:
     left,top,right,bottom = map(int,self.mainCanvas.cget("scrollregion").split())
     self.mainCanvas.create_line(0,top,0,bottom,tags=("axes","yaxis"),fill=self.axiscolor)
     self.mainCanvas.create_line(left,0,right,0,tags=("axes","xaxis"),fill=self.axiscolor)
-    self.mainCanvas.create_rectangle(left,top,right,bottom,tags=("axes","scrolloutline"),outline=self.axiscolor,fill="")
+    #self.mainCanvas.create_rectangle(left,top,right,bottom,tags=("axes","scrolloutline"),outline=self.axiscolor,fill="")
     for i in range(10,right,10):
       self.mainCanvas.create_line(i,-5,i,5,tags=("axes","xaxis-ticks"),fill=self.tickcolor)
     for i in range(-10,left,-10):
@@ -421,7 +456,7 @@ class xasyMainWin:
     self.mainCanvas.tag_bind(tagorID,"<Button-3>",self.itemCanvasMenuPopup)
 
   def bindItemEvents(self,item):
-    if isinstance(item,xasyScript):
+    if isinstance(item,xasyScript) or isinstance(item,xasyText):
       for image in item.imageList:
         self.bindEvents(image.IDTag)
     else:
@@ -661,7 +696,8 @@ class xasyMainWin:
   def setPenColCmd(self):
     self.penColor = xasyColorDlg(self.parent).getColor(self.penColor)
     self.tkPenColor = RGB255hex(RGBreal255(self.penColor))
-    self.penColButton.config(bg=self.tkPenColor,activebackground=self.tkPenColor)
+    self.penColButton.config(activeforeground=self.tkPenColor,activebackground=self.tkPenColor)
+    self.showCurrentPen()
 
   def clearSelection(self):
     self.hideSelectionBox()
@@ -701,7 +737,7 @@ class xasyMainWin:
 
   def selectItem(self,item):
     self.clearSelection()
-    if isinstance(item,xasyScript):
+    if isinstance(item,xasyScript) or isinstance(item,xasyText):
       for image in item.imageList:
         self.setSelection(image.IDTag)
     else:
@@ -717,7 +753,7 @@ class xasyMainWin:
 
   def findItem(self,ID):
     for item in self.fileItems:
-      if isinstance(item,xasyScript):
+      if isinstance(item,xasyScript) or isinstance(item,xasyText):
         for image in item.imageList:
           if image.IDTag == ID:
             return item
@@ -738,11 +774,11 @@ class xasyMainWin:
   def transformSomething(self,ID,transform):
     item = self.findItem(ID)
     if item == None:
-      raise Exception,"fileList is corrupt!!!"
-    if isinstance(item,xasyScript):
+      raise Exception,"fileList is corrupt!"
+    if isinstance(item,xasyText) or isinstance(item,xasyScript):
       index = self.findItemImageIndex(item,ID)
       if index == None:
-        raise Exception,"imageList is corrupt!!!"
+        raise Exception,"imageList is corrupt!"
       else:
         try:
           original = item.transform[index]
@@ -753,7 +789,7 @@ class xasyMainWin:
       item.transform = transform*item.transform
 
   def deleteItem(self,item):
-    if isinstance(item,xasyScript):
+    if isinstance(item,xasyScript) or isinstance(item,xasyText):
       for image in item.imageList:
         self.mainCanvas.delete(image.IDTag)
     else:
@@ -769,11 +805,11 @@ class xasyMainWin:
       self.editor.endEdit()
     item = self.findItem(ID)
     if item == None:
-      raise Exception,"fileList is corrupt!!!"
+      raise Exception,"fileList is corrupt!"
     if isinstance(item,xasyScript):
       index = self.findItemImageIndex(item,ID)
       if index == None:
-        raise Exception,"imageList is corrupt!!!"
+        raise Exception,"imageList is corrupt!"
       else:
         item.transform[index] = asyTransform((0,0,0,0,0,0))
     else:
@@ -785,20 +821,23 @@ class xasyMainWin:
   def itemEdit(self,item):
     self.updateSelectedButton(self.toolSelectButton)
     if isinstance(item,xasyScript):
-      tl = Toplevel()
-      xasyCodeEditor(tl,item.script,item.setScript)
-      self.parent.wait_window(tl)
-      item.drawOnCanvas(self.mainCanvas)
-      self.bindItemEvents(item)
+      oldText = item.script
+      newText = xasyCodeEditor(self.parent,item.script).getText()
+      if newText != oldText:
+        item.setScript(newText)
+        item.drawOnCanvas(self.mainCanvas)
+        self.bindItemEvents(item)
     elif isinstance(item,xasyText):
-      theText = tkSimpleDialog.askstring(title="Xasy - Text",prompt="Enter text to display:",initialvalue=item.label.text,parent=self.parent)		
+      theText = tkSimpleDialog.askstring(title="Xasy - Text",prompt="Enter text to display:",initialvalue=item.label.text,parent=self.parent)
       if theText != None and theText != "":
         item.label.text = theText
         item.drawOnCanvas(self.mainCanvas) 
+        self.bindItemEvents(item)
     elif isinstance(item,xasyShape):
       self.clearSelection()
       self.clearHighlight()
       self.editor = xasyBezierEditor(self,item,self.mainCanvas)
+    self.updateSelection()
 
   def itemEditEvt(self,event):
     if not self.inDrawingMode:
@@ -911,15 +950,14 @@ class xasyMainWin:
     elif self.selectedButton == self.toolTextButton:
       theText = tkSimpleDialog.askstring(title="Xasy - Text",prompt="Enter text to display:",initialvalue="",parent=self.parent)		
       if theText != None and theText != "":
-        theItem = xasyText(theText,(x,-y))
+        theItem = xasyText(theText,(x,-y),asyPen(self.penColor,self.penWidth,self.penOptions))
         theItem.drawOnCanvas(self.mainCanvas)
         self.bindItemEvents(theItem)
         self.addItemToFile(theItem)
     elif self.selectedButton == self.toolAsyButton:
       self.addItemToFile(xasyScript())
-      tl = Toplevel(self.parent)
-      xasyCodeEditor(tl,"// enter your code here",self.fileItems[-1].setScript)
-      self.parent.wait_window(tl)
+      text = xasyCodeEditor(self.parent,"// enter your code here").getText()
+      self.fileItems[-1].setScript(text)
       self.fileItems[-1].drawOnCanvas(self.mainCanvas)
       self.bindItemEvents(self.fileItems[-1])
     elif self.selectedButton in [self.toolDrawLinesButton,self.toolDrawBeziButton,self.toolDrawPolyButton,self.toolDrawShapeButton,self.toolFillPolyButton,self.toolFillShapeButton]:
@@ -943,9 +981,13 @@ class xasyMainWin:
         elif self.selectedButton == self.toolDrawShapeButton or self.selectedButton == self.toolFillShapeButton:
           path.initFromNodeList([(x,-y),(x,-y),'cycle'],['..','..'])
         if self.selectedButton in [self.toolDrawLinesButton,self.toolDrawBeziButton,self.toolDrawPolyButton,self.toolDrawShapeButton]:
-          self.itemBeingDrawn = xasyShape(path,pen=asyPen(self.penColor,self.penWidth))
+          self.itemBeingDrawn = xasyShape(path,pen=asyPen(self.penColor,self.penWidth,self.penOptions))
         else:
-          self.itemBeingDrawn = xasyFilledShape(path,pen=asyPen(self.penColor,self.penWidth,"evenodd"))
+          if self.penOptions.find("fillrule") != -1 or self.penOptions.find("evenodd") != -1 or self.penOptions.find("zerowinding") != -1:
+            options = self.penOptions
+          else:
+            options = "evenodd"
+          self.itemBeingDrawn = xasyFilledShape(path,pen=asyPen(self.penColor,self.penWidth,options))
         self.itemBeingDrawn.drawOnCanvas(self.mainCanvas)
         self.bindItemEvents(self.itemBeingDrawn)
         self.mainCanvas.bind("<Motion>",self.extendDraw)
@@ -1099,3 +1141,51 @@ class xasyMainWin:
     xasyOptions.setDefaults()
     xasyOptions.save()
     self.applyOptions()
+
+  def applyPenWidth(self):
+    self.pendingPenWidthChange = None
+    if self.validatePenWidth():
+      self.penWidth = float(self.penWidthEntry.get())
+      self.showCurrentPen()
+
+  def validatePenWidth(self):
+    text = self.penWidthEntry.get()
+    try:
+      width = float(text)
+      return True
+    except:
+      return False
+
+  def showCurrentPen(self):
+    mag = 1
+    width = self.penWidth
+    while width > 10:
+      width /= 2
+      mag *= 2
+    self.penDisp.itemconfigure("penDisp",width=width,fill=self.tkPenColor)
+    self.penDisp.itemconfigure("penMag",text="x%d"%mag)
+
+  def applyPenWidthEvt(self,event):
+    self.applyPenWidth()
+
+  def penWidthChanged(self,event):
+    if self.pendingPenWidthChange is not None:
+      self.penWidthEntry.after_cancel(self.pendingPenWidthChange)
+    self.pendingPenWidthChange = self.penWidthEntry.after(1000,self.applyPenWidth)
+
+  def applyPenOptEvt(self,event):
+    self.applyPenOpt()
+
+  def penOptChanged(self,event):
+    if self.pendingPenOptChange is not None:
+      self.penOptEntry.after_cancel(self.pendingPenOptChange)
+    self.pendingPenOptChange = self.penOptEntry.after(1000,self.applyPenOpt)
+
+  def validatePenOpt(self):
+    return True
+
+  def applyPenOpt(self):
+    self.pendingPenOptChange = None
+    if self.validatePenOpt():
+      self.penOptions = self.penOptEntry.get()
+      self.showCurrentPen()

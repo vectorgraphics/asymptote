@@ -11,7 +11,7 @@
 import sys,os,signal,threading
 from subprocess import *
 from string import *
-
+import xasyOptions
 from Tkinter import *
 
 #PIL support might become mandatory
@@ -40,13 +40,21 @@ class asyProcess:
     self.done = False
     self.locked = False
     signal.signal(signal.SIGINT,self.sigHandler)
+    self.restart()
+
+  def restart(self):
+    self.failed = False
     try:
-      self.process = Popen(split("asy -noV -signal -interactive -x1 -multiline"),stdin=PIPE,stdout=PIPE,stderr=PIPE)
+      if xasyOptions.options['showDebug']:
+        self.process = Popen(split(xasyOptions.options['asyPath']+" -noV -signal -interactive -x1 -multiline -vv"),stdin=PIPE)
+      else:
+        self.process = Popen(split(xasyOptions.options['asyPath']+" -noV -signal -interactive -x1 -multiline"),stdin=PIPE,stdout=PIPE,stderr=PIPE)
       self.quitted = False
       self.statusFileName = os.path.abspath(".asy_status_"+str(os.getpid()))
       self.startDir = os.path.dirname(self.statusFileName)
     except:
-      raise asyProcessFailure
+      self.failed = True
+
   def __del__(self):
     """Delete the asyProcess object"""
     if not self.quitted:
@@ -101,7 +109,7 @@ class asyProcess:
       self.lastIndex = 0
       self.done = True
     self.sigCount = 0
-    if len(self.pendingSigs) > 0:
+    if len(self.pendingSigs) > 0 and not opComplete:
       self.actOnInterrupts()
 
   def sigHandler(self,signum,frame):
@@ -136,11 +144,14 @@ class asyProcess:
 
   def quit(self):
     """Shutdown the asy process"""
-    self.execute("quit;")
-    self.quitted = True
-    self.process.stdin.close()
-    self.process.wait()
-    os.remove(self.statusFileName)
+    try:
+      self.execute("quit;")
+      self.quitted = True
+      self.process.stdin.close()
+      self.process.wait()
+      os.remove(os.path.join(self.startDir,self.statusFileName))
+    except:
+      pass
 
   def acquire(self):
     """Wait to gain control of the process.
@@ -159,9 +170,24 @@ class asyProcess:
 
 asy = asyProcess()
 asy.sigLoop()#waits for the first command prompt
+
 idCounter = 0;
 randString = 'wGd3I26kOcu4ZI4arZZMqoJufO2h1QE2D728f1Lai3aqeTQC9'
-quickAsy = Popen(split("asy -noV -q -multiline -interactive"),stdin=PIPE,stdout=PIPE,stderr=PIPE)
+
+quickAsyFailed = True
+
+def startQuickAsy():
+  global quickAsy
+  global quickAsyFailed
+  try:
+    quickAsy = Popen(split(xasyOptions.options['asyPath']+" -noV -q -multiline -interactive"),stdin=PIPE,stdout=PIPE,stderr=PIPE)
+    quickAsyFailed = False
+  except:
+    quickAsyFailed = True
+  if quickAsy.returncode != None:
+    quickAsyFailed = True
+
+startQuickAsy()
 
 class asyTransform:
   """A python implementation of an asy transform"""
@@ -544,7 +570,6 @@ class xasyItem:
 
   def asyfy(self):
     """Convert the item to a list of images by deconstructing this item's code"""
-    #invoke asy to transform into an image
     asy.acquire()
     asy.reset()
     asy.execute("atexit(null);")
@@ -724,32 +749,35 @@ class xasyText(xasyItem):
     """Initialize this item with text, a location, pen, and transform"""
     xasyItem.__init__(self)
     self.label=asyLabel(text,location,pen)
-    self.transform = transform
+    self.transform = [transform]
+    self.onCanvas = None
 
   def updateCode(self):
     """Generate the code describing this object"""
-    self.asyCode = "xformStack.push("+self.transform.getCode()+");\n"
+    self.asyCode = "xformStack.push("+self.transform[0].getCode()+");\n"
     self.asyCode += "label("+self.label.getCode()+");"
 
-  def removeFromCanvas(self,canvas):
-    """Remove this object's depiction from a tk canvas"""
-    if self.tag != None:
-      canvas.delete(self.IDTag)
+  def removeFromCanvas(self):
+    """Removes the label's images from a tk canvas"""
+    if self.onCanvas == None:
+      return
+    for image in self.imageList:
+      if image.IDTag != None:
+        self.onCanvas.delete(image.IDTag)
 
-  def drawOnCanvas(self,canvas,asyFy = False):
-    """Add this item to a tk canvas"""
-    if not asyFy:
-      if self.IDTag == None:
-        #add ourselves to the canvas
-        coords = self.transform*(self.label.location[0],self.label.location[1])
-        self.IDTag = canvas.create_text(coords[0],-coords[1],text=self.label.text,fill=self.label.pen.tkColor(),anchor=NW,tags=("drawn","xasyText"),font=("times","10"))
-        self.drawOnCanvas(canvas)
-      else:
-        coords = self.transform*(self.label.location[0],self.label.location[1])
-        canvas.coords(self.IDTag,coords[0],-coords[1])
-        canvas.itemconfigure(self.IDTag,text=self.label.text,fill=self.label.pen.tkColor())
-    else:
-      pass
+  def drawOnCanvas(self,canvas,asyFy = True):
+    """Adds the label's images to a tk canvas"""
+    self.removeFromCanvas()
+    self.asyfy()
+    if canvas == None:
+      return
+    if self.onCanvas == None:
+      self.onCanvas = canvas
+    elif self.onCanvas != canvas:
+      raise Exception,"Error: item cannot be added to more than one canvas"
+    for image in self.imageList:
+      image.IDTag = canvas.create_image(image.bbox[0],-image.bbox[3],anchor=NW,tags=("image","xasyText"),image=image.image)
+
   def __str__(self):
     return "xasyText code:%s"%("\n\t".join(self.getCode().splitlines()))
 
@@ -764,7 +792,7 @@ class xasyScript(xasyItem):
 
   def clearTransform(self):
     """Reset the transforms for each of the deconstructed images""" 
-    self.transform = []
+    self.transform = [identity for im in self.imageList]
 
   def updateCode(self):
     """Generate the code describing this script"""
@@ -779,7 +807,7 @@ class xasyScript(xasyItem):
         self.asyCode += "indexedTransform.indexedTransform(%d,%s)"%(count,str(xform))
         isFirst = False
         count += 1
-      self.asyCode += ");\n\n"
+      self.asyCode += ");\n"
     self.asyCode += "startScript();{\n"
     self.asyCode += self.script
     self.asyCode += "}endScript();\n"
@@ -787,13 +815,6 @@ class xasyScript(xasyItem):
   def setScript(self,script):
     """Sets the content of the script item. If the imageList is enlarged, identities are added; if the list is shrunk, transforms are removed."""
     self.script = script
-    self.updateCode()
-    self.removeFromCanvas()
-    self.asyfy()
-    while len(self.imageList) > len(self.transform):
-      self.transform.append(identity)
-    while len(self.imageList) < len(self.transform):
-      self.transform.pop()
     self.updateCode()
 
   def removeFromCanvas(self):
@@ -803,6 +824,14 @@ class xasyScript(xasyItem):
     for image in self.imageList:
       if image.IDTag != None:
         self.onCanvas.delete(image.IDTag)
+
+  def asyfy(self):
+    xasyItem.asyfy(self)
+    while len(self.imageList) > len(self.transform):
+      self.transform.append(identity)
+    while len(self.imageList) < len(self.transform):
+      self.transform.pop()
+    self.updateCode()
 
   def drawOnCanvas(self,canvas,asyFy = True):
     """Adds the script's images to a tk canvas"""

@@ -10,6 +10,7 @@ import errno
 
 defaultOptions = {
     'asyPath':'asy',
+    'showDebug':False,
     'showGrid':False,
     'gridX':10,
     'gridY':10,
