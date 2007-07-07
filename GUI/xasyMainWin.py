@@ -306,6 +306,7 @@ class xasyMainWin:
     self.penColButton.config(activeforeground=self.tkPenColor,activebackground=self.tkPenColor)
     self.penWidth = xasyOptions.options['defPenWidth']
     self.penWidthEntry.select_range(0,END)
+    self.penWidthEntry.delete(0,END)
     self.penWidthEntry.insert(END,str(self.penWidth))
     self.penOptions = xasyOptions.options['defPenOptions']
     self.penOptEntry.select_range(0,END)
@@ -506,6 +507,7 @@ class xasyMainWin:
           self.fileItems = []
     self.populateCanvasWithItems()
     self.populatePropertyList()
+    self.updateCanvasSize()
 
   def populateCanvasWithItems(self):
     self.mainCanvas.delete("drawn || image")
@@ -682,7 +684,11 @@ class xasyMainWin:
   def toolTextCmd(self):
     self.updateSelectedButton(self.toolTextButton)
   def toolAsyCmd(self):
-    self.updateSelectedButton(self.toolAsyButton)
+    self.addItemToFile(xasyScript())
+    text = xasyCodeEditor(self.parent,"// enter your code here").getText()
+    self.fileItems[-1].setScript(text)
+    self.fileItems[-1].drawOnCanvas(self.mainCanvas)
+    self.bindItemEvents(self.fileItems[-1])
   def toolRaiseCmd(self):
     self.mainCanvas.tag_raise("selectedItem")
   def toolLowerCmd(self):
@@ -703,7 +709,6 @@ class xasyMainWin:
     self.hideSelectionBox()
     self.mainCanvas.dtag("selectedItem","selectedItem")
 
-
   def hideSelectionBox(self):
     self.mainCanvas.itemconfigure("outlineBox",width=1,outline=self.backColor)
     self.mainCanvas.tag_lower("outlineBox")
@@ -716,6 +721,7 @@ class xasyMainWin:
   def setSelection(self,what):
     self.mainCanvas.addtag_withtag("selectedItem",what)
     self.updateSelection()
+    self.updateSelectedButton(self.toolMoveButton)
 
   def unSelect(self,what):
     self.mainCanvas.dtag(what,"selectedItem")
@@ -724,8 +730,9 @@ class xasyMainWin:
   def updateSelection(self):
     self.clearHighlight()
     theBbox = self.mainCanvas.bbox("selectedItem")
+    theBbox = (theBbox[0]-2,theBbox[1]-2,theBbox[2]+2,theBbox[3]+2)
     if theBbox != None:
-      self.mainCanvas.coords("outlineBox",self.mainCanvas.bbox("selectedItem"))
+      self.mainCanvas.coords("outlineBox",theBbox)
       self.showSelectionBox()
     else:
       self.clearSelection()
@@ -877,19 +884,17 @@ class xasyMainWin:
   def itemSelect(self,event):
     x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
     self.dragStartx,self.dragStarty = x,y
-    if self.selectedButton in (self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton):
+    if self.selectedButton in [self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton]:
       self.freeMouseDown = False
-    if self.selectedButton == self.toolSelectButton:
-      #print "selecting CURRENT"
+    if self.selectedButton == self.toolSelectButton or (len(self.mainCanvas.find_withtag("selectedItem"))<=1 and self.selectedButton in [self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton]):
       self.clearSelection()
       self.setSelection(CURRENT)
 
   def itemToggleSelect(self,event):
     #print "control click"
     x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
-    if self.selectedButton in (self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton):
+    if self.selectedButton in [self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton]:
       self.freeMouseDown = False
-    if self.selectedButton == self.toolSelectButton:
       self.dragStartx,self.dragStarty = x,y
       if "selectedItem" in self.mainCanvas.gettags(CURRENT):
         self.unSelect(CURRENT)
@@ -905,8 +910,9 @@ class xasyMainWin:
     pass
 
   def itemHighlight(self,event):
-    if self.selectedButton == self.toolSelectButton and self.editor == None:
+    if self.selectedButton in [self.toolSelectButton,self.toolMoveButton,self.toolHorizMoveButton,self.toolVertiMoveButton] and self.editor == None:
       box = self.mainCanvas.bbox(CURRENT)
+      box = (box[0]-2,box[1]-2,box[2]+2,box[3]+2)
       if len(self.mainCanvas.find_withtag("highlightBox"))==0:
         self.mainCanvas.create_rectangle(box,tags="highlightBox",width=2,outline="red")
       else:
@@ -946,20 +952,15 @@ class xasyMainWin:
     if self.selectedButton == self.toolDrawEllipButton:
       pass
     elif self.selectedButton == self.toolFillEllipButton:
-      pass  
+      pass
     elif self.selectedButton == self.toolTextButton:
-      theText = tkSimpleDialog.askstring(title="Xasy - Text",prompt="Enter text to display:",initialvalue="",parent=self.parent)		
+      theText = tkSimpleDialog.askstring(title="Xasy - Text",prompt="Enter text to display:",initialvalue="",parent=self.parent)
       if theText != None and theText != "":
         theItem = xasyText(theText,(x,-y),asyPen(self.penColor,self.penWidth,self.penOptions))
         theItem.drawOnCanvas(self.mainCanvas)
         self.bindItemEvents(theItem)
         self.addItemToFile(theItem)
-    elif self.selectedButton == self.toolAsyButton:
-      self.addItemToFile(xasyScript())
-      text = xasyCodeEditor(self.parent,"// enter your code here").getText()
-      self.fileItems[-1].setScript(text)
-      self.fileItems[-1].drawOnCanvas(self.mainCanvas)
-      self.bindItemEvents(self.fileItems[-1])
+        self.updateSelectedButton(self.toolSelectButton)
     elif self.selectedButton in [self.toolDrawLinesButton,self.toolDrawBeziButton,self.toolDrawPolyButton,self.toolDrawShapeButton,self.toolFillPolyButton,self.toolFillShapeButton]:
       self.inDrawingMode = True
       try:
@@ -1029,7 +1030,7 @@ class xasyMainWin:
     if self.freeMouseDown and self.editor != None:
       self.editor.endEdit()
       self.editor = None
-    elif self.selectedButton == self.toolSelectButton:
+    elif self.selectedButton in (self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton):
       if self.freeMouseDown:
         self.clearSelection()
         self.dragSelecting = False
@@ -1049,6 +1050,7 @@ class xasyMainWin:
           self.mainCanvas.dtag(item,"enclosed")
       self.mainCanvas.addtag_withtag("selectedItem","enclosed")
       self.mainCanvas.dtag("enclosed","enclosed")
+      self.updateSelectedButton(self.toolMoveButton)
       self.updateSelection()
 
   def canvDrag(self,event):
@@ -1125,7 +1127,7 @@ class xasyMainWin:
       self.itemMenuPopup(self.propList,item,event.x_root,event.y_root)
 
   def itemCanvasMenuPopup(self,event):
-    if self.selectedButton == self.toolSelectButton:
+    if self.selectedButton in (self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton):
       try:
         item = self.findItem(self.mainCanvas.find_withtag(CURRENT)[0])
       except:

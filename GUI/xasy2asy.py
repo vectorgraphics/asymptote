@@ -52,6 +52,7 @@ class asyProcess:
       self.quitted = False
       self.statusFileName = os.path.abspath(".asy_status_"+str(os.getpid()))
       self.startDir = os.path.dirname(self.statusFileName)
+      self.sigLoop()
     except:
       self.failed = True
 
@@ -169,7 +170,7 @@ class asyProcess:
 
 
 asy = asyProcess()
-asy.sigLoop()#waits for the first command prompt
+#asy.sigLoop()#waits for the first command prompt
 
 idCounter = 0;
 randString = 'wGd3I26kOcu4ZI4arZZMqoJufO2h1QE2D728f1Lai3aqeTQC9'
@@ -547,6 +548,7 @@ class xasyItem:
     self.imageList = []
     self.IDTag = None
     self.asyfied = False
+    self.receivedImageNames = []
 
   def updateCode(self):
     """Update the item's code: to be overriden"""
@@ -561,11 +563,13 @@ class xasyItem:
     """Receive an image from an asy deconstruction. It replaces the default in asyProcess."""
     if bbox[0] == 0 and bbox[1] == 0 and bbox[2] == 0 and bbox[3] == 0:
       image = None
-    else:
+      self.imageList.append(asyImage(image,format,bbox))
+    elif os.path.join(asy.startDir,file) not in self.receivedImageNames:
       if format == "gif":
         image = PhotoImage(file=os.path.join(asy.startDir,file))
       else:
         image = ImageTk.PhotoImage(file=os.path.join(asy.startDir,file))
+      self.receivedImageNames.append(os.path.join(asy.startDir,file))
     self.imageList.append(asyImage(image,format,bbox))
 
   def asyfy(self):
@@ -574,6 +578,7 @@ class xasyItem:
     asy.reset()
     asy.execute("atexit(null);")
     self.imageList = []
+    self.receivedImageNames = []
     asy.imageHandler = self.handleImageReception
     for line in self.getCode().splitlines():
       asy.execute(line);
@@ -809,7 +814,7 @@ class xasyScript(xasyItem):
         count += 1
       self.asyCode += ");\n"
     self.asyCode += "startScript();{\n"
-    self.asyCode += self.script
+    self.asyCode += self.script.replace("\t"," ")
     self.asyCode += "}endScript();\n"
 
   def setScript(self,script):
