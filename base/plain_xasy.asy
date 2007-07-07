@@ -43,6 +43,7 @@ void endScript()
     currentpicture = tempStore.pop();
     add(currentpicture,newPic.fit(),group=false);
   }
+  shipped = false;
 }
 
 struct indexedTransform {
