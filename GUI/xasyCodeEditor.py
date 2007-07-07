@@ -25,8 +25,8 @@ class xasyCodeEditor(Toplevel):
     self.fileMenu.add_separator()
     #self.fileMenu.add_command(label="Update",command=self.invokeCallback)
     #self.fileMenu.add_separator()
-    self.fileMenu.add_command(label="Apply changes and quit",command=self.applyChangesAndQuit)
-    self.fileMenu.add_command(label="Exit",command=self.destroy)
+    self.fileMenu.add_command(label="Apply changes and close",command=self.applyChangesAndQuit)
+    self.fileMenu.add_command(label="Close",command=self.destroy)
     self.mainMenu.add_cascade(label="File",menu=self.fileMenu)
 
     self.editMenu = Menu(self.mainMenu)
