@@ -1225,11 +1225,11 @@ void setOptions(int argc, char *argv[])
   // Read command-line options initially to obtain CONFIG and DIR.
   getOptions(argc,argv);
   
+  resetOptions();
+  
   // Read user configuration file.
   setPath();
   doConfig(getSetting<string>("config"));
-  
-  resetOptions();
   
   // Read command-line options again to override configuration file defaults.
   getOptions(argc,argv);
