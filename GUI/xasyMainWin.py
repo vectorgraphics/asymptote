@@ -721,7 +721,8 @@ class xasyMainWin:
   def setSelection(self,what):
     self.mainCanvas.addtag_withtag("selectedItem",what)
     self.updateSelection()
-    self.updateSelectedButton(self.toolMoveButton)
+    if self.selectedButton == self.toolSelectButton:
+      self.updateSelectedButton(self.toolMoveButton)
 
   def unSelect(self,what):
     self.mainCanvas.dtag(what,"selectedItem")
