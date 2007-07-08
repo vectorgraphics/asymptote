@@ -332,7 +332,7 @@ void draw(picture pic=currentpicture, block block, pen p=currentpen)
 {
   pic.add(new void (frame f, transform t) {
       add(f,shift(block.shift(t))*block.draw(p));
-    });
+    },true);
   pic.addBox(block.center,block.center,
              -0.5*block.size+min(p),0.5*block.size+max(p));
 }

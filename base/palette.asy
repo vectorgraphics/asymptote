@@ -89,7 +89,7 @@ bounds image(picture pic=currentpicture, real[][] f, range range=Full,
 
   pic.add(new void(frame F, transform t) {
       _image(F,f,initial,final,palette,t,copy=false);
-    });
+    },true);
   pic.addBox(initial,final);
   return bounds; // Return bounds used for color space
 }
@@ -127,7 +127,7 @@ void image(picture pic=currentpicture, pen[][] data, pair initial, pair final,
 
   pic.add(new void(frame F, transform t) {
       _image(F,data,initial,final,t,copy=false);
-    });
+    },true);
   pic.addBox(initial,final);
 }
 
@@ -264,7 +264,7 @@ void palette(picture pic=currentpicture, Label L="", bounds bounds,
   
   pic.add(new void(frame f, transform t) {
       _image(f,pdata,initial,final,palette,t,copy=false);
-    });
+    },true);
   
   ticklocate locate=ticklocate(initialz,finalz,pic.scale.z,mz.min,mz.max);
   axis(pic,L,g,g2,p,ticks(sgn(axis.side.x*dot(lambda,par))),locate,mz.divisor,
@@ -274,7 +274,7 @@ void palette(picture pic=currentpicture, Label L="", bounds bounds,
       pair Z0=t*initial;
       pair Z1=t*final;
       draw(f,Z0--(Z0.x,Z1.y)--Z1--(Z1.x,Z0.y)--cycle,p);
-    });
+    },true);
 
   pic.addBox(initial,final);
 }

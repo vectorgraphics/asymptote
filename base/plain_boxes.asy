@@ -60,7 +60,7 @@ frame enclose(picture pic=currentpicture, envelope e, Label L,
       add(d,t,L);
       e(f,d,xmargin,ymargin,p,filltype,put);
       add(f,d);
-    });
+    },true);
   Label L0=L.copy();
   L0.position(0);
   L0.p(p);

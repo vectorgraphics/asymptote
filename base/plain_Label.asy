@@ -273,7 +273,7 @@ struct Label {
           label(d,t,position,align);
           add(f,d,filltype);
         }
-      });
+      },true);
     frame f;
     // Create a picture with label at the origin to extract its bbox truesize.
     label(f,(0,0),align);

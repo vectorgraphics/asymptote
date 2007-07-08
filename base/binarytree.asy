@@ -153,9 +153,11 @@ object draw(picture pic=currentpicture, binarytreeNode node, pair pos,
         pair start,end; 
         // calculate connection path 
         transform T=shift(nodeDiameter/2*unit(t*childPos-t*parentPos));  
-        path arr=(T*t*parentPos)--(T^(-1)*t*childPos);  
+        path arr=(T*t*parentPos)--(inverse(T)*t*childPos);  
         draw(f,arr,p,Arrow(5));  
       }); 
+    pic.addPoint(parentPos);
+    pic.addPoint(childPos);
   } 
 
   if(left != null) {

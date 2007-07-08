@@ -11,5 +11,6 @@ void annotate(picture pic=currentpicture, string title, string text,
                  /Title ("+title+")
                  /Contents ("+text+")
                  /ANN pdfmark}");
-    });
+    },true);
+  draw(pic,position,invisible);
 }

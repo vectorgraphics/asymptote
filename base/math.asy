@@ -336,7 +336,7 @@ void drawline(picture pic=currentpicture, pair P, pair Q, pen p=currentpen)
         if(tmin <= tmax)
           draw(f,z+tmin*v--z+tmax*v,p);
       }
-    });
+    },true);
 }
 
 real interpolate(real[] x, real[] y, real x0, int i) 

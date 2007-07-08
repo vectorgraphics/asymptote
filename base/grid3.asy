@@ -175,28 +175,28 @@ void grid3(picture pic=currentpicture, bbox3 b,
            bool put=Above,
            projection P=currentprojection) 
 {
-  pic.add(new void(frame f, transform t, transform T, pair lb, pair rt) {
-      frame d;
-      for(int j=0; j < gridroutine.length; ++j) {
-        for(int i=0; i < gridroutine[j].length; ++i) {
-          grid3 gt=new grid3;
-          gt=gridroutine[j][i](pic,b,P);
-          path3 Ga=gt.axea;
-          path3 Gb=gt.axeb;
+  for(int j=0; j < gridroutine.length; ++j) {
+    grid3routines gridroutinej=gridroutine[j];
+    for(int i=0; i < gridroutinej.length; ++i) {
+      grid3 gt=gridroutinej[i](pic,b,P);
+      path ga=project(gt.axea,P);
+      path gb=project(gt.axeb,P);
+      pic.add(new void(frame f, transform t, transform T, pair lb, pair rt) {
+	  frame d;
           ticks ticks=Ticks(1,F="%",ticklabel=null,
                             beginlabel=false,endlabel=false,
                             N=N,n=n,Step=Step,step=step,
                             begin=begin,end=end,
                             Size=0,size=0,extend=true,
                             pTick=pGrid,ptick=pgrid);
-          path ga=project(Ga,P);
-          path gb=project(Gb,P);
           ticks(d,t,"",0,ga,gb,nullpen,None,gt.locate,gt.bds.divisor,
                 opposite=true);
           (put ? add : prepend)(f,t*T*inverse(t)*d);
-        }
-      }
-    }); 
+	}); 
+      pic.addPath(ga,pGrid);
+      pic.addPath(gb,pGrid);
+    }
+  }
 }
 
 void grid3(picture pic=currentpicture, bbox3 b,

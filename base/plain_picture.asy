@@ -336,6 +336,7 @@ struct picture {
   // The coordinates in flex space to be used in sizing the picture.
   struct bounds {
     coords2 point,min,max;
+    bool exact=true; // An accurate picture bounds is provided by the user.
     void erase() {
       point.erase();
       min.erase();
@@ -346,6 +347,7 @@ struct picture {
       b.point=point.copy();
       b.min=min.copy();
       b.max=max.copy();
+      b.exact=exact;
       return b;
     }
     void xclip(real Min, real Max) {
@@ -479,21 +481,23 @@ struct picture {
     userBoxY(min.y,max.y,max,min);
   }
   
-  void add(drawerBound d) {
+  void add(drawerBound d, bool exact=false) {
     uptodate(false);
+    if(!exact) bounds.exact=false;
     nodes.push(d);
   }
 
-  void add(drawer d) {
+  void add(drawer d, bool exact=false) {
     uptodate(false);
+    if(!exact) bounds.exact=false;
     nodes.push(new void(frame f, transform t, transform T, pair, pair) {
         d(f,t*T);
       });
   }
 
-  void clip(drawer d) {
+  void clip(drawer d, bool exact=false) {
     bounds.clip(userMin,userMax);
-    this.add(d);
+    this.add(d,exact);
   }
 
   // Add a point to the sizing.
@@ -731,6 +735,7 @@ struct picture {
   // Calculate additional scaling required if only an approximate picture
   // size estimate is available.
   transform scale(frame f, bool keepaspect=this.keepAspect) {
+    if(bounds.exact) return identity();
     pair m=min(f);
     pair M=max(f);
     real width=M.x-m.x;
@@ -750,6 +755,7 @@ struct picture {
   }
 
   transform calculateTransform(bool warn=true) {
+    if(fixed) return fixedscaling;
     return calculateTransform(xsize,ysize,keepAspect,warn);
   }
 
@@ -781,7 +787,9 @@ struct picture {
   frame scale(real xsize=this.xsize, real ysize=this.ysize,
               bool keepAspect=this.keepAspect) {
     frame f=fit(xsize,ysize,keepAspect);
-    return scale(f,keepAspect)*f;
+    transform s=scale(f,keepAspect);
+    if(s == identity()) return f;
+    return s*f;
   }
 
   // Copies the drawing information, but not the sizing information into a new
@@ -834,6 +842,7 @@ struct picture {
     if(src.userSety) userBoxY(src.userMin.y,src.userMax.y);
     
     append(bounds.point,bounds.min,bounds.max,srcCopy.T,src.bounds);
+    if(!src.bounds.exact) bounds.exact=false;
   }
 }
 
@@ -845,6 +854,7 @@ picture operator * (transform t, picture orig)
                   t*(pic.userMin.x,pic.userMax.y),
                   t*(pic.userMax.x,pic.userMin.y),
                   t*pic.userMax);
+  pic.bounds.exact=false;
   return pic;
 }
 
@@ -890,30 +900,30 @@ pair max(picture pic)
   return pic.max();
 }
   
-void add(picture pic=currentpicture, drawer d)
+void add(picture pic=currentpicture, drawer d, bool exact=false)
 {
-  pic.add(d);
+  pic.add(d,exact);
 }
 
 void begingroup(picture pic=currentpicture)
 {
   pic.add(new void(frame f, transform) {
       begingroup(f);
-    });
+    },true);
 }
 
 void endgroup(picture pic=currentpicture)
 {
   pic.add(new void(frame f, transform) {
       endgroup(f);
-    });
+    },true);
 }
 
 void Draw(picture pic=currentpicture, path g, pen p=currentpen)
 {
   pic.add(new void(frame f, transform t) {
       draw(f,t*g,p);
-    });
+    },true);
   pic.addPath(g,p);
 }
 
@@ -922,7 +932,7 @@ void _draw(picture pic=currentpicture, path g, pen p=currentpen,
 {
   pic.add(new void(frame f, transform t) {
       draw(f,margin(t*g,p).g,p);
-    });
+    },true);
   pic.addPath(g,p);
 }
 
@@ -938,7 +948,7 @@ void fill(picture pic=currentpicture, path[] g, pen p=currentpen,
     g=copy(g);
   pic.add(new void(frame f, transform t) {
       fill(f,t*g,p,false);
-    });
+    },true);
   pic.addPath(g);
 }
 
@@ -951,7 +961,7 @@ void latticeshade(picture pic=currentpicture, path[] g,
   }
   pic.add(new void(frame f, transform t) {
       latticeshade(f,t*g,fillrule,p,false);
-    });
+    },true);
   pic.addPath(g);
 }
 
@@ -962,7 +972,7 @@ void axialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
     g=copy(g);
   pic.add(new void(frame f, transform t) {
       axialshade(f,t*g,pena,t*a,penb,t*b,false);
-    });
+    },true);
   pic.addPath(g);
 }
 
@@ -976,7 +986,7 @@ void radialshade(picture pic=currentpicture, path[] g, pen pena, pair a,
       real RA=abs(t*(a+ra)-A);
       real RB=abs(t*(b+rb)-B);
       radialshade(f,t*g,pena,A,RA,penb,B,RB,false);
-    });
+    },true);
   pic.addPath(g);
 }
 
@@ -991,7 +1001,7 @@ void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
   }
   pic.add(new void(frame f, transform t) {
       gouraudshade(f,t*g,fillrule,p,t*z,edges,false);
-    });
+    },true);
   pic.addPath(g);
 }
 
@@ -1005,7 +1015,7 @@ void gouraudshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
   }
   pic.add(new void(frame f, transform t) {
       gouraudshade(f,t*g,fillrule,p,edges,false);
-    });
+    },true);
   pic.addPath(g);
 }
 
@@ -1023,7 +1033,7 @@ void tensorshade(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
       for(int i=0; i < z.length; ++i)
         Z[i]=t*z[i];
       tensorshade(f,t*g,fillrule,p,t*b,Z,false);
-    });
+    },true);
   pic.addPath(g);
 }
 
@@ -1061,7 +1071,7 @@ void clip(picture pic=currentpicture, path[] g, pen p=currentpen,
   pic.userClip(min(g),max(g));
   pic.clip(new void(frame f, transform t) {
       clip(f,t*g,p,false);
-    });
+    },true);
 }
 
 void unfill(picture pic=currentpicture, path[] g, bool copy=true)
@@ -1070,7 +1080,7 @@ void unfill(picture pic=currentpicture, path[] g, bool copy=true)
     g=copy(g);
   pic.add(new void(frame f, transform t) {
       unfill(f,t*g,false);
-    });
+    },true);
 }
 
 void filloutside(picture pic=currentpicture, path[] g, pen p=currentpen,
@@ -1080,7 +1090,7 @@ void filloutside(picture pic=currentpicture, path[] g, pen p=currentpen,
     g=copy(g);
   pic.add(new void(frame f, transform t) {
       filloutside(f,t*g,p,false);
-    });
+    },true);
   pic.addPath(g);
 }
 
@@ -1097,7 +1107,8 @@ transform fixedscaling(picture pic=currentpicture, pair min, pair max,
   Draw(pic,min,p+invisible);
   Draw(pic,max,p+invisible);
   pic.fixed=true;
-  return pic.fixedscaling=pic.calculateTransform();
+  return pic.fixedscaling=pic.calculateTransform(pic.xsize,pic.ysize,
+						 pic.keepAspect);
 }
 
 // Add frame dest about position to frame src with optional grouping
@@ -1113,7 +1124,7 @@ void add(picture dest=currentpicture, frame src, pair position=0,
 {
   dest.add(new void(frame f, transform t) {
       add(f,shift(t*position)*src,group,filltype,put);
-    });
+    },true);
   dest.addBox(position,position,min(src),max(src));
 }
 
@@ -1182,35 +1193,35 @@ void postscript(picture pic=currentpicture, string s)
 {
   pic.add(new void(frame f, transform) {
       postscript(f,s);
-    });
+    },true);
 }
 
 void tex(picture pic=currentpicture, string s)
 {
   pic.add(new void(frame f, transform) {
       tex(f,s);
-    });
+    },true);
 }
 
 void postscript(picture pic=currentpicture, string s, pair min, pair max)
 {
   pic.add(new void(frame f, transform t) {
       postscript(f,s,t*min,t*max);
-    });
+    },true);
 }
 
 void tex(picture pic=currentpicture, string s, pair min, pair max)
 {
   pic.add(new void(frame f, transform t) {
       tex(f,s,t*min,t*max);
-    });
+    },true);
 }
 
 void layer(picture pic=currentpicture)
 {
   pic.add(new void(frame f, transform) {
       layer(f);
-    });
+    },true);
 }
 
 pair point(picture pic=currentpicture, pair dir)
@@ -1221,9 +1232,11 @@ pair point(picture pic=currentpicture, pair dir)
 pair framepoint(picture pic=currentpicture, pair dir,
                 transform t=pic.calculateTransform())
 {
-  pair m=pic.min(t);
-  pair M=pic.max(t);
-  return m+realmult(rectify(dir),M-m);
+  if(pic.bounds.exact) {
+    pair m=pic.min(t);
+    pair M=pic.max(t);
+    return m+realmult(rectify(dir),M-m);
+  } else return point(pic.fit(),dir);
 }
 
 pair truepoint(picture pic=currentpicture, pair dir)
