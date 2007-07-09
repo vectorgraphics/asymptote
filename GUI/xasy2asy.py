@@ -128,6 +128,8 @@ class asyProcess:
 
   def execute(self,cmd):
     """Execute an asy statement and wait for its completion."""
+    if xasyOptions.options['showDebug']:
+      print cmd
     try:
       if self.quitted:
         raise Exception,"asy has already quit"

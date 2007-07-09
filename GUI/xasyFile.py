@@ -109,17 +109,20 @@ def parseLabel(line):
   """Parse an asy Label statement, returning an xasyText item"""
   if not (line.startswith("Label(") and line.endswith(",align=SE)")):
     raise xasyParseError,"Invalid syntax"
-  #TODO: implement a pen for a Label
   args = line[6:-1]
-  loc = args.rfind(",align=SE")
-  loc = args.rfind(",",0,loc-1)
-  loc = args.rfind(",(",0,loc-1)
+  loc2 = args.rfind(",align=SE")
+  loc1 = args.rfind(",",0,loc2-1)
+  loc = args.rfind(",(",0,loc1-1)
   if loc < 2:
     raise xasyParseError,"Invalid syntax"
   text = args[1:loc-1]
   location = eval(args[loc+1:args.find("),",loc)+1])
+  pen = args[loc:loc2]
+  pen = pen[pen.find(",")+1:]
+  pen = pen[pen.find(",")+1:]
+  pen = pen[pen.find(",")+1:]
   global pendingTransforms
-  return xasyText(text,location,asyPen(),pendingTransforms.pop())
+  return xasyText(text,location,parsePen(pen),pendingTransforms.pop())
 
 def parseLabelCommand(line):
   """Parse a label command returning an xasyText object
@@ -127,8 +130,6 @@ def parseLabelCommand(line):
   Syntax:
     label(Label(text,location,pen,align=SE));
       e.g.: label(Label("Hello world!",(0,0),rgb(0,0,0)+0.5,align=SE));
-  TODO:
-    Pen parsing is not yet implemented and should soon be added.
   """
   if line[-2:] != ");":
     raise xasyParseError,"Invalid syntax"

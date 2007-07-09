@@ -1218,6 +1218,7 @@ class xasyMainWin:
     self.pendingPenOptChange = self.penOptEntry.after(1000,self.applyPenOpt)
 
   def validatePenOpt(self):
+    #TODO: implement pen option validation
     return True
 
   def applyPenOpt(self):
