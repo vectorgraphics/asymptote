@@ -43,6 +43,7 @@ class asyProcess:
     self.restart()
 
   def restart(self):
+    self.quit()
     self.failed = False
     try:
       if xasyOptions.options['showDebug']:
@@ -62,6 +63,7 @@ class asyProcess:
       self.process.stdin.close()
       self.process.wait()
     os.remove(os.path.join(self.startDir,self.statusFileName))
+
   def defImgHandler(self,a,b,c,d):
     """The default response to the reception of an image
     Should be assigned to a user-supplied method to save the images obtained"""

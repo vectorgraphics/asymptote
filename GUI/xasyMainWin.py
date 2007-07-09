@@ -489,7 +489,6 @@ class xasyMainWin:
       self.fileItems = xasyFile.parseFile(f)
       f.close()
     except IOError:
-      raise
       tkMessageBox.showerror("File Opening Failed.","File coult not be opened.")
       self.fileItems = []
     except:
@@ -731,8 +730,8 @@ class xasyMainWin:
   def updateSelection(self):
     self.clearHighlight()
     theBbox = self.mainCanvas.bbox("selectedItem")
-    theBbox = (theBbox[0]-2,theBbox[1]-2,theBbox[2]+2,theBbox[3]+2)
     if theBbox != None:
+      theBbox = (theBbox[0]-2,theBbox[1]-2,theBbox[2]+2,theBbox[3]+2)
       self.mainCanvas.coords("outlineBox",theBbox)
       self.showSelectionBox()
     else:

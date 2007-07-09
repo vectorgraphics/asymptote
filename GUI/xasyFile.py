@@ -178,9 +178,9 @@ def parsePen(pen):
   try:
     tokens = pen.split("+")
     color = eval(tokens[0][3:])
-    width = eval(tokens[1])
-    if len(tokens)==3:
-      options = tokens[2]
+    width = float(tokens[1])
+    if len(tokens)>2:
+      options = "+".join(tokens[2:])
     else:
       options = ""
     return asyPen(color,width,options)
