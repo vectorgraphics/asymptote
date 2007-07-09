@@ -87,7 +87,7 @@ char *readline(const char *prompt) {
   cout << prompt;
   string s;
   getline(cin,s);
-  return Strdup(s);
+  return StrdupMalloc(s);
 }
 #endif  
   
