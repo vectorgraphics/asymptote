@@ -82,7 +82,7 @@ public:
 
 class texstream : public iopipestream {
 public:
-  void pipeclose();
+  ~texstream();
 };
 
 struct globalData {

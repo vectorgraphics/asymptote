@@ -19,8 +19,7 @@ using std::ofstream;
 
 using namespace settings;
 
-void texstream::pipeclose() {
-  iopipestream::pipeclose();
+texstream::~texstream() {
   if(!getSetting<bool>("keep")) {
     unlink("texput.log");
     unlink("texput.out");
