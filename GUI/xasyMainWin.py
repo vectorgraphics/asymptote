@@ -168,19 +168,16 @@ class xasyMainWin:
     self.toolFillShapeButton = Button(self.toolBar,command=self.toolFillShapeCmd,image=self.toolIcons["fillShape"])
     self.toolFillShapeButton.grid(row=8,column=1,sticky=N+S+E+W)
     self.toolTextButton = Button(self.toolBar,command=self.toolTextCmd,image=self.toolIcons["text"])
-    self.toolTextButton.grid(row=9,column=0,sticky=N+S+E+W)		
-
+    self.toolTextButton.grid(row=9,column=0,sticky=N+S+E+W)
+    self.toolAsyButton = Button(self.toolBar,command=self.toolAsyCmd,image=self.toolIcons["asy"])
+    self.toolAsyButton.grid(row=9,column=1,sticky=N+S+E+W)
 
     self.adjLbl = Label(self.toolBar,text="",anchor=W)
     self.adjLbl.grid(row=10,column=0,columnspan=2,sticky=W)
-    self.toolRaiseButton = Button(self.toolBar,command=self.toolRaiseCmd,image=self.toolIcons["raise"],state=DISABLED,relief=FLAT)
+    self.toolRaiseButton = Button(self.toolBar,command=self.toolRaiseCmd,image=self.toolIcons["raise"])
     self.toolRaiseButton.grid(row=11,column=0,sticky=N+S+E+W)
-    self.toolLowerButton = Button(self.toolBar,command=self.toolLowerCmd,image=self.toolIcons["lower"],state=DISABLED,relief=FLAT)
+    self.toolLowerButton = Button(self.toolBar,command=self.toolLowerCmd,image=self.toolIcons["lower"])
     self.toolLowerButton.grid(row=11,column=1,sticky=N+S+E+W)
-
-    Label(self.toolBar,text="",anchor=W).grid(row=11,column=0,columnspan=2,sticky=W)
-    self.toolAsyButton = Button(self.toolBar,command=self.toolAsyCmd,image=self.toolIcons["asy"])
-    self.toolAsyButton.grid(row=12,column=0,sticky=N+S+E+W)
 
     self.toolBar.pack(side=LEFT,anchor=NW)
 
@@ -515,11 +512,6 @@ class xasyMainWin:
       item.drawOnCanvas(self.mainCanvas);
       self.bindItemEvents(item)
 
-  def swapFileItems(self,index1,index2):
-    temp = self.fileItems[index1]
-    self.fileItems[index1] = self.fileItems[index2]
-    self.fileItems[index2] = temp
-
   def propListCountItem(self,item):
     plist = self.propList.get(0,END)
     count = 1
@@ -683,15 +675,21 @@ class xasyMainWin:
   def toolTextCmd(self):
     self.updateSelectedButton(self.toolTextButton)
   def toolAsyCmd(self):
+    self.clearSelection()
+    self.clearHighlight()
     self.addItemToFile(xasyScript())
     text = xasyCodeEditor(self.parent,"// enter your code here").getText()
     self.fileItems[-1].setScript(text)
     self.fileItems[-1].drawOnCanvas(self.mainCanvas)
     self.bindItemEvents(self.fileItems[-1])
   def toolRaiseCmd(self):
-    self.mainCanvas.tag_raise("selectedItem")
+    if not self.inDrawingMode and self.editor == None:
+      for ID in self.mainCanvas.find_withtag("selectedItem"):
+        self.raiseSomething(ID)
   def toolLowerCmd(self):
-    self.mainCanvas.tag_lower("selectedItem")
+    if not self.inDrawingMode and self.editor == None:
+      for ID in self.mainCanvas.find_withtag("selectedItem"):
+        self.lowerSomething(ID)
   def itemRaise(self,event):
     self.mainCanvas.tag_raise(CURRENT)
   def itemLower(self,event):
@@ -720,7 +718,7 @@ class xasyMainWin:
   def setSelection(self,what):
     self.mainCanvas.addtag_withtag("selectedItem",what)
     self.updateSelection()
-    if self.selectedButton == self.toolSelectButton:
+    if self.selectedButton == self.toolSelectButton and len(self.mainCanvas.find_withtag("selectedItem")) > 0:
       self.updateSelectedButton(self.toolMoveButton)
 
   def unSelect(self,what):
@@ -754,7 +752,7 @@ class xasyMainWin:
     items = map(int, self.propList.curselection())
     if len(items)>0:
       try:
-        self.selectItem(self.fileItems[items[0]])
+        self.selectItem(self.fileItems[len(self.fileItems)-items[0]-1])
       except:
         pass
 
@@ -777,6 +775,41 @@ class xasyMainWin:
       else:
         count += 1
     return None
+
+  def raiseSomething(self,ID):
+    item = self.findItem(ID)
+    if self.fileItems[-1] != item:
+      index = len(self.fileItems)-self.fileItems.index(item)-1
+      text = self.propList.get(index)
+      self.propList.delete(index)
+      self.propList.insert(0,text)
+      for i in range(self.fileItems.index(item),len(self.fileItems)-1):
+        self.fileItems[i] = self.fileItems[i+1]
+      self.fileItems[-1] = item
+      if isinstance(item,xasyScript) or isinstance(item,xasyText):
+        for im in item.imageList:
+          self.mainCanvas.tag_raise(im.IDTag)
+      else:
+        self.mainCanvas.tag_raise(item.IDTag)
+
+  def lowerSomething(self,ID):
+    item = self.findItem(ID)
+    if self.fileItems[0] != item:
+      index = len(self.fileItems)-self.fileItems.index(item)-1
+      text = self.propList.get(index)
+      self.propList.delete(index)
+      self.propList.insert(END,text)
+      indices = range(self.fileItems.index(item))
+      indices.reverse()
+      for i in indices:
+        self.fileItems[i+1] = self.fileItems[i]
+      self.fileItems[0] = item
+      if isinstance(item,xasyScript) or isinstance(item,xasyText):
+        for im in item.imageList:
+          self.mainCanvas.tag_lower(im.IDTag)
+      else:
+        self.mainCanvas.tag_lower(item.IDTag)
+      self.mainCanvas.tag_lower("axes || grid")
 
   def transformSomething(self,ID,transform):
     item = self.findItem(ID)
@@ -943,7 +976,7 @@ class xasyMainWin:
 
   def addItemToFile(self,item):
     self.fileItems.append(item)
-    self.propList.insert(END,self.describeItem(item))
+    self.propList.insert(0,self.describeItem(item))
     self.updateCanvasSize()
 
   def startDraw(self,event):
@@ -1050,7 +1083,8 @@ class xasyMainWin:
           self.mainCanvas.dtag(item,"enclosed")
       self.mainCanvas.addtag_withtag("selectedItem","enclosed")
       self.mainCanvas.dtag("enclosed","enclosed")
-      self.updateSelectedButton(self.toolMoveButton)
+      if self.selectedButton == self.toolSelectButton and len(self.mainCanvas.find_withtag("selectedItem")) > 0:
+        self.updateSelectedButton(self.toolMoveButton)
       self.updateSelection()
 
   def canvDrag(self,event):
