@@ -935,39 +935,41 @@ is in a asy environnement."
   (setq asy-latex-menu-item (nconc '("Asymptote" :visible asy-insinuate-latex-p) asy-latex-menu-item)))
 
 
-(eval-after-load "latex"
-  '(progn
-     (setq lasy-mode-map (copy-keymap LaTeX-mode-map))
-     (setq LaTeX-mode-map-backup (copy-keymap LaTeX-mode-map))
-     (when lasy-extra-key
-       (define-key lasy-mode-map (kbd "<C-return>")
-         (lambda ()
-           (interactive)
-           (lasy-view-ps nil nil t)))
-       (define-key lasy-mode-map (kbd "<C-S-return>")
-         (lambda ()
-           (interactive)
-           (lasy-view-ps t nil t)))
-       (define-key lasy-mode-map (kbd "<M-return>")
-         (lambda ()
-           (interactive)
-           (lasy-view-pdf-via-pdflatex nil nil t)))
-       (define-key lasy-mode-map (kbd "<M-S-return>")
-         (lambda ()
-           (interactive)
-           (lasy-view-pdf-via-pdflatex t nil t)))
-       (define-key lasy-mode-map (kbd "<C-M-return>")
-         (lambda ()
-           (interactive)
-           (lasy-view-pdf-via-ps2pdf nil nil t)))
-       (define-key lasy-mode-map (kbd "<C-M-S-return>")
-         (lambda ()
-           (interactive)
-           (lasy-view-pdf-via-ps2pdf t nil t)))
-       (define-key lasy-mode-map  (kbd "<f4>") 'asy-goto-error))
+(add-hook 'after-init-hook
+          (lambda ()
+            (eval-after-load "latex"
+              '(progn
+                 (setq lasy-mode-map (copy-keymap LaTeX-mode-map))
+                 (setq LaTeX-mode-map-backup (copy-keymap LaTeX-mode-map))
+                 (when lasy-extra-key
+                   (define-key lasy-mode-map (kbd "<C-return>")
+                     (lambda ()
+                       (interactive)
+                       (lasy-view-ps nil nil t)))
+                   (define-key lasy-mode-map (kbd "<C-S-return>")
+                     (lambda ()
+                       (interactive)
+                       (lasy-view-ps t nil t)))
+                   (define-key lasy-mode-map (kbd "<M-return>")
+                     (lambda ()
+                       (interactive)
+                       (lasy-view-pdf-via-pdflatex nil nil t)))
+                   (define-key lasy-mode-map (kbd "<M-S-return>")
+                     (lambda ()
+                       (interactive)
+                       (lasy-view-pdf-via-pdflatex t nil t)))
+                   (define-key lasy-mode-map (kbd "<C-M-return>")
+                     (lambda ()
+                       (interactive)
+                       (lasy-view-pdf-via-ps2pdf nil nil t)))
+                   (define-key lasy-mode-map (kbd "<C-M-S-return>")
+                     (lambda ()
+                       (interactive)
+                       (lasy-view-pdf-via-ps2pdf t nil t)))
+                   (define-key lasy-mode-map  (kbd "<f4>") 'asy-goto-error))
 
-     (easy-menu-define asy-latex-mode-menu lasy-mode-map "Asymptote insinuates LaTeX" asy-latex-menu-item)
-     ))
+                 (easy-menu-define asy-latex-mode-menu lasy-mode-map "Asymptote insinuates LaTeX" asy-latex-menu-item)
+                 ))))
 
 (defvar asy-insinuate-latex-p nil
   "Not nil when current buffer is insinuated by Asymptote.
