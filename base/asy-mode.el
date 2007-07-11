@@ -43,7 +43,7 @@
 ;;
 ;; See also paragraph II of the documentation below to automate asy-insinuate-latex.
 
-(defvar asy-mode-version "1.1")
+(defvar asy-mode-version "1.2")
 
 ;;;###autoload
 (define-derived-mode asy-mode objc-mode "Asymptote"
@@ -87,7 +87,7 @@ BUGS:
 This package has been tested in:
 * Linux Debian Etch
 - GNU Emacs 22.0.50.1
-- GNU Emacs 21.4.1 (only basic errors management within lasy-mode are supported)
+- GNU Emacs 21.4.1 (only basic errors management and basic font-lock features within lasy-mode are supported)
 * WindowsXP
 - GNU Emacs 22.0.990.1 (i386-mingw-nt5.1.2600)
 
@@ -108,7 +108,7 @@ Some variables can be customized: M-x customize-group <RET> asymptote <RET>."
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.asy$" . asy-mode))
 
-(defvar running-xemacs-p (string-match "XEmacs\\|Lucid" emacs-version))
+(defvar running-xemacs-p (featurep 'xemacs))
 (defvar running-unix-p (not (string-match "windows-nt\\|ms-dos" (symbol-name system-type))))
 
 (when running-xemacs-p
@@ -604,15 +604,24 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
             (column-number-mode t)
             ))
 
+
 ;;;###autoload (defun lasy-mode ())
 ;;; ************************************
 ;;; asy-mode mixed with LaTeX-mode: lasy
 ;;; ************************************
 (if (locate-library "two-mode-mode")
     (progn
+
+      (defvar lasy-fontify-asy-p nil
+        "Variable to communicate with `font-lock-unfontify-region'.
+Internal use, don't set in any fashion.")
+      (setq lasy-fontify-asy-p nil)
+
       (eval-after-load "two-mode-mode"
-        '(progn ;; Redefine `two-mode-mode-update-mode' to use regexp.
+        '(progn
+           ;; Redefine `two-mode-mode-update-mode' to use regexp.
            (defun two-mode-mode-update-mode ()
+             "Redefined in `asy-mode.el' to use regexp"
              (when (and two-mode-bool two-mode-update)
                (setq two-mode-update 0)
                (let ((mode-list second-modes)
@@ -636,25 +645,48 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
                            (two-mode-change-mode (car mode) (car (cdr (cddr mode)))))))
                    (setq mode-list (cdr mode-list)))
                  (if (= flag 0)
-                     (two-mode-change-mode (car default-mode) (cadr default-mode))))))))
+                     (two-mode-change-mode (car default-mode) (cadr default-mode))))))
+
+           (defun two-mode-change-mode (to-mode func)
+             "Redefined in asy-mode.
+Change the variable `lasy-fontify-asy-p' according to the value of func and
+the current mode."
+             (if (string= to-mode mode-name)
+                 t
+               (progn
+                 (setq lasy-fontify-asy-p (eq func 'asy-mode))
+                 (funcall func)
+                 (hack-local-variables)
+                 (two-mode-mode-setup)
+                 (if two-mode-switch-hook
+                     (run-hooks 'two-mode-switch-hook))
+                 (if (eq font-lock-mode t)
+                     (font-lock-fontify-buffer))
+                 (turn-on-font-lock-if-enabled))))
+           ))
+
+
       (require 'two-mode-mode)
+
       (defun lasy-mode ()
         "Treat, in some cases, the current buffer as a literal Asymptote program."
         (interactive)
         (set (make-local-variable 'asy-insinuate-latex-p) asy-insinuate-latex-p)
+        (make-local-variable 'lasy-fontify-asy-p)
+        (when (< emacs-major-version 22)
+          (make-local-variable 'font-lock-keywords-only))
         (setq default-mode    '("LaTeX" latex-mode)
               second-modes     '(("Asymptote"
-                                  "\\\\begin{asy}.*$"
-                                  "\\end{asy}"
+                                  "^\\\\begin{asy}.*$"
+                                  "^\\\\end{asy}"
                                   asy-mode)))
         (if two-mode-bool
             (progn
               (latex-mode)
-              (asy-insinuate-latex)
-              )
+              (asy-insinuate-latex))
           (progn
-            (two-mode-mode))))
-
+            (two-mode-mode)
+            )))
 
       (when (not running-xemacs-p)
         (defadvice TeX-command-master (around asy-choose-compile act)
@@ -665,12 +697,16 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
 
       (add-hook 'two-mode-switch-hook
                 (lambda ()
-                  (if (string-match "latex" (downcase mode-name))
+                  (if (eq major-mode 'latex-mode)
                       (progn ;; Switch to latex-mode
                         ;; Disable LaTeX-math-Mode within lasy-mode (because of incompatibility)
                         (when LaTeX-math-mode (LaTeX-math-mode -1))
-                        (asy-insinuate-latex))
+                        (asy-insinuate-latex)
+                        (when (< emacs-major-version 22)
+                          (setq font-lock-keywords-only nil)))
                     (progn ;; Switch to asy-mode
+                      (when (< emacs-major-version 22)
+                        (setq font-lock-keywords-only t))
                       ))))
 
       ;; Solve a problem restoring a TeX file via desktop.el previously in lasy-mode.
@@ -680,9 +716,198 @@ Fields are defined as 'field1: field2.field3:field4' . Field=0 <-> all fields"
               (find-file desktop-b-f-name))
             (add-to-list 'desktop-buffer-mode-handlers
                          '(asy-mode . asy-restore-desktop-buffer))))
-      )
+
+      ;; Functions and 'advises' to restrict 'font-lock-unfontify-region'
+      ;; and 'font-lock-fontify-syntactically-region' within lasy-mode
+      ;; Special thanks to Olivier Ramaré for his help.
+      (when (and (fboundp 'font-lock-add-keywords) (> emacs-major-version 21))
+        (defun lasy-mode-at-pos (pos &optional interior strictly)
+          "If point at POS is in an asy environment return the list (start end)."
+          (save-excursion
+            (save-match-data
+              (goto-char pos)
+              (let* ((basy
+                      (progn
+                        (unless strictly (end-of-line))
+                        (when (re-search-backward "^\\\\begin{asy}" (point-min) t)
+                          (when interior (next-line))
+                          (point))))
+                     (easy
+                      (and basy
+                           (progn
+                             (when (re-search-forward "^\\\\end{asy}" (point-max) t)
+                               (when interior (previous-line)(beginning-of-line))
+                               (point))))))
+                (and basy easy
+                     (> pos (- basy (if interior 12 0)))
+                     (< pos (+ easy (if interior 10 0)))
+                     (list basy easy))))))
+
+        (defun lasy-region (start end &optional interior)
+          "If the region 'start to end' contains the beginning or
+the end of an asy environment return the list of points where
+the asy environment starts and ends."
+          (let* ((beg (min start end))
+                 (lim (max start end)))
+            (or (lasy-mode-at-pos beg interior)
+                (save-match-data
+                  (save-excursion
+                    (goto-char beg)
+                    (and (re-search-forward "^\\\\begin{asy}" lim t)
+                         (lasy-mode-at-pos (point) interior)))))))
+
+        (defun lasy-tags (start end)
+          "Return associated list of points where the tags starts and ends
+restricted to the region (start end).
+\"b\" associated with (start-beginTag end-beginTag),
+\"e\" associated with (start-endTag end-endTag)."
+          (let*
+              ((beg (min start end))
+               (lim (max start end))
+               (basy (save-excursion
+                       (goto-char beg)(beginning-of-line)
+                       (when (re-search-forward "^\\\\begin{asy}.*" lim t)
+                         (list "b"
+                               (progn (beginning-of-line)(point))
+                               (progn (end-of-line)(point))))))
+               (easy (save-excursion
+                       (goto-char beg)(beginning-of-line)
+                       (when (re-search-forward "^\\\\end{asy}" lim t)
+                         (list "e"
+                               (progn (beginning-of-line)(point))
+                               (progn (end-of-line)(point))))))
+               out)
+            (when basy (push basy out))
+            (when easy (push easy out))))
+
+        (defun lasy-restrict-region (start end &optional interior)
+          "If the region 'start to end' contains the beginning or
+the end of an asy environment, returns the list of points wich
+restricts the region to the asy environment.
+Else, return (start end)."
+          (let*
+              ((beg (min start end))
+               (lim (max start end))
+               (be (if (lasy-mode-at-pos beg)
+                       beg
+                     (or (save-excursion
+                           (goto-char beg)
+                           (when (re-search-forward "^\\\\begin{asy}.*" lim t)
+                             (unless interior (beginning-of-line))
+                             (point)))
+                         beg)))
+               (en (or (save-excursion
+                         (goto-char be)
+                         (when (re-search-forward "^\\\\end{asy}" lim t)
+                           (when interior (beginning-of-line))
+                           (point)))
+                       lim)))
+            (list be en)))
+
+        (defun lasy-parse-region (start end)
+          "Return a list ((a (start1 end1)) (b (start2 end2)) [...]).
+where a, b, ... are nil or t; t means the region from 'startX' through 'endX' (are points)
+is in a asy environnement."
+          (let (regasy out rr brr err tags)
+            (save-excursion
+              (goto-char start)
+              (while (< (point) end)
+                (setq regasy (lasy-region (point) end))
+                (if regasy
+                    (progn
+                      (setq rr (lasy-mode-at-pos (point)))
+                      (setq brr (and rr (nth 0 rr))
+                            err (and rr (nth 1 rr)))
+                      (if rr
+                          (progn
+                            (push (list t (list (max 1 (1- (point))) (min end err))) out)
+                            (goto-char (min end err)))
+                        (progn
+                          (push (list nil (list (point) (nth 0 regasy))) out)
+                          (goto-char (1+ (nth 0 regasy))))))
+                  (progn
+                    (push (list nil (list (min (1+ (point)) end) end)) out)
+                    (goto-char end)))
+                ))
+            ;; Put start and end of tag in latex fontification.
+            (setq tags (lasy-tags start end))
+            (when (assoc "b" tags) (push (list nil (cdr (assoc "b" tags))) out))
+            (when (assoc "e" tags) (push (list nil (cdr (assoc "e" tags))) out))
+            (reverse out)))
+
+        (defadvice font-lock-unfontify-region
+          (around asy-font-lock-unfontify-region (beg end))
+          (if two-mode-bool
+              (let ((rstate (lasy-parse-region beg end))
+                    curr reg asy-fontify latex-fontify)
+                (while (setq curr (pop rstate))
+                  (setq reg (nth 1 curr))
+                  (setq asy-fontify (and (nth 0 curr) lasy-fontify-asy-p)
+                        latex-fontify (and (not (nth 0 curr))
+                                           (not lasy-fontify-asy-p)))
+                  (when (or asy-fontify latex-fontify)
+                    (setq beg (nth 0 reg)
+                          end (nth 1 reg))
+                    (save-excursion
+                      (save-restriction
+                        (narrow-to-region beg end)
+                        ad-do-it
+                        (widen))))))
+            ad-do-it))
+
+        (ad-activate 'font-lock-unfontify-region)
+        ;; (ad-deactivate 'font-lock-unfontify-region)
+
+        (defadvice font-lock-fontify-syntactically-region
+          (around asy-font-lock-fontify-syntactically-region
+                  (start end &optional loudly))
+          (if (and two-mode-bool (eq major-mode 'asy-mode))
+              (let*((reg (lasy-restrict-region start end)))
+                (save-restriction
+                  (setq start (nth 0 reg) end (nth 1 reg))
+                  (narrow-to-region start end)
+                  (condition-case nil
+                      ad-do-it
+                    (error nil))
+                  (widen)
+                  ))
+            ad-do-it))
+
+        (ad-activate 'font-lock-fontify-syntactically-region)
+        ;; (ad-deactivate 'font-lock-fontify-syntactically-region)
+
+        (defadvice font-lock-default-fontify-region
+          (around asy-font-lock-default-fontify-region
+                  (beg end loudly))
+          (if two-mode-bool
+              (let ((rstate (lasy-parse-region beg end))
+                    asy-fontify latex-fontify curr reg)
+                (while (setq curr (pop rstate))
+                  (setq reg (nth 1 curr))
+                  (setq asy-fontify (and (nth 0 curr) lasy-fontify-asy-p)
+                        latex-fontify (and (not (nth 0 curr))
+                                           (not lasy-fontify-asy-p)))
+                  (when (or asy-fontify latex-fontify)
+                    (setq beg (nth 0 reg)
+                          end (nth 1 reg))
+                    (save-excursion
+                      (save-restriction
+                        (narrow-to-region beg end)
+                        (condition-case nil
+                            ad-do-it
+                          (error nil))
+                        (widen)
+                        )))))
+            ad-do-it))
+
+        (ad-activate 'font-lock-default-fontify-region)
+        ;; (ad-deactivate 'font-lock-default-fontify-region)
+
+        ))
   (progn
-    (defvar two-mode-bool nil)))
+    (defvar two-mode-bool nil)
+    (defun lasy-mode ()
+      (message "You must install the package two-mode-mode.el."))))
 
 (setq asy-latex-menu-item
       '(["Toggle lasy-mode"  lasy-mode :active (featurep 'two-mode-mode)]
