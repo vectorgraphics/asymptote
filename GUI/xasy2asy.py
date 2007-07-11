@@ -186,10 +186,11 @@ def startQuickAsy():
   global quickAsyFailed
   try:
     quickAsy = Popen(split(xasyOptions.options['asyPath']+" -noV -q -multiline -interactive"),stdin=PIPE,stdout=PIPE,stderr=PIPE)
-    quickAsyFailed = False
+    if quickAsy.returncode != None:
+      quickAsyFailed = True
+    else:
+      quickAsyFailed = False
   except:
-    quickAsyFailed = True
-  if quickAsy.returncode != None:
     quickAsyFailed = True
 
 startQuickAsy()
