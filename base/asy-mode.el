@@ -764,21 +764,21 @@ restricted to the region (start end).
           (let*
               ((beg (min start end))
                (lim (max start end))
-               (basy (save-excursion
-                       (goto-char beg)(beginning-of-line)
-                       (when (re-search-forward "^\\\\begin{asy}.*" lim t)
-                         (list "b"
-                               (progn (beginning-of-line)(point))
-                               (progn (end-of-line)(point))))))
-               (easy (save-excursion
-                       (goto-char beg)(beginning-of-line)
-                       (when (re-search-forward "^\\\\end{asy}" lim t)
-                         (list "e"
-                               (progn (beginning-of-line)(point))
-                               (progn (end-of-line)(point))))))
                out)
-            (when basy (push basy out))
-            (when easy (push easy out))))
+            (save-excursion
+              (goto-char beg)(beginning-of-line)
+              (while
+                  (when (re-search-forward "^\\\\begin{asy}.*" lim t)
+                    (push (list
+                           (progn (beginning-of-line)(point))
+                           (progn (end-of-line)(point))) out)))
+            (goto-char beg)(beginning-of-line)
+            (while
+                  (when (re-search-forward "^\\\\end{asy}" lim t)
+                    (push (list
+                           (progn (beginning-of-line)(point))
+                           (progn (end-of-line)(point))) out)))
+            out)))
 
         (defun lasy-restrict-region (start end &optional interior)
           "If the region 'start to end' contains the beginning or
@@ -831,8 +831,7 @@ is in a asy environnement."
                 ))
             ;; Put start and end of tag in latex fontification.
             (setq tags (lasy-tags start end))
-            (when (assoc "b" tags) (push (list nil (cdr (assoc "b" tags))) out))
-            (when (assoc "e" tags) (push (list nil (cdr (assoc "e" tags))) out))
+            (dolist (tag tags) (push (list nil tag) out))
             (reverse out)))
 
         (defadvice font-lock-unfontify-region
