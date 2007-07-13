@@ -1074,7 +1074,6 @@ void initDir() {
 void setPath() {
   searchPath.clear();
   searchPath.push_back(".");
-  searchPath.push_back(initdir);
   string asydir=getSetting<string>("dir");
   if(asydir != "") {
     size_t p,i=0;
@@ -1084,6 +1083,7 @@ void setPath() {
     }
     if(i < asydir.length()) searchPath.push_back(asydir.substr(i));
   }
+  searchPath.push_back(initdir);
 #ifdef ASYMPTOTE_SYSDIR
   searchPath.push_back(ASYMPTOTE_SYSDIR);
 #endif

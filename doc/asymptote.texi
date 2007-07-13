@@ -505,14 +505,14 @@ files, @code{asy} will search the following paths, in the order listed:
 @item
 The current directory;
 @item
-@cindex @code{.asy}
-The directory @code{.asy} in the user's home directory 
-(@code{%USERPROFILE%\.asy} under @code{MSDOS});
-@item
 @cindex @code{dir}
 A list of one or more directories specified by the configuration
 variable @code{dir} (separated by @code{:} under UNIX and
 @code{;} under @code{MSDOS});
+@item
+@cindex @code{.asy}
+The directory @code{.asy} in the user's home directory 
+(@code{%USERPROFILE%\.asy} under @code{MSDOS});
 @item
 The @code{Asymptote} system directory (by default,
 @code{@value{Datadir}/asymptote} under @code{UNIX} and

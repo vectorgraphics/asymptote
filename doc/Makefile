@@ -1,7 +1,7 @@
 MANFILES = asy.1 xasy.1x
 ASYFILES = $(wildcard *.asy) latexusage.asy
 SOURCE = asymptote.texi version.texi options
-ASY = ../asy -dir ../base
+ASY = ../asy -dir ../base -config ""
 DOCFILES = asymptote.pdf CAD.pdf
 
 all:    doc
@@ -19,7 +19,7 @@ doc:	asymptote.dvi asymptote.info html man faq
 	$(ASY) -f png $<
 
 %.eps:	%.asy
-	$(ASY) $<
+	$(ASY) -f eps $<
 
 %.pdf:	%.asy
 	$(ASY) -f pdf $<
