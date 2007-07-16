@@ -675,6 +675,7 @@ class xasyMainWin:
   def toolTextCmd(self):
     self.updateSelectedButton(self.toolTextButton)
   def toolAsyCmd(self):
+    self.updateSelectedButton(self.toolSelectButton)
     self.clearSelection()
     self.clearHighlight()
     self.addItemToFile(xasyScript())
@@ -1154,7 +1155,7 @@ class xasyMainWin:
 
   def itemPropMenuPopup(self,event):
     try:
-      item = self.fileItems[int(self.propList.curselection()[0])]
+      item = self.fileItems[len(self.fileItems)-int(self.propList.curselection()[0])-1]
     except:
       item = None
     if item != None:
