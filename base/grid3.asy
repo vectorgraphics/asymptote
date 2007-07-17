@@ -1,7 +1,7 @@
 // grid3.asy
 // Author: Philippe Ivaldi(Grids in 3D)
 // Created: 10 janvier 2007
-// Last modified: 28 January 2007
+// Last modified: 17 July 2007
 
 import graph3;
 
@@ -27,9 +27,9 @@ struct grid3 {
     this.axea=shift(level)*axea;
     this.axeb=shift(level)*axeb;
     bds=autoscale(min,max,t.scale);
-    vt= linear(pic,axea,t.T(),min,max,P);
+    vt= linear(pic,this.axea,t.T(),min,max,P);
     locate=ticklocate(min,max,t,bds.min,bds.max,vt,
-                      dir(axea,unit(point(axeb,0)-point(axea,0))));
+                      dir(axea,unit(point(axeb,0)-point(axea,0)),P));
   }
 };
 
@@ -148,7 +148,7 @@ grid3routinetype XYZgrid(position pos=Relative(0))
 {
   grid3routinetype ogs=new grid3routines[] {YZYgrid(pos),XYXgrid(pos),
                                             XZXgrid(pos)};
-  return ogs;  
+  return ogs;
 }
 grid3routinetype XYZgrid=XYZgrid();
 
@@ -173,7 +173,7 @@ void grid3(picture pic=currentpicture, bbox3 b,
            bool begin=true, bool end=true,
            pen pGrid=grey, pen pgrid=lightgrey,
            bool put=Above,
-           projection P=currentprojection) 
+           projection P=currentprojection)
 {
   for(int j=0; j < gridroutine.length; ++j) {
     grid3routines gridroutinej=gridroutine[j];
@@ -192,7 +192,7 @@ void grid3(picture pic=currentpicture, bbox3 b,
           ticks(d,t,"",0,ga,gb,nullpen,None,gt.locate,gt.bds.divisor,
                 opposite=true);
           (put ? add : prepend)(f,t*T*inverse(t)*d);
-	}); 
+	});
       pic.addPath(ga,pGrid);
       pic.addPath(gb,pGrid);
     }
@@ -205,7 +205,7 @@ void grid3(picture pic=currentpicture, bbox3 b,
            bool begin=true, bool end=true,
            pen[] pGrid, pen[] pgrid,
            bool put=Above,
-           projection P=currentprojection) 
+           projection P=currentprojection)
 {
   if(pGrid.length != gridroutine.length || pgrid.length != gridroutine.length)
     abort("pen array has different length than grid");
@@ -223,7 +223,7 @@ position top=Relative(1);
 position bottom=Relative(0);
 position middle=Relative(0.5);
 
-// Structure used to communicate ticks and axis settings to grid3 routines. 
+// Structure used to communicate ticks and axis settings to grid3 routines.
 struct ticksgridT {
   ticks ticks;
   // Other arguments of grid3 are define by ticks and axis settings
@@ -340,29 +340,29 @@ void zaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
 
    grid3(pic=currentpicture, // picture
    b=b,                // bbox3: the 3D bounding box.
-   gridroutine=XYZgrid(// grid3routine 
+   gridroutine=XYZgrid(// grid3routine
    // or grid3routine[] (alias grid3routines)
-   // or grid3routines[]: 
-   // The routine(s) to draw the grid(s): 
+   // or grid3routines[]:
+   // The routine(s) to draw the grid(s):
    // *XYgrid: draw grid from X in direction of Y
    // *YXgrid: draw grid from Y in direction of X, ...
    // *An array of previous values XYgrid, YXgrid, ...
    // *XYXgrid: draw XYgrid and YXgrid grids
    // *YXYgrid: draw XYgrid and YXgrid grids
    // *ZXZgrid: draw ZXgrid and XZgrid grids
-   // *YX_YZgrid: draw YXgrid and YZgrid grids 
-   // *XY_XZgrid: draw XYgrid and XZgrid grids 
-   // *YX_YZgrid: draw YXgrid and YZgrid grids 
+   // *YX_YZgrid: draw YXgrid and YZgrid grids
+   // *XY_XZgrid: draw XYgrid and XZgrid grids
+   // *YX_YZgrid: draw YXgrid and YZgrid grids
    // *An array of previous values XYXgrid,...
    // *XYZgrid: draw XYXgrid, ZYZgrid, XZXgrid grids.
    pos=Relative(0)),
    // the position of the grid relative to the axis
-   // perpendicular to the grid; a real number 
+   // perpendicular to the grid; a real number
    // specifies a coordinate relative  to this axis.
    // Aliases: top=Relative(1), middle=Relative(0.5)
    // and bottom=Relative(0).
 
-   // These arguments are similar to those of Ticks(): 
+   // These arguments are similar to those of Ticks():
    N=0,                // int
    n=0,                // int
    Step=0,             // real
@@ -412,4 +412,3 @@ void zaxis(picture pic=currentpicture, Label L="", bool all=false, bbox3 b,
    zaxis("$z$",b,RightTicks(ZYgrid));
 
 */
-
