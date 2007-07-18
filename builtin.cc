@@ -657,13 +657,6 @@ dummyRecord *createDummyRecord(venv &ve, const char *name)
   return r;
 }
 
-#ifndef HAVE_POW
-inline double pow(double x, double y)
-{
-  return exp(y*log(x));
-}
-#endif
-
 double identity(double x) {return x;}
 double pow10(double x) {return pow(10.0,x);}
 
