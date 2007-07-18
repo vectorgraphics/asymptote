@@ -137,7 +137,7 @@ inline T get(const item& it)
 
 #ifndef Int  
 template <>
-inline int get<int>(const item& it)
+inline int get<int>(const item&)
 {
   throw vm::bad_item_value();
 }

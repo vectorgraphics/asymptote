@@ -12,7 +12,6 @@
 #define PATH_H
 
 #include <iostream>
-#include <climits>
 #include <cfloat>
 
 #include "mod.h"

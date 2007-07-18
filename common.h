@@ -8,6 +8,7 @@
 #define COMMON_H
 
 #include <iostream>
+#include <climits>
 #include "memory.h"
 
 #ifdef HAVE_CONFIG_H

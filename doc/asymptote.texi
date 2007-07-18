@@ -7871,7 +7871,7 @@ Stefan Knorr.
 @c  LocalWords:  nondeconstructed backends usr venn labelsquare nobasealign dp
 @c  LocalWords:  NoMargin BeginMargin EndMargin BeginPenMargin EndPenMargin dm
 @c  LocalWords:  PenMargin PenMargins TrueMargin labelmargin errorbars errorbar
-@c  LocalWords:  dpx dpy dmx dmy barsize arrowheadsize BeginDotMargin DotMargin
+@c  LocalWords:  dpx dpy dmx dmy barsize arrowsize BeginDotMargin DotMargin
 @c  LocalWords:  EndDotMargin DotMargins NColors BWRainbow colorspace labelled
 @c  LocalWords:  PaletteTicks defaultformat leastsquares bjam fprintf endgroup
 @c  LocalWords:  begingroup xmargin ymargin pbox box ellipse wget exe Gouraud
@@ -7934,4 +7934,4 @@ Stefan Knorr.
 @c  LocalWords:  curlSpecifier cputimeformat initializers arbitary redeclaring
 @c  LocalWords:  firstname lastname multdiagonal Raphson OmitTick OmitFormat
 @c  LocalWords:  NoZero NoZeroFormat abbrevation gsOptions namespace redeclared
-@c  LocalWords:  atLeast intMin
+@c  LocalWords:  atLeast intMin globalwrite
