@@ -15,8 +15,8 @@
 #endif
 
 #ifdef HAVE_LONG_LONG
-#define Int_MAX LLONG_MAX
-#define Int_MIN LLONG_MIN
+#define Int_MAX LONG_LONG_MAX
+#define Int_MIN LONG_LONG_MIN
 typedef long long Int;
 #else
 #ifdef HAVE_LONG
