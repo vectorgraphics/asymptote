@@ -1075,10 +1075,10 @@ in @code{PostScript} coordinates), real @code{angle} (arrowhead angle
 in degrees), @code{FillDraw}, @code{Fill}, @code{NoFill}, @code{Draw},
 and (except for @code{MidArrow} and @code{Arrows}) a
 relative real @code{position} along the path (an @code{arctime}) where
-the tip of the arrow should be placed. The default arrowhead size is
-@code{arrowheadsize(p)}. There are also arrow versions with slightly modified
-default values of @code{size} and @code{angle} suitable for curved
-arrows: @code{BeginArcArrow}, @code{EndArcArrow} (or equivalently
+the tip of the arrow should be placed. The default arrowhead size when drawn
+with a pen @code{p} is @code{arrowsize(p)}. There are also arrow versions with
+slightly modified default values of @code{size} and @code{angle} suitable for
+curved arrows: @code{BeginArcArrow}, @code{EndArcArrow} (or equivalently
 @code{ArcArrow}), @code{MidArcArrow}, and @code{ArcArrows}.
 
 @cindex @code{NoMargin}
