@@ -56,7 +56,7 @@ class position : public gc {
   size_t column;
 
 public:
-  void init(fileinfo *f, int p) {
+  void init(fileinfo *f, Int p) {
     file = f;
     if (file) {
       line = file->line();

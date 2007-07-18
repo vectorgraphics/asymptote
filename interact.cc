@@ -32,7 +32,7 @@ namespace run {
 
 namespace interact {
 
-int interactive=false;
+Int interactive=false;
 bool uptodate=true;
 
 completer *currentCompleter=0;
@@ -55,7 +55,7 @@ void init_completion() {
   // completed.  All characters that can't form part of an identifier are
   // treated as break characters.
   static char break_characters[128];
-  int j=0;
+  Int j=0;
   for (unsigned char c=9; c<128; ++c)
     if (!isalnum(c) && c != '_') {
       break_characters[j]=c;
@@ -184,7 +184,7 @@ void deleteLastLine() {
 void cleanup_interactive() {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   // Write the history file.
-  stifle_history(getSetting<int>("historylines"));
+  stifle_history(intcast(getSetting<Int>("historylines")));
   write_history(historyname.c_str());
 #endif
 }

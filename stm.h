@@ -29,7 +29,7 @@ public:
   stm(position pos)
     : runnable(pos) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void transAsField(coenv &e, record *) {
     // Ignore the record.
@@ -44,7 +44,7 @@ public:
   emptyStm(position pos)
     : stm(pos) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &) {}
 };
@@ -57,7 +57,7 @@ public:
   blockStm(position pos, block *base)
     : stm(pos), base(base) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e) {
     return base->trans(e);
@@ -80,7 +80,7 @@ public:
   expStm(position pos, exp *body)
     : stm(pos), body(body) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e);
 
@@ -99,7 +99,7 @@ public:
   ifStm(position pos, exp *test, stm* onTrue, stm* onFalse = 0)
     : stm(pos), test(test), onTrue(onTrue), onFalse(onFalse) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e);
 
@@ -120,7 +120,7 @@ public:
   whileStm(position pos, exp *test, stm *body)
     : stm(pos), test(test), body(body) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e);
 };
@@ -133,7 +133,7 @@ public:
   doStm(position pos, stm *body, exp *test)
     : stm(pos), body(body), test(test) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e);
 };
@@ -148,7 +148,7 @@ public:
   forStm(position pos, runnable *init, exp *test, runnable *update, stm *body)
     : stm(pos), init(init), test(test), update(update), body(body) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e);
 };
@@ -164,7 +164,7 @@ public:
   extendedForStm(position pos, ty *start, symbol *var, exp *set, stm *body)
     : stm(pos), start(start), var(var), set(set), body(body) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e);
 };
@@ -175,7 +175,7 @@ public:
   breakStm(position pos)
     : stm(pos) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e);
 };
@@ -185,7 +185,7 @@ public:
   continueStm(position pos)
     : stm(pos) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e);
 };
@@ -197,7 +197,7 @@ public:
   returnStm(position pos, exp *value = 0)
     : stm(pos), value(value) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e);
 
@@ -223,7 +223,7 @@ public:
     stms.push_back(s);
   }
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e);
 };

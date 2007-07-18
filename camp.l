@@ -27,8 +27,8 @@ using mem::string;
 #define YY_NO_UNPUT
 
 fileinfo* fi;
-int tokPos;
-int charPos;
+Int tokPos;
+Int charPos;
 //int commentDepth = 0;
 
 bool eof;
@@ -343,7 +343,7 @@ explicit           {adjust(); return EXPLICIT; }
 
 
 [0-9]+             try {
-  adjust(); yylval.e= new intExp(here(), lexical::cast<int>(yytext)); 
+  adjust(); yylval.e= new intExp(here(), lexical::cast<Int>(yytext)); 
   } catch (lexical::bad_cast&) {
     error();
     em << "invalid integer";

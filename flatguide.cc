@@ -11,25 +11,25 @@
 
 namespace camp {
 
-void flatguide::addPre(path& p, int j)
+void flatguide::addPre(path& p, Int j)
 {
   setSpec(new controlSpec(p.precontrol(j),p.straight(j-1)),IN);
 }
-void flatguide::addPoint(path& p, int j)
+void flatguide::addPoint(path& p, Int j)
 {
   add(p.point(j));
 }
-void flatguide::addPost(path& p, int j)
+void flatguide::addPost(path& p, Int j)
 {
   setSpec(new controlSpec(p.postcontrol(j),p.straight(j)),OUT);
 }
 
 void flatguide::uncheckedAdd(path p)
 {
-  int n=p.length();
+  Int n=p.length();
   if (n>=0)
     addPoint(p,0);
-  for (int i=1; i<=n; ++i) {
+  for (Int i=1; i<=n; ++i) {
     addPost(p,i-1);
     addPre(p,i);
     addPoint(p,i);

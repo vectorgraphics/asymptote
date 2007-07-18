@@ -30,6 +30,10 @@ using namespace settings;
 
 bool False=false;
 
+namespace vm {
+  void error(const char* message);
+}
+
 char *Strdup(string s)
 {
   size_t size=s.size()+1;
@@ -308,7 +312,7 @@ void noPath()
 
 char *getPath(char *p=currentpath)
 {
-  static int size=MAXPATHLEN;
+  static size_t size=MAXPATHLEN;
   if(!p) p=new(UseGC) char[size];
   if(!p) noPath();
   else while(getcwd(p,size) == NULL) {
@@ -353,3 +357,16 @@ void popupHelp() {
   }
 }
 
+unsigned unsignedcast(Int n)
+{
+  if(n < 0 || n/2 > INT_MAX)
+    vm::error("Unsigned integer argument is outside valid range");
+  return (unsigned) n;
+}
+
+int intcast(Int n)
+{
+  if(abs(n) > INT_MAX)
+  vm::error("Integer argument is outside valid range");
+  return (int) n;
+}

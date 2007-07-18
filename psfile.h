@@ -43,7 +43,7 @@ class psfile {
     if(!pdf) *out << "]";
   }
 
-  void writeHex(unsigned int n) {
+  void writeHex(unsigned n) {
     *out << std::hex << std::setw(2) << std::setfill('0') << n << std::dec;
   }
   
@@ -74,7 +74,7 @@ public:
     *out << " " << z.getx() << " " << z.gety();
   }
 
-  void writeHex(pen *p, int ncomponents);
+  void writeHex(pen *p, Int ncomponents);
   
   void resetpen() {
     lastpen=pen(initialpen);
@@ -206,23 +206,23 @@ public:
   }
   
   ColorSpace maxcolorspace(const vm::array& pens) {
-    int colorspace=0;
+    ColorSpace colorspace=DEFCOLOR;
     size_t size=pens.size();
     for(size_t i=0; i < size; i++) {
       pen *p=vm::read<pen *>(pens,i);
       p->convert();
-      colorspace=max(colorspace,(int) p->colorspace());
+      colorspace=max(colorspace,p->colorspace());
     }
-    return (ColorSpace) colorspace;
+    return colorspace;
   }
   
   ColorSpace maxcolorspace2(const vm::array& penarray) {
-    int colorspace=0;
+    ColorSpace colorspace=DEFCOLOR;
     size_t size=penarray.size();
     for(size_t i=0; i < size; i++)
       colorspace=max(colorspace,
-		     (int) maxcolorspace(vm::read<vm::array>(penarray,i)));
-    return (ColorSpace) colorspace;
+		     maxcolorspace(vm::read<vm::array>(penarray,i)));
+    return colorspace;
   }
 
 };

@@ -163,18 +163,18 @@ void stack::run(program *code, vars_t vars)
             break;
         
           case inst::varpush:
-            push((*vars)[get<int>(i)]);
+            push((*vars)[get<Int>(i)]);
             break;
 
           case inst::varsave:
-            (*vars)[get<int>(i)] = top();
+            (*vars)[get<Int>(i)] = top();
             break;
         
           case inst::fieldpush: {
             vars_t frame = pop<vars_t>();
             if (!frame)
 	      error("dereference of null pointer");
-            push((*frame)[get<int>(i)]);
+            push((*frame)[get<Int>(i)]);
             break;
           }
         
@@ -182,7 +182,7 @@ void stack::run(program *code, vars_t vars)
             vars_t frame = pop<vars_t>();
             if (!frame)
 	      error("dereference of null pointer");
-            (*frame)[get<int>(i)] = top();
+            (*frame)[get<Int>(i)] = top();
             break;
           }
 	
@@ -229,7 +229,7 @@ void stack::run(program *code, vars_t vars)
           }
 
           case inst::alloc: {
-            vars->extend(get<int>(i));
+            vars->extend(get<Int>(i));
             break;
           }
 

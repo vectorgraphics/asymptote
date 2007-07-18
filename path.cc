@@ -12,6 +12,7 @@
 #include "util.h"
 #include "angle.h"
 #include "camperror.h"
+#include "mathop.h"
 
 namespace camp {
 
@@ -58,7 +59,7 @@ quadraticroots::quadraticroots(double a, double b, double c)
     double factor=0.5*b/a;
     double x=-2.0*c/(b*factor);
     if(x > -1.0) {
-      distinct = quadraticroots::TWO;
+      distinct=quadraticroots::TWO;
       roots=2;
       double sqrtm1=sqrt1pxm1(x);
       double r2=factor*sqrtm1;
@@ -163,8 +164,8 @@ pair path::point(double t) const
 {
   checkEmpty(n);
     
-  int i = Floor(t);
-  int iplus;
+  Int i = Floor(t);
+  Int iplus;
   t = fmod(t,1);
   if (t < 0) t += 1;
 
@@ -199,8 +200,8 @@ pair path::precontrol(double t) const
 {
   checkEmpty(n);
 		     
-  int i = Floor(t);
-  int iplus;
+  Int i = Floor(t);
+  Int iplus;
   t = fmod(t,1);
   if (t < 0) t += 1;
 
@@ -232,8 +233,8 @@ pair path::postcontrol(double t) const
 {
   checkEmpty(n);
   
-  int i = Floor(t);
-  int iplus;
+  Int i = Floor(t);
+  Int iplus;
   t = fmod(t,1);
   if (t < 0) t += 1;
 
@@ -263,8 +264,8 @@ pair path::postcontrol(double t) const
 path path::reverse() const
 {
   mem::vector<solvedKnot> nodes(n);
-  int len=length();
-  for (int i = 0, j = len; i < n; i++, j--) {
+  Int len=length();
+  for (Int i = 0, j = len; i < n; i++, j--) {
     nodes[i].pre = postcontrol(j);
     nodes[i].point = point(j);
     nodes[i].post = precontrol(j);
@@ -273,13 +274,13 @@ path path::reverse() const
   return path(nodes, n, cycles);
 }
 
-path path::subpath(int a, int b) const
+path path::subpath(Int a, Int b) const
 {
   if(empty()) return path();
 
   if (a > b) {
     const path &rp = reverse();
-    int len=length();
+    Int len=length();
     path result = rp.subpath(len-a, len-b);
     return result;
   }
@@ -291,10 +292,10 @@ path path::subpath(int a, int b) const
       b = n-1;
   }
 
-  int sn = b-a+1;
+  Int sn = b-a+1;
   mem::vector<solvedKnot> nodes(sn);
 
-  for (int i = 0, j = a; j <= b; i++, j++) {
+  for (Int i = 0, j = a; j <= b; i++, j++) {
     nodes[i].pre = precontrol(j);
     nodes[i].point = point(j);
     nodes[i].post = postcontrol(j);
@@ -326,7 +327,7 @@ path path::subpath(double a, double b) const
   
   if (a > b) {
     const path &rp = reverse();
-    int len=length();
+    Int len=length();
     return rp.subpath(len-a, len-b);
   }
 
@@ -342,17 +343,17 @@ path path::subpath(double a, double b) const
       if (a > n-1)
 	a = n-1;
     }
-    aL = nodes[(int)floor(a)];
-    aR = nodes[(int)ceil(a)];
-    bL = nodes[(int)floor(b)];
-    bR = nodes[(int)ceil(b)];
+    aL = nodes[(Int)floor(a)];
+    aR = nodes[(Int)ceil(a)];
+    bL = nodes[(Int)floor(b)];
+    bR = nodes[(Int)ceil(b)];
   } else {
-    if(fabs(a) > INT_MAX || fabs(b) > INT_MAX)
-      reportError("invalid path index");
-    aL = nodes[imod((int) floor(a),n)];
-    aR = nodes[imod((int) ceil(a),n)];
-    bL = nodes[imod((int) floor(b),n)];
-    bR = nodes[imod((int) ceil(b),n)];
+    if(run::validInt(a) && run::validInt(b)) {
+      aL = nodes[imod((Int) floor(a),n)];
+      aR = nodes[imod((Int) ceil(a),n)];
+      bL = nodes[imod((Int) floor(b),n)];
+      bR = nodes[imod((Int) ceil(b),n)];
+    } else reportError("invalid path index");
   }
 
   if (a == b) return path(point(a));
@@ -394,8 +395,8 @@ bbox path::bounds() const
     return bbox();
   }
 
-  int len=length();
-  for (int i = 0; i < len; i++) {
+  Int len=length();
+  for (Int i = 0; i < len; i++) {
     box += point(i);
     if(straight(i)) continue;
     
@@ -426,8 +427,8 @@ bbox path::bounds(double min, double max) const
   
   static pair I(0,1);
   
-  int len=length();
-  for (int i = 0; i < len; i++) {
+  Int len=length();
+  for (Int i = 0; i < len; i++) {
     pair v=I*dir(i);
     box += point(i)+min*v;
     box += point(i)+max*v;
@@ -477,8 +478,8 @@ bbox path::internalbounds(const bbox& padding) const
   bbox box;
   
   // Check interior nodes.
-  int len=length();
-  for (int i = 1; i < len; i++) {
+  Int len=length();
+  for (Int i = 1; i < len; i++) {
     
     pair pre=point(i)-precontrol(i);
     pair post=postcontrol(i)-point(i);
@@ -499,7 +500,7 @@ bbox path::internalbounds(const bbox& padding) const
   }
 			      
   // Check interior segments.
-  for (int i = 0; i < len; i++) {
+  for (Int i = 0; i < len; i++) {
     if(straight(i)) continue;
     
     pair a,b,c;
@@ -569,7 +570,7 @@ double path::arclength() const {
   if (cached_length != -1) return cached_length;
 
   double L=0.0;
-  for (int i = 0; i < n-1; i++) {
+  for (Int i = 0; i < n-1; i++) {
     L += cubiclength(point(i),postcontrol(i),precontrol(i+1),point(i+1));
   }
   if(cycles) L += cubiclength(point(n-1),postcontrol(n-1),precontrol(n),
@@ -588,7 +589,7 @@ double path::arctime(double goal) const {
       return result;
     }
     if (cached_length > 0 && goal >= cached_length) {
-      int loops = (int)(goal / cached_length);
+      Int loops = (Int)(goal / cached_length);
       goal -= loops*cached_length;
       return loops*n+arctime(goal);
     }      
@@ -600,7 +601,7 @@ double path::arctime(double goal) const {
   }
     
   double l,L=0;
-  for (int i = 0; i < n-1; i++) {
+  for (Int i = 0; i < n-1; i++) {
     l = cubiclength(point(i),postcontrol(i),precontrol(i+1),point(i+1),goal);
     if (l < 0)
       return (-l+i);
@@ -669,7 +670,7 @@ double path::directiontime(const pair& dir) const {
   pair rot = pair(1,0)/unit(dir);
     
   double t; double pre,post;
-  for (int i = 0; i < n-1+cycles; ) {
+  for (Int i = 0; i < n-1+cycles; ) {
     t = cubicDir(this->nodes[i],(cycles && i==n-1) ? nodes[0]:nodes[i+1],rot);
     if (t >= 0) return i+t;
     i++;
@@ -749,16 +750,16 @@ bool intersect(pair &t, path& p1, path& p2, double fuzz=0.0)
 			 max(length(p2.max()),length(p2.min()))));
   mem::vector<solvedKnot> n1=p1.Nodes();
   mem::vector<solvedKnot> n2=p2.Nodes();
-  int L1=p1.length();
-  int L2=p2.length();
-  int icycle=p1.cyclic() ? p1.size()-1 : -1;
-  int jcycle=p2.cyclic() ? p2.size()-1 : -1;
+  Int L1=p1.length();
+  Int L2=p2.length();
+  Int icycle=p1.cyclic() ? p1.size()-1 : -1;
+  Int jcycle=p2.cyclic() ? p2.size()-1 : -1;
   if(p1.size() == 1) {L1=1; icycle=0;}
   if(p2.size() == 1) {L2=1; jcycle=0;}
-  for(int i=0; i < L1; ++i) {
+  for(Int i=0; i < L1; ++i) {
     const solvedKnot& left1=n1[i];
     const solvedKnot& right1=(i == icycle) ? n1[0] : n1[i+1];
-    for(int j=0; j < L2; ++j) {
+    for(Int j=0; j < L2; ++j) {
       count=maxIntersectCount;
       pair T;
       if(intersectcubics(T,left1,right1,
@@ -776,20 +777,21 @@ ostream& operator<< (ostream& out, const path& p)
 {
   size_t oldPrec = out.precision(6);
   
-  int n = p.n;
+  Int n = p.n;
   switch(n) {
   case 0:
     out << "<nullpath>";
     break;
     
   case 1:
-    out << p.point(0);
+    out << p.point((Int) 0);
     break;
 
   default:
-    out << p.point(0) << ".. controls " << p.postcontrol(0) << " and ";
+    out << p.point((Int) 0) << ".. controls " << p.postcontrol((Int) 0) 
+	<< " and ";
 
-    for (int i = 1; i < n-1; i++) {
+    for (Int i = 1; i < n-1; i++) {
       out << p.precontrol(i) << newl;
 
       out << " .." << p.point(i);
@@ -802,7 +804,7 @@ ostream& operator<< (ostream& out, const path& p)
 
     if (p.cycles) 
       out << ".. controls " << p.postcontrol(n-1) << " and "
-	  << p.precontrol(0) << newl
+	  << p.precontrol((Int) 0) << newl
 	  << " ..cycle";
     break;
   }
@@ -814,27 +816,27 @@ ostream& operator<< (ostream& out, const path& p)
 
 path concat(const path& p1, const path& p2)
 {
-  int n1 = p1.length(), n2 = p2.length();
+  Int n1 = p1.length(), n2 = p2.length();
 
   if (n1 == -1) return p2;
   if (n2 == -1) return p1;
   pair a=p1.point(n1);
-  pair b=p2.point(0);
+  pair b=p2.point((Int) 0);
   if ((a-b).abs2() > Fuzz*max(a.abs2(),b.abs2()))
     reportError("paths in concatenation do not meet");
 
   mem::vector<solvedKnot> nodes(n1+n2+1);
 
-  int i = 0;
-  nodes[0].pre = p1.point(0);
-  for (int j = 0; j < n1; j++) {
+  Int i = 0;
+  nodes[0].pre = p1.point((Int) 0);
+  for (Int j = 0; j < n1; j++) {
     nodes[i].point = p1.point(j);
     nodes[i].straight = p1.straight(j);
     nodes[i].post = p1.postcontrol(j);
     nodes[i+1].pre = p1.precontrol(j+1);
     i++;
   }
-  for (int j = 0; j < n2; j++) {
+  for (Int j = 0; j < n2; j++) {
     nodes[i].point = p2.point(j);
     nodes[i].straight = p2.straight(j);
     nodes[i].post = p2.postcontrol(j);
@@ -847,7 +849,7 @@ path concat(const path& p1, const path& p2)
 }
 
 // Increment count if the path has a vertical component at t.
-bool path::Count(int& count, double t) const
+bool path::Count(Int& count, double t) const
 {
   pair z=point(t);
   pair Pre=z-precontrol(t);
@@ -856,13 +858,13 @@ bool path::Count(int& count, double t) const
   double post=unit(Post).gety();
   if(pre == 0.0 && Pre != pair(0.0,0.0)) pre=post;
   if(post == 0.0 && Post != pair(0.0,0.0)) post=pre;
-  int incr=(pre*post > Fuzz) ? sgn1(pre) : 0;
+  Int incr=(pre*post > Fuzz) ? sgn1(pre) : 0;
   count += incr;
   return incr != 0.0;
 }
   
 // Count if t is in (begin,end] and z lies to the left of point(i+t).
-void path::countleft(int& count, double x, int i, double t, double begin,
+void path::countleft(Int& count, double x, Int i, double t, double begin,
 		     double end, double& mint, double& maxt) const 
 {
   if(t > -Fuzz && t < Fuzz) t=0;
@@ -874,11 +876,11 @@ void path::countleft(int& count, double x, int i, double t, double begin,
 
 // Return the winding number of the region bounded by the (cyclic) path
 // relative to the point z.
-int path::windingnumber(const pair& z) const
+Int path::windingnumber(const pair& z) const
 {
   if(!cycles)
     reportError("path is not cyclic");
-  int count=0;
+  Int count=0;
   
   double x=z.getx();
   double y=z.gety();
@@ -891,7 +893,7 @@ int path::windingnumber(const pair& z) const
   if(z.getx() < b.left || z.getx() > b.right ||
      z.gety() < b.bottom || z.gety() > b.top) return 0;
   
-  for(int i=0; i < n; ++i) {
+  for(Int i=0; i < n; ++i) {
     pair a=point(i);
     pair d=point(i+1);
       
@@ -934,7 +936,7 @@ path path::transformed(const transform& t) const
 {
   mem::vector<solvedKnot> nodes(n);
 
-  for (int i = 0; i < n; ++i) {
+  for (Int i = 0; i < n; ++i) {
     nodes[i].pre = t * this->nodes[i].pre;
     nodes[i].point = t * this->nodes[i].point;
     nodes[i].post = t * this->nodes[i].post;
@@ -947,10 +949,10 @@ path path::transformed(const transform& t) const
 
 path transformed(const transform& t, const path& p)
 {
-  int n = p.size();
+  Int n = p.size();
   mem::vector<solvedKnot> nodes(n);
 
-  for (int i = 0; i < n; ++i) {
+  for (Int i = 0; i < n; ++i) {
     nodes[i].pre = t * p.precontrol(i);
     nodes[i].point = t * p.point(i);
     nodes[i].post = t * p.postcontrol(i);

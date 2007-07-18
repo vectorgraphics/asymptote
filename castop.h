@@ -32,8 +32,7 @@ void cast(vm::stack *s)
 void castDoubleInt(vm::stack *s)
 {
   double x=pop<double>(s);
-  checkint(x,0);
-  s->push((int) x);
+  s->push(Intcast(x));
 }
 
 template<class T>
@@ -64,9 +63,9 @@ void arrayToArray(vm::stack *s)
 {
   vm::array *a = pop<vm::array*>(s);
   checkArray(a);
-  unsigned int size=(unsigned int) a->size();
+  size_t size=(size_t) a->size();
   vm::array *c=new vm::array(size);
-  for(unsigned i=0; i < size; i++)
+  for(size_t i=0; i < size; i++)
     (*c)[i]=(S) read<T>(a,i);
   s->push(c);
 }
@@ -84,8 +83,8 @@ void read(vm::stack *s)
   s->push(val);
 }
 
-inline int Limit(int nx) {return nx == 0 ? INT_MAX : nx;}
-inline void reportEof(camp::file *f, int count) 
+inline Int Limit(Int nx) {return nx == 0 ? Int_MAX : nx;}
+inline void reportEof(camp::file *f, Int count) 
 {
   ostringstream buf;
   buf << "EOF after reading " << count
@@ -99,22 +98,22 @@ void readArray(vm::stack *s)
   camp::file *f = pop<camp::file*>(s);
   vm::array *c=new vm::array(0);
   if(f->isOpen()) {
-    int nx=f->Nx();
+    Int nx=f->Nx();
     if(nx == -2) {f->read(nx); if(nx == 0) {s->push(c); return;}}
-    int ny=f->Ny();
+    Int ny=f->Ny();
     if(ny == -2) {f->read(ny); if(ny == 0) {s->push(c); return;}}
-    int nz=f->Nz();
+    Int nz=f->Nz();
     if(nz == -2) {f->read(nz); if(nz == 0) {s->push(c); return;}}
     T v;
     if(nx >= 0) {
-      for(int i=0; i < Limit(nx); i++) {
+      for(Int i=0; i < Limit(nx); i++) {
 	if(ny >= 0) {
 	  vm::array *ci=new vm::array(0);
-	  for(int j=0; j < Limit(ny); j++) {
+	  for(Int j=0; j < Limit(ny); j++) {
 	    if(nz >= 0) {
 	      vm::array *cij=new vm::array(0);
 	      bool break2=false;
-	      for(int k=0; k < Limit(nz); k++) {
+	      for(Int k=0; k < Limit(nz); k++) {
 		f->read(v);
 		if(f->error()) {
 		  if(nx && ny && nz) reportEof(f,(i*ny+j)*nz+k);

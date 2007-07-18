@@ -20,18 +20,18 @@
 #include "transform.h"
 #include "bbox.h"
 
-inline double intcap(double t) {
-  if(t <= -INT_MAX) return -INT_MAX;
-  if(t >= INT_MAX) return INT_MAX;
+inline double Intcap(double t) {
+  if(t <= Int_MIN) return Int_MIN;
+  if(t >= Int_MAX) return Int_MAX;
   return t;
 }
   
 // The are like floor and ceil, except they return an integer;
 // if the argument cannot be converted to a valid integer, they return
-// INT_MAX (for positive arguments) or -INT_MAX (for negative arguments).
+// Int_MAX (for positive arguments) or Int_MIN (for negative arguments).
 
-inline int Floor(double t) {return (int) floor(intcap(t));}
-inline int Ceil(double t) {return (int) ceil(intcap(t));}
+inline Int Floor(double t) {return (Int) floor(Intcap(t));}
+inline Int Ceil(double t) {return (Int) ceil(Intcap(t));}
 
 bool simpson(double& integral, double (*)(double), double a, double b,
 	     double acc, double dxmax);
@@ -41,12 +41,12 @@ bool unsimpson(double integral, double (*)(double), double a, double& b,
 
 namespace camp {
 
-inline void checkEmpty(int n) {
+inline void checkEmpty(Int n) {
   if(n == 0)
     reportError("nullpath has no points");
 }
 
-inline int adjustedIndex(int i, int n, bool cycles)
+inline Int adjustedIndex(Int i, Int n, bool cycles)
 {
   checkEmpty(n);
   if(cycles)
@@ -80,7 +80,7 @@ extern const double sqrtFuzz;
 class path : public gc {
   bool cycles;  // If the path is closed in a loop
 
-  int n; // The number of knots
+  Int n; // The number of knots
 
   mem::vector<solvedKnot> nodes;
   mutable double cached_length; // Cache length since path is immutable.
@@ -101,7 +101,7 @@ public:
   // Creates path from a list of knots.  This will be used by camp
   // methods such as the guide solver, but should probably not be used by a
   // user of the system unless he knows what he is doing.
-  path(mem::vector<solvedKnot>& nodes, int n, bool cycles = false)
+  path(mem::vector<solvedKnot>& nodes, Int n, bool cycles = false)
     : cycles(cycles), n(n), nodes(nodes), cached_length(-1)
   {
   }
@@ -133,7 +133,7 @@ public:
   }
 
   // Getting control points
-  int size() const
+  Int size() const
   {
     return n;
   }
@@ -143,7 +143,7 @@ public:
     return n == 0;
   }
 
-  int length() const
+  Int length() const
   {
     return cycles ? n : n-1;
   }
@@ -157,34 +157,34 @@ public:
     return nodes;
   }
   
-  bool straight(int t) const
+  bool straight(Int t) const
   {
     if (cycles) return nodes[imod(t,n)].straight;
     return (t >= 0 && t < n) ? nodes[t].straight : false;
   }
   
-  pair point(int t) const
+  pair point(Int t) const
   {
     return nodes[adjustedIndex(t,n,cycles)].point;
   }
 
   pair point(double t) const;
   
-  pair precontrol(int t) const
+  pair precontrol(Int t) const
   {
     return nodes[adjustedIndex(t,n,cycles)].pre;
   }
 
   pair precontrol(double t) const;
   
-  pair postcontrol(int t) const
+  pair postcontrol(Int t) const
   {
     return nodes[adjustedIndex(t,n,cycles)].post;
   }
 
   pair postcontrol(double t) const;
   
-  pair predir(int t) const {
+  pair predir(Int t) const {
     if(!cycles && t <= 0) return pair(0,0);
     pair z0=point(t-1);
     pair z1=point(t);
@@ -203,11 +203,11 @@ public:
       if(t <= 0) return pair(0,0);
       if(t >= n-1) return predir(n-1);
     }
-    int a=Floor(t);
-    return (t-a < sqrtFuzz) ? predir(a) : subpath((double) a,t).predir(1);
+    Int a=Floor(t);
+    return (t-a < sqrtFuzz) ? predir(a) : subpath((double) a,t).predir((Int) 1);
   }
 
-  pair postdir(int t) const {
+  pair postdir(Int t) const {
     if(!cycles && t >= n-1) return pair(0,0);
     pair z0=point(t);
     pair z1=point(t+1);
@@ -224,13 +224,14 @@ public:
   pair postdir(double t) const {
     if(!cycles) {
       if(t >= n-1) return pair(0,0);
-      if(t <= 0) return postdir(0);
+      if(t <= 0) return postdir((Int) 0);
     }
-    int b=Ceil(t);
-    return (b-t < sqrtFuzz) ? postdir(b) : subpath(t,(double) b).postdir(0);
+    Int b=Ceil(t);
+    return (b-t < sqrtFuzz) ? postdir(b) : 
+      subpath(t,(double) b).postdir((Int) 0);
   }
 
-  pair dir(int t) const {
+  pair dir(Int t) const {
     return unit(predir(t)+postdir(t));
   }
   
@@ -238,7 +239,7 @@ public:
     return unit(predir(t)+postdir(t));
   }
 
-  pair dir(int t, int sign) const {
+  pair dir(Int t, Int sign) const {
     if(sign == 0) return dir(t);
     else if(sign > 0) return postdir(t);
     else return predir(t);
@@ -249,7 +250,7 @@ public:
 
   // Generates a path that is a section of the old path, using the time
   // interval given.
-  path subpath(int start, int end) const;
+  path subpath(Int start, Int end) const;
   path subpath(double start, double end) const;
 
   // Used by picture to determine bounding box
@@ -278,21 +279,21 @@ public:
   // Debugging output
   friend std::ostream& operator<< (std::ostream& out, const path& p);
 
-  int sgn1(double x) const
+  Int sgn1(double x) const
   {
     return x > 0.0 ? 1 : -1;
   }
 
 // Increment count if the path has a vertical component at t.
-  bool Count(int& count, double t) const;
+  bool Count(Int& count, double t) const;
   
 // Count if t is in (begin,end] and z lies to the left of point(i+t).
-  void countleft(int& count, double x, int i, double t,
+  void countleft(Int& count, double x, Int i, double t,
 		 double begin, double end, double& mint, double& maxt) const;
 
 // Return the winding number of the region bounded by the (cyclic) path
 // relative to the point z.
-  int windingnumber(const pair& z) const;
+  Int windingnumber(const pair& z) const;
 
   // Transformation
   path transformed(const transform& t) const;
@@ -317,7 +318,7 @@ inline double quadratic(double a, double b, double c, double x)
 class quadraticroots {
 public:
   enum {NONE=0, ONE=1, TWO=2, MANY} distinct; // Number of distinct roots.
-  unsigned int roots; // Total number of real roots.
+  unsigned roots; // Total number of real roots.
   double t1,t2;
   
   quadraticroots(double a, double b, double c);
@@ -325,7 +326,7 @@ public:
 
 class cubicroots {
 public:  
-  unsigned int roots; // Total number of real roots.
+  unsigned roots; // Total number of real roots.
   double t1,t2,t3;
   cubicroots(double a, double b, double c, double d);
 };

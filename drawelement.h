@@ -30,7 +30,7 @@ public:
 // Returns true if the line a--b intersects box b.
   bool intersect(const pair& a, const pair& b) const
   {
-    for(int i=0; i < 4; ++i) {
+    for(Int i=0; i < 4; ++i) {
       pair A=p[i];
       pair B=p[i < 3 ? i+1 : 0];
       double de=(b.x-a.x)*(A.y-B.y)-(A.x-B.x)*(b.y-a.y);
@@ -44,10 +44,10 @@ public:
     return false;
   }
   
-  pair operator [] (int i) const {return p[i];}
+  pair operator [] (Int i) const {return p[i];}
   
   bool intersect(const box& b) const {
-    for(int i=0; i < 4; ++i) {
+    for(Int i=0; i < 4; ++i) {
       pair A=b[i];
       pair B=b[i < 3 ? i+1 : 0];
       if(intersect(A,B)) return true;
@@ -58,7 +58,7 @@ public:
 // Returns true iff the point z lies in the region bounded by b.
   bool inside(const pair& z) const {
     bool c=false;
-    for(int i=0; i < 3; ++i) {
+    for(Int i=0; i < 3; ++i) {
       pair pi=p[i];
       pair pj=p[i < 3 ? i+1 : 0];
       if(((pi.y <= z.y && z.y < pj.y) || (pj.y <= z.y && z.y < pi.y)) &&

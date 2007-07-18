@@ -39,7 +39,7 @@ public:
   exp(position pos)
     : varinit(pos), ct(0) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   // When reporting errors with function calls, it is nice to say "no
   // function f(int)" instead of "no function matching signature
@@ -186,7 +186,7 @@ public:
   nameExp(position pos, symbol *id)
     : exp(pos), value(new simpleName(pos, id)) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   symbol *getName()
   {
@@ -294,7 +294,7 @@ class fieldExp : public nameExp {
       return 0;
     }
 
-    void prettyprint(ostream &out, int indent);
+    void prettyprint(ostream &out, Int indent);
     void print(ostream& out) const {
       out << "<exp>";
     }
@@ -313,7 +313,7 @@ public:
                                      field)),
       object(object), field(field) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   symbol *getName()
   {
@@ -339,7 +339,7 @@ public:
   subscriptExp(position pos, exp *set, exp *index)
     : exp(pos), set(set), index(index) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
@@ -358,7 +358,7 @@ public:
   thisExp(position pos)
     : exp(pos) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
@@ -373,13 +373,13 @@ public:
 };
 
 class intExp : public literalExp {
-  int value;
+  Int value;
 
 public:
-  intExp(position pos, int value)
+  intExp(position pos, Int value)
     : literalExp(pos), value(value) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primInt(); }
@@ -393,7 +393,7 @@ public:
   realExp(position pos, double value)
     : literalExp(pos), value(value) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primReal(); }
@@ -407,7 +407,7 @@ public:
   stringExp(position pos, string str)
     : literalExp(pos), str(str) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primString(); }
@@ -420,7 +420,7 @@ public:
   booleanExp(position pos, bool value)
     : literalExp(pos), value(value) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primBoolean(); }
@@ -432,7 +432,7 @@ public:
   cycleExp(position pos)
     : literalExp(pos) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primCycleToken(); }
@@ -444,7 +444,7 @@ public:
   newPictureExp(position pos)
     : literalExp(pos) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primPicture(); }
@@ -456,7 +456,7 @@ public:
   nullPathExp(position pos)
     : literalExp(pos) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primPath(); }
@@ -468,7 +468,7 @@ public:
   nullExp(position pos)
     : literalExp(pos) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primNull(); }
@@ -481,7 +481,7 @@ public:
   quoteExp(position pos, runnable *value)
     : exp(pos), value(value) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primCode(); }
@@ -502,7 +502,7 @@ public:
     exps.push_back(e);
   }
 
-  virtual void prettyprint(ostream &out, int indent);
+  virtual void prettyprint(ostream &out, Int indent);
 
   virtual size_t size() {
     return exps.size();
@@ -522,7 +522,7 @@ struct argument {
     : val(val), name(name) {}
 #endif
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   // Tests if a named argument could be mistaken for an assignment, and
   // prints a warning if so.
@@ -558,7 +558,7 @@ public:
     add(a);
   }
 
-  virtual void prettyprint(ostream &out, int indent);
+  virtual void prettyprint(ostream &out, Int indent);
 
   virtual size_t size() {
     return args.size();
@@ -620,7 +620,7 @@ public:
       args->add(arg3);
     }
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
@@ -634,7 +634,7 @@ public:
   pairExp(position pos, exp *x, exp *y)
     : exp(pos), x(x), y(y) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primPair(); }
@@ -649,7 +649,7 @@ public:
   tripleExp(position pos, exp *x, exp *y, exp *z)
     : exp(pos), x(x), y(y), z(z) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primTriple(); }
@@ -665,7 +665,7 @@ public:
 	       exp *yy)
     : exp(pos), x(x), y(y), xx(xx), xy(xy), yx(yx), yy(yy) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primTransform(); }
@@ -681,7 +681,7 @@ public:
   castExp(position pos, ty *target, exp *castee)
     : exp(pos), target(target), castee(castee) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
@@ -717,7 +717,7 @@ public:
   scaleExp(position pos, exp *left, exp *right)
     : binaryExp(pos, left, symbol::trans("*"), right) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   //types::ty *getType(coenv &e);
@@ -743,7 +743,7 @@ public:
   conditionalExp(position pos, exp *test, exp *onTrue, exp *onFalse)
     : exp(pos), test(test), onTrue(onTrue), onFalse(onFalse) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void baseTransToType(coenv &e, types::ty *target);
 
@@ -774,7 +774,7 @@ public:
   orExp(position pos, exp *left, symbol *op, exp *right)
     : andOrExp(pos, left, op, right) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
 };
@@ -784,7 +784,7 @@ public:
   andExp(position pos, exp *left, symbol *op, exp *right)
     : andOrExp(pos, left, op, right) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
 };
@@ -801,7 +801,7 @@ public:
     args->add(e);
   }
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 };
 
 class specExp : public exp {
@@ -817,7 +817,7 @@ public:
     s=ss;
   }
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);
@@ -839,7 +839,7 @@ public:
   assignExp(position pos, exp *dest, exp *value)
     : exp(pos), dest(dest), value(value) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   // Don't write the result of an assignment to the prompt.
   bool writtenToPrompt() { return false; }
@@ -860,7 +860,7 @@ public:
   selfExp(position pos, exp *dest, symbol *op, exp *value)
     : assignExp(pos, dest, value), op(op) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 };
 
 class prefixExp : public exp {
@@ -871,7 +871,7 @@ public:
   prefixExp(position pos, exp *dest, symbol *op)
     : exp(pos), dest(dest), op(op) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   bool scalable() { return false; }
 
@@ -893,7 +893,7 @@ public:
   postfixExp(position pos, exp *dest, symbol *op)
     : exp(pos), dest(dest), op(op) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &) { return types::primError(); }

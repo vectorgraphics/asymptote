@@ -36,14 +36,14 @@ public:
     return pos;
   }
 
-  virtual void prettyprint(ostream &out, int indent) = 0;
+  virtual void prettyprint(ostream &out, Int indent) = 0;
 private:  // Non-copyable
   void operator=(const absyn&);
   absyn(const absyn&);
 };
 
-void prettyindent(ostream &out, int indent);
-void prettyname(ostream &out, string name, int indent);
+void prettyindent(ostream &out, Int indent);
+void prettyname(ostream &out, string name, Int indent);
 
 class name;
 class ty;

@@ -33,6 +33,7 @@
   
 using namespace types;
 using namespace camp;
+using namespace vm;  
 
 namespace trans {
 using camp::transform;
@@ -170,7 +171,7 @@ inline void checkGSLerror()
 template <double (*func)(double)>
 void realRealGSL(vm::stack *s) 
 {
-  double x=vm::pop<double>(s);
+  double x=pop<double>(s);
   s->push(func(x));
   checkGSLerror();
 }
@@ -178,7 +179,7 @@ void realRealGSL(vm::stack *s)
 template <double (*func)(double, gsl_mode_t)>
 void realRealDOUBLE(vm::stack *s) 
 {
-  double x=vm::pop<double>(s);
+  double x=pop<double>(s);
   s->push(func(x,GSL_PREC_DOUBLE));
   checkGSLerror();
 }
@@ -186,46 +187,43 @@ void realRealDOUBLE(vm::stack *s)
 template <double (*func)(double, double, gsl_mode_t)>
 void realRealRealDOUBLE(vm::stack *s) 
 {
-  double y=vm::pop<double>(s);
-  double x=vm::pop<double>(s);
+  double y=pop<double>(s);
+  double x=pop<double>(s);
   s->push(func(x,y,GSL_PREC_DOUBLE));
   checkGSLerror();
 }
 
-template <double (*func)(unsigned int)>
+template <double (*func)(unsigned)>
 void realIntGSL(vm::stack *s) 
 {
-  int n=vm::pop<int>(s);
-  if(n < 0) n=0;
-  s->push(func(n));
+  s->push(func(unsignedcast(pop<Int>(s))));
   checkGSLerror();
 }
 
 template <double (*func)(int, double)>
 void realIntRealGSL(vm::stack *s) 
 {
-  double x=vm::pop<double>(s);
-  int n=vm::pop<int>(s);
-  s->push(func(n,x));
+  double x=pop<double>(s);
+  
+  s->push(func(intcast(pop<Int>(s)),x));
   checkGSLerror();
 }
 
 template <double (*func)(double, double)>
 void realRealRealGSL(vm::stack *s) 
 {
-  double x=vm::pop<double>(s);
-  double n=vm::pop<double>(s);
+  double x=pop<double>(s);
+  double n=pop<double>(s);
   s->push(func(n,x));
   checkGSLerror();
 }
 
-template <double (*func)(double, unsigned int)>
+template <double (*func)(double, unsigned)>
 void realRealIntGSL(vm::stack *s) 
 {
-  int n=vm::pop<int>(s);
-  double x=vm::pop<double>(s);
-  if(n < 0) n=0;
-  s->push(func(x,n));
+  Int n=pop<Int>(s);
+  double x=pop<double>(s);
+  s->push(func(x,unsignedcast(n)));
   checkGSLerror();
 }
 
@@ -252,7 +250,7 @@ void addGSLDOUBLE2Func(const char* name)
 	  formal(primReal(),"phi"), formal(primReal(),"k"));
 }
 
-template<double (*fcn)(unsigned int)>
+template<double (*fcn)(unsigned)>
 void addGSLIntFunc(const char* name)
 {
   addFunc(GSLModule->e.ve, realIntGSL<fcn>, primReal(), name,
@@ -273,7 +271,7 @@ void addGSLRealRealFunc(const char* name)
 	  formal(primReal(),"nu"), formal(primReal(),"x"));
 }
 
-template<double (*fcn)(double, unsigned int)>
+template<double (*fcn)(double, unsigned)>
 void addGSLRealIntFunc(const char* name)
 {
   addFunc(GSLModule->e.ve, realRealIntGSL<fcn>, primReal(), name, 
@@ -336,7 +334,7 @@ void addConstant(venv &ve, T value, ty *t, const char *name,
 // operation, and no functions are called.
 identAccess id;
 
-function *intRealFunction()
+function *IntRealFunction()
 {
   return new function(primInt(),primReal());
 }
@@ -354,7 +352,7 @@ function *voidFileFunction()
 void addInitializers(venv &ve)
 {
   addInitializer(ve, primBoolean(), boolFalse);
-  addInitializer(ve, primInt(), intZero);
+  addInitializer(ve, primInt(), IntZero);
   addInitializer(ve, primReal(), realZero);
 
   addInitializer(ve, primString(), emptyString);
@@ -370,19 +368,19 @@ void addInitializers(venv &ve)
 
 void addCasts(venv &ve)
 {
-  addExplicitCast(ve, primString(), primInt(), stringCast<int>);
+  addExplicitCast(ve, primString(), primInt(), stringCast<Int>);
   addExplicitCast(ve, primString(), primReal(), stringCast<double>);
   addExplicitCast(ve, primString(), primPair(), stringCast<pair>);
   addExplicitCast(ve, primString(), primTriple(), stringCast<triple>);
-  addExplicitCast(ve, primInt(), primString(), castString<int>);
+  addExplicitCast(ve, primInt(), primString(), castString<Int>);
   addExplicitCast(ve, primReal(), primString(), castString<double>);
   addExplicitCast(ve, primPair(), primString(), castString<pair>);
   addExplicitCast(ve, primTriple(), primString(), castString<triple>);
 
   addExplicitCast(ve, primInt(), primReal(), castDoubleInt);
 
-  addCast(ve, primReal(), primInt(), cast<int,double>);
-  addCast(ve, primPair(), primInt(), cast<int,pair>);
+  addCast(ve, primReal(), primInt(), cast<Int,double>);
+  addCast(ve, primPair(), primInt(), cast<Int,pair>);
   addCast(ve, primPair(), primReal(), cast<double,pair>);
   
   addCast(ve, primPath(), primPair(), cast<pair,path>);
@@ -393,10 +391,10 @@ void addCasts(venv &ve)
   addCast(ve, primFile(), primNull(), nullFile);
   
   // Vectorized casts.
-  addExplicitCast(ve, intArray(), realArray(), arrayToArray<double,int>);
+  addExplicitCast(ve, IntArray(), realArray(), arrayToArray<double,Int>);
   
-  addCast(ve, realArray(), intArray(), arrayToArray<int,double>);
-  addCast(ve, pairArray(), intArray(), arrayToArray<int,pair>);
+  addCast(ve, realArray(), IntArray(), arrayToArray<Int,double>);
+  addCast(ve, pairArray(), IntArray(), arrayToArray<Int,pair>);
   addCast(ve, pairArray(), realArray(), arrayToArray<double,pair>);
 }
 
@@ -577,7 +575,7 @@ void addArrayOps(venv &ve, types::array *t)
   case 3:
     addFunc(ve, run::array3Copy, t, "copy", formal(t, "a"));
     addFunc(ve, run::array3Transpose, t, "transpose", formal(t, "a"),
-	    formal(intArray(),"perm"));
+	    formal(IntArray(),"perm"));
     break;
   default:
     break;
@@ -612,7 +610,7 @@ void addOperators(venv &ve)
   
   addUnorderedOps<bool>(ve,primBoolean(),boolArray(),boolArray2(),
 			boolArray3());
-  addOps<int>(ve,primInt(),intArray(),intArray2(),intArray3(),false);
+  addOps<Int>(ve,primInt(),IntArray(),IntArray2(),IntArray3(),false);
   addOps<double>(ve,primReal(),realArray(),realArray2(),realArray3());
   addOps<pair>(ve,primPair(),pairArray(),pairArray2(),pairArray3());
   addBasicOps<triple>(ve,primTriple(),tripleArray(),tripleArray2(),
@@ -633,21 +631,21 @@ void addOperators(venv &ve)
   addBinOps<triple,maxbound>(ve,primTriple(),tripleArray(),tripleArray2(),
 			     tripleArray3(),"maxbound");
   
-  addFunc(ve,binaryOp<int,divide>,primReal(),"/",
+  addFunc(ve,binaryOp<Int,divide>,primReal(),"/",
 	  formal(primInt(),"a"),formal(primInt(),"b"));
-  addFunc(ve,arrayOp<int,divide>,realArray(),"/",
-	  formal(intArray(),"a"),formal(primInt(),"b"));
-  addFunc(ve,opArray<int,divide>,realArray(),"/",
-	  formal(primInt(),"a"),formal(intArray(),"b"));
-  addFunc(ve,arrayArrayOp<int,divide>,realArray(),"/",
-	  formal(intArray(),"a"),formal(intArray(),"b"));
+  addFunc(ve,arrayOp<Int,divide>,realArray(),"/",
+	  formal(IntArray(),"a"),formal(primInt(),"b"));
+  addFunc(ve,opArray<Int,divide>,realArray(),"/",
+	  formal(primInt(),"a"),formal(IntArray(),"b"));
+  addFunc(ve,arrayArrayOp<Int,divide>,realArray(),"/",
+	  formal(IntArray(),"a"),formal(IntArray(),"b"));
   
-  addOrderedOps<int>(ve,primInt(),intArray(),intArray2(),intArray3());
+  addOrderedOps<Int>(ve,primInt(),IntArray(),IntArray2(),IntArray3());
   addOrderedOps<double>(ve,primReal(),realArray(),realArray2(),realArray3());
   addOrderedOps<string>(ve,primString(),stringArray(),stringArray2(),
 			stringArray3());
   
-  addOps<int,mod>(ve,primInt(),"%",intArray());
+  addOps<Int,mod>(ve,primInt(),"%",IntArray());
   addOps<double,mod>(ve,primReal(),"%",realArray());
 }
 
@@ -658,6 +656,13 @@ dummyRecord *createDummyRecord(venv &ve, const char *name)
   addRecordOps(ve, r);
   return r;
 }
+
+#ifndef HAVE_POW
+inline double pow(double x, double y)
+{
+  return exp(y*log(x));
+}
+#endif
 
 double identity(double x) {return x;}
 double pow10(double x) {return pow(10.0,x);}
@@ -743,8 +748,8 @@ void base_venv(venv &ve)
   addFunc(ve,arrayFunction,realArray(),"map",
 	  formal(realPairFunction(),"f"),
 	  formal(pairArray(),"a"));
-  addFunc(ve,arrayFunction,intArray(),"map",
-	  formal(intRealFunction(),"f"),
+  addFunc(ve,arrayFunction,IntArray(),"map",
+	  formal(IntRealFunction(),"f"),
 	  formal(realArray(),"a"));
   
 #ifdef HAVE_LIBFFTW3
@@ -752,13 +757,14 @@ void base_venv(venv &ve)
 	  formal(primInt(),"sign",true));
 #endif
 
-  addConstant<int>(ve, INT_MAX, primInt(), "intMax");
+  addConstant<Int>(ve, Int_MAX, primInt(), "intMax");
+  addConstant<Int>(ve, Int_MIN, primInt(), "intMin");
   addConstant<double>(ve, HUGE_VAL, primReal(), "inf");
   addConstant<double>(ve, DBL_MAX, primReal(), "realMax");
   addConstant<double>(ve, DBL_MIN, primReal(), "realMin");
   addConstant<double>(ve, DBL_EPSILON, primReal(), "realEpsilon");
-  addConstant<int>(ve, DBL_DIG, primInt(), "realDigits");
-  addConstant<int>(ve, RAND_MAX, primInt(), "randMax");
+  addConstant<Int>(ve, DBL_DIG, primInt(), "realDigits");
+  addConstant<Int>(ve, RAND_MAX, primInt(), "randMax");
   addConstant<double>(ve, PI, primReal(), "pi");
 
   gen_base_venv(ve);
@@ -772,8 +778,6 @@ void base_menv(menv&)
 
 namespace run {
 
-using namespace vm;  
-
 void arrayDeleteHelper(vm::stack *Stack)
 {
   array *a=pop<array *>(Stack);
@@ -783,12 +787,12 @@ void arrayDeleteHelper(vm::stack *Stack)
     (*a).clear();
     return;
   }
-  int i=get<int>(iti);
-  int j=isdefault(itj) ? i : get<int>(itj);
+  Int i=get<Int>(iti);
+  Int j=isdefault(itj) ? i : get<Int>(itj);
 
   size_t asize=checkArray(a);
   if(a->cyclic() && asize > 0) {
-    if(j-i+1 >= (int) asize) {
+    if(j-i+1 >= (Int) asize) {
       (*a).clear();
       return;
     }
@@ -803,9 +807,9 @@ void arrayDeleteHelper(vm::stack *Stack)
     return;
   }
   
-  if(i < 0 || i >= (int) asize || i > j || j >= (int) asize) {
+  if(i < 0 || i >= (Int) asize || i > j || j >= (Int) asize) {
     ostringstream buf;
-    buf << "delete called on array of length " << (int) asize 
+    buf << "delete called on array of length " << (Int) asize 
 	<< " with out-of-bounds index range [" << i << "," << j << "]";
     error(buf);
   }

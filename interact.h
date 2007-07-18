@@ -15,7 +15,7 @@
 
 namespace interact {
 
-extern int interactive;
+extern Int interactive;
 extern bool uptodate;
 
 void init_interactive();

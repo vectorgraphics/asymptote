@@ -6,23 +6,24 @@
 #include <cmath>
 #include <cfloat>
 
+#include "common.h"
+
 struct ITRIANGLE{
-  int p1, p2, p3;
+  Int p1, p2, p3;
 };
 
 struct IEDGE{
-  int p1, p2;
+  Int p1, p2;
 };
 
 struct XYZ{
   double x, y;
-	int i;
+	Int i;
 };
 
-int XYZCompare(const void *v1, const void *v2);
-int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri,
+Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
 		bool presort=true, bool postsort=true);
-int CircumCircle(double, double, double, double, double, double, double, 
+Int CircumCircle(double, double, double, double, double, double, double, 
 double, double&, double&, double&);
 
 #endif

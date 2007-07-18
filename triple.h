@@ -154,7 +154,7 @@ public:
 double cubiclength(const triple& z0, const triple& z0p, const triple& z1m,
 		   const triple& z1, double goal=-1);
   
-bool intersect(pair &t, int L1, int L2, const mem::vector<node>& n1,
+bool intersect(pair &t, Int L1, Int L2, const mem::vector<node>& n1,
 	       const mem::vector<node>& n2, double fuzz=0.0);
   
 } //namespace camp

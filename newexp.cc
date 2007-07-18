@@ -106,7 +106,7 @@ types::ty *newRecordExp::getType(coenv &e)
     return t;
 }  
 
-void newArrayExp::prettyprint(ostream &out, int indent)
+void newArrayExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out,"newArrayExp",indent);
 
@@ -144,7 +144,7 @@ types::ty *newArrayExp::trans(coenv &e)
       }
     }
     e.c.encode(inst::intpush,
-               (int) ((dimexps ? dimexps->size():0)
+               (Int) ((dimexps ? dimexps->size():0)
                       + (dims ? dims->size():0)));
     e.c.encode(inst::builtin, run::newDeepArray);
 
@@ -166,7 +166,7 @@ types::ty *newArrayExp::getType(coenv &e)
     c = dims->truetype(c);
 
   if (dimexps) {
-    int depth = (int)dimexps->size();
+    Int depth = (Int)dimexps->size();
     while (depth > 0) {
       c = new types::array(c);
       depth--;

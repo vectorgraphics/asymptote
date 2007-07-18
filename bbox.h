@@ -12,22 +12,14 @@
 
 namespace camp {
 
-inline double min(double a, double b)
+template<class T>
+inline T min(T a, T b)
 {
   return (a < b) ? a : b;
 }
 
-inline double max(double a, double b)
-{
-  return (a > b) ? a : b;
-}
-
-inline int min(int a, int b)
-{
-  return (a < b) ? a : b;
-}
-
-inline int max(int a, int b)
+template<class T>  
+inline T max(T a, T b)
 {
   return (a > b) ? a : b;
 }

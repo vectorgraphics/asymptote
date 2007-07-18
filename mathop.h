@@ -13,8 +13,6 @@
 
 #include "stack.h"
 #include "mod.h"
-#include "pow.h"
-
 
 namespace run {
 
@@ -89,42 +87,74 @@ struct divide {
   }
 };
 
-inline void checkint(double x, size_t i)
+inline bool validInt(double x) {
+  return x > Int_MIN-0.5 && x < Int_MAX+0.5;
+}
+  
+inline void checkInt(double x, size_t i)
 {
-  if(fabs(x) > INT_MAX) integeroverflow(i);
+  if(validInt(x)) return;
+  integeroverflow(i);
+}
+  
+inline Int Intcast(double x)
+{
+  if(validInt(x)) return (Int) x;
+  integeroverflow(0);
+  return 0;
 }
   
 template<>
-struct plus<int> {
-  int operator() (int x, int y, size_t i=0) {
-    if((y > 0 && x > INT_MAX-y) || (y < 0 && x < -INT_MAX-y))
+struct plus<Int> {
+  Int operator() (Int x, Int y, size_t i=0) {
+    if((y > 0 && x > Int_MAX-y) || (y < 0 && x < Int_MIN-y))
       integeroverflow(i);
     return x+y;
   }
 };
 
 template<>
-struct minus<int> {
-  int operator() (int x, int y, size_t=0) {
-    return x+(-y);
+struct minus<Int> {
+  Int operator() (Int x, Int y, size_t i=0) {
+    if((y < 0 && x > Int_MAX+y) || (y > 0 && x < Int_MIN+y))
+      integeroverflow(i);
+    return x-y;
   }
 };
 
 template<>
-struct times<int> {
-  int operator() (int x, int y, size_t i=0) {
-    checkint((double) x*(double) y,i); 
+struct times<Int> {
+  Int operator() (Int x, Int y, size_t i=0) {
+    if(y == 0) return 0;
+    if(y < 0) {y=-y; x=-x;}
+    if(x > Int_MAX/y || x < Int_MIN/y)
+       integeroverflow(i);
     return x*y;
   }
 };
 
 template<>
-struct divide<int> {
-  double operator() (int x, int y, size_t i=0) {
+struct divide<Int> {
+  double operator() (Int x, Int y, size_t i=0) {
     if(y == 0) dividebyzero(i);
     return ((double) x)/(double) y;
   }
 };
+
+template <class T>
+void Negate(vm::stack *s)
+{
+  T a=vm::pop<T>(s);
+  s->push(-a);
+}
+
+template<>
+inline void Negate<Int>(vm::stack *s)
+{
+  Int a=vm::pop<Int>(s);
+  if(a < -Int_MAX) integeroverflow(0);
+  s->push(-a);
+}
 
 template <typename T>
 struct power {
@@ -132,16 +162,35 @@ struct power {
 };
 
 template <>
-struct power<int> {
-  int operator() (int x, int y,  size_t i=0) {
-    checkint(pow((double) x,(double) y),i); 
-    if (y < 0 && !(x == 1 || x == -1)) {
+struct power<Int> {
+  Int operator() (Int x, Int p,  size_t i=0) {
+    if(p == 0) return 1;
+    Int sign=1;
+    if(x < 0) {
+      if(p % 2) sign=-1;
+      x=-x;
+    }
+    if(p > 0) {
+      if(x == 0) return 0;
+      Int r = 1;
+      for(;;) {
+	if(p & 1) {
+	  if(r > Int_MAX/x) integeroverflow(i);
+	  r *= x;
+	}
+	if((p >>= 1) == 0)
+	  return sign*r;
+	if(x > Int_MAX/x) integeroverflow(i);
+	x *= x;
+      }
+    } else {
+      if(x == 1) return sign;
       ostringstream buf;
       if(i > 0) buf << "array element " << i << ": ";
       buf << "Only 1 and -1 can be raised to negative exponents as integers.";
       vm::error(buf);
+      return 0;
     }
-    return pow(x,y);
   }
 };
  
@@ -162,13 +211,6 @@ template <typename T>
 struct max {
   T operator() (T x, T y, size_t=0) {return x > y ? x : y;}
 };
-
-template <class T>
-void Negate(vm::stack *s)
-{
-  T a=vm::pop<T>(s);
-  s->push(-a);
-}
 
 template <double (*func)(double)>
 void realReal(vm::stack *s) 

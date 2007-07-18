@@ -27,15 +27,23 @@ public:
   item()
     : kind(&typeid(void)) {}
   
+#ifndef Int  
+  item(Int i)
+    : kind(&typeid(Int)), i(i) {}
+#endif  
   item(int i)
-    : kind(&typeid(int)), i(i) {}
+    : kind(&typeid(Int)), i(i) {}
   item(double x)
     : kind(&typeid(double)), x(x) {}
   item(bool b)
     : kind(&typeid(bool)), b(b) {}
   
+#ifndef Int  
   item& operator= (int a)
-  { kind=&typeid(int); i=a; return *this; }
+  { kind=&typeid(Int); i=a; return *this; }
+#endif  
+  item& operator= (Int a)
+  { kind=&typeid(Int); i=a; return *this; }
   item& operator= (double a)
   { kind=&typeid(double); x=a; return *this; }
   item& operator= (bool a)
@@ -68,7 +76,7 @@ private:
   const std::type_info *kind;
   
   union {
-    int i;
+    Int i;
     double x;
     bool b;
     void *p;
@@ -127,10 +135,18 @@ inline T get(const item& it)
   return item::help<T>::unwrap(it);
 } 
 
+#ifndef Int  
 template <>
 inline int get<int>(const item& it)
 {
-  if (*it.kind == typeid(int))
+  throw vm::bad_item_value();
+}
+#endif
+  
+template <>
+inline Int get<Int>(const item& it)
+{
+  if (*it.kind == typeid(Int))
     return it.i;
   throw vm::bad_item_value();
 }

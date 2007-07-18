@@ -17,7 +17,7 @@ static const char* opnames[] = {
   "pushclosure", "makefunc", "ret",
   "alloc", "pushframe", "popframe"
 };
-static const int numOps = (int)(sizeof(opnames)/sizeof(char *));
+static const Int numOps = (Int)(sizeof(opnames)/sizeof(char *));
 
 void printInst(ostream& out, const program::label& code,
 	       const program::label& base)
@@ -25,7 +25,7 @@ void printInst(ostream& out, const program::label& code,
   out.width(4);
   out << offset(base,code) << " ";
   
-  int i = (int)code->op;
+  Int i = (Int)code->op;
   
   if (i < 0 || i >= numOps) {
     out << "<<invalid op>> " << i;
@@ -40,7 +40,7 @@ void printInst(ostream& out, const program::label& code,
     case inst::fieldsave:
     case inst::alloc:
     {
-      out << " " << get<int>(*code);
+      out << " " << get<Int>(*code);
       break;
     }
 

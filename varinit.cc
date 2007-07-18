@@ -18,7 +18,7 @@ namespace absyntax {
 using namespace types;
 using namespace trans;
 
-void definit::prettyprint(ostream &out, int indent)
+void definit::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "definit",indent);
 }
@@ -37,7 +37,7 @@ void definit::transToType(coenv &e, types::ty *target)
   }
 }
 
-void arrayinit::prettyprint(ostream &out, int indent)
+void arrayinit::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "arrayinit",indent);
 
@@ -47,7 +47,7 @@ void arrayinit::prettyprint(ostream &out, int indent)
     rest->prettyprint(out, indent+1);
 }
 
-void arrayinit::transMaker(coenv &e, int size, bool rest) {
+void arrayinit::transMaker(coenv &e, Int size, bool rest) {
   // Push the number of cells and call the array maker.
   e.c.encode(inst::intpush, size);
   e.c.encode(inst::builtin, rest ? run::newAppendedArray :
@@ -73,7 +73,7 @@ void arrayinit::transToType(coenv &e, types::ty *target)
   if (rest)
     rest->transToType(e, target);
   
-  transMaker(e, (int)inits.size(), (bool)rest);
+  transMaker(e, (Int)inits.size(), (bool)rest);
 }
 
 } // namespace absyntax

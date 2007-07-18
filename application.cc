@@ -44,7 +44,7 @@ defaultArg::defaultArg(types::ty *t)
         t)
 {}
 
-void restArg::transMaker(coenv &e, int size, bool rest) {
+void restArg::transMaker(coenv &e, Int size, bool rest) {
   // Push the number of cells and call the array maker.
   e.c.encode(inst::intpush, size);
   e.c.encode(inst::builtin, rest ? run::newAppendedArray :
@@ -60,7 +60,7 @@ void restArg::trans(coenv &e, temp_vector &temps)
   if (rest)
     rest->trans(e, temps);
   
-  transMaker(e, (int)inits.size(), (bool)rest);
+  transMaker(e, (Int)inits.size(), (bool)rest);
 }
 
 class maximizer {
@@ -126,14 +126,14 @@ void application::initRest() {
   }
 }
 
-//const int REST=-1; 
-const int NOMATCH=-2;
+//const Int REST=-1; 
+const Int NOMATCH=-2;
 
-int application::find(symbol *name) {
+Int application::find(symbol *name) {
   formal_vector &f=sig->formals;
   for (size_t i=index; i<f.size(); ++i)
     if (f[i].name==name && args[i]==0)
-      return (int)i;
+      return (Int)i;
   return NOMATCH;
 }
 
@@ -203,7 +203,7 @@ bool application::matchNamedArgument(env &e, formal &source,
 {
   assert(source.name!=0);
 
-  int spot=find(source.name);
+  Int spot=find(source.name);
   return spot!=NOMATCH && matchAtSpot(spot, e, source, a, evalIndex);
 }
 

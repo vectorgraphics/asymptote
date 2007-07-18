@@ -65,9 +65,9 @@ class flatguide
     }
   }
 
-  void addPre(path& p, int j);
-  void addPoint(path& p, int j);
-  void addPost(path& p, int j);
+  void addPre(path& p, Int j);
+  void addPoint(path& p, Int j);
+  void addPost(path& p, Int j);
 
   void clearNodes() {
     nodes.clear();
@@ -97,11 +97,11 @@ public:
   flatguide()
     : solved(true), p(), out(&open), in(&open) {}
 
-  int size() const {
-    return (int) nodes.size();
+  Int size() const {
+    return (Int) nodes.size();
   }
   
-  knot Nodes(int i) const {
+  knot Nodes(Int i) const {
     return nodes[i];
   }
   

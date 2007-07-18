@@ -19,7 +19,7 @@ namespace trans {
 class frame : public gc {
   frame *parent;
   size_t numFormals;
-  int numLocals;
+  Int numLocals;
 
 public:
   frame(frame *parent, size_t numFormals)
@@ -28,7 +28,7 @@ public:
   size_t getNumFormals() {
     return numFormals;
   } 
-  int getNumLocals() {
+  Int getNumLocals() {
     return numLocals;
   }
 
@@ -36,17 +36,17 @@ public:
     return parent;
   }
 
-  int size() {
-    return (int) (1+numFormals+numLocals);
+  Int size() {
+    return (Int) (1+numFormals+numLocals);
   }
 
   access *accessFormal(size_t index) {
     assert(index < numFormals);
-    return new localAccess((int) (1 + index), this);
+    return new localAccess((Int) (1 + index), this);
   }
 
   access *allocLocal() {
-    return new localAccess((int) (1 + numFormals + numLocals++), this);
+    return new localAccess((Int) (1 + numFormals + numLocals++), this);
   }
 
   // Checks if the frame f is a descendent of this frame.

@@ -48,7 +48,7 @@ public:
   ty(position pos)
     : absyn(pos) {}
 
-  virtual void prettyprint(ostream &out, int indent) = 0;
+  virtual void prettyprint(ostream &out, Int indent) = 0;
 
   // If we introduced a new type, automatically add corresponding functions for
   // that type.  
@@ -72,7 +72,7 @@ public:
   nameTy(name *id)
     : ty(id->getPos()), id(id) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e, bool tacit = false);
   trans::tyEntry *transAsTyEntry(coenv &e, record *where);
@@ -84,7 +84,7 @@ public:
   dimensions(position pos)
     : absyn(pos), depth(1) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void increase()
     { depth++; }
@@ -107,7 +107,7 @@ public:
   arrayTy(name *id, dimensions *dims)
     : ty(dims->getPos()), cell(new nameTy(id)), dims(dims) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void addOps(coenv &e, record *r);
 
@@ -124,7 +124,7 @@ public:
 
   tyEntryTy(position pos, types::ty *t);
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e, bool tacit = false);
   trans::tyEntry *transAsTyEntry(coenv &, record *) {
@@ -139,7 +139,7 @@ public:
   runnable(position pos)
     : absyn(pos) {}
 
-  virtual void prettyprint(ostream &out, int indent) = 0;
+  virtual void prettyprint(ostream &out, Int indent) = 0;
   
   void markTrans(coenv &e)
   {
@@ -193,7 +193,7 @@ public:
   bool scope;
 
 protected:
-  void prettystms(ostream &out, int indent);
+  void prettystms(ostream &out, Int indent);
 
 public:
   block(position pos, bool scope=true)
@@ -206,7 +206,7 @@ public:
     stms.push_back(r);
   }
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e);
 
@@ -241,7 +241,7 @@ public:
   virtual ~modifierList()
     {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void add(trans::permission p)
   {
@@ -283,7 +283,7 @@ public:
     mods->add(perm);
   }
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void transAsField(coenv &e, record *r);
 
@@ -301,7 +301,7 @@ public:
   decidstart(position pos, symbol *id, dimensions *dims = 0)
     : absyn(pos), id(id), dims(dims) {}
 
-  virtual void prettyprint(ostream &out, int indent);
+  virtual void prettyprint(ostream &out, Int indent);
 
   virtual types::ty *getType(types::ty *base, coenv &, bool = false);
   virtual trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e,
@@ -328,7 +328,7 @@ public:
 		formals *params = 0)
     : decidstart(pos, id, dims), params(params) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *getType(types::ty *base, coenv &e, bool tacit = false);
   trans::tyEntry *getTyEntry(trans::tyEntry *base, coenv &e, record *where);
@@ -346,7 +346,7 @@ public:
   decid(position pos, decidstart *start, varinit *init = 0)
     : absyn(pos), start(start), init(init) {}
 
-  virtual void prettyprint(ostream &out, int indent);
+  virtual void prettyprint(ostream &out, Int indent);
 
   virtual void transAsField(coenv &e, record *r, types::ty *base);
 
@@ -367,7 +367,7 @@ public:
     decs.push_back(p);
   }
 
-  virtual void prettyprint(ostream &out, int indent);
+  virtual void prettyprint(ostream &out, Int indent);
 
   virtual void transAsField(coenv &e, record *r, types::ty *base);
 
@@ -380,7 +380,7 @@ public:
   dec(position pos)
     : runnable(pos) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   // Declarations can be public or private.
   bool allowPermissions()
@@ -403,7 +403,7 @@ public:
   {
     decs->add(di);
   }
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void transAsField(coenv &e, record *r)
   {
@@ -433,7 +433,7 @@ struct idpair : public absyn {
     }
   }
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   // Translates as: access src as dest;
   void transAsAccess(coenv &e, record *r);
@@ -451,7 +451,7 @@ struct idpairlist : public gc {
     base.push_back(x);
   }
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void transAsAccess(coenv &e, record *r);
 
@@ -469,7 +469,7 @@ public:
   accessdec(position pos, idpairlist *base)
     : dec(pos), base(base) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void transAsField(coenv &e, record *r) {
     base->transAsAccess(e,r);
@@ -513,7 +513,7 @@ public:
   fromdec(position pos, idpairlist *fields)
     : dec(pos), fields(fields) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void transAsField(coenv &e, record *r);
 };
@@ -528,7 +528,7 @@ public:
   unraveldec(position pos, name *id, idpairlist *fields)
     : fromdec(pos, fields), id(id) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 };
 
 // A fromaccess declaration dumps fields and types of a module into the local
@@ -541,7 +541,7 @@ public:
   fromaccessdec(position pos, symbol *id, idpairlist *fields)
     : fromdec(pos, fields), id(id) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 };
 
 // An import declaration dumps fields and types of a module into the local
@@ -566,7 +566,7 @@ public:
     base.transAsField(e, r);
   }
   
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 };
 
 // Parses the file given, and translates the resulting runnables as if they
@@ -580,7 +580,7 @@ public:
   includedec(position pos, symbol *id)
     : dec(pos), filename(*id) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
   void loadFailed(coenv &e);
 
   void transAsField(coenv &e, record *r);
@@ -594,7 +594,7 @@ public:
   typedec(position pos, vardec *body)
     : dec(pos), body(body) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void transAsField(coenv &e, record *r) {
     body->transAsTypedefField(e,r);
@@ -617,7 +617,7 @@ public:
   virtual ~recorddec()
     {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void transAsField(coenv &e, record *parent);
 };

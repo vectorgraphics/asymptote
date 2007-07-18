@@ -44,16 +44,17 @@ extern string newline;
 class file : public gc {
 protected:  
   string name;
-  int nx,ny,nz;    // Array dimensions
+  Int nx,ny,nz;    // Array dimensions
   bool linemode;   // Array reads will stop at eol instead of eof.
   bool csvmode;    // Read comma-separated values.
   bool wordmode;   // Delimit strings by white space instead of eol.
-  bool singlemode; // Read/write single-precision XDR/binary values.
+  bool singlereal; // Read/write single-precision XDR/binary reals.
+  bool singleint;  // Read/write single-precision XDR/binary ints.
   bool closed;     // File has been closed.
   bool checkerase; // Check input for errors/erase output.
   bool standard;   // Standard input/output
   bool binary;     // Read in binary mode.
-  int lines;       // Number of scrolled lines
+  Int lines;       // Number of scrolled lines
   
   bool nullfield;  // Used to detect a final null field in csv+line mode.
   string whitespace;
@@ -73,7 +74,7 @@ public:
   template<class T>
   void purgeStandard(T&) {
     if(standard) {
-      int c;
+      Int c;
       if(cin.eof())
 	standardEOF();
       else {
@@ -91,11 +92,12 @@ public:
       standardEOF();
   }
   
-  void dimension(int Nx=-1, int Ny=-1, int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
+  void dimension(Int Nx=-1, Int Ny=-1, Int Nz=-1) {nx=Nx; ny=Ny; nz=Nz;}
   
   file(const string& name, bool checkerase=true, bool binary=false,
        bool closed=false) : 
-    name(name), linemode(false), csvmode(false), singlemode(false),
+    name(name), linemode(false), csvmode(false),
+    singlereal(false), singleint(true),
     closed(closed), checkerase(checkerase), standard(name.empty()),
     binary(binary), lines(0), nullfield(false), whitespace("") {dimension();}
   
@@ -132,10 +134,10 @@ public:
   virtual bool error() {return true;}
   virtual void close() {}
   virtual void clear() {}
-  virtual void precision(int) {}
+  virtual void precision(Int) {}
   virtual void flush() {}
   virtual size_t tell() {return 0;}
-  virtual void seek(int, bool=true) {}
+  virtual void seek(Int, bool=true) {}
   
   void unsupported(const char *rw, const char *type) {
     ostringstream buf;
@@ -148,7 +150,7 @@ public:
   void nowrite(const char *type) {unsupported("Write",type);}
   
   virtual void Read(bool&) {noread("bool");}
-  virtual void Read(int&) {noread("int");}
+  virtual void Read(Int&) {noread("Int");}
   virtual void Read(double&) {noread("real");}
   virtual void Read(float&) {noread("real");}
   virtual void Read(pair&) {noread("pair");}
@@ -158,7 +160,7 @@ public:
   virtual void readwhite(string&) {noread("string");}
   
   virtual void write(bool) {nowrite("bool");}
-  virtual void write(int) {nowrite("int");}
+  virtual void write(Int) {nowrite("Int");}
   virtual void write(double) {nowrite("real");}
   virtual void write(const pair&) {nowrite("pair");}
   virtual void write(const triple&) {nowrite("triple");}
@@ -196,9 +198,9 @@ public:
     }
   }
   
-  int Nx() {return nx;}
-  int Ny() {return ny;}
-  int Nz() {return nz;}
+  Int Nx() {return nx;}
+  Int Ny() {return ny;}
+  Int Nz() {return nz;}
   
   void LineMode(bool b) {linemode=b;}
   bool LineMode() {return linemode;}
@@ -209,8 +211,11 @@ public:
   void WordMode(bool b) {wordmode=b; if(b) csvmode=false;}
   bool WordMode() {return wordmode;}
   
-  void SingleMode(bool b) {singlemode=b;}
-  bool SingleMode() {return singlemode;}
+  void SingleReal(bool b) {singlereal=b;}
+  bool SingleReal() {return singlereal;}
+  
+  void SingleInt(bool b) {singleint=b;}
+  bool SingleInt() {return singleint;}
 };
 
 class ifile : public file {
@@ -260,7 +265,7 @@ public:
   
   void clear() {stream->clear();}
   
-  void seek(int pos, bool begin=true) {
+  void seek(Int pos, bool begin=true) {
     if(!standard && fstream) {
       clear();
       fstream->seekg(pos,begin ? std::ios::beg : std::ios::end);
@@ -277,7 +282,7 @@ public:
   void readwhite(string& val) {val=string(); *stream >> val;}
   
   void Read(bool &val) {string t; readwhite(t); val=(t == "true");}
-  void Read(int& val) {*stream >> val;}
+  void Read(Int& val) {*stream >> val;}
   void Read(double& val) {*stream >> val;}
   void Read(pair& val) {*stream >> val;}
   void Read(triple& val) {*stream >> val;}
@@ -289,11 +294,11 @@ class iofile : public ifile {
 public:
   iofile(const string& name, char comment=0) : ifile(name,true,comment) {}
 
-  void precision(int p) {stream->precision(p);}
+  void precision(Int p) {stream->precision(p);}
   void flush() {fstream->flush();}
   
   void write(bool val) {*fstream << (val ? "true " : "false ");}
-  void write(int val) {*fstream << val;}
+  void write(Int val) {*fstream << val;}
   void write(double val) {*fstream << val;}
   void write(const pair& val) {*fstream << val;}
   void write(const triple& val) {*fstream << val;}
@@ -344,10 +349,10 @@ public:
     }
   }
   void clear() {stream->clear();}
-  void precision(int p) {stream->precision(p);}
+  void precision(Int p) {stream->precision(p);}
   void flush() {stream->flush();}
   
-  void seek(int pos, bool begin=true) {
+  void seek(Int pos, bool begin=true) {
     if(!standard && fstream) {
       clear();
       fstream->seekp(pos,begin ? std::ios::beg : std::ios::end);
@@ -357,7 +362,7 @@ public:
   size_t tell() {return fstream->tellp();}
   
   void write(bool val) {*stream << (val ? "true " : "false ");}
-  void write(int val) {*stream << val;}
+  void write(Int val) {*stream << val;}
   void write(double val) {*stream << val;}
   void write(const pair& val) {*stream << val;}
   void write(const triple& val) {*stream << val;}
@@ -390,12 +395,15 @@ public:
   }
   
   void Read(bool& val) {iread(val);}
-  void Read(int& val) {iread(val);}
+  void Read(Int& val) {
+    if(singleint) {int ival; iread(ival); val=ival;}
+    else iread(val);
+  }
   void Read(char& val) {iread(val);}
   void Read(string& val) {iread(val);}
   
   void Read(double& val) {
-    if(singlemode) {float fval=0.0; iread(fval); val=fval;}
+    if(singlereal) {float fval; iread(fval); val=fval;}
     else iread(val);
   }
 };
@@ -412,13 +420,16 @@ public:
   }
   
   void write(bool val) {iwrite(val);}
-  void write(int val) {iwrite(val);}
+  void write(Int val) {
+    if(singleint) iwrite(intcast(val));
+    else iwrite(val);
+  }
   void write(const string& val) {iwrite(val);}
   void write(const pen& val) {iwrite(val);}
   void write(guide *val) {iwrite(val);}
   void write(const transform& val) {iwrite(val);}
   void write(double val) {
-    if(singlemode) {float fval=val; iwrite(fval);}
+    if(singlereal) iwrite((float) val);
     else iwrite(val);
   }
   void write(const pair& val) {
@@ -454,13 +465,16 @@ public:
   }
   
   void write(bool val) {iwrite(val);}
-  void write(int val) {iwrite(val);}
+  void write(Int val) {
+    if(singleint) iwrite(intcast(val));
+    else iwrite(val);
+  }
   void write(const string& val) {iwrite(val);}
   void write(const pen& val) {iwrite(val);}
   void write(guide *val) {iwrite(val);}
   void write(const transform& val) {iwrite(val);}
   void write(double val) {
-    if(singlemode) {float fval=val; iwrite(fval);}
+    if(singlereal) iwrite((float) val);
     else iwrite(val);
   }
   void write(const pair& val) {
@@ -512,7 +526,7 @@ public:
 
   void clear() {fstream->clear();}
   
-  void seek(int pos, bool begin=true) {
+  void seek(Int pos, bool begin=true) {
     if(!standard && fstream) {
       clear();
       fstream->seek(pos,begin ? xdr::xios::beg : xdr::xios::end);
@@ -521,9 +535,15 @@ public:
   
   size_t tell() {return fstream->tell();}
   
-  void Read(int& val) {val=0; *fstream >> val;}
+  void Read(Int& val) {
+    if(singleint) {int ival=0; *fstream >> ival; val=ival;}
+    else {
+      val=0;
+      *fstream >> val;
+    }
+  }
   void Read(double& val) {
-    if(singlemode) {float fval=0.0; *fstream >> fval; val=fval;}
+    if(singlereal) {float fval=0.0; *fstream >> fval; val=fval;}
     else {
       val=0.0;
       *fstream >> val;
@@ -550,9 +570,12 @@ public:
 
   void flush() {fstream->flush();}
   
-  void write(int val) {*fstream << val;}
+  void write(Int val) {
+    if(singleint) *fstream << intcast(val);
+    else *fstream << val;
+  }
   void write(double val) {
-    if(singlemode) {float fval=val; *fstream << fval;}
+    if(singlereal) *fstream << (float) val;
     else *fstream << val;
   }
   void write(const pair& val) {
@@ -596,7 +619,7 @@ public:
   void clear() {fstream->clear();}
   void flush() {fstream->flush();}
   
-  void seek(int pos, bool begin=true) {
+  void seek(Int pos, bool begin=true) {
     if(!standard && fstream) {
       clear();
       fstream->seek(pos,begin ? xdr::xios::beg : xdr::xios::end);
@@ -605,9 +628,12 @@ public:
   
   size_t tell() {return fstream->tell();}
   
-  void write(int val) {*fstream << val;}
+  void write(Int val) {
+    if(singleint) *fstream << intcast(val);
+    else *fstream << val;
+  }
   void write(double val) {
-    if(singlemode) {float fval=val; *fstream << fval;}
+    if(singlereal) *fstream << (float) val;
     else *fstream << val;
   }
   void write(const pair& val) {

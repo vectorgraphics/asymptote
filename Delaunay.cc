@@ -18,7 +18,7 @@ inline double max(double a, double b)
 //   Note: A point on the edge is inside the circumcircle
 ////////////////////////////////////////////////////////////////////////
 
-int CircumCircle(double xp, double yp, double x1, double y1, double x2, 
+Int CircumCircle(double xp, double yp, double x1, double y1, double x2, 
 		 double y2, double x3, double y3, double &xc, double &yc,
 		 double &r)
 {
@@ -87,16 +87,16 @@ int XYZCompare(const void *v1, const void *v2)
 //   By default, the array pxyz is automatically presorted and postsorted.
 ///////////////////////////////////////////////////////////////////////////////
 
-int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri,
+Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
 		bool presort, bool postsort)
 {
-  int *complete = NULL;
+  Int *complete = NULL;
   IEDGE *edges = NULL; 
   IEDGE *p_EdgeTemp;
-  int nedge = 0;
-  int trimax, emax = 200;
-  int inside;
-  int i, j, k;
+  Int nedge = 0;
+  Int trimax, emax = 200;
+  Int inside;
+  Int i, j, k;
   double xp, yp, x1, y1, x2, y2, x3, y3, xc, yc, r;
   double xmin, xmax, ymin, ymax, xmid, ymid;
   double dx, dy, dmax; 
@@ -106,7 +106,7 @@ int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri,
   
 /* Allocate memory for the completeness list, flag for each triangle */
   trimax = 4 * nv;
-  complete = new int[trimax];
+  complete = new Int[trimax];
 /* Allocate memory for the edge list */
   edges = new IEDGE[emax];
 /*
@@ -180,7 +180,7 @@ int Triangulate(int nv, XYZ pxyz[], ITRIANGLE v[], int &ntri,
 	if(nedge + 3 >= emax) {
 	  emax += 100;
 	  p_EdgeTemp = new IEDGE[emax];
-	  for (int i = 0; i < nedge; i++) {
+	  for (Int i = 0; i < nedge; i++) {
 	    p_EdgeTemp[i] = edges[i];   
 	  }
 	  delete []edges;

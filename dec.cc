@@ -31,7 +31,7 @@ trans::tyEntry *ty::transAsTyEntry(coenv &e, record *where)
 }
 
 
-void nameTy::prettyprint(ostream &out, int indent)
+void nameTy::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "nameTy",indent);
 
@@ -49,7 +49,7 @@ trans::tyEntry *nameTy::transAsTyEntry(coenv &e, record *)
 }
 
 
-void dimensions::prettyprint(ostream &out, int indent)
+void dimensions::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "dimensions (" << depth << ")\n";
@@ -72,7 +72,7 @@ types::array *dimensions::truetype(types::ty *base)
 }
 
 
-void arrayTy::prettyprint(ostream &out, int indent)
+void arrayTy::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "arrayTy",indent);
 
@@ -105,7 +105,7 @@ tyEntryTy::tyEntryTy(position pos, types::ty *t)
 {
 }
 
-void tyEntryTy::prettyprint(ostream &out, int indent)
+void tyEntryTy::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out,indent);
   out << "tyEntryTy: " << *(ent->t) << "\n";
@@ -125,13 +125,13 @@ vm::lambda *runnable::transAsCodelet(coenv &e)
 }
 
 
-void block::prettystms(ostream &out, int indent)
+void block::prettystms(ostream &out, Int indent)
 {
   for (list<runnable *>::iterator p = stms.begin(); p != stms.end(); ++p)
     (*p)->prettyprint(out, indent);
 }
 
-void block::prettyprint(ostream &out, int indent)
+void block::prettyprint(ostream &out, Int indent)
 {
   prettyname(out,"block",indent);
   prettystms(out, indent+1);
@@ -193,13 +193,13 @@ bool block::returns() {
 }
   
 
-void dec::prettyprint(ostream &out, int indent)
+void dec::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "dec", indent);
 }
 
 
-void modifierList::prettyprint(ostream &out, int indent)
+void modifierList::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out,indent);
   out << "modifierList (";
@@ -266,7 +266,7 @@ permission modifierList::getPermission()
 }
 
 
-void modifiedRunnable::prettyprint(ostream &out, int indent)
+void modifiedRunnable::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "modifierRunnable",indent);
 
@@ -301,7 +301,7 @@ void modifiedRunnable::transAsField(coenv &e, record *r)
 }
 
 
-void decidstart::prettyprint(ostream &out, int indent)
+void decidstart::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "decidstart '" << *id << "'\n";
@@ -333,7 +333,7 @@ void decidstart::addOps(types::ty *base, coenv &e, record *r)
 }
 
 
-void fundecidstart::prettyprint(ostream &out, int indent)
+void fundecidstart::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "fundecidstart '" << *id << "'\n";
@@ -378,7 +378,7 @@ void fundecidstart::addOps(types::ty *base, coenv &e, record *r)
 }
 
 
-void decid::prettyprint(ostream &out, int indent)
+void decid::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "decid",indent);
 
@@ -496,7 +496,7 @@ void decid::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
 }
 
 
-void decidlist::prettyprint(ostream &out, int indent)
+void decidlist::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "decidlist",indent);
 
@@ -517,7 +517,7 @@ void decidlist::transAsTypedefField(coenv &e, trans::tyEntry *base, record *r)
 }
 
 
-void vardec::prettyprint(ostream &out, int indent)
+void vardec::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "vardec",indent);
 
@@ -591,7 +591,7 @@ varEntry *accessModule(position pos, coenv &e, record *r, symbol *id)
 }
 
 
-void idpair::prettyprint(ostream &out, int indent)
+void idpair::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "idpair (" << "'" << *src << "' as " << *dest << ")\n";
@@ -620,7 +620,7 @@ void idpair::transAsUnravel(coenv &e, record *r,
 }
 
 
-void idpairlist::prettyprint(ostream &out, int indent)
+void idpairlist::prettyprint(ostream &out, Int indent)
 {
   for (list<idpair *>::iterator p=base.begin();
        p != base.end();
@@ -647,14 +647,14 @@ void idpairlist::transAsUnravel(coenv &e, record *r,
 
 idpairlist * const WILDCARD = 0;
 
-void accessdec::prettyprint(ostream &out, int indent)
+void accessdec::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "accessdec", indent);
   base->prettyprint(out, indent+1);
 }
 
 
-void fromdec::prettyprint(ostream &out, int indent)
+void fromdec::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "fromdec", indent);
   fields->prettyprint(out, indent+1);
@@ -675,7 +675,7 @@ void fromdec::transAsField(coenv &e, record *r)
 }
 
 
-void unraveldec::prettyprint(ostream &out, int indent)
+void unraveldec::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "unraveldec", indent);
   id->prettyprint(out, indent+1);
@@ -695,7 +695,7 @@ fromdec::qualifier unraveldec::getQualifier(coenv &e, record *)
   return qualifier(qt,id->getVarEntry(e));
 }
 
-void fromaccessdec::prettyprint(ostream &out, int indent)
+void fromaccessdec::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "fromaccessdec '" << *id << "'\n";
@@ -718,13 +718,13 @@ fromdec::qualifier fromaccessdec::getQualifier(coenv &e, record *r)
     return qualifier(0,0);
 }
 
-void importdec::prettyprint(ostream &out, int indent)
+void importdec::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "importdec", indent);
   base.prettyprint(out, indent+1);
 }
 
-void includedec::prettyprint(ostream &out, int indent)
+void includedec::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "includedec ('" << filename << "')\n";
@@ -747,7 +747,7 @@ void includedec::transAsField(coenv &e, record *r)
 }
 
 
-void typedec::prettyprint(ostream &out, int indent)
+void typedec::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "typedec",indent);
 
@@ -755,7 +755,7 @@ void typedec::prettyprint(ostream &out, int indent)
 }
 
 
-void recorddec::prettyprint(ostream &out, int indent)
+void recorddec::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "structdec '" << *id << "'\n";

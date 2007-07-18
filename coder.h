@@ -75,9 +75,9 @@ class coder {
 
   // Keeps track of labels and writes in memory addresses as they're defined.
   // This way a label can be used before its address is known.
-  std::map<int,vm::program::label> defs;
-  std::multimap<int,vm::program::label> uses;
-  int numLabels;
+  std::map<Int,vm::program::label> defs;
+  std::multimap<Int,vm::program::label> uses;
+  Int numLabels;
 
   // The loop constructs allocate nested frames, in case variables in an
   // iteration escape in a closure.  This stack keeps track of where the
@@ -89,8 +89,8 @@ class coder {
   // Loops need to store labels to where break and continue statements
   // should pass control to.  Since loops can be nested, this needs to
   // be stored as a stack.
-  std::stack<int> breakLabels;
-  std::stack<int> continueLabels;
+  std::stack<Int> breakLabels;
+  std::stack<Int> continueLabels;
 
   // Current File Position
   position curPos;
@@ -215,7 +215,7 @@ public:
   }
 
   // Get the access in the frame for a specified formal parameter.
-  access *accessFormal(int index)
+  access *accessFormal(Int index)
   {
     // NOTE: This hasn't been extended to handle frames for loops, but is
     // currently only called when starting to translate a function, where there
@@ -289,27 +289,27 @@ public:
 
   // Assigns a handle to the current point in the list of stack
   // instructions and returns that handle.
-  int defLabel();
+  Int defLabel();
 
   // Sets the handle given by label to the current point in the list of
   // instructions.
-  int defLabel(int label);
+  Int defLabel(Int label);
 
   // Encodes the address pointed to by the handle label into the
   // sequence of instructions.  This is useful for a jump instruction to
   // jump to where a label was defined.
-  void useLabel(inst::opcode op, int label);
+  void useLabel(inst::opcode op, Int label);
 
   // If an address has to be used for a jump instruction before it is
   // actually encoded, a handle can be given to it by this function.
   // When that handle's label is later defined, the proper address will
   // be inserted into the code where the handle was used. 
-  int fwdLabel();
+  Int fwdLabel();
 
-  void pushBreak(int label) {
+  void pushBreak(Int label) {
     breakLabels.push(label);
   }
-  void pushContinue(int label) {
+  void pushContinue(Int label) {
     continueLabels.push(label);
   }
   void popBreak() {

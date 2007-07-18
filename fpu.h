@@ -14,8 +14,8 @@
 #ifdef HAVE_FEENABLEEXCEPT
 #include <fenv.h>
 
-inline int fpu_exceptions() {
-  int excepts=0;
+inline Int fpu_exceptions() {
+  Int excepts=0;
 #ifdef FE_INVALID    
   excepts |= FE_INVALID;
 #endif    

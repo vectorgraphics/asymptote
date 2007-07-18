@@ -26,14 +26,14 @@ public:
     : absyn(pos), base(base), start(start), Explicit(Explicit),
       defval(defval) {}
 
-  virtual void prettyprint(ostream &out, int indent);
+  virtual void prettyprint(ostream &out, Int indent);
 
   // Build the corresponding types::formal to put into a signature.
   types::formal trans(coenv &e, bool encodeDefVal, bool tacit=false);
   
   // Add the formal parameter to the environment to prepare for the
   // function body's translation.
-  virtual void transAsVar(coenv &e, int index);
+  virtual void transAsVar(coenv &e, Int index);
 
   types::ty *getType(coenv &e, bool tacit=false);
 
@@ -78,7 +78,7 @@ public:
 
   virtual ~formals() {}
 
-  virtual void prettyprint(ostream &out, int indent);
+  virtual void prettyprint(ostream &out, Int indent);
 
   virtual void add(formal *f) {
     fields.push_back(f);
@@ -121,7 +121,7 @@ public:
   fundef(position pos, ty *result, formals *params, stm *body)
     : exp(pos), result(result), params(params), body(body) {}
 
-  virtual void prettyprint(ostream &out, int indent);
+  virtual void prettyprint(ostream &out, Int indent);
 
   varinit *makeVarInit(types::function *ft);
   virtual void baseTrans(coenv &e, types::function *ft);
@@ -142,7 +142,7 @@ public:
   fundec(position pos, ty *result, symbol *id, formals *params, stm *body)
     : dec(pos), id(id), fun(pos, result, params, body) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void trans(coenv &e);
 

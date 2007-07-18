@@ -3,7 +3,7 @@
  * Andy Hammerlindl 2005/07/01
  *
  * Variable initializers are syntax that finish code such as
- *   int var = ...
+ *   Int var = ...
  * As such, they are translated to yield a certain type, the type of the
  * variable.  Expressions are a special case that can be translated without an
  * associated variable or its type.
@@ -42,13 +42,13 @@ public:
 //   int a;
 // is in some sense equivalent to
 //   int a=0;
-// where the definit for int is a function that returns 0.
+// where the definit for Int is a function that returns 0.
 class definit : public varinit {
 public:
   definit(position pos)
     : varinit(pos) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   void transToType(coenv &e, types::ty *target);
 };
@@ -64,10 +64,10 @@ public:
   virtual ~arrayinit() 
     {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   // Encodes the instructions to make an array from size elements on the stack.
-  static void transMaker(coenv &e, int size, bool rest);
+  static void transMaker(coenv &e, Int size, bool rest);
 
   void transToType(coenv &e, types::ty *target);
 

@@ -30,7 +30,6 @@ extern bool safe;
 extern bool globalwrite();
 
 enum origin {CENTER,BOTTOM,TOP,ZERO};
-//extern int origin;
   
 extern const string suffix;
 extern const string guisuffix;
@@ -49,7 +48,7 @@ inline T getSetting(string name)
   return vm::get<T>(Setting(name));
 }
 
-extern int verbose;
+extern Int verbose;
 extern bool gray;
 extern bool bw;
 extern bool rgb;
@@ -65,7 +64,7 @@ void setOptions(int argc, char *argv[]);
 int numArgs();
 char *getArg(int n);
  
-int getScroll();
+Int getScroll();
   
 bool pdf(const string& texengine);
 bool latex(const string& texengine);

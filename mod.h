@@ -9,9 +9,12 @@
 #define MOD_H
 
 #include <cmath>
+
+#include "common.h"
+
 using std::fmod;
 
-inline int Mod(int x, int y) {return x % y;}
+inline Int Mod(Int x, Int y) {return x % y;}
 inline double Mod(double x, double y) {return fmod(x,y);}
   
 template<typename T>  
@@ -24,14 +27,14 @@ inline T portableMod(T x,T y)
   return val;
 }
   
-inline int imod(int x, int y)
+inline Int imod(Int x, Int y)
 {
-  return portableMod<int>(x,y);
+  return portableMod<Int>(x,y);
 }
 
-inline int imod(int i, size_t n) {
-  i %= (int) n;
-  if(i < 0) i += (int) n;
+inline Int imod(Int i, size_t n) {
+  i %= (Int) n;
+  if(i < 0) i += (Int) n;
   return i;
 }
 

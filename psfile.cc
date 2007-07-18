@@ -168,27 +168,27 @@ void psfile::write(pen p)
   
 void psfile::write(path p, bool newPath)
 {
-  int n = p.size();
+  Int n = p.size();
   assert(n != 0);
 
   if(newPath) newpath();
 
   if (n == 1) {
-    moveto(p.point(0));
-    lineto(p.point(0));
+    moveto(p.point((Int) 0));
+    lineto(p.point((Int) 0));
     return;
   }
 
   // Draw points
-  moveto(p.point(0));
-  for (int i = 1; i < n; i++) {
+  moveto(p.point((Int) 0));
+  for (Int i = 1; i < n; i++) {
     if(p.straight(i-1)) lineto(p.point(i));
     else curveto(p.postcontrol(i-1), p.precontrol(i), p.point(i));
   }
 
   if (p.cyclic()) {
-    if(p.straight(n-1)) lineto(p.point(0));
-    else curveto(p.postcontrol(n-1), p.precontrol(0), p.point(0));
+    if(p.straight(n-1)) lineto(p.point((Int) 0));
+    else curveto(p.postcontrol(n-1), p.precontrol((Int) 0), p.point((Int) 0));
     closepath();
   }    
 }
@@ -294,7 +294,7 @@ void psfile::gouraudshade(const array& pens, const array& vertices,
        << "/ColorSpace /Device" << ColorDeviceSuffix[colorspace] << newl
        << "/DataSource [" << newl;
   for(size_t i=0; i < size; i++) {
-    write(read<int>(edges,i));
+    write(read<Int>(edges,i));
     write(read<pair>(vertices,i));
     pen *p=read<pen *>(pens,i);
     p->convert();
@@ -337,14 +337,14 @@ void psfile::tensorshade(const array& pens, const array& boundaries,
     path g=read<path>(boundaries,i);
     if(!(g.cyclic() && g.size() == 4))
       reportError("specify cyclic path of length 4");
-    for(int j=0; j < 4; ++j) {
+    for(Int j=0; j < 4; ++j) {
       write(g.point(j));
       write(g.postcontrol(j));
       write(g.precontrol(j+1));
     }
     if(nz == 0) { // Coons patch
       static double nineth=1.0/9.0;
-      for(int j=0; j < 4; ++j) {
+      for(Int j=0; j < 4; ++j) {
 	write(nineth*(-4.0*g.point(j)+6.0*(g.precontrol(j)+g.postcontrol(j))
 		      -2.0*(g.point(j-1)+g.point(j+1))
 		      +3.0*(g.precontrol(j-1)+g.postcontrol(j+1))
@@ -354,14 +354,14 @@ void psfile::tensorshade(const array& pens, const array& boundaries,
       array *zi=read<array *>(z,i);
       if(checkArray(zi) != 4)
 	reportError("specify 4 internal control points for each path");
-      for(int j=0; j < 4; ++j)
+      for(Int j=0; j < 4; ++j)
 	write(read<pair>(zi,j));
     }
     
     array *pi=read<array *>(pens,i);
     if(checkArray(pi) != 4)
       reportError("specify 4 pens for each path");
-    for(int j=0; j < 4; ++j) {
+    for(Int j=0; j < 4; ++j) {
       pen *p=read<pen *>(pi,j);
       p->convert();
       if(!p->promote(colorspace))
@@ -377,16 +377,16 @@ void psfile::tensorshade(const array& pens, const array& boundaries,
        << "shfill" << newl;
 }
  
-inline unsigned int byte(double r) // Map [0,1] to [0,255]
+inline unsigned byte(double r) // Map [0,1] to [0,255]
 {
   if(r < 0.0) r=0.0;
   else if(r > 1.0) r=1.0;
-  int a=(int)(256.0*r);
+  Int a=(Int)(256.0*r);
   if(a == 256) a=255;
   return a;
 }
 
-void psfile::writeHex(pen *p, int ncomponents) 
+void psfile::writeHex(pen *p, Int ncomponents) 
 {
   switch(ncomponents) {
   case 0:

@@ -38,11 +38,11 @@ public:
   cvector(size_t n, const T& t) : vector<T>(n,t) {}
   cvector(const vector<T>& v) : vector<T>(v) {}
   
-  T& operator[](int j) {
-    return vector<T>::operator[](imod(j,(int) this->size()));
+  T& operator[](Int j) {
+    return vector<T>::operator[](imod(j,(Int) this->size()));
   }
-  const T& operator[](int j) const {
-    return vector<T>::operator[](imod(j,(int) this->size()));
+  const T& operator[](Int j) const {
+    return vector<T>::operator[](imod(j,(Int) this->size()));
   }
 };
 
@@ -109,9 +109,9 @@ public:
 
   // Returns an equation used to solve for the thetas along the knot.  These are
   // called by eqnprop in the non-cyclic case for the first and last equations.
-  virtual eqn eqnOut(int j, knotlist& l,
+  virtual eqn eqnOut(Int j, knotlist& l,
                      cvector<double>& d, cvector<double>& psi) = 0;
-  virtual eqn eqnIn (int j, knotlist& l,
+  virtual eqn eqnIn (Int j, knotlist& l,
                      cvector<double>& d, cvector<double>& psi) = 0;
 };
 
@@ -127,8 +127,8 @@ public:
 
   pair dir() { return expi(given); }
   
-  eqn eqnOut(int j, knotlist& l, cvector<double>& d, cvector<double>& psi);
-  eqn eqnIn (int j, knotlist& l, cvector<double>& d, cvector<double>& psi);
+  eqn eqnOut(Int j, knotlist& l, cvector<double>& d, cvector<double>& psi);
+  eqn eqnIn (Int j, knotlist& l, cvector<double>& d, cvector<double>& psi);
 
   void print(ostream& out) const {
     out << "{dir(" << degrees(given) << ")}";
@@ -149,8 +149,8 @@ public:
   
   double curl() { return gamma; }
 
-  eqn eqnOut(int j, knotlist& l, cvector<double>& d, cvector<double>& psi);
-  eqn eqnIn (int j, knotlist& l, cvector<double>& d, cvector<double>& psi);
+  eqn eqnOut(Int j, knotlist& l, cvector<double>& d, cvector<double>& psi);
+  eqn eqnIn (Int j, knotlist& l, cvector<double>& d, cvector<double>& psi);
 
   void print(ostream& out) const {
     out << "{curl " << gamma << "}";
@@ -227,19 +227,19 @@ class knotlist {
 public:
   virtual ~knotlist() {}
   
-  virtual int length() = 0;
+  virtual Int length() = 0;
   virtual bool cyclic() = 0;
 
   // Returns the number of knots.
-  int size() {
+  Int size() {
     return cyclic() ? length() : length() + 1;
   }
   bool empty() {
     return size()==0;
   }
 
-  virtual knot& cell(int) = 0;
-  virtual knot& operator[] (int i) {
+  virtual knot& cell(Int) = 0;
+  virtual knot& operator[] (Int i) {
 #if 0
     assert(cyclic() || (0 <= i && i <= length()));  // Bounds check.
 #endif
@@ -257,14 +257,14 @@ public:
 // Defines a knotlist as a piece of another knotlist.
 class subknotlist : public knotlist {
   knotlist& l;
-  int a,b;
+  Int a,b;
 public:
-  subknotlist(knotlist& l, int a, int b)
+  subknotlist(knotlist& l, Int a, Int b)
     : l(l), a(a), b(b) {}
 
-  int length() { return b-a; }
+  Int length() { return b-a; }
   bool cyclic() { return false; }
-  knot& cell(int i) { return l[a+i]; }
+  knot& cell(Int i) { return l[a+i]; }
 };
 
 struct simpleknotlist : public knotlist {
@@ -274,34 +274,34 @@ struct simpleknotlist : public knotlist {
   simpleknotlist(cvector<knot> nodes, bool cycles=false)
     : nodes(nodes), cycles(cycles) {}
 
-  int length() { return cycles ? (int) nodes.size() : (int) nodes.size() - 1; }
+  Int length() { return cycles ? (Int) nodes.size() : (Int) nodes.size() - 1; }
   bool cyclic() { return cycles; }
-  knot& cell(int j) { return nodes[j]; }
+  knot& cell(Int j) { return nodes[j]; }
 };
     
 // A protopath is a path being made.
 struct protopath {
   bool cycles;
-  int n;
+  Int n;
   mem::vector<solvedKnot> nodes;
 
-  protopath(int n, bool cycles)
+  protopath(Int n, bool cycles)
     : cycles(cycles), n(n), nodes(n) {}
 
-  solvedKnot& operator[](int j) {
+  solvedKnot& operator[](Int j) {
     return nodes[imod(j,n)];
   }
 
-  bool& straight(int j) {
+  bool& straight(Int j) {
     return (*this)[j].straight;
   }
-  pair& pre(int j) {
+  pair& pre(Int j) {
     return (*this)[j].pre;
   }
-  pair& point(int j) {
+  pair& point(Int j) {
     return (*this)[j].point;
   }
-  pair& post(int j) {
+  pair& post(Int j) {
     return (*this)[j].post;
   }
 
@@ -331,31 +331,31 @@ protected:
 
   // Calculate the property for the usual case in the iteration (and for a
   // cyclic knot, the only case), at the index given.
-  virtual T mid(int) = 0;
+  virtual T mid(Int) = 0;
 
   // The special cases, these default to the usual case: mid.
-  virtual T solo(int j)     // Calculates the property for a list of length 0.
+  virtual T solo(Int j)     // Calculates the property for a list of length 0.
   {
     return mid(j);
   }
-  virtual T start(int j)    // Calculates it at the start of the list.
+  virtual T start(Int j)    // Calculates it at the start of the list.
   {
     return mid(j);
   }
-  virtual T end(int j)      // Calculate it at the end.
+  virtual T end(Int j)      // Calculate it at the end.
   {
     return mid(j);
   }
 
   virtual cvector<T> linearCompute()
   {
-    int n=l.length();
+    Int n=l.length();
     cvector<T> v;
     if (n==0)
       v.push_back(solo(0));
     else {
       v.push_back(start(0));
-      for (int j=1; j<n; ++j)
+      for (Int j=1; j<n; ++j)
         v.push_back(mid(j));
       v.push_back(end(n));
     }
@@ -364,22 +364,22 @@ protected:
   
   virtual cvector<T> cyclicCompute()
   {
-    int n=l.length();
+    Int n=l.length();
     cvector<T> v;
-    for (int j=0; j<n; ++j)
+    for (Int j=0; j<n; ++j)
       v.push_back(mid(j));
     return v;
   }
 
   virtual cvector<T> linearBackCompute()
   {
-    int n=l.length();
+    Int n=l.length();
     cvector<T> v;
     if (n==0)
       v.push_back(solo(0));
     else {
       v.push_back(end(n));
-      for (int j=1; j<n; ++j)
+      for (Int j=1; j<n; ++j)
         v.push_back(mid(n-j));
       v.push_back(start(0));
     }
@@ -388,9 +388,9 @@ protected:
   
   virtual cvector<T> cyclicBackCompute()
   {
-    int n=l.length();
+    Int n=l.length();
     cvector<T> v;
-    for (int j=1; j<=n; ++j)
+    for (Int j=1; j<=n; ++j)
       v.push_back(mid(n-j));
     return v;
   }
@@ -422,7 +422,7 @@ public:
 // into a new one.
 class knottrans : public knotprop<knot> {
 protected:
-  virtual knot mid(int j) {
+  virtual knot mid(Int j) {
     /* By default, just copy the knot. */
     return l[j];
   }
@@ -445,27 +445,27 @@ class knoteffect {
 protected:
   knotlist& l;
 
-  virtual void mid(int) = 0;
+  virtual void mid(Int) = 0;
 
   // The special cases, these default to the usual case: mid.
-  virtual void solo(int j) {
+  virtual void solo(Int j) {
     mid(j);
   }
-  virtual void start(int j) {
+  virtual void start(Int j) {
     mid(j);
   }
-  virtual void end(int j) {
+  virtual void end(Int j) {
     mid(j);
   }
 
   virtual void linearExec()
   {
-    int n=l.length();
+    Int n=l.length();
     if (n==0)
       solo(0);
     else {
       start(0);
-      for (int j=1; j<n; ++j)
+      for (Int j=1; j<n; ++j)
         mid(j);
       end(n);
     }
@@ -473,19 +473,19 @@ protected:
   
   virtual void cyclicExec()
   {
-    int n=l.length();
-    for (int j=0; j<n; ++j)
+    Int n=l.length();
+    for (Int j=0; j<n; ++j)
       mid(j);
   }
 
   virtual void linearBackExec()
   {
-    int n=l.length();
+    Int n=l.length();
     if (n==0)
       solo(0);
     else {
       end(n);
-      for (int j=1; j<n; ++j)
+      for (Int j=1; j<n; ++j)
         mid(n-j);
       start(0);
     }
@@ -493,8 +493,8 @@ protected:
   
   virtual void cyclicBackExec()
   {
-    int n=l.length();
-    for (int j=1; j<=n; ++j)
+    Int n=l.length();
+    for (Int j=1; j<=n; ++j)
       mid(n-j);
   }
 

@@ -19,7 +19,7 @@ type asyname:cname(cparams)
 
 void     => primVoid()
 Void     => primVoid() 
-int      => primInt()
+Int      => primInt()
 bool     => primBoolean()
 double   => primReal()
 real     => primReal()
@@ -42,8 +42,8 @@ callableReal* => realRealFunction()
 callableTransform* => transformFunction()
 runnable* => primCode()
 boolarray* => boolArray()
-intarray*  => intArray()
-intarray2*  => intArray2()
+Intarray*  => IntArray()
+Intarray2*  => IntArray2()
 realarray* => realArray()
 realarray2* => realArray2()
 pairarray* => pairArray()
@@ -128,8 +128,8 @@ using absyntax::runnable;
 typedef double real;
 
 typedef array boolarray;
-typedef array intarray;
-typedef array intarray2;
+typedef array Intarray;
+typedef array Intarray2;
 typedef array realarray;
 typedef array realarray2;
 typedef array pairarray;
@@ -156,8 +156,8 @@ using types::function;
 #undef PRIMITIVE
 
 using types::boolArray;
-using types::intArray;
-using types::intArray2;
+using types::IntArray;
+using types::IntArray2;
 using types::realArray;
 using types::realArray2;
 using types::pairArray;
@@ -205,7 +205,7 @@ function *transformFunction()
   return new function(primTransform());
 }
 
-const int camp::ColorComponents[]={0,0,1,3,4,0};
+const Int camp::ColorComponents[]={0,0,1,3,4,0};
 
 namespace vm {
 const char *arraymismatch="operation attempted on arrays of different lengths";
@@ -215,46 +215,46 @@ namespace run {
   
 const char *arrayempty="cannot take min or max of empty array";
 
-static inline int Round(double x) 
+static inline Int Round(double x) 
 {
-  return int(x+((x >= 0) ? 0.5 : -0.5));
+  return Int(x+((x >= 0) ? 0.5 : -0.5));
 }
 
-inline int sgn(double x) 
+inline Int sgn(double x) 
 {
   return (x > 0.0 ? 1 : (x < 0.0 ? -1 : 0));
 }
 
-void outOfBounds(const char *op, size_t len, int n)
+void outOfBounds(const char *op, size_t len, Int n)
 {
   ostringstream buf;
   buf << op << " array of length " << len << " with out-of-bounds index " << n;
   error(buf);
 }
 
-inline item& arrayRead(array *a, int n)  
+inline item& arrayRead(array *a, Int n)  
 {
   size_t len=checkArray(a);
   bool cyclic=a->cyclic();
   if(cyclic && len > 0) n=imod(n,len);
-  else if(n < 0 || n >= (int) len) outOfBounds("reading",len,n);
+  else if(n < 0 || n >= (Int) len) outOfBounds("reading",len,n);
   return (*a)[(unsigned) n];
 }
 
 // Helper function to create deep arrays.
-static array* deepArray(int depth, int *dims)
+static array* deepArray(Int depth, Int *dims)
 {
   assert(depth > 0);
   
   if (depth == 1) {
     return new array(dims[0]);
   } else {
-    int length = dims[0];
+    Int length = dims[0];
     depth--; dims++;
 
     array *a = new array(length);
 
-    for (int index = 0; index < length; index++) {
+    for (Int index = 0; index < length; index++) {
       (*a)[index] = deepArray(depth, dims);
     }
     return a;
@@ -382,10 +382,10 @@ void checkSquare(array *a)
 
 // Crout's algorithm for computing the LU decomposition of a square matrix.
 // cf. routine ludcmp (Press et al.,  Numerical Recipes, 1991).
-int LUdecompose(double *a, size_t n, size_t* index, bool warn=true)
+Int LUdecompose(double *a, size_t n, size_t* index, bool warn=true)
 {
   double *vv=new double[n];
-  int swap=1;
+  Int swap=1;
   for(size_t i=0; i < n; ++i) {
     double big=0.0;
     double *ai=a+i*n;
@@ -483,7 +483,7 @@ void store_history(HISTORY_STATE *dest)
   HISTORY_STATE *src=history_get_history_state();
   *dest=*src;
   if(src) {
-    for(int i=0; i < src->length; ++i)
+    for(Int i=0; i < src->length; ++i)
       dest->entries[i]=src->entries[i];
     free(src);
   }
@@ -526,7 +526,7 @@ void cleanup()
   
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   store_history(&history_save);
-  int nlines=getSetting<int>("historylines");
+  int nlines=intcast(getSetting<Int>("historylines"));
   for(historyMap_t::iterator h=historyMap.begin(); h != historyMap.end(); 
       ++h) {
     history_set_history_state(&h->second.state);
@@ -569,8 +569,8 @@ void breakpoint(stack *Stack, runnable *r)
      !nullfunc::instance()->compare(atBreakpointFunction)) {
     position curPos=getPos();
     Stack->push<string>(curPos.filename());
-    Stack->push<int>((int) curPos.Line());
-    Stack->push<int>((int) curPos.Column());
+    Stack->push<Int>((Int) curPos.Line());
+    Stack->push<Int>((Int) curPos.Column());
     Stack->push(r ? r : item(def));
     atBreakpointFunction->call(Stack); // returns a string
   } else Stack->push<string>("");
@@ -624,7 +624,7 @@ void checkformat(const char *ptr, bool intformat)
 	  default:
 	    ostringstream buf;
 	    buf << "Invalid format '" << *ptr << "' for type " 
-		<< types::names[types::ty_int];
+		<< types::names[types::ty_Int];
 	    error(buf);
 	    break;
 	  }
@@ -665,7 +665,7 @@ static const size_t nTime=256;
 static char Time[nTime];
 #endif  
 
-void clear(string file, int line, bool warn=false) 
+void clear(string file, Int line, bool warn=false) 
 {
   bpinfo bp(file,line);
   for(mem::list<bpinfo>::iterator p=bplist.begin(); p != bplist.end(); ++p) {
@@ -679,10 +679,10 @@ void clear(string file, int line, bool warn=false)
     cout << "No such breakpoint at "  << file << ": " << line << endl;
 }
 
-int windingnumber(array *p, camp::pair z)
+Int windingnumber(array *p, camp::pair z)
 {
   size_t size=p->size();
-  int count=0;
+  Int count=0;
   for(size_t i=0; i < size; i++) 
     count += read<path *>(p,i)->windingnumber(z);
   return count;
@@ -697,7 +697,7 @@ string convertname(string name, const string& format, bool check=true)
   return format.empty() ? name : format+":"+name;
 }
 
-void notifyXasy(pid_t ppid, int count)
+void notifyXasy(pid_t ppid, Int count)
 {
   ostringstream statFilename;
   statFilename << ".asy_status_" << ppid;
@@ -721,7 +721,7 @@ void unused(void *)
 
 // Initializers
 
-int :intZero()
+Int :IntZero()
 {
   return 0;
 }
@@ -798,22 +798,22 @@ bool :boolFuncNeq(callable *a, callable *b)
 
 
 // Bit operations
-int AND(int a, int b) 
+Int AND(Int a, Int b) 
 {
     return a & b;
 }
 
-int OR(int a, int b) 
+Int OR(Int a, Int b) 
 {
     return a | b;
 }
 
-int XOR(int a, int b) 
+Int XOR(Int a, Int b) 
 {
     return a ^ b;
 }
 
-int NOT(int a)
+Int NOT(Int a)
 {
     return ~a;
 }
@@ -903,7 +903,7 @@ void radialshade(picture *f, patharray *g, pen pena, pair a, real ra,
 }
 
 void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
-		  pairarray *z, intarray *edges, bool copy=true)
+		  pairarray *z, Intarray *edges, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   checkArrays(p,z);
@@ -913,19 +913,19 @@ void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
 }
 
 void gouraudshade(picture *f, patharray *g, pen fillrule, penarray *p,
-		  intarray *edges, bool copy=true)
+		  Intarray *edges, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
   size_t n=checkArrays(p,edges);
   size_t m=checkArray(g);
   array *z=new array(n);
-  int k=0;
-  int in=(int) n;
+  Int k=0;
+  Int in=(Int) n;
   for(size_t j=0; j < m; ++j) {
     path *P=read<path *>(g,j);
-    int stop=Min(P->size(),in-k);
+    Int stop=Min(P->size(),in-k);
     mem::vector<solvedKnot>& nodes=P->Nodes();
-    for(int i=0; i < stop; ++i)
+    for(Int i=0; i < stop; ++i)
       (*z)[k++]=nodes[i].point;
   }
   checkArrays(p,z);
@@ -1239,7 +1239,7 @@ pen gray(real gray)
 
 realarray *colors(pen p)
 {  
-  int n=ColorComponents[p.colorspace()];
+  Int n=ColorComponents[p.colorspace()];
   array *a=new array(n);
   
   switch(n) {
@@ -1282,19 +1282,19 @@ string pattern(pen p)
   return p.fillpattern();  
 }
 
-pen fillrule(int n)
+pen fillrule(Int n)
 {
   return pen(n >= 0 && n < nFill ? (FillRule) n : DEFFILL);
 }
 
-int fillrule(pen p)
+Int fillrule(pen p)
 {
   return p.Fillrule();  
 }
 
 pen opacity(real opacity=1.0, string blend=defaulttransparency)
 {
-  for(int i=0; i < nBlendMode; ++i)
+  for(Int i=0; i < nBlendMode; ++i)
    if(blend == BlendMode[i]) return pen(Transparency(blend,opacity));
 
   ostringstream buf;
@@ -1337,22 +1337,22 @@ bool adjust(pen p)
   return p.linetype().adjust;
 }
 
-pen linecap(int n)
+pen linecap(Int n)
 {
   return pen(setlinecap,n >= 0 && n < nCap ? n : DEFCAP);
 }
 
-int linecap(pen p)
+Int linecap(pen p)
 {
   return p.cap();  
 }
 
-pen linejoin(int n)
+pen linejoin(Int n)
 {
   return pen(setlinejoin,n >= 0 && n < nJoin ? n : DEFJOIN);
 }
 
-int linejoin(pen p)
+Int linejoin(pen p)
 {
   return p.join();  
 }
@@ -1393,23 +1393,23 @@ real lineskip(pen p)
   return p.Lineskip();  
 }
 
-pen overwrite(int n)
+pen overwrite(Int n)
 {
   return pen(setoverwrite,n >= 0 && n < nOverwrite ? (overwrite_t) n :
 	     DEFWRITE);
 }
 
-int overwrite(pen p)
+Int overwrite(pen p)
 {
   return p.Overwrite();  
 }
 
-pen basealign(int n)
+pen basealign(Int n)
 {
   return pen(n >= 0 && n < nBaseLine ? (BaseLine) n : DEFBASE);
 }
 
-int basealign(pen p)
+Int basealign(pen p)
 {
   return p.Baseline();
 }
@@ -1455,7 +1455,7 @@ bool uptodate()
 
 // System commands
 
-int system(string *s)
+Int system(string *s)
 {
   if(safe) error("system() call disabled; override with option -unsafe");
   else return System(s->c_str());
@@ -1592,9 +1592,9 @@ bool !=(path a, path b)
   return !(a == b);
 }
 
-pair point(path p, int t)
+pair point(path p, Int t)
 {
-  return p.point(t);
+  return p.point((Int) t);
 }
 
 pair point(path p, real t)
@@ -1602,9 +1602,9 @@ pair point(path p, real t)
   return p.point(t);
 }
 
-pair precontrol(path p, int t)
+pair precontrol(path p, Int t)
 {
-  return p.precontrol(t);
+  return p.precontrol((Int) t);
 }
 
 pair precontrol(path p, real t)
@@ -1612,9 +1612,9 @@ pair precontrol(path p, real t)
   return p.precontrol(t);
 }
 
-pair postcontrol(path p, int t)
+pair postcontrol(path p, Int t)
 {
-  return p.postcontrol(t);
+  return p.postcontrol((Int) t);
 }
 
 pair postcontrol(path p, real t)
@@ -1622,9 +1622,9 @@ pair postcontrol(path p, real t)
   return p.postcontrol(t);
 }
 
-pair dir(path p, int t, int sign=0)
+pair dir(path p, Int t, Int sign=0)
 {
-  return p.dir(t,sign);
+  return p.dir((Int) t,sign);
 }
 
 pair dir(path p, real t)
@@ -1637,9 +1637,9 @@ path reverse(path p)
   return p.reverse();
 }
 
-path subpath(path p, int a, int b)
+path subpath(path p, Int a, Int b)
 {
-  return p.subpath(a,b);
+  return p.subpath((Int) a, (Int) b);
 }
 
 path subpath(path p, real a, real b)
@@ -1647,7 +1647,7 @@ path subpath(path p, real a, real b)
   return p.subpath(a,b);
 }
 
-int length(path p)
+Int length(path p)
 {
   return p.length();
 }
@@ -1657,15 +1657,15 @@ bool cyclic(path p)
   return p.cyclic();
 }
 
-bool straight(path p, int t)
+bool straight(path p, Int t)
 {
   return p.straight(t);
 }
 
 bool piecewisestraight(path p)
 {
-  int L=p.length();
-  for(int i=0; i < L; ++i)
+  Int L=p.length();
+  for(Int i=0; i < L; ++i)
     if(!p.straight(i)) return false;
   return true;
 }
@@ -1697,7 +1697,7 @@ realarray* intersect(path p, path q, real fuzz=0)
     return new array(0);
 }
 
-int size(path p)
+Int size(path p)
 {
   return p.size();
 }
@@ -1722,7 +1722,7 @@ real relativedistance(real theta, real phi, real t, bool atleast)
   return camp::velocity(theta,phi,tension(t,atleast));
 }
 
-int windingnumber(patharray *p, pair z)
+Int windingnumber(patharray *p, pair z)
 {
   return windingnumber(p,z);
 }
@@ -1789,7 +1789,7 @@ guide *operator cast(cycleToken tok)
   return new cycletokguide();
 }
 
-guide* operator spec(pair z, int p)
+guide* operator spec(pair z, Int p)
 {
   camp::side d=(camp::side) p;
   camp::dirSpec *sp=new camp::dirSpec(z);
@@ -1797,7 +1797,7 @@ guide* operator spec(pair z, int p)
   return new specguide(sp,d);
 }
 
-curlSpecifier operator curl(real gamma, int p)
+curlSpecifier operator curl(real gamma, Int p)
 {
   camp::side s=(camp::side) p;
   return curlSpecifier(gamma,s);
@@ -1808,7 +1808,7 @@ real :curlSpecifierValuePart(curlSpecifier spec)
   return spec.getValue();
 }
 
-int :curlSpecifierSidePart(curlSpecifier spec)
+Int :curlSpecifierSidePart(curlSpecifier spec)
 {
   return spec.getSide();
 }
@@ -1848,14 +1848,14 @@ guide* operator controls(pair zout, pair zin)
   return new controlguide(zout, zin);
 }
 
-int size(guide *g)
+Int size(guide *g)
 {
   flatguide f;
   g->flatten(f,false);
   return f.size();
 }
 
-int length(guide *g)
+Int length(guide *g)
 {
   flatguide f;
   g->flatten(f,false);
@@ -1869,19 +1869,19 @@ bool cyclic(guide *g)
   return g->cyclic();
 }
 
-pair point(guide *g, int t)
+pair point(guide *g, Int t)
 {
   flatguide f;
   g->flatten(f,false);
   return f.Nodes(adjustedIndex(t,f.size(),g->cyclic())).z;
 }
 
-pairarray *dirSpecifier(guide *g, int t)
+pairarray *dirSpecifier(guide *g, Int t)
 {
   flatguide f;
   g->flatten(f,false);
   array *c=new array(2);
-  int n=f.size();
+  Int n=f.size();
   if(g->cyclic()) t=t % n;
   else if(t < 0 || t >= n-1) {
     static pair zero;
@@ -1894,11 +1894,11 @@ pairarray *dirSpecifier(guide *g, int t)
   return c;
 }
 
-pairarray *controlSpecifier(guide *g, int t)
+pairarray *controlSpecifier(guide *g, Int t)
 {
   flatguide f;
   g->flatten(f,false);
-  int n=f.size();
+  Int n=f.size();
   if(g->cyclic()) t=t % n;
   else if(t < 0 || t >= n-1) return new array(0);
   knot curr=f.Nodes(t);
@@ -1913,11 +1913,11 @@ pairarray *controlSpecifier(guide *g, int t)
   } else return new array(0);
 }
 
-tensionSpecifier tensionSpecifier(guide *g, int t)
+tensionSpecifier tensionSpecifier(guide *g, Int t)
 {
   flatguide f;
   g->flatten(f,false);
-  int n=f.size();
+  Int n=f.size();
   if(g->cyclic()) t=t % n;
   else if(t < 0 || t >= n-1) return tensionSpecifier(1.0,1.0,false);
   knot curr=f.Nodes(t);
@@ -1946,7 +1946,7 @@ guide *reverse(guide *g)
     path p=g->solve();
     return new pathguide(p.reverse());
   }
-  int n=f.size();
+  Int n=f.size();
 
   guidevector v;
   if(n >= 0) {
@@ -1959,7 +1959,7 @@ guide *reverse(guide *g)
     if(c1 >= 0.0)
       v.push_back(new specguide(new curlSpec(c1),camp::OUT));
   
-    for(int i=n-2; i >= 0; --i) {
+    for(Int i=n-2; i >= 0; --i) {
       knot curr=f.Nodes(i);
       knot next=f.Nodes(i+1);
       if(curr.out->controlled()) {
@@ -1998,19 +1998,21 @@ string :emptyString()
   return emptystring;
 }
 
-int length(string *s)
+Int length(string *s)
 {
-  return (int) s->length();
+  return (Int) s->length();
 }
 
-int find(string *s, string t, int pos=0)
+Int find(string *s, string t, Int pos=0)
 {
-  return (int) s->find(t,pos);
+  size_t n=s->find(t,pos);
+  return n == string::npos ? (Int) -1 : (Int) n;
 }
 
-int rfind(string *s, string t, int pos=-1)
+Int rfind(string *s, string t, Int pos=-1)
 {
-  return (int) s->rfind(t,pos);
+  size_t n=s->rfind(t,pos);
+  return n == string::npos ? (Int) -1 : (Int) n;
 }
 
 string reverse(string s)
@@ -2019,21 +2021,21 @@ string reverse(string s)
   return s;
 }
 
-string insert(string s, int pos, string t)
+string insert(string s, Int pos, string t)
 {
   if ((size_t) pos < s.length())
     return s.insert(pos,t);
   return s;
 }
 
-string substr(string* s, int pos, int n=-1)
+string substr(string* s, Int pos, Int n=-1)
 {
   if ((size_t) pos < s->length())
     return s->substr(pos,n);
   return emptystring;
 }
 
-string erase(string s, int pos, int n)
+string erase(string s, Int pos, Int n)
 {
   if ((size_t) pos < s.length())
     return s.erase(pos,n);
@@ -2079,13 +2081,13 @@ string replace(string *S, stringarray2 *translate)
   return buf.str();
 }
 
-string format(string *format, int x)
+string format(string *format, Int x)
 {
   const char *f=format->c_str();
   
   checkformat(f,true);
   
-  int size=snprintf(NULL,0,f,x)+1;
+  Int size=snprintf(NULL,0,f,x)+1;
   if(size < 1) size=255; // Workaround for non-C99 compliant systems.
   char *buf=new char[size];
   snprintf(buf,size,f,x);
@@ -2124,7 +2126,7 @@ string format(string *format, real x)
   
   const char *tail=p;
   string f=format->substr(start-p0,tail-start);
-  int size=snprintf(NULL,0,f.c_str(),x)+1;
+  Int size=snprintf(NULL,0,f.c_str(),x)+1;
   if(size < 1) size=255; // Workaround for non-C99 compliant systems.
   char *buf=new char[size];
   snprintf(buf,size,f.c_str(),x);
@@ -2165,7 +2167,7 @@ string format(string *format, real x)
   }
   if(dp) { // Remove trailing zeros and/or decimal point
     r--;
-    unsigned int n=0;
+    unsigned n=0;
     while(r > q && *r == '0') {r--; n++;}
     if(*r == decimal) {r--; n++;}
     while(q <= r) out << *(q++);
@@ -2200,7 +2202,7 @@ string format(string *format, real x)
   return out.str();
 }
 
-string string(real x, int digits)
+string string(real x, Int digits)
 {
   ostringstream buf;
   buf.precision(digits);
@@ -2219,7 +2221,7 @@ string time(string format=defaulttimeformat)
 #endif  
 }
 
-string time(int seconds, string format=defaulttimeformat)
+string time(Int seconds, string format=defaulttimeformat)
 {
 #ifdef HAVE_STRFTIME
   const time_t bintime=seconds;
@@ -2232,13 +2234,13 @@ string time(int seconds, string format=defaulttimeformat)
 #endif
 }
 
-int seconds(string t=emptystring, string format=emptystring)
+Int seconds(string t=emptystring, string format=emptystring)
 {
 #if defined(HAVE_STRPTIME)
   const time_t bintime=time(NULL);
   tm tm=*localtime(&bintime);
   if(t != "" && !strptime(t.c_str(),format.c_str(),&tm)) return -1;
-  return (int) mktime(&tm);
+  return (Int) mktime(&tm);
 #else
   return -1;
 #endif  
@@ -2261,71 +2263,76 @@ realarray *_cputime()
 
 // Math
 
-real ^(real x, int y)
+real ^(real x, Int y)
 {
-  return pow(x,y);
+  if(y == 0) return 1.0;
+  if(x == 0.0 && y > 0) return 0.0;
+  if(y < 0) {y=-y; x=1/x;}
+	
+  double r=1.0;
+  for(;;) {
+    if(y & 1) r *= x;
+    if((y >>= 1) == 0)	return r;
+    x *= x;
+  }
 }
 
-int quotient(int x, int y)
+Int quotient(Int x, Int y)
 { 
   if (y == 0) dividebyzero();
 // Implementation-independent definition of integer division: round down
   return (x-portableMod(x,y))/y;
 }  
 
-int abs(int x)
+Int abs(Int x)
 { 
   return abs(x);
 }  
 
-int sgn(real x)
+Int sgn(real x)
 { 
   return sgn(x);
 }  
 
-int rand()
+Int rand()
 { 
   return rand();
 }  
 
-void srand(int seed)
+void srand(Int seed)
 { 
   srand(seed);
 }  
 
-int ceil(real x)
+Int ceil(real x)
 { 
-  real y=ceil(x);
-  checkint(y,0);
-  return (int) y;
+  return Intcast(ceil(x));
 }
 
-int floor(real x)
+Int floor(real x)
 { 
-  real y=floor(x);
-  checkint(y,0);
-  return (int) y;
+  return Intcast(floor(x));
 }
 
-int round(real x)
+Int round(real x)
 { 
-  if(fabs(x) >= INT_MAX+0.5) integeroverflow(0);
-  return Round(x);
+  if(validInt(x)) return Round(x);
+  integeroverflow(0);
 }
 
-int Ceil(real x)
+Int Ceil(real x)
 { 
   return Ceil(x);
 }
 
-int Floor(real x)
+Int Floor(real x)
 { 
   return Floor(x);
 }
 
-int Round(real x)
+Int Round(real x)
 { 
-  return Round(intcap(x));
+  return Round(Intcap(x));
 }
 
 real fmod(real x, real y)
@@ -2349,12 +2356,12 @@ real remainder(real x, real y)
   return remainder(x,y);
 }  
 
-real J(int n, real x)
+real J(Int n, real x)
 {
   return jn(n,x);
 }
 
-real Y(int n, real x)
+real Y(Int n, real x)
 {
   return yn(n,x);
 }
@@ -2441,14 +2448,14 @@ picture * Operator *(transform t, picture *f)
   return transformed(t,f);
 }
 
-transform ^(transform t, int n)
+transform ^(transform t, Int n)
 {
   transform T;
   if(n < 0) {
     n=-n;
     t=inverse(t);
   }
-  for(int i=0; i < n; i++) T=T*t;
+  for(Int i=0; i < n; i++) T=T*t;
   return T;
 }
 
@@ -2805,8 +2812,8 @@ realarray* intersect(triplearray* pre1, triplearray* point1, triplearray* post1,
   if(checkArray(post1) != size1 || checkArray(post2) != size2)
     error(arraymismatch);
   
-  int single1=(size1 == 1);
-  int single2=(size2 == 1);
+  bool single1=(size1 == 1);
+  bool single2=(size2 == 1);
   
   size_t Size1=size1+single1;
   size_t Size2=size2+single2;
@@ -2826,7 +2833,7 @@ realarray* intersect(triplearray* pre1, triplearray* point1, triplearray* post1,
   if(single2) n2[1]=n2[0];
   
   pair t;
-  if(intersect(t,(int) Size1-1,(int) Size2-1,n1,n2,fuzz)) {
+  if(intersect(t,(Int) Size1-1,(Int) Size2-1,n1,n2,fuzz)) {
     array *T=new array(2);
     (*T)[0]=t.getx();
     (*T)[1]=t.gety();
@@ -2868,7 +2875,7 @@ string locatefile(string file)
   return locateFile(file);
 }
 
-void stop(string file, int line, runnable *s=NULL)
+void stop(string file, Int line, runnable *s=NULL)
 {
   file=locateFile(file);
   clear(file,line);
@@ -2882,7 +2889,7 @@ void breakpoints()
     cout << p->f.name() << ": " << p->f.line() << endl;
 }
 
-void clear(string file, int line)
+void clear(string file, Int line)
 {
   file=locateFile(file);
   clear(file,line,true);
@@ -2906,7 +2913,7 @@ string stripextension(string *s)
 }
 
 // Call ImageMagick convert.
-int convert(string *args, string output=emptystring,
+Int convert(string *args, string output=emptystring,
 	    string format=emptystring)
 {
   ostringstream cmd;
@@ -2914,7 +2921,7 @@ int convert(string *args, string output=emptystring,
   string name=convertname(output,format);
   cmd << "'" << getSetting<string>("convert") << "' " << *args
       << " '" << name << "'";
-  int ret=System(cmd,2,true,"convert");
+  Int ret=System(cmd,2,true,"convert");
   
   if(ret == 0 && verbose > 0)
     cout << "Wrote " << ((output == "") ? name : output) << endl;
@@ -2923,17 +2930,17 @@ int convert(string *args, string output=emptystring,
 }
 
 // Delete file named s in current directory.
-int delete(string *s) 
+Int delete(string *s) 
 {
   checkLocal(*s);
-  int rc=unlink(s->c_str());
+  Int rc=unlink(s->c_str());
   if(rc == 0 && verbose > 0) 
     cout << "Deleted " << *s << endl;
   return rc;
 }
 
 // Call ImageMagick animate.
-int animate(string output=emptystring, string format=emptystring)
+Int animate(string output=emptystring, string format=emptystring)
 {
   string name=convertname(output,format,false);
   if(view()) {
@@ -2959,14 +2966,14 @@ array* :emptyArray()
 // is popped off the stack, followed by each dimension in reverse order.
 // The array itself is technically a one dimensional array of one
 // dimension arrays and so on.
-array* :newDeepArray(int depth)
+array* :newDeepArray(Int depth)
 {
   assert(depth > 0);
 
-  int *dims = new int[depth];
+  Int *dims = new Int[depth];
 
-  for (int index = depth-1; index >= 0; index--) {
-    int i=pop<int>(Stack);
+  for (Int index = depth-1; index >= 0; index--) {
+    Int i=pop<Int>(Stack);
     if(i < 0) error("cannot create a negative length array");
     dims[index]=i;
   }
@@ -2979,13 +2986,13 @@ array* :newDeepArray(int depth)
 // Creates an array with elements already specified.  First, the number
 // of elements is popped off the stack, followed by each element in
 // reverse order.
-array* :newInitializedArray(int n)
+array* :newInitializedArray(Int n)
 {
   assert(n >= 0);
 
   array *a = new array(n);
 
-  for (int index = n-1; index >= 0; index--)
+  for (Int index = n-1; index >= 0; index--)
     (*a)[index] = pop(Stack);
 
   return a;
@@ -2993,13 +3000,13 @@ array* :newInitializedArray(int n)
 
 // Similar to newInitializedArray, but after the n elements, append another
 // array to it.
-array* :newAppendedArray(array* tail, int n)
+array* :newAppendedArray(array* tail, Int n)
 {
   assert(n >= 0);
 
   array *a = new array(n);
 
-  for (int index = n-1; index >= 0; index--)
+  for (Int index = n-1; index >= 0; index--)
     (*a)[index] = pop(Stack);
   
   copy(tail->begin(), tail->end(), back_inserter(*a));
@@ -3008,7 +3015,7 @@ array* :newAppendedArray(array* tail, int n)
 }
 
 // Read an element from an array. Checks for initialization & bounds.
-item :arrayRead(array *a, int n)
+item :arrayRead(array *a, Int n)
 {
   item& i=arrayRead(a,n);
   if (i.empty()) {
@@ -3021,7 +3028,7 @@ item :arrayRead(array *a, int n)
 
 // Read an element from an array of arrays. Check bounds and initialize
 // as necessary.
-item :arrayArrayRead(array *a, int n)
+item :arrayArrayRead(array *a, Int n)
 {
   item& i=arrayRead(a,n);
   if (i.empty()) i=new array(0);
@@ -3029,7 +3036,7 @@ item :arrayArrayRead(array *a, int n)
 }
 
 // Write an element to an array.  Increase size if necessary.
-item :arrayWrite(item value, array *a, int n)
+item :arrayWrite(item value, array *a, Int n)
 {
   size_t len=checkArray(a);
   bool cyclic=a->cyclic();
@@ -3045,9 +3052,9 @@ item :arrayWrite(item value, array *a, int n)
 }
 
 // Returns the length of an array.
-int :arrayLength(array *a)
+Int :arrayLength(array *a)
 {
-  return (int) checkArray(a);
+  return (Int) checkArray(a);
 }
 
 // Return the cyclic flag for an array.
@@ -3058,12 +3065,12 @@ bool :arrayCyclicFlag(array *a)
 }
 
 // Check to see if an array element is initialized.
-bool :arrayInitializedHelper(int n, array *a)
+bool :arrayInitializedHelper(Int n, array *a)
 {
   size_t len=checkArray(a);
   bool cyclic=a->cyclic();
   if(cyclic && len > 0) n=imod(n,len);
-  else if(n < 0 || n >= (int) len) return false;
+  else if(n < 0 || n >= (Int) len) return false;
   item&i=(*a)[(unsigned) n];
   return !i.empty();
 }
@@ -3132,12 +3139,12 @@ callable* :arrayPop(array *a)
 }
 
 // The helper function for the insert method.
-item :arrayInsertHelper(int i, array *x, array *a)
+item :arrayInsertHelper(Int i, array *x, array *a)
 {
   size_t asize=checkArray(a);
   checkArray(x);
   if(a->cyclic() && asize > 0) i=imod(i,asize);
-  if(i < 0 || i > (int) asize) 
+  if(i < 0 || i > (Int) asize) 
     outOfBounds("inserting",asize,i);
   (*a).insert((*a).begin()+i,(*x).begin(),(*x).end());
 }
@@ -3167,10 +3174,10 @@ array* :arrayIntArray(array *a, array *b)
   array *r=new array(bsize);
   bool cyclic=a->cyclic();
   for(size_t i=0; i < bsize; i++) {
-    int index=read<int>(b,i);
+    Int index=read<Int>(b,i);
     if(cyclic && asize > 0) index=imod(index,asize);
     else
-      if(index < 0 || index >= (int) asize)
+      if(index < 0 || index >= (Int) asize)
 	outOfBounds("reading",asize,index);
     (*r)[i]=(*a)[index];
   }
@@ -3179,17 +3186,17 @@ array* :arrayIntArray(array *a, array *b)
 
 // returns the complement of the integer array a in {1,2,...,n},
 // so that b[complement(a,b.length)] yields the complement of b[a].
-intarray* complement(intarray *a, int n)
+Intarray* complement(Intarray *a, Int n)
 {
   size_t asize=checkArray(a);
   array *r=new array(0);
   bool *keep=new bool[n];
-  for(int i=0; i < n; ++i) keep[i]=true;
+  for(Int i=0; i < n; ++i) keep[i]=true;
   for(size_t i=0; i < asize; ++i) {
-    int j=read<int>(a,i);
+    Int j=read<Int>(a,i);
     if(j >= 0 && j < n) keep[j]=false;
   }
-  for(int i=0; i < n; i++)
+  for(Int i=0; i < n; i++)
     if(keep[i]) r->push(i);
   
   delete[] keep;
@@ -3197,11 +3204,11 @@ intarray* complement(intarray *a, int n)
 }
 
 // Generate the sequence {f_i : i=0,1,...n-1} given a function f and integer n
-intarray* :arraySequence(callable *f, int n)
+Intarray* :arraySequence(callable *f, Int n)
 {
   if(n < 0) n=0;
   array *a=new array(n);
-  for(int i=0; i < n; ++i) {
+  for(Int i=0; i < n; ++i) {
     Stack->push(i);
     f->call(Stack);
     (*a)[i]=pop(Stack);
@@ -3210,11 +3217,11 @@ intarray* :arraySequence(callable *f, int n)
 }
 
 // Return the array {0,1,...n-1}
-intarray *sequence(int n)
+Intarray *sequence(Int n)
 {
   if(n < 0) n=0;
   array *a=new array(n);
-  for(int i=0; i < n; ++i) {
+  for(Int i=0; i < n; ++i) {
     (*a)[i]=i;
   }
   return a;
@@ -3251,10 +3258,10 @@ boolarray* !(boolarray* a)
   return c;
 }
 
-int sum(boolarray *a)
+Int sum(boolarray *a)
 {
   size_t size=checkArray(a);
-  int sum=0;
+  Int sum=0;
   for(size_t i=0; i < size; i++)
     sum += read<bool>(a,i) ? 1 : 0;
   return sum;
@@ -3311,7 +3318,7 @@ array* :array2Transpose(array *a)
   return c;
 }
 
-// a is a rectangular 3D array; perm is an int array indicating the type of
+// a is a rectangular 3D array; perm is an Int array indicating the type of
 // permutation  (021 or 120, etc; original is 012).
 // Transpose by sending respective members to the permutated locations:
 // return the array obtained by putting a[i][j][k] into position perm{ijk}. 
@@ -3329,7 +3336,7 @@ array* :array3Transpose(array *a, array *perm)
   for(size_t i=0; i < DIM; ++i) size[i]=DIM;
   
   for(size_t i=0; i < DIM; ++i) {
-    int p=read<int>(perm,i);
+    Int p=read<Int>(perm,i);
     size_t P=(size_t) p;
     if(p < 0 || P >= DIM) {
       ostringstream buf;
@@ -3360,9 +3367,9 @@ array* :array3Transpose(array *a, array *perm)
     }
   }
   
-  size_t perm0=(size_t) read<int>(perm,0);
-  size_t perm1=(size_t) read<int>(perm,1);
-  size_t perm2=(size_t) read<int>(perm,2);
+  size_t perm0=(size_t) read<Int>(perm,0);
+  size_t perm1=(size_t) read<Int>(perm,1);
+  size_t perm2=(size_t) read<Int>(perm,2);
   
   size_t sizep0=size[perm0];
   size_t sizep1=size[perm1];
@@ -3400,20 +3407,20 @@ array* :array3Transpose(array *a, array *perm)
 
 // In a boolean array, find the index of the nth true value or -1 if not found
 // If n is negative, search backwards.
-int find(boolarray *a, int n=1)
+Int find(boolarray *a, Int n=1)
 {
   
   size_t size=checkArray(a);
-  int j=-1;
+  Int j=-1;
   if(n > 0)
     for(size_t i=0; i < size; i++)
       if(read<bool>(a,i)) {
-	n--; if(n == 0) {j=(int) i; break;}
+	n--; if(n == 0) {j=(Int) i; break;}
       }
   if(n < 0)
     for(size_t i=size; i > 0;)
       if(read<bool>(a,--i)) {
-	n++; if(n == 0) {j=(int) i; break;}
+	n++; if(n == 0) {j=(Int) i; break;}
       }
   return j;
 }
@@ -3445,7 +3452,7 @@ array* :arrayConditional(array *a, array *b, array *c)
 }
 
 // Return an n x n identity matrix.
-realarray2 *identity(int n)
+realarray2 *identity(Int n)
 {
   size_t N=(size_t) n;
   array *c=new array(N);
@@ -3848,11 +3855,11 @@ realarray *tridiagonal(realarray *a, realarray *b, realarray *c, realarray *f)
 }
 
 // Root solve by Newton-Raphson
-real newton(int iterations=100, callableReal *f, callableReal *fprime, real x,
+real newton(Int iterations=100, callableReal *f, callableReal *fprime, real x,
 	    bool verbose=false)
 {
   static const double fuzz=1000.0*DBL_EPSILON;
-  int i=0;
+  Int i=0;
   size_t oldPrec=cout.precision(DBL_DIG);
 
   real diff=DBL_MAX;
@@ -3892,7 +3899,7 @@ real newton(int iterations=100, callableReal *f, callableReal *fprime, real x,
 
 // Root solve by Newton-Raphson bisection
 // cf. routine rtsafe (Press et al.,  Numerical Recipes, 1991).
-real newton(int iterations=100, callableReal *f, callableReal *fprime, real x1,
+real newton(Int iterations=100, callableReal *f, callableReal *fprime, real x1,
 	    real x2, bool verbose=false)
 {
   static const double fuzz=1000.0*DBL_EPSILON;
@@ -3934,7 +3941,7 @@ real newton(int iterations=100, callableReal *f, callableReal *fprime, real x1,
   fprime->call(Stack);
   real dy=pop<real>(Stack);
 
-  int j;
+  Int j;
   for(j=0; j < iterations; j++) {
     if(((x-x2)*dy-y)*((x-x1)*dy-y) >= 0.0 || fabs(2.0*y) > fabs(dxold*dy)) {
       dxold=dx;
@@ -3970,7 +3977,7 @@ real newton(int iterations=100, callableReal *f, callableReal *fprime, real x1,
 }
 
 // Compute the fast Fourier transform of a pair array
-pairarray* :pairArrayFFT(pairarray *a, int sign=1)
+pairarray* :pairArrayFFT(pairarray *a, Int sign=1)
 {
   unsigned n=(unsigned) checkArray(a);
 #ifdef HAVE_LIBFFTW3
@@ -4000,7 +4007,7 @@ pairarray* :pairArrayFFT(pairarray *a, int sign=1)
 }
 
 // Call Gilles Dumoulin's port of Paul Bourke's triangulation code.
-intarray2 *triangulate(pairarray *z)
+Intarray2 *triangulate(pairarray *z)
 {
   size_t nv=checkArray(z);
 
@@ -4011,11 +4018,11 @@ intarray2 *triangulate(pairarray *z)
     pair w=read<pair>(z,i);
     pxyz[i].x=w.getx();
     pxyz[i].y=w.gety();
-    pxyz[i].i=(int) i;
+    pxyz[i].i=(Int) i;
   }
   
-  int ntri;
-  Triangulate((int) nv,pxyz,V,ntri,true,false);
+  Int ntri;
+  Triangulate((Int) nv,pxyz,V,ntri,true,false);
 
   size_t nt=(size_t) ntri;
   array *t=new array(nt);
@@ -4146,7 +4153,7 @@ void close(file *File)
   File->close();
 }
 
-void precision(file *File, int digits) 
+void precision(file *File, Int digits) 
 {
   File->precision(digits);
 }
@@ -4165,12 +4172,12 @@ string getc(file *File)
   return string(str);
 }
 
-int tell(file *File)
+Int tell(file *File)
 {
-  return (int) File->tell();
+  return File->tell();
 }
 
-void seek(file *File, int pos)
+void seek(file *File, Int pos)
 {
   File->seek(pos,pos >= 0);
 }
@@ -4181,19 +4188,19 @@ void seekeof(file *File)
 }
 
 // Set file dimensions
-file* dimension(file *File, int nx) 
+file* dimension(file *File, Int nx) 
 {
   File->dimension(nx);
   return File;
 }
 
-file* dimension(file *File, int nx, int ny) 
+file* dimension(file *File, Int nx, Int ny) 
 {
   File->dimension(nx,ny);
   return File;
 }
 
-file* dimension(file *File, int nx, int ny, int nz)
+file* dimension(file *File, Int nx, Int ny, Int nz)
 {
   File->dimension(nx,ny,nz);
   return File;
@@ -4221,27 +4228,44 @@ file* line(file *File, bool b=true)
 }
 
 // Set file to read/write single-precision XDR values.
-file* single(file *File, bool b=true) 
+file* single(file *File, bool b=true)
 {
-  File->SingleMode(b);
+  File->SingleReal(b);
+  File->SingleInt(b);
   return File;
 }
 
-// Set file to read an array1 (1 int size followed by a 1d array)
+// Set file to read/write single-precision real XDR values.
+file* single(file *File, real x, bool b=true)
+{
+  File->SingleReal(b);
+  unused(&x);
+  return File;
+}
+
+// Set file to read/write single-precision int XDR values.
+file* single(file *File, Int x, bool b=true)
+{
+  File->SingleInt(b);
+  unused(&x);
+  return File;
+}
+
+// Set file to read an array1 (1 Int size followed by a 1d array)
 file* read1(file *File) 
 {
   File->dimension(-2);
   return File;
 }
 
-// Set file to read an array2 (2 int sizes followed by a 2d array)
+// Set file to read an array2 (2 Int sizes followed by a 2d array)
 file* read2(file *File) 
 {
   File->dimension(-2,-2);
   return File;
 }
 
-// Set file to read an array3 (3 int sizes followed by a 3d array)
+// Set file to read an array3 (3 Int sizes followed by a 3d array)
 file* read3(file *File) 
 {
   File->dimension(-2,-2,-2);
@@ -4249,7 +4273,7 @@ file* read3(file *File)
 }
 
 // Look up name in history.
-stringarray* history(string name, int n=1)
+stringarray* history(string name, Int n=1)
 {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   bool newhistory=historyMap.find(name) == historyMap.end();
@@ -4269,11 +4293,12 @@ stringarray* history(string name, int n=1)
   if(newhistory)
     read_history(filename.c_str());
   
-  if(n <= 0) n=history_length;
-  else n=Min(n,history_length);
-  array *a=new array((size_t) n);
-  int offset=history_length-n+1;
-  for(int i=0; i < n; ++i) {
+  int N=intcast(n);
+  if(N <= 0) N=history_length;
+  else N=Min(N,history_length);
+  array *a=new array((size_t) N);
+  Int offset=history_length-n+1;
+  for(Int i=0; i < N; ++i) {
     HIST_ENTRY *last=history_get(offset+i);
     string s=last ? last-> line : "";
     (*a)[i]=s;
@@ -4365,11 +4390,11 @@ void generate_random_backtrace()
 #endif
 }
 
-void print_random_addresses(int n=1)
+void print_random_addresses(Int n=1)
 {
 #if defined(USEGC) && defined(GC_DEBUG) && defined(GC_BACKTRACE)
   GC_gcollect();
-  for (int i=0; i < n; ++i)
+  for (Int i=0; i < n; ++i)
     GC_debug_print_heap_obj_proc(GC_base(GC_generate_random_valid_address()));
 #else
   error("print_random_addresses() requires ./configure --enable-gc-debug");

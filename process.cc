@@ -77,7 +77,7 @@ public:
   interactiveRunnable(runnable *base)
     : runnable(base->getPos()), base(base) {}
 
-  void prettyprint(ostream &out, int indent) {
+  void prettyprint(ostream &out, Int indent) {
     absyntax::prettyname(out, "interactiveRunnable", indent);
     base->prettyprint(out, indent+1);
   }

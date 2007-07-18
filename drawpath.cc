@@ -34,7 +34,7 @@ double PatternLength(double arclength, const std::vector<double>& pat,
       
   double terminator=((p.cyclic() && arclength >= 0.5*sum) ? 0.0 : 
 		     pat[0]*penwidth);
-  int ncycle=(int)((arclength-terminator)/sum+0.5);
+  Int ncycle=(Int)((arclength-terminator)/sum+0.5);
 
   return (ncycle >= 1 || terminator >= 0.75*arclength) ? 
     ncycle*sum+terminator : 0.0;
@@ -71,7 +71,7 @@ void drawPath::adjustdash(pen& pen0)
     }
     
     ostringstream buf;
-    for(unsigned int i=0; i < n; i++)
+    for(unsigned i=0; i < n; i++)
       buf << pat[i]*factor << " ";
     pen0.setstroke(buf.str());
     pen0.setoffset(pen0.linetype().offset*factor);
@@ -118,7 +118,7 @@ void cap(bbox& b, double t, path p, pen pentype) {
 
 void drawPath::bounds(bbox& b, iopipestream&, boxvector&, bboxlist&)
 {
-  int l=p.length();
+  Int l=p.length();
   if(l < 0) return;
   
   bbox penbounds=pentype.bounds();
@@ -136,7 +136,7 @@ void drawPath::bounds(bbox& b, iopipestream&, boxvector&, bboxlist&)
 
 bool drawPath::draw(psfile *out)
 {
-  int n = p.size();
+  Int n = p.size();
   if (n == 0 || pentype.invisible() || pentype.width() == 0.0)
     return true;
 

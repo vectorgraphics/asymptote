@@ -1,5 +1,5 @@
 /* C++ interface to the XDR External Data Representation I/O routines
-   Version 1.45
+   Version 1.46
    Copyright (C) 1999-2007 John C. Bowman
 
 This program is free software; you can redistribute it and/or modify
@@ -123,6 +123,7 @@ public:
   IXSTREAM(int,int);
   IXSTREAM(unsigned int,u_int);
   IXSTREAM(long,long);
+  IXSTREAM(long long,longlong_t);
   IXSTREAM(unsigned long,u_long);
   IXSTREAM(short,short);
   IXSTREAM(unsigned short,u_short);
@@ -174,6 +175,7 @@ public:
   OXSTREAM(int,int);
   OXSTREAM(unsigned int,u_int);
   OXSTREAM(long,long);
+  OXSTREAM(long long,longlong_t);
   OXSTREAM(unsigned long,u_long);
   OXSTREAM(short,short);
   OXSTREAM(unsigned short,u_short);

@@ -168,7 +168,7 @@ bool coder::encode(frame *dest, frame *top)
   return true;
 }
 
-int coder::defLabel()
+Int coder::defLabel()
 {
   if (isStatic())
     return parent->defLabel();
@@ -176,7 +176,7 @@ int coder::defLabel()
   return defLabel(numLabels++);
 }
 
-int coder::defLabel(int label)
+Int coder::defLabel(Int label)
 {
   if (isStatic())
     return parent->defLabel(label);
@@ -185,7 +185,7 @@ int coder::defLabel(int label)
 
   defs.insert(std::make_pair(label,program->end()));
 
-  std::multimap<int,vm::program::label>::iterator p = uses.lower_bound(label);
+  std::multimap<Int,vm::program::label>::iterator p = uses.lower_bound(label);
   while (p != uses.upper_bound(label)) {
     p->second->ref = program->end();
     ++p;
@@ -194,12 +194,12 @@ int coder::defLabel(int label)
   return label;
 }
 
-void coder::useLabel(inst::opcode op, int label)
+void coder::useLabel(inst::opcode op, Int label)
 {
   if (isStatic())
     return parent->useLabel(op,label);
   
-  std::map<int,vm::program::label>::iterator p = defs.find(label);
+  std::map<Int,vm::program::label>::iterator p = defs.find(label);
   if (p != defs.end()) {
     encode(op,p->second);
   } else {
@@ -209,7 +209,7 @@ void coder::useLabel(inst::opcode op, int label)
   }
 }
 
-int coder::fwdLabel()
+Int coder::fwdLabel()
 {
   if (isStatic())
     return parent->fwdLabel();

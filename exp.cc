@@ -23,7 +23,7 @@ using namespace trans;
 using vm::inst;
 
 
-void exp::prettyprint(ostream &out, int indent)
+void exp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "exp",indent);
 }
@@ -110,7 +110,7 @@ void varEntryExp::transCall(coenv &e, types::ty *target) {
 }
 
 
-void nameExp::prettyprint(ostream &out, int indent)
+void nameExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "nameExp",indent);
 
@@ -118,7 +118,7 @@ void nameExp::prettyprint(ostream &out, int indent)
 }
 
 
-void fieldExp::pseudoName::prettyprint(ostream &out, int indent)
+void fieldExp::pseudoName::prettyprint(ostream &out, Int indent)
 {
   // This should never be called.
   prettyindent(out, indent);
@@ -127,7 +127,7 @@ void fieldExp::pseudoName::prettyprint(ostream &out, int indent)
   object->prettyprint(out, indent+1);
 }
 
-void fieldExp::prettyprint(ostream &out, int indent)
+void fieldExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "fieldExp '" << *field << "'\n";
@@ -146,7 +146,7 @@ types::ty *fieldExp::getObject(coenv& e)
 }
 
 
-void subscriptExp::prettyprint(ostream &out, int indent)
+void subscriptExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "subscriptExp\n";
@@ -216,7 +216,7 @@ types::ty *subscriptExp::trans(coenv &e)
     return primError();
 
   if (isAnArray(e, index)) {
-    index->transToType(e, types::intArray());
+    index->transToType(e, types::IntArray());
     e.c.encode(inst::builtin, run::arrayIntArray);
     return getArrayType(e);
   }
@@ -248,7 +248,7 @@ void subscriptExp::transWrite(coenv &e, types::ty *t)
 }
 
 
-void thisExp::prettyprint(ostream &out, int indent)
+void thisExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "thisExp", indent);
 }
@@ -267,7 +267,7 @@ types::ty *thisExp::getType(coenv &e)
   return e.c.thisType();
 }
 
-void scaleExp::prettyprint(ostream &out, int indent)
+void scaleExp::prettyprint(ostream &out, Int indent)
 {
   exp *left=getLeft(); exp *right=getRight();
 
@@ -281,7 +281,7 @@ types::ty *scaleExp::trans(coenv &e)
   exp *left=getLeft(); exp *right=getRight();
 
   types::ty *lt = left->cgetType(e);
-  if (lt->kind != types::ty_int && lt->kind != types::ty_real) {
+  if (lt->kind != types::ty_Int && lt->kind != types::ty_real) {
     if (lt->kind != types::ty_error) {
       em.error(left->getPos());
       em << "only numeric constants can do implicit scaling";
@@ -300,7 +300,7 @@ types::ty *scaleExp::trans(coenv &e)
 }
 
 
-void intExp::prettyprint(ostream &out, int indent)
+void intExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out,indent);
   out << "intExp: " << value << "\n";
@@ -314,7 +314,7 @@ types::ty *intExp::trans(coenv &e)
 }
 
 
-void realExp::prettyprint(ostream &out, int indent)
+void realExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "realExp: " << value << "\n";
@@ -327,7 +327,7 @@ types::ty *realExp::trans(coenv &e)
   return types::primReal();  
 }
 
-void stringExp::prettyprint(ostream &out, int indent)
+void stringExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "stringExp '" << str << "'\n";
@@ -341,7 +341,7 @@ types::ty *stringExp::trans(coenv &e)
 }
 
 
-void booleanExp::prettyprint(ostream &out, int indent)
+void booleanExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "booleanExp: " << value << "\n";
@@ -354,7 +354,7 @@ types::ty *booleanExp::trans(coenv &e)
   return types::primBoolean();  
 }
 
-void newPictureExp::prettyprint(ostream &out, int indent)
+void newPictureExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "newPictureExp",indent);
 }
@@ -366,7 +366,7 @@ types::ty *newPictureExp::trans(coenv &e)
   return types::primPicture();  
 }
 
-void cycleExp::prettyprint(ostream &out, int indent)
+void cycleExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "cycleExp",indent);
 }
@@ -378,7 +378,7 @@ types::ty *cycleExp::trans(coenv &e)
   return types::primCycleToken();  
 }
 
-void nullPathExp::prettyprint(ostream &out, int indent)
+void nullPathExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "nullPathExp",indent);
 }
@@ -390,7 +390,7 @@ types::ty *nullPathExp::trans(coenv &e)
   return types::primPath();  
 }
 
-void nullExp::prettyprint(ostream &out, int indent)
+void nullExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "nullExp",indent);
 }
@@ -403,7 +403,7 @@ types::ty *nullExp::trans(coenv &)
 }
 
 
-void quoteExp::prettyprint(ostream &out, int indent)
+void quoteExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "quoteExp", indent);
   value->prettyprint(out, indent+1);
@@ -416,7 +416,7 @@ types::ty *quoteExp::trans(coenv &e)
   return types::primCode();  
 }
 
-void explist::prettyprint(ostream &out, int indent)
+void explist::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "explist",indent);
   for (expvector::iterator p = exps.begin();
@@ -425,7 +425,7 @@ void explist::prettyprint(ostream &out, int indent)
 }
 
 
-void argument::prettyprint(ostream &out, int indent)
+void argument::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "explist";
@@ -443,7 +443,7 @@ void argument::assignAmbiguity(coenv &e) {
   }
 }
 
-void arglist::prettyprint(ostream &out, int indent)
+void arglist::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "arglist",indent);
   for (argvector::iterator p = args.begin();
@@ -452,7 +452,7 @@ void arglist::prettyprint(ostream &out, int indent)
 }
 
 
-void callExp::prettyprint(ostream &out, int indent)
+void callExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "callExp",indent);
 
@@ -663,7 +663,7 @@ types::ty *callExp::getType(coenv &e)
   }
 }
     
-void pairExp::prettyprint(ostream &out, int indent)
+void pairExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "pairExp",indent);
 
@@ -681,7 +681,7 @@ types::ty *pairExp::trans(coenv &e)
   return types::primPair();
 }
 
-void tripleExp::prettyprint(ostream &out, int indent)
+void tripleExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "tripleExp",indent);
 
@@ -701,7 +701,7 @@ types::ty *tripleExp::trans(coenv &e)
   return types::primTriple();
 }
 
-void transformExp::prettyprint(ostream &out, int indent)
+void transformExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "transformExp",indent);
 
@@ -727,7 +727,7 @@ types::ty *transformExp::trans(coenv &e)
   return types::primTransform();
 }
 
-void castExp::prettyprint(ostream &out, int indent)
+void castExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "castExp",indent);
 
@@ -779,7 +779,7 @@ types::ty *castExp::getType(coenv &e)
 }
 
 
-void conditionalExp::prettyprint(ostream &out, int indent)
+void conditionalExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "conditionalExp",indent);
 
@@ -791,12 +791,12 @@ void conditionalExp::prettyprint(ostream &out, int indent)
 void conditionalExp::baseTransToType(coenv &e, types::ty *target) {
   test->transToType(e, types::primBoolean());
 
-  int tlabel = e.c.fwdLabel();
+  Int tlabel = e.c.fwdLabel();
   e.c.useLabel(inst::cjmp,tlabel);
 
   onFalse->transToType(e, target);
 
-  int end = e.c.fwdLabel();
+  Int end = e.c.fwdLabel();
   e.c.useLabel(inst::jmp,end);
 
   e.c.defLabel(tlabel);
@@ -893,7 +893,7 @@ types::ty *conditionalExp::getType(coenv &e)
 }
  
 
-void orExp::prettyprint(ostream &out, int indent)
+void orExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "orExp", indent);
 
@@ -914,7 +914,7 @@ types::ty *orExp::trans(coenv &e)
 }
 
 
-void andExp::prettyprint(ostream &out, int indent)
+void andExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "andExp", indent);
 
@@ -935,7 +935,7 @@ types::ty *andExp::trans(coenv &e)
 }
 
 
-void joinExp::prettyprint(ostream &out, int indent)
+void joinExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "joinExp",indent);
 
@@ -944,7 +944,7 @@ void joinExp::prettyprint(ostream &out, int indent)
 }
 
 
-void specExp::prettyprint(ostream &out, int indent)
+void specExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out,indent);
   out << "specExp '" << *op << "' " 
@@ -957,19 +957,19 @@ void specExp::prettyprint(ostream &out, int indent)
 
 types::ty *specExp::trans(coenv &e)
 {
-  intExp ie(getPos(), (int)s);
+  intExp ie(getPos(), (Int)s);
   binaryExp be(getPos(), arg, op, &ie);
   return be.trans(e);
 }
 
 types::ty *specExp::getType(coenv &e)
 {
-  intExp ie(getPos(), (int)s);
+  intExp ie(getPos(), (Int)s);
   binaryExp be(getPos(), arg, op, &ie);
   return be.cgetType(e);
 }
 
-void assignExp::prettyprint(ostream &out, int indent)
+void assignExp::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "assignExp",indent);
 
@@ -1024,7 +1024,7 @@ types::ty *assignExp::getType(coenv &e)
 }
 
 
-void selfExp::prettyprint(ostream &out, int indent)
+void selfExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "selfExp '" << *op << "'\n";
@@ -1034,7 +1034,7 @@ void selfExp::prettyprint(ostream &out, int indent)
 }
 
 
-void prefixExp::prettyprint(ostream &out, int indent)
+void prefixExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "prefixExp '" << *op << "'\n";
@@ -1061,7 +1061,7 @@ types::ty *prefixExp::getType(coenv &e)
   return se.getType(e);
 }
 
-void postfixExp::prettyprint(ostream &out, int indent)
+void postfixExp::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "postfixExp <illegal>";

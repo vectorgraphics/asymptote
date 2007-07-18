@@ -73,6 +73,20 @@ void arrayNegate(vm::stack *s)
   s->push(c);
 }
 
+template<>
+void arrayNegate<Int>(vm::stack *s)
+{
+  array *a=pop<array*>(s);
+  size_t size=checkArray(a);
+  array *c=new array(size);
+  for(size_t i=0; i < size; i++) {
+    Int j=read<Int>(a,i);
+    if(j < -Int_MAX) integeroverflow(0);
+    (*c)[i]=-j;
+  }
+  s->push(c);
+}
+
 template<class T>
 void sumArray(vm::stack *s)
 {
@@ -201,15 +215,15 @@ void searchArray(vm::stack *s)
 {
   T key=pop<T>(s);
   array *a=pop<array*>(s);
-  int size=(int) a->size();
+  Int size=(Int) a->size();
   if(size == 0) {s->push(0); return;}
   if(key < read<T>(a,0)) {s->push(-1); return;}
-  int u=size-1;
+  Int u=size-1;
   if(key >= read<T>(a,u)) {s->push(u); return;}
-  int l=0;
+  Int l=0;
 	
   while (l < u) {
-    int i=(l+u)/2;
+    Int i=(l+u)/2;
     if(read<T>(a,i) <= key && key < read<T>(a,i+1)) {s->push(i); return;}
     if(key < read<T>(a,i)) u=i;
     else l=i+1;

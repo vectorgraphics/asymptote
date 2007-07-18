@@ -20,19 +20,19 @@ namespace absyntax {
 using namespace trans;
 using namespace types;
 
-void stm::prettyprint(ostream &out, int indent)
+void stm::prettyprint(ostream &out, Int indent)
 {
   prettyname(out,"stm",indent);
 }
 
 
-void emptyStm::prettyprint(ostream &out, int indent)
+void emptyStm::prettyprint(ostream &out, Int indent)
 {
   prettyname(out,"emptyStm",indent);
 }
 
 
-void blockStm::prettyprint(ostream &out, int indent)
+void blockStm::prettyprint(ostream &out, Int indent)
 {
   prettyname(out,"blockStm",indent);
 
@@ -40,7 +40,7 @@ void blockStm::prettyprint(ostream &out, int indent)
 }
 
 
-void expStm::prettyprint(ostream &out, int indent)
+void expStm::prettyprint(ostream &out, Int indent)
 {
   prettyname(out,"expStm",indent);
 
@@ -88,7 +88,7 @@ void expStm::interactiveTrans(coenv &e)
 }
 
 
-void ifStm::prettyprint(ostream &out, int indent)
+void ifStm::prettyprint(ostream &out, Int indent)
 {
   prettyname(out,"ifStm",indent);
 
@@ -102,8 +102,8 @@ void ifStm::trans(coenv &e)
 {
   test->transToType(e, types::primBoolean());
 
-  int elseLabel = e.c.fwdLabel();
-  int end = e.c.fwdLabel();
+  Int elseLabel = e.c.fwdLabel();
+  Int end = e.c.fwdLabel();
 
   e.c.useLabel(inst::njmp,elseLabel);
 
@@ -125,7 +125,7 @@ void transLoopBody(coenv &e, stm *body) {
   e.c.encodePopFrame();
 }
 
-void whileStm::prettyprint(ostream &out, int indent)
+void whileStm::prettyprint(ostream &out, Int indent)
 {
   prettyname(out,"whileStm",indent);
 
@@ -135,11 +135,11 @@ void whileStm::prettyprint(ostream &out, int indent)
 
 void whileStm::trans(coenv &e)
 {
-  int start = e.c.defLabel();
+  Int start = e.c.defLabel();
   e.c.pushContinue(start);
   test->transToType(e, types::primBoolean());
 
-  int end = e.c.fwdLabel();
+  Int end = e.c.fwdLabel();
   e.c.pushBreak(end);
   e.c.useLabel(inst::njmp,end);
 
@@ -153,7 +153,7 @@ void whileStm::trans(coenv &e)
 }
 
 
-void doStm::prettyprint(ostream &out, int indent)
+void doStm::prettyprint(ostream &out, Int indent)
 {
   prettyname(out,"doStm",indent);
 
@@ -163,12 +163,12 @@ void doStm::prettyprint(ostream &out, int indent)
 
 void doStm::trans(coenv &e)
 {
-  int testLabel = e.c.fwdLabel();
+  Int testLabel = e.c.fwdLabel();
   e.c.pushContinue(testLabel);
-  int end = e.c.fwdLabel();
+  Int end = e.c.fwdLabel();
   e.c.pushBreak(end);
  
-  int start = e.c.defLabel();
+  Int start = e.c.defLabel();
 
   transLoopBody(e,body);  
   
@@ -182,7 +182,7 @@ void doStm::trans(coenv &e)
 }
 
 
-void forStm::prettyprint(ostream &out, int indent)
+void forStm::prettyprint(ostream &out, Int indent)
 {
   prettyname(out,"forStm",indent);
 
@@ -198,12 +198,12 @@ void forStm::trans(coenv &e)
   e.e.beginScope();
   if(init) init->markTrans(e);
 
-  int ctarget = e.c.fwdLabel();
+  Int ctarget = e.c.fwdLabel();
   e.c.pushContinue(ctarget);
-  int end = e.c.fwdLabel();
+  Int end = e.c.fwdLabel();
   e.c.pushBreak(end);
 
-  int start = e.c.defLabel();
+  Int start = e.c.defLabel();
   if(test) {
     test->transToType(e, types::primBoolean());
     e.c.useLabel(inst::njmp,end);
@@ -223,7 +223,7 @@ void forStm::trans(coenv &e)
   e.c.popContinue();
 }
 
-void extendedForStm::prettyprint(ostream &out, int indent)
+void extendedForStm::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "extendedForStm: '" << *var << "'\n";
@@ -278,7 +278,7 @@ void extendedForStm::trans(coenv &e) {
 }
                               
 
-void breakStm::prettyprint(ostream &out, int indent)
+void breakStm::prettyprint(ostream &out, Int indent)
 {
   prettyname(out,"breakStm",indent);
 }
@@ -296,7 +296,7 @@ void breakStm::trans(coenv &e)
 }
 
 
-void continueStm::prettyprint(ostream &out, int indent)
+void continueStm::prettyprint(ostream &out, Int indent)
 {
   prettyname(out,"continueStm",indent);
 }
@@ -314,7 +314,7 @@ void continueStm::trans(coenv &e)
 }
 
 
-void returnStm::prettyprint(ostream &out, int indent)
+void returnStm::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "returnStm",indent);
 
@@ -350,7 +350,7 @@ void returnStm::trans(coenv &e)
 }
 
 
-void stmExpList::prettyprint(ostream &out, int indent)
+void stmExpList::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "stmExpList",indent);
 

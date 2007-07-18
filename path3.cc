@@ -166,13 +166,13 @@ bool intersectcubics(pair& t, const node& left1, const node& right1,
   return false;
 }
   
-bool intersect(pair &t, int L1, int L2, const mem::vector<node>& n1,
+bool intersect(pair &t, Int L1, Int L2, const mem::vector<node>& n1,
 	       const mem::vector<node>& n2, double fuzz)
 {
-  for(int i=0; i < L1; ++i) {
+  for(Int i=0; i < L1; ++i) {
     const node& left1=n1[i];
     const node& right1=n1[i+1];
-    for(int j=0; j < L2; ++j) {
+    for(Int j=0; j < L2; ++j) {
       count=maxIntersectCount;
       pair T;
       if(intersectcubics(T,left1,right1,n2[j],n2[j+1],fuzz)) {

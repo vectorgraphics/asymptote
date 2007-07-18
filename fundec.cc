@@ -20,7 +20,7 @@ using mem::list;
 
 varinit *Default=new definit(nullPos);
   
-void formal::prettyprint(ostream &out, int indent)
+void formal::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "formal",indent);
   
@@ -54,7 +54,7 @@ void formal::addOps(coenv &e, record *r) {
     start->addOps(base->trans(e, true), e, r);
 } 
 
-void formals::prettyprint(ostream &out, int indent)
+void formals::prettyprint(ostream &out, Int indent)
 {
   prettyname(out, "formals",indent);
 
@@ -143,7 +143,7 @@ void transDefault(coenv &e, position pos, varEntry *v, varinit *init) {
   is.trans(e);                                        
 }
 
-void formal::transAsVar(coenv &e, int index) {
+void formal::transAsVar(coenv &e, Int index) {
   symbol *name = getName();
   if (name) {
     trans::access *a = e.c.accessFormal(index);
@@ -165,7 +165,7 @@ void formal::transAsVar(coenv &e, int index) {
 
 void formals::trans(coenv &e)
 {
-  int index = 0;
+  Int index = 0;
 
   for (list<formal *>::iterator p=fields.begin(); p!=fields.end(); ++p) {
     (*p)->transAsVar(e, index);
@@ -188,7 +188,7 @@ void formals::reportDefaults()
     rest->reportDefault();
 }
 
-void fundef::prettyprint(ostream &out, int indent)
+void fundef::prettyprint(ostream &out, Int indent)
 {
   result->prettyprint(out, indent+1);
   params->prettyprint(out, indent+1);
@@ -220,7 +220,7 @@ varinit *fundef::makeVarInit(function *ft) {
     initializer(fundef *f, function *ft)
       : varinit(f->getPos()), f(f), ft(ft) {}
 
-    void prettyprint(ostream &out, int indent) {
+    void prettyprint(ostream &out, Int indent) {
       prettyname(out, "initializer", indent);
     }
 
@@ -286,7 +286,7 @@ types::ty *fundef::trans(coenv &e) {
   return ft;
 }
 
-void fundec::prettyprint(ostream &out, int indent)
+void fundec::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "fundec '" << *id << "'\n";

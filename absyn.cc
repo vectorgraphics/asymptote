@@ -18,11 +18,11 @@ void absyn::markPos(trans::coenv& e)
 absyn::~absyn()
 {}
 
-void prettyindent(ostream &out, int indent)
+void prettyindent(ostream &out, Int indent)
 {
-  for (int i = 0; i < indent; i++) out << " ";
+  for (Int i = 0; i < indent; i++) out << " ";
 }
-void prettyname(ostream &out, string name, int indent) {
+void prettyname(ostream &out, string name, Int indent) {
   prettyindent(out,indent);
   out << name << "\n";
 }

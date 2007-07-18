@@ -68,7 +68,7 @@ void transConstructorBody(position pos, coenv &e, record *r, varEntry *init)
   // Push the args onto the stack.
   size_t numArgs=init->getSignature()->getNumFormals();
   for (size_t i=0; i<numArgs; ++i) {
-    access *a=e.c.accessFormal((int)i);
+    access *a=e.c.accessFormal((Int)i);
     a->encode(READ, pos, e.c);
   }
 

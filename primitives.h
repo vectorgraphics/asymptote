@@ -22,7 +22,7 @@ PRIMITIVE(error,Error,<error>)
 #endif
 
 PRIMITIVE(boolean,Boolean,bool)
-PRIMITIVE(int,Int,int)
+PRIMITIVE(Int,Int,int)
 PRIMITIVE(real,Real,real)
 PRIMITIVE(string,String,string)
 PRIMITIVE(pair,Pair,pair)

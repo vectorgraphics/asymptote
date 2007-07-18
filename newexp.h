@@ -47,7 +47,7 @@ public:
 	      arrayinit *ai)
     : exp(pos), celltype(celltype), dimexps(dimexps), dims(dims), ai(ai) {}
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
 
   types::ty *trans(coenv &e);
   types::ty *getType(coenv &e);

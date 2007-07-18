@@ -24,7 +24,7 @@ using absyntax::tempExp;
 // This is mid-way between trans and absyntax.
 namespace trans {
 
-typedef int score;
+typedef Int score;
 
 typedef mem::vector<score> score_vector;
 
@@ -73,7 +73,7 @@ public:
     {}
 
   // Encodes the instructions to make an array from size elements on the stack.
-  static void transMaker(coenv &e, int size, bool rest);
+  static void transMaker(coenv &e, Int size, bool rest);
 
   void trans(coenv &e, temp_vector &temps);
 
@@ -209,7 +209,7 @@ class application : public gc {
   // Finds the first unmatched formal of the given name, returning the index.
   // May return REST or FAIL if it matches the rest parameter or nothing
   // (respectively).
-  int find(symbol *name);
+  Int find(symbol *name);
 
   // Match the formal at index to its default argument (if it has one).
   bool matchDefault();

@@ -133,7 +133,7 @@ frame *simpleName::tyFrameTrans(coenv &e)
     return 0;
 }
 
-void simpleName::prettyprint(ostream &out, int indent)
+void simpleName::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "simpleName '" << *id << "'\n";
@@ -315,7 +315,7 @@ frame *qualifiedName::tyFrameTrans(coenv &e)
     return f;
 }
 
-void qualifiedName::prettyprint(ostream &out, int indent)
+void qualifiedName::prettyprint(ostream &out, Int indent)
 {
   prettyindent(out, indent);
   out << "qualifiedName '" << *id << "'\n";

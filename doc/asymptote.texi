@@ -1583,16 +1583,18 @@ the value @code{false} is assumed.
 
 @item int
 @cindex @code{int}
+@cindex @code{intMin}
 @cindex @code{intMax}
 an integer type; if no initializer is given, the implicit value @code{0}
-is assumed. The maximum integer is @code{intMax}.
+is assumed. The minimum allowed value of an integer is @code{intMin} and the
+maximum value is @code{intMax}.
 
 @item real
 @cindex @code{real}
 @cindex @code{realMin}
 @cindex @code{realMax}
-@cindex @code{realEpsilon}.
-@cindex @code{realDigits}.
+@cindex @code{realEpsilon}
+@cindex @code{realDigits}
 a real number; this should be set to the highest-precision native
 floating-point type on the architecture. The implicit initializer for
 reals is @code{0.0}. Real numbers have precision
@@ -3293,14 +3295,19 @@ write(fout,"List: ",1,2,3);     // Writes "List: 1     2     3"
 @cindex @code{double}
 A file may also be opened with @code{xinput} or @code{xoutput}, instead of
 @code{input} or @code{output}, to read or write
-double precision values in Sun Microsystem's @acronym{XDR} (External
+double precision (64-bit) real values and single precision (32-bit)
+integer values in Sun Microsystem's @acronym{XDR} (External
 Data Representation) portable binary format (available on all UNIX platforms).
 A file may also be opened with @code{binput} or @code{boutput} to read
 or write double precision values in the native (nonportable)
-machine binary format. The function @code{file single(file)} may
-be used to set a file to read single precision @acronym{XDR} or binary
-values; calling @code{file single(file,false)} sets it back to read
-doubles again.
+machine binary format. The function @code{file single(file,0.0)} may
+be used to set a file to read single precision real @acronym{XDR} or binary
+values; calling @code{file single(file,0.0,false)} sets it back to read
+doubles again. The functions @code{file single(file,0)} and
+@code{file single(file,0,false)} can be used to change the default
+integer precision (single). The functions @code{file 
+single(file)} and @code{file single(file,false)} may be used to set the
+precision for both real and integer values.
 
 @cindex @code{eof}
 @cindex @code{eol}
@@ -4311,7 +4318,7 @@ a real (since that is normally what one wants).
 The functions @code{Floor}, @code{Ceil}, and @code{Round} are
 respectively similar, except that if the result cannot be converted
 to a valid int, they return @code{intMax} 
-for positive arguments and @code{-intMax} for negative arguments,
+for positive arguments and @code{intMin} for negative arguments,
 rather than generating an integer overflow.
 We also define a function @code{sgn}, which returns the sign of its
 real argument as an integer (-1, 0, or 1).
@@ -7927,4 +7934,4 @@ Stefan Knorr.
 @c  LocalWords:  curlSpecifier cputimeformat initializers arbitary redeclaring
 @c  LocalWords:  firstname lastname multdiagonal Raphson OmitTick OmitFormat
 @c  LocalWords:  NoZero NoZeroFormat abbrevation gsOptions namespace redeclared
-@c  LocalWords:  atLeast
+@c  LocalWords:  atLeast intMin

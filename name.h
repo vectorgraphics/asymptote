@@ -81,7 +81,7 @@ public:
   // errors as typeTrans() does with tacit=false.
   virtual trans::tyEntry *tyEntryTrans(coenv &e) = 0;
 
-  virtual void prettyprint(ostream &out, int indent) = 0;
+  virtual void prettyprint(ostream &out, Int indent) = 0;
   virtual void print(ostream& out) const {
     out << "<base name>";
   }
@@ -112,7 +112,7 @@ public:
   virtual trans::tyEntry *tyEntryTrans(coenv &e);
   trans::frame *tyFrameTrans(coenv &e);
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
   void print(ostream& out) const {
     out << *id;
   }
@@ -153,7 +153,7 @@ public:
   trans::tyEntry *tyEntryTrans(coenv &e);
   trans::frame *tyFrameTrans(coenv &e);
 
-  void prettyprint(ostream &out, int indent);
+  void prettyprint(ostream &out, Int indent);
   void print(ostream& out) const {
     out << *qualifier << "." << *id;
   }

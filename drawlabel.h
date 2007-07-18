@@ -48,7 +48,7 @@ public:
   
   bool texbounds(iopipestream& tex, string& s, const char **abort, bool warn);
     
-  int wait(iopipestream &tex, const char *s, const char **abort,
+  Int wait(iopipestream &tex, const char *s, const char **abort,
 	   bool ignore=false);
   
   bool islabel() {

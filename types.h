@@ -227,7 +227,7 @@ struct array : public ty {
     return 1007 * celltype->hash();
   }
 
-  int depth() {
+  Int depth() {
     if (array *cell=dynamic_cast<array *>(celltype))
       return cell->depth() + 1;
     else
@@ -263,7 +263,7 @@ struct array : public ty {
 ty *primNull();
   
 ty *boolArray();
-ty *intArray();
+ty *IntArray();
 ty *realArray();
 ty *pairArray();
 ty *tripleArray();
@@ -274,7 +274,7 @@ ty *penArray();
 ty *guideArray();
 
 ty *boolArray2();
-ty *intArray2();
+ty *IntArray2();
 ty *realArray2();
 ty *pairArray2();
 ty *tripleArray2();
@@ -282,7 +282,7 @@ ty *stringArray2();
 ty *penArray2();
 
 ty *boolArray3();
-ty *intArray3();
+ty *IntArray3();
 ty *realArray3();
 ty *pairArray3();
 ty *tripleArray3();
@@ -362,7 +362,7 @@ struct signature : public gc {
   friend bool equivalent(signature *s1, signature *s2);
 #if 0
   friend bool castable(signature *target, signature *source);
-  friend int numFormalsMatch(signature *s1, signature *s2);
+  friend Int numFormalsMatch(signature *s1, signature *s2);
 #endif
 
   size_t hash();

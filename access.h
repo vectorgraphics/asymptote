@@ -86,11 +86,11 @@ public:
 
 // Represents the access of a local variable.
 class localAccess : public access {
-  int offset;
+  Int offset;
   frame *level;
 
 public:
-  localAccess(int offset, frame *level)
+  localAccess(Int offset, frame *level)
     : offset(offset), level(level) {}
 
   void encode(action act, position pos, coder &e);

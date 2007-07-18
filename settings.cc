@@ -172,7 +172,7 @@ const char BUGREPORT[]=PACKAGE_BUGREPORT;
 char *argv0;
 
 // The verbosity setting, a global variable.
-int verbose;
+Int verbose;
   
 // Colorspace conversion flags (stored in global variables for efficiency). 
 bool gray;
@@ -284,7 +284,7 @@ struct option : public gc {
   virtual void describe() {
     // Don't show the option if it has no desciption.
     if (!desc.empty()) {
-      const unsigned int WIDTH=22;
+      const unsigned WIDTH=22;
       string start=describeStart();
       cerr << std::left << std::setw(WIDTH) << start;
       if (start.size() >= WIDTH) {
@@ -524,10 +524,10 @@ struct dataSetting : public argumentSetting {
   }
 };
 
-struct intSetting : public dataSetting<int> {
-  intSetting(string name, char code,
-	     string argname, string desc, int defaultValue=0)
-    : dataSetting<int>("an int", name, code, argname, desc,
+struct IntSetting : public dataSetting<Int> {
+  IntSetting(string name, char code,
+	     string argname, string desc, Int defaultValue=0)
+    : dataSetting<Int>("an int", name, code, argname, desc,
 		       types::primInt(), defaultValue) {}
 };
   
@@ -549,20 +549,20 @@ struct pairSetting : public dataSetting<pair> {
 struct alignSetting : public argumentSetting {
   alignSetting(string name, char code,
 	       string argname, string desc,
-	       int defaultValue=CENTER)
+	       Int defaultValue=CENTER)
     : argumentSetting(name, code, argname, desc,
 		      types::primInt(), (item)defaultValue) {}
 
   bool getOption() {
     string str=optarg;
     if (str=="C")
-      value=(int)CENTER;
+      value=(Int)CENTER;
     else if (str=="T")
-      value=(int)TOP;
+      value=(Int)TOP;
     else if (str=="B")
-      value=(int)BOTTOM;
+      value=(Int)BOTTOM;
     else if (str=="Z") {
-      value=(int)ZERO;
+      value=(Int)ZERO;
     }
     else {
       error("invalid argument for option");
@@ -656,9 +656,9 @@ struct boolintrefSetting : public boolrefSetting {
     : boolrefSetting(name, code, desc, (bool *) ref, Default) {}
 };
 
-struct incrementSetting : public refSetting<int> {
-  incrementSetting(string name, char code, string desc, int *ref)
-    : refSetting<int>(name, code, noarg, desc,
+struct incrementSetting : public refSetting<Int> {
+  incrementSetting(string name, char code, string desc, Int *ref)
+    : refSetting<Int>(name, code, noarg, desc,
 		      types::primInt(), ref, 0) {}
 
   bool getOption() {
@@ -693,11 +693,11 @@ struct incrementSetting : public refSetting<int> {
 };
 
 struct incrementOption : public option {
-  int *ref;
-  int level;
+  Int *ref;
+  Int level;
   
-  incrementOption(string name, char code, string desc, int *ref,
-		  int level=1)
+  incrementOption(string name, char code, string desc, Int *ref,
+		  Int level=1)
     : option(name, code, noarg, desc, true), ref(ref), level(level) {}
 
   bool getOption() {
@@ -815,7 +815,7 @@ c_option *build_longopts() {
 
   c_option *longopts=new(UseGC) c_option[n];
 
-  int i=0;
+  Int i=0;
   for (optionsMap_t::iterator p=optionsMap.begin();
        p !=optionsMap.end();
        ++p, ++i)
@@ -832,7 +832,7 @@ void resetOptions()
       opt->second->reset();
 }
   
-void getOptions(int argc, char *argv[])
+void getOptions(Int argc, char *argv[])
 {
   globaloutname=true;
   bool syntax=false;
@@ -996,9 +996,9 @@ void initSettings() {
 			    
   addOption(new boolSetting("localhistory", 0,
 			    "Use a local interactive history file"));
-  addOption(new intSetting("historylines", 0, "n",
+  addOption(new IntSetting("historylines", 0, "n",
 			   "Retain n lines of history [1000]",1000));
-  addOption(new intSetting("scroll", 0, "n",
+  addOption(new IntSetting("scroll", 0, "n",
 			   "Scroll standard output n lines at a time [0]",0));
   addOption(new boolSetting("autoplain", 0,
 			    "Enable automatic importing of plain",
@@ -1195,9 +1195,9 @@ string texprogram()
   return (path == "") ? texengine() : (string) (path+"/"+texengine());
 }
 
-int getScroll() 
+Int getScroll() 
 {
-  int scroll=settings::getSetting<int>("scroll");
+  Int scroll=settings::getSetting<Int>("scroll");
 #ifdef HAVE_LIBCURSES  
   if(scroll < 0) {
     char *terminal=getenv("TERM");

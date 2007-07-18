@@ -30,8 +30,8 @@ ty *primNull() { return &pNull; }
 
 array boolArray_(primBoolean());
 ty *boolArray() { return &boolArray_; }
-array intArray_(primInt());
-ty *intArray() { return &intArray_; }
+array IntArray_(primInt());
+ty *IntArray() { return &IntArray_; }
 array realArray_(primReal());
 ty *realArray() { return &realArray_; }
 array pairArray_(primPair());
@@ -51,8 +51,8 @@ ty *guideArray() { return &guideArray_; }
   
 array boolArray2_(boolArray());
 ty *boolArray2() { return &boolArray2_; }
-array intArray2_(intArray());
-ty *intArray2() { return &intArray2_; }
+array IntArray2_(IntArray());
+ty *IntArray2() { return &IntArray2_; }
 array realArray2_(realArray());
 ty *realArray2() { return &realArray2_; }
 array pairArray2_(pairArray());
@@ -66,8 +66,8 @@ ty *penArray2() { return &penArray2_; }
   
 array boolArray3_(boolArray2());
 ty *boolArray3() { return &boolArray3_; }
-array intArray3_(intArray2());
-ty *intArray3() { return &intArray3_; }
+array IntArray3_(IntArray2());
+ty *IntArray3() { return &IntArray3_; }
 array realArray3_(realArray2());
 ty *realArray3() { return &realArray3_; }
 array pairArray3_(pairArray2());
@@ -398,8 +398,8 @@ ty *function::stripDefaults()
 {
   function *f = new function(result);
 
-  int n = sig.getNumFormals();
-  for (int i = 0; i < n; ++i)
+  Int n = sig.getNumFormals();
+  for (Int i = 0; i < n; ++i)
     f->add(sig.getFormal(i), 0);
 
   return f;

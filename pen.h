@@ -19,8 +19,8 @@ static const string DEFPAT="<default>";
 static const string DEFLATEXFONT="\\usefont{OT1}{cmr}{m}{n}";
 static const string DEFTEXFONT="\\font\\ASYfont=cmr12\\ASYfont";
 static const double DEFWIDTH=-1;
-static const int DEFCAP=-1;
-static const int DEFJOIN=-1;
+static const Int DEFCAP=-1;
+static const Int DEFJOIN=-1;
   
 static const struct invisiblepen_t {} invisiblepen={};
 static const struct setlinewidth_t {} setlinewidth={};
@@ -35,27 +35,29 @@ static const struct resolvepen_t {} resolvepen={};
   
 static const string Cap[]={"square","round","extended"};
 static const string Join[]={"miter","round","bevel"};
-const int nCap=sizeof(Cap)/sizeof(string);
-const int nJoin=sizeof(Join)/sizeof(string);
+const Int nCap=sizeof(Cap)/sizeof(string);
+const Int nJoin=sizeof(Join)/sizeof(string);
   
 enum overwrite_t {DEFWRITE=-1,ALLOW,SUPPRESS,SUPPRESSQUIET,MOVE,MOVEQUIET};
 static const string OverwriteTag[]={"Allow","Suppress","SupressQuiet",
 					 "Move","MoveQuiet"};
-const int nOverwrite=sizeof(OverwriteTag)/sizeof(string);
+const Int nOverwrite=sizeof(OverwriteTag)/sizeof(string);
   
 enum FillRule {DEFFILL=-1,ZEROWINDING,EVENODD};
 static const string FillRuleTag[]={"ZeroWinding","EvenOdd"};
 
-const int nFill=sizeof(FillRuleTag)/sizeof(string);
+const Int nFill=sizeof(FillRuleTag)/sizeof(string);
   
 enum BaseLine {DEFBASE=-1,NOBASEALIGN,BASEALIGN};
 static const string BaseLineTag[]={"NoAlign","Align"};
-const int nBaseLine=sizeof(BaseLineTag)/sizeof(string);
+const Int nBaseLine=sizeof(BaseLineTag)/sizeof(string);
   
 enum ColorSpace {DEFCOLOR=0,INVISIBLE,GRAYSCALE,RGB,CMYK,PATTERN};
-extern const int ColorComponents[];
+extern const Int ColorComponents[];
 static const string ColorDeviceSuffix[]={"","","Gray","RGB","CMYK",""};
-const int nColorSpace=sizeof(ColorDeviceSuffix)/sizeof(string);
+const Int nColorSpace=sizeof(ColorDeviceSuffix)/sizeof(string);
+  
+  
   
 class LineType
 {
@@ -96,7 +98,7 @@ static const string BlendMode[]={"Compatible","Normal","Multiply","Screen",
 				      "ColorDodge","ColorBurn","Darken",
 				      "Lighten","Difference","Exclusion",
 				      "Hue","Saturation","Color","Luminosity"};
-const int nBlendMode=sizeof(BlendMode)/sizeof(string);
+const Int nBlendMode=sizeof(BlendMode)/sizeof(string);
 
 static const transform nullTransform=transform(0.0,0.0,0.0,0.0,0.0,0.0);  
   
@@ -122,8 +124,8 @@ class pen : public gc {
   FillRule fillrule; 	// Zero winding-number (default) or even-odd rule
   BaseLine baseline;	// Align to TeX baseline?
   Transparency transparency;
-  int linecap;
-  int linejoin;
+  Int linecap;
+  Int linejoin;
   overwrite_t overwrite;
   
   // The transformation applied to the pen nib for calligraphic effects.
@@ -174,7 +176,7 @@ public:
       ColorSpace color, double r, double g, double b,  double grey,
       const string& pattern, FillRule fillrule, BaseLine baseline,
       const Transparency& transparency,
-      int linecap, int linejoin, overwrite_t overwrite, const transform& t) :
+      Int linecap, Int linejoin, overwrite_t overwrite, const transform& t) :
     line(line), linewidth(linewidth), P(P),
     font(font), fontsize(fontsize), lineskip(lineskip), color(color),
     r(r), g(g), b(b), grey(grey),
@@ -262,7 +264,7 @@ public:
     transparency(transparency),
     linecap(DEFCAP), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
   
-  pen(setlinecap_t, int linecap) :
+  pen(setlinecap_t, Int linecap) :
     line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
@@ -270,7 +272,7 @@ public:
     transparency(DEFTRANSP),
     linecap(linecap), linejoin(DEFJOIN), overwrite(DEFWRITE), t(nullTransform) {}
   
-  pen(setlinejoin_t, int linejoin) :
+  pen(setlinejoin_t, Int linejoin) :
     line(DEFLINE), linewidth(DEFWIDTH), P(nullpath),
     font(""), fontsize(0.0), lineskip(0.0), color(DEFCOLOR),
     r(0), g(0), b(0), grey(0),
@@ -389,7 +391,7 @@ public:
     return fillrule == EVENODD;
   }
   
-  bool inside(int count) const {
+  bool inside(Int count) const {
     return evenodd() ? count % 2 : count != 0;
   }
   
@@ -411,11 +413,11 @@ public:
       transparency.opacity;
   }
   
-  int cap() const {
+  Int cap() const {
     return linecap == DEFCAP ? defaultpen().linecap : linecap;
   }
   
-  int join() const {
+  Int join() const {
     return linejoin == DEFJOIN ? defaultpen().linejoin : linejoin;
   }
   
@@ -584,7 +586,7 @@ public:
     pen Q=q;
     
     if(P.color == PATTERN && P.pattern.empty()) P.color=DEFCOLOR;
-    ColorSpace colorspace=(ColorSpace) max(P.color,Q.color);
+    ColorSpace colorspace=(ColorSpace) max((Int) P.color,(Int) Q.color);
     
   switch(colorspace) {
     case PATTERN:

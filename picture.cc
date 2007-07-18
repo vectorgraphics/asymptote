@@ -255,7 +255,7 @@ bool picture::texprocess(const string& texname, const string& outname,
   return true;
 }
 
-int picture::epstopdf(const string& epsname, const string& pdfname)
+Int picture::epstopdf(const string& epsname, const string& pdfname)
 {
   ostringstream cmd;
   
@@ -273,7 +273,7 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   return System(cmd,0,true,"gs","Ghostscript");
 }
   
-std::map<CONST string,int> pids;
+std::map<CONST string,Int> pids;
 
 bool picture::postprocess(const string& prename, const string& outname,
 			  const string& outputformat, bool wait, bool view)
@@ -315,7 +315,7 @@ bool picture::postprocess(const string& prename, const string& outname,
   if(settings::view() && view) {
     if(epsformat || pdfformat) {
       // Check to see if there is an existing viewer for this outname.
-      std::map<CONST string,int>::iterator p=pids.find(outname);
+      std::map<CONST string,Int>::iterator p=pids.find(outname);
       bool running=(p != pids.end());
       string Viewer=pdfformat ? getSetting<string>("pdfviewer") :
 	getSetting<string>("psviewer");
@@ -440,7 +440,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   paperWidth=getSetting<double>("paperwidth");
   paperHeight=getSetting<double>("paperheight");
-  int origin=getSetting<int>("align");
+  Int origin=getSetting<Int>("align");
     
   pair bboxshift=(origin == ZERO && !pdfformat) ?
     pair(0.0,0.0) : pair(-b.left,-b.bottom);
@@ -470,7 +470,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   
   nodelist::iterator layerp=nodes.begin();
   nodelist::iterator p=layerp;
-  unsigned int layer=0;
+  unsigned layer=0;
   mem::list<string> psnameStack;
   
   bbox bshift=b;

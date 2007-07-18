@@ -23,7 +23,7 @@ ostream& info(ostream& o, string name, cvector<T>& v)
   if (settings::verbose > 3) {
     o << name << ":\n\n";
 
-    for(int i=0; i < (int) v.size(); ++i)
+    for(Int i=0; i < (Int) v.size(); ++i)
       o << v[i] << endl;
 
     o << endl;
@@ -36,7 +36,7 @@ ostream& info(ostream& o, string name, knotlist& l)
   if (settings::verbose > 3) {
     o << name << ":\n\n";
 
-    for(int i=0; i < (int) l.size(); ++i)
+    for(Int i=0; i < (Int) l.size(); ++i)
       o << l[i] << endl;
 
     if (l.cyclic())
@@ -134,7 +134,7 @@ ostream& operator<<(ostream& out, const knot& k)
 }
 
 
-eqn dirSpec::eqnOut(int j, knotlist& l, cvector<double>&, cvector<double>&)
+eqn dirSpec::eqnOut(Int j, knotlist& l, cvector<double>&, cvector<double>&)
 {
   // When choosing the control points, the path will come out the first knot
   // going straight to the next knot rotated by the angle theta.
@@ -146,13 +146,13 @@ eqn dirSpec::eqnOut(int j, knotlist& l, cvector<double>&, cvector<double>&)
   return eqn(0.0,1.0,0.0,theta);
 }
 
-eqn dirSpec::eqnIn(int j, knotlist& l, cvector<double>&, cvector<double>&)
+eqn dirSpec::eqnIn(Int j, knotlist& l, cvector<double>&, cvector<double>&)
 {
   double theta=reduceAngle(given-niceAngle(l[j].z-l[j-1].z));
   return eqn(0.0,1.0,0.0,theta);
 }
 
-eqn curlSpec::eqnOut(int j, knotlist& l, cvector<double>&,
+eqn curlSpec::eqnOut(Int j, knotlist& l, cvector<double>&,
 		     cvector<double>& psi)
 {
   double alpha=l[j].alpha();
@@ -166,7 +166,7 @@ eqn curlSpec::eqnOut(int j, knotlist& l, cvector<double>&,
   return eqn(0.0,C,D,-D*psi[j+1]);
 }
 
-eqn curlSpec::eqnIn(int j, knotlist& l, cvector<double>&, cvector<double>&)
+eqn curlSpec::eqnIn(Int j, knotlist& l, cvector<double>&, cvector<double>&)
 {
   double alpha=l[j-1].alpha();
   double beta=l[j].beta();
@@ -197,10 +197,10 @@ struct dzprop : public knotprop<pair> {
   dzprop(knotlist& l)
     : knotprop<pair>(l) {}
 
-  pair solo(int) { return pair(0,0); }
-  pair start(int j) { return l[j+1].z - l[j].z; }
-  pair mid(int j) { return l[j+1].z - l[j].z; }
-  pair end(int) { return pair(0,0); }
+  pair solo(Int) { return pair(0,0); }
+  pair start(Int j) { return l[j+1].z - l[j].z; }
+  pair mid(Int j) { return l[j+1].z - l[j].z; }
+  pair end(Int) { return pair(0,0); }
 };
 
 // Compute the distance between points, using the already computed dz.  This
@@ -212,10 +212,10 @@ struct dprop : public knotprop<double> {
   dprop(knotlist &l, cvector<pair>& dz)
     : knotprop<double>(l), dz(dz) {}
 
-  double solo(int j) { return length(dz[j]); }
-  double start(int j) { return length(dz[j]); }
-  double mid(int j) { return length(dz[j]); }
-  double end(int j) { return length(dz[j]); }
+  double solo(Int j) { return length(dz[j]); }
+  double start(Int j) { return length(dz[j]); }
+  double mid(Int j) { return length(dz[j]); }
+  double end(Int j) { return length(dz[j]); }
 };
 
 // Compute the turning angles (psi) between points, using the already computed
@@ -226,13 +226,13 @@ struct psiprop : public knotprop<double> {
   psiprop(knotlist &l, cvector<pair>& dz)
     : knotprop<double>(l), dz(dz) {}
 
-  double solo(int) { return 0; }
+  double solo(Int) { return 0; }
 
   // We set the starting and ending psi to zero.
-  double start(int) { return 0; }
-  double end(int) { return 0; }
+  double start(Int) { return 0; }
+  double end(Int) { return 0; }
 
-  double mid(int j) { return niceAngle(dz[j]/dz[j-1]); }
+  double mid(Int j) { return niceAngle(dz[j]/dz[j-1]); }
 };
 
 struct eqnprop : public knotprop<eqn> {
@@ -242,21 +242,21 @@ struct eqnprop : public knotprop<eqn> {
   eqnprop(knotlist &l, cvector<double>& d, cvector<double>& psi)
     : knotprop<eqn>(l), d(d), psi(psi) {}
 
-  eqn solo(int) {
+  eqn solo(Int) {
     assert(False);
     return eqn(0.0,1.0,0.0,0.0);
   }
 
-  eqn start(int j) {
+  eqn start(Int j) {
     // Defer to the specifier, as it knows the specifics.
     return dynamic_cast<endSpec *>(l[j].out)->eqnOut(j,l,d,psi);
   }
 
-  eqn end(int j) {
+  eqn end(Int j) {
     return dynamic_cast<endSpec *>(l[j].in)->eqnIn(j,l,d,psi);
   }
 
-  eqn mid(int j) {
+  eqn mid(Int j) {
     double lastAlpha = l[j-1].alpha();
     double thisAlpha = l[j].alpha();
     double thisBeta  = l[j].beta();
@@ -325,11 +325,11 @@ weqn scale(weqn q) {
  */
 cvector<weqn> recalc(cvector<eqn>& e)
 {
-  int n=(int) e.size();
+  Int n=(Int) e.size();
   cvector<weqn> we;
   weqn lasteqn(0,1,0,0,1);
   we.push_back(lasteqn); // As a placeholder.
-  for (int j=1; j < n; j++) {
+  for (Int j=1; j < n; j++) {
     // Subtract a factor of the last equation so that the first entry is
     // zero, then procede to scale it.
     eqn& q=e[j];
@@ -365,9 +365,9 @@ double solveForTheta0(cvector<weqn>& we)
   //
   // The loop invariant maintained is that after j iterations, we have
   //   theta[n]= a + b*theta[0] + c*theta[j]
-  int n=(int) we.size();
+  Int n=(Int) we.size();
   double a=0,b=0,c=1;
-  for (int j=0;j<n;++j) {
+  for (Int j=0;j<n;++j) {
     weqn& q=we[j];
     a+=c*q.aug;
     b+=c*q.w;
@@ -384,10 +384,10 @@ double solveForTheta0(cvector<weqn>& we)
 
 cvector<double> backsubCyclic(cvector<weqn>& we, double theta0)
 {
-  int n=(int) we.size();
+  Int n=(Int) we.size();
   cvector<double> thetas;
   double lastTheta=theta0;
-  for (int j=1;j<=n;++j)
+  for (Int j=1;j<=n;++j)
   {
     weqn& q=we[n-j];
     assert(q.pre == 0 && q.piv == 1);
@@ -416,10 +416,10 @@ struct ref : public knotprop<eqn> {
     return lasteqn = eqn(0,1,q.post/q.piv,q.aug/q.piv);
   }
 
-  eqn start(int j) {
+  eqn start(Int j) {
     return scale(e[j]);
   }
-  eqn mid(int j) {
+  eqn mid(Int j) {
     // Subtract a factor of the last equation so that the first entry is
     // zero, then procede to scale it.
     eqn& q=e[j];
@@ -439,7 +439,7 @@ struct backsub : public knotprop<double> {
   backsub(knotlist& l, cvector<eqn>& e)
     : knotprop<double>(l), e(e) {}
 
-  double end(int j) {
+  double end(Int j) {
     eqn& q=e[j];
     assert(q.pre == 0 && q.piv == 1 && q.post == 0);
     double theta=q.aug;
@@ -447,7 +447,7 @@ struct backsub : public knotprop<double> {
     return theta;
   }
 
-  double mid(int j) {
+  double mid(Int j) {
     eqn& q=e[j];
     assert(q.pre == 0 && q.piv == 1);
     double theta=-q.post*lastTheta+q.aug;
@@ -495,26 +495,26 @@ struct postcontrolprop : public knotprop<pair> {
                   cvector<double>& psi, cvector<double>& theta)
     : knotprop<pair>(l), dz(dz), psi(psi), theta(theta) {}
 
-  double phi(int j) {
+  double phi(Int j) {
     /* The third angle: psi + theta + phi = 0 */
     return -psi[j] - theta[j];
   }
 
-  double vel(int j) {
+  double vel(Int j) {
     /* Use the standard velocity function. */
     return velocity(theta[j],phi(j+1),l[j].tout);
   }
 
   // start is the same as mid.
 
-  pair mid(int j) {
+  pair mid(Int j) {
     // Put a control point at the relative distance determined by the velocity,
     // and at an angle determined by theta.
     return l[j].z + vel(j)*expi(theta[j])*dz[j];
   }
 
   // The end postcontrol is the same as the last knot.
-  pair end(int j) {
+  pair end(Int j) {
     return l[j].z;
   }
 };
@@ -529,19 +529,19 @@ struct precontrolprop : public knotprop<pair> {
                   cvector<double>& psi, cvector<double>& theta)
     : knotprop<pair>(l), dz(dz), psi(psi), theta(theta) {}
 
-  double phi(int j) {
+  double phi(Int j) {
     return -psi[j] - theta[j];
   }
 
-  double vel(int j) {
+  double vel(Int j) {
     return velocity(phi(j),theta[j-1],l[j].tin);
   }
 
   // The start precontrol is the same as the first knot.
-  pair start(int j) {
+  pair start(Int j) {
     return l[j].z;
   }
-  pair mid(int j) {
+  pair mid(Int j) {
     return l[j].z - vel(j)*expi(-phi(j))*dz[j-1];
   }
 
@@ -554,47 +554,47 @@ struct precontrolprop : public knotprop<pair> {
 // case).
 struct encodeControls : public knoteffect {
   protopath& p;
-  int k;
+  Int k;
   cvector<pair>& pre;
   cvector<pair>& post;
 
-  encodeControls(protopath& p, int k,
+  encodeControls(protopath& p, Int k,
                  cvector<pair>& pre, knotlist& l, cvector<pair>& post)
     : knoteffect(l), p(p), k(k), pre(pre), post(post) {}
 
-  void encodePre(int j) {
+  void encodePre(Int j) {
     p.pre(k+j)=pre[j];
   }
-  void encodePoint(int j) {
+  void encodePoint(Int j) {
     p.point(k+j)=l[j].z;
   }
-  void encodePost(int j) {
+  void encodePost(Int j) {
     p.post(k+j)=post[j];
   }
 
-  void solo(int) {
+  void solo(Int) {
 #if 0
     encodePoint(j);
 #endif
   }
-  void start(int j) {
+  void start(Int j) {
 #if 0
     encodePoint(j);
 #endif
     encodePost(j);
   }
-  void mid(int j) {
+  void mid(Int j) {
     encodePre(j);
     encodePoint(j);
     encodePost(j);
   }
-  void end(int j) {
+  void end(Int j) {
     encodePre(j);
     encodePoint(j);
   }
 };
 
-void encodeStraight(protopath& p, int k, knotlist& l)
+void encodeStraight(protopath& p, Int k, knotlist& l)
 {
   pair a=l.front().z;
   double at=l.front().tout.val;
@@ -615,7 +615,7 @@ void encodeStraight(protopath& p, int k, knotlist& l)
   }
 }
 
-void solveSection(protopath& p, int k, knotlist& l)
+void solveSection(protopath& p, Int k, knotlist& l)
 {
   if (l.length()>0) {
     info(cerr, "solving section", l);
@@ -653,10 +653,10 @@ void solveSection(protopath& p, int k, knotlist& l)
 // NOBREAK.
 // This must be called with a knot that has all of its implicit specifiers in
 // place.
-const int NOBREAK=-1;
-int firstBreakpoint(knotlist& l)
+const Int NOBREAK=-1;
+Int firstBreakpoint(knotlist& l)
 {
-  for (int j=0;j<l.size();++j)
+  for (Int j=0;j<l.size();++j)
     if (!l[j].out->open())
       return j;
   return NOBREAK;
@@ -666,13 +666,13 @@ int firstBreakpoint(knotlist& l)
 // This must be called with a knot that has all of its implicit specifiers in
 // place, so that breakpoint can be identified by either an in or out specifier
 // that is not open.
-int nextBreakpoint(knotlist& l, int a)
+Int nextBreakpoint(knotlist& l, Int a)
 {
   // This is guaranteed to terminate if a is the index of a breakpoint.  If the
   // path is non-cyclic it will stop at or before the last knot which must be a
   // breakpoint.  If the path is cyclic, it will stop at or before looping back
   // around to a which is a breakpoint.
-  int j=a+1;
+  Int j=a+1;
   while (l[j].in->open())
     ++j;
   return j;
@@ -680,7 +680,7 @@ int nextBreakpoint(knotlist& l, int a)
 
 // Write out the controls for section of the form
 //   a.. control b and c ..d
-void writeControls(protopath& p, int a, knotlist& l)
+void writeControls(protopath& p, Int a, knotlist& l)
 {
   // By convention, the first point will already be encoded.
   p.straight(a)=dynamic_cast<controlSpec *>(l[a].out)->straight;
@@ -694,7 +694,7 @@ path solveSpecified(knotlist& l)
 {
   protopath p(l.size(),l.cyclic());
 
-  int first=firstBreakpoint(l);
+  Int first=firstBreakpoint(l);
   if (first==NOBREAK)
     /* We are solving a fully cyclic path, so do it in one swoop. */
     solveSection(p,0,l);
@@ -704,9 +704,9 @@ path solveSpecified(knotlist& l)
 
     // If the path is cyclic, we should stop where we started (modulo the
     // length of the path); otherwise, just stop at the end.
-    int last=l.cyclic() ? first+l.length()
+    Int last=l.cyclic() ? first+l.length()
                         : l.length();
-    int a=first;
+    Int a=first;
     while (a!=last) {
       if (l[a].out->controlled()) {
         assert(l[a+1].in->controlled());
@@ -718,7 +718,7 @@ path solveSpecified(knotlist& l)
       else {
         // Find the section a to b and solve it, putting the result (starting
         // from index a into our protopath.
-        int b=nextBreakpoint(l,a);
+        Int b=nextBreakpoint(l,a);
         subknotlist section(l,a,b);
         solveSection(p,a,section);
         a=b;
@@ -741,7 +741,7 @@ struct partnerUp : public knoteffect {
   partnerUp(knotlist& l)
     : knoteffect(l) {}
 
-  void mid(int j) {
+  void mid(Int j) {
     knot& k=l[j];
     if (k.in->open() && !k.out->open())
       k.in=k.out->inPartner(k.z);
@@ -772,15 +772,15 @@ struct controlDuplicates : public knoteffect {
   controlDuplicates(knotlist& l)
     : knoteffect(l) {}
 
-  void solo(int) { /* One point ==> no duplicates */ }
+  void solo(Int) { /* One point ==> no duplicates */ }
   // start is the same as mid.
-  void mid(int j) {
+  void mid(Int j) {
     knot &k1=l[j];
     knot &k2=l[j+1];
     if (!k1.out->controlled() && k1.z==k2.z)
       k1.out=k2.in=new controlSpec(k1.z);
   }
-  void end(int) { /* No next point to compare with. */ }
+  void end(Int) { /* No next point to compare with. */ }
 };
 
 path solve(knotlist& l)
