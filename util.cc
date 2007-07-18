@@ -366,7 +366,7 @@ unsigned unsignedcast(Int n)
 
 int intcast(Int n)
 {
-  if(abs(n) > INT_MAX)
+  if(Abs(n) > INT_MAX)
   vm::error("Integer argument is outside valid range");
   return (int) n;
 }

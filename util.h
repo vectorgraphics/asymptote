@@ -100,6 +100,18 @@ void execError(const char *command, const char *hint, const char *application);
 // pop-up a new viewer if the old one has been closed.
 void popupHelp();
 
+inline Int Abs(Int x) {
+#if defined(HAVE_LONG_LONG)
+  return llabs(x);
+#else
+#ifdef HAVE_LONG
+  return labs(x);
+#else
+  return abs(x);
+#endif
+#endif
+}
+
 unsigned unsignedcast(Int n);
 int intcast(Int n);
   

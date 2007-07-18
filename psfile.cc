@@ -381,7 +381,7 @@ inline unsigned byte(double r) // Map [0,1] to [0,255]
 {
   if(r < 0.0) r=0.0;
   else if(r > 1.0) r=1.0;
-  Int a=(Int)(256.0*r);
+  int a=(int)(256.0*r);
   if(a == 256) a=255;
   return a;
 }

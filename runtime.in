@@ -2286,15 +2286,7 @@ Int quotient(Int x, Int y)
 
 Int abs(Int x)
 { 
-#if defined(HAVE_LONG_LONG)
-  return llabs(x);
-#else
-#ifdef HAVE_LONG
-  return labs(x);
-#else
-  return abs(x);
-#endif
-#endif
+  return Abs(x);
 }  
 
 Int sgn(real x)
@@ -4306,7 +4298,7 @@ stringarray* history(string name, Int n=1)
   else N=Min(N,history_length);
   array *a=new array((size_t) N);
   int offset=history_length-N+1;
-  for(Int i=0; i < N; ++i) {
+  for(int i=0; i < N; ++i) {
     HIST_ENTRY *last=history_get(offset+i);
     string s=last ? last-> line : "";
     (*a)[i]=s;
