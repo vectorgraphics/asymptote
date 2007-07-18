@@ -205,7 +205,7 @@ function *transformFunction()
   return new function(primTransform());
 }
 
-const Int camp::ColorComponents[]={0,0,1,3,4,0};
+const unsigned camp::ColorComponents[]={0,0,1,3,4,0};
 
 namespace vm {
 const char *arraymismatch="operation attempted on arrays of different lengths";
@@ -2286,7 +2286,15 @@ Int quotient(Int x, Int y)
 
 Int abs(Int x)
 { 
+#if defined(HAVE_LONG_LONG)
+  return llabs(x);
+#else
+#ifdef HAVE_LONG
+  return labs(x);
+#else
   return abs(x);
+#endif
+#endif
 }  
 
 Int sgn(real x)
@@ -2301,7 +2309,7 @@ Int rand()
 
 void srand(Int seed)
 { 
-  srand(seed);
+  srand(intcast(seed));
 }  
 
 Int ceil(real x)
@@ -3984,7 +3992,7 @@ pairarray* :pairArrayFFT(pairarray *a, Int sign=1)
   array *c=new array(n);
   if(n) {
     Complex *f=FFTWComplex(n);
-    fft1d Forward(n,sign,f);
+    fft1d Forward(n,intcast(sign),f);
   
     for(size_t i=0; i < n; i++) {
       pair z=read<pair>(a,i);
@@ -4297,7 +4305,7 @@ stringarray* history(string name, Int n=1)
   if(N <= 0) N=history_length;
   else N=Min(N,history_length);
   array *a=new array((size_t) N);
-  Int offset=history_length-n+1;
+  int offset=history_length-N+1;
   for(Int i=0; i < N; ++i) {
     HIST_ENTRY *last=history_get(offset+i);
     string s=last ? last-> line : "";

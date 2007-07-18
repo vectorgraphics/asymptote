@@ -24,7 +24,7 @@ void drawLabel::labelwarning(const char *action)
        << "\" " << action << " to avoid overwriting" << endl;
 }
  
-Int drawLabel::wait(iopipestream &tex, const char *s, const char **abort,
+int drawLabel::wait(iopipestream &tex, const char *s, const char **abort,
 		    bool ignore)
 {
   int rc=tex.wait(s,abort);

@@ -20,6 +20,7 @@
 #define Int_MIN LONG_LONG_MIN
 typedef long long Int;
 #else
+#undef HAVE_LONG_LONG
 #ifdef HAVE_LONG
 #define Int_MAX LONG_MAX
 #define Int_MIN LONG_MIN

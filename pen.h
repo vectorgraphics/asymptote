@@ -53,9 +53,9 @@ static const string BaseLineTag[]={"NoAlign","Align"};
 const Int nBaseLine=sizeof(BaseLineTag)/sizeof(string);
   
 enum ColorSpace {DEFCOLOR=0,INVISIBLE,GRAYSCALE,RGB,CMYK,PATTERN};
-extern const Int ColorComponents[];
+extern const unsigned ColorComponents[];
 static const string ColorDeviceSuffix[]={"","","Gray","RGB","CMYK",""};
-const Int nColorSpace=sizeof(ColorDeviceSuffix)/sizeof(string);
+const unsigned nColorSpace=sizeof(ColorDeviceSuffix)/sizeof(string);
   
   
   

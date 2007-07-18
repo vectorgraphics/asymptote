@@ -56,7 +56,7 @@ public:
 
   void texinit();
 
-  Int epstopdf(const string& epsname, const string& pdfname);
+  int epstopdf(const string& epsname, const string& pdfname);
   
   bool texprocess(const string& texname, const string& tempname,
 		  const string& prefix, const pair& bboxshift); 

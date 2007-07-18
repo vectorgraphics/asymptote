@@ -832,7 +832,7 @@ void resetOptions()
       opt->second->reset();
 }
   
-void getOptions(Int argc, char *argv[])
+void getOptions(int argc, char *argv[])
 {
   globaloutname=true;
   bool syntax=false;

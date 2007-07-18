@@ -255,7 +255,7 @@ bool picture::texprocess(const string& texname, const string& outname,
   return true;
 }
 
-Int picture::epstopdf(const string& epsname, const string& pdfname)
+int picture::epstopdf(const string& epsname, const string& pdfname)
 {
   ostringstream cmd;
   

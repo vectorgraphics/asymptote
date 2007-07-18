@@ -74,7 +74,7 @@ public:
   template<class T>
   void purgeStandard(T&) {
     if(standard) {
-      Int c;
+      int c;
       if(cin.eof())
 	standardEOF();
       else {

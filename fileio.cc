@@ -19,7 +19,7 @@ file nullfile("",false,false,true);
 void ifile::ignoreComment(bool readstring)
 {
   if(comment == 0) return;
-  Int c;
+  int c;
   bool eol=(stream->peek() == '\n');
   if(eol && (readstring || (csvmode && nullfield))) return;
   for(;;) {
@@ -42,7 +42,7 @@ void ifile::ignoreComment(bool readstring)
   
 bool ifile::eol()
 {
-  Int c;
+  int c;
   while(isspace(c=stream->peek())) {
     if(c == '\n') return true;
     else {
@@ -55,7 +55,7 @@ bool ifile::eol()
   
 bool ifile::nexteol()
 {
-  Int c;
+  int c;
   if(nullfield) {
     nullfield=false;
     return true;
@@ -89,7 +89,7 @@ void ifile::csv()
   if(!csvmode || stream->eof()) return;
   std::ios::iostate rdstate=stream->rdstate();
   if(stream->fail()) stream->clear();
-  Int c=stream->peek();
+  int c=stream->peek();
   if(c == ',' || (c == '\n' && !linemode)) stream->ignore();
   else stream->clear(rdstate);
   if(c == ',') comma=true;
@@ -101,7 +101,7 @@ void ifile::Read(string& val)
   if(csvmode) {
     bool quote=false;
     while(stream->good()) {
-      Int c=stream->peek();
+      int c=stream->peek();
       if(c == '"') {quote=!quote; stream->ignore(); continue;}
       if(!quote && (c == ',' || c == '\n')) {
 	if(c == '\n') ignoreComment(true);
@@ -142,7 +142,7 @@ void ofile::writeline()
 	  cin.clear();
 	  break;
 	}
-	Int c=cin.get();
+	int c=cin.get();
 	if(c == '\n') break;
 	// Discard any additional characters
 	while(cin.good() && cin.get() != '\n');
