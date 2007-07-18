@@ -78,17 +78,19 @@ void interruptHandler(int)
 
 // Run the config file.
 void doConfig(string filename) {
-  string file = locateFile(filename);
-  if(!file.empty()) {
-    bool autoplain=getSetting<bool>("autoplain");
-    bool listvariables=getSetting<bool>("listvariables");
-    if(autoplain) Setting("autoplain")=false; // Turn off for speed.
-    if(listvariables) Setting("listvariables")=false;
+  if(!filename.empty()) {
+    string file = locateFile(filename);
+    if(!file.empty()) {
+      bool autoplain=getSetting<bool>("autoplain");
+      bool listvariables=getSetting<bool>("listvariables");
+      if(autoplain) Setting("autoplain")=false; // Turn off for speed.
+      if(listvariables) Setting("listvariables")=false;
 
-    runFile(file);
+      runFile(file);
 
-    if(autoplain) Setting("autoplain")=true;
-    if(listvariables) Setting("listvariables")=true;
+      if(autoplain) Setting("autoplain")=true;
+      if(listvariables) Setting("listvariables")=true;
+    }
   }
 }
 
