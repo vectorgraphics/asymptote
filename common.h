@@ -10,6 +10,10 @@
 #include <iostream>
 #include "memory.h"
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifdef HAVE_LONG_LONG
 #define Int_MAX LLONG_MAX
 #define Int_MIN LLONG_MIN

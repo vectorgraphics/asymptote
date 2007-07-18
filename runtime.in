@@ -4089,7 +4089,7 @@ file* xinput(string name, bool check=true)
   ostringstream buf;
   buf << name << ": XDR read support not enabled";
   error(buf);
-  unused(&check) // Suppress unused variable warning
+  unused(&check); // Suppress unused variable warning
 #endif
 }
 
