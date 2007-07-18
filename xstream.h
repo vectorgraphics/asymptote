@@ -25,6 +25,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
 #include <cstdio>
 
+#include <sys/types.h>
 #define quad_t long long
 
 #ifdef _POSIX_SOURCE
