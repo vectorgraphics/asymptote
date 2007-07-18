@@ -25,6 +25,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
 #include <cstdio>
 
+#define quad_t long long
+
 #ifdef _POSIX_SOURCE
 #undef _POSIX_SOURCE
 #include <rpc/rpc.h>
@@ -236,5 +238,7 @@ inline oxstream& flush(oxstream& s) {s.flush(); return s;}
 #undef OXSTREAM
 
 }
+
+#undef quad_t
 
 #endif
