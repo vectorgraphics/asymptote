@@ -1,10 +1,6 @@
 #ifndef FPU_H
 #define FPU_H
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #ifdef HAVE_FENV_H
 #ifdef _GNU_SOURCE
 #define HAVE_FEENABLEEXCEPT

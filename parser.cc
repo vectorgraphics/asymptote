@@ -7,9 +7,7 @@
 #include <fstream>
 #include <sstream>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "common.h"
 
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
