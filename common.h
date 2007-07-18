@@ -15,7 +15,7 @@
 #include "config.h"
 #endif
 
-#ifdef HAVE_LONG_LONG
+#if defined(HAVE_LONG_LONG) && defined(LONG_LONG_MAX) && defined(LONG_LONG_MIN)
 #define Int_MAX LONG_LONG_MAX
 #define Int_MIN LONG_LONG_MIN
 typedef long long Int;
