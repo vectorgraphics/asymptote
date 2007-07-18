@@ -78,7 +78,7 @@ int[] firstnode=new int[] {currentpicture.nodes.length};
 int[] lastnode;
 bool firststep=true;
 
-int page=1;
+int page=0;
 bool havepagenumber=true;
 
 int preamblenodes=2;
@@ -181,7 +181,6 @@ void numberpage(pen p=pagenumberpen)
 {
   if(havepagenumber) {
     label((string) page,pagenumberposition,pagenumberalign,p);
-    ++page;
   }
 }
 
@@ -199,6 +198,7 @@ void newslide(bool stepping=true)
 {
   allowstepping=stepping;
   nextpage();
+  ++page;
   havepagenumber=true;
   currentposition=startposition;
   firstnode=new int[] {currentpicture.nodes.length};
