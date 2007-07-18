@@ -88,7 +88,7 @@ using mem::string;
   absyntax::formals *fls;
 }  
 
-%token <ps> ID OP ADD SUBTRACT TIMES DIVIDE MOD EXPONENT
+%token <ps> ID ADD SUBTRACT TIMES DIVIDE MOD EXPONENT
             DOTS COLONS DASHES INCR LONGDASH
             CONTROLS TENSION ATLEAST CURL
             COR CAND BAR AMPERSAND EQ NEQ LT LE GT GE CARETS
@@ -389,8 +389,6 @@ fundec:
   type ID '(' ')' blockstm
                    { $$ = new fundec($3, $1, $2.sym, new formals($3), $5); }
 | type ID '(' formals ')' blockstm
-                   { $$ = new fundec($3, $1, $2.sym, $4, $6); }
-| type OP '(' formals ')' blockstm
                    { $$ = new fundec($3, $1, $2.sym, $4, $6); }
 ;
 
