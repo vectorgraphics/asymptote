@@ -16,10 +16,6 @@
 #include <sstream>
 #include <unistd.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "genv.h"
 #include "env.h"
 #include "dec.h"

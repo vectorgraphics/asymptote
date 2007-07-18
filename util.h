@@ -101,7 +101,7 @@ void execError(const char *command, const char *hint, const char *application);
 void popupHelp();
 
 inline Int Abs(Int x) {
-#if defined(HAVE_LONG_LONG)
+#ifdef HAVE_LONG_LONG
   return llabs(x);
 #else
 #ifdef HAVE_LONG

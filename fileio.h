@@ -12,15 +12,12 @@
 #include <iostream>
 #include <sstream>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "common.h"
 
 #ifdef HAVE_RPC_RPC_H
 #include "xstream.h"
 #endif
 
-#include "common.h"
 #include "pair.h"
 #include "triple.h"
 #include "guide.h"

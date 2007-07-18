@@ -14,9 +14,7 @@
 #include <locale.h>
 #include <unistd.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "common.h"
 
 #if HAVE_GNU_GETOPT_H
 #include <getopt.h>

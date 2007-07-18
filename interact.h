@@ -7,10 +7,6 @@
 #ifndef INTERACT_H
 #define INTERACT_H
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include "common.h"
 
 namespace interact {

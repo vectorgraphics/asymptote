@@ -9,11 +9,12 @@
 
 #include <iostream>
 #include <climits>
-#include "memory.h"
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include "memory.h"
 
 #if defined(HAVE_LONG_LONG) && defined(LONG_LONG_MAX) && defined(LONG_LONG_MIN)
 #define Int_MAX LONG_LONG_MAX

@@ -5,9 +5,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "common.h"
 
 #ifdef HAVE_LIBSIGSEGV
 #include <sigsegv.h>
