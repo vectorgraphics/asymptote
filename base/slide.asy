@@ -75,7 +75,7 @@ string bulletcolor(string color)
 }
 
 int[] firstnode=new int[] {currentpicture.nodes.length};
-int[] lastnode=new int[];
+int[] lastnode;
 bool firststep=true;
 
 int page=1;
@@ -202,7 +202,7 @@ void newslide(bool stepping=true)
   havepagenumber=true;
   currentposition=startposition;
   firstnode=new int[] {currentpicture.nodes.length};
-  lastnode=new int[];
+  lastnode.delete();
 }
 
 bool checkposition()
