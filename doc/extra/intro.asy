@@ -101,7 +101,7 @@ item("Using {\tt ..} instead of {\tt --} specifies a {\it Bezier cubic
     spline}:");
 
 code("
-draw(z0 .. controls c0 and c1 .. z1,blue+dashed);
+draw(z0 .. controls c0 and c1 .. z1,blue);
 ");
 asyfigure("beziercurve","height=7cm");
 
