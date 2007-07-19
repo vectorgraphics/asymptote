@@ -19,26 +19,9 @@ envCompleter::symbol_list basicList;
 static void loadBasicList() {
   assert(basicListLoaded==false);
 
-#if 0
-  // NOTE: Change, obviously, to look in the right place.
-  std::ifstream in("keywords");
-
-  if (in.is_open()) {
-    while (!in.eof()) {
-      string s;
-      std::getline(in, s);
-      if (!s.empty())
-        basicList.push_back(symbol::literalTrans(s));
-    }
-    in.close();
-  }
-#endif
-
-#if 1 
 #define ADD(word) basicList.push_back(symbol::literalTrans(#word))
 #include "keywords.cc"
 #undef ADD
-#endif
 
   basicListLoaded=true;
 }
