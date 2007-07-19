@@ -134,10 +134,6 @@ bool tenv::add(symbol *src, symbol *dest,
 }
 
 #ifdef NOHASH //{{{
-venv::venv()
-{
-}
-
 void venv::add(venv& source, varEntry *qualifier, coder &c)
 {
   // Enter each distinct (unshadowed) name,type pair.

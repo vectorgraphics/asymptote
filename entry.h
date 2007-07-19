@@ -160,7 +160,12 @@ public:
 #ifdef NOHASH //{{{
 class venv : public sym::table<varEntry*> {
 public:
-  venv();
+  venv() {}
+
+  // This is an optimization in the hashtable version that is duplicated here
+  // for compatibility.  It is identical to venv().
+  struct file_env_tag {};
+  venv(file_env_tag) {}
 
 #if 0
   // Look for a function that exactly matches the signature given.
@@ -188,6 +193,12 @@ public:
   // Return the type of the variable, if name is overloaded, return an
   // overloaded type.
   ty *getType(symbol *name);
+
+  // This is an optimization that is only implemented for the hashtable
+  // version.
+  void *getMarker(symbol *name) {
+    return 0;
+  }
 
   friend std::ostream& operator<< (std::ostream& out, const venv& ve);
   
