@@ -79,11 +79,8 @@ void arrayNegate<Int>(vm::stack *s)
   array *a=pop<array*>(s);
   size_t size=checkArray(a);
   array *c=new array(size);
-  for(size_t i=0; i < size; i++) {
-    Int j=read<Int>(a,i);
-    if(j < -Int_MAX) integeroverflow(0);
-    (*c)[i]=-j;
-  }
+  for(size_t i=0; i < size; i++)
+    (*c)[i]=Negate(read<Int>(a,i),i);
   s->push(c);
 }
 

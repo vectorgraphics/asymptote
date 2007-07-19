@@ -148,12 +148,15 @@ void Negate(vm::stack *s)
   s->push(-a);
 }
 
+inline Int Negate(Int x, size_t i=0) {
+  if(x < -Int_MAX) integeroverflow(i);
+  return -x;
+}
+  
 template<>
 inline void Negate<Int>(vm::stack *s)
 {
-  Int a=vm::pop<Int>(s);
-  if(a < -Int_MAX) integeroverflow(0);
-  s->push(-a);
+  s->push(Negate(vm::pop<Int>(s)));
 }
 
 #ifndef HAVE_POW
