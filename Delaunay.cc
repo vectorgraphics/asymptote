@@ -97,7 +97,7 @@ Int Triangulate(Int nv, XYZ pxyz[], ITRIANGLE v[], Int &ntri,
   Int trimax, emax = 200;
   Int inside;
   Int i, j, k;
-  double xp, yp, x1, y1, x2, y2, x3, y3, xc, yc, r;
+  double xp, yp, x1, y1, x2, y2, x3, y3, xc=0, yc, r=0;
   double xmin, xmax, ymin, ymax, xmid, ymid;
   double dx, dy, dmax; 
 
