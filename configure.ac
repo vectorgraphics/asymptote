@@ -31,6 +31,9 @@ else
 fi
 ])
 
+AC_CHECK_PROGS(TEXI2DVI,[texi2dvi texi2dvi4a2ps])
+AC_SUBST(TEXI2DVI)
+
 latexdir=$latexdir/asymptote
 
 AC_MSG_NOTICE([Using $latexdir for LaTeX style file])
@@ -214,7 +217,7 @@ AC_FUNC_ERROR_AT_LINE
 
 AC_CONFIG_HEADERS(config.h)
 
-AC_CONFIG_FILES([Makefile doc/version.texi base/version.asy])
+AC_CONFIG_FILES([Makefile doc/Makefile doc/version.texi base/version.asy])
 AC_OUTPUT
 
 if test "x$GCDIR" != "x" ; then

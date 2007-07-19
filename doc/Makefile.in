@@ -4,6 +4,13 @@ SOURCE = asymptote.texi version.texi options
 ASY = ../asy -dir ../base -config ""
 DOCFILES = asymptote.pdf CAD.pdf
 
+docdir = $(DESTDIR)@docdir@
+infodir = $(DESTDIR)@infodir@
+INSTALL = @INSTALL@
+TEXI2DVI = @TEXI2DVI@
+
+export docdir infodir INSTALL
+
 all:    doc
 
 html:	asymptote/index.html
@@ -48,14 +55,14 @@ asy.1: options asy.1.begin asy.1.end
 
 asymptote.dvi: $(SOURCE) $(ASYFILES:.asy=.eps)
 	ln -sf asymptote.texi asymptote_.texi
-	texi2dvi asymptote_.texi
+	$(TEXI2DVI) asymptote_.texi
 	mv asymptote_.dvi asymptote.dvi
 
 asymptote.info: $(SOURCE) $(ASYFILES:.asy=.png)
 	makeinfo asymptote
 
 asymptote.pdf: $(SOURCE) $(ASYFILES:.asy=.pdf)
-	texi2dvi --pdf asymptote.texi
+	$(TEXI2DVI) --pdf asymptote.texi
 
 CAD.pdf: CAD.tex CAD1.eps 
 	latex CAD

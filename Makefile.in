@@ -54,7 +54,7 @@ animationsdir = $(exampledir)/animations
 latexdir = $(DESTDIR)@latexdir@
 INSTALL = @INSTALL@
 
-export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR
+export prefix docdir exampledir mandir infodir INSTALL MAKE DESTDIR TEXI2DVI
 
 asy: $(GCLIB) $(FILES:=.o) 
 	$(CXX) $(OPTS) -o $(NAME) $(FILES:=.o) $(LIBS)
