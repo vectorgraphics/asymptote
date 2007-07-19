@@ -65,8 +65,10 @@ private:
 
 } // namespace vm
 
-GC_DECLARE_PTRFREE(vm::callable);
 GC_DECLARE_PTRFREE(vm::nullfunc);
+
+// I believe this is safe, as pointers to C++ functions do not point to
+// the heap.
 GC_DECLARE_PTRFREE(vm::bfunc);
 
 #endif // CALLABLE_H

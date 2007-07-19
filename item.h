@@ -168,7 +168,7 @@ inline bool get<bool>(const item& it)
 }
 
 // This serves as the object for representing a default argument.
-struct default_t {};
+struct default_t : public gc {};
   
 inline bool isdefault(const item& it)
 {
@@ -177,7 +177,6 @@ inline bool isdefault(const item& it)
 
 } // namespace vm
 
-GC_DECLARE_PTRFREE(vm::frame);
 GC_DECLARE_PTRFREE(vm::default_t);
 
 #endif // ITEM_H

@@ -257,9 +257,6 @@ public:
 
 GC_DECLARE_PTRFREE(camp::box);
 GC_DECLARE_PTRFREE(camp::drawElement);
-GC_DECLARE_PTRFREE(camp::drawPathBase);
-GC_DECLARE_PTRFREE(camp::drawPathPenBase);
-GC_DECLARE_PTRFREE(camp::drawSuperPathPenBase);
 
 #endif
 

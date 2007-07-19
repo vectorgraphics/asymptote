@@ -332,8 +332,6 @@ public:
 
 }
 
-GC_DECLARE_PTRFREE(camp::path);
-
 // Delete the following line to work around problems with old broken compilers.
 GC_DECLARE_PTRFREE(camp::solvedKnot);
 

@@ -83,7 +83,4 @@ public:
 
 }
 
-GC_DECLARE_PTRFREE(camp::drawLabel);
-GC_DECLARE_PTRFREE(camp::drawLabelPath);
-
 #endif

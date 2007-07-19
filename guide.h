@@ -300,14 +300,11 @@ public:
 
 } // namespace camp
 
-GC_DECLARE_PTRFREE(camp::guide);
 GC_DECLARE_PTRFREE(camp::pairguide);
-GC_DECLARE_PTRFREE(camp::pathguide);
 GC_DECLARE_PTRFREE(camp::tensionSpecifier);
 GC_DECLARE_PTRFREE(camp::tensionguide);
 GC_DECLARE_PTRFREE(camp::curlSpecifier);
 GC_DECLARE_PTRFREE(camp::controlguide);
-GC_DECLARE_PTRFREE(camp::multiguide);
 GC_DECLARE_PTRFREE(camp::cycleToken);
 GC_DECLARE_PTRFREE(camp::cycletokguide);
 

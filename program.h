@@ -86,6 +86,4 @@ inline ptrdiff_t offset(const program::label& left,
 
 } // namespace vm
 
-GC_DECLARE_PTRFREE(vm::program);
-
 #endif // PROGRAM_H

@@ -54,6 +54,4 @@ public:
 
 }
 
-GC_DECLARE_PTRFREE(camp::drawVerbatim);
-
 #endif

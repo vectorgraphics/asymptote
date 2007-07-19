@@ -51,6 +51,4 @@ public:
 
 }
 
-GC_DECLARE_PTRFREE(camp::drawImage);
-
 #endif

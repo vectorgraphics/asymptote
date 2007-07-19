@@ -160,6 +160,4 @@ typedef std::stringbuf stringbuf;
 
 } // namespace mem
 
-GC_DECLARE_PTRFREE(mem::string);
-
 #endif

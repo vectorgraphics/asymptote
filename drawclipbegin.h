@@ -71,6 +71,4 @@ public:
 
 }
 
-GC_DECLARE_PTRFREE(camp::drawClipBegin);
-
 #endif

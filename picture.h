@@ -84,6 +84,4 @@ inline picture *transformed(const transform& t, picture *p)
 
 } //namespace camp
 
-GC_DECLARE_PTRFREE(camp::picture);
-  
 #endif

@@ -146,12 +146,4 @@ public:
   
 }
 
-GC_DECLARE_PTRFREE(camp::drawFill);
-GC_DECLARE_PTRFREE(camp::drawShade);
-GC_DECLARE_PTRFREE(camp::drawLatticeShade);
-GC_DECLARE_PTRFREE(camp::drawAxialShade);
-GC_DECLARE_PTRFREE(camp::drawRadialShade);
-GC_DECLARE_PTRFREE(camp::drawGouraudShade);
-GC_DECLARE_PTRFREE(camp::drawTensorShade);
-
 #endif

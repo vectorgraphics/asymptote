@@ -796,8 +796,4 @@ public:
 pen transformed(const transform& t, const pen &p);
 }
 
-GC_DECLARE_PTRFREE(camp::LineType);
-GC_DECLARE_PTRFREE(camp::Transparency);
-GC_DECLARE_PTRFREE(camp::pen);
-
 #endif
