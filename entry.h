@@ -196,7 +196,7 @@ public:
 
   // This is an optimization that is only implemented for the hashtable
   // version.
-  void *getMarker(symbol *name) {
+  void *getMarker(symbol *) {
     return 0;
   }
 
