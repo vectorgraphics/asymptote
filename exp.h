@@ -50,6 +50,17 @@ public:
     return 0;
   }
 
+  // If two expressions have the same marker, then they are guaranteed to
+  // return the same (possibly overloaded) types.  This is exploited by callExp
+  // when caching the results of resolving overloaded functions. If this returns
+  // 0 then there are no guarantees on the type of the expression.
+  // Marker are currently only implemented for simple variable names, by the
+  // markers provided by venv::getMarker().
+  virtual void *getMarker(coenv &)
+  {
+    return 0;
+  }
+
   // Checks if the expression can be used as the right side of a scale
   // expression.  ie. 3sin(x)
   // If a "non-scalable" expression is scaled a warning is issued.
@@ -191,6 +202,11 @@ public:
   symbol *getName()
   {
     return value->getName();
+  }
+
+  void *getMarker(coenv &e)
+  {
+    return value->getMarker(e);
   }
 
   void transAsType(coenv &e, types::ty *target) {
@@ -580,7 +596,7 @@ protected:
   arglist *args;
 
 private:
-  // Cache the application when it's determined.
+  // Per object caching - Cache the application when it's determined.
   application *ca;
 
   // Warns of ambiguity with assign expression in named arguments.
@@ -589,7 +605,12 @@ private:
   types::signature *argTypes(coenv& e);
   application *resolve(coenv &e,
                        types::overloaded *o,
-                       types::signature *source);
+                       types::signature *source,
+                       bool tacit);
+  application *resolveWithCache(coenv &e,
+                                types::overloaded *o,
+                                types::signature *source,
+                                bool tacit);
   void reportMismatch(symbol *s,
                       types::function *ft,
                       types::signature *source);

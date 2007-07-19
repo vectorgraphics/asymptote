@@ -270,7 +270,9 @@ void venv::remove(key k) {
   assert(val);
   if (val->next) {
     val->next->shadowed=false;
-    val=val->next;
+    value *temp=val->next;
+    val->next=0;
+    val=temp;
   }
   else
     all.erase(k);

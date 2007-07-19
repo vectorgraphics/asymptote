@@ -21,6 +21,7 @@ namespace absyntax {
 using namespace types;
 using namespace trans;
 using vm::inst;
+using mem::vector;
 
 
 void exp::prettyprint(ostream &out, Int indent)
@@ -451,6 +452,67 @@ void arglist::prettyprint(ostream &out, Int indent)
     p->prettyprint(out, indent+1);
 }
 
+/*****
+  Global level caching for callExp.
+  Consider the code:
+
+    write(1+2);
+    write(3+4);
+
+  In the first line, callExp has to resolve the overloaded operator+ when given
+  two integer arguments, and then resolve the overloaded write function when
+  given an integer argument.  On the second line, it has to do this all over
+  again, with different arguments, but arguments that yield the same types.
+ 
+  The matchCache attempts to mitigate this work by storing which function type
+  was picked when an overloaded function call was resolved.  The matches are
+  indexed by the marker of the callee expression (which uniquely determines the
+  possibly overloaded type of the callee), and the arguments with which it was
+  called.
+
+  For arguments to match, they must not only have the same types, but the same
+  names, if names are specified.  Calls with overloaded arguments are not added
+  to or checked against the cache.
+*****/
+
+struct cachedCall {
+  void *marker;
+  types::signature *args;
+  types::function *match;
+
+  cachedCall()
+    : marker(0), args(0), match(0) {}
+};
+
+// If the cacheSize is too large, too much data is kept live, which slows down
+// the garbage collector.  This seems to be a happy medium.
+const size_t matchCacheSize=53;
+vector<cachedCall> matchCache(matchCacheSize);
+
+size_t hash(void *marker, types::signature *source) {
+  return 5 * (size_t)marker + source->hash();
+}
+
+function *lookupMatch(void *marker, types::signature *source) {
+  assert(marker!=0);
+  size_t h=hash(marker, source);
+  cachedCall &cell=matchCache[h % matchCacheSize];
+  if (cell.marker==marker &&
+      cell.args &&
+      argumentEquivalent(cell.args, source))
+    return cell.match;
+  else
+    return 0;
+}
+
+void addMatch(void *marker, types::signature *source, function *ft) {
+  assert(marker!=0);
+  size_t h=hash(marker, source);
+  cachedCall &cell=matchCache[h % matchCacheSize];
+  cell.marker=marker;
+  cell.args=source;
+  cell.match=ft;
+}
 
 void callExp::prettyprint(ostream &out, Int indent)
 {
@@ -491,32 +553,37 @@ signature *callExp::argTypes(coenv &e)
   return source;
 }
 
-application *callExp::resolve(coenv &e, overloaded *o, signature *source) {
+application *callExp::resolve(coenv &e, overloaded *o, signature *source,
+                              bool tacit) {
   app_list l=multimatch(e.e, o, source, *args);
 
   if (l.empty()) {
     //cerr << "l is empty\n";
-    em.error(getPos());
+    if (!tacit) {
+      em.error(getPos());
 
-    symbol *s = callee->getName();
-    if (s)
-      em << "no matching function \'" << *s;
-    else
-      em << "no matching function for signature \'";
-    em << *source << "\'";
+      symbol *s = callee->getName();
+      if (s)
+        em << "no matching function \'" << *s;
+      else
+        em << "no matching function for signature \'";
+      em << *source << "\'";
+    }
 
     return 0;
   }
   else if (l.size() > 1) { // This may take O(n) time.
     //cerr << "l is full\n";
-    em.error(getPos());
+    if (!tacit) {
+      em.error(getPos());
 
-    symbol *s = callee->getName();
-    if(s)
-      em << "call of function \'" << *s;
-    else
-      em << "call with signature \'";
-    em << *source << "\' is ambiguous";
+      symbol *s = callee->getName();
+      if(s)
+        em << "call of function \'" << *s;
+      else
+        em << "call with signature \'";
+      em << *source << "\' is ambiguous";
+    }
 
     return 0;
   }
@@ -526,6 +593,50 @@ application *callExp::resolve(coenv &e, overloaded *o, signature *source) {
   }
 }
 
+bool noOverloadedArgs(signature *source) {
+  types::formal_vector &formals=source->formals;
+  for (types::formal_vector::iterator f=formals.begin(); f!=formals.end(); ++f)
+    if (f->t->kind == types::ty_overloaded)
+      return false;
+  formal &rest=source->getRest();
+  if (rest.t && rest.t->kind == types::ty_overloaded)
+    return false;
+  return true;
+}
+  
+application *callExp::resolveWithCache(coenv &e,
+                                       overloaded *o, signature *source,
+                                       bool tacit) {
+  void *marker=callee->getMarker(e);
+  if (marker!=0 && noOverloadedArgs(source)) {
+    //cerr << "looking up cache" << endl;
+    function *ft=lookupMatch(marker, source);
+    if (ft) {
+      application *a=application::match(e.e, ft, source, *args);
+      if (!a) {
+        em.compiler(getPos());
+        em << "match caching is corrupted";
+      }
+      //cerr << "successful cache hit" << endl;
+      return a;
+    }
+    else {
+      // Match it and add it to the cache.
+      application *a=resolve(e, o, source, tacit);
+
+      // Add to cache.
+      if (a) {
+        //cerr << "adding to cache" << endl;
+        addMatch(marker, source, a->getType());
+      }
+
+      return a;
+    }
+  } else {
+    // Can't cache, just do normal resolve.
+    return resolve(e, o, source, tacit);
+  }
+}
 
 void callExp::reportMismatch(symbol *s, function *ft, signature *source)
 {
@@ -584,7 +695,7 @@ application *callExp::getApplication(coenv &e)
     } 
     case ty_overloaded:
       //cerr << "resolving overloaded\n";
-      return resolve(e, (overloaded *)ft, source);
+      return resolveWithCache(e, (overloaded *)ft, source, false);
     default:
       //cerr << "not a function\n";
       em.error(getPos());
@@ -610,8 +721,8 @@ types::ty *callExp::trans(coenv &e)
 
   application *a= ca ? ca : getApplication(e);
   
-  // The cached application is no longer needed after translation, so let be
-  // garbage collected.
+  // The cached application is no longer needed after translation, so
+  // let it be garbage collected.
   ca=0;
 
   if (!a)
@@ -648,11 +759,10 @@ types::ty *callExp::getType(coenv &e)
     case ty_function:
       return ((function *)ft)->result;
     case ty_overloaded: {
-      app_list l=multimatch(e.e, (overloaded *)ft, source, *args);
-
-      if (l.size()==1) {
+      application *a=resolveWithCache(e, (overloaded *)ft, source, true);
+      if (a) {
         // Cache the application to avoid calling multimatch again later.
-        ca=l.front();
+        ca=a;
         return ca->getType()->result;
       }
       else

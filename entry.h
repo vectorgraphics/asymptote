@@ -200,7 +200,6 @@ public:
 
 // venv implemented with a hash table.
 class venv {
-public:
   struct key : public gc {
     symbol *name;
     ty *t;
@@ -211,6 +210,8 @@ public:
     key(symbol *name, varEntry *v)
       : name(name), t(v->getType()) {}
   };
+  friend ostream& operator<< (ostream& out, const venv::key &k);
+
   struct value : public gc {
     varEntry *v;
     bool shadowed;
@@ -277,8 +278,21 @@ public:
   // Helper function for endScope.
   void remove(key k);
 
+  // These are roughly the size the hashtables will be after loading the
+  // builtin functions and plain module.
+  static const size_t fileAllSize=2000;
+  static const size_t namesAllSize=1000;
 public:
   venv() {
+    beginScope();
+  }
+
+  // Most file level modules automatically import plain, so allocate hashtables
+  // big enough to hold it in advance.
+  struct file_env_tag {};
+  venv(file_env_tag)
+    : all(fileAllSize), names(namesAllSize)
+  {
     beginScope();
   }
 
@@ -315,6 +329,19 @@ public:
   }
 
   ty *getType(symbol *name);
+
+  // The abstract syntax caches results for resolving overloaded variables.  It
+  // is not enough to index these cached results by name, as new variables of
+  // the same name could be added, invalidating the cached result.  Instead,
+  // they are indexed by a marker, that is unique to the name and to its current
+  // overloading.  The values list does this, and the values list is uniquely
+  // determined by its first entry (as values are not re-used, and the list is
+  // only manipulated from its front).  Therefore, we return an opaque pointer
+  // to the first entry on the list.
+  void *getMarker(symbol *name) {
+    values &list=names[name];
+    return list.empty() ? 0 : (void *)list.front();
+  }
 
   void beginScope() {
     scopes.push(keymultimap());

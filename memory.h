@@ -131,6 +131,8 @@ GC_CONTAINER(multimap);
   struct KIND : public                                                        \
   EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > >, public gc {     \
     KIND() : EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > > () {} \
+    KIND(size_t n)                                                            \
+      : EXT::KIND<Key,T,Hash,Eq,gc_allocator<std::pair<Key, T> > > (n) {}     \
   }
 
 GC_CONTAINER(hash_map);

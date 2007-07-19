@@ -87,6 +87,7 @@ public:
   }
 
   virtual symbol *getName() = 0;
+  virtual void *getMarker(coenv &) { return 0; }
 };
 
 inline ostream& operator<< (ostream& out, const name& n) {
@@ -119,6 +120,7 @@ public:
   symbol *getName() {
     return id;
   }
+  void *getMarker(coenv &e);
 };
 
 

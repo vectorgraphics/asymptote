@@ -312,6 +312,7 @@ struct formal {
 };
 
 bool equivalent(formal& f1, formal& f2);
+bool argumentEquivalent(formal &f1, formal& f2);
 
 typedef mem::vector<formal> formal_vector;
 
@@ -360,6 +361,11 @@ struct signature : public gc {
   friend ostream& operator<< (ostream& out, const signature& s);
 
   friend bool equivalent(signature *s1, signature *s2);
+
+  // Check if a signature of argument types (as opposed to formal parameters)
+  // are equivalent.  Here, the arguments, if named, must have the same names,
+  // and (for simplicity) no overloaded arguments are allowed.
+  friend bool argumentEquivalent(signature *s1, signature *s2);
 #if 0
   friend bool castable(signature *target, signature *source);
   friend Int numFormalsMatch(signature *s1, signature *s2);

@@ -43,6 +43,9 @@ public:
   // Start an environment for a file-level module.
   protoenv() {}
 
+  protoenv(venv::file_env_tag tag)
+    : ve(tag) {}
+
   protoenv(const protoenv&);
   
   void beginScope()
@@ -99,6 +102,11 @@ public:
   ty *varGetType(symbol *name)
   {
     return ve.getType(name);
+  }
+
+  void *varGetMarker(symbol *name)
+  {
+    return ve.getMarker(name);
   }
 
   void addType(symbol *name, tyEntry *desc)

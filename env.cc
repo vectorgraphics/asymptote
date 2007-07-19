@@ -135,7 +135,7 @@ void protoenv::addFunctionOps(function *f)
 }
 
 env::env(genv &ge)
-  : ge(ge)
+  : protoenv(venv::file_env_tag()), ge(ge)
 {
   // NOTE: May want to make this initial environment into a "builtin" module,
   // and then import the builtin module.

@@ -335,6 +335,20 @@ bool equivalent(formal& f1, formal& f2) {
   return equivalent(f1.t,f2.t);
 }
 
+bool argumentEquivalent(formal &f1, formal& f2) {
+  if (f1.name == f2.name) {
+    if (f1.t == 0)
+      return f2.t == 0;
+    else if (f2.t == 0)
+      return false;
+
+    return f1.t->kind != ty_overloaded &&
+           f2.t->kind != ty_overloaded &&
+           equivalent(f1.t, f2.t);
+  }
+  else
+    return false;
+}
 
 ostream& operator<< (ostream& out, const signature& s)
 {
@@ -375,6 +389,22 @@ bool equivalent(signature *s1, signature *s2)
   return std::equal(s1->formals.begin(),s1->formals.end(),s2->formals.begin(),
                     (bool (*)(formal&,formal&)) equivalent) &&
          equivalent(s1->rest, s2->rest);
+}
+
+bool argumentEquivalent(signature *s1, signature *s2)
+{
+  // Handle null signature
+  if (s1 == 0)
+    return s2 == 0;
+  else if (s2 == 0)
+    return false;
+
+  if (s1->formals.size() != s2->formals.size())
+    return false;
+
+  return std::equal(s1->formals.begin(),s1->formals.end(),s2->formals.begin(),
+                    (bool (*)(formal&,formal&)) argumentEquivalent) &&
+         argumentEquivalent(s1->rest, s2->rest);
 }
 
 size_t signature::hash() {
