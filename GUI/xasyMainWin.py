@@ -13,6 +13,7 @@
 import os
 from string import *
 import subprocess
+import math
 
 from Tkinter import *
 import tkMessageBox
@@ -142,7 +143,7 @@ class xasyMainWin:
     self.toolSelectButton.grid(row=1,column=0,sticky=N+S+E+W)
     self.toolMoveButton = Button(self.toolBar,command=self.toolMoveCmd,image=self.toolIcons["move"])
     self.toolMoveButton.grid(row=2,column=0,sticky=N+S+E+W)
-    self.toolRotateButton = Button(self.toolBar,command=self.toolRotateCmd,image=self.toolIcons["rotate"],state=DISABLED,relief=FLAT)
+    self.toolRotateButton = Button(self.toolBar,command=self.toolRotateCmd,image=self.toolIcons["rotate"])
     self.toolRotateButton.grid(row=2,column=1,sticky=N+S+E+W)
     self.toolVertiMoveButton = Button(self.toolBar,command=self.toolVertiMoveCmd,image=self.toolIcons["vertiMove"])
     self.toolVertiMoveButton.grid(row=3,column=0,sticky=N+S+E+W)
@@ -160,9 +161,9 @@ class xasyMainWin:
     self.toolFillPolyButton = Button(self.toolBar,command=self.toolFillPolyCmd,image=self.toolIcons["fillPoly"])
     self.toolFillPolyButton.grid(row=6,column=1,sticky=N+S+E+W)
     self.toolDrawEllipButton = Button(self.toolBar,command=self.toolDrawEllipCmd,image=self.toolIcons["drawEllip"],state=DISABLED,relief=FLAT)
-    self.toolDrawEllipButton.grid(row=7,column=0,sticky=N+S+E+W)
+    #self.toolDrawEllipButton.grid(row=7,column=0,sticky=N+S+E+W)
     self.toolFillEllipButton = Button(self.toolBar,command=self.toolFillEllipCmd,image=self.toolIcons["fillEllip"],state=DISABLED,relief=FLAT)
-    self.toolFillEllipButton.grid(row=7,column=1,sticky=N+S+E+W)
+    #self.toolFillEllipButton.grid(row=7,column=1,sticky=N+S+E+W)
     self.toolDrawShapeButton = Button(self.toolBar,command=self.toolDrawShapeCmd,image=self.toolIcons["drawShape"])
     self.toolDrawShapeButton.grid(row=8,column=0,sticky=N+S+E+W)
     self.toolFillShapeButton = Button(self.toolBar,command=self.toolFillShapeCmd,image=self.toolIcons["fillShape"])
@@ -187,7 +188,7 @@ class xasyMainWin:
       self.toolMoveButton : "Drag a selected item.",
       self.toolHorizMoveButton : "Drag a selected item. Only horizontal translation will be applied.",
       self.toolVertiMoveButton : "Drag a selected item. Only vertical translation will be applied.",
-      self.toolRotateButton : "Drag a selected item to rotate. (Not yet implemented)",
+      self.toolRotateButton : "Drag a selected item to rotate it.",
       self.toolDrawLinesButton : "Click to draw line segments. Double click to place last point.",
       self.toolDrawBeziButton : "Click to place points. Double click to place last point.",
       self.toolDrawPolyButton : "Click to place vertices. Double click to place last point.",
@@ -197,8 +198,8 @@ class xasyMainWin:
       self.toolDrawShapeButton : "Click to place points. Double click to place last point.",
       self.toolFillShapeButton : "Click to place points. Double click to place last point.",
       self.toolTextButton : "Click location of top left label position and enter text in dialog.",
-      self.toolRaiseButton : "(UNIMPLEMENTED)Raise selected items to top.",
-      self.toolLowerButton : "(UNIMPLEMENTED)Lower selected items to bottom.",
+      self.toolRaiseButton : "Raise selected items to top.",
+      self.toolLowerButton : "Lower selected items to bottom.",
       self.toolAsyButton : "Insert/Edit Asymptote code."
     }
 
@@ -326,7 +327,7 @@ class xasyMainWin:
     #set up the canvas
     self.mainCanvas.delete(ALL)
     self.mainCanvas.create_rectangle(0,0,0,0,tags="outlineBox",width=0,outline="#801111",dash=(3,6))
-    self.backColor = "white" #in future, load this from an options file
+    self.backColor = "white" #in future, load this from an options file. Or, should this really be an option?
     self.mainCanvas.configure(background=self.backColor)
 
     #set up drawing
@@ -335,6 +336,8 @@ class xasyMainWin:
     self.inDrawingMode = False
     self.freeMouseDown = True
     self.dragSelecting = False
+    self.itemsBeingRotated = []
+    self.inRotatingMode = False
 
     #set up the xasy item list
     self.fileItems = []
@@ -367,17 +370,17 @@ class xasyMainWin:
     self.axisyspace = xasyOptions.options['axisY']
     self.updateCanvasSize()
     #test the asyProcess
-    global asy
+    #global asy
     global quickAsyFailed
-    asy.restart()
+    #asy.restart()
     startQuickAsy()
-    while asy.failed or quickAsyFailed:
+    while quickAsyFailed:# or self.imageList = []:
       if tkMessageBox.askyesno("Xasy Error","Asymptote could not be executed.\r\nEdit settings?"):
-        asy.process.stdin.close()
-        asy.process.wait()
+        #asy.process.stdin.close()
+        #asy.process.wait()
         xasyOptionsDialog.xasyOptionsDlg(self.parent)
         xasyOptions.save()
-        asy.restart()
+        #asy.restart()
         startQuickAsy()
       else:
         self.destroy()
@@ -464,7 +467,7 @@ class xasyMainWin:
     #print "Quitting"
     self.quitting = True
     self.ticker.join()
-    asy.quit()
+    #asy.quit()
     self.parent.destroy()
 
   def openFile(self,name):
@@ -478,6 +481,7 @@ class xasyMainWin:
     fileName = os.path.basename(fullName)
     fileDir = os.path.dirname(fullName)
     os.chdir(fileDir)
+    startQuickAsy()
     self.filePrefix,none = os.path.splitext(fileName)
     #print "opening: full:" + fullName + " file:"+fileName+" dir:"+fileDir+" pref:"+self.filePrefix
     self.retitle()
@@ -493,12 +497,11 @@ class xasyMainWin:
       self.autoMakeScript = True
       if self.autoMakeScript or tkMessageBox.askyesno("Error Opening File", "File was not recognized as an xasy file.\nLoad as a script item?"):
         try:
-          item = xasyScript()
+          item = xasyScript(self.mainCanvas)
           f.seek(0)
           item.setScript(f.read())
           self.addItemToFile(item)
         except:
-          raise
           tkMessageBox.showerror("File Opening Failed.","Could not load as a script item.")
           self.fileItems = []
     self.populateCanvasWithItems()
@@ -535,7 +538,7 @@ class xasyMainWin:
   def populatePropertyList(self):
     self.propList.delete(0,END)
     for item in self.fileItems:
-      self.propList.insert(END,self.describeItem(item))
+      self.propList.insert(0,self.describeItem(item))
 
   def saveFile(self,name):
     f = open(name,"wt")
@@ -600,10 +603,10 @@ class xasyMainWin:
     outName = os.path.basename(outfile.name)
     dirname = os.path.dirname(fullname)
     outfile.close()
-    os.chdir(dirname)
-    command = "asy -f %s -o %s %s"%(outFormat,outName,inFile)
+    #os.chdir(dirname)
+    command = "asy -f %s -o %s %s"%(outFormat,fullname,inFile)
     print command
-    saver = subprocess.Popen(split(command),stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    saver = subprocess.Popen(split(command),stdin=PIPE,stdout=PIPE,stderr=PIPE)
     saver.wait()
     if saver.returncode != 0:
       tkMessageBox.showerror("Error Exporting File",saver.stdout.read()+saver.stderr.read())
@@ -678,7 +681,7 @@ class xasyMainWin:
     self.updateSelectedButton(self.toolSelectButton)
     self.clearSelection()
     self.clearHighlight()
-    self.addItemToFile(xasyScript())
+    self.addItemToFile(xasyScript(self.mainCanvas))
     text = xasyCodeEditor(self.parent,"// enter your code here").getText()
     self.fileItems[-1].setScript(text)
     self.fileItems[-1].drawOnCanvas(self.mainCanvas)
@@ -755,7 +758,7 @@ class xasyMainWin:
       try:
         self.selectItem(self.fileItems[len(self.fileItems)-items[0]-1])
       except:
-        pass
+        raise
 
   def findItem(self,ID):
     for item in self.fileItems:
@@ -812,7 +815,8 @@ class xasyMainWin:
         self.mainCanvas.tag_lower(item.IDTag)
       self.mainCanvas.tag_lower("axes || grid")
 
-  def transformSomething(self,ID,transform):
+  def translateSomething(self,ID,translation):
+    transform = asyTransform((translation[0],translation[1],1,0,0,1))
     item = self.findItem(ID)
     if item == None:
       raise Exception,"fileList is corrupt!"
@@ -826,8 +830,73 @@ class xasyMainWin:
         except:
           original = identity
         item.transform[index] = transform*original
+        bbox = item.imageList[index].originalImage.bbox
+        item.imageList[index].originalImage.bbox = bbox[0]+translation[0],bbox[1]+translation[1],bbox[2]+translation[0],bbox[3]+translation[1]
     else:
       item.transform = transform*item.transform
+
+  def makeRotationMatrix(self,theta,origin):
+    rotMat = (math.cos(theta),-math.sin(theta),math.sin(theta),math.cos(theta))
+    shift = asyTransform((0,0,1-rotMat[0],-rotMat[1],-rotMat[2],1-rotMat[3]))*origin
+    return asyTransform((shift[0],shift[1],rotMat[0],rotMat[1],rotMat[2],rotMat[3]))
+
+  def rotateSomething(self,ID,theta,origin):
+    #print "Rotating by",theta*180.0/math.pi,"around",origin
+    rotMat = self.makeRotationMatrix(theta,origin)
+    #print rotMat
+    item = self.findItem(ID)
+    if item == None:
+      raise Exception,"fileList is corrupt!"
+    if isinstance(item,xasyText) or isinstance(item,xasyScript):
+      #transform the image
+      index = self.findItemImageIndex(item,ID)
+      if index == None:
+        raise Exception,"imageList is corrupt!"
+      else:
+        try:
+          original = item.transform[index]
+        except:
+          original = identity
+        oldBbox = item.imageList[index].originalImage.bbox
+        oldBbox = (oldBbox[0],-oldBbox[1],oldBbox[2],-oldBbox[3])
+        item.transform[index] = rotMat*item.transform[index]
+        item.transform[index] = rotMat*original
+        item.imageList[index].originalImage.theta += theta
+        item.imageList[index].image = item.imageList[index].originalImage.rotate(item.imageList[index].originalImage.theta*180.0/math.pi,expand=True,resample=Image.BICUBIC)
+        item.imageList[index].itk = ImageTk.PhotoImage(item.imageList[index].image)
+        self.mainCanvas.itemconfigure(ID,image=item.imageList[index].itk)
+        #the image has been rotated in place
+        #now, compensate for any resizing and shift to the correct location
+        #
+        #  p0 --- p1               p1
+        #  |      |     --->      /  \
+        #  p2 --- p3             p0  p3
+        #                         \ /
+        #                          p2
+        #
+        rotMat2 = self.makeRotationMatrix(item.imageList[index].originalImage.theta,origin)
+        p0 = rotMat2*(oldBbox[0],-oldBbox[3])#switch to usual coordinates
+        p1 = rotMat2*(oldBbox[2],-oldBbox[3])
+        p2 = rotMat2*(oldBbox[0],-oldBbox[1])
+        p3 = rotMat2*(oldBbox[2],-oldBbox[1])
+        newTopLeft = (min(p0[0],p1[0],p2[0],p3[0]),-max(p0[1],p1[1],p2[1],p3[1]))#switch back to screen coords
+        shift = (newTopLeft[0]-oldBbox[0],newTopLeft[1]-oldBbox[3])
+        #print theta*180.0/math.pi,origin,oldBbox,newTopLeft,shift
+        #print item.imageList[index].originalImage.size
+        #print item.imageList[index].image.size
+        #print
+        self.mainCanvas.coords(ID,oldBbox[0]+shift[0],oldBbox[3]+shift[1])
+    else:
+      #transform each point of the object
+      xform = rotMat*item.transform
+      item.transform = identity
+      for i in range(len(item.path.nodeSet)):
+        if item.path.nodeSet[i] != 'cycle':
+          item.path.nodeSet[i] = xform*item.path.nodeSet[i]
+      for i in range(len(item.path.controlSet)):
+        item.path.controlSet[i][0] = xform*item.path.controlSet[i][0]
+        item.path.controlSet[i][1] = xform*item.path.controlSet[i][1]
+      item.drawOnCanvas(self.mainCanvas)
 
   def deleteItem(self,item):
     if isinstance(item,xasyScript) or isinstance(item,xasyText):
@@ -895,14 +964,14 @@ class xasyMainWin:
         transform = identity
         if self.selectedButton == self.toolMoveButton:
           self.mainCanvas.move(ID,x-self.dragStartx,y-self.dragStarty)
-          transform = asyTransform((x-self.dragStartx,-(y-self.dragStarty),1,0,0,1))
+          translation = (x-self.dragStartx,-(y-self.dragStarty))
         elif self.selectedButton == self.toolVertiMoveButton:
           self.mainCanvas.move(ID,0,y-self.dragStarty)
-          transform = asyTransform((0,-(y-self.dragStarty),1,0,0,1))
+          translation = (0,-(y-self.dragStarty))
         elif self.selectedButton == self.toolHorizMoveButton:
           self.mainCanvas.move(ID,x-self.dragStartx,0)
-          transform = asyTransform((x-self.dragStartx,0,1,0,0,1))
-        self.transformSomething(ID,transform)
+          translation = (x-self.dragStartx,0)
+        self.translateSomething(ID,translation)
       self.updateSelection()
     self.updateCanvasSize()
     self.dragStartx,self.dragStarty = x,y
@@ -918,16 +987,16 @@ class xasyMainWin:
   def itemSelect(self,event):
     x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
     self.dragStartx,self.dragStarty = x,y
-    if self.selectedButton in [self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton]:
+    if self.selectedButton in [self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton,self.toolRotateButton]:
       self.freeMouseDown = False
-    if self.selectedButton == self.toolSelectButton or (len(self.mainCanvas.find_withtag("selectedItem"))<=1 and self.selectedButton in [self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton]):
+    if self.selectedButton == self.toolSelectButton or (len(self.mainCanvas.find_withtag("selectedItem"))<=1 and self.selectedButton in [self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton,self.toolRotateButton]):
       self.clearSelection()
       self.setSelection(CURRENT)
 
   def itemToggleSelect(self,event):
     #print "control click"
     x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
-    if self.selectedButton in [self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton]:
+    if self.selectedButton in [self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton,self.toolRotateButton]:
       self.freeMouseDown = False
       self.dragStartx,self.dragStarty = x,y
       if "selectedItem" in self.mainCanvas.gettags(CURRENT):
@@ -944,7 +1013,7 @@ class xasyMainWin:
     pass
 
   def itemHighlight(self,event):
-    if self.selectedButton in [self.toolSelectButton,self.toolMoveButton,self.toolHorizMoveButton,self.toolVertiMoveButton] and self.editor == None:
+    if self.selectedButton in [self.toolSelectButton] and self.editor == None:
       box = self.mainCanvas.bbox(CURRENT)
       box = (box[0]-2,box[1]-2,box[2]+2,box[3]+2)
       if len(self.mainCanvas.find_withtag("highlightBox"))==0:
@@ -1061,10 +1130,13 @@ class xasyMainWin:
     x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
     #print "Left Mouse Down"
     self.selectDragStart = (self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y))
+    theBbox = self.mainCanvas.bbox("selectedItem")
+    if theBbox != None:
+      self.selectBboxMidpoint = (theBbox[0]+theBbox[2])/2.0,-(theBbox[1]+theBbox[3])/2.0
     if self.freeMouseDown and self.editor != None:
       self.editor.endEdit()
       self.editor = None
-    elif self.selectedButton in (self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton):
+    elif self.selectedButton in (self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton,self.toolRotateButton):
       if self.freeMouseDown:
         self.clearSelection()
         self.dragSelecting = False
@@ -1074,6 +1146,13 @@ class xasyMainWin:
   def canvLeftUp(self,event):
     #print "Left Mouse Up"
     self.freeMouseDown = True
+    if self.inRotatingMode:
+      for item in self.itemsBeingRotated:
+        item.drawOnCanvas(self.mainCanvas)
+        self.bindItemEvents(item)
+      self.updateSelection()
+      self.itemsBeingRotated = []
+      self.inRotatingMode = False
     if self.dragSelecting:
       self.hideSelectionBox()
       self.dragSelecting = False
@@ -1089,10 +1168,41 @@ class xasyMainWin:
       self.updateSelection()
 
   def canvDrag(self,event):
+    x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
     if self.selectedButton == self.toolSelectButton and self.editor == None:
-      self.mainCanvas.coords("outlineBox",self.selectDragStart[0],self.selectDragStart[1],self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y))
+      self.mainCanvas.coords("outlineBox",self.selectDragStart[0],self.selectDragStart[1],x,y)
       self.showSelectionBox()
       self.dragSelecting = True
+    elif self.selectedButton == self.toolRotateButton and self.editor == None:
+      bbox = self.mainCanvas.bbox("selectedItem")
+      self.inRotatingMode = True
+      if bbox != None:
+        p1 = self.selectDragStart[0]-self.selectBboxMidpoint[0],-self.selectDragStart[1]-self.selectBboxMidpoint[1]
+        mp1 = math.sqrt(p1[0]**2+p1[1]**2)
+        p2 = x-self.selectBboxMidpoint[0],-y-self.selectBboxMidpoint[1]
+        mp2 = math.sqrt(p2[0]**2+p2[1]**2)
+        if mp1 != 0:
+          t1 = math.acos(p1[0]/mp1)
+          if p1[1] < 0:
+            t1 *= -1
+        else:
+          t1 = 0
+        if mp2 != 0:
+          t2 = math.acos(p2[0]/mp2)
+          if p2[1] < 0:
+            t2 *= -1
+        else:
+          mp2 = 0
+        theta = t2-t1
+        self.selectDragStart = x,y
+        self.itemsBeingRotated = []
+        for ID in self.mainCanvas.find_withtag("selectedItem"):
+          self.rotateSomething(ID,theta,self.selectBboxMidpoint)
+          item = self.findItem(ID)
+          if not item in self.itemsBeingRotated:
+            self.itemsBeingRotated.append(item)
+        self.updateSelection()
+        self.updateCanvasSize()
 
   def canvEnter(self,event):
     self.freeMouseDown = True
@@ -1135,6 +1245,21 @@ class xasyMainWin:
   def popupViewCode(self):
     tkMessageBox.showinfo("Item Code",self.itemPopupMenu.item.getCode())
 
+  def popupClearTransform(self):
+    if isinstance(self.itemPopupMenu.item,xasyScript) or isinstance(self.itemPopupMenu.item,xasyText):
+      for i in range(len(self.itemPopupMenu.item.transform)):
+        self.itemPopupMenu.item.transform[i] = identity
+    else:
+      self.itemPopupMenu.item.transform = identity
+    self.popupRedrawItem()
+
+  def popupRedrawItem(self):
+    self.clearSelection()
+    self.clearHighlight()
+    self.itemPopupMenu.item.drawOnCanvas(self.mainCanvas)
+    self.bindItemEvents(self.itemPopupMenu.item)
+    self.updateCanvasSize()
+
   def hidePopupMenu(self):
     try:
       self.itemPopupMenu.unpost()
@@ -1145,6 +1270,8 @@ class xasyMainWin:
     self.hidePopupMenu()
     self.itemPopupMenu = Menu(parent,tearoff=False)
     self.itemPopupMenu.add_command(label="Edit",command=self.popupEdit)
+    self.itemPopupMenu.add_command(label="Clear Transforms",command=self.popupClearTransform)
+    self.itemPopupMenu.add_command(label="Redraw",command=self.popupRedrawItem)
     self.itemPopupMenu.add_command(label="View code",command=self.popupViewCode)
     self.itemPopupMenu.add_separator()
     self.itemPopupMenu.add_command(label="Delete",command=self.popupDelete)
@@ -1155,14 +1282,15 @@ class xasyMainWin:
 
   def itemPropMenuPopup(self,event):
     try:
+      #print int(self.propList.curselection()[0])
+      #print len(self.fileItems)-int(self.propList.curselection()[0])-1
       item = self.fileItems[len(self.fileItems)-int(self.propList.curselection()[0])-1]
-    except:
-      item = None
-    if item != None:
       self.itemMenuPopup(self.propList,item,event.x_root,event.y_root)
+    except:
+      pass
 
   def itemCanvasMenuPopup(self,event):
-    if self.selectedButton in (self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton):
+    if self.selectedButton in (self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton,self.toolRotateButton):
       try:
         item = self.findItem(self.mainCanvas.find_withtag(CURRENT)[0])
       except:
