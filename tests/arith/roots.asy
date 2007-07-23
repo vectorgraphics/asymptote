@@ -73,6 +73,15 @@ assert(close(r[0],-x));
 assert(r[1] == 0);
 assert(close(r[2],x));
 
+r=cubicroots(1,1,1,0);
+assert(r.length == 1);
+assert(r[0] == 0);
+
+r=cubicroots(1,0,20,-4);
+assert(r.length == 1);
+x=cbrt(54+6sqrt(6081));
+assert(close(r[0],x/3-20/x));
+
 r=cubicroots(1,0,20,-4);
 assert(r.length == 1);
 x=cbrt(54+6sqrt(6081));
