@@ -190,16 +190,7 @@ bareblock:
 name:
   ID               { $$ = new simpleName($1.pos, $1.sym); }
 | name '.' ID      { $$ = new qualifiedName($2, $1, $3.sym); }
-/*
-| STRING '.' ID    { $$ = new qualifiedName($2, new simpleName($2, $1.sym),
-					    $3.sym); }
-*/
 ;
-
-/*runnables:
-  runnable
-| runnables runnable
-;*/
 
 runnable:
   dec              { $$ = $1; }
@@ -280,17 +271,11 @@ barevardec:
 
 type:
   celltype         { $$ = $1; }
-/*| PRIM dims        { $$ = new arrayTy($1.pos, 
-                            new nameTy($1.pos,
-                              new simpleName($1.pos, $1.sym)),
-                            $2); }*/
 | name dims        { $$ = new arrayTy($1, $2); }
 ;
 
 celltype:
   name             { $$ = new nameTy($1); }
-/*| PRIM             { $$ = new nameTy($1.pos, 
-                                     new simpleName($1.pos, $1.sym)); }*/
 ;
 
 dims:
@@ -413,7 +398,6 @@ value:
 | value '(' ')'    { $$ = new callExp($2, $1, new arglist()); }
 | value '(' arglist ')'
                    { $$ = new callExp($2, $1, $3); }
-//| '(' name ')'   { $$ = new nameExp($2->getPos(), $2); }
 | '(' exp ')' %prec LOOSE
                    { $$ = $2; }
 | THIS             { $$ = new thisExp($1); }
@@ -438,13 +422,6 @@ basearglist:
 ;
 
 
-/*
-explist:
-  exp              { $$ = new explist($1->getPos()); $$->add($1); }
-| explist ',' exp  { $$ = $1; $$->add($3); }
-;
-*/
-
 exp:
   name             { $$ = new nameExp($1->getPos(), $1); }
 | value            { $$ = $1; }
@@ -452,13 +429,8 @@ exp:
 | STRING           { $$ = new stringExp($1.pos, *$1.sym); }
 /* This is for scaling expressions such as 105cm */
 | LIT exp          { $$ = new scaleExp($1->getPos(), $1, $2); }
-/*| '(' PRIM ')' exp { $$ = new castExp($2.pos,
-                                      new simpleName($2.pos, $2.sym),
-                                      $4); } */
 | '(' name ')' exp
                    { $$ = new castExp($2->getPos(), new nameTy($2), $4); }
-/* | '(' PRIM dims ')' exp
-                   { $$ = new castExp($2->getPos(), $2, $4); } */
 | '(' name dims ')' exp
                    { $$ = new castExp($2->getPos(), new arrayTy($2, $3), $5); }
 | '+' exp %prec UNARY
@@ -487,10 +459,6 @@ exp:
 | exp INCR exp     { $$ = new binaryExp($2.pos, $1, $2.sym, $3); }
 | NEW celltype
                    { $$ = new newRecordExp($1, $2); }
-//| NEW celltype dims
-//                   { $$ = new newRecordExp($1,
-//                                           new arrayTy($2->getPos(), $2, $3)); }
-//| NEW name block
 | NEW celltype dimexps
                    { $$ = new newArrayExp($1, $2, $3, 0, 0); }
 | NEW celltype dimexps dims
