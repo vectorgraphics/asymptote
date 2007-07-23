@@ -119,6 +119,15 @@ cubicroots::cubicroots(double a, double b, double c, double d)
   static const double ninth=1.0/9.0;
   static const double fiftyfourth=1.0/54.0;
   
+  // Remove roots at numerical infinity.
+  if(fabs(a) <= Fuzz*(fabs(b)+fabs(c)*Fuzz+fabs(d)*Fuzz*Fuzz)) {
+    quadraticroots q(b,c,d);
+    roots=q.roots;
+    if(q.roots >= 1) t1=q.t1;
+    if(q.roots == 2) t2=q.t2;
+    return;
+  }
+  
   // Detect roots at numerical zero.
   if(fabs(d) <= Fuzz*(fabs(c)+fabs(b)*Fuzz+fabs(a)*Fuzz*Fuzz)) {
     quadraticroots q(a,b,c);
@@ -126,15 +135,6 @@ cubicroots::cubicroots(double a, double b, double c, double d)
     t1=0;
     if(q.roots >= 1) t2=q.t1;
     if(q.roots == 2) t3=q.t2;
-    return;
-  }
-  
-  // Remove roots at numerical infinity.
-  if(fabs(a) <= Fuzz*(fabs(b)+fabs(c)*Fuzz+fabs(d)*Fuzz*Fuzz)) {
-    quadraticroots q(b,c,d);
-    roots=q.roots;
-    if(q.roots >= 1) t1=q.t1;
-    if(q.roots == 2) t2=q.t2;
     return;
   }
   
