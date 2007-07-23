@@ -1,5 +1,5 @@
 restricted bool inXasyMode = false;
-private bool diagnostics = false;
+bool diagnostics = false;
 void report(string text)
 {
  if(diagnostics)
@@ -19,6 +19,7 @@ void initXasyMode()
 {
   size(0,0);
   inXasyMode = true;
+  settings.deconstruct = 0;
 }
 
 void exitXasyMode()
@@ -82,21 +83,6 @@ struct framedTransformStack {
     stack.push(t);
   }
 
-  void enterFrame() {
-    return;
-    frames.push(stackBase);
-    stackBase=stack.length;
-    report("entered frame");
-  }
-
-  void leaveFrame() {
-    return;
-    if(stackBase < stack.length)
-      stack.delete(stackBase,stack.length-1);
-    stackBase=(stack.length > 0) ? frames.pop() : 0;
-    report("left frame");
-  }
-
   void add(... indexedTransform[] tList) {
     transform[] toPush;
     for(int a=0; a < tList.length; ++a)
@@ -111,3 +97,10 @@ struct framedTransformStack {
 }
 
 framedTransformStack xformStack;
+
+void deconstructpic(picture pic=currentpicture, string prefix="out",
+             real magnification=1.0, bool onlyCount=false)
+{
+  settings.deconstruct = magnification;
+  deconstructpic(pic.fit(),xformStack.pop,prefix,patterns,onlyCount);
+}
