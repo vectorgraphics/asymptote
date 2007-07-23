@@ -68,7 +68,7 @@ def load():
     newOptions = pickle.load(f)
     for key in options.keys():
       if type(newOptions[key]) != type(options[key]):
-        raise Exception,"Bad type"
+        raise Exception,"Bad type for entry in xasy settings"
     options = newOptions
   except:
     setDefaults()

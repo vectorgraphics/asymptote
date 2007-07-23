@@ -23,8 +23,6 @@ class xasyCodeEditor(Toplevel):
     self.fileMenu = Menu(self.mainMenu)
     self.fileMenu.add_command(label="Open File",command=self.loadFile)
     self.fileMenu.add_separator()
-    #self.fileMenu.add_command(label="Update",command=self.invokeCallback)
-    #self.fileMenu.add_separator()
     self.fileMenu.add_command(label="Apply changes and close",command=self.applyChangesAndQuit)
     self.fileMenu.add_command(label="Close",command=self.destroy)
     self.mainMenu.add_cascade(label="File",menu=self.fileMenu)
@@ -108,10 +106,8 @@ class xasyCodeEditor(Toplevel):
     self.text = self.textBox.get(1.0,END).rstrip()
     self.destroy()
 
-def defCallback(text):
-  print text
 if __name__ == '__main__':
   #run a test
   root=Tk()
-  ce = xasyCodeEditor(root,"Here is some text to edit",defCallback)
+  ce = xasyCodeEditor(root,"Here is some text to edit")
   root.mainloop()
