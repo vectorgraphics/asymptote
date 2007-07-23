@@ -17,6 +17,7 @@ from Tkinter import *
 #PIL support might become mandatory
 try:
   from PIL import ImageTk
+  import Image
   PILAvailable = True
 except:
   PILAvailable = False
@@ -27,153 +28,153 @@ class asyProcessFailure(Exception):
   """asy could not be invoked to execute a command because the process has failed."""
   pass
 
-class asyProcess:
-  """A wrapper providing a pipe to and from an asy process.
-  Due to the speed penalties incurred as a result of the signals passed this is not used for simple evaluation of asy commands.
-  For that purpose, the quickAsy Popen object is used."""
-  def __init__(self):
-    """Initialize the asyProcess"""
-    self.sigCount = 0
-    self.pendingSigs = []
-    self.lastIndex = 0
-    self.imageHandler = self.defImgHandler
-    self.done = False
-    self.locked = False
-    signal.signal(signal.SIGINT,self.sigHandler)
-    self.restart()
+#class asyProcess:
+  #"""A wrapper providing a pipe to and from an asy process.
+  #Due to the speed penalties incurred as a result of the signals passed this is not used for simple evaluation of asy commands.
+  #For that purpose, the quickAsy Popen object is used."""
+  #def __init__(self):
+    #"""Initialize the asyProcess"""
+    #self.sigCount = 0
+    #self.pendingSigs = []
+    #self.lastIndex = 0
+    #self.imageHandler = self.defImgHandler
+    #self.done = False
+    #self.locked = False
+    #signal.signal(signal.SIGINT,self.sigHandler)
+    #self.restart()
 
-  def restart(self):
-    self.quit()
-    self.failed = False
-    try:
-      if xasyOptions.options['showDebug']:
-        self.process = Popen(split(xasyOptions.options['asyPath']+" -noV -signal -interactive -x1 -multiline -vv"),stdin=PIPE)
-      else:
-        self.process = Popen(split(xasyOptions.options['asyPath']+" -noV -signal -interactive -x1 -multiline"),stdin=PIPE,stdout=PIPE,stderr=PIPE)
-      self.quitted = False
-      self.statusFileName = os.path.abspath(".asy_status_"+str(os.getpid()))
-      self.startDir = os.path.dirname(self.statusFileName)
-      self.sigLoop()
-    except:
-      self.failed = True
+  #def restart(self):
+    #self.quit()
+    #self.failed = False
+    #try:
+      #if xasyOptions.options['showDebug']:
+        #self.process = Popen(split(xasyOptions.options['asyPath']+" -noV -signal -interactive -x1 -multiline -vv"),stdin=PIPE)
+      #else:
+        #self.process = Popen(split(xasyOptions.options['asyPath']+" -noV -signal -interactive -x1 -multiline"),stdin=PIPE,stdout=PIPE,stderr=PIPE)
+      #self.quitted = False
+      #self.statusFileName = os.path.abspath(".asy_status_"+str(os.getpid()))
+      #self.startDir = os.path.dirname(self.statusFileName)
+      #self.sigLoop()
+    #except:
+      #self.failed = True
 
-  def __del__(self):
-    """Delete the asyProcess object"""
-    if not self.quitted:
-      self.process.stdin.close()
-      self.process.wait()
-    os.remove(os.path.join(self.startDir,self.statusFileName))
+  #def __del__(self):
+    #"""Delete the asyProcess object"""
+    #if not self.quitted:
+      #self.process.stdin.close()
+      #self.process.wait()
+    #os.remove(os.path.join(self.startDir,self.statusFileName))
 
-  def defImgHandler(self,a,b,c,d):
-    """The default response to the reception of an image
-    Should be assigned to a user-supplied method to save the images obtained"""
-    pass
+  #def defImgHandler(self,a,b,c,d):
+    #"""The default response to the reception of an image
+    #Should be assigned to a user-supplied method to save the images obtained"""
+    #pass
 
-  def actOnInterrupts(self):
-    """Manage the pending signal list.
-    This method should not be invoked if no signals are anticipated; it will stall. Use sigLoop instead."""
-    if len(self.pendingSigs) == 0:
-      signal.pause()
-    #print "Handling:",self.pendingSigs
-    self.pendingSigs = []
-    statfile = open(self.statusFileName)
-    lines = statfile.read()
-    lines = lines.splitlines()
-    #print lines
-    opComplete = False
-    if lines[-1] == '0':
-      opComplete = True
-    currentCount = 0
-    if len(lines)==1 and lines[0] != '0':
-      try:
-        num = eval(lines[0])
-        if type(num) == type(1):
-          currentCount = num
-      except:
-        pass
-    if len(lines)>1 and lines[-2] != '0':
-      try:
-        num = eval(lines[-2])
-        if type(num) == type(1):
-          currentCount = num
-      except:
-        pass
-    if currentCount > self.lastIndex:
-      boxfile = open(os.path.join(self.startDir,".out_0.box"),"rt")
-      boxlines = boxfile.readlines()
-      magnification,format = split(boxlines[0])
-      for i in range(self.lastIndex,currentCount):
-        l,b,r,t = [float(a) for a in split(boxlines[i+1])]
-        #print i,(l,b,r,t)
-        #I think that asy puts the images in the current directory???
-        self.imageHandler(".out_%d.%s"%(i,format),format,(l,b,r,t),i)
-    self.lastIndex = currentCount
-    if opComplete:
-      self.lastIndex = 0
-      self.done = True
-    self.sigCount = 0
-    if len(self.pendingSigs) > 0 and not opComplete:
-      self.actOnInterrupts()
+  #def actOnInterrupts(self):
+    #"""Manage the pending signal list.
+    #This method should not be invoked if no signals are anticipated; it will stall. Use sigLoop instead."""
+    #if len(self.pendingSigs) == 0:
+      #signal.pause()
+    ##print "Handling:",self.pendingSigs
+    #self.pendingSigs = []
+    #statfile = open(self.statusFileName)
+    #lines = statfile.read()
+    #lines = lines.splitlines()
+    ##print lines
+    #opComplete = False
+    #if lines[-1] == '0':
+      #opComplete = True
+    #currentCount = 0
+    #if len(lines)==1 and lines[0] != '0':
+      #try:
+        #num = eval(lines[0])
+        #if type(num) == type(1):
+          #currentCount = num
+      #except:
+        #pass
+    #if len(lines)>1 and lines[-2] != '0':
+      #try:
+        #num = eval(lines[-2])
+        #if type(num) == type(1):
+          #currentCount = num
+      #except:
+        #pass
+    #if currentCount > self.lastIndex:
+      #boxfile = open(os.path.join(self.startDir,".out_0.box"),"rt")
+      #boxlines = boxfile.readlines()
+      #magnification,format = split(boxlines[0])
+      #for i in range(self.lastIndex,currentCount):
+        #l,b,r,t = [float(a) for a in split(boxlines[i+1])]
+        ##print i,(l,b,r,t)
+        ##I think that asy puts the images in the current directory???
+        #self.imageHandler(".out_%d.%s"%(i,format),format,(l,b,r,t),i)
+    #self.lastIndex = currentCount
+    #if opComplete:
+      #self.lastIndex = 0
+      #self.done = True
+    #self.sigCount = 0
+    #if len(self.pendingSigs) > 0 and not opComplete:
+      #self.actOnInterrupts()
 
-  def sigHandler(self,signum,frame):
-    """The signal handler registered to receive asy's signals"""
-    self.pendingSigs.append(self.sigCount)
-    #print "Pending:",self.pendingSigs
-    self.sigCount += 1
+  #def sigHandler(self,signum,frame):
+    #"""The signal handler registered to receive asy's signals"""
+    #self.pendingSigs.append(self.sigCount)
+    ##print "Pending:",self.pendingSigs
+    #self.sigCount += 1
 
-  def sigLoop(self):
-    """Process the signal list until the asy process signals that it has completed."""
-    while not self.done:
-      self.actOnInterrupts()
+  #def sigLoop(self):
+    #"""Process the signal list until the asy process signals that it has completed."""
+    #while not self.done:
+      #self.actOnInterrupts()
 
-  def execute(self,cmd):
-    """Execute an asy statement and wait for its completion."""
-    if xasyOptions.options['showDebug']:
-      print cmd
-    try:
-      if self.quitted:
-        raise Exception,"asy has already quit"
-      self.done = False
-      self.process.stdin.write(cmd+"\n")
-      self.process.stdin.flush()
-      if cmd != "quit;":
-        self.sigLoop()
-    except:
-      raise asyProcessFailure
+  #def execute(self,cmd):
+    #"""Execute an asy statement and wait for its completion."""
+    #if xasyOptions.options['showDebug']:
+      #print cmd
+    #try:
+      #if self.quitted:
+        #raise Exception,"asy has already quit"
+      #self.done = False
+      #self.process.stdin.write(cmd+"\n")
+      #self.process.stdin.flush()
+      #if cmd != "quit;":
+        #self.sigLoop()
+    #except:
+      #raise asyProcessFailure
 
-  def reset(self):
-    """Reset the asy process, causing it to reload defaults."""
-    self.done = False
-    self.execute("reset;")
-    self.execute("initXasyMode();")
+  #def reset(self):
+    #"""Reset the asy process, causing it to reload defaults."""
+    #self.done = False
+    #self.execute("reset;")
+    #self.execute("initXasyMode();")
 
-  def quit(self):
-    """Shutdown the asy process"""
-    try:
-      self.execute("quit;")
-      self.quitted = True
-      self.process.stdin.close()
-      self.process.wait()
-      os.remove(os.path.join(self.startDir,self.statusFileName))
-    except:
-      pass
+  #def quit(self):
+    #"""Shutdown the asy process"""
+    #try:
+      #self.execute("quit;")
+      #self.quitted = True
+      #self.process.stdin.close()
+      #self.process.wait()
+      #os.remove(os.path.join(self.startDir,self.statusFileName))
+    #except:
+      #pass
 
-  def acquire(self):
-    """Wait to gain control of the process.
-    This ensures that multiple executes that depend on previously executed code do not interfere with each other."""
-    while self.locked:
-      pass
-    self.locked = True
-    self.imageHandler = self.defImgHandler
-    self.pendingSigs = []
-  def release(self):
-    """Release control of the asyProcess. To be used with acquire()"""
-    self.pendingSigs = []
-    self.imageHandler = self.defImgHandler
-    self.locked = False
+  #def acquire(self):
+    #"""Wait to gain control of the process.
+    #This ensures that multiple executes that depend on previously executed code do not interfere with each other."""
+    #while self.locked:
+      #pass
+    #self.locked = True
+    #self.imageHandler = self.defImgHandler
+    #self.pendingSigs = []
+  #def release(self):
+    #"""Release control of the asyProcess. To be used with acquire()"""
+    #self.pendingSigs = []
+    #self.imageHandler = self.defImgHandler
+    #self.locked = False
 
 
-asy = asyProcess()
+#asy = asyProcess()
 #asy.sigLoop()#waits for the first command prompt
 
 idCounter = 0;
@@ -185,6 +186,11 @@ def startQuickAsy():
   global quickAsy
   global quickAsyFailed
   try:
+    quickAsy.stdin.close()
+    quickAsy.wait()
+  except:
+    pass
+  try:
     quickAsy = Popen(split(xasyOptions.options['asyPath']+" -noV -q -multiline -interactive"),stdin=PIPE,stdout=PIPE,stderr=PIPE)
     if quickAsy.returncode != None:
       quickAsyFailed = True
@@ -192,6 +198,16 @@ def startQuickAsy():
       quickAsyFailed = False
   except:
     quickAsyFailed = True
+
+def syncQuickAsyOutput():
+  global idCounter
+  idStr = randString+"-id "+str(idCounter)
+  idCounter += 1
+  quickAsy.stdin.write("\nwrite(\""+idStr+"\");\n")
+  quickAsy.stdin.flush()
+  line = quickAsy.stdout.readline() 
+  while not line.endswith(idStr+'\n'):
+    line = quickAsy.stdout.readline()
 
 startQuickAsy()
 
@@ -284,14 +300,7 @@ class asyPen(asyObj):
 
   def computeColor(self):
     """Find out the color of an arbitrary asymptote pen."""
-    global idCounter
-    idStr = randString+"-id "+str(idCounter)
-    idCounter += 1
-    quickAsy.stdin.write("write(\""+idStr+"\");\n")
-    quickAsy.stdin.flush()
-    line = quickAsy.stdout.readline() 
-    while not line.endswith(idStr+'\n'):
-      line = quickAsy.stdout.readline()
+    syncQuickAsyOutput()
     quickAsy.stdin.write("pen p="+self.getCode()+';\n')
     quickAsy.stdin.write("write(\";\n\");write(colorspace(p));\n")
     quickAsy.stdin.write("write(colors(p));\n")
@@ -433,37 +442,7 @@ class asyPath(asyObj):
 
   def computeControls(self):
     """Evaluate the code of the path to obtain its control points"""
-    
-    #this is much too slow!
-    #asy.sigLoop()
-    #asy.acquire()
-    #asy.reset()
-    #global idCounter
-    #idStr = randString+"-id "+str(idCounter)
-    #idCounter += 1
-    #asy.execute("write(\""+idStr+"\");")
-    #line = asy.process.stdout.readline() 
-    #while not line.endswith(idStr+'\n'):
-      #line = asy.process.stdout.readline() 
-    #asy.execute("path p="+self.getCode()+';')
-    #asy.execute("length(p);")
-    #lengthStr = asy.process.stdout.readline()
-    ##print lengthStr
-    #pathSegments = eval(lengthStr.split()[-1])
-    #asy.execute("p;")
-    #pathStrLines = []
-    #for i in range(pathSegments+1):
-      #pathStrLines.append(asy.process.stdout.readline())
-    #asy.release()
-
-    global idCounter
-    idStr = randString+"-id "+str(idCounter)
-    idCounter += 1
-    quickAsy.stdin.write("write(\""+idStr+"\");\n")
-    quickAsy.stdin.flush()
-    line = quickAsy.stdout.readline() 
-    while not line.endswith(idStr+'\n'):
-      line = quickAsy.stdout.readline() 
+    syncQuickAsyOutput()
     quickAsy.stdin.write("path p="+self.getCode()+';\n')
     quickAsy.stdin.write("write(length(p));\n")
     quickAsy.stdin.write("write(p);write(\"\");\n")
@@ -546,14 +525,14 @@ class asyImage:
 
 class xasyItem:
   """A base class for items in the xasy GUI"""
-  def __init__(self):
+  def __init__(self,canvas=None):
     """Initialize the item to an empty item"""
     self.transform = identity
     self.asyCode = ""
     self.imageList = []
     self.IDTag = None
     self.asyfied = False
-    self.receivedImageNames = []
+    self.onCanvas = canvas
 
   def updateCode(self):
     """Update the item's code: to be overriden"""
@@ -568,28 +547,60 @@ class xasyItem:
     """Receive an image from an asy deconstruction. It replaces the default in asyProcess."""
     if bbox[0] == 0 and bbox[1] == 0 and bbox[2] == 0 and bbox[3] == 0:
       image = None
-      self.imageList.append(asyImage(image,format,bbox))
-    elif os.path.join(asy.startDir,file) not in self.receivedImageNames:
-      if format == "gif":
-        image = PhotoImage(file=os.path.join(asy.startDir,file))
-      else:
-        image = ImageTk.PhotoImage(file=os.path.join(asy.startDir,file))
-      self.receivedImageNames.append(os.path.join(asy.startDir,file))
+    else:
+      image = Image.open(file)
+      #os.remove(file)
+      #print "removed",file
+      #if format == "gif":
+        #image = PhotoImage(file=file)#os.path.join(asy.startDir,file))
+      #else:
+        #image = ImageTk.PhotoImage(file=file)#os.path.join(asy.startDir,file))
     self.imageList.append(asyImage(image,format,bbox))
+    if self.onCanvas != None and image != None:
+      self.imageList[-1].itk = ImageTk.PhotoImage(image)
+      self.imageList[-1].originalImage = image.copy()
+      self.imageList[-1].originalImage.theta = 0.0
+      self.imageList[-1].originalImage.bbox = bbox
+      self.imageList[-1].IDTag = self.onCanvas.create_image(bbox[0],-bbox[3],anchor=NW,tags=("image"),image=self.imageList[-1].itk)
+      self.onCanvas.update_idletasks()
 
   def asyfy(self):
     """Convert the item to a list of images by deconstructing this item's code"""
-    asy.acquire()
-    asy.reset()
-    asy.execute("atexit(null);")
+    self.removeFromCanvas()
     self.imageList = []
-    self.receivedImageNames = []
-    asy.imageHandler = self.handleImageReception
+    quickAsy.stdin.write("\nreset;\n")
+    quickAsy.stdin.write("initXasyMode();\n")
+    quickAsy.stdin.write("atexit(null);\n")
     for line in self.getCode().splitlines():
-      asy.execute(line);
-    asy.execute("shiponce();")
+      quickAsy.stdin.write(line+"\n");
+    quickAsy.stdin.flush()
+    syncQuickAsyOutput()
+    #try:
+      #os.remove(".out_0.box")
+    #except:
+      #pass
+    quickAsy.stdin.write("deconstructpic(onlyCount=true);\n")
+    quickAsy.stdin.write("deconstructpic();\n")
+    quickAsy.stdin.flush()
+    numpics = quickAsy.stdout.readline()
+    numpics = int(numpics[2:])
+    #print "Expecting",numpics
+    for i in range(numpics):
+      #print "waiting for",i,
+      text = quickAsy.stdout.readline()
+      #print " got it"
+      boxfile = open(".out_0.box","rt")
+      boxlines = boxfile.readlines()
+      magnification,format = split(boxlines[0])
+      l,b,r,t = [float(a) for a in split(boxlines[i+1])]
+      self.handleImageReception(".out_%d.%s"%(i,format),format,(l,b,r,t),i)
+      boxfile.close()
+    os.remove(".out_0.box")
     self.asyfied = True
-    asy.release()
+  def drawOnCanvas(self,canvas):
+    pass
+  def removeFromCanvas(self):
+    pass
 
 class xasyDrawnItem(xasyItem):
   """A base class for GUI items was drawn by the user. It combines a path, a pen, and a transform."""
@@ -777,28 +788,22 @@ class xasyText(xasyItem):
 
   def drawOnCanvas(self,canvas,asyFy = True):
     """Adds the label's images to a tk canvas"""
-    self.removeFromCanvas()
-    self.asyfy()
-    if canvas == None:
-      return
     if self.onCanvas == None:
       self.onCanvas = canvas
     elif self.onCanvas != canvas:
       raise Exception,"Error: item cannot be added to more than one canvas"
-    for image in self.imageList:
-      image.IDTag = canvas.create_image(image.bbox[0],-image.bbox[3],anchor=NW,tags=("image","xasyText"),image=image.image)
+    self.asyfy()
 
   def __str__(self):
     return "xasyText code:%s"%("\n\t".join(self.getCode().splitlines()))
 
 class xasyScript(xasyItem):
   """A set of images create from asymptote code. It is always deconstructed."""
-  def __init__(self,script="",transforms=[]):
+  def __init__(self,canvas,script="",transforms=[]):
     """Initialize this script item"""
-    xasyItem.__init__(self)
+    xasyItem.__init__(self,canvas)
     self.transform = transforms[:]
     self.script = script
-    self.onCanvas = None
 
   def clearTransform(self):
     """Reset the transforms for each of the deconstructed images""" 
@@ -845,18 +850,11 @@ class xasyScript(xasyItem):
 
   def drawOnCanvas(self,canvas,asyFy = True):
     """Adds the script's images to a tk canvas"""
-    self.removeFromCanvas()
-    self.asyfy()
-    if canvas == None:
-      return
     if self.onCanvas == None:
       self.onCanvas = canvas
     elif self.onCanvas != canvas:
       raise Exception,"Error: item cannot be added to more than one canvas"
-    index = 0
-    for image in self.imageList:
-      image.IDTag = canvas.create_image(image.bbox[0],-image.bbox[3],anchor=NW,tags=("image","xasyScript"),image=image.image)
-      index += 1
+    self.asyfy()
 
   def __str__(self):
     """Return a string describing this script"""
@@ -867,44 +865,6 @@ class xasyScript(xasyItem):
     return retVal
 
 if __name__=='__main__':
-  print asyPen(color="cmyk(0.4,0.2,0.3,0.3)").tkColor()
-  print asyPen(color="black").tkColor()
-  print asyPen(color="rgb(0.1,0.2,0.3)").tkColor()
-  root=Tk()
-  print "Making a path: (0,0)..(1,1)..(2,0)..(3,-1)"
-  path = asyPath()
-  path.initFromNodeList([(0,0),(85.0392,85.0392),(170.078,0),(255.118,-85.0392)],['..','..','..'])
-  test = xasyShape(path)
-  test.path.computeControls()
-  from timeit import Timer
-  t = Timer('test.path.computeControls()','from __main__ import test')
-  iterations = 500
-  print "Timing %d computeControls()----->"%iterations,1000.0*t.timeit(iterations)/iterations,"ms per computeControls()<------"
-  print test.getCode()
-  test.asyfy()
-
-  print 
-  print "Making a filled shape: (0,0)..(1,-1)..(2,0)..(3,1)..cycle"
-  path1 = asyPath()
-  path1.initFromNodeList([(0,0),(85.0392,-85.0392),(170.078,0),(255.118,85.0392),'cycle'],['..','..','..','..'])
-  test1 = xasyFilledShape(path1,asyPen(color="red"))
-  test1.path.computeControls()
-  print test1.getCode()
-  test1.asyfy()
-
-  print
-  print "Making a label"
-  test2 = xasyText("Test",(0,0))
-  print test2.getCode()
-  test2.asyfy()
-
-  Button(root,text="Close Me....",command=root.destroy).pack()
-  Button(root,image=test.imageList[0].image,command=root.destroy).pack()
-  Button(root,image=test1.imageList[0].image,command=root.destroy).pack()
-  Button(root,image=test2.imageList[0].image,command=root.destroy).pack()
-
-  #root.mainloop()
-  #print "Stopping the asy process that was created:"
-  #asy.quit()
-  #print "Done."
-
+  root = Tk()
+  t=xasyText("test",(0,0))
+  t.asyfy()
