@@ -34,7 +34,6 @@ def parseFile(inFile):
         #print "Line %d: %s"%(lineCount,line),
         lineResult = parseLine(line.strip(),lines)
       except:
-        raise
         raise xasyParseError,"Parsing error: line %d in %s\n%s"%(lineCount,inFile.name,line)
 
       if lineResult != None:
@@ -52,18 +51,22 @@ def extractScript(lines):
   theScript = ""
   line = lines.pop(0)
   level = 1
-  while level != 0:
-    theScript += line + "\n"
-    line = lines.pop(0)
+  while level > 0:
     check = line.lstrip()
-    if check.startswith(scriptSuffix):
+    while check.endswith(scriptSuffix):
       level -= 1
+      line = line[:len(line)-len(scriptSuffix)]
+      check = line.lstrip()
     if check.startswith(scriptPrefix):
       level += 1
+    theScript += line + "\n"
+    if level > 0:
+      line = lines.pop(0)
+
   global pendingTransformsD
   ts = pendingTransformsD[:]
   pendingTransformsD = []
-  return xasyScript(theScript,ts[:])
+  return xasyScript(None,script=theScript,transforms=ts[:])
 
 pendingTransforms = []
 pendingTransformsD = []
