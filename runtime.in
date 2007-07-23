@@ -1139,6 +1139,66 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
   f->shipout(preamble,(ppid ? buf.str() : prefix),format,wait,view);
 }
 
+void deconstructpic(picture *f, callableTransform *xform,
+	     string prefix=emptystring, picture *preamble=NULL,
+	     bool onlyCount=false)
+{
+  picture *result = new picture;
+  unsigned level=0;
+  unsigned i=0;
+  picture::nodelist::iterator p;
+  for(p = f->nodes.begin(); p != f->nodes.end(); ++p) {
+    bool Delete = false;
+    transform t;
+    static transform Zero=transform(0.0,0.0,0.0,0.0,0.0,0.0);
+    if(!onlyCount)
+    {
+      xform->call(Stack);
+      t=pop<transform>(Stack);
+      Delete=(t == Zero);
+    }
+    picture *group=new picture;
+// Ignore unclosed begingroups but not spurious endgroups.
+    const char *nobegin="endgroup without matching begingroup";
+    assert(*p);
+    if((*p)->endgroup()) error(nobegin);
+    if((*p)->begingroup()) {
+      ++level;
+      while(p != f->nodes.end() && level) {
+        drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
+	group->append(e);
+	++p;
+	if(p == f->nodes.end()) break;
+	assert(*p);
+	if((*p)->begingroup()) ++level;
+	if((*p)->endgroup()) if(level) --level;
+	  else error(nobegin);
+      }
+    }
+    if(p == f->nodes.end()) break;
+    assert(*p);
+    drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
+    group->append(e);
+    if(!group->null()) {
+      ostringstream buf;
+      buf << prefix << "_" << i;
+      if(!onlyCount) {
+        group->shipout(preamble,buf.str(),"<x>",false,false,Delete);
+        cout << buf.str() << (Delete?" Deleted":"") << endl;
+      }
+      ++i;
+    }
+    if(!Delete) result->add(*group);
+  }
+  cout << i << endl;
+  if(!onlyCount)
+  {
+    ostringstream buf;
+    buf << prefix << "_" << i;
+    result->shipout(preamble,buf.str(),"eps",false,false);
+  }
+}
+
 void purge()
 {
   purge();
