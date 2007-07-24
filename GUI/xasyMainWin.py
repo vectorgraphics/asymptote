@@ -364,6 +364,7 @@ class xasyMainWin:
 
     #setup undo/redo!
     self.undoRedoStack = actionStack()
+    self.amDragging = False
 
   def retitle(self):
     if self.filename == None:
@@ -458,8 +459,7 @@ class xasyMainWin:
   def bindEvents(self,tagorID):
     self.mainCanvas.tag_bind(tagorID,"<Control-Button-1>",self.itemToggleSelect)
     self.mainCanvas.tag_bind(tagorID,"<Button-1>",self.itemSelect)
-    #self.mainCanvas.tag_bind(tagorID,"<Button-1>",self.itemMouseDown)
-    #self.mainCanvas.tag_bind(tagorID,"<ButtonRelease-1>",self.itemMouseUp)
+    self.mainCanvas.tag_bind(tagorID,"<ButtonRelease-1>",self.itemMouseUp)
     self.mainCanvas.tag_bind(tagorID,"<Double-Button-1>",self.itemEditEvt)
     self.mainCanvas.tag_bind(tagorID,"<B1-Motion>",self.itemDrag)
     self.mainCanvas.tag_bind(tagorID,"<Delete>",self.itemDelete)
@@ -851,16 +851,22 @@ class xasyMainWin:
     shift = asyTransform((0,0,1-rotMat[0],-rotMat[1],-rotMat[2],1-rotMat[3]))*origin
     return asyTransform((shift[0],shift[1],rotMat[0],rotMat[1],rotMat[2],rotMat[3]))
 
-  def rotateSomething(self,ID,theta,origin):
+  def rotateSomething(self,ID,theta,origin,specificItem=None,specificIndex=None):
     #print "Rotating by",theta*180.0/math.pi,"around",origin
     rotMat = self.makeRotationMatrix(theta,origin)
     #print rotMat
-    item = self.findItem(ID)
+    if ID == -1:
+      item = specificItem
+    else:
+      item = self.findItem(ID)
     if item == None:
       raise Exception,"fileList is corrupt!"
     if isinstance(item,xasyText) or isinstance(item,xasyScript):
       #transform the image
-      index = self.findItemImageIndex(item,ID)
+      if ID == -1:
+        index = specificIndex
+      else:
+        index = self.findItemImageIndex(item,ID)
       if index == None:
         raise Exception,"imageList is corrupt!"
       else:
@@ -971,33 +977,33 @@ class xasyMainWin:
     if self.selectedButton not in [self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton]:
       return
     if "selectedItem" in self.mainCanvas.gettags(CURRENT):
+      self.amDragging = True
       for ID in self.mainCanvas.find_withtag("selectedItem"):
         transform = identity
         if self.selectedButton == self.toolMoveButton:
-          self.mainCanvas.move(ID,x-self.dragStartx,y-self.dragStarty)
           translation = (x-self.dragStartx,-(y-self.dragStarty))
         elif self.selectedButton == self.toolVertiMoveButton:
-          self.mainCanvas.move(ID,0,y-self.dragStarty)
           translation = (0,-(y-self.dragStarty))
         elif self.selectedButton == self.toolHorizMoveButton:
-          self.mainCanvas.move(ID,x-self.dragStartx,0)
           translation = (x-self.dragStartx,0)
         self.translateSomething(ID,translation)
-      self.updateSelection()
-    self.updateCanvasSize()
+        self.mainCanvas.move(ID,translation[0],-translation[1])
+        self.updateSelection()
+        self.updateCanvasSize()
+        self.distanceDragged = (self.distanceDragged[0]+translation[0],self.distanceDragged[1]-translation[1])
     self.dragStartx,self.dragStarty = x,y
 
   def itemMouseUp(self,event):
     self.freeMouseDown = True
-
-  def itemMouseDown(self,event):
-    x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
-    self.dragStartx,self.dragStarty = x,y
-    self.freeMouseDown = False
+    IDList = self.mainCanvas.find_withtag("selectedItem")
+    if self.amDragging:
+      self.undoRedoStack.add(translationAction(self,IDList,(self.distanceDragged[0],-self.distanceDragged[1])))
+      self.amDragging = False
 
   def itemSelect(self,event):
     x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
     self.dragStartx,self.dragStarty = x,y
+    self.distanceDragged = (0,0)
     if self.selectedButton in [self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton,self.toolRotateButton]:
       self.freeMouseDown = False
     if self.selectedButton == self.toolSelectButton or (len(self.mainCanvas.find_withtag("selectedItem"))<=1 and self.selectedButton in [self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton,self.toolRotateButton]):
@@ -1186,7 +1192,6 @@ class xasyMainWin:
       self.dragSelecting = True
     elif self.selectedButton == self.toolRotateButton and self.editor == None:
       bbox = self.mainCanvas.bbox("selectedItem")
-      self.inRotatingMode = True
       if bbox != None:
         p1 = self.selectDragStart[0]-self.selectBboxMidpoint[0],-self.selectDragStart[1]-self.selectBboxMidpoint[1]
         mp1 = math.sqrt(p1[0]**2+p1[1]**2)
@@ -1214,6 +1219,23 @@ class xasyMainWin:
             self.itemsBeingRotated.append(item)
         self.updateSelection()
         self.updateCanvasSize()
+        if not self.inRotatingMode:
+          self.currentRotationAngle = theta
+          IDList = self.mainCanvas.find_withtag("selectedItem")
+          itemList = []
+          indexList = []
+          for ID in IDList:
+            item = self.findItem(ID)
+            if item not in itemList:
+              itemList.append(item)
+              indexList.append([self.findItemImageIndex(item,ID)])
+            else:
+              indexList[indexList.index(item)].append(self.findItemImageIndex(item,ID))
+          self.undoRedoStack.add(rotationAction(self,itemList,indexList,self.currentRotationAngle,self.selectBboxMidpoint))
+          self.inRotatingMode = True
+        else:
+          self.currentRotationAngle += theta
+          self.undoRedoStack.undoStack[-1].angle = self.currentRotationAngle
 
   def canvEnter(self,event):
     self.freeMouseDown = True

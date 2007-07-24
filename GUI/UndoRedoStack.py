@@ -17,26 +17,28 @@ class actionStack:
   def __init__(self):
     self.clear()
 
-  def do(self,action):
+  def add(self,action):
     self.undoStack.append(action)
+    #print "Added",action
     self.redoStack = []
-    action.redo()
 
   def undo(self):
     if len(self.undoStack) > 0:
       op = self.undoStack.pop()
       self.redoStack.append(op)
       op.undo()
+      #print "undid",op
     else:
-      print "nothing to undo"
+      pass #print "nothing to undo"
 
   def redo(self):
     if len(self.redoStack) > 0:
       op = self.redoStack.pop()
       self.undoStack.append(op)
       op.redo()
+      #print "redid",op
     else:
-      print "nothing to redo"
+      pass #print "nothing to redo"
 
   def changesMade(self):
     if len(self.undoStack)>0:
@@ -58,6 +60,6 @@ if __name__=='__main__':
   w = action(lambda:sys.stdout.write("action2\n"),lambda:sys.stdout.write("inverse2\n"))
   e = action(lambda:sys.stdout.write("action3\n"),lambda:sys.stdout.write("inverse3\n"))
   s = actionStack()
-  s.do(q)
-  s.do(w)
-  s.do(e)
+  s.add(q)
+  s.add(w)
+  s.add(e)
