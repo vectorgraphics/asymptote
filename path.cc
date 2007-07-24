@@ -133,8 +133,9 @@ cubicroots::cubicroots(double a, double b, double c, double d)
     quadraticroots q(a,b,c);
     roots=q.roots+1;
     t1=0;
-    if(q.roots >= 1) t2=q.t1;
-    if(q.roots == 2) t3=q.t2;
+    if(roots >= 0) t2=q.t1;
+    if(roots == 2) {roots=3; t3=t2;} // quadraticroots found a double root.
+    else if(roots == 3) t3=q.t2;
     return;
   }
   

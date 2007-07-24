@@ -4716,12 +4716,13 @@ returns @code{a*diagonal(b)}.
 @cindex @code{quadraticroots}
 @item @code{real[] quadraticroots(real a, real b, real c);}
 This numerically robust solver returns the real roots of the
-quadratic equation @math{ax^2+bx+c=0}.
+quadratic equation @math{ax^2+bx+c=0}. A double root is listed only once.
 
 @cindex @code{cubicroots}
 @item @code{real[] cubicroots(real a, real b, real c, real d);}
 This numerically robust solver returns the real roots of the
-cubic equation @math{ax^3+bx^2+cx+d=0}.
+cubic equation @math{ax^3+bx^2+cx+d=0}. Multiple roots are listed
+individually.
 
 @cindex @code{newton}
 @item @code{real newton(int iterations=100, real f(real), real fprime(real),
