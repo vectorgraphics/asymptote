@@ -604,7 +604,7 @@ class xasyMainWin:
     dirname = os.path.dirname(fullname)
     outfile.close()
     #os.chdir(dirname)
-    command = "asy -f %s -o %s %s"%(outFormat,fullname,inFile)
+    command = xasyOptions.options['asyPath']+" -f %s -o %s %s"%(outFormat,fullname,inFile)
     print command
     saver = subprocess.Popen(split(command),stdin=PIPE,stdout=PIPE,stderr=PIPE)
     saver.wait()

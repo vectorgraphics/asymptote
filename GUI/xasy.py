@@ -13,4 +13,3 @@ if len(sys.argv)>1:
 else:
   app = xasyMainWin.xasyMainWin(root)
 root.mainloop()
-
