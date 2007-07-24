@@ -31,6 +31,10 @@ import CubicBezier
 from xasyBezierEditor import xasyBezierEditor
 from xasyGUIIcons import iconB64
 from xasyColorPicker import *
+
+from UndoRedoStack import *
+from xasyActions import *
+
 try:
   from PIL import ImageTk
   import Image
@@ -41,6 +45,14 @@ except:
 class xasyMainWin:
   def __init__(self,master,file=None):
     self.parent = master
+    #global bindings
+    self.parent.bind_all("<Control-z>",lambda q:self.editUndoCmd())# z -> no shift
+    self.parent.bind_all("<Control-Z>",lambda q:self.editRedoCmd())# Z -> with shift
+    self.parent.bind_all("<Control-o>",lambda q:self.fileOpenCmd())
+    self.parent.bind_all("<Control-n>",lambda q:self.fileNewCmd())
+    self.parent.bind_all("<Control-s>",lambda q:self.fileSaveCmd())
+    self.parent.bind_all("<Control-q>",lambda q:self.fileExitCmd())
+    self.parent.bind_all("<F1>",lambda q:self.helpHelpCmd())
     self.createWidgets()
     self.resetGUI()
     if file != None:
@@ -71,49 +83,49 @@ class xasyMainWin:
 
     #the file menu
     self.fileMenu = Menu(self.mainMenu)
-    self.fileMenu.add_command(label="New",command=self.fileNewCmd)
-    self.fileMenu.add_command(label="Open",command=self.fileOpenCmd)
+    self.fileMenu.add_command(label="New",command=self.fileNewCmd,accelerator="Ctrl+N",underline=0)
+    self.fileMenu.add_command(label="Open",command=self.fileOpenCmd,accelerator="Ctrl+O",underline=0)
     self.fileMenu.add_separator()
-    self.fileMenu.add_command(label="Save",command=self.fileSaveCmd)
-    self.fileMenu.add_command(label="Save As",command=self.fileSaveAsCmd)
+    self.fileMenu.add_command(label="Save",command=self.fileSaveCmd,accelerator="Ctrl+S",underline=0)
+    self.fileMenu.add_command(label="Save As",command=self.fileSaveAsCmd,underline=5)
     self.fileMenu.add_separator()
 
     #an export menu
     self.exportMenu = Menu(self.fileMenu)
-    self.exportMenu.add_command(label="EPS...",command=self.exportEPS)
-    self.exportMenu.add_command(label="PDF...",command=self.exportPDF)
-    self.exportMenu.add_command(label="GIF...",command=self.exportGIF)
-    self.exportMenu.add_command(label="PNG...",command=self.exportPNG)
-    self.fileMenu.add_cascade(label="Export",menu=self.exportMenu)
+    self.exportMenu.add_command(label="EPS...",command=self.exportEPS,underline=0)
+    self.exportMenu.add_command(label="PDF...",command=self.exportPDF,underline=0)
+    self.exportMenu.add_command(label="GIF...",command=self.exportGIF,underline=0)
+    self.exportMenu.add_command(label="PNG...",command=self.exportPNG,underline=1)
+    self.fileMenu.add_cascade(label="Export",menu=self.exportMenu,underline=1)
     self.fileMenu.add_separator()
 
-    self.fileMenu.add_command(label="Quit",command=self.fileExitCmd)
+    self.fileMenu.add_command(label="Quit",command=self.fileExitCmd,accelerator="Ctrl+Q",underline=0)
 
-    self.mainMenu.add_cascade(label="File",menu=self.fileMenu)
+    self.mainMenu.add_cascade(label="File",menu=self.fileMenu,underline=0)
 
     #the edit menu
     self.editMenu = Menu(self.mainMenu)
-    self.editMenu.add_command(label="Undo",command=self.editUndoCmd,state=DISABLED)
-    self.editMenu.add_command(label="Redo",command=self.editRedoCmd,state=DISABLED)
-    self.mainMenu.add_cascade(label="Edit",menu=self.editMenu)
+    self.editMenu.add_command(label="Undo",command=self.editUndoCmd,accelerator="Ctrl+Z",underline=0)
+    self.editMenu.add_command(label="Redo",command=self.editRedoCmd,accelerator="Shift+Ctrl+Z",underline=0)
+    self.mainMenu.add_cascade(label="Edit",menu=self.editMenu,underline=0)
 
     #the tools menu
     self.toolsMenu = Menu(self.mainMenu)
-    self.mainMenu.add_cascade(label="Tools",menu=self.toolsMenu)
+    self.mainMenu.add_cascade(label="Tools",menu=self.toolsMenu,underline=0)
 
     #the options menu
     self.optionsMenu = Menu(self.toolsMenu)
-    self.toolsMenu.add_cascade(label="Options",menu=self.optionsMenu)
-    self.optionsMenu.add_command(label="Edit...",command=self.editOptions)
-    self.optionsMenu.add_command(label="Reset defaults",command=self.resetOptions)
+    self.toolsMenu.add_cascade(label="Options",menu=self.optionsMenu,underline=0)
+    self.optionsMenu.add_command(label="Edit...",command=self.editOptions,underline=0)
+    self.optionsMenu.add_command(label="Reset defaults",command=self.resetOptions,underline=6)
 
     #the help menu
     self.helpMenu = Menu(self.mainMenu)
-    self.helpMenu.add_command(label="Help",command=self.helpHelpCmd,state=DISABLED)
-    self.helpMenu.add_command(label="Asymptote Documentation",command=self.helpAsyDocCmd)
+    self.helpMenu.add_command(label="Help",command=self.helpHelpCmd,state=DISABLED,accelerator="F1",underline=0)
+    self.helpMenu.add_command(label="Asymptote Documentation",command=self.helpAsyDocCmd,underline=10)
     self.helpMenu.add_separator()
-    self.helpMenu.add_command(label="About xasy",command=self.helpAboutCmd)
-    self.mainMenu.add_cascade(label="Help",menu=self.helpMenu)
+    self.helpMenu.add_command(label="About xasy",command=self.helpAboutCmd,underline=0)
+    self.mainMenu.add_cascade(label="Help",menu=self.helpMenu,underline=0)
 
     #status bar
     self.statusBar = Frame(self.parent,relief=FLAT)
@@ -350,6 +362,9 @@ class xasyMainWin:
 
     self.magnification = 1
 
+    #setup undo/redo!
+    self.undoRedoStack = actionStack()
+
   def retitle(self):
     if self.filename == None:
       self.parent.title("Xasy - New File")
@@ -370,17 +385,12 @@ class xasyMainWin:
     self.axisyspace = xasyOptions.options['axisY']
     self.updateCanvasSize()
     #test the asyProcess
-    #global asy
     global quickAsyFailed
-    #asy.restart()
     startQuickAsy()
     while quickAsyFailed:# or self.imageList = []:
       if tkMessageBox.askyesno("Xasy Error","Asymptote could not be executed.\r\nEdit settings?"):
-        #asy.process.stdin.close()
-        #asy.process.wait()
         xasyOptionsDialog.xasyOptionsDlg(self.parent)
         xasyOptions.save()
-        #asy.restart()
         startQuickAsy()
       else:
         self.destroy()
@@ -618,10 +628,10 @@ class xasyMainWin:
     self.canQuit()
 
   def editUndoCmd(self):
-    print "Undo"
+    self.undoOperation()
 
   def editRedoCmd(self):
-    print "Redo"
+    self.redoOperation()
 
   def toolsOptionsCmd(self):
     print "Display options dialog"
@@ -631,7 +641,8 @@ class xasyMainWin:
 
   def helpAsyDocCmd(self):
     #print "Open documentation about Asymptote"
-    asy.execute("help;")
+    syncQuickAsyOutput()
+    asyExecute("\nhelp;\n")
 
   def helpAboutCmd(self):
     tkMessageBox.showinfo("About xasy","A graphical interface for Asymptote")
@@ -1355,3 +1366,9 @@ class xasyMainWin:
     if self.validatePenOpt():
       self.penOptions = self.penOptEntry.get()
       self.showCurrentPen()
+
+  def undoOperation(self):
+    self.undoRedoStack.undo()
+
+  def redoOperation(self):
+    self.undoRedoStack.redo()

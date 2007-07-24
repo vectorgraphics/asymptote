@@ -42,7 +42,7 @@ def startQuickAsy():
   except:
     pass
   try:
-    quickAsy = Popen(split(xasyOptions.options['asyPath']+" -noV -q -multiline -interactive"),stdin=PIPE,stdout=PIPE,stderr=PIPE)
+    quickAsy = Popen([xasyOptions.options['asyPath']]+split("-noV -q -multiline -interactive"),stdin=PIPE,stdout=PIPE,stderr=PIPE)
     if quickAsy.returncode != None:
       quickAsyFailed = True
     else:
@@ -59,6 +59,10 @@ def syncQuickAsyOutput():
   line = quickAsy.stdout.readline() 
   while not line.endswith(idStr+'\n'):
     line = quickAsy.stdout.readline()
+
+def asyExecute(command):
+  quickAsy.stdin.write(command)
+  quickAsy.stdin.flush()
 
 startQuickAsy()
 
@@ -400,8 +404,7 @@ class xasyItem:
       image = None
     else:
       image = Image.open(file)
-      #os.remove(file)
-      #print "removed",file
+      os.remove(file)
       #if format == "gif":
         #image = PhotoImage(file=file)#os.path.join(asy.startDir,file))
       #else:
@@ -426,10 +429,10 @@ class xasyItem:
       quickAsy.stdin.write(line+"\n");
     quickAsy.stdin.flush()
     syncQuickAsyOutput()
-    #try:
-      #os.remove(".out_0.box")
-    #except:
-      #pass
+    try:
+      os.remove(".out_0.box")
+    except:
+      pass
     quickAsy.stdin.write("deconstructpic(onlyCount=true);\n")
     quickAsy.stdin.write("deconstructpic();\n")
     quickAsy.stdin.flush()
