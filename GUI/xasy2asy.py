@@ -449,7 +449,10 @@ class xasyItem:
       l,b,r,t = [float(a) for a in split(boxlines[i+1])]
       self.handleImageReception(".out_%d.%s"%(i,format),format,(l,b,r,t),i)
       boxfile.close()
-    os.remove(".out_0.box")
+    try:
+      os.remove(".out_0.box")
+    except:
+      pass
     self.asyfied = True
   def drawOnCanvas(self,canvas):
     pass
