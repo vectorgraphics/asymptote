@@ -66,10 +66,24 @@ void init_completion() {
 }
 #endif  
 
+char *(*Readline)(const char *prompt);
+
+char *verbatimreadline(const char *prompt)
+{
+  if(!cin.good()) {cin.clear(); return NULL;}
+  cout << prompt;
+  string s;
+  getline(cin,s);
+  return StrdupMalloc(s);
+}
+  
 void pre_readline()
 {
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   run::init_readline(getSetting<bool>("tabcompletion"));
+  Readline=isatty(STDIN_FILENO) ? readline : verbatimreadline;
+#else
+  Readline=verbatimreadline;
 #endif  
 }
 
@@ -80,16 +94,6 @@ void init_interactive()
   read_history(historyname.c_str());
 #endif  
 }
-  
-#if !defined(HAVE_LIBREADLINE) || !defined(HAVE_LIBCURSES)
-char *readline(const char *prompt) {
-  if(!cin.good()) {cin.clear(); return NULL;}
-  cout << prompt;
-  string s;
-  getline(cin,s);
-  return StrdupMalloc(s);
-}
-#endif  
   
 string simpleline(string prompt) {
   // Rebind tab key, as the setting tabcompletion may be changed at runtime.
@@ -111,8 +115,9 @@ string simpleline(string prompt) {
       kill(ppid,SIGINT);
     }
   }
+  
   /* Get a line from the user. */
-  char *line = readline(prompt.c_str());
+  char *line=Readline(prompt.c_str());
 
   /* Ignore keyboard interrupts while taking input. */
   errorstream::interrupt=false;
