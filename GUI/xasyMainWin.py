@@ -1209,7 +1209,7 @@ class xasyMainWin:
           if p2[1] < 0:
             t2 *= -1
         else:
-          mp2 = 0
+          t2 = 0
         theta = t2-t1
         self.selectDragStart = x,y
         self.itemsBeingRotated = []
