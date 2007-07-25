@@ -72,7 +72,6 @@ def load():
     options = newOptions
   except:
     setDefaults()
-    print "Error loading configuration: using defaults."
 
 def save():
   global options
