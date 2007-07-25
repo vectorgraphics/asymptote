@@ -1231,7 +1231,7 @@ class xasyMainWin:
               itemList.append(item)
               indexList.append([self.findItemImageIndex(item,ID)])
             else:
-              indexList[indexList.index(item)].append(self.findItemImageIndex(item,ID))
+              indexList[itemList.index(item)].append(self.findItemImageIndex(item,ID))
           self.undoRedoStack.add(rotationAction(self,itemList,indexList,self.currentRotationAngle,self.selectBboxMidpoint))
           self.inRotatingMode = True
         else:
