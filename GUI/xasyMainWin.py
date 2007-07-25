@@ -221,7 +221,7 @@ class xasyMainWin:
     self.penDisp.grid(row=0,column=0,padx=3,pady=3)
     self.penDisp.create_line(10,25,30,10,60,20,80,10,smooth=True,tags="penDisp")
     self.penDisp.create_text(100,30,text="x1",tags="penMag",anchor=SE,font=("times","8"))
-    self.penColButton = Button(self.optionsBar,text="Color...",width=2,command=self.setPenColCmd,relief=FLAT)
+    self.penColButton = Button(self.optionsBar,text="Color...",width=5,command=self.setPenColCmd,relief=FLAT)
     self.penColButton.grid(row=0,column=1,padx=3,pady=3)
     Label(self.optionsBar,text="Width",anchor=E).grid(row=0,column=2)
     self.penWidthEntry = Entry(self.optionsBar,width=5)
@@ -418,7 +418,6 @@ class xasyMainWin:
     left,top,right,bottom = map(int,self.mainCanvas.cget("scrollregion").split())
     self.mainCanvas.create_line(0,top,0,bottom,tags=("axes","yaxis"),fill=self.axiscolor)
     self.mainCanvas.create_line(left,0,right,0,tags=("axes","xaxis"),fill=self.axiscolor)
-    #self.mainCanvas.create_rectangle(left,top,right,bottom,tags=("axes","scrolloutline"),outline=self.axiscolor,fill="")
     for i in range(10,right,10):
       self.mainCanvas.create_line(i,-5,i,5,tags=("axes","xaxis-ticks"),fill=self.tickcolor)
     for i in range(-10,left,-10):
