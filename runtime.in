@@ -1139,9 +1139,9 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
   f->shipout(preamble,(ppid ? buf.str() : prefix),format,wait,view);
 }
 
-void deconstructpic(picture *f, callableTransform *xform,
-	     string prefix=emptystring, picture *preamble=NULL,
-	     bool onlyCount=false)
+void deconstruct(string prefix=emptystring, picture *f,
+		 picture *preamble=NULL, callableTransform *xform,
+		 bool onlyCount=false)
 {
   picture *result = new picture;
   unsigned level=0;
@@ -1575,16 +1575,6 @@ string location() {
   ostringstream buf;
   buf << getPos();
   return buf.str();
-}
-
-void gui(real x=1)
-{ 
-  Setting("deconstruct")=(x > 0.0 ? x : 0.0);
-}
-
-bool deconstruct()
-{ 
-  return getSetting<real>("deconstruct");
 }
 
 Void readGUI()

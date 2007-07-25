@@ -7561,14 +7561,15 @@ xformat="png";
 @node GUI Usage
 @section GUI Usage
 @cindex GUI usage
+@cindex @code{deconstruct}
 To use @code{xasy}, one must first deconstruct @code{Asymptote}
 pictures into transparent @acronym{GIF} (or @acronym{PNG}) images with the 
 command @code{asy -xN}, where @code{N} denotes the magnification (a positive
 real number, say 2). The command @code{asy -VxN} automatically invokes
 @code{xasy} once deconstruction is complete. Alternatively, one may
 turn on the @code{-xN} option in interactive mode or from within a module
-using the function @code{gui()} or @code{gui(N)}. One can turn GUI
-mode off again with @code{gui(0)}.
+by setting @code{settings.deconsruct=N}. One can turn GUI
+mode off again with @code{settings.deconstruct=0}.
 Deconstruction using transparent @acronym{GIF} files requires that 
 @code{ImageMagick} (@pxref{convert})
 be installed.

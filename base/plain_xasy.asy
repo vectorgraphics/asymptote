@@ -98,9 +98,9 @@ struct framedTransformStack {
 
 framedTransformStack xformStack;
 
-void deconstructpic(picture pic=currentpicture, string prefix="out",
-             real magnification=1.0, bool onlyCount=false)
+void deconstruct(string prefix="out", picture pic=currentpicture,
+		 real magnification=1.0, bool countonly=false)
 {
-  settings.deconstruct = magnification;
-  deconstructpic(pic.fit(),xformStack.pop,prefix,patterns,onlyCount);
+  settings.deconstruct=magnification;
+  deconstruct(prefix,pic.fit(),patterns,xformStack.pop,countonly);
 }

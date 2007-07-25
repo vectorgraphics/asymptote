@@ -433,8 +433,8 @@ class xasyItem:
       os.remove(".out_0.box")
     except:
       pass
-    quickAsy.stdin.write("deconstructpic(onlyCount=true);\n")
-    quickAsy.stdin.write("deconstructpic();\n")
+    quickAsy.stdin.write("deconstruct(countonly=true);\n")
+    quickAsy.stdin.write("deconstruct();\n")
     quickAsy.stdin.flush()
     numpics = quickAsy.stdout.readline()
     numpics = int(numpics[2:])
