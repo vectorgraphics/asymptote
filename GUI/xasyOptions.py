@@ -84,6 +84,8 @@ def save():
   except:
     raise Exception,"Error saving preferences"
 
+load()
+
 if __name__=='__main__':
   print settingsFileLocation()
   print "Current content"

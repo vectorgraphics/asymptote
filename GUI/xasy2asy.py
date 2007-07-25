@@ -56,7 +56,7 @@ def syncQuickAsyOutput():
   idCounter += 1
   quickAsy.stdin.write("\nwrite(\""+idStr+"\");\n")
   quickAsy.stdin.flush()
-  line = quickAsy.stdout.readline() 
+  line = quickAsy.stdout.readline()
   while not line.endswith(idStr+'\n'):
     line = quickAsy.stdout.readline()
 
@@ -132,7 +132,8 @@ class asyPen(asyObj):
     self.width=width
     self.setColor(color)
     self.updateCode()
-    self.computeColor()
+    if options != "":
+      self.computeColor()
 
   def updateCode(self):
     """Generate the pen's code"""
@@ -404,7 +405,7 @@ class xasyItem:
       image = None
     else:
       image = Image.open(file)
-      os.remove(file)
+      #os.remove(file)
       #if format == "gif":
         #image = PhotoImage(file=file)#os.path.join(asy.startDir,file))
       #else:
@@ -416,7 +417,7 @@ class xasyItem:
       self.imageList[-1].originalImage.theta = 0.0
       self.imageList[-1].originalImage.bbox = bbox
       self.imageList[-1].IDTag = self.onCanvas.create_image(bbox[0],-bbox[3],anchor=NW,tags=("image"),image=self.imageList[-1].itk)
-      self.onCanvas.update_idletasks()
+      self.onCanvas.update()
 
   def asyfy(self):
     """Convert the item to a list of images by deconstructing this item's code"""
@@ -425,6 +426,7 @@ class xasyItem:
     quickAsy.stdin.write("\nreset;\n")
     quickAsy.stdin.write("initXasyMode();\n")
     quickAsy.stdin.write("atexit(null);\n")
+    syncQuickAsyOutput()
     for line in self.getCode().splitlines():
       quickAsy.stdin.write(line+"\n");
     quickAsy.stdin.flush()

@@ -476,8 +476,10 @@ class xasyMainWin:
   def canQuit(self):
     #print "Quitting"
     self.quitting = True
-    self.ticker.join()
-    #asy.quit()
+    try:
+      self.ticker.join()
+    except:
+      pass
     self.parent.destroy()
 
   def openFile(self,name):
