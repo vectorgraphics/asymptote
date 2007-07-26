@@ -207,8 +207,8 @@ class application : public gc {
   }
 
   // Finds the first unmatched formal of the given name, returning the index.
-  // May return REST or FAIL if it matches the rest parameter or nothing
-  // (respectively).
+  // The rest formal is not tested.  This function returns FAIL if no formals
+  // match.
   Int find(symbol *name);
 
   // Match the formal at index to its default argument (if it has one).
