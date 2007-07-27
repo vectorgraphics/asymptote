@@ -583,6 +583,7 @@ struct picture {
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
+    if(empty()) return 0;
     return (min(min(min(infinity,xs,bounds.point.x),xs,bounds.min.x),
 		xs,bounds.max.x),
 	    min(min(min(infinity,ys,bounds.point.y),ys,bounds.min.y),
@@ -594,6 +595,7 @@ struct picture {
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
+    if(empty()) return 0;
     return (max(max(max(-infinity,xs,bounds.point.x),xs,bounds.min.x),
 		xs,bounds.max.x),
 	    max(max(max(-infinity,ys,bounds.point.y),ys,bounds.min.y),
