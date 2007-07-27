@@ -20,14 +20,14 @@ void endclip(picture pic=currentpicture)
 void gsave(picture pic=currentpicture)
 {
   pic.add(new void (frame f, transform) {
-      if(!settings.deconstruct) gsave(f);
+      if(settings.deconstruct != 0) gsave(f);
     },true);
 }
 
 void grestore(picture pic=currentpicture)
 {
   pic.add(new void (frame f, transform) {
-      if(!settings.deconstruct) grestore(f);
+      if(settings.deconstruct != 0) grestore(f);
     },true);
 }
     
