@@ -2,6 +2,8 @@ import three;
 import light;
 import graph_settings;
 
+int maxdepth=16;
+
 struct surface {
   triple[][] P=new triple[4][4];
 
@@ -252,6 +254,8 @@ struct surface {
 
   private void iteration(triple[][] sfcs, real[] rvalues, bool[] found,
 			 projection P) {
+    static int depth=0;
+
     // Refine current partitioning.
     triple[][] ss=splitsurface4(sfcs[0]);
     for(int i=1; i < sfcs.length; ++i)
@@ -262,10 +266,12 @@ struct surface {
     // See if an extremum has been attained.
     real xlb,xsb,ylb,ysb;
 
+    bool stop=depth >= maxdepth;
+
     if(!found[0]) {
       int xlarge=maxindex(bxs.X);
       xlb=bxs.x[xlarge];
-      if(ipointonsrfc(ss[xlarge],P).X == bxs.X[xlarge]) {
+      if(ipointonsrfc(ss[xlarge],P).X == bxs.X[xlarge] || stop) {
 	found[0]=true;
 	rvalues[0]=bxs.X[xlarge];
       }
@@ -273,7 +279,7 @@ struct surface {
     if(!found[1]) {
       int xsmall=minindex(bxs.x);
       xsb=bxs.X[xsmall];
-      if(ipointonsrfc(ss[xsmall],P).x == bxs.x[xsmall]) {
+      if(ipointonsrfc(ss[xsmall],P).x == bxs.x[xsmall] || stop) {
 	found[1]=true;
 	rvalues[1]=bxs.x[xsmall];
       }
@@ -281,7 +287,7 @@ struct surface {
     if(!found[2]) {
       int ylarge=maxindex(bxs.Y);
       ylb=bxs.y[ylarge];
-      if(ipointonsrfc(ss[ylarge],P).Y == bxs.Y[ylarge]) {
+      if(ipointonsrfc(ss[ylarge],P).Y == bxs.Y[ylarge] || stop) {
 	found[2]=true;
 	rvalues[2]=bxs.Y[ylarge];
       }
@@ -289,7 +295,7 @@ struct surface {
     if(!found[3]) {
       int ysmall=minindex(bxs.y);
       ysb=bxs.Y[ysmall];
-      if(ipointonsrfc(ss[ysmall],P).y == bxs.y[ysmall]) {
+      if(ipointonsrfc(ss[ysmall],P).y == bxs.y[ysmall] || stop) {
 	found[3]=true;
 	rvalues[3]=bxs.y[ysmall];
       }
@@ -301,7 +307,9 @@ struct surface {
     int[] toremove=removal(ss,bxs,xlb,xsb,ylb,ysb,found,P);
     ss=ss[complement(toremove,ss.length)];
   
+    ++depth;
     iteration(ss,rvalues,found,P);
+    --depth;
   }
 
   // Finds the projection bounding box of a given surface.
