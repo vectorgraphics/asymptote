@@ -2656,7 +2656,7 @@ real abs(pair z)
 
 pair sqrt(explicit pair z)
 {
-  return sqrt(z);
+  return Sqrt(z);
 }
 
 // Return the angle of z in radians.

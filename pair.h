@@ -155,7 +155,7 @@ public:
   }
   
 // Return the principal branch of the square root (non-negative real part).
-  friend pair sqrt(const pair& z) {
+  friend pair Sqrt(const pair& z) {
     double mag=z.length();
     if(mag == 0.0) return pair(0.0,0.0);
     else if(z.x > 0) {

@@ -29,7 +29,7 @@ inline double sqrt1pxm1(double x)
 }
 inline pair sqrt1pxm1(pair x)
 {
-  return x/(sqrt(1.0+x)+1.0);
+  return x/(Sqrt(1.0+x)+1.0);
 }
   
 // Solve for the real roots of the quadratic equation ax^2+bx+c=0.
@@ -101,7 +101,7 @@ Quadraticroots::Quadraticroots(pair a, pair b, pair c)
   } else {
     roots=2;
     if(b == 0.0) {
-      z1=sqrt(-c/a);
+      z1=Sqrt(-c/a);
       z2=-z1;
     } else {
       pair factor=0.5*b/a;
