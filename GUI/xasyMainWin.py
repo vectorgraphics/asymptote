@@ -813,9 +813,11 @@ class xasyMainWin:
       self.fileItems[-1] = item
       if isinstance(item,xasyScript) or isinstance(item,xasyText):
         for im in item.imageList:
-          self.mainCanvas.tag_raise(im.IDTag)
+          if im.IDTag != None:
+            self.mainCanvas.tag_raise(im.IDTag)
       else:
-        self.mainCanvas.tag_raise(item.IDTag)
+        if item.IDTag != None:
+          self.mainCanvas.tag_raise(item.IDTag)
 
   def lowerSomething(self,ID):
     item = self.findItem(ID)
@@ -830,10 +832,14 @@ class xasyMainWin:
         self.fileItems[i+1] = self.fileItems[i]
       self.fileItems[0] = item
       if isinstance(item,xasyScript) or isinstance(item,xasyText):
+        item.imageList.reverse()
         for im in item.imageList:
-          self.mainCanvas.tag_lower(im.IDTag)
+          if im.IDTag != None:
+            self.mainCanvas.tag_lower(im.IDTag)
+        item.imageList.reverse()
       else:
-        self.mainCanvas.tag_lower(item.IDTag)
+        if item.IDTag != None:
+          self.mainCanvas.tag_lower(item.IDTag)
       self.mainCanvas.tag_lower("axes || grid")
 
   def translateSomething(self,ID,translation):
