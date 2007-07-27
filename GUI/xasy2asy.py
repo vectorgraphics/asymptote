@@ -42,13 +42,18 @@ def startQuickAsy():
   except:
     pass
   try:
+    quickAsyFailed = False
     quickAsy = Popen([xasyOptions.options['asyPath']]+split("-noV -q -multiline -interactive"),stdin=PIPE,stdout=PIPE,stderr=PIPE)
     if quickAsy.returncode != None:
       quickAsyFailed = True
-    else:
-      quickAsyFailed = False
   except:
     quickAsyFailed = True
+
+def quickAsyRunning():
+  if quickAsyFailed or quickAsy.returncode != None:
+    return False
+  else:
+    return True
 
 def syncQuickAsyOutput():
   global idCounter
@@ -63,8 +68,6 @@ def syncQuickAsyOutput():
 def asyExecute(command):
   quickAsy.stdin.write(command)
   quickAsy.stdin.flush()
-
-startQuickAsy()
 
 class asyTransform:
   """A python implementation of an asy transform"""

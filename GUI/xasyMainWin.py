@@ -386,15 +386,20 @@ class xasyMainWin:
     self.axisyspace = xasyOptions.options['axisY']
     self.updateCanvasSize()
     #test the asyProcess
-    global quickAsyFailed
     startQuickAsy()
-    while quickAsyFailed:# or self.imageList = []:
+    if not quickAsyRunning():
+      if tkMessageBox.askyesno("Xasy Error","Asymptote could not be executed.\r\nTry to find Asymptote automatically?"):
+        xasyOptions.setAsyPathFromWindowsRegistry()
+        xasyOptions.save()
+        startQuickAsy()
+    while not quickAsyRunning():
       if tkMessageBox.askyesno("Xasy Error","Asymptote could not be executed.\r\nEdit settings?"):
         xasyOptionsDialog.xasyOptionsDlg(self.parent)
         xasyOptions.save()
         startQuickAsy()
       else:
         self.parent.destroy()
+        sys.exit(1)
 
   def drawGrid(self):
     self.mainCanvas.delete("grid")

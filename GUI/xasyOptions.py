@@ -44,18 +44,27 @@ def settingsFileLocation():
       pass
   return os.path.normcase(os.path.join(folder,"xasy.conf"))
 
+def setAsyPathFromWindowsRegistry():
+  try:
+    import _winreg as registry
+    #test both registry locations
+    try:
+      key = registry.OpenKey(registry.HKEY_LOCAL_MACHINE,"Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\Asymptote")
+      options['asyPath'] = registry.QueryValueEx(key,"Path")[0]+"\\asy.exe"
+      registry.CloseKey(key)
+    except:
+      key = registry.OpenKey(registry.HKEY_LOCAL_MACHINE,"Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Asymptote")
+      options['asyPath'] = registry.QueryValueEx(key,"InstallLocation")[0]+"\\asy.exe"
+      registry.CloseKey(key)
+  except:
+    #looks like asy is not installed or this isn't Windows
+    pass
+
 def setDefaults():
   global options
   options = defaultOptions.copy()
   if sys.platform[:3] == 'win': #for windows, wince, win32, etc
-    import _winreg as registry
-    try:
-      key = registry.OpenKey(HKEY_LOCAL_MACHINE,"Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Asymptote")
-      options['asyPath'] = registry.QueryValueEx(key,"InstallLocation")[0]+"\\asy.exe"
-      registry.CloseKey(key)
-    except:
-      #looks like asy is not installed!!!
-      pass
+    setAsyPathFromWindowsRegistry()
 
 def load():
   global options
