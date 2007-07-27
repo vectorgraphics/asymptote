@@ -563,26 +563,19 @@ struct picture {
   }
 
   // Calculate the minimum point in scaling the coords.
-  real min(scaling s, coord[] c) {
-    if (c.length > 0) {
-      real m=infinity;
-      for (int i=0; i < c.length; ++i)
-        if (finite(c[i].user) && s.scale(c[i]) < m)
-          m=s.scale(c[i]);
-      return m;
-    }
-    else return 0;
+  real min(real m, scaling s, coord[] c) {
+    for(int i=0; i < c.length; ++i)
+      if(finite(c[i].user) && s.scale(c[i]) < m)
+	m=s.scale(c[i]);
+    return m;
   }
  
   // Calculate the maximum point in scaling the coords.
-  real max(scaling s, coord[] c) {
-    if (c.length > 0) {
-      real M=-infinity;
-      for (int i=0; i < c.length; ++i)
-        if (finite(c[i].user) && s.scale(c[i]) > M)
-          M=s.scale(c[i]);
-      return M;
-    } else return 0;
+  real max(real M, scaling s, coord[] c) {
+    for(int i=0; i < c.length; ++i)
+      if(finite(c[i].user) && s.scale(c[i]) > M)
+	M=s.scale(c[i]);
+    return M;
   }
 
   // Calculate the min for the final frame, given the coordinate transform.
@@ -590,12 +583,10 @@ struct picture {
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
-    return (min(min(xs,bounds.min.x),
-                min(xs,bounds.max.x),
-                min(xs,bounds.point.x)),
-            min(min(ys,bounds.min.y),
-                min(ys,bounds.max.y),
-                min(ys,bounds.point.y)));
+    return (min(min(min(infinity,xs,bounds.point.x),xs,bounds.min.x),
+		xs,bounds.max.x),
+	    min(min(min(infinity,ys,bounds.point.y),ys,bounds.min.y),
+		ys,bounds.max.y));
   }
 
   // Calculate the max for the final frame, given the coordinate transform.
@@ -603,12 +594,10 @@ struct picture {
     pair a=t*(1,1)-t*(0,0), b=t*(0,0);
     scaling xs=scaling.build(a.x,b.x);
     scaling ys=scaling.build(a.y,b.y);
-    return (max(max(xs,bounds.min.x),
-                max(xs,bounds.max.x),
-                max(xs,bounds.point.x)),
-            max(max(ys,bounds.min.y),
-                max(ys,bounds.max.y),
-                max(ys,bounds.point.y)));
+    return (max(max(max(-infinity,xs,bounds.point.x),xs,bounds.min.x),
+		xs,bounds.max.x),
+	    max(max(max(-infinity,ys,bounds.point.y),ys,bounds.min.y),
+		ys,bounds.max.y));
   }
 
   // Calculate the sizing constants for the given array and maximum size.
