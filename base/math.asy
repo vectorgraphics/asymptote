@@ -403,3 +403,36 @@ real slope(path g, explicit pair z)
   pair a=dir(g,node(g,(0,z.y)));
   return a.y/a.x;
 }
+
+// A quartic complex root solver based on these references:
+// http://planetmath.org/encyclopedia/GaloisTheoreticDerivationOfTheQuarticFormula.html
+// Neumark, S., Solution of Cubic and Quartic Equations, Pergamon Press
+// Oxford (1965).
+pair[] quarticroots(real a, real b, real c, real d, real e)
+{
+  real Fuzz=10.0*realEpsilon;
+
+  if(abs(a) <= Fuzz*(abs(b)+Fuzz*(abs(c)+Fuzz*(abs(d)+Fuzz*abs(e)))))
+     return cubicroots(b,c,d,e);
+
+  real ainv=1/a;
+  b *= ainv;
+  c *= ainv;
+  d *= ainv;
+  e *= ainv;
+  
+  real t0=cubicroots(1,-2c,c^2+b*d-4e,d^2+b^2*e-b*c*d)[0];
+  pair[] sum=quadraticroots((1,0),(b,0),(t0,0));
+  pair[] product=quadraticroots((1,0),(t0-c,0),(e,0));
+
+  if(abs(sum[0]*product[0]+sum[1]*product[1]+d) <
+     abs(sum[0]*product[1]+sum[1]*product[0]+d))
+    product=reverse(product);
+
+  pair[] roots;
+  for(int i=0; i < 2; ++i)
+    roots.append(quadraticroots((1,0),-sum[i],product[i]));
+
+  return roots;
+}
+

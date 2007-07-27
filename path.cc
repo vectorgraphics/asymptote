@@ -27,6 +27,10 @@ inline double sqrt1pxm1(double x)
 {
   return x/(sqrt(1.0+x)+1.0);
 }
+inline pair sqrt1pxm1(pair x)
+{
+  return x/(sqrt(1.0+x)+1.0);
+}
   
 // Solve for the real roots of the quadratic equation ax^2+bx+c=0.
 quadraticroots::quadraticroots(double a, double b, double c)
@@ -78,6 +82,33 @@ quadraticroots::quadraticroots(double a, double b, double c)
     } else {
       distinct=quadraticroots::NONE;
       roots=0;
+    }
+  }
+}
+
+// Solve for the complex roots of the quadratic equation ax^2+bx+c=0.
+Quadraticroots::Quadraticroots(pair a, pair b, pair c)
+{
+  if(a == 0.0) {
+    if(b != 0.0) {
+      roots=1;
+      z1=-c/b;
+    } else if(c == 0.0) {
+      roots=1;
+      z1=0.0;
+    } else
+      roots=0;
+  } else {
+    roots=2;
+    if(b == 0.0) {
+      z1=sqrt(-c/a);
+      z2=-z1;
+    } else {
+      pair factor=0.5*b/a;
+      pair x=-2.0*c/(b*factor);
+      pair sqrtm1=sqrt1pxm1(x);
+      z1=factor*sqrtm1;
+      z2=-z1-2.0*factor;
     }
   }
 }
@@ -142,9 +173,18 @@ cubicroots::cubicroots(double a, double b, double c, double d)
   b *= ainv; c *= ainv; d *= ainv;
   
   double b2=b*b;
-  double Q=(3.0*c-b2)*ninth;
+  double Q=3.0*c-b2;
+  if(fabs(Q) < Fuzz*(3.0*fabs(c)+fabs(b2)))
+    Q=0.0;
+  
+  double R=(3.0*Q+b2)*b-27.0*d;
+  if(fabs(R) < Fuzz*((3.0*fabs(Q)+fabs(b2))*fabs(b)+27.0*fabs(d)))
+    R=0.0;
+  
+  Q *= ninth;
+  R *= fiftyfourth;
+  
   double Q3=Q*Q*Q;
-  double R=(9.0*b*c-27.0*d-2.0*b2*b)*fiftyfourth;
   double R2=R*R;
   double D=Q3+R2;
   double mthirdb=-b*third;

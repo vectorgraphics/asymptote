@@ -316,11 +316,18 @@ inline double quadratic(double a, double b, double c, double x)
   
 class quadraticroots {
 public:
-  enum {NONE=0, ONE=1, TWO=2, MANY} distinct; // Number of distinct roots.
+  enum {NONE=0, ONE=1, TWO=2, MANY} distinct; // Number of distinct real roots.
   unsigned roots; // Total number of real roots.
-  double t1,t2;
+  double t1,t2;   // Real roots
   
   quadraticroots(double a, double b, double c);
+};
+  
+class Quadraticroots {
+public:
+  unsigned roots; // Total number of roots.
+  pair z1,z2;     // Complex roots
+  Quadraticroots(pair a, pair b, pair c);
 };
 
 class cubicroots {

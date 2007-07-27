@@ -2446,6 +2446,15 @@ realarray *quadraticroots(real a, real b, real c)
   return roots;
 }
 
+pairarray *quadraticroots(explicit pair a, explicit pair b, explicit pair c)
+{
+  Quadraticroots q(a,b,c);
+  array *roots=new array(q.roots);
+  if(q.roots >= 1) (*roots)[0]=q.z1;
+  if(q.roots == 2) (*roots)[1]=q.z2;
+  return roots;
+}
+
 realarray *cubicroots(real a, real b, real c, real d)
 {
   cubicroots q(a,b,c,d);
@@ -2643,6 +2652,11 @@ real length(pair z)
 real abs(pair z)
 {
   return z.length();
+}
+
+pair sqrt(explicit pair z)
+{
+  return sqrt(z);
 }
 
 // Return the angle of z in radians.

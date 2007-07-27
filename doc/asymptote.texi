@@ -4718,6 +4718,11 @@ returns @code{a*diagonal(b)}.
 This numerically robust solver returns the real roots of the
 quadratic equation @math{ax^2+bx+c=0}. Multiple roots are listed separately.
 
+@cindex @code{quadraticroots}
+@item @code{pair[] quadraticroots(explicit pair a, explicit pair b, explicit pair c);}
+This numerically robust solver returns the two complex roots of the
+quadratic equation @math{ax^2+bx+c=0}.
+
 @cindex @code{cubicroots}
 @item @code{real[] cubicroots(real a, real b, real c, real d);}
 This numerically robust solver returns the real roots of the
@@ -5430,6 +5435,11 @@ returns @code{true} iff the path @code{p} is straight.
 @cindex @code{diagonal}
 @item real[][] diagonal(... real[] a)
 returns a diagonal matrix with diagonal entries given by a.
+
+@cindex @code{quarticroots}
+@item @code{pair[] quarticroots(real a, real b, real c, real d);}
+This routine returns the four complex roots of the quartic equation
+@math{ax^4+bx^3+cx^2+dx=0}.
 
 @end table
 
@@ -7935,4 +7945,4 @@ Stefan Knorr.
 @c  LocalWords:  curlSpecifier cputimeformat initializers arbitary redeclaring
 @c  LocalWords:  firstname lastname multdiagonal Raphson OmitTick OmitFormat
 @c  LocalWords:  NoZero NoZeroFormat abbrevation gsOptions namespace redeclared
-@c  LocalWords:  atLeast intMin globalwrite
+@c  LocalWords:  atLeast intMin globalwrite quarticroots deconsruct
