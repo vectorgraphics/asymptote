@@ -547,22 +547,21 @@ struct pairSetting : public dataSetting<pair> {
 struct alignSetting : public argumentSetting {
   alignSetting(string name, char code,
 	       string argname, string desc,
-	       Int defaultValue=CENTER)
+	       Int defaultValue=(Int) CENTER)
     : argumentSetting(name, code, argname, desc,
 		      types::primInt(), (item)defaultValue) {}
 
   bool getOption() {
     string str=optarg;
-    if (str=="C")
-      value=(Int)CENTER;
-    else if (str=="T")
-      value=(Int)TOP;
-    else if (str=="B")
-      value=(Int)BOTTOM;
-    else if (str=="Z") {
-      value=(Int)ZERO;
-    }
-    else {
+    if (str == "C")
+      value=(Int) CENTER;
+    else if (str == "T")
+      value=(Int) TOP;
+    else if (str == "B")
+      value=(Int) BOTTOM;
+    else if (str == "Z") {
+      value=(Int) ZERO;
+    } else {
       error("invalid argument for option");
       return false;
     }
