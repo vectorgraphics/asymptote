@@ -47,6 +47,15 @@ def settingsFileLocation():
 def setDefaults():
   global options
   options = defaultOptions.copy()
+  if sys.platform[:3] == 'win': #for windows, wince, win32, etc
+    import _winreg as registry
+    try:
+      key = registry.OpenKey(HKEY_LOCAL_MACHINE,"Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Asymptote")
+      options['asyPath'] = registry.QueryValueEx(key,"InstallLocation")[0]+"\\asy.exe"
+      registry.CloseKey(key)
+    except:
+      #looks like asy is not installed!!!
+      pass
 
 def load():
   global options

@@ -9,9 +9,12 @@ import xasyOptions
 import tkSimpleDialog
 import xasyColorPicker
 import tkMessageBox
+import tkFileDialog
 import tkColorChooser
 import os
 import subprocess
+import sys
+
 class xasyOptionsDlg(tkSimpleDialog.Dialog):
   """A dialog to interact with users about their preferred settings"""
   def __init__(self,master=None):
@@ -23,35 +26,36 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
     asyGrp = LabelFrame(optFrame,text="Asymptote",padx=5,pady=5)
     asyGrp.grid(row=0,column=0,sticky=E+W)
     asyGrp.rowconfigure(0,weight=1)
+    asyGrp.rowconfigure(1,weight=1)
     asyGrp.columnconfigure(0,weight=1)
+    asyGrp.columnconfigure(0,weight=2)
     Label(asyGrp,text="Command").grid(row=0,column=0,sticky=W)
     self.ap = Entry(asyGrp)
     self.ap.insert(END,xasyOptions.options['asyPath'])
     self.ap.grid(row=0,column=1,sticky=E+W)
+    Button(asyGrp,text="...",command=self.findAsyPath).grid(row=0,column=2,sticky=E+W)
     self.showDebug = BooleanVar()
     self.showDebug.set(xasyOptions.options['showDebug'])
     self.sd = Checkbutton(asyGrp,text="Show debugging info in console",var=self.showDebug)
     self.sd.grid(row=1,column=0,columnspan=2,sticky=W)
-    
+
     penGrp = LabelFrame(optFrame,text="Default Pen",padx=5,pady=5)
     penGrp.grid(row=1,column=0,sticky=E+W)
     penGrp.rowconfigure(0,weight=1)
     penGrp.rowconfigure(1,weight=1)
     penGrp.rowconfigure(2,weight=1)
-    penGrp.columnconfigure(0,weight=1)
     penGrp.columnconfigure(1,weight=1)
-    penGrp.columnconfigure(2,weight=1)
     Label(penGrp,text="Color").grid(row=0,column=0,sticky=E)
     self.pc = xasyOptions.options['defPenColor']
-    Button(penGrp,text="Change",command=self.changePenColor).grid(row=0,column=1)
+    Button(penGrp,text="Change",command=self.changePenColor).grid(row=0,column=1,sticky=W)
     Label(penGrp,text="Width").grid(row=1,column=0,sticky=E)
     self.pw = Entry(penGrp)
     self.pw.insert(END,str(xasyOptions.options['defPenWidth']))
-    self.pw.grid(row=1,column=1,sticky=E)
+    self.pw.grid(row=1,column=1,sticky=E+W)
     Label(penGrp,text="Options").grid(row=2,column=0,sticky=E)
     self.po = Entry(penGrp)
     self.po.insert(END,xasyOptions.options['defPenOptions'])
-    self.po.grid(row=2,column=1,sticky=E)
+    self.po.grid(row=2,column=1,sticky=E+W)
 
     dispGrp = LabelFrame(optFrame,text="Display Options",padx=5,pady=5)
     dispGrp.grid(row=2,column=0,sticky=E+W)
@@ -91,6 +95,18 @@ class xasyOptionsDlg(tkSimpleDialog.Dialog):
     self.gys = Entry(dispGrp,width=6)
     self.gys.insert(END,xasyOptions.options['gridY'])
     self.gys.grid(row=3,column=2,sticky=W+E)
+
+  def findAsyPath(self):
+    if sys.platform[:3] == 'win': #for windows, wince, win32, etc
+      file=tkFileDialog.askopenfile(filetypes=[("Programs","*.exe"),("All files","*")],title="Find Asymptote Executable",parent=self)
+    else:
+      file=tkFileDialog.askopenfile(filetypes=[("All files","*")],title="Find Asymptote Executable",parent=self)
+    if file != None:
+      name = os.path.abspath(file.name)
+      file.close()
+      self.ap.delete(0,END)
+      self.ap.insert(END,name)
+      self.validate()
 
   def getAColor(self,color):
     result = xasyColorPicker.xasyColorDlg(self).getColor(xasyColorPicker.makeRGBfromTkColor(color))
