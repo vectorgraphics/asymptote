@@ -461,6 +461,8 @@ class xasyMainWin:
     self.drawGrid()
 
   def bindEvents(self,tagorID):
+    if tagorID == None:
+      return
     self.mainCanvas.tag_bind(tagorID,"<Control-Button-1>",self.itemToggleSelect)
     self.mainCanvas.tag_bind(tagorID,"<Button-1>",self.itemSelect)
     self.mainCanvas.tag_bind(tagorID,"<ButtonRelease-1>",self.itemMouseUp)
@@ -471,6 +473,8 @@ class xasyMainWin:
     self.mainCanvas.tag_bind(tagorID,"<Button-3>",self.itemCanvasMenuPopup)
 
   def bindItemEvents(self,item):
+    if item == None:
+      return
     if isinstance(item,xasyScript) or isinstance(item,xasyText):
       for image in item.imageList:
         self.bindEvents(image.IDTag)
