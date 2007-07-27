@@ -394,7 +394,7 @@ class xasyMainWin:
         xasyOptions.save()
         startQuickAsy()
       else:
-        self.destroy()
+        self.parent.destroy()
 
   def drawGrid(self):
     self.mainCanvas.delete("grid")
