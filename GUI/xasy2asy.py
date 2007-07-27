@@ -687,7 +687,7 @@ class xasyScript(xasyItem):
       self.asyCode += ");\n"
     self.asyCode += "startScript();{\n"
     self.asyCode += self.script.replace("\t"," ")
-    self.asyCode += "}endScript();\n"
+    self.asyCode += "\n}endScript();\n"
 
   def setScript(self,script):
     """Sets the content of the script item. If the imageList is enlarged, identities are added; if the list is shrunk, transforms are removed."""

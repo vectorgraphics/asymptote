@@ -45,14 +45,7 @@ except:
 class xasyMainWin:
   def __init__(self,master,file=None):
     self.parent = master
-    #global bindings
-    self.parent.bind_all("<Control-z>",lambda q:self.editUndoCmd())# z -> no shift
-    self.parent.bind_all("<Control-Z>",lambda q:self.editRedoCmd())# Z -> with shift
-    self.parent.bind_all("<Control-o>",lambda q:self.fileOpenCmd())
-    self.parent.bind_all("<Control-n>",lambda q:self.fileNewCmd())
-    self.parent.bind_all("<Control-s>",lambda q:self.fileSaveCmd())
-    self.parent.bind_all("<Control-q>",lambda q:self.fileExitCmd())
-    self.parent.bind_all("<F1>",lambda q:self.helpHelpCmd())
+    self.bindGlobalEvents()
     self.createWidgets()
     self.resetGUI()
     if file != None:
@@ -65,6 +58,26 @@ class xasyMainWin:
       self.tickCount += 1
       self.mainCanvas.itemconfigure("outlineBox",dashoffset=self.tickCount%9)
       time.sleep(0.1)
+
+  def bindGlobalEvents(self):
+    #global bindings
+    self.parent.bind_all("<Control-z>",lambda q:self.editUndoCmd())# z -> no shift
+    self.parent.bind_all("<Control-Z>",lambda q:self.editRedoCmd())# Z -> with shift
+    self.parent.bind_all("<Control-o>",lambda q:self.fileOpenCmd())
+    self.parent.bind_all("<Control-n>",lambda q:self.fileNewCmd())
+    self.parent.bind_all("<Control-s>",lambda q:self.fileSaveCmd())
+    self.parent.bind_all("<Control-q>",lambda q:self.fileExitCmd())
+    self.parent.bind_all("<F1>",lambda q:self.helpHelpCmd())
+
+  def unbindGlobalEvents(self):
+    #global bindings
+    self.parent.unbind("<Control-z>")
+    self.parent.unbind("<Control-Z>")
+    self.parent.unbind("<Control-o>")
+    self.parent.unbind("<Control-n>")
+    self.parent.unbind("<Control-s>")
+    self.parent.unbind("<Control-q>")
+    self.parent.unbind("<F1>")
 
   def createWidgets(self):
     #first some configuration
@@ -703,7 +716,9 @@ class xasyMainWin:
     self.clearSelection()
     self.clearHighlight()
     self.addItemToFile(xasyScript(self.mainCanvas))
+    self.unbindGlobalEvents()
     text = xasyCodeEditor(self.parent,"// enter your code here").getText()
+    self.bindGlobalEvents()
     self.fileItems[-1].setScript(text)
     self.fileItems[-1].drawOnCanvas(self.mainCanvas)
     self.bindItemEvents(self.fileItems[-1])
@@ -965,7 +980,9 @@ class xasyMainWin:
     self.updateSelectedButton(self.toolSelectButton)
     if isinstance(item,xasyScript):
       oldText = item.script
+      self.unbindGlobalEvents()
       newText = xasyCodeEditor(self.parent,item.script).getText()
+      self.bindGlobalEvents()
       if newText != oldText:
         item.setScript(newText)
         item.drawOnCanvas(self.mainCanvas)
@@ -1157,7 +1174,6 @@ class xasyMainWin:
     self.mainCanvas.dtag("itemBeingDrawn","itemBeingDrawn")
     self.mainCanvas.bind("<Motion>",self.canvMotion)
     self.inDrawingMode = False
-
 
   def canvLeftDown(self,event):
     x,y = self.mainCanvas.canvasx(event.x),self.mainCanvas.canvasy(event.y)
