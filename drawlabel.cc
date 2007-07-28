@@ -272,10 +272,6 @@ bool drawLabelPath::write(texfile *out)
   if(drawLabel::pentype.invisible()) return true;
   out->setpen(drawLabel::pentype);
   out->verbatimline("\\psset{unit=1pt}%");
-  out->verbatim("\\begin{pspicture}");
-  out->writepair(pair(b.left,b.bottom));
-  out->writepair(pair(b.right,b.top));
-  out->verbatimline("");
   out->verbatim("\\pstextpath[");
   out->verbatim(justify);
   out->verbatim("]");
@@ -287,7 +283,6 @@ bool drawLabelPath::write(texfile *out)
   out->verbatim("}}{");
   out->verbatim(label);
   out->verbatimline("}");
-  out->verbatimline("\\end{pspicture}");
   return true;
 }
 
