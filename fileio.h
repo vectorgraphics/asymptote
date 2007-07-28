@@ -224,7 +224,10 @@ protected:
   
 public:
   ifile(const string& name, char comment, bool check=true) :
-    file(name,check), comment(comment), comma(false) {stream=&cin;}
+    file(name,check), stream(NULL), fstream(NULL), comment(comment),
+    comma(false) {
+    stream=&cin;
+  }
   
   // Binary file
   ifile(const string& name, bool check=true) : file(name,check,true) {}
@@ -235,7 +238,7 @@ public:
     if(standard) {
       stream=&cin;
     } else {
-      stream=fstream=new std::fstream(name.c_str());
+      stream=fstream=new std::fstream(name.c_str(),std::ios::in);
       index=global.back()->ifile.add(fstream);
       if(checkerase) Check();
     }
@@ -315,7 +318,9 @@ protected:
   ostream *stream;
   std::ofstream *fstream;
 public:
-  ofile(const string& name) : file(name), fstream(NULL) {stream=&cout;}
+  ofile(const string& name) : file(name), stream(NULL), fstream(NULL) {
+    stream=&cout;
+  }
   
   ~ofile() {close();}
   
@@ -496,7 +501,7 @@ protected:
 public:
   ixfile(const string& name, bool check=true,
 	 xdr::xios::open_mode mode=xdr::xios::in) :
-    file(name,check,true), mode(mode) {}
+    file(name,check,true), fstream(NULL), mode(mode) {}
 
   void open() {
     fstream=new xdr::ioxstream(name.c_str(),mode);
@@ -589,7 +594,7 @@ public:
 class oxfile : public file {
   xdr::oxstream *fstream;
 public:
-  oxfile(const string& name) : file(name) {}
+  oxfile(const string& name) : file(name), fstream(NULL) {}
 
   void open() {
     fstream=new xdr::oxstream((checkLocal(name),name.c_str()),xdr::xios::trunc);
