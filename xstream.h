@@ -25,6 +25,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
 #include <cstdio>
 
+#ifndef _LARGEFILE_SOURCE
+#define fseeko fseek
+#define ftello ftell
+#endif
+
 #include <sys/types.h>
 #include <rpc/types.h>
 #define quad_t long long
@@ -77,15 +82,15 @@ class xstream : public xios {
 
   void precision(int) {}
   
-  xstream& seek(long pos, seekdir dir=beg) {
+  xstream& seek(off_t pos, seekdir dir=beg) {
     if(buf) {
       clear();
-      if(fseek(buf,pos,dir) != 0) set(failbit); 
+      if(fseeko(buf,pos,dir) != 0) set(failbit); 
     }
     return *this;
   }
-  long tell() {
-    return ftell(buf);
+  off_t tell() {
+    return ftello(buf);
   }
 };
 

@@ -6,6 +6,7 @@ DOCFILES = asymptote.pdf CAD.pdf
 
 docdir = $(DESTDIR)@docdir@
 infodir = $(DESTDIR)@infodir@
+datarootdir = @datarootdir@
 INSTALL = @INSTALL@
 TEXI2DVI = @TEXI2DVI@
 

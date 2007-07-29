@@ -95,7 +95,7 @@ AC_ARG_ENABLE(gc,
 			fi
 			],[ac_cv_use_gc=$GCVERSION])
 
-OPTIONS=
+OPTIONS="-D_FILE_OFFSET_BITS=64 "
 GCLIB=
 GCPPLIB=
 GCNAME="Boehm Garbage Collector"
@@ -214,6 +214,7 @@ AC_CHECK_FUNCS([dup2 floor memset pow sqrt strchr tgamma])
 AC_FUNC_STRFTIME
 AC_FUNC_STRPTIME
 AC_FUNC_ERROR_AT_LINE
+AC_FUNC_FSEEKO
 
 AC_CONFIG_HEADERS(config.h)
 
