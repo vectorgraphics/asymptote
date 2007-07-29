@@ -273,7 +273,7 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
   return System(cmd,0,true,"gs","Ghostscript");
 }
   
-std::map<CONST string,int> pids;
+static mem::map<CONST string,int> pids;
 
 bool picture::postprocess(const string& prename, const string& outname,
 			  const string& outputformat, bool wait, bool view)
@@ -315,7 +315,7 @@ bool picture::postprocess(const string& prename, const string& outname,
   if(settings::view() && view) {
     if(epsformat || pdfformat) {
       // Check to see if there is an existing viewer for this outname.
-      std::map<CONST string,int>::iterator p=pids.find(outname);
+      mem::map<CONST string,int>::iterator p=pids.find(outname);
       bool running=(p != pids.end());
       string Viewer=pdfformat ? getSetting<string>("pdfviewer") :
 	getSetting<string>("psviewer");

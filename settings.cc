@@ -207,7 +207,6 @@ types::record *getSettingsModule() {
 // The dictionaries of long options and short options.
 class option;
 typedef mem::map<CONST string, option *> optionsMap_t;
-//typedef std::map<CONST string, option *, std::less<CONST string>, gc_allocator<std::pair<CONST string *, option *> > >  optionsMap_t;
 optionsMap_t optionsMap;
 
 typedef mem::map<CONST char, option *> codeMap_t;

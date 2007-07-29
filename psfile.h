@@ -33,7 +33,7 @@ class psfile {
   string filename;
   bool pdfformat; // Is final output format PDF?
   bool pdf;       // Output direct PDF?
-  std::stack<pen> pens;
+  mem::stack<pen> pens;
 
   void write(transform t) {
     if(!pdf) *out << "[";
