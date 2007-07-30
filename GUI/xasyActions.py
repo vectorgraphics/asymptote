@@ -133,3 +133,100 @@ class editLabelAction(UndoRedoStack.action):
     self.label.label.setText(self.oldText)
     self.label.drawOnCanvas(self.owner.mainCanvas)
     self.owner.bindItemEvents(self.label)
+
+class addScriptAction(UndoRedoStack.action):
+  def __init__(self,owner,script):
+    self.owner = owner
+    self.script = script
+    UndoRedoStack.action.__init__(self,self.addF,self.unAddF)
+
+  def addF(self):
+    self.owner.addItemToFile(self.script)
+    self.script.drawOnCanvas(self.owner.mainCanvas)
+    self.owner.bindItemEvents(self.script)
+
+  def unAddF(self):
+    self.script.removeFromCanvas()
+    del self.owner.fileItems[-1]
+    self.owner.propList.delete(0)
+    self.owner.clearSelection()
+
+  def __str__(self):
+    return "addition of a script"
+
+class deleteScriptAction(UndoRedoStack.action):
+  def __init__(self,owner,script,index):
+    self.owner = owner
+    self.script = script
+    self.index = index
+    UndoRedoStack.action.__init__(self,self.delF,self.unDelF)
+
+  def delF(self):
+    self.owner.fileItems[self.index].removeFromCanvas()
+    self.owner.propList.delete(len(self.owner.fileItems)-self.index-1)
+    del self.owner.fileItems[self.index]
+
+  def unDelF(self):
+    self.owner.fileItems.insert(self.index,self.script)
+    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas)
+    self.owner.propList.insert(len(self.owner.fileItems)-self.index-1,self.owner.describeItem(self.script))
+    self.owner.bindItemEvents(self.script)
+
+class editScriptAction(UndoRedoStack.action):
+  def __init__(self,owner,script,newText,oldText):
+    self.owner = owner
+    self.script = script
+    self.newText = newText
+    self.oldText = oldText
+    UndoRedoStack.action.__init__(self,self.modS,self.unModS)
+
+  def modS(self):
+    self.script.setScript(self.newText)
+    self.script.drawOnCanvas(self.owner.mainCanvas)
+    self.owner.bindItemEvents(self.script)
+
+  def unModS(self):
+    self.script.setScript(self.oldText)
+    self.script.drawOnCanvas(self.owner.mainCanvas)
+    self.owner.bindItemEvents(self.script)
+
+class itemRaiseAction(UndoRedoStack.action):
+  def __init__(self,owner,items,oldPositions):
+    self.owner = owner
+    self.items = items[:]
+    self.oldPositions = oldPositions[:]
+    UndoRedoStack.action.__init__(self,self.raiseI,self.unRaiseI)
+
+  def raiseI(self):
+    for item in self.items:
+      self.owner.raiseSomething(item)
+
+  def unRaiseI(self):
+    length = len(self.owner.fileItems)
+    indices = self.oldPositions[:]
+    indices = [length-i-1 for i in indices]
+    indices.reverse()
+    for index in indices:
+      for i in range(index):
+        self.owner.raiseSomething(self.owner.fileItems[length-index-1])
+
+  def __str__(self):
+    return "Raise items "+str(self.items)+" from positions "+str(self.oldPositions)
+
+class itemLowerAction(UndoRedoStack.action):
+  def __init__(self,owner,items,oldPositions):
+    self.owner = owner
+    self.items = items[:]
+    self.oldPositions = oldPositions[:]
+    UndoRedoStack.action.__init__(self,self.lowerI,self.unLowerI)
+
+  def lowerI(self):
+    for item in self.items:
+      self.owner.lowerSomething(item)
+
+  def unLowerI(self):
+    indices = self.oldPositions[:]
+    indices.reverse()
+    for index in indices:
+      for i in range(index):
+        self.owner.lowerSomething(self.owner.fileItems[index])

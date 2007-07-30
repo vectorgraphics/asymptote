@@ -719,17 +719,32 @@ class xasyMainWin:
     self.unbindGlobalEvents()
     text = xasyCodeEditor(self.parent,"// enter your code here").getText()
     self.bindGlobalEvents()
+    self.undoRedoStack.add(addScriptAction(self,self.fileItems[-1]))
     self.fileItems[-1].setScript(text)
     self.fileItems[-1].drawOnCanvas(self.mainCanvas)
     self.bindItemEvents(self.fileItems[-1])
   def toolRaiseCmd(self):
     if not self.inDrawingMode and self.editor == None:
+      itemList = []
+      indexList = []
       for ID in self.mainCanvas.find_withtag("selectedItem"):
-        self.raiseSomething(ID)
+        item = self.findItem(ID)
+        if item not in itemList:
+          itemList.append(item)
+          indexList.append(self.fileItems.index(item))
+          self.raiseSomething(item)
+      self.undoRedoStack.add(itemRaiseAction(self,itemList,indexList))
   def toolLowerCmd(self):
     if not self.inDrawingMode and self.editor == None:
+      itemList = []
+      indexList = []
       for ID in self.mainCanvas.find_withtag("selectedItem"):
-        self.lowerSomething(ID)
+        item = self.findItem(ID)
+        if item not in itemList:
+          itemList.append(item)
+          indexList.append(self.fileItems.index(item))
+          self.lowerSomething(item)
+      self.undoRedoStack.add(itemLowerAction(self,itemList,indexList))
   def itemRaise(self,event):
     self.mainCanvas.tag_raise(CURRENT)
   def itemLower(self,event):
@@ -805,7 +820,7 @@ class xasyMainWin:
       else:
         if item.IDTag == ID:
           return item
-    return None
+    raise Exception,"Illegal operation: Item with matching ID could not be found."
 
   def findItemImageIndex(self,item,ID):
     count = 0
@@ -814,10 +829,10 @@ class xasyMainWin:
         return count
       else:
         count += 1
+    raise Exception,"Illegal operation: Image with matching ID could not be found."
     return None
 
-  def raiseSomething(self,ID):
-    item = self.findItem(ID)
+  def raiseSomething(self,item):
     if self.fileItems[-1] != item:
       index = len(self.fileItems)-self.fileItems.index(item)-1
       text = self.propList.get(index)
@@ -834,8 +849,7 @@ class xasyMainWin:
         if item.IDTag != None:
           self.mainCanvas.tag_raise(item.IDTag)
 
-  def lowerSomething(self,ID):
-    item = self.findItem(ID)
+  def lowerSomething(self,item):
     if self.fileItems[0] != item:
       index = len(self.fileItems)-self.fileItems.index(item)-1
       text = self.propList.get(index)
@@ -863,23 +877,18 @@ class xasyMainWin:
       item = specificItem
     else:
       item = self.findItem(ID)
-    if item == None:
-      raise Exception,"fileList is corrupt!"
     if isinstance(item,xasyText) or isinstance(item,xasyScript):
       if ID == -1:
         index = specificIndex
       else:
         index = self.findItemImageIndex(item,ID)
-      if index == None:
-        raise Exception,"imageList is corrupt!"
-      else:
-        try:
-          original = item.transform[index]
-        except:
-          original = identity
-        item.transform[index] = transform*original
-        bbox = item.imageList[index].originalImage.bbox
-        item.imageList[index].originalImage.bbox = bbox[0]+translation[0],bbox[1]+translation[1],bbox[2]+translation[0],bbox[3]+translation[1]
+      try:
+        original = item.transform[index]
+      except:
+        original = identity
+      item.transform[index] = transform*original
+      bbox = item.imageList[index].originalImage.bbox
+      item.imageList[index].originalImage.bbox = bbox[0]+translation[0],bbox[1]+translation[1],bbox[2]+translation[0],bbox[3]+translation[1]
     else:
       item.transform = transform*item.transform
 
@@ -896,50 +905,45 @@ class xasyMainWin:
       item = specificItem
     else:
       item = self.findItem(ID)
-    if item == None:
-      raise Exception,"fileList is corrupt!"
     if isinstance(item,xasyText) or isinstance(item,xasyScript):
       #transform the image
       if ID == -1:
         index = specificIndex
       else:
         index = self.findItemImageIndex(item,ID)
-      if index == None:
-        raise Exception,"imageList is corrupt!"
-      else:
-        try:
-          original = item.transform[index]
-        except:
-          original = identity
-        oldBbox = item.imageList[index].originalImage.bbox
-        oldBbox = (oldBbox[0],-oldBbox[1],oldBbox[2],-oldBbox[3])
-        item.transform[index] = rotMat*item.transform[index]
-        item.transform[index] = rotMat*original
-        item.imageList[index].originalImage.theta += theta
-        item.imageList[index].image = item.imageList[index].originalImage.rotate(item.imageList[index].originalImage.theta*180.0/math.pi,expand=True,resample=Image.BICUBIC)
-        item.imageList[index].itk = ImageTk.PhotoImage(item.imageList[index].image)
-        self.mainCanvas.itemconfigure(ID,image=item.imageList[index].itk)
-        #the image has been rotated in place
-        #now, compensate for any resizing and shift to the correct location
-        #
-        #  p0 --- p1               p1
-        #  |      |     --->      /  \
-        #  p2 --- p3             p0  p3
-        #                         \ /
-        #                          p2
-        #
-        rotMat2 = self.makeRotationMatrix(item.imageList[index].originalImage.theta,origin)
-        p0 = rotMat2*(oldBbox[0],-oldBbox[3])#switch to usual coordinates
-        p1 = rotMat2*(oldBbox[2],-oldBbox[3])
-        p2 = rotMat2*(oldBbox[0],-oldBbox[1])
-        p3 = rotMat2*(oldBbox[2],-oldBbox[1])
-        newTopLeft = (min(p0[0],p1[0],p2[0],p3[0]),-max(p0[1],p1[1],p2[1],p3[1]))#switch back to screen coords
-        shift = (newTopLeft[0]-oldBbox[0],newTopLeft[1]-oldBbox[3])
-        #print theta*180.0/math.pi,origin,oldBbox,newTopLeft,shift
-        #print item.imageList[index].originalImage.size
-        #print item.imageList[index].image.size
-        #print
-        self.mainCanvas.coords(ID,oldBbox[0]+shift[0],oldBbox[3]+shift[1])
+      try:
+        original = item.transform[index]
+      except:
+        original = identity
+      oldBbox = item.imageList[index].originalImage.bbox
+      oldBbox = (oldBbox[0],-oldBbox[1],oldBbox[2],-oldBbox[3])
+      item.transform[index] = rotMat*item.transform[index]
+      item.transform[index] = rotMat*original
+      item.imageList[index].originalImage.theta += theta
+      item.imageList[index].image = item.imageList[index].originalImage.rotate(item.imageList[index].originalImage.theta*180.0/math.pi,expand=True,resample=Image.BICUBIC)
+      item.imageList[index].itk = ImageTk.PhotoImage(item.imageList[index].image)
+      self.mainCanvas.itemconfigure(ID,image=item.imageList[index].itk)
+      #the image has been rotated in place
+      #now, compensate for any resizing and shift to the correct location
+      #
+      #  p0 --- p1               p1
+      #  |      |     --->      /  \
+      #  p2 --- p3             p0  p3
+      #                         \ /
+      #                          p2
+      #
+      rotMat2 = self.makeRotationMatrix(item.imageList[index].originalImage.theta,origin)
+      p0 = rotMat2*(oldBbox[0],-oldBbox[3])#switch to usual coordinates
+      p1 = rotMat2*(oldBbox[2],-oldBbox[3])
+      p2 = rotMat2*(oldBbox[0],-oldBbox[1])
+      p3 = rotMat2*(oldBbox[2],-oldBbox[1])
+      newTopLeft = (min(p0[0],p1[0],p2[0],p3[0]),-max(p0[1],p1[1],p2[1],p3[1]))#switch back to screen coords
+      shift = (newTopLeft[0]-oldBbox[0],newTopLeft[1]-oldBbox[3])
+      #print theta*180.0/math.pi,origin,oldBbox,newTopLeft,shift
+      #print item.imageList[index].originalImage.size
+      #print item.imageList[index].image.size
+      #print
+      self.mainCanvas.coords(ID,oldBbox[0]+shift[0],oldBbox[3]+shift[1])
     else:
       #transform each point of the object
       xform = rotMat*item.transform
@@ -968,18 +972,14 @@ class xasyMainWin:
     if self.editor != None:
       self.editor.endEdit()
     item = self.findItem(ID)
-    if item == None:
-      raise Exception,"fileList is corrupt!"
     #save an event on the undoredo stack
     if isinstance(item,xasyText):
       self.undoRedoStack.add(deleteLabelAction(self,item,self.fileItems.index(item)))
 
     if isinstance(item,xasyScript):
+      self.undoRedoStack.add(deleteScriptAction(self,item,self.fileItems.index(item)))
       index = self.findItemImageIndex(item,ID)
-      if index == None:
-        raise Exception,"imageList is corrupt!"
-      else:
-        item.transform[index] = asyTransform((0,0,0,0,0,0))
+      item.transform[index] = asyTransform((0,0,0,0,0,0))
     else:
       self.fileItems.remove(item)
     self.mainCanvas.delete(ID)
@@ -994,6 +994,7 @@ class xasyMainWin:
       newText = xasyCodeEditor(self.parent,item.script).getText()
       self.bindGlobalEvents()
       if newText != oldText:
+        self.undoRedoStack.add(editScriptAction(self,item,newText,oldText))
         item.setScript(newText)
         item.drawOnCanvas(self.mainCanvas)
         self.bindItemEvents(item)
