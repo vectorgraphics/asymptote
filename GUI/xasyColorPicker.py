@@ -1,8 +1,15 @@
 #!/usr/bin/env python
+###########################################################################
+#
+# xasyColorPicker implements a dialog that allows a user to choose a color
+# from those already defined in Asymptote or a custom RGB color.
+#
 #
 # Author: Orest Shardt
 # Created: June 29, 2007
 #
+############################################################################
+
 from Tkinter import *
 import tkColorChooser
 asyColors = { "black":(0,0,0),

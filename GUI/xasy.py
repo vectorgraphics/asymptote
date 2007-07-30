@@ -1,8 +1,14 @@
 #!/usr/bin/env python
+###########################################################################
+#
+# xasy implements a graphical interface for Asymptote.
+#
 #
 # Author: Orest Shardt
 # Created: June 29, 2007
 #
+############################################################################
+
 import sys
 from Tkinter import *
 import xasyMainWin

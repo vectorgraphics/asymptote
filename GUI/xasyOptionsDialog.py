@@ -1,8 +1,14 @@
 #!/usr/bin/env python
+###########################################################################
+#
+# xasyOptionsDialog implements a dialog window to allow users to edit
+# their preferences and specify program options
+#
 #
 # Author: Orest Shardt
 # Created: June 29, 2007
 #
+###########################################################################
 
 from Tkinter import *
 import xasyOptions

@@ -1,8 +1,15 @@
 #!/usr/bin/env python
+###########################################################################
+#
+# xasyBezierEditor implements the ability to graphically edit the location
+# of the nodes and control points of a bezier curve.
+#
 #
 # Author: Orest Shardt
-# Created: July 3, 2007
+# Created: June 29, 2007
 #
+###########################################################################
+
 from Tkinter import *
 import math
 from CubicBezier import *

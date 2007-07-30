@@ -1,8 +1,14 @@
 #!/usr/bin/env python
+###########################################################################
+#
+# xasyFile implements the loading, parsing, and saving of an xasy file.
+#
 #
 # Author: Orest Shardt
 # Created: June 29, 2007
 #
+############################################################################
+
 from string import *
 from xasy2asy import *
 import re

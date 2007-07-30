@@ -857,13 +857,19 @@ class xasyMainWin:
           self.mainCanvas.tag_lower(item.IDTag)
       self.mainCanvas.tag_lower("axes || grid")
 
-  def translateSomething(self,ID,translation):
+  def translateSomething(self,ID,translation,specificItem=None,specificIndex=None):
     transform = asyTransform((translation[0],translation[1],1,0,0,1))
-    item = self.findItem(ID)
+    if ID == -1:
+      item = specificItem
+    else:
+      item = self.findItem(ID)
     if item == None:
       raise Exception,"fileList is corrupt!"
     if isinstance(item,xasyText) or isinstance(item,xasyScript):
-      index = self.findItemImageIndex(item,ID)
+      if ID == -1:
+        index = specificIndex
+      else:
+        index = self.findItemImageIndex(item,ID)
       if index == None:
         raise Exception,"imageList is corrupt!"
       else:
@@ -964,6 +970,10 @@ class xasyMainWin:
     item = self.findItem(ID)
     if item == None:
       raise Exception,"fileList is corrupt!"
+    #save an event on the undoredo stack
+    if isinstance(item,xasyText):
+      self.undoRedoStack.add(deleteLabelAction(self,item,self.fileItems.index(item)))
+
     if isinstance(item,xasyScript):
       index = self.findItemImageIndex(item,ID)
       if index == None:
@@ -990,6 +1000,7 @@ class xasyMainWin:
     elif isinstance(item,xasyText):
       theText = tkSimpleDialog.askstring(title="Xasy - Text",prompt="Enter text to display:",initialvalue=item.label.text,parent=self.parent)
       if theText != None and theText != "":
+        self.undoRedoStack.add(editLabelAction(self,item,theText,item.label.text))
         item.label.text = theText
         item.drawOnCanvas(self.mainCanvas) 
         self.bindItemEvents(item)
@@ -1028,9 +1039,18 @@ class xasyMainWin:
 
   def itemMouseUp(self,event):
     self.freeMouseDown = True
-    IDList = self.mainCanvas.find_withtag("selectedItem")
     if self.amDragging:
-      self.undoRedoStack.add(translationAction(self,IDList,(self.distanceDragged[0],-self.distanceDragged[1])))
+      IDList = self.mainCanvas.find_withtag("selectedItem")
+      itemList = []
+      indexList = []
+      for ID in IDList:
+        item = self.findItem(ID)
+        if item not in itemList:
+          itemList.append(item)
+          indexList.append([self.findItemImageIndex(item,ID)])
+        else:
+          indexList[itemList.index(item)].append(self.findItemImageIndex(item,ID))
+      self.undoRedoStack.add(translationAction(self,itemList,indexList,(self.distanceDragged[0],-self.distanceDragged[1])))
       self.amDragging = False
 
   def itemSelect(self,event):
@@ -1113,6 +1133,7 @@ class xasyMainWin:
         theItem.drawOnCanvas(self.mainCanvas)
         self.bindItemEvents(theItem)
         self.addItemToFile(theItem)
+        self.undoRedoStack.add(addLabelAction(self,theItem))
         self.updateSelectedButton(self.toolSelectButton)
     elif self.selectedButton in [self.toolDrawLinesButton,self.toolDrawBeziButton,self.toolDrawPolyButton,self.toolDrawShapeButton,self.toolFillPolyButton,self.toolFillShapeButton]:
       self.inDrawingMode = True

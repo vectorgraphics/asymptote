@@ -1,8 +1,14 @@
 #!/usr/bin/env python
+###########################################################################
+#
+# xasyOptions provides a mechanism for storing and restoring a user's
+# preferences.
+#
 #
 # Author: Orest Shardt
 # Created: June 29, 2007
 #
+###########################################################################
 
 import pickle
 import sys,os

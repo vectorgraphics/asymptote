@@ -1,8 +1,15 @@
 #!/usr/bin/env python
+###########################################################################
+#
+# xasyCodeEditor implements a simple text editor for Asymptote scripts in
+# xasy.
+#
 #
 # Author: Orest Shardt
 # Created: June 29, 2007
 #
+############################################################################
+
 from Tkinter import *
 import tkMessageBox
 import tkFileDialog
