@@ -10,8 +10,22 @@
 
 class action:
   def __init__(self,act,inv):
-    self.redo = act
-    self.undo = inv
+    self.act = act
+    self.inv = inv
+  def undo(self):
+    #print "Undo:",self
+    self.inv()
+  def redo(self):
+    #print "Redo:",self
+    self.act()
+  def __str__(self):
+    return "A generic action"
+
+class beginActionGroup:
+  pass
+
+class endActionGroup:
+  pass
 
 class actionStack:
   def __init__(self):
@@ -25,8 +39,25 @@ class actionStack:
   def undo(self):
     if len(self.undoStack) > 0:
       op = self.undoStack.pop()
-      self.redoStack.append(op)
-      op.undo()
+      if op is beginActionGroup:
+        level = 1
+        self.redoStack.append(endActionGroup)
+        while level > 0:
+          op=self.undoStack.pop()
+          if op is endActionGroup:
+            level -= 1
+            self.redoStack.append(beginActionGroup)
+          elif op is beginActionGroup:
+            level += 1
+            self.redoStack.append(endActionGroup)
+          else:
+            op.undo()
+            self.redoStack.append(op)
+      elif op is endActionGroup:
+        raise Exception,"endActionGroup without previous beginActionGroup"
+      else:
+        self.redoStack.append(op)
+        op.undo()
       #print "undid",op
     else:
       pass #print "nothing to undo"
@@ -34,8 +65,25 @@ class actionStack:
   def redo(self):
     if len(self.redoStack) > 0:
       op = self.redoStack.pop()
-      self.undoStack.append(op)
-      op.redo()
+      if op is beginActionGroup:
+        level = 1
+        self.undoStack.append(endActionGroup)
+        while level > 0:
+          op = self.redoStack.pop()
+          if op is endActionGroup:
+            level -= 1
+            self.undoStack.append(beginActionGroup)
+          elif op is beginActionGroup:
+            level += 1
+            self.undoStack.append(endActionGroup)
+          else:
+            op.redo()
+            self.undoStack.append(op)
+      elif op is endActionGroup:
+        raise Exception,"endActionGroup without previous beginActionGroup"
+      else:
+        self.undoStack.append(op)
+        op.redo()
       #print "redid",op
     else:
       pass #print "nothing to redo"

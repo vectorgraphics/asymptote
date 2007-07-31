@@ -101,6 +101,7 @@ class xasyBezierEditor:
     self.transform = self.shape.transform
     self.path = self.shape.path
     self.canvas = canvas
+    self.modified = False
     self.path.computeControls()
     isCyclic = self.path.nodeSet[-1] == 'cycle'
     segments = len(self.path.controlSet)
@@ -192,6 +193,7 @@ class xasyBezierEditor:
     self.shape.drawOnCanvas(self.canvas)
 
   def applyChanges(self):
+    self.modified = True
     self.shape.transform = xasy2asy.asyTransform((0,0,1,0,0,1))
     for i in range(len(self.nodeList)):
       self.path.nodeSet[i] = self.nodeList[i].node

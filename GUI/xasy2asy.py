@@ -518,13 +518,13 @@ class xasyShape(xasyDrawnItem):
 
   def removeFromCanvas(self,canvas):
     """Remove the shape's depiction from a tk canvas"""
-    if self.tag != None:
+    if self.IDTag != None:
       canvas.delete(self.IDTag)
 
-  def drawOnCanvas(self,canvas,asyFy = False):
+  def drawOnCanvas(self,canvas,asyFy=False,forceAddition=False):
     """Add this shape to a tk canvas"""
     if not asyFy:
-      if self.IDTag == None:
+      if self.IDTag == None or forceAddition:
         #add ourselves to the canvas
         self.path.computeControls()
         self.IDTag = canvas.create_line(0,0,0,0,tags=("drawn","xasyShape"),fill=self.pen.tkColor(),width=self.pen.width)
@@ -576,13 +576,13 @@ class xasyFilledShape(xasyShape):
 
   def removeFromCanvas(self,canvas):
     """Remove this shape's depiction from a tk canvas"""
-    if self.tag != None:
+    if self.IDTag != None:
       canvas.delete(self.IDTag)
 
-  def drawOnCanvas(self,canvas,asyFy = False):
+  def drawOnCanvas(self,canvas,asyFy=False,forceAddition=False):
     """Add this shape to a tk canvas"""
     if not asyFy:
-      if self.IDTag == None:
+      if self.IDTag == None or forceAddition:
         #add ourselves to the canvas
         self.path.computeControls()
         self.IDTag = canvas.create_polygon(0,0,0,0,0,0,tags=("drawn","xasyFilledShape"),fill=self.pen.tkColor(),outline=self.pen.tkColor(),width=self.pen.width)

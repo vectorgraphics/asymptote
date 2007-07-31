@@ -14,6 +14,7 @@ import os
 from string import *
 import subprocess
 import math
+import copy
 
 from Tkinter import *
 import tkMessageBox
@@ -676,6 +677,8 @@ class xasyMainWin:
       self.mainCanvas.delete("highlightBox")
     if self.editor != None:
       self.editor.endEdit()
+      if self.editor.modified:
+        self.undoRedoStack.add(editDrawnItemAction(self,self.itemBeingEdited,copy.deepcopy(self.editor.shape),self.fileItems.index(self.editor.shape)))
     if newB not in (self.toolSelectButton,self.toolMoveButton,self.toolHorizMoveButton,self.toolVertiMoveButton,self.toolRotateButton):
       self.clearSelection()
     self.selectedButton = newB
@@ -958,9 +961,15 @@ class xasyMainWin:
 
   def deleteItem(self,item):
     if isinstance(item,xasyScript) or isinstance(item,xasyText):
+      if isinstance(item,xasyScript):
+        self.undoRedoStack.add(deleteScriptAction(self,item,self.fileItems.index(item)))
+      else:
+        self.undoRedoStack.add(deleteLabelAction(self,item,self.fileItems.index(item)))
       for image in item.imageList:
         self.mainCanvas.delete(image.IDTag)
     else:
+      if isinstance(item,xasyDrawnItem):
+        self.undoRedoStack.add(deleteDrawnItemAction(self,item,self.fileItems.index(item)))
       self.mainCanvas.delete(item.IDTag)
     self.fileItems.remove(item)
     self.populatePropertyList()
@@ -971,16 +980,18 @@ class xasyMainWin:
     self.clearHighlight()
     if self.editor != None:
       self.editor.endEdit()
+      if self.editor.modified:
+        self.undoRedoStack.add(editDrawnItemAction(self,self.itemBeingEdited,copy.deepcopy(self.editor.shape),self.fileItems.index(self.editor.shape)))
     item = self.findItem(ID)
     #save an event on the undoredo stack
-    if isinstance(item,xasyText):
-      self.undoRedoStack.add(deleteLabelAction(self,item,self.fileItems.index(item)))
-
     if isinstance(item,xasyScript):
-      self.undoRedoStack.add(deleteScriptAction(self,item,self.fileItems.index(item)))
       index = self.findItemImageIndex(item,ID)
       item.transform[index] = asyTransform((0,0,0,0,0,0))
     else:
+      if isinstance(item,xasyText):
+        self.undoRedoStack.add(deleteLabelAction(self,item,self.fileItems.index(item)))
+      elif isinstance(item,xasyDrawnItem):
+        self.undoRedoStack.add(deleteDrawnItemAction(self,item,self.fileItems.index(item)))
       self.fileItems.remove(item)
     self.mainCanvas.delete(ID)
     self.populatePropertyList()
@@ -1008,6 +1019,7 @@ class xasyMainWin:
     elif isinstance(item,xasyShape):
       self.clearSelection()
       self.clearHighlight()
+      self.itemBeingEdited = copy.deepcopy(item)
       self.editor = xasyBezierEditor(self,item,self.mainCanvas)
     self.updateSelection()
 
@@ -1035,7 +1047,7 @@ class xasyMainWin:
         self.mainCanvas.move(ID,translation[0],-translation[1])
         self.updateSelection()
         self.updateCanvasSize()
-        self.distanceDragged = (self.distanceDragged[0]+translation[0],self.distanceDragged[1]-translation[1])
+      self.distanceDragged = (self.distanceDragged[0]+translation[0],self.distanceDragged[1]-translation[1])
     self.dragStartx,self.dragStarty = x,y
 
   def itemMouseUp(self,event):
@@ -1048,7 +1060,10 @@ class xasyMainWin:
         item = self.findItem(ID)
         if item not in itemList:
           itemList.append(item)
-          indexList.append([self.findItemImageIndex(item,ID)])
+          try:
+            indexList.append([self.findItemImageIndex(item,ID)])
+          except:
+            indexList.append([None])
         else:
           indexList[itemList.index(item)].append(self.findItemImageIndex(item,ID))
       self.undoRedoStack.add(translationAction(self,itemList,indexList,(self.distanceDragged[0],-self.distanceDragged[1])))
@@ -1076,8 +1091,25 @@ class xasyMainWin:
         self.setSelection(CURRENT)
 
   def itemDelete(self,event):
+    itemList = []
+    self.undoRedoStack.add(endActionGroup)
     for ID in self.mainCanvas.find_withtag("selectedItem"):
+      item = self.findItem(ID)
+      if isinstance(item,xasyScript):
+        index = self.findItemImageIndex(item,ID)
+        if item not in itemList:
+          itemList.append([item,[index],[item.transform[index]]])
+        else:
+          x = None
+          for i in itemList:
+            if i[0] == item:
+              x = i
+          x[1].append(index)
+          x[2].append(item.transform[index])
       self.deleteSomething(ID)
+    for entry in itemList:
+      self.undoRedoStack.add(deleteScriptItemAction(self,entry[0],entry[1],entry[2]))
+    self.undoRedoStack.add(beginActionGroup)
     self.clearSelection()
 
   def itemMotion(self,event):
@@ -1191,7 +1223,7 @@ class xasyMainWin:
     self.itemBeingDrawn.setLastPoint((x,-y))
     self.itemBeingDrawn.drawOnCanvas(self.mainCanvas)
     self.addItemToFile(self.itemBeingDrawn)
-    del self.itemBeingDrawn
+    self.undoRedoStack.add(addDrawnItemAction(self,self.itemBeingDrawn))
     self.itemBeingDrawn = None
     self.mainCanvas.dtag("itemBeingDrawn","itemBeingDrawn")
     self.mainCanvas.bind("<Motion>",self.canvMotion)
@@ -1206,6 +1238,8 @@ class xasyMainWin:
       self.selectBboxMidpoint = (theBbox[0]+theBbox[2])/2.0,-(theBbox[1]+theBbox[3])/2.0
     if self.freeMouseDown and self.editor != None:
       self.editor.endEdit()
+      if self.editor.modified:
+        self.undoRedoStack.add(editDrawnItemAction(self,self.itemBeingEdited,copy.deepcopy(self.editor.shape),self.fileItems.index(self.editor.shape)))
       self.editor = None
     elif self.selectedButton in (self.toolSelectButton,self.toolMoveButton,self.toolVertiMoveButton,self.toolHorizMoveButton,self.toolRotateButton):
       if self.freeMouseDown:
@@ -1282,7 +1316,10 @@ class xasyMainWin:
             item = self.findItem(ID)
             if item not in itemList:
               itemList.append(item)
-              indexList.append([self.findItemImageIndex(item,ID)])
+              try:
+                indexList.append([self.findItemImageIndex(item,ID)])
+              except:
+                indexList.append([None])
             else:
               indexList[itemList.index(item)].append(self.findItemImageIndex(item,ID))
           self.undoRedoStack.add(rotationAction(self,itemList,indexList,self.currentRotationAngle,self.selectBboxMidpoint))
@@ -1333,6 +1370,7 @@ class xasyMainWin:
     tkMessageBox.showinfo("Item Code",self.itemPopupMenu.item.getCode())
 
   def popupClearTransform(self):
+    self.undoRedoStack.add(clearItemTransformsAction(self,self.itemPopupMenu.item,copy.deepcopy(self.itemPopupMenu.item.transform)))
     if isinstance(self.itemPopupMenu.item,xasyScript) or isinstance(self.itemPopupMenu.item,xasyText):
       for i in range(len(self.itemPopupMenu.item.transform)):
         self.itemPopupMenu.item.transform[i] = identity

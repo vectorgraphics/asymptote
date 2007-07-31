@@ -259,6 +259,7 @@ fileHeader = """initXasyMode();
 """
 
 fileFooter = """// This is the end of the file
+exitXasyMode();
 
 """
 
