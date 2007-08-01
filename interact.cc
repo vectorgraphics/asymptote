@@ -7,7 +7,6 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
-#include <fstream>
 #include <sstream>
 #include <sys/wait.h>
 #include <sys/types.h>
@@ -98,23 +97,6 @@ void init_interactive()
 string simpleline(string prompt) {
   // Rebind tab key, as the setting tabcompletion may be changed at runtime.
   pre_readline();
-
-  //warn xasy about completion of previous command
-  if(getSetting<bool>("signal")) {
-    ostringstream statFilename;
-    pid_t ppid = getppid();
-    statFilename << ".asy_status_" << ppid;
-    std::ofstream statFile(statFilename.str().c_str(),std::ofstream::app);
-    if(!statFile) {
-      em.compiler();
-      em << "cannot open status file";
-      throw handled_error();
-    } else {
-      statFile << 0 << endl;
-      statFile.close();
-      kill(ppid,SIGINT);
-    }
-  }
   
   /* Get a line from the user. */
   char *line=Readline(prompt.c_str());

@@ -24,7 +24,7 @@ void initXasyMode()
 
 void exitXasyMode()
 {
-
+  inXasyMode = false;
 }
 private picture[] tempStore;
 private picture newPic;
@@ -63,8 +63,6 @@ struct framedTransformStack {
   private int[] frames;
   private int stackBase=0;
   transform pop() {
-    if(!inXasyMode) return identity();
-    //transform popped = (stack.length > stackBase) ? stack.pop() : identity();
     if(stack.length == 0)
       return identity();
     else

@@ -697,20 +697,6 @@ string convertname(string name, const string& format, bool check=true)
   return format.empty() ? name : format+":"+name;
 }
 
-void notifyXasy(pid_t ppid, Int count)
-{
-  ostringstream statFilename;
-  statFilename << ".asy_status_" << ppid;
-  std::ofstream statFile(statFilename.str().c_str());
-  if(!statFile)
-    error("cannot open status file");
-  else {
-    statFile << count << endl;
-    statFile.close();
-    kill(ppid,SIGINT);
-  }
-}
-
 void unused(void *)
 {
 }
@@ -1086,8 +1072,6 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 	     callableTransform *xform)
 {
   if(prefix.empty()) prefix=outname();
-  
-  pid_t ppid=getSetting<bool>("signal") ? getppid() : 0;
 
   picture *result=new picture;
   unsigned level=0;
@@ -1125,18 +1109,14 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
       if(getSetting<real>("deconstruct")) {
 	ostringstream buf;
 	buf << prefix << "_" << i;
-	if(group->shipout(preamble,buf.str(),"<x>",false,false,Delete) &&
-	   ppid > 0)
-	  notifyXasy(ppid,i+1);
+	group->shipout(preamble,buf.str(),"<x>",false,false,Delete);
       }
       ++i;
     }
     if(!Delete) result->add(*group);
   }
   f=result;
-  ostringstream buf;
-  buf << prefix << "_" << i;
-  f->shipout(preamble,(ppid ? buf.str() : prefix),format,wait,view);
+  f->shipout(preamble,prefix,format,wait,view);
 }
 
 void deconstruct(string prefix=emptystring, picture *f,

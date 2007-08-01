@@ -78,6 +78,7 @@ void GUIreset()
 void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
              string format="", bool wait=NoWait, bool view=true)
 {
+  if(inXasyMode)return;
   GUIreset();
   readGUI();
   bool Transform=GUIFilenum < GUIlist.length;
@@ -105,11 +106,14 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
     t=GUIop.Transform;
     d=GUIop.Delete;
   }
-  //  shipout(prefix,f,preamble,format,wait,view,xformStack.pop);
-  shipout(prefix,f,preamble,format,wait,view,
-          new transform() {
-	    if(++i < d.length && d[i]) return (0,0,0,0,0,0);
-	    return i < t.length ? t[i] : identity();});
+  //for the xformStack:
+  shipout(prefix,f,preamble,format,wait,view,xformStack.pop);
+
+  //for GUIop:
+  //shipout(prefix,f,preamble,format,wait,view,
+  //        new transform() {
+  //        if(++i < d.length && d[i]) return (0,0,0,0,0,0);
+  //        return i < t.length ? t[i] : identity();});
 
   shipped=true;
   ++GUIFilenum;
