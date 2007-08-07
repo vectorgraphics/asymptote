@@ -171,6 +171,21 @@ struct power {
   T operator() (T x, T y, size_t=0) {return pow(x,y);}
 };
 
+template<class T>
+T pow(T x, Int y)
+{
+  if(y == 0) return 1.0;
+  if(x == 0.0 && y > 0) return 0.0;
+  if(y < 0) {y=-y; x=1/x;}
+	
+  T r=1.0;
+  for(;;) {
+    if(y & 1) r *= x;
+    if((y >>= 1) == 0)	return r;
+    x *= x;
+  }
+}
+  
 template <>
 struct power<Int> {
   Int operator() (Int x, Int p,  size_t i=0) {
