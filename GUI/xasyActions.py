@@ -120,7 +120,7 @@ class deleteLabelAction(UndoRedoStack.action):
   def __str__(self):
     return "Deletion of a label"
 
-class editLabelAction(UndoRedoStack.action):
+class editLabelTextAction(UndoRedoStack.action):
   def __init__(self,owner,label,newText,oldText):
     self.owner = owner
     self.label = label
@@ -139,7 +139,30 @@ class editLabelAction(UndoRedoStack.action):
     self.owner.bindItemEvents(self.label)
 
   def __str__(self):
-    return "Editing of a label"
+    return "Editing a label's text"
+
+class editLabelPenAction(UndoRedoStack.action):
+  def __init__(self,owner,oldPen,newPen,index):
+    self.owner = owner
+    self.newPen = newPen
+    self.oldPen = oldPen
+    self.index = index
+    UndoRedoStack.action.__init__(self,self.editF,self.unEditF)
+
+  def editF(self):
+    self.owner.fileItems[self.index].removeFromCanvas()
+    self.owner.fileItems[self.index].label.pen = self.newPen
+    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas)
+    self.owner.bindItemEvents(self.owner.fileItems[self.index])
+
+  def unEditF(self):
+    self.owner.fileItems[self.index].removeFromCanvas()
+    self.owner.fileItems[self.index].label.pen = self.oldPen
+    self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas)
+    self.owner.bindItemEvents(self.owner.fileItems[self.index])
+
+  def __str__(self):
+    return "Changing a label's pen"
 
 class addScriptAction(UndoRedoStack.action):
   def __init__(self,owner,script):
@@ -350,6 +373,7 @@ class editDrawnItemAction(UndoRedoStack.action):
     self.owner.fileItems[self.index].transform = self.newItem.transform
     self.owner.fileItems[self.index].IDTag = self.newItem.IDTag
     self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas,forceAddition=True)
+    self.owner.bindItemEvents(self.owner.fileItems[self.index])
 
   def unEditF(self):
     self.owner.fileItems[self.index].removeFromCanvas(self.owner.mainCanvas)
@@ -358,6 +382,7 @@ class editDrawnItemAction(UndoRedoStack.action):
     self.owner.fileItems[self.index].transform = self.oldItem.transform
     self.owner.fileItems[self.index].IDTag = self.oldItem.IDTag
     self.owner.fileItems[self.index].drawOnCanvas(self.owner.mainCanvas,forceAddition=True)
+    self.owner.bindItemEvents(self.owner.fileItems[self.index])
 
   def __str__(self):
     return "Modification of a drawn item"

@@ -49,6 +49,10 @@ class xasyMainWin:
     self.bindGlobalEvents()
     self.createWidgets()
     self.resetGUI()
+    if not PILAvailable:
+      tkMessageBox.showerror("Failed Dependencies","An error occurred loading a required library, PIL. Please check your installation.")
+      self.parent.destroy()
+      sys.exit(1)
     if file != None:
       self.loadFile(file)
     self.ticker = threading.Thread(target=self.tickHandler)
@@ -755,10 +759,12 @@ class xasyMainWin:
 
   #options bar commands
   def setPenColCmd(self):
+    old = self.penColor
     self.penColor = xasyColorDlg(self.parent).getColor(self.penColor)
-    self.tkPenColor = RGB255hex(RGBreal255(self.penColor))
-    self.penColButton.config(activeforeground=self.tkPenColor,activebackground=self.tkPenColor)
-    self.showCurrentPen()
+    if self.penColor != old:
+      self.tkPenColor = RGB255hex(RGBreal255(self.penColor))
+      self.penColButton.config(activeforeground=self.tkPenColor,activebackground=self.tkPenColor)
+      self.showCurrentPen()
 
   def clearSelection(self):
     self.hideSelectionBox()
@@ -995,7 +1001,6 @@ class xasyMainWin:
       self.fileItems.remove(item)
     self.mainCanvas.delete(ID)
     self.populatePropertyList()
-    self.clearSelection()
 
   def itemEdit(self,item):
     self.updateSelectedButton(self.toolSelectButton)
@@ -1012,7 +1017,7 @@ class xasyMainWin:
     elif isinstance(item,xasyText):
       theText = tkSimpleDialog.askstring(title="Xasy - Text",prompt="Enter text to display:",initialvalue=item.label.text,parent=self.parent)
       if theText != None and theText != "":
-        self.undoRedoStack.add(editLabelAction(self,item,theText,item.label.text))
+        self.undoRedoStack.add(editLabelTextAction(self,item,theText,item.label.text))
         item.label.text = theText
         item.drawOnCanvas(self.mainCanvas) 
         self.bindItemEvents(item)
@@ -1407,8 +1412,6 @@ class xasyMainWin:
 
   def itemPropMenuPopup(self,event):
     try:
-      #print int(self.propList.curselection()[0])
-      #print len(self.fileItems)-int(self.propList.curselection()[0])-1
       item = self.fileItems[len(self.fileItems)-int(self.propList.curselection()[0])-1]
       self.itemMenuPopup(self.propList,item,event.x_root,event.y_root)
     except:
@@ -1435,8 +1438,10 @@ class xasyMainWin:
   def applyPenWidth(self):
     self.pendingPenWidthChange = None
     if self.validatePenWidth():
+      old = self.penWidth
       self.penWidth = float(self.penWidthEntry.get())
-      self.showCurrentPen()
+      if old != self.penWidth:
+        self.showCurrentPen()
 
   def validatePenWidth(self):
     text = self.penWidthEntry.get()
@@ -1454,6 +1459,29 @@ class xasyMainWin:
       mag *= 2
     self.penDisp.itemconfigure("penDisp",width=width,fill=self.tkPenColor)
     self.penDisp.itemconfigure("penMag",text="x%d"%mag)
+    #apply the new pen to any selected items
+    IDs = self.mainCanvas.find_withtag("selectedItem")
+    madeAChange = False
+    for ID in IDs:
+      item = self.findItem(ID)
+      if not isinstance(item,xasyScript):
+        if not madeAChange:
+          self.undoRedoStack.add(endActionGroup)
+          madeAChange = True
+        if isinstance(item,xasyText):
+          temp = item.label.pen
+          item.label.pen = asyPen(self.penColor,self.penWidth,self.penOptions)
+          item.drawOnCanvas(self.mainCanvas)
+          self.bindItemEvents(item)
+          self.setSelection(item.imageList[0].IDTag)
+          self.undoRedoStack.add(editLabelPenAction(self,temp,asyPen(self.penColor,self.penWidth,self.penOptions),self.fileItems.index(item)))
+        else:
+          temp = copy.deepcopy(item)
+          item.pen = asyPen(self.penColor,self.penWidth,self.penOptions)
+          item.drawOnCanvas(self.mainCanvas)
+          self.undoRedoStack.add(editDrawnItemAction(self,temp,copy.deepcopy(item),self.fileItems.index(item)))
+    if madeAChange:
+      self.undoRedoStack.add(beginActionGroup)
 
   def applyPenWidthEvt(self,event):
     self.applyPenWidth()
@@ -1478,8 +1506,10 @@ class xasyMainWin:
   def applyPenOpt(self):
     self.pendingPenOptChange = None
     if self.validatePenOpt():
+      old = self.penOptions
       self.penOptions = self.penOptEntry.get()
-      self.showCurrentPen()
+      if old != self.penOptions:
+        self.showCurrentPen()
 
   def undoOperation(self):
     self.undoRedoStack.undo()

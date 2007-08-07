@@ -14,7 +14,7 @@ from string import *
 import xasyOptions
 from Tkinter import *
 
-#PIL support might become mandatory
+#PIL support is now mandatory due to rotations
 try:
   from PIL import ImageTk
   import Image
@@ -64,10 +64,6 @@ def syncQuickAsyOutput():
   line = quickAsy.stdout.readline()
   while not line.endswith(idStr+'\n'):
     line = quickAsy.stdout.readline()
-
-def asyExecute(command):
-  quickAsy.stdin.write(command)
-  quickAsy.stdin.flush()
 
 class asyTransform:
   """A python implementation of an asy transform"""
@@ -585,7 +581,7 @@ class xasyFilledShape(xasyShape):
       if self.IDTag == None or forceAddition:
         #add ourselves to the canvas
         self.path.computeControls()
-        self.IDTag = canvas.create_polygon(0,0,0,0,0,0,tags=("drawn","xasyFilledShape"),fill=self.pen.tkColor(),outline=self.pen.tkColor(),width=self.pen.width)
+        self.IDTag = canvas.create_polygon(0,0,0,0,0,0,tags=("drawn","xasyFilledShape"),fill=self.pen.tkColor(),outline=self.pen.tkColor(),width=1)
         self.drawOnCanvas(canvas)
       else:
         self.path.computeControls()
@@ -617,7 +613,7 @@ class xasyFilledShape(xasyShape):
             nodeCount += 1
             previousNode = node
         canvas.coords(self.IDTag,*pointSet)
-        canvas.itemconfigure(self.IDTag,fill=self.pen.tkColor(),outline=self.pen.tkColor(),width=self.pen.width)
+        canvas.itemconfigure(self.IDTag,fill=self.pen.tkColor(),outline=self.pen.tkColor(),width=1)
     else:
       #first asyfy then add an image list
       pass
