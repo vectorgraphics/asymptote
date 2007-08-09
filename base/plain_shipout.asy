@@ -21,74 +21,10 @@ void shipout(string prefix=defaultfilename,
 
 include plain_xasy;
 
-struct GUIop
-{
-  transform[] Transform;
-  bool[] Delete;
-}
-
-frame GUI[];
-  
-frame GUI(int index) {
-  while(GUI.length <= index) {
-    frame f;
-    GUI.push(f);
-  }
-  return GUI[index];
-}
-                                                   
-private struct DELETET {}
-DELETET DELETE=null;
-
-GUIop[] GUIlist;
-
-// Delete item
-void GUIop(int index, int filenum=0, DELETET)
-{
-  if(GUIlist.length <= filenum) GUIlist[filenum]=new GUIop;
-  GUIop GUIobj=GUIlist[filenum];
-  while(GUIobj.Transform.length <= index) {
-    GUIobj.Transform.push(identity());
-    GUIobj.Delete.push(false);
-  }
-  GUIobj.Delete[index]=true;
-}
-
-// Transform item
-void GUIop(int index, int filenum=0, transform T)
-{
-  if(GUIlist.length <= filenum) GUIlist[filenum]=new GUIop;
-  GUIop GUIobj=GUIlist[filenum];
-  while(GUIobj.Transform.length <= index) {
-    GUIobj.Transform.push(identity());
-    GUIobj.Delete.push(false);
-  }
-  GUIobj.Transform[index]=T*GUIobj.Transform[index];
-}
-
-private int GUIFilenum;
-
-void GUIreset()
-{
-  GUIFilenum=0;
-  GUI=new frame[];
-  GUIlist=new GUIop[];
-}
-
 void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
              string format="", bool wait=NoWait, bool view=true)
 {
-  if(inXasyMode)return;
-  GUIreset();
-  readGUI();
-  bool Transform=GUIFilenum < GUIlist.length;
-  if(GUI.length > 0) {
-    frame F;
-    add(F,f);
-    for(int i=0; i < GUI.length; ++i)
-      add(F,GUI(i));
-    f=F;
-  }
+  if(inXasyMode) return;
   
   // Applications like LaTeX cannot handle large PostScript coordinates.
   pair m=min(f);
@@ -96,27 +32,8 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
   if(abs(m.x) > limit || abs(m.y) > limit) f=shift(-m)*f;
 
   uptodate(true);
-
-  int i=-1;
-  transform[] t;
-  bool[] d;
-  GUIop GUIop;
-  if(Transform) {
-    GUIop=GUIlist[GUIFilenum];
-    t=GUIop.Transform;
-    d=GUIop.Delete;
-  }
-  //for the xformStack:
   shipout(prefix,f,preamble,format,wait,view,xformStack.pop);
-
-  //for GUIop:
-  //shipout(prefix,f,preamble,format,wait,view,
-  //        new transform() {
-  //        if(++i < d.length && d[i]) return (0,0,0,0,0,0);
-  //        return i < t.length ? t[i] : identity();});
-
   shipped=true;
-  ++GUIFilenum;
 }
 
 void shipout(string prefix=defaultfilename, picture pic,

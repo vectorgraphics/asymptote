@@ -1558,32 +1558,6 @@ string location() {
   return buf.str();
 }
 
-Void readGUI()
-{
-  static bool first=true;
-  string name=buildname(outname(),guisuffix);
-  std::ifstream exists(name.c_str());
-  if(exists) {
-    if((getSetting<bool>("clearGUI") && !interact::interactive) ||
-       (first && interact::interactive)) unlink(name.c_str());
-    else {
-      if (!getSetting<bool>("ignoreGUI")) {
-	string cmd=string("include \"")+name+string("\";");
-
-        // NOTE: Duplicate code with _eval.
-        trans::coenv *e=Stack->getEnvironment();
-        vm::interactiveStack *is=dynamic_cast<vm::interactiveStack *>(Stack);
-        if (e && is) {
-          runStringEmbedded(cmd, *e, *is);
-        } else {
-          cerr << "no runtime environment for readGUI" << endl;
-        }
-      }
-    }
-  }
-  first=false;
-}
-
 // Wrapper for the stack::load() method.
 void :loadModule(string *index)
 {

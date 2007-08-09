@@ -895,8 +895,6 @@ void initSettings() {
 			    0.0));
   addOption(new stringSetting("xformat", 0, "format", 
 			      "GUI deconstruction format [\"gif\"]","gif"));
-  addOption(new boolSetting("clearGUI", 'c', "Clear GUI operations"));
-  addOption(new boolSetting("ignoreGUI", 'i', "Ignore GUI operations"));
   addOption(new stringSetting("outformat", 'f', "format",
 			      "Convert each output file to specified format",
 			      ""));
