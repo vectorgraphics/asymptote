@@ -130,6 +130,17 @@ bbox picture::bounds()
   for(; p != nodes.end(); ++p) {
     assert(*p);
     (*p)->bounds(b,global.back()->tex,labelbounds,bboxstack);
+    
+     // Optimization for interpreters with fixed stack limits.
+    if((*p)->endclip()) {
+      nodelist::iterator q=p;
+      if(q != nodes.begin()) {
+	--q;
+	assert(*q);
+	if((*q)->endclip())
+	  (*q)->save(false);
+      }
+    }
   }
 
   lastnumber=n;
@@ -221,7 +232,7 @@ bool picture::texprocess(const string& texname, const string& outname,
       while(getline(fin,s)) {
 	if(s.find("%%DocumentPaperSizes:") == 0) continue;
 	if(s.find("%!PS-Adobe-") == 0) {
-	  fout.verbatimline("%!PS-Adobe-3.0 EPSF-3.0");
+	  fout.header();
 	} else if(first && s.find("%%BoundingBox:") == 0) {
 	  bbox box=b;
 	  box.shift(bboxshift);

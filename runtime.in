@@ -939,7 +939,8 @@ void tensorshade(picture *f, patharray *g, pen fillrule, penarray2 *p,
 void clip(picture *f, patharray *g, pen p, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  f->enclose(new drawClipBegin(*copyarray(g),p),new drawClipEnd());
+  drawClipBegin *begin=new drawClipBegin(*copyarray(g),p,true);
+  f->enclose(begin,new drawClipEnd(true,begin));
 }
 
 void beginclip(picture *f, patharray *g, pen p)

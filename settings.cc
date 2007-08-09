@@ -996,6 +996,7 @@ void initSettings() {
 			   "Retain n lines of history [1000]",1000));
   addOption(new IntSetting("scroll", 0, "n",
 			   "Scroll standard output n lines at a time [0]",0));
+  addOption(new IntSetting("level", 0, "n", "Postscript level [3]",3));
   addOption(new boolSetting("autoplain", 0,
 			    "Enable automatic importing of plain",
 			    true));

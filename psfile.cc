@@ -68,9 +68,15 @@ psfile::~psfile()
   close();
 }
   
+void psfile::header()
+{
+  Int level=settings::getSetting<Int>("level");
+  *out << "%!PS-Adobe-" << level << ".0 EPSF-" << level << ".0" << newl;
+}
+  
 void psfile::prologue(const bbox& box)
 {
-  *out << "%!PS-Adobe-3.0 EPSF-3.0" << newl;
+  header();
   BoundingBox(box);
   *out << "%%Creator: " << settings::PROGRAM << " " << settings::VERSION
        <<  newl;
@@ -197,6 +203,7 @@ static const char *inconsistent="inconsistent colorspaces";
   
 void psfile::latticeshade(const vm::array& a, const bbox& b)
 {
+  checkLevel();
   size_t n=a.size();
   if(n == 0) return;
   
@@ -254,6 +261,7 @@ void psfile::gradientshade(bool axial, const ColorSpace &colorspace,
 			   const pen& pena, const pair& a, double ra,
 			   const pen& penb, const pair& b, double rb)
 {
+  checkLevel();
   setpen(pena);
   checkColorSpace(colorspace);
   
@@ -284,6 +292,7 @@ void psfile::gradientshade(bool axial, const ColorSpace &colorspace,
 void psfile::gouraudshade(const array& pens, const array& vertices,
 			  const array& edges)
 {
+  checkLevel();
   size_t size=pens.size();
   if(size == 0) return;
   
@@ -313,6 +322,7 @@ void psfile::gouraudshade(const array& pens, const array& vertices,
 void psfile::tensorshade(const array& pens, const array& boundaries,
 			 const array& z)
 {
+  checkLevel();
   size_t size=pens.size();
   if(size == 0) return;
   size_t nz=z.size();

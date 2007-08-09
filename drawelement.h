@@ -104,10 +104,14 @@ public:
 
   virtual bool islayer() {return false;}
 
+  virtual bool endclip() {return false;}
+  
   virtual bool begingroup() {return false;}
 
   virtual bool endgroup() {return false;}
 
+  virtual void save(bool b) {}
+  
   // Handles its output in a PostScript file
   virtual bool draw(psfile *) {
     return true;

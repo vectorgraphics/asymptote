@@ -85,7 +85,8 @@ void filloutside(frame f, path[] g, pen p=currentpen, bool copy=true)
   fill(f,complement(f,g),p+evenodd,copy);
 }
 
-typedef void filltype(frame, path[], pen);
+// Return value is used to detect UnFill filltypes. 
+typedef bool filltype(frame, path[], pen);
 
 path[] margin(path[] g, real xmargin, real ymargin) 
 {
@@ -104,40 +105,45 @@ path[] margin(path[] g, real xmargin, real ymargin)
 
 filltype Fill(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
 {
-  return new void(frame f, path[] g, pen fillpen) {
+  return new bool(frame f, path[] g, pen fillpen) {
     if(p != nullpen) fillpen=p;
     if(fillpen == nullpen) fillpen=currentpen;
     fill(f,margin(g,xmargin,ymargin),fillpen);
+    return true;
   };
 }
 
 filltype FillDraw(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
 {
-  return new void(frame f, path[] g, pen drawpen) {
+  return new bool(frame f, path[] g, pen drawpen) {
     pen fillpen=p == nullpen ? drawpen : p;
     if(fillpen == nullpen) fillpen=currentpen;
     if(drawpen == nullpen) drawpen=currentpen;
     filldraw(f,margin(g,xmargin,ymargin),fillpen,drawpen);
+    return true;
   };
 }
 
 filltype Draw(real xmargin=0, real ymargin=xmargin, pen p=nullpen)
 {
-  return new void(frame f, path[] g, pen drawpen) {
+  return new bool(frame f, path[] g, pen drawpen) {
     pen drawpen=p == nullpen ? drawpen : p;
     if(drawpen == nullpen) drawpen=currentpen;
     draw(f,margin(g,xmargin,ymargin),drawpen);
+    return true;
   };
 }
 
-filltype NoFill=new void(frame f, path[] g, pen p) {
+filltype NoFill=new bool(frame f, path[] g, pen p) {
   draw(f,g,p);
+  return true;
 };
 
 filltype UnFill(real xmargin=0, real ymargin=xmargin)
 {
-  return new void(frame f, path[] g, pen) {
+  return new bool(frame f, path[] g, pen) {
     unfill(f,margin(g,xmargin,ymargin));
+    return false;
   };
 }
 
@@ -147,9 +153,10 @@ filltype FillDraw=FillDraw(), Fill=Fill(), Draw=Draw(), UnFill=UnFill();
 // penr at the edge.
 filltype RadialShade(pen penc, pen penr)
 {
-  return new void(frame f, path[] g, pen) {
+  return new bool(frame f, path[] g, pen) {
     pair c=(min(g)+max(g))/2;
     radialshade(f,g,penc,c,0,penr,c,abs(max(g)-min(g))/2);
+    return true;
   };
 }
 
@@ -193,7 +200,8 @@ void add(frame dest, frame src, bool group, filltype filltype=NoFill,
   }
 }
 
-void add(frame dest, frame src, filltype filltype, bool put=Above)
+void add(frame dest, frame src, filltype filltype,
+	 bool put=filltype(newframe,(0,0)--cycle,nullpen))
 {
   if(filltype != NoFill) fill(dest,src,filltype);
   (put ? add : prepend)(dest,src);

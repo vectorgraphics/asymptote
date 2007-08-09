@@ -15,7 +15,7 @@
 namespace camp {
 
 class drawClipBegin : public drawSuperPathPenBase {
-bool gsave;
+  bool gsave;
 public:
   void noncyclic() {
       reportError("cannot clip to non-cyclic path");
@@ -39,8 +39,12 @@ public:
 
   bool begingroup() {return true;}
   
+  void save(bool b) {
+    gsave=b;
+  }
+  
   bool draw(psfile *out) {
-    if(gsave) out->gsave();
+    if(gsave) out->gsave(false,true);
     if(empty()) return true;
     
     writepath(out);
@@ -49,7 +53,7 @@ public:
   }
 
   bool write(texfile *out) {
-    if(gsave) out->gsave();
+    if(gsave) out->gsave(true);
     if(empty()) return true;
     
     out->beginspecial();

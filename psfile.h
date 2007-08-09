@@ -63,6 +63,7 @@ public:
   
   void prologue(const bbox& box);
   void epilogue();
+  void header();
 
   void close();
   
@@ -141,6 +142,12 @@ public:
     }
   }
   
+  void checkLevel() {
+    int n=settings::getSetting<Int>("level");
+    if(n < 3)
+      reportError("PostScript shading requires -level 3");
+  }
+  
   void latticeshade(const vm::array& a, const bbox& b);
   
   void gradientshade(bool axial, const ColorSpace& colorspace,
@@ -157,20 +164,24 @@ public:
   void image(const vm::array& a, const vm::array& p);
   void image(const vm::array& a);
 
-  void gsave(bool tex=false) {
+  void gsave(bool tex=false, bool clip=false) {
     if(pdf) *out << "q";
-    else *out << "gsave";
+    else *out << (clip && 
+		  (settings::getSetting<Int>("level") >= 3) ? "clipsave"
+		  : "gsave");
     if(!tex) *out << newl;
     pens.push(lastpen);
   }
   
-  void grestore(bool tex=false) {
+  void grestore(bool tex=false, bool clip=false) {
     if(pens.size() < 1)
       reportError("grestore without matching gsave");
     lastpen=pens.top();
     pens.pop();
     if(pdf) *out << "Q";
-    else *out << "grestore";
+    else *out << (clip && 
+		  (settings::getSetting<Int>("level") >= 3) ? "cliprestore" :
+		  "grestore");
     if(!tex) *out << newl;
   }
 
