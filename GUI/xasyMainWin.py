@@ -593,32 +593,35 @@ class xasyMainWin:
   #menu commands
   def fileNewCmd(self):
     #print "Create New File"
+    if self.undoRedoStack.changesMade():
+      result = tkMessageBox._show("xasy","File has been modified.\nSave changes?",icon=tkMessageBox.QUESTION,type=tkMessageBox.YESNOCANCEL)
+      if str(result) == tkMessageBox.CANCEL:
+        return
+      elif result == tkMessageBox.YES:
+        self.fileSaveCmd()
     self.resetGUI()
 
   def fileOpenCmd(self):
     #print "Open a file"
-    file=tkFileDialog.askopenfile(filetypes=[("asy GUI files","*.asy"),("All files","*")],title="Open File",parent=self.parent)
-    if file != None:
-      self.filename = file.name
-      file.close()
+    filename=tkFileDialog.askopenfilename(filetypes=[("asy GUI files","*.asy"),("All files","*")],title="Open File",parent=self.parent)
+    if type(filename) != type((0,)) and filename != None and filename != '':
+      self.filename = filename
       self.openFile(self.filename)
 
   def fileSaveCmd(self):
     #print "Save current file"
     if self.filename == None:
-      file=tkFileDialog.asksaveasfile(defaultextension=".asy",filetypes=[("asy GUI files","*.asy")],initialfile="newDrawing.asy",parent=self.parent,title="Save File")
-      if file != None:
-        self.filename = file.name
-        file.close()
+      filename=tkFileDialog.asksaveasfilename(defaultextension=".asy",filetypes=[("asy GUI files","*.asy")],initialfile="newDrawing.asy",parent=self.parent,title="Save File")
+      if type(filename) != type((0,)) and filename != None and filename != '':
+        self.filename = filename
     if self.filename != None:
       self.saveFile(self.filename)
 
   def fileSaveAsCmd(self):
     #print "Save current file as"
-    file=tkFileDialog.asksaveasfile(defaultextension=".asy",filetypes=[("asy GUI files","*.asy")],initialfile="newDrawing.asy",parent=self.parent,title="Save File")
-    if file != None:
-      self.filename = file.name
-      file.close()
+    filename=tkFileDialog.asksaveasfilename(defaultextension=".asy",filetypes=[("asy GUI files","*.asy")],initialfile="newDrawing.asy",parent=self.parent,title="Save File")
+    if type(filename) != type((0,)) and filename != None and filename != '':
+      self.filename = filename
       self.saveFile(self.filename)
 
   #export the file
@@ -640,14 +643,13 @@ class xasyMainWin:
         self.fileSaveAsCmd()
     else:
       self.fileSaveCmd()
-    outfile = tkFileDialog.asksaveasfile(defaultextension = '.'+outFormat,filetypes=[(outFormat+" files","*."+outFormat)],initialfile="out."+outFormat,parent=self.parent,title="Choose output file")
-    if not outfile:
+    name = os.path.splitext(os.path.basename(self.filename))[0]+'.'+outFormat
+    outfilename = tkFileDialog.asksaveasfilename(defaultextension = '.'+outFormat,filetypes=[(outFormat+" files","*."+outFormat)],initialfile=name,parent=self.parent,title="Choose output file")
+    if type(outfilename)==type((0,)) or not outfilename or outfilename == '':
       return
-    fullname = os.path.abspath(outfile.name)
-    outName = os.path.basename(outfile.name)
+    fullname = os.path.abspath(outfilename)
+    outName = os.path.basename(outfilename)
     dirname = os.path.dirname(fullname)
-    outfile.close()
-    #os.chdir(dirname)
     command = xasyOptions.options['asyPath']+" -f %s -o %s %s"%(outFormat,fullname,inFile)
     print command
     saver = subprocess.Popen(split(command),stdin=PIPE,stdout=PIPE,stderr=PIPE)
