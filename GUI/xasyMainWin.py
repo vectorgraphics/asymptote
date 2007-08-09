@@ -100,7 +100,7 @@ class xasyMainWin:
     self.parent.config(menu=self.mainMenu)
 
     #the file menu
-    self.fileMenu = Menu(self.mainMenu)
+    self.fileMenu = Menu(self.mainMenu,tearoff=0)
     self.fileMenu.add_command(label="New",command=self.fileNewCmd,accelerator="Ctrl+N",underline=0)
     self.fileMenu.add_command(label="Open",command=self.fileOpenCmd,accelerator="Ctrl+O",underline=0)
     self.fileMenu.add_separator()
@@ -109,7 +109,7 @@ class xasyMainWin:
     self.fileMenu.add_separator()
 
     #an export menu
-    self.exportMenu = Menu(self.fileMenu)
+    self.exportMenu = Menu(self.fileMenu,tearoff=0)
     self.exportMenu.add_command(label="EPS...",command=self.exportEPS,underline=0)
     self.exportMenu.add_command(label="PDF...",command=self.exportPDF,underline=0)
     self.exportMenu.add_command(label="GIF...",command=self.exportGIF,underline=0)
@@ -122,23 +122,23 @@ class xasyMainWin:
     self.mainMenu.add_cascade(label="File",menu=self.fileMenu,underline=0)
 
     #the edit menu
-    self.editMenu = Menu(self.mainMenu)
+    self.editMenu = Menu(self.mainMenu,tearoff=0)
     self.editMenu.add_command(label="Undo",command=self.editUndoCmd,accelerator="Ctrl+Z",underline=0)
     self.editMenu.add_command(label="Redo",command=self.editRedoCmd,accelerator="Shift+Ctrl+Z",underline=0)
     self.mainMenu.add_cascade(label="Edit",menu=self.editMenu,underline=0)
 
     #the tools menu
-    self.toolsMenu = Menu(self.mainMenu)
+    self.toolsMenu = Menu(self.mainMenu,tearoff=0)
     self.mainMenu.add_cascade(label="Tools",menu=self.toolsMenu,underline=0)
 
     #the options menu
-    self.optionsMenu = Menu(self.toolsMenu)
+    self.optionsMenu = Menu(self.toolsMenu,tearoff=0)
     self.toolsMenu.add_cascade(label="Options",menu=self.optionsMenu,underline=0)
     self.optionsMenu.add_command(label="Edit...",command=self.editOptions,underline=0)
     self.optionsMenu.add_command(label="Reset defaults",command=self.resetOptions,underline=6)
 
     #the help menu
-    self.helpMenu = Menu(self.mainMenu)
+    self.helpMenu = Menu(self.mainMenu,tearoff=0)
     self.helpMenu.add_command(label="Help",command=self.helpHelpCmd,state=DISABLED,accelerator="F1",underline=0)
     self.helpMenu.add_command(label="Asymptote Documentation",command=self.helpAsyDocCmd,underline=10)
     self.helpMenu.add_separator()
@@ -501,6 +501,12 @@ class xasyMainWin:
 
   def canQuit(self):
     #print "Quitting"
+    if self.undoRedoStack.changesMade():
+      result = tkMessageBox._show("xasy","File has been modified.\nSave changes?",icon=tkMessageBox.QUESTION,type=tkMessageBox.YESNOCANCEL)
+      if str(result) == tkMessageBox.CANCEL:
+        return
+      elif result == tkMessageBox.YES:
+        self.fileSaveCmd()
     self.quitting = True
     try:
       self.ticker.join()
