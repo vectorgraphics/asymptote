@@ -107,12 +107,12 @@
   \fi
   \ifeof\AsyTestStream
     \ifinline
-      \message{File \Jobname_\arabic{asy}_.tex does not exist.}%
+      \PackageWarning{asymptote}{file \Jobname_\arabic{asy}_.tex does not exist}%
     \else
       \ifcase\pdfoutput
-        \message{File \Jobname_\arabic{asy}.eps does not exist.}%
+        \PackageWarning{asymptote}{file \Jobname_\arabic{asy}.eps does not exist}%
       \else
-        \message{File \Jobname_\arabic{asy}.pdf does not exist.}%
+        \PackageWarning{asymptote}{file \Jobname_\arabic{asy}.pdf does not exist}%
       \fi
     \fi
     \closein\AsyTestStream%
