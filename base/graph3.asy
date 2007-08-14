@@ -341,11 +341,11 @@ typedef guide3 interpolate3(... guide3[]);
 graph graph(interpolate3 join)
 {
   return new guide3(triple f(real), real a, real b, int n) {
-    real width=n == 0 ? 0 : (b-a)/n;
-    return join(...sequence(new guide3(int i) {
-          real x=a+width*i;
-          return f(x);
-        },n+1));
+    real width=b-a;
+    return n == 0 ? join(f(a)) :
+      join(...sequence(new guide3(int i) {
+	    return f(a+(i/n)*width);
+	  },n+1));
   };
 }
 

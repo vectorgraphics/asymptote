@@ -293,11 +293,14 @@ revolution operator * (transform3 t, revolution r)
 revolution revolution(triple c=O, real f(real x), real a, real b, int n=32,
                       triple axis=Z)
 {
-  real width=n == 0 ? 0 : (b-a)/n;
   guide3 g;
-  for(int i=0; i <= n; ++i) {
-    real x=a+width*i;
-    g=g--(x,0,f(x));
+  if(n == 0) g=(a,0,f(a));
+  else {
+    real width=b-a;
+    for(int i=0; i <= n; ++i) {
+      real x=a+(i/n)*width;
+      g=g--(x,0,f(x));
+    }
   }
   return revolution(c,g,axis);
 }
