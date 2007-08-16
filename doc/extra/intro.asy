@@ -18,13 +18,13 @@ itempen=fontsize(22pt);
 
 titlepage("Asymptote: The Vector Graphics Language",
           "Andy Hammerlindl and John Bowman",
-          "University of Toronto and University of Alberta","April 4, 2007",
+          "University of Toronto and University of Alberta","August 16, 2007",
           "http://asymptote.sf.net");
 
 title("History");
 item("\TeX\ and METAFONT (Knuth, 1979)");
-item("MetaPost (Hobby, 1989)");
-item("Asymptote (Hammerlindl, Bowman, Prince, 2004)");
+item("MetaPost (Hobby, 1989): 2D Bezier Control Point Selection");
+item("Asymptote (Hammerlindl, Bowman, Prince, 2004): 2D \& 3D Graphics");
 
 title("Statistics (as of April, 2007)");
 item("Runs on Windows, Mac OS X, Linux, etc.");
@@ -95,10 +95,10 @@ item("Adding and aligning \LaTeX\ labels is easy:");
 asyfilecode("labelsquare","height=6cm");
 
 
-title("Bezier Splines");
+title("2D Bezier Splines");
 
 item("Using {\tt ..} instead of {\tt --} specifies a {\it Bezier cubic
-    spline}:");
+spline}:");
 
 code("
 draw(z0 .. controls c0 and c1 .. z1,blue);
@@ -107,10 +107,10 @@ asyfigure("beziercurve","height=7cm");
 
 equation("(1-t)^3 z_0+3t(1-t)^2 c_0+3t^2(1-t) c_1+t^3 z_1, \qquad t\in [0,1].");
 
-
 title("Smooth Paths");
 
-item("Asymptote can choose control points for you.");
+item("Asymptote can choose control points for you, using the algorithms of
+Hobby and Knuth \cite{Hobby86,Knuth86b}:");
 
 string bean="
 pair[] z={(0,0), (0,1), (2,1), (2,0), (1,0)};
@@ -124,7 +124,7 @@ dot(z,linewidth(7));
 
 item("First, linear equations involving the curvature are solved to find the
     direction through each knot.  Then, control points along those directions
-    are chosen \cite{Hobby86,Knuth86b}:");
+    are chosen:");
 
 asyfigure(asywrite(preamble="size(130,0);",bean+"
 path p=z[0]..z[1]..z[2]..z[3]..z[4]..cycle;
@@ -191,9 +191,9 @@ draw(scale(0.7)*unitcircle);
 item("All of Asymptote's graphical capabilities are based on four primitive
     commands: {\tt draw}, {\tt fill}, {\tt clip}, and {\tt label}.");
 
-title("Transforms");
+title("Affine Transforms");
 
-item("Affine transformations include shifts, rotations, and scalings.");
+item("Affine transformations: shifts, rotations, reflections, and scalings.");
 code("
 transform t=rotate(90);
 write(t*(1,0));  // Writes (0,1).
@@ -536,7 +536,7 @@ binarytree bt=binarytree(1,2,4,nil,5,nil,nil,0,nil,nil,3,6,nil,nil,7);
 draw(bt);
 "),"height=6cm");
 newslide();
-remark("and algebraic knot theory:");
+remark("algebraic knot theory:");
 asyfigure("knots");
 equations("\Phi\Phi(x_1,x_2,x_3,x_4,x_5)
     =   &\rho_{4b}(x_1+x_4,x_2,x_3,x_5) + \rho_{4b}(x_1,x_2,x_3,x_4) \\
@@ -569,6 +569,88 @@ asyfigure("imagecontour","height=17cm");
 
 title("Multiple Graphs");
 asyfigure("diatom","height=17cm");
+
+title("Hobby's 2D Direction Algorithm");
+item("A tridiagonal system of linear equations is solved to determine any unspecified directions $\theta_k$ and $\phi_k$ through each knot $z_k$:");
+
+equation("\frac{\theta_{k-1}-2\phi_k}{\ell_k}=
+\frac{\phi_{k+1}-2\theta_k}{\ell_{k+1}}.");
+
+asyfigure("Hobbydir","height=9cm");
+
+item("The resulting shape may be adjusted by modifying optional {\it tension\/} parameters and {\it curl\/} boundary conditions.");
+
+//involving the curvature 
+
+title("Hobby's 2D Control Point Algorithm");
+item("Having prescribed outgoing and incoming path directions $e^{i\theta}$
+at node~$z_0$ and $e^{i\phi}$ at node $z_1$ relative to the
+vector $z_1-z_0$, the control points are determined as:");  
+
+equations("u&=&z_0+e^{i\theta}(z_1-z_0)f(\theta,-\phi),\nonumber\\
+v&=&z_1-e^{i\phi}(z_1-z_0)f(-\phi,\theta),");
+
+remark("where the relative distance function $f(\theta,\phi)$ is given by Hobby [1986].");
+
+asyfigure("Hobbycontrol","height=9cm");
+
+title("Bezier Curves in 3D");
+
+item("Apply an affine transformation");
+
+equation("x'_i=A_{ij} x_j+C_i");
+
+remark("to a Bezier curve:");
+
+equation("x(t)=\sum_{k=0}^3 B_k(t) P_k, \qquad t\in [0,1].");
+equation("x'_i=A_{ij} x_j+C_i.");
+
+item("The resulting curve is also a Bezier curve:");
+
+equations("x'_i(t)&=&\sum_{k=0}^3 B_k(t) A_{ij}(P_k)_j+C_i\nonumber\\
+&=&\sum_{k=0}^3 B_k(t) P'_k,");
+
+remark("where $P'_k$ is the transformed $k^{\rm th}$ control point, noting
+						 $\sum_{k=0}^3 B_k(t)=1.$");
+
+title("3D Generalization of Hobby's algorithm");
+
+item("Must reduce to 2D algorithm in planar case.");
+
+item("Determine directions by applying Hobby's algorithm in the plane containing $z_{k-1}$, $z_k$, $z_{k+1}$.");
+
+// Reformulate Hobby's equations in terms of the angle $\psi_k=$
+item("The only ambiguity that can arise is the overall sign of the angles, which relates to viewing each 2D plane from opposing normal directions."); 
+
+item("A reference vector based on the mean unit normal of successive segments can be used to resolve such ambiguities.");
+
+title("3D Control Point Algorithm");
+
+item("Hobby's control point algorithm can be generalized to 3D by expressing it  in terms of the absolute directions $\omega_0$ and $\omega_1$:");
+
+equation("u=z_0+\omega_0\left|z_1-z_0\right|f(\theta,-\phi),");
+equation("v=z_1-\omega_1\left|z_1-z_0\right|f(-\phi,\theta),");
+
+asyfigure("Hobbycontrol");
+
+remark("interpreting $\theta$ and $\phi$ as the angle between the corresponding path direction vector and $z_1-z_0$.");
+
+item("In this case there is an unambiguous reference vector for determining the relative sign of the angles $\phi$ and $\theta$.");
+
+title("3D saddle example");
+
+item("A unit circle in the $X$--$Y$ plane may be filled and drawn with:
+(1,0,0)..(0,1,0)..(-1,0,0)..(0,-1,0)..cycle");
+
+asyfigure("unitcircle3","height=5cm");
+
+remark("and then distorted into a saddle:\\ (1,0,0)..(0,1,1)..(-1,0,0)..(0,-1,1)..cycle");
+
+asyfigure("saddle","height=5cm");
+
+title("3D surfaces");
+
+asyfigure("../examples/parametricsurface","height=12cm");
 
 title("Slide Presentations");
 item("Asymptote has a package for preparing slides.");
@@ -629,7 +711,7 @@ for(int i=0; i <= n; ++i) {
 display(a.pdf(delay=150,"controls"));
 
 title("Automatic Sizing");
-item("Recall that figures can be specified in user coordinates, then
+item("Figures can be specified in user coordinates, then
     automatically scaled to the final size.");
 asyfigure(asywrite("
 import graph;
