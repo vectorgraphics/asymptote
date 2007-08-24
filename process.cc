@@ -309,8 +309,8 @@ public:
 
   void preRun(coenv& e, istack& s) {
     outname_save=getSetting<string>("outname");
-    if(outname_save.empty())
-      Setting("outname")=outname;
+    if(stripDir(outname_save).empty())
+      Setting("outname")=outname_save+outname;
 
     itree::preRun(e, s);
   }
