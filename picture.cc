@@ -382,8 +382,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   string xformat=getSetting<string>("xformat");
   string outname=xobject ? "."+buildname(prefix,xformat) :
     (standardout ? "-" : buildname(prefix,outputformat,"",
-				   !(prefix == settings::outname() ||
-				     globalwrite())));
+				   prefix != settings::outname() &&
+				   !globalwrite()));
   string epsname=epsformat ? (standardout ? "" : outname) :
     auxname(prefix,"eps");
   string prename=((epsformat && !pdf) || !Labels) ? epsname : 
