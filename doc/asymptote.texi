@@ -4528,6 +4528,12 @@ if @code{n >= 1} returns the sequence @code{@{f_i :i=0,1,...n-1@}} given a
 function @code{T f(int)} and integer @code{int n} (otherwise returns a
 null array);
 
+@cindex @code{map}
+@item T[] map(T f(T), T[] a)
+returns the array obtained by applying the function @code{f} to each
+element of the array @code{a}. This is equivalent to
+@code{sequence(new T(int i) @{return f(a[i]);@},a.length)}.
+
 @cindex @code{reverse}
 @item int[] reverse(int n)
 if @code{n >= 1} returns the array @code{@{n-1,n-2,...,0@}} (otherwise
@@ -4622,11 +4628,6 @@ For built-in ordered types @code{T}, returns the minimum element of @code{a}.
 @item T max(T[][] a)
 @item T max(T[][][] a)
 For built-in ordered types @code{T}, returns the maximum element of @code{a}.
-
-@cindex @code{map}
-@item T[] map(T f(T), T[] a)
-returns the array obtained by applying the function @code{f} to each
-element of the array @code{a}.
 
 @cindex @code{min}
 @item T[] min(T[] a, T[] b)
