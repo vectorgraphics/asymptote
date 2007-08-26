@@ -4624,7 +4624,7 @@ For built-in ordered types @code{T}, returns the minimum element of @code{a}.
 For built-in ordered types @code{T}, returns the maximum element of @code{a}.
 
 @cindex @code{map}
-@item map(f(T), T[] a)
+@item T[] map(T f(T), T[] a)
 returns the array obtained by applying the function @code{f} to each
 element of the array @code{a}.
 
