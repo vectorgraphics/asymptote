@@ -683,6 +683,7 @@ class xasyScript(xasyItem):
       self.asyCode += ");\n"
     self.asyCode += "startScript();{\n"
     self.asyCode += self.script.replace("\t"," ")
+    self.asyCode = self.asyCode.rstrip()
     self.asyCode += "\n}endScript();\n"
 
   def setScript(self,script):

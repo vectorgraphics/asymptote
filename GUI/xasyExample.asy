@@ -52,8 +52,6 @@ draw(Label("$A\cap B$",0),conj(z)--z0,Arrow,BigMargin);
 draw(Label("$A\cup B$",0),z--z0,Arrow,BigMargin);
 draw(z--z1,Arrow,Margin(0,m));
 draw(z--z2,Arrow,Margin(0,m));
-
-
 }endScript();
 
 
