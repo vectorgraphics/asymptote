@@ -35,14 +35,17 @@ frame duplicate(path g, int n=1, pair space=0, pen p=currentpen)
   return f;
 }
 
-real tildemarksize=6mm;
-real tildemarksize(pen p=currentpen) {return tildemarksize+linewidth(p);};
+real tildemarksizefactor=5;
+real tildemarksize(pen p=currentpen)
+{
+  return (1mm+tildemarksizefactor*sqrt(linewidth(p)))/1.618034;
+}
 frame tildeframe(int n=1, real size=0, pair space=0,
                  real angle=0, pair offset=0, pen p=currentpen)
 {
   size=(size == 0) ? tildemarksize(p) : size;
-  space=(space == 0) ? 0.5size : space;
-  path g=(-0.5,-1/6)..(-1.5/6,1/6)..(0,0)..(1.5/6,-1/6)..(0.5,1/6);
+  space=(space == 0) ? 1.5*size : space;
+  path g=yscale(1.25)*((-1.5,-0.5)..(-0.75,0.5)..(0,0)..(0.75,-0.5)..(1.5,0.5));
   return duplicate(shift(offset)*rotate(angle)*scale(size)*g,n,space,p);
 }
 
@@ -78,15 +81,23 @@ frame stickframe(int n=1, real size=0, pair space=0, real angle=0,
 
 frame stickframe=stickframe();
 
-real circlemarkradius=dotsize(currentpen);
-real barmarksize=4*dotsize(currentpen);
+real circlemarkradiusfactor=stickmarksizefactor/2;
+real circlemarkradius(pen p=currentpen)
+{
+  return (1mm+circlemarkradiusfactor*sqrt(linewidth(p)))/1.618034;
+}
+real barmarksizefactor=stickmarksizefactor;
+real barmarksize(pen p=currentpen)
+{
+  return 1mm+barmarksizefactor*sqrt(linewidth(p));
+}
 frame circlebarframe(int n=1, real barsize=0,
                      real radius=0,real angle=0,
                      pair offset=0, pen p=currentpen,
                      filltype filltype=NoFill, bool above=false)
 {
-  if(barsize == 0) barsize=barmarksize+2*linewidth(p);
-  if(radius == 0) radius=circlemarkradius+linewidth(p);
+  if(barsize == 0) barsize=barmarksize(p);
+  if(radius == 0) radius=circlemarkradius(p);
   frame opic;
   path g=circle(offset,radius);
   frame f=stickframe(n,barsize,space=2*radius/(n+1),angle,offset,p);
@@ -103,12 +114,12 @@ frame circlebarframe(int n=1, real barsize=0,
 real crossmarksizefactor=5;
 real crossmarksize(pen p=currentpen)
 {
-  return crossmarksizefactor*sqrt(linewidth(p));
+  return 1mm+crossmarksizefactor*sqrt(linewidth(p));
 }
 frame crossframe(int n=3, real size=0, pair space=0,
                  real angle=0, pair offset=0, pen p=currentpen)
 {
-  if(size == 0) size=crossmarksize(p)+2*linewidth(p);
+  if(size == 0) size=crossmarksize(p);
   frame opic;
   draw(opic,shift(offset)*rotate(angle)*scale(size)*cross(n),p);
   return opic;
