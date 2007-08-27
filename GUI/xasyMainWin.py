@@ -534,7 +534,7 @@ class xasyMainWin:
       self.fileItems = xasyFile.parseFile(f)
       f.close()
     except IOError:
-      tkMessageBox.showerror("File Opening Failed.","File coult not be opened.")
+      tkMessageBox.showerror("File Opening Failed.","File could not be opened.")
       self.fileItems = []
     except:
       self.fileItems = []

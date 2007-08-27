@@ -6,7 +6,7 @@ bool shipped; // Was a picture or frame already shipped out?
 restricted bool Wait=true;                         
 restricted bool NoWait=false;
 
-frame patterns;
+frame currentpatterns;
 
 frame Portrait(frame f) {return f;};
 frame Landscape(frame f) {return rotate(90)*f;};
@@ -21,10 +21,13 @@ void shipout(string prefix=defaultfilename,
 
 include plain_xasy;
 
-void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
+void shipout(string prefix=defaultfilename, frame f,
              string format="", bool wait=NoWait, bool view=true)
 {
-  if(inXasyMode) return;
+  if(inXasyMode) {
+    erase();
+    add(f,group=false);
+  }
   
   // Applications like LaTeX cannot handle large PostScript coordinates.
   pair m=min(f);
@@ -32,15 +35,15 @@ void shipout(string prefix=defaultfilename, frame f, frame preamble=patterns,
   if(abs(m.x) > limit || abs(m.y) > limit) f=shift(-m)*f;
 
   uptodate(true);
-  shipout(prefix,f,preamble,format,wait,view,xformStack.pop);
+  shipout(prefix,f,currentpatterns,format,wait,view,xformStack.pop);
   shipped=true;
 }
 
 void shipout(string prefix=defaultfilename, picture pic,
-             frame preamble=patterns, orientation orientation=orientation,
+             orientation orientation=orientation,
              string format="", bool wait=NoWait, bool view=true)
 {
-  shipout(prefix,orientation(pic.fit()),preamble,format,wait,view);
+  shipout(prefix,orientation(pic.fit()),format,wait,view);
 }
 
 shipout=new void(string prefix=defaultfilename,

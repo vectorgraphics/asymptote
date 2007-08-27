@@ -100,5 +100,5 @@ void deconstruct(string prefix="out", picture pic=currentpicture,
 		 real magnification=1.0, bool countonly=false)
 {
   settings.deconstruct=magnification;
-  deconstruct(prefix,pic.fit(),patterns,xformStack.pop,countonly);
+  deconstruct(prefix,pic.fit(),currentpatterns,xformStack.pop,countonly);
 }

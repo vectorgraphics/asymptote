@@ -2619,12 +2619,12 @@ A simple example of transparent filling is provided in the example file
 @cindex tilings
 @item @code{PostScript} commands within a @code{picture} may be used
 to create a tiling pattern, identified by the string @code{name}, for
-@code{fill} and @code{draw} operations by adding it to the default
-@code{PostScript} preamble frame @code{patterns},
+@code{fill} and @code{draw} operations by adding it to the
+global @code{PostScript} frame @code{currentpatterns},
 with optional left-bottom margin @code{lb} and right-top margin @code{rt}.
 @verbatim
-void add(frame preamble=patterns, string name, picture pic, pair lb=0,
-         pair rt=0)
+import patterns;
+void add(string name, picture pic, pair lb=0, pair rt=0);
 @end verbatim
 
 To @code{fill} or @code{draw} using pattern @code{name}, use
@@ -2652,7 +2652,7 @@ Hatch patterns can be generated with the routines
 
 You may need to turn off aliasing in your @code{PostScript} viewer for
 patterns to appear correctly. Custom patterns can easily be constructed,
-following the examples in @code{pattern.asy}. The tiled pattern can
+following the examples in @code{patterns.asy}. The tiled pattern can
 even incorporate shading (@pxref{gradient shading}), as illustrated
 in this example (not included in the manual because not all printers support
 @code{PostScript} 3):
@@ -2886,7 +2886,6 @@ by calling the function @code{shipout}:
 @cindex @code{shipout}
 @verbatim
 void shipout(string prefix=defaultfilename, picture pic,
-             frame preamble=patterns,
              orientation orientation=orientation,
              string format="", bool wait=NoWait, bool view=true);
 void shipout(string prefix=defaultfilename,

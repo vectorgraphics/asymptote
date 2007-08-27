@@ -22,10 +22,9 @@ frame tiling(string name, picture pic, pair lb=0, pair rt=0)
 
 // Add to frame preamble a tiling name constructed from picture pic
 // with optional left-bottom margin lb and right-top margin rt.
-void add(frame preamble=patterns, string name, picture pic, pair lb=0,
-         pair rt=0)
+void add(string name, picture pic, pair lb=0, pair rt=0)
 {
-  add(preamble,tiling(name,pic,lb,rt));
+  add(currentpatterns,tiling(name,pic,lb,rt));
 }
 
 picture tile(real Hx=5mm, real Hy=0, pen p=currentpen,
