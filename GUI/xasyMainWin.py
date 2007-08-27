@@ -347,6 +347,15 @@ class xasyMainWin:
     #set up editing
     self.editor = None
 
+    #set up drawing
+    self.pathInProgress = asyPath()
+    self.currentIDTag = -1
+    self.inDrawingMode = False
+    self.freeMouseDown = True
+    self.dragSelecting = False
+    self.itemsBeingRotated = []
+    self.inRotatingMode = False
+
     #set up the toolbar
     try:
       self.updateSelectedButton(self.toolSelectButton)
@@ -359,15 +368,6 @@ class xasyMainWin:
     self.mainCanvas.create_rectangle(0,0,0,0,tags="outlineBox",width=0,outline="#801111",dash=(3,6))
     self.backColor = "white" #in future, load this from an options file. Or, should this really be an option?
     self.mainCanvas.configure(background=self.backColor)
-
-    #set up drawing
-    self.pathInProgress = asyPath()
-    self.currentIDTag = -1
-    self.inDrawingMode = False
-    self.freeMouseDown = True
-    self.dragSelecting = False
-    self.itemsBeingRotated = []
-    self.inRotatingMode = False
 
     #set up the xasy item list
     self.fileItems = []
@@ -526,11 +526,17 @@ class xasyMainWin:
     fileDir = os.path.dirname(fullName)
     os.chdir(fileDir)
     startQuickAsy()
-    self.filePrefix,none = os.path.splitext(fileName)
+    self.filePrefix,ext = os.path.splitext(fileName)
     #print "opening: full:" + fullName + " file:"+fileName+" dir:"+fileDir+" pref:"+self.filePrefix
     self.retitle()
     try:
-      f = open(fullName,'rt')
+      try:
+        f = open(fullName,'rt')
+      except:
+        if fullName[-4:] == ".asy":
+          raise
+        else:
+          f = open(fullName+".asy",'rt')
       self.fileItems = xasyFile.parseFile(f)
       f.close()
     except IOError:
@@ -684,6 +690,9 @@ class xasyMainWin:
     tkMessageBox.showinfo("About xasy","A graphical interface for Asymptote")
 
   def updateSelectedButton(self,newB):
+    #disable switching modes during an incomplete drawing operation
+    if self.inDrawingMode:
+      return
     self.selectedButton.config(relief = RAISED)
     if newB == self.toolSelectButton or self.selectedButton == self.toolSelectButton:
       self.mainCanvas.delete("highlightBox")
