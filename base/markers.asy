@@ -38,7 +38,8 @@ frame duplicate(path g, int n=1, pair space=0, pen p=currentpen)
 real tildemarksizefactor=5;
 real tildemarksize(pen p=currentpen)
 {
-  return (1mm+tildemarksizefactor*sqrt(linewidth(p)))/1.618034;
+  static real golden=(1+sqrt(5))/2;
+  return (1mm+tildemarksizefactor*sqrt(linewidth(p)))/golden;
 }
 frame tildeframe(int n=1, real size=0, pair space=0,
                  real angle=0, pair offset=0, pen p=currentpen)
@@ -84,7 +85,8 @@ frame stickframe=stickframe();
 real circlemarkradiusfactor=stickmarksizefactor/2;
 real circlemarkradius(pen p=currentpen)
 {
-  return (1mm+circlemarkradiusfactor*sqrt(linewidth(p)))/1.618034;
+  static real golden=(1+sqrt(5))/2;
+  return (1mm+circlemarkradiusfactor*sqrt(linewidth(p)))/golden;
 }
 real barmarksizefactor=stickmarksizefactor;
 real barmarksize(pen p=currentpen)
