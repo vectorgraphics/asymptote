@@ -16,6 +16,7 @@ namespace camp {
 
 class drawClipBegin : public drawSuperPathPenBase {
   bool gsave;
+  bbox bpath;
 public:
   void noncyclic() {
       reportError("cannot clip to non-cyclic path");
@@ -32,7 +33,6 @@ public:
   void bounds(bbox& b, iopipestream& iopipe, boxvector& vbox,
 	      bboxlist& bboxstack) {
     bboxstack.push_back(b);
-    bbox bpath;
     drawSuperPathPenBase::bounds(bpath,iopipe,vbox,bboxstack);
     bboxstack.push_back(bpath);
   }
@@ -56,6 +56,14 @@ public:
     if(gsave) out->gsave(true);
     if(empty()) return true;
     
+    out->verbatim("\\begin{picture}(");
+    double width=bpath.right-bpath.left;
+    double height=bpath.top-bpath.bottom;
+    out->write(width*ps2tex);
+    out->verbatim(",");
+    out->write(height*ps2tex);
+    out->verbatimline(")%");
+
     out->beginspecial();
     out->beginraw();
     writeshiftedpath(out);

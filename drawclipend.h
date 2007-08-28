@@ -16,6 +16,7 @@ namespace camp {
 class drawClipEnd : public drawElement {
   bool grestore;  
   drawClipBegin *partner;
+  bbox bpath;
 public:
   drawClipEnd(bool grestore=true, drawClipBegin *partner=NULL) : 
     grestore(grestore), partner(partner) {}
@@ -28,7 +29,8 @@ public:
     if(bboxstack.size() < 2) {
       reportError("endclip without matching beginclip");
     }
-    b.clip(bboxstack.back());
+    bpath=bboxstack.back();
+    b.clip(bpath);
     bboxstack.pop_back();
     b += bboxstack.back();
     bboxstack.pop_back();
@@ -38,7 +40,7 @@ public:
   
   void save(bool b) {
     grestore=b;
-    partner->save(b);
+    if(partner) partner->save(b);
   }
   
   bool draw(psfile *out) {
@@ -47,6 +49,11 @@ public:
   }
 
   bool write(texfile *out) {
+    out->verbatimline("\\end{picture}%");
+    out->verbatim("\\kern");
+    double width=bpath.right-bpath.left;
+    out->write(-width*ps2tex);
+    out->verbatimline("pt%");
     if(grestore) out->grestore(true);
     return true;
   }

@@ -68,9 +68,8 @@ void texfile::prologue()
       *out << "\\pdfpageheight=" << height << "bp" << newl;
   }
   if(settings::latex(texengine)) {
-    if(inlinetex)
-      *out << "\\setlength{\\unitlength}{1pt}" << newl;
-    else {
+    *out << "\\setlength{\\unitlength}{1pt}" << newl;
+    if(!inlinetex) {
       *out << "\\pagestyle{empty}" << newl
 	   << "\\textheight=" << height+18.0 << "bp" << newl
 	   << "\\textwidth=" << width+18.0 << "bp" << newl;
