@@ -49,11 +49,9 @@ void endScript()
 struct indexedTransform {
   int index;
   transform t;
-  static indexedTransform indexedTransform(int index, transform t) {
-    indexedTransform nt=new indexedTransform;
-    nt.index=index;
-    nt.t=t;
-    return nt;
+  void operator init(int index, transform t) {
+    this.index=index;
+    this.t=t;
   }
 }
 

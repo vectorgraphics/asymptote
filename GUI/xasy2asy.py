@@ -677,7 +677,7 @@ class xasyScript(xasyItem):
       for xform in self.transform:
         if not isFirst:
           self.asyCode+=",\n"
-        self.asyCode += "indexedTransform.indexedTransform(%d,%s)"%(count,str(xform))
+        self.asyCode += "indexedTransform(%d,%s)"%(count,str(xform))
         isFirst = False
         count += 1
       self.asyCode += ");\n"

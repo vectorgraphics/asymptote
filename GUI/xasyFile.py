@@ -86,7 +86,7 @@ def parseIndexedTransforms(args):
   """Parse a list of indexedTransforms, adding them to the current list of transforms"""
   global pendingTransformsD
   pendingTransformsD = []
-  args = args.replace("indexedTransform.indexedTransform","")
+  args = args.replace("indexedTransform","")
   tList = [eval(a) for a in ")?(".join(args.split("),(")).split("?")]
   for a in tList:
     addTransform(a[0],asyTransform(a[1]))
@@ -97,8 +97,8 @@ def parseTransformExpression(line):
   Syntax:
     xformStack.push(transform)
       e.g.: xformStack.push((0,0,1,0,0,1)); //the identity
-    xformStack.add(indexedTransform.indexedTransform(index,transform)[,...])
-      e.g.: xformStack.add(indexedTransform.indexedTransform(1,(0,0,1,0,0,1));
+    xformStack.add(indexedTransform(index,transform)[,...])
+      e.g.: xformStack.add(indexedTransform(1,(0,0,1,0,0,1));
   """
   global pendingTransforms
   stackCmd = line[len(transformPrefix)+1:line.find("(")]
