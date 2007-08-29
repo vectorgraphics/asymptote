@@ -37,9 +37,8 @@ void startScript()
 
 void endScript()
 {
-  if(tempStore.length < 1)
-  {
-    write("Error: endscript() without matching beginScript()");
+  if(tempStore.length < 1) {
+    abort("endScript() without matching beginScript()");
   } else {
     currentpicture = tempStore.pop();
     add(currentpicture,newPic.fit(),group=false);
@@ -50,7 +49,7 @@ void endScript()
 struct indexedTransform {
   int index;
   transform t;
-  static indexedTransform indexedTransform(int index,transform t) {
+  static indexedTransform indexedTransform(int index, transform t) {
     indexedTransform nt=new indexedTransform;
     nt.index=index;
     nt.t=t;

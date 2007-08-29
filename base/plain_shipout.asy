@@ -27,6 +27,7 @@ void shipout(string prefix=defaultfilename, frame f,
   if(inXasyMode) {
     erase();
     add(f,group=false);
+    return;
   }
   
   // Applications like LaTeX cannot handle large PostScript coordinates.
