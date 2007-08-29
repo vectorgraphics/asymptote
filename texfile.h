@@ -111,9 +111,9 @@ public:
   void setlatexcolor(pen p);
   void setpen(pen p);
   
-  void gsave(bool clip=false);
+  void gsave();
   
-  void grestore(bool clip=false);
+  void grestore();
   
   void beginspecial();
   

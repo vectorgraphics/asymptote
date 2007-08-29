@@ -44,7 +44,7 @@ public:
   }
   
   bool draw(psfile *out) {
-    if(gsave) out->gsave(false,true);
+    if(gsave) out->gsave();
     if(empty()) return true;
     
     writepath(out);
@@ -53,7 +53,7 @@ public:
   }
 
   bool write(texfile *out) {
-    if(gsave) out->gsave(true);
+    if(gsave) out->gsave();
     if(empty()) return true;
     
     out->verbatim("\\begin{picture}(");

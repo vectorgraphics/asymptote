@@ -44,7 +44,7 @@ public:
   }
   
   bool draw(psfile *out) {
-    if(grestore) out->grestore(false,true);
+    if(grestore) out->grestore();
     return true;
   }
 
@@ -54,7 +54,7 @@ public:
     double width=bpath.right-bpath.left;
     out->write(-width*ps2tex);
     out->verbatimline("pt%");
-    if(grestore) out->grestore(true);
+    if(grestore) out->grestore();
     return true;
   }
 

@@ -164,24 +164,20 @@ public:
   void image(const vm::array& a, const vm::array& p);
   void image(const vm::array& a);
 
-  void gsave(bool tex=false, bool clip=false) {
+  void gsave(bool tex=false) {
     if(pdf) *out << "q";
-    else *out << (clip && 
-		  (settings::getSetting<Int>("level") >= 3) ? "clipsave"
-		  : "gsave");
+    else *out << "gsave";
     if(!tex) *out << newl;
     pens.push(lastpen);
   }
   
-  void grestore(bool tex=false, bool clip=false) {
+  void grestore(bool tex=false) {
     if(pens.size() < 1)
       reportError("grestore without matching gsave");
     lastpen=pens.top();
     pens.pop();
     if(pdf) *out << "Q";
-    else *out << (clip && 
-		  (settings::getSetting<Int>("level") >= 3) ? "cliprestore" :
-		  "grestore");
+    else *out << "grestore";
     if(!tex) *out << newl;
   }
 

@@ -161,17 +161,17 @@ void texfile::setpen(pen p)
   lastpen=p;
 }
    
-void texfile::gsave(bool clip)
+void texfile::gsave()
 {
   *out << settings::beginspecial(texengine);
-  psfile::gsave(true,clip);
+  psfile::gsave(true);
   *out << settings::endspecial() << newl;
 }
 
-void texfile::grestore(bool clip)
+void texfile::grestore()
 {
   *out << settings::beginspecial(texengine);
-  psfile::grestore(true,clip);
+  psfile::grestore(true);
   *out << settings::endspecial() << newl;
 }
 
