@@ -594,6 +594,7 @@ class xasyMainWin:
     f = open(name,"wt")
     xasyFile.saveFile(f,self.fileItems)
     f.close()
+    self.undoRedoStack.setCommitLevel()
     self.retitle()
 
   #menu commands
@@ -647,8 +648,16 @@ class xasyMainWin:
     if inFile == None:
       if tkMessageBox.askyesno("File has not been saved.","Save?"):
         self.fileSaveAsCmd()
-    else:
-      self.fileSaveCmd()
+        inFile = self.filename
+      else:
+        return
+    elif self.undoRedoStack.changesMade():
+      choice = tkMessageBox._show("xasy","File has been modified.\nOnly the saved changes will be exported.\nDo you want to save changes?\n\nYes: Save file and export\nNo: Export without saving\nCancel: Do not export",icon=tkMessageBox.QUESTION,type=tkMessageBox.YESNOCANCEL)
+      choice = str(choice)
+      if choice == tkMessageBox.CANCEL:
+        return
+      elif choice == tkMessageBox.YES:
+        self.fileSaveCmd()
     name = os.path.splitext(os.path.basename(self.filename))[0]+'.'+outFormat
     outfilename = tkFileDialog.asksaveasfilename(defaultextension = '.'+outFormat,filetypes=[(outFormat+" files","*."+outFormat)],initialfile=name,parent=self.parent,title="Choose output file")
     if type(outfilename)==type((0,)) or not outfilename or outfilename == '':

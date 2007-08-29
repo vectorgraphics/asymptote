@@ -88,8 +88,11 @@ class actionStack:
     else:
       pass #print "nothing to redo"
 
+  def setCommitLevel(self):
+    self.commitLevel = len(self.undoStack)
+
   def changesMade(self):
-    if len(self.undoStack)>0:
+    if len(self.undoStack) != self.commitLevel:
       return True
     else:
       return False
@@ -97,6 +100,7 @@ class actionStack:
   def clear(self):
     self.redoStack = []
     self.undoStack = []
+    self.commitLevel = 0
 
 if __name__=='__main__':
   import sys
