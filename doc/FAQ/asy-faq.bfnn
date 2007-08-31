@@ -455,7 +455,7 @@ xaxis("$x$",RightTicks(Label(align=left)));
 yaxis("$y$",RightTicks);
 \endverbatim
 
-\question 02sep:axisticks How can I reposition the x axis label to three-quarters along the axis length?
+\question 02sep:axislabel How can I reposition the x axis label to three-quarters along the axis length?
  
 \verbatim
 import graph;
@@ -468,7 +468,7 @@ xaxis(Label("$x$",0.75),LeftTicks);
 yaxis("$y$",RightTicks);
 \endverbatim
 
-\question 02sep:axisticks How can I move the x axis label down 10bp?
+\question 02sep:axislabeldown How can I move the x axis label down 10bp?
  
 \verbatim
 import graph;
