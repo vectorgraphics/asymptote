@@ -165,8 +165,9 @@ AC_SUBST(INCL)
 AC_SUBST(OPTIONS)
 
 # Checks for libraries.
-AC_CHECK_LIB([curses], [setupterm])
-AC_CHECK_LIB([ncurses], [setupterm])
+AC_CHECK_LIB([ncurses], [setupterm], [AC_DEFINE(HAVE_LIBCURSES)
+			 LIBS=$LIBS"-lncurses "],
+			 AC_CHECK_LIB([curses], [setupterm]))
 AC_CHECK_LIB([m], [sqrt])
 AC_CHECK_LIB([sigsegv], [stackoverflow_install_handler])
 
