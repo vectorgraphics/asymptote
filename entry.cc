@@ -88,22 +88,6 @@ varEntry *qualifyVarEntry(varEntry *qv, varEntry *v)
   return qv ? (v ? new varEntry(*qv,*v) : qv) : v;
 }
 
-tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent)
-{
-  // Records need a varEntry that refers back to the qualifier qv; i.e. in
-  // the last new of the code
-  //   struct A {
-  //     struct B {}
-  //   }
-  //   A a=new A;
-  //   unravel a;
-  //   new B;
-  // we need to put a's frame on the stack before allocating an instance of B.
-  // NOTE: A possible optimization could be to only qualify the varEntry if
-  // the type is a record, as other types don't use the varEntry.
-  return new tyEntry(ent->t, qualifyVarEntry(qv, ent->v),
-                     ent->whereDefined(), ent->getPos());
-}
 
 bool tenv::add(symbol *dest,
                names_t::value_type &x, varEntry *qualifier, coder &c)
@@ -282,13 +266,15 @@ void venv::remove(key k) {
 void venv::enter(symbol *name, varEntry *v) {
   assert(!scopes.empty());
   key k(name, v);
-  //cerr << "entering: " << k << " (t=" << k.t << ")" << endl;
+#ifdef DEBUG_ENTRY
+  cout << "entering: " << k << " (t=" << k.t << ")" << endl;
+#endif
   value *val=new value(v);
 
-#if 0
+#ifdef DEBUG_ENTRY
   keymap::iterator p=all.find(k);
   if (p!=all.end()) {
-    cerr << "  over: " << p->first << endl;
+    cout << "  over: " << p->first << endl;
   }
 #endif
   

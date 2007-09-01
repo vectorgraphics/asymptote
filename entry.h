@@ -137,9 +137,31 @@ public:
 
   tyEntry(tyEntry *base, permission perm, record *r)
     : entry(*base, perm, r), t(base->t), v(base->v) {}
+
+  // Records need a varEntry that refers back to the qualifier qv; i.e. in
+  // the last new of the code
+  //   struct A {
+  //     struct B {}
+  //   }
+  //   A a=new A;
+  //   unravel a;
+  //   new B;
+  // we need to put a's frame on the stack before allocating an instance of B.
+  // NOTE: A possible optimization could be to only qualify the varEntry if
+  // the type is a record, as other types don't use the varEntry.
+private:
+  tyEntry(tyEntry *base, varEntry *qv)
+    : entry(*base, *qv), t(base->t), v(qualifyVarEntry(qv, base->v)) {}
+
+public:
+  // Since the constructor can only be used when qv is non-null it is private
+  // for safety reasons, and we provide this method instead.
+  friend tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent);
 };
 
-tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent);
+inline tyEntry *qualifyTyEntry(varEntry *qv, tyEntry *ent) {
+  return qv ? new tyEntry(ent, qv) : ent;
+}
 
 // The type environment.
 class tenv : public sym::table<tyEntry *> {
