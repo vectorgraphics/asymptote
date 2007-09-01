@@ -742,7 +742,8 @@ void includedec::transAsField(coenv &e, record *r)
   file *ast = parser::parseFile(filename,"Including");
   em.sync();
 
-  // The runnables will be run, one at a time, without any additional scoping.
+  // The runnables will be translated, one at a time, without any additional
+  // scoping.
   ast->transAsField(e, r);
 }
 
