@@ -93,7 +93,7 @@ absyntax::file *parseStdin()
 }
 
 absyntax::file *parseFile(const string& filename,
-			  const char *text)
+			  const char *nameOfAction)
 {
   if(filename == "-")
     return parseStdin();
@@ -103,8 +103,8 @@ absyntax::file *parseFile(const string& filename,
   if(file.empty())
     error(filename);
 
-  if(text && settings::verbose > 1)
-    cerr << text << " " <<  filename << " from " << file << endl;
+  if(nameOfAction && settings::verbose > 1)
+    cerr << nameOfAction << " " <<  filename << " from " << file << endl;
   
   debug(false); 
 
