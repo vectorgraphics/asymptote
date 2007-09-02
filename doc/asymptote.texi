@@ -1227,7 +1227,7 @@ boundary of picture @code{pic}.
 @cindex shading
 @cindex lattice shading
 Lattice gradient shading varying smoothly over a two-dimensional
-array of pens @code{p}, using fillrule @code{fillrule}, can be produced with
+array of pens @code{p}, using fill rule @code{fillrule}, can be produced with
 @verbatim
 void latticeshade(picture pic=currentpicture, path g,
                   pen fillrule=currentpen, pen[][] p)
@@ -1261,7 +1261,7 @@ Illustrations of radial shading are provided in the example files
 @code{shade.asy} and @code{ring.asy}.
 
 @cindex Gouraud shading
-Gouraud shading using fillrule @code{fillrule} and the vertex colors in the
+Gouraud shading using fill rule @code{fillrule} and the vertex colors in the
 pen array @code{p} on a triangular lattice defined by the vertices
 @code{z} and edge flags @code{edges} is implemented with
 @verbatim
@@ -1283,7 +1283,7 @@ The edge flags used in Gouraud shading are documented here:
 
 @cindex Coons shading
 @cindex tensor product shading
-Tensor product shading using fillrule @code{fillrule} on patches
+Tensor product shading using fill rule @code{fillrule} on patches
 bounded by the @math{n} cyclic paths of length 4 in path array @code{b},
 using the vertex colors specified in the @math{n \times 4} pen array
 @code{p} and internal control points in the @math{n \times 4}
@@ -1318,11 +1318,11 @@ void unfill(picture pic=currentpicture, path g);
 @node clip
 @section clip
 @verbatim 
-void clip(picture pic=currentpicture, path g, pen p=currentpen);
+void clip(picture pic=currentpicture, path g, pen fillrule=currentpen);
 @end verbatim
 
 Clip the current contents of picture @code{pic} to the region bounded
-by the path @code{g}, using fillrule @code{p} (@pxref{fillrule}).
+by the path @code{g}, using fill rule @code{fillrule} (@pxref{fillrule}).
 For an illustration of picture clipping, see the first example in
 @ref{LaTeX usage}.
 
@@ -2176,9 +2176,9 @@ returns the winding number of the cyclic path @code{g} relative to the point
 counterclockwise direction.
 
 @cindex @code{inside}
-@item bool inside(path g, pair z, pen p=currentpen);
+@item bool inside(path p, pair z, pen fillrule=currentpen);
 returns @code{true} iff the point @code{z} is inside the region bounded
-by the cyclic path @code{g} according to the fillrule of pen @code{p}
+by the cyclic path @code{p} according to the fill rule @code{fillrule}
 (@pxref{fillrule}). 
 
 @end table
@@ -2228,23 +2228,23 @@ internal cycles, which are resolved):
 
 @cindex @code{size}
 @item int size(guide g);
-Analogous to @code{size(path g)}.
+Analogous to @code{size(path p)}.
 
 @cindex @code{length}
 @item int length(guide g);
-Analogous to @code{length(path g)}.
+Analogous to @code{length(path p)}.
 
 @cindex @code{cyclic}
 @item bool cyclic(path p);
-Analogous to @code{cyclic(path g)}.
+Analogous to @code{cyclic(path p)}.
 
 @cindex @code{point}
 @item pair point(guide g, int t);
-Analogous to @code{point(path g, int t)}.
+Analogous to @code{point(path p, int t)}.
 
 @cindex @code{reverse}
 @item guide reverse(guide g);
-Analogous to @code{reverse(path g)}. If @code{g} is cyclic and
+Analogous to @code{reverse(path p)}. If @code{g} is cyclic and
 also contains a secondary cycle, it is first solved to a
 path, then reversed. If @code{g} is not cyclic but contains an internal
 cycle, only the internal cycle is solved before reversal. If there are

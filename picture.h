@@ -62,11 +62,13 @@ public:
 		  const string& prefix, const pair& bboxshift); 
     
   bool postprocess(const string& prename, const string& outname, 
-		   const string& outputformat, bool wait, bool view);
+		   const string& outputformat, double magnification,
+		   bool wait, bool view);
     
   // Ship the picture out to PostScript & TeX files.
   bool shipout(picture* preamble, const string& prefix,
-	       const string& format, bool wait, bool view=true,
+	       const string& format, double magnification=0, 
+	       bool wait=false, bool view=true,
 	       bool Delete=false);
  
   picture *transformed(const transform& t);

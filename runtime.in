@@ -936,16 +936,16 @@ void tensorshade(picture *f, patharray *g, pen fillrule, penarray2 *p,
 
 // Clip a picture to a superpath using the given fill rule.
 // Subsequent additions to the picture will not be affected by the clipping.
-void clip(picture *f, patharray *g, pen p, bool copy=true)
+void clip(picture *f, patharray *g, pen fillrule, bool copy=true)
 {
   array *(*copyarray)(array *a)=copy ? copyArray: nop;
-  drawClipBegin *begin=new drawClipBegin(*copyarray(g),p,true);
+  drawClipBegin *begin=new drawClipBegin(*copyarray(g),fillrule,true);
   f->enclose(begin,new drawClipEnd(true,begin));
 }
 
-void beginclip(picture *f, patharray *g, pen p)
+void beginclip(picture *f, patharray *g, pen fillrule)
 {
-  f->append(new drawClipBegin(*copyArray(g),p,false));
+  f->append(new drawClipBegin(*copyArray(g),fillrule,false));
 }
 
 void endclip(picture *f)
@@ -1076,14 +1076,12 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
 
   picture *result=new picture;
   unsigned level=0;
-  unsigned i=0;
   picture::nodelist::iterator p;
   for(p = f->nodes.begin(); p != f->nodes.end(); ++p) {
-    bool Delete;
     xform->call(Stack);
     transform t=pop<transform>(Stack);
     static transform Zero=transform(0.0,0.0,0.0,0.0,0.0,0.0);
-    Delete=(t == Zero);
+    bool Delete=(t == Zero);
     picture *group=new picture;
 // Ignore unclosed begingroups but not spurious endgroups.
     const char *nobegin="endgroup without matching begingroup";
@@ -1106,78 +1104,65 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
     assert(*p);
     drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
     group->append(e);
-    if(!group->null()) {
-      if(getSetting<real>("deconstruct")) {
-	ostringstream buf;
-	buf << prefix << "_" << i;
-	group->shipout(preamble,buf.str(),"<x>",false,false,Delete);
-      }
-      ++i;
-    }
     if(!Delete) result->add(*group);
   }
-  f=result;
-  f->shipout(preamble,prefix,format,wait,view);
+  result->shipout(preamble,prefix,format,wait,view);
 }
 
 void deconstruct(string prefix=emptystring, picture *f,
-		 picture *preamble=NULL, callableTransform *xform,
-		 bool onlyCount=false)
+		 picture *preamble=NULL, real magnification=1, 
+		 callableTransform *xform, bool countonly=false)
 {
   picture *result = new picture;
   unsigned level=0;
   unsigned i=0;
   picture::nodelist::iterator p;
-  for(p = f->nodes.begin(); p != f->nodes.end(); ++p) {
-    bool Delete = false;
-    transform t;
-    static transform Zero=transform(0.0,0.0,0.0,0.0,0.0,0.0);
-    if(!onlyCount)
-    {
-      xform->call(Stack);
-      t=pop<transform>(Stack);
-      Delete=(t == Zero);
-    }
-    picture *group=new picture;
+  if(magnification > 0.0) {
+    for(p = f->nodes.begin(); p != f->nodes.end(); ++p) {
+      bool Delete=false;
+      transform t;
+      static transform Zero=transform(0.0,0.0,0.0,0.0,0.0,0.0);
+      if(!countonly) {
+	xform->call(Stack);
+	t=pop<transform>(Stack);
+	Delete=(t == Zero);
+      }
+      picture *group=new picture;
 // Ignore unclosed begingroups but not spurious endgroups.
-    const char *nobegin="endgroup without matching begingroup";
-    assert(*p);
-    if((*p)->endgroup()) error(nobegin);
-    if((*p)->begingroup()) {
-      ++level;
-      while(p != f->nodes.end() && level) {
-        drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
-	group->append(e);
-	++p;
-	if(p == f->nodes.end()) break;
-	assert(*p);
-	if((*p)->begingroup()) ++level;
-	if((*p)->endgroup()) if(level) --level;
-	  else error(nobegin);
+      const char *nobegin="endgroup without matching begingroup";
+      assert(*p);
+      if((*p)->endgroup()) error(nobegin);
+      if((*p)->begingroup()) {
+	++level;
+	while(p != f->nodes.end() && level) {
+	  drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
+	  group->append(e);
+	  ++p;
+	  if(p == f->nodes.end()) break;
+	  assert(*p);
+	  if((*p)->begingroup()) ++level;
+	  if((*p)->endgroup()) if(level) --level;
+	    else error(nobegin);
+	}
       }
-    }
-    if(p == f->nodes.end()) break;
-    assert(*p);
-    drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
-    group->append(e);
-    if(!group->null()) {
-      ostringstream buf;
-      buf << prefix << "_" << i;
-      if(!onlyCount) {
-        group->shipout(preamble,buf.str(),"<x>",false,false,Delete);
-        cout << buf.str() << (Delete?" Deleted":"") << endl;
+      if(p == f->nodes.end()) break;
+      assert(*p);
+      drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
+      group->append(e);
+      if(!group->null()) {
+	ostringstream buf;
+	buf << prefix << "_" << i;
+	if(!countonly) {
+	  group->shipout(preamble,buf.str(),"<x>",magnification,false,false,
+			 Delete);
+	  cout << buf.str() << (Delete ? " Deleted" : "") << endl;
+	}
+	++i;
       }
-      ++i;
+      if(!Delete) result->add(*group);
     }
-    if(!Delete) result->add(*group);
   }
   cout << i << endl;
-  if(!onlyCount)
-  {
-    ostringstream buf;
-    buf << prefix << "_" << i;
-    result->shipout(preamble,buf.str(),"eps",false,false);
-  }
 }
 
 void purge()
@@ -1732,9 +1717,9 @@ Int windingnumber(patharray *p, pair z)
   return windingnumber(p,z);
 }
 
-bool inside(patharray *g, pair z, pen p)
+bool inside(patharray *g, pair z, pen fillrule)
 {
-  return p.inside(windingnumber(g,z));
+  return fillrule.inside(windingnumber(g,z));
 }
 
 

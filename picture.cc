@@ -287,7 +287,8 @@ int picture::epstopdf(const string& epsname, const string& pdfname)
 static mem::map<CONST string,int> pids;
 
 bool picture::postprocess(const string& prename, const string& outname,
-			  const string& outputformat, bool wait, bool view)
+			  const string& outputformat, double magnification,
+			  bool wait, bool view)
 {
   int status=0;
   
@@ -297,7 +298,7 @@ bool picture::postprocess(const string& prename, const string& outname,
       else status=epstopdf(prename,outname);
     } else if(xobject && getSetting<string>("xformat") == "png") {
       ostringstream cmd;
-      double res=getSetting<double>("deconstruct")*72.0;
+      double res=magnification*72.0;
       cmd << "'" << getSetting<string>("gs")
 	  << "' -q -dNOPAUSE -dBATCH -sDEVICE=pngalpha -dEPSCrop"
 	  << " -r" << res << "x" << res
@@ -306,8 +307,7 @@ bool picture::postprocess(const string& prename, const string& outname,
     } else {
       ostringstream cmd;
       double expand=2.0;
-      double res=(xobject ? getSetting<double>("deconstruct") : expand)*
-	72.0;
+      double res=(xobject ? magnification : expand)*72.0;
       cmd << "'" << getSetting<string>("convert") 
 	  << "' -density " << res << "x" << res;
       if(!xobject) cmd << " +antialias -geometry " << 100.0/expand << "%x";
@@ -362,7 +362,8 @@ bool picture::postprocess(const string& prename, const string& outname,
 }
 
 bool picture::shipout(picture *preamble, const string& Prefix,
-		      const string& format, bool wait, bool view, bool Delete)
+		      const string& format, double magnification,
+		      bool wait, bool view, bool Delete)
 {
   bounds();
   
@@ -378,7 +379,7 @@ bool picture::shipout(picture *preamble, const string& Prefix,
   string outputformat=format.empty() ? defaultformat() : format;
   epsformat=outputformat == "eps";
   pdfformat=outputformat == "pdf";
-  xobject=outputformat == "<x>";
+  xobject=magnification > 0;
   string xformat=getSetting<string>("xformat");
   string outname=xobject ? "."+buildname(prefix,xformat) :
     (standardout ? "-" : buildname(prefix,outputformat,"",
@@ -388,11 +389,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     auxname(prefix,"eps");
   string prename=((epsformat && !pdf) || !Labels) ? epsname : 
     auxname(prefix,preformat);
-  double deconstruct=getSetting<double>("deconstruct");
   
   static ofstream bboxout;
-  
-  globalData *g=global.back();
   
   if(b.empty && !Labels) { // Output a null file
     bbox b;
@@ -402,51 +400,29 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     out.prologue(b);
     out.epilogue();
     out.close();
-    if(deconstruct && !xobject) {
-      if(bboxout) bboxout.close();
-      g->ShipoutNumber++;
-      return true;
-    }
-    return postprocess(epsname,outname,outputformat,wait,view);
+    return postprocess(epsname,outname,outputformat,magnification,wait,view);
   }
   
-  if(deconstruct) {
-    if(xobject) {
-      if(!bboxout.is_open()) {
-	bboxout.open(("."+buildname(prefix,"box")).c_str());	
-	bboxout << deconstruct << " " << xformat << newl;
-      }
-      bbox bscaled=b;
-      // Work around half-pixel bounding box bug in Ghostscript pngalpha driver
-      if(xformat == "png") {
-	double fuzz=0.5/deconstruct;
-	b.top += fuzz;
-	b.right += fuzz;
-      }
-      bscaled *= Delete ? 0 : deconstruct;
-      bboxout << bscaled << endl;
-      if(Delete) {
-	unlink(outname.c_str());
-	return true;
-      }
-    } else {
-      if(bboxout) bboxout.close();
-      if(settings::view() && view) {
-	ostringstream cmd;
-	string Python=getSetting<string>("python");
-	if(Python != "") cmd << "'" << Python << "' ";
-	cmd << "'" << getSetting<string>("xasy") << "' " 
-	    << buildname(prefix) << " " << g->ShipoutNumber << " "
-	    << buildname(settings::outname());
-	int status=System(cmd,0,true,Python != "" ? "python" : "xasy");
-	if(status != 0) return false;
-      }
-      g->ShipoutNumber++;
+  if(xobject) {
+    if(!bboxout.is_open()) {
+      bboxout.open(("."+buildname(prefix,"box")).c_str());	
+      bboxout << magnification << " " << xformat << newl;
+    }
+    bbox bscaled=b;
+    // Work around half-pixel bounding box bug in Ghostscript pngalpha driver
+    if(xformat == "png") {
+      double fuzz=0.5/magnification;
+      b.top += fuzz;
+      b.right += fuzz;
+    }
+    bscaled *= Delete ? 0 : magnification;
+    bboxout << bscaled << endl;
+    if(Delete) {
+      unlink(outname.c_str());
       return true;
     }
   }
 
-      
   SetPageDimensions();
   
   paperWidth=getSetting<double>("paperwidth");
@@ -573,7 +549,8 @@ bool picture::shipout(picture *preamble, const string& Prefix,
 	}
       }
       if(status)
-	status=postprocess(prename,outname,outputformat,wait,view);
+	status=postprocess(prename,outname,outputformat,magnification,wait,
+			   view);
     }
   }
   

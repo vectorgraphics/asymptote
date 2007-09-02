@@ -889,10 +889,6 @@ void initSettings() {
   view->add(new boolSetting("interactiveView", 0,
 			    "View output in interactive mode", true));
   addOption(view);
-
-  addOption(new realSetting("deconstruct", 'x', "X",
-			    "Deconstruct into transparent objects magnified by X",
-			    0.0));
   addOption(new stringSetting("xformat", 0, "format", 
 			      "GUI deconstruction format [\"gif\"]","gif"));
   addOption(new stringSetting("outformat", 'f', "format",

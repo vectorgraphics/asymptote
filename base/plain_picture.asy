@@ -1054,14 +1054,14 @@ void clip(frame f, path[] g)
   clip(f,g,currentpen);
 }
 
-void clip(picture pic=currentpicture, path[] g, pen p=currentpen,
+void clip(picture pic=currentpicture, path[] g, pen fillrule=currentpen,
 	  bool copy=true)
 {
   if(copy)
     g=copy(g);
   pic.userClip(min(g),max(g));
   pic.clip(new void(frame f, transform t) {
-      clip(f,t*g,p,false);
+      clip(f,t*g,fillrule,false);
     },true);
 }
 

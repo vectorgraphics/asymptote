@@ -19,7 +19,6 @@ void initXasyMode()
 {
   size(0,0);
   inXasyMode = true;
-  settings.deconstruct = 0;
 }
 
 void exitXasyMode()
@@ -94,8 +93,8 @@ struct framedTransformStack {
 framedTransformStack xformStack;
 
 void deconstruct(string prefix="out", picture pic=currentpicture,
-		 real magnification=1.0, bool countonly=false)
+		 real magnification=1, bool countonly=false)
 {
-  settings.deconstruct=magnification;
-  deconstruct(prefix,pic.fit(),currentpatterns,xformStack.pop,countonly);
+  deconstruct(prefix,pic.fit(),currentpatterns,magnification,xformStack.pop,
+	      countonly);
 }

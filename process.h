@@ -91,7 +91,6 @@ struct globalData {
   mem::list<string> TeXpreamble;
   vm::callable *atExitFunction;
   vm::callable *atBreakpointFunction;
-  Int ShipoutNumber; // Used by xasy to keep track of multiple shipouts/file.
   camp::pen defaultpen;
   
   terminator<std::ofstream> ofile;
@@ -104,7 +103,6 @@ struct globalData {
   globalData() {
     atExitFunction=NULL;
     atBreakpointFunction=NULL;
-    ShipoutNumber=0;
     defaultpen=camp::pen::initialpen();
   }
   
