@@ -537,6 +537,8 @@ class xasyMainWin:
           raise
         else:
           f = open(fullName+".asy",'rt')
+          self.filename = fullName+".asy"
+          self.retitle()
       self.fileItems = xasyFile.parseFile(f)
       f.close()
     except IOError:
@@ -646,17 +648,17 @@ class xasyMainWin:
 
   def exportFile(self,inFile, outFormat):
     if inFile == None:
-      if tkMessageBox.askyesno("File has not been saved.","Save?"):
+      if tkMessageBox.askyesno("xasy","File has not been saved.\nSave?"):
         self.fileSaveAsCmd()
         inFile = self.filename
       else:
         return
     elif self.undoRedoStack.changesMade():
-      choice = tkMessageBox._show("xasy","File has been modified.\nOnly the saved changes will be exported.\nDo you want to save changes?\n\nYes: Save file and export\nNo: Export without saving\nCancel: Do not export",icon=tkMessageBox.QUESTION,type=tkMessageBox.YESNOCANCEL)
+      choice = tkMessageBox._show("xasy","File has been modified.\nOnly saved changes can be exported.\nDo you want to save changes?",icon=tkMessageBox.QUESTION,type=tkMessageBox.YESNOCANCEL)
       choice = str(choice)
-      if choice == tkMessageBox.CANCEL:
+      if choice != tkMessageBox.YES:
         return
-      elif choice == tkMessageBox.YES:
+      else:
         self.fileSaveCmd()
     name = os.path.splitext(os.path.basename(self.filename))[0]+'.'+outFormat
     outfilename = tkFileDialog.asksaveasfilename(defaultextension = '.'+outFormat,filetypes=[(outFormat+" files","*."+outFormat)],initialfile=name,parent=self.parent,title="Choose output file")
@@ -666,13 +668,13 @@ class xasyMainWin:
     outName = os.path.basename(outfilename)
     dirname = os.path.dirname(fullname)
     command = xasyOptions.options['asyPath']+" -f %s -o %s %s"%(outFormat,fullname,inFile)
-    print command
     saver = subprocess.Popen(split(command),stdin=PIPE,stdout=PIPE,stderr=PIPE)
     saver.wait()
     if saver.returncode != 0:
-      tkMessageBox.showerror("Error Exporting File",saver.stdout.read()+saver.stderr.read())
+      tkMessageBox.showerror("Export Error","Export Error:\n"+saver.stdout.read()+saver.stderr.read())
+      self.status.config(text="Error exporting file")
     else:
-      tkMessageBox.showinfo("Export","File Exported Successfully")
+      self.status.config(text="File exported successfully")
 
   def fileExitCmd(self):
     #print "Exit xasy"
