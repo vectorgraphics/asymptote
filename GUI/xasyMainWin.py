@@ -148,10 +148,10 @@ class xasyMainWin:
     #status bar
     self.statusBar = Frame(self.parent,relief=FLAT)
 
-    Label(self.statusBar,text="+").pack(side=RIGHT)
-    self.zoomBar = Scale(self.statusBar,orient=HORIZONTAL,length=150,width=10,from_=-5,to=5,command=self.zoomViewCmd,showvalue=False,state=DISABLED,relief=FLAT)
-    self.zoomBar.pack(side=RIGHT,fill=X)
-    Label(self.statusBar,text="Zoom: - ").pack(side=RIGHT)
+    #Label(self.statusBar,text="+").pack(side=RIGHT)
+    #self.zoomBar = Scale(self.statusBar,orient=HORIZONTAL,length=150,width=10,from_=-5,to=5,command=self.zoomViewCmd,showvalue=False,state=DISABLED,relief=FLAT)
+    #self.zoomBar.pack(side=RIGHT,fill=X)
+    #Label(self.statusBar,text="Zoom: - ").pack(side=RIGHT)
     self.coords = Label(self.statusBar,text="(0,0)",relief=SUNKEN,anchor=W)
     self.coords.pack(side=RIGHT)
     self.status = Label(self.statusBar,text="Ready",relief=SUNKEN,anchor=W)
