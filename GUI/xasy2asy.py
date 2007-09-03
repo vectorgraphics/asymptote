@@ -43,7 +43,7 @@ def startQuickAsy():
     pass
   try:
     quickAsyFailed = False
-    quickAsy = Popen([xasyOptions.options['asyPath']]+split("-noV -q -multiline -interactive"),stdin=PIPE,stdout=PIPE,stderr=PIPE)
+    quickAsy = Popen([xasyOptions.options['asyPath']]+split("-noV -q -multiline -interactive"),stdin=PIPE,stdout=PIPE,stderr=STDOUT)
     if quickAsy.returncode != None:
       quickAsyFailed = True
   except:
@@ -166,7 +166,9 @@ class asyPen(asyObj):
     quickAsy.stdin.write("write(\";\n\");write(colorspace(p));\n")
     quickAsy.stdin.write("write(colors(p));\n")
     quickAsy.stdin.flush()
-    quickAsy.stdout.readline()
+    testline = quickAsy.stdout.readline()
+    if testline.startswith("> -:"):
+      raise Exception,"Invalid pen options"
     quickAsy.stdout.readline()
     colorspace = quickAsy.stdout.readline()
     if colorspace.find("cmyk") != -1:

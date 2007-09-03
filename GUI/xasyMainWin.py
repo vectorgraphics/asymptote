@@ -338,6 +338,7 @@ class xasyMainWin:
     self.penWidthEntry.insert(END,str(self.penWidth))
     self.penOptions = xasyOptions.options['defPenOptions']
     self.penOptEntry.select_range(0,END)
+    self.penOptEntry.delete(0,END)
     self.penOptEntry.insert(END,str(self.penOptions))
     self.showCurrentPen()
 
@@ -1525,8 +1526,20 @@ class xasyMainWin:
     self.applyPenOpt()
 
   def validatePenOpt(self):
-    #TODO: implement pen option validation
-    return True
+    try:
+      penTest = asyPen(self.penColor,self.penWidth,self.penOptEntry.get())
+      return True
+    except:
+      self.penOptEntry.select_range(0,END)
+      self.penOptEntry.delete(0,END)
+      self.penOptEntry.insert(END,"Invalid Pen Options")
+      self.penOptEntry.after(5000,self.clearInvalidOptEntry)
+      self.penOptions = ""
+      return False
+
+  def clearInvalidOptEntry(self):
+    self.penOptEntry.select_range(0,END)
+    self.penOptEntry.delete(0,END)
 
   def applyPenOpt(self):
     if self.validatePenOpt():
