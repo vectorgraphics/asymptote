@@ -17,7 +17,7 @@ indexedTransform.indexedTransform(9,(0, 0, 1, 0, 0, 1)),
 indexedTransform.indexedTransform(10,(0, 0, 1, 0, 0, 1)),
 indexedTransform.indexedTransform(11,(0, 0, 1, 0, 0, 1)),
 indexedTransform.indexedTransform(12,(0, 0, 1, 0, 0, 1)));
-startScript();{
+startScript(); {
 size(0,150);
 
 pen colour1=red;
@@ -52,7 +52,7 @@ draw(Label("$A\cap B$",0),conj(z)--z0,Arrow,BigMargin);
 draw(Label("$A\cup B$",0),z--z0,Arrow,BigMargin);
 draw(z--z1,Arrow,Margin(0,m));
 draw(z--z2,Arrow,Margin(0,m));
-}endScript();
+} endScript();
 
 
 xformStack.push((-28.0, 7.0, 1, 0, 0, 1));

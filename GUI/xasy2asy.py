@@ -186,7 +186,7 @@ class asyPen(asyObj):
     self.color = (r,g,b)
 
   def tkColor(self):
-    """Return the tk version of the pens color"""
+    """Return the tk version of the pen's color"""
     self.computeColor()
     r,g,b = self.color
     r,g,b = int(256*r),int(256*g),int(256*b)
@@ -687,10 +687,10 @@ class xasyScript(xasyItem):
         isFirst = False
         count += 1
       self.asyCode += ");\n"
-    self.asyCode += "startScript();{\n"
+    self.asyCode += "startScript(); {\n"
     self.asyCode += self.script.replace("\t"," ")
     self.asyCode = self.asyCode.rstrip()
-    self.asyCode += "\n}endScript();\n"
+    self.asyCode += "\n} endScript();\n"
 
   def setScript(self,script):
     """Sets the content of the script item. If the imageList is enlarged, identities are added; if the list is shrunk, transforms are removed."""

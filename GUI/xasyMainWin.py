@@ -23,6 +23,7 @@ import tkSimpleDialog
 import threading
 import time
 
+from xasyVersion import xasyVersion
 from xasyCodeEditor import *
 from xasy2asy import *
 import xasyFile
@@ -249,7 +250,6 @@ class xasyMainWin:
     self.penWidthEntry.grid(row=0,column=3)
     Label(self.optionsBar,text="Options",anchor=E).grid(row=0,column=4)
     self.penOptEntry = Entry(self.optionsBar)
-    self.penOptEntry.bind("<KeyRelease>",self.penOptChanged)
     self.penOptEntry.bind("<FocusOut>",self.applyPenOptEvt)
     self.penOptEntry.bind("<Return>",self.applyPenOptEvt)
     self.penOptEntry.grid(row=0,column=5)
@@ -331,7 +331,7 @@ class xasyMainWin:
     xasyOptions.load()
     self.tkPenColor = xasyOptions.options['defPenColor']
     self.penColor = makeRGBfromTkColor(self.tkPenColor)
-    self.penColButton.config(activeforeground=self.tkPenColor,activebackground=self.tkPenColor)
+    self.penColButton.config(activebackground=self.tkPenColor)
     self.penWidth = xasyOptions.options['defPenWidth']
     self.penWidthEntry.select_range(0,END)
     self.penWidthEntry.delete(0,END)
@@ -697,7 +697,7 @@ class xasyMainWin:
     asyExecute("\nhelp;\n")
 
   def helpAboutCmd(self):
-    tkMessageBox.showinfo("About xasy","A graphical interface for Asymptote")
+    tkMessageBox.showinfo("About xasy","A graphical interface for Asymptote "+xasyVersion)
 
   def updateSelectedButton(self,newB):
     #disable switching modes during an incomplete drawing operation
@@ -790,7 +790,7 @@ class xasyMainWin:
     self.penColor = xasyColorDlg(self.parent).getColor(self.penColor)
     if self.penColor != old:
       self.tkPenColor = RGB255hex(RGBreal255(self.penColor))
-      self.penColButton.config(activeforeground=self.tkPenColor,activebackground=self.tkPenColor)
+      self.penColButton.config(activebackground=self.tkPenColor)
       self.showCurrentPen()
 
   def clearSelection(self):
@@ -1474,7 +1474,10 @@ class xasyMainWin:
     text = self.penWidthEntry.get()
     try:
       width = float(text)
-      return True
+      if width <= 0:
+        return False
+      else:
+        return True
     except:
       return False
 
@@ -1521,17 +1524,11 @@ class xasyMainWin:
   def applyPenOptEvt(self,event):
     self.applyPenOpt()
 
-  def penOptChanged(self,event):
-    if self.pendingPenOptChange is not None:
-      self.penOptEntry.after_cancel(self.pendingPenOptChange)
-    self.pendingPenOptChange = self.penOptEntry.after(1000,self.applyPenOpt)
-
   def validatePenOpt(self):
     #TODO: implement pen option validation
     return True
 
   def applyPenOpt(self):
-    self.pendingPenOptChange = None
     if self.validatePenOpt():
       old = self.penOptions
       self.penOptions = self.penOptEntry.get()

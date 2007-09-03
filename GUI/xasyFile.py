@@ -50,8 +50,8 @@ def parseFile(inFile):
   return result
 
 transformPrefix = "xformStack"
-scriptPrefix = "startScript();{"
-scriptSuffix = "}endScript();"
+scriptPrefix = "startScript(); {"
+scriptSuffix = "} endScript();"
 def extractScript(lines):
   """Find the code belonging to a script item"""
   theScript = ""
