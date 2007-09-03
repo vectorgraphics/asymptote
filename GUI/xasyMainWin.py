@@ -694,7 +694,6 @@ class xasyMainWin:
 
   def helpAsyDocCmd(self):
     #print "Open documentation about Asymptote"
-    syncQuickAsyOutput()
     asyExecute("\nhelp;\n")
 
   def helpAboutCmd(self):

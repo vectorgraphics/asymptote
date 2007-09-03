@@ -55,6 +55,12 @@ def quickAsyRunning():
   else:
     return True
 
+def asyExecute(command):
+  if not quickAsyRunning():
+    startQuickAsy()
+  syncQuickAsyOutput()
+  quickAsy.stdin.write(command)
+
 def syncQuickAsyOutput():
   global idCounter
   idStr = randString+"-id "+str(idCounter)
