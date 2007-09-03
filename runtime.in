@@ -1150,9 +1150,9 @@ void deconstruct(string prefix=emptystring, picture *f,
       drawElement *e=t.isIdentity() ? *p : (*p)->transformed(t);
       group->append(e);
       if(!group->null()) {
-	ostringstream buf;
-	buf << prefix << "_" << i;
 	if(!countonly) {
+	  ostringstream buf;
+	  buf << prefix << "_" << i;
 	  group->shipout(preamble,buf.str(),"<x>",magnification,false,false,
 			 Delete);
 	  cout << buf.str() << (Delete ? " Deleted" : "") << endl;
@@ -1163,6 +1163,8 @@ void deconstruct(string prefix=emptystring, picture *f,
     }
   }
   cout << i << endl;
+  if(!countonly)
+    picture::bboxout.close();
 }
 
 void purge()

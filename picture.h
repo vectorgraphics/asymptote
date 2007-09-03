@@ -30,8 +30,8 @@ private:
 
 public:
   typedef mem::list<drawElement*> nodelist;
-  
   nodelist nodes;
+  static std::ofstream bboxout;
   
   picture() : labels(false), lastnumber(0), T(identity) {}
   

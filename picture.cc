@@ -45,6 +45,7 @@ picture::~picture()
 bool picture::epsformat,picture::pdfformat,picture::xobject, picture::pdf;
 bool picture::Labels;
 double picture::paperWidth,picture::paperHeight;
+ofstream picture::bboxout;
   
 void picture::enclose(drawElement *begin, drawElement *end)
 {
@@ -389,8 +390,6 @@ bool picture::shipout(picture *preamble, const string& Prefix,
     auxname(prefix,"eps");
   string prename=((epsformat && !pdf) || !Labels) ? epsname : 
     auxname(prefix,preformat);
-  
-  static ofstream bboxout;
   
   if(b.empty && !Labels) { // Output a null file
     bbox b;
