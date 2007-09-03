@@ -4,19 +4,19 @@ initXasyMode();
 // in the form of a script either by using xasy or by mimicking the format of an
 // xasy-generated script item.
 // Please consult the documentation or the examples provided for details.
-xformStack.add(indexedTransform.indexedTransform(0,(0, 0, 1, 0, 0, 1)),
-indexedTransform.indexedTransform(1,(0, 0, 1, 0, 0, 1)),
-indexedTransform.indexedTransform(2,(0, 0, 1, 0, 0, 1)),
-indexedTransform.indexedTransform(3,(0, 0, 1, 0, 0, 1)),
-indexedTransform.indexedTransform(4,(0, 0, 1, 0, 0, 1)),
-indexedTransform.indexedTransform(5,(0, 0, 1, 0, 0, 1)),
-indexedTransform.indexedTransform(6,(0, 0, 1, 0, 0, 1)),
-indexedTransform.indexedTransform(7,(0, 0, 1, 0, 0, 1)),
-indexedTransform.indexedTransform(8,(0, 0, 1, 0, 0, 1)),
-indexedTransform.indexedTransform(9,(0, 0, 1, 0, 0, 1)),
-indexedTransform.indexedTransform(10,(0, 0, 1, 0, 0, 1)),
-indexedTransform.indexedTransform(11,(0, 0, 1, 0, 0, 1)),
-indexedTransform.indexedTransform(12,(0, 0, 1, 0, 0, 1)));
+xformStack.add(indexedTransform(0,(0, 0, 1, 0, 0, 1)),
+indexedTransform(1,(0, 0, 1, 0, 0, 1)),
+indexedTransform(2,(0, 0, 1, 0, 0, 1)),
+indexedTransform(3,(0, 0, 1, 0, 0, 1)),
+indexedTransform(4,(0, 0, 1, 0, 0, 1)),
+indexedTransform(5,(0, 0, 1, 0, 0, 1)),
+indexedTransform(6,(0, 0, 1, 0, 0, 1)),
+indexedTransform(7,(0, 0, 1, 0, 0, 1)),
+indexedTransform(8,(0, 0, 1, 0, 0, 1)),
+indexedTransform(9,(0, 0, 1, 0, 0, 1)),
+indexedTransform(10,(0, 0, 1, 0, 0, 1)),
+indexedTransform(11,(0, 0, 1, 0, 0, 1)),
+indexedTransform(12,(0, 0, 1, 0, 0, 1)));
 startScript(); {
 size(0,150);
 
