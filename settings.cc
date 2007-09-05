@@ -897,6 +897,9 @@ void initSettings() {
   addOption(new stringOutnameSetting("outname", 'o', "name",
 				     "Alternative output name for first file",
 				     ""));
+  addOption(new boolSetting("interactiveWrite", 0,
+                            "Write out expressions entered at the prompt",
+                            true));
   addOption(new helpOption("help", 'h', "Show summary of options"));
   addOption(new versionOption("version", 0, "Show version"));
 

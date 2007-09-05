@@ -62,7 +62,8 @@ void expStm::trans(coenv &e) {
 exp *tryToWriteExp(coenv &e, exp *body)
 {
   // First check if it is the kind of expression that should be written.
-  if (body->writtenToPrompt()) {
+  if (body->writtenToPrompt() &&
+      settings::getSetting<bool>("interactiveWrite")) {
     types::ty *t=body->cgetType(e);
     if (t->kind == ty_error || t->kind == ty_overloaded) {
       // Don't try to write erroneous expressions, and don't resolve an
