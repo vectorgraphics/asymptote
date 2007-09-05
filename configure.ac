@@ -99,7 +99,7 @@ OPTIONS="-D_FILE_OFFSET_BITS=64 "
 GCLIB=
 GCPPLIB=
 GCNAME="Boehm Garbage Collector"
-GCOPTIONS="--disable-threads --disable-shared --enable-cplusplus "
+GCOPTIONS="--disable-threads --disable-shared "
 if test "x$ac_cv_use_gc" != "xno" ; then
    OPTIONS=$OPTIONS"-DUSEGC "
    case $ac_cv_use_gc in
