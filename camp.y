@@ -99,13 +99,12 @@ using mem::string;
              '{' '}' '(' ')' '.' ','  '[' ']' ';' ELLIPSIS
              ACCESS UNRAVEL IMPORT INCLUDE FROM QUOTE STRUCT TYPEDEF NEW
              IF ELSE WHILE DO FOR BREAK CONTINUE RETURN_
-             STATIC THIS EXPLICIT
+             THIS EXPLICIT
              GARBAGE
 %token <e>   LIT
 %token <perm> PERM
 %token <mod> MODIFIER
 
-%left  LOOSE
 %right ASSIGN ADD SUBTRACT TIMES DIVIDE MOD EXPONENT
 %right '?' ':'
 %left  COR
@@ -123,10 +122,11 @@ using mem::string;
 
 %left  '+' '-' 
 %left  '*' '/' '%' LIT
-%left  '(' ')'
 %left  UNARY
 %right '^'
 %left  LOGNOT
+%left  EXP_IN_PARENS_RULE
+%left  '(' ')'
 
 %type  <b>   fileblock bareblock block
 %type  <n>   name
@@ -398,8 +398,10 @@ value:
 | value '(' ')'    { $$ = new callExp($2, $1, new arglist()); }
 | value '(' arglist ')'
                    { $$ = new callExp($2, $1, $3); }
-| '(' exp ')' %prec LOOSE
+| '(' exp ')' %prec EXP_IN_PARENS_RULE
                    { $$ = $2; }
+| '(' name ')' %prec EXP_IN_PARENS_RULE
+                   { $$ = new nameExp($2->getPos(), $2); }
 | THIS             { $$ = new thisExp($1); }
 ;
 
