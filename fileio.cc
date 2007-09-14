@@ -21,11 +21,14 @@ void ifile::ignoreComment(bool readstring)
   if(comment == 0) return;
   int c;
   bool eol=(stream->peek() == '\n');
-  if(eol && (readstring || (csvmode && nullfield))) return;
+  if(eol && csvmode && nullfield) return;
   for(;;) {
     while(isspace(c=stream->peek())) {
-      if(c == '\n' && readstring) return;
       stream->ignore();
+      if(c == '\n' && readstring) {
+	c=stream->peek();
+	break;
+      }
       whitespace += (char) c;
     }
     if(c == comment) {
