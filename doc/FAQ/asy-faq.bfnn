@@ -635,7 +635,7 @@ coordinates given to \courier{fixedscaling()\} leaves room for any labels).
 See also
 \docref{http://asymptote.sourceforge.net/doc/Frames-and-pictures.html\}.
  
-\question 26jun:graphlimits How can I plot a function f(x) within [0,1]x[0,3] without explicitly calculating the x values for which f(x) hits the boundary?
+\question 26jun:graphlimits How can I plot a function f(x) within [0,1]x[0,2] without explicitly calculating the x values for which f(x) hits the boundary?
 
 Call \courier{limits\} with the \courier{Crop\} option before drawing the graph:
 \verbatim
@@ -645,7 +645,7 @@ size(250,200,IgnoreAspect);
 
 draw(graph(exp,-1,1),red);
 
-limits((0,0),(1,3),Crop);
+limits((0,0),(1,2),Crop);
 
 xaxis("$x$",BottomTop,LeftTicks);
 yaxis("$y$",LeftRight,RightTicks);
