@@ -203,8 +203,8 @@ Try adding the following lines to your \courier{config.asy\} file:
 
 \verbatim
 import settings;
-latex="C:\texmf\miktex\bin\latex.exe"; 
-dvips="C:\texmf\miktex\bin\dvips.exe"; 
+latex="C:\texmf\miktex\bin\latex.exe";
+dvips="C:\texmf\miktex\bin\dvips.exe";
 \endverbatim
 
 \comment #####################################################################
@@ -216,20 +216,20 @@ dvips="C:\texmf\miktex\bin\dvips.exe";
 What is happening here is that
 
 \verbatim
-draw((0,0)..tension 2..(0,50)..(100,100)); 
+draw((0,0)..tension 2..(0,50)..(100,100));
 \endverbatim
  
 is read as 
 
 \verbatim
-draw((0,0)..tension 2. .(0,50)..(100,100)); 
+draw((0,0)..tension 2. .(0,50)..(100,100));
 \endverbatim
  
 So the first . after the two is treated as a decimal point.
 Just put a space after the integer tension value:
  
 \verbatim
-draw((0,0)..tension 2 ..(0,50)..(100,100)); 
+draw((0,0)..tension 2 ..(0,50)..(100,100));
 \endverbatim
 
 \question 27jun:dots Shouldn't dots always be the same size?
@@ -265,8 +265,8 @@ label("$\Omega$",(20,0));
 
 Yes: 
 \verbatim
-usepackage("amsmath"); 
-label("$\begin{matrix} 1 & 2 \\\ 1 & 1 \end{matrix}$",(0,0)); 
+usepackage("amsmath");
+label("$\begin{matrix} 1 & 2 \\\ 1 & 1 \end{matrix}$",(0,0));
 \endverbatim
 
 \question 27jun:latexpackage How do I tell Asymptote to load a particular LaTeX package, like \courier{mathptmx\}?
@@ -274,7 +274,7 @@ label("$\begin{matrix} 1 & 2 \\\ 1 & 1 \end{matrix}$",(0,0));
 Put 
  
 \verbatim
-usepackage("mathptmx"); 
+usepackage("mathptmx");
 \endverbatim
 
 at the beginning of your file.
@@ -303,9 +303,9 @@ LC_NUMERIC=it_IT asy -V lineargraph
 \question 02sep:rotatelabel How can I get a rotated label with the filled box rotated as well so that it fits the text? 
 
 \verbatim
-frame f; 
-label(f,"This is some text",white,Fill(blue));  
-add(rotate(65)*f); 
+frame f;
+label(f,"This is some text",white,Fill(blue));
+add(rotate(65)*f);
 \endverbatim
 
 
@@ -326,21 +326,21 @@ Fixed-size objects should be drawn on a separate picture and then added to
 currentpicture. Here is one way (see also \docref{http://asymptote.sourceforge.net/gallery/subpictures.asy\} and \docref{http://asymptote.sourceforge.net/gallery/mosquito.asy\}): 
 
 \verbatim
-real u=2cm; 
+real u=2cm;
  
-picture square; 
-draw(square,scale(u)*shift(-0.5,-0.5)*unitsquare); 
+picture square;
+draw(square,scale(u)*shift(-0.5,-0.5)*unitsquare);
  
-picture circle; 
-draw(circle,scale(0.5u)*unitcircle); 
+picture circle;
+draw(circle,scale(0.5u)*unitcircle);
  
 void add(picture pic=currentpicture, Label L, picture object, pair z) { 
-add(pic,object,z); 
-label(pic,L,z); 
+add(pic,object,z);
+label(pic,L,z);
 } 
  
-add("square",square,(0,0)); 
-add("circle",circle,(5cm,0)); 
+add("square",square,(0,0));
+add("circle",circle,(5cm,0));
 \endverbatim
 
 \question 27jun:colorssaturation The binary operator * can be used to scale the color of a pen by a real number. Does this scaling factor have to be less than 1?
@@ -350,7 +350,7 @@ components saturate at 1.
  
 Try  
 \verbatim
-write(cyan); write(0.8*cyan); write(1.5*cyan); 
+write(cyan); write(0.8*cyan); write(1.5*cyan);
 \endverbatim
 and you will quickly see what is going on. 
  
@@ -388,8 +388,8 @@ texpreamble("\\usepackage[pdftex,setpagesize=false]{hyperref}");
 Assuming that at least one of the arrowheads is to be filled, you can do this:
 
 \verbatim
-path g=((0,0)--(5cm,0)); 
-draw(g,Arrow(Relative(0.45))); 
+path g=((0,0)--(5cm,0));
+draw(g,Arrow(Relative(0.45)));
 fill(arrowhead(g,Relative(0.55)));
 \endverbatim
 
@@ -409,8 +409,8 @@ void arrow(frame f, path g, pen p=currentpen, real size=0,
 Simply the reverse the direction of the path.
 
 \verbatim
-path g=((0,0)--(5cm,0)); 
-draw(reverse(g),Arrow(Relative(0.55))); 
+path g=((0,0)--(5cm,0));
+draw(reverse(g),Arrow(Relative(0.55)));
 \endverbatim
 
 \question 02sep:reversearrow How do I change the size of all arrows?
@@ -420,7 +420,7 @@ size argument. If you want to do this globally, you can override the
 pen-dependent arrowsize function like this:
  
 \verbatim
-arrowsize=new real(pen p=currentpen) {return 2mm;}; 
+arrowsize=new real(pen p=currentpen) {return 2mm;};
 \endverbatim
  
 \question 26jun:arrowhead Can I create other arrowhead styles?
@@ -488,10 +488,10 @@ Yes:
 import graph;
 size(300,200,IgnoreAspect);
 
-xlimits(-50,50); 
+xlimits(-50,50);
 ylimits(0,100);
 
-xaxis(Label("$x$",MidPoint,red),Bottom,blue,LeftTicks(green)); 
+xaxis(Label("$x$",MidPoint,red),Bottom,blue,LeftTicks(green));
 yaxis("$y$",Left,RightTicks);
 \endverbatim
 
@@ -501,10 +501,10 @@ yaxis("$y$",Left,RightTicks);
 import graph;
 size(300,200,IgnoreAspect);
 
-xlimits(-50,50); 
+xlimits(-50,50);
 ylimits(0,100);
 
-xaxis("x",Bottom,Courier("m","n"),LeftTicks); 
+xaxis("x",Bottom,Courier("m","n"),LeftTicks);
 yaxis("$y$",Left,RightTicks);
 \endverbatim
 
@@ -517,10 +517,10 @@ fonts you need to override the default tick format:
 import graph;
 size(300,200,IgnoreAspect);
 
-xlimits(-50,50); 
+xlimits(-50,50);
 ylimits(0,100);
 
-xaxis("$x$",Bottom,LeftTicks("%.4g",Courier("m","n")+fontsize(12))); 
+xaxis("$x$",Bottom,LeftTicks("%.4g",Courier("m","n")+fontsize(12)));
 yaxis("$y$",Left,RightTicks);
 \endverbatim
 
@@ -620,8 +620,8 @@ size(250,200,IgnoreAspect);
 
 draw(graph(exp,-1,1),red);
 
-xaxis("$x$",BottomTop,LeftTicks); 
-yaxis("$y$",LeftRight,RightTicks); 
+xaxis("$x$",BottomTop,LeftTicks);
+yaxis("$y$",LeftRight,RightTicks);
 
 fixedscaling((-1.5,-0.5),(1.5,3.5));
 \endverbatim
@@ -645,10 +645,10 @@ size(250,200,IgnoreAspect);
 
 draw(graph(exp,-1,1),red);
 
-xaxis("$x$",BottomTop,LeftTicks); 
-yaxis("$y$",LeftRight,RightTicks); 
+limits((0,0),(1,3),Crop);
 
-limits((0,0),(1,1),Crop); 
+xaxis("$x$",BottomTop,LeftTicks);
+yaxis("$y$",LeftRight,RightTicks);
 \endverbatim
  
 See also \docref{http://asymptote.sourceforge.net/doc/graph.html\}.
@@ -659,13 +659,13 @@ Yes, you may generate your own pen[] array. For example:
 
 \verbatim
 int NColors=32768;
-pen[] MyPalette=new pen[NColors]; 
-real step=1/(NColors-1.0); 
+pen[] MyPalette=new pen[NColors];
+real step=1/(NColors-1.0);
 // Start at black: rgb(0,0,0) 
 // End at yellow: rgb(1,1,0) 
 for(int i=0; i < NColors; ++i) { 
-  real rgval=i*step; 
-  MyPalette[i]=rgb(rgval,rgval,0.0); 
+  real rgval=i*step;
+  MyPalette[i]=rgb(rgval,rgval,0.0);
 } 
 \endverbatim
 
@@ -675,30 +675,30 @@ The example below shows a continuous function and two methods for placing
 markers at integer values of x: 
  
 \verbatim
-import graph; 
+import graph;
  
-size(200,200,IgnoreAspect); 
+size(200,200,IgnoreAspect);
  
 real factorial(real t) {return gamma(t+1);} 
  
-scale(Linear,Log); 
+scale(Linear,Log);
  
 // Graph the factorial function.
-draw(graph(factorial,0,10)); 
+draw(graph(factorial,0,10));
  
 // Method 1: Draw nodes, but hide line
 pair F(int t) {return (t,factorial(t));} 
 // Graph of factorial function from 0 to 10
 pair[] z=sequence(F,11);
-draw(graph(z),invisible,marker(scale(0.8mm)*unitcircle,blue,Fill,Below)); 
+draw(graph(z),invisible,marker(scale(0.8mm)*unitcircle,blue,Fill,Below));
  
 // Method 2: Nongraphing routines require explicit scaling:
 pair dotloc(int t) {return Scale(F(t));} 
 pair[] dotlocs=sequence(dotloc,11);
-dot(dotlocs); 
+dot(dotlocs);
  
-xaxis("$x$",BottomTop,LeftTicks); 
-yaxis("$y$",LeftRight,RightTicks); 
+xaxis("$x$",BottomTop,LeftTicks);
+yaxis("$y$",LeftRight,RightTicks);
 \endverbatim
 
 \question 26jun:length How do I indicate that a certain length should be exactly the size I prescribe with no rescaling, within a picture which has its own size?
@@ -706,7 +706,7 @@ yaxis("$y$",LeftRight,RightTicks);
 Here's an easy way to do this.
  
 \verbatim
-size(12cm,0); 
+size(12cm,0);
  
 void distance(picture pic=currentpicture, pair A, pair B, Label L="", real n=0,
 	      pen p=currentpen) 
@@ -717,18 +717,18 @@ void distance(picture pic=currentpicture, pair A, pair B, Label L="", real n=0,
   pic.add(new void(frame f, transform t) {
     picture opic;
     guide G=T*t*g;
-    draw(opic,Label(L,Center,UnFill(1)),G,p,Arrows(NoFill),Bars,PenMargins); 
+    draw(opic,Label(L,Center,UnFill(1)),G,p,Arrows(NoFill),Bars,PenMargins);
     add(f,opic.fit());
   });
   pic.addBox(min(g),max(g),T*min(p),T*max(p));
 } 
  
-pair A=(0,0), B=(3,3); 
+pair A=(0,0), B=(3,3);
  
-dot(A); 
-dot(B); 
+dot(A);
+dot(B);
  
-distance(A,B,"$\ell$",1); 
+distance(A,B,"$\ell$",1);
 \endverbatim
 
 \question 26jun:log2 How can I make the y axis display base-2 logarithmic values?
@@ -808,7 +808,7 @@ of Linear(-1) in the documentation):
 import graph;
 size(250,200,IgnoreAspect);
 
-scale(Linear,Linear(-1)); 
+scale(Linear,Linear(-1));
 
 draw(graph(log,0.1,10),red);
 
@@ -852,15 +852,15 @@ are initially drawn on, before being added to currentpicture.
 Here is a way of achieving the desired effect (assuming a white background):
  
 \verbatim
-import graph; 
-size(10cm,0); 
-pair[] z={(0,0),(0.5,0.5),(1,1)}; 
-guide g=graph(z); 
+import graph;
+size(10cm,0);
+pair[] z={(0,0),(0.5,0.5),(1,1)};
+guide g=graph(z);
  
-draw(shift(0,.5)*g,marker(scale(5)*unitcircle,FillDraw(white))); 
+draw(shift(0,.5)*g,marker(scale(5)*unitcircle,FillDraw(white)));
  
-xaxis(BottomTop,LeftTicks); 
-yaxis(LeftRight,RightTicks); 
+xaxis(BottomTop,LeftTicks);
+yaxis(LeftRight,RightTicks);
 \endverbatim
 
 \question 02sep:paletterange How can I force several images to use the same palette range (e.g. the entire 0-255 grayscale range)?
@@ -905,13 +905,13 @@ You could write yourself a routine such as:
 picture[] picture(int n) { 
   picture[] pic;
   for(int i=0; i < n; ++i) { 
-    pic[i]=new picture; 
-    size(pic[i],19cm,0); 
+    pic[i]=new picture;
+    size(pic[i],19cm,0);
   } 
-  return pic; 
+  return pic;
 } 
  
-picture[] pic=picture(6); 
+picture[] pic=picture(6);
 \endverbatim
 
 \question 27jun:genarrays Is there a way to define functions that act on arrays in general (i.e. work for arrays of any type)?
@@ -920,11 +920,11 @@ Generic types aren't yet implemented.
  
 But for now you can at least say 
 \verbatim
-typedef string T; 
-include F; 
+typedef string T;
+include F;
  
-typedef real T; 
-include F; 
+typedef real T;
+include F;
 \endverbatim
 
 where \courier{F.asy\} contains some type-dependent code like
@@ -940,29 +940,29 @@ both structure definitions. For example:
  
 \verbatim
 struct B { 
-typedef void someroutine(B b); 
+typedef void someroutine(B b);
  
 static struct A { 
-someroutine routine; 
+someroutine routine;
 void init(someroutine routine) { 
-this.routine=routine; 
+this.routine=routine;
 } 
 } 
  
-A a=new A; 
-string test="Testing"; 
+A a=new A;
+string test="Testing";
 } 
  
-typedef B.A A; 
+typedef B.A A;
  
 A operator init() {return new A;} 
 B operator init() {return new B;} 
  
  
-A a; 
-a.init(new void(B b){write(b.test);}); 
+A a;
+a.init(new void(B b){write(b.test);});
  
-B b; 
+B b;
 a.routine(b);
 \endverbatim
 
@@ -973,9 +973,9 @@ In the example
 \verbatim
 void f() { 
   for(int i=0; i < 3; ++i) { 
-    static int n; 
-    ++n; 
-    write(n); 
+    static int n;
+    ++n;
+    write(n);
   }
 } 
 
@@ -997,8 +997,8 @@ and are simply ignored:
 \verbatim
 for(int i=0; i < 3; ++i) { 
   static int n;
-  ++n; 
-  write(n); 
+  ++n;
+  write(n);
 }
 // Writes warning about top-level static modifier and then 1, 1, 1
 \endverbatim
@@ -1008,12 +1008,12 @@ anew every iteration.  This is only noticable in obscure cases where a variable
 in a loop is accessed in the closure of a function defined in the loop:
  
 \verbatim
-int f(); 
+int f();
  
 for(int i=0; i < 10; ++i) { 
   int j=10*i;
   if(i == 5)
-    f=new int() {return j;}; 
+    f=new int() {return j;};
 } 
  
 write(f()); // Writes 50
@@ -1068,7 +1068,7 @@ If you really like Metapost-style manual (hard-wired) scaling either:
 (i) use the default size(0,0) for the entire picture and do all of the 
 scaling by hand, just like in MetaPost;
  
-(ii) draw to a separate picture pic and add(pic.fit()); 
+(ii) draw to a separate picture pic and add(pic.fit());
  
 (iii) use frames. 
  
@@ -1148,24 +1148,24 @@ Another way is to draw your fixed size object to a frame and add it to
 currentpicture like this:
  
 \verbatim
-path p=(0,0)--(1,0); 
-frame object; 
-draw(object,scale(100)*p); 
+path p=(0,0)--(1,0);
+frame object;
+draw(object,scale(100)*p);
  
-add(object); 
-add(object,(0,-10)); 
+add(object);
+add(object,(0,-10));
 \endverbatim
 
 To understand the difference between frames and pictures, try this: 
  
 \verbatim
-size(300,300); 
+size(300,300);
  
-path p=(0,0)--(1,0); 
-picture object; 
-draw(object,scale(100)*p); 
+path p=(0,0)--(1,0);
+picture object;
+draw(object,scale(100)*p);
  
-add(object); 
+add(object);
 add(object,(0,-10)); // Adds truesize object to currentpicture 
 \endverbatim
 
@@ -1175,34 +1175,34 @@ If you are using currentpicture the way one would in MetaPost (drawing in
 raw PostScript coordinates), you can simply do something like: 
  
 \verbatim
-fill((0,0)--(100,100)--(200,0)--cycle); 
+fill((0,0)--(100,100)--(200,0)--cycle);
  
 pair center(picture pic=currentpicture) {return 0.5*(pic.min()+pic.max());} 
  
-real height=100; 
-real width=100; 
-pair delta=0.5(width,height); 
-pair c=center(); 
-clip(box(c-delta,c+delta)); 
+real height=100;
+real width=100;
+pair delta=0.5(width,height);
+pair c=center();
+clip(box(c-delta,c+delta));
 \endverbatim
 
 However, drawing in PostScript coordinates is often inconvenient. Here's the 
 Asymptote way of doing the same thing, using deferred drawing: 
  
 \verbatim
-size(200,0); 
-fill((0,0)--(1,1)--(2,0)--cycle); 
+size(200,0);
+fill((0,0)--(1,1)--(2,0)--cycle);
  
 void clip(picture pic=currentpicture, real width, real height) 
 {
 pic.clip(new void (frame f, transform) { 
-pair center=0.5(min(f)+max(f)); 
-pair delta=0.5(width,height); 
-clip(f,box(center-delta,center+delta)); 
-}); 
+pair center=0.5(min(f)+max(f));
+pair delta=0.5(width,height);
+clip(f,box(center-delta,center+delta));
+});
 } 
  
-clip(100,100); 
+clip(100,100);
 \endverbatim
 
 See also the discussion of tilings in the documentation: 
@@ -1220,9 +1220,9 @@ expect). Microsoft Windows users can turn this feature off with the
 command-line option -noV or by putting  
  
 \verbatim
-import settings; 
-interactiveView=false; 
-batchView=false; 
+import settings;
+interactiveView=false;
+batchView=false;
 \endverbatim
 
 in their \courier{config.asy\} file. See

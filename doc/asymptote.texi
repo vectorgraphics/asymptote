@@ -3195,7 +3195,7 @@ value) files and portable @acronym{XDR} (External Data Representation)
 binary files.
 
 An input file must first be opened with 
-@code{input(string name, bool check=true, string commentchar="#")};
+@code{input(string name, bool check=true, string comment="#")};
 reading is then done by assignment:
 @cindex open
 @cindex @code{input}
@@ -3210,7 +3210,7 @@ real a=fin;
 If the optional boolean argument @code{check} is @code{false}, no check will
 be made that the file exists. If the file does not exist or is not
 readable, the function @code{bool error(file)} will return @code{true}.
-The first character of the string @code{commentchar} specifies a
+The first character of the string @code{comment} specifies a
 comment character. If this character is encountered in a data file,
 the remainder of the line is ignored. When reading strings, a comment
 character followed immediately by another comment character is treated
@@ -7891,7 +7891,7 @@ Melenchuk, Martin Wiebusch, and Stefan Knorr.
 @c  LocalWords:  nodeps Ghostgum beginlabel endlabel pTick ptick loggrid SAS dy
 @c  LocalWords:  currentprojection latticeshading subpictures colinear unitcube
 @c  LocalWords:  Autoscaling solveQuadratic MidArrow MidArcArrow Prebuilt url
-@c  LocalWords:  pdftex commentchar getstring getstringprefix getreal defaultS
+@c  LocalWords:  pdftex comment getstring getstringprefix getreal defaultS
 @c  LocalWords:  ticklocate autoscaleT autoscaling vectorfield autolimits dvi
 @c  LocalWords:  zlimits inline dvipdf hyperdvi autoconf gui zerowindingoverlap
 @c  LocalWords:  prepended intMax quadraticroots cubicroots filltype prepend dx
