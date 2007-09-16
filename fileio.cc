@@ -16,7 +16,7 @@ string newline="\n";
 ofile Stdout("");
 file nullfile("",false,false,true);
 
-void ifile::ignoreComment(bool readstring)
+void ifile::ignoreComment()
 {
   if(comment == 0) return;
   int c;
@@ -25,10 +25,6 @@ void ifile::ignoreComment(bool readstring)
   for(;;) {
     while(isspace(c=stream->peek())) {
       stream->ignore();
-      if(c == '\n' && readstring) {
-	c=stream->peek();
-	break;
-      }
       whitespace += (char) c;
     }
     if(c == comment) {
@@ -104,9 +100,17 @@ void ifile::Read(string& val)
     while(stream->good()) {
       int c=stream->peek();
       if(c == '"') {quote=!quote; stream->ignore(); continue;}
-      if(!quote && (c == ',' || c == '\n')) {
-	if(c == '\n') ignoreComment(true);
-	break;
+      if(!quote) {
+	if(c == comment) {
+	  while((c=stream->peek()) != '\n' && c != EOF)
+	    stream->ignore();
+	  if(s.empty() && c == '\n') {
+	    stream->ignore();
+	    continue;
+	  }
+       }
+	if(c == ',' || c == '\n')
+	  break;
       }
       s += (char) stream->get();
     }

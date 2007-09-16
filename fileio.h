@@ -167,7 +167,7 @@ public:
   virtual void write(const transform&) {nowrite("transform");}
   virtual void writeline() {nowrite("string");}
   
-  virtual void ignoreComment(bool=false) {};
+  virtual void ignoreComment() {};
   virtual void csv() {};
   
   template<class T>
@@ -276,7 +276,7 @@ public:
   
   void csv();
   
-  virtual void ignoreComment(bool readstring=false);
+  virtual void ignoreComment();
   
   // Skip over white space
   void readwhite(string& val) {val=string(); *stream >> val;}
