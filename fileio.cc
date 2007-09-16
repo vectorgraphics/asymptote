@@ -35,10 +35,8 @@ void ifile::ignoreComment(bool readstring)
       whitespace="";
       while((c=stream->peek()) != '\n' && c != EOF)
 	stream->ignore();
-      if(c == '\n') {
-	if(readstring) return;
+      if(c == '\n')
 	stream->ignore();
-      }
     } else {if(eol) stream->unget(); return;}
   }
 }
