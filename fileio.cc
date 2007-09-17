@@ -87,8 +87,11 @@ void ifile::csv()
   std::ios::iostate rdstate=stream->rdstate();
   if(stream->fail()) stream->clear();
   int c=stream->peek();
-  if(c == ',' || (c == '\n' && !linemode)) stream->ignore();
-  else stream->clear(rdstate);
+  if(c == ',') stream->ignore();
+  else if(c == '\n') {
+    stream->ignore();
+    if(linemode && stream->peek() != EOF) stream->unget();
+  } else stream->clear(rdstate);
   if(c == ',') comma=true;
 }
   
