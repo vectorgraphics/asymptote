@@ -29,8 +29,8 @@ void reportError(const string& desc)
 // Used internally to report a warning in an operation.
 void reportWarning(const string& desc)
 {
-  em.runtime(vm::getPos());
-  em << "warning: " << desc;
+  em.warning(vm::getPos());
+  em << desc;
   em.sync();
 }
 
