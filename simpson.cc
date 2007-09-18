@@ -1,10 +1,11 @@
 #include <cmath>
 #include <cassert>
+#include <cfloat>
 
 // Compute a numerical approximation to an integral via adaptive Simpson's Rule
 // This routine ignores underflow.
 
-const int nest=100;
+const int nest=DBL_MANT_DIG;
 
 typedef struct {
   bool left; 			// left interval?
@@ -110,10 +111,11 @@ unsimpson(double integral,	// Given value for the integral.
 	  double acc, 	  	// Desired relative accuracy of b.
 				// Try to make |integral-area| <= acc*integral.
 	  double& area,		// Computed integral of f(x) on [a,b].
-	  double dxmax)		// Maximum limit on the width of a subinterval
+	  double dxmax,		// Maximum limit on the width of a subinterval
 				// For periodic functions, dxmax should be
 				// set to the period or smaller to prevent
 				// premature convergence of Simpson's rule. 
+	  double dxmin=0)	// Lower limit on sampling width.
 {
   double diff,estl,estr,alpha,da,dx,wt,est,fv[5];
   double sum,parea,pdiff,b2;
@@ -166,7 +168,7 @@ unsimpson(double integral,	// Given value for the integral.
 	  p->left=true;
 	  p->psum=parea;
 	} else {
-	  if(fabs(diff) <= fv[4]*acc*da && da <= dxmax) {
+	  if((fabs(diff) <= fv[4]*acc*da || dx <= dxmin) && da <= dxmax) {
 	    // Accept approximate integral sum.
 	    // If it was a right interval, add results to finish at this level.
 	    // If it was a left interval, process right interval.

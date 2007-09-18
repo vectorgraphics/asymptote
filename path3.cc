@@ -41,12 +41,12 @@ double cubiclength(const triple& z0, const triple& z0p, const triple& z1m,
   if(!simpson(integral,ds,0.0,1.0,DBL_EPSILON,1.0))
     reportError("nesting capacity exceeded in computing arclength");
   L=3.0*integral;
-  if(goal < 0 || goal > L) return L;
+  if(goal < 0 || goal >= L) return L;
   
   static const double third=1.0/3.0;
+  double t=goal/L;
   goal *= third;
-  double t=0.5;
-  if(!unsimpson(goal,ds,0.0,t,100.0*DBL_EPSILON,integral,1.0))
+  if(!unsimpson(goal,ds,0.0,t,10.0*DBL_EPSILON,integral,1.0,sqrt(DBL_EPSILON)))
     reportError("nesting capacity exceeded in computing arctime");
   return -t;
 }

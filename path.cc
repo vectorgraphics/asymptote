@@ -593,6 +593,7 @@ static double ds(double t)
 {
   double dx=quadratic(a.getx(),b.getx(),c.getx(),t);
   double dy=quadratic(a.gety(),b.gety(),c.gety(),t);
+//  cout << t << " " << sqrt(dx*dx+dy*dy) << endl;
   return sqrt(dx*dx+dy*dy);
 }
 
@@ -609,9 +610,9 @@ double cubiclength(const pair& z0, const pair& z0p,
   if(goal < 0 || goal >= L) return L;
   
   static const double third=1.0/3.0;
+  double t=goal/L;
   goal *= third;
-  double t=0.5;
-  if(!unsimpson(goal,ds,0.0,t,10.0*DBL_EPSILON,integral,1.0))
+  if(!unsimpson(goal,ds,0.0,t,10.0*DBL_EPSILON,integral,1.0,sqrt(DBL_EPSILON)))
     reportError("nesting capacity exceeded in computing arctime");
   return -t;
 }

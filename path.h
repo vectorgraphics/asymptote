@@ -36,7 +36,7 @@ bool simpson(double& integral, double (*)(double), double a, double b,
 	     double acc, double dxmax);
 
 bool unsimpson(double integral, double (*)(double), double a, double& b,
-	       double acc, double& area, double dxmax);
+	       double acc, double& area, double dxmax, double dxmin=0);
 
 namespace camp {
 
