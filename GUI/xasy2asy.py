@@ -43,7 +43,7 @@ def startQuickAsy():
     pass
   try:
     quickAsyFailed = False
-    quickAsy = Popen([xasyOptions.options['asyPath']]+split("-noV -q -multiline -interactive"),stdin=PIPE,stdout=PIPE,stderr=STDOUT)
+    quickAsy = Popen([xasyOptions.options['asyPath']]+split("-noV -multiline -interactive"),stdin=PIPE,stdout=PIPE,stderr=STDOUT)
     if quickAsy.returncode != None:
       quickAsyFailed = True
   except:
