@@ -1106,7 +1106,7 @@ void shipout(string prefix=emptystring, picture *f, picture *preamble=NULL,
     group->append(e);
     if(!Delete) result->add(*group);
   }
-  result->shipout(preamble,prefix,format,1.0,wait,view);
+  result->shipout(preamble,prefix,format,0.0,wait,view);
 }
 
 void deconstruct(string prefix=emptystring, picture *f,

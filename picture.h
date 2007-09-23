@@ -67,7 +67,7 @@ public:
     
   // Ship the picture out to PostScript & TeX files.
   bool shipout(picture* preamble, const string& prefix,
-	       const string& format, double magnification=0, 
+	       const string& format, double magnification=0.0,
 	       bool wait=false, bool view=true,
 	       bool Delete=false);
  
