@@ -47,11 +47,11 @@ void texfile::prologue()
     std::ofstream *outpreamble=
       new std::ofstream(auxname(getSetting<string>("outname"),"pre").c_str(),
 			std::ios::app);
-    texpreamble(*outpreamble,global.back()->TeXpreamble);
+    texpreamble(*outpreamble,processData().TeXpreamble);
     outpreamble->close();
   }
   
-  texdefines(*out,global.back()->TeXpreamble,false);
+  texdefines(*out,processData().TeXpreamble,false);
   double width=box.right-box.left;
   double height=box.top-box.bottom;
   if(settings::pdf(texengine) && !inlinetex) {

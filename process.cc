@@ -27,7 +27,7 @@
 
 namespace camp {
   pen& defaultpen() {
-    return global.back()->defaultpen;
+    return processData().defaultpen;
   }
 }
 
@@ -57,7 +57,12 @@ using interact::uptodate;
 using absyntax::runnable;
 using absyntax::block;
 
-mem::list<globalData *> global;
+mem::stack<processDataStruct *> processDataStack;
+
+processDataStruct &processData() {
+  assert(!processDataStack.empty());
+  return *processDataStack.top();
+}
 
 void init(bool resetpath=true)
 {
@@ -139,6 +144,9 @@ struct icore {
 
 public:
 
+  // preRun and postRun are the optional activities that take place before and
+  // after running the code specified.  They can be overridden by derived class
+  // that wish different behaviour.
   virtual void preRun(coenv &e, istack &s) {
     if(getSetting<bool>("autoplain"))
       runAutoplain(e,s);
@@ -175,7 +183,7 @@ public:
       run(e,s);
 
       postRun(e,s);
-       
+
     } catch(std::bad_alloc&) {
       cerr << "error: out of memory" << endl;
       em.statusError();
@@ -194,10 +202,13 @@ public:
     else if (getSetting<bool>("listvariables"))
       doList();
     else {
-      globalData g;
-      global.push_back(&g);
+      // This is not done in preRun as it is not an optional step.
+      processDataStruct data;
+      processDataStack.push(&data);
+
       doRun(purge);
-      global.pop_back();
+
+      processDataStack.pop();
     }
   }
 };
@@ -259,10 +270,13 @@ public:
   void doRun() {
     // Don't prepare an environment to run the code if there isn't any code.
     if (getTree()) {
-      globalData g;
-      global.push_back(&g);
+      // This is not done in preRun as it is not an optional step.
+      processDataStruct data;
+      processDataStack.push(&data);
+
       icore::doRun();
-      global.pop_back();
+
+      processDataStack.pop();
     }
   }
 };

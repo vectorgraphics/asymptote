@@ -130,7 +130,7 @@ bbox picture::bounds()
   for(size_t i=0; i < lastnumber; ++i) ++p;
   for(; p != nodes.end(); ++p) {
     assert(*p);
-    (*p)->bounds(b,global.back()->tex,labelbounds,bboxstack);
+    (*p)->bounds(b,processData().tex,labelbounds,bboxstack);
     
      // Optimization for interpreters with fixed stack limits.
     if((*p)->endclip()) {
@@ -151,24 +151,24 @@ bbox picture::bounds()
 void picture::texinit()
 {
   drawElement::lastpen=pen(initialpen);
-  globalData *g=global.back();
+  processDataStruct &pd=processData();
   // Output any new texpreamble commands
-  if(g->tex.isopen()) {
-    if(g->TeXpipepreamble.empty()) return;
-    texpreamble(g->tex,g->TeXpipepreamble);
-    g->TeXpipepreamble.clear();
+  if(pd.tex.isopen()) {
+    if(pd.TeXpipepreamble.empty()) return;
+    texpreamble(pd.tex,pd.TeXpipepreamble);
+    pd.TeXpipepreamble.clear();
     return;
   }
   
   ostringstream cmd;
   cmd << "'" << texprogram() << "'" << " \\scrollmode";
-  g->tex.open(cmd.str().c_str(),"texpath",texpathmessage());
-  g->tex.wait("\n*");
-  g->tex << "\n";
-  texdocumentclass(g->tex,true);
+  pd.tex.open(cmd.str().c_str(),"texpath",texpathmessage());
+  pd.tex.wait("\n*");
+  pd.tex << "\n";
+  texdocumentclass(pd.tex,true);
   
-  texdefines(g->tex,g->TeXpreamble,true);
-  g->TeXpipepreamble.clear();
+  texdefines(pd.tex,pd.TeXpreamble,true);
+  pd.TeXpipepreamble.clear();
 }
   
 bool picture::texprocess(const string& texname, const string& outname,

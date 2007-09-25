@@ -38,7 +38,7 @@ void texdocumentclass(T& out, bool pipe=false)
 }
   
 template<class T>
-void texpreamble(T& out, mem::list<string>& preamble=global.back()->TeXpreamble)
+void texpreamble(T& out, mem::list<string>& preamble=processData().TeXpreamble)
 {
   for(mem::list<string>::iterator p=preamble.begin();
       p != preamble.end(); ++p)
@@ -46,7 +46,7 @@ void texpreamble(T& out, mem::list<string>& preamble=global.back()->TeXpreamble)
 }
 
 template<class T>
-void texdefines(T& out, mem::list<string>& preamble=global.back()->TeXpreamble,
+void texdefines(T& out, mem::list<string>& preamble=processData().TeXpreamble,
 		bool pipe=false)
 {
   string texengine=settings::getSetting<string>("tex");

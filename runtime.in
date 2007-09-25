@@ -520,9 +520,9 @@ void init_readline(bool tabcompletion=true)
 
 void cleanup()
 {
-  globalData *g=global.back();
-  g->atExitFunction=NULL;
-  g->atBreakpointFunction=NULL;
+  processDataStruct &pd=processData();
+  pd.atExitFunction=NULL;
+  pd.atBreakpointFunction=NULL;
   
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_LIBCURSES)
   store_history(&history_save);
@@ -546,7 +546,7 @@ void purge()
 
 void updateFunction(stack *Stack)
 {
-  callable *atExitFunction=global.back()->atExitFunction;
+  callable *atExitFunction=processData().atExitFunction;
   if(atExitFunction && !nullfunc::instance()->compare(atExitFunction))
     atExitFunction->call(Stack);
 }
@@ -564,7 +564,7 @@ string commentchar="#";
 
 void breakpoint(stack *Stack, runnable *r)
 {
-  callable *atBreakpointFunction=global.back()->atBreakpointFunction;
+  callable *atBreakpointFunction=processData().atBreakpointFunction;
   if(atBreakpointFunction &&
      !nullfunc::instance()->compare(atBreakpointFunction)) {
     position curPos=getPos();
@@ -1006,9 +1006,9 @@ void tex(picture *f, string s, pair min, pair max)
 void texpreamble(string s)
 {
   string t=s+"\n";
-  globalData *g=global.back();
-  g->TeXpipepreamble.push_back(t);
-  g->TeXpreamble.push_back(t);
+  processDataStruct &pd=processData();
+  pd.TeXpipepreamble.push_back(t);
+  pd.TeXpreamble.push_back(t);
 }
 
 void deletepreamble() 
@@ -1026,10 +1026,10 @@ void _labelpath(picture *f, string s, string size, path g, string justify,
 
 void texreset()
 {
-  globalData *g=global.back();
-  g->TeXpipepreamble.clear();
-  g->TeXpreamble.clear();
-  g->tex.pipeclose();
+  processDataStruct &pd=processData();
+  pd.TeXpipepreamble.clear();
+  pd.TeXpreamble.clear();
+  pd.tex.pipeclose();
 }
 
 void layer(picture *f)
@@ -1218,17 +1218,17 @@ pair min(pen p)
 // Reset the meaning of pen default attributes.
 void resetdefaultpen()
 {
-  global.back()->defaultpen=camp::pen::initialpen();
+  processData().defaultpen=camp::pen::initialpen();
 }
 
 void defaultpen(pen p)
 {
-  global.back()->defaultpen=pen(resolvepen,p);
+  processData().defaultpen=pen(resolvepen,p);
 }
 
 pen defaultpen()
 {
-  return global.back()->defaultpen;
+  return processData().defaultpen;
 }
 
 pen invisible()
@@ -2855,17 +2855,17 @@ string VERSION()
 
 void atexit(callable *f)
 {
-  global.back()->atExitFunction=f;
+  processData().atExitFunction=f;
 }
 
 callable *atexit()
 {
-  return global.back()->atExitFunction;
+  return processData().atExitFunction;
 }
 
 void atbreakpoint(callableBp *f)
 {
-  global.back()->atBreakpointFunction=f;
+  processData().atBreakpointFunction=f;
 }
 
 void breakpoint(runnable *s=NULL)

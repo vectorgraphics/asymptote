@@ -85,7 +85,7 @@ public:
   ~texstream();
 };
 
-struct globalData {
+struct processDataStruct {
   texstream tex; // Bi-directional pipe to latex (to find label bbox)
   mem::list<string> TeXpipepreamble;
   mem::list<string> TeXpreamble;
@@ -100,7 +100,7 @@ struct globalData {
   terminator<xdr::oxstream> oxfile;
 #endif  
   
-  globalData() {
+  processDataStruct() {
     atExitFunction=NULL;
     atBreakpointFunction=NULL;
     defaultpen=camp::pen::initialpen();
@@ -108,6 +108,6 @@ struct globalData {
   
 };
 
-extern mem::list<globalData *> global;
+processDataStruct &processData();
 
 #endif
