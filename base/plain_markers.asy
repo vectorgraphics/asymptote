@@ -289,3 +289,18 @@ void dot(picture pic=currentpicture, Label L, pen p=currentpen)
 {
   dot(pic,L,L.position,p);
 }
+
+void opendot(frame f, pair z, pen p=currentpen)
+{
+  transform t=shift(z);
+  unfill(f,t*scale(0.5*dotsize(p))*unitcircle);
+  draw(f,t*scale(0.5*(dotsize(p)-linewidth(p)))*unitcircle,p);
+}
+  
+void opendot(picture pic=currentpicture, pair z, pen p=currentpen)
+{
+  pic.add(new void(frame f, transform t) {
+      opendot(f,t*z,p);
+    },true);
+  pic.addPoint(z,p);
+}
