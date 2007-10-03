@@ -197,11 +197,18 @@ bounds autoscale(real Min, real Max, scaleT scale=Linear)
   int exp=max(sa.exponent,sb.exponent);
   real a=sa.floor(Min,exp);
   real b=sb.ceil(Max,exp);
-  if(sb.mantissa <= 1.5) {
+
+  void zoom() {
     --exp;
     a=sa.floor(Min,exp);
     b=sb.ceil(Max,exp);
   }
+
+  if(sb.mantissa <= 1.5)
+    zoom();
+
+  while((b-a)*10.0^exp > 10*(Max-Min))
+    zoom();
   
   real bsave=b;
   if(b-a > (a >= 0 ? 8 : 6)) {
@@ -860,9 +867,9 @@ ticks Ticks(Label format="", ticklabel ticklabel=null,
 }
 
 ticks NoTicks=NoTicks(),
-  LeftTicks=LeftTicks(),
-  RightTicks=RightTicks(),
-  Ticks=Ticks();
+LeftTicks=LeftTicks(),
+RightTicks=RightTicks(),
+Ticks=Ticks();
 
 pair tickMin(picture pic)
 {
@@ -1006,13 +1013,13 @@ axis YZero(bool extend=true)
 }
 
 axis Bottom=Bottom(),
-  Top=Top(),
-  BottomTop=BottomTop(),
-  Left=Left(),
-  Right=Right(),
-  LeftRight=LeftRight(),
-  XZero=XZero(),
-  YZero=YZero();
+Top=Top(),
+BottomTop=BottomTop(),
+Left=Left(),
+Right=Right(),
+LeftRight=LeftRight(),
+XZero=XZero(),
+YZero=YZero();
 
 // Draw a general axis.
 void axis(picture pic=currentpicture, Label L="", path g, path g2=nullpath,
@@ -1323,7 +1330,7 @@ void autoscale(picture pic=currentpicture, axis axis)
     
     if(pic.userSety) {
       my=autoscale(pic.userMin.y,pic.userMax.y,pic.scale.y.scale);
-      if(pic.scale.y.scale.logarithmic && 
+      if(pic.scale.y.scale.logarithmic &&
          floor(pic.userMin.y) == floor(pic.userMax.y)) {
         if(pic.scale.y.automin())
           pic.userMiny(floor(pic.userMin.y));
@@ -1703,8 +1710,8 @@ graph graph(interpolate join)
     real width=b-a;
     return n == 0 ? join(f(a)) :
       join(...sequence(new guide(int i) {
-	    return f(a+(i/n)*width);
-	  },n+1));
+            return f(a+(i/n)*width);
+          },n+1));
   };
 }
 
@@ -1819,7 +1826,7 @@ path[] segment(pair[] z, bool[] b, interpolate join=operator --)
   if(z.length != b.length) abort(differentlengths);
   int[][] segment=segment(b);
   return sequence(new path(int i) {return join(... z[segment[i]]);},
-		  segment.length);
+                  segment.length);
 }
 
 pair polar(real r, real theta)
