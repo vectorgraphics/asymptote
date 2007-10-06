@@ -1,4 +1,14 @@
-string defaultformat="$%.4g$";
+string string(real x)
+{
+  return (string) x;
+}
+
+string defaultformat(int n, bool trailingzero=false, bool fixed=false)
+{
+  return "$%"+(trailingzero ? "#" : "")+"."+string(n)+(fixed ? "f" : "g")+"$";
+}
+
+string defaultformat=defaultformat(4);
 
 string ask(string prompt)
 {
@@ -139,11 +149,6 @@ string math(real x)
 string format(real x)
 {
   return format(defaultformat,x);
-}
-
-string string(real x)
-{
-  return (string) x;
 }
 
 string phantom(string s)

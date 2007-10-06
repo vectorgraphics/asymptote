@@ -6001,12 +6001,15 @@ If any of these parameters are omitted, reasonable defaults will
 be chosen:
 @table @code
 @item Label format
+@cindex @code{defaultformat}
+@cindex @code{trailingzero}
 override the default tick label format (@code{defaultformat}, initially
 "$%.4g$"), rotation, pen, and alignment (for example, @code{LeftSide},
 @code{Center}, or @code{RightSide}) relative to the axis. To enable
 @code{LaTeX} math mode fonts, the format string should begin and
-end with @code{$} @pxref{format}; if the format string is @code{"%"},
-the tick label will be suppressed;
+end with @code{$} @pxref{format}. If the format string is @code{trailingzero},
+trailing zeros will be added to the tick labels; if the format string is
+@code{"%"}, the tick label will be suppressed;
 @item ticklabel
 is a function @code{string(real x)} returning the label (by default,
 format(format.s,x)) for each major tick value @code{x};

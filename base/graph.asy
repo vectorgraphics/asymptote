@@ -44,7 +44,7 @@ scaleT Broken(real a, real b, bool automin=true, bool automax=true)
   scaleT scale;
   real T(real x) {
     if(x <= a) return x;
-    if(x <= b) return a; 
+    if(x <= b) return a;
     return x-skip;
   }
   real Tinv(real x) {
@@ -245,6 +245,8 @@ ticklabel OmitFormat(string s=defaultformat ... real[] x)
     return i < 0 ? format(s,v) : "";
   };
 }
+
+string trailingzero="$%#$";
 
 ticklabel DefaultFormat=Format();
 ticklabel NoZeroFormat=OmitFormat(0);
@@ -493,6 +495,44 @@ struct tickvalues {
   real[] minor;
 }
 
+// Determine a format that distinguishes adjacent pairs of ticks, optionally
+// adding trailing zeros.
+string autoformat(bool trailingzero=false, real norm ... real[] a)
+{
+  real[] A=sort(a);
+  real[] a=abs(A);
+
+  for(int i=0; i < A.length-1; ++i)
+    if(a[i] < zerotickfuzz*norm) A[i]=a[i]=0;
+
+  int n=0;
+
+  bool Fixed=find(a >= 1e4-epsilon | (a > 0 & a <= 1e-4-epsilon)) < 0;
+
+  if(Fixed && n < 4) {
+    for(int i=0; i < A.length-1; ++i) {
+      real a=A[i];
+      while(format(defaultformat(n,fixed=Fixed),a) !=
+	    format(defaultformat(4,fixed=Fixed),a)) ++n;
+    }
+  }
+
+  string format=defaultformat(n,trailingzero,Fixed);
+
+  for(int i=0; i < A.length-1; ++i) {
+    real a=A[i];
+    real b=A[i+1];
+    if(a != b) {
+      while(format(format,a) == format(format,b))
+	format=defaultformat(++n,trailingzero,Fixed);
+    }
+  }
+
+  if(n == 0) return defaultformat;
+
+  return format;
+}
+
 // Automatic tick generation routine.
 tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
                          int N, int n=0, real Step=0, real step=0,
@@ -508,9 +548,6 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
   F=F.copy();
   F.p(p);
     
-  string format=F.s == "" ? defaultformat : F.s;
-  if(F.s == "%") F.s="";
-
   if(F.align.dir != 0) side=F.align.dir;
   else if(side == 0) side=((sign == 1) ? left : right);
     
@@ -518,9 +555,14 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
   path G=T*g;
     
   if(!locate.S.scale.logarithmic) {
-    if(ticklabel == null) ticklabel=Format(format);
     real a=locate.S.Tinv(locate.a);
     real b=locate.S.Tinv(locate.b);
+    real norm=max(abs(a),abs(b));
+    string format=F.s == "" ? autoformat(norm,a,b) :
+      (F.s == trailingzero ? autoformat(true,norm,a,b) : F.s);
+    if(F.s == "%") F.s="";
+    if(ticklabel == null) ticklabel=Format(format);
+
     if(a > b) {real temp=a; a=b; b=temp;}
       
     real tickmin=finite(locate.S.tickMin) && (Step == 0 || locate.S.automin) ? 
@@ -534,7 +576,6 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
 
     bool calcStep=true;
     real len=tickmax-tickmin;
-    real norm=max(abs(a),abs(b));
     if(Step == 0 && N == 0) {
       if(divisor.length > 0) {
         real limit=axiscoverage*arclength(G);
@@ -597,6 +638,9 @@ tickvalues generateticks(int sign, Label F="", ticklabel ticklabel=null,
     }
     
   } else { // Logarithmic
+    string format=F.s;
+    if(F.s == "%") F.s="";
+
     int base=round(locate.S.scale.Tinv(1));
 
     if(ticklabel == null) 
@@ -697,7 +741,8 @@ ticks Ticks(int sign, Label F="", ticklabel ticklabel=null,
 
     real norm=max(abs(a),abs(b));
     
-    string format=F.s == "" ? defaultformat : F.s;
+    string format=F.s == "" ? autoformat(norm...Ticks) :
+      (F.s == trailingzero ? autoformat(true,norm...Ticks) : F.s);
     if(F.s == "%") F.s="";
     if(ticklabel == null) {
       if(locate.S.scale.logarithmic) {

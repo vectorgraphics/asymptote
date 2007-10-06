@@ -10,7 +10,7 @@ draw(graph(x,y,0,1));
 //xlimits(0,1,Crop);
 //ylimits(-1,0,Crop);
 
-xaxis("$x$",BottomTop,LeftTicks("$%#.1f$"));
-yaxis("$y$",LeftRight,RightTicks("$%#.1f$"));
+xaxis("$x$",BottomTop,LeftTicks);
+yaxis("$y$",LeftRight,RightTicks(trailingzero));
 
 
